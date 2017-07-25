@@ -878,8 +878,8 @@ void WM_manipulatorconfig_update_tag_init(
         wmManipulatorMapType *mmap_type, wmManipulatorGroupType *wgt)
 {
 	/* tag for update on next use */
-	mmap_type->type_update_flag |= WM_MANIPULATORMAPTYPE_UPDATE_INIT;
-	wgt->type_update_flag |= WM_MANIPULATORMAPTYPE_UPDATE_INIT;
+	mmap_type->type_update_flag |= (WM_MANIPULATORMAPTYPE_UPDATE_INIT | WM_MANIPULATORMAPTYPE_KEYMAP_INIT);
+	wgt->type_update_flag |= (WM_MANIPULATORMAPTYPE_UPDATE_INIT | WM_MANIPULATORMAPTYPE_KEYMAP_INIT);
 
 	wm_mmap_type_update_flag |= WM_MANIPULATORMAPTYPE_GLOBAL_UPDATE_INIT;
 }
@@ -931,14 +931,22 @@ void WM_manipulatorconfig_update(struct Main *bmain)
 		     mmap_type;
 		     mmap_type = mmap_type->next)
 		{
-			if (mmap_type->type_update_flag & WM_MANIPULATORMAPTYPE_UPDATE_INIT) {
-				mmap_type->type_update_flag &= ~WM_MANIPULATORMAPTYPE_UPDATE_INIT;
+			const uchar type_update_all = WM_MANIPULATORMAPTYPE_UPDATE_INIT | WM_MANIPULATORMAPTYPE_KEYMAP_INIT;
+			if (mmap_type->type_update_flag & type_update_all) {
+				mmap_type->type_update_flag &= ~type_update_all;
 				for (wmManipulatorGroupTypeRef *wgt_ref = mmap_type->grouptype_refs.first;
 				     wgt_ref;
 				     wgt_ref = wgt_ref->next)
 				{
-					wgt_ref->type->type_update_flag &= ~WM_MANIPULATORMAPTYPE_UPDATE_INIT;
-					WM_manipulatormaptype_group_init_runtime(bmain, mmap_type, wgt_ref->type);
+					if (wgt_ref->type->type_update_flag & WM_MANIPULATORMAPTYPE_KEYMAP_INIT) {
+						wgt_ref->type->type_update_flag &= ~WM_MANIPULATORMAPTYPE_KEYMAP_INIT;
+						WM_manipulatormaptype_group_init_runtime_keymap(bmain, wgt_ref->type);
+					}
+
+					if (wgt_ref->type->type_update_flag & WM_MANIPULATORMAPTYPE_UPDATE_INIT) {
+						wgt_ref->type->type_update_flag &= ~WM_MANIPULATORMAPTYPE_UPDATE_INIT;
+						WM_manipulatormaptype_group_init_runtime(bmain, mmap_type, wgt_ref->type);
+					}
 				}
 			}
 		}

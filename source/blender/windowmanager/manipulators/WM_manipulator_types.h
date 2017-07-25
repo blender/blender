@@ -327,6 +327,10 @@ enum eManipulatorMapTypeUpdateFlags {
 	/* A new type has been added, needs to be initialized for all views. */
 	WM_MANIPULATORMAPTYPE_UPDATE_INIT = (1 << 0),
 	WM_MANIPULATORMAPTYPE_UPDATE_REMOVE = (1 << 1),
+
+	/* Needed because keymap may be registered before and after window initialization.
+	 * So we need to keep track of keymap initialization separately. */
+	WM_MANIPULATORMAPTYPE_KEYMAP_INIT = (1 << 2),
 };
 
 /**

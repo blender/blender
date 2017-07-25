@@ -83,6 +83,8 @@ static wmManipulatorGroupType *wm_manipulatorgrouptype_append__begin(void)
 {
 	wmManipulatorGroupType *wgt = MEM_callocN(sizeof(wmManipulatorGroupType), "manipulatorgrouptype");
 
+	wgt->type_update_flag |= WM_MANIPULATORMAPTYPE_KEYMAP_INIT;
+
 	return wgt;
 }
 static void wm_manipulatorgrouptype_append__end(wmManipulatorGroupType *wgt)

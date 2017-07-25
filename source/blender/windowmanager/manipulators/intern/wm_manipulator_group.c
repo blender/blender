@@ -567,13 +567,18 @@ wmManipulatorGroupTypeRef *WM_manipulatormaptype_group_link_ptr(
 	return wgt_ref;
 }
 
-void WM_manipulatormaptype_group_init_runtime(
-        const Main *bmain, wmManipulatorMapType *mmap_type,
+void WM_manipulatormaptype_group_init_runtime_keymap(
+        const Main *bmain,
         wmManipulatorGroupType *wgt)
 {
 	/* init keymap - on startup there's an extra call to init keymaps for 'permanent' manipulator-groups */
 	wm_manipulatorgrouptype_setup_keymap(wgt, ((wmWindowManager *)bmain->wm.first)->defaultconf);
+}
 
+void WM_manipulatormaptype_group_init_runtime(
+        const Main *bmain, wmManipulatorMapType *mmap_type,
+        wmManipulatorGroupType *wgt)
+{
 	/* now create a manipulator for all existing areas */
 	for (bScreen *sc = bmain->screen.first; sc; sc = sc->id.next) {
 		for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
@@ -646,8 +651,13 @@ void WM_manipulatormaptype_group_unlink(
 void wm_manipulatorgrouptype_setup_keymap(
         wmManipulatorGroupType *wgt, wmKeyConfig *keyconf)
 {
-	wgt->keymap = wgt->setup_keymap(wgt, keyconf);
-	wgt->keyconf = keyconf;
+	/* Use flag since setup_keymap may return NULL,
+	 * in that case we better not keep calling it. */
+	if (wgt->type_update_flag & WM_MANIPULATORMAPTYPE_KEYMAP_INIT) {
+		wgt->keymap = wgt->setup_keymap(wgt, keyconf);
+		wgt->keyconf = keyconf;
+		wgt->type_update_flag &= ~WM_MANIPULATORMAPTYPE_KEYMAP_INIT;
+	}
 }
 
 /** \} */ /* wmManipulatorGroupType */

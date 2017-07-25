@@ -232,6 +232,9 @@ struct wmManipulatorGroupTypeRef *WM_manipulatormaptype_group_link_ptr(
         struct wmManipulatorMapType *mmap_type,
         struct wmManipulatorGroupType *wgt);
 
+void WM_manipulatormaptype_group_init_runtime_keymap(
+        const struct Main *bmain,
+        struct wmManipulatorGroupType *wgt);
 void WM_manipulatormaptype_group_init_runtime(
         const struct Main *bmain, struct wmManipulatorMapType *mmap_type,
         struct wmManipulatorGroupType *wgt);
