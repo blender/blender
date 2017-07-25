@@ -413,7 +413,7 @@ static bool manipulator_rect_transform_get_prop_value(
 
 static void manipulator_rect_transform_setup(wmManipulator *mpr)
 {
-	mpr->flag |= WM_MANIPULATOR_DRAW_ACTIVE;
+	mpr->flag |= WM_MANIPULATOR_DRAW_MODAL;
 }
 
 static void manipulator_rect_transform_invoke(

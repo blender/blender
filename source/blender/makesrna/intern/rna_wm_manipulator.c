@@ -366,13 +366,13 @@ RNA_MANIPULATOR_GENERIC_FLOAT_RW_DEF(scale_basis, scale_basis);
 RNA_MANIPULATOR_GENERIC_FLOAT_RW_DEF(line_width, line_width);
 
 RNA_MANIPULATOR_GENERIC_FLAG_RW_DEF(flag_use_draw_hover, flag, WM_MANIPULATOR_DRAW_HOVER);
-RNA_MANIPULATOR_GENERIC_FLAG_RW_DEF(flag_use_draw_active, flag, WM_MANIPULATOR_DRAW_ACTIVE);
+RNA_MANIPULATOR_GENERIC_FLAG_RW_DEF(flag_use_draw_modal, flag, WM_MANIPULATOR_DRAW_MODAL);
 RNA_MANIPULATOR_GENERIC_FLAG_RW_DEF(flag_use_draw_value, flag, WM_MANIPULATOR_DRAW_VALUE);
 RNA_MANIPULATOR_GENERIC_FLAG_RW_DEF(flag_hide, flag, WM_MANIPULATOR_HIDDEN);
 
 /* wmManipulator.state */
 RNA_MANIPULATOR_FLAG_RO_DEF(state_is_highlight, state, WM_MANIPULATOR_STATE_HIGHLIGHT);
-RNA_MANIPULATOR_FLAG_RO_DEF(state_is_active, state, WM_MANIPULATOR_STATE_ACTIVE);
+RNA_MANIPULATOR_FLAG_RO_DEF(state_is_modal, state, WM_MANIPULATOR_STATE_MODAL);
 RNA_MANIPULATOR_FLAG_RO_DEF(state_select, state, WM_MANIPULATOR_STATE_SELECT);
 
 static void rna_Manipulator_name_get(PointerRNA *ptr, char *value)
@@ -1067,10 +1067,10 @@ static void rna_def_manipulator(BlenderRNA *brna, PropertyRNA *cprop)
 	        prop, "rna_Manipulator_flag_use_draw_hover_get", "rna_Manipulator_flag_use_draw_hover_set");
 	RNA_def_property_ui_text(prop, "Draw Hover", "");
 	RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
-	/* WM_MANIPULATOR_DRAW_ACTIVE */
-	prop = RNA_def_property(srna, "use_draw_active", PROP_BOOLEAN, PROP_NONE);
+	/* WM_MANIPULATOR_DRAW_MODAL */
+	prop = RNA_def_property(srna, "use_draw_modal", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(
-	        prop, "rna_Manipulator_flag_use_draw_active_get", "rna_Manipulator_flag_use_draw_active_set");
+	        prop, "rna_Manipulator_flag_use_draw_modal_get", "rna_Manipulator_flag_use_draw_modal_set");
 	RNA_def_property_ui_text(prop, "Draw Active", "Draw while dragging");
 	RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
 	/* WM_MANIPULATOR_DRAW_VALUE */
@@ -1086,9 +1086,9 @@ static void rna_def_manipulator(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_boolean_funcs(prop, "rna_Manipulator_state_is_highlight_get", NULL);
 	RNA_def_property_ui_text(prop, "Highlight", "");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	/* WM_MANIPULATOR_STATE_ACTIVE */
-	prop = RNA_def_property(srna, "is_active", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_Manipulator_state_is_active_get", NULL);
+	/* WM_MANIPULATOR_STATE_MODAL */
+	prop = RNA_def_property(srna, "is_modal", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_Manipulator_state_is_modal_get", NULL);
 	RNA_def_property_ui_text(prop, "Highlight", "");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	/* WM_MANIPULATOR_STATE_SELECT */
@@ -1170,7 +1170,7 @@ static void rna_def_manipulatorgroup(BlenderRNA *brna)
 		 "Supports selection"},
 		{WM_MANIPULATORGROUPTYPE_PERSISTENT, "PERSISTENT", 0, "Persistent",
 		 ""},
-		{WM_MANIPULATORGROUPTYPE_ACTIVE_ALL, "ACTIVE_ALL", 0, "Active All",
+		{WM_MANIPULATORGROUPTYPE_DRAW_MODAL_ALL, "SHOW_MODAL_ALL", 0, "Show Modal All",
 		 "Show all while interacting"},
 		{0, NULL, 0, NULL, NULL}
 	};

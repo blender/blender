@@ -197,8 +197,8 @@ void WM_manipulator_free(ListBase *manipulatorlist, wmManipulatorMap *mmap, wmMa
 	if (mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT) {
 		wm_manipulatormap_highlight_set(mmap, C, NULL, 0);
 	}
-	if (mpr->state & WM_MANIPULATOR_STATE_ACTIVE) {
-		wm_manipulatormap_active_set(mmap, C, NULL, NULL);
+	if (mpr->state & WM_MANIPULATOR_STATE_MODAL) {
+		wm_manipulatormap_modal_set(mmap, C, NULL, NULL);
 	}
 	if (mpr->state & WM_MANIPULATOR_STATE_SELECT) {
 		wm_manipulator_deselect(mmap, mpr);
@@ -228,7 +228,7 @@ void WM_manipulator_free(ListBase *manipulatorlist, wmManipulatorMap *mmap, wmMa
 	}
 
 	BLI_assert(mmap->mmap_context.highlight != mpr);
-	BLI_assert(mmap->mmap_context.active != mpr);
+	BLI_assert(mmap->mmap_context.modal != mpr);
 
 	MEM_freeN(mpr);
 }
@@ -509,10 +509,10 @@ int wm_manipulator_is_visible(wmManipulator *mpr)
 	if (mpr->flag & WM_MANIPULATOR_HIDDEN) {
 		return 0;
 	}
-	if ((mpr->state & WM_MANIPULATOR_STATE_ACTIVE) &&
-	    !(mpr->flag & (WM_MANIPULATOR_DRAW_ACTIVE | WM_MANIPULATOR_DRAW_VALUE)))
+	if ((mpr->state & WM_MANIPULATOR_STATE_MODAL) &&
+	    !(mpr->flag & (WM_MANIPULATOR_DRAW_MODAL | WM_MANIPULATOR_DRAW_VALUE)))
 	{
-		/* don't draw while active (while dragging) */
+		/* don't draw while modal (dragging) */
 		return 0;
 	}
 	if ((mpr->flag & WM_MANIPULATOR_DRAW_HOVER) &&

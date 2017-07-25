@@ -121,7 +121,7 @@ static void manipulator_arrow2d_draw(const bContext *UNUSED(C), wmManipulator *m
 
 static void manipulator_arrow2d_setup(wmManipulator *mpr)
 {
-	mpr->flag |= WM_MANIPULATOR_DRAW_ACTIVE;
+	mpr->flag |= WM_MANIPULATOR_DRAW_MODAL;
 }
 
 static void manipulator_arrow2d_invoke(

@@ -170,7 +170,7 @@ struct wmManipulatorMapType_Params {
  * Flags for individual manipulators. */
 enum {
 	WM_MANIPULATOR_DRAW_HOVER  = (1 << 0), /* draw *only* while hovering */
-	WM_MANIPULATOR_DRAW_ACTIVE = (1 << 1), /* draw while dragging */
+	WM_MANIPULATOR_DRAW_MODAL  = (1 << 1), /* draw while dragging */
 	WM_MANIPULATOR_DRAW_VALUE  = (1 << 2), /* draw an indicator for the current value while dragging */
 	WM_MANIPULATOR_HIDDEN      = (1 << 3),
 };
@@ -178,7 +178,7 @@ enum {
 /* wmManipulator.state */
 enum {
 	WM_MANIPULATOR_STATE_HIGHLIGHT   = (1 << 0), /* while hovered */
-	WM_MANIPULATOR_STATE_ACTIVE      = (1 << 1), /* while dragging */
+	WM_MANIPULATOR_STATE_MODAL       = (1 << 1), /* while dragging */
 	WM_MANIPULATOR_STATE_SELECT      = (1 << 2),
 };
 
@@ -350,7 +350,7 @@ enum {
 	/* The manipulator group is to be kept (not removed on loading a new file for eg). */
 	WM_MANIPULATORGROUPTYPE_PERSISTENT = (1 << 4),
 	/* Show all other manipulators when interacting. */
-	WM_MANIPULATORGROUPTYPE_ACTIVE_ALL = (1 << 5),
+	WM_MANIPULATORGROUPTYPE_DRAW_MODAL_ALL = (1 << 5),
 };
 
 

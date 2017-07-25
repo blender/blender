@@ -2196,7 +2196,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 				wm_region_mouse_co(C, event);
 
 				/* handle manipulator highlighting */
-				if (event->type == MOUSEMOVE && !wm_manipulatormap_active_get(mmap)) {
+				if (event->type == MOUSEMOVE && !wm_manipulatormap_modal_get(mmap)) {
 					int part;
 					mpr = wm_manipulatormap_highlight_find(mmap, C, event, &part);
 					wm_manipulatormap_highlight_set(mmap, C, mpr, part);

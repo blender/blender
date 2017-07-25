@@ -356,7 +356,7 @@ static void manipulator_arrow_setup(wmManipulator *mpr)
 {
 	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
 
-	arrow->manipulator.flag |= WM_MANIPULATOR_DRAW_ACTIVE;
+	arrow->manipulator.flag |= WM_MANIPULATOR_DRAW_MODAL;
 
 	arrow->data.range_fac = 1.0f;
 }

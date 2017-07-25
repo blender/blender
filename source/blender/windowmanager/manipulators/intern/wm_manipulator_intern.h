@@ -99,8 +99,8 @@ struct wmManipulatorMap {
 	struct {
 		/* we redraw the manipulator-map when this changes */
 		struct wmManipulator *highlight;
-		/* user has clicked this manipulator and it gets all input */
-		struct wmManipulator *active;
+		/* User has clicked this manipulator and it gets all input. */
+		struct wmManipulator *modal;
 		/* array for all selected manipulators
 		 * TODO  check on using BLI_array */
 		struct wmManipulator **selected;

@@ -288,7 +288,7 @@ void MANIPULATORGROUP_OT_manipulator_select(wmOperatorType *ot)
 
 typedef struct ManipulatorTweakData {
 	wmManipulatorMap *mmap;
-	wmManipulator *active;
+	wmManipulator *mpr_modal;
 
 	int init_event; /* initial event type */
 	int flag;       /* tweak flags */
@@ -297,17 +297,17 @@ typedef struct ManipulatorTweakData {
 static void manipulator_tweak_finish(bContext *C, wmOperator *op, const bool cancel)
 {
 	ManipulatorTweakData *mtweak = op->customdata;
-	if (mtweak->active->type->exit) {
-		mtweak->active->type->exit(C, mtweak->active, cancel);
+	if (mtweak->mpr_modal->type->exit) {
+		mtweak->mpr_modal->type->exit(C, mtweak->mpr_modal, cancel);
 	}
-	wm_manipulatormap_active_set(mtweak->mmap, C, NULL, NULL);
+	wm_manipulatormap_modal_set(mtweak->mmap, C, NULL, NULL);
 	MEM_freeN(mtweak);
 }
 
 static int manipulator_tweak_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ManipulatorTweakData *mtweak = op->customdata;
-	wmManipulator *mpr = mtweak->active;
+	wmManipulator *mpr = mtweak->mpr_modal;
 
 	if (mpr == NULL) {
 		BLI_assert(0);
@@ -375,7 +375,7 @@ static int manipulator_tweak_invoke(bContext *C, wmOperator *op, const wmEvent *
 
 
 	/* activate highlighted manipulator */
-	wm_manipulatormap_active_set(mmap, C, event, mpr);
+	wm_manipulatormap_modal_set(mmap, C, event, mpr);
 
 	/* XXX temporary workaround for modal manipulator operator
 	 * conflicting with modal operator attached to manipulator */
@@ -389,7 +389,7 @@ static int manipulator_tweak_invoke(bContext *C, wmOperator *op, const wmEvent *
 	ManipulatorTweakData *mtweak = MEM_mallocN(sizeof(ManipulatorTweakData), __func__);
 
 	mtweak->init_event = WM_userdef_event_type_from_keymap_type(event->type);
-	mtweak->active = mmap->mmap_context.highlight;
+	mtweak->mpr_modal = mmap->mmap_context.highlight;
 	mtweak->mmap = mmap;
 	mtweak->flag = 0;
 

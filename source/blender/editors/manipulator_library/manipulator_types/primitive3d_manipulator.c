@@ -148,7 +148,7 @@ static void manipulator_primitive_draw(const bContext *UNUSED(C), wmManipulator 
 
 static void manipulator_primitive_setup(wmManipulator *mpr)
 {
-	mpr->flag |= WM_MANIPULATOR_DRAW_ACTIVE;
+	mpr->flag |= WM_MANIPULATOR_DRAW_MODAL;
 }
 
 static void manipulator_primitive_invoke(
