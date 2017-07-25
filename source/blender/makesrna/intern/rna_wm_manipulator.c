@@ -1170,6 +1170,8 @@ static void rna_def_manipulatorgroup(BlenderRNA *brna)
 		 "Supports selection"},
 		{WM_MANIPULATORGROUPTYPE_PERSISTENT, "PERSISTENT", 0, "Persistent",
 		 ""},
+		{WM_MANIPULATORGROUPTYPE_ACTIVE_ALL, "ACTIVE_ALL", 0, "Active All",
+		 "Show all while interacting"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	prop = RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);

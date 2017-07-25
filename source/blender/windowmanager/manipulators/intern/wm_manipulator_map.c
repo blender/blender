@@ -240,11 +240,13 @@ static void manipulatormap_prepare_drawing(
 
 	/* only active manipulator needs updating */
 	if (active_manipulator) {
-		if (manipulator_prepare_drawing(mmap, active_manipulator, C, draw_manipulators)) {
-			manipulatormap_tag_updated(mmap);
+		if ((active_manipulator->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_ACTIVE_ALL) == 0) {
+			if (manipulator_prepare_drawing(mmap, active_manipulator, C, draw_manipulators)) {
+				manipulatormap_tag_updated(mmap);
+			}
+			/* don't draw any other manipulators */
+			return;
 		}
-		/* don't draw any other manipulators */
-		return;
 	}
 
 	for (wmManipulatorGroup *mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {

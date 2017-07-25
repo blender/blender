@@ -349,6 +349,8 @@ enum {
 	WM_MANIPULATORGROUPTYPE_SELECT  = (1 << 3),
 	/* The manipulator group is to be kept (not removed on loading a new file for eg). */
 	WM_MANIPULATORGROUPTYPE_PERSISTENT = (1 << 4),
+	/* Show all other manipulators when interacting. */
+	WM_MANIPULATORGROUPTYPE_ACTIVE_ALL = (1 << 5),
 };
 
 
