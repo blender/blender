@@ -13,8 +13,9 @@ out vec4 FragColor;
 void main()
 {
 	/* Reconstructing Target uvs like this avoid missing pixels */
-	vec2 uvs = floor(gl_FragCoord.xy) * 2.0 * texelSize + texelSize;
+	vec2 uvs = gl_FragCoord.xy * 2.0 / vec2(textureSize(source, 0).xy);
 
+#if 0 /* Slower and does not match the main framebuffer downsampling. */
 	/* Downsample with a 4x4 box filter */
 	vec4 d = texelSize.xyxy * vec4(-1, -1, +1, +1);
 
@@ -24,4 +25,7 @@ void main()
 	FragColor += texture(source, vec3(uvs + d.zw, layer)).rgba;
 
 	FragColor /= 4.0;
+#endif
+
+	FragColor = texture(source, vec3(uvs, layer));
 }

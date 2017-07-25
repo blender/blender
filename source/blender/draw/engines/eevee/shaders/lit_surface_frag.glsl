@@ -5,6 +5,7 @@ uniform int grid_count;
 uniform int planar_count;
 
 uniform bool specToggle;
+uniform bool ssrToggle;
 
 #ifndef UTIL_TEX
 #define UTIL_TEX
@@ -90,7 +91,7 @@ vec3 eevee_surface_lit(vec3 N, vec3 albedo, vec3 f0, float roughness, float ao, 
 	vec4 spec_accum = vec4(0.0);
 
 	/* SSR lobe is applied later in a defered style */
-	if (ssr_id != outputSsrId) {
+	if (!ssrToggle || ssr_id != outputSsrId) {
 		/* Planar Reflections */
 		for (int i = 0; i < MAX_PLANAR && i < planar_count && spec_accum.a < 0.999; ++i) {
 			PlanarData pd = planars_data[i];
@@ -98,7 +99,7 @@ vec3 eevee_surface_lit(vec3 N, vec3 albedo, vec3 f0, float roughness, float ao, 
 			float fade = probe_attenuation_planar(pd, worldPosition, N);
 
 			if (fade > 0.0) {
-				vec3 spec = probe_evaluate_planar(float(i), pd, worldPosition, N, V, rand.r, cameraPos, roughness, fade);
+				vec3 spec = probe_evaluate_planar(float(i), pd, worldPosition, N, V, rand.r, roughness, fade);
 				accumulate_light(spec, fade, spec_accum);
 			}
 		}
@@ -237,12 +238,12 @@ vec3 eevee_surface_clearcoat_lit(
 		float fade = probe_attenuation_planar(pd, worldPosition, worldNormal);
 
 		if (fade > 0.0) {
-			if (ssr_id != outputSsrId) {
-				vec3 spec = probe_evaluate_planar(float(i), pd, worldPosition, N, V, rand.r, cameraPos, roughness, fade);
+			if (!ssrToggle || ssr_id != outputSsrId) {
+				vec3 spec = probe_evaluate_planar(float(i), pd, worldPosition, N, V, rand.r, roughness, fade);
 				accumulate_light(spec, fade, spec_accum);
 			}
 
-			vec3 C_spec = probe_evaluate_planar(float(i), pd, worldPosition, C_N, V, rand.r, cameraPos, C_roughness, fade);
+			vec3 C_spec = probe_evaluate_planar(float(i), pd, worldPosition, C_N, V, rand.r, C_roughness, fade);
 			accumulate_light(C_spec, fade, C_spec_accum);
 		}
 	}
@@ -258,7 +259,7 @@ vec3 eevee_surface_clearcoat_lit(
 		float fade = probe_attenuation_cube(cd, worldPosition);
 
 		if (fade > 0.0) {
-			if (ssr_id != outputSsrId) {
+			if (!ssrToggle || ssr_id != outputSsrId) {
 				vec3 spec = probe_evaluate_cube(float(i), cd, worldPosition, spec_dir, roughness);
 				accumulate_light(spec, fade, spec_accum);
 			}
@@ -270,7 +271,7 @@ vec3 eevee_surface_clearcoat_lit(
 
 	/* World Specular */
 	if (spec_accum.a < 0.999) {
-		if (ssr_id != outputSsrId) {
+		if (!ssrToggle || ssr_id != outputSsrId) {
 			vec3 spec = probe_evaluate_world_spec(spec_dir, roughness);
 			accumulate_light(spec, 1.0, spec_accum);
 		}
@@ -453,7 +454,7 @@ vec3 eevee_surface_glossy_lit(vec3 N, vec3 f0, float roughness, float ao, int ss
 	/* Accumulate light from all sources until accumulator is full. Then apply Occlusion and BRDF. */
 	vec4 spec_accum = vec4(0.0);
 
-	if (ssr_id != outputSsrId) {
+	if (!ssrToggle || ssr_id != outputSsrId) {
 		/* Planar Reflections */
 		for (int i = 0; i < MAX_PLANAR && i < planar_count && spec_accum.a < 0.999; ++i) {
 			PlanarData pd = planars_data[i];
@@ -461,7 +462,7 @@ vec3 eevee_surface_glossy_lit(vec3 N, vec3 f0, float roughness, float ao, int ss
 			float fade = probe_attenuation_planar(pd, worldPosition, N);
 
 			if (fade > 0.0) {
-				vec3 spec = probe_evaluate_planar(float(i), pd, worldPosition, N, V, rand.r, cameraPos, roughness, fade);
+				vec3 spec = probe_evaluate_planar(float(i), pd, worldPosition, N, V, rand.r, roughness, fade);
 				accumulate_light(spec, fade, spec_accum);
 			}
 		}

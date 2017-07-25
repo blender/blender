@@ -766,6 +766,9 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		DRW_shgroup_uniform_vec2(grp, "ssrParameters", &effects->ssr_stride, 1);
 		DRW_shgroup_uniform_mat4(grp, "PixelProjMatrix", (float *)&e_data.pixelprojmat);
 		DRW_shgroup_uniform_int(grp, "rayCount", &effects->ssr_ray_count, 1);
+		DRW_shgroup_uniform_int(grp, "planar_count", &sldata->probes->num_planar, 1);
+		DRW_shgroup_uniform_buffer(grp, "planarDepth", &vedata->txl->planar_depth);
+		DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
 		DRW_shgroup_call_add(grp, quad, NULL);
 
 		psl->ssr_resolve = DRW_pass_create("SSR Resolve", DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE);
@@ -777,6 +780,7 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &txl->color_double_buffer);
 		DRW_shgroup_uniform_mat4(grp, "PastViewProjectionMatrix", (float *)stl->g_data->prev_persmat);
 		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
+		DRW_shgroup_uniform_int(grp, "planar_count", &sldata->probes->num_planar, 1);
 		DRW_shgroup_uniform_int(grp, "probe_count", &sldata->probes->num_render_cube, 1);
 		DRW_shgroup_uniform_float(grp, "borderFadeFactor", &effects->ssr_border_fac, 1);
 		DRW_shgroup_uniform_float(grp, "lodCubeMax", &sldata->probes->lod_cube_max, 1);

@@ -153,6 +153,12 @@ vec3 line_plane_intersect(vec3 lineorigin, vec3 linedirection, vec3 planeorigin,
 	return lineorigin + linedirection * dist;
 }
 
+vec3 line_plane_intersect(vec3 lineorigin, vec3 linedirection, vec4 plane)
+{
+	float dist = line_plane_intersect_dist(lineorigin, linedirection, plane);
+	return lineorigin + linedirection * dist;
+}
+
 float line_aligned_plane_intersect_dist(vec3 lineorigin, vec3 linedirection, vec3 planeorigin)
 {
 	/* aligned plane normal */

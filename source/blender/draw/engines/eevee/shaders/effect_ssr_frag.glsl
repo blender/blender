@@ -30,9 +30,10 @@ vec3 generate_ray(vec3 V, vec3 N, float a2, vec3 rand, out float pdf)
 
 #ifdef STEP_RAYTRACE
 
-uniform sampler2D depthBuffer;
 uniform sampler2D normalBuffer;
 uniform sampler2D specroughBuffer;
+
+uniform int planar_count;
 
 uniform mat4 ViewProjectionMatrix;
 
@@ -48,14 +49,53 @@ bool has_hit_backface(vec3 hit_pos, vec3 R, vec3 V)
 	return (dot(-R, hit_N) < 0.0);
 }
 
-vec4 do_ssr(sampler2D depthBuffer, vec3 V, vec3 N, vec3 viewPosition, float a2, vec3 rand)
+vec4 do_planar_ssr(int index, vec3 V, vec3 N, vec3 planeNormal, vec3 viewPosition, float a2, vec3 rand)
 {
 	float pdf;
 	vec3 R = generate_ray(V, N, a2, rand, pdf);
 
-	float hit_dist = raycast(depthBuffer, viewPosition, R, rand.x);
+	R = reflect(R, planeNormal);
+	pdf *= -1.0; /* Tag as planar ray. */
+
+	/* If ray is bad (i.e. going below the plane) do not trace. */
+	if (dot(R, planeNormal) > 0.0) {
+		vec3 R = generate_ray(V, N, a2, rand, pdf);
+	}
+
+	float hit_dist;
+	if (abs(dot(-R, V)) < 0.9999) {
+		hit_dist = raycast(index, viewPosition, R, rand.x);
+	}
+	else {
+		float z = get_view_z_from_depth(texelFetch(planarDepth, ivec3(project_point(PixelProjMatrix, viewPosition).xy, index), 0).r);
+		hit_dist = (z - viewPosition.z) / R.z;
+	}
+
+	/* Since viewspace hit position can land behind the camera in this case,
+	 * we save the reflected view position (visualize it as the hit position
+	 * below the reflection plane). This way it's garanted that the hit will
+	 * be in front of the camera. That let us tag the bad rays with a negative
+	 * sign in the Z component. */
 	vec3 hit_pos = viewPosition + R * abs(hit_dist);
 
+	/* Ray did not hit anything. No backface test because it's not possible
+	 * to hit a backface in this case. */
+	if (hit_dist <= 0.0) {
+		hit_pos.z *= -1.0;
+	}
+
+	return vec4(hit_pos, pdf);
+}
+
+vec4 do_ssr(vec3 V, vec3 N, vec3 viewPosition, float a2, vec3 rand)
+{
+	float pdf;
+	vec3 R = generate_ray(V, N, a2, rand, pdf);
+
+	float hit_dist = raycast(-1, viewPosition, R, rand.x);
+	vec3 hit_pos = viewPosition + R * abs(hit_dist);
+
+	/* Ray did not hit anything. Tag it as failled. */
 	if (has_hit_backface(hit_pos, R, V) || (hit_dist <= 0.0)) {
 		hit_pos.z *= -1.0;
 	}
@@ -102,17 +142,41 @@ void main()
 
 	vec3 rand = texelFetch(utilTex, ivec3(halfres_texel % LUT_SIZE, 2), 0).rba;
 
+	vec3 worldPosition = transform_point(ViewMatrixInverse, viewPosition);
+	vec3 wN = mat3(ViewMatrixInverse) * N;
+
+	/* Planar Reflections */
+	for (int i = 0; i < MAX_PLANAR && i < planar_count; ++i) {
+		PlanarData pd = planars_data[i];
+
+		float fade = probe_attenuation_planar(pd, worldPosition, wN);
+
+		if (fade > 0.5) {
+			/* Find view vector / reflection plane intersection. */
+			/* TODO optimize, use view space for all. */
+			vec3 tracePosition = line_plane_intersect(worldPosition, cameraVec, pd.pl_plane_eq);
+			tracePosition = transform_point(ViewMatrix, tracePosition);
+			vec3 planeNormal = mat3(ViewMatrix) * pd.pl_normal;
+
+			/* TODO : Raytrace together if textureGather is supported. */
+			hitData0 = do_planar_ssr(i, V, N, planeNormal, tracePosition, a2, rand);
+			if (rayCount > 1) hitData1 = do_planar_ssr(i, V, N, planeNormal, tracePosition, a2, rand.xyz * vec3(1.0, -1.0, -1.0));
+			if (rayCount > 2) hitData2 = do_planar_ssr(i, V, N, planeNormal, tracePosition, a2, rand.xzy * vec3(1.0,  1.0, -1.0));
+			if (rayCount > 3) hitData3 = do_planar_ssr(i, V, N, planeNormal, tracePosition, a2, rand.xzy * vec3(1.0, -1.0,  1.0));
+			return;
+		}
+	}
+
 	/* TODO : Raytrace together if textureGather is supported. */
-	hitData0 = do_ssr(depthBuffer, V, N, viewPosition, a2, rand);
-	if (rayCount > 1) hitData1 = do_ssr(depthBuffer, V, N, viewPosition, a2, rand.xyz * vec3(1.0, -1.0, -1.0));
-	if (rayCount > 2) hitData2 = do_ssr(depthBuffer, V, N, viewPosition, a2, rand.xzy * vec3(1.0,  1.0, -1.0));
-	if (rayCount > 3) hitData3 = do_ssr(depthBuffer, V, N, viewPosition, a2, rand.xzy * vec3(1.0, -1.0,  1.0));
+	hitData0 = do_ssr(V, N, viewPosition, a2, rand);
+	if (rayCount > 1) hitData1 = do_ssr(V, N, viewPosition, a2, rand.xyz * vec3(1.0, -1.0, -1.0));
+	if (rayCount > 2) hitData2 = do_ssr(V, N, viewPosition, a2, rand.xzy * vec3(1.0,  1.0, -1.0));
+	if (rayCount > 3) hitData3 = do_ssr(V, N, viewPosition, a2, rand.xzy * vec3(1.0, -1.0,  1.0));
 }
 
 #else /* STEP_RESOLVE */
 
 uniform sampler2D colorBuffer; /* previous frame */
-uniform sampler2D depthBuffer;
 uniform sampler2D normalBuffer;
 uniform sampler2D specroughBuffer;
 
@@ -122,6 +186,7 @@ uniform sampler2D hitBuffer2;
 uniform sampler2D hitBuffer3;
 
 uniform int probe_count;
+uniform int planar_count;
 
 uniform float borderFadeFactor;
 uniform float fireflyFactor;
@@ -185,19 +250,13 @@ float brightness(vec3 c)
 	return max(max(c.r, c.g), c.b);
 }
 
-float screen_border_mask(vec2 past_hit_co, vec3 hit)
+float screen_border_mask(vec2 hit_co)
 {
-	/* Fade on current and past screen edges */
-	vec4 hit_co = ViewProjectionMatrix * vec4(hit, 1.0);
-	hit_co.xy = (hit_co.xy / hit_co.w) * 0.5 + 0.5;
-	hit_co.zw = past_hit_co;
-
 	const float margin = 0.003;
 	float atten = borderFadeFactor + margin; /* Screen percentage */
 	hit_co = smoothstep(margin, atten, hit_co) * (1 - smoothstep(1.0 - atten, 1.0 - margin, hit_co));
-	vec2 atten_fac = min(hit_co.xy, hit_co.zw);
 
-	float screenfade = atten_fac.x * atten_fac.y;
+	float screenfade = hit_co.x * hit_co.y;
 
 	return screenfade;
 }
@@ -215,42 +274,71 @@ vec2 get_reprojected_reflection(vec3 hit, vec3 pos, vec3 N)
 }
 
 vec4 get_ssr_sample(
-        sampler2D hitBuffer, vec3 worldPosition, vec3 N, vec3 V, float roughnessSquared,
+        sampler2D hitBuffer, PlanarData pd, float planar_index, vec3 worldPosition, vec3 N, vec3 V, float roughnessSquared,
         float cone_tan, vec2 source_uvs, vec2 texture_size, ivec2 target_texel,
         inout float weight_acc)
 {
 	vec4 hit_co_pdf = texelFetch(hitBuffer, target_texel, 0).rgba;
 	bool has_hit = (hit_co_pdf.z < 0.0);
+	bool is_planar = (hit_co_pdf.w < 0.0);
 	hit_co_pdf.z = -abs(hit_co_pdf.z);
+	hit_co_pdf.w = abs(hit_co_pdf.w);
 
 	/* Hit position in world space. */
-	vec3 hit_pos = (ViewMatrixInverse * vec4(hit_co_pdf.xyz, 1.0)).xyz;
+	vec3 hit_pos = transform_point(ViewMatrixInverse, hit_co_pdf.xyz);
 
-	/* Find hit position in previous frame. */
-	vec2 ref_uvs = get_reprojected_reflection(hit_pos, worldPosition, N);
+	vec2 ref_uvs;
+	vec3 L;
+	float mask = 1.0;
+	float cone_footprint;
+	if (is_planar) {
+		/* Reflect back the hit position to have it in non-reflected world space */
+		vec3 trace_pos = line_plane_intersect(worldPosition, V, pd.pl_plane_eq);
+		vec3 hit_vec = hit_pos - trace_pos;
+		hit_vec = reflect(hit_vec, pd.pl_normal);
+		hit_pos = hit_vec + trace_pos;
+		L = normalize(hit_vec);
+		ref_uvs = project_point(ProjectionMatrix, hit_co_pdf.xyz).xy * 0.5 + 0.5;
+		vec2 uvs = gl_FragCoord.xy / texture_size;
+
+		/* Compute cone footprint in screen space. */
+		float homcoord = ProjectionMatrix[2][3] * hit_co_pdf.z + ProjectionMatrix[3][3];
+		cone_footprint = length(hit_vec) * cone_tan * ProjectionMatrix[0][0] / homcoord;
+	}
+	else {
+		/* Find hit position in previous frame. */
+		ref_uvs = get_reprojected_reflection(hit_pos, worldPosition, N);
+		L = normalize(hit_pos - worldPosition);
+		mask *= view_facing_mask(V, N);
+		mask *= screen_border_mask(source_uvs);
+
+		/* Compute cone footprint Using UV distance because we are using screen space filtering. */
+		cone_footprint = 1.5 * cone_tan * distance(ref_uvs, source_uvs);
+	}
+	mask *= screen_border_mask(ref_uvs);
+	mask *= float(has_hit);
 
 	/* Estimate a cone footprint to sample a corresponding mipmap level. */
-	/* Compute cone footprint Using UV distance because we are using screen space filtering. */
-	float cone_footprint = 1.5 * cone_tan * distance(ref_uvs, source_uvs);
 	float mip = BRDF_BIAS * clamp(log2(cone_footprint * max(texture_size.x, texture_size.y)), 0.0, MAX_MIP);
 
 	/* Slide 54 */
-	vec3 L = normalize(hit_pos - worldPosition);
 	float bsdf = bsdf_ggx(N, L, V, roughnessSquared);
 	float weight = step(0.001, hit_co_pdf.w) * bsdf / hit_co_pdf.w;
 	weight_acc += weight;
 
-	vec3 sample = textureLod(colorBuffer, ref_uvs, mip).rgb;
+	vec3 sample;
+	if (is_planar) {
+		sample = textureLod(probePlanars, vec3(ref_uvs, planar_index), mip).rgb;
+	}
+	else {
+		sample = textureLod(colorBuffer, ref_uvs, mip).rgb;
+	}
 
 	/* Do not add light if ray has failed. */
 	sample *= float(has_hit);
 
 	/* Firefly removal */
 	sample /= 1.0 + fireflyFactor * brightness(sample);
-
-	float mask = screen_border_mask(ref_uvs, hit_pos);
-	mask *= view_facing_mask(V, N);
-	mask *= float(has_hit);
 
 	return vec4(sample, mask) * weight;
 }
@@ -286,6 +374,20 @@ void main()
 	if (dot(speccol_roughness.rgb, vec3(1.0)) == 0.0)
 		discard;
 
+	/* Find Planar Reflections affecting this pixel */
+	PlanarData pd;
+	float planar_index;
+	for (int i = 0; i < MAX_PLANAR && i < planar_count; ++i) {
+		pd = planars_data[i];
+
+		float fade = probe_attenuation_planar(pd, worldPosition, N);
+
+		if (fade > 0.5) {
+			planar_index = float(i);
+			break;
+		}
+	}
+
 	float roughness = speccol_roughness.a;
 	float roughnessSquared = max(1e-3, roughness * roughness);
 
@@ -318,21 +420,21 @@ void main()
 	for (int i = 0; i < NUM_NEIGHBORS; i++) {
 		ivec2 target_texel = halfres_texel + neighbors[i] * invert_neighbor;
 
-		ssr_accum += get_ssr_sample(hitBuffer0, worldPosition, N, V,
+		ssr_accum += get_ssr_sample(hitBuffer0, pd, planar_index, worldPosition, N, V,
 		                            roughnessSquared, cone_tan, source_uvs,
 		                            texture_size, target_texel, weight_acc);
 		if (rayCount > 1) {
-			ssr_accum += get_ssr_sample(hitBuffer1, worldPosition, N, V,
+			ssr_accum += get_ssr_sample(hitBuffer1, pd, planar_index, worldPosition, N, V,
 			                            roughnessSquared, cone_tan, source_uvs,
 			                            texture_size, target_texel, weight_acc);
 		}
 		if (rayCount > 2) {
-			ssr_accum += get_ssr_sample(hitBuffer2, worldPosition, N, V,
+			ssr_accum += get_ssr_sample(hitBuffer2, pd, planar_index, worldPosition, N, V,
 			                            roughnessSquared, cone_tan, source_uvs,
 			                            texture_size, target_texel, weight_acc);
 		}
 		if (rayCount > 3) {
-			ssr_accum += get_ssr_sample(hitBuffer3, worldPosition, N, V,
+			ssr_accum += get_ssr_sample(hitBuffer3, pd, planar_index, worldPosition, N, V,
 			                            roughnessSquared, cone_tan, source_uvs,
 			                            texture_size, target_texel, weight_acc);
 		}

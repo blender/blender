@@ -9,8 +9,21 @@
 uniform mat4 PixelProjMatrix; /* View > NDC > Texel : maps view coords to texel coord */
 uniform vec2 ssrParameters;
 
+uniform sampler2D depthBuffer;
+uniform sampler2DArray planarDepth;
+
 #define ssrStride     ssrParameters.x
 #define ssrThickness  ssrParameters.y
+
+float sample_depth(ivec2 hitpixel, int index)
+{
+	if (index > -1) {
+		return texelFetch(planarDepth, ivec3(hitpixel, index), 0).r;
+	}
+	else {
+		return texelFetch(depthBuffer, hitpixel, 0).r;
+	}
+}
 
 void swapIfBigger(inout float a, inout float b)
 {
@@ -22,7 +35,7 @@ void swapIfBigger(inout float a, inout float b)
 }
 
 /* Return the length of the ray if there is a hit, and negate it if not hit occured */
-float raycast(sampler2D depth_texture, vec3 ray_origin, vec3 ray_dir, float ray_jitter)
+float raycast(int index, vec3 ray_origin, vec3 ray_dir, float ray_jitter)
 {
 	float near = get_view_z_from_depth(0.0); /* TODO optimize */
 	float far = get_view_z_from_depth(1.0); /* TODO optimize */
@@ -60,7 +73,7 @@ float raycast(sampler2D depth_texture, vec3 ray_origin, vec3 ray_dir, float ray_
 
 	/* If the line is degenerate, make it cover at least one pixel
 	 * to not have to handle zero-pixel extent as a special case later */
-	P1 += vec2((distance_squared(P0, P1) < 0.0001) ? 0.01 : 0.0);
+	P1 += vec2((distance_squared(P0, P1) < 0.001) ? 0.01 : 0.0);
 
 	vec2 delta = P1 - P0;
 
@@ -101,10 +114,16 @@ float raycast(sampler2D depth_texture, vec3 ray_origin, vec3 ray_dir, float ray_
 	float end = P1.x * step_sign;
 
 	/* Initial offset */
-	pqk += dPQK * (0.01 + ray_jitter);
+	if (index > -1) {
+		pqk -= dPQK * ray_jitter;
+	}
+	else {
+		pqk += dPQK * (0.01 + ray_jitter);
+	}
 
 	bool hit = false;
 	float raw_depth;
+	float thickness = (index == -1) ? ssrThickness : 1e16;
 	for (float hitstep = 0.0; hitstep < MAX_STEP && !hit; hitstep++) {
 		/* Ray finished & no hit*/
 		if ((pqk.x * step_sign) > end) break;
@@ -113,7 +132,7 @@ float raycast(sampler2D depth_texture, vec3 ray_origin, vec3 ray_dir, float ray_
 		pqk += dPQK;
 
 		ivec2 hitpixel = ivec2(permute ? pqk.yx : pqk.xy);
-		raw_depth = texelFetch(depth_texture, ivec2(hitpixel), 0).r;
+		raw_depth = sample_depth(hitpixel, index);
 
 		float zmin = prev_zmax;
 		zmax = (dPQK.z * 0.5 + pqk.z) / (dPQK.w * 0.5 + pqk.w);
@@ -121,7 +140,7 @@ float raycast(sampler2D depth_texture, vec3 ray_origin, vec3 ray_dir, float ray_
 		swapIfBigger(zmin, zmax);
 
 		float vmax = get_view_z_from_depth(raw_depth);
-		float vmin = vmax - ssrThickness;
+		float vmin = vmax - thickness;
 
 		/* Check if we are somewhere near the surface. */
 		/* Note: we consider hitting the screen borders (raw_depth == 0.0)
@@ -146,7 +165,7 @@ float raycast(sampler2D depth_texture, vec3 ray_origin, vec3 ray_dir, float ray_
 			pqk += dPQK;
 
 			ivec2 hitpixel = ivec2(permute ? pqk.yx : pqk.xy);
-			raw_depth = texelFetch(depth_texture, hitpixel, 0).r;
+			raw_depth = sample_depth(hitpixel, index);
 
 			float zmin = prev_zmax;
 			zmax = (dPQK.z * 0.5 + pqk.z) / (dPQK.w * 0.5 + pqk.w);
@@ -154,7 +173,7 @@ float raycast(sampler2D depth_texture, vec3 ray_origin, vec3 ray_dir, float ray_
 			swapIfBigger(zmin, zmax);
 
 			float vmax = get_view_z_from_depth(raw_depth);
-			float vmin = vmax - ssrThickness;
+			float vmin = vmax - thickness;
 
 			/* Check if we are somewhere near the surface. */
 			if (!((zmin > vmax) || (zmax < vmin)) || (raw_depth == 0.0)) {

@@ -272,6 +272,7 @@ static void add_standard_uniforms(DRWShadingGroup *shgrp, EEVEE_SceneLayerData *
 	DRW_shgroup_uniform_int(shgrp, "grid_count", &sldata->probes->num_render_grid, 1);
 	DRW_shgroup_uniform_int(shgrp, "planar_count", &sldata->probes->num_planar, 1);
 	DRW_shgroup_uniform_bool(shgrp, "specToggle", &sldata->probes->specular_toggle, 1);
+	DRW_shgroup_uniform_bool(shgrp, "ssrToggle", &sldata->probes->ssr_toggle, 1);
 	DRW_shgroup_uniform_float(shgrp, "lodCubeMax", &sldata->probes->lod_cube_max, 1);
 	DRW_shgroup_uniform_float(shgrp, "lodPlanarMax", &sldata->probes->lod_planar_max, 1);
 	DRW_shgroup_uniform_texture(shgrp, "utilTex", e_data.util_tex);

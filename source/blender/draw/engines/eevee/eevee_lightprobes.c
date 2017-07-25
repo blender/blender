@@ -276,6 +276,7 @@ void EEVEE_lightprobes_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *UNUSED(ved
 	if (!sldata->probes) {
 		sldata->probes = MEM_callocN(sizeof(EEVEE_LightProbesInfo), "EEVEE_LightProbesInfo");
 		sldata->probes->specular_toggle = true;
+		sldata->probes->ssr_toggle = true;
 		sldata->probe_ubo = DRW_uniformbuffer_create(sizeof(EEVEE_LightProbe) * MAX_PROBE, NULL);
 		sldata->grid_ubo = DRW_uniformbuffer_create(sizeof(EEVEE_LightGrid) * MAX_GRID, NULL);
 		sldata->planar_ubo = DRW_uniformbuffer_create(sizeof(EEVEE_PlanarReflection) * MAX_PLANAR, NULL);
@@ -962,6 +963,7 @@ static void render_scene_to_probe(
 
 	/* Disable specular lighting when rendering probes to avoid feedback loops (looks bad). */
 	sldata->probes->specular_toggle = false;
+	sldata->probes->ssr_toggle = false;
 
 	/* Disable AO until we find a way to hide really bad discontinuities between cubefaces. */
 	tmp_ao_dist = stl->effects->ao_dist;
@@ -1045,7 +1047,7 @@ static void render_scene_to_probe(
 }
 
 static void render_scene_to_planar(
-        EEVEE_Data *vedata, int layer,
+        EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata, int layer,
         float (*viewmat)[4], float (*persmat)[4],
         float clip_plane[4])
 {
@@ -1065,6 +1067,9 @@ static void render_scene_to_planar(
 	DRW_framebuffer_bind(fbl->planarref_fb);
 
 	DRW_framebuffer_clear(false, true, false, NULL, 1.0);
+
+	/* Turn off ssr to avoid black specular */
+	sldata->probes->ssr_toggle = false;
 
 	/* Avoid using the texture attached to framebuffer when rendering. */
 	/* XXX */
@@ -1103,6 +1108,7 @@ static void render_scene_to_planar(
 	DRW_state_clip_planes_reset();
 
 	/* Restore */
+	sldata->probes->ssr_toggle = true;
 	txl->planar_pool = tmp_planar_pool;
 	txl->planar_depth = tmp_planar_depth;
 	DRW_viewport_matrix_override_unset(DRW_MAT_PERS);
@@ -1323,7 +1329,7 @@ update_planar:
 			int tmp_num_planar = pinfo->num_planar;
 			pinfo->num_planar = 0;
 
-			render_scene_to_planar(vedata, i, ped->viewmat, ped->persmat, ped->planer_eq_offset);
+			render_scene_to_planar(sldata, vedata, i, ped->viewmat, ped->persmat, ped->planer_eq_offset);
 
 			/* Restore */
 			pinfo->num_planar = tmp_num_planar;
@@ -1335,7 +1341,7 @@ update_planar:
 
 	/* If there is at least one planar probe */
 	if (pinfo->num_planar > 0) {
-		const int max_lod = 5;
+		const int max_lod = 9;
 		DRW_framebuffer_recursive_downsample(vedata->fbl->downsample_fb, txl->planar_pool, max_lod, &downsample_planar, vedata);
 		/* For shading, save max level of the planar map */
 		pinfo->lod_planar_max = (float)(max_lod);

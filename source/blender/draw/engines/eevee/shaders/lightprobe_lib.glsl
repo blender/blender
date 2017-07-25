@@ -164,16 +164,11 @@ vec3 probe_evaluate_world_spec(vec3 R, float roughness)
 
 vec3 probe_evaluate_planar(
         float id, PlanarData pd, vec3 W, vec3 N, vec3 V,
-        float rand, vec3 camera_pos, float roughness,
+        float rand, float roughness,
         inout float fade)
 {
-	/* Sample reflection depth. */
-	vec4 refco = pd.reflectionmat * vec4(W, 1.0);
-	refco.xy /= refco.w;
-
-	/* Find view vector / reflection plane intersection. (dist_to_plane is negative) */
-	float dist_to_plane = line_plane_intersect_dist(camera_pos, V, pd.pl_plane_eq);
-	vec3 point_on_plane = camera_pos + V * dist_to_plane;
+	/* Find view vector / reflection plane intersection. */
+	vec3 point_on_plane = line_plane_intersect(W, V, pd.pl_plane_eq);
 
 	/* How far the pixel is from the plane. */
 	float ref_depth = 1.0; /* TODO parameter */
@@ -187,7 +182,7 @@ vec3 probe_evaluate_planar(
 	vec3 ref_pos = point_on_plane + proj_ref;
 
 	/* Reproject to find texture coords. */
-	refco = pd.reflectionmat * vec4(ref_pos, 1.0);
+	vec4 refco = pd.reflectionmat * vec4(ref_pos, 1.0);
 	refco.xy /= refco.w;
 
 	/* Distance to roughness */
