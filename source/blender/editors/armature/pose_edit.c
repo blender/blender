@@ -96,7 +96,8 @@ void ED_armature_enter_posemode(bContext *C, Base *base)
 		case OB_ARMATURE:
 			ob->restore_mode = ob->mode;
 			ob->mode |= OB_MODE_POSE;
-			
+			/* Inform all CoW versions that we changed the mode. */
+			DEG_id_tag_update_ex(CTX_data_main(C), &ob->id, DEG_TAG_COPY_ON_WRITE);
 			WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_POSE, NULL);
 			
 			break;
@@ -115,7 +116,10 @@ void ED_armature_exit_posemode(bContext *C, Base *base)
 		
 		ob->restore_mode = ob->mode;
 		ob->mode &= ~OB_MODE_POSE;
-		
+
+		/* Inform all CoW versions that we changed the mode. */
+		DEG_id_tag_update_ex(CTX_data_main(C), &ob->id, DEG_TAG_COPY_ON_WRITE);
+
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, NULL);
 	}
 }

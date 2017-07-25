@@ -566,6 +566,7 @@ void update_copy_on_write_object(const Depsgraph * /*depsgraph*/,
 	extract_pose_from_pose(pose_cow, pose_orig);
 	/* Update object itself. */
 	BKE_object_transform_copy(object_cow, object_orig);
+	object_cow->mode = object_orig->mode;
 }
 
 /* Update copy-on-write version of datablock from it's original ID without re-building
