@@ -1569,9 +1569,12 @@ static void rna_RenderSettings_engine_set(PointerRNA *ptr, int value)
 {
 	RenderData *rd = (RenderData *)ptr->data;
 	RenderEngineType *type = BLI_findlink(&R_engines, value);
+	Scene *scene = (Scene *)ptr->id.data;
 
 	if (type)
 		BLI_strncpy_utf8(rd->engine, type->idname, sizeof(rd->engine));
+
+	DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
 }
 
 static EnumPropertyItem *rna_RenderSettings_engine_itemf(

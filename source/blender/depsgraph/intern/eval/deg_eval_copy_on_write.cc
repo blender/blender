@@ -547,9 +547,11 @@ void update_copy_on_write_scene(const Depsgraph *depsgraph,
 	else {
 		scene_cow->obedit = NULL;
 	}
-	// TODO(sergey): Things which are still missing here:
-	// - Active render engine.
-	// - Something else?
+	/* Synchronize active render engine. */
+	BLI_strncpy_utf8(scene_cow->r.engine,
+	                 scene_orig->r.engine,
+	                 sizeof(scene_cow->r.engine));
+	/* TODO(sergey): What else do we need here? */
 }
 
 /* Update copy-on-write version of armature object from original scene. */
