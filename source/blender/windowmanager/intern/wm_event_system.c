@@ -2240,12 +2240,22 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 									CTX_wm_manipulator_group_set(C, NULL);
 
 									if (action & WM_HANDLER_BREAK) {
+										if (G.debug & (G_DEBUG_EVENTS | G_DEBUG_HANDLERS)) {
+											printf("%s:       handled - and pass on! '%s'\n",
+											       __func__, kmi->idname);
+										}
+										break;
+									}
+									else {
 										if (action & WM_HANDLER_HANDLED) {
-											if (G.debug & (G_DEBUG_EVENTS | G_DEBUG_HANDLERS))
-												printf("%s:       handled - and pass on! '%s'\n", __func__, kmi->idname);
+											if (G.debug & (G_DEBUG_EVENTS | G_DEBUG_HANDLERS)) {
+												printf("%s:       handled - and pass on! '%s'\n",
+												       __func__, kmi->idname);
+											}
 										}
 										else {
-											PRINT("%s:       un-handled '%s'\n", __func__, kmi->idname);
+											PRINT("%s:       un-handled '%s'\n",
+											      __func__, kmi->idname);
 										}
 									}
 								}
@@ -2253,6 +2263,10 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 						}
 						else {
 							PRINT("fail\n");
+						}
+
+						if (action & WM_HANDLER_BREAK) {
+							break;
 						}
 
 						if (is_mgroup_single) {
