@@ -43,6 +43,11 @@ ifndef BUILD_DIR
 	BUILD_DIR:=$(shell dirname "$(BLENDER_DIR)")/build_$(OS_NCASE)
 endif
 
+# Dependencies DIR's
+DEPS_SOURCE_DIR:=$(BLENDER_DIR)/build_files/build_environment
+DEPS_BUILD_DIR:=$(BUILD_DIR)/deps
+DEPS_INSTALL_DIR:=$(shell dirname "$(BLENDER_DIR)")/lib/$(OS_NCASE)
+
 # Allow to use alternative binary (pypy3, etc)
 ifndef PYTHON
 	PYTHON:=python3
@@ -146,6 +151,27 @@ cycles: all
 headless: all
 bpy: all
 
+# -----------------------------------------------------------------------------
+# Build dependencies
+DEPS_TARGET = install
+ifneq "$(findstring clean, $(MAKECMDGOALS))" ""
+	DEPS_TARGET = clean
+endif
+
+deps: .FORCE
+	@echo
+	@echo Configuring dependencies in \"$(DEPS_BUILD_DIR)\"
+
+	@cmake -H"$(DEPS_SOURCE_DIR)" \
+	       -B"$(DEPS_BUILD_DIR)" \
+		   -DHARVEST_TARGET=$(DEPS_INSTALL_DIR)
+
+	@echo
+	@echo Building dependencies ...
+	$(MAKE) -C "$(DEPS_BUILD_DIR)" -s -j $(NPROCS) $(DEPS_TARGET)
+	@echo
+	@echo Dependencies successfully built and installed to $(DEPS_INSTALL_DIR).
+	@echo
 
 # -----------------------------------------------------------------------------
 # Configuration (save some cd'ing around)
@@ -164,6 +190,7 @@ help: .FORCE
 	@echo "  * headless  - build without an interface (renderfarm or server automation)"
 	@echo "  * cycles    - build Cycles standalone only, without Blender"
 	@echo "  * bpy       - build as a python module which can be loaded from python directly"
+	@echo "  * deps      - build library dependencies (intended only for platform maintainers)"
 	@echo ""
 	@echo "  * config    - run cmake configuration tool to set build options"
 	@echo ""

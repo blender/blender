@@ -1,0 +1,12 @@
+--- pyshellext.cpp.orig	2017-01-17 00:57:53 -0700
++++ pyshellext.cpp	2017-05-20 15:21:51 -0600
+@@ -13,6 +13,9 @@
+ #include <strsafe.h>
+ 
+ #include "pyshellext_h.h"
++#if _MSC_VER < 1900
++#include "pyshellext_i.c"
++#endif 
+ 
+ #define DDWM_UPDATEWINDOW (WM_USER+3)
+ 

@@ -1,0 +1,13 @@
+--- _msvccompiler.py	2016-08-12 10:44:32 -0600
++++ _msvccompiler.py	2016-08-12 10:47:29 -0600
+@@ -246,8 +246,8 @@
+         ldflags = [
+             '/nologo', '/INCREMENTAL:NO', '/LTCG'
+         ]
+-        if not self._vcruntime_redist:
+-            ldflags.extend(('/nodefaultlib:libucrt.lib', 'ucrt.lib'))
++        #if not self._vcruntime_redist:
++        #    ldflags.extend(('/nodefaultlib:libucrt.lib', 'ucrt.lib'))
+ 
+         ldflags_debug = [
+             '/nologo', '/INCREMENTAL:NO', '/LTCG', '/DEBUG:FULL'

@@ -1,0 +1,13 @@
+--- idiff.cpp	2016-11-18 11:42:01 -0700
++++ idiff.cpp	2016-11-18 11:41:25 -0700
+@@ -308,8 +308,10 @@
+ // printed with three digit exponent. We change this behaviour to fit
+ // Linux way
+ #ifdef _MSC_VER
++#if _MSC_VER < 1900
+                 _set_output_format(_TWO_DIGIT_EXPONENT);
+ #endif
++#endif
+                 std::streamsize precis = std::cout.precision();
+                 std::cout << "  " << cr.nwarn << " pixels (" 
+                           << std::setprecision(3) << (100.0*cr.nwarn / npels) 

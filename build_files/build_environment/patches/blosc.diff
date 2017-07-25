@@ -1,0 +1,33 @@
+diff -Naur src/blosc/CMakeLists.txt external_blosc/blosc/CMakeLists.txt
+--- src/blosc/CMakeLists.txt	2016-02-03 10:26:28 -0700
++++ external_blosc/blosc/CMakeLists.txt	2017-03-03 09:03:31 -0700
+@@ -61,6 +61,8 @@
+         set(SOURCES ${SOURCES} win32/pthread.c)
+     else(NOT Threads_FOUND)
+         set(LIBS ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
++        set(LIBS ${LIBS} ${PTHREAD_LIBS})
++        include_directories( ${PTHREAD_INCLUDE_DIR} )
+     endif(NOT Threads_FOUND)
+ else(WIN32)
+     find_package(Threads REQUIRED)
+diff -Naur src/blosc/blosc.c external_blosc/blosc/blosc.c
+--- src/blosc/blosc.c	2016-02-03 10:26:28 -0700
++++ external_blosc/blosc/blosc.c	2017-03-03 09:01:50 -0700
+@@ -49,12 +49,12 @@
+   #include <inttypes.h>
+ #endif  /* _WIN32 */
+ 
+-#if defined(_WIN32) && !defined(__GNUC__)
+-  #include "win32/pthread.h"
+-  #include "win32/pthread.c"
+-#else
++//#if defined(_WIN32) && !defined(__GNUC__)
++//  #include "win32/pthread.h"
++  //#include "win32/pthread.c"
++//#else
+   #include <pthread.h>
+-#endif
++//#endif
+ 
+ /* If C11 is supported, use it's built-in aligned allocation. */
+ #if __STDC_VERSION__ >= 201112L

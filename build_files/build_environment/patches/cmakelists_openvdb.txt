@@ -1,0 +1,398 @@
+# --------------------------------------------------------------------------------
+
+cmake_minimum_required(VERSION 2.8)
+
+# --------------------------------------------------------------------------------
+
+project(OpenVDB)
+
+# --------------------------------------------------------------------------------
+
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules")
+
+# --------------------------------------------------------------------------------
+
+set(CMAKE_BUILD_TYPE_INIT "Release")
+
+# --------------------------------------------------------------------------------
+# Options
+
+option(WITH_BLOSC             "Enable Blosc support for compression" OFF)
+option(WITH_LOGC4PLUS         "Enable logging" OFF)
+option(WITH_OPENVDB_2_ABI     "Enable building the library to be compability with the OpenVDB 2 ABI" OFF)
+option(WITH_PRINTER           "Enable building the OpenVDB print executable" OFF)
+option(WITH_PYTHON            "Enable building the OpenVDB python API" OFF)
+option(WITH_RENDERER          "Enable building the OpenVDB render executable" OFF)
+option(WITH_UNITTEST          "Enable building the unit tests" OFF)
+option(WITH_VIEWER            "Enable building the OpenVDB viewer executable" OFF)
+
+# --------------------------------------------------------------------------------
+# Find packages
+#set(BOOST_LIBRARIES boost_iostreams boost_system boost_thread)
+
+find_package(IlmBase)
+find_package(OpenEXR)
+find_package(TBB)
+find_package(Boost)
+
+if(WITH_BLOSC)
+	find_package(Blosc)
+
+	if(NOT BLOSC_FOUND)
+		set(WITH_BLOSC OFF)
+	endif()
+endif()
+
+# todo
+if(WITH_VIEWER)
+	set(GLFW_INCLUDE_DIRS ${GLFW_INCLUDE_PATH})
+	set(GLFW_LIBRARY_DIRS ${GLFW_LIBRARY_PATH})
+endif()
+
+if(WITH_LOGC4PLUS)
+	find_package(LogC4Plus)
+
+	if(NOT LOGC4PLUS_FOUND)
+		set(WITH_LOGC4PLUS OFF)
+	endif()
+endif()
+
+# todo
+if(WITH_PYTHON)
+	set(PYTHON_INCLUDE_DIRS ${PYTHON_INCLUDE_PATH})
+	set(PYTHON_LIBRARY_DIRS ${PYTHON_LIBRARY_PATH})
+endif()
+
+if(WITH_UNITTEST)
+	find_package(CppUnit)
+
+	if(NOT CPPUNIT_FOUND)
+		set(WITH_UNITTEST OFF)
+	endif()
+endif()
+
+# --------------------------------------------------------------------------------
+
+message (STATUS "BOOST_ROOT ${BOOST_ROOT}")
+message (STATUS "Boost found ${Boost_FOUND} ")
+message (STATUS "Boost version      ${Boost_VERSION}")
+message (STATUS "Boost include dirs ${Boost_INCLUDE_DIRS}")
+message (STATUS "Boost library dirs ${Boost_LIBRARY_DIRS}")
+message (STATUS "Boost libraries    ${Boost_LIBRARIES}") 
+
+message (STATUS "ILMBase found ${ILMBASE_FOUND} ")
+message (STATUS "ILMBase include dir ${ILMBASE_INCLUDE_DIR}")
+message (STATUS "ILMBase libraries    ${ILMBASE_LIBRARIES}") 
+
+message (STATUS "TBB found ${TBB_FOUND} ")
+message (STATUS "TBB include dir ${TBB_INCLUDE_DIR}")
+message (STATUS "TBB libraries    ${TBB_LIBRARIES}") 
+
+if(MSVC)
+    set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj" )
+    set ( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj" )
+endif()
+
+set(OPENVDB_LIBRARIES ${BLOSC_LIBRARIES} ${BOOST_LIBRARIES} ${OPENEXR_LIBRARIES} ${ILMBASE_LIBRARIES}  ${TBB_LIBRARIES} ${ZLIB_LIBRARY} )
+
+include_directories(. ${CMAKE_CURRENT_SOURCE_DIR}/../ ${Boost_INCLUDE_DIRS} ${ILMBASE_INCLUDE_DIR} ${OPENEXR_INCLUDE_DIR} ${TBB_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIR})
+link_directories(${Boost_LIBRARY_DIRS} ${OPENEXR_LIBRARY_DIRS} ${TBB_INCLUDE_DIRS})
+add_definitions(-DNOMINMAX -D__TBB_NO_IMPLICIT_LINKAGE -DOPENVDB_STATICLIB -DOPENVDB_OPENEXR_STATICLIB)
+
+if(WITH_BLOSC)
+	add_definitions(-DOPENVDB_USE_BLOSC)
+	include_directories(${BLOSC_INCLUDE_DIRS})
+	link_directories(${BLOSC_LIBRARY_DIRS})
+endif()
+
+if(WITH_LOGC4PLUS)
+	add_definitions(-DOPENVDB_USE_LOG4CPLUS)
+	include_directories(${LOG4CPLUS_INCLUDE_DIRS})
+	link_directories(${LOG4CPLUS_LIBRARY_DIRS})
+endif()
+
+if(WITH_OPENVDB_2_ABI)
+	add_definitions(-DOPENVDB_2_ABI_COMPATIBLE)
+endif()
+
+# todo
+if(WITH_OPENVDB_USE_GLFW_3)
+	add_definitions(-DOPENVDB_USE_GLFW_3)
+endif()
+
+if(WITH_UNITTEST)
+	include_directories(${CPPUNIT_INCLUDE_DIRS})
+	link_directories(${CPPUNIT_LIBRARY_DIRS})
+endif()
+
+# --------------------------------------------------------------------------------
+
+set(SRC_FILES
+	openvdb/openvdb.cc
+	openvdb/io/Compression.cc
+	openvdb/io/File.cc
+	openvdb/io/Queue.cc
+	openvdb/io/Stream.cc
+	openvdb/io/TempFile.cc
+	openvdb/io/GridDescriptor.cc
+	openvdb/io/Archive.cc
+	openvdb/metadata/MetaMap.cc
+	openvdb/metadata/Metadata.cc
+	openvdb/math/Maps.cc
+	openvdb/math/Transform.cc
+	openvdb/math/QuantizedUnitVec.cc
+	openvdb/math/Proximity.cc
+	openvdb/Grid.cc
+	openvdb/util/Formats.cc
+	openvdb/util/Util.cc
+)
+
+set(HEADER_FILES
+	openvdb/openvdb.h
+	openvdb/version.h
+	openvdb/PlatformConfig.h
+	openvdb/Metadata.h
+	openvdb/Exceptions.h
+	openvdb/Grid.h
+	openvdb/Types.h
+	openvdb/Platform.h
+	openvdb/tree/ValueAccessor.h
+	openvdb/tree/NodeUnion.h
+	openvdb/tree/Tree.h
+	openvdb/tree/Iterator.h
+	openvdb/tree/LeafNodeBool.h
+	openvdb/tree/TreeIterator.h
+	openvdb/tree/LeafNode.h
+	openvdb/tree/NodeManager.h
+	openvdb/tree/LeafManager.h
+	openvdb/tree/InternalNode.h
+	openvdb/tree/RootNode.h
+	openvdb/tools/PointScatter.h
+	openvdb/tools/VolumeAdvect.h
+	openvdb/tools/LevelSetTracker.h
+	openvdb/tools/Composite.h
+	openvdb/tools/Morphology.h
+	openvdb/tools/ValueTransformer.h
+	openvdb/tools/ChangeBackground.h
+	openvdb/tools/GridTransformer.h
+	openvdb/tools/Prune.h
+	openvdb/tools/LevelSetUtil.h
+	openvdb/tools/VolumeToSpheres.h
+	openvdb/tools/LevelSetAdvect.h
+	openvdb/tools/Statistics.h
+	openvdb/tools/LevelSetMeasure.h
+	openvdb/tools/VectorTransformer.h
+	openvdb/tools/RayIntersector.h
+	openvdb/tools/PointPartitioner.h
+	openvdb/tools/Interpolation.h
+	openvdb/tools/VelocityFields.h
+	openvdb/tools/PointIndexGrid.h
+	openvdb/tools/LevelSetRebuild.h
+	openvdb/tools/Clip.h
+	openvdb/tools/SignedFloodFill.h
+	openvdb/tools/MeshToVolume.h
+	openvdb/tools/Dense.h
+	openvdb/tools/Filter.h
+	openvdb/tools/RayTracer.h
+	openvdb/tools/Diagnostics.h
+	openvdb/tools/VolumeToMesh.h
+	openvdb/tools/PoissonSolver.h
+	openvdb/tools/LevelSetFracture.h
+	openvdb/tools/GridOperators.h
+	openvdb/tools/DenseSparseTools.h
+	openvdb/tools/ParticlesToLevelSet.h
+	openvdb/tools/LevelSetSphere.h
+	openvdb/tools/LevelSetMorph.h
+	openvdb/tools/LevelSetFilter.h
+	openvdb/tools/PointAdvect.h
+	openvdb/io/Queue.h
+	openvdb/io/TempFile.h
+	openvdb/io/Stream.h
+	openvdb/io/GridDescriptor.h
+	openvdb/io/Archive.h
+	openvdb/io/io.h
+	openvdb/io/Compression.h
+	openvdb/io/File.h
+	openvdb/metadata/StringMetadata.h
+	openvdb/metadata/MetaMap.h
+	openvdb/metadata/Metadata.h
+	openvdb/math/DDA.h
+	openvdb/math/Vec2.h
+	openvdb/math/FiniteDifference.h
+	openvdb/math/Stencils.h
+	openvdb/math/BBox.h
+	openvdb/math/Mat3.h
+	openvdb/math/Mat.h
+	openvdb/math/Proximity.h
+	openvdb/math/Ray.h
+	openvdb/math/ConjGradient.h
+	openvdb/math/Quat.h
+	openvdb/math/Vec3.h
+	openvdb/math/Vec4.h
+	openvdb/math/QuantizedUnitVec.h
+	openvdb/math/Coord.h
+	openvdb/math/Operators.h
+	openvdb/math/Stats.h
+	openvdb/math/Math.h
+	openvdb/math/Tuple.h
+	openvdb/math/LegacyFrustum.h
+	openvdb/math/Mat4.h
+	openvdb/math/Maps.h
+	openvdb/math/Transform.h
+	openvdb/util/PagedArray.h
+	openvdb/util/CpuTimer.h
+	openvdb/util/Formats.h
+	openvdb/util/NullInterrupter.h
+	openvdb/util/Util.h
+	openvdb/util/Name.h
+	openvdb/util/MapsUtil.h
+	openvdb/util/NodeMasks.h
+	openvdb/util/logging.h
+)
+
+add_library(openvdb STATIC ${SRC_FILES} ${HEADER_FILES})
+
+# --------------------------------------------------------------------------------
+
+target_link_libraries(openvdb ${OPENVDB_LIBRARIES})
+
+set(OPENVDB_VERSION_MAJOR 3)
+set(OPENVDB_VERSION_MINOR 1)
+set(OPENVDB_VERSION_PATCH 0)
+set(OPENVDB_VERSION_STRING ${OPENVDB_VERSION_MAJOR}.${OPENVDB_VERSION_MINOR}.${OPENVDB_VERSION_PATCH})
+
+set_target_properties(openvdb PROPERTIES VERSION ${OPENVDB_VERSION_STRING} SOVERSION ${OPENVDB_VERSION_MAJOR})
+
+install(TARGETS openvdb DESTINATION lib)
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} DESTINATION include COMPONENT Development FILES_MATCHING PATTERN "*.h"
+        PATTERN ".git" EXCLUDE PATTERN "build" EXCLUDE PATTERN "cmake" EXCLUDE)
+
+# --------------------------------------------------------------------------------
+
+if(WITH_PRINTER)
+	set(PRINT_SRC
+		openvdb/cmd/openvdb_print/main.cc
+	)
+
+	add_executable(vdb_print ${PRINT_SRC})
+	target_link_libraries(vdb_print openvdb)
+	install(TARGETS vdb_print RUNTIME DESTINATION bin)
+endif()
+
+if(WITH_RENDER)
+	set(RENDER_SRC
+		openvdb/cmd/openvdb_render/main.cc
+	)
+
+	add_executable(vdb_render ${RENDER_SRC})
+	target_link_libraries(vdb_render openvdb)
+	install(TARGETS vdb_render RUNTIME DESTINATION bin)
+endif()
+
+# todo
+if(WITH_VIEWER)
+	set(VIEWER_SRC
+		openvdb/viewer/Camera.cc
+		openvdb/viewer/ClipBox.cc
+		openvdb/viewer/Font.cc
+		openvdb/viewer/RenderModules.cc
+		openvdb/viewer/Viewer.cc
+
+		openvdb/viewer/Camera.h
+		openvdb/viewer/ClipBox.h
+		openvdb/viewer/Font.h
+		openvdb/viewer/RenderModules.h
+		openvdb/viewer/Viewer.h
+		openvdb/cmd/openvdb_viewer/main.cc
+	)
+
+	include_directories(${GLFW_INCLUDE_DIRS})
+	link_directories(${GLFW_LIBRARY_DIRS})
+
+	add_executable(vdb_viewer ${VIEWER_SRC})
+	target_link_libraries(vdb_viewer openvdb)
+	install(TARGETS vdb_viewer RUNTIME DESTINATION bin)
+endif()
+
+# todo
+if(WITH_PYTHON)
+#	add_library(pyopenvdb SHARED )
+endif()
+
+set(UNITTEST_SRC
+	openvdb/unittest/main.cc
+	openvdb/unittest/TestBBox.cc
+	openvdb/unittest/TestConjGradient.cc
+	openvdb/unittest/TestCoord.cc
+	openvdb/unittest/TestCpt.cc
+	openvdb/unittest/TestCurl.cc
+	openvdb/unittest/TestDense.cc
+	openvdb/unittest/TestDenseSparseTools.cc
+	openvdb/unittest/TestDiagnostics.cc
+	openvdb/unittest/TestDivergence.cc
+	openvdb/unittest/TestDoubleMetadata.cc
+	openvdb/unittest/TestExceptions.cc
+	openvdb/unittest/TestFile.cc
+	openvdb/unittest/TestFloatMetadata.cc
+	openvdb/unittest/TestGradient.cc
+	openvdb/unittest/TestGrid.cc
+	openvdb/unittest/TestGridBbox.cc
+	openvdb/unittest/TestGridDescriptor.cc
+	openvdb/unittest/TestGridIO.cc
+	openvdb/unittest/TestGridTransformer.cc
+	openvdb/unittest/TestInit.cc
+	openvdb/unittest/TestInt32Metadata.cc
+	openvdb/unittest/TestInt64Metadata.cc
+	openvdb/unittest/TestInternalOrigin.cc
+	openvdb/unittest/TestLaplacian.cc
+	openvdb/unittest/TestLeaf.cc
+	openvdb/unittest/TestLeafBool.cc
+	openvdb/unittest/TestLeafIO.cc
+	openvdb/unittest/TestLeafOrigin.cc
+	openvdb/unittest/TestLevelSetRayIntersector.cc
+	openvdb/unittest/TestLevelSetUtil.cc
+	openvdb/unittest/TestLinearInterp.cc
+	openvdb/unittest/TestMaps.cc
+	openvdb/unittest/TestMat4Metadata.cc
+	openvdb/unittest/TestMath.cc
+	openvdb/unittest/TestMeanCurvature.cc
+	openvdb/unittest/TestMeshToVolume.cc
+	openvdb/unittest/TestMetadata.cc
+	openvdb/unittest/TestMetadataIO.cc
+	openvdb/unittest/TestMetaMap.cc
+	openvdb/unittest/TestName.cc
+	openvdb/unittest/TestNodeIterator.cc
+	openvdb/unittest/TestNodeMask.cc
+	openvdb/unittest/TestParticlesToLevelSet.cc
+	openvdb/unittest/TestPointIndexGrid.cc
+	openvdb/unittest/TestPointPartitioner.cc
+	openvdb/unittest/TestPoissonSolver.cc
+	openvdb/unittest/TestPrePostAPI.cc
+	openvdb/unittest/TestQuadraticInterp.cc
+	openvdb/unittest/TestQuantizedUnitVec.cc
+	openvdb/unittest/TestQuat.cc
+	openvdb/unittest/TestRay.cc
+	openvdb/unittest/TestStats.cc
+	openvdb/unittest/TestStream.cc
+	openvdb/unittest/TestStringMetadata.cc
+	openvdb/unittest/TestTools.cc
+	openvdb/unittest/TestTransform.cc
+	openvdb/unittest/TestTree.cc
+	openvdb/unittest/TestTreeCombine.cc
+	openvdb/unittest/TestTreeGetSetValues.cc
+	openvdb/unittest/TestTreeIterators.cc
+	openvdb/unittest/TestTreeVisitor.cc
+	openvdb/unittest/TestUtil.cc
+	openvdb/unittest/TestValueAccessor.cc
+	openvdb/unittest/TestVec2Metadata.cc
+	openvdb/unittest/TestVec3Metadata.cc
+	openvdb/unittest/TestVolumeRayIntersector.cc
+	openvdb/unittest/TestVolumeToMesh.cc
+)
+
+# todo
+if(WITH_UNITTEST)
+	add_executable(test ${UNITTEST_SRC} ${HEADER_FILES})
+	target_link_libraries(test openvdb ${CPPUNIT_LIBRARIES})
+endif()

@@ -1,0 +1,32 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 3fc9be5..5112ce6 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -254,11 +254,11 @@
+ endif()
+ 
+ #adding PCRE
+-find_package(PCRE)
++#find_package(PCRE)
+ if (PCRE_FOUND)
+ 	message(STATUS "SUCCESSFUL: PCRE found")
+ else ()  # if pcre not found building its local copy from ./Externals
+-	if (WIN32 OR APPLE)
++	if (1)
+ 		message("WARNING: Native PCRE not found, taking PCRE from ./Externals")
+ 		add_definitions(-DPCRE_STATIC)
+ 		add_subdirectory(${EXTERNAL_LIBRARIES}/pcre)
+diff --git a/DAEValidator/library/include/no_warning_begin.orig b/DAEValidator/library/include/no_warning_begin
+index 3fc9be5..5112ce6 100644
+--- a/DAEValidator/library/include/no_warning_begin.orig	2017-05-31 16:56:39 -0600
++++ b/DAEValidator/library/include/no_warning_begin	2017-06-07 10:18:45 -0600
+@@ -2,6 +2,9 @@
+ #if defined(_WIN32)
+ #	pragma warning(push)
+ #	pragma warning(disable:4668)
++#	if _MSC_VER >=1900
++#		pragma warning(disable:5031)
++#	endif
+ #	if defined(_MSC_VER) && defined(_DEBUG)
+ #		pragma warning(disable:4548)
+ #	endif

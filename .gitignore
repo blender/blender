@@ -33,3 +33,6 @@ Desktop.ini
 /doc/python_api/sphinx-in/
 /doc/python_api/sphinx-out/
 /doc/python_api/rst/bmesh.ops.rst
+
+# in-source lib downloads
+/build_files/build_environment/downloads
