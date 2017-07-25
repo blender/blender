@@ -19,7 +19,7 @@
 #  Filename : invisible_lines.py
 #  Author   : Stephane Grabli
 #  Date     : 04/08/2005
-#  Purpose  : Draws all lines whose Quantitative Invisibility 
+#  Purpose  : Draws all lines whose Quantitative Invisibility
 #             is different from 0
 
 from freestyle.chainingiterators import ChainSilhouetteIterator

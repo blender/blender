@@ -961,6 +961,7 @@ void Session::update_status_time(bool show_pause, bool show_done)
 	}
 	else if(show_done) {
 		status = "Done";
+		progress.set_end_time(); /* Save end time so that further calls to get_time are accurate. */
 	}
 	else {
 		status = substatus;

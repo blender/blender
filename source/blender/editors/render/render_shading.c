@@ -1822,7 +1822,7 @@ static void paste_mtex_copybuf(ID *id)
 			mtex = &(((FreestyleLineStyle *)id)->mtex[(int)((FreestyleLineStyle *)id)->texact]);
 			break;
 		default:
-			BLI_assert("invalid id type");
+			BLI_assert(!"invalid id type");
 			return;
 	}
 	

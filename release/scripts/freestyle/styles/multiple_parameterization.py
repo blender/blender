@@ -19,7 +19,7 @@
 #  Filename : multiple_parameterization.py
 #  Author   : Stephane Grabli
 #  Date     : 04/08/2005
-#  Purpose  : The thickness and the color of the strokes vary continuously 
+#  Purpose  : The thickness and the color of the strokes vary continuously
 #             independently from occlusions although only
 #             visible lines are actually drawn. This is equivalent
 #             to assigning the thickness using a parameterization covering

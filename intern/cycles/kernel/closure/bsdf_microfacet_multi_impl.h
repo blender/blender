@@ -100,11 +100,14 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_eval)(
 	bool outside = true;
 
 	for(int order = 0; order < 10; order++) {
-		/* Sample microfacet height and normal */
-		if(!mf_sample_height(wr, &hr, &C1_r, &G1_r, &lambda_r, lcg_step_float_addrspace(lcg_state)))
+		/* Sample microfacet height. */
+		float height_rand = lcg_step_float_addrspace(lcg_state);
+		if(!mf_sample_height(wr, &hr, &C1_r, &G1_r, &lambda_r, height_rand))
 			break;
-		float3 wm = mf_sample_vndf(-wr, alpha, make_float2(lcg_step_float_addrspace(lcg_state),
-		                                                   lcg_step_float_addrspace(lcg_state)));
+		/* Sample microfacet normal. */
+		float vndf_rand_y = lcg_step_float_addrspace(lcg_state);
+		float vndf_rand_x = lcg_step_float_addrspace(lcg_state);
+		float3 wm = mf_sample_vndf(-wr, alpha, vndf_rand_x, vndf_rand_y);
 
 #ifdef MF_MULTI_GLASS
 		if(order == 0 && use_fresnel) {
@@ -136,7 +139,8 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_eval)(
 #ifdef MF_MULTI_GLASS
 			bool next_outside;
 			float3 wi_prev = -wr;
-			wr = mf_sample_phase_glass(-wr, outside? eta: 1.0f/eta, wm, lcg_step_float_addrspace(lcg_state), &next_outside);
+			float phase_rand = lcg_step_float_addrspace(lcg_state);
+			wr = mf_sample_phase_glass(-wr, outside? eta: 1.0f/eta, wm, phase_rand, &next_outside);
 			if(!next_outside) {
 				outside = !outside;
 				wr = -wr;
@@ -204,14 +208,16 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_sample)(
 	int order;
 	for(order = 0; order < 10; order++) {
 		/* Sample microfacet height. */
-		if(!mf_sample_height(wr, &hr, &C1_r, &G1_r, &lambda_r, lcg_step_float_addrspace(lcg_state))) {
+		float height_rand = lcg_step_float_addrspace(lcg_state);
+		if(!mf_sample_height(wr, &hr, &C1_r, &G1_r, &lambda_r, height_rand)) {
 			/* The random walk has left the surface. */
 			*wo = outside? wr: -wr;
 			return throughput;
 		}
 		/* Sample microfacet normal. */
-		float3 wm = mf_sample_vndf(-wr, alpha, make_float2(lcg_step_float_addrspace(lcg_state),
-		                                                   lcg_step_float_addrspace(lcg_state)));
+		float vndf_rand_y = lcg_step_float_addrspace(lcg_state);
+		float vndf_rand_x = lcg_step_float_addrspace(lcg_state);
+		float3 wm = mf_sample_vndf(-wr, alpha, vndf_rand_x, vndf_rand_y);
 
 		/* First-bounce color is already accounted for in mix weight. */
 		if(!use_fresnel && order > 0)
@@ -221,7 +227,8 @@ ccl_device_forceinline float3 MF_FUNCTION_FULL_NAME(mf_sample)(
 #ifdef MF_MULTI_GLASS
 		bool next_outside;
 		float3 wi_prev = -wr;
-		wr = mf_sample_phase_glass(-wr, outside? eta: 1.0f/eta, wm, lcg_step_float_addrspace(lcg_state), &next_outside);
+		float phase_rand = lcg_step_float_addrspace(lcg_state);
+		wr = mf_sample_phase_glass(-wr, outside? eta: 1.0f/eta, wm, phase_rand, &next_outside);
 		if(!next_outside) {
 			hr = -hr;
 			wr = -wr;

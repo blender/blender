@@ -22,7 +22,7 @@
 #  Purpose  : Uses the NatureUP1D predicate to select the lines
 #             of a given type (among Nature.SILHOUETTE, Nature.CREASE, Nature.SUGGESTIVE_CONTOURS,
 #             Nature.BORDERS).
-#             The suggestive contours must have been enabled in the 
+#             The suggestive contours must have been enabled in the
 #             options dialog to appear in the View Map.
 
 from freestyle.chainingiterators import ChainSilhouetteIterator

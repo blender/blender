@@ -21,7 +21,7 @@
 #  Date     : 04/08/2005
 #  Purpose  : Use the sequential split with two different
 #             predicates to specify respectively the starting and
-#             the stopping extremities for strokes 
+#             the stopping extremities for strokes
 
 from freestyle.chainingiterators import ChainSilhouetteIterator
 from freestyle.predicates import (

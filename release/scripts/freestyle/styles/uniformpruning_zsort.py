@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 #  Filename : uniformpruning_zsort.py
-#  Authors  : Fredo Durand, Stephane Grabli, Francois Sillion, Emmanuel Turquin 
+#  Authors  : Fredo Durand, Stephane Grabli, Francois Sillion, Emmanuel Turquin
 #  Date     : 08/04/2005
 
 from freestyle.chainingiterators import ChainSilhouetteIterator

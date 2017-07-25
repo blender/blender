@@ -280,8 +280,8 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 						float aspect = safe_sqrtf(1.0f - anisotropic * 0.9f);
 						float r2 = roughness * roughness;
 
-						bsdf->alpha_x = fmaxf(0.001f, r2 / aspect);
-						bsdf->alpha_y = fmaxf(0.001f, r2 * aspect);
+						bsdf->alpha_x = r2 / aspect;
+						bsdf->alpha_y = r2 * aspect;
 
 						float m_cdlum = 0.3f * base_color.x + 0.6f * base_color.y + 0.1f * base_color.z; // luminance approx.
 						float3 m_ctint = m_cdlum > 0.0f ? base_color / m_cdlum : make_float3(0.0f, 0.0f, 0.0f); // normalize lum. to isolate hue+sat

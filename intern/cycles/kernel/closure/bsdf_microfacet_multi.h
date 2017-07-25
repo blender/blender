@@ -40,20 +40,20 @@ ccl_device_forceinline float D_ggx_aniso(const float3 wm, const float2 alpha)
 }
 
 /* Sample slope distribution (based on page 14 of the supplemental implementation). */
-ccl_device_forceinline float2 mf_sampleP22_11(const float cosI, const float2 randU)
+ccl_device_forceinline float2 mf_sampleP22_11(const float cosI, const float randx, const float randy)
 {
 	if(cosI > 0.9999f || fabsf(cosI) < 1e-6f) {
-		const float r = sqrtf(randU.x / max(1.0f - randU.x, 1e-7f));
-		const float phi = M_2PI_F * randU.y;
+		const float r = sqrtf(randx / max(1.0f - randx, 1e-7f));
+		const float phi = M_2PI_F * randy;
 		return make_float2(r*cosf(phi), r*sinf(phi));
 	}
 
-	const float sinI = sqrtf(1.0f - cosI*cosI);
+	const float sinI = safe_sqrtf(1.0f - cosI*cosI);
 	const float tanI = sinI/cosI;
 	const float projA = 0.5f * (cosI + 1.0f);
 	if(projA < 0.0001f)
 		return make_float2(0.0f, 0.0f);
-	const float A = 2.0f*randU.x*projA / cosI - 1.0f;
+	const float A = 2.0f*randx*projA / cosI - 1.0f;
 	float tmp = A*A-1.0f;
 	if(fabsf(tmp) < 1e-7f)
 		return make_float2(0.0f, 0.0f);
@@ -64,24 +64,24 @@ ccl_device_forceinline float2 mf_sampleP22_11(const float cosI, const float2 ran
 	const float slopeX = (A < 0.0f || slopeX2 > 1.0f/tanI)? (tanI*tmp - D) : slopeX2;
 
 	float U2;
-	if(randU.y >= 0.5f)
-		U2 = 2.0f*(randU.y - 0.5f);
+	if(randy >= 0.5f)
+		U2 = 2.0f*(randy - 0.5f);
 	else
-		U2 = 2.0f*(0.5f - randU.y);
+		U2 = 2.0f*(0.5f - randy);
 	const float z = (U2*(U2*(U2*0.27385f-0.73369f)+0.46341f)) / (U2*(U2*(U2*0.093073f+0.309420f)-1.0f)+0.597999f);
 	const float slopeY = z * sqrtf(1.0f + slopeX*slopeX);
 
-	if(randU.y >= 0.5f)
+	if(randy >= 0.5f)
 		return make_float2(slopeX, slopeY);
 	else
 		return make_float2(slopeX, -slopeY);
 }
 
 /* Visible normal sampling for the GGX distribution (based on page 7 of the supplemental implementation). */
-ccl_device_forceinline float3 mf_sample_vndf(const float3 wi, const float2 alpha, const float2 randU)
+ccl_device_forceinline float3 mf_sample_vndf(const float3 wi, const float2 alpha, const float randx, const float randy)
 {
 	const float3 wi_11 = normalize(make_float3(alpha.x*wi.x, alpha.y*wi.y, wi.z));
-	const float2 slope_11 = mf_sampleP22_11(wi_11.z, randU);
+	const float2 slope_11 = mf_sampleP22_11(wi_11.z, randx, randy);
 
 	const float3 cossin_phi = safe_normalize(make_float3(wi_11.x, wi_11.y, 0.0f));
 	const float slope_x = alpha.x*(cossin_phi.x * slope_11.x - cossin_phi.y * slope_11.y);
@@ -474,6 +474,7 @@ ccl_device int bsdf_microfacet_multi_ggx_sample(KernelGlobals *kg, const ShaderC
 	*eval *= *pdf;
 
 	*omega_in = X*localO.x + Y*localO.y + Z*localO.z;
+
 #ifdef __RAY_DIFFERENTIALS__
 	*domega_in_dx = (2 * dot(Z, dIdx)) * Z - dIdx;
 	*domega_in_dy = (2 * dot(Z, dIdy)) * Z - dIdy;

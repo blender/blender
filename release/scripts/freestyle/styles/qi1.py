@@ -20,7 +20,7 @@
 #  Author   : Stephane Grabli
 #  Date     : 04/08/2005
 #  Purpose  : Draws lines hidden by one surface.
-#             *** Quantitative Invisibility must have been 
+#             *** Quantitative Invisibility must have been
 #             enabled in the options dialog to use this style module ****
 
 from freestyle.chainingiterators import ChainSilhouetteIterator

@@ -19,7 +19,7 @@
 #  Filename : sketchy_multiple_parameterization.py
 #  Author   : Stephane Grabli
 #  Date     : 04/08/2005
-#  Purpose  : Builds sketchy strokes whose topology relies on a 
+#  Purpose  : Builds sketchy strokes whose topology relies on a
 #             parameterization that covers the complete lines (visible+invisible)
 #             whereas only the visible portions are actually drawn
 

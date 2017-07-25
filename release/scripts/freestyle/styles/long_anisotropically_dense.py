@@ -19,13 +19,13 @@
 #  Filename : long_anisotropically_dense.py
 #  Author   : Stephane Grabli
 #  Date     : 04/08/2005
-#  Purpose  : Selects the lines that are long and have a high anisotropic 
-#             a priori density and uses causal density 
+#  Purpose  : Selects the lines that are long and have a high anisotropic
+#             a priori density and uses causal density
 #             to draw without cluttering. Ideally, half of the
 #             selected lines are culled using the causal density.
 #
 #             ********************* WARNING *************************************
-#             ******** The Directional a priori density maps must          ****** 
+#             ******** The Directional a priori density maps must          ******
 #             ******** have been computed prior to using this style module ******
 
 from freestyle.chainingiterators import ChainSilhouetteIterator
@@ -75,7 +75,7 @@ Operators.sort(pyLengthBP1D())
 shaders_list = [
     SamplingShader(2.0),
     ConstantThicknessShader(2),
-    ConstantColorShader(0.2,0.2,0.25,1), 
+    ConstantColorShader(0.2,0.2,0.25,1),
     ]
 ## uniform culling
 Operators.create(pyDensityUP1D(3.0,2.0e-2, IntegrationType.MEAN, 0.1), shaders_list)

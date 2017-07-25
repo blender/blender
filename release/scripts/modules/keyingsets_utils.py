@@ -232,7 +232,7 @@ bbone_property_ids = (
     "bbone_scalein",
     "bbone_scaleout",
 
-    # NOTE: These are in the nested bone struct 
+    # NOTE: These are in the nested bone struct
     # Do it this way to force them to be included
     # in whatever actions are being keyed here
     "bone.bbone_in",

@@ -19,8 +19,8 @@
 #  Filename : apriori_and_causal_density.py
 #  Author   : Stephane Grabli
 #  Date     : 04/08/2005
-#  Purpose  : Selects the lines with high a priori density and 
-#             subjects them to the causal density so as to avoid 
+#  Purpose  : Selects the lines with high a priori density and
+#             subjects them to the causal density so as to avoid
 #             cluttering
 
 from freestyle.chainingiterators import ChainPredicateIterator

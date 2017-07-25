@@ -65,10 +65,10 @@ void GlareSimpleStarOperation::generateGlare(float *data, MemoryBuffer *inputTil
 			}
 		}
 //		// B
-		for (y = tbuf1->getHeight() - 1 && (!breaked); y >= 0; y--) {
+		for (y = this->getHeight() - 1; y >= 0 && (!breaked); y--) {
 			ym = y - i;
 			yp = y + i;
-			for (x = tbuf1->getWidth() - 1; x >= 0; x--) {
+			for (x = this->getWidth() - 1; x >= 0; x--) {
 				xm = x - i;
 				xp = x + i;
 				tbuf1->read(c, x, y);
