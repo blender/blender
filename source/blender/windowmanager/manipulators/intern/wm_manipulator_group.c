@@ -388,7 +388,7 @@ static int manipulator_tweak_invoke(bContext *C, wmOperator *op, const wmEvent *
 
 	ManipulatorTweakData *mtweak = MEM_mallocN(sizeof(ManipulatorTweakData), __func__);
 
-	mtweak->init_event = event->type;
+	mtweak->init_event = WM_userdef_event_type_from_keymap_type(event->type);
 	mtweak->active = mmap->mmap_context.highlight;
 	mtweak->mmap = mmap;
 	mtweak->flag = 0;
@@ -494,6 +494,7 @@ wmKeyMap *WM_manipulatorgroup_keymap_common_select(
 	wmKeyMap *km = WM_keymap_find(config, wgt->name, wgt->mmap_params.spaceid, wgt->mmap_params.regionid);
 
 	WM_keymap_add_item(km, "MANIPULATORGROUP_OT_manipulator_tweak", ACTIONMOUSE, KM_PRESS, KM_ANY, 0);
+	WM_keymap_add_item(km, "MANIPULATORGROUP_OT_manipulator_tweak", EVT_TWEAK_S, KM_ANY, 0, 0);
 	manipulatorgroup_tweak_modal_keymap(config, wgt->name);
 
 	wmKeyMapItem *kmi = WM_keymap_add_item(km, "MANIPULATORGROUP_OT_manipulator_select", SELECTMOUSE, KM_PRESS, 0, 0);
