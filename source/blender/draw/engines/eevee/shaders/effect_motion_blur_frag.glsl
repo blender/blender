@@ -59,7 +59,7 @@ void main()
 
 	FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 	for (int j = 0; j < samples && j < MAX_SAMPLE; j++) {
-		FragColor += texture(colorBuffer, uvcoordsvar.xy + motion * i) * inv_samples;
+		FragColor += textureLod(colorBuffer, uvcoordsvar.xy + motion * i, 0.0) * inv_samples;
 		i += inc;
 	}
 }

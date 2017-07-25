@@ -180,17 +180,17 @@ vec4 upsample_filter_high(sampler2D tex, vec2 uv, vec2 texelSize)
 	vec4 d = texelSize.xyxy * vec4(1, 1, -1, 0);
 
 	vec4 s;
-	s  = texture(tex, uv - d.xy);
-	s += texture(tex, uv - d.wy) * 2;
-	s += texture(tex, uv - d.zy);
+	s  = textureLod(tex, uv - d.xy, 0.0);
+	s += textureLod(tex, uv - d.wy, 0.0) * 2;
+	s += textureLod(tex, uv - d.zy, 0.0);
 
-	s += texture(tex, uv + d.zw) * 2;
-	s += texture(tex, uv       ) * 4;
-	s += texture(tex, uv + d.xw) * 2;
+	s += textureLod(tex, uv + d.zw, 0.0) * 2;
+	s += textureLod(tex, uv       , 0.0) * 4;
+	s += textureLod(tex, uv + d.xw, 0.0) * 2;
 
-	s += texture(tex, uv + d.zy);
-	s += texture(tex, uv + d.wy) * 2;
-	s += texture(tex, uv + d.xy);
+	s += textureLod(tex, uv + d.zy, 0.0);
+	s += textureLod(tex, uv + d.wy, 0.0) * 2;
+	s += textureLod(tex, uv + d.xy, 0.0);
 
 	return s * (1.0 / 16.0);
 }
@@ -201,10 +201,10 @@ vec4 upsample_filter(sampler2D tex, vec2 uv, vec2 texelSize)
 	vec4 d = texelSize.xyxy * vec4(-1, -1, +1, +1) * 0.5;
 
 	vec4 s;
-	s  = texture(tex, uv + d.xy);
-	s += texture(tex, uv + d.zy);
-	s += texture(tex, uv + d.xw);
-	s += texture(tex, uv + d.zw);
+	s  = textureLod(tex, uv + d.xy, 0.0);
+	s += textureLod(tex, uv + d.zy, 0.0);
+	s += textureLod(tex, uv + d.xw, 0.0);
+	s += textureLod(tex, uv + d.zw, 0.0);
 
 	return s * (1.0 / 4.0);
 }
@@ -213,7 +213,7 @@ vec4 upsample_filter(sampler2D tex, vec2 uv, vec2 texelSize)
 void step_resolve(void)
 {
 	/* Recompute Near / Far CoC */
-	float depth = texture(depthBuffer, uvcoord).r;
+	float depth = textureLod(depthBuffer, uvcoord, 0.0).r;
 	float zdepth = linear_depth(depth);
 	float coc_signed = calculate_coc(zdepth);
 	float coc_far = max(-coc_signed, 0.0);
@@ -221,7 +221,7 @@ void step_resolve(void)
 
 	/* Recompute Near / Far CoC */
 	vec2 texelSize = 1.0 / vec2(textureSize(farBuffer, 0));
-	vec4 srccolor = texture(colorBuffer, uvcoord);
+	vec4 srccolor = textureLod(colorBuffer, uvcoord, 0.0);
 	vec4 farcolor = upsample_filter_high(farBuffer, uvcoord, texelSize);
 	vec4 nearcolor = upsample_filter_high(nearBuffer, uvcoord, texelSize);
 
