@@ -37,6 +37,7 @@ __all__ = (
     "register_module",
     "register_manual_map",
     "unregister_manual_map",
+    "register_submodule_factory",
     "make_rna_paths",
     "manual_map",
     "previews",
@@ -682,6 +683,47 @@ def unregister_module(module, verbose=False):
             traceback.print_exc()
     if verbose:
         print("done.\n")
+
+
+def register_submodule_factory(module_name, submodule_names):
+    """
+    Utility function to create register and unregister functions
+    which simply load submodules,
+    calling their register & unregister functions.
+
+    .. note::
+
+       Modules are registered in the order given,
+       unregistered in reverse order.
+
+    :arg module_name: The module name, typically ``__name__``.
+    :type module_name: string
+    :arg submodule_names: List of submodule names to load and unload.
+    :type submodule_names: list of strings
+    :return: register and unregister functions.
+    :rtype: tuple pair of functions
+    """
+
+    module = None
+    submodules = []
+
+    def register():
+        nonlocal module
+        module = __import__(name=module_name, fromlist=submodule_names)
+        submodules[:] = [getattr(module, name) for name in submodule_names]
+        for mod in submodules:
+            mod.register()
+
+    def unregister():
+        from sys import modules
+        for mod in reversed(submodules):
+            mod.unregister()
+            name = mod.__name__
+            delattr(module, name.partition(".")[2])
+            del modules[name]
+        submodules.clear()
+
+    return register, unregister
 
 
 # -----------------------------------------------------------------------------
