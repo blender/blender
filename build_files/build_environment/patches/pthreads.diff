@@ -1,0 +1,13 @@
+--- pthread.h.orig	2012-05-26 22:16:45 -0600
++++ pthread.h	2016-04-01 09:20:36 -0600
+@@ -109,6 +109,10 @@
+ /* Include everything */
+ #endif
+ 
++#if _MSC_VER >= 1900
++#   define HAVE_STRUCT_TIMESPEC 1
++#endif
++
+ #if defined(_UWIN)
+ #   define HAVE_STRUCT_TIMESPEC 1
+ #   define HAVE_SIGNAL_H        1

@@ -1,0 +1,26 @@
+#define IDR_VERSION1 1
+
+IDR_VERSION1 VERSIONINFO
+FILEVERSION 1,4,0,0
+PRODUCTVERSION 2,78,0,0
+FILEOS 0x00000004
+FILETYPE 0x00000002
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "FFFF04B0"
+    BEGIN
+      VALUE "FileVersion", "1.4\0"
+      VALUE "ProductVersion", "2.78\0"
+      VALUE "FileDescription", "Blender Thumbnail Handler\0"
+      VALUE "OriginalFilename", "BlendThumb.dll\0"
+      VALUE "ProductName", "Blender\0"
+      VALUE "LegalCopyright", "GPL2, 2016\0"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x0409, 0x04B0
+  END
+END
+

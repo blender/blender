@@ -1,0 +1,40 @@
+--- pcbuild/build.bat   2016-05-21 09:53:55 -0600
++++ pcbuild/build.bat   2016-05-21 09:56:16 -0600
+@@ -59,6 +59,7 @@
+ if "%~1"=="-h" goto Usage
+ if "%~1"=="-c" (set conf=%2) & shift & shift & goto CheckOpts
+ if "%~1"=="-p" (set platf=%2) & shift & shift & goto CheckOpts
++if "%~1"=="-k" (set vs_toolset=%2) & shift & shift & goto CheckOpts
+ if "%~1"=="-r" (set target=Rebuild) & shift & goto CheckOpts
+ if "%~1"=="-t" (set target=%2) & shift & shift & goto CheckOpts
+ if "%~1"=="-d" (set conf=Debug) & shift & goto CheckOpts
+@@ -126,7 +126,7 @@
+
+ :Kill
+ echo on
+-msbuild "%dir%\pythoncore.vcxproj" /t:KillPython %verbose%^
++msbuild "%dir%\pythoncore.vcxproj" /t:KillPython %verbose% /p:PlatformToolset=%vs_toolset%^
+  /p:Configuration=%conf% /p:Platform=%platf%^
+  /p:KillPython=true
+
+@@ -95,7 +96,7 @@
+ rem batch is, shall we say, "lackluster"
+ echo on
+ msbuild "%dir%pcbuild.proj" /t:%target% %parallel% %verbose%^
+- /p:Configuration=%conf% /p:Platform=%platf%^
++ /p:Configuration=%conf% /p:Platform=%platf% /p:PlatformToolset=%vs_toolset%^
+  /p:IncludeExternals=%IncludeExternals%^
+  /p:IncludeSSL=%IncludeSSL% /p:IncludeTkinter=%IncludeTkinter%^
+  /p:UseTestMarker=%UseTestMarker%^
+
+--- pcbuild/sqlite3.vcxproj	2015-12-06 18:39:10 -0700
++++ pcbuild/sqlite3.vcxproj	2016-11-02 09:25:56 -0600
+@@ -43,7 +43,7 @@
+   <Import Project="python.props" />
+   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+   <PropertyGroup Label="Configuration">
+-    <ConfigurationType>DynamicLibrary</ConfigurationType>
++    <ConfigurationType>StaticLibrary</ConfigurationType>
+     <CharacterSet>NotSet</CharacterSet>
+   </PropertyGroup>
+   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />

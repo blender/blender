@@ -1,0 +1,26 @@
+--- CmakeLists.txt.orig	2015-12-31 03:46:41 -0700
++++ CMakeLists.txt	2016-04-01 13:28:33 -0600
+@@ -22,3 +22,10 @@
+ 
+ add_executable(testcuew cuewTest/cuewTest.c include/cuew.h)
+ target_link_libraries(testcuew cuew ${CMAKE_DL_LIBS})
++
++install(TARGETS cuew
++  LIBRARY DESTINATION lib COMPONENT libraries
++  ARCHIVE DESTINATION lib/static COMPONENT libraries)
++
++INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/cuew.h
++  DESTINATION include/) 
+\ No newline at end of file
+--- src/cuew.c	2016-04-01 13:41:43 -0600
++++ src/cuew.c	2016-04-01 13:41:11 -0600
+@@ -15,7 +15,9 @@
+  */
+ 
+ #ifdef _MSC_VER
++#if _MSC_VER < 1900
+ #  define snprintf _snprintf
++#endif 
+ #  define popen _popen
+ #  define pclose _pclose
+ #  define _CRT_SECURE_NO_WARNINGS

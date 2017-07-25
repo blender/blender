@@ -1,0 +1,16 @@
+ opensubdiv/osd/d3d11VertexBuffer.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/opensubdiv/osd/d3d11VertexBuffer.cpp b/opensubdiv/osd/d3d11VertexBuffer.cpp
+index 603cbf4..07e7e0a 100644
+--- a/opensubdiv/osd/d3d11VertexBuffer.cpp
++++ b/opensubdiv/osd/d3d11VertexBuffer.cpp
+@@ -81,7 +81,7 @@ D3D11VertexBuffer::UpdateData(const float *src, int startVertex, int numVertices
+ 
+     deviceContext->Unmap(_uploadBuffer, 0);
+ 
+-    D3D11_BOX srcBox = { 0, 0, 0, size, 1, 1 };
++    D3D11_BOX srcBox = { 0, 0, 0, (UINT) size, 1, 1 };
+     deviceContext->CopySubresourceRegion(_buffer, 0, 0, 0, 0,
+                                          _uploadBuffer, 0, &srcBox);
+ }

@@ -1,0 +1,11 @@
+--- UserMacros.cmake
++++ UserMacros.cmake
+@@ -16,6 +16,8 @@
+ if (BUILD_USER_DEFINED_LIBS)
+   MACRO_USER_DEFINED_LIBS ()
+ endif (BUILD_USER_DEFINED_LIBS)
++
++include(Config/cmake/usermacros/windows_mt.cmake)
+ #-----------------------------------------------------------------------------
+ #------------------- E X A M P L E   E N D -----------------------------------
+ #-----------------------------------------------------------------------------
