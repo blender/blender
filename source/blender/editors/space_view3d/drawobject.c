@@ -9809,6 +9809,11 @@ void ED_draw_object_facemap(const bContext *C, Scene *scene, Object *ob, const f
 	if (ob->type != OB_MESH || !ob->data)
 		return;
 
+	/* Temporary, happens on undo, would resolve but will eventually move away from DM. */
+	if (ob->derivedFinal == NULL) {
+		return;
+	}
+
 	dm = mesh_get_derived_final(&eval_ctx, scene, ob, CD_MASK_BAREMESH);
 	if (!dm || !CustomData_has_layer(&dm->polyData, CD_FACEMAP))
 		return;
