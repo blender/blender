@@ -45,11 +45,6 @@ typedef enum eDepsOperation_Flag {
 
 	/* node was directly modified, causing need for update */
 	DEPSOP_FLAG_DIRECTLY_MODIFIED  = (1 << 1),
-
-	/* Operation is evaluated using CPython; has GIL and security
-	 * implications...
-	 */
-	DEPSOP_FLAG_USES_PYTHON   = (1 << 2),
 } eDepsOperation_Flag;
 
 /* Atomic Operation - Base type for all operations */
