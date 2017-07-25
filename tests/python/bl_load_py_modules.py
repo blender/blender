@@ -178,15 +178,28 @@ def load_modules():
                     for f in MODULE_SYS_PATHS.get(mod_name_full, ())
                     ])
 
-                __import__(mod_name_full)
-                mod_imp = sys.modules[mod_name_full]
+                try:
+                    __import__(mod_name_full)
+                    mod_imp = sys.modules[mod_name_full]
 
-                sys.path[:] = sys_path_back
+                    sys.path[:] = sys_path_back
 
-                # check we load what we ask for.
-                assert(os.path.samefile(mod_imp.__file__, submod_full))
+                    # check we load what we ask for.
+                    assert(os.path.samefile(mod_imp.__file__, submod_full))
 
-                modules.append(mod_imp)
+                    modules.append(mod_imp)
+                except Exception as e:
+                    import traceback
+                    # Module might fail to import, but we don't want whole test to fail here.
+                    # Reasoning:
+                    # - This module might be in ignored list (for example, preset or template),
+                    #   so failing here will cause false-positive test failure.
+                    # - If this is module which should not be ignored, it is not added to list
+                    #   of successfully loaded modules, meaning the test will catch this
+                    #   import failure.
+                    # - We want to catch all failures of this script instead of stopping on
+                    #   a first big failure.
+                    traceback.print_exc()
 
     #
     # check which filepaths we didn't load
