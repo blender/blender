@@ -72,8 +72,10 @@ extern "C" {
 #  include "DNA_world_types.h"
 #endif
 
+#include "BKE_action.h"
 #include "BKE_editmesh.h"
 #include "BKE_library_query.h"
+#include "BKE_object.h"
 }
 
 #include "intern/depsgraph.h"
@@ -460,9 +462,11 @@ void update_special_pointers(const Depsgraph *depsgraph,
 			 * new copy of the object.
 			 */
 			Object *object_cow = (Object *)id_cow;
+			const Object *object_orig = (const Object *)id_orig;
 			(void) object_cow;  /* Ignored for release builds. */
 			BLI_assert(object_cow->derivedFinal == NULL);
 			BLI_assert(object_cow->derivedDeform == NULL);
+			object_cow->mode = object_orig->mode;
 			break;
 		}
 		case ID_ME:
@@ -500,6 +504,70 @@ void update_special_pointers(const Depsgraph *depsgraph,
 	}
 }
 
+/* Update copy-on-write version of scene from original scene. */
+void update_copy_on_write_scene(const Depsgraph *depsgraph,
+                                Scene *scene_cow,
+                                const Scene *scene_orig)
+{
+	// Some non-pointer data sync, current frame for now.
+	// TODO(sergey): Are we missing something here?
+	scene_cow->r.cfra = scene_orig->r.cfra;
+	scene_cow->r.subframe = scene_orig->r.subframe;
+	// Update bases.
+	const SceneLayer *sl_orig = (SceneLayer *)scene_orig->render_layers.first;
+	SceneLayer *sl_cow = (SceneLayer *)scene_cow->render_layers.first;
+	while (sl_orig != NULL) {
+		// Update pointers to active base.
+		if (sl_orig->basact == NULL) {
+			sl_cow->basact = NULL;
+		}
+		else {
+			const Object *obact_orig = sl_orig->basact->object;
+			Object *obact_cow = (Object *)depsgraph->get_cow_id(&obact_orig->id);
+			sl_cow->basact = BKE_scene_layer_base_find(sl_cow, obact_cow);
+		}
+		// Update base flags.
+		//
+		// TODO(sergey): We should probably check visibled/selectabled
+		// flag here?
+		const Base *base_orig = (Base *)sl_orig->object_bases.first;
+		Base *base_cow = (Base *)sl_cow->object_bases.first;;
+		while (base_orig != NULL) {
+			base_cow->flag = base_orig->flag;
+			base_orig = base_orig->next;
+			base_cow = base_cow->next;
+		}
+		sl_orig = sl_orig->next;
+		sl_cow = sl_cow->next;
+	}
+	// Update edit object pointer.
+	if (scene_orig->obedit != NULL) {
+		scene_cow->obedit = (Object *)depsgraph->get_cow_id(&scene_orig->obedit->id);
+	}
+	else {
+		scene_cow->obedit = NULL;
+	}
+	// TODO(sergey): Things which are still missing here:
+	// - Active render engine.
+	// - Something else?
+}
+
+/* Update copy-on-write version of armature object from original scene. */
+void update_copy_on_write_object(const Depsgraph * /*depsgraph*/,
+                                 Object *object_cow,
+                                 const Object *object_orig)
+{
+	/* TODO(sergey): This function might be split into a smaller ones,
+	 * reused for different updates. And maybe even moved to BKE.
+	 */
+	/* Update armature/pose related flags. */
+	bPose *pose_cow = object_cow->pose;
+	const bPose *pose_orig = object_orig->pose;
+	extract_pose_from_pose(pose_cow, pose_orig);
+	/* Update object itself. */
+	BKE_object_transform_copy(object_cow, object_orig);
+}
+
 /* Update copy-on-write version of datablock from it's original ID without re-building
  * the whole datablock from scratch.
  *
@@ -509,52 +577,36 @@ void update_special_pointers(const Depsgraph *depsgraph,
 void update_copy_on_write_datablock(const Depsgraph *depsgraph,
                                     const ID *id_orig, ID *id_cow)
 {
-	if (GS(id_orig->name) == ID_SCE) {
-		const Scene *scene_orig = (const Scene *)id_orig;
-		Scene *scene_cow = (Scene *)id_cow;
-		// Some non-pointer data sync, current frame for now.
-		// TODO(sergey): Are we missing something here?
-		scene_cow->r.cfra = scene_orig->r.cfra;
-		scene_cow->r.subframe = scene_orig->r.subframe;
-		// Update bases.
-		const SceneLayer *sl_orig = (SceneLayer *)scene_orig->render_layers.first;
-		SceneLayer *sl_cow = (SceneLayer *)scene_cow->render_layers.first;
-		while (sl_orig != NULL) {
-			// Update pointers to active base.
-			if (sl_orig->basact == NULL) {
-				sl_cow->basact = NULL;
-			}
-			else {
-				const Object *obact_orig = sl_orig->basact->object;
-				Object *obact_cow = (Object *)depsgraph->get_cow_id(&obact_orig->id);
-				sl_cow->basact = BKE_scene_layer_base_find(sl_cow, obact_cow);
-			}
-			// Update base flags.
-			//
-			// TODO(sergey): We should probably check visibled/selectabled
-			// flag here?
-			const Base *base_orig = (Base *)sl_orig->object_bases.first;
-			Base *base_cow = (Base *)sl_cow->object_bases.first;;
-			while (base_orig != NULL) {
-				base_cow->flag = base_orig->flag;
-				base_orig = base_orig->next;
-				base_cow = base_cow->next;
-			}
-			sl_orig = sl_orig->next;
-			sl_cow = sl_cow->next;
+	bool ok = false;
+	const short id_type = GS(id_orig->name);
+	switch (id_type) {
+		case ID_SCE: {
+			const Scene *scene_orig = (const Scene *)id_orig;
+			Scene *scene_cow = (Scene *)id_cow;
+			update_copy_on_write_scene(depsgraph, scene_cow, scene_orig);
+			ok = true;
+			break;
 		}
-		// Update edit object pointer.
-		if (scene_orig->obedit != NULL) {
-			scene_cow->obedit = (Object *)depsgraph->get_cow_id(&scene_orig->obedit->id);
+		case ID_OB: {
+			const Object *object_orig = (const Object *)id_orig;
+			Object *object_cow = (Object *)id_cow;
+			if (object_orig->type == OB_ARMATURE) {
+				update_copy_on_write_object(depsgraph,
+				                            object_cow,
+				                            object_orig);
+				ok = true;
+			}
+			break;
 		}
-		else {
-			scene_cow->obedit = NULL;
-		}
-		// TODO(sergey): Things which are still missing here:
-		// - Active render engine.
-		// - Something else?
+		case ID_AR:
+			/* Nothing to do currently. */
+			ok = true;
+			break;
 	}
 	// TODO(sergey): Other ID types here.
+	if (!ok) {
+		BLI_assert(!"Missing update logic of expanded datablock");
+	}
 }
 
 /* This callback is used to validate that all nested ID datablocks are
