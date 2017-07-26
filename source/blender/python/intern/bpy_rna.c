@@ -6657,18 +6657,17 @@ PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr)
 	if (ptr->data == NULL && ptr->type == NULL) { /* Operator RNA has NULL data */
 		Py_RETURN_NONE;
 	}
-	else {
-		/* New in 2.8x, since not many types support instancing
-		 * we may want to use a flag to avoid looping over all classes. - campbell */
-		{
-			void **instance = RNA_struct_instance(ptr);
-			if (instance && *instance) {
-				pyrna = *instance;
-				Py_INCREF(pyrna);
-				return (PyObject *)pyrna;
-			}
-		}
 
+	/* New in 2.8x, since not many types support instancing
+	 * we may want to use a flag to avoid looping over all classes. - campbell */
+	void **instance = RNA_struct_instance(ptr);
+	if (instance && *instance) {
+		pyrna = *instance;
+		Py_INCREF(pyrna);
+		return (PyObject *)pyrna;
+	}
+
+	{
 		PyTypeObject *tp = (PyTypeObject *)pyrna_struct_Subtype(ptr);
 
 		if (tp) {
@@ -6687,6 +6686,12 @@ PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr)
 	if (pyrna == NULL) {
 		PyErr_SetString(PyExc_MemoryError, "couldn't create bpy_struct object");
 		return NULL;
+	}
+
+	/* Blender's instance owns a reference (to avoid Python freeing it). */
+	if (instance) {
+		*instance = pyrna;
+		Py_INCREF(pyrna);
 	}
 
 	pyrna->ptr = *ptr;
