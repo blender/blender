@@ -893,7 +893,9 @@ void BKE_libblock_free_ex(Main *bmain, void *idv, const bool do_id_user, const b
 	DEG_id_type_tag(bmain, type);
 
 #ifdef WITH_PYTHON
-	BPY_id_release(id);
+	if (id->py_instance) {
+		BPY_DECREF_RNA_INVALIDATE(id->py_instance);
+	}
 #endif
 
 	if (do_id_user) {
