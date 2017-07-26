@@ -952,8 +952,8 @@ void RE_point_density_cache(
 	EvaluationContext eval_ctx = {0};
 	float mat[4][4];
 
-	DEG_evaluation_context_init(&eval_ctx, use_render_params ? DAG_EVAL_RENDER :
-	                                                           DAG_EVAL_VIEWPORT);
+	DEG_evaluation_context_init(&eval_ctx, use_render_params ? DAG_EVAL_RENDER
+	                                                         : DAG_EVAL_VIEWPORT);
 
 	eval_ctx.scene_layer = sl;
 
