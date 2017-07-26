@@ -63,12 +63,7 @@
 #if defined(_MSC_VER)
 #  define ATOMIC_INLINE static __forceinline
 #else
-#  if (defined(__APPLE__) && defined(__ppc__))
-/* static inline __attribute__ here breaks osx ppc gcc42 build */
-#    define ATOMIC_INLINE static __attribute__((always_inline))
-#  else
-#    define ATOMIC_INLINE static inline __attribute__((always_inline))
-#  endif
+#  define ATOMIC_INLINE static inline __attribute__((always_inline))
 #endif
 
 #ifndef LIKELY
