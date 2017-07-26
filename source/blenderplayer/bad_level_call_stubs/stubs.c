@@ -195,6 +195,7 @@ struct wmManipulatorMap;
 #include "../blender/render/extern/include/RE_shader_ext.h"
 #include "../blender/draw/DRW_engine.h"
 #include "../blender/windowmanager/WM_api.h"
+#include "../blender/windowmanager/WM_types.h"
 
 
 /* -------------------------------------------------------------------- */
@@ -375,6 +376,7 @@ void WM_manipulator_group_add_ptr(struct wmManipulatorGroupType *wgt) RET_NONE
 void WM_manipulator_group_add_ptr_ex(struct wmManipulatorGroupType *wgt, struct wmManipulatorMapType *mmap_type) RET_NONE
 void WM_manipulator_group_remove_ptr(struct Main *bmain, struct wmManipulatorGroupType *wgt) RET_NONE
 void WM_manipulator_name_set(struct wmManipulatorGroup *mgroup, struct wmManipulator *mpr, const char *name) RET_NONE
+bool WM_manipulator_select_set(struct wmManipulatorMap *mmap, struct wmManipulator *mpr, bool select) RET_ZERO
 void WM_manipulator_target_property_def_rna_ptr(struct wmManipulator *mpr, const struct wmManipulatorPropertyType *mpr_prop_type, struct PointerRNA *ptr, struct PropertyRNA *prop, int index) RET_NONE
 void WM_manipulatorgrouptype_remove_ptr(struct wmManipulatorGroupType *wt) RET_NONE
 void WM_manipulatormaptype_group_unlink(struct bContext *C, struct Main *bmain, struct wmManipulatorMapType *mmap_type, const struct wmManipulatorGroupType *wgt) RET_NONE
