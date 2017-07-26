@@ -1243,8 +1243,10 @@ Depsgraph *CTX_data_depsgraph(const bContext *C)
 
 void CTX_data_eval_ctx(const bContext *C, EvaluationContext *eval_ctx)
 {
-	BLI_assert(C);
+	BLI_assert(C != NULL);
 
+	Scene *scene = CTX_data_scene(C);
 	*eval_ctx = *CTX_data_main(C)->eval_ctx;
 	eval_ctx->scene_layer = CTX_data_scene_layer(C);
+	eval_ctx->ctime = BKE_scene_frame_get(scene);
 }
