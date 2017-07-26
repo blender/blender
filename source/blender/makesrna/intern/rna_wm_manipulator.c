@@ -382,24 +382,6 @@ static void rna_Manipulator_state_select_set(struct PointerRNA *ptr, int value)
 	WM_manipulator_select_set(mgroup->parent_mmap, mpr, value);
 }
 
-static void rna_Manipulator_name_get(PointerRNA *ptr, char *value)
-{
-	wmManipulator *mpr = ptr->data;
-	strcpy(value, mpr->name);
-}
-
-static void rna_Manipulator_name_set(PointerRNA *ptr, const char *value)
-{
-	wmManipulator *mpr = ptr->data;
-	WM_manipulator_name_set(mpr->parent_mgroup, mpr, value);
-}
-
-static int rna_Manipulator_name_length(PointerRNA *ptr)
-{
-	wmManipulator *mpr = ptr->data;
-	return strlen(mpr->name);
-}
-
 static PointerRNA rna_Manipulator_group_get(PointerRNA *ptr)
 {
 	wmManipulator *mpr = ptr->data;
@@ -526,14 +508,14 @@ static StructRNA *rna_Manipulator_refine(PointerRNA *mnp_ptr)
  * \{ */
 
 static wmManipulator *rna_ManipulatorGroup_manipulator_new(
-        wmManipulatorGroup *mgroup, ReportList *reports, const char *idname, const char *name)
+        wmManipulatorGroup *mgroup, ReportList *reports, const char *idname)
 {
 	const wmManipulatorType *wt = WM_manipulatortype_find(idname, true);
 	if (wt == NULL) {
 		BKE_reportf(reports, RPT_ERROR, "ManipulatorType '%s' not known", idname);
 		return NULL;
 	}
-	wmManipulator *mpr = WM_manipulator_new_ptr(wt, mgroup, name, NULL);
+	wmManipulator *mpr = WM_manipulator_new_ptr(wt, mgroup, NULL);
 	return mpr;
 }
 
@@ -848,7 +830,6 @@ static void rna_def_manipulators(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add manipulator");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_string(func, "type", "Type", 0, "", "Manipulator identifier"); /* optional */
-	RNA_def_string(func, "name", "Name", 0, "", "Manipulator name"); /* optional */
 	parm = RNA_def_pointer(func, "manipulator", "Manipulator", "", "New manipulator");
 	RNA_def_function_return(func, parm);
 
@@ -989,13 +970,6 @@ static void rna_def_manipulator(BlenderRNA *brna, PropertyRNA *cprop)
 
 	/* -------------------------------------------------------------------- */
 	/* Instance Variables */
-
-	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_funcs(
-	        prop, "rna_Manipulator_name_get", "rna_Manipulator_name_length", "rna_Manipulator_name_set");
-	RNA_def_property_ui_text(prop, "Name", "");
-	RNA_def_struct_name_property(srna, prop);
-	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, NULL);
 
 	prop = RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

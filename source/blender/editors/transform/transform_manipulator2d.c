@@ -134,8 +134,8 @@ static ManipulatorGroup2D *manipulatorgroup2d_init(wmManipulatorGroup *mgroup)
 
 	ManipulatorGroup2D *man = MEM_callocN(sizeof(ManipulatorGroup2D), __func__);
 
-	man->translate_x = WM_manipulator_new_ptr(wt_arrow, mgroup, "translate_x", NULL);
-	man->translate_y = WM_manipulator_new_ptr(wt_arrow, mgroup, "translate_y", NULL);
+	man->translate_x = WM_manipulator_new_ptr(wt_arrow, mgroup, NULL);
+	man->translate_y = WM_manipulator_new_ptr(wt_arrow, mgroup, NULL);
 
 	return man;
 }

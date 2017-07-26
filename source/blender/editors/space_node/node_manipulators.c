@@ -63,7 +63,7 @@ static void WIDGETGROUP_node_transform_setup(const bContext *UNUSED(C), wmManipu
 {
 	wmManipulatorWrapper *wwrapper = MEM_mallocN(sizeof(wmManipulatorWrapper), __func__);
 
-	wwrapper->manipulator = WM_manipulator_new("MANIPULATOR_WT_cage_2d", mgroup, "backdrop_cage", NULL);
+	wwrapper->manipulator = WM_manipulator_new("MANIPULATOR_WT_cage_2d", mgroup, NULL);
 
 	RNA_enum_set(wwrapper->manipulator->ptr, "transform",
 	             ED_MANIPULATOR_RECT_TRANSFORM_FLAG_TRANSLATE | ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM);

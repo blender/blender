@@ -127,7 +127,7 @@ void wm_manipulatorgroup_free(bContext *C, wmManipulatorGroup *mgroup)
  */
 void wm_manipulatorgroup_manipulator_register(wmManipulatorGroup *mgroup, wmManipulator *mpr)
 {
-	BLI_assert(!BLI_findstring(&mgroup->manipulators, mpr->name, offsetof(wmManipulator, name)));
+	BLI_assert(BLI_findindex(&mgroup->manipulators, mpr) == -1);
 	BLI_addtail(&mgroup->manipulators, mpr);
 	mpr->parent_mgroup = mgroup;
 }

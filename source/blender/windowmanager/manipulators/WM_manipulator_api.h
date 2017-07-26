@@ -59,10 +59,10 @@ struct wmManipulatorMapType_Params;
 
 struct wmManipulator *WM_manipulator_new_ptr(
         const struct wmManipulatorType *wt, struct wmManipulatorGroup *mgroup,
-        const char *name, struct PointerRNA *properties);
+        struct PointerRNA *properties);
 struct wmManipulator *WM_manipulator_new(
         const char *idname, struct wmManipulatorGroup *mgroup,
-        const char *name, struct PointerRNA *properties);
+        struct PointerRNA *properties);
 void WM_manipulator_free(
         ListBase *manipulatorlist, struct wmManipulatorMap *mmap, struct wmManipulator *mpr,
         struct bContext *C);

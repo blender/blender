@@ -239,7 +239,7 @@ static GHash *WM_manipulatormap_manipulator_hash_new(
         bool (*poll)(const wmManipulator *, void *),
         void *data, const bool include_hidden)
 {
-	GHash *hash = BLI_ghash_str_new(__func__);
+	GHash *hash = BLI_ghash_ptr_new(__func__);
 
 	/* collect manipulators */
 	for (wmManipulatorGroup *mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
@@ -248,7 +248,7 @@ static GHash *WM_manipulatormap_manipulator_hash_new(
 				if ((include_hidden || (mpr->flag & WM_MANIPULATOR_HIDDEN) == 0) &&
 				    (!poll || poll(mpr, data)))
 				{
-					BLI_ghash_insert(hash, mpr->name, mpr);
+					BLI_ghash_insert(hash, mpr, mpr);
 				}
 			}
 		}

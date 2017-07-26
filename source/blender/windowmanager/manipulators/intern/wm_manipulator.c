@@ -65,7 +65,7 @@
 #include "wm_manipulator_intern.h"
 
 static void wm_manipulator_register(
-        wmManipulatorGroup *mgroup, wmManipulator *mpr, const char *name);
+        wmManipulatorGroup *mgroup, wmManipulator *mpr);
 
 /**
  * \note Follow #wm_operator_create convention.
@@ -102,11 +102,11 @@ static wmManipulator *wm_manipulator_create(
 
 wmManipulator *WM_manipulator_new_ptr(
         const wmManipulatorType *wt, wmManipulatorGroup *mgroup,
-        const char *name, PointerRNA *properties)
+        PointerRNA *properties)
 {
 	wmManipulator *mpr = wm_manipulator_create(wt, properties);
 
-	wm_manipulator_register(mgroup, mpr, name);
+	wm_manipulator_register(mgroup, mpr);
 
 	if (mpr->type->setup != NULL) {
 		mpr->type->setup(mpr);
@@ -122,33 +122,10 @@ wmManipulator *WM_manipulator_new_ptr(
  */
 wmManipulator *WM_manipulator_new(
         const char *idname, wmManipulatorGroup *mgroup,
-        const char *name, PointerRNA *properties)
+        PointerRNA *properties)
 {
 	const wmManipulatorType *wt = WM_manipulatortype_find(idname, false);
-	return WM_manipulator_new_ptr(wt, mgroup, name, properties);
-}
-
-/**
- * Assign an idname that is unique in \a mgroup to \a manipulator.
- *
- * \param rawname: Name used as basis to define final unique idname.
- */
-static void manipulator_unique_idname_set(wmManipulatorGroup *mgroup, wmManipulator *mpr, const char *rawname)
-{
-	BLI_snprintf(mpr->name, sizeof(mpr->name), "%s_%s", mgroup->type->idname, rawname);
-
-	/* ensure name is unique, append '.001', '.002', etc if not */
-	BLI_uniquename(&mgroup->manipulators, mpr, "Manipulator", '.',
-	               offsetof(wmManipulator, name), sizeof(mpr->name));
-}
-
-void WM_manipulator_name_set(wmManipulatorGroup *mgroup, wmManipulator *mpr, const char *name)
-{
-	BLI_strncpy(mpr->name, name, sizeof(mpr->name));
-
-	/* ensure name is unique, append '.001', '.002', etc if not */
-	BLI_uniquename(&mgroup->manipulators, mpr, "Manipulator", '.',
-	               offsetof(wmManipulator, name), sizeof(mpr->name));
+	return WM_manipulator_new_ptr(wt, mgroup, properties);
 }
 
 /**
@@ -173,10 +150,9 @@ static void manipulator_init(wmManipulator *mpr)
  *
  * \note Not to be confused with type registration from RNA.
  */
-static void wm_manipulator_register(wmManipulatorGroup *mgroup, wmManipulator *mpr, const char *name)
+static void wm_manipulator_register(wmManipulatorGroup *mgroup, wmManipulator *mpr)
 {
 	manipulator_init(mpr);
-	manipulator_unique_idname_set(mgroup, mpr, name);
 	wm_manipulatorgroup_manipulator_register(mgroup, mpr);
 }
 

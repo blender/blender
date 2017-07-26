@@ -615,9 +615,9 @@ static void manipulator_mesh_bisect_setup(const bContext *C, wmManipulatorGroup 
 	const wmManipulatorType *wt_grab = WM_manipulatortype_find("MANIPULATOR_WT_grab_3d", true);
 	const wmManipulatorType *wt_dial = WM_manipulatortype_find("MANIPULATOR_WT_dial_3d", true);
 
-	man->translate_z = WM_manipulator_new_ptr(wt_arrow, mgroup, "translate_z", NULL);
-	man->translate_c = WM_manipulator_new_ptr(wt_grab, mgroup, "translate_c", NULL);
-	man->rotate_c = WM_manipulator_new_ptr(wt_dial, mgroup, "rotate_c", NULL);
+	man->translate_z = WM_manipulator_new_ptr(wt_arrow, mgroup, NULL);
+	man->translate_c = WM_manipulator_new_ptr(wt_grab, mgroup, NULL);
+	man->rotate_c = WM_manipulator_new_ptr(wt_dial, mgroup, NULL);
 
 	RNA_enum_set(man->translate_z->ptr, "draw_style", ED_MANIPULATOR_ARROW_STYLE_NORMAL);
 	RNA_enum_set(man->translate_c->ptr, "draw_style", ED_MANIPULATOR_GRAB_STYLE_RING);

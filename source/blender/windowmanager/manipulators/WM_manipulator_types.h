@@ -129,8 +129,6 @@ typedef enum {
 struct wmManipulator {
 	struct wmManipulator *next, *prev;
 
-	char name[64 + 4]; /* MAX_NAME + 4 for unique '.001', '.002', etc suffix */
-
 	/* While we don't have a real type, use this to put type-like vars. */
 	const struct wmManipulatorType *type;
 
