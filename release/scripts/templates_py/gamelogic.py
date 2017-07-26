@@ -62,7 +62,7 @@ def main():
     # adding to our objects "life" property
     """
     actu_collide = cont.sensors["collision_sens"]
-    for ob in actu_collide.objectHitList:
+    for ob in actu_collide.hitObjectList:
         # Check to see the object has this property
         if "life" in ob:
             own["life"] += ob["life"]
