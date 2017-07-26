@@ -61,8 +61,8 @@ typedef struct Text {
 	char *undo_buf;
 	int undo_pos, undo_len;
 	
-	void *compiled;
 	double mtime;
+	void *compiled;
 } Text;
 
 #define TXT_TABSIZE	4

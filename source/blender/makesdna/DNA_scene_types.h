@@ -1720,11 +1720,11 @@ typedef struct Scene {
 	/* Physics simulation settings */
 	struct PhysicsSettings physics_settings;
 
-	/* Movie Tracking */
-	struct MovieClip *clip;			/* active movie clip */
-
 	uint64_t customdata_mask;	/* XXX. runtime flag for drawing, actually belongs in the window, only used by BKE_object_handle_update() */
 	uint64_t customdata_mask_modal; /* XXX. same as above but for temp operator use (gl renders) */
+
+	/* Movie Tracking */
+	struct MovieClip *clip;			/* active movie clip */
 
 	/* Color Management */
 	ColorManagedViewSettings view_settings;
