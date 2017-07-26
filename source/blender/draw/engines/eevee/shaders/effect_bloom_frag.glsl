@@ -46,6 +46,12 @@ out vec4 FragColor;
 
 /* -------------- Utils ------------- */
 
+vec3 safe_color(vec3 c)
+{
+	/* Clamp to avoid black square artifacts if a pixel goes NaN. */
+	return clamp(c, vec3(0.0), vec3(1e20)); /* 1e20 arbitrary. */
+}
+
 float brightness(vec3 c)
 {
 	return max(max(c.r, c.g), c.b);
@@ -136,14 +142,14 @@ vec4 step_blit(void)
 
 #ifdef HIGH_QUALITY /* Anti flicker */
 	vec3 d = sourceBufferTexelSize.xyx * vec3(1, 1, 0);
-	vec3 s0 = textureLod(sourceBuffer, uvcoordsvar.xy, 0.0).rgb;
-	vec3 s1 = textureLod(sourceBuffer, uvcoordsvar.xy - d.xz, 0.0).rgb;
-	vec3 s2 = textureLod(sourceBuffer, uvcoordsvar.xy + d.xz, 0.0).rgb;
-	vec3 s3 = textureLod(sourceBuffer, uvcoordsvar.xy - d.zy, 0.0).rgb;
-	vec3 s4 = textureLod(sourceBuffer, uvcoordsvar.xy + d.zy, 0.0).rgb;
+	vec3 s0 = safe_color(textureLod(sourceBuffer, uvcoordsvar.xy, 0.0).rgb);
+	vec3 s1 = safe_color(textureLod(sourceBuffer, uvcoordsvar.xy - d.xz, 0.0).rgb);
+	vec3 s2 = safe_color(textureLod(sourceBuffer, uvcoordsvar.xy + d.xz, 0.0).rgb);
+	vec3 s3 = safe_color(textureLod(sourceBuffer, uvcoordsvar.xy - d.zy, 0.0).rgb);
+	vec3 s4 = safe_color(textureLod(sourceBuffer, uvcoordsvar.xy + d.zy, 0.0).rgb);
 	vec3 m = median(median(s0.rgb, s1, s2), s3, s4);
 #else
-	vec3 s0 = textureLod(sourceBuffer, uvcoordsvar.xy, 0.0).rgb;
+	vec3 s0 = safe_color(textureLod(sourceBuffer, uvcoordsvar.xy, 0.0).rgb);
 	vec3 m = s0.rgb;
 #endif
 
@@ -156,9 +162,6 @@ vec4 step_blit(void)
 
 	/* Combine and apply the brightness response curve. */
 	m *= max(rq, br - curveThreshold.w) / max(br, 1e-5);
-
-	/* Clamp to avoid black square artifacts if a pixel goes NaN. */
-	clamp(m, vec3(0.0), vec3(1e20)); /* 1e20 arbitrary. */
 
 	return vec4(m, 1.0);
 }
