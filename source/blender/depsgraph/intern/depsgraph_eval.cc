@@ -56,7 +56,7 @@ extern "C" {
 /* Evaluation Context */
 
 /* Create new evaluation context. */
-EvaluationContext *DEG_evaluation_context_new(int mode)
+EvaluationContext *DEG_evaluation_context_new(eEvaluationMode mode)
 {
 	EvaluationContext *eval_ctx =
 		(EvaluationContext *)MEM_callocN(sizeof(EvaluationContext),
@@ -70,9 +70,20 @@ EvaluationContext *DEG_evaluation_context_new(int mode)
  * Used by the areas which currently overrides the context or doesn't have
  * access to a proper one.
  */
-void DEG_evaluation_context_init(EvaluationContext *eval_ctx, int mode)
+void DEG_evaluation_context_init(EvaluationContext *eval_ctx,
+                                 eEvaluationMode mode)
 {
 	eval_ctx->mode = mode;
+}
+
+void DEG_evaluation_context_init_from_scene(EvaluationContext *eval_ctx,
+                                            Scene *scene,
+                                            SceneLayer *scene_layer,
+                                            eEvaluationMode mode)
+{
+	DEG_evaluation_context_init(eval_ctx, mode);
+	eval_ctx->scene_layer = scene_layer;
+	eval_ctx->ctime = BKE_scene_frame_get(scene);
 }
 
 /* Free evaluation context. */

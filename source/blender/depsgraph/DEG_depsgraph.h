@@ -65,7 +65,14 @@ struct Main;
 
 struct PointerRNA;
 struct PropertyRNA;
+struct Scene;
 struct SceneLayer;
+
+typedef enum eEvaluationMode {
+	DAG_EVAL_VIEWPORT       = 0,    /* evaluate for OpenGL viewport */
+	DAG_EVAL_PREVIEW        = 1,    /* evaluate for render with preview settings */
+	DAG_EVAL_RENDER         = 2,    /* evaluate for render purposes */
+} eEvaluationMode;
 
 /* Dependency graph evaluation context
  *
@@ -73,17 +80,11 @@ struct SceneLayer;
  * which is needed for it's evaluation,
  */
 typedef struct EvaluationContext {
-	int mode;
+	eEvaluationMode mode;
 	float ctime;
 
 	struct SceneLayer *scene_layer;
 } EvaluationContext;
-
-typedef enum eEvaluationMode {
-	DAG_EVAL_VIEWPORT       = 0,    /* evaluate for OpenGL viewport */
-	DAG_EVAL_PREVIEW        = 1,    /* evaluate for render with preview settings */
-	DAG_EVAL_RENDER         = 2,    /* evaluate for render purposes */
-} eEvaluationMode;
 
 /* DagNode->eval_flags */
 enum {
@@ -198,13 +199,18 @@ void DEG_ids_check_recalc(struct Main *bmain,
 /* Evaluation Context ---------------------------- */
 
 /* Create new evaluation context. */
-struct EvaluationContext *DEG_evaluation_context_new(int mode);
+struct EvaluationContext *DEG_evaluation_context_new(eEvaluationMode mode);
 
 /* Initialize evaluation context.
  * Used by the areas which currently overrides the context or doesn't have
  * access to a proper one.
  */
-void DEG_evaluation_context_init(struct EvaluationContext *eval_ctx, int mode);
+void DEG_evaluation_context_init(struct EvaluationContext *eval_ctx,
+                                 eEvaluationMode mode);
+void DEG_evaluation_context_init_from_scene(struct EvaluationContext *eval_ctx,
+                                            struct Scene *scene,
+                                            struct SceneLayer *scene_layer,
+                                            eEvaluationMode mode);
 
 /* Free evaluation context. */
 void DEG_evaluation_context_free(struct EvaluationContext *eval_ctx);
