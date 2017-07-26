@@ -621,8 +621,17 @@ float defvert_find_weight(const struct MDeformVert *dvert, const int defgroup)
  */
 float defvert_array_find_weight_safe(const struct MDeformVert *dvert, const int index, const int defgroup)
 {
-	if (defgroup == -1 || dvert == NULL)
+	/* Invalid defgroup index means the vgroup selected is invalid, does not exist, in that case it is OK to return 1.0
+	 * (i.e. maximum weight, as if no vgroup was selected).
+	 * But in case of valid defgroup and NULL dvert data pointer, it means that vgroup **is** valid,
+	 * and just totally empty, so we shall return '0.0' value then!
+	*/
+	if (defgroup == -1) {
 		return 1.0f;
+	}
+	else if (dvert == NULL) {
+		return 0.0f;
+	}
 
 	return defvert_find_weight(dvert + index, defgroup);
 }
