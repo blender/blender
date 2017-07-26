@@ -2482,7 +2482,9 @@ static void createTransEditVerts(TransInfo *t)
 	int island_info_tot;
 	int *island_vert_map = NULL;
 
-	CTX_data_eval_ctx(t->context, &eval_ctx);
+	DEG_evaluation_context_init_from_scene(&eval_ctx,
+	                                       t->scene, t->scene_layer,
+	                                       DAG_EVAL_VIEWPORT);
 
 	/* Even for translation this is needed because of island-orientation, see: T51651. */
 	const bool is_island_center = (t->around == V3D_AROUND_LOCAL_ORIGINS);
