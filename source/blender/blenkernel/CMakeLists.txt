@@ -431,6 +431,10 @@ if(WITH_PYTHON)
 	)
 	add_definitions(-DWITH_PYTHON)
 
+	if(WITH_PYTHON_SAFETY)
+		add_definitions(-DWITH_PYTHON_SAFETY)
+	endif()
+
 	if(WITH_PYTHON_SECURITY)
 		add_definitions(-DWITH_PYTHON_SECURITY)
 	endif()
