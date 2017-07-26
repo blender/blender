@@ -452,7 +452,7 @@ static void manipulator_draw_select_3D_loop(const bContext *C, ListBase *visible
 
 static int manipulator_find_intersected_3d_intern(
         ListBase *visible_manipulators, const bContext *C, const int co[2],
-        const float hotspot)
+        const int hotspot)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -462,10 +462,8 @@ static int manipulator_find_intersected_3d_intern(
 	GLuint buffer[MAXPICKBUF];
 	short hits;
 	const bool do_passes = GPU_select_query_check_active();
-	rect.xmin = co[0] - hotspot;
-	rect.xmax = co[0] + hotspot;
-	rect.ymin = co[1] - hotspot;
-	rect.ymax = co[1] + hotspot;
+
+	BLI_rcti_init_pt_radius(&rect, co, hotspot);
 
 	ED_view3d_draw_setup_view(CTX_wm_window(C), C, CTX_data_scene(C), ar, v3d, NULL, NULL, &rect);
 
@@ -499,26 +497,39 @@ static wmManipulator *manipulator_find_intersected_3d(
         int *r_part)
 {
 	wmManipulator *result = NULL;
-	const float hotspot = 14.0f;
-	int ret;
+	int hit = -1;
+
+	int hotspot_radii[] = {
+		3 * U.pixelsize,
+#if 0 /* We may want to enable when selection doesn't run on mousemove! */
+		7 * U.pixelsize,
+#endif
+	};
 
 	*r_part = 0;
 	/* set up view matrices */
 	view3d_operator_needs_opengl(C);
 
-	ret = manipulator_find_intersected_3d_intern(visible_manipulators, C, co, 0.5f * hotspot);
+	hit = -1;
 
-	if (ret != -1) {
-		LinkData *link;
-		int retsec;
-		retsec = manipulator_find_intersected_3d_intern(visible_manipulators, C, co, 0.2f * hotspot);
+	for (int i = 0; i < ARRAY_SIZE(hotspot_radii); i++) {
+		hit = manipulator_find_intersected_3d_intern(visible_manipulators, C, co, hotspot_radii[i]);
+		if (hit != -1) {
+			break;
+		}
+	}
 
-		if (retsec != -1)
-			ret = retsec;
-
-		link = BLI_findlink(visible_manipulators, ret >> 8);
-		*r_part = ret & 255;
-		result = link->data;
+	if (hit != -1) {
+		LinkData *link = BLI_findlink(visible_manipulators, hit >> 8);
+		if (link != NULL) {
+			*r_part = hit & 255;
+			result = link->data;
+		}
+		else {
+			/* All manipulators should use selection ID they're given as part of the callback,
+			 * if they don't it will attempt tp lookup non-existing index. */
+			BLI_assert(0);
+		}
 	}
 
 	return result;
