@@ -94,7 +94,8 @@ struct wmManipulatorMap {
 	struct wmManipulatorMapType *type;
 	ListBase groups;  /* wmManipulatorGroup */
 
-	char update_flag; /* private, update tagging */
+	/* private, update tagging (enum defined in C source). */
+	char update_flag;
 
 	/**
 	 * \brief Manipulator map runtime context
@@ -125,7 +126,7 @@ struct wmManipulatorMapType {
 	ListBase grouptype_refs;
 
 	/* eManipulatorMapTypeUpdateFlags */
-	uchar type_update_flag;
+	eWM_ManipulatorMapTypeUpdateFlag type_update_flag;
 };
 
 void wm_manipulatormap_select_array_clear(struct wmManipulatorMap *mmap);

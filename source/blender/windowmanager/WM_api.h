@@ -42,9 +42,6 @@
 #include "WM_keymap.h"
 #include "BLI_compiler_attrs.h"
 
-/* Include external manipulator API's */
-#include "manipulators/WM_manipulator_api.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -68,6 +65,7 @@ struct ImBuf;
 struct ImageFormatData;
 struct ARegion;
 struct ScrArea;
+struct Main;
 
 #ifdef WITH_INPUT_NDOF
 struct wmNDOFMotionData;

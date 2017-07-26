@@ -435,7 +435,7 @@ static void manipulator_rect_transform_invoke(
 
 static void manipulator_rect_transform_modal(
         bContext *C, wmManipulator *mpr, const wmEvent *event,
-        const int UNUSED(flag))
+        eWM_ManipulatorTweak UNUSED(tweak_flag))
 {
 	RectTransformInteraction *data = mpr->interaction_data;
 	/* needed here as well in case clamping occurs */

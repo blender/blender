@@ -1140,7 +1140,8 @@ static ManipulatorGroup *manipulatorgroup_init(wmManipulatorGroup *mgroup)
  * Custom handler for manipulator widgets
  */
 static void manipulator_modal(
-        bContext *C, wmManipulator *widget, const wmEvent *UNUSED(event), const int UNUSED(flag))
+        bContext *C, wmManipulator *widget, const wmEvent *UNUSED(event),
+        eWM_ManipulatorTweak UNUSED(tweak_flag))
 {
 	const ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);

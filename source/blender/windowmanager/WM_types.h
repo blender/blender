@@ -121,6 +121,9 @@ struct ImBuf;
 #include "wm_event_types.h"
 #include "manipulators/WM_manipulator_types.h"
 
+/* Include external manipulator API's */
+#include "manipulators/WM_manipulator_api.h"
+
 /* ************** wmOperatorType ************************ */
 
 /* flag */

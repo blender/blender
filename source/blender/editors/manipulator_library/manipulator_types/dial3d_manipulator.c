@@ -71,7 +71,9 @@
 /* to use custom dials exported to geom_dial_manipulator.c */
 // #define USE_MANIPULATOR_CUSTOM_DIAL
 
-static void manipulator_dial_modal(bContext *C, wmManipulator *mpr, const wmEvent *event, const int flag);
+static void manipulator_dial_modal(
+        bContext *C, wmManipulator *mpr, const wmEvent *event,
+        eWM_ManipulatorTweak tweak_flag);
 
 typedef struct DialInteraction {
 	float init_mval[2];
@@ -378,7 +380,9 @@ static void manipulator_dial_draw(const bContext *C, wmManipulator *mpr)
 	}
 }
 
-static void manipulator_dial_modal(bContext *C, wmManipulator *mpr, const wmEvent *event, const int UNUSED(flag))
+static void manipulator_dial_modal(
+        bContext *C, wmManipulator *mpr, const wmEvent *event,
+        eWM_ManipulatorTweak UNUSED(tweak_flag))
 {
 	const float co_outer[4] = {0.0f, DIAL_WIDTH, 0.0f}; /* coordinate at which the arc drawing will be started */
 	float angle_ofs, angle_delta;

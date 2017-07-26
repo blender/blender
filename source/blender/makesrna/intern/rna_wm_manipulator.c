@@ -136,20 +136,22 @@ static int rna_manipulator_test_select_cb(
 }
 
 static void rna_manipulator_modal_cb(
-        struct bContext *C, struct wmManipulator *mpr, const struct wmEvent *event, int tweak)
+        struct bContext *C, struct wmManipulator *mpr, const struct wmEvent *event,
+        eWM_ManipulatorTweak tweak_flag)
 {
 	extern FunctionRNA rna_Manipulator_modal_func;
 	wmManipulatorGroup *mgroup = mpr->parent_mgroup;
 	PointerRNA mpr_ptr;
 	ParameterList list;
 	FunctionRNA *func;
+	const int tweak_flag_int = tweak_flag;
 	RNA_pointer_create(NULL, mpr->type->ext.srna, mpr, &mpr_ptr);
 	/* RNA_struct_find_function(&mpr_ptr, "modal"); */
 	func = &rna_Manipulator_modal_func;
 	RNA_parameter_list_create(&list, &mpr_ptr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
 	RNA_parameter_set_lookup(&list, "event", &event);
-	RNA_parameter_set_lookup(&list, "tweak", &tweak);
+	RNA_parameter_set_lookup(&list, "tweak", &tweak_flag_int);
 	mgroup->type->ext.call((bContext *)C, &mpr_ptr, func, &list);
 	RNA_parameter_list_free(&list);
 }

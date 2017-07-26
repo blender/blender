@@ -50,7 +50,7 @@ typedef void    (*wmManipulatorFnSetup)(struct wmManipulator *);
 typedef void    (*wmManipulatorFnDraw)(const struct bContext *, struct wmManipulator *);
 typedef void    (*wmManipulatorFnDrawSelect)(const struct bContext *, struct wmManipulator *, int);
 typedef int     (*wmManipulatorFnTestSelect)(struct bContext *, struct wmManipulator *, const struct wmEvent *);
-typedef void    (*wmManipulatorFnModal)(struct bContext *, struct wmManipulator *, const struct wmEvent *, const int);
+typedef void    (*wmManipulatorFnModal)(struct bContext *, struct wmManipulator *, const struct wmEvent *, eWM_ManipulatorTweak);
 typedef void    (*wmManipulatorFnPropertyUpdate)(struct wmManipulator *, struct wmManipulatorProperty *);
 typedef void    (*wmManipulatorFnMatrixWorldGet)(struct wmManipulator *, float[4][4]);
 typedef void    (*wmManipulatorFnInvoke)(struct bContext *, struct wmManipulator *, const struct wmEvent *);

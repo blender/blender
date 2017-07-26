@@ -63,7 +63,9 @@
 #include "../manipulator_geometry.h"
 #include "../manipulator_library_intern.h"
 
-static void manipulator_grab_modal(bContext *C, wmManipulator *mpr, const wmEvent *event, const int flag);
+static void manipulator_grab_modal(
+        bContext *C, wmManipulator *mpr, const wmEvent *event,
+        eWM_ManipulatorTweak tweak_flag);
 
 typedef struct GrabInteraction {
 	float init_mval[2];
@@ -186,7 +188,9 @@ static void manipulator_grab_draw(const bContext *C, wmManipulator *mpr)
 	glDisable(GL_BLEND);
 }
 
-static void manipulator_grab_modal(bContext *C, wmManipulator *mpr, const wmEvent *event, const int UNUSED(flag))
+static void manipulator_grab_modal(
+        bContext *C, wmManipulator *mpr, const wmEvent *event,
+        eWM_ManipulatorTweak UNUSED(tweak_flag))
 {
 	GrabInteraction *inter = mpr->interaction_data;
 

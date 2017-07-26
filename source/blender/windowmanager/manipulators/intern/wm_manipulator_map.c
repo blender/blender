@@ -64,17 +64,17 @@ static ListBase manipulatormaptypes = {NULL, NULL};
  * Update when manipulator-map types change.
  */
 /* so operator removal can trigger update */
-enum {
+typedef enum eWM_ManipulatorGroupTypeGlobalFlag {
 	WM_MANIPULATORMAPTYPE_GLOBAL_UPDATE_INIT = (1 << 0),
 	WM_MANIPULATORMAPTYPE_GLOBAL_UPDATE_REMOVE = (1 << 1),
-};
+} eWM_ManipulatorGroupTypeGlobalFlag;
 
-static char wm_mmap_type_update_flag = 0;
+static eWM_ManipulatorGroupTypeGlobalFlag wm_mmap_type_update_flag = 0;
 
 /**
  * Manipulator-map update tagging.
  */
-enum eManipulatorMapUpdateFlags {
+enum {
 	/* Tag manipulator-map for refresh. */
 	MANIPULATORMAP_REFRESH = (1 << 0),
 };
@@ -422,7 +422,7 @@ static void manipulator_draw_select_3D_loop(const bContext *C, ListBase *visible
 
 	for (LinkData *link = visible_manipulators->first; link; link = link->next) {
 		mpr = link->data;
-		
+
 		bool is_depth = (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_DEPTH_3D) != 0;
 		if (is_depth == is_depth_prev) {
 			/* pass */

@@ -235,7 +235,9 @@ static void manipulator_arrow_draw(const bContext *UNUSED(C), wmManipulator *mpr
  * Calculate arrow offset independent from prop min value,
  * meaning the range will not be offset by min value first.
  */
-static void manipulator_arrow_modal(bContext *C, wmManipulator *mpr, const wmEvent *event, const int flag)
+static void manipulator_arrow_modal(
+        bContext *C, wmManipulator *mpr, const wmEvent *event,
+        eWM_ManipulatorTweak tweak_flag)
 {
 	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
 	ManipulatorInteraction *inter = mpr->interaction_data;
@@ -334,7 +336,7 @@ static void manipulator_arrow_modal(bContext *C, wmManipulator *mpr, const wmEve
 		const int draw_options = RNA_enum_get(arrow->manipulator.ptr, "draw_options");
 		const bool constrained = (draw_options & ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED) != 0;
 		const bool inverted = (draw_options & ED_MANIPULATOR_ARROW_STYLE_INVERTED) != 0;
-		const bool use_precision = (flag & WM_MANIPULATOR_TWEAK_PRECISE) != 0;
+		const bool use_precision = (tweak_flag & WM_MANIPULATOR_TWEAK_PRECISE) != 0;
 		float value = manipulator_value_from_offset(data, inter, ofs_new, constrained, inverted, use_precision);
 
 		WM_manipulator_target_property_value_set(C, mpr, mpr_prop, value);
