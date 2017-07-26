@@ -150,10 +150,14 @@ static void EEVEE_draw_scene(void *vedata)
 
 	while (loop_ct--) {
 		/* Refresh shadows */
+		DRW_stats_group_start("Shadows");
 		EEVEE_draw_shadows(sldata, psl);
+		DRW_stats_group_end();
 
 		/* Refresh Probes */
+		DRW_stats_group_start("Probes Refresh");
 		EEVEE_lightprobes_refresh(sldata, vedata);
+		DRW_stats_group_end();
 
 		/* Attach depth to the hdr buffer and bind it */
 		DRW_framebuffer_texture_detach(dtxl->depth);
@@ -165,32 +169,46 @@ static void EEVEE_draw_scene(void *vedata)
 		DRW_draw_pass(psl->background_pass);
 
 		/* Depth prepass */
+		DRW_stats_group_start("Prepass");
 		DRW_draw_pass(psl->depth_pass);
 		DRW_draw_pass(psl->depth_pass_cull);
+		DRW_stats_group_end();
 
 		/* Create minmax texture */
+		DRW_stats_group_start("Main MinMax buffer");
 		EEVEE_create_minmax_buffer(vedata, dtxl->depth, -1);
+		DRW_stats_group_end();
 
 		/* Restore main FB */
 		DRW_framebuffer_bind(fbl->main);
 
 		/* Shading pass */
+		DRW_stats_group_start("Shading");
 		DRW_draw_pass(psl->probe_display);
 		EEVEE_draw_default_passes(psl);
 		DRW_draw_pass(psl->material_pass);
+		DRW_stats_group_end();
 
 		/* Screen Space Reflections */
+		DRW_stats_group_start("SSR");
 		EEVEE_effects_do_ssr(sldata, vedata);
+		DRW_stats_group_end();
 
 		/* Volumetrics */
+		DRW_stats_group_start("Volumetrics");
 		EEVEE_effects_do_volumetrics(sldata, vedata);
+		DRW_stats_group_end();
 
 		/* Transparent */
 		DRW_pass_sort_shgroup_z(psl->transparent_pass);
+		DRW_stats_group_start("Transparent");
 		DRW_draw_pass(psl->transparent_pass);
+		DRW_stats_group_end();
 
 		/* Post Process */
+		DRW_stats_group_start("Post FX");
 		EEVEE_draw_effects(vedata);
+		DRW_stats_group_end();
 	}
 }
 

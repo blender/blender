@@ -334,7 +334,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *veda
 	memset(pinfo->probes_planar_ref, 0, sizeof(pinfo->probes_planar_ref));
 
 	{
-		psl->probe_background = DRW_pass_create("World Probe Pass", DRW_STATE_WRITE_COLOR);
+		psl->probe_background = DRW_pass_create("World Probe Background Pass", DRW_STATE_WRITE_COLOR);
 
 		struct Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
 		DRWShadingGroup *grp = NULL;
@@ -1342,9 +1342,11 @@ update_planar:
 	/* If there is at least one planar probe */
 	if (pinfo->num_planar > 0) {
 		const int max_lod = 9;
+		DRW_stats_group_start("Planar Probe Downsample");
 		DRW_framebuffer_recursive_downsample(vedata->fbl->downsample_fb, txl->planar_pool, max_lod, &downsample_planar, vedata);
 		/* For shading, save max level of the planar map */
 		pinfo->lod_planar_max = (float)(max_lod);
+		DRW_stats_group_end();
 	}
 }
 

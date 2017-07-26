@@ -979,6 +979,7 @@ void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, GPUTexture *depth_src, int l
 
 	e_data.depth_src = depth_src;
 
+	DRW_stats_group_start("Min buffer");
 	/* Copy depth buffer to min texture top level */
 	DRW_framebuffer_texture_attach(fbl->downsample_fb, stl->g_data->minzbuffer, 0, 0);
 	DRW_framebuffer_bind(fbl->downsample_fb);
@@ -993,7 +994,9 @@ void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, GPUTexture *depth_src, int l
 
 	/* Create lower levels */
 	DRW_framebuffer_recursive_downsample(fbl->downsample_fb, stl->g_data->minzbuffer, 8, &min_downsample_cb, vedata);
+	DRW_stats_group_end();
 
+	DRW_stats_group_start("Max buffer");
 	/* Copy depth buffer to max texture top level */
 	DRW_framebuffer_texture_attach(fbl->downsample_fb, txl->maxzbuffer, 0, 0);
 	DRW_framebuffer_bind(fbl->downsample_fb);
@@ -1008,6 +1011,7 @@ void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, GPUTexture *depth_src, int l
 
 	/* Create lower levels */
 	DRW_framebuffer_recursive_downsample(fbl->downsample_fb, txl->maxzbuffer, 8, &max_downsample_cb, vedata);
+	DRW_stats_group_end();
 }
 
 /**
@@ -1017,8 +1021,10 @@ void EEVEE_downsample_buffer(EEVEE_Data *vedata, struct GPUFrameBuffer *fb_src, 
 {
 	e_data.color_src = texture_src;
 
+	DRW_stats_group_start("Downsample buffer");
 	/* Create lower levels */
 	DRW_framebuffer_recursive_downsample(fb_src, texture_src, level, &simple_downsample_cb, vedata);
+	DRW_stats_group_end();
 }
 
 void EEVEE_effects_do_volumetrics(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
