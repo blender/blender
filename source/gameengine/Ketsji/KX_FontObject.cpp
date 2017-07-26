@@ -281,7 +281,7 @@ int KX_FontObject::pyattr_set_text(void *self_v, const KX_PYATTRIBUTE_DEF *attrd
 	KX_FontObject* self = static_cast<KX_FontObject*>(self_v);
 	if (!PyUnicode_Check(value))
 		return PY_SET_ATTR_FAIL;
-	char* chars = _PyUnicode_AsString(value);
+	const char *chars = _PyUnicode_AsString(value);
 
 	/* Allow for some logic brick control */
 	CValue* tprop = self->GetProperty("Text");
