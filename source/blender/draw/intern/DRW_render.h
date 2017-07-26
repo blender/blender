@@ -49,6 +49,8 @@
 #include "draw_cache.h"
 #include "draw_view.h"
 
+#include "draw_manager_profiling.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "RE_engine.h"

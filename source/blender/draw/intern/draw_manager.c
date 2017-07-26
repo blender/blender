@@ -80,6 +80,7 @@
 #include "WM_types.h"
 
 #include "draw_manager_text.h"
+#include "draw_manager_profiling.h"
 
 /* only for callbacks */
 #include "draw_cache_impl.h"
@@ -191,12 +192,6 @@ struct DRWPass {
 	ListBase shgroups; /* DRWShadingGroup */
 	DRWState state;
 	char name[MAX_PASS_NAME];
-	/* use two query to not stall the cpu waiting for queries to complete */
-	unsigned int timer_queries[2];
-	/* alternate between front and back query */
-	unsigned int front_idx;
-	unsigned int back_idx;
-	bool wasdrawn; /* if it was drawn during this frame */
 };
 
 typedef struct DRWCallHeader {
@@ -1260,7 +1255,6 @@ void DRW_pass_free(DRWPass *pass)
 		DRW_shgroup_free(shgroup);
 	}
 
-	glDeleteQueries(2, pass->timer_queries);
 	BLI_freelistN(&pass->shgroups);
 }
 
@@ -1900,28 +1894,7 @@ static void DRW_draw_pass_ex(DRWPass *pass, DRWShadingGroup *start_group, DRWSha
 	DRW_state_set(pass->state);
 	BLI_listbase_clear(&DST.bound_texs);
 
-	/* Init Timer queries */
-	if (pass->timer_queries[0] == 0) {
-		pass->front_idx = 0;
-		pass->back_idx = 1;
-
-		glGenQueries(2, pass->timer_queries);
-
-		/* dummy query, avoid gl error */
-		glBeginQuery(GL_TIME_ELAPSED, pass->timer_queries[pass->front_idx]);
-		glEndQuery(GL_TIME_ELAPSED);
-	}
-	else {
-		/* swap indices */
-		unsigned int tmp = pass->back_idx;
-		pass->back_idx = pass->front_idx;
-		pass->front_idx = tmp;
-	}
-
-	if (!pass->wasdrawn) {
-		/* issue query for the next frame */
-		glBeginQuery(GL_TIME_ELAPSED, pass->timer_queries[pass->back_idx]);
-	}
+	DRW_stats_query_start(pass->name);
 
 	for (DRWShadingGroup *shgroup = start_group; shgroup; shgroup = shgroup->next) {
 		draw_shgroup(shgroup, pass->state);
@@ -1943,11 +1916,7 @@ static void DRW_draw_pass_ex(DRWPass *pass, DRWShadingGroup *start_group, DRWSha
 		DST.shader = NULL;
 	}
 
-	if (!pass->wasdrawn) {
-		glEndQuery(GL_TIME_ELAPSED);
-	}
-
-	pass->wasdrawn = true;
+	DRW_stats_query_end();
 }
 
 void DRW_draw_pass(DRWPass *pass)
@@ -2620,15 +2589,18 @@ static void DRW_engines_draw_background(void)
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
 		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
-		double stime = PIL_check_seconds_timer();
 
 		if (engine->draw_background) {
+			double stime = PIL_check_seconds_timer();
+
+			DRW_stats_group_start(engine->idname);
 			engine->draw_background(data);
+			DRW_stats_group_end();
+
+			double ftime = (PIL_check_seconds_timer() - stime) * 1e3;
+			data->background_time = data->background_time * (1.0f - TIMER_FALLOFF) + ftime * TIMER_FALLOFF; /* exp average */
 			return;
 		}
-
-		double ftime = (PIL_check_seconds_timer() - stime) * 1e3;
-		data->background_time = data->background_time * (1.0f - TIMER_FALLOFF) + ftime * TIMER_FALLOFF; /* exp average */
 	}
 
 	/* No draw_background found, doing default background */
@@ -2643,7 +2615,9 @@ static void DRW_engines_draw_scene(void)
 		double stime = PIL_check_seconds_timer();
 
 		if (engine->draw_scene) {
+			DRW_stats_group_start(engine->idname);
 			engine->draw_scene(data);
+			DRW_stats_group_end();
 		}
 
 		double ftime = (PIL_check_seconds_timer() - stime) * 1e3;
@@ -2877,7 +2851,7 @@ static unsigned int DRW_engines_get_hash(void)
 static void draw_stat(rcti *rect, int u, int v, const char *txt, const int size)
 {
 	BLF_draw_default_ascii(rect->xmin + (1 + u * 5) * U.widget_unit,
-	                       rect->ymax - (3 + v++) * U.widget_unit, 0.0f,
+	                       rect->ymax - (3 + v) * U.widget_unit, 0.0f,
 	                       txt, size);
 }
 
@@ -2968,66 +2942,32 @@ static void DRW_debug_gpu_stats(void)
 
 	UI_FontThemeColor(BLF_default(), TH_TEXT_HI);
 
-	char time_to_txt[16];
-	char pass_name[MAX_PASS_NAME + 16];
 	int v = BLI_listbase_count(&DST.enabled_engines) + 3;
-	GLuint64 tot_time = 0;
 
-	if (G.debug_value > 666) {
-		for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
-			GLuint64 engine_time = 0;
-			DrawEngineType *engine = link->data;
-			ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
-			int vsta = v;
-
-			draw_stat(&rect, 0, v, engine->idname, sizeof(engine->idname));
-			v++;
-
-			for (int i = 0; i < engine->vedata_size->psl_len; ++i) {
-				DRWPass *pass = data->psl->passes[i];
-				if (pass != NULL && pass->wasdrawn) {
-					GLuint64 time;
-					glGetQueryObjectui64v(pass->timer_queries[pass->front_idx], GL_QUERY_RESULT, &time);
-
-					sprintf(pass_name, "   |--> %s", pass->name);
-					draw_stat(&rect, 0, v, pass_name, sizeof(pass_name));
-
-					sprintf(time_to_txt, "%.2fms", time / 1000000.0);
-					engine_time += time;
-					tot_time += time;
-
-					draw_stat(&rect, 2, v++, time_to_txt, sizeof(time_to_txt));
-
-					pass->wasdrawn = false;
-				}
-			}
-			/* engine total time */
-			sprintf(time_to_txt, "%.2fms", engine_time / 1000000.0);
-			draw_stat(&rect, 2, vsta, time_to_txt, sizeof(time_to_txt));
-			v++;
-		}
-
-		sprintf(pass_name, "Total GPU time %.2fms (%.1f fps)", tot_time / 1000000.0, 1000000000.0 / tot_time);
-		draw_stat(&rect, 0, v++, pass_name, sizeof(pass_name));
-		v++;
-	}
+	char stat_string[32];
 
 	/* Memory Stats */
 	unsigned int tex_mem = GPU_texture_memory_usage_get();
 	unsigned int vbo_mem = GWN_vertbuf_get_memory_usage();
 
-	sprintf(pass_name, "GPU Memory");
-	draw_stat(&rect, 0, v, pass_name, sizeof(pass_name));
-	sprintf(pass_name, "%.2fMB", (float)(tex_mem + vbo_mem) / 1000000.0);
-	draw_stat(&rect, 1, v++, pass_name, sizeof(pass_name));
-	sprintf(pass_name, "   |--> Textures");
-	draw_stat(&rect, 0, v, pass_name, sizeof(pass_name));
-	sprintf(pass_name, "%.2fMB", (float)tex_mem / 1000000.0);
-	draw_stat(&rect, 1, v++, pass_name, sizeof(pass_name));
-	sprintf(pass_name, "   |--> Meshes");
-	draw_stat(&rect, 0, v, pass_name, sizeof(pass_name));
-	sprintf(pass_name, "%.2fMB", (float)vbo_mem / 1000000.0);
-	draw_stat(&rect, 1, v++, pass_name, sizeof(pass_name));
+	sprintf(stat_string, "GPU Memory");
+	draw_stat(&rect, 0, v, stat_string, sizeof(stat_string));
+	sprintf(stat_string, "%.2fMB", (float)(tex_mem + vbo_mem) / 1000000.0);
+	draw_stat(&rect, 1, v++, stat_string, sizeof(stat_string));
+	sprintf(stat_string, "   |--> Textures");
+	draw_stat(&rect, 0, v, stat_string, sizeof(stat_string));
+	sprintf(stat_string, "%.2fMB", (float)tex_mem / 1000000.0);
+	draw_stat(&rect, 1, v++, stat_string, sizeof(stat_string));
+	sprintf(stat_string, "   |--> Meshes");
+	draw_stat(&rect, 0, v, stat_string, sizeof(stat_string));
+	sprintf(stat_string, "%.2fMB", (float)vbo_mem / 1000000.0);
+	draw_stat(&rect, 1, v++, stat_string, sizeof(stat_string));
+
+	/* Pre offset for stats_draw */
+	rect.ymax -= (3 + ++v) * U.widget_unit;
+
+	/* Rendering Stats */
+	DRW_stats_draw(&rect);
 }
 
 
@@ -3106,6 +3046,8 @@ void DRW_draw_render_loop_ex(
 		DRW_engines_cache_finish();
 	}
 
+	DRW_stats_begin();
+
 	/* Start Drawing */
 	DRW_state_reset();
 	DRW_engines_draw_background();
@@ -3135,6 +3077,8 @@ void DRW_draw_render_loop_ex(
 
 		DRW_draw_region_info();
 	}
+
+	DRW_stats_reset();
 
 	if (G.debug_value > 20) {
 		DRW_debug_cpu_stats();
@@ -3555,6 +3499,7 @@ extern struct GPUTexture *globals_ramp; /* draw_common.c */
 void DRW_engines_free(void)
 {
 	DRW_shape_cache_free();
+	DRW_stats_free();
 
 	DrawEngineType *next;
 	for (DrawEngineType *type = DRW_engines.first; type; type = next) {
