@@ -377,6 +377,11 @@ void BKE_object_eval_uber_data(EvaluationContext *eval_ctx,
 			/* NOTE: Watch out, some tools might need it!
 			 * So keep around for now..
 			 */
+			/* Store original ID as a pointer in evaluated ID.
+			 * This way we can restore original object data when we are freeing
+			 * evaluated mesh.
+			 */
+			new_mesh->id.newid = &mesh->id;
 		}
 #if 0
 		if (ob->derivedFinal != NULL) {
