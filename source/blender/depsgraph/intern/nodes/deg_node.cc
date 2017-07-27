@@ -165,10 +165,10 @@ static void id_deps_node_hash_value_free(void *value_v)
 /* Initialize 'id' node - from pointer data given. */
 void IDDepsNode::init(const ID *id, const char *UNUSED(subdata))
 {
-	/* Store ID-pointer. */
 	BLI_assert(id != NULL);
-	this->id_orig = (ID *)id;
-	this->eval_flags = 0;
+	/* Store ID-pointer. */
+	id_orig = (ID *)id;
+	eval_flags = 0;
 
 	components = BLI_ghash_new(id_deps_node_hash_key,
 	                           id_deps_node_hash_key_cmp,
@@ -179,10 +179,15 @@ void IDDepsNode::init(const ID *id, const char *UNUSED(subdata))
 	 * bindings. Rest of data we'll be copying to the new datablock when
 	 * it is actually needed.
 	 */
-	id_cow = (ID *)BKE_libblock_alloc_notest(GS(id->name));
-	DEG_COW_PRINT("Create shallow copy for %s: id_orig=%p id_cow=%p\n",
-	              id_orig->name, id_orig, id_cow);
-	deg_tag_copy_on_write_id(id_cow, id_orig);
+	if (deg_copy_on_write_is_needed(id_orig)) {
+		id_cow = (ID *)BKE_libblock_alloc_notest(GS(id->name));
+		DEG_COW_PRINT("Create shallow copy for %s: id_orig=%p id_cow=%p\n",
+		              id_orig->name, id_orig, id_cow);
+		deg_tag_copy_on_write_id(id_cow, id_orig);
+	}
+	else {
+		id_cow = id_orig;
+	}
 #else
 	id_cow = id_orig;
 #endif
@@ -206,10 +211,12 @@ void IDDepsNode::destroy()
 
 #ifdef WITH_COPY_ON_WRITE
 	/* Free memory used by this CoW ID. */
-	deg_free_copy_on_write_datablock(id_cow);
-	MEM_freeN(id_cow);
-	DEG_COW_PRINT("Destroy CoW for %s: id_orig=%p id_cow=%p\n",
-	              id_orig->name, id_orig, id_cow);
+	if (id_cow != id_orig) {
+		deg_free_copy_on_write_datablock(id_cow);
+		MEM_freeN(id_cow);
+		DEG_COW_PRINT("Destroy CoW for %s: id_orig=%p id_cow=%p\n",
+		              id_orig->name, id_orig, id_cow);
+	}
 #endif
 	/* Tag that the node is freed. */
 	id_orig = NULL;

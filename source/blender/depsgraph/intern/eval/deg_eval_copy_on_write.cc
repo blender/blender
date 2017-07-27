@@ -361,6 +361,10 @@ static bool check_datablock_expanded_at_construction(const ID *id_orig)
 static bool check_datablocks_copy_on_writable(const ID *id_orig)
 {
 	const short id_type = GS(id_orig->name);
+	/* We shouldn't bother if copied ID is same as original one. */
+	if (!deg_copy_on_write_is_needed(id_orig)) {
+		return false;
+	}
 	return !ELEM(id_type, ID_BR,
 	                      ID_LS,
 	                      ID_AC,
@@ -645,6 +649,12 @@ ID *deg_expand_copy_on_write_datablock(Depsgraph *depsgraph,
 	           check_datablock_expanded_at_construction(id_node->id_orig));
 	const ID *id_orig = id_node->id_orig;
 	ID *id_cow = id_node->id_cow;
+	/* No need to expand such datablocks, their copied ID is same as original
+	 * one already.
+	 */
+	if (!deg_copy_on_write_is_needed(id_orig)) {
+		return id_cow;
+	}
 	DEG_COW_PRINT("Expanding datablock for %s: id_orig=%p id_cow=%p\n",
 	              id_orig->name, id_orig, id_cow);
 	/* Sanity checks. */
@@ -755,6 +765,10 @@ ID *deg_update_copy_on_write_datablock(/*const*/ Depsgraph *depsgraph,
 {
 	const ID *id_orig = id_node->id_orig;
 	ID *id_cow = id_node->id_cow;
+	/* Similar to expansion, no need to do anything here. */
+	if (!deg_copy_on_write_is_needed(id_orig)) {
+		return id_cow;
+	}
 	/* Special case for datablocks which are expanded at the dependency graph
 	 * construction time. This datablocks must never change pointers of their
 	 * nested data since it is used for function bindings.
@@ -897,9 +911,15 @@ void deg_tag_copy_on_write_id(ID *id_cow, const ID *id_orig)
 	id_cow->newid = (ID *)id_orig;
 }
 
-bool deg_copy_on_write_is_expanded(const struct ID *id_cow)
+bool deg_copy_on_write_is_expanded(const ID *id_cow)
 {
 	return check_datablock_expanded(id_cow);
+}
+
+bool deg_copy_on_write_is_needed(const ID *id_orig)
+{
+	const short id_type = GS(id_orig->name);
+	return !ELEM(id_type, ID_IM);
 }
 
 }  // namespace DEG

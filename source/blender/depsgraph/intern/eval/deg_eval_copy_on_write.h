@@ -92,4 +92,13 @@ void deg_tag_copy_on_write_id(struct ID *id_cow, const struct ID *id_orig);
  */
 bool deg_copy_on_write_is_expanded(const struct ID *id_cow);
 
+/* Check whether copy-on-write datablock is needed for given ID.
+ *
+ * There are some exceptions on datablocks which are covered by dependency graph
+ * but which we don't want to start duplicating.
+ *
+ * This includes images.
+ */
+bool deg_copy_on_write_is_needed(const ID *id_orig);
+
 }  // namespace DEG
