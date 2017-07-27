@@ -331,6 +331,10 @@ def script_paths(subdir=None, user_pref=True, check_all=False, use_user=True):
     # so the 'BLENDER_SYSTEM_SCRIPTS' environment variable will be used.
     base_paths = _bpy_script_paths()
 
+    # Defined to be (system, user) so we can skip the second if needed.
+    if not use_user:
+        base_paths = base_paths[:1]
+
     if check_all:
         # All possible paths, no duplicates, keep order.
         if use_user:
