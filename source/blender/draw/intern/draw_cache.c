@@ -1404,7 +1404,7 @@ Gwn_Batch *DRW_cache_lightprobe_grid_get(void)
 		}
 
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(vbo, (6 * 3 + 3) * 2);
+		GWN_vertbuf_data_alloc(vbo, (6 * 2 + 3) * 2);
 
 		for (int i = 0; i < 6; ++i)	{
 			float tmp_v1[3], tmp_v2[3], tmp_tr[3];
