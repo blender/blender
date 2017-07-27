@@ -98,9 +98,7 @@ void DepsgraphNodeBuilder::build_scene_layer_collections(Scene *scene)
 {
 #ifdef WITH_COPY_ON_WRITE
 	/* Make sure we've got ID node, so we can get pointer to CoW datablock. */
-	IDDepsNode *id_node = add_id_node(&scene->id);
-	Scene *scene_cow = (Scene *)deg_expand_copy_on_write_datablock(
-	        m_graph, id_node, this, true);
+	Scene *scene_cow = expand_cow_datablock(scene);
 #else
 	Scene *scene_cow = scene;
 #endif
