@@ -1165,6 +1165,8 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 	uiBut *but;
 	char buf[128];
 
+	BLI_assert(block->flag & UI_BLOCK_LOOP);
+
 	/* only do it before bounding */
 	if (block->rect.xmin != block->rect.xmax)
 		return;
@@ -1179,6 +1181,9 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 	}
 	else {
 		for (but = block->buttons.first; but; but = but->next) {
+			if (but->dt != UI_EMBOSS_PULLDOWN) {
+				continue;
+			}
 
 			if (ui_but_event_operator_string(C, but, buf, sizeof(buf))) {
 				ui_but_add_shortcut(but, buf, false);
