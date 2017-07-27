@@ -218,7 +218,7 @@ void IDDepsNode::destroy()
 
 #ifdef WITH_COPY_ON_WRITE
 	/* Free memory used by this CoW ID. */
-	if (id_cow != id_orig) {
+	if (id_cow != id_orig && id_cow != NULL) {
 		deg_free_copy_on_write_datablock(id_cow);
 		MEM_freeN(id_cow);
 		DEG_COW_PRINT("Destroy CoW for %s: id_orig=%p id_cow=%p\n",
