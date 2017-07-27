@@ -100,7 +100,7 @@ float probe_attenuation_cube(CubeData pd, vec3 W)
 	return fac;
 }
 
-float probe_attenuation_planar(PlanarData pd, vec3 W, vec3 N)
+float probe_attenuation_planar(PlanarData pd, vec3 W, vec3 N, float roughness)
 {
 	/* Normal Facing */
 	float fac = saturate(dot(pd.pl_normal, N) * pd.pl_facing_scale + pd.pl_facing_bias);
@@ -113,6 +113,9 @@ float probe_attenuation_planar(PlanarData pd, vec3 W, vec3 N)
 	dist_to_clip.x = dot(pd.pl_clip_pos_x, W);
 	dist_to_clip.y = dot(pd.pl_clip_pos_y, W);
 	fac *= step(2.0, dot(step(pd.pl_clip_edges, dist_to_clip.xxyy), vec2(-1.0, 1.0).xyxy)); /* compare and add all tests */
+
+	/* Decrease influence for high roughness */
+	fac *= saturate(1.0 - roughness * 10.0);
 
 	return fac;
 }
@@ -182,24 +185,12 @@ vec3 probe_evaluate_planar(
 	vec3 ref_pos = point_on_plane + proj_ref;
 
 	/* Reproject to find texture coords. */
-	vec4 refco = pd.reflectionmat * vec4(ref_pos, 1.0);
+	vec4 refco = ViewProjectionMatrix * vec4(ref_pos, 1.0);
 	refco.xy /= refco.w;
 
-	/* Distance to roughness */
-	float linear_roughness = sqrt(roughness);
-	float distance_roughness = min(linear_roughness, ref_depth * linear_roughness);
-	linear_roughness = mix(distance_roughness, linear_roughness, linear_roughness);
-
-	/* Decrease influence for high roughness */
-	fade *= saturate((1.0 - linear_roughness) * 5.0 - 2.0);
-
-	float lod = linear_roughness * 2.5 * lodPlanarMax;
-	vec3 sample = textureLod(probePlanars, vec3(refco.xy, id), lod).rgb;
-
-	/* Use a second sample randomly rotated to blur out the lowres aspect */
-	vec2 rot_sample = (1.0 / vec2(textureSize(probePlanars, 0).xy)) * vec2(cos(rand * M_2PI), sin(rand * M_2PI)) * lod;
-	sample += textureLod(probePlanars, vec3(refco.xy + rot_sample, id), lod).rgb;
-	sample *= 0.5;
+	/* TODO: If we support non-ssr planar reflection, we should blur them with gaussian
+	 * and chose the right mip depending on the cone footprint after projection */
+	vec3 sample = textureLod(probePlanars, vec3(refco.xy * 0.5 + 0.5, id), 0.0).rgb;
 
 	return sample;
 }

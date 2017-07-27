@@ -96,7 +96,7 @@ vec3 eevee_surface_lit(vec3 N, vec3 albedo, vec3 f0, float roughness, float ao, 
 		for (int i = 0; i < MAX_PLANAR && i < planar_count && spec_accum.a < 0.999; ++i) {
 			PlanarData pd = planars_data[i];
 
-			float fade = probe_attenuation_planar(pd, worldPosition, N);
+			float fade = probe_attenuation_planar(pd, worldPosition, N, roughness);
 
 			if (fade > 0.0) {
 				vec3 spec = probe_evaluate_planar(float(i), pd, worldPosition, N, V, rand.r, roughness, fade);
@@ -235,7 +235,7 @@ vec3 eevee_surface_clearcoat_lit(
 		PlanarData pd = planars_data[i];
 
 		/* Fade on geometric normal. */
-		float fade = probe_attenuation_planar(pd, worldPosition, worldNormal);
+		float fade = probe_attenuation_planar(pd, worldPosition, worldNormal, roughness);
 
 		if (fade > 0.0) {
 			if (!ssrToggle || ssr_id != outputSsrId) {
@@ -459,7 +459,7 @@ vec3 eevee_surface_glossy_lit(vec3 N, vec3 f0, float roughness, float ao, int ss
 		for (int i = 0; i < MAX_PLANAR && i < planar_count && spec_accum.a < 0.999; ++i) {
 			PlanarData pd = planars_data[i];
 
-			float fade = probe_attenuation_planar(pd, worldPosition, N);
+			float fade = probe_attenuation_planar(pd, worldPosition, N, roughness);
 
 			if (fade > 0.0) {
 				vec3 spec = probe_evaluate_planar(float(i), pd, worldPosition, N, V, rand.r, roughness, fade);

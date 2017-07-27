@@ -35,8 +35,6 @@ uniform sampler2D specroughBuffer;
 
 uniform int planar_count;
 
-uniform mat4 ViewProjectionMatrix;
-
 layout(location = 0) out vec4 hitData0;
 layout(location = 1) out vec4 hitData1;
 layout(location = 2) out vec4 hitData2;
@@ -149,7 +147,7 @@ void main()
 	for (int i = 0; i < MAX_PLANAR && i < planar_count; ++i) {
 		PlanarData pd = planars_data[i];
 
-		float fade = probe_attenuation_planar(pd, worldPosition, wN);
+		float fade = probe_attenuation_planar(pd, worldPosition, wN, 0.0);
 
 		if (fade > 0.5) {
 			/* Find view vector / reflection plane intersection. */
@@ -191,7 +189,6 @@ uniform int planar_count;
 uniform float borderFadeFactor;
 uniform float fireflyFactor;
 
-uniform mat4 ViewProjectionMatrix;
 uniform mat4 PastViewProjectionMatrix;
 
 out vec4 fragColor;
@@ -380,7 +377,7 @@ void main()
 	for (int i = 0; i < MAX_PLANAR && i < planar_count; ++i) {
 		pd = planars_data[i];
 
-		float fade = probe_attenuation_planar(pd, worldPosition, N);
+		float fade = probe_attenuation_planar(pd, worldPosition, N, 0.0);
 
 		if (fade > 0.5) {
 			planar_index = float(i);

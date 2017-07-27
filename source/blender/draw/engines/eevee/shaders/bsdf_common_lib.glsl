@@ -9,6 +9,7 @@
 #define LUT_SIZE 64
 
 uniform mat4 ProjectionMatrix;
+uniform mat4 ViewProjectionMatrix;
 uniform mat4 ViewMatrixInverse;
 uniform vec4 viewvecs[2];
 #ifndef SHADOW_SHADER

@@ -1340,7 +1340,7 @@ update_planar:
 	}
 
 	/* If there is at least one planar probe */
-	if (pinfo->num_planar > 0) {
+	if (pinfo->num_planar > 0 && (vedata->stl->effects->enabled_effects & EFFECT_SSR) != 0) {
 		const int max_lod = 9;
 		DRW_stats_group_start("Planar Probe Downsample");
 		DRW_framebuffer_recursive_downsample(vedata->fbl->downsample_fb, txl->planar_pool, max_lod, &downsample_planar, vedata);
