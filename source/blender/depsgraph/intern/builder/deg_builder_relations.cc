@@ -929,8 +929,8 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 	                        fcu->rna_path ? fcu->rna_path : "",
 	                        fcu->array_index);
 	bPoseChannel *pchan = NULL;
-
 	const char *rna_path = fcu->rna_path ? fcu->rna_path : "";
+	const short id_type = GS(id->name);
 
 	/* create dependency between driver and data affected by it */
 	/* - direct property relationship... */
@@ -943,18 +943,17 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 		/* interleaved drivers during bone eval */
 		// TODO: ideally, if this is for a constraint, it goes to said constraint
 		Object *ob = (Object *)id;
-		char *bone_name;
-
-		bone_name = BLI_str_quoted_substrN(rna_path, "pose.bones[");
+		char *bone_name = BLI_str_quoted_substrN(rna_path, "pose.bones[");
 		pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
-
-		if (bone_name) {
+		if (bone_name != NULL) {
 			MEM_freeN(bone_name);
 			bone_name = NULL;
 		}
-
-		if (pchan) {
-			OperationKey bone_key(id, DEG_NODE_TYPE_BONE, pchan->name, DEG_OPCODE_BONE_LOCAL);
+		if (pchan != NULL) {
+			OperationKey bone_key(id,
+			                      DEG_NODE_TYPE_BONE,
+			                      pchan->name,
+			                      DEG_OPCODE_BONE_LOCAL);
 			add_relation(driver_key, bone_key, "[Driver -> Bone]");
 		}
 		else {
@@ -963,31 +962,36 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 			        rna_path);
 		}
 	}
-	else if (GS(id->name) == ID_AR && strstr(rna_path, "bones[")) {
-		/* drivers on armature-level bone settings (i.e. bbone stuff),
-		 * which will affect the evaluation of corresponding pose bones
+	else if (id_type == ID_AR && strstr(rna_path, "bones[")) {
+		/* Drivers on armature-level bone settings (i.e. bbone stuff),
+		 * which will affect the evaluation of corresponding pose bones.
 		 */
 		IDDepsNode *arm_node = m_graph->find_id_node(id);
 		char *bone_name = BLI_str_quoted_substrN(rna_path, "bones[");
-
-		if (arm_node && bone_name) {
-			/* find objects which use this, and make their eval callbacks depend on this */
+		if (arm_node != NULL && bone_name != NULL) {
+			/* Find objects which use this, and make their eval callbacks
+			 * depend on this.
+			 */
 			foreach (DepsRelation *rel, arm_node->outlinks) {
 				IDDepsNode *to_node = (IDDepsNode *)rel->to;
-
-				/* we only care about objects with pose data which use this... */
+				/* We only care about objects with pose data which use this. */
 				if (GS(to_node->id_orig->name) == ID_OB) {
 					Object *ob = (Object *)to_node->id_orig;
-					bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, bone_name); // NOTE: ob->pose may be NULL
-
-					if (pchan) {
-						OperationKey bone_key(&ob->id, DEG_NODE_TYPE_BONE, pchan->name, DEG_OPCODE_BONE_LOCAL);
-						add_relation(driver_key, bone_key, "[Arm Bone -> Driver -> Bone]");
+					// NOTE: ob->pose may be NULL
+					bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose,
+					                                                 bone_name);
+					if (pchan != NULL) {
+						OperationKey bone_key(&ob->id,
+						                      DEG_NODE_TYPE_BONE,
+						                      pchan->name,
+						                      DEG_OPCODE_BONE_LOCAL);
+						add_relation(driver_key,
+						             bone_key,
+						             "[Arm Bone -> Driver -> Bone]");
 					}
 				}
 			}
-
-			/* free temp data */
+			/* Free temp data/ */
 			MEM_freeN(bone_name);
 			bone_name = NULL;
 		}
@@ -997,8 +1001,10 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 			        rna_path);
 		}
 	}
-	else if (GS(id->name) == ID_OB && strstr(rna_path, "modifiers[")) {
-		OperationKey modifier_key(id, DEG_NODE_TYPE_GEOMETRY, DEG_OPCODE_GEOMETRY_UBEREVAL);
+	else if (id_type == ID_OB && strstr(rna_path, "modifiers[")) {
+		OperationKey modifier_key(id,
+		                          DEG_NODE_TYPE_GEOMETRY,
+		                          DEG_OPCODE_GEOMETRY_UBEREVAL);
 		if (has_node(modifier_key)) {
 			add_relation(driver_key, modifier_key, "[Driver -> Modifier]");
 		}
@@ -1006,11 +1012,10 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 			printf("Unexisting driver RNA path: %s\n", rna_path);
 		}
 	}
-	else if (GS(id->name) == ID_KE && strstr(rna_path, "key_blocks[")) {
-		/* shape key driver - hook into the base geometry operation */
+	else if (id_type == ID_KE && strstr(rna_path, "key_blocks[")) {
+		/* Shape key driver - hook into the base geometry operation. */
 		// XXX: double check where this points
 		Key *shape_key = (Key *)id;
-
 		ComponentKey geometry_key(shape_key->from, DEG_NODE_TYPE_GEOMETRY);
 		add_relation(driver_key, geometry_key, "[Driver -> ShapeKey Geom]");
 	}
@@ -1019,14 +1024,36 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 		add_relation(driver_key, geometry_key, "[Driver -> ShapeKey Geom]");
 	}
 	else {
-		if (GS(id->name) == ID_OB) {
-			/* assume that driver affects a transform... */
-			OperationKey local_transform_key(id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_LOCAL);
-			add_relation(driver_key, local_transform_key, "[Driver -> Transform]");
-		}
-		else if (GS(id->name) == ID_KE) {
-			ComponentKey geometry_key(id, DEG_NODE_TYPE_GEOMETRY);
-			add_relation(driver_key, geometry_key, "[Driver -> Shapekey Geometry]");
+		switch (id_type) {
+			case ID_OB:
+			{
+				/* Assume that driver affects a transform. */
+				OperationKey local_transform_key(id,
+				                                 DEG_NODE_TYPE_TRANSFORM,
+				                                 DEG_OPCODE_TRANSFORM_LOCAL);
+				add_relation(driver_key,
+				             local_transform_key,
+				             "[Driver -> Transform]");
+				break;
+			}
+			case ID_KE:
+			{
+				ComponentKey geometry_key(id, DEG_NODE_TYPE_GEOMETRY);
+				add_relation(driver_key,
+				             geometry_key,
+				             "[Driver -> Shapekey Geometry]");
+				break;
+			}
+			case ID_NT:
+			{
+				OperationKey ntree_key(id,
+				                       DEG_NODE_TYPE_PARAMETERS,
+				                       DEG_OPCODE_PARAMETERS_EVAL);
+				add_relation(driver_key,
+				             ntree_key,
+				             "[Driver -> NTree Shading Update]");
+				break;
+			}
 		}
 	}
 
@@ -1135,9 +1162,9 @@ void DepsgraphRelationBuilder::build_world(World *world)
 	/* world's nodetree */
 	if (world->nodetree != NULL) {
 		build_nodetree(world->nodetree);
-		ComponentKey ntree_key(&world->nodetree->id, DEG_NODE_TYPE_PARAMETERS);
+		ComponentKey ntree_key(&world->nodetree->id, DEG_NODE_TYPE_SHADING);
 		ComponentKey world_key(world_id, DEG_NODE_TYPE_SHADING);
-		add_relation(ntree_key, world_key, "NTree->World Parameters");
+		add_relation(ntree_key, world_key, "NTree->World Shading Update");
 	}
 }
 
@@ -1732,6 +1759,11 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 		ComponentKey animation_key(ntree_id, DEG_NODE_TYPE_ANIMATION);
 		add_relation(animation_key, parameters_key, "NTree Parameters");
 	}
+
+	OperationKey shading_update_key(ntree_id,
+	                                DEG_NODE_TYPE_SHADING,
+	                                DEG_OPCODE_MATERIAL_UPDATE);
+	add_relation(parameters_key, shading_update_key, "NTree Parameters");
 }
 
 /* Recursively build graph for material */
@@ -1753,8 +1785,8 @@ void DepsgraphRelationBuilder::build_material(Material *ma)
 	if (ma->nodetree != NULL) {
 		build_nodetree(ma->nodetree);
 		OperationKey ntree_key(&ma->nodetree->id,
-		                       DEG_NODE_TYPE_PARAMETERS,
-		                       DEG_OPCODE_PARAMETERS_EVAL);
+		                       DEG_NODE_TYPE_SHADING,
+		                       DEG_OPCODE_MATERIAL_UPDATE);
 		OperationKey material_key(&ma->id,
 		                          DEG_NODE_TYPE_SHADING,
 		                          DEG_OPCODE_MATERIAL_UPDATE);

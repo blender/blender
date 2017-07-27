@@ -2281,18 +2281,8 @@ static void rna_NodeSocket_value_update(Main *bmain, Scene *scene, PointerRNA *p
 {
 	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
 	if (ntree->type == NTREE_SHADER) {
-		FOREACH_NODETREE(bmain, tntree, id) {
-			switch (GS(id->name)) {
-				case ID_WO:
-					DEG_id_tag_update_ex(bmain, id, DEG_TAG_SHADING_UPDATE);
-					WM_main_add_notifier(NC_MATERIAL | ND_SHADING, NULL);
-					break;
-				case ID_MA:
-					DEG_id_tag_update_ex(bmain, id, DEG_TAG_SHADING_UPDATE);
-					WM_main_add_notifier(NC_MATERIAL | ND_SHADING, id);
-					break;
-			}
-		} FOREACH_NODETREE_END
+		DEG_id_tag_update_ex(bmain, ptr->id.data, DEG_TAG_SHADING_UPDATE);
+		WM_main_add_notifier(NC_MATERIAL | ND_SHADING, NULL);
 	}
 	else {
 		rna_NodeSocket_update(bmain, scene, ptr);
