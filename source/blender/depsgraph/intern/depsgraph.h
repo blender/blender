@@ -137,11 +137,6 @@ struct Depsgraph {
 	/* For given original ID get ID which is created by CoW system. */
 	ID *get_cow_id(const ID *id_orig) const;
 
-	/* Similar to above, but for the cases when there is no ID node we create
-	 * one.
-	 */
-	ID *ensure_cow_id(ID *id_orig);
-
 	/* Core Graph Functionality ........... */
 
 	/* <ID : IDDepsNode> mapping from ID blocks to nodes representing these blocks

@@ -466,16 +466,6 @@ ID *Depsgraph::get_cow_id(const ID *id_orig) const
 	return id_node->id_cow;
 }
 
-ID *Depsgraph::ensure_cow_id(ID *id_orig)
-{
-	if (id_orig->tag & LIB_TAG_COPY_ON_WRITE) {
-		/* ID is already remapped to copy-on-write. */
-		return id_orig;
-	}
-	IDDepsNode *id_node = add_id_node(id_orig, false);
-	return id_node->id_cow;
-}
-
 void deg_editors_id_update(Main *bmain, ID *id)
 {
 	if (deg_editor_update_id_cb != NULL) {

@@ -30,6 +30,8 @@
 
 #pragma once
 
+#include <stddef.h>
+
 struct EvaluationContext;
 struct ID;
 
@@ -48,24 +50,27 @@ struct ID;
 namespace DEG {
 
 struct Depsgraph;
+struct DepsgraphNodeBuilder;
 struct IDDepsNode;
 
 /* Get fully expanded (ready for use) copy-on-write datablock for the given
  * original datablock.
  */
-ID *deg_expand_copy_on_write_datablock(struct Depsgraph *depsgraph,
+ID *deg_expand_copy_on_write_datablock(const struct Depsgraph *depsgraph,
                                        const IDDepsNode *id_node,
-                                       bool create_placeholders);
-ID *deg_expand_copy_on_write_datablock(struct Depsgraph *depsgraph,
+                                       DepsgraphNodeBuilder *node_builder = NULL,
+                                       bool create_placeholders = false);
+ID *deg_expand_copy_on_write_datablock(const struct Depsgraph *depsgraph,
                                        struct ID *id_orig,
-                                       bool create_placeholders);
+                                       DepsgraphNodeBuilder *node_builder = NULL,
+                                       bool create_placeholders = false);
 
 /* Makes sure given CoW datablock is brought back to state of the original
  * datablock.
  */
-ID *deg_update_copy_on_write_datablock(/*const*/ struct Depsgraph *depsgraph,
+ID *deg_update_copy_on_write_datablock(const struct Depsgraph *depsgraph,
                                        const IDDepsNode *id_node);
-ID *deg_update_copy_on_write_datablock(/*const*/ struct Depsgraph *depsgraph,
+ID *deg_update_copy_on_write_datablock(const struct Depsgraph *depsgraph,
                                        struct ID *id_orig);
 
 /* Helper function which frees memory used by copy-on-written databnlock. */
@@ -75,7 +80,7 @@ void deg_free_copy_on_write_datablock(struct ID *id_cow);
  * datablock is ready for use by further evaluation routines.
  */
 void deg_evaluate_copy_on_write(const struct EvaluationContext *eval_ctx,
-                                /*const*/ struct Depsgraph *depsgraph,
+                                const struct Depsgraph *depsgraph,
                                 const struct IDDepsNode *id_node);
 
 /* Check that given ID is propely expanded and does not have any shallow

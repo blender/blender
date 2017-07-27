@@ -72,11 +72,20 @@ struct DepsgraphNodeBuilder {
 	DepsgraphNodeBuilder(Main *bmain, Depsgraph *graph);
 	~DepsgraphNodeBuilder();
 
+	/* For given original ID get ID which is created by CoW system. */
 	ID *get_cow_id(const ID *id_orig) const;
+	/* Similar to above, but for the cases when there is no ID node we create
+	 * one.
+	 */
+	ID *ensure_cow_id(ID *id_orig);
+
+	/* Helper wrapper function which wraps get_cow_id with a needed type cast. */
 	template<typename T>
 	T *get_cow_datablock(const T *orig) const {
 		return (T *)get_cow_id(&orig->id);
 	}
+
+	/* For a given COW datablock get corresponding original one. */
 	template<typename T>
 	T *get_orig_datablock(const T *cow) const {
 #ifdef WITH_COPY_ON_WRITE

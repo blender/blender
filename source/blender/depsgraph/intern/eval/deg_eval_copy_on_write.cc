@@ -79,6 +79,7 @@ extern "C" {
 }
 
 #include "intern/depsgraph.h"
+#include "intern/builder/deg_builder_nodes.h"
 #include "intern/nodes/deg_node.h"
 
 namespace DEG {
@@ -378,7 +379,7 @@ static bool check_datablocks_copy_on_writable(const ID *id_orig)
 
 struct RemapCallbackUserData {
 	/* Dependency graph for which remapping is happening. */
-	Depsgraph *depsgraph;
+	const Depsgraph *depsgraph;
 	/* Temporarily allocated memory for copying purposes. This ID will
 	 * be discarded after expanding is done, so need to make sure temp_id
 	 * is replaced with proper real_id.
@@ -395,6 +396,7 @@ struct RemapCallbackUserData {
 	 *
 	 * This happens when expansion happens a ta construction time.
 	 */
+	DepsgraphNodeBuilder *node_builder;
 	bool create_placeholders;
 };
 
@@ -404,7 +406,7 @@ int foreach_libblock_remap_callback(void *user_data_v,
                                     int /*cb_flag*/)
 {
 	RemapCallbackUserData *user_data = (RemapCallbackUserData *)user_data_v;
-	Depsgraph *depsgraph = user_data->depsgraph;
+	const Depsgraph *depsgraph = user_data->depsgraph;
 	if (*id_p != NULL) {
 		ID *id_orig = *id_p;
 		if (id_orig == user_data->temp_id) {
@@ -435,7 +437,7 @@ int foreach_libblock_remap_callback(void *user_data_v,
 					}
 				}
 				else {
-					id_cow = depsgraph->ensure_cow_id(id_orig);
+					id_cow = user_data->node_builder->ensure_cow_id(id_orig);
 				}
 			}
 			else {
@@ -641,8 +643,9 @@ int foreach_libblock_validate_callback(void *user_data,
  *
  * NOTE: Expects that CoW datablock is empty.
  */
-ID *deg_expand_copy_on_write_datablock(Depsgraph *depsgraph,
+ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
                                        const IDDepsNode *id_node,
+                                       DepsgraphNodeBuilder *node_builder,
                                        bool create_placeholders)
 {
 	BLI_assert(!create_placeholders ||
@@ -731,6 +734,7 @@ ID *deg_expand_copy_on_write_datablock(Depsgraph *depsgraph,
 	user_data.depsgraph = depsgraph;
 	user_data.temp_id = newid;
 	user_data.real_id = id_cow;
+	user_data.node_builder = node_builder;
 	user_data.create_placeholders = create_placeholders;
 	BKE_library_foreach_ID_link(NULL,
 	                            id_cow,
@@ -749,18 +753,20 @@ ID *deg_expand_copy_on_write_datablock(Depsgraph *depsgraph,
 }
 
 /* NOTE: Depsgraph is supposed to have ID node already. */
-ID *deg_expand_copy_on_write_datablock(Depsgraph *depsgraph,
+ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
                                        ID *id_orig,
+                                       DepsgraphNodeBuilder *node_builder,
                                        bool create_placeholders)
 {
 	DEG::IDDepsNode *id_node = depsgraph->find_id_node(id_orig);
 	BLI_assert(id_node != NULL);
 	return deg_expand_copy_on_write_datablock(depsgraph,
 	                                          id_node,
+	                                          node_builder,
 	                                          create_placeholders);
 }
 
-ID *deg_update_copy_on_write_datablock(/*const*/ Depsgraph *depsgraph,
+ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
                                        const IDDepsNode *id_node)
 {
 	const ID *id_orig = id_node->id_orig;
@@ -808,7 +814,7 @@ ID *deg_update_copy_on_write_datablock(/*const*/ Depsgraph *depsgraph,
 		}
 	}
 	deg_free_copy_on_write_datablock(id_cow);
-	deg_expand_copy_on_write_datablock(depsgraph, id_node, false);
+	deg_expand_copy_on_write_datablock(depsgraph, id_node);
 	/* Restore GPU materials. */
 	if (gpumaterial_ptr != NULL) {
 		*gpumaterial_ptr = gpumaterial_backup;
@@ -817,7 +823,7 @@ ID *deg_update_copy_on_write_datablock(/*const*/ Depsgraph *depsgraph,
 }
 
 /* NOTE: Depsgraph is supposed to have ID node already. */
-ID *deg_update_copy_on_write_datablock(/*const*/ Depsgraph *depsgraph,
+ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
                                        ID *id_orig)
 {
 	DEG::IDDepsNode *id_node = depsgraph->find_id_node(id_orig);
@@ -882,7 +888,7 @@ void deg_free_copy_on_write_datablock(ID *id_cow)
 }
 
 void deg_evaluate_copy_on_write(const EvaluationContext * /*eval_ctx*/,
-                                /*const*/ Depsgraph *depsgraph,
+                                const Depsgraph *depsgraph,
                                 const IDDepsNode *id_node)
 {
 	DEBUG_PRINT("%s on %s\n", __func__, id_node->id_orig->name);

@@ -142,10 +142,10 @@ void DepsgraphNodeBuilder::build_rig(Scene *scene, Object *object)
 	Scene *scene_cow = get_cow_datablock(scene);
 	IDDepsNode *object_id_node = add_id_node(&object->id);
 	Object *object_cow = (Object *)deg_expand_copy_on_write_datablock(
-	        m_graph, object_id_node, true);
+	        m_graph, object_id_node, this, true);
 	IDDepsNode *armature_id_node = add_id_node(&armature->id);
 	bArmature *armature_cow = (bArmature *)deg_expand_copy_on_write_datablock(
-	        m_graph, armature_id_node, true);
+	        m_graph, armature_id_node, this, true);
 #else
 	Scene *scene_cow = scene;
 	Object *object_cow = object;

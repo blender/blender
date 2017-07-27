@@ -295,6 +295,16 @@ ID *DepsgraphNodeBuilder::get_cow_id(const ID *id_orig) const
 	return m_graph->get_cow_id(id_orig);
 }
 
+ID *DepsgraphNodeBuilder::ensure_cow_id(ID *id_orig)
+{
+	if (id_orig->tag & LIB_TAG_COPY_ON_WRITE) {
+		/* ID is already remapped to copy-on-write. */
+		return id_orig;
+	}
+	IDDepsNode *id_node = m_graph->add_id_node(id_orig, false);
+	return id_node->id_cow;
+}
+
 /* **** Build functions for entity nodes **** */
 
 void DepsgraphNodeBuilder::begin_build(Main *bmain) {
