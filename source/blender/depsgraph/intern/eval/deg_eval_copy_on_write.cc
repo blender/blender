@@ -684,8 +684,8 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 	 * or cases where we want to do something smarter than simple datablock
 	 * copy.
 	 */
-	const short type = GS(id_orig->name);
-	switch (type) {
+	const short id_type = GS(id_orig->name);
+	switch (id_type) {
 		case ID_SCE:
 		{
 			Scene *new_scene = scene_copy_no_main((Scene *)id_orig);
