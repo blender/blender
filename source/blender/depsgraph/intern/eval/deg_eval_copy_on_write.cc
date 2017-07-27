@@ -770,6 +770,7 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
                                        const IDDepsNode *id_node)
 {
 	const ID *id_orig = id_node->id_orig;
+	const short id_type = GS(id_orig->name);
 	ID *id_cow = id_node->id_cow;
 	/* Similar to expansion, no need to do anything here. */
 	if (!deg_copy_on_write_is_needed(id_orig)) {
@@ -793,8 +794,9 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 	 */
 	ListBase gpumaterial_backup;
 	ListBase *gpumaterial_ptr = NULL;
+	Mesh *mesh_evaluated = NULL;
 	if (check_datablock_expanded(id_cow)) {
-		switch (GS(id_orig->name)) {
+		switch (id_type) {
 			case ID_MA:
 			{
 				Material *material = (Material *)id_cow;
@@ -805,6 +807,23 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 			{
 				World *world = (World *)id_cow;
 				gpumaterial_ptr = &world->gpumaterial;
+				break;
+			}
+			case ID_OB:
+			{
+				Object *object = (Object *)id_cow;
+				/* Store evaluated mesh, make sure we don't free it. */
+				mesh_evaluated = object->mesh_evaluated;
+				object->mesh_evaluated = NULL;
+				/* Currently object update will override actual object->data
+				 * to an evaluated version. Need to make sure we don't have
+				 * data set to evaluated one before free anything.
+				 */
+				if (mesh_evaluated != NULL) {
+					if (object->data == mesh_evaluated) {
+						object->data = mesh_evaluated->id.newid;
+					}
+				}
 				break;
 			}
 		}
@@ -818,6 +837,18 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 	/* Restore GPU materials. */
 	if (gpumaterial_ptr != NULL) {
 		*gpumaterial_ptr = gpumaterial_backup;
+	}
+	if (id_type == ID_OB) {
+		if (mesh_evaluated != NULL) {
+			Object *object = (Object *)id_cow;
+			object->mesh_evaluated = mesh_evaluated;
+			/* Do same thing as object update: override actual object data
+			 * pointer with evaluated datablock.
+			 */
+			if (object->type == OB_MESH) {
+				object->data = mesh_evaluated;
+			}
+		}
 	}
 	return id_cow;
 }
