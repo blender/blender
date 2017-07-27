@@ -173,14 +173,21 @@ void IDDepsNode::init(const ID *id, const char *UNUSED(subdata))
 	components = BLI_ghash_new(id_deps_node_hash_key,
 	                           id_deps_node_hash_key_cmp,
 	                           "Depsgraph id components hash");
+}
 
+void IDDepsNode::init_copy_on_write(ID *id_cow_hint)
+{
 #ifdef WITH_COPY_ON_WRITE
 	/* Create pointer as early as possible, so we can use it for function
 	 * bindings. Rest of data we'll be copying to the new datablock when
 	 * it is actually needed.
 	 */
-	if (deg_copy_on_write_is_needed(id_orig)) {
-		id_cow = (ID *)BKE_libblock_alloc_notest(GS(id->name));
+	if (id_cow_hint != NULL) {
+		BLI_assert(deg_copy_on_write_is_needed(id_orig));
+		id_cow = id_cow_hint;
+	}
+	else if (deg_copy_on_write_is_needed(id_orig)) {
+		id_cow = (ID *)BKE_libblock_alloc_notest(GS(id_orig->name));
 		DEG_COW_PRINT("Create shallow copy for %s: id_orig=%p id_cow=%p\n",
 		              id_orig->name, id_orig, id_cow);
 		deg_tag_copy_on_write_id(id_cow, id_orig);

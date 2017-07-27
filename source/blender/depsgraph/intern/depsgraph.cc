@@ -286,6 +286,7 @@ IDDepsNode *Depsgraph::add_id_node(ID *id, bool do_tag)
 	if (!id_node) {
 		DepsNodeFactory *factory = deg_get_node_factory(DEG_NODE_TYPE_ID_REF);
 		id_node = (IDDepsNode *)factory->create_node(id, "", id->name);
+		id_node->init_copy_on_write();
 		if (do_tag) {
 			id->tag |= LIB_TAG_DOIT;
 		}
