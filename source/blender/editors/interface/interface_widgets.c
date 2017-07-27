@@ -3655,11 +3655,15 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 
 		switch (but->type) {
 			case UI_BTYPE_LABEL:
-				if (but->block->flag & UI_BLOCK_LOOP)
-					widget_draw_text_icon(&style->widgetlabel, &tui->wcol_menu_back, but, rect);
-				else {
-					wt = widget_type(UI_WTYPE_LABEL);
-					fstyle = &style->widgetlabel;
+				wt = widget_type(UI_WTYPE_LABEL);
+				fstyle = &style->widgetlabel;
+				if (but->drawflag & UI_BUT_BOX_ITEM) {
+					wt->wcol_theme = &tui->wcol_box;
+					wt->state = widget_state;
+				}
+				else if (but->block->flag & UI_BLOCK_LOOP) {
+					wt->wcol_theme = &tui->wcol_menu_back;
+					wt->state = widget_state;
 				}
 				break;
 

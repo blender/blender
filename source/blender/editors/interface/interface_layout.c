@@ -128,6 +128,8 @@ typedef struct uiItem {
 enum {
 	UI_ITEM_FIXED     = 1 << 0,
 	UI_ITEM_MIN       = 1 << 1,
+
+	UI_ITEM_BOX_ITEM  = 1 << 2, /* The item is "inside" a box item */
 };
 
 typedef struct uiButtonItem {
@@ -2306,6 +2308,9 @@ static void ui_litem_layout_column(uiLayout *litem, bool is_box)
 
 		if (item->next && (!is_box || item != litem->items.first))
 			y -= litem->space;
+
+		if (is_box)
+			item->flag |= UI_ITEM_BOX_ITEM;
 	}
 
 	litem->h = litem->y - y;
@@ -3266,8 +3271,16 @@ static void ui_item_layout(uiItem *item)
 				break;
 		}
 
-		for (subitem = litem->items.first; subitem; subitem = subitem->next)
+		for (subitem = litem->items.first; subitem; subitem = subitem->next) {
+			if (item->flag & UI_ITEM_BOX_ITEM)
+				subitem->flag |= UI_ITEM_BOX_ITEM;
 			ui_item_layout(subitem);
+		}
+	} else {
+		if (item->flag & UI_ITEM_BOX_ITEM) {
+			uiButtonItem *bitem = (uiButtonItem *)item;
+			bitem->but->drawflag |= UI_BUT_BOX_ITEM;
+		}
 	}
 }
 
