@@ -2309,8 +2309,9 @@ static void ui_litem_layout_column(uiLayout *litem, bool is_box)
 		if (item->next && (!is_box || item != litem->items.first))
 			y -= litem->space;
 
-		if (is_box)
+		if (is_box) {
 			item->flag |= UI_ITEM_BOX_ITEM;
+		}
 	}
 
 	litem->h = litem->y - y;
@@ -3272,11 +3273,13 @@ static void ui_item_layout(uiItem *item)
 		}
 
 		for (subitem = litem->items.first; subitem; subitem = subitem->next) {
-			if (item->flag & UI_ITEM_BOX_ITEM)
+			if (item->flag & UI_ITEM_BOX_ITEM) {
 				subitem->flag |= UI_ITEM_BOX_ITEM;
+			}
 			ui_item_layout(subitem);
 		}
-	} else {
+	}
+	else {
 		if (item->flag & UI_ITEM_BOX_ITEM) {
 			uiButtonItem *bitem = (uiButtonItem *)item;
 			bitem->but->drawflag |= UI_BUT_BOX_ITEM;
