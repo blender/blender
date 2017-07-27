@@ -184,7 +184,6 @@ static void EEVEE_draw_scene(void *vedata)
 
 		/* Shading pass */
 		DRW_stats_group_start("Shading");
-		DRW_draw_pass(psl->probe_display);
 		EEVEE_draw_default_passes(psl);
 		DRW_draw_pass(psl->material_pass);
 		DRW_stats_group_end();
@@ -193,6 +192,8 @@ static void EEVEE_draw_scene(void *vedata)
 		DRW_stats_group_start("SSR");
 		EEVEE_effects_do_ssr(sldata, vedata);
 		DRW_stats_group_end();
+
+		DRW_draw_pass(psl->probe_display);
 
 		/* Volumetrics */
 		DRW_stats_group_start("Volumetrics");
