@@ -194,8 +194,9 @@ static const char *ui_item_name_add_colon(const char *name, char namestr[UI_MAX_
 static int ui_item_fit(int item, int pos, int all, int available, bool is_last, int alignment, float *extra_pixel)
 {
 	/* available == 0 is unlimited */
-	if (available == 0)
+	if (ELEM(0, available, all)) {
 		return item;
+	}
 
 	if (all > available) {
 		/* contents is bigger than available space */
@@ -218,8 +219,9 @@ static int ui_item_fit(int item, int pos, int all, int available, bool is_last, 
 				return (int)width;
 			}
 		}
-		else
+		else {
 			return item;
+		}
 	}
 }
 
