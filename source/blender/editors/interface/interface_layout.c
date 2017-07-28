@@ -702,7 +702,7 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, const char *n
 		              WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, NULL);
 	}
 	else if (flag & UI_ITEM_R_EVENT) {
-		uiDefButR_prop(block, UI_BTYPE_KEY_EVENT, 0, name, x, y, w, h, ptr, prop, index, 0, 0, -1, -1, NULL);
+		but = uiDefButR_prop(block, UI_BTYPE_KEY_EVENT, 0, name, x, y, w, h, ptr, prop, index, 0, 0, -1, -1, NULL);
 	}
 	else if (flag & UI_ITEM_R_FULL_EVENT) {
 		if (RNA_struct_is_a(ptr->type, &RNA_KeyMapItem)) {
