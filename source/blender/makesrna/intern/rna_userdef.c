@@ -3445,6 +3445,11 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Cursor Depth",
 	                         "Use the depth under the mouse when placing the cursor");
 
+	prop = RNA_def_property(srna, "use_cursor_lock_adjust", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_LOCK_CURSOR_ADJUST);
+	RNA_def_property_ui_text(prop, "Cursor Lock Adjust",
+	                         "Place the cursor without 'jumping' to the new location (when lock-to-cursor is used)");
+
 	prop = RNA_def_property(srna, "use_camera_lock_parent", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "uiflag", USER_CAM_LOCK_NO_PARENT);
 	RNA_def_property_ui_text(prop, "Camera Parent Lock",

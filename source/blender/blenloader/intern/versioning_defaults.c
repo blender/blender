@@ -58,6 +58,9 @@ void BLO_update_defaults_userpref_blend(void)
 	U.uiflag |= USER_QUIT_PROMPT;
 	U.uiflag |= USER_CONTINUOUS_MOUSE;
 
+	/* See T45301 */
+	U.uiflag |= USER_LOCK_CURSOR_ADJUST;
+
 	U.versions = 1;
 	U.savetime = 2;
 
