@@ -107,7 +107,7 @@ struct DepsgraphNodeBuilder {
 
 	void begin_build(Main *bmain);
 
-	IDDepsNode *add_id_node(ID *id);
+	IDDepsNode *add_id_node(ID *id, bool do_tag = true);
 	TimeSourceDepsNode *add_time_source();
 
 	ComponentDepsNode *add_component_node(ID *id,
@@ -206,6 +206,7 @@ struct DepsgraphNodeBuilder {
 protected:
 	Main *m_bmain;
 	Depsgraph *m_graph;
+	GHash *m_cow_id_hash;
 };
 
 }  // namespace DEG

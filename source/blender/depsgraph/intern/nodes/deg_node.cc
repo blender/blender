@@ -183,8 +183,13 @@ void IDDepsNode::init_copy_on_write(ID *id_cow_hint)
 	 * it is actually needed.
 	 */
 	if (id_cow_hint != NULL) {
-		BLI_assert(deg_copy_on_write_is_needed(id_orig));
-		id_cow = id_cow_hint;
+		// BLI_assert(deg_copy_on_write_is_needed(id_orig));
+		if (deg_copy_on_write_is_needed(id_orig)) {
+			id_cow = id_cow_hint;
+		}
+		else {
+			id_cow = id_orig;
+		}
 	}
 	else if (deg_copy_on_write_is_needed(id_orig)) {
 		id_cow = (ID *)BKE_libblock_alloc_notest(GS(id_orig->name));

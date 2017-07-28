@@ -144,6 +144,12 @@ void constraint_walk(bConstraint * /*con*/,
 	}
 }
 
+void free_copy_on_write_datablock(void *id_v)
+{
+	ID *id = (ID *)id_v;
+	deg_free_copy_on_write_datablock(id);
+}
+
 }  /* namespace */
 
 /* ************ */
@@ -153,18 +159,30 @@ void constraint_walk(bConstraint * /*con*/,
 
 DepsgraphNodeBuilder::DepsgraphNodeBuilder(Main *bmain, Depsgraph *graph) :
     m_bmain(bmain),
-    m_graph(graph)
+    m_graph(graph),
+    m_cow_id_hash(NULL)
 {
 }
 
 DepsgraphNodeBuilder::~DepsgraphNodeBuilder()
 {
+	if (m_cow_id_hash != NULL) {
+		BLI_ghash_free(m_cow_id_hash, NULL, free_copy_on_write_datablock);
+	}
 }
 
-IDDepsNode *DepsgraphNodeBuilder::add_id_node(ID *id)
+IDDepsNode *DepsgraphNodeBuilder::add_id_node(ID *id, bool do_tag)
 {
-	IDDepsNode *id_node = m_graph->add_id_node(id);
 #ifdef WITH_COPY_ON_WRITE
+	IDDepsNode *id_node = NULL;
+	ID *id_cow = (ID *)BLI_ghash_lookup(m_cow_id_hash, id);
+	if (id_cow != NULL) {
+		/* TODO(sergey): Is it possible to lookup and pop element from GHash
+		 * at the same time?
+		 */
+		BLI_ghash_remove(m_cow_id_hash, id, NULL, NULL);
+	}
+	id_node = m_graph->add_id_node(id, do_tag, id_cow);
 	/* Currently all ID nodes are supposed to have copy-on-write logic.
 	 *
 	 * NOTE: Zero number of components indicates that ID node was just created.
@@ -178,6 +196,8 @@ IDDepsNode *DepsgraphNodeBuilder::add_id_node(ID *id)
 		    "", -1);
 		m_graph->operations.push_back(op_cow);
 	}
+#else
+	IDDepsNode *id_node = m_graph->add_id_node(id);
 #endif
 	return id_node;
 }
@@ -301,7 +321,7 @@ ID *DepsgraphNodeBuilder::ensure_cow_id(ID *id_orig)
 		/* ID is already remapped to copy-on-write. */
 		return id_orig;
 	}
-	IDDepsNode *id_node = m_graph->add_id_node(id_orig, false);
+	IDDepsNode *id_node = add_id_node(id_orig, false);
 	return id_node->id_cow;
 }
 
@@ -328,11 +348,36 @@ void DepsgraphNodeBuilder::begin_build(Main *bmain) {
 	/* XXX nested node trees are not included in tag-clearing above,
 	 * so we need to do this manually.
 	 */
-	FOREACH_NODETREE(bmain, nodetree, id) {
+	FOREACH_NODETREE(bmain, nodetree, id)
+	{
 		if (id != (ID *)nodetree) {
 			nodetree->id.tag &= ~LIB_TAG_DOIT;
 		}
-	} FOREACH_NODETREE_END
+	}
+	FOREACH_NODETREE_END;
+
+#ifdef WITH_COPY_ON_WRITE
+	/* Store existing copy-on-write versions of datablock, so we can re-use
+	 * them for new ID nodes.
+	 */
+	m_cow_id_hash = BLI_ghash_ptr_new("Depsgraph id hash");
+	GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, m_graph->id_hash)
+	{
+		if (GS(id_node->id_orig->name) != ID_SCE) {
+			continue;
+		}
+		if (deg_copy_on_write_is_expanded(id_node->id_cow)) {
+			BLI_ghash_insert(m_cow_id_hash, id_node->id_orig, id_node->id_cow);
+			id_node->id_cow = NULL;
+		}
+	}
+	GHASH_FOREACH_END();
+#endif
+
+	/* Make sure graph has no nodes left from previous state. */
+	m_graph->clear_all_nodes();
+	m_graph->operations.clear();
+	BLI_gset_clear(m_graph->entry_tags, NULL);
 }
 
 void DepsgraphNodeBuilder::build_group(Scene *scene, Group *group)

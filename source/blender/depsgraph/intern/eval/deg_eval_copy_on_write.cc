@@ -661,7 +661,13 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 	DEG_COW_PRINT("Expanding datablock for %s: id_orig=%p id_cow=%p\n",
 	              id_orig->name, id_orig, id_cow);
 	/* Sanity checks. */
-	BLI_assert(check_datablock_expanded(id_cow) == false);
+	/* NOTE: Disabled for now, conflicts when re-using evaluated datablock when
+	 * rebuilding dependencies.
+	 */
+	if (check_datablock_expanded(id_cow) && create_placeholders) {
+		deg_free_copy_on_write_datablock(id_cow);
+	}
+	// BLI_assert(check_datablock_expanded(id_cow) == false);
 	/* Copy data from original ID to a copied version. */
 	/* TODO(sergey): Avoid doing full ID copy somehow, make Mesh to reference
 	 * original geometry arrays for until those are modified.

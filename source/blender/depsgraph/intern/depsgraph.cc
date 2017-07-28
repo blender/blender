@@ -279,14 +279,14 @@ IDDepsNode *Depsgraph::find_id_node(const ID *id) const
 	return reinterpret_cast<IDDepsNode *>(BLI_ghash_lookup(id_hash, id));
 }
 
-IDDepsNode *Depsgraph::add_id_node(ID *id, bool do_tag)
+IDDepsNode *Depsgraph::add_id_node(ID *id, bool do_tag, ID *id_cow_hint)
 {
 	BLI_assert((id->tag & LIB_TAG_COPY_ON_WRITE) == 0);
 	IDDepsNode *id_node = find_id_node(id);
 	if (!id_node) {
 		DepsNodeFactory *factory = deg_get_node_factory(DEG_NODE_TYPE_ID_REF);
 		id_node = (IDDepsNode *)factory->create_node(id, "", id->name);
-		id_node->init_copy_on_write();
+		id_node->init_copy_on_write(id_cow_hint);
 		if (do_tag) {
 			id->tag |= LIB_TAG_DOIT;
 		}
@@ -310,6 +310,12 @@ void Depsgraph::clear_id_nodes()
 	/* Stupid workaround to ensure we free IDs in a proper order. */
 	GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, id_hash)
 	{
+		if (id_node->id_cow == NULL) {
+			/* This means builder "stole" ownership of the copy-on-written
+			 * datablock for her own dirty needs.
+			 */
+			continue;
+		}
 		if (!deg_copy_on_write_is_expanded(id_node->id_cow)) {
 			continue;
 		}

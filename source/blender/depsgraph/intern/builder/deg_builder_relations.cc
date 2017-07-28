@@ -1917,7 +1917,7 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node
 	                               DEG_NODE_TYPE_COPY_ON_WRITE,
 	                               DEG_OPCODE_COPY_ON_WRITE);
 	/* XXX: This is a quick hack to make Alt-A to work. */
-	add_relation(time_source_key, copy_on_write_key, "Fluxgate capacitor hack");
+	// add_relation(time_source_key, copy_on_write_key, "Fluxgate capacitor hack");
 	/* Resat of code is using rather low level trickery, so need to get some
 	 * explicit pointers.
 	 */

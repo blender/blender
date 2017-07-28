@@ -257,6 +257,7 @@ void DEG_graph_tag_relations_update(Depsgraph *graph)
 /* Tag all relations for update. */
 void DEG_relations_tag_update(Main *bmain)
 {
+	DEG_DEBUG_PRINTF("%s: Tagging relations for update.\n", __func__);
 	for (Scene *scene = (Scene *)bmain->scene.first;
 	     scene != NULL;
 	     scene = (Scene *)scene->id.next)
@@ -284,11 +285,6 @@ void DEG_scene_relations_update(Main *bmain, Scene *scene)
 		/* Graph is up to date, nothing to do. */
 		return;
 	}
-
-	/* Clear all previous nodes and operations. */
-	graph->clear_all_nodes();
-	graph->operations.clear();
-	BLI_gset_clear(graph->entry_tags, NULL);
 
 	/* Build new nodes and relations. */
 	DEG_graph_build_from_scene(reinterpret_cast< ::Depsgraph * >(graph),

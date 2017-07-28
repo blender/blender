@@ -288,6 +288,16 @@ void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag)
 	}
 	if (flag & OB_RECALC_DATA) {
 		id_tag_update_object_data(graph, id_node);
+#ifdef WITH_COPY_ON_WRITE
+		if (flag & DEG_TAG_COPY_ON_WRITE) {
+			const short id_type = GS(id_node->id_orig->name);
+			if (id_type == ID_OB) {
+				Object *object = (Object *)id_node->id_orig;
+				ID *ob_data = (ID *)object->data;
+				DEG_id_tag_update_ex(bmain, ob_data, flag);
+			}
+		}
+#endif
 	}
 	if (flag & OB_RECALC_TIME) {
 		id_tag_update_object_time(graph, id_node);
@@ -337,16 +347,7 @@ void deg_graph_on_visible_update(Main *bmain, Scene *scene, Depsgraph *graph)
 		 * TODO(sergey): Need to generalize this somehow.
 		 */
 		if (id_type == ID_OB) {
-			Object *object = (Object *)id_node->id_orig;
-			flag |= OB_RECALC_OB;
-			if (ELEM(object->type, OB_MESH,
-			                       OB_CURVE,
-			                       OB_SURF,
-			                       OB_FONT,
-			                       OB_MBALL))
-			{
-				flag |= OB_RECALC_DATA;
-			}
+			flag |= OB_RECALC_OB | OB_RECALC_DATA | DEG_TAG_COPY_ON_WRITE;
 		}
 		deg_graph_id_tag_update(bmain, graph, id_node->id_orig, flag);
 	}
