@@ -256,7 +256,7 @@ typedef enum eAnimFilter_Flags {
 	ANIMFILTER_TMP_PEEK       = (1 << 30),
 
 	/* ignore ONLYSEL flag from filterflag, (internal use only!) */
-	ANIMFILTER_TMP_IGNORE_ONLYSEL = (1 << 31)
+	ANIMFILTER_TMP_IGNORE_ONLYSEL = (1u << 31)
 } eAnimFilter_Flags;
 
 /* ---------- Flag Checking Macros ------------ */

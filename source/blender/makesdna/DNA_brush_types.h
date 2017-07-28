@@ -210,7 +210,7 @@ typedef enum BrushFlags {
 	BRUSH_CUSTOM_ICON = (1 << 28),
 	BRUSH_LINE = (1 << 29),
 	BRUSH_ABSOLUTE_JITTER = (1 << 30),
-	BRUSH_CURVE = (1 << 31)
+	BRUSH_CURVE = (1u << 31)
 } BrushFlags;
 
 typedef enum {

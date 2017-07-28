@@ -98,7 +98,7 @@ typedef enum ModifierMode {
 	eModifierMode_Expanded          = (1 << 4),
 	eModifierMode_Virtual           = (1 << 5),
 	eModifierMode_ApplyOnSpline     = (1 << 6),
-	eModifierMode_DisableTemporary  = (1 << 31)
+	eModifierMode_DisableTemporary  = (1u << 31)
 } ModifierMode;
 
 typedef struct ModifierData {
@@ -1515,7 +1515,7 @@ enum {
 	MOD_DATATRANSFER_USE_VERT         = 1 << 28,
 	MOD_DATATRANSFER_USE_EDGE         = 1 << 29,
 	MOD_DATATRANSFER_USE_LOOP         = 1 << 30,
-	MOD_DATATRANSFER_USE_POLY         = 1 << 31,
+	MOD_DATATRANSFER_USE_POLY         = 1u << 31,
 };
 
 /* Set Split Normals modifier */

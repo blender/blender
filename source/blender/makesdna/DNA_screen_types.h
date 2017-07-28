@@ -366,7 +366,7 @@ enum {
 /* uiList filter orderby type */
 enum {
 	UILST_FLT_SORT_ALPHA        = 1 << 0,
-	UILST_FLT_SORT_REVERSE      = 1 << 31  /* Special value, bitflag used to reverse order! */
+	UILST_FLT_SORT_REVERSE      = 1u << 31  /* Special value, bitflag used to reverse order! */
 };
 
 #define UILST_FLT_SORT_MASK (((unsigned int)UILST_FLT_SORT_REVERSE) - 1)

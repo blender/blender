@@ -514,7 +514,7 @@ typedef enum eActionGroup_Flag {
 	AGRP_MODIFIERS_OFF = (1 << 7),
 	
 	AGRP_TEMP       = (1 << 30),
-	AGRP_MOVED      = (1 << 31)
+	AGRP_MOVED      = (1u << 31)
 } eActionGroup_Flag;
 
 
@@ -757,7 +757,7 @@ typedef enum ACHAN_FLAG {
 	ACHAN_EXPANDED  = (1 << 4),
 	ACHAN_SHOWIPO   = (1 << 5),
 	ACHAN_SHOWCONS  = (1 << 6),
-	ACHAN_MOVED     = (1 << 31)
+	ACHAN_MOVED     = (1u << 31)
 } ACHAN_FLAG; 
 
 #endif  /* __DNA_ACTION_TYPES_H__ */

@@ -178,7 +178,7 @@ typedef enum PropertyFlag {
 	 * after every typed char, instead of waiting final validation. Used e.g. for text searchbox.
 	 * It will also cause UI_BUT_VALUE_CLEAR to be set for text buttons. We could add an own flag
 	 * for search/filter properties, but this works just fine for now. */
-	PROP_TEXTEDIT_UPDATE         = (1 << 31),
+	PROP_TEXTEDIT_UPDATE         = (1u << 31),
 
 	/* icon */
 	PROP_ICONS_CONSECUTIVE       = (1 << 12),
