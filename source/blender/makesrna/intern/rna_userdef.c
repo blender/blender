@@ -3983,11 +3983,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Translate New Names", "Translate new data names (when adding/creating some)");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "use_textured_fonts", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_USETEXTUREFONT);
-	RNA_def_property_ui_text(prop, "Textured Fonts", "Use textures for drawing international fonts");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
 	/* System & OpenGL */
 
 	prop = RNA_def_property(srna, "solid_lights", PROP_COLLECTION, PROP_NONE);
