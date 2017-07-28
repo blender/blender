@@ -390,6 +390,9 @@ static void exporter_InitGeomArrays(ExportMeshData *export_data,
 	 * the operand. Data for those layers will not be allocated or initialized.
 	 */
 
+	CustomData_merge(&dm_left->vertData, &dm->vertData, merge_mask, CD_DEFAULT, num_verts);
+	CustomData_merge(&dm_right->vertData, &dm->vertData, merge_mask, CD_DEFAULT, num_verts);
+
 	CustomData_merge(&dm_left->loopData, &dm->loopData, merge_mask, CD_DEFAULT, num_loops);
 	CustomData_merge(&dm_right->loopData, &dm->loopData, merge_mask, CD_DEFAULT, num_loops);
 
