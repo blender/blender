@@ -63,7 +63,15 @@ PyObject *pyrna_driver_get_variable_value(
 			}
 			else {
 				/* object & property */
-				driver_arg = pyrna_prop_to_py(&ptr, prop);
+				PropertyType type = RNA_property_type(prop);
+				if (type == PROP_ENUM) {
+					/* Note that enum's are converted to strings by default,
+					 * we want to avoid that, see: T52213 */
+					driver_arg = PyLong_FromLong(RNA_property_enum_get(&ptr, prop));
+				}
+				else {
+					driver_arg = pyrna_prop_to_py(&ptr, prop);
+				}
 			}
 		}
 		else {
