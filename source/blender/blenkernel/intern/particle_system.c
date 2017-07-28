@@ -3042,10 +3042,12 @@ static void hair_create_input_dm(ParticleSimulationData *sim, int totpoint, int 
 	/* calculate maximum segment length */
 	max_length = 0.0f;
 	LOOP_PARTICLES {
-		for (k=1, key=pa->hair+1; k<pa->totkey; k++,key++) {
-			float length = len_v3v3(key->co, (key-1)->co);
-			if (max_length < length)
-				max_length = length;
+		if (!(pa->flag & PARS_UNEXIST)) {
+			for (k=1, key=pa->hair+1; k<pa->totkey; k++,key++) {
+				float length = len_v3v3(key->co, (key-1)->co);
+				if (max_length < length)
+					max_length = length;
+			}
 		}
 	}
 	
@@ -3057,76 +3059,78 @@ static void hair_create_input_dm(ParticleSimulationData *sim, int totpoint, int 
 	/* make vgroup for pin roots etc.. */
 	hair_index = 1;
 	LOOP_PARTICLES {
-		float root_mat[4][4];
-		float bending_stiffness;
-		bool use_hair;
-		
-		pa->hair_index = hair_index;
-		use_hair = psys_hair_use_simulation(pa, max_length);
-		
-		psys_mat_hair_to_object(sim->ob, sim->psmd->dm_final, psys->part->from, pa, hairmat);
-		mul_m4_m4m4(root_mat, sim->ob->obmat, hairmat);
-		normalize_m4(root_mat);
-		
-		bending_stiffness = CLAMPIS(1.0f - part->bending_random * psys_frand(psys, p + 666), 0.0f, 1.0f);
-		
-		for (k=0, key=pa->hair; k<pa->totkey; k++,key++) {
-			ClothHairData *hair;
-			float *co, *co_next;
-			
-			co = key->co;
-			co_next = (key+1)->co;
-			
-			/* create fake root before actual root to resist bending */
-			if (k==0) {
-				hair = &psys->clmd->hairdata[pa->hair_index - 1];
+		if (!(pa->flag & PARS_UNEXIST)) {
+			float root_mat[4][4];
+			float bending_stiffness;
+			bool use_hair;
+
+			pa->hair_index = hair_index;
+			use_hair = psys_hair_use_simulation(pa, max_length);
+
+			psys_mat_hair_to_object(sim->ob, sim->psmd->dm_final, psys->part->from, pa, hairmat);
+			mul_m4_m4m4(root_mat, sim->ob->obmat, hairmat);
+			normalize_m4(root_mat);
+
+			bending_stiffness = CLAMPIS(1.0f - part->bending_random * psys_frand(psys, p + 666), 0.0f, 1.0f);
+
+			for (k=0, key=pa->hair; k<pa->totkey; k++,key++) {
+				ClothHairData *hair;
+				float *co, *co_next;
+
+				co = key->co;
+				co_next = (key+1)->co;
+
+				/* create fake root before actual root to resist bending */
+				if (k==0) {
+					hair = &psys->clmd->hairdata[pa->hair_index - 1];
+					copy_v3_v3(hair->loc, root_mat[3]);
+					copy_m3_m4(hair->rot, root_mat);
+
+					hair->radius = hair_radius;
+					hair->bending_stiffness = bending_stiffness;
+
+					add_v3_v3v3(mvert->co, co, co);
+					sub_v3_v3(mvert->co, co_next);
+					mul_m4_v3(hairmat, mvert->co);
+
+					medge->v1 = pa->hair_index - 1;
+					medge->v2 = pa->hair_index;
+
+					dvert = hair_set_pinning(dvert, 1.0f);
+
+					mvert++;
+					medge++;
+				}
+
+				/* store root transform in cloth data */
+				hair = &psys->clmd->hairdata[pa->hair_index + k];
 				copy_v3_v3(hair->loc, root_mat[3]);
 				copy_m3_m4(hair->rot, root_mat);
-				
+
 				hair->radius = hair_radius;
 				hair->bending_stiffness = bending_stiffness;
-				
-				add_v3_v3v3(mvert->co, co, co);
-				sub_v3_v3(mvert->co, co_next);
+
+				copy_v3_v3(mvert->co, co);
 				mul_m4_v3(hairmat, mvert->co);
-				
-				medge->v1 = pa->hair_index - 1;
-				medge->v2 = pa->hair_index;
-				
-				dvert = hair_set_pinning(dvert, 1.0f);
-				
+
+				if (k) {
+					medge->v1 = pa->hair_index + k - 1;
+					medge->v2 = pa->hair_index + k;
+				}
+
+				/* roots and disabled hairs should be 1.0, the rest can be anything from 0.0 to 1.0 */
+				if (use_hair)
+					dvert = hair_set_pinning(dvert, key->weight);
+				else
+					dvert = hair_set_pinning(dvert, 1.0f);
+
 				mvert++;
-				medge++;
+				if (k)
+					medge++;
 			}
-			
-			/* store root transform in cloth data */
-			hair = &psys->clmd->hairdata[pa->hair_index + k];
-			copy_v3_v3(hair->loc, root_mat[3]);
-			copy_m3_m4(hair->rot, root_mat);
-			
-			hair->radius = hair_radius;
-			hair->bending_stiffness = bending_stiffness;
-			
-			copy_v3_v3(mvert->co, co);
-			mul_m4_v3(hairmat, mvert->co);
-			
-			if (k) {
-				medge->v1 = pa->hair_index + k - 1;
-				medge->v2 = pa->hair_index + k;
-			}
-			
-			/* roots and disabled hairs should be 1.0, the rest can be anything from 0.0 to 1.0 */
-			if (use_hair)
-				dvert = hair_set_pinning(dvert, key->weight);
-			else
-				dvert = hair_set_pinning(dvert, 1.0f);
-			
-			mvert++;
-			if (k)
-				medge++;
+
+			hair_index += pa->totkey + 1;
 		}
-		
-		hair_index += pa->totkey + 1;
 	}
 }
 
@@ -3152,9 +3156,11 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 	totpoint = 0;
 	totedge = 0;
 	LOOP_PARTICLES {
-		/* "out" dm contains all hairs */
-		totedge += pa->totkey;
-		totpoint += pa->totkey + 1; /* +1 for virtual root point */
+		if (!(pa->flag & PARS_UNEXIST)) {
+			/* "out" dm contains all hairs */
+			totedge += pa->totkey;
+			totpoint += pa->totkey + 1; /* +1 for virtual root point */
+		}
 	}
 	
 	realloc_roots = false; /* whether hair root info array has to be reallocated */
