@@ -685,7 +685,7 @@ typedef enum eNlaStrip_Flag {
 	/* temporary editing flags */
 		/* NLA-Strip is really just a temporary meta used to facilitate easier transform code */
 	NLASTRIP_FLAG_TEMP_META     = (1<<30),
-	NLASTRIP_FLAG_EDIT_TOUCHED  = (1<<31)
+	NLASTRIP_FLAG_EDIT_TOUCHED  = (1u << 31)
 } eNlaStrip_Flag;
 
 /* NLA Strip Type */

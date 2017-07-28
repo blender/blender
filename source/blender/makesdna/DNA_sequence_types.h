@@ -442,7 +442,7 @@ enum {
 	/* access scene strips directly (like a metastrip) */
 	SEQ_SCENE_STRIPS            = (1 << 30),
 
-	SEQ_INVALID_EFFECT          = (1 << 31),
+	SEQ_INVALID_EFFECT          = (1u << 31),
 };
 
 /* StripProxy->storage */

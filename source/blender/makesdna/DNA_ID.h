@@ -405,7 +405,7 @@ enum {
 	FILTER_ID_PA        = (1 << 27),
 	FILTER_ID_CF        = (1 << 28),
 	FILTER_ID_WS        = (1 << 29),
-	FILTER_ID_LP        = (1 << 31),
+	FILTER_ID_LP        = (1u << 31),
 };
 
 /* IMPORTANT: this enum matches the order currently use in set_listbasepointers,
