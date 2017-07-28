@@ -3443,6 +3443,11 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Cursor Depth",
 	                         "Use the depth under the mouse when placing the cursor");
 
+	prop = RNA_def_property(srna, "use_cursor_lock_adjust", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_LOCK_CURSOR_ADJUST);
+	RNA_def_property_ui_text(prop, "Cursor Lock Adjust",
+	                         "Place the cursor without 'jumping' to the new location (when lock-to-cursor is used)");
+
 	prop = RNA_def_property(srna, "use_camera_lock_parent", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "uiflag", USER_CAM_LOCK_NO_PARENT);
 	RNA_def_property_ui_text(prop, "Camera Parent Lock",
@@ -3920,17 +3925,17 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "dpi", PROP_INT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "DPI",
-	                         "DPI for addons to use when drawing custom user interface elements. Controlled by "
-	                         "operating system settings and Blender UI scale, with a reference value of 72 DPI. "
-	                         "Note that since this value includes a user defined scale, it is not always the "
-	                         "actual monitor DPI");
+	                         "DPI for add-ons to use when drawing custom user interface elements, controlled by "
+	                         "operating system settings and Blender UI scale, with a reference value of 72 DPI "
+	                         "(note that since this value includes a user defined scale, it is not always the "
+	                         "actual monitor DPI)");
 
 	prop = RNA_def_property(srna, "pixel_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_float_sdna(prop, NULL, "pixelsize");
 	RNA_def_property_ui_text(prop, "Pixel Size",
-	                         "Suggested line thickness and point size in pixels, for addons drawing custom user "
-	                         "interface elements. Controlled by operating system settings and Blender UI scale");
+	                         "Suggested line thickness and point size in pixels, for add-ons drawing custom user "
+	                         "interface elements, controlled by operating system settings and Blender UI scale");
 
 	prop = RNA_def_property(srna, "font_path_ui", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "font_path_ui");

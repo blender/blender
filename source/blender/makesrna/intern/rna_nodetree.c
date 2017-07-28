@@ -3358,7 +3358,7 @@ static void def_frame(StructRNA *srna)
 	prop = RNA_def_property(srna, "text", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
 	RNA_def_property_struct_type(prop, "Text");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
 	RNA_def_property_ui_text(prop, "Text", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
@@ -3628,7 +3628,7 @@ static void def_sh_lamp(StructRNA *srna)
 	prop = RNA_def_property(srna, "lamp_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
 	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
 	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Lamp_object_poll");
 	RNA_def_property_ui_text(prop, "Lamp Object", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
@@ -4002,7 +4002,7 @@ static void def_sh_tex_coord(StructRNA *srna)
 	prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
 	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
 	RNA_def_property_ui_text(prop, "Object", "Use coordinates from this object (for object texture coordinates output)");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
@@ -4118,7 +4118,7 @@ static void def_sh_tex_pointdensity(StructRNA *srna)
 	prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
 	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
 	RNA_def_property_ui_text(prop, "Object", "Object to take point data from");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
@@ -4818,7 +4818,7 @@ static void def_cmp_render_layers(StructRNA *srna)
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_Node_scene_set", NULL, NULL);
 	RNA_def_property_struct_type(prop, "Scene");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
 	RNA_def_property_ui_text(prop, "Scene", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_scene_layer_update");
 	
@@ -5475,7 +5475,7 @@ static void def_cmp_defocus(StructRNA *srna)
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_Node_scene_set", NULL, NULL);
 	RNA_def_property_struct_type(prop, "Scene");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
 	RNA_def_property_ui_text(prop, "Scene", "Scene from which to select the active camera (render scene if undefined)");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 

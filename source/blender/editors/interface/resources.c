@@ -2912,6 +2912,24 @@ void init_userdef_do_versions(void)
 		}
 	}
 
+	if (!USER_VERSION_ATLEAST(278, 6)) {
+		/* Clear preference flags for re-use. */
+		U.flag &= ~(
+		    (1 << 1) | (1 << 2) | (1 << 3) |
+		    (1 << 6) | (1 << 7) |
+		    (1 << 9) | (1 << 10));
+		U.uiflag &= ~(
+		    (1 << 7));
+		U.transopts &= ~(
+		    (1 << 2) | (1 << 3) | (1 << 4) |
+		    (1 << 7));
+		U.gameflags &= ~(
+		    (1 << 0) | (1 << 1) |
+		    (1 << 3) | (1 << 4));
+
+		U.uiflag |= USER_LOCK_CURSOR_ADJUST;
+	}
+
 	/**
 	 * Include next version bump.
 	 *
