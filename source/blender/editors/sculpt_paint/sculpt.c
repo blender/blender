@@ -4656,8 +4656,11 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op,
                                     const float mouse[2])
 {
 	/* Don't start the stroke until mouse goes over the mesh.
-	 * note: mouse will only be null when re-executing the saved stroke. */
-	if (!mouse || over_mesh(C, op, mouse[0], mouse[1])) {
+	 * note: mouse will only be null when re-executing the saved stroke.
+	 * We have exception for 'exec' strokes since they may not set 'mouse', only 'location', see: T52195. */
+	if (((op->flag & OP_IS_INVOKE) == 0) ||
+	    (mouse == NULL) || over_mesh(C, op, mouse[0], mouse[1]))
+	{
 		Object *ob = CTX_data_active_object(C);
 		SculptSession *ss = ob->sculpt;
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
