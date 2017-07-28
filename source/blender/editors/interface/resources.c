@@ -2761,17 +2761,17 @@ void init_userdef_do_versions(void)
 	if (!USER_VERSION_ATLEAST(278, 6)) {
 		/* Clear preference flags for re-use. */
 		U.flag &= ~(
-		    (1 << 1) | (1 << 2) | (1 << 3) |
-		    (1 << 6) | (1 << 7) |
-		    (1 << 9) | (1 << 10));
+		    USER_FLAG_DEPRECATED_1 | USER_FLAG_DEPRECATED_2 | USER_FLAG_DEPRECATED_3 |
+		    USER_FLAG_DEPRECATED_6 | USER_FLAG_DEPRECATED_7 |
+		    USER_FLAG_DEPRECATED_9 | USER_FLAG_DEPRECATED_10);
 		U.uiflag &= ~(
-		    (1 << 7));
+		    USER_UIFLAG_DEPRECATED_7);
 		U.transopts &= ~(
-		    (1 << 2) | (1 << 3) | (1 << 4) |
-		    (1 << 7));
+		    USER_TR_DEPRECATED_2 | USER_TR_DEPRECATED_3 | USER_TR_DEPRECATED_4 |
+		    USER_TR_DEPRECATED_6 | USER_TR_DEPRECATED_7);
 		U.gameflags &= ~(
-		    (1 << 0) | (1 << 1) |
-		    (1 << 3) | (1 << 4));
+		    USER_GL_RENDER_DEPRECATED_0 | USER_GL_RENDER_DEPRECATED_1 |
+		    USER_GL_RENDER_DEPRECATED_3 | USER_GL_RENDER_DEPRECATED_4);
 
 		U.uiflag |= USER_LOCK_CURSOR_ADJUST;
 	}

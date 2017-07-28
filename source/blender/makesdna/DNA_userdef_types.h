@@ -600,12 +600,16 @@ typedef enum eUserPref_Section {
 /* UserDef.flag */
 typedef enum eUserPref_Flag {
 	USER_AUTOSAVE			= (1 << 0),
-	/* 1..3 */
+	USER_FLAG_DEPRECATED_1	= (1 << 1),  /* cleared */
+	USER_FLAG_DEPRECATED_2	= (1 << 2),  /* cleared */
+	USER_FLAG_DEPRECATED_3	= (1 << 3),  /* cleared */
 	USER_SCENEGLOBAL		= (1 << 4),
 	USER_TRACKBALL			= (1 << 5),
-	/* 6..7 */
+	USER_FLAG_DEPRECATED_6	= (1 << 6),  /* cleared */
+	USER_FLAG_DEPRECATED_7	= (1 << 7),  /* cleared */
 	USER_MAT_ON_OB			= (1 << 8),
-	/* 9..10 */
+	USER_FLAG_DEPRECATED_9	= (1 << 9),   /* cleared */
+	USER_FLAG_DEPRECATED_10	= (1 << 10),  /* cleared */
 	USER_TOOLTIPS			= (1 << 11),
 	USER_TWOBUTTONMOUSE		= (1 << 12),
 	USER_NONUMPAD			= (1 << 13),
@@ -662,7 +666,7 @@ typedef enum eUserpref_UI_Flag {
 	USER_DRAWVIEWINFO		= (1 << 4),
 	USER_PLAINMENUS			= (1 << 5),
 	USER_LOCK_CURSOR_ADJUST	= (1 << 6),
-	/* flag 7 is free  */
+	USER_UIFLAG_DEPRECATED_7	= (1 << 7),  /* cleared */
 	USER_ALLWINCODECS		= (1 << 8),
 	USER_MENUOPENAUTO		= (1 << 9),
 	USER_ZBUF_CURSOR		= (1 << 10),
@@ -735,10 +739,12 @@ typedef enum eAutokey_Flag {
 typedef enum eUserpref_Translation_Flags {
 	USER_TR_TOOLTIPS		= (1 << 0),
 	USER_TR_IFACE			= (1 << 1),
-	/* 2..4 */
+	USER_TR_DEPRECATED_2	= (1 << 2),  /* cleared */
+	USER_TR_DEPRECATED_3	= (1 << 3),  /* cleared */
+	USER_TR_DEPRECATED_4	= (1 << 4),  /* cleared */
 	USER_DOTRANSLATE		= (1 << 5),
-	USER_USETEXTUREFONT		= (1 << 6),
-	/* 7 */
+	USER_TR_DEPRECATED_6	= (1 << 6),  /* cleared */
+	USER_TR_DEPRECATED_7	= (1 << 7),  /* cleared */
 	USER_TR_NEWDATANAME		= (1 << 8),
 } eUserpref_Translation_Flags;
 
@@ -760,7 +766,11 @@ typedef enum eDupli_ID_Flags {
 
 /* UserDef.gameflags */
 typedef enum eOpenGL_RenderingOptions {
-	USER_DISABLE_MIPMAP		= (1 << 2),
+	USER_GL_RENDER_DEPRECATED_0			= (1 << 0),
+	USER_GL_RENDER_DEPRECATED_1			= (1 << 1),
+	USER_DISABLE_MIPMAP					= (1 << 2),
+	USER_GL_RENDER_DEPRECATED_3			= (1 << 3),
+	USER_GL_RENDER_DEPRECATED_4			= (1 << 4),
 } eOpenGL_RenderingOptions;
 
 /* selection method for opengl gpu_select_method */
