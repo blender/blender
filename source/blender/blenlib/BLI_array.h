@@ -135,11 +135,12 @@ void _bli_array_grow_func(void **arr_p, const void *arr_static,
 #define BLI_array_append_ret(arr) \
 	(BLI_array_reserve(arr, 1), &arr[(_##arr##_count++)])
 
-#define BLI_array_free(arr)                                                   \
+#define BLI_array_free(arr) {                                                 \
 	if (arr && (char *)arr != _##arr##_static) {                              \
 		BLI_array_fake_user(arr);                                             \
 		MEM_freeN(arr);                                                       \
-	} (void)0
+	} \
+} ((void)0)
 
 #define BLI_array_pop(arr)  (                                                 \
 	(arr && _##arr##_count) ?                                                 \
