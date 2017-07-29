@@ -129,6 +129,13 @@
 /* Use draw manager to call GPU_select, see: DRW_draw_select_loop */
 #define USE_GPU_SELECT
 
+/* Use BLI_memiter */
+#define USE_MEM_ITER
+
+#ifdef USE_MEM_ITER
+#include "BLI_memiter.h"
+#endif
+
 #ifdef USE_GPU_SELECT
 #  include "ED_view3d.h"
 #  include "ED_armature.h"
@@ -230,7 +237,10 @@ struct DRWPass {
 };
 
 typedef struct DRWCallHeader {
+#ifndef USE_MEM_ITER
 	void *next, *prev;
+#endif
+
 #ifdef USE_GPU_SELECT
 	int select_id;
 #endif
@@ -267,7 +277,14 @@ struct DRWShadingGroup {
 
 	GPUShader *shader;               /* Shader to bind */
 	DRWInterface *interface;         /* Uniforms pointers */
-	ListBase calls;                  /* DRWCall or DRWCallDynamic depending of type */
+
+	/* DRWCall or DRWCallDynamic depending of type */
+#ifdef USE_MEM_ITER
+	BLI_memiter *calls;
+#else
+	ListBase calls;
+#endif
+
 	DRWState state_extra;            /* State changes for this batch only (or'd with the pass's state) */
 	DRWState state_extra_disable;    /* State changes for this batch only (and'd with the pass's state) */
 	int type;
@@ -729,6 +746,7 @@ static void DRW_interface_attrib(DRWShadingGroup *shgroup, const char *name, DRW
 DRWShadingGroup *DRW_shgroup_create(struct GPUShader *shader, DRWPass *pass)
 {
 	DRWShadingGroup *shgroup = MEM_mallocN(sizeof(DRWShadingGroup), "DRWShadingGroup");
+	BLI_addtail(&pass->shgroups, shgroup);
 
 	shgroup->type = DRW_SHG_NORMAL;
 	shgroup->shader = shader;
@@ -738,8 +756,11 @@ DRWShadingGroup *DRW_shgroup_create(struct GPUShader *shader, DRWPass *pass)
 	shgroup->batch_geom = NULL;
 	shgroup->instance_geom = NULL;
 
-	BLI_addtail(&pass->shgroups, shgroup);
+#ifdef USE_MEM_ITER
+	shgroup->calls = BLI_memiter_create(BLI_MEMITER_DEFAULT_SIZE);
+#else
 	BLI_listbase_clear(&shgroup->calls);
+#endif
 
 #ifdef USE_GPU_SELECT
 	shgroup->pass_parent = pass;
@@ -875,7 +896,12 @@ DRWShadingGroup *DRW_shgroup_empty_tri_batch_create(struct GPUShader *shader, DR
 
 void DRW_shgroup_free(struct DRWShadingGroup *shgroup)
 {
+#ifdef USE_MEM_ITER
+	BLI_memiter_destroy(shgroup->calls);
+#else
 	BLI_freelistN(&shgroup->calls);
+#endif
+
 	BLI_freelistN(&shgroup->interface->uniforms);
 	BLI_freelistN(&shgroup->interface->attribs);
 
@@ -902,7 +928,14 @@ void DRW_shgroup_call_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, float (*obm
 {
 	BLI_assert(geom != NULL);
 
-	DRWCall *call = MEM_callocN(sizeof(DRWCall), "DRWCall");
+	DRWCall *call;
+
+#ifdef USE_MEM_ITER
+	call = BLI_memiter_calloc(shgroup->calls, sizeof(DRWCall));
+#else
+	call = MEM_callocN(sizeof(DRWCall), "DRWCall");
+	BLI_addtail(&shgroup->calls, call);
+#endif
 
 	call->head.type = DRW_CALL_SINGLE;
 #ifdef USE_GPU_SELECT
@@ -915,14 +948,22 @@ void DRW_shgroup_call_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, float (*obm
 
 	call->geometry = geom;
 
-	BLI_addtail(&shgroup->calls, call);
+
+
 }
 
 void DRW_shgroup_call_object_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, Object *ob)
 {
 	BLI_assert(geom != NULL);
 
-	DRWCall *call = MEM_callocN(sizeof(DRWCall), "DRWCall");
+	DRWCall *call;
+
+#ifdef USE_MEM_ITER
+	call = BLI_memiter_calloc(shgroup->calls, sizeof(DRWCall));
+#else
+	call = MEM_callocN(sizeof(DRWCall), "DRWCall");
+	BLI_addtail(&shgroup->calls, call);
+#endif
 
 	call->head.type = DRW_CALL_SINGLE;
 #ifdef USE_GPU_SELECT
@@ -933,7 +974,6 @@ void DRW_shgroup_call_object_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, Obje
 	call->geometry = geom;
 	call->ob_data = ob->data;
 
-	BLI_addtail(&shgroup->calls, call);
 }
 
 void DRW_shgroup_call_generate_add(
@@ -943,7 +983,14 @@ void DRW_shgroup_call_generate_add(
 {
 	BLI_assert(geometry_fn != NULL);
 
-	DRWCallGenerate *call = MEM_callocN(sizeof(DRWCallGenerate), "DRWCallGenerate");
+	DRWCallGenerate *call;
+
+#ifdef USE_MEM_ITER
+	call = BLI_memiter_calloc(shgroup->calls, sizeof(DRWCallGenerate));
+#else
+	call = MEM_callocN(sizeof(DRWCallGenerate), "DRWCallGenerate");
+	BLI_addtail(&shgroup->calls, call);
+#endif
 
 	call->head.type = DRW_CALL_GENERATE;
 #ifdef USE_GPU_SELECT
@@ -956,8 +1003,6 @@ void DRW_shgroup_call_generate_add(
 
 	call->geometry_fn = geometry_fn;
 	call->user_data = user_data;
-
-	BLI_addtail(&shgroup->calls, call);
 }
 
 static void sculpt_draw_cb(
@@ -987,7 +1032,12 @@ void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *at
 #ifdef USE_GPU_SELECT
 	if ((G.f & G_PICKSEL) && (interface->instance_count > 0)) {
 		shgroup = MEM_dupallocN(shgroup);
+
+#ifdef USE_MEM_ITER
+		shgroup->calls = BLI_memiter_create(BLI_MEMITER_DEFAULT_SIZE);
+#else
 		BLI_listbase_clear(&shgroup->calls);
+#endif
 
 		shgroup->interface = interface = DRW_interface_duplicate(interface);
 		interface->instance_count = 0;
@@ -999,7 +1049,16 @@ void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *at
 	unsigned int data_size = sizeof(void *) * interface->attribs_count;
 	int size = sizeof(DRWCallDynamic) + data_size;
 
-	DRWCallDynamic *call = MEM_callocN(size, "DRWCallDynamic");
+	DRWCallDynamic *call;
+
+#ifdef USE_MEM_ITER
+	call = BLI_memiter_alloc(shgroup->calls, size);
+#else
+	call = MEM_mallocN(size, "DRWCallDynamic");
+	BLI_addtail(&shgroup->calls, call);
+#endif
+
+	memset(call, 0x0, sizeof(DRWCallDynamic));
 
 	BLI_assert(attr_len == interface->attribs_count);
 	UNUSED_VARS_NDEBUG(attr_len);
@@ -1014,8 +1073,6 @@ void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *at
 	}
 
 	interface->instance_count += 1;
-
-	BLI_addtail(&shgroup->calls, call);
 }
 
 /* Used for instancing with no attributes */
@@ -1181,7 +1238,14 @@ static void shgroup_dynamic_batch(DRWShadingGroup *shgroup)
 	GWN_vertbuf_data_alloc(vbo, nbr);
 
 	int j = 0;
-	for (DRWCallDynamic *call = shgroup->calls.first; call; call = call->head.next, j++) {
+#ifdef USE_MEM_ITER
+	BLI_memiter_handle calls_iter;
+	BLI_memiter_iter_init(shgroup->calls, &calls_iter);
+	for (DRWCallDynamic *call; (call = BLI_memiter_iter_step(&calls_iter)); j++)
+#else
+	for (DRWCallDynamic *call = shgroup->calls.first; call; call = call->head.next, j++)
+#endif
+	{
 		int i = 0;
 		for (DRWAttrib *attrib = interface->attribs.first; attrib; attrib = attrib->next, i++) {
 			GWN_vertbuf_attr_set(vbo, attrib->format_id, j, call->data[i]);
@@ -1229,7 +1293,14 @@ static void shgroup_dynamic_instance(DRWShadingGroup *shgroup)
 	buffer_size = sizeof(float) * interface->attribs_stride * interface->instance_count;
 	float *data = MEM_mallocN(buffer_size, "Instance VBO data");
 
-	for (DRWCallDynamic *call = shgroup->calls.first; call; call = call->head.next) {
+#ifdef USE_MEM_ITER
+	BLI_memiter_handle calls_iter;
+	BLI_memiter_iter_init(shgroup->calls, &calls_iter);
+	for (DRWCallDynamic *call; (call = BLI_memiter_iter_step(&calls_iter)); )
+#else
+	for (DRWCallDynamic *call = shgroup->calls.first; call; call = call->head.next)
+#endif
+	{
 		for (int j = 0; j < interface->attribs_count; ++j) {
 			memcpy(data + offset, call->data[j], sizeof(float) * interface->attribs_size[j]);
 			offset += interface->attribs_size[j];
@@ -1307,11 +1378,21 @@ typedef struct ZSortData {
 
 static int pass_shgroup_dist_sort(void *thunk, const void *a, const void *b)
 {
+	const ZSortData *zsortdata = (ZSortData *)thunk;
 	const DRWShadingGroup *shgrp_a = (const DRWShadingGroup *)a;
 	const DRWShadingGroup *shgrp_b = (const DRWShadingGroup *)b;
-	const DRWCall *call_a = (DRWCall *)(shgrp_a)->calls.first;
-	const DRWCall *call_b = (DRWCall *)(shgrp_b)->calls.first;
-	const ZSortData *zsortdata = (ZSortData *)thunk;
+
+	const DRWCall *call_a;
+	const DRWCall *call_b;
+
+#ifdef USE_MEM_ITER
+	call_a = BLI_memiter_elem_first(shgrp_a->calls);
+	call_b = BLI_memiter_elem_first(shgrp_b->calls);
+#else
+	call_a = shgrp_a->calls.first;
+	call_b = shgrp_b->calls.first;
+#endif
+
 
 	float tmp[3];
 	sub_v3_v3v3(tmp, zsortdata->origin, call_a->obmat[3]);
@@ -1858,11 +1939,24 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 	if ((G.f & G_PICKSEL) && (_call)) { \
 		GPU_select_load_id((_call)->head.select_id); \
 	} ((void)0)
+
+#ifdef USE_MEM_ITER
+#  define GPU_SELECT_LOAD_IF_PICKSEL_LIST(_call_ls) \
+	if (G.f & G_PICKSEL) { \
+		DRWCall *call_test = BLI_memiter_elem_first(*(_call_ls)); \
+		if (call_test != NULL) { \
+			BLI_assert(BLI_memiter_count(*(_call_ls)) == 1); \
+			GPU_select_load_id(call_test->head.select_id); \
+		} \
+	} ((void)0)
+#else
 #  define GPU_SELECT_LOAD_IF_PICKSEL_LIST(_call_ls) \
 	if ((G.f & G_PICKSEL) && (_call_ls)->first) { \
 		BLI_assert(BLI_listbase_is_single(_call_ls)); \
 		GPU_select_load_id(((DRWCall *)(_call_ls)->first)->head.select_id); \
 	} ((void)0)
+#endif
+
 #else
 #  define GPU_SELECT_LOAD_IF_PICKSEL(call)
 #  define GPU_SELECT_LOAD_IF_PICKSEL_LIST(call)
@@ -1889,7 +1983,14 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 		}
 	}
 	else {
-		for (DRWCall *call = shgroup->calls.first; call; call = call->head.next) {
+#ifdef USE_MEM_ITER
+		BLI_memiter_handle calls_iter;
+		BLI_memiter_iter_init(shgroup->calls, &calls_iter);
+		for (DRWCall *call; (call = BLI_memiter_iter_step(&calls_iter)); )
+#else
+		for (DRWCall *call = shgroup->calls.first; call; call = call->head.next)
+#endif
+		{
 			bool neg_scale = is_negative_m4(call->obmat);
 
 			/* Negative scale objects */
