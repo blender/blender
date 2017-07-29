@@ -806,9 +806,19 @@ static char *wm_prop_pystring_from_context(bContext *C, PointerRNA *ptr, Propert
 			} \
 		} (void)0
 
+#define CTX_TEST_SPACE_TYPE(space_data_type, member_full, dataptr_cmp) \
+		{ \
+			const char *ctx_member_full = member_full; \
+			if (space_data->spacetype == space_data_type && ptr->data == dataptr_cmp) { \
+				member_id = ctx_member_full; \
+				break; \
+			} \
+		} (void)0
+
 		switch (GS(((ID *)ptr->id.data)->name)) {
 			case ID_SCE:
 			{
+				CTX_TEST_PTR_DATA_TYPE(C, "active_gpencil_brush", RNA_GPencilBrush, ptr, CTX_data_active_gpencil_brush(C));
 				CTX_TEST_PTR_ID(C, "scene", ptr->id.data);
 				break;
 			}
@@ -843,10 +853,18 @@ static char *wm_prop_pystring_from_context(bContext *C, PointerRNA *ptr, Propert
 			{
 				CTX_TEST_PTR_ID(C, "screen", ptr->id.data);
 
-				CTX_TEST_PTR_DATA_TYPE(C, "space_data", RNA_Space, ptr, CTX_wm_space_data(C));
+				SpaceLink *space_data = CTX_wm_space_data(C);
+
+				CTX_TEST_PTR_DATA_TYPE(C, "space_data", RNA_Space, ptr, space_data);
 				CTX_TEST_PTR_DATA_TYPE(C, "area", RNA_Area, ptr, CTX_wm_area(C));
 				CTX_TEST_PTR_DATA_TYPE(C, "region", RNA_Region, ptr, CTX_wm_region(C));
 
+				CTX_TEST_SPACE_TYPE(SPACE_IMAGE, "space_data.uv_editor", space_data);
+				CTX_TEST_SPACE_TYPE(SPACE_VIEW3D, "space_data.fx_settings", &(CTX_wm_view3d(C)->fx_settings));
+				CTX_TEST_SPACE_TYPE(SPACE_NLA, "space_data.dopesheet", CTX_wm_space_nla(C)->ads);
+				CTX_TEST_SPACE_TYPE(SPACE_IPO, "space_data.dopesheet", CTX_wm_space_graph(C)->ads);
+				CTX_TEST_SPACE_TYPE(SPACE_ACTION, "space_data.dopesheet", &(CTX_wm_space_action(C)->ads));
+				CTX_TEST_SPACE_TYPE(SPACE_FILE, "space_data.params", CTX_wm_space_file(C)->params);
 				break;
 			}
 		}
@@ -860,6 +878,7 @@ static char *wm_prop_pystring_from_context(bContext *C, PointerRNA *ptr, Propert
 		}
 #undef CTX_TEST_PTR_ID
 #undef CTX_TEST_PTR_ID_CAST
+#undef CTX_TEST_SPACE_TYPE
 	}
 
 	return ret;
