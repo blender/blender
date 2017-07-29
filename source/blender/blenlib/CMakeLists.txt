@@ -50,6 +50,7 @@ set(SRC
 	intern/BLI_kdtree.c
 	intern/BLI_linklist.c
 	intern/BLI_memarena.c
+	intern/BLI_memiter.c
 	intern/BLI_mempool.c
 	intern/DLRB_tree.c
 	intern/array_store.c
@@ -179,6 +180,7 @@ set(SRC
 	BLI_math_statistics.h
 	BLI_math_vector.h
 	BLI_memarena.h
+	BLI_memiter.h
 	BLI_memory_utils.h
 	BLI_mempool.h
 	BLI_noise.h
