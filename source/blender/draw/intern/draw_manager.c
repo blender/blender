@@ -69,8 +69,6 @@
 
 #include "IMB_colormanagement.h"
 
-#include "PIL_time.h"
-
 #include "RE_engine.h"
 
 #include "UI_interface.h"
@@ -94,9 +92,39 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#define MAX_ATTRIB_NAME 32
-#define MAX_PASS_NAME 32
-#define MAX_CLIP_PLANES 6 /* GL_MAX_CLIP_PLANES is at least 6 */
+/* -------------------------------------------------------------------- */
+/** \name Local Features
+ * \{ */
+
+#define USE_PROFILE
+
+#ifdef USE_PROFILE
+#include "PIL_time.h"
+
+#define PROFILE_TIMER_FALLOFF 0.1f
+
+#define PROFILE_START(time_start) \
+	double time_start = PIL_check_seconds_timer();
+
+#define PROFILE_END_ACCUM(time_accum, time_start) { \
+	time_accum += (PIL_check_seconds_timer() - time_start) * 1e3; \
+} ((void)0)
+
+/* exp average */
+#define PROFILE_END_UPDATE(time_update, time_start) { \
+	double _time_delta = (PIL_check_seconds_timer() - time_start) * 1e3; \
+	time_update = (time_update * (1.0f - PROFILE_TIMER_FALLOFF)) + \
+	              (_time_delta * PROFILE_TIMER_FALLOFF); \
+} ((void)0)
+
+#else
+
+#define PROFILE_START(time_start) ((void)0)
+#define PROFILE_END_ACCUM(time_accum, time_start) ((void)0)
+#define PROFILE_END_UPDATE(time_update, time_start) ((void)0)
+
+#endif  /* USE_PROFILE */
+
 
 /* Use draw manager to call GPU_select, see: DRW_draw_select_loop */
 #define USE_GPU_SELECT
@@ -106,6 +134,13 @@
 #  include "ED_armature.h"
 #  include "GPU_select.h"
 #endif
+
+/** \} */
+
+
+#define MAX_ATTRIB_NAME 32
+#define MAX_PASS_NAME 32
+#define MAX_CLIP_PLANES 6 /* GL_MAX_CLIP_PLANES is at least 6 */
 
 extern char datatoc_gpu_shader_2D_vert_glsl[];
 extern char datatoc_gpu_shader_3D_vert_glsl[];
@@ -2511,21 +2546,18 @@ void DRW_lamp_engine_data_free(LampEngineData *led)
 /** \name Rendering (DRW_engines)
  * \{ */
 
-#define TIMER_FALLOFF 0.1f
-
 static void DRW_engines_init(void)
 {
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
 		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
-		double stime = PIL_check_seconds_timer();
+		PROFILE_START(stime);
 
 		if (engine->engine_init) {
 			engine->engine_init(data);
 		}
 
-		double ftime = (PIL_check_seconds_timer() - stime) * 1e3;
-		data->init_time = data->init_time * (1.0f - TIMER_FALLOFF) + ftime * TIMER_FALLOFF; /* exp average */
+		PROFILE_END_UPDATE(data->init_time, stime);
 	}
 }
 
@@ -2543,14 +2575,13 @@ static void DRW_engines_cache_init(void)
 			DST.text_store_p = &data->text_draw_cache;
 		}
 
-		double stime = PIL_check_seconds_timer();
+		PROFILE_START(stime);
 		data->cache_time = 0.0;
 
 		if (engine->cache_init) {
 			engine->cache_init(data);
 		}
-
-		data->cache_time += (PIL_check_seconds_timer() - stime) * 1e3;
+		PROFILE_END_ACCUM(data->cache_time, stime);
 	}
 }
 
@@ -2559,13 +2590,13 @@ static void DRW_engines_cache_populate(Object *ob)
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
 		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
-		double stime = PIL_check_seconds_timer();
+		PROFILE_START(stime);
 
 		if (engine->cache_populate) {
 			engine->cache_populate(data, ob);
 		}
 
-		data->cache_time += (PIL_check_seconds_timer() - stime) * 1e3;
+		PROFILE_END_ACCUM(data->cache_time, stime);
 	}
 }
 
@@ -2574,13 +2605,13 @@ static void DRW_engines_cache_finish(void)
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
 		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
-		double stime = PIL_check_seconds_timer();
+		PROFILE_START(stime);
 
 		if (engine->cache_finish) {
 			engine->cache_finish(data);
 		}
 
-		data->cache_time += (PIL_check_seconds_timer() - stime) * 1e3;
+		PROFILE_END_ACCUM(data->cache_time, stime);
 	}
 }
 
@@ -2591,14 +2622,13 @@ static void DRW_engines_draw_background(void)
 		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
 
 		if (engine->draw_background) {
-			double stime = PIL_check_seconds_timer();
+			PROFILE_START(stime);
 
 			DRW_stats_group_start(engine->idname);
 			engine->draw_background(data);
 			DRW_stats_group_end();
 
-			double ftime = (PIL_check_seconds_timer() - stime) * 1e3;
-			data->background_time = data->background_time * (1.0f - TIMER_FALLOFF) + ftime * TIMER_FALLOFF; /* exp average */
+			PROFILE_END_UPDATE(data->background_time, stime);
 			return;
 		}
 	}
@@ -2612,7 +2642,7 @@ static void DRW_engines_draw_scene(void)
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
 		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
-		double stime = PIL_check_seconds_timer();
+		PROFILE_START(stime);
 
 		if (engine->draw_scene) {
 			DRW_stats_group_start(engine->idname);
@@ -2620,8 +2650,7 @@ static void DRW_engines_draw_scene(void)
 			DRW_stats_group_end();
 		}
 
-		double ftime = (PIL_check_seconds_timer() - stime) * 1e3;
-		data->render_time = data->render_time * (1.0f - TIMER_FALLOFF) + ftime * TIMER_FALLOFF; /* exp average */
+		PROFILE_END_UPDATE(data->render_time, stime);
 	}
 }
 
@@ -2630,14 +2659,13 @@ static void DRW_engines_draw_text(void)
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
 		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
-		double stime = PIL_check_seconds_timer();
+		PROFILE_START(stime);
 
 		if (data->text_draw_cache) {
 			DRW_text_cache_draw(data->text_draw_cache, DST.draw_ctx.v3d, DST.draw_ctx.ar, false);
 		}
 
-		double ftime = (PIL_check_seconds_timer() - stime) * 1e3;
-		data->render_time = data->render_time * (1.0f - TIMER_FALLOFF) + ftime * TIMER_FALLOFF; /* exp average */
+		PROFILE_END_UPDATE(data->render_time, stime);
 	}
 }
 
