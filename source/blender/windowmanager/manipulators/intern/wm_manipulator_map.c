@@ -567,7 +567,15 @@ wmManipulator *wm_manipulatormap_highlight_find(
 
 void WM_manipulatormap_add_handlers(ARegion *ar, wmManipulatorMap *mmap)
 {
-	wmEventHandler *handler = MEM_callocN(sizeof(wmEventHandler), "manipulator handler");
+	wmEventHandler *handler;
+
+	for (handler = ar->handlers.first; handler; handler = handler->next) {
+		if (handler->manipulator_map == mmap) {
+			return;
+		}
+	}
+
+	handler = MEM_callocN(sizeof(wmEventHandler), "manipulator handler");
 
 	BLI_assert(mmap == ar->manipulator_map);
 	handler->manipulator_map = mmap;
