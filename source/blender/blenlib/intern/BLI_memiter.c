@@ -82,7 +82,7 @@ typedef struct BLI_memiter_chunk {
 } BLI_memiter_chunk;
 
 typedef struct BLI_memiter {
-	/* A pointer to 'head' is needed*/
+	/* A pointer to 'head' is needed so we can iterate in the order allocated. */
 	struct BLI_memiter_chunk *head, *tail;
 	data_t *data_curr;
 	data_t *data_last;
@@ -136,7 +136,7 @@ static void memiter_init(BLI_memiter *mi)
  */
 BLI_memiter *BLI_memiter_create(uint chunk_size_min)
 {
-	BLI_memiter *mi = MEM_mallocN(sizeof(BLI_memiter), STRINGIFY(BLI_memiter));
+	BLI_memiter *mi = MEM_mallocN(sizeof(BLI_memiter), "BLI_memiter");
 	memiter_init(mi);
 
 	/* Small values are used for tests to check for correctness,
@@ -172,7 +172,7 @@ void *BLI_memiter_alloc(BLI_memiter *mi, uint elem_size)
 		BLI_memiter_chunk *chunk = MEM_mallocN(
 		        sizeof(BLI_memiter_chunk) +
 		        (chunk_size * sizeof(data_t)),
-		        STRINGIFY(BLI_memiter_chunk));
+		        "BLI_memiter_chunk");
 
 		if (mi->head == NULL) {
 			BLI_assert(mi->tail == NULL);
@@ -269,7 +269,7 @@ void *BLI_memiter_elem_first(BLI_memiter *mi)
 	}
 }
 
-void *BLI_memiter_elem_first_size(BLI_memiter *mi, unsigned int *r_size)
+void *BLI_memiter_elem_first_size(BLI_memiter *mi, uint *r_size)
 {
 	if (mi->head != NULL) {
 		BLI_memiter_chunk *chunk = mi->head;
@@ -303,26 +303,27 @@ void BLI_memiter_iter_init(BLI_memiter *mi, BLI_memiter_handle *iter)
 	iter->elem_left = mi->count;
 }
 
-bool BLI_memiter_iter_done(BLI_memiter_handle *iter)
+bool BLI_memiter_iter_done(const BLI_memiter_handle *iter)
 {
 	return iter->elem_left != 0;
 }
 
-BLI_INLINE void memiter_iter_step(BLI_memiter_handle *iter)
+BLI_INLINE void memiter_chunk_step(BLI_memiter_handle *iter)
 {
-	if (UNLIKELY(iter->elem->size < 0)) {
-		BLI_memiter_chunk *chunk = (BLI_memiter_chunk *)(((data_t *)iter->elem) + iter->elem->size);
-		chunk = chunk->next;
-		iter->elem = chunk ? (BLI_memiter_elem *)chunk->data : NULL;
-		BLI_assert(iter->elem == NULL || iter->elem->size >= 0);
-	}
+	BLI_assert(iter->elem->size < 0);
+	BLI_memiter_chunk *chunk = (BLI_memiter_chunk *)(((data_t *)iter->elem) + iter->elem->size);
+	chunk = chunk->next;
+	iter->elem = chunk ? (BLI_memiter_elem *)chunk->data : NULL;
+	BLI_assert(iter->elem == NULL || iter->elem->size >= 0);
 }
 
 void *BLI_memiter_iter_step_size(BLI_memiter_handle *iter, uint *r_size)
 {
 	if (iter->elem_left != 0) {
 		iter->elem_left -= 1;
-		memiter_iter_step(iter);
+		if (UNLIKELY(iter->elem->size < 0)) {
+			memiter_chunk_step(iter);
+		}
 		BLI_assert(iter->elem->size >= 0);
 		uint size = (uint)iter->elem->size;
 		*r_size = size;  /* <-- only difference */
@@ -339,7 +340,9 @@ void *BLI_memiter_iter_step(BLI_memiter_handle *iter)
 {
 	if (iter->elem_left != 0) {
 		iter->elem_left -= 1;
-		memiter_iter_step(iter);
+		if (UNLIKELY(iter->elem->size < 0)) {
+			memiter_chunk_step(iter);
+		}
 		BLI_assert(iter->elem->size >= 0);
 		uint size = (uint)iter->elem->size;
 		data_t *data = iter->elem->data;

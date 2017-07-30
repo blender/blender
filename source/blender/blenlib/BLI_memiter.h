@@ -34,7 +34,7 @@ extern "C"
 #include "BLI_compiler_compat.h"
 
 /* 512kb, good default for small elems. */
-#define BLI_MEMITER_DEFAULT_SIZE (2 << 18)
+#define BLI_MEMITER_DEFAULT_SIZE (1 << 19)
 
 struct BLI_memiter;
 struct BLI_memiter_chunk;
@@ -61,7 +61,7 @@ typedef struct BLI_memiter_handle {
 } BLI_memiter_handle;
 
 void  BLI_memiter_iter_init(BLI_memiter *mi, BLI_memiter_handle *iter) ATTR_NONNULL();
-bool  BLI_memiter_iter_done(BLI_memiter_handle *iter) ATTR_NONNULL();
+bool  BLI_memiter_iter_done(const BLI_memiter_handle *iter) ATTR_NONNULL();
 void *BLI_memiter_iter_step(BLI_memiter_handle *iter) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 void *BLI_memiter_iter_step_size(BLI_memiter_handle *iter, uint *r_size) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
