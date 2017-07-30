@@ -522,14 +522,14 @@ static wmManipulator *rna_ManipulatorGroup_manipulator_new(
 static void rna_ManipulatorGroup_manipulator_remove(
         wmManipulatorGroup *mgroup, bContext *C, wmManipulator *mpr)
 {
-	WM_manipulator_free(&mgroup->manipulators, mgroup->parent_mmap, mpr, C);
+	WM_manipulator_unlink(&mgroup->manipulators, mgroup->parent_mmap, mpr, C);
 }
 
 static void rna_ManipulatorGroup_manipulator_clear(
         wmManipulatorGroup *mgroup, bContext *C)
 {
 	while (mgroup->manipulators.first) {
-		WM_manipulator_free(&mgroup->manipulators, mgroup->parent_mmap, mgroup->manipulators.first, C);
+		WM_manipulator_unlink(&mgroup->manipulators, mgroup->parent_mmap, mgroup->manipulators.first, C);
 	}
 }
 

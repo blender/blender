@@ -39,7 +39,9 @@ struct GHashIterator;
 /* wmManipulator */
 
 
-bool wm_manipulator_select_set_ex(struct wmManipulatorMap *mmap, struct wmManipulator *mpr, bool select, bool use_array);
+bool wm_manipulator_select_set_ex(
+        struct wmManipulatorMap *mmap, struct wmManipulator *mpr, bool select,
+        bool use_array, bool use_callback);
 bool wm_manipulator_select_and_highlight(bContext *C, struct wmManipulatorMap *mmap, struct wmManipulator *mpr);
 
 void wm_manipulator_calculate_scale(struct wmManipulator *mpr, const bContext *C);

@@ -157,10 +157,11 @@ static void wm_manipulator_register(wmManipulatorGroup *mgroup, wmManipulator *m
 }
 
 /**
- * Free \a manipulator and unlink from \a manipulatorlist.
- * \a manipulatorlist is allowed to be NULL.
+ * \warning this doesn't check #wmManipulatorMap (highlight, selection etc).
+ * Typical use is when freeing the windowing data,
+ * where caller can manage clearing selection, highlight... etc.
  */
-void WM_manipulator_free(ListBase *manipulatorlist, wmManipulatorMap *mmap, wmManipulator *mpr, bContext *C)
+void WM_manipulator_free(wmManipulator *mpr)
 {
 #ifdef WITH_PYTHON
 	if (mpr->py_instance) {
@@ -169,16 +170,6 @@ void WM_manipulator_free(ListBase *manipulatorlist, wmManipulatorMap *mmap, wmMa
 		BPY_DECREF_RNA_INVALIDATE(mpr->py_instance);
 	}
 #endif
-
-	if (mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT) {
-		wm_manipulatormap_highlight_set(mmap, C, NULL, 0);
-	}
-	if (mpr->state & WM_MANIPULATOR_STATE_MODAL) {
-		wm_manipulatormap_modal_set(mmap, C, NULL, NULL);
-	}
-	if (mpr->state & WM_MANIPULATOR_STATE_SELECT) {
-		WM_manipulator_select_set(mmap, mpr, false);
-	}
 
 	if (mpr->op_data.ptr.data) {
 		WM_operator_properties_free(&mpr->op_data.ptr);
@@ -199,6 +190,26 @@ void WM_manipulator_free(ListBase *manipulatorlist, wmManipulatorMap *mmap, wmMa
 		}
 	}
 
+	MEM_freeN(mpr);
+}
+
+/**
+ * Free \a manipulator and unlink from \a manipulatorlist.
+ * \a manipulatorlist is allowed to be NULL.
+ */
+void WM_manipulator_unlink(ListBase *manipulatorlist, wmManipulatorMap *mmap, wmManipulator *mpr, bContext *C)
+{
+	if (mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT) {
+		wm_manipulatormap_highlight_set(mmap, C, NULL, 0);
+	}
+	if (mpr->state & WM_MANIPULATOR_STATE_MODAL) {
+		wm_manipulatormap_modal_set(mmap, C, NULL, NULL);
+	}
+	/* Unlink instead of setting so we don't run callbacks. */
+	if (mpr->state & WM_MANIPULATOR_STATE_SELECT) {
+		WM_manipulator_select_unlink(mmap, mpr);
+	}
+
 	if (manipulatorlist) {
 		BLI_remlink(manipulatorlist, mpr);
 	}
@@ -206,7 +217,7 @@ void WM_manipulator_free(ListBase *manipulatorlist, wmManipulatorMap *mmap, wmMa
 	BLI_assert(mmap->mmap_context.highlight != mpr);
 	BLI_assert(mmap->mmap_context.modal != mpr);
 
-	MEM_freeN(mpr);
+	WM_manipulator_free(mpr);
 }
 
 /* -------------------------------------------------------------------- */
@@ -367,7 +378,9 @@ void WM_manipulator_set_fn_custom_modal(struct wmManipulator *mpr, wmManipulator
  *
  * \return if the selection has changed.
  */
-bool wm_manipulator_select_set_ex(wmManipulatorMap *mmap, wmManipulator *mpr, bool select, bool use_array)
+bool wm_manipulator_select_set_ex(
+        wmManipulatorMap *mmap, wmManipulator *mpr, bool select,
+        bool use_array, bool use_callback)
 {
 	bool changed = false;
 
@@ -390,7 +403,9 @@ bool wm_manipulator_select_set_ex(wmManipulatorMap *mmap, wmManipulator *mpr, bo
 		}
 	}
 
-	if (changed) {
+	/* In the case of unlinking we only want to remove from the array
+	 * and not write to the external state */
+	if (use_callback && changed) {
 		if (mpr->type->select_refresh) {
 			mpr->type->select_refresh(mpr);
 		}
@@ -399,9 +414,15 @@ bool wm_manipulator_select_set_ex(wmManipulatorMap *mmap, wmManipulator *mpr, bo
 	return changed;
 }
 
+/* Remove from selection array without running callbacks. */
+bool WM_manipulator_select_unlink(wmManipulatorMap *mmap, wmManipulator *mpr)
+{
+	return wm_manipulator_select_set_ex(mmap, mpr, false, true, false);
+}
+
 bool WM_manipulator_select_set(wmManipulatorMap *mmap, wmManipulator *mpr, bool select)
 {
-	return wm_manipulator_select_set_ex(mmap, mpr, select, true);
+	return wm_manipulator_select_set_ex(mmap, mpr, select, true, true);
 }
 
 bool wm_manipulator_select_and_highlight(bContext *C, wmManipulatorMap *mmap, wmManipulator *mpr)

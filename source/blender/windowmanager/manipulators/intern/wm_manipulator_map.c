@@ -182,14 +182,15 @@ void wm_manipulatormap_remove(wmManipulatorMap *mmap)
 	if (!mmap)
 		return;
 
+	/* Clear first so further calls don't waste time trying to maintain correct array state. */
+	wm_manipulatormap_select_array_clear(mmap);
+
 	for (wmManipulatorGroup *mgroup = mmap->groups.first, *mgroup_next; mgroup; mgroup = mgroup_next) {
 		mgroup_next = mgroup->next;
 		BLI_assert(mgroup->parent_mmap == mmap);
 		wm_manipulatorgroup_free(NULL, mgroup);
 	}
 	BLI_assert(BLI_listbase_is_empty(&mmap->groups));
-
-	wm_manipulatormap_select_array_clear(mmap);
 
 	MEM_freeN(mmap);
 }
@@ -636,7 +637,7 @@ bool wm_manipulatormap_deselect_all(wmManipulatorMap *mmap)
 	}
 
 	for (int i = 0; i < msel->len; i++) {
-		wm_manipulator_select_set_ex(mmap, msel->items[i], false, false);
+		wm_manipulator_select_set_ex(mmap, msel->items[i], false, false, true);
 	}
 
 	wm_manipulatormap_select_array_clear(mmap);

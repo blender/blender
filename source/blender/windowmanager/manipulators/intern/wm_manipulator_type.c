@@ -150,7 +150,7 @@ static void manipulatortype_unlink(
 								mpr_next = mpr->next;
 								BLI_assert(mgroup->parent_mmap == mmap);
 								if (mpr->type == wt) {
-									WM_manipulator_free(&mgroup->manipulators, mgroup->parent_mmap, mpr, C);
+									WM_manipulator_unlink(&mgroup->manipulators, mgroup->parent_mmap, mpr, C);
 									ED_region_tag_redraw(ar);
 								}
 							}
