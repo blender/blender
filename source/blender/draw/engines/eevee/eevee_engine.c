@@ -239,10 +239,10 @@ static void EEVEE_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDPr
 	BKE_collection_engine_property_add_bool(props, "ssr_enable", false);
 	BKE_collection_engine_property_add_bool(props, "ssr_halfres", true);
 	BKE_collection_engine_property_add_int(props, "ssr_ray_count", 1);
-	BKE_collection_engine_property_add_int(props, "ssr_stride", 16);
+	BKE_collection_engine_property_add_float(props, "ssr_quality", 0.25);
 	BKE_collection_engine_property_add_float(props, "ssr_thickness", 0.2f);
 	BKE_collection_engine_property_add_float(props, "ssr_border_fade", 0.075f);
-	BKE_collection_engine_property_add_float(props, "ssr_firefly_fac", 0.5f);
+	BKE_collection_engine_property_add_float(props, "ssr_firefly_fac", 0.0f);
 
 	BKE_collection_engine_property_add_bool(props, "volumetric_enable", false);
 	BKE_collection_engine_property_add_float(props, "volumetric_start", 0.1f);

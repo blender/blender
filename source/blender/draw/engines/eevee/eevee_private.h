@@ -327,8 +327,9 @@ typedef struct EEVEE_EffectsInfo {
 	int ssr_ray_count;
 	float ssr_firefly_fac;
 	float ssr_border_fac;
-	float ssr_stride;
+	float ssr_quality;
 	float ssr_thickness;
+	float ssr_pixelsize[2];
 
 	/* Ambient Occlusion */
 	bool use_ao, use_bent_normals;

@@ -277,7 +277,7 @@ class RENDERLAYER_PT_eevee_screen_space_reflections(RenderLayerButtonsPanel, Pan
         col = layout.column()
         col.template_override_property(layer_props, scene_props, "ssr_halfres")
         col.template_override_property(layer_props, scene_props, "ssr_ray_count")
-        col.template_override_property(layer_props, scene_props, "ssr_stride")
+        col.template_override_property(layer_props, scene_props, "ssr_quality")
         col.template_override_property(layer_props, scene_props, "ssr_thickness")
         col.template_override_property(layer_props, scene_props, "ssr_border_fade")
         col.template_override_property(layer_props, scene_props, "ssr_firefly_fac")

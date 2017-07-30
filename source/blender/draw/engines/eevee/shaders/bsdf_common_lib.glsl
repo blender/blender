@@ -95,6 +95,7 @@ struct ShadowCascadeData {
 
 vec3 mul(mat3 m, vec3 v) { return m * v; }
 mat3 mul(mat3 m1, mat3 m2) { return m1 * m2; }
+vec3 transform_direction(mat4 m, vec3 v) { return mat3(m) * v; }
 vec3 transform_point(mat4 m, vec3 v) { return (m * vec4(v, 1.0)).xyz; }
 vec3 project_point(mat4 m, vec3 v) {
 	vec4 tmp = m * vec4(v, 1.0);

@@ -47,7 +47,7 @@ bool has_hit_backface(vec3 hit_pos, vec3 R, vec3 V)
 	return (dot(-R, hit_N) < 0.0);
 }
 
-vec4 do_planar_ssr(int index, vec3 V, vec3 N, vec3 planeNormal, vec3 viewPosition, float a2, vec3 rand)
+vec4 do_planar_ssr(int index, vec3 V, vec3 N, vec3 planeNormal, vec3 viewPosition, float a2, vec3 rand, float ray_nbr)
 {
 	float pdf;
 	vec3 R = generate_ray(V, N, a2, rand, pdf);
@@ -57,46 +57,34 @@ vec4 do_planar_ssr(int index, vec3 V, vec3 N, vec3 planeNormal, vec3 viewPositio
 
 	/* If ray is bad (i.e. going below the plane) do not trace. */
 	if (dot(R, planeNormal) > 0.0) {
-		vec3 R = generate_ray(V, N, a2, rand, pdf);
+		vec3 R = generate_ray(V, N, a2, rand * vec3(1.0, -1.0, -1.0), pdf);
 	}
 
-	float hit_dist;
+	vec3 hit_pos;
 	if (abs(dot(-R, V)) < 0.9999) {
-		hit_dist = raycast(index, viewPosition, R, rand.x);
+		/* Since viewspace hit position can land behind the camera in this case,
+		 * we save the reflected view position (visualize it as the hit position
+		 * below the reflection plane). This way it's garanted that the hit will
+		 * be in front of the camera. That let us tag the bad rays with a negative
+		 * sign in the Z component. */
+		hit_pos = raycast(index, viewPosition, R, fract(rand.x + (ray_nbr / float(rayCount))), a2);
 	}
 	else {
-		float z = get_view_z_from_depth(texelFetch(planarDepth, ivec3(project_point(PixelProjMatrix, viewPosition).xy, index), 0).r);
-		hit_dist = (z - viewPosition.z) / R.z;
-	}
-
-	/* Since viewspace hit position can land behind the camera in this case,
-	 * we save the reflected view position (visualize it as the hit position
-	 * below the reflection plane). This way it's garanted that the hit will
-	 * be in front of the camera. That let us tag the bad rays with a negative
-	 * sign in the Z component. */
-	vec3 hit_pos = viewPosition + R * abs(hit_dist);
-
-	/* Ray did not hit anything. No backface test because it's not possible
-	 * to hit a backface in this case. */
-	if (hit_dist <= 0.0) {
-		hit_pos.z *= -1.0;
+		vec2 uvs = project_point(ProjectionMatrix, viewPosition).xy * 0.5 + 0.5;
+		float raw_depth = textureLod(planarDepth, vec3(uvs, float(index)), 0.0).r;
+		hit_pos = get_view_space_from_depth(uvs, raw_depth);
+		hit_pos.z *= (raw_depth < 1.0) ? 1.0 : -1.0;
 	}
 
 	return vec4(hit_pos, pdf);
 }
 
-vec4 do_ssr(vec3 V, vec3 N, vec3 viewPosition, float a2, vec3 rand)
+vec4 do_ssr(vec3 V, vec3 N, vec3 viewPosition, float a2, vec3 rand, float ray_nbr)
 {
 	float pdf;
 	vec3 R = generate_ray(V, N, a2, rand, pdf);
 
-	float hit_dist = raycast(-1, viewPosition, R, rand.x);
-	vec3 hit_pos = viewPosition + R * abs(hit_dist);
-
-	/* Ray did not hit anything. Tag it as failled. */
-	if (has_hit_backface(hit_pos, R, V) || (hit_dist <= 0.0)) {
-		hit_pos.z *= -1.0;
-	}
+	vec3 hit_pos = raycast(-1, viewPosition, R, fract(rand.x + (ray_nbr / float(rayCount))), a2);
 
 	return vec4(hit_pos, pdf);
 }
@@ -141,7 +129,7 @@ void main()
 	vec3 rand = texelFetch(utilTex, ivec3(halfres_texel % LUT_SIZE, 2), 0).rba;
 
 	vec3 worldPosition = transform_point(ViewMatrixInverse, viewPosition);
-	vec3 wN = mat3(ViewMatrixInverse) * N;
+	vec3 wN = transform_direction(ViewMatrixInverse, N);
 
 	/* Planar Reflections */
 	for (int i = 0; i < MAX_PLANAR && i < planar_count; ++i) {
@@ -154,22 +142,22 @@ void main()
 			/* TODO optimize, use view space for all. */
 			vec3 tracePosition = line_plane_intersect(worldPosition, cameraVec, pd.pl_plane_eq);
 			tracePosition = transform_point(ViewMatrix, tracePosition);
-			vec3 planeNormal = mat3(ViewMatrix) * pd.pl_normal;
+			vec3 planeNormal = transform_direction(ViewMatrix, pd.pl_normal);
 
 			/* TODO : Raytrace together if textureGather is supported. */
-			hitData0 = do_planar_ssr(i, V, N, planeNormal, tracePosition, a2, rand);
-			if (rayCount > 1) hitData1 = do_planar_ssr(i, V, N, planeNormal, tracePosition, a2, rand.xyz * vec3(1.0, -1.0, -1.0));
-			if (rayCount > 2) hitData2 = do_planar_ssr(i, V, N, planeNormal, tracePosition, a2, rand.xzy * vec3(1.0,  1.0, -1.0));
-			if (rayCount > 3) hitData3 = do_planar_ssr(i, V, N, planeNormal, tracePosition, a2, rand.xzy * vec3(1.0, -1.0,  1.0));
+			hitData0 = do_planar_ssr(i, V, N, planeNormal, tracePosition, a2, rand, 0.0);
+			if (rayCount > 1) hitData1 = do_planar_ssr(i, V, N, planeNormal, tracePosition, a2, rand.xyz * vec3(1.0, -1.0, -1.0), 1.0);
+			if (rayCount > 2) hitData2 = do_planar_ssr(i, V, N, planeNormal, tracePosition, a2, rand.xzy * vec3(1.0,  1.0, -1.0), 2.0);
+			if (rayCount > 3) hitData3 = do_planar_ssr(i, V, N, planeNormal, tracePosition, a2, rand.xzy * vec3(1.0, -1.0,  1.0), 3.0);
 			return;
 		}
 	}
 
 	/* TODO : Raytrace together if textureGather is supported. */
-	hitData0 = do_ssr(V, N, viewPosition, a2, rand);
-	if (rayCount > 1) hitData1 = do_ssr(V, N, viewPosition, a2, rand.xyz * vec3(1.0, -1.0, -1.0));
-	if (rayCount > 2) hitData2 = do_ssr(V, N, viewPosition, a2, rand.xzy * vec3(1.0,  1.0, -1.0));
-	if (rayCount > 3) hitData3 = do_ssr(V, N, viewPosition, a2, rand.xzy * vec3(1.0, -1.0,  1.0));
+	hitData0 = do_ssr(V, N, viewPosition, a2, rand, 0.0);
+	if (rayCount > 1) hitData1 = do_ssr(V, N, viewPosition, a2, rand.xyz * vec3(1.0, -1.0, -1.0), 1.0);
+	if (rayCount > 2) hitData2 = do_ssr(V, N, viewPosition, a2, rand.xzy * vec3(1.0,  1.0, -1.0), 2.0);
+	if (rayCount > 3) hitData3 = do_ssr(V, N, viewPosition, a2, rand.xzy * vec3(1.0, -1.0,  1.0), 3.0);
 }
 
 #else /* STEP_RESOLVE */
@@ -258,12 +246,6 @@ float screen_border_mask(vec2 hit_co)
 	return screenfade;
 }
 
-float view_facing_mask(vec3 V, vec3 R)
-{
-	/* Fade on viewing angle (strange deformations happens at R == V) */
-	return smoothstep(0.95, 0.80, dot(V, R));
-}
-
 vec2 get_reprojected_reflection(vec3 hit, vec3 pos, vec3 N)
 {
 	/* TODO real reprojection with motion vectors, etc... */
@@ -306,13 +288,13 @@ vec4 get_ssr_sample(
 		/* Find hit position in previous frame. */
 		ref_uvs = get_reprojected_reflection(hit_pos, worldPosition, N);
 		L = normalize(hit_pos - worldPosition);
-		mask *= view_facing_mask(V, N);
-		mask *= screen_border_mask(source_uvs);
+		vec2 uvs = gl_FragCoord.xy / vec2(textureSize(depthBuffer, 0));
+		mask *= screen_border_mask(uvs);
 
 		/* Compute cone footprint Using UV distance because we are using screen space filtering. */
 		cone_footprint = 1.5 * cone_tan * distance(ref_uvs, source_uvs);
 	}
-	mask *= screen_border_mask(ref_uvs);
+	mask = min(mask, screen_border_mask(ref_uvs));
 	mask *= float(has_hit);
 
 	/* Estimate a cone footprint to sample a corresponding mipmap level. */
@@ -320,7 +302,7 @@ vec4 get_ssr_sample(
 
 	/* Slide 54 */
 	float bsdf = bsdf_ggx(N, L, V, roughnessSquared);
-	float weight = step(0.001, hit_co_pdf.w) * bsdf / hit_co_pdf.w;
+	float weight = bsdf / max(1e-8, hit_co_pdf.w);
 	weight_acc += weight;
 
 	vec3 sample;
@@ -340,7 +322,7 @@ vec4 get_ssr_sample(
 	return vec4(sample, mask) * weight;
 }
 
-#define NUM_NEIGHBORS 9
+#define NUM_NEIGHBORS 4
 
 void main()
 {
@@ -364,7 +346,8 @@ void main()
 	vec3 viewPosition = get_view_space_from_depth(uvs, depth); /* Needed for viewCameraVec */
 	vec3 worldPosition = transform_point(ViewMatrixInverse, viewPosition);
 	vec3 V = cameraVec;
-	vec3 N = mat3(ViewMatrixInverse) * normal_decode(texelFetch(normalBuffer, fullres_texel, 0).rg, viewCameraVec);
+	vec3 vN = normal_decode(texelFetch(normalBuffer, fullres_texel, 0).rg, viewCameraVec);
+	vec3 N = transform_direction(ViewMatrixInverse, vN);
 	vec4 speccol_roughness = texelFetch(specroughBuffer, fullres_texel, 0).rgba;
 
 	/* Early out */
@@ -441,7 +424,7 @@ void main()
 	if (weight_acc > 0.0) {
 		ssr_accum /= weight_acc;
 		/* fade between 0.5 and 1.0 roughness */
-		ssr_accum.a *= saturate(2.0 - roughness * 2.0);
+		//ssr_accum.a *= saturate(2.0 - roughness * 2.0);
 		accumulate_light(ssr_accum.rgb, ssr_accum.a, spec_accum);
 	}
 

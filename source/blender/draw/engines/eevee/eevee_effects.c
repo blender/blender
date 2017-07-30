@@ -102,8 +102,6 @@ static struct {
 	struct GPUTexture *depth_src;
 	struct GPUTexture *color_src;
 	int depth_src_layer;
-
-	float pixelprojmat[4][4];
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_bsdf_common_lib_glsl[];
@@ -581,7 +579,7 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		effects->ssr_ray_count = BKE_collection_engine_property_value_get_int(props, "ssr_ray_count");
 		effects->reflection_trace_full = !BKE_collection_engine_property_value_get_bool(props, "ssr_halfres");
 		effects->ssr_use_normalization = BKE_collection_engine_property_value_get_bool(props, "ssr_normalize_weight");
-		effects->ssr_stride = (float)BKE_collection_engine_property_value_get_int(props, "ssr_stride");
+		effects->ssr_quality = 1.0f - BKE_collection_engine_property_value_get_float(props, "ssr_quality");
 		effects->ssr_thickness = BKE_collection_engine_property_value_get_float(props, "ssr_thickness");
 		effects->ssr_border_fac = BKE_collection_engine_property_value_get_float(props, "ssr_border_fade");
 		effects->ssr_firefly_fac = BKE_collection_engine_property_value_get_float(props, "ssr_firefly_fac");
@@ -621,23 +619,9 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 
 		DRW_framebuffer_init(&fbl->screen_tracing_fb, &draw_engine_eevee_type, tracing_res[0], tracing_res[1], tex_output, effects->ssr_ray_count);
 
-		/* Compute pixel projection matrix */
-		{
-			float uvpix[4][4], ndcuv[4][4], tmp[4][4], winmat[4][4];
-			DRW_viewport_matrix_get(winmat, DRW_MAT_WIN);
-
-			/* NDC to UVs */
-			unit_m4(ndcuv);
-			ndcuv[0][0] = ndcuv[1][1] = ndcuv[3][0] = ndcuv[3][1] = 0.5f;
-
-			/* UVs to pixels */
-			unit_m4(uvpix);
-			uvpix[0][0] = viewport_size[0];
-			uvpix[1][1] = viewport_size[1];
-
-			mul_m4_m4m4(tmp, uvpix, ndcuv);
-			mul_m4_m4m4(e_data.pixelprojmat, tmp, winmat);
-		}
+		/* Compute pixel size */
+		copy_v2_v2(effects->ssr_pixelsize, viewport_size);
+		invert_v2(effects->ssr_pixelsize);
 	}
 	else {
 		/* Cleanup to release memory */
@@ -762,9 +746,10 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		DRW_shgroup_uniform_buffer(grp, "normalBuffer", &txl->ssr_normal_input);
 		DRW_shgroup_uniform_buffer(grp, "specroughBuffer", &txl->ssr_specrough_input);
 		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
+		DRW_shgroup_uniform_buffer(grp, "maxzBuffer", &txl->maxzbuffer);
+		DRW_shgroup_uniform_buffer(grp, "minzBuffer", &stl->g_data->minzbuffer);
 		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
-		DRW_shgroup_uniform_vec2(grp, "ssrParameters", &effects->ssr_stride, 1);
-		DRW_shgroup_uniform_mat4(grp, "PixelProjMatrix", (float *)&e_data.pixelprojmat);
+		DRW_shgroup_uniform_vec4(grp, "ssrParameters", &effects->ssr_quality, 1);
 		DRW_shgroup_uniform_int(grp, "rayCount", &effects->ssr_ray_count, 1);
 		DRW_shgroup_uniform_int(grp, "planar_count", &sldata->probes->num_planar, 1);
 		DRW_shgroup_uniform_buffer(grp, "planarDepth", &vedata->txl->planar_depth);
@@ -1267,7 +1252,8 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 				if (stl->g_data->ssr_hit_output[0]) DRW_transform_to_display(stl->g_data->ssr_hit_output[0]);
 				break;
 			case 3:
-				if (txl->ssr_normal_input) DRW_transform_to_display(txl->ssr_normal_input);
+				if (stl->g_data->ssr_hit_output[1]) DRW_transform_to_display(stl->g_data->ssr_hit_output[1]);
+				// if (txl->ssr_normal_input) DRW_transform_to_display(txl->ssr_normal_input);
 				break;
 			case 4:
 				if (txl->ssr_specrough_input) DRW_transform_to_display(txl->ssr_specrough_input);

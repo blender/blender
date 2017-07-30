@@ -132,7 +132,7 @@ vec3 probe_evaluate_cube(float id, CubeData cd, vec3 W, vec3 R, float roughness)
 {
 	/* Correct reflection ray using parallax volume intersection. */
 	vec3 localpos = transform_point(cd.parallaxmat, W);
-	vec3 localray = mat3(cd.parallaxmat) * R;
+	vec3 localray = transform_direction(cd.parallaxmat, R);
 
 	float dist;
 	if (cd.p_parallax_type == PROBE_PARALLAX_BOX) {

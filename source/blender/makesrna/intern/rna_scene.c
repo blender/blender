@@ -2628,7 +2628,7 @@ RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(volumetric_colored_transmittance)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(ssr_enable)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(ssr_halfres)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(ssr_ray_count)
-RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(ssr_stride)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(ssr_quality)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(ssr_thickness)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(ssr_border_fade)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(ssr_firefly_fac)
@@ -6201,11 +6201,11 @@ static void rna_def_scene_layer_engine_settings_eevee(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
 
-	prop = RNA_def_property(srna, "ssr_stride", PROP_INT, PROP_PIXEL);
-	RNA_def_property_int_funcs(prop, "rna_LayerEngineSettings_Eevee_ssr_stride_get",
-	                               "rna_LayerEngineSettings_Eevee_ssr_stride_set", NULL);
-	RNA_def_property_ui_text(prop, "Stride", "Step size between two raymarching samples");
-	RNA_def_property_range(prop, 1, 32);
+	prop = RNA_def_property(srna, "ssr_quality", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Eevee_ssr_quality_get",
+	                               "rna_LayerEngineSettings_Eevee_ssr_quality_set", NULL);
+	RNA_def_property_ui_text(prop, "Quality", "Quality of the screen space raytracing");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
 
