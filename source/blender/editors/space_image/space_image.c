@@ -680,9 +680,8 @@ static void image_main_region_init(wmWindowManager *wm, ARegion *ar)
 			.regionid = RGN_TYPE_WINDOW,
 		};
 		ar->manipulator_map = WM_manipulatormap_new_from_type(&wmap_params);
-
-		WM_manipulatormap_add_handlers(ar, ar->manipulator_map);
 	}
+	WM_manipulatormap_add_handlers(ar, ar->manipulator_map);
 
 	/* mask polls mode */
 	keymap = WM_keymap_find(wm->defaultconf, "Mask Editing", 0, 0);
