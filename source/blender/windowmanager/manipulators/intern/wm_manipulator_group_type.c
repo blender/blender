@@ -83,14 +83,14 @@ static wmManipulatorGroupType *wm_manipulatorgrouptype_append__begin(void)
 {
 	wmManipulatorGroupType *wgt = MEM_callocN(sizeof(wmManipulatorGroupType), "manipulatorgrouptype");
 
-	wgt->type_update_flag |= WM_MANIPULATORMAPTYPE_KEYMAP_INIT;
-
 	return wgt;
 }
 static void wm_manipulatorgrouptype_append__end(wmManipulatorGroupType *wgt)
 {
 	BLI_assert(wgt->name != NULL);
 	BLI_assert(wgt->idname != NULL);
+
+	wgt->type_update_flag |= WM_MANIPULATORMAPTYPE_KEYMAP_INIT;
 
 	/* if not set, use default */
 	if (wgt->setup_keymap == NULL) {

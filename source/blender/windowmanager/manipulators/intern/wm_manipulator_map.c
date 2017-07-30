@@ -1016,13 +1016,13 @@ void WM_manipulatorconfig_update(struct Main *bmain)
 				     wgt_ref = wgt_ref->next)
 				{
 					if (wgt_ref->type->type_update_flag & WM_MANIPULATORMAPTYPE_KEYMAP_INIT) {
-						wgt_ref->type->type_update_flag &= ~WM_MANIPULATORMAPTYPE_KEYMAP_INIT;
 						WM_manipulatormaptype_group_init_runtime_keymap(bmain, wgt_ref->type);
+						wgt_ref->type->type_update_flag &= ~WM_MANIPULATORMAPTYPE_KEYMAP_INIT;
 					}
 
 					if (wgt_ref->type->type_update_flag & WM_MANIPULATORMAPTYPE_UPDATE_INIT) {
-						wgt_ref->type->type_update_flag &= ~WM_MANIPULATORMAPTYPE_UPDATE_INIT;
 						WM_manipulatormaptype_group_init_runtime(bmain, mmap_type, wgt_ref->type);
+						wgt_ref->type->type_update_flag &= ~WM_MANIPULATORMAPTYPE_UPDATE_INIT;
 					}
 				}
 			}
