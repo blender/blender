@@ -23,6 +23,19 @@
 
 # Libraries configuration for any *nix system including Linux and Unix.
 
+# Detect precompiled library directory
+set(LIBDIR_NAME ${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_PROCESSOR})
+string(TOLOWER ${LIBDIR_NAME} LIBDIR_NAME)
+set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/${LIBDIR_NAME})
+
+if(EXISTS ${LIBDIR})
+	file(GLOB LIB_SUBDIRS ${LIBDIR}/*)
+	set(CMAKE_PREFIX_PATH ${LIB_SUBDIRS})
+	set(WITH_STATIC_LIBS ON)
+	set(WITH_OPENMP_STATIC ON)
+endif()
+
+# Wrapper to prefer static libraries
 macro(find_package_wrapper)
 	if(WITH_STATIC_LIBS)
 		find_package_static(${ARGV})
@@ -141,8 +154,15 @@ if(WITH_CODEC_SNDFILE)
 endif()
 
 if(WITH_CODEC_FFMPEG)
-	set(FFMPEG /usr CACHE PATH "FFMPEG Directory")
-	set(FFMPEG_LIBRARIES avformat avcodec avutil avdevice swscale CACHE STRING "FFMPEG Libraries")
+	if(EXISTS ${LIBDIR})
+		# For precompiled lib directory, all ffmpeg dependencies are in the same folder
+		file(GLOB ffmpeg_libs ${LIBDIR}/ffmpeg/lib/*.a ${LIBDIR}/sndfile/lib/*.a)
+		set(FFMPEG ${LIBDIR}/ffmpeg CACHE PATH "FFMPEG Directory")
+		set(FFMPEG_LIBRARIES ${ffmpeg_libs} ${ffmpeg_libs} CACHE STRING "FFMPEG Libraries")
+	else()
+		set(FFMPEG /usr CACHE PATH "FFMPEG Directory")
+		set(FFMPEG_LIBRARIES avformat avcodec avutil avdevice swscale CACHE STRING "FFMPEG Libraries")
+	endif()
 
 	mark_as_advanced(FFMPEG)
 
@@ -329,6 +349,14 @@ if(WITH_OPENCOLORIO)
 endif()
 
 if(WITH_LLVM)
+	# Symbol conflicts with same UTF library used by OpenCollada
+	if(EXISTS ${LIBDIR})
+		set(LLVM_STATIC ON)
+		if(WITH_OPENCOLLADA)
+			list(REMOVE_ITEM OPENCOLLADA_LIBRARIES ${OPENCOLLADA_UTF_LIBRARY})
+		endif()
+	endif()
+
 	find_package_wrapper(LLVM)
 
 	if(NOT LLVM_FOUND)
