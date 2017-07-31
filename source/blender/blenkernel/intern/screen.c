@@ -292,6 +292,32 @@ void BKE_spacedata_id_unref(struct ScrArea *sa, struct SpaceLink *sl, struct ID 
 	}
 }
 
+/**
+ * Avoid bad-level calls to #WM_manipulatormap_tag_refresh.
+ */
+static void (*region_refresh_tag_manipulatormap_callback)(struct wmManipulatorMap *) = NULL;
+
+void BKE_region_callback_refresh_tag_manipulatormap_set(void (*callback)(struct wmManipulatorMap *))
+{
+	region_refresh_tag_manipulatormap_callback = callback;
+}
+
+void BKE_screen_manipulator_tag_refresh(struct bScreen *sc)
+{
+	if (region_refresh_tag_manipulatormap_callback == NULL) {
+		return;
+	}
+
+	ScrArea *sa;
+	ARegion *ar;
+	for (sa = sc->areabase.first; sa; sa = sa->next) {
+		for (ar = sa->regionbase.first; ar; ar = ar->next) {
+			if (ar->manipulator_map != NULL) {
+				region_refresh_tag_manipulatormap_callback(ar->manipulator_map);
+			}
+		}
+	}
+}
 
 /**
  * Avoid bad-level calls to #WM_manipulatormap_delete.

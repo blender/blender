@@ -294,6 +294,7 @@ void            BKE_area_region_free(struct SpaceType *st, struct ARegion *ar);
 void            BKE_screen_area_free(struct ScrArea *sa);
 /* Manipulator-maps of a region need to be freed with the region. Uses callback to avoid low-level call. */
 void BKE_region_callback_free_manipulatormap_set(void (*callback)(struct wmManipulatorMap *));
+void BKE_region_callback_refresh_tag_manipulatormap_set(void (*callback)(struct wmManipulatorMap *));
 
 struct ARegion *BKE_area_find_region_type(struct ScrArea *sa, int type);
 struct ARegion *BKE_area_find_region_active_win(struct ScrArea *sa);
@@ -308,6 +309,8 @@ unsigned int BKE_screen_view3d_layer_active(
         const struct View3D *v3d, const struct Scene *scene) ATTR_NONNULL(2);
 
 unsigned int BKE_screen_view3d_layer_all(const struct bScreen *sc) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+
+void BKE_screen_manipulator_tag_refresh(struct bScreen *sc);
 
 void BKE_screen_view3d_sync(struct View3D *v3d, struct Scene *scene);
 void BKE_screen_view3d_scene_sync(struct bScreen *sc, struct Scene *scene);

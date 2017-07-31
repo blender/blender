@@ -218,6 +218,13 @@ static void setup_app_data(
 				BKE_screen_view3d_scene_sync(curscreen, curscene);
 			}
 		}
+
+		/* We need to tag this here because events may be handled immediately after.
+		 * only the current screen is important because we wont have to handle
+		 * events from multiple screens at once.*/
+		{
+			BKE_screen_manipulator_tag_refresh(curscreen);
+		}
 	}
 
 	/* free G.main Main database */

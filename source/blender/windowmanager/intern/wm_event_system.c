@@ -2197,6 +2197,10 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 				wmManipulatorMap *mmap = handler->manipulator_map;
 				wmManipulator *mpr = wm_manipulatormap_highlight_get(mmap);
 
+				if (region->manipulator_map != handler->manipulator_map) {
+					WM_manipulatormap_tag_refresh(handler->manipulator_map);
+				}
+
 				wm_manipulatormap_handler_context(C, handler);
 				wm_region_mouse_co(C, event);
 
