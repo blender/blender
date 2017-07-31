@@ -238,10 +238,10 @@ bNodeTreeType *rna_node_tree_type_from_enum(int value)
 
 EnumPropertyItem *rna_node_tree_type_itemf(void *data, int (*poll)(void *data, bNodeTreeType *), bool *r_free)
 {
-	EnumPropertyItem tmp = {0, "", 0, "", ""};
+	EnumPropertyItem tmp = {0};
 	EnumPropertyItem *item = NULL;
 	int totitem = 0, i = 0;
-	
+
 	NODE_TREE_TYPES_BEGIN (nt)
 	{
 		if (poll && !poll(data, nt)) {
@@ -261,9 +261,14 @@ EnumPropertyItem *rna_node_tree_type_itemf(void *data, int (*poll)(void *data, b
 	}
 	NODE_TREE_TYPES_END;
 
+	if (totitem == 0) {
+		*r_free = false;
+		return DummyRNA_NULL_items;
+	}
+
 	RNA_enum_item_end(&item, &totitem);
 	*r_free = true;
-	
+
 	return item;
 }
 
@@ -310,9 +315,9 @@ bNodeType *rna_node_type_from_enum(int value)
 EnumPropertyItem *rna_node_type_itemf(void *data, int (*poll)(void *data, bNodeType *), bool *r_free)
 {
 	EnumPropertyItem *item = NULL;
-	EnumPropertyItem tmp = {0, "", 0, "", ""};
+	EnumPropertyItem tmp = {0};
 	int totitem = 0, i = 0;
-	
+
 	NODE_TYPES_BEGIN(ntype)
 		if (poll && !poll(data, ntype)) {
 			++i;
@@ -329,9 +334,15 @@ EnumPropertyItem *rna_node_type_itemf(void *data, int (*poll)(void *data, bNodeT
 		
 		++i;
 	NODE_TYPES_END
+
+	if (totitem == 0) {
+		*r_free = false;
+		return DummyRNA_NULL_items;
+	}
+
 	RNA_enum_item_end(&item, &totitem);
 	*r_free = true;
-	
+
 	return item;
 }
 
@@ -378,10 +389,10 @@ bNodeSocketType *rna_node_socket_type_from_enum(int value)
 EnumPropertyItem *rna_node_socket_type_itemf(void *data, int (*poll)(void *data, bNodeSocketType *), bool *r_free)
 {
 	EnumPropertyItem *item = NULL;
-	EnumPropertyItem tmp = {0, "", 0, "", ""};
+	EnumPropertyItem tmp = {0};
 	int totitem = 0, i = 0;
 	StructRNA *srna;
-	
+
 	NODE_SOCKET_TYPES_BEGIN(stype)
 		if (poll && !poll(data, stype)) {
 			++i;
@@ -399,9 +410,15 @@ EnumPropertyItem *rna_node_socket_type_itemf(void *data, int (*poll)(void *data,
 		
 		++i;
 	NODE_SOCKET_TYPES_END
+
+	if (totitem == 0) {
+		*r_free = false;
+		return DummyRNA_NULL_items;
+	}
+
 	RNA_enum_item_end(&item, &totitem);
 	*r_free = true;
-	
+
 	return item;
 }
 
@@ -410,25 +427,25 @@ static EnumPropertyItem *rna_node_static_type_itemf(bContext *UNUSED(C), Pointer
 	EnumPropertyItem *item = NULL;
 	EnumPropertyItem tmp;
 	int totitem = 0;
-	
+
 	/* hack, don't want to add include path to RNA just for this, since in the future RNA types
 	 * for nodes should be defined locally at runtime anyway ...
 	 */
-	
+
 	tmp.value = NODE_CUSTOM;
 	tmp.identifier = "CUSTOM";
 	tmp.name = "Custom";
 	tmp.description = "Custom Node";
 	tmp.icon = ICON_NONE;
 	RNA_enum_item_add(&item, &totitem, &tmp);
-	
+
 	tmp.value = NODE_UNDEFINED;
 	tmp.identifier = "UNDEFINED";
 	tmp.name = "UNDEFINED";
 	tmp.description = "";
 	tmp.icon = ICON_NONE;
 	RNA_enum_item_add(&item, &totitem, &tmp);
-	
+
 #define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
 	if (STREQ(#Category, "Node")) { \
 		tmp.value = ID; \
@@ -440,7 +457,7 @@ static EnumPropertyItem *rna_node_static_type_itemf(bContext *UNUSED(C), Pointer
 	}
 #include "../../nodes/NOD_static_types.h"
 #undef DefNode
-	
+
 	if (RNA_struct_is_a(ptr->type, &RNA_ShaderNode)) {
 #define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
 		if (STREQ(#Category, "ShaderNode")) { \
@@ -468,7 +485,7 @@ static EnumPropertyItem *rna_node_static_type_itemf(bContext *UNUSED(C), Pointer
 #include "../../nodes/NOD_static_types.h"
 #undef DefNode
 	}
-	
+
 	if (RNA_struct_is_a(ptr->type, &RNA_TextureNode)) {
 #define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
 		if (STREQ(#Category, "TextureNode")) { \
@@ -485,7 +502,7 @@ static EnumPropertyItem *rna_node_static_type_itemf(bContext *UNUSED(C), Pointer
 
 	RNA_enum_item_end(&item, &totitem);
 	*r_free = true;
-	
+
 	return item;
 }
 
@@ -2617,9 +2634,9 @@ static void rna_Node_image_layer_update(Main *bmain, Scene *scene, PointerRNA *p
 static EnumPropertyItem *renderresult_layers_add_enum(RenderLayer *rl)
 {
 	EnumPropertyItem *item = NULL;
-	EnumPropertyItem tmp = {0, "", 0, "", ""};
+	EnumPropertyItem tmp = {0};
 	int i = 0, totitem = 0;
-	
+
 	while (rl) {
 		tmp.identifier = rl->name;
 		/* little trick: using space char instead empty string makes the item selectable in the dropdown */
@@ -2631,7 +2648,7 @@ static EnumPropertyItem *renderresult_layers_add_enum(RenderLayer *rl)
 		RNA_enum_item_add(&item, &totitem, &tmp);
 		rl = rl->next;
 	}
-	
+
 	RNA_enum_item_end(&item, &totitem);
 
 	return item;
@@ -2644,18 +2661,17 @@ static EnumPropertyItem *rna_Node_image_layer_itemf(bContext *UNUSED(C), Pointer
 	Image *ima = (Image *)node->id;
 	EnumPropertyItem *item = NULL;
 	RenderLayer *rl;
-	
-	if (ima && ima->rr) {
-		rl = ima->rr->layers.first;
-		item = renderresult_layers_add_enum(rl);
+
+	if (ima == NULL || ima->rr == NULL) {
+		*r_free = false;
+		return DummyRNA_NULL_items;
 	}
-	else {
-		int totitem = 0;
-		RNA_enum_item_end(&item, &totitem);
-	}
-	
+
+	rl = ima->rr->layers.first;
+	item = renderresult_layers_add_enum(rl);
+
 	*r_free = true;
-	
+
 	return item;
 }
 
@@ -2706,19 +2722,22 @@ static EnumPropertyItem *renderresult_views_add_enum(RenderView *rv)
 }
 
 static EnumPropertyItem *rna_Node_image_view_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                   PropertyRNA *UNUSED(prop), bool *free)
+                                                   PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	bNode *node = (bNode *)ptr->data;
 	Image *ima = (Image *)node->id;
 	EnumPropertyItem *item = NULL;
 	RenderView *rv;
 
-	if (!ima || !(ima->rr)) return NULL;
+	if (ima == NULL || ima->rr == NULL) {
+		*r_free = false;
+		return DummyRNA_NULL_items;
+	}
 
 	rv = ima->rr->views.first;
 	item = renderresult_views_add_enum(rv);
 
-	*free = true;
+	*r_free = true;
 
 	return item;
 }
@@ -2730,18 +2749,17 @@ static EnumPropertyItem *rna_Node_scene_layer_itemf(bContext *UNUSED(C), Pointer
 	Scene *sce = (Scene *)node->id;
 	EnumPropertyItem *item = NULL;
 	RenderLayer *rl;
-	
-	if (sce) {
-		rl = sce->r.layers.first;
-		item = renderresult_layers_add_enum(rl);
+
+	if (sce == NULL) {
+		*r_free = false;
+		return DummyRNA_NULL_items;
 	}
-	else {
-		int totitem = 0;
-		RNA_enum_item_end(&item, &totitem);
-	}
-	
+
+	rl = sce->r.layers.first;
+	item = renderresult_layers_add_enum(rl);
+
 	*r_free = true;
-	
+
 	return item;
 }
 
@@ -2758,7 +2776,7 @@ static EnumPropertyItem *rna_Node_channel_itemf(bContext *UNUSED(C), PointerRNA 
 {
 	bNode *node = (bNode *)ptr->data;
 	EnumPropertyItem *item = NULL;
-	EnumPropertyItem tmp = {0, "", 0, "", ""};
+	EnumPropertyItem tmp = {0};
 	int totitem = 0;
 	
 	switch (node->custom1) {
@@ -2795,7 +2813,7 @@ static EnumPropertyItem *rna_Node_channel_itemf(bContext *UNUSED(C), PointerRNA 
 			RNA_enum_item_add(&item, &totitem, &tmp);
 			break;
 		default:
-			break;
+			return DummyRNA_NULL_items;
 	}
 
 	RNA_enum_item_end(&item, &totitem);
