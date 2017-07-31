@@ -1073,10 +1073,11 @@ short insert_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
 				/* for Loc/Rot/Scale and also Color F-Curves, the color of the F-Curve in the Graph Editor,
 				 * is determined by the array index for the F-Curve
 				 */
-				if (ELEM(RNA_property_subtype(prop), PROP_TRANSLATION, PROP_XYZ, PROP_EULER, PROP_COLOR, PROP_COORDS)) {
+				PropertySubType prop_subtype = RNA_property_subtype(prop);
+				if (ELEM(prop_subtype, PROP_TRANSLATION, PROP_XYZ, PROP_EULER, PROP_COLOR, PROP_COORDS)) {
 					fcu->color_mode = FCURVE_COLOR_AUTO_RGB;
 				}
-				else if (RNA_property_subtype(prop), PROP_QUATERNION) {
+				else if (ELEM(prop_subtype, PROP_QUATERNION)) {
 					fcu->color_mode = FCURVE_COLOR_AUTO_YRGB;
 				}
 			}
