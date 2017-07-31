@@ -353,7 +353,10 @@ void BKE_area_region_free(SpaceType *st, ARegion *ar)
 		}
 	}
 
-	region_free_manipulatormap_callback(ar->manipulator_map);
+	if (ar->manipulator_map != NULL) {
+		region_free_manipulatormap_callback(ar->manipulator_map);
+	}
+
 	BLI_freelistN(&ar->ui_lists);
 	BLI_freelistN(&ar->ui_previews);
 	BLI_freelistN(&ar->panels_category);

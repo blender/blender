@@ -91,7 +91,6 @@ typedef struct wmManipulatorMapSelectState {
 } wmManipulatorMapSelectState;
 
 struct wmManipulatorMap {
-	struct wmManipulatorMap *next, *prev;
 
 	struct wmManipulatorMapType *type;
 	ListBase groups;  /* wmManipulatorGroup */

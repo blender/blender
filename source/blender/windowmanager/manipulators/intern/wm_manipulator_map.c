@@ -179,9 +179,6 @@ wmManipulatorMap *WM_manipulatormap_new_from_type(
 
 void wm_manipulatormap_remove(wmManipulatorMap *mmap)
 {
-	if (!mmap)
-		return;
-
 	/* Clear first so further calls don't waste time trying to maintain correct array state. */
 	wm_manipulatormap_select_array_clear(mmap);
 
@@ -752,12 +749,10 @@ void wm_manipulatormap_handler_context(bContext *C, wmEventHandler *handler)
 
 bool WM_manipulatormap_cursor_set(const wmManipulatorMap *mmap, wmWindow *win)
 {
-	for (; mmap; mmap = mmap->next) {
-		wmManipulator *mpr = mmap->mmap_context.highlight;
-		if (mpr && mpr->type->cursor_get) {
-			WM_cursor_set(win, mpr->type->cursor_get(mpr));
-			return true;
-		}
+	wmManipulator *mpr = mmap->mmap_context.highlight;
+	if (mpr && mpr->type->cursor_get) {
+		WM_cursor_set(win, mpr->type->cursor_get(mpr));
+		return true;
 	}
 
 	return false;
