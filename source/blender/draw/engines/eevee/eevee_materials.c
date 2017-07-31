@@ -343,8 +343,9 @@ void EEVEE_materials_init(EEVEE_StorageList *stl)
 		frag_str = BLI_dynstr_get_cstring(ds_frag);
 		BLI_dynstr_free(ds_frag);
 
-		e_data.default_background = DRW_shader_create_fullscreen(
-		        datatoc_default_world_frag_glsl, NULL);
+		e_data.default_background = DRW_shader_create(
+		        datatoc_background_vert_glsl, NULL, datatoc_default_world_frag_glsl,
+		        NULL);
 
 		e_data.default_prepass_sh = DRW_shader_create(
 		        datatoc_prepass_vert_glsl, NULL, datatoc_prepass_frag_glsl,
@@ -668,7 +669,7 @@ void EEVEE_materials_cache_init(EEVEE_Data *vedata)
 	}
 
 	{
-		psl->background_pass = DRW_pass_create("Background Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR);
+		psl->background_pass = DRW_pass_create("Background Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL);
 
 		struct Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
 		DRWShadingGroup *grp = NULL;

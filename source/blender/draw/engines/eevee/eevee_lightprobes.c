@@ -334,7 +334,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *veda
 	memset(pinfo->probes_planar_ref, 0, sizeof(pinfo->probes_planar_ref));
 
 	{
-		psl->probe_background = DRW_pass_create("World Probe Background Pass", DRW_STATE_WRITE_COLOR);
+		psl->probe_background = DRW_pass_create("World Probe Background Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL);
 
 		struct Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
 		DRWShadingGroup *grp = NULL;
@@ -1011,11 +1011,11 @@ static void render_scene_to_probe(
 		DRW_viewport_matrix_override_set(viewinv, DRW_MAT_VIEWINV);
 		DRW_viewport_matrix_override_set(winmat, DRW_MAT_WIN);
 
-		DRW_draw_pass(psl->probe_background);
-
 		/* Depth prepass */
 		DRW_draw_pass(psl->depth_pass);
 		DRW_draw_pass(psl->depth_pass_cull);
+
+		DRW_draw_pass(psl->probe_background);
 
 		// EEVEE_create_minmax_buffer(vedata, e_data.cube_face_depth);
 
@@ -1069,6 +1069,7 @@ static void render_scene_to_planar(
 	DRW_framebuffer_clear(false, true, false, NULL, 1.0);
 
 	/* Turn off ssr to avoid black specular */
+	/* TODO : Enable SSR in planar reflections? (Would be very heavy) */
 	sldata->probes->ssr_toggle = false;
 
 	/* Avoid using the texture attached to framebuffer when rendering. */
@@ -1083,9 +1084,6 @@ static void render_scene_to_planar(
 	DRW_viewport_matrix_override_set(viewmat, DRW_MAT_VIEW);
 	DRW_viewport_matrix_override_set(viewinv, DRW_MAT_VIEWINV);
 
-	/* Background */
-	DRW_draw_pass(psl->probe_background);
-
 	/* Since we are rendering with an inverted view matrix, we need
 	 * to invert the facing for backface culling to be the same. */
 	DRW_state_invert_facing();
@@ -1094,6 +1092,9 @@ static void render_scene_to_planar(
 	/* Depth prepass */
 	DRW_draw_pass(psl->depth_pass_clip);
 	DRW_draw_pass(psl->depth_pass_clip_cull);
+
+	/* Background */
+	DRW_draw_pass(psl->probe_background);
 
 	EEVEE_create_minmax_buffer(vedata, tmp_planar_depth, layer);
 

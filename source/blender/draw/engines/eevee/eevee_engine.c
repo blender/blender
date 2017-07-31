@@ -165,14 +165,13 @@ static void EEVEE_draw_scene(void *vedata)
 		DRW_framebuffer_bind(fbl->main);
 		DRW_framebuffer_clear(false, true, false, NULL, 1.0f);
 
-		/* TODO move background after depth pass to cut some overdraw */
-		DRW_draw_pass(psl->background_pass);
-
 		/* Depth prepass */
 		DRW_stats_group_start("Prepass");
 		DRW_draw_pass(psl->depth_pass);
 		DRW_draw_pass(psl->depth_pass_cull);
 		DRW_stats_group_end();
+
+		DRW_draw_pass(psl->background_pass);
 
 		/* Create minmax texture */
 		DRW_stats_group_start("Main MinMax buffer");
