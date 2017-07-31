@@ -8,6 +8,7 @@ uniform sampler2DArray utilTex;
 #endif /* UTIL_TEX */
 
 uniform int rayCount;
+uniform float maxRoughness;
 
 #define BRDF_BIAS 0.7
 
@@ -122,9 +123,15 @@ void main()
 	if (dot(speccol_roughness.rgb, vec3(1.0)) == 0.0)
 		discard;
 
+
 	float roughness = speccol_roughness.a;
 	float roughnessSquared = max(1e-3, roughness * roughness);
 	float a2 = roughnessSquared * roughnessSquared;
+
+	if (roughness > maxRoughness + 0.2) {
+		hitData0 = hitData1 = hitData2 = hitData3 = vec4(0.0);
+		return;
+	}
 
 	vec3 rand = texelFetch(utilTex, ivec3(halfres_texel % LUT_SIZE, 2), 0).rba;
 
@@ -292,17 +299,17 @@ vec4 get_ssr_sample(
 		mask *= screen_border_mask(uvs);
 
 		/* Compute cone footprint Using UV distance because we are using screen space filtering. */
-		cone_footprint = 1.5 * cone_tan * distance(ref_uvs, source_uvs);
+		cone_footprint = cone_tan * distance(ref_uvs, source_uvs);
 	}
 	mask = min(mask, screen_border_mask(ref_uvs));
 	mask *= float(has_hit);
 
 	/* Estimate a cone footprint to sample a corresponding mipmap level. */
-	float mip = BRDF_BIAS * clamp(log2(cone_footprint * max(texture_size.x, texture_size.y)), 0.0, MAX_MIP);
+	float mip = BRDF_BIAS * clamp(log2(cone_footprint * max(texture_size.x, texture_size.y)), 0.0, MAX_MIP) - 1.0;
 
 	/* Slide 54 */
 	float bsdf = bsdf_ggx(N, L, V, roughnessSquared);
-	float weight = bsdf / max(1e-8, hit_co_pdf.w);
+	float weight = step(1e-8, hit_co_pdf.w) * bsdf / max(1e-8, hit_co_pdf.w);
 	weight_acc += weight;
 
 	vec3 sample;
@@ -313,11 +320,12 @@ vec4 get_ssr_sample(
 		sample = textureLod(colorBuffer, ref_uvs, mip).rgb;
 	}
 
+	/* Clamped brightness. */
+	float luma = max(1e-8, brightness(sample));
+	sample *= 1.0 - max(0.0, luma - fireflyFactor) / luma;
+
 	/* Do not add light if ray has failed. */
 	sample *= float(has_hit);
-
-	/* Firefly removal */
-	sample /= 1.0 + fireflyFactor * brightness(sample);
 
 	return vec4(sample, mask) * weight;
 }
@@ -397,26 +405,28 @@ void main()
 	invert_neighbor.x = ((fullres_texel.x & 0x1) == 0) ? 1 : -1;
 	invert_neighbor.y = ((fullres_texel.y & 0x1) == 0) ? 1 : -1;
 
-	for (int i = 0; i < NUM_NEIGHBORS; i++) {
-		ivec2 target_texel = halfres_texel + neighbors[i] * invert_neighbor;
+	if (roughness < maxRoughness + 0.2) {
+		for (int i = 0; i < NUM_NEIGHBORS; i++) {
+			ivec2 target_texel = halfres_texel + neighbors[i] * invert_neighbor;
 
-		ssr_accum += get_ssr_sample(hitBuffer0, pd, planar_index, worldPosition, N, V,
-		                            roughnessSquared, cone_tan, source_uvs,
-		                            texture_size, target_texel, weight_acc);
-		if (rayCount > 1) {
-			ssr_accum += get_ssr_sample(hitBuffer1, pd, planar_index, worldPosition, N, V,
+			ssr_accum += get_ssr_sample(hitBuffer0, pd, planar_index, worldPosition, N, V,
 			                            roughnessSquared, cone_tan, source_uvs,
 			                            texture_size, target_texel, weight_acc);
-		}
-		if (rayCount > 2) {
-			ssr_accum += get_ssr_sample(hitBuffer2, pd, planar_index, worldPosition, N, V,
-			                            roughnessSquared, cone_tan, source_uvs,
-			                            texture_size, target_texel, weight_acc);
-		}
-		if (rayCount > 3) {
-			ssr_accum += get_ssr_sample(hitBuffer3, pd, planar_index, worldPosition, N, V,
-			                            roughnessSquared, cone_tan, source_uvs,
-			                            texture_size, target_texel, weight_acc);
+			if (rayCount > 1) {
+				ssr_accum += get_ssr_sample(hitBuffer1, pd, planar_index, worldPosition, N, V,
+				                            roughnessSquared, cone_tan, source_uvs,
+				                            texture_size, target_texel, weight_acc);
+			}
+			if (rayCount > 2) {
+				ssr_accum += get_ssr_sample(hitBuffer2, pd, planar_index, worldPosition, N, V,
+				                            roughnessSquared, cone_tan, source_uvs,
+				                            texture_size, target_texel, weight_acc);
+			}
+			if (rayCount > 3) {
+				ssr_accum += get_ssr_sample(hitBuffer3, pd, planar_index, worldPosition, N, V,
+				                            roughnessSquared, cone_tan, source_uvs,
+				                            texture_size, target_texel, weight_acc);
+			}
 		}
 	}
 
@@ -424,7 +434,7 @@ void main()
 	if (weight_acc > 0.0) {
 		ssr_accum /= weight_acc;
 		/* fade between 0.5 and 1.0 roughness */
-		//ssr_accum.a *= saturate(2.0 - roughness * 2.0);
+		ssr_accum.a *= smoothstep(maxRoughness + 0.2, maxRoughness, roughness); 
 		accumulate_light(ssr_accum.rgb, ssr_accum.a, spec_accum);
 	}
 

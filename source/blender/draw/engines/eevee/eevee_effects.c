@@ -583,6 +583,11 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		effects->ssr_thickness = BKE_collection_engine_property_value_get_float(props, "ssr_thickness");
 		effects->ssr_border_fac = BKE_collection_engine_property_value_get_float(props, "ssr_border_fade");
 		effects->ssr_firefly_fac = BKE_collection_engine_property_value_get_float(props, "ssr_firefly_fac");
+		effects->ssr_max_roughness = BKE_collection_engine_property_value_get_float(props, "ssr_max_roughness");
+
+		if (effects->ssr_firefly_fac < 1e-8f) {
+			effects->ssr_firefly_fac = FLT_MAX;
+		}
 
 		/* Important, can lead to breakage otherwise. */
 		CLAMP(effects->ssr_ray_count, 1, 4);
@@ -752,6 +757,7 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		DRW_shgroup_uniform_vec4(grp, "ssrParameters", &effects->ssr_quality, 1);
 		DRW_shgroup_uniform_int(grp, "rayCount", &effects->ssr_ray_count, 1);
 		DRW_shgroup_uniform_int(grp, "planar_count", &sldata->probes->num_planar, 1);
+		DRW_shgroup_uniform_float(grp, "maxRoughness", &effects->ssr_max_roughness, 1);
 		DRW_shgroup_uniform_buffer(grp, "planarDepth", &vedata->txl->planar_depth);
 		DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
 		DRW_shgroup_call_add(grp, quad, NULL);
@@ -768,6 +774,7 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		DRW_shgroup_uniform_int(grp, "planar_count", &sldata->probes->num_planar, 1);
 		DRW_shgroup_uniform_int(grp, "probe_count", &sldata->probes->num_render_cube, 1);
 		DRW_shgroup_uniform_float(grp, "borderFadeFactor", &effects->ssr_border_fac, 1);
+		DRW_shgroup_uniform_float(grp, "maxRoughness", &effects->ssr_max_roughness, 1);
 		DRW_shgroup_uniform_float(grp, "lodCubeMax", &sldata->probes->lod_cube_max, 1);
 		DRW_shgroup_uniform_float(grp, "lodPlanarMax", &sldata->probes->lod_planar_max, 1);
 		DRW_shgroup_uniform_float(grp, "fireflyFactor", &effects->ssr_firefly_fac, 1);
@@ -1252,8 +1259,7 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 				if (stl->g_data->ssr_hit_output[0]) DRW_transform_to_display(stl->g_data->ssr_hit_output[0]);
 				break;
 			case 3:
-				if (stl->g_data->ssr_hit_output[1]) DRW_transform_to_display(stl->g_data->ssr_hit_output[1]);
-				// if (txl->ssr_normal_input) DRW_transform_to_display(txl->ssr_normal_input);
+				if (txl->ssr_normal_input) DRW_transform_to_display(txl->ssr_normal_input);
 				break;
 			case 4:
 				if (txl->ssr_specrough_input) DRW_transform_to_display(txl->ssr_specrough_input);

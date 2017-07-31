@@ -327,6 +327,7 @@ typedef struct EEVEE_EffectsInfo {
 	int ssr_ray_count;
 	float ssr_firefly_fac;
 	float ssr_border_fac;
+	float ssr_max_roughness;
 	float ssr_quality;
 	float ssr_thickness;
 	float ssr_pixelsize[2];

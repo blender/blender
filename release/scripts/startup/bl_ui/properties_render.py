@@ -733,6 +733,7 @@ class RENDER_PT_eevee_screen_space_reflections(RenderButtonsPanel, Panel):
         col.prop(props, "ssr_halfres")
         col.prop(props, "ssr_ray_count")
         col.prop(props, "ssr_quality")
+        col.prop(props, "ssr_max_roughness")
         col.prop(props, "ssr_thickness")
         col.prop(props, "ssr_border_fade")
         col.prop(props, "ssr_firefly_fac")
