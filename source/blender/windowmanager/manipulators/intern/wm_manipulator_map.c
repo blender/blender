@@ -294,7 +294,8 @@ static bool manipulator_prepare_drawing(
  * should be drawn to list \a draw_manipulators, note that added items need freeing.
  */
 static void manipulatormap_prepare_drawing(
-        wmManipulatorMap *mmap, const bContext *C, ListBase *draw_manipulators, const int drawstep)
+        wmManipulatorMap *mmap, const bContext *C, ListBase *draw_manipulators,
+        const eWM_ManipulatorMapDrawStep drawstep)
 {
 	if (!mmap || BLI_listbase_is_empty(&mmap->groups))
 		return;
@@ -401,7 +402,9 @@ static void manipulators_draw_list(const wmManipulatorMap *mmap, const bContext 
 	}
 }
 
-void WM_manipulatormap_draw(wmManipulatorMap *mmap, const bContext *C, const int drawstep)
+void WM_manipulatormap_draw(
+        wmManipulatorMap *mmap, const bContext *C,
+        const eWM_ManipulatorMapDrawStep drawstep)
 {
 	ListBase draw_manipulators = {NULL};
 

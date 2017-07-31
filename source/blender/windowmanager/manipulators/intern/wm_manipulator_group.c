@@ -200,7 +200,8 @@ bool wm_manipulatorgroup_is_visible(const wmManipulatorGroup *mgroup, const bCon
 	return (!mgroup->type->poll || mgroup->type->poll(C, mgroup->type));
 }
 
-bool wm_manipulatorgroup_is_visible_in_drawstep(const wmManipulatorGroup *mgroup, const int drawstep)
+bool wm_manipulatorgroup_is_visible_in_drawstep(
+        const wmManipulatorGroup *mgroup, const eWM_ManipulatorMapDrawStep drawstep)
 {
 	switch (drawstep) {
 		case WM_MANIPULATORMAP_DRAWSTEP_2D:

@@ -367,7 +367,7 @@ typedef struct wmManipulatorGroup {
 /**
  * Pass a value of this enum to #WM_manipulatormap_draw to tell it what to draw.
  */
-enum {
+typedef enum eWM_ManipulatorMapDrawStep {
 	/* Draw 2D manipulator-groups (ManipulatorGroupType.is_3d == false) */
 	WM_MANIPULATORMAP_DRAWSTEP_2D = 0,
 	/* Draw 3D manipulator-groups (ManipulatorGroupType.is_3d == true) */
@@ -375,6 +375,6 @@ enum {
 	/* Draw only depth culled manipulators (WM_MANIPULATOR_SCENE_DEPTH flag).
 	 * Note that these are expected to be 3D manipulators too. */
 	WM_MANIPULATORMAP_DRAWSTEP_IN_SCENE,
-};
+} eWM_ManipulatorMapDrawStep;
 
 #endif  /* __WM_MANIPULATOR_TYPES_H__ */
