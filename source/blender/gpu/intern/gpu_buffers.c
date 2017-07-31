@@ -76,7 +76,7 @@ typedef struct {
 
 static size_t gpu_buffer_size_from_type(DerivedMesh *dm, GPUBufferType type);
 
-const GPUBufferTypeSettings gpu_buffer_type_settings[] = {
+static const GPUBufferTypeSettings gpu_buffer_type_settings[] = {
     /* vertex */
     {GL_ARRAY_BUFFER, 3},
     /* normal */

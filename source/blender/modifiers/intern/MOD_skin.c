@@ -77,6 +77,8 @@
 #include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
 
+#include "MOD_modifiertypes.h"
+
 #include "bmesh.h"
 
 typedef struct {

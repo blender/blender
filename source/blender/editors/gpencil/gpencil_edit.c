@@ -343,7 +343,7 @@ ListBase gp_strokes_copypastebuf = {NULL, NULL};
  * This is needed to prevent dangling and unsafe pointers when pasting across datablocks,
  * or after a color used by a stroke in the buffer gets deleted (via user action or undo).
  */
-GHash *gp_strokes_copypastebuf_colors = NULL;
+static GHash *gp_strokes_copypastebuf_colors = NULL;
 
 /* Free copy/paste buffer data */
 void ED_gpencil_strokes_copybuf_free(void)

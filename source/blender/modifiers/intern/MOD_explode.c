@@ -51,9 +51,9 @@
 #include "BKE_particle.h"
 #include "BKE_scene.h"
 
-
 #include "MEM_guardedalloc.h"
 
+#include "MOD_modifiertypes.h"
 
 static void initData(ModifierData *md)
 {

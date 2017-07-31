@@ -314,7 +314,7 @@ void ED_gplayer_frames_keytype_set(bGPDlayer *gpl, short type)
  */
 
 /* globals for copy/paste data (like for other copy/paste buffers) */
-ListBase gp_anim_copybuf = {NULL, NULL};
+static ListBase gp_anim_copybuf = {NULL, NULL};
 static int gp_anim_copy_firstframe =  999999999;
 static int gp_anim_copy_lastframe  = -999999999;
 static int gp_anim_copy_cfra       =  0;

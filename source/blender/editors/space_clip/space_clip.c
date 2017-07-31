@@ -821,7 +821,7 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 #endif
 }
 
-const char *clip_context_dir[] = {"edit_movieclip", "edit_mask", NULL};
+static const char *clip_context_dir[] = {"edit_movieclip", "edit_mask", NULL};
 
 static int clip_context(const bContext *C, const char *member, bContextDataResult *result)
 {

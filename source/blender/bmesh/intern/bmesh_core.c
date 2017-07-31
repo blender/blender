@@ -2415,7 +2415,8 @@ static void bmesh_kernel_vert_separate__cleanup(BMesh *bm, LinkNode *edges_separ
 					/* don't visit again */
 					n_prev->next = n_step->next;
 				}
-			} while ((n_prev = n_step),
+			} while ((void)
+			         (n_prev = n_step),
 			         (n_step = n_step->next));
 
 		} while ((n_orig = n_orig->next) && n_orig->next);

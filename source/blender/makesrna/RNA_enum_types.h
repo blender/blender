@@ -114,6 +114,8 @@ extern EnumPropertyItem rna_enum_brush_image_tool_items[];
 
 extern EnumPropertyItem rna_enum_gpencil_sculpt_brush_items[];
 
+extern EnumPropertyItem rna_enum_uv_sculpt_tool_items[];
+
 extern EnumPropertyItem rna_enum_axis_xy_items[];
 extern EnumPropertyItem rna_enum_axis_xyz_items[];
 

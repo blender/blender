@@ -48,6 +48,7 @@
 
 #include "DNA_object_types.h"
 
+#include "MOD_modifiertypes.h"
 
 static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd)
 {

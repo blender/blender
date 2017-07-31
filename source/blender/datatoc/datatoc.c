@@ -91,6 +91,11 @@ int main(int argc, char **argv)
 	}
 
 	fprintf(fpout, "/* DataToC output of file <%s> */\n\n", argv[1]);
+
+	/* Quiet 'missing-variable-declarations' warning. */
+	fprintf(fpout, "extern int datatoc_%s_size;\n", argv[1]);
+	fprintf(fpout, "extern char datatoc_%s[];\n\n", argv[1]);
+
 	fprintf(fpout, "int datatoc_%s_size = %d;\n", argv[1], (int)size);
 	fprintf(fpout, "char datatoc_%s[] = {\n", argv[1]);
 	while (size--) {
