@@ -379,13 +379,13 @@ static bool manipulator_rect_transform_get_prop_value(
 	PropertyType type = RNA_property_type(mpr_prop->prop);
 
 	if (type != PROP_FLOAT) {
-		fprintf(stderr, "Rect Transform manipulator can only be bound to float properties");
+		fprintf(stderr, "Rect Transform manipulator can only be bound to float properties\n");
 		return false;
 	}
 	else {
 		if (STREQ(mpr_prop->type->idname, "offset")) {
 			if (RNA_property_array_length(&mpr_prop->ptr, mpr_prop->prop) != 2) {
-				fprintf(stderr, "Rect Transform manipulator offset not only be bound to array float property");
+				fprintf(stderr, "Rect Transform manipulator offset not only be bound to array float property\n");
 				return false;
 			}
 			RNA_property_float_get_array(&mpr_prop->ptr, mpr_prop->prop, value);
@@ -397,7 +397,7 @@ static bool manipulator_rect_transform_get_prop_value(
 			}
 			else {
 				if (RNA_property_array_length(&mpr_prop->ptr, mpr_prop->prop) != 2) {
-					fprintf(stderr, "Rect Transform manipulator scale not only be bound to array float property");
+					fprintf(stderr, "Rect Transform manipulator scale not only be bound to array float property\n");
 					return false;
 				}
 				RNA_property_float_get_array(&mpr_prop->ptr, mpr_prop->prop, value);
@@ -538,8 +538,8 @@ static void manipulator_rect_transform_property_update(wmManipulator *mpr, wmMan
 	}
 	else if (STREQ(mpr_prop->type->idname, "scale")) {
 		float scale[2];
-		RNA_float_get_array(mpr->ptr, "scale", scale);
 		manipulator_rect_transform_get_prop_value(mpr, mpr_prop, scale);
+		RNA_float_set_array(mpr->ptr, "scale", scale);
 	}
 	else {
 		BLI_assert(0);
