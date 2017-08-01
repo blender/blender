@@ -649,7 +649,6 @@ ccl_device_inline float kernel_path_integrate(KernelGlobals *kg,
 				state.flag |= (PATH_RAY_SHADOW_CATCHER |
 				               PATH_RAY_SHADOW_CATCHER_ONLY |
 				               PATH_RAY_STORE_SHADOW_INFO);
-				state.catcher_object = sd.object;
 				if(!kernel_data.background.transparent) {
 					L->shadow_background_color =
 					        indirect_background(kg, &emission_sd, &state, &ray);
@@ -783,7 +782,7 @@ ccl_device_inline float kernel_path_integrate(KernelGlobals *kg,
 #endif  /* __SUBSURFACE__ */
 
 #ifdef __SHADOW_TRICKS__
-	*is_shadow_catcher = (state.flag & PATH_RAY_SHADOW_CATCHER);
+	*is_shadow_catcher = (state.flag & PATH_RAY_SHADOW_CATCHER) != 0;
 #endif  /* __SHADOW_TRICKS__ */
 
 #ifdef __KERNEL_DEBUG__
