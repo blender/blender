@@ -45,6 +45,7 @@ OIIO_NAMESPACE_USING
 #  include <shlwapi.h>
 #endif
 
+#include "util/util_map.h"
 #include "util/util_windows.h"
 
 CCL_NAMESPACE_BEGIN
@@ -768,15 +769,24 @@ bool path_remove(const string& path)
 	return remove(path.c_str()) == 0;
 }
 
-static string line_directive(const string& base, const string& path, int line)
+struct SourceReplaceState {
+	typedef map<string, string> ProcessedMapping;
+	string base;
+	ProcessedMapping processed_files;
+};
+
+static string line_directive(const SourceReplaceState& state,
+                             const string& path,
+                             const int line)
 {
 	string escaped_path = path;
 	/* First we make path relative. */
-	if(string_startswith(escaped_path, base.c_str())) {
-		const string base_file = path_filename(base);
-		const size_t base_len = base.length();
-		escaped_path = base_file + escaped_path.substr(base_len,
-		                                               escaped_path.length() - base_len);
+	if(string_startswith(escaped_path, state.base.c_str())) {
+		const string base_file = path_filename(state.base);
+		const size_t base_len = state.base.length();
+		escaped_path = base_file +
+		        escaped_path.substr(base_len,
+		                            escaped_path.length() - base_len);
 	}
 	/* Second, we replace all unsafe characters. */
 	string_replace(escaped_path, "\"", "\\\"");
@@ -786,22 +796,29 @@ static string line_directive(const string& base, const string& path, int line)
 	return string_printf("#line %d \"%s\"", line, escaped_path.c_str());
 }
 
+/* Our own little c preprocessor that replaces #includes with the file
+ * contents, to work around issue of OpenCL drivers not supporting
+ * include paths with spaces in them.
+ */
 static string path_source_replace_includes_recursive(
-        const string& base,
         const string& source,
-        const string& source_filepath)
+        const string& source_filepath,
+        SourceReplaceState *state)
 {
-	/* Our own little c preprocessor that replaces #includes with the file
-	 * contents, to work around issue of OpenCL drivers not supporting
-	 * include paths with spaces in them.
+	/* Try to re-use processed file without spending time on replacing all
+	 * include directives again.
 	 */
-
+	SourceReplaceState::ProcessedMapping::iterator replaced_file =
+	        state->processed_files.find(source_filepath);
+	if(replaced_file != state->processed_files.end()) {
+		return replaced_file->second;
+	}
+	/* Perform full file processing.  */
 	string result = "";
 	vector<string> lines;
 	string_split(lines, source, "\n", false);
-
 	for(size_t i = 0; i < lines.size(); ++i) {
-		string line = lines[i];
+		const string& line = lines[i];
 		if(line[0] == '#') {
 			string token = string_strip(line.substr(1, line.size() - 1));
 			if(string_startswith(token, "include")) {
@@ -810,7 +827,7 @@ static string path_source_replace_includes_recursive(
 					const size_t n_start = 1;
 					const size_t n_end = token.find("\"", n_start);
 					const string filename = token.substr(n_start, n_end - n_start);
-					string filepath = path_join(base, filename);
+					string filepath = path_join(state->base, filename);
 					if(!path_exists(filepath)) {
 						filepath = path_join(path_dirname(source_filepath),
 						                     filename);
@@ -818,18 +835,21 @@ static string path_source_replace_includes_recursive(
 					string text;
 					if(path_read_text(filepath, text)) {
 						text = path_source_replace_includes_recursive(
-						        base, text, filepath);
+						        text, filepath, state);
 						/* Use line directives for better error messages. */
-						line = line_directive(base, filepath, 1)
+						result += line_directive(*state, filepath, 1)
 						     + token.replace(0, n_end + 1, "\n" + text + "\n")
-						     + line_directive(base, source_filepath, i + 1);
+						     + line_directive(*state, source_filepath, i + 1) +
+						     "\n";
+						continue;
 					}
 				}
 			}
 		}
 		result += line + "\n";
 	}
-
+	/* Store result for further reuse. */
+	state->processed_files[source_filepath] = result;
 	return result;
 }
 
@@ -837,10 +857,12 @@ string path_source_replace_includes(const string& source,
                                     const string& path,
                                     const string& source_filename)
 {
+	SourceReplaceState state;
+	state.base = path;
 	return path_source_replace_includes_recursive(
-	        path,
 	        source,
-	        path_join(path, source_filename));
+	        path_join(path, source_filename),
+	        &state);
 }
 
 FILE *path_fopen(const string& path, const string& mode)
