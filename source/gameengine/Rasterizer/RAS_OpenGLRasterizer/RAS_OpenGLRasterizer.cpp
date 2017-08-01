@@ -770,7 +770,6 @@ static RAS_MeshSlot *current_ms;
 static RAS_MeshObject *current_mesh;
 static int current_blmat_nr;
 static GPUVertexAttribs current_gpu_attribs;
-static Image *current_image;
 static int CheckMaterialDM(int matnr, void *attribs)
 {
 	// only draw the current material

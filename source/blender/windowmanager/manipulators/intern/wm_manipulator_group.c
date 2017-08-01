@@ -251,6 +251,7 @@ static int manipulator_select_invoke(bContext *C, wmOperator *op, const wmEvent 
 	if (extend == false && deselect == false && toggle == false) {
 		wm_manipulatormap_deselect_all(mmap);
 		BLI_assert(msel->items == NULL && msel->len == 0);
+		UNUSED_VARS_NDEBUG(msel);
 	}
 
 	if (highlight) {
