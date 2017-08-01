@@ -6663,8 +6663,20 @@ PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr)
 	void **instance = ptr->data ? RNA_struct_instance(ptr) : NULL;
 	if (instance && *instance) {
 		pyrna = *instance;
-		Py_INCREF(pyrna);
-		return (PyObject *)pyrna;
+
+		/* Refine may have changed types after the first instance was created. */
+		if (ptr->type == pyrna->ptr.type) {
+			Py_INCREF(pyrna);
+			return (PyObject *)pyrna;
+		}
+		else {
+			/* Existing users will need to use 'type_recast' method. */
+			Py_DECREF(pyrna);
+			/* Continue as if no instance was made */
+#if 0		/* no need to assign, will be written to next... */
+			*instance = pyrna = NULL;
+#endif
+		}
 	}
 
 	{
