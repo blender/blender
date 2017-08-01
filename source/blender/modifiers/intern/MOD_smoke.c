@@ -45,7 +45,6 @@
 
 #include "BLI_utildefines.h"
 
-
 #include "BKE_cdderivedmesh.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
@@ -56,6 +55,8 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+
+#include "MOD_modifiertypes.h"
 
 static void initData(ModifierData *md) 
 {

@@ -47,6 +47,8 @@
 
 #include "DEG_depsgraph_build.h"
 
+#include "MOD_modifiertypes.h"
+
 static void initData(ModifierData *md)
 {
 	MirrorModifierData *mmd = (MirrorModifierData *) md;

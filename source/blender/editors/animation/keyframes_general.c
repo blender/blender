@@ -52,6 +52,7 @@
 #include "BKE_deform.h"
 
 #include "RNA_access.h"
+#include "RNA_enum_types.h"
 
 #include "ED_anim_api.h"
 #include "ED_keyframing.h"

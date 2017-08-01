@@ -372,6 +372,13 @@ static size_t unit_as_string(char *str, int len_max, double value, int prec, con
 
 	value_conv = value / unit->scalar;
 
+	/* Adjust precision to expected number of significant digits.
+	 * Note that here, we shall not have to worry about very big/small numbers, units are expected to replace
+	 * 'scientific notation' in those cases. */
+	const int l10 = (value_conv == 0.0) ? 0 : (int)log10(fabs(value_conv));
+	prec -= l10 + (int)(l10 < 0);
+	CLAMP(prec, 0, 6);
+
 	/* Convert to a string */
 	len = BLI_snprintf_rlen(str, len_max, "%.*f", prec, value_conv);
 

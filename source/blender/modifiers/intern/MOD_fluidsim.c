@@ -47,6 +47,8 @@
 #include "DEG_depsgraph_build.h"
 
 #include "MOD_fluidsim_util.h"
+#include "MOD_modifiertypes.h"
+
 #include "MEM_guardedalloc.h"
 
 /* Fluidsim */

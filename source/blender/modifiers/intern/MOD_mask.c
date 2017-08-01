@@ -52,6 +52,8 @@
 
 #include "DEG_depsgraph_build.h"
 
+#include "MOD_modifiertypes.h"
+
 #include "BLI_strict_flags.h"
 
 static void copyData(ModifierData *md, ModifierData *target)

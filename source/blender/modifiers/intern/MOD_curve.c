@@ -48,6 +48,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
+#include "MOD_modifiertypes.h"
+
 static void initData(ModifierData *md)
 {
 	CurveModifierData *cmd = (CurveModifierData *) md;

@@ -821,8 +821,6 @@ static int brush_uv_sculpt_tool_set_exec(bContext *C, wmOperator *op)
 
 static void BRUSH_OT_uv_sculpt_tool_set(wmOperatorType *ot)
 {
-	/* from rna_scene.c */
-	extern EnumPropertyItem uv_sculpt_tool_items[];
 	/* identifiers */
 	ot->name = "UV Sculpt Tool Set";
 	ot->description = "Set the UV sculpt tool";
@@ -836,7 +834,7 @@ static void BRUSH_OT_uv_sculpt_tool_set(wmOperatorType *ot)
 	ot->flag = 0;
 
 	/* props */
-	ot->prop = RNA_def_enum(ot->srna, "tool", uv_sculpt_tool_items, 0, "Tool", "");
+	ot->prop = RNA_def_enum(ot->srna, "tool", rna_enum_uv_sculpt_tool_items, 0, "Tool", "");
 }
 
 /***** Stencil Control *****/

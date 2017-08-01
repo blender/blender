@@ -44,6 +44,8 @@
 #include "BKE_modifier.h"
 #include "BKE_ocean.h"
 
+#include "MOD_modifiertypes.h"
+
 #ifdef WITH_OCEANSIM
 static void init_cache_data(Object *ob, struct OceanModifierData *omd)
 {

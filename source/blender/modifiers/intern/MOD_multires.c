@@ -46,6 +46,8 @@
 #include "BKE_modifier.h"
 #include "BKE_subsurf.h"
 
+#include "MOD_modifiertypes.h"
+
 static void initData(ModifierData *md)
 {
 	MultiresModifierData *mmd = (MultiresModifierData *)md;

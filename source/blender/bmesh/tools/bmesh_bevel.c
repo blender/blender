@@ -234,7 +234,7 @@ static bool nearly_parallel(const float d1[3], const float d2[3])
 	float ang;
 
 	ang = angle_v3v3(d1, d2);
-	return (fabsf(ang) < BEVEL_EPSILON_ANG) || (fabsf(ang - M_PI) < BEVEL_EPSILON_ANG);
+	return (fabsf(ang) < BEVEL_EPSILON_ANG) || (fabsf(ang - (float)M_PI) < BEVEL_EPSILON_ANG);
 }
 
 /* Make a new BoundVert of the given kind, insert it at the end of the circular linked

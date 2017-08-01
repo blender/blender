@@ -137,7 +137,7 @@ struct Knot {
 
 	/* Initially point to contiguous memory, however we may re-assign */
 	double *tan[2];
-} Knot;
+};
 
 
 struct KnotRemoveState {
@@ -1102,7 +1102,7 @@ int curve_fit_cubic_to_points_refit_db(
         uint   **r_corner_index_array, uint *r_corner_index_len)
 {
 	const uint knots_len = points_len;
-	struct Knot *knots = malloc(sizeof(Knot) * knots_len);
+	struct Knot *knots = malloc(sizeof(struct Knot) * knots_len);
 
 #ifndef USE_CORNER_DETECT
 	(void)r_corner_index_array;

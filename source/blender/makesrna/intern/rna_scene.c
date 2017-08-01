@@ -99,13 +99,13 @@ EnumPropertyItem rna_enum_exr_codec_items[] = {
 };
 #endif
 
-EnumPropertyItem uv_sculpt_relaxation_items[] = {
+static EnumPropertyItem uv_sculpt_relaxation_items[] = {
 	{UV_SCULPT_TOOL_RELAX_LAPLACIAN, "LAPLACIAN", 0, "Laplacian", "Use Laplacian method for relaxation"},
 	{UV_SCULPT_TOOL_RELAX_HC, "HC", 0, "HC", "Use HC method for relaxation"},
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem uv_sculpt_tool_items[] = {
+EnumPropertyItem rna_enum_uv_sculpt_tool_items[] = {
 	{UV_SCULPT_TOOL_PINCH, "PINCH", 0, "Pinch", "Pinch UVs"},
 	{UV_SCULPT_TOOL_RELAX, "RELAX", 0, "Relax", "Relax UVs"},
 	{UV_SCULPT_TOOL_GRAB, "GRAB", 0, "Grab", "Grab UVs"},
@@ -3561,7 +3561,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 
 	prop = RNA_def_property(srna, "uv_sculpt_tool", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "uv_sculpt_tool");
-	RNA_def_property_enum_items(prop, uv_sculpt_tool_items);
+	RNA_def_property_enum_items(prop, rna_enum_uv_sculpt_tool_items);
 	RNA_def_property_ui_text(prop, "UV Sculpt Tools", "Select Tools for the UV sculpt brushes");
 
 	prop = RNA_def_property(srna, "uv_relax_method", PROP_ENUM, PROP_NONE);
