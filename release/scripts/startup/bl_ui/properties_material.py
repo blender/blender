@@ -1147,7 +1147,7 @@ class EEVEE_MATERIAL_PT_surface(MaterialButtonsPanel, Panel):
         layout.separator()
 
         if mat.use_nodes:
-            panel_node_draw(layout, mat.node_tree, ['OUTPUT_EEVEE_MATERIAL', 'OUTPUT_MATERIAL'])
+            panel_node_draw(layout, mat.node_tree, ('OUTPUT_EEVEE_MATERIAL', 'OUTPUT_MATERIAL'))
         else:
             raym = mat.raytrace_mirror
             layout.prop(mat, "diffuse_color", text="Base Color")

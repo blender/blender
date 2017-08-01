@@ -270,7 +270,7 @@ class EEVEE_WORLD_PT_surface(WorldButtonsPanel, Panel):
 
         if world.use_nodes:
             ntree = world.node_tree
-            node = find_output_node(ntree, ['OUTPUT_WORLD'])
+            node = find_output_node(ntree, ('OUTPUT_WORLD',))
 
             if node:
                 input = find_node_input(node, 'Surface')
