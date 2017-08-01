@@ -293,7 +293,7 @@ static int manipulator_rect_transform_test_select(
 	}
 	else {
 		point_local[0] /= scale[0];
-		point_local[1] /= scale[0];
+		point_local[1] /= scale[1];
 	}
 
 	if (dims[0] > dims[1]) {
