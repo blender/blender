@@ -6672,9 +6672,10 @@ PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr)
 		else {
 			/* Existing users will need to use 'type_recast' method. */
 			Py_DECREF(pyrna);
+			*instance = NULL;
 			/* Continue as if no instance was made */
 #if 0		/* no need to assign, will be written to next... */
-			*instance = pyrna = NULL;
+			pyrna = NULL;
 #endif
 		}
 	}
