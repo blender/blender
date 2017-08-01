@@ -32,16 +32,19 @@ def find_node_input(node, name):
 
     return None
 
-# Return the output node to display in the UI
-def find_output_node(ntree, nodetype):
+# Return the output node to display in the UI. In case multiple node types are
+# specified, node types earlier in the list get priority.
+def find_output_node(ntree, nodetypes):
     if ntree:
-        active_output_node = None
-        for node in ntree.nodes:
-            if getattr(node, "type", None) == nodetype:
-                if getattr(node, "is_active_output", True):
-                    return node
-                if not active_output_node:
-                    active_output_node = node
-        return active_output_node
+        output_node = None
+        for nodetype in nodetypes:
+            for node in ntree.nodes:
+                if getattr(node, "type", None) == nodetype:
+                    if getattr(node, "is_active_output", True):
+                        return node
+                    if not output_node:
+                        output_node = node
+            if output_node:
+                return output_node
 
     return None

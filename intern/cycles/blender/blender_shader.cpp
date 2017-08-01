@@ -231,14 +231,6 @@ static void get_tex_mapping(TextureMapping *mapping,
 		mapping->max = get_float3(b_mapping.max());
 }
 
-static bool is_output_node(BL::Node& b_node)
-{
-	return (b_node.is_a(&RNA_ShaderNodeOutputMaterial)
-		    || b_node.is_a(&RNA_ShaderNodeOutputWorld)
-		    || b_node.is_a(&RNA_ShaderNodeOutputLamp)
-		    || b_node.is_a(&RNA_ShaderNodeOutputEeveeMaterial));
-}
-
 static ShaderNode *add_node(Scene *scene,
                             BL::RenderEngine& b_engine,
                             BL::BlendData& b_data,
@@ -951,6 +943,42 @@ static ShaderOutput *node_find_output_by_name(ShaderNode *node,
 	return node->output(name.c_str());
 }
 
+static BL::ShaderNode find_output_node(BL::ShaderNodeTree& b_ntree)
+{
+	BL::ShaderNodeTree::nodes_iterator b_node;
+	BL::ShaderNode output_node(PointerRNA_NULL);
+	BL::ShaderNode eevee_output_node(PointerRNA_NULL);
+
+	for(b_ntree.nodes.begin(b_node); b_node != b_ntree.nodes.end(); ++b_node) {
+		BL::ShaderNodeOutputMaterial b_output_node(*b_node);
+
+		if (b_output_node.is_a(&RNA_ShaderNodeOutputMaterial) ||
+		    b_output_node.is_a(&RNA_ShaderNodeOutputWorld) ||
+		    b_output_node.is_a(&RNA_ShaderNodeOutputLamp)) {
+			/* regular Cycles output node */
+			if(b_output_node.is_active_output()) {
+				output_node = b_output_node;
+				break;
+			}
+			else if(!output_node.ptr.data) {
+				output_node = b_output_node;
+			}
+		}
+		else if (b_output_node.is_a(&RNA_ShaderNodeOutputEeveeMaterial)) {
+			/* Eevee output used  if no Cycles node exists */
+			if(b_output_node.is_active_output()) {
+				eevee_output_node = b_output_node;
+			}
+			else if(!eevee_output_node.ptr.data) {
+				eevee_output_node = b_output_node;
+			}
+
+		}
+	}
+
+	return (output_node.ptr.data) ? output_node : eevee_output_node;
+}
+
 static void add_nodes(Scene *scene,
                       BL::RenderEngine& b_engine,
                       BL::BlendData& b_data,
@@ -971,23 +999,7 @@ static void add_nodes(Scene *scene,
 	BL::Node::outputs_iterator b_output;
 
 	/* find the node to use for output if there are multiple */
-	bool found_active_output = false;
-	BL::ShaderNode output_node(PointerRNA_NULL);
-
-	for(b_ntree.nodes.begin(b_node); b_node != b_ntree.nodes.end(); ++b_node) {
-		if(is_output_node(*b_node)) {
-			BL::ShaderNodeOutputMaterial b_output_node(*b_node);
-
-			if(b_output_node.is_active_output()) {
-				output_node = b_output_node;
-				found_active_output = true;
-				break;
-			}
-			else if(!output_node.ptr.data && !found_active_output) {
-				output_node = b_output_node;
-			}
-		}
-	}
+	BL::ShaderNode output_node = find_output_node(b_ntree);
 
 	/* add nodes */
 	for(b_ntree.nodes.begin(b_node); b_node != b_ntree.nodes.end(); ++b_node) {
@@ -1085,10 +1097,8 @@ static void add_nodes(Scene *scene,
 		else {
 			ShaderNode *node = NULL;
 
-			if(is_output_node(*b_node)) {
-				if(b_node->ptr.data == output_node.ptr.data) {
-					node = graph->output();
-				}
+			if(b_node->ptr.data == output_node.ptr.data) {
+				node = graph->output();
 			}
 			else {
 				BL::ShaderNode b_shader_node(*b_node);

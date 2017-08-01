@@ -899,19 +899,22 @@ class CYCLES_OT_use_shading_nodes(Operator):
         return {'FINISHED'}
 
 
-def panel_node_draw(layout, id_data, output_type, input_name):
+def panel_node_draw(layout, id_data, output_types, input_name):
     if not id_data.use_nodes:
         layout.operator("cycles.use_shading_nodes", icon='NODETREE')
         return False
 
     ntree = id_data.node_tree
 
-    node = find_output_node(ntree, output_type)
-    if not node:
-        layout.label(text="No output node")
-    else:
+    node = find_output_node(ntree, output_types)
+    if node:
         input = find_node_input(node, input_name)
-        layout.template_node_view(ntree, node, input)
+        if input:
+            layout.template_node_view(ntree, node, input)
+        else:
+            layout.label(text="Incompatible output node")
+    else:
+        layout.label(text="No output node")
 
     return True
 
@@ -1000,7 +1003,7 @@ class CyclesLamp_PT_nodes(CyclesButtonsPanel, Panel):
         layout = self.layout
 
         lamp = context.lamp
-        if not panel_node_draw(layout, lamp, 'OUTPUT_LAMP', 'Surface'):
+        if not panel_node_draw(layout, lamp, ['OUTPUT_LAMP'], 'Surface'):
             layout.prop(lamp, "color")
 
 
@@ -1055,7 +1058,7 @@ class CyclesWorld_PT_surface(CyclesButtonsPanel, Panel):
 
         world = context.world
 
-        if not panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Surface'):
+        if not panel_node_draw(layout, world, ['OUTPUT_WORLD'], 'Surface'):
             layout.prop(world, "horizon_color", text="Color")
 
 
@@ -1073,7 +1076,7 @@ class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
         layout = self.layout
 
         world = context.world
-        panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Volume')
+        panel_node_draw(layout, world, ['OUTPUT_WORLD'], 'Volume')
 
 
 class CyclesWorld_PT_ambient_occlusion(CyclesButtonsPanel, Panel):
@@ -1218,7 +1221,7 @@ class CyclesMaterial_PT_surface(CyclesButtonsPanel, Panel):
         layout = self.layout
 
         mat = context.material
-        if not panel_node_draw(layout, mat, 'OUTPUT_MATERIAL', 'Surface'):
+        if not panel_node_draw(layout, mat, ['OUTPUT_MATERIAL', 'OUTPUT_EEVEE_MATERIAL'], 'Surface'):
             layout.prop(mat, "diffuse_color")
 
 
@@ -1238,7 +1241,7 @@ class CyclesMaterial_PT_volume(CyclesButtonsPanel, Panel):
         mat = context.material
         # cmat = mat.cycles
 
-        panel_node_draw(layout, mat, 'OUTPUT_MATERIAL', 'Volume')
+        panel_node_draw(layout, mat, ['OUTPUT_MATERIAL', 'OUTPUT_EEVEE_MATERIAL'], 'Volume')
 
 
 class CyclesMaterial_PT_displacement(CyclesButtonsPanel, Panel):
@@ -1254,7 +1257,7 @@ class CyclesMaterial_PT_displacement(CyclesButtonsPanel, Panel):
         layout = self.layout
 
         mat = context.material
-        panel_node_draw(layout, mat, 'OUTPUT_MATERIAL', 'Displacement')
+        panel_node_draw(layout, mat, ['OUTPUT_MATERIAL', 'OUTPUT_EEVEE_MATERIAL'], 'Displacement')
 
 
 class CyclesMaterial_PT_settings(CyclesButtonsPanel, Panel):

@@ -214,6 +214,9 @@ static void ntree_shader_link_builtin_normal(bNodeTree *ntree,
  * render engines works but it's how the GPU shader compilation works. This we
  * can change in the future and make it a generic function, but for now it stays
  * private here.
+ *
+ * It also does not yet take into account render engine specific output nodes,
+ * it should give priority to e.g. the Eevee material output node for Eevee.
  */
 static bNode *ntree_shader_output_node(bNodeTree *ntree)
 {

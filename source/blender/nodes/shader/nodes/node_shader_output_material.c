@@ -42,10 +42,6 @@ static int node_shader_gpu_output_material(GPUMaterial *mat, bNode *node, bNodeE
 {
 	GPUNodeLink *outlink;
 
-	if (BKE_scene_uses_blender_eevee(GPU_material_scene(mat))) {
-		return false;
-	}
-
 	GPU_stack_link(mat, node, "node_output_material", in, out, &outlink);
 	GPU_material_output_link(mat, outlink);
 

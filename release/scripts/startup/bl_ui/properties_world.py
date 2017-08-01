@@ -270,13 +270,16 @@ class EEVEE_WORLD_PT_surface(WorldButtonsPanel, Panel):
 
         if world.use_nodes:
             ntree = world.node_tree
-            node = find_output_node(ntree, 'OUTPUT_WORLD')
+            node = find_output_node(ntree, ['OUTPUT_WORLD'])
 
-            if not node:
-                layout.label(text="No output node")
-            else:
+            if node:
                 input = find_node_input(node, 'Surface')
-                layout.template_node_view(ntree, node, input)
+                if input:
+                    layout.template_node_view(ntree, node, input)
+                else:
+                    layout.label(text="Incompatible output node")
+            else:
+                layout.label(text="No output node")
         else:
             layout.prop(world, "horizon_color", text="Color")
 
