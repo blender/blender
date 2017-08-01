@@ -317,7 +317,7 @@ static void dial_draw_intern(
 				}
 			}
 
-			angle_ofs += M_PI;
+			angle_ofs += (float)M_PI;
 		}
 	}
 
@@ -366,7 +366,7 @@ static void manipulator_dial_draw(const bContext *C, wmManipulator *mpr)
 
 		copy_v3_v3(clip_plane, rv3d->viewinv[2]);
 		clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], mpr->matrix_basis[3]);
-		clip_plane[3] -= 0.02 * mpr->scale_final;
+		clip_plane[3] -= 0.02f * mpr->scale_final;
 
 		glEnable(GL_CLIP_DISTANCE0);
 	}

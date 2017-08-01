@@ -496,7 +496,7 @@ static void OBJECT_engine_init(void *vedata)
 		e_data.grid_settings[1] = grid_res; /* gridResolution */
 		e_data.grid_settings[2] = grid_scale; /* gridScale */
 		e_data.grid_settings[3] = v3d->gridsubdiv; /* gridSubdiv */
-		e_data.grid_settings[4] = (v3d->gridsubdiv > 1) ? 1.0f / log(v3d->gridsubdiv) : 0.0; /* 1/log(gridSubdiv) */
+		e_data.grid_settings[4] = (v3d->gridsubdiv > 1) ? 1.0f / logf(v3d->gridsubdiv) : 0.0f; /* 1/log(gridSubdiv) */
 	}
 }
 
@@ -1147,7 +1147,7 @@ static void DRW_shgroup_lamp(OBJECT_StorageList *stl, Object *ob, SceneLayer *sl
 		size[0] = size[1] = blend; size[2] = 1.0f;
 		size_to_mat4(sizemat, size);
 		translate_m4(sizemat, 0.0f, 0.0f, -1.0f);
-		rotate_m4(sizemat, 'X', M_PI / 2.0f);
+		rotate_m4(sizemat, 'X', (float)(M_PI / 2));
 		mul_m4_m4m4(spotblendmat, shapemat, sizemat);
 
 		if (la->mode & LA_SQUARE) {

@@ -101,7 +101,7 @@
 #ifdef USE_PROFILE
 #include "PIL_time.h"
 
-#define PROFILE_TIMER_FALLOFF 0.1f
+#define PROFILE_TIMER_FALLOFF 0.1
 
 #define PROFILE_START(time_start) \
 	double time_start = PIL_check_seconds_timer();
@@ -113,7 +113,7 @@
 /* exp average */
 #define PROFILE_END_UPDATE(time_update, time_start) { \
 	double _time_delta = (PIL_check_seconds_timer() - time_start) * 1e3; \
-	time_update = (time_update * (1.0f - PROFILE_TIMER_FALLOFF)) + \
+	time_update = (time_update * (1.0 - PROFILE_TIMER_FALLOFF)) + \
 	              (_time_delta * PROFILE_TIMER_FALLOFF); \
 } ((void)0)
 
@@ -3081,15 +3081,15 @@ static void DRW_debug_gpu_stats(void)
 
 	sprintf(stat_string, "GPU Memory");
 	draw_stat(&rect, 0, v, stat_string, sizeof(stat_string));
-	sprintf(stat_string, "%.2fMB", (float)(tex_mem + vbo_mem) / 1000000.0);
+	sprintf(stat_string, "%.2fMB", (double)(tex_mem + vbo_mem) / 1000000.0);
 	draw_stat(&rect, 1, v++, stat_string, sizeof(stat_string));
 	sprintf(stat_string, "   |--> Textures");
 	draw_stat(&rect, 0, v, stat_string, sizeof(stat_string));
-	sprintf(stat_string, "%.2fMB", (float)tex_mem / 1000000.0);
+	sprintf(stat_string, "%.2fMB", (double)tex_mem / 1000000.0);
 	draw_stat(&rect, 1, v++, stat_string, sizeof(stat_string));
 	sprintf(stat_string, "   |--> Meshes");
 	draw_stat(&rect, 0, v, stat_string, sizeof(stat_string));
-	sprintf(stat_string, "%.2fMB", (float)vbo_mem / 1000000.0);
+	sprintf(stat_string, "%.2fMB", (double)vbo_mem / 1000000.0);
 	draw_stat(&rect, 1, v++, stat_string, sizeof(stat_string));
 
 	/* Pre offset for stats_draw */

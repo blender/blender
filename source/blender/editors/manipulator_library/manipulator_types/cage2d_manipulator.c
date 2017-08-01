@@ -168,7 +168,7 @@ static void rect_transform_draw_interaction(
 	uint color = GWN_vertformat_attr_add(format, "color", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
-	glLineWidth(line_width + 3.0);
+	glLineWidth(line_width + 3.0f);
 
 	immBegin(GWN_PRIM_LINE_STRIP, 3);
 	immAttrib3f(color, 0.0f, 0.0f, 0.0f);
@@ -457,15 +457,15 @@ static void manipulator_rect_transform_modal(
 		mpr->matrix_offset[3][1] = data->orig_offset[1] + valuey;
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT) {
-		mpr->matrix_offset[3][0] = data->orig_offset[0] + valuex / 2.0;
+		mpr->matrix_offset[3][0] = data->orig_offset[0] + valuex / 2.0f;
 		scale[0] = (dims[0] * data->orig_scale[0] - valuex) / dims[0];
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT) {
-		mpr->matrix_offset[3][0] = data->orig_offset[0] + valuex / 2.0;
+		mpr->matrix_offset[3][0] = data->orig_offset[0] + valuex / 2.0f;
 		scale[0] = (dims[0] * data->orig_scale[0] + valuex) / dims[0];
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN) {
-		mpr->matrix_offset[3][1] = data->orig_offset[1] + valuey / 2.0;
+		mpr->matrix_offset[3][1] = data->orig_offset[1] + valuey / 2.0f;
 
 		if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
 			scale[0] = (dims[1] * data->orig_scale[0] - valuey) / dims[1];
@@ -475,7 +475,7 @@ static void manipulator_rect_transform_modal(
 		}
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP) {
-		mpr->matrix_offset[3][1] = data->orig_offset[1] + valuey / 2.0;
+		mpr->matrix_offset[3][1] = data->orig_offset[1] + valuey / 2.0f;
 
 		if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
 			scale[0] = (dims[1] * data->orig_scale[0] + valuey) / dims[1];

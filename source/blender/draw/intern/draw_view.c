@@ -680,7 +680,7 @@ void DRW_draw_cursor(void)
 		immAttrib3fv(wpos, co);
 
 		for (int i = 0; i < segments; ++i) {
-			float angle = 2 * M_PI * ((float)i / (float)segments);
+			float angle = (float)(2 * M_PI) * ((float)i / (float)segments);
 			float x = f10 * cosf(angle);
 			float y = f10 * sinf(angle);
 

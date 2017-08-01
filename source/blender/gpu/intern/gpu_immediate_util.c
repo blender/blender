@@ -55,7 +55,7 @@ static void imm_draw_circle(Gwn_PrimType prim_type, const uint shdr_pos, float x
 {
 	immBegin(prim_type, nsegments);
 	for (int i = 0; i < nsegments; ++i) {
-		const float angle = 2 * M_PI * ((float)i / (float)nsegments);
+		const float angle = (float)(2 * M_PI) * ((float)i / (float)nsegments);
 		immVertex2f(shdr_pos, x + rad * cosf(angle), y + rad * sinf(angle));
 	}
 	immEnd();
@@ -99,7 +99,7 @@ static void imm_draw_disk_partial(
         float rad_inner, float rad_outer, int nsegments, float start, float sweep)
 {
 	/* shift & reverse angle, increase 'nsegments' to match gluPartialDisk */
-	const float angle_start = -(DEG2RADF(start)) + (M_PI / 2);
+	const float angle_start = -(DEG2RADF(start)) + (float)(M_PI / 2);
 	const float angle_end   = -(DEG2RADF(sweep) - angle_start);
 	nsegments += 1;
 	immBegin(prim_type, nsegments * 2);
@@ -141,7 +141,7 @@ static void imm_draw_circle_3D(
 {
 	immBegin(prim_type, nsegments);
 	for (int i = 0; i < nsegments; ++i) {
-		float angle = 2 * M_PI * ((float)i / (float)nsegments);
+		float angle = (float)(2 * M_PI) * ((float)i / (float)nsegments);
 		immVertex3f(pos, x + rad * cosf(angle), y + rad * sinf(angle), 0.0f);
 	}
 	immEnd();
@@ -221,8 +221,8 @@ void imm_draw_cylinder_fill_normal_3d(
 {
 	immBegin(GWN_PRIM_TRIS, 6 * slices * stacks);
 	for (int i = 0; i < slices; ++i) {
-		const float angle1 = 2 * M_PI * ((float)i / (float)slices);
-		const float angle2 = 2 * M_PI * ((float)(i + 1) / (float)slices);
+		const float angle1 = (float)(2 * M_PI) * ((float)i / (float)slices);
+		const float angle2 = (float)(2 * M_PI) * ((float)(i + 1) / (float)slices);
 		const float cos1 = cosf(angle1);
 		const float sin1 = sinf(angle1);
 		const float cos2 = cosf(angle2);
@@ -272,8 +272,8 @@ void imm_draw_cylinder_wire_3d(unsigned int pos, float base, float top, float he
 {
 	immBegin(GWN_PRIM_LINES, 6 * slices * stacks);
 	for (int i = 0; i < slices; ++i) {
-		const float angle1 = 2 * M_PI * ((float)i / (float)slices);
-		const float angle2 = 2 * M_PI * ((float)(i + 1) / (float)slices);
+		const float angle1 = (float)(2 * M_PI) * ((float)i / (float)slices);
+		const float angle2 = (float)(2 * M_PI) * ((float)(i + 1) / (float)slices);
 		const float cos1 = cosf(angle1);
 		const float sin1 = sinf(angle1);
 		const float cos2 = cosf(angle2);
@@ -309,8 +309,8 @@ void imm_draw_cylinder_fill_3d(unsigned int pos, float base, float top, float he
 {
 	immBegin(GWN_PRIM_TRIS, 6 * slices * stacks);
 	for (int i = 0; i < slices; ++i) {
-		const float angle1 = 2 * M_PI * ((float)i / (float)slices);
-		const float angle2 = 2 * M_PI * ((float)(i + 1) / (float)slices);
+		const float angle1 = (float)(2 * M_PI) * ((float)i / (float)slices);
+		const float angle2 = (float)(2 * M_PI) * ((float)(i + 1) / (float)slices);
 		const float cos1 = cosf(angle1);
 		const float sin1 = sinf(angle1);
 		const float cos2 = cosf(angle2);

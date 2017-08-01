@@ -84,10 +84,11 @@ void DRW_globals_update(void)
 	/* Grid */
 	UI_GetThemeColorShade4fv(TH_GRID, 10, ts.colorGrid);
 	/* emphasise division lines lighter instead of darker, if background is darker than grid */
-	UI_GetThemeColorShade4fv(TH_GRID,
-		(ts.colorGrid[0] + ts.colorGrid[1] + ts.colorGrid[2] + 0.12 >
-		ts.colorBackground[0] + ts.colorBackground[1] + ts.colorBackground[2])
-		? 20 : -10, ts.colorGridEmphasise);
+	UI_GetThemeColorShade4fv(
+	        TH_GRID,
+	        (ts.colorGrid[0] + ts.colorGrid[1] + ts.colorGrid[2] + 0.12f >
+	         ts.colorBackground[0] + ts.colorBackground[1] + ts.colorBackground[2]) ?
+	        20 : -10, ts.colorGridEmphasise);
 	/* Grid Axis */
 	UI_GetThemeColorBlendShade4fv(TH_GRID, TH_AXIS_X, 0.5f, -10, ts.colorGridAxisX);
 	UI_GetThemeColorBlendShade4fv(TH_GRID, TH_AXIS_Y, 0.5f, -10, ts.colorGridAxisY);
@@ -102,10 +103,10 @@ void DRW_globals_update(void)
 	ts.sizeLampCircleShadow = ts.sizeLampCircle + U.pixelsize * 3.0f;
 
 	/* M_SQRT2 to be at least the same size of the old square */
-	ts.sizeVertex = ceil(UI_GetThemeValuef(TH_VERTEX_SIZE) * M_SQRT2 / 2.0f);
-	ts.sizeFaceDot = ceil(UI_GetThemeValuef(TH_FACEDOT_SIZE) * M_SQRT2);
+	ts.sizeVertex = ceilf(UI_GetThemeValuef(TH_VERTEX_SIZE) * (float)M_SQRT2 / 2.0f);
+	ts.sizeFaceDot = ceilf(UI_GetThemeValuef(TH_FACEDOT_SIZE) * (float)M_SQRT2);
 	ts.sizeEdge = 1.0f / 2.0f; /* TODO Theme */
-	ts.sizeEdgeFix = 0.5f + 2.0f * (2.0f * (MAX2(ts.sizeVertex, ts.sizeEdge)) * M_SQRT1_2);
+	ts.sizeEdgeFix = 0.5f + 2.0f * (2.0f * (MAX2(ts.sizeVertex, ts.sizeEdge)) * (float)M_SQRT1_2);
 
 	/* TODO Waiting for notifiers to invalidate cache */
 	if (globals_ubo) {
