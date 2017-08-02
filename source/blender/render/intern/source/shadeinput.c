@@ -292,12 +292,8 @@ void shade_input_set_triangle_i(ShadeInput *shi, ObjectInstanceRen *obi, VlakRen
 	}
 }
 
-/* note, facenr declared volatile due to over-eager -O2 optimization's
- * on cygwin (particularly -frerun-cse-after-loop)
- */
-
 /* copy data from face to ShadeInput, scanline case */
-void shade_input_set_triangle(ShadeInput *shi, volatile int obi, volatile int facenr, int UNUSED(normal_flip))
+void shade_input_set_triangle(ShadeInput *shi, int obi, int facenr, int UNUSED(normal_flip))
 {
 	if (facenr > 0) {
 		shi->obi = &R.objectinstance[obi];
