@@ -162,16 +162,11 @@ void BlenderSync::sync_light(BL::Object& b_parent,
 	light->shader = used_shaders[0];
 
 	/* shadow */
-	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 	PointerRNA clamp = RNA_pointer_get(&b_lamp.ptr, "cycles");
 	light->cast_shadow = get_boolean(clamp, "cast_shadow");
 	light->use_mis = get_boolean(clamp, "use_multiple_importance_sampling");
 	
-	int samples = get_int(clamp, "samples");
-	if(get_boolean(cscene, "use_square_samples"))
-		light->samples = samples * samples;
-	else
-		light->samples = samples;
+	light->samples = get_int(clamp, "samples");
 
 	light->max_bounces = get_int(clamp, "max_bounces");
 
@@ -199,7 +194,6 @@ void BlenderSync::sync_background_light(bool use_portal)
 	BL::World b_world = b_scene.world();
 
 	if(b_world) {
-		PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 		PointerRNA cworld = RNA_pointer_get(&b_world.ptr, "cycles");
 		bool sample_as_light = get_boolean(cworld, "sample_as_light");
 
@@ -218,11 +212,7 @@ void BlenderSync::sync_background_light(bool use_portal)
 				light->use_mis = sample_as_light;
 				light->max_bounces = get_int(cworld, "max_bounces");
 
-				int samples = get_int(cworld, "samples");
-				if(get_boolean(cscene, "use_square_samples"))
-					light->samples = samples * samples;
-				else
-					light->samples = samples;
+				light->samples = get_int(cworld, "samples");
 
 				light->tag_update(scene);
 				light_map.set_recalc(b_world);

@@ -100,8 +100,6 @@ def draw_samples_info(layout, context):
     # Calculate sample values
     if integrator == 'PATH':
         aa = cscene.samples
-        if cscene.use_square_samples:
-            aa = aa * aa
     else:
         aa = cscene.aa_samples
         d = cscene.diffuse_samples
@@ -112,19 +110,9 @@ def draw_samples_info(layout, context):
         sss = cscene.subsurface_samples
         vol = cscene.volume_samples
 
-        if cscene.use_square_samples:
-            aa = aa * aa
-            d = d * d
-            g = g * g
-            t = t * t
-            ao = ao * ao
-            ml = ml * ml
-            sss = sss * sss
-            vol = vol * vol
-
     # Draw interface
     # Do not draw for progressive, when Square Samples are disabled
-    if use_branched_path(context) or (cscene.use_square_samples and integrator == 'PATH'):
+    if use_branched_path(context):
         col = layout.column(align=True)
         col.scale_y = 0.6
         col.label("Total Samples:")
@@ -157,7 +145,7 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
         row = layout.row()
         sub = row.row()
         sub.prop(cscene, "progressive", text="")
-        row.prop(cscene, "use_square_samples")
+        sub.label()
 
         split = layout.split()
 
