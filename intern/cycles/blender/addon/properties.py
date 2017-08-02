@@ -349,11 +349,6 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 min=0, max=1024,
                 default=8,
                 )
-        cls.use_transparent_shadows = BoolProperty(
-                name="Transparent Shadows",
-                description="Use transparency of surfaces for rendering shadows",
-                default=True,
-                )
 
         cls.volume_step_size = FloatProperty(
                 name="Step Size",

@@ -39,7 +39,6 @@ public:
 	int max_volume_bounce;
 
 	int transparent_max_bounce;
-	bool transparent_shadows;
 
 	int ao_bounces;
 
