@@ -87,8 +87,11 @@ void  manipulator_property_value_reset(
 
 void manipulator_color_get(
         const struct wmManipulator *mpr, const bool highlight,
-        float r_col[]);
+        float r_color[4]);
 
+bool manipulator_window_project_2d(
+        bContext *C, const struct wmManipulator *mpr, const float mval[2], int axis, bool use_offset,
+        float r_co[2]);
 
 /* -------------------------------------------------------------------- */
 /* Manipulator drawing */

@@ -42,11 +42,13 @@
 #include "BLI_rect.h"
 
 #include "ED_screen.h"
+#include "ED_view3d.h"
 #include "ED_manipulator_library.h"
 
 #include "GPU_matrix.h"
 #include "GPU_shader.h"
 #include "GPU_immediate.h"
+#include "GPU_select.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -55,6 +57,9 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+/* own includes */
+#include "../manipulator_library_intern.h"
 
 /* wmManipulator->highlight_part */
 enum {
@@ -67,7 +72,6 @@ enum {
 
 #define MANIPULATOR_RECT_MIN_WIDTH 15.0f
 #define MANIPULATOR_RESIZER_WIDTH  20.0f
-
 
 /* -------------------------------------------------------------------- */
 
@@ -189,8 +193,10 @@ static void rect_transform_draw_interaction(
 	immUnbindProgram();
 }
 
-static void manipulator_rect_transform_draw(const bContext *UNUSED(C), wmManipulator *mpr)
+static void manipulator_rect_transform_draw_intern(
+        wmManipulator *mpr, const bool select, const bool highlight, const int select_id)
 {
+	const bool use_clamp = (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) == 0;
 	float dims[2];
 	RNA_float_get_array(mpr->ptr, "dimensions", dims);
 	float w = dims[0];
@@ -227,9 +233,16 @@ static void manipulator_rect_transform_draw(const bContext *UNUSED(C), wmManipul
 	else {
 		aspy = w / h;
 	}
-	w = min_ff(aspx * w / MANIPULATOR_RESIZER_WIDTH, MANIPULATOR_RESIZER_WIDTH / scale[0]);
-	h = min_ff(aspy * h / MANIPULATOR_RESIZER_WIDTH, MANIPULATOR_RESIZER_WIDTH /
-	           ((transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) ? scale[0] : scale[1]));
+
+	if (use_clamp) {
+		w = min_ff(aspx * w / MANIPULATOR_RESIZER_WIDTH, MANIPULATOR_RESIZER_WIDTH / scale[0]);
+		h = min_ff(aspy * h / MANIPULATOR_RESIZER_WIDTH, MANIPULATOR_RESIZER_WIDTH /
+		           ((transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) ? scale[0] : scale[1]));
+	}
+	else {
+		/* Corner size. */
+		w = h = min_ff(w * aspx, h * aspy) / 10.0f;
+	}
 
 	/* corner manipulators */
 	glLineWidth(mpr->line_width + 3.0f);
@@ -237,20 +250,62 @@ static void manipulator_rect_transform_draw(const bContext *UNUSED(C), wmManipul
 	rect_transform_draw_corners(&r, w, h, (const float[3]){0, 0, 0});
 
 	/* corner manipulators */
-	glLineWidth(mpr->line_width);
-	rect_transform_draw_corners(&r, w, h, mpr->color);
+	{
+		float col[4];
+		manipulator_color_get(mpr, highlight, col);
+		glLineWidth(mpr->line_width);
+		rect_transform_draw_corners(&r, w, h, col);
+	}
 
-	rect_transform_draw_interaction(
-	        mpr->color, mpr->highlight_part, half_w, half_h,
-	        w, h, mpr->line_width);
+	if (select) {
+		if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE) {
+			int scale_parts[] = {
+			    ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT,
+				ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT,
+				ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP,
+				ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN,
+			};
+			for (int i = 0; i < ARRAY_SIZE(scale_parts); i++) {
+				GPU_select_load_id(select_id | scale_parts[i]);
+				rect_transform_draw_interaction(
+				        mpr->color, scale_parts[i], half_w, half_h,
+				        w, h, mpr->line_width);
+			}
+		}
+	}
+	else {
+		rect_transform_draw_interaction(
+		        mpr->color, mpr->highlight_part, half_w, half_h,
+		        w, h, mpr->line_width);
+	}
 
 	glLineWidth(1.0);
 	gpuPopMatrix();
 }
 
+/**
+ * For when we want to draw 2d cage in 3d views.
+ */
+static void manipulator_rect_transform_draw_select(const bContext *UNUSED(C), wmManipulator *mpr, int select_id)
+{
+	manipulator_rect_transform_draw_intern(mpr, true, false, select_id);
+}
+
+static void manipulator_rect_transform_draw(const bContext *UNUSED(C), wmManipulator *mpr)
+{
+	const bool is_highlight = (mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT) != 0;
+	manipulator_rect_transform_draw_intern(mpr, false, is_highlight, -1);
+}
+
 static int manipulator_rect_transform_get_cursor(wmManipulator *mpr)
 {
-	switch (mpr->highlight_part) {
+	int highlight_part = mpr->highlight_part;
+
+	if (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) {
+		return BC_NSEW_SCROLLCURSOR;
+	}
+
+	switch (highlight_part) {
 		case ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE:
 			return BC_HANDCURSOR;
 		case ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT:
@@ -265,9 +320,8 @@ static int manipulator_rect_transform_get_cursor(wmManipulator *mpr)
 }
 
 static int manipulator_rect_transform_test_select(
-        bContext *UNUSED(C), wmManipulator *mpr, const wmEvent *event)
+        bContext *C, wmManipulator *mpr, const wmEvent *event)
 {
-	const float mouse[2] = {event->mval[0], event->mval[1]};
 	//float matrot[2][2];
 	float point_local[2];
 	float scale[2];
@@ -280,14 +334,13 @@ static int manipulator_rect_transform_test_select(
 	float half_h = h / 2.0f;
 	float aspx = 1.0f, aspy = 1.0f;
 
+	if (manipulator_window_project_2d(
+	        C, mpr, (const float[2]){UNPACK2(event->mval)}, 2, true, point_local) == false)
+	{
+		return 0;
+	}
+
 	const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
-
-	/* rotate mouse in relation to the center and relocate it */
-	sub_v2_v2v2(point_local, mouse, mpr->matrix_basis[3]);
-	point_local[0] -= mpr->matrix_offset[3][0];
-	point_local[1] -= mpr->matrix_offset[3][1];
-	//rotate_m2(matrot, -cage->transform.rotation);
-
 	if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
 		mul_v2_fl(point_local, 1.0f / scale[0]);
 	}
@@ -376,36 +429,25 @@ typedef struct RectTransformInteraction {
 static bool manipulator_rect_transform_get_prop_value(
         wmManipulator *mpr, wmManipulatorProperty *mpr_prop, float *value)
 {
-	PropertyType type = RNA_property_type(mpr_prop->prop);
-
-	if (type != PROP_FLOAT) {
-		fprintf(stderr, "Rect Transform manipulator can only be bound to float properties\n");
-		return false;
+	if (STREQ(mpr_prop->type->idname, "offset")) {
+		WM_manipulator_target_property_value_get_array(mpr, mpr_prop, value);
 	}
-	else {
-		if (STREQ(mpr_prop->type->idname, "offset")) {
-			if (RNA_property_array_length(&mpr_prop->ptr, mpr_prop->prop) != 2) {
-				fprintf(stderr, "Rect Transform manipulator offset not only be bound to array float property\n");
-				return false;
-			}
-			RNA_property_float_get_array(&mpr_prop->ptr, mpr_prop->prop, value);
-		}
-		else if (STREQ(mpr_prop->type->idname, "scale")) {
-			const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
-			if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
-				*value = RNA_property_float_get(&mpr_prop->ptr, mpr_prop->prop);
+	else if (STREQ(mpr_prop->type->idname, "scale")) {
+		const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
+		if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
+			if (WM_manipulator_target_property_array_length(mpr, mpr_prop) == 2) {
+				WM_manipulator_target_property_value_get_array(mpr, mpr_prop, value);
 			}
 			else {
-				if (RNA_property_array_length(&mpr_prop->ptr, mpr_prop->prop) != 2) {
-					fprintf(stderr, "Rect Transform manipulator scale not only be bound to array float property\n");
-					return false;
-				}
-				RNA_property_float_get_array(&mpr_prop->ptr, mpr_prop->prop, value);
+				*value = WM_manipulator_target_property_value_get(mpr, mpr_prop);
 			}
 		}
 		else {
-			BLI_assert(0);
+			WM_manipulator_target_property_value_get_array(mpr, mpr_prop, value);
 		}
+	}
+	else {
+		BLI_assert(0);
 	}
 
 	return true;
@@ -417,7 +459,7 @@ static void manipulator_rect_transform_setup(wmManipulator *mpr)
 }
 
 static void manipulator_rect_transform_invoke(
-        bContext *UNUSED(C), wmManipulator *mpr, const wmEvent *event)
+        bContext *C, wmManipulator *mpr, const wmEvent *event)
 {
 	RectTransformInteraction *data = MEM_callocN(sizeof(RectTransformInteraction), "cage_interaction");
 
@@ -427,8 +469,11 @@ static void manipulator_rect_transform_invoke(
 	copy_v2_v2(data->orig_offset, mpr->matrix_offset[3]);
 	copy_v2_v2(data->orig_scale, scale);
 
-	data->orig_mouse[0] = event->mval[0];
-	data->orig_mouse[1] = event->mval[1];
+	if (manipulator_window_project_2d(
+	        C, mpr, (const float[2]){UNPACK2(event->mval)}, 2, false, data->orig_mouse) == 0)
+	{
+		zero_v2(data->orig_mouse);
+	}
 
 	mpr->interaction_data = data;
 }
@@ -437,14 +482,24 @@ static void manipulator_rect_transform_modal(
         bContext *C, wmManipulator *mpr, const wmEvent *event,
         eWM_ManipulatorTweak UNUSED(tweak_flag))
 {
+	const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
+	const bool use_clamp = (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) == 0;
+	const bool pivot_center = (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_TRANSLATE) == 0;
 	RectTransformInteraction *data = mpr->interaction_data;
 	/* needed here as well in case clamping occurs */
-	const float orig_ofx = mpr->matrix_offset[3][0], orig_ofy = mpr->matrix_offset[3][1];
+	const float orig_ofx = mpr->matrix_offset[3][0];
+	const float orig_ofy = mpr->matrix_offset[3][1];
 
-	const float valuex = (event->mval[0] - data->orig_mouse[0]);
-	const float valuey = (event->mval[1] - data->orig_mouse[1]);
+	float point_local[2];
 
-	const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
+	if (manipulator_window_project_2d(
+	        C, mpr, (const float[2]){UNPACK2(event->mval)}, 2, false, point_local) == false)
+	{
+		return;
+	}
+
+	const float valuex = (point_local[0] - data->orig_mouse[0]);
+	const float valuey = (point_local[1] - data->orig_mouse[1]);
 
 	float dims[2];
 	RNA_float_get_array(mpr->ptr, "dimensions", dims);
@@ -457,15 +512,21 @@ static void manipulator_rect_transform_modal(
 		mpr->matrix_offset[3][1] = data->orig_offset[1] + valuey;
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT) {
-		mpr->matrix_offset[3][0] = data->orig_offset[0] + valuex / 2.0f;
+		if (pivot_center == false) {
+			mpr->matrix_offset[3][0] = data->orig_offset[0] + valuex / 2.0f;
+		}
 		scale[0] = (dims[0] * data->orig_scale[0] - valuex) / dims[0];
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT) {
-		mpr->matrix_offset[3][0] = data->orig_offset[0] + valuex / 2.0f;
+		if (pivot_center == false) {
+			mpr->matrix_offset[3][0] = data->orig_offset[0] + valuex / 2.0f;
+		}
 		scale[0] = (dims[0] * data->orig_scale[0] + valuex) / dims[0];
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN) {
-		mpr->matrix_offset[3][1] = data->orig_offset[1] + valuey / 2.0f;
+		if (pivot_center == false) {
+			mpr->matrix_offset[3][1] = data->orig_offset[1] + valuey / 2.0f;
+		}
 
 		if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
 			scale[0] = (dims[1] * data->orig_scale[0] - valuey) / dims[1];
@@ -475,7 +536,9 @@ static void manipulator_rect_transform_modal(
 		}
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP) {
-		mpr->matrix_offset[3][1] = data->orig_offset[1] + valuey / 2.0f;
+		if (pivot_center == false) {
+			mpr->matrix_offset[3][1] = data->orig_offset[1] + valuey / 2.0f;
+		}
 
 		if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
 			scale[0] = (dims[1] * data->orig_scale[0] + valuey) / dims[1];
@@ -484,9 +547,15 @@ static void manipulator_rect_transform_modal(
 			scale[1] = (dims[1] * data->orig_scale[1] + valuey) / dims[1];
 		}
 	}
+	else {
+		BLI_assert(0);
+	}
 
 	/* clamping - make sure manipulator is at least 5 pixels wide */
-	if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
+	if (use_clamp == false) {
+		/* pass */
+	}
+	else if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
 		if (scale[0] < MANIPULATOR_RECT_MIN_WIDTH / dims[1] ||
 		    scale[0] < MANIPULATOR_RECT_MIN_WIDTH / dims[0])
 		{
@@ -506,25 +575,43 @@ static void manipulator_rect_transform_modal(
 		}
 	}
 
+	{
+		wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "scale");
+		if (mpr_prop->type != NULL) {
+			float range[2];
+			WM_manipulator_target_property_range_get(mpr, mpr_prop, range);
+			CLAMP(scale[0], range[0], range[1]);
+			CLAMP(scale[1], range[0], range[1]);
+		}
+	}
+
+	/* Needed for when we're uniform transforming a 2D vector and need to write both. */
+	if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
+		scale[1] = scale[0];
+	}
 	RNA_float_set_array(mpr->ptr, "scale", scale);
 
 	wmManipulatorProperty *mpr_prop;
 
 	mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
-	if (mpr_prop->prop != NULL) {
-		RNA_property_float_set_array(&mpr_prop->ptr, mpr_prop->prop, mpr->matrix_offset[3]);
-		RNA_property_update(C, &mpr_prop->ptr, mpr_prop->prop);
+	if (mpr_prop->type != NULL) {
+		WM_manipulator_target_property_value_set_array(C, mpr, mpr_prop, mpr->matrix_offset[3]);
 	}
 
 	mpr_prop = WM_manipulator_target_property_find(mpr, "scale");
-	if (mpr_prop->prop != NULL) {
+	if (mpr_prop->type != NULL) {
 		if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
-			RNA_property_float_set(&mpr_prop->ptr, mpr_prop->prop, scale[0]);
+			scale[1] = scale[0];
+			if (WM_manipulator_target_property_array_length(mpr, mpr_prop) == 2) {
+				WM_manipulator_target_property_value_set_array(C, mpr, mpr_prop, scale);
+			}
+			else {
+				WM_manipulator_target_property_value_set(C, mpr, mpr_prop, scale[0]);
+			}
 		}
 		else {
-			RNA_property_float_set_array(&mpr_prop->ptr, mpr_prop->prop, scale);
+			WM_manipulator_target_property_value_set_array(C, mpr, mpr_prop, scale);
 		}
-		RNA_property_update(C, &mpr_prop->ptr, mpr_prop->prop);
 	}
 
 	/* tag the region for redraw */
@@ -557,21 +644,24 @@ static void manipulator_rect_transform_exit(bContext *C, wmManipulator *mpr, con
 
 	/* reset properties */
 	mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
-	if (mpr_prop->prop != NULL) {
-		RNA_property_float_set_array(&mpr_prop->ptr, mpr_prop->prop, data->orig_offset);
-		RNA_property_update(C, &mpr_prop->ptr, mpr_prop->prop);
+	if (mpr_prop->type != NULL) {
+		WM_manipulator_target_property_value_set_array(C, mpr, mpr_prop, data->orig_offset);
 	}
 
 	mpr_prop = WM_manipulator_target_property_find(mpr, "scale");
-	if (mpr_prop->prop != NULL) {
+	if (mpr_prop->type != NULL) {
 		const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
 		if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
-			RNA_property_float_set(&mpr_prop->ptr, mpr_prop->prop, data->orig_scale[0]);
+			if (WM_manipulator_target_property_array_length(mpr, mpr_prop) == 2) {
+				WM_manipulator_target_property_value_set_array(C, mpr, mpr_prop, data->orig_scale);
+			}
+			else {
+				WM_manipulator_target_property_value_set(C, mpr, mpr_prop, data->orig_scale[0]);
+			}
 		}
 		else {
-			RNA_property_float_set_array(&mpr_prop->ptr, mpr_prop->prop, data->orig_scale);
+			WM_manipulator_target_property_value_set_array(C, mpr, mpr_prop, data->orig_scale);
 		}
-		RNA_property_update(C, &mpr_prop->ptr, mpr_prop->prop);
 	}
 }
 
@@ -588,6 +678,7 @@ static void MANIPULATOR_WT_cage_2d(wmManipulatorType *wt)
 
 	/* api callbacks */
 	wt->draw = manipulator_rect_transform_draw;
+	wt->draw_select = manipulator_rect_transform_draw_select;
 	wt->setup = manipulator_rect_transform_setup;
 	wt->invoke = manipulator_rect_transform_invoke;
 	wt->property_update = manipulator_rect_transform_property_update;

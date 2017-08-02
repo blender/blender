@@ -36,6 +36,11 @@
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 
+#include "DNA_view3d_types.h"
+#include "DNA_screen_types.h"
+
+#include "ED_view3d.h"
+
 #include "RNA_access.h"
 
 #include "WM_api.h"
@@ -150,5 +155,59 @@ void manipulator_color_get(
 	}
 	else {
 		copy_v4_v4(r_col, mpr->color);
+	}
+}
+
+/* -------------------------------------------------------------------- */
+
+/**
+ * Takes mouse coordinates and returns them in relation to the manipulator.
+ * Both 2D & 3D supported, use so we can use 2D manipulators in the 3D view.
+ */
+bool manipulator_window_project_2d(
+        bContext *C, const struct wmManipulator *mpr, const float mval[2], int axis, bool use_offset,
+        float r_co[2])
+{
+	/* rotate mouse in relation to the center and relocate it */
+	if (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) {
+		/* For 3d views, transform 2D mouse pos onto plane. */
+		View3D *v3d = CTX_wm_view3d(C);
+		ARegion *ar = CTX_wm_region(C);
+
+		float mat[4][4];
+		if (use_offset) {
+			mul_m4_m4m4(mat, mpr->matrix_basis, mpr->matrix_offset);
+		}
+		else {
+			copy_m4_m4(mat, mpr->matrix_basis);
+		}
+		float plane[4];
+
+		plane_from_point_normal_v3(plane, mat[3], mat[2]);
+
+		float ray_origin[3], ray_direction[3];
+
+		if (ED_view3d_win_to_ray(ar, v3d, mval, ray_origin, ray_direction, false)) {
+			float lambda;
+			if (isect_ray_plane_v3(ray_origin, ray_direction, plane, &lambda, true)) {
+				float co[3];
+				madd_v3_v3v3fl(co, ray_origin, ray_direction, lambda);
+				float imat[4][4];
+				invert_m4_m4(imat, mat);
+				mul_m4_v3(imat, co);
+				r_co[0] = co[(axis + 1) % 3];
+				r_co[1] = co[(axis + 2) % 3];
+				return true;
+			}
+		}
+		return false;
+	}
+	else {
+		sub_v2_v2v2(r_co, mval, mpr->matrix_basis[3]);
+		if (use_offset) {
+			r_co[0] -= mpr->matrix_offset[3][0];
+			r_co[1] -= mpr->matrix_offset[3][1];
+		}
+		return true;
 	}
 }

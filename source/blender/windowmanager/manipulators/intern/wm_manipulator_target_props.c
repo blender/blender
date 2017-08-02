@@ -240,6 +240,15 @@ void WM_manipulator_target_property_range_get(
 	RNA_property_float_ui_range(&mpr_prop->ptr, mpr_prop->prop, &range[0], &range[1], &step, &precision);
 }
 
+int WM_manipulator_target_property_array_length(
+        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop)
+{
+	if (mpr_prop->custom_func.range_get_fn) {
+		return mpr_prop->type->array_length;
+	}
+	return RNA_property_array_length(&mpr_prop->ptr, mpr_prop->prop);
+}
+
 /** \} */
 
 
