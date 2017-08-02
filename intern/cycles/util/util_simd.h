@@ -18,18 +18,37 @@
 #ifndef __UTIL_SIMD_TYPES_H__
 #define __UTIL_SIMD_TYPES_H__
 
+#ifndef __KERNEL_GPU__
+
 #include <limits>
 
 #include "util/util_debug.h"
-#include "util/util_types.h"
+#include "util/util_defines.h"
+
+/* SSE Intrinsics includes
+ *
+ * We assume __KERNEL_SSEX__ flags to have been defined at this point */
+
+/* SSE intrinsics headers */
+#ifndef FREE_WINDOWS64
+
+#ifdef _MSC_VER
+#  include <intrin.h>
+#elif (defined(__x86_64__) || defined(__i386__))
+#  include <x86intrin.h>
+#endif
+
+#else
+
+/* MinGW64 has conflicting declarations for these SSE headers in <windows.h>.
+ * Since we can't avoid including <windows.h>, better only include that */
+#include "util/util_windows.h"
+
+#endif
 
 CCL_NAMESPACE_BEGIN
 
 #ifdef __KERNEL_SSE2__
-
-struct sseb;
-struct ssei;
-struct ssef;
 
 extern const __m128 _mm_lookupmask_ps[16];
 
@@ -496,13 +515,19 @@ ccl_device_inline int bitscan(int value)
 
 #endif /* __KERNEL_SSE2__ */
 
+/* quiet unused define warnings */
+#if defined(__KERNEL_SSE2__)  || \
+	defined(__KERNEL_SSE3__)  || \
+	defined(__KERNEL_SSSE3__) || \
+	defined(__KERNEL_SSE41__) || \
+	defined(__KERNEL_AVX__)   || \
+	defined(__KERNEL_AVX2__)
+	/* do nothing */
+#endif
+
 CCL_NAMESPACE_END
 
-#include "util/util_math.h"
-#include "util/util_sseb.h"
-#include "util/util_ssei.h"
-#include "util/util_ssef.h"
-#include "util/util_avxf.h"
+#endif /* __KERNEL_GPU__ */
 
 #endif /* __UTIL_SIMD_TYPES_H__ */
 
