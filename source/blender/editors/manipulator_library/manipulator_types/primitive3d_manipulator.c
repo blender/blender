@@ -133,9 +133,9 @@ static void manipulator_primitive_draw_intern(
 
 static void manipulator_primitive_draw_select(
         const bContext *UNUSED(C), wmManipulator *mpr,
-        int selectionbase)
+        int select_id)
 {
-	GPU_select_load_id(selectionbase);
+	GPU_select_load_id(select_id);
 	manipulator_primitive_draw_intern(mpr, true, false);
 }
 

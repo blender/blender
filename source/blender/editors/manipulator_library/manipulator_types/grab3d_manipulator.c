@@ -170,9 +170,9 @@ static void grab3d_draw_intern(
 	}
 }
 
-static void manipulator_grab_draw_select(const bContext *C, wmManipulator *mpr, int selectionbase)
+static void manipulator_grab_draw_select(const bContext *C, wmManipulator *mpr, int select_id)
 {
-	GPU_select_load_id(selectionbase);
+	GPU_select_load_id(select_id);
 	grab3d_draw_intern(C, mpr, true, false);
 }
 

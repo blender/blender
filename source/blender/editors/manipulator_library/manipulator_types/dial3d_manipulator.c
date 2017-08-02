@@ -327,7 +327,7 @@ static void dial_draw_intern(
 	gpuPopMatrix();
 }
 
-static void manipulator_dial_draw_select(const bContext *C, wmManipulator *mpr, int selectionbase)
+static void manipulator_dial_draw_select(const bContext *C, wmManipulator *mpr, int select_id)
 {
 	float clip_plane_buf[4];
 	const int draw_options = RNA_enum_get(mpr->ptr, "draw_options");
@@ -343,7 +343,7 @@ static void manipulator_dial_draw_select(const bContext *C, wmManipulator *mpr, 
 		glEnable(GL_CLIP_DISTANCE0);
 	}
 
-	GPU_select_load_id(selectionbase);
+	GPU_select_load_id(select_id);
 	dial_draw_intern(C, mpr, true, false, clip_plane);
 
 	if (clip_plane) {

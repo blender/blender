@@ -416,7 +416,7 @@ void WM_manipulatormap_draw(
 
 static void manipulator_draw_select_3D_loop(const bContext *C, ListBase *visible_manipulators)
 {
-	int selectionbase = 0;
+	int select_id = 0;
 	wmManipulator *mpr;
 
 	/* TODO(campbell): this depends on depth buffer being written to, currently broken for the 3D view. */
@@ -441,10 +441,10 @@ static void manipulator_draw_select_3D_loop(const bContext *C, ListBase *visible
 
 		/* pass the selection id shifted by 8 bits. Last 8 bits are used for selected manipulator part id */
 
-		mpr->type->draw_select(C, mpr, selectionbase << 8);
+		mpr->type->draw_select(C, mpr, select_id << 8);
 
 
-		selectionbase++;
+		select_id++;
 	}
 
 	if (is_depth_prev) {

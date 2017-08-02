@@ -220,9 +220,9 @@ static void arrow_draw_intern(ArrowManipulator3D *arrow, const bool select, cons
 
 static void manipulator_arrow_draw_select(
         const bContext *UNUSED(C), wmManipulator *mpr,
-        int selectionbase)
+        int select_id)
 {
-	GPU_select_load_id(selectionbase);
+	GPU_select_load_id(select_id);
 	arrow_draw_intern((ArrowManipulator3D *)mpr, true, false);
 }
 
