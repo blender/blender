@@ -380,7 +380,7 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmManipulatorGroup *mg
 		const float aspx = (float)scene->r.xsch * scene->r.xasp;
 		const float aspy = (float)scene->r.ysch * scene->r.yasp;
 		const int sensor_fit = BKE_camera_sensor_fit(ca->sensor_fit, aspx, aspy);
-		aspect[0] = (sensor_fit == CAMERA_SENSOR_FIT_HOR) ? 1.0 : aspx / aspy;
+		aspect[0] = (sensor_fit == CAMERA_SENSOR_FIT_HOR) ? 1.0f : aspx / aspy;
 		aspect[1] = (sensor_fit == CAMERA_SENSOR_FIT_HOR) ? aspy / aspx : 1.0f;
 
 		WM_manipulator_set_matrix_location(widget, ob->obmat[3]);

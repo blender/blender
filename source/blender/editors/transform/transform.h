@@ -638,7 +638,7 @@ void restoreBones(TransInfo *t);
 
 /*********************** transform_manipulator.c ********** */
 
-#define MANIPULATOR_AXIS_LINE_WIDTH 2.0
+#define MANIPULATOR_AXIS_LINE_WIDTH 2.0f
 
 bool gimbal_axis(struct Object *ob, float gmat[3][3]); /* return 0 when no gimbal for selection */
 

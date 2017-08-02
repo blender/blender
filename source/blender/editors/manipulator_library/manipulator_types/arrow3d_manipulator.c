@@ -269,7 +269,7 @@ static void manipulator_arrow_modal(
 
 	/* first determine if view vector is really close to the direction. If it is, we use
 	 * vertical movement to determine offset, just like transform system does */
-	if (RAD2DEG(acos(dot_v3v3(viewvec, arrow->manipulator.matrix_basis[2]))) > 5.0f) {
+	if (RAD2DEGF(acosf(dot_v3v3(viewvec, arrow->manipulator.matrix_basis[2]))) > 5.0f) {
 		/* multiply to projection space */
 		mul_m4_v4(rv3d->persmat, orig_origin);
 		mul_v4_fl(orig_origin, 1.0f / orig_origin[3]);
@@ -316,13 +316,13 @@ static void manipulator_arrow_modal(
 		const float plane_offset = dot_v3v3(plane, offset);
 		const float plane_dir = dot_v3v3(plane, arrow->manipulator.matrix_basis[2]);
 		const float fac = (plane_dir != 0.0f) ? (plane_offset / plane_dir) : 0.0f;
-		facdir = (fac < 0.0) ? -1.0 : 1.0;
+		facdir = (fac < 0.0f) ? -1.0f : 1.0f;
 		if (isfinite(fac)) {
 			mul_v3_v3fl(offset, arrow->manipulator.matrix_basis[2], fac);
 		}
 	}
 	else {
-		facdir = (m_diff[1] < 0.0) ? -1.0 : 1.0;
+		facdir = (m_diff[1] < 0.0f) ? -1.0f : 1.0f;
 	}
 
 
