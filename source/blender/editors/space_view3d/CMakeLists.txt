@@ -59,7 +59,9 @@ set(SRC
 	view3d_walk.c
 	view3d_header.c
 	view3d_iterators.c
-	view3d_manipulators.c
+	view3d_manipulator_camera.c
+	view3d_manipulator_forcefield.c
+	view3d_manipulator_lamp.c
 	view3d_ops.c
 	view3d_project.c
 	view3d_ruler.c
