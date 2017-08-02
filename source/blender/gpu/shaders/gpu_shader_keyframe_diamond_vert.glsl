@@ -2,7 +2,7 @@
 uniform mat4 ModelViewProjectionMatrix;
 
 const float pixel_fudge = sqrt(2.0);
-const float outline_width = 1.25 * pixel_fudge;
+const float outline_width = 1.15 * pixel_fudge;
 
 in vec2 pos;
 in float size;

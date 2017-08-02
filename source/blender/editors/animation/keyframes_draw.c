@@ -492,7 +492,7 @@ void draw_keyframe_shape(float x, float y, float size, bool sel, short key_type,
 			break;
 		
 		default:
-			size -= 0.5f * key_type;
+			size -= 0.8f * key_type;
 	}
 
 	unsigned char fill_col[4];
