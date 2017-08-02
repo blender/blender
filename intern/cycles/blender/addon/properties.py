@@ -205,13 +205,13 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 name="AA Samples",
                 description="Number of antialiasing samples to render for each pixel",
                 min=1, max=2097151,
-                default=4,
+                default=128,
                 )
         cls.preview_aa_samples = IntProperty(
                 name="AA Samples",
                 description="Number of antialiasing samples to render in the viewport, unlimited if 0",
                 min=0, max=2097151,
-                default=4,
+                default=32,
                 )
         cls.diffuse_samples = IntProperty(
                 name="Diffuse Samples",
@@ -308,7 +308,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 description="Adaptively blur glossy shaders after blurry bounces, "
                             "to reduce noise at the cost of accuracy",
                 min=0.0, max=10.0,
-                default=0.0,
+                default=1.0,
                 )
 
         cls.max_bounces = IntProperty(
@@ -453,7 +453,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                             "higher values will be scaled down to avoid too "
                             "much noise and slow convergence at the cost of accuracy",
                 min=0.0, max=1e8,
-                default=0.0,
+                default=10.0,
                 )
 
         cls.debug_tile_size = IntProperty(
