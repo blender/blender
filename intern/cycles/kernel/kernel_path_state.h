@@ -163,14 +163,23 @@ ccl_device_inline uint path_state_ray_visibility(KernelGlobals *kg, PathState *s
 ccl_device_inline float path_state_terminate_probability(KernelGlobals *kg, ccl_addr_space PathState *state, const float3 throughput)
 {
 	if(state->flag & PATH_RAY_TRANSPARENT) {
-		/* transparent rays treated separately */
-		if(state->transparent_bounce >= kernel_data.integrator.transparent_max_bounce)
+		/* Transparent rays are treated separately with own max bounces. */
+		if(state->transparent_bounce >= kernel_data.integrator.transparent_max_bounce) {
 			return 0.0f;
-		else if(state->transparent_bounce <= kernel_data.integrator.transparent_min_bounce)
+		}
+		/* Do at least one bounce without RR. */
+		else if(state->transparent_bounce <= 1) {
 			return 1.0f;
+		}
+#ifdef __SHADOW_TRICKS__
+		/* Exception for shadow catcher not working correctly with RR. */
+		else if ((state->flag & PATH_RAY_SHADOW_CATCHER) && (state->transparent_bounce <= 8)) {
+			return 1.0f;
+		}
+#endif
 	}
 	else {
-		/* other rays */
+		/* Test max bounces for various ray types. */
 		if((state->bounce >= kernel_data.integrator.max_bounce) ||
 		   (state->diffuse_bounce >= kernel_data.integrator.max_diffuse_bounce) ||
 		   (state->glossy_bounce >= kernel_data.integrator.max_glossy_bounce) ||
@@ -181,13 +190,21 @@ ccl_device_inline float path_state_terminate_probability(KernelGlobals *kg, ccl_
 		{
 			return 0.0f;
 		}
-		else if(state->bounce <= kernel_data.integrator.min_bounce) {
+		/* Do at least one bounce without RR. */
+		else if(state->bounce <= 1) {
 			return 1.0f;
 		}
+#ifdef __SHADOW_TRICKS__
+		/* Exception for shadow catcher not working correctly with RR. */
+		else if ((state->flag & PATH_RAY_SHADOW_CATCHER) && (state->bounce <= 3)) {
+			return 1.0f;
+		}
+#endif
 	}
 
-	/* probalistic termination */
-	return average(throughput); /* todo: try using max here */
+	/* Probalistic termination: use sqrt() to roughly match typical view
+	 * transform and do path termination a bit later on average. */
+	return sqrtf(max3(fabs(throughput)));
 }
 
 /* TODO(DingTo): Find more meaningful name for this */

@@ -311,14 +311,6 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 default=0.0,
                 )
 
-        cls.min_bounces = IntProperty(
-                name="Min Bounces",
-                description="Minimum number of bounces, setting this lower "
-                            "than the maximum enables probabilistic path "
-                            "termination (faster but noisier)",
-                min=0, max=1024,
-                default=3,
-                )
         cls.max_bounces = IntProperty(
                 name="Max Bounces",
                 description="Total maximum number of bounces",
@@ -351,15 +343,6 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 default=0,
                 )
 
-        cls.transparent_min_bounces = IntProperty(
-                name="Transparent Min Bounces",
-                description="Minimum number of transparent bounces, setting "
-                            "this lower than the maximum enables "
-                            "probabilistic path termination (faster but "
-                            "noisier)",
-                min=0, max=1024,
-                default=8,
-                )
         cls.transparent_max_bounces = IntProperty(
                 name="Transparent Max Bounces",
                 description="Maximum number of transparent bounces",
