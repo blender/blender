@@ -771,8 +771,10 @@ bool path_remove(const string& path)
 
 struct SourceReplaceState {
 	typedef map<string, string> ProcessedMapping;
+
 	string base;
 	ProcessedMapping processed_files;
+	set<string> precompiled_headers;
 };
 
 static string line_directive(const SourceReplaceState& state,
@@ -811,6 +813,10 @@ static string path_source_replace_includes_recursive(
 	SourceReplaceState::ProcessedMapping::iterator replaced_file =
 	        state->processed_files.find(source_filepath);
 	if(replaced_file != state->processed_files.end()) {
+		if(state->precompiled_headers.find(source_filepath) !=
+		        state->precompiled_headers.end()) {
+			return "";
+		}
 		return replaced_file->second;
 	}
 	/* Perform full file processing.  */
@@ -827,10 +833,14 @@ static string path_source_replace_includes_recursive(
 					const size_t n_start = 1;
 					const size_t n_end = token.find("\"", n_start);
 					const string filename = token.substr(n_start, n_end - n_start);
+					const bool is_precompiled = string_endswith(token, "// PRECOMPILED");
 					string filepath = path_join(state->base, filename);
 					if(!path_exists(filepath)) {
 						filepath = path_join(path_dirname(source_filepath),
 						                     filename);
+					}
+					if(is_precompiled) {
+						state->precompiled_headers.insert(filepath);
 					}
 					string text;
 					if(path_read_text(filepath, text)) {
