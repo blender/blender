@@ -138,6 +138,9 @@ MINLINE int signum_i(float a);
 
 MINLINE float power_of_2(float f);
 
+MINLINE int integer_digits_f(const float f);
+MINLINE int integer_digits_d(const double d);
+
 /* these don't really fit anywhere but were being copied about a lot */
 MINLINE int is_power_of_2_i(int n);
 MINLINE int power_of_2_max_i(int n);

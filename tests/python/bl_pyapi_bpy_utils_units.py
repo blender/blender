@@ -32,18 +32,17 @@ class UnitsTesting(unittest.TestCase):
     OUTPUT_TESTS = (
         # system,    type,    prec, sep, compat, value, output
         ##### LENGTH
+        # Note: precision handling is a bit complicated when using multi-units...
         ('IMPERIAL', 'LENGTH', 3, False, False, 0.3048, "1'"),
         ('IMPERIAL', 'LENGTH', 3, False, True,  0.3048, "1ft"),
-        ('IMPERIAL', 'LENGTH', 3, True,  False, 0.3048 * 2 + 0.0254 * 5.5, "2' 5.5\""),
-        # Those next two fail, here again because precision ignores order magnitude :/
-        #('IMPERIAL', 'LENGTH', 3, False, False, 1609.344 * 1e6, "1000000mi"), # == 1000000.004mi!!!
-        #('IMPERIAL', 'LENGTH', 6, False, False, 1609.344 * 1e6, "1000000mi"), # == 1000000.003641mi!!!
-        ('METRIC',   'LENGTH', 3, True,  False, 1000 * 2 + 0.001 * 15, "2km 1.5cm"),
-        ('METRIC',   'LENGTH', 3, True,  False, 1234.56789, "1km 234.6m"),
-        # Note: precision seems basically unused when using multi units!
-        ('METRIC',   'LENGTH', 9, True,  False, 1234.56789, "1km 234.6m"),
-        ('METRIC',   'LENGTH', 9, False, False, 1234.56789, "1.23456789km"),
-        ('METRIC',   'LENGTH', 9, True,  False, 1000.000123456789, "1km 0.1mm"),
+        ('IMPERIAL', 'LENGTH', 4, True,  False, 0.3048 * 2 + 0.0254 * 5.5, "2' 5.5\""),
+        ('IMPERIAL', 'LENGTH', 3, False, False, 1609.344 * 1e6, "1000000mi"),
+        ('IMPERIAL', 'LENGTH', 6, False, False, 1609.344 * 1e6, "1000000mi"),
+        ('METRIC',   'LENGTH', 3, True,  False, 1000 * 2 + 0.001 * 15, "2km 2cm"),
+        ('METRIC',   'LENGTH', 5, True,  False, 1234.56789, "1km 234.6m"),
+        ('METRIC',   'LENGTH', 6, True,  False, 1234.56789, "1km 234.57m"),
+        ('METRIC',   'LENGTH', 9, False, False, 1234.56789, "1.234568km"),
+        ('METRIC',   'LENGTH', 9, True,  False, 1000.000123456789, "1km 0.123mm"),
     )
 
     def test_units_inputs(self):

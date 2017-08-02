@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+#include "kernel/kernel_compat_opencl.h"  // PRECOMPILED
+#include "kernel/split/kernel_split_common.h"  // PRECOMPILED
+
 #include "kernel/kernels/opencl/kernel_state_buffer_size.cl"
 #include "kernel/kernels/opencl/kernel_data_init.cl"
 #include "kernel/kernels/opencl/kernel_path_init.cl"

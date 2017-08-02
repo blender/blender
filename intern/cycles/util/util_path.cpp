@@ -45,6 +45,7 @@ OIIO_NAMESPACE_USING
 #  include <shlwapi.h>
 #endif
 
+#include "util/util_map.h"
 #include "util/util_windows.h"
 
 CCL_NAMESPACE_BEGIN
@@ -768,15 +769,35 @@ bool path_remove(const string& path)
 	return remove(path.c_str()) == 0;
 }
 
-static string line_directive(const string& base, const string& path, int line)
+struct SourceReplaceState {
+	typedef map<string, string> ProcessedMapping;
+	/* Base director for all relative include headers. */
+	string base;
+	/* Result of processed files. */
+	ProcessedMapping processed_files;
+	/* Set of files which are considered "precompiled" and which are replaced
+	 * with and empty string on a subsequent occurrence in include statement.
+	 */
+	set<string> precompiled_headers;
+};
+
+static string path_source_replace_includes_recursive(
+        const string& source,
+        const string& source_filepath,
+        SourceReplaceState *state);
+
+static string line_directive(const SourceReplaceState& state,
+                             const string& path,
+                             const int line)
 {
 	string escaped_path = path;
 	/* First we make path relative. */
-	if(string_startswith(escaped_path, base.c_str())) {
-		const string base_file = path_filename(base);
-		const size_t base_len = base.length();
-		escaped_path = base_file + escaped_path.substr(base_len,
-		                                               escaped_path.length() - base_len);
+	if(string_startswith(escaped_path, state.base.c_str())) {
+		const string base_file = path_filename(state.base);
+		const size_t base_len = state.base.length();
+		escaped_path = base_file +
+		        escaped_path.substr(base_len,
+		                            escaped_path.length() - base_len);
 	}
 	/* Second, we replace all unsafe characters. */
 	string_replace(escaped_path, "\"", "\\\"");
@@ -786,50 +807,106 @@ static string line_directive(const string& base, const string& path, int line)
 	return string_printf("#line %d \"%s\"", line, escaped_path.c_str());
 }
 
-static string path_source_replace_includes_recursive(
-        const string& base,
-        const string& source,
-        const string& source_filepath)
+static string path_source_handle_preprocessor(
+        const string& preprocessor_line,
+        const string& source_filepath,
+        const size_t line_number,
+        SourceReplaceState *state)
 {
-	/* Our own little c preprocessor that replaces #includes with the file
-	 * contents, to work around issue of OpenCL drivers not supporting
-	 * include paths with spaces in them.
-	 */
-
-	string result = "";
-	vector<string> lines;
-	string_split(lines, source, "\n", false);
-
-	for(size_t i = 0; i < lines.size(); ++i) {
-		string line = lines[i];
-		if(line[0] == '#') {
-			string token = string_strip(line.substr(1, line.size() - 1));
-			if(string_startswith(token, "include")) {
-				token = string_strip(token.substr(7, token.size() - 7));
-				if(token[0] == '"') {
-					const size_t n_start = 1;
-					const size_t n_end = token.find("\"", n_start);
-					const string filename = token.substr(n_start, n_end - n_start);
-					string filepath = path_join(base, filename);
-					if(!path_exists(filepath)) {
-						filepath = path_join(path_dirname(source_filepath),
-						                     filename);
-					}
-					string text;
-					if(path_read_text(filepath, text)) {
-						text = path_source_replace_includes_recursive(
-						        base, text, filepath);
-						/* Use line directives for better error messages. */
-						line = line_directive(base, filepath, 1)
-						     + token.replace(0, n_end + 1, "\n" + text + "\n")
-						     + line_directive(base, source_filepath, i + 1);
-					}
-				}
+	string result = preprocessor_line;
+	string token = string_strip(
+	        preprocessor_line.substr(1, preprocessor_line.size() - 1));
+	if(string_startswith(token, "include")) {
+		token = string_strip(token.substr(7, token.size() - 7));
+		if(token[0] == '"') {
+			const size_t n_start = 1;
+			const size_t n_end = token.find("\"", n_start);
+			const string filename = token.substr(n_start, n_end - n_start);
+			const bool is_precompiled = string_endswith(token, "// PRECOMPILED");
+			string filepath = path_join(state->base, filename);
+			if(!path_exists(filepath)) {
+				filepath = path_join(path_dirname(source_filepath),
+				                     filename);
+			}
+			if(is_precompiled) {
+				state->precompiled_headers.insert(filepath);
+			}
+			string text;
+			if(path_read_text(filepath, text)) {
+				text = path_source_replace_includes_recursive(
+				        text, filepath, state);
+				/* Use line directives for better error messages. */
+				result = line_directive(*state, filepath, 1) + "\n"
+				     + text + "\n"
+				     + line_directive(*state, source_filepath, line_number + 1);
 			}
 		}
-		result += line + "\n";
 	}
+	return result;
+}
 
+/* Our own little c preprocessor that replaces #includes with the file
+ * contents, to work around issue of OpenCL drivers not supporting
+ * include paths with spaces in them.
+ */
+static string path_source_replace_includes_recursive(
+        const string& source,
+        const string& source_filepath,
+        SourceReplaceState *state)
+{
+	/* Try to re-use processed file without spending time on replacing all
+	 * include directives again.
+	 */
+	SourceReplaceState::ProcessedMapping::iterator replaced_file =
+	        state->processed_files.find(source_filepath);
+	if(replaced_file != state->processed_files.end()) {
+		if(state->precompiled_headers.find(source_filepath) !=
+		        state->precompiled_headers.end()) {
+			return "";
+		}
+		return replaced_file->second;
+	}
+	/* Perform full file processing.  */
+	string result = "";
+	const size_t source_length = source.length();
+	size_t index = 0;
+	size_t line_number = 0, column_number = 1;
+	bool inside_preprocessor = false;
+	string preprocessor_line = "";
+	while(index < source_length) {
+		const char ch = source[index];
+		if(ch == '\n') {
+			if(inside_preprocessor) {
+				result += path_source_handle_preprocessor(preprocessor_line,
+				                                          source_filepath,
+				                                          line_number,
+				                                          state);
+			}
+			inside_preprocessor = false;
+			preprocessor_line = "";
+			column_number = 0;
+			++line_number;
+		}
+		else if(ch == '#' && column_number == 1) {
+			inside_preprocessor = true;
+		}
+		if(inside_preprocessor) {
+			preprocessor_line += ch;
+		}
+		else {
+			result += ch;
+		}
+		++index;
+		++column_number;
+	}
+	if(inside_preprocessor) {
+		result += path_source_handle_preprocessor(preprocessor_line,
+		                                          source_filepath,
+		                                          line_number,
+		                                          state);
+	}
+	/* Store result for further reuse. */
+	state->processed_files[source_filepath] = result;
 	return result;
 }
 
@@ -837,10 +914,12 @@ string path_source_replace_includes(const string& source,
                                     const string& path,
                                     const string& source_filename)
 {
+	SourceReplaceState state;
+	state.base = path;
 	return path_source_replace_includes_recursive(
-	        path,
 	        source,
-	        path_join(path, source_filename));
+	        path_join(path, source_filename),
+	        &state);
 }
 
 FILE *path_fopen(const string& path, const string& mode)

@@ -2226,20 +2226,24 @@ void ui_but_string_get_ex(uiBut *but, char *str, const size_t maxlen, const int 
 			else {
 				int prec = (float_precision == -1) ? ui_but_calc_float_precision(but, value) : float_precision;
 				if (use_exp_float) {
-					const int l10 = (value == 0.0f) ? 0 : (int)log10(fabs(value));
-					if (l10 < -6 || l10 > 12) {
+					const int int_digits_num = integer_digits_f(value);
+					if (int_digits_num < -6 || int_digits_num > 12) {
 						BLI_snprintf(str, maxlen, "%.*g", prec, value);
 						if (r_use_exp_float) {
 							*r_use_exp_float = true;
 						}
 					}
 					else {
-						prec -= l10 + (int)(l10 < 0);
+						prec -= int_digits_num;
 						CLAMP(prec, 0, UI_PRECISION_FLOAT_MAX);
 						BLI_snprintf(str, maxlen, "%.*f", prec, value);
 					}
 				}
 				else {
+#if 0				/* TODO, but will likely break some stuff, so better after 2.79 release. */
+					prec -= int_digits_num;
+					CLAMP(prec, 0, UI_PRECISION_FLOAT_MAX);
+#endif
 					BLI_snprintf(str, maxlen, "%.*f", prec, value);
 				}
 			}
