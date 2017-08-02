@@ -771,11 +771,20 @@ bool path_remove(const string& path)
 
 struct SourceReplaceState {
 	typedef map<string, string> ProcessedMapping;
-
+	/* Base director for all relative include headers. */
 	string base;
+	/* Result of processed files. */
 	ProcessedMapping processed_files;
+	/* Set of files which are considered "precompiled" and which are replaced
+	 * with and empty string on a subsequent occurrence in include statement.
+	 */
 	set<string> precompiled_headers;
 };
+
+static string path_source_replace_includes_recursive(
+        const string& source,
+        const string& source_filepath,
+        SourceReplaceState *state);
 
 static string line_directive(const SourceReplaceState& state,
                              const string& path,
@@ -796,6 +805,44 @@ static string line_directive(const SourceReplaceState& state,
 	string_replace(escaped_path, "\?", "\\\?");
 	string_replace(escaped_path, "\\", "\\\\");
 	return string_printf("#line %d \"%s\"", line, escaped_path.c_str());
+}
+
+static string path_source_handle_preprocessor(
+        const string& preprocessor_line,
+        const string& source_filepath,
+        const size_t line_number,
+        SourceReplaceState *state)
+{
+	string result = preprocessor_line;
+	string token = string_strip(
+	        preprocessor_line.substr(1, preprocessor_line.size() - 1));
+	if(string_startswith(token, "include")) {
+		token = string_strip(token.substr(7, token.size() - 7));
+		if(token[0] == '"') {
+			const size_t n_start = 1;
+			const size_t n_end = token.find("\"", n_start);
+			const string filename = token.substr(n_start, n_end - n_start);
+			const bool is_precompiled = string_endswith(token, "// PRECOMPILED");
+			string filepath = path_join(state->base, filename);
+			if(!path_exists(filepath)) {
+				filepath = path_join(path_dirname(source_filepath),
+				                     filename);
+			}
+			if(is_precompiled) {
+				state->precompiled_headers.insert(filepath);
+			}
+			string text;
+			if(path_read_text(filepath, text)) {
+				text = path_source_replace_includes_recursive(
+				        text, filepath, state);
+				/* Use line directives for better error messages. */
+				result = line_directive(*state, filepath, 1) + "\n"
+				     + text + "\n"
+				     + line_directive(*state, source_filepath, line_number + 1);
+			}
+		}
+	}
+	return result;
 }
 
 /* Our own little c preprocessor that replaces #includes with the file
@@ -821,42 +868,42 @@ static string path_source_replace_includes_recursive(
 	}
 	/* Perform full file processing.  */
 	string result = "";
-	vector<string> lines;
-	string_split(lines, source, "\n", false);
-	for(size_t i = 0; i < lines.size(); ++i) {
-		const string& line = lines[i];
-		if(line[0] == '#') {
-			string token = string_strip(line.substr(1, line.size() - 1));
-			if(string_startswith(token, "include")) {
-				token = string_strip(token.substr(7, token.size() - 7));
-				if(token[0] == '"') {
-					const size_t n_start = 1;
-					const size_t n_end = token.find("\"", n_start);
-					const string filename = token.substr(n_start, n_end - n_start);
-					const bool is_precompiled = string_endswith(token, "// PRECOMPILED");
-					string filepath = path_join(state->base, filename);
-					if(!path_exists(filepath)) {
-						filepath = path_join(path_dirname(source_filepath),
-						                     filename);
-					}
-					if(is_precompiled) {
-						state->precompiled_headers.insert(filepath);
-					}
-					string text;
-					if(path_read_text(filepath, text)) {
-						text = path_source_replace_includes_recursive(
-						        text, filepath, state);
-						/* Use line directives for better error messages. */
-						result += line_directive(*state, filepath, 1)
-						     + token.replace(0, n_end + 1, "\n" + text + "\n")
-						     + line_directive(*state, source_filepath, i + 1) +
-						     "\n";
-						continue;
-					}
-				}
+	const size_t source_length = source.length();
+	size_t index = 0;
+	size_t line_number = 0, column_number = 1;
+	bool inside_preprocessor = false;
+	string preprocessor_line = "";
+	while(index < source_length) {
+		const char ch = source[index];
+		if(ch == '\n') {
+			if(inside_preprocessor) {
+				result += path_source_handle_preprocessor(preprocessor_line,
+				                                          source_filepath,
+				                                          line_number,
+				                                          state);
 			}
+			inside_preprocessor = false;
+			preprocessor_line = "";
+			column_number = 0;
+			++line_number;
 		}
-		result += line + "\n";
+		else if(ch == '#' && column_number == 1) {
+			inside_preprocessor = true;
+		}
+		if(inside_preprocessor) {
+			preprocessor_line += ch;
+		}
+		else {
+			result += ch;
+		}
+		++index;
+		++column_number;
+	}
+	if(inside_preprocessor) {
+		result += path_source_handle_preprocessor(preprocessor_line,
+		                                          source_filepath,
+		                                          line_number,
+		                                          state);
 	}
 	/* Store result for further reuse. */
 	state->processed_files[source_filepath] = result;
