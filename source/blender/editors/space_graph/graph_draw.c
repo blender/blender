@@ -259,7 +259,7 @@ static void draw_fcurve_handle_vertices(FCurve *fcu, View2D *v2d, bool sel_handl
 	immBindBuiltinProgram(GPU_SHADER_2D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA);
 
 	/* set handle size */
-	immUniform1f("size", (UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE) + 1.0f) * U.pixelsize);
+	immUniform1f("size", (1.4f * UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE)) * U.pixelsize);
 	immUniform1f("outlineWidth", 1.0f * U.pixelsize);
 
 	draw_fcurve_selected_handle_vertices(fcu, v2d, false, sel_handle_only, pos);
