@@ -39,78 +39,101 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${TEST_OUT_DIR})
 # all calls to blender use this
 if(APPLE)
 	if(${CMAKE_GENERATOR} MATCHES "Xcode")
-		set(TEST_BLENDER_EXE ${EXECUTABLE_OUTPUT_PATH}/Debug/blender.app/Contents/MacOS/blender)
+		set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup)
 	else()
-		set(TEST_BLENDER_EXE ${EXECUTABLE_OUTPUT_PATH}/blender.app/Contents/MacOS/blender)
+		set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup --env-system-scripts ${CMAKE_SOURCE_DIR}/release/scripts)
 	endif()
 else()
-	set(TEST_BLENDER_EXE ${EXECUTABLE_OUTPUT_PATH}/blender)
+	set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup --env-system-scripts ${CMAKE_SOURCE_DIR}/release/scripts)
 endif()
 
 # for testing with valgrind prefix: valgrind --track-origins=yes --error-limit=no
-set(TEST_BLENDER_EXE_BARE ${TEST_BLENDER_EXE})
-set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup --env-system-scripts ${CMAKE_SOURCE_DIR}/release/scripts)
-set(TEST_BLENDER_EXE ${TEST_BLENDER_EXE} ${TEST_BLENDER_EXE_PARAMS} )
+# set(TEST_BLENDER_EXE_BARE ${TEST_BLENDER_EXE})
+# set(TEST_BLENDER_EXE ${TEST_BLENDER_EXE} ${TEST_BLENDER_EXE_PARAMS} )
 
 
 # ------------------------------------------------------------------------------
 # GENERAL PYTHON CORRECTNESS TESTS
-add_test(script_load_keymap ${TEST_BLENDER_EXE}
+add_test(
+	NAME script_load_keymap
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_keymap_completeness.py
 )
 
-add_test(script_load_addons ${TEST_BLENDER_EXE}
+add_test(
+	NAME script_load_addons
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_load_addons.py
 )
 
-add_test(script_load_modules ${TEST_BLENDER_EXE}
+add_test(
+	NAME script_load_modules
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_load_py_modules.py
 )
 
 # test running operators doesn't segfault under various conditions
 if(USE_EXPERIMENTAL_TESTS)
-	add_test(script_run_operators ${TEST_BLENDER_EXE}
+	add_test(
+		NAME script_run_operators
+		COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 		--python ${CMAKE_CURRENT_LIST_DIR}/bl_run_operators.py
 	)
 endif()
 
 # ------------------------------------------------------------------------------
 # PY API TESTS
-add_test(script_pyapi_bpy_path ${TEST_BLENDER_EXE}
+add_test(
+	NAME script_pyapi_bpy_path
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_bpy_path.py
 )
 
-add_test(script_pyapi_bpy_utils_units ${TEST_BLENDER_EXE}
+add_test(
+	NAME script_pyapi_bpy_utils_units
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_bpy_utils_units.py
 )
 
-add_test(script_pyapi_mathutils ${TEST_BLENDER_EXE}
+add_test(
+	NAME script_pyapi_mathutils
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_mathutils.py
 )
 
-add_test(script_pyapi_idprop ${TEST_BLENDER_EXE}
+add_test(
+	NAME script_pyapi_idprop
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_idprop.py
 )
 
-add_test(script_pyapi_idprop_datablock ${TEST_BLENDER_EXE}
+add_test(
+	NAME script_pyapi_idprop_datablock
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_idprop_datablock.py
 )
 
 # ------------------------------------------------------------------------------
 # MODELING TESTS
-add_test(bevel ${TEST_BLENDER_EXE}
+add_test(
+	NAME bevel
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/modeling/bevel_regression.blend
 	--python-text run_tests
 )
 
-add_test(split_faces ${TEST_BLENDER_EXE}
+add_test(
+	NAME split_faces
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/modeling/split_faces_test.blend
 	--python-text run_tests
 )
 
 # ------------------------------------------------------------------------------
 # MODIFIERS TESTS
-add_test(modifier_array ${TEST_BLENDER_EXE}
+add_test(
+	NAME modifier_array
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/modifier_stack/array_test.blend
 	--python-text run_tests
 )
@@ -121,21 +144,27 @@ add_test(modifier_array ${TEST_BLENDER_EXE}
 # OBJ Import tests
 # disabled until updated & working
 if(FALSE)
-add_test(import_obj_cube ${TEST_BLENDER_EXE}
+add_test(
+	NAME import_obj_cube
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_scene.obj\(filepath='${TEST_SRC_DIR}/io_tests/obj/cube.obj'\)
 	--md5=39cce4bacac2d1b18fc470380279bc15 --md5_method=SCENE
 	--write-blend=${TEST_OUT_DIR}/import_obj_cube.blend
 )
 
-add_test(import_obj_nurbs_cyclic ${TEST_BLENDER_EXE}
+add_test(
+	NAME import_obj_nurbs_cyclic
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_scene.obj\(filepath='${TEST_SRC_DIR}/io_tests/obj/nurbs_cyclic.obj'\)
 	--md5=ad3c307e5883224a0492378cd32691ab --md5_method=SCENE
 	--write-blend=${TEST_OUT_DIR}/import_obj_nurbs_cyclic.blend
 )
 
-add_test(import_obj_makehuman ${TEST_BLENDER_EXE}
+add_test(
+	NAME import_obj_makehuman
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_scene.obj\(filepath='${TEST_SRC_DIR}/io_tests/obj/makehuman.obj'\)
 	--md5=c9f78b185e58358daa4ecaecfa75464e --md5_method=SCENE
@@ -144,7 +173,9 @@ add_test(import_obj_makehuman ${TEST_BLENDER_EXE}
 endif()
 
 # OBJ Export tests
-add_test(export_obj_cube ${TEST_BLENDER_EXE}
+add_test(
+	NAME export_obj_cube
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/io_tests/blend_geometry/all_quads.blend
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.obj\(filepath='${TEST_OUT_DIR}/export_obj_cube.obj',use_selection=False\)
@@ -153,7 +184,9 @@ add_test(export_obj_cube ${TEST_BLENDER_EXE}
 	--md5=e80660437ad9bfe082849641c361a233 --md5_method=FILE
 )
 
-add_test(export_obj_nurbs ${TEST_BLENDER_EXE}
+add_test(
+	NAME export_obj_nurbs
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/io_tests/blend_geometry/nurbs.blend
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.obj\(filepath='${TEST_OUT_DIR}/export_obj_nurbs.obj',use_selection=False,use_nurbs=True\)
@@ -164,7 +197,9 @@ add_test(export_obj_nurbs ${TEST_BLENDER_EXE}
 
 # disabled until updated & working
 if(FALSE)
-add_test(export_obj_all_objects ${TEST_BLENDER_EXE}
+add_test(
+	NAME export_obj_all_objects
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/io_tests/blend_scene/all_objects.blend
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.obj\(filepath='${TEST_OUT_DIR}/export_obj_all_objects.obj',use_selection=False,use_nurbs=True\)
@@ -177,21 +212,27 @@ endif()
 
 
 # PLY Import tests
-add_test(import_ply_cube ${TEST_BLENDER_EXE}
+add_test(
+	NAME import_ply_cube
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_mesh.ply\(filepath='${TEST_SRC_DIR}/io_tests/ply/cube_ascii.ply'\)
 	--md5=527134343c27fc0ea73115b85fbfd3ac --md5_method=SCENE
 	--write-blend=${TEST_OUT_DIR}/import_ply_cube.blend
 )
 
-add_test(import_ply_bunny ${TEST_BLENDER_EXE}
+add_test(
+	NAME import_ply_bunny
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_mesh.ply\(filepath='${TEST_SRC_DIR}/io_tests/ply/bunny2.ply'\)
 	--md5=6ea5b8533400a17accf928b8fd024eaa --md5_method=SCENE
 	--write-blend=${TEST_OUT_DIR}/import_ply_bunny.blend
 )
 
-add_test(import_ply_small_holes ${TEST_BLENDER_EXE}
+add_test(
+	NAME import_ply_small_holes
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_mesh.ply\(filepath='${TEST_SRC_DIR}/io_tests/ply/many_small_holes.ply'\)
 	--md5=c3093e26ecae5b6d59fbbcf2a0d0b39f --md5_method=SCENE
@@ -201,7 +242,9 @@ add_test(import_ply_small_holes ${TEST_BLENDER_EXE}
 # PLY Export
 # disabled until updated & working
 if(FALSE)
-add_test(export_ply_cube_all_data ${TEST_BLENDER_EXE}
+add_test(
+	NAME export_ply_cube_all_data
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/io_tests/blend_geometry/cube_all_data.blend
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_mesh.ply\(filepath='${TEST_OUT_DIR}/export_ply_cube_all_data.ply'\)
@@ -209,7 +252,9 @@ add_test(export_ply_cube_all_data ${TEST_BLENDER_EXE}
 	--md5=6adc3748ceae8298496f99d0e7e76c15 --md5_method=FILE
 )
 
-add_test(export_ply_suzanne_all_data ${TEST_BLENDER_EXE}
+add_test(
+	NAME export_ply_suzanne_all_data
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/io_tests/blend_geometry/suzanne_all_data.blend
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_mesh.ply\(filepath='${TEST_OUT_DIR}/export_ply_suzanne_all_data.ply'\)
@@ -218,7 +263,9 @@ add_test(export_ply_suzanne_all_data ${TEST_BLENDER_EXE}
 )
 endif()
 
-add_test(export_ply_vertices ${TEST_BLENDER_EXE}  # lame, add a better one
+add_test(
+	NAME export_ply_vertices # lame, add a better one
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/io_tests/blend_geometry/vertices.blend
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_mesh.ply\(filepath='${TEST_OUT_DIR}/export_ply_vertices.ply'\)
@@ -230,21 +277,27 @@ add_test(export_ply_vertices ${TEST_BLENDER_EXE}  # lame, add a better one
 # STL Import tests
 # disabled until updated & working
 if(FALSE)
-add_test(import_stl_cube ${TEST_BLENDER_EXE}
+add_test(
+	NAME import_stl_cube
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_mesh.stl\(filepath='${TEST_SRC_DIR}/io_tests/stl/cube.stl'\)
 	--md5=8ceb5bb7e1cb5f4342fa1669988c66b4 --md5_method=SCENE
 	--write-blend=${TEST_OUT_DIR}/import_stl_cube.blend
 )
 
-add_test(import_stl_conrod ${TEST_BLENDER_EXE}
+add_test(
+	NAME import_stl_conrod
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_mesh.stl\(filepath='${TEST_SRC_DIR}/io_tests/stl/conrod.stl'\)
 	--md5=690a4b8eb9002dcd8631c5a575ea7348 --md5_method=SCENE
 	--write-blend=${TEST_OUT_DIR}/import_stl_conrod.blend
 )
 
-add_test(import_stl_knot_max_simplified ${TEST_BLENDER_EXE}
+add_test(
+	NAME import_stl_knot_max_simplified
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_mesh.stl\(filepath='${TEST_SRC_DIR}/io_tests/stl/knot_max_simplified.stl'\)
 	--md5=baf82803f45a84ec4ddbad9cef57dd3e --md5_method=SCENE
@@ -255,7 +308,9 @@ endif()
 # STL Export
 # disabled until updated & working
 if(FALSE)
-add_test(export_stl_cube_all_data ${TEST_BLENDER_EXE}
+add_test(
+	NAME export_stl_cube_all_data
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/io_tests/blend_geometry/cube_all_data.blend
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_mesh.stl\(filepath='${TEST_OUT_DIR}/export_stl_cube_all_data.stl'\)
@@ -263,7 +318,9 @@ add_test(export_stl_cube_all_data ${TEST_BLENDER_EXE}
 	--md5=64cb97c0cabb015e1c3f76369835075a --md5_method=FILE
 )
 
-add_test(export_stl_suzanne_all_data ${TEST_BLENDER_EXE}
+add_test(
+	NAME export_stl_suzanne_all_data
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/io_tests/blend_geometry/suzanne_all_data.blend
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_mesh.stl\(filepath='${TEST_OUT_DIR}/export_stl_suzanne_all_data.stl'\)
@@ -271,7 +328,9 @@ add_test(export_stl_suzanne_all_data ${TEST_BLENDER_EXE}
 	--md5=e9b23c97c139ad64961c635105bb9192 --md5_method=FILE
 )
 
-add_test(export_stl_vertices ${TEST_BLENDER_EXE}  # lame, add a better one
+add_test(
+	NAME export_stl_vertices # lame, add a better one
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/io_tests/blend_geometry/vertices.blend
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_mesh.stl\(filepath='${TEST_OUT_DIR}/export_stl_vertices.stl'\)
@@ -284,21 +343,27 @@ endif()
 # X3D Import
 # disabled until updated & working
 if(FALSE)
-add_test(import_x3d_cube ${TEST_BLENDER_EXE}
+add_test(
+	NAME import_x3d_cube
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_scene.x3d\(filepath='${TEST_SRC_DIR}/io_tests/x3d/color_cube.x3d'\)
 	--md5=3fae9be004199c145941cd3f9f80ad7b --md5_method=SCENE
 	--write-blend=${TEST_OUT_DIR}/import_x3d_cube.blend
 )
 
-add_test(import_x3d_teapot ${TEST_BLENDER_EXE}
+add_test(
+	NAME import_x3d_teapot
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_scene.x3d\(filepath='${TEST_SRC_DIR}/io_tests/x3d/teapot.x3d'\)
 	--md5=8ee196c71947dce4199d55698501691e --md5_method=SCENE
 	--write-blend=${TEST_OUT_DIR}/import_x3d_teapot.blend
 )
 
-add_test(import_x3d_suzanne_material ${TEST_BLENDER_EXE}
+add_test(
+	NAME import_x3d_suzanne_material
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_scene.x3d\(filepath='${TEST_SRC_DIR}/io_tests/x3d/suzanne_material.x3d'\)
 	--md5=3edea1353257d8b5a5f071942f417be6 --md5_method=SCENE
@@ -306,7 +371,9 @@ add_test(import_x3d_suzanne_material ${TEST_BLENDER_EXE}
 )
 
 # X3D Export
-add_test(export_x3d_cube ${TEST_BLENDER_EXE}
+add_test(
+	NAME export_x3d_cube
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/io_tests/blend_geometry/all_quads.blend
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.x3d\(filepath='${TEST_OUT_DIR}/export_x3d_cube.x3d',use_selection=False\)
@@ -314,7 +381,9 @@ add_test(export_x3d_cube ${TEST_BLENDER_EXE}
 	--md5=05312d278fe41da33560fdfb9bdb268f --md5_method=FILE
 )
 
-add_test(export_x3d_nurbs ${TEST_BLENDER_EXE}
+add_test(
+	NAME export_x3d_nurbs
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/io_tests/blend_geometry/nurbs.blend
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.x3d\(filepath='${TEST_OUT_DIR}/export_x3d_nurbs.x3d',use_selection=False\)
@@ -322,7 +391,9 @@ add_test(export_x3d_nurbs ${TEST_BLENDER_EXE}
 	--md5=4286d4a2aa507ef78b22ddcbdcc88481 --md5_method=FILE
 )
 
-add_test(export_x3d_all_objects ${TEST_BLENDER_EXE}
+add_test(
+	NAME export_x3d_all_objects
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/io_tests/blend_scene/all_objects.blend
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.x3d\(filepath='${TEST_OUT_DIR}/export_x3d_all_objects.x3d',use_selection=False\)
@@ -336,21 +407,27 @@ endif()
 # 3DS Import
 # disabled until updated & working
 if(FALSE)
-add_test(import_3ds_cube ${TEST_BLENDER_EXE}
+add_test(
+	NAME import_3ds_cube
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_scene.autodesk_3ds\(filepath='${TEST_SRC_DIR}/io_tests/3ds/cube.3ds'\)
 	--md5=cb5a45c35a343c3f5beca2a918472951 --md5_method=SCENE
 	--write-blend=${TEST_OUT_DIR}/import_3ds_cube.blend
 )
 
-add_test(import_3ds_hierarchy_lara ${TEST_BLENDER_EXE}
+add_test(
+	NAME import_3ds_hierarchy_lara
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_scene.autodesk_3ds\(filepath='${TEST_SRC_DIR}/io_tests/3ds/hierarchy_lara.3ds'\)
 	--md5=766c873d9fdb5f190e43796cfbae63b6 --md5_method=SCENE
 	--write-blend=${TEST_OUT_DIR}/import_3ds_hierarchy_lara.blend
 )
 
-add_test(import_3ds_hierarchy_greek_trireme ${TEST_BLENDER_EXE}
+add_test(
+	NAME import_3ds_hierarchy_greek_trireme
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.import_scene.autodesk_3ds\(filepath='${TEST_SRC_DIR}/io_tests/3ds/hierarchy_greek_trireme.3ds'\)
 	--md5=b62ee30101e8999cb91ef4f8a8760056 --md5_method=SCENE
@@ -361,7 +438,9 @@ endif()
 # 3DS Export
 # disabled until updated & working
 if(FALSE)
-add_test(export_3ds_cube ${TEST_BLENDER_EXE}
+add_test(
+	NAME export_3ds_cube
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/io_tests/blend_geometry/all_quads.blend
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.autodesk_3ds\(filepath='${TEST_OUT_DIR}/export_3ds_cube.3ds',use_selection=False\)
@@ -369,7 +448,9 @@ add_test(export_3ds_cube ${TEST_BLENDER_EXE}
 	--md5=a31f5071b6c6dc7445b9099cdc7f63b3 --md5_method=FILE
 )
 
-add_test(export_3ds_nurbs ${TEST_BLENDER_EXE}
+add_test(
+	NAME export_3ds_nurbs
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/io_tests/blend_geometry/nurbs.blend
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.autodesk_3ds\(filepath='${TEST_OUT_DIR}/export_3ds_nurbs.3ds',use_selection=False\)
@@ -377,7 +458,9 @@ add_test(export_3ds_nurbs ${TEST_BLENDER_EXE}
 	--md5=5bdd21be3c80d814fbc83cb25edb08c2 --md5_method=FILE
 )
 
-add_test(export_3ds_all_objects ${TEST_BLENDER_EXE}
+add_test(
+	NAME export_3ds_all_objects
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/io_tests/blend_scene/all_objects.blend
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.autodesk_3ds\(filepath='${TEST_OUT_DIR}/export_3ds_all_objects.3ds',use_selection=False\)
@@ -392,7 +475,9 @@ endif()
 # 'use_metadata=False' for reliable md5's
 # disabled until updated & working
 if(FALSE)
-add_test(export_fbx_cube ${TEST_BLENDER_EXE}
+add_test(
+	NAME export_fbx_cube
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/io_tests/blend_geometry/all_quads.blend
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.fbx\(filepath='${TEST_OUT_DIR}/export_fbx_cube.fbx',use_selection=False,use_metadata=False\)
@@ -400,7 +485,9 @@ add_test(export_fbx_cube ${TEST_BLENDER_EXE}
 	--md5=59a35577462f95f9a0b4e6035226ce9b --md5_method=FILE
 )
 
-add_test(export_fbx_nurbs ${TEST_BLENDER_EXE}
+add_test(
+	NAME export_fbx_nurbs
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/io_tests/blend_geometry/nurbs.blend
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.fbx\(filepath='${TEST_OUT_DIR}/export_fbx_nurbs.fbx',use_selection=False,use_metadata=False\)
@@ -408,7 +495,9 @@ add_test(export_fbx_nurbs ${TEST_BLENDER_EXE}
 	--md5=d31875f18f613fa0c3b16e978f87f6f8 --md5_method=FILE
 )
 
-add_test(export_fbx_all_objects ${TEST_BLENDER_EXE}
+add_test(
+	NAME export_fbx_all_objects
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/io_tests/blend_scene/all_objects.blend
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.fbx\(filepath='${TEST_OUT_DIR}/export_fbx_all_objects.fbx',use_selection=False,use_metadata=False\)
@@ -421,7 +510,8 @@ if(WITH_CYCLES)
 	if(OPENIMAGEIO_IDIFF AND EXISTS "${TEST_SRC_DIR}/cycles/ctests/shader")
 		macro(add_cycles_render_test subject)
 			if(MSVC)
-				add_test(NAME cycles_${subject}_test
+				add_test(
+					NAME cycles_${subject}_test
 					COMMAND
 						"$<TARGET_FILE_DIR:blender>/${BLENDER_VERSION_MAJOR}.${BLENDER_VERSION_MINOR}/python/bin/python$<$<CONFIG:Debug>:_d>"
 						${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
@@ -430,9 +520,10 @@ if(WITH_CYCLES)
 					-idiff "${OPENIMAGEIO_IDIFF}"
 				)
 			else()
-				add_test(cycles_${subject}_test
-					 ${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
-					-blender "${TEST_BLENDER_EXE_BARE}"
+				add_test(
+					NAME cycles_${subject}_test
+					COMMAND ${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
+					-blender "$<TARGET_FILE:blender>"
 					-testdir "${TEST_SRC_DIR}/cycles/ctests/${subject}"
 					-idiff "${OPENIMAGEIO_IDIFF}"
 				)
@@ -460,7 +551,9 @@ if(WITH_ALEMBIC)
 	get_filename_component(ALEMBIC_ROOT_DIR ${real_include_dir} DIRECTORY)
 
 	if(MSVC)
-		add_test(NAME alembic_tests
+		# FIXME, de-duplicate.
+		add_test(
+			NAME alembic_tests
 			COMMAND
 				"$<TARGET_FILE_DIR:blender>/${BLENDER_VERSION_MAJOR}.${BLENDER_VERSION_MINOR}/python/bin/python$<$<CONFIG:Debug>:_d>"
 				${CMAKE_CURRENT_LIST_DIR}/alembic_tests.py
@@ -468,30 +561,24 @@ if(WITH_ALEMBIC)
 			--testdir "${TEST_SRC_DIR}/alembic"
 			--alembic-root "${ALEMBIC_ROOT_DIR}"
 		)
-		add_test(NAME script_alembic_import
-			COMMAND
-			"$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
-		--python ${CMAKE_CURRENT_LIST_DIR}/bl_alembic_import_test.py
-		--
-		--testdir "${TEST_SRC_DIR}/alembic"
-		--with-legacy-depsgraph=${WITH_LEGACY_DEPSGRAPH}
-		)
-
 	else()
-		add_test(alembic_tests
-			${CMAKE_CURRENT_LIST_DIR}/alembic_tests.py
-			--blender "${TEST_BLENDER_EXE_BARE}"
+		add_test(
+			NAME alembic_tests
+			COMMAND ${CMAKE_CURRENT_LIST_DIR}/alembic_tests.py
+			--blender "$<TARGET_FILE:blender>"
 			--testdir "${TEST_SRC_DIR}/alembic"
 			--alembic-root "${ALEMBIC_ROOT_DIR}"
 		)
-		add_test(script_alembic_import ${TEST_BLENDER_EXE}
+	endif()
+
+	add_test(
+		NAME script_alembic_import
+		COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 		--python ${CMAKE_CURRENT_LIST_DIR}/bl_alembic_import_test.py
 		--
 		--testdir "${TEST_SRC_DIR}/alembic"
 		--with-legacy-depsgraph=${WITH_LEGACY_DEPSGRAPH}
-		)
-
-	endif()
+	)
 endif()
 
 add_subdirectory(render_layer)
