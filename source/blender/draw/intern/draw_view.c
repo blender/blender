@@ -728,5 +728,29 @@ void DRW_draw_manipulator(void)
 	/* draw depth culled manipulators - manipulators need to be updated *after* view matrix was set up */
 	/* TODO depth culling manipulators is not yet supported, just drawing _3D here, should
 	 * later become _IN_SCENE (and draw _3D separate) */
-	WM_manipulatormap_draw(ar->manipulator_map, draw_ctx->evil_C, WM_MANIPULATORMAP_DRAWSTEP_3D);
+	WM_manipulatormap_draw(
+	        ar->manipulator_map, draw_ctx->evil_C,
+	        WM_MANIPULATORMAP_DRAWSTEP_3D);
+
+	/* We may want to split this into a separate pass.
+	 * or maintain a stage in the draw manager where all pixel-space drawing happens. */
+	{
+		float original_proj[4][4];
+		gpuGetProjectionMatrix(original_proj);
+		wmOrtho2_region_pixelspace(ar);
+
+		gpuPushMatrix();
+		gpuLoadIdentity();
+
+		glDepthMask(GL_FALSE);
+
+		WM_manipulatormap_draw(
+		        ar->manipulator_map, draw_ctx->evil_C,
+		        WM_MANIPULATORMAP_DRAWSTEP_2D);
+
+		glDepthMask(GL_TRUE);
+
+		gpuPopMatrix();
+		gpuLoadProjectionMatrix(original_proj);
+	}
 }

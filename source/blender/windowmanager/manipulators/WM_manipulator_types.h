@@ -206,7 +206,6 @@ typedef struct wmManipulatorProperty {
 		wmManipulatorPropertyFnSet value_set_fn;
 		wmManipulatorPropertyFnRangeGet range_get_fn;
 		wmManipulatorPropertyFnFree free_fn;
-		const struct bContext *context;
 		void *user_data;
 	} custom_func;
 } wmManipulatorProperty;
@@ -376,5 +375,6 @@ typedef enum eWM_ManipulatorMapDrawStep {
 	 * Note that these are expected to be 3D manipulators too. */
 	WM_MANIPULATORMAP_DRAWSTEP_IN_SCENE,
 } eWM_ManipulatorMapDrawStep;
+#define WM_MANIPULATORMAP_DRAWSTEP_MAX 3
 
 #endif  /* __WM_MANIPULATOR_TYPES_H__ */

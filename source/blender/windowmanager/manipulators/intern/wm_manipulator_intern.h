@@ -97,7 +97,7 @@ struct wmManipulatorMap {
 	ListBase groups;  /* wmManipulatorGroup */
 
 	/* private, update tagging (enum defined in C source). */
-	char update_flag;
+	char update_flag[WM_MANIPULATORMAP_DRAWSTEP_MAX];
 
 	/**
 	 * \brief Manipulator map runtime context

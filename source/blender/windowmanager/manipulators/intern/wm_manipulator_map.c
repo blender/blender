@@ -167,7 +167,7 @@ wmManipulatorMap *WM_manipulatormap_new_from_type(
 
 	mmap = MEM_callocN(sizeof(wmManipulatorMap), "ManipulatorMap");
 	mmap->type = mmap_type;
-	mmap->update_flag = MANIPULATORMAP_IS_PREPARE_DRAW | MANIPULATORMAP_IS_REFRESH_CALLBACK;
+	WM_manipulatormap_tag_refresh(mmap);
 
 	/* create all manipulator-groups for this manipulator-map. We may create an empty one
 	 * too in anticipation of manipulators from operators etc */
@@ -259,15 +259,19 @@ static GHash *WM_manipulatormap_manipulator_hash_new(
 void WM_manipulatormap_tag_refresh(wmManipulatorMap *mmap)
 {
 	if (mmap) {
-		mmap->update_flag |= (
-		        MANIPULATORMAP_IS_PREPARE_DRAW |
-		        MANIPULATORMAP_IS_REFRESH_CALLBACK);
+		/* We might want only to refresh some, for tag all steps. */
+		for (int i = 0; i < WM_MANIPULATORMAP_DRAWSTEP_MAX; i++) {
+			mmap->update_flag[i] |= (
+			        MANIPULATORMAP_IS_PREPARE_DRAW |
+			        MANIPULATORMAP_IS_REFRESH_CALLBACK);
+		}
 	}
 }
 
 static bool manipulator_prepare_drawing(
         wmManipulatorMap *mmap, wmManipulator *mpr,
-        const bContext *C, ListBase *draw_manipulators)
+        const bContext *C, ListBase *draw_manipulators,
+        const eWM_ManipulatorMapDrawStep drawstep)
 {
 	int do_draw = wm_manipulator_is_visible(mpr);
 	if (do_draw == 0) {
@@ -276,7 +280,7 @@ static bool manipulator_prepare_drawing(
 	else {
 		if (do_draw & WM_MANIPULATOR_IS_VISIBLE_UPDATE) {
 			/* hover manipulators need updating, even if we don't draw them */
-			wm_manipulator_update(mpr, C, (mmap->update_flag & MANIPULATORMAP_IS_PREPARE_DRAW) != 0);
+			wm_manipulator_update(mpr, C, (mmap->update_flag[drawstep] & MANIPULATORMAP_IS_PREPARE_DRAW) != 0);
 		}
 		if (do_draw & WM_MANIPULATOR_IS_VISIBLE_DRAW) {
 			BLI_addhead(draw_manipulators, BLI_genericNodeN(mpr));
@@ -302,8 +306,8 @@ static void manipulatormap_prepare_drawing(
 	/* only active manipulator needs updating */
 	if (mpr_modal) {
 		if ((mpr_modal->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_DRAW_MODAL_ALL) == 0) {
-			if (manipulator_prepare_drawing(mmap, mpr_modal, C, draw_manipulators)) {
-				mmap->update_flag &= ~MANIPULATORMAP_IS_PREPARE_DRAW;
+			if (manipulator_prepare_drawing(mmap, mpr_modal, C, draw_manipulators, drawstep)) {
+				mmap->update_flag[drawstep] &= ~MANIPULATORMAP_IS_PREPARE_DRAW;
 			}
 			/* don't draw any other manipulators */
 			return;
@@ -322,7 +326,7 @@ static void manipulatormap_prepare_drawing(
 		wm_manipulatorgroup_ensure_initialized(mgroup, C);
 		/* update data if needed */
 		/* XXX weak: Manipulator-group may skip refreshing if it's invisible (map gets untagged nevertheless) */
-		if ((mmap->update_flag & MANIPULATORMAP_IS_REFRESH_CALLBACK) && mgroup->type->refresh) {
+		if ((mmap->update_flag[drawstep] & MANIPULATORMAP_IS_REFRESH_CALLBACK) && mgroup->type->refresh) {
 			mgroup->type->refresh(C, mgroup);
 			/* cleared below */
 		}
@@ -332,11 +336,11 @@ static void manipulatormap_prepare_drawing(
 		}
 
 		for (wmManipulator *mpr = mgroup->manipulators.first; mpr; mpr = mpr->next) {
-			manipulator_prepare_drawing(mmap, mpr, C, draw_manipulators);
+			manipulator_prepare_drawing(mmap, mpr, C, draw_manipulators, drawstep);
 		}
 	}
 
-	mmap->update_flag &=
+	mmap->update_flag[drawstep] &=
 	        ~(MANIPULATORMAP_IS_REFRESH_CALLBACK |
 	          MANIPULATORMAP_IS_PREPARE_DRAW);
 }
@@ -551,24 +555,39 @@ wmManipulator *wm_manipulatormap_highlight_find(
 	for (wmManipulatorGroup *mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
 		if (wm_manipulatorgroup_is_visible(mgroup, C)) {
 			if (mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) {
-				if ((mmap->update_flag & MANIPULATORMAP_IS_REFRESH_CALLBACK) && mgroup->type->refresh) {
+				if ((mmap->update_flag[WM_MANIPULATORMAP_DRAWSTEP_3D] & MANIPULATORMAP_IS_REFRESH_CALLBACK) &&
+				    mgroup->type->refresh)
+				{
 					mgroup->type->refresh(C, mgroup);
 					/* cleared below */
 				}
 				wm_manipulatorgroup_intersectable_manipulators_to_list(mgroup, &visible_3d_manipulators);
 			}
-			else if ((mpr = wm_manipulatorgroup_find_intersected_mainpulator(mgroup, C, event, r_part))) {
-				break;
+			else {
+				if ((mmap->update_flag[WM_MANIPULATORMAP_DRAWSTEP_2D] & MANIPULATORMAP_IS_REFRESH_CALLBACK) &&
+				    mgroup->type->refresh)
+				{
+					mgroup->type->refresh(C, mgroup);
+					/* cleared below */
+				}
+
+				if ((mpr = wm_manipulatorgroup_find_intersected_mainpulator(mgroup, C, event, r_part))) {
+					break;
+				}
 			}
 		}
 	}
 
 	if (!BLI_listbase_is_empty(&visible_3d_manipulators)) {
-		mpr = manipulator_find_intersected_3d(C, event->mval, &visible_3d_manipulators, r_part);
+		/* 2D manipulators get priority. */
+		if (mpr == NULL) {
+			mpr = manipulator_find_intersected_3d(C, event->mval, &visible_3d_manipulators, r_part);
+		}
 		BLI_freelistN(&visible_3d_manipulators);
 	}
 
-	mmap->update_flag &= ~MANIPULATORMAP_IS_REFRESH_CALLBACK;
+	mmap->update_flag[WM_MANIPULATORMAP_DRAWSTEP_3D] &= ~MANIPULATORMAP_IS_REFRESH_CALLBACK;
+	mmap->update_flag[WM_MANIPULATORMAP_DRAWSTEP_2D] &= ~MANIPULATORMAP_IS_REFRESH_CALLBACK;
 
 	return mpr;
 }
