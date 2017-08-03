@@ -483,12 +483,14 @@ static void manipulator_rect_transform_modal(
         eWM_ManipulatorTweak UNUSED(tweak_flag))
 {
 	const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
-	const bool use_clamp = (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) == 0;
 	const bool pivot_center = (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_TRANSLATE) == 0;
 	RectTransformInteraction *data = mpr->interaction_data;
+#if 0
 	/* needed here as well in case clamping occurs */
+	const bool use_clamp = (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) == 0;
 	const float orig_ofx = mpr->matrix_offset[3][0];
 	const float orig_ofy = mpr->matrix_offset[3][1];
+#endif
 
 	float point_local[2];
 
@@ -551,14 +553,14 @@ static void manipulator_rect_transform_modal(
 		BLI_assert(0);
 	}
 
+	/* TODO(campbell): Complicates things too much since not all scales are in the same space. */
+#if 0
 	/* clamping - make sure manipulator is at least 5 pixels wide */
 	if (use_clamp == false) {
 		/* pass */
 	}
 	else if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
-		if (scale[0] < MANIPULATOR_RECT_MIN_WIDTH / dims[1] ||
-		    scale[0] < MANIPULATOR_RECT_MIN_WIDTH / dims[0])
-		{
+		if (scale[0] < MANIPULATOR_RECT_MIN_WIDTH / max_ff(dims[0], dims[1])) {
 			scale[0] = max_ff(MANIPULATOR_RECT_MIN_WIDTH / dims[1], MANIPULATOR_RECT_MIN_WIDTH / dims[0]);
 			mpr->matrix_offset[3][0] = orig_ofx;
 			mpr->matrix_offset[3][1] = orig_ofy;
@@ -574,6 +576,7 @@ static void manipulator_rect_transform_modal(
 			mpr->matrix_offset[3][1] = orig_ofy;
 		}
 	}
+#endif
 
 	{
 		wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "scale");

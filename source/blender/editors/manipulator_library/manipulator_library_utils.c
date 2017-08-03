@@ -172,19 +172,20 @@ bool manipulator_window_project_2d(
         bContext *C, const struct wmManipulator *mpr, const float mval[2], int axis, bool use_offset,
         float r_co[2])
 {
+	float mat[4][4];
+	if (use_offset) {
+		mul_m4_m4m4(mat, mpr->matrix_basis, mpr->matrix_offset);
+	}
+	else {
+		copy_m4_m4(mat, mpr->matrix_basis);
+	}
+
 	/* rotate mouse in relation to the center and relocate it */
 	if (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) {
 		/* For 3d views, transform 2D mouse pos onto plane. */
 		View3D *v3d = CTX_wm_view3d(C);
 		ARegion *ar = CTX_wm_region(C);
 
-		float mat[4][4];
-		if (use_offset) {
-			mul_m4_m4m4(mat, mpr->matrix_basis, mpr->matrix_offset);
-		}
-		else {
-			copy_m4_m4(mat, mpr->matrix_basis);
-		}
 		float plane[4];
 
 		plane_from_point_normal_v3(plane, mat[3], mat[2]);
@@ -207,11 +208,11 @@ bool manipulator_window_project_2d(
 		return false;
 	}
 	else {
-		sub_v2_v2v2(r_co, mval, mpr->matrix_basis[3]);
-		if (use_offset) {
-			r_co[0] -= mpr->matrix_offset[3][0];
-			r_co[1] -= mpr->matrix_offset[3][1];
-		}
+		float co[3] = {mval[0], mval[1], 0.0f};
+		float imat[4][4];
+		invert_m4_m4(imat, mat);
+		mul_m4_v3(imat, co);
+		copy_v2_v2(r_co, co);
 		return true;
 	}
 }

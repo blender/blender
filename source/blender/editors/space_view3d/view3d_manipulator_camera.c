@@ -250,11 +250,10 @@ static void manipulator_render_border_prop_size_get(
 	float *value = value_p;
 	BLI_assert(mpr_prop->type->array_length == 2);
 	struct CameraViewWidgetGroup *viewgroup = mpr_prop->custom_func.user_data;
-	const rctf *view_border = &viewgroup->state.view_border;
 	const rctf *border = viewgroup->state.edit_border;
 
-	value[0] = BLI_rctf_size_x(border) * BLI_rctf_size_x(view_border);
-	value[1] = BLI_rctf_size_y(border) * BLI_rctf_size_y(view_border);
+	value[0] = BLI_rctf_size_x(border);
+	value[1] = BLI_rctf_size_y(border);
 }
 
 static void manipulator_render_border_prop_size_set(
@@ -263,14 +262,10 @@ static void manipulator_render_border_prop_size_set(
 {
 	const float *value = value_p;
 	struct CameraViewWidgetGroup *viewgroup = mpr_prop->custom_func.user_data;
-	const rctf *view_border = &viewgroup->state.view_border;
 	rctf *border = viewgroup->state.edit_border;
 	BLI_assert(mpr_prop->type->array_length == 2);
 
-	BLI_rctf_resize(
-	        border,
-	        value[0] / BLI_rctf_size_x(view_border),
-	        value[1] / BLI_rctf_size_y(view_border));
+	BLI_rctf_resize(border, value[0], value[1]);
 	BLI_rctf_isect(&(rctf){.xmin = 0, .ymin = 0, .xmax = 1, .ymax = 1}, border, border);
 }
 
@@ -282,11 +277,10 @@ static void manipulator_render_border_prop_offset_get(
 	float *value = value_p;
 	BLI_assert(mpr_prop->type->array_length == 2);
 	struct CameraViewWidgetGroup *viewgroup = mpr_prop->custom_func.user_data;
-	const rctf *view_border = &viewgroup->state.view_border;
 	const rctf *border = viewgroup->state.edit_border;
 
-	value[0] = (BLI_rctf_cent_x(border) * BLI_rctf_size_x(view_border)) + view_border->xmin;
-	value[1] = (BLI_rctf_cent_y(border) * BLI_rctf_size_y(view_border)) + view_border->ymin;
+	value[0] = BLI_rctf_cent_x(border);
+	value[1] = BLI_rctf_cent_y(border);
 }
 
 static void manipulator_render_border_prop_offset_set(
@@ -295,15 +289,11 @@ static void manipulator_render_border_prop_offset_set(
 {
 	const float *value = value_p;
 	struct CameraViewWidgetGroup *viewgroup = mpr_prop->custom_func.user_data;
-	const rctf *view_border = &viewgroup->state.view_border;
 	rctf *border = viewgroup->state.edit_border;
 
 	BLI_assert(mpr_prop->type->array_length == 2);
 
-	BLI_rctf_recenter(
-	        border,
-	        (value[0] - view_border->xmin) / BLI_rctf_size_x(view_border),
-	        (value[1] - view_border->ymin) / BLI_rctf_size_y(view_border));
+	BLI_rctf_recenter(border, value[0], value[1]);
 	BLI_rctf_isect(&(rctf){.xmin = 0, .ymin = 0, .xmax = 1, .ymax = 1}, border, border);
 }
 
@@ -343,14 +333,21 @@ static void WIDGETGROUP_camera_view_draw_prepare(const bContext *C, wmManipulato
 
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = ar->regiondata;
-	View3D *v3d = CTX_wm_view3d(C);
 	if (rv3d->persp == RV3D_CAMOB) {
 		Scene *scene = CTX_data_scene(C);
+		View3D *v3d = CTX_wm_view3d(C);
 		ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &viewgroup->state.view_border, false);
 	}
 	else {
 		viewgroup->state.view_border = (rctf){.xmin = 0, .ymin = 0, .xmax = ar->winx, .ymax = ar->winy};
 	}
+
+	wmManipulator *mpr = viewgroup->border;
+	unit_m4(mpr->matrix_basis);
+	mul_v3_fl(mpr->matrix_basis[0], BLI_rctf_size_x(&viewgroup->state.view_border));
+	mul_v3_fl(mpr->matrix_basis[1], BLI_rctf_size_y(&viewgroup->state.view_border));
+	mpr->matrix_basis[3][0] = viewgroup->state.view_border.xmin;
+	mpr->matrix_basis[3][1] = viewgroup->state.view_border.ymin;
 }
 
 static void WIDGETGROUP_camera_view_refresh(const bContext *C, wmManipulatorGroup *mgroup)
