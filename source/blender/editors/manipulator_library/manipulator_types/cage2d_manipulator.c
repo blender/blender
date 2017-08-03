@@ -514,14 +514,14 @@ static void manipulator_rect_transform_modal(
 		mpr->matrix_offset[3][1] = data->orig_offset[1] + valuey;
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT) {
-		valuex = min_ff(valuex, dims[0] * data->orig_scale[0] / (pivot_center ? 2 : 1));
+		valuex = min_ff(valuex, (dims[0] * data->orig_scale[0]) * (pivot_center ? 2 : 1));
 		if (pivot_center == false) {
 			mpr->matrix_offset[3][0] = data->orig_offset[0] + valuex / 2.0f;
 		}
 		scale[0] = (dims[0] * data->orig_scale[0] - valuex) / dims[0];
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT) {
-		valuex = max_ff(valuex, dims[0] * data->orig_scale[0] / (pivot_center ? -2 : -1));
+		valuex = max_ff(valuex, (dims[0] * data->orig_scale[0]) * (pivot_center ? -2 : -1));
 		if (pivot_center == false) {
 			mpr->matrix_offset[3][0] = data->orig_offset[0] + valuex / 2.0f;
 		}
@@ -529,7 +529,7 @@ static void manipulator_rect_transform_modal(
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN) {
 		int a = (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) ? 0 : 1;
-		valuey = min_ff(valuey, dims[1] * data->orig_scale[a] / (pivot_center ? 2 : 1));
+		valuey = min_ff(valuey, (dims[1] * data->orig_scale[a]) * (pivot_center ? 2 : 1));
 		if (pivot_center == false) {
 			mpr->matrix_offset[3][1] = data->orig_offset[1] + valuey / 2.0f;
 		}
@@ -537,7 +537,7 @@ static void manipulator_rect_transform_modal(
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP) {
 		int a = (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) ? 0 : 1;
-		valuey = max_ff(valuey, dims[1] * data->orig_scale[a] / (pivot_center ? -2 : -1));
+		valuey = max_ff(valuey, (dims[1] * data->orig_scale[a]) * (pivot_center ? -2 : -1));
 		if (pivot_center == false) {
 			mpr->matrix_offset[3][1] = data->orig_offset[1] + valuey / 2.0f;
 		}
