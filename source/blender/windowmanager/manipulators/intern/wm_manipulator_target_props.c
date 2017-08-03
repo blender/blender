@@ -227,17 +227,24 @@ void WM_manipulator_target_property_value_set_array(
 	RNA_property_update(C, &mpr_prop->ptr, mpr_prop->prop);
 }
 
-void WM_manipulator_target_property_range_get(
+bool WM_manipulator_target_property_range_get(
         const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
         float range[2])
 {
-	if (mpr_prop->custom_func.range_get_fn) {
-		mpr_prop->custom_func.range_get_fn(mpr, mpr_prop, range);
-		return;
+	if (mpr_prop->custom_func.value_get_fn) {
+		if (mpr_prop->custom_func.range_get_fn) {
+			mpr_prop->custom_func.range_get_fn(mpr, mpr_prop, range);
+			return true;
+		}
+		else{
+			return false;
+
+		}
 	}
 
 	float step, precision;
 	RNA_property_float_ui_range(&mpr_prop->ptr, mpr_prop->prop, &range[0], &range[1], &step, &precision);
+	return true;
 }
 
 int WM_manipulator_target_property_array_length(

@@ -579,9 +579,10 @@ static void manipulator_rect_transform_modal(
 		wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "scale");
 		if (mpr_prop->type != NULL) {
 			float range[2];
-			WM_manipulator_target_property_range_get(mpr, mpr_prop, range);
-			CLAMP(scale[0], range[0], range[1]);
-			CLAMP(scale[1], range[0], range[1]);
+			if (WM_manipulator_target_property_range_get(mpr, mpr_prop, range)) {
+				CLAMP(scale[0], range[0], range[1]);
+				CLAMP(scale[1], range[0], range[1]);
+			}
 		}
 	}
 

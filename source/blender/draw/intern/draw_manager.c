@@ -3200,7 +3200,6 @@ void DRW_draw_render_loop_ex(
 	if (DST.draw_ctx.evil_C) {
 		/* needed so manipulator isn't obscured */
 		glDisable(GL_DEPTH_TEST);
-
 		DRW_draw_manipulator();
 		glEnable(GL_DEPTH_TEST);
 

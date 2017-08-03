@@ -126,9 +126,13 @@ void manipulator_property_data_update(
 	if (constrained) {
 		if ((data->flag & MANIPULATOR_CUSTOM_RANGE_SET) == 0) {
 			float range[2];
-			WM_manipulator_target_property_range_get(mpr, mpr_prop, range);
-			data->range = range[1] - range[0];
-			data->min = range[0];
+			if (WM_manipulator_target_property_range_get(mpr, mpr_prop, range)) {
+				data->range = range[1] - range[0];
+				data->min = range[0];
+			}
+			else {
+				BLI_assert(0);
+			}
 		}
 		data->offset = manipulator_offset_from_value_constr(data->range_fac, data->min, data->range, value, inverted);
 	}

@@ -187,6 +187,7 @@ static void WIDGETGROUP_lamp_area_setup(const bContext *UNUSED(C), wmManipulator
 
 	mgroup->customdata = wwrapper;
 
+	WM_manipulator_set_flag(mpr, WM_MANIPULATOR_DRAW_HOVER, true);
 	WM_manipulator_set_color(mpr, color);
 	WM_manipulator_set_color_highlight(mpr, color_hi);
 }

@@ -227,3 +227,184 @@ void VIEW3D_WGT_camera(wmManipulatorGroupType *wgt)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+
+/** \name CameraView Manipulators
+ * \{ */
+
+struct CameraViewWidgetGroup {
+	wmManipulator *border;
+
+	struct {
+		rctf *edit_border;
+		rctf view_border;
+	} state;
+};
+
+/* scale callbacks */
+static void manipulator_render_border_prop_size_get(
+        const wmManipulator *UNUSED(mpr), wmManipulatorProperty *mpr_prop,
+        void *value_p)
+{
+	float *value = value_p;
+	BLI_assert(mpr_prop->type->array_length == 2);
+	struct CameraViewWidgetGroup *viewgroup = mpr_prop->custom_func.user_data;
+	const rctf *view_border = &viewgroup->state.view_border;
+	const rctf *border = viewgroup->state.edit_border;
+
+	value[0] = BLI_rctf_size_x(border) * BLI_rctf_size_x(view_border);
+	value[1] = BLI_rctf_size_y(border) * BLI_rctf_size_y(view_border);
+}
+
+static void manipulator_render_border_prop_size_set(
+        const wmManipulator *UNUSED(mpr), wmManipulatorProperty *mpr_prop,
+        const void *value_p)
+{
+	const float *value = value_p;
+	struct CameraViewWidgetGroup *viewgroup = mpr_prop->custom_func.user_data;
+	const rctf *view_border = &viewgroup->state.view_border;
+	rctf *border = viewgroup->state.edit_border;
+	BLI_assert(mpr_prop->type->array_length == 2);
+
+	BLI_rctf_resize(
+	        border,
+	        value[0] / BLI_rctf_size_x(view_border),
+	        value[1] / BLI_rctf_size_y(view_border));
+	BLI_rctf_isect(&(rctf){.xmin = 0, .ymin = 0, .xmax = 1, .ymax = 1}, border, border);
+}
+
+/* offset callbacks */
+static void manipulator_render_border_prop_offset_get(
+        const wmManipulator *UNUSED(mpr), wmManipulatorProperty *mpr_prop,
+        void *value_p)
+{
+	float *value = value_p;
+	BLI_assert(mpr_prop->type->array_length == 2);
+	struct CameraViewWidgetGroup *viewgroup = mpr_prop->custom_func.user_data;
+	const rctf *view_border = &viewgroup->state.view_border;
+	const rctf *border = viewgroup->state.edit_border;
+
+	value[0] = (BLI_rctf_cent_x(border) * BLI_rctf_size_x(view_border)) + view_border->xmin;
+	value[1] = (BLI_rctf_cent_y(border) * BLI_rctf_size_y(view_border)) + view_border->ymin;
+}
+
+static void manipulator_render_border_prop_offset_set(
+        const wmManipulator *UNUSED(mpr), wmManipulatorProperty *mpr_prop,
+        const void *value_p)
+{
+	const float *value = value_p;
+	struct CameraViewWidgetGroup *viewgroup = mpr_prop->custom_func.user_data;
+	const rctf *view_border = &viewgroup->state.view_border;
+	rctf *border = viewgroup->state.edit_border;
+
+	BLI_assert(mpr_prop->type->array_length == 2);
+
+	BLI_rctf_recenter(
+	        border,
+	        (value[0] - view_border->xmin) / BLI_rctf_size_x(view_border),
+	        (value[1] - view_border->ymin) / BLI_rctf_size_y(view_border));
+	BLI_rctf_isect(&(rctf){.xmin = 0, .ymin = 0, .xmax = 1, .ymax = 1}, border, border);
+}
+
+static bool WIDGETGROUP_camera_view_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
+{
+	ARegion *ar = CTX_wm_region(C);
+	RegionView3D *rv3d = ar->regiondata;
+	Scene *scene = CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+
+	if (rv3d->persp == RV3D_CAMOB) {
+		if (scene->r.mode & R_BORDER) {
+			return true;
+		}
+	}
+	else if (v3d->flag2 & V3D_RENDER_BORDER) {
+		return true;
+	}
+	return false;
+}
+
+static void WIDGETGROUP_camera_view_setup(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
+{
+	struct CameraViewWidgetGroup *viewgroup = MEM_mallocN(sizeof(struct CameraViewWidgetGroup), __func__);
+
+	viewgroup->border = WM_manipulator_new("MANIPULATOR_WT_cage_2d", mgroup, NULL);
+
+	RNA_enum_set(viewgroup->border->ptr, "transform",
+	             ED_MANIPULATOR_RECT_TRANSFORM_FLAG_TRANSLATE | ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE);
+
+	mgroup->customdata = viewgroup;
+}
+
+static void WIDGETGROUP_camera_view_draw_prepare(const bContext *C, wmManipulatorGroup *mgroup)
+{
+	struct CameraViewWidgetGroup *viewgroup = mgroup->customdata;
+
+	ARegion *ar = CTX_wm_region(C);
+	RegionView3D *rv3d = ar->regiondata;
+	Scene *scene = CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &viewgroup->state.view_border, false);
+}
+
+static void WIDGETGROUP_camera_view_refresh(const bContext *C, wmManipulatorGroup *mgroup)
+{
+	struct CameraViewWidgetGroup *viewgroup = mgroup->customdata;
+
+	View3D *v3d = CTX_wm_view3d(C);
+	ARegion *ar = CTX_wm_region(C);
+	RegionView3D *rv3d = ar->regiondata;
+	Scene *scene = CTX_data_scene(C);
+
+	{
+		wmManipulator *mpr = viewgroup->border;
+		WM_manipulator_set_flag(mpr, WM_MANIPULATOR_HIDDEN, false);
+		WM_manipulator_set_flag(mpr, WM_MANIPULATOR_DRAW_HOVER, true);
+
+		RNA_enum_set(viewgroup->border->ptr, "transform",
+		             ED_MANIPULATOR_RECT_TRANSFORM_FLAG_TRANSLATE | ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE);
+
+		if (rv3d->persp == RV3D_CAMOB) {
+			viewgroup->state.edit_border = &scene->r.border;
+		}
+		else {
+			viewgroup->state.edit_border = &v3d->render_border;
+		}
+
+		WM_manipulator_target_property_def_func(
+		        mpr, "offset",
+		        &(const struct wmManipulatorPropertyFnParams) {
+		            .value_get_fn = manipulator_render_border_prop_offset_get,
+		            .value_set_fn = manipulator_render_border_prop_offset_set,
+		            .range_get_fn = NULL,
+		            .user_data = viewgroup,
+		        });
+
+		WM_manipulator_target_property_def_func(
+		        mpr, "scale",
+		        &(const struct wmManipulatorPropertyFnParams) {
+		            .value_get_fn = manipulator_render_border_prop_size_get,
+		            .value_set_fn = manipulator_render_border_prop_size_set,
+		            .range_get_fn = NULL,
+		            .user_data = viewgroup,
+		        });
+	}
+
+}
+
+void VIEW3D_WGT_camera_view(wmManipulatorGroupType *wgt)
+{
+	wgt->name = "Camera View Widgets";
+	wgt->idname = "VIEW3D_WGT_camera_view";
+
+	wgt->flag = (WM_MANIPULATORGROUPTYPE_PERSISTENT |
+	             WM_MANIPULATORGROUPTYPE_SCALE);
+
+	wgt->poll = WIDGETGROUP_camera_view_poll;
+	wgt->setup = WIDGETGROUP_camera_view_setup;
+	wgt->draw_prepare = WIDGETGROUP_camera_view_draw_prepare;
+	wgt->refresh = WIDGETGROUP_camera_view_refresh;
+}
+
+/** \} */

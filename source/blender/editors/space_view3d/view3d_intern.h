@@ -322,6 +322,7 @@ extern const char *view3d_context_dir[]; /* doc access */
 void VIEW3D_WGT_lamp_spot        (struct wmManipulatorGroupType *wgt);
 void VIEW3D_WGT_lamp_area        (struct wmManipulatorGroupType *wgt);
 void VIEW3D_WGT_camera           (struct wmManipulatorGroupType *wgt);
+void VIEW3D_WGT_camera_view      (struct wmManipulatorGroupType *wgt);
 void VIEW3D_WGT_force_field      (struct wmManipulatorGroupType *wgt);
 void VIEW3D_WGT_armature_facemaps(struct wmManipulatorGroupType *wgt);
 

@@ -141,6 +141,7 @@ static void grab3d_draw_intern(
 	float col[4];
 
 	BLI_assert(CTX_wm_area(C)->spacetype == SPACE_VIEW3D);
+	UNUSED_VARS_NDEBUG(C);
 
 	manipulator_color_get(mpr, highlight, col);
 
