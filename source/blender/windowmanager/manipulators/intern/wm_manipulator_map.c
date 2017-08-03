@@ -306,8 +306,10 @@ static void manipulatormap_prepare_drawing(
 	/* only active manipulator needs updating */
 	if (mpr_modal) {
 		if ((mpr_modal->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_DRAW_MODAL_ALL) == 0) {
-			if (manipulator_prepare_drawing(mmap, mpr_modal, C, draw_manipulators, drawstep)) {
-				mmap->update_flag[drawstep] &= ~MANIPULATORMAP_IS_PREPARE_DRAW;
+			if (wm_manipulatorgroup_is_visible_in_drawstep(mpr_modal->parent_mgroup, drawstep)) {
+				if (manipulator_prepare_drawing(mmap, mpr_modal, C, draw_manipulators, drawstep)) {
+					mmap->update_flag[drawstep] &= ~MANIPULATORMAP_IS_PREPARE_DRAW;
+				}
 			}
 			/* don't draw any other manipulators */
 			return;
