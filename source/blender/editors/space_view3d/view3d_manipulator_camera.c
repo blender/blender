@@ -343,9 +343,14 @@ static void WIDGETGROUP_camera_view_draw_prepare(const bContext *C, wmManipulato
 
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = ar->regiondata;
-	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &viewgroup->state.view_border, false);
+	if (rv3d->persp == RV3D_CAMOB) {
+		Scene *scene = CTX_data_scene(C);
+		ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &viewgroup->state.view_border, false);
+	}
+	else {
+		viewgroup->state.view_border = (rctf){.xmin = 0, .ymin = 0, .xmax = ar->winx, .ymax = ar->winy};
+	}
 }
 
 static void WIDGETGROUP_camera_view_refresh(const bContext *C, wmManipulatorGroup *mgroup)
