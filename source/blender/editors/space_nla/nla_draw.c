@@ -232,6 +232,8 @@ static void nla_strip_draw_markers(NlaStrip *strip, float yminc, float ymaxc)
 			}
 		}
 	}
+	
+	glLineWidth(1.0f);
 }
 
 /* Strips (Proper) ---------------------- */
