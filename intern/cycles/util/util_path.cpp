@@ -790,20 +790,28 @@ static string line_directive(const SourceReplaceState& state,
                              const string& path,
                              const int line)
 {
-	string escaped_path = path;
+	string unescaped_path = path;
 	/* First we make path relative. */
-	if(string_startswith(escaped_path, state.base.c_str())) {
+	if(string_startswith(unescaped_path, state.base.c_str())) {
 		const string base_file = path_filename(state.base);
 		const size_t base_len = state.base.length();
-		escaped_path = base_file +
-		        escaped_path.substr(base_len,
-		                            escaped_path.length() - base_len);
+		unescaped_path = base_file +
+		        unescaped_path.substr(base_len,
+		                            unescaped_path.length() - base_len);
 	}
 	/* Second, we replace all unsafe characters. */
-	string_replace(escaped_path, "\"", "\\\"");
-	string_replace(escaped_path, "\'", "\\\'");
-	string_replace(escaped_path, "\?", "\\\?");
-	string_replace(escaped_path, "\\", "\\\\");
+	const size_t length = unescaped_path.length();
+	string escaped_path = "";
+	for(size_t i = 0; i < length; ++i) {
+		const char ch = unescaped_path[i];
+		if(strchr("\"\'\?\\", ch) != NULL) {
+			escaped_path += "\\";
+		}
+		escaped_path += ch;
+	}
+	/* TODO(sergey): Check whether using std::to_string combined with several
+	 * concatenation operations is any faster.
+	 */
 	return string_printf("#line %d \"%s\"", line, escaped_path.c_str());
 }
 
@@ -866,13 +874,26 @@ static string path_source_replace_includes_recursive(
 		}
 		return replaced_file->second;
 	}
-	/* Perform full file processing.  */
+	/* Perform full file processing. */
 	string result = "";
 	const size_t source_length = source.length();
 	size_t index = 0;
+	/* Information about where we are in the source. */
 	size_t line_number = 0, column_number = 1;
+	/* Currently gathered non-preprocessor token.
+	 * Store as start/length rather than token itself to avoid overhead of
+	 * memory re-allocations on each character concatenation.
+	 */
+	size_t token_start = 0, token_length = 0;
+	/* Denotes whether we're inside of preprocessor line, together with
+	 * preprocessor line itself.
+	 *
+	 * TODO(sergey): Investigate whether using token start/end position
+	 * gives measurable speedup.
+	 */
 	bool inside_preprocessor = false;
 	string preprocessor_line = "";
+	/* Actual loop over the whole source. */
 	while(index < source_length) {
 		const char ch = source[index];
 		if(ch == '\n') {
@@ -881,23 +902,38 @@ static string path_source_replace_includes_recursive(
 				                                          source_filepath,
 				                                          line_number,
 				                                          state);
+				/* Start gathering net part of the token. */
+				token_start = index;
+				token_length = 0;
 			}
 			inside_preprocessor = false;
 			preprocessor_line = "";
 			column_number = 0;
 			++line_number;
 		}
-		else if(ch == '#' && column_number == 1) {
+		else if(ch == '#' && column_number == 1 && !inside_preprocessor) {
+			/* Append all possible non-preprocessor token to the result. */
+			if(token_length != 0) {
+				result.append(source, token_start, token_length);
+				token_start = index;
+				token_length = 0;
+			}
 			inside_preprocessor = true;
 		}
 		if(inside_preprocessor) {
 			preprocessor_line += ch;
 		}
 		else {
-			result += ch;
+			++token_length;
 		}
 		++index;
 		++column_number;
+	}
+	/* Append possible tokens which happened before special events handled
+	 * above.
+	 */
+	if(token_length != 0) {
+		result.append(source, token_start, token_length);
 	}
 	if(inside_preprocessor) {
 		result += path_source_handle_preprocessor(preprocessor_line,
