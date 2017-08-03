@@ -1039,7 +1039,7 @@ void graph_draw_curves(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid
 			/* set color/drawing style for curve itself */
 			/* draw active F-Curve thicker than the rest to make it stand out */
 			if (fcu->flag & FCURVE_ACTIVE) {
-				glLineWidth(2.0);
+				glLineWidth(2.5);
 			}
 			else {
 				glLineWidth(1.0);
