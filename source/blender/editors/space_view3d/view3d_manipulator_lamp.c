@@ -71,32 +71,34 @@ static void WIDGETGROUP_lamp_spot_setup(const bContext *UNUSED(C), wmManipulator
 	wmManipulatorWrapper *wwrapper = MEM_mallocN(sizeof(wmManipulatorWrapper), __func__);
 
 	wwrapper->manipulator = WM_manipulator_new("MANIPULATOR_WT_arrow_3d", mgroup, NULL);
-	RNA_enum_set(wwrapper->manipulator->ptr, "draw_options",  ED_MANIPULATOR_ARROW_STYLE_INVERTED);
+	wmManipulator *mpr = wwrapper->manipulator;
+	RNA_enum_set(mpr->ptr, "draw_options",  ED_MANIPULATOR_ARROW_STYLE_INVERTED);
 
 	mgroup->customdata = wwrapper;
 
-	ED_manipulator_arrow3d_set_range_fac(wwrapper->manipulator, 4.0f);
-	WM_manipulator_set_color(wwrapper->manipulator, color);
-	WM_manipulator_set_color_highlight(wwrapper->manipulator, color_hi);
+	ED_manipulator_arrow3d_set_range_fac(mpr, 4.0f);
+	WM_manipulator_set_color(mpr, color);
+	WM_manipulator_set_color_highlight(mpr, color_hi);
 }
 
 static void WIDGETGROUP_lamp_spot_refresh(const bContext *C, wmManipulatorGroup *mgroup)
 {
 	wmManipulatorWrapper *wwrapper = mgroup->customdata;
+	wmManipulator *mpr = wwrapper->manipulator;
 	Object *ob = CTX_data_active_object(C);
 	Lamp *la = ob->data;
 	float dir[3];
 
 	negate_v3_v3(dir, ob->obmat[2]);
 
-	WM_manipulator_set_matrix_rotation_from_z_axis(wwrapper->manipulator, dir);
-	WM_manipulator_set_matrix_location(wwrapper->manipulator, ob->obmat[3]);
+	WM_manipulator_set_matrix_rotation_from_z_axis(mpr, dir);
+	WM_manipulator_set_matrix_location(mpr, ob->obmat[3]);
 
 	/* need to set property here for undo. TODO would prefer to do this in _init */
 	PointerRNA lamp_ptr;
 	const char *propname = "spot_size";
 	RNA_pointer_create(&la->id, &RNA_Lamp, la, &lamp_ptr);
-	WM_manipulator_target_property_def_rna(wwrapper->manipulator, "offset", &lamp_ptr, propname, -1);
+	WM_manipulator_target_property_def_rna(mpr, "offset", &lamp_ptr, propname, -1);
 }
 
 void VIEW3D_WGT_lamp_spot(wmManipulatorGroupType *wgt)
@@ -129,7 +131,6 @@ static void manipulator_area_lamp_prop_size_get(
 {
 	float *value = value_p;
 	BLI_assert(mpr_prop->type->array_length == 2);
-	UNUSED_VARS_NDEBUG(mpr_prop);
 	Lamp *la = mpr_prop->custom_func.user_data;
 
 	value[0] = la->area_size;
@@ -143,7 +144,6 @@ static void manipulator_area_lamp_prop_size_set(
 	const float *value = value_p;
 
 	BLI_assert(mpr_prop->type->array_length == 2);
-	UNUSED_VARS_NDEBUG(mpr_prop);
 	Lamp *la = mpr_prop->custom_func.user_data;
 	if (la->area_shape == LA_AREA_RECT) {
 		la->area_size = value[0];
@@ -181,17 +181,14 @@ static void WIDGETGROUP_lamp_area_setup(const bContext *UNUSED(C), wmManipulator
 
 	wmManipulatorWrapper *wwrapper = MEM_mallocN(sizeof(wmManipulatorWrapper), __func__);
 	wwrapper->manipulator = WM_manipulator_new("MANIPULATOR_WT_cage_2d", mgroup, NULL);
-
-	RNA_enum_set(wwrapper->manipulator->ptr, "transform",
+	wmManipulator *mpr = wwrapper->manipulator;
+	RNA_enum_set(mpr->ptr, "transform",
 	             ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE);
-
-	const float dims[4] = {1.0f, 1.0f};
-	RNA_float_set_array(wwrapper->manipulator->ptr, "dimensions", dims);
 
 	mgroup->customdata = wwrapper;
 
-	WM_manipulator_set_color(wwrapper->manipulator, color);
-	WM_manipulator_set_color_highlight(wwrapper->manipulator, color_hi);
+	WM_manipulator_set_color(mpr, color);
+	WM_manipulator_set_color_highlight(mpr, color_hi);
 }
 
 static void WIDGETGROUP_lamp_area_refresh(const bContext *C, wmManipulatorGroup *mgroup)
@@ -199,16 +196,17 @@ static void WIDGETGROUP_lamp_area_refresh(const bContext *C, wmManipulatorGroup 
 	wmManipulatorWrapper *wwrapper = mgroup->customdata;
 	Object *ob = CTX_data_active_object(C);
 	Lamp *la = ob->data;
+	wmManipulator *mpr = wwrapper->manipulator;
 
-	copy_m4_m4(wwrapper->manipulator->matrix_basis, ob->obmat);
+	copy_m4_m4(mpr->matrix_basis, ob->obmat);
 
-	RNA_enum_set(wwrapper->manipulator->ptr, "transform",
+	RNA_enum_set(mpr->ptr, "transform",
 	             ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE |
 	             ((la->area_shape == LA_AREA_SQUARE) ? ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM : 0));
 
 	/* need to set property here for undo. TODO would prefer to do this in _init */
 	WM_manipulator_target_property_def_func(
-	        wwrapper->manipulator, "scale",
+	        mpr, "scale",
 	        &(const struct wmManipulatorPropertyFnParams) {
 	            .value_get_fn = manipulator_area_lamp_prop_size_get,
 	            .value_set_fn = manipulator_area_lamp_prop_size_set,

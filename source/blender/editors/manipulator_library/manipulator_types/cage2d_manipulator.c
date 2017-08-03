@@ -697,9 +697,9 @@ static void MANIPULATOR_WT_cage_2d(wmManipulatorType *wt)
 		{ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM, "SCALE_UNIFORM", 0, "Scale Uniform", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
-	static float scale_default[2] = {1.0f, 1.0f};
-	RNA_def_float_vector(wt->srna, "scale", 2, scale_default, 0, FLT_MAX, "Scale", "", 0.0f, FLT_MAX);
-	RNA_def_float_vector(wt->srna, "dimensions", 2, NULL, 0, FLT_MAX, "Dimensions", "", 0.0f, FLT_MAX);
+	static float unit_v2[2] = {1.0f, 1.0f};
+	RNA_def_float_vector(wt->srna, "scale", 2, unit_v2, 0, FLT_MAX, "Scale", "", 0.0f, FLT_MAX);
+	RNA_def_float_vector(wt->srna, "dimensions", 2, unit_v2, 0, FLT_MAX, "Dimensions", "", 0.0f, FLT_MAX);
 	RNA_def_enum_flag(wt->srna, "transform", rna_enum_transform, 0, "Transform Options", "");
 
 	WM_manipulatortype_target_property_def(wt, "offset", PROP_FLOAT, 1);

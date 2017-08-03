@@ -67,16 +67,18 @@ static void WIDGETGROUP_forcefield_setup(const bContext *UNUSED(C), wmManipulato
 	mgroup->customdata = wwrapper;
 
 	wwrapper->manipulator = WM_manipulator_new("MANIPULATOR_WT_arrow_3d", mgroup, NULL);
-	RNA_enum_set(wwrapper->manipulator->ptr, "draw_options",  ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED);
-	ED_manipulator_arrow3d_set_ui_range(wwrapper->manipulator, -200.0f, 200.0f);
-	ED_manipulator_arrow3d_set_range_fac(wwrapper->manipulator, 6.0f);
-	WM_manipulator_set_color(wwrapper->manipulator, col);
-	WM_manipulator_set_color_highlight(wwrapper->manipulator, col_hi);
+	wmManipulator *mpr = wwrapper->manipulator;
+	RNA_enum_set(mpr->ptr, "draw_options",  ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED);
+	ED_manipulator_arrow3d_set_ui_range(mpr, -200.0f, 200.0f);
+	ED_manipulator_arrow3d_set_range_fac(mpr, 6.0f);
+	WM_manipulator_set_color(mpr, col);
+	WM_manipulator_set_color_highlight(mpr, col_hi);
 }
 
 static void WIDGETGROUP_forcefield_refresh(const bContext *C, wmManipulatorGroup *mgroup)
 {
 	wmManipulatorWrapper *wwrapper = mgroup->customdata;
+	wmManipulator *mpr = wwrapper->manipulator;
 	Object *ob = CTX_data_active_object(C);
 	PartDeflect *pd = ob->pd;
 
@@ -86,14 +88,14 @@ static void WIDGETGROUP_forcefield_refresh(const bContext *C, wmManipulatorGroup
 		PointerRNA field_ptr;
 
 		RNA_pointer_create(&ob->id, &RNA_FieldSettings, pd, &field_ptr);
-		WM_manipulator_set_matrix_location(wwrapper->manipulator, ob->obmat[3]);
-		WM_manipulator_set_matrix_rotation_from_z_axis(wwrapper->manipulator, ob->obmat[2]);
-		WM_manipulator_set_matrix_offset_location(wwrapper->manipulator, ofs);
-		WM_manipulator_set_flag(wwrapper->manipulator, WM_MANIPULATOR_HIDDEN, false);
-		WM_manipulator_target_property_def_rna(wwrapper->manipulator, "offset", &field_ptr, "strength", -1);
+		WM_manipulator_set_matrix_location(mpr, ob->obmat[3]);
+		WM_manipulator_set_matrix_rotation_from_z_axis(mpr, ob->obmat[2]);
+		WM_manipulator_set_matrix_offset_location(mpr, ofs);
+		WM_manipulator_set_flag(mpr, WM_MANIPULATOR_HIDDEN, false);
+		WM_manipulator_target_property_def_rna(mpr, "offset", &field_ptr, "strength", -1);
 	}
 	else {
-		WM_manipulator_set_flag(wwrapper->manipulator, WM_MANIPULATOR_HIDDEN, true);
+		WM_manipulator_set_flag(mpr, WM_MANIPULATOR_HIDDEN, true);
 	}
 }
 

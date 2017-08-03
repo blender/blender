@@ -104,37 +104,39 @@ static void WIDGETGROUP_camera_setup(const bContext *C, wmManipulatorGroup *mgro
 
 	/* dof distance */
 	{
+		wmManipulator *mpr;
 		const float color[4] = {1.0f, 0.3f, 0.0f, 1.0f};
 		const float color_hi[4] = {1.0f, 0.3f, 0.0f, 1.0f};
 
-		camgroup->dop_dist = WM_manipulator_new_ptr(wt_arrow, mgroup, NULL);
-		RNA_enum_set(camgroup->dop_dist->ptr, "draw_style",  ED_MANIPULATOR_ARROW_STYLE_CROSS);
-		WM_manipulator_set_flag(camgroup->dop_dist, WM_MANIPULATOR_DRAW_HOVER, true);
-		WM_manipulator_set_color(camgroup->dop_dist, color);
-		WM_manipulator_set_color_highlight(camgroup->dop_dist, color_hi);
+		mpr = camgroup->dop_dist = WM_manipulator_new_ptr(wt_arrow, mgroup, NULL);
+		RNA_enum_set(mpr->ptr, "draw_style",  ED_MANIPULATOR_ARROW_STYLE_CROSS);
+		WM_manipulator_set_flag(mpr, WM_MANIPULATOR_DRAW_HOVER, true);
+		WM_manipulator_set_color(mpr, color);
+		WM_manipulator_set_color_highlight(mpr, color_hi);
 	}
 
 	/* focal length
 	 * - logic/calculations are similar to BKE_camera_view_frame_ex, better keep in sync */
 	{
+		wmManipulator *mpr;
 		const float color[4] = {1.0f, 1.0, 0.27f, 0.5f};
 		const float color_hi[4] = {1.0f, 1.0, 0.27f, 1.0f};
 
-		camgroup->focal_len = WM_manipulator_new_ptr(wt_arrow, mgroup, NULL);
-		RNA_enum_set(camgroup->focal_len->ptr, "draw_style",  ED_MANIPULATOR_ARROW_STYLE_CONE);
-		RNA_enum_set(camgroup->focal_len->ptr, "draw_options",  ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED);
+		mpr = camgroup->focal_len = WM_manipulator_new_ptr(wt_arrow, mgroup, NULL);
+		RNA_enum_set(mpr->ptr, "draw_style",  ED_MANIPULATOR_ARROW_STYLE_CONE);
+		RNA_enum_set(mpr->ptr, "draw_options",  ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED);
 
-		WM_manipulator_set_color(camgroup->focal_len, color);
-		WM_manipulator_set_color_highlight(camgroup->focal_len, color_hi);
-		cameragroup_property_setup(camgroup->focal_len, ob, ca, false);
+		WM_manipulator_set_color(mpr, color);
+		WM_manipulator_set_color_highlight(mpr, color_hi);
+		cameragroup_property_setup(mpr, ob, ca, false);
 
-		camgroup->ortho_scale = WM_manipulator_new_ptr(wt_arrow, mgroup, NULL);
-		RNA_enum_set(camgroup->ortho_scale->ptr, "draw_style",  ED_MANIPULATOR_ARROW_STYLE_CONE);
-		RNA_enum_set(camgroup->ortho_scale->ptr, "draw_options",  ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED);
+		mpr = camgroup->ortho_scale = WM_manipulator_new_ptr(wt_arrow, mgroup, NULL);
+		RNA_enum_set(mpr->ptr, "draw_style",  ED_MANIPULATOR_ARROW_STYLE_CONE);
+		RNA_enum_set(mpr->ptr, "draw_options",  ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED);
 
-		WM_manipulator_set_color(camgroup->ortho_scale, color);
-		WM_manipulator_set_color_highlight(camgroup->ortho_scale, color_hi);
-		cameragroup_property_setup(camgroup->ortho_scale, ob, ca, true);
+		WM_manipulator_set_color(mpr, color);
+		WM_manipulator_set_color_highlight(mpr, color_hi);
+		cameragroup_property_setup(mpr, ob, ca, true);
 	}
 }
 
