@@ -518,6 +518,7 @@ if(WITH_CYCLES)
 					-blender "$<TARGET_FILE:blender>"
 					-testdir "${TEST_SRC_DIR}/cycles/ctests/${subject}"
 					-idiff "${OPENIMAGEIO_IDIFF}"
+					-outdir "${TEST_OUT_DIR}/cycles"
 				)
 			else()
 				add_test(
@@ -526,6 +527,7 @@ if(WITH_CYCLES)
 					-blender "$<TARGET_FILE:blender>"
 					-testdir "${TEST_SRC_DIR}/cycles/ctests/${subject}"
 					-idiff "${OPENIMAGEIO_IDIFF}"
+					-outdir "${TEST_OUT_DIR}/cycles"
 				)
 			endif()
 		endmacro()
