@@ -134,7 +134,7 @@ void DepsgraphNodeBuilder::build_splineik_pose(Scene *scene,
 void DepsgraphNodeBuilder::build_rig(Scene *scene, Object *object)
 {
 	bArmature *armature = (bArmature *)object->data;
-	const bool armature_tag = armature->id.tag;
+	const short armature_tag = armature->id.tag;
 #ifdef WITH_COPY_ON_WRITE
 	/* NOTE: We need to expand both object and armature, so this way we can
 	 * safely create object level pose.
