@@ -500,8 +500,8 @@ static void manipulator_rect_transform_modal(
 		return;
 	}
 
-	const float valuex = (point_local[0] - data->orig_mouse[0]);
-	const float valuey = (point_local[1] - data->orig_mouse[1]);
+	float valuex = (point_local[0] - data->orig_mouse[0]);
+	float valuey = (point_local[1] - data->orig_mouse[1]);
 
 	float dims[2];
 	RNA_float_get_array(mpr->ptr, "dimensions", dims);
@@ -514,40 +514,34 @@ static void manipulator_rect_transform_modal(
 		mpr->matrix_offset[3][1] = data->orig_offset[1] + valuey;
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT) {
+		valuex = min_ff(valuex, dims[0] * data->orig_scale[0] / (pivot_center ? 2 : 1));
 		if (pivot_center == false) {
 			mpr->matrix_offset[3][0] = data->orig_offset[0] + valuex / 2.0f;
 		}
 		scale[0] = (dims[0] * data->orig_scale[0] - valuex) / dims[0];
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT) {
+		valuex = max_ff(valuex, dims[0] * data->orig_scale[0] / (pivot_center ? -2 : -1));
 		if (pivot_center == false) {
 			mpr->matrix_offset[3][0] = data->orig_offset[0] + valuex / 2.0f;
 		}
 		scale[0] = (dims[0] * data->orig_scale[0] + valuex) / dims[0];
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN) {
+		int a = (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) ? 0 : 1;
+		valuey = min_ff(valuey, dims[1] * data->orig_scale[a] / (pivot_center ? 2 : 1));
 		if (pivot_center == false) {
 			mpr->matrix_offset[3][1] = data->orig_offset[1] + valuey / 2.0f;
 		}
-
-		if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
-			scale[0] = (dims[1] * data->orig_scale[0] - valuey) / dims[1];
-		}
-		else {
-			scale[1] = (dims[1] * data->orig_scale[1] - valuey) / dims[1];
-		}
+		scale[a] = (dims[1] * data->orig_scale[a] - valuey) / dims[1];
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP) {
+		int a = (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) ? 0 : 1;
+		valuey = max_ff(valuey, dims[0] * data->orig_scale[a] / (pivot_center ? -2 : -1));
 		if (pivot_center == false) {
 			mpr->matrix_offset[3][1] = data->orig_offset[1] + valuey / 2.0f;
 		}
-
-		if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
-			scale[0] = (dims[1] * data->orig_scale[0] + valuey) / dims[1];
-		}
-		else {
-			scale[1] = (dims[1] * data->orig_scale[1] + valuey) / dims[1];
-		}
+		scale[a] = (dims[1] * data->orig_scale[a] + valuey) / dims[1];
 	}
 	else {
 		BLI_assert(0);
