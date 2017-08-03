@@ -208,8 +208,6 @@ bool wm_manipulatorgroup_is_visible_in_drawstep(
 			return (mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) == 0;
 		case WM_MANIPULATORMAP_DRAWSTEP_3D:
 			return (mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D);
-		case WM_MANIPULATORMAP_DRAWSTEP_IN_SCENE:
-			return (mgroup->type->flag & WM_MANIPULATORGROUPTYPE_DEPTH_3D);
 		default:
 			BLI_assert(0);
 			return false;
