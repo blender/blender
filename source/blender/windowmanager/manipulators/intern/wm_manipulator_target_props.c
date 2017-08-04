@@ -250,7 +250,7 @@ bool WM_manipulator_target_property_range_get(
 int WM_manipulator_target_property_array_length(
         const wmManipulator *UNUSED(mpr), wmManipulatorProperty *mpr_prop)
 {
-	if (mpr_prop->custom_func.range_get_fn) {
+	if (mpr_prop->custom_func.value_get_fn) {
 		return mpr_prop->type->array_length;
 	}
 	return RNA_property_array_length(&mpr_prop->ptr, mpr_prop->prop);
