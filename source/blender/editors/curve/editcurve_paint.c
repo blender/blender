@@ -70,102 +70,6 @@
 /* Distance between start/end points to consider cyclic */
 #define STROKE_CYCLIC_DIST_PX     8
 
-
-/* -------------------------------------------------------------------- */
-
-/** \name Depth Utilities
- * \{ */
-
-
-static float depth_read_zbuf(const ViewContext *vc, int x, int y)
-{
-	ViewDepths *vd = vc->rv3d->depths;
-
-	if (vd && vd->depths && x > 0 && y > 0 && x < vd->w && y < vd->h)
-		return vd->depths[y * vd->w + x];
-	else
-		return -1.0f;
-}
-
-static bool depth_unproject(
-        const ARegion *ar, const bglMats *mats,
-        const int mval[2], const double depth,
-        float r_location_world[3])
-{
-	double p[3];
-	if (gluUnProject(
-	        (double)ar->winrct.xmin + mval[0] + 0.5,
-	        (double)ar->winrct.ymin + mval[1] + 0.5,
-	        depth, mats->modelview, mats->projection, (const GLint *)mats->viewport,
-	        &p[0], &p[1], &p[2]))
-	{
-		copy_v3fl_v3db(r_location_world, p);
-		return true;
-	}
-	return false;
-}
-
-static bool depth_read_normal(
-        const ViewContext *vc, const bglMats *mats, const int mval[2],
-        float r_normal[3])
-{
-	/* pixels surrounding */
-	bool  depths_valid[9] = {false};
-	float coords[9][3] = {{0}};
-
-	ARegion *ar = vc->ar;
-	const ViewDepths *depths = vc->rv3d->depths;
-
-	for (int x = 0, i = 0; x < 2; x++) {
-		for (int y = 0; y < 2; y++) {
-			const int mval_ofs[2] = {mval[0] + (x - 1), mval[1] + (y - 1)};
-
-			const double depth = (double)depth_read_zbuf(vc, mval_ofs[0], mval_ofs[1]);
-			if ((depth > depths->depth_range[0]) && (depth < depths->depth_range[1])) {
-				if (depth_unproject(ar, mats, mval_ofs, depth, coords[i])) {
-					depths_valid[i] = true;
-				}
-			}
-			i++;
-		}
-	}
-
-	const int edges[2][6][2] = {
-	    /* x edges */
-	    {{0, 1}, {1, 2},
-	     {3, 4}, {4, 5},
-	     {6, 7}, {7, 8}},
-	    /* y edges */
-	    {{0, 3}, {3, 6},
-	     {1, 4}, {4, 7},
-	     {2, 5}, {5, 8}},
-	};
-
-	float cross[2][3] = {{0.0f}};
-
-	for (int i = 0; i < 6; i++) {
-		for (int axis = 0; axis < 2; axis++) {
-			if (depths_valid[edges[axis][i][0]] && depths_valid[edges[axis][i][1]]) {
-				float delta[3];
-				sub_v3_v3v3(delta, coords[edges[axis][i][0]], coords[edges[axis][i][1]]);
-				add_v3_v3(cross[axis], delta);
-			}
-		}
-	}
-
-	cross_v3_v3v3(r_normal, cross[0], cross[1]);
-
-	if (normalize_v3(r_normal) != 0.0f) {
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-
-/** \} */
-
-
 /* -------------------------------------------------------------------- */
 
 /** \name StrokeElem / #RNA_OperatorStrokeElement Conversion Functions
@@ -308,9 +212,9 @@ static bool stroke_elem_project(
 		    ((unsigned int)mval_i[0] < depths->w) &&
 		    ((unsigned int)mval_i[1] < depths->h))
 		{
-			const double depth = (double)depth_read_zbuf(&cdd->vc, mval_i[0], mval_i[1]);
+			const double depth = (double)ED_view3d_depth_read_cached(&cdd->vc, mval_i);
 			if ((depth > depths->depth_range[0]) && (depth < depths->depth_range[1])) {
-				if (depth_unproject(ar, &cdd->mats, mval_i, depth, r_location_world)) {
+				if (ED_view3d_depth_unproject(ar, &cdd->mats, mval_i, depth, r_location_world)) {
 					is_location_world_set = true;
 					if (r_normal_world) {
 						zero_v3(r_normal_world);
@@ -319,7 +223,7 @@ static bool stroke_elem_project(
 					if (surface_offset != 0.0f) {
 						const float offset = cdd->project.use_surface_offset_absolute ? 1.0f : radius;
 						float normal[3];
-						if (depth_read_normal(&cdd->vc, &cdd->mats, mval_i, normal)) {
+						if (ED_view3d_depth_read_cached_normal(&cdd->vc, &cdd->mats, mval_i, normal)) {
 							madd_v3_v3fl(r_location_world, normal, offset * surface_offset);
 							if (r_normal_world) {
 								copy_v3_v3(r_normal_world, normal);
@@ -627,7 +531,7 @@ static void curve_draw_event_add_first(wmOperator *op, const wmEvent *event)
 		         CURVE_PAINT_SURFACE_PLANE_NORMAL_VIEW,
 		         CURVE_PAINT_SURFACE_PLANE_NORMAL_SURFACE))
 		{
-			if (depth_read_normal(&cdd->vc, &cdd->mats, event->mval, normal)) {
+			if (ED_view3d_depth_read_cached_normal(&cdd->vc, &cdd->mats, event->mval, normal)) {
 				if (cps->surface_plane == CURVE_PAINT_SURFACE_PLANE_NORMAL_VIEW) {
 					float cross_a[3], cross_b[3];
 					cross_v3_v3v3(cross_a, rv3d->viewinv[2], normal);

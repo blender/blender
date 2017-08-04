@@ -106,7 +106,14 @@ void ED_view3d_lastview_store(struct RegionView3D *rv3d);
 
 /* Depth buffer */
 void  ED_view3d_depth_update(struct ARegion *ar);
-float ED_view3d_depth_read_cached(const struct ViewContext *vc, int x, int y);
+float ED_view3d_depth_read_cached(const struct ViewContext *vc, const int mval[2]);
+bool  ED_view3d_depth_read_cached_normal(
+        const ViewContext *vc, const struct bglMats *mats, const int mval[2],
+        float r_normal[3]);
+bool ED_view3d_depth_unproject(
+        const struct ARegion *ar, const struct bglMats *mats,
+        const int mval[2], const double depth,
+        float r_location_world[3]);
 void  ED_view3d_depth_tag_update(struct RegionView3D *rv3d);
 
 /* Projection */
