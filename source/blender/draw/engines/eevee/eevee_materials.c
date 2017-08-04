@@ -358,7 +358,7 @@ void EEVEE_materials_init(EEVEE_StorageList *stl)
 		MEM_freeN(frag_str);
 
 		/* Textures */
-		const int layers = 3;
+		const int layers = 3 + 16;
 		float (*texels)[4] = MEM_mallocN(sizeof(float[4]) * 64 * 64 * layers, "utils texels");
 		float (*texels_layer)[4] = texels;
 
@@ -380,6 +380,16 @@ void EEVEE_materials_init(EEVEE_StorageList *stl)
 			texels_layer[i][1] = blue_noise[i][1] * 0.5 + 0.5;
 			texels_layer[i][2] = cosf(blue_noise[i][1] * 2.0 * M_PI);
 			texels_layer[i][3] = sinf(blue_noise[i][1] * 2.0 * M_PI);
+		}
+
+		for (int j = 0; j < 16; ++j) {
+			texels_layer += 64 * 64;
+			for (int i = 0; i < 64 * 64; i++) {
+				texels_layer[i][0] = btdf_split_sum_ggx[j*2][i];
+				texels_layer[i][1] = btdf_split_sum_ggx[j*2][i];
+				texels_layer[i][2] = btdf_split_sum_ggx[j*2][i];
+				texels_layer[i][3] = btdf_split_sum_ggx[j*2][i];
+			}
 		}
 
 		e_data.util_tex = DRW_texture_create_2D_array(64, 64, layers, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_WRAP, (float *)texels);
