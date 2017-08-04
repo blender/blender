@@ -483,6 +483,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 	if (path != path_static) {
 		MEM_freeN(path);
 	}
+#undef MAX_STATIC_PATH
 }
 
 static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker,
