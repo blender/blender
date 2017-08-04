@@ -644,6 +644,8 @@ static void manipulator_rect_transform_exit(bContext *C, wmManipulator *mpr, con
 			WM_manipulator_target_property_value_set_array(C, mpr, mpr_prop, orig_scale);
 		}
 	}
+
+	copy_m4_m4(mpr->matrix_offset, data->orig_matrix_offset);
 }
 
 
