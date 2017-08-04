@@ -212,7 +212,7 @@ static int track_markers_initjob(bContext *C,
 		}
 	}
 
-	tmj->context = BKE_autotrack_context_new(clip, &sc->user, backwards, 1);
+	tmj->context = BKE_autotrack_context_new(clip, &sc->user, backwards, true);
 
 	clip->tracking_context = tmj->context;
 
