@@ -85,29 +85,47 @@ void mul_m4_m4_pre(float R[4][4], const float A[4][4]);
 void mul_m4_m4_post(float R[4][4], const float B[4][4]);
 
 /* mul_m3_series */
-void _va_mul_m3_series_3(float R[3][3], float M1[3][3], float M2[3][3]) ATTR_NONNULL();
-void _va_mul_m3_series_4(float R[3][3], float M1[3][3], float M2[3][3], float M3[3][3]) ATTR_NONNULL();
-void _va_mul_m3_series_5(float R[3][3], float M1[3][3], float M2[3][3], float M3[3][3], float M4[3][3]) ATTR_NONNULL();
-void _va_mul_m3_series_6(float R[3][3], float M1[3][3], float M2[3][3], float M3[3][3], float M4[3][3],
-                         float M5[3][3]) ATTR_NONNULL();
-void _va_mul_m3_series_7(float R[3][3], float M1[3][3], float M2[3][3], float M3[3][3], float M4[3][3],
-                         float M5[3][3], float M6[3][3]) ATTR_NONNULL();
-void _va_mul_m3_series_8(float R[3][3], float M1[3][3], float M2[3][3], float M3[3][3], float M4[3][3],
-                         float M5[3][3], float M6[3][3], float M7[3][3]) ATTR_NONNULL();
-void _va_mul_m3_series_9(float R[3][3], float M1[3][3], float M2[3][3], float M3[3][3], float M4[3][3],
-                         float M5[3][3], float M6[3][3], float M7[3][3], float M8[3][3]) ATTR_NONNULL();
+void _va_mul_m3_series_3(
+        float R[3][3], const float M1[3][3], const float M2[3][3]) ATTR_NONNULL();
+void _va_mul_m3_series_4(
+        float R[3][3], const float M1[3][3], const float M2[3][3], const float M3[3][3]) ATTR_NONNULL();
+void _va_mul_m3_series_5(
+        float R[3][3], const float M1[3][3], const float M2[3][3], const float M3[3][3],
+        const float M4[3][3]) ATTR_NONNULL();
+void _va_mul_m3_series_6(
+        float R[3][3], const float M1[3][3], const float M2[3][3], const float M3[3][3],
+        const float M4[3][3], const float M5[3][3]) ATTR_NONNULL();
+void _va_mul_m3_series_7(
+        float R[3][3], const float M1[3][3], const float M2[3][3], const float M3[3][3],
+        const float M4[3][3], const float M5[3][3], const float M6[3][3]) ATTR_NONNULL();
+void _va_mul_m3_series_8(
+        float R[3][3], const float M1[3][3], const float M2[3][3], const float M3[3][3],
+        const float M4[3][3], const float M5[3][3], const float M6[3][3], const float M7[3][3]) ATTR_NONNULL();
+void _va_mul_m3_series_9(
+        float R[3][3], const float M1[3][3], const float M2[3][3], const float M3[3][3],
+        const float M4[3][3], const float M5[3][3], const float M6[3][3], const float M7[3][3],
+        const float M8[3][3]) ATTR_NONNULL();
 /* mul_m4_series */
-void _va_mul_m4_series_3(float R[4][4], float M1[4][4], float M2[4][4]) ATTR_NONNULL();
-void _va_mul_m4_series_4(float R[4][4], float M1[4][4], float M2[4][4], float M3[4][4]) ATTR_NONNULL();
-void _va_mul_m4_series_5(float R[4][4], float M1[4][4], float M2[4][4], float M3[4][4], float M4[4][4]) ATTR_NONNULL();
-void _va_mul_m4_series_6(float R[4][4], float M1[4][4], float M2[4][4], float M3[4][4], float M4[4][4],
-                        float M5[4][4]) ATTR_NONNULL();
-void _va_mul_m4_series_7(float R[4][4], float M1[4][4], float M2[4][4], float M3[4][4], float M4[4][4],
-                         float M5[4][4], float M6[4][4]) ATTR_NONNULL();
-void _va_mul_m4_series_8(float R[4][4], float M1[4][4], float M2[4][4], float M3[4][4], float M4[4][4],
-                         float M5[4][4], float M6[4][4], float M7[4][4]) ATTR_NONNULL();
-void _va_mul_m4_series_9(float R[4][4], float M1[4][4], float M2[4][4], float M3[4][4], float M4[4][4],
-                         float M5[4][4], float M6[4][4], float M7[4][4], float M8[4][4]) ATTR_NONNULL();
+void _va_mul_m4_series_3(
+        float R[4][4], const float M1[4][4], const float M2[4][4]) ATTR_NONNULL();
+void _va_mul_m4_series_4(
+        float R[4][4], const float M1[4][4], const float M2[4][4], const float M3[4][4]) ATTR_NONNULL();
+void _va_mul_m4_series_5(
+        float R[4][4], const float M1[4][4], const float M2[4][4], const float M3[4][4],
+        const float M4[4][4]) ATTR_NONNULL();
+void _va_mul_m4_series_6(
+        float R[4][4], const float M1[4][4], const float M2[4][4], const float M3[4][4],
+        const float M4[4][4], const float M5[4][4]) ATTR_NONNULL();
+void _va_mul_m4_series_7(
+        float R[4][4], const float M1[4][4], const float M2[4][4], const float M3[4][4],
+        const float M4[4][4], const float M5[4][4], const float M6[4][4]) ATTR_NONNULL();
+void _va_mul_m4_series_8(
+        float R[4][4], const float M1[4][4], const float M2[4][4], const float M3[4][4],
+        const float M4[4][4], const float M5[4][4], const float M6[4][4], const float M7[4][4]) ATTR_NONNULL();
+void _va_mul_m4_series_9(
+        float R[4][4], const float M1[4][4], const float M2[4][4], const float M3[4][4],
+        const float M4[4][4], const float M5[4][4], const float M6[4][4], const float M7[4][4],
+        const float M8[4][4]) ATTR_NONNULL();
 
 #define mul_m3_series(...) VA_NARGS_CALL_OVERLOAD(_va_mul_m3_series_, __VA_ARGS__)
 #define mul_m4_series(...) VA_NARGS_CALL_OVERLOAD(_va_mul_m4_series_, __VA_ARGS__)
