@@ -281,7 +281,7 @@ vec3 get_world_space_from_depth(vec2 uvcoords, float depth)
 	return (ViewMatrixInverse * vec4(get_view_space_from_depth(uvcoords, depth), 1.0)).xyz;
 }
 
-vec3 get_specular_dominant_dir(vec3 N, vec3 V, float roughness)
+vec3 get_specular_reflection_dominant_dir(vec3 N, vec3 V, float roughness)
 {
 	vec3 R = -reflect(V, N);
 	float smoothness = 1.0 - roughness;
@@ -334,7 +334,7 @@ vec3 F_area(vec3 f0, vec2 lut)
 	return saturate(50.0 * dot(f0, vec3(0.3, 0.6, 0.1))) * fac.y + fac.x * f0;
 }
 
-/* Fresnel approximation for LTC area lights (not MRP) */
+/* Fresnel approximation for IBL */
 vec3 F_ibl(vec3 f0, vec2 lut)
 {
 	/* Unreal specular matching : if specular color is below 2% intensity,

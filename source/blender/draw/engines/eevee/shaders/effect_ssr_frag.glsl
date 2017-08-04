@@ -191,7 +191,7 @@ out vec4 fragColor;
 void fallback_cubemap(vec3 N, vec3 V, vec3 W, float roughness, float roughnessSquared, inout vec4 spec_accum)
 {
 	/* Specular probes */
-	vec3 spec_dir = get_specular_dominant_dir(N, V, roughnessSquared);
+	vec3 spec_dir = get_specular_reflection_dominant_dir(N, V, roughnessSquared);
 
 	/* Starts at 1 because 0 is world probe */
 	for (int i = 1; i < MAX_PROBE && i < probe_count && spec_accum.a < 0.999; ++i) {

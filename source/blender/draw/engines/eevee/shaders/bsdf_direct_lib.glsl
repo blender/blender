@@ -105,7 +105,7 @@ vec3 direct_ggx_sun(LightData ld, vec3 N, vec3 V, float roughness, vec3 f0)
 vec3 direct_ggx_sphere(LightData ld, vec3 N, vec3 V, vec4 l_vector, float roughness, vec3 f0)
 {
 	vec3 L = l_vector.xyz / l_vector.w;
-	vec3 spec_dir = get_specular_dominant_dir(N, V, roughness);
+	vec3 spec_dir = get_specular_reflection_dominant_dir(N, V, roughness);
 	vec3 P = line_aligned_plane_intersect(vec3(0.0), spec_dir, l_vector.xyz);
 
 	vec3 Px = normalize(P - l_vector.xyz) * ld.l_radius;

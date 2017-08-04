@@ -45,8 +45,6 @@ vec3 eevee_surface_lit(vec3 N, vec3 albedo, vec3 f0, float roughness, float ao, 
 
 	vec3 V = cameraVec;
 
-	vec4 rand = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0));
-
 	/* ---------------- SCENE LAMPS LIGHTING ----------------- */
 
 #ifdef HAIR_SHADER
@@ -99,13 +97,13 @@ vec3 eevee_surface_lit(vec3 N, vec3 albedo, vec3 f0, float roughness, float ao, 
 			float fade = probe_attenuation_planar(pd, worldPosition, N, roughness);
 
 			if (fade > 0.0) {
-				vec3 spec = probe_evaluate_planar(float(i), pd, worldPosition, N, V, rand.r, roughness, fade);
+				vec3 spec = probe_evaluate_planar(float(i), pd, worldPosition, N, V, roughness, fade);
 				accumulate_light(spec, fade, spec_accum);
 			}
 		}
 
 		/* Specular probes */
-		vec3 spec_dir = get_specular_dominant_dir(N, V, roughnessSquared);
+		vec3 spec_dir = get_specular_reflection_dominant_dir(N, V, roughnessSquared);
 
 		/* Starts at 1 because 0 is world probe */
 		for (int i = 1; i < MAX_PROBE && i < probe_count && spec_accum.a < 0.999; ++i) {
@@ -125,6 +123,8 @@ vec3 eevee_surface_lit(vec3 N, vec3 albedo, vec3 f0, float roughness, float ao, 
 			accumulate_light(spec, 1.0, spec_accum);
 		}
 	}
+
+	vec4 rand = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0));
 
 	/* Ambient Occlusion */
 	vec3 bent_normal;
@@ -178,11 +178,27 @@ vec3 eevee_surface_clearcoat_lit(
 	C_roughness = clamp(C_roughness, 1e-8, 0.9999);
 	float C_roughnessSquared = C_roughness * C_roughness;
 
-	vec3 V = cameraVec;
+	/* Zero length vectors cause issues, see: T51979. */
+#if 0
 	N = normalize(N);
 	C_N = normalize(C_N);
+#else
+	{
+		float len = length(N);
+		if (isnan(len)) {
+			return vec3(0.0);
+		}
+		N /= len;
 
-	vec4 rand = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0));
+		len = length(C_N);
+		if (isnan(len)) {
+			return vec3(0.0);
+		}
+		C_N /= len;
+	}
+#endif
+
+	vec3 V = cameraVec;
 
 	/* ---------------- SCENE LAMPS LIGHTING ----------------- */
 
@@ -239,18 +255,18 @@ vec3 eevee_surface_clearcoat_lit(
 
 		if (fade > 0.0) {
 			if (!(ssrToggle && ssr_id == outputSsrId)) {
-				vec3 spec = probe_evaluate_planar(float(i), pd, worldPosition, N, V, rand.r, roughness, fade);
+				vec3 spec = probe_evaluate_planar(float(i), pd, worldPosition, N, V, roughness, fade);
 				accumulate_light(spec, fade, spec_accum);
 			}
 
-			vec3 C_spec = probe_evaluate_planar(float(i), pd, worldPosition, C_N, V, rand.r, C_roughness, fade);
+			vec3 C_spec = probe_evaluate_planar(float(i), pd, worldPosition, C_N, V, C_roughness, fade);
 			accumulate_light(C_spec, fade, C_spec_accum);
 		}
 	}
 
 	/* Specular probes */
-	vec3 spec_dir = get_specular_dominant_dir(N, V, roughnessSquared);
-	vec3 C_spec_dir = get_specular_dominant_dir(C_N, V, C_roughnessSquared);
+	vec3 spec_dir = get_specular_reflection_dominant_dir(N, V, roughnessSquared);
+	vec3 C_spec_dir = get_specular_reflection_dominant_dir(C_N, V, C_roughnessSquared);
 
 	/* Starts at 1 because 0 is world probe */
 	for (int i = 1; i < MAX_PROBE && i < probe_count && spec_accum.a < 0.999; ++i) {
@@ -279,6 +295,8 @@ vec3 eevee_surface_clearcoat_lit(
 		vec3 C_spec = probe_evaluate_world_spec(C_spec_dir, C_roughness);
 		accumulate_light(C_spec, 1.0, C_spec_accum);
 	}
+
+	vec4 rand = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0));
 
 	/* Ambient Occlusion */
 	vec3 bent_normal;
@@ -330,9 +348,19 @@ vec3 eevee_surface_clearcoat_lit(
 vec3 eevee_surface_diffuse_lit(vec3 N, vec3 albedo, float ao)
 {
 	vec3 V = cameraVec;
-	N = normalize(N);
 
-	vec4 rand = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0));
+	/* Zero length vectors cause issues, see: T51979. */
+#if 0
+	N = normalize(N);
+#else
+	{
+		float len = length(N);
+		if (isnan(len)) {
+			return vec3(0.0);
+		}
+		N /= len;
+	}
+#endif
 
 	/* ---------------- SCENE LAMPS LIGHTING ----------------- */
 
@@ -370,6 +398,8 @@ vec3 eevee_surface_diffuse_lit(vec3 N, vec3 albedo, float ao)
 #endif
 
 	/* ---------------- DIFFUSE ENVIRONMENT LIGHTING ----------------- */
+
+	vec4 rand = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0));
 
 	/* Ambient Occlusion */
 	vec3 bent_normal;
@@ -410,9 +440,19 @@ vec3 eevee_surface_glossy_lit(vec3 N, vec3 f0, float roughness, float ao, int ss
 	float roughnessSquared = roughness * roughness;
 
 	vec3 V = cameraVec;
-	N = normalize(N);
 
-	vec4 rand = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0));
+	/* Zero length vectors cause issues, see: T51979. */
+#if 0
+	N = normalize(N);
+#else
+	{
+		float len = length(N);
+		if (isnan(len)) {
+			return vec3(0.0);
+		}
+		N /= len;
+	}
+#endif
 
 	/* ---------------- SCENE LAMPS LIGHTING ----------------- */
 
@@ -462,13 +502,13 @@ vec3 eevee_surface_glossy_lit(vec3 N, vec3 f0, float roughness, float ao, int ss
 			float fade = probe_attenuation_planar(pd, worldPosition, N, roughness);
 
 			if (fade > 0.0) {
-				vec3 spec = probe_evaluate_planar(float(i), pd, worldPosition, N, V, rand.r, roughness, fade);
+				vec3 spec = probe_evaluate_planar(float(i), pd, worldPosition, N, V, roughness, fade);
 				accumulate_light(spec, fade, spec_accum);
 			}
 		}
 
 		/* Specular probes */
-		vec3 spec_dir = get_specular_dominant_dir(N, V, roughnessSquared);
+		vec3 spec_dir = get_specular_reflection_dominant_dir(N, V, roughnessSquared);
 
 		/* Starts at 1 because 0 is world probe */
 		for (int i = 1; i < MAX_PROBE && i < probe_count && spec_accum.a < 0.999; ++i) {
@@ -488,6 +528,8 @@ vec3 eevee_surface_glossy_lit(vec3 N, vec3 f0, float roughness, float ao, int ss
 			accumulate_light(spec, 1.0, spec_accum);
 		}
 	}
+
+	vec4 rand = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0));
 
 	/* Ambient Occlusion */
 	vec3 bent_normal;

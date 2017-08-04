@@ -6,12 +6,16 @@ uniform float invSampleCount;
 
 vec2 jitternoise = vec2(0.0);
 
-#ifdef NOISE_SIZE
+#ifndef UTIL_TEX
+#define UTIL_TEX
+uniform sampler2DArray utilTex;
+#endif /* UTIL_TEX */
+
 void setup_noise(void)
 {
-	jitternoise = texture(texJitter, gl_FragCoord.xy / NOISE_SIZE).rg; /* Global variable */
+	jitternoise = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0)).rg; /* Global variable */
+	jitternoise.g = (jitternoise.g - 0.5) * 2.0;
 }
-#endif
 
 #ifdef HAMMERSLEY_SIZE
 vec3 hammersley_3d(float i, float invsamplenbr)

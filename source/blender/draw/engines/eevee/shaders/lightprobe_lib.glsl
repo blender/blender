@@ -167,8 +167,7 @@ vec3 probe_evaluate_world_spec(vec3 R, float roughness)
 
 vec3 probe_evaluate_planar(
         float id, PlanarData pd, vec3 W, vec3 N, vec3 V,
-        float rand, float roughness,
-        inout float fade)
+        float roughness, inout float fade)
 {
 	/* Find view vector / reflection plane intersection. */
 	vec3 point_on_plane = line_plane_intersect(W, V, pd.pl_plane_eq);
