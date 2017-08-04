@@ -2124,9 +2124,9 @@ void view3d_main_region_draw_legacy(const bContext *C, ARegion *ar)
 	VP_legacy_view3d_main_region_setup_view(C, scene, v3d, ar, NULL, NULL);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-	WM_manipulatormap_draw(ar->manipulator_map, C, WM_MANIPULATORMAP_DRAWSTEP_2D);
-
 	ED_region_pixelspace(ar);
+
+	WM_manipulatormap_draw(ar->manipulator_map, C, WM_MANIPULATORMAP_DRAWSTEP_2D);
 
 	view3d_main_region_draw_info(C, scene, ar, v3d, grid_unit, render_border);
 
