@@ -90,6 +90,7 @@ extern char datatoc_default_frag_glsl[];
 extern char datatoc_default_world_frag_glsl[];
 extern char datatoc_ltc_lib_glsl[];
 extern char datatoc_bsdf_lut_frag_glsl[];
+extern char datatoc_btdf_lut_frag_glsl[];
 extern char datatoc_bsdf_common_lib_glsl[];
 extern char datatoc_bsdf_direct_lib_glsl[];
 extern char datatoc_bsdf_sampling_lib_glsl[];
@@ -169,8 +170,97 @@ static struct GPUTexture *create_ggx_lut_texture(int UNUSED(w), int UNUSED(h))
 
 	return tex;
 }
-#endif
 
+static struct GPUTexture *create_ggx_refraction_lut_texture(int w, int h)
+{
+	struct GPUTexture *tex;
+	struct GPUTexture *hammersley = create_hammersley_sample_texture(8192);
+	struct GPUFrameBuffer *fb = NULL;
+	static float samples_ct = 8192.0f;
+	static float a2 = 0.0f;
+	static float inv_samples_ct = 1.0f / 8192.0f;
+
+	char *frag_str = NULL;
+
+	DynStr *ds_vert = BLI_dynstr_new();
+	BLI_dynstr_append(ds_vert, datatoc_bsdf_common_lib_glsl);
+	BLI_dynstr_append(ds_vert, datatoc_bsdf_sampling_lib_glsl);
+	BLI_dynstr_append(ds_vert, datatoc_btdf_lut_frag_glsl);
+	frag_str = BLI_dynstr_get_cstring(ds_vert);
+	BLI_dynstr_free(ds_vert);
+
+	struct GPUShader *sh = DRW_shader_create_fullscreen(frag_str,
+	        "#define HAMMERSLEY_SIZE 8192\n"
+	        "#define BRDF_LUT_SIZE 64\n"
+	        "#define NOISE_SIZE 64\n"
+	        "#define LUT_SIZE 64\n");
+
+	MEM_freeN(frag_str);
+
+	DRWPass *pass = DRW_pass_create("LightProbe Filtering", DRW_STATE_WRITE_COLOR);
+	DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
+	DRW_shgroup_uniform_float(grp, "a2", &a2, 1);
+	DRW_shgroup_uniform_float(grp, "sampleCount", &samples_ct, 1);
+	DRW_shgroup_uniform_float(grp, "invSampleCount", &inv_samples_ct, 1);
+	DRW_shgroup_uniform_texture(grp, "texHammersley", hammersley);
+	DRW_shgroup_uniform_texture(grp, "utilTex", e_data.util_tex);
+
+	struct Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
+	DRW_shgroup_call_add(grp, geom, NULL);
+
+	float *texels = MEM_mallocN(sizeof(float[2]) * w * h, "lut");
+
+	tex = DRW_texture_create_2D(w, h, DRW_TEX_R_16, DRW_TEX_FILTER, (float *)texels);
+
+	DRWFboTexture tex_filter = {&tex, DRW_TEX_R_16, DRW_TEX_FILTER};
+	DRW_framebuffer_init(&fb, &draw_engine_eevee_type, w, h, &tex_filter, 1);
+
+	DRW_framebuffer_bind(fb);
+
+	float *data = MEM_mallocN(sizeof(float[3]) * w * h, "lut");
+
+	float inc = 1.0f / 31.0f;
+	float roughness = 1e-8f - inc;
+	FILE *f = BLI_fopen("btdf_split_sum_ggx.h", "w");
+	fprintf(f, "static float btdf_split_sum_ggx[32][64 * 64] = {\n");
+	do {
+		roughness += inc;
+		CLAMP(roughness, 1e-4f, 1.0f);
+		a2 = powf(roughness, 4.0f);
+		DRW_draw_pass(pass);
+
+		DRW_framebuffer_read_data(0, 0, w, h, 3, 0, data);
+
+	#if 1
+		fprintf(f, "\t{\n\t\t");
+		for (int i = 0; i < w*h * 3; i+=3) {
+			fprintf(f, "%ff,", data[i]);
+			if (((i/3)+1) % 12 == 0) fprintf(f, "\n\t\t");
+			else fprintf(f, " ");
+		}
+		fprintf(f, "\n\t},\n");
+	#else
+		for (int i = 0; i < w*h * 3; i+=3) {
+			if (data[i] < 0.01) printf(" ");
+			else if (data[i] < 0.3) printf(".");
+			else if (data[i] < 0.6) printf("+");
+			else if (data[i] < 0.9) printf("%%");
+			else printf("#");
+			if ((i/3+1) % 64 == 0) printf("\n");
+		}
+	#endif
+
+	} while (roughness < 1.0f);
+	fprintf(f, "\n};\n");
+
+	fclose(f);
+
+	MEM_freeN(texels);
+	MEM_freeN(data);
+
+	return tex;
+}
+#endif
 /* XXX TODO define all shared resources in a shared place without duplication */
 struct GPUTexture *EEVEE_materials_get_util_tex(void)
 {
