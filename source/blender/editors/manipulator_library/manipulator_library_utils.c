@@ -174,10 +174,10 @@ bool manipulator_window_project_2d(
 {
 	float mat[4][4];
 	if (use_offset) {
-		mul_m4_m4m4(mat, mpr->matrix_basis, mpr->matrix_offset);
+		mul_m4_series(mat, mpr->matrix_space, mpr->matrix_basis, mpr->matrix_offset);
 	}
 	else {
-		copy_m4_m4(mat, mpr->matrix_basis);
+		mul_m4_series(mat, mpr->matrix_space, mpr->matrix_basis);
 	}
 
 	/* rotate mouse in relation to the center and relocate it */

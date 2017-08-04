@@ -36,6 +36,8 @@
  * - `matrix[0]` is derived from Y and Z.
  * - `matrix[1]` is 'up' when DialManipulator.use_start_y_axis is set.
  * - `matrix[2]` is the axis the dial rotates around (all dials).
+ *
+ * TODO: use matrix_space
  */
 
 #include "BIF_gl.h"

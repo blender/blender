@@ -94,6 +94,7 @@ static wmManipulator *wm_manipulator_create(
 
 	WM_manipulator_properties_sanitize(mpr->ptr, 0);
 
+	unit_m4(mpr->matrix_space);
 	unit_m4(mpr->matrix_basis);
 	unit_m4(mpr->matrix_offset);
 

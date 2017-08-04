@@ -343,11 +343,11 @@ static void WIDGETGROUP_camera_view_draw_prepare(const bContext *C, wmManipulato
 	}
 
 	wmManipulator *mpr = viewgroup->border;
-	unit_m4(mpr->matrix_basis);
-	mul_v3_fl(mpr->matrix_basis[0], BLI_rctf_size_x(&viewgroup->state.view_border));
-	mul_v3_fl(mpr->matrix_basis[1], BLI_rctf_size_y(&viewgroup->state.view_border));
-	mpr->matrix_basis[3][0] = viewgroup->state.view_border.xmin;
-	mpr->matrix_basis[3][1] = viewgroup->state.view_border.ymin;
+	unit_m4(mpr->matrix_space);
+	mul_v3_fl(mpr->matrix_space[0], BLI_rctf_size_x(&viewgroup->state.view_border));
+	mul_v3_fl(mpr->matrix_space[1], BLI_rctf_size_y(&viewgroup->state.view_border));
+	mpr->matrix_space[3][0] = viewgroup->state.view_border.xmin;
+	mpr->matrix_space[3][1] = viewgroup->state.view_border.ymin;
 }
 
 static void WIDGETGROUP_camera_view_refresh(const bContext *C, wmManipulatorGroup *mgroup)

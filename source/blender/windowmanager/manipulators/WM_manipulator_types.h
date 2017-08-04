@@ -160,6 +160,10 @@ struct wmManipulator {
 	 *   besides this it's up to the manipulators internal code how the
 	 *   rotation components are used for drawing and interaction.
 	 */
+
+	/* The space this manipulator is being modified in. */
+	float matrix_space[4][4];
+	/* Transformation of this manipulator. */
 	float matrix_basis[4][4];
 	/* custom offset from origin */
 	float matrix_offset[4][4];

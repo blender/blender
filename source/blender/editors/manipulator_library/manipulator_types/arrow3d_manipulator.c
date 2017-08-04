@@ -36,6 +36,8 @@
  * - `matrix[0]` is derived from Y and Z.
  * - `matrix[1]` is 'up' for manipulator types that have an up.
  * - `matrix[2]` is the arrow direction (for all arrowes).
+ *
+ * TODO: use matrix_space
  */
 
 #include "BIF_gl.h"

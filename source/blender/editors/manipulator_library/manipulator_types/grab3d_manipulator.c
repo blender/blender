@@ -31,6 +31,8 @@
  * - `matrix[1]` currently not used.
  * - `matrix[2]` is the widget direction (for all manipulators).
  *
+ * TODO: use matrix_space
+ *
  */
 
 #include "BIF_gl.h"

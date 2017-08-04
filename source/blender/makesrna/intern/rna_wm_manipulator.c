@@ -359,6 +359,7 @@ RNA_MANIPULATOR_GENERIC_FLOAT_ARRAY_RW_DEF(color_hi, color_hi, 3);
 RNA_MANIPULATOR_GENERIC_FLOAT_ARRAY_INDEX_RW_DEF(alpha, color, 3);
 RNA_MANIPULATOR_GENERIC_FLOAT_ARRAY_INDEX_RW_DEF(alpha_hi, color_hi, 3);
 
+RNA_MANIPULATOR_GENERIC_FLOAT_ARRAY_RW_DEF(matrix_space, matrix_space, 16);
 RNA_MANIPULATOR_GENERIC_FLOAT_ARRAY_RW_DEF(matrix_basis, matrix_basis, 16);
 RNA_MANIPULATOR_GENERIC_FLOAT_ARRAY_RW_DEF(matrix_offset, matrix_offset, 16);
 
@@ -997,6 +998,12 @@ static void rna_def_manipulator(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_ui_text(prop, "Alpha", "");
 	RNA_def_property_float_funcs(prop, "rna_Manipulator_alpha_hi_get", "rna_Manipulator_alpha_hi_set", NULL);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+
+	prop = RNA_def_property(srna, "matrix_space", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
+	RNA_def_property_ui_text(prop, "Space Matrix", "");
+	RNA_def_property_float_funcs(prop, "rna_Manipulator_matrix_space_get", "rna_Manipulator_matrix_space_set", NULL);
 	RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
 
 	prop = RNA_def_property(srna, "matrix_basis", PROP_FLOAT, PROP_MATRIX);

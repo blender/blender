@@ -27,6 +27,8 @@
  *
  * \brief Manipulator with primitive drawing type (plane, cube, etc.).
  * Currently only plane primitive supported without own handling, use with operator only.
+ *
+ * TODO: use matrix_space
  */
 
 #include "BIF_gl.h"
