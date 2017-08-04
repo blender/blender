@@ -32,12 +32,10 @@ class AddPresetIntegrator(AddPresetBase, Operator):
 
     preset_values = [
         "cycles.max_bounces",
-        "cycles.min_bounces",
         "cycles.diffuse_bounces",
         "cycles.glossy_bounces",
         "cycles.transmission_bounces",
         "cycles.volume_bounces",
-        "cycles.transparent_min_bounces",
         "cycles.transparent_max_bounces",
         "cycles.use_transparent_shadows",
         "cycles.caustics_reflective",

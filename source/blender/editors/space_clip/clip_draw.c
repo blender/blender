@@ -384,9 +384,11 @@ static void draw_stabilization_border(SpaceClip *sc, ARegion *ar, int width, int
 
 static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackingTrack *track)
 {
+#define MAX_STATIC_PATH 64
 	int count = sc->path_length;
 	int i, a, b, curindex = -1;
-	float path[102][2];
+	float path_static[(MAX_STATIC_PATH + 1) * 2][2];
+	float (*path)[2];
 	int tiny = sc->flag & SC_SHOW_TINY_MARKER, framenr, start_frame;
 	MovieTrackingMarker *marker;
 
@@ -398,6 +400,13 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 	marker = BKE_tracking_marker_get(track, framenr);
 	if (marker->framenr != framenr || marker->flag & MARKER_DISABLED)
 		return;
+
+	if (count < MAX_STATIC_PATH) {
+		path = path_static;
+	}
+	else {
+		path = MEM_mallocN(sizeof(*path) * (count + 1) * 2, "path");
+	}
 
 	a = count;
 	i = framenr - 1;
@@ -533,6 +542,11 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 	}
 
 	immUnbindProgram();
+
+	if (path != path_static) {
+		MEM_freeN(path);
+	}
+#undef MAX_STATIC_PATH
 }
 
 static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker,

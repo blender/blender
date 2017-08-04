@@ -31,7 +31,6 @@ NODE_DEFINE(Integrator)
 {
 	NodeType *type = NodeType::add("integrator", create);
 
-	SOCKET_INT(min_bounce, "Min Bounce", 2);
 	SOCKET_INT(max_bounce, "Max Bounce", 7);
 
 	SOCKET_INT(max_diffuse_bounce, "Max Diffuse Bounce", 7);
@@ -39,7 +38,6 @@ NODE_DEFINE(Integrator)
 	SOCKET_INT(max_transmission_bounce, "Max Transmission Bounce", 7);
 	SOCKET_INT(max_volume_bounce, "Max Volume Bounce", 7);
 
-	SOCKET_INT(transparent_min_bounce, "Transparent Min Bounce", 2);
 	SOCKET_INT(transparent_max_bounce, "Transparent Max Bounce", 7);
 	SOCKET_BOOLEAN(transparent_shadows, "Transparent Shadows", false);
 
@@ -104,7 +102,6 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 
 	/* integrator parameters */
 	kintegrator->max_bounce = max_bounce + 1;
-	kintegrator->min_bounce = min_bounce + 1;
 
 	kintegrator->max_diffuse_bounce = max_diffuse_bounce + 1;
 	kintegrator->max_glossy_bounce = max_glossy_bounce + 1;
@@ -112,7 +109,6 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	kintegrator->max_volume_bounce = max_volume_bounce + 1;
 
 	kintegrator->transparent_max_bounce = transparent_max_bounce + 1;
-	kintegrator->transparent_min_bounce = transparent_min_bounce + 1;
 
 	if(ao_bounces == 0) {
 		kintegrator->ao_bounces = INT_MAX;
