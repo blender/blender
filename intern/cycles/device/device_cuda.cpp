@@ -1898,17 +1898,13 @@ public:
 		int threads_per_block;
 		cuda_assert(cuFuncGetAttribute(&threads_per_block, CU_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK, func));
 
-		int xthreads = (int)sqrt(threads_per_block);
-		int ythreads = (int)sqrt(threads_per_block);
-
-		int xblocks = (dim.global_size[0] + xthreads - 1)/xthreads;
-		int yblocks = (dim.global_size[1] + ythreads - 1)/ythreads;
+		int xblocks = (dim.global_size[0]*dim.global_size[1] + threads_per_block - 1)/threads_per_block;
 
 		cuda_assert(cuFuncSetCacheConfig(func, CU_FUNC_CACHE_PREFER_L1));
 
 		cuda_assert(cuLaunchKernel(func,
-		                           xblocks , yblocks, 1, /* blocks */
-		                           xthreads, ythreads, 1, /* threads */
+		                           xblocks, 1, 1, /* blocks */
+		                           threads_per_block, 1, 1, /* threads */
 		                           0, 0, args, 0));
 
 		device->cuda_pop_context();
