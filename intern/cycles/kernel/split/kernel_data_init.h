@@ -124,14 +124,25 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
 
 	/* zero the tiles pixels and initialize rng_state if this is the first sample */
 	if(start_sample == 0) {
-		parallel_for(kg, i, sw * sh * kernel_data.film.pass_stride) {
-			int pixel = i / kernel_data.film.pass_stride;
-			int pass = i % kernel_data.film.pass_stride;
+		int pass_stride = kernel_data.film.pass_stride;
+
+#ifdef __KERNEL_CPU__
+		for(int y = sy; y < sy + sh; y++) {
+			int index = offset + y * stride;
+			memset(buffer + (sx + index) * pass_stride, 0, sizeof(float) * pass_stride * sw);
+			for(int x = sx; x < sx + sw; x++) {
+				rng_state[index + x] = hash_int_2d(x, y);
+			}
+		}
+#else
+		parallel_for(kg, i, sw * sh * pass_stride) {
+			int pixel = i / pass_stride;
+			int pass = i % pass_stride;
 
 			int x = sx + pixel % sw;
 			int y = sy + pixel / sw;
 
-			int index = (offset + x + y*stride) * kernel_data.film.pass_stride + pass;
+			int index = (offset + x + y*stride) * pass_stride + pass;
 
 			*(buffer + index) = 0.0f;
 		}
@@ -143,6 +154,7 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
 			int index = (offset + x + y*stride);
 			*(rng_state + index) = hash_int_2d(x, y);
 		}
+#endif
 	}
 
 #endif  /* KERENL_STUB */
