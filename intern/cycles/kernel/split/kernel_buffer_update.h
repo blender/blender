@@ -119,8 +119,6 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
 		bool is_shadow_catcher = (state->flag & PATH_RAY_SHADOW_CATCHER);
 		kernel_write_result(kg, buffer, sample, L, 1.0f - (*L_transparent), is_shadow_catcher);
 
-		path_rng_end(kg, rng_state, rng);
-
 		ASSIGN_RAY_STATE(ray_state, ray_index, RAY_TO_REGENERATE);
 	}
 
@@ -169,7 +167,6 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
 				float4 L_rad = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 				/* Accumulate result in output buffer. */
 				kernel_write_pass_float4(buffer, sample, L_rad);
-				path_rng_end(kg, rng_state, rng);
 
 				ASSIGN_RAY_STATE(ray_state, ray_index, RAY_TO_REGENERATE);
 			}

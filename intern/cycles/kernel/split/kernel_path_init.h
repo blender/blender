@@ -96,7 +96,6 @@ ccl_device void kernel_path_init(KernelGlobals *kg) {
 		float4 L_rad = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 		/* Accumulate result in output buffer. */
 		kernel_write_pass_float4(buffer, my_sample, L_rad);
-		path_rng_end(kg, rng_state, kernel_split_state.rng[ray_index]);
 		ASSIGN_RAY_STATE(kernel_split_state.ray_state, ray_index, RAY_TO_REGENERATE);
 	}
 	kernel_split_state.rng[ray_index] = rng;
