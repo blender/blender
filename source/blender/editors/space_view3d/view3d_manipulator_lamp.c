@@ -50,8 +50,6 @@
 /** \name Spot Lamp Manipulators
  * \{ */
 
-/* Spot Lamp */
-
 static bool WIDGETGROUP_lamp_spot_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
 {
 	Object *ob = CTX_data_active_object(C);
@@ -121,8 +119,6 @@ void VIEW3D_WGT_lamp_spot(wmManipulatorGroupType *wgt)
 
 /** \name Area Lamp Manipulators
  * \{ */
-
-/* Area Lamp */
 
 /* translate callbacks */
 static void manipulator_area_lamp_prop_size_get(
@@ -228,6 +224,74 @@ void VIEW3D_WGT_lamp_area(wmManipulatorGroupType *wgt)
 	wgt->poll = WIDGETGROUP_lamp_area_poll;
 	wgt->setup = WIDGETGROUP_lamp_area_setup;
 	wgt->refresh = WIDGETGROUP_lamp_area_refresh;
+}
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Lamp Target Manipulator
+ * \{ */
+
+static bool WIDGETGROUP_lamp_target_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
+{
+	Object *ob = CTX_data_active_object(C);
+
+	if (ob != NULL) {
+		if (ob->type == OB_LAMP) {
+			Lamp *la = ob->data;
+			return (ELEM(la->type, LA_SUN, LA_SPOT, LA_HEMI, LA_AREA));
+		}
+		else if (ob->type == OB_CAMERA) {
+			return true;
+		}
+	}
+	return false;
+}
+
+static void WIDGETGROUP_lamp_target_setup(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
+{
+	const float color[4] = {1.0f, 1.0f, 0.5f, 1.0f};
+	const float color_hi[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+
+	wmManipulatorWrapper *wwrapper = MEM_mallocN(sizeof(wmManipulatorWrapper), __func__);
+	wwrapper->manipulator = WM_manipulator_new("MANIPULATOR_WT_grab_3d", mgroup, NULL);
+	wmManipulator *mpr = wwrapper->manipulator;
+
+	mgroup->customdata = wwrapper;
+
+	WM_manipulator_set_color(mpr, color);
+	WM_manipulator_set_color_highlight(mpr, color_hi);
+
+	mpr->scale_basis = 0.05f;
+
+	wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_transform_axis_target", true);
+	WM_manipulator_set_operator(mpr, ot, NULL);
+}
+
+static void WIDGETGROUP_lamp_target_draw_prepare(const bContext *C, wmManipulatorGroup *mgroup)
+{
+	wmManipulatorWrapper *wwrapper = mgroup->customdata;
+	Object *ob = CTX_data_active_object(C);
+	wmManipulator *mpr = wwrapper->manipulator;
+
+	copy_m4_m4(mpr->matrix_basis, ob->obmat);
+	unit_m4(mpr->matrix_offset);
+	mpr->matrix_offset[3][2] = -2.4f / mpr->scale_basis;
+}
+
+void VIEW3D_WGT_lamp_target(wmManipulatorGroupType *wgt)
+{
+	wgt->name = "Target Lamp Widgets";
+	wgt->idname = "VIEW3D_WGT_lamp_target";
+
+	wgt->flag |= (WM_MANIPULATORGROUPTYPE_PERSISTENT |
+	              WM_MANIPULATORGROUPTYPE_3D);
+
+	wgt->poll = WIDGETGROUP_lamp_target_poll;
+	wgt->setup = WIDGETGROUP_lamp_target_setup;
+	wgt->draw_prepare = WIDGETGROUP_lamp_target_draw_prepare;
 }
 
 /** \} */

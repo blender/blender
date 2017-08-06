@@ -300,6 +300,12 @@ class VIEW3D_MT_transform_object(VIEW3D_MT_transform_base):
         layout.operator("object.randomize_transform")
         layout.operator("object.align")
 
+        # TODO: there is a strange context bug here.
+        """
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.operator("object.transform_axis_target")
+        """
+
 
 # Armature EditMode extensions to Transform menu
 class VIEW3D_MT_transform_armature(VIEW3D_MT_transform_base):

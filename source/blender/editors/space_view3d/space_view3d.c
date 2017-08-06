@@ -737,6 +737,7 @@ static void view3d_widgets(void)
 	WM_manipulatorgrouptype_append_and_link(mmap_type, TRANSFORM_WGT_manipulator);
 	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_lamp_spot);
 	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_lamp_area);
+	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_lamp_target);
 	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_force_field);
 	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_camera);
 	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_camera_view);
