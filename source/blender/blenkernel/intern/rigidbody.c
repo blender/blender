@@ -1659,13 +1659,13 @@ void BKE_rigidbody_do_simulation(struct EvaluationContext *eval_ctx, Scene *scen
 #  pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
-struct RigidBodyOb *BKE_rigidbody_copy_object(const Object *ob) { return NULL; }
-struct RigidBodyCon *BKE_rigidbody_copy_constraint(const Object *ob) { return NULL; }
+struct RigidBodyOb *BKE_rigidbody_copy_object(const Object *ob, const int flag) { return NULL; }
+struct RigidBodyCon *BKE_rigidbody_copy_constraint(const Object *ob, const int flag) { return NULL; }
 void BKE_rigidbody_validate_sim_world(Scene *scene, RigidBodyWorld *rbw, bool rebuild) {}
 void BKE_rigidbody_calc_volume(Object *ob, float *r_vol) { if (r_vol) *r_vol = 0.0f; }
 void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_center[3]) { zero_v3(r_center); }
 struct RigidBodyWorld *BKE_rigidbody_create_world(Scene *scene) { return NULL; }
-struct RigidBodyWorld *BKE_rigidbody_world_copy(RigidBodyWorld *rbw) { return NULL; }
+struct RigidBodyWorld *BKE_rigidbody_world_copy(RigidBodyWorld *rbw, const int flag) { return NULL; }
 void BKE_rigidbody_world_groups_relink(struct RigidBodyWorld *rbw) {}
 void BKE_rigidbody_world_id_loop(struct RigidBodyWorld *rbw, RigidbodyWorldIDFunc func, void *userdata) {}
 struct RigidBodyOb *BKE_rigidbody_create_object(Scene *scene, Object *ob, short type) { return NULL; }

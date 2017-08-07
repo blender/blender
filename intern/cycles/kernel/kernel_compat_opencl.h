@@ -129,6 +129,7 @@
 #  define expf(x) native_exp(((float)(x)))
 #  define sqrtf(x) native_sqrt(((float)(x)))
 #  define logf(x) native_log(((float)(x)))
+#  define rcp(x)  native_recip(x)
 #else
 #  define sinf(x) sin(((float)(x)))
 #  define cosf(x) cos(((float)(x)))
@@ -136,6 +137,7 @@
 #  define expf(x) exp(((float)(x)))
 #  define sqrtf(x) sqrt(((float)(x)))
 #  define logf(x) log(((float)(x)))
+#  define rcp(x)  recip(x))
 #endif
 
 /* data lookup defines */

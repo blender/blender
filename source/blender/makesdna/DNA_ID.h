@@ -365,7 +365,7 @@ enum {
 	LIB_TAG_ID_RECALC_ALL   = (LIB_TAG_ID_RECALC | LIB_TAG_ID_RECALC_DATA),
 
 	/* The datablock is a copy-on-write version. */
-	LIB_TAG_COPY_ON_WRITE  = (1 << 15),
+	LIB_TAG_COPY_ON_WRITE   = 1 << 15,
 
 	/* RESET_NEVER tag datablock for freeing etc. behavior (usually set when copying real one into temp/runtime one). */
 	LIB_TAG_NO_MAIN          = 1 << 16,  /* Datablock is not listed in Main database. */
