@@ -358,33 +358,45 @@ __forceinline size_t __bscf(size_t& v)
 #define _MM_FROUND_CUR_DIRECTION     0x04
 
 #undef _mm_blendv_ps
-__forceinline __m128 _mm_blendv_ps( __m128 value, __m128 input, __m128 mask ) { 
+#define _mm_blendv_ps _mm_blendv_ps_emu
+__forceinline __m128 _mm_blendv_ps_emu( __m128 value, __m128 input, __m128 mask)
+{
     return _mm_or_ps(_mm_and_ps(mask, input), _mm_andnot_ps(mask, value)); 
 }
 
 #undef _mm_blend_ps
-__forceinline __m128 _mm_blend_ps( __m128 value, __m128 input, const int mask ) { 
+#define _mm_blend_ps _mm_blend_ps_emu
+__forceinline __m128 _mm_blend_ps_emu( __m128 value, __m128 input, const int mask)
+{
     assert(mask < 0x10); return _mm_blendv_ps(value, input, _mm_lookupmask_ps[mask]); 
 }
 
 #undef _mm_blendv_epi8
-__forceinline __m128i _mm_blendv_epi8( __m128i value, __m128i input, __m128i mask ) { 
+#define _mm_blendv_epi8 _mm_blendv_epi8_emu
+__forceinline __m128i _mm_blendv_epi8_emu( __m128i value, __m128i input, __m128i mask)
+{
     return _mm_or_si128(_mm_and_si128(mask, input), _mm_andnot_si128(mask, value)); 
 }
 
 #undef _mm_min_epi32
-__forceinline __m128i _mm_min_epi32( __m128i value, __m128i input ) { 
+#define _mm_min_epi32 _mm_min_epi32_emu
+__forceinline __m128i _mm_min_epi32_emu( __m128i value, __m128i input)
+{
     return _mm_blendv_epi8(input, value, _mm_cmplt_epi32(value, input)); 
 }
 
 #undef _mm_max_epi32
-__forceinline __m128i _mm_max_epi32( __m128i value, __m128i input ) { 
+#define _mm_max_epi32 _mm_max_epi32_emu
+__forceinline __m128i _mm_max_epi32_emu( __m128i value, __m128i input)
+{
     return _mm_blendv_epi8(value, input, _mm_cmplt_epi32(value, input)); 
 }
 
 #undef _mm_extract_epi32
-__forceinline int _mm_extract_epi32( __m128i input, const int index ) {
-  switch ( index ) {
+#define _mm_extract_epi32 _mm_extract_epi32_emu
+__forceinline int _mm_extract_epi32_emu( __m128i input, const int index)
+{
+  switch(index) {
   case 0: return _mm_cvtsi128_si32(input);
   case 1: return _mm_cvtsi128_si32(_mm_shuffle_epi32(input, _MM_SHUFFLE(1, 1, 1, 1)));
   case 2: return _mm_cvtsi128_si32(_mm_shuffle_epi32(input, _MM_SHUFFLE(2, 2, 2, 2)));
@@ -394,18 +406,26 @@ __forceinline int _mm_extract_epi32( __m128i input, const int index ) {
 }
 
 #undef _mm_insert_epi32
-__forceinline __m128i _mm_insert_epi32( __m128i value, int input, const int index ) { 
+#define _mm_insert_epi32 _mm_insert_epi32_emu
+__forceinline __m128i _mm_insert_epi32_emu( __m128i value, int input, const int index)
+{
     assert(index >= 0 && index < 4); ((int*)&value)[index] = input; return value; 
 }
 
 #undef _mm_insert_ps
-__forceinline __m128 _mm_insert_ps( __m128 value, __m128 input, const int index )
-{ assert(index < 0x100); ((float*)&value)[(index >> 4)&0x3] = ((float*)&input)[index >> 6]; return _mm_andnot_ps(_mm_lookupmask_ps[index&0xf], value); }
+#define _mm_insert_ps _mm_insert_ps_emu
+__forceinline __m128 _mm_insert_ps_emu( __m128 value, __m128 input, const int index)
+{
+	assert(index < 0x100);
+	((float*)&value)[(index >> 4)&0x3] = ((float*)&input)[index >> 6];
+	return _mm_andnot_ps(_mm_lookupmask_ps[index&0xf], value);
+}
 
 #undef _mm_round_ps
-__forceinline __m128 _mm_round_ps( __m128 value, const int flags )
+#define _mm_round_ps _mm_round_ps_emu
+__forceinline __m128 _mm_round_ps_emu( __m128 value, const int flags)
 {
-  switch ( flags )
+  switch(flags)
   {
   case _MM_FROUND_TO_NEAREST_INT: return _mm_cvtepi32_ps(_mm_cvtps_epi32(value));
   case _MM_FROUND_TO_NEG_INF    : return _mm_cvtepi32_ps(_mm_cvtps_epi32(_mm_add_ps(value, _mm_set1_ps(-0.5f))));

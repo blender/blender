@@ -286,13 +286,14 @@ ccl_device_inline float4 reduce_add(const float4& a)
 	return  shuffle<2,3,0,1>(h) + h;
 #  endif
 #else
-	return make_float4(((a.x + a.y) + (a.z + a.w)));
+	float sum = (a.x + a.y) + (a.z + a.w);
+	return make_float4(sum, sum, sum, sum);
 #endif
 }
 
 ccl_device_inline float average(const float4& a)
 {
-	return reduce_add(a)[0] * 0.25f;
+	return reduce_add(a).x * 0.25f;
 }
 
 ccl_device_inline float len(const float4& a)
