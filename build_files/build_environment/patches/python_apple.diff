@@ -1,0 +1,48 @@
+--- Modules/expat/expat_external.h   2016-12-17 06:51:30 -0500
++++ Modules/expat/expat_external.h   2016-12-17 06:55:29 -0500
+@@ -7,9 +7,17 @@
+ 
+ /* External API definitions */
+ 
+-/* Namespace external symbols to allow multiple libexpat version to
+-   co-exist. */
+-#include "pyexpatns.h"
++/* 
++
++  HACK: Fix build breakage on MacOS:
++  *** WARNING: renaming "pyexpat" since importing it failed: dlopen(build/lib.macosx-10.6-i386-3.3/pyexpat.so, 2): Symbol not found: _XML_ErrorString
++  This reverts c242a8f30806 from the python hg repo:
++  restore namespacing of pyexpat symbols (closes #19186)
++  See http://bugs.python.org/issue19186#msg214069
++  The recommendation to include Modules/inc at first broke the Linux build...
++  So do it this way, as it was before. Needs some realignment later.
++
++*/
+ 
+ #if defined(_MSC_EXTENSIONS) && !defined(__BEOS__) && !defined(__CYGWIN__)
+ #define XML_USE_MSC_EXTENSIONS 1
+--- pyconfig.h.in	2017-04-05 02:47:52.000000000 +0200
++++ pyconfig.h.in	2017-04-05 02:51:33.000000000 +0200
+@@ -119,12 +119,6 @@
+ /* Define to 1 if you have the `clock' function. */
+ #undef HAVE_CLOCK
+ 
+-/* Define to 1 if you have the `clock_getres' function. */
+-#undef HAVE_CLOCK_GETRES
+-
+-/* Define to 1 if you have the `clock_gettime' function. */
+-#undef HAVE_CLOCK_GETTIME
+-
+ /* Define if the C compiler supports computed gotos. */
+ #undef HAVE_COMPUTED_GOTOS
+ 
+@@ -338,9 +332,6 @@
+ /* Define this if you have flockfile(), getc_unlocked(), and funlockfile() */
+ #undef HAVE_GETC_UNLOCKED
+ 
+-/* Define to 1 if you have the `getentropy' function. */
+-#undef HAVE_GETENTROPY
+-
+ /* Define to 1 if you have the `getgrouplist' function. */
+ #undef HAVE_GETGROUPLIST
+ 

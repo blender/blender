@@ -1,0 +1,11 @@
+diff -Naur k:\BlenderDev\lib\win64_vc12_Harvest\openVDB\/include/openvdb/math/Coord.h .\openVDB/include/openvdb/math/Coord.h
+--- k:\BlenderDev\lib\win64_vc12_Harvest\openVDB\/include/openvdb/math/Coord.h	2016-03-30 15:09:49 -0600
++++ .\openVDB/include/openvdb/math/Coord.h	2016-04-01 06:53:47 -0600
+@@ -34,6 +34,7 @@
+ #include <openvdb/Platform.h>
+ #include "Math.h"
+ #include "Vec3.h"
++#define NOMINMAX
+ 
+ namespace tbb { class split; } // forward declaration
+ 

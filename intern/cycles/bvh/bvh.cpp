@@ -167,6 +167,10 @@ void BVH::pack_primitives()
 
 			if(pack.prim_type[i] & PRIMITIVE_ALL_CURVE)
 				pack.prim_visibility[i] |= PATH_RAY_CURVE;
+			if (ob->is_shadow_catcher)
+				pack.prim_visibility[i] &= ~PATH_RAY_SHADOW_NON_CATCHER;
+			else
+				pack.prim_visibility[i] &= ~PATH_RAY_SHADOW_CATCHER;
 		}
 		else {
 			pack.prim_tri_index[i] = -1;

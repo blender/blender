@@ -45,7 +45,7 @@ ccl_device_inline
 bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
                                  const Ray *ray,
                                  Intersection *isect_array,
-                                 const int skip_object,
+                                 const uint visibility,
                                  const uint max_hits,
                                  uint *num_hits)
 {
@@ -119,7 +119,7 @@ bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 				                               idir,
 				                               isect_t,
 				                               node_addr,
-				                               PATH_RAY_SHADOW,
+				                               visibility,
 				                               dist);
 #else // __KERNEL_SSE2__
 				traverse_mask = NODE_INTERSECT(kg,
@@ -134,7 +134,7 @@ bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 				                               idirsplat,
 				                               shufflexyz,
 				                               node_addr,
-				                               PATH_RAY_SHADOW,
+				                               visibility,
 				                               dist);
 #endif // __KERNEL_SSE2__
 
@@ -186,17 +186,6 @@ bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 					/* primitive intersection */
 					while(prim_addr < prim_addr2) {
 						kernel_assert((kernel_tex_fetch(__prim_type, prim_addr) & PRIMITIVE_ALL) == p_type);
-
-#ifdef __SHADOW_TRICKS__
-						uint tri_object = (object == OBJECT_NONE)
-						        ? kernel_tex_fetch(__prim_object, prim_addr)
-						        : object;
-						if(tri_object == skip_object) {
-							++prim_addr;
-							continue;
-						}
-#endif
-
 						bool hit;
 
 						/* todo: specialized intersect functions which don't fill in
@@ -209,7 +198,7 @@ bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 								                         isect_array,
 								                         P,
 								                         dir,
-								                         PATH_RAY_SHADOW,
+								                         visibility,
 								                         object,
 								                         prim_addr);
 								break;
@@ -221,7 +210,7 @@ bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 								                                P,
 								                                dir,
 								                                ray->time,
-								                                PATH_RAY_SHADOW,
+								                                visibility,
 								                                object,
 								                                prim_addr);
 								break;
@@ -236,7 +225,7 @@ bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 									                                   isect_array,
 									                                   P,
 									                                   dir,
-									                                   PATH_RAY_SHADOW,
+									                                   visibility,
 									                                   object,
 									                                   prim_addr,
 									                                   ray->time,
@@ -249,7 +238,7 @@ bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 									                          isect_array,
 									                          P,
 									                          dir,
-									                          PATH_RAY_SHADOW,
+									                          visibility,
 									                          object,
 									                          prim_addr,
 									                          ray->time,
@@ -402,7 +391,7 @@ bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
                                          const Ray *ray,
                                          Intersection *isect_array,
-                                         const int skip_object,
+                                         const uint visibility,
                                          const uint max_hits,
                                          uint *num_hits)
 {
@@ -411,7 +400,7 @@ ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
 		return BVH_FUNCTION_FULL_NAME(QBVH)(kg,
 		                                    ray,
 		                                    isect_array,
-		                                    skip_object,
+		                                    visibility,
 		                                    max_hits,
 		                                    num_hits);
 	}
@@ -422,7 +411,7 @@ ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
 		return BVH_FUNCTION_FULL_NAME(BVH)(kg,
 		                                   ray,
 		                                   isect_array,
-		                                   skip_object,
+		                                   visibility,
 		                                   max_hits,
 		                                   num_hits);
 	}

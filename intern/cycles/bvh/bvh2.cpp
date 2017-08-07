@@ -314,6 +314,10 @@ void BVH2::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 			}
 
 			visibility |= ob->visibility;
+			if (ob->is_shadow_catcher)
+				visibility &= ~PATH_RAY_SHADOW_NON_CATCHER;
+			else
+				visibility &= ~PATH_RAY_SHADOW_CATCHER;
 		}
 
 		/* TODO(sergey): De-duplicate with pack_leaf(). */

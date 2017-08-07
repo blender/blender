@@ -33,7 +33,7 @@
 ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
                                              const Ray *ray,
                                              Intersection *isect_array,
-                                             const int skip_object,
+                                             const uint visibility,
                                              const uint max_hits,
                                              uint *num_hits)
 {
@@ -107,7 +107,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 
 				if(false
 #ifdef __VISIBILITY_FLAG__
-				   || ((__float_as_uint(inodes.x) & PATH_RAY_SHADOW) == 0)
+				   || ((__float_as_uint(inodes.x) & visibility) == 0)
 #endif
 #if BVH_FEATURE(BVH_MOTION)
 				   || UNLIKELY(ray->time < inodes.y)
@@ -244,7 +244,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 			if(node_addr < 0) {
 				float4 leaf = kernel_tex_fetch(__bvh_leaf_nodes, (-node_addr-1));
 #ifdef __VISIBILITY_FLAG__
-				if((__float_as_uint(leaf.z) & PATH_RAY_SHADOW) == 0) {
+				if((__float_as_uint(leaf.z) & visibility) == 0) {
 					/* Pop. */
 					node_addr = traversal_stack[stack_ptr].addr;
 					--stack_ptr;
@@ -268,17 +268,6 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 					/* Primitive intersection. */
 					while(prim_addr < prim_addr2) {
 						kernel_assert((kernel_tex_fetch(__prim_type, prim_addr) & PRIMITIVE_ALL) == p_type);
-
-#ifdef __SHADOW_TRICKS__
-						uint tri_object = (object == OBJECT_NONE)
-						        ? kernel_tex_fetch(__prim_object, prim_addr)
-						        : object;
-						if(tri_object == skip_object) {
-							++prim_addr;
-							continue;
-						}
-#endif
-
 						bool hit;
 
 						/* todo: specialized intersect functions which don't fill in
@@ -291,7 +280,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 								                         isect_array,
 								                         P,
 								                         dir,
-								                         PATH_RAY_SHADOW,
+								                         visibility,
 								                         object,
 								                         prim_addr);
 								break;
@@ -303,7 +292,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 								                                P,
 								                                dir,
 								                                ray->time,
-								                                PATH_RAY_SHADOW,
+								                                visibility,
 								                                object,
 								                                prim_addr);
 								break;
@@ -318,7 +307,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 									                                   isect_array,
 									                                   P,
 									                                   dir,
-									                                   PATH_RAY_SHADOW,
+									                                   visibility,
 									                                   object,
 									                                   prim_addr,
 									                                   ray->time,
@@ -331,7 +320,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 									                          isect_array,
 									                          P,
 									                          dir,
-									                          PATH_RAY_SHADOW,
+									                          visibility,
 									                          object,
 									                          prim_addr,
 									                          ray->time,

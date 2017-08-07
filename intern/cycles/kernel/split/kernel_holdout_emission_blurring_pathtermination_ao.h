@@ -129,7 +129,6 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 				state->flag |= (PATH_RAY_SHADOW_CATCHER |
 				                PATH_RAY_SHADOW_CATCHER_ONLY |
 				                PATH_RAY_STORE_SHADOW_INFO);
-				state->catcher_object = sd->object;
 				if(!kernel_data.background.transparent) {
 					ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
 					L->shadow_background_color = indirect_background(

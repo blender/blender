@@ -1,0 +1,12 @@
+diff -Naur osl/src/external_osl/src/cmake/flexbison.cmake osl_bak/src/external_osl/src/cmake/flexbison.cmake
+--- osl/src/external_osl//src/cmake/flexbison.cmake	2016-01-29 11:15:22 -0700
++++ osl_bak/src/external_osl/src/cmake/flexbison.cmake	2016-02-29 21:26:26 -0700
+@@ -77,7 +77,7 @@
+           DEPENDS ${${compiler_headers}}
+           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
+         ADD_CUSTOM_COMMAND ( OUTPUT ${flexoutputcxx} 
+-          COMMAND ${FLEX_EXECUTABLE} -o ${flexoutputcxx} "${CMAKE_CURRENT_SOURCE_DIR}/${flexsrc}"
++          COMMAND ${FLEX_EXECUTABLE} ${FLEX_EXTRA_OPTIONS} -o ${flexoutputcxx} "${CMAKE_CURRENT_SOURCE_DIR}/${flexsrc}"
+           MAIN_DEPENDENCY ${flexsrc}
+           DEPENDS ${${compiler_headers}}
+           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )

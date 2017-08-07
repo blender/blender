@@ -1,0 +1,25 @@
+--- config.h.in	2014-03-04 11:44:58 -0700
++++ config.h.in	2016-03-30 11:42:49 -0600
+@@ -142,9 +142,6 @@
+ /* Define to 1 if you have the `gethrtime' function. */
+ #undef HAVE_GETHRTIME
+ 
+-/* Define to 1 if you have the `gettimeofday' function. */
+-#undef HAVE_GETTIMEOFDAY
+-
+ /* Define to 1 if hrtime_t is defined in <sys/time.h> */
+ #undef HAVE_HRTIME_T
+ 
+--- kernel/assert.c	2014-03-04 11:41:03 -0700
++++ kernel/assert.c	2016-04-01 09:41:05 -0600
+@@ -24,8 +24,10 @@
+ 
+ void X(assertion_failed)(const char *s, int line, const char *file)
+ {
++#if 0
+      fflush(stdout);
+      fprintf(stderr, "fftw: %s:%d: assertion failed: %s\n", file, line, s);
++#endif 
+ #ifdef HAVE_ABORT
+      abort();
+ #else
