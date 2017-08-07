@@ -39,7 +39,7 @@ ccl_device void kernel_shader_sort(KernelGlobals *kg,
 	ccl_local ushort *local_index = &locals->local_index[0];
 
 	/* copy to local memory */
-	for (uint i = 0; i < SHADER_SORT_BLOCK_SIZE; i += SHADER_SORT_LOCAL_SIZE) {
+	for(uint i = 0; i < SHADER_SORT_BLOCK_SIZE; i += SHADER_SORT_LOCAL_SIZE) {
 		uint idx = offset + i + lid;
 		uint add = input + idx;
 		uint value = (~0);
@@ -59,9 +59,9 @@ ccl_device void kernel_shader_sort(KernelGlobals *kg,
 #  ifdef __KERNEL_OPENCL__
 
 	/* bitonic sort */
-	for (uint length = 1; length < SHADER_SORT_BLOCK_SIZE; length <<= 1) {
-		for (uint inc = length; inc > 0; inc >>= 1) {
-			for (uint ii = 0; ii < SHADER_SORT_BLOCK_SIZE; ii += SHADER_SORT_LOCAL_SIZE) {
+	for(uint length = 1; length < SHADER_SORT_BLOCK_SIZE; length <<= 1) {
+		for(uint inc = length; inc > 0; inc >>= 1) {
+			for(uint ii = 0; ii < SHADER_SORT_BLOCK_SIZE; ii += SHADER_SORT_LOCAL_SIZE) {
 				uint i = lid + ii;
 				bool direction = ((i & (length << 1)) != 0);
 				uint j = i ^ inc;
@@ -81,7 +81,7 @@ ccl_device void kernel_shader_sort(KernelGlobals *kg,
 #  endif /* __KERNEL_OPENCL__ */
 
 	/* copy to destination */
-	for (uint i = 0; i < SHADER_SORT_BLOCK_SIZE; i += SHADER_SORT_LOCAL_SIZE) {
+	for(uint i = 0; i < SHADER_SORT_BLOCK_SIZE; i += SHADER_SORT_LOCAL_SIZE) {
 		uint idx = offset + i + lid;
 		uint lidx = local_index[i + lid];
 		uint outi = output + idx;

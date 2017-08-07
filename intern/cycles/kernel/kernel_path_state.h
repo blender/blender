@@ -173,7 +173,7 @@ ccl_device_inline float path_state_terminate_probability(KernelGlobals *kg, ccl_
 		}
 #ifdef __SHADOW_TRICKS__
 		/* Exception for shadow catcher not working correctly with RR. */
-		else if ((state->flag & PATH_RAY_SHADOW_CATCHER) && (state->transparent_bounce <= 8)) {
+		else if((state->flag & PATH_RAY_SHADOW_CATCHER) && (state->transparent_bounce <= 8)) {
 			return 1.0f;
 		}
 #endif
@@ -196,7 +196,7 @@ ccl_device_inline float path_state_terminate_probability(KernelGlobals *kg, ccl_
 		}
 #ifdef __SHADOW_TRICKS__
 		/* Exception for shadow catcher not working correctly with RR. */
-		else if ((state->flag & PATH_RAY_SHADOW_CATCHER) && (state->bounce <= 3)) {
+		else if((state->flag & PATH_RAY_SHADOW_CATCHER) && (state->bounce <= 3)) {
 			return 1.0f;
 		}
 #endif

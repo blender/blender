@@ -344,7 +344,7 @@ int ImageManager::add_image(const string& filename,
 	else {
 		/* Very unlikely, since max_num_images is insanely big. But better safe than sorry. */
 		int tex_count = 0;
-		for (int type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
+		for(int type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
 			tex_count += tex_num_images[type];
 		}
 		if(tex_count > max_num_images) {

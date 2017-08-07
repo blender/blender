@@ -96,7 +96,7 @@ ccl_device void kernel_filter_get_feature(int sample,
 	int idx = (y-rect.y)*buffer_w + (x - rect.x);
 
 	mean[idx] = center_buffer[m_offset] / sample;
-	if (sample > 1) {
+	if(sample > 1) {
 		if(use_split_variance) {
 			variance[idx] = max(0.0f, (center_buffer[v_offset] - mean[idx]*mean[idx]*sample) / (sample * (sample-1)));
 		}

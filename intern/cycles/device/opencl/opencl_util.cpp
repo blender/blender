@@ -635,7 +635,7 @@ bool OpenCLInfo::device_supported(const string& platform_name,
 			"Tahiti", "Pitcairn", "Capeverde", "Oland",
 			NULL
 		};
-		for (int i = 0; blacklist[i] != NULL; i++) {
+		for(int i = 0; blacklist[i] != NULL; i++) {
 			if(device_name == blacklist[i]) {
 				VLOG(1) << "AMD device " << device_name << " not supported";
 				return false;
