@@ -163,7 +163,7 @@ def execute(context, is_interactive):
             line = line_object.body
 
             # run the console, "\n" executes a multi line statement
-            line_exec = line if line.strip() else "\n"
+            line_exec = line if line.strip() else ""
 
             is_multiline = console.push(line_exec)
         except:
