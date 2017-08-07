@@ -19,16 +19,6 @@
 
 #ifndef __KERNEL_GPU__
 
-/* quiet unused define warnings */
-#if defined(__KERNEL_SSE2__)  || \
-	defined(__KERNEL_SSE3__)  || \
-	defined(__KERNEL_SSSE3__) || \
-	defined(__KERNEL_SSE41__) || \
-	defined(__KERNEL_AVX__)   || \
-	defined(__KERNEL_AVX2__)
-	/* do nothing */
-#endif
-
 /* x86
  *
  * Compile a regular, SSE2 and SSE3 kernel. */
@@ -72,48 +62,6 @@
 #  endif
 
 #endif  /* defined(__x86_64__) || defined(_M_X64) */
-
-/* SSE Experiment
- *
- * This is disabled code for an experiment to use SSE types globally for types
- * such as float3 and float4. Currently this gives an overall slowdown. */
-
-#if 0
-#  define __KERNEL_SSE__
-#  ifndef __KERNEL_SSE2__
-#    define __KERNEL_SSE2__
-#  endif
-#  ifndef __KERNEL_SSE3__
-#    define __KERNEL_SSE3__
-#  endif
-#  ifndef __KERNEL_SSSE3__
-#    define __KERNEL_SSSE3__
-#  endif
-#  ifndef __KERNEL_SSE4__
-#    define __KERNEL_SSE4__
-#  endif
-#endif
-
-/* SSE Intrinsics includes
- *
- * We assume __KERNEL_SSEX__ flags to have been defined at this point */
-
-/* SSE intrinsics headers */
-#ifndef FREE_WINDOWS64
-
-#ifdef _MSC_VER
-#  include <intrin.h>
-#elif (defined(__x86_64__) || defined(__i386__))
-#  include <x86intrin.h>
-#endif
-
-#else
-
-/* MinGW64 has conflicting declarations for these SSE headers in <windows.h>.
- * Since we can't avoid including <windows.h>, better only include that */
-#include "util/util_windows.h"
-
-#endif
 
 #endif
 

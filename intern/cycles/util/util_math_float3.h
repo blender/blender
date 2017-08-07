@@ -108,8 +108,7 @@ ccl_device_inline float3 operator*(const float3& a, const float f)
 
 ccl_device_inline float3 operator*(const float f, const float3& a)
 {
-	/* TODO(sergey): Currently disabled, gives speedup but causes precision issues. */
-#if defined(__KERNEL_SSE__) && 0
+#if defined(__KERNEL_SSE__)
 	return float3(_mm_mul_ps(_mm_set1_ps(f), a.m128));
 #else
 	return make_float3(a.x*f, a.y*f, a.z*f);
@@ -118,10 +117,8 @@ ccl_device_inline float3 operator*(const float f, const float3& a)
 
 ccl_device_inline float3 operator/(const float f, const float3& a)
 {
-	/* TODO(sergey): Currently disabled, gives speedup but causes precision issues. */
-#if defined(__KERNEL_SSE__) && 0
-	__m128 rc = _mm_rcp_ps(a.m128);
-	return float3(_mm_mul_ps(_mm_set1_ps(f),rc));
+#if defined(__KERNEL_SSE__)
+	return float3(_mm_div_ps(_mm_set1_ps(f), a.m128));
 #else
 	return make_float3(f / a.x, f / a.y, f / a.z);
 #endif
@@ -135,10 +132,8 @@ ccl_device_inline float3 operator/(const float3& a, const float f)
 
 ccl_device_inline float3 operator/(const float3& a, const float3& b)
 {
-	/* TODO(sergey): Currently disabled, gives speedup but causes precision issues. */
-#if defined(__KERNEL_SSE__) && 0
-	__m128 rc = _mm_rcp_ps(b.m128);
-	return float3(_mm_mul_ps(a, rc));
+#if defined(__KERNEL_SSE__)
+	return float3(_mm_div_ps(a.m128, b.m128));
 #else
 	return make_float3(a.x / b.x, a.y / b.y, a.z / b.z);
 #endif
@@ -282,9 +277,8 @@ ccl_device_inline float3 mix(const float3& a, const float3& b, float t)
 ccl_device_inline float3 rcp(const float3& a)
 {
 #ifdef __KERNEL_SSE__
-	const float4 r(_mm_rcp_ps(a.m128));
-	return float3(_mm_sub_ps(_mm_add_ps(r, r),
-	                         _mm_mul_ps(_mm_mul_ps(r, r), a)));
+	/* Don't use _mm_rcp_ps due to poor precision. */
+	return float3(_mm_div_ps(_mm_set_ps1(1.0f), a.m128));
 #else
 	return make_float3(1.0f/a.x, 1.0f/a.y, 1.0f/a.z);
 #endif

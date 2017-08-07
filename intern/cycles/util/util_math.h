@@ -94,6 +94,7 @@ ccl_device_inline float fminf(float a, float b)
 #ifndef __KERNEL_GPU__
 using std::isfinite;
 using std::isnan;
+using std::sqrt;
 
 ccl_device_inline int abs(int x)
 {

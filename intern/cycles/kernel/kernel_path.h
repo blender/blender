@@ -100,6 +100,8 @@ ccl_device_noinline void kernel_path_ao(KernelGlobals *kg,
 
 #ifndef __SPLIT_KERNEL__
 
+#if defined(__BRANCHED_PATH__) || defined(__BAKING__)
+
 ccl_device void kernel_path_indirect(KernelGlobals *kg,
                                      ShaderData *sd,
                                      ShaderData *emission_sd,
@@ -428,6 +430,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 	}
 }
 
+#endif /* defined(__BRANCHED_PATH__) || defined(__BAKING__) */
 
 ccl_device_inline float kernel_path_integrate(KernelGlobals *kg,
                                               RNG *rng,

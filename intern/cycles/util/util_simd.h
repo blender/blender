@@ -18,18 +18,37 @@
 #ifndef __UTIL_SIMD_TYPES_H__
 #define __UTIL_SIMD_TYPES_H__
 
+#ifndef __KERNEL_GPU__
+
 #include <limits>
 
 #include "util/util_debug.h"
-#include "util/util_types.h"
+#include "util/util_defines.h"
+
+/* SSE Intrinsics includes
+ *
+ * We assume __KERNEL_SSEX__ flags to have been defined at this point */
+
+/* SSE intrinsics headers */
+#ifndef FREE_WINDOWS64
+
+#ifdef _MSC_VER
+#  include <intrin.h>
+#elif (defined(__x86_64__) || defined(__i386__))
+#  include <x86intrin.h>
+#endif
+
+#else
+
+/* MinGW64 has conflicting declarations for these SSE headers in <windows.h>.
+ * Since we can't avoid including <windows.h>, better only include that */
+#include "util/util_windows.h"
+
+#endif
 
 CCL_NAMESPACE_BEGIN
 
 #ifdef __KERNEL_SSE2__
-
-struct sseb;
-struct ssei;
-struct ssef;
 
 extern const __m128 _mm_lookupmask_ps[16];
 
@@ -328,12 +347,9 @@ __forceinline size_t __bscf(size_t& v)
 
 #endif /* _WIN32 */
 
-static const unsigned int BITSCAN_NO_BIT_SET_32 = 32;
-static const size_t       BITSCAN_NO_BIT_SET_64 = 64;
+#if !(defined(__SSE4_1__) || defined(__SSE4_2__))
 
-#ifdef __KERNEL_SSE3__
-/* Emulation of SSE4 functions with SSE3 */
-#  ifndef __KERNEL_SSE41__
+/* Emulation of SSE4 functions with SSE2 */
 
 #define _MM_FROUND_TO_NEAREST_INT    0x00
 #define _MM_FROUND_TO_NEG_INF        0x01
@@ -342,48 +358,31 @@ static const size_t       BITSCAN_NO_BIT_SET_64 = 64;
 #define _MM_FROUND_CUR_DIRECTION     0x04
 
 #undef _mm_blendv_ps
-#define _mm_blendv_ps __emu_mm_blendv_ps
 __forceinline __m128 _mm_blendv_ps( __m128 value, __m128 input, __m128 mask ) { 
     return _mm_or_ps(_mm_and_ps(mask, input), _mm_andnot_ps(mask, value)); 
 }
 
 #undef _mm_blend_ps
-#define _mm_blend_ps __emu_mm_blend_ps
 __forceinline __m128 _mm_blend_ps( __m128 value, __m128 input, const int mask ) { 
     assert(mask < 0x10); return _mm_blendv_ps(value, input, _mm_lookupmask_ps[mask]); 
 }
 
 #undef _mm_blendv_epi8
-#define _mm_blendv_epi8 __emu_mm_blendv_epi8
 __forceinline __m128i _mm_blendv_epi8( __m128i value, __m128i input, __m128i mask ) { 
     return _mm_or_si128(_mm_and_si128(mask, input), _mm_andnot_si128(mask, value)); 
 }
 
-#undef _mm_mullo_epi32
-#define _mm_mullo_epi32 __emu_mm_mullo_epi32
-__forceinline __m128i _mm_mullo_epi32( __m128i value, __m128i input ) {
-  __m128i rvalue;
-  char* _r = (char*)(&rvalue + 1);
-  char* _v = (char*)(& value + 1);
-  char* _i = (char*)(& input + 1);
-  for( ssize_t i = -16 ; i != 0 ; i += 4 ) *((int32_t*)(_r + i)) = *((int32_t*)(_v + i))*  *((int32_t*)(_i + i));
-  return rvalue;
-}
-
 #undef _mm_min_epi32
-#define _mm_min_epi32 __emu_mm_min_epi32
 __forceinline __m128i _mm_min_epi32( __m128i value, __m128i input ) { 
     return _mm_blendv_epi8(input, value, _mm_cmplt_epi32(value, input)); 
 }
 
 #undef _mm_max_epi32
-#define _mm_max_epi32 __emu_mm_max_epi32
 __forceinline __m128i _mm_max_epi32( __m128i value, __m128i input ) { 
     return _mm_blendv_epi8(value, input, _mm_cmplt_epi32(value, input)); 
 }
 
 #undef _mm_extract_epi32
-#define _mm_extract_epi32 __emu_mm_extract_epi32
 __forceinline int _mm_extract_epi32( __m128i input, const int index ) {
   switch ( index ) {
   case 0: return _mm_cvtsi128_si32(input);
@@ -395,24 +394,15 @@ __forceinline int _mm_extract_epi32( __m128i input, const int index ) {
 }
 
 #undef _mm_insert_epi32
-#define _mm_insert_epi32 __emu_mm_insert_epi32
 __forceinline __m128i _mm_insert_epi32( __m128i value, int input, const int index ) { 
     assert(index >= 0 && index < 4); ((int*)&value)[index] = input; return value; 
 }
 
-#undef _mm_extract_ps
-#define _mm_extract_ps __emu_mm_extract_ps
-__forceinline int _mm_extract_ps( __m128 input, const int index ) {
-  int32_t* ptr = (int32_t*)&input; return ptr[index];
-}
-
 #undef _mm_insert_ps
-#define _mm_insert_ps __emu_mm_insert_ps
 __forceinline __m128 _mm_insert_ps( __m128 value, __m128 input, const int index )
 { assert(index < 0x100); ((float*)&value)[(index >> 4)&0x3] = ((float*)&input)[index >> 6]; return _mm_andnot_ps(_mm_lookupmask_ps[index&0xf], value); }
 
 #undef _mm_round_ps
-#define _mm_round_ps __emu_mm_round_ps
 __forceinline __m128 _mm_round_ps( __m128 value, const int flags )
 {
   switch ( flags )
@@ -425,57 +415,7 @@ __forceinline __m128 _mm_round_ps( __m128 value, const int flags )
   return value;
 }
 
-#    ifdef _M_X64
-#undef _mm_insert_epi64
-#define _mm_insert_epi64 __emu_mm_insert_epi64
-__forceinline __m128i _mm_insert_epi64( __m128i value, __int64 input, const int index ) { 
-    assert(size_t(index) < 4); ((__int64*)&value)[index] = input; return value; 
-}
-
-#undef _mm_extract_epi64
-#define _mm_extract_epi64 __emu_mm_extract_epi64
-__forceinline __int64 _mm_extract_epi64( __m128i input, const int index ) { 
-    assert(size_t(index) < 2); 
-    return index == 0 ? _mm_cvtsi128_si64x(input) : _mm_cvtsi128_si64x(_mm_unpackhi_epi64(input, input)); 
-}
-#    endif
-
-#  endif
-
-#undef _mm_fabs_ps
-#define _mm_fabs_ps(x) _mm_and_ps(x, _mm_castsi128_ps(_mm_set1_epi32(0x7fffffff)))
-
-/* Return a __m128 with every element set to the largest element of v. */
-ccl_device_inline __m128 _mm_hmax_ps(__m128 v)
-{
-  /* v[0, 1, 2, 3] => [0, 1, 0, 1] and [2, 3, 2, 3] => v[max(0, 2), max(1, 3), max(0, 2), max(1, 3)] */
-  v = _mm_max_ps(_mm_movehl_ps(v, v), _mm_movelh_ps(v, v));
-  /* v[max(0, 2), max(1, 3), max(0, 2), max(1, 3)] => [4 times max(1, 3)] and [4 times max(0, 2)] => v[4 times max(0, 1, 2, 3)] */
-  v = _mm_max_ps(_mm_movehdup_ps(v), _mm_moveldup_ps(v));
-  return v;
-}
-
-/* Return the sum of the four elements of x. */
-ccl_device_inline float _mm_hsum_ss(__m128 x)
-{
-    __m128 a = _mm_movehdup_ps(x);
-    __m128 b = _mm_add_ps(x, a);
-    return _mm_cvtss_f32(_mm_add_ss(_mm_movehl_ps(a, b), b));
-}
-
-/* Return a __m128 with every element set to the sum of the four elements of x. */
-ccl_device_inline __m128 _mm_hsum_ps(__m128 x)
-{
-    x = _mm_hadd_ps(x, x);
-    x = _mm_hadd_ps(x, x);
-    return x;
-}
-
-/* Replace elements of x with zero where mask isn't set. */
-#undef _mm_mask_ps
-#define _mm_mask_ps(x, mask) _mm_blendv_ps(_mm_setzero_ps(), x, mask)
-
-#endif
+#endif /* !(defined(__SSE4_1__) || defined(__SSE4_2__)) */
 
 #else  /* __KERNEL_SSE2__ */
 
@@ -496,13 +436,19 @@ ccl_device_inline int bitscan(int value)
 
 #endif /* __KERNEL_SSE2__ */
 
+/* quiet unused define warnings */
+#if defined(__KERNEL_SSE2__)  || \
+	defined(__KERNEL_SSE3__)  || \
+	defined(__KERNEL_SSSE3__) || \
+	defined(__KERNEL_SSE41__) || \
+	defined(__KERNEL_AVX__)   || \
+	defined(__KERNEL_AVX2__)
+	/* do nothing */
+#endif
+
 CCL_NAMESPACE_END
 
-#include "util/util_math.h"
-#include "util/util_sseb.h"
-#include "util/util_ssei.h"
-#include "util/util_ssef.h"
-#include "util/util_avxf.h"
+#endif /* __KERNEL_GPU__ */
 
 #endif /* __UTIL_SIMD_TYPES_H__ */
 

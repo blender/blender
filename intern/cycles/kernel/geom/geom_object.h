@@ -415,12 +415,7 @@ ccl_device_inline float3 bvh_clamp_direction(float3 dir)
 
 ccl_device_inline float3 bvh_inverse_direction(float3 dir)
 {
-	/* TODO(sergey): Currently disabled, gives speedup but causes precision issues. */
-#if defined(__KERNEL_SSE__) && 0
 	return rcp(dir);
-#else
-	return 1.0f / dir;
-#endif
 }
 
 /* Transform ray into object space to enter static object in BVH */

@@ -22,6 +22,9 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __KERNEL_SSE2__
 
+struct sseb;
+struct ssef;
+
 /*! 4-wide SSE integer type. */
 struct ssei
 {
@@ -234,8 +237,10 @@ __forceinline size_t select_max(const sseb& valid, const ssei& v) { const ssei a
 
 #else
 
-__forceinline int reduce_min(const ssei& v) { return min(min(v[0],v[1]),min(v[2],v[3])); }
-__forceinline int reduce_max(const ssei& v) { return max(max(v[0],v[1]),max(v[2],v[3])); }
+__forceinline int ssei_min(int a, int b) { return (a < b)? a: b; }
+__forceinline int ssei_max(int a, int b) { return (a > b)? a: b; }
+__forceinline int reduce_min(const ssei& v) { return ssei_min(ssei_min(v[0],v[1]),ssei_min(v[2],v[3])); }
+__forceinline int reduce_max(const ssei& v) { return ssei_max(ssei_max(v[0],v[1]),ssei_max(v[2],v[3])); }
 __forceinline int reduce_add(const ssei& v) { return v[0]+v[1]+v[2]+v[3]; }
 
 #endif

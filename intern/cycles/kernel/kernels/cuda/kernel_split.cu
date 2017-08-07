@@ -90,7 +90,7 @@ kernel_cuda_path_trace_data_init(
 
 #define DEFINE_SPLIT_KERNEL_FUNCTION(name) \
 	extern "C" __global__ void \
-	CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_MAX_REGISTERS) \
+	CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_SPLIT_MAX_REGISTERS) \
 	kernel_cuda_##name() \
 	{ \
 		kernel_##name(NULL); \
@@ -98,7 +98,7 @@ kernel_cuda_path_trace_data_init(
 
 #define DEFINE_SPLIT_KERNEL_FUNCTION_LOCALS(name, type) \
 	extern "C" __global__ void \
-	CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_MAX_REGISTERS) \
+	CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_SPLIT_MAX_REGISTERS) \
 	kernel_cuda_##name() \
 	{ \
 		ccl_local type locals; \

@@ -48,6 +48,7 @@
 #include "util/util_logging.h"
 #include "util/util_map.h"
 #include "util/util_opengl.h"
+#include "util/util_optimization.h"
 #include "util/util_progress.h"
 #include "util/util_system.h"
 #include "util/util_thread.h"

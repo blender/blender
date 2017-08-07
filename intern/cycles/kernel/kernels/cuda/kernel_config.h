@@ -81,8 +81,13 @@
 #  error "Unknown or unsupported CUDA architecture, can't determine launch bounds"
 #endif
 
-/* compute number of threads per block and minimum blocks per multiprocessor
- * given the maximum number of registers per thread */
+/* For split kernel using all registers seems fastest for now, but this
+ * is unlikely to be optimal once we resolve other bottlenecks. */
+
+#define CUDA_KERNEL_SPLIT_MAX_REGISTERS CUDA_THREAD_MAX_REGISTERS
+
+/* Compute number of threads per block and minimum blocks per multiprocessor
+ * given the maximum number of registers per thread. */
 
 #define CUDA_LAUNCH_BOUNDS(threads_block_width, thread_num_registers) \
 	__launch_bounds__( \

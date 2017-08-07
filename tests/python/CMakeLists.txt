@@ -518,6 +518,7 @@ if(WITH_CYCLES)
 					-blender "$<TARGET_FILE:blender>"
 					-testdir "${TEST_SRC_DIR}/cycles/ctests/${subject}"
 					-idiff "${OPENIMAGEIO_IDIFF}"
+					-outdir "${TEST_OUT_DIR}/cycles"
 				)
 			else()
 				add_test(
@@ -526,17 +527,23 @@ if(WITH_CYCLES)
 					-blender "$<TARGET_FILE:blender>"
 					-testdir "${TEST_SRC_DIR}/cycles/ctests/${subject}"
 					-idiff "${OPENIMAGEIO_IDIFF}"
+					-outdir "${TEST_OUT_DIR}/cycles"
 				)
 			endif()
 		endmacro()
 		if(WITH_OPENGL_TESTS)
 			add_cycles_render_test(opengl)
 		endif()
-		add_cycles_render_test(image)
+		add_cycles_render_test(displacement)
+		add_cycles_render_test(image_data_types)
+		add_cycles_render_test(image_mapping)
+		add_cycles_render_test(image_texture_limit)
 		add_cycles_render_test(mblur)
 		add_cycles_render_test(reports)
 		add_cycles_render_test(render)
 		add_cycles_render_test(shader)
+		add_cycles_render_test(shadow_catcher)
+		add_cycles_render_test(volume)
 	else()
 		MESSAGE(STATUS "Disabling Cycles tests because tests folder does not exist")
 	endif()

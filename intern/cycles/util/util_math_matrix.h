@@ -223,20 +223,20 @@ ccl_device void math_matrix_jacobi_eigendecomposition(float *A, ccl_global float
 {
 	const float singular_epsilon = 1e-9f;
 
-	for (int row = 0; row < n; row++) {
-		for (int col = 0; col < n; col++) {
+	for(int row = 0; row < n; row++) {
+		for(int col = 0; col < n; col++) {
 			MATS(V, n, row, col, v_stride) = (col == row) ? 1.0f : 0.0f;
 		}
 	}
 
-	for (int sweep = 0; sweep < 8; sweep++) {
+	for(int sweep = 0; sweep < 8; sweep++) {
 		float off_diagonal = 0.0f;
-		for (int row = 1; row < n; row++) {
-			for (int col = 0; col < row; col++) {
+		for(int row = 1; row < n; row++) {
+			for(int col = 0; col < row; col++) {
 				off_diagonal += fabsf(MAT(A, n, row, col));
 			}
 		}
-		if (off_diagonal < 1e-7f) {
+		if(off_diagonal < 1e-7f) {
 			/* The matrix has nearly reached diagonal form.
 			 * Since the eigenvalues are only used to determine truncation, their exact values aren't required - a relative error of a few ULPs won't matter at all. */
 			break;
@@ -253,7 +253,7 @@ ccl_device void math_matrix_jacobi_eigendecomposition(float *A, ccl_global float
 				float abs_element = fabsf(element);
 
 				/* If we're in a later sweep and the element already is very small, just set it to zero and skip the rotation. */
-				if (sweep > 3 && abs_element <= singular_epsilon*fabsf(MAT(A, n, row, row)) && abs_element <= singular_epsilon*fabsf(MAT(A, n, col, col))) {
+				if(sweep > 3 && abs_element <= singular_epsilon*fabsf(MAT(A, n, row, row)) && abs_element <= singular_epsilon*fabsf(MAT(A, n, col, col))) {
 					MAT(A, n, row, col) = 0.0f;
 					continue;
 				}
@@ -272,10 +272,10 @@ ccl_device void math_matrix_jacobi_eigendecomposition(float *A, ccl_global float
 				 * Then, we compute sin(phi) and cos(phi) themselves. */
 				float singular_diff = MAT(A, n, row, row) - MAT(A, n, col, col);
 				float ratio;
-				if (abs_element > singular_epsilon*fabsf(singular_diff)) {
+				if(abs_element > singular_epsilon*fabsf(singular_diff)) {
 					float cot_2phi = 0.5f*singular_diff / element;
 					ratio = 1.0f / (fabsf(cot_2phi) + sqrtf(1.0f + cot_2phi*cot_2phi));
-					if (cot_2phi < 0.0f) ratio = -ratio; /* Copy sign. */
+					if(cot_2phi < 0.0f) ratio = -ratio; /* Copy sign. */
 				}
 				else {
 					ratio = element / singular_diff;
@@ -315,21 +315,21 @@ ccl_device void math_matrix_jacobi_eigendecomposition(float *A, ccl_global float
 	}
 
 	/* Sort eigenvalues and the associated eigenvectors. */
-	for (int i = 0; i < n - 1; i++) {
+	for(int i = 0; i < n - 1; i++) {
 		float v = MAT(A, n, i, i);
 		int k = i;
-		for (int j = i; j < n; j++) {
-			if (MAT(A, n, j, j) >= v) {
+		for(int j = i; j < n; j++) {
+			if(MAT(A, n, j, j) >= v) {
 				v = MAT(A, n, j, j);
 				k = j;
 			}
 		}
-		if (k != i) {
+		if(k != i) {
 			/* Swap eigenvalues. */
 			MAT(A, n, k, k) = MAT(A, n, i, i);
 			MAT(A, n, i, i) = v;
 			/* Swap eigenvectors. */
-			for (int j = 0; j < n; j++) {
+			for(int j = 0; j < n; j++) {
 				float v = MATS(V, n, i, j, v_stride);
 				MATS(V, n, i, j, v_stride) = MATS(V, n, k, j, v_stride);
 				MATS(V, n, k, j, v_stride) = v;
@@ -339,59 +339,59 @@ ccl_device void math_matrix_jacobi_eigendecomposition(float *A, ccl_global float
 }
 
 #ifdef __KERNEL_SSE3__
-ccl_device_inline void math_vector_zero_sse(__m128 *A, int n)
+ccl_device_inline void math_vector_zero_sse(float4 *A, int n)
 {
 	for(int i = 0; i < n; i++) {
-		A[i] = _mm_setzero_ps();
+		A[i] = make_float4(0.0f);
 	}
 }
 
-ccl_device_inline void math_matrix_zero_sse(__m128 *A, int n)
+ccl_device_inline void math_matrix_zero_sse(float4 *A, int n)
 {
 	for(int row = 0; row < n; row++) {
 		for(int col = 0; col <= row; col++) {
-			MAT(A, n, row, col) = _mm_setzero_ps();
+			MAT(A, n, row, col) = make_float4(0.0f);
 		}
 	}
 }
 
 /* Add Gramian matrix of v to A.
  * The Gramian matrix of v is v^T*v, so element (i,j) is v[i]*v[j]. */
-ccl_device_inline void math_matrix_add_gramian_sse(__m128 *A, int n, const __m128 *ccl_restrict v, __m128 weight)
+ccl_device_inline void math_matrix_add_gramian_sse(float4 *A, int n, const float4 *ccl_restrict v, float4 weight)
 {
 	for(int row = 0; row < n; row++) {
 		for(int col = 0; col <= row; col++) {
-			MAT(A, n, row, col) = _mm_add_ps(MAT(A, n, row, col), _mm_mul_ps(_mm_mul_ps(v[row], v[col]), weight));
+			MAT(A, n, row, col) = MAT(A, n, row, col) + v[row] * v[col] * weight;
 		}
 	}
 }
 
-ccl_device_inline void math_vector_add_sse(__m128 *V, int n, const __m128 *ccl_restrict a)
+ccl_device_inline void math_vector_add_sse(float4 *V, int n, const float4 *ccl_restrict a)
 {
 	for(int i = 0; i < n; i++) {
-		V[i] = _mm_add_ps(V[i], a[i]);
+		V[i] += a[i];
 	}
 }
 
-ccl_device_inline void math_vector_mul_sse(__m128 *V, int n, const __m128 *ccl_restrict a)
+ccl_device_inline void math_vector_mul_sse(float4 *V, int n, const float4 *ccl_restrict a)
 {
 	for(int i = 0; i < n; i++) {
-		V[i] = _mm_mul_ps(V[i], a[i]);
+		V[i] *= a[i];
 	}
 }
 
-ccl_device_inline void math_vector_max_sse(__m128 *a, const __m128 *ccl_restrict b, int n)
+ccl_device_inline void math_vector_max_sse(float4 *a, const float4 *ccl_restrict b, int n)
 {
 	for(int i = 0; i < n; i++) {
-		a[i] = _mm_max_ps(a[i], b[i]);
+		a[i] = max(a[i], b[i]);
 	}
 }
 
-ccl_device_inline void math_matrix_hsum(float *A, int n, const __m128 *ccl_restrict B)
+ccl_device_inline void math_matrix_hsum(float *A, int n, const float4 *ccl_restrict B)
 {
 	for(int row = 0; row < n; row++) {
 		for(int col = 0; col <= row; col++) {
-			MAT(A, n, row, col) = _mm_hsum_ss(MAT(B, n, row, col));
+			MAT(A, n, row, col) = reduce_add(MAT(B, n, row, col))[0];
 		}
 	}
 }

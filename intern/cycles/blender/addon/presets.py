@@ -37,7 +37,6 @@ class AddPresetIntegrator(AddPresetBase, Operator):
         "cycles.transmission_bounces",
         "cycles.volume_bounces",
         "cycles.transparent_max_bounces",
-        "cycles.use_transparent_shadows",
         "cycles.caustics_reflective",
         "cycles.caustics_refractive",
         "cycles.blur_glossy"

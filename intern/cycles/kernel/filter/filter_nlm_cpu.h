@@ -50,10 +50,8 @@ ccl_device_inline void kernel_filter_nlm_blur(const float *ccl_restrict differen
                                               int w,
                                               int f)
 {
-#ifdef __KERNEL_SSE3__
-	int aligned_lowx = (rect.x & ~(3));
-	int aligned_highx = ((rect.z + 3) & ~(3));
-#endif
+	int aligned_lowx = rect.x / 4;
+	int aligned_highx = (rect.z + 3) / 4;
 	for(int y = rect.y; y < rect.w; y++) {
 		const int low = max(rect.y, y-f);
 		const int high = min(rect.w, y+f+1);
@@ -61,15 +59,11 @@ ccl_device_inline void kernel_filter_nlm_blur(const float *ccl_restrict differen
 			out_image[y*w+x] = 0.0f;
 		}
 		for(int y1 = low; y1 < high; y1++) {
-#ifdef __KERNEL_SSE3__
-			for(int x = aligned_lowx; x < aligned_highx; x+=4) {
-				_mm_store_ps(out_image + y*w+x, _mm_add_ps(_mm_load_ps(out_image + y*w+x), _mm_load_ps(difference_image + y1*w+x)));
+			float4* out_image4 = (float4*)(out_image + y*w);
+			float4* difference_image4 = (float4*)(difference_image + y1*w);
+			for(int x = aligned_lowx; x < aligned_highx; x++) {
+				out_image4[x] += difference_image4[x];
 			}
-#else
-			for(int x = rect.x; x < rect.z; x++) {
-				out_image[y*w+x] += difference_image[y1*w+x];
-			}
-#endif
 		}
 		for(int x = rect.x; x < rect.z; x++) {
 			out_image[y*w+x] *= 1.0f/(high - low);

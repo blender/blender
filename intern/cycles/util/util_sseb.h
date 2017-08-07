@@ -22,6 +22,9 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __KERNEL_SSE2__
 
+struct ssei;
+struct ssef;
+
 /*! 4-wide SSE bool type. */
 struct sseb
 {
