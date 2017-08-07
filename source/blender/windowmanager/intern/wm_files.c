@@ -721,20 +721,20 @@ int wm_homefile_read(
 	if (filepath_startup_override != NULL) {
 		/* pass */
 	}
-	else if (app_template_override && app_template_override[0]) {
+	else if (app_template_override) {
+		/* This may be clearing the current template by setting to an empty string. */
 		app_template = app_template_override;
 	}
 	else if (!use_factory_settings && U.app_template[0]) {
 		app_template = U.app_template;
 	}
 
-	if (app_template != NULL) {
+	if ((app_template != NULL) && (app_template[0] != '\0')) {
 		BKE_appdir_app_template_id_search(app_template, app_template_system, sizeof(app_template_system));
 		BLI_path_join(app_template_config, sizeof(app_template_config), cfgdir, app_template, NULL);
-	}
 
-	/* insert template name into startup file */
-	if (app_template != NULL) {
+		/* Insert template name into startup file. */
+
 		/* note that the path is being set even when 'use_factory_settings == true'
 		 * this is done so we can load a templates factory-settings */
 		if (!use_factory_settings) {
