@@ -202,6 +202,7 @@ set(SRC_GEOM_HEADERS
 	geom/geom.h
 	geom/geom_attribute.h
 	geom/geom_curve.h
+	geom/geom_curve_intersect.h
 	geom/geom_motion_curve.h
 	geom/geom_motion_triangle.h
 	geom/geom_motion_triangle_intersect.h
