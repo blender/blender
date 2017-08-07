@@ -228,11 +228,31 @@ ccl_device_inline ssef transform_point_T3(const ssef t[3], const ssef &a)
 
 #ifdef __KERNEL_SSE2__
 /* Pass P and dir by reference to aligned vector */
-ccl_device_curveintersect bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersection *isect,
-	const float3 &P, const float3 &dir, uint visibility, int object, int curveAddr, float time, int type, uint *lcg_state, float difl, float extmax)
+ccl_device_curveintersect bool cardinal_curve_intersect(KernelGlobals *kg,
+                                                        Intersection *isect,
+                                                        const float3 &P,
+                                                        const float3 &dir,
+                                                        uint visibility,
+                                                        int object,
+                                                        int curveAddr,
+                                                        float time,
+                                                        int type,
+                                                        uint *lcg_state,
+                                                        float difl,
+                                                        float extmax)
 #else
-ccl_device_curveintersect bool bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersection *isect,
-	float3 P, float3 dir, uint visibility, int object, int curveAddr, float time,int type, uint *lcg_state, float difl, float extmax)
+ccl_device_curveintersect bool cardinal_curve_intersect(KernelGlobals *kg,
+                                                        Intersection *isect,
+                                                        float3 P,
+                                                        float3 dir,
+                                                        uint visibility,
+                                                        int object,
+                                                        int curveAddr,
+                                                        float time,
+                                                        int type,
+                                                        uint *lcg_state,
+                                                        float difl,
+                                                        float extmax)
 #endif
 {
 	const bool is_curve_primitive = (type & PRIMITIVE_CURVE);
@@ -694,8 +714,18 @@ ccl_device_curveintersect bool bvh_cardinal_curve_intersect(KernelGlobals *kg, I
 	return hit;
 }
 
-ccl_device_curveintersect bool bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
-	float3 P, float3 direction, uint visibility, int object, int curveAddr, float time, int type, uint *lcg_state, float difl, float extmax)
+ccl_device_curveintersect bool curve_intersect(KernelGlobals *kg,
+                                               Intersection *isect,
+                                               float3 P,
+                                               float3 direction,
+                                               uint visibility,
+                                               int object,
+                                               int curveAddr,
+                                               float time,
+                                               int type,
+                                               uint *lcg_state,
+                                               float difl,
+                                               float extmax)
 {
 	/* define few macros to minimize code duplication for SSE */
 #ifndef __KERNEL_SSE2__
@@ -963,7 +993,10 @@ ccl_device_inline float3 curvepoint(float t, float3 p0, float3 p1, float3 p2, fl
 	return data[0] * p0 + data[1] * p1 + data[2] * p2 + data[3] * p3;
 }
 
-ccl_device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, const Intersection *isect, const Ray *ray)
+ccl_device_inline float3 curve_refine(KernelGlobals *kg,
+                                      ShaderData *sd,
+                                      const Intersection *isect,
+                                      const Ray *ray)
 {
 	int flag = kernel_data.curve.curveflags;
 	float t = isect->t;

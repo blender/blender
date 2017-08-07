@@ -221,30 +221,30 @@ bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 							case PRIMITIVE_MOTION_CURVE: {
 								const uint curve_type = kernel_tex_fetch(__prim_type, prim_addr);
 								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) {
-									hit = bvh_cardinal_curve_intersect(kg,
-									                                   isect_array,
-									                                   P,
-									                                   dir,
-									                                   visibility,
-									                                   object,
-									                                   prim_addr,
-									                                   ray->time,
-									                                   curve_type,
-									                                   NULL,
-									                                   0, 0);
+									hit = cardinal_curve_intersect(kg,
+									                               isect_array,
+									                               P,
+									                               dir,
+									                               visibility,
+									                               object,
+									                               prim_addr,
+									                               ray->time,
+									                               curve_type,
+									                               NULL,
+									                               0, 0);
 								}
 								else {
-									hit = bvh_curve_intersect(kg,
-									                          isect_array,
-									                          P,
-									                          dir,
-									                          visibility,
-									                          object,
-									                          prim_addr,
-									                          ray->time,
-									                          curve_type,
-									                          NULL,
-									                          0, 0);
+									hit = curve_intersect(kg,
+									                      isect_array,
+									                      P,
+									                      dir,
+									                      visibility,
+									                      object,
+									                      prim_addr,
+									                      ray->time,
+									                      curve_type,
+									                      NULL,
+									                      0, 0);
 								}
 								break;
 							}

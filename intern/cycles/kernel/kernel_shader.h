@@ -83,7 +83,7 @@ ccl_device_noinline void shader_setup_from_ray(KernelGlobals *kg,
 		float4 curvedata = kernel_tex_fetch(__curves, sd->prim);
 
 		sd->shader = __float_as_int(curvedata.z);
-		sd->P = bvh_curve_refine(kg, sd, isect, ray);
+		sd->P = curve_refine(kg, sd, isect, ray);
 	}
 	else
 #endif
