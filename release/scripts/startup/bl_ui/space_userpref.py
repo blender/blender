@@ -218,6 +218,7 @@ class USERPREF_PT_interface(Panel):
         col = row.column()
         col.label(text="Display:")
         col.prop(view, "ui_scale", text="Scale")
+        col.prop(view, "ui_line_width", text="Line Width")
         col.prop(view, "show_tooltips")
         col.prop(view, "show_tooltips_python")
         col.prop(view, "show_object_info", text="Object Info")
