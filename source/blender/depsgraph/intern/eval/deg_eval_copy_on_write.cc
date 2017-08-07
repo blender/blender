@@ -918,7 +918,7 @@ void deg_free_copy_on_write_datablock(ID *id_cow)
 			return;
 		}
 	}
-	BKE_libblock_free_datablock(id_cow);
+	BKE_libblock_free_datablock(id_cow, 0);
 	BKE_libblock_free_data(id_cow, false);
 	/* Signal datablock as not being expanded. */
 	id_cow->name[0] = '\0';

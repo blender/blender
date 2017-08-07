@@ -228,9 +228,7 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 
 	sce_dst->ed = NULL;
 	sce_dst->theDag = NULL;
-	sce_dst->depsgraph = NULL;
 	sce_dst->obedit = NULL;
-	sce_dst->stats = NULL;
 	sce_dst->fps_info = NULL;
 
 	BLI_duplicatelist(&(sce_dst->base), &(sce_src->base));

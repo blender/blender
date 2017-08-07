@@ -59,22 +59,32 @@ void *BKE_lightprobe_add(Main *bmain, const char *name)
 {
 	LightProbe *probe;
 
-	probe =  BKE_libblock_alloc(bmain, ID_LP, name);
+	probe =  BKE_libblock_alloc(bmain, ID_LP, name, 0);
 
 	BKE_lightprobe_init(probe);
 
 	return probe;
 }
 
-LightProbe *BKE_lightprobe_copy(Main *bmain, LightProbe *probe)
+/**
+ * Only copy internal data of LightProbe ID from source to already allocated/initialized destination.
+ * You probably nerver want to use that directly, use id_copy or BKE_id_copy_ex for typical needs.
+ *
+ * WARNING! This function will not handle ID user count!
+ *
+ * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ */
+void BKE_lightprobe_copy_data(
+        Main *UNUSED(bmain), LightProbe *UNUSED(probe_dst), const LightProbe *UNUSED(probe_src), const int UNUSED(flag))
 {
-	LightProbe *probe_new;
+	/* Nothing to do here. */
+}
 
-	probe_new = BKE_libblock_copy(bmain, &probe->id);
-
-	BKE_id_copy_ensure_local(bmain, &probe->id, &probe_new->id);
-
-	return probe_new;
+LightProbe *BKE_lightprobe_copy(Main *bmain, const LightProbe *probe)
+{
+	LightProbe *probe_copy;
+	BKE_id_copy_ex(bmain, &probe->id, (ID **)&probe_copy, 0, false);
+	return probe_copy;
 }
 
 void BKE_lightprobe_make_local(Main *bmain, LightProbe *probe, const bool lib_local)

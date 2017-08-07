@@ -1333,7 +1333,7 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int fla
 	id_copy_animdata(bmain, new_id, (flag & LIB_ID_COPY_ACTIONS) != 0 && (flag & LIB_ID_CREATE_NO_MAIN) == 0);
 
 	if ((flag & LIB_ID_CREATE_NO_DEG_TAG) == 0 && (flag & LIB_ID_CREATE_NO_MAIN) == 0) {
-		DAG_id_type_tag(bmain, GS(new_id->name));
+		DEG_id_type_tag(bmain, GS(new_id->name));
 	}
 
 	*r_newid = new_id;

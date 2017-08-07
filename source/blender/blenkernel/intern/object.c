@@ -1186,7 +1186,7 @@ void BKE_object_copy_data(Main *UNUSED(bmain), Object *ob_dst, const Object *ob_
 			BKE_pose_rebuild(ob_dst, ob_dst->data);
 	}
 	defgroup_copy_list(&ob_dst->defbase, &ob_src->defbase);
-	BKE_object_facemap_copy_list(&obn->fmaps, &ob->fmaps);
+	BKE_object_facemap_copy_list(&ob_dst->fmaps, &ob_src->fmaps);
 	BKE_constraints_copy_ex(&ob_dst->constraints, &ob_src->constraints, flag_subdata, true);
 
 	ob_dst->mode = OB_MODE_OBJECT;

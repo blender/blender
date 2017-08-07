@@ -913,7 +913,7 @@ void BKE_id_free_ex(Main *bmain, void *idv, int flag, const bool use_flag_from_i
 	const short type = GS(id->name);
 
 	if (bmain && (flag & LIB_ID_FREE_NO_DEG_TAG) == 0) {
-		DAG_id_type_tag(bmain, type);
+		DEG_id_type_tag(bmain, type);
 	}
 
 #ifdef WITH_PYTHON
