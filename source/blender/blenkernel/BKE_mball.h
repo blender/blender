@@ -41,6 +41,7 @@ struct MetaElem;
 void BKE_mball_free(struct MetaBall *mb);
 void BKE_mball_init(struct MetaBall *mb);
 struct MetaBall *BKE_mball_add(struct Main *bmain, const char *name);
+void BKE_mball_copy_data(struct Main *bmain, struct MetaBall *mb_dst, const struct MetaBall *mb_src, const int flag);
 struct MetaBall *BKE_mball_copy(struct Main *bmain, const struct MetaBall *mb);
 
 void BKE_mball_make_local(struct Main *bmain, struct MetaBall *mb, const bool lib_local);

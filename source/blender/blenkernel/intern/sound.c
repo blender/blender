@@ -83,7 +83,7 @@ bSound *BKE_sound_new_file(struct Main *bmain, const char *filepath)
 
 	BLI_path_abs(str, path);
 
-	sound = BKE_libblock_alloc(bmain, ID_SO, BLI_path_basename(filepath));
+	sound = BKE_libblock_alloc(bmain, ID_SO, BLI_path_basename(filepath), 0);
 	BLI_strncpy(sound->name, filepath, FILE_MAX);
 	/* sound->type = SOUND_TYPE_FILE; */ /* XXX unused currently */
 
@@ -153,6 +153,34 @@ void BKE_sound_free(bSound *sound)
 		MEM_freeN(sound->spinlock);
 		sound->spinlock = NULL;
 	}
+}
+
+/**
+ * Only copy internal data of Sound ID from source to already allocated/initialized destination.
+ * You probably nerver want to use that directly, use id_copy or BKE_id_copy_ex for typical needs.
+ *
+ * WARNING! This function will not handle ID user count!
+ *
+ * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ */
+void BKE_sound_copy_data(Main *bmain, bSound *sound_dst, const bSound *UNUSED(sound_src), const int UNUSED(flag))
+{
+	sound_dst->handle = NULL;
+	sound_dst->cache = NULL;
+	sound_dst->waveform = NULL;
+	sound_dst->playback_handle = NULL;
+	sound_dst->spinlock = NULL;  /* Think this is OK? Otherwise, easy to create new spinlock here... */
+
+	/* Just to be sure, should not have any value actually after reading time. */
+	sound_dst->ipo = NULL;
+	sound_dst->newpackedfile = NULL;
+
+	if (sound_dst->packedfile) {
+		sound_dst->packedfile = dupPackedFile(sound_dst->packedfile);
+	}
+
+	/* Initialize whole runtime (audaspace) stuff. */
+	BKE_sound_load(bmain, sound_dst);
 }
 
 void BKE_sound_make_local(Main *bmain, bSound *sound, const bool lib_local)

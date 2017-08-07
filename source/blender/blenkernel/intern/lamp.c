@@ -109,42 +109,60 @@ Lamp *BKE_lamp_add(Main *bmain, const char *name)
 {
 	Lamp *la;
 
-	la =  BKE_libblock_alloc(bmain, ID_LA, name);
+	la =  BKE_libblock_alloc(bmain, ID_LA, name, 0);
 
 	BKE_lamp_init(la);
 
 	return la;
 }
 
-Lamp *BKE_lamp_copy(Main *bmain, const Lamp *la)
+/**
+ * Only copy internal data of Lamp ID from source to already allocated/initialized destination.
+ * You probably nerver want to use that directly, use id_copy or BKE_id_copy_ex for typical needs.
+ *
+ * WARNING! This function will not handle ID user count!
+ *
+ * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ */
+void BKE_lamp_copy_data(Main *bmain, Lamp *la_dst, const Lamp *la_src, const int flag)
 {
-	Lamp *lan;
-	int a;
-	
-	lan = BKE_libblock_copy(bmain, &la->id);
-
-	for (a = 0; a < MAX_MTEX; a++) {
-		if (lan->mtex[a]) {
-			lan->mtex[a] = MEM_mallocN(sizeof(MTex), "copylamptex");
-			memcpy(lan->mtex[a], la->mtex[a], sizeof(MTex));
-			id_us_plus((ID *)lan->mtex[a]->tex);
+	for (int a = 0; a < MAX_MTEX; a++) {
+		if (la_dst->mtex[a]) {
+			la_dst->mtex[a] = MEM_mallocN(sizeof(*la_dst->mtex[a]), __func__);
+			*la_dst->mtex[a] = *la_src->mtex[a];
 		}
 	}
-	
-	lan->curfalloff = curvemapping_copy(la->curfalloff);
 
-	if (la->nodetree)
-		lan->nodetree = ntreeCopyTree(bmain, la->nodetree);
+	la_dst->curfalloff = curvemapping_copy(la_src->curfalloff);
 
-	BKE_previewimg_id_copy(&lan->id, &la->id);
+	if (la_src->nodetree) {
+		BKE_id_copy_ex(bmain, (ID *)la_src->nodetree, (ID **)&la_dst->nodetree, flag, false);
+	}
 
-	BKE_id_copy_ensure_local(bmain, &la->id, &lan->id);
+	if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
+		BKE_previewimg_id_copy(&la_dst->id, &la_src->id);
+	}
+	else {
+		la_dst->preview = NULL;
+	}
+}
 
-	return lan;
+Lamp *BKE_lamp_copy(Main *bmain, const Lamp *la)
+{
+	Lamp *la_copy;
+	BKE_id_copy_ex(bmain, &la->id, (ID **)&la_copy, 0, false);
+	return la_copy;
 }
 
 Lamp *localize_lamp(Lamp *la)
 {
+	/* TODO replace with something like
+	 * 	Lamp *la_copy;
+	 * 	BKE_id_copy_ex(bmain, &la->id, (ID **)&la_copy, LIB_ID_COPY_NO_MAIN | LIB_ID_COPY_NO_PREVIEW | LIB_ID_COPY_NO_USER_REFCOUNT, false);
+	 * 	return la_copy;
+	 *
+	 * ... Once f*** nodes are fully converted to that too :( */
+
 	Lamp *lan;
 	int a;
 	

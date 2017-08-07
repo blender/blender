@@ -47,6 +47,7 @@ struct MDeformVert;
 void BKE_lattice_resize(struct Lattice *lt, int u, int v, int w, struct Object *ltOb);
 void BKE_lattice_init(struct Lattice *lt);
 struct Lattice *BKE_lattice_add(struct Main *bmain, const char *name);
+void BKE_lattice_copy_data(struct Main *bmain, struct Lattice *lt_dst, const struct Lattice *lt_src, const int flag);
 struct Lattice *BKE_lattice_copy(struct Main *bmain, const struct Lattice *lt);
 void BKE_lattice_free(struct Lattice *lt);
 void BKE_lattice_make_local(struct Main *bmain, struct Lattice *lt, const bool lib_local);

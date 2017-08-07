@@ -65,19 +65,11 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
+#if 0
 	BevelModifierData *bmd = (BevelModifierData *) md;
 	BevelModifierData *tbmd = (BevelModifierData *) target;
-
-	tbmd->value = bmd->value;
-	tbmd->res = bmd->res;
-	tbmd->flags = bmd->flags;
-	tbmd->val_flags = bmd->val_flags;
-	tbmd->lim_flags = bmd->lim_flags;
-	tbmd->e_flags = bmd->e_flags;
-	tbmd->mat = bmd->mat;
-	tbmd->profile = bmd->profile;
-	tbmd->bevel_angle = bmd->bevel_angle;
-	BLI_strncpy(tbmd->defgrp_name, bmd->defgrp_name, sizeof(tbmd->defgrp_name));
+#endif
+	modifier_copyData_generic(md, target);
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)

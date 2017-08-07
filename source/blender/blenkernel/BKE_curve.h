@@ -78,6 +78,7 @@ void BKE_curve_free(struct Curve *cu);
 void BKE_curve_editfont_free(struct Curve *cu);
 void BKE_curve_init(struct Curve *cu);
 struct Curve *BKE_curve_add(struct Main *bmain, const char *name, int type);
+void BKE_curve_copy_data(struct Main *bmain, struct Curve *cu_dst, const struct Curve *cu_src, const int flag);
 struct Curve *BKE_curve_copy(struct Main *bmain, const struct Curve *cu);
 void BKE_curve_make_local(struct Main *bmain, struct Curve *cu, const bool lib_local);
 short BKE_curve_type_get(struct Curve *cu);

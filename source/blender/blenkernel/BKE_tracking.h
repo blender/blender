@@ -52,7 +52,7 @@ struct rcti;
 /* **** Common functions **** */
 
 void BKE_tracking_free(struct MovieTracking *tracking);
-void BKE_tracking_copy(struct MovieTracking *tracking_dst, const struct MovieTracking *tracking_src);
+void BKE_tracking_copy(struct MovieTracking *tracking_dst, const struct MovieTracking *tracking_src, const int flag);
 
 void BKE_tracking_settings_init(struct MovieTracking *tracking);
 

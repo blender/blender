@@ -212,50 +212,68 @@ Material *BKE_material_add(Main *bmain, const char *name)
 {
 	Material *ma;
 
-	ma = BKE_libblock_alloc(bmain, ID_MA, name);
+	ma = BKE_libblock_alloc(bmain, ID_MA, name, 0);
 	
 	BKE_material_init(ma);
 	
 	return ma;
 }
 
-/* XXX keep synced with next function */
-Material *BKE_material_copy(Main *bmain, const Material *ma)
+/**
+ * Only copy internal data of Material ID from source to already allocated/initialized destination.
+ * You probably nerver want to use that directly, use id_copy or BKE_id_copy_ex for typical needs.
+ *
+ * WARNING! This function will not handle ID user count!
+ *
+ * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ */
+void BKE_material_copy_data(Main *bmain, Material *ma_dst, const Material *ma_src, const int flag)
 {
-	Material *man;
-	int a;
-	
-	man = BKE_libblock_copy(bmain, &ma->id);
-	
-	id_lib_extern((ID *)man->group);
-	
-	for (a = 0; a < MAX_MTEX; a++) {
-		if (ma->mtex[a]) {
-			man->mtex[a] = MEM_mallocN(sizeof(MTex), "copymaterial");
-			memcpy(man->mtex[a], ma->mtex[a], sizeof(MTex));
-			id_us_plus((ID *)man->mtex[a]->tex);
+	for (int a = 0; a < MAX_MTEX; a++) {
+		if (ma_src->mtex[a]) {
+			ma_dst->mtex[a] = MEM_mallocN(sizeof(*ma_dst->mtex[a]), __func__);
+			*ma_dst->mtex[a] = *ma_src->mtex[a];
 		}
 	}
-	
-	if (ma->ramp_col) man->ramp_col = MEM_dupallocN(ma->ramp_col);
-	if (ma->ramp_spec) man->ramp_spec = MEM_dupallocN(ma->ramp_spec);
-	
-	if (ma->nodetree) {
-		man->nodetree = ntreeCopyTree(bmain, ma->nodetree);
+
+	if (ma_src->ramp_col) {
+		ma_dst->ramp_col = MEM_dupallocN(ma_src->ramp_col);
+	}
+	if (ma_src->ramp_spec) {
+		ma_dst->ramp_spec = MEM_dupallocN(ma_src->ramp_spec);
 	}
 
-	BKE_previewimg_id_copy(&man->id, &ma->id);
+	if (ma_src->nodetree) {
+		BKE_id_copy_ex(bmain, (ID *)ma_src->nodetree, (ID **)&ma_dst->nodetree, flag, false);
+	}
 
-	BLI_listbase_clear(&man->gpumaterial);
+	if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
+		BKE_previewimg_id_copy(&ma_dst->id, &ma_src->id);
+	}
+	else {
+		ma_dst->preview = NULL;
+	}
 
-	BKE_id_copy_ensure_local(bmain, &ma->id, &man->id);
+	BLI_listbase_clear(&ma_dst->gpumaterial);
+}
 
-	return man;
+Material *BKE_material_copy(Main *bmain, const Material *ma)
+{
+	Material *ma_copy;
+	BKE_id_copy_ex(bmain, &ma->id, (ID **)&ma_copy, 0, false);
+	return ma_copy;
 }
 
 /* XXX (see above) material copy without adding to main dbase */
 Material *localize_material(Material *ma)
 {
+	/* TODO replace with something like
+	 * 	Material *ma_copy;
+	 * 	BKE_id_copy_ex(bmain, &ma->id, (ID **)&ma_copy, LIB_ID_COPY_NO_MAIN | LIB_ID_COPY_NO_PREVIEW | LIB_ID_COPY_NO_USER_REFCOUNT, false);
+	 * 	return ma_copy;
+	 *
+	 * ... Once f*** nodes are fully converted to that too :( */
+
 	Material *man;
 	int a;
 	

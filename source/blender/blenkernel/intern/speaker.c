@@ -61,25 +61,31 @@ void *BKE_speaker_add(Main *bmain, const char *name)
 {
 	Speaker *spk;
 
-	spk =  BKE_libblock_alloc(bmain, ID_SPK, name);
+	spk =  BKE_libblock_alloc(bmain, ID_SPK, name, 0);
 
 	BKE_speaker_init(spk);
 
 	return spk;
 }
 
+/**
+ * Only copy internal data of Speaker ID from source to already allocated/initialized destination.
+ * You probably nerver want to use that directly, use id_copy or BKE_id_copy_ex for typical needs.
+ *
+ * WARNING! This function will not handle ID user count!
+ *
+ * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ */
+void BKE_speaker_copy_data(Main *UNUSED(bmain), Speaker *UNUSED(spk_dst), const Speaker *UNUSED(spk_src), const int UNUSED(flag))
+{
+	/* Nothing to do! */
+}
+
 Speaker *BKE_speaker_copy(Main *bmain, const Speaker *spk)
 {
-	Speaker *spkn;
-
-	spkn = BKE_libblock_copy(bmain, &spk->id);
-
-	if (spkn->sound)
-		id_us_plus(&spkn->sound->id);
-
-	BKE_id_copy_ensure_local(bmain, &spk->id, &spkn->id);
-
-	return spkn;
+	Speaker *spk_copy;
+	BKE_id_copy_ex(bmain, &spk->id, (ID **)&spk_copy, 0, false);
+	return spk_copy;
 }
 
 void BKE_speaker_make_local(Main *bmain, Speaker *spk, const bool lib_local)

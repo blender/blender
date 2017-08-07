@@ -494,53 +494,56 @@ Mesh *BKE_mesh_add(Main *bmain, const char *name)
 {
 	Mesh *me;
 
-	me = BKE_libblock_alloc(bmain, ID_ME, name);
+	me = BKE_libblock_alloc(bmain, ID_ME, name, 0);
 
 	BKE_mesh_init(me);
 
 	return me;
 }
 
-Mesh *BKE_mesh_copy(Main *bmain, const Mesh *me)
+/**
+ * Only copy internal data of Mesh ID from source to already allocated/initialized destination.
+ * You probably nerver want to use that directly, use id_copy or BKE_id_copy_ex for typical needs.
+ *
+ * WARNING! This function will not handle ID user count!
+ *
+ * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ */
+void BKE_mesh_copy_data(Main *bmain, Mesh *me_dst, const Mesh *me_src, const int flag)
 {
-	Mesh *men;
-	int a;
-	const int do_tessface = ((me->totface != 0) && (me->totpoly == 0)); /* only do tessface if we have no polys */
-	
-	men = BKE_libblock_copy(bmain, &me->id);
-	
-	men->mat = MEM_dupallocN(me->mat);
-	for (a = 0; a < men->totcol; a++) {
-		id_us_plus((ID *)men->mat[a]);
-	}
-	id_us_plus((ID *)men->texcomesh);
+	const bool do_tessface = ((me_src->totface != 0) && (me_src->totpoly == 0)); /* only do tessface if we have no polys */
 
-	CustomData_copy(&me->vdata, &men->vdata, CD_MASK_MESH, CD_DUPLICATE, men->totvert);
-	CustomData_copy(&me->edata, &men->edata, CD_MASK_MESH, CD_DUPLICATE, men->totedge);
-	CustomData_copy(&me->ldata, &men->ldata, CD_MASK_MESH, CD_DUPLICATE, men->totloop);
-	CustomData_copy(&me->pdata, &men->pdata, CD_MASK_MESH, CD_DUPLICATE, men->totpoly);
+	me_dst->mat = MEM_dupallocN(me_src->mat);
+
+	CustomData_copy(&me_src->vdata, &me_dst->vdata, CD_MASK_MESH, CD_DUPLICATE, me_dst->totvert);
+	CustomData_copy(&me_src->edata, &me_dst->edata, CD_MASK_MESH, CD_DUPLICATE, me_dst->totedge);
+	CustomData_copy(&me_src->ldata, &me_dst->ldata, CD_MASK_MESH, CD_DUPLICATE, me_dst->totloop);
+	CustomData_copy(&me_src->pdata, &me_dst->pdata, CD_MASK_MESH, CD_DUPLICATE, me_dst->totpoly);
 	if (do_tessface) {
-		CustomData_copy(&me->fdata, &men->fdata, CD_MASK_MESH, CD_DUPLICATE, men->totface);
+		CustomData_copy(&me_src->fdata, &me_dst->fdata, CD_MASK_MESH, CD_DUPLICATE, me_dst->totface);
 	}
 	else {
-		mesh_tessface_clear_intern(men, false);
+		mesh_tessface_clear_intern(me_dst, false);
 	}
 
-	BKE_mesh_update_customdata_pointers(men, do_tessface);
+	BKE_mesh_update_customdata_pointers(me_dst, do_tessface);
 
-	men->edit_btmesh = NULL;
+	me_dst->edit_btmesh = NULL;
 
-	men->mselect = MEM_dupallocN(men->mselect);
-	men->bb = MEM_dupallocN(men->bb);
+	me_dst->mselect = MEM_dupallocN(me_dst->mselect);
+	me_dst->bb = MEM_dupallocN(me_dst->bb);
 
-	if (me->key) {
-		men->key = BKE_key_copy(bmain, me->key);
-		men->key->from = (ID *)men;
+	/* TODO Do we want to add flag to prevent this? */
+	if (me_src->key) {
+		BKE_id_copy_ex(bmain, &me_src->key->id, (ID **)&me_dst->key, flag, false);
 	}
+}
 
-	BKE_id_copy_ensure_local(bmain, &me->id, &men->id);
-
-	return men;
+Mesh *BKE_mesh_copy(Main *bmain, const Mesh *me)
+{
+	Mesh *me_copy;
+	BKE_id_copy_ex(bmain, &me->id, (ID **)&me_copy, 0, false);
+	return me_copy;
 }
 
 BMesh *BKE_mesh_to_bmesh(
@@ -2447,7 +2450,9 @@ Mesh *BKE_mesh_new_from_object(
 			int uv_from_orco;
 
 			/* copies object and modifiers (but not the data) */
-			Object *tmpobj = BKE_object_copy_ex(bmain, ob, true);
+			Object *tmpobj;
+			/* TODO: make it temp copy outside bmain! */
+			BKE_id_copy_ex(bmain, &ob->id, (ID **)&tmpobj, LIB_ID_COPY_CACHES, false);
 			tmpcu = (Curve *)tmpobj->data;
 			id_us_min(&tmpcu->id);
 

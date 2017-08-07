@@ -3841,6 +3841,9 @@ static bool write_file_handle(
 		}
 
 		for (; id; id = id->next) {
+			/* We should never attempt to write non-regular IDs (i.e. all kind of temp/runtime ones). */
+			BLI_assert((id->tag & (LIB_TAG_NO_MAIN | LIB_TAG_NO_USER_REFCOUNT | LIB_TAG_NOT_ALLOCATED)) == 0);
+
 			switch ((ID_Type)GS(id->name)) {
 				case ID_WM:
 					write_windowmanager(wd, (wmWindowManager *)id);

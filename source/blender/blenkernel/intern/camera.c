@@ -86,22 +86,31 @@ void *BKE_camera_add(Main *bmain, const char *name)
 {
 	Camera *cam;
 
-	cam =  BKE_libblock_alloc(bmain, ID_CA, name);
+	cam =  BKE_libblock_alloc(bmain, ID_CA, name, 0);
 
 	BKE_camera_init(cam);
 
 	return cam;
 }
 
+/**
+ * Only copy internal data of Camera ID from source to already allocated/initialized destination.
+ * You probably nerver want to use that directly, use id_copy or BKE_id_copy_ex for typical needs.
+ *
+ * WARNING! This function will not handle ID user count!
+ *
+ * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ */
+void BKE_camera_copy_data(Main *UNUSED(bmain), Camera *UNUSED(cam_dst), const Camera *UNUSED(cam_src), const int UNUSED(flag))
+{
+	/* Nothing to do! */
+}
+
 Camera *BKE_camera_copy(Main *bmain, const Camera *cam)
 {
-	Camera *camn;
-	
-	camn = BKE_libblock_copy(bmain, &cam->id);
-
-	BKE_id_copy_ensure_local(bmain, &cam->id, &camn->id);
-
-	return camn;
+	Camera *cam_copy;
+	BKE_id_copy_ex(bmain, &cam->id, (ID **)&cam_copy, 0, false);
+	return cam_copy;
 }
 
 void BKE_camera_make_local(Main *bmain, Camera *cam, const bool lib_local)

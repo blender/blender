@@ -138,14 +138,10 @@ static void copyData(ModifierData *md, ModifierData *target)
 {
 #if 0
 	WeightVGMixModifierData *wmd  = (WeightVGMixModifierData *) md;
-#endif
 	WeightVGMixModifierData *twmd = (WeightVGMixModifierData *) target;
+#endif
 
 	modifier_copyData_generic(md, target);
-
-	if (twmd->mask_texture) {
-		id_us_plus(&twmd->mask_texture->id);
-	}
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)

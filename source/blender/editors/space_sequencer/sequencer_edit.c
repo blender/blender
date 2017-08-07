@@ -2162,7 +2162,7 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 	if (ed == NULL)
 		return OPERATOR_CANCELLED;
 
-	BKE_sequence_base_dupli_recursive(scene, NULL, &nseqbase, ed->seqbasep, SEQ_DUPE_CONTEXT);
+	BKE_sequence_base_dupli_recursive(scene, NULL, &nseqbase, ed->seqbasep, SEQ_DUPE_CONTEXT, 0);
 
 	if (nseqbase.first) {
 		Sequence *seq = nseqbase.first;
@@ -3200,7 +3200,7 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	BKE_sequence_base_dupli_recursive(scene, NULL, &nseqbase, ed->seqbasep, SEQ_DUPE_UNIQUE_NAME);
+	BKE_sequence_base_dupli_recursive(scene, NULL, &nseqbase, ed->seqbasep, SEQ_DUPE_UNIQUE_NAME, 0);
 
 	/* To make sure the copied strips have unique names between each other add
 	 * them temporarily to the end of the original seqbase. (bug 25932)
@@ -3267,7 +3267,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 	ED_sequencer_deselect_all(scene);
 	ofs = scene->r.cfra - seqbase_clipboard_frame;
 
-	BKE_sequence_base_dupli_recursive(scene, NULL, &nseqbase, &seqbase_clipboard, SEQ_DUPE_UNIQUE_NAME);
+	BKE_sequence_base_dupli_recursive(scene, NULL, &nseqbase, &seqbase_clipboard, SEQ_DUPE_UNIQUE_NAME, 0);
 
 	/* transform pasted strips before adding */
 	if (ofs) {

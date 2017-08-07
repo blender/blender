@@ -127,8 +127,7 @@ typedef struct ID {
 	/**
 	 * LIB_TAG_... tags (runtime only, cleared at read time).
 	 */
-	short tag;
-	short pad_s1;
+	int tag;
 	int us;
 	int icon_id;
 	IDProperty *properties;
@@ -350,6 +349,13 @@ enum {
 	LIB_TAG_ID_RECALC_DATA  = 1 << 13,
 	LIB_TAG_ANIM_NO_RECALC  = 1 << 14,
 	LIB_TAG_ID_RECALC_ALL   = (LIB_TAG_ID_RECALC | LIB_TAG_ID_RECALC_DATA),
+
+	/* RESET_NEVER tag datablock for freeing etc. behavior (usually set when copying real one into temp/runtime one). */
+	LIB_TAG_NO_MAIN          = 1 << 16,  /* Datablock is not listed in Main database. */
+	LIB_TAG_NO_USER_REFCOUNT = 1 << 17,  /* Datablock does not refcount usages of other IDs. */
+	/* Datablock was not allocated by standard system (BKE_libblock_alloc), do not free its memory
+	 * (usual type-specific freeing is called though). */
+	LIB_TAG_NOT_ALLOCATED     = 1 << 18,
 };
 
 /* To filter ID types (filter_id) */

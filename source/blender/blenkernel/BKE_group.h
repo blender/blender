@@ -42,6 +42,7 @@ struct Scene;
 
 void          BKE_group_free(struct Group *group);
 struct Group *BKE_group_add(struct Main *bmain, const char *name);
+void          BKE_group_copy_data(struct Main *bmain, struct Group *group_dst, const struct Group *group_src, const int flag);
 struct Group *BKE_group_copy(struct Main *bmain, const struct Group *group);
 void          BKE_group_make_local(struct Main *bmain, struct Group *group, const bool lib_local);
 bool          BKE_group_object_add(struct Group *group, struct Object *ob, struct Scene *scene, struct Base *base);

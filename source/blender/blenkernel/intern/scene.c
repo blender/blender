@@ -154,223 +154,316 @@ static void remove_sequencer_fcurves(Scene *sce)
 	}
 }
 
-Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
+/**
+ * Only copy internal data of Scene ID from source to already allocated/initialized destination.
+ * You probably nerver want to use that directly, use id_copy or BKE_id_copy_ex for typical needs.
+ *
+ * WARNING! This function will not handle ID user count!
+ *
+ * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ */
+void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, const int flag)
 {
-	Scene *scen;
-	SceneRenderLayer *srl, *new_srl;
-	FreestyleLineSet *lineset;
-	ToolSettings *ts;
-	Base *base, *obase;
-	
-	if (type == SCE_COPY_EMPTY) {
-		ListBase rl, rv;
-		scen = BKE_scene_add(bmain, sce->id.name + 2);
-		
-		rl = scen->r.layers;
-		rv = scen->r.views;
-		curvemapping_free_data(&scen->r.mblur_shutter_curve);
-		scen->r = sce->r;
-		scen->r.layers = rl;
-		scen->r.actlay = 0;
-		scen->r.views = rv;
-		scen->unit = sce->unit;
-		scen->physics_settings = sce->physics_settings;
-		scen->gm = sce->gm;
-		scen->audio = sce->audio;
+	/* We never handle usercount here for own data. */
+	const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
 
-		if (sce->id.properties)
-			scen->id.properties = IDP_CopyProperty(sce->id.properties);
+	sce_dst->ed = NULL;
+	sce_dst->theDag = NULL;
+	sce_dst->depsgraph = NULL;
+	sce_dst->obedit = NULL;
+	sce_dst->stats = NULL;
+	sce_dst->fps_info = NULL;
 
-		MEM_freeN(scen->toolsettings);
-		BKE_sound_destroy_scene(scen);
+	BLI_duplicatelist(&(sce_dst->base), &(sce_src->base));
+	for (Base *base_dst = sce_dst->base.first, *base_src = sce_src->base.first;
+	     base_dst;
+	     base_dst = base_dst->next, base_src = base_src->next)
+	{
+		if (base_src == sce_src->basact) {
+			sce_dst->basact = base_dst;
+		}
 	}
-	else {
-		scen = BKE_libblock_copy(bmain, &sce->id);
-		BLI_duplicatelist(&(scen->base), &(sce->base));
-		
-		if (type != SCE_COPY_FULL) {
-			id_us_plus((ID *)scen->world);
+
+	BLI_duplicatelist(&(sce_dst->markers), &(sce_src->markers));
+	BLI_duplicatelist(&(sce_dst->transform_spaces), &(sce_src->transform_spaces));
+	BLI_duplicatelist(&(sce_dst->r.layers), &(sce_src->r.layers));
+	BLI_duplicatelist(&(sce_dst->r.views), &(sce_src->r.views));
+	BKE_keyingsets_copy(&(sce_dst->keyingsets), &(sce_src->keyingsets));
+
+	if (sce_src->nodetree) {
+		BKE_id_copy_ex(bmain, (ID *)sce_src->nodetree, (ID **)&sce_dst->nodetree, flag, false);
+		BKE_libblock_relink_ex(bmain, sce_dst->nodetree, (void *)(&sce_src->id), &sce_dst->id, false);
+	}
+
+	if (sce_src->rigidbody_world) {
+		sce_dst->rigidbody_world = BKE_rigidbody_world_copy(sce_src->rigidbody_world, flag_subdata);
+	}
+
+	/* copy Freestyle settings */
+	for (SceneRenderLayer *srl_dst = sce_dst->r.layers.first, *srl_src = sce_src->r.layers.first;
+	     srl_src;
+	     srl_dst = srl_dst->next, srl_src = srl_src->next)
+	{
+		if (srl_dst->prop != NULL) {
+			srl_dst->prop = IDP_CopyProperty_ex(srl_dst->prop, flag_subdata);
 		}
-		id_us_plus((ID *)scen->set);
-		/* id_us_plus((ID *)scen->gm.dome.warptext); */  /* XXX Not refcounted? see readfile.c */
-
-		scen->ed = NULL;
-		scen->theDag = NULL;
-		scen->depsgraph = NULL;
-		scen->obedit = NULL;
-		scen->stats = NULL;
-		scen->fps_info = NULL;
-
-		if (sce->rigidbody_world)
-			scen->rigidbody_world = BKE_rigidbody_world_copy(sce->rigidbody_world);
-
-		BLI_duplicatelist(&(scen->markers), &(sce->markers));
-		BLI_duplicatelist(&(scen->transform_spaces), &(sce->transform_spaces));
-		BLI_duplicatelist(&(scen->r.layers), &(sce->r.layers));
-		BLI_duplicatelist(&(scen->r.views), &(sce->r.views));
-		BKE_keyingsets_copy(&(scen->keyingsets), &(sce->keyingsets));
-
-		if (sce->nodetree) {
-			/* ID's are managed on both copy and switch */
-			scen->nodetree = ntreeCopyTree(bmain, sce->nodetree);
-			BKE_libblock_relink_ex(bmain, scen->nodetree, &sce->id, &scen->id, false);
-		}
-
-		obase = sce->base.first;
-		base = scen->base.first;
-		while (base) {
-			id_us_plus(&base->object->id);
-			if (obase == sce->basact) scen->basact = base;
-	
-			obase = obase->next;
-			base = base->next;
-		}
-
-		/* copy action and remove animation used by sequencer */
-		BKE_animdata_copy_id_action(&scen->id, false);
-
-		if (type != SCE_COPY_FULL)
-			remove_sequencer_fcurves(scen);
-
-		/* copy Freestyle settings */
-		new_srl = scen->r.layers.first;
-		for (srl = sce->r.layers.first; srl; srl = srl->next) {
-			if (new_srl->prop != NULL) {
-				new_srl->prop = IDP_CopyProperty(new_srl->prop);
-			}
-			BKE_freestyle_config_copy(&new_srl->freestyleConfig, &srl->freestyleConfig);
-			if (type == SCE_COPY_FULL) {
-				for (lineset = new_srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
-					if (lineset->linestyle) {
-						/* Has been incremented by BKE_freestyle_config_copy(). */
-						id_us_min(&lineset->linestyle->id);
-						lineset->linestyle = BKE_linestyle_copy(bmain, lineset->linestyle);
-					}
-				}
-			}
-			new_srl = new_srl->next;
-		}
+		BKE_freestyle_config_copy(&srl_dst->freestyleConfig, &srl_src->freestyleConfig, flag_subdata);
 	}
 
 	/* copy color management settings */
-	BKE_color_managed_display_settings_copy(&scen->display_settings, &sce->display_settings);
-	BKE_color_managed_view_settings_copy(&scen->view_settings, &sce->view_settings);
-	BKE_color_managed_colorspace_settings_copy(&scen->sequencer_colorspace_settings, &sce->sequencer_colorspace_settings);
+	BKE_color_managed_display_settings_copy(&sce_dst->display_settings, &sce_src->display_settings);
+	BKE_color_managed_view_settings_copy(&sce_dst->view_settings, &sce_src->view_settings);
+	BKE_color_managed_colorspace_settings_copy(&sce_dst->sequencer_colorspace_settings, &sce_src->sequencer_colorspace_settings);
 
-	BKE_color_managed_display_settings_copy(&scen->r.im_format.display_settings, &sce->r.im_format.display_settings);
-	BKE_color_managed_view_settings_copy(&scen->r.im_format.view_settings, &sce->r.im_format.view_settings);
+	BKE_color_managed_display_settings_copy(&sce_dst->r.im_format.display_settings, &sce_src->r.im_format.display_settings);
+	BKE_color_managed_view_settings_copy(&sce_dst->r.im_format.view_settings, &sce_src->r.im_format.view_settings);
 
-	BKE_color_managed_display_settings_copy(&scen->r.bake.im_format.display_settings, &sce->r.bake.im_format.display_settings);
-	BKE_color_managed_view_settings_copy(&scen->r.bake.im_format.view_settings, &sce->r.bake.im_format.view_settings);
+	BKE_color_managed_display_settings_copy(&sce_dst->r.bake.im_format.display_settings, &sce_src->r.bake.im_format.display_settings);
+	BKE_color_managed_view_settings_copy(&sce_dst->r.bake.im_format.view_settings, &sce_src->r.bake.im_format.view_settings);
 
-	curvemapping_copy_data(&scen->r.mblur_shutter_curve, &sce->r.mblur_shutter_curve);
+	curvemapping_copy_data(&sce_dst->r.mblur_shutter_curve, &sce_src->r.mblur_shutter_curve);
 
 	/* tool settings */
-	scen->toolsettings = MEM_dupallocN(sce->toolsettings);
-
-	ts = scen->toolsettings;
-	if (ts) {
+	if (sce_dst->toolsettings != NULL) {
+		ToolSettings *ts = sce_dst->toolsettings = MEM_dupallocN(sce_dst->toolsettings);
 		if (ts->vpaint) {
 			ts->vpaint = MEM_dupallocN(ts->vpaint);
 			ts->vpaint->paintcursor = NULL;
 			ts->vpaint->vpaint_prev = NULL;
 			ts->vpaint->wpaint_prev = NULL;
-			BKE_paint_copy(&ts->vpaint->paint, &ts->vpaint->paint);
+			BKE_paint_copy(&ts->vpaint->paint, &ts->vpaint->paint, flag_subdata);
 		}
 		if (ts->wpaint) {
 			ts->wpaint = MEM_dupallocN(ts->wpaint);
 			ts->wpaint->paintcursor = NULL;
 			ts->wpaint->vpaint_prev = NULL;
 			ts->wpaint->wpaint_prev = NULL;
-			BKE_paint_copy(&ts->wpaint->paint, &ts->wpaint->paint);
+			BKE_paint_copy(&ts->wpaint->paint, &ts->wpaint->paint, flag_subdata);
 		}
 		if (ts->sculpt) {
 			ts->sculpt = MEM_dupallocN(ts->sculpt);
-			BKE_paint_copy(&ts->sculpt->paint, &ts->sculpt->paint);
+			BKE_paint_copy(&ts->sculpt->paint, &ts->sculpt->paint, flag_subdata);
 		}
 		if (ts->uvsculpt) {
 			ts->uvsculpt = MEM_dupallocN(ts->uvsculpt);
-			BKE_paint_copy(&ts->uvsculpt->paint, &ts->uvsculpt->paint);
+			BKE_paint_copy(&ts->uvsculpt->paint, &ts->uvsculpt->paint, flag_subdata);
 		}
 
-		BKE_paint_copy(&ts->imapaint.paint, &ts->imapaint.paint);
+		BKE_paint_copy(&ts->imapaint.paint, &ts->imapaint.paint, flag_subdata);
 		ts->imapaint.paintcursor = NULL;
-		id_us_plus((ID *)ts->imapaint.stencil);
-		id_us_plus((ID *)ts->imapaint.clone);
-		id_us_plus((ID *)ts->imapaint.canvas);
 		ts->particle.paintcursor = NULL;
 		ts->particle.scene = NULL;
 		ts->particle.object = NULL;
-		
+
 		/* duplicate Grease Pencil Drawing Brushes */
 		BLI_listbase_clear(&ts->gp_brushes);
-		for (bGPDbrush *brush = sce->toolsettings->gp_brushes.first; brush; brush = brush->next) {
+		for (bGPDbrush *brush = sce_src->toolsettings->gp_brushes.first; brush; brush = brush->next) {
 			bGPDbrush *newbrush = BKE_gpencil_brush_duplicate(brush);
 			BLI_addtail(&ts->gp_brushes, newbrush);
 		}
-		
+
 		/* duplicate Grease Pencil interpolation curve */
 		ts->gp_interpolate.custom_ipo = curvemapping_copy(ts->gp_interpolate.custom_ipo);
 	}
-	
+
 	/* make a private copy of the avicodecdata */
-	if (sce->r.avicodecdata) {
-		scen->r.avicodecdata = MEM_dupallocN(sce->r.avicodecdata);
-		scen->r.avicodecdata->lpFormat = MEM_dupallocN(scen->r.avicodecdata->lpFormat);
-		scen->r.avicodecdata->lpParms = MEM_dupallocN(scen->r.avicodecdata->lpParms);
+	if (sce_src->r.avicodecdata) {
+		sce_dst->r.avicodecdata = MEM_dupallocN(sce_src->r.avicodecdata);
+		sce_dst->r.avicodecdata->lpFormat = MEM_dupallocN(sce_dst->r.avicodecdata->lpFormat);
+		sce_dst->r.avicodecdata->lpParms = MEM_dupallocN(sce_dst->r.avicodecdata->lpParms);
 	}
-	
+
 	/* make a private copy of the qtcodecdata */
-	if (sce->r.qtcodecdata) {
-		scen->r.qtcodecdata = MEM_dupallocN(sce->r.qtcodecdata);
-		scen->r.qtcodecdata->cdParms = MEM_dupallocN(scen->r.qtcodecdata->cdParms);
-	}
-	
-	if (sce->r.ffcodecdata.properties) { /* intentionally check scen not sce. */
-		scen->r.ffcodecdata.properties = IDP_CopyProperty(sce->r.ffcodecdata.properties);
+	if (sce_src->r.qtcodecdata) {
+		sce_dst->r.qtcodecdata = MEM_dupallocN(sce_src->r.qtcodecdata);
+		sce_dst->r.qtcodecdata->cdParms = MEM_dupallocN(sce_dst->r.qtcodecdata->cdParms);
 	}
 
-	/* NOTE: part of SCE_COPY_LINK_DATA and SCE_COPY_FULL operations
-	 * are done outside of blenkernel with ED_objects_single_users! */
-
-	/*  camera */
-	if (type == SCE_COPY_LINK_DATA || type == SCE_COPY_FULL) {
-		ID_NEW_REMAP(scen->camera);
+	if (sce_src->r.ffcodecdata.properties) { /* intentionally check sce_dst not sce_src. */  /* XXX ??? comment outdated... */
+		sce_dst->r.ffcodecdata.properties = IDP_CopyProperty_ex(sce_src->r.ffcodecdata.properties, flag_subdata);
 	}
-	
+
 	/* before scene copy */
-	BKE_sound_create_scene(scen);
+	BKE_sound_create_scene(sce_dst);
 
-	/* world */
-	if (type == SCE_COPY_FULL) {
-		if (scen->world) {
-			scen->world = BKE_world_copy(bmain, scen->world);
-			BKE_animdata_copy_id_action((ID *)scen->world, false);
-		}
-
-		if (sce->ed) {
-			scen->ed = MEM_callocN(sizeof(Editing), "addseq");
-			scen->ed->seqbasep = &scen->ed->seqbase;
-			BKE_sequence_base_dupli_recursive(sce, scen, &scen->ed->seqbase, &sce->ed->seqbase, SEQ_DUPE_ALL);
-		}
+	/* Copy sequencer, this is local data! */
+	if (sce_src->ed) {
+		sce_dst->ed = MEM_callocN(sizeof(*sce_dst->ed), __func__);
+		sce_dst->ed->seqbasep = &sce_dst->ed->seqbase;
+		BKE_sequence_base_dupli_recursive(
+		            sce_src, sce_dst, &sce_dst->ed->seqbase, &sce_src->ed->seqbase, SEQ_DUPE_ALL, flag_subdata);
 	}
-	
-	/* grease pencil */
-	if (scen->gpd) {
-		if (type == SCE_COPY_FULL) {
-			scen->gpd = BKE_gpencil_data_duplicate(bmain, scen->gpd, false);
+
+	if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
+		BKE_previewimg_id_copy(&sce_dst->id, &sce_src->id);
+	}
+	else {
+		sce_dst->preview = NULL;
+	}
+}
+
+Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
+{
+	Scene *sce_copy;
+
+	/* TODO this should/could most likely be replaced by call to more generic code at some point...
+	 * But for now, let's keep it well isolated here. */
+	if (type == SCE_COPY_EMPTY) {
+		ToolSettings *ts;
+		ListBase rl, rv;
+
+		sce_copy = BKE_scene_add(bmain, sce->id.name + 2);
+		
+		rl = sce_copy->r.layers;
+		rv = sce_copy->r.views;
+		curvemapping_free_data(&sce_copy->r.mblur_shutter_curve);
+		sce_copy->r = sce->r;
+		sce_copy->r.layers = rl;
+		sce_copy->r.actlay = 0;
+		sce_copy->r.views = rv;
+		sce_copy->unit = sce->unit;
+		sce_copy->physics_settings = sce->physics_settings;
+		sce_copy->gm = sce->gm;
+		sce_copy->audio = sce->audio;
+
+		if (sce->id.properties)
+			sce_copy->id.properties = IDP_CopyProperty(sce->id.properties);
+
+		MEM_freeN(sce_copy->toolsettings);
+		BKE_sound_destroy_scene(sce_copy);
+
+		/* copy color management settings */
+		BKE_color_managed_display_settings_copy(&sce_copy->display_settings, &sce->display_settings);
+		BKE_color_managed_view_settings_copy(&sce_copy->view_settings, &sce->view_settings);
+		BKE_color_managed_colorspace_settings_copy(&sce_copy->sequencer_colorspace_settings, &sce->sequencer_colorspace_settings);
+
+		BKE_color_managed_display_settings_copy(&sce_copy->r.im_format.display_settings, &sce->r.im_format.display_settings);
+		BKE_color_managed_view_settings_copy(&sce_copy->r.im_format.view_settings, &sce->r.im_format.view_settings);
+
+		BKE_color_managed_display_settings_copy(&sce_copy->r.bake.im_format.display_settings, &sce->r.bake.im_format.display_settings);
+		BKE_color_managed_view_settings_copy(&sce_copy->r.bake.im_format.view_settings, &sce->r.bake.im_format.view_settings);
+
+		curvemapping_copy_data(&sce_copy->r.mblur_shutter_curve, &sce->r.mblur_shutter_curve);
+
+		/* tool settings */
+		sce_copy->toolsettings = MEM_dupallocN(sce->toolsettings);
+
+		ts = sce_copy->toolsettings;
+		if (ts) {
+			if (ts->vpaint) {
+				ts->vpaint = MEM_dupallocN(ts->vpaint);
+				ts->vpaint->paintcursor = NULL;
+				ts->vpaint->vpaint_prev = NULL;
+				ts->vpaint->wpaint_prev = NULL;
+				BKE_paint_copy(&ts->vpaint->paint, &ts->vpaint->paint, 0);
+			}
+			if (ts->wpaint) {
+				ts->wpaint = MEM_dupallocN(ts->wpaint);
+				ts->wpaint->paintcursor = NULL;
+				ts->wpaint->vpaint_prev = NULL;
+				ts->wpaint->wpaint_prev = NULL;
+				BKE_paint_copy(&ts->wpaint->paint, &ts->wpaint->paint, 0);
+			}
+			if (ts->sculpt) {
+				ts->sculpt = MEM_dupallocN(ts->sculpt);
+				BKE_paint_copy(&ts->sculpt->paint, &ts->sculpt->paint, 0);
+			}
+			if (ts->uvsculpt) {
+				ts->uvsculpt = MEM_dupallocN(ts->uvsculpt);
+				BKE_paint_copy(&ts->uvsculpt->paint, &ts->uvsculpt->paint, 0);
+			}
+
+			BKE_paint_copy(&ts->imapaint.paint, &ts->imapaint.paint, 0);
+			ts->imapaint.paintcursor = NULL;
+			id_us_plus((ID *)ts->imapaint.stencil);
+			id_us_plus((ID *)ts->imapaint.clone);
+			id_us_plus((ID *)ts->imapaint.canvas);
+			ts->particle.paintcursor = NULL;
+			ts->particle.scene = NULL;
+			ts->particle.object = NULL;
+
+			/* duplicate Grease Pencil Drawing Brushes */
+			BLI_listbase_clear(&ts->gp_brushes);
+			for (bGPDbrush *brush = sce->toolsettings->gp_brushes.first; brush; brush = brush->next) {
+				bGPDbrush *newbrush = BKE_gpencil_brush_duplicate(brush);
+				BLI_addtail(&ts->gp_brushes, newbrush);
+			}
+
+			/* duplicate Grease Pencil interpolation curve */
+			ts->gp_interpolate.custom_ipo = curvemapping_copy(ts->gp_interpolate.custom_ipo);
 		}
-		else if (type == SCE_COPY_EMPTY) {
-			scen->gpd = NULL;
+
+		/* make a private copy of the avicodecdata */
+		if (sce->r.avicodecdata) {
+			sce_copy->r.avicodecdata = MEM_dupallocN(sce->r.avicodecdata);
+			sce_copy->r.avicodecdata->lpFormat = MEM_dupallocN(sce_copy->r.avicodecdata->lpFormat);
+			sce_copy->r.avicodecdata->lpParms = MEM_dupallocN(sce_copy->r.avicodecdata->lpParms);
+		}
+
+		/* make a private copy of the qtcodecdata */
+		if (sce->r.qtcodecdata) {
+			sce_copy->r.qtcodecdata = MEM_dupallocN(sce->r.qtcodecdata);
+			sce_copy->r.qtcodecdata->cdParms = MEM_dupallocN(sce_copy->r.qtcodecdata->cdParms);
+		}
+
+		if (sce->r.ffcodecdata.properties) { /* intentionally check scen not sce. */
+			sce_copy->r.ffcodecdata.properties = IDP_CopyProperty(sce->r.ffcodecdata.properties);
+		}
+
+		/* before scene copy */
+		BKE_sound_create_scene(sce_copy);
+
+		/* grease pencil */
+		sce_copy->gpd = NULL;
+
+		sce_copy->preview = NULL;
+
+		return sce_copy;
+	}
+	else {
+		BKE_id_copy_ex(bmain, (ID *)sce, (ID **)&sce_copy, LIB_ID_COPY_ACTIONS, false);
+
+		/* Extra actions, most notably SCE_FULL_COPY also duplicates several 'children' datablocks... */
+
+		if (type == SCE_COPY_FULL) {
+			/* Copy Freestyle LineStyle datablocks. */
+			for (SceneRenderLayer *srl_dst = sce_copy->r.layers.first; srl_dst; srl_dst = srl_dst->next) {
+				for (FreestyleLineSet *lineset = srl_dst->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
+					if (lineset->linestyle) {
+						/* XXX Not copying anim/actions here? */
+						BKE_id_copy_ex(bmain, (ID *)lineset->linestyle, (ID **)&lineset->linestyle, 0, false);
+					}
+				}
+			}
+
+			/* Full copy of world (included animations) */
+			if (sce_copy->world) {
+				BKE_id_copy_ex(bmain, (ID *)sce_copy->world, (ID **)&sce_copy->world, LIB_ID_COPY_ACTIONS, false);
+			}
+
+			/* Full copy of GreasePencil. */
+			/* XXX Not copying anim/actions here? */
+			if (sce_copy->gpd) {
+				BKE_id_copy_ex(bmain, (ID *)sce_copy->gpd, (ID **)&sce_copy->gpd, 0, false);
+			}
 		}
 		else {
-			id_us_plus((ID *)scen->gpd);
+			/* Remove sequencer if not full copy */
+			/* XXX Why in Hell? :/ */
+			remove_sequencer_fcurves(sce_copy);
+			BKE_sequencer_editing_free(sce_copy);
 		}
+
+		/* NOTE: part of SCE_COPY_LINK_DATA and SCE_COPY_FULL operations
+		 * are done outside of blenkernel with ED_objects_single_users! */
+
+		/*  camera */
+		if (ELEM(type, SCE_COPY_LINK_DATA, SCE_COPY_FULL)) {
+			ID_NEW_REMAP(sce_copy->camera);
+		}
+
+		return sce_copy;
 	}
-
-	BKE_previewimg_id_copy(&scen->id, &sce->id);
-
-	return scen;
 }
 
 void BKE_scene_groups_relink(Scene *sce)
@@ -843,7 +936,7 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 {
 	Scene *sce;
 
-	sce = BKE_libblock_alloc(bmain, ID_SCE, name);
+	sce = BKE_libblock_alloc(bmain, ID_SCE, name, 0);
 	id_us_min(&sce->id);
 	id_us_ensure_real(&sce->id);
 

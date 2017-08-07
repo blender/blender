@@ -47,6 +47,8 @@ void BKE_cachefile_init(struct CacheFile *cache_file);
 
 void BKE_cachefile_free(struct CacheFile *cache_file);
 
+void BKE_cachefile_copy_data(
+        struct Main *bmain, struct CacheFile *cache_file_dst, const struct CacheFile *cache_file_src, const int flag);
 struct CacheFile *BKE_cachefile_copy(struct Main *bmain, const struct CacheFile *cache_file);
 
 void BKE_cachefile_make_local(struct Main *bmain, struct CacheFile *cache_file, const bool lib_local);

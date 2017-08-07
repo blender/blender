@@ -3300,7 +3300,7 @@ ParticleSettings *psys_new_settings(const char *name, Main *main)
 	if (main == NULL)
 		main = G.main;
 
-	part = BKE_libblock_alloc(main, ID_PA, name);
+	part = BKE_libblock_alloc(main, ID_PA, name, 0);
 	
 	default_particle_settings(part);
 
@@ -3331,38 +3331,45 @@ void BKE_particlesettings_rough_curve_init(ParticleSettings *part)
 	part->roughcurve = cumap;
 }
 
-ParticleSettings *BKE_particlesettings_copy(Main *bmain, const ParticleSettings *part)
+/**
+ * Only copy internal data of ParticleSettings ID from source to already allocated/initialized destination.
+ * You probably nerver want to use that directly, use id_copy or BKE_id_copy_ex for typical needs.
+ *
+ * WARNING! This function will not handle ID user count!
+ *
+ * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ */
+void BKE_particlesettings_copy_data(
+        Main *UNUSED(bmain), ParticleSettings *part_dst, const ParticleSettings *part_src, const int UNUSED(flag))
 {
-	ParticleSettings *partn;
-	int a;
+	part_dst->pd = MEM_dupallocN(part_src->pd);
+	part_dst->pd2 = MEM_dupallocN(part_src->pd2);
+	part_dst->effector_weights = MEM_dupallocN(part_src->effector_weights);
+	part_dst->fluid = MEM_dupallocN(part_src->fluid);
 
-	partn = BKE_libblock_copy(bmain, &part->id);
+	if (part_src->clumpcurve) {
+		part_dst->clumpcurve = curvemapping_copy(part_src->clumpcurve);
+	}
+	if (part_src->roughcurve) {
+		part_dst->roughcurve = curvemapping_copy(part_src->roughcurve);
+	}
 
-	partn->pd = MEM_dupallocN(part->pd);
-	partn->pd2 = MEM_dupallocN(part->pd2);
-	partn->effector_weights = MEM_dupallocN(part->effector_weights);
-	partn->fluid = MEM_dupallocN(part->fluid);
+	part_dst->boids = boid_copy_settings(part_src->boids);
 
-	if (part->clumpcurve)
-		partn->clumpcurve = curvemapping_copy(part->clumpcurve);
-	if (part->roughcurve)
-		partn->roughcurve = curvemapping_copy(part->roughcurve);
-	
-	partn->boids = boid_copy_settings(part->boids);
-
-	for (a = 0; a < MAX_MTEX; a++) {
-		if (part->mtex[a]) {
-			partn->mtex[a] = MEM_mallocN(sizeof(MTex), "psys_copy_tex");
-			memcpy(partn->mtex[a], part->mtex[a], sizeof(MTex));
-			id_us_plus((ID *)partn->mtex[a]->tex);
+	for (int a = 0; a < MAX_MTEX; a++) {
+		if (part_src->mtex[a]) {
+			part_dst->mtex[a] = MEM_dupallocN(part_src->mtex[a]);
 		}
 	}
 
-	BLI_duplicatelist(&partn->dupliweights, &part->dupliweights);
-	
-	BKE_id_copy_ensure_local(bmain, &part->id, &partn->id);
+	BLI_duplicatelist(&part_dst->dupliweights, &part_src->dupliweights);
+}
 
-	return partn;
+ParticleSettings *BKE_particlesettings_copy(Main *bmain, const ParticleSettings *part)
+{
+	ParticleSettings *part_copy;
+	BKE_id_copy_ex(bmain, &part->id, (ID **)&part_copy, 0, false);
+	return part_copy;
 }
 
 void BKE_particlesettings_make_local(Main *bmain, ParticleSettings *part, const bool lib_local)

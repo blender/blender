@@ -1035,7 +1035,7 @@ static bool copy_particle_systems_to_object(Main *bmain,
 	     psys_from;
 	     psys_from = PSYS_FROM_NEXT(psys_from), ++i) {
 		
-		psys = BKE_object_copy_particlesystem(psys_from);
+		psys = BKE_object_copy_particlesystem(psys_from, 0);
 		tmp_psys[i] = psys;
 		
 		if (psys_start == NULL)

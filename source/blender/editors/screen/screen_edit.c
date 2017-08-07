@@ -467,7 +467,7 @@ bScreen *ED_screen_add(wmWindow *win, Scene *scene, const char *name)
 	bScreen *sc;
 	ScrVert *sv1, *sv2, *sv3, *sv4;
 	
-	sc = BKE_libblock_alloc(G.main, ID_SCR, name);
+	sc = BKE_libblock_alloc(G.main, ID_SCR, name, 0);
 	sc->scene = scene;
 	sc->do_refresh = true;
 	sc->redraws_flag = TIME_ALL_3D_WIN | TIME_ALL_ANIM_WIN;

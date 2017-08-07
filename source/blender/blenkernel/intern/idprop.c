@@ -90,7 +90,7 @@ IDProperty *IDP_NewIDPArray(const char *name)
 	return prop;
 }
 
-IDProperty *IDP_CopyIDPArray(const IDProperty *array)
+IDProperty *IDP_CopyIDPArray(const IDProperty *array, const int flag)
 {
 	/* don't use MEM_dupallocN because this may be part of an array */
 	IDProperty *narray, *tmp;
@@ -109,7 +109,7 @@ IDProperty *IDP_CopyIDPArray(const IDProperty *array)
 		 * then free it.  this makes for more maintainable
 		 * code than simply reimplementing the copy functions
 		 * in this loop.*/
-		tmp = IDP_CopyProperty(GETPROP(narray, i));
+		tmp = IDP_CopyProperty_ex(GETPROP(narray, i), flag);
 		memcpy(GETPROP(narray, i), tmp, sizeof(IDProperty));
 		MEM_freeN(tmp);
 	}
@@ -285,9 +285,9 @@ void IDP_FreeArray(IDProperty *prop)
 }
 
 
-static IDProperty *idp_generic_copy(const IDProperty *prop)
+static IDProperty *idp_generic_copy(const IDProperty *prop, const int UNUSED(flag))
 {
-	IDProperty *newp = MEM_callocN(sizeof(IDProperty), "IDProperty array dup");
+	IDProperty *newp = MEM_callocN(sizeof(IDProperty), __func__);
 
 	BLI_strncpy(newp->name, prop->name, MAX_IDPROP_NAME);
 	newp->type = prop->type;
@@ -298,9 +298,9 @@ static IDProperty *idp_generic_copy(const IDProperty *prop)
 	return newp;
 }
 
-static IDProperty *IDP_CopyArray(const IDProperty *prop)
+static IDProperty *IDP_CopyArray(const IDProperty *prop, const int flag)
 {
-	IDProperty *newp = idp_generic_copy(prop);
+	IDProperty *newp = idp_generic_copy(prop, flag);
 
 	if (prop->data.pointer) {
 		newp->data.pointer = MEM_dupallocN(prop->data.pointer);
@@ -310,7 +310,7 @@ static IDProperty *IDP_CopyArray(const IDProperty *prop)
 			int a;
 
 			for (a = 0; a < prop->len; a++)
-				array[a] = IDP_CopyProperty(array[a]);
+				array[a] = IDP_CopyProperty_ex(array[a], flag);
 		}
 	}
 	newp->len = prop->len;
@@ -363,12 +363,12 @@ IDProperty *IDP_NewString(const char *st, const char *name, int maxlen)
 	return prop;
 }
 
-static IDProperty *IDP_CopyString(const IDProperty *prop)
+static IDProperty *IDP_CopyString(const IDProperty *prop, const int flag)
 {
 	IDProperty *newp;
 
 	BLI_assert(prop->type == IDP_STRING);
-	newp = idp_generic_copy(prop);
+	newp = idp_generic_copy(prop, flag);
 
 	if (prop->data.pointer)
 		newp->data.pointer = MEM_dupallocN(prop->data.pointer);
@@ -442,15 +442,17 @@ void IDP_FreeString(IDProperty *prop)
 /** \name IDProperty ID API
  * \{ */
 
-static IDProperty *IDP_CopyID(const IDProperty *prop)
+static IDProperty *IDP_CopyID(const IDProperty *prop, const int flag)
 {
 	IDProperty *newp;
 
 	BLI_assert(prop->type == IDP_ID);
-	newp = idp_generic_copy(prop);
+	newp = idp_generic_copy(prop, flag);
 
 	newp->data.pointer = prop->data.pointer;
-	id_us_plus(IDP_Id(newp));
+	if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+		id_us_plus(IDP_Id(newp));
+	}
 
 	return newp;
 }
@@ -467,16 +469,16 @@ static IDProperty *IDP_CopyID(const IDProperty *prop)
 /**
  * Checks if a property with the same name as prop exists, and if so replaces it.
  */
-static IDProperty *IDP_CopyGroup(const IDProperty *prop)
+static IDProperty *IDP_CopyGroup(const IDProperty *prop, const int flag)
 {
 	IDProperty *newp, *link;
 	
 	BLI_assert(prop->type == IDP_GROUP);
-	newp = idp_generic_copy(prop);
+	newp = idp_generic_copy(prop, flag);
 	newp->len = prop->len;
 
 	for (link = prop->data.group.first; link; link = link->next) {
-		BLI_addtail(&newp->data.group, IDP_CopyProperty(link));
+		BLI_addtail(&newp->data.group, IDP_CopyProperty_ex(link, flag));
 	}
 
 	return newp;
@@ -730,16 +732,21 @@ static void IDP_FreeGroup(IDProperty *prop, const bool do_id_user)
 
 /** \name IDProperty Main API
  * \{ */
-IDProperty *IDP_CopyProperty(const IDProperty *prop)
+IDProperty *IDP_CopyProperty_ex(const IDProperty *prop, const int flag)
 {
 	switch (prop->type) {
-		case IDP_GROUP: return IDP_CopyGroup(prop);
-		case IDP_STRING: return IDP_CopyString(prop);
-		case IDP_ID: return IDP_CopyID(prop);
-		case IDP_ARRAY: return IDP_CopyArray(prop);
-		case IDP_IDPARRAY: return IDP_CopyIDPArray(prop);
-		default: return idp_generic_copy(prop);
+		case IDP_GROUP: return IDP_CopyGroup(prop, flag);
+		case IDP_STRING: return IDP_CopyString(prop, flag);
+		case IDP_ID: return IDP_CopyID(prop, flag);
+		case IDP_ARRAY: return IDP_CopyArray(prop, flag);
+		case IDP_IDPARRAY: return IDP_CopyIDPArray(prop, flag);
+		default: return idp_generic_copy(prop, flag);
 	}
+}
+
+IDProperty *IDP_CopyProperty(const IDProperty *prop)
+{
+	return IDP_CopyProperty_ex(prop, 0);
 }
 
 /* Updates ID pointers after an object has been copied */

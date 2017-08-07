@@ -902,80 +902,100 @@ bNode *nodeAddStaticNode(const struct bContext *C, bNodeTree *ntree, int type)
 	return nodeAddNode(C, ntree, idname);
 }
 
-static void node_socket_copy(bNodeSocket *dst, bNodeSocket *src)
+static void node_socket_copy(bNodeSocket *sock_dst, bNodeSocket *sock_src, const int flag)
 {
-	src->new_sock = dst;
-	
-	if (src->prop)
-		dst->prop = IDP_CopyProperty(src->prop);
-	
-	if (src->default_value)
-		dst->default_value = MEM_dupallocN(src->default_value);
-	
-	dst->stack_index = 0;
+	sock_src->new_sock = sock_dst;
+
+	if (sock_src->prop) {
+		sock_dst->prop = IDP_CopyProperty_ex(sock_src->prop, flag);
+	}
+
+	if (sock_src->default_value) {
+		sock_dst->default_value = MEM_dupallocN(sock_src->default_value);
+	}
+
+	sock_dst->stack_index = 0;
 	/* XXX some compositor node (e.g. image, render layers) still store
 	 * some persistent buffer data here, need to clear this to avoid dangling pointers.
 	 */
-	dst->cache = NULL;
+	sock_dst->cache = NULL;
 }
 
 /* keep socket listorder identical, for copying links */
 /* ntree is the target tree */
-bNode *nodeCopyNode(bNodeTree *ntree, bNode *node)
+bNode *BKE_node_copy_ex(bNodeTree *ntree, bNode *node_src, const int flag)
 {
-	bNode *nnode = MEM_callocN(sizeof(bNode), "dupli node");
-	bNodeSocket *sock, *oldsock;
-	bNodeLink *link, *oldlink;
+	bNode *node_dst = MEM_callocN(sizeof(bNode), "dupli node");
+	bNodeSocket *sock_dst, *sock_src;
+	bNodeLink *link_dst, *link_src;
 
-	*nnode = *node;
+	*node_dst = *node_src;
 	/* can be called for nodes outside a node tree (e.g. clipboard) */
 	if (ntree) {
-		nodeUniqueName(ntree, nnode);
+		nodeUniqueName(ntree, node_dst);
 
-		BLI_addtail(&ntree->nodes, nnode);
+		BLI_addtail(&ntree->nodes, node_dst);
 	}
 
-	BLI_duplicatelist(&nnode->inputs, &node->inputs);
-	oldsock = node->inputs.first;
-	for (sock = nnode->inputs.first; sock; sock = sock->next, oldsock = oldsock->next)
-		node_socket_copy(sock, oldsock);
-	
-	BLI_duplicatelist(&nnode->outputs, &node->outputs);
-	oldsock = node->outputs.first;
-	for (sock = nnode->outputs.first; sock; sock = sock->next, oldsock = oldsock->next)
-		node_socket_copy(sock, oldsock);
-	
-	if (node->prop)
-		nnode->prop = IDP_CopyProperty(node->prop);
-	
-	BLI_duplicatelist(&nnode->internal_links, &node->internal_links);
-	oldlink = node->internal_links.first;
-	for (link = nnode->internal_links.first; link; link = link->next, oldlink = oldlink->next) {
-		link->fromnode = nnode;
-		link->tonode = nnode;
-		link->fromsock = link->fromsock->new_sock;
-		link->tosock = link->tosock->new_sock;
+	BLI_duplicatelist(&node_dst->inputs, &node_src->inputs);
+	for (sock_dst = node_dst->inputs.first, sock_src = node_src->inputs.first;
+	     sock_dst != NULL;
+	     sock_dst = sock_dst->next, sock_src = sock_src->next)
+	{
+		node_socket_copy(sock_dst, sock_src, flag);
 	}
-	
-	/* don't increase node->id users, freenode doesn't decrement either */
-	
-	if (node->typeinfo->copyfunc)
-		node->typeinfo->copyfunc(ntree, nnode, node);
-	
-	node->new_node = nnode;
-	nnode->new_node = NULL;
-	
-	if (nnode->typeinfo->copyfunc_api) {
+
+	BLI_duplicatelist(&node_dst->outputs, &node_src->outputs);
+	for (sock_dst = node_dst->outputs.first, sock_src = node_src->outputs.first;
+	     sock_dst != NULL;
+	     sock_dst = sock_dst->next, sock_src = sock_src->next)
+	{
+		node_socket_copy(sock_dst, sock_src, flag);
+	}
+
+	if (node_src->prop) {
+		node_dst->prop = IDP_CopyProperty_ex(node_src->prop, flag);
+	}
+
+	BLI_duplicatelist(&node_dst->internal_links, &node_src->internal_links);
+	for (link_dst = node_dst->internal_links.first, link_src = node_src->internal_links.first;
+	     link_dst != NULL;
+	     link_dst = link_dst->next, link_src = link_src->next)
+	{
+		link_dst->fromnode = node_dst;
+		link_dst->tonode = node_dst;
+		link_dst->fromsock = link_dst->fromsock->new_sock;
+		link_dst->tosock = link_dst->tosock->new_sock;
+	}
+
+	if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+		id_us_plus(node_dst->id);
+	}
+
+	if (node_src->typeinfo->copyfunc) {
+		node_src->typeinfo->copyfunc(ntree, node_dst, node_src);
+	}
+
+	node_src->new_node = node_dst;
+	node_dst->new_node = NULL;
+
+	if (node_dst->typeinfo->copyfunc_api) {
 		PointerRNA ptr;
-		RNA_pointer_create((ID *)ntree, &RNA_Node, nnode, &ptr);
-		
-		nnode->typeinfo->copyfunc_api(&ptr, node);
+		RNA_pointer_create((ID *)ntree, &RNA_Node, node_dst, &ptr);
+
+		node_dst->typeinfo->copyfunc_api(&ptr, node_src);
 	}
-	
-	if (ntree)
+
+	if (ntree) {
 		ntree->update |= NTREE_UPDATE_NODES;
-	
-	return nnode;
+	}
+
+	return node_dst;
+}
+
+bNode *nodeCopyNode(bNodeTree *ntree, bNode *node)
+{
+	return BKE_node_copy_ex(ntree, node, LIB_ID_CREATE_NO_USER_REFCOUNT);
 }
 
 /* also used via rna api, so we check for proper input output direction */
@@ -1172,7 +1192,7 @@ bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname)
 	 * node groups and other tree types are created as library data.
 	 */
 	if (bmain) {
-		ntree = BKE_libblock_alloc(bmain, ID_NT, name);
+		ntree = BKE_libblock_alloc(bmain, ID_NT, name, 0);
 	}
 	else {
 		ntree = MEM_callocN(sizeof(bNodeTree), "new node tree");
@@ -1191,119 +1211,101 @@ bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname)
 	return ntree;
 }
 
-/* Warning: this function gets called during some rather unexpected times
- *	- this gets called when executing compositing updates (for threaded previews)
- *	- when the nodetree datablock needs to be copied (i.e. when users get copied)
- *	- for scene duplication use ntreeSwapID() after so we don't have stale pointers.
+/**
+ * Only copy internal data of NodeTree ID from source to already allocated/initialized destination.
+ * You probably nerver want to use that directly, use id_copy or BKE_id_copy_ex for typical needs.
  *
- * do_make_extern: keep enabled for general use, only reason _not_ to enable is when
- * copying for internal use (threads for eg), where you wont want it to modify the
- * scene data.
+ * WARNING! This function will not handle ID user count!
+ *
+ * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
  */
-static bNodeTree *ntreeCopyTree_internal(
-        const bNodeTree *ntree, Main *bmain,
-        bool skip_database, bool do_id_user, bool do_make_extern, bool copy_previews)
+void BKE_node_tree_copy_data(Main *UNUSED(bmain), bNodeTree *ntree_dst, const bNodeTree *ntree_src, const int flag)
 {
-	bNodeTree *newtree;
-	bNode *node /*, *nnode */ /* UNUSED */, *last;
-	bNodeSocket *sock, *oldsock;
-	bNodeLink *link;
-	
-	if (ntree == NULL) return NULL;
-	
-	/* is ntree part of library? */
-	if (bmain && !skip_database && BLI_findindex(&bmain->nodetree, ntree) >= 0) {
-		newtree = BKE_libblock_copy(bmain, &ntree->id);
-	}
-	else {
-		newtree = BKE_libblock_copy_nolib(&ntree->id, true);
-	}
+	bNode *node_src;
+	bNodeSocket *sock_dst, *sock_src;
+	bNodeLink *link_dst;
 
-	id_us_plus((ID *)newtree->gpd);
+	/* We never handle usercount here for own data. */
+	const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
+
+	if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+		id_us_plus((ID *)ntree_dst->gpd);
+	}
 
 	/* in case a running nodetree is copied */
-	newtree->execdata = NULL;
+	ntree_dst->execdata = NULL;
 
-	newtree->duplilock = NULL;
-	
-	BLI_listbase_clear(&newtree->nodes);
-	BLI_listbase_clear(&newtree->links);
-	
-	last = ntree->nodes.last;
-	for (node = ntree->nodes.first; node; node = node->next) {
+	ntree_dst->duplilock = NULL;
 
-		/* ntreeUserDecrefID inline */
-		if (do_id_user) {
-			id_us_plus(node->id);
-		}
+	BLI_listbase_clear(&ntree_dst->nodes);
+	BLI_listbase_clear(&ntree_dst->links);
 
-		if (do_make_extern) {
-			id_lib_extern(node->id);
-		}
-
-		node->new_node = NULL;
-		/* nnode = */ nodeCopyNode(newtree, node);   /* sets node->new */
-		
-		/* make sure we don't copy new nodes again! */
-		if (node == last)
-			break;
+	for (node_src = ntree_src->nodes.first; node_src; node_src = node_src->next) {
+		BKE_node_copy_ex(ntree_dst, node_src, flag_subdata);
 	}
-	
+
 	/* copy links */
-	BLI_duplicatelist(&newtree->links, &ntree->links);
-	for (link = newtree->links.first; link; link = link->next) {
-		link->fromnode = (link->fromnode ? link->fromnode->new_node : NULL);
-		link->fromsock = (link->fromsock ? link->fromsock->new_sock : NULL);
-		link->tonode = (link->tonode ? link->tonode->new_node : NULL);
-		link->tosock = (link->tosock ? link->tosock->new_sock : NULL);
+	BLI_duplicatelist(&ntree_dst->links, &ntree_src->links);
+	for (link_dst = ntree_dst->links.first; link_dst; link_dst = link_dst->next) {
+		link_dst->fromnode = (link_dst->fromnode ? link_dst->fromnode->new_node : NULL);
+		link_dst->fromsock = (link_dst->fromsock ? link_dst->fromsock->new_sock : NULL);
+		link_dst->tonode = (link_dst->tonode ? link_dst->tonode->new_node : NULL);
+		link_dst->tosock = (link_dst->tosock ? link_dst->tosock->new_sock : NULL);
 		/* update the link socket's pointer */
-		if (link->tosock)
-			link->tosock->link = link;
+		if (link_dst->tosock) {
+			link_dst->tosock->link = link_dst;
+		}
 	}
-	
+
 	/* copy interface sockets */
-	BLI_duplicatelist(&newtree->inputs, &ntree->inputs);
-	oldsock = ntree->inputs.first;
-	for (sock = newtree->inputs.first; sock; sock = sock->next, oldsock = oldsock->next)
-		node_socket_copy(sock, oldsock);
-	
-	BLI_duplicatelist(&newtree->outputs, &ntree->outputs);
-	oldsock = ntree->outputs.first;
-	for (sock = newtree->outputs.first; sock; sock = sock->next, oldsock = oldsock->next)
-		node_socket_copy(sock, oldsock);
-	
+	BLI_duplicatelist(&ntree_dst->inputs, &ntree_src->inputs);
+	for (sock_dst = ntree_dst->inputs.first, sock_src = ntree_src->inputs.first;
+	     sock_dst != NULL;
+	     sock_dst = sock_dst->next, sock_src = sock_src->next)
+	{
+		node_socket_copy(sock_dst, sock_src, flag_subdata);
+	}
+
+	BLI_duplicatelist(&ntree_dst->outputs, &ntree_src->outputs);
+	for (sock_dst = ntree_dst->outputs.first, sock_src = ntree_src->outputs.first;
+	     sock_dst != NULL;
+	     sock_dst = sock_dst->next, sock_src = sock_src->next)
+	{
+		node_socket_copy(sock_dst, sock_src, flag_subdata);
+	}
+
 	/* copy preview hash */
-	if (ntree->previews && copy_previews) {
+	if (ntree_src->previews && (flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
 		bNodeInstanceHashIterator iter;
-		
-		newtree->previews = BKE_node_instance_hash_new("node previews");
-		
-		NODE_INSTANCE_HASH_ITER(iter, ntree->previews) {
+
+		ntree_dst->previews = BKE_node_instance_hash_new("node previews");
+
+		NODE_INSTANCE_HASH_ITER(iter, ntree_src->previews) {
 			bNodeInstanceKey key = BKE_node_instance_hash_iterator_get_key(&iter);
 			bNodePreview *preview = BKE_node_instance_hash_iterator_get_value(&iter);
-			BKE_node_instance_hash_insert(newtree->previews, key, BKE_node_preview_copy(preview));
+			BKE_node_instance_hash_insert(ntree_dst->previews, key, BKE_node_preview_copy(preview));
 		}
 	}
-	else
-		newtree->previews = NULL;
-	
-	/* update node->parent pointers */
-	for (node = newtree->nodes.first; node; node = node->next) {
-		if (node->parent)
-			node->parent = node->parent->new_node;
+	else {
+		ntree_dst->previews = NULL;
 	}
-	
-	/* node tree will generate its own interface type */
-	newtree->interface_type = NULL;
-	
-	BKE_id_copy_ensure_local(bmain, &ntree->id, &newtree->id);
 
-	return newtree;
+	/* update node->parent pointers */
+	for (node_src = ntree_dst->nodes.first; node_src; node_src = node_src->next) {
+		if (node_src->parent) {
+			node_src->parent = node_src->parent->new_node;
+		}
+	}
+
+	/* node tree will generate its own interface type */
+	ntree_dst->interface_type = NULL;
 }
 
 bNodeTree *ntreeCopyTree_ex(const bNodeTree *ntree, Main *bmain, const bool do_id_user)
 {
-	return ntreeCopyTree_internal(ntree, bmain, false, do_id_user, true, true);
+	bNodeTree *ntree_copy;
+	BKE_id_copy_ex(bmain, (ID *)ntree, (ID **)&ntree_copy, do_id_user ? 0 : LIB_ID_CREATE_NO_USER_REFCOUNT, false);
+	return ntree_copy;
 }
 bNodeTree *ntreeCopyTree(Main *bmain, const bNodeTree *ntree)
 {
@@ -1994,10 +1996,11 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 			adt->tmpact = NULL;
 		}
 
-		/* Make full copy.
+		/* Make full copy outside of Main database.
 		 * Note: previews are not copied here.
 		 */
-		ltree = ntreeCopyTree_internal(ntree, G.main, true, false, false, false);
+		BKE_id_copy_ex(G.main, (ID *)ntree, (ID **)&ltree,
+		               LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_COPY_NO_PREVIEW, false);
 		ltree->flag |= NTREE_IS_LOCALIZED;
 
 		for (node = ltree->nodes.first; node; node = node->next) {

@@ -259,7 +259,7 @@ void BKE_animdata_free(ID *id, const bool do_id_user)
 /* Copying -------------------------------------------- */
 
 /* Make a copy of the given AnimData - to be used when copying datablocks */
-AnimData *BKE_animdata_copy(AnimData *adt, const bool do_action)
+AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const bool do_action)
 {
 	AnimData *dadt;
 	
@@ -270,8 +270,9 @@ AnimData *BKE_animdata_copy(AnimData *adt, const bool do_action)
 	
 	/* make a copy of action - at worst, user has to delete copies... */
 	if (do_action) {
-		dadt->action = BKE_action_copy(G.main, adt->action);
-		dadt->tmpact = BKE_action_copy(G.main, adt->tmpact);
+		BLI_assert(bmain != NULL);
+		BKE_id_copy_ex(bmain, (ID *)dadt->action, (ID **)&dadt->action, 0, false);
+		BKE_id_copy_ex(bmain, (ID *)dadt->tmpact, (ID **)&dadt->tmpact, 0, false);
 	}
 	else {
 		id_us_plus((ID *)dadt->action);
@@ -291,7 +292,7 @@ AnimData *BKE_animdata_copy(AnimData *adt, const bool do_action)
 	return dadt;
 }
 
-bool BKE_animdata_copy_id(ID *id_to, ID *id_from, const bool do_action)
+bool BKE_animdata_copy_id(Main *bmain, ID *id_to, ID *id_from, const bool do_action)
 {
 	AnimData *adt;
 
@@ -303,7 +304,7 @@ bool BKE_animdata_copy_id(ID *id_to, ID *id_from, const bool do_action)
 	adt = BKE_animdata_from_id(id_from);
 	if (adt) {
 		IdAdtTemplate *iat = (IdAdtTemplate *)id_to;
-		iat->adt = BKE_animdata_copy(adt, do_action);
+		iat->adt = BKE_animdata_copy(bmain, adt, do_action);
 	}
 
 	return true;
@@ -1347,7 +1348,7 @@ void BKE_keyingset_free_path(KeyingSet *ks, KS_Path *ksp)
 }
 
 /* Copy all KeyingSets in the given list */
-void BKE_keyingsets_copy(ListBase *newlist, ListBase *list)
+void BKE_keyingsets_copy(ListBase *newlist, const ListBase *list)
 {
 	KeyingSet *ksn;
 	KS_Path *kspn;

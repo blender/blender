@@ -52,6 +52,7 @@ bool            BKE_text_reload(struct Text *text);
 struct Text    *BKE_text_load_ex(struct Main *bmain, const char *file, const char *relpath,
                                  const bool is_internal);
 struct Text    *BKE_text_load	(struct Main *bmain, const char *file, const char *relpath);
+void            BKE_text_copy_data(struct Main *bmain, struct Text *ta_dst, const struct Text *ta_src, const int flag);
 struct Text    *BKE_text_copy		(struct Main *bmain, const struct Text *ta);
 void            BKE_text_make_local (struct Main *bmain, struct Text *text, const bool lib_local);
 void			BKE_text_clear      (struct Text *text);

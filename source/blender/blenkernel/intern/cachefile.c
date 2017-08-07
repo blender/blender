@@ -66,7 +66,7 @@ void BKE_cachefiles_exit(void)
 
 void *BKE_cachefile_add(Main *bmain, const char *name)
 {
-	CacheFile *cache_file = BKE_libblock_alloc(bmain, ID_CF, name);
+	CacheFile *cache_file = BKE_libblock_alloc(bmain, ID_CF, name, 0);
 
 	BKE_cachefile_init(cache_file);
 
@@ -100,16 +100,26 @@ void BKE_cachefile_free(CacheFile *cache_file)
 	BLI_freelistN(&cache_file->object_paths);
 }
 
+/**
+ * Only copy internal data of CacheFile ID from source to already allocated/initialized destination.
+ * You probably nerver want to use that directly, use id_copy or BKE_id_copy_ex for typical needs.
+ *
+ * WARNING! This function will not handle ID user count!
+ *
+ * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ */
+void BKE_cachefile_copy_data(
+        Main *UNUSED(bmain), CacheFile *cache_file_dst, const CacheFile *UNUSED(cache_file_src), const int UNUSED(flag))
+{
+	cache_file_dst->handle = NULL;
+	BLI_listbase_clear(&cache_file_dst->object_paths);
+}
+
 CacheFile *BKE_cachefile_copy(Main *bmain, const CacheFile *cache_file)
 {
-	CacheFile *new_cache_file = BKE_libblock_copy(bmain, &cache_file->id);
-	new_cache_file->handle = NULL;
-
-	BLI_listbase_clear(&new_cache_file->object_paths);
-
-	BKE_id_copy_ensure_local(bmain, &cache_file->id, &new_cache_file->id);
-
-	return new_cache_file;
+	CacheFile *cache_file_copy;
+	BKE_id_copy_ex(bmain, &cache_file->id, (ID **)&cache_file_copy, 0, false);
+	return cache_file_copy;
 }
 
 void BKE_cachefile_make_local(Main *bmain, CacheFile *cache_file, const bool lib_local)

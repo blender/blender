@@ -707,7 +707,7 @@ Tex *BKE_texture_add(Main *bmain, const char *name)
 {
 	Tex *tex;
 
-	tex = BKE_libblock_alloc(bmain, ID_TE, name);
+	tex = BKE_libblock_alloc(bmain, ID_TE, name, 0);
 	
 	BKE_texture_default(tex);
 	
@@ -846,41 +846,71 @@ MTex *BKE_texture_mtex_add_id(ID *id, int slot)
 
 /* ------------------------------------------------------------------------- */
 
-Tex *BKE_texture_copy(Main *bmain, const Tex *tex)
+/**
+ * Only copy internal data of Texture ID from source to already allocated/initialized destination.
+ * You probably nerver want to use that directly, use id_copy or BKE_id_copy_ex for typical needs.
+ *
+ * WARNING! This function will not handle ID user count!
+ *
+ * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ */
+void BKE_texture_copy_data(Main *bmain, Tex *tex_dst, const Tex *tex_src, const int flag)
 {
-	Tex *texn;
-	
-	texn = BKE_libblock_copy(bmain, &tex->id);
-	if (BKE_texture_is_image_user(tex)) {
-		id_us_plus((ID *)texn->ima);
+	/* We never handle usercount here for own data. */
+	const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
+
+	if (!BKE_texture_is_image_user(tex_src)) {
+		tex_dst->ima = NULL;
+	}
+
+	if (tex_dst->coba) {
+		tex_dst->coba = MEM_dupallocN(tex_dst->coba);
+	}
+	if (tex_dst->env) {
+		tex_dst->env = BKE_texture_envmap_copy(tex_dst->env, flag_subdata);
+	}
+	if (tex_dst->pd) {
+		tex_dst->pd = BKE_texture_pointdensity_copy(tex_dst->pd, flag_subdata);
+	}
+	if (tex_dst->vd) {
+		tex_dst->vd = MEM_dupallocN(tex_dst->vd);
+	}
+	if (tex_dst->ot) {
+		tex_dst->ot = BKE_texture_ocean_copy(tex_dst->ot, flag_subdata);
+	}
+
+	if (tex_src->nodetree) {
+		if (tex_src->nodetree->execdata) {
+			ntreeTexEndExecTree(tex_src->nodetree->execdata);
+		}
+		BKE_id_copy_ex(bmain, (ID *)tex_src->nodetree, (ID **)&tex_dst->nodetree, flag, false);
+	}
+
+	if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
+		BKE_previewimg_id_copy(&tex_dst->id, &tex_src->id);
 	}
 	else {
-		texn->ima = NULL;
+		tex_dst->preview = NULL;
 	}
-	
-	if (texn->coba) texn->coba = MEM_dupallocN(texn->coba);
-	if (texn->env) texn->env = BKE_texture_envmap_copy(texn->env);
-	if (texn->pd) texn->pd = BKE_texture_pointdensity_copy(texn->pd);
-	if (texn->vd) texn->vd = MEM_dupallocN(texn->vd);
-	if (texn->ot) texn->ot = BKE_texture_ocean_copy(texn->ot);
+}
 
-	if (tex->nodetree) {
-		if (tex->nodetree->execdata) {
-			ntreeTexEndExecTree(tex->nodetree->execdata);
-		}
-		texn->nodetree = ntreeCopyTree(bmain, tex->nodetree);
-	}
-
-	BKE_previewimg_id_copy(&texn->id, &tex->id);
-
-	BKE_id_copy_ensure_local(bmain, &tex->id, &texn->id);
-
-	return texn;
+Tex *BKE_texture_copy(Main *bmain, const Tex *tex)
+{
+	Tex *tex_copy;
+	BKE_id_copy_ex(bmain, &tex->id, (ID **)&tex_copy, 0, false);
+	return tex_copy;
 }
 
 /* texture copy without adding to main dbase */
 Tex *BKE_texture_localize(Tex *tex)
 {
+	/* TODO replace with something like
+	 * 	Tex *tex_copy;
+	 * 	BKE_id_copy_ex(bmain, &tex->id, (ID **)&tex_copy, LIB_ID_COPY_NO_MAIN | LIB_ID_COPY_NO_PREVIEW | LIB_ID_COPY_NO_USER_REFCOUNT, false);
+	 * 	return tex_copy;
+	 *
+	 * ... Once f*** nodes are fully converted to that too :( */
+
 	Tex *texn;
 	
 	texn = BKE_libblock_copy_nolib(&tex->id, false);
@@ -889,17 +919,17 @@ Tex *BKE_texture_localize(Tex *tex)
 	
 	if (texn->coba) texn->coba = MEM_dupallocN(texn->coba);
 	if (texn->env) {
-		texn->env = BKE_texture_envmap_copy(texn->env);
+		texn->env = BKE_texture_envmap_copy(texn->env, LIB_ID_CREATE_NO_USER_REFCOUNT);
 		id_us_min(&texn->env->ima->id);
 	}
-	if (texn->pd) texn->pd = BKE_texture_pointdensity_copy(texn->pd);
+	if (texn->pd) texn->pd = BKE_texture_pointdensity_copy(texn->pd, LIB_ID_CREATE_NO_USER_REFCOUNT);
 	if (texn->vd) {
 		texn->vd = MEM_dupallocN(texn->vd);
 		if (texn->vd->dataset)
 			texn->vd->dataset = MEM_dupallocN(texn->vd->dataset);
 	}
 	if (texn->ot) {
-		texn->ot = BKE_texture_ocean_copy(tex->ot);
+		texn->ot = BKE_texture_ocean_copy(tex->ot, LIB_ID_CREATE_NO_USER_REFCOUNT);
 	}
 	
 	texn->preview = NULL;
@@ -1263,16 +1293,20 @@ EnvMap *BKE_texture_envmap_add(void)
 
 /* ------------------------------------------------------------------------- */
 
-EnvMap *BKE_texture_envmap_copy(const EnvMap *env)
+EnvMap *BKE_texture_envmap_copy(const EnvMap *env, const int flag)
 {
 	EnvMap *envn;
 	int a;
 	
 	envn = MEM_dupallocN(env);
 	envn->ok = 0;
-	for (a = 0; a < 6; a++) envn->cube[a] = NULL;
-	if (envn->ima) id_us_plus((ID *)envn->ima);
-	
+	for (a = 0; a < 6; a++) {
+		envn->cube[a] = NULL;
+	}
+	if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+		id_us_plus((ID *)envn->ima);
+	}
+
 	return envn;
 }
 
@@ -1336,14 +1370,16 @@ PointDensity *BKE_texture_pointdensity_add(void)
 	return pd;
 } 
 
-PointDensity *BKE_texture_pointdensity_copy(const PointDensity *pd)
+PointDensity *BKE_texture_pointdensity_copy(const PointDensity *pd, const int UNUSED(flag))
 {
 	PointDensity *pdn;
 
 	pdn = MEM_dupallocN(pd);
 	pdn->point_tree = NULL;
 	pdn->point_data = NULL;
-	if (pdn->coba) pdn->coba = MEM_dupallocN(pdn->coba);
+	if (pdn->coba) {
+		pdn->coba = MEM_dupallocN(pdn->coba);
+	}
 	pdn->falloff_curve = curvemapping_copy(pdn->falloff_curve); /* can be NULL */
 	return pdn;
 }
@@ -1430,7 +1466,7 @@ OceanTex *BKE_texture_ocean_add(void)
 	return ot;
 }
 
-OceanTex *BKE_texture_ocean_copy(const OceanTex *ot)
+OceanTex *BKE_texture_ocean_copy(const OceanTex *ot, const int UNUSED(flag))
 {
 	OceanTex *otn = MEM_dupallocN(ot);
 	

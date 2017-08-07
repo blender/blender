@@ -99,6 +99,8 @@ void BKE_paint_set_overlay_override(enum OverlayFlags flag);
 /* palettes */
 void                 BKE_palette_free(struct Palette *palette);
 struct Palette      *BKE_palette_add(struct Main *bmain, const char *name);
+void BKE_palette_copy_data(
+        struct Main *bmain, struct Palette *palette_dst, const struct Palette *palette_src, const int flag);
 struct Palette      *BKE_palette_copy(struct Main *bmain, const struct Palette *palette);
 void                 BKE_palette_make_local(struct Main *bmain, struct Palette *palette, const bool lib_local);
 struct PaletteColor *BKE_palette_color_add(struct Palette *palette);
@@ -109,12 +111,14 @@ void                 BKE_palette_clear(struct Palette *palette);
 /* paint curves */
 struct PaintCurve *BKE_paint_curve_add(struct Main *bmain, const char *name);
 void BKE_paint_curve_free(struct PaintCurve *pc);
+void BKE_paint_curve_copy_data(
+        struct Main *bmain, struct PaintCurve *pc_dst, const struct PaintCurve *pc_src, const int flag);
 struct PaintCurve *BKE_paint_curve_copy(struct Main *bmain, const struct PaintCurve *pc);
 void               BKE_paint_curve_make_local(struct Main *bmain, struct PaintCurve *pc, const bool lib_local);
 
 void BKE_paint_init(struct Scene *sce, PaintMode mode, const char col[3]);
 void BKE_paint_free(struct Paint *p);
-void BKE_paint_copy(struct Paint *src, struct Paint *tar);
+void BKE_paint_copy(struct Paint *src, struct Paint *tar, const int flag);
 
 void BKE_paint_cavity_curve_preset(struct Paint *p, int preset);
 

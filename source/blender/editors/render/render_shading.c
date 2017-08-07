@@ -1298,16 +1298,16 @@ static int freestyle_modifier_copy_exec(bContext *C, wmOperator *op)
 
 	switch (freestyle_get_modifier_type(&ptr)) {
 		case LS_MODIFIER_TYPE_COLOR:
-			BKE_linestyle_color_modifier_copy(lineset->linestyle, modifier);
+			BKE_linestyle_color_modifier_copy(lineset->linestyle, modifier, 0);
 			break;
 		case LS_MODIFIER_TYPE_ALPHA:
-			BKE_linestyle_alpha_modifier_copy(lineset->linestyle, modifier);
+			BKE_linestyle_alpha_modifier_copy(lineset->linestyle, modifier, 0);
 			break;
 		case LS_MODIFIER_TYPE_THICKNESS:
-			BKE_linestyle_thickness_modifier_copy(lineset->linestyle, modifier);
+			BKE_linestyle_thickness_modifier_copy(lineset->linestyle, modifier, 0);
 			break;
 		case LS_MODIFIER_TYPE_GEOMETRY:
-			BKE_linestyle_geometry_modifier_copy(lineset->linestyle, modifier);
+			BKE_linestyle_geometry_modifier_copy(lineset->linestyle, modifier, 0);
 			break;
 		default:
 			BKE_report(op->reports, RPT_ERROR, "The object the data pointer refers to is not a valid modifier");

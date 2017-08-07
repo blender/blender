@@ -1581,13 +1581,13 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 						DAG_id_tag_update(&ob_dst->id, OB_RECALC_DATA);
 						break;
 					case MAKE_LINKS_ANIMDATA:
-						BKE_animdata_copy_id((ID *)ob_dst, (ID *)ob_src, false);
+						BKE_animdata_copy_id(bmain, (ID *)ob_dst, (ID *)ob_src, false);
 						if (ob_dst->data && ob_src->data) {
 							if (ID_IS_LINKED_DATABLOCK(obdata_id)) {
 								is_lib = true;
 								break;
 							}
-							BKE_animdata_copy_id((ID *)ob_dst->data, (ID *)ob_src->data, false);
+							BKE_animdata_copy_id(bmain, (ID *)ob_dst->data, (ID *)ob_src->data, false);
 						}
 						DAG_id_tag_update(&ob_dst->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 						break;

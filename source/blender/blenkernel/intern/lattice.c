@@ -270,39 +270,46 @@ Lattice *BKE_lattice_add(Main *bmain, const char *name)
 {
 	Lattice *lt;
 
-	lt = BKE_libblock_alloc(bmain, ID_LT, name);
+	lt = BKE_libblock_alloc(bmain, ID_LT, name, 0);
 
 	BKE_lattice_init(lt);
 
 	return lt;
 }
 
-Lattice *BKE_lattice_copy(Main *bmain, const Lattice *lt)
+/**
+ * Only copy internal data of Lattice ID from source to already allocated/initialized destination.
+ * You probably nerver want to use that directly, use id_copy or BKE_id_copy_ex for typical needs.
+ *
+ * WARNING! This function will not handle ID user count!
+ *
+ * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ */
+void BKE_lattice_copy_data(Main *bmain, Lattice *lt_dst, const Lattice *lt_src, const int flag)
 {
-	Lattice *ltn;
+	lt_dst->def = MEM_dupallocN(lt_src->def);
 
-	ltn = BKE_libblock_copy(bmain, &lt->id);
-	ltn->def = MEM_dupallocN(lt->def);
-
-	if (lt->key) {
-		ltn->key = BKE_key_copy(bmain, ltn->key);
-		ltn->key->from = (ID *)ltn;
-	}
-	
-	if (lt->dvert) {
-		int tot = lt->pntsu * lt->pntsv * lt->pntsw;
-		ltn->dvert = MEM_mallocN(sizeof(MDeformVert) * tot, "Lattice MDeformVert");
-		BKE_defvert_array_copy(ltn->dvert, lt->dvert, tot);
+	if (lt_src->key) {
+		BKE_id_copy_ex(bmain, &lt_src->key->id, (ID **)&lt_dst->key, flag, false);
 	}
 
-	ltn->editlatt = NULL;
+	if (lt_src->dvert) {
+		int tot = lt_src->pntsu * lt_src->pntsv * lt_src->pntsw;
+		lt_dst->dvert = MEM_mallocN(sizeof(MDeformVert) * tot, "Lattice MDeformVert");
+		BKE_defvert_array_copy(lt_dst->dvert, lt_src->dvert, tot);
+	}
 
-	BKE_id_copy_ensure_local(bmain, &lt->id, &ltn->id);
-
-	return ltn;
+	lt_dst->editlatt = NULL;
 }
 
-/** Free (or release) any data used by this lattice (does not free the lattice itself). */
+Lattice *BKE_lattice_copy(Main *bmain, const Lattice *lt)
+{
+	Lattice *lt_copy;
+	BKE_id_copy_ex(bmain, &lt->id, (ID **)&lt_copy, 0, false);
+	return lt_copy;
+}
+
+	/** Free (or release) any data used by this lattice (does not free the lattice itself). */
 void BKE_lattice_free(Lattice *lt)
 {
 	BKE_animdata_free(&lt->id, false);

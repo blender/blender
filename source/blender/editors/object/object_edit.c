@@ -773,9 +773,9 @@ static void copymenu_logicbricks(Scene *scene, View3D *v3d, Object *ob)
 				
 				/* now copy it, this also works without logicbricks! */
 				clear_sca_new_poins_ob(ob);
-				copy_sensors(&base->object->sensors, &ob->sensors);
-				copy_controllers(&base->object->controllers, &ob->controllers);
-				copy_actuators(&base->object->actuators, &ob->actuators);
+				copy_sensors(&base->object->sensors, &ob->sensors, 0);
+				copy_controllers(&base->object->controllers, &ob->controllers, 0);
+				copy_actuators(&base->object->actuators, &ob->actuators, 0);
 				set_sca_new_poins_ob(base->object);
 				
 				/* some menu settings */
@@ -934,7 +934,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 						base->object->collision_boundtype = ob->collision_boundtype;
 					}
 					base->object->margin = ob->margin;
-					base->object->bsoft = copy_bulletsoftbody(ob->bsoft);
+					base->object->bsoft = copy_bulletsoftbody(ob->bsoft, 0);
 
 				}
 				else if (event == 17) {   /* tex space */
@@ -1042,7 +1042,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 					base->object->softflag = ob->softflag;
 					if (base->object->soft) sbFree(base->object->soft);
 					
-					base->object->soft = copy_softbody(ob->soft, false);
+					base->object->soft = copy_softbody(ob->soft, 0);
 
 					if (!modifiers_findByType(base->object, eModifierType_Softbody)) {
 						BLI_addhead(&base->object->modifiers, modifier_new(eModifierType_Softbody));
@@ -2106,9 +2106,9 @@ static int logicbricks_copy_exec(bContext *C, wmOperator *UNUSED(op))
 		
 			/* now copy it, this also works without logicbricks! */
 			clear_sca_new_poins_ob(ob);
-			copy_sensors(&ob_iter->sensors, &ob->sensors);
-			copy_controllers(&ob_iter->controllers, &ob->controllers);
-			copy_actuators(&ob_iter->actuators, &ob->actuators);
+			copy_sensors(&ob_iter->sensors, &ob->sensors, 0);
+			copy_controllers(&ob_iter->controllers, &ob->controllers, 0);
+			copy_actuators(&ob_iter->actuators, &ob->actuators, 0);
 			set_sca_new_poins_ob(ob_iter);
 		
 			/* some menu settings */
@@ -2169,7 +2169,7 @@ static int game_physics_copy_exec(bContext *C, wmOperator *UNUSED(op))
 			copy_v3_v3(ob_iter->anisotropicFriction, ob->anisotropicFriction);
 			ob_iter->collision_boundtype = ob->collision_boundtype;
 			ob_iter->margin = ob->margin;
-			ob_iter->bsoft = copy_bulletsoftbody(ob->bsoft);
+			ob_iter->bsoft = copy_bulletsoftbody(ob->bsoft, 0);
 			if (ob->restrictflag & OB_RESTRICT_RENDER) 
 				ob_iter->restrictflag |= OB_RESTRICT_RENDER;
 			else
