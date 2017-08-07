@@ -151,7 +151,7 @@ ccl_device float3 curve_motion_center_location(KernelGlobals *kg, ShaderData *sd
 /* Curve tangent normal */
 
 ccl_device float3 curve_tangent_normal(KernelGlobals *kg, ShaderData *sd)
-{	
+{
 	float3 tgN = make_float3(0.0f,0.0f,0.0f);
 
 	if(sd->type & PRIMITIVE_ALL_CURVE) {
@@ -276,7 +276,7 @@ ccl_device_curveintersect bool cardinal_curve_intersect(KernelGlobals *kg,
 	ssef vdir = load4f(dir);
 	ssef vcurve_coef[4];
 	const float3 *curve_coef = (float3 *)vcurve_coef;
-	
+
 	{
 		ssef dtmp = vdir * vdir;
 		ssef d_ss = mm_sqrt(dtmp + shuffle<2>(dtmp));
@@ -477,7 +477,7 @@ ccl_device_curveintersect bool cardinal_curve_intersect(KernelGlobals *kg,
 #else
 		float3 p_st = ((curve_coef[3] * i_st + curve_coef[2]) * i_st + curve_coef[1]) * i_st + curve_coef[0];
 		float3 p_en = ((curve_coef[3] * i_en + curve_coef[2]) * i_en + curve_coef[1]) * i_en + curve_coef[0];
-		
+
 		float bminx = min(p_st.x, p_en.x);
 		float bmaxx = max(p_st.x, p_en.x);
 		float bminy = min(p_st.y, p_en.y);
@@ -598,7 +598,7 @@ ccl_device_curveintersect bool cardinal_curve_intersect(KernelGlobals *kg,
 					else // inside
 						coverage = (min(d1 * inv_mw_extension, 1.0f) + min(-d0 * inv_mw_extension, 1.0f)) * 0.5f;
 				}
-				
+
 				if(p_curr.x * p_curr.x + p_curr.y * p_curr.y >= r_ext * r_ext || p_curr.z <= epsilon || isect->t < p_curr.z) {
 					tree++;
 					level = tree & -tree;
@@ -646,7 +646,7 @@ ccl_device_curveintersect bool cardinal_curve_intersect(KernelGlobals *kg,
 					level = tree & -tree;
 					continue;
 				}
-				
+
 				float rootd = sqrtf(td);
 				float correction = (-tb - rootd) * 0.5f * invcyla;
 				t = tcentre + correction;
@@ -661,7 +661,7 @@ ccl_device_curveintersect bool cardinal_curve_intersect(KernelGlobals *kg,
 				if(flags & CURVE_KN_BACKFACING && (dot(dp_st, -p_st) + t * dp_st.z < 0 || dot(dp_en, p_en) - t * dp_en.z < 0 || isect->t < t || t <= 0.0f)) {
 					correction = (-tb + rootd) * 0.5f * invcyla;
 					t = tcentre + correction;
-				}			
+				}
 
 				if(dot(dp_st, -p_st) + t * dp_st.z < 0 || dot(dp_en, p_en) - t * dp_en.z < 0 || isect->t < t || t <= 0.0f) {
 					tree++;
@@ -701,7 +701,7 @@ ccl_device_curveintersect bool cardinal_curve_intersect(KernelGlobals *kg,
 				isect->type = type;
 				hit = true;
 			}
-			
+
 			tree++;
 			level = tree & -tree;
 		}
@@ -791,7 +791,7 @@ ccl_device_curveintersect bool curve_intersect(KernelGlobals *kg,
 	float3 sphere_dif2 = sphere_dif1 - sphere_b_tmp * dir;
 #else
 	ssef P_curve[2];
-	
+
 	if(is_curve_primitive) {
 		P_curve[0] = load4f(&kg->__curve_keys.data[k0].x);
 		P_curve[1] = load4f(&kg->__curve_keys.data[k1].x);
@@ -1059,7 +1059,7 @@ ccl_device_inline float3 curve_refine(KernelGlobals *kg,
 		}
 		else {
 			/* direction from inside to surface of curve */
-			float3 p_curr = curvepoint(isect->u, p[0], p[1], p[2], p[3]);	
+			float3 p_curr = curvepoint(isect->u, p[0], p[1], p[2], p[3]);
 			sd->Ng = normalize(P - p_curr);
 
 			/* adjustment for changing radius */
@@ -1089,7 +1089,7 @@ ccl_device_inline float3 curve_refine(KernelGlobals *kg,
 
 		float l = 1.0f;
 		tg = normalize_len(float4_to_float3(P_curve[1] - P_curve[0]), &l);
-		
+
 		P = P + D*t;
 
 		float3 dif = P - float4_to_float3(P_curve[0]);
@@ -1141,4 +1141,3 @@ ccl_device_inline float3 curve_refine(KernelGlobals *kg,
 #endif
 
 CCL_NAMESPACE_END
-
