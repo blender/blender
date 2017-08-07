@@ -481,6 +481,21 @@ VFontData *BLI_vfontdata_from_freetypefont(PackedFile *pf)
 	return vfd;
 }
 
+static void *vfontdata_copy_characters_value_cb(const void *src) {
+	return BLI_vfontchar_copy(src, 0);
+}
+
+VFontData *BLI_vfontdata_copy(const VFontData *vfont_src, const int UNUSED(flag))
+{
+	VFontData *vfont_dst = MEM_dupallocN(vfont_src);
+
+	if (vfont_src->characters != NULL) {
+		vfont_dst->characters = BLI_ghash_copy(vfont_src->characters, NULL, vfontdata_copy_characters_value_cb);
+	}
+
+	return vfont_dst;
+}
+
 VChar *BLI_vfontchar_from_freetypefont(VFont *vfont, unsigned long character)
 {
 	VChar *che = NULL;
@@ -501,6 +516,20 @@ VChar *BLI_vfontchar_from_freetypefont(VFont *vfont, unsigned long character)
 	FT_Done_FreeType(library);
 
 	return che;
+}
+
+/* Yeah, this is very bad... But why is this in BLI in the first place, since it uses Nurb data?
+ * Anyway, do not feel like duplicating whole Nurb copy code here, so unless someone has a better idea... */
+#include "../../blenkernel/BKE_curve.h"
+
+VChar *BLI_vfontchar_copy(const VChar *vchar_src, const int UNUSED(flag))
+{
+	VChar *vchar_dst = MEM_dupallocN(vchar_src);
+
+	BLI_listbase_clear(&vchar_dst->nurbsbase);
+	BKE_nurbList_duplicate(&vchar_dst->nurbsbase, &vchar_src->nurbsbase);
+
+	return vchar_dst;
 }
 
 #if 0

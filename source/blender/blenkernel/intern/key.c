@@ -107,7 +107,7 @@ Key *BKE_key_add(ID *id)    /* common function */
 	Key *key;
 	char *el;
 	
-	key = BKE_libblock_alloc(G.main, ID_KE, "Key");
+	key = BKE_libblock_alloc(G.main, ID_KE, "Key", 0);
 	
 	key->type = KEY_NORMAL;
 	key->from = id;
@@ -151,31 +151,40 @@ Key *BKE_key_add(ID *id)    /* common function */
 	return key;
 }
 
-Key *BKE_key_copy(Main *bmain, const Key *key)
+/**
+ * Only copy internal data of ShapeKey ID from source to already allocated/initialized destination.
+ * You probably nerver want to use that directly, use id_copy or BKE_id_copy_ex for typical needs.
+ *
+ * WARNING! This function will not handle ID user count!
+ *
+ * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ */
+void BKE_key_copy_data(Main *UNUSED(bmain), Key *key_dst, const Key *key_src, const int UNUSED(flag))
 {
-	Key *keyn;
-	KeyBlock *kbn, *kb;
-	
-	keyn = BKE_libblock_copy(bmain, &key->id);
-	
-	BLI_duplicatelist(&keyn->block, &key->block);
-	
-	kb = key->block.first;
-	kbn = keyn->block.first;
-	while (kbn) {
-		
-		if (kbn->data) kbn->data = MEM_dupallocN(kbn->data);
-		if (kb == key->refkey) keyn->refkey = kbn;
-		
-		kbn = kbn->next;
-		kb = kb->next;
+	BLI_duplicatelist(&key_dst->block, &key_src->block);
+
+	KeyBlock *kb_dst, *kb_src;
+	for (kb_src = key_src->block.first, kb_dst = key_dst->block.first;
+	     kb_dst;
+	     kb_src = kb_src->next, kb_dst = kb_dst->next)
+	{
+		if (kb_dst->data) {
+			kb_dst->data = MEM_dupallocN(kb_dst->data);
+		}
+		if (kb_src == key_src->refkey) {
+			key_dst->refkey = kb_dst;
+		}
 	}
-
-	BKE_id_copy_ensure_local(bmain, &key->id, &keyn->id);
-
-	return keyn;
 }
 
+Key *BKE_key_copy(Main *bmain, const Key *key)
+{
+	Key *key_copy;
+	BKE_id_copy_ex(bmain, &key->id, (ID **)&key_copy, 0, false);
+	return key_copy;
+}
+
+/* XXX TODO get rid of this! */
 Key *BKE_key_copy_nolib(Key *key)
 {
 	Key *keyn;

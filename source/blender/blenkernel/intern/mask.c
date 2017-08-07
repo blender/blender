@@ -794,7 +794,7 @@ static Mask *mask_alloc(Main *bmain, const char *name)
 {
 	Mask *mask;
 
-	mask = BKE_libblock_alloc(bmain, ID_MSK, name);
+	mask = BKE_libblock_alloc(bmain, ID_MSK, name, 0);
 
 	id_fake_user_set(&mask->id);
 
@@ -821,6 +821,7 @@ Mask *BKE_mask_new(Main *bmain, const char *name)
 }
 
 /* TODO(sergey): Use generic BKE_libblock_copy_nolib() instead. */
+/* TODO(bastien): Use new super cool & generic BKE_id_copy_ex() instead! */
 Mask *BKE_mask_copy_nolib(Mask *mask)
 {
 	Mask *mask_new;
@@ -840,22 +841,29 @@ Mask *BKE_mask_copy_nolib(Mask *mask)
 	return mask_new;
 }
 
-Mask *BKE_mask_copy(Main *bmain, const Mask *mask)
+/**
+ * Only copy internal data of Mask ID from source to already allocated/initialized destination.
+ * You probably nerver want to use that directly, use id_copy or BKE_id_copy_ex for typical needs.
+ *
+ * WARNING! This function will not handle ID user count!
+ *
+ * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ */
+void BKE_mask_copy_data(Main *UNUSED(bmain), Mask *mask_dst, const Mask *mask_src, const int UNUSED(flag))
 {
-	Mask *mask_new;
+	BLI_listbase_clear(&mask_dst->masklayers);
 
-	mask_new = BKE_libblock_copy(bmain, &mask->id);
-
-	BLI_listbase_clear(&mask_new->masklayers);
-
-	BKE_mask_layer_copy_list(&mask_new->masklayers, &mask->masklayers);
+	BKE_mask_layer_copy_list(&mask_dst->masklayers, &mask_src->masklayers);  /* TODO add unused flag to those as well. */
 
 	/* enable fake user by default */
-	id_fake_user_set(&mask_new->id);
+	id_fake_user_set(&mask_dst->id);
+}
 
-	BKE_id_copy_ensure_local(bmain, &mask->id, &mask_new->id);
-
-	return mask_new;
+Mask *BKE_mask_copy(Main *bmain, const Mask *mask)
+{
+	Mask *mask_copy;
+	BKE_id_copy_ex(bmain, &mask->id, (ID **)&mask_copy, 0, false);
+	return mask_copy;
 }
 
 void BKE_mask_make_local(Main *bmain, Mask *mask, const bool lib_local)

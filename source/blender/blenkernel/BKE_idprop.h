@@ -58,7 +58,7 @@ typedef union IDPropertyTemplate {
 /* ----------- Property Array Type ---------- */
 
 IDProperty *IDP_NewIDPArray(const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-IDProperty *IDP_CopyIDPArray(const IDProperty *array) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+IDProperty *IDP_CopyIDPArray(const IDProperty *array, const int flag) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /* shallow copies item */
 void IDP_SetIndexArray(struct IDProperty *prop, int index, struct IDProperty *item) ATTR_NONNULL();
@@ -103,6 +103,7 @@ IDProperty *IDP_GetPropertyTypeFromGroup(struct IDProperty *prop, const char *na
 /*-------- Main Functions --------*/
 struct IDProperty *IDP_GetProperties(struct ID *id, const bool create_if_needed) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 struct IDProperty *IDP_CopyProperty(const struct IDProperty *prop) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+struct IDProperty *IDP_CopyProperty_ex(const struct IDProperty *prop, const int flag) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 bool IDP_EqualsProperties_ex(IDProperty *prop1, IDProperty *prop2, const bool is_strict) ATTR_WARN_UNUSED_RESULT;
 

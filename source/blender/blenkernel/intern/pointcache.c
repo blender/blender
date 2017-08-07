@@ -3449,7 +3449,7 @@ void BKE_ptcache_free_list(ListBase *ptcaches)
 	}
 }
 
-static PointCache *ptcache_copy(PointCache *cache, bool copy_data)
+static PointCache *ptcache_copy(PointCache *cache, const bool copy_data)
 {
 	PointCache *ncache;
 
@@ -3492,14 +3492,15 @@ static PointCache *ptcache_copy(PointCache *cache, bool copy_data)
 }
 
 /* returns first point cache */
-PointCache *BKE_ptcache_copy_list(ListBase *ptcaches_new, const ListBase *ptcaches_old, bool copy_data)
+PointCache *BKE_ptcache_copy_list(ListBase *ptcaches_new, const ListBase *ptcaches_old, const int flag)
 {
 	PointCache *cache = ptcaches_old->first;
 
 	BLI_listbase_clear(ptcaches_new);
 
-	for (; cache; cache=cache->next)
-		BLI_addtail(ptcaches_new, ptcache_copy(cache, copy_data));
+	for (; cache; cache=cache->next) {
+		BLI_addtail(ptcaches_new, ptcache_copy(cache, (flag & LIB_ID_COPY_CACHES) != 0));
+	}
 
 	return ptcaches_new->first;
 }

@@ -4737,29 +4737,30 @@ static void con_fix_copied_refs_cb(bConstraint *UNUSED(con), ID **idpoin, bool i
 }
 
 /* duplicate all of the constraints in a constraint stack */
-void BKE_constraints_copy(ListBase *dst, const ListBase *src, bool do_extern)
+void BKE_constraints_copy_ex(ListBase *dst, const ListBase *src, const int flag, bool do_extern)
 {
 	bConstraint *con, *srccon;
-	
+
 	BLI_listbase_clear(dst);
 	BLI_duplicatelist(dst, src);
-	
+
 	for (con = dst->first, srccon = src->first; con && srccon; srccon = srccon->next, con = con->next) {
 		const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
-		
+
 		/* make a new copy of the constraint's data */
 		con->data = MEM_dupallocN(con->data);
-		
+
 		/* only do specific constraints if required */
 		if (cti) {
 			/* perform custom copying operations if needed */
 			if (cti->copy_data)
 				cti->copy_data(con, srccon);
-				
-			/* fix usercounts for all referenced data in referenced data */
-			if (cti->id_looper)
+
+			/* Fix usercounts for all referenced data that need it. */
+			if (cti->id_looper && (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
 				cti->id_looper(con, con_fix_copied_refs_cb, NULL);
-			
+			}
+
 			/* for proxies we don't want to make extern */
 			if (do_extern) {
 				/* go over used ID-links for this constraint to ensure that they are valid for proxies */
@@ -4768,6 +4769,11 @@ void BKE_constraints_copy(ListBase *dst, const ListBase *src, bool do_extern)
 			}
 		}
 	}
+}
+
+void BKE_constraints_copy(ListBase *dst, const ListBase *src, bool do_extern)
+{
+	BKE_constraints_copy_ex(dst, src, 0, do_extern);
 }
 
 /* ......... */

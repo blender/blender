@@ -44,7 +44,7 @@
 
 // function declarations
 static FreestyleLineSet *alloc_lineset(void);
-static void copy_lineset(FreestyleLineSet *new_lineset, FreestyleLineSet *lineset);
+static void copy_lineset(FreestyleLineSet *new_lineset, FreestyleLineSet *lineset, const int flag);
 static FreestyleModuleConfig *alloc_module(void);
 static void copy_module(FreestyleModuleConfig *new_module, FreestyleModuleConfig *module);
 
@@ -79,7 +79,7 @@ void BKE_freestyle_config_free(FreestyleConfig *config)
 	BLI_freelistN(&config->modules);
 }
 
-void BKE_freestyle_config_copy(FreestyleConfig *new_config, FreestyleConfig *config)
+void BKE_freestyle_config_copy(FreestyleConfig *new_config, FreestyleConfig *config, const int flag)
 {
 	FreestyleLineSet *lineset, *new_lineset;
 	FreestyleModuleConfig *module, *new_module;
@@ -93,7 +93,7 @@ void BKE_freestyle_config_copy(FreestyleConfig *new_config, FreestyleConfig *con
 	BLI_listbase_clear(&new_config->linesets);
 	for (lineset = (FreestyleLineSet *)config->linesets.first; lineset; lineset = lineset->next) {
 		new_lineset = alloc_lineset();
-		copy_lineset(new_lineset, lineset);
+		copy_lineset(new_lineset, lineset, flag);
 		BLI_addtail(&new_config->linesets, (void *)new_lineset);
 	}
 
@@ -105,11 +105,9 @@ void BKE_freestyle_config_copy(FreestyleConfig *new_config, FreestyleConfig *con
 	}
 }
 
-static void copy_lineset(FreestyleLineSet *new_lineset, FreestyleLineSet *lineset)
+static void copy_lineset(FreestyleLineSet *new_lineset, FreestyleLineSet *lineset, const int flag)
 {
 	new_lineset->linestyle = lineset->linestyle;
-	if (new_lineset->linestyle)
-		id_us_plus(&new_lineset->linestyle->id);
 	new_lineset->flags = lineset->flags;
 	new_lineset->selection = lineset->selection;
 	new_lineset->qi = lineset->qi;
@@ -118,10 +116,12 @@ static void copy_lineset(FreestyleLineSet *new_lineset, FreestyleLineSet *linese
 	new_lineset->edge_types = lineset->edge_types;
 	new_lineset->exclude_edge_types = lineset->exclude_edge_types;
 	new_lineset->group = lineset->group;
-	if (new_lineset->group) {
-		id_us_plus(&new_lineset->group->id);
-	}
 	strcpy(new_lineset->name, lineset->name);
+
+	if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+		id_us_plus((ID *)new_lineset->linestyle);
+		id_us_plus((ID *)new_lineset->group);
+	}
 }
 
 static FreestyleModuleConfig *alloc_module(void)

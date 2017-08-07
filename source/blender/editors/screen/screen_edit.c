@@ -463,8 +463,8 @@ bScreen *screen_add(const char *name, const int winsize_x, const int winsize_y)
 {
 	bScreen *sc;
 	ScrVert *sv1, *sv2, *sv3, *sv4;
-
-	sc = BKE_libblock_alloc(G.main, ID_SCR, name);
+	
+	sc = BKE_libblock_alloc(G.main, ID_SCR, name, 0);
 	sc->do_refresh = true;
 	sc->redraws_flag = TIME_ALL_3D_WIN | TIME_ALL_ANIM_WIN;
 
@@ -472,15 +472,15 @@ bScreen *screen_add(const char *name, const int winsize_x, const int winsize_y)
 	sv2 = screen_addvert(sc, 0, winsize_y - 1);
 	sv3 = screen_addvert(sc, winsize_x - 1, winsize_y - 1);
 	sv4 = screen_addvert(sc, winsize_x - 1, 0);
-
+	
 	screen_addedge(sc, sv1, sv2);
 	screen_addedge(sc, sv2, sv3);
 	screen_addedge(sc, sv3, sv4);
 	screen_addedge(sc, sv4, sv1);
-
+	
 	/* dummy type, no spacedata */
 	screen_addarea(sc, sv1, sv2, sv3, sv4, HEADERDOWN, SPACE_EMPTY);
-
+		
 	return sc;
 }
 
@@ -992,7 +992,7 @@ void ED_region_exit(bContext *C, ARegion *ar)
 		wm_subwindow_close(win, ar->swinid);
 		ar->swinid = 0;
 	}
-
+	
 	if (ar->headerstr) {
 		MEM_freeN(ar->headerstr);
 		ar->headerstr = NULL;

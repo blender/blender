@@ -50,7 +50,7 @@ typedef struct FreestyleModuleSettings FreestyleModuleSettings;
 /* FreestyleConfig */
 void BKE_freestyle_config_init(FreestyleConfig *config);
 void BKE_freestyle_config_free(FreestyleConfig *config);
-void BKE_freestyle_config_copy(FreestyleConfig *new_config, FreestyleConfig *config);
+void BKE_freestyle_config_copy(FreestyleConfig *new_config, FreestyleConfig *config, const int flag);
 
 /* FreestyleConfig.modules */
 FreestyleModuleConfig *BKE_freestyle_module_add(FreestyleConfig *config);

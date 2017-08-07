@@ -627,7 +627,7 @@ bGPdata *BKE_gpencil_data_addnew(const char name[])
 	bGPdata *gpd;
 	
 	/* allocate memory for a new block */
-	gpd = BKE_libblock_alloc(G.main, ID_GD, name);
+	gpd = BKE_libblock_alloc(G.main, ID_GD, name, 0);
 	
 	/* initial settings */
 	gpd->flag = (GP_DATA_DISPINFO | GP_DATA_EXPAND);
@@ -753,47 +753,62 @@ bGPDlayer *BKE_gpencil_layer_duplicate(const bGPDlayer *gpl_src)
 	return gpl_dst;
 }
 
+/**
+ * Only copy internal data of GreasePencil ID from source to already allocated/initialized destination.
+ * You probably nerver want to use that directly, use id_copy or BKE_id_copy_ex for typical needs.
+ *
+ * WARNING! This function will not handle ID user count!
+ *
+ * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ */
+void BKE_gpencil_copy_data(Main *UNUSED(bmain), bGPdata *gpd_dst, const bGPdata *gpd_src, const int UNUSED(flag))
+{
+	/* copy layers */
+	BLI_listbase_clear(&gpd_dst->layers);
+	for (const bGPDlayer *gpl_src = gpd_src->layers.first; gpl_src; gpl_src = gpl_src->next) {
+		/* make a copy of source layer and its data */
+		bGPDlayer *gpl_dst = BKE_gpencil_layer_duplicate(gpl_src);  /* TODO here too could add unused flags... */
+		BLI_addtail(&gpd_dst->layers, gpl_dst);
+	}
+
+	/* copy palettes */
+	BLI_listbase_clear(&gpd_dst->palettes);
+	for (const bGPDpalette *palette_src = gpd_src->palettes.first; palette_src; palette_src = palette_src->next) {
+		bGPDpalette *palette_dst = BKE_gpencil_palette_duplicate(palette_src);  /* TODO here too could add unused flags... */
+		BLI_addtail(&gpd_dst->palettes, palette_dst);
+	}
+}
+
 /* make a copy of a given gpencil datablock */
 bGPdata *BKE_gpencil_data_duplicate(Main *bmain, const bGPdata *gpd_src, bool internal_copy)
 {
-	const bGPDlayer *gpl_src;
-	bGPDlayer *gpl_dst;
-	bGPdata *gpd_dst;
-
-	/* error checking */
-	if (gpd_src == NULL) {
-		return NULL;
-	}
-	
-	/* make a copy of the base-data */
+	/* Yuck and super-uber-hyper yuck!!!
+	 * Should be replaceable with a no-main copy (LIB_ID_COPY_NO_MAIN etc.), but not sure about it,
+	 * so for now keep old code for that one. */
 	if (internal_copy) {
+		const bGPDlayer *gpl_src;
+		bGPDlayer *gpl_dst;
+		bGPdata *gpd_dst;
+
 		/* make a straight copy for undo buffers used during stroke drawing */
 		gpd_dst = MEM_dupallocN(gpd_src);
+
+		/* copy layers */
+		BLI_listbase_clear(&gpd_dst->layers);
+		for (gpl_src = gpd_src->layers.first; gpl_src; gpl_src = gpl_src->next) {
+			/* make a copy of source layer and its data */
+			gpl_dst = BKE_gpencil_layer_duplicate(gpl_src);
+			BLI_addtail(&gpd_dst->layers, gpl_dst);
+		}
+
+		/* return new */
+		return gpd_dst;
 	}
 	else {
-		/* make a copy when others use this */
-		gpd_dst = BKE_libblock_copy(bmain, &gpd_src->id);
+		bGPdata *gpd_copy;
+		BKE_id_copy_ex(bmain, &gpd_src->id, (ID **)&gpd_copy, 0, false);
+		return gpd_copy;
 	}
-	
-	/* copy layers */
-	BLI_listbase_clear(&gpd_dst->layers);
-	for (gpl_src = gpd_src->layers.first; gpl_src; gpl_src = gpl_src->next) {
-		/* make a copy of source layer and its data */
-		gpl_dst = BKE_gpencil_layer_duplicate(gpl_src);
-		BLI_addtail(&gpd_dst->layers, gpl_dst);
-	}
-	if (!internal_copy) {
-		/* copy palettes */
-		bGPDpalette *palette_src, *palette_dst;
-		BLI_listbase_clear(&gpd_dst->palettes);
-		for (palette_src = gpd_src->palettes.first; palette_src; palette_src = palette_src->next) {
-			palette_dst = BKE_gpencil_palette_duplicate(palette_src);
-			BLI_addtail(&gpd_dst->palettes, palette_dst);
-		}
-	}
-	
-	/* return new */
-	return gpd_dst;
 }
 
 void BKE_gpencil_make_local(Main *bmain, bGPdata *gpd, const bool lib_local)

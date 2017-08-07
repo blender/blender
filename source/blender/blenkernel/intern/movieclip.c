@@ -588,7 +588,7 @@ static MovieClip *movieclip_alloc(Main *bmain, const char *name)
 {
 	MovieClip *clip;
 
-	clip = BKE_libblock_alloc(bmain, ID_MC, name);
+	clip = BKE_libblock_alloc(bmain, ID_MC, name, 0);
 
 	clip->aspx = clip->aspy = 1.0f;
 
@@ -1488,25 +1488,33 @@ void BKE_movieclip_free(MovieClip *clip)
 	BKE_animdata_free((ID *) clip, false);
 }
 
+/**
+ * Only copy internal data of MovieClip ID from source to already allocated/initialized destination.
+ * You probably nerver want to use that directly, use id_copy or BKE_id_copy_ex for typical needs.
+ *
+ * WARNING! This function will not handle ID user count!
+ *
+ * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
+ */
+void BKE_movieclip_copy_data(Main *UNUSED(bmain), MovieClip *clip_dst, const MovieClip *clip_src, const int flag)
+{
+	/* We never handle usercount here for own data. */
+	const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
+
+	clip_dst->anim = NULL;
+	clip_dst->cache = NULL;
+
+	BKE_tracking_copy(&clip_dst->tracking, &clip_src->tracking, flag_subdata);
+	clip_dst->tracking_context = NULL;
+
+	BKE_color_managed_colorspace_settings_copy(&clip_dst->colorspace_settings, &clip_src->colorspace_settings);
+}
+
 MovieClip *BKE_movieclip_copy(Main *bmain, const MovieClip *clip)
 {
-	MovieClip *clip_new;
-
-	clip_new = BKE_libblock_copy(bmain, &clip->id);
-
-	clip_new->anim = NULL;
-	clip_new->cache = NULL;
-
-	BKE_tracking_copy(&clip_new->tracking, &clip->tracking);
-	clip_new->tracking_context = NULL;
-
-	id_us_plus((ID *)clip_new->gpd);
-
-	BKE_color_managed_colorspace_settings_copy(&clip_new->colorspace_settings, &clip->colorspace_settings);
-
-	BKE_id_copy_ensure_local(bmain, &clip->id, &clip_new->id);
-
-	return clip_new;
+	MovieClip *clip_copy;
+	BKE_id_copy_ex(bmain, &clip->id, (ID **)&clip_copy, 0, false);
+	return clip_copy;
 }
 
 void BKE_movieclip_make_local(Main *bmain, MovieClip *clip, const bool lib_local)
