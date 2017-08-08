@@ -42,6 +42,7 @@
 #define ccl_local_param __local
 #define ccl_private __private
 #define ccl_restrict restrict
+#define ccl_ref
 #define ccl_align(n) __attribute__((aligned(n)))
 
 #ifdef __SPLIT_KERNEL__
