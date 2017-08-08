@@ -3137,8 +3137,11 @@ static void ui_item_estimate(uiItem *item)
 		for (subitem = litem->items.first; subitem; subitem = subitem->next)
 			ui_item_estimate(subitem);
 
-		if (BLI_listbase_is_empty(&litem->items))
+		if (BLI_listbase_is_empty(&litem->items)) {
+			litem->w = 0;
+			litem->h = 0;
 			return;
+		}
 
 		if (litem->scale[0] != 0.0f || litem->scale[1] != 0.0f)
 			ui_item_scale(litem, litem->scale);
