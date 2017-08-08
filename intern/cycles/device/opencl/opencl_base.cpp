@@ -29,6 +29,11 @@
 
 CCL_NAMESPACE_BEGIN
 
+struct texture_slot_t {
+	string name;
+	int slot;
+};
+
 bool OpenCLDeviceBase::opencl_error(cl_int err)
 {
 	if(err != CL_SUCCESS) {
@@ -511,7 +516,9 @@ void OpenCLDeviceBase::tex_alloc(const char *name,
 
 	memory_manager.alloc(name, mem);
 
-	textures[name] = {&mem, interpolation, extension};
+	textures[name] = (Texture){.mem = &mem,
+	                           .interpolation = interpolation,
+	                           .extension = extension};
 
 	textures_need_update = true;
 }
@@ -609,16 +616,12 @@ void OpenCLDeviceBase::flush_texture_buffers()
 	/* Setup slots for textures. */
 	int num_slots = 0;
 
-	struct texture_slot_t {
-		string name;
-		int slot;
-	};
-
 	vector<texture_slot_t> texture_slots;
 
-#define KERNEL_TEX(type, ttype, name) \
-	if(textures.find(#name) != textures.end()) { \
-		texture_slots.push_back({#name, num_slots}); \
+#define KERNEL_TEX(type, ttype, slot_name) \
+	if(textures.find(#slot_name) != textures.end()) { \
+		texture_slots.push_back((texture_slot_t){.name = #slot_name, \
+		                                         .slot = num_slots}); \
 	} \
 	num_slots++;
 #include "kernel/kernel_textures.h"
@@ -632,7 +635,9 @@ void OpenCLDeviceBase::flush_texture_buffers()
 			int pos = name.rfind("_");
 			int id = atoi(name.data() + pos + 1);
 
-			texture_slots.push_back({name, num_data_slots + id});
+			texture_slots.push_back((texture_slot_t){
+				    .name = name,
+				    .slot = num_data_slots + id});
 
 			num_slots = max(num_slots, num_data_slots + id + 1);
 		}
