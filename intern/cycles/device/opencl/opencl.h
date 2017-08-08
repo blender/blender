@@ -232,8 +232,8 @@ public:
 		\
 		if(err != CL_SUCCESS) { \
 			string message = string_printf("OpenCL error: %s in %s (%s:%d)", clewErrorString(err), #stmt, __FILE__, __LINE__); \
-			if((device)->error_msg == "") \
-				(device)->error_msg = message; \
+			if((device)->error_message() == "") \
+				(device)->set_error(message); \
 			fprintf(stderr, "%s\n", message.c_str()); \
 		} \
 	} (void)0
@@ -556,6 +556,14 @@ private:
 	device_memory texture_descriptors_buffer;
 
 	struct Texture {
+		Texture() {}
+		Texture(device_memory* mem,
+		         InterpolationType interpolation,
+		         ExtensionType extension)
+		    : mem(mem),
+			  interpolation(interpolation),
+			  extension(extension) {
+		}
 		device_memory* mem;
 		InterpolationType interpolation;
 		ExtensionType extension;
