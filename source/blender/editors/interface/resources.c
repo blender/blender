@@ -667,6 +667,17 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				case TH_AXIS_Z:
 					cp = btheme->tui.zaxis; break;
 
+				case TH_MANIPULATOR_HI:
+					cp = btheme->tui.manipulator_hi; break;
+				case TH_MANIPULATOR_PRIMARY:
+					cp = btheme->tui.manipulator_primary; break;
+				case TH_MANIPULATOR_SECONDARY:
+					cp = btheme->tui.manipulator_secondary; break;
+				case TH_MANIPULATOR_A:
+					cp = btheme->tui.manipulator_a; break;
+				case TH_MANIPULATOR_B:
+					cp = btheme->tui.manipulator_b; break;
+
 				case TH_INFO_SELECTED:
 					cp = ts->info_selected;
 					break;
@@ -837,6 +848,15 @@ static void ui_theme_space_init_handles_color(ThemeSpace *theme_space)
 	rgba_char_args_set(theme_space->act_spline, 0xdb, 0x25, 0x12, 255);
 }
 
+static void ui_theme_space_init_manipulator_colors(bTheme *btheme)
+{
+	rgba_char_args_set(btheme->tui.manipulator_hi, 255, 255, 255, 255);
+	rgba_char_args_set(btheme->tui.manipulator_primary, 222, 255, 13, 255);
+	rgba_char_args_set(btheme->tui.manipulator_secondary, 0, 255, 255, 255);
+	rgba_char_args_set(btheme->tui.manipulator_a, 23, 127, 23, 255);
+	rgba_char_args_set(btheme->tui.manipulator_b, 127, 23, 23, 255);
+}
+
 /**
  * initialize default theme
  * \note: when you add new colors, created & saved themes need initialized
@@ -877,6 +897,9 @@ void ui_theme_init_default(void)
 	/* common (new) variables */
 	ui_theme_init_new(btheme);
 	
+	/* Manipulator. */
+	ui_theme_space_init_manipulator_colors(btheme);
+
 	/* space view3d */
 	rgba_char_args_set_fl(btheme->tv3d.back,       0.225, 0.225, 0.225, 1.0);
 	rgba_char_args_set(btheme->tv3d.text,       0, 0, 0, 255);
@@ -2892,6 +2915,25 @@ void init_userdef_do_versions(void)
 			btheme->ttime.time_keyframe[3] = btheme->ttime.time_gp_keyframe[3] = 255;
 		}
 	}
+
+	if (!USER_VERSION_ATLEAST(278, 6)) {
+		/* Clear preference flags for re-use. */
+		U.flag &= ~(
+		    USER_FLAG_DEPRECATED_1 | USER_FLAG_DEPRECATED_2 | USER_FLAG_DEPRECATED_3 |
+		    USER_FLAG_DEPRECATED_6 | USER_FLAG_DEPRECATED_7 |
+		    USER_FLAG_DEPRECATED_9 | USER_FLAG_DEPRECATED_10);
+		U.uiflag &= ~(
+		    USER_UIFLAG_DEPRECATED_7);
+		U.transopts &= ~(
+		    USER_TR_DEPRECATED_2 | USER_TR_DEPRECATED_3 | USER_TR_DEPRECATED_4 |
+		    USER_TR_DEPRECATED_6 | USER_TR_DEPRECATED_7);
+		U.gameflags &= ~(
+		    USER_GL_RENDER_DEPRECATED_0 | USER_GL_RENDER_DEPRECATED_1 |
+		    USER_GL_RENDER_DEPRECATED_3 | USER_GL_RENDER_DEPRECATED_4);
+
+		U.uiflag |= USER_LOCK_CURSOR_ADJUST;
+	}
+
 	if (!USER_VERSION_ATLEAST(280, 1)) {
 		/* interface_widgets.c */
 		struct uiWidgetColors wcol_tab = {
@@ -2912,31 +2954,15 @@ void init_userdef_do_versions(void)
 		}
 	}
 
-	if (!USER_VERSION_ATLEAST(278, 6)) {
-		/* Clear preference flags for re-use. */
-		U.flag &= ~(
-		    USER_FLAG_DEPRECATED_1 | USER_FLAG_DEPRECATED_2 | USER_FLAG_DEPRECATED_3 |
-		    USER_FLAG_DEPRECATED_6 | USER_FLAG_DEPRECATED_7 |
-		    USER_FLAG_DEPRECATED_9 | USER_FLAG_DEPRECATED_10);
-		U.uiflag &= ~(
-		    USER_UIFLAG_DEPRECATED_7);
-		U.transopts &= ~(
-		    USER_TR_DEPRECATED_2 | USER_TR_DEPRECATED_3 | USER_TR_DEPRECATED_4 |
-		    USER_TR_DEPRECATED_6 | USER_TR_DEPRECATED_7);
-		U.gameflags &= ~(
-		    USER_GL_RENDER_DEPRECATED_0 | USER_GL_RENDER_DEPRECATED_1 |
-		    USER_GL_RENDER_DEPRECATED_3 | USER_GL_RENDER_DEPRECATED_4);
-
-		U.uiflag |= USER_LOCK_CURSOR_ADJUST;
-	}
-
 	/**
 	 * Include next version bump.
 	 *
 	 * (keep this block even if it becomes empty).
 	 */
-	{
-		
+	if (((bTheme *)U.themes.first)->tui.manipulator_hi[3] == 0) {
+		for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
+			ui_theme_space_init_manipulator_colors(btheme);
+		}
 	}
 
 	if (U.pixelsize == 0.0f)

@@ -909,7 +909,7 @@ class USERPREF_PT_theme(Panel):
             col.separator()
             col.separator()
 
-            col.label("Axis Colors:")
+            col.label("Axis & Manipulator Colors:")
 
             row = col.row()
 
@@ -927,9 +927,13 @@ class USERPREF_PT_theme(Panel):
             padding = subsplit.split(percentage=0.15)
             colsub = padding.column()
             colsub = padding.column()
+            colsub.row().prop(ui, "manipulator_primary")
+            colsub.row().prop(ui, "manipulator_secondary")
+            colsub.row().prop(ui, "manipulator_a")
+            colsub.row().prop(ui, "manipulator_b")
 
-            layout.separator()
-            layout.separator()
+            col.separator()
+            col.separator()
         elif theme.theme_area == 'BONE_COLOR_SETS':
             col = split.column()
 

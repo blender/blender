@@ -36,6 +36,8 @@
 #include "ED_screen.h"
 #include "ED_manipulator_library.h"
 
+#include "UI_resources.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
@@ -63,9 +65,6 @@ static bool WIDGETGROUP_lamp_spot_poll(const bContext *C, wmManipulatorGroupType
 
 static void WIDGETGROUP_lamp_spot_setup(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
 {
-	const float color[4] = {0.5f, 0.5f, 1.0f, 1.0f};
-	const float color_hi[4] = {0.8f, 0.8f, 0.45f, 1.0f};
-
 	wmManipulatorWrapper *wwrapper = MEM_mallocN(sizeof(wmManipulatorWrapper), __func__);
 
 	wwrapper->manipulator = WM_manipulator_new("MANIPULATOR_WT_arrow_3d", mgroup, NULL);
@@ -75,8 +74,8 @@ static void WIDGETGROUP_lamp_spot_setup(const bContext *UNUSED(C), wmManipulator
 	mgroup->customdata = wwrapper;
 
 	ED_manipulator_arrow3d_set_range_fac(mpr, 4.0f);
-	WM_manipulator_set_color(mpr, color);
-	WM_manipulator_set_color_highlight(mpr, color_hi);
+
+	UI_GetThemeColor3fv(TH_MANIPULATOR_SECONDARY, mpr->color);
 }
 
 static void WIDGETGROUP_lamp_spot_refresh(const bContext *C, wmManipulatorGroup *mgroup)
@@ -172,9 +171,6 @@ static bool WIDGETGROUP_lamp_area_poll(const bContext *C, wmManipulatorGroupType
 
 static void WIDGETGROUP_lamp_area_setup(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
 {
-	const float color[4] = {1.0f, 1.0f, 0.5f, 1.0f};
-	const float color_hi[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-
 	wmManipulatorWrapper *wwrapper = MEM_mallocN(sizeof(wmManipulatorWrapper), __func__);
 	wwrapper->manipulator = WM_manipulator_new("MANIPULATOR_WT_cage_2d", mgroup, NULL);
 	wmManipulator *mpr = wwrapper->manipulator;
@@ -184,8 +180,9 @@ static void WIDGETGROUP_lamp_area_setup(const bContext *UNUSED(C), wmManipulator
 	mgroup->customdata = wwrapper;
 
 	WM_manipulator_set_flag(mpr, WM_MANIPULATOR_DRAW_HOVER, true);
-	WM_manipulator_set_color(mpr, color);
-	WM_manipulator_set_color_highlight(mpr, color_hi);
+
+	UI_GetThemeColor3fv(TH_MANIPULATOR_PRIMARY, mpr->color);
+	UI_GetThemeColor3fv(TH_MANIPULATOR_HI, mpr->color_hi);
 }
 
 static void WIDGETGROUP_lamp_area_refresh(const bContext *C, wmManipulatorGroup *mgroup)
@@ -252,17 +249,14 @@ static bool WIDGETGROUP_lamp_target_poll(const bContext *C, wmManipulatorGroupTy
 
 static void WIDGETGROUP_lamp_target_setup(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
 {
-	const float color[4] = {1.0f, 1.0f, 0.5f, 1.0f};
-	const float color_hi[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-
 	wmManipulatorWrapper *wwrapper = MEM_mallocN(sizeof(wmManipulatorWrapper), __func__);
 	wwrapper->manipulator = WM_manipulator_new("MANIPULATOR_WT_grab_3d", mgroup, NULL);
 	wmManipulator *mpr = wwrapper->manipulator;
 
 	mgroup->customdata = wwrapper;
 
-	WM_manipulator_set_color(mpr, color);
-	WM_manipulator_set_color_highlight(mpr, color_hi);
+	UI_GetThemeColor3fv(TH_MANIPULATOR_PRIMARY, mpr->color);
+	UI_GetThemeColor3fv(TH_MANIPULATOR_HI, mpr->color_hi);
 
 	mpr->scale_basis = 0.05f;
 

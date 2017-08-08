@@ -37,6 +37,8 @@
 #include "ED_screen.h"
 #include "ED_manipulator_library.h"
 
+#include "UI_resources.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
@@ -105,37 +107,32 @@ static void WIDGETGROUP_camera_setup(const bContext *C, wmManipulatorGroup *mgro
 	/* dof distance */
 	{
 		wmManipulator *mpr;
-		const float color[4] = {1.0f, 0.3f, 0.0f, 1.0f};
-		const float color_hi[4] = {1.0f, 0.3f, 0.0f, 1.0f};
-
 		mpr = camgroup->dop_dist = WM_manipulator_new_ptr(wt_arrow, mgroup, NULL);
 		RNA_enum_set(mpr->ptr, "draw_style",  ED_MANIPULATOR_ARROW_STYLE_CROSS);
 		WM_manipulator_set_flag(mpr, WM_MANIPULATOR_DRAW_HOVER, true);
-		WM_manipulator_set_color(mpr, color);
-		WM_manipulator_set_color_highlight(mpr, color_hi);
+
+		UI_GetThemeColor3fv(TH_MANIPULATOR_A, mpr->color);
+		UI_GetThemeColor3fv(TH_MANIPULATOR_HI, mpr->color_hi);
 	}
 
 	/* focal length
 	 * - logic/calculations are similar to BKE_camera_view_frame_ex, better keep in sync */
 	{
 		wmManipulator *mpr;
-		const float color[4] = {1.0f, 1.0, 0.27f, 0.5f};
-		const float color_hi[4] = {1.0f, 1.0, 0.27f, 1.0f};
-
 		mpr = camgroup->focal_len = WM_manipulator_new_ptr(wt_arrow, mgroup, NULL);
 		RNA_enum_set(mpr->ptr, "draw_style",  ED_MANIPULATOR_ARROW_STYLE_CONE);
 		RNA_enum_set(mpr->ptr, "draw_options",  ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED);
 
-		WM_manipulator_set_color(mpr, color);
-		WM_manipulator_set_color_highlight(mpr, color_hi);
+		UI_GetThemeColor3fv(TH_MANIPULATOR_PRIMARY, mpr->color);
+		UI_GetThemeColor3fv(TH_MANIPULATOR_HI, mpr->color_hi);
 		cameragroup_property_setup(mpr, ob, ca, false);
 
 		mpr = camgroup->ortho_scale = WM_manipulator_new_ptr(wt_arrow, mgroup, NULL);
 		RNA_enum_set(mpr->ptr, "draw_style",  ED_MANIPULATOR_ARROW_STYLE_CONE);
 		RNA_enum_set(mpr->ptr, "draw_options",  ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED);
 
-		WM_manipulator_set_color(mpr, color);
-		WM_manipulator_set_color_highlight(mpr, color_hi);
+		UI_GetThemeColor3fv(TH_MANIPULATOR_PRIMARY, mpr->color);
+		UI_GetThemeColor3fv(TH_MANIPULATOR_HI, mpr->color_hi);
 		cameragroup_property_setup(mpr, ob, ca, true);
 	}
 }

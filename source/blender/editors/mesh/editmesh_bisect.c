@@ -50,6 +50,8 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
+#include "UI_resources.h"
+
 #include "mesh_intern.h"  /* own include */
 
 #define USE_MANIPULATOR
@@ -618,6 +620,10 @@ static void manipulator_mesh_bisect_setup(const bContext *C, wmManipulatorGroup 
 	man->translate_z = WM_manipulator_new_ptr(wt_arrow, mgroup, NULL);
 	man->translate_c = WM_manipulator_new_ptr(wt_grab, mgroup, NULL);
 	man->rotate_c = WM_manipulator_new_ptr(wt_dial, mgroup, NULL);
+
+	UI_GetThemeColor3fv(TH_MANIPULATOR_PRIMARY, man->translate_z->color);
+	UI_GetThemeColor3fv(TH_MANIPULATOR_PRIMARY, man->translate_c->color);
+	UI_GetThemeColor3fv(TH_MANIPULATOR_SECONDARY, man->rotate_c->color);
 
 	RNA_enum_set(man->translate_z->ptr, "draw_style", ED_MANIPULATOR_ARROW_STYLE_NORMAL);
 	RNA_enum_set(man->translate_c->ptr, "draw_style", ED_MANIPULATOR_GRAB_STYLE_RING);

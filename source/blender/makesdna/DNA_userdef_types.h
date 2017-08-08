@@ -183,6 +183,14 @@ typedef struct ThemeUI {
 
 	/* Axis Colors */
 	char xaxis[4], yaxis[4], zaxis[4];
+
+	/* Manipulator Colors. */
+	char manipulator_hi[4];
+	char manipulator_primary[4];
+	char manipulator_secondary[4];
+	char manipulator_a[4];
+	char manipulator_b[4];
+	char pad2[4];
 } ThemeUI;
 
 /* try to put them all in one, if needed a special struct can be created as well

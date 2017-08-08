@@ -36,6 +36,8 @@
 #include "ED_screen.h"
 #include "ED_manipulator_library.h"
 
+#include "UI_resources.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
@@ -59,9 +61,6 @@ static bool WIDGETGROUP_forcefield_poll(const bContext *C, wmManipulatorGroupTyp
 
 static void WIDGETGROUP_forcefield_setup(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
 {
-	const float col[4] = {0.8f, 0.8f, 0.45f, 0.5f};
-	const float col_hi[4] = {0.8f, 0.8f, 0.45f, 1.0f};
-
 	/* only wind effector for now */
 	wmManipulatorWrapper *wwrapper = MEM_mallocN(sizeof(wmManipulatorWrapper), __func__);
 	mgroup->customdata = wwrapper;
@@ -71,8 +70,9 @@ static void WIDGETGROUP_forcefield_setup(const bContext *UNUSED(C), wmManipulato
 	RNA_enum_set(mpr->ptr, "draw_options",  ED_MANIPULATOR_ARROW_STYLE_CONSTRAINED);
 	ED_manipulator_arrow3d_set_ui_range(mpr, -200.0f, 200.0f);
 	ED_manipulator_arrow3d_set_range_fac(mpr, 6.0f);
-	WM_manipulator_set_color(mpr, col);
-	WM_manipulator_set_color_highlight(mpr, col_hi);
+
+	UI_GetThemeColor3fv(TH_MANIPULATOR_PRIMARY, mpr->color);
+	UI_GetThemeColor3fv(TH_MANIPULATOR_HI, mpr->color_hi);
 }
 
 static void WIDGETGROUP_forcefield_refresh(const bContext *C, wmManipulatorGroup *mgroup)
