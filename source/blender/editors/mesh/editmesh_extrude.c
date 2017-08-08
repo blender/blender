@@ -880,7 +880,7 @@ static void manipulator_mesh_spin_update_from_op(ManipulatorSpinGroup *man)
 		normalize_v3(man->data.rotate_up);
 
 		WM_manipulator_set_matrix_rotation_from_z_axis(man->translate_c, plane_no);
-		WM_manipulator_set_matrix_rotation_from_yz_axis(man->rotate_c, man->data.rotate_axis, plane_no);
+		WM_manipulator_set_matrix_rotation_from_yz_axis(man->rotate_c, plane_no, man->data.rotate_axis);
 
 		/* show the axis instead of mouse cursor */
 		RNA_enum_set(man->rotate_c->ptr, "draw_options",

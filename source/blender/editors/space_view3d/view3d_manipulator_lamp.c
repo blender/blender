@@ -240,9 +240,11 @@ static bool WIDGETGROUP_lamp_target_poll(const bContext *C, wmManipulatorGroupTy
 			Lamp *la = ob->data;
 			return (ELEM(la->type, LA_SUN, LA_SPOT, LA_HEMI, LA_AREA));
 		}
+#if 0
 		else if (ob->type == OB_CAMERA) {
 			return true;
 		}
+#endif
 	}
 	return false;
 }
