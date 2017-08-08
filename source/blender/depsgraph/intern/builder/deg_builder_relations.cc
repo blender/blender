@@ -1091,6 +1091,13 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 			}
 			else if (dtar->flag & DTAR_FLAG_STRUCT_REF) {
 				/* Get node associated with the object's transforms. */
+				if (dtar->id == id) {
+					/* Ignore input dependency if we're driving properties of
+					 * the same ID, otherwise we'll be ending up in a cyclic
+					 * dependency here.
+					 */
+					continue;
+				}
 				OperationKey target_key(dtar->id,
 				                        DEG_NODE_TYPE_TRANSFORM,
 				                        DEG_OPCODE_TRANSFORM_FINAL);
