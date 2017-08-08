@@ -25,12 +25,14 @@
  */
 
 #include "DNA_cachefile_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_cachefile.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_cdderivedmesh.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
@@ -95,10 +97,14 @@ static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
                                   DerivedMesh *dm,
-                                  ModifierApplyFlag flag)
+                                  ModifierApplyFlag UNUSED(flag))
 {
 #ifdef WITH_ALEMBIC
 	MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *) md;
+
+	/* Only used to check wehther we are operating on org data or not... */
+	Mesh *me = (ob->type == OB_MESH) ? ob->data : NULL;
+	DerivedMesh *org_dm = dm;
 
 	Scene *scene = md->scene;
 	const float frame = BKE_scene_frame_get(scene);
@@ -121,6 +127,16 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 	}
 
+	if (me != NULL) {
+		MVert *mvert = dm->getVertArray(dm);
+		MEdge *medge = dm->getEdgeArray(dm);
+		MPoly *mpoly = dm->getPolyArray(dm);
+		if ((me->mvert == mvert) || (me->medge == medge) || (me->mpoly == mpoly)) {
+			/* We need to duplicate data here, otherwise we'll modify org mesh, see T51701. */
+			dm = CDDM_copy(dm);
+		}
+	}
+
 	DerivedMesh *result = ABC_read_mesh(mcmd->reader,
 	                                    ob,
 	                                    dm,
@@ -132,11 +148,15 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		modifier_setError(md, "%s", err_str);
 	}
 
+	if (!ELEM(result, NULL, dm) && (dm != org_dm)) {
+		dm->release(dm);
+		dm = org_dm;
+	}
+
 	return result ? result : dm;
-	UNUSED_VARS(flag);
 #else
 	return dm;
-	UNUSED_VARS(md, ob, flag);
+	UNUSED_VARS(md, ob);
 #endif
 }
 
