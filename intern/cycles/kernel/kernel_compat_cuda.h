@@ -53,6 +53,10 @@
 #define ccl_may_alias
 #define ccl_addr_space
 #define ccl_restrict __restrict__
+/* TODO(sergey): In theory we might use references with CUDA, however
+ * performance impact yet to be investigated.
+ */
+#define ccl_ref
 #define ccl_align(n) __align__(n)
 
 #define ATTR_FALLTHROUGH

@@ -298,32 +298,32 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 								kernel_assert((curve_type & PRIMITIVE_ALL) == (type & PRIMITIVE_ALL));
 								bool hit;
 								if(kernel_data.curve.curveflags & CURVE_KN_INTERPOLATE) {
-									hit = bvh_cardinal_curve_intersect(kg,
-									                                   isect,
-									                                   P,
-									                                   dir,
-									                                   visibility,
-									                                   object,
-									                                   prim_addr,
-									                                   ray->time,
-									                                   curve_type,
-									                                   lcg_state,
-									                                   difl,
-									                                   extmax);
+									hit = cardinal_curve_intersect(kg,
+									                               isect,
+									                               P,
+									                               dir,
+									                               visibility,
+									                               object,
+									                               prim_addr,
+									                               ray->time,
+									                               curve_type,
+									                               lcg_state,
+									                               difl,
+									                               extmax);
 								}
 								else {
-									hit = bvh_curve_intersect(kg,
-									                          isect,
-									                          P,
-									                          dir,
-									                          visibility,
-									                          object,
-									                          prim_addr,
-									                          ray->time,
-									                          curve_type,
-									                          lcg_state,
-									                          difl,
-									                          extmax);
+									hit = curve_intersect(kg,
+									                      isect,
+									                      P,
+									                      dir,
+									                      visibility,
+									                      object,
+									                      prim_addr,
+									                      ray->time,
+									                      curve_type,
+									                      lcg_state,
+									                      difl,
+									                      extmax);
 								}
 								if(hit) {
 									/* shadow ray early termination */

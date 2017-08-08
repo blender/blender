@@ -52,9 +52,7 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
         ccl_global uint *rng_state,
 
 #ifdef __KERNEL_OPENCL__
-#define KERNEL_TEX(type, ttype, name)                                   \
-        ccl_global type *name,
-#include "kernel/kernel_textures.h"
+		KERNEL_BUFFER_PARAMS,
 #endif
 
         int start_sample,
@@ -100,9 +98,8 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
 	split_data_init(kg, &kernel_split_state, num_elements, split_data_buffer, ray_state);
 
 #ifdef __KERNEL_OPENCL__
-#define KERNEL_TEX(type, ttype, name) \
-	kg->name = name;
-#include "kernel/kernel_textures.h"
+	kernel_set_buffer_pointers(kg, KERNEL_BUFFER_ARGS);
+	kernel_set_buffer_info(kg);
 #endif
 
 	int thread_index = ccl_global_id(1) * ccl_global_size(0) + ccl_global_id(0);

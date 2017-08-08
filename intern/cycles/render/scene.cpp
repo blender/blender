@@ -148,8 +148,6 @@ void Scene::device_update(Device *device_, Progress& progress)
 	 * - Film needs light manager to run for use_light_visibility
 	 * - Lookup tables are done a second time to handle film tables
 	 */
-	
-	image_manager->set_pack_images(device->info.pack_images);
 
 	progress.set_status("Updating Shaders");
 	shader_manager->device_update(device, &dscene, this, progress);

@@ -25,6 +25,8 @@
 
 #include "clew.h"
 
+#include "device/opencl/memory_manager.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Disable workarounds, seems to be working fine on latest drivers. */
@@ -224,6 +226,18 @@ public:
 	static string get_kernel_md5();
 };
 
+#define opencl_device_assert(device, stmt) \
+	{ \
+		cl_int err = stmt; \
+		\
+		if(err != CL_SUCCESS) { \
+			string message = string_printf("OpenCL error: %s in %s (%s:%d)", clewErrorString(err), #stmt, __FILE__, __LINE__); \
+			if((device)->error_msg == "") \
+				(device)->error_msg = message; \
+			fprintf(stderr, "%s\n", message.c_str()); \
+		} \
+	} (void)0
+
 #define opencl_assert(stmt) \
 	{ \
 		cl_int err = stmt; \
@@ -344,6 +358,7 @@ public:
 	size_t global_size_round_up(int group_size, int global_size);
 	void enqueue_kernel(cl_kernel kernel, size_t w, size_t h, size_t max_workgroup_size = -1);
 	void set_kernel_arg_mem(cl_kernel kernel, cl_uint *narg, const char *name);
+	void set_kernel_arg_buffers(cl_kernel kernel, cl_uint *narg);
 
 	void film_convert(DeviceTask& task, device_ptr buffer, device_ptr rgba_byte, device_ptr rgba_half);
 	void shader(DeviceTask& task);
@@ -525,6 +540,34 @@ protected:
 
 	virtual string build_options_for_base_program(
 	        const DeviceRequestedFeatures& /*requested_features*/);
+
+private:
+	MemoryManager memory_manager;
+	friend MemoryManager;
+
+	struct tex_info_t {
+		uint buffer, padding;
+		cl_ulong offset;
+		uint width, height, depth, options;
+	};
+	static_assert_align(tex_info_t, 16);
+
+	vector<tex_info_t> texture_descriptors;
+	device_memory texture_descriptors_buffer;
+
+	struct Texture {
+		device_memory* mem;
+		InterpolationType interpolation;
+		ExtensionType extension;
+	};
+
+	typedef map<string, Texture> TexturesMap;
+	TexturesMap textures;
+
+	bool textures_need_update;
+
+protected:
+	void flush_texture_buffers();
 };
 
 Device *opencl_create_mega_device(DeviceInfo& info, Stats& stats, bool background);

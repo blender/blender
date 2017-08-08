@@ -42,6 +42,7 @@
 #define ccl_local_param __local
 #define ccl_private __private
 #define ccl_restrict restrict
+#define ccl_ref
 #define ccl_align(n) __attribute__((aligned(n)))
 
 #ifdef __SPLIT_KERNEL__
@@ -142,7 +143,7 @@
 
 /* data lookup defines */
 #define kernel_data (*kg->data)
-#define kernel_tex_fetch(t, index) kg->t[index]
+#define kernel_tex_fetch(tex, index) ((ccl_global tex##_t*)(kg->buffers[kg->tex.buffer] + kg->tex.offset))[(index)]
 
 /* define NULL */
 #define NULL 0

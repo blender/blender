@@ -185,6 +185,7 @@ ARegion *BKE_area_region_copy(SpaceType *st, ARegion *ar)
 	newar->swinid = 0;
 	newar->manipulator_map = NULL;
 	newar->regiontimer = NULL;
+	newar->headerstr = NULL;
 	
 	/* use optional regiondata callback */
 	if (ar->regiondata) {

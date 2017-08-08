@@ -932,16 +932,20 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 	const char *rna_path = fcu->rna_path ? fcu->rna_path : "";
 	const short id_type = GS(id->name);
 
-	/* create dependency between driver and data affected by it */
+	/* Create dependency between driver and data affected by it. */
 	/* - direct property relationship... */
 	//RNAPathKey affected_key(id, fcu->rna_path);
 	//add_relation(driver_key, affected_key, "[Driver -> Data] DepsRel");
 
-	/* driver -> data components (for interleaved evaluation - bones/constraints/modifiers) */
-	// XXX: this probably should probably be moved out into a separate function
+	/* Driver -> data components (for interleaved evaluation
+	 * bones/constraints/modifiers).
+	 */
+	// XXX: this probably should probably be moved out into a separate function.
 	if (strstr(rna_path, "pose.bones[") != NULL) {
 		/* interleaved drivers during bone eval */
-		// TODO: ideally, if this is for a constraint, it goes to said constraint
+		/* TODO: ideally, if this is for a constraint, it goes to said
+		 * constraint.
+		 */
 		Object *ob = (Object *)id;
 		char *bone_name = BLI_str_quoted_substrN(rna_path, "pose.bones[");
 		pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
@@ -991,7 +995,7 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 					}
 				}
 			}
-			/* Free temp data/ */
+			/* Free temp data. */
 			MEM_freeN(bone_name);
 			bone_name = NULL;
 		}
@@ -1056,25 +1060,30 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 			}
 		}
 	}
-
-	/* ensure that affected prop's update callbacks will be triggered once done */
-	// TODO: implement this once the functionality to add these links exists in RNA
-	// XXX: the data itself could also set this, if it were to be truly initialised later?
-
-	/* loop over variables to get the target relationships */
+	/* Ensure that affected prop's update callbacks will be triggered once
+	 * done.
+	 */
+	/* TODO: Implement this once the functionality to add these links exists
+	 * RNA.
+	 */
+	/* XXX: the data itself could also set this, if it were to be truly
+	 * initialised later?
+	 */
+	/* Loop over variables to get the target relationships. */
 	LINKLIST_FOREACH (DriverVar *, dvar, &driver->variables) {
-		/* only used targets */
+		/* Only used targets. */
 		DRIVER_TARGETS_USED_LOOPER(dvar)
 		{
-			if (dtar->id == NULL)
+			if (dtar->id == NULL) {
 				continue;
-
-			/* special handling for directly-named bones */
+			}
+			/* Special handling for directly-named bones. */
 			if ((dtar->flag & DTAR_FLAG_STRUCT_REF) && (dtar->pchan_name[0])) {
 				Object *ob = (Object *)dtar->id;
-				bPoseChannel *target_pchan = BKE_pose_channel_find_name(ob->pose, dtar->pchan_name);
+				bPoseChannel *target_pchan =
+				        BKE_pose_channel_find_name(ob->pose, dtar->pchan_name);
 				if (target_pchan != NULL) {
-					/* get node associated with bone */
+					/* Get node associated with bone. */
 					// XXX: watch the space!
 					/* Some cases can't use final bone transform, for example:
 					 * - Driving the bone with itself (addressed here)
@@ -1086,55 +1095,75 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 					{
 						continue;
 					}
-					OperationKey target_key(dtar->id, DEG_NODE_TYPE_BONE, target_pchan->name, DEG_OPCODE_BONE_DONE);
-					add_relation(target_key, driver_key, "[Bone Target -> Driver]");
+					OperationKey target_key(dtar->id,
+					                        DEG_NODE_TYPE_BONE,
+					                        target_pchan->name,
+					                        DEG_OPCODE_BONE_DONE);
+					add_relation(target_key,
+					             driver_key,
+					             "[Bone Target -> Driver]");
 				}
 			}
 			else if (dtar->flag & DTAR_FLAG_STRUCT_REF) {
-				/* get node associated with the object's transforms */
-				OperationKey target_key(dtar->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_FINAL);
+				/* Get node associated with the object's transforms. */
+				if (dtar->id == id) {
+					/* Ignore input dependency if we're driving properties of
+					 * the same ID, otherwise we'll be ending up in a cyclic
+					 * dependency here.
+					 */
+					continue;
+				}
+				OperationKey target_key(dtar->id,
+				                        DEG_NODE_TYPE_TRANSFORM,
+				                        DEG_OPCODE_TRANSFORM_FINAL);
 				add_relation(target_key, driver_key, "[Target -> Driver]");
 			}
 			else if (dtar->rna_path && strstr(dtar->rna_path, "pose.bones[")) {
-				/* workaround for ensuring that local bone transforms don't end up
-				 * having to wait for pose eval to finish (to prevent cycles)
+				/* Workaround for ensuring that local bone transforms don't end
+				 * up having to wait for pose eval to finish (to prevent cycles).
 				 */
 				Object *ob = (Object *)dtar->id;
-				char *bone_name = BLI_str_quoted_substrN(dtar->rna_path, "pose.bones[");
-				bPoseChannel *target_pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
-				if (bone_name) {
+				char *bone_name = BLI_str_quoted_substrN(dtar->rna_path,
+				                                         "pose.bones[");
+				bPoseChannel *target_pchan =
+				        BKE_pose_channel_find_name(ob->pose, bone_name);
+				if (bone_name != NULL) {
 					MEM_freeN(bone_name);
 					bone_name = NULL;
 				}
-				if (target_pchan) {
+				if (target_pchan != NULL) {
 					if (dtar->id == id &&
 					    pchan != NULL &&
 					    STREQ(pchan->name, target_pchan->name))
 					{
 						continue;
 					}
-					OperationKey bone_key(dtar->id, DEG_NODE_TYPE_BONE, target_pchan->name, DEG_OPCODE_BONE_LOCAL);
+					OperationKey bone_key(dtar->id,
+					                      DEG_NODE_TYPE_BONE,
+					                      target_pchan->name,
+					                      DEG_OPCODE_BONE_LOCAL);
 					add_relation(bone_key, driver_key, "[RNA Bone -> Driver]");
 				}
 			}
 			else {
 				if (dtar->id == id) {
-					/* Ignore input dependency if we're driving properties of the same ID,
-					 * otherwise we'll be ending up in a cyclic dependency here.
+					/* Ignore input dependency if we're driving properties of
+					 * the same ID, otherwise we'll be ending up in a cyclic
+					 * dependency here.
 					 */
 					continue;
 				}
-				/* resolve path to get node */
-				RNAPathKey target_key(dtar->id, dtar->rna_path ? dtar->rna_path : "");
+				/* Resolve path to get node. */
+				RNAPathKey target_key(dtar->id,
+				                      dtar->rna_path ? dtar->rna_path : "");
 				add_relation(target_key, driver_key, "[RNA Target -> Driver]");
 			}
 		}
 		DRIVER_TARGETS_LOOPER_END
 	}
-
-	/* It's quite tricky to detect if the driver actually depends on time or not,
-	 * so for now we'll be quite conservative here about optimization and consider
-	 * all python drivers to be depending on time.
+	/* It's quite tricky to detect if the driver actually depends on time or
+	 * not, so for now we'll be quite conservative here about optimization and
+	 * consider all python drivers to be depending on time.
 	 */
 	if ((driver->type == DRIVER_TYPE_PYTHON) &&
 	    python_driver_depends_on_time(driver))

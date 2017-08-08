@@ -303,7 +303,6 @@ enum {
 	TH_EDGE_BEVEL,
 	TH_VERTEX_BEVEL
 };
-/* XXX WARNING: previous is saved in file, so do not change order! */
 
 /* specific defines per space should have higher define values */
 

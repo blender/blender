@@ -15,30 +15,42 @@
  */
 
 
-/* For OpenCL all images are packed in a single array, and we do manual lookup
- * and interpolation. */
+/* For OpenCL we do manual lookup and interpolation. */
+
+ccl_device_inline ccl_global tex_info_t* kernel_tex_info(KernelGlobals *kg, uint id) {
+	const uint tex_offset = id
+#define KERNEL_TEX(type, ttype, name) + 1
+#include "kernel/kernel_textures.h"
+	;
+
+	return &((ccl_global tex_info_t*)kg->buffers[0])[tex_offset];
+}
+
+#define tex_fetch(type, info, index) ((ccl_global type*)(kg->buffers[info->buffer] + info->offset))[(index)]
 
 ccl_device_inline float4 svm_image_texture_read(KernelGlobals *kg, int id, int offset)
 {
+	const ccl_global tex_info_t *info = kernel_tex_info(kg, id);
 	const int texture_type = kernel_tex_type(id);
+
 	/* Float4 */
 	if(texture_type == IMAGE_DATA_TYPE_FLOAT4) {
-		return kernel_tex_fetch(__tex_image_float4_packed, offset);
+		return tex_fetch(float4, info, offset);
 	}
 	/* Byte4 */
 	else if(texture_type == IMAGE_DATA_TYPE_BYTE4) {
-		uchar4 r = kernel_tex_fetch(__tex_image_byte4_packed, offset);
+		uchar4 r = tex_fetch(uchar4, info, offset);
 		float f = 1.0f/255.0f;
 		return make_float4(r.x*f, r.y*f, r.z*f, r.w*f);
 	}
 	/* Float */
 	else if(texture_type == IMAGE_DATA_TYPE_FLOAT) {
-		float f = kernel_tex_fetch(__tex_image_float_packed, offset);
+		float f = tex_fetch(float, info, offset);
 		return make_float4(f, f, f, 1.0f);
 	}
 	/* Byte */
 	else {
-		uchar r = kernel_tex_fetch(__tex_image_byte_packed, offset);
+		uchar r = tex_fetch(uchar, info, offset);
 		float f = r * (1.0f/255.0f);
 		return make_float4(f, f, f, 1.0f);
 	}
@@ -64,17 +76,17 @@ ccl_device_inline float svm_image_texture_frac(float x, int *ix)
 	return x - (float)i;
 }
 
-ccl_device_inline uint kernel_decode_image_interpolation(uint4 info)
+ccl_device_inline uint kernel_decode_image_interpolation(uint info)
 {
-	return (info.w & (1 << 0)) ? INTERPOLATION_CLOSEST : INTERPOLATION_LINEAR;
+	return (info & (1 << 0)) ? INTERPOLATION_CLOSEST : INTERPOLATION_LINEAR;
 }
 
-ccl_device_inline uint kernel_decode_image_extension(uint4 info)
+ccl_device_inline uint kernel_decode_image_extension(uint info)
 {
-	if(info.w & (1 << 1)) {
+	if(info & (1 << 1)) {
 		return EXTENSION_REPEAT;
 	}
-	else if(info.w & (1 << 2)) {
+	else if(info & (1 << 2)) {
 		return EXTENSION_EXTEND;
 	}
 	else {
@@ -84,13 +96,16 @@ ccl_device_inline uint kernel_decode_image_extension(uint4 info)
 
 ccl_device float4 kernel_tex_image_interp(KernelGlobals *kg, int id, float x, float y)
 {
-	uint4 info = kernel_tex_fetch(__tex_image_packed_info, id*2);
-	uint width = info.x;
-	uint height = info.y;
-	uint offset = info.z;
+	const ccl_global tex_info_t *info = kernel_tex_info(kg, id);
+
+	uint width = info->width;
+	uint height = info->height;
+	uint offset = 0;
+
 	/* Decode image options. */
-	uint interpolation = kernel_decode_image_interpolation(info);
-	uint extension = kernel_decode_image_extension(info);
+	uint interpolation = kernel_decode_image_interpolation(info->options);
+	uint extension = kernel_decode_image_extension(info->options);
+
 	/* Actual sampling. */
 	float4 r;
 	int ix, iy, nix, niy;
@@ -150,14 +165,17 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals *kg, int id, float x, fl
 
 ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float x, float y, float z)
 {
-	uint4 info = kernel_tex_fetch(__tex_image_packed_info, id*2);
-	uint width = info.x;
-	uint height = info.y;
-	uint offset = info.z;
-	uint depth = kernel_tex_fetch(__tex_image_packed_info, id*2+1).x;
+	const ccl_global tex_info_t *info = kernel_tex_info(kg, id);
+
+	uint width = info->width;
+	uint height = info->height;
+	uint offset = 0;
+	uint depth = info->depth;
+
 	/* Decode image options. */
-	uint interpolation = kernel_decode_image_interpolation(info);
-	uint extension = kernel_decode_image_extension(info);
+	uint interpolation = kernel_decode_image_interpolation(info->options);
+	uint extension = kernel_decode_image_extension(info->options);
+
 	/* Actual sampling. */
 	float4 r;
 	int ix, iy, iz, nix, niy, niz;

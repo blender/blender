@@ -23,6 +23,10 @@
 #  include "util/util_vector.h"
 #endif
 
+#ifdef __KERNEL_OPENCL__
+#  include "util/util_atomic.h"
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 /* On the CPU, we pass along the struct KernelGlobals to nearly everywhere in
@@ -109,11 +113,22 @@ typedef struct KernelGlobals {
 
 #ifdef __KERNEL_OPENCL__
 
+#  define KERNEL_TEX(type, ttype, name) \
+typedef type name##_t;
+#  include "kernel/kernel_textures.h"
+
+typedef struct tex_info_t {
+	uint buffer, padding;
+	ulong offset;
+	uint width, height, depth, options;
+} tex_info_t;
+
 typedef ccl_addr_space struct KernelGlobals {
 	ccl_constant KernelData *data;
+	ccl_global char *buffers[8];
 
 #  define KERNEL_TEX(type, ttype, name) \
-	ccl_global type *name;
+	tex_info_t name;
 #  include "kernel/kernel_textures.h"
 
 #  ifdef __SPLIT_KERNEL__
@@ -121,6 +136,57 @@ typedef ccl_addr_space struct KernelGlobals {
 	SplitParams split_param_data;
 #  endif
 } KernelGlobals;
+
+#define KERNEL_BUFFER_PARAMS \
+	ccl_global char *buffer0, \
+	ccl_global char *buffer1, \
+	ccl_global char *buffer2, \
+	ccl_global char *buffer3, \
+	ccl_global char *buffer4, \
+	ccl_global char *buffer5, \
+	ccl_global char *buffer6, \
+	ccl_global char *buffer7
+
+#define KERNEL_BUFFER_ARGS buffer0, buffer1, buffer2, buffer3, buffer4, buffer5, buffer6, buffer7
+
+ccl_device_inline void kernel_set_buffer_pointers(KernelGlobals *kg, KERNEL_BUFFER_PARAMS)
+{
+#ifdef __SPLIT_KERNEL__
+	if(ccl_local_id(0) + ccl_local_id(1) == 0)
+#endif
+	{
+		kg->buffers[0] = buffer0;
+		kg->buffers[1] = buffer1;
+		kg->buffers[2] = buffer2;
+		kg->buffers[3] = buffer3;
+		kg->buffers[4] = buffer4;
+		kg->buffers[5] = buffer5;
+		kg->buffers[6] = buffer6;
+		kg->buffers[7] = buffer7;
+	}
+
+#  ifdef __SPLIT_KERNEL__
+	ccl_barrier(CCL_LOCAL_MEM_FENCE);
+#  endif
+}
+
+ccl_device_inline void kernel_set_buffer_info(KernelGlobals *kg)
+{
+#  ifdef __SPLIT_KERNEL__
+	if(ccl_local_id(0) + ccl_local_id(1) == 0)
+#  endif
+	{
+		ccl_global tex_info_t *info = (ccl_global tex_info_t*)kg->buffers[0];
+
+#  define KERNEL_TEX(type, ttype, name) \
+		kg->name = *(info++);
+#  include "kernel/kernel_textures.h"
+	}
+
+#  ifdef __SPLIT_KERNEL__
+	ccl_barrier(CCL_LOCAL_MEM_FENCE);
+#  endif
+}
 
 #endif  /* __KERNEL_OPENCL__ */
 
