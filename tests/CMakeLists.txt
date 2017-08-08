@@ -1,7 +1,8 @@
 
 # Python CTests
-add_subdirectory(python)
+if(WITH_BLENDER)
+	add_subdirectory(python)
+endif()
 
 # GTest
 add_subdirectory(gtests)
-
