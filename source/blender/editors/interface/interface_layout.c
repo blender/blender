@@ -2387,7 +2387,6 @@ static void ui_litem_estimate_box(uiLayout *litem)
 	uiStyle *style = litem->root->style;
 
 	ui_litem_estimate_column(litem, true);
-	litem->item.flag &= ~UI_ITEM_MIN;
 	litem->w += 2 * style->boxspace;
 	litem->h += 2 * style->boxspace;
 }
