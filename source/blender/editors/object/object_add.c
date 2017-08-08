@@ -1354,15 +1354,13 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 
 	lb = object_duplilist(bmain->eval_ctx, scene, base->object);
 
-	if (use_hierarchy || use_base_parent) {
-		dupli_gh = BLI_ghash_ptr_new(__func__);
-		if (use_hierarchy) {
-			if (base->object->transflag & OB_DUPLIGROUP) {
-				parent_gh = BLI_ghash_new(dupliobject_group_hash, dupliobject_group_cmp, __func__);
-			}
-			else {
-				parent_gh = BLI_ghash_new(dupliobject_hash, dupliobject_cmp, __func__);
-			}
+	dupli_gh = BLI_ghash_ptr_new(__func__);
+	if (use_hierarchy) {
+		if (base->object->transflag & OB_DUPLIGROUP) {
+			parent_gh = BLI_ghash_new(dupliobject_group_hash, dupliobject_group_cmp, __func__);
+		}
+		else {
+			parent_gh = BLI_ghash_new(dupliobject_hash, dupliobject_cmp, __func__);
 		}
 	}
 
@@ -1400,9 +1398,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 		copy_m4_m4(ob->obmat, dob->mat);
 		BKE_object_apply_mat4(ob, ob->obmat, false, false);
 
-		if (dupli_gh) {
-			BLI_ghash_insert(dupli_gh, dob, ob);
-		}
+		BLI_ghash_insert(dupli_gh, dob, ob);
 		if (parent_gh) {
 			void **val;
 			/* Due to nature of hash/comparison of this ghash, a lot of duplis may be considered as 'the same',
@@ -1411,22 +1407,21 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 				*val = ob;
 			}
 		}
-
-		/* Remap new object to itself, and clear again newid pointer of orig object. */
-		BKE_libblock_relink_to_newid(&ob->id);
-		set_sca_new_poins_ob(ob);
-		BKE_id_clear_newpoin(&dob->ob->id);
-
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 
-	if (use_hierarchy) {
-		for (dob = lb->first; dob; dob = dob->next) {
-			/* original parents */
-			Object *ob_src =     dob->ob;
-			Object *ob_src_par = ob_src->parent;
+	for (dob = lb->first; dob; dob = dob->next) {
+		Object *ob_src = dob->ob;
+		Object *ob_dst = BLI_ghash_lookup(dupli_gh, dob);
 
-			Object *ob_dst =     BLI_ghash_lookup(dupli_gh, dob);
+		/* Remap new object to itself, and clear again newid pointer of orig object. */
+		BKE_libblock_relink_to_newid(&ob_dst->id);
+		set_sca_new_poins_ob(ob_dst);
+
+		DAG_id_tag_update(&ob_dst->id, OB_RECALC_DATA);
+
+		if (use_hierarchy) {
+			/* original parents */
+			Object *ob_src_par = ob_src->parent;
 			Object *ob_dst_par = NULL;
 
 			/* find parent that was also made real */
@@ -1437,8 +1432,8 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 				dob_key.ob = ob_src_par;
 				if (base->object->transflag & OB_DUPLIGROUP) {
 					memcpy(&dob_key.persistent_id[1],
-						   &dob->persistent_id[1],
-						   sizeof(dob->persistent_id[1]) * (MAX_DUPLI_RECUR - 1));
+					       &dob->persistent_id[1],
+					       sizeof(dob->persistent_id[1]) * (MAX_DUPLI_RECUR - 1));
 				}
 				else {
 					dob_key.persistent_id[0] = dob->persistent_id[0];
@@ -1462,29 +1457,20 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 				ob_dst->parent = base->object;
 				ob_dst->partype = PAROBJECT;
 			}
-
-			if (ob_dst->parent) {
-				/* note, this may be the parent of other objects, but it should
-				 * still work out ok */
-				BKE_object_apply_mat4(ob_dst, dob->mat, false, true);
-
-				/* to set ob_dst->orig and in case theres any other discrepicies */
-				DAG_id_tag_update(&ob_dst->id, OB_RECALC_OB);
-			}
 		}
-	}
-	else if (use_base_parent) {
-		/* since we are ignoring the internal hierarchy - parent all to the
-		 * base object */
-		for (dob = lb->first; dob; dob = dob->next) {
-			/* original parents */
-			Object *ob_dst = BLI_ghash_lookup(dupli_gh, dob);
-
+		else if (use_base_parent) {
+			/* since we are ignoring the internal hierarchy - parent all to the
+			 * base object */
 			ob_dst->parent = base->object;
 			ob_dst->partype = PAROBJECT;
+		}
 
-			/* similer to the code above, see comments */
+		if (ob_dst->parent) {
+			/* note, this may be the parent of other objects, but it should
+			 * still work out ok */
 			BKE_object_apply_mat4(ob_dst, dob->mat, false, true);
+
+			/* to set ob_dst->orig and in case theres any other discrepicies */
 			DAG_id_tag_update(&ob_dst->id, OB_RECALC_OB);
 		}
 	}
@@ -1499,12 +1485,13 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 		}
 	}
 
-	if (dupli_gh)
-		BLI_ghash_free(dupli_gh, NULL, NULL);
+	BLI_ghash_free(dupli_gh, NULL, NULL);
 	if (parent_gh)
 		BLI_ghash_free(parent_gh, NULL, NULL);
 
 	free_object_duplilist(lb);
+
+	BKE_main_id_clear_newpoins(bmain);
 
 	base->object->transflag &= ~OB_DUPLI;
 }
