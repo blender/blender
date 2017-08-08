@@ -63,7 +63,7 @@ void OpenCLDeviceBase::opencl_assert_err(cl_int err, const char* where)
 }
 
 OpenCLDeviceBase::OpenCLDeviceBase(DeviceInfo& info, Stats &stats, bool background_)
-: Device(info, stats, background_)
+: Device(info, stats, background_), memory_manager(this)
 {
 	cpPlatform = NULL;
 	cdDevice = NULL;
@@ -71,6 +71,7 @@ OpenCLDeviceBase::OpenCLDeviceBase(DeviceInfo& info, Stats &stats, bool backgrou
 	cqCommandQueue = NULL;
 	null_mem = 0;
 	device_initialized = false;
+	textures_need_update = true;
 
 	vector<OpenCLPlatformDevice> usable_devices;
 	OpenCLInfo::get_usable_devices(&usable_devices);
@@ -126,6 +127,12 @@ OpenCLDeviceBase::OpenCLDeviceBase(DeviceInfo& info, Stats &stats, bool backgrou
 		return;
 	}
 
+	/* Allocate this right away so that texture_descriptors_buffer is placed at offset 0 in the device memory buffers */
+	texture_descriptors.resize(1);
+	texture_descriptors_buffer.resize(1);
+	texture_descriptors_buffer.data_pointer = (device_ptr)&texture_descriptors[0];
+	memory_manager.alloc("texture_descriptors", texture_descriptors_buffer);
+
 	fprintf(stderr, "Device init success\n");
 	device_initialized = true;
 }
@@ -133,6 +140,8 @@ OpenCLDeviceBase::OpenCLDeviceBase(DeviceInfo& info, Stats &stats, bool backgrou
 OpenCLDeviceBase::~OpenCLDeviceBase()
 {
 	task_pool.stop();
+
+	memory_manager.free();
 
 	if(null_mem)
 		clReleaseMemObject(CL_MEM_PTR(null_mem));
@@ -493,29 +502,31 @@ void OpenCLDeviceBase::const_copy_to(const char *name, void *host, size_t size)
 
 void OpenCLDeviceBase::tex_alloc(const char *name,
                device_memory& mem,
-               InterpolationType /*interpolation*/,
-               ExtensionType /*extension*/)
+               InterpolationType interpolation,
+               ExtensionType extension)
 {
 	VLOG(1) << "Texture allocate: " << name << ", "
 	        << string_human_readable_number(mem.memory_size()) << " bytes. ("
 	        << string_human_readable_size(mem.memory_size()) << ")";
-	mem_alloc(NULL, mem, MEM_READ_ONLY);
-	mem_copy_to(mem);
-	assert(mem_map.find(name) == mem_map.end());
-	mem_map.insert(MemMap::value_type(name, mem.device_pointer));
+
+	memory_manager.alloc(name, mem);
+
+	textures[name] = {&mem, interpolation, extension};
+
+	textures_need_update = true;
 }
 
 void OpenCLDeviceBase::tex_free(device_memory& mem)
 {
-	if(mem.device_pointer) {
-		foreach(const MemMap::value_type& value, mem_map) {
-			if(value.second == mem.device_pointer) {
-				mem_map.erase(value.first);
-				break;
-			}
-		}
+	if(memory_manager.free(mem)) {
+		textures_need_update = true;
+	}
 
-		mem_free(mem);
+	foreach(TexturesMap::value_type& value, textures) {
+		if(value.second.mem == &mem) {
+			textures.erase(value.first);
+			break;
+		}
 	}
 }
 
@@ -581,6 +592,104 @@ void OpenCLDeviceBase::set_kernel_arg_mem(cl_kernel kernel, cl_uint *narg, const
 	opencl_assert(clSetKernelArg(kernel, (*narg)++, sizeof(ptr), (void*)&ptr));
 }
 
+void OpenCLDeviceBase::set_kernel_arg_buffers(cl_kernel kernel, cl_uint *narg)
+{
+	flush_texture_buffers();
+
+	memory_manager.set_kernel_arg_buffers(kernel, narg);
+}
+
+void OpenCLDeviceBase::flush_texture_buffers()
+{
+	if(!textures_need_update) {
+		return;
+	}
+	textures_need_update = false;
+
+	/* Setup slots for textures. */
+	int num_slots = 0;
+
+	struct texture_slot_t {
+		string name;
+		int slot;
+	};
+
+	vector<texture_slot_t> texture_slots;
+
+#define KERNEL_TEX(type, ttype, name) \
+	if(textures.find(#name) != textures.end()) { \
+		texture_slots.push_back({#name, num_slots}); \
+	} \
+	num_slots++;
+#include "kernel/kernel_textures.h"
+
+	int num_data_slots = num_slots;
+
+	foreach(TexturesMap::value_type& tex, textures) {
+		string name = tex.first;
+
+		if(string_startswith(name, "__tex_image")) {
+			int pos = name.rfind("_");
+			int id = atoi(name.data() + pos + 1);
+
+			texture_slots.push_back({name, num_data_slots + id});
+
+			num_slots = max(num_slots, num_data_slots + id + 1);
+		}
+	}
+
+	/* Realloc texture descriptors buffer. */
+	memory_manager.free(texture_descriptors_buffer);
+
+	texture_descriptors.resize(num_slots);
+	texture_descriptors_buffer.resize(num_slots * sizeof(tex_info_t));
+	texture_descriptors_buffer.data_pointer = (device_ptr)&texture_descriptors[0];
+
+	memory_manager.alloc("texture_descriptors", texture_descriptors_buffer);
+
+	/* Fill in descriptors */
+	foreach(texture_slot_t& slot, texture_slots) {
+		Texture& tex = textures[slot.name];
+
+		tex_info_t& info = texture_descriptors[slot.slot];
+
+		MemoryManager::BufferDescriptor desc = memory_manager.get_descriptor(slot.name);
+
+		info.offset = desc.offset;
+		info.buffer = desc.device_buffer;
+
+		if(string_startswith(slot.name, "__tex_image")) {
+			info.width = tex.mem->data_width;
+			info.height = tex.mem->data_height;
+			info.depth = tex.mem->data_depth;
+
+			info.options = 0;
+
+			if(tex.interpolation == INTERPOLATION_CLOSEST) {
+				info.options |= (1 << 0);
+			}
+
+			switch(tex.extension) {
+				case EXTENSION_REPEAT:
+					info.options |= (1 << 1);
+					break;
+				case EXTENSION_EXTEND:
+					info.options |= (1 << 2);
+					break;
+				case EXTENSION_CLIP:
+					info.options |= (1 << 3);
+					break;
+				default:
+					break;
+			}
+		}
+	}
+
+	/* Force write of descriptors. */
+	memory_manager.free(texture_descriptors_buffer);
+	memory_manager.alloc("texture_descriptors", texture_descriptors_buffer);
+}
+
 void OpenCLDeviceBase::film_convert(DeviceTask& task, device_ptr buffer, device_ptr rgba_byte, device_ptr rgba_half)
 {
 	/* cast arguments to cl types */
@@ -605,10 +714,7 @@ void OpenCLDeviceBase::film_convert(DeviceTask& task, device_ptr buffer, device_
 		                d_rgba,
 		                d_buffer);
 
-#define KERNEL_TEX(type, ttype, name) \
-set_kernel_arg_mem(ckFilmConvertKernel, &start_arg_index, #name);
-#include "kernel/kernel_textures.h"
-#undef KERNEL_TEX
+	set_kernel_arg_buffers(ckFilmConvertKernel, &start_arg_index);
 
 	start_arg_index += kernel_set_args(ckFilmConvertKernel,
 	                                   start_arg_index,
@@ -1030,10 +1136,7 @@ void OpenCLDeviceBase::shader(DeviceTask& task)
 		                                   d_output_luma);
 	}
 
-#define KERNEL_TEX(type, ttype, name) \
-	set_kernel_arg_mem(kernel, &start_arg_index, #name);
-#include "kernel/kernel_textures.h"
-#undef KERNEL_TEX
+	set_kernel_arg_buffers(kernel, &start_arg_index);
 
 	start_arg_index += kernel_set_args(kernel,
 	                                   start_arg_index,

@@ -2164,7 +2164,6 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 
 		info.advanced_shading = (major >= 2);
 		info.has_bindless_textures = (major >= 3);
-		info.pack_images = false;
 
 		int pci_location[3] = {0, 0, 0};
 		cuDeviceGetAttribute(&pci_location[0], CU_DEVICE_ATTRIBUTE_PCI_DOMAIN_ID, num);

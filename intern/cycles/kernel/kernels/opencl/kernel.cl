@@ -52,9 +52,7 @@ __kernel void kernel_ocl_path_trace(
 	ccl_global float *buffer,
 	ccl_global uint *rng_state,
 
-#define KERNEL_TEX(type, ttype, name) \
-	ccl_global type *name,
-#include "kernel/kernel_textures.h"
+	KERNEL_BUFFER_PARAMS,
 
 	int sample,
 	int sx, int sy, int sw, int sh, int offset, int stride)
@@ -63,9 +61,8 @@ __kernel void kernel_ocl_path_trace(
 
 	kg->data = data;
 
-#define KERNEL_TEX(type, ttype, name) \
-	kg->name = name;
-#include "kernel/kernel_textures.h"
+	kernel_set_buffer_pointers(kg, KERNEL_BUFFER_ARGS);
+	kernel_set_buffer_info(kg);
 
 	int x = sx + ccl_global_id(0);
 	int y = sy + ccl_global_id(1);
@@ -82,9 +79,7 @@ __kernel void kernel_ocl_shader(
 	ccl_global float4 *output,
 	ccl_global float *output_luma,
 
-#define KERNEL_TEX(type, ttype, name) \
-	ccl_global type *name,
-#include "kernel/kernel_textures.h"
+	KERNEL_BUFFER_PARAMS,
 
 	int type, int sx, int sw, int offset, int sample)
 {
@@ -92,9 +87,8 @@ __kernel void kernel_ocl_shader(
 
 	kg->data = data;
 
-#define KERNEL_TEX(type, ttype, name) \
-	kg->name = name;
-#include "kernel/kernel_textures.h"
+	kernel_set_buffer_pointers(kg, KERNEL_BUFFER_ARGS);
+	kernel_set_buffer_info(kg);
 
 	int x = sx + ccl_global_id(0);
 
@@ -114,9 +108,7 @@ __kernel void kernel_ocl_bake(
 	ccl_global uint4 *input,
 	ccl_global float4 *output,
 
-#define KERNEL_TEX(type, ttype, name) \
-	ccl_global type *name,
-#include "kernel/kernel_textures.h"
+	KERNEL_BUFFER_PARAMS,
 
 	int type, int filter, int sx, int sw, int offset, int sample)
 {
@@ -124,9 +116,8 @@ __kernel void kernel_ocl_bake(
 
 	kg->data = data;
 
-#define KERNEL_TEX(type, ttype, name) \
-	kg->name = name;
-#include "kernel/kernel_textures.h"
+	kernel_set_buffer_pointers(kg, KERNEL_BUFFER_ARGS);
+	kernel_set_buffer_info(kg);
 
 	int x = sx + ccl_global_id(0);
 
@@ -144,9 +135,7 @@ __kernel void kernel_ocl_convert_to_byte(
 	ccl_global uchar4 *rgba,
 	ccl_global float *buffer,
 
-#define KERNEL_TEX(type, ttype, name) \
-	ccl_global type *name,
-#include "kernel/kernel_textures.h"
+	KERNEL_BUFFER_PARAMS,
 
 	float sample_scale,
 	int sx, int sy, int sw, int sh, int offset, int stride)
@@ -155,9 +144,8 @@ __kernel void kernel_ocl_convert_to_byte(
 
 	kg->data = data;
 
-#define KERNEL_TEX(type, ttype, name) \
-	kg->name = name;
-#include "kernel/kernel_textures.h"
+	kernel_set_buffer_pointers(kg, KERNEL_BUFFER_ARGS);
+	kernel_set_buffer_info(kg);
 
 	int x = sx + ccl_global_id(0);
 	int y = sy + ccl_global_id(1);
@@ -171,9 +159,7 @@ __kernel void kernel_ocl_convert_to_half_float(
 	ccl_global uchar4 *rgba,
 	ccl_global float *buffer,
 
-#define KERNEL_TEX(type, ttype, name) \
-	ccl_global type *name,
-#include "kernel/kernel_textures.h"
+	KERNEL_BUFFER_PARAMS,
 
 	float sample_scale,
 	int sx, int sy, int sw, int sh, int offset, int stride)
@@ -182,9 +168,8 @@ __kernel void kernel_ocl_convert_to_half_float(
 
 	kg->data = data;
 
-#define KERNEL_TEX(type, ttype, name) \
-	kg->name = name;
-#include "kernel/kernel_textures.h"
+	kernel_set_buffer_pointers(kg, KERNEL_BUFFER_ARGS);
+	kernel_set_buffer_info(kg);
 
 	int x = sx + ccl_global_id(0);
 	int y = sy + ccl_global_id(1);
