@@ -1059,8 +1059,17 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 				}
 			}
 			else if (dtar->flag & DTAR_FLAG_STRUCT_REF) {
-				/* get node associated with the object's transforms */
-				OperationKey target_key(dtar->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_FINAL);
+				/* Get node associated with the object's transforms. */
+				if (dtar->id == id) {
+					/* Ignore input dependency if we're driving properties of
+					 * the same ID, otherwise we'll be ending up in a cyclic
+					 * dependency here.
+					 */
+					continue;
+				}
+				OperationKey target_key(dtar->id,
+				                        DEG_NODE_TYPE_TRANSFORM,
+				                        DEG_OPCODE_TRANSFORM_FINAL);
 				add_relation(target_key, driver_key, "[Target -> Driver]");
 			}
 			else if (dtar->rna_path && strstr(dtar->rna_path, "pose.bones[")) {
