@@ -181,6 +181,7 @@ ARegion *BKE_area_region_copy(SpaceType *st, ARegion *ar)
 	BLI_listbase_clear(&newar->ui_lists);
 	newar->swinid = 0;
 	newar->regiontimer = NULL;
+	newar->headerstr = NULL;
 	
 	/* use optional regiondata callback */
 	if (ar->regiondata) {
