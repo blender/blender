@@ -178,6 +178,9 @@ static void cmp_node_image_create_outputs(bNodeTree *ntree, bNode *node, LinkNod
 	cmp_node_image_add_pass_output(ntree, node, "Alpha", RE_PASSNAME_COMBINED, -1, SOCK_FLOAT, false, available_sockets, &prev_index);
 
 	if (ima) {
+		if (!ima->rr) {
+			cmp_node_image_add_pass_output(ntree, node, RE_PASSNAME_Z, RE_PASSNAME_Z, -1, SOCK_FLOAT, false, available_sockets, &prev_index);
+		}
 		BKE_image_release_ibuf(ima, ibuf, NULL);
 	}
 }
