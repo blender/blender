@@ -194,21 +194,28 @@ static void EEVEE_draw_scene(void *vedata)
 
 		DRW_draw_pass(psl->probe_display);
 
-		/* Volumetrics */
-		DRW_stats_group_start("Volumetrics");
-		EEVEE_effects_do_volumetrics(sldata, vedata);
-		DRW_stats_group_end();
-
 		/* Prepare Refraction */
 		EEVEE_effects_do_refraction(sldata, vedata);
 
 		/* Restore main FB */
 		DRW_framebuffer_bind(fbl->main);
 
+		/* Opaque refraction */
+		DRW_stats_group_start("Opaque Refraction");
+		DRW_draw_pass(psl->refract_depth_pass);
+		DRW_draw_pass(psl->refract_depth_pass_cull);
+		DRW_draw_pass(psl->refract_pass);
+		DRW_stats_group_end();
+
 		/* Transparent */
 		DRW_pass_sort_shgroup_z(psl->transparent_pass);
 		DRW_stats_group_start("Transparent");
 		DRW_draw_pass(psl->transparent_pass);
+		DRW_stats_group_end();
+
+		/* Volumetrics */
+		DRW_stats_group_start("Volumetrics");
+		EEVEE_effects_do_volumetrics(sldata, vedata);
 		DRW_stats_group_end();
 
 		/* Post Process */

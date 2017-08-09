@@ -855,6 +855,29 @@ void EEVEE_materials_cache_init(EEVEE_Data *vedata)
 	}
 
 	{
+		DRWState state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_WIRE;
+		psl->refract_depth_pass = DRW_pass_create("Refract Depth Pass", state);
+		stl->g_data->refract_depth_shgrp = DRW_shgroup_create(e_data.default_prepass_sh, psl->refract_depth_pass);
+
+		state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_BACK;
+		psl->refract_depth_pass_cull = DRW_pass_create("Refract Depth Pass Cull", state);
+		stl->g_data->refract_depth_shgrp_cull = DRW_shgroup_create(e_data.default_prepass_sh, psl->refract_depth_pass_cull);
+
+		state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CLIP_PLANES | DRW_STATE_WIRE;
+		psl->refract_depth_pass_clip = DRW_pass_create("Refract Depth Pass Clip", state);
+		stl->g_data->refract_depth_shgrp_clip = DRW_shgroup_create(e_data.default_prepass_clip_sh, psl->refract_depth_pass_clip);
+
+		state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CLIP_PLANES | DRW_STATE_CULL_BACK;
+		psl->refract_depth_pass_clip_cull = DRW_pass_create("Refract Depth Pass Cull Clip", state);
+		stl->g_data->refract_depth_shgrp_clip_cull = DRW_shgroup_create(e_data.default_prepass_clip_sh, psl->refract_depth_pass_clip_cull);
+	}
+
+	{
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_CLIP_PLANES | DRW_STATE_WIRE;
+		psl->refract_pass = DRW_pass_create("Opaque Refraction Pass", state);
+	}
+
+	{
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS | DRW_STATE_CLIP_PLANES | DRW_STATE_WIRE;
 		psl->transparent_pass = DRW_pass_create("Material Transparent Pass", state);
 	}
@@ -897,6 +920,7 @@ static void material_opaque(
 	float *rough_p = &ma->gloss_mir;
 
 	const bool use_gpumat = (ma->use_nodes && ma->nodetree);
+	const bool use_refract = ((ma->blend_flag & MA_BL_SS_REFRACTION) != 0) && ((stl->effects->enabled_effects & EFFECT_REFRACT) != 0);
 
 	EeveeMaterialShadingGroups *emsg = BLI_ghash_lookup(material_hash, (const void *)ma);
 
@@ -907,7 +931,7 @@ static void material_opaque(
 
 		/* This will have been created already, just perform a lookup. */
 		*gpumat = (use_gpumat) ? EEVEE_material_mesh_get(
-		        scene, ma, stl->effects->use_ao, stl->effects->use_bent_normals, false, false, false) : NULL;
+		        scene, ma, stl->effects->use_ao, stl->effects->use_bent_normals, false, false, use_refract) : NULL;
 		*gpumat_depth = (use_gpumat) ? EEVEE_material_mesh_depth_get(
 		        scene, ma, (ma->blend_method == MA_BM_HASHED), false) : NULL;
 		return;
@@ -916,13 +940,14 @@ static void material_opaque(
 	if (use_gpumat) {
 		/* Shading */
 		*gpumat = EEVEE_material_mesh_get(scene, ma,
-		        stl->effects->use_ao, stl->effects->use_bent_normals, false, false, false);
+		        stl->effects->use_ao, stl->effects->use_bent_normals, false, false, use_refract);
 
-		*shgrp = DRW_shgroup_material_create(*gpumat, psl->material_pass);
+		*shgrp = DRW_shgroup_material_create(*gpumat, use_refract ? psl->refract_pass : psl->material_pass);
 		if (*shgrp) {
 			static int ssr_id;
+			static float refract_thickness = 0.0f; /* TODO Param */
 			ssr_id = (stl->effects->use_ssr) ? 0 : -1;
-			add_standard_uniforms(*shgrp, sldata, vedata, &ssr_id, NULL);
+			add_standard_uniforms(*shgrp, sldata, vedata, &ssr_id, (use_refract) ? &refract_thickness : NULL);
 		}
 		else {
 			/* Shader failed : pink color */
@@ -939,8 +964,14 @@ static void material_opaque(
 			*gpumat_depth = EEVEE_material_mesh_depth_get(scene, ma,
 			        (ma->blend_method == MA_BM_HASHED), false);
 
-			*shgrp_depth = DRW_shgroup_material_create(*gpumat_depth, do_cull ? psl->depth_pass_cull : psl->depth_pass);
-			*shgrp_depth_clip = DRW_shgroup_material_create(*gpumat_depth, do_cull ? psl->depth_pass_clip_cull : psl->depth_pass_clip);
+			if (use_refract) {
+				*shgrp_depth = DRW_shgroup_material_create(*gpumat_depth, (do_cull) ? psl->refract_depth_pass_cull : psl->refract_depth_pass);
+				*shgrp_depth_clip = DRW_shgroup_material_create(*gpumat_depth, (do_cull) ? psl->refract_depth_pass_clip_cull : psl->refract_depth_pass_clip);
+			}
+			else {
+				*shgrp_depth = DRW_shgroup_material_create(*gpumat_depth, (do_cull) ? psl->depth_pass_cull : psl->depth_pass);
+				*shgrp_depth_clip = DRW_shgroup_material_create(*gpumat_depth, (do_cull) ? psl->depth_pass_clip_cull : psl->depth_pass_clip);
+			}
 
 			if (*shgrp != NULL) {
 				if (ma->blend_method == MA_BM_CLIP) {
@@ -963,8 +994,14 @@ static void material_opaque(
 
 	/* Fallback default depth prepass */
 	if (*shgrp_depth == NULL) {
-		*shgrp_depth = do_cull ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp;
-		*shgrp_depth_clip = do_cull ? stl->g_data->depth_shgrp_clip_cull : stl->g_data->depth_shgrp_clip;
+		if (use_refract) {
+			*shgrp_depth = (do_cull) ? stl->g_data->refract_depth_shgrp_cull : stl->g_data->refract_depth_shgrp;
+			*shgrp_depth_clip = (do_cull) ? stl->g_data->refract_depth_shgrp_clip_cull : stl->g_data->refract_depth_shgrp_clip;
+		}
+		else {
+			*shgrp_depth = (do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp;
+			*shgrp_depth_clip = (do_cull) ? stl->g_data->depth_shgrp_clip_cull : stl->g_data->depth_shgrp_clip;
+		}
 	}
 
 	emsg = MEM_mallocN(sizeof("EeveeMaterialShadingGroups"), "EeveeMaterialShadingGroups");
@@ -983,7 +1020,7 @@ static void material_transparent(
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
 
-	const bool use_refract = ((ma->blend_flag & MA_BL_REFRACTION) != 0) && ((stl->effects->enabled_effects & EFFECT_REFRACT) != 0);
+	const bool use_refract = ((ma->blend_flag & MA_BL_SS_REFRACTION) != 0) && ((stl->effects->enabled_effects & EFFECT_REFRACT) != 0);
 
 	float *color_p = &ma->r;
 	float *metal_p = &ma->ray_mirror;
