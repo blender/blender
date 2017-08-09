@@ -179,22 +179,24 @@ class SimpleImportTest(AbstractAlembicTest):
 
         res = bpy.ops.wm.alembic_import(filepath=str(abc), as_background_job=False)
         self.assertEqual({'FINISHED'}, res)
-        cube = bpy.context.active_object
+        plane = bpy.context.active_object
 
         # Check that the file loaded ok.
         bpy.context.scene.frame_set(6)
-        self.assertAlmostEqual(-1, cube.data.vertices[0].co.x)
-        self.assertAlmostEqual(-1, cube.data.vertices[0].co.y)
-        self.assertAlmostEqual(0.5905638933181763, cube.data.vertices[0].co.z)
+        mesh = plane.to_mesh(bpy.context.scene, True, 'RENDER')
+        self.assertAlmostEqual(-1, mesh.vertices[0].co.x)
+        self.assertAlmostEqual(-1, mesh.vertices[0].co.y)
+        self.assertAlmostEqual(0.5905638933181763, mesh.vertices[0].co.z)
 
         # Change path from absolute to relative. This should not break the animation.
         bpy.context.scene.frame_set(1)
         bpy.data.cache_files[fname].filepath = relpath
         bpy.context.scene.frame_set(6)
 
-        self.assertAlmostEqual(1, cube.data.vertices[3].co.x)
-        self.assertAlmostEqual(1, cube.data.vertices[3].co.y)
-        self.assertAlmostEqual(0.5905638933181763, cube.data.vertices[3].co.z)
+        mesh = plane.to_mesh(bpy.context.scene, True, 'RENDER')
+        self.assertAlmostEqual(1, mesh.vertices[3].co.x)
+        self.assertAlmostEqual(1, mesh.vertices[3].co.y)
+        self.assertAlmostEqual(0.5905638933181763, mesh.vertices[3].co.z)
 
     def test_import_long_names(self):
         # This file contains very long names. The longest name is 4047 chars.
