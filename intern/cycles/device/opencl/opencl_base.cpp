@@ -519,20 +519,26 @@ void OpenCLDeviceBase::tex_alloc(const char *name,
 	        << string_human_readable_size(mem.memory_size()) << ")";
 
 	memory_manager.alloc(name, mem);
+	/* Set the pointer to non-null to keep code that inspects its value from thinking its unallocated. */
+	mem.device_pointer = 1;
 	textures[name] = Texture(&mem, interpolation, extension);
 	textures_need_update = true;
 }
 
 void OpenCLDeviceBase::tex_free(device_memory& mem)
 {
-	if(memory_manager.free(mem)) {
-		textures_need_update = true;
-	}
+	if(mem.device_pointer) {
+		mem.device_pointer = 0;
 
-	foreach(TexturesMap::value_type& value, textures) {
-		if(value.second.mem == &mem) {
-			textures.erase(value.first);
-			break;
+		if(memory_manager.free(mem)) {
+			textures_need_update = true;
+		}
+
+		foreach(TexturesMap::value_type& value, textures) {
+			if(value.second.mem == &mem) {
+				textures.erase(value.first);
+				break;
+			}
 		}
 	}
 }
