@@ -275,6 +275,7 @@ static void WIDGETGROUP_lamp_target_draw_prepare(const bContext *C, wmManipulato
 	copy_m4_m4(mpr->matrix_basis, ob->obmat);
 	unit_m4(mpr->matrix_offset);
 	mpr->matrix_offset[3][2] = -2.4f / mpr->scale_basis;
+	WM_manipulator_set_flag(mpr, WM_MANIPULATOR_DRAW_OFFSET_SCALE, true);
 }
 
 void VIEW3D_WGT_lamp_target(wmManipulatorGroupType *wgt)
