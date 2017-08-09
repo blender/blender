@@ -231,12 +231,12 @@ void DRW_stats_draw(rcti *rect)
 		time_ms = MIN2(time_ms, 999.0);
 		time_percent = MIN2(time_percent, 100.0);
 
-		BLI_snprintf(stat_string, sizeof(stat_string), "%.2fms", time_ms);
-		BLF_draw_default_ascii(rect->xmin + 1 * U.widget_unit, rect->ymax - v * U.widget_unit, 0.0f, stat_string, sizeof(stat_string));
-		BLI_snprintf(stat_string, sizeof(stat_string), "%.0f", time_percent);
-		BLF_draw_default_ascii(rect->xmin + 4 * U.widget_unit, rect->ymax - v * U.widget_unit, 0.0f, stat_string, sizeof(stat_string));
 		BLI_snprintf(stat_string, sizeof(stat_string), "%s", timer->name);
-		BLF_draw_default_ascii(rect->xmin + (6 + timer->lvl) * U.widget_unit, rect->ymax - v * U.widget_unit, 0.0f, stat_string, sizeof(stat_string));
+		BLF_draw_default_ascii(rect->xmin + (1 + timer->lvl) * U.widget_unit, rect->ymax - v * U.widget_unit, 0.0f, stat_string, sizeof(stat_string));
+		BLI_snprintf(stat_string, sizeof(stat_string), "%.2fms", time_ms);
+		BLF_draw_default_ascii(rect->xmin + (13 + timer->lvl) * U.widget_unit, rect->ymax - v * U.widget_unit, 0.0f, stat_string, sizeof(stat_string));
+		BLI_snprintf(stat_string, sizeof(stat_string), "%.0f", time_percent);
+		BLF_draw_default_ascii(rect->xmin + (17 + timer->lvl) * U.widget_unit, rect->ymax - v * U.widget_unit, 0.0f, stat_string, sizeof(stat_string));
 		v++;
 	}
 }
