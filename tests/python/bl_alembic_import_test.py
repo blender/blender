@@ -183,17 +183,19 @@ class SimpleImportTest(AbstractAlembicTest):
 
         # Check that the file loaded ok.
         bpy.context.scene.frame_set(6)
-        mesh = plane.to_mesh(bpy.context.scene, True, 'RENDER')
+        scene = bpy.context.scene
+        layer = scene.render_layers[scene.active_layer]
+        mesh = plane.to_mesh(scene, layer, True, 'RENDER')
         self.assertAlmostEqual(-1, mesh.vertices[0].co.x)
         self.assertAlmostEqual(-1, mesh.vertices[0].co.y)
         self.assertAlmostEqual(0.5905638933181763, mesh.vertices[0].co.z)
 
         # Change path from absolute to relative. This should not break the animation.
-        bpy.context.scene.frame_set(1)
+        scene.frame_set(1)
         bpy.data.cache_files[fname].filepath = relpath
-        bpy.context.scene.frame_set(6)
+        scene.frame_set(6)
 
-        mesh = plane.to_mesh(bpy.context.scene, True, 'RENDER')
+        mesh = plane.to_mesh(scene, layer, True, 'RENDER')
         self.assertAlmostEqual(1, mesh.vertices[3].co.x)
         self.assertAlmostEqual(1, mesh.vertices[3].co.y)
         self.assertAlmostEqual(0.5905638933181763, mesh.vertices[3].co.z)
