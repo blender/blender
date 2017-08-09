@@ -77,6 +77,7 @@ enum {
 	VAR_MAT_HASH     = (1 << 9),
 	VAR_MAT_MULT     = (1 << 10),
 	VAR_MAT_SHADOW   = (1 << 11),
+	VAR_MAT_REFRACT  = (1 << 12),
 };
 
 typedef struct EEVEE_PassList {
@@ -142,6 +143,7 @@ typedef struct EEVEE_FramebufferList {
 	struct GPUFrameBuffer *dof_scatter_near_fb;
 	struct GPUFrameBuffer *volumetric_fb;
 	struct GPUFrameBuffer *screen_tracing_fb;
+	struct GPUFrameBuffer *refract_fb;
 
 	struct GPUFrameBuffer *planarref_fb;
 
@@ -163,6 +165,7 @@ typedef struct EEVEE_TextureList {
 
 	struct GPUTexture *ssr_normal_input;
 	struct GPUTexture *ssr_specrough_input;
+	struct GPUTexture *refract_color;
 
 	struct GPUTexture *planar_pool;
 	struct GPUTexture *planar_depth;
@@ -373,6 +376,7 @@ enum {
 	EFFECT_VOLUMETRIC          = (1 << 3),
 	EFFECT_SSR                 = (1 << 4),
 	EFFECT_DOUBLE_BUFFER       = (1 << 5), /* Not really an effect but a feature */
+	EFFECT_REFRACT             = (1 << 6),
 };
 
 /* ************** SCENE LAYER DATA ************** */
@@ -494,7 +498,7 @@ struct GPUMaterial *EEVEE_material_world_background_get(struct Scene *scene, str
 struct GPUMaterial *EEVEE_material_world_volume_get(
         struct Scene *scene, struct World *wo, bool use_lights, bool use_volume_shadows, bool is_homogeneous, bool use_color_transmit);
 struct GPUMaterial *EEVEE_material_mesh_get(
-        struct Scene *scene, Material *ma, bool use_ao, bool use_bent_normals, bool use_blend, bool use_multiply);
+        struct Scene *scene, Material *ma, bool use_ao, bool use_bent_normals, bool use_blend, bool use_multiply, bool use_refract);
 struct GPUMaterial *EEVEE_material_mesh_depth_get(struct Scene *scene, Material *ma, bool use_hashed_alpha, bool is_shadow);
 struct GPUMaterial *EEVEE_material_hair_get(struct Scene *scene, Material *ma, bool use_ao, bool use_bent_normals);
 void EEVEE_materials_free(void);
@@ -528,6 +532,7 @@ void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, struct GPUTexture *depth_src
 void EEVEE_downsample_buffer(EEVEE_Data *vedata, struct GPUFrameBuffer *fb_src, struct GPUTexture *texture_src, int level);
 void EEVEE_effects_do_volumetrics(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_effects_do_ssr(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_effects_do_refraction(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_draw_effects(EEVEE_Data *vedata);
 void EEVEE_effects_free(void);
 

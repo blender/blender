@@ -510,7 +510,8 @@ enum {
 
 /* blend_flag */
 enum {
-	MA_BL_HIDE_BACKSIDE =       (1 << 0),
+	MA_BL_HIDE_BACKSIDE =        (1 << 0),
+	MA_BL_REFRACTION =           (1 << 1),
 };
 
 /* blend_shadow */

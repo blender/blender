@@ -199,6 +199,12 @@ static void EEVEE_draw_scene(void *vedata)
 		EEVEE_effects_do_volumetrics(sldata, vedata);
 		DRW_stats_group_end();
 
+		/* Prepare Refraction */
+		EEVEE_effects_do_refraction(sldata, vedata);
+
+		/* Restore main FB */
+		DRW_framebuffer_bind(fbl->main);
+
 		/* Transparent */
 		DRW_pass_sort_shgroup_z(psl->transparent_pass);
 		DRW_stats_group_start("Transparent");
@@ -235,7 +241,9 @@ static void EEVEE_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDPr
 	           props->type == IDP_GROUP &&
 	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
 
+
 	BKE_collection_engine_property_add_bool(props, "ssr_enable", false);
+	BKE_collection_engine_property_add_bool(props, "ssr_refraction", false);
 	BKE_collection_engine_property_add_bool(props, "ssr_halfres", true);
 	BKE_collection_engine_property_add_int(props, "ssr_ray_count", 1);
 	BKE_collection_engine_property_add_float(props, "ssr_quality", 0.25f);

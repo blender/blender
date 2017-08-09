@@ -1869,6 +1869,11 @@ void RNA_def_material(BlenderRNA *brna)
 	                                                 "(avoids transparency sorting problems)");
 	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
+	prop = RNA_def_property(srna, "transparent_refraction", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "blend_flag", MA_BL_REFRACTION);
+	RNA_def_property_ui_text(prop, "Screen Space Refraction" , "Use raytraced screen space refraction");
+	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
+
 	/* For Preview Render */
 	prop = RNA_def_property(srna, "preview_render_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "pr_type");

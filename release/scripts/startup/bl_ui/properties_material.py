@@ -1182,6 +1182,7 @@ class EEVEE_MATERIAL_PT_options(MaterialButtonsPanel, Panel):
 
         if mat.blend_method not in {"OPAQUE", "CLIP", "HASHED"}:
             layout.prop(mat, "transparent_hide_backside")
+            layout.prop(mat, "transparent_refraction")
 
 
 

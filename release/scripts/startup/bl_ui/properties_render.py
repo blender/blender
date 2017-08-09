@@ -730,6 +730,7 @@ class RENDER_PT_eevee_screen_space_reflections(RenderButtonsPanel, Panel):
         props = scene.layer_properties['BLENDER_EEVEE']
 
         col = layout.column()
+        col.prop(props, "ssr_refraction")
         col.prop(props, "ssr_halfres")
         col.prop(props, "ssr_ray_count")
         col.prop(props, "ssr_quality")

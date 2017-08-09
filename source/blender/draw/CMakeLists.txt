@@ -163,6 +163,7 @@ data_to_c_simple(engines/eevee/shaders/octahedron_lib.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/bsdf_sampling_lib.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/raytrace_lib.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/ltc_lib.glsl SRC)
+data_to_c_simple(engines/eevee/shaders/ssr_lib.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/volumetric_frag.glsl SRC)
 
 data_to_c_simple(modes/shaders/common_globals_lib.glsl SRC)

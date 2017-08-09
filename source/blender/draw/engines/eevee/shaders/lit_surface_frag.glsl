@@ -7,6 +7,10 @@ uniform int planar_count;
 uniform bool specToggle;
 uniform bool ssrToggle;
 
+#ifdef USE_REFRACTION
+uniform float refractionThickness;
+#endif
+
 #ifndef UTIL_TEX
 #define UTIL_TEX
 uniform sampler2DArray utilTex;
@@ -577,7 +581,24 @@ vec3 eevee_surface_refraction(vec3 N, vec3 f0, float roughness, float ior, int s
 	/* Accumulate light from all sources until accumulator is full. Then apply Occlusion and BRDF. */
 	vec4 trans_accum = vec4(0.0);
 
+#ifdef USE_REFRACTION
+	/* Screen Space Refraction */
+	if (ssrToggle && roughness < maxRoughness + 0.2) {
+		vec3 rand = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0)).xzw;
+
+		float ray_ofs = 1.0 / float(rayCount);
+		vec4 spec = screen_space_refraction(viewPosition, N, V, ior, roughnessSquared, rand, 0.0);
+		if (rayCount > 1) spec += screen_space_refraction(viewPosition, N, V, ior, roughnessSquared, rand.xyz * vec3(1.0, -1.0, -1.0), 1.0 * ray_ofs);
+		if (rayCount > 2) spec += screen_space_refraction(viewPosition, N, V, ior, roughnessSquared, rand.xzy * vec3(1.0,  1.0, -1.0), 2.0 * ray_ofs);
+		if (rayCount > 3) spec += screen_space_refraction(viewPosition, N, V, ior, roughnessSquared, rand.xzy * vec3(1.0, -1.0,  1.0), 3.0 * ray_ofs);
+		spec /= float(rayCount);
+		spec.a *= smoothstep(maxRoughness + 0.2, maxRoughness, roughness);
+		accumulate_light(spec.rgb, spec.a, trans_accum);
+	}
+#endif
+
 	/* Specular probes */
+	/* NOTE: This bias the IOR */
 	vec3 spec_dir = get_specular_refraction_dominant_dir(N, V, roughness, ior);
 
 	/* Starts at 1 because 0 is world probe */
@@ -684,6 +705,22 @@ vec3 eevee_surface_glass(vec3 N, vec3 transmission_col, float roughness, float i
 	vec3 spec_dir = get_specular_reflection_dominant_dir(N, V, roughnessSquared);
 	vec3 refr_dir = get_specular_refraction_dominant_dir(N, V, roughness, ior);
 	vec4 trans_accum = vec4(0.0);
+
+#ifdef USE_REFRACTION
+	/* Screen Space Refraction */
+	if (ssrToggle && roughness < maxRoughness + 0.2) {
+		vec3 rand = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0)).xzw;
+
+		float ray_ofs = 1.0 / float(rayCount);
+		vec4 spec = screen_space_refraction(viewPosition, N, V, ior, roughnessSquared, rand, 0.0);
+		if (rayCount > 1) spec += screen_space_refraction(viewPosition, N, V, ior, roughnessSquared, rand.xyz * vec3(1.0, -1.0, -1.0), 1.0 * ray_ofs);
+		if (rayCount > 2) spec += screen_space_refraction(viewPosition, N, V, ior, roughnessSquared, rand.xzy * vec3(1.0,  1.0, -1.0), 2.0 * ray_ofs);
+		if (rayCount > 3) spec += screen_space_refraction(viewPosition, N, V, ior, roughnessSquared, rand.xzy * vec3(1.0, -1.0,  1.0), 3.0 * ray_ofs);
+		spec /= float(rayCount);
+		spec.a *= smoothstep(maxRoughness + 0.2, maxRoughness, roughness);
+		accumulate_light(spec.rgb, spec.a, trans_accum);
+	}
+#endif
 
 	/* Starts at 1 because 0 is world probe */
 	for (int i = 1; i < MAX_PROBE && i < probe_count && spec_accum.a < 0.999 && trans_accum.a < 0.999; ++i) {

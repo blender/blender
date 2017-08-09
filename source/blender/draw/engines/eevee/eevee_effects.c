@@ -584,6 +584,14 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 	if (BKE_collection_engine_property_value_get_bool(props, "ssr_enable")) {
 		effects->enabled_effects |= EFFECT_SSR;
 
+		if (BKE_collection_engine_property_value_get_bool(props, "ssr_refraction")) {
+			effects->enabled_effects |= EFFECT_REFRACT;
+
+			DRWFboTexture tex = {&txl->refract_color, DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
+
+			DRW_framebuffer_init(&fbl->refract_fb, &draw_engine_eevee_type, (int)viewport_size[0], (int)viewport_size[1], &tex, 1);
+		}
+
 		/* Enable double buffering to be able to read previous frame color */
 		effects->enabled_effects |= EFFECT_DOUBLE_BUFFER;
 
@@ -1069,6 +1077,20 @@ void EEVEE_effects_do_volumetrics(EEVEE_SceneLayerData *sldata, EEVEE_Data *veda
 
 		/* Rebind main buffer after attach/detach operations */
 		DRW_framebuffer_bind(fbl->main);
+	}
+}
+
+void EEVEE_effects_do_refraction(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+{
+	EEVEE_FramebufferList *fbl = vedata->fbl;
+	EEVEE_TextureList *txl = vedata->txl;
+	EEVEE_StorageList *stl = vedata->stl;
+	EEVEE_EffectsInfo *effects = stl->effects;
+
+	if ((effects->enabled_effects & EFFECT_REFRACT) != 0) {
+		DRW_framebuffer_texture_attach(fbl->refract_fb, txl->refract_color, 0, 0);
+		DRW_framebuffer_blit(fbl->main, fbl->refract_fb, false);
+		EEVEE_downsample_buffer(vedata, fbl->downsample_fb, txl->refract_color, 9);
 	}
 }
 
