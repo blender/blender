@@ -1599,7 +1599,7 @@ compile_OIIO() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  oiio_magic=16
+  oiio_magic=17
   _init_oiio
 
   # Clean install if needed!
