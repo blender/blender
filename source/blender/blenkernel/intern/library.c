@@ -1115,7 +1115,7 @@ void *BKE_libblock_alloc(Main *bmain, short type, const char *name, const int fl
 	if (id) {
 		id->icon_id = 0;
 		*( (short *)id->name) = type;
-		if ((flag & LIB_ID_FREE_NO_USER_REFCOUNT) == 0) {
+		if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
 			id->us = 1;
 		}
 		if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
