@@ -102,7 +102,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 #ifdef WITH_ALEMBIC
 	MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *) md;
 
-	/* Only used to check wehther we are operating on org data or not... */
+	/* Only used to check whether we are operating on org data or not... */
 	Mesh *me = (ob->type == OB_MESH) ? ob->data : NULL;
 	DerivedMesh *org_dm = dm;
 
