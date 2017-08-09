@@ -123,6 +123,8 @@ def load_addons():
 
 
 def load_modules():
+    VERBOSE = os.environ.get("BLENDER_VERBOSE") is not None
+
     modules = []
     module_paths = []
 
@@ -162,6 +164,14 @@ def load_modules():
     del module_names
 
     #
+    # test we tested all files except for presets and templates
+    ignore_paths = [
+        os.sep + "presets" + os.sep,
+        os.sep + "templates" + os.sep,
+    ] + ([(os.sep + f + os.sep) for f in BLACKLIST] +
+         [(os.sep + f + ".py")  for f in BLACKLIST])
+
+    #
     # now submodules
     for m in modules:
         filepath = m.__file__
@@ -199,7 +209,14 @@ def load_modules():
                     #   import failure.
                     # - We want to catch all failures of this script instead of stopping on
                     #   a first big failure.
-                    traceback.print_exc()
+                    do_print = True
+                    if not VERBOSE:
+                        for ignore in ignore_paths:
+                            if ignore in submod_full:
+                                do_print = False
+                                break
+                    if do_print:
+                        traceback.print_exc()
 
     #
     # check which filepaths we didn't load
@@ -217,14 +234,6 @@ def load_modules():
 
     for f in loaded_files:
         source_files.remove(f)
-
-    #
-    # test we tested all files except for presets and templates
-    ignore_paths = [
-        os.sep + "presets" + os.sep,
-        os.sep + "templates" + os.sep,
-    ] + ([(os.sep + f + os.sep) for f in BLACKLIST] +
-         [(os.sep + f + ".py")  for f in BLACKLIST])
 
     for f in source_files:
         for ignore in ignore_paths:

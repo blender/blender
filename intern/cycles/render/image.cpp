@@ -716,7 +716,12 @@ void ImageManager::device_load_image(Device *device,
 		if(dscene->tex_float4_image[slot] == NULL)
 			dscene->tex_float4_image[slot] = new device_vector<float4>();
 		device_vector<float4>& tex_img = *dscene->tex_float4_image[slot];
-		device_tex_free_safe(device, tex_img);
+
+		if(tex_img.device_pointer) {
+			thread_scoped_lock device_lock(device_mutex);
+			device->tex_free(tex_img);
+		}
+
 		if(!file_load_image<TypeDesc::FLOAT, float>(img,
 		                                            type,
 		                                            texture_limit,
@@ -743,7 +748,12 @@ void ImageManager::device_load_image(Device *device,
 		if(dscene->tex_float_image[slot] == NULL)
 			dscene->tex_float_image[slot] = new device_vector<float>();
 		device_vector<float>& tex_img = *dscene->tex_float_image[slot];
-		device_tex_free_safe(device, tex_img);
+
+		if(tex_img.device_pointer) {
+			thread_scoped_lock device_lock(device_mutex);
+			device->tex_free(tex_img);
+		}
+
 		if(!file_load_image<TypeDesc::FLOAT, float>(img,
 		                                            type,
 		                                            texture_limit,
@@ -767,7 +777,12 @@ void ImageManager::device_load_image(Device *device,
 		if(dscene->tex_byte4_image[slot] == NULL)
 			dscene->tex_byte4_image[slot] = new device_vector<uchar4>();
 		device_vector<uchar4>& tex_img = *dscene->tex_byte4_image[slot];
-		device_tex_free_safe(device, tex_img);
+
+		if(tex_img.device_pointer) {
+			thread_scoped_lock device_lock(device_mutex);
+			device->tex_free(tex_img);
+		}
+
 		if(!file_load_image<TypeDesc::UINT8, uchar>(img,
 		                                            type,
 		                                            texture_limit,
@@ -794,7 +809,12 @@ void ImageManager::device_load_image(Device *device,
 		if(dscene->tex_byte_image[slot] == NULL)
 			dscene->tex_byte_image[slot] = new device_vector<uchar>();
 		device_vector<uchar>& tex_img = *dscene->tex_byte_image[slot];
-		device_tex_free_safe(device, tex_img);
+
+		if(tex_img.device_pointer) {
+			thread_scoped_lock device_lock(device_mutex);
+			device->tex_free(tex_img);
+		}
+
 		if(!file_load_image<TypeDesc::UINT8, uchar>(img,
 		                                            type,
 		                                            texture_limit,
@@ -817,7 +837,12 @@ void ImageManager::device_load_image(Device *device,
 		if(dscene->tex_half4_image[slot] == NULL)
 			dscene->tex_half4_image[slot] = new device_vector<half4>();
 		device_vector<half4>& tex_img = *dscene->tex_half4_image[slot];
-		device_tex_free_safe(device, tex_img);
+
+		if(tex_img.device_pointer) {
+			thread_scoped_lock device_lock(device_mutex);
+			device->tex_free(tex_img);
+		}
+
 		if(!file_load_image<TypeDesc::HALF, half>(img,
 		                                          type,
 		                                          texture_limit,
@@ -843,7 +868,12 @@ void ImageManager::device_load_image(Device *device,
 		if(dscene->tex_half_image[slot] == NULL)
 			dscene->tex_half_image[slot] = new device_vector<half>();
 		device_vector<half>& tex_img = *dscene->tex_half_image[slot];
-		device_tex_free_safe(device, tex_img);
+
+		if(tex_img.device_pointer) {
+			thread_scoped_lock device_lock(device_mutex);
+			device->tex_free(tex_img);
+		}
+
 		if(!file_load_image<TypeDesc::HALF, half>(img,
 		                                          type,
 		                                          texture_limit,
@@ -927,7 +957,11 @@ void ImageManager::device_free_image(Device *device, DeviceScene *dscene, ImageD
 					tex_img = NULL;
 			}
 			if(tex_img) {
-				device_tex_free_safe(device, *tex_img);
+				if(tex_img->device_pointer) {
+					thread_scoped_lock device_lock(device_mutex);
+					device->tex_free(*tex_img);
+				}
+
 				delete tex_img;
 			}
 		}
@@ -1061,17 +1095,6 @@ void ImageManager::device_free(Device *device, DeviceScene *dscene)
 	dscene->tex_float_image.clear();
 	dscene->tex_byte_image.clear();
 	dscene->tex_half_image.clear();
-}
-
-void ImageManager::device_tex_free_safe(Device *device, device_memory& mem)
-{
-	if(mem.device_pointer) {
-		thread_scoped_lock device_lock(device_mutex);
-		device->tex_free(mem);
-	}
-	else {
-		device->tex_free(mem);
-	}
 }
 
 CCL_NAMESPACE_END

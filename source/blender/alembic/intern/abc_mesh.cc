@@ -681,17 +681,17 @@ static void assign_materials(Main *bmain, Object *ob, const std::map<std::string
 			std::string mat_name = it->first;
 			mat_iter = mat_map.find(mat_name.c_str());
 
-			Material *assigned_name;
+			Material *assigned_mat;
 
 			if (mat_iter == mat_map.end()) {
-				assigned_name = BKE_material_add(bmain, mat_name.c_str());
-				mat_map[mat_name] = assigned_name;
+				assigned_mat = BKE_material_add(bmain, mat_name.c_str());
+				mat_map[mat_name] = assigned_mat;
 			}
 			else {
-				assigned_name = mat_iter->second;
+				assigned_mat = mat_iter->second;
 			}
 
-			assign_material(ob, assigned_name, it->second, BKE_MAT_ASSIGN_OBDATA);
+			assign_material(ob, assigned_mat, it->second, BKE_MAT_ASSIGN_OBDATA);
 		}
 	}
 }
@@ -977,8 +977,6 @@ static void read_mesh_sample(ImportSettings *settings,
 	if ((settings->read_flag & (MOD_MESHSEQ_READ_UV | MOD_MESHSEQ_READ_COLOR)) != 0) {
 		read_custom_data(schema.getArbGeomParams(), config, selector);
 	}
-
-	/* TODO: face sets */
 }
 
 CDStreamConfig get_config(DerivedMesh *dm)
@@ -1117,6 +1115,16 @@ DerivedMesh *AbcMeshReader::read_derivedmesh(DerivedMesh *dm,
 		CDDM_calc_normals(new_dm);
 		CDDM_calc_edges(new_dm);
 
+		/* Here we assume that the number of materials doesn't change, i.e. that
+		 * the material slots that were created when the object was loaded from
+		 * Alembic are still valid now. */
+		size_t num_polys = new_dm->getNumPolys(new_dm);
+		if (num_polys > 0) {
+			MPoly *dmpolies = new_dm->getPolyArray(new_dm);
+			std::map<std::string, int> mat_map;
+			assign_facesets_to_mpoly(sample_sel, 0, dmpolies, num_polys, mat_map);
+		}
+
 		return new_dm;
 	}
 
@@ -1127,8 +1135,11 @@ DerivedMesh *AbcMeshReader::read_derivedmesh(DerivedMesh *dm,
 	return dm;
 }
 
-void AbcMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, size_t poly_start,
-                                       const ISampleSelector &sample_sel)
+void AbcMeshReader::assign_facesets_to_mpoly(
+        const ISampleSelector &sample_sel,
+        size_t poly_start,
+        MPoly *mpoly, int totpoly,
+        std::map<std::string, int> & r_mat_map)
 {
 	std::vector<std::string> face_sets;
 	m_schema.getFaceSetNames(face_sets);
@@ -1137,21 +1148,21 @@ void AbcMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, size_t poly_star
 		return;
 	}
 
-	std::map<std::string, int> mat_map;
 	int current_mat = 0;
 
 	for (int i = 0; i < face_sets.size(); ++i) {
 		const std::string &grp_name = face_sets[i];
 
-		if (mat_map.find(grp_name) == mat_map.end()) {
-			mat_map[grp_name] = 1 + current_mat++;
+		if (r_mat_map.find(grp_name) == r_mat_map.end()) {
+			r_mat_map[grp_name] = 1 + current_mat++;
 		}
 
-		const int assigned_mat = mat_map[grp_name];
+		const int assigned_mat = r_mat_map[grp_name];
 
 		const IFaceSet faceset = m_schema.getFaceSet(grp_name);
 
 		if (!faceset.valid()) {
+			std::cerr << " Face set " << grp_name << " invalid for " << m_object_name << "\n";
 			continue;
 		}
 
@@ -1163,16 +1174,25 @@ void AbcMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, size_t poly_star
 		for (size_t l = 0; l < num_group_faces; l++) {
 			size_t pos = (*group_faces)[l] + poly_start;
 
-			if (pos >= mesh->totpoly) {
+			if (pos >= totpoly) {
 				std::cerr << "Faceset overflow on " << faceset.getName() << '\n';
 				break;
 			}
 
-			MPoly &poly = mesh->mpoly[pos];
+			MPoly &poly = mpoly[pos];
 			poly.mat_nr = assigned_mat - 1;
 		}
 	}
 
+}
+
+void AbcMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, size_t poly_start,
+                                       const ISampleSelector &sample_sel)
+{
+	std::map<std::string, int> mat_map;
+	assign_facesets_to_mpoly(sample_sel,
+	                         poly_start, mesh->mpoly, mesh->totpoly,
+	                         mat_map);
 	utils::assign_materials(bmain, m_object, mat_map);
 }
 
@@ -1228,8 +1248,6 @@ static void read_subd_sample(ImportSettings *settings,
 	if ((settings->read_flag & (MOD_MESHSEQ_READ_UV | MOD_MESHSEQ_READ_COLOR)) != 0) {
 		read_custom_data(schema.getArbGeomParams(), config, selector);
 	}
-
-	/* TODO: face sets */
 }
 
 /* ************************************************************************** */

@@ -160,11 +160,6 @@ private:
 	                       DeviceScene *dscene,
 	                       ImageDataType type,
 	                       int slot);
-
-	/* Will do locking when needed and make sure possible memory manager from
-	 * the device implementation is aware of freed texture.
-	 */
-	void device_tex_free_safe(Device *device, device_memory& mem);
 };
 
 CCL_NAMESPACE_END

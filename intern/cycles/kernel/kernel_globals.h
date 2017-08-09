@@ -119,7 +119,7 @@ typedef type name##_t;
 
 typedef struct tex_info_t {
 	uint buffer, padding;
-	ulong offset;
+	uint64_t offset;
 	uint width, height, depth, options;
 } tex_info_t;
 
