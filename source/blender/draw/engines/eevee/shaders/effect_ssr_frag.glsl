@@ -307,6 +307,10 @@ vec4 get_ssr_sample(
 	/* Estimate a cone footprint to sample a corresponding mipmap level. */
 	float mip = BRDF_BIAS * clamp(log2(cone_footprint * max(texture_size.x, texture_size.y)), 0.0, MAX_MIP) - 1.0;
 
+	/* Correct UVs for mipmaping mis-alignment */
+	float low_mip = floor(mip);
+	ref_uvs *= mix(mipRatio[int(low_mip)], mipRatio[int(low_mip + 1.0)], mip - low_mip);
+
 	/* Slide 54 */
 	float bsdf = bsdf_ggx(N, L, V, roughnessSquared);
 	float weight = step(1e-8, hit_co_pdf.w) * bsdf / max(1e-8, hit_co_pdf.w);

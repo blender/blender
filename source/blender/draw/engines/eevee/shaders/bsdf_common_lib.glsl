@@ -27,6 +27,8 @@ flat in int shFace; /* Shadow layer we are rendering to. */
 #define ViewMatrix      FaceViewMatrix[shFace]
 #endif
 
+uniform vec2 mipRatio[10];
+
 #define cameraForward   normalize(ViewMatrixInverse[2].xyz)
 #define cameraPos       ViewMatrixInverse[3].xyz
 #define cameraVec      ((ProjectionMatrix[3][3] == 0.0) ? normalize(cameraPos - worldPosition) : cameraForward)

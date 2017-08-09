@@ -470,6 +470,8 @@ typedef struct EEVEE_PrivateData {
 	float viewvecs[2][4];
 	/* For planar probes */
 	float texel_size[2];
+	/* To correct mip level texel mis-alignement */
+	float mip_ratio[10][2]; /* TODO put in a UBO */
 	/* For double buffering */
 	bool valid_double_buffer;
 	float prev_persmat[4][4];

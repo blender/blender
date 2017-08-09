@@ -493,6 +493,17 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 	                    (int)viewport_size[0] / 2, (int)viewport_size[1] / 2,
 	                    &texmin, 1);
 
+	/* Compute Mipmap texel alignement. */
+	for (int i = 0; i < 10; ++i) {
+		float mip_size[2] = {viewport_size[0], viewport_size[1]};
+		for (int j = 0; j < i; ++j) {
+			mip_size[0] = floorf(fmaxf(1.0f, mip_size[0] / 2.0f));
+			mip_size[1] = floorf(fmaxf(1.0f, mip_size[1] / 2.0f));
+		}
+		stl->g_data->mip_ratio[i][0] = viewport_size[0] / (mip_size[0] * powf(2.0f, floorf(log2f(floorf(viewport_size[0] / mip_size[0])))));
+		stl->g_data->mip_ratio[i][1] = viewport_size[1] / (mip_size[1] * powf(2.0f, floorf(log2f(floorf(viewport_size[1] / mip_size[1])))));
+	}
+
 	/* Cannot define 2 depth texture for one framebuffer. So allocate ourself. */
 	if (txl->maxzbuffer == NULL) {
 		txl->maxzbuffer = DRW_texture_create_2D((int)viewport_size[0] / 2, (int)viewport_size[1] / 2, DRW_TEX_DEPTH_24, DRW_TEX_MIPMAP, NULL);
@@ -754,6 +765,7 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		DRW_shgroup_uniform_buffer(grp, "maxzBuffer", &txl->maxzbuffer);
 		DRW_shgroup_uniform_buffer(grp, "minzBuffer", &stl->g_data->minzbuffer);
 		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
+		DRW_shgroup_uniform_vec2(grp, "mipRatio[0]", (float *)stl->g_data->mip_ratio, 10);
 		DRW_shgroup_uniform_vec4(grp, "ssrParameters", &effects->ssr_quality, 1);
 		DRW_shgroup_uniform_int(grp, "rayCount", &effects->ssr_ray_count, 1);
 		DRW_shgroup_uniform_int(grp, "planar_count", &sldata->probes->num_planar, 1);
@@ -773,6 +785,7 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
 		DRW_shgroup_uniform_int(grp, "planar_count", &sldata->probes->num_planar, 1);
 		DRW_shgroup_uniform_int(grp, "probe_count", &sldata->probes->num_render_cube, 1);
+		DRW_shgroup_uniform_vec2(grp, "mipRatio[0]", (float *)stl->g_data->mip_ratio, 10);
 		DRW_shgroup_uniform_float(grp, "borderFadeFactor", &effects->ssr_border_fac, 1);
 		DRW_shgroup_uniform_float(grp, "maxRoughness", &effects->ssr_max_roughness, 1);
 		DRW_shgroup_uniform_float(grp, "lodCubeMax", &sldata->probes->lod_cube_max, 1);

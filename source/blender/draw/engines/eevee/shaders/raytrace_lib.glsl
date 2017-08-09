@@ -18,6 +18,8 @@ float sample_depth(vec2 uv, int index, float lod)
 		return textureLod(planarDepth, vec3(uv, index), 0.0).r;
 	}
 	else {
+		/* Correct UVs for mipmaping mis-alignment */
+		uv *= mipRatio[int(lod + 1.0)];
 		return textureLod(maxzBuffer, uv, lod).r;
 	}
 }
