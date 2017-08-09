@@ -531,7 +531,7 @@ void WM_manipulator_calc_matrix_final_params(
 		mul_mat3_m4_fl(final_matrix, *scale_final);
 	}
 
-	mul_m4_m4m4(r_mat, final_matrix, matrix_space);
+	mul_m4_m4m4(r_mat, matrix_space, final_matrix);
 }
 
 void WM_manipulator_calc_matrix_final(const wmManipulator *mpr, float r_mat[4][4])
