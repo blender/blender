@@ -106,7 +106,7 @@ static void grab_geom_draw(
 
 	immUniformColor4fv(col);
 
-	if (draw_style == ED_MANIPULATOR_GRAB_STYLE_RING) {
+	if (draw_style == ED_MANIPULATOR_GRAB_STYLE_RING_2D) {
 		if (filled) {
 			imm_draw_circle_fill(pos, 0, 0, 1.0f, DIAL_RESOLUTION);
 		}
@@ -114,7 +114,7 @@ static void grab_geom_draw(
 			imm_draw_circle_wire(pos, 0, 0, 1.0f, DIAL_RESOLUTION);
 		}
 	}
-	else if (draw_style == ED_MANIPULATOR_GRAB_STYLE_CROSS) {
+	else if (draw_style == ED_MANIPULATOR_GRAB_STYLE_CROSS_2D) {
 		immBegin(GWN_PRIM_LINES, 4);
 		immVertex2f(pos,  1.0f,  1.0f);
 		immVertex2f(pos, -1.0f, -1.0f);
@@ -122,6 +122,9 @@ static void grab_geom_draw(
 		immVertex2f(pos, -1.0f,  1.0f);
 		immVertex2f(pos,  1.0f, -1.0f);
 		immEnd();
+	}
+	else {
+		BLI_assert(0);
 	}
 
 	immUnbindProgram();
@@ -304,7 +307,8 @@ static void MANIPULATOR_WT_grab_3d(wmManipulatorType *wt)
 
 	/* rna */
 	static EnumPropertyItem rna_enum_draw_style[] = {
-		{ED_MANIPULATOR_GRAB_STYLE_RING, "RING", 0, "Ring", ""},
+		{ED_MANIPULATOR_GRAB_STYLE_RING_2D, "RING_2D", 0, "Ring", ""},
+		{ED_MANIPULATOR_GRAB_STYLE_CROSS_2D, "CROSS_2D", 0, "Ring", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	static EnumPropertyItem rna_enum_draw_options[] = {
@@ -312,7 +316,7 @@ static void MANIPULATOR_WT_grab_3d(wmManipulatorType *wt)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	RNA_def_enum(wt->srna, "draw_style", rna_enum_draw_style, ED_MANIPULATOR_GRAB_STYLE_RING, "Draw Style", "");
+	RNA_def_enum(wt->srna, "draw_style", rna_enum_draw_style, ED_MANIPULATOR_GRAB_STYLE_RING_2D, "Draw Style", "");
 	RNA_def_enum_flag(wt->srna, "draw_options", rna_enum_draw_options, 0, "Draw Options", "");
 
 	WM_manipulatortype_target_property_def(wt, "offset", PROP_FLOAT, 3);

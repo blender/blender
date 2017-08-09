@@ -413,7 +413,7 @@ static void WIDGETGROUP_node_sbeam_setup(const bContext *UNUSED(C), wmManipulato
 	sbeam_group->manipulator = WM_manipulator_new("MANIPULATOR_WT_grab_3d", mgroup, NULL);
 	wmManipulator *mpr = sbeam_group->manipulator;
 
-	RNA_enum_set(mpr->ptr, "draw_style",  ED_MANIPULATOR_GRAB_STYLE_CROSS);
+	RNA_enum_set(mpr->ptr, "draw_style",  ED_MANIPULATOR_GRAB_STYLE_CROSS_2D);
 
 	mpr->scale_basis = 0.05f;
 
