@@ -681,17 +681,17 @@ static void assign_materials(Main *bmain, Object *ob, const std::map<std::string
 			std::string mat_name = it->first;
 			mat_iter = mat_map.find(mat_name.c_str());
 
-			Material *assigned_name;
+			Material *assigned_mat;
 
 			if (mat_iter == mat_map.end()) {
-				assigned_name = BKE_material_add(bmain, mat_name.c_str());
-				mat_map[mat_name] = assigned_name;
+				assigned_mat = BKE_material_add(bmain, mat_name.c_str());
+				mat_map[mat_name] = assigned_mat;
 			}
 			else {
-				assigned_name = mat_iter->second;
+				assigned_mat = mat_iter->second;
 			}
 
-			assign_material(ob, assigned_name, it->second, BKE_MAT_ASSIGN_OBDATA);
+			assign_material(ob, assigned_mat, it->second, BKE_MAT_ASSIGN_OBDATA);
 		}
 	}
 }
