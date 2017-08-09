@@ -36,8 +36,6 @@
  * - `matrix[0]` is derived from Y and Z.
  * - `matrix[1]` is 'up' for manipulator types that have an up.
  * - `matrix[2]` is the arrow direction (for all arrowes).
- *
- * TODO: use matrix_space
  */
 
 #include "BIF_gl.h"
@@ -130,7 +128,7 @@ static void arrow_draw_geom(const ArrowManipulator3D *arrow, const bool select, 
 
 		const float vec[2][3] = {
 			{0.0f, 0.0f, 0.0f},
-			{0.0f, 0.0f, RNA_float_get(arrow->manipulator.ptr, "length")},
+			{0.0f, 0.0f, arrow_length},
 		};
 
 		glLineWidth(arrow->manipulator.line_width);
@@ -184,33 +182,46 @@ static void arrow_draw_geom(const ArrowManipulator3D *arrow, const bool select, 
 
 static void arrow_draw_intern(ArrowManipulator3D *arrow, const bool select, const bool highlight)
 {
-	float col[4];
+	wmManipulator *mpr = &arrow->manipulator;
+	float color[4];
 	float final_matrix[4][4];
 
-	manipulator_color_get(&arrow->manipulator, highlight, col);
-	manipulator_arrow_matrix_world_get(&arrow->manipulator, final_matrix);
+	manipulator_color_get(mpr, highlight, color);
+	manipulator_arrow_matrix_world_get(mpr, final_matrix);
 
-	mul_mat3_m4_fl(final_matrix, arrow->manipulator.scale_final);
-	mul_m4_m4m4(final_matrix, final_matrix, arrow->manipulator.matrix_offset);
+	if (mpr->flag & WM_MANIPULATOR_DRAW_OFFSET_SCALE) {
+		mul_mat3_m4_fl(final_matrix, arrow->manipulator.scale_final);
+	}
+	mul_m4_m4m4(final_matrix, final_matrix, mpr->matrix_offset);
+	if ((mpr->flag & WM_MANIPULATOR_DRAW_OFFSET_SCALE) == 0) {
+		mul_mat3_m4_fl(final_matrix, arrow->manipulator.scale_final);
+	}
 
 	gpuPushMatrix();
+	gpuMultMatrix(mpr->matrix_space);
 	gpuMultMatrix(final_matrix);
 	glEnable(GL_BLEND);
-	arrow_draw_geom(arrow, select, col);
+	arrow_draw_geom(arrow, select, color);
 	glDisable(GL_BLEND);
 
 	gpuPopMatrix();
 
-	if (arrow->manipulator.interaction_data) {
-		ManipulatorInteraction *inter = arrow->manipulator.interaction_data;
-		float offset_matrix[4][4];
+	if (mpr->interaction_data) {
+		ManipulatorInteraction *inter = mpr->interaction_data;
 
-		copy_m4_m4(offset_matrix, inter->init_matrix);
-		mul_mat3_m4_fl(offset_matrix, inter->init_scale);
+		copy_m4_m4(final_matrix, inter->init_matrix_basis);
+		if (mpr->flag & WM_MANIPULATOR_DRAW_OFFSET_SCALE) {
+			mul_mat3_m4_fl(final_matrix, inter->init_scale_final);
+		}
+		mul_m4_m4m4(final_matrix, final_matrix, mpr->matrix_offset);
+		if ((mpr->flag & WM_MANIPULATOR_DRAW_OFFSET_SCALE) == 0) {
+			mul_mat3_m4_fl(final_matrix, inter->init_scale_final);
+		}
 
 		gpuPushMatrix();
-		gpuMultMatrix(offset_matrix);
-		gpuMultMatrix(arrow->manipulator.matrix_offset);
+		gpuMultMatrix(mpr->matrix_space);
+
+		gpuMultMatrix(final_matrix);
 
 		glEnable(GL_BLEND);
 		arrow_draw_geom(arrow, select, (const float [4]){0.5f, 0.5f, 0.5f, 0.5f});
@@ -255,7 +266,7 @@ static void manipulator_arrow_modal(
 	bool use_vertical = false;
 
 
-	copy_v3_v3(orig_origin, inter->init_matrix[3]);
+	copy_v3_v3(orig_origin, inter->init_matrix_basis[3]);
 	orig_origin[3] = 1.0f;
 	add_v3_v3v3(offset, orig_origin, arrow->manipulator.matrix_basis[2]);
 	offset[3] = 1.0f;
@@ -299,7 +310,7 @@ static void manipulator_arrow_modal(
 	float zfac = ED_view3d_calc_zfac(rv3d, orig_origin, NULL);
 	ED_view3d_win_to_delta(ar, dir2d_final, offset, zfac);
 
-	add_v3_v3v3(orig_origin, offset, inter->init_matrix[3]);
+	add_v3_v3v3(orig_origin, offset, inter->init_matrix_basis[3]);
 
 	/* calculate view vector for the new position */
 	if (rv3d->is_persp) {
@@ -382,9 +393,9 @@ static void manipulator_arrow_invoke(
 	inter->init_mval[0] = event->mval[0];
 	inter->init_mval[1] = event->mval[1];
 
-	inter->init_scale = mpr->scale_final;
+	inter->init_scale_final = mpr->scale_final;
 
-	manipulator_arrow_matrix_world_get(mpr, inter->init_matrix);
+	manipulator_arrow_matrix_world_get(mpr, inter->init_matrix_basis);
 
 	mpr->interaction_data = inter;
 }
@@ -400,14 +411,19 @@ static void manipulator_arrow_property_update(wmManipulator *mpr, wmManipulatorP
 
 static void manipulator_arrow_exit(bContext *C, wmManipulator *mpr, const bool cancel)
 {
-	if (!cancel)
-		return;
-
 	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
 	ManipulatorCommonData *data = &arrow->data;
+	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
+
+	if (!cancel) {
+		/* Assign incase applying the opetration needs an updated offset
+		 * editmesh bisect needs this. */
+		data->offset = WM_manipulator_target_property_value_get(mpr, mpr_prop);
+		return;
+	}
+
 	ManipulatorInteraction *inter = mpr->interaction_data;
 
-	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
 	manipulator_property_value_reset(C, mpr, inter, mpr_prop);
 	data->offset = inter->init_offset;
 }

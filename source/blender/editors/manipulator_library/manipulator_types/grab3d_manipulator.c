@@ -23,15 +23,13 @@
  *
  * \name Grab Manipulator
  *
- * 3D Manipulator
+ * 3D Manipulator, also works in 2D views.
  *
  * \brief Simple manipulator to grab and translate.
  *
  * - `matrix[0]` is derived from Y and Z.
  * - `matrix[1]` currently not used.
  * - `matrix[2]` is the widget direction (for all manipulators).
- *
- * TODO: use matrix_space
  *
  */
 
@@ -75,9 +73,11 @@ typedef struct GrabInteraction {
 	/* only for when using properties */
 	float init_prop_co[3];
 
+	float init_matrix_basis[4][4];
+	float init_scale_final;
+
 	/* final output values, used for drawing */
 	struct {
-		float co_ofs[3];
 		float co_final[3];
 	} output;
 } GrabInteraction;
@@ -93,6 +93,7 @@ static void grab_geom_draw(
 	UNUSED_VARS(grab3d, col, axis_modal_mat);
 	wm_manipulator_geometryinfo_draw(&wm_manipulator_geom_data_grab3d, select);
 #else
+	const int draw_style = RNA_enum_get(mpr->ptr, "draw_style");
 	const int draw_options = RNA_enum_get(mpr->ptr, "draw_options");
 	const bool filled = (draw_options & ED_MANIPULATOR_GRAB_DRAW_FLAG_FILL) != 0;
 
@@ -105,11 +106,22 @@ static void grab_geom_draw(
 
 	immUniformColor4fv(col);
 
-	if (filled) {
-		imm_draw_circle_fill(pos, 0, 0, 1.0, DIAL_RESOLUTION);
+	if (draw_style == ED_MANIPULATOR_GRAB_STYLE_RING) {
+		if (filled) {
+			imm_draw_circle_fill(pos, 0, 0, 1.0f, DIAL_RESOLUTION);
+		}
+		else {
+			imm_draw_circle_wire(pos, 0, 0, 1.0f, DIAL_RESOLUTION);
+		}
 	}
-	else {
-		imm_draw_circle_wire(pos, 0, 0, 1.0, DIAL_RESOLUTION);
+	else if (draw_style == ED_MANIPULATOR_GRAB_STYLE_CROSS) {
+		immBegin(GWN_PRIM_LINES, 4);
+		immVertex2f(pos,  1.0f,  1.0f);
+		immVertex2f(pos, -1.0f, -1.0f);
+
+		immVertex2f(pos, -1.0f,  1.0f);
+		immVertex2f(pos,  1.0f, -1.0f);
+		immEnd();
 	}
 
 	immUnbindProgram();
@@ -136,36 +148,47 @@ static void grab3d_get_translate(
 }
 
 static void grab3d_draw_intern(
-        const bContext *C, wmManipulator *mpr,
+        const bContext *UNUSED(C), wmManipulator *mpr,
         const bool select, const bool highlight)
 {
-	float mat[4][4];
 	float col[4];
-
-	BLI_assert(CTX_wm_area(C)->spacetype == SPACE_VIEW3D);
-	UNUSED_VARS_NDEBUG(C);
+	float final_matrix[4][4];
 
 	manipulator_color_get(mpr, highlight, col);
 
-	copy_m4_m4(mat, mpr->matrix_basis);
-	mul_mat3_m4_fl(mat, mpr->scale_final);
+	copy_m4_m4(final_matrix, mpr->matrix_basis);
+	if (mpr->flag & WM_MANIPULATOR_DRAW_OFFSET_SCALE) {
+		mul_mat3_m4_fl(final_matrix, mpr->scale_final);
+	}
+	mul_m4_m4m4(final_matrix, final_matrix, mpr->matrix_offset);
+	if ((mpr->flag & WM_MANIPULATOR_DRAW_OFFSET_SCALE) == 0) {
+		mul_mat3_m4_fl(final_matrix, mpr->scale_final);
+	}
 
 	gpuPushMatrix();
-	if (mpr->interaction_data) {
-		GrabInteraction *inter = mpr->interaction_data;
-		gpuTranslate3fv(inter->output.co_ofs);
-	}
-	gpuMultMatrix(mat);
-	gpuMultMatrix(mpr->matrix_offset);
+	gpuMultMatrix(mpr->matrix_space);
+	gpuMultMatrix(final_matrix);
 	glEnable(GL_BLEND);
+
 	grab_geom_draw(mpr, col, select);
 	glDisable(GL_BLEND);
 	gpuPopMatrix();
 
 	if (mpr->interaction_data) {
+		GrabInteraction *inter = mpr->interaction_data;
+
+		copy_m4_m4(final_matrix, inter->init_matrix_basis);
+		if (mpr->flag & WM_MANIPULATOR_DRAW_OFFSET_SCALE) {
+			mul_mat3_m4_fl(final_matrix, inter->init_scale_final);
+		}
+		mul_m4_m4m4(final_matrix, final_matrix, mpr->matrix_offset);
+		if ((mpr->flag & WM_MANIPULATOR_DRAW_OFFSET_SCALE) == 0) {
+			mul_mat3_m4_fl(final_matrix, inter->init_scale_final);
+		}
+
 		gpuPushMatrix();
-		gpuMultMatrix(mat);
-		gpuMultMatrix(mpr->matrix_offset);
+		gpuMultMatrix(mpr->matrix_space);
+		gpuMultMatrix(final_matrix);
 		glEnable(GL_BLEND);
 		grab_geom_draw(mpr, (const float [4]){0.5f, 0.5f, 0.5f, 0.5f}, select);
 		glDisable(GL_BLEND);
@@ -197,9 +220,23 @@ static void manipulator_grab_modal(
 {
 	GrabInteraction *inter = mpr->interaction_data;
 
-	grab3d_get_translate(mpr, event, CTX_wm_region(C), inter->output.co_ofs);
+	if (CTX_wm_area(C)->spacetype == SPACE_VIEW3D) {
+		grab3d_get_translate(mpr, event, CTX_wm_region(C), mpr->matrix_basis[3]);
+	}
+	else {
+		float mval_proj_init[2], mval_proj_curr[2];
+		if ((manipulator_window_project_2d(
+		         C, mpr, inter->init_mval, 2, false, mval_proj_init) == false) ||
+		    (manipulator_window_project_2d(
+		         C, mpr, (const float[2]){UNPACK2(event->mval)}, 2, false, mval_proj_curr) == false))
+		{
+			return;
+		}
+		sub_v2_v2v2(mpr->matrix_basis[3], mval_proj_curr, mval_proj_init);
+		mpr->matrix_basis[3][2] = 0.0f;
+	}
 
-	add_v3_v3v3(inter->output.co_final, inter->init_prop_co, inter->output.co_ofs);
+	add_v3_v3v3(inter->output.co_final, inter->init_prop_co, mpr->matrix_basis[3]);
 
 	/* set the property for the operator and call its modal function */
 	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
@@ -216,12 +253,44 @@ static void manipulator_grab_invoke(
 	inter->init_mval[0] = event->mval[0];
 	inter->init_mval[1] = event->mval[1];
 
+	copy_m4_m4(inter->init_matrix_basis, mpr->matrix_basis);
+	inter->init_scale_final = mpr->scale_final;
+
 	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
 	if (WM_manipulator_target_property_is_valid(mpr_prop)) {
 		WM_manipulator_target_property_value_get_array(mpr, mpr_prop, inter->init_prop_co);
 	}
 
 	mpr->interaction_data = inter;
+}
+
+
+static int manipulator_grab_test_select(
+        bContext *C, wmManipulator *mpr, const wmEvent *event)
+{
+	float point_local[2];
+
+	if (manipulator_window_project_2d(
+	        C, mpr, (const float[2]){UNPACK2(event->mval)}, 2, true, point_local) == false)
+	{
+		return 0;
+	}
+
+	if (len_squared_v2(point_local) < SQUARE(mpr->scale_final)) {
+		return true;
+	}
+
+	return 0;
+}
+
+static void manipulator_grab_property_update(wmManipulator *mpr, wmManipulatorProperty *mpr_prop)
+{
+	WM_manipulator_target_property_value_get_array(mpr, mpr_prop, mpr->matrix_basis[3]);
+}
+
+static int manipulator_grab_cursor_get(wmManipulator *UNUSED(mpr))
+{
+	return BC_HANDCURSOR;
 }
 
 /* -------------------------------------------------------------------- */
@@ -237,8 +306,11 @@ static void MANIPULATOR_WT_grab_3d(wmManipulatorType *wt)
 	/* api callbacks */
 	wt->draw = manipulator_grab_draw;
 	wt->draw_select = manipulator_grab_draw_select;
+	wt->test_select = manipulator_grab_test_select;
 	wt->invoke = manipulator_grab_invoke;
+	wt->property_update = manipulator_grab_property_update;
 	wt->modal = manipulator_grab_modal;
+	wt->cursor_get = manipulator_grab_cursor_get;
 
 	wt->struct_size = sizeof(wmManipulator);
 

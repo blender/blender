@@ -1310,6 +1310,7 @@ static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGrou
 				WM_manipulator_set_matrix_rotation_from_z_axis(axis, rv3d->twmat[aidx_norm]);
 				RNA_float_set(axis->ptr, "length", len);
 				WM_manipulator_set_matrix_offset_location(axis, start_co);
+				WM_manipulator_set_flag(axis, WM_MANIPULATOR_DRAW_OFFSET_SCALE, true);
 				break;
 			}
 			case MAN_AXIS_ROT_X:

@@ -71,6 +71,10 @@ typedef enum eWM_ManipulatorFlag {
 	WM_MANIPULATOR_DRAW_MODAL  = (1 << 1), /* draw while dragging */
 	WM_MANIPULATOR_DRAW_VALUE  = (1 << 2), /* draw an indicator for the current value while dragging */
 	WM_MANIPULATOR_HIDDEN      = (1 << 3),
+	/**
+	 * When set 'scale_final' value also scales the offset.
+	 * Use when offset is to avoid screen-space overlap instead of absolute positioning. */
+	WM_MANIPULATOR_DRAW_OFFSET_SCALE  = (1 << 4),
 } eWM_ManipulatorFlag;
 
 /**

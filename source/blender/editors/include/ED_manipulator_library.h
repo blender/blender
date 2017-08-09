@@ -114,11 +114,13 @@ enum {
 /* draw_options */
 enum {
 	ED_MANIPULATOR_GRAB_DRAW_FLAG_NOP               = 0,
+	/* only for solid shapes */
 	ED_MANIPULATOR_GRAB_DRAW_FLAG_FILL              = (1 << 0),
 };
 
 enum {
 	ED_MANIPULATOR_GRAB_STYLE_RING = 0,
+	ED_MANIPULATOR_GRAB_STYLE_CROSS = 1,
 };
 
 

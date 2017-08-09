@@ -118,8 +118,8 @@ static void manipulator_primitive_draw_intern(
 		copy_v3_fl(col_outer, 0.5f);
 		col_outer[3] = 0.8f;
 
-		copy_m4_m4(mat, inter->init_matrix);
-		mul_mat3_m4_fl(mat, inter->init_scale);
+		copy_m4_m4(mat, inter->init_matrix_basis);
+		mul_mat3_m4_fl(mat, inter->init_scale_final);
 
 		gpuPushMatrix();
 		gpuMultMatrix(mat);
@@ -158,8 +158,8 @@ static void manipulator_primitive_invoke(
 {
 	ManipulatorInteraction *inter = MEM_callocN(sizeof(ManipulatorInteraction), __func__);
 
-	copy_m4_m4(inter->init_matrix, mpr->matrix_basis);
-	inter->init_scale = mpr->scale_final;
+	copy_m4_m4(inter->init_matrix_basis, mpr->matrix_basis);
+	inter->init_scale_final = mpr->scale_final;
 
 	mpr->interaction_data = inter;
 }
