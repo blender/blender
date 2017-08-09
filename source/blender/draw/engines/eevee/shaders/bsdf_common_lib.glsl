@@ -567,7 +567,7 @@ Closure closure_add(Closure cl1, Closure cl2)
 	return cl;
 }
 
-#if defined(MESH_SHADER) && !defined(USE_ALPHA_HASH) && !defined(USE_ALPHA_CLIP) && !defined(SHADOW_SHADER)
+#if defined(MESH_SHADER) && !defined(USE_ALPHA_HASH) && !defined(USE_ALPHA_CLIP) && !defined(SHADOW_SHADER) && !defined(USE_MULTIPLY)
 layout(location = 0) out vec4 fragColor;
 layout(location = 1) out vec4 ssrNormals;
 layout(location = 2) out vec4 ssrData;
