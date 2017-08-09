@@ -835,6 +835,9 @@ void wm_manipulatormap_modal_set(
         wmManipulatorMap *mmap, bContext *C, const wmEvent *event, wmManipulator *mpr)
 {
 	if (mpr && C) {
+		/* For now only grab cursor for 3D manipulators. */
+		bool grab_cursor = (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) != 0;
+
 		mpr->state |= WM_MANIPULATOR_STATE_MODAL;
 		mmap->mmap_context.modal = mpr;
 
@@ -862,7 +865,10 @@ void wm_manipulatormap_modal_set(
 				mpr->type->invoke(C, mpr, event);
 			}
 		}
-		WM_cursor_grab_enable(CTX_wm_window(C), true, true, NULL);
+
+		if (grab_cursor) {
+			WM_cursor_grab_enable(CTX_wm_window(C), true, true, NULL);
+		}
 	}
 	else {
 		mpr = mmap->mmap_context.modal;
