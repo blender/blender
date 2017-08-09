@@ -2137,7 +2137,9 @@ void ED_object_single_users(Main *bmain, Scene *scene, const bool full, const bo
 			IDP_RelinkProperty(scene->gpd->id.properties);
 		}
 
-		IDP_RelinkProperty(scene->world->id.properties);
+		if (scene->world) {
+			IDP_RelinkProperty(scene->world->id.properties);
+		}
 
 		if (scene->clip) {
 			IDP_RelinkProperty(scene->clip->id.properties);
