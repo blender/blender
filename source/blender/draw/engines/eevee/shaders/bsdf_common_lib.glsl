@@ -345,7 +345,7 @@ float get_btdf_lut(sampler2DArray btdf_lut_tex, float NV, float roughness, float
 	coords.x = (ior > 1.0)
 	           ? (0.9 + lut_scale_bias_texel_size.z) + (0.1 - lut_scale_bias_texel_size.z) * f0_from_ior(ior)
 	           : (0.9 + lut_scale_bias_texel_size.z) * ior * ior;
-	coords.y = 1.0 - NV;
+	coords.y = 1.0 - saturate(NV);
 	coords.xy *= lut_scale_bias_texel_size.x;
 	coords.xy += lut_scale_bias_texel_size.y;
 
