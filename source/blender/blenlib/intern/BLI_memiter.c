@@ -147,7 +147,7 @@ BLI_memiter *BLI_memiter_create(uint chunk_size_min)
 		chunk_size_min -= slop_space;
 	}
 
-	mi->chunk_size_in_bytes_min = (offset_t)chunk_size_min;
+	mi->chunk_size_in_bytes_min = chunk_size_min;
 	return mi;
 }
 
