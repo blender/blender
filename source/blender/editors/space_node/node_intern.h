@@ -222,6 +222,7 @@ void NODE_OT_clear_viewer_border(struct wmOperatorType *ot);
 /* node_widgets.c */
 void NODE_WGT_backdrop_transform(struct wmManipulatorGroupType *wgt);
 void NODE_WGT_backdrop_crop(struct wmManipulatorGroupType *wgt);
+void NODE_WGT_backdrop_sun_beams(struct wmManipulatorGroupType *wgt);
 
 
 extern const char *node_context_dir[];

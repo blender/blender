@@ -373,3 +373,109 @@ void NODE_WGT_backdrop_crop(wmManipulatorGroupType *wgt)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+
+/** \name Sun Beams
+ * \{ */
+
+struct NodeSunBeamsWidgetGroup {
+	wmManipulator *manipulator;
+
+	struct {
+		float dims[2];
+	} state;
+};
+
+static bool WIDGETGROUP_node_sbeam_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+
+	if ((snode->flag & SNODE_BACKDRAW) == 0) {
+		return false;
+	}
+
+	if (snode && snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
+		bNode *node = nodeGetActive(snode->edittree);
+
+		if (node && ELEM(node->type, CMP_NODE_SUNBEAMS)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static void WIDGETGROUP_node_sbeam_setup(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
+{
+	struct NodeSunBeamsWidgetGroup *sbeam_group = MEM_mallocN(sizeof(struct NodeSunBeamsWidgetGroup), __func__);
+
+	sbeam_group->manipulator = WM_manipulator_new("MANIPULATOR_WT_grab_3d", mgroup, NULL);
+	wmManipulator *mpr = sbeam_group->manipulator;
+
+	RNA_enum_set(mpr->ptr, "draw_style",  ED_MANIPULATOR_GRAB_STYLE_CROSS);
+
+	mpr->scale_basis = 0.05f;
+
+	mgroup->customdata = sbeam_group;
+}
+
+static void WIDGETGROUP_node_sbeam_draw_prepare(const bContext *C, wmManipulatorGroup *mgroup)
+{
+	struct NodeSunBeamsWidgetGroup *sbeam_group = mgroup->customdata;
+	ARegion *ar = CTX_wm_region(C);
+	wmManipulator *mpr = mgroup->manipulators.first;
+
+	SpaceNode *snode = CTX_wm_space_node(C);
+
+	unit_m4(mpr->matrix_space);
+	mul_v3_fl(mpr->matrix_space[0], snode->zoom * sbeam_group->state.dims[0]);
+	mul_v3_fl(mpr->matrix_space[1], snode->zoom * sbeam_group->state.dims[1]);
+	mpr->matrix_space[3][0] = ((ar->winx / 2) + snode->xof) - ((sbeam_group->state.dims[0] / 2.0f) * snode->zoom);
+	mpr->matrix_space[3][1] = ((ar->winy / 2) + snode->yof) - ((sbeam_group->state.dims[1] / 2.0f) * snode->zoom);
+}
+
+static void WIDGETGROUP_node_sbeam_refresh(const bContext *C, wmManipulatorGroup *mgroup)
+{
+	struct NodeSunBeamsWidgetGroup *sbeam_group = mgroup->customdata;
+	wmManipulator *mpr = sbeam_group->manipulator;
+
+	void *lock;
+	Image *ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
+	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
+
+	if (ibuf) {
+		sbeam_group->state.dims[0] = (ibuf->x > 0) ? ibuf->x : 64.0f;
+		sbeam_group->state.dims[1] = (ibuf->y > 0) ? ibuf->y : 64.0f;
+
+		SpaceNode *snode = CTX_wm_space_node(C);
+		bNode *node = nodeGetActive(snode->edittree);
+
+		/* need to set property here for undo. TODO would prefer to do this in _init */
+		PointerRNA nodeptr;
+		RNA_pointer_create((ID *)snode->edittree, &RNA_CompositorNodeSunBeams, node, &nodeptr);
+		WM_manipulator_target_property_def_rna(mpr, "offset", &nodeptr, "source", -1);
+
+		WM_manipulator_set_flag(mpr, WM_MANIPULATOR_DRAW_MODAL, true);
+	}
+	else {
+		WM_manipulator_set_flag(mpr, WM_MANIPULATOR_HIDDEN, true);
+	}
+
+	BKE_image_release_ibuf(ima, ibuf, lock);
+}
+
+void NODE_WGT_backdrop_sun_beams(wmManipulatorGroupType *wgt)
+{
+	wgt->name = "Sun Beams Widget";
+	wgt->idname = "NODE_WGT_sbeam";
+
+	wgt->flag |= WM_MANIPULATORGROUPTYPE_PERSISTENT;
+
+	wgt->poll = WIDGETGROUP_node_sbeam_poll;
+	wgt->setup = WIDGETGROUP_node_sbeam_setup;
+	wgt->draw_prepare = WIDGETGROUP_node_sbeam_draw_prepare;
+	wgt->refresh = WIDGETGROUP_node_sbeam_refresh;
+}
+
+/** \} */

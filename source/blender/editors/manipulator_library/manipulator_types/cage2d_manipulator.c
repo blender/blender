@@ -662,11 +662,11 @@ static void MANIPULATOR_WT_cage_2d(wmManipulatorType *wt)
 	/* api callbacks */
 	wt->draw = manipulator_rect_transform_draw;
 	wt->draw_select = manipulator_rect_transform_draw_select;
+	wt->test_select = manipulator_rect_transform_test_select;
 	wt->setup = manipulator_rect_transform_setup;
 	wt->invoke = manipulator_rect_transform_invoke;
 	wt->property_update = manipulator_rect_transform_property_update;
 	wt->modal = manipulator_rect_transform_modal;
-	wt->test_select = manipulator_rect_transform_test_select;
 	wt->exit = manipulator_rect_transform_exit;
 	wt->cursor_get = manipulator_rect_transform_get_cursor;
 
