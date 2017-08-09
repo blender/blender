@@ -192,7 +192,7 @@ void *BLI_memiter_alloc(BLI_memiter *mi, uint elem_size)
 	BLI_assert(data_curr_next <= mi->data_last);
 
 	BLI_memiter_elem *elem      = (BLI_memiter_elem *)mi->data_curr;
-	elem->size = elem_size;
+	elem->size = (offset_t)elem_size
 	mi->data_curr = data_curr_next;
 
 #ifdef USE_TERMINATE_PARANOID
