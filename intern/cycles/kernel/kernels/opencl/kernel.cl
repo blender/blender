@@ -178,7 +178,7 @@ __kernel void kernel_ocl_convert_to_half_float(
 		kernel_film_convert_to_half_float(kg, rgba, buffer, sample_scale, x, y, offset, stride);
 }
 
-__kernel void kernel_ocl_zero_buffer(ccl_global float4 *buffer, ulong size, ulong offset)
+__kernel void kernel_ocl_zero_buffer(ccl_global float4 *buffer, uint64_t size, uint64_t offset)
 {
 	size_t i = ccl_global_id(0) + ccl_global_id(1) * ccl_global_size(0);
 
