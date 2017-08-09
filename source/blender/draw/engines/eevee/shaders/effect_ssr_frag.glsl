@@ -7,26 +7,6 @@
 uniform sampler2DArray utilTex;
 #endif /* UTIL_TEX */
 
-uniform int rayCount;
-uniform float maxRoughness;
-
-#define BRDF_BIAS 0.7
-
-vec3 generate_ray(vec3 V, vec3 N, float a2, vec3 rand, out float pdf)
-{
-	float NH;
-	vec3 T, B;
-	make_orthonormal_basis(N, T, B); /* Generate tangent space */
-
-	/* Importance sampling bias */
-	rand.x = mix(rand.x, 0.0, BRDF_BIAS);
-
-	/* TODO distribution of visible normals */
-	vec3 H = sample_ggx(rand, a2, N, T, B, NH); /* Microfacet normal */
-	pdf = min(1024e32, pdf_ggx_reflect(NH, a2)); /* Theoretical limit of 16bit float */
-	return reflect(-V, H);
-}
-
 #define MAX_MIP 9.0
 
 #ifdef STEP_RAYTRACE
@@ -41,51 +21,57 @@ layout(location = 1) out vec4 hitData1;
 layout(location = 2) out vec4 hitData2;
 layout(location = 3) out vec4 hitData3;
 
-bool has_hit_backface(vec3 hit_pos, vec3 R, vec3 V)
+vec4 do_planar_ssr(int index, vec3 V, vec3 N, vec3 T, vec3 B, vec3 planeNormal, vec3 viewPosition, float a2, vec3 rand, float ofs)
 {
-	vec2 hit_co = project_point(ProjectionMatrix, hit_pos).xy * 0.5 + 0.5;
-	vec3 hit_N = normal_decode(textureLod(normalBuffer, hit_co, 0.0).rg, V);
-	return (dot(-R, hit_N) < 0.0);
-}
+	float pdf, NH;
+	float jitter = fract(rand.x + ofs);
 
-vec4 do_planar_ssr(int index, vec3 V, vec3 N, vec3 planeNormal, vec3 viewPosition, float a2, vec3 rand, float ray_nbr)
-{
-	float pdf;
-	vec3 R = generate_ray(V, N, a2, rand, pdf);
+	/* Importance sampling bias */
+	rand.x = mix(rand.x, 0.0, BRDF_BIAS);
 
+	vec3 H = sample_ggx(rand, a2, N, T, B, NH); /* Microfacet normal */
+	pdf = pdf_ggx_reflect(NH, a2);
+
+	vec3 R = reflect(-V, H);
 	R = reflect(R, planeNormal);
+
+	/* If ray is bad (i.e. going below the plane) regenerate. */
+	if (dot(R, planeNormal) > 0.0) {
+		vec3 H = sample_ggx(rand * vec3(1.0, -1.0, -1.0), a2, N, T, B, NH); /* Microfacet normal */
+		pdf = pdf_ggx_reflect(NH, a2);
+
+		R = reflect(-V, H);
+		R = reflect(R, planeNormal);
+	}
+
+	pdf = min(1024e32, pdf); /* Theoretical limit of 16bit float */
 	pdf *= -1.0; /* Tag as planar ray. */
 
-	/* If ray is bad (i.e. going below the plane) do not trace. */
-	if (dot(R, planeNormal) > 0.0) {
-		vec3 R = generate_ray(V, N, a2, rand * vec3(1.0, -1.0, -1.0), pdf);
-	}
-
-	vec3 hit_pos;
-	if (abs(dot(-R, V)) < 0.9999) {
-		/* Since viewspace hit position can land behind the camera in this case,
-		 * we save the reflected view position (visualize it as the hit position
-		 * below the reflection plane). This way it's garanted that the hit will
-		 * be in front of the camera. That let us tag the bad rays with a negative
-		 * sign in the Z component. */
-		hit_pos = raycast(index, viewPosition, R, fract(rand.x + (ray_nbr / float(rayCount))), a2);
-	}
-	else {
-		vec2 uvs = project_point(ProjectionMatrix, viewPosition).xy * 0.5 + 0.5;
-		float raw_depth = textureLod(planarDepth, vec3(uvs, float(index)), 0.0).r;
-		hit_pos = get_view_space_from_depth(uvs, raw_depth);
-		hit_pos.z *= (raw_depth < 1.0) ? 1.0 : -1.0;
-	}
+	/* Since viewspace hit position can land behind the camera in this case,
+	 * we save the reflected view position (visualize it as the hit position
+	 * below the reflection plane). This way it's garanted that the hit will
+	 * be in front of the camera. That let us tag the bad rays with a negative
+	 * sign in the Z component. */
+	vec3 hit_pos = raycast(index, viewPosition, R, 1e16, jitter, a2);
 
 	return vec4(hit_pos, pdf);
 }
 
-vec4 do_ssr(vec3 V, vec3 N, vec3 viewPosition, float a2, vec3 rand, float ray_nbr)
+vec4 do_ssr(vec3 V, vec3 N, vec3 T, vec3 B, vec3 viewPosition, float a2, vec3 rand, float ofs)
 {
-	float pdf;
-	vec3 R = generate_ray(V, N, a2, rand, pdf);
+	float pdf, NH;
+	float jitter = fract(rand.x + ofs);
 
-	vec3 hit_pos = raycast(-1, viewPosition, R, fract(rand.x + (ray_nbr / float(rayCount))), a2);
+	/* Importance sampling bias */
+	rand.x = mix(rand.x, 0.0, BRDF_BIAS);
+
+	vec3 H = sample_ggx(rand, a2, N, T, B, NH); /* Microfacet normal */
+	pdf = pdf_ggx_reflect(NH, a2);
+
+	vec3 R = reflect(-V, H);
+	pdf = min(1024e32, pdf); /* Theoretical limit of 16bit float */
+
+	vec3 hit_pos = raycast(-1, viewPosition, R, ssrThickness, jitter, a2);
 
 	return vec4(hit_pos, pdf);
 }
@@ -138,6 +124,11 @@ void main()
 	vec3 worldPosition = transform_point(ViewMatrixInverse, viewPosition);
 	vec3 wN = transform_direction(ViewMatrixInverse, N);
 
+	vec3 T, B;
+	make_orthonormal_basis(N, T, B); /* Generate tangent space */
+
+	float ray_ofs = 1.0 / float(rayCount);
+
 	/* Planar Reflections */
 	for (int i = 0; i < MAX_PLANAR && i < planar_count; ++i) {
 		PlanarData pd = planars_data[i];
@@ -152,24 +143,24 @@ void main()
 			vec3 planeNormal = transform_direction(ViewMatrix, pd.pl_normal);
 
 			/* TODO : Raytrace together if textureGather is supported. */
-			hitData0 = do_planar_ssr(i, V, N, planeNormal, tracePosition, a2, rand, 0.0);
-			if (rayCount > 1) hitData1 = do_planar_ssr(i, V, N, planeNormal, tracePosition, a2, rand.xyz * vec3(1.0, -1.0, -1.0), 1.0);
-			if (rayCount > 2) hitData2 = do_planar_ssr(i, V, N, planeNormal, tracePosition, a2, rand.xzy * vec3(1.0,  1.0, -1.0), 2.0);
-			if (rayCount > 3) hitData3 = do_planar_ssr(i, V, N, planeNormal, tracePosition, a2, rand.xzy * vec3(1.0, -1.0,  1.0), 3.0);
+			hitData0 = do_planar_ssr(i, V, N, T, B, planeNormal, tracePosition, a2, rand, 0.0);
+			if (rayCount > 1) hitData1 = do_planar_ssr(i, V, N, T, B, planeNormal, tracePosition, a2, rand.xyz * vec3(1.0, -1.0, -1.0), 1.0 * ray_ofs);
+			if (rayCount > 2) hitData2 = do_planar_ssr(i, V, N, T, B, planeNormal, tracePosition, a2, rand.xzy * vec3(1.0,  1.0, -1.0), 2.0 * ray_ofs);
+			if (rayCount > 3) hitData3 = do_planar_ssr(i, V, N, T, B, planeNormal, tracePosition, a2, rand.xzy * vec3(1.0, -1.0,  1.0), 3.0 * ray_ofs);
 			return;
 		}
 	}
 
 	/* TODO : Raytrace together if textureGather is supported. */
-	hitData0 = do_ssr(V, N, viewPosition, a2, rand, 0.0);
-	if (rayCount > 1) hitData1 = do_ssr(V, N, viewPosition, a2, rand.xyz * vec3(1.0, -1.0, -1.0), 1.0);
-	if (rayCount > 2) hitData2 = do_ssr(V, N, viewPosition, a2, rand.xzy * vec3(1.0,  1.0, -1.0), 2.0);
-	if (rayCount > 3) hitData3 = do_ssr(V, N, viewPosition, a2, rand.xzy * vec3(1.0, -1.0,  1.0), 3.0);
+	hitData0 = do_ssr(V, N, T, B, viewPosition, a2, rand, 0.0);
+	if (rayCount > 1) hitData1 = do_ssr(V, N, T, B, viewPosition, a2, rand.xyz * vec3(1.0, -1.0, -1.0), 1.0 * ray_ofs);
+	if (rayCount > 2) hitData2 = do_ssr(V, N, T, B, viewPosition, a2, rand.xzy * vec3(1.0,  1.0, -1.0), 2.0 * ray_ofs);
+	if (rayCount > 3) hitData3 = do_ssr(V, N, T, B, viewPosition, a2, rand.xzy * vec3(1.0, -1.0,  1.0), 3.0 * ray_ofs);
 }
 
 #else /* STEP_RESOLVE */
 
-uniform sampler2D colorBuffer; /* previous frame */
+uniform sampler2D prevColorBuffer; /* previous frame */
 uniform sampler2D normalBuffer;
 uniform sampler2D specroughBuffer;
 
@@ -180,9 +171,6 @@ uniform sampler2D hitBuffer3;
 
 uniform int probe_count;
 uniform int planar_count;
-
-uniform float borderFadeFactor;
-uniform float fireflyFactor;
 
 uniform mat4 PastViewProjectionMatrix;
 
@@ -240,17 +228,6 @@ vec3 find_reflection_incident_point(vec3 cam, vec3 hit, vec3 pos, vec3 N)
 float brightness(vec3 c)
 {
 	return max(max(c.r, c.g), c.b);
-}
-
-float screen_border_mask(vec2 hit_co)
-{
-	const float margin = 0.003;
-	float atten = borderFadeFactor + margin; /* Screen percentage */
-	hit_co = smoothstep(margin, atten, hit_co) * (1 - smoothstep(1.0 - atten, 1.0 - margin, hit_co));
-
-	float screenfade = hit_co.x * hit_co.y;
-
-	return screenfade;
 }
 
 vec2 get_reprojected_reflection(vec3 hit, vec3 pos, vec3 N)
@@ -321,7 +298,7 @@ vec4 get_ssr_sample(
 		sample = textureLod(probePlanars, vec3(ref_uvs, planar_index), mip).rgb;
 	}
 	else {
-		sample = textureLod(colorBuffer, ref_uvs, mip).rgb;
+		sample = textureLod(prevColorBuffer, ref_uvs, mip).rgb;
 	}
 
 	/* Clamped brightness. */

@@ -780,7 +780,7 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		DRW_shgroup_uniform_buffer(grp, "normalBuffer", &txl->ssr_normal_input);
 		DRW_shgroup_uniform_buffer(grp, "specroughBuffer", &txl->ssr_specrough_input);
 		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
-		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &txl->color_double_buffer);
+		DRW_shgroup_uniform_buffer(grp, "prevColorBuffer", &txl->color_double_buffer);
 		DRW_shgroup_uniform_mat4(grp, "PastViewProjectionMatrix", (float *)stl->g_data->prev_persmat);
 		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
 		DRW_shgroup_uniform_int(grp, "planar_count", &sldata->probes->num_planar, 1);

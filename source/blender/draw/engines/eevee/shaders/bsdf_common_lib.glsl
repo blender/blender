@@ -29,6 +29,13 @@ flat in int shFace; /* Shadow layer we are rendering to. */
 
 uniform vec2 mipRatio[10];
 
+/* Buffers */
+uniform sampler2D colorBuffer;
+uniform sampler2D depthBuffer;
+uniform sampler2D maxzBuffer;
+uniform sampler2D minzBuffer;
+uniform sampler2DArray planarDepth;
+
 #define cameraForward   normalize(ViewMatrixInverse[2].xyz)
 #define cameraPos       ViewMatrixInverse[3].xyz
 #define cameraVec      ((ProjectionMatrix[3][3] == 0.0) ? normalize(cameraPos - worldPosition) : cameraForward)

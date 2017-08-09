@@ -2,15 +2,15 @@
 #define MAX_REFINE_STEP 32 /* Should be max allowed stride */
 
 uniform vec4 ssrParameters;
-
-uniform sampler2D depthBuffer;
-uniform sampler2D maxzBuffer;
-uniform sampler2D minzBuffer;
-uniform sampler2DArray planarDepth;
+uniform int rayCount;
 
 #define ssrQuality    ssrParameters.x
 #define ssrThickness  ssrParameters.y
 #define ssrPixelSize  ssrParameters.zw
+
+uniform float maxRoughness;
+uniform float borderFadeFactor;
+uniform float fireflyFactor;
 
 float sample_depth(vec2 uv, int index, float lod)
 {
@@ -21,26 +21,6 @@ float sample_depth(vec2 uv, int index, float lod)
 		/* Correct UVs for mipmaping mis-alignment */
 		uv *= mipRatio[int(lod + 1.0)];
 		return textureLod(maxzBuffer, uv, lod).r;
-	}
-}
-
-float sample_minz_depth(vec2 uv, int index)
-{
-	if (index > -1) {
-		return textureLod(planarDepth, vec3(uv, index), 0.0).r;
-	}
-	else {
-		return textureLod(minzBuffer, uv, 0.0).r;
-	}
-}
-
-float sample_maxz_depth(vec2 uv, int index)
-{
-	if (index > -1) {
-		return textureLod(planarDepth, vec3(uv, index), 0.0).r;
-	}
-	else {
-		return textureLod(maxzBuffer, uv, 0.0).r;
 	}
 }
 
@@ -82,7 +62,7 @@ float refine_isect(float prev_delta, float curr_delta)
 	return saturate(prev_delta / (prev_delta - curr_delta));
 }
 
-void prepare_raycast(vec3 ray_origin, vec3 ray_dir, out vec4 ss_step, out vec4 ss_ray, out float max_time)
+void prepare_raycast(vec3 ray_origin, vec3 ray_dir, float thickness, out vec4 ss_step, out vec4 ss_ray, out float max_time)
 {
 	/* Negate the ray direction if it goes towards the camera.
 	 * This way we don't need to care if the projected point
@@ -91,27 +71,42 @@ void prepare_raycast(vec3 ray_origin, vec3 ray_dir, out vec4 ss_step, out vec4 s
 	vec3 ray_end = z_sign * ray_dir * 1e16 + ray_origin;
 
 	/* Project into screen space. */
-	vec3 ss_start = project_point(ProjectionMatrix, ray_origin);
-	vec3 ss_end = project_point(ProjectionMatrix, ray_end);
-	/* 4th component is current stride */
-	ss_step = vec4(z_sign * normalize(ss_end - ss_start), 1.0);
+	vec4 ss_start, ss_end;
+	ss_start.xyz = project_point(ProjectionMatrix, ray_origin);
+	ss_end.xyz = project_point(ProjectionMatrix, ray_end);
+
+	/* We interpolate the ray Z + thickness values to check if depth is within threshold. */
+	ray_origin.z -= thickness;
+	ray_end.z -= thickness;
+	ss_start.w = project_point(ProjectionMatrix, ray_origin).z;
+	ss_end.w = project_point(ProjectionMatrix, ray_end).z;
+
+	/* XXX This is a hack a better method is welcome ! */
+	/* We take the delta between the offseted depth and the depth and substract it from the ray depth.
+	 * This will change the world space thickness appearance a bit but we can have negative
+	 * values without worries. We cannot do this in viewspace because of the perspective division. */
+	ss_start.w = 2.0 * ss_start.z - ss_start.w;
+	ss_end.w = 2.0 * ss_end.z - ss_end.w;
+
+	ss_step = ss_end - ss_start;
+	ss_step = z_sign * ss_step / length(ss_step.xyz);
 
 	/* If the line is degenerate, make it cover at least one pixel
 	 * to not have to handle zero-pixel extent as a special case later */
-	ss_step.xy += vec2((dot(ss_step.xy, ss_step.xy) < 0.00001) ? 0.001 : 0.0);
+	ss_step.xy += vec2((dot(ss_step.xy, ss_step.xy) < 0.000001) ? 0.001 : 0.0);
 
 	/* Make ss_step cover one pixel. */
-	ss_step.xyz /= max(abs(ss_step.x), abs(ss_step.y));
-	ss_step.xyz *= ((abs(ss_step.x) > abs(ss_step.y)) ? ssrPixelSize.x : ssrPixelSize.y);
+	ss_step /= max(abs(ss_step.x), abs(ss_step.y));
+	ss_step *= ((abs(ss_step.x) > abs(ss_step.y)) ? ssrPixelSize.x : ssrPixelSize.y);
 
 	/* Clipping to frustum sides. */
-	max_time = line_unit_box_intersect_dist(ss_start, ss_step.xyz) - 1.0;
+	max_time = line_unit_box_intersect_dist(ss_start.xyz, ss_step.xyz);
 
 	/* Convert to texture coords. Z component included
 	 * since this is how it's stored in the depth buffer.
 	 * 4th component how far we are on the ray */
-	ss_ray = vec4(ss_start * 0.5 + 0.5, 0.0);
-	ss_step.xyz *= 0.5;
+	ss_ray = ss_start * 0.5 + 0.5;
+	ss_step *= 0.5;
 }
 
 /* See times_and_deltas. */
@@ -120,30 +115,35 @@ void prepare_raycast(vec3 ray_origin, vec3 ray_dir, out vec4 ss_step, out vec4 s
 #define curr_delta  times_and_deltas.z
 #define prev_delta  times_and_deltas.w
 
-// #define GROUPED_FETCHES
+// #define GROUPED_FETCHES /* is still slower, need to see where is the bottleneck. */
 /* Return the hit position, and negate the z component (making it positive) if not hit occured. */
-vec3 raycast(int index, vec3 ray_origin, vec3 ray_dir, float ray_jitter, float roughness)
+vec3 raycast(int index, vec3 ray_origin, vec3 ray_dir, float thickness, float ray_jitter, float roughness)
 {
 	vec4 ss_step, ss_start;
 	float max_time;
-	prepare_raycast(ray_origin, ray_dir, ss_step, ss_start, max_time);
+	prepare_raycast(ray_origin, ray_dir, thickness, ss_step, ss_start, max_time);
+
+	float max_trace_time = max(0.001, max_time - 0.01);
 
 #ifdef GROUPED_FETCHES
 	ray_jitter *= 0.25;
 #endif
-	/* x : current_time, y: previous_time, z: previous_delta, w: current_delta */
-	vec4 times_and_deltas = vec4(0.0, 0.0, 0.001, 0.001);
+
+	/* x : current_time, y: previous_time, z: current_delta, w: previous_delta */
+	vec4 times_and_deltas = vec4(0.0);
 
 	float ray_time = 0.0;
-	float depth_sample;
+	float depth_sample = sample_depth(ss_start.xy, index, 0.0);
+	curr_delta = depth_sample - ss_start.z;
 
 	float lod_fac = saturate(fast_sqrt(roughness) * 2.0 - 0.4);
 	bool hit = false;
 	float iter;
-	for (iter = 1.0; !hit && (ray_time <= max_time) && (iter < MAX_STEP); iter++) {
+	for (iter = 1.0; !hit && (ray_time < max_time) && (iter < MAX_STEP); iter++) {
 		/* Minimum stride of 2 because we are using half res minmax zbuffer. */
 		float stride = max(1.0, iter * ssrQuality) * 2.0;
 		float lod = log2(stride * 0.5 * ssrQuality) * lod_fac;
+		ray_time += stride;
 
 		/* Save previous values. */
 		times_and_deltas.xyzw = times_and_deltas.yxwz;
@@ -152,7 +152,7 @@ vec3 raycast(int index, vec3 ray_origin, vec3 ray_dir, float ray_jitter, float r
 		stride *= 4.0;
 		vec4 jit_stride = mix(vec4(2.0), vec4(stride), vec4(0.0, 0.25, 0.5, 0.75) + ray_jitter);
 
-		vec4 times = vec4(ray_time) + jit_stride;
+		vec4 times = min(vec4(ray_time) + jit_stride, vec4(max_trace_time));
 
 		vec4 uv1 = ss_start.xyxy + ss_step.xyxy * times.xxyy;
 		vec4 uv2 = ss_start.xyxy + ss_step.xyxy * times.zzww;
@@ -160,11 +160,13 @@ vec3 raycast(int index, vec3 ray_origin, vec3 ray_dir, float ray_jitter, float r
 		vec4 depth_samples = sample_depth_grouped(uv1, uv2, index, lod);
 
 		vec4 ray_z = ss_start.zzzz + ss_step.zzzz * times.xyzw;
+		vec4 ray_w = ss_start.wwww + ss_step.wwww * vec4(prev_time, times.xyz);
 
 		vec4 deltas = depth_samples - ray_z;
-		/* Same as component wise (depth_samples <= ray_z) && (ray_time <= max_time). */
-		bvec4 test = equal(step(deltas, vec4(0.0)) * step(times, vec4(max_time)), vec4(1.0));
+		/* Same as component wise (curr_delta <= 0.0) && (prev_w <= depth_sample). */
+		bvec4 test = equal(step(deltas, vec4(0.0)) * step(ray_w, depth_samples), vec4(1.0));
 		hit = any(test);
+
 		if (hit) {
 			vec2 m = vec2(1.0, 0.0); /* Mask */
 
@@ -177,54 +179,52 @@ vec3 raycast(int index, vec3 ray_origin, vec3 ray_dir, float ray_jitter, float r
 			depth_sample = (test.z) ? depth_samples.z : depth_sample;
 			depth_sample = (test.y) ? depth_samples.y : depth_sample;
 			depth_sample = (test.x) ? depth_samples.x : depth_sample;
-			break;
 		}
-		curr_time = times.w;
-		curr_delta = deltas.w;
-		ray_time += stride;
+		else {
+			curr_time = times.w;
+			curr_delta = deltas.w;
+		}
 #else
 		float jit_stride = mix(2.0, stride, ray_jitter);
 
-		curr_time = ray_time + jit_stride;
+		curr_time = min(ray_time + jit_stride, max_trace_time);
 		vec4 ss_ray = ss_start + ss_step * curr_time;
 
 		depth_sample = sample_depth(ss_ray.xy, index, lod);
 
+		float prev_w = ss_start.w + ss_step.w * prev_time;
 		curr_delta = depth_sample - ss_ray.z;
-		hit = (curr_delta <= 0.0) && (curr_time <= max_time);
-
-		ray_time += stride;
+		hit = (curr_delta <= 0.0) && (prev_w <= depth_sample);
 #endif
 	}
+
+	/* Discard backface hits */
+	hit = hit && (prev_delta > 0.0);
+
+	/* Reject hit if background. */
+	hit = hit && (depth_sample != 1.0);
 
 	curr_time = (hit) ? mix(prev_time, curr_time, refine_isect(prev_delta, curr_delta)) : curr_time;
 	ray_time = (hit) ? curr_time : ray_time;
 
-#if 0 /* Not needed if using refine_isect() */
-	/* Binary search */
-	for (float time_step = (curr_time - prev_time) * 0.5; time_step > 1.0; time_step /= 2.0) {
-		ray_time -= time_step;
-		vec4 ss_ray = ss_start + ss_step * ray_time;
-		float depth_sample = sample_maxz_depth(ss_ray.xy, index);
-		bool is_hit = (depth_sample - ss_ray.z <= 0.0);
-		ray_time = (is_hit) ? ray_time : ray_time + time_step;
-	}
-#endif
-
 	/* Clip to frustum. */
-	ray_time = min(ray_time, max_time - 0.5);
+	ray_time = max(0.001, min(ray_time, max_time - 1.5));
 
 	vec4 ss_ray = ss_start + ss_step * ray_time;
 	vec3 hit_pos = get_view_space_from_depth(ss_ray.xy, ss_ray.z);
 
-	/* Reject hit if not within threshold. */
-	/* TODO do this check while tracing. Potentially higher quality */
-	if (hit && (index == -1)) {
-		float z = get_view_z_from_depth(depth_sample);
-		hit = hit && ((z - hit_pos.z - ssrThickness) <= ssrThickness);
-	}
-
 	/* Tag Z if ray failed. */
 	hit_pos.z *= (hit) ? 1.0 : -1.0;
 	return hit_pos;
+}
+
+float screen_border_mask(vec2 hit_co)
+{
+	const float margin = 0.003;
+	float atten = borderFadeFactor + margin; /* Screen percentage */
+	hit_co = smoothstep(margin, atten, hit_co) * (1 - smoothstep(1.0 - atten, 1.0 - margin, hit_co));
+
+	float screenfade = hit_co.x * hit_co.y;
+
+	return screenfade;
 }
