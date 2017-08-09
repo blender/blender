@@ -112,6 +112,11 @@ public:
 private:
 	void readFaceSetsSample(Main *bmain, Mesh *mesh, size_t poly_start,
 	                        const Alembic::AbcGeom::ISampleSelector &sample_sel);
+
+	void assign_facesets_to_mpoly(const Alembic::Abc::ISampleSelector &sample_sel,
+	                              size_t poly_start,
+	                              MPoly *mpoly, int totpoly,
+	                              std::map<std::string, int> & r_mat_map);
 };
 
 /* ************************************************************************** */
