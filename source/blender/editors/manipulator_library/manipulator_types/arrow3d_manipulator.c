@@ -184,22 +184,19 @@ static void arrow_draw_intern(ArrowManipulator3D *arrow, const bool select, cons
 {
 	wmManipulator *mpr = &arrow->manipulator;
 	float color[4];
-	float final_matrix[4][4];
+	float matrix_basis_adjust[4][4];
+	float matrix_final[4][4];
 
 	manipulator_color_get(mpr, highlight, color);
-	manipulator_arrow_matrix_world_get(mpr, final_matrix);
+	manipulator_arrow_matrix_world_get(mpr, matrix_basis_adjust);
 
-	if (mpr->flag & WM_MANIPULATOR_DRAW_OFFSET_SCALE) {
-		mul_mat3_m4_fl(final_matrix, arrow->manipulator.scale_final);
-	}
-	mul_m4_m4m4(final_matrix, final_matrix, mpr->matrix_offset);
-	if ((mpr->flag & WM_MANIPULATOR_DRAW_OFFSET_SCALE) == 0) {
-		mul_mat3_m4_fl(final_matrix, arrow->manipulator.scale_final);
-	}
+	WM_manipulator_calc_matrix_final_params(
+	        mpr, &((struct WM_ManipulatorMatrixParams) {
+	            .matrix_basis = matrix_basis_adjust,
+	        }), matrix_final);
 
 	gpuPushMatrix();
-	gpuMultMatrix(mpr->matrix_space);
-	gpuMultMatrix(final_matrix);
+	gpuMultMatrix(matrix_final);
 	glEnable(GL_BLEND);
 	arrow_draw_geom(arrow, select, color);
 	glDisable(GL_BLEND);
@@ -209,19 +206,15 @@ static void arrow_draw_intern(ArrowManipulator3D *arrow, const bool select, cons
 	if (mpr->interaction_data) {
 		ManipulatorInteraction *inter = mpr->interaction_data;
 
-		copy_m4_m4(final_matrix, inter->init_matrix_basis);
-		if (mpr->flag & WM_MANIPULATOR_DRAW_OFFSET_SCALE) {
-			mul_mat3_m4_fl(final_matrix, inter->init_scale_final);
-		}
-		mul_m4_m4m4(final_matrix, final_matrix, mpr->matrix_offset);
-		if ((mpr->flag & WM_MANIPULATOR_DRAW_OFFSET_SCALE) == 0) {
-			mul_mat3_m4_fl(final_matrix, inter->init_scale_final);
-		}
+		WM_manipulator_calc_matrix_final_params(
+		        mpr, &((struct WM_ManipulatorMatrixParams) {
+		            .matrix_basis = inter->init_matrix_basis,
+		            .scale_final = &inter->init_scale_final,
+		        }), matrix_final);
 
 		gpuPushMatrix();
-		gpuMultMatrix(mpr->matrix_space);
+		gpuMultMatrix(matrix_final);
 
-		gpuMultMatrix(final_matrix);
 
 		glEnable(GL_BLEND);
 		arrow_draw_geom(arrow, select, (const float [4]){0.5f, 0.5f, 0.5f, 0.5f});

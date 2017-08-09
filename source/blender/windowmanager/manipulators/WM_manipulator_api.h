@@ -102,6 +102,22 @@ void WM_manipulator_set_color(struct wmManipulator *mpr, const float col[4]);
 void WM_manipulator_get_color_highlight(const struct wmManipulator *mpr, float col_hi[4]);
 void WM_manipulator_set_color_highlight(struct wmManipulator *mpr, const float col[4]);
 
+/**
+ * Leaving values NULL use values from #wmManipulator.
+ */
+struct WM_ManipulatorMatrixParams {
+	const float(*matrix_space)[4];
+	const float(*matrix_basis)[4];
+	const float(*matrix_offset)[4];
+	const float *scale_final;
+};
+
+void WM_manipulator_calc_matrix_final_params(
+        const struct wmManipulator *mpr, const struct WM_ManipulatorMatrixParams *params,
+        float r_mat[4][4]);
+
+void WM_manipulator_calc_matrix_final(const struct wmManipulator *mpr, float r_mat[4][4]);
+
 /* properties */
 void WM_manipulator_properties_create_ptr(struct PointerRNA *ptr, struct wmManipulatorType *wt);
 void WM_manipulator_properties_create(struct PointerRNA *ptr, const char *opstring);

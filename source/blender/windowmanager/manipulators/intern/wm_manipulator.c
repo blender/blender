@@ -508,6 +508,44 @@ int wm_manipulator_is_visible(wmManipulator *mpr)
 	return WM_MANIPULATOR_IS_VISIBLE_UPDATE | WM_MANIPULATOR_IS_VISIBLE_DRAW;
 }
 
+void WM_manipulator_calc_matrix_final_params(
+        const wmManipulator *mpr,
+        const struct WM_ManipulatorMatrixParams *params,
+        float r_mat[4][4])
+{
+	const float (* const matrix_space)[4]  = params->matrix_space  ? params->matrix_space  : mpr->matrix_space;
+	const float (* const matrix_basis)[4]  = params->matrix_basis  ? params->matrix_basis  : mpr->matrix_basis;
+	const float (* const matrix_offset)[4] = params->matrix_offset ? params->matrix_offset : mpr->matrix_offset;
+	const float *scale_final = params->scale_final ? params->scale_final : &mpr->scale_final;
+
+	float final_matrix[4][4];
+
+	copy_m4_m4(final_matrix, matrix_basis);
+
+	if (mpr->flag & WM_MANIPULATOR_DRAW_OFFSET_SCALE) {
+		mul_mat3_m4_fl(final_matrix, *scale_final);
+		mul_m4_m4m4(final_matrix, final_matrix, matrix_offset);
+	}
+	else {
+		mul_m4_m4m4(final_matrix, final_matrix, matrix_offset);
+		mul_mat3_m4_fl(final_matrix, *scale_final);
+	}
+
+	mul_m4_m4m4(r_mat, final_matrix, matrix_space);
+}
+
+void WM_manipulator_calc_matrix_final(const wmManipulator *mpr, float r_mat[4][4])
+{
+	WM_manipulator_calc_matrix_final_params(
+	        mpr,
+	        &((struct WM_ManipulatorMatrixParams) {
+	            .matrix_space = mpr->matrix_space,
+	            .matrix_basis = mpr->matrix_basis,
+	            .matrix_offset = mpr->matrix_offset,
+	            .scale_final = &mpr->scale_final,
+	        }), r_mat
+	);
+}
 
 /** \name Manipulator Propery Access
  *

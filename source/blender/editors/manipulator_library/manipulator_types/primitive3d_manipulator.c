@@ -27,8 +27,6 @@
  *
  * \brief Manipulator with primitive drawing type (plane, cube, etc.).
  * Currently only plane primitive supported without own handling, use with operator only.
- *
- * TODO: use matrix_space
  */
 
 #include "BIF_gl.h"
@@ -91,21 +89,19 @@ static void manipulator_primitive_draw_intern(
         const bool highlight)
 {
 	float col_inner[4], col_outer[4];
-	float mat[4][4];
+	float matrix_final[4][4];
 	const int draw_style = RNA_enum_get(mpr->ptr, "draw_style");
 
 	manipulator_color_get(mpr, highlight, col_outer);
 	copy_v4_v4(col_inner, col_outer);
 	col_inner[3] *= 0.5f;
 
-	copy_m4_m4(mat, mpr->matrix_basis);
-	mul_mat3_m4_fl(mat, mpr->scale_final);
+	WM_manipulator_calc_matrix_final(mpr, matrix_final);
 
 	gpuPushMatrix();
-	gpuMultMatrix(mat);
+	gpuMultMatrix(matrix_final);
 
 	glEnable(GL_BLEND);
-	gpuMultMatrix(mpr->matrix_offset);
 	manipulator_primitive_draw_geom(col_inner, col_outer, draw_style);
 	glDisable(GL_BLEND);
 
@@ -118,14 +114,16 @@ static void manipulator_primitive_draw_intern(
 		copy_v3_fl(col_outer, 0.5f);
 		col_outer[3] = 0.8f;
 
-		copy_m4_m4(mat, inter->init_matrix_basis);
-		mul_mat3_m4_fl(mat, inter->init_scale_final);
+		WM_manipulator_calc_matrix_final_params(
+		        mpr, &((struct WM_ManipulatorMatrixParams) {
+		            .matrix_basis = inter->init_matrix_basis,
+		            .scale_final = &inter->init_scale_final,
+		        }), matrix_final);
 
 		gpuPushMatrix();
-		gpuMultMatrix(mat);
+		gpuMultMatrix(matrix_final);
 
 		glEnable(GL_BLEND);
-		gpuMultMatrix(mpr->matrix_offset);
 		manipulator_primitive_draw_geom(col_inner, col_outer, draw_style);
 		glDisable(GL_BLEND);
 

@@ -1205,6 +1205,7 @@ static void WIDGETGROUP_manipulator_setup(const bContext *UNUSED(C), wmManipulat
 				const float ofs[3] = {ofs_ax, ofs_ax, 0.0f};
 				WM_manipulator_set_scale(axis, 0.07f);
 				WM_manipulator_set_matrix_offset_location(axis, ofs);
+				WM_manipulator_set_flag(axis, WM_MANIPULATOR_DRAW_OFFSET_SCALE, true);
 				break;
 			}
 			case MAN_AXIS_TRANS_C:

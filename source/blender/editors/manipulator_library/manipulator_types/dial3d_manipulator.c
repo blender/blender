@@ -36,8 +36,6 @@
  * - `matrix[0]` is derived from Y and Z.
  * - `matrix[1]` is 'up' when DialManipulator.use_start_y_axis is set.
  * - `matrix[2]` is the axis the dial rotates around (all dials).
- *
- * TODO: use matrix_space
  */
 
 #include "BIF_gl.h"
@@ -107,7 +105,6 @@ static void dial_calc_matrix(const wmManipulator *mpr, float mat[4][4])
 	rotation_between_vecs_to_mat3(rot, up, mpr->matrix_basis[2]);
 	copy_m4_m3(mat, rot);
 	copy_v3_v3(mat[3], mpr->matrix_basis[3]);
-	mul_mat3_m4_fl(mat, mpr->scale_final);
 }
 
 /* -------------------------------------------------------------------- */
@@ -275,18 +272,23 @@ static void dial_draw_intern(
         const bContext *C, wmManipulator *mpr,
         const bool select, const bool highlight, float clip_plane[4])
 {
-	float mat[4][4];
+	float matrix_basis_adjust[4][4];
+	float matrix_final[4][4];
 	float col[4];
 
 	BLI_assert(CTX_wm_area(C)->spacetype == SPACE_VIEW3D);
 
 	manipulator_color_get(mpr, highlight, col);
 
-	dial_calc_matrix(mpr, mat);
+	dial_calc_matrix(mpr, matrix_basis_adjust);
+
+	WM_manipulator_calc_matrix_final_params(
+	        mpr, &((struct WM_ManipulatorMatrixParams) {
+	            .matrix_basis = (void *)matrix_basis_adjust,
+	        }), matrix_final);
 
 	gpuPushMatrix();
-	gpuMultMatrix(mat);
-	gpuMultMatrix(mpr->matrix_offset);
+	gpuMultMatrix(matrix_final);
 
 	/* draw rotation indicator arc first */
 	if ((mpr->flag & WM_MANIPULATOR_DRAW_VALUE) &&
@@ -324,7 +326,7 @@ static void dial_draw_intern(
 	}
 
 	/* draw actual dial manipulator */
-	dial_geom_draw(mpr, col, select, mat, clip_plane);
+	dial_geom_draw(mpr, col, select, matrix_basis_adjust, clip_plane);
 
 	gpuPopMatrix();
 }
