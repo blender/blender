@@ -1663,6 +1663,9 @@ compile_OIIO() {
       INFO "ILMBASE_HOME=$INST/openexr"
     fi
 
+    # ptex is only needed when nicholas bishop is ready
+    cmake_d="$cmake_d -D USE_PTEX=OFF"
+
     # Optional tests and cmd tools
     cmake_d="$cmake_d -D USE_QT=OFF"
     cmake_d="$cmake_d -D USE_PYTHON=OFF"
