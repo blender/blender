@@ -369,6 +369,7 @@ RNA_MANIPULATOR_GENERIC_FLOAT_RW_DEF(line_width, line_width);
 RNA_MANIPULATOR_GENERIC_FLAG_RW_DEF(flag_use_draw_hover, flag, WM_MANIPULATOR_DRAW_HOVER);
 RNA_MANIPULATOR_GENERIC_FLAG_RW_DEF(flag_use_draw_modal, flag, WM_MANIPULATOR_DRAW_MODAL);
 RNA_MANIPULATOR_GENERIC_FLAG_RW_DEF(flag_use_draw_value, flag, WM_MANIPULATOR_DRAW_VALUE);
+RNA_MANIPULATOR_GENERIC_FLAG_RW_DEF(flag_use_draw_offset_scale, flag, WM_MANIPULATOR_DRAW_OFFSET_SCALE);
 RNA_MANIPULATOR_GENERIC_FLAG_RW_DEF(flag_hide, flag, WM_MANIPULATOR_HIDDEN);
 
 /* wmManipulator.state */
@@ -1054,6 +1055,12 @@ static void rna_def_manipulator(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_boolean_funcs(
 	        prop, "rna_Manipulator_flag_use_draw_value_get", "rna_Manipulator_flag_use_draw_value_set");
 	RNA_def_property_ui_text(prop, "Draw Value", "Show an indicator for the current value while dragging");
+	RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+	/* WM_MANIPULATOR_DRAW_OFFSET_SCALE */
+	prop = RNA_def_property(srna, "use_draw_offset_scale", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(
+	        prop, "rna_Manipulator_flag_use_draw_offset_scale_get", "rna_Manipulator_flag_use_draw_offset_scale_set");
+	RNA_def_property_ui_text(prop, "Draw Value", "Scale the offset matrix (use to apply screen-space offset)");
 	RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
 
 	/* wmManipulator.state (readonly) */
