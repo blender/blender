@@ -7,6 +7,7 @@
 uniform sampler2DArray utilTex;
 #endif /* UTIL_TEX */
 
+#define BRDF_BIAS 0.7
 #define MAX_MIP 9.0
 
 #ifdef STEP_RAYTRACE
@@ -251,38 +252,35 @@ vec4 get_ssr_sample(
 	vec3 hit_pos = transform_point(ViewMatrixInverse, hit_co_pdf.xyz);
 
 	vec2 ref_uvs;
-	vec3 L;
+	vec3 hit_vec;
 	float mask = 1.0;
-	float cone_footprint;
 	if (is_planar) {
 		/* Reflect back the hit position to have it in non-reflected world space */
 		vec3 trace_pos = line_plane_intersect(worldPosition, V, pd.pl_plane_eq);
-		vec3 hit_vec = hit_pos - trace_pos;
+		hit_vec = hit_pos - trace_pos;
 		hit_vec = reflect(hit_vec, pd.pl_normal);
-		hit_pos = hit_vec + trace_pos;
-		L = normalize(hit_vec);
 		ref_uvs = project_point(ProjectionMatrix, hit_co_pdf.xyz).xy * 0.5 + 0.5;
-		vec2 uvs = gl_FragCoord.xy / texture_size;
-
-		/* Compute cone footprint in screen space. */
-		float homcoord = ProjectionMatrix[2][3] * hit_co_pdf.z + ProjectionMatrix[3][3];
-		cone_footprint = length(hit_vec) * cone_tan * ProjectionMatrix[0][0] / homcoord;
 	}
 	else {
 		/* Find hit position in previous frame. */
 		ref_uvs = get_reprojected_reflection(hit_pos, worldPosition, N);
-		L = normalize(hit_pos - worldPosition);
-		vec2 uvs = gl_FragCoord.xy / vec2(textureSize(depthBuffer, 0));
-		mask *= screen_border_mask(uvs);
-
-		/* Compute cone footprint Using UV distance because we are using screen space filtering. */
-		cone_footprint = cone_tan * distance(ref_uvs, source_uvs);
+		hit_vec = hit_pos - worldPosition;
+		mask = screen_border_mask(gl_FragCoord.xy / texture_size);
 	}
 	mask = min(mask, screen_border_mask(ref_uvs));
 	mask *= float(has_hit);
 
+	float hit_dist = length(hit_vec);
+	vec3 L = hit_vec / hit_dist;
+
+	float cone_footprint = hit_dist * cone_tan;
+
+	/* Compute cone footprint in screen space. */
+	float homcoord = ProjectionMatrix[2][3] * hit_co_pdf.z + ProjectionMatrix[3][3];
+	cone_footprint = BRDF_BIAS * 0.5 * cone_footprint * max(ProjectionMatrix[0][0], ProjectionMatrix[1][1]) / homcoord;
+
 	/* Estimate a cone footprint to sample a corresponding mipmap level. */
-	float mip = BRDF_BIAS * clamp(log2(cone_footprint * max(texture_size.x, texture_size.y)), 0.0, MAX_MIP) - 1.0;
+	float mip = clamp(log2(cone_footprint * max(texture_size.x, texture_size.y)), 0.0, MAX_MIP);
 
 	/* Correct UVs for mipmaping mis-alignment */
 	float low_mip = floor(mip);
@@ -365,7 +363,7 @@ void main()
 	/* Resolve SSR */
 	float cone_cos = cone_cosine(roughnessSquared);
 	float cone_tan = sqrt(1 - cone_cos * cone_cos) / cone_cos;
-	cone_tan *= mix(saturate(dot(N, V) * 2.0), 1.0, roughness); /* Elongation fit */
+	cone_tan *= mix(saturate(dot(N, -V) * 2.0), 1.0, roughness); /* Elongation fit */
 
 	vec2 source_uvs = project_point(PastViewProjectionMatrix, worldPosition).xy * 0.5 + 0.5;
 
