@@ -87,7 +87,7 @@ typedef struct GrabInteraction {
 /* -------------------------------------------------------------------- */
 
 static void grab_geom_draw(
-        const wmManipulator *mpr, const float col[4], const bool select)
+        const wmManipulator *mpr, const float color[4], const bool select)
 {
 #ifdef USE_MANIPULATOR_CUSTOM_DIAL
 	UNUSED_VARS(grab3d, col, axis_modal_mat);
@@ -104,7 +104,7 @@ static void grab_geom_draw(
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
-	immUniformColor4fv(col);
+	immUniformColor4fv(color);
 
 	if (draw_style == ED_MANIPULATOR_GRAB_STYLE_RING_2D) {
 		if (filled) {
@@ -154,10 +154,10 @@ static void grab3d_draw_intern(
         const bContext *UNUSED(C), wmManipulator *mpr,
         const bool select, const bool highlight)
 {
-	float col[4];
+	float color[4];
 	float matrix_final[4][4];
 
-	manipulator_color_get(mpr, highlight, col);
+	manipulator_color_get(mpr, highlight, color);
 
 	WM_manipulator_calc_matrix_final(mpr, matrix_final);
 
@@ -165,7 +165,7 @@ static void grab3d_draw_intern(
 	gpuMultMatrix(matrix_final);
 	glEnable(GL_BLEND);
 
-	grab_geom_draw(mpr, col, select);
+	grab_geom_draw(mpr, color, select);
 	glDisable(GL_BLEND);
 	gpuPopMatrix();
 

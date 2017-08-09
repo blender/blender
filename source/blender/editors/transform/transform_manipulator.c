@@ -1371,10 +1371,10 @@ static void WIDGETGROUP_manipulator_draw_prepare(const bContext *C, wmManipulato
 			continue;
 		}
 
-		float col[4], col_hi[4];
-		manipulator_get_axis_color(axis_idx, idot, col, col_hi);
-		WM_manipulator_set_color(axis, col);
-		WM_manipulator_set_color_highlight(axis, col_hi);
+		float color[4], color_hi[4];
+		manipulator_get_axis_color(axis_idx, idot, color, color_hi);
+		WM_manipulator_set_color(axis, color);
+		WM_manipulator_set_color_highlight(axis, color_hi);
 
 		switch (axis_idx) {
 			case MAN_AXIS_TRANS_C:

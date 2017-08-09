@@ -191,8 +191,8 @@ void ED_widgetgroup_manipulator2d_setup(const bContext *UNUSED(C), wmManipulator
 	{
 		const float offset[3] = {0.0f, 0.2f};
 
-		float col[4], col_hi[4];
-		manipulator2d_get_axis_color(axis_idx, col, col_hi);
+		float color[4], color_hi[4];
+		manipulator2d_get_axis_color(axis_idx, color, color_hi);
 
 		/* custom handler! */
 		WM_manipulator_set_fn_custom_modal(axis, manipulator2d_modal);
@@ -202,8 +202,8 @@ void ED_widgetgroup_manipulator2d_setup(const bContext *UNUSED(C), wmManipulator
 		WM_manipulator_set_matrix_offset_location(axis, offset);
 		WM_manipulator_set_line_width(axis, MANIPULATOR_AXIS_LINE_WIDTH);
 		WM_manipulator_set_scale(axis, U.manipulator_size);
-		WM_manipulator_set_color(axis, col);
-		WM_manipulator_set_color_highlight(axis, col_hi);
+		WM_manipulator_set_color(axis, color);
+		WM_manipulator_set_color_highlight(axis, color_hi);
 
 		/* assign operator */
 		PointerRNA *ptr = WM_manipulator_set_operator(axis, ot_translate, NULL);

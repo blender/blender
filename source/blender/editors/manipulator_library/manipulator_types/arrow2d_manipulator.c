@@ -101,13 +101,13 @@ static void arrow2d_draw_geom(wmManipulator *mpr, const float matrix[4][4], cons
 
 static void manipulator_arrow2d_draw(const bContext *UNUSED(C), wmManipulator *mpr)
 {
-	float col[4];
+	float color[4];
 
-	manipulator_color_get(mpr, mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT, col);
+	manipulator_color_get(mpr, mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT, color);
 
 	glLineWidth(mpr->line_width);
 	glEnable(GL_BLEND);
-	arrow2d_draw_geom(mpr, mpr->matrix_basis, col);
+	arrow2d_draw_geom(mpr, mpr->matrix_basis, color);
 	glDisable(GL_BLEND);
 
 	if (mpr->interaction_data) {

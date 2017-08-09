@@ -97,10 +97,10 @@ void WM_manipulator_set_flag(struct wmManipulator *mpr, const int flag, const bo
 void WM_manipulator_set_scale(struct wmManipulator *mpr, float scale);
 void WM_manipulator_set_line_width(struct wmManipulator *mpr, const float line_width);
 
-void WM_manipulator_get_color(const struct wmManipulator *mpr, float col[4]);
-void WM_manipulator_set_color(struct wmManipulator *mpr, const float col[4]);
-void WM_manipulator_get_color_highlight(const struct wmManipulator *mpr, float col_hi[4]);
-void WM_manipulator_set_color_highlight(struct wmManipulator *mpr, const float col[4]);
+void WM_manipulator_get_color(const struct wmManipulator *mpr, float color[4]);
+void WM_manipulator_set_color(struct wmManipulator *mpr, const float color[4]);
+void WM_manipulator_get_color_highlight(const struct wmManipulator *mpr, float color_hi[4]);
+void WM_manipulator_set_color_highlight(struct wmManipulator *mpr, const float color[4]);
 
 /**
  * Leaving values NULL use values from #wmManipulator.

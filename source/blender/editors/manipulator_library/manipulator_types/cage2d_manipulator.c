@@ -111,7 +111,7 @@ static void rect_transform_draw_corners(
 }
 
 static void rect_transform_draw_interaction(
-        const float col[4], const int highlighted,
+        const float color[4], const int highlighted,
         const float half_w, const float half_h,
         const float w, const float h, const float line_width)
 {
@@ -168,26 +168,30 @@ static void rect_transform_draw_interaction(
 	}
 
 	Gwn_VertFormat *format = immVertexFormat();
-	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	uint color = GWN_vertformat_attr_add(format, "color", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+	struct {
+		uint pos, col;
+	} attr_id = {
+		.pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT),
+		.col = GWN_vertformat_attr_add(format, "color", GWN_COMP_F32, 3, GWN_FETCH_FLOAT),
+	};
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
 	glLineWidth(line_width + 3.0f);
 
 	immBegin(GWN_PRIM_LINE_STRIP, 3);
-	immAttrib3f(color, 0.0f, 0.0f, 0.0f);
-	immVertex2fv(pos, verts[0]);
-	immVertex2fv(pos, verts[1]);
-	immVertex2fv(pos, verts[2]);
+	immAttrib3f(attr_id.col, 0.0f, 0.0f, 0.0f);
+	immVertex2fv(attr_id.pos, verts[0]);
+	immVertex2fv(attr_id.pos, verts[1]);
+	immVertex2fv(attr_id.pos, verts[2]);
 	immEnd();
 
 	glLineWidth(line_width);
 
 	immBegin(GWN_PRIM_LINE_STRIP, 3);
-	immAttrib3fv(color, col);
-	immVertex2fv(pos, verts[0]);
-	immVertex2fv(pos, verts[1]);
-	immVertex2fv(pos, verts[2]);
+	immAttrib3fv(attr_id.col, color);
+	immVertex2fv(attr_id.pos, verts[0]);
+	immVertex2fv(attr_id.pos, verts[1]);
+	immVertex2fv(attr_id.pos, verts[2]);
 	immEnd();
 
 	immUnbindProgram();
@@ -242,10 +246,10 @@ static void manipulator_rect_transform_draw_intern(
 
 	/* corner manipulators */
 	{
-		float col[4];
-		manipulator_color_get(mpr, highlight, col);
+		float color[4];
+		manipulator_color_get(mpr, highlight, color);
 		glLineWidth(mpr->line_width);
-		rect_transform_draw_corners(&r, w, h, col);
+		rect_transform_draw_corners(&r, w, h, color);
 	}
 
 	if (select) {

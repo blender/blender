@@ -336,13 +336,13 @@ void WM_manipulator_set_line_width(wmManipulator *mpr, const float line_width)
  * \param col  Normal state color.
  * \param col_hi  Highlighted state color.
  */
-void WM_manipulator_get_color(const wmManipulator *mpr, float col[4])
+void WM_manipulator_get_color(const wmManipulator *mpr, float color[4])
 {
-	copy_v4_v4(col, mpr->color);
+	copy_v4_v4(color, mpr->color);
 }
-void WM_manipulator_set_color(wmManipulator *mpr, const float col[4])
+void WM_manipulator_set_color(wmManipulator *mpr, const float color[4])
 {
-	copy_v4_v4(mpr->color, col);
+	copy_v4_v4(mpr->color, color);
 }
 
 void WM_manipulator_get_color_highlight(const wmManipulator *mpr, float color_hi[4])
