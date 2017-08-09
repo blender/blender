@@ -7,7 +7,6 @@
 /* NOTICE : this is multiplied by 2 */
 #define MAX_THETA_STEP 12
 
-uniform sampler2D minMaxDepthTex;
 uniform vec3 aoParameters;
 
 #define aoDistance   aoParameters.x
@@ -16,7 +15,7 @@ uniform vec3 aoParameters;
 
 float get_max_horizon(vec2 co, vec3 x, float h, float lod)
 {
-	float depth = textureLod(minMaxDepthTex, co, floor(lod)).r;
+	float depth = textureLod(maxzBuffer, co, floor(lod)).r;
 
 	/* Background case */
 	/* this is really slow and is only a problem
@@ -158,7 +157,7 @@ void gtao(vec3 normal, vec3 position, vec2 noise, out float visibility
 #endif
 	)
 {
-	vec2 screenres = vec2(textureSize(minMaxDepthTex, 0)) * 2.0;
+	vec2 screenres = vec2(textureSize(maxzBuffer, 0)) * 2.0;
 	vec2 pixel_size = vec2(1.0) / screenres.xy;
 
 	/* Renaming */
