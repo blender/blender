@@ -374,7 +374,7 @@ static void libblock_remap_data_postprocess_object_update(Main *bmain, Object *o
 	if (old_ob->type == OB_MBALL) {
 		for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
 			if (ob->type == OB_MBALL && BKE_mball_is_basis_for(ob, old_ob)) {
-				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
 		}
 	}
@@ -612,7 +612,7 @@ void BKE_libblock_remap_locked(
 	libblock_remap_data_postprocess_nodetree_update(bmain, new_id);
 	BKE_main_lock(bmain);
 
-	/* Full rebuild of DAG! */
+	/* Full rebuild of DEG! */
 	DEG_relations_tag_update(bmain);
 }
 
