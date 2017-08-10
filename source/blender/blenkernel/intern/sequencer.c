@@ -5371,7 +5371,7 @@ Sequence *BKE_sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoad
 	return seq;
 }
 
-static Sequence *seq_dupli(const Scene *scene, Scene *scene_to, Sequence *seq, int dupe_flag, const int flag)
+static Sequence *seq_dupli(const Scene *scene_src, Scene *scene_dst, Sequence *seq, int dupe_flag, const int flag)
 {
 	Sequence *seqn = MEM_dupallocN(seq);
 
@@ -5415,7 +5415,7 @@ static Sequence *seq_dupli(const Scene *scene, Scene *scene_to, Sequence *seq, i
 	else if (seq->type == SEQ_TYPE_SCENE) {
 		seqn->strip->stripdata = NULL;
 		if (seq->scene_sound)
-			seqn->scene_sound = BKE_sound_scene_add_scene_sound_defaults(scene_to, seqn);
+			seqn->scene_sound = BKE_sound_scene_add_scene_sound_defaults(scene_dst, seqn);
 	}
 	else if (seq->type == SEQ_TYPE_MOVIECLIP) {
 		/* avoid assert */
@@ -5432,7 +5432,7 @@ static Sequence *seq_dupli(const Scene *scene, Scene *scene_to, Sequence *seq, i
 		seqn->strip->stripdata =
 		        MEM_dupallocN(seq->strip->stripdata);
 		if (seq->scene_sound)
-			seqn->scene_sound = BKE_sound_add_scene_sound_defaults(scene_to, seqn);
+			seqn->scene_sound = BKE_sound_add_scene_sound_defaults(scene_dst, seqn);
 
 		if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
 			id_us_plus((ID *)seqn->sound);
@@ -5456,13 +5456,13 @@ static Sequence *seq_dupli(const Scene *scene, Scene *scene_to, Sequence *seq, i
 		BLI_assert(0);
 	}
 
-	if (scene == scene_to) {
+	if (scene_src == scene_dst) {
 		if (dupe_flag & SEQ_DUPE_UNIQUE_NAME) {
-			BKE_sequence_base_unique_name_recursive(&scene_to->ed->seqbase, seqn);
+			BKE_sequence_base_unique_name_recursive(&scene_dst->ed->seqbase, seqn);
 		}
 
 		if (dupe_flag & SEQ_DUPE_ANIM) {
-			BKE_sequencer_dupe_animdata(scene_to, seq->name + 2, seqn->name + 2);
+			BKE_sequencer_dupe_animdata(scene_dst, seq->name + 2, seqn->name + 2);
 		}
 	}
 
