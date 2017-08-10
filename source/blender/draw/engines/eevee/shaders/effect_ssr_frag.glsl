@@ -270,7 +270,7 @@ vec4 get_ssr_sample(
 	mask = min(mask, screen_border_mask(ref_uvs));
 	mask *= float(has_hit);
 
-	float hit_dist = length(hit_vec);
+	float hit_dist = max(1e-8, length(hit_vec));
 	vec3 L = hit_vec / hit_dist;
 
 	float cone_footprint = hit_dist * cone_tan;
@@ -305,6 +305,10 @@ vec4 get_ssr_sample(
 
 	/* Do not add light if ray has failed. */
 	sample *= float(has_hit);
+
+#if 0 /* Enable to see where NANs come from. */
+	sample = (any(isnan(sample))) ? vec3(0.0) : sample;
+#endif
 
 	return vec4(sample, mask) * weight;
 }
