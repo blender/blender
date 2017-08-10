@@ -415,7 +415,9 @@ float F_eta(float eta, float cos_theta)
 /* Fresnel */
 vec3 F_schlick(vec3 f0, float cos_theta)
 {
-	float fac = pow(1.0 - cos_theta, 5);
+	float fac = 1.0 - cos_theta;
+	float fac2 = fac * fac;
+	fac = fac2 * fac2 * fac;
 
 	/* Unreal specular matching : if specular color is below 2% intensity,
 	 * (using green channel for intensity) treat as shadowning */
