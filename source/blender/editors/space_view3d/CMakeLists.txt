@@ -60,6 +60,7 @@ set(SRC
 	view3d_header.c
 	view3d_iterators.c
 	view3d_manipulator_camera.c
+	view3d_manipulator_empty.c
 	view3d_manipulator_forcefield.c
 	view3d_manipulator_lamp.c
 	view3d_ops.c
