@@ -94,7 +94,7 @@ static void manipulator_empty_image_prop_offset_get(
 	const struct EmptyImageWidgetGroup *imgroup = mpr_prop->custom_func.user_data;
 	const Object *ob = imgroup->state.ob;
 
-	float dims[2] = {};
+	float dims[2] = {0.0f, 0.0f};
 	RNA_float_get_array(mpr->ptr, "dimensions", dims);
 	dims[0] *= ob->empty_drawsize;
 	dims[1] *= ob->empty_drawsize;
