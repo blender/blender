@@ -1132,6 +1132,9 @@ void *BKE_libblock_alloc(Main *bmain, short type, const char *name, const int fl
 				DAG_id_type_tag(bmain, type);
 			}
 		}
+		else {
+			BLI_strncpy(id->name + 2, name, sizeof(id->name) - 2);
+		}
 	}
 
 	return id;
