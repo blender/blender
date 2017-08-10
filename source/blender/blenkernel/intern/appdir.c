@@ -214,6 +214,8 @@ static bool get_path_local(
 	/* due new codesign situation in OSX > 10.9.5 we must move the blender_version dir with contents to Resources */
 	static char osx_resourses[FILE_MAX];
 	sprintf(osx_resourses, "%s../Resources", bprogdir);
+	/* Remove the '/../' added above. */
+	BLI_cleanup_path(NULL, osx_resourses);
 	return test_path(targetpath, targetpath_len, osx_resourses, blender_version_decimal(ver), relfolder);
 #else
 	return test_path(targetpath, targetpath_len, bprogdir, blender_version_decimal(ver), relfolder);
@@ -591,6 +593,9 @@ static void where_am_i(char *fullname, const size_t maxlen, const char *name)
 		else {
 			BLI_path_program_search(fullname, maxlen, name);
 		}
+		/* Remove "/./" and "/../" so string comparisons can be used on the path. */
+		BLI_cleanup_path(NULL, fullname);
+
 #if defined(DEBUG)
 		if (!STREQ(name, fullname)) {
 			printf("guessing '%s' == '%s'\n", name, fullname);
