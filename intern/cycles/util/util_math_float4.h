@@ -176,8 +176,7 @@ ccl_device_inline float4 operator/=(float4& a, float f)
 ccl_device_inline int4 operator<(const float4& a, const float4& b)
 {
 #ifdef __KERNEL_SSE__
-	/* TODO(sergey): avoid cvt. */
-	return int4(_mm_cvtps_epi32(_mm_cmplt_ps(a.m128, b.m128)));
+	return int4(_mm_castps_si128(_mm_cmplt_ps(a.m128, b.m128)));
 #else
 	return make_int4(a.x < b.x, a.y < b.y, a.z < b.z, a.w < b.w);
 #endif
@@ -186,8 +185,7 @@ ccl_device_inline int4 operator<(const float4& a, const float4& b)
 ccl_device_inline int4 operator>=(const float4& a, const float4& b)
 {
 #ifdef __KERNEL_SSE__
-	/* TODO(sergey): avoid cvt. */
-	return int4(_mm_cvtps_epi32(_mm_cmpge_ps(a.m128, b.m128)));
+	return int4(_mm_castps_si128(_mm_cmpge_ps(a.m128, b.m128)));
 #else
 	return make_int4(a.x >= b.x, a.y >= b.y, a.z >= b.z, a.w >= b.w);
 #endif
@@ -196,8 +194,7 @@ ccl_device_inline int4 operator>=(const float4& a, const float4& b)
 ccl_device_inline int4 operator<=(const float4& a, const float4& b)
 {
 #ifdef __KERNEL_SSE__
-	/* TODO(sergey): avoid cvt. */
-	return int4(_mm_cvtps_epi32(_mm_cmple_ps(a.m128, b.m128)));
+	return int4(_mm_castps_si128(_mm_cmple_ps(a.m128, b.m128)));
 #else
 	return make_int4(a.x <= b.x, a.y <= b.y, a.z <= b.z, a.w <= b.w);
 #endif
