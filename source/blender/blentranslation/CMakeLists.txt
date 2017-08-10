@@ -61,4 +61,6 @@ endif()
 
 blender_add_lib(bf_blentranslation "${SRC}" "${INC}" "${INC_SYS}")
 
-add_subdirectory(msgfmt)
+if(WITH_INTERNATIONAL)
+	add_subdirectory(msgfmt)
+endif()
