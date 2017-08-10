@@ -163,6 +163,21 @@ static void rect_transform_draw_interaction(
 			verts[3][1] = half_h - h;
 			break;
 
+		/* Only used for 3D view selection, never displayed to the user. */
+		case ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE:
+			verts[0][0] = -half_w;
+			verts[0][1] = -half_h;
+
+			verts[1][0] = -half_w;
+			verts[1][1] =  half_h;
+
+			verts[2][0] =  half_w;
+			verts[2][1] =  half_h;
+
+			verts[3][0] =  half_w;
+			verts[3][1] = -half_h;
+			break;
+
 		default:
 			return;
 	}
@@ -176,25 +191,37 @@ static void rect_transform_draw_interaction(
 	};
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
-	glLineWidth(line_width + 3.0f);
+	if (highlighted == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE) {
+		immBegin(GWN_PRIM_TRI_FAN, 4);
+		immAttrib3f(attr_id.col, 0.0f, 0.0f, 0.0f);
+		immVertex2fv(attr_id.pos, verts[0]);
+		immVertex2fv(attr_id.pos, verts[1]);
+		immVertex2fv(attr_id.pos, verts[2]);
+		immVertex2fv(attr_id.pos, verts[3]);
+		immEnd();
+	}
+	else {
+		glLineWidth(line_width + 3.0f);
 
-	immBegin(GWN_PRIM_LINE_STRIP, 3);
-	immAttrib3f(attr_id.col, 0.0f, 0.0f, 0.0f);
-	immVertex2fv(attr_id.pos, verts[0]);
-	immVertex2fv(attr_id.pos, verts[1]);
-	immVertex2fv(attr_id.pos, verts[2]);
-	immEnd();
+		immBegin(GWN_PRIM_LINE_STRIP, 3);
+		immAttrib3f(attr_id.col, 0.0f, 0.0f, 0.0f);
+		immVertex2fv(attr_id.pos, verts[0]);
+		immVertex2fv(attr_id.pos, verts[1]);
+		immVertex2fv(attr_id.pos, verts[2]);
+		immEnd();
 
-	glLineWidth(line_width);
+		glLineWidth(line_width);
 
-	immBegin(GWN_PRIM_LINE_STRIP, 3);
-	immAttrib3fv(attr_id.col, color);
-	immVertex2fv(attr_id.pos, verts[0]);
-	immVertex2fv(attr_id.pos, verts[1]);
-	immVertex2fv(attr_id.pos, verts[2]);
-	immEnd();
+		immBegin(GWN_PRIM_LINE_STRIP, 3);
+		immAttrib3fv(attr_id.col, color);
+		immVertex2fv(attr_id.pos, verts[0]);
+		immVertex2fv(attr_id.pos, verts[1]);
+		immVertex2fv(attr_id.pos, verts[2]);
+		immEnd();
+	}
 
 	immUnbindProgram();
+
 }
 
 static void manipulator_rect_transform_draw_intern(
@@ -255,7 +282,7 @@ static void manipulator_rect_transform_draw_intern(
 	if (select) {
 		if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE) {
 			int scale_parts[] = {
-			    ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT,
+				ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT,
 				ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT,
 				ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP,
 				ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN,
@@ -267,11 +294,21 @@ static void manipulator_rect_transform_draw_intern(
 				        w, h, mpr->line_width);
 			}
 		}
+		if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_TRANSLATE) {
+			const int transform_part = ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE;
+			GPU_select_load_id(select_id | transform_part);
+			rect_transform_draw_interaction(
+			        mpr->color, transform_part, half_w, half_h,
+			        w, h, mpr->line_width);
+		}
 	}
 	else {
-		rect_transform_draw_interaction(
-		        mpr->color, mpr->highlight_part, half_w, half_h,
-		        w, h, mpr->line_width);
+		/* Don't draw translate (only for selection). */
+		if (mpr->highlight_part != ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE) {
+			rect_transform_draw_interaction(
+			        mpr->color, mpr->highlight_part, half_w, half_h,
+			        w, h, mpr->line_width);
+		}
 	}
 
 	glLineWidth(1.0);
