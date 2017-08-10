@@ -576,11 +576,6 @@ static void manipulator_rect_transform_modal(
 
 	wmManipulatorProperty *mpr_prop;
 
-	mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
-	if (mpr_prop->type != NULL) {
-		WM_manipulator_target_property_value_set_array(C, mpr, mpr_prop, offset);
-	}
-
 	mpr_prop = WM_manipulator_target_property_find(mpr, "scale");
 	if (mpr_prop->type != NULL) {
 		if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
@@ -597,20 +592,25 @@ static void manipulator_rect_transform_modal(
 		}
 	}
 
+	mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
+	if (mpr_prop->type != NULL) {
+		WM_manipulator_target_property_value_set_array(C, mpr, mpr_prop, offset);
+	}
+
 	/* tag the region for redraw */
 	ED_region_tag_redraw(CTX_wm_region(C));
 }
 
 static void manipulator_rect_transform_property_update(wmManipulator *mpr, wmManipulatorProperty *mpr_prop)
 {
-	if (STREQ(mpr_prop->type->idname, "offset")) {
-		manipulator_rect_transform_get_prop_value(mpr, mpr_prop, mpr->matrix_offset[3]);
-	}
-	else if (STREQ(mpr_prop->type->idname, "scale")) {
+	if (STREQ(mpr_prop->type->idname, "scale")) {
 		float scale[2];
 		manipulator_rect_transform_get_prop_value(mpr, mpr_prop, scale);
 		mpr->matrix_offset[0][0] = scale[0];
 		mpr->matrix_offset[1][1] = scale[1];
+	}
+	else if (STREQ(mpr_prop->type->idname, "offset")) {
+		manipulator_rect_transform_get_prop_value(mpr, mpr_prop, mpr->matrix_offset[3]);
 	}
 	else {
 		BLI_assert(0);
@@ -627,11 +627,6 @@ static void manipulator_rect_transform_exit(bContext *C, wmManipulator *mpr, con
 	wmManipulatorProperty *mpr_prop;
 
 	/* reset properties */
-	mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
-	if (mpr_prop->type != NULL) {
-		WM_manipulator_target_property_value_set_array(C, mpr, mpr_prop, data->orig_matrix_offset[3]);
-	}
-
 	mpr_prop = WM_manipulator_target_property_find(mpr, "scale");
 	if (mpr_prop->type != NULL) {
 		const float orig_scale[2] = {data->orig_matrix_offset[0][0], data->orig_matrix_offset[1][1]};
@@ -647,6 +642,11 @@ static void manipulator_rect_transform_exit(bContext *C, wmManipulator *mpr, con
 		else {
 			WM_manipulator_target_property_value_set_array(C, mpr, mpr_prop, orig_scale);
 		}
+	}
+
+	mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
+	if (mpr_prop->type != NULL) {
+		WM_manipulator_target_property_value_set_array(C, mpr, mpr_prop, data->orig_matrix_offset[3]);
 	}
 
 	copy_m4_m4(mpr->matrix_offset, data->orig_matrix_offset);
