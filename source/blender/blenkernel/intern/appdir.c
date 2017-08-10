@@ -106,7 +106,8 @@ const char *BKE_appdir_folder_default(void)
 static char *blender_version_decimal(const int ver)
 {
 	static char version_str[5];
-	sprintf(version_str, "%d.%02d", ver / 100, ver % 100);
+	BLI_assert(ver < 1000);
+	BLI_snprintf(version_str, sizeof(version_str),"%d.%02d", ver / 100, ver % 100);
 	return version_str;
 }
 
