@@ -213,10 +213,11 @@ typedef struct Material {
 
 	/* Transparency */
 	float alpha_threshold;
+	float refract_depth;
 	char blend_method;
 	char blend_shadow;
 	char blend_flag;
-	char pad6;
+	char pad6[5];
 
 	/* image to use for image/uv space, also bake target
 	 * (not to be used shading/rendering pipeline, this is editor featyure only!). */

@@ -2725,7 +2725,7 @@ void node_bsdf_glass(vec4 color, float roughness, float ior, vec3 N, out Closure
 #ifdef EEVEE_ENGINE
 	vec3 ssr_spec;
 	roughness = sqrt(roughness);
-	vec3 L = eevee_surface_glass(N, vec3(1.0), roughness, ior, int(-2), ssr_spec);
+	vec3 L = eevee_surface_glass(N, (refractionDepth > 0.0) ? color.rgb : vec3(1.0), roughness, ior, int(-2), ssr_spec);
 	vec3 vN = normalize(mat3(ViewMatrix) * N);
 	result = Closure(L * color.rgb, 1.0, vec4(ssr_spec * color.rgb, roughness), normal_encode(vN, viewCameraVec), int(-2));
 #else
@@ -2889,7 +2889,7 @@ void node_bsdf_principled_clearcoat(vec4 base_color, float subsurface, vec3 subs
 	}
 	result = Closure(surface_color.rgb / surface_color.a, 1.0);
 #else
-	vec3 L_trans = (transmission <= 0.0) ? vec3(0.0) : eevee_surface_glass(N, base_color.rgb, roughness, ior, int(-2), ssr_spec);
+	vec3 L_trans = (transmission <= 0.0) ? vec3(0.0) : eevee_surface_glass(N, base_color.rgb * ((refractionDepth > 0.0) ? base_color.rgb : vec3(1.0)), roughness, ior, int(-2), ssr_spec);
 	vec3 L = eevee_surface_clearcoat_lit(N, diffuse, f0, roughness, CN, clearcoat, clearcoat_roughness, 1.0, int(ssr_id), ssr_spec);
 	L = mix(L, L_trans, transmission);
 	vec3 vN = normalize(mat3(ViewMatrix) * N);
@@ -2930,11 +2930,10 @@ void node_subsurface_scattering(
 void node_bsdf_refraction(vec4 color, float roughness, float ior, vec3 N, out Closure result)
 {
 #ifdef EEVEE_ENGINE
-	vec3 ssr_spec;
+	color.rgb *= (refractionDepth > 0.0) ? color.rgb : vec3(1.0); /* Simulate 2 absorption event. */
 	roughness = sqrt(roughness);
-	vec3 L = eevee_surface_refraction(N, vec3(1.0), roughness, ior, int(-2), ssr_spec);
-	vec3 vN = normalize(mat3(ViewMatrix) * N);
-	result = Closure(L * color.rgb, 1.0, vec4(ssr_spec * color.rgb, roughness), normal_encode(vN, viewCameraVec), int(-2));
+	vec3 L = eevee_surface_refraction(N, vec3(1.0), roughness, ior);
+	result = Closure(L * color.rgb, 1.0, vec4(0.0), vec2(0.0), int(-2));
 #else
 	node_bsdf_diffuse(color, 0.0, N, result);
 #endif /* EEVEE_ENGINE */

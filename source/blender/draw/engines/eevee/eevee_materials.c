@@ -353,7 +353,7 @@ static char *eevee_get_volume_defines(int options)
  **/
 static void add_standard_uniforms(
         DRWShadingGroup *shgrp, EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata,
-        int *ssr_id, float *refract_thickness)
+        int *ssr_id, float *refract_depth, bool use_ssrefraction)
 {
 	if (ssr_id == NULL) {
 		static int no_ssr = -1.0f;
@@ -379,13 +379,15 @@ static void add_standard_uniforms(
 	DRW_shgroup_uniform_buffer(shgrp, "shadowCubes", &sldata->shadow_depth_cube_pool);
 	DRW_shgroup_uniform_buffer(shgrp, "shadowCascades", &sldata->shadow_depth_cascade_pool);
 	DRW_shgroup_uniform_int(shgrp, "outputSsrId", ssr_id, 1);
-	if (vedata->stl->effects->use_ao || refract_thickness) {
+	if (refract_depth != NULL) {
+		DRW_shgroup_uniform_float(shgrp, "refractionDepth", refract_depth, 1);
+	}
+	if (vedata->stl->effects->use_ao || use_ssrefraction) {
 		DRW_shgroup_uniform_vec4(shgrp, "viewvecs[0]", (float *)vedata->stl->g_data->viewvecs, 2);
 		DRW_shgroup_uniform_buffer(shgrp, "maxzBuffer", &vedata->txl->maxzbuffer);
 	}
-	if (refract_thickness) {
+	if (use_ssrefraction) {
 		DRW_shgroup_uniform_buffer(shgrp, "colorBuffer", &vedata->txl->refract_color);
-		DRW_shgroup_uniform_float(shgrp, "refractionThickness", refract_thickness, 1);
 		DRW_shgroup_uniform_vec4(shgrp, "ssrParameters", &vedata->stl->effects->ssr_quality, 1);
 		DRW_shgroup_uniform_float(shgrp, "borderFadeFactor", &vedata->stl->effects->ssr_border_fac, 1);
 		DRW_shgroup_uniform_float(shgrp, "maxRoughness", &vedata->stl->effects->ssr_max_roughness, 1);
@@ -733,7 +735,7 @@ static struct DRWShadingGroup *EEVEE_default_shading_group_create(
 	}
 
 	DRWShadingGroup *shgrp = DRW_shgroup_create(e_data.default_lit[options], pass);
-	add_standard_uniforms(shgrp, sldata, vedata, &ssr_id, NULL);
+	add_standard_uniforms(shgrp, sldata, vedata, &ssr_id, NULL, false);
 
 	return shgrp;
 }
@@ -763,7 +765,7 @@ static struct DRWShadingGroup *EEVEE_default_shading_group_get(
 		vedata->psl->default_pass[options] = DRW_pass_create("Default Lit Pass", state);
 
 		DRWShadingGroup *shgrp = DRW_shgroup_create(e_data.default_lit[options], vedata->psl->default_pass[options]);
-		add_standard_uniforms(shgrp, sldata, vedata, &ssr_id, NULL);
+		add_standard_uniforms(shgrp, sldata, vedata, &ssr_id, NULL, false);
 	}
 
 	return DRW_shgroup_create(e_data.default_lit[options], vedata->psl->default_pass[options]);
@@ -944,10 +946,10 @@ static void material_opaque(
 
 		*shgrp = DRW_shgroup_material_create(*gpumat, use_refract ? psl->refract_pass : psl->material_pass);
 		if (*shgrp) {
-			static int ssr_id;
-			static float refract_thickness = 0.0f; /* TODO Param */
-			ssr_id = (stl->effects->use_ssr) ? 0 : -1;
-			add_standard_uniforms(*shgrp, sldata, vedata, &ssr_id, (use_refract) ? &refract_thickness : NULL);
+			static int no_ssr = -1;
+			static int first_ssr = 0;
+			int *ssr_id = (stl->effects->use_ssr && !use_refract) ? &first_ssr : &no_ssr;
+			add_standard_uniforms(*shgrp, sldata, vedata, ssr_id, &ma->refract_depth, use_refract);
 		}
 		else {
 			/* Shader failed : pink color */
@@ -1036,9 +1038,7 @@ static void material_transparent(
 		*shgrp = DRW_shgroup_material_create(*gpumat, psl->transparent_pass);
 		if (*shgrp) {
 			static int ssr_id = -1; /* TODO transparent SSR */
-			static float refract_thickness = 0.0f; /* TODO Param */
-			add_standard_uniforms(*shgrp, sldata, vedata, &ssr_id,
-			        (use_refract) ? &refract_thickness : NULL);
+			add_standard_uniforms(*shgrp, sldata, vedata, &ssr_id, &ma->refract_depth, use_refract);
 		}
 		else {
 			/* Shader failed : pink color */
@@ -1272,7 +1272,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 
 									shgrp = DRW_shgroup_material_create(gpumat, psl->material_pass);
 									if (shgrp) {
-										add_standard_uniforms(shgrp, sldata, vedata, NULL, NULL);
+										add_standard_uniforms(shgrp, sldata, vedata, NULL, NULL, false);
 
 										BLI_ghash_insert(material_hash, ma, shgrp);
 
