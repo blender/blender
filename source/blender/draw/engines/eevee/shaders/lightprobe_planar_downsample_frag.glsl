@@ -3,12 +3,17 @@
  **/
 
 uniform sampler2DArray source;
-uniform vec2 texelSize;
+uniform float fireflyFactor;
 
 in vec2 uvs;
 flat in float layer;
 
 out vec4 FragColor;
+
+float brightness(vec3 c)
+{
+	return max(max(c.r, c.g), c.b);
+}
 
 void main()
 {
@@ -27,5 +32,9 @@ void main()
 	FragColor += textureLod(source, vec3(uvs + ofs.zy, layer), 0.0);
 	FragColor += textureLod(source, vec3(uvs + ofs.zw, layer), 0.0);
 	FragColor *= 0.25;
+
+	/* Clamped brightness. */
+	float luma = max(1e-8, brightness(FragColor.rgb));
+	FragColor *= 1.0 - max(0.0, luma - fireflyFactor) / luma;
 #endif
 }

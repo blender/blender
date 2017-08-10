@@ -434,6 +434,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *veda
 		struct Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
 		DRWShadingGroup *grp = stl->g_data->planar_downsample = DRW_shgroup_instance_create(e_data.probe_planar_downsample_sh, psl->probe_planar_downsample_ps, geom);
 		DRW_shgroup_uniform_buffer(grp, "source", &txl->planar_pool);
+		DRW_shgroup_uniform_float(grp, "fireflyFactor", &stl->effects->ssr_firefly_fac, 1);
 		DRW_shgroup_uniform_vec2(grp, "texelSize", stl->g_data->texel_size, 1);
 	}
 }
