@@ -47,6 +47,35 @@
 
 /* -------------------------------------------------------------------- */
 
+/** \name Local Utilities
+ * \{ */
+
+static void node_manipulator_calc_matrix_space(
+        const SpaceNode *snode, const ARegion *ar, float matrix_space[4][4])
+{
+	unit_m4(matrix_space);
+	mul_v3_fl(matrix_space[0], snode->zoom);
+	mul_v3_fl(matrix_space[1], snode->zoom);
+	matrix_space[3][0] = (ar->winx / 2) + snode->xof;
+	matrix_space[3][1] = (ar->winy / 2) + snode->yof;
+}
+
+static void node_manipulator_calc_matrix_space_with_image_dims(
+        const SpaceNode *snode, const ARegion *ar, const float image_dims[2], float matrix_space[4][4])
+{
+	unit_m4(matrix_space);
+	mul_v3_fl(matrix_space[0], snode->zoom * image_dims[0]);
+	mul_v3_fl(matrix_space[1], snode->zoom * image_dims[1]);
+	matrix_space[3][0] = ((ar->winx / 2) + snode->xof) - ((image_dims[0] / 2.0f) * snode->zoom);
+	matrix_space[3][1] = ((ar->winy / 2) + snode->yof) - ((image_dims[1] / 2.0f) * snode->zoom);
+}
+
+/** \} */
+
+
+
+/* -------------------------------------------------------------------- */
+
 /** \name Backdrop Manipulator
  * \{ */
 
@@ -304,11 +333,7 @@ static void WIDGETGROUP_node_crop_draw_prepare(const bContext *C, wmManipulatorG
 
 	SpaceNode *snode = CTX_wm_space_node(C);
 
-	unit_m4(mpr->matrix_space);
-	mul_v3_fl(mpr->matrix_space[0], snode->zoom);
-	mul_v3_fl(mpr->matrix_space[1], snode->zoom);
-	mpr->matrix_space[3][0] = (ar->winx / 2) + snode->xof;
-	mpr->matrix_space[3][1] = (ar->winy / 2) + snode->yof;
+	node_manipulator_calc_matrix_space(snode, ar, mpr->matrix_space);
 }
 
 static void WIDGETGROUP_node_crop_refresh(const bContext *C, wmManipulatorGroup *mgroup)
@@ -428,11 +453,7 @@ static void WIDGETGROUP_node_sbeam_draw_prepare(const bContext *C, wmManipulator
 
 	SpaceNode *snode = CTX_wm_space_node(C);
 
-	unit_m4(mpr->matrix_space);
-	mul_v3_fl(mpr->matrix_space[0], snode->zoom * sbeam_group->state.dims[0]);
-	mul_v3_fl(mpr->matrix_space[1], snode->zoom * sbeam_group->state.dims[1]);
-	mpr->matrix_space[3][0] = ((ar->winx / 2) + snode->xof) - ((sbeam_group->state.dims[0] / 2.0f) * snode->zoom);
-	mpr->matrix_space[3][1] = ((ar->winy / 2) + snode->yof) - ((sbeam_group->state.dims[1] / 2.0f) * snode->zoom);
+	node_manipulator_calc_matrix_space_with_image_dims(snode, ar, sbeam_group->state.dims, mpr->matrix_space);
 }
 
 static void WIDGETGROUP_node_sbeam_refresh(const bContext *C, wmManipulatorGroup *mgroup)
@@ -476,6 +497,127 @@ void NODE_WGT_backdrop_sun_beams(wmManipulatorGroupType *wgt)
 	wgt->setup = WIDGETGROUP_node_sbeam_setup;
 	wgt->draw_prepare = WIDGETGROUP_node_sbeam_draw_prepare;
 	wgt->refresh = WIDGETGROUP_node_sbeam_refresh;
+}
+
+/** \} */
+
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Corner Pin
+ * \{ */
+
+struct NodeCornerPinWidgetGroup {
+	wmManipulator *manipulators[4];
+
+	struct {
+		float dims[2];
+	} state;
+};
+
+static bool WIDGETGROUP_node_corner_pin_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+
+	if ((snode->flag & SNODE_BACKDRAW) == 0) {
+		return false;
+	}
+
+	if (snode && snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
+		bNode *node = nodeGetActive(snode->edittree);
+
+		if (node && ELEM(node->type, CMP_NODE_CORNERPIN)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static void WIDGETGROUP_node_corner_pin_setup(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
+{
+	struct NodeCornerPinWidgetGroup *cpin_group = MEM_mallocN(sizeof(struct NodeCornerPinWidgetGroup), __func__);
+	const wmManipulatorType *wt_grab_3d = WM_manipulatortype_find("MANIPULATOR_WT_grab_3d", false);
+
+	for (int i = 0; i < 4; i++) {
+		cpin_group->manipulators[i] = WM_manipulator_new_ptr(wt_grab_3d, mgroup, NULL);
+		wmManipulator *mpr = cpin_group->manipulators[i];
+
+		RNA_enum_set(mpr->ptr, "draw_style",  ED_MANIPULATOR_GRAB_STYLE_CROSS_2D);
+
+		mpr->scale_basis = 0.01f;
+	}
+
+	mgroup->customdata = cpin_group;
+}
+
+static void WIDGETGROUP_node_corner_pin_draw_prepare(const bContext *C, wmManipulatorGroup *mgroup)
+{
+	struct NodeCornerPinWidgetGroup *cpin_group = mgroup->customdata;
+	ARegion *ar = CTX_wm_region(C);
+
+	SpaceNode *snode = CTX_wm_space_node(C);
+
+	float matrix_space[4][4];
+	node_manipulator_calc_matrix_space_with_image_dims(snode, ar, cpin_group->state.dims, matrix_space);
+
+	for (int i = 0; i < 4; i++) {
+		wmManipulator *mpr = cpin_group->manipulators[i];
+		copy_m4_m4(mpr->matrix_space, matrix_space);
+	}
+}
+
+static void WIDGETGROUP_node_corner_pin_refresh(const bContext *C, wmManipulatorGroup *mgroup)
+{
+	struct NodeCornerPinWidgetGroup *cpin_group = mgroup->customdata;
+
+	void *lock;
+	Image *ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
+	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
+
+	if (ibuf) {
+		cpin_group->state.dims[0] = (ibuf->x > 0) ? ibuf->x : 64.0f;
+		cpin_group->state.dims[1] = (ibuf->y > 0) ? ibuf->y : 64.0f;
+
+		SpaceNode *snode = CTX_wm_space_node(C);
+		bNode *node = nodeGetActive(snode->edittree);
+
+		/* need to set property here for undo. TODO would prefer to do this in _init */
+		int i = 0;
+		for (bNodeSocket *sock = node->inputs.first; sock && i < 4; sock = sock->next) {
+			if (sock->type == SOCK_VECTOR) {
+				wmManipulator *mpr = cpin_group->manipulators[i++];
+
+				PointerRNA sockptr;
+				RNA_pointer_create((ID *)snode->edittree, &RNA_NodeSocket, sock, &sockptr);
+				WM_manipulator_target_property_def_rna(mpr, "offset", &sockptr, "default_value", -1);
+
+				WM_manipulator_set_flag(mpr, WM_MANIPULATOR_DRAW_MODAL, true);
+			}
+		}
+	}
+	else {
+		for (int i = 0; i < 4; i++) {
+			wmManipulator *mpr = cpin_group->manipulators[i];
+			WM_manipulator_set_flag(mpr, WM_MANIPULATOR_HIDDEN, true);
+		}
+	}
+
+	BKE_image_release_ibuf(ima, ibuf, lock);
+}
+
+void NODE_WGT_backdrop_corner_pin(wmManipulatorGroupType *wgt)
+{
+	wgt->name = "Corner Pin Widget";
+	wgt->idname = "NODE_WGT_backdrop_corner_pin";
+
+	wgt->flag |= WM_MANIPULATORGROUPTYPE_PERSISTENT;
+
+	wgt->poll = WIDGETGROUP_node_corner_pin_poll;
+	wgt->setup = WIDGETGROUP_node_corner_pin_setup;
+	wgt->draw_prepare = WIDGETGROUP_node_corner_pin_draw_prepare;
+	wgt->refresh = WIDGETGROUP_node_corner_pin_refresh;
 }
 
 /** \} */

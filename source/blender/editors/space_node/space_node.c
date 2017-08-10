@@ -868,6 +868,7 @@ static void node_widgets(void)
 	WM_manipulatorgrouptype_append_and_link(mmap_type, NODE_WGT_backdrop_transform);
 	WM_manipulatorgrouptype_append_and_link(mmap_type, NODE_WGT_backdrop_crop);
 	WM_manipulatorgrouptype_append_and_link(mmap_type, NODE_WGT_backdrop_sun_beams);
+	WM_manipulatorgrouptype_append_and_link(mmap_type, NODE_WGT_backdrop_corner_pin);
 }
 
 static void node_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID *new_id)

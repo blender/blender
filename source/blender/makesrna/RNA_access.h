@@ -132,6 +132,7 @@ extern StructRNA RNA_CompositorNodeCombRGBA;
 extern StructRNA RNA_CompositorNodeCombYCCA;
 extern StructRNA RNA_CompositorNodeCombYUVA;
 extern StructRNA RNA_CompositorNodeComposite;
+extern StructRNA RNA_CompositorNodeCornerPin;
 extern StructRNA RNA_CompositorNodeCrop;
 extern StructRNA RNA_CompositorNodeCurveRGB;
 extern StructRNA RNA_CompositorNodeCurveVec;
