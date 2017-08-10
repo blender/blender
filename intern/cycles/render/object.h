@@ -60,7 +60,7 @@ public:
 
 	ParticleSystem *particle_system;
 	int particle_index;
-	
+
 	Object();
 	~Object();
 
@@ -75,6 +75,11 @@ public:
 	 * kernel scene.
 	 */
 	bool is_traceable();
+
+	/* Combine object's visibility with all possible internal run-time
+	 * determined flags which denotes trace-time visibility.
+	 */
+	uint visibility_for_tracing() const;
 };
 
 /* Object Manager */

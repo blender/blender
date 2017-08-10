@@ -312,14 +312,8 @@ void BVH2::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 					}
 				}
 			}
-
-			visibility |= ob->visibility;
-			if (ob->is_shadow_catcher)
-				visibility &= ~PATH_RAY_SHADOW_NON_CATCHER;
-			else
-				visibility &= ~PATH_RAY_SHADOW_CATCHER;
+			visibility |= ob->visibility_for_tracing();
 		}
-
 		/* TODO(sergey): De-duplicate with pack_leaf(). */
 		float4 leaf_data[BVH_NODE_LEAF_SIZE];
 		leaf_data[0].x = __int_as_float(c0);
