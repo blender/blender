@@ -262,6 +262,17 @@ bool Object::is_traceable()
 	return true;
 }
 
+uint Object::visibility_for_tracing() const {
+	uint trace_visibility = visibility;
+	if (is_shadow_catcher) {
+		trace_visibility &= ~PATH_RAY_SHADOW_NON_CATCHER;
+	}
+	else {
+		trace_visibility &= ~PATH_RAY_SHADOW_CATCHER;
+	}
+	return trace_visibility;
+}
+
 /* Object Manager */
 
 ObjectManager::ObjectManager()

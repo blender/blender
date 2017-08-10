@@ -1120,23 +1120,21 @@ void *BKE_libblock_alloc_notest(short type)
  */
 void *BKE_libblock_alloc(Main *bmain, short type, const char *name, const int flag)
 {
-	ID *id = NULL;
-
 	BLI_assert((flag & LIB_ID_CREATE_NO_ALLOCATE) == 0);
-	
-	id = BKE_libblock_alloc_notest(type);
 
-	if ((flag & LIB_ID_CREATE_NO_MAIN) != 0) {
-		id->tag |= LIB_TAG_NO_MAIN;
-	}
-	if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) != 0) {
-		id->tag |= LIB_TAG_NO_USER_REFCOUNT;
-	}
+	ID *id = BKE_libblock_alloc_notest(type);
 
 	if (id) {
+		if ((flag & LIB_ID_CREATE_NO_MAIN) != 0) {
+			id->tag |= LIB_TAG_NO_MAIN;
+		}
+		if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) != 0) {
+			id->tag |= LIB_TAG_NO_USER_REFCOUNT;
+		}
+
 		id->icon_id = 0;
-		*( (short *)id->name) = type;
-		if ((flag & LIB_ID_FREE_NO_USER_REFCOUNT) == 0) {
+		*((short *)id->name) = type;
+		if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
 			id->us = 1;
 		}
 		if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
@@ -1152,6 +1150,9 @@ void *BKE_libblock_alloc(Main *bmain, short type, const char *name, const int fl
 			if ((flag & LIB_ID_CREATE_NO_DEG_TAG) == 0) {
 				DEG_id_type_tag(bmain, type);
 			}
+		}
+		else {
+			BLI_strncpy(id->name + 2, name, sizeof(id->name) - 2);
 		}
 	}
 

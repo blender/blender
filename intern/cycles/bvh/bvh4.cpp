@@ -438,14 +438,8 @@ void BVH4::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 					}
 				}
 			}
-
-			visibility |= ob->visibility;
-			if (ob->is_shadow_catcher)
-				visibility &= ~PATH_RAY_SHADOW_NON_CATCHER;
-			else
-				visibility &= ~PATH_RAY_SHADOW_CATCHER;
+			visibility |= ob->visibility_for_tracing();
 		}
-
 		/* TODO(sergey): This is actually a copy of pack_leaf(),
 		 * but this chunk of code only knows actual data and has
 		 * no idea about BVHNode.
