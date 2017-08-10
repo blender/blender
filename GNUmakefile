@@ -91,13 +91,7 @@ ifndef NPROCS
 	ifeq ($(OS), Linux)
 		NPROCS:=$(shell nproc)
 	endif
-	ifeq ($(OS), Darwin)
-		NPROCS:=$(shell sysctl -n hw.ncpu)
-	endif
-	ifeq ($(OS), FreeBSD)
-		NPROCS:=$(shell sysctl -n hw.ncpu)
-	endif
-	ifeq ($(OS), NetBSD)
+	ifneq (,$(filter $(OS),Darwin FreeBSD NetBSD))
 		NPROCS:=$(shell sysctl -n hw.ncpu)
 	endif
 endif

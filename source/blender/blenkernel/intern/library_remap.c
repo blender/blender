@@ -248,7 +248,7 @@ static int foreach_libblock_remap_callback(void *user_data, ID *id_self, ID **id
 	return IDWALK_RET_NOP;
 }
 
-/* Some reamapping unfortunately require extra and/or specific handling, tackle those here. */
+/* Some remapping unfortunately require extra and/or specific handling, tackle those here. */
 static void libblock_remap_data_preprocess_scene_base_unlink(
         IDRemap *r_id_remap_data, Scene *sce, BaseLegacy *base, const bool skip_indirect, const bool is_indirect)
 {
@@ -352,7 +352,7 @@ static void libblock_remap_data_preprocess(IDRemap *r_id_remap_data)
 	}
 }
 
-static void libblock_remap_data_postprocess_object_fromgroup_update(Main *bmain, Object *old_ob, Object *new_ob)
+static void libblock_remap_data_postprocess_object_update(Main *bmain, Object *old_ob, Object *new_ob)
 {
 	if (old_ob->flag & OB_FROMGROUP) {
 		/* Note that for Scene's BaseObject->flag, either we:
@@ -369,6 +369,13 @@ static void libblock_remap_data_postprocess_object_fromgroup_update(Main *bmain,
 		}
 		else {
 			new_ob->flag |= OB_FROMGROUP;
+		}
+	}
+	if (old_ob->type == OB_MBALL) {
+		for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+			if (ob->type == OB_MBALL && BKE_mball_is_basis_for(ob, old_ob)) {
+				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			}
 		}
 	}
 }
@@ -575,7 +582,7 @@ void BKE_libblock_remap_locked(
 	 */
 	switch (GS(old_id->name)) {
 		case ID_OB:
-			libblock_remap_data_postprocess_object_fromgroup_update(bmain, (Object *)old_id, (Object *)new_id);
+			libblock_remap_data_postprocess_object_update(bmain, (Object *)old_id, (Object *)new_id);
 			break;
 		case ID_GR:
 			if (!new_id) {  /* Only affects us in case group was unlinked. */
@@ -685,8 +692,7 @@ void BKE_libblock_relink_ex(
 				switch (GS(old_id->name)) {
 					case ID_OB:
 					{
-						libblock_remap_data_postprocess_object_fromgroup_update(
-						            bmain, (Object *)old_id, (Object *)new_id);
+						libblock_remap_data_postprocess_object_update(bmain, (Object *)old_id, (Object *)new_id);
 						break;
 					}
 					case ID_GR:
@@ -701,7 +707,7 @@ void BKE_libblock_relink_ex(
 			else {
 				/* No choice but to check whole objects/groups. */
 				for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
-					libblock_remap_data_postprocess_object_fromgroup_update(bmain, ob, NULL);
+					libblock_remap_data_postprocess_object_update(bmain, ob, NULL);
 				}
 				for (Group *grp = bmain->group.first; grp; grp = grp->id.next) {
 					libblock_remap_data_postprocess_group_scene_unlink(bmain, sce, NULL);

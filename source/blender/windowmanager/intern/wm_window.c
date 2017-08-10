@@ -416,12 +416,12 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 
 void WM_window_set_dpi(wmWindow *win)
 {
-	int auto_dpi = GHOST_GetDPIHint(win->ghostwin);
+	float auto_dpi = GHOST_GetDPIHint(win->ghostwin);
 
 	/* Clamp auto DPI to 96, since our font/interface drawing does not work well
 	 * with lower sizes. The main case we are interested in supporting is higher
 	 * DPI. If a smaller UI is desired it is still possible to adjust UI scale. */
-	auto_dpi = MAX2(auto_dpi, 96);
+	auto_dpi = max_ff(auto_dpi, 96.0f);
 
 	/* Lazily init UI scale size, preserving backwards compatibility by
 	 * computing UI scale from ratio of previous DPI and auto DPI */
@@ -441,13 +441,16 @@ void WM_window_set_dpi(wmWindow *win)
 	/* Blender's UI drawing assumes DPI 72 as a good default following macOS
 	 * while Windows and Linux use DPI 96. GHOST assumes a default 96 so we
 	 * remap the DPI to Blender's convention. */
+	auto_dpi *= GHOST_GetNativePixelSize(win->ghostwin);
 	int dpi = auto_dpi * U.ui_scale * (72.0 / 96.0f);
 
 	/* Automatically set larger pixel size for high DPI. */
-	int pixelsize = MAX2(1, dpi / 54);
+	int pixelsize = max_ii(1, (int)(dpi / 64));
+	/* User adjustment for pixel size. */
+	pixelsize = max_ii(1, pixelsize + U.ui_line_width);
 
 	/* Set user preferences globals for drawing, and for forward compatibility. */
-	U.pixelsize = GHOST_GetNativePixelSize(win->ghostwin) * pixelsize;
+	U.pixelsize = pixelsize;
 	U.dpi = dpi / pixelsize;
 	U.virtual_pixel = (pixelsize == 1) ? VIRTUAL_PIXEL_NATIVE : VIRTUAL_PIXEL_DOUBLE;
 	U.widget_unit = (U.pixelsize * U.dpi * 20 + 36) / 72;
