@@ -87,14 +87,13 @@ typedef struct GrabInteraction {
 /* -------------------------------------------------------------------- */
 
 static void grab_geom_draw(
-        const wmManipulator *mpr, const float color[4], const bool select)
+        const wmManipulator *mpr, const float color[4], const bool select, const int draw_options)
 {
 #ifdef USE_MANIPULATOR_CUSTOM_DIAL
 	UNUSED_VARS(grab3d, col, axis_modal_mat);
 	wm_manipulator_geometryinfo_draw(&wm_manipulator_geom_data_grab3d, select);
 #else
 	const int draw_style = RNA_enum_get(mpr->ptr, "draw_style");
-	const int draw_options = RNA_enum_get(mpr->ptr, "draw_options");
 	const bool filled = (draw_options & ED_MANIPULATOR_GRAB_DRAW_FLAG_FILL) != 0;
 
 	glLineWidth(mpr->line_width);
@@ -151,11 +150,14 @@ static void grab3d_get_translate(
 }
 
 static void grab3d_draw_intern(
-        const bContext *UNUSED(C), wmManipulator *mpr,
+        const bContext *C, wmManipulator *mpr,
         const bool select, const bool highlight)
 {
+	const int draw_options = RNA_enum_get(mpr->ptr, "draw_options");
+	const bool align_view = (draw_options & ED_MANIPULATOR_GRAB_DRAW_FLAG_ALIGN_VIEW) != 0;
 	float color[4];
 	float matrix_final[4][4];
+	float matrix_align[4][4];
 
 	manipulator_color_get(mpr, highlight, color);
 
@@ -163,9 +165,19 @@ static void grab3d_draw_intern(
 
 	gpuPushMatrix();
 	gpuMultMatrix(matrix_final);
-	glEnable(GL_BLEND);
 
-	grab_geom_draw(mpr, color, select);
+	if (align_view) {
+		float matrix_final_unit[4][4];
+		RegionView3D *rv3d = CTX_wm_region_view3d(C);
+		normalize_m4_m4(matrix_final_unit, matrix_final);
+		mul_m4_m4m4(matrix_align, rv3d->viewmat, matrix_final_unit);
+		zero_v3(matrix_align[3]);
+		transpose_m4(matrix_align);
+		gpuMultMatrix(matrix_align);
+	}
+
+	glEnable(GL_BLEND);
+	grab_geom_draw(mpr, color, select, draw_options);
 	glDisable(GL_BLEND);
 	gpuPopMatrix();
 
@@ -180,8 +192,13 @@ static void grab3d_draw_intern(
 
 		gpuPushMatrix();
 		gpuMultMatrix(matrix_final);
+
+		if (align_view) {
+			gpuMultMatrix(matrix_align);
+		}
+
 		glEnable(GL_BLEND);
-		grab_geom_draw(mpr, (const float [4]){0.5f, 0.5f, 0.5f, 0.5f}, select);
+		grab_geom_draw(mpr, (const float [4]){0.5f, 0.5f, 0.5f, 0.5f}, select, draw_options);
 		glDisable(GL_BLEND);
 		gpuPopMatrix();
 	}
@@ -313,6 +330,7 @@ static void MANIPULATOR_WT_grab_3d(wmManipulatorType *wt)
 	};
 	static EnumPropertyItem rna_enum_draw_options[] = {
 		{ED_MANIPULATOR_GRAB_DRAW_FLAG_FILL, "FILL", 0, "Filled", ""},
+		{ED_MANIPULATOR_GRAB_DRAW_FLAG_ALIGN_VIEW, "ALIGN_VIEW", 0, "Align View", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 

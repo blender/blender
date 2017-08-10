@@ -116,6 +116,7 @@ enum {
 	ED_MANIPULATOR_GRAB_DRAW_FLAG_NOP               = 0,
 	/* only for solid shapes */
 	ED_MANIPULATOR_GRAB_DRAW_FLAG_FILL              = (1 << 0),
+	ED_MANIPULATOR_GRAB_DRAW_FLAG_ALIGN_VIEW        = (1 << 1),
 };
 
 enum {

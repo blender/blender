@@ -260,9 +260,13 @@ static void WIDGETGROUP_lamp_target_setup(const bContext *UNUSED(C), wmManipulat
 	UI_GetThemeColor3fv(TH_MANIPULATOR_PRIMARY, mpr->color);
 	UI_GetThemeColor3fv(TH_MANIPULATOR_HI, mpr->color_hi);
 
-	mpr->scale_basis = 0.05f;
+	mpr->scale_basis = 0.06f;
 
 	wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_transform_axis_target", true);
+
+	RNA_enum_set(mpr->ptr, "draw_options",
+	             ED_MANIPULATOR_GRAB_DRAW_FLAG_FILL | ED_MANIPULATOR_GRAB_DRAW_FLAG_ALIGN_VIEW);
+
 	WM_manipulator_set_operator(mpr, ot, NULL);
 }
 
