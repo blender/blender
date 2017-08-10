@@ -452,7 +452,8 @@ static int make(const char *input_file_name, const char *output_file_name)
 	return EXIT_SUCCESS;
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 	if (argc != 3) {
 		printf("Usage: %s <input.po> <output.mo>\n", argv[0]);
 		return EXIT_FAILURE;

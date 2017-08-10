@@ -481,7 +481,8 @@ VFontData *BLI_vfontdata_from_freetypefont(PackedFile *pf)
 	return vfd;
 }
 
-static void *vfontdata_copy_characters_value_cb(const void *src) {
+static void *vfontdata_copy_characters_value_cb(const void *src)
+{
 	return BLI_vfontchar_copy(src, 0);
 }
 
