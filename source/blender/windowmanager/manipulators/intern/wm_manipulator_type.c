@@ -102,7 +102,7 @@ static void wm_manipulatortype_append__end(wmManipulatorType *wt)
 {
 	BLI_assert(wt->struct_size >= sizeof(wmManipulator));
 
-	RNA_def_struct_identifier(wt->srna, wt->idname);
+	RNA_def_struct_identifier(&BLENDER_RNA, wt->srna, wt->idname);
 
 	BLI_ghash_insert(global_manipulatortype_hash, (void *)wt->idname, wt);
 }

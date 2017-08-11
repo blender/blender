@@ -21,6 +21,9 @@ CCL_NAMESPACE_BEGIN
  * BSDF evaluation result, split per BSDF type. This is used to accumulate
  * render passes separately. */
 
+ccl_device float3 shader_bsdf_transparency(KernelGlobals *kg,
+                                           const ShaderData *sd);
+
 ccl_device_inline void bsdf_eval_init(BsdfEval *eval, ClosureType type, float3 value, int use_light_pass)
 {
 #ifdef __PASSES__
@@ -223,6 +226,7 @@ ccl_device_inline void path_radiance_init(PathRadiance *L, int use_light_pass)
 	L->shadow_background_color = make_float3(0.0f, 0.0f, 0.0f);
 	L->shadow_radiance_sum = make_float3(0.0f, 0.0f, 0.0f);
 	L->shadow_throughput = 0.0f;
+	L->shadow_transparency = 1.0f;
 #endif
 
 #ifdef __DENOISING_FEATURES__
@@ -398,10 +402,11 @@ ccl_device_inline void path_radiance_accum_total_light(
 #endif
 }
 
-ccl_device_inline void path_radiance_accum_background(PathRadiance *L,
-                                                      ccl_addr_space PathState *state,
-                                                      float3 throughput,
-                                                      float3 value)
+ccl_device_inline void path_radiance_accum_background(
+        PathRadiance *L,
+        ccl_addr_space PathState *state,
+        float3 throughput,
+        float3 value)
 {
 #ifdef __PASSES__
 	if(L->use_light_pass) {
@@ -421,9 +426,7 @@ ccl_device_inline void path_radiance_accum_background(PathRadiance *L,
 #ifdef __SHADOW_TRICKS__
 	if(state->flag & PATH_RAY_STORE_SHADOW_INFO) {
 		L->path_total += throughput * value;
-		if(state->flag & PATH_RAY_SHADOW_CATCHER_ONLY) {
-			L->path_total_shaded += throughput * value;
-		}
+		L->path_total_shaded += throughput * value * L->shadow_transparency;
 	}
 #endif
 
@@ -671,7 +674,7 @@ ccl_device_inline float path_radiance_sum_shadow(const PathRadiance *L)
 	if(path_total != 0.0f) {
 		return path_total_shaded / path_total;
 	}
-	return 1.0f;
+	return L->shadow_transparency;
 }
 
 /* Calculate final light sum and transparency for shadow catcher object. */

@@ -247,7 +247,9 @@ static int ui_text_icon_width(uiLayout *layout, const char *name, int icon, bool
 	variable = (ui_layout_vary_direction(layout) == UI_ITEM_VARY_X);
 
 	if (variable) {
-		layout->item.flag |= UI_ITEM_MIN;
+		if (layout->alignment != UI_LAYOUT_ALIGN_EXPAND) {
+			layout->item.flag |= UI_ITEM_MIN;
+		}
 		const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 		/* it may seem odd that the icon only adds (UI_UNIT_X / 4)
 		 * but taking margins into account its fine */

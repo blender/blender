@@ -320,8 +320,12 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 #endif  /* __BRANCHED_PATH__ */
 
 #ifdef __SHADOW_TRICKS__
-		if(!(sd->object_flag & SD_OBJECT_SHADOW_CATCHER)) {
-			state->flag &= ~PATH_RAY_SHADOW_CATCHER_ONLY;
+		if(!(sd->object_flag & SD_OBJECT_SHADOW_CATCHER) &&
+		   (state->flag & PATH_RAY_SHADOW_CATCHER))
+		{
+			/* Only update transparency after shadow catcher bounce. */
+			L->shadow_transparency *=
+				average(shader_bsdf_transparency(kg, sd));
 		}
 #endif  /* __SHADOW_TRICKS__ */
 
@@ -647,7 +651,6 @@ ccl_device_inline float kernel_path_integrate(KernelGlobals *kg,
 		if((sd.object_flag & SD_OBJECT_SHADOW_CATCHER)) {
 			if(state.flag & PATH_RAY_CAMERA) {
 				state.flag |= (PATH_RAY_SHADOW_CATCHER |
-				               PATH_RAY_SHADOW_CATCHER_ONLY |
 				               PATH_RAY_STORE_SHADOW_INFO);
 				if(!kernel_data.background.transparent) {
 					L->shadow_background_color =
@@ -657,8 +660,10 @@ ccl_device_inline float kernel_path_integrate(KernelGlobals *kg,
 				L->shadow_throughput = average(throughput);
 			}
 		}
-		else {
-			state.flag &= ~PATH_RAY_SHADOW_CATCHER_ONLY;
+		else if(state.flag & PATH_RAY_SHADOW_CATCHER) {
+			/* Only update transparency after shadow catcher bounce. */
+			L->shadow_transparency *=
+			        average(shader_bsdf_transparency(kg, &sd));
 		}
 #endif  /* __SHADOW_TRICKS__ */
 

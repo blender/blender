@@ -2280,7 +2280,7 @@ StructRNA *ntreeInterfaceTypeGet(bNodeTree *ntree, int create)
 			
 			/* rename the RNA type */
 			RNA_def_struct_free_pointers(srna);
-			RNA_def_struct_identifier(srna, identifier);
+			RNA_def_struct_identifier(&BLENDER_RNA, srna, identifier);
 			RNA_def_struct_ui_text(srna, name, description);
 			RNA_def_struct_duplicate_pointers(srna);
 		}
