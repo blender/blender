@@ -676,7 +676,7 @@ void BKE_scene_init(Scene *sce)
 
 	sce->r.seq_prev_type = OB_SOLID;
 	sce->r.seq_rend_type = OB_SOLID;
-	sce->r.seq_flag = R_SEQ_GL_PREV;
+	sce->r.seq_flag = 0;
 
 	sce->r.threads = 1;
 
