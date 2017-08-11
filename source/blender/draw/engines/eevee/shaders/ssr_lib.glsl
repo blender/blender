@@ -4,7 +4,7 @@
 
 vec4 screen_space_refraction(vec3 viewPosition, vec3 N, vec3 V, float ior, float roughnessSquared, vec3 rand, float ofs)
 {
-	float a2 = roughnessSquared * roughnessSquared;
+	float a2 = max(5e-6, roughnessSquared * roughnessSquared);
 	float jitter = fract(rand.x + ofs);
 
 	/* Importance sampling bias */
