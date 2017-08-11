@@ -993,7 +993,30 @@ void RNA_def_struct_path_func(StructRNA *srna, const char *path)
 	if (path) srna->path = (StructPathFunc)path;
 }
 
-void RNA_def_struct_identifier(StructRNA *srna, const char *identifier)
+void RNA_def_struct_identifier(BlenderRNA *brna, StructRNA *srna, const char *identifier)
+{
+	if (DefRNA.preprocess) {
+		fprintf(stderr, "%s: only at runtime.\n", __func__);
+		return;
+	}
+
+	/* Operator registration may set twice, see: operator_properties_init */
+	if (identifier != srna->identifier) {
+		if (srna->identifier[0] != '\0') {
+			BLI_ghash_remove(brna->structs_map, (void *)srna->identifier, NULL, NULL);
+		}
+		if (identifier[0] != '\0') {
+			BLI_ghash_insert(brna->structs_map, (void *)identifier, srna);
+		}
+	}
+
+	srna->identifier = identifier;
+}
+
+/**
+ * Only used in one case when we name the struct for the purpose of useful error messages.
+ */
+void RNA_def_struct_identifier_no_struct_map(StructRNA *srna, const char *identifier)
 {
 	if (DefRNA.preprocess) {
 		fprintf(stderr, "%s: only at runtime.\n", __func__);
