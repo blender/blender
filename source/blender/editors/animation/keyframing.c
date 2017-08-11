@@ -1786,7 +1786,9 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 			NlaStrip *strip = (NlaStrip *)ptr.data;
 			FCurve *fcu = list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), index);
 			
-			success = insert_keyframe_direct(op->reports, ptr, prop, fcu, cfra, ts->keyframe_type, 0);
+			if (fcu) {
+				success = insert_keyframe_direct(op->reports, ptr, prop, fcu, cfra, ts->keyframe_type, 0);
+			}
 		}
 		else if (UI_but_flag_is_set(but, UI_BUT_DRIVEN)) {
 			/* Driven property - Find driver */
@@ -1891,27 +1893,27 @@ static int delete_key_button_exec(bContext *C, wmOperator *op)
 			NlaStrip *strip = (NlaStrip *)ptr.data;
 			FCurve *fcu = list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), 0);
 			
-			BLI_assert(fcu != NULL); /* NOTE: This should be true, or else we wouldn't be able to get here */
-			
-			if (BKE_fcurve_is_protected(fcu)) {
-				BKE_reportf(op->reports, RPT_WARNING,
-				            "Not deleting keyframe for locked F-Curve for NLA Strip influence on %s - %s '%s'",
-				            strip->name, BKE_idcode_to_name(GS(id->name)), id->name + 2);
-			}
-			else {
-				/* remove the keyframe directly
-				 * NOTE: cannot use delete_keyframe_fcurve(), as that will free the curve,
-				 *       and delete_keyframe() expects the FCurve to be part of an action
-				 */
-				bool found = false;
-				int i;
-				
-				/* try to find index of beztriple to get rid of */
-				i = binarysearch_bezt_index(fcu->bezt, cfra, fcu->totvert, &found);
-				if (found) {
-					/* delete the key at the index (will sanity check + do recalc afterwards) */
-					delete_fcurve_key(fcu, i, 1);
-					success = true;
+			if (fcu) {
+				if (BKE_fcurve_is_protected(fcu)) {
+					BKE_reportf(op->reports, RPT_WARNING,
+					            "Not deleting keyframe for locked F-Curve for NLA Strip influence on %s - %s '%s'",
+					            strip->name, BKE_idcode_to_name(GS(id->name)), id->name + 2);
+				}
+				else {
+					/* remove the keyframe directly
+					 * NOTE: cannot use delete_keyframe_fcurve(), as that will free the curve,
+					 *       and delete_keyframe() expects the FCurve to be part of an action
+					 */
+					bool found = false;
+					int i;
+					
+					/* try to find index of beztriple to get rid of */
+					i = binarysearch_bezt_index(fcu->bezt, cfra, fcu->totvert, &found);
+					if (found) {
+						/* delete the key at the index (will sanity check + do recalc afterwards) */
+						delete_fcurve_key(fcu, i, 1);
+						success = true;
+					}
 				}
 			}
 		}
