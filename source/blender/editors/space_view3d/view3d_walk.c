@@ -423,7 +423,7 @@ static void walk_navigation_mode_set(bContext *C, wmOperator *op, WalkInfo *walk
  * \param r_distance  Distance to the hit point
  */
 static bool walk_floor_distance_get(
-        const bContext *C, RegionView3D *rv3d, WalkInfo *walk, const float dvec[3],
+        RegionView3D *rv3d, WalkInfo *walk, const float dvec[3],
         float *r_distance)
 {
 	float ray_normal[3] = {0, 0, -1}; /* down */
@@ -441,7 +441,7 @@ static bool walk_floor_distance_get(
 	add_v3_v3(ray_start, dvec_tmp);
 
 	ret = ED_transform_snap_object_project_ray(
-	        C, walk->snap_context,
+	        walk->snap_context,
 	        &(const struct SnapObjectParams){
 	            .snap_select = SNAP_ALL,
 	        },
@@ -459,7 +459,7 @@ static bool walk_floor_distance_get(
  * \param r_normal  Normal of the hit surface, transformed to always face the camera
  */
 static bool walk_ray_cast(
-        const bContext *C, RegionView3D *rv3d, WalkInfo *walk,
+        RegionView3D *rv3d, WalkInfo *walk,
         float r_location[3], float r_normal[3], float *ray_distance)
 {
 	float ray_normal[3] = {0, 0, -1}; /* forward */
@@ -475,7 +475,7 @@ static bool walk_ray_cast(
 	normalize_v3(ray_normal);
 
 	ret = ED_transform_snap_object_project_ray(
-	        C, walk->snap_context,
+	        walk->snap_context,
 	        &(const struct SnapObjectParams){
 	            .snap_select = SNAP_ALL,
 	        },
@@ -921,7 +921,7 @@ static void walkEvent(bContext *C, wmOperator *op, WalkInfo *walk, const wmEvent
 			{
 				float loc[3], nor[3];
 				float distance;
-				bool ret = walk_ray_cast(C, walk->rv3d, walk, loc, nor, &distance);
+				bool ret = walk_ray_cast(walk->rv3d, walk, loc, nor, &distance);
 
 				/* in case we are teleporting middle way from a jump */
 				walk->speed_jump = 0.0f;
@@ -1201,7 +1201,7 @@ static int walkApply(bContext *C, wmOperator *op, WalkInfo *walk)
 				float difference = -100.0f;
 				float fall_distance;
 
-				ret = walk_floor_distance_get(C, rv3d, walk, dvec, &ray_distance);
+				ret = walk_floor_distance_get(rv3d, walk, dvec, &ray_distance);
 
 				if (ret) {
 					difference = walk->view_height - ray_distance;
@@ -1254,7 +1254,7 @@ static int walkApply(bContext *C, wmOperator *op, WalkInfo *walk)
 				if (t > walk->teleport.duration) {
 
 					/* check to see if we are landing */
-					ret = walk_floor_distance_get(C, rv3d, walk, dvec, &ray_distance);
+					ret = walk_floor_distance_get(rv3d, walk, dvec, &ray_distance);
 
 					if (ret) {
 						difference = walk->view_height - ray_distance;

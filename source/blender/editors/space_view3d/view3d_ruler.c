@@ -738,7 +738,7 @@ static void view3d_ruler_item_project(RulerInfo *ruler_info, float r_co[3],
 
 /* use for mousemove events */
 static bool view3d_ruler_item_mousemove(
-        const bContext *C, RulerInfo *ruler_info, const int mval[2],
+        RulerInfo *ruler_info, const int mval[2],
         const bool do_thickness, const bool do_snap)
 {
 	const float eps_bias = 0.0002f;
@@ -763,7 +763,7 @@ static bool view3d_ruler_item_mousemove(
 			co_other = ruler_item->co[ruler_item->co_index == 0 ? 2 : 0];
 
 			if (ED_transform_snap_object_project_view3d_mixed(
-			        C, ruler_info->snap_context,
+			        ruler_info->snap_context,
 			        SCE_SELECT_FACE,
 			        &(const struct SnapObjectParams){
 			            .snap_select = SNAP_ALL,
@@ -776,7 +776,7 @@ static bool view3d_ruler_item_mousemove(
 				/* add some bias */
 				madd_v3_v3v3fl(ray_start, co, ray_normal, eps_bias);
 				ED_transform_snap_object_project_ray(
-				        C, ruler_info->snap_context,
+				        ruler_info->snap_context,
 				        &(const struct SnapObjectParams){
 				            .snap_select = SNAP_ALL,
 				            .use_object_edit_cage = true,
@@ -792,7 +792,7 @@ static bool view3d_ruler_item_mousemove(
 			bool use_depth = (v3d->drawtype >= OB_SOLID);
 
 			if (ED_transform_snap_object_project_view3d_mixed(
-			        C, ruler_info->snap_context,
+			        ruler_info->snap_context,
 			        (SCE_SELECT_VERTEX | SCE_SELECT_EDGE) | (use_depth ? SCE_SELECT_FACE : 0),
 			        &(const struct SnapObjectParams){
 			            .snap_select = SNAP_ALL,
@@ -924,7 +924,7 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 						if (use_depth) {
 							/* snap the first point added, not essential but handy */
 							ruler_item->co_index = 0;
-							view3d_ruler_item_mousemove(C, ruler_info, event->mval, false, true);
+							view3d_ruler_item_mousemove(ruler_info, event->mval, false, true);
 							copy_v3_v3(ruler_info->drag_start_co, ruler_item->co[ruler_item->co_index]);
 						}
 						else {
@@ -977,7 +977,7 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 									}
 
 									/* update the new location */
-									view3d_ruler_item_mousemove(C, ruler_info, event->mval,
+									view3d_ruler_item_mousemove(ruler_info, event->mval,
 									                            event->shift != 0, event->ctrl != 0);
 									do_draw = true;
 								}
@@ -1026,7 +1026,7 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		case MOUSEMOVE:
 		{
 			if (ruler_info->state == RULER_STATE_DRAG) {
-				if (view3d_ruler_item_mousemove(C, ruler_info, event->mval,
+				if (view3d_ruler_item_mousemove(ruler_info, event->mval,
 				                                event->shift != 0, event->ctrl != 0))
 				{
 					do_draw = true;

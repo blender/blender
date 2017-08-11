@@ -5021,7 +5021,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 			        vc.ar, vc.v3d);
 
 			ED_transform_snap_object_project_view3d_mixed(
-			        C, snap_context,
+			        snap_context,
 			        SCE_SELECT_FACE,
 			        &(const struct SnapObjectParams){
 			            .snap_select = (vc.scene->obedit != NULL) ? SNAP_NOT_ACTIVE : SNAP_ALL,

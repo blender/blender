@@ -1005,7 +1005,7 @@ static int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, S
 	if (ts->snap_mode == SCE_SNAP_MODE_VOLUME) {
 		float size;
 		if (peelObjectsSnapContext(
-		        C, snap_context, mvalf,
+		        snap_context, mvalf,
 		        &(const struct SnapObjectParams){
 		            .snap_select = SNAP_NOT_SELECTED,
 		            .use_object_edit_cage = false,
@@ -1045,7 +1045,7 @@ static int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, S
 		/* try to snap to closer object */
 		{
 			if (ED_transform_snap_object_project_view3d(
-			        C, snap_context,
+			        snap_context,
 			        ts->snap_mode,
 			        &(const struct SnapObjectParams){
 			            .snap_select = SNAP_NOT_SELECTED,
