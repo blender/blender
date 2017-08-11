@@ -135,10 +135,8 @@ static void nla_action_draw_keyframes(AnimData *adt, bAction *act, float y, floa
 	immUnbindProgram();
 
 	/* count keys before drawing */
-	unsigned int key_ct = 0;
-	for (ActKeyColumn *ak = keys.first; ak; ak = ak->next) {
-		key_ct++;
-	}
+	/* Note: It's safe to cast DLRBT_Tree, as it's designed to degrade down to a ListBase */
+	unsigned int key_ct = BLI_listbase_count((ListBase *)&keys);
 
 	if (key_ct > 0) {
 		format = immVertexFormat();
