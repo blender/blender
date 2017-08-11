@@ -235,6 +235,17 @@ static int dm_getNumLoopTri(DerivedMesh *dm)
 	return numlooptris;
 }
 
+static const MLoopTri *dm_getLoopTriArray(DerivedMesh *dm)
+{
+	if (dm->looptris.array) {
+		BLI_assert(poly_to_tri_count(dm->numPolyData, dm->numLoopData) == dm->looptris.num);
+	}
+	else {
+		dm->recalcLoopTri(dm);
+	}
+	return dm->looptris.array;
+}
+
 static CustomData *dm_getVertCData(DerivedMesh *dm)
 {
 	return &dm->vertData;
@@ -277,6 +288,8 @@ void DM_init_funcs(DerivedMesh *dm)
 	dm->dupTessFaceArray = dm_dupFaceArray;
 	dm->dupLoopArray = dm_dupLoopArray;
 	dm->dupPolyArray = dm_dupPolyArray;
+
+	dm->getLoopTriArray = dm_getLoopTriArray;
 
 	/* subtypes handle getting actual data */
 	dm->getNumLoopTri = dm_getNumLoopTri;

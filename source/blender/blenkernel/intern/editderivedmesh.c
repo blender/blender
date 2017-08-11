@@ -661,18 +661,6 @@ static void emDM_recalcLoopTri(DerivedMesh *dm)
 	}
 }
 
-static const MLoopTri *emDM_getLoopTriArray(DerivedMesh *dm)
-{
-	if (dm->looptris.array) {
-		BLI_assert(poly_to_tri_count(dm->numPolyData, dm->numLoopData) == dm->looptris.num);
-	}
-	else {
-		dm->recalcLoopTri(dm);
-	}
-
-	return dm->looptris.array;
-}
-
 static void emDM_foreachMappedVert(
         DerivedMesh *dm,
         void (*func)(void *userData, int index, const float co[3], const float no_f[3], const short no_s[3]),
@@ -2258,8 +2246,6 @@ DerivedMesh *getEditDerivedBMesh(
 	bmdm->dm.getNumTessFaces = emDM_getNumTessFaces;
 	bmdm->dm.getNumLoops = emDM_getNumLoops;
 	bmdm->dm.getNumPolys = emDM_getNumPolys;
-
-	bmdm->dm.getLoopTriArray = emDM_getLoopTriArray;
 
 	bmdm->dm.getVert = emDM_getVert;
 	bmdm->dm.getVertCo = emDM_getVertCo;
