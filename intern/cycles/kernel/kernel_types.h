@@ -351,8 +351,7 @@ enum PathRayFlag {
 	PATH_RAY_DIFFUSE_ANCESTOR    = (1 << 16),
 	PATH_RAY_SINGLE_PASS_DONE    = (1 << 17),
 	PATH_RAY_SHADOW_CATCHER      = (1 << 18),
-	PATH_RAY_SHADOW_CATCHER_ONLY = (1 << 19),
-	PATH_RAY_STORE_SHADOW_INFO   = (1 << 20),
+	PATH_RAY_STORE_SHADOW_INFO   = (1 << 19),
 };
 
 /* Closure Label */
@@ -529,6 +528,7 @@ typedef ccl_addr_space struct PathRadiance {
 	 */
 	float3 shadow_radiance_sum;
 	float shadow_throughput;
+	float shadow_transparency;
 #endif
 
 #ifdef __DENOISING_FEATURES__

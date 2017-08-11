@@ -119,6 +119,9 @@ ccl_device_noinline void kernel_branched_path_surface_indirect_light(KernelGloba
 			PathState ps = *state;
 			float3 tp = throughput;
 			Ray bsdf_ray;
+#ifdef __SHADOW_TRICKS__
+			float shadow_transparency = L->shadow_transparency;
+#endif
 
 			if(!kernel_branched_path_surface_bounce(kg,
 			                                        &bsdf_rng,
@@ -149,6 +152,10 @@ ccl_device_noinline void kernel_branched_path_surface_indirect_light(KernelGloba
 			 * for the next samples */
 			path_radiance_sum_indirect(L);
 			path_radiance_reset_indirect(L);
+
+#ifdef __SHADOW_TRICKS__
+			L->shadow_transparency = shadow_transparency;
+#endif
 		}
 	}
 }
@@ -500,7 +507,6 @@ ccl_device float kernel_branched_path_integrate(KernelGlobals *kg,
 #ifdef __SHADOW_TRICKS__
 		if((sd.object_flag & SD_OBJECT_SHADOW_CATCHER)) {
 			state.flag |= (PATH_RAY_SHADOW_CATCHER |
-			               PATH_RAY_SHADOW_CATCHER_ONLY |
 			               PATH_RAY_STORE_SHADOW_INFO);
 			if(!kernel_data.background.transparent) {
 				L->shadow_background_color =
@@ -509,8 +515,10 @@ ccl_device float kernel_branched_path_integrate(KernelGlobals *kg,
 			L->shadow_radiance_sum = path_radiance_clamp_and_sum(kg, L);
 			L->shadow_throughput = average(throughput);
 		}
-		else {
-			state.flag &= ~PATH_RAY_SHADOW_CATCHER_ONLY;
+		else if(state.flag & PATH_RAY_SHADOW_CATCHER) {
+			/* Only update transparency after shadow catcher bounce. */
+			L->shadow_transparency *=
+				average(shader_bsdf_transparency(kg, &sd));
 		}
 #endif  /* __SHADOW_TRICKS__ */
 

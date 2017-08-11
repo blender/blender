@@ -127,7 +127,6 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 			if(state->flag & PATH_RAY_CAMERA) {
 				PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
 				state->flag |= (PATH_RAY_SHADOW_CATCHER |
-				                PATH_RAY_SHADOW_CATCHER_ONLY |
 				                PATH_RAY_STORE_SHADOW_INFO);
 				if(!kernel_data.background.transparent) {
 					ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
@@ -141,8 +140,10 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 				L->shadow_throughput = average(throughput);
 			}
 		}
-		else {
-			state->flag &= ~PATH_RAY_SHADOW_CATCHER_ONLY;
+		else if(state->flag & PATH_RAY_SHADOW_CATCHER) {
+			/* Only update transparency after shadow catcher bounce. */
+			PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
+			L->shadow_transparency *= average(shader_bsdf_transparency(kg, sd));
 		}
 #endif  /* __SHADOW_TRICKS__ */
 
