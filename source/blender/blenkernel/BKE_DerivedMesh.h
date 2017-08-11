@@ -220,7 +220,7 @@ struct DerivedMesh {
 	/** Recalculates mesh tessellation */
 	void (*recalcTessellation)(DerivedMesh *dm);
 
-	/** Loop tessellation cache */
+	/** Loop tessellation cache (WARNING! Only call inside threading-protected code!) */
 	void (*recalcLoopTri)(DerivedMesh *dm);
 	/** accessor functions */
 	const struct MLoopTri *(*getLoopTriArray)(DerivedMesh * dm);
