@@ -43,7 +43,7 @@ extern "C" {
 #ifndef GHASH_INTERNAL_API
 #  ifdef __GNUC__
 #    undef  _GHASH_INTERNAL_ATTR
-#    define _GHASH_INTERNAL_ATTR __attribute__ ((deprecated))
+#    define _GHASH_INTERNAL_ATTR __attribute__ ((deprecated))  /* not deprecated, just private. */
 #  endif
 #endif
 
