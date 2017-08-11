@@ -6793,8 +6793,8 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 		/* set the prop and pointer data for python access to the hovered ui element; TODO, index could be supported as well*/
 		PointerRNA temp_ptr;
 		RNA_pointer_create(NULL, &RNA_Property, but->rnaprop, &temp_ptr);
-		uiLayoutSetContextPointer(layout,"button_prop", &temp_ptr);
-		uiLayoutSetContextPointer(layout,"button_pointer", ptr);
+		uiLayoutSetContextPointer(layout, "button_prop", &temp_ptr);
+		uiLayoutSetContextPointer(layout, "button_pointer", ptr);
 
 		/* second slower test, saved people finding keyframe items in menus when its not possible */
 		if (is_anim)
@@ -7013,8 +7013,9 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 		}
 
 		/* Set the operator pointer for python access */
-		if (but->opptr)
-			uiLayoutSetContextPointer(layout,"button_operator", but->opptr);
+		if (but->opptr) {
+			uiLayoutSetContextPointer(layout, "button_operator", but->opptr);
+		}
 
 		uiItemS(layout);
 	}

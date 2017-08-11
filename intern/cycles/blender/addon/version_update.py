@@ -302,3 +302,36 @@ def do_versions(self):
             cscene = scene.cycles
             if not cscene.is_property_set("light_sampling_threshold"):
                 cscene.light_sampling_threshold = 0.0
+
+    if bpy.data.version <= (2, 79, 0):
+        for scene in bpy.data.scenes:
+            cscene = scene.cycles
+            # Default changes
+            if not cscene.is_property_set("aa_samples"):
+                cscene.aa_samples = 4
+            if not cscene.is_property_set("preview_aa_samples"):
+                cscene.preview_aa_samples = 4
+            if not cscene.is_property_set("blur_glossy"):
+                cscene.blur_glossy = 0.0
+            if not cscene.is_property_set("sample_clamp_indirect"):
+                cscene.sample_clamp_indirect = 0.0
+
+            # Remove and apply square samples
+            use_square_samples = cscene.get("use_square_samples", False)
+            if use_square_samples:
+                del cscene["use_square_samples"]
+
+                cscene.samples *= cscene.samples
+                cscene.preview_samples *= cscene.preview_samples
+                cscene.aa_samples *= cscene.aa_samples
+                cscene.preview_aa_samples *= cscene.preview_aa_samples
+                cscene.diffuse_samples *= cscene.diffuse_samples
+                cscene.glossy_samples *= cscene.glossy_samples
+                cscene.transmission_samples *= cscene.transmission_samples
+                cscene.ao_samples *= cscene.ao_samples
+                cscene.mesh_light_samples *= cscene.mesh_light_samples
+                cscene.subsurface_samples *= cscene.subsurface_samples
+                cscene.volume_samples *= cscene.volume_samples
+
+                for layer in scene.render.layers:
+                    layer.samples *= layer.samples

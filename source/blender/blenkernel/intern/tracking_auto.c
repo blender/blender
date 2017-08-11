@@ -312,7 +312,7 @@ AutoTrackContext *BKE_autotrack_context_new(MovieClip *clip,
 
 	int num_total_tracks = BLI_listbase_count(tracksbase);
 	context->tracks =
-		MEM_callocN(sizeof(MovieTrackingTrack*) * num_total_tracks,
+		MEM_callocN(sizeof(MovieTrackingTrack *) * num_total_tracks,
 		            "auto track pointers");
 
 	context->image_accessor =

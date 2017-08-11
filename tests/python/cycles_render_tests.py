@@ -222,6 +222,14 @@ class Report:
 
 def verify_output(report, filepath):
     ref_img, new_img, diff_img = test_get_images(filepath)
+
+    # copy new image
+    if os.path.exists(new_img):
+        os.remove(new_img)
+    if os.path.exists(TEMP_FILE):
+        shutil.copy(TEMP_FILE, new_img)
+
+
     if not os.path.exists(ref_img):
         return False
 
@@ -255,12 +263,6 @@ def verify_output(report, filepath):
     except subprocess.CalledProcessError as e:
         if VERBOSE:
             print_message(e.output.decode("utf-8"))
-
-    # copy new image
-    if os.path.exists(new_img):
-        os.remove(new_img)
-    if os.path.exists(TEMP_FILE):
-        shutil.copy(TEMP_FILE, new_img)
 
     return not failed
 
