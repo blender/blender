@@ -291,8 +291,6 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
 		if (dm == NULL)
 			return NULL;
 
-		DM_ensure_looptri(dm);
-
 		mvert   = dm->getVertArray(dm);
 		totvert = dm->getNumVerts(dm);
 		looptri = dm->getLoopTriArray(dm);
@@ -524,8 +522,6 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
 				if (dm == NULL)
 					return;
 			
-				DM_ensure_looptri(dm);
-			
 				mvert   = dm->getVertArray(dm);
 				totvert = dm->getNumVerts(dm);
 				lt = dm->getLoopTriArray(dm);
@@ -608,8 +604,6 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_center[3])
 				/* ensure mesh validity, then grab data */
 				if (dm == NULL)
 					return;
-			
-				DM_ensure_looptri(dm);
 			
 				mvert   = dm->getVertArray(dm);
 				totvert = dm->getNumVerts(dm);

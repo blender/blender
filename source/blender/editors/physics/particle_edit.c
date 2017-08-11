@@ -424,7 +424,6 @@ static bool PE_create_shape_tree(PEData *data, Object *shapeob)
 		return false;
 	}
 	
-	DM_ensure_looptri(dm);
 	return (bvhtree_from_mesh_looptri(&data->shape_bvh, dm, 0.0f, 4, 8) != NULL);
 }
 

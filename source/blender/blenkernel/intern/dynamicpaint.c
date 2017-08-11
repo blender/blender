@@ -2060,9 +2060,6 @@ DerivedMesh *dynamicPaint_Modifier_do(DynamicPaintModifierData *pmd, Scene *scen
 	if (pmd->canvas) {
 		DerivedMesh *ret;
 
-		/* For now generate looptris in every case */
-		DM_ensure_looptri(dm);
-
 		/* Update canvas data for a new frame */
 		dynamicPaint_frameUpdate(pmd, scene, ob, dm);
 
@@ -2072,9 +2069,6 @@ DerivedMesh *dynamicPaint_Modifier_do(DynamicPaintModifierData *pmd, Scene *scen
 		return ret;
 	}
 	else {
-		/* For now generate looptris in every case */
-		DM_ensure_looptri(dm);
-
 		/* Update canvas data for a new frame */
 		dynamicPaint_frameUpdate(pmd, scene, ob, dm);
 

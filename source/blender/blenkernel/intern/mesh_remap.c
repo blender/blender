@@ -1373,7 +1373,6 @@ void BKE_mesh_remap_calc_loops_from_dm(
 				if (dirty_tess_flag) {
 					dm_src->dirty &= ~dirty_tess_flag;
 				}
-				DM_ensure_looptri(dm_src);
 				if (dirty_tess_flag) {
 					dm_src->dirty |= dirty_tess_flag;
 				}

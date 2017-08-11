@@ -807,7 +807,6 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	if ( !dm )
 		return 0;
 
-	DM_ensure_looptri(dm);
 	cloth_from_mesh ( clmd, dm );
 
 	// create springs
