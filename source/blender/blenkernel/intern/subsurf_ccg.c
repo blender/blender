@@ -4505,18 +4505,6 @@ static void ccgDM_recalcLoopTri(DerivedMesh *dm)
 	BLI_rw_mutex_unlock(&loops_cache_rwlock);
 }
 
-static const MLoopTri *ccgDM_getLoopTriArray(DerivedMesh *dm)
-{
-	if (dm->looptris.array) {
-		BLI_assert(poly_to_tri_count(dm->numPolyData, dm->numLoopData) == dm->looptris.num);
-	}
-	else {
-		dm->recalcLoopTri(dm);
-	}
-
-	return dm->looptris.array;
-}
-
 static void ccgDM_calcNormals(DerivedMesh *dm)
 {
 	/* Nothing to do: CCG calculates normals during drawing */
@@ -4532,8 +4520,6 @@ static void set_default_ccgdm_callbacks(CCGDerivedMesh *ccgdm)
 	/* reuse of ccgDM_getNumTessFaces is intentional here: subsurf polys are just created from tessfaces */
 	ccgdm->dm.getNumPolys = ccgDM_getNumPolys;
 	ccgdm->dm.getNumTessFaces = ccgDM_getNumTessFaces;
-
-	ccgdm->dm.getLoopTriArray = ccgDM_getLoopTriArray;
 
 	ccgdm->dm.getVert = ccgDM_getFinalVert;
 	ccgdm->dm.getEdge = ccgDM_getFinalEdge;
