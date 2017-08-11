@@ -100,7 +100,8 @@ ModifierTypeInfo modifierType_Softbody = {
 	/* structName */        "SoftbodyModifierData",
 	/* structSize */        sizeof(SoftbodyModifierData),
 	/* type */              eModifierTypeType_OnlyDeform,
-	/* flags */             eModifierTypeFlag_AcceptsLattice |
+	/* flags */             eModifierTypeFlag_AcceptsCVs |
+	                        eModifierTypeFlag_AcceptsLattice |
 	                        eModifierTypeFlag_RequiresOriginalData |
 	                        eModifierTypeFlag_Single,
 

@@ -79,7 +79,7 @@ class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
 
         col = split.column()
 
-        if obj.type in {'MESH', 'LATTICE', 'CURVE'}:
+        if obj.type in {'MESH', 'LATTICE', 'CURVE', 'SURFACE', 'FONT'}:
             physics_add(self, col, context.soft_body, "Soft Body", 'SOFT_BODY', 'MOD_SOFT', True)
 
         if obj.type == 'MESH':
