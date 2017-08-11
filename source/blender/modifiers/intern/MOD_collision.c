@@ -153,8 +153,6 @@ static void deformVerts(ModifierData *md, Object *ob,
 				collmd->current_v = MEM_dupallocN(collmd->x); // inter-frame
 
 				collmd->mvert_num = mvert_num;
-				
-				DM_ensure_looptri(dm);
 
 				collmd->tri_num = dm->getNumLoopTri(dm);
 				{

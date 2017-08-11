@@ -238,7 +238,7 @@ static int dm_getNumLoopTri(DerivedMesh *dm)
 static const MLoopTri *dm_getLoopTriArray(DerivedMesh *dm)
 {
 	if (dm->looptris.array) {
-		BLI_assert(poly_to_tri_count(dm->numPolyData, dm->numLoopData) == dm->looptris.num);
+		BLI_assert(dm->getNumLoopTri(dm) == dm->looptris.num);
 	}
 	else {
 		dm->recalcLoopTri(dm);
@@ -507,19 +507,6 @@ void DM_ensure_looptri_data(DerivedMesh *dm)
 		}
 
 		dm->looptris.num = looptris_num;
-	}
-}
-
-/**
- * The purpose of this function is that we can call:
- * `dm->getLoopTriArray(dm)` and get the array returned.
- */
-void DM_ensure_looptri(DerivedMesh *dm)
-{
-	const int numPolys =  dm->getNumPolys(dm);
-
-	if ((dm->looptris.num == 0) && (numPolys != 0)) {
-		dm->recalcLoopTri(dm);
 	}
 }
 
@@ -2214,7 +2201,6 @@ static void mesh_calc_modifiers(
 		if (dataMask & CD_MASK_MFACE) {
 			DM_ensure_tessface(finaldm);
 		}
-		DM_ensure_looptri(finaldm);
 
 		/* without this, drawing ngon tri's faces will show ugly tessellated face
 		 * normals and will also have to calculate normals on the fly, try avoid
