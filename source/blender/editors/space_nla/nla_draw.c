@@ -56,6 +56,7 @@
 #include "BIF_glutil.h"
 
 #include "GPU_immediate.h"
+#include "GPU_immediate_util.h"
 #include "GPU_draw.h"
 
 #include "WM_types.h"
@@ -358,10 +359,41 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc, uns
 	glDisable(GL_BLEND);
 }
 
+/* helper call to setup dashed-lines for strip outlines */
+static uint nla_draw_use_dashed_outlines(float color[4], bool muted)
+{
+	/* Note that we use dashed shader here, and make it draw solid lines if not muted... */
+	uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
+	
+	float viewport_size[4];
+	glGetFloatv(GL_VIEWPORT, viewport_size);
+	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+	
+	immUniform1i("num_colors", 0);  /* Simple dashes. */
+	immUniformColor3fv(color);
+	
+	/* line style: dotted for muted */
+	if (muted) {
+		/* dotted - and slightly thicker for readability of the dashes */
+		immUniform1f("dash_width", 5.0f);
+		immUniform1f("dash_factor", 0.4f);
+		glLineWidth(1.5f);
+	}
+	else {
+		/* solid line */
+		immUniform1f("dash_factor", 2.0f);
+		glLineWidth(1.0f);
+	}
+	
+	return shdr_pos;
+}
+
 /* main call for drawing a single NLA-strip */
 static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStrip *strip, View2D *v2d, float yminc, float ymaxc)
 {
 	const bool non_solo = ((adt && (adt->flag & ADT_NLA_SOLO_TRACK)) && (nlt->flag & NLATRACK_SOLO) == 0);
+	const bool muted = ((nlt->flag & NLATRACK_MUTED) || (strip->flag & NLASTRIP_FLAG_MUTED));
 	float color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 	uint shdr_pos;
 	
@@ -460,29 +492,20 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 		color[0] = color[1] = color[2] = 0.0f; /* FIXME: or 1.0f ?? */
 	}
 
-	/* draw outline */
-	/* XXX TODO Was dashed like code below, not implemented for now so kept solid... */
-	UI_draw_roundbox_shade_x(false, strip->start, yminc, strip->end, ymaxc, 0.0, 0.0, 0.1, color);
-
-	/* restore current vertex format & program (roundbox trashes it) */
-	/* Note that we use dahsed shader here, and make it draw solid lines if not muted... */
-	shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
-
-	float viewport_size[4];
-	glGetFloatv(GL_VIEWPORT, viewport_size);
-	immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
-
-	immUniform1i("num_colors", 0);  /* Simple dashes. */
-	immUniformColor3fv(color);
-
-	/* - line style: dotted for muted */
-	if ((nlt->flag & NLATRACK_MUTED) || (strip->flag & NLASTRIP_FLAG_MUTED)) {
-		immUniform1f("dash_width", 4.0f);
-		immUniform1f("dash_factor", 0.5f);
+	/* draw outline 
+	 * - dashed-line shader is loaded after this block
+	 */
+	if (muted) {
+		/* muted - draw dotted, squarish outline (for simplicity) */
+		shdr_pos = nla_draw_use_dashed_outlines(color, muted);
+		imm_draw_line_box(shdr_pos, strip->start, yminc, strip->end, ymaxc);
 	}
 	else {
-		immUniform1f("dash_factor", 2.0f);  /* solid line */
+		/* non-muted - draw solid, rounded outline */
+		UI_draw_roundbox_shade_x(false, strip->start, yminc, strip->end, ymaxc, 0.0, 0.0, 0.1, color);
+		
+		/* restore current vertex format & program (roundbox trashes it) */
+		shdr_pos = nla_draw_use_dashed_outlines(color, muted);
 	}
 
 	/* if action-clip strip, draw lines delimiting repeats too (in the same color as outline) */
@@ -627,6 +650,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 	 *	  start of list offset, and the second is as a correction for the scrollers.
 	 */
 	int height = ((items * NLACHANNEL_STEP(snla)) + (NLACHANNEL_HEIGHT(snla) * 2));
+	
 	/* don't use totrect set, as the width stays the same 
 	 * (NOTE: this is ok here, the configuration is pretty straightforward) 
 	 */
