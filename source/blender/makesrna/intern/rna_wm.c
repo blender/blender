@@ -1269,10 +1269,11 @@ static void rna_Operator_unregister(struct Main *bmain, StructRNA *type)
 
 	idname = ot->idname;
 	WM_operatortype_remove_ptr(ot);
-	MEM_freeN((void *)idname);
 
 	/* not to be confused with the RNA_struct_free that WM_operatortype_remove calls, they are 2 different srna's */
 	RNA_struct_free(&BLENDER_RNA, type);
+
+	MEM_freeN((void *)idname);
 }
 
 static void **rna_Operator_instance(PointerRNA *ptr)

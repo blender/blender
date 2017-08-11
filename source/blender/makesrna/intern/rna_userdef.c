@@ -606,9 +606,9 @@ static void rna_AddonPref_unregister(Main *UNUSED(bmain), StructRNA *type)
 		return;
 
 	RNA_struct_free_extension(type, &apt->ext);
+	RNA_struct_free(&BLENDER_RNA, type);
 
 	BKE_addon_pref_type_remove(apt);
-	RNA_struct_free(&BLENDER_RNA, type);
 
 	/* update while blender is running */
 	WM_main_add_notifier(NC_WINDOW, NULL);

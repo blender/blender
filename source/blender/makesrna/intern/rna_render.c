@@ -279,8 +279,8 @@ static void rna_RenderEngine_unregister(Main *UNUSED(bmain), StructRNA *type)
 		return;
 	
 	RNA_struct_free_extension(type, &et->ext);
-	BLI_freelinkN(&R_engines, et);
 	RNA_struct_free(&BLENDER_RNA, type);
+	BLI_freelinkN(&R_engines, et);
 }
 
 static StructRNA *rna_RenderEngine_register(Main *bmain, ReportList *reports, void *data, const char *identifier,

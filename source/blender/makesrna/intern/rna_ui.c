@@ -177,9 +177,9 @@ static void rna_Panel_unregister(Main *UNUSED(bmain), StructRNA *type)
 		return;
 	
 	RNA_struct_free_extension(type, &pt->ext);
+	RNA_struct_free(&BLENDER_RNA, type);
 
 	BLI_freelinkN(&art->paneltypes, pt);
-	RNA_struct_free(&BLENDER_RNA, type);
 
 	/* update while blender is running */
 	WM_main_add_notifier(NC_WINDOW, NULL);
@@ -455,10 +455,9 @@ static void rna_UIList_unregister(Main *UNUSED(bmain), StructRNA *type)
 		return;
 
 	RNA_struct_free_extension(type, &ult->ext);
+	RNA_struct_free(&BLENDER_RNA, type);
 
 	WM_uilisttype_freelink(ult);
-
-	RNA_struct_free(&BLENDER_RNA, type);
 
 	/* update while blender is running */
 	WM_main_add_notifier(NC_WINDOW, NULL);
@@ -551,9 +550,9 @@ static void rna_Header_unregister(Main *UNUSED(bmain), StructRNA *type)
 		return;
 	
 	RNA_struct_free_extension(type, &ht->ext);
+	RNA_struct_free(&BLENDER_RNA, type);
 
 	BLI_freelinkN(&art->headertypes, ht);
-	RNA_struct_free(&BLENDER_RNA, type);
 
 	/* update while blender is running */
 	WM_main_add_notifier(NC_WINDOW, NULL);
@@ -673,10 +672,9 @@ static void rna_Menu_unregister(Main *UNUSED(bmain), StructRNA *type)
 		return;
 	
 	RNA_struct_free_extension(type, &mt->ext);
+	RNA_struct_free(&BLENDER_RNA, type);
 
 	WM_menutype_freelink(mt);
-
-	RNA_struct_free(&BLENDER_RNA, type);
 
 	/* update while blender is running */
 	WM_main_add_notifier(NC_WINDOW, NULL);

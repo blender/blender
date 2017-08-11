@@ -145,8 +145,25 @@ static void rna_brna_structs_add(BlenderRNA *brna, StructRNA *srna)
 	if (srna->identifier[0] != '\0') {
 		BLI_ghash_insert(brna->structs_map, (void *)srna->identifier, srna);
 	}
-
 }
+
+#ifdef RNA_RUNTIME
+static void rna_brna_structs_remove_and_free(BlenderRNA *brna, StructRNA *srna)
+{
+	if (brna->structs_map) {
+		if (srna->identifier[0] != '\0') {
+			BLI_ghash_remove(brna->structs_map, (void *)srna->identifier, NULL, NULL);
+		}
+	}
+
+	RNA_def_struct_free_pointers(srna);
+
+	if (srna->flag & STRUCT_RUNTIME) {
+		rna_freelinkN(&brna->structs, srna);
+	}
+	brna->structs_len -= 1;
+}
+#endif
 
 StructDefRNA *rna_find_struct_def(StructRNA *srna)
 {
@@ -655,10 +672,8 @@ void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
 			rna_freelinkN(&srna->functions, func);
 	}
 
-	RNA_def_struct_free_pointers(srna);
 
-	if (srna->flag & STRUCT_RUNTIME)
-		rna_freelinkN(&brna->structs, srna);
+	rna_brna_structs_remove_and_free(brna, srna);
 #else
 	UNUSED_VARS(brna, srna);
 #endif

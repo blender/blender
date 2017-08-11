@@ -595,10 +595,9 @@ static void rna_NodeTree_unregister(Main *UNUSED(bmain), StructRNA *type)
 		return;
 
 	RNA_struct_free_extension(type, &nt->ext);
+	RNA_struct_free(&BLENDER_RNA, type);
 
 	ntreeTypeFreeLink(nt);
-
-	RNA_struct_free(&BLENDER_RNA, type);
 
 	/* update while blender is running */
 	WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
@@ -1348,11 +1347,11 @@ static void rna_Node_unregister(Main *UNUSED(bmain), StructRNA *type)
 		return;
 
 	RNA_struct_free_extension(type, &nt->ext);
+	RNA_struct_free(&BLENDER_RNA, type);
 
 	/* this also frees the allocated nt pointer, no MEM_free call needed! */
 	nodeUnregisterType(nt);
 
-	RNA_struct_free(&BLENDER_RNA, type);
 
 	/* update while blender is running */
 	WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
@@ -1810,10 +1809,10 @@ static void rna_NodeSocket_unregister(Main *UNUSED(bmain), StructRNA *type)
 		return;
 	
 	RNA_struct_free_extension(type, &st->ext_socket);
+	RNA_struct_free(&BLENDER_RNA, type);
 
 	nodeUnregisterSocketType(st);
 
-	RNA_struct_free(&BLENDER_RNA, type);
 
 	/* update while blender is running */
 	WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
