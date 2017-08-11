@@ -26,6 +26,9 @@ from bl_ui.properties_physics_common import (
         )
 
 
+COMPAT_OB_TYPES = {'MESH', 'LATTICE', 'CURVE', 'SURFACE', 'FONT'}
+
+
 def softbody_panel_enabled(md):
     return (md.point_cache.is_baked is False)
 
@@ -39,7 +42,7 @@ class PhysicButtonsPanel:
     def poll(cls, context):
         ob = context.object
         rd = context.scene.render
-        return (ob and (ob.type == 'MESH' or ob.type == 'LATTICE'or ob.type == 'CURVE')) and (rd.engine in cls.COMPAT_ENGINES) and (context.soft_body)
+        return ob and ob.type in COMPAT_OB_TYPES and rd.engine in cls.COMPAT_ENGINES and context.soft_body
 
 
 class PHYSICS_PT_softbody(PhysicButtonsPanel, Panel):
