@@ -135,6 +135,19 @@ void rna_freelistN(ListBase *listbase)
 	listbase->first = listbase->last = NULL;
 }
 
+static void rna_brna_structs_add(BlenderRNA *brna, StructRNA *srna)
+{
+	rna_addtail(&brna->structs, srna);
+	brna->structs_len += 1;
+
+	/* This exception is only needed for pre-processing.
+	 * otherwise we don't allow empty names. */
+	if (srna->identifier[0] != '\0') {
+		BLI_ghash_insert(brna->structs_map, (void *)srna->identifier, srna);
+	}
+
+}
+
 StructDefRNA *rna_find_struct_def(StructRNA *srna)
 {
 	StructDefRNA *dsrna;
@@ -534,6 +547,8 @@ BlenderRNA *RNA_create(void)
 	const char *error_message = NULL;
 
 	BLI_listbase_clear(&DefRNA.structs);
+	brna->structs_map = BLI_ghash_str_new_ex(__func__, 2048);
+
 	DefRNA.error = 0;
 	DefRNA.preprocess = 1;
 
@@ -654,6 +669,9 @@ void RNA_free(BlenderRNA *brna)
 	StructRNA *srna, *nextsrna;
 	FunctionRNA *func;
 
+	BLI_ghash_free(brna->structs_map, NULL, NULL);
+	brna->structs_map = NULL;
+
 	if (DefRNA.preprocess) {
 		RNA_define_free(brna);
 
@@ -747,7 +765,7 @@ StructRNA *RNA_def_struct_ptr(BlenderRNA *brna, const char *identifier, StructRN
 	if (!srnafrom)
 		srna->icon = ICON_DOT;
 
-	rna_addtail(&brna->structs, srna);
+	rna_brna_structs_add(brna, srna);
 
 	if (DefRNA.preprocess) {
 		ds = MEM_callocN(sizeof(StructDefRNA), "StructDefRNA");
@@ -819,10 +837,8 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 
 	if (from) {
 		/* find struct to derive from */
-		for (srnafrom = brna->structs.first; srnafrom; srnafrom = srnafrom->cont.next)
-			if (STREQ(srnafrom->identifier, from))
-				break;
-
+		/* Inline RNA_struct_find(...) because it wont link from here. */
+		srnafrom = BLI_ghash_lookup(brna->structs_map, from);
 		if (!srnafrom) {
 			fprintf(stderr, "%s: struct %s not found to define %s.\n", __func__, from, identifier);
 			DefRNA.error = 1;
@@ -901,10 +917,7 @@ void RNA_def_struct_nested(BlenderRNA *brna, StructRNA *srna, const char *struct
 	StructRNA *srnafrom;
 
 	/* find struct to derive from */
-	for (srnafrom = brna->structs.first; srnafrom; srnafrom = srnafrom->cont.next)
-		if (STREQ(srnafrom->identifier, structname))
-			break;
-
+	srnafrom = BLI_ghash_lookup(brna->structs_map, structname);
 	if (!srnafrom) {
 		fprintf(stderr, "%s: struct %s not found for %s.\n", __func__, structname, srna->identifier);
 		DefRNA.error = 1;

@@ -985,19 +985,22 @@ static int rna_Function_use_self_type_get(PointerRNA *ptr)
 
 static void rna_BlenderRNA_structs_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-	rna_iterator_listbase_begin(iter, &((BlenderRNA *)ptr->data)->structs, NULL);
+	BlenderRNA *brna = ptr->data;
+	rna_iterator_listbase_begin(iter, &brna->structs, NULL);
 }
 
 /* optional, for faster lookups */
 static int rna_BlenderRNA_structs_length(PointerRNA *ptr)
 {
-	return BLI_listbase_count(&((BlenderRNA *)ptr->data)->structs);
+	BlenderRNA *brna = ptr->data;
+	BLI_assert(brna->structs_len == BLI_listbase_count(&brna->structs));
+	return brna->structs_len;
 }
 static int rna_BlenderRNA_structs_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
-	StructRNA *srna = BLI_findlink(&((BlenderRNA *)ptr->data)->structs, index);
-
-	if (srna) {
+	BlenderRNA *brna = ptr->data;
+	StructRNA *srna = index < brna->structs_len ? BLI_findlink(&brna->structs, index) : NULL;
+	if (srna != NULL) {
 		RNA_pointer_create(NULL, &RNA_Struct, srna, r_ptr);
 		return true;
 	}
@@ -1007,12 +1010,11 @@ static int rna_BlenderRNA_structs_lookup_int(PointerRNA *ptr, int index, Pointer
 }
 static int rna_BlenderRNA_structs_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
 {
-	StructRNA *srna = ((BlenderRNA *)ptr->data)->structs.first;
-	for (; srna; srna = srna->cont.next) {
-		if (key[0] == srna->identifier[0] && STREQ(key, srna->identifier)) {
-			RNA_pointer_create(NULL, &RNA_Struct, srna, r_ptr);
-			return true;
-		}
+	BlenderRNA *brna = ptr->data;
+	StructRNA *srna = BLI_ghash_lookup(brna->structs_map, (void *)key);
+	if (srna != NULL) {
+		RNA_pointer_create(NULL, &RNA_Struct, srna, r_ptr);
+		return true;
 	}
 
 	return false;

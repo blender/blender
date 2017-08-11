@@ -76,6 +76,9 @@ void RNA_init(void)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	BLENDER_RNA.structs_map = BLI_ghash_str_new_ex(__func__, 2048);
+	BLENDER_RNA.structs_len = 0;
+
 	for (srna = BLENDER_RNA.structs.first; srna; srna = srna->cont.next) {
 		if (!srna->cont.prophash) {
 			srna->cont.prophash = BLI_ghash_str_new("RNA_init gh");
@@ -86,6 +89,8 @@ void RNA_init(void)
 				}
 			}
 		}
+		BLI_ghash_insert(BLENDER_RNA.structs_map, (void *)srna->identifier, srna);
+		BLENDER_RNA.structs_len += 1;
 	}
 }
 
@@ -513,13 +518,7 @@ static const char *rna_ensure_property_name(const PropertyRNA *prop)
 
 StructRNA *RNA_struct_find(const char *identifier)
 {
-	StructRNA *type;
-	if (identifier) {
-		for (type = BLENDER_RNA.structs.first; type; type = type->cont.next)
-			if (STREQ(type->identifier, identifier))
-				return type;
-	}
-	return NULL;
+	return BLI_ghash_lookup(BLENDER_RNA.structs_map, identifier);
 }
 
 const char *RNA_struct_identifier(const StructRNA *type)
