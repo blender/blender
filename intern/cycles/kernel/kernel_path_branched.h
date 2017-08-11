@@ -558,7 +558,7 @@ ccl_device float kernel_branched_path_integrate(KernelGlobals *kg,
 			/* path termination. this is a strange place to put the termination, it's
 			 * mainly due to the mixed in MIS that we use. gives too many unneeded
 			 * shader evaluations, only need emission if we are going to terminate */
-			float probability = path_state_terminate_probability(kg, &state, throughput);
+			float probability = path_state_continuation_probability(kg, &state, throughput);
 
 			if(probability == 0.0f) {
 				break;

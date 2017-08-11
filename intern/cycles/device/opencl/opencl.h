@@ -543,7 +543,7 @@ protected:
 
 private:
 	MemoryManager memory_manager;
-	friend MemoryManager;
+	friend class MemoryManager;
 
 	struct tex_info_t {
 		uint buffer, padding;

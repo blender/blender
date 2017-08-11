@@ -224,19 +224,19 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 		 * shader evaluations, only need emission if we are going to terminate.
 		 */
 #ifndef __BRANCHED_PATH__
-		float probability = path_state_terminate_probability(kg, state, throughput);
+		float probability = path_state_continuation_probability(kg, state, throughput);
 #else
 		float probability = 1.0f;
 
 		if(!kernel_data.integrator.branched) {
-			probability = path_state_terminate_probability(kg, state, throughput);
+			probability = path_state_continuation_probability(kg, state, throughput);
 		}
 		else if(IS_FLAG(ray_state, ray_index, RAY_BRANCHED_INDIRECT)) {
 			int num_samples = kernel_split_state.branched_state[ray_index].num_samples;
-			probability = path_state_terminate_probability(kg, state, throughput*num_samples);
+			probability = path_state_continuation_probability(kg, state, throughput*num_samples);
 		}
 		else if(state->flag & PATH_RAY_TRANSPARENT) {
-			probability = path_state_terminate_probability(kg, state, throughput);
+			probability = path_state_continuation_probability(kg, state, throughput);
 		}
 #endif
 
