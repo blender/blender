@@ -528,6 +528,8 @@ typedef ccl_addr_space struct PathRadiance {
 	 */
 	float3 shadow_radiance_sum;
 	float shadow_throughput;
+
+	/* Accumulated transparency along the path after shadow catcher bounce. */
 	float shadow_transparency;
 #endif
 
