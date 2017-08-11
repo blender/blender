@@ -4442,7 +4442,9 @@ bool BKE_curve_center_bounds(Curve *cu, float cent[3])
 }
 
 
-void BKE_curve_transform_ex(Curve *cu, float mat[4][4], const bool do_keys, const float unit_scale)
+void BKE_curve_transform_ex(
+        Curve *cu, float mat[4][4],
+        const bool do_keys, const bool do_props, const float unit_scale)
 {
 	Nurb *nu;
 	BPoint *bp;
@@ -4456,7 +4458,9 @@ void BKE_curve_transform_ex(Curve *cu, float mat[4][4], const bool do_keys, cons
 				mul_m4_v3(mat, bezt->vec[0]);
 				mul_m4_v3(mat, bezt->vec[1]);
 				mul_m4_v3(mat, bezt->vec[2]);
-				bezt->radius *= unit_scale;
+				if (do_props) {
+					bezt->radius *= unit_scale;
+				}
 			}
 			BKE_nurb_handles_calc(nu);
 		}
@@ -4464,7 +4468,9 @@ void BKE_curve_transform_ex(Curve *cu, float mat[4][4], const bool do_keys, cons
 			i = nu->pntsu * nu->pntsv;
 			for (bp = nu->bp; i--; bp++) {
 				mul_m4_v3(mat, bp->vec);
-				bp->radius *= unit_scale;
+				if (do_props) {
+					bp->radius *= unit_scale;
+				}
 			}
 		}
 	}
@@ -4480,10 +4486,12 @@ void BKE_curve_transform_ex(Curve *cu, float mat[4][4], const bool do_keys, cons
 	}
 }
 
-void BKE_curve_transform(Curve *cu, float mat[4][4], const bool do_keys)
+void BKE_curve_transform(
+        Curve *cu, float mat[4][4],
+        const bool do_keys, const bool do_props)
 {
 	float unit_scale = mat4_to_scale(mat);
-	BKE_curve_transform_ex(cu, mat, do_keys, unit_scale);
+	BKE_curve_transform_ex(cu, mat, do_keys, do_props, unit_scale);
 }
 
 void BKE_curve_translate(Curve *cu, float offset[3], const bool do_keys)

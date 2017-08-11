@@ -473,7 +473,7 @@ bool BKE_mball_center_bounds(MetaBall *mb, float r_cent[3])
 	return false;
 }
 
-void BKE_mball_transform(MetaBall *mb, float mat[4][4])
+void BKE_mball_transform(MetaBall *mb, float mat[4][4], const bool do_props)
 {
 	MetaElem *me;
 	float quat[4];
@@ -485,14 +485,17 @@ void BKE_mball_transform(MetaBall *mb, float mat[4][4])
 	for (me = mb->elems.first; me; me = me->next) {
 		mul_m4_v3(mat, &me->x);
 		mul_qt_qtqt(me->quat, quat, me->quat);
-		me->rad *= scale;
-		/* hrmf, probably elems shouldn't be
-		 * treating scale differently - campbell */
-		if (!MB_TYPE_SIZE_SQUARED(me->type)) {
-			mul_v3_fl(&me->expx, scale);
-		}
-		else {
-			mul_v3_fl(&me->expx, scale_sqrt);
+
+		if (do_props) {
+			me->rad *= scale;
+			/* hrmf, probably elems shouldn't be
+			 * treating scale differently - campbell */
+			if (!MB_TYPE_SIZE_SQUARED(me->type)) {
+				mul_v3_fl(&me->expx, scale);
+			}
+			else {
+				mul_v3_fl(&me->expx, scale_sqrt);
+			}
 		}
 	}
 }
