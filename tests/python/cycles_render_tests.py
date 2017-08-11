@@ -163,6 +163,25 @@ class Report:
     <title>Cycles Test Report</title>
     <style>
         img {{ image-rendering: pixelated; width: 256; background-color: #000; }}
+        img.render {{
+            background-color: #fff;
+            background-image:
+              -moz-linear-gradient(45deg, #eee 25%, transparent 25%),
+              -moz-linear-gradient(-45deg, #eee 25%, transparent 25%),
+              -moz-linear-gradient(45deg, transparent 75%, #eee 75%),
+              -moz-linear-gradient(-45deg, transparent 75%, #eee 75%);
+            background-image:
+              -webkit-gradient(linear, 0 100%, 100% 0, color-stop(.25, #eee), color-stop(.25, transparent)),
+              -webkit-gradient(linear, 0 0, 100% 100%, color-stop(.25, #eee), color-stop(.25, transparent)),
+              -webkit-gradient(linear, 0 100%, 100% 0, color-stop(.75, transparent), color-stop(.75, #eee)),
+              -webkit-gradient(linear, 0 0, 100% 100%, color-stop(.75, transparent), color-stop(.75, #eee));
+
+            -moz-background-size:50px 50px;
+            background-size:50px 50px;
+            -webkit-background-size:50px 51px; /* override value for shitty webkit */
+
+            background-position:0 0, 25px 0, 25px -25px, 0px 25px;
+        }}
         table td:first-child {{ width: 100%; }}
     </style>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css">
@@ -206,8 +225,8 @@ class Report:
         test_html = """
             <tr{}>
                 <td><b>{}</b><br/>{}<br/>{}</td>
-                <td><img src="{}" onmouseover="this.src='{}';" onmouseout="this.src='{}';"></td>
-                <td><img src="{}" onmouseover="this.src='{}';" onmouseout="this.src='{}';"></td>
+                <td><img src="{}" onmouseover="this.src='{}';" onmouseout="this.src='{}';" class="render"></td>
+                <td><img src="{}" onmouseover="this.src='{}';" onmouseout="this.src='{}';" class="render"></td>
                 <td><img src="{}"></td>
             </tr>""" . format(style, name, self.testname, status,
                               new_url, ref_url, new_url,
