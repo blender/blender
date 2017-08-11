@@ -93,6 +93,10 @@ static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm);
 #  define ASSERT_IS_VALID_DM(dm)
 #endif
 
+
+static ThreadMutex loops_cache_lock = BLI_MUTEX_INITIALIZER;
+
+
 static void add_shapekey_layers(DerivedMesh *dm, Mesh *me, Object *ob);
 static void shapekey_layers_to_keyblocks(DerivedMesh *dm, Mesh *me, int actshape_uid);
 
@@ -241,7 +245,13 @@ static const MLoopTri *dm_getLoopTriArray(DerivedMesh *dm)
 		BLI_assert(dm->getNumLoopTri(dm) == dm->looptris.num);
 	}
 	else {
-		dm->recalcLoopTri(dm);
+		BLI_mutex_lock(&loops_cache_lock);
+		/* We need to ensure array is still NULL inside mutex-protected code, some other thread might have already
+		 * recomputed those looptris. */
+		if (dm->looptris.array == NULL) {
+			dm->recalcLoopTri(dm);
+		}
+		BLI_mutex_unlock(&loops_cache_lock);
 	}
 	return dm->looptris.array;
 }

@@ -4474,10 +4474,10 @@ static void ccgDM_recalcTessellation(DerivedMesh *UNUSED(dm))
 	/* Nothing to do: CCG handles creating its own tessfaces */
 }
 
+/* WARNING! *MUST* be called in an 'loops_cache_rwlock' protected thread context! */
 static void ccgDM_recalcLoopTri(DerivedMesh *dm)
 {
-	BLI_rw_mutex_lock(&loops_cache_rwlock, THREAD_LOCK_WRITE);
-	MLoopTri *mlooptri;
+	MLoopTri *mlooptri = dm->looptris.array;
 	const int tottri = dm->numPolyData * 2;
 	int i, poly_index;
 
@@ -4502,7 +4502,6 @@ static void ccgDM_recalcLoopTri(DerivedMesh *dm)
 		lt->tri[2] = (poly_index * 4) + 2;
 		lt->poly = poly_index;
 	}
-	BLI_rw_mutex_unlock(&loops_cache_rwlock);
 }
 
 static void ccgDM_calcNormals(DerivedMesh *dm)
