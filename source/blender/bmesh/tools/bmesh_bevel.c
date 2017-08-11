@@ -4531,53 +4531,198 @@ static void set_profile_spacing(BevelParams *bp)
 }
 
 /*
- * Calculate and return an offset that is the lesser of the current
+ * Assume we have a situation like:
+ *
+ * a                 d
+ *  \               /
+ * A \             / C
+ *    \ th1    th2/
+ *     b---------c
+ *          B
+ *
+ * where edges are A, B, and C,
+ * following a face around vertices a, b, c, d;
+ * th1 is angle abc and th2 is angle bcd;
+ * and the argument EdgeHalf eb is B, going from b to c.
+ * In general case, edge offset specs for A, B, C have
+ * the form ka*t, kb*t, kc*t where ka, kb, kc are some factors
+ * (may be 0) and t is the current bp->offset.
+ * We want to calculate t at which the clone of B parallel
+ * to it collapses. This can be calculated using trig.
+ * Another case of geometry collision that can happen is
+ * When B slides along A because A is unbeveled.
+ * Then it might collide with a.  Similarly for B sliding along C.
+ */
+static float geometry_collide_offset(BevelParams *bp, EdgeHalf *eb)
+{
+	EdgeHalf *ea, *ec, *ebother;
+	BevVert *bvc;
+	BMLoop *lb;
+	BMVert *va, *vb, *vc, *vd;
+	float ka, kb, kc, g, h, t, den, no_collide_offset, th1, th2, sin1, sin2, tan1, tan2, limit;
+
+	limit = no_collide_offset = bp->offset + 1e6;
+	if (bp->offset == 0.0f)
+		return no_collide_offset;
+	kb = eb->offset_l_spec;
+	ea = eb->next;  /* note: this is in direction b --> a */
+	ka = ea->offset_r_spec;
+	if (eb->is_rev) {
+		vc = eb->e->v1;
+		vb = eb->e->v2;
+	}
+	else {
+		vb = eb->e->v1;
+		vc = eb->e->v2;
+	}
+	va = ea->is_rev ? ea->e->v1 : ea->e->v2;
+	bvc = NULL;
+	ebother = find_other_end_edge_half(bp, eb, &bvc);
+	if (ebother != NULL) {
+		ec = ebother->prev;  /* note: this is in direction c --> d*/
+		vc = bvc->v;
+		kc = ec->offset_l_spec;
+		vd = ec->is_rev ? ec->e->v1 : ec->e->v2;
+	}
+	else {
+		/* No bevvert for w, so C can't be beveled */
+		kc = 0.0f;
+		ec = NULL;
+		/* Find an edge from c that has same face */
+		lb = BM_face_edge_share_loop(eb->fnext, eb->e);
+		if (!lb) {
+			return no_collide_offset;
+		}
+		if (lb->next->v == vc)
+			vd = lb->next->next->v;
+		else if (lb->v == vc)
+			vd = lb->prev->v;
+		else {
+			return no_collide_offset;
+		}
+	}
+	if (ea->e == eb->e || (ec && ec->e == eb->e))
+		return no_collide_offset;
+	ka = ka / bp->offset;
+	kb = kb / bp->offset;
+	kc = kc / bp->offset;
+	th1 = angle_v3v3v3(va->co, vb->co, vc->co);
+	th2 = angle_v3v3v3(vb->co, vc->co, vd->co);
+	
+	/* First calculate offset at which edge B collapses, which happens
+	 * when advancing clones of A, B, C all meet at a point.
+	 * This only happens if at least two of those three edges have non-zero k's */
+	sin1 = sinf(th1);
+	sin2 = sinf(th2);
+	if ((ka > 0.0f) + (kb > 0.0f) + (kc > 0.0f) >= 2) {
+		tan1 = tanf(th1);
+		tan2 = tanf(th2);
+		g = tan1 * tan2;
+		h = sin1 * sin2;
+		den = g * (ka * sin2 + kc * sin1) + kb * h * (tan1 + tan2);
+		if (den != 0.0f) {
+			t = BM_edge_calc_length(eb->e);
+			t *= g * h / den;
+			if (t >= 0.0f)
+				limit = t;
+		}
+	}
+
+	/* Now check edge slide cases */
+	if (kb > 0.0f && ka == 0.0f /*&& bvb->selcount == 1 && bvb->edgecount > 2*/) {
+		t = BM_edge_calc_length(ea->e);
+		t *= sin1 / kb;
+		if (t >= 0.0f && t < limit)
+			limit = t;
+	}
+	if (kb > 0.0f && kc == 0.0f /* && bvc && ec && bvc->selcount == 1 && bvc->edgecount > 2 */) {
+		t = BM_edge_calc_length(ec->e);
+		t *= sin2 / kb;
+		if (t >= 0.0f && t < limit)
+			limit = t;
+	}
+	return limit;
+}
+
+/*
+ * We have an edge A between vertices a and b,
+ * where EdgeHalf ea is the half of A that starts at a.
+ * For vertex-only bevels, the new vertices slide from a at a rate ka*t
+ * and from b at a rate kb*t.
+ * We want to calculate the t at which the two meet.
+ */
+static float vertex_collide_offset(BevelParams *bp, EdgeHalf *ea)
+{
+	float limit, ka, kb, no_collide_offset, la, kab;
+	EdgeHalf *eb;
+
+	limit = no_collide_offset = bp->offset + 1e6;
+	if (bp->offset == 0.0f)
+		return no_collide_offset;
+	ka = ea->offset_l_spec / bp->offset;
+	eb = find_other_end_edge_half(bp, ea, NULL);
+	kb = eb ? eb->offset_l_spec / bp->offset : 0.0f;
+	kab = ka + kb;
+	la = BM_edge_calc_length(ea->e);
+	if (kab <= 0.0f)
+		return no_collide_offset;
+	limit = la / kab;
+	return limit;
+}
+
+/*
+ * Calculate an offset that is the lesser of the current
  * bp.offset and the maximum possible offset before geometry
  * collisions happen.
- * Currently this is a quick and dirty estimate of the max
- * possible: half the minimum edge length of any vertex involved
- * in a bevel. This is usually conservative.
- * The correct calculation is quite complicated.
- * TODO: implement this correctly.
+ * If the offset changes as a result of this, adjust the
+ * current edge offset specs to reflect this clamping,
+ * and store the new offset in bp.offset.
  */
-static float bevel_limit_offset(BMesh *bm, BevelParams *bp)
+static void bevel_limit_offset(BevelParams *bp)
 {
-	BMVert *v;
-	BMEdge *e;
-	BMIter v_iter, e_iter;
-	float limited_offset, half_elen;
-	bool vbeveled;
+	BevVert *bv;
+	EdgeHalf *eh;
+	GHashIterator giter;
+	float limited_offset, offset_factor, collision_offset;
+	int i;
 
 	limited_offset = bp->offset;
-	if (bp->offset_type == BEVEL_AMT_PERCENT) {
-		if (limited_offset > 50.0f)
-			limited_offset = 50.0f;
-		return limited_offset;
-	}
-	BM_ITER_MESH (v, &v_iter, bm, BM_VERTS_OF_MESH) {
-		if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+	GHASH_ITER(giter, bp->vert_hash) {
+		bv = BLI_ghashIterator_getValue(&giter);
+		for (i = 0; i < bv->edgecount; i++) {
+			eh = &bv->edges[i];
 			if (bp->vertex_only) {
-				vbeveled = true;
+				collision_offset = vertex_collide_offset(bp, eh);
+				if (collision_offset < limited_offset)
+					limited_offset = collision_offset;
 			}
 			else {
-				vbeveled = false;
-				BM_ITER_ELEM (e, &e_iter, v, BM_EDGES_OF_VERT) {
-					if (BM_elem_flag_test(BM_edge_other_vert(e, v), BM_ELEM_TAG)) {
-						vbeveled = true;
-						break;
-					}
-				}
-			}
-			if (vbeveled) {
-				BM_ITER_ELEM (e, &e_iter, v, BM_EDGES_OF_VERT) {
-					half_elen = 0.5f * BM_edge_calc_length(e);
-					if (half_elen < limited_offset)
-						limited_offset = half_elen;
-				}
+				collision_offset = geometry_collide_offset(bp, eh);
+				if (collision_offset < limited_offset)
+					limited_offset = collision_offset;
 			}
 		}
 	}
-	return limited_offset;
+
+	if (limited_offset < bp->offset) {
+		/* All current offset specs have some number times bp->offset,
+		 * so we can just multiply them all by the reduction factor
+		 * of the offset to have the effect of recalculating the specs
+		 * with the new limited_offset.
+		*/
+		offset_factor = limited_offset / bp->offset;
+		GHASH_ITER(giter, bp->vert_hash) {
+			bv = BLI_ghashIterator_getValue(&giter);
+			for (i = 0; i < bv->edgecount; i++) {
+				eh = &bv->edges[i];
+				eh->offset_l_spec *= offset_factor;
+				eh->offset_r_spec *= offset_factor;
+				eh->offset_l *= offset_factor;
+				eh->offset_r *= offset_factor;
+			}
+		}
+		bp->offset = limited_offset;
+	}
 }
 
 /**
@@ -4604,6 +4749,7 @@ void BM_mesh_bevel(
 	BMEdge *e;
 	BevVert *bv;
 	BevelParams bp = {NULL};
+	GHashIterator giter;
 
 	bp.offset = offset;
 	bp.offset_type = offset_type;
@@ -4627,15 +4773,23 @@ void BM_mesh_bevel(
 		BLI_memarena_use_calloc(bp.mem_arena);
 		set_profile_spacing(&bp);
 
-		if (limit_offset)
-			bp.offset = bevel_limit_offset(bm, &bp);
-
 		/* Analyze input vertices, sorting edges and assigning initial new vertex positions */
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				bv = bevel_vert_construct(bm, &bp, v);
-				if (bv)
+				if (!limit_offset && bv)
 					build_boundary(&bp, bv, true);
+			}
+		}
+
+		/* Perhaps clamp offset to avoid geometry colliisions */
+		if (limit_offset) {
+			bevel_limit_offset(&bp);
+
+			/* Assign initial new vertex positions */
+			GHASH_ITER(giter, bp.vert_hash) {
+				bv = BLI_ghashIterator_getValue(&giter);
+				build_boundary(&bp, bv, true);
 			}
 		}
 
@@ -4645,6 +4799,7 @@ void BM_mesh_bevel(
 		}
 
 		/* Build the meshes around vertices, now that positions are final */
+		/* Note: could use GHASH_ITER over bp.vert_hash when backward compatibility no longer matters */
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				bv = find_bevvert(&bp, v);
