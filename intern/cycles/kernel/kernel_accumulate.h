@@ -233,7 +233,14 @@ ccl_device_inline void path_radiance_init(PathRadiance *L, int use_light_pass)
 	L->denoising_normal = make_float3(0.0f, 0.0f, 0.0f);
 	L->denoising_albedo = make_float3(0.0f, 0.0f, 0.0f);
 	L->denoising_depth = 0.0f;
-#endif  /* __DENOISING_FEATURES__ */
+#endif
+
+#ifdef __KERNEL_DEBUG__
+	L->debug_data.num_bvh_traversed_nodes = 0;
+	L->debug_data.num_bvh_traversed_instances = 0;
+	L->debug_data.num_bvh_intersections = 0;
+	L->debug_data.num_ray_bounces = 0;
+#endif
 }
 
 ccl_device_inline void path_radiance_bsdf_bounce(PathRadiance *L, ccl_addr_space float3 *throughput,

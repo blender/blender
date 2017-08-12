@@ -56,14 +56,6 @@ typedef struct SplitParams {
 
 /* SPLIT_DATA_ENTRY(type, name, num) */
 
-#if defined(WITH_CYCLES_DEBUG) || defined(__KERNEL_DEBUG__)
-/* DebugData memory */
-#  define SPLIT_DATA_DEBUG_ENTRIES \
-	SPLIT_DATA_ENTRY(DebugData, debug_data, 1)
-#else
-#  define SPLIT_DATA_DEBUG_ENTRIES
-#endif  /* DEBUG */
-
 #ifdef __BRANCHED_PATH__
 
 typedef ccl_global struct SplitBranchedState {
@@ -139,7 +131,6 @@ typedef ccl_global struct SplitBranchedState {
 	SPLIT_DATA_SUBSURFACE_ENTRIES \
 	SPLIT_DATA_VOLUME_ENTRIES \
 	SPLIT_DATA_BRANCHED_ENTRIES \
-	SPLIT_DATA_DEBUG_ENTRIES \
 
 /* entries to be copied to inactive rays when sharing branched samples (TODO: which are actually needed?) */
 #define SPLIT_DATA_ENTRIES_BRANCHED_SHARED \
@@ -158,7 +149,6 @@ typedef ccl_global struct SplitBranchedState {
 	SPLIT_DATA_SUBSURFACE_ENTRIES \
 	SPLIT_DATA_VOLUME_ENTRIES \
 	SPLIT_DATA_BRANCHED_ENTRIES \
-	SPLIT_DATA_DEBUG_ENTRIES \
 
 /* struct that holds pointers to data in the shared state buffer */
 typedef struct SplitData {

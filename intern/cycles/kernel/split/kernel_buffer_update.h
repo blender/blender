@@ -79,9 +79,6 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
 	int stride = kernel_split_params.stride;
 
 	ccl_global char *ray_state = kernel_split_state.ray_state;
-#ifdef __KERNEL_DEBUG__
-	DebugData *debug_data = &kernel_split_state.debug_data[ray_index];
-#endif
 	ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
 	PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
 	ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
@@ -111,10 +108,6 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
 	buffer += (kernel_split_params.offset + pixel_x + pixel_y*stride) * kernel_data.film.pass_stride;
 
 	if(IS_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER)) {
-#ifdef __KERNEL_DEBUG__
-		kernel_write_debug_passes(kg, buffer, state, debug_data, sample);
-#endif
-
 		/* accumulate result in output buffer */
 		bool is_shadow_catcher = (state->flag & PATH_RAY_SHADOW_CATCHER);
 		kernel_write_result(kg, buffer, sample, L, 1.0f - (*L_transparent), is_shadow_catcher);
@@ -155,9 +148,6 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
 				path_state_init(kg, &kernel_split_state.sd_DL_shadow[ray_index], state, &rng, sample, ray);
 #ifdef __SUBSURFACE__
 				kernel_path_subsurface_init_indirect(&kernel_split_state.ss_rays[ray_index]);
-#endif
-#ifdef __KERNEL_DEBUG__
-				debug_data_init(debug_data);
 #endif
 				ASSIGN_RAY_STATE(ray_state, ray_index, RAY_REGENERATED);
 				enqueue_flag = 1;

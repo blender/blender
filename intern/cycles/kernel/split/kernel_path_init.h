@@ -86,10 +86,6 @@ ccl_device void kernel_path_init(KernelGlobals *kg) {
 #ifdef __SUBSURFACE__
 		kernel_path_subsurface_init_indirect(&kernel_split_state.ss_rays[ray_index]);
 #endif
-
-#ifdef __KERNEL_DEBUG__
-		debug_data_init(&kernel_split_state.debug_data[ray_index]);
-#endif
 	}
 	else {
 		/* These rays do not participate in path-iteration. */

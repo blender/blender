@@ -48,10 +48,6 @@
 #include "kernel/kernel_path_volume.h"
 #include "kernel/kernel_path_subsurface.h"
 
-#ifdef __KERNEL_DEBUG__
-#  include "kernel/kernel_debug.h"
-#endif
-
 CCL_NAMESPACE_BEGIN
 
 ccl_device_noinline void kernel_path_ao(KernelGlobals *kg,
@@ -458,11 +454,6 @@ ccl_device_inline float kernel_path_integrate(KernelGlobals *kg,
 	PathState state;
 	path_state_init(kg, &emission_sd, &state, rng, sample, &ray);
 
-#ifdef __KERNEL_DEBUG__
-	DebugData debug_data;
-	debug_data_init(&debug_data);
-#endif  /* __KERNEL_DEBUG__ */
-
 #ifdef __SUBSURFACE__
 	SubsurfaceIndirectRays ss_indirect;
 	kernel_path_subsurface_init_indirect(&ss_indirect);
@@ -503,11 +494,11 @@ ccl_device_inline float kernel_path_integrate(KernelGlobals *kg,
 
 #ifdef __KERNEL_DEBUG__
 		if(state.flag & PATH_RAY_CAMERA) {
-			debug_data.num_bvh_traversed_nodes += isect.num_traversed_nodes;
-			debug_data.num_bvh_traversed_instances += isect.num_traversed_instances;
-			debug_data.num_bvh_intersections += isect.num_intersections;
+			L->debug_data.num_bvh_traversed_nodes += isect.num_traversed_nodes;
+			L->debug_data.num_bvh_traversed_instances += isect.num_traversed_instances;
+			L.->ebug_data.num_bvh_intersections += isect.num_intersections;
 		}
-		debug_data.num_ray_bounces++;
+		L->debug_data.num_ray_bounces++;
 #endif  /* __KERNEL_DEBUG__ */
 
 #ifdef __LAMP_MIS__
@@ -789,10 +780,6 @@ ccl_device_inline float kernel_path_integrate(KernelGlobals *kg,
 #ifdef __SHADOW_TRICKS__
 	*is_shadow_catcher = (state.flag & PATH_RAY_SHADOW_CATCHER) != 0;
 #endif  /* __SHADOW_TRICKS__ */
-
-#ifdef __KERNEL_DEBUG__
-	kernel_write_debug_passes(kg, buffer, &state, &debug_data, sample);
-#endif  /* __KERNEL_DEBUG__ */
 
 	return 1.0f - L_transparent;
 }
