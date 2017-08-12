@@ -543,6 +543,7 @@ void GPU_framebuffer_blit(GPUFrameBuffer *fb_read, int read_slot, GPUFrameBuffer
 void GPU_framebuffer_recursive_downsample(
         GPUFrameBuffer *fb, GPUTexture *tex, int num_iter, void (*callback)(void *userData, int level), void *userData)
 {
+	int i;
 	int current_dim[2] = {GPU_texture_width(tex), GPU_texture_height(tex)};
 	GLenum attachment;
 
@@ -567,7 +568,7 @@ void GPU_framebuffer_recursive_downsample(
 		glReadBuffer(GL_COLOR_ATTACHMENT0);
 	}
 
-	for (int i=1; i < num_iter+1 && (current_dim[0] > 1 && current_dim[1] > 1); i++) {
+	for (i=1; i < num_iter+1 && (current_dim[0] > 4 && current_dim[1] > 4); i++) {
 
 		/* calculate next viewport size */
 		current_dim[0] /= 2;
@@ -595,7 +596,7 @@ void GPU_framebuffer_recursive_downsample(
 	/* reset mipmap level range for the depth image */
 	GPU_texture_bind(tex, 0);
 	glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_BASE_LEVEL, 0);
-	glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_MAX_LEVEL, num_iter);
+	glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_MAX_LEVEL, i);
 	GPU_texture_unbind(tex);
 }
 
