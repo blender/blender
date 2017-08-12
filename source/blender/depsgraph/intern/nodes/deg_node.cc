@@ -201,6 +201,7 @@ void IDDepsNode::init_copy_on_write(ID *id_cow_hint)
 		id_cow = id_orig;
 	}
 #else
+	UNUSED_VARS(id_cow_hint);
 	id_cow = id_orig;
 #endif
 }

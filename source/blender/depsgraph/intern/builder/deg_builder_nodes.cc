@@ -198,6 +198,7 @@ IDDepsNode *DepsgraphNodeBuilder::add_id_node(ID *id, bool do_tag)
 	}
 #else
 	IDDepsNode *id_node = m_graph->add_id_node(id);
+	UNUSED_VARS(do_tag);
 #endif
 	return id_node;
 }
