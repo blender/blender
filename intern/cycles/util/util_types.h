@@ -28,6 +28,7 @@
 #endif
 
 #include "util/util_defines.h"
+#include "util/util_optimization.h"
 
 #ifndef __KERNEL_GPU__
 #  include "util/util_simd.h"
