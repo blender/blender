@@ -178,7 +178,7 @@ void RNA_api_manipulator(StructRNA *srna)
 	func = RNA_def_function(srna, "draw_preset_box", "rna_manipulator_draw_preset_box");
 	RNA_def_function_ui_description(func, "Draw a box");
 	parm = RNA_def_property(func, "matrix", PROP_FLOAT, PROP_MATRIX);
-	RNA_def_property_flag(parm, PARM_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_property_multi_array(parm, 2, rna_matrix_dimsize_4x4);
 	RNA_def_property_ui_text(parm, "", "The matrix to transform");
 	RNA_def_int(func, "select_id", -1, -1, INT_MAX, "Zero when not selecting", "", -1, INT_MAX);
@@ -187,7 +187,7 @@ void RNA_api_manipulator(StructRNA *srna)
 	func = RNA_def_function(srna, "draw_preset_arrow", "rna_manipulator_draw_preset_arrow");
 	RNA_def_function_ui_description(func, "Draw a box");
 	parm = RNA_def_property(func, "matrix", PROP_FLOAT, PROP_MATRIX);
-	RNA_def_property_flag(parm, PARM_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_property_multi_array(parm, 2, rna_matrix_dimsize_4x4);
 	RNA_def_property_ui_text(parm, "", "The matrix to transform");
 	RNA_def_enum(func, "axis", rna_enum_object_axis_items, 2, "", "Arrow Orientation");
@@ -196,7 +196,7 @@ void RNA_api_manipulator(StructRNA *srna)
 	func = RNA_def_function(srna, "draw_preset_circle", "rna_manipulator_draw_preset_circle");
 	RNA_def_function_ui_description(func, "Draw a box");
 	parm = RNA_def_property(func, "matrix", PROP_FLOAT, PROP_MATRIX);
-	RNA_def_property_flag(parm, PARM_REQUIRED);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_property_multi_array(parm, 2, rna_matrix_dimsize_4x4);
 	RNA_def_property_ui_text(parm, "", "The matrix to transform");
 	RNA_def_enum(func, "axis", rna_enum_object_axis_items, 2, "", "Arrow Orientation");

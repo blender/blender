@@ -57,7 +57,6 @@ GHOST_ContextGLX::GHOST_ContextGLX(
         GHOST_TUns16 numOfAASamples,
         Window window,
         Display *display,
-        XVisualInfo *visualInfo,
         GLXFBConfig fbconfig,
         int contextProfileMask,
         int contextMajorVersion,
@@ -66,7 +65,6 @@ GHOST_ContextGLX::GHOST_ContextGLX(
         int contextResetNotificationStrategy)
     : GHOST_Context(stereoVisual, numOfAASamples),
       m_display(display),
-      m_visualInfo(visualInfo),
       m_fbconfig(fbconfig),
       m_window(window),
       m_contextProfileMask(contextProfileMask),

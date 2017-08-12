@@ -57,7 +57,6 @@ public:
 	        GHOST_TUns16 numOfAASamples,
 	        Window window,
 	        Display *display,
-	        XVisualInfo *visualInfo,
 	        GLXFBConfig fbconfig,
 	        int contextProfileMask,
 	        int contextMajorVersion,
@@ -113,7 +112,6 @@ private:
 	void initContextGLXEW();
 
 	Display *m_display;
-	XVisualInfo *m_visualInfo;
 	GLXFBConfig m_fbconfig;
 	Window   m_window;
 

@@ -245,7 +245,7 @@ static void mesh_cd_calc_used_gpu_layers(
         struct GPUMaterial **gpumat_array, int gpumat_array_len)
 {
 	/* See: DM_vertex_attributes_from_gpu for similar logic */
-	GPUVertexAttribs gattribs = {0};
+	GPUVertexAttribs gattribs = {{{0}}};
 
 	for (int i = 0; i < gpumat_array_len; i++) {
 		GPUMaterial *gpumat = gpumat_array[i];

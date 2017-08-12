@@ -196,9 +196,6 @@ struct wmManipulator {
 	/* over alloc target_properties after 'wmManipulatorType.struct_size' */
 };
 
-typedef void (*wmManipulatorGroupFnInit)(
-        const struct bContext *, struct wmManipulatorGroup *);
-
 /* Similar to PropertyElemRNA, but has an identifier. */
 typedef struct wmManipulatorProperty {
 	const struct wmManipulatorPropertyType *type;

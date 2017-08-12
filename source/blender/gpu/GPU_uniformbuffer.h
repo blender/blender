@@ -32,7 +32,6 @@
 #ifndef __GPU_UNIFORMBUFFER_H__
 #define __GPU_UNIFORMBUFFER_H__
 
-typedef enum GPUType GPUType;
 struct ListBase;
 
 typedef struct GPUUniformBuffer GPUUniformBuffer;

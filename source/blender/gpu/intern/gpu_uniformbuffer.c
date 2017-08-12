@@ -51,12 +51,12 @@ typedef enum GPUUniformBufferType {
 	GPU_UBO_DYNAMIC = 1,
 } GPUUniformBufferType;
 
-typedef struct GPUUniformBuffer {
+struct GPUUniformBuffer {
 	int size;           /* in bytes */
 	GLuint bindcode;    /* opengl identifier for UBO */
 	int bindpoint;      /* current binding point */
 	GPUUniformBufferType type;
-} GPUUniformBuffer;
+};
 
 #define GPUUniformBufferStatic GPUUniformBuffer
 
@@ -67,12 +67,12 @@ typedef struct GPUUniformBufferDynamic {
 	char flag;
 } GPUUniformBufferDynamic;
 
-typedef struct GPUUniformBufferDynamicItem {
+struct GPUUniformBufferDynamicItem {
 	struct GPUUniformBufferDynamicItem *next, *prev;
 	GPUType gputype;
 	float *data;
 	int size;
-} GPUUniformBufferDynamicItem;
+};
 
 
 /* Prototypes */

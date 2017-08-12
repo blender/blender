@@ -616,7 +616,7 @@ static GLuint prepare_patchDraw(OpenSubdiv_GLMesh *gl_mesh,
 
 	if (fill_quads) {
 		int model;
-		GLboolean use_texture_2d, use_lighting;
+		GLboolean use_texture_2d;
 		glGetIntegerv(GL_SHADE_MODEL, &model);
 		glGetBooleanv(GL_TEXTURE_2D, &use_texture_2d);
 
