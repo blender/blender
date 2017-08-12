@@ -208,6 +208,7 @@ ccl_device_inline void path_radiance_init(PathRadiance *L, int use_light_pass)
 		L->path_subsurface = make_float3(0.0f, 0.0f, 0.0f);
 		L->path_scatter = make_float3(0.0f, 0.0f, 0.0f);
 
+		L->transparent = 0.0f;
 		L->emission = make_float3(0.0f, 0.0f, 0.0f);
 		L->background = make_float3(0.0f, 0.0f, 0.0f);
 		L->ao = make_float3(0.0f, 0.0f, 0.0f);
@@ -217,6 +218,7 @@ ccl_device_inline void path_radiance_init(PathRadiance *L, int use_light_pass)
 	else
 #endif
 	{
+		L->transparent = 0.0f;
 		L->emission = make_float3(0.0f, 0.0f, 0.0f);
 	}
 

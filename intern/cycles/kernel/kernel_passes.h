@@ -364,10 +364,12 @@ ccl_device_inline void kernel_write_light_passes(KernelGlobals *kg, ccl_global f
 }
 
 ccl_device_inline void kernel_write_result(KernelGlobals *kg, ccl_global float *buffer,
-	int sample, PathRadiance *L, float alpha, bool is_shadow_catcher)
+	int sample, PathRadiance *L, bool is_shadow_catcher)
 {
 	if(L) {
 		float3 L_sum;
+		float alpha = 1.0f - L->transparent;
+
 #ifdef __SHADOW_TRICKS__
 		if(is_shadow_catcher) {
 			L_sum = path_radiance_sum_shadowcatcher(kg, L, &alpha);

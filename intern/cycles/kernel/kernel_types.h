@@ -485,6 +485,7 @@ typedef ccl_addr_space struct PathRadiance {
 	int use_light_pass;
 #endif
 
+	float transparent;
 	float3 emission;
 #ifdef __PASSES__
 	float3 background;

@@ -71,11 +71,10 @@ ccl_device void kernel_path_init(KernelGlobals *kg) {
 	                        &kernel_split_state.ray[ray_index]);
 
 	if(kernel_split_state.ray[ray_index].t != 0.0f) {
-		/* Initialize throughput, L_transparent, Ray, PathState;
+		/* Initialize throughput, path radiance, Ray, PathState;
 		 * These rays proceed with path-iteration.
 		 */
 		kernel_split_state.throughput[ray_index] = make_float3(1.0f, 1.0f, 1.0f);
-		kernel_split_state.L_transparent[ray_index] = 0.0f;
 		path_radiance_init(&kernel_split_state.path_radiance[ray_index], kernel_data.film.use_light_pass);
 		path_state_init(kg,
 		                &kernel_split_state.sd_DL_shadow[ray_index],

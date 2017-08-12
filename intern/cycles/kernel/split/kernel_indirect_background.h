@@ -54,12 +54,11 @@ ccl_device void kernel_indirect_background(KernelGlobals *kg)
 	PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
 	ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
 	ccl_global float3 *throughput = &kernel_split_state.throughput[ray_index];
-	ccl_global float *L_transparent = &kernel_split_state.L_transparent[ray_index];
 
 	if(IS_STATE(ray_state, ray_index, RAY_HIT_BACKGROUND)) {
 		/* eval background shader if nothing hit */
 		if(kernel_data.background.transparent && (state->flag & PATH_RAY_CAMERA)) {
-			*L_transparent = (*L_transparent) + average((*throughput));
+			L->transparent += average((*throughput));
 #ifdef __PASSES__
 			if(!(kernel_data.film.pass_flag & PASS_BACKGROUND))
 #endif
