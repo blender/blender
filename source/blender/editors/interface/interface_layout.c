@@ -3328,8 +3328,9 @@ void ui_layout_add_but(uiLayout *layout, uiBut *but)
 	ui_item_size((uiItem *)bitem, &w, &h);
 	/* XXX uiBut hasn't scaled yet
 	 * we can flag the button as not expandable, depending on its size */
-	if (w <= 2 * UI_UNIT_X)
+	if (w <= 2 * UI_UNIT_X && (!but->str || but->str[0] == '\0')) {
 		bitem->item.flag |= UI_ITEM_MIN;
+	}
 
 	BLI_addtail(&layout->items, bitem);
 
