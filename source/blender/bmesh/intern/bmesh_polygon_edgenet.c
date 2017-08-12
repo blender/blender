@@ -725,8 +725,28 @@ BLI_INLINE bool edge_isect_verts_point_2d(
         const BMEdge *e, const BMVert *v_a, const BMVert *v_b,
         float r_isect[2])
 {
-	return ((isect_seg_seg_v2_point(v_a->co, v_b->co, e->v1->co, e->v2->co, r_isect) == 1) &&
+	/* This bias seems like it could be too large,
+	 * mostly its not needed, see T52329 for example where it is. */
+	const float endpoint_bias = 1e-4f;
+	return ((isect_seg_seg_v2_point_ex(v_a->co, v_b->co, e->v1->co, e->v2->co, endpoint_bias, r_isect) == 1) &&
 	        ((e->v1 != v_a) && (e->v2 != v_a) && (e->v1 != v_b)  && (e->v2 != v_b)));
+}
+
+BLI_INLINE int axis_pt_cmp(const float pt_a[2], const float pt_b[2])
+{
+	if (pt_a[0] < pt_b[0]) {
+		return -1;
+	}
+	if (pt_a[0] > pt_b[0]) {
+		return 1;
+	}
+	if (pt_a[1] < pt_b[1]) {
+		return -1;
+	}
+	if (pt_a[1] > pt_b[1]) {
+		return 1;
+	}
+	return 0;
 }
 
 /**
@@ -749,7 +769,8 @@ struct EdgeGroupIsland {
 	struct {
 		BMVert *min, *max;
 		/* used for sorting only */
-		float min_axis;
+		float min_axis[2];
+		float max_axis[2];
 	} vert_span;
 };
 
@@ -758,12 +779,11 @@ static int group_min_cmp_fn(const void *p1, const void *p2)
 	const struct EdgeGroupIsland *g1 = *(struct EdgeGroupIsland **)p1;
 	const struct EdgeGroupIsland *g2 = *(struct EdgeGroupIsland **)p2;
 	/* min->co[SORT_AXIS] hasn't been applied yet */
-	const float f1 = g1->vert_span.min_axis;
-	const float f2 = g2->vert_span.min_axis;
-
-	if (f1 < f2) return -1;
-	if (f1 > f2) return  1;
-	else         return  0;
+	int test = axis_pt_cmp(g1->vert_span.min_axis, g2->vert_span.min_axis);
+	if (UNLIKELY(test == 0)) {
+		test = axis_pt_cmp(g1->vert_span.max_axis, g2->vert_span.max_axis);
+	}
+	return test;
 }
 
 struct Edges_VertVert_BVHTreeTest {
@@ -993,8 +1013,8 @@ static int bm_face_split_edgenet_find_connection(
 			for (int j = 0; j < 2; j++) {
 				BMVert *v_iter = v_pair[j];
 				if (BM_elem_flag_test(v_iter, VERT_IS_VALID)) {
-					if (direction_sign ? (v_iter->co[SORT_AXIS] >= v_origin->co[SORT_AXIS]) :
-					                     (v_iter->co[SORT_AXIS] <= v_origin->co[SORT_AXIS]))
+					if (direction_sign ? (v_iter->co[SORT_AXIS] > v_origin->co[SORT_AXIS]) :
+					                     (v_iter->co[SORT_AXIS] < v_origin->co[SORT_AXIS]))
 					{
 						BLI_SMALLSTACK_PUSH(vert_search, v_iter);
 						BLI_SMALLSTACK_PUSH(vert_blacklist, v_iter);
@@ -1360,8 +1380,8 @@ bool BM_face_split_edgenet_connect_islands(
 			/* init with *any* different verts */
 			g->vert_span.min = ((BMEdge *)edge_links->link)->v1;
 			g->vert_span.max = ((BMEdge *)edge_links->link)->v2;
-			float min_axis =  FLT_MAX;
-			float max_axis = -FLT_MAX;
+			float min_axis[2] =  {FLT_MAX, FLT_MAX};
+			float max_axis[2] = {-FLT_MAX, -FLT_MAX};
 
 			do {
 				BMEdge *e = edge_links->link;
@@ -1372,24 +1392,29 @@ bool BM_face_split_edgenet_connect_islands(
 					BLI_assert(v_iter->head.htype == BM_VERT);
 					/* ideally we could use 'v_iter->co[SORT_AXIS]' here,
 					 * but we need to sort the groups before setting the vertex array order */
+					const float axis_value[2] = {
 #if SORT_AXIS == 0
-					const float axis_value = dot_m3_v3_row_x(axis_mat, v_iter->co);
+					    dot_m3_v3_row_x(axis_mat, v_iter->co),
+					    dot_m3_v3_row_y(axis_mat, v_iter->co),
 #else
-					const float axis_value = dot_m3_v3_row_y(axis_mat, v_iter->co);
+					    dot_m3_v3_row_y(axis_mat, v_iter->co),
+					    dot_m3_v3_row_x(axis_mat, v_iter->co),
 #endif
+					};
 
-					if (axis_value < min_axis) {
+					if (axis_pt_cmp(axis_value, min_axis) == -1) {
 						g->vert_span.min = v_iter;
-						min_axis = axis_value;
+						copy_v2_v2(min_axis, axis_value);
 					}
-					if (axis_value > max_axis ) {
+					if (axis_pt_cmp(axis_value, max_axis) == 1) {
 						g->vert_span.max = v_iter;
-						max_axis  = axis_value;
+						copy_v2_v2(max_axis, axis_value);
 					}
 				}
 			} while ((edge_links = edge_links->next));
 
-			g->vert_span.min_axis = min_axis;
+			copy_v2_v2(g->vert_span.min_axis, min_axis);
+			copy_v2_v2(g->vert_span.max_axis, max_axis);
 
 			g->has_prev_edge = false;
 
@@ -1449,8 +1474,10 @@ bool BM_face_split_edgenet_connect_islands(
 
 	bm->elem_index_dirty |= BM_VERT;
 
-	/* Now create bvh tree*/
-	BVHTree *bvhtree = BLI_bvhtree_new(edge_arr_len, 0.0f, 8, 8);
+	/* Now create bvh tree
+	 *
+	 * Note that a large epsilon is used because meshes with dimensions of around 100+ need it. see T52329. */
+	BVHTree *bvhtree = BLI_bvhtree_new(edge_arr_len, 1e-4f, 8, 8);
 	for (uint i = 0; i < edge_arr_len; i++) {
 		const float e_cos[2][3] = {
 		    {UNPACK2(edge_arr[i]->v1->co), 0.0f},
