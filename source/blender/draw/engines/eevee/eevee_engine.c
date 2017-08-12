@@ -171,8 +171,6 @@ static void EEVEE_draw_scene(void *vedata)
 		DRW_draw_pass(psl->depth_pass_cull);
 		DRW_stats_group_end();
 
-		DRW_draw_pass(psl->background_pass);
-
 		/* Create minmax texture */
 		DRW_stats_group_start("Main MinMax buffer");
 		EEVEE_create_minmax_buffer(vedata, dtxl->depth, -1);
@@ -183,6 +181,7 @@ static void EEVEE_draw_scene(void *vedata)
 
 		/* Shading pass */
 		DRW_stats_group_start("Shading");
+		DRW_draw_pass(psl->background_pass);
 		EEVEE_draw_default_passes(psl);
 		DRW_draw_pass(psl->material_pass);
 		DRW_stats_group_end();

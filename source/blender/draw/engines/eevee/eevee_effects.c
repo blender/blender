@@ -992,13 +992,13 @@ void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, GPUTexture *depth_src, int l
 	EEVEE_TextureList *txl = vedata->txl;
 
 	e_data.depth_src = depth_src;
+	e_data.depth_src_layer = layer;
 
 	DRW_stats_group_start("Min buffer");
 	/* Copy depth buffer to min texture top level */
 	DRW_framebuffer_texture_attach(fbl->downsample_fb, stl->g_data->minzbuffer, 0, 0);
 	DRW_framebuffer_bind(fbl->downsample_fb);
 	if (layer >= 0) {
-		e_data.depth_src_layer = layer;
 		DRW_draw_pass(psl->minz_downdepth_layer_ps);
 	}
 	else {
@@ -1015,7 +1015,6 @@ void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, GPUTexture *depth_src, int l
 	DRW_framebuffer_texture_attach(fbl->downsample_fb, txl->maxzbuffer, 0, 0);
 	DRW_framebuffer_bind(fbl->downsample_fb);
 	if (layer >= 0) {
-		e_data.depth_src_layer = layer;
 		DRW_draw_pass(psl->maxz_downdepth_layer_ps);
 	}
 	else {
