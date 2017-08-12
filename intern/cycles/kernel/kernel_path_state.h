@@ -156,7 +156,7 @@ ccl_device_inline uint path_state_ray_visibility(KernelGlobals *kg, PathState *s
 	return flag;
 }
 
-ccl_device_inline float path_state_terminate_probability(KernelGlobals *kg, ccl_addr_space PathState *state, const float3 throughput)
+ccl_device_inline float path_state_continuation_probability(KernelGlobals *kg, ccl_addr_space PathState *state, const float3 throughput)
 {
 	if(state->flag & PATH_RAY_TRANSPARENT) {
 		/* Transparent rays are treated separately with own max bounces. */
