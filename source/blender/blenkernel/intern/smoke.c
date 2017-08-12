@@ -2694,7 +2694,6 @@ static void smokeModifier_process(SmokeModifierData *smd, struct EvaluationConte
 
 		if (smd->flow->dm) smd->flow->dm->release(smd->flow->dm);
 		smd->flow->dm = CDDM_copy(dm);
-		DM_ensure_looptri(smd->flow->dm);
 
 		if (scene->r.cfra > smd->time)
 		{
@@ -2717,7 +2716,6 @@ static void smokeModifier_process(SmokeModifierData *smd, struct EvaluationConte
 				smd->coll->dm->release(smd->coll->dm);
 
 			smd->coll->dm = CDDM_copy(dm);
-			DM_ensure_looptri(smd->coll->dm);
 		}
 
 		smd->time = scene->r.cfra;

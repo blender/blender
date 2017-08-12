@@ -440,21 +440,18 @@ static bool raycastDerivedMesh(
 				free_bvhtree_from_mesh(treedata);
 			}
 			else {
-				if (!treedata->vert_allocated) {
+				if (treedata->vert == NULL) {
 					treedata->vert = DM_get_vert_array(dm, &treedata->vert_allocated);
 				}
-				if (!treedata->loop_allocated) {
+				if (treedata->loop == NULL) {
 					treedata->loop = DM_get_loop_array(dm, &treedata->loop_allocated);
 				}
-				if (!treedata->looptri_allocated) {
-					if (!sod->poly_allocated) {
+				if (treedata->looptri == NULL) {
+					if (sod->mpoly == NULL) {
 						sod->mpoly = DM_get_poly_array(dm, &sod->poly_allocated);
 					}
-					treedata->looptri = DM_get_looptri_array(
-					        dm, treedata->vert,
-					        sod->mpoly, dm->getNumPolys(dm),
-					        treedata->loop, dm->getNumLoops(dm),
-					        &treedata->looptri_allocated);
+					treedata->looptri = dm->getLoopTriArray(dm);
+					treedata->looptri_allocated = false;
 				}
 			}
 		}
@@ -1713,10 +1710,10 @@ static bool snapDerivedMesh(
 				free_bvhtree_from_mesh(treedata);
 			}
 			else {
-				if (!treedata->vert_allocated) {
+				if (treedata->vert == NULL) {
 					treedata->vert = DM_get_vert_array(dm, &treedata->vert_allocated);
 				}
-				if ((tree_index == 1) && !treedata->edge_allocated) {
+				if ((tree_index == 1) && (treedata->edge == NULL)) {
 					treedata->edge = DM_get_edge_array(dm, &treedata->edge_allocated);
 				}
 			}

@@ -1101,9 +1101,6 @@ class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, Panel):
         render = context.scene.render
 
         col = layout.column()
-        col.prop(render, "use_sequencer_gl_preview", text="OpenGL Preview")
-        col = layout.column()
-        #col.active = render.use_sequencer_gl_preview
         col.prop(render, "sequencer_gl_preview", text="")
 
         row = col.row()

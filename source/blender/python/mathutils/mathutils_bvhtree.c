@@ -1163,7 +1163,6 @@ static PyObject *C_BVHTree_FromObject(PyObject *UNUSED(cls), PyObject *args, PyO
 
 	/* Get data for tessellation */
 	{
-		DM_ensure_looptri(dm);
 		lt = dm->getLoopTriArray(dm);
 
 		tris_len = (unsigned int)dm->getNumLoopTri(dm);

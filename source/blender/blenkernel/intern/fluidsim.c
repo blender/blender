@@ -80,8 +80,6 @@ void initElbeemMesh(struct EvaluationContext *eval_ctx, struct Scene *scene, str
 
 	dm = mesh_create_derived_index_render(eval_ctx, scene, ob, CD_MASK_BAREMESH, modifierIndex);
 
-	DM_ensure_looptri(dm);
-
 	mvert = dm->getVertArray(dm);
 	mloop = dm->getLoopArray(dm);
 	looptri = dm->getLoopTriArray(dm);
