@@ -18,6 +18,16 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Pseudo random numbers, uncomment this for debugging correlations. Only run
+ * this single threaded on a CPU for repeatable resutls. */
+//#define __DEBUG_CORRELATION__
+
+
+/* High Dimensional Sobol.
+ *
+ * Multidimensional sobol with generator matrices. Dimension 0 and 1 are equal
+ * to classic Van der Corput and Sobol sequences. */
+
 #ifdef __SOBOL__
 
 /* Skip initial numbers that are not as well distributed, especially the
@@ -26,11 +36,6 @@ CCL_NAMESPACE_BEGIN
  */
 #define SOBOL_SKIP 64
 
-/* High Dimensional Sobol. */
-
-/* Multidimensional sobol with generator matrices
- * dimension 0 and 1 are equal to van_der_corput() and sobol() respectively.
- */
 ccl_device uint sobol_dimension(KernelGlobals *kg, int index, int dimension)
 {
 	uint result = 0;
@@ -43,20 +48,31 @@ ccl_device uint sobol_dimension(KernelGlobals *kg, int index, int dimension)
 	return result;
 }
 
+#endif /* __SOBOL__ */
+
+
 ccl_device_forceinline float path_rng_1D(KernelGlobals *kg,
                                          RNG *rng,
                                          int sample, int num_samples,
                                          int dimension)
 {
+#ifdef __DEBUG_CORRELATION__
+	return (float)drand48();
+#endif
+
 #ifdef __CMJ__
-	if(kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_CMJ) {
+#  ifdef __SOBOL__
+	if(kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_CMJ)
+#  endif
+	{
 		/* Correlated multi-jitter. */
 		int p = *rng + dimension;
 		return cmj_sample_1D(sample, num_samples, p);
 	}
 #endif
 
-	/* Compute sobol sequence value using direction vectors. */
+#ifdef __SOBOL__
+	/* Sobol sequence value using direction vectors. */
 	uint result = sobol_dimension(kg, sample + SOBOL_SKIP, dimension);
 	float r = (float)result * (1.0f/(float)0xFFFFFFFF);
 
@@ -70,6 +86,7 @@ ccl_device_forceinline float path_rng_1D(KernelGlobals *kg,
 	shift = tmp_rng * (1.0f/(float)0xFFFFFFFF);
 
 	return r + shift - floorf(r + shift);
+#endif
 }
 
 ccl_device_forceinline void path_rng_2D(KernelGlobals *kg,
@@ -78,19 +95,29 @@ ccl_device_forceinline void path_rng_2D(KernelGlobals *kg,
                                         int dimension,
                                         float *fx, float *fy)
 {
+#ifdef __DEBUG_CORRELATION__
+	*fx = (float)drand48();
+	*fy = (float)drand48();
+	return;
+#endif
+
 #ifdef __CMJ__
-	if(kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_CMJ) {
+#  ifdef __SOBOL__
+	if(kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_CMJ)
+#  endif
+	{
 		/* Correlated multi-jitter. */
 		int p = *rng + dimension;
 		cmj_sample_2D(sample, num_samples, p, fx, fy);
+		return;
 	}
-	else
 #endif
-	{
-		/* Sobol. */
-		*fx = path_rng_1D(kg, rng, sample, num_samples, dimension);
-		*fy = path_rng_1D(kg, rng, sample, num_samples, dimension + 1);
-	}
+
+#ifdef __SOBOL__
+	/* Sobol. */
+	*fx = path_rng_1D(kg, rng, sample, num_samples, dimension);
+	*fy = path_rng_1D(kg, rng, sample, num_samples, dimension + 1);
+#endif
 }
 
 ccl_device_inline void path_rng_init(KernelGlobals *kg,
@@ -100,54 +127,13 @@ ccl_device_inline void path_rng_init(KernelGlobals *kg,
                                      int x, int y,
                                      float *fx, float *fy)
 {
-	*rng = *rng_state;
-
-	*rng ^= kernel_data.integrator.seed;
-
-	if(sample == 0) {
-		*fx = 0.5f;
-		*fy = 0.5f;
-	}
-	else {
-		path_rng_2D(kg, rng, sample, num_samples, PRNG_FILTER_U, fx, fy);
-	}
-}
-
-#else  /* __SOBOL__ */
-
-/* Pseudo random numbers, use this only on the CPU with a single thread
- * for debugging correlations. */
-
-ccl_device_forceinline float path_rng_1D(KernelGlobals *kg,
-                                         RNG *rng,
-                                         int sample, int num_samples,
-                                         int dimension)
-{
-	return (float)drand48();
-}
-
-ccl_device_inline void path_rng_2D(KernelGlobals *kg,
-                                   RNG *rng,
-                                   int sample, int num_samples,
-                                   int dimension,
-                                   float *fx, float *fy)
-{
-	*fx = (float)drand48();
-	*fy = (float)drand48();
-}
-
-ccl_device void path_rng_init(KernelGlobals *kg,
-                              ccl_global uint *rng_state,
-                              int sample, int num_samples,
-                              RNG *rng,
-                              int x, int y,
-                              float *fx, float *fy)
-{
 	/* load state */
 	*rng = *rng_state;
 	*rng ^= kernel_data.integrator.seed;
 
-	srand48(*rng);
+#ifdef __DEBUG_CORRELATION__
+	srand48(*rng + sample);
+#endif
 
 	if(sample == 0) {
 		*fx = 0.5f;
@@ -157,8 +143,6 @@ ccl_device void path_rng_init(KernelGlobals *kg,
 		path_rng_2D(kg, rng, sample, num_samples, PRNG_FILTER_U, fx, fy);
 	}
 }
-
-#endif  /* __SOBOL__ */
 
 /* Linear Congruential Generator */
 
