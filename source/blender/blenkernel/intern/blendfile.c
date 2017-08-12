@@ -114,6 +114,7 @@ static void setup_app_data(
         const char *filepath, ReportList *reports)
 {
 	Scene *curscene = NULL;
+	const bool is_startup = (bfd->filename[0] == '\0');
 	const bool recover = (G.fileflags & G_FILE_RECOVER) != 0;
 	enum {
 		LOAD_UI = 1,
@@ -129,7 +130,7 @@ static void setup_app_data(
 	else if (BLI_listbase_is_empty(&bfd->main->screen)) {
 		mode = LOAD_UNDO;
 	}
-	else if (G.fileflags & G_FILE_NO_UI) {
+	else if ((G.fileflags & G_FILE_NO_UI) && (is_startup == false)) {
 		mode = LOAD_UI_OFF;
 	}
 	else {
@@ -250,7 +251,9 @@ static void setup_app_data(
 		CTX_data_scene_set(C, curscene);
 	}
 	else {
-		G.fileflags = bfd->fileflags;
+		/* Keep state from preferences. */
+		const int fileflags_skip = G_FILE_FLAGS_RUNTIME;
+		G.fileflags = (G.fileflags & fileflags_skip) | (bfd->fileflags & ~fileflags_skip);
 		CTX_wm_manager_set(C, G.main->wm.first);
 		CTX_wm_screen_set(C, bfd->curscreen);
 		CTX_data_scene_set(C, bfd->curscene);
