@@ -4758,7 +4758,7 @@ void ED_view3d_cursor3d_update(bContext *C, const int mval[2])
 			float co_curr[2], co_prev[2];
 
 			if ((ED_view3d_project_float_global(ar, fp_prev, co_prev, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) &&
-				(ED_view3d_project_float_global(ar, fp_curr, co_curr, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK))
+			    (ED_view3d_project_float_global(ar, fp_curr, co_curr, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK))
 			{
 				rv3d->ofs_lock[0] += (co_curr[0] - co_prev[0]) / (ar->winx * 0.5f);
 				rv3d->ofs_lock[1] += (co_curr[1] - co_prev[1]) / (ar->winy * 0.5f);

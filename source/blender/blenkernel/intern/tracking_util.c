@@ -876,7 +876,7 @@ static void accessor_release_image_callback(libmv_CacheKey cache_key)
 }
 
 static libmv_CacheKey accessor_get_mask_for_track_callback(
-        libmv_FrameAccessorUserData* user_data,
+        libmv_FrameAccessorUserData *user_data,
         int clip_index,
         int frame,
         int track_index,

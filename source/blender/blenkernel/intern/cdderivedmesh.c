@@ -3169,7 +3169,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 						MPoly *target_poly = cddm->mpoly + *(cddm->pmap[v_target].indices + i_poly);
 
 						if (cddm_poly_compare(cddm->mloop, mp, target_poly, vtargetmap, +1) ||
-							cddm_poly_compare(cddm->mloop, mp, target_poly, vtargetmap, -1))
+						    cddm_poly_compare(cddm->mloop, mp, target_poly, vtargetmap, -1))
 						{
 							found = true;
 							break;
