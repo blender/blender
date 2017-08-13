@@ -13,98 +13,102 @@ uniform vec3 aoParameters;
 #define aoSamples    aoParameters.y
 #define aoFactor     aoParameters.z
 
-float get_max_horizon(vec2 co, vec3 x, float h, float lod)
+void get_max_horizon_grouped(vec4 co1, vec4 co2, vec3 x, float lod, inout float h)
 {
-	float depth = textureLod(maxzBuffer, co, floor(lod)).r;
+	co1 *= mipRatio[int(lod + 1.0)].xyxy; /* +1 because we are using half res top level */
+	co2 *= mipRatio[int(lod + 1.0)].xyxy; /* +1 because we are using half res top level */
 
-	/* Background case */
-	/* this is really slow and is only a problem
-	 * if the far clip plane is near enough to notice */
-	// depth += step(1.0, depth) * 1e20;
+	float depth1 = textureLod(maxzBuffer, co1.xy, floor(lod)).r;
+	float depth2 = textureLod(maxzBuffer, co1.zw, floor(lod)).r;
+	float depth3 = textureLod(maxzBuffer, co2.xy, floor(lod)).r;
+	float depth4 = textureLod(maxzBuffer, co2.zw, floor(lod)).r;
 
-	vec3 s = get_view_space_from_depth(co, depth); /* s View coordinate */
-	vec3 omega_s = s - x;
-	float len = length(omega_s);
+	vec4 len, s_h;
 
-	float max_h = max(h, omega_s.z / len);
+	vec3 s1 = get_view_space_from_depth(co1.xy, depth1); /* s View coordinate */
+	vec3 omega_s1 = s1 - x;
+	len.x = length(omega_s1);
+	s_h.x = omega_s1.z / len.x;
+
+	vec3 s2 = get_view_space_from_depth(co1.zw, depth2); /* s View coordinate */
+	vec3 omega_s2 = s2 - x;
+	len.y = length(omega_s2);
+	s_h.y = omega_s2.z / len.y;
+
+	vec3 s3 = get_view_space_from_depth(co2.xy, depth3); /* s View coordinate */
+	vec3 omega_s3 = s3 - x;
+	len.z = length(omega_s3);
+	s_h.z = omega_s3.z / len.z;
+
+	vec3 s4 = get_view_space_from_depth(co2.zw, depth4); /* s View coordinate */
+	vec3 omega_s4 = s4 - x;
+	len.w = length(omega_s4);
+	s_h.w = omega_s4.z / len.w;
+
 	/* Blend weight after half the aoDistance to fade artifacts */
-	float blend = saturate((1.0 - len / aoDistance) * 2.0);
+	vec4 blend = saturate((1.0 - len / aoDistance) * 2.0);
 
-	return mix(h, max_h, blend);
+	h = mix(h, max(h, s_h.x), blend.x);
+	h = mix(h, max(h, s_h.y), blend.y);
+	h = mix(h, max(h, s_h.z), blend.z);
+	h = mix(h, max(h, s_h.w), blend.w);
 }
 
-void search_step(
-        vec2 t_phi, vec3 x, vec2 x_, float rand, vec2 pixel_ratio,
-        inout float j, inout float ofs, inout float h1, inout float h2)
+#define MAX_ITER 16
+#define MAX_LOD 6
+#define QUALITY 0.75
+vec2 search_horizon_sweep(vec2 t_phi, vec3 pos, vec2 uvs, float jitter, vec2 max_dir)
 {
-	ofs += ofs; /* Step size is doubled each iteration */
+	max_dir *= max_v2(abs(t_phi));
 
-	vec2 s_ = t_phi * ofs * rand * pixel_ratio; /* s^ Screen coordinate */
-	vec2 co;
+	/* Convert to pixel space. */
+	t_phi /= vec2(textureSize(maxzBuffer, 0));
 
-	co = x_ + s_;
-	h1 = get_max_horizon(co, x, h1, j);
+	/* Avoid division by 0 */
+	t_phi += vec2(1e-5);
 
-	co = x_ - s_;
-	h2 = get_max_horizon(co, x, h2, j);
+	jitter *= 0.25;
 
-	j += 0.5;
-}
+	/* Compute end points */
+	vec2 corner1 = min(vec2(1.0) - uvs,  max_dir); /* Top right */
+	vec2 corner2 = max(vec2(0.0) - uvs, -max_dir); /* Bottom left */
+	vec2 iter1 = corner1 / t_phi;
+	vec2 iter2 = corner2 / t_phi;
 
-void search_horizon(
-        vec2 t_phi, vec3 x, vec2 x_, float rand,
-        float max_dist, vec2 pixel_ratio, float pixel_len,
-        inout float h1, inout float h2)
-{
-	float ofs = 1.5 * pixel_len;
-	float j = 0.0;
+	vec2 min_iter = max(-iter1, -iter2);
+	vec2 max_iter = max( iter1,  iter2);
 
-#if 0 /* manually unrolled bellow */
-	for (int i = 0; i < MAX_THETA_STEP; i++) {
-		search_step(t_phi, x, x_, rand, pixel_ratio, j, ofs, h1, h2);
-		if (ofs > max_dist)
-			return;
+	vec2 times = vec2(-min_v2(min_iter), min_v2(max_iter));
+
+	vec2 h = vec2(-1.0); /* init at cos(pi) */
+
+	/* This is freaking sexy optimized. */
+	for (float i = 0.0, ofs = 4.0, time = -1.0;
+		 i < MAX_ITER && time > times.x;
+		 i++, time -= ofs, ofs = min(exp2(MAX_LOD) * 4.0, ofs + ofs))
+	{
+		vec4 t = max(times.xxxx, vec4(time) - (vec4(0.25, 0.5, 0.75, 1.0) - jitter) * ofs);
+		vec4 cos1 = uvs.xyxy + t_phi.xyxy * t.xxyy;
+		vec4 cos2 = uvs.xyxy + t_phi.xyxy * t.zzww;
+		get_max_horizon_grouped(cos1, cos2, pos, min(MAX_LOD, i * QUALITY), h.y);
 	}
-#endif
-	search_step(t_phi, x, x_, rand, pixel_ratio, j, ofs, h1, h2);
-	if (ofs > max_dist)	return;
 
-	search_step(t_phi, x, x_, rand, pixel_ratio, j, ofs, h1, h2);
-	if (ofs > max_dist)	return;
+	for (float i = 0.0, ofs = 4.0, time = 1.0;
+		 i < MAX_ITER && time < times.y;
+		 i++, time += ofs, ofs = min(exp2(MAX_LOD) * 4.0, ofs + ofs))
+	{
+		vec4 t = min(times.yyyy, vec4(time) + (vec4(0.25, 0.5, 0.75, 1.0) - jitter) * ofs);
+		vec4 cos1 = uvs.xyxy + t_phi.xyxy * t.xxyy;
+		vec4 cos2 = uvs.xyxy + t_phi.xyxy * t.zzww;
+		get_max_horizon_grouped(cos1, cos2, pos, min(MAX_LOD, i * QUALITY), h.x);
+	}
 
-	search_step(t_phi, x, x_, rand, pixel_ratio, j, ofs, h1, h2);
-	if (ofs > max_dist)	return;
-
-	search_step(t_phi, x, x_, rand, pixel_ratio, j, ofs, h1, h2);
-	if (ofs > max_dist)	return;
-
-	search_step(t_phi, x, x_, rand, pixel_ratio, j, ofs, h1, h2);
-	if (ofs > max_dist)	return;
-
-	search_step(t_phi, x, x_, rand, pixel_ratio, j, ofs, h1, h2);
-	if (ofs > max_dist)	return;
-
-	search_step(t_phi, x, x_, rand, pixel_ratio, j, ofs, h1, h2);
-	if (ofs > max_dist)	return;
-
-	search_step(t_phi, x, x_, rand, pixel_ratio, j, ofs, h1, h2);
-	if (ofs > max_dist)	return;
-
-	search_step(t_phi, x, x_, rand, pixel_ratio, j, ofs, h1, h2);
-	if (ofs > max_dist)	return;
-
-	search_step(t_phi, x, x_, rand, pixel_ratio, j, ofs, h1, h2);
-	if (ofs > max_dist)	return;
-
-	search_step(t_phi, x, x_, rand, pixel_ratio, j, ofs, h1, h2);
-	if (ofs > max_dist)	return;
-
-	search_step(t_phi, x, x_, rand, pixel_ratio, j, ofs, h1, h2);
+	return h;
 }
 
 void integrate_slice(
         float iter, vec3 x, vec3 normal, vec2 x_, vec2 noise,
-        float max_dist, vec2 pixel_ratio, float pixel_len,
+        vec2 max_dir, vec2 pixel_ratio, float pixel_len,
         inout float visibility, inout vec3 bent_normal)
 {
 	float phi = M_PI * ((noise.r + iter) / aoSamples);
@@ -113,12 +117,11 @@ void integrate_slice(
 	vec2 t_phi = vec2(cos(phi), sin(phi)); /* Screen space direction */
 
 	/* Search maximum horizon angles h1 and h2 */
-	float h1 = -1.0, h2 = -1.0; /* init at cos(pi) */
-	search_horizon(t_phi, x, x_, noise.g, max_dist, pixel_ratio, pixel_len, h1, h2);
+	vec2 horiz = search_horizon_sweep(t_phi, x, x_, noise.g, max_dir);
 
 	/* (Slide 54) */
-	h1 = -fast_acos(h1);
-	h2 = fast_acos(h2);
+	float h1 = -fast_acos(horiz.x);
+	float h2 = fast_acos(horiz.y);
 
 	/* Projecting Normal to Plane P defined by t_phi and omega_o */
 	vec3 h = vec3(t_phi.y, -t_phi.x, 0.0); /* Normal vector to Integration plane */
@@ -173,6 +176,7 @@ void gtao(vec3 normal, vec3 position, vec2 noise, out float visibility
 	float pixel_len = length(pixel_size);
 	float homcco = ProjectionMatrix[2][3] * position.z + ProjectionMatrix[3][3];
 	float max_dist = aoDistance / homcco; /* Search distance */
+	vec2 max_dir = max_dist * vec2(ProjectionMatrix[0][0], ProjectionMatrix[1][1]);
 
 	/* Integral over PI */
 	visibility = 0.0;
@@ -183,7 +187,7 @@ void gtao(vec3 normal, vec3 position, vec2 noise, out float visibility
 #endif
 	for (float i = 0.0; i < MAX_PHI_STEP; i++) {
 		if (i >= aoSamples) break;
-		integrate_slice(i, x, normal, x_, noise, max_dist, pixel_ratio, pixel_len, visibility, bent_normal);
+		integrate_slice(i, x, normal, x_, noise, max_dir, pixel_ratio, pixel_len, visibility, bent_normal);
 	}
 
 	/* aoSamples can be 0.0 to temporary disable the effect. */
@@ -203,9 +207,7 @@ void gtao(vec3 normal, vec3 position, vec2 noise, out float visibility
 float gtao_multibounce(float visibility, vec3 albedo)
 {
 	/* Median luminance. Because Colored multibounce looks bad. */
-	float lum = albedo.x * 0.3333;
-	lum += albedo.y * 0.3333;
-	lum += albedo.z * 0.3333;
+	float lum = dot(albedo, vec3(0.3333));
 
 	float a =  2.0404 * lum - 0.3324;
 	float b = -4.7951 * lum + 0.6417;

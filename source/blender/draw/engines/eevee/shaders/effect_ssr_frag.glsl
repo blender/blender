@@ -283,8 +283,7 @@ vec4 get_ssr_sample(
 	float mip = clamp(log2(cone_footprint * max(texture_size.x, texture_size.y)), 0.0, MAX_MIP);
 
 	/* Correct UVs for mipmaping mis-alignment */
-	float low_mip = floor(mip);
-	ref_uvs *= mix(mipRatio[int(low_mip)], mipRatio[int(low_mip + 1.0)], mip - low_mip);
+	ref_uvs *= mip_ratio_interp(mip);
 
 	/* Slide 54 */
 	float bsdf = bsdf_ggx(N, L, V, roughnessSquared);

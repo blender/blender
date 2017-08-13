@@ -111,6 +111,7 @@ vec3 project_point(mat4 m, vec3 v) {
 	return tmp.xyz / tmp.w;
 }
 
+float min_v2(vec2 v) { return min(v.x, v.y); }
 float min_v3(vec3 v) { return min(v.x, min(v.y, v.z)); }
 float max_v2(vec2 v) { return max(v.x, v.y); }
 
@@ -125,6 +126,10 @@ float len_squared(vec3 a) { return dot(a, a); }
 
 float inverse_distance(vec3 V) { return max( 1 / length(V), 1e-8); }
 
+vec2 mip_ratio_interp(float mip) {
+	float low_mip = floor(mip);
+	return mix(mipRatio[int(low_mip)], mipRatio[int(low_mip + 1.0)], mip - low_mip);
+}
 /* ------- Fast Math ------- */
 
 /* [Drobot2014a] Low Level Optimizations for GCN */
