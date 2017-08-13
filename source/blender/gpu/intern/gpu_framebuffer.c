@@ -596,7 +596,7 @@ void GPU_framebuffer_recursive_downsample(
 	/* reset mipmap level range for the depth image */
 	GPU_texture_bind(tex, 0);
 	glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_BASE_LEVEL, 0);
-	glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_MAX_LEVEL, i);
+	glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_MAX_LEVEL, i-1);
 	GPU_texture_unbind(tex);
 }
 
