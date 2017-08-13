@@ -54,7 +54,7 @@ set CMAKE_DEBUG_OPTIONS=-DWITH_OPTIMIZED_DEBUG=On
 if "%3" == "debug" set CMAKE_DEBUG_OPTIONS=-DWITH_OPTIMIZED_DEBUG=Off
 
 set SOURCE_DIR=%~dp0\..
-set BUILD_DIR=%~dp0\..\..\..\..\build_windows\deps
+set BUILD_DIR=%cd%\build
 set HARVEST_DIR=%BUILD_DIR%\output
 set STAGING=%BUILD_DIR%\S
 
@@ -62,7 +62,7 @@ rem for python module build
 set MSSdk=1 
 set DISTUTILS_USE_SDK=1  
 rem for python externals source to be shared between the various archs and compilers
-mkdir %SOURCE_DIR%\downloads\externals
+mkdir %BUILD_DIR%\downloads\externals
 
 REM Detect MSVC Installation
 if DEFINED VisualStudioVersion goto msvc_detect_finally
@@ -95,11 +95,11 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 set StatusFile=%BUILD_DIR%\%1_%2.log
-set path=%SOURCE_DIR%\downloads\mingw\mingw64\msys\1.0\bin\;%SOURCE_DIR%\downloads\nasm-2.12.01\;%path%
+set path=%BUILD_DIR%\downloads\mingw\mingw64\msys\1.0\bin\;%BUILD_DIR%\downloads\nasm-2.12.01\;%path%
 mkdir %STAGING%\%BuildDir%%ARCH%R
 cd %Staging%\%BuildDir%%ARCH%R
 echo %DATE% %TIME% : Start > %StatusFile%
-cmake -G "%CMAKE_BUILDER%" %SOURCE_DIR% -DBUILD_MODE=Release -DHARVEST_TARGET=%HARVEST_DIR%/%HARVESTROOT%%VSVER_SHORT%/
+cmake -G "%CMAKE_BUILDER%" %SOURCE_DIR% -DDOWNLOAD_DIR=%BUILD_DIR%/downloads -DBUILD_MODE=Release -DHARVEST_TARGET=%HARVEST_DIR%/%HARVESTROOT%%VSVER_SHORT%/
 echo %DATE% %TIME% : Release Configuration done >> %StatusFile%
 msbuild /m "ll.vcxproj" /p:Configuration=Release /fl /flp:logfile=BlenderDeps_llvm.log 
 msbuild /m "BlenderDependencies.sln" /p:Configuration=Release /fl /flp:logfile=BlenderDeps.log 
@@ -109,7 +109,7 @@ echo %DATE% %TIME% : Release Harvest done >> %StatusFile%
 cd %BUILD_DIR%
 mkdir %STAGING%\%BuildDir%%ARCH%D
 cd %Staging%\%BuildDir%%ARCH%D
-cmake -G "%CMAKE_BUILDER%" %SOURCE_DIR% -DCMAKE_BUILD_TYPE=Debug -DBUILD_MODE=Debug -DHARVEST_TARGET=%HARVEST_DIR%/%HARVESTROOT%%VSVER_SHORT%/  %CMAKE_DEBUG_OPTIONS%
+cmake -G "%CMAKE_BUILDER%" %SOURCE_DIR% -DDOWNLOAD_DIR=%BUILD_DIR%/downloads -DCMAKE_BUILD_TYPE=Debug -DBUILD_MODE=Debug -DHARVEST_TARGET=%HARVEST_DIR%/%HARVESTROOT%%VSVER_SHORT%/  %CMAKE_DEBUG_OPTIONS%
 echo %DATE% %TIME% : Debug Configuration done >> %StatusFile%
 msbuild /m "ll.vcxproj" /p:Configuration=Debug /fl /flp:logfile=BlenderDeps_llvm.log 
 msbuild /m "BlenderDependencies.sln" /p:Configuration=Debug /fl /flp:logfile=BlenderDeps.log
