@@ -162,7 +162,8 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 					holdout_weight = shader_holdout_eval(kg, sd);
 				}
 				/* any throughput is ok, should all be identical here */
-				kernel_split_state.L_transparent[ray_index] += average(holdout_weight*throughput);
+				PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
+				L->transparent += average(holdout_weight*throughput);
 			}
 			if(sd->object_flag & SD_OBJECT_HOLDOUT_MASK) {
 				kernel_split_path_end(kg, ray_index);
