@@ -724,16 +724,13 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 		CACHE_PRINTF("Used buffer from cache for frame %d\n", frame);
 		return ibuf;
 	}
-
 	CACHE_PRINTF("Calculate new buffer for frame %d\n", frame);
-
 	/* And now we do postprocessing of the original frame. */
 	orig_ibuf = accessor_get_preprocessed_ibuf(accessor, clip_index, frame);
-
 	if (orig_ibuf == NULL) {
 		return NULL;
 	}
-
+	/* Cut a region if requested. */
 	if (region != NULL) {
 		int width = region->max[0] - region->min[0],
 		    height = region->max[1] - region->min[1];
@@ -793,7 +790,7 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 		BLI_unlock_thread(LOCK_MOVIECLIP);
 		final_ibuf = orig_ibuf;
 	}
-
+	/* Downscale if needed. */
 	if (downscale > 0) {
 		if (final_ibuf == orig_ibuf) {
 			final_ibuf = IMB_dupImBuf(orig_ibuf);
@@ -802,7 +799,7 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 		               orig_ibuf->x / (1 << downscale),
 		               orig_ibuf->y / (1 << downscale));
 	}
-
+	/* Apply possible transformation. */
 	if (transform != NULL) {
 		libmv_FloatImage input_image, output_image;
 		ibuf_to_float_image(final_ibuf, &input_image);
@@ -815,7 +812,7 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 		final_ibuf = float_image_to_ibuf(&output_image);
 		libmv_floatImageDestroy(&output_image);
 	}
-
+	/* Transform number of channels. */
 	if (input_mode == LIBMV_IMAGE_MODE_RGBA) {
 		BLI_assert(orig_ibuf->channels == 3 || orig_ibuf->channels == 4);
 		/* pass */
@@ -831,7 +828,6 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 			final_ibuf = grayscale_ibuf;
 		}
 	}
-
 	/* It's possible processing still didn't happen at this point,
 	 * but we really need a copy of the buffer to be transformed
 	 * and to be put to the cache.
