@@ -58,6 +58,15 @@
 
 #include "libmv-capi.h"
 
+/* Uncomment this to have caching-specific debug prints. */
+// #define DEBUG_CACHE
+
+#ifdef DEBUG_CACHE
+#  define CACHE_PRINTF(...) printf(__VA_ARGS__)
+#else
+#  define CACHE_PRINTF(...)
+#endif
+
 /*********************** Tracks map *************************/
 
 TracksMap *tracks_map_new(const char *object_name, bool is_camera, int num_tracks, int customdata_size)
@@ -708,8 +717,11 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 	                       region,
 	                       transform_key);
 	if (ibuf != NULL) {
+		CACHE_PRINTF("Used buffer from cache for frame %d\n", frame);
 		return ibuf;
 	}
+
+	CACHE_PRINTF("Calculate new buffer for frame %d\n", frame);
 
 	/* And now we do postprocessing of the original frame. */
 	orig_ibuf = accessor_get_preprocessed_ibuf(accessor, clip_index, frame);
@@ -805,6 +817,7 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 		/* pass */
 	}
 	else /* if (input_mode == LIBMV_IMAGE_MODE_MONO) */ {
+		BLI_assert(input_mode == LIBMV_IMAGE_MODE_MONO);
 		if (final_ibuf->channels != 1) {
 			ImBuf *grayscale_ibuf = make_grayscale_ibuf_copy(final_ibuf);
 			if (final_ibuf != orig_ibuf) {
@@ -815,7 +828,7 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 		}
 	}
 
-	/* it's possible processing still didn't happen at this point,
+	/* It's possible processing still didn't happen at this point,
 	 * but we really need a copy of the buffer to be transformed
 	 * and to be put to the cache.
 	 */
