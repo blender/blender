@@ -88,12 +88,14 @@ enum SpiralDirection {
 }  /* namespace */
 
 TileManager::TileManager(bool progressive_, int num_samples_, int2 tile_size_, int start_resolution_,
-                         bool preserve_tile_device_, bool background_, TileOrder tile_order_, int num_devices_)
+                         bool preserve_tile_device_, bool background_, TileOrder tile_order_,
+                         int num_devices_, int pixel_size_)
 {
 	progressive = progressive_;
 	tile_size = tile_size_;
 	tile_order = tile_order_;
 	start_resolution = start_resolution_;
+	pixel_size = pixel_size_;
 	num_samples = num_samples_;
 	num_devices = num_devices_;
 	preserve_tile_device = preserve_tile_device_;
@@ -471,7 +473,7 @@ bool TileManager::done()
 	int end_sample = (range_num_samples == -1)
 	                     ? num_samples
 	                     : range_start_sample + range_num_samples;
-	return (state.resolution_divider == 1) &&
+	return (state.resolution_divider == pixel_size) &&
 	       (state.sample+state.num_samples >= end_sample);
 }
 
@@ -480,9 +482,9 @@ bool TileManager::next()
 	if(done())
 		return false;
 
-	if(progressive && state.resolution_divider > 1) {
+	if(progressive && state.resolution_divider > pixel_size) {
 		state.sample = 0;
-		state.resolution_divider /= 2;
+		state.resolution_divider = max(state.resolution_divider/2, pixel_size);
 		state.num_samples = 1;
 		set_tiles();
 	}
@@ -496,7 +498,7 @@ bool TileManager::next()
 		else
 			state.num_samples = range_num_samples;
 
-		state.resolution_divider = 1;
+		state.resolution_divider = pixel_size;
 		set_tiles();
 	}
 

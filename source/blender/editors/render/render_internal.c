@@ -1171,7 +1171,7 @@ static void render_update_resolution(Render *re, const RenderPreview *rp,
 	}
 
 	if (rp->has_freestyle) {
-		if (rp->resolution_divider == 1) {
+		if (rp->resolution_divider == BKE_render_preview_pixel_size(&rp->scene->r)) {
 			RE_ChangeModeFlag(re, R_EDGE_FRS, false);
 		}
 		else {
@@ -1312,11 +1312,12 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 		RE_updateRenderInstances(re, ob_inst_update_flag);
 
 		for (;;) {
+			int pixel_size = BKE_render_preview_pixel_size(&rp->scene->r);
 			if (first_time == false) {
 				if (restore)
 					RE_DataBase_IncrementalView(re, rp->viewmat, 1);
 
-				rp->resolution_divider /= 2;
+				rp->resolution_divider = MAX2(rp->resolution_divider/2, pixel_size);
 				*do_update = 1;
 
 				render_update_resolution(re, rp, use_border, &cliprct);
@@ -1333,7 +1334,7 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 
 			first_time = false;
 
-			if (*stop || rp->resolution_divider == 1) {
+			if (*stop || rp->resolution_divider == pixel_size) {
 				break;
 			}
 		}
@@ -1435,7 +1436,7 @@ static void render_view3d_do(RenderEngine *engine, const bContext *C)
 	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	int width = ar->winx, height = ar->winy;
-	int divider = 1;
+	int divider = BKE_render_preview_pixel_size(&scene->r);
 	int resolution_threshold = scene->r.preview_start_resolution *
 	                           scene->r.preview_start_resolution;
 

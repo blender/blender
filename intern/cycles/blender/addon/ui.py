@@ -402,6 +402,7 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         col.prop(cscene, "debug_bvh_type", text="")
         col.separator()
         col.prop(cscene, "preview_start_resolution")
+        col.prop(rd, "preview_pixel_size", text="")
 
         col.separator()
 

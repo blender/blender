@@ -152,6 +152,8 @@ bool BKE_scene_check_rigidbody_active(const struct Scene *scene);
 int BKE_scene_num_threads(const struct Scene *scene);
 int BKE_render_num_threads(const struct RenderData *r);
 
+int BKE_render_preview_pixel_size(const struct RenderData *r);
+
 double BKE_scene_unit_scale(const struct UnitSettings *unit, const int unit_type, double value);
 
 /* multiview */
