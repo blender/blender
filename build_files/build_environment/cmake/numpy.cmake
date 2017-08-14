@@ -32,8 +32,9 @@ set(NUMPY_POSTFIX)
 
 if(WIN32)
 	set(NUMPY_INSTALL
-		${CMAKE_COMMAND} -E chdir "${BUILD_DIR}/numpy/src/external_numpy/build/lib.${PYTHON_ARCH2}-3.5${NUMPY_DIR_POSTFIX}"
-		${CMAKE_COMMAND} -E tar "cfvz" "${LIBDIR}/python35_numpy_${NUMPY_SHORT_VERSION}${NUMPY_ARCHIVE_POSTFIX}.tar.gz" "."
+		${CMAKE_COMMAND} -E copy_directory "${BUILD_DIR}/python/src/external_python/run/lib/site-packages/numpy/core/include/numpy" "${LIBDIR}/python/include/python3.5/numpy" &&
+		${CMAKE_COMMAND} -E chdir "${BUILD_DIR}/numpy/src/external_numpy/build/lib.${PYTHON_ARCH2}-3.5${NUMPY_DIR_POSTFIX}" 
+		${CMAKE_COMMAND} -E tar "cfvz" "${LIBDIR}/python35_numpy_${NUMPY_SHORT_VERSION}${NUMPY_ARCHIVE_POSTFIX}.tar.gz" "." 
 	)
 else()
 	set(NUMPY_INSTALL
@@ -49,7 +50,7 @@ ExternalProject_Add(external_numpy
 	PATCH_COMMAND ${PATCH_CMD} --verbose -p 1 -N -d ${BUILD_DIR}/numpy/src/external_numpy < ${PATCH_DIR}/numpy.diff
 	CONFIGURE_COMMAND ""
 	LOG_BUILD 1
-	BUILD_COMMAND ${PYTHON_BINARY} ${BUILD_DIR}/numpy/src/external_numpy/setup.py build ${NUMPY_BUILD_OPTION}
+	BUILD_COMMAND ${PYTHON_BINARY} ${BUILD_DIR}/numpy/src/external_numpy/setup.py build ${NUMPY_BUILD_OPTION} install
 	INSTALL_COMMAND ${NUMPY_INSTALL}
 )
 
