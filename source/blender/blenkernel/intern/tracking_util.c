@@ -597,11 +597,6 @@ static void accesscache_put(TrackingImageAccessor *accessor,
                             int64_t transform_key,
                             ImBuf *ibuf)
 {
-	/* Currently we don't want global memory limiter to be tossing our cached
-	 * frames from tracking context. We are controlling what we want to be cached
-	 * from our side.
-	 */
-	ibuf->userflags |= IB_PERSISTENT;
 	AccessCacheKey key;
 	accesscache_construct_key(&key, clip_index, frame, input_mode, downscale,
 	                          region, transform_key);
@@ -721,7 +716,14 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 	                       transform_key);
 	BLI_spin_unlock(&accessor->cache_lock);
 	if (ibuf != NULL) {
-		CACHE_PRINTF("Used buffer from cache for frame %d\n", frame);
+		CACHE_PRINTF("Used cached buffer for frame %d\n", frame);
+		/* This is a little heuristic here: if we re-used image once, this is
+		 * a high probability of the image to be related to a keyframe matched
+		 * reference image. Those images we don't want to be thrown away because
+		 * if we toss them out we'll be re-calculating them at the next
+		 * iteration.
+		 */
+		ibuf->userflags |= IB_PERSISTENT;
 		return ibuf;
 	}
 	CACHE_PRINTF("Calculate new buffer for frame %d\n", frame);
@@ -835,29 +837,17 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 	if (final_ibuf == orig_ibuf) {
 		final_ibuf = IMB_dupImBuf(orig_ibuf);
 	}
-
 	IMB_freeImBuf(orig_ibuf);
-
-	/* We put postprocessed frame to the cache always for now,
-	 * not the smartest thing in the world, but who cares at this point.
-	 */
-
-	/* TODO(sergey): Disable cache for now, need some good policy on what to
-	 * cache and for how long.
-	 */
-	if (false) {
-		BLI_spin_lock(&accessor->cache_lock);
-		accesscache_put(accessor,
-		                clip_index,
-		                frame,
-		                input_mode,
-		                downscale,
-		                region,
-		                transform_key,
-		                final_ibuf);
-		BLI_spin_unlock(&accessor->cache_lock);
-	}
-
+	BLI_spin_lock(&accessor->cache_lock);
+	/* Put final buffer to cache. */
+	accesscache_put(accessor,
+	                clip_index,
+	                frame,
+	                input_mode,
+	                downscale,
+	                region,
+	                transform_key,
+	                final_ibuf);
 	return final_ibuf;
 }
 
