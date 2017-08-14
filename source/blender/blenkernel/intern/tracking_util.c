@@ -568,6 +568,26 @@ static bool accesscache_hashcmp(const void *a_v, const void *b_v)
 	return false;
 }
 
+static void accesscache_construct_key(AccessCacheKey *key,
+                                      int clip_index,
+                                      int frame,
+                                      libmv_InputMode input_mode,
+                                      int downscale,
+                                      const libmv_Region *region,
+                                      int64_t transform_key)
+{
+	key->clip_index = clip_index;
+	key->frame = frame;
+	key->input_mode = input_mode;
+	key->downscale = downscale;
+	key->has_region = (region != NULL);
+	if (key->has_region) {
+		copy_v2_v2(key->region_min, region->min);
+		copy_v2_v2(key->region_max, region->max);
+	}
+	key->transform_key = transform_key;
+}
+
 static void accesscache_put(TrackingImageAccessor *accessor,
                             int clip_index,
                             int frame,
@@ -583,16 +603,8 @@ static void accesscache_put(TrackingImageAccessor *accessor,
 	 */
 	ibuf->userflags |= IB_PERSISTENT;
 	AccessCacheKey key;
-	key.clip_index = clip_index;
-	key.frame = frame;
-	key.input_mode = input_mode;
-	key.downscale = downscale;
-	key.has_region = (region != NULL);
-	if (key.has_region) {
-		copy_v2_v2(key.region_min, region->min);
-		copy_v2_v2(key.region_max, region->max);
-	}
-	key.transform_key = transform_key;
+	accesscache_construct_key(&key, clip_index, frame, input_mode, downscale,
+	                          region, transform_key);
 	IMB_moviecache_put(accessor->cache, &key, ibuf);
 }
 
@@ -605,16 +617,8 @@ static ImBuf *accesscache_get(TrackingImageAccessor *accessor,
                               int64_t transform_key)
 {
 	AccessCacheKey key;
-	key.clip_index = clip_index;
-	key.frame = frame;
-	key.input_mode = input_mode;
-	key.downscale = downscale;
-	key.has_region = (region != NULL);
-	if (key.has_region) {
-		copy_v2_v2(key.region_min, region->min);
-		copy_v2_v2(key.region_max, region->max);
-	}
-	key.transform_key = transform_key;
+	accesscache_construct_key(&key, clip_index, frame, input_mode, downscale,
+	                          region, transform_key);
 	return IMB_moviecache_get(accessor->cache, &key);
 }
 
