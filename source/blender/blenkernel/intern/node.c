@@ -1228,10 +1228,6 @@ void BKE_node_tree_copy_data(Main *UNUSED(bmain), bNodeTree *ntree_dst, const bN
 	/* We never handle usercount here for own data. */
 	const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
 
-	if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-		id_us_plus((ID *)ntree_dst->gpd);
-	}
-
 	/* in case a running nodetree is copied */
 	ntree_dst->execdata = NULL;
 
