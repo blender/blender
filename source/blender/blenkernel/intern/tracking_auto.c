@@ -381,7 +381,7 @@ AutoTrackContext *BKE_autotrack_context_new(MovieClip *clip,
 
 bool BKE_autotrack_context_step(AutoTrackContext *context)
 {
-	int frame_delta = context->backwards ? -1 : 1;
+	const int frame_delta = context->backwards ? -1 : 1;
 	bool ok = false;
 	int track;
 
@@ -395,67 +395,64 @@ bool BKE_autotrack_context_step(AutoTrackContext *context)
 		             libmv_reference_marker,
 		             libmv_tracked_marker;
 		libmv_TrackRegionResult libmv_result;
-		int frame = BKE_movieclip_remap_scene_to_clip_frame(
-			context->clips[options->clip_index],
-			context->user.framenr);
-		bool has_marker;
-
+		const int frame = BKE_movieclip_remap_scene_to_clip_frame(
+		        context->clips[options->clip_index],
+		        context->user.framenr);
 		BLI_spin_lock(&context->spin_lock);
-		has_marker = libmv_autoTrackGetMarker(context->autotrack,
-		                                      options->clip_index,
-		                                      frame,
-		                                      options->track_index,
-		                                      &libmv_current_marker);
+		const bool has_marker = libmv_autoTrackGetMarker(context->autotrack,
+		                                                 options->clip_index,
+		                                                 frame,
+		                                                 options->track_index,
+		                                                 &libmv_current_marker);
 		BLI_spin_unlock(&context->spin_lock);
-
-		if (has_marker) {
-			if (!tracking_check_marker_margin(&libmv_current_marker,
-			                                  options->track->margin,
-			                                  context->frame_width,
-			                                  context->frame_height))
-			{
-				continue;
-			}
-
-			libmv_tracked_marker = libmv_current_marker;
-			libmv_tracked_marker.frame = frame + frame_delta;
-
-			if (options->use_keyframe_match) {
-				libmv_tracked_marker.reference_frame =
-					libmv_current_marker.reference_frame;
-				libmv_autoTrackGetMarker(context->autotrack,
-			                             options->clip_index,
-			                             libmv_tracked_marker.reference_frame,
-			                             options->track_index,
-			                             &libmv_reference_marker);
-			}
-			else {
-				libmv_tracked_marker.reference_frame = frame;
-				libmv_reference_marker = libmv_current_marker;
-			}
-
-			if (libmv_autoTrackMarker(context->autotrack,
-			                          &options->track_region_options,
-			                          &libmv_tracked_marker,
-			                          &libmv_result))
-			{
-				BLI_spin_lock(&context->spin_lock);
-				libmv_autoTrackAddMarker(context->autotrack,
-				                         &libmv_tracked_marker);
-				BLI_spin_unlock(&context->spin_lock);
-			}
-			else {
-				options->is_failed = true;
-				options->failed_frame = frame + frame_delta;
-			}
-			ok = true;
+		/* Check whether we've got marker to sync with. */
+		if (!has_marker) {
+			continue;
 		}
+		/* Check whether marker is going outside of allowed frame margin. */
+		if (!tracking_check_marker_margin(&libmv_current_marker,
+		                                  options->track->margin,
+		                                  context->frame_width,
+		                                  context->frame_height))
+		{
+			continue;
+		}
+		libmv_tracked_marker = libmv_current_marker;
+		libmv_tracked_marker.frame = frame + frame_delta;
+		/* Update reference frame. */
+		if (options->use_keyframe_match) {
+			libmv_tracked_marker.reference_frame =
+			        libmv_current_marker.reference_frame;
+			libmv_autoTrackGetMarker(context->autotrack,
+		                             options->clip_index,
+		                             libmv_tracked_marker.reference_frame,
+		                             options->track_index,
+		                             &libmv_reference_marker);
+		}
+		else {
+			libmv_tracked_marker.reference_frame = frame;
+			libmv_reference_marker = libmv_current_marker;
+		}
+		/* Perform actual tracking. */
+		if (libmv_autoTrackMarker(context->autotrack,
+		                          &options->track_region_options,
+		                          &libmv_tracked_marker,
+		                          &libmv_result))
+		{
+			BLI_spin_lock(&context->spin_lock);
+			libmv_autoTrackAddMarker(context->autotrack, &libmv_tracked_marker);
+			BLI_spin_unlock(&context->spin_lock);
+		}
+		else {
+			options->is_failed = true;
+			options->failed_frame = frame + frame_delta;
+		}
+		ok = true;
 	}
-
+	/* Advance the frame. */
 	BLI_spin_lock(&context->spin_lock);
 	context->user.framenr += frame_delta;
 	BLI_spin_unlock(&context->spin_lock);
-
 	return ok;
 }
 

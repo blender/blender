@@ -1221,16 +1221,11 @@ bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname)
  */
 void BKE_node_tree_copy_data(Main *UNUSED(bmain), bNodeTree *ntree_dst, const bNodeTree *ntree_src, const int flag)
 {
-	bNode *node_src;
 	bNodeSocket *sock_dst, *sock_src;
 	bNodeLink *link_dst;
 
 	/* We never handle usercount here for own data. */
 	const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
-
-	if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-		id_us_plus((ID *)ntree_dst->gpd);
-	}
 
 	/* in case a running nodetree is copied */
 	ntree_dst->execdata = NULL;
@@ -1240,7 +1235,7 @@ void BKE_node_tree_copy_data(Main *UNUSED(bmain), bNodeTree *ntree_dst, const bN
 	BLI_listbase_clear(&ntree_dst->nodes);
 	BLI_listbase_clear(&ntree_dst->links);
 
-	for (node_src = ntree_src->nodes.first; node_src; node_src = node_src->next) {
+	for (bNode *node_src = ntree_src->nodes.first; node_src; node_src = node_src->next) {
 		BKE_node_copy_ex(ntree_dst, node_src, flag_subdata);
 	}
 
@@ -1291,9 +1286,9 @@ void BKE_node_tree_copy_data(Main *UNUSED(bmain), bNodeTree *ntree_dst, const bN
 	}
 
 	/* update node->parent pointers */
-	for (node_src = ntree_dst->nodes.first; node_src; node_src = node_src->next) {
-		if (node_src->parent) {
-			node_src->parent = node_src->parent->new_node;
+	for (bNode *node_dst = ntree_dst->nodes.first, *node_src = ntree_src->nodes.first; node_dst; node_dst = node_dst->next, node_src = node_src->next) {
+		if (node_dst->parent) {
+			node_dst->parent = node_dst->parent->new_node;
 		}
 	}
 

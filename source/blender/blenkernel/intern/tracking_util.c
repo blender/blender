@@ -58,6 +58,15 @@
 
 #include "libmv-capi.h"
 
+/* Uncomment this to have caching-specific debug prints. */
+// #define DEBUG_CACHE
+
+#ifdef DEBUG_CACHE
+#  define CACHE_PRINTF(...) printf(__VA_ARGS__)
+#else
+#  define CACHE_PRINTF(...)
+#endif
+
 /*********************** Tracks map *************************/
 
 TracksMap *tracks_map_new(const char *object_name, bool is_camera, int num_tracks, int customdata_size)
@@ -523,6 +532,8 @@ typedef struct AccessCacheKey {
 	int frame;
 	int downscale;
 	libmv_InputMode input_mode;
+	bool has_region;
+	float region_min[2], region_max[2];
 	int64_t transform_key;
 } AccessCacheKey;
 
@@ -537,23 +548,44 @@ static bool accesscache_hashcmp(const void *a_v, const void *b_v)
 {
 	const AccessCacheKey *a = (const AccessCacheKey *) a_v;
 	const AccessCacheKey *b = (const AccessCacheKey *) b_v;
+	if (a->clip_index != b->clip_index ||
+	    a->frame != b->frame ||
+	    a->downscale != b->downscale ||
+	    a->input_mode != b->input_mode ||
+	    a->has_region != b->has_region ||
+	    a->transform_key != b->transform_key)
+	{
+		return true;
+	}
+	/* If there is region applied, compare it. */
+	if (a->has_region) {
+		if (!equals_v2v2(a->region_min, b->region_min) ||
+		    !equals_v2v2(a->region_max, b->region_max))
+		{
+			return true;
+		}
+	}
+	return false;
+}
 
-#define COMPARE_FIELD(field)
-	{ \
-		if (a->clip_index != b->clip_index) { \
-			return false; \
-		} \
-	} (void) 0
-
-	COMPARE_FIELD(clip_index);
-	COMPARE_FIELD(frame);
-	COMPARE_FIELD(downscale);
-	COMPARE_FIELD(input_mode);
-	COMPARE_FIELD(transform_key);
-
-#undef COMPARE_FIELD
-
-	return true;
+static void accesscache_construct_key(AccessCacheKey *key,
+                                      int clip_index,
+                                      int frame,
+                                      libmv_InputMode input_mode,
+                                      int downscale,
+                                      const libmv_Region *region,
+                                      int64_t transform_key)
+{
+	key->clip_index = clip_index;
+	key->frame = frame;
+	key->input_mode = input_mode;
+	key->downscale = downscale;
+	key->has_region = (region != NULL);
+	if (key->has_region) {
+		copy_v2_v2(key->region_min, region->min);
+		copy_v2_v2(key->region_max, region->max);
+	}
+	key->transform_key = transform_key;
 }
 
 static void accesscache_put(TrackingImageAccessor *accessor,
@@ -561,15 +593,13 @@ static void accesscache_put(TrackingImageAccessor *accessor,
                             int frame,
                             libmv_InputMode input_mode,
                             int downscale,
+                            const libmv_Region *region,
                             int64_t transform_key,
                             ImBuf *ibuf)
 {
 	AccessCacheKey key;
-	key.clip_index = clip_index;
-	key.frame = frame;
-	key.input_mode = input_mode;
-	key.downscale = downscale;
-	key.transform_key = transform_key;
+	accesscache_construct_key(&key, clip_index, frame, input_mode, downscale,
+	                          region, transform_key);
 	IMB_moviecache_put(accessor->cache, &key, ibuf);
 }
 
@@ -578,14 +608,12 @@ static ImBuf *accesscache_get(TrackingImageAccessor *accessor,
                               int frame,
                               libmv_InputMode input_mode,
                               int downscale,
+                              const libmv_Region *region,
                               int64_t transform_key)
 {
 	AccessCacheKey key;
-	key.clip_index = clip_index;
-	key.frame = frame;
-	key.input_mode = input_mode;
-	key.downscale = downscale;
-	key.transform_key = transform_key;
+	accesscache_construct_key(&key, clip_index, frame, input_mode, downscale,
+	                          region, transform_key);
 	return IMB_moviecache_get(accessor->cache, &key);
 }
 
@@ -674,29 +702,37 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 {
 	ImBuf *ibuf, *orig_ibuf, *final_ibuf;
 	int64_t transform_key = 0;
-
 	if (transform != NULL) {
 		transform_key = libmv_frameAccessorgetTransformKey(transform);
 	}
-
 	/* First try to get fully processed image from the cache. */
+	BLI_spin_lock(&accessor->cache_lock);
 	ibuf = accesscache_get(accessor,
 	                       clip_index,
 	                       frame,
 	                       input_mode,
 	                       downscale,
+	                       region,
 	                       transform_key);
+	BLI_spin_unlock(&accessor->cache_lock);
 	if (ibuf != NULL) {
+		CACHE_PRINTF("Used cached buffer for frame %d\n", frame);
+		/* This is a little heuristic here: if we re-used image once, this is
+		 * a high probability of the image to be related to a keyframe matched
+		 * reference image. Those images we don't want to be thrown away because
+		 * if we toss them out we'll be re-calculating them at the next
+		 * iteration.
+		 */
+		ibuf->userflags |= IB_PERSISTENT;
 		return ibuf;
 	}
-
+	CACHE_PRINTF("Calculate new buffer for frame %d\n", frame);
 	/* And now we do postprocessing of the original frame. */
 	orig_ibuf = accessor_get_preprocessed_ibuf(accessor, clip_index, frame);
-
 	if (orig_ibuf == NULL) {
 		return NULL;
 	}
-
+	/* Cut a region if requested. */
 	if (region != NULL) {
 		int width = region->max[0] - region->min[0],
 		    height = region->max[1] - region->min[1];
@@ -756,7 +792,7 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 		BLI_unlock_thread(LOCK_MOVIECLIP);
 		final_ibuf = orig_ibuf;
 	}
-
+	/* Downscale if needed. */
 	if (downscale > 0) {
 		if (final_ibuf == orig_ibuf) {
 			final_ibuf = IMB_dupImBuf(orig_ibuf);
@@ -765,7 +801,7 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 		               orig_ibuf->x / (1 << downscale),
 		               orig_ibuf->y / (1 << downscale));
 	}
-
+	/* Apply possible transformation. */
 	if (transform != NULL) {
 		libmv_FloatImage input_image, output_image;
 		ibuf_to_float_image(final_ibuf, &input_image);
@@ -778,12 +814,13 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 		final_ibuf = float_image_to_ibuf(&output_image);
 		libmv_floatImageDestroy(&output_image);
 	}
-
+	/* Transform number of channels. */
 	if (input_mode == LIBMV_IMAGE_MODE_RGBA) {
 		BLI_assert(orig_ibuf->channels == 3 || orig_ibuf->channels == 4);
 		/* pass */
 	}
 	else /* if (input_mode == LIBMV_IMAGE_MODE_MONO) */ {
+		BLI_assert(input_mode == LIBMV_IMAGE_MODE_MONO);
 		if (final_ibuf->channels != 1) {
 			ImBuf *grayscale_ibuf = make_grayscale_ibuf_copy(final_ibuf);
 			if (final_ibuf != orig_ibuf) {
@@ -793,37 +830,24 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 			final_ibuf = grayscale_ibuf;
 		}
 	}
-
-	/* it's possible processing still didn't happen at this point,
+	/* It's possible processing still didn't happen at this point,
 	 * but we really need a copy of the buffer to be transformed
 	 * and to be put to the cache.
 	 */
 	if (final_ibuf == orig_ibuf) {
 		final_ibuf = IMB_dupImBuf(orig_ibuf);
 	}
-
 	IMB_freeImBuf(orig_ibuf);
-
-	/* We put postprocessed frame to the cache always for now,
-	 * not the smartest thing in the world, but who cares at this point.
-	 */
-
-	/* TODO(sergey): Disable cache for now, because we don't store region
-	 * in the cache key and can't check whether cached version is usable for
-	 * us or not.
-	 *
-	 * Need to think better about what to cache and when.
-	 */
-	if (false) {
-		accesscache_put(accessor,
-		                clip_index,
-		                frame,
-		                input_mode,
-		                downscale,
-		                transform_key,
-		                final_ibuf);
-	}
-
+	BLI_spin_lock(&accessor->cache_lock);
+	/* Put final buffer to cache. */
+	accesscache_put(accessor,
+	                clip_index,
+	                frame,
+	                input_mode,
+	                downscale,
+	                region,
+	                transform_key,
+	                final_ibuf);
 	return final_ibuf;
 }
 
@@ -957,6 +981,8 @@ TrackingImageAccessor *tracking_image_accessor_new(MovieClip *clips[MAX_ACCESSOR
 		                       accessor_release_image_callback,
 		                       accessor_get_mask_for_track_callback,
 		                       accessor_release_mask_callback);
+
+	BLI_spin_init(&accessor->cache_lock);
 
 	return accessor;
 }
