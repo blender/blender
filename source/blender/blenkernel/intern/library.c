@@ -483,18 +483,20 @@ bool id_make_local(Main *bmain, ID *id, const bool test, const bool lib_local)
 
 struct IDCopyLibManagementData {
 	const ID *id_src;
+	ID *id_dst;
 	int flag;
 };
 
 /* Increases usercount as required, and remap self ID pointers. */
-static int id_copy_libmanagement_cb(void *user_data, ID *id_self, ID **id_pointer, int cb_flag)
+static int id_copy_libmanagement_cb(void *user_data, ID *UNUSED(id_self), ID **id_pointer, int cb_flag)
 {
 	struct IDCopyLibManagementData *data = user_data;
 	ID *id = *id_pointer;
 
 	/* Remap self-references to new copied ID. */
 	if (id == data->id_src) {
-		id = *id_pointer = id_self;
+		/* We cannot use id_self here, it is not *always* id_dst (thanks to $£!+@#&/? nodetrees). */
+		id = *id_pointer = data->id_dst;
 	}
 
 	/* Increase used IDs refcount if needed and required. */
@@ -643,7 +645,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag, con
 	}
 
 	/* Update ID refcount, remap pointers to self in new ID. */
-	struct IDCopyLibManagementData data = {.id_src = id, .flag = flag};
+	struct IDCopyLibManagementData data = {.id_src = id, .id_dst = *r_newid, .flag = flag};
 	BKE_library_foreach_ID_link(bmain, *r_newid, id_copy_libmanagement_cb, &data, IDWALK_NOP);
 
 	/* Do not make new copy local in case we are copying outside of main...
