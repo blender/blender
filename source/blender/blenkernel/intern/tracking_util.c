@@ -523,6 +523,8 @@ typedef struct AccessCacheKey {
 	int frame;
 	int downscale;
 	libmv_InputMode input_mode;
+	bool has_region;
+	float region_min[2], region_max[2];
 	int64_t transform_key;
 } AccessCacheKey;
 
@@ -541,9 +543,18 @@ static bool accesscache_hashcmp(const void *a_v, const void *b_v)
 	    a->frame != b->frame ||
 	    a->downscale != b->downscale ||
 	    a->input_mode != b->input_mode ||
+	    a->has_region != b->has_region ||
 	    a->transform_key != b->transform_key)
 	{
 		return true;
+	}
+	/* If there is region applied, compare it. */
+	if (a->has_region) {
+		if (!equals_v2v2(a->region_min, b->region_min) ||
+		    !equals_v2v2(a->region_max, b->region_max))
+		{
+			return true;
+		}
 	}
 	return false;
 }
@@ -553,14 +564,25 @@ static void accesscache_put(TrackingImageAccessor *accessor,
                             int frame,
                             libmv_InputMode input_mode,
                             int downscale,
+                            const libmv_Region *region,
                             int64_t transform_key,
                             ImBuf *ibuf)
 {
+	/* Currently we don't want global memory limiter to be tossing our cached
+	 * frames from tracking context. We are controlling what we want to be cached
+	 * from our side.
+	 */
+	ibuf->userflags |= IB_PERSISTENT;
 	AccessCacheKey key;
 	key.clip_index = clip_index;
 	key.frame = frame;
 	key.input_mode = input_mode;
 	key.downscale = downscale;
+	key.has_region = (region != NULL);
+	if (key.has_region) {
+		copy_v2_v2(key.region_min, region->min);
+		copy_v2_v2(key.region_max, region->max);
+	}
 	key.transform_key = transform_key;
 	IMB_moviecache_put(accessor->cache, &key, ibuf);
 }
@@ -570,6 +592,7 @@ static ImBuf *accesscache_get(TrackingImageAccessor *accessor,
                               int frame,
                               libmv_InputMode input_mode,
                               int downscale,
+                              const libmv_Region *region,
                               int64_t transform_key)
 {
 	AccessCacheKey key;
@@ -577,6 +600,11 @@ static ImBuf *accesscache_get(TrackingImageAccessor *accessor,
 	key.frame = frame;
 	key.input_mode = input_mode;
 	key.downscale = downscale;
+	key.has_region = (region != NULL);
+	if (key.has_region) {
+		copy_v2_v2(key.region_min, region->min);
+		copy_v2_v2(key.region_max, region->max);
+	}
 	key.transform_key = transform_key;
 	return IMB_moviecache_get(accessor->cache, &key);
 }
@@ -677,6 +705,7 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 	                       frame,
 	                       input_mode,
 	                       downscale,
+	                       region,
 	                       transform_key);
 	if (ibuf != NULL) {
 		return ibuf;
@@ -800,11 +829,8 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 	 * not the smartest thing in the world, but who cares at this point.
 	 */
 
-	/* TODO(sergey): Disable cache for now, because we don't store region
-	 * in the cache key and can't check whether cached version is usable for
-	 * us or not.
-	 *
-	 * Need to think better about what to cache and when.
+	/* TODO(sergey): Disable cache for now, need some good policy on what to
+	 * cache and for how long.
 	 */
 	if (false) {
 		accesscache_put(accessor,
@@ -812,6 +838,7 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 		                frame,
 		                input_mode,
 		                downscale,
+		                region,
 		                transform_key,
 		                final_ibuf);
 	}
