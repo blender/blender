@@ -537,23 +537,15 @@ static bool accesscache_hashcmp(const void *a_v, const void *b_v)
 {
 	const AccessCacheKey *a = (const AccessCacheKey *) a_v;
 	const AccessCacheKey *b = (const AccessCacheKey *) b_v;
-
-#define COMPARE_FIELD(field)
-	{ \
-		if (a->clip_index != b->clip_index) { \
-			return false; \
-		} \
-	} (void) 0
-
-	COMPARE_FIELD(clip_index);
-	COMPARE_FIELD(frame);
-	COMPARE_FIELD(downscale);
-	COMPARE_FIELD(input_mode);
-	COMPARE_FIELD(transform_key);
-
-#undef COMPARE_FIELD
-
-	return true;
+	if (a->clip_index != b->clip_index ||
+	    a->frame != b->frame ||
+	    a->downscale != b->downscale ||
+	    a->input_mode != b->input_mode ||
+	    a->transform_key != b->transform_key)
+	{
+		return true;
+	}
+	return false;
 }
 
 static void accesscache_put(TrackingImageAccessor *accessor,
