@@ -1040,7 +1040,6 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 		 */
 		start_index = spatial_free_index;
 		spatial_free_index += range.size();
-
 		/* Extend an array when needed. */
 		const size_t range_end = start_index + range.size();
 		if(prim_type.size() < range_end) {
@@ -1066,8 +1065,6 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 				prim_time.resize(range_end);
 			}
 		}
-		spatial_spin_lock.unlock();
-
 		/* Perform actual data copy. */
 		if(new_leaf_data_size > 0) {
 			memcpy(&prim_type[start_index], &local_prim_type[0], new_leaf_data_size);
@@ -1077,6 +1074,7 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range,
 				memcpy(&prim_time[start_index], &local_prim_time[0], sizeof(float2)*num_new_leaf_data);
 			}
 		}
+		spatial_spin_lock.unlock();
 	}
 	else {
 		/* For the regular BVH builder we simply copy new data starting at the
