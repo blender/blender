@@ -707,12 +707,11 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 {
 	ImBuf *ibuf, *orig_ibuf, *final_ibuf;
 	int64_t transform_key = 0;
-
 	if (transform != NULL) {
 		transform_key = libmv_frameAccessorgetTransformKey(transform);
 	}
-
 	/* First try to get fully processed image from the cache. */
+	BLI_spin_lock(&accessor->cache_lock);
 	ibuf = accesscache_get(accessor,
 	                       clip_index,
 	                       frame,
@@ -720,6 +719,7 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 	                       downscale,
 	                       region,
 	                       transform_key);
+	BLI_spin_unlock(&accessor->cache_lock);
 	if (ibuf != NULL) {
 		CACHE_PRINTF("Used buffer from cache for frame %d\n", frame);
 		return ibuf;
@@ -846,6 +846,7 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 	 * cache and for how long.
 	 */
 	if (false) {
+		BLI_spin_lock(&accessor->cache_lock);
 		accesscache_put(accessor,
 		                clip_index,
 		                frame,
@@ -854,6 +855,7 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 		                region,
 		                transform_key,
 		                final_ibuf);
+		BLI_spin_unlock(&accessor->cache_lock);
 	}
 
 	return final_ibuf;
@@ -989,6 +991,8 @@ TrackingImageAccessor *tracking_image_accessor_new(MovieClip *clips[MAX_ACCESSOR
 		                       accessor_release_image_callback,
 		                       accessor_get_mask_for_track_callback,
 		                       accessor_release_mask_callback);
+
+	BLI_spin_init(&accessor->cache_lock);
 
 	return accessor;
 }
