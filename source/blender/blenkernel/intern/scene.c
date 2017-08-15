@@ -244,41 +244,42 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 
 	/* layers and collections */
 	sce_dst->collection = MEM_dupallocN(sce_src->collection);
-	SceneCollection *mcn = BKE_collection_master(sce_dst);
-	SceneCollection *mc = BKE_collection_master(sce_src);
+	SceneCollection *mc_src = BKE_collection_master(sce_src);
+	SceneCollection *mc_dst = BKE_collection_master(sce_dst);
 
 	/* recursively creates a new SceneCollection tree */
-	scene_collection_copy(mcn, mc);
+	scene_collection_copy(mc_dst, mc_src);
 
 	IDPropertyTemplate val = {0};
 	BLI_duplicatelist(&sce_dst->render_layers, &sce_src->render_layers);
-	SceneLayer *new_sl = sce_dst->render_layers.first;
-	for (SceneLayer *sl = sce_src->render_layers.first; sl; sl = sl->next) {
-		new_sl->stats = NULL;
-		new_sl->properties_evaluated = NULL;
-		new_sl->properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-		IDP_MergeGroup(new_sl->properties, sl->properties, true);
+	for (SceneLayer *sl_src = sce_src->render_layers.first, *sl_dst = sce_dst->render_layers.first;
+	     sl_src;
+	     sl_src = sl_src->next, sl_dst = sl_dst->next)
+	{
+		sl_dst->stats = NULL;
+		sl_dst->properties_evaluated = NULL;
+		sl_dst->properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+		IDP_MergeGroup(sl_dst->properties, sl_src->properties, true);
 
 		/* we start fresh with no overrides and no visibility flags set
 		 * instead of syncing both trees we simply unlink and relink the scene collection */
-		BLI_listbase_clear(&new_sl->layer_collections);
-		BLI_listbase_clear(&new_sl->object_bases);
-		BLI_listbase_clear(&new_sl->drawdata);
-		layer_collections_recreate(new_sl, &sl->layer_collections, mcn, mc);
+		BLI_listbase_clear(&sl_dst->layer_collections);
+		BLI_listbase_clear(&sl_dst->object_bases);
+		BLI_listbase_clear(&sl_dst->drawdata);
+		layer_collections_recreate(sl_dst, &sl_src->layer_collections, mc_dst, mc_src);
 
-		Object *active_ob = OBACT_NEW(sl);
-		Base *new_base = new_sl->object_bases.first;
-		for (Base *base = sl->object_bases.first; base; base = base->next) {
-			new_base->flag = base->flag;
-			new_base->flag_legacy = base->flag_legacy;
+		Object *active_ob = OBACT_NEW(sl_src);
+		for (Base *base_src = sl_src->object_bases.first, *base_dst = sl_dst->object_bases.first;
+		     base_src;
+		     base_src = base_src->next, base_dst = base_dst->next)
+		{
+			base_dst->flag = base_src->flag;
+			base_dst->flag_legacy = base_src->flag_legacy;
 
-			if (new_base->object == active_ob) {
-				new_sl->basact = new_base;
+			if (base_dst->object == active_ob) {
+				sl_dst->basact = base_dst;
 			}
-
-			new_base = new_base->next;
 		}
-		new_sl = new_sl->next;
 	}
 
 	sce_dst->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
