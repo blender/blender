@@ -161,55 +161,58 @@ static void remove_sequencer_fcurves(Scene *sce)
 }
 
 /* copy SceneCollection tree but keep pointing to the same objects */
-static void scene_collection_copy(SceneCollection *scn, SceneCollection *sc)
+static void scene_collection_copy(SceneCollection *sc_dst, SceneCollection *sc_src, const int flag)
 {
-	BLI_duplicatelist(&scn->objects, &sc->objects);
-	for (LinkData *link = scn->objects.first; link; link = link->next) {
-		id_us_plus(link->data);
+	BLI_duplicatelist(&sc_dst->objects, &sc_src->objects);
+	if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+		for (LinkData *link = sc_dst->objects.first; link; link = link->next) {
+			id_us_plus(link->data);
+		}
 	}
 
-	BLI_duplicatelist(&scn->filter_objects, &sc->filter_objects);
-	for (LinkData *link = scn->filter_objects.first; link; link = link->next) {
-		id_us_plus(link->data);
+	BLI_duplicatelist(&sc_dst->filter_objects, &sc_src->filter_objects);
+	if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+		for (LinkData *link = sc_dst->filter_objects.first; link; link = link->next) {
+			id_us_plus(link->data);
+		}
 	}
 
-	BLI_duplicatelist(&scn->scene_collections, &sc->scene_collections);
-	SceneCollection *nscn = scn->scene_collections.first; /* nested SceneCollection new */
-	for (SceneCollection *nsc = sc->scene_collections.first; nsc; nsc = nsc->next) {
-		scene_collection_copy(nscn, nsc);
-		nscn = nscn->next;
+	BLI_duplicatelist(&sc_dst->scene_collections, &sc_src->scene_collections);
+	for (SceneCollection *nsc_src = sc_src->scene_collections.first, *nsc_dst = sc_dst->scene_collections.first;
+	     nsc_src;
+	     nsc_src = nsc_src->next, nsc_dst = nsc_dst->next) {
+		scene_collection_copy(nsc_dst, nsc_src, flag);
 	}
 }
 
 /* Find the equivalent SceneCollection in the new tree */
-static SceneCollection *scene_collection_from_new_tree(SceneCollection *sc_reference, SceneCollection *scn, SceneCollection *sc)
+static SceneCollection *scene_collection_from_new_tree(SceneCollection *sc_reference, SceneCollection *sc_dst, SceneCollection *sc_src)
 {
-	if (sc == sc_reference) {
-		return scn;
+	if (sc_src == sc_reference) {
+		return sc_dst;
 	}
 
-	SceneCollection *nscn = scn->scene_collections.first; /* nested master collection new */
-	for (SceneCollection *nsc = sc->scene_collections.first; nsc; nsc = nsc->next) {
-
-		SceneCollection *found = scene_collection_from_new_tree(sc_reference, nscn, nsc);
-		if (found) {
+	for (SceneCollection *nsc_src = sc_src->scene_collections.first, *nsc_dst = sc_dst->scene_collections.first;
+	     nsc_src;
+	     nsc_src = nsc_src->next, nsc_dst = nsc_dst->next)
+	{
+		SceneCollection *found = scene_collection_from_new_tree(sc_reference, nsc_dst, nsc_src);
+		if (found != NULL) {
 			return found;
 		}
-		nscn = nscn->next;
 	}
 	return NULL;
 }
 
 /* recreate the LayerCollection tree */
-static void layer_collections_recreate(SceneLayer *sl, ListBase *lb, SceneCollection *mcn, SceneCollection *mc)
+static void layer_collections_recreate(SceneLayer *sl_dst, ListBase *lb_src, SceneCollection *mc_dst, SceneCollection *mc_src)
 {
-	for (LayerCollection *lc = lb->first; lc; lc = lc->next) {
+	for (LayerCollection *lc_src = lb_src->first; lc_src; lc_src = lc_src->next) {
+		SceneCollection *sc_dst = scene_collection_from_new_tree(lc_src->scene_collection, mc_dst, mc_src);
+		BLI_assert(sc_dst);
 
-		SceneCollection *sc = scene_collection_from_new_tree(lc->scene_collection, mcn, mc);
-		BLI_assert(sc);
-
-		/* instead of syncronizing both trees we simply re-create it */
-		BKE_collection_link(sl, sc);
+		/* instead of synchronizing both trees we simply re-create it */
+		BKE_collection_link(sl_dst, sc_dst);
 	}
 }
 
@@ -248,7 +251,7 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 	SceneCollection *mc_dst = BKE_collection_master(sce_dst);
 
 	/* recursively creates a new SceneCollection tree */
-	scene_collection_copy(mc_dst, mc_src);
+	scene_collection_copy(mc_dst, mc_src, flag_subdata);
 
 	IDPropertyTemplate val = {0};
 	BLI_duplicatelist(&sce_dst->render_layers, &sce_src->render_layers);
