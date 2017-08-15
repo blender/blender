@@ -742,7 +742,7 @@ vec3 eevee_surface_glass(vec3 N, vec3 transmission_col, float roughness, float i
 	vec3 spec_dir = get_specular_reflection_dominant_dir(N, V, roughnessSquared);
 
 	/* Starts at 1 because 0 is world probe */
-	for (int i = 1; i < MAX_PROBE && i < probe_count && spec_accum.a < 0.999 && trans_accum.a < 0.999; ++i) {
+	for (int i = 1; i < MAX_PROBE && i < probe_count && (spec_accum.a < 0.999 || trans_accum.a < 0.999); ++i) {
 		CubeData cd = probes_data[i];
 
 		float fade = probe_attenuation_cube(cd, worldPosition);
@@ -751,10 +751,10 @@ vec3 eevee_surface_glass(vec3 N, vec3 transmission_col, float roughness, float i
 			if (!(ssrToggle && ssr_id == outputSsrId)) {
 				vec3 spec = probe_evaluate_cube(float(i), cd, worldPosition, spec_dir, roughness);
 				accumulate_light(spec, fade, spec_accum);
-
-				spec = probe_evaluate_cube(float(i), cd, refr_pos, refr_dir, roughnessSquared);
-				accumulate_light(spec, fade, trans_accum);
 			}
+
+			spec = probe_evaluate_cube(float(i), cd, refr_pos, refr_dir, roughnessSquared);
+			accumulate_light(spec, fade, trans_accum);
 		}
 	}
 
@@ -763,10 +763,12 @@ vec3 eevee_surface_glass(vec3 N, vec3 transmission_col, float roughness, float i
 		if (!(ssrToggle && ssr_id == outputSsrId)) {
 			vec3 spec = probe_evaluate_world_spec(spec_dir, roughness);
 			accumulate_light(spec, 1.0, spec_accum);
-
-			spec = probe_evaluate_world_spec(refr_dir, roughnessSquared);
-			accumulate_light(spec, 1.0, trans_accum);
 		}
+	}
+
+	if (trans_accum.a < 0.999) {
+		spec = probe_evaluate_world_spec(refr_dir, roughnessSquared);
+		accumulate_light(spec, 1.0, trans_accum);
 	}
 
 	/* Ambient Occlusion */
@@ -780,8 +782,12 @@ vec3 eevee_surface_glass(vec3 N, vec3 transmission_col, float roughness, float i
 
 	float fresnel = F_eta(ior, NV);
 
+	/* Apply fresnel on lamps. */
+	out_light *= vec3(fresnel);
+
 	ssr_spec = vec3(fresnel) * F_ibl(vec3(1.0), brdf_lut) * specular_occlusion(NV, final_ao, roughness);
 	out_light += spec_accum.rgb * ssr_spec;
+
 
 	float btdf = get_btdf_lut(utilTex, NV, roughness, ior);
 

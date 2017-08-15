@@ -2664,7 +2664,7 @@ void node_bsdf_diffuse(vec4 color, float roughness, vec3 N, out Closure result)
 #ifdef EEVEE_ENGINE
 	vec3 L = eevee_surface_diffuse_lit(N, vec3(1.0), 1.0);
 	vec3 vN = normalize(mat3(ViewMatrix) * N);
-	result = Closure(L * color.rgb, 1.0, vec4(0.0), normal_encode(N, viewCameraVec), -1);
+	result = Closure(L * color.rgb, 1.0, vec4(0.0), normal_encode(vN, viewCameraVec), -1);
 #else
 	/* ambient light */
 	vec3 L = vec3(0.2);
@@ -2720,14 +2720,14 @@ void node_bsdf_anisotropic(
 	node_bsdf_diffuse(color, 0.0, N, result);
 }
 
-void node_bsdf_glass(vec4 color, float roughness, float ior, vec3 N, out Closure result)
+void node_bsdf_glass(vec4 color, float roughness, float ior, vec3 N, float ssr_id, out Closure result)
 {
 #ifdef EEVEE_ENGINE
 	vec3 ssr_spec;
 	roughness = sqrt(roughness);
-	vec3 L = eevee_surface_glass(N, (refractionDepth > 0.0) ? color.rgb : vec3(1.0), roughness, ior, int(-2), ssr_spec);
+	vec3 L = eevee_surface_glass(N, (refractionDepth > 0.0) ? color.rgb : vec3(1.0), roughness, ior, int(ssr_id), ssr_spec);
 	vec3 vN = normalize(mat3(ViewMatrix) * N);
-	result = Closure(L * color.rgb, 1.0, vec4(ssr_spec * color.rgb, roughness), normal_encode(vN, viewCameraVec), int(-2));
+	result = Closure(L * color.rgb, 1.0, vec4(ssr_spec * color.rgb, roughness), normal_encode(vN, viewCameraVec), int(ssr_id));
 #else
 	node_bsdf_diffuse(color, 0.0, N, result);
 #endif
