@@ -78,7 +78,7 @@
 #include "transform.h"
 
 /* this should be passed as an arg for use in snap functions */
-#undef BASACT_NEW(sl)
+#undef BASACT_NEW
 
 /* use half of flt-max so we can scale up without an exception */
 
