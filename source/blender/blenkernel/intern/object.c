@@ -1209,6 +1209,7 @@ void BKE_object_copy_data(Main *UNUSED(bmain), Object *ob_dst, const Object *ob_
 	ob_dst->derivedFinal = NULL;
 
 	BLI_listbase_clear(&ob_dst->gpulamp);
+	BLI_listbase_clear(&ob_dst->drawdata);
 	BLI_listbase_clear(&ob_dst->pc_ids);
 
 	ob_dst->mpath = NULL;
