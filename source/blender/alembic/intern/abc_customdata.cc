@@ -255,6 +255,7 @@ static void read_uvs(const CDStreamConfig &config, void *data,
 static size_t mcols_out_of_bounds_check(
         const size_t color_index,
         const size_t array_size,
+        const std::string & iobject_full_name,
         const PropertyHeader &prop_header,
         bool &r_bounds_warning_given)
 {
@@ -263,8 +264,10 @@ static size_t mcols_out_of_bounds_check(
 	}
 
 	if (!r_bounds_warning_given) {
-		std::cerr << "Alembic import: color index out of bounds "
-		             "reading face colors for property "
+		std::cerr << "Alembic: color index out of bounds "
+		             "reading face colors for object "
+		          << iobject_full_name
+		          << ", property "
 		          << prop_header.getName() << std::endl;
 		r_bounds_warning_given = true;
 	}
@@ -272,7 +275,8 @@ static size_t mcols_out_of_bounds_check(
 	return 0;
 }
 
-static void read_custom_data_mcols(const ICompoundProperty &arbGeomParams,
+static void read_custom_data_mcols(const std::string & iobject_full_name,
+                                   const ICompoundProperty &arbGeomParams,
                                    const PropertyHeader &prop_header,
                                    const CDStreamConfig &config,
                                    const Alembic::Abc::ISampleSelector &iss)
@@ -338,7 +342,8 @@ static void read_custom_data_mcols(const ICompoundProperty &arbGeomParams,
 				color_index = mcols_out_of_bounds_check(
 				                  is_facevarying ? face_index : mloop->v,
 				                  c3f_ptr->size(),
-				                  prop_header, bounds_warning_given);
+				                  iobject_full_name, prop_header,
+				                  bounds_warning_given);
 
 				const Imath::C3f &color = (*c3f_ptr)[color_index];
 				cface->a = FTOCHAR(color[0]);
@@ -350,7 +355,8 @@ static void read_custom_data_mcols(const ICompoundProperty &arbGeomParams,
 				color_index = mcols_out_of_bounds_check(
 				                  is_facevarying ? face_index : mloop->v,
 				                  c4f_ptr->size(),
-				                  prop_header, bounds_warning_given);
+				                  iobject_full_name, prop_header,
+				                  bounds_warning_given);
 
 				const Imath::C4f &color = (*c4f_ptr)[color_index];
 				cface->a = FTOCHAR(color[0]);
@@ -387,7 +393,10 @@ static void read_custom_data_uvs(const ICompoundProperty &prop,
 	read_uvs(config, cd_data, sample.getVals(), sample.getIndices());
 }
 
-void read_custom_data(const ICompoundProperty &prop, const CDStreamConfig &config, const Alembic::Abc::ISampleSelector &iss)
+void read_custom_data(const std::string & iobject_full_name,
+                      const ICompoundProperty &prop,
+                      const CDStreamConfig &config,
+                      const Alembic::Abc::ISampleSelector &iss)
 {
 	if (!prop.valid()) {
 		return;
@@ -417,7 +426,7 @@ void read_custom_data(const ICompoundProperty &prop, const CDStreamConfig &confi
 				continue;
 			}
 
-			read_custom_data_mcols(prop, prop_header, config, iss);
+			read_custom_data_mcols(iobject_full_name, prop, prop_header, config, iss);
 			continue;
 		}
 	}
