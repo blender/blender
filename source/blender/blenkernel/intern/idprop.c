@@ -605,7 +605,7 @@ void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop)
  * If a property is missing in \a dest, add it.
  * Do it recursively.
  */
-void IDP_MergeGroup(IDProperty *dest, const IDProperty *src, const bool do_overwrite)
+void IDP_MergeGroup_ex(IDProperty *dest, const IDProperty *src, const bool do_overwrite, const int flag)
 {
 	IDProperty *prop;
 
@@ -618,12 +618,12 @@ void IDP_MergeGroup(IDProperty *dest, const IDProperty *src, const bool do_overw
 				IDProperty *prop_exist = IDP_GetPropertyFromGroup(dest, prop->name);
 
 				if (prop_exist != NULL) {
-					IDP_MergeGroup(prop_exist, prop, do_overwrite);
+					IDP_MergeGroup_ex(prop_exist, prop, do_overwrite, flag);
 					continue;
 				}
 			}
 
-			IDProperty *copy = IDP_CopyProperty(prop);
+			IDProperty *copy = IDP_CopyProperty_ex(prop, flag);
 			IDP_ReplaceInGroup(dest, copy);
 		}
 	}
@@ -632,17 +632,26 @@ void IDP_MergeGroup(IDProperty *dest, const IDProperty *src, const bool do_overw
 			IDProperty *prop_exist = IDP_GetPropertyFromGroup(dest, prop->name);
 			if (prop_exist != NULL) {
 				if (prop->type == IDP_GROUP) {
-					IDP_MergeGroup(prop_exist, prop, do_overwrite);
+					IDP_MergeGroup_ex(prop_exist, prop, do_overwrite, flag);
 					continue;
 				}
 			}
 			else {
-				IDProperty *copy = IDP_CopyProperty(prop);
+				IDProperty *copy = IDP_CopyProperty_ex(prop, flag);
 				dest->len++;
 				BLI_addtail(&dest->data.group, copy);
 			}
 		}
 	}
+}
+
+/**
+ * If a property is missing in \a dest, add it.
+ * Do it recursively.
+ */
+void IDP_MergeGroup(IDProperty *dest, const IDProperty *src, const bool do_overwrite)
+{
+	IDP_MergeGroup_ex(dest, src, do_overwrite, 0);
 }
 
 /**
