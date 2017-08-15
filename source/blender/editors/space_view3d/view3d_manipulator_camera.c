@@ -301,6 +301,16 @@ static bool WIDGETGROUP_camera_view_poll(const bContext *C, wmManipulatorGroupTy
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 
+	/* This is just so the border isn't always in the way,
+	 * stealing mouse clicks from regular usage.
+	 * We could change the rules for when to show. */
+	{
+		SceneLayer *sl = CTX_data_scene_layer(C);
+		if (scene->camera != OBACT_NEW) {
+			return false;
+		}
+	}
+
 	if (rv3d->persp == RV3D_CAMOB) {
 		if (scene->r.mode & R_BORDER) {
 			return true;
