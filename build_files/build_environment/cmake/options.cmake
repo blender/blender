@@ -108,6 +108,7 @@ if(WIN32)
 	)
 
 	set(CONFIGURE_COMMAND sh ./configure)
+	set(CONFIGURE_COMMAND_NO_TARGET ${CONFIGURE_COMMAND})
 else()
 	set(PATCH_CMD patch)
 	set(LIBEXT ".a")
@@ -163,6 +164,7 @@ else()
 	)
 	set(CONFIGURE_ENV_NO_PERL ${CONFIGURE_ENV})
 	set(CONFIGURE_COMMAND ./configure ${PLATFORM_BUILD_TARGET})
+	set(CONFIGURE_COMMAND_NO_TARGET ./configure)
 endif()
 
 set(DEFAULT_CMAKE_FLAGS

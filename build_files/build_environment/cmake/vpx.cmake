@@ -23,7 +23,11 @@ if(WIN32)
 		set(VPX_EXTRA_FLAGS --target=x86-win32-gcc)
 	endif()
 else()
-	set(VPX_EXTRA_FLAGS --target=generic-gnu)
+	if(APPLE)
+		set(VPX_EXTRA_FLAGS --target=x86_64-darwin13-gcc)
+	else()
+		set(VPX_EXTRA_FLAGS --target=generic-gnu)
+	endif()
 endif()
 
 ExternalProject_Add(external_vpx
@@ -33,7 +37,7 @@ ExternalProject_Add(external_vpx
 	PREFIX ${BUILD_DIR}/vpx
 	CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
 		cd ${BUILD_DIR}/vpx/src/external_vpx/ &&
-		${CONFIGURE_COMMAND} --prefix=${LIBDIR}/vpx
+		${CONFIGURE_COMMAND_NO_TARGET} --prefix=${LIBDIR}/vpx
 			--disable-shared
 			--enable-static
 			--disable-install-bins
