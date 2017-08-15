@@ -2029,11 +2029,11 @@ static int convert_exec(bContext *C, wmOperator *op)
 	if (basact) {
 		/* active base was changed */
 		ED_object_base_activate(C, basact);
-		BASACT_NEW = basact;
+		BASACT_NEW(sl) = basact;
 	}
-	else if (BASACT_NEW->object->flag & OB_DONE) {
-		WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, BASACT_NEW->object);
-		WM_event_add_notifier(C, NC_OBJECT | ND_DATA, BASACT_NEW->object);
+	else if (BASACT_NEW(sl)->object->flag & OB_DONE) {
+		WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, BASACT_NEW(sl)->object);
+		WM_event_add_notifier(C, NC_OBJECT | ND_DATA, BASACT_NEW(sl)->object);
 	}
 
 	DEG_relations_tag_update(bmain);
@@ -2366,7 +2366,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 		}
 
 		/* new object becomes active */
-		if (BASACT_NEW == base)
+		if (BASACT_NEW(sl) == base)
 			ED_object_base_activate(C, basen);
 
 		if (basen->object->data) {

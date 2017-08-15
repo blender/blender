@@ -247,7 +247,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 			else {
 				Object workob;
 
-				ob->parent = BASACT_NEW->object;
+				ob->parent = BASACT_NEW(sl)->object;
 				if (v3) {
 					ob->partype = PARVERT3;
 					ob->par1 = v1 - 1;
@@ -354,7 +354,7 @@ static int make_proxy_exec(bContext *C, wmOperator *op)
 
 	if (ob) {
 		Object *newob;
-		BaseLegacy *newbase, *oldbase = BASACT_NEW;
+		BaseLegacy *newbase, *oldbase = BASACT_NEW(sl);
 		char name[MAX_ID_NAME + 4];
 
 		BLI_snprintf(name, sizeof(name), "%s_proxy", ((ID *)(gob ? gob : ob))->name + 2);
@@ -363,7 +363,7 @@ static int make_proxy_exec(bContext *C, wmOperator *op)
 		newob = BKE_object_add(bmain, scene, sl, OB_EMPTY, name);
 
 		/* set layers OK */
-		newbase = BASACT_NEW;    /* BKE_object_add sets active... */
+		newbase = BASACT_NEW(sl);    /* BKE_object_add sets active... */
 		newbase->lay = oldbase->lay;
 		newob->lay = newbase->lay;
 

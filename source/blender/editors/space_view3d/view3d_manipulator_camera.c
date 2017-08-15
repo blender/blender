@@ -306,7 +306,7 @@ static bool WIDGETGROUP_camera_view_poll(const bContext *C, wmManipulatorGroupTy
 	 * We could change the rules for when to show. */
 	{
 		SceneLayer *sl = CTX_data_scene_layer(C);
-		if (scene->camera != OBACT_NEW) {
+		if (scene->camera != OBACT_NEW(sl)) {
 			return false;
 		}
 	}

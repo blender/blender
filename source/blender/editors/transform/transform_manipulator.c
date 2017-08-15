@@ -603,7 +603,7 @@ static int calc_manipulator_stats(const bContext *C)
 	View3D *v3d = sa->spacedata.first;
 	RegionView3D *rv3d = ar->regiondata;
 	Base *base;
-	Object *ob = OBACT_NEW;
+	Object *ob = OBACT_NEW(sl);
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	const bool is_gp_edit = ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE));
 	int a, totsel = 0;
@@ -913,8 +913,8 @@ static int calc_manipulator_stats(const bContext *C)
 	else {
 
 		/* we need the one selected object, if its not active */
-		base = BASACT_NEW;
-		ob = OBACT_NEW;
+		base = BASACT_NEW(sl);
+		ob = OBACT_NEW(sl);
 		if (base && ((base->flag & BASE_SELECTED) == 0)) ob = NULL;
 
 		for (base = sl->object_bases.first; base; base = base->next) {
@@ -1025,7 +1025,7 @@ static void manipulator_prepare_mat(const bContext *C, View3D *v3d, RegionView3D
 		case V3D_AROUND_ACTIVE:
 		{
 				bGPdata *gpd = CTX_data_gpencil_data(C);
-				Object *ob = OBACT_NEW;
+				Object *ob = OBACT_NEW(sl);
 
 				if (((v3d->around == V3D_AROUND_ACTIVE) && (scene->obedit == NULL)) &&
 				    ((gpd == NULL) || !(gpd->flag & GP_DATA_STROKE_EDITMODE)) &&

@@ -537,7 +537,7 @@ static void image_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, co
 				case ND_MODIFIER:
 				{
 					SceneLayer *sl = BKE_scene_layer_context_active_PLACEHOLDER(scene);
-					Object *ob = OBACT_NEW;
+					Object *ob = OBACT_NEW(sl);
 					if (ob && (ob == wmn->reference) && (ob->mode & OB_MODE_EDIT)) {
 						if (sima->lock && (sima->flag & SI_DRAWSHADOW)) {
 							ED_area_tag_refresh(sa);

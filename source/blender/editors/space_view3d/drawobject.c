@@ -318,7 +318,7 @@ bool draw_glsl_material(Scene *scene, SceneLayer *sl, Object *ob, View3D *v3d, c
 		return false;
 	if (!check_object_draw_texture(scene, v3d, dt))
 		return false;
-	if (ob == OBACT_NEW && (ob && ob->mode & OB_MODE_WEIGHT_PAINT))
+	if (ob == OBACT_NEW(sl) && (ob && ob->mode & OB_MODE_WEIGHT_PAINT))
 		return false;
 	
 	if (v3d->flag2 & V3D_SHOW_SOLID_MATCAP)
@@ -4312,7 +4312,7 @@ static void draw_mesh_fancy(EvaluationContext *eval_ctx, Scene *scene, SceneLaye
 	eWireDrawMode draw_wire = OBDRAW_WIRE_OFF;
 	bool /* no_verts,*/ no_edges, no_faces;
 	DerivedMesh *dm = mesh_get_derived_final(eval_ctx, scene, ob, scene->customdata_mask);
-	const bool is_obact = (ob == OBACT_NEW);
+	const bool is_obact = (ob == OBACT_NEW(sl));
 	int draw_flags = (is_obact && BKE_paint_select_face_test(ob)) ? DRAW_FACE_SELECT : 0;
 
 	if (!dm)
@@ -4730,7 +4730,7 @@ static void draw_mesh_fancy_new(EvaluationContext *eval_ctx, Scene *scene, Scene
 	eWireDrawMode draw_wire = OBDRAW_WIRE_OFF; /* could be bool draw_wire_overlay */
 	bool no_edges, no_faces;
 	DerivedMesh *dm = mesh_get_derived_final(eval_ctx, scene, ob, scene->customdata_mask);
-	const bool is_obact = (ob == OBACT_NEW);
+	const bool is_obact = (ob == OBACT_NEW(sl));
 	int draw_flags = (is_obact && BKE_paint_select_face_test(ob)) ? DRAW_FACE_SELECT : 0;
 
 	if (!dm)
@@ -4851,7 +4851,7 @@ static void draw_mesh_fancy_new(EvaluationContext *eval_ctx, Scene *scene, Scene
 		    !(G.f & G_PICKSEL || (draw_flags & DRAW_FACE_SELECT)) &&
 		    (draw_wire == OBDRAW_WIRE_OFF))
 		{
-			draw_mesh_object_outline_new(v3d, rv3d, ob, me, (ob == OBACT_NEW));
+			draw_mesh_object_outline_new(v3d, rv3d, ob, me, (ob == OBACT_NEW(sl)));
 		}
 
 		if (draw_glsl_material(scene, sl, ob, v3d, dt) && !(draw_flags & DRAW_MODIFIERS_PREVIEW)) {
@@ -4918,7 +4918,7 @@ static void draw_mesh_fancy_new(EvaluationContext *eval_ctx, Scene *scene, Scene
 				    (draw_wire == OBDRAW_WIRE_OFF) &&
 				    (ob->sculpt == NULL))
 				{
-					draw_mesh_object_outline_new(v3d, rv3d, ob, me, (ob == OBACT_NEW));
+					draw_mesh_object_outline_new(v3d, rv3d, ob, me, (ob == OBACT_NEW(sl)));
 				}
 
 				/* materials arent compatible with vertex colors */
@@ -4943,7 +4943,7 @@ static void draw_mesh_fancy_new(EvaluationContext *eval_ctx, Scene *scene, Scene
 			    (ob->sculpt == NULL))
 			{
 				/* TODO: move this into a separate pass */
-				draw_mesh_object_outline_new(v3d, rv3d, ob, me, (ob == OBACT_NEW));
+				draw_mesh_object_outline_new(v3d, rv3d, ob, me, (ob == OBACT_NEW(sl)));
 			}
 
 			glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
@@ -8575,7 +8575,7 @@ void draw_object(const bContext *C, Scene *scene, SceneLayer *sl, ARegion *ar, V
 	unsigned char _ob_wire_col[4];            /* dont initialize this */
 	const unsigned char *ob_wire_col = NULL;  /* dont initialize this, use NULL crashes as a way to find invalid use */
 	bool zbufoff = false, is_paint = false, empty_object = false;
-	const bool is_obact = (ob == OBACT_NEW);
+	const bool is_obact = (ob == OBACT_NEW(sl));
 	const bool render_override = (v3d->flag2 & V3D_RENDER_OVERRIDE) != 0;
 	const bool is_picking = (G.f & G_PICKSEL) != 0;
 	const bool has_particles = (ob->particlesystem.first != NULL);

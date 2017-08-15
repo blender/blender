@@ -1980,10 +1980,10 @@ extern const char *RE_engine_id_CYCLES;
 #define BASACT			(scene->basact)
 #define OBACT			(BASACT ? BASACT->object: NULL)
 
-#define FIRSTBASE_NEW	(sl)->object_bases.first
-#define LASTBASE_NEW	(sl)->object_bases.last
-#define BASACT_NEW		((sl)->basact)
-#define OBACT_NEW		(BASACT_NEW ? BASACT_NEW->object: NULL)
+#define FIRSTBASE_NEW(_sl)  ((_sl)->object_bases.first)
+#define LASTBASE_NEW(_sl)   ((_sl)->object_bases.last)
+#define BASACT_NEW(_sl)     ((_sl)->basact)
+#define OBACT_NEW(_sl)      (BASACT_NEW(_sl) ? BASACT_NEW(_sl)->object: NULL)
 
 #define V3D_CAMERA_LOCAL(v3d) ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : NULL)
 #define V3D_CAMERA_SCENE(scene, v3d) ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : (scene)->camera)

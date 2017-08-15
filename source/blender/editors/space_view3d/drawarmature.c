@@ -2982,10 +2982,10 @@ bool draw_armature(const bContext *C, Scene *scene, SceneLayer *sl, View3D *v3d,
 							draw_ghost_poses(C, scene, sl, v3d, ar, base);
 					}
 					if ((dflag & DRAW_SCENESET) == 0) {
-						if (ob == OBACT_NEW)
+						if (ob == OBACT_NEW(sl))
 							arm->flag |= ARM_POSEMODE;
-						else if (OBACT_NEW && (OBACT_NEW->mode & OB_MODE_WEIGHT_PAINT)) {
-							if (ob == modifiers_isDeformedByArmature(OBACT_NEW))
+						else if (OBACT_NEW(sl) && (OBACT_NEW(sl)->mode & OB_MODE_WEIGHT_PAINT)) {
+							if (ob == modifiers_isDeformedByArmature(OBACT_NEW(sl)))
 								arm->flag |= ARM_POSEMODE;
 						}
 						draw_pose_paths(scene, v3d, ar, ob);

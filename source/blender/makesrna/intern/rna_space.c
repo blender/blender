@@ -1308,7 +1308,7 @@ static void rna_SpaceDopeSheetEditor_action_update(Main *bmain, bContext *C, Sce
 {
 	SpaceAction *saction = (SpaceAction *)(ptr->data);
 	SceneLayer *sl = CTX_data_scene_layer(C);
-	Object *obact = OBACT_NEW;
+	Object *obact = OBACT_NEW(sl);
 
 	/* we must set this action to be the one used by active object (if not pinned) */
 	if (obact /* && saction->pin == 0*/) {
@@ -1384,7 +1384,7 @@ static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
 {
 	SpaceAction *saction = (SpaceAction *)(ptr->data);
 	SceneLayer *sl = CTX_data_scene_layer(C);
-	Object *obact = OBACT_NEW;
+	Object *obact = OBACT_NEW(sl);
 
 	/* special exceptions for ShapeKey Editor mode */
 	if (saction->mode == SACTCONT_SHAPEKEY) {

@@ -834,7 +834,7 @@ static LodLevel *lod_level_select(Object *ob, const float camera_position[3])
 
 bool BKE_object_lod_is_usable(Object *ob, SceneLayer *sl)
 {
-	bool active = (sl) ? ob == OBACT_NEW : false;
+	bool active = (sl) ? ob == OBACT_NEW(sl) : false;
 	return (ob->mode == OB_MODE_OBJECT || !active);
 }
 
@@ -2538,7 +2538,7 @@ void BKE_scene_foreach_display_point(
 	Base *base;
 	Object *ob;
 
-	for (base = FIRSTBASE_NEW; base; base = base->next) {
+	for (base = FIRSTBASE_NEW(sl); base; base = base->next) {
 		if (((base->flag & BASE_VISIBLED) != 0) && ((base->flag & BASE_SELECTED) != 0)) {
 			ob = base->object;
 

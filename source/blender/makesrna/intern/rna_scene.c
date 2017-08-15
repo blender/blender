@@ -2159,7 +2159,7 @@ static char *rna_MeshStatVis_path(PointerRNA *UNUSED(ptr))
 static void rna_Scene_update_active_object_data(bContext *C, PointerRNA *UNUSED(ptr))
 {
 	SceneLayer *sl = CTX_data_scene_layer(C);
-	Object *ob = OBACT_NEW;
+	Object *ob = OBACT_NEW(sl);
 
 	if (ob) {
 		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -2692,7 +2692,7 @@ static void rna_LayerCollectionEngineSettings_wire_update(bContext *C, PointerRN
 {
 	Scene *scene = CTX_data_scene(C);
 	SceneLayer *sl = CTX_data_scene_layer(C);
-	Object *ob = OBACT_NEW;
+	Object *ob = OBACT_NEW(sl);
 
 	if (ob != NULL && ob->type == OB_MESH) {
 		BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_NOCHECK);

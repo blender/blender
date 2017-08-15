@@ -2942,7 +2942,7 @@ static void DRW_engines_enable_external(void)
 
 static void DRW_engines_enable(const Scene *scene, SceneLayer *sl)
 {
-	Object *obact = OBACT_NEW;
+	Object *obact = OBACT_NEW(sl);
 	const int mode = CTX_data_mode_enum_ex(scene->obedit, obact);
 	DRW_engines_enable_from_engine(scene);
 
@@ -3134,7 +3134,7 @@ void DRW_draw_render_loop_ex(
 	cache_is_dirty = GPU_viewport_cache_validate(DST.viewport, DRW_engines_get_hash());
 
 	DST.draw_ctx = (DRWContextState){
-		ar, rv3d, v3d, scene, sl, OBACT_NEW,
+		ar, rv3d, v3d, scene, sl, OBACT_NEW(sl),
 		/* reuse if caller sets */
 		DST.draw_ctx.evil_C,
 	};
@@ -3318,7 +3318,7 @@ void DRW_draw_select_loop(
 
 	/* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
 	DST.draw_ctx = (DRWContextState){
-		ar, rv3d, v3d, scene, sl, OBACT_NEW, (bContext *)NULL,
+		ar, rv3d, v3d, scene, sl, OBACT_NEW(sl), (bContext *)NULL,
 	};
 
 	DRW_viewport_var_init();
@@ -3414,7 +3414,7 @@ void DRW_draw_depth_loop(
 
 	/* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
 	DST.draw_ctx = (DRWContextState){
-		ar, rv3d, v3d, scene, sl, OBACT_NEW, (bContext *)NULL,
+		ar, rv3d, v3d, scene, sl, OBACT_NEW(sl), (bContext *)NULL,
 	};
 
 	DRW_viewport_var_init();

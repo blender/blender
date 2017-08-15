@@ -377,7 +377,7 @@ bool ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
 bool ED_space_image_check_show_maskedit(SceneLayer *sl, SpaceImage *sima)
 {
 	/* check editmode - this is reserved for UV editing */
-	Object *ob = OBACT_NEW;
+	Object *ob = OBACT_NEW(sl);
 	if (ob && ob->mode & OB_MODE_EDIT && ED_space_image_show_uvedit(sima, ob)) {
 		return false;
 	}

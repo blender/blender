@@ -243,7 +243,7 @@ ListBase *pdInitEffectors(struct EvaluationContext *eval_ctx, Scene *scene, Obje
 		}
 	}
 	else {
-		for (base = FIRSTBASE_NEW; base; base = base->next) {
+		for (base = FIRSTBASE_NEW(sl); base; base = base->next) {
 			if ( base->object->pd && base->object->pd->forcefield )
 				add_object_to_effectors(&effectors, eval_ctx, scene, weights, base->object, ob_src, for_simulation);
 

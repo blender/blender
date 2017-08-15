@@ -1906,7 +1906,7 @@ static void drawTransformPixel(const struct bContext *UNUSED(C), ARegion *ar, vo
 	TransInfo *t = arg;
 	Scene *scene = t->scene;
 	SceneLayer *sl = t->scene_layer;
-	Object *ob = OBACT_NEW;
+	Object *ob = OBACT_NEW(sl);
 	
 	/* draw autokeyframing hint in the corner 
 	 * - only draw if enabled (advanced users may be distracted/annoyed), 

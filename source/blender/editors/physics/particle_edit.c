@@ -4438,7 +4438,7 @@ static void get_PTCacheUndo(PTCacheEdit *edit, PTCacheUndo *undo)
 
 void PE_undo_push(Scene *scene, SceneLayer *sl, const char *str)
 {
-	PTCacheEdit *edit= PE_get_current(scene, sl, OBACT_NEW);
+	PTCacheEdit *edit= PE_get_current(scene, sl, OBACT_NEW(sl));
 	PTCacheUndo *undo;
 	int nr;
 
@@ -4480,7 +4480,7 @@ void PE_undo_push(Scene *scene, SceneLayer *sl, const char *str)
 
 void PE_undo_step(Scene *scene, SceneLayer *sl, int step)
 {	
-	PTCacheEdit *edit= PE_get_current(scene, sl, OBACT_NEW);
+	PTCacheEdit *edit= PE_get_current(scene, sl, OBACT_NEW(sl));
 
 	if (!edit) return;
 
@@ -4511,12 +4511,12 @@ void PE_undo_step(Scene *scene, SceneLayer *sl, int step)
 		}
 	}
 
-	DEG_id_tag_update(&OBACT_NEW->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&OBACT_NEW(sl)->id, OB_RECALC_DATA);
 }
 
 bool PE_undo_is_valid(Scene *scene, SceneLayer *sl)
 {
-	PTCacheEdit *edit= PE_get_current(scene, sl, OBACT_NEW);
+	PTCacheEdit *edit= PE_get_current(scene, sl, OBACT_NEW(sl));
 	
 	if (edit) {
 		return (edit->undo.last != edit->undo.first);
@@ -4551,7 +4551,7 @@ void PE_redo(Scene *scene, SceneLayer *sl)
 
 void PE_undo_number(Scene *scene, SceneLayer *sl, int nr)
 {
-	PTCacheEdit *edit= PE_get_current(scene, sl, OBACT_NEW);
+	PTCacheEdit *edit= PE_get_current(scene, sl, OBACT_NEW(sl));
 	PTCacheUndo *undo;
 	int a=0;
 	
@@ -4567,7 +4567,7 @@ void PE_undo_number(Scene *scene, SceneLayer *sl, int nr)
 /* if active pointer, set it to 1 if true */
 const char *PE_undo_get_name(Scene *scene, SceneLayer *sl, int nr, bool *r_active)
 {
-	PTCacheEdit *edit= PE_get_current(scene, sl, OBACT_NEW);
+	PTCacheEdit *edit= PE_get_current(scene, sl, OBACT_NEW(sl));
 	PTCacheUndo *undo;
 	
 	if (r_active) *r_active = false;
@@ -4588,7 +4588,7 @@ const char *PE_undo_get_name(Scene *scene, SceneLayer *sl, int nr, bool *r_activ
 
 int PE_minmax(Scene *scene, SceneLayer *sl, float min[3], float max[3])
 {
-	Object *ob= OBACT_NEW;
+	Object *ob= OBACT_NEW(sl);
 	PTCacheEdit *edit= PE_get_current(scene, sl, ob);
 	ParticleSystem *psys;
 	ParticleSystemModifierData *psmd = NULL;

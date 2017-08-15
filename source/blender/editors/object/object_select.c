@@ -425,7 +425,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 	
-	ob = OBACT_NEW;
+	ob = OBACT_NEW(sl);
 	if (ob == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No active object");
 		return OPERATOR_CANCELLED;
@@ -836,7 +836,7 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 
-	ob = OBACT_NEW;
+	ob = OBACT_NEW(sl);
 	if (ob == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No active object");
 		return OPERATOR_CANCELLED;

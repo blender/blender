@@ -986,7 +986,7 @@ static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
 	TreeElement *te;
 	int xdelta, ytop;
 
-	Object *obact = OBACT_NEW;
+	Object *obact = OBACT_NEW(sl);
 
 	if (!obact)
 		return OPERATOR_CANCELLED;

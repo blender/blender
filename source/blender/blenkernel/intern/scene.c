@@ -266,7 +266,7 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 		BLI_listbase_clear(&new_sl->drawdata);
 		layer_collections_recreate(new_sl, &sl->layer_collections, mcn, mc);
 
-		Object *active_ob = OBACT_NEW;
+		Object *active_ob = OBACT_NEW(sl);
 		Base *new_base = new_sl->object_bases.first;
 		for (Base *base = sl->object_bases.first; base; base = base->next) {
 			new_base->flag = base->flag;

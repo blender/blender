@@ -136,7 +136,7 @@ static Key *actedit_get_shapekeys(bAnimContext *ac)
 	Object *ob;
 	Key *key;
 	
-	ob = OBACT_NEW;
+	ob = OBACT_NEW(sl);
 	if (ob == NULL) 
 		return NULL;
 	

@@ -2023,7 +2023,7 @@ int GPU_scene_object_lights(SceneLayer *sl, float viewmat[4][4], int ortho)
 
 	int count = 0;
 
-	for (Base *base = FIRSTBASE_NEW; base; base = base->next) {
+	for (Base *base = FIRSTBASE_NEW(sl); base; base = base->next) {
 		if (base->object->type != OB_LAMP)
 			continue;
 
