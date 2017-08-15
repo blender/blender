@@ -252,6 +252,26 @@ static void read_uvs(const CDStreamConfig &config, void *data,
 	}
 }
 
+static size_t mcols_out_of_bounds_check(
+        const size_t color_index,
+        const size_t array_size,
+        const PropertyHeader &prop_header,
+        bool &r_bounds_warning_given)
+{
+	if (color_index < array_size) {
+		return color_index;
+	}
+
+	if (!r_bounds_warning_given) {
+		std::cerr << "Alembic import: color index out of bounds "
+		             "reading face colors for property "
+		          << prop_header.getName() << std::endl;
+		r_bounds_warning_given = true;
+	}
+
+	return 0;
+}
+
 static void read_custom_data_mcols(const ICompoundProperty &arbGeomParams,
                                    const PropertyHeader &prop_header,
                                    const CDStreamConfig &config,
@@ -303,6 +323,8 @@ static void read_custom_data_mcols(const ICompoundProperty &arbGeomParams,
 
 	size_t face_index = 0;
 	size_t color_index;
+	bool bounds_warning_given = false;
+
 	for (int i = 0; i < config.totpoly; ++i) {
 		MPoly *poly = &mpolys[i];
 		MCol *cface = &cfaces[poly->loopstart + poly->totloop];
@@ -311,9 +333,13 @@ static void read_custom_data_mcols(const ICompoundProperty &arbGeomParams,
 		for (int j = 0; j < poly->totloop; ++j, ++face_index) {
 			--cface;
 			--mloop;
-			color_index = is_facevarying ? face_index : mloop->v;
 
 			if (use_c3f_ptr) {
+				color_index = mcols_out_of_bounds_check(
+				                  is_facevarying ? face_index : mloop->v,
+				                  c3f_ptr->size(),
+				                  prop_header, bounds_warning_given);
+
 				const Imath::C3f &color = (*c3f_ptr)[color_index];
 				cface->a = FTOCHAR(color[0]);
 				cface->r = FTOCHAR(color[1]);
@@ -321,6 +347,11 @@ static void read_custom_data_mcols(const ICompoundProperty &arbGeomParams,
 				cface->b = 255;
 			}
 			else {
+				color_index = mcols_out_of_bounds_check(
+				                  is_facevarying ? face_index : mloop->v,
+				                  c4f_ptr->size(),
+				                  prop_header, bounds_warning_given);
+
 				const Imath::C4f &color = (*c4f_ptr)[color_index];
 				cface->a = FTOCHAR(color[0]);
 				cface->r = FTOCHAR(color[1]);
