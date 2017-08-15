@@ -273,7 +273,7 @@ typedef struct wmManipulatorType {
 	 * - Scale isn't applied (wmManipulator.scale/user_scale).
 	 * - Offset isn't applied (wmManipulator.matrix_offset).
 	 */
-	wmManipulatorFnMatrixWorldGet matrix_world_get;
+	wmManipulatorFnMatrixWorldGet matrix_basis_get;
 
 	/* activate a manipulator state when the user clicks on it */
 	wmManipulatorFnInvoke invoke;

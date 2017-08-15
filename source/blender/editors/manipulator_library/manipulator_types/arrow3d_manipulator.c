@@ -79,7 +79,7 @@ typedef struct ArrowManipulator3D {
 
 /* -------------------------------------------------------------------- */
 
-static void manipulator_arrow_matrix_world_get(wmManipulator *mpr, float r_matrix[4][4])
+static void manipulator_arrow_matrix_basis_get(wmManipulator *mpr, float r_matrix[4][4])
 {
 	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
 
@@ -188,7 +188,7 @@ static void arrow_draw_intern(ArrowManipulator3D *arrow, const bool select, cons
 	float matrix_final[4][4];
 
 	manipulator_color_get(mpr, highlight, color);
-	manipulator_arrow_matrix_world_get(mpr, matrix_basis_adjust);
+	manipulator_arrow_matrix_basis_get(mpr, matrix_basis_adjust);
 
 	WM_manipulator_calc_matrix_final_params(
 	        mpr, &((struct WM_ManipulatorMatrixParams) {
@@ -206,14 +206,8 @@ static void arrow_draw_intern(ArrowManipulator3D *arrow, const bool select, cons
 	if (mpr->interaction_data) {
 		ManipulatorInteraction *inter = mpr->interaction_data;
 
-		WM_manipulator_calc_matrix_final_params(
-		        mpr, &((struct WM_ManipulatorMatrixParams) {
-		            .matrix_basis = inter->init_matrix_basis,
-		            .scale_final = &inter->init_scale_final,
-		        }), matrix_final);
-
 		gpuPushMatrix();
-		gpuMultMatrix(matrix_final);
+		gpuMultMatrix(inter->init_matrix_final);
 
 
 		glEnable(GL_BLEND);
@@ -386,9 +380,8 @@ static void manipulator_arrow_invoke(
 	inter->init_mval[0] = event->mval[0];
 	inter->init_mval[1] = event->mval[1];
 
-	inter->init_scale_final = mpr->scale_final;
-
-	manipulator_arrow_matrix_world_get(mpr, inter->init_matrix_basis);
+	manipulator_arrow_matrix_basis_get(mpr, inter->init_matrix_basis);
+	WM_manipulator_calc_matrix_final(mpr, inter->init_matrix_final);
 
 	mpr->interaction_data = inter;
 }
@@ -467,7 +460,7 @@ static void MANIPULATOR_WT_arrow_3d(wmManipulatorType *wt)
 	/* api callbacks */
 	wt->draw = manipulator_arrow_draw;
 	wt->draw_select = manipulator_arrow_draw_select;
-	wt->matrix_world_get = manipulator_arrow_matrix_world_get;
+	wt->matrix_basis_get = manipulator_arrow_matrix_basis_get;
 	wt->modal = manipulator_arrow_modal;
 	wt->setup = manipulator_arrow_setup;
 	wt->invoke = manipulator_arrow_invoke;

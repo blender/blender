@@ -114,14 +114,8 @@ static void manipulator_primitive_draw_intern(
 		copy_v3_fl(color_outer, 0.5f);
 		color_outer[3] = 0.8f;
 
-		WM_manipulator_calc_matrix_final_params(
-		        mpr, &((struct WM_ManipulatorMatrixParams) {
-		            .matrix_basis = inter->init_matrix_basis,
-		            .scale_final = &inter->init_scale_final,
-		        }), matrix_final);
-
 		gpuPushMatrix();
-		gpuMultMatrix(matrix_final);
+		gpuMultMatrix(inter->init_matrix_final);
 
 		glEnable(GL_BLEND);
 		manipulator_primitive_draw_geom(color_inner, color_outer, draw_style);
@@ -156,8 +150,7 @@ static void manipulator_primitive_invoke(
 {
 	ManipulatorInteraction *inter = MEM_callocN(sizeof(ManipulatorInteraction), __func__);
 
-	copy_m4_m4(inter->init_matrix_basis, mpr->matrix_basis);
-	inter->init_scale_final = mpr->scale_final;
+	WM_manipulator_calc_matrix_final(mpr, inter->init_matrix_final);
 
 	mpr->interaction_data = inter;
 }

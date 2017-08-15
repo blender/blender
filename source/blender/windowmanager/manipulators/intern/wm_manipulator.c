@@ -446,15 +446,18 @@ void wm_manipulator_calculate_scale(wmManipulator *mpr, const bContext *C)
 		scale *= U.manipulator_size;
 		if (rv3d) {
 			/* 'ED_view3d_pixel_size' includes 'U.pixelsize', remove it. */
-			if (mpr->type->matrix_world_get) {
-				float matrix_world[4][4];
-
-				mpr->type->matrix_world_get(mpr, matrix_world);
-				scale *= ED_view3d_pixel_size(rv3d, matrix_world[3]) / U.pixelsize;
+			float matrix_world[4][4];
+			if (mpr->type->matrix_basis_get) {
+				float matrix_basis[4][4];
+				mpr->type->matrix_basis_get(mpr, matrix_basis);
+				mul_m4_m4m4(matrix_world, mpr->matrix_space, matrix_basis);
 			}
 			else {
-				scale *= ED_view3d_pixel_size(rv3d, mpr->matrix_basis[3]) / U.pixelsize;
+				mul_m4_m4m4(matrix_world, mpr->matrix_space, mpr->matrix_basis);
 			}
+
+			/* Exclude matrix_offset from scale. */
+			scale *= ED_view3d_pixel_size(rv3d, matrix_world[3]) / U.pixelsize;
 		}
 		else {
 			scale *= 0.02f;

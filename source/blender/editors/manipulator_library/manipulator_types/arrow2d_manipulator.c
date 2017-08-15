@@ -66,18 +66,12 @@ static void arrow2d_draw_geom(wmManipulator *mpr, const float matrix[4][4], cons
 	const float size_h = size / 2.0f;
 	const float arrow_length = RNA_float_get(mpr->ptr, "length");
 	const float arrow_angle = RNA_float_get(mpr->ptr, "angle");
-	const float draw_line_ofs = (mpr->line_width * 0.5f) / mpr->scale_final;
 
 	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	gpuPushMatrix();
 	gpuMultMatrix(matrix);
-	gpuScaleUniform(mpr->scale_final);
 	gpuRotate2D(RAD2DEGF(arrow_angle));
-	/* local offset */
-	gpuTranslate2f(
-	        mpr->matrix_offset[3][0] + draw_line_ofs,
-	        mpr->matrix_offset[3][1]);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -103,18 +97,23 @@ static void manipulator_arrow2d_draw(const bContext *UNUSED(C), wmManipulator *m
 {
 	float color[4];
 
+	float matrix_final[4][4];
+
 	manipulator_color_get(mpr, mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT, color);
 
 	glLineWidth(mpr->line_width);
+
+	WM_manipulator_calc_matrix_final(mpr, matrix_final);
+
 	glEnable(GL_BLEND);
-	arrow2d_draw_geom(mpr, mpr->matrix_basis, color);
+	arrow2d_draw_geom(mpr, matrix_final, color);
 	glDisable(GL_BLEND);
 
 	if (mpr->interaction_data) {
 		ManipulatorInteraction *inter = mpr->interaction_data;
 
 		glEnable(GL_BLEND);
-		arrow2d_draw_geom(mpr, inter->init_matrix_basis, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f});
+		arrow2d_draw_geom(mpr, inter->init_matrix_final, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f});
 		glDisable(GL_BLEND);
 	}
 }
@@ -130,6 +129,8 @@ static void manipulator_arrow2d_invoke(
 	ManipulatorInteraction *inter = MEM_callocN(sizeof(ManipulatorInteraction), __func__);
 
 	copy_m4_m4(inter->init_matrix_basis, mpr->matrix_basis);
+	WM_manipulator_calc_matrix_final(mpr, inter->init_matrix_final);
+
 	mpr->interaction_data = inter;
 }
 

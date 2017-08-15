@@ -73,8 +73,7 @@ typedef struct GrabInteraction {
 	/* only for when using properties */
 	float init_prop_co[3];
 
-	float init_matrix_basis[4][4];
-	float init_scale_final;
+	float init_matrix_final[4][4];
 
 	/* final output values, used for drawing */
 	struct {
@@ -184,14 +183,8 @@ static void grab3d_draw_intern(
 	if (mpr->interaction_data) {
 		GrabInteraction *inter = mpr->interaction_data;
 
-		WM_manipulator_calc_matrix_final_params(
-		        mpr, &((struct WM_ManipulatorMatrixParams) {
-		            .matrix_basis = inter->init_matrix_basis,
-		            .scale_final = &inter->init_scale_final,
-		        }), matrix_final);
-
 		gpuPushMatrix();
-		gpuMultMatrix(matrix_final);
+		gpuMultMatrix(inter->init_matrix_final);
 
 		if (align_view) {
 			gpuMultMatrix(matrix_align);
@@ -261,8 +254,7 @@ static void manipulator_grab_invoke(
 	inter->init_mval[0] = event->mval[0];
 	inter->init_mval[1] = event->mval[1];
 
-	copy_m4_m4(inter->init_matrix_basis, mpr->matrix_basis);
-	inter->init_scale_final = mpr->scale_final;
+	WM_manipulator_calc_matrix_final(mpr, inter->init_matrix_final);
 
 	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
 	if (WM_manipulator_target_property_is_valid(mpr_prop)) {
