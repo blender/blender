@@ -82,13 +82,7 @@ else()
 		INSTALL_COMMAND ${PYTHON_CONFIGURE_ENV} && cd ${BUILD_DIR}/python/src/external_python/ && make install
 		INSTALL_DIR ${LIBDIR}/python)
 
-	add_custom_command(
-		OUTPUT ${LIBDIR}/python/release/python_x86_64.zip
-		WORKING_DIRECTORY ${LIBDIR}/python
-		COMMAND mkdir -p release
-		COMMAND zip -r release/python_x86_64.zip lib/python${PYTHON_SHORT_VERSION} lib/pkgconfig --exclude *__pycache__*)
-	add_custom_target(Package_Python ALL DEPENDS external_python ${LIBDIR}/python/release/python_x86_64.zip)
-	add_custom_target(Make_Python_Environment ALL DEPENDS Package_Python)
+	add_custom_target(Make_Python_Environment ALL DEPENDS external_python)
 endif()
 
 if(MSVC)

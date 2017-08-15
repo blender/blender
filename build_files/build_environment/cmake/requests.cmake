@@ -17,6 +17,12 @@
 # ***** END GPL LICENSE BLOCK *****
 
 if(BUILD_MODE STREQUAL Release)
+	if(WIN32)
+		set(REQUESTS_INSTALL_DIR ${LIBDIR}/requests)
+	else()
+		set(REQUESTS_INSTALL_DIR ${LIBDIR}/python/lib/python${PYTHON_SHORT_VERSION}/site-packages/requests)
+	endif()
+
 	ExternalProject_Add(external_requests
 		URL ${REQUESTS_URI}
 		DOWNLOAD_DIR ${DOWNLOAD_DIR}
@@ -24,6 +30,8 @@ if(BUILD_MODE STREQUAL Release)
 		PREFIX ${BUILD_DIR}/requests
 		CONFIGURE_COMMAND ""
 		BUILD_COMMAND ""
-		INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory ${BUILD_DIR}/requests/src/external_requests/requests ${LIBDIR}/requests
+		INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory ${BUILD_DIR}/requests/src/external_requests/requests ${REQUESTS_INSTALL_DIR}
 	)
+
+	add_dependencies(external_requests Make_Python_Environment)
 endif(BUILD_MODE STREQUAL Release)
