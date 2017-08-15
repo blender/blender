@@ -53,6 +53,7 @@ public:
 	int2 tile_size;
 	TileOrder tile_order;
 	int start_resolution;
+	int pixel_size;
 	int threads;
 
 	bool display_buffer_linear;
@@ -81,6 +82,7 @@ public:
 		samples = INT_MAX;
 		tile_size = make_int2(64, 64);
 		start_resolution = INT_MAX;
+		pixel_size = 1;
 		threads = 0;
 
 		use_denoising = false;
@@ -110,6 +112,7 @@ public:
 		&& experimental == params.experimental
 		&& tile_size == params.tile_size
 		&& start_resolution == params.start_resolution
+		&& pixel_size == params.pixel_size
 		&& threads == params.threads
 		&& display_buffer_linear == params.display_buffer_linear
 		&& cancel_timeout == params.cancel_timeout

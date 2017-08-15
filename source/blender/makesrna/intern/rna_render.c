@@ -35,6 +35,8 @@
 
 #include "DEG_depsgraph.h"
 
+#include "BKE_scene.h"
+
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
@@ -123,6 +125,11 @@ static void engine_tag_update(RenderEngine *engine)
 static int engine_support_display_space_shader(RenderEngine *UNUSED(engine), Scene *scene)
 {
 	return IMB_colormanagement_support_glsl_draw(&scene->view_settings);
+}
+
+static int engine_get_preview_pixel_size(RenderEngine *UNUSED(engine), Scene *scene)
+{
+	return BKE_render_preview_pixel_size(&scene->r);
 }
 
 static void engine_bind_display_space_shader(RenderEngine *UNUSED(engine), Scene *scene)
@@ -684,6 +691,13 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	parm = RNA_def_pointer(func, "scene", "Scene", "", "");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_boolean(func, "supported", 0, "Supported", "");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "get_preview_pixel_size", "engine_get_preview_pixel_size");
+	RNA_def_function_ui_description(func, "Get the pixel size that should be used for preview rendering");
+	parm = RNA_def_pointer(func, "scene", "Scene", "", "");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	parm = RNA_def_int(func, "pixel_size", 0, 1, 8, "Pixel Size", "", 1, 8);
 	RNA_def_function_return(func, parm);
 
 	RNA_define_verify_sdna(0);

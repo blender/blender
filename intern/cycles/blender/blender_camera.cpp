@@ -544,7 +544,11 @@ void BlenderSync::sync_camera_motion(BL::RenderSettings& b_render,
 
 	if(tfm != cam->matrix) {
 		VLOG(1) << "Camera " << b_ob.name() << " motion detected.";
-		if(motion_time == -1.0f) {
+		if(motion_time == 0.0f) {
+			/* When motion blur is not centered in frame, cam->matrix gets reset. */
+			cam->matrix = tfm;
+		}
+		else if(motion_time == -1.0f) {
 			cam->motion.pre = tfm;
 			cam->use_motion = true;
 		}
@@ -573,7 +577,10 @@ void BlenderSync::sync_camera_motion(BL::RenderSettings& b_render,
 		float fov = 2.0f * atanf((0.5f * sensor_size) / bcam.lens / aspectratio);
 		if(fov != cam->fov) {
 			VLOG(1) << "Camera " << b_ob.name() << " FOV change detected.";
-			if(motion_time == -1.0f) {
+			if(motion_time == 0.0f) {
+				cam->fov = fov;
+			}
+			else if(motion_time == -1.0f) {
 				cam->fov_pre = fov;
 				cam->use_perspective_motion = true;
 			}

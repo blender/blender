@@ -88,7 +88,7 @@ public:
 	int num_samples;
 
 	TileManager(bool progressive, int num_samples, int2 tile_size, int start_resolution,
-	            bool preserve_tile_device, bool background, TileOrder tile_order, int num_devices = 1);
+	            bool preserve_tile_device, bool background, TileOrder tile_order, int num_devices = 1, int pixel_size = 1);
 	~TileManager();
 
 	void free_device();
@@ -122,6 +122,7 @@ protected:
 	int2 tile_size;
 	TileOrder tile_order;
 	int start_resolution;
+	int pixel_size;
 	int num_devices;
 
 	/* in some cases it is important that the same tile will be returned for the same

@@ -39,6 +39,13 @@ else()
 		--enable-libopenjpeg)
 endif()
 
+if(APPLE)
+	set(FFMPEG_EXTRA_FLAGS
+		${FFMPEG_EXTRA_FLAGS}
+		--target-os=darwin
+		)
+endif()
+
 ExternalProject_Add(external_ffmpeg
 	URL ${FFMPEG_URI}
 	DOWNLOAD_DIR ${DOWNLOAD_DIR}
@@ -46,7 +53,7 @@ ExternalProject_Add(external_ffmpeg
 	PREFIX ${BUILD_DIR}/ffmpeg
 	CONFIGURE_COMMAND ${CONFIGURE_ENV_NO_PERL} &&
 		cd ${BUILD_DIR}/ffmpeg/src/external_ffmpeg/ &&
-		${FFMPEG_ENV} ${CONFIGURE_COMMAND} ${FFMPEG_EXTRA_FLAGS}
+		${FFMPEG_ENV} ${CONFIGURE_COMMAND_NO_TARGET} ${FFMPEG_EXTRA_FLAGS}
 		--disable-lzma
 		--disable-avfilter
 		--disable-vdpau

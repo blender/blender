@@ -937,7 +937,8 @@ static void get_weight_and_index(CDStreamConfig &config,
 	config.ceil_index = i1;
 }
 
-static void read_mesh_sample(ImportSettings *settings,
+static void read_mesh_sample(const std::string & iobject_full_name,
+                             ImportSettings *settings,
                              const IPolyMeshSchema &schema,
                              const ISampleSelector &selector,
                              CDStreamConfig &config,
@@ -975,7 +976,8 @@ static void read_mesh_sample(ImportSettings *settings,
 	}
 
 	if ((settings->read_flag & (MOD_MESHSEQ_READ_UV | MOD_MESHSEQ_READ_COLOR)) != 0) {
-		read_custom_data(schema.getArbGeomParams(), config, selector);
+		read_custom_data(iobject_full_name,
+		                 schema.getArbGeomParams(), config, selector);
 	}
 }
 
@@ -1104,7 +1106,8 @@ DerivedMesh *AbcMeshReader::read_derivedmesh(DerivedMesh *dm,
 	config.time = sample_sel.getRequestedTime();
 
 	bool do_normals = false;
-	read_mesh_sample(&settings, m_schema, sample_sel, config, do_normals);
+	read_mesh_sample(m_iobject.getFullName(),
+	                 &settings, m_schema, sample_sel, config, do_normals);
 
 	if (new_dm) {
 		/* Check if we had ME_SMOOTH flag set to restore it. */
@@ -1211,7 +1214,8 @@ ABC_INLINE MEdge *find_edge(MEdge *edges, int totedge, int v1, int v2)
 	return NULL;
 }
 
-static void read_subd_sample(ImportSettings *settings,
+static void read_subd_sample(const std::string & iobject_full_name,
+                             ImportSettings *settings,
                              const ISubDSchema &schema,
                              const ISampleSelector &selector,
                              CDStreamConfig &config)
@@ -1246,7 +1250,8 @@ static void read_subd_sample(ImportSettings *settings,
 	}
 
 	if ((settings->read_flag & (MOD_MESHSEQ_READ_UV | MOD_MESHSEQ_READ_COLOR)) != 0) {
-		read_custom_data(schema.getArbGeomParams(), config, selector);
+		read_custom_data(iobject_full_name,
+		                 schema.getArbGeomParams(), config, selector);
 	}
 }
 
@@ -1376,7 +1381,8 @@ DerivedMesh *AbcSubDReader::read_derivedmesh(DerivedMesh *dm,
 	/* Only read point data when streaming meshes, unless we need to create new ones. */
 	CDStreamConfig config = get_config(new_dm ? new_dm : dm);
 	config.time = sample_sel.getRequestedTime();
-	read_subd_sample(&settings, m_schema, sample_sel, config);
+	read_subd_sample(m_iobject.getFullName(),
+	                 &settings, m_schema, sample_sel, config);
 
 	if (new_dm) {
 		/* Check if we had ME_SMOOTH flag set to restore it. */

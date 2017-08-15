@@ -761,6 +761,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 	}
 
 	params.start_resolution = get_int(cscene, "preview_start_resolution");
+	params.pixel_size = b_engine.get_preview_pixel_size(b_scene);
 
 	/* other parameters */
 	if(b_scene.render().threads_mode() == BL::RenderSettings::threads_mode_FIXED)
@@ -781,6 +782,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 			params.progressive = false;
 
 		params.start_resolution = INT_MAX;
+		params.pixel_size = 1;
 	}
 	else
 		params.progressive = true;
