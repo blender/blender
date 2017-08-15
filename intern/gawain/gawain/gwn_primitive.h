@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "common.h"
+#include "gwn_common.h"
 
 typedef enum {
 	GWN_PRIM_POINTS,

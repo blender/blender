@@ -31,7 +31,7 @@
 #ifndef __GPU_BATCH_H__
 #define __GPU_BATCH_H__
 
-#include "../../../intern/gawain/gawain/batch.h"
+#include "../../../intern/gawain/gawain/gwn_batch.h"
 
 // TODO: CMake magic to do this:
 // #include "gawain/batch.h"

@@ -11,9 +11,9 @@
 
 #pragma once
 
-#include "vertex_format.h"
-#include "primitive.h"
-#include "shader_interface.h"
+#include "gwn_vertex_format.h"
+#include "gwn_primitive.h"
+#include "gwn_shader_interface.h"
 
 #define IMM_BATCH_COMBO 1
 
@@ -28,7 +28,7 @@ void immBeginAtMost(Gwn_PrimType, unsigned max_vertex_ct); // can supply fewer v
 void immEnd(void); // finishes and draws
 
 #if IMM_BATCH_COMBO
-#include "batch.h"
+#include "gwn_batch.h"
 // immBegin a batch, then use standard immFunctions as usual.
 // immEnd will finalize the batch instead of drawing.
 // Then you can draw it as many times as you like! Partially replaces the need for display lists.

@@ -11,9 +11,9 @@
 
 #pragma once
 
-#include "vertex_buffer.h"
-#include "element.h"
-#include "shader_interface.h"
+#include "gwn_vertex_buffer.h"
+#include "gwn_element.h"
+#include "gwn_shader_interface.h"
 
 typedef enum {
 	GWN_BATCH_READY_TO_FORMAT,

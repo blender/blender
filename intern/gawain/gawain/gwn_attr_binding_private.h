@@ -11,8 +11,8 @@
 
 #pragma once
 
-#include "vertex_format.h"
-#include "shader_interface.h"
+#include "gwn_vertex_format.h"
+#include "gwn_shader_interface.h"
 
 void AttribBinding_clear(Gwn_AttrBinding*);
 

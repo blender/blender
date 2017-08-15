@@ -9,8 +9,8 @@
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of
 // the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#include "attrib_binding.h"
-#include "attrib_binding_private.h"
+#include "gwn_attr_binding.h"
+#include "gwn_attr_binding_private.h"
 #include <stddef.h>
 
 #if GWN_VERT_ATTR_MAX_LEN != 16

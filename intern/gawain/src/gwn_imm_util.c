@@ -9,8 +9,8 @@
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of
 // the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#include "imm_util.h"
-#include "immediate.h"
+#include "gwn_imm_util.h"
+#include "gwn_immediate.h"
 
 
 void immRectf(unsigned pos, float x1, float y1, float x2, float y2)

@@ -31,12 +31,12 @@
 #ifndef __GPU_IMMEDIATE_H__
 #define __GPU_IMMEDIATE_H__
 
-#include "../../../intern/gawain/gawain/immediate.h"
-#include "../../../intern/gawain/gawain/imm_util.h"
+#include "../../../intern/gawain/gawain/gwn_immediate.h"
+#include "../../../intern/gawain/gawain/gwn_imm_util.h"
 
 // TODO: CMake magic to do this:
-// #include "gawain/immediate.h"
-// #include "gawain/imm_util.h"
+// #include "gawain/gwn_immediate.h"
+// #include "gawain/gwn_imm_util.h"
 
 #include "GPU_shader.h"
 

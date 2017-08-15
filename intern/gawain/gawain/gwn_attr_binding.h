@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "common.h"
+#include "gwn_common.h"
 
 typedef struct {
 	uint64_t loc_bits; // store 4 bits for each of the 16 attribs

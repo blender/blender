@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "vertex_format.h"
+#include "gwn_vertex_format.h"
 
 // How to create a Gwn_VertBuf:
 // 1) verts = GWN_vertbuf_create() or GWN_vertbuf_init(verts)

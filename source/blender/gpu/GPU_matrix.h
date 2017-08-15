@@ -34,7 +34,7 @@
 
 #include "BLI_sys_types.h"
 #include "GPU_glew.h"
-#include "../../../intern/gawain/gawain/shader_interface.h"
+#include "../../../intern/gawain/gawain/gwn_shader_interface.h"
 
 #ifdef __cplusplus
 extern "C" {

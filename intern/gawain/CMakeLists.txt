@@ -8,31 +8,31 @@ set(INC_SYS
 )
 
 set(SRC
-	src/attrib_binding.c
-	src/batch.c
-	src/element.c
-	src/buffer_id.cpp
-	src/immediate.c
-	src/imm_util.c
-	src/primitive.c
-	src/shader_interface.c
-	src/vertex_buffer.c
-	src/vertex_format.c
+	src/gwn_attr_binding.c
+	src/gwn_batch.c
+	src/gwn_element.c
+	src/gwn_buffer_id.cpp
+	src/gwn_immediate.c
+	src/gwn_imm_util.c
+	src/gwn_primitive.c
+	src/gwn_shader_interface.c
+	src/gwn_vertex_buffer.c
+	src/gwn_vertex_format.c
 
-	gawain/attrib_binding.h
-	gawain/attrib_binding_private.h
-	gawain/batch.h
-	gawain/buffer_id.h
-	gawain/common.h
-	gawain/element.h
-	gawain/imm_util.h
-	gawain/immediate.h
-	gawain/primitive.h
-	gawain/primitive_private.h
-	gawain/shader_interface.h
-	gawain/vertex_buffer.h
-	gawain/vertex_format.h
-	gawain/vertex_format_private.h
+	gawain/gwn_attr_binding.h
+	gawain/gwn_attr_binding_private.h
+	gawain/gwn_batch.h
+	gawain/gwn_buffer_id.h
+	gawain/gwn_common.h
+	gawain/gwn_element.h
+	gawain/gwn_imm_util.h
+	gawain/gwn_immediate.h
+	gawain/gwn_primitive.h
+	gawain/gwn_primitive_private.h
+	gawain/gwn_shader_interface.h
+	gawain/gwn_vertex_buffer.h
+	gawain/gwn_vertex_format.h
+	gawain/gwn_vertex_format_private.h
 )
 
 add_definitions(${GL_DEFINITIONS})

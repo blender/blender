@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "common.h"
+#include "gwn_common.h"
 
 #define GWN_VERT_ATTR_MAX_LEN 16
 #define MAX_ATTRIB_NAMES 3

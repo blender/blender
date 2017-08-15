@@ -20,7 +20,7 @@
 extern "C" {
 #endif
 
-#include "common.h"
+#include "gwn_common.h"
 
 GLuint GWN_buf_id_alloc(void);
 void GWN_buf_id_free(GLuint buffer_id);

@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "primitive.h"
+#include "gwn_primitive.h"
 
 #define GWN_TRACK_INDEX_RANGE 1
 

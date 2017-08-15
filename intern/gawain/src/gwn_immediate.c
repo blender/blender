@@ -9,12 +9,12 @@
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of
 // the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-#include "immediate.h"
-#include "buffer_id.h"
-#include "attrib_binding.h"
-#include "attrib_binding_private.h"
-#include "vertex_format_private.h"
-#include "primitive_private.h"
+#include "gwn_immediate.h"
+#include "gwn_buffer_id.h"
+#include "gwn_attr_binding.h"
+#include "gwn_attr_binding_private.h"
+#include "gwn_vertex_format_private.h"
+#include "gwn_primitive_private.h"
 #include <string.h>
 
 // necessary functions from matrix API
