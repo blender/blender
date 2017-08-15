@@ -262,7 +262,7 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 		sl_dst->stats = NULL;
 		sl_dst->properties_evaluated = NULL;
 		sl_dst->properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-		IDP_MergeGroup(sl_dst->properties, sl_src->properties, true);
+		IDP_MergeGroup_ex(sl_dst->properties, sl_src->properties, true, flag_subdata);
 
 		/* we start fresh with no overrides and no visibility flags set
 		 * instead of syncing both trees we simply unlink and relink the scene collection */
@@ -286,7 +286,13 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 	}
 
 	sce_dst->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+	if (sce_src->collection_properties) {
+		IDP_MergeGroup_ex(sce_dst->collection_properties, sce_src->collection_properties, true, flag_subdata);
+	}
 	sce_dst->layer_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+	if (sce_src->layer_properties) {
+		IDP_MergeGroup_ex(sce_dst->layer_properties, sce_src->layer_properties, true, flag_subdata);
+	}
 
 	BLI_duplicatelist(&(sce_dst->markers), &(sce_src->markers));
 	BLI_duplicatelist(&(sce_dst->r.layers), &(sce_src->r.layers));
