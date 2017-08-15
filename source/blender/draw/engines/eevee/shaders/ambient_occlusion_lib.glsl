@@ -55,7 +55,7 @@ void get_max_horizon_grouped(vec4 co1, vec4 co2, vec3 x, float lod, inout float 
 }
 
 #define MAX_ITER 16
-#define MAX_LOD 6
+#define MAX_LOD 6.0
 #define QUALITY 0.75
 vec2 search_horizon_sweep(vec2 t_phi, vec3 pos, vec2 uvs, float jitter, vec2 max_dir)
 {

@@ -39,16 +39,18 @@ void main()
 	}
 
 #ifdef USE_AXIS
-	finalColor.rgb = vec3(0.0);
-	finalColor[axis] = 1.0;
+	if (axis == 0)
+		finalColor = vec4(1.0, 0.0, 0.0, 1.0);
+	else if (axis == 1)
+		finalColor = vec4(0.0, 1.0, 0.0, 1.0);
+	else
+		finalColor = vec4(0.0, 0.0, 1.0, 1.0);
 #else
 	if (val < 0.0) {
-		finalColor.rgb = color;
+		finalColor = vec4(color, 1.0);
 	}
 	else {
-		finalColor.rgb = texture(ramp, val).rgb;
+		finalColor = vec4(texture(ramp, val).rgb, 1.0);
 	}
 #endif
-
-	finalColor.a = 1.0;
 }
