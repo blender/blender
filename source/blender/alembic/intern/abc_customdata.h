@@ -96,7 +96,8 @@ void write_custom_data(const OCompoundProperty &prop,
                        CustomData *data,
                        int data_type);
 
-void read_custom_data(const ICompoundProperty &prop,
+void read_custom_data(const std::string & iobject_full_name,
+                      const ICompoundProperty &prop,
                       const CDStreamConfig &config,
                       const Alembic::Abc::ISampleSelector &iss);
 
