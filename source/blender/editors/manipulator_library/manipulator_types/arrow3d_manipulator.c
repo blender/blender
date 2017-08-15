@@ -79,7 +79,7 @@ typedef struct ArrowManipulator3D {
 
 /* -------------------------------------------------------------------- */
 
-static void manipulator_arrow_matrix_basis_get(wmManipulator *mpr, float r_matrix[4][4])
+static void manipulator_arrow_matrix_basis_get(const wmManipulator *mpr, float r_matrix[4][4])
 {
 	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
 

@@ -428,8 +428,8 @@ static void manipulator_mesh_bisect_update_from_op(ManipulatorGroup *man)
 	RNA_property_float_get_array(op->ptr, man->data.prop_plane_no, plane_no);
 
 	WM_manipulator_set_matrix_location(man->translate_z, plane_co);
-	WM_manipulator_set_matrix_location(man->translate_c, plane_co);
 	WM_manipulator_set_matrix_location(man->rotate_c, plane_co);
+	/* translate_c location comes from the property. */
 
 	WM_manipulator_set_matrix_rotation_from_z_axis(man->translate_z, plane_no);
 

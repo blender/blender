@@ -63,6 +63,20 @@
 #include "../manipulator_geometry.h"
 #include "../manipulator_library_intern.h"
 
+typedef struct GrabManipulator3D {
+	wmManipulator manipulator;
+	/* Added to 'matrix_basis' when calculating the matrix. */
+	float prop_co[3];
+} GrabManipulator3D;
+
+static void manipulator_grab_matrix_basis_get(const wmManipulator *mpr, float r_matrix[4][4])
+{
+	GrabManipulator3D *grab = (GrabManipulator3D *)mpr;
+
+	copy_m4_m4(r_matrix, grab->manipulator.matrix_basis);
+	add_v3_v3(r_matrix[3], grab->prop_co);
+}
+
 static void manipulator_grab_modal(
         bContext *C, wmManipulator *mpr, const wmEvent *event,
         eWM_ManipulatorTweak tweak_flag);
@@ -74,11 +88,6 @@ typedef struct GrabInteraction {
 	float init_prop_co[3];
 
 	float init_matrix_final[4][4];
-
-	/* final output values, used for drawing */
-	struct {
-		float co_final[3];
-	} output;
 } GrabInteraction;
 
 #define DIAL_RESOLUTION 32
@@ -142,16 +151,23 @@ static void grab3d_get_translate(
 	};
 
 	RegionView3D *rv3d = ar->regiondata;
-	const float *co_ref = inter->init_prop_co;
+	float co_ref[3];
+	mul_v3_mat3_m4v3(co_ref, mpr->matrix_space, inter->init_prop_co);
 	const float zfac = ED_view3d_calc_zfac(rv3d, co_ref, NULL);
 
 	ED_view3d_win_to_delta(ar, mval_delta, co_delta, zfac);
+
+	float matrix_space_inv[3][3];
+	copy_m3_m4(matrix_space_inv, mpr->matrix_space);
+	invert_m3(matrix_space_inv);
+	mul_m3_v3(matrix_space_inv, co_delta);
 }
 
 static void grab3d_draw_intern(
         const bContext *C, wmManipulator *mpr,
         const bool select, const bool highlight)
 {
+	GrabInteraction *inter = mpr->interaction_data;
 	const int draw_options = RNA_enum_get(mpr->ptr, "draw_options");
 	const bool align_view = (draw_options & ED_MANIPULATOR_GRAB_DRAW_FLAG_ALIGN_VIEW) != 0;
 	float color[4];
@@ -160,7 +176,14 @@ static void grab3d_draw_intern(
 
 	manipulator_color_get(mpr, highlight, color);
 
-	WM_manipulator_calc_matrix_final(mpr, matrix_final);
+	{
+		float matrix_basis_adjust[4][4];
+		manipulator_grab_matrix_basis_get(mpr, matrix_basis_adjust);
+		WM_manipulator_calc_matrix_final_params(
+		        mpr, &((struct WM_ManipulatorMatrixParams) {
+		            .matrix_basis = matrix_basis_adjust,
+		        }), matrix_final);
+	}
 
 	gpuPushMatrix();
 	gpuMultMatrix(matrix_final);
@@ -181,8 +204,6 @@ static void grab3d_draw_intern(
 	gpuPopMatrix();
 
 	if (mpr->interaction_data) {
-		GrabInteraction *inter = mpr->interaction_data;
-
 		gpuPushMatrix();
 		gpuMultMatrix(inter->init_matrix_final);
 
@@ -219,10 +240,13 @@ static void manipulator_grab_modal(
         bContext *C, wmManipulator *mpr, const wmEvent *event,
         eWM_ManipulatorTweak UNUSED(tweak_flag))
 {
+	GrabManipulator3D *grab = (GrabManipulator3D *)mpr;
 	GrabInteraction *inter = mpr->interaction_data;
+	ARegion *ar = CTX_wm_region(C);
 
+	float prop_delta[3];
 	if (CTX_wm_area(C)->spacetype == SPACE_VIEW3D) {
-		grab3d_get_translate(mpr, event, CTX_wm_region(C), mpr->matrix_basis[3]);
+		grab3d_get_translate(mpr, event, ar, prop_delta);
 	}
 	else {
 		float mval_proj_init[2], mval_proj_curr[2];
@@ -233,17 +257,18 @@ static void manipulator_grab_modal(
 		{
 			return;
 		}
-		sub_v2_v2v2(mpr->matrix_basis[3], mval_proj_curr, mval_proj_init);
-		mpr->matrix_basis[3][2] = 0.0f;
+		sub_v2_v2v2(prop_delta, mval_proj_curr, mval_proj_init);
+		prop_delta[2] = 0.0f;
 	}
-
-	add_v3_v3v3(inter->output.co_final, inter->init_prop_co, mpr->matrix_basis[3]);
+	add_v3_v3v3(grab->prop_co, inter->init_prop_co, prop_delta);
 
 	/* set the property for the operator and call its modal function */
 	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
 	if (WM_manipulator_target_property_is_valid(mpr_prop)) {
-		WM_manipulator_target_property_value_set_array(C, mpr, mpr_prop, inter->output.co_final);
+		WM_manipulator_target_property_value_set_array(C, mpr, mpr_prop, grab->prop_co);
 	}
+
+	ED_region_tag_redraw(ar);
 }
 
 static void manipulator_grab_invoke(
@@ -254,11 +279,22 @@ static void manipulator_grab_invoke(
 	inter->init_mval[0] = event->mval[0];
 	inter->init_mval[1] = event->mval[1];
 
-	WM_manipulator_calc_matrix_final(mpr, inter->init_matrix_final);
-
+#if 0
+	copy_v3_v3(inter->init_prop_co, grab->prop_co);
+#else
 	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
 	if (WM_manipulator_target_property_is_valid(mpr_prop)) {
 		WM_manipulator_target_property_value_get_array(mpr, mpr_prop, inter->init_prop_co);
+	}
+#endif
+
+	{
+		float matrix_basis_adjust[4][4];
+		manipulator_grab_matrix_basis_get(mpr, matrix_basis_adjust);
+		WM_manipulator_calc_matrix_final_params(
+		        mpr, &((struct WM_ManipulatorMatrixParams) {
+		            .matrix_basis = matrix_basis_adjust,
+		        }), inter->init_matrix_final);
 	}
 
 	mpr->interaction_data = inter;
@@ -285,7 +321,8 @@ static int manipulator_grab_test_select(
 
 static void manipulator_grab_property_update(wmManipulator *mpr, wmManipulatorProperty *mpr_prop)
 {
-	WM_manipulator_target_property_value_get_array(mpr, mpr_prop, mpr->matrix_basis[3]);
+	GrabManipulator3D *grab = (GrabManipulator3D *)mpr;
+	WM_manipulator_target_property_value_get_array(mpr, mpr_prop, grab->prop_co);
 }
 
 static int manipulator_grab_cursor_get(wmManipulator *UNUSED(mpr))
@@ -307,12 +344,13 @@ static void MANIPULATOR_WT_grab_3d(wmManipulatorType *wt)
 	wt->draw = manipulator_grab_draw;
 	wt->draw_select = manipulator_grab_draw_select;
 	wt->test_select = manipulator_grab_test_select;
+	wt->matrix_basis_get = manipulator_grab_matrix_basis_get;
 	wt->invoke = manipulator_grab_invoke;
 	wt->property_update = manipulator_grab_property_update;
 	wt->modal = manipulator_grab_modal;
 	wt->cursor_get = manipulator_grab_cursor_get;
 
-	wt->struct_size = sizeof(wmManipulator);
+	wt->struct_size = sizeof(GrabManipulator3D);
 
 	/* rna */
 	static EnumPropertyItem rna_enum_draw_style[] = {
