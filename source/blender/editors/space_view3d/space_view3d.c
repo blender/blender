@@ -742,6 +742,7 @@ static void view3d_widgets(void)
 	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_camera);
 	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_camera_view);
 	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_empty_image);
+	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_armature_spline);
 }
 
 

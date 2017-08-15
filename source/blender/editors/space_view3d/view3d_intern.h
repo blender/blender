@@ -326,6 +326,7 @@ void VIEW3D_WGT_camera(struct wmManipulatorGroupType *wgt);
 void VIEW3D_WGT_camera_view(struct wmManipulatorGroupType *wgt);
 void VIEW3D_WGT_force_field(struct wmManipulatorGroupType *wgt);
 void VIEW3D_WGT_empty_image(struct wmManipulatorGroupType *wgt);
+void VIEW3D_WGT_armature_spline(struct wmManipulatorGroupType *wgt);
 
 /* draw_volume.c */
 void draw_smoke_volume(struct SmokeDomainSettings *sds, struct Object *ob,
