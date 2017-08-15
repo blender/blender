@@ -49,7 +49,7 @@
 #endif
 
 extern "C" {
-#include "gawain/immediate.h"
+#include "gawain/gwn_immediate.h"
 }
 
 using namespace OCIO_NAMESPACE;
