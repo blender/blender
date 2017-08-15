@@ -37,9 +37,7 @@ if(WIN32)
 		${CMAKE_COMMAND} -E tar "cfvz" "${LIBDIR}/python35_numpy_${NUMPY_SHORT_VERSION}${NUMPY_ARCHIVE_POSTFIX}.tar.gz" "." 
 	)
 else()
-	set(NUMPY_INSTALL
-		${CMAKE_COMMAND} -E copy_directory "${BUILD_DIR}/numpy/src/external_numpy/build/lib.${PYTHON_ARCH2}-3.5/numpy/" "${LIBDIR}/numpy/"
-	)
+	set(NUMPY_INSTALL echo .)
 endif()
 
 ExternalProject_Add(external_numpy

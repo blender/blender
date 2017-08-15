@@ -208,7 +208,9 @@ function(harvest from to)
 			FILES_MATCHING PATTERN ${pattern}
 			PATTERN "pkgconfig" EXCLUDE
 			PATTERN "cmake" EXCLUDE
-			PATTERN "clang" EXCLUDE)
+			PATTERN "clang" EXCLUDE
+			PATTERN "__pycache__" EXCLUDE
+			PATTERN "tests" EXCLUDE)
 	endif()
 endfunction()
 
@@ -267,17 +269,7 @@ harvest(png/include png/include "*.h")
 harvest(png/lib png/lib "*.a")
 harvest(python/bin python/bin "python${PYTHON_SHORT_VERSION}m")
 harvest(python/include python/include "*h")
-if(UNIX AND NOT APPLE)
-	harvest(python/lib/libpython${PYTHON_SHORT_VERSION}m.a python/lib/libpython${PYTHON_SHORT_VERSION}m.a)
-	harvest(python/lib/python${PYTHON_SHORT_VERSION} python/lib/python${PYTHON_SHORT_VERSION} "*")
-	harvest(requests python/lib/python${PYTHON_SHORT_VERSION}/site-packages/requests "*")
-	harvest(numpy python/lib/python${PYTHON_SHORT_VERSION}/site-packages/numpy "*")
-else()
-	harvest(python/lib/libpython${PYTHON_SHORT_VERSION}m.a python/lib/python${PYTHON_SHORT_VERSION}/libpython${PYTHON_SHORT_VERSION}m.a)
-	harvest(python/release release "*")
-	harvest(requests release/site-packages/requests "*")
-	harvest(numpy release/site-packages/numpy "*")
-endif()
+harvest(python/lib python/lib "*")
 harvest(schroedinger/lib/libschroedinger-1.0.a ffmpeg/lib/libschroedinger.a)
 harvest(sdl/include/SDL2 sdl/include "*.h")
 harvest(sdl/lib sdl/lib "libSDL2.a")

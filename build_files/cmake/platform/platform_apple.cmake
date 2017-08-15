@@ -93,7 +93,11 @@ if(WITH_PYTHON)
 		# normally cached but not since we include them with blender
 		set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}m")
 		set(PYTHON_EXECUTABLE "${LIBDIR}/python/bin/python${PYTHON_VERSION}m")
-		set(PYTHON_LIBRARY python${PYTHON_VERSION}m)
+		if(WITH_CXX11)
+			set(PYTHON_LIBRARY ${LIBDIR}/python/lib/libpython${PYTHON_VERSION}m.a)
+		else()
+			set(PYTHON_LIBRARY python${PYTHON_VERSION}m)
+		endif()
 		set(PYTHON_LIBPATH "${LIBDIR}/python/lib/python${PYTHON_VERSION}")
 		# set(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
 	else()
@@ -112,6 +116,9 @@ if(WITH_PYTHON)
 	# uncached vars
 	set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
 	set(PYTHON_LIBRARIES  "${PYTHON_LIBRARY}")
+
+	# needed for Audaspace, numpy is installed into python site-packages
+	set(NUMPY_INCLUDE_DIRS "${PYTHON_LIBPATH}/site-packages/numpy/core/include")
 
 	if(NOT EXISTS "${PYTHON_EXECUTABLE}")
 		message(FATAL_ERROR "Python executable missing: ${PYTHON_EXECUTABLE}")
