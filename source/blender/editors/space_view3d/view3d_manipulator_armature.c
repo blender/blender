@@ -116,13 +116,13 @@ static void manipulator_bbone_offset_set(
 
 	if (bh->index == 0) {
 		pchan->bone->ease1 = max_ff(0.0f, bh->co[1] * BBONE_SCALE_Y);
-		pchan->bone->curveInX = bh->co[0];
-		pchan->bone->curveInY = bh->co[2];
+		pchan->curveInX = bh->co[0];
+		pchan->curveInY = bh->co[2];
 	}
 	else {
 		pchan->bone->ease2 = max_ff(0.0f, -bh->co[1] * BBONE_SCALE_Y);
-		pchan->bone->curveOutX = bh->co[0];
-		pchan->bone->curveOutY = bh->co[2];
+		pchan->curveOutX = bh->co[0];
+		pchan->curveOutY = bh->co[2];
 	}
 
 }
