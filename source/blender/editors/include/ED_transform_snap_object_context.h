@@ -42,6 +42,12 @@ struct bContext;
 
 /* ED_transform_snap_object_*** API */
 
+typedef enum SnapSelect {
+	SNAP_ALL = 0,
+	SNAP_NOT_SELECTED = 1,
+	SNAP_NOT_ACTIVE = 2,
+} SnapSelect;
+
 /** used for storing multiple hits */
 struct SnapObjectHitDepth {
 	struct SnapObjectHitDepth *next, *prev;
