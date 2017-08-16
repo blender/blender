@@ -2202,8 +2202,13 @@ static Gwn_VertBuf *mesh_batch_cache_get_verts_visible(
 			}
 		}
 		else {
-			/* not yet done! */
-			BLI_assert(0);
+			for (int i = 0; i < vbo_len_capacity; i++) {
+				const MVert *mv = &rdata->mvert[i];
+				if (!(mv->flag & ME_HIDE)) {
+					GWN_vertbuf_attr_set(vbo, attr_id.pos, vidx, mv->co);
+					vidx += 1;
+				}
+			}
 		}
 		const uint vbo_len_used = vidx;
 		if (vbo_len_used != vbo_len_capacity) {
@@ -2350,8 +2355,16 @@ static Gwn_VertBuf *mesh_create_verts_select_id(
 			}
 		}
 		else {
-			/* not yet done! */
-			BLI_assert(0);
+			for (int i = 0; i < vbo_len_capacity; i++) {
+				const MVert *mv = &rdata->mvert[i];
+				if (!(mv->flag & ME_HIDE)) {
+					int select_id;
+					GPU_select_index_get(select_index, &select_id);
+					GWN_vertbuf_attr_set(vbo, attr_id.col, vidx, &select_id);
+					vidx += 1;
+				}
+				select_index += 1;
+			}
 		}
 		const int vbo_len_used = vidx;
 		if (vbo_len_used != vbo_len_capacity) {
