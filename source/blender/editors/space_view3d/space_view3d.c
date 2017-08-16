@@ -882,6 +882,7 @@ static void view3d_main_region_listener(
 						BKE_screen_view3d_sync(v3d, wmn->reference);
 					}
 					ED_region_tag_redraw(ar);
+					WM_manipulatormap_tag_refresh(mmap);
 					break;
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
