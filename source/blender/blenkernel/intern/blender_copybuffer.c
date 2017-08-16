@@ -49,6 +49,7 @@
 #include "BKE_main.h"
 #include "BKE_scene.h"
 
+#include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
 #include "BLO_readfile.h"
@@ -159,6 +160,10 @@ bool BKE_copybuffer_paste(bContext *C, const char *libname, const short flag, Re
 
 	/* recreate dependency graph to include new objects */
 	DEG_relations_tag_update(bmain);
+
+	/* Tag update the scene to flush base collection settings, since the new object is added to a
+	 * new (active) collection, not its original collection, thus need recalculation. */
+	DEG_id_tag_update(&scene->id, 0);
 
 	BLO_blendhandle_close(bh);
 	/* remove library... */
