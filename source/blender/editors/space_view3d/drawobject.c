@@ -5140,13 +5140,13 @@ static void drawDispListVerts(Gwn_PrimType prim_type, const void *data, unsigned
 
 	GWN_vertbuf_attr_fill(vbo, pos_id, data);
 
-	Gwn_Batch *batch = GWN_batch_create(prim_type, vbo, NULL);
+	Gwn_Batch *batch = GWN_batch_create_ex(prim_type, vbo, NULL, GWN_BATCH_OWNS_VBO);
 	Batch_set_builtin_program(batch, GPU_SHADER_3D_UNIFORM_COLOR);
 	if (wire_col) {
 		GWN_batch_uniform_4f(batch, "color", wire_col[0] / 255.0f, wire_col[1] / 255.0f, wire_col[2] / 255.0f, 1.0f);
 	}
 	GWN_batch_draw(batch);
-	GWN_batch_discard_all(batch);
+	GWN_batch_discard(batch);
 }
 
 /* convert dispList with elem indices to batch, only support triangles and quads
@@ -5202,7 +5202,8 @@ static void drawDispListElem(
 		}
 	}
 
-	Gwn_Batch *batch = GWN_batch_create(GWN_PRIM_TRIS, vbo, GWN_indexbuf_build(&elb));
+	Gwn_Batch *batch = GWN_batch_create_ex(
+	        GWN_PRIM_TRIS, vbo, GWN_indexbuf_build(&elb), GWN_BATCH_OWNS_VBO | GWN_BATCH_OWNS_INDEX);
 	Batch_set_builtin_program(batch, GPU_SHADER_SIMPLE_LIGHTING);
 	if (wire_col) {
 		GWN_batch_uniform_4f(batch, "color", wire_col[0] / 255.0f, wire_col[1] / 255.0f, wire_col[2] / 255.0f, 1.0f);
@@ -5210,7 +5211,7 @@ static void drawDispListElem(
 	GWN_batch_uniform_4f(batch, "color", 0.8f, 0.8f, 0.8f, 1.0f);
 	GWN_batch_uniform_3f(batch, "light", 0.0f, 0.0f, 1.0f);
 	GWN_batch_draw(batch);
-	GWN_batch_discard_all(batch);
+	GWN_batch_discard(batch);
 }
 
 /**
@@ -5653,7 +5654,7 @@ static void draw_vertex_array(Gwn_PrimType prim_type, const float *vert, const f
 		if (color) GWN_vertbuf_attr_fill_stride(vbo, col_id, stride, color);
 	}
 
-	Gwn_Batch *batch = GWN_batch_create(prim_type, vbo, NULL);
+	Gwn_Batch *batch = GWN_batch_create_ex(prim_type, vbo, NULL, GWN_BATCH_OWNS_VBO);
 	if (nor && color) {
 		Batch_set_builtin_program(batch, GPU_SHADER_SIMPLE_LIGHTING_SMOOTH_COLOR);
 		GWN_batch_uniform_3f(batch, "light", 0.0f, 0.0f, 1.0f);
@@ -5671,7 +5672,7 @@ static void draw_vertex_array(Gwn_PrimType prim_type, const float *vert, const f
 		if (col) GWN_batch_uniform_4fv(batch, "color", col);
 	}
 	GWN_batch_draw(batch);
-	GWN_batch_discard_all(batch);
+	GWN_batch_discard(batch);
 }
 
 static void draw_particle_arrays_new(int draw_as, int ob_dt, int select,
@@ -6677,10 +6678,10 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 			GWN_vertbuf_attr_fill_stride(vbo, col_id, sizeof(ParticleCacheKey), path->col);
 		}
 
-		Gwn_Batch *batch = GWN_batch_create(GWN_PRIM_LINE_STRIP, vbo, NULL);
+		Gwn_Batch *batch = GWN_batch_create_ex(GWN_PRIM_LINE_STRIP, vbo, NULL, GWN_BATCH_OWNS_VBO);
 		Batch_set_builtin_program(batch, GPU_SHADER_3D_SMOOTH_COLOR);
 		GWN_batch_draw(batch);
-		GWN_batch_discard_all(batch);
+		GWN_batch_discard(batch);
 	}
 
 	if (pathcol) { MEM_freeN(pathcol); pathcol = NULL; }
@@ -6748,10 +6749,10 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 
 				GWN_vertbuf_attr_fill(vbo, col_id, cd);
 
-				Gwn_Batch *batch = GWN_batch_create(GWN_PRIM_POINTS, vbo, NULL);
+				Gwn_Batch *batch = GWN_batch_create_ex(GWN_PRIM_POINTS, vbo, NULL, GWN_BATCH_OWNS_VBO);
 				Batch_set_builtin_program(batch, GPU_SHADER_3D_SMOOTH_COLOR);
 				GWN_batch_draw(batch);
-				GWN_batch_discard_all(batch);
+				GWN_batch_discard(batch);
 
 				pd += pd ? 3 * point->totkey : 0;
 				cd += (timed ? 4 : 3) * point->totkey;

@@ -909,14 +909,14 @@ void DRW_shgroup_free(struct DRWShadingGroup *shgroup)
 	BLI_freelistN(&shgroup->interface->attribs);
 
 	if (shgroup->interface->instance_vbo &&
-		(shgroup->interface->instance_batch == 0))
+	    (shgroup->interface->instance_batch == 0))
 	{
 		glDeleteBuffers(1, &shgroup->interface->instance_vbo);
 	}
 
 	MEM_freeN(shgroup->interface);
 
-	BATCH_DISCARD_ALL_SAFE(shgroup->batch_geom);
+	GWN_BATCH_DISCARD_SAFE(shgroup->batch_geom);
 }
 
 void DRW_shgroup_instance_batch(DRWShadingGroup *shgroup, struct Gwn_Batch *instances)
@@ -1257,9 +1257,9 @@ static void shgroup_dynamic_batch(DRWShadingGroup *shgroup)
 
 	/* TODO make the batch dynamic instead of freeing it every times */
 	if (shgroup->batch_geom)
-		GWN_batch_discard_all(shgroup->batch_geom);
+		GWN_batch_discard(shgroup->batch_geom);
 
-	shgroup->batch_geom = GWN_batch_create(type, vbo, NULL);
+	shgroup->batch_geom = GWN_batch_create_ex(type, vbo, NULL, GWN_BATCH_OWNS_VBO);
 }
 
 static void shgroup_dynamic_instance(DRWShadingGroup *shgroup)

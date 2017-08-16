@@ -285,7 +285,7 @@ GPUFX *GPU_fx_compositor_create(void)
 		GWN_vertbuf_attr_set(vbo, pos, i, fullscreencos[i]);
 		GWN_vertbuf_attr_set(vbo, uvs, i, fullscreenuvs[i]);
 	}
-	fx->quad_batch = GWN_batch_create(GWN_PRIM_TRI_STRIP, vbo, NULL);
+	fx->quad_batch = GWN_batch_create_ex(GWN_PRIM_TRI_STRIP, vbo, NULL, GWN_BATCH_OWNS_VBO);
 
 	/* Point Buffer */
 	static Gwn_VertFormat format_point = {0};
@@ -297,7 +297,7 @@ GPUFX *GPU_fx_compositor_create(void)
 	Gwn_VertBuf *vbo_point = GWN_vertbuf_create_with_format(&format_point);
 	GWN_vertbuf_data_alloc(vbo_point, 1);
 	GWN_vertbuf_attr_set(vbo_point, dummy_attrib, 0, &dummy);
-	fx->point_batch = GWN_batch_create(GWN_PRIM_POINTS, vbo_point, NULL);
+	fx->point_batch = GWN_batch_create_ex(GWN_PRIM_POINTS, vbo_point, NULL, GWN_BATCH_OWNS_VBO);
 
 	return fx;
 }
@@ -387,8 +387,8 @@ static void cleanup_fx_gl_data(GPUFX *fx, bool do_fbo)
 void GPU_fx_compositor_destroy(GPUFX *fx)
 {
 	cleanup_fx_gl_data(fx, true);
-	GWN_batch_discard_all(fx->quad_batch);
-	GWN_batch_discard_all(fx->point_batch);
+	GWN_batch_discard(fx->quad_batch);
+	GWN_batch_discard(fx->point_batch);
 	MEM_freeN(fx);
 }
 

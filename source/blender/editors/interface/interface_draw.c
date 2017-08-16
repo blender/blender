@@ -771,12 +771,12 @@ static void waveform_draw_one(float *waveform, int nbr, const float col[3])
 	GWN_vertbuf_attr_fill(vbo, pos_id, waveform);
 
 	/* TODO store the Gwn_Batch inside the scope */
-	Gwn_Batch *batch = GWN_batch_create(GWN_PRIM_POINTS, vbo, NULL);
+	Gwn_Batch *batch = GWN_batch_create_ex(GWN_PRIM_POINTS, vbo, NULL, GWN_BATCH_OWNS_VBO);
 	Batch_set_builtin_program(batch, GPU_SHADER_2D_UNIFORM_COLOR);
 	GWN_batch_uniform_4f(batch, "color", col[0], col[1], col[2], 1.0f);
 	GWN_batch_draw(batch);
 
-	GWN_batch_discard_all(batch);
+	GWN_batch_discard(batch);
 }
 
 void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti *recti)

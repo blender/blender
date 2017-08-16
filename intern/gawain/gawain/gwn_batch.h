@@ -58,7 +58,6 @@ void GWN_batch_init_ex(Gwn_Batch*, Gwn_PrimType, Gwn_VertBuf*, Gwn_IndexBuf*, un
 	GWN_batch_init_ex(batch, prim, verts, elem, 0)
 
 void GWN_batch_discard(Gwn_Batch*); // verts & elem are not discarded
-void GWN_batch_discard_all(Gwn_Batch*); // including verts & elem
 
 int GWN_batch_vertbuf_add_ex(Gwn_Batch*, Gwn_VertBuf*, bool own_vbo);
 
@@ -133,12 +132,6 @@ Gwn_Batch* create_BatchInGeneral(Gwn_PrimType, VertexBufferStuff, ElementListStu
 #define GWN_BATCH_DISCARD_SAFE(batch) do { \
 	if (batch != NULL) { \
 		GWN_batch_discard(batch); \
-		batch = NULL; \
-	} \
-} while (0)
-#define BATCH_DISCARD_ALL_SAFE(batch) do { \
-	if (batch != NULL) { \
-		GWN_batch_discard_all(batch); \
 		batch = NULL; \
 	} \
 } while (0)

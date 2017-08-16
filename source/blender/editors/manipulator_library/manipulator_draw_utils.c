@@ -95,7 +95,7 @@ void wm_manipulator_geometryinfo_draw(const ManipulatorGeomInfo *info, const boo
 		GWN_vertbuf_attr_fill(vbo, nor_id, info->normals);
 	}
 
-	batch = GWN_batch_create(GWN_PRIM_TRIS, vbo, el);
+	batch = GWN_batch_create_ex(GWN_PRIM_TRIS, vbo, el, GWN_BATCH_OWNS_VBO | GWN_BATCH_OWNS_INDEX);
 	Batch_set_builtin_program(batch, GPU_SHADER_3D_UNIFORM_COLOR);
 
 	GWN_batch_uniform_4fv(batch, "color", color);
@@ -115,7 +115,7 @@ void wm_manipulator_geometryinfo_draw(const ManipulatorGeomInfo *info, const boo
 #endif
 
 
-	GWN_batch_discard_all(batch);
+	GWN_batch_discard(batch);
 }
 
 void wm_manipulator_vec_draw(

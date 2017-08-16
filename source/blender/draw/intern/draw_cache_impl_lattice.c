@@ -376,7 +376,7 @@ void DRW_lattice_batch_cache_dirty(Lattice *lt, int mode)
 			break;
 		case BKE_LATTICE_BATCH_DIRTY_SELECT:
 			/* TODO Separate Flag vbo */
-			BATCH_DISCARD_ALL_SAFE(cache->overlay_verts);
+			GWN_BATCH_DISCARD_SAFE(cache->overlay_verts);
 			break;
 		default:
 			BLI_assert(0);
@@ -392,7 +392,7 @@ static void lattice_batch_cache_clear(Lattice *lt)
 
 	GWN_BATCH_DISCARD_SAFE(cache->all_verts);
 	GWN_BATCH_DISCARD_SAFE(cache->all_edges);
-	BATCH_DISCARD_ALL_SAFE(cache->overlay_verts);
+	GWN_BATCH_DISCARD_SAFE(cache->overlay_verts);
 
 	GWN_VERTBUF_DISCARD_SAFE(cache->pos);
 	GWN_INDEXBUF_DISCARD_SAFE(cache->edges);
@@ -537,7 +537,7 @@ static void lattice_batch_cache_create_overlay_batches(Lattice *lt)
 			GWN_vertbuf_attr_set(vbo, attr_id.data, i, &vflag);
 		}
 
-		cache->overlay_verts = GWN_batch_create(GWN_PRIM_POINTS, vbo, NULL);
+		cache->overlay_verts = GWN_batch_create_ex(GWN_PRIM_POINTS, vbo, NULL, GWN_BATCH_OWNS_VBO);
 	}	
 
 	lattice_render_data_free(rdata);

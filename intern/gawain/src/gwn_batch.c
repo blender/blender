@@ -69,22 +69,6 @@ void GWN_batch_discard(Gwn_Batch* batch)
 	free(batch);
 	}
 
-/* TODO, remove */
-void GWN_batch_discard_all(Gwn_Batch* batch)
-	{
-	for (int v = 0; v < GWN_BATCH_VBO_MAX_LEN; ++v)
-		{
-		if (batch->verts[v] == NULL)
-			break;
-		GWN_vertbuf_discard(batch->verts[v]);
-		}
-
-	if (batch->elem)
-		GWN_indexbuf_discard(batch->elem);
-
-	GWN_batch_discard(batch);
-	}
-
 int GWN_batch_vertbuf_add_ex(
         Gwn_Batch* batch, Gwn_VertBuf* verts,
         bool own_vbo)

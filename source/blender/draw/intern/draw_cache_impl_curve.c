@@ -422,12 +422,12 @@ void DRW_curve_batch_cache_dirty(Curve *cu, int mode)
 			break;
 		case BKE_CURVE_BATCH_DIRTY_SELECT:
 			/* editnurb */
-			BATCH_DISCARD_ALL_SAFE(cache->overlay.verts);
-			BATCH_DISCARD_ALL_SAFE(cache->overlay.edges);
+			GWN_BATCH_DISCARD_SAFE(cache->overlay.verts);
+			GWN_BATCH_DISCARD_SAFE(cache->overlay.edges);
 
 			/* editfont */
-			BATCH_DISCARD_ALL_SAFE(cache->text.select);
-			BATCH_DISCARD_ALL_SAFE(cache->text.cursor);
+			GWN_BATCH_DISCARD_SAFE(cache->text.select);
+			GWN_BATCH_DISCARD_SAFE(cache->text.cursor);
 			break;
 		default:
 			BLI_assert(0);
@@ -441,38 +441,26 @@ static void curve_batch_cache_clear(Curve *cu)
 		return;
 	}
 
-	BATCH_DISCARD_ALL_SAFE(cache->overlay.verts);
-	BATCH_DISCARD_ALL_SAFE(cache->overlay.edges);
+	GWN_BATCH_DISCARD_SAFE(cache->overlay.verts);
+	GWN_BATCH_DISCARD_SAFE(cache->overlay.edges);
 
-	BATCH_DISCARD_ALL_SAFE(cache->surface.batch);
+	GWN_BATCH_DISCARD_SAFE(cache->surface.batch);
 
-	if (cache->wire.batch) {
-		BATCH_DISCARD_ALL_SAFE(cache->wire.batch);
-		cache->wire.verts = NULL;
-		cache->wire.edges = NULL;
-		cache->wire.elem = NULL;
-	}
-	else {
-		GWN_VERTBUF_DISCARD_SAFE(cache->wire.verts);
-		GWN_VERTBUF_DISCARD_SAFE(cache->wire.edges);
-		GWN_INDEXBUF_DISCARD_SAFE(cache->wire.elem);
-	}
+	/* don't own vbo & elems */
+	GWN_BATCH_DISCARD_SAFE(cache->wire.batch);
+	GWN_VERTBUF_DISCARD_SAFE(cache->wire.verts);
+	GWN_VERTBUF_DISCARD_SAFE(cache->wire.edges);
+	GWN_INDEXBUF_DISCARD_SAFE(cache->wire.elem);
 
-	if (cache->normal.batch) {
-		BATCH_DISCARD_ALL_SAFE(cache->normal.batch);
-		cache->normal.verts = NULL;
-		cache->normal.edges = NULL;
-		cache->normal.elem = NULL;
-	}
-	else {
-		GWN_VERTBUF_DISCARD_SAFE(cache->normal.verts);
-		GWN_VERTBUF_DISCARD_SAFE(cache->normal.edges);
-		GWN_INDEXBUF_DISCARD_SAFE(cache->normal.elem);
-	}
+	/* don't own vbo & elems */
+	GWN_BATCH_DISCARD_SAFE(cache->normal.batch);
+	GWN_VERTBUF_DISCARD_SAFE(cache->normal.verts);
+	GWN_VERTBUF_DISCARD_SAFE(cache->normal.edges);
+	GWN_INDEXBUF_DISCARD_SAFE(cache->normal.elem);
 
 	/* 3d text */
-	BATCH_DISCARD_ALL_SAFE(cache->text.cursor);
-	BATCH_DISCARD_ALL_SAFE(cache->text.select);
+	GWN_BATCH_DISCARD_SAFE(cache->text.cursor);
+	GWN_BATCH_DISCARD_SAFE(cache->text.select);
 }
 
 void DRW_curve_batch_cache_free(Curve *cu)
@@ -726,7 +714,7 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 			GWN_vertbuf_data_resize(vbo, vbo_len_used);
 		}
 
-		cache->overlay.verts = GWN_batch_create(GWN_PRIM_POINTS, vbo, NULL);
+		cache->overlay.verts = GWN_batch_create_ex(GWN_PRIM_POINTS, vbo, NULL, GWN_BATCH_OWNS_VBO);
 	}
 
 
@@ -798,7 +786,7 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 			GWN_vertbuf_data_resize(vbo, vbo_len_used);
 		}
 
-		cache->overlay.edges = GWN_batch_create(GWN_PRIM_LINES, vbo, NULL);
+		cache->overlay.edges = GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
 	}
 
 	curve_render_data_free(rdata);
@@ -892,7 +880,7 @@ static Gwn_Batch *curve_batch_cache_get_overlay_select(CurveRenderData *rdata, C
 			GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used++, box[3]);
 		}
 		BLI_assert(vbo_len_used == vbo_len_capacity);
-		cache->text.select = GWN_batch_create(GWN_PRIM_TRIS, vbo, NULL);
+		cache->text.select = GWN_batch_create_ex(GWN_PRIM_TRIS, vbo, NULL, GWN_BATCH_OWNS_VBO);
 	}
 	return cache->text.select;
 }
@@ -913,7 +901,7 @@ static Gwn_Batch *curve_batch_cache_get_overlay_cursor(CurveRenderData *rdata, C
 		for (int i = 0; i < 4; i++) {
 			GWN_vertbuf_attr_set(vbo, attr_id.pos, i, rdata->text.edit_font->textcurs[i]);
 		}
-		cache->text.cursor = GWN_batch_create(GWN_PRIM_TRI_FAN, vbo, NULL);
+		cache->text.cursor = GWN_batch_create_ex(GWN_PRIM_TRI_FAN, vbo, NULL, GWN_BATCH_OWNS_VBO);
 	}
 	return cache->text.cursor;
 }
@@ -950,7 +938,8 @@ Gwn_Batch *DRW_curve_batch_cache_get_normal_edge(Curve *cu, CurveCache *ob_curve
 	if (cache->normal.batch != NULL) {
 		cache->normal_size = normal_size;
 		if (cache->normal_size != normal_size) {
-			BATCH_DISCARD_ALL_SAFE(cache->normal.batch);
+			GWN_BATCH_DISCARD_SAFE(cache->normal.batch);
+			GWN_VERTBUF_DISCARD_SAFE(cache->normal.edges);
 		}
 	}
 	cache->normal_size = normal_size;
