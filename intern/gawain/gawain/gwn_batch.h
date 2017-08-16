@@ -36,19 +36,34 @@ typedef struct Gwn_Batch {
 	Gwn_BatchPhase phase;
 	bool program_dirty;
 	bool program_in_use;
+	unsigned owns_flag;
 
 	// state
 	GLuint program;
 	const Gwn_ShaderInterface* interface;
 } Gwn_Batch;
 
-Gwn_Batch* GWN_batch_create(Gwn_PrimType, Gwn_VertBuf*, Gwn_IndexBuf*);
-void GWN_batch_init(Gwn_Batch*, Gwn_PrimType, Gwn_VertBuf*, Gwn_IndexBuf*);
+enum {
+	GWN_BATCH_OWNS_VBO = (1 << 0),
+	/* each vbo index gets bit-shifted */
+	GWN_BATCH_OWNS_INDEX = (1 << 31),
+};
+
+Gwn_Batch* GWN_batch_create_ex(Gwn_PrimType, Gwn_VertBuf*, Gwn_IndexBuf*, unsigned owns_flag);
+void GWN_batch_init_ex(Gwn_Batch*, Gwn_PrimType, Gwn_VertBuf*, Gwn_IndexBuf*, unsigned owns_flag);
+
+#define GWN_batch_create(prim, verts, elem) \
+	GWN_batch_create_ex(prim, verts, elem, 0)
+#define GWN_batch_init(batch, prim, verts, elem) \
+	GWN_batch_init_ex(batch, prim, verts, elem, 0)
 
 void GWN_batch_discard(Gwn_Batch*); // verts & elem are not discarded
 void GWN_batch_discard_all(Gwn_Batch*); // including verts & elem
 
-int GWN_batch_vertbuf_add(Gwn_Batch*, Gwn_VertBuf*);
+int GWN_batch_vertbuf_add_ex(Gwn_Batch*, Gwn_VertBuf*, bool own_vbo);
+
+#define GWN_batch_vertbuf_add(batch, verts) \
+	GWN_batch_vertbuf_add_ex(batch, verts, false)
 
 void GWN_batch_program_set(Gwn_Batch*, GLuint program, const Gwn_ShaderInterface*);
 // Entire batch draws with one shader program, but can be redrawn later with another program.

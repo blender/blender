@@ -18,16 +18,20 @@
 extern void gpuBindMatrices(const Gwn_ShaderInterface* shaderface);
 extern bool gpuMatricesDirty(void); // how best to use this here?
 
-Gwn_Batch* GWN_batch_create(Gwn_PrimType prim_type, Gwn_VertBuf* verts, Gwn_IndexBuf* elem)
+Gwn_Batch* GWN_batch_create_ex(
+        Gwn_PrimType prim_type, Gwn_VertBuf* verts, Gwn_IndexBuf* elem,
+        unsigned owns_flag)
 	{
 	Gwn_Batch* batch = calloc(1, sizeof(Gwn_Batch));
 
-	GWN_batch_init(batch, prim_type, verts, elem);
+	GWN_batch_init_ex(batch, prim_type, verts, elem, owns_flag);
 
 	return batch;
 	}
 
-void GWN_batch_init(Gwn_Batch* batch, Gwn_PrimType prim_type, Gwn_VertBuf* verts, Gwn_IndexBuf* elem)
+void GWN_batch_init_ex(
+        Gwn_Batch* batch, Gwn_PrimType prim_type, Gwn_VertBuf* verts, Gwn_IndexBuf* elem,
+        unsigned owns_flag)
 	{
 #if TRUST_NO_ONE
 	assert(verts != NULL);
@@ -40,16 +44,32 @@ void GWN_batch_init(Gwn_Batch* batch, Gwn_PrimType prim_type, Gwn_VertBuf* verts
 	batch->prim_type = prim_type;
 	batch->gl_prim_type = convert_prim_type_to_gl(prim_type);
 	batch->phase = GWN_BATCH_READY_TO_DRAW;
+	batch->owns_flag = owns_flag;
 	}
 
 void GWN_batch_discard(Gwn_Batch* batch)
 	{
+	if (batch->owns_flag & GWN_BATCH_OWNS_INDEX)
+		GWN_indexbuf_discard(batch->elem);
+
+	if ((batch->owns_flag & ~GWN_BATCH_OWNS_INDEX) != 0)
+		{
+		for (int v = 0; v < GWN_BATCH_VBO_MAX_LEN; ++v)
+			{
+			if (batch->verts[v] == NULL)
+				break;
+			if (batch->owns_flag & (1 << v))
+				GWN_vertbuf_discard(batch->verts[v]);
+			}
+		}
+
 	if (batch->vao_id)
 		GWN_vao_free(batch->vao_id);
 
 	free(batch);
 	}
 
+/* TODO, remove */
 void GWN_batch_discard_all(Gwn_Batch* batch)
 	{
 	for (int v = 0; v < GWN_BATCH_VBO_MAX_LEN; ++v)
@@ -65,7 +85,9 @@ void GWN_batch_discard_all(Gwn_Batch* batch)
 	GWN_batch_discard(batch);
 	}
 
-int GWN_batch_vertbuf_add(Gwn_Batch* batch, Gwn_VertBuf* verts)
+int GWN_batch_vertbuf_add_ex(
+        Gwn_Batch* batch, Gwn_VertBuf* verts,
+        bool own_vbo)
 	{
 	for (unsigned v = 0; v < GWN_BATCH_VBO_MAX_LEN; ++v)
 		{
@@ -78,6 +100,8 @@ int GWN_batch_vertbuf_add(Gwn_Batch* batch, Gwn_VertBuf* verts)
 #endif
 			batch->verts[v] = verts;
 			// TODO: mark dirty so we can keep attrib bindings up-to-date
+			if (own_vbo)
+				batch->owns_flag |= (1 << v);
 			return v;
 			}
 		}
