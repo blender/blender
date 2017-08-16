@@ -744,8 +744,6 @@ static bool raycastObj(
 			        ray_start, ray_dir,
 			        ob, dm, obmat, ob_index,
 			        ray_depth, r_loc, r_no, r_index, r_hit_list);
-
-			dm->release(dm);
 		}
 	}
 
