@@ -204,8 +204,24 @@ static SceneCollection *scene_collection_from_new_tree(SceneCollection *sc_refer
 	return NULL;
 }
 
+static void layer_collections_sync_flags(ListBase *layer_collections_dst, const ListBase *layer_collections_src)
+{
+	LayerCollection *layer_collection_dst = (LayerCollection *)layer_collections_dst->first;
+	const LayerCollection *layer_collection_src = (const LayerCollection *)layer_collections_src->first;
+	while (layer_collection_dst != NULL) {
+		layer_collection_dst->flag = layer_collection_src->flag;
+		layer_collections_sync_flags(&layer_collection_dst->layer_collections,
+		                             &layer_collection_src->layer_collections);
+		/* TODO(sergey/dfelinto): Overrides. */
+		layer_collection_dst = layer_collection_dst->next;
+		layer_collection_src = layer_collection_src->next;
+	}
+}
+
+
 /* recreate the LayerCollection tree */
-static void layer_collections_recreate(SceneLayer *sl_dst, ListBase *lb_src, SceneCollection *mc_dst, SceneCollection *mc_src)
+static void layer_collections_recreate(
+        SceneLayer *sl_dst, ListBase *lb_src, SceneCollection *mc_dst, SceneCollection *mc_src)
 {
 	for (LayerCollection *lc_src = lb_src->first; lc_src; lc_src = lc_src->next) {
 		SceneCollection *sc_dst = scene_collection_from_new_tree(lc_src->scene_collection, mc_dst, mc_src);
@@ -269,7 +285,11 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 		BLI_listbase_clear(&sl_dst->layer_collections);
 		BLI_listbase_clear(&sl_dst->object_bases);
 		BLI_listbase_clear(&sl_dst->drawdata);
+
 		layer_collections_recreate(sl_dst, &sl_src->layer_collections, mc_dst, mc_src);
+
+		/* Now we handle the syncing for visibility, selectability, ... */
+		layer_collections_sync_flags(&sl_dst->layer_collections, &sl_src->layer_collections);
 
 		Object *active_ob = OBACT_NEW(sl_src);
 		for (Base *base_src = sl_src->object_bases.first, *base_dst = sl_dst->object_bases.first;

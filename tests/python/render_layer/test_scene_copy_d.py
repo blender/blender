@@ -16,7 +16,7 @@ from render_layer_common import *
 class UnitTesting(RenderLayerTesting):
     def test_scene_layers_link(self):
         """
-        See if scene copying 'FULL_COPY' is working for scene layers
+        See if scene copying 'LINK_OBJECTS' is working for scene layers
         """
         import os
         ROOT = self.get_root()

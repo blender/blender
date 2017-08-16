@@ -279,21 +279,6 @@ bool id_copy_no_main(const ID *id, ID **newid)
 	return result;
 }
 
-void layer_collections_sync_flags(ListBase *layer_collections_dst,
-                                  const ListBase *layer_collections_src)
-{
-	LayerCollection *layer_collection_dst = (LayerCollection *)layer_collections_dst->first;
-	const LayerCollection *layer_collection_src = (const LayerCollection *)layer_collections_src->first;
-	while (layer_collection_dst != NULL) {
-		layer_collection_dst->flag = layer_collection_src->flag;
-		layer_collections_sync_flags(&layer_collection_dst->layer_collections,
-		                             &layer_collection_src->layer_collections);
-		/* TODO(sergey): Overrides. */
-		layer_collection_dst = layer_collection_dst->next;
-		layer_collection_src = layer_collection_src->next;
-	}
-}
-
 /* Similar to BKE_scene_copy() but does not require main.
  *
  * TODO(sergey): Get rid of this once T51804 is handled.
@@ -315,18 +300,6 @@ Scene *scene_copy_no_main(Scene *scene)
 	Scene *new_scene = BKE_scene_copy(&temp_bmain,
 	                                  (Scene *)id_for_copy,
 	                                  SCE_COPY_LINK_OB);
-
-	/* TODO(sergey): Make this part of BKE_scene_copy(). */
-	{
-		SceneLayer *new_scene_layer = (SceneLayer *)new_scene->render_layers.first;
-		const SceneLayer *scene_layer = (const SceneLayer *)scene->render_layers.first;
-		while (new_scene_layer != NULL) {
-			layer_collections_sync_flags(&new_scene_layer->layer_collections,
-			                             &scene_layer->layer_collections);
-			new_scene_layer = new_scene_layer->next;
-			scene_layer = scene_layer->next;
-		}
-	}
 
 #ifdef NESTED_ID_NASTY_WORKAROUND
 	nested_id_hack_restore_pointers(&scene->id, &new_scene->id);
