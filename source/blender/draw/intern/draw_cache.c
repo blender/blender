@@ -261,7 +261,7 @@ Gwn_Batch *DRW_cache_fullscreen_quad_get(void)
 /* Sphere */
 Gwn_Batch *DRW_cache_sphere_get(void)
 {
-	return Batch_get_sphere(2);
+	return GPU_batch_preset_sphere(2);
 }
 
 /** \} */

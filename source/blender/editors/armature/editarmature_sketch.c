@@ -450,8 +450,8 @@ static void sk_drawPoint(SK_Point *pt, float size, float color[4])
 
 	gpuScaleUniform(sk_clampPointSize(pt, size));
 
-	batch = Batch_get_sphere(0);
-	Batch_set_builtin_program(batch, GPU_SHADER_3D_UNIFORM_COLOR);
+	batch = GPU_batch_preset_sphere(0);
+	GWN_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR);
 	GWN_batch_uniform_4fv(batch, "color", color);
 
 	GWN_batch_draw(batch);

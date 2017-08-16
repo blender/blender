@@ -411,11 +411,11 @@ static void drawsolidcube_size(float xsize, float ysize, float zsize)
 	gpuScale3f(xsize, ysize, zsize);
 
 	if (flat_color) {
-		Batch_set_builtin_program(&batch, GPU_SHADER_3D_UNIFORM_COLOR);
+		GWN_batch_program_set_builtin(&batch, GPU_SHADER_3D_UNIFORM_COLOR);
 	}
 	else {
 		/* TODO replace with good default lighting shader ? */
-		Batch_set_builtin_program(&batch, GPU_SHADER_SIMPLE_LIGHTING);
+		GWN_batch_program_set_builtin(&batch, GPU_SHADER_SIMPLE_LIGHTING);
 		GWN_batch_uniform_3fv(&batch, "light", light_vec);
 	}
 	GWN_batch_uniform_4fv(&batch, "color", fcolor);
@@ -451,7 +451,7 @@ static void drawcube_size(float xsize, float ysize, float zsize)
 		}
 
 		GWN_batch_init(&batch, GWN_PRIM_LINES, &vbo, &el);
-		Batch_set_builtin_program(&batch, GPU_SHADER_3D_UNIFORM_COLOR);
+		GWN_batch_program_set_builtin(&batch, GPU_SHADER_3D_UNIFORM_COLOR);
 	}
 
 	gpuPushMatrix();
@@ -507,7 +507,7 @@ static void draw_bonevert(void)
 		}
 
 		GWN_batch_init(&batch, GWN_PRIM_LINES, &vbo, NULL);
-		Batch_set_builtin_program(&batch, GPU_SHADER_3D_UNIFORM_COLOR);
+		GWN_batch_program_set_builtin(&batch, GPU_SHADER_3D_UNIFORM_COLOR);
 	}
 
 	GWN_batch_program_use_begin(&batch);
@@ -517,18 +517,18 @@ static void draw_bonevert(void)
 
 static void draw_bonevert_solid(void)
 {
-	Gwn_Batch *batch = Batch_get_sphere(0);
+	Gwn_Batch *batch = GPU_batch_preset_sphere(0);
 	const float light_vec[3] = {0.0f, 0.0f, 1.0f};
 
 	gpuPushMatrix();
 	gpuScaleUniform(0.05);
 
 	if (flat_color) {
-		Batch_set_builtin_program(batch, GPU_SHADER_3D_UNIFORM_COLOR);
+		GWN_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR);
 	}
 	else {
 		/* TODO replace with good default lighting shader ? */
-		Batch_set_builtin_program(batch, GPU_SHADER_SIMPLE_LIGHTING);
+		GWN_batch_program_set_builtin(batch, GPU_SHADER_SIMPLE_LIGHTING);
 		GWN_batch_uniform_3fv(batch, "light", light_vec);
 	}
 	GWN_batch_uniform_4fv(batch, "color", fcolor);
@@ -603,7 +603,7 @@ static void draw_bone_octahedral(void)
 		}
 
 		GWN_batch_init(&batch, GWN_PRIM_LINES, &vbo, &el);
-		Batch_set_builtin_program(&batch, GPU_SHADER_3D_UNIFORM_COLOR);
+		GWN_batch_program_set_builtin(&batch, GPU_SHADER_3D_UNIFORM_COLOR);
 	}
 
 	GWN_batch_program_use_begin(&batch);
@@ -640,11 +640,11 @@ static void draw_bone_solid_octahedral(void)
 	}
 
 	if (flat_color) {
-		Batch_set_builtin_program(&batch, GPU_SHADER_3D_UNIFORM_COLOR);
+		GWN_batch_program_set_builtin(&batch, GPU_SHADER_3D_UNIFORM_COLOR);
 	}
 	else {
 		/* TODO replace with good default lighting shader ? */
-		Batch_set_builtin_program(&batch, GPU_SHADER_SIMPLE_LIGHTING);
+		GWN_batch_program_set_builtin(&batch, GPU_SHADER_SIMPLE_LIGHTING);
 		GWN_batch_uniform_3fv(&batch, "light", light_vec);
 	}
 	GWN_batch_uniform_4fv(&batch, "color", fcolor);
@@ -993,13 +993,13 @@ static void draw_sphere_bone_wire(float smat[4][4], float imat[4][4],
 static void draw_sphere_bone(const short dt, int armflag, int boneflag, short constflag, unsigned int id,
                              bPoseChannel *pchan, EditBone *ebone)
 {
-	Gwn_Batch *sphere = Batch_get_sphere(1);
+	Gwn_Batch *sphere = GPU_batch_preset_sphere(1);
 	float head, tail, length;
 	float fac1, fac2, size1, size2;
 	const float light_vec[3] = {0.0f, 0.0f, 1.0f};
 
 	/* dt is always OB_SOlID */
-	Batch_set_builtin_program(sphere, GPU_SHADER_SIMPLE_LIGHTING);
+	GWN_batch_program_set_builtin(sphere, GPU_SHADER_SIMPLE_LIGHTING);
 	GWN_batch_uniform_3fv(sphere, "light", light_vec);
 
 	gpuPushMatrix();

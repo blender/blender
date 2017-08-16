@@ -96,7 +96,7 @@ void wm_manipulator_geometryinfo_draw(const ManipulatorGeomInfo *info, const boo
 	}
 
 	batch = GWN_batch_create_ex(GWN_PRIM_TRIS, vbo, el, GWN_BATCH_OWNS_VBO | GWN_BATCH_OWNS_INDEX);
-	Batch_set_builtin_program(batch, GPU_SHADER_3D_UNIFORM_COLOR);
+	GWN_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR);
 
 	GWN_batch_uniform_4fv(batch, "color", color);
 

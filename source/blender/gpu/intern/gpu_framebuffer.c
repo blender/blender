@@ -480,7 +480,7 @@ void GPU_framebuffer_blur(
 
 	GPU_texture_bind(tex, 0);
 
-	Batch_set_builtin_program(&batch, GPU_SHADER_SEP_GAUSSIAN_BLUR);
+	GWN_batch_program_set_builtin(&batch, GPU_SHADER_SEP_GAUSSIAN_BLUR);
 	GWN_batch_uniform_2f(&batch, "ScaleU", scaleh[0], scaleh[1]);
 	GWN_batch_uniform_1i(&batch, "textureSource", GL_TEXTURE0);
 	GWN_batch_draw(&batch);
@@ -496,7 +496,7 @@ void GPU_framebuffer_blur(
 	GPU_texture_bind(blurtex, 0);
 
 	/* Hack to make the following uniform stick */
-	Batch_set_builtin_program(&batch, GPU_SHADER_SEP_GAUSSIAN_BLUR);
+	GWN_batch_program_set_builtin(&batch, GPU_SHADER_SEP_GAUSSIAN_BLUR);
 	GWN_batch_uniform_2f(&batch, "ScaleU", scalev[0], scalev[1]);
 	GWN_batch_uniform_1i(&batch, "textureSource", GL_TEXTURE0);
 	GWN_batch_draw(&batch);

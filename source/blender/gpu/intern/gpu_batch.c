@@ -31,7 +31,7 @@
 #include "GPU_batch.h"
 #include "gpu_shader_private.h"
 
-void Batch_set_builtin_program(Gwn_Batch *batch, GPUBuiltinShader shader_id)
+void GWN_batch_program_set_builtin(Gwn_Batch *batch, GPUBuiltinShader shader_id)
 {
 	GPUShader *shader = GPU_shader_get_builtin_shader(shader_id);
 	GWN_batch_program_set(batch, shader->program, shader->interface);
@@ -128,7 +128,7 @@ static Gwn_Batch *batch_sphere_wire(int lat_res, int lon_res)
 	return GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
 }
 
-Gwn_Batch *Batch_get_sphere(int lod)
+Gwn_Batch *GPU_batch_preset_sphere(int lod)
 {
 	BLI_assert(lod >= 0 && lod <= 2);
 
@@ -140,7 +140,7 @@ Gwn_Batch *Batch_get_sphere(int lod)
 		return sphere_high;
 }
 
-Gwn_Batch *Batch_get_sphere_wire(int lod)
+Gwn_Batch *GPU_batch_preset_sphere_wire(int lod)
 {
 	BLI_assert(lod >= 0 && lod <= 1);
 

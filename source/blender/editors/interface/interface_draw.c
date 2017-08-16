@@ -772,7 +772,7 @@ static void waveform_draw_one(float *waveform, int nbr, const float col[3])
 
 	/* TODO store the Gwn_Batch inside the scope */
 	Gwn_Batch *batch = GWN_batch_create_ex(GWN_PRIM_POINTS, vbo, NULL, GWN_BATCH_OWNS_VBO);
-	Batch_set_builtin_program(batch, GPU_SHADER_2D_UNIFORM_COLOR);
+	GWN_batch_program_set_builtin(batch, GPU_SHADER_2D_UNIFORM_COLOR);
 	GWN_batch_uniform_4f(batch, "color", col[0], col[1], col[2], 1.0f);
 	GWN_batch_draw(batch);
 
@@ -1443,8 +1443,8 @@ void ui_draw_but_UNITVEC(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 	gpuTranslate2f(rect->xmin + 0.5f * BLI_rcti_size_x(rect), rect->ymin + 0.5f * BLI_rcti_size_y(rect));
 	gpuScaleUniform(size);
 
-	Gwn_Batch *sphere = Batch_get_sphere(2);
-	Batch_set_builtin_program(sphere, GPU_SHADER_SIMPLE_LIGHTING);
+	Gwn_Batch *sphere = GPU_batch_preset_sphere(2);
+	GWN_batch_program_set_builtin(sphere, GPU_SHADER_SIMPLE_LIGHTING);
 	GWN_batch_uniform_4f(sphere, "color", diffuse[0], diffuse[1], diffuse[2], 1.0f);
 	GWN_batch_uniform_3fv(sphere, "light", light);
 	GWN_batch_draw(sphere);

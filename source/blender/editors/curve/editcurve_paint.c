@@ -383,8 +383,8 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 		float color[3];
 		UI_GetThemeColor3fv(TH_WIRE, color);
 
-		Gwn_Batch *sphere = Batch_get_sphere(0);
-		Batch_set_builtin_program(sphere, GPU_SHADER_3D_UNIFORM_COLOR);
+		Gwn_Batch *sphere = GPU_batch_preset_sphere(0);
+		GWN_batch_program_set_builtin(sphere, GPU_SHADER_3D_UNIFORM_COLOR);
 		GWN_batch_uniform_3fv(sphere, "color", color);
 
 		/* scale to edit-mode space */

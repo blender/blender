@@ -1546,7 +1546,7 @@ static void stitch_calculate_edge_normal(BMEditMesh *em, UvEdge *edge, float *no
 static void stitch_draw_vbo(Gwn_VertBuf *vbo, Gwn_PrimType prim_type, const float col[4])
 {
 	Gwn_Batch *batch = GWN_batch_create_ex(prim_type, vbo, NULL, GWN_BATCH_OWNS_VBO);
-	Batch_set_builtin_program(batch, GPU_SHADER_2D_UNIFORM_COLOR);
+	GWN_batch_program_set_builtin(batch, GPU_SHADER_2D_UNIFORM_COLOR);
 	GWN_batch_uniform_4fv(batch, "color", col);
 	GWN_batch_draw(batch);
 	GWN_batch_discard(batch);
