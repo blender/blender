@@ -4734,7 +4734,7 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *UNUSED(st
 	 * Could be optimized later, but currently don't think it's so
 	 * much common scenario.
 	 *
-	 * Same applies to the DAG_id_tag_update() invoked from
+	 * Same applies to the DEG_id_tag_update() invoked from
 	 * sculpt_flush_update().
 	 */
 	if (ss->modifiers_active) {

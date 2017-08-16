@@ -711,7 +711,7 @@ void BKE_sculptsession_bm_to_me_for_render(Object *object)
 		if (object->sculpt->bm) {
 			/* Ensure no points to old arrays are stored in DM
 			 *
-			 * Apparently, we could not use DAG_id_tag_update
+			 * Apparently, we could not use DEG_id_tag_update
 			 * here because this will lead to the while object
 			 * surface to disappear, so we'll release DM in place.
 			 */

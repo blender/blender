@@ -383,7 +383,7 @@ void EDBM_mesh_make(ToolSettings *ts, Object *ob, const bool add_key_index)
 
 /**
  * \warning This can invalidate the #DerivedMesh cache of other objects (for linked duplicates).
- * Most callers should run #DAG_id_tag_update on \a ob->data, see: T46738, T46913
+ * Most callers should run #DEG_id_tag_update on \a ob->data, see: T46738, T46913
  */
 void EDBM_mesh_load(Object *ob)
 {

@@ -5063,7 +5063,7 @@ static void sort_bmelem_flag(Scene *scene, Object *ob,
 	}
 
 	BM_mesh_remap(em->bm, map[0], map[1], map[2]);
-/*	DAG_id_tag_update(ob->data, 0);*/
+/*	DEG_id_tag_update(ob->data, 0);*/
 
 	for (j = 3; j--; ) {
 		if (map[j])

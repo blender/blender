@@ -202,7 +202,7 @@ void ED_render_engine_changed(Main *bmain)
 }
 
 /***************************** Updates ***********************************
- * ED_render_id_flush_update gets called from DAG_id_tag_update, to do   *
+ * ED_render_id_flush_update gets called from DEG_id_tag_update, to do   *
  * editor level updates when the ID changes. when these ID blocks are in *
  * the dependency graph, we can get rid of the manual dependency checks  */
 
