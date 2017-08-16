@@ -1017,7 +1017,7 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 		float dist_px = SNAP_MIN_DISTANCE; // Use a user defined value here
 		char node_border;
 		
-		if (snapNodesTransform(t, t->mval, t->tsnap.modeSelect, loc, &dist_px, &node_border)) {
+		if (snapNodesTransform(t, t->mval, loc, &dist_px, &node_border)) {
 			copy_v2_v2(t->tsnap.snapPoint, loc);
 			t->tsnap.snapNodeBorder = node_border;
 			
@@ -1413,11 +1413,11 @@ static bool snapNodes(
 }
 
 bool snapNodesTransform(
-        TransInfo *t, const int mval[2], SnapSelect snap_select,
+        TransInfo *t, const int mval[2],
         float r_loc[2], float *r_dist_px, char *r_node_border)
 {
 	return snapNodes(
-	        t->settings, t->sa->spacedata.first, t->ar, mval, snap_select,
+	        t->settings, t->sa->spacedata.first, t->ar, mval, t->tsnap.modeSelect,
 	        r_loc, r_dist_px, r_node_border);
 }
 
