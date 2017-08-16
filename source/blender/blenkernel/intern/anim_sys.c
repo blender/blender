@@ -2850,7 +2850,7 @@ void BKE_animsys_evaluate_all_animation(Main *main, Scene *scene, float ctime)
 
 #define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH) printf
 
-void BKE_animsys_eval_animdata(EvaluationContext *eval_ctx, ID *id)
+void BKE_animsys_eval_animdata(const EvaluationContext *eval_ctx, ID *id)
 {
 	AnimData *adt = BKE_animdata_from_id(id);
 	Scene *scene = NULL; /* XXX: this is only needed for flushing RNA updates,
@@ -2860,7 +2860,7 @@ void BKE_animsys_eval_animdata(EvaluationContext *eval_ctx, ID *id)
 	BKE_animsys_evaluate_animdata(scene, id, adt, eval_ctx->ctime, ADT_RECALC_ANIM);
 }
 
-void BKE_animsys_eval_driver(EvaluationContext *eval_ctx,
+void BKE_animsys_eval_driver(const EvaluationContext *eval_ctx,
                              ID *id,
                              FCurve *fcu)
 {

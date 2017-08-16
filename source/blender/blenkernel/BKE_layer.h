@@ -144,13 +144,13 @@ void BKE_collection_engine_property_value_set_bool(struct IDProperty *props, con
 
 /* evaluation */
 
-void BKE_layer_eval_layer_collection_pre(struct EvaluationContext *eval_ctx,
+void BKE_layer_eval_layer_collection_pre(const struct EvaluationContext *eval_ctx,
                                          struct Scene *scene,
                                          struct SceneLayer *scene_layer);
-void BKE_layer_eval_layer_collection(struct EvaluationContext *eval_ctx,
+void BKE_layer_eval_layer_collection(const struct EvaluationContext *eval_ctx,
                                      struct LayerCollection *layer_collection,
                                      struct LayerCollection *parent_layer_collection);
-void BKE_layer_eval_layer_collection_post(struct EvaluationContext *eval_ctx,
+void BKE_layer_eval_layer_collection_post(const struct EvaluationContext *eval_ctx,
                                           struct SceneLayer *scene_layer);
 
 /* iterators */

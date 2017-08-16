@@ -195,8 +195,8 @@ void animsys_evaluate_action_group(struct PointerRNA *ptr, struct bAction *act, 
 
 struct EvaluationContext;
 
-void BKE_animsys_eval_animdata(struct EvaluationContext *eval_ctx, struct ID *id);
-void BKE_animsys_eval_driver(struct EvaluationContext *eval_ctx, struct ID *id, struct FCurve *fcurve);
+void BKE_animsys_eval_animdata(const struct EvaluationContext *eval_ctx, struct ID *id);
+void BKE_animsys_eval_driver(const struct EvaluationContext *eval_ctx, struct ID *id, struct FCurve *fcurve);
 
 /* ************************************* */
 

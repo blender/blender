@@ -1631,7 +1631,7 @@ void BKE_mesh_to_curve_nurblist(DerivedMesh *dm, ListBase *nurblist, const int e
 	}
 }
 
-void BKE_mesh_to_curve(EvaluationContext *eval_ctx, Scene *scene, Object *ob)
+void BKE_mesh_to_curve(const EvaluationContext *eval_ctx, Scene *scene, Object *ob)
 {
 	/* make new mesh data from the original copy */
 	DerivedMesh *dm = mesh_get_derived_final(eval_ctx, scene, ob, CD_MASK_MESH);
@@ -2469,7 +2469,7 @@ void BKE_mesh_split_faces(Mesh *mesh, bool free_loop_normals)
 
 /* settings: 1 - preview, 2 - render */
 Mesh *BKE_mesh_new_from_object(
-        EvaluationContext *eval_ctx, Main *bmain, Scene *sce, Object *ob,
+        const EvaluationContext *eval_ctx, Main *bmain, Scene *sce, Object *ob,
         int apply_modifiers, int settings, int calc_tessface, int calc_undeformed)
 {
 	Mesh *tmpmesh;
@@ -2706,7 +2706,7 @@ Mesh *BKE_mesh_new_from_object(
 
 /* **** Depsgraph evaluation **** */
 
-void BKE_mesh_eval_geometry(EvaluationContext *UNUSED(eval_ctx),
+void BKE_mesh_eval_geometry(const EvaluationContext *UNUSED(eval_ctx),
                             Mesh *mesh)
 {
 	if (G.debug & G_DEBUG_DEPSGRAPH) {

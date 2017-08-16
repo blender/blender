@@ -257,7 +257,7 @@ bool Scene::getConstraintPose(ConstraintSet* constraint, void *_param, KDL::Fram
 	return true;
 }
 
-bool Scene::update(struct EvaluationContext *eval_ctx, double timestamp, double timestep, unsigned int numsubstep, bool reiterate, bool cache, bool interpolate)
+bool Scene::update(const struct EvaluationContext *eval_ctx, double timestamp, double timestep, unsigned int numsubstep, bool reiterate, bool cache, bool interpolate)
 {
 	// we must have valid timestep and timestamp
 	if (timestamp < KDL::epsilon || timestep < 0.0)

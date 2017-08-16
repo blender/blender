@@ -43,7 +43,7 @@ void SceneExporter::setExportTransformationType(BC_export_transformation_type tr
 	this->transformation_type = transformation_type;
 }
 
-void SceneExporter::exportScene(EvaluationContext *eval_ctx, Scene *sce)
+void SceneExporter::exportScene(const EvaluationContext *eval_ctx, Scene *sce)
 {
 	// <library_visual_scenes> <visual_scene>
 	std::string id_naming = id_name(sce);
@@ -53,7 +53,7 @@ void SceneExporter::exportScene(EvaluationContext *eval_ctx, Scene *sce)
 	closeLibrary();
 }
 
-void SceneExporter::exportHierarchy(EvaluationContext *eval_ctx, Scene *sce)
+void SceneExporter::exportHierarchy(const EvaluationContext *eval_ctx, Scene *sce)
 {	
 	LinkNode *node;
 	std::vector<Object *> base_objects;
@@ -91,7 +91,7 @@ void SceneExporter::exportHierarchy(EvaluationContext *eval_ctx, Scene *sce)
 }
 
 
-void SceneExporter::writeNodes(EvaluationContext *eval_ctx, Object *ob, Scene *sce)
+void SceneExporter::writeNodes(const EvaluationContext *eval_ctx, Object *ob, Scene *sce)
 {
 	// Add associated armature first if available
 	bool armature_exported = false;

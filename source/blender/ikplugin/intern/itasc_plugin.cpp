@@ -542,7 +542,7 @@ static void GetJointRotation(KDL::Rotation& boneRot, int type, double *rot)
 	}
 }
 
-static bool target_callback(struct EvaluationContext *eval_ctx, const iTaSC::Timestamp& timestamp, const iTaSC::Frame& current, iTaSC::Frame& next, void *param)
+static bool target_callback(const struct EvaluationContext *eval_ctx, const iTaSC::Timestamp& timestamp, const iTaSC::Frame& current, iTaSC::Frame& next, void *param)
 {
 	IK_Target *target = (IK_Target *)param;
 	// compute next target position
@@ -577,7 +577,7 @@ static bool target_callback(struct EvaluationContext *eval_ctx, const iTaSC::Tim
 	return true;
 }
 
-static bool base_callback(struct EvaluationContext *eval_ctx, const iTaSC::Timestamp& timestamp, const iTaSC::Frame& current, iTaSC::Frame& next, void *param)
+static bool base_callback(const struct EvaluationContext *eval_ctx, const iTaSC::Timestamp& timestamp, const iTaSC::Frame& current, iTaSC::Frame& next, void *param)
 {
 	IK_Scene *ikscene = (IK_Scene *)param;
 	// compute next armature base pose
@@ -863,7 +863,7 @@ static bool joint_callback(const iTaSC::Timestamp& timestamp, iTaSC::ConstraintV
 }
 
 // build array of joint corresponding to IK chain
-static int convert_channels(struct EvaluationContext *eval_ctx, IK_Scene *ikscene, PoseTree *tree, float ctime)
+static int convert_channels(const struct EvaluationContext *eval_ctx, IK_Scene *ikscene, PoseTree *tree, float ctime)
 {
 	IK_Channel *ikchan;
 	bPoseChannel *pchan;
@@ -1056,7 +1056,7 @@ static void BKE_pose_rest(IK_Scene *ikscene)
 	}
 }
 
-static IK_Scene *convert_tree(struct EvaluationContext *eval_ctx, Scene *blscene, Object *ob, bPoseChannel *pchan, float ctime)
+static IK_Scene *convert_tree(const struct EvaluationContext *eval_ctx, Scene *blscene, Object *ob, bPoseChannel *pchan, float ctime)
 {
 	PoseTree *tree = (PoseTree *)pchan->iktree.first;
 	PoseTarget *target;
@@ -1526,7 +1526,7 @@ static IK_Scene *convert_tree(struct EvaluationContext *eval_ctx, Scene *blscene
 	return ikscene;
 }
 
-static void create_scene(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, float ctime)
+static void create_scene(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, float ctime)
 {
 	bPoseChannel *pchan;
 
@@ -1576,7 +1576,7 @@ static int init_scene(Object *ob)
 	return 0;
 }
 
-static void execute_scene(struct EvaluationContext *eval_ctx, Scene *blscene, IK_Scene *ikscene, bItasc *ikparam, float ctime, float frtime)
+static void execute_scene(const struct EvaluationContext *eval_ctx, Scene *blscene, IK_Scene *ikscene, bItasc *ikparam, float ctime, float frtime)
 {
 	int i;
 	IK_Channel *ikchan;
@@ -1744,7 +1744,7 @@ static void execute_scene(struct EvaluationContext *eval_ctx, Scene *blscene, IK
 //---------------------------------------------------
 // plugin interface
 //
-void itasc_initialize_tree(struct EvaluationContext *eval_ctx, struct Scene *scene, Object *ob, float ctime)
+void itasc_initialize_tree(const struct EvaluationContext *eval_ctx, struct Scene *scene, Object *ob, float ctime)
 {
 	bPoseChannel *pchan;
 	int count = 0;
@@ -1770,7 +1770,7 @@ void itasc_initialize_tree(struct EvaluationContext *eval_ctx, struct Scene *sce
 	ob->pose->flag &= ~POSE_WAS_REBUILT;
 }
 
-void itasc_execute_tree(struct EvaluationContext *eval_ctx, struct Scene *scene, Object *ob,  bPoseChannel *pchan_root, float ctime)
+void itasc_execute_tree(const struct EvaluationContext *eval_ctx, struct Scene *scene, Object *ob,  bPoseChannel *pchan_root, float ctime)
 {
 	if (ob->pose->ikdata) {
 		IK_Data *ikdata = (IK_Data *)ob->pose->ikdata;

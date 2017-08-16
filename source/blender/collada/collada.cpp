@@ -67,7 +67,7 @@ int collada_import(bContext *C,
 	return 0;
 }
 
-int collada_export(EvaluationContext *eval_ctx,
+int collada_export(const EvaluationContext *eval_ctx,
                    Scene *sce,
                    SceneLayer *scene_layer,
                    const char *filepath,

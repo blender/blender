@@ -356,7 +356,7 @@ static void dm_merge_transform(
 }
 
 static DerivedMesh *arrayModifier_doArray(
-        ArrayModifierData *amd, EvaluationContext *eval_ctx,
+        ArrayModifierData *amd, const EvaluationContext *eval_ctx,
         Scene *scene, Object *ob, DerivedMesh *dm,
         ModifierApplyFlag flag)
 {
@@ -725,7 +725,7 @@ static DerivedMesh *arrayModifier_doArray(
 }
 
 
-static DerivedMesh *applyModifier(ModifierData *md, EvaluationContext *eval_ctx,
+static DerivedMesh *applyModifier(ModifierData *md, const EvaluationContext *eval_ctx,
                                   Object *ob, DerivedMesh *dm,
                                   ModifierApplyFlag flag)
 {

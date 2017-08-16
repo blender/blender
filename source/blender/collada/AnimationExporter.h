@@ -85,7 +85,7 @@ class AnimationExporter: COLLADASW::LibraryAnimations
 {
 private:
 	Scene *scene;
-	struct EvaluationContext *eval_ctx;
+	const struct EvaluationContext *eval_ctx;
 	COLLADASW::StreamWriter *sw;
 
 public:
@@ -95,7 +95,7 @@ public:
 			{ this->sw = sw; }
 	
 
-	bool exportAnimations(struct EvaluationContext *eval_ctx, Scene *sce);
+	bool exportAnimations(const struct EvaluationContext *eval_ctx, Scene *sce);
 
 	// called for each exported object
 	void operator() (Object *ob); 

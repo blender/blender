@@ -166,7 +166,7 @@ static int particle_skip(ParticleInstanceModifierData *pimd, ParticleSystem *psy
 	return 0;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, struct EvaluationContext *eval_ctx,
+static DerivedMesh *applyModifier(ModifierData *md, const struct EvaluationContext *eval_ctx,
                                   Object *ob, DerivedMesh *derivedData,
                                   ModifierApplyFlag UNUSED(flag))
 {

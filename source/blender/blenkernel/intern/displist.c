@@ -678,7 +678,7 @@ static void curve_to_filledpoly(Curve *cu, ListBase *UNUSED(nurb), ListBase *dis
  * - first point left, last point right
  * - based on subdivided points in original curve, not on points in taper curve (still)
  */
-static float displist_calc_taper(EvaluationContext *eval_ctx, Scene *scene, Object *taperobj, float fac)
+static float displist_calc_taper(const EvaluationContext *eval_ctx, Scene *scene, Object *taperobj, float fac)
 {
 	DispList *dl;
 
@@ -718,14 +718,14 @@ static float displist_calc_taper(EvaluationContext *eval_ctx, Scene *scene, Obje
 	return 1.0;
 }
 
-float BKE_displist_calc_taper(EvaluationContext *eval_ctx, Scene *scene, Object *taperobj, int cur, int tot)
+float BKE_displist_calc_taper(const EvaluationContext *eval_ctx, Scene *scene, Object *taperobj, int cur, int tot)
 {
 	float fac = ((float)cur) / (float)(tot - 1);
 
 	return displist_calc_taper(eval_ctx, scene, taperobj, fac);
 }
 
-void BKE_displist_make_mball(EvaluationContext *eval_ctx, Scene *scene, Object *ob)
+void BKE_displist_make_mball(const EvaluationContext *eval_ctx, Scene *scene, Object *ob)
 {
 	if (!ob || ob->type != OB_MBALL)
 		return;
@@ -748,7 +748,7 @@ void BKE_displist_make_mball(EvaluationContext *eval_ctx, Scene *scene, Object *
 	}
 }
 
-void BKE_displist_make_mball_forRender(EvaluationContext *eval_ctx, Scene *scene, Object *ob, ListBase *dispbase)
+void BKE_displist_make_mball_forRender(const EvaluationContext *eval_ctx, Scene *scene, Object *ob, ListBase *dispbase)
 {
 	BKE_mball_polygonize(eval_ctx, scene, ob, dispbase);
 	BKE_mball_texspace_calc(ob);
@@ -798,8 +798,9 @@ static ModifierData *curve_get_tessellate_point(Scene *scene, Object *ob,
 	return pretessellatePoint;
 }
 
-static void curve_calc_modifiers_pre(EvaluationContext *eval_ctx, Scene *scene, Object *ob, ListBase *nurb,
-                                     const bool for_render, const bool use_render_resolution)
+static void curve_calc_modifiers_pre(
+        const EvaluationContext *eval_ctx, Scene *scene, Object *ob, ListBase *nurb,
+        const bool for_render, const bool use_render_resolution)
 {
 	VirtualModifierData virtualModifierData;
 	ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
@@ -908,9 +909,10 @@ static void displist_apply_allverts(ListBase *dispbase, float (*allverts)[3])
 	}
 }
 
-static void curve_calc_modifiers_post(EvaluationContext *eval_ctx, Scene *scene, Object *ob, ListBase *nurb,
-                                      ListBase *dispbase, DerivedMesh **r_dm_final,
-                                      const bool for_render, const bool use_render_resolution)
+static void curve_calc_modifiers_post(
+        const EvaluationContext *eval_ctx, Scene *scene, Object *ob, ListBase *nurb,
+        ListBase *dispbase, DerivedMesh **r_dm_final,
+        const bool for_render, const bool use_render_resolution)
 {
 	VirtualModifierData virtualModifierData;
 	ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
@@ -1090,7 +1092,7 @@ static void displist_surf_indices(DispList *dl)
 	}
 }
 
-static DerivedMesh *create_orco_dm(EvaluationContext *eval_ctx, Scene *scene, Object *ob)
+static DerivedMesh *create_orco_dm(const EvaluationContext *eval_ctx, Scene *scene, Object *ob)
 {
 	DerivedMesh *dm;
 	ListBase disp = {NULL, NULL};
@@ -1134,8 +1136,9 @@ static void add_orco_dm(Object *ob, DerivedMesh *dm, DerivedMesh *orcodm)
 		DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, orco);
 }
 
-static void curve_calc_orcodm(EvaluationContext *eval_ctx, Scene *scene, Object *ob, DerivedMesh *dm_final,
-                              const bool for_render, const bool use_render_resolution)
+static void curve_calc_orcodm(
+        const EvaluationContext *eval_ctx, Scene *scene, Object *ob, DerivedMesh *dm_final,
+        const bool for_render, const bool use_render_resolution)
 {
 	/* this function represents logic of mesh's orcodm calculation
 	 * for displist-based objects
@@ -1201,9 +1204,10 @@ static void curve_calc_orcodm(EvaluationContext *eval_ctx, Scene *scene, Object 
 	orcodm->release(orcodm);
 }
 
-void BKE_displist_make_surf(EvaluationContext *eval_ctx, Scene *scene, Object *ob, ListBase *dispbase,
-                            DerivedMesh **r_dm_final,
-                            const bool for_render, const bool for_orco, const bool use_render_resolution)
+void BKE_displist_make_surf(
+        const EvaluationContext *eval_ctx, Scene *scene, Object *ob, ListBase *dispbase,
+        DerivedMesh **r_dm_final,
+        const bool for_render, const bool for_orco, const bool use_render_resolution)
 {
 	ListBase nubase = {NULL, NULL};
 	Nurb *nu;
@@ -1513,9 +1517,10 @@ static void calc_bevfac_mapping(Curve *cu, BevList *bl, Nurb *nu,
 	}
 }
 
-static void do_makeDispListCurveTypes(EvaluationContext *eval_ctx, Scene *scene, Object *ob, ListBase *dispbase,
-                                      DerivedMesh **r_dm_final,
-                                      const bool for_render, const bool for_orco, const bool use_render_resolution)
+static void do_makeDispListCurveTypes(
+        const EvaluationContext *eval_ctx, Scene *scene, Object *ob, ListBase *dispbase,
+        DerivedMesh **r_dm_final,
+        const bool for_render, const bool for_orco, const bool use_render_resolution)
 {
 	Curve *cu = ob->data;
 
@@ -1761,7 +1766,7 @@ static void do_makeDispListCurveTypes(EvaluationContext *eval_ctx, Scene *scene,
 	}
 }
 
-void BKE_displist_make_curveTypes(EvaluationContext *eval_ctx, Scene *scene, Object *ob, const bool for_orco)
+void BKE_displist_make_curveTypes(const EvaluationContext *eval_ctx, Scene *scene, Object *ob, const bool for_orco)
 {
 	ListBase *dispbase;
 
@@ -1784,9 +1789,10 @@ void BKE_displist_make_curveTypes(EvaluationContext *eval_ctx, Scene *scene, Obj
 	boundbox_displist_object(ob);
 }
 
-void BKE_displist_make_curveTypes_forRender(EvaluationContext *eval_ctx, Scene *scene, Object *ob, ListBase *dispbase,
-                                            DerivedMesh **r_dm_final, const bool for_orco,
-                                            const bool use_render_resolution)
+void BKE_displist_make_curveTypes_forRender(
+        const EvaluationContext *eval_ctx, Scene *scene, Object *ob, ListBase *dispbase,
+        DerivedMesh **r_dm_final, const bool for_orco,
+        const bool use_render_resolution)
 {
 	if (ob->curve_cache == NULL) {
 		ob->curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for Curve");
@@ -1795,7 +1801,8 @@ void BKE_displist_make_curveTypes_forRender(EvaluationContext *eval_ctx, Scene *
 	do_makeDispListCurveTypes(eval_ctx, scene, ob, dispbase, r_dm_final, true, for_orco, use_render_resolution);
 }
 
-void BKE_displist_make_curveTypes_forOrco(EvaluationContext *eval_ctx, Scene *scene, Object *ob, ListBase *dispbase)
+void BKE_displist_make_curveTypes_forOrco(
+        const EvaluationContext *eval_ctx, Scene *scene, Object *ob, ListBase *dispbase)
 {
 	if (ob->curve_cache == NULL) {
 		ob->curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for Curve");
@@ -1805,9 +1812,10 @@ void BKE_displist_make_curveTypes_forOrco(EvaluationContext *eval_ctx, Scene *sc
 }
 
 /* add Orco layer to the displist object which has got derived mesh and return orco */
-float *BKE_displist_make_orco(EvaluationContext *eval_ctx, Scene *scene, Object *ob, DerivedMesh *dm_final,
-                              const bool for_render,
-                              const bool use_render_resolution)
+float *BKE_displist_make_orco(
+        const EvaluationContext *eval_ctx, Scene *scene, Object *ob, DerivedMesh *dm_final,
+        const bool for_render,
+        const bool use_render_resolution)
 {
 	float *orco;
 

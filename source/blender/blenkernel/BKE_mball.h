@@ -73,7 +73,7 @@ void BKE_mball_select_swap(struct MetaBall *mb);
 
 struct EvaluationContext;
 
-void BKE_mball_eval_geometry(struct EvaluationContext *eval_ctx,
+void BKE_mball_eval_geometry(const struct EvaluationContext *eval_ctx,
                              struct MetaBall *mball);
 
 #endif

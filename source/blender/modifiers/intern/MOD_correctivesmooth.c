@@ -713,7 +713,7 @@ error:
 
 
 static void deformVerts(
-        ModifierData *md, struct EvaluationContext *UNUSED(eval_ctx), Object *ob, DerivedMesh *derivedData,
+        ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx), Object *ob, DerivedMesh *derivedData,
         float (*vertexCos)[3], int numVerts, ModifierApplyFlag UNUSED(flag))
 {
 	DerivedMesh *dm = get_dm(ob, NULL, derivedData, NULL, false, false);
@@ -727,7 +727,7 @@ static void deformVerts(
 
 
 static void deformVertsEM(
-        ModifierData *md, struct EvaluationContext *UNUSED(eval_ctx), Object *ob, struct BMEditMesh *editData,
+        ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx), Object *ob, struct BMEditMesh *editData,
         DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = get_dm(ob, editData, derivedData, NULL, false, false);

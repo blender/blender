@@ -313,7 +313,7 @@ static int warp_needs_dm(WarpModifierData *wmd)
 	return wmd->texture || wmd->defgrp_name[0];
 }
 
-static void deformVerts(ModifierData *md, struct EvaluationContext *UNUSED(eval_ctx), Object *ob, DerivedMesh *derivedData,
+static void deformVerts(ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx), Object *ob, DerivedMesh *derivedData,
                         float (*vertexCos)[3], int numVerts, ModifierApplyFlag UNUSED(flag))
 {
 	DerivedMesh *dm = NULL;
@@ -330,7 +330,7 @@ static void deformVerts(ModifierData *md, struct EvaluationContext *UNUSED(eval_
 	}
 }
 
-static void deformVertsEM(ModifierData *md, struct EvaluationContext *eval_ctx, Object *ob, struct BMEditMesh *em,
+static void deformVertsEM(ModifierData *md, const struct EvaluationContext *eval_ctx, Object *ob, struct BMEditMesh *em,
                           DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;

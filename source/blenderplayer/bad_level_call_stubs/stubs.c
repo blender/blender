@@ -538,7 +538,7 @@ void ED_view3d_from_m4(float mat[4][4], float ofs[3], float quat[4], float *dist
 struct BGpic *ED_view3D_background_image_new(struct View3D *v3d) RET_NULL
 void ED_view3D_background_image_remove(struct View3D *v3d, struct BGpic *bgpic) RET_NONE
 void ED_view3D_background_image_clear(struct View3D *v3d) RET_NONE
-void ED_view3d_update_viewmat(struct EvaluationContext *eval_ctx, struct Scene *scene, struct View3D *v3d, struct ARegion *ar, float viewmat[4][4], float winmat[4][4], const struct rcti *rect) RET_NONE
+void ED_view3d_update_viewmat(const struct EvaluationContext *eval_ctx, struct Scene *scene, struct View3D *v3d, struct ARegion *ar, float viewmat[4][4], float winmat[4][4], const struct rcti *rect) RET_NONE
 float ED_view3d_grid_scale(struct Scene *scene, struct View3D *v3d, const char **grid_unit) RET_ZERO
 void ED_view3d_shade_update(struct Main *bmain, struct Scene *scene, struct View3D *v3d, struct ScrArea *sa) RET_NONE
 void ED_node_shader_default(const struct bContext *C, struct ID *id) RET_NONE
@@ -810,7 +810,7 @@ int UI_pie_menu_invoke_from_operator_enum(struct bContext *C, const char *title,
                              const char *propname, const struct wmEvent *event) RET_ZERO
 
 /* RNA COLLADA dependency */
-int collada_export(struct EvaluationContext *eval_ctx,
+int collada_export(const struct EvaluationContext *eval_ctx,
                    struct Scene *sce,
                    struct SceneLayer *scene_layer,
                    const char *filepath,

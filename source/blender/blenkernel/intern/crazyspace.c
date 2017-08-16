@@ -99,7 +99,8 @@ static int modifiers_disable_subsurf_temporary(Object *ob)
 }
 
 /* disable subsurf temporal, get mapped cos, and enable it */
-float (*BKE_crazyspace_get_mapped_editverts(struct EvaluationContext *eval_ctx, Scene *scene, Object *obedit))[3]
+float (*BKE_crazyspace_get_mapped_editverts(
+           const struct EvaluationContext *eval_ctx, Scene *scene, Object *obedit))[3]
 {
 	Mesh *me = obedit->data;
 	DerivedMesh *dm;
@@ -250,8 +251,9 @@ void BKE_crazyspace_set_quats_mesh(Mesh *me, float (*origcos)[3], float (*mapped
 
 /** returns an array of deform matrices for crazyspace correction, and the
  * number of modifiers left */
-int BKE_crazyspace_get_first_deform_matrices_editbmesh(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, BMEditMesh *em,
-                                        float (**deformmats)[3][3], float (**deformcos)[3])
+int BKE_crazyspace_get_first_deform_matrices_editbmesh(
+        const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, BMEditMesh *em,
+        float (**deformmats)[3][3], float (**deformcos)[3])
 {
 	ModifierData *md;
 	DerivedMesh *dm;
@@ -310,7 +312,9 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(struct EvaluationContext 
 	return numleft;
 }
 
-int BKE_sculpt_get_first_deform_matrices(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, float (**deformmats)[3][3], float (**deformcos)[3])
+int BKE_sculpt_get_first_deform_matrices(
+        const struct EvaluationContext *eval_ctx, Scene *scene,
+        Object *ob, float (**deformmats)[3][3], float (**deformcos)[3])
 {
 	ModifierData *md;
 	DerivedMesh *dm;
@@ -369,7 +373,7 @@ int BKE_sculpt_get_first_deform_matrices(struct EvaluationContext *eval_ctx, Sce
 	return numleft;
 }
 
-void BKE_crazyspace_build_sculpt(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, float (**deformmats)[3][3], float (**deformcos)[3])
+void BKE_crazyspace_build_sculpt(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, float (**deformmats)[3][3], float (**deformcos)[3])
 {
 	int totleft = BKE_sculpt_get_first_deform_matrices(eval_ctx, scene, ob, deformmats, deformcos);
 

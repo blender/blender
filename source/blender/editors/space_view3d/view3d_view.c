@@ -1106,7 +1106,7 @@ bool ED_view3d_lock(RegionView3D *rv3d)
 }
 
 /* don't set windows active in here, is used by renderwin too */
-void view3d_viewmatrix_set(EvaluationContext *eval_ctx, Scene *scene, const View3D *v3d, RegionView3D *rv3d)
+void view3d_viewmatrix_set(const EvaluationContext *eval_ctx, Scene *scene, const View3D *v3d, RegionView3D *rv3d)
 {
 	if (rv3d->persp == RV3D_CAMOB) {      /* obs/camera */
 		if (v3d->camera) {
@@ -1195,7 +1195,7 @@ void view3d_opengl_select_cache_end(void)
  * \note (vc->obedit == NULL) can be set to explicitly skip edit-object selection.
  */
 int view3d_opengl_select(
-        const bContext *C, ViewContext *vc, unsigned int *buffer, unsigned int bufsize, const rcti *input,
+        const EvaluationContext *eval_ctx, ViewContext *vc, unsigned int *buffer, unsigned int bufsize, const rcti *input,
         eV3DSelectMode select_mode)
 {
 	Depsgraph *graph = vc->depsgraph;
@@ -1256,7 +1256,7 @@ int view3d_opengl_select(
 
 	/* Important we use the 'viewmat' and don't re-calculate since
 	 * the object & bone view locking takes 'rect' into account, see: T51629. */
-	ED_view3d_draw_setup_view(vc->win, C, scene, ar, v3d, vc->rv3d->viewmat, NULL, &rect);
+	ED_view3d_draw_setup_view(vc->win, eval_ctx, scene, ar, v3d, vc->rv3d->viewmat, NULL, &rect);
 
 	if (v3d->drawtype > OB_WIRE) {
 		v3d->zbuf = true;
@@ -1300,7 +1300,7 @@ int view3d_opengl_select(
 	}
 
 	G.f &= ~G_PICKSEL;
-	ED_view3d_draw_setup_view(vc->win, C, scene, ar, v3d, vc->rv3d->viewmat, NULL, NULL);
+	ED_view3d_draw_setup_view(vc->win, eval_ctx, scene, ar, v3d, vc->rv3d->viewmat, NULL, NULL);
 	
 	if (v3d->drawtype > OB_WIRE) {
 		v3d->zbuf = 0;

@@ -49,7 +49,7 @@
 
 #include "MOD_modifiertypes.h"
 
-static void deformVerts(ModifierData *md, EvaluationContext *eval_ctx, Object *ob,
+static void deformVerts(ModifierData *md, const EvaluationContext *eval_ctx, Object *ob,
                         DerivedMesh *UNUSED(derivedData),
                         float (*vertexCos)[3],
                         int numVerts,

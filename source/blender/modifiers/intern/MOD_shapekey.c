@@ -44,7 +44,7 @@
 
 #include "MOD_modifiertypes.h"
 
-static void deformVerts(ModifierData *UNUSED(md), struct EvaluationContext *UNUSED(eval_ctx),
+static void deformVerts(ModifierData *UNUSED(md), const struct EvaluationContext *UNUSED(eval_ctx),
                         Object *ob, DerivedMesh *UNUSED(derivedData),
                         float (*vertexCos)[3],
                         int numVerts,
@@ -61,7 +61,7 @@ static void deformVerts(ModifierData *UNUSED(md), struct EvaluationContext *UNUS
 	}
 }
 
-static void deformMatrices(ModifierData *md, struct EvaluationContext *eval_ctx, Object *ob, DerivedMesh *derivedData,
+static void deformMatrices(ModifierData *md, const struct EvaluationContext *eval_ctx, Object *ob, DerivedMesh *derivedData,
                            float (*vertexCos)[3], float (*defMats)[3][3], int numVerts)
 {
 	Key *key = BKE_key_from_object(ob);
@@ -83,7 +83,7 @@ static void deformMatrices(ModifierData *md, struct EvaluationContext *eval_ctx,
 	deformVerts(md, eval_ctx, ob, derivedData, vertexCos, numVerts, 0);
 }
 
-static void deformVertsEM(ModifierData *md, struct EvaluationContext *eval_ctx, Object *ob,
+static void deformVertsEM(ModifierData *md, const struct EvaluationContext *eval_ctx, Object *ob,
                           struct BMEditMesh *UNUSED(editData),
                           DerivedMesh *derivedData,
                           float (*vertexCos)[3],
@@ -95,7 +95,7 @@ static void deformVertsEM(ModifierData *md, struct EvaluationContext *eval_ctx, 
 		deformVerts(md, eval_ctx, ob, derivedData, vertexCos, numVerts, 0);
 }
 
-static void deformMatricesEM(ModifierData *UNUSED(md), struct EvaluationContext *UNUSED(eval_ctx),
+static void deformMatricesEM(ModifierData *UNUSED(md), const struct EvaluationContext *UNUSED(eval_ctx),
                              Object *ob, struct BMEditMesh *UNUSED(editData),
                              DerivedMesh *UNUSED(derivedData),
                              float (*vertexCos)[3],

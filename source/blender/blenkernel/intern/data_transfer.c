@@ -1010,7 +1010,8 @@ static bool data_transfer_layersmapping_generate(
  * to get (as much as possible) exact copy of source data layout.
  */
 void BKE_object_data_transfer_layout(
-        struct EvaluationContext *eval_ctx, Scene *scene, Object *ob_src, Object *ob_dst, const int data_types, const bool use_delete,
+        const struct EvaluationContext *eval_ctx, Scene *scene,
+        Object *ob_src, Object *ob_dst, const int data_types, const bool use_delete,
         const int fromlayers_select[DT_MULTILAYER_INDEX_MAX], const int tolayers_select[DT_MULTILAYER_INDEX_MAX])
 {
 	DerivedMesh *dm_src;
@@ -1085,7 +1086,7 @@ void BKE_object_data_transfer_layout(
 }
 
 bool BKE_object_data_transfer_dm(
-        struct EvaluationContext *eval_ctx, Scene *scene, Object *ob_src, Object *ob_dst, DerivedMesh *dm_dst,
+        const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob_src, Object *ob_dst, DerivedMesh *dm_dst,
         const int data_types, bool use_create, const int map_vert_mode, const int map_edge_mode,
         const int map_loop_mode, const int map_poly_mode, SpaceTransform *space_transform, const bool auto_transform,
         const float max_distance, const float ray_radius, const float islands_handling_precision,
@@ -1457,7 +1458,7 @@ bool BKE_object_data_transfer_dm(
 }
 
 bool BKE_object_data_transfer_mesh(
-        struct EvaluationContext *eval_ctx, Scene *scene, Object *ob_src, Object *ob_dst, const int data_types,
+        const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob_src, Object *ob_dst, const int data_types,
         const bool use_create, const int map_vert_mode, const int map_edge_mode, const int map_loop_mode,
         const int map_poly_mode, SpaceTransform *space_transform, const bool auto_transform,
         const float max_distance, const float ray_radius, const float islands_handling_precision,

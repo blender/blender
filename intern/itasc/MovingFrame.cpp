@@ -90,7 +90,7 @@ bool MovingFrame::setCallback(MovingFrameCallback _function, void* _param)
 	return true;
 }
 
-void MovingFrame::updateCoordinates(struct EvaluationContext *eval_ctx, const Timestamp& timestamp)
+void MovingFrame::updateCoordinates(const struct EvaluationContext *eval_ctx, const Timestamp& timestamp)
 {
 	// don't compute the velocity during substepping, it is assumed constant.
 	if (!timestamp.substep) {

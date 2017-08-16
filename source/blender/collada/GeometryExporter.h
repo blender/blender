@@ -74,13 +74,13 @@ class GeometryExporter : COLLADASW::LibraryGeometries
 
 	Normal n;
 
-	struct EvaluationContext *mEvalCtx;
+	const struct EvaluationContext *mEvalCtx;
 	Scene *mScene;
 
 public:
 	GeometryExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings);
 
-	void exportGeom(struct EvaluationContext *eval_ctx, Scene *sce);
+	void exportGeom(const struct EvaluationContext *eval_ctx, Scene *sce);
 
 	void operator()(Object *ob);
 

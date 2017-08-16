@@ -69,7 +69,7 @@
 /* Dupli-Geometry */
 
 typedef struct DupliContext {
-	EvaluationContext *eval_ctx;
+	const EvaluationContext *eval_ctx;
 	bool do_update;
 	bool animated;
 	Group *group; /* XXX child objects are selected from this group if set, could be nicer */
@@ -95,7 +95,7 @@ typedef struct DupliGenerator {
 static const DupliGenerator *get_dupli_generator(const DupliContext *ctx);
 
 /* create initial context for root object */
-static void init_context(DupliContext *r_ctx, EvaluationContext *eval_ctx, Scene *scene, Object *ob, float space_mat[4][4], bool update)
+static void init_context(DupliContext *r_ctx, const EvaluationContext *eval_ctx, Scene *scene, Object *ob, float space_mat[4][4], bool update)
 {
 	r_ctx->eval_ctx = eval_ctx;
 	r_ctx->scene = scene;
@@ -1216,7 +1216,7 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
 /* ---- ListBase dupli container implementation ---- */
 
 /* Returns a list of DupliObject */
-ListBase *object_duplilist_ex(EvaluationContext *eval_ctx, Scene *scene, Object *ob, bool update)
+ListBase *object_duplilist_ex(const EvaluationContext *eval_ctx, Scene *scene, Object *ob, bool update)
 {
 	ListBase *duplilist = MEM_callocN(sizeof(ListBase), "duplilist");
 	DupliContext ctx;
@@ -1231,7 +1231,7 @@ ListBase *object_duplilist_ex(EvaluationContext *eval_ctx, Scene *scene, Object 
 
 /* note: previously updating was always done, this is why it defaults to be on
  * but there are likely places it can be called without updating */
-ListBase *object_duplilist(EvaluationContext *eval_ctx, Scene *sce, Object *ob)
+ListBase *object_duplilist(const EvaluationContext *eval_ctx, Scene *sce, Object *ob)
 {
 	return object_duplilist_ex(eval_ctx, sce, ob, true);
 }
@@ -1272,7 +1272,7 @@ int count_duplilist(Object *ob)
 	return 1;
 }
 
-DupliApplyData *duplilist_apply(EvaluationContext *eval_ctx, Object *ob, Scene *scene, ListBase *duplilist)
+DupliApplyData *duplilist_apply(const EvaluationContext *eval_ctx, Object *ob, Scene *scene, ListBase *duplilist)
 {
 	DupliApplyData *apply_data = NULL;
 	int num_objects = BLI_listbase_count(duplilist);

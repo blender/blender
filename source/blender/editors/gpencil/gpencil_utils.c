@@ -65,6 +65,8 @@
 #include "ED_clip.h"
 #include "ED_view3d.h"
 
+#include "DEG_depsgraph.h"
+
 #include "gpencil_intern.h"
 
 /* ******************************************************** */
@@ -538,11 +540,14 @@ void gp_point_conversion_init(bContext *C, GP_SpaceConversion *r_gsc)
 		View3D *v3d = (View3D *)CTX_wm_space_data(C);
 		RegionView3D *rv3d = ar->regiondata;
 		
+		EvaluationContext eval_ctx;
+		CTX_data_eval_ctx(C, &eval_ctx);
+
 		/* init 3d depth buffers */
 		view3d_operator_needs_opengl(C);
 		
 		view3d_region_operator_needs_opengl(win, ar);
-		ED_view3d_autodist_init(C, graph, ar, v3d, 0);
+		ED_view3d_autodist_init(&eval_ctx, graph, ar, v3d, 0);
 		
 		/* for camera view set the subrect */
 		if (rv3d->persp == RV3D_CAMOB) {

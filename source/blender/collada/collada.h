@@ -64,7 +64,7 @@ int collada_import(struct bContext *C,
 
 				   int keep_bind_info);
 
-int collada_export(struct EvaluationContext *eval_ctx,
+int collada_export(const struct EvaluationContext *eval_ctx,
                    struct Scene *sce,
                    struct SceneLayer *scene_layer,
                    const char *filepath,

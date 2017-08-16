@@ -757,7 +757,7 @@ void modifier_path_init(char *path, int path_maxlen, const char *name)
 /* wrapper around ModifierTypeInfo.applyModifier that ensures valid normals */
 
 struct DerivedMesh *modwrap_applyModifier(
-        ModifierData *md, struct EvaluationContext *eval_ctx,
+        ModifierData *md, const struct EvaluationContext *eval_ctx,
         Object *ob, struct DerivedMesh *dm,
         ModifierApplyFlag flag)
 {
@@ -771,7 +771,7 @@ struct DerivedMesh *modwrap_applyModifier(
 }
 
 struct DerivedMesh *modwrap_applyModifierEM(
-        ModifierData *md, struct EvaluationContext *eval_ctx,
+        ModifierData *md, const struct EvaluationContext *eval_ctx,
         Object *ob, struct BMEditMesh *em,
         DerivedMesh *dm,
         ModifierApplyFlag flag)
@@ -786,7 +786,7 @@ struct DerivedMesh *modwrap_applyModifierEM(
 }
 
 void modwrap_deformVerts(
-        ModifierData *md, struct EvaluationContext *eval_ctx,
+        ModifierData *md, const struct EvaluationContext *eval_ctx,
         Object *ob, DerivedMesh *dm,
         float (*vertexCos)[3], int numVerts,
         ModifierApplyFlag flag)
@@ -801,7 +801,7 @@ void modwrap_deformVerts(
 }
 
 void modwrap_deformVertsEM(
-        ModifierData *md, struct EvaluationContext *eval_ctx, Object *ob,
+        ModifierData *md, const struct EvaluationContext *eval_ctx, Object *ob,
         struct BMEditMesh *em, DerivedMesh *dm,
         float (*vertexCos)[3], int numVerts)
 {

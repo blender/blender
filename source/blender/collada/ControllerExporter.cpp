@@ -104,7 +104,7 @@ bool ControllerExporter::add_instance_controller(Object *ob)
 	return true;
 }
 
-void ControllerExporter::export_controllers(struct EvaluationContext *eval_ctx, Scene *sce)
+void ControllerExporter::export_controllers(const struct EvaluationContext *eval_ctx, Scene *sce)
 {
 	this->eval_ctx = eval_ctx;
 	scene = sce;

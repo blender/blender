@@ -785,9 +785,10 @@ static DerivedMesh *cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 
 	return splitdm;
 }
-static DerivedMesh *explodeMesh(ExplodeModifierData *emd,
-                                ParticleSystemModifierData *psmd, struct EvaluationContext *eval_ctx, Scene *scene,
-                                Object *ob, DerivedMesh *to_explode)
+static DerivedMesh *explodeMesh(
+        ExplodeModifierData *emd,
+        ParticleSystemModifierData *psmd, const struct EvaluationContext *eval_ctx, Scene *scene,
+        Object *ob, DerivedMesh *to_explode)
 {
 	DerivedMesh *explode, *dm = to_explode;
 	MFace *mf = NULL, *mface;
@@ -994,7 +995,7 @@ static ParticleSystemModifierData *findPrecedingParticlesystem(Object *ob, Modif
 	}
 	return psmd;
 }
-static DerivedMesh *applyModifier(ModifierData *md, struct EvaluationContext *eval_ctx,
+static DerivedMesh *applyModifier(ModifierData *md, const struct EvaluationContext *eval_ctx,
                                   Object *ob, DerivedMesh *derivedData,
                                   ModifierApplyFlag UNUSED(flag))
 {

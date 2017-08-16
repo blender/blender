@@ -1079,7 +1079,7 @@ static void polygonize(PROCESS *process)
  * Iterates over ALL objects in the scene and all of its sets, including
  * making all duplis(not only metas). Copies metas to mainb array.
  * Computes bounding boxes for building BVH. */
-static void init_meta(EvaluationContext *eval_ctx, PROCESS *process, Scene *scene, Object *ob)
+static void init_meta(const EvaluationContext *eval_ctx, PROCESS *process, Scene *scene, Object *ob)
 {
 	Scene *sce_iter = scene;
 	BaseLegacy *base;
@@ -1256,7 +1256,7 @@ static void init_meta(EvaluationContext *eval_ctx, PROCESS *process, Scene *scen
 	}
 }
 
-void BKE_mball_polygonize(EvaluationContext *eval_ctx, Scene *scene, Object *ob, ListBase *dispbase)
+void BKE_mball_polygonize(const EvaluationContext *eval_ctx, Scene *scene, Object *ob, ListBase *dispbase)
 {
 	MetaBall *mb;
 	DispList *dl;

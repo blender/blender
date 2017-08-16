@@ -147,7 +147,7 @@ Object *bc_add_object(Scene *scene, int type, const char *name)
 	return ob;
 }
 
-Mesh *bc_get_mesh_copy(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, BC_export_mesh_type export_mesh_type, bool apply_modifiers, bool triangulate)
+Mesh *bc_get_mesh_copy(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, BC_export_mesh_type export_mesh_type, bool apply_modifiers, bool triangulate)
 {
 	Mesh *tmpmesh;
 	CustomDataMask mask = CD_MASK_MESH;

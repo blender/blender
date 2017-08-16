@@ -538,7 +538,7 @@ void BKE_mball_select_swap(struct MetaBall *mb)
 
 /* **** Depsgraph evaluation **** */
 
-void BKE_mball_eval_geometry(struct EvaluationContext *UNUSED(eval_ctx),
+void BKE_mball_eval_geometry(const struct EvaluationContext *UNUSED(eval_ctx),
                              MetaBall *UNUSED(mball))
 {
 }

@@ -2051,7 +2051,9 @@ void flushTransParticles(TransInfo *t)
 			point->flag |= PEP_EDIT_RECALC;
 	}
 
-	PE_update_object(t->context, scene, sl, OBACT_NEW(sl), 1);
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(t->context, &eval_ctx);
+	PE_update_object(&eval_ctx, scene, sl, OBACT_NEW(sl), 1);
 }
 
 /* ********************* mesh ****************** */

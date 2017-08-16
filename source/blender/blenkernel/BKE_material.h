@@ -123,7 +123,7 @@ void paste_matcopybuf(struct Material *ma);
 
 struct EvaluationContext;
 
-void BKE_material_eval(struct EvaluationContext *eval_ctx, struct Material *material);
+void BKE_material_eval(const struct EvaluationContext *eval_ctx, struct Material *material);
 
 #ifdef __cplusplus
 }

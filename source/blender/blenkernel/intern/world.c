@@ -192,7 +192,7 @@ void BKE_world_make_local(Main *bmain, World *wrld, const bool lib_local)
 	BKE_id_make_local_generic(bmain, &wrld->id, true, lib_local);
 }
 
-void BKE_world_eval(struct EvaluationContext *UNUSED(eval_ctx), World *world)
+void BKE_world_eval(const struct EvaluationContext *UNUSED(eval_ctx), World *world)
 {
 	if (G.debug & G_DEBUG_DEPSGRAPH) {
 		printf("%s on %s (%p)\n", __func__, world->id.name, world);

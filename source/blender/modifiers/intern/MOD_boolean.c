@@ -402,7 +402,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(
 }
 
 static DerivedMesh *applyModifier(
-        ModifierData *md, struct EvaluationContext *UNUSED(eval_ctx),
+        ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx),
         Object *ob, DerivedMesh *derivedData,
         ModifierApplyFlag flag)
 {

@@ -86,7 +86,9 @@
 
 #include "physics_intern.h"
 
-void PE_create_particle_edit(const bContext *C, Scene *scene, SceneLayer *sl, Object *ob, PointCache *cache, ParticleSystem *psys);
+void PE_create_particle_edit(
+        const EvaluationContext *eval_ctx, Scene *scene, SceneLayer *sl, Object *ob,
+        PointCache *cache, ParticleSystem *psys);
 void PTCacheUndo_clear(PTCacheEdit *edit);
 void recalc_lengths(PTCacheEdit *edit);
 void recalc_emitter_field(Object *ob, ParticleSystem *psys);
@@ -216,7 +218,8 @@ static float pe_brush_size_get(const Scene *UNUSED(scene), ParticleBrushData *br
  *
  * note: this function runs on poll, therefor it can runs many times a second
  * keep it fast! */
-static PTCacheEdit *pe_get_current(const bContext *C, Scene *scene, SceneLayer *sl, Object *ob, int create)
+static PTCacheEdit *pe_get_current(
+        const EvaluationContext *eval_ctx, Scene *scene, SceneLayer *sl, Object *ob, int create)
 {
 	ParticleEditSettings *pset= PE_settings(scene);
 	PTCacheEdit *edit = NULL;
@@ -256,18 +259,18 @@ static PTCacheEdit *pe_get_current(const bContext *C, Scene *scene, SceneLayer *
 				if (psys->part && psys->part->type == PART_HAIR) {
 					if (psys->flag & PSYS_HAIR_DYNAMICS && psys->pointcache->flag & PTCACHE_BAKED) {
 						if (create && !psys->pointcache->edit)
-							PE_create_particle_edit(C, scene, sl, ob, pid->cache, NULL);
+							PE_create_particle_edit(eval_ctx, scene, sl, ob, pid->cache, NULL);
 						edit = pid->cache->edit;
 					}
 					else {
 						if (create && !psys->edit && psys->flag & PSYS_HAIR_DONE)
-							PE_create_particle_edit(C, scene, sl, ob, NULL, psys);
+							PE_create_particle_edit(eval_ctx, scene, sl, ob, NULL, psys);
 						edit = psys->edit;
 					}
 				}
 				else {
 					if (create && pid->cache->flag & PTCACHE_BAKED && !pid->cache->edit)
-						PE_create_particle_edit(C, scene, sl, ob, pid->cache, psys);
+						PE_create_particle_edit(eval_ctx, scene, sl, ob, pid->cache, psys);
 					edit = pid->cache->edit;
 				}
 
@@ -278,7 +281,7 @@ static PTCacheEdit *pe_get_current(const bContext *C, Scene *scene, SceneLayer *
 			if (create && pid->cache->flag & PTCACHE_BAKED && !pid->cache->edit) {
 				pset->flag |= PE_FADE_TIME;
 				// NICE TO HAVE but doesn't work: pset->brushtype = PE_BRUSH_COMB;
-				PE_create_particle_edit(C, scene, sl, ob, pid->cache, NULL);
+				PE_create_particle_edit(eval_ctx, scene, sl, ob, pid->cache, NULL);
 			}
 			edit = pid->cache->edit;
 			break;
@@ -287,7 +290,7 @@ static PTCacheEdit *pe_get_current(const bContext *C, Scene *scene, SceneLayer *
 			if (create && pid->cache->flag & PTCACHE_BAKED && !pid->cache->edit) {
 				pset->flag |= PE_FADE_TIME;
 				// NICE TO HAVE but doesn't work: pset->brushtype = PE_BRUSH_COMB;
-				PE_create_particle_edit(C, scene, sl, ob, pid->cache, NULL);
+				PE_create_particle_edit(eval_ctx, scene, sl, ob, pid->cache, NULL);
 			}
 			edit = pid->cache->edit;
 			break;
@@ -307,15 +310,16 @@ PTCacheEdit *PE_get_current(Scene *scene, SceneLayer *sl, Object *ob)
 	return pe_get_current(NULL, scene, sl, ob, 0);
 }
 
-PTCacheEdit *PE_create_current(const bContext *C, Scene *scene, Object *ob)
+PTCacheEdit *PE_create_current(const EvaluationContext *eval_ctx, Scene *scene, Object *ob)
 {
-	return pe_get_current(C, scene, NULL, ob, 1);
+	return pe_get_current(eval_ctx, scene, NULL, ob, 1);
 }
 
-void PE_current_changed(const bContext *C, Scene *scene, Object *ob)
+void PE_current_changed(const EvaluationContext *eval_ctx, Scene *scene, Object *ob)
 {
-	if (ob->mode == OB_MODE_PARTICLE_EDIT)
-		PE_create_current(C, scene, ob);
+	if (ob->mode == OB_MODE_PARTICLE_EDIT) {
+		PE_create_current(eval_ctx, scene, ob);
+	}
 }
 
 void PE_hide_keys_time(Scene *scene, PTCacheEdit *edit, float cfra)
@@ -408,10 +412,13 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 
 	if (V3D_IS_ZBUF(data->vc.v3d)) {
 		if (data->vc.v3d->flag & V3D_INVALID_BACKBUF) {
+			EvaluationContext eval_ctx;
+			CTX_data_eval_ctx(C, &eval_ctx);
+
 			/* needed or else the draw matrix can be incorrect */
 			view3d_operator_needs_opengl(C);
 
-			ED_view3d_backbuf_validate(C, &data->vc);
+			ED_view3d_backbuf_validate(&eval_ctx, &data->vc);
 			/* we may need to force an update here by setting the rv3d as dirty
 			 * for now it seems ok, but take care!:
 			 * rv3d->depths->dirty = 1; */
@@ -1266,19 +1273,16 @@ static void update_velocities(PTCacheEdit *edit)
 	}
 }
 
-void PE_update_object(const bContext *C, Scene *scene, SceneLayer *sl, Object *ob, int useflag)
+void PE_update_object(const EvaluationContext *eval_ctx, Scene *scene, SceneLayer *sl, Object *ob, int useflag)
 {
 	/* use this to do partial particle updates, not usable when adding or
 	 * removing, then a full redo is necessary and calling this may crash */
 	ParticleEditSettings *pset= PE_settings(scene);
 	PTCacheEdit *edit = PE_get_current(scene, sl, ob);
-	EvaluationContext eval_ctx;
 	POINT_P;
 
 	if (!edit)
 		return;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
 
 	/* flag all particles to be updated if not using flag */
 	if (!useflag)
@@ -1299,7 +1303,7 @@ void PE_update_object(const bContext *C, Scene *scene, SceneLayer *sl, Object *o
 	PE_hide_keys_time(scene, edit, CFRA);
 
 	/* regenerate path caches */
-	psys_cache_edit_paths(&eval_ctx, scene, ob, edit, CFRA, G.is_rendering);
+	psys_cache_edit_paths(eval_ctx, scene, ob, edit, CFRA, G.is_rendering);
 
 	/* disable update flag */
 	LOOP_POINTS {
@@ -2200,6 +2204,9 @@ static int rekey_exec(bContext *C, wmOperator *op)
 {
 	PEData data;
 
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+
 	PE_set_data(C, &data);
 
 	data.dval= 1.0f / (float)(data.totrekey-1);
@@ -2208,7 +2215,7 @@ static int rekey_exec(bContext *C, wmOperator *op)
 	foreach_selected_point(&data, rekey_particle);
 	
 	recalc_lengths(data.edit);
-	PE_update_object(C, data.scene, data.scene_layer, data.ob, 1);
+	PE_update_object(&eval_ctx, data.scene, data.scene_layer, data.ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -2542,11 +2549,14 @@ static int subdivide_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PEData data;
 
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+
 	PE_set_data(C, &data);
 	foreach_point(&data, subdivide_particle);
 	
 	recalc_lengths(data.edit);
-	PE_update_object(C, data.scene, data.scene_layer, data.ob, 1);
+	PE_update_object(&eval_ctx, data.scene, data.scene_layer, data.ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -3821,6 +3831,9 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 	if (!PE_start_edit(edit))
 		return;
 
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+
 	RNA_float_get_array(itemptr, "mouse", mousef);
 	mouse[0] = mousef[0];
 	mouse[1] = mousef[1];
@@ -4002,8 +4015,9 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 				psys_free_path_cache(NULL, edit);
 				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
-			else
-				PE_update_object(C, scene, sl, ob, 1);
+			else {
+				PE_update_object(&eval_ctx, scene, sl, ob, 1);
+			}
 		}
 
 		if (edit->psys) {
@@ -4236,6 +4250,9 @@ static int shape_cut_exec(bContext *C, wmOperator *UNUSED(op))
 	if (!PE_start_edit(edit))
 		return OPERATOR_CANCELLED;
 	
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+
 	/* disable locking temporatily for disconnected hair */
 	if (edit->psys && edit->psys->flag & PSYS_GLOBAL_HAIR)
 		pset->flag &= ~PE_LOCK_FIRST;
@@ -4263,8 +4280,9 @@ static int shape_cut_exec(bContext *C, wmOperator *UNUSED(op))
 			psys_free_path_cache(NULL, edit);
 			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
-		else
-			PE_update_object(C, scene, sl, ob, 1);
+		else {
+			PE_update_object(&eval_ctx, scene, sl, ob, 1);
+		}
 		
 		if (edit->psys) {
 			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
@@ -4626,7 +4644,8 @@ int PE_minmax(Scene *scene, SceneLayer *sl, float min[3], float max[3])
 /************************ particle edit toggle operator ************************/
 
 /* initialize needed data for bake edit */
-void PE_create_particle_edit(const bContext *C, Scene *scene, SceneLayer *sl, Object *ob, PointCache *cache, ParticleSystem *psys)
+void PE_create_particle_edit(
+        const EvaluationContext *eval_ctx, Scene *scene, SceneLayer *sl, Object *ob, PointCache *cache, ParticleSystem *psys)
 {
 	PTCacheEdit *edit;
 	ParticleSystemModifierData *psmd = (psys) ? psys_get_modifier(ob, psys) : NULL;
@@ -4727,7 +4746,7 @@ void PE_create_particle_edit(const bContext *C, Scene *scene, SceneLayer *sl, Ob
 		recalc_lengths(edit);
 		if (psys && !cache)
 			recalc_emitter_field(ob, psys);
-		PE_update_object(C, scene, sl, ob, 1);
+		PE_update_object(eval_ctx, scene, sl, ob, 1);
 
 		PTCacheUndo_clear(edit);
 		PE_undo_push(scene, sl, "Original");
@@ -4768,8 +4787,11 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 
 	if (!is_mode_set) {
 		PTCacheEdit *edit;
+		EvaluationContext eval_ctx;
+		CTX_data_eval_ctx(C, &eval_ctx);
+
 		ob->mode |= mode_flag;
-		edit= PE_create_current(C, scene, ob);
+		edit= PE_create_current(&eval_ctx, scene, ob);
 	
 		/* mesh may have changed since last entering editmode.
 		 * note, this may have run before if the edit data was just created, so could avoid this and speed up a little */
@@ -4940,12 +4962,16 @@ static int unify_length_exec(bContext *C, wmOperator *UNUSED(op))
 	SceneLayer *sl = CTX_data_scene_layer(C);
 	PTCacheEdit *edit = PE_get_current(scene, sl, ob);
 	float average_length = calculate_average_length(edit);
+
 	if (average_length == 0.0f) {
 		return OPERATOR_CANCELLED;
 	}
 	scale_points_to_length(edit, average_length);
 
-	PE_update_object(C, scene, sl, ob, 1);
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+
+	PE_update_object(&eval_ctx, scene, sl, ob, 1);
 	if (edit->psys) {
 		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
 	}

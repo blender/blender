@@ -66,12 +66,12 @@ public:
 
 	bool add_instance_controller(Object *ob);
 
-	void export_controllers(struct EvaluationContext *eval_ctx, Scene *sce);
+	void export_controllers(const struct EvaluationContext *eval_ctx, Scene *sce);
 
 	void operator()(Object *ob);
 
 private:
-	struct EvaluationContext *eval_ctx;
+	const struct EvaluationContext *eval_ctx;
 	Scene *scene;
 	UnitConverter converter;
 	const ExportSettings *export_settings;

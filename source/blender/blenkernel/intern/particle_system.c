@@ -980,7 +980,7 @@ void psys_get_birth_coords(ParticleSimulationData *sim, ParticleData *pa, Partic
 }
 
 /* recursively evaluate emitter parent anim at cfra */
-static void evaluate_emitter_anim(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, float cfra)
+static void evaluate_emitter_anim(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, float cfra)
 {
 	if (ob->parent)
 		evaluate_emitter_anim(eval_ctx, scene, ob->parent, cfra);
@@ -4158,7 +4158,7 @@ static int hair_needs_recalc(ParticleSystem *psys)
 
 /* main particle update call, checks that things are ok on the large scale and
  * then advances in to actual particle calculations depending on particle type */
-void particle_system_update(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, ParticleSystem *psys, const bool use_render_params)
+void particle_system_update(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, ParticleSystem *psys, const bool use_render_params)
 {
 	ParticleSimulationData sim= {0};
 	ParticleSettings *part = psys->part;
@@ -4361,7 +4361,7 @@ void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func,
 
 /* **** Depsgraph evaluation **** */
 
-void BKE_particle_system_settings_eval(struct EvaluationContext *UNUSED(eval_ctx),
+void BKE_particle_system_settings_eval(const struct EvaluationContext *UNUSED(eval_ctx),
                                        ParticleSystem *psys)
 {
 	if (G.debug & G_DEBUG_DEPSGRAPH) {
@@ -4379,7 +4379,7 @@ void BKE_particle_system_settings_recalc_clear(struct EvaluationContext *UNUSED(
 	particle_settings->recalc = 0;
 }
 
-void BKE_particle_system_eval_init(struct EvaluationContext *UNUSED(eval_ctx),
+void BKE_particle_system_eval_init(const struct EvaluationContext *UNUSED(eval_ctx),
                                    Scene *scene,
                                    Object *ob)
 {

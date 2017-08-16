@@ -1222,7 +1222,7 @@ static void rigidbody_update_sim_world(Scene *scene, RigidBodyWorld *rbw)
 	rigidbody_update_ob_array(rbw);
 }
 
-static void rigidbody_update_sim_ob(struct EvaluationContext *eval_ctx, Scene *scene, RigidBodyWorld *rbw, Object *ob, RigidBodyOb *rbo)
+static void rigidbody_update_sim_ob(const struct EvaluationContext *eval_ctx, Scene *scene, RigidBodyWorld *rbw, Object *ob, RigidBodyOb *rbo)
 {
 	float loc[3];
 	float rot[4];
@@ -1311,7 +1311,7 @@ static void rigidbody_update_sim_ob(struct EvaluationContext *eval_ctx, Scene *s
  *
  * \param rebuild Rebuild entire simulation
  */
-static void rigidbody_update_simulation(struct EvaluationContext *eval_ctx, Scene *scene, RigidBodyWorld *rbw, bool rebuild)
+static void rigidbody_update_simulation(const struct EvaluationContext *eval_ctx, Scene *scene, RigidBodyWorld *rbw, bool rebuild)
 {
 	GroupObject *go;
 
@@ -1555,7 +1555,7 @@ void BKE_rigidbody_cache_reset(RigidBodyWorld *rbw)
 
 /* Rebuild rigid body world */
 /* NOTE: this needs to be called before frame update to work correctly */
-void BKE_rigidbody_rebuild_world(struct EvaluationContext *eval_ctx, Scene *scene, float ctime)
+void BKE_rigidbody_rebuild_world(const struct EvaluationContext *eval_ctx, Scene *scene, float ctime)
 {
 	RigidBodyWorld *rbw = scene->rigidbody_world;
 	PointCache *cache;
@@ -1583,7 +1583,7 @@ void BKE_rigidbody_rebuild_world(struct EvaluationContext *eval_ctx, Scene *scen
 }
 
 /* Run RigidBody simulation for the specified physics world */
-void BKE_rigidbody_do_simulation(struct EvaluationContext *eval_ctx, Scene *scene, float ctime)
+void BKE_rigidbody_do_simulation(const struct EvaluationContext *eval_ctx, Scene *scene, float ctime)
 {
 	float timestep;
 	RigidBodyWorld *rbw = scene->rigidbody_world;
@@ -1671,8 +1671,8 @@ void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime)
 void BKE_rigidbody_aftertrans_update(Object *ob, float loc[3], float rot[3], float quat[4], float rotAxis[3], float rotAngle) {}
 bool BKE_rigidbody_check_sim_running(RigidBodyWorld *rbw, float ctime) { return false; }
 void BKE_rigidbody_cache_reset(RigidBodyWorld *rbw) {}
-void BKE_rigidbody_rebuild_world(struct EvaluationContext *eval_ctx, Scene *scene, float ctime) {}
-void BKE_rigidbody_do_simulation(struct EvaluationContext *eval_ctx, Scene *scene, float ctime) {}
+void BKE_rigidbody_rebuild_world(const struct EvaluationContext *eval_ctx, Scene *scene, float ctime) {}
+void BKE_rigidbody_do_simulation(const struct EvaluationContext *eval_ctx, Scene *scene, float ctime) {}
 
 #ifdef __GNUC__
 #  pragma GCC diagnostic pop
@@ -1683,7 +1683,7 @@ void BKE_rigidbody_do_simulation(struct EvaluationContext *eval_ctx, Scene *scen
 /* -------------------- */
 /* Depsgraph evaluation */
 
-void BKE_rigidbody_rebuild_sim(struct EvaluationContext *eval_ctx,
+void BKE_rigidbody_rebuild_sim(const struct EvaluationContext *eval_ctx,
                                Scene *scene)
 {
 	float ctime = BKE_scene_frame_get(scene);
@@ -1698,7 +1698,7 @@ void BKE_rigidbody_rebuild_sim(struct EvaluationContext *eval_ctx,
 	}
 }
 
-void BKE_rigidbody_eval_simulation(struct EvaluationContext *eval_ctx,
+void BKE_rigidbody_eval_simulation(const struct EvaluationContext *eval_ctx,
                                    Scene *scene)
 {
 	float ctime = BKE_scene_frame_get(scene);
@@ -1713,7 +1713,7 @@ void BKE_rigidbody_eval_simulation(struct EvaluationContext *eval_ctx,
 	}
 }
 
-void BKE_rigidbody_object_sync_transforms(struct EvaluationContext *UNUSED(eval_ctx),
+void BKE_rigidbody_object_sync_transforms(const struct EvaluationContext *UNUSED(eval_ctx),
                                           Scene *scene,
                                           Object *ob)
 {

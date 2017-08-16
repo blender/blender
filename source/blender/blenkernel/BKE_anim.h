@@ -66,8 +66,8 @@ int where_on_path(struct Object *ob, float ctime, float vec[4], float dir[3], fl
 /* ---------------------------------------------------- */
 /* Dupli-Geometry */
 
-struct ListBase *object_duplilist_ex(struct EvaluationContext *eval_ctx, struct Scene *sce, struct Object *ob, bool update);
-struct ListBase *object_duplilist(struct EvaluationContext *eval_ctx, struct Scene *sce, struct Object *ob);
+struct ListBase *object_duplilist_ex(const struct EvaluationContext *eval_ctx, struct Scene *sce, struct Object *ob, bool update);
+struct ListBase *object_duplilist(const struct EvaluationContext *eval_ctx, struct Scene *sce, struct Object *ob);
 void free_object_duplilist(struct ListBase *lb);
 int count_duplilist(struct Object *ob);
 
@@ -81,7 +81,7 @@ typedef struct DupliApplyData {
 	DupliExtraData *extra;
 } DupliApplyData;
 
-DupliApplyData *duplilist_apply(struct EvaluationContext *eval_ctx, struct Object *ob, struct Scene *scene, struct ListBase *duplilist);
+DupliApplyData *duplilist_apply(const struct EvaluationContext *eval_ctx, struct Object *ob, struct Scene *scene, struct ListBase *duplilist);
 void duplilist_restore(struct ListBase *duplilist, DupliApplyData *apply_data);
 void duplilist_free_apply_data(DupliApplyData *apply_data);
 

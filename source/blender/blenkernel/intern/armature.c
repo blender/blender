@@ -1461,7 +1461,7 @@ void BKE_armature_loc_pose_to_bone(bPoseChannel *pchan, const float inloc[3], fl
 	copy_v3_v3(outloc, nLocMat[3]);
 }
 
-void BKE_armature_mat_pose_to_bone_ex(struct EvaluationContext *eval_ctx, Object *ob, bPoseChannel *pchan, float inmat[4][4], float outmat[4][4])
+void BKE_armature_mat_pose_to_bone_ex(const struct EvaluationContext *eval_ctx, Object *ob, bPoseChannel *pchan, float inmat[4][4], float outmat[4][4])
 {
 	bPoseChannel work_pchan = *pchan;
 
@@ -2194,7 +2194,9 @@ void BKE_pose_where_is_bone_tail(bPoseChannel *pchan)
 /* pchan is validated, as having bone and parent pointer
  * 'do_extra': when zero skips loc/size/rot, constraints and strip modifiers.
  */
-void BKE_pose_where_is_bone(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, bPoseChannel *pchan, float ctime, bool do_extra)
+void BKE_pose_where_is_bone(
+        const struct EvaluationContext *eval_ctx, Scene *scene,
+        Object *ob, bPoseChannel *pchan, float ctime, bool do_extra)
 {
 	/* This gives a chan_mat with actions (ipos) results. */
 	if (do_extra)
@@ -2255,7 +2257,7 @@ void BKE_pose_where_is_bone(struct EvaluationContext *eval_ctx, Scene *scene, Ob
 
 /* This only reads anim data from channels, and writes to channels */
 /* This is the only function adding poses */
-void BKE_pose_where_is(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob)
+void BKE_pose_where_is(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob)
 {
 	bArmature *arm;
 	Bone *bone;

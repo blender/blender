@@ -57,7 +57,7 @@ GeometryExporter::GeometryExporter(COLLADASW::StreamWriter *sw, const ExportSett
 {
 }
 
-void GeometryExporter::exportGeom(struct EvaluationContext *eval_ctx, Scene *sce)
+void GeometryExporter::exportGeom(const struct EvaluationContext *eval_ctx, Scene *sce)
 {
 	openLibrary();
 

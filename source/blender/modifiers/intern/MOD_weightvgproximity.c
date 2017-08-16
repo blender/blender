@@ -370,7 +370,7 @@ static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 	return (wmd->proximity_ob_target == NULL);
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, struct EvaluationContext *UNUSED(eval_ctx), Object *ob,
+static DerivedMesh *applyModifier(ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx), Object *ob,
                                   DerivedMesh *derivedData, ModifierApplyFlag UNUSED(flag))
 {
 	WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *) md;

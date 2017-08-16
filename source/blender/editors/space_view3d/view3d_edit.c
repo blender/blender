@@ -737,15 +737,18 @@ static void viewops_data_create_ex(
 
 	/* we need the depth info before changing any viewport options */
 	if (orbit_mode & VIEWOPS_ORBIT_DEPTH) {
+		EvaluationContext eval_ctx;
 		struct Depsgraph *graph = CTX_data_depsgraph(C);
 		float fallback_depth_pt[3];
+
+		CTX_data_eval_ctx(C, &eval_ctx);
 
 		view3d_operator_needs_opengl(C); /* needed for zbuf drawing */
 
 		negate_v3_v3(fallback_depth_pt, rv3d->ofs);
 
 		vod->use_dyn_ofs = ED_view3d_autodist(
-		        C, graph, vod->ar, vod->v3d,
+		        &eval_ctx, graph, vod->ar, vod->v3d,
 		        event->mval, vod->dyn_ofs, true, fallback_depth_pt);
 	}
 	else {
@@ -3320,15 +3323,18 @@ static int viewcenter_pick_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 	ARegion *ar = CTX_wm_region(C);
 
 	if (rv3d) {
+		EvaluationContext eval_ctx;
 		struct Depsgraph *graph = CTX_data_depsgraph(C);
 		float new_ofs[3];
 		const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
+
+		CTX_data_eval_ctx(C, &eval_ctx);
 
 		ED_view3d_smooth_view_force_finish(C, v3d, ar);
 
 		view3d_operator_needs_opengl(C);
 
-		if (ED_view3d_autodist(C, graph, ar, v3d, event->mval, new_ofs, false, NULL)) {
+		if (ED_view3d_autodist(&eval_ctx, graph, ar, v3d, event->mval, new_ofs, false, NULL)) {
 			/* pass */
 		}
 		else {
@@ -3583,6 +3589,7 @@ void VIEW3D_OT_clear_render_border(wmOperatorType *ot)
 
 static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 {
+	EvaluationContext eval_ctx;
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -3605,6 +3612,8 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 	/* note; otherwise opengl won't work */
 	view3d_operator_needs_opengl(C);
 
+	CTX_data_eval_ctx(C, &eval_ctx);
+
 	/* get border select values using rna */
 	WM_operator_properties_border_to_rcti(op, &rect);
 
@@ -3614,7 +3623,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 	ED_view3d_dist_range_get(v3d, dist_range);
 
 	/* Get Z Depths, needed for perspective, nice for ortho */
-	ED_view3d_draw_depth(C, CTX_data_depsgraph(C), ar, v3d, true);
+	ED_view3d_draw_depth(&eval_ctx, CTX_data_depsgraph(C), ar, v3d, true);
 	
 	{
 		/* avoid allocating the whole depth buffer */
@@ -4714,9 +4723,13 @@ void ED_view3d_cursor3d_position(bContext *C, float fp[3], const int mval[2])
 	}
 
 	if (U.uiflag & USER_ZBUF_CURSOR) {  /* maybe this should be accessed some other way */
+		EvaluationContext eval_ctx;
 		struct Depsgraph *graph = CTX_data_depsgraph(C);
+
+		CTX_data_eval_ctx(C, &eval_ctx);
+
 		view3d_operator_needs_opengl(C);
-		if (ED_view3d_autodist(C, graph, ar, v3d, mval, fp, true, NULL)) {
+		if (ED_view3d_autodist(&eval_ctx, graph, ar, v3d, mval, fp, true, NULL)) {
 			depth_used = true;
 		}
 	}
@@ -4900,7 +4913,7 @@ static float view_autodist_depth_margin(ARegion *ar, const int mval[2], int marg
  * \param fallback_depth_pt: Use this points depth when no depth can be found.
  */
 bool ED_view3d_autodist(
-        const bContext *C, struct Depsgraph *graph, ARegion *ar, View3D *v3d,
+        const EvaluationContext *eval_ctx, struct Depsgraph *graph, ARegion *ar, View3D *v3d,
         const int mval[2], float mouse_worldloc[3],
         const bool alphaoverride, const float fallback_depth_pt[3])
 {
@@ -4910,7 +4923,7 @@ bool ED_view3d_autodist(
 	bool depth_ok = false;
 
 	/* Get Z Depths, needed for perspective, nice for ortho */
-	ED_view3d_draw_depth(C, graph, ar, v3d, alphaoverride);
+	ED_view3d_draw_depth(eval_ctx, graph, ar, v3d, alphaoverride);
 
 	/* Attempt with low margin's first */
 	i = 0;
@@ -4939,18 +4952,18 @@ bool ED_view3d_autodist(
 }
 
 void ED_view3d_autodist_init(
-        const bContext *C, struct Depsgraph *graph,
+        const EvaluationContext *eval_ctx, struct Depsgraph *graph,
         ARegion *ar, View3D *v3d, int mode)
 {
 	/* Get Z Depths, needed for perspective, nice for ortho */
 	switch (mode) {
 		case 0:
-			ED_view3d_draw_depth(C, graph, ar, v3d, true);
+			ED_view3d_draw_depth(eval_ctx, graph, ar, v3d, true);
 			break;
 		case 1:
 		{
 			Scene *scene = DEG_get_evaluated_scene(graph);
-			ED_view3d_draw_depth_gpencil(C, scene, ar, v3d);
+			ED_view3d_draw_depth_gpencil(eval_ctx, scene, ar, v3d);
 			break;
 		}
 	}

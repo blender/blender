@@ -840,8 +840,9 @@ static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
 /**
  * \param need_mask So the DerivedMesh thats returned has mask data
  */
-void BKE_sculpt_update_mesh_elements(EvaluationContext *eval_ctx, Scene *scene, Sculpt *sd, Object *ob,
-                                     bool need_pmap, bool need_mask)
+void BKE_sculpt_update_mesh_elements(
+        const EvaluationContext *eval_ctx, Scene *scene, Sculpt *sd, Object *ob,
+        bool need_pmap, bool need_mask)
 {
 	DerivedMesh *dm;
 	SculptSession *ss = ob->sculpt;

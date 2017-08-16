@@ -335,7 +335,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	return dm;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, struct EvaluationContext *UNUSED(eval_ctx),
+static DerivedMesh *applyModifier(ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx),
                                   Object *ob, DerivedMesh *derivedData,
                                   ModifierApplyFlag UNUSED(flag))
 {

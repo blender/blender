@@ -147,7 +147,7 @@ void free_partdeflect(PartDeflect *pd)
 	MEM_freeN(pd);
 }
 
-static EffectorCache *new_effector_cache(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, ParticleSystem *psys, PartDeflect *pd)
+static EffectorCache *new_effector_cache(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, ParticleSystem *psys, PartDeflect *pd)
 {
 	EffectorCache *eff = MEM_callocN(sizeof(EffectorCache), "EffectorCache");
 	eff->eval_ctx = eval_ctx;
@@ -158,7 +158,7 @@ static EffectorCache *new_effector_cache(struct EvaluationContext *eval_ctx, Sce
 	eff->frame = -1;
 	return eff;
 }
-static void add_object_to_effectors(ListBase **effectors, struct EvaluationContext *eval_ctx, Scene *scene, EffectorWeights *weights, Object *ob, Object *ob_src, bool for_simulation)
+static void add_object_to_effectors(ListBase **effectors, const struct EvaluationContext *eval_ctx, Scene *scene, EffectorWeights *weights, Object *ob, Object *ob_src, bool for_simulation)
 {
 	EffectorCache *eff = NULL;
 
@@ -183,7 +183,7 @@ static void add_object_to_effectors(ListBase **effectors, struct EvaluationConte
 
 	BLI_addtail(*effectors, eff);
 }
-static void add_particles_to_effectors(ListBase **effectors, struct EvaluationContext *eval_ctx, Scene *scene, EffectorWeights *weights, Object *ob, ParticleSystem *psys, ParticleSystem *psys_src, bool for_simulation)
+static void add_particles_to_effectors(ListBase **effectors, const struct EvaluationContext *eval_ctx, Scene *scene, EffectorWeights *weights, Object *ob, ParticleSystem *psys, ParticleSystem *psys_src, bool for_simulation)
 {
 	ParticleSettings *part= psys->part;
 
@@ -209,8 +209,9 @@ static void add_particles_to_effectors(ListBase **effectors, struct EvaluationCo
 }
 
 /* returns ListBase handle with objects taking part in the effecting */
-ListBase *pdInitEffectors(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob_src, ParticleSystem *psys_src,
-                          EffectorWeights *weights, bool for_simulation)
+ListBase *pdInitEffectors(
+        const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob_src, ParticleSystem *psys_src,
+        EffectorWeights *weights, bool for_simulation)
 {
 	SceneLayer *sl;
 	Base *base;
@@ -278,7 +279,7 @@ void pdEndEffectors(ListBase **effectors)
 	}
 }
 
-static void precalculate_effector(struct EvaluationContext *eval_ctx, EffectorCache *eff)
+static void precalculate_effector(const struct EvaluationContext *eval_ctx, EffectorCache *eff)
 {
 	unsigned int cfra = (unsigned int)(eff->scene->r.cfra >= 0 ? eff->scene->r.cfra : -eff->scene->r.cfra);
 	if (!eff->pd->rng)
@@ -318,7 +319,7 @@ static void precalculate_effector(struct EvaluationContext *eval_ctx, EffectorCa
 	}
 }
 
-void pdPrecalculateEffectors(struct EvaluationContext *eval_ctx, ListBase *effectors)
+void pdPrecalculateEffectors(const struct EvaluationContext *eval_ctx, ListBase *effectors)
 {
 	if (effectors) {
 		EffectorCache *eff = effectors->first;

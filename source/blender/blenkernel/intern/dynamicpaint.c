@@ -1975,7 +1975,9 @@ static void canvas_copyDerivedMesh(DynamicPaintCanvasSettings *canvas, DerivedMe
 /*
  *	Updates derived mesh copy and processes dynamic paint step / caches.
  */
-static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, DerivedMesh *dm)
+static void dynamicPaint_frameUpdate(
+        DynamicPaintModifierData *pmd, const struct EvaluationContext *eval_ctx, Scene *scene,
+        Object *ob, DerivedMesh *dm)
 {
 	if (pmd->canvas) {
 		DynamicPaintCanvasSettings *canvas = pmd->canvas;
@@ -2057,7 +2059,9 @@ static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, struct Evalu
 }
 
 /* Modifier call. Processes dynamic paint modifier step. */
-DerivedMesh *dynamicPaint_Modifier_do(DynamicPaintModifierData *pmd, struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, DerivedMesh *dm)
+DerivedMesh *dynamicPaint_Modifier_do(
+        DynamicPaintModifierData *pmd, const struct EvaluationContext *eval_ctx, Scene *scene,
+        Object *ob, DerivedMesh *dm)
 {
 	if (pmd->canvas) {
 		DerivedMesh *ret;
@@ -3578,7 +3582,8 @@ static void dynamic_paint_brush_velocity_compute_cb(void *userdata, const int i)
 }
 
 static void dynamicPaint_brushMeshCalculateVelocity(
-        struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, DynamicPaintBrushSettings *brush, Vec3f **brushVel, float timescale)
+        const struct EvaluationContext *eval_ctx, Scene *scene,
+        Object *ob, DynamicPaintBrushSettings *brush, Vec3f **brushVel, float timescale)
 {
 	float prev_obmat[4][4];
 	DerivedMesh *dm_p, *dm_c;
@@ -3636,7 +3641,7 @@ static void dynamicPaint_brushMeshCalculateVelocity(
 }
 
 /* calculate velocity for object center point */
-static void dynamicPaint_brushObjectCalculateVelocity(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, Vec3f *brushVel, float timescale)
+static void dynamicPaint_brushObjectCalculateVelocity(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, Vec3f *brushVel, float timescale)
 {
 	float prev_obmat[4][4];
 	float cur_loc[3] = {0.0f}, prev_loc[3] = {0.0f};
@@ -4032,7 +4037,7 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(
 	}
 }
 
-static int dynamicPaint_paintMesh(struct EvaluationContext *eval_ctx, DynamicPaintSurface *surface,
+static int dynamicPaint_paintMesh(const struct EvaluationContext *eval_ctx, DynamicPaintSurface *surface,
                                   DynamicPaintBrushSettings *brush,
                                   Object *brushOb,
                                   BrushMaterials *bMats,
@@ -4526,7 +4531,7 @@ static void dynamic_paint_paint_single_point_cb_ex(
 }
 
 static int dynamicPaint_paintSinglePoint(
-        struct EvaluationContext *eval_ctx, DynamicPaintSurface *surface, float *pointCoord, DynamicPaintBrushSettings *brush,
+        const struct EvaluationContext *eval_ctx, DynamicPaintSurface *surface, float *pointCoord, DynamicPaintBrushSettings *brush,
         Object *brushOb, BrushMaterials *bMats, Scene *scene, float timescale)
 {
 	PaintSurfaceData *sData = surface->data;
@@ -4841,7 +4846,7 @@ static void dynamic_paint_prepare_effect_cb(void *userdata, const int index)
 }
 
 static int dynamicPaint_prepareEffectStep(
-        struct EvaluationContext *eval_ctx, DynamicPaintSurface *surface, Scene *scene, Object *ob, float **force, float timescale)
+        const struct EvaluationContext *eval_ctx, DynamicPaintSurface *surface, Scene *scene, Object *ob, float **force, float timescale)
 {
 	double average_force = 0.0f;
 	float shrink_speed = 0.0f, spread_speed = 0.0f;
@@ -5754,7 +5759,7 @@ static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface, const Sce
 /*
  * Do Dynamic Paint step. Paints scene brush objects of current state/frame to the surface.
  */
-static int dynamicPaint_doStep(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, DynamicPaintSurface *surface, float timescale, float subframe)
+static int dynamicPaint_doStep(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, DynamicPaintSurface *surface, float timescale, float subframe)
 {
 	PaintSurfaceData *sData = surface->data;
 	PaintBakeData *bData = sData->bData;
@@ -5925,7 +5930,9 @@ static int dynamicPaint_doStep(struct EvaluationContext *eval_ctx, Scene *scene,
 /*
  * Calculate a single frame and included subframes for surface
  */
-int dynamicPaint_calculateFrame(DynamicPaintSurface *surface, struct EvaluationContext *eval_ctx, Scene *scene, Object *cObject, int frame)
+int dynamicPaint_calculateFrame(
+        DynamicPaintSurface *surface, const struct EvaluationContext *eval_ctx,
+        Scene *scene, Object *cObject, int frame)
 {
 	float timescale = 1.0f;
 

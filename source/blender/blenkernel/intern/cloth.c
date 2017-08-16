@@ -345,7 +345,7 @@ static int do_init_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 	return 1;
 }
 
-static int do_step_cloth(struct EvaluationContext *eval_ctx, Object *ob, ClothModifierData *clmd, DerivedMesh *result, int framenr)
+static int do_step_cloth(const struct EvaluationContext *eval_ctx, Object *ob, ClothModifierData *clmd, DerivedMesh *result, int framenr)
 {
 	ClothVertex *verts = NULL;
 	Cloth *cloth;
@@ -400,7 +400,7 @@ static int do_step_cloth(struct EvaluationContext *eval_ctx, Object *ob, ClothMo
 /************************************************
  * clothModifier_do - main simulation function
  ************************************************/
-void clothModifier_do(ClothModifierData *clmd, struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, DerivedMesh *dm, float (*vertexCos)[3])
+void clothModifier_do(ClothModifierData *clmd, const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, DerivedMesh *dm, float (*vertexCos)[3])
 {
 	PointCache *cache;
 	PTCacheID pid;

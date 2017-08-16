@@ -2169,7 +2169,7 @@ static void cage_mapped_verts_callback(
 	}
 }
 
-float (*BKE_editmesh_vertexCos_get(struct EvaluationContext *eval_ctx, BMEditMesh *em, Scene *scene, int *r_numVerts))[3]
+float (*BKE_editmesh_vertexCos_get(const struct EvaluationContext *eval_ctx, BMEditMesh *em, Scene *scene, int *r_numVerts))[3]
 {
 	DerivedMesh *cage, *final;
 	BLI_bitmap *visit_bitmap;

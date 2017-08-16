@@ -1815,7 +1815,7 @@ bool BKE_object_material_edit_image_set(Object *ob, short mat_nr, Image *image)
 	return false;
 }
 
-void BKE_material_eval(struct EvaluationContext *UNUSED(eval_ctx), Material *material)
+void BKE_material_eval(const struct EvaluationContext *UNUSED(eval_ctx), Material *material)
 {
 	if (G.debug & G_DEBUG_DEPSGRAPH) {
 		printf("%s on %s (%p)\n", __func__, material->id.name, material);

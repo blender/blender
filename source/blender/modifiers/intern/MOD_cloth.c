@@ -69,7 +69,7 @@ static void initData(ModifierData *md)
 	cloth_init(clmd);
 }
 
-static void deformVerts(ModifierData *md, struct EvaluationContext *eval_ctx, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3],
+static void deformVerts(ModifierData *md, const struct EvaluationContext *eval_ctx, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3],
                         int numVerts, ModifierApplyFlag UNUSED(flag))
 {
 	DerivedMesh *dm;

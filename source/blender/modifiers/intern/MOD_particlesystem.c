@@ -97,7 +97,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 }
 
 /* saves the current emitter state for a particle system and calculates particles */
-static void deformVerts(ModifierData *md, struct EvaluationContext *eval_ctx,
+static void deformVerts(ModifierData *md, const struct EvaluationContext *eval_ctx,
                         Object *ob, DerivedMesh *derivedData,
                         float (*vertexCos)[3],
                         int UNUSED(numVerts),

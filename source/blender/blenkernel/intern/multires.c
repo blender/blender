@@ -276,7 +276,7 @@ static MDisps *multires_mdisps_initialize_hidden(Mesh *me, int level)
 	return mdisps;
 }
 
-DerivedMesh *get_multires_dm(struct EvaluationContext *eval_ctx, Scene *scene, MultiresModifierData *mmd, Object *ob)
+DerivedMesh *get_multires_dm(const struct EvaluationContext *eval_ctx, Scene *scene, MultiresModifierData *mmd, Object *ob)
 {
 	ModifierData *md = (ModifierData *)mmd;
 	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -397,7 +397,7 @@ void multires_force_render_update(Object *ob)
 		multires_force_update(ob);
 }
 
-int multiresModifier_reshapeFromDM(struct EvaluationContext *eval_ctx, Scene *scene, MultiresModifierData *mmd,
+int multiresModifier_reshapeFromDM(const struct EvaluationContext *eval_ctx, Scene *scene, MultiresModifierData *mmd,
                                    Object *ob, DerivedMesh *srcdm)
 {
 	DerivedMesh *mrdm = get_multires_dm(eval_ctx, scene, mmd, ob);
@@ -419,13 +419,13 @@ int multiresModifier_reshapeFromDM(struct EvaluationContext *eval_ctx, Scene *sc
 }
 
 /* Returns 1 on success, 0 if the src's totvert doesn't match */
-int multiresModifier_reshape(struct EvaluationContext *eval_ctx, Scene *scene, MultiresModifierData *mmd, Object *dst, Object *src)
+int multiresModifier_reshape(const struct EvaluationContext *eval_ctx, Scene *scene, MultiresModifierData *mmd, Object *dst, Object *src)
 {
 	DerivedMesh *srcdm = mesh_get_derived_final(eval_ctx, scene, src, CD_MASK_BAREMESH);
 	return multiresModifier_reshapeFromDM(eval_ctx, scene, mmd, dst, srcdm);
 }
 
-int multiresModifier_reshapeFromDeformMod(struct EvaluationContext *eval_ctx, Scene *scene, MultiresModifierData *mmd,
+int multiresModifier_reshapeFromDeformMod(const struct EvaluationContext *eval_ctx, Scene *scene, MultiresModifierData *mmd,
                                           Object *ob, ModifierData *md)
 {
 	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -2174,7 +2174,7 @@ static void multires_sync_levels(Scene *scene, Object *ob_src, Object *ob_dst)
 	}
 }
 
-static void multires_apply_smat(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, float smat[3][3])
+static void multires_apply_smat(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, float smat[3][3])
 {
 	DerivedMesh *dm = NULL, *cddm = NULL, *subdm = NULL;
 	CCGElem **gridData, **subGridData;
@@ -2276,7 +2276,7 @@ int multires_mdisp_corners(MDisps *s)
 	return 0;
 }
 
-void multiresModifier_scale_disp(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob)
+void multiresModifier_scale_disp(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob)
 {
 	float smat[3][3];
 
@@ -2286,7 +2286,7 @@ void multiresModifier_scale_disp(struct EvaluationContext *eval_ctx, Scene *scen
 	multires_apply_smat(eval_ctx, scene, ob, smat);
 }
 
-void multiresModifier_prepare_join(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, Object *to_ob)
+void multiresModifier_prepare_join(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, Object *to_ob)
 {
 	float smat[3][3], tmat[3][3], mat[3][3];
 	multires_sync_levels(scene, to_ob, ob);

@@ -1845,7 +1845,7 @@ void precalc_guides(ParticleSimulationData *sim, ListBase *effectors)
 	}
 }
 
-int do_guides(EvaluationContext *eval_ctx, ParticleSettings *part, ListBase *effectors, ParticleKey *state, int index, float time)
+int do_guides(const EvaluationContext *eval_ctx, ParticleSettings *part, ListBase *effectors, ParticleKey *state, int index, float time)
 {
 	CurveMapping *clumpcurve = (part->child_flag & PART_CHILD_USE_CLUMP_CURVE) ? part->clumpcurve : NULL;
 	CurveMapping *roughcurve = (part->child_flag & PART_CHILD_USE_ROUGH_CURVE) ? part->roughcurve : NULL;
@@ -2757,7 +2757,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
 	if (vg_length)
 		MEM_freeN(vg_length);
 }
-void psys_cache_edit_paths(EvaluationContext *eval_ctx, Scene *scene, Object *ob, PTCacheEdit *edit, float cfra, const bool use_render_params)
+void psys_cache_edit_paths(const EvaluationContext *eval_ctx, Scene *scene, Object *ob, PTCacheEdit *edit, float cfra, const bool use_render_params)
 {
 	ParticleCacheKey *ca, **cache = edit->pathcache;
 	ParticleEditSettings *pset = &scene->toolsettings->particle;
@@ -4314,7 +4314,7 @@ void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3]
 	madd_v3_v3fl(center, yvec, bb->offset[1]);
 }
 
-void psys_apply_hair_lattice(EvaluationContext *eval_ctx, Scene *scene, Object *ob, ParticleSystem *psys)
+void psys_apply_hair_lattice(const EvaluationContext *eval_ctx, Scene *scene, Object *ob, ParticleSystem *psys)
 {
 	ParticleSimulationData sim = {0};
 	sim.eval_ctx = eval_ctx;

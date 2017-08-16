@@ -143,7 +143,7 @@ static void uv_warp_compute(void *userdata, const int i)
 	}
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, struct EvaluationContext *UNUSED(eval_ctx),
+static DerivedMesh *applyModifier(ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx),
                                   Object *ob, DerivedMesh *dm,
                                   ModifierApplyFlag UNUSED(flag))
 {

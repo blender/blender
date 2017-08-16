@@ -2104,8 +2104,9 @@ static bool where_is_object_parslow(Object *ob, float obmat[4][4], float slowmat
 }
 
 /* note, scene is the active scene while actual_scene is the scene the object resides in */
-void BKE_object_where_is_calc_time_ex(EvaluationContext *eval_ctx, Scene *scene, Object *ob, float ctime,
-                                      RigidBodyWorld *rbw, float r_originmat[3][3])
+void BKE_object_where_is_calc_time_ex(
+        const EvaluationContext *eval_ctx, Scene *scene, Object *ob, float ctime,
+        RigidBodyWorld *rbw, float r_originmat[3][3])
 {
 	if (ob == NULL) return;
 	
@@ -2149,7 +2150,7 @@ void BKE_object_where_is_calc_time_ex(EvaluationContext *eval_ctx, Scene *scene,
 	else ob->transflag &= ~OB_NEG_SCALE;
 }
 
-void BKE_object_where_is_calc_time(EvaluationContext *eval_ctx, Scene *scene, Object *ob, float ctime)
+void BKE_object_where_is_calc_time(const EvaluationContext *eval_ctx, Scene *scene, Object *ob, float ctime)
 {
 	BKE_object_where_is_calc_time_ex(eval_ctx, scene, ob, ctime, NULL, NULL);
 }
@@ -2176,17 +2177,17 @@ void BKE_object_where_is_calc_mat4(Scene *scene, Object *ob, float obmat[4][4])
 	}
 }
 
-void BKE_object_where_is_calc_ex(EvaluationContext *eval_ctx, Scene *scene, RigidBodyWorld *rbw, Object *ob, float r_originmat[3][3])
+void BKE_object_where_is_calc_ex(const EvaluationContext *eval_ctx, Scene *scene, RigidBodyWorld *rbw, Object *ob, float r_originmat[3][3])
 {
 	BKE_object_where_is_calc_time_ex(eval_ctx, scene, ob, BKE_scene_frame_get(scene), rbw, r_originmat);
 }
-void BKE_object_where_is_calc(EvaluationContext *eval_ctx, Scene *scene, Object *ob)
+void BKE_object_where_is_calc(const EvaluationContext *eval_ctx, Scene *scene, Object *ob)
 {
 	BKE_object_where_is_calc_time_ex(eval_ctx, scene, ob, BKE_scene_frame_get(scene), NULL, NULL);
 }
 
 /* for calculation of the inverse parent transform, only used for editor */
-void BKE_object_workob_calc_parent(EvaluationContext *eval_ctx, Scene *scene, Object *ob, Object *workob)
+void BKE_object_workob_calc_parent(const EvaluationContext *eval_ctx, Scene *scene, Object *ob, Object *workob)
 {
 	BKE_object_workob_clear(workob);
 	
@@ -2638,7 +2639,7 @@ bool BKE_object_parent_loop_check(const Object *par, const Object *ob)
 /* the main object update call, for object matrix, constraints, keys and displist (modifiers) */
 /* requires flags to be set! */
 /* Ideally we shouldn't have to pass the rigid body world, but need bigger restructuring to avoid id */
-void BKE_object_handle_update_ex(EvaluationContext *eval_ctx,
+void BKE_object_handle_update_ex(const EvaluationContext *eval_ctx,
                                  Scene *scene, Object *ob,
                                  RigidBodyWorld *rbw,
                                  const bool do_proxy_update)
@@ -2717,7 +2718,7 @@ void BKE_object_handle_update_ex(EvaluationContext *eval_ctx,
  * e.g. "scene" <-- set 1 <-- set 2 ("ob" lives here) <-- set 3 <-- ... <-- set n
  * rigid bodies depend on their world so use BKE_object_handle_update_ex() to also pass along the corrent rigid body world
  */
-void BKE_object_handle_update(EvaluationContext *eval_ctx, Scene *scene, Object *ob)
+void BKE_object_handle_update(const EvaluationContext *eval_ctx, Scene *scene, Object *ob)
 {
 	BKE_object_handle_update_ex(eval_ctx, scene, ob, NULL, true);
 }
@@ -3633,9 +3634,9 @@ static void object_cacheIgnoreClear(Object *ob, int state)
 /* Note: this function should eventually be replaced by depsgraph functionality.
  * Avoid calling this in new code unless there is a very good reason for it!
  */
-bool BKE_object_modifier_update_subframe(EvaluationContext *eval_ctx, Scene *scene, Object *ob, bool update_mesh,
-                                         int parent_recursion, float frame,
-                                         int type)
+bool BKE_object_modifier_update_subframe(
+        const EvaluationContext *eval_ctx, Scene *scene, Object *ob, bool update_mesh,
+        int parent_recursion, float frame, int type)
 {
 	ModifierData *md = modifiers_findByType(ob, (ModifierType)type);
 	bConstraint *con;

@@ -62,7 +62,7 @@ ArmatureExporter::ArmatureExporter(COLLADASW::StreamWriter *sw, const ExportSett
 }
 
 // write bone nodes
-void ArmatureExporter::add_armature_bones(EvaluationContext *eval_ctx, Object *ob_arm,
+void ArmatureExporter::add_armature_bones(const EvaluationContext *eval_ctx, Object *ob_arm,
                                           Scene *sce, SceneExporter *se,
                                           std::list<Object *>& child_objects)
 {
@@ -157,7 +157,7 @@ void ArmatureExporter::find_objects_using_armature(Object *ob_arm, std::vector<O
 #endif
 
 // parent_mat is armature-space
-void ArmatureExporter::add_bone_node(EvaluationContext *eval_ctx, Bone *bone, Object *ob_arm, Scene *sce,
+void ArmatureExporter::add_bone_node(const EvaluationContext *eval_ctx, Bone *bone, Object *ob_arm, Scene *sce,
                                      SceneExporter *se,
                                      std::list<Object *>& child_objects)
 {

@@ -88,6 +88,7 @@ static void join_mesh_single(
         Material **matar, int *matmap, int totcol,
         int *vertofs, int *edgeofs, int *loopofs, int *polyofs)
 {
+	EvaluationContext eval_ctx;
 	int a, b;
 
 	Mesh *me = base_src->object->data;
@@ -95,7 +96,6 @@ static void join_mesh_single(
 	MEdge *medge = *medge_pp;
 	MLoop *mloop = *mloop_pp;
 	MPoly *mpoly = *mpoly_pp;
-	EvaluationContext eval_ctx;
 
 	CTX_data_eval_ctx(C, &eval_ctx);
 
@@ -1106,6 +1106,7 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, DerivedMesh *dm)
  */
 bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], unsigned int *index, int size)
 {
+	EvaluationContext eval_ctx;
 	ViewContext vc;
 	Mesh *me = ob->data;
 
@@ -1114,6 +1115,7 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], unsigned int 
 	if (!me || me->totpoly == 0)
 		return false;
 
+	CTX_data_eval_ctx(C, &eval_ctx);
 	view3d_set_viewcontext(C, &vc);
 
 	if (size) {
@@ -1121,11 +1123,11 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], unsigned int 
 		 * on an edge in the backbuf, we can still select a face */
 
 		float dummy_dist;
-		*index = ED_view3d_backbuf_sample_rect(C, &vc, mval, size, 1, me->totpoly + 1, &dummy_dist);
+		*index = ED_view3d_backbuf_sample_rect(&eval_ctx, &vc, mval, size, 1, me->totpoly + 1, &dummy_dist);
 	}
 	else {
 		/* sample only on the exact position */
-		*index = ED_view3d_backbuf_sample(C, &vc, mval[0], mval[1]);
+		*index = ED_view3d_backbuf_sample(&eval_ctx, &vc, mval[0], mval[1]);
 	}
 
 	if ((*index) == 0 || (*index) > (unsigned int)me->totpoly)
@@ -1293,11 +1295,11 @@ bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int 
 			 * on an face in the backbuf, we can still select a vert */
 
 			float dummy_dist;
-			*index = ED_view3d_backbuf_sample_rect(C, &vc, mval, size, 1, me->totvert + 1, &dummy_dist);
+			*index = ED_view3d_backbuf_sample_rect(&eval_ctx, &vc, mval, size, 1, me->totvert + 1, &dummy_dist);
 		}
 		else {
 			/* sample only on the exact position */
-			*index = ED_view3d_backbuf_sample(C, &vc, mval[0], mval[1]);
+			*index = ED_view3d_backbuf_sample(&eval_ctx, &vc, mval[0], mval[1]);
 		}
 
 		if ((*index) == 0 || (*index) > (unsigned int)me->totvert)

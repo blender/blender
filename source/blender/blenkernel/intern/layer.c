@@ -1734,7 +1734,7 @@ static void idproperty_reset(IDProperty **props, IDProperty *props_ref)
 	}
 }
 
-void BKE_layer_eval_layer_collection_pre(struct EvaluationContext *UNUSED(eval_ctx),
+void BKE_layer_eval_layer_collection_pre(const struct EvaluationContext *UNUSED(eval_ctx),
                                          Scene *scene, SceneLayer *scene_layer)
 {
 	DEBUG_PRINT("%s on %s (%p)\n", __func__, scene_layer->name, scene_layer);
@@ -1751,7 +1751,7 @@ void BKE_layer_eval_layer_collection_pre(struct EvaluationContext *UNUSED(eval_c
 	scene_layer->flag |= SCENE_LAYER_ENGINE_DIRTY;
 }
 
-void BKE_layer_eval_layer_collection(struct EvaluationContext *UNUSED(eval_ctx),
+void BKE_layer_eval_layer_collection(const struct EvaluationContext *UNUSED(eval_ctx),
                                      LayerCollection *layer_collection,
                                      LayerCollection *parent_layer_collection)
 {
@@ -1798,7 +1798,7 @@ void BKE_layer_eval_layer_collection(struct EvaluationContext *UNUSED(eval_ctx),
 	}
 }
 
-void BKE_layer_eval_layer_collection_post(struct EvaluationContext *UNUSED(eval_ctx),
+void BKE_layer_eval_layer_collection_post(const struct EvaluationContext *UNUSED(eval_ctx),
                                           SceneLayer *scene_layer)
 {
 	DEBUG_PRINT("%s on %s (%p)\n", __func__, scene_layer->name, scene_layer);

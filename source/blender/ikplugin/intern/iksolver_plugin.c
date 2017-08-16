@@ -252,7 +252,7 @@ static void where_is_ik_bone(bPoseChannel *pchan, float ik_mat[3][3])   // nr = 
 
 /* called from within the core BKE_pose_where_is loop, all animsystems and constraints
  * were executed & assigned. Now as last we do an IK pass */
-static void execute_posetree(struct EvaluationContext *eval_ctx, struct Scene *scene, Object *ob, PoseTree *tree)
+static void execute_posetree(const struct EvaluationContext *eval_ctx, struct Scene *scene, Object *ob, PoseTree *tree)
 {
 	float R_parmat[3][3], identity[3][3];
 	float iR_parmat[3][3];
@@ -534,7 +534,7 @@ static void free_posetree(PoseTree *tree)
 ///----------------------------------------
 /// Plugin API for legacy iksolver
 
-void iksolver_initialize_tree(struct EvaluationContext *UNUSED(eval_ctx), struct Scene *UNUSED(scene), struct Object *ob, float UNUSED(ctime))
+void iksolver_initialize_tree(const struct EvaluationContext *UNUSED(eval_ctx), struct Scene *UNUSED(scene), struct Object *ob, float UNUSED(ctime))
 {
 	bPoseChannel *pchan;
 
@@ -545,7 +545,7 @@ void iksolver_initialize_tree(struct EvaluationContext *UNUSED(eval_ctx), struct
 	ob->pose->flag &= ~POSE_WAS_REBUILT;
 }
 
-void iksolver_execute_tree(struct EvaluationContext *eval_ctx, struct Scene *scene, Object *ob,  bPoseChannel *pchan_root, float ctime)
+void iksolver_execute_tree(const struct EvaluationContext *eval_ctx, struct Scene *scene, Object *ob,  bPoseChannel *pchan_root, float ctime)
 {
 	while (pchan_root->iktree.first) {
 		PoseTree *tree = pchan_root->iktree.first;

@@ -1546,7 +1546,7 @@ static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow,
 }
 
 
-static void scan_for_ext_spring_forces(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, float timenow)
+static void scan_for_ext_spring_forces(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, float timenow)
 {
 	SoftBody *sb = ob->soft;
 	ListBase *do_effector = NULL;
@@ -1563,7 +1563,7 @@ static void *exec_scan_for_ext_spring_forces(void *data)
 	return NULL;
 }
 
-static void sb_sfesf_threads_run(struct EvaluationContext *eval_ctx, Scene *scene, struct Object *ob, float timenow, int totsprings, int *UNUSED(ptr_to_break_func(void)))
+static void sb_sfesf_threads_run(const struct EvaluationContext *eval_ctx, Scene *scene, struct Object *ob, float timenow, int totsprings, int *UNUSED(ptr_to_break_func(void)))
 {
 	ListBase *do_effector = NULL;
 	ListBase threads;
@@ -2235,7 +2235,7 @@ static void sb_cf_threads_run(Scene *scene, Object *ob, float forcetime, float t
 	MEM_freeN(sb_threads);
 }
 
-static void softbody_calc_forcesEx(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, float forcetime, float timenow)
+static void softbody_calc_forcesEx(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, float forcetime, float timenow)
 {
 	/* rule we never alter free variables :bp->vec bp->pos in here !
 	 * this will ruin adaptive stepsize AKA heun! (BM)
@@ -2280,7 +2280,7 @@ static void softbody_calc_forcesEx(struct EvaluationContext *eval_ctx, Scene *sc
 }
 
 
-static void softbody_calc_forces(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, float forcetime, float timenow)
+static void softbody_calc_forces(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, float forcetime, float timenow)
 {
 	/* redirection to the new threaded Version */
 	if (!(G.debug_value & 0x10)) { // 16
@@ -3512,7 +3512,7 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
 	}
 }
 
-static void softbody_step(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, SoftBody *sb, float dtime)
+static void softbody_step(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, SoftBody *sb, float dtime)
 {
 	/* the simulator */
 	float forcetime;
@@ -3646,7 +3646,7 @@ static void softbody_step(struct EvaluationContext *eval_ctx, Scene *scene, Obje
 }
 
 /* simulates one step. framenr is in frames */
-void sbObjectStep(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], int numVerts)
+void sbObjectStep(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], int numVerts)
 {
 	SoftBody *sb= ob->soft;
 	PointCache *cache;

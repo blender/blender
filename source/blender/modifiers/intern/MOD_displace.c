@@ -371,7 +371,7 @@ static void displaceModifier_do(
 	}
 }
 
-static void deformVerts(ModifierData *md, struct EvaluationContext *UNUSED(eval_ctx),
+static void deformVerts(ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx),
                         Object *ob, DerivedMesh *derivedData,
                         float (*vertexCos)[3],
                         int numVerts,
@@ -387,7 +387,7 @@ static void deformVerts(ModifierData *md, struct EvaluationContext *UNUSED(eval_
 }
 
 static void deformVertsEM(
-        ModifierData *md, struct EvaluationContext *UNUSED(eval_ctx), Object *ob, struct BMEditMesh *editData,
+        ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx), Object *ob, struct BMEditMesh *editData,
         DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = get_cddm(ob, editData, derivedData, vertexCos, dependsOnNormals(md));

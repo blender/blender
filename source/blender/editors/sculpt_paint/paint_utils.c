@@ -348,13 +348,15 @@ static void imapaint_pick_uv(EvaluationContext *eval_ctx, Scene *scene, Object *
 }
 
 /* returns 0 if not found, otherwise 1 */
-static int imapaint_pick_face(const bContext *C, ViewContext *vc, const int mval[2], unsigned int *r_index, unsigned int totpoly)
+static int imapaint_pick_face(
+        const struct EvaluationContext *eval_ctx, ViewContext *vc, const int mval[2],
+        unsigned int *r_index, unsigned int totpoly)
 {
 	if (totpoly == 0)
 		return 0;
 
 	/* sample only on the exact position */
-	*r_index = ED_view3d_backbuf_sample(C, vc, mval[0], mval[1]);
+	*r_index = ED_view3d_backbuf_sample(eval_ctx, vc, mval[0], mval[1]);
 
 	if ((*r_index) == 0 || (*r_index) > (unsigned int)totpoly) {
 		return 0;
@@ -466,7 +468,7 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 
 				view3d_operator_needs_opengl(C);
 
-				if (imapaint_pick_face(C, &vc, mval, &faceindex, totpoly)) {
+				if (imapaint_pick_face(&eval_ctx, &vc, mval, &faceindex, totpoly)) {
 					Image *image;
 					
 					if (use_material) 

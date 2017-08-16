@@ -1622,7 +1622,7 @@ float *BKE_curve_surf_make_orco(Object *ob)
 /* NOTE: This routine is tied to the order of vertex
  * built by displist and as passed to the renderer.
  */
-float *BKE_curve_make_orco(EvaluationContext *eval_ctx, Scene *scene, Object *ob, int *r_numVerts)
+float *BKE_curve_make_orco(const EvaluationContext *eval_ctx, Scene *scene, Object *ob, int *r_numVerts)
 {
 	Curve *cu = ob->data;
 	DispList *dl;
@@ -1721,8 +1721,9 @@ float *BKE_curve_make_orco(EvaluationContext *eval_ctx, Scene *scene, Object *ob
 
 /* ***************** BEVEL ****************** */
 
-void BKE_curve_bevel_make(EvaluationContext *eval_ctx, Scene *scene, Object *ob, ListBase *disp,
-                          const bool for_render, const bool use_render_resolution)
+void BKE_curve_bevel_make(
+        const EvaluationContext *eval_ctx, Scene *scene, Object *ob, ListBase *disp,
+        const bool for_render, const bool use_render_resolution)
 {
 	DispList *dl, *dlnew;
 	Curve *bevcu, *cu;
@@ -4674,7 +4675,7 @@ void BKE_curve_rect_from_textbox(const struct Curve *cu, const struct TextBox *t
 
 /* **** Depsgraph evaluation **** */
 
-void BKE_curve_eval_geometry(EvaluationContext *UNUSED(eval_ctx),
+void BKE_curve_eval_geometry(const EvaluationContext *UNUSED(eval_ctx),
                              Curve *curve)
 {
 	if (G.debug & G_DEBUG_DEPSGRAPH) {
@@ -4685,7 +4686,7 @@ void BKE_curve_eval_geometry(EvaluationContext *UNUSED(eval_ctx),
 	}
 }
 
-void BKE_curve_eval_path(EvaluationContext *UNUSED(eval_ctx),
+void BKE_curve_eval_path(const EvaluationContext *UNUSED(eval_ctx),
                          Curve *curve)
 {
 	/* TODO(sergey): This will probably need to be a part of

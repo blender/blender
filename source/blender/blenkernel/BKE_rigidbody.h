@@ -100,19 +100,19 @@ void BKE_rigidbody_aftertrans_update(struct Object *ob, float loc[3], float rot[
 void BKE_rigidbody_sync_transforms(struct RigidBodyWorld *rbw, struct Object *ob, float ctime);
 bool BKE_rigidbody_check_sim_running(struct RigidBodyWorld *rbw, float ctime);
 void BKE_rigidbody_cache_reset(struct RigidBodyWorld *rbw);
-void BKE_rigidbody_rebuild_world(struct EvaluationContext *eval_ctx, struct Scene *scene, float ctime);
-void BKE_rigidbody_do_simulation(struct EvaluationContext *eval_ctx, struct Scene *scene, float ctime);
+void BKE_rigidbody_rebuild_world(const struct EvaluationContext *eval_ctx, struct Scene *scene, float ctime);
+void BKE_rigidbody_do_simulation(const struct EvaluationContext *eval_ctx, struct Scene *scene, float ctime);
 
 /* -------------------- */
 /* Depsgraph evaluation */
 
-void BKE_rigidbody_rebuild_sim(struct EvaluationContext *eval_ctx,
+void BKE_rigidbody_rebuild_sim(const struct EvaluationContext *eval_ctx,
                                struct Scene *scene);
 
-void BKE_rigidbody_eval_simulation(struct EvaluationContext *eval_ctx,
+void BKE_rigidbody_eval_simulation(const struct EvaluationContext *eval_ctx,
                                    struct Scene *scene);
 
-void BKE_rigidbody_object_sync_transforms(struct EvaluationContext *eval_ctx,
+void BKE_rigidbody_object_sync_transforms(const struct EvaluationContext *eval_ctx,
                                           struct Scene *scene,
                                           struct Object *ob);
 

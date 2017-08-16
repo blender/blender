@@ -1277,7 +1277,11 @@ static int object_transform_axis_target_invoke(bContext *C, wmOperator *op, cons
 		return OPERATOR_PASS_THROUGH;
 	}
 
-	ED_view3d_autodist_init(C, vc.depsgraph, vc.ar, vc.v3d, 0);
+	EvaluationContext eval_ctx;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
+
+	ED_view3d_autodist_init(&eval_ctx, vc.depsgraph, vc.ar, vc.v3d, 0);
 
 	if (vc.rv3d->depths != NULL) {
 		vc.rv3d->depths->damaged = true;

@@ -814,7 +814,9 @@ static unsigned int vpaint_blend(VPaint *vp, unsigned int col, unsigned int colo
 }
 
 
-static int sample_backbuf_area(const bContext *C, ViewContext *vc, int *indexar, int totpoly, int x, int y, float size)
+static int sample_backbuf_area(
+        const EvaluationContext *eval_ctx, ViewContext *vc,
+        int *indexar, int totpoly, int x, int y, float size)
 {
 	struct ImBuf *ibuf;
 	int a, tot = 0, index;
@@ -823,7 +825,7 @@ static int sample_backbuf_area(const bContext *C, ViewContext *vc, int *indexar,
 	 * brushes with size > 64, why is this here? */
 	/*if (size > 64.0) size = 64.0;*/
 	
-	ibuf = ED_view3d_backbuf_read(C, vc, x - size, y - size, x + size, y + size);
+	ibuf = ED_view3d_backbuf_read(eval_ctx, vc, x - size, y - size, x + size, y + size);
 	if (ibuf) {
 		unsigned int *rt = ibuf->rect;
 
@@ -2162,6 +2164,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	VPaint *wp = ts->wpaint;
 	Brush *brush = BKE_paint_brush(&wp->paint);
 	struct WPaintData *wpd = paint_stroke_mode_data(stroke);
+	EvaluationContext eval_ctx;
 	ViewContext *vc;
 	Object *ob;
 	Mesh *me;
@@ -2201,8 +2204,11 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	me = ob->data;
 	indexar = wpd->indexar;
 	
+
 	view3d_operator_needs_opengl(C);
 	ED_view3d_init_mats_rv3d(ob, vc->rv3d);
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 
 	/* load projection matrix */
 	mul_m4_m4m4(mat, vc->rv3d->persmat, ob->obmat);
@@ -2243,7 +2249,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			/* Ugly x2, we need this so hidden faces don't draw */
 			me->editflag |= ME_EDIT_PAINT_FACE_SEL;
 		}
-		totindex = sample_backbuf_area(C, vc, indexar, me->totpoly, mval[0], mval[1], brush_size_pressure);
+		totindex = sample_backbuf_area(&eval_ctx, vc, indexar, me->totpoly, mval[0], mval[1], brush_size_pressure);
 		me->editflag = editflag_prev;
 
 		if (use_face_sel && me->totpoly) {
@@ -2799,6 +2805,7 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me,
 
 static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
 {
+	EvaluationContext eval_ctx;
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	struct VPaintData *vpd = paint_stroke_mode_data(stroke);
@@ -2827,7 +2834,8 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	mul_m4_m4m4(mat, vc->rv3d->persmat, ob->obmat);
 
 	/* which faces are involved */
-	totindex = sample_backbuf_area(C, vc, indexar, me->totpoly, mval[0], mval[1], brush_size_pressure);
+	CTX_data_eval_ctx(C, &eval_ctx);
+	totindex = sample_backbuf_area(&eval_ctx, vc, indexar, me->totpoly, mval[0], mval[1], brush_size_pressure);
 
 	if ((me->editflag & ME_EDIT_PAINT_FACE_SEL) && me->mpoly) {
 		for (index = 0; index < totindex; index++) {

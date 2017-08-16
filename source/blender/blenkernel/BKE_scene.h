@@ -99,8 +99,9 @@ typedef struct SceneBaseIter {
 	int phase;
 } SceneBaseIter;
 
-int BKE_scene_base_iter_next(struct EvaluationContext *eval_ctx, struct SceneBaseIter *iter,
-                             struct Scene **scene, int val, struct BaseLegacy **base, struct Object **ob);
+int BKE_scene_base_iter_next(
+        const struct EvaluationContext *eval_ctx, struct SceneBaseIter *iter,
+        struct Scene **scene, int val, struct BaseLegacy **base, struct Object **ob);
 
 void BKE_scene_base_flag_to_objects(struct SceneLayer *sl);
 void BKE_scene_base_flag_from_objects(struct Scene *scene);

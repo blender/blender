@@ -603,7 +603,7 @@ static bool where_on_path_deform(Object *ob, float ctime, float vec[4], float di
 /* co: local coord, result local too */
 /* returns quaternion for rotation, using cd->no_rot_axis */
 /* axis is using another define!!! */
-static bool calc_curve_deform(struct EvaluationContext *eval_ctx, Scene *scene, Object *par, float co[3],
+static bool calc_curve_deform(const struct EvaluationContext *eval_ctx, Scene *scene, Object *par, float co[3],
                               const short axis, CurveDeform *cd, float r_quat[4])
 {
 	Curve *cu = par->data;
@@ -707,7 +707,8 @@ static bool calc_curve_deform(struct EvaluationContext *eval_ctx, Scene *scene, 
 }
 
 void curve_deform_verts(
-        struct EvaluationContext *eval_ctx, Scene *scene, Object *cuOb, Object *target, DerivedMesh *dm, float (*vertexCos)[3],
+        const struct EvaluationContext *eval_ctx, Scene *scene,
+        Object *cuOb, Object *target, DerivedMesh *dm, float (*vertexCos)[3],
         int numVerts, const char *vgroup, short defaxis)
 {
 	Curve *cu;
@@ -825,7 +826,7 @@ void curve_deform_verts(
 /* input vec and orco = local coord in armature space */
 /* orco is original not-animated or deformed reference point */
 /* result written in vec and mat */
-void curve_deform_vector(struct EvaluationContext *eval_ctx, Scene *scene, Object *cuOb, Object *target,
+void curve_deform_vector(const struct EvaluationContext *eval_ctx, Scene *scene, Object *cuOb, Object *target,
                          float orco[3], float vec[3], float mat[3][3], int no_rot_axis)
 {
 	CurveDeform cd;
@@ -1034,7 +1035,7 @@ void BKE_lattice_vertexcos_apply(struct Object *ob, float (*vertexCos)[3])
 	}
 }
 
-void BKE_lattice_modifiers_calc(struct EvaluationContext *eval_ctx, Scene *scene, Object *ob)
+void BKE_lattice_modifiers_calc(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob)
 {
 	Lattice *lt = ob->data;
 	VirtualModifierData virtualModifierData;
@@ -1235,7 +1236,7 @@ void BKE_lattice_translate(Lattice *lt, float offset[3], bool do_keys)
 
 /* **** Depsgraph evaluation **** */
 
-void BKE_lattice_eval_geometry(struct EvaluationContext *UNUSED(eval_ctx),
+void BKE_lattice_eval_geometry(const struct EvaluationContext *UNUSED(eval_ctx),
                                Lattice *UNUSED(latt))
 {
 }

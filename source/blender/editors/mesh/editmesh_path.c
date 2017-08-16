@@ -59,6 +59,8 @@
 #include "bmesh.h"
 #include "bmesh_tools.h"
 
+#include "DEG_depsgraph.h"
+
 #include "mesh_intern.h"  /* own include */
 
 struct PathSelectParams {
@@ -570,19 +572,19 @@ static bool edbm_shortest_path_pick_ex(
 
 static int edbm_shortest_path_pick_exec(bContext *C, wmOperator *op);
 
-static BMElem *edbm_elem_find_nearest(const bContext *C, ViewContext *vc, const char htype)
+static BMElem *edbm_elem_find_nearest(const struct EvaluationContext *eval_ctx, ViewContext *vc, const char htype)
 {
 	BMEditMesh *em = vc->em;
 	float dist = ED_view3d_select_dist_px();
 
 	if ((em->selectmode & SCE_SELECT_VERTEX) && (htype == BM_VERT)) {
-		return (BMElem *)EDBM_vert_find_nearest(C, vc, &dist);
+		return (BMElem *)EDBM_vert_find_nearest(eval_ctx, vc, &dist);
 	}
 	else if ((em->selectmode & SCE_SELECT_EDGE) && (htype == BM_EDGE)) {
-		return (BMElem *)EDBM_edge_find_nearest(C, vc, &dist);
+		return (BMElem *)EDBM_edge_find_nearest(eval_ctx, vc, &dist);
 	}
 	else if ((em->selectmode & SCE_SELECT_FACE) && (htype == BM_FACE)) {
-		return (BMElem *)EDBM_face_find_nearest(C, vc, &dist);
+		return (BMElem *)EDBM_face_find_nearest(eval_ctx, vc, &dist);
 	}
 
 	return NULL;
@@ -605,10 +607,12 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
 		return edbm_shortest_path_pick_exec(C, op);
 	}
 
+	EvaluationContext eval_ctx;
 	ViewContext vc;
 	BMEditMesh *em;
 	bool track_active = true;
 
+	CTX_data_eval_ctx(C, &eval_ctx);
 	em_setup_viewcontext(C, &vc);
 	copy_v2_v2_int(vc.mval, event->mval);
 	em = vc.em;
@@ -617,14 +621,14 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
 
 	BMElem *ele_src, *ele_dst;
 	if (!(ele_src = edbm_elem_active_elem_or_face_get(em->bm)) ||
-	    !(ele_dst = edbm_elem_find_nearest(C, &vc, ele_src->head.htype)))
+	    !(ele_dst = edbm_elem_find_nearest(&eval_ctx, &vc, ele_src->head.htype)))
 	{
 		/* special case, toggle edge tags even when we don't have a path */
 		if (((em->selectmode & SCE_SELECT_EDGE) &&
 		     (vc.scene->toolsettings->edge_mode != EDGE_MODE_SELECT)) &&
 		    /* check if we only have a destination edge */
 		    ((ele_src == NULL) &&
-		     (ele_dst = edbm_elem_find_nearest(C, &vc, BM_EDGE))))
+		     (ele_dst = edbm_elem_find_nearest(&eval_ctx, &vc, BM_EDGE))))
 		{
 			ele_src = ele_dst;
 			track_active = false;
