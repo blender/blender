@@ -1421,17 +1421,6 @@ bool snapNodesTransform(
 	        r_loc, r_dist_px, r_node_border);
 }
 
-bool snapNodesContext(
-        bContext *C, const int mval[2], SnapSelect snap_select,
-        float r_loc[2], float *r_dist_px, char *r_node_border)
-{
-	Scene *scene = CTX_data_scene(C);
-	ARegion *ar = CTX_wm_region(C);
-	return snapNodes(
-	        scene->toolsettings, CTX_wm_space_node(C), ar, mval, snap_select,
-	        r_loc, r_dist_px, r_node_border);
-}
-
 /*================================================================*/
 
 static void applyGridIncrement(TransInfo *t, float *val, int max_index, const float fac[3], GearsType action);
