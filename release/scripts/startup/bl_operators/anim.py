@@ -137,6 +137,9 @@ class ANIM_OT_keying_set_export(Operator):
                         break
                 else:
                     self.report({'WARN'}, "Could not find scene using Compositor Node Tree - %s" % (ksp.id))
+            elif ksp.id.bl_rna.name == "Key":
+                # "keys" conflicts with a Python keyword, hence the simple solution won't work
+                id_bpy_path = "bpy.data.shape_keys[\"%s\"]" % (ksp.id.name)
             else:
                 idtype_list = ksp.id.bl_rna.name.lower() + "s"
                 id_bpy_path = "bpy.data.%s[\"%s\"]" % (idtype_list, ksp.id.name)
