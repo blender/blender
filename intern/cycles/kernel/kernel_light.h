@@ -763,60 +763,259 @@ ccl_device bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D,
 
 /* Triangle Light */
 
-ccl_device void object_transform_light_sample(KernelGlobals *kg, LightSample *ls, int object, float time)
+/* returns true if the triangle is has motion blur or an instancing transform applied */
+ccl_device_inline bool triangle_world_space_vertices(KernelGlobals *kg, int object, int prim, float time, float3 V[3])
 {
+	bool has_motion = false;
+	const int object_flag = kernel_tex_fetch(__object_flag, object);
+
+	if(object_flag & SD_OBJECT_HAS_VERTEX_MOTION && time >= 0.0f) {
+		motion_triangle_vertices(kg, object, prim, time, V);
+		has_motion = true;
+	} else {
+		triangle_vertices(kg, prim, V);
+	}
+
 #ifdef __INSTANCING__
-	/* instance transform */
-	if(!(kernel_tex_fetch(__object_flag, object) & SD_OBJECT_TRANSFORM_APPLIED)) {
+	if(!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
 #  ifdef __OBJECT_MOTION__
-		Transform itfm;
-		Transform tfm = object_fetch_transform_motion_test(kg, object, time, &itfm);
+		Transform tfm = object_fetch_transform_motion_test(kg, object, time, NULL);
 #  else
 		Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
 #  endif
-
-		ls->P = transform_point(&tfm, ls->P);
-		ls->Ng = normalize(transform_direction(&tfm, ls->Ng));
+		V[0] = transform_point(&tfm, V[0]);
+		V[1] = transform_point(&tfm, V[1]);
+		V[2] = transform_point(&tfm, V[2]);
+		has_motion = true;
 	}
 #endif
+	return has_motion;
 }
 
-ccl_device void triangle_light_sample(KernelGlobals *kg, int prim, int object,
-	float randu, float randv, float time, LightSample *ls)
-{
-	float u, v;
-
-	/* compute random point in triangle */
-	randu = sqrtf(randu);
-
-	u = 1.0f - randu;
-	v = randv*randu;
-
-	/* triangle, so get position, normal, shader */
-	triangle_point_normal(kg, object, prim, u, v, &ls->P, &ls->Ng, &ls->shader);
-	ls->object = object;
-	ls->prim = prim;
-	ls->lamp = LAMP_NONE;
-	ls->shader |= SHADER_USE_MIS;
-	ls->t = 0.0f;
-	ls->u = u;
-	ls->v = v;
-	ls->type = LIGHT_TRIANGLE;
-	ls->eval_fac = 1.0f;
-
-	object_transform_light_sample(kg, ls, object, time);
-}
-
-ccl_device float triangle_light_pdf(KernelGlobals *kg,
-	const float3 Ng, const float3 I, float t)
+ccl_device_inline float triangle_light_pdf_area(KernelGlobals *kg, const float3 Ng, const float3 I, float t)
 {
 	float pdf = kernel_data.integrator.pdf_triangles;
 	float cos_pi = fabsf(dot(Ng, I));
 
 	if(cos_pi == 0.0f)
 		return 0.0f;
-	
+
 	return t*t*pdf/cos_pi;
+}
+
+ccl_device_forceinline float triangle_light_pdf(KernelGlobals *kg, ShaderData *sd, float t)
+{
+	/* A naive heuristic to decide between costly solid angle sampling
+	 * and simple area sampling, comparing the distance to the triangle plane
+	 * to the length of the edtes of the triangle.
+	 * Looking at two edge of the triangle should be a sufficient heuristic,
+	 * the third edge can't possibly be longer than the sum of the other two. */
+
+	float3 V[3];
+	bool has_motion = triangle_world_space_vertices(kg, sd->object, sd->prim, sd->time, V);
+
+	const float3 e0 = V[1] - V[0];
+	const float3 e1 = V[2] - V[0];
+	const float3 e2 = V[2] - V[1];
+	const float longest_edge_squared = max(len_squared(e0), max(len_squared(e1), len_squared(e2)));
+	const float3 N = cross(e0, e1);
+	const float distance_to_plane = fabsf(dot(N, sd->I * t))/dot(N, N);
+
+	if(longest_edge_squared > distance_to_plane*distance_to_plane) {
+		/* sd contains the point on the light source
+		 * calculate Px, the point that we're shading */
+		const float3 Px = sd->P + sd->I * t;
+		const float3 v0_p = V[0] - Px;
+		const float3 v1_p = V[1] - Px;
+		const float3 v2_p = V[2] - Px;
+
+		const float3 u01 = safe_normalize(cross(v0_p, v1_p));
+		const float3 u02 = safe_normalize(cross(v0_p, v2_p));
+		const float3 u12 = safe_normalize(cross(v1_p, v2_p));
+
+		const float alpha = fast_acosf(dot(u02, u01));
+		const float beta = fast_acosf(-dot(u01, u12));
+		const float gamma = fast_acosf(dot(u02, u12));
+		const float solid_angle =  alpha + beta + gamma - M_PI_F;
+
+		/* pdf_triangles is calculated over triangle area, but we're not sampling over its area */
+		if(UNLIKELY(solid_angle == 0.0f)) {
+			return 0.0f;
+		} else {
+			float area = 1.0f;
+			if(has_motion) {
+				/* get the center frame vertices, this is what the PDF was calculated from */
+				triangle_world_space_vertices(kg, sd->object, sd->prim, -1.0f, V);
+				area = triangle_area(V[0], V[1], V[2]);
+			} else {
+				area = 0.5f * len(N);
+			}
+			const float pdf = area * kernel_data.integrator.pdf_triangles;
+			return pdf / solid_angle;
+		}
+	}
+	else {
+		float pdf = triangle_light_pdf_area(kg, sd->Ng, sd->I, t);
+		if(has_motion) {
+			const float	area = 0.5f * len(N);
+			if(UNLIKELY(area == 0.0f)) {
+				return 0.0f;
+			}
+			/* scale the PDF.
+			 * area = the area the sample was taken from
+			 * area_pre = the are from which pdf_triangles was calculated from */
+			triangle_world_space_vertices(kg, sd->object, sd->prim, -1.0f, V);
+			const float area_pre = triangle_area(V[0], V[1], V[2]);
+			pdf = pdf * area_pre / area;
+		}
+		return pdf;
+	}
+}
+
+ccl_device_forceinline void triangle_light_sample(KernelGlobals *kg, int prim, int object,
+	float randu, float randv, float time, LightSample *ls, const float3 P)
+{
+	/* A naive heuristic to decide between costly solid angle sampling
+	 * and simple area sampling, comparing the distance to the triangle plane
+	 * to the length of the edtes of the triangle.
+	 * Looking at two edge of the triangle should be a sufficient heuristic,
+	 * the third edge can't possibly be longer than the sum of the other two. */
+
+	float3 V[3];
+	bool has_motion = triangle_world_space_vertices(kg, object, prim, time, V);
+
+	const float3 e0 = V[1] - V[0];
+	const float3 e1 = V[2] - V[0];
+	const float3 e2 = V[2] - V[1];
+	const float longest_edge_squared = max(len_squared(e0), max(len_squared(e1), len_squared(e2)));
+	const float3 N0 = cross(e0, e1);
+	float Nl = 0.0f;
+	ls->Ng = safe_normalize_len(N0, &Nl);
+	float area = 0.5f * Nl;
+
+	/* flip normal if necessary */
+	const int object_flag = kernel_tex_fetch(__object_flag, object);
+	if(!(object_flag & SD_OBJECT_NEGATIVE_SCALE_APPLIED)) {
+		ls->Ng = -ls->Ng;
+	}
+	ls->eval_fac = 1.0f;
+	ls->shader = kernel_tex_fetch(__tri_shader, prim);
+	ls->object = object;
+	ls->prim = prim;
+	ls->lamp = LAMP_NONE;
+	ls->shader |= SHADER_USE_MIS;
+	ls->type = LIGHT_TRIANGLE;
+
+	float distance_to_plane = fabsf(dot(N0, V[0] - P)/dot(N0, N0));
+
+	if(longest_edge_squared > distance_to_plane*distance_to_plane) {
+		/* see James Arvo, "Stratified Sampling of Spherical Triangles"
+		 * http://www.graphics.cornell.edu/pubs/1995/Arv95c.pdf */
+
+		/* project the triangle to the unit sphere
+		 * and calculate its edges and angles */
+		const float3 v0_p = V[0] - P;
+		const float3 v1_p = V[1] - P;
+		const float3 v2_p = V[2] - P;
+
+		const float3 u01 = safe_normalize(cross(v0_p, v1_p));
+		const float3 u02 = safe_normalize(cross(v0_p, v2_p));
+		const float3 u12 = safe_normalize(cross(v1_p, v2_p));
+
+		const float3 A = safe_normalize(v0_p);
+		const float3 B = safe_normalize(v1_p);
+		const float3 C = safe_normalize(v2_p);
+
+		const float cos_alpha = dot(u02, u01);
+		const float cos_beta = -dot(u01, u12);
+		const float cos_gamma = dot(u02, u12);
+
+		/* calculate dihedral angles */
+		const float alpha = fast_acosf(cos_alpha);
+		const float beta = fast_acosf(cos_beta);
+		const float gamma = fast_acosf(cos_gamma);
+		/* the area of the unit spherical triangle = solid angle */
+		const float solid_angle =  alpha + beta + gamma - M_PI_F;
+
+		/* precompute a few things
+		 * these could be re-used to take several samples
+		 * as they are independent of randu/randv */
+		const float cos_c = dot(A, B);
+		const float sin_alpha = fast_sinf(alpha);
+		const float product = sin_alpha * cos_c;
+
+		/* Select a random sub-area of the spherical triangle
+		 * and calculate the third vertex C_ of that new triangle */
+		const float phi = randu * solid_angle - alpha;
+		float s, t;
+		fast_sincosf(phi, &s, &t);
+		const float u = t - cos_alpha;
+		const float v = s + product;
+
+		const float3 U = safe_normalize(C - dot(C, A) * A);
+
+		const float q = ((v * t - u * s) * cos_alpha - v) / ((v * s + u * t) * sin_alpha);
+		const float temp = max(1.0f - q*q, 0.0f);
+
+		const float3 C_ = safe_normalize(q * A + sqrtf(temp) * U);
+
+		/* Finally, select a random point along the edge of the new triangle 
+		 * That point on the spherical triangle is the sampled ray direction */
+		const float z = 1.0f - randv * (1.0f - dot(C_, B));
+		ls->D = z * B + safe_sqrtf(1.0f - z*z) * safe_normalize(C_ - dot(C_, B) * B);
+
+		/* calculate intersection with the planar triangle
+		 * mostly standard ray/tri intersection, with u/v clamped */
+		const float3 s1 = cross(ls->D, e1);
+
+		const float divisor = dot(s1, e0);
+		if(UNLIKELY(divisor == 0.0f)) {
+			ls->pdf = 0.0f;
+			return;
+		}
+		const float inv_divisor = 1.0f/divisor;
+		const float3 d = P - V[0];
+		ls->u = clamp(dot(d, s1)*inv_divisor, 0.0f, 1.0f);
+		const float3 s2 = cross(d, e0);
+		ls->v = clamp(dot(ls->D, s2)*inv_divisor, 0.0f, 1.0f);
+		ls->t = dot(e1, s2)*inv_divisor;
+		ls->P = P + ls->D * ls->t;
+
+		/* pdf_triangles is calculated over triangle area, but we're sampling over solid angle */
+		if(UNLIKELY(solid_angle == 0.0f)) {
+			ls->pdf = 0.0f;
+		} else {
+			if(has_motion) {
+				/* get the center frame vertices, this is what the PDF was calculated from */
+				triangle_world_space_vertices(kg, object, prim, -1.0f, V);
+				area = triangle_area(V[0], V[1], V[2]);
+			}
+			const float pdf = area * kernel_data.integrator.pdf_triangles;
+			ls->pdf = pdf / solid_angle;
+		}
+	}
+	else {
+		/* compute random point in triangle */
+		randu = sqrtf(randu);
+
+		const float u = 1.0f - randu;
+		const float v = randv*randu;
+		const float t = 1.0f - u - v;
+		ls->P = u * V[0] + v * V[1] + t * V[2];
+		/* compute incoming direction, distance and pdf */
+		ls->D = normalize_len(ls->P - P, &ls->t);
+		ls->pdf = triangle_light_pdf_area(kg, ls->Ng, -ls->D, ls->t);
+		if(has_motion && area != 0.0f) {
+			/* scale the PDF.
+			 * area = the area the sample was taken from
+			 * area_pre = the are from which pdf_triangles was calculated from */
+			triangle_world_space_vertices(kg, object, prim, -1.0f, V);
+			const float area_pre = triangle_area(V[0], V[1], V[2]);
+			ls->pdf = ls->pdf * area_pre / area;
+		}
+		ls->u = u;
+		ls->v = v;
+	}
 }
 
 /* Light Distribution */
@@ -876,10 +1075,7 @@ ccl_device_noinline bool light_sample(KernelGlobals *kg,
 		int object = __float_as_int(l.w);
 		int shader_flag = __float_as_int(l.z);
 
-		triangle_light_sample(kg, prim, object, randu, randv, time, ls);
-		/* compute incoming direction, distance and pdf */
-		ls->D = normalize_len(ls->P - P, &ls->t);
-		ls->pdf = triangle_light_pdf(kg, ls->Ng, -ls->D, ls->t);
+		triangle_light_sample(kg, prim, object, randu, randv, time, ls, P);
 		ls->shader |= shader_flag;
 		return (ls->pdf > 0.0f);
 	}

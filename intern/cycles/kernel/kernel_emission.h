@@ -216,7 +216,7 @@ ccl_device_noinline float3 indirect_primitive_emission(KernelGlobals *kg, Shader
 	{
 		/* multiple importance sampling, get triangle light pdf,
 		 * and compute weight with respect to BSDF pdf */
-		float pdf = triangle_light_pdf(kg, sd->Ng, sd->I, t);
+		float pdf = triangle_light_pdf(kg, sd, t);
 		float mis_weight = power_heuristic(bsdf_pdf, pdf);
 
 		return L*mis_weight;
