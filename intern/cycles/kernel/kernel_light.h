@@ -954,7 +954,11 @@ ccl_device_forceinline void triangle_light_sample(KernelGlobals *kg, int prim, i
 
 		const float3 U = safe_normalize(C - dot(C, A) * A);
 
-		const float q = ((v * t - u * s) * cos_alpha - v) / ((v * s + u * t) * sin_alpha);
+		float q = 1.0f;
+		const float det = ((v * s + u * t) * sin_alpha);
+		if(det != 0.0f) {
+			q = ((v * t - u * s) * cos_alpha - v) / det;
+		}
 		const float temp = max(1.0f - q*q, 0.0f);
 
 		const float3 C_ = safe_normalize(q * A + sqrtf(temp) * U);
