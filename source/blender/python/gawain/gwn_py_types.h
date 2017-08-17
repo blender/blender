@@ -29,26 +29,26 @@
 
 #define USE_GWN_PY_REFERENCES
 
-extern PyTypeObject BPy_Gwn_VertFormat_Type;
-extern PyTypeObject BPy_Gwn_VertBuf_Type;
-extern PyTypeObject BPy_Gwn_Batch_Type;
+extern PyTypeObject BPyGwn_VertFormat_Type;
+extern PyTypeObject BPyGwn_VertBuf_Type;
+extern PyTypeObject BPyGwn_Batch_Type;
 
-#define BPy_Gwn_VertFormat_Check(v)     (Py_TYPE(v) == &BPy_Gwn_VertFormat_Type)
-#define BPy_Gwn_VertBuf_Check(v)        (Py_TYPE(v) == &BPy_Gwn_VertBuf_Type)
-#define BPy_Gwn_Batch_Check(v)          (Py_TYPE(v) == &BPy_Gwn_Batch_Type)
+#define BPyGwn_VertFormat_Check(v)     (Py_TYPE(v) == &BPyGwn_VertFormat_Type)
+#define BPyGwn_VertBuf_Check(v)        (Py_TYPE(v) == &BPyGwn_VertBuf_Type)
+#define BPyGwn_Batch_Check(v)          (Py_TYPE(v) == &BPyGwn_Batch_Type)
 
-typedef struct BPy_Gwn_VertFormat {
+typedef struct BPyGwn_VertFormat {
 	PyObject_VAR_HEAD
 	struct Gwn_VertFormat fmt;
-} BPy_Gwn_VertFormat;
+} BPyGwn_VertFormat;
 
-typedef struct BPy_Gwn_VertBuf {
+typedef struct BPyGwn_VertBuf {
 	PyObject_VAR_HEAD
 	/* The buf is owned, we may support thin wrapped batches later. */
 	struct Gwn_VertBuf *buf;
-} BPy_Gwn_VertBuf;
+} BPyGwn_VertBuf;
 
-typedef struct BPy_Gwn_Batch {
+typedef struct BPyGwn_Batch {
 	PyObject_VAR_HEAD
 	/* The batch is owned, we may support thin wrapped batches later. */
 	struct Gwn_Batch *batch;
@@ -56,12 +56,12 @@ typedef struct BPy_Gwn_Batch {
 	/* Just to keep a user to prevent freeing buf's we're using */
 	PyObject *references;
 #endif
-} BPy_Gwn_Batch;
+} BPyGwn_Batch;
 
 PyObject *BPyInit_gawain_types(void);
 
-PyObject *BPy_Gwn_VertFormat_CreatePyObject(struct Gwn_VertFormat *fmt);
-PyObject *BPy_Gwn_VertBuf_CreatePyObject(struct Gwn_VertBuf *vbo) ATTR_NONNULL(1);
-PyObject *BPy_Gwn_Batch_CreatePyObject(struct Gwn_Batch *batch) ATTR_NONNULL(1);
+PyObject *BPyGwn_VertFormat_CreatePyObject(struct Gwn_VertFormat *fmt);
+PyObject *BPyGwn_VertBuf_CreatePyObject(struct Gwn_VertBuf *vbo) ATTR_NONNULL(1);
+PyObject *BPyGwn_Batch_CreatePyObject(struct Gwn_Batch *batch) ATTR_NONNULL(1);
 
 #endif /* __GWN_PY_TYPES_H__ */

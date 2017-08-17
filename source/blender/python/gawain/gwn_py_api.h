@@ -22,7 +22,7 @@
 #define __GWN_PY_API__
 
 /** \file blender/python/gawain/gwn_py_api.h
- *  \ingroup pygen
+ *  \ingroup pygawain
  */
 
 PyObject *BPyInit_gawain(void);

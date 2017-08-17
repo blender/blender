@@ -20,6 +20,9 @@
 
 /** \file blender/python/gawain/gwn_py_types.c
  *  \ingroup pygawain
+ *
+ * - Use ``bpygwn_`` for local API.
+ * - Use ``BPyGwn_`` for public API.
  */
 
 #include <Python.h>
@@ -57,7 +60,7 @@
  * Use with PyArg_ParseTuple's "O&" formatting.
  * \{ */
 
-static int BPy_Gwn_ParseVertCompType(PyObject *o, void *p)
+static int bpygwn_ParseVertCompType(PyObject *o, void *p)
 {
 	Py_ssize_t comp_type_id_len;
 	const char *comp_type_id = _PyUnicode_AsStringAndSize(o, &comp_type_id_len);
@@ -96,7 +99,7 @@ success:
 	return 1;
 }
 
-static int BPy_Gwn_ParseVertFetchMode(PyObject *o, void *p)
+static int bpygwn_ParseVertFetchMode(PyObject *o, void *p)
 {
 	Py_ssize_t mode_id_len;
 	const char *mode_id = _PyUnicode_AsStringAndSize(o, &mode_id_len);
@@ -130,7 +133,7 @@ success:
 	return 1;
 }
 
-static int BPy_Gwn_ParsePrimType(PyObject *o, void *p)
+static int bpygwn_ParsePrimType(PyObject *o, void *p)
 {
 	Py_ssize_t mode_id_len;
 	const char *mode_id = _PyUnicode_AsStringAndSize(o, &mode_id_len);
@@ -226,7 +229,7 @@ static void fill_format_tuple(void *data_dst_void, PyObject *py_src, const Gwn_V
 
 #undef PY_AS_NATIVE_SWITCH
 
-static bool pygwn_vertbuf_fill_impl(
+static bool bpygwn_vertbuf_fill_impl(
         Gwn_VertBuf *vbo,
         uint data_id, PyObject *seq)
 {
@@ -294,7 +297,7 @@ finally:
 
 /* handy, but not used just now */
 #if 0
-static int pygwn_find_id(const Gwn_VertFormat *fmt, const char *id)
+static int bpygwn_find_id(const Gwn_VertFormat *fmt, const char *id)
 {
 	for (int i = 0; i < fmt->attrib_ct; i++) {
 		for (uint j = 0; j < fmt->name_ct; j++) {
@@ -315,7 +318,7 @@ static int pygwn_find_id(const Gwn_VertFormat *fmt, const char *id)
 /** \name VertFormat Type
  * \{ */
 
-static PyObject *BPy_Gwn_VertFormat_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
+static PyObject *bpygwn_VertFormat_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
 	if (PyTuple_GET_SIZE(args) || (kwds && PyDict_Size(kwds))) {
 		PyErr_SetString(PyExc_TypeError,
@@ -323,15 +326,15 @@ static PyObject *BPy_Gwn_VertFormat_new(PyTypeObject *UNUSED(type), PyObject *ar
 		return NULL;
 	}
 
-	BPy_Gwn_VertFormat *ret = (BPy_Gwn_VertFormat *)BPy_Gwn_VertFormat_CreatePyObject(NULL);
+	BPyGwn_VertFormat *ret = (BPyGwn_VertFormat *)BPyGwn_VertFormat_CreatePyObject(NULL);
 
 	return (PyObject *)ret;
 }
 
-PyDoc_STRVAR(BPy_Gwn_VertFormat_attr_add_doc,
+PyDoc_STRVAR(bpygwn_VertFormat_attr_add_doc,
 "TODO"
 );
-static PyObject *BPy_Gwn_VertFormat_attr_add(BPy_Gwn_VertFormat *self, PyObject *args, PyObject *kwds)
+static PyObject *bpygwn_VertFormat_attr_add(BPyGwn_VertFormat *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"id", "comp_type", "len", "fetch_mode", NULL};
 
@@ -350,9 +353,9 @@ static PyObject *BPy_Gwn_VertFormat_attr_add(BPy_Gwn_VertFormat *self, PyObject 
 	if (!PyArg_ParseTupleAndKeywords(
 	        args, kwds, "$sO&IO&:attr_add", (char **)kwlist,
 	        &params.id,
-	        BPy_Gwn_ParseVertCompType, &params.comp_type,
+	        bpygwn_ParseVertCompType, &params.comp_type,
 	        &params.len,
-	        BPy_Gwn_ParseVertFetchMode, &params.fetch_mode))
+	        bpygwn_ParseVertFetchMode, &params.fetch_mode))
 	{
 		return NULL;
 	}
@@ -361,26 +364,26 @@ static PyObject *BPy_Gwn_VertFormat_attr_add(BPy_Gwn_VertFormat *self, PyObject 
 	return PyLong_FromLong(attr_id);
 }
 
-static struct PyMethodDef BPy_Gwn_VertFormat_methods[] = {
-	{"attr_add", (PyCFunction) BPy_Gwn_VertFormat_attr_add,
-	 METH_VARARGS | METH_KEYWORDS, BPy_Gwn_VertFormat_attr_add_doc},
+static struct PyMethodDef bpygwn_VertFormat_methods[] = {
+	{"attr_add", (PyCFunction)bpygwn_VertFormat_attr_add,
+	 METH_VARARGS | METH_KEYWORDS, bpygwn_VertFormat_attr_add_doc},
 	{NULL, NULL, 0, NULL}
 };
 
 
-static void BPy_Gwn_VertFormat_dealloc(BPy_Gwn_VertFormat *self)
+static void bpygwn_VertFormat_dealloc(BPyGwn_VertFormat *self)
 {
 	Py_TYPE(self)->tp_free(self);
 }
 
-PyTypeObject BPy_Gwn_VertFormat_Type = {
+PyTypeObject BPyGwn_VertFormat_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	.tp_name = "Gwn_VertFormat",
-	.tp_basicsize = sizeof(BPy_Gwn_VertFormat),
-	.tp_dealloc = (destructor)BPy_Gwn_VertFormat_dealloc,
+	.tp_basicsize = sizeof(BPyGwn_VertFormat),
+	.tp_dealloc = (destructor)bpygwn_VertFormat_dealloc,
 	.tp_flags = Py_TPFLAGS_DEFAULT,
-	.tp_methods = BPy_Gwn_VertFormat_methods,
-	.tp_new = BPy_Gwn_VertFormat_new,
+	.tp_methods = bpygwn_VertFormat_methods,
+	.tp_new = bpygwn_VertFormat_new,
 };
 
 /** \} */
@@ -391,12 +394,12 @@ PyTypeObject BPy_Gwn_VertFormat_Type = {
 /** \name VertBuf Type
  * \{ */
 
-static PyObject *BPy_Gwn_VertBuf_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
+static PyObject *bpygwn_VertBuf_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
 	const char * const keywords[] = {"len", "format", NULL};
 
 	struct {
-		BPy_Gwn_VertFormat *py_fmt;
+		BPyGwn_VertFormat *py_fmt;
 		uint len;
 	} params;
 
@@ -404,7 +407,7 @@ static PyObject *BPy_Gwn_VertBuf_new(PyTypeObject *UNUSED(type), PyObject *args,
 	        args, kwds,
 	        "$IO!:Gwn_VertBuf.__new__", (char **)keywords,
 	        &params.len,
-	        &BPy_Gwn_VertFormat_Type, &params.py_fmt))
+	        &BPyGwn_VertFormat_Type, &params.py_fmt))
 	{
 		return NULL;
 	}
@@ -413,13 +416,13 @@ static PyObject *BPy_Gwn_VertBuf_new(PyTypeObject *UNUSED(type), PyObject *args,
 
 	GWN_vertbuf_data_alloc(vbo, params.len);
 
-	return BPy_Gwn_VertBuf_CreatePyObject(vbo);
+	return BPyGwn_VertBuf_CreatePyObject(vbo);
 }
 
-PyDoc_STRVAR(BPy_Gwn_VertBuf_fill_doc,
+PyDoc_STRVAR(bpygwn_VertBuf_fill_doc,
 "TODO"
 );
-static PyObject *BPy_Gwn_VertBuf_fill(BPy_Gwn_VertBuf *self, PyObject *args, PyObject *kwds)
+static PyObject *bpygwn_VertBuf_fill(BPyGwn_VertBuf *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"id", "data", NULL};
 
@@ -442,32 +445,32 @@ static PyObject *BPy_Gwn_VertBuf_fill(BPy_Gwn_VertBuf *self, PyObject *args, PyO
 		             params.id);
 	}
 
-	if (!pygwn_vertbuf_fill_impl(self->buf, params.id, params.py_seq_data)) {
+	if (!bpygwn_vertbuf_fill_impl(self->buf, params.id, params.py_seq_data)) {
 		return NULL;
 	}
 	Py_RETURN_NONE;
 }
 
-static struct PyMethodDef BPy_Gwn_VertBuf_methods[] = {
-	{"fill", (PyCFunction) BPy_Gwn_VertBuf_fill,
-	 METH_VARARGS | METH_KEYWORDS, BPy_Gwn_VertBuf_fill_doc},
+static struct PyMethodDef bpygwn_VertBuf_methods[] = {
+	{"fill", (PyCFunction) bpygwn_VertBuf_fill,
+	 METH_VARARGS | METH_KEYWORDS, bpygwn_VertBuf_fill_doc},
 	{NULL, NULL, 0, NULL}
 };
 
-static void BPy_Gwn_VertBuf_dealloc(BPy_Gwn_VertBuf *self)
+static void bpygwn_VertBuf_dealloc(BPyGwn_VertBuf *self)
 {
 	GWN_vertbuf_discard(self->buf);
 	Py_TYPE(self)->tp_free(self);
 }
 
-PyTypeObject BPy_Gwn_VertBuf_Type = {
+PyTypeObject BPyGwn_VertBuf_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	.tp_name = "Gwn_VertBuf",
-	.tp_basicsize = sizeof(BPy_Gwn_VertBuf),
-	.tp_dealloc = (destructor)BPy_Gwn_VertBuf_dealloc,
+	.tp_basicsize = sizeof(BPyGwn_VertBuf),
+	.tp_dealloc = (destructor)bpygwn_VertBuf_dealloc,
 	.tp_flags = Py_TPFLAGS_DEFAULT,
-	.tp_methods = BPy_Gwn_VertBuf_methods,
-	.tp_new = BPy_Gwn_VertBuf_new,
+	.tp_methods = bpygwn_VertBuf_methods,
+	.tp_new = bpygwn_VertBuf_new,
 };
 
 /** \} */
@@ -478,26 +481,26 @@ PyTypeObject BPy_Gwn_VertBuf_Type = {
 /** \name VertBatch Type
  * \{ */
 
-static PyObject *BPy_Gwn_Batch_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
+static PyObject *bpygwn_Batch_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
 	const char * const keywords[] = {"type", "buf", NULL};
 
 	struct {
 		Gwn_PrimType type_id;
-		BPy_Gwn_VertBuf *py_buf;
+		BPyGwn_VertBuf *py_buf;
 	} params;
 
 	if (!PyArg_ParseTupleAndKeywords(
 	        args, kwds,
 	        "$O&O!:Gwn_Batch.__new__", (char **)keywords,
-	        BPy_Gwn_ParsePrimType, &params.type_id,
-	        &BPy_Gwn_VertBuf_Type, &params.py_buf))
+	        bpygwn_ParsePrimType, &params.type_id,
+	        &BPyGwn_VertBuf_Type, &params.py_buf))
 	{
 		return NULL;
 	}
 
 	Gwn_Batch *batch = GWN_batch_create(params.type_id, params.py_buf->buf, NULL);
-	BPy_Gwn_Batch *ret = (BPy_Gwn_Batch *)BPy_Gwn_Batch_CreatePyObject(batch);
+	BPyGwn_Batch *ret = (BPyGwn_Batch *)BPyGwn_Batch_CreatePyObject(batch);
 
 #ifdef USE_GWN_PY_REFERENCES
 	ret->references = PyList_New(1);
@@ -509,12 +512,12 @@ static PyObject *BPy_Gwn_Batch_new(PyTypeObject *UNUSED(type), PyObject *args, P
 	return (PyObject *)ret;
 }
 
-PyDoc_STRVAR(BPy_Gwn_VertBatch_vertbuf_add_doc,
+PyDoc_STRVAR(bpygwn_VertBatch_vertbuf_add_doc,
 "TODO"
 );
-static PyObject *BPy_Gwn_VertBatch_vertbuf_add(BPy_Gwn_Batch *self, BPy_Gwn_VertBuf *py_buf)
+static PyObject *bpygwn_VertBatch_vertbuf_add(BPyGwn_Batch *self, BPyGwn_VertBuf *py_buf)
 {
-	if (!BPy_Gwn_VertBuf_Check(py_buf)) {
+	if (!BPyGwn_VertBuf_Check(py_buf)) {
 		PyErr_Format(PyExc_TypeError,
 		             "Expected a Gwn_VertBuf, got %s",
 		             Py_TYPE(py_buf)->tp_name);
@@ -538,10 +541,10 @@ static PyObject *BPy_Gwn_VertBatch_vertbuf_add(BPy_Gwn_Batch *self, BPy_Gwn_Vert
 }
 
 /* Currently magic number from Py perspective. */
-PyDoc_STRVAR(BPy_Gwn_VertBatch_program_set_builtin_doc,
+PyDoc_STRVAR(bpygwn_VertBatch_program_set_builtin_doc,
 "TODO"
 );
-static PyObject *BPy_Gwn_VertBatch_program_set_builtin(BPy_Gwn_Batch *self, PyObject *args, PyObject *kwds)
+static PyObject *bpygwn_VertBatch_program_set_builtin(BPyGwn_Batch *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"id", NULL};
 
@@ -583,7 +586,7 @@ success:
 	Py_RETURN_NONE;
 }
 
-static PyObject *BPy_Gwn_VertBatch_uniform_bool(BPy_Gwn_Batch *self, PyObject *args)
+static PyObject *bpygwn_VertBatch_uniform_bool(BPyGwn_Batch *self, PyObject *args)
 {
 	struct {
 		const char *id;
@@ -602,7 +605,7 @@ static PyObject *BPy_Gwn_VertBatch_uniform_bool(BPy_Gwn_Batch *self, PyObject *a
 	Py_RETURN_NONE;
 }
 
-static PyObject *BPy_Gwn_VertBatch_uniform_i32(BPy_Gwn_Batch *self, PyObject *args)
+static PyObject *bpygwn_VertBatch_uniform_i32(BPyGwn_Batch *self, PyObject *args)
 {
 	struct {
 		const char *id;
@@ -621,7 +624,7 @@ static PyObject *BPy_Gwn_VertBatch_uniform_i32(BPy_Gwn_Batch *self, PyObject *ar
 	Py_RETURN_NONE;
 }
 
-static PyObject *BPy_Gwn_VertBatch_uniform_f32(BPy_Gwn_Batch *self, PyObject *args)
+static PyObject *bpygwn_VertBatch_uniform_f32(BPyGwn_Batch *self, PyObject *args)
 {
 	struct {
 		const char *id;
@@ -647,10 +650,10 @@ static PyObject *BPy_Gwn_VertBatch_uniform_f32(BPy_Gwn_Batch *self, PyObject *ar
 	Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(BPy_Gwn_VertBatch_draw_doc,
+PyDoc_STRVAR(bpygwn_VertBatch_draw_doc,
 "TODO"
 );
-static PyObject *BPy_Gwn_VertBatch_draw(BPy_Gwn_Batch *self)
+static PyObject *bpygwn_VertBatch_draw(BPyGwn_Batch *self)
 {
 	if (!glIsProgram(self->batch->program)) {
 		PyErr_SetString(PyExc_ValueError,
@@ -660,31 +663,31 @@ static PyObject *BPy_Gwn_VertBatch_draw(BPy_Gwn_Batch *self)
 	Py_RETURN_NONE;
 }
 
-static struct PyMethodDef BPy_Gwn_VertBatch_methods[] = {
-	{"vertbuf_add", (PyCFunction) BPy_Gwn_VertBatch_vertbuf_add,
-	 METH_O, BPy_Gwn_VertBatch_vertbuf_add_doc},
-	{"program_set_builtin", (PyCFunction) BPy_Gwn_VertBatch_program_set_builtin,
-	 METH_VARARGS | METH_KEYWORDS, BPy_Gwn_VertBatch_program_set_builtin_doc},
-	{"uniform_bool", (PyCFunction) BPy_Gwn_VertBatch_uniform_bool,
+static struct PyMethodDef bpygwn_VertBatch_methods[] = {
+	{"vertbuf_add", (PyCFunction)bpygwn_VertBatch_vertbuf_add,
+	 METH_O, bpygwn_VertBatch_vertbuf_add_doc},
+	{"program_set_builtin", (PyCFunction)bpygwn_VertBatch_program_set_builtin,
+	 METH_VARARGS | METH_KEYWORDS, bpygwn_VertBatch_program_set_builtin_doc},
+	{"uniform_bool", (PyCFunction)bpygwn_VertBatch_uniform_bool,
 	 METH_VARARGS, NULL},
-	{"uniform_i32", (PyCFunction) BPy_Gwn_VertBatch_uniform_i32,
+	{"uniform_i32", (PyCFunction)bpygwn_VertBatch_uniform_i32,
 	 METH_VARARGS, NULL},
-	{"uniform_f32", (PyCFunction) BPy_Gwn_VertBatch_uniform_f32,
+	{"uniform_f32", (PyCFunction)bpygwn_VertBatch_uniform_f32,
 	  METH_VARARGS, NULL},
-	{"draw", (PyCFunction) BPy_Gwn_VertBatch_draw,
-	 METH_NOARGS, BPy_Gwn_VertBatch_draw_doc},
+	{"draw", (PyCFunction) bpygwn_VertBatch_draw,
+	 METH_NOARGS, bpygwn_VertBatch_draw_doc},
 	{NULL, NULL, 0, NULL}
 };
 
 #ifdef USE_GWN_PY_REFERENCES
 
-static int BPy_Gwn_Batch_traverse(BPy_Gwn_Batch *self, visitproc visit, void *arg)
+static int bpygwn_Batch_traverse(BPyGwn_Batch *self, visitproc visit, void *arg)
 {
 	Py_VISIT(self->references);
 	return 0;
 }
 
-static int BPy_Gwn_Batch_clear(BPy_Gwn_Batch *self)
+static int bpygwn_Batch_clear(BPyGwn_Batch *self)
 {
 	Py_CLEAR(self->references);
 	return 0;
@@ -692,14 +695,14 @@ static int BPy_Gwn_Batch_clear(BPy_Gwn_Batch *self)
 
 #endif
 
-static void BPy_Gwn_Batch_dealloc(BPy_Gwn_Batch *self)
+static void bpygwn_Batch_dealloc(BPyGwn_Batch *self)
 {
 	GWN_batch_discard(self->batch);
 
 #ifdef USE_GWN_PY_REFERENCES
 	if (self->references) {
 		PyObject_GC_UnTrack(self);
-		BPy_Gwn_Batch_clear(self);
+		bpygwn_Batch_clear(self);
 		Py_XDECREF(self->references);
 	}
 #endif
@@ -707,20 +710,20 @@ static void BPy_Gwn_Batch_dealloc(BPy_Gwn_Batch *self)
 	Py_TYPE(self)->tp_free(self);
 }
 
-PyTypeObject BPy_Gwn_Batch_Type = {
+PyTypeObject BPyGwn_Batch_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	.tp_name = "Gwn_Batch",
-	.tp_basicsize = sizeof(BPy_Gwn_Batch),
-	.tp_dealloc = (destructor)BPy_Gwn_Batch_dealloc,
+	.tp_basicsize = sizeof(BPyGwn_Batch),
+	.tp_dealloc = (destructor)bpygwn_Batch_dealloc,
 #ifdef USE_GWN_PY_REFERENCES
 	.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
-	.tp_traverse = (traverseproc)BPy_Gwn_Batch_traverse,
-	.tp_clear = (inquiry)BPy_Gwn_Batch_clear,
+	.tp_traverse = (traverseproc)bpygwn_Batch_traverse,
+	.tp_clear = (inquiry)bpygwn_Batch_clear,
 #else
 	.tp_flags = Py_TPFLAGS_DEFAULT,
 #endif
-	.tp_methods = BPy_Gwn_VertBatch_methods,
-	.tp_new = BPy_Gwn_Batch_new,
+	.tp_methods = bpygwn_VertBatch_methods,
+	.tp_new = bpygwn_Batch_new,
 };
 
 /* -------------------------------------------------------------------- */
@@ -740,19 +743,19 @@ PyObject *BPyInit_gawain_types(void)
 
 	submodule = PyModule_Create(&BPy_BM_types_module_def);
 
-	if (PyType_Ready(&BPy_Gwn_VertFormat_Type) < 0)
+	if (PyType_Ready(&BPyGwn_VertFormat_Type) < 0)
 		return NULL;
-	if (PyType_Ready(&BPy_Gwn_VertBuf_Type) < 0)
+	if (PyType_Ready(&BPyGwn_VertBuf_Type) < 0)
 		return NULL;
-	if (PyType_Ready(&BPy_Gwn_Batch_Type) < 0)
+	if (PyType_Ready(&BPyGwn_Batch_Type) < 0)
 		return NULL;
 
 #define MODULE_TYPE_ADD(s, t) \
 	PyModule_AddObject(s, t.tp_name, (PyObject *)&t); Py_INCREF((PyObject *)&t)
 
-	MODULE_TYPE_ADD(submodule, BPy_Gwn_VertFormat_Type);
-	MODULE_TYPE_ADD(submodule, BPy_Gwn_VertBuf_Type);
-	MODULE_TYPE_ADD(submodule, BPy_Gwn_Batch_Type);
+	MODULE_TYPE_ADD(submodule, BPyGwn_VertFormat_Type);
+	MODULE_TYPE_ADD(submodule, BPyGwn_VertBuf_Type);
+	MODULE_TYPE_ADD(submodule, BPyGwn_Batch_Type);
 
 #undef MODULE_TYPE_ADD
 
@@ -767,11 +770,11 @@ PyObject *BPyInit_gawain_types(void)
 /** \name Public API
  * \{ */
 
-PyObject *BPy_Gwn_VertFormat_CreatePyObject(Gwn_VertFormat *fmt)
+PyObject *BPyGwn_VertFormat_CreatePyObject(Gwn_VertFormat *fmt)
 {
-	BPy_Gwn_VertFormat *self;
+	BPyGwn_VertFormat *self;
 
-	self = PyObject_New(BPy_Gwn_VertFormat, &BPy_Gwn_VertFormat_Type);
+	self = PyObject_New(BPyGwn_VertFormat, &BPyGwn_VertFormat_Type);
 	if (fmt) {
 		self->fmt = *fmt;
 	}
@@ -782,26 +785,26 @@ PyObject *BPy_Gwn_VertFormat_CreatePyObject(Gwn_VertFormat *fmt)
 	return (PyObject *)self;
 }
 
-PyObject *BPy_Gwn_VertBuf_CreatePyObject(Gwn_VertBuf *buf)
+PyObject *BPyGwn_VertBuf_CreatePyObject(Gwn_VertBuf *buf)
 {
-	BPy_Gwn_VertBuf *self;
+	BPyGwn_VertBuf *self;
 
-	self = PyObject_New(BPy_Gwn_VertBuf, &BPy_Gwn_VertBuf_Type);
+	self = PyObject_New(BPyGwn_VertBuf, &BPyGwn_VertBuf_Type);
 	self->buf = buf;
 
 	return (PyObject *)self;
 }
 
 
-PyObject *BPy_Gwn_Batch_CreatePyObject(Gwn_Batch *batch)
+PyObject *BPyGwn_Batch_CreatePyObject(Gwn_Batch *batch)
 {
-	BPy_Gwn_Batch *self;
+	BPyGwn_Batch *self;
 
 #ifdef USE_GWN_PY_REFERENCES
-	self = (BPy_Gwn_Batch *)_PyObject_GC_New(&BPy_Gwn_Batch_Type);
+	self = (BPyGwn_Batch *)_PyObject_GC_New(&BPyGwn_Batch_Type);
 	self->references = NULL;
 #else
-	self = PyObject_New(BPy_Gwn_Batch, &BPy_Gwn_Batch_Type);
+	self = PyObject_New(BPyGwn_Batch, &BPyGwn_Batch_Type);
 #endif
 
 	self->batch = batch;

@@ -77,7 +77,7 @@ void GWN_batch_uniform_1f(Gwn_Batch*, const char* name, float value);
 void GWN_batch_uniform_2f(Gwn_Batch*, const char* name, float x, float y);
 void GWN_batch_uniform_3f(Gwn_Batch*, const char* name, float x, float y, float z);
 void GWN_batch_uniform_4f(Gwn_Batch*, const char* name, float x, float y, float z, float w);
-void GWN_batch_uniform_2fv(Gwn_Batch*, const char* name, const float data[3]);
+void GWN_batch_uniform_2fv(Gwn_Batch*, const char* name, const float data[2]);
 void GWN_batch_uniform_3fv(Gwn_Batch*, const char* name, const float data[3]);
 void GWN_batch_uniform_4fv(Gwn_Batch*, const char* name, const float data[4]);
 
