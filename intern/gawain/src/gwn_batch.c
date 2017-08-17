@@ -227,6 +227,12 @@ void GWN_batch_uniform_1f(Gwn_Batch* batch, const char* name, float x)
 	glUniform1f(uniform->location, x);
 	}
 
+void GWN_batch_uniform_2fv(Gwn_Batch* batch, const char* name, const float data[2])
+	{
+	GET_UNIFORM
+	glUniform2fv(uniform->location, 1, data);
+	}
+
 void GWN_batch_uniform_3fv(Gwn_Batch* batch, const char* name, const float data[3])
 	{
 	GET_UNIFORM

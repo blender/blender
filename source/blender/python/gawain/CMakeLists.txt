@@ -14,10 +14,34 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
+# Contributor(s): Campbell Barton
+#
 # ***** END GPL LICENSE BLOCK *****
 
-add_subdirectory(intern)
-add_subdirectory(gawain)
-add_subdirectory(generic)
-add_subdirectory(mathutils)
-add_subdirectory(bmesh)
+set(INC 
+	.
+	../../blenkernel
+	../../blenlib
+	../../gpu
+	../../makesdna
+	../../../../intern/gawain
+	../../../../intern/guardedalloc
+	../../../../intern/glew-mx
+)
+
+set(INC_SYS
+	${GLEW_INCLUDE_PATH}
+	${PYTHON_INCLUDE_DIRS}
+)
+
+set(SRC
+	gwn_py_api.c
+	gwn_py_types.c
+
+	gwn_py_api.h
+	gwn_py_types.h
+)
+
+add_definitions(${GL_DEFINITIONS})
+
+blender_add_lib(bf_python_gawain "${SRC}" "${INC}" "${INC_SYS}")
