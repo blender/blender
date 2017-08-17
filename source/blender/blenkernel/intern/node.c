@@ -3599,7 +3599,6 @@ static void registerShaderNodes(void)
 
 	register_node_type_sh_output_lamp();
 	register_node_type_sh_output_material();
-	register_node_type_sh_output_eevee_material();
 	register_node_type_sh_output_world();
 	register_node_type_sh_output_linestyle();
 

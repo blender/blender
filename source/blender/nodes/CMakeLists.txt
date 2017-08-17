@@ -188,7 +188,6 @@ set(SRC
 	shader/nodes/node_shader_eevee_specular.c
 	shader/nodes/node_shader_output_lamp.c
 	shader/nodes/node_shader_output_material.c
-	shader/nodes/node_shader_output_eevee_material.c
 	shader/nodes/node_shader_output_world.c
 	shader/nodes/node_shader_output_linestyle.c
 	shader/nodes/node_shader_particle_info.c

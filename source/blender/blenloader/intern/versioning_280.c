@@ -446,9 +446,16 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 							error = true;
 						}
 
-						if (node->type == SH_NODE_EEVEE_SPECULAR && STREQ(node->idname, "ShaderNodeOutputSpecular")) {
+						else if (node->type == SH_NODE_EEVEE_SPECULAR && STREQ(node->idname, "ShaderNodeOutputSpecular")) {
 							BLI_strncpy(node->idname, "ShaderNodeEeveeSpecular", sizeof(node->idname));
 							error = true;
+						}
+
+						else if (node->type == 196 /* SH_NODE_OUTPUT_EEVEE_MATERIAL */ &&
+						         STREQ(node->idname, "ShaderNodeOutputEeveeMaterial"))
+						{
+							node->type = SH_NODE_OUTPUT_MATERIAL;
+							BLI_strncpy(node->idname, "ShaderNodeOutputMaterial", sizeof(node->idname));
 						}
 					}
 				}

@@ -399,7 +399,7 @@ void ED_node_shader_default(const bContext *C, ID *id)
 			ma->nodetree = ntree;
 
 			if (BKE_scene_uses_blender_eevee(scene)) {
-				output_type = SH_NODE_OUTPUT_EEVEE_MATERIAL;
+				output_type = SH_NODE_OUTPUT_MATERIAL;
 				shader_type = SH_NODE_EEVEE_METALLIC;
 			}
 			else if (BKE_scene_use_new_shading_nodes(scene)) {

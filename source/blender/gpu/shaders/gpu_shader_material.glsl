@@ -4080,11 +4080,6 @@ void node_eevee_specular(
 	result = Closure(L + emissive.rgb, 1.0 - transp, vec4(ssr_spec, roughness), normal_encode(vN, viewCameraVec), int(ssr_id));
 }
 
-void node_output_eevee_material(Closure surface, out Closure result)
-{
-	result = surface;
-}
-
 #endif /* EEVEE_ENGINE */
 #endif /* VOLUMETRICS */
 

@@ -947,7 +947,6 @@ static BL::ShaderNode find_output_node(BL::ShaderNodeTree& b_ntree)
 {
 	BL::ShaderNodeTree::nodes_iterator b_node;
 	BL::ShaderNode output_node(PointerRNA_NULL);
-	BL::ShaderNode eevee_output_node(PointerRNA_NULL);
 
 	for(b_ntree.nodes.begin(b_node); b_node != b_ntree.nodes.end(); ++b_node) {
 		BL::ShaderNodeOutputMaterial b_output_node(*b_node);
@@ -964,19 +963,9 @@ static BL::ShaderNode find_output_node(BL::ShaderNodeTree& b_ntree)
 				output_node = b_output_node;
 			}
 		}
-		else if (b_output_node.is_a(&RNA_ShaderNodeOutputEeveeMaterial)) {
-			/* Eevee output used  if no Cycles node exists */
-			if(b_output_node.is_active_output()) {
-				eevee_output_node = b_output_node;
-			}
-			else if(!eevee_output_node.ptr.data) {
-				eevee_output_node = b_output_node;
-			}
-
-		}
 	}
 
-	return (output_node.ptr.data) ? output_node : eevee_output_node;
+	return output_node;
 }
 
 static void add_nodes(Scene *scene,
