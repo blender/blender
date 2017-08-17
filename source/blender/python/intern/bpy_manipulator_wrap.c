@@ -130,7 +130,7 @@ static void manipulator_properties_init(wmManipulatorType *wt)
 	/* only call this so pyrna_deferred_register_class gives a useful error
 	 * WM_operatortype_append_ptr will call RNA_def_struct_identifier
 	 * later */
-	RNA_def_struct_identifier(&BLENDER_RNA, wt->srna, wt->idname);
+	RNA_def_struct_identifier_no_struct_map(wt->srna, wt->idname);
 
 	if (pyrna_deferred_register_class(wt->srna, py_class) != 0) {
 		PyErr_Print(); /* failed to register operator props */
