@@ -114,16 +114,27 @@ def test_get_name(filepath):
 def test_get_images(filepath):
     testname = test_get_name(filepath)
     dirpath = os.path.dirname(filepath)
-    ref_dirpath = os.path.join(dirpath, "reference_renders")
+
+    old_dirpath = os.path.join(dirpath, "reference_renders")
+    old_img = os.path.join(old_dirpath, testname + ".png")
+
+    ref_dirpath = os.path.join(OUTDIR, os.path.basename(dirpath), "ref")
     ref_img = os.path.join(ref_dirpath, testname + ".png")
+    if not os.path.exists(ref_dirpath):
+        os.makedirs(ref_dirpath)
+    if os.path.exists(old_img):
+        shutil.copy(old_img, ref_img)
+
     new_dirpath = os.path.join(OUTDIR, os.path.basename(dirpath))
     if not os.path.exists(new_dirpath):
         os.makedirs(new_dirpath)
     new_img = os.path.join(new_dirpath, testname + ".png")
+
     diff_dirpath = os.path.join(OUTDIR, os.path.basename(dirpath), "diff")
     if not os.path.exists(diff_dirpath):
         os.makedirs(diff_dirpath)
     diff_img = os.path.join(diff_dirpath, testname + ".diff.png")
+
     return ref_img, new_img, diff_img
 
 
@@ -162,7 +173,7 @@ class Report:
 <head>
     <title>Cycles Test Report</title>
     <style>
-        img {{ image-rendering: pixelated; width: 256; background-color: #000; }}
+        img {{ image-rendering: pixelated; width: 256px; background-color: #000; }}
         img.render {{
             background-color: #fff;
             background-image:
@@ -182,7 +193,7 @@ class Report:
 
             background-position:0 0, 25px 0, 25px -25px, 0px 25px;
         }}
-        table td:first-child {{ width: 100%; }}
+        table td:first-child {{ width: 256px; }}
     </style>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css">
 </head>
@@ -210,17 +221,22 @@ class Report:
 
         print_message("Report saved to: " + pathlib.Path(filepath).as_uri())
 
+    def relative_url(self, filepath):
+        relpath = os.path.relpath(filepath, OUTDIR)
+        return pathlib.Path(relpath).as_posix()
+
     def add_test(self, filepath, error):
         name = test_get_name(filepath)
+        name = name.replace('_', ' ')
 
         ref_img, new_img, diff_img = test_get_images(filepath)
 
         status = error if error else ""
         style = """ style="background-color: #f99;" """ if error else ""
 
-        new_url = pathlib.Path(new_img).as_uri()
-        ref_url = pathlib.Path(ref_img).as_uri()
-        diff_url = pathlib.Path(diff_img).as_uri()
+        new_url = self.relative_url(new_img)
+        ref_url = self.relative_url(ref_img)
+        diff_url = self.relative_url(diff_img)
 
         test_html = """
             <tr{}>
