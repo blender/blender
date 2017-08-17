@@ -427,6 +427,7 @@ void Image_dealloc(PyImage *self)
 			delete self->m_image;
 		self->m_image = NULL;
 	}
+	Py_TYPE((PyObject *)self)->tp_free((PyObject *)self);
 }
 
 // get image data
