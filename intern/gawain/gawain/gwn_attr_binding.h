@@ -13,7 +13,7 @@
 
 #include "gwn_common.h"
 
-typedef struct {
+typedef struct Gwn_AttrBinding {
 	uint64_t loc_bits; // store 4 bits for each of the 16 attribs
 	uint16_t enabled_bits; // 1 bit for each attrib
 } Gwn_AttrBinding;

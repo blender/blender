@@ -21,7 +21,7 @@ typedef enum {
 	GWN_INDEX_U32
 } Gwn_IndexBufType;
 
-typedef struct {
+typedef struct Gwn_IndexBuf {
 	unsigned index_ct;
 #if GWN_TRACK_INDEX_RANGE
 	Gwn_IndexBufType index_type;
@@ -37,7 +37,7 @@ typedef struct {
 void GWN_indexbuf_use(Gwn_IndexBuf*);
 unsigned GWN_indexbuf_size_get(const Gwn_IndexBuf*);
 
-typedef struct {
+typedef struct Gwn_IndexBufBuilder {
 	unsigned max_allowed_index;
 	unsigned max_index_ct;
 	unsigned index_ct;

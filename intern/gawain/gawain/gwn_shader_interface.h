@@ -30,7 +30,7 @@ typedef enum {
 	GWN_UNIFORM_CUSTOM // custom uniform, not one of the above built-ins
 } Gwn_UniformBuiltin;
 
-typedef struct {
+typedef struct Gwn_ShaderInput {
 	const char* name;
 	unsigned name_hash;
 	GLenum gl_type;
@@ -39,7 +39,7 @@ typedef struct {
 	GLint location;
 } Gwn_ShaderInput;
 
-typedef struct {
+typedef struct Gwn_ShaderInterface {
 	uint16_t uniform_ct;
 	uint16_t attrib_ct;
 	Gwn_ShaderInput inputs[0]; // dynamic size, uniforms followed by attribs

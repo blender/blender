@@ -38,7 +38,7 @@ typedef enum {
 	GWN_FETCH_INT_TO_FLOAT // 127 (any int type) -> 127.0
 } Gwn_VertFetchMode;
 
-typedef struct {
+typedef struct Gwn_VertAttr {
 	Gwn_VertCompType comp_type;
 	unsigned gl_comp_type;
 	unsigned comp_ct; // 1 to 4
@@ -49,7 +49,7 @@ typedef struct {
 	unsigned name_ct;
 } Gwn_VertAttr;
 
-typedef struct {
+typedef struct Gwn_VertFormat {
 	unsigned attrib_ct; // 0 to 16 (GWN_VERT_ATTR_MAX_LEN)
 	unsigned name_ct; // total count of active vertex attrib
 	unsigned stride; // stride in bytes, 1 to 256
@@ -67,7 +67,7 @@ void GWN_vertformat_alias_add(Gwn_VertFormat*, const char* alias);
 
 // format conversion
 
-typedef struct {
+typedef struct Gwn_PackedNormal {
 	int x : 10;
 	int y : 10;
 	int z : 10;

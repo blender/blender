@@ -21,7 +21,7 @@
 
 // Is Gwn_VertBuf always used as part of a Gwn_Batch?
 
-typedef struct {
+typedef struct Gwn_VertBuf {
 	Gwn_VertFormat format;
 	unsigned vertex_ct;
 	GLubyte* data; // NULL indicates data in VRAM (unmapped) or not yet allocated
@@ -51,7 +51,7 @@ void GWN_vertbuf_attr_fill(Gwn_VertBuf*, unsigned a_idx, const void* data); // t
 void GWN_vertbuf_attr_fill_stride(Gwn_VertBuf*, unsigned a_idx, unsigned stride, const void* data);
 
 // For low level access only
-typedef struct {
+typedef struct Gwn_VertBufRaw {
 	unsigned size;
 	unsigned stride;
 	GLubyte* data;

@@ -101,17 +101,17 @@ void GWN_batch_draw_stupid_instanced_with_batch(Gwn_Batch*, Gwn_Batch*);
 // We often need a batch with its own data, to be created and discarded together.
 // WithOwn variants reduce number of system allocations.
 
-typedef struct {
+typedef struct BatchWithOwnVertexBuffer {
 	Gwn_Batch batch;
 	Gwn_VertBuf verts; // link batch.verts to this
 } BatchWithOwnVertexBuffer;
 
-typedef struct {
+typedef struct BatchWithOwnElementList {
 	Gwn_Batch batch;
 	Gwn_IndexBuf elem; // link batch.elem to this
 } BatchWithOwnElementList;
 
-typedef struct {
+typedef struct BatchWithOwnVertexBufferAndElementList {
 	Gwn_Batch batch;
 	Gwn_IndexBuf elem; // link batch.elem to this
 	Gwn_VertBuf verts; // link batch.verts to this
