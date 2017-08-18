@@ -42,9 +42,9 @@ void main()
 	val = minmax(val, val4);
 
 	/* if we are reducing an odd-width texture then fetch the edge texels */
-	if (((mipsize.x & 1) != 0) && (int(gl_FragCoord.x)*2 == mipsize.x-3)) {
+	if (((mipsize.x & 1) != 0) && (texelPos.x == mipsize.x - 3)) {
 		/* if both edges are odd, fetch the top-left corner texel */
-		if (((mipsize.y & 1) != 0) && (int(gl_FragCoord.y)*2 == mipsize.y-3)) {
+		if (((mipsize.y & 1) != 0) && (texelPos.y == mipsize.y - 3)) {
 			val = minmax(val, sampleLowerMip(texelPos + ivec2(2, 2)));
 		}
 		float val2 = sampleLowerMip(texelPos + ivec2(2, 0));
@@ -53,7 +53,7 @@ void main()
 		val = minmax(val, val3);
 	}
 	/* if we are reducing an odd-height texture then fetch the edge texels */
-	if (((mipsize.y & 1) != 0) && (int(gl_FragCoord.y)*2 == mipsize.y-3)) {
+	if (((mipsize.y & 1) != 0) && (texelPos.y == mipsize.y - 3)) {
 		float val2 = sampleLowerMip(texelPos + ivec2(0, 2));
 		float val3 = sampleLowerMip(texelPos + ivec2(1, 2));
 		val = minmax(val, val2);
