@@ -330,15 +330,22 @@ template<class A, class B> A lerp(const A& a, const A& b, const B& t)
 	return (A)(a * ((B)1 - t) + b * t);
 }
 
+#endif  /* __KERNEL_OPENCL__ */
+
 /* Triangle */
 
+#ifndef __KERNEL_OPENCL__
 ccl_device_inline float triangle_area(const float3& v1,
                                       const float3& v2,
                                       const float3& v3)
+#else
+ccl_device_inline float triangle_area(const float3 v1,
+                                      const float3 v2,
+                                      const float3 v3)
+#endif
 {
 	return len(cross(v3 - v2, v1 - v2))*0.5f;
 }
-#endif  /* __KERNEL_OPENCL__ */
 
 /* Orthonormal vectors */
 
