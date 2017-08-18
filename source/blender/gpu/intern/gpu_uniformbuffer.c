@@ -76,6 +76,7 @@ struct GPUUniformBufferDynamicItem {
 
 
 /* Prototypes */
+static GPUType get_padded_gpu_type(struct LinkData *link);
 static void gpu_uniformbuffer_inputs_sort(struct ListBase *inputs);
 
 static GPUUniformBufferDynamicItem *gpu_uniformbuffer_populate(
@@ -153,7 +154,8 @@ GPUUniformBuffer *GPU_uniformbuffer_dynamic_create(ListBase *inputs, char err_ou
 
 	for (LinkData *link = inputs->first; link; link = link->next) {
 		GPUInput *input = link->data;
-		gpu_uniformbuffer_populate(ubo, input->type, input->dynamicvec);
+		GPUType gputype = get_padded_gpu_type(link);
+		gpu_uniformbuffer_populate(ubo, gputype, input->dynamicvec);
 	}
 
 	ubo->data = MEM_mallocN(ubo->buffer.size, __func__);
@@ -225,6 +227,26 @@ void GPU_uniformbuffer_dynamic_update(GPUUniformBuffer *ubo_)
 }
 
 /**
+ * We need to pad some data types (vec3) on the C side
+ * To match the GPU expected memory block alignment.
+ */
+static GPUType get_padded_gpu_type(LinkData *link)
+{
+	GPUInput *input = link->data;
+	GPUType gputype = input->type;
+
+	/* Unless the vec3 is followed by a float we need to treat it as a vec4. */
+	if (gputype == GPU_VEC3 &&
+		(link->next != NULL) &&
+		(((GPUInput *)link->next->data)->type != GPU_FLOAT))
+	{
+		gputype = GPU_VEC4;
+	}
+
+	return gputype;
+}
+
+/**
  * Returns 1 if the first item shold be after second item.
  * We make sure the vec4 uniforms come first.
  */
@@ -254,12 +276,9 @@ static GPUUniformBufferDynamicItem *gpu_uniformbuffer_populate(
 	BLI_assert(gputype <= GPU_VEC4);
 	GPUUniformBufferDynamicItem *item = MEM_callocN(sizeof(GPUUniformBufferDynamicItem), __func__);
 
-	/* Treat VEC3 as VEC4 because of UBO struct alignment requirements. */
-	GPUType type = gputype == GPU_VEC3 ? GPU_VEC4 : gputype;
-
-	item->gputype = type;
+	item->gputype = gputype;
 	item->data = num;
-	item->size = type * sizeof(float);
+	item->size = gputype * sizeof(float);
 	ubo->buffer.size += item->size;
 
 	ubo->flag |= GPU_UBO_FLAG_DIRTY;
