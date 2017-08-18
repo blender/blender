@@ -133,17 +133,31 @@ vec2 mip_ratio_interp(float mip) {
 /* ------- Fast Math ------- */
 
 /* [Drobot2014a] Low Level Optimizations for GCN */
-float fast_sqrt(float x)
+float fast_sqrt(float v)
 {
-	return intBitsToFloat(0x1fbd1df5 + (floatBitsToInt(x) >> 1));
+	return intBitsToFloat(0x1fbd1df5 + (floatBitsToInt(v) >> 1));
+}
+
+vec2 fast_sqrt(vec2 v)
+{
+	return intBitsToFloat(0x1fbd1df5 + (floatBitsToInt(v) >> 1));
 }
 
 /* [Eberly2014] GPGPU Programming for Games and Science */
-float fast_acos(float x)
+float fast_acos(float v)
 {
-	float res = -0.156583 * abs(x) + M_PI_2;
-	res *= fast_sqrt(1.0 - abs(x));
-	return (x >= 0) ? res : M_PI - res;
+	float res = -0.156583 * abs(v) + M_PI_2;
+	res *= fast_sqrt(1.0 - abs(v));
+	return (v >= 0) ? res : M_PI - res;
+}
+
+vec2 fast_acos(vec2 v)
+{
+	vec2 res = -0.156583 * abs(v) + M_PI_2;
+	res *= fast_sqrt(1.0 - abs(v));
+	v.x = (v.x >= 0) ? res.x : M_PI - res.x;
+	v.y = (v.y >= 0) ? res.y : M_PI - res.y;
+	return v;
 }
 
 float point_plane_projection_dist(vec3 lineorigin, vec3 planeorigin, vec3 planenormal)
@@ -278,6 +292,12 @@ float get_view_z_from_depth(float depth)
 	else {
 		return viewvecs[0].z + depth * viewvecs[1].z;
 	}
+}
+
+vec2 get_uvs_from_view(vec3 view)
+{
+	vec3 ndc = project_point(ProjectionMatrix, view);
+	return ndc.xy * 0.5 + 0.5;
 }
 
 vec3 get_view_space_from_depth(vec2 uvcoords, float depth)
