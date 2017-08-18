@@ -1,0 +1,16 @@
+Main author: Jörg Müller <nexyon@gmail.com>
+
+Minor improvements have been done while audaspace was an internal part of Blender by
+
+- Campbell Barton (bug fixes and cleanup)
+- Brecht Van Lommel (bug fixes and cleanup)
+- Sergey Sharybin (bug fixes and cleanup)
+- Nathan Letwory (bug fixes and cleanup)
+- Peter Schlaile (ffmpeg)
+- Jens Verwiebe (jack on Apple)
+
+The first three of them were employed by the Blender Foundation during that time.
+
+Some features (random sounds, dynamic music, playback manager, convolution and HRTFs support) were added as part of the VALS (Virtual Alliances for Learning Society) project by
+
+- Juan Francisco Crespo Galán <dethon_5@outlook.com>

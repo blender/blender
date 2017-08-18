@@ -16,19 +16,19 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(SNDFILE_EXTRA_ARGS)
-set(SNDFILE_ENV PKG_CONFIG_PATH=${mingw_LIBDIR}/ogg/lib/pkgconfig:${mingw_LIBDIR}/vorbis/lib/pkgconfig:${mingw_LIBDIR}/flac/lib/pkgconfig:${mingw_LIBDIR})
+set(LIBSNDFILE_EXTRA_ARGS)
+set(LIBSNDFILE_ENV PKG_CONFIG_PATH=${mingw_LIBDIR}/ogg/lib/pkgconfig:${mingw_LIBDIR}/vorbis/lib/pkgconfig:${mingw_LIBDIR}/flac/lib/pkgconfig:${mingw_LIBDIR})
 
 if(WIN32)
-	set(SNDFILE_ENV set ${SNDFILE_ENV} &&)
+	set(LIBSNDFILE_ENV set ${LIBSNDFILE_ENV} &&)
 endif()
 
 ExternalProject_Add(external_sndfile
-	URL ${SNDFILE_URI}
+	URL ${LIBSNDFILE_URI}
 	DOWNLOAD_DIR ${DOWNLOAD_DIR}
-	URL_HASH MD5=${SNDFILE_HASH}
+	URL_HASH MD5=${LIBSNDFILE_HASH}
 	PREFIX ${BUILD_DIR}/sndfile
-	CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/sndfile/src/external_sndfile/ && ${SNDFILE_ENV} ${CONFIGURE_COMMAND} --enable-static --disable-shared --prefix=${mingw_LIBDIR}/sndfile
+	CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/sndfile/src/external_sndfile/ && ${LIBSNDFILE_ENV} ${CONFIGURE_COMMAND} --enable-static --disable-shared --prefix=${mingw_LIBDIR}/sndfile
 	BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/sndfile/src/external_sndfile/ && make -j${MAKE_THREADS}
 	INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/sndfile/src/external_sndfile/ && make install
 	INSTALL_DIR ${LIBDIR}/sndfile

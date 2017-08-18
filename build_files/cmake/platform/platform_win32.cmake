@@ -36,7 +36,7 @@ set(WINTAB_INC ${LIBDIR}/wintab/include)
 if(WITH_OPENAL)
 	set(OPENAL ${LIBDIR}/openal)
 	set(OPENALDIR ${LIBDIR}/openal)
-	set(OPENAL_INCLUDE_DIR ${OPENAL}/include)
+	set(OPENAL_INCLUDE_DIR ${OPENAL}/include/AL)
 	if(MSVC)
 		set(OPENAL_LIBRARY openal32)
 	else()
@@ -46,10 +46,10 @@ if(WITH_OPENAL)
 endif()
 
 if(WITH_CODEC_SNDFILE)
-	set(SNDFILE ${LIBDIR}/sndfile)
-	set(SNDFILE_INCLUDE_DIRS ${SNDFILE}/include)
-	set(SNDFILE_LIBRARIES libsndfile-1)
-	set(SNDFILE_LIBPATH ${SNDFILE}/lib) # TODO, deprecate
+	set(LIBSNDFILE ${LIBDIR}/sndfile)
+	set(LIBSNDFILE_INCLUDE_DIRS ${LIBSNDFILE}/include)
+	set(LIBSNDFILE_LIBRARIES libsndfile-1)
+	set(LIBSNDFILE_LIBPATH ${LIBSNDFILE}/lib) # TODO, deprecate
 endif()
 
 if(WITH_RAYOPTIMIZATION AND SUPPORT_SSE_BUILD)

@@ -48,13 +48,11 @@
 #include "DNA_speaker_types.h"
 
 #ifdef WITH_AUDASPACE
-#  include AUD_SOUND_H
-#  include AUD_SEQUENCE_H
-#  include AUD_HANDLE_H
-#  include AUD_SPECIAL_H
-#  ifdef WITH_SYSTEM_AUDASPACE
-#    include "../../../intern/audaspace/intern/AUD_Set.h"
-#  endif
+#  include <AUD_Sound.h>
+#  include <AUD_Sequence.h>
+#  include <AUD_Handle.h>
+#  include <AUD_Special.h>
+#  include "../../../intern/audaspace/intern/AUD_Set.h"
 #endif
 
 #include "BKE_global.h"
@@ -302,7 +300,6 @@ void BKE_sound_exit_once(void)
 	sound_device = NULL;
 	AUD_exitOnce();
 
-#ifdef WITH_SYSTEM_AUDASPACE
 	if (audio_device_names != NULL) {
 		int i;
 		for (i = 0; audio_device_names[i]; i++) {
@@ -311,7 +308,6 @@ void BKE_sound_exit_once(void)
 		free(audio_device_names);
 		audio_device_names = NULL;
 	}
-#endif
 }
 
 /* XXX unused currently */
@@ -907,26 +903,10 @@ float BKE_sound_get_length(bSound *sound)
 char **BKE_sound_get_device_names(void)
 {
 	if (audio_device_names == NULL) {
-#ifdef WITH_SYSTEM_AUDASPACE
 		audio_device_names = AUD_getDeviceNames();
-#else
-		static const char *names[] = {
-			"Null", "SDL", "OpenAL", "JACK", NULL
-		};
-		audio_device_names = (char **)names;
-#endif
 	}
 
 	return audio_device_names;
-}
-
-bool BKE_sound_is_jack_supported(void)
-{
-#ifdef WITH_SYSTEM_AUDASPACE
-	return 1;
-#else
-	return (bool)AUD_isJackSupported();
-#endif
 }
 
 #else  /* WITH_AUDASPACE */
@@ -975,5 +955,4 @@ void BKE_sound_set_scene_sound_pan(void *UNUSED(handle), float UNUSED(pan), char
 void BKE_sound_set_scene_volume(struct Scene *UNUSED(scene), float UNUSED(volume)) {}
 void BKE_sound_set_scene_sound_pitch(void *UNUSED(handle), float UNUSED(pitch), char UNUSED(animated)) {}
 float BKE_sound_get_length(struct bSound *UNUSED(sound)) { return 0; }
-bool BKE_sound_is_jack_supported(void) { return false; }
 #endif  /* WITH_AUDASPACE */

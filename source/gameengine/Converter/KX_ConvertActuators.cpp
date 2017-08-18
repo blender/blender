@@ -42,7 +42,7 @@
 #include "KX_ConvertActuators.h"
 
 #ifdef WITH_AUDASPACE
-#  include AUD_SOUND_H
+#  include <AUD_Sound.h>
 #endif
 
 // Actuators

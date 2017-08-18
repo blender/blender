@@ -65,7 +65,7 @@
 
 #ifdef WITH_QUICKTIME
 #  include "quicktime_export.h"
-#  include AUD_TYPES_H
+#  include <AUD_Types.h>
 #endif
 
 #ifdef WITH_FFMPEG

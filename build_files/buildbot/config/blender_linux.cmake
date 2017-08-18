@@ -70,11 +70,11 @@ set(FFMPEG_LIBRARIES
 )
 
 # SndFile libraries
-set(SNDFILE_LIBRARY          "/usr/lib/libsndfile.a;/usr/lib/libFLAC.a" CACHE STRING "" FORCE)
+set(LIBSNDFILE_LIBRARY          "/usr/lib/libsndfile.a;/usr/lib/libFLAC.a" CACHE STRING "" FORCE)
 
 # OpenAL libraries
 set(OPENAL_ROOT_DIR           "/opt/lib/openal" CACHE STRING "" FORCE)
-set(OPENAL_INCLUDE_DIR        "${OPENAL_ROOT_DIR}/include" CACHE STRING "" FORCE)
+set(OPENAL_INCLUDE_DIR        "${OPENAL_ROOT_DIR}/include/AL" CACHE STRING "" FORCE)
 set(OPENAL_LIBRARY
 	${OPENAL_ROOT_DIR}/lib/libopenal.a
 	${OPENAL_ROOT_DIR}/lib/libcommon.a

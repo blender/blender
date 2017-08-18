@@ -99,7 +99,7 @@ extern "C"
 #include "GHOST_Rect.h"
 
 #ifdef WITH_AUDASPACE
-#  include AUD_DEVICE_H
+#  include <AUD_Device.h>
 #endif
 
 static void frameTimerProc(GHOST_ITimerTask* task, GHOST_TUns64 time);

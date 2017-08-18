@@ -2673,10 +2673,10 @@ install_DEB() {
   install_packages_DEB $_packages
 
   PRINT""
-  SNDFILE_DEV="libsndfile1-dev"
-  check_package_DEB $SNDFILE_DEV
+  LIBSNDFILE_DEV="libsndfile1-dev"
+  check_package_DEB $LIBSNDFILE_DEV
   if [ $? -eq 0 ]; then
-    install_packages_DEB $SNDFILE_DEV
+    install_packages_DEB $LIBSNDFILE_DEV
   fi
 
   PRINT ""
@@ -3271,10 +3271,10 @@ install_RPM() {
   fi
 
   PRINT""
-  SNDFILE_DEV="libsndfile-devel"
-  check_package_RPM $SNDFILE_DEV
+  LIBSNDFILE_DEV="libsndfile-devel"
+  check_package_RPM $LIBSNDFILE_DEV
   if [ $? -eq 0 ]; then
-    install_packages_RPM $SNDFILE_DEV
+    install_packages_RPM $LIBSNDFILE_DEV
   fi
 
   if [ "$WITH_ALL" = true ]; then
@@ -3678,10 +3678,10 @@ install_ARCH() {
   install_packages_ARCH $_packages
 
   PRINT""
-  SNDFILE_DEV="libsndfile"
-  check_package_ARCH $SNDFILE_DEV
+  LIBSNDFILE_DEV="libsndfile"
+  check_package_ARCH $LIBSNDFILE_DEV
   if [ $? -eq 0 ]; then
-    install_packages_ARCH $SNDFILE_DEV
+    install_packages_ARCH $LIBSNDFILE_DEV
   fi
 
   PRINT ""

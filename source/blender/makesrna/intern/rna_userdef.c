@@ -519,7 +519,6 @@ static EnumPropertyItem *rna_userdef_audio_device_itemf(bContext *UNUSED(C), Poi
 	int totitem = 0;
 	EnumPropertyItem *item = NULL;
 
-#ifdef WITH_SYSTEM_AUDASPACE
 	int i;
 
 	char **names = BKE_sound_get_device_names();
@@ -528,31 +527,6 @@ static EnumPropertyItem *rna_userdef_audio_device_itemf(bContext *UNUSED(C), Poi
 		EnumPropertyItem new_item = {i, names[i], 0, names[i], names[i]};
 		RNA_enum_item_add(&item, &totitem, &new_item);
 	}
-#else
-	/* NONE */
-	RNA_enum_item_add(&item, &totitem, &audio_device_items[index++]);
-
-#ifdef WITH_SDL
-#  ifdef WITH_SDL_DYNLOAD
-	if (sdlewInit() == SDLEW_SUCCESS)
-#  endif
-	{
-		RNA_enum_item_add(&item, &totitem, &audio_device_items[index]);
-	}
-	index++;
-#endif
-
-#ifdef WITH_OPENAL
-	RNA_enum_item_add(&item, &totitem, &audio_device_items[index++]);
-#endif
-
-#ifdef WITH_JACK
-	if (BKE_sound_is_jack_supported()) {
-		RNA_enum_item_add(&item, &totitem, &audio_device_items[index]);
-	}
-	index++;
-#endif
-#endif
 
 	/* may be unused */
 	UNUSED_VARS(index, audio_device_items);

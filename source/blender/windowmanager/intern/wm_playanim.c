@@ -77,10 +77,10 @@
 #include "WM_api.h"  /* only for WM_main_playanim */
 
 #ifdef WITH_AUDASPACE
-#  include AUD_DEVICE_H
-#  include AUD_HANDLE_H
-#  include AUD_SOUND_H
-#  include AUD_SPECIAL_H
+#  include <AUD_Device.h>
+#  include <AUD_Handle.h>
+#  include <AUD_Sound.h>
+#  include <AUD_Special.h>
 
 static AUD_Sound *source = NULL;
 static AUD_Handle *playback_handle = NULL;

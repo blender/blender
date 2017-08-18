@@ -216,9 +216,9 @@ set(LAPACK_VERSION 3.6.0)
 set(LAPACK_URI http://www.netlib.org/lapack/lapack-${LAPACK_VERSION}.tgz)
 set(LAPACK_HASH f2f6c67134e851fe189bb3ca1fbb5101)
 
-set(SNDFILE_VERSION 1.0.26)
-set(SNDFILE_URI http://www.mega-nerd.com/libsndfile/files/libsndfile-${SNDFILE_VERSION}.tar.gz)
-set(SNDFILE_HASH ec810a0c60c08772a8a5552704b63393)
+set(LIBSNDFILE_VERSION 1.0.26)
+set(LIBSNDFILE_URI http://www.mega-nerd.com/libsndfile/files/libsndfile-${LIBSNDFILE_VERSION}.tar.gz)
+set(LIBSNDFILE_HASH ec810a0c60c08772a8a5552704b63393)
 
 #set(HIDAPI_VERSION 0.8.0-rc1)
 #set(HIDAPI_URI https://github.com/signal11/hidapi/archive/hidapi-${HIDAPI_VERSION}.tar.gz)

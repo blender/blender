@@ -91,7 +91,7 @@
 #include "BKE_sound.h"
 
 #ifdef WITH_AUDASPACE
-#  include AUD_SPECIAL_H
+#  include <AUD_Special.h>
 #endif
 
 /* mutable state for sequencer */

@@ -244,7 +244,7 @@ if(WITH_CODEC_FFMPEG)
 endif()
 
 if(WITH_AUDASPACE)
-	add_definitions(${AUDASPACE_DEFINITIONS})
+	add_definitions(-DWITH_AUDASPACE)
 
 	list(APPEND INC_SYS
 		${AUDASPACE_C_INCLUDE_DIRS}

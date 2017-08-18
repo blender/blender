@@ -67,7 +67,7 @@
 #include "WM_types.h"
 
 #ifdef WITH_AUDASPACE
-#  include AUD_SPECIAL_H
+#  include <AUD_Special.h>
 #endif
 
 #include "ED_sound.h"

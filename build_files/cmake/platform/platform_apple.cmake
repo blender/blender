@@ -46,7 +46,7 @@ if(WITH_OPENAL)
 	find_package(OpenAL)
 	if(OPENAL_FOUND)
 		set(WITH_OPENAL ON)
-		set(OPENAL_INCLUDE_DIR "${LIBDIR}/openal/include")
+		set(OPENAL_INCLUDE_DIR "${LIBDIR}/openal/include/AL")
 	else()
 		set(WITH_OPENAL OFF)
 	endif()
@@ -82,10 +82,10 @@ if(WITH_JACK)
 endif()
 
 if(WITH_CODEC_SNDFILE)
-	set(SNDFILE ${LIBDIR}/sndfile)
-	set(SNDFILE_INCLUDE_DIRS ${SNDFILE}/include)
-	set(SNDFILE_LIBRARIES sndfile FLAC ogg vorbis vorbisenc)
-	set(SNDFILE_LIBPATH ${SNDFILE}/lib ${LIBDIR}/ffmpeg/lib)  # TODO, deprecate
+	set(LIBSNDFILE ${LIBDIR}/sndfile)
+	set(LIBSNDFILE_INCLUDE_DIRS ${LIBSNDFILE}/include)
+	set(LIBSNDFILE_LIBRARIES sndfile FLAC ogg vorbis vorbisenc)
+	set(LIBSNDFILE_LIBPATH ${LIBSNDFILE}/lib ${LIBDIR}/ffmpeg/lib)  # TODO, deprecate
 endif()
 
 if(WITH_PYTHON)

@@ -35,8 +35,8 @@
 
 #define SOUND_WAVE_SAMPLES_PER_SECOND 250
 
-#ifdef WITH_SYSTEM_AUDASPACE
-#  include AUD_DEVICE_H
+#if defined(WITH_AUDASPACE)
+#  include <AUD_Device.h>
 #endif
 
 struct bSound;
@@ -84,7 +84,7 @@ void BKE_sound_copy_data(struct Main *bmain, struct bSound *sound_dst, const str
 
 void BKE_sound_make_local(struct Main *bmain, struct bSound *sound, const bool lib_local);
 
-#if defined(__AUD_C_API_H__) || defined(WITH_SYSTEM_AUDASPACE)
+#if defined(WITH_AUDASPACE)
 AUD_Device *BKE_sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start, float volume);
 #endif
 
@@ -148,7 +148,5 @@ void *BKE_sound_get_factory(void *sound);
 float BKE_sound_get_length(struct bSound *sound);
 
 char **BKE_sound_get_device_names(void);
-
-bool BKE_sound_is_jack_supported(void);
 
 #endif  /* __BKE_SOUND_H__ */
