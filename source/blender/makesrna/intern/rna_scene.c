@@ -2617,7 +2617,10 @@ RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(hair_brightness_randomness)
 /* SceneLayer settings. */
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(gtao_enable)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(gtao_use_bent_normals)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(gtao_denoise)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(gtao_bounce)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(gtao_factor)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(gtao_quality)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(gtao_distance)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(gtao_samples)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(dof_enable)
@@ -6368,11 +6371,33 @@ static void rna_def_scene_layer_engine_settings_eevee(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
 
+	prop = RNA_def_property(srna, "gtao_denoise", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_Eevee_gtao_denoise_get",
+	                               "rna_LayerEngineSettings_Eevee_gtao_denoise_set");
+	RNA_def_property_ui_text(prop, "Denoise", "Use denoising to filter the resulting occlusion and bent normal but exhibit 2x2 pixel blocks");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "gtao_bounce", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_Eevee_gtao_bounce_get",
+	                               "rna_LayerEngineSettings_Eevee_gtao_bounce_set");
+	RNA_def_property_ui_text(prop, "Bounces Approximation", "An approximation to simulate light bounces "
+	                                                        "giving less occlusion on brighter objects");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
 	prop = RNA_def_property(srna, "gtao_factor", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Eevee_gtao_factor_get", "rna_LayerEngineSettings_Eevee_gtao_factor_set", NULL);
 	RNA_def_property_ui_text(prop, "Factor", "Factor for ambient occlusion blending");
-	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1f, 2);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+
+	prop = RNA_def_property(srna, "gtao_quality", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Eevee_gtao_quality_get", "rna_LayerEngineSettings_Eevee_gtao_quality_set", NULL);
+	RNA_def_property_ui_text(prop, "Trace Quality", "Quality of the horizon search");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
 

@@ -969,8 +969,7 @@ static void render_scene_to_probe(
 	/* Disable AO until we find a way to hide really bad discontinuities between cubefaces. */
 	tmp_ao_dist = stl->effects->ao_dist;
 	tmp_ao_samples = stl->effects->ao_samples;
-	stl->effects->ao_dist = 0.0f;
-	stl->effects->ao_samples = 0.0f;
+	stl->effects->ao_settings = 0.0f; /* Disable AO */
 
 	/* 1 - Render to each cubeface individually.
 	 * We do this instead of using geometry shader because a) it's faster,
@@ -1098,6 +1097,9 @@ static void render_scene_to_planar(
 	DRW_draw_pass(psl->probe_background);
 
 	EEVEE_create_minmax_buffer(vedata, tmp_planar_depth, layer);
+
+	/* Compute GTAO Horizons */
+	EEVEE_effects_do_gtao(sldata, vedata);
 
 	/* Rebind Planar FB */
 	DRW_framebuffer_bind(fbl->planarref_fb);

@@ -138,6 +138,7 @@ static void EEVEE_cache_finish(void *vedata)
 static void EEVEE_draw_scene(void *vedata)
 {
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
+	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 	EEVEE_FramebufferList *fbl = ((EEVEE_Data *)vedata)->fbl;
 	EEVEE_SceneLayerData *sldata = EEVEE_scene_layer_data_get();
 
@@ -148,7 +149,18 @@ static void EEVEE_draw_scene(void *vedata)
 	 * when using opengl render. */
 	int loop_ct = DRW_state_is_image_render() ? 4 : 1;
 
+	static float rand = 0.0f;
+
+	/* XXX temp for denoising render. TODO plug number of samples here */
+	if (DRW_state_is_image_render()) {
+		rand += 1.0f / 8.0f;
+		rand = rand - floorf(rand);
+		/* Set jitter offset */
+		stl->effects->ao_offset = rand * stl->effects->ao_samples_inv;
+	}
+
 	while (loop_ct--) {
+
 		/* Refresh shadows */
 		DRW_stats_group_start("Shadows");
 		EEVEE_draw_shadows(sldata, psl);
@@ -175,6 +187,9 @@ static void EEVEE_draw_scene(void *vedata)
 		DRW_stats_group_start("Main MinMax buffer");
 		EEVEE_create_minmax_buffer(vedata, dtxl->depth, -1);
 		DRW_stats_group_end();
+
+		/* Compute GTAO Horizons */
+		EEVEE_effects_do_gtao(sldata, vedata);
 
 		/* Restore main FB */
 		DRW_framebuffer_bind(fbl->main);
@@ -271,8 +286,11 @@ static void EEVEE_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDPr
 
 	BKE_collection_engine_property_add_bool(props, "gtao_enable", false);
 	BKE_collection_engine_property_add_bool(props, "gtao_use_bent_normals", true);
+	BKE_collection_engine_property_add_bool(props, "gtao_denoise", true);
+	BKE_collection_engine_property_add_bool(props, "gtao_bounce", true);
 	BKE_collection_engine_property_add_float(props, "gtao_distance", 0.2f);
 	BKE_collection_engine_property_add_float(props, "gtao_factor", 1.0f);
+	BKE_collection_engine_property_add_float(props, "gtao_quality", 0.25f);
 	BKE_collection_engine_property_add_int(props, "gtao_samples", 2);
 
 	BKE_collection_engine_property_add_bool(props, "dof_enable", false);

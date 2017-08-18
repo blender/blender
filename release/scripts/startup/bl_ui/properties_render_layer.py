@@ -192,9 +192,12 @@ class RENDERLAYER_PT_eevee_postprocess_settings(RenderLayerButtonsPanel, Panel):
         col = layout.column()
         col.label("Ambient Occlusion:")
         col.template_override_property(layer_props, scene_props, "gtao_use_bent_normals")
+        col.template_override_property(layer_props, scene_props, "gtao_denoise")
+        col.template_override_property(layer_props, scene_props, "gtao_bounce")
         col.template_override_property(layer_props, scene_props, "gtao_samples")
         col.template_override_property(layer_props, scene_props, "gtao_distance")
         col.template_override_property(layer_props, scene_props, "gtao_factor")
+        col.template_override_property(layer_props, scene_props, "gtao_quality")
         col.separator()
 
         col.label("Motion Blur:")

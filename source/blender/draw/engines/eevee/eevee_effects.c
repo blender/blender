@@ -99,11 +99,16 @@ static struct {
 	/* Simple Downsample */
 	struct GPUShader *downsample_sh;
 
+	/* Ground Truth Ambient Occlusion */
+	struct GPUShader *gtao_sh;
+	struct GPUShader *gtao_debug_sh;
+
 	struct GPUTexture *depth_src;
 	struct GPUTexture *color_src;
 	int depth_src_layer;
 } e_data = {NULL}; /* Engine data */
 
+extern char datatoc_ambient_occlusion_lib_glsl[];
 extern char datatoc_bsdf_common_lib_glsl[];
 extern char datatoc_bsdf_sampling_lib_glsl[];
 extern char datatoc_octahedron_lib_glsl[];
@@ -115,6 +120,7 @@ extern char datatoc_effect_dof_vert_glsl[];
 extern char datatoc_effect_dof_geom_glsl[];
 extern char datatoc_effect_dof_frag_glsl[];
 extern char datatoc_effect_downsample_frag_glsl[];
+extern char datatoc_effect_gtao_frag_glsl[];
 extern char datatoc_lightprobe_lib_glsl[];
 extern char datatoc_raytrace_lib_glsl[];
 extern char datatoc_tonemap_frag_glsl[];
@@ -229,6 +235,18 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 
 	/* Shaders */
 	if (!e_data.motion_blur_sh) {
+		DynStr *ds_frag = BLI_dynstr_new();
+		BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_ambient_occlusion_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_effect_gtao_frag_glsl);
+		char *frag_str = BLI_dynstr_get_cstring(ds_frag);
+		BLI_dynstr_free(ds_frag);
+
+		e_data.gtao_sh = DRW_shader_create_fullscreen(frag_str, NULL);
+		e_data.gtao_debug_sh = DRW_shader_create_fullscreen(frag_str, "#define DEBUG_AO\n");
+
+		MEM_freeN(frag_str);
+
 		e_data.downsample_sh = DRW_shader_create_fullscreen(datatoc_effect_downsample_frag_glsl, NULL);
 
 		e_data.volumetric_upsample_sh = DRW_shader_create_fullscreen(datatoc_volumetric_frag_glsl, "#define STEP_UPSAMPLE\n");
@@ -479,11 +497,68 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		                    &tex, 1);
 	}
 
-	{
+	if (BKE_collection_engine_property_value_get_bool(props, "gtao_enable")) {
 		/* Ambient Occlusion*/
-		stl->effects->ao_dist = BKE_collection_engine_property_value_get_float(props, "gtao_distance");
-		stl->effects->ao_samples = BKE_collection_engine_property_value_get_int(props, "gtao_samples");
-		stl->effects->ao_factor = BKE_collection_engine_property_value_get_float(props, "gtao_factor");
+		effects->enabled_effects |= EFFECT_GTAO;
+
+		effects->ao_dist = BKE_collection_engine_property_value_get_float(props, "gtao_distance");
+		effects->ao_factor = BKE_collection_engine_property_value_get_float(props, "gtao_factor");
+		effects->ao_quality = 1.0f - BKE_collection_engine_property_value_get_float(props, "gtao_quality");
+		effects->ao_samples = BKE_collection_engine_property_value_get_int(props, "gtao_samples");
+		effects->ao_samples_inv = 1.0f / effects->ao_samples;
+
+		effects->ao_settings = 1.0; /* USE_AO */
+		if (BKE_collection_engine_property_value_get_bool(props, "gtao_use_bent_normals")) {
+			effects->ao_settings += 2.0; /* USE_BENT_NORMAL */
+		}
+		if (BKE_collection_engine_property_value_get_bool(props, "gtao_denoise")) {
+			effects->ao_settings += 4.0; /* USE_DENOISE */
+		}
+
+		effects->ao_offset = 0.0f;
+		effects->ao_bounce_fac = (float)BKE_collection_engine_property_value_get_bool(props, "gtao_bounce");
+
+		effects->ao_texsize[0] = ((int)viewport_size[0]);
+		effects->ao_texsize[1] = ((int)viewport_size[1]);
+
+		/* Round up to multiple of 2 */
+		if ((effects->ao_texsize[0] & 0x1) != 0) {
+			effects->ao_texsize[0] += 1;
+		}
+		if ((effects->ao_texsize[1] & 0x1) != 0) {
+			effects->ao_texsize[1] += 1;
+		}
+
+		CLAMP(effects->ao_samples, 1, 32);
+
+		if (effects->hori_tex_layers != effects->ao_samples) {
+			DRW_TEXTURE_FREE_SAFE(txl->gtao_horizons);
+		}
+
+		if (txl->gtao_horizons == NULL) {
+			effects->hori_tex_layers = effects->ao_samples;
+			txl->gtao_horizons = DRW_texture_create_2D_array((int)viewport_size[0], (int)viewport_size[1], effects->hori_tex_layers, DRW_TEX_RG_8, 0, NULL);
+		}
+
+		DRWFboTexture tex = {&txl->gtao_horizons, DRW_TEX_RG_8, 0};
+
+		DRW_framebuffer_init(&fbl->gtao_fb, &draw_engine_eevee_type,
+		                    effects->ao_texsize[0], effects->ao_texsize[1],
+		                    &tex, 1);
+
+		if (G.debug_value == 6) {
+			DRWFboTexture tex_debug = {&stl->g_data->gtao_horizons_debug, DRW_TEX_RGBA_8, DRW_TEX_TEMP};
+
+			DRW_framebuffer_init(&fbl->gtao_debug_fb, &draw_engine_eevee_type,
+			                    (int)viewport_size[0], (int)viewport_size[1],
+			                    &tex_debug, 1);
+		}
+	}
+	else {
+		/* Cleanup */
+		DRW_TEXTURE_FREE_SAFE(txl->gtao_horizons);
+		DRW_FRAMEBUFFER_FREE_SAFE(fbl->gtao_fb);
+		effects->ao_settings = 0.0f;
 	}
 
 	/* MinMax Pyramid */
@@ -492,6 +567,11 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 	DRW_framebuffer_init(&fbl->downsample_fb, &draw_engine_eevee_type,
 	                    (int)viewport_size[0] / 2, (int)viewport_size[1] / 2,
 	                    &texmin, 1);
+
+	/* Cannot define 2 depth texture for one framebuffer. So allocate ourself. */
+	if (txl->maxzbuffer == NULL) {
+		txl->maxzbuffer = DRW_texture_create_2D((int)viewport_size[0] / 2, (int)viewport_size[1] / 2, DRW_TEX_DEPTH_24, DRW_TEX_MIPMAP, NULL);
+	}
 
 	/* Compute Mipmap texel alignement. */
 	for (int i = 0; i < 10; ++i) {
@@ -502,11 +582,6 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		}
 		stl->g_data->mip_ratio[i][0] = viewport_size[0] / (mip_size[0] * powf(2.0f, floorf(log2f(floorf(viewport_size[0] / mip_size[0])))));
 		stl->g_data->mip_ratio[i][1] = viewport_size[1] / (mip_size[1] * powf(2.0f, floorf(log2f(floorf(viewport_size[1] / mip_size[1])))));
-	}
-
-	/* Cannot define 2 depth texture for one framebuffer. So allocate ourself. */
-	if (txl->maxzbuffer == NULL) {
-		txl->maxzbuffer = DRW_texture_create_2D((int)viewport_size[0] / 2, (int)viewport_size[1] / 2, DRW_TEX_DEPTH_24, DRW_TEX_MIPMAP, NULL);
 	}
 
 	if (BKE_collection_engine_property_value_get_bool(props, "volumetric_enable")) {
@@ -617,11 +692,6 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 
 		/* MRT for the shading pass in order to output needed data for the SSR pass. */
 		/* TODO create one texture layer per lobe */
-		if (txl->ssr_normal_input == NULL) {
-			DRWTextureFormat nor_format = DRW_TEX_RG_16;
-			txl->ssr_normal_input = DRW_texture_create_2D((int)viewport_size[0], (int)viewport_size[1], nor_format, 0, NULL);
-		}
-
 		if (txl->ssr_specrough_input == NULL) {
 			DRWTextureFormat specrough_format = (high_qual_input) ? DRW_TEX_RGBA_16 : DRW_TEX_RGBA_8;
 			txl->ssr_specrough_input = DRW_texture_create_2D((int)viewport_size[0], (int)viewport_size[1], specrough_format, 0, NULL);
@@ -629,9 +699,7 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 
 		/* Reattach textures to the right buffer (because we are alternating between buffers) */
 		/* TODO multiple FBO per texture!!!! */
-		DRW_framebuffer_texture_detach(txl->ssr_normal_input);
 		DRW_framebuffer_texture_detach(txl->ssr_specrough_input);
-		DRW_framebuffer_texture_attach(fbl->main, txl->ssr_normal_input, 1, 0);
 		DRW_framebuffer_texture_attach(fbl->main, txl->ssr_specrough_input, 2, 0);
 
 		/* Raytracing output */
@@ -649,12 +717,30 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 	}
 	else {
 		/* Cleanup to release memory */
-		DRW_TEXTURE_FREE_SAFE(txl->ssr_normal_input);
 		DRW_TEXTURE_FREE_SAFE(txl->ssr_specrough_input);
 		DRW_FRAMEBUFFER_FREE_SAFE(fbl->screen_tracing_fb);
 		for (int i = 0; i < 4; ++i) {
 			stl->g_data->ssr_hit_output[i] = NULL;
 		}
+	}
+
+	/* Normal buffer for deferred passes. */
+	if ((((effects->enabled_effects & EFFECT_GTAO) != 0) && G.debug_value == 6) ||
+	    ((effects->enabled_effects & EFFECT_SSR) != 0))
+	{
+		if (txl->ssr_normal_input == NULL) {
+			DRWTextureFormat nor_format = DRW_TEX_RG_16;
+			txl->ssr_normal_input = DRW_texture_create_2D((int)viewport_size[0], (int)viewport_size[1], nor_format, 0, NULL);
+		}
+
+		/* Reattach textures to the right buffer (because we are alternating between buffers) */
+		/* TODO multiple FBO per texture!!!! */
+		DRW_framebuffer_texture_detach(txl->ssr_normal_input);
+		DRW_framebuffer_texture_attach(fbl->main, txl->ssr_normal_input, 1, 0);
+	}
+	else {
+		/* Cleanup to release memory */
+		DRW_TEXTURE_FREE_SAFE(txl->ssr_normal_input);
 	}
 
 	/* Setup double buffer so we can access last frame as it was before post processes */
@@ -863,6 +949,33 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		psl->maxz_copydepth_ps = DRW_pass_create("HiZ Max Copy Depth Fullres", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
 		grp = DRW_shgroup_create(e_data.maxz_copydepth_sh, psl->maxz_copydepth_ps);
 		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
+		DRW_shgroup_call_add(grp, quad, NULL);
+	}
+
+	{
+		psl->ao_horizon_search = DRW_pass_create("GTAO Horizon Search", DRW_STATE_WRITE_COLOR);
+		DRWShadingGroup *grp = DRW_shgroup_create(e_data.gtao_sh, psl->ao_horizon_search);
+		DRW_shgroup_uniform_buffer(grp, "maxzBuffer", &txl->maxzbuffer);
+		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
+		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
+		DRW_shgroup_uniform_vec2(grp, "mipRatio[0]", (float *)stl->g_data->mip_ratio, 10);
+		DRW_shgroup_uniform_vec4(grp, "aoParameters[0]", &stl->effects->ao_dist, 2);
+		DRW_shgroup_uniform_float(grp, "sampleNbr", &stl->effects->ao_sample_nbr, 1);
+		DRW_shgroup_uniform_ivec2(grp, "aoHorizonTexSize", (int *)stl->effects->ao_texsize, 1);
+		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
+		DRW_shgroup_call_add(grp, quad, NULL);
+
+		psl->ao_horizon_debug = DRW_pass_create("GTAO Horizon Debug", DRW_STATE_WRITE_COLOR);
+		grp = DRW_shgroup_create(e_data.gtao_debug_sh, psl->ao_horizon_debug);
+		DRW_shgroup_uniform_buffer(grp, "maxzBuffer", &txl->maxzbuffer);
+		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
+		DRW_shgroup_uniform_buffer(grp, "normalBuffer", &txl->ssr_normal_input);
+		DRW_shgroup_uniform_buffer(grp, "horizonBuffer", &txl->gtao_horizons);
+		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
+		DRW_shgroup_uniform_vec2(grp, "mipRatio[0]", (float *)stl->g_data->mip_ratio, 10);
+		DRW_shgroup_uniform_vec4(grp, "aoParameters[0]", &stl->effects->ao_dist, 2);
+		DRW_shgroup_uniform_ivec2(grp, "aoHorizonTexSize", (int *)stl->effects->ao_texsize, 1);
+		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
 		DRW_shgroup_call_add(grp, quad, NULL);
 	}
 
@@ -1138,6 +1251,49 @@ void EEVEE_effects_do_ssr(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *veda
 		DRW_framebuffer_texture_attach(fbl->main, txl->ssr_normal_input, 1, 0);
 		DRW_framebuffer_texture_attach(fbl->main, txl->ssr_specrough_input, 2, 0);
 	}
+
+	if ((effects->enabled_effects & EFFECT_GTAO) != 0 && G.debug_value == 6) {
+		/* GTAO Debug */
+		DRW_framebuffer_texture_attach(fbl->gtao_debug_fb, stl->g_data->gtao_horizons_debug, 0, 0);
+		DRW_framebuffer_bind(fbl->gtao_debug_fb);
+
+		DRW_draw_pass(psl->ao_horizon_debug);
+
+		/* Restore */
+		DRW_framebuffer_texture_detach(stl->g_data->gtao_horizons_debug);
+	}
+
+	DRW_framebuffer_bind(fbl->main);
+}
+
+void EEVEE_effects_do_gtao(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+{
+	EEVEE_PassList *psl = vedata->psl;
+	EEVEE_TextureList *txl = vedata->txl;
+	EEVEE_FramebufferList *fbl = vedata->fbl;
+	EEVEE_StorageList *stl = vedata->stl;
+	EEVEE_EffectsInfo *effects = stl->effects;
+
+	if ((effects->enabled_effects & EFFECT_GTAO) != 0) {
+		DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+		e_data.depth_src = dtxl->depth;
+
+		DRW_stats_group_start("GTAO Horizon Scan");
+		for (effects->ao_sample_nbr = 0.0;
+		     effects->ao_sample_nbr < effects->ao_samples;
+		     ++effects->ao_sample_nbr)
+		{
+			DRW_framebuffer_texture_detach(txl->gtao_horizons);
+			DRW_framebuffer_texture_layer_attach(fbl->gtao_fb, txl->gtao_horizons, 0, (int)effects->ao_sample_nbr, 0);
+			DRW_framebuffer_bind(fbl->gtao_fb);
+
+			DRW_draw_pass(psl->ao_horizon_search);
+		}
+		DRW_stats_group_end();
+
+		/* Restore */
+		DRW_framebuffer_bind(fbl->main);
+	}
 }
 
 #define SWAP_DOUBLE_BUFFERS() {                                       \
@@ -1285,10 +1441,10 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 	DRW_transform_to_display(effects->source_buffer);
 
 	/* Debug : Ouput buffer to view. */
-	if ((G.debug_value > 0) && (G.debug_value <= 5)) {
+	if ((G.debug_value > 0) && (G.debug_value <= 6)) {
 		switch (G.debug_value) {
 			case 1:
-				if (stl->g_data->minzbuffer) DRW_transform_to_display(stl->g_data->minzbuffer);
+				if (txl->maxzbuffer) DRW_transform_to_display(txl->maxzbuffer);
 				break;
 			case 2:
 				if (stl->g_data->ssr_hit_output[0]) DRW_transform_to_display(stl->g_data->ssr_hit_output[0]);
@@ -1301,6 +1457,9 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 				break;
 			case 5:
 				if (txl->color_double_buffer) DRW_transform_to_display(txl->color_double_buffer);
+				break;
+			case 6:
+				if (stl->g_data->gtao_horizons_debug) DRW_transform_to_display(stl->g_data->gtao_horizons_debug);
 				break;
 			default:
 				break;
@@ -1334,6 +1493,9 @@ void EEVEE_effects_free(void)
 		DRW_SHADER_FREE_SAFE(e_data.ssr_sh[i]);
 	}
 	DRW_SHADER_FREE_SAFE(e_data.downsample_sh);
+
+	DRW_SHADER_FREE_SAFE(e_data.gtao_sh);
+	DRW_SHADER_FREE_SAFE(e_data.gtao_debug_sh);
 
 	DRW_SHADER_FREE_SAFE(e_data.volumetric_upsample_sh);
 
