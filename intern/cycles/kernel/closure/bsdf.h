@@ -29,9 +29,7 @@
 #include "kernel/closure/bsdf_hair.h"
 #include "kernel/closure/bsdf_principled_diffuse.h"
 #include "kernel/closure/bsdf_principled_sheen.h"
-#ifdef __SUBSURFACE__
-#  include "kernel/closure/bssrdf.h"
-#endif
+#include "kernel/closure/bssrdf.h"
 #ifdef __VOLUME__
 #  include "kernel/closure/volume.h"
 #endif

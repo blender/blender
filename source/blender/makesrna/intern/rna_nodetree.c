@@ -4388,6 +4388,16 @@ static void def_sh_tangent(StructRNA *srna)
 	RNA_def_struct_sdna_from(srna, "bNode", NULL);
 }
 
+static void def_sh_bevel(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	prop = RNA_def_property(srna, "samples", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "custom1");
+	RNA_def_property_range(prop, 2, 16);
+	RNA_def_property_ui_text(prop, "Samples", "Number of rays to trace per shader evaluation");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+}
 
 static void def_sh_subsurface(StructRNA *srna)
 {

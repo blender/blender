@@ -316,6 +316,13 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 	sd.dv.dx = dvdx;
 	sd.dv.dy = dvdy;
 
+	/* set RNG state for shaders that use sampling */
+	state.rng_hash = rng_hash;
+	state.rng_offset = 0;
+	state.sample = sample;
+	state.num_samples = num_samples;
+	state.min_ray_pdf = FLT_MAX;
+
 	/* light passes if we need more than color */
 	if(pass_filter & ~BAKE_FILTER_COLOR)
 		compute_light_pass(kg, &sd, &L, rng_hash, pass_filter, sample);

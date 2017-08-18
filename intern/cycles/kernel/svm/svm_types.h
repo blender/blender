@@ -132,6 +132,7 @@ typedef enum ShaderNodeType {
 	NODE_TEX_VOXEL,
 	NODE_ENTER_BUMP_EVAL,
 	NODE_LEAVE_BUMP_EVAL,
+	NODE_BEVEL,
 } ShaderNodeType;
 
 typedef enum NodeAttributeType {

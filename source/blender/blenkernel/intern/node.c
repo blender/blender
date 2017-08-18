@@ -3564,6 +3564,7 @@ static void registerShaderNodes(void)
 	register_node_type_sh_hue_sat();
 
 	register_node_type_sh_attribute();
+	register_node_type_sh_bevel();
 	register_node_type_sh_geometry();
 	register_node_type_sh_light_path();
 	register_node_type_sh_light_falloff();

@@ -5604,4 +5604,44 @@ void TangentNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_tangent"); 
 }
 
+/* Bevel */
+
+NODE_DEFINE(BevelNode)
+{
+	NodeType* type = NodeType::add("bevel", create, NodeType::SHADER);
+
+	SOCKET_INT(samples, "Samples", 4);
+
+	SOCKET_IN_FLOAT(radius, "Radius", 0.05f);
+	SOCKET_IN_NORMAL(normal, "Normal", make_float3(0.0f, 0.0f, 0.0f), SocketType::LINK_NORMAL);
+
+	SOCKET_OUT_NORMAL(bevel, "Normal");
+
+	return type;
+}
+
+BevelNode::BevelNode()
+: ShaderNode(node_type)
+{
+}
+
+void BevelNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *radius_in = input("Radius");
+	ShaderInput *normal_in = input("Normal");
+	ShaderOutput *normal_out = output("Normal");
+
+	compiler.add_node(NODE_BEVEL,
+		compiler.encode_uchar4(samples,
+		                       compiler.stack_assign(radius_in),
+		                       compiler.stack_assign_if_linked(normal_in),
+		                       compiler.stack_assign(normal_out)));
+}
+
+void BevelNode::compile(OSLCompiler& compiler)
+{
+	compiler.parameter(this, "samples");
+	compiler.add(this, "node_bevel");
+}
+
 CCL_NAMESPACE_END

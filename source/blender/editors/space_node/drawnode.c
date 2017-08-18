@@ -1131,6 +1131,11 @@ static void node_buts_output_linestyle(uiLayout *layout, bContext *UNUSED(C), Po
 	uiItemR(col, ptr, "use_clamp", 0, NULL, ICON_NONE);
 }
 
+static void node_shader_buts_bevel(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "samples", 0, NULL, ICON_NONE);
+}
+
 /* only once called */
 static void node_shader_set_butfunc(bNodeType *ntype)
 {
@@ -1261,6 +1266,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			break;
 		case SH_NODE_OUTPUT_LINESTYLE:
 			ntype->draw_buttons = node_buts_output_linestyle;
+			break;
+		case SH_NODE_BEVEL:
+			ntype->draw_buttons = node_shader_buts_bevel;
 			break;
 	}
 }

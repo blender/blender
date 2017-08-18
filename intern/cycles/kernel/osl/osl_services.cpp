@@ -117,6 +117,7 @@ ustring OSLRenderServices::u_I("I");
 ustring OSLRenderServices::u_u("u");
 ustring OSLRenderServices::u_v("v");
 ustring OSLRenderServices::u_empty;
+ustring OSLRenderServices::u_at_bevel("@bevel");
 
 OSLRenderServices::OSLRenderServices()
 {
@@ -958,20 +959,36 @@ bool OSLRenderServices::texture(ustring filename,
 		return true;
 	}
 #endif
-	bool status;
+	bool status = false;
 
 	if(filename.length() && filename[0] == '@') {
-		int slot = atoi(filename.c_str() + 1);
-		float4 rgba = kernel_tex_image_interp(kg, slot, s, 1.0f - t);
+		if(filename == u_at_bevel) {
+			/* Bevel shader hack. */
+			if(nchannels >= 3) {
+				PathState *state = sd->osl_path_state;
+				int num_samples = (int)s;
+				float radius = t;
+				float3 N = svm_bevel(kg, sd, state, radius, num_samples);
+				result[0] = N.x;
+				result[1] = N.y;
+				result[2] = N.z;
+				status = true;
+			}
+		}
+		else {
+			/* Packed texture. */
+			int slot = atoi(filename.c_str() + 1);
+			float4 rgba = kernel_tex_image_interp(kg, slot, s, 1.0f - t);
 
-		result[0] = rgba[0];
-		if(nchannels > 1)
-			result[1] = rgba[1];
-		if(nchannels > 2)
-			result[2] = rgba[2];
-		if(nchannels > 3)
-			result[3] = rgba[3];
-		status = true;
+			result[0] = rgba[0];
+			if(nchannels > 1)
+				result[1] = rgba[1];
+			if(nchannels > 2)
+				result[2] = rgba[2];
+			if(nchannels > 3)
+				result[3] = rgba[3];
+			status = true;
+		}
 	}
 	else {
 		if(texture_handle != NULL) {
