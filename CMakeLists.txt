@@ -627,7 +627,6 @@ if(NOT WITH_BOOST)
 	endmacro()
 
 	set_and_warn(WITH_CYCLES         OFF)
-	set_and_warn(WITH_AUDASPACE      OFF)
 	set_and_warn(WITH_INTERNATIONAL  OFF)
 	set_and_warn(WITH_OPENVDB        OFF)
 	set_and_warn(WITH_OPENCOLORIO    OFF)
@@ -636,7 +635,7 @@ if(NOT WITH_BOOST)
 	set_and_warn(WITH_OPENAL         OFF)  # depends on AUDASPACE
 	set_and_warn(WITH_GAMEENGINE     OFF)  # depends on AUDASPACE
 	set_and_warn(WITH_PLAYER         OFF)  # depends on GAMEENGINE
-elseif(WITH_CYCLES OR WITH_OPENIMAGEIO OR WITH_AUDASPACE OR WITH_INTERNATIONAL OR
+elseif(WITH_CYCLES OR WITH_OPENIMAGEIO OR WITH_INTERNATIONAL OR
        WITH_OPENVDB OR WITH_OPENCOLORIO OR WITH_MOD_BOOLEAN)
 	# Keep enabled
 else()
