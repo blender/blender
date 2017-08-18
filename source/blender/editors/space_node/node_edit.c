@@ -400,7 +400,7 @@ void ED_node_shader_default(const bContext *C, ID *id)
 
 			if (BKE_scene_uses_blender_eevee(scene)) {
 				output_type = SH_NODE_OUTPUT_MATERIAL;
-				shader_type = SH_NODE_EEVEE_METALLIC;
+				shader_type = SH_NODE_BSDF_PRINCIPLED;
 			}
 			else if (BKE_scene_use_new_shading_nodes(scene)) {
 				output_type = SH_NODE_OUTPUT_MATERIAL;

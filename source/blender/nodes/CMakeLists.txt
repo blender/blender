@@ -184,7 +184,6 @@ set(SRC
 	shader/nodes/node_shader_normal_map.c
 	shader/nodes/node_shader_object_info.c
 	shader/nodes/node_shader_hair_info.c
-	shader/nodes/node_shader_eevee_metallic.c
 	shader/nodes/node_shader_eevee_specular.c
 	shader/nodes/node_shader_output_lamp.c
 	shader/nodes/node_shader_output_material.c

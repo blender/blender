@@ -278,7 +278,6 @@ shader_node_categories = [
         NodeItem("ShaderNodeHoldout", poll=object_cycles_shader_nodes_poll),
         NodeItem("ShaderNodeVolumeAbsorption", poll=volume_shader_nodes_poll),
         NodeItem("ShaderNodeVolumeScatter", poll=volume_shader_nodes_poll),
-        NodeItem("ShaderNodeEeveeMetallic", poll=object_eevee_shader_nodes_poll),
         NodeItem("ShaderNodeEeveeSpecular", poll=object_eevee_shader_nodes_poll),
         ]),
     ShaderNewNodeCategory("SH_NEW_TEXTURE", "Texture", items=[

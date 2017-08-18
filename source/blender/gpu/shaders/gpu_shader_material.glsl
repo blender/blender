@@ -4055,19 +4055,6 @@ void world_normals_get(out vec3 N)
 	N = gl_FrontFacing ? worldNormal : -worldNormal;
 }
 
-void node_eevee_metallic(
-        vec4 basecol, float metallic, float specular, float roughness, vec4 emissive, float transp, vec3 normal,
-        float clearcoat, float clearcoat_roughness, vec3 clearcoat_normal,
-        float occlusion, float ssr_id, out Closure result)
-{
-	vec3 diffuse, f0, ssr_spec;
-	convert_metallic_to_specular(basecol.rgb, metallic, specular, diffuse, f0);
-
-	vec3 L = eevee_surface_lit(normal, diffuse, f0, roughness, occlusion, int(ssr_id), ssr_spec);
-	vec3 vN = normalize(mat3(ViewMatrix) * normal);
-	result = Closure(L + emissive.rgb, 1.0 - transp, vec4(ssr_spec, roughness), normal_encode(vN, viewCameraVec), int(ssr_id));
-}
-
 void node_eevee_specular(
         vec4 diffuse, vec4 specular, float roughness, vec4 emissive, float transp, vec3 normal,
         float clearcoat, float clearcoat_roughness, vec3 clearcoat_normal,
