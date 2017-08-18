@@ -955,4 +955,6 @@ void BKE_sound_set_scene_sound_pan(void *UNUSED(handle), float UNUSED(pan), char
 void BKE_sound_set_scene_volume(struct Scene *UNUSED(scene), float UNUSED(volume)) {}
 void BKE_sound_set_scene_sound_pitch(void *UNUSED(handle), float UNUSED(pitch), char UNUSED(animated)) {}
 float BKE_sound_get_length(struct bSound *UNUSED(sound)) { return 0; }
+char **BKE_sound_get_device_names(void) { static char *names[1] = {NULL}; return names; }
+
 #endif  /* WITH_AUDASPACE */
