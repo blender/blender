@@ -180,16 +180,28 @@ success:
 /** \name Utility Functions
  * \{ */
 
+#ifdef __GNUC__
+#  define WARN_TYPE_LIMIT_PUSH \
+	_Pragma("warning(push)") _Pragma("GCC diagnostic ignored \"-Wtype-limits\"") ((void)0)
+#  define WARN_TYPE_LIMIT_POP \
+	_Pragma("warning(pop)") ((void)0)
+#else
+#  define WARN_TYPE_LIMIT_DISABLE ((void)0)
+#  define WARN_TYPE_LIMIT_ENABLE  ((void)0)
+#endif
+
 /* Use for both tuple and single item, TODO: GWN_COMP_I10 */
-#define PY_AS_NATIVE_SWITCH \
+static const char *fill_format_elem_range_error = "Value out of range";
+
+#define PY_AS_NATIVE_SWITCH(attr) \
 	switch (attr->comp_type) { \
-		case GWN_COMP_I8:  { PY_AS_NATIVE(int8_t,   PyLong_AsLong); break; } \
-		case GWN_COMP_U8:  { PY_AS_NATIVE(uint8_t,  PyLong_AsLong); break; } \
-		case GWN_COMP_I16: { PY_AS_NATIVE(int16_t,  PyLong_AsLong); break; } \
-		case GWN_COMP_U16: { PY_AS_NATIVE(uint16_t, PyLong_AsLong); break; } \
-		case GWN_COMP_I32: { PY_AS_NATIVE(int32_t,  PyLong_AsLong); break; } \
-		case GWN_COMP_U32: { PY_AS_NATIVE(uint32_t, PyLong_AsLong); break; } \
-		case GWN_COMP_F32: { PY_AS_NATIVE(float, PyFloat_AsDouble); break; } \
+		case GWN_COMP_I8:  { PY_AS_NATIVE(int8_t,   INT8_MIN,  INT8_MAX,  int,  _PyLong_AsInt); break; } \
+		case GWN_COMP_U8:  { PY_AS_NATIVE(uint8_t,  0,         UINT8_MAX, int,  _PyLong_AsInt); break; } \
+		case GWN_COMP_I16: { PY_AS_NATIVE(int16_t,  INT16_MIN, INT16_MAX, int,  _PyLong_AsInt); break; } \
+		case GWN_COMP_U16: { PY_AS_NATIVE(uint16_t, 0,         UINT8_MAX, int,  _PyLong_AsInt); break; } \
+		case GWN_COMP_I32: { PY_AS_NATIVE(int32_t,  INT32_MIN, INT8_MAX,  int,  _PyLong_AsInt); break; } \
+		case GWN_COMP_U32: { PY_AS_NATIVE(uint32_t, 0,         UINT8_MAX, uint, _PyLong_AsInt); break; } \
+		case GWN_COMP_F32: { PY_AS_NATIVE(float, 0, 0, float, PyFloat_AsDouble); break; } \
 		default: \
 			BLI_assert(0); \
 	} ((void)0)
@@ -197,15 +209,19 @@ success:
 /* No error checking, callers must run PyErr_Occurred */
 static void fill_format_elem(void *data_dst_void, PyObject *py_src, const Gwn_VertAttr *attr)
 {
-	/* TODO: check overflow */
+#define PY_AS_NATIVE(ty_dst, ty_dst_min, ty_dst_max, ty_src, py_as_native) \
+{ \
+	ty_dst *data_dst = data_dst_void; \
+	ty_src v = py_as_native(py_src); \
+	WARN_TYPE_LIMIT_PUSH; \
+	if ((ty_dst_min != ty_dst_max) && (v < ty_dst_min || v > ty_dst_max)) { \
+		PyErr_SetString(PyExc_ValueError, fill_format_elem_range_error); \
+	} \
+	WARN_TYPE_LIMIT_POP; \
+	*data_dst = v; \
+} ((void)0)
 
-#define PY_AS_NATIVE(t, py_as_native) \
-	{ \
-		t *data_dst = data_dst_void; \
-		*data_dst = py_as_native(py_src); \
-	} ((void)0)
-
-	PY_AS_NATIVE_SWITCH;
+	PY_AS_NATIVE_SWITCH(attr);
 
 #undef PY_AS_NATIVE
 }
@@ -213,21 +229,31 @@ static void fill_format_elem(void *data_dst_void, PyObject *py_src, const Gwn_Ve
 /* No error checking, callers must run PyErr_Occurred */
 static void fill_format_tuple(void *data_dst_void, PyObject *py_src, const Gwn_VertAttr *attr)
 {
-	/* TODO: check overflow */
 	const uint len = attr->comp_ct;
 
-#define PY_AS_NATIVE(t, py_as_native) \
-	t *data_dst = data_dst_void; \
+/**
+ * Args are constants, so range checks will be optimized out if they're nop's.
+ */
+#define PY_AS_NATIVE(ty_dst, ty_dst_min, ty_dst_max, ty_src, py_as_native) \
+	ty_dst *data_dst = data_dst_void; \
 	for (uint i = 0; i < len; i++) { \
-		data_dst[i] = py_as_native(PyTuple_GET_ITEM(py_src, i)); \
+		ty_src v = py_as_native(PyTuple_GET_ITEM(py_src, i)); \
+		WARN_TYPE_LIMIT_PUSH; \
+		if ((ty_dst_min != ty_dst_max) && (v < ty_dst_min || v > ty_dst_max)) { \
+			PyErr_SetString(PyExc_ValueError, fill_format_elem_range_error); \
+		} \
+		WARN_TYPE_LIMIT_POP; \
+		data_dst[i] = v; \
 	} ((void)0)
 
-	PY_AS_NATIVE_SWITCH;
+	PY_AS_NATIVE_SWITCH(attr);
 
 #undef PY_AS_NATIVE
 }
 
 #undef PY_AS_NATIVE_SWITCH
+#undef WARN_TYPE_LIMIT_PUSH
+#undef WARN_TYPE_LIMIT_POP
 
 static bool bpygwn_vertbuf_fill_impl(
         Gwn_VertBuf *vbo,
@@ -441,8 +467,15 @@ static PyObject *bpygwn_VertBuf_fill(BPyGwn_VertBuf *self, PyObject *args, PyObj
 
 	if (params.id >= self->buf->format.attrib_ct) {
 		PyErr_Format(PyExc_ValueError,
-		             "Format id '%s' out of range",
+		             "Format id %d out of range",
 		             params.id);
+		return NULL;
+	}
+
+	if (self->buf->vbo_id != 0) {
+		PyErr_SetString(PyExc_ValueError,
+		                "Can't fill, buffer already in use");
+		return NULL;
 	}
 
 	if (!bpygwn_vertbuf_fill_impl(self->buf, params.id, params.py_seq_data)) {
