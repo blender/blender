@@ -98,6 +98,7 @@ static struct {
 
 	/* Simple Downsample */
 	struct GPUShader *downsample_sh;
+	struct GPUShader *downsample_cube_sh;
 
 	/* Ground Truth Ambient Occlusion */
 	struct GPUShader *gtao_sh;
@@ -106,6 +107,7 @@ static struct {
 	struct GPUTexture *depth_src;
 	struct GPUTexture *color_src;
 	int depth_src_layer;
+	float cube_texel_size;
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_ambient_occlusion_lib_glsl[];
@@ -120,8 +122,11 @@ extern char datatoc_effect_dof_vert_glsl[];
 extern char datatoc_effect_dof_geom_glsl[];
 extern char datatoc_effect_dof_frag_glsl[];
 extern char datatoc_effect_downsample_frag_glsl[];
+extern char datatoc_effect_downsample_cube_frag_glsl[];
 extern char datatoc_effect_gtao_frag_glsl[];
 extern char datatoc_lightprobe_lib_glsl[];
+extern char datatoc_lightprobe_vert_glsl[];
+extern char datatoc_lightprobe_geom_glsl[];
 extern char datatoc_raytrace_lib_glsl[];
 extern char datatoc_tonemap_frag_glsl[];
 extern char datatoc_volumetric_frag_glsl[];
@@ -248,6 +253,9 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		MEM_freeN(frag_str);
 
 		e_data.downsample_sh = DRW_shader_create_fullscreen(datatoc_effect_downsample_frag_glsl, NULL);
+		e_data.downsample_cube_sh = DRW_shader_create(datatoc_lightprobe_vert_glsl,
+		                                              datatoc_lightprobe_geom_glsl,
+		                                              datatoc_effect_downsample_cube_frag_glsl, NULL);
 
 		e_data.volumetric_upsample_sh = DRW_shader_create_fullscreen(datatoc_volumetric_frag_glsl, "#define STEP_UPSAMPLE\n");
 
@@ -906,6 +914,17 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 	}
 
 	{
+		static int zero = 0;
+		psl->color_downsample_cube_ps = DRW_pass_create("Downsample Cube", DRW_STATE_WRITE_COLOR);
+		DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.downsample_cube_sh, psl->color_downsample_cube_ps, quad);
+		DRW_shgroup_uniform_buffer(grp, "source", &e_data.color_src);
+		DRW_shgroup_uniform_float(grp, "texelSize", &e_data.cube_texel_size, 1);
+		DRW_shgroup_uniform_int(grp, "Layer", &zero, 1);
+		for (int i = 0; i < 6; ++i)
+			DRW_shgroup_call_dynamic_add_empty(grp);
+	}
+
+	{
 		/* Perform min/max downsample */
 		psl->minz_downlevel_ps = DRW_pass_create("HiZ Min Down Level", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.minz_downlevel_sh, psl->minz_downlevel_ps);
@@ -1097,6 +1116,13 @@ static void simple_downsample_cb(void *vedata, int UNUSED(level))
 	DRW_draw_pass(psl->color_downsample_ps);
 }
 
+static void simple_downsample_cube_cb(void *vedata, int level)
+{
+	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
+	e_data.cube_texel_size = (float)(1 << level) / (float)GPU_texture_width(e_data.color_src);
+	DRW_draw_pass(psl->color_downsample_cube_ps);
+}
+
 void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, GPUTexture *depth_src, int layer)
 {
 	EEVEE_PassList *psl = vedata->psl;
@@ -1150,6 +1176,19 @@ void EEVEE_downsample_buffer(EEVEE_Data *vedata, struct GPUFrameBuffer *fb_src, 
 	DRW_stats_group_start("Downsample buffer");
 	/* Create lower levels */
 	DRW_framebuffer_recursive_downsample(fb_src, texture_src, level, &simple_downsample_cb, vedata);
+	DRW_stats_group_end();
+}
+
+/**
+ * Simple downsampling algorithm for cubemap. Reconstruct mip chain up to mip level.
+ **/
+void EEVEE_downsample_cube_buffer(EEVEE_Data *vedata, struct GPUFrameBuffer *fb_src, GPUTexture *texture_src, int level)
+{
+	e_data.color_src = texture_src;
+
+	DRW_stats_group_start("Downsample Cube buffer");
+	/* Create lower levels */
+	DRW_framebuffer_recursive_downsample(fb_src, texture_src, level, &simple_downsample_cube_cb, vedata);
 	DRW_stats_group_end();
 }
 
@@ -1493,6 +1532,7 @@ void EEVEE_effects_free(void)
 		DRW_SHADER_FREE_SAFE(e_data.ssr_sh[i]);
 	}
 	DRW_SHADER_FREE_SAFE(e_data.downsample_sh);
+	DRW_SHADER_FREE_SAFE(e_data.downsample_cube_sh);
 
 	DRW_SHADER_FREE_SAFE(e_data.gtao_sh);
 	DRW_SHADER_FREE_SAFE(e_data.gtao_debug_sh);

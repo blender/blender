@@ -6,6 +6,7 @@ uniform int Layer;
 
 in vec4 vPos[];
 flat in int face[];
+flat out int fFace;
 
 out vec3 worldPosition;
 out vec3 viewPosition; /* Required. otherwise generate linking error. */
@@ -17,12 +18,12 @@ const vec3 x_axis[6]   = vec3[6](vec3(0.0,  0.0, -1.0), vec3( 0.0,  0.0, 1.0), v
 const vec3 y_axis[6]   = vec3[6](vec3(0.0, -1.0,  0.0), vec3( 0.0, -1.0, 0.0), vec3(0.0, 0.0, 1.0), vec3(0.0,  0.0, -1.0), vec3( 0.0, -1.0, 0.0), vec3( 0.0, -1.0,  0.0));
 
 void main() {
-	int f = face[0];
-	gl_Layer = Layer + f;
+	fFace = face[0];
+	gl_Layer = Layer + fFace;
 
 	for (int v = 0; v < 3; ++v) {
 		gl_Position = vPos[v];
-		worldPosition = x_axis[f] * vPos[v].x + y_axis[f] * vPos[v].y + maj_axes[f];
+		worldPosition = x_axis[fFace] * vPos[v].x + y_axis[fFace] * vPos[v].y + maj_axes[fFace];
 #ifdef ATTRIB
 		pass_attrib(v);
 #endif

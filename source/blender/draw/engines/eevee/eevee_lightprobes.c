@@ -827,14 +827,17 @@ static void downsample_planar(void *vedata, int level)
 }
 
 /* Glossy filter probe_rt to probe_pool at index probe_idx */
-static void glossy_filter_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl, int probe_idx)
+static void glossy_filter_probe(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata, EEVEE_PassList *psl, int probe_idx)
 {
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
+
+	/* Max lod used from the render target probe */
+	pinfo->lod_rt_max = floorf(log2f(PROBE_RT_SIZE)) - 2.0f;
 
 	/* 2 - Let gpu create Mipmaps for Filtered Importance Sampling. */
 	/* Bind next framebuffer to be able to gen. mips for probe_rt. */
 	DRW_framebuffer_bind(sldata->probe_filter_fb);
-	DRW_texture_generate_mipmaps(sldata->probe_rt);
+	EEVEE_downsample_cube_buffer(vedata, sldata->probe_filter_fb, sldata->probe_rt, (int)(pinfo->lod_rt_max));
 
 	/* 3 - Render to probe array to the specified layer, do prefiltering. */
 	/* Detach to rebind the right mipmap. */
@@ -843,7 +846,7 @@ static void glossy_filter_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *ps
 	const int maxlevel = (int)floorf(log2f(PROBE_OCTAHEDRON_SIZE));
 	const int min_lod_level = 3;
 	for (int i = 0; i < maxlevel - min_lod_level; i++) {
-		float bias = (i == 0) ? 0.0f : 1.0f;
+		float bias = (i == 0) ? -1.0f : 1.0f;
 		pinfo->texel_size = 1.0f / mipsize;
 		pinfo->padding_size = powf(2.0f, (float)(maxlevel - min_lod_level - 1 - i));
 		/* XXX : WHY THE HECK DO WE NEED THIS ??? */
@@ -880,7 +883,6 @@ static void glossy_filter_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *ps
 
 		pinfo->invsamples_ct = 1.0f / pinfo->samples_ct;
 		pinfo->lodfactor = bias + 0.5f * log((float)(PROBE_RT_SIZE * PROBE_RT_SIZE) * pinfo->invsamples_ct) / log(2);
-		pinfo->lod_rt_max = floorf(log2f(PROBE_RT_SIZE)) - 2.0f;
 
 		DRW_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->probe_pool, 0, i);
 		DRW_framebuffer_viewport_size(sldata->probe_filter_fb, 0, 0, mipsize, mipsize);
@@ -898,18 +900,9 @@ static void glossy_filter_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *ps
 }
 
 /* Diffuse filter probe_rt to irradiance_pool at index probe_idx */
-static void diffuse_filter_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl, int offset)
+static void diffuse_filter_probe(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata, EEVEE_PassList *psl, int offset)
 {
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
-
-	/* 4 - Compute spherical harmonics */
-	/* Tweaking parameters to balance perf. vs precision */
-	DRW_framebuffer_bind(sldata->probe_filter_fb);
-	DRW_texture_generate_mipmaps(sldata->probe_rt);
-
-	/* Bind the right texture layer (one layer per irradiance grid) */
-	DRW_framebuffer_texture_detach(sldata->probe_pool);
-	DRW_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->irradiance_rt, 0, 0);
 
 	/* find cell position on the virtual 3D texture */
 	/* NOTE : Keep in sync with load_irradiance_cell() */
@@ -928,6 +921,7 @@ static void diffuse_filter_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *p
 	int y = size[1] * (offset / cell_per_row);
 
 #ifndef IRRADIANCE_SH_L2
+	/* Tweaking parameters to balance perf. vs precision */
 	const float bias = 0.0f;
 	pinfo->invsamples_ct = 1.0f / pinfo->samples_ct;
 	pinfo->lodfactor = bias + 0.5f * log((float)(PROBE_RT_SIZE * PROBE_RT_SIZE) * pinfo->invsamples_ct) / log(2);
@@ -936,6 +930,14 @@ static void diffuse_filter_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *p
 	pinfo->shres = 32; /* Less texture fetches & reduce branches */
 	pinfo->lod_rt_max = 2.0f; /* Improve cache reuse */
 #endif
+
+	/* 4 - Compute spherical harmonics */
+	DRW_framebuffer_bind(sldata->probe_filter_fb);
+	EEVEE_downsample_cube_buffer(vedata, sldata->probe_filter_fb, sldata->probe_rt, (int)(pinfo->lod_rt_max));
+
+	/* Bind the right texture layer (one layer per irradiance grid) */
+	DRW_framebuffer_texture_detach(sldata->probe_pool);
+	DRW_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->irradiance_rt, 0, 0);
 
 	DRW_framebuffer_viewport_size(sldata->probe_filter_fb, x, y, size[0], size[1]);
 	DRW_draw_pass(psl->probe_diffuse_compute);
@@ -1199,13 +1201,13 @@ void EEVEE_lightprobes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 	/* Render world in priority */
 	if (e_data.update_world) {
 		render_world_to_probe(sldata, psl);
-		glossy_filter_probe(sldata, psl, 0);
-		diffuse_filter_probe(sldata, psl, 0);
+		glossy_filter_probe(sldata, vedata, psl, 0);
+		diffuse_filter_probe(sldata, vedata, psl, 0);
 
 		/* Swap and redo prefiltering for other rendertarget.
 		 * This way we have world lighting waiting for irradiance grids to catch up. */
 		SWAP(GPUTexture *, sldata->irradiance_pool, sldata->irradiance_rt);
-		diffuse_filter_probe(sldata, psl, 0);
+		diffuse_filter_probe(sldata, vedata, psl, 0);
 
 		e_data.update_world = false;
 
@@ -1258,7 +1260,7 @@ void EEVEE_lightprobes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 					lightprobe_cell_location_get(egrid, cell_id, pos);
 
 					render_scene_to_probe(sldata, vedata, pos, prb->clipsta, prb->clipend);
-					diffuse_filter_probe(sldata, psl, egrid->offset + cell_id);
+					diffuse_filter_probe(sldata, vedata, psl, egrid->offset + cell_id);
 
 					/* Restore */
 					pinfo->num_render_grid = tmp_num_render_grid;
@@ -1303,7 +1305,7 @@ void EEVEE_lightprobes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 				LightProbe *prb = (LightProbe *)ob->data;
 
 				render_scene_to_probe(sldata, vedata, ob->obmat[3], prb->clipsta, prb->clipend);
-				glossy_filter_probe(sldata, psl, i);
+				glossy_filter_probe(sldata, vedata, psl, i);
 
 				ped->need_update = false;
 				ped->probe_id = i;
