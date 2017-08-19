@@ -186,8 +186,8 @@ success:
 #  define WARN_TYPE_LIMIT_POP \
 	_Pragma("warning(pop)") ((void)0)
 #else
-#  define WARN_TYPE_LIMIT_DISABLE ((void)0)
-#  define WARN_TYPE_LIMIT_ENABLE  ((void)0)
+#  define WARN_TYPE_LIMIT_PUSH ((void)0)
+#  define WARN_TYPE_LIMIT_POP  ((void)0)
 #endif
 
 /* Use for both tuple and single item, TODO: GWN_COMP_I10 */
