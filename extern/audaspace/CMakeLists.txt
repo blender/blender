@@ -14,7 +14,7 @@
 # limitations under the License.
 ################################################################################
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.0)
 include(CMakeDependentOption)
 
 if(POLICY CMP0054)
@@ -309,34 +309,37 @@ endif()
 
 # compiler options
 
-set(CMAKE_CXX_STANDARD 11)
+if(AUDASPACE_STANDALONE)
+	if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+		add_definitions(-std=c++11)
+		list(APPEND CMAKE_C_COMPILER_FLAGS "-fvisibility=hidden")
+		list(APPEND CMAKE_CXX_COMPILER_FLAGS "-fvisibility=hidden")
+	endif()
 
-if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-	list(APPEND CMAKE_C_COMPILER_FLAGS "-fvisibility=hidden")
-	list(APPEND CMAKE_CXX_COMPILER_FLAGS "-fvisibility=hidden")
-endif()
-
-if(MSVC)
-	if(AUDASPACE_STANDALONE)
+	if(MSVC)
 		list(APPEND CMAKE_C_FLAGS_DEBUG "/Zi /Od")
 		list(APPEND CMAKE_CXX_FLAGS_DEBUG "/Zi /Od")
 		list(APPEND CMAKE_SHARED_LINKER_FLAGS_DEBUG "/DEBUG")
 		list(APPEND CMAKE_STATIC_LINKER_FLAGS_DEBUG "/DEBUG")
 		list(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG "/DEBUG")
+
+		if(SHARED_LIBRARY)
+			include(GenerateExportHeader)
+		endif()
 	endif()
+
+	if(APPLE AND NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+		set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "" FORCE)
+	endif()
+endif()
+
+if(MSVC)
 	add_definitions(
 		/D_USE_MATH_DEFINES
 		/EHsc
 		/DNOMINMAX
 		/D_STDINT_H
 	)
-	if(SHARED_LIBRARY)
-		include(GenerateExportHeader)
-	endif()
-endif()
-
-if(APPLE AND NOT CMAKE_OSX_DEPLOYMENT_TARGET)
-	set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "" FORCE)
 endif()
 
 # platform specific options
