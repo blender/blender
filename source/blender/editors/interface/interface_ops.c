@@ -360,6 +360,9 @@ bool UI_context_copy_to_selected_list(
 	else if (RNA_struct_is_a(ptr->type, &RNA_Sequence)) {
 		*r_lb = CTX_data_collection_get(C, "selected_editable_sequences");
 	}
+	else if (RNA_struct_is_a(ptr->type, &RNA_FCurve)) {
+		*r_lb = CTX_data_collection_get(C, "selected_editable_fcurves");
+	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_Node) ||
 	         RNA_struct_is_a(ptr->type, &RNA_NodeSocket))
 	{
