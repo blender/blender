@@ -5,6 +5,7 @@ setlocal EnableDelayedExpansion
 setlocal ENABLEEXTENSIONS
 set BLENDER_DIR=%~dp0
 set BLENDER_DIR_NOSPACES=%BLENDER_DIR: =%
+for %%X in (svn.exe) do (set HAS_SVN=%%~$PATH:X)
 if not "%BLENDER_DIR%"=="%BLENDER_DIR_NOSPACES%" (
 	echo There are spaces detected in the build path "%BLENDER_DIR%", this is currently not supported, exiting....
 	goto EOF
@@ -17,6 +18,9 @@ set BUILD_CMAKE_ARGS=
 set BUILD_ARCH=
 set BUILD_VS_VER=
 set BUILD_VS_YEAR=
+set BUILD_VS_LIBDIRPOST=
+set BUILD_VS_LIBDIR=
+set BUILD_VS_SVNDIR=
 set BUILD_NGE=
 set KEY_NAME=
 set MSBUILD_PLATFORM=
@@ -74,12 +78,15 @@ if NOT "%1" == "" (
 	)	else if "%1" == "2017" (
 	set BUILD_VS_VER=15
 	set BUILD_VS_YEAR=2017
+	set BUILD_VS_LIBDIRPOST=vc14
 	)	else if "%1" == "2015" (
 	set BUILD_VS_VER=14
 	set BUILD_VS_YEAR=2015
+	set BUILD_VS_LIBDIRPOST=vc14
 	)	else if "%1" == "2013" (
 	set BUILD_VS_VER=12
 	set BUILD_VS_YEAR=2013
+	set BUILD_VS_LIBDIRPOST=vc12
 	)	else if "%1" == "packagename" (
 	set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -DCPACK_OVERRIDE_PACKAGENAME="%2"
 	shift /1
@@ -130,6 +137,7 @@ if "%BUILD_ARCH%"=="" (
 if "%BUILD_VS_VER%"=="" (
 	set BUILD_VS_VER=12
 	set BUILD_VS_YEAR=2013
+	set BUILD_VS_LIBDIRPOST=vc12
 )
 
 if "%BUILD_ARCH%"=="x64" (
@@ -183,6 +191,7 @@ if %ERRORLEVEL% NEQ 0 (
 		echo Visual Studio 2013 not found, trying Visual Studio 2015.
 		set BUILD_VS_VER=14
 		set BUILD_VS_YEAR=2015
+		set BUILD_VS_LIBDIRPOST=vc14
 		goto DetectMSVC
 	)	else	(
 		echo Error: "MSBuild" command not in the PATH.
@@ -204,11 +213,36 @@ if %ERRORLEVEL% NEQ 0 (
 	echo You must have CMake installed and added to your PATH, aborting!
 	goto EOF
 )
-if NOT EXIST %BLENDER_DIR%..\lib\nul (
-	echo Error: Path to libraries not found "%BLENDER_DIR%..\lib\"
-	echo This is needed for building, aborting!
-	goto EOF
+
+if "%BUILD_ARCH%"=="x64" (
+	set BUILD_VS_SVNDIR=win64_%BUILD_VS_LIBDIRPOST%
+	) else if "%BUILD_ARCH%"=="x86" (
+		set BUILD_VS_SVNDIR=windows_%BUILD_VS_LIBDIRPOST%
 )
+set BUILD_VS_LIBDIR="%BLENDER_DIR%..\lib\%BUILD_VS_SVNDIR%"
+
+if NOT EXIST %BUILD_VS_LIBDIR% (
+	rem libs not found, but svn is on the system
+	if not "%HAS_SVN%"=="" (
+		echo.
+		echo The required external libraries in %BUILD_VS_LIBDIR% are missing
+		echo.
+		set /p GetLibs= "Would you like to download them? (y/n)"
+		if /I "!GetLibs!"=="Y" (
+			echo.
+			echo Downloading %BUILD_VS_SVNDIR% libraries, please wait.
+			echo. 
+			svn checkout https://svn.blender.org/svnroot/bf-blender/trunk/lib/%BUILD_VS_SVNDIR% %BUILD_VS_LIBDIR%
+		)
+	)
+)
+
+if NOT EXIST %BUILD_VS_LIBDIR% (
+		echo Error: Path to libraries not found "%BUILD_VS_LIBDIR%"
+		echo This is needed for building, aborting!
+		goto EOF
+)
+
 if "%TARGET%"=="" (
 	echo Error: Convenience target not set
 	echo This is required for building, aborting!
