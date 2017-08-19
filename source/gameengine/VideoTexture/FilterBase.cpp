@@ -114,6 +114,7 @@ void Filter_dealloc(PyFilter *self)
 		delete self->m_filter;
 		self->m_filter = NULL;
 	}
+	Py_TYPE((PyObject *)self)->tp_free((PyObject *)self);
 }
 
 

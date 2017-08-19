@@ -165,15 +165,17 @@ void TileManager::set_samples(int num_samples_)
 		uint64_t pixel_samples = 0;
 		/* While rendering in the viewport, the initial preview resolution is increased to the native resolution
 		 * before the actual rendering begins. Therefore, additional pixel samples will be rendered. */
-		int divider = get_divider(params.width, params.height, start_resolution) / 2;
-		while(divider > 1) {
+		int divider = max(get_divider(params.width, params.height, start_resolution) / 2, pixel_size);
+		while(divider > pixel_size) {
 			int image_w = max(1, params.width/divider);
 			int image_h = max(1, params.height/divider);
 			pixel_samples += image_w * image_h;
 			divider >>= 1;
 		}
 
-		state.total_pixel_samples = pixel_samples + (uint64_t)get_num_effective_samples() * params.width*params.height;
+		int image_w = max(1, params.width/divider);
+		int image_h = max(1, params.height/divider);
+		state.total_pixel_samples = pixel_samples + (uint64_t)get_num_effective_samples() * image_w*image_h;
 		if(schedule_denoising) {
 			state.total_pixel_samples += params.width*params.height;
 		}

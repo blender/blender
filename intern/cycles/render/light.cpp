@@ -232,10 +232,6 @@ bool LightManager::object_usable_as_light(Object *object) {
 	if(!(object->visibility & (PATH_RAY_DIFFUSE|PATH_RAY_GLOSSY|PATH_RAY_TRANSMIT))) {
 		return false;
 	}
-	/* Skip motion blurred deforming meshes, not supported yet. */
-	if(mesh->has_motion_blur()) {
-		return false;
-	}
 	/* Skip if we have no emission shaders. */
 	/* TODO(sergey): Ideally we want to avoid such duplicated loop, since it'll
 	 * iterate all mesh shaders twice (when counting and when calculating

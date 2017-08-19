@@ -367,6 +367,13 @@ void ObjectManager::device_update_object_transform(UpdateObejctTransformState *s
 	/* OBJECT_PROPERTIES */
 	objects[offset+8] = make_float4(surface_area, pass_id, random_number, __int_as_float(particle_index));
 
+	if(mesh->use_motion_blur) {
+		state->have_motion = true;
+	}
+	if(mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)) {
+		flag |= SD_OBJECT_HAS_VERTEX_MOTION;
+	}
+
 	if(state->need_motion == Scene::MOTION_PASS) {
 		/* Motion transformations, is world/object space depending if mesh
 		 * comes with deformed position in object space, or if we transform
@@ -387,9 +394,6 @@ void ObjectManager::device_update_object_transform(UpdateObejctTransformState *s
 			mtfm.pre = mtfm.pre * itfm;
 			mtfm.post = mtfm.post * itfm;
 		}
-		else {
-			flag |= SD_OBJECT_HAS_VERTEX_MOTION;
-		}
 
 		memcpy(&objects_vector[object_index*OBJECT_VECTOR_SIZE+0], &mtfm.pre, sizeof(float4)*3);
 		memcpy(&objects_vector[object_index*OBJECT_VECTOR_SIZE+3], &mtfm.post, sizeof(float4)*3);
@@ -407,10 +411,6 @@ void ObjectManager::device_update_object_transform(UpdateObejctTransformState *s
 		}
 	}
 #endif
-
-	if(mesh->use_motion_blur) {
-		state->have_motion = true;
-	}
 
 	/* Dupli object coords and motion info. */
 	int totalsteps = mesh->motion_steps;
