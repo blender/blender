@@ -334,6 +334,10 @@ PyObject *GPU_initPython(void)
 	PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 	Py_INCREF(submodule);
 
+	PyModule_AddObject(module, "matrix", (submodule = BPyInit_gpu_matrix()));
+	PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
+	Py_INCREF(submodule);
+
 	PyDict_SetItem(PyImport_GetModuleDict(), PyModule_GetNameObject(module), module);
 	return module;
 }
