@@ -366,6 +366,7 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		float threshold = BKE_collection_engine_property_value_get_float(props, "bloom_threshold");
 		float knee = BKE_collection_engine_property_value_get_float(props, "bloom_knee");
 		float intensity = BKE_collection_engine_property_value_get_float(props, "bloom_intensity");
+		const float *color = BKE_collection_engine_property_value_get_float_array(props, "bloom_color");
 		float radius = BKE_collection_engine_property_value_get_float(props, "bloom_radius");
 		effects->bloom_clamp = BKE_collection_engine_property_value_get_float(props, "bloom_clamp");
 
@@ -381,7 +382,8 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		effects->bloom_curve_threshold[1] = knee * 2.0f;
 		effects->bloom_curve_threshold[2] = 0.25f / max_ff(1e-5f, knee);
 		effects->bloom_curve_threshold[3] = threshold;
-		effects->bloom_intensity = intensity;
+
+		mul_v3_v3fl(effects->bloom_color, color, intensity);
 
 		/* Downsample buffers */
 		copy_v2_v2_int(texsize, blitsize);
@@ -1050,7 +1052,7 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		DRW_shgroup_uniform_vec4(grp, "curveThreshold", effects->bloom_curve_threshold, 1);
 		DRW_shgroup_uniform_float(grp, "clampIntensity", &effects->bloom_clamp, 1);
 		grp = eevee_create_bloom_pass("Bloom Resolve", effects, e_data.bloom_resolve_sh[use_highres], &psl->bloom_resolve, true);
-		DRW_shgroup_uniform_float(grp, "bloomIntensity", &effects->bloom_intensity, 1);
+		DRW_shgroup_uniform_vec3(grp, "bloomColor", effects->bloom_color, 1);
 	}
 
 	{

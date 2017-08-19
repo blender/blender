@@ -39,7 +39,7 @@ uniform vec2 baseBufferTexelSize;
 uniform float sampleScale;
 
 /* Step Resolve */
-uniform float bloomIntensity;
+uniform vec3 bloomColor;
 
 in vec4 uvcoordsvar;
 
@@ -200,7 +200,7 @@ vec4 step_resolve(void)
 	vec3 blur = upsample_filter(sourceBuffer, uvcoordsvar.xy, sourceBufferTexelSize);
 #endif
 	vec4 base = textureLod(baseBuffer, uvcoordsvar.xy, 0.0);
-	vec3 cout = base.rgb + blur * bloomIntensity;
+	vec3 cout = base.rgb + blur * bloomColor;
 	return vec4(cout, base.a);
 }
 

@@ -369,7 +369,7 @@ typedef struct EEVEE_EffectsInfo {
 	float source_texel_size[2];
 	float blit_texel_size[2];
 	float downsamp_texel_size[MAX_BLOOM_STEP][2];
-	float bloom_intensity;
+	float bloom_color[3];
 	float bloom_clamp;
 	float bloom_sample_scale;
 	float bloom_curve_threshold[4];

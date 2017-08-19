@@ -297,7 +297,9 @@ static void EEVEE_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDPr
 	BKE_collection_engine_property_add_float(props, "bokeh_max_size", 100.0f);
 	BKE_collection_engine_property_add_float(props, "bokeh_threshold", 1.0f);
 
+	float default_bloom_color[3] = {1.0f, 1.0f, 1.0f};
 	BKE_collection_engine_property_add_bool(props, "bloom_enable", false);
+	BKE_collection_engine_property_add_float_array(props, "bloom_color", default_bloom_color, 3);
 	BKE_collection_engine_property_add_float(props, "bloom_threshold", 0.8f);
 	BKE_collection_engine_property_add_float(props, "bloom_knee", 0.5f);
 	BKE_collection_engine_property_add_float(props, "bloom_intensity", 0.8f);
