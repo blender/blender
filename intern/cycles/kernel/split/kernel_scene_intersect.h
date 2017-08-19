@@ -74,7 +74,6 @@ ccl_device void kernel_scene_intersect(KernelGlobals *kg)
 #ifdef __HAIR__
 	float difl = 0.0f, extmax = 0.0f;
 	uint lcg_state = 0;
-	RNG rng = kernel_split_state.rng[ray_index];
 
 	if(kernel_data.bvh.have_curves) {
 		if((kernel_data.cam.resolution == 1) && (state.flag & PATH_RAY_CAMERA)) {
@@ -84,7 +83,7 @@ ccl_device void kernel_scene_intersect(KernelGlobals *kg)
 		}
 
 		extmax = kernel_data.curve.maximum_width;
-		lcg_state = lcg_state_init(&rng, state.rng_offset, state.sample, 0x51633e2d);
+		lcg_state = lcg_state_init(&state, 0x51633e2d);
 	}
 
 	bool hit = scene_intersect(kg, ray, visibility, &isect, &lcg_state, difl, extmax);

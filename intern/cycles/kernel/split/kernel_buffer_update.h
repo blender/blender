@@ -83,7 +83,6 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
 	PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
 	ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
 	ccl_global float3 *throughput = &kernel_split_state.throughput[ray_index];
-	RNG rng = kernel_split_state.rng[ray_index];
 	ccl_global float *buffer = kernel_split_params.buffer;
 
 	unsigned int work_index;
@@ -135,7 +134,8 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
 			buffer += (kernel_split_params.offset + pixel_x + pixel_y*stride) * kernel_data.film.pass_stride;
 
 			/* Initialize random numbers and ray. */
-			kernel_path_trace_setup(kg, rng_state, sample, pixel_x, pixel_y, &rng, ray);
+			uint rng_hash;
+			kernel_path_trace_setup(kg, rng_state, sample, pixel_x, pixel_y, &rng_hash, ray);
 
 			if(ray->t != 0.0f) {
 				/* Initialize throughput, path radiance, Ray, PathState;
@@ -143,7 +143,7 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
 				 */
 				*throughput = make_float3(1.0f, 1.0f, 1.0f);
 				path_radiance_init(L, kernel_data.film.use_light_pass);
-				path_state_init(kg, &kernel_split_state.sd_DL_shadow[ray_index], state, &rng, sample, ray);
+				path_state_init(kg, &kernel_split_state.sd_DL_shadow[ray_index], state, rng_hash, sample, ray);
 #ifdef __SUBSURFACE__
 				kernel_path_subsurface_init_indirect(&kernel_split_state.ss_rays[ray_index]);
 #endif
@@ -160,7 +160,6 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
 			}
 		}
 	}
-	kernel_split_state.rng[ray_index] = rng;
 
 #ifndef __COMPUTE_DEVICE_GPU__
 	}

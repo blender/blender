@@ -30,7 +30,6 @@ ccl_device_noinline bool kernel_split_branched_path_volume_indirect_light_iter(K
 	SplitBranchedState *branched_state = &kernel_split_state.branched_state[ray_index];
 
 	ShaderData *sd = &kernel_split_state.sd[ray_index];
-	RNG rng = kernel_split_state.rng[ray_index];
 	PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
 	ShaderData *emission_sd = &kernel_split_state.sd_DL_shadow[ray_index];
 
@@ -58,15 +57,15 @@ ccl_device_noinline bool kernel_split_branched_path_volume_indirect_light_iter(K
 
 		/* integrate along volume segment with distance sampling */
 		VolumeIntegrateResult result = kernel_volume_integrate(
-			kg, ps, sd, &volume_ray, L, tp, &rng, heterogeneous);
+			kg, ps, sd, &volume_ray, L, tp, heterogeneous);
 
 #  ifdef __VOLUME_SCATTER__
 		if(result == VOLUME_PATH_SCATTERED) {
 			/* direct lighting */
-			kernel_path_volume_connect_light(kg, &rng, sd, emission_sd, *tp, &branched_state->path_state, L);
+			kernel_path_volume_connect_light(kg, sd, emission_sd, *tp, &branched_state->path_state, L);
 
 			/* indirect light bounce */
-			if(!kernel_path_volume_bounce(kg, &rng, sd, tp, ps, L, pray)) {
+			if(!kernel_path_volume_bounce(kg, sd, tp, ps, L, pray)) {
 				continue;
 			}
 
@@ -141,7 +140,6 @@ ccl_device void kernel_do_volume(KernelGlobals *kg)
 	   IS_STATE(ray_state, ray_index, RAY_HIT_BACKGROUND)) {
 		ccl_global float3 *throughput = &kernel_split_state.throughput[ray_index];
 		ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
-		RNG rng = kernel_split_state.rng[ray_index];
 		ccl_global Intersection *isect = &kernel_split_state.isect[ray_index];
 		ShaderData *sd = &kernel_split_state.sd[ray_index];
 		ShaderData *emission_sd = &kernel_split_state.sd_DL_shadow[ray_index];
@@ -165,15 +163,15 @@ ccl_device void kernel_do_volume(KernelGlobals *kg)
 				{
 					/* integrate along volume segment with distance sampling */
 					VolumeIntegrateResult result = kernel_volume_integrate(
-						kg, state, sd, &volume_ray, L, throughput, &rng, heterogeneous);
+						kg, state, sd, &volume_ray, L, throughput, heterogeneous);
 
 #  ifdef __VOLUME_SCATTER__
 					if(result == VOLUME_PATH_SCATTERED) {
 						/* direct lighting */
-						kernel_path_volume_connect_light(kg, &rng, sd, emission_sd, *throughput, state, L);
+						kernel_path_volume_connect_light(kg, sd, emission_sd, *throughput, state, L);
 
 						/* indirect light bounce */
-						if(kernel_path_volume_bounce(kg, &rng, sd, throughput, state, L, ray)) {
+						if(kernel_path_volume_bounce(kg, sd, throughput, state, L, ray)) {
 							ASSIGN_RAY_STATE(ray_state, ray_index, RAY_REGENERATED);
 						}
 						else {
@@ -194,8 +192,6 @@ ccl_device void kernel_do_volume(KernelGlobals *kg)
 			}
 #  endif  /* __BRANCHED_PATH__ */
 		}
-
-		kernel_split_state.rng[ray_index] = rng;
 	}
 
 #  ifdef __BRANCHED_PATH__

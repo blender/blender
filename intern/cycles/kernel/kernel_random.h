@@ -52,7 +52,7 @@ ccl_device uint sobol_dimension(KernelGlobals *kg, int index, int dimension)
 
 
 ccl_device_forceinline float path_rng_1D(KernelGlobals *kg,
-                                         RNG *rng,
+                                         uint rng_hash,
                                          int sample, int num_samples,
                                          int dimension)
 {
@@ -66,7 +66,7 @@ ccl_device_forceinline float path_rng_1D(KernelGlobals *kg,
 #  endif
 	{
 		/* Correlated multi-jitter. */
-		int p = *rng + dimension;
+		int p = rng_hash + dimension;
 		return cmj_sample_1D(sample, num_samples, p);
 	}
 #endif
@@ -82,7 +82,7 @@ ccl_device_forceinline float path_rng_1D(KernelGlobals *kg,
 	/* Hash rng with dimension to solve correlation issues.
 	 * See T38710, T50116.
 	 */
-	RNG tmp_rng = cmj_hash_simple(dimension, *rng);
+	uint tmp_rng = cmj_hash_simple(dimension, rng_hash);
 	shift = tmp_rng * (1.0f/(float)0xFFFFFFFF);
 
 	return r + shift - floorf(r + shift);
@@ -90,7 +90,7 @@ ccl_device_forceinline float path_rng_1D(KernelGlobals *kg,
 }
 
 ccl_device_forceinline void path_rng_2D(KernelGlobals *kg,
-                                        RNG *rng,
+                                        uint rng_hash,
                                         int sample, int num_samples,
                                         int dimension,
                                         float *fx, float *fy)
@@ -107,7 +107,7 @@ ccl_device_forceinline void path_rng_2D(KernelGlobals *kg,
 #  endif
 	{
 		/* Correlated multi-jitter. */
-		int p = *rng + dimension;
+		int p = rng_hash + dimension;
 		cmj_sample_2D(sample, num_samples, p, fx, fy);
 		return;
 	}
@@ -115,24 +115,24 @@ ccl_device_forceinline void path_rng_2D(KernelGlobals *kg,
 
 #ifdef __SOBOL__
 	/* Sobol. */
-	*fx = path_rng_1D(kg, rng, sample, num_samples, dimension);
-	*fy = path_rng_1D(kg, rng, sample, num_samples, dimension + 1);
+	*fx = path_rng_1D(kg, rng_hash, sample, num_samples, dimension);
+	*fy = path_rng_1D(kg, rng_hash, sample, num_samples, dimension + 1);
 #endif
 }
 
 ccl_device_inline void path_rng_init(KernelGlobals *kg,
                                      ccl_global uint *rng_state,
                                      int sample, int num_samples,
-                                     RNG *rng,
+                                     uint *rng_hash,
                                      int x, int y,
                                      float *fx, float *fy)
 {
 	/* load state */
-	*rng = *rng_state;
-	*rng ^= kernel_data.integrator.seed;
+	*rng_hash = *rng_state;
+	*rng_hash ^= kernel_data.integrator.seed;
 
 #ifdef __DEBUG_CORRELATION__
-	srand48(*rng + sample);
+	srand48(*rng_hash + sample);
 #endif
 
 	if(sample == 0) {
@@ -140,7 +140,7 @@ ccl_device_inline void path_rng_init(KernelGlobals *kg,
 		*fy = 0.5f;
 	}
 	else {
-		path_rng_2D(kg, rng, sample, num_samples, PRNG_FILTER_U, fx, fy);
+		path_rng_2D(kg, *rng_hash, sample, num_samples, PRNG_FILTER_U, fx, fy);
 	}
 }
 
@@ -177,19 +177,17 @@ ccl_device uint lcg_init(uint seed)
  */
 
 ccl_device_inline float path_state_rng_1D(KernelGlobals *kg,
-                                          RNG *rng,
                                           const ccl_addr_space PathState *state,
                                           int dimension)
 {
 	return path_rng_1D(kg,
-	                   rng,
+	                   state->rng_hash,
 	                   state->sample, state->num_samples,
 	                   state->rng_offset + dimension);
 }
 
 ccl_device_inline float path_state_rng_1D_for_decision(
         KernelGlobals *kg,
-        RNG *rng,
         const ccl_addr_space PathState *state,
         int dimension)
 {
@@ -202,19 +200,18 @@ ccl_device_inline float path_state_rng_1D_for_decision(
 	 * the same decision. */
 	const int rng_offset = state->rng_offset + state->transparent_bounce * PRNG_BOUNCE_NUM;
 	return path_rng_1D(kg,
-	                   rng,
+	                   state->rng_hash,
 	                   state->sample, state->num_samples,
 	                   rng_offset + dimension);
 }
 
 ccl_device_inline void path_state_rng_2D(KernelGlobals *kg,
-                                         RNG *rng,
                                          const ccl_addr_space PathState *state,
                                          int dimension,
                                          float *fx, float *fy)
 {
 	path_rng_2D(kg,
-	            rng,
+	            state->rng_hash,
 	            state->sample, state->num_samples,
 	            state->rng_offset + dimension,
 	            fx, fy);
@@ -222,14 +219,14 @@ ccl_device_inline void path_state_rng_2D(KernelGlobals *kg,
 
 ccl_device_inline float path_branched_rng_1D(
         KernelGlobals *kg,
-        RNG *rng,
+        uint rng_hash,
         const ccl_addr_space PathState *state,
         int branch,
         int num_branches,
         int dimension)
 {
 	return path_rng_1D(kg,
-	                   rng,
+	                   rng_hash,
 	                   state->sample * num_branches + branch,
 	                   state->num_samples * num_branches,
 	                   state->rng_offset + dimension);
@@ -237,7 +234,7 @@ ccl_device_inline float path_branched_rng_1D(
 
 ccl_device_inline float path_branched_rng_1D_for_decision(
         KernelGlobals *kg,
-        RNG *rng,
+        uint rng_hash,
         const ccl_addr_space PathState *state,
         int branch,
         int num_branches,
@@ -245,7 +242,7 @@ ccl_device_inline float path_branched_rng_1D_for_decision(
 {
 	const int rng_offset = state->rng_offset + state->transparent_bounce * PRNG_BOUNCE_NUM;
 	return path_rng_1D(kg,
-	                   rng,
+	                   rng_hash,
 	                   state->sample * num_branches + branch,
 	                   state->num_samples * num_branches,
 	                   rng_offset + dimension);
@@ -253,7 +250,7 @@ ccl_device_inline float path_branched_rng_1D_for_decision(
 
 ccl_device_inline void path_branched_rng_2D(
         KernelGlobals *kg,
-        RNG *rng,
+        uint rng_hash,
         const ccl_addr_space PathState *state,
         int branch,
         int num_branches,
@@ -261,7 +258,7 @@ ccl_device_inline void path_branched_rng_2D(
         float *fx, float *fy)
 {
 	path_rng_2D(kg,
-	            rng,
+	            rng_hash,
 	            state->sample * num_branches + branch,
 	            state->num_samples * num_branches,
 	            state->rng_offset + dimension,
@@ -273,25 +270,24 @@ ccl_device_inline void path_branched_rng_2D(
  */
 ccl_device_inline float path_state_rng_light_termination(
         KernelGlobals *kg,
-        RNG *rng,
         const ccl_addr_space PathState *state)
 {
 	if(kernel_data.integrator.light_inv_rr_threshold > 0.0f) {
-		return path_state_rng_1D_for_decision(kg, rng, state, PRNG_LIGHT_TERMINATE);
+		return path_state_rng_1D_for_decision(kg, state, PRNG_LIGHT_TERMINATE);
 	}
 	return 0.0f;
 }
 
 ccl_device_inline float path_branched_rng_light_termination(
         KernelGlobals *kg,
-        RNG *rng,
+        uint rng_hash,
         const ccl_addr_space PathState *state,
         int branch,
         int num_branches)
 {
 	if(kernel_data.integrator.light_inv_rr_threshold > 0.0f) {
 		return path_branched_rng_1D_for_decision(kg,
-		                                         rng,
+		                                         rng_hash,
 		                                         state,
 		                                         branch,
 		                                         num_branches,
@@ -311,12 +307,10 @@ ccl_device_inline void path_state_branch(ccl_addr_space PathState *state,
 	state->num_samples = state->num_samples*num_branches;
 }
 
-ccl_device_inline uint lcg_state_init(RNG *rng,
-                                      int rng_offset,
-                                      int sample,
+ccl_device_inline uint lcg_state_init(ccl_addr_space PathState *state,
                                       uint scramble)
 {
-	return lcg_init(*rng + rng_offset + sample*scramble);
+	return lcg_init(state->rng_hash + state->rng_offset + state->sample*scramble);
 }
 
 ccl_device float lcg_step_float_addrspace(ccl_addr_space uint *rng)

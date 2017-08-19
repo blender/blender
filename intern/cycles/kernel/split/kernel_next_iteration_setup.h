@@ -126,7 +126,6 @@ ccl_device void kernel_next_iteration_setup(KernelGlobals *kg,
 	if(active) {
 		ccl_global float3 *throughput = &kernel_split_state.throughput[ray_index];
 		ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
-		RNG rng = kernel_split_state.rng[ray_index];
 		ShaderData *sd = &kernel_split_state.sd[ray_index];
 		ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
 		PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
@@ -135,7 +134,7 @@ ccl_device void kernel_next_iteration_setup(KernelGlobals *kg,
 		if(!kernel_data.integrator.branched || IS_FLAG(ray_state, ray_index, RAY_BRANCHED_INDIRECT)) {
 #endif
 			/* Compute direct lighting and next bounce. */
-			if(!kernel_path_surface_bounce(kg, &rng, sd, throughput, state, L, ray)) {
+			if(!kernel_path_surface_bounce(kg, sd, throughput, state, L, ray)) {
 				kernel_split_path_end(kg, ray_index);
 			}
 #ifdef __BRANCHED_PATH__
@@ -157,8 +156,6 @@ ccl_device void kernel_next_iteration_setup(KernelGlobals *kg,
 			}
 		}
 #endif  /* __BRANCHED_PATH__ */
-
-		kernel_split_state.rng[ray_index] = rng;
 	}
 
 	/* Enqueue RAY_UPDATE_BUFFER rays. */

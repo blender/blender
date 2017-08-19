@@ -22,7 +22,7 @@ ccl_device_inline void kernel_path_trace_setup(KernelGlobals *kg,
                                                ccl_global uint *rng_state,
                                                int sample,
                                                int x, int y,
-                                               RNG *rng,
+                                               uint *rng_hash,
                                                ccl_addr_space Ray *ray)
 {
 	float filter_u;
@@ -34,20 +34,20 @@ ccl_device_inline void kernel_path_trace_setup(KernelGlobals *kg,
 		*rng_state = hash_int_2d(x, y);
 	}
 
-	path_rng_init(kg, rng_state, sample, num_samples, rng, x, y, &filter_u, &filter_v);
+	path_rng_init(kg, rng_state, sample, num_samples, rng_hash, x, y, &filter_u, &filter_v);
 
 	/* sample camera ray */
 
 	float lens_u = 0.0f, lens_v = 0.0f;
 
 	if(kernel_data.cam.aperturesize > 0.0f)
-		path_rng_2D(kg, rng, sample, num_samples, PRNG_LENS_U, &lens_u, &lens_v);
+		path_rng_2D(kg, *rng_hash, sample, num_samples, PRNG_LENS_U, &lens_u, &lens_v);
 
 	float time = 0.0f;
 
 #ifdef __CAMERA_MOTION__
 	if(kernel_data.cam.shuttertime != -1.0f)
-		time = path_rng_1D(kg, rng, sample, num_samples, PRNG_TIME);
+		time = path_rng_1D(kg, *rng_hash, sample, num_samples, PRNG_TIME);
 #endif
 
 	camera_sample(kg, x, y, filter_u, filter_v, lens_u, lens_v, time, ray);
