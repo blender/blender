@@ -144,36 +144,6 @@ static PyObject *pygpu_offscreen_unbind(BPy_GPUOffScreen *self, PyObject *args, 
 	Py_RETURN_NONE;
 }
 
-/**
- * Use with PyArg_ParseTuple's "O&" formatting.
- */
-static int pygpu_offscreen_check_matrix(PyObject *o, void *p)
-{
-	MatrixObject **pymat_p = p;
-	MatrixObject  *pymat = (MatrixObject *)o;
-
-	if (!MatrixObject_Check(pymat)) {
-		PyErr_Format(PyExc_TypeError,
-		             "expected a mathutils.Matrix, not a %.200s",
-		             Py_TYPE(o)->tp_name);
-		return 0;
-	}
-
-	if (BaseMath_ReadCallback(pymat) == -1) {
-		return 0;
-	}
-
-	if ((pymat->num_col != 4) ||
-	    (pymat->num_row != 4))
-	{
-		PyErr_SetString(PyExc_ValueError, "matrix must be 4x4");
-		return 0;
-	}
-
-	*pymat_p = pymat;
-	return 1;
-}
-
 PyDoc_STRVAR(pygpu_offscreen_draw_view3d_doc,
 "draw_view3d(scene, view3d, region, modelview_matrix, projection_matrix)\n"
 "\n"
@@ -209,8 +179,8 @@ static PyObject *pygpu_offscreen_draw_view3d(BPy_GPUOffScreen *self, PyObject *a
 	if (!PyArg_ParseTupleAndKeywords(
 	        args, kwds, "OOOO&O&:draw_view3d", (char **)(kwlist),
 	        &py_scene, &py_view3d, &py_region,
-	        pygpu_offscreen_check_matrix, &py_mat_projection,
-	        pygpu_offscreen_check_matrix, &py_mat_modelview) ||
+	        Matrix_Parse4x4, &py_mat_projection,
+	        Matrix_Parse4x4, &py_mat_modelview) ||
 	    (!(scene    = PyC_RNA_AsPointer(py_scene, "Scene")) ||
 	     !(v3d      = PyC_RNA_AsPointer(py_view3d, "SpaceView3D")) ||
 	     !(ar       = PyC_RNA_AsPointer(py_region, "Region"))))

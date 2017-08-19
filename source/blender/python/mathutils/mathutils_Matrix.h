@@ -77,6 +77,11 @@ PyObject *Matrix_CreatePyObject_cb(
         unsigned char cb_type, unsigned char cb_subtype
         ) ATTR_WARN_UNUSED_RESULT;
 
+/* PyArg_ParseTuple's "O&" formatting helpers. */
+int Matrix_ParseAny(PyObject *o, void *p);
+int Matrix_Parse3x3(PyObject *o, void *p);
+int Matrix_Parse4x4(PyObject *o, void *p);
+
 extern unsigned char mathutils_matrix_row_cb_index; /* default */
 extern unsigned char mathutils_matrix_col_cb_index;
 extern unsigned char mathutils_matrix_translation_cb_index;
