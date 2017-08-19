@@ -31,6 +31,7 @@ uniform vec2 sourceBufferTexelSize;
 
 /* Step Blit */
 uniform vec4 curveThreshold;
+uniform float clampIntensity;
 
 /* Step Upsample */
 uniform sampler2D baseBuffer; /* Previous accumulation buffer */
@@ -161,7 +162,11 @@ vec4 step_blit(void)
 	rq = curveThreshold.z * rq * rq;
 
 	/* Combine and apply the brightness response curve. */
-	m *= max(rq, br - curveThreshold.w) / max(br, 1e-5);
+	m *= max(rq, br - curveThreshold.w) / max(1e-5, br);
+
+	/* Clamp pixel intensity */
+	br = max(1e-5, brightness(m));
+	m *= 1.0 - max(0.0, br - clampIntensity) / br;
 
 	return vec4(m, 1.0);
 }

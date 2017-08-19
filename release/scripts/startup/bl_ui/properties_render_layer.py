@@ -215,6 +215,7 @@ class RENDERLAYER_PT_eevee_postprocess_settings(RenderLayerButtonsPanel, Panel):
         col.template_override_property(layer_props, scene_props, "bloom_knee")
         col.template_override_property(layer_props, scene_props, "bloom_radius")
         col.template_override_property(layer_props, scene_props, "bloom_intensity")
+        col.template_override_property(layer_props, scene_props, "bloom_clamp")
 
 
 class RENDERLAYER_PT_eevee_volumetric(RenderLayerButtonsPanel, Panel):

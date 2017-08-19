@@ -680,6 +680,7 @@ class RENDER_PT_eevee_postprocess_settings(RenderButtonsPanel, Panel):
         col.prop(props, "bloom_knee")
         col.prop(props, "bloom_radius")
         col.prop(props, "bloom_intensity")
+        col.prop(props, "bloom_clamp")
 
 
 class RENDER_PT_eevee_volumetric(RenderButtonsPanel, Panel):
