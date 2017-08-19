@@ -5,6 +5,7 @@ import argparse
 import glob
 import os
 import pathlib
+import shlex
 import shutil
 import subprocess
 import sys
@@ -52,38 +53,44 @@ def render_file(filepath):
     dirname = os.path.dirname(filepath)
     basedir = os.path.dirname(dirname)
     subject = os.path.basename(dirname)
+
+    custom_args = os.getenv('CYCLESTEST_ARGS')
+    custom_args = shlex.split(custom_args) if custom_args else []
+
+    # OSL and GPU examples
+    # custom_args += ["--python-expr", "import bpy; bpy.context.scene.cycles.shading_system = True"]
+    # custom_args += ["--python-expr", "import bpy; bpy.context.scene.cycles.device = 'GPU'"]
+
     if subject == 'opengl':
-        command = (
+        command = [
             BLENDER,
             "--window-geometry", "0", "0", "1", "1",
             "-noaudio",
             "--factory-startup",
             "--enable-autoexec",
             filepath,
-            "-E", "CYCLES",
-            # Run with OSL enabled
-            # "--python-expr", "import bpy; bpy.context.scene.cycles.shading_system = True",
+            "-E", "CYCLES"]
+        command += custom_args
+        command += [
             "-o", TEMP_FILE_MASK,
             "-F", "PNG",
             '--python', os.path.join(basedir,
                                      "util",
-                                     "render_opengl.py")
-        )
+                                     "render_opengl.py")]
     else:
-        command = (
+        command = [
             BLENDER,
             "--background",
             "-noaudio",
             "--factory-startup",
             "--enable-autoexec",
             filepath,
-            "-E", "CYCLES",
-            # Run with OSL enabled
-            # "--python-expr", "import bpy; bpy.context.scene.cycles.shading_system = True",
+            "-E", "CYCLES"]
+        command += custom_args
+        command += [
             "-o", TEMP_FILE_MASK,
             "-F", "PNG",
-            "-f", "1",
-            )
+            "-f", "1"]
     try:
         output = subprocess.check_output(command)
         if VERBOSE:
