@@ -360,7 +360,6 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(
     ShaderData *sd,
     PathRadiance *L,
     ccl_addr_space float3 *throughput,
-    RNG *rng,
     bool probalistic_scatter)
 {
 	VolumeShaderCoefficients coeff;
@@ -380,13 +379,13 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(
 
 		/* pick random color channel, we use the Veach one-sample
 		 * model with balance heuristic for the channels */
-		float rphase = path_state_rng_1D_for_decision(kg, rng, state, PRNG_PHASE);
+		float rphase = path_state_rng_1D_for_decision(kg, state, PRNG_PHASE);
 		int channel = (int)(rphase*3.0f);
 		sd->randb_closure = rphase*3.0f - channel;
 
 		/* decide if we will hit or miss */
 		bool scatter = true;
-		float xi = path_state_rng_1D_for_decision(kg, rng, state, PRNG_SCATTER_DISTANCE);
+		float xi = path_state_rng_1D_for_decision(kg, state, PRNG_SCATTER_DISTANCE);
 
 		if(probalistic_scatter) {
 			float sample_sigma_t = kernel_volume_channel_get(sigma_t, channel);
@@ -468,8 +467,7 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous_distance(
     Ray *ray,
     ShaderData *sd,
     PathRadiance *L,
-    ccl_addr_space float3 *throughput,
-    RNG *rng)
+    ccl_addr_space float3 *throughput)
 {
 	float3 tp = *throughput;
 	const float tp_eps = 1e-6f; /* todo: this is likely not the right value */
@@ -485,8 +483,8 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous_distance(
 
 	/* pick random color channel, we use the Veach one-sample
 	 * model with balance heuristic for the channels */
-	float xi = path_state_rng_1D_for_decision(kg, rng, state, PRNG_SCATTER_DISTANCE);
-	float rphase = path_state_rng_1D_for_decision(kg, rng, state, PRNG_PHASE);
+	float xi = path_state_rng_1D_for_decision(kg, state, PRNG_SCATTER_DISTANCE);
+	float rphase = path_state_rng_1D_for_decision(kg, state, PRNG_PHASE);
 	int channel = (int)(rphase*3.0f);
 	sd->randb_closure = rphase*3.0f - channel;
 	bool has_scatter = false;
@@ -610,15 +608,14 @@ ccl_device_noinline VolumeIntegrateResult kernel_volume_integrate(
     Ray *ray,
     PathRadiance *L,
     ccl_addr_space float3 *throughput,
-    RNG *rng,
     bool heterogeneous)
 {
 	shader_setup_from_volume(kg, sd, ray);
 
 	if(heterogeneous)
-		return kernel_volume_integrate_heterogeneous_distance(kg, state, ray, sd, L, throughput, rng);
+		return kernel_volume_integrate_heterogeneous_distance(kg, state, ray, sd, L, throughput);
 	else
-		return kernel_volume_integrate_homogeneous(kg, state, ray, sd, L, throughput, rng, true);
+		return kernel_volume_integrate_homogeneous(kg, state, ray, sd, L, throughput, true);
 }
 
 #ifndef __SPLIT_KERNEL__

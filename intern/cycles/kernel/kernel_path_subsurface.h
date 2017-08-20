@@ -28,7 +28,6 @@ bool kernel_path_subsurface_scatter(
         ShaderData *emission_sd,
         PathRadiance *L,
         ccl_addr_space PathState *state,
-        RNG *rng,
         ccl_addr_space Ray *ray,
         ccl_addr_space float3 *throughput,
         ccl_addr_space SubsurfaceIndirectRays *ss_indirect)
@@ -47,11 +46,11 @@ bool kernel_path_subsurface_scatter(
 		 */
 		kernel_assert(!ss_indirect->tracing);
 
-		uint lcg_state = lcg_state_init(rng, state->rng_offset, state->sample, 0x68bc21eb);
+		uint lcg_state = lcg_state_init(state, 0x68bc21eb);
 
 		SubsurfaceIntersection ss_isect;
 		float bssrdf_u, bssrdf_v;
-		path_state_rng_2D(kg, rng, state, PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
+		path_state_rng_2D(kg, state, PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
 		int num_hits = subsurface_scatter_multi_intersect(kg,
 		                                                  &ss_isect,
 		                                                  sd,
@@ -94,10 +93,9 @@ bool kernel_path_subsurface_scatter(
 			hit_L->direct_throughput = L->direct_throughput;
 			path_radiance_copy_indirect(hit_L, L);
 
-			kernel_path_surface_connect_light(kg, rng, sd, emission_sd, *hit_tp, state, hit_L);
+			kernel_path_surface_connect_light(kg, sd, emission_sd, *hit_tp, state, hit_L);
 
 			if(kernel_path_surface_bounce(kg,
-			                              rng,
 			                              sd,
 			                              hit_tp,
 			                              hit_state,

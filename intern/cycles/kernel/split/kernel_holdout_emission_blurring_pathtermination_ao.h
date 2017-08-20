@@ -100,7 +100,6 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 	unsigned int tile_y;
 	unsigned int sample;
 
-	RNG rng = kernel_split_state.rng[ray_index];
 	ccl_global PathState *state = 0x0;
 	float3 throughput;
 
@@ -247,7 +246,7 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 
 		if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
 			if(probability != 1.0f) {
-				float terminate = path_state_rng_1D_for_decision(kg, &rng, state, PRNG_TERMINATE);
+				float terminate = path_state_rng_1D_for_decision(kg, state, PRNG_TERMINATE);
 				if(terminate >= probability) {
 					kernel_split_path_end(kg, ray_index);
 				}
@@ -268,8 +267,6 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 		}
 	}
 #endif  /* __AO__ */
-
-	kernel_split_state.rng[ray_index] = rng;
 
 #ifndef __COMPUTE_DEVICE_GPU__
 	}

@@ -20,7 +20,6 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_inline void kernel_path_volume_connect_light(
         KernelGlobals *kg,
-        RNG *rng,
         ShaderData *sd,
         ShaderData *emission_sd,
         float3 throughput,
@@ -32,9 +31,9 @@ ccl_device_inline void kernel_path_volume_connect_light(
 		return;
 
 	/* sample illumination from lights to find path contribution */
-	float light_t = path_state_rng_1D(kg, rng, state, PRNG_LIGHT);
+	float light_t = path_state_rng_1D(kg, state, PRNG_LIGHT);
 	float light_u, light_v;
-	path_state_rng_2D(kg, rng, state, PRNG_LIGHT_U, &light_u, &light_v);
+	path_state_rng_2D(kg, state, PRNG_LIGHT_U, &light_u, &light_v);
 
 	Ray light_ray;
 	BsdfEval L_light;
@@ -48,7 +47,7 @@ ccl_device_inline void kernel_path_volume_connect_light(
 
 	if(light_sample(kg, light_t, light_u, light_v, sd->time, sd->P, state->bounce, &ls))
 	{
-		float terminate = path_state_rng_light_termination(kg, rng, state);
+		float terminate = path_state_rng_light_termination(kg, state);
 		if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate)) {
 			/* trace shadow ray */
 			float3 shadow;
@@ -69,7 +68,6 @@ ccl_device
 #endif
 bool kernel_path_volume_bounce(
     KernelGlobals *kg,
-    RNG *rng,
     ShaderData *sd,
     ccl_addr_space float3 *throughput,
     ccl_addr_space PathState *state,
@@ -82,7 +80,7 @@ bool kernel_path_volume_bounce(
 	float3 phase_omega_in;
 	differential3 phase_domega_in;
 	float phase_u, phase_v;
-	path_state_rng_2D(kg, rng, state, PRNG_PHASE_U, &phase_u, &phase_v);
+	path_state_rng_2D(kg, state, PRNG_PHASE_U, &phase_u, &phase_v);
 	int label;
 
 	label = shader_volume_phase_sample(kg, sd, phase_u, phase_v, &phase_eval,
@@ -120,7 +118,6 @@ bool kernel_path_volume_bounce(
 #ifndef __SPLIT_KERNEL__
 ccl_device void kernel_branched_path_volume_connect_light(
         KernelGlobals *kg,
-        RNG *rng,
         ShaderData *sd,
         ShaderData *emission_sd,
         float3 throughput,
@@ -150,12 +147,12 @@ ccl_device void kernel_branched_path_volume_connect_light(
 
 			int num_samples = light_select_num_samples(kg, i);
 			float num_samples_inv = 1.0f/(num_samples*kernel_data.integrator.num_all_lights);
-			RNG lamp_rng = cmj_hash(*rng, i);
+			uint lamp_rng_hash = cmj_hash(state->rng_hash, i);
 
 			for(int j = 0; j < num_samples; j++) {
 				/* sample random position on given light */
 				float light_u, light_v;
-				path_branched_rng_2D(kg, &lamp_rng, state, j, num_samples, PRNG_LIGHT_U, &light_u, &light_v);
+				path_branched_rng_2D(kg, lamp_rng_hash, state, j, num_samples, PRNG_LIGHT_U, &light_u, &light_v);
 
 				LightSample ls;
 				lamp_light_sample(kg, i, light_u, light_v, ray->P, &ls);
@@ -163,8 +160,8 @@ ccl_device void kernel_branched_path_volume_connect_light(
 				float3 tp = throughput;
 
 				/* sample position on volume segment */
-				float rphase = path_branched_rng_1D_for_decision(kg, rng, state, j, num_samples, PRNG_PHASE);
-				float rscatter = path_branched_rng_1D_for_decision(kg, rng, state, j, num_samples, PRNG_SCATTER_DISTANCE);
+				float rphase = path_branched_rng_1D_for_decision(kg, state->rng_hash, state, j, num_samples, PRNG_PHASE);
+				float rscatter = path_branched_rng_1D_for_decision(kg, state->rng_hash, state, j, num_samples, PRNG_SCATTER_DISTANCE);
 
 				VolumeIntegrateResult result = kernel_volume_decoupled_scatter(kg,
 					state, ray, sd, &tp, rphase, rscatter, segment, (ls.t != FLT_MAX)? &ls.P: NULL, false);
@@ -177,7 +174,7 @@ ccl_device void kernel_branched_path_volume_connect_light(
 					if(kernel_data.integrator.pdf_triangles != 0.0f)
 						ls.pdf *= 2.0f;
 
-					float terminate = path_branched_rng_light_termination(kg, rng, state, j, num_samples);
+					float terminate = path_branched_rng_light_termination(kg, state->rng_hash, state, j, num_samples);
 					if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate)) {
 						/* trace shadow ray */
 						float3 shadow;
@@ -198,9 +195,9 @@ ccl_device void kernel_branched_path_volume_connect_light(
 
 			for(int j = 0; j < num_samples; j++) {
 				/* sample random position on random triangle */
-				float light_t = path_branched_rng_1D_for_decision(kg, rng, state, j, num_samples, PRNG_LIGHT);
+				float light_t = path_branched_rng_1D_for_decision(kg, state->rng_hash, state, j, num_samples, PRNG_LIGHT);
 				float light_u, light_v;
-				path_branched_rng_2D(kg, rng, state, j, num_samples, PRNG_LIGHT_U, &light_u, &light_v);
+				path_branched_rng_2D(kg, state->rng_hash, state, j, num_samples, PRNG_LIGHT_U, &light_u, &light_v);
 
 				/* only sample triangle lights */
 				if(kernel_data.integrator.num_all_lights)
@@ -212,8 +209,8 @@ ccl_device void kernel_branched_path_volume_connect_light(
 				float3 tp = throughput;
 
 				/* sample position on volume segment */
-				float rphase = path_branched_rng_1D_for_decision(kg, rng, state, j, num_samples, PRNG_PHASE);
-				float rscatter = path_branched_rng_1D_for_decision(kg, rng, state, j, num_samples, PRNG_SCATTER_DISTANCE);
+				float rphase = path_branched_rng_1D_for_decision(kg, state->rng_hash, state, j, num_samples, PRNG_PHASE);
+				float rscatter = path_branched_rng_1D_for_decision(kg, state->rng_hash, state, j, num_samples, PRNG_SCATTER_DISTANCE);
 
 				VolumeIntegrateResult result = kernel_volume_decoupled_scatter(kg,
 					state, ray, sd, &tp, rphase, rscatter, segment, (ls.t != FLT_MAX)? &ls.P: NULL, false);
@@ -226,7 +223,7 @@ ccl_device void kernel_branched_path_volume_connect_light(
 					if(kernel_data.integrator.num_all_lights)
 						ls.pdf *= 2.0f;
 
-					float terminate = path_branched_rng_light_termination(kg, rng, state, j, num_samples);
+					float terminate = path_branched_rng_light_termination(kg, state->rng_hash, state, j, num_samples);
 					if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate)) {
 						/* trace shadow ray */
 						float3 shadow;
@@ -242,9 +239,9 @@ ccl_device void kernel_branched_path_volume_connect_light(
 	}
 	else {
 		/* sample random position on random light */
-		float light_t = path_state_rng_1D(kg, rng, state, PRNG_LIGHT);
+		float light_t = path_state_rng_1D(kg, state, PRNG_LIGHT);
 		float light_u, light_v;
-		path_state_rng_2D(kg, rng, state, PRNG_LIGHT_U, &light_u, &light_v);
+		path_state_rng_2D(kg, state, PRNG_LIGHT_U, &light_u, &light_v);
 
 		LightSample ls;
 		light_sample(kg, light_t, light_u, light_v, sd->time, ray->P, state->bounce, &ls);
@@ -252,8 +249,8 @@ ccl_device void kernel_branched_path_volume_connect_light(
 		float3 tp = throughput;
 
 		/* sample position on volume segment */
-		float rphase = path_state_rng_1D_for_decision(kg, rng, state, PRNG_PHASE);
-		float rscatter = path_state_rng_1D_for_decision(kg, rng, state, PRNG_SCATTER_DISTANCE);
+		float rphase = path_state_rng_1D_for_decision(kg, state, PRNG_PHASE);
+		float rscatter = path_state_rng_1D_for_decision(kg, state, PRNG_SCATTER_DISTANCE);
 
 		VolumeIntegrateResult result = kernel_volume_decoupled_scatter(kg,
 			state, ray, sd, &tp, rphase, rscatter, segment, (ls.t != FLT_MAX)? &ls.P: NULL, false);
@@ -264,7 +261,7 @@ ccl_device void kernel_branched_path_volume_connect_light(
 		/* todo: split up light_sample so we don't have to call it again with new position */
 		if(light_sample(kg, light_t, light_u, light_v, sd->time, sd->P, state->bounce, &ls)) {
 			/* sample random light */
-			float terminate = path_state_rng_light_termination(kg, rng, state);
+			float terminate = path_state_rng_light_termination(kg, state);
 			if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate)) {
 				/* trace shadow ray */
 				float3 shadow;

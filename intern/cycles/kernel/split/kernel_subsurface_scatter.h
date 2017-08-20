@@ -38,7 +38,6 @@ ccl_device_noinline bool kernel_split_branched_path_subsurface_indirect_light_it
 	SplitBranchedState *branched_state = &kernel_split_state.branched_state[ray_index];
 
 	ShaderData *sd = &branched_state->sd;
-	RNG rng = kernel_split_state.rng[ray_index];
 	PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
 	ShaderData *emission_sd = &kernel_split_state.sd_DL_shadow[ray_index];
 
@@ -52,14 +51,12 @@ ccl_device_noinline bool kernel_split_branched_path_subsurface_indirect_light_it
 		if(branched_state->ss_next_sample == 0 && branched_state->next_hit == 0 &&
 		   branched_state->next_closure == 0 && branched_state->next_sample == 0)
 		{
-			branched_state->lcg_state = lcg_state_init(&rng,
-			                                           branched_state->path_state.rng_offset,
-			                                           branched_state->path_state.sample,
+			branched_state->lcg_state = lcg_state_init(&branched_state->path_state,
 			                                           0x68bc21eb);
 		}
 		int num_samples = kernel_data.integrator.subsurface_samples;
 		float num_samples_inv = 1.0f/num_samples;
-		RNG bssrdf_rng = cmj_hash(rng, i);
+		uint bssrdf_rng_hash = cmj_hash(branched_state->path_state.rng_hash, i);
 
 		/* do subsurface scatter step with copy of shader data, this will
 		 * replace the BSSRDF with a diffuse BSDF closure */
@@ -67,7 +64,7 @@ ccl_device_noinline bool kernel_split_branched_path_subsurface_indirect_light_it
 			ccl_global SubsurfaceIntersection *ss_isect = &branched_state->ss_isect;
 			float bssrdf_u, bssrdf_v;
 			path_branched_rng_2D(kg,
-			                     &bssrdf_rng,
+			                     bssrdf_rng_hash,
 			                     &branched_state->path_state,
 			                     j,
 			                     num_samples,
@@ -77,7 +74,7 @@ ccl_device_noinline bool kernel_split_branched_path_subsurface_indirect_light_it
 
 			/* intersection is expensive so avoid doing multiple times for the same input */
 			if(branched_state->next_hit == 0 && branched_state->next_closure == 0 && branched_state->next_sample == 0) {
-				RNG lcg_state = branched_state->lcg_state;
+				uint lcg_state = branched_state->lcg_state;
 				SubsurfaceIntersection ss_isect_private;
 
 				branched_state->num_hits = subsurface_scatter_multi_intersect(kg,
@@ -152,7 +149,6 @@ ccl_device_noinline bool kernel_split_branched_path_subsurface_indirect_light_it
 						int all = (kernel_data.integrator.sample_all_lights_direct) ||
 							      (branched_state->path_state.flag & PATH_RAY_SHADOW_CATCHER);
 						kernel_branched_path_surface_connect_light(kg,
-						                                           &rng,
 						                                           bssrdf_sd,
 						                                           emission_sd,
 						                                           hit_state,
@@ -229,7 +225,6 @@ ccl_device void kernel_subsurface_scatter(KernelGlobals *kg)
 	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
 		ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
 		PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
-		RNG rng = kernel_split_state.rng[ray_index];
 		ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
 		ccl_global float3 *throughput = &kernel_split_state.throughput[ray_index];
 		ccl_global SubsurfaceIndirectRays *ss_indirect = &kernel_split_state.ss_rays[ray_index];
@@ -246,7 +241,6 @@ ccl_device void kernel_subsurface_scatter(KernelGlobals *kg)
 				                                  emission_sd,
 				                                  L,
 				                                  state,
-				                                  &rng,
 				                                  ray,
 				                                  throughput,
 				                                  ss_indirect))
@@ -264,10 +258,9 @@ ccl_device void kernel_subsurface_scatter(KernelGlobals *kg)
 
 				/* do bssrdf scatter step if we picked a bssrdf closure */
 				if(sc) {
-					uint lcg_state = lcg_state_init(&rng, state->rng_offset, state->sample, 0x68bc21eb);
+					uint lcg_state = lcg_state_init(state, 0x68bc21eb);
 					float bssrdf_u, bssrdf_v;
 					path_state_rng_2D(kg,
-					                  &rng,
 					                  state,
 					                  PRNG_BSDF_U,
 					                  &bssrdf_u, &bssrdf_v);
@@ -290,7 +283,6 @@ ccl_device void kernel_subsurface_scatter(KernelGlobals *kg)
 			}
 #endif
 		}
-		kernel_split_state.rng[ray_index] = rng;
 	}
 
 #  ifdef __BRANCHED_PATH__

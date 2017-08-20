@@ -110,7 +110,6 @@ ccl_device_noinline bool kernel_split_branched_path_surface_indirect_light_iter(
 	SplitBranchedState *branched_state = &kernel_split_state.branched_state[ray_index];
 
 	ShaderData *sd = saved_sd;
-	RNG rng = kernel_split_state.rng[ray_index];
 	PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
 	float3 throughput = branched_state->throughput;
 	ccl_global PathState *ps = &kernel_split_state.path_state[ray_index];
@@ -157,12 +156,13 @@ ccl_device_noinline bool kernel_split_branched_path_surface_indirect_light_iter(
 		num_samples = ceil_to_int(num_samples_adjust*num_samples);
 
 		float num_samples_inv = num_samples_adjust/num_samples;
-		RNG bsdf_rng = cmj_hash(rng, i);
 
 		for(int j = branched_state->next_sample; j < num_samples; j++) {
 			if(reset_path_state) {
 				*ps = branched_state->path_state;
 			}
+
+			ps->rng_hash = cmj_hash(branched_state->path_state.rng_hash, i);
 
 			ccl_global float3 *tp = &kernel_split_state.throughput[ray_index];
 			*tp = throughput;
@@ -170,7 +170,6 @@ ccl_device_noinline bool kernel_split_branched_path_surface_indirect_light_iter(
 			ccl_global Ray *bsdf_ray = &kernel_split_state.ray[ray_index];
 
 			if(!kernel_branched_path_surface_bounce(kg,
-			                                        &bsdf_rng,
 			                                        sd,
 			                                        sc,
 			                                        j,
@@ -183,6 +182,8 @@ ccl_device_noinline bool kernel_split_branched_path_surface_indirect_light_iter(
 			{
 				continue;
 			}
+
+			ps->rng_hash = branched_state->path_state.rng_hash;
 
 			/* update state for next iteration */
 			branched_state->next_closure = i;

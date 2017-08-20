@@ -242,10 +242,6 @@ CCL_NAMESPACE_BEGIN
 #  undef __DENOISING_FEATURES__
 #endif
 
-/* Random Numbers */
-
-typedef uint RNG;
-
 /* Shader Evaluation */
 
 typedef enum ShaderEvalType {
@@ -1023,6 +1019,7 @@ typedef struct PathState {
 	int flag;
 
 	/* random number generator state */
+	uint rng_hash;          /* per pixel hash */
 	int rng_offset;    		/* dimension offset */
 	int sample;        		/* path sample number */
 	int num_samples;		/* total number of times this path will be sampled */
@@ -1048,7 +1045,7 @@ typedef struct PathState {
 	/* volume rendering */
 #ifdef __VOLUME__
 	int volume_bounce;
-	RNG rng_congruential;
+	uint rng_congruential;
 	VolumeStack volume_stack[VOLUME_STACK_SIZE];
 #endif
 } PathState;

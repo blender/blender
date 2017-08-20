@@ -44,6 +44,7 @@
 #include "bmesh_py_types.h"
 
 #include "../generic/python_utildefines.h"
+#include "../generic/py_capi_utils.h"
 
 static int bpy_bm_op_as_py_error(BMesh *bm)
 {
@@ -152,11 +153,9 @@ static int bpy_slot_from_py(
 	switch (slot->slot_type) {
 		case BMO_OP_SLOT_BOOL:
 		{
-			int param;
+			const int param = PyC_Long_AsBool(value);
 
-			param = PyLong_AsLong(value);
-
-			if (param < 0) {
+			if (param == -1) {
 				PyErr_Format(PyExc_TypeError,
 				             "%.200s: keyword \"%.200s\" expected True/False or 0/1, not %.200s",
 				             opname, slot_name, Py_TYPE(value)->tp_name);
@@ -170,23 +169,16 @@ static int bpy_slot_from_py(
 		}
 		case BMO_OP_SLOT_INT:
 		{
-			int overflow;
-			long param = PyLong_AsLongAndOverflow(value, &overflow);
-			if (overflow || (param > INT_MAX) || (param < INT_MIN)) {
-				PyErr_Format(PyExc_ValueError,
-				             "%.200s: keyword \"%.200s\" value not in 'int' range "
-				             "(" STRINGIFY(INT_MIN) ", " STRINGIFY(INT_MAX) ")",
-				             opname, slot_name, Py_TYPE(value)->tp_name);
-				return -1;
-			}
-			else if (param == -1 && PyErr_Occurred()) {
+			const int param = PyC_Long_AsI32(value);
+
+			if (param == -1 && PyErr_Occurred()) {
 				PyErr_Format(PyExc_TypeError,
 				             "%.200s: keyword \"%.200s\" expected an int, not %.200s",
 				             opname, slot_name, Py_TYPE(value)->tp_name);
 				return -1;
 			}
 			else {
-				BMO_SLOT_AS_INT(slot) = (int)param;
+				BMO_SLOT_AS_INT(slot) = param;
 			}
 			break;
 		}
@@ -209,25 +201,18 @@ static int bpy_slot_from_py(
 			/* XXX - BMesh operator design is crappy here, operator slot should define matrix size,
 			 * not the caller! */
 			unsigned short size;
-			if (!MatrixObject_Check(value)) {
-				PyErr_Format(PyExc_TypeError,
-				             "%.200s: keyword \"%.200s\" expected a Matrix, not %.200s",
-				             opname, slot_name, Py_TYPE(value)->tp_name);
+			MatrixObject *pymat;
+			if (!Matrix_ParseAny(value, &pymat)) {
 				return -1;
 			}
-			else if (BaseMath_ReadCallback((MatrixObject *)value) == -1) {
-				return -1;
-			}
-			else if (((size = ((MatrixObject *)value)->num_col) != ((MatrixObject *)value)->num_row) ||
-			         (ELEM(size, 3, 4) == false))
-			{
+			if ((size = (pymat->num_col) != pymat->num_row) || (!ELEM(size, 3, 4))) {
 				PyErr_Format(PyExc_TypeError,
 				             "%.200s: keyword \"%.200s\" expected a 3x3 or 4x4 matrix Matrix",
 				             opname, slot_name);
 				return -1;
 			}
 
-			BMO_slot_mat_set(bmop, bmop->slots_in, slot_name, ((MatrixObject *)value)->matrix, size);
+			BMO_slot_mat_set(bmop, bmop->slots_in, slot_name, pymat->matrix, size);
 			break;
 		}
 		case BMO_OP_SLOT_VEC:
@@ -436,7 +421,7 @@ static int bpy_slot_from_py(
 								return -1;  /* error is set in bpy_slot_from_py_elem_check() */
 							}
 
-							value_i = PyLong_AsLong(arg_value);
+							value_i = PyC_Long_AsI32(arg_value);
 
 							if (value_i == -1 && PyErr_Occurred()) {
 								PyErr_Format(PyExc_TypeError,
@@ -466,7 +451,7 @@ static int bpy_slot_from_py(
 								return -1;  /* error is set in bpy_slot_from_py_elem_check() */
 							}
 
-							value_i = PyLong_AsLong(arg_value);
+							value_i = PyC_Long_AsI32(arg_value);
 
 							if (value_i == -1 && PyErr_Occurred()) {
 								PyErr_Format(PyExc_TypeError,

@@ -320,7 +320,7 @@ static int bpy_prop_boolean_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
 		value = false;
 	}
 	else {
-		value = PyLong_AsLong(ret);
+		value = PyC_Long_AsI32(ret);
 
 		if (value == -1 && PyErr_Occurred()) {
 			printf_func_error(py_func);
@@ -599,7 +599,7 @@ static int bpy_prop_int_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
 		value = 0.0f;
 	}
 	else {
-		value = PyLong_AsLong(ret);
+		value = PyC_Long_AsI32(ret);
 
 		if (value == -1 && PyErr_Occurred()) {
 			printf_func_error(py_func);
@@ -1249,7 +1249,7 @@ static int bpy_prop_enum_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop
 		value = RNA_property_enum_get_default(ptr, prop);
 	}
 	else {
-		value = PyLong_AsLong(ret);
+		value = PyC_Long_AsI32(ret);
 
 		if (value == -1 && PyErr_Occurred()) {
 			printf_func_error(py_func);

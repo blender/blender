@@ -37,21 +37,18 @@ ccl_device void kernel_shadow_blocked_ao(KernelGlobals *kg)
 	ShaderData *emission_sd = &kernel_split_state.sd_DL_shadow[ray_index];
 	PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
 	ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
-	RNG rng = kernel_split_state.rng[ray_index];
 	float3 throughput = kernel_split_state.throughput[ray_index];
 
 #ifdef __BRANCHED_PATH__
 	if(!kernel_data.integrator.branched || IS_FLAG(kernel_split_state.ray_state, ray_index, RAY_BRANCHED_INDIRECT)) {
 #endif
-		kernel_path_ao(kg, sd, emission_sd, L, state, &rng, throughput, shader_bsdf_alpha(kg, sd));
+		kernel_path_ao(kg, sd, emission_sd, L, state, throughput, shader_bsdf_alpha(kg, sd));
 #ifdef __BRANCHED_PATH__
 	}
 	else {
-		kernel_branched_path_ao(kg, sd, emission_sd, L, state, &rng, throughput);
+		kernel_branched_path_ao(kg, sd, emission_sd, L, state, throughput);
 	}
 #endif
-
-	kernel_split_state.rng[ray_index] = rng;
 }
 
 CCL_NAMESPACE_END

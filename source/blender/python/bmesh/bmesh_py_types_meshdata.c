@@ -45,6 +45,7 @@
 
 #include "bmesh_py_types_meshdata.h"
 
+#include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 
 /* Mesh Loop UV
@@ -98,7 +99,7 @@ static int bpy_bmloopuv_flag_set(BPy_BMLoopUV *self, PyObject *value, void *flag
 {
 	const int flag = GET_INT_FROM_POINTER(flag_p);
 
-	switch (PyLong_AsLong(value)) {
+	switch (PyC_Long_AsBool(value)) {
 		case true:
 			self->data->flag |= flag;
 			return 0;
@@ -106,8 +107,7 @@ static int bpy_bmloopuv_flag_set(BPy_BMLoopUV *self, PyObject *value, void *flag
 			self->data->flag &= ~flag;
 			return 0;
 		default:
-			PyErr_SetString(PyExc_TypeError,
-			                "expected a boolean type 0/1");
+			/* error is set */
 			return -1;
 	}
 }
@@ -207,7 +207,7 @@ static int bpy_bmvertskin_flag_set(BPy_BMVertSkin *self, PyObject *value, void *
 {
 	const int flag = GET_INT_FROM_POINTER(flag_p);
 
-	switch (PyLong_AsLong(value)) {
+	switch (PyC_Long_AsBool(value)) {
 		case true:
 			self->data->flag |= flag;
 			return 0;
@@ -215,8 +215,7 @@ static int bpy_bmvertskin_flag_set(BPy_BMVertSkin *self, PyObject *value, void *
 			self->data->flag &= ~flag;
 			return 0;
 		default:
-			PyErr_SetString(PyExc_TypeError,
-			                "expected a boolean type 0/1");
+			/* error is set */
 			return -1;
 	}
 }

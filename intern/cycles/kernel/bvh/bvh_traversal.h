@@ -244,14 +244,14 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 								{
 									/* shadow ray early termination */
 #if defined(__KERNEL_SSE2__)
-									if(visibility & PATH_RAY_SHADOW_OPAQUE)
+									if(!(visibility & (PATH_RAY_ALL_VISIBILITY - PATH_RAY_SHADOW_OPAQUE)))
 										return true;
 									tsplat = ssef(0.0f, 0.0f, -isect->t, -isect->t);
 #  if BVH_FEATURE(BVH_HAIR)
 									tfar = ssef(isect->t);
 #  endif
 #else
-									if(visibility & PATH_RAY_SHADOW_OPAQUE)
+									if(!(visibility & (PATH_RAY_ALL_VISIBILITY - PATH_RAY_SHADOW_OPAQUE)))
 										return true;
 #endif
 								}
@@ -274,14 +274,14 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 								{
 									/* shadow ray early termination */
 #  if defined(__KERNEL_SSE2__)
-									if(visibility & PATH_RAY_SHADOW_OPAQUE)
+									if(!(visibility & (PATH_RAY_ALL_VISIBILITY - PATH_RAY_SHADOW_OPAQUE)))
 										return true;
 									tsplat = ssef(0.0f, 0.0f, -isect->t, -isect->t);
 #    if BVH_FEATURE(BVH_HAIR)
 									tfar = ssef(isect->t);
 #    endif
 #  else
-									if(visibility & PATH_RAY_SHADOW_OPAQUE)
+									if(!(visibility & (PATH_RAY_ALL_VISIBILITY - PATH_RAY_SHADOW_OPAQUE)))
 										return true;
 #  endif
 								}
@@ -328,14 +328,14 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 								if(hit) {
 									/* shadow ray early termination */
 #  if defined(__KERNEL_SSE2__)
-									if(visibility & PATH_RAY_SHADOW_OPAQUE)
+									if(!(visibility & (PATH_RAY_ALL_VISIBILITY - PATH_RAY_SHADOW_OPAQUE)))
 										return true;
 									tsplat = ssef(0.0f, 0.0f, -isect->t, -isect->t);
 #    if BVH_FEATURE(BVH_HAIR)
 									tfar = ssef(isect->t);
 #    endif
 #  else
-									if(visibility & PATH_RAY_SHADOW_OPAQUE)
+									if(!(visibility & (PATH_RAY_ALL_VISIBILITY - PATH_RAY_SHADOW_OPAQUE)))
 										return true;
 #  endif
 								}

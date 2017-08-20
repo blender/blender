@@ -340,7 +340,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 								                      prim_addr)) {
 									tfar = ssef(isect->t);
 									/* Shadow ray early termination. */
-									if(visibility & PATH_RAY_SHADOW_OPAQUE) {
+									if(!(visibility & (PATH_RAY_ALL_VISIBILITY - PATH_RAY_SHADOW_OPAQUE))) {
 										return true;
 									}
 								}
@@ -362,7 +362,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 								                             prim_addr)) {
 									tfar = ssef(isect->t);
 									/* Shadow ray early termination. */
-									if(visibility & PATH_RAY_SHADOW_OPAQUE) {
+									if(!(visibility & (PATH_RAY_ALL_VISIBILITY - PATH_RAY_SHADOW_OPAQUE))) {
 										return true;
 									}
 								}
@@ -409,7 +409,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 								if(hit) {
 									tfar = ssef(isect->t);
 									/* Shadow ray early termination. */
-									if(visibility & PATH_RAY_SHADOW_OPAQUE) {
+									if(!(visibility & (PATH_RAY_ALL_VISIBILITY - PATH_RAY_SHADOW_OPAQUE))) {
 										return true;
 									}
 								}

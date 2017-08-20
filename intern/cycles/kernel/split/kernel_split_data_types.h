@@ -114,7 +114,6 @@ typedef ccl_global struct SplitBranchedState {
 #endif /* __VOLUME__ */
 
 #define SPLIT_DATA_ENTRIES \
-	SPLIT_DATA_ENTRY(ccl_global RNG, rng, 1) \
 	SPLIT_DATA_ENTRY(ccl_global float3, throughput, 1) \
 	SPLIT_DATA_ENTRY(PathRadiance, path_radiance, 1) \
 	SPLIT_DATA_ENTRY(ccl_global Ray, ray, 1) \
@@ -133,7 +132,6 @@ typedef ccl_global struct SplitBranchedState {
 
 /* entries to be copied to inactive rays when sharing branched samples (TODO: which are actually needed?) */
 #define SPLIT_DATA_ENTRIES_BRANCHED_SHARED \
-	SPLIT_DATA_ENTRY(ccl_global RNG, rng, 1) \
 	SPLIT_DATA_ENTRY(ccl_global float3, throughput, 1) \
 	SPLIT_DATA_ENTRY(PathRadiance, path_radiance, 1) \
 	SPLIT_DATA_ENTRY(ccl_global Ray, ray, 1) \

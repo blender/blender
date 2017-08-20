@@ -19,12 +19,13 @@ CCL_NAMESPACE_BEGIN
 ccl_device_inline void path_state_init(KernelGlobals *kg,
                                        ShaderData *stack_sd,
                                        ccl_addr_space PathState *state,
-                                       RNG *rng,
+                                       uint rng_hash,
                                        int sample,
                                        ccl_addr_space Ray *ray)
 {
 	state->flag = PATH_RAY_CAMERA|PATH_RAY_MIS_SKIP;
 
+	state->rng_hash = rng_hash;
 	state->rng_offset = PRNG_BASE_NUM;
 	state->sample = sample;
 	state->num_samples = kernel_data.integrator.aa_samples;
@@ -58,7 +59,7 @@ ccl_device_inline void path_state_init(KernelGlobals *kg,
 		/* Initialize volume stack with volume we are inside of. */
 		kernel_volume_stack_init(kg, stack_sd, state, ray, state->volume_stack);
 		/* Seed RNG for cases where we can't use stratified samples .*/
-		state->rng_congruential = lcg_init(*rng + sample*0x51633e2d);
+		state->rng_congruential = lcg_init(rng_hash + sample*0x51633e2d);
 	}
 	else {
 		state->volume_stack[0].shader = SHADER_NONE;

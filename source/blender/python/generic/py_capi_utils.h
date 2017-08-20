@@ -85,4 +85,26 @@ bool PyC_RunString_AsString(const char *expr, const char *filename, char **r_val
 
 int PyC_ParseBool(PyObject *o, void *p);
 
+
+/* Integer parsing (with overflow checks), -1 on error. */
+int     PyC_Long_AsBool(PyObject *value);
+int8_t  PyC_Long_AsI8(PyObject *value);
+int16_t PyC_Long_AsI16(PyObject *value);
+#if 0 /* inline */
+int32_t PyC_Long_AsI32(PyObject *value);
+int64_t PyC_Long_AsI64(PyObject *value);
+#endif
+
+uint8_t  PyC_Long_AsU8(PyObject *value);
+uint16_t PyC_Long_AsU16(PyObject *value);
+uint32_t PyC_Long_AsU32(PyObject *value);
+#if 0 /* inline */
+uint64_t PyC_Long_AsU64(PyObject *value);
+#endif
+
+/* inline so type signatures match as expected */
+BLI_INLINE int32_t PyC_Long_AsI32(PyObject *value) { return (int32_t)_PyLong_AsInt(value); }
+BLI_INLINE int64_t PyC_Long_AsI64(PyObject *value) { return (int64_t)PyLong_AsLongLong(value); }
+BLI_INLINE uint64_t PyC_Long_AsU64(PyObject *value) { return (uint64_t)PyLong_AsUnsignedLongLong(value); }
+
 #endif  /* __PY_CAPI_UTILS_H__ */
