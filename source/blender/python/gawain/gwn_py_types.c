@@ -195,12 +195,12 @@ static const char *fill_format_elem_range_error = "Value out of range";
 
 #define PY_AS_NATIVE_SWITCH(attr) \
 	switch (attr->comp_type) { \
-		case GWN_COMP_I8:  { PY_AS_NATIVE(int8_t,   INT8_MIN,  INT8_MAX,  int,  _PyLong_AsInt); break; } \
-		case GWN_COMP_U8:  { PY_AS_NATIVE(uint8_t,  0,         UINT8_MAX, int,  _PyLong_AsInt); break; } \
-		case GWN_COMP_I16: { PY_AS_NATIVE(int16_t,  INT16_MIN, INT16_MAX, int,  _PyLong_AsInt); break; } \
-		case GWN_COMP_U16: { PY_AS_NATIVE(uint16_t, 0,         UINT8_MAX, int,  _PyLong_AsInt); break; } \
-		case GWN_COMP_I32: { PY_AS_NATIVE(int32_t,  INT32_MIN, INT8_MAX,  int,  _PyLong_AsInt); break; } \
-		case GWN_COMP_U32: { PY_AS_NATIVE(uint32_t, 0,         UINT8_MAX, uint, _PyLong_AsInt); break; } \
+		case GWN_COMP_I8:  { PY_AS_NATIVE(int8_t,   INT8_MIN,  INT8_MAX,   int,  PyLong_AsLong); break; } \
+		case GWN_COMP_U8:  { PY_AS_NATIVE(uint8_t,  0,         UINT8_MAX,  uint, PyLong_AsUnsignedLong); break; } \
+		case GWN_COMP_I16: { PY_AS_NATIVE(int16_t,  INT16_MIN, INT16_MAX,  int,  PyLong_AsLong); break; } \
+		case GWN_COMP_U16: { PY_AS_NATIVE(uint16_t, 0,         UINT16_MAX, uint, PyLong_AsUnsignedLong); break; } \
+		case GWN_COMP_I32: { PY_AS_NATIVE(int32_t,  INT32_MIN, INT32_MAX,  int,  PyLong_AsLong); break; } \
+		case GWN_COMP_U32: { PY_AS_NATIVE(uint32_t, 0,         UINT32_MAX, uint, PyLong_AsUnsignedLong); break; } \
 		case GWN_COMP_F32: { PY_AS_NATIVE(float, 0, 0, float, PyFloat_AsDouble); break; } \
 		default: \
 			BLI_assert(0); \
@@ -215,7 +215,7 @@ static void fill_format_elem(void *data_dst_void, PyObject *py_src, const Gwn_Ve
 	ty_src v = py_as_native(py_src); \
 	WARN_TYPE_LIMIT_PUSH; \
 	if ((ty_dst_min != ty_dst_max) && (v < ty_dst_min || v > ty_dst_max)) { \
-		PyErr_SetString(PyExc_ValueError, fill_format_elem_range_error); \
+		PyErr_SetString(PyExc_OverflowError, fill_format_elem_range_error); \
 	} \
 	WARN_TYPE_LIMIT_POP; \
 	*data_dst = v; \
@@ -240,7 +240,7 @@ static void fill_format_tuple(void *data_dst_void, PyObject *py_src, const Gwn_V
 		ty_src v = py_as_native(PyTuple_GET_ITEM(py_src, i)); \
 		WARN_TYPE_LIMIT_PUSH; \
 		if ((ty_dst_min != ty_dst_max) && (v < ty_dst_min || v > ty_dst_max)) { \
-			PyErr_SetString(PyExc_ValueError, fill_format_elem_range_error); \
+			PyErr_SetString(PyExc_OverflowError, fill_format_elem_range_error); \
 		} \
 		WARN_TYPE_LIMIT_POP; \
 		data_dst[i] = v; \
