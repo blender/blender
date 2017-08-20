@@ -764,6 +764,19 @@ ccl_device float3 shader_bsdf_subsurface(KernelGlobals *kg, ShaderData *sd)
 	return eval;
 }
 
+ccl_device float3 shader_bsdf_average_normal(KernelGlobals *kg, ShaderData *sd)
+{
+	float3 N = make_float3(0.0f, 0.0f, 0.0f);
+
+	for(int i = 0; i < sd->num_closure; i++) {
+		ShaderClosure *sc = &sd->closure[i];
+		if(CLOSURE_IS_BSDF_OR_BSSRDF(sc->type))
+			N += sc->N*average(sc->weight);
+	}
+
+	return (is_zero(N))? sd->N : normalize(N);
+}
+
 ccl_device float3 shader_bsdf_ao(KernelGlobals *kg, ShaderData *sd, float ao_factor, float3 *N_)
 {
 	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
@@ -783,12 +796,7 @@ ccl_device float3 shader_bsdf_ao(KernelGlobals *kg, ShaderData *sd, float ao_fac
 		}
 	}
 
-	if(is_zero(N))
-		N = sd->N;
-	else
-		N = normalize(N);
-
-	*N_ = N;
+	*N_ = (is_zero(N))? sd->N : normalize(N);
 	return eval;
 }
 

@@ -521,6 +521,9 @@ void SVMCompiler::generate_closure_node(ShaderNode *node,
 			if(node->has_bssrdf_bump())
 				current_shader->has_bssrdf_bump = true;
 		}
+		if(node->has_bump()) {
+			current_shader->has_bump = true;
+		}
 	}
 }
 

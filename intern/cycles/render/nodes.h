@@ -337,6 +337,7 @@ public:
 	bool has_spatial_varying() { return true; }
 	void compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *param2, ShaderInput *param3 = NULL, ShaderInput *param4 = NULL);
 	virtual ClosureType get_closure_type() { return closure; }
+	virtual bool has_bump();
 
 	float3 color;
 	float3 normal;

@@ -721,6 +721,7 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
 				current_shader->has_surface_bssrdf = true;
 				current_shader->has_bssrdf_bump = true; /* can't detect yet */
 			}
+			current_shader->has_bump = true; /* can't detect yet */
 		}
 
 		if(node->has_spatial_varying()) {
@@ -1028,6 +1029,9 @@ void OSLCompiler::generate_nodes(const ShaderNodeSet& nodes)
 							current_shader->has_surface_bssrdf = true;
 							if(node->has_bssrdf_bump())
 								current_shader->has_bssrdf_bump = true;
+						}
+						if(node->has_bump()) {
+							current_shader->has_bump = true;
 						}
 					}
 					else if(current_type == SHADER_TYPE_VOLUME) {

@@ -342,8 +342,8 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 				shader_eval_surface(kg, &sd, &state, 0.f, 0, SHADER_CONTEXT_MAIN);
 			}
 
-			/* compression: normal = (2 * color) - 1 */
-			out = sd.N * 0.5f + make_float3(0.5f, 0.5f, 0.5f);
+			/* encoding: normal = (2 * color) - 1 */
+			out = shader_bsdf_average_normal(kg, &sd) * 0.5f + make_float3(0.5f, 0.5f, 0.5f);
 			break;
 		}
 		case SHADER_EVAL_UV:

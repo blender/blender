@@ -1845,6 +1845,14 @@ void BsdfNode::compile(OSLCompiler& /*compiler*/)
 	assert(0);
 }
 
+bool BsdfNode::has_bump()
+{
+	/* detect if anything is plugged into the normal input besides the default */
+	ShaderInput *normal_in = input("Normal");
+	return (normal_in && normal_in->link &&
+	        normal_in->link->parent->special_type != SHADER_SPECIAL_TYPE_GEOMETRY);
+}
+
 /* Anisotropic BSDF Closure */
 
 NODE_DEFINE(AnisotropicBsdfNode)
@@ -2439,9 +2447,7 @@ void PrincipledBsdfNode::compile(OSLCompiler& compiler)
 
 bool PrincipledBsdfNode::has_bssrdf_bump()
 {
-	/* detect if anything is plugged into the normal input besides the default */
-	ShaderInput *normal_in = input("Normal");
-	return (normal_in->link && normal_in->link->parent->special_type != SHADER_SPECIAL_TYPE_GEOMETRY);
+	return has_surface_bssrdf() && has_bump();
 }
 
 /* Translucent BSDF Closure */
