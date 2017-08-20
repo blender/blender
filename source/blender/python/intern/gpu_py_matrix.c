@@ -22,6 +22,9 @@
  *  \ingroup pythonintern
  *
  * This file defines the gpu.matrix stack API.
+ *
+ * \warning While these functions attempt to ensure correct stack usage.
+ * Mixing Python and C functions may still crash on invalid use.
  */
 
 #include <Python.h>
@@ -35,7 +38,9 @@
 
 #include "gpu.h"
 
+#define USE_GPU_PY_MATRIX_API
 #include "GPU_matrix.h"
+#undef USE_GPU_PY_MATRIX_API
 
 /* -------------------------------------------------------------------- */
 
@@ -45,10 +50,15 @@
 PyDoc_STRVAR(pygpu_matrix_push_doc,
 "push()\n"
 "\n"
-"   Add to the matrix stack.\n"
+"   Add to the model-view matrix stack.\n"
 );
 static PyObject *pygpu_matrix_push(PyObject *UNUSED(self))
 {
+	if (GPU_matrix_stack_level_get_model_view() >= GPU_PY_MATRIX_STACK_LEN) {
+		PyErr_SetString(PyExc_RuntimeError,
+		                "Maximum model-view stack depth " STRINGIFY(GPU_PY_MATRIX_STACK_DEPTH) " reached");
+		return NULL;
+	}
 	gpuPushMatrix();
 	Py_RETURN_NONE;
 }
@@ -56,10 +66,15 @@ static PyObject *pygpu_matrix_push(PyObject *UNUSED(self))
 PyDoc_STRVAR(pygpu_matrix_pop_doc,
 "pop()\n"
 "\n"
-"   Remove the last matrix from the stack.\n"
+"   Remove the last model-view matrix from the stack.\n"
 );
 static PyObject *pygpu_matrix_pop(PyObject *UNUSED(self))
 {
+	if (GPU_matrix_stack_level_get_model_view() == 0) {
+		PyErr_SetString(PyExc_RuntimeError,
+		                "Minimum model-view stack depth reached");
+		return NULL;
+	}
 	gpuPopMatrix();
 	Py_RETURN_NONE;
 }
@@ -71,7 +86,13 @@ PyDoc_STRVAR(pygpu_matrix_push_projection_doc,
 );
 static PyObject *pygpu_matrix_push_projection(PyObject *UNUSED(self))
 {
-	gpuPushMatrix();
+	if (GPU_matrix_stack_level_get_projection() >= GPU_PY_MATRIX_STACK_LEN) {
+		PyErr_SetString(PyExc_RuntimeError,
+		                "Maximum projection stack depth " STRINGIFY(GPU_PY_MATRIX_STACK_DEPTH) " reached");
+		return NULL;
+	}
+
+	gpuPushProjectionMatrix();
 	Py_RETURN_NONE;
 }
 
@@ -82,7 +103,12 @@ PyDoc_STRVAR(pygpu_matrix_pop_projection_doc,
 );
 static PyObject *pygpu_matrix_pop_projection(PyObject *UNUSED(self))
 {
-	gpuPopMatrix();
+	if (GPU_matrix_stack_level_get_projection() == 0) {
+		PyErr_SetString(PyExc_RuntimeError,
+		                "Minimum projection stack depth reached");
+		return NULL;
+	}
+	gpuPopProjectionMatrix();
 	Py_RETURN_NONE;
 }
 
@@ -289,8 +315,10 @@ static PyObject *pygpu_matrix_get_normal_matrix(PyObject *UNUSED(self))
 
 static struct PyMethodDef BPy_GPU_matrix_methods[] = {
 	/* Manage Stack */
-	{"push", (PyCFunction)pygpu_matrix_push, METH_NOARGS, pygpu_matrix_push_doc},
-	{"pop", (PyCFunction)pygpu_matrix_pop, METH_NOARGS, pygpu_matrix_pop_doc},
+	{"push", (PyCFunction)pygpu_matrix_push,
+	 METH_NOARGS, pygpu_matrix_push_doc},
+	{"pop", (PyCFunction)pygpu_matrix_pop,
+	 METH_NOARGS, pygpu_matrix_pop_doc},
 
 	{"push_projection", (PyCFunction)pygpu_matrix_push_projection,
 	 METH_NOARGS, pygpu_matrix_push_projection_doc},

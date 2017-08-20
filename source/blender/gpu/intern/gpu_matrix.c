@@ -30,7 +30,9 @@
  */
 
 #define SUPPRESS_GENERIC_MATRIX_API
+#define USE_GPU_PY_MATRIX_API  /* only so values are declared */
 #include "GPU_matrix.h"
+#undef USE_GPU_PY_MATRIX_API
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -622,3 +624,24 @@ bool gpuMatricesDirty(void)
 {
 	return state.dirty;
 }
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name Python API Helpers
+ * \{ */
+BLI_STATIC_ASSERT(GPU_PY_MATRIX_STACK_LEN + 1 == MATRIX_STACK_DEPTH, "define mismatch");
+
+/* Return int since caller is may subtract. */
+
+int GPU_matrix_stack_level_get_model_view(void)
+{
+	return (int)state.model_view_stack.top;
+}
+
+int GPU_matrix_stack_level_get_projection(void)
+{
+	return (int)state.projection_stack.top;
+}
+
+/** \} */
