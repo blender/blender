@@ -32,6 +32,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "../generic/py_capi_utils.h"
+
 #ifndef MATH_STANDALONE
 #  include "BLI_dynstr.h"
 #endif
@@ -403,7 +405,7 @@ static PyObject *Vector_resize(VectorObject *self, PyObject *value)
 		return NULL;
 	}
 
-	if ((size = PyLong_AsLong(value)) == -1) {
+	if ((size = PyC_Long_AsI32(value)) == -1) {
 		PyErr_SetString(PyExc_TypeError,
 		                "Vector.resize(size): "
 		                "expected size argument to be an integer");

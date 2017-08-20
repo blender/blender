@@ -124,24 +124,18 @@ static int bpy_bm_elem_hflag_set(BPy_BMElem *self, PyObject *value, void *flag)
 
 	BPY_BM_CHECK_INT(self);
 
-	param = PyLong_AsLong(value);
-
-	if ((unsigned int)param <= 1) {
-		if (hflag == BM_ELEM_SELECT)
-			BM_elem_select_set(self->bm, self->ele, param);
-		else
-			BM_elem_flag_set(self->ele, hflag, param);
-
-		return 0;
-	}
-	else {
-		PyErr_Format(PyExc_TypeError,
-		             "expected True/False or 0/1, not %.200s",
-		             Py_TYPE(value)->tp_name);
+	if ((param = PyC_Long_AsBool(value)) == -1) {
 		return -1;
 	}
-}
 
+	if (hflag == BM_ELEM_SELECT) {
+		BM_elem_select_set(self->bm, self->ele, param);
+	}
+	else {
+		BM_elem_flag_set(self->ele, hflag, param);
+	}
+	return -1;
+}
 
 PyDoc_STRVAR(bpy_bm_elem_index_doc,
 "Index of this element.\n"
@@ -169,21 +163,17 @@ static int bpy_bm_elem_index_set(BPy_BMElem *self, PyObject *value, void *UNUSED
 
 	BPY_BM_CHECK_INT(self);
 
-	param = PyLong_AsLong(value);
-
-	if (param == -1 && PyErr_Occurred()) {
-		PyErr_SetString(PyExc_TypeError,
-		                "expected an int type");
+	if (((param = PyC_Long_AsI32(value)) == -1) && PyErr_Occurred()) {
+		/* error is set */
 		return -1;
 	}
-	else {
-		BM_elem_index_set(self->ele, param); /* set_dirty! */
 
-		/* when setting the index assume its set invalid */
-		self->bm->elem_index_dirty |= self->ele->head.htype;
+	BM_elem_index_set(self->ele, param); /* set_dirty! */
 
-		return 0;
-	}
+	/* when setting the index assume its set invalid */
+	self->bm->elem_index_dirty |= self->ele->head.htype;
+
+	return 0;
 }
 
 /* type specific get/sets
@@ -506,14 +496,12 @@ static int bpy_bmface_material_index_set(BPy_BMFace *self, PyObject *value)
 
 	BPY_BM_CHECK_INT(self);
 
-	param = PyLong_AsLong(value);
-
-	if (param == -1 && PyErr_Occurred()) {
-		PyErr_SetString(PyExc_TypeError,
-		                "expected an int type");
+	if (((param = PyC_Long_AsI32(value)) == -1) && PyErr_Occurred()) {
+		/* error is set */
 		return -1;
 	}
-	else if ((param < 0) || (param > MAXMAT)) {
+
+	if ((param < 0) || (param > MAXMAT)) {
 		/* normally we clamp but in this case raise an error */
 		PyErr_SetString(PyExc_ValueError,
 		                "material index outside of usable range (0 - 32766)");
@@ -1113,15 +1101,16 @@ static PyObject *bpy_bmesh_select_flush(BPy_BMesh *self, PyObject *value)
 
 	BPY_BM_CHECK_OBJ(self);
 
-	param = PyLong_AsLong(value);
-	if (param != false && param != true) {
-		PyErr_SetString(PyExc_TypeError,
-		                "expected a boolean type 0/1");
+	if ((param = PyC_Long_AsBool(value)) == -1) {
 		return NULL;
 	}
 
-	if (param)  BM_mesh_select_flush(self->bm);
-	else        BM_mesh_deselect_flush(self->bm);
+	if (param) {
+		BM_mesh_select_flush(self->bm);
+	}
+	else {
+		BM_mesh_deselect_flush(self->bm);
+	}
 
 	Py_RETURN_NONE;
 }
@@ -1301,10 +1290,7 @@ static PyObject *bpy_bm_elem_select_set(BPy_BMElem *self, PyObject *value)
 
 	BPY_BM_CHECK_OBJ(self);
 
-	param = PyLong_AsLong(value);
-	if (param != false && param != true) {
-		PyErr_SetString(PyExc_TypeError,
-		                "expected a boolean type 0/1");
+	if ((param = PyC_Long_AsBool(value)) == -1) {
 		return NULL;
 	}
 
@@ -1329,10 +1315,7 @@ static PyObject *bpy_bm_elem_hide_set(BPy_BMElem *self, PyObject *value)
 
 	BPY_BM_CHECK_OBJ(self);
 
-	param = PyLong_AsLong(value);
-	if (param != false && param != true) {
-		PyErr_SetString(PyExc_TypeError,
-		                "expected a boolean type 0/1");
+	if ((param = PyC_Long_AsBool(value)) == -1) {
 		return NULL;
 	}
 

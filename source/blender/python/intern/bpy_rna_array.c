@@ -38,6 +38,8 @@
 
 #include "RNA_access.h"
 
+#include "../generic/py_capi_utils.h"
+
 #define USE_MATHUTILS
 
 #ifdef USE_MATHUTILS
@@ -550,7 +552,7 @@ static void py_to_float(const struct ItemConvertArgData *arg, PyObject *py, char
 static void py_to_int(const struct ItemConvertArgData *arg, PyObject *py, char *data)
 {
 	const int *range = arg->int_data.range;
-	int value = (int)PyLong_AsLong(py);
+	int value = PyC_Long_AsI32(py);
 	CLAMP(value, range[0], range[1]);
 	*(int *)data = value;
 }

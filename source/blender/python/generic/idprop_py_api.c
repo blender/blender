@@ -386,7 +386,7 @@ static IDProperty *idp_from_PyFloat(const char *name, PyObject *ob)
 static IDProperty *idp_from_PyLong(const char *name, PyObject *ob)
 {
 	IDPropertyTemplate val = {0};
-	val.i = _PyLong_AsInt(ob);
+	val.i = PyC_Long_AsI32(ob);
 	if (val.i == -1 && PyErr_Occurred()) {
 		return NULL;
 	}
@@ -499,7 +499,7 @@ static IDProperty *idp_from_PySequence_Fast(const char *name, PyObject *ob)
 			prop_data = IDP_Array(prop);
 			for (i = 0; i < val.array.len; i++) {
 				item = ob_seq_fast_items[i];
-				if (((prop_data[i] = _PyLong_AsInt(item)) == -1) && PyErr_Occurred()) {
+				if (((prop_data[i] = PyC_Long_AsI32(item)) == -1) && PyErr_Occurred()) {
 					return NULL;
 				}
 			}
@@ -1337,7 +1337,7 @@ static int BPy_IDArray_SetItem(BPy_IDArray *self, int index, PyObject *value)
 		}
 		case IDP_INT:
 		{
-			const int i = _PyLong_AsInt(value);
+			const int i = PyC_Long_AsI32(value);
 			if (i == -1 && PyErr_Occurred()) {
 				return -1;
 			}

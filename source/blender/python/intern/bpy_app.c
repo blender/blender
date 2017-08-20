@@ -292,7 +292,7 @@ static PyObject *bpy_app_debug_value_get(PyObject *UNUSED(self), void *UNUSED(cl
 
 static int bpy_app_debug_value_set(PyObject *UNUSED(self), PyObject *value, void *UNUSED(closure))
 {
-	int param = PyLong_AsLong(value);
+	int param = PyC_Long_AsI32(value);
 
 	if (param == -1 && PyErr_Occurred()) {
 		PyErr_SetString(PyExc_TypeError, "bpy.app.debug_value can only be set to a whole number");

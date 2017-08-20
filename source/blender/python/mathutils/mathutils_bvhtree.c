@@ -761,7 +761,7 @@ static PyObject *C_BVHTree_FromPolygons(PyObject *UNUSED(cls), PyObject *args, P
 			py_tricoords_fast_items = PySequence_Fast_ITEMS(py_tricoords_fast);
 
 			for (j = 0; j < 3; j++) {
-				tri[j] = (unsigned int)_PyLong_AsInt(py_tricoords_fast_items[j]);
+				tri[j] = PyC_Long_AsU32(py_tricoords_fast_items[j]);
 				if (UNLIKELY(tri[j] >= (unsigned int)coords_len)) {
 					PyErr_Format(PyExc_ValueError,
 					             "%s: index %d must be less than %d",
@@ -812,7 +812,7 @@ static PyObject *C_BVHTree_FromPolygons(PyObject *UNUSED(cls), PyObject *args, P
 			p_plink_prev = &plink->next;
 
 			for (j = 0; j < py_tricoords_len; j++) {
-				plink->poly[j] = (unsigned int)_PyLong_AsInt(py_tricoords_fast_items[j]);
+				plink->poly[j] = PyC_Long_AsU32(py_tricoords_fast_items[j]);
 				if (UNLIKELY(plink->poly[j] >= (unsigned int)coords_len)) {
 					PyErr_Format(PyExc_ValueError,
 					             "%s: index %d must be less than %d",
