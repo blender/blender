@@ -429,7 +429,6 @@ static void distribute_from_verts_exec(ParticleTask *thread, ParticleData *pa, i
 	ParticleThreadContext *ctx= thread->ctx;
 	MFace *mface;
 
-	DM_ensure_tessface(ctx->dm);
 	mface = ctx->dm->getTessFaceDataArray(ctx->dm, CD_MFACE);
 
 	int rng_skip_tot = PSYS_RND_DIST_SKIP; /* count how many rng_* calls wont need skipping */
@@ -899,10 +898,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 		else
 			dm= CDDM_from_mesh((Mesh*)ob->data);
 
-		/* BMESH ONLY, for verts we don't care about tessfaces */
-		if (from != PART_FROM_VERT) {
-			DM_ensure_tessface(dm);
-		}
+		DM_ensure_tessface(dm);
 
 		/* we need orco for consistent distributions */
 		if (!CustomData_has_layer(&dm->vertData, CD_ORCO))
