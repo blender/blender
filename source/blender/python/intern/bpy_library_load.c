@@ -73,7 +73,7 @@ typedef struct {
 } BPy_Library;
 
 static PyObject *bpy_lib_load(PyObject *self, PyObject *args, PyObject *kwds);
-static PyObject *bpy_lib_enter(BPy_Library *self, PyObject *args);
+static PyObject *bpy_lib_enter(BPy_Library *self);
 static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *args);
 static PyObject *bpy_lib_dir(BPy_Library *self);
 
@@ -237,7 +237,7 @@ static PyObject *_bpy_names(BPy_Library *self, int blocktype)
 	return list;
 }
 
-static PyObject *bpy_lib_enter(BPy_Library *self, PyObject *UNUSED(args))
+static PyObject *bpy_lib_enter(BPy_Library *self)
 {
 	PyObject *ret;
 	BPy_Library *self_from;
