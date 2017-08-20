@@ -1801,6 +1801,14 @@ BsdfBaseNode::BsdfBaseNode(const NodeType *node_type)
 	special_type = SHADER_SPECIAL_TYPE_CLOSURE;
 }
 
+bool BsdfBaseNode::has_bump()
+{
+	/* detect if anything is plugged into the normal input besides the default */
+	ShaderInput *normal_in = input("Normal");
+	return (normal_in && normal_in->link &&
+	        normal_in->link->parent->special_type != SHADER_SPECIAL_TYPE_GEOMETRY);
+}
+
 /* BSDF Closure */
 
 BsdfNode::BsdfNode(const NodeType *node_type)
@@ -1843,14 +1851,6 @@ void BsdfNode::compile(SVMCompiler& compiler)
 void BsdfNode::compile(OSLCompiler& /*compiler*/)
 {
 	assert(0);
-}
-
-bool BsdfNode::has_bump()
-{
-	/* detect if anything is plugged into the normal input besides the default */
-	ShaderInput *normal_in = input("Normal");
-	return (normal_in && normal_in->link &&
-	        normal_in->link->parent->special_type != SHADER_SPECIAL_TYPE_GEOMETRY);
 }
 
 /* Anisotropic BSDF Closure */
