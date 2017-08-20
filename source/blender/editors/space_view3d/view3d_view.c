@@ -54,6 +54,7 @@
 
 #include "BIF_glutil.h"
 
+#include "GPU_glew.h"
 #include "GPU_select.h"
 #include "GPU_matrix.h"
 

@@ -74,6 +74,7 @@
 
 #include "GPU_compositing.h"
 #include "GPU_framebuffer.h"
+#include "GPU_glew.h"
 #include "GPU_matrix.h"
 
 #include "render_intern.h"

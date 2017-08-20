@@ -29,6 +29,8 @@
  *  \ingroup gpu
  */
 
+#include "../../../intern/gawain/gawain/gwn_shader_interface.h"
+
 #define SUPPRESS_GENERIC_MATRIX_API
 #define USE_GPU_PY_MATRIX_API  /* only so values are declared */
 #include "GPU_matrix.h"
@@ -556,7 +558,7 @@ const float (*gpuGetNormalMatrixInverse(float m[3][3]))[3]
 	return m;
 }
 
-void gpuBindMatrices(const Gwn_ShaderInterface* shaderface)
+void gpuBindMatrices(const Gwn_ShaderInterface *shaderface)
 {
 	/* set uniform values to matrix stack values
 	 * call this before a draw call if desired matrices are dirty

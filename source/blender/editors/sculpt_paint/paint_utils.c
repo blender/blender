@@ -61,6 +61,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "GPU_glew.h"
 #include "GPU_matrix.h"
 
 #include "IMB_colormanagement.h"

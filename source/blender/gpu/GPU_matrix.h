@@ -33,11 +33,12 @@
 #define __GPU_MATRIX_H__
 
 #include "BLI_sys_types.h"
-#include "../../../intern/gawain/gawain/gwn_shader_interface.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct Gwn_ShaderInterface;
 
 void gpuMatrixReset(void); /* to Identity transform & empty stack */
 
@@ -110,7 +111,7 @@ const float (*gpuGetNormalMatrixInverse(float m[3][3]))[3];
 
 
 /* set uniform values for currently bound shader */
-void gpuBindMatrices(const Gwn_ShaderInterface*);
+void gpuBindMatrices(const struct Gwn_ShaderInterface *);
 bool gpuMatricesDirty(void); /* since last bind */
 
 

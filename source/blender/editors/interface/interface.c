@@ -56,6 +56,7 @@
 #include "BKE_screen.h"
 #include "BKE_idprop.h"
 
+#include "GPU_glew.h"
 #include "GPU_matrix.h"
 
 #include "BLF_api.h"
