@@ -896,7 +896,7 @@ ccl_device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd,
 	}
 
 	if(sd->flag & SD_BSDF_NEEDS_LCG) {
-		sd->lcg_state = lcg_state_init(state, 0xb4bc3953);
+		sd->lcg_state = lcg_state_init_addrspace(state, 0xb4bc3953);
 	}
 }
 

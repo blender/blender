@@ -46,7 +46,7 @@ bool kernel_path_subsurface_scatter(
 		 */
 		kernel_assert(!ss_indirect->tracing);
 
-		uint lcg_state = lcg_state_init(state, 0x68bc21eb);
+		uint lcg_state = lcg_state_init_addrspace(state, 0x68bc21eb);
 
 		SubsurfaceIntersection ss_isect;
 		float bssrdf_u, bssrdf_v;

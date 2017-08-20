@@ -51,8 +51,8 @@ ccl_device_noinline bool kernel_split_branched_path_subsurface_indirect_light_it
 		if(branched_state->ss_next_sample == 0 && branched_state->next_hit == 0 &&
 		   branched_state->next_closure == 0 && branched_state->next_sample == 0)
 		{
-			branched_state->lcg_state = lcg_state_init(&branched_state->path_state,
-			                                           0x68bc21eb);
+			branched_state->lcg_state = lcg_state_init_addrspace(&branched_state->path_state,
+			                                                     0x68bc21eb);
 		}
 		int num_samples = kernel_data.integrator.subsurface_samples;
 		float num_samples_inv = 1.0f/num_samples;
@@ -258,7 +258,7 @@ ccl_device void kernel_subsurface_scatter(KernelGlobals *kg)
 
 				/* do bssrdf scatter step if we picked a bssrdf closure */
 				if(sc) {
-					uint lcg_state = lcg_state_init(state, 0x68bc21eb);
+					uint lcg_state = lcg_state_init_addrspace(state, 0x68bc21eb);
 					float bssrdf_u, bssrdf_v;
 					path_state_rng_2D(kg,
 					                  state,
