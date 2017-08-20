@@ -2123,18 +2123,34 @@ Device *device_cuda_create(DeviceInfo& info, Stats &stats, bool background)
 	return new CUDADevice(info, stats, background);
 }
 
+static CUresult device_cuda_safe_init()
+{
+#ifdef _WIN32
+	__try {
+		return cuInit(0);
+	}
+	__except(EXCEPTION_EXECUTE_HANDLER) {
+		/* Ignore crashes inside the CUDA driver and hope we can
+		 * survive even with corrupted CUDA installs. */
+		fprintf(stderr, "Cycles CUDA: driver crashed, continuing without CUDA.\n");
+	}
+
+	return CUDA_ERROR_NO_DEVICE;
+#else
+	return cuInit(0);
+#endif
+}
+
 void device_cuda_info(vector<DeviceInfo>& devices)
 {
-	CUresult result;
-	int count = 0;
-
-	result = cuInit(0);
+	CUresult result = device_cuda_safe_init();
 	if(result != CUDA_SUCCESS) {
 		if(result != CUDA_ERROR_NO_DEVICE)
 			fprintf(stderr, "CUDA cuInit: %s\n", cuewErrorString(result));
 		return;
 	}
 
+	int count = 0;
 	result = cuDeviceGetCount(&count);
 	if(result != CUDA_SUCCESS) {
 		fprintf(stderr, "CUDA cuDeviceGetCount: %s\n", cuewErrorString(result));
@@ -2191,7 +2207,7 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 
 string device_cuda_capabilities(void)
 {
-	CUresult result = cuInit(0);
+	CUresult result = device_cuda_safe_init();
 	if(result != CUDA_SUCCESS) {
 		if(result != CUDA_ERROR_NO_DEVICE) {
 			return string("Error initializing CUDA: ") + cuewErrorString(result);
