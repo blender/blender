@@ -172,6 +172,12 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 default='PATH',
                 )
 
+        cls.use_square_samples = BoolProperty(
+                name="Square Samples",
+                description="Square sampling values for easier artist control",
+                default=False,
+                )
+
         cls.samples = IntProperty(
                 name="Samples",
                 description="Number of samples to render for each pixel",
