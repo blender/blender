@@ -245,8 +245,6 @@ public:
 	ShaderGraph();
 	~ShaderGraph();
 
-	ShaderGraph *copy();
-
 	ShaderNode *add(ShaderNode *node);
 	OutputNode *output();
 
