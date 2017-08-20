@@ -363,6 +363,12 @@ RNA_MANIPULATOR_GENERIC_FLOAT_ARRAY_RW_DEF(matrix_space, matrix_space, 16);
 RNA_MANIPULATOR_GENERIC_FLOAT_ARRAY_RW_DEF(matrix_basis, matrix_basis, 16);
 RNA_MANIPULATOR_GENERIC_FLOAT_ARRAY_RW_DEF(matrix_offset, matrix_offset, 16);
 
+static void rna_Manipulator_matrix_world_get(PointerRNA *ptr, float value[16])
+{
+	wmManipulator *mpr = ptr->data;
+	WM_manipulator_calc_matrix_final(mpr, (float (*)[4])value);
+}
+
 RNA_MANIPULATOR_GENERIC_FLOAT_RW_DEF(scale_basis, scale_basis);
 RNA_MANIPULATOR_GENERIC_FLOAT_RW_DEF(line_width, line_width);
 
@@ -1018,6 +1024,12 @@ static void rna_def_manipulator(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_ui_text(prop, "Offset Matrix", "");
 	RNA_def_property_float_funcs(prop, "rna_Manipulator_matrix_offset_get", "rna_Manipulator_matrix_offset_set", NULL);
 	RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+
+	prop = RNA_def_property(srna, "matrix_world", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
+	RNA_def_property_ui_text(prop, "Final World Matrix", "");
+	RNA_def_property_float_funcs(prop, "rna_Manipulator_matrix_world_get", NULL, NULL);
 
 	prop = RNA_def_property(srna, "scale_basis", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Scale Basis", "");
