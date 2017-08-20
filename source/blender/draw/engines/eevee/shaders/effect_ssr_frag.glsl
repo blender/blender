@@ -16,6 +16,7 @@ uniform sampler2D normalBuffer;
 uniform sampler2D specroughBuffer;
 
 uniform int planar_count;
+uniform float noiseOffset;
 
 layout(location = 0) out vec4 hitData0;
 layout(location = 1) out vec4 hitData1;

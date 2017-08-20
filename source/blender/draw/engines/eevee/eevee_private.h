@@ -522,6 +522,7 @@ struct GPUMaterial *EEVEE_material_mesh_depth_get(struct Scene *scene, Material 
 struct GPUMaterial *EEVEE_material_hair_get(struct Scene *scene, Material *ma);
 void EEVEE_materials_free(void);
 void EEVEE_draw_default_passes(EEVEE_PassList *psl);
+void EEVEE_update_util_texture(float offset);
 
 /* eevee_lights.c */
 void EEVEE_lights_init(EEVEE_SceneLayerData *sldata);

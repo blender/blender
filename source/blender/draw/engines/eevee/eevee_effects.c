@@ -526,7 +526,6 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 			effects->ao_settings += 4.0; /* USE_DENOISE */
 		}
 
-		effects->ao_offset = 0.0f;
 		effects->ao_bounce_fac = (float)BKE_collection_engine_property_value_get_bool(props, "gtao_bounce");
 
 		effects->ao_texsize[0] = ((int)viewport_size[0]);

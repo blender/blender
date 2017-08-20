@@ -23,7 +23,7 @@ uniform ivec2 aoHorizonTexSize;
 #define aoFactor     aoParameters[0].z
 #define aoInvSamples aoParameters[0].w
 
-#define aoOffset     aoParameters[1].x
+#define aoOffset     aoParameters[1].x /* UNUSED */
 #define aoBounceFac  aoParameters[1].y
 #define aoQuality    aoParameters[1].z
 #define aoSettings   aoParameters[1].w
@@ -76,8 +76,6 @@ float get_phi(ivec2 hr_co, ivec2 fs_co, float sample)
 	}
 	/* Blue noise is scaled to cover the rest of the range. */
 	phi += aoInvSamples * blue_noise;
-	/* Rotate everything (for multisampling) */
-	phi += aoOffset;
 	phi *= M_PI;
 
 	return phi;
@@ -91,7 +89,6 @@ float get_offset(ivec2 fs_co, float sample)
 	/* Interleaved jitter for spatial 2x2 denoising */
 	offset += 0.25 * dot(vec2(1.0), vec2(fs_co & 1));
 	offset += texture(utilTex, vec3((vec2(fs_co / 2) + 0.5 + 16.0) / LUT_SIZE, 2.0)).r;
-	offset = fract(offset + aoOffset);
 	return offset;
 }
 

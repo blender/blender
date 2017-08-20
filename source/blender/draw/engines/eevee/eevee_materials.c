@@ -411,6 +411,61 @@ static void create_default_shader(int options)
 	MEM_freeN(frag_str);
 }
 
+void EEVEE_update_util_texture(float offset)
+{
+	if (e_data.util_tex != NULL) {
+		DRW_TEXTURE_FREE_SAFE(e_data.util_tex);
+	}
+
+	/* TODO: split this into 2 functions : one for init,
+	 * and the other one that updates the noise with the offset. */
+	const int layers = 3 + 16;
+	float (*texels)[4] = MEM_mallocN(sizeof(float[4]) * 64 * 64 * layers, "utils texels");
+	float (*texels_layer)[4] = texels;
+
+	/* Copy ltc_mat_ggx into 1st layer */
+	memcpy(texels_layer, ltc_mat_ggx, sizeof(float[4]) * 64 * 64);
+	texels_layer += 64 * 64;
+
+	/* Copy bsdf_split_sum_ggx into 2nd layer red and green channels.
+	   Copy ltc_mag_ggx into 2nd layer blue channel. */
+	for (int i = 0; i < 64 * 64; i++) {
+		texels_layer[i][0] = bsdf_split_sum_ggx[i*2 + 0];
+		texels_layer[i][1] = bsdf_split_sum_ggx[i*2 + 1];
+		texels_layer[i][2] = ltc_mag_ggx[i];
+	}
+	texels_layer += 64 * 64;
+
+	/* Copy blue noise in 3rd layer  */
+	for (int i = 0; i < 64 * 64; i++) {
+		float noise;
+		noise = blue_noise[i][0] + offset;
+		noise = noise - floorf(noise); /* fract */
+		texels_layer[i][0] = noise;
+
+		noise = blue_noise[i][1] + offset;
+		noise = noise - floorf(noise); /* fract */
+		texels_layer[i][1] = noise * 0.5 + 0.5;
+		texels_layer[i][2] = cosf(noise * 2.0 * M_PI);
+		texels_layer[i][3] = sinf(noise * 2.0 * M_PI);
+	}
+	texels_layer += 64 * 64;
+
+	/* Copy Refraction GGX LUT in layer 4 - 20 */
+	for (int j = 0; j < 16; ++j) {
+		for (int i = 0; i < 64 * 64; i++) {
+			texels_layer[i][0] = btdf_split_sum_ggx[j*2][i];
+			texels_layer[i][1] = btdf_split_sum_ggx[j*2][i];
+			texels_layer[i][2] = btdf_split_sum_ggx[j*2][i];
+			texels_layer[i][3] = btdf_split_sum_ggx[j*2][i];
+		}
+		texels_layer += 64 * 64;
+	}
+
+	e_data.util_tex = DRW_texture_create_2D_array(64, 64, layers, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_WRAP, (float *)texels);
+	MEM_freeN(texels);
+}
+
 void EEVEE_materials_init(EEVEE_StorageList *stl)
 {
 	if (!e_data.frag_shader_lib) {
@@ -466,43 +521,7 @@ void EEVEE_materials_init(EEVEE_StorageList *stl)
 
 		MEM_freeN(frag_str);
 
-		/* Textures */
-		const int layers = 3 + 16;
-		float (*texels)[4] = MEM_mallocN(sizeof(float[4]) * 64 * 64 * layers, "utils texels");
-		float (*texels_layer)[4] = texels;
-
-		/* Copy ltc_mat_ggx into 1st layer */
-		memcpy(texels_layer, ltc_mat_ggx, sizeof(float[4]) * 64 * 64);
-		texels_layer += 64 * 64;
-
-		/* Copy bsdf_split_sum_ggx into 2nd layer red and green channels.
-		   Copy ltc_mag_ggx into 2nd layer blue channel. */
-		for (int i = 0; i < 64 * 64; i++) {
-			texels_layer[i][0] = bsdf_split_sum_ggx[i*2 + 0];
-			texels_layer[i][1] = bsdf_split_sum_ggx[i*2 + 1];
-			texels_layer[i][2] = ltc_mag_ggx[i];
-		}
-		texels_layer += 64 * 64;
-
-		for (int i = 0; i < 64 * 64; i++) {
-			texels_layer[i][0] = blue_noise[i][0];
-			texels_layer[i][1] = blue_noise[i][1] * 0.5 + 0.5;
-			texels_layer[i][2] = cosf(blue_noise[i][1] * 2.0 * M_PI);
-			texels_layer[i][3] = sinf(blue_noise[i][1] * 2.0 * M_PI);
-		}
-
-		for (int j = 0; j < 16; ++j) {
-			texels_layer += 64 * 64;
-			for (int i = 0; i < 64 * 64; i++) {
-				texels_layer[i][0] = btdf_split_sum_ggx[j*2][i];
-				texels_layer[i][1] = btdf_split_sum_ggx[j*2][i];
-				texels_layer[i][2] = btdf_split_sum_ggx[j*2][i];
-				texels_layer[i][3] = btdf_split_sum_ggx[j*2][i];
-			}
-		}
-
-		e_data.util_tex = DRW_texture_create_2D_array(64, 64, layers, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_WRAP, (float *)texels);
-		MEM_freeN(texels);
+		EEVEE_update_util_texture(0.0f);
 	}
 
 	{

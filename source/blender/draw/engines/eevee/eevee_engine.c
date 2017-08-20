@@ -138,7 +138,6 @@ static void EEVEE_cache_finish(void *vedata)
 static void EEVEE_draw_scene(void *vedata)
 {
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
-	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 	EEVEE_FramebufferList *fbl = ((EEVEE_Data *)vedata)->fbl;
 	EEVEE_SceneLayerData *sldata = EEVEE_scene_layer_data_get();
 
@@ -153,10 +152,11 @@ static void EEVEE_draw_scene(void *vedata)
 
 	/* XXX temp for denoising render. TODO plug number of samples here */
 	if (DRW_state_is_image_render()) {
-		rand += 1.0f / 8.0f;
+		rand += 1.0f / 16.0f;
 		rand = rand - floorf(rand);
+
 		/* Set jitter offset */
-		stl->effects->ao_offset = rand * stl->effects->ao_samples_inv;
+		EEVEE_update_util_texture(rand);
 	}
 
 	while (loop_ct--) {
