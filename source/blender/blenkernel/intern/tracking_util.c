@@ -848,6 +848,7 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 	                region,
 	                transform_key,
 	                final_ibuf);
+	BLI_spin_unlock(&accessor->cache_lock);
 	return final_ibuf;
 }
 
@@ -991,5 +992,6 @@ void tracking_image_accessor_destroy(TrackingImageAccessor *accessor)
 {
 	IMB_moviecache_free(accessor->cache);
 	libmv_FrameAccessorDestroy(accessor->libmv_accessor);
+	BLI_spin_end(&accessor->cache_lock);
 	MEM_freeN(accessor);
 }
