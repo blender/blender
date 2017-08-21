@@ -71,28 +71,28 @@ if NOT "%1" == "" (
 		    -C"%BLENDER_DIR%\build_files\cmake\config\bpy_module.cmake"
 	) else if "%1" == "release" (
 		set TARGET=Release
-	)	else if "%1" == "x86" (
+	) else if "%1" == "x86" (
 		set BUILD_ARCH=x86
-	)	else if "%1" == "x64" (
+	) else if "%1" == "x64" (
 		set BUILD_ARCH=x64
-	)	else if "%1" == "2017" (
+	) else if "%1" == "2017" (
 	set BUILD_VS_VER=15
 	set BUILD_VS_YEAR=2017
 	set BUILD_VS_LIBDIRPOST=vc14
-	)	else if "%1" == "2015" (
+	) else if "%1" == "2015" (
 	set BUILD_VS_VER=14
 	set BUILD_VS_YEAR=2015
 	set BUILD_VS_LIBDIRPOST=vc14
-	)	else if "%1" == "2013" (
+	) else if "%1" == "2013" (
 	set BUILD_VS_VER=12
 	set BUILD_VS_YEAR=2013
 	set BUILD_VS_LIBDIRPOST=vc12
-	)	else if "%1" == "packagename" (
+	) else if "%1" == "packagename" (
 	set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -DCPACK_OVERRIDE_PACKAGENAME="%2"
 	shift /1
-	)	else if "%1" == "nobuild" (
+	) else if "%1" == "nobuild" (
 	set NOBUILD=1
-	)	else if "%1" == "showhash" (
+	) else if "%1" == "showhash" (
 		for /f "delims=" %%i in ('git rev-parse HEAD') do echo Branch_hash=%%i
 		cd release/datafiles/locale
 		for /f "delims=" %%i in ('git rev-parse HEAD') do echo Locale_hash=%%i
@@ -129,10 +129,10 @@ if "%BUILD_ARCH%"=="" (
 		set BUILD_ARCH=x86
 	)
 ) else if "%BUILD_ARCH%"=="x64" (
-		set WINDOWS_ARCH= Win64
-	) else if "%BUILD_ARCH%"=="x86" (
-		set WINDOWS_ARCH=
-	)
+	set WINDOWS_ARCH= Win64
+) else if "%BUILD_ARCH%"=="x86" (
+	set WINDOWS_ARCH=
+)
 
 if "%BUILD_VS_VER%"=="" (
 	set BUILD_VS_VER=12
@@ -142,19 +142,19 @@ if "%BUILD_VS_VER%"=="" (
 
 if "%BUILD_ARCH%"=="x64" (
 	set MSBUILD_PLATFORM=x64
-	) else if "%BUILD_ARCH%"=="x86" (
-		set MSBUILD_PLATFORM=win32
+) else if "%BUILD_ARCH%"=="x86" (
+	set MSBUILD_PLATFORM=win32
 )
 
 
 if "%target%"=="Release" (
-		rem for vc12 check for both cuda 7.5 and 8
-		if "%CUDA_PATH%"=="" (
-			echo Cuda Not found, aborting!
-			goto EOF
-		)
-		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
-		-C"%BLENDER_DIR%\build_files\cmake\config\blender_release.cmake"
+	rem for vc12 check for both cuda 7.5 and 8
+	if "%CUDA_PATH%"=="" (
+		echo Cuda Not found, aborting!
+		goto EOF
+	)
+	set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% ^
+	-C"%BLENDER_DIR%\build_files\cmake\config\blender_release.cmake"
 )
 
 :DetectMSVC
@@ -193,7 +193,7 @@ if %ERRORLEVEL% NEQ 0 (
 		set BUILD_VS_YEAR=2015
 		set BUILD_VS_LIBDIRPOST=vc14
 		goto DetectMSVC
-	)	else	(
+	) else (
 		echo Error: "MSBuild" command not in the PATH.
 		echo You must have MSVC installed and run this from the "Developer Command Prompt"
 		echo ^(available from Visual Studio's Start menu entry^), aborting!
@@ -216,8 +216,8 @@ if %ERRORLEVEL% NEQ 0 (
 
 if "%BUILD_ARCH%"=="x64" (
 	set BUILD_VS_SVNDIR=win64_%BUILD_VS_LIBDIRPOST%
-	) else if "%BUILD_ARCH%"=="x86" (
-		set BUILD_VS_SVNDIR=windows_%BUILD_VS_LIBDIRPOST%
+) else if "%BUILD_ARCH%"=="x86" (
+	set BUILD_VS_SVNDIR=windows_%BUILD_VS_LIBDIRPOST%
 )
 set BUILD_VS_LIBDIR="%BLENDER_DIR%..\lib\%BUILD_VS_SVNDIR%"
 
@@ -238,9 +238,9 @@ if NOT EXIST %BUILD_VS_LIBDIR% (
 )
 
 if NOT EXIST %BUILD_VS_LIBDIR% (
-		echo Error: Path to libraries not found "%BUILD_VS_LIBDIR%"
-		echo This is needed for building, aborting!
-		goto EOF
+	echo Error: Path to libraries not found "%BUILD_VS_LIBDIR%"
+	echo This is needed for building, aborting!
+	goto EOF
 )
 
 if "%TARGET%"=="" (
@@ -331,31 +331,31 @@ echo Blender successfully built, run from: "%BUILD_DIR%\bin\%BUILD_TYPE%\blender
 echo.
 goto EOF
 :HELP
-		echo.
-		echo Convenience targets
-		echo - release ^(identical to the official blender.org builds^)
-		echo - full ^(same as release minus the cuda kernels^)
-		echo - lite
-		echo - headless
-		echo - cycles
-		echo - bpy
-		echo.
-		echo Utilities ^(not associated with building^)
-		echo - clean ^(Target must be set^)
-		echo - update
-		echo - nobuild ^(only generate project files^)
-		echo - showhash ^(Show git hashes of source tree^)
-		echo.
-		echo Configuration options
-		echo - with_tests ^(enable building unit tests^)
-		echo - noge ^(disable building game enginge and player^)
-		echo - debug ^(Build an unoptimized debuggable build^)
-		echo - packagename [newname] ^(override default cpack package name^)
-		echo - buildir [newdir] ^(override default build folder^)
-		echo - x86 ^(override host auto-detect and build 32 bit code^)
-		echo - x64 ^(override host auto-detect and build 64 bit code^)
-		echo - 2013 ^(build with visual studio 2013^)
-		echo - 2015 ^(build with visual studio 2015^) [EXPERIMENTAL]
-		echo.
+	echo.
+	echo Convenience targets
+	echo - release ^(identical to the official blender.org builds^)
+	echo - full ^(same as release minus the cuda kernels^)
+	echo - lite
+	echo - headless
+	echo - cycles
+	echo - bpy
+	echo.
+	echo Utilities ^(not associated with building^)
+	echo - clean ^(Target must be set^)
+	echo - update
+	echo - nobuild ^(only generate project files^)
+	echo - showhash ^(Show git hashes of source tree^)
+	echo.
+	echo Configuration options
+	echo - with_tests ^(enable building unit tests^)
+	echo - noge ^(disable building game enginge and player^)
+	echo - debug ^(Build an unoptimized debuggable build^)
+	echo - packagename [newname] ^(override default cpack package name^)
+	echo - buildir [newdir] ^(override default build folder^)
+	echo - x86 ^(override host auto-detect and build 32 bit code^)
+	echo - x64 ^(override host auto-detect and build 64 bit code^)
+	echo - 2013 ^(build with visual studio 2013^)
+	echo - 2015 ^(build with visual studio 2015^) [EXPERIMENTAL]
+	echo.
 
 :EOF
