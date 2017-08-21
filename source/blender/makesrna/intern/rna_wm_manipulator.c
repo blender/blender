@@ -434,6 +434,14 @@ static StructRNA *rna_Manipulator_register(
 		return NULL;
 	}
 
+	{   /* allocate the idname */
+		const uint idname_len = strlen(temp_buffers.idname) + 1;
+		char *ch = MEM_mallocN(
+		        sizeof(char) * idname_len, __func__);
+		dummywt.idname = ch;
+		memcpy(ch, temp_buffers.idname, idname_len);
+	}
+
 	/* check if we have registered this manipulator type before, and remove it */
 	{
 		const wmManipulatorType *wt = WM_manipulatortype_find(dummywt.idname, true);
@@ -466,11 +474,6 @@ static StructRNA *rna_Manipulator_register(
 		BLI_assert(i == ARRAY_SIZE(have_function));
 	}
 
-	RNA_def_struct_duplicate_pointers(dummywt.ext.srna);
-
-	/* use duplicated string */
-	dummywt.idname = dummywt.ext.srna->identifier;
-
 	WM_manipulatortype_append_ptr(BPY_RNA_manipulator_wrapper, (void *)&dummywt);
 
 	/* update while blender is running */
@@ -486,13 +489,12 @@ static void rna_Manipulator_unregister(struct Main *bmain, StructRNA *type)
 	if (!wt)
 		return;
 
+	RNA_struct_free_extension(type, &wt->ext);
+	RNA_struct_free(&BLENDER_RNA, type);
+
 	WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
 
-	RNA_struct_free_extension(type, &wt->ext);
-
 	WM_manipulatortype_remove_ptr(NULL, bmain, wt);
-
-	RNA_struct_free(&BLENDER_RNA, type);
 }
 
 static void **rna_Manipulator_instance(PointerRNA *ptr)
@@ -687,6 +689,7 @@ static void rna_manipulatorgroup_draw_prepare_cb(const bContext *C, wmManipulato
 }
 
 void BPY_RNA_manipulatorgroup_wrapper(wmManipulatorGroupType *wgt, void *userdata);
+static void rna_ManipulatorGroup_unregister(struct Main *bmain, StructRNA *type);
 
 static StructRNA *rna_ManipulatorGroup_register(
         Main *bmain, ReportList *reports, void *data, const char *identifier,
@@ -736,14 +739,23 @@ static StructRNA *rna_ManipulatorGroup_register(
 		return NULL;
 	}
 
+	{   /* allocate the idname */
+		const uint idname_len = strlen(temp_buffers.idname) + 1;
+		const uint name_len = strlen(temp_buffers.name) + 1;
+		char *ch = MEM_mallocN(
+		        sizeof(char) * idname_len + name_len, __func__);
+		dummywgt.idname = ch;
+		memcpy(ch, temp_buffers.idname, idname_len);
+		ch += idname_len;
+		memcpy(ch, temp_buffers.name, name_len);
+		dummywgt.name = ch;
+	}
+
 	/* check if we have registered this manipulatorgroup type before, and remove it */
 	{
 		wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find(dummywgt.idname, true);
 		if (wgt && wgt->ext.srna) {
-			WM_manipulatormaptype_group_unlink(NULL, bmain, mmap_type, wgt);
-			WM_manipulatorgrouptype_remove_ptr(wgt);
-
-			WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
+			rna_ManipulatorGroup_unregister(bmain, wgt->ext.srna);
 		}
 	}
 
@@ -761,10 +773,6 @@ static StructRNA *rna_ManipulatorGroup_register(
 	dummywgt.setup =            (have_function[2]) ? rna_manipulatorgroup_setup_cb : NULL;
 	dummywgt.refresh =          (have_function[3]) ? rna_manipulatorgroup_refresh_cb : NULL;
 	dummywgt.draw_prepare =     (have_function[4]) ? rna_manipulatorgroup_draw_prepare_cb : NULL;
-
-	RNA_def_struct_duplicate_pointers(dummywgt.ext.srna);
-	dummywgt.idname = dummywgt.ext.srna->identifier;
-	dummywgt.name = dummywgt.ext.srna->name;
 
 	wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_append_ptr(
 	        BPY_RNA_manipulatorgroup_wrapper, (void *)&dummywgt);
@@ -786,13 +794,12 @@ static void rna_ManipulatorGroup_unregister(struct Main *bmain, StructRNA *type)
 	if (!wgt)
 		return;
 
+	RNA_struct_free_extension(type, &wgt->ext);
+	RNA_struct_free(&BLENDER_RNA, type);
+
 	WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
 
-	RNA_struct_free_extension(type, &wgt->ext);
-
 	WM_manipulator_group_remove_ptr(bmain, wgt);
-
-	RNA_struct_free(&BLENDER_RNA, type);
 }
 
 static void **rna_ManipulatorGroup_instance(PointerRNA *ptr)

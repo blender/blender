@@ -719,6 +719,7 @@ void WM_manipulator_group_remove_ptr_ex(
         wmManipulatorMapType *mmap_type)
 {
 	WM_manipulatormaptype_group_unlink(NULL, bmain, mmap_type, wgt);
+	WM_manipulatorgrouptype_remove_ptr(wgt);
 }
 
 void WM_manipulator_group_remove_ptr(

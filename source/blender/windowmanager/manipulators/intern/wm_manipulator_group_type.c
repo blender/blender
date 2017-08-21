@@ -144,6 +144,10 @@ wmManipulatorGroupTypeRef *WM_manipulatorgrouptype_append_and_link(
  */
 static void manipulatorgrouptype_free(wmManipulatorGroupType *wgt)
 {
+	if (wgt->ext.srna) { /* python manipulator group, allocs own string */
+		MEM_freeN((void *)wgt->idname);
+	}
+
 	MEM_freeN(wgt);
 }
 

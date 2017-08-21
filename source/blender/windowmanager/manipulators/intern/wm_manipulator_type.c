@@ -126,6 +126,10 @@ void WM_manipulatortype_append_ptr(void (*wtfunc)(struct wmManipulatorType *, vo
  */
 static void manipulatortype_free(wmManipulatorType *wt)
 {
+	if (wt->ext.srna) { /* python manipulator, allocs own string */
+		MEM_freeN((void *)wt->idname);
+	}
+
 	BLI_freelistN(&wt->target_property_defs);
 	MEM_freeN(wt);
 }
