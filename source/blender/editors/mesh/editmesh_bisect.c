@@ -200,7 +200,7 @@ static int mesh_bisect_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		{
 			View3D *v3d = CTX_wm_view3d(C);
 			if (v3d && (v3d->twtype & V3D_MANIPULATOR_DRAW)) {
-				WM_manipulator_group_add("MESH_WGT_bisect");
+				WM_manipulator_group_type_add("MESH_WGT_bisect");
 			}
 		}
 #endif
@@ -596,7 +596,7 @@ static bool manipulator_mesh_bisect_poll(const bContext *C, wmManipulatorGroupTy
 {
 	wmOperator *op = WM_operator_last_redo(C);
 	if (op == NULL || !STREQ(op->type->idname, "MESH_OT_bisect")) {
-		WM_manipulator_group_remove_ptr_delayed(wgt);
+		WM_manipulator_group_type_remove_ptr_delayed(wgt);
 		return false;
 	}
 	return true;

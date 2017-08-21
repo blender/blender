@@ -683,7 +683,7 @@ void wm_manipulatorgrouptype_setup_keymap(
  *
  * \note In context of manipulator API these names are a bit misleading,
  * but for general use terms its OK.
- * `WM_manipulator_group_add` would be more correctly called:
+ * `WM_manipulator_group_type_add` would be more correctly called:
  * `WM_manipulatormaptype_grouptype_reference_link`
  * but for general purpose API this is too detailed & annoying.
  *
@@ -691,7 +691,7 @@ void wm_manipulatorgrouptype_setup_keymap(
  *
  * \{ */
 
-void WM_manipulator_group_add_ptr_ex(
+void WM_manipulator_group_type_add_ptr_ex(
         wmManipulatorGroupType *wgt,
         wmManipulatorMapType *mmap_type)
 {
@@ -700,63 +700,64 @@ void WM_manipulator_group_add_ptr_ex(
 	WM_manipulatorconfig_update_tag_init(mmap_type, wgt);
 }
 
-void WM_manipulator_group_add_ptr(
+void WM_manipulator_group_type_add_ptr(
         wmManipulatorGroupType *wgt)
 {
 	wmManipulatorMapType *mmap_type = WM_manipulatormaptype_ensure(&wgt->mmap_params);
-	WM_manipulator_group_add_ptr_ex(wgt, mmap_type);
+	WM_manipulator_group_type_add_ptr_ex(wgt, mmap_type);
 }
 
-void WM_manipulator_group_add(const char *idname)
+void WM_manipulator_group_type_add(const char *idname)
 {
 	wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find(idname, false);
 	BLI_assert(wgt != NULL);
-	WM_manipulator_group_add_ptr(wgt);
+	WM_manipulator_group_type_add_ptr(wgt);
 }
 
-void WM_manipulator_group_remove_ptr_ex(
+
+void WM_manipulator_group_type_remove_ptr_ex(
         struct Main *bmain, wmManipulatorGroupType *wgt,
         wmManipulatorMapType *mmap_type)
 {
 	WM_manipulatormaptype_group_unlink(NULL, bmain, mmap_type, wgt);
-	WM_manipulatorgrouptype_remove_ptr(wgt);
+	WM_manipulatorgrouptype_free_ptr(wgt);
 }
 
-void WM_manipulator_group_remove_ptr(
+void WM_manipulator_group_type_remove_ptr(
         struct Main *bmain, wmManipulatorGroupType *wgt)
 {
 	wmManipulatorMapType *mmap_type = WM_manipulatormaptype_ensure(&wgt->mmap_params);
-	WM_manipulator_group_remove_ptr_ex(bmain, wgt, mmap_type);
+	WM_manipulator_group_type_remove_ptr_ex(bmain, wgt, mmap_type);
 }
 
-void WM_manipulator_group_remove(struct Main *bmain, const char *idname)
+void WM_manipulator_group_type_remove(struct Main *bmain, const char *idname)
 {
 	wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find(idname, false);
 	BLI_assert(wgt != NULL);
-	WM_manipulator_group_remove_ptr(bmain, wgt);
+	WM_manipulator_group_type_remove_ptr(bmain, wgt);
 }
 
 /* delayed versions */
 
-void WM_manipulator_group_remove_ptr_delayed_ex(
+void WM_manipulator_group_type_remove_ptr_delayed_ex(
         wmManipulatorGroupType *wgt,
         wmManipulatorMapType *mmap_type)
 {
 	WM_manipulatorconfig_update_tag_remove(mmap_type, wgt);
 }
 
-void WM_manipulator_group_remove_ptr_delayed(
+void WM_manipulator_group_type_remove_ptr_delayed(
         wmManipulatorGroupType *wgt)
 {
 	wmManipulatorMapType *mmap_type = WM_manipulatormaptype_ensure(&wgt->mmap_params);
-	WM_manipulator_group_remove_ptr_delayed_ex(wgt, mmap_type);
+	WM_manipulator_group_type_remove_ptr_delayed_ex(wgt, mmap_type);
 }
 
-void WM_manipulator_group_remove_delayed(const char *idname)
+void WM_manipulator_group_type_remove_delayed(const char *idname)
 {
 	wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find(idname, false);
 	BLI_assert(wgt != NULL);
-	WM_manipulator_group_remove_ptr_delayed(wgt);
+	WM_manipulator_group_type_remove_ptr_delayed(wgt);
 }
 
 /** \} */

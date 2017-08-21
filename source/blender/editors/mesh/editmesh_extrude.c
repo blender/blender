@@ -761,7 +761,7 @@ static int edbm_spin_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e
 	if (ret & OPERATOR_FINISHED) {
 		/* Setup manipulators */
 		if (v3d && (v3d->twtype & V3D_MANIPULATOR_DRAW)) {
-			WM_manipulator_group_add("MESH_WGT_spin");
+			WM_manipulator_group_type_add("MESH_WGT_spin");
 		}
 	}
 #endif
@@ -1059,7 +1059,7 @@ static bool manipulator_mesh_spin_poll(const bContext *C, wmManipulatorGroupType
 {
 	wmOperator *op = WM_operator_last_redo(C);
 	if (op == NULL || !STREQ(op->type->idname, "MESH_OT_spin")) {
-		WM_manipulator_group_remove_ptr_delayed(wgt);
+		WM_manipulator_group_type_remove_ptr_delayed(wgt);
 		return false;
 	}
 	return true;

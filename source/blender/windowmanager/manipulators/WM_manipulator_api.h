@@ -141,8 +141,8 @@ void WM_manipulatortype_iter(struct GHashIterator *ghi);
 struct wmManipulatorGroupType *WM_manipulatorgrouptype_find(const char *idname, bool quiet);
 struct wmManipulatorGroupType *WM_manipulatorgrouptype_append(void (*wtfunc)(struct wmManipulatorGroupType *));
 struct wmManipulatorGroupType *WM_manipulatorgrouptype_append_ptr(void (*mnpfunc)(struct wmManipulatorGroupType *, void *), void *userdata);
-bool WM_manipulatorgrouptype_remove(const char *idname);
-void WM_manipulatorgrouptype_remove_ptr(struct wmManipulatorGroupType *wt);
+bool WM_manipulatorgrouptype_free(const char *idname);
+void WM_manipulatorgrouptype_free_ptr(struct wmManipulatorGroupType *wt);
 void WM_manipulatorgrouptype_iter(struct GHashIterator *ghi);
 
 struct wmManipulatorGroupTypeRef *WM_manipulatorgrouptype_append_and_link(
@@ -273,28 +273,28 @@ void WM_manipulatormaptype_group_free(struct wmManipulatorGroupTypeRef *wgt);
 
 /* Add/Remove (High level API) */
 
-void WM_manipulator_group_add_ptr_ex(
+void WM_manipulator_group_type_add_ptr_ex(
         struct wmManipulatorGroupType *wgt,
         struct wmManipulatorMapType *mmap_type);
-void WM_manipulator_group_add_ptr(
+void WM_manipulator_group_type_add_ptr(
         struct wmManipulatorGroupType *wgt);
-void WM_manipulator_group_add(const char *idname);
+void WM_manipulator_group_type_add(const char *idname);
 
-void WM_manipulator_group_remove_ptr_ex(
+void WM_manipulator_group_type_remove_ptr_ex(
         struct Main *bmain, struct wmManipulatorGroupType *wgt,
         struct wmManipulatorMapType *mmap_type);
-void WM_manipulator_group_remove_ptr(
+void WM_manipulator_group_type_remove_ptr(
         struct Main *bmain, struct wmManipulatorGroupType *wgt);
-void WM_manipulator_group_remove(struct Main *bmain, const char *idname);
+void WM_manipulator_group_type_remove(struct Main *bmain, const char *idname);
 
-void WM_manipulator_group_remove_ptr_delayed_ex(
+void WM_manipulator_group_type_remove_ptr_delayed_ex(
         struct wmManipulatorGroupType *wgt,
         struct wmManipulatorMapType *mmap_type);
-void WM_manipulator_group_remove_ptr_delayed(
+void WM_manipulator_group_type_remove_ptr_delayed(
         struct wmManipulatorGroupType *wgt);
-void WM_manipulator_group_remove_delayed(const char *idname);
+void WM_manipulator_group_type_remove_delayed(const char *idname);
 
 /* Utilities */
-void WM_manipulator_group_is_any_selected(const char *idname);
+void WM_manipulator_group_type_is_any_selected(const char *idname);
 
 #endif  /* __WM_MANIPULATOR_API_H__ */
