@@ -27,6 +27,8 @@
 #ifndef __PY_CAPI_UTILS_H__
 #define __PY_CAPI_UTILS_H__
 
+#include "BLI_sys_types.h"
+
 void			PyC_ObSpit(const char *name, PyObject *var);
 void			PyC_LineSpit(void);
 void			PyC_StackSpit(void);

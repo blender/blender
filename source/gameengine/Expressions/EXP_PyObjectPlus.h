@@ -44,8 +44,7 @@
 #include "STR_String.h"
 #include "MT_Vector3.h"
 #include "SG_QList.h"
-#include <cstddef>
-#include <cstdint>
+#include <stddef.h>
 
 #ifdef WITH_PYTHON
 #ifdef USE_MATHUTILS
