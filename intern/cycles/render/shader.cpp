@@ -177,7 +177,6 @@ Shader::Shader()
 	pass_id = 0;
 
 	graph = NULL;
-	graph_bump = NULL;
 
 	has_surface = false;
 	has_surface_transparent = false;
@@ -185,6 +184,7 @@ Shader::Shader()
 	has_surface_bssrdf = false;
 	has_volume = false;
 	has_displacement = false;
+	has_bump = false;
 	has_bssrdf_bump = false;
 	has_surface_spatial_varying = false;
 	has_volume_spatial_varying = false;
@@ -204,7 +204,6 @@ Shader::Shader()
 Shader::~Shader()
 {
 	delete graph;
-	delete graph_bump;
 }
 
 bool Shader::is_constant_emission(float3 *emission)
@@ -239,9 +238,7 @@ void Shader::set_graph(ShaderGraph *graph_)
 
 	/* assign graph */
 	delete graph;
-	delete graph_bump;
 	graph = graph_;
-	graph_bump = NULL;
 
 	/* Store info here before graph optimization to make sure that
 	 * nodes that get optimized away still count. */
@@ -458,14 +455,10 @@ void ShaderManager::device_update_common(Device *device,
 			flag |= SD_VOLUME_MIS;
 		if(shader->volume_interpolation_method == VOLUME_INTERPOLATION_CUBIC)
 			flag |= SD_VOLUME_CUBIC;
-		if(shader->graph_bump)
+		if(shader->has_bump)
 			flag |= SD_HAS_BUMP;
 		if(shader->displacement_method != DISPLACE_BUMP)
 			flag |= SD_HAS_DISPLACEMENT;
-
-		/* shader with bump mapping */
-		if(shader->displacement_method != DISPLACE_TRUE && shader->graph_bump)
-			flag |= SD_HAS_BSSRDF_BUMP;
 
 		/* constant emission check */
 		float3 constant_emission = make_float3(0.0f, 0.0f, 0.0f);
@@ -608,11 +601,6 @@ void ShaderManager::get_requested_features(Scene *scene,
 		Shader *shader = scene->shaders[i];
 		/* Gather requested features from all the nodes from the graph nodes. */
 		get_requested_graph_features(shader->graph, requested_features);
-		/* Gather requested features from the graph itself. */
-		if(shader->graph_bump) {
-			get_requested_graph_features(shader->graph_bump,
-			                             requested_features);
-		}
 		ShaderNode *output_node = shader->graph->output();
 		if(output_node->input("Displacement")->link != NULL) {
 			requested_features->nodes_features |= NODE_FEATURE_BUMP;

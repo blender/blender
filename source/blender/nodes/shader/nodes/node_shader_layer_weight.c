@@ -52,24 +52,33 @@ static int node_shader_gpu_layer_weight(GPUMaterial *mat, bNode *node, bNodeExec
 	return GPU_stack_link(mat, node, "node_layer_weight", in, out, GPU_builtin(GPU_VIEW_POSITION));
 }
 
-static void node_shader_exec_layer_weight(void *data, int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
+static void node_shader_exec_layer_weight(void *data, int UNUSED(thread), bNode *node, bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
 {
 	ShadeInput *shi = ((ShaderCallData *)data)->shi;
-	float blend = in[0]->vec[0];
+
+	/* Compute IOR. */
+	float blend;
+	nodestack_get_vec(&blend, SOCK_FLOAT, in[0]);
 	float eta = max_ff(1 - blend, 0.00001);
+	eta = shi->flippednor ? eta : 1 / eta;
+
+	/* Get normal from socket, but only if linked. */
+	bNodeSocket *sock_normal = node->inputs.first;
+	sock_normal = sock_normal->next;
 
 	float n[3];
-	if (in[1]->hasinput) {
-		copy_v3_v3(n, in[1]->vec);
+	if (sock_normal->link) {
+		nodestack_get_vec(n, SOCK_VECTOR, in[1]);
 	}
 	else {
 		copy_v3_v3(n, shi->vn);
 	}
 
+
 	if (shi->use_world_space_shading)
 		mul_mat3_m4_v3((float (*)[4])RE_render_current_get_matrix(RE_VIEW_MATRIX), n);
 
-	out[0]->vec[0] = RE_fresnel_dielectric(shi->view, n, shi->flippednor ? eta : 1 / eta);
+	out[0]->vec[0] = RE_fresnel_dielectric(shi->view, n, eta);
 
 	float facing = fabs(dot_v3v3(shi->view, n));
 	if (blend != 0.5) {

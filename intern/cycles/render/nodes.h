@@ -326,6 +326,16 @@ class BsdfBaseNode : public ShaderNode {
 public:
 	BsdfBaseNode(const NodeType *node_type);
 
+	bool has_spatial_varying() { return true; }
+	virtual ClosureType get_closure_type() { return closure; }
+	virtual bool has_bump();
+
+	virtual bool equals(const ShaderNode& /*other*/)
+	{
+		/* TODO(sergey): With some care BSDF nodes can be de-duplicated. */
+		return false;
+	}
+
 	ClosureType closure;
 };
 
@@ -334,19 +344,11 @@ public:
 	explicit BsdfNode(const NodeType *node_type);
 	SHADER_NODE_BASE_CLASS(BsdfNode)
 
-	bool has_spatial_varying() { return true; }
 	void compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *param2, ShaderInput *param3 = NULL, ShaderInput *param4 = NULL);
-	virtual ClosureType get_closure_type() { return closure; }
 
 	float3 color;
 	float3 normal;
 	float surface_mix_weight;
-
-	virtual bool equals(const ShaderNode& /*other*/)
-	{
-		/* TODO(sergey): With some care BSDF nodes can be de-duplicated. */
-		return false;
-	}
 };
 
 class AnisotropicBsdfNode : public BsdfNode {
@@ -373,7 +375,6 @@ class PrincipledBsdfNode : public BsdfBaseNode {
 public:
 	SHADER_NODE_CLASS(PrincipledBsdfNode)
 
-	bool has_spatial_varying() { return true; }
 	bool has_surface_bssrdf();
 	bool has_bssrdf_bump();
 	void compile(SVMCompiler& compiler, ShaderInput *metallic, ShaderInput *subsurface, ShaderInput *subsurface_radius,
@@ -390,13 +391,6 @@ public:
 	float surface_mix_weight;
 	ClosureType distribution, distribution_orig;
 
-	virtual bool equals(const ShaderNode * /*other*/)
-	{
-		/* TODO(sergey): With some care BSDF nodes can be de-duplicated. */
-		return false;
-	}
-
-	ClosureType get_closure_type() { return closure; }
 	bool has_integrator_dependency();
 	void attributes(Shader *shader, AttributeRequestSet *attributes);
 };

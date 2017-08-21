@@ -721,6 +721,7 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
 				current_shader->has_surface_bssrdf = true;
 				current_shader->has_bssrdf_bump = true; /* can't detect yet */
 			}
+			current_shader->has_bump = true; /* can't detect yet */
 		}
 
 		if(node->has_spatial_varying()) {
@@ -1029,6 +1030,9 @@ void OSLCompiler::generate_nodes(const ShaderNodeSet& nodes)
 							if(node->has_bssrdf_bump())
 								current_shader->has_bssrdf_bump = true;
 						}
+						if(node->has_bump()) {
+							current_shader->has_bump = true;
+						}
 					}
 					else if(current_type == SHADER_TYPE_VOLUME) {
 						if(node->has_spatial_varying())
@@ -1091,21 +1095,14 @@ void OSLCompiler::compile(Scene *scene, OSLGlobals *og, Shader *shader)
 		ShaderGraph *graph = shader->graph;
 		ShaderNode *output = (graph)? graph->output(): NULL;
 
-		/* copy graph for shader with bump mapping */
-		if(output->input("Surface")->link && output->input("Displacement")->link)
-			if(!shader->graph_bump)
-				shader->graph_bump = shader->graph->copy();
+		bool has_bump = (shader->displacement_method != DISPLACE_TRUE) &&
+		                output->input("Surface")->link && output->input("Displacement")->link;
 
 		/* finalize */
 		shader->graph->finalize(scene,
-		                        false,
-		                        shader->has_integrator_dependency);
-		if(shader->graph_bump) {
-			shader->graph_bump->finalize(scene,
-			                             true,
-			                             shader->has_integrator_dependency,
-			                             shader->displacement_method == DISPLACE_BOTH);
-		}
+		                        has_bump,
+		                        shader->has_integrator_dependency,
+		                        shader->displacement_method == DISPLACE_BOTH);
 
 		current_shader = shader;
 
@@ -1113,7 +1110,8 @@ void OSLCompiler::compile(Scene *scene, OSLGlobals *og, Shader *shader)
 		shader->has_surface_emission = false;
 		shader->has_surface_transparent = false;
 		shader->has_surface_bssrdf = false;
-		shader->has_bssrdf_bump = false;
+		shader->has_bump = has_bump;
+		shader->has_bssrdf_bump = has_bump;
 		shader->has_volume = false;
 		shader->has_displacement = false;
 		shader->has_surface_spatial_varying = false;
@@ -1125,8 +1123,8 @@ void OSLCompiler::compile(Scene *scene, OSLGlobals *og, Shader *shader)
 		if(shader->used && graph && output->input("Surface")->link) {
 			shader->osl_surface_ref = compile_type(shader, shader->graph, SHADER_TYPE_SURFACE);
 
-			if(shader->graph_bump && shader->displacement_method != DISPLACE_TRUE)
-				shader->osl_surface_bump_ref = compile_type(shader, shader->graph_bump, SHADER_TYPE_BUMP);
+			if(has_bump)
+				shader->osl_surface_bump_ref = compile_type(shader, shader->graph, SHADER_TYPE_BUMP);
 			else
 				shader->osl_surface_bump_ref = OSL::ShaderGroupRef();
 

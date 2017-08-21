@@ -878,7 +878,7 @@ enum ShaderDataFlag {
 	SD_VOLUME_MIS             = (1 << 23),
 	/* Use cubic interpolation for voxels. */
 	SD_VOLUME_CUBIC           = (1 << 24),
-	/* Has data connected to the displacement input. */
+	/* Has data connected to the displacement input or uses bump map. */
 	SD_HAS_BUMP               = (1 << 25),
 	/* Has true displacement. */
 	SD_HAS_DISPLACEMENT       = (1 << 26),

@@ -74,9 +74,6 @@ public:
 		/* Time spent on surface graph finalization. */
 		double time_finalize;
 
-		/* Time spent on bump graph finalization. */
-		double time_finalize_bump;
-
 		/* Time spent on generating SVM nodes for surface shader. */
 		double time_generate_surface;
 

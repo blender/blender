@@ -1856,11 +1856,14 @@ float BKE_mesh_calc_poly_area(
  * - http://forums.cgsociety.org/archive/index.php?t-756235.html
  * - http://www.globalspec.com/reference/52702/203279/4-8-the-centroid-of-a-tetrahedron
  *
- * \note volume is 6x actual volume, and centroid is 4x actual volume-weighted centroid
- * (so division can be done once at the end)
- * \note results will have bias if polygon is non-planar.
+ * \note
+ * - Volume is 6x actual volume, and centroid is 4x actual volume-weighted centroid
+ *   (so division can be done once at the end).
+ * - Results will have bias if polygon is non-planar.
+ * - The resulting volume will only be correct if the mesh is manifold and has consistent face winding
+ *   (non-contiguous face normals or holes in the mesh surface).
  */
-static float mesh_calc_poly_volume_and_weighted_centroid(
+static float mesh_calc_poly_volume_centroid(
         const MPoly *mpoly, const MLoop *loopstart, const MVert *mvarray,
         float r_cent[3])
 {
@@ -1895,6 +1898,43 @@ static float mesh_calc_poly_volume_and_weighted_centroid(
 	}
 
 	return total_volume;
+}
+
+/**
+ * \note
+ * - Results won't be correct if polygon is non-planar.
+ * - This has the advantage over #mesh_calc_poly_volume_centroid
+ *   that it doesn't depend on solid geometry, instead it weights the surface by volume.
+ */
+static float mesh_calc_poly_area_centroid(
+        const MPoly *mpoly, const MLoop *loopstart, const MVert *mvarray,
+        float r_cent[3])
+{
+	int i;
+	float tri_area;
+	float total_area = 0.0f;
+	float v1[3], v2[3], v3[3], normal[3], tri_cent[3];
+
+	BKE_mesh_calc_poly_normal(mpoly, loopstart, mvarray, normal);
+	copy_v3_v3(v1, mvarray[loopstart[0].v].co);
+	copy_v3_v3(v2, mvarray[loopstart[1].v].co);
+	zero_v3(r_cent);
+
+	for (i = 2; i < mpoly->totloop; i++) {
+		copy_v3_v3(v3, mvarray[loopstart[i].v].co);
+
+		tri_area = area_tri_signed_v3(v1, v2, v3, normal);
+		total_area += tri_area;
+
+		mid_v3_v3v3v3(tri_cent, v1, v2, v3);
+		madd_v3_v3fl(r_cent, tri_cent, tri_area);
+
+		copy_v3_v3(v2, v3);
+	}
+
+	mul_v3_fl(r_cent, 1.0f / total_area);
+
+	return total_area;
 }
 
 #if 0 /* slow version of the function below */
@@ -2011,7 +2051,40 @@ bool BKE_mesh_center_bounds(const Mesh *me, float r_cent[3])
 	return false;
 }
 
-bool BKE_mesh_center_centroid(const Mesh *me, float r_cent[3])
+bool BKE_mesh_center_of_surface(const Mesh *me, float r_cent[3])
+{
+	int i = me->totpoly;
+	MPoly *mpoly;
+	float poly_area;
+	float total_area = 0.0f;
+	float poly_cent[3];
+
+	zero_v3(r_cent);
+
+	/* calculate a weighted average of polygon centroids */
+	for (mpoly = me->mpoly; i--; mpoly++) {
+		poly_area = mesh_calc_poly_area_centroid(mpoly, me->mloop + mpoly->loopstart, me->mvert, poly_cent);
+
+		madd_v3_v3fl(r_cent, poly_cent, poly_area);
+		total_area += poly_area;
+	}
+	/* otherwise we get NAN for 0 polys */
+	if (me->totpoly) {
+		mul_v3_fl(r_cent, 1.0f / total_area);
+	}
+
+	/* zero area faces cause this, fallback to median */
+	if (UNLIKELY(!is_finite_v3(r_cent))) {
+		return BKE_mesh_center_median(me, r_cent);
+	}
+
+	return (me->totpoly != 0);
+}
+
+/**
+ * \note Mesh must be manifold with consistent face-winding, see #mesh_calc_poly_volume_centroid for details.
+ */
+bool BKE_mesh_center_of_volume(const Mesh *me, float r_cent[3])
 {
 	int i = me->totpoly;
 	MPoly *mpoly;
@@ -2023,7 +2096,7 @@ bool BKE_mesh_center_centroid(const Mesh *me, float r_cent[3])
 
 	/* calculate a weighted average of polyhedron centroids */
 	for (mpoly = me->mpoly; i--; mpoly++) {
-		poly_volume = mesh_calc_poly_volume_and_weighted_centroid(mpoly, me->mloop + mpoly->loopstart, me->mvert, poly_cent);
+		poly_volume = mesh_calc_poly_volume_centroid(mpoly, me->mloop + mpoly->loopstart, me->mvert, poly_cent);
 
 		/* poly_cent is already volume-weighted, so no need to multiply by the volume */
 		add_v3_v3(r_cent, poly_cent);
@@ -2043,6 +2116,7 @@ bool BKE_mesh_center_centroid(const Mesh *me, float r_cent[3])
 
 	return (me->totpoly != 0);
 }
+
 /** \} */
 
 

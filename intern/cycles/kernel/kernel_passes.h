@@ -260,7 +260,7 @@ ccl_device_inline void kernel_write_data_passes(KernelGlobals *kg, ccl_global fl
 			}
 
 			if(flag & PASS_NORMAL) {
-				float3 normal = sd->N;
+				float3 normal = shader_bsdf_average_normal(kg, sd);
 				kernel_write_pass_float3(buffer + kernel_data.film.pass_normal, sample, normal);
 			}
 			if(flag & PASS_UV) {

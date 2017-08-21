@@ -89,11 +89,6 @@ public:
 	/* shader graph */
 	ShaderGraph *graph;
 
-	/* shader graph with auto bump mapping included, we compile two shaders,
-	 * with and without bump,  because the displacement method is a mesh
-	 * level setting, so we need to handle both */
-	ShaderGraph *graph_bump;
-
 	/* sampling */
 	bool use_mis;
 	bool use_transparent_shadow;
@@ -121,6 +116,7 @@ public:
 	bool has_volume;
 	bool has_displacement;
 	bool has_surface_bssrdf;
+	bool has_bump;
 	bool has_bssrdf_bump;
 	bool has_surface_spatial_varying;
 	bool has_volume_spatial_varying;
