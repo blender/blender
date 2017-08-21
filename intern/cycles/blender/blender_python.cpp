@@ -60,6 +60,8 @@ bool debug_flags_sync_from_scene(BL::Scene b_scene)
 	/* Backup some settings for comparison. */
 	DebugFlags::OpenCL::DeviceType opencl_device_type = flags.opencl.device_type;
 	DebugFlags::OpenCL::KernelType opencl_kernel_type = flags.opencl.kernel_type;
+	/* Synchronize shared flags. */
+	flags.viewport_static_bvh = get_enum(cscene, "debug_bvh_type");
 	/* Synchronize CPU flags. */
 	flags.cpu.avx2 = get_boolean(cscene, "debug_use_cpu_avx2");
 	flags.cpu.avx = get_boolean(cscene, "debug_use_cpu_avx");

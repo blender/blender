@@ -626,14 +626,10 @@ SceneParams BlenderSync::get_scene_params(BL::Scene& b_scene,
 	else if(shadingsystem == 1)
 		params.shadingsystem = SHADINGSYSTEM_OSL;
 	
-	if(background)
+	if(background || DebugFlags().viewport_static_bvh)
 		params.bvh_type = SceneParams::BVH_STATIC;
 	else
-		params.bvh_type = (SceneParams::BVHType)get_enum(
-		        cscene,
-		        "debug_bvh_type",
-		        SceneParams::BVH_NUM_TYPES,
-		        SceneParams::BVH_STATIC);
+		params.bvh_type = SceneParams::BVH_DYNAMIC;
 
 	params.use_bvh_spatial_split = RNA_boolean_get(&cscene, "debug_use_spatial_splits");
 	params.use_bvh_unaligned_nodes = RNA_boolean_get(&cscene, "debug_use_hair_bvh");
