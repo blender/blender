@@ -1102,7 +1102,7 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 		 "Move object origin to position of the 3D cursor"},
 		/* Intentional naming mismatch since some scripts refer to this. */
 		{ORIGIN_TO_CENTER_OF_MASS_SURFACE, "ORIGIN_CENTER_OF_MASS", 0, "Origin to Center of Mass (Surface)",
-		 "Calculate the center of mass calculated from the surface area"},
+		 "Calculate the center of mass from the surface area"},
 		{ORIGIN_TO_CENTER_OF_MASS_VOLUME, "ORIGIN_CENTER_OF_VOLUME", 0, "Origin to Center of Mass (Volume)",
 		 "Calculate the center of mass from the volume (must be manifold geometry with consistent normals)"},
 		{0, NULL, 0, NULL, NULL}
