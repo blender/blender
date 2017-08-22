@@ -7065,7 +7065,7 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 	}
 	uiItemFullO(layout, "UI_OT_edittranslation_init", NULL, ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0);
 
-	mt = WM_menutype_find("WM_MT_button_context", false);
+	mt = WM_menutype_find("WM_MT_button_context", true);
 	if (mt) {
 		Menu menu = {NULL};
 		menu.layout = uiLayoutColumn(layout, false);
