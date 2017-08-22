@@ -1279,7 +1279,7 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject *UNUSED(self), PyObject 
 		index = 0;
 		dl_face = dl->index;
 		while (index < dl->parts) {
-			PyList_SET_ITEM(tri_list, index, Py_BuildValue("iii", dl_face[0], dl_face[1], dl_face[2]));
+			PyList_SET_ITEM(tri_list, index, PyC_Tuple_Pack_I32(dl_face[0], dl_face[1], dl_face[2]));
 			dl_face += 3;
 			index++;
 		}

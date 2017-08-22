@@ -92,34 +92,28 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 
 	int stride = kernel_split_params.stride;
 
-	unsigned int work_index;
-	unsigned int pixel_x;
-	unsigned int pixel_y;
-
-	unsigned int tile_x;
-	unsigned int tile_y;
-	unsigned int sample;
-
 	ccl_global PathState *state = 0x0;
 	float3 throughput;
+	uint sample;
 
 	ccl_global char *ray_state = kernel_split_state.ray_state;
 	ShaderData *sd = &kernel_split_state.sd[ray_index];
 	ccl_global float *buffer = kernel_split_params.buffer;
 
 	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
-
-		throughput = kernel_split_state.throughput[ray_index];
-		state = &kernel_split_state.path_state[ray_index];
-
-		work_index = kernel_split_state.work_array[ray_index];
+		uint work_index = kernel_split_state.work_array[ray_index];
 		sample = get_work_sample(kg, work_index, ray_index) + kernel_split_params.start_sample;
+
+		uint pixel_x, pixel_y, tile_x, tile_y;
 		get_work_pixel_tile_position(kg, &pixel_x, &pixel_y,
 		                        &tile_x, &tile_y,
 		                        work_index,
 		                        ray_index);
 
 		buffer += (kernel_split_params.offset + pixel_x + pixel_y * stride) * kernel_data.film.pass_stride;
+
+		throughput = kernel_split_state.throughput[ray_index];
+		state = &kernel_split_state.path_state[ray_index];
 
 #ifdef __SHADOW_TRICKS__
 		if((sd->object_flag & SD_OBJECT_SHADOW_CATCHER)) {

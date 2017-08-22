@@ -29,6 +29,8 @@
 
 #include "bpy_app_sdl.h"
 
+#include "../generic/py_capi_utils.h"
+
 #ifdef WITH_SDL
 /* SDL force defines __SSE__ and __SSE2__ flags, which generates warnings
  * because we pass those defines via command line as well. For until there's
@@ -103,7 +105,7 @@ static PyObject *make_sdl_info(void)
 #  endif
 # endif
 
-	SetObjItem(Py_BuildValue("(iii)", version.major, version.minor, version.patch));
+	SetObjItem(PyC_Tuple_Pack_I32(version.major, version.minor, version.patch));
 	if (sdl_available) {
 		SetObjItem(PyUnicode_FromFormat("%d.%d.%d", version.major, version.minor, version.patch));
 	}
@@ -114,7 +116,7 @@ static PyObject *make_sdl_info(void)
 
 #else // WITH_SDL=OFF
 	SetObjItem(PyBool_FromLong(0));
-	SetObjItem(Py_BuildValue("(iii)", 0, 0, 0));
+	SetObjItem(PyC_Tuple_Pack_I32(0, 0, 0));
 	SetStrItem("Unknown");
 	SetObjItem(PyBool_FromLong(0));
 #endif

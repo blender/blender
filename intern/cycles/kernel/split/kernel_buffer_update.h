@@ -75,7 +75,6 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
 	if(ray_index != QUEUE_EMPTY_SLOT) {
 #endif
 
-	ccl_global uint *rng_state = kernel_split_params.rng_state;
 	int stride = kernel_split_params.stride;
 
 	ccl_global char *ray_state = kernel_split_state.ray_state;
@@ -83,29 +82,17 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
 	PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
 	ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
 	ccl_global float3 *throughput = &kernel_split_state.throughput[ray_index];
-	ccl_global float *buffer = kernel_split_params.buffer;
-
-	unsigned int work_index;
-	ccl_global uint *initial_rng;
-
-	unsigned int sample;
-	unsigned int tile_x;
-	unsigned int tile_y;
-	unsigned int pixel_x;
-	unsigned int pixel_y;
-
-	work_index = kernel_split_state.work_array[ray_index];
-	sample = get_work_sample(kg, work_index, ray_index) + kernel_split_params.start_sample;
-	get_work_pixel_tile_position(kg, &pixel_x, &pixel_y,
-	                        &tile_x, &tile_y,
-	                        work_index,
-	                        ray_index);
-	initial_rng = rng_state;
-
-	rng_state += kernel_split_params.offset + pixel_x + pixel_y*stride;
-	buffer += (kernel_split_params.offset + pixel_x + pixel_y*stride) * kernel_data.film.pass_stride;
 
 	if(IS_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER)) {
+		uint work_index = kernel_split_state.work_array[ray_index];
+		uint sample = get_work_sample(kg, work_index, ray_index) + kernel_split_params.start_sample;
+
+		uint tile_x, tile_y, pixel_x, pixel_y;
+		get_work_pixel_tile_position(kg, &pixel_x, &pixel_y, &tile_x, &tile_y, work_index, ray_index);
+
+		ccl_global float *buffer = kernel_split_params.buffer;
+		buffer += (kernel_split_params.offset + pixel_x + pixel_y*stride) * kernel_data.film.pass_stride;
+
 		/* accumulate result in output buffer */
 		bool is_shadow_catcher = (state->flag & PATH_RAY_SHADOW_CATCHER);
 		kernel_write_result(kg, buffer, sample, L, is_shadow_catcher);
@@ -115,6 +102,7 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
 
 	if(IS_STATE(ray_state, ray_index, RAY_TO_REGENERATE)) {
 		/* We have completed current work; So get next work */
+		uint work_index;
 		int valid_work = get_next_work(kg, &work_index, ray_index);
 		if(!valid_work) {
 			/* If work is invalid, this means no more work is available and the thread may exit */
@@ -124,13 +112,17 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
 		if(IS_STATE(ray_state, ray_index, RAY_TO_REGENERATE)) {
 			kernel_split_state.work_array[ray_index] = work_index;
 			/* Get the sample associated with the current work */
-			sample = get_work_sample(kg, work_index, ray_index) + kernel_split_params.start_sample;
+			uint sample = get_work_sample(kg, work_index, ray_index) + kernel_split_params.start_sample;
 			/* Get pixel and tile position associated with current work */
+			uint tile_x, tile_y, pixel_x, pixel_y;
 			get_work_pixel_tile_position(kg, &pixel_x, &pixel_y, &tile_x, &tile_y, work_index, ray_index);
 
 			/* Remap rng_state according to the current work */
-			rng_state = initial_rng + kernel_split_params.offset + pixel_x + pixel_y*stride;
+			ccl_global uint *rng_state = kernel_split_params.rng_state;
+			rng_state += kernel_split_params.offset + pixel_x + pixel_y*stride;
+
 			/* Remap buffer according to the current work */
+			ccl_global float *buffer = kernel_split_params.buffer;
 			buffer += (kernel_split_params.offset + pixel_x + pixel_y*stride) * kernel_data.film.pass_stride;
 
 			/* Initialize random numbers and ray. */

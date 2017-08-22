@@ -122,13 +122,16 @@ void DebugFlags::OpenCL::reset()
 }
 
 DebugFlags::DebugFlags()
+: viewport_static_bvh(false)
 {
 	/* Nothing for now. */
 }
 
 void DebugFlags::reset()
 {
+	viewport_static_bvh = false;
 	cpu.reset();
+	cuda.reset();
 	opencl.reset();
 }
 

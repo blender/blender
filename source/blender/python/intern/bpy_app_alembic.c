@@ -34,6 +34,8 @@
 
 #include "bpy_app_alembic.h"
 
+#include "../generic/py_capi_utils.h"
+
 #ifdef WITH_ALEMBIC
 #  include "ABC_alembic.h"
 #endif
@@ -79,11 +81,11 @@ static PyObject *make_alembic_info(void)
 	const int patch = curversion - ((curversion / 100 ) * 100);
 
 	SetObjItem(PyBool_FromLong(1));
-	SetObjItem(Py_BuildValue("(iii)", major, minor, patch));
+	SetObjItem(PyC_Tuple_Pack_I32(major, minor, patch));
 	SetObjItem(PyUnicode_FromFormat("%2d, %2d, %2d", major, minor, patch));
 #else
 	SetObjItem(PyBool_FromLong(0));
-	SetObjItem(Py_BuildValue("(iii)", 0, 0, 0));
+	SetObjItem(PyC_Tuple_Pack_I32(0, 0, 0));
 	SetStrItem("Unknown");
 #endif
 

@@ -30,6 +30,9 @@ CCL_NAMESPACE_BEGIN
  */
 class DebugFlags {
 public:
+	/* Use static BVH in viewport, to match final render exactly. */
+	bool viewport_static_bvh;
+
 	/* Descriptor of CPU feature-set to be used. */
 	struct CPU {
 		CPU();

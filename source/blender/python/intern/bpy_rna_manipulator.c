@@ -121,8 +121,7 @@ static void py_rna_manipulator_handler_set_cb(
 			py_value = PyFloat_FromDouble(*value);
 		}
 		else {
-			py_value =  PyC_FromArray((void *)value, mpr_prop->type->array_length, &PyFloat_Type, false,
-			                          "Manipulator set callback: ");
+			py_value =  PyC_Tuple_PackArray_F32(value, mpr_prop->type->array_length);
 		}
 		if (py_value == NULL) {
 			goto fail;
