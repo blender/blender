@@ -732,6 +732,7 @@ void GPU_texture_update(GPUTexture *tex, const float *pixels)
 			glTexSubImage1D(tex->target, 0, 0, tex->w, format, data_format, pixels);
 			break;
 		case GL_TEXTURE_3D:
+		case GL_TEXTURE_2D_ARRAY:
 			glTexSubImage3D(tex->target, 0, 0, 0, 0, tex->w, tex->h, tex->d, format, data_format, pixels);
 			break;
 		default:
