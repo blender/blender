@@ -752,6 +752,9 @@ void DepsgraphRelationBuilder::build_constraints(Scene *scene, ID *id,
 					/* These constraints require path geometry data. */
 					ComponentKey target_key(&ct->tar->id, DEG_NODE_TYPE_GEOMETRY);
 					add_relation(target_key, constraint_op_key, cti->name);
+					ComponentKey target_transform_key(&ct->tar->id,
+					                                  DEG_NODE_TYPE_TRANSFORM);
+					add_relation(target_transform_key, constraint_op_key, cti->name);
 				}
 				else if ((ct->tar->type == OB_ARMATURE) && (ct->subtarget[0])) {
 					/* bone */
