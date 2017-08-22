@@ -347,6 +347,12 @@ void DEG_graph_on_visible_update(Main *bmain, Scene *scene)
 		GHASH_FOREACH_END();
 	}
 	scene->lay_updated |= graph->layers;
+	/* If graph is tagged for update, we don't need to bother with updates here,
+	 * nodes will be re-created.
+	 */
+	if (graph->need_update) {
+		return;
+	}
 	/* Special trick to get local view to work.  */
 	LINKLIST_FOREACH (Base *, base, &scene->base) {
 		Object *object = base->object;
