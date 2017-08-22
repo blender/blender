@@ -716,9 +716,8 @@ void GPU_texture_update(GPUTexture *tex, const float *pixels)
 	BLI_assert(tex->format > -1);
 	BLI_assert(tex->components > -1);
 
-	GLenum format, internalformat, data_format;
-	internalformat = gpu_texture_get_format(tex->components, tex->format,
-	                                        &format, &data_format, &tex->depth, &tex->stencil, &tex->bytesize);
+	GLenum format, data_format;
+	gpu_texture_get_format(tex->components, tex->format, &format, &data_format, &tex->depth, &tex->stencil, &tex->bytesize);
 
 	glBindTexture(tex->target, tex->bindcode);
 
