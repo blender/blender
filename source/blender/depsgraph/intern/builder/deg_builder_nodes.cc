@@ -998,18 +998,6 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 			                                           DEG_OPCODE_PLACEHOLDER,
 			                                           "Geometry Eval");
 			op_node->set_as_entry();
-
-			/* Calculate curve path - this is used by constraints, etc. */
-			if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
-				add_operation_node(obdata,
-				                   DEG_NODE_TYPE_GEOMETRY,
-				                   function_bind(BKE_curve_eval_path,
-				                                 _1,
-				                                 (Curve *)obdata_cow),
-				                   DEG_OPCODE_GEOMETRY_PATH,
-				                   "Path");
-			}
-
 			/* Make sure objects used for bevel.taper are in the graph.
 			 * NOTE: This objects might be not linked to the scene.
 			 */

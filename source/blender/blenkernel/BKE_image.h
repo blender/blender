@@ -58,6 +58,7 @@ void   BKE_images_exit(void);
 void    BKE_image_free_packedfiles(struct Image *image);
 void    BKE_image_free_views(struct Image *image);
 void    BKE_image_free_buffers(struct Image *image);
+void    BKE_image_free_buffers_ex(struct Image *image, bool do_lock);
 /* call from library */
 void    BKE_image_free(struct Image *image);
 

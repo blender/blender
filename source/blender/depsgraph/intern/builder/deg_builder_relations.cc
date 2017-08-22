@@ -666,33 +666,46 @@ void DepsgraphRelationBuilder::build_object_parent(Object *ob)
 	}
 }
 
-void DepsgraphRelationBuilder::build_constraints(Scene *scene, ID *id, eDepsNode_Type component_type, const char *component_subdata,
-                                                 ListBase *constraints, RootPChanMap *root_map)
+void DepsgraphRelationBuilder::build_constraints(Scene *scene, ID *id,
+                                                 eDepsNode_Type component_type,
+                                                 const char *component_subdata,
+                                                 ListBase *constraints,
+                                                 RootPChanMap *root_map)
 {
-	OperationKey constraint_op_key(id, component_type, component_subdata,
-	                               (component_type == DEG_NODE_TYPE_BONE) ? DEG_OPCODE_BONE_CONSTRAINTS : DEG_OPCODE_TRANSFORM_CONSTRAINTS);
-
-	/* add dependencies for each constraint in turn */
+	OperationKey constraint_op_key(
+	        id,
+	        component_type,
+	        component_subdata,
+	        (component_type == DEG_NODE_TYPE_BONE)
+	                ? DEG_OPCODE_BONE_CONSTRAINTS
+	                : DEG_OPCODE_TRANSFORM_CONSTRAINTS);
+	/* Add dependencies for each constraint in turn. */
 	for (bConstraint *con = (bConstraint *)constraints->first; con; con = con->next) {
 		const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
-
-		/* invalid constraint type... */
-		if (cti == NULL)
+		/* Invalid constraint type. */
+		if (cti == NULL) {
 			continue;
-
-		/* special case for camera tracking -- it doesn't use targets to define relations */
-		// TODO: we can now represent dependencies in a much richer manner, so review how this is done...
-		if (ELEM(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER, CONSTRAINT_TYPE_OBJECTSOLVER)) {
+		}
+		/* Special case for camera tracking -- it doesn't use targets to
+		 * define relations.
+		 */
+		/* TODO: we can now represent dependencies in a much richer manner,
+		 * so review how this is done.
+		 */
+		if (ELEM(cti->type,
+		         CONSTRAINT_TYPE_FOLLOWTRACK,
+		         CONSTRAINT_TYPE_CAMERASOLVER,
+		         CONSTRAINT_TYPE_OBJECTSOLVER))
+		{
 			bool depends_on_camera = false;
-
 			if (cti->type == CONSTRAINT_TYPE_FOLLOWTRACK) {
 				bFollowTrackConstraint *data = (bFollowTrackConstraint *)con->data;
-
-				if (((data->clip) || (data->flag & FOLLOWTRACK_ACTIVECLIP)) && data->track[0])
+				if (((data->clip) ||
+				     (data->flag & FOLLOWTRACK_ACTIVECLIP)) && data->track[0])
+				{
 					depends_on_camera = true;
-
+				}
 				if (data->depth_ob) {
-					// DAG_RL_DATA_OB | DAG_RL_OB_OB
 					ComponentKey depth_key(&data->depth_ob->id, DEG_NODE_TYPE_TRANSFORM);
 					add_relation(depth_key, constraint_op_key, cti->name);
 				}
@@ -700,24 +713,23 @@ void DepsgraphRelationBuilder::build_constraints(Scene *scene, ID *id, eDepsNode
 			else if (cti->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
 				depends_on_camera = true;
 			}
-
 			if (depends_on_camera && scene->camera) {
-				// DAG_RL_DATA_OB | DAG_RL_OB_OB
 				ComponentKey camera_key(&scene->camera->id, DEG_NODE_TYPE_TRANSFORM);
 				add_relation(camera_key, constraint_op_key, cti->name);
 			}
-
-			/* TODO(sergey): This is more a TimeSource -> MovieClip -> Constraint dependency chain. */
+			/* TODO(sergey): This is more a TimeSource -> MovieClip ->
+			 * Constraint dependency chain.
+			 */
 			TimeSourceKey time_src_key;
 			add_relation(time_src_key, constraint_op_key, "[TimeSrc -> Animation]");
 		}
 		else if (cti->type == CONSTRAINT_TYPE_TRANSFORM_CACHE) {
-			/* TODO(kevin): This is more a TimeSource -> CacheFile -> Constraint dependency chain. */
+			/* TODO(kevin): This is more a TimeSource -> CacheFile -> Constraint
+			 * dependency chain.
+			 */
 			TimeSourceKey time_src_key;
 			add_relation(time_src_key, constraint_op_key, "[TimeSrc -> Animation]");
-
 			bTransformCacheConstraint *data = (bTransformCacheConstraint *)con->data;
-
 			if (data->cache_file) {
 				ComponentKey cache_key(&data->cache_file->id, DEG_NODE_TYPE_CACHE);
 				add_relation(cache_key, constraint_op_key, cti->name);
@@ -726,52 +738,73 @@ void DepsgraphRelationBuilder::build_constraints(Scene *scene, ID *id, eDepsNode
 		else if (cti->get_constraint_targets) {
 			ListBase targets = {NULL, NULL};
 			cti->get_constraint_targets(con, &targets);
-
 			LINKLIST_FOREACH (bConstraintTarget *, ct, &targets) {
 				if (ct->tar == NULL) {
 					continue;
 				}
-
-				if (ELEM(con->type, CONSTRAINT_TYPE_KINEMATIC, CONSTRAINT_TYPE_SPLINEIK)) {
-					/* ignore IK constraints - these are handled separately (on pose level) */
+				if (ELEM(con->type,
+				         CONSTRAINT_TYPE_KINEMATIC,
+				         CONSTRAINT_TYPE_SPLINEIK))
+				{
+					/* Ignore IK constraints - these are handled separately
+					 * (on pose level).
+					 */
 				}
-				else if (ELEM(con->type, CONSTRAINT_TYPE_FOLLOWPATH, CONSTRAINT_TYPE_CLAMPTO)) {
-					/* these constraints require path geometry data... */
+				else if (ELEM(con->type,
+				              CONSTRAINT_TYPE_FOLLOWPATH,
+				              CONSTRAINT_TYPE_CLAMPTO))
+				{
+					/* These constraints require path geometry data. */
 					ComponentKey target_key(&ct->tar->id, DEG_NODE_TYPE_GEOMETRY);
-					add_relation(target_key, constraint_op_key, cti->name); // XXX: type = geom_transform
-					// TODO: path dependency
+					add_relation(target_key, constraint_op_key, cti->name);
+					ComponentKey target_transform_key(&ct->tar->id,
+					                                  DEG_NODE_TYPE_TRANSFORM);
+					add_relation(target_transform_key, constraint_op_key, cti->name);
 				}
 				else if ((ct->tar->type == OB_ARMATURE) && (ct->subtarget[0])) {
 					/* bone */
 					if (&ct->tar->id == id) {
 						/* same armature  */
 						eDepsOperation_Code target_key_opcode;
-
-						/* Using "done" here breaks in-chain deps, while using "ready" here breaks most production rigs instead...
-						 * So, we do a compromise here, and only do this when an IK chain conflict may occur
+						/* Using "done" here breaks in-chain deps, while using
+						 * "ready" here breaks most production rigs instead.
+						 * So, we do a compromise here, and only do this when an
+						 * IK chain conflict may occur.
 						 */
-						if (root_map->has_common_root(component_subdata, ct->subtarget)) {
+						if (root_map->has_common_root(component_subdata,
+						                              ct->subtarget))
+						{
 							target_key_opcode = DEG_OPCODE_BONE_READY;
 						}
 						else {
 							target_key_opcode = DEG_OPCODE_BONE_DONE;
 						}
-
-						OperationKey target_key(&ct->tar->id, DEG_NODE_TYPE_BONE, ct->subtarget, target_key_opcode);
+						OperationKey target_key(&ct->tar->id,
+						                        DEG_NODE_TYPE_BONE,
+						                        ct->subtarget,
+						                        target_key_opcode);
 						add_relation(target_key, constraint_op_key, cti->name);
 					}
 					else {
-						/* different armature - we can safely use the result of that */
-						OperationKey target_key(&ct->tar->id, DEG_NODE_TYPE_BONE, ct->subtarget, DEG_OPCODE_BONE_DONE);
+						/* Different armature - we can safely use the result
+						 * of that.
+						 */
+						OperationKey target_key(&ct->tar->id,
+						                        DEG_NODE_TYPE_BONE,
+						                        ct->subtarget,
+						                        DEG_OPCODE_BONE_DONE);
 						add_relation(target_key, constraint_op_key, cti->name);
 					}
 				}
-				else if (ELEM(ct->tar->type, OB_MESH, OB_LATTICE) && (ct->subtarget[0])) {
-					/* vertex group */
-					/* NOTE: for now, we don't need to represent vertex groups separately... */
+				else if (ELEM(ct->tar->type, OB_MESH, OB_LATTICE) &&
+				         (ct->subtarget[0]))
+				{
+					/* Vertex group. */
+					/* NOTE: for now, we don't need to represent vertex groups
+					 * separately.
+					 */
 					ComponentKey target_key(&ct->tar->id, DEG_NODE_TYPE_GEOMETRY);
 					add_relation(target_key, constraint_op_key, cti->name);
-
 					if (ct->tar->type == OB_MESH) {
 						OperationDepsNode *node2 = find_operation_node(target_key);
 						if (node2 != NULL) {
@@ -783,37 +816,48 @@ void DepsgraphRelationBuilder::build_constraints(Scene *scene, ID *id, eDepsNode
 					/* Constraints which requires the target object surface. */
 					ComponentKey target_key(&ct->tar->id, DEG_NODE_TYPE_GEOMETRY);
 					add_relation(target_key, constraint_op_key, cti->name);
-
-					/* NOTE: obdata eval now doesn't necessarily depend on the object's transform... */
-					ComponentKey target_transform_key(&ct->tar->id, DEG_NODE_TYPE_TRANSFORM);
+					/* NOTE: obdata eval now doesn't necessarily depend on the
+					 * object's transform.
+					 */
+					ComponentKey target_transform_key(&ct->tar->id,
+					                                  DEG_NODE_TYPE_TRANSFORM);
 					add_relation(target_transform_key, constraint_op_key, cti->name);
 				}
 				else {
-					/* standard object relation */
+					/* Standard object relation. */
 					// TODO: loc vs rot vs scale?
 					if (&ct->tar->id == id) {
 						/* Constraint targetting own object:
-						 * - This case is fine IFF we're dealing with a bone constraint pointing to
-						 *   its own armature. In that case, it's just transform -> bone.
-						 * - If however it is a real self targetting case, just make it depend on the
-						 *   previous constraint (or the pre-constraint state)...
+						 * - This case is fine IFF we're dealing with a bone
+						 *   constraint pointing to its own armature. In that
+						 *   case, it's just transform -> bone.
+						 * - If however it is a real self targetting case, just
+						 *   make it depend on the previous constraint (or the
+						 *   pre-constraint state).
 						 */
-						if ((ct->tar->type == OB_ARMATURE) && (component_type == DEG_NODE_TYPE_BONE)) {
-							OperationKey target_key(&ct->tar->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_FINAL);
+						if ((ct->tar->type == OB_ARMATURE) &&
+						    (component_type == DEG_NODE_TYPE_BONE))
+						{
+							OperationKey target_key(&ct->tar->id,
+							                        DEG_NODE_TYPE_TRANSFORM,
+							                        DEG_OPCODE_TRANSFORM_FINAL);
 							add_relation(target_key, constraint_op_key, cti->name);
 						}
 						else {
-							OperationKey target_key(&ct->tar->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_LOCAL);
+							OperationKey target_key(&ct->tar->id,
+							                        DEG_NODE_TYPE_TRANSFORM,
+							                        DEG_OPCODE_TRANSFORM_LOCAL);
 							add_relation(target_key, constraint_op_key, cti->name);
 						}
 					}
 					else {
-						/* normal object dependency */
-						OperationKey target_key(&ct->tar->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_FINAL);
+						/* Normal object dependency. */
+						OperationKey target_key(&ct->tar->id,
+						                        DEG_NODE_TYPE_TRANSFORM,
+						                        DEG_OPCODE_TRANSFORM_FINAL);
 						add_relation(target_key, constraint_op_key, cti->name);
 					}
 				}
-
 				/* Constraints which needs world's matrix for transform.
 				 * TODO(sergey): More constraints here?
 				 */
@@ -824,14 +868,14 @@ void DepsgraphRelationBuilder::build_constraints(Scene *scene, ID *id, eDepsNode
 				         CONSTRAINT_TYPE_TRANSLIKE))
 				{
 					/* TODO(sergey): Add used space check. */
-					ComponentKey target_transform_key(&ct->tar->id, DEG_NODE_TYPE_TRANSFORM);
+					ComponentKey target_transform_key(&ct->tar->id,
+					                                  DEG_NODE_TYPE_TRANSFORM);
 					add_relation(target_transform_key, constraint_op_key, cti->name);
 				}
-
 			}
-
-			if (cti->flush_constraint_targets)
+			if (cti->flush_constraint_targets) {
 				cti->flush_constraint_targets(con, &targets, 1);
+			}
 		}
 	}
 }

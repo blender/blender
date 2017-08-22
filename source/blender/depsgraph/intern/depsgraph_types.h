@@ -175,8 +175,6 @@ typedef enum eDepsOperation_Code {
 	/* Geometry. ---------------------------------------- */
 	/* Evaluate the whole geometry, including modifiers. */
 	DEG_OPCODE_GEOMETRY_UBEREVAL,
-	/* Curve Objects - Path Calculation (used for path-following tools, */
-	DEG_OPCODE_GEOMETRY_PATH,
 
 	/* Pose. -------------------------------------------- */
 	/* Init IK Trees, etc. */

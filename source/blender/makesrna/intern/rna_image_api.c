@@ -290,7 +290,7 @@ static void rna_Image_filepath_from_user(Image *image, ImageUser *image_user, ch
 
 static void rna_Image_buffers_free(Image *image)
 {
-	BKE_image_free_buffers(image);
+	BKE_image_free_buffers_ex(image, true);
 }
 
 #else

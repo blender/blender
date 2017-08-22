@@ -4686,17 +4686,6 @@ void BKE_curve_eval_geometry(const EvaluationContext *UNUSED(eval_ctx),
 	}
 }
 
-void BKE_curve_eval_path(const EvaluationContext *UNUSED(eval_ctx),
-                         Curve *curve)
-{
-	/* TODO(sergey): This will probably need to be a part of
-	 * the modifier stack still.
-	 */
-	if (G.debug & G_DEBUG_DEPSGRAPH) {
-		printf("%s on %s\n", __func__, curve->id.name);
-	}
-}
-
 /* Draw Engine */
 void (*BKE_curve_batch_cache_dirty_cb)(Curve *cu, int mode) = NULL;
 void (*BKE_curve_batch_cache_free_cb)(Curve *cu) = NULL;
