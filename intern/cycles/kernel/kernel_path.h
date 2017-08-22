@@ -304,7 +304,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 		                      &isect,
 		                      ray);
 		float rbsdf = path_state_rng_1D_for_decision(kg, state, PRNG_BSDF);
-		shader_eval_surface(kg, sd, state, rbsdf, state->flag, SHADER_CONTEXT_INDIRECT);
+		shader_eval_surface(kg, sd, state, rbsdf, state->flag);
 #ifdef __BRANCHED_PATH__
 		shader_merge_closures(sd);
 #endif  /* __BRANCHED_PATH__ */
@@ -627,7 +627,7 @@ ccl_device_inline void kernel_path_integrate(KernelGlobals *kg,
 		/* setup shading */
 		shader_setup_from_ray(kg, &sd, &isect, &ray);
 		float rbsdf = path_state_rng_1D_for_decision(kg, &state, PRNG_BSDF);
-		shader_eval_surface(kg, &sd, &state, rbsdf, state.flag, SHADER_CONTEXT_MAIN);
+		shader_eval_surface(kg, &sd, &state, rbsdf, state.flag);
 
 #ifdef __SHADOW_TRICKS__
 		if((sd.object_flag & SD_OBJECT_SHADOW_CATCHER)) {

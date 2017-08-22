@@ -52,7 +52,7 @@ ccl_device_inline void compute_light_pass(KernelGlobals *kg,
 
 	/* evaluate surface shader */
 	float rbsdf = path_state_rng_1D(kg, &state, PRNG_BSDF);
-	shader_eval_surface(kg, sd, &state, rbsdf, state.flag, SHADER_CONTEXT_MAIN);
+	shader_eval_surface(kg, sd, &state, rbsdf, state.flag);
 
 	/* TODO, disable more closures we don't need besides transparent */
 	shader_bsdf_disable_transparency(kg, sd);
@@ -242,12 +242,12 @@ ccl_device float3 kernel_bake_evaluate_direct_indirect(KernelGlobals *kg,
 		}
 		else {
 			/* surface color of the pass only */
-			shader_eval_surface(kg, sd, state, 0.0f, 0, SHADER_CONTEXT_MAIN);
+			shader_eval_surface(kg, sd, state, 0.0f, 0);
 			return kernel_bake_shader_bsdf(kg, sd, type);
 		}
 	}
 	else {
-		shader_eval_surface(kg, sd, state, 0.0f, 0, SHADER_CONTEXT_MAIN);
+		shader_eval_surface(kg, sd, state, 0.0f, 0);
 		color = kernel_bake_shader_bsdf(kg, sd, type);
 	}
 
@@ -339,7 +339,7 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 		case SHADER_EVAL_NORMAL:
 		{
 			if((sd.flag & SD_HAS_BUMP)) {
-				shader_eval_surface(kg, &sd, &state, 0.f, 0, SHADER_CONTEXT_MAIN);
+				shader_eval_surface(kg, &sd, &state, 0.f, 0);
 			}
 
 			/* encoding: normal = (2 * color) - 1 */
@@ -353,7 +353,7 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 		}
 		case SHADER_EVAL_EMISSION:
 		{
-			shader_eval_surface(kg, &sd, &state, 0.f, 0, SHADER_CONTEXT_EMISSION);
+			shader_eval_surface(kg, &sd, &state, 0.f, 0);
 			out = shader_emissive_eval(kg, &sd);
 			break;
 		}
@@ -473,7 +473,7 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 
 			/* evaluate */
 			int flag = 0; /* we can't know which type of BSDF this is for */
-			out = shader_eval_background(kg, &sd, &state, flag, SHADER_CONTEXT_MAIN);
+			out = shader_eval_background(kg, &sd, &state, flag);
 			break;
 		}
 		default:
@@ -517,7 +517,7 @@ ccl_device void kernel_shader_evaluate(KernelGlobals *kg,
 
 		/* evaluate */
 		float3 P = sd.P;
-		shader_eval_displacement(kg, &sd, &state, SHADER_CONTEXT_MAIN);
+		shader_eval_displacement(kg, &sd, &state);
 		out = sd.P - P;
 
 		object_inverse_dir_transform(kg, &sd, &out);
@@ -545,7 +545,7 @@ ccl_device void kernel_shader_evaluate(KernelGlobals *kg,
 
 		/* evaluate */
 		int flag = 0; /* we can't know which type of BSDF this is for */
-		out = shader_eval_background(kg, &sd, &state, flag, SHADER_CONTEXT_MAIN);
+		out = shader_eval_background(kg, &sd, &state, flag);
 	}
 	
 	/* write output */

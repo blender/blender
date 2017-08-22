@@ -53,10 +53,10 @@ public:
 	static void thread_free(KernelGlobals *kg);
 
 	/* eval */
-	static void eval_surface(KernelGlobals *kg, ShaderData *sd, PathState *state, int path_flag, ShaderContext ctx);
-	static void eval_background(KernelGlobals *kg, ShaderData *sd, PathState *state, int path_flag, ShaderContext ctx);
-	static void eval_volume(KernelGlobals *kg, ShaderData *sd, PathState *state, int path_flag, ShaderContext ctx);
-	static void eval_displacement(KernelGlobals *kg, ShaderData *sd, ShaderContext ctx);
+	static void eval_surface(KernelGlobals *kg, ShaderData *sd, PathState *state, int path_flag);
+	static void eval_background(KernelGlobals *kg, ShaderData *sd, PathState *state, int path_flag);
+	static void eval_volume(KernelGlobals *kg, ShaderData *sd, PathState *state, int path_flag);
+	static void eval_displacement(KernelGlobals *kg, ShaderData *sd);
 
 	/* attributes */
 	static int find_attribute(KernelGlobals *kg, const ShaderData *sd, uint id, AttributeDescriptor *desc);
