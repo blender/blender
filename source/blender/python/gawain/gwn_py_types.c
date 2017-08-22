@@ -602,9 +602,9 @@ static PyObject *bpygwn_VertBatch_uniform_bool(BPyGwn_Batch *self, PyObject *arg
 	} params;
 
 	if (!PyArg_ParseTuple(
-	        args, "si:uniform_b",
+	        args, "sO&:uniform_bool",
 	        &params.id,
-	        &params.values[0]))
+	        PyC_ParseBool, &params.values[0]))
 	{
 		return NULL;
 	}
@@ -621,7 +621,7 @@ static PyObject *bpygwn_VertBatch_uniform_i32(BPyGwn_Batch *self, PyObject *args
 	} params;
 
 	if (!PyArg_ParseTuple(
-	        args, "si:uniform_i",
+	        args, "si:uniform_i32",
 	        &params.id,
 	        &params.values[0]))
 	{
@@ -634,13 +634,13 @@ static PyObject *bpygwn_VertBatch_uniform_i32(BPyGwn_Batch *self, PyObject *args
 
 static PyObject *bpygwn_VertBatch_uniform_f32(BPyGwn_Batch *self, PyObject *args)
 {
-	struct {
+	static struct {
 		const char *id;
 		float values[4];
 	} params;
 
 	if (!PyArg_ParseTuple(
-	        args, "sf|fff:uniform_f",
+	        args, "sf|fff:uniform_f32",
 	        &params.id,
 	        &params.values[0], &params.values[1], &params.values[2], &params.values[3]))
 	{
