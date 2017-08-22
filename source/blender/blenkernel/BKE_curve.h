@@ -218,7 +218,4 @@ struct EvaluationContext;
 void BKE_curve_eval_geometry(struct EvaluationContext *eval_ctx,
                              struct Curve *curve);
 
-void BKE_curve_eval_path(struct EvaluationContext *eval_ctx,
-                         struct Curve *curve);
-
 #endif  /* __BKE_CURVE_H__ */

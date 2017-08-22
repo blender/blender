@@ -4680,14 +4680,3 @@ void BKE_curve_eval_geometry(EvaluationContext *UNUSED(eval_ctx),
 		BKE_curve_texspace_calc(curve);
 	}
 }
-
-void BKE_curve_eval_path(EvaluationContext *UNUSED(eval_ctx),
-                         Curve *curve)
-{
-	/* TODO(sergey): This will probably need to be a part of
-	 * the modifier stack still.
-	 */
-	if (G.debug & G_DEBUG_DEPSGRAPH) {
-		printf("%s on %s\n", __func__, curve->id.name);
-	}
-}
