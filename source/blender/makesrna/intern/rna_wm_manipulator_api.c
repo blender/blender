@@ -71,6 +71,10 @@ static void rna_manipulator_draw_preset_facemap(
 	ED_manipulator_draw_preset_facemap(C, mpr, scene, ob, facemap, select_id);
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Manipulator Property Define
+ * \{ */
+
 static void rna_manipulator_target_set_prop(
         wmManipulator *mpr, ReportList *reports, const char *target_propname,
         PointerRNA *ptr, const char *propname, int index)
@@ -158,6 +162,27 @@ static PointerRNA rna_manipulator_target_set_operator(
 	return mpr->op_data.ptr;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Manipulator Property Access
+ * \{ */
+
+static int rna_manipulator_target_is_valid(
+        wmManipulator *mpr, ReportList *reports, const char *target_propname)
+{
+	wmManipulatorProperty *mpr_prop =
+	        WM_manipulator_target_property_find(mpr, target_propname);
+	if (mpr_prop == NULL) {
+		BKE_reportf(reports, RPT_ERROR, "Manipulator target property '%s.%s' not found",
+		            mpr->type->idname, target_propname);
+		return false;
+	}
+	return WM_manipulator_target_property_is_valid(mpr_prop);
+}
+
+/** \} */
+
 #else
 
 void RNA_api_manipulator(StructRNA *srna)
@@ -218,6 +243,7 @@ void RNA_api_manipulator(StructRNA *srna)
 	/* -------------------------------------------------------------------- */
 	/* Property API */
 
+	/* Define Properties */
 	/* note, 'target_set_handler' is defined in 'bpy_rna_manipulator.c' */
 	func = RNA_def_function(srna, "target_set_prop", "rna_manipulator_target_set_prop");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
@@ -241,6 +267,16 @@ void RNA_api_manipulator(StructRNA *srna)
 	/* similar to UILayout.operator */
 	parm = RNA_def_pointer(func, "properties", "OperatorProperties", "", "Operator properties to fill in");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED | PARM_RNAPTR);
+	RNA_def_function_return(func, parm);
+
+	/* Access Properties */
+	/* note, 'target_get', 'target_set' is defined in 'bpy_rna_manipulator.c' */
+	func = RNA_def_function(srna, "target_is_valid", "rna_manipulator_target_is_valid");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm = RNA_def_string(func, "property", NULL, 0, "", "Property identifier");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	RNA_def_function_ui_description(func, "");
+	parm = RNA_def_boolean(func, "result", 0, "", "");
 	RNA_def_function_return(func, parm);
 
 }

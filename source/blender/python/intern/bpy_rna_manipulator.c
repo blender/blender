@@ -30,6 +30,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_alloca.h"
 
 #include "BKE_main.h"
 
@@ -47,6 +48,11 @@
 #include "RNA_enum_types.h"
 
 #include "bpy_rna.h"
+
+
+/* -------------------------------------------------------------------- */
+/** \name Manipulator Target Property Define API
+ * \{ */
 
 enum {
 	BPY_MANIPULATOR_FN_SLOT_GET = 0,
@@ -75,7 +81,7 @@ static void py_rna_manipulator_handler_get_cb(
 	if (mpr_prop->type->data_type == PROP_FLOAT) {
 		float *value = value_p;
 		if (mpr_prop->type->array_length == 1) {
-			if (((*value = PyFloat_AsDouble(ret)) == -1.0f && PyErr_Occurred()) == 0) {
+			if ((*value = PyFloat_AsDouble(ret)) == -1.0f && PyErr_Occurred()) {
 				goto fail;
 			}
 		}
@@ -333,20 +339,275 @@ fail:
 	return NULL;
 }
 
-int BPY_rna_manipulator_module(PyObject *mod_par)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Manipulator Target Property Access API
+ * \{ */
+
+PyDoc_STRVAR(bpy_manipulator_target_get_value_doc,
+".. method:: target_get_value(target):\n"
+"\n"
+"   Get the value of this target property.\n"
+"\n"
+"   :arg target: Target property name.\n"
+"   :type target: string\n"
+"   :return: The value of the target property.\n"
+"   :rtype: Single value or array based on the target type\n"
+);
+static PyObject *bpy_manipulator_target_get_value(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
 {
-	static PyMethodDef method_def = {
-	    "target_set_handler", (PyCFunction)bpy_manipulator_target_set_handler, METH_VARARGS | METH_KEYWORDS,
-	    bpy_manipulator_target_set_handler_doc};
+	struct {
+		PyObject *self;
+		char *target;
+	} params = {
+		.self = NULL,
+		.target = NULL,
+	};
 
-	PyObject *func = PyCFunction_New(&method_def, NULL);
-	PyObject *func_inst = PyInstanceMethod_New(func);
+	static const char * const _keywords[] = {"self", "target", NULL};
+#define KW_FMT "Os:target_get_value"
+#if PY_VERSION_HEX >= 0x03070000
+	static _PyArg_Parser _parser = {KW_FMT, _keywords, 0};
+	if (!_PyArg_ParseTupleAndKeywordsFast(
+	        args, kwds,
+	        &_parser,
+	        &params.self,
+	        &params.target))
+#else
+	if (!PyArg_ParseTupleAndKeywords(
+	        args, kwds,
+	        KW_FMT, (char **)_keywords,
+	        &params.self,
+	        &params.target))
+#endif
+	{
+		goto fail;
+	}
+#undef KW_FMT
 
+	wmManipulator *mpr = ((BPy_StructRNA *)params.self)->ptr.data;
 
-	/* TODO, return a type that binds nearly to a method. */
-	PyModule_AddObject(mod_par, "_rna_manipulator_target_set_handler", func_inst);
+	wmManipulatorProperty *mpr_prop =
+	        WM_manipulator_target_property_find(mpr, params.target);
+	if (mpr_prop == NULL) {
+		PyErr_Format(PyExc_ValueError,
+		             "Manipulator target property '%s.%s' not found",
+		             mpr->type->idname, params.target);
+		goto fail;
+	}
 
-	return 0;
+	const int array_len = WM_manipulator_target_property_array_length(mpr, mpr_prop);
+	switch (mpr_prop->type->data_type) {
+		case PROP_FLOAT:
+		{
+			if (array_len != 0) {
+				float *value = BLI_array_alloca(value, array_len);
+				WM_manipulator_target_property_value_get_array(mpr, mpr_prop, value);
+				return PyC_Tuple_PackArray_F32(value, array_len);
+			}
+			else {
+				float value = WM_manipulator_target_property_value_get(mpr, mpr_prop);
+				return PyFloat_FromDouble(value);
+			}
+			break;
+		}
+		default:
+		{
+			PyErr_SetString(PyExc_RuntimeError, "Not yet supported type");
+			goto fail;
+		}
+	}
+
+fail:
+	return NULL;
+}
+
+PyDoc_STRVAR(bpy_manipulator_target_set_value_doc,
+".. method:: target_set_value(target):\n"
+"\n"
+"   Set the value of this target property.\n"
+"\n"
+"   :arg target: Target property name.\n"
+"   :type target: string\n"
+);
+static PyObject *bpy_manipulator_target_set_value(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
+{
+	struct {
+		PyObject *self;
+		char *target;
+		PyObject *value;
+	} params = {
+		.self = NULL,
+		.target = NULL,
+		.value = NULL,
+	};
+
+	static const char * const _keywords[] = {"self", "target", "value", NULL};
+#define KW_FMT "OsO:target_set_value"
+#if PY_VERSION_HEX >= 0x03070000
+	static _PyArg_Parser _parser = {KW_FMT, _keywords, 0};
+	if (!_PyArg_ParseTupleAndKeywordsFast(
+	        args, kwds,
+	        &_parser,
+	        &params.self,
+	        &params.target,
+	        &params.value))
+#else
+	if (!PyArg_ParseTupleAndKeywords(
+	        args, kwds,
+	        KW_FMT, (char **)_keywords,
+	        &params.self,
+	        &params.target,
+	        &params.value))
+#endif
+	{
+		goto fail;
+	}
+#undef KW_FMT
+
+	wmManipulator *mpr = ((BPy_StructRNA *)params.self)->ptr.data;
+
+	wmManipulatorProperty *mpr_prop =
+	        WM_manipulator_target_property_find(mpr, params.target);
+	if (mpr_prop == NULL) {
+		PyErr_Format(PyExc_ValueError,
+		             "Manipulator target property '%s.%s' not found",
+		             mpr->type->idname, params.target);
+		goto fail;
+	}
+
+	const int array_len = WM_manipulator_target_property_array_length(mpr, mpr_prop);
+	switch (mpr_prop->type->data_type) {
+		case PROP_FLOAT:
+		{
+			if (array_len != 0) {
+				float *value = BLI_array_alloca(value, array_len);
+				if (PyC_AsArray(value, params.value, mpr_prop->type->array_length, &PyFloat_Type, false,
+				                "Manipulator target property array") == -1)
+				{
+					goto fail;
+				}
+				WM_manipulator_target_property_value_set_array(BPy_GetContext(), mpr, mpr_prop, value);
+			}
+			else {
+				float value;
+				if ((value = PyFloat_AsDouble(params.value)) == -1.0f && PyErr_Occurred()) {
+					goto fail;
+				}
+				WM_manipulator_target_property_value_set(BPy_GetContext(), mpr, mpr_prop, value);
+			}
+			Py_RETURN_NONE;
+		}
+		default:
+		{
+			PyErr_SetString(PyExc_RuntimeError, "Not yet supported type");
+			goto fail;
+		}
+	}
+
+fail:
+	return NULL;
 }
 
 
+PyDoc_STRVAR(bpy_manipulator_target_get_range_doc,
+".. method:: target_get_range(target):\n"
+"\n"
+"   Get the range for this target property.\n"
+"\n"
+"   :arg target: Target property name.\n"
+"   :Get the range for this target property"
+"   :return: The range of this property (min, max).\n"
+"   :rtype: tuple pair.\n"
+);
+static PyObject *bpy_manipulator_target_get_range(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
+{
+	struct {
+		PyObject *self;
+		char *target;
+	} params = {
+		.self = NULL,
+		.target = NULL,
+	};
+
+	static const char * const _keywords[] = {"self", "target", NULL};
+#define KW_FMT "Os:target_get_range"
+#if PY_VERSION_HEX >= 0x03070000
+	static _PyArg_Parser _parser = {KW_FMT, _keywords, 0};
+	if (!_PyArg_ParseTupleAndKeywordsFast(
+	        args, kwds,
+	        &_parser,
+	        &params.self,
+	        &params.target))
+#else
+	if (!PyArg_ParseTupleAndKeywords(
+	        args, kwds,
+	        KW_FMT, (char **)_keywords,
+	        &params.self,
+	        &params.target))
+#endif
+	{
+		goto fail;
+	}
+#undef KW_FMT
+
+	wmManipulator *mpr = ((BPy_StructRNA *)params.self)->ptr.data;
+
+	wmManipulatorProperty *mpr_prop =
+	        WM_manipulator_target_property_find(mpr, params.target);
+	if (mpr_prop == NULL) {
+		PyErr_Format(PyExc_ValueError,
+		             "Manipulator target property '%s.%s' not found",
+		             mpr->type->idname, params.target);
+		goto fail;
+	}
+
+	switch (mpr_prop->type->data_type) {
+		case PROP_FLOAT:
+		{
+			float range[2];
+			WM_manipulator_target_property_range_get(mpr, mpr_prop, range);
+			return PyC_Tuple_PackArray_F32(range, 2);
+		}
+		default:
+		{
+			PyErr_SetString(PyExc_RuntimeError, "Not yet supported type");
+			goto fail;
+		}
+	}
+
+fail:
+	return NULL;
+}
+
+/** \} */
+
+int BPY_rna_manipulator_module(PyObject *mod_par)
+{
+	static PyMethodDef method_def_array[] = {
+		/* Manipulator Target Property Define API */
+		{"target_set_handler", (PyCFunction)bpy_manipulator_target_set_handler,
+		 METH_VARARGS | METH_KEYWORDS, bpy_manipulator_target_set_handler_doc},
+		/* Manipulator Target Property Access API */
+		{"target_get_value", (PyCFunction)bpy_manipulator_target_get_value,
+		 METH_VARARGS | METH_KEYWORDS, bpy_manipulator_target_get_value_doc},
+		{"target_set_value", (PyCFunction)bpy_manipulator_target_set_value,
+		 METH_VARARGS | METH_KEYWORDS, bpy_manipulator_target_set_value_doc},
+		{"target_get_range", (PyCFunction)bpy_manipulator_target_get_range,
+		 METH_VARARGS | METH_KEYWORDS, bpy_manipulator_target_get_range_doc},
+		/* no sentinel needed. */
+	};
+
+	for (int i = 0; i < ARRAY_SIZE(method_def_array); i++) {
+		PyMethodDef *m = &method_def_array[i];
+		PyObject *func = PyCFunction_New(m, NULL);
+		PyObject *func_inst = PyInstanceMethod_New(func);
+		char name_prefix[128];
+		PyOS_snprintf(name_prefix, sizeof(name_prefix), "_rna_manipulator_%s", m->ml_name);
+		/* TODO, return a type that binds nearly to a method. */
+		PyModule_AddObject(mod_par, name_prefix, func_inst);
+	}
+
+	return 0;
+}
