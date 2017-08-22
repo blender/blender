@@ -30,7 +30,7 @@
  *  \ingroup ketsji
  */
 
- 
+#include "GPU_glew.h"
 #include "GPU_matrix.h"
 #include "KX_Camera.h"
 #include "KX_Scene.h"
