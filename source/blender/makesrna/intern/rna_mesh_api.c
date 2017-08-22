@@ -217,7 +217,7 @@ static void rna_Mesh_split_faces(Mesh *mesh, int free_loop_normals)
 
 static void rna_Mesh_update_gpu_tag(Mesh *mesh)
 {
-	BKE_mesh_batch_cache_dirty(mesh, BKE_MESH_BATCH_DIRTY_NOCHECK);
+	BKE_mesh_batch_cache_dirty(mesh, BKE_MESH_BATCH_DIRTY_ALL);
 }
 
 

@@ -1091,7 +1091,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 	for (tob = bmain->object.first; tob; tob = tob->id.next) {
 		if (tob->data && (((ID *)tob->data)->tag & LIB_TAG_DOIT)) {
-			BKE_mesh_batch_cache_dirty(tob->data, BKE_MESH_BATCH_DIRTY_NOCHECK);
+			BKE_mesh_batch_cache_dirty(tob->data, BKE_MESH_BATCH_DIRTY_ALL);
 			DEG_id_tag_update(&tob->id, OB_RECALC_OB | OB_RECALC_DATA);
 		}
 	}

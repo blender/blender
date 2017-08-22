@@ -1494,8 +1494,8 @@ typedef struct MeshBatchCache {
 	Gwn_Batch *overlay_paint_edges;
 
 	/* settings to determine if cache is invalid */
-	bool is_dirty;
-	bool is_really_dirty; /* Instantly invalidates cache, skipping mesh check */
+	bool is_maybe_dirty;
+	bool is_dirty; /* Instantly invalidates cache, skipping mesh check */
 	int edge_len;
 	int tri_len;
 	int poly_len;
@@ -1519,18 +1519,18 @@ static bool mesh_batch_cache_valid(Mesh *me)
 
 	/* XXX find another place for this */
 	if (cache->mat_len != mesh_render_mat_len_get(me)) {
-		cache->is_dirty = true;
+		cache->is_maybe_dirty = true;
 	}
 
 	if (cache->is_editmode != (me->edit_btmesh != NULL)) {
 		return false;
 	}
 
-	if (cache->is_really_dirty) {
+	if (cache->is_dirty) {
 		return false;
 	}
 
-	if (cache->is_dirty == false) {
+	if (cache->is_maybe_dirty == false) {
 		return true;
 	}
 	else {
@@ -1572,8 +1572,8 @@ static void mesh_batch_cache_init(Mesh *me)
 
 	cache->mat_len = mesh_render_mat_len_get(me);
 
+	cache->is_maybe_dirty = false;
 	cache->is_dirty = false;
-	cache->is_really_dirty = false;
 }
 
 static MeshBatchCache *mesh_batch_cache_get(Mesh *me)
@@ -1592,8 +1592,8 @@ void DRW_mesh_batch_cache_dirty(Mesh *me, int mode)
 		return;
 	}
 	switch (mode) {
-		case BKE_MESH_BATCH_DIRTY_ALL:
-			cache->is_dirty = true;
+		case BKE_MESH_BATCH_DIRTY_MAYBE_ALL:
+			cache->is_maybe_dirty = true;
 			break;
 		case BKE_MESH_BATCH_DIRTY_SELECT:
 			GWN_VERTBUF_DISCARD_SAFE(cache->ed_tri_data);
@@ -1612,13 +1612,13 @@ void DRW_mesh_batch_cache_dirty(Mesh *me, int mode)
 			GWN_BATCH_DISCARD_SAFE(cache->edges_with_select_id);
 			GWN_BATCH_DISCARD_SAFE(cache->verts_with_select_id);
 			break;
-		case BKE_MESH_BATCH_DIRTY_NOCHECK:
-			cache->is_really_dirty = true;
+		case BKE_MESH_BATCH_DIRTY_ALL:
+			cache->is_dirty = true;
 			break;
 		case BKE_MESH_BATCH_DIRTY_SHADING:
 			/* TODO: This should only update UV and tangent data,
 			 * and not free the entire cache. */
-			cache->is_really_dirty = true;
+			cache->is_dirty = true;
 			break;
 		case BKE_MESH_BATCH_DIRTY_SCULPT_COORDS:
 			cache->is_sculpt_points_tag = true;

@@ -92,7 +92,7 @@ static void PAINT_WEIGHT_engine_init(void *UNUSED(vedata))
 	if (e_data.actdef != draw_ctx->obact->actdef) {
 		e_data.actdef = draw_ctx->obact->actdef;
 
-		BKE_mesh_batch_cache_dirty(draw_ctx->obact->data, BKE_MESH_BATCH_DIRTY_NOCHECK);
+		BKE_mesh_batch_cache_dirty(draw_ctx->obact->data, BKE_MESH_BATCH_DIRTY_ALL);
 	}
 
 	if (!e_data.weight_face_shader) {

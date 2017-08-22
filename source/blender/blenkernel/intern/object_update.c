@@ -337,7 +337,7 @@ void BKE_object_eval_uber_data(const EvaluationContext *eval_ctx,
 
 	switch (ob->type) {
 		case OB_MESH:
-			BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
+			BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_MAYBE_ALL);
 			break;
 		case OB_LATTICE:
 			BKE_lattice_batch_cache_dirty(ob->data, BKE_LATTICE_BATCH_DIRTY_ALL);
