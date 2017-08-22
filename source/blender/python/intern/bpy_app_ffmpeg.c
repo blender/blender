@@ -29,6 +29,8 @@
 
 #include "bpy_app_ffmpeg.h"
 
+#include "../generic/py_capi_utils.h"
+
 #ifdef WITH_FFMPEG
 #include <libavcodec/avcodec.h>
 #include <libavdevice/avdevice.h>
@@ -91,8 +93,7 @@ static PyObject *make_ffmpeg_info(void)
 #ifdef WITH_FFMPEG
 #  define FFMPEG_LIB_VERSION(lib) { \
 		curversion = lib ## _version(); \
-		SetObjItem(Py_BuildValue("(iii)", \
-		                         curversion >> 16, (curversion >> 8) % 256, curversion % 256)); \
+		SetObjItem(PyC_Tuple_Pack_I32(curversion >> 16, (curversion >> 8) % 256, curversion % 256)); \
 		SetObjItem(PyUnicode_FromFormat("%2d, %2d, %2d", \
 		                                curversion >> 16, (curversion >> 8) % 256, curversion % 256)); \
 } (void)0

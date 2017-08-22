@@ -34,6 +34,8 @@
 
 #include "bpy_app_openvdb.h"
 
+#include "../generic/py_capi_utils.h"
+
 #ifdef WITH_OPENVDB
 #  include "openvdb_capi.h"
 #endif
@@ -79,13 +81,12 @@ static PyObject *make_openvdb_info(void)
 #ifdef WITH_OPENVDB
 	curversion = OpenVDB_getVersionHex();
 	SetObjItem(PyBool_FromLong(1));
-	SetObjItem(Py_BuildValue("(iii)",
-	                         curversion >> 24, (curversion >> 16) % 256, (curversion >> 8) % 256));
+	SetObjItem(PyC_Tuple_Pack_I32(curversion >> 24, (curversion >> 16) % 256, (curversion >> 8) % 256));
 	SetObjItem(PyUnicode_FromFormat("%2d, %2d, %2d",
 	                                curversion >> 24, (curversion >> 16) % 256, (curversion >> 8) % 256));
 #else
 	SetObjItem(PyBool_FromLong(0));
-	SetObjItem(Py_BuildValue("(iii)", 0, 0, 0));
+	SetObjItem(PyC_Tuple_Pack_I32(0, 0, 0));
 	SetStrItem("Unknown");
 #endif
 

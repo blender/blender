@@ -127,53 +127,51 @@ int PyC_AsArray(
 	return ret;
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Typed Tuple Packing
+ *
+ * \note See #PyC_Tuple_Pack_* macros that take multiple arguments.
+ *
+ * \{ */
+
 /* array utility function */
-PyObject *PyC_FromArray(const void *array, int length, const PyTypeObject *type,
-                        const bool is_double, const char *error_prefix)
+PyObject *PyC_Tuple_PackArray_F32(const float *array, uint len)
 {
-	PyObject *tuple;
-	int i;
-
-	tuple = PyTuple_New(length);
-
-	/* for each type */
-	if (type == &PyFloat_Type) {
-		if (is_double) {
-			const double *array_double = array;
-			for (i = 0; i < length; ++i) {
-				PyTuple_SET_ITEM(tuple, i, PyFloat_FromDouble(array_double[i]));
-			}
-		}
-		else {
-			const float *array_float = array;
-			for (i = 0; i < length; ++i) {
-				PyTuple_SET_ITEM(tuple, i, PyFloat_FromDouble(array_float[i]));
-			}
-		}
+	PyObject *tuple = PyTuple_New(len);
+	for (uint i = 0; i < len; i++) {
+		PyTuple_SET_ITEM(tuple, i, PyFloat_FromDouble(array[i]));
 	}
-	else if (type == &PyLong_Type) {
-		/* could use is_double for 'long int' but no use now */
-		const int *array_int = array;
-		for (i = 0; i < length; ++i) {
-			PyTuple_SET_ITEM(tuple, i, PyLong_FromLong(array_int[i]));
-		}
-	}
-	else if (type == &PyBool_Type) {
-		const int *array_bool = array;
-		for (i = 0; i < length; ++i) {
-			PyTuple_SET_ITEM(tuple, i, PyBool_FromLong(array_bool[i]));
-		}
-	}
-	else {
-		Py_DECREF(tuple);
-		PyErr_Format(PyExc_TypeError,
-		             "%s: internal error %s is invalid",
-		             error_prefix, type->tp_name);
-		return NULL;
-	}
-
 	return tuple;
 }
+
+PyObject *PyC_Tuple_PackArray_I32(const int *array, uint len)
+{
+	PyObject *tuple = PyTuple_New(len);
+	for (uint i = 0; i < len; i++) {
+		PyTuple_SET_ITEM(tuple, i, PyLong_FromLong(array[i]));
+	}
+	return tuple;
+}
+
+PyObject *PyC_Tuple_PackArray_I32FromBool(const int *array, uint len)
+{
+	PyObject *tuple = PyTuple_New(len);
+	for (uint i = 0; i < len; i++) {
+		PyTuple_SET_ITEM(tuple, i, PyBool_FromLong(array[i]));
+	}
+	return tuple;
+}
+
+PyObject *PyC_Tuple_PackArray_Bool(const bool *array, uint len)
+{
+	PyObject *tuple = PyTuple_New(len);
+	for (uint i = 0; i < len; i++) {
+		PyTuple_SET_ITEM(tuple, i, PyBool_FromLong(array[i]));
+	}
+	return tuple;
+}
+
+/** \} */
 
 /**
  * Caller needs to ensure tuple is uninitialized.

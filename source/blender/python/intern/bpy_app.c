@@ -157,8 +157,7 @@ static PyObject *make_app_info(void)
 #define SetObjItem(obj) \
 	PyStructSequence_SET_ITEM(app_info, pos++, obj)
 
-	SetObjItem(Py_BuildValue("(iii)",
-	                         BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION));
+	SetObjItem(PyC_Tuple_Pack_I32(BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION));
 	SetObjItem(PyUnicode_FromFormat("%d.%02d (sub %d)",
 	                                BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION));
 
