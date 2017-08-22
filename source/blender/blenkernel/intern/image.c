@@ -303,8 +303,11 @@ static void image_free_anims(Image *ima)
  * Simply free the image data from memory,
  * on display the image can load again (except for render buffers).
  */
-void BKE_image_free_buffers(Image *ima)
+void BKE_image_free_buffers_ex(Image *ima, bool do_lock)
 {
+	if (do_lock) {
+		BLI_spin_lock(&image_spin);
+	}
 	image_free_cached_frames(ima);
 
 	image_free_anims(ima);
@@ -323,6 +326,15 @@ void BKE_image_free_buffers(Image *ima)
 	}
 
 	ima->ok = IMA_OK;
+
+	if (do_lock) {
+		BLI_spin_unlock(&image_spin);
+	}
+}
+
+void BKE_image_free_buffers(Image *ima)
+{
+	BKE_image_free_buffers_ex(ima, false);
 }
 
 /** Free (or release) any data used by this image (does not free the image itself). */
