@@ -413,9 +413,6 @@ static void create_default_shader(int options)
 
 void EEVEE_update_util_texture(float offset)
 {
-	if (e_data.util_tex != NULL) {
-		DRW_TEXTURE_FREE_SAFE(e_data.util_tex);
-	}
 
 	/* TODO: split this into 2 functions : one for init,
 	 * and the other one that updates the noise with the offset. */
@@ -462,7 +459,13 @@ void EEVEE_update_util_texture(float offset)
 		texels_layer += 64 * 64;
 	}
 
-	e_data.util_tex = DRW_texture_create_2D_array(64, 64, layers, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_WRAP, (float *)texels);
+	if (e_data.util_tex == NULL) {
+		e_data.util_tex = DRW_texture_create_2D_array(64, 64, layers, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_WRAP, (float *)texels);
+	}
+	else {
+		DRW_texture_update(e_data.util_tex, (float *)texels);
+	}
+
 	MEM_freeN(texels);
 }
 

@@ -165,6 +165,7 @@ struct GPUTexture *DRW_texture_create_2D_array(
 struct GPUTexture *DRW_texture_create_cube(
         int w, DRWTextureFormat format, DRWTextureFlag flags, const float *fpixels);
 void DRW_texture_generate_mipmaps(struct GPUTexture *tex);
+void DRW_texture_update(struct GPUTexture *tex, const float *pixels);
 void DRW_texture_free(struct GPUTexture *tex);
 #define DRW_TEXTURE_FREE_SAFE(tex) do { \
 	if (tex != NULL) { \
