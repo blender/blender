@@ -2892,7 +2892,7 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 		PyObject *update_cb = NULL, *poll_cb = NULL;
 
 		if (!PyArg_ParseTupleAndKeywords(args, kw,
-		                                 "s#O|ssO!OOO:PointerProperty",
+		                                 "s#O|ssO!OO:PointerProperty",
 		                                 (char **)kwlist, &id, &id_len,
 		                                 &type, &name, &description,
 		                                 &PySet_Type, &pyopts,
