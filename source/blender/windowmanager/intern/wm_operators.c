@@ -573,6 +573,46 @@ void WM_operator_bl_idname(char *to, const char *from)
 }
 
 /**
+ * Sanity check to ensure #WM_operator_bl_idname won't fail.
+ * \returns true when there are no problems with \a idname, otherwise report an error.
+ */
+bool WM_operator_py_idname_ok_or_report(ReportList *reports, const char *classname, const char *idname)
+{
+	const char *ch = idname;
+	int dot = 0;
+	int i;
+	for (i = 0; *ch; i++, ch++) {
+		if ((*ch >= 'a' && *ch <= 'z') || (*ch >= '0' && *ch <= '9') || *ch == '_') {
+			/* pass */
+		}
+		else if (*ch == '.') {
+			dot++;
+		}
+		else {
+			BKE_reportf(reports, RPT_ERROR,
+			            "Registering operator class: '%s', invalid bl_idname '%s', at position %d",
+			            classname, idname, i);
+			return false;
+		}
+	}
+
+	if (i > (MAX_NAME - 3)) {
+		BKE_reportf(reports, RPT_ERROR, "Registering operator class: '%s', invalid bl_idname '%s', "
+		            "is too long, maximum length is %d", classname, idname,
+		            MAX_NAME - 3);
+		return false;
+	}
+
+	if (dot != 1) {
+		BKE_reportf(reports, RPT_ERROR,
+		            "Registering operator class: '%s', invalid bl_idname '%s', must contain 1 '.' character",
+		            classname, idname);
+		return false;
+	}
+	return true;
+}
+
+/**
  * Print a string representation of the operator, with the args that it runs so python can run it again.
  *
  * When calling from an existing wmOperator, better to use simple version:

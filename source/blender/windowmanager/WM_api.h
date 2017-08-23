@@ -354,6 +354,7 @@ bool         WM_operator_pystring_abbreviate(char *str, int str_len_max);
 char		*WM_prop_pystring_assign(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
 void		WM_operator_bl_idname(char *to, const char *from);
 void		WM_operator_py_idname(char *to, const char *from);
+bool        WM_operator_py_idname_ok_or_report(struct ReportList *reports, const char *classname, const char *idname);
 
 /* *************** uilist types ******************** */
 void                WM_uilisttype_init(void);
