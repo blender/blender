@@ -738,13 +738,13 @@ int wm_homefile_read(
 
 	if ((app_template != NULL) && (app_template[0] != '\0')) {
 		BKE_appdir_app_template_id_search(app_template, app_template_system, sizeof(app_template_system));
-		BLI_path_join(app_template_config, sizeof(app_template_config), cfgdir, app_template, NULL);
 
 		/* Insert template name into startup file. */
 
 		/* note that the path is being set even when 'use_factory_settings == true'
 		 * this is done so we can load a templates factory-settings */
 		if (!use_factory_settings) {
+			BLI_path_join(app_template_config, sizeof(app_template_config), cfgdir, app_template, NULL);
 			BLI_path_join(filepath_startup, sizeof(filepath_startup), app_template_config, BLENDER_STARTUP_FILE, NULL);
 			if (BLI_access(filepath_startup, R_OK) != 0) {
 				filepath_startup[0] = '\0';
