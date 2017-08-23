@@ -31,6 +31,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_string_utils.h"
 
 #include "BLT_translation.h"
 
@@ -446,11 +447,8 @@ static StructRNA *rna_Manipulator_register(
 	}
 
 	{   /* allocate the idname */
-		const uint idname_len = strlen(temp_buffers.idname) + 1;
-		char *ch = MEM_mallocN(
-		        sizeof(char) * idname_len, __func__);
-		dummywt.idname = ch;
-		memcpy(ch, temp_buffers.idname, idname_len);
+		/* For multiple strings see ManipulatorGroup. */
+		dummywt.idname = BLI_strdup(temp_buffers.idname);
 	}
 
 	/* create a new manipulator type */
@@ -754,15 +752,16 @@ static StructRNA *rna_ManipulatorGroup_register(
 	}
 
 	{   /* allocate the idname */
-		const uint idname_len = strlen(temp_buffers.idname) + 1;
-		const uint name_len = strlen(temp_buffers.name) + 1;
-		char *ch = MEM_mallocN(
-		        sizeof(char) * idname_len + name_len, __func__);
-		dummywgt.idname = ch;
-		memcpy(ch, temp_buffers.idname, idname_len);
-		ch += idname_len;
-		memcpy(ch, temp_buffers.name, name_len);
-		dummywgt.name = ch;
+		const char *strings[] = {
+			temp_buffers.idname,
+			temp_buffers.name,
+		};
+		char *strings_table[ARRAY_SIZE(strings)];
+		BLI_string_join_array_by_sep_char_with_tableN('\0', strings_table, strings, ARRAY_SIZE(strings));
+
+		dummywgt.idname = strings_table[0];  /* allocated string stored here */
+		dummywgt.name = strings_table[1];
+		BLI_assert(ARRAY_SIZE(strings) == 2);
 	}
 
 	/* create a new manipulatorgroup type */
