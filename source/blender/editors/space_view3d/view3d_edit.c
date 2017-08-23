@@ -750,8 +750,7 @@ static void viewops_data_create_ex(
 		vod->use_dyn_ofs = false;
 	}
 
-	/* Check we're in the camera view, otherwise we may switch out of axis views, see: T52490 */
-	if (switch_from_camera && (rv3d->persp == RV3D_CAMOB)) {
+	if (switch_from_camera) {
 		/* switch from camera view when: */
 		if (view3d_ensure_persp(vod->v3d, vod->ar)) {
 			/* If we're switching from camera view to the perspective one,
@@ -1674,7 +1673,7 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		viewops_data_alloc(C, op);
 		viewops_data_create_ex(
 		        C, op, event,
-		        viewops_orbit_mode_ex((U.uiflag & USER_ORBIT_SELECTION) != 0, false), false);
+		        false, viewops_orbit_mode_ex((U.uiflag & USER_ORBIT_SELECTION) != 0, false));
 		vod = op->customdata;
 
 		ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->ar);
@@ -1743,7 +1742,7 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 		viewops_data_alloc(C, op);
 		viewops_data_create_ex(
 		        C, op, event,
-		        viewops_orbit_mode_ex((U.uiflag & USER_ORBIT_SELECTION) != 0, false), false);
+		        false, viewops_orbit_mode_ex((U.uiflag & USER_ORBIT_SELECTION) != 0, false));
 
 		vod = op->customdata;
 
