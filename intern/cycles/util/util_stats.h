@@ -30,7 +30,7 @@ public:
 
 	void mem_alloc(size_t size) {
 		atomic_add_and_fetch_z(&mem_used, size);
-		atomic_update_max_z(&mem_peak, mem_used);
+		atomic_fetch_and_update_max_z(&mem_peak, mem_used);
 	}
 
 	void mem_free(size_t size) {

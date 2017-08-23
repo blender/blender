@@ -1018,6 +1018,9 @@ int ShaderGraph::get_num_closures()
 		else if(CLOSURE_IS_PRINCIPLED(closure_type)) {
 			num_closures += 8;
 		}
+		else if(CLOSURE_IS_VOLUME(closure_type)) {
+			num_closures += VOLUME_STACK_SIZE;
+		}
 		else {
 			++num_closures;
 		}

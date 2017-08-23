@@ -22,16 +22,6 @@
 /* Using atomic ops header from Blender. */
 #include "atomic_ops.h"
 
-ATOMIC_INLINE void atomic_update_max_z(size_t *maximum_value, size_t value)
-{
-	size_t prev_value = *maximum_value;
-	while(prev_value < value) {
-		if(atomic_cas_z(maximum_value, prev_value, value) != prev_value) {
-			break;
-		}
-	}
-}
-
 #define atomic_add_and_fetch_float(p, x) atomic_add_and_fetch_fl((p), (x))
 
 #define atomic_fetch_and_inc_uint32(p) atomic_fetch_and_add_uint32((p), 1)

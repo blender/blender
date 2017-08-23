@@ -132,6 +132,17 @@ int BVHNode::getSubtreeSize(BVH_STAT stat) const
 		case BVH_STAT_UNALIGNED_LEAF_COUNT:
 			cnt = (is_leaf() && is_unaligned) ? 1 : 0;
 			break;
+		case BVH_STAT_DEPTH:
+			if(is_leaf()) {
+				cnt = 1;
+			}
+			else {
+				for(int i = 0; i < num_children(); i++) {
+					cnt = max(cnt, get_child(i)->getSubtreeSize(stat));
+				}
+				cnt += 1;
+			}
+			return cnt;
 		default:
 			assert(0); /* unknown mode */
 	}

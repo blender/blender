@@ -529,7 +529,9 @@ BVHNode* BVHBuild::run()
 			        << "  Allocation slop factor: "
 			               << ((prim_type.capacity() != 0)
 			                       ? (float)prim_type.size() / prim_type.capacity()
-			                       : 1.0f) << "\n";
+			                       : 1.0f) << "\n"
+			        << "  Maximum depth: "
+			        << string_human_readable_number(rootnode->getSubtreeSize(BVH_STAT_DEPTH))  << "\n";
 		}
 	}
 

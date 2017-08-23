@@ -111,6 +111,17 @@ ATOMIC_INLINE size_t atomic_cas_z(size_t *v, size_t old, size_t _new)
 #endif
 }
 
+ATOMIC_INLINE size_t atomic_fetch_and_update_max_z(size_t *p, size_t x)
+{
+	size_t prev_value;
+	while((prev_value = *p) < x) {
+		if(atomic_cas_z(p, prev_value, x) == prev_value) {
+			break;
+		}
+	}
+	return prev_value;
+}
+
 /******************************************************************************/
 /* unsigned operations. */
 ATOMIC_INLINE unsigned int atomic_add_and_fetch_u(unsigned int *p, unsigned int x)
