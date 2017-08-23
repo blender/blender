@@ -28,6 +28,7 @@
 #define __PY_CAPI_UTILS_H__
 
 #include "BLI_sys_types.h"
+#include "BLI_utildefines.h"  /* only for _VA_NARGS_COUNT */
 
 void			PyC_ObSpit(const char *name, PyObject *var);
 void			PyC_LineSpit(void);
@@ -52,13 +53,13 @@ PyObject       *PyC_Tuple_PackArray_I32FromBool(const int *array, uint len);
 PyObject       *PyC_Tuple_PackArray_Bool(const bool *array, uint len);
 
 #define PyC_Tuple_Pack_F32(...) \
-	PyC_Tuple_PackArray_F32(((const float []){__VA_ARGS__}), (sizeof((const float []){__VA_ARGS__}) / sizeof(float)))
+	PyC_Tuple_PackArray_F32(((const float []){__VA_ARGS__}), _VA_NARGS_COUNT(__VA_ARGS__))
 #define PyC_Tuple_Pack_I32(...) \
-	PyC_Tuple_PackArray_I32(((const int []){__VA_ARGS__}), (sizeof((const int []){__VA_ARGS__}) / sizeof(int)))
+	PyC_Tuple_PackArray_I32(((const int []){__VA_ARGS__}), _VA_NARGS_COUNT(__VA_ARGS__))
 #define PyC_Tuple_Pack_I32FromBool(...) \
-	PyC_Tuple_PackArray_I32FromBool(((const int []){__VA_ARGS__}), (sizeof((const int []){__VA_ARGS__}) / sizeof(int)))
+	PyC_Tuple_PackArray_I32FromBool(((const int []){__VA_ARGS__}), _VA_NARGS_COUNT(__VA_ARGS__))
 #define PyC_Tuple_Pack_Bool(...) \
-	PyC_Tuple_PackArray_Bool(((const bool []){__VA_ARGS__}), (sizeof((const bool []){__VA_ARGS__}) / sizeof(bool)))
+	PyC_Tuple_PackArray_Bool(((const bool []){__VA_ARGS__}), _VA_NARGS_COUNT(__VA_ARGS__))
 
 void            PyC_Tuple_Fill(PyObject *tuple, PyObject *value);
 void            PyC_List_Fill(PyObject *list, PyObject *value);

@@ -32,6 +32,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_string_utils.h"
 
 #include "BLT_translation.h"
 
@@ -1216,8 +1217,8 @@ static StructRNA *rna_Operator_register(
 	struct {
 		char idname[OP_MAX_TYPENAME];
 		char name[OP_MAX_TYPENAME];
-		char descr[RNA_DYN_DESCR_MAX];
-		char ctxt[RNA_DYN_DESCR_MAX];
+		char description[RNA_DYN_DESCR_MAX];
+		char translation_context[RNA_DYN_DESCR_MAX];
 		char undo_group[OP_MAX_TYPENAME];
 	} temp_buffers;
 
@@ -1225,15 +1226,15 @@ static StructRNA *rna_Operator_register(
 	dummyop.type = &dummyot;
 	dummyot.idname = temp_buffers.idname; /* only assigne the pointer, string is NULL'd */
 	dummyot.name = temp_buffers.name; /* only assigne the pointer, string is NULL'd */
-	dummyot.description = temp_buffers.descr; /* only assigne the pointer, string is NULL'd */
-	dummyot.translation_context = temp_buffers.ctxt; /* only assigne the pointer, string is NULL'd */
+	dummyot.description = temp_buffers.description; /* only assigne the pointer, string is NULL'd */
+	dummyot.translation_context = temp_buffers.translation_context; /* only assigne the pointer, string is NULL'd */
 	dummyot.undo_group = temp_buffers.undo_group; /* only assigne the pointer, string is NULL'd */
 	RNA_pointer_create(NULL, &RNA_Operator, &dummyop, &dummyotr);
 
 	/* clear in case they are left unset */
-	temp_buffers.idname[0] = temp_buffers.name[0] = temp_buffers.descr[0] = temp_buffers.undo_group[0] = '\0';
+	temp_buffers.idname[0] = temp_buffers.name[0] = temp_buffers.description[0] = temp_buffers.undo_group[0] = '\0';
 	/* We have to set default op context! */
-	strcpy(temp_buffers.ctxt, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
+	strcpy(temp_buffers.translation_context, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
 
 	/* validate the python class */
 	if (validate(&dummyotr, data, have_function) != 0)
@@ -1248,72 +1249,31 @@ static StructRNA *rna_Operator_register(
 	if (!RNA_struct_available_or_report(reports, identifier)) {
 		return NULL;
 	}
+	if (!WM_operator_py_idname_ok_or_report(reports, identifier, temp_buffers.idname)) {
+		return NULL;
+	}
 
-	{   /* convert foo.bar to FOO_OT_bar
-		 * allocate the description and the idname in 1 go */
+	/* Convert foo.bar to FOO_OT_bar
+	 * allocate all strings at once. */
+	{
+		char idname_conv[sizeof(dummyop.idname)];
+		WM_operator_bl_idname(idname_conv, temp_buffers.idname); /* convert the idname from python */
+		const char *strings[] = {
+			idname_conv,
+			temp_buffers.name,
+			temp_buffers.description,
+			temp_buffers.translation_context,
+			temp_buffers.undo_group,
+		};
+		char *strings_table[ARRAY_SIZE(strings)];
+		BLI_string_join_array_by_sep_char_with_tableN('\0', strings_table, strings, ARRAY_SIZE(strings));
 
-		/* inconveniently long name sanity check */
-		{
-			char *ch = temp_buffers.idname;
-			int i;
-			int dot = 0;
-			for (i = 0; *ch; i++) {
-				if ((*ch >= 'a' && *ch <= 'z') || (*ch >= '0' && *ch <= '9') || *ch == '_') {
-					/* pass */
-				}
-				else if (*ch == '.') {
-					dot++;
-				}
-				else {
-					BKE_reportf(reports, RPT_ERROR,
-					            "Registering operator class: '%s', invalid bl_idname '%s', at position %d",
-					            identifier, temp_buffers.idname, i);
-					return NULL;
-				}
-
-				ch++;
-			}
-
-			if (i > ((int)sizeof(dummyop.idname)) - 3) {
-				BKE_reportf(reports, RPT_ERROR, "Registering operator class: '%s', invalid bl_idname '%s', "
-				            "is too long, maximum length is %d", identifier, temp_buffers.idname,
-				            (int)sizeof(dummyop.idname) - 3);
-				return NULL;
-			}
-
-			if (dot != 1) {
-				BKE_reportf(reports, RPT_ERROR,
-				            "Registering operator class: '%s', invalid bl_idname '%s', must contain 1 '.' character",
-				            identifier, temp_buffers.idname);
-				return NULL;
-			}
-		}
-		/* end sanity check */
-
-		{
-			const uint idname_len = strlen(temp_buffers.idname) + 4;
-			const uint name_len = strlen(temp_buffers.name) + 1;
-			const uint desc_len = strlen(temp_buffers.descr) + 1;
-			const uint ctxt_len = strlen(temp_buffers.ctxt) + 1;
-			const uint undo_group_len = strlen(temp_buffers.undo_group) + 1;
-			/* 2 terminators and 3 to convert a.b -> A_OT_b */
-			char *ch = MEM_mallocN(
-			        sizeof(char) * (idname_len + name_len + desc_len + ctxt_len + undo_group_len), __func__);
-			WM_operator_bl_idname(ch, temp_buffers.idname); /* convert the idname from python */
-			dummyot.idname = ch;
-			ch += idname_len;
-			memcpy(ch, temp_buffers.name, name_len);
-			dummyot.name = ch;
-			ch += name_len;
-			memcpy(ch, temp_buffers.descr, desc_len);
-			dummyot.description = ch;
-			ch += desc_len;
-			memcpy(ch, temp_buffers.ctxt, ctxt_len);
-			dummyot.translation_context = ch;
-			ch += ctxt_len;
-			memcpy(ch, temp_buffers.undo_group, undo_group_len);
-			dummyot.undo_group = ch;
-		}
+		dummyot.idname = strings_table[0];  /* allocated string stored here */
+		dummyot.name = strings_table[1];
+		dummyot.description = strings_table[2];
+		dummyot.translation_context = strings_table[3];
+		dummyot.undo_group = strings_table[4];
+		BLI_assert(ARRAY_SIZE(strings) == 5);
 	}
 
 	/* XXX, this doubles up with the operator name [#29666]
@@ -1389,8 +1349,8 @@ static StructRNA *rna_MacroOperator_register(
 	struct {
 		char idname[OP_MAX_TYPENAME];
 		char name[OP_MAX_TYPENAME];
-		char descr[RNA_DYN_DESCR_MAX];
-		char ctxt[RNA_DYN_DESCR_MAX];
+		char description[RNA_DYN_DESCR_MAX];
+		char translation_context[RNA_DYN_DESCR_MAX];
 		char undo_group[OP_MAX_TYPENAME];
 	} temp_buffers;
 
@@ -1398,15 +1358,15 @@ static StructRNA *rna_MacroOperator_register(
 	dummyop.type = &dummyot;
 	dummyot.idname = temp_buffers.idname; /* only assigne the pointer, string is NULL'd */
 	dummyot.name = temp_buffers.name; /* only assigne the pointer, string is NULL'd */
-	dummyot.description = temp_buffers.descr; /* only assigne the pointer, string is NULL'd */
-	dummyot.translation_context = temp_buffers.ctxt; /* only assigne the pointer, string is NULL'd */
+	dummyot.description = temp_buffers.description; /* only assigne the pointer, string is NULL'd */
+	dummyot.translation_context = temp_buffers.translation_context; /* only assigne the pointer, string is NULL'd */
 	dummyot.undo_group = temp_buffers.undo_group; /* only assigne the pointer, string is NULL'd */
 	RNA_pointer_create(NULL, &RNA_Macro, &dummyop, &dummyotr);
 
 	/* clear in case they are left unset */
-	temp_buffers.idname[0] = temp_buffers.name[0] = temp_buffers.descr[0] = temp_buffers.undo_group[0] = '\0';
+	temp_buffers.idname[0] = temp_buffers.name[0] = temp_buffers.description[0] = temp_buffers.undo_group[0] = '\0';
 	/* We have to set default op context! */
-	strcpy(temp_buffers.ctxt, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
+	strcpy(temp_buffers.translation_context, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
 
 	/* validate the python class */
 	if (validate(&dummyotr, data, have_function) != 0)
@@ -1427,31 +1387,31 @@ static StructRNA *rna_MacroOperator_register(
 	if (!RNA_struct_available_or_report(reports, identifier)) {
 		return NULL;
 	}
+	if (!WM_operator_py_idname_ok_or_report(reports, identifier, temp_buffers.idname)) {
+		return NULL;
+	}
 
-	{   /* convert foo.bar to FOO_OT_bar
-		 * allocate the description and the idname in 1 go */
-		const uint idname_len = strlen(temp_buffers.idname) + 4;
-		const uint name_len = strlen(temp_buffers.name) + 1;
-		const uint desc_len = strlen(temp_buffers.descr) + 1;
-		const uint ctxt_len = strlen(temp_buffers.ctxt) + 1;
-		const uint undo_group_len = strlen(temp_buffers.undo_group) + 1;
-		/* 2 terminators and 3 to convert a.b -> A_OT_b */
-		char *ch = MEM_mallocN(
-		        sizeof(char) * (idname_len + name_len + desc_len + ctxt_len + undo_group_len), __func__);
-		WM_operator_bl_idname(ch, temp_buffers.idname); /* convert the idname from python */
-		dummyot.idname = ch;
-		ch += idname_len;
-		memcpy(ch, temp_buffers.name, name_len);
-		dummyot.name = ch;
-		ch += name_len;
-		memcpy(ch, temp_buffers.descr, desc_len);
-		dummyot.description = ch;
-		ch += desc_len;
-		memcpy(ch, temp_buffers.ctxt, ctxt_len);
-		dummyot.translation_context = ch;
-		ch += ctxt_len;
-		memcpy(ch, temp_buffers.undo_group, undo_group_len);
-		dummyot.undo_group = ch;
+	/* Convert foo.bar to FOO_OT_bar
+	 * allocate all strings at once. */
+	{
+		char idname_conv[sizeof(dummyop.idname)];
+		WM_operator_bl_idname(idname_conv, temp_buffers.idname); /* convert the idname from python */
+		const char *strings[] = {
+			idname_conv,
+			temp_buffers.name,
+			temp_buffers.description,
+			temp_buffers.translation_context,
+			temp_buffers.undo_group,
+		};
+		char *strings_table[ARRAY_SIZE(strings)];
+		BLI_string_join_array_by_sep_char_with_tableN('\0', strings_table, strings, ARRAY_SIZE(strings));
+
+		dummyot.idname = strings_table[0];  /* allocated string stored here */
+		dummyot.name = strings_table[1];
+		dummyot.description = strings_table[2];
+		dummyot.translation_context = strings_table[3];
+		dummyot.undo_group = strings_table[4];
+		BLI_assert(ARRAY_SIZE(strings) == 5);
 	}
 
 	/* XXX, this doubles up with the operator name [#29666]
