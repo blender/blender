@@ -434,20 +434,23 @@ static StructRNA *rna_Manipulator_register(
 		return NULL;
 	}
 
-	{   /* allocate the idname */
-		const uint idname_len = strlen(temp_buffers.idname) + 1;
-		char *ch = MEM_mallocN(
-		        sizeof(char) * idname_len, __func__);
-		dummywt.idname = ch;
-		memcpy(ch, temp_buffers.idname, idname_len);
-	}
-
 	/* check if we have registered this manipulator type before, and remove it */
 	{
 		const wmManipulatorType *wt = WM_manipulatortype_find(dummywt.idname, true);
 		if (wt && wt->ext.srna) {
 			rna_Manipulator_unregister(bmain, wt->ext.srna);
 		}
+	}
+	if (!RNA_struct_available_or_report(reports, identifier)) {
+		return NULL;
+	}
+
+	{   /* allocate the idname */
+		const uint idname_len = strlen(temp_buffers.idname) + 1;
+		char *ch = MEM_mallocN(
+		        sizeof(char) * idname_len, __func__);
+		dummywt.idname = ch;
+		memcpy(ch, temp_buffers.idname, idname_len);
 	}
 
 	/* create a new manipulator type */
@@ -739,6 +742,17 @@ static StructRNA *rna_ManipulatorGroup_register(
 		return NULL;
 	}
 
+	/* check if we have registered this manipulatorgroup type before, and remove it */
+	{
+		wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find(dummywgt.idname, true);
+		if (wgt && wgt->ext.srna) {
+			rna_ManipulatorGroup_unregister(bmain, wgt->ext.srna);
+		}
+	}
+	if (!RNA_struct_available_or_report(reports, identifier)) {
+		return NULL;
+	}
+
 	{   /* allocate the idname */
 		const uint idname_len = strlen(temp_buffers.idname) + 1;
 		const uint name_len = strlen(temp_buffers.name) + 1;
@@ -749,14 +763,6 @@ static StructRNA *rna_ManipulatorGroup_register(
 		ch += idname_len;
 		memcpy(ch, temp_buffers.name, name_len);
 		dummywgt.name = ch;
-	}
-
-	/* check if we have registered this manipulatorgroup type before, and remove it */
-	{
-		wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find(dummywgt.idname, true);
-		if (wgt && wgt->ext.srna) {
-			rna_ManipulatorGroup_unregister(bmain, wgt->ext.srna);
-		}
 	}
 
 	/* create a new manipulatorgroup type */
