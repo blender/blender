@@ -1239,6 +1239,16 @@ static StructRNA *rna_Operator_register(
 	if (validate(&dummyotr, data, have_function) != 0)
 		return NULL;
 
+	/* check if we have registered this operator type before, and remove it */
+	{
+		wmOperatorType *ot = WM_operatortype_find(dummyot.idname, true);
+		if (ot && ot->ext.srna)
+			rna_Operator_unregister(bmain, ot->ext.srna);
+	}
+	if (!RNA_struct_available_or_report(reports, identifier)) {
+		return NULL;
+	}
+
 	{   /* convert foo.bar to FOO_OT_bar
 		 * allocate the description and the idname in 1 go */
 
@@ -1304,13 +1314,6 @@ static StructRNA *rna_Operator_register(
 			memcpy(ch, temp_buffers.undo_group, undo_group_len);
 			dummyot.undo_group = ch;
 		}
-	}
-
-	/* check if we have registered this operator type before, and remove it */
-	{
-		wmOperatorType *ot = WM_operatortype_find(dummyot.idname, true);
-		if (ot && ot->ext.srna)
-			rna_Operator_unregister(bmain, ot->ext.srna);
 	}
 
 	/* XXX, this doubles up with the operator name [#29666]
@@ -1415,6 +1418,16 @@ static StructRNA *rna_MacroOperator_register(
 		return NULL;
 	}
 
+	/* check if we have registered this operator type before, and remove it */
+	{
+		wmOperatorType *ot = WM_operatortype_find(dummyot.idname, true);
+		if (ot && ot->ext.srna)
+			rna_Operator_unregister(bmain, ot->ext.srna);
+	}
+	if (!RNA_struct_available_or_report(reports, identifier)) {
+		return NULL;
+	}
+
 	{   /* convert foo.bar to FOO_OT_bar
 		 * allocate the description and the idname in 1 go */
 		const uint idname_len = strlen(temp_buffers.idname) + 4;
@@ -1439,13 +1452,6 @@ static StructRNA *rna_MacroOperator_register(
 		ch += ctxt_len;
 		memcpy(ch, temp_buffers.undo_group, undo_group_len);
 		dummyot.undo_group = ch;
-	}
-
-	/* check if we have registered this operator type before, and remove it */
-	{
-		wmOperatorType *ot = WM_operatortype_find(dummyot.idname, true);
-		if (ot && ot->ext.srna)
-			rna_Operator_unregister(bmain, ot->ext.srna);
 	}
 
 	/* XXX, this doubles up with the operator name [#29666]

@@ -341,6 +341,9 @@ static StructRNA *rna_RenderEngine_register(Main *bmain, ReportList *reports, vo
 			break;
 		}
 	}
+	if (!RNA_struct_available_or_report(reports, identifier)) {
+		return NULL;
+	}
 	
 	/* create a new engine type */
 	et = MEM_callocN(sizeof(RenderEngineType), "python render engine");

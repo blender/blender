@@ -284,7 +284,9 @@ static void gp_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
 			new_stroke = MEM_dupallocN(gps_from);
 			new_stroke->points = MEM_dupallocN(gps_from->points);
 			new_stroke->triangles = MEM_dupallocN(gps_from->triangles);
-			
+			new_stroke->tot_triangles = 0;
+			new_stroke->flag |= GP_STROKE_RECALC_CACHES;
+
 			if (valid) {
 				/* if destination stroke is smaller, resize new_stroke to size of gps_to stroke */
 				if (gps_from->totpoints > gps_to->totpoints) {
@@ -302,6 +304,7 @@ static void gp_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
 				new_stroke->points = MEM_recallocN(new_stroke->points, sizeof(*new_stroke->points));
 				new_stroke->tot_triangles = 0;
 				new_stroke->triangles = MEM_recallocN(new_stroke->triangles, sizeof(*new_stroke->triangles));
+				new_stroke->flag |= GP_STROKE_RECALC_CACHES;
 			}
 			
 			/* add to strokes */
@@ -986,7 +989,9 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
 				new_stroke = MEM_dupallocN(gps_from);
 				new_stroke->points = MEM_dupallocN(gps_from->points);
 				new_stroke->triangles = MEM_dupallocN(gps_from->triangles);
-				
+				new_stroke->tot_triangles = 0;
+				new_stroke->flag |= GP_STROKE_RECALC_CACHES;
+
 				/* if destination stroke is smaller, resize new_stroke to size of gps_to stroke */
 				if (gps_from->totpoints > gps_to->totpoints) {
 					new_stroke->points = MEM_recallocN(new_stroke->points, sizeof(*new_stroke->points) * gps_to->totpoints);

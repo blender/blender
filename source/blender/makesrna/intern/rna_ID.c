@@ -290,6 +290,10 @@ StructRNA *rna_PropertyGroup_register(Main *UNUSED(bmain), ReportList *reports, 
 		return NULL;
 	}
 
+	if (!RNA_struct_available_or_report(reports, identifier)) {
+		return NULL;
+	}
+
 	return RNA_def_struct_ptr(&BLENDER_RNA, identifier, &RNA_PropertyGroup);  /* XXX */
 }
 

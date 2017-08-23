@@ -72,10 +72,8 @@ def batch_import(
 
     def file_generator(path):
         for dirpath, dirnames, filenames in os.walk(path):
-
-            # skip '.svn'
-            if dirpath.startswith("."):
-                continue
+            # skip '.git'
+            dirnames[:] = [d for d in dirnames if not d.startswith(".")]
 
             for filename in filenames:
                 if pattern_match(filename):

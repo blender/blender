@@ -2235,7 +2235,7 @@ static void ntree_interface_type_create(bNodeTree *ntree)
 	/* register a subtype of PropertyGroup */
 	srna = RNA_def_struct_ptr(&BLENDER_RNA, identifier, &RNA_PropertyGroup);
 	RNA_def_struct_ui_text(srna, name, description);
-	RNA_def_struct_duplicate_pointers(srna);
+	RNA_def_struct_duplicate_pointers(&BLENDER_RNA, srna);
 	
 	/* associate the RNA type with the node tree */
 	ntree->interface_type = srna;
@@ -2274,10 +2274,10 @@ StructRNA *ntreeInterfaceTypeGet(bNodeTree *ntree, int create)
 			ntree_interface_identifier(ntree, base, identifier, sizeof(identifier), name, description);
 			
 			/* rename the RNA type */
-			RNA_def_struct_free_pointers(srna);
+			RNA_def_struct_free_pointers(&BLENDER_RNA, srna);
 			RNA_def_struct_identifier(&BLENDER_RNA, srna, identifier);
 			RNA_def_struct_ui_text(srna, name, description);
-			RNA_def_struct_duplicate_pointers(srna);
+			RNA_def_struct_duplicate_pointers(&BLENDER_RNA, srna);
 		}
 	}
 	else if (create) {
