@@ -181,7 +181,6 @@ ccl_device_inline void path_radiance_init(PathRadiance *L, int use_light_pass)
 
 	if(use_light_pass) {
 		L->indirect = make_float3(0.0f, 0.0f, 0.0f);
-		L->direct_throughput = make_float3(0.0f, 0.0f, 0.0f);
 		L->direct_emission = make_float3(0.0f, 0.0f, 0.0f);
 
 		L->color_diffuse = make_float3(0.0f, 0.0f, 0.0f);
@@ -202,18 +201,19 @@ ccl_device_inline void path_radiance_init(PathRadiance *L, int use_light_pass)
 		L->indirect_subsurface = make_float3(0.0f, 0.0f, 0.0f);
 		L->indirect_scatter = make_float3(0.0f, 0.0f, 0.0f);
 
-		L->path_diffuse = make_float3(0.0f, 0.0f, 0.0f);
-		L->path_glossy = make_float3(0.0f, 0.0f, 0.0f);
-		L->path_transmission = make_float3(0.0f, 0.0f, 0.0f);
-		L->path_subsurface = make_float3(0.0f, 0.0f, 0.0f);
-		L->path_scatter = make_float3(0.0f, 0.0f, 0.0f);
-
 		L->transparent = 0.0f;
 		L->emission = make_float3(0.0f, 0.0f, 0.0f);
 		L->background = make_float3(0.0f, 0.0f, 0.0f);
 		L->ao = make_float3(0.0f, 0.0f, 0.0f);
 		L->shadow = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 		L->mist = 0.0f;
+
+		L->state.diffuse = make_float3(0.0f, 0.0f, 0.0f);
+		L->state.glossy = make_float3(0.0f, 0.0f, 0.0f);
+		L->state.transmission = make_float3(0.0f, 0.0f, 0.0f);
+		L->state.subsurface = make_float3(0.0f, 0.0f, 0.0f);
+		L->state.scatter = make_float3(0.0f, 0.0f, 0.0f);
+		L->state.direct = make_float3(0.0f, 0.0f, 0.0f);
 	}
 	else
 #endif
@@ -245,26 +245,34 @@ ccl_device_inline void path_radiance_init(PathRadiance *L, int use_light_pass)
 #endif
 }
 
-ccl_device_inline void path_radiance_bsdf_bounce(PathRadiance *L, ccl_addr_space float3 *throughput,
-	BsdfEval *bsdf_eval, float bsdf_pdf, int bounce, int bsdf_label)
+ccl_device_inline void path_radiance_bsdf_bounce(
+	KernelGlobals *kg,
+	PathRadianceState *L_state,
+	ccl_addr_space float3 *throughput,
+	BsdfEval *bsdf_eval,
+	float bsdf_pdf, int bounce, int bsdf_label)
 {
 	float inverse_pdf = 1.0f/bsdf_pdf;
 
 #ifdef __PASSES__
-	if(L->use_light_pass) {
+	if(kernel_data.film.use_light_pass) {
 		if(bounce == 0 && !(bsdf_label & LABEL_TRANSPARENT)) {
 			/* first on directly visible surface */
 			float3 value = *throughput*inverse_pdf;
 
-			L->path_diffuse = bsdf_eval->diffuse*value;
-			L->path_glossy = bsdf_eval->glossy*value;
-			L->path_transmission = bsdf_eval->transmission*value;
-			L->path_subsurface = bsdf_eval->subsurface*value;
-			L->path_scatter = bsdf_eval->scatter*value;
+			L_state->diffuse = bsdf_eval->diffuse*value;
+			L_state->glossy = bsdf_eval->glossy*value;
+			L_state->transmission = bsdf_eval->transmission*value;
+			L_state->subsurface = bsdf_eval->subsurface*value;
+			L_state->scatter = bsdf_eval->scatter*value;
 
-			*throughput = L->path_diffuse + L->path_glossy + L->path_transmission + L->path_subsurface + L->path_scatter;
+			*throughput = L_state->diffuse +
+			              L_state->glossy +
+			              L_state->transmission +
+			              L_state->subsurface +
+			              L_state->scatter;
 			
-			L->direct_throughput = *throughput;
+			L_state->direct = *throughput;
 		}
 		else {
 			/* transparent bounce before first hit, or indirectly visible through BSDF */
@@ -493,19 +501,19 @@ ccl_device_inline void path_radiance_sum_indirect(PathRadiance *L)
 	 * only a single throughput further along the path, here we recover just
 	 * the indirect path that is not influenced by any particular BSDF type */
 	if(L->use_light_pass) {
-		L->direct_emission = safe_divide_color(L->direct_emission, L->direct_throughput);
-		L->direct_diffuse += L->path_diffuse*L->direct_emission;
-		L->direct_glossy += L->path_glossy*L->direct_emission;
-		L->direct_transmission += L->path_transmission*L->direct_emission;
-		L->direct_subsurface += L->path_subsurface*L->direct_emission;
-		L->direct_scatter += L->path_scatter*L->direct_emission;
+		L->direct_emission = safe_divide_color(L->direct_emission, L->state.direct);
+		L->direct_diffuse += L->state.diffuse*L->direct_emission;
+		L->direct_glossy += L->state.glossy*L->direct_emission;
+		L->direct_transmission += L->state.transmission*L->direct_emission;
+		L->direct_subsurface += L->state.subsurface*L->direct_emission;
+		L->direct_scatter += L->state.scatter*L->direct_emission;
 
-		L->indirect = safe_divide_color(L->indirect, L->direct_throughput);
-		L->indirect_diffuse += L->path_diffuse*L->indirect;
-		L->indirect_glossy += L->path_glossy*L->indirect;
-		L->indirect_transmission += L->path_transmission*L->indirect;
-		L->indirect_subsurface += L->path_subsurface*L->indirect;
-		L->indirect_scatter += L->path_scatter*L->indirect;
+		L->indirect = safe_divide_color(L->indirect, L->state.direct);
+		L->indirect_diffuse += L->state.diffuse*L->indirect;
+		L->indirect_glossy += L->state.glossy*L->indirect;
+		L->indirect_transmission += L->state.transmission*L->indirect;
+		L->indirect_subsurface += L->state.subsurface*L->indirect;
+		L->indirect_scatter += L->state.scatter*L->indirect;
 	}
 #endif
 }
@@ -514,11 +522,11 @@ ccl_device_inline void path_radiance_reset_indirect(PathRadiance *L)
 {
 #ifdef __PASSES__
 	if(L->use_light_pass) {
-		L->path_diffuse = make_float3(0.0f, 0.0f, 0.0f);
-		L->path_glossy = make_float3(0.0f, 0.0f, 0.0f);
-		L->path_transmission = make_float3(0.0f, 0.0f, 0.0f);
-		L->path_subsurface = make_float3(0.0f, 0.0f, 0.0f);
-		L->path_scatter = make_float3(0.0f, 0.0f, 0.0f);
+		L->state.diffuse = make_float3(0.0f, 0.0f, 0.0f);
+		L->state.glossy = make_float3(0.0f, 0.0f, 0.0f);
+		L->state.transmission = make_float3(0.0f, 0.0f, 0.0f);
+		L->state.subsurface = make_float3(0.0f, 0.0f, 0.0f);
+		L->state.scatter = make_float3(0.0f, 0.0f, 0.0f);
 
 		L->direct_emission = make_float3(0.0f, 0.0f, 0.0f);
 		L->indirect = make_float3(0.0f, 0.0f, 0.0f);
@@ -531,11 +539,7 @@ ccl_device_inline void path_radiance_copy_indirect(PathRadiance *L,
 {
 #ifdef __PASSES__
 	if(L->use_light_pass) {
-		L->path_diffuse = L_src->path_diffuse;
-		L->path_glossy = L_src->path_glossy;
-		L->path_transmission = L_src->path_transmission;
-		L->path_subsurface = L_src->path_subsurface;
-		L->path_scatter = L_src->path_scatter;
+		L->state = L_src->state;
 
 		L->direct_emission = L_src->direct_emission;
 		L->indirect = L_src->indirect;

@@ -54,7 +54,6 @@ ccl_device void kernel_indirect_subsurface(KernelGlobals *kg)
 #endif
 		if(IS_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER)) {
 			ccl_addr_space SubsurfaceIndirectRays *ss_indirect = &kernel_split_state.ss_rays[ray_index];
-			kernel_path_subsurface_accum_indirect(ss_indirect, L);
 
 			/* Trace indirect subsurface rays by restarting the loop. this uses less
 			 * stack memory than invoking kernel_path_indirect.

@@ -68,7 +68,7 @@ bool kernel_path_volume_bounce(
     ShaderData *sd,
     ccl_addr_space float3 *throughput,
     ccl_addr_space PathState *state,
-    PathRadiance *L,
+    PathRadianceState *L_state,
     ccl_addr_space Ray *ray)
 {
 	/* sample phase function */
@@ -87,7 +87,7 @@ bool kernel_path_volume_bounce(
 		return false;
 	
 	/* modify throughput */
-	path_radiance_bsdf_bounce(L, throughput, &phase_eval, phase_pdf, state->bounce, label);
+	path_radiance_bsdf_bounce(kg, L_state, throughput, &phase_eval, phase_pdf, state->bounce, label);
 
 	/* set labels */
 	state->ray_pdf = phase_pdf;
