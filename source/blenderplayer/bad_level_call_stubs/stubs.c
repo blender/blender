@@ -394,6 +394,9 @@ struct wmManipulatorMap *WM_manipulatormap_new_from_type(const struct wmManipula
 void WM_manipulatormaptype_group_init_runtime(
         const struct Main *bmain, struct wmManipulatorMapType *mmap_type, struct wmManipulatorGroupType *wgt) RET_NONE
 const struct ListBase *WM_manipulatormap_group_list(struct wmManipulatorMap *mmap) RET_NULL
+void WM_manipulator_calc_matrix_final(const struct wmManipulator *mpr, float r_mat[4][4]) RET_NONE
+struct wmManipulatorProperty *WM_manipulator_target_property_find(struct wmManipulator *mpr, const char *idname) RET_NULL
+bool WM_manipulator_target_property_is_valid(const struct wmManipulatorProperty *mpr_prop) RET_ZERO
 
 #ifdef WITH_INPUT_NDOF
     void WM_ndof_deadzone_set(float deadzone) RET_NONE
