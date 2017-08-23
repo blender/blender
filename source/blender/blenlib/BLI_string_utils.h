@@ -39,7 +39,7 @@ extern "C" {
 #endif
 
 #include "BLI_compiler_attrs.h"
-#include "BLI_utildefines.h"  /* only for _VA_NARGS_COUNT */
+#include "BLI_variadic_defines.h"
 
 struct ListBase;
 

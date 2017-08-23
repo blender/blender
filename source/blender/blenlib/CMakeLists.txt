@@ -205,6 +205,7 @@ set(SRC
 	BLI_timecode.h
 	BLI_utildefines.h
 	BLI_uvproject.h
+	BLI_variadic_defines.h
 	BLI_vfontdata.h
 	BLI_voronoi.h
 	BLI_voxel.h
