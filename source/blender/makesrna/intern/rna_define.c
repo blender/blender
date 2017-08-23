@@ -156,7 +156,7 @@ static void rna_brna_structs_remove_and_free(BlenderRNA *brna, StructRNA *srna)
 		}
 	}
 
-	RNA_def_struct_free_pointers(srna);
+	RNA_def_struct_free_pointers(NULL, srna);
 
 	if (srna->flag & STRUCT_RUNTIME) {
 		rna_freelinkN(&brna->structs, srna);
@@ -3313,21 +3313,37 @@ void RNA_enum_item_end(EnumPropertyItem **items, int *totitem)
 /* Memory management */
 
 #ifdef RNA_RUNTIME
-void RNA_def_struct_duplicate_pointers(StructRNA *srna)
+void RNA_def_struct_duplicate_pointers(BlenderRNA *brna, StructRNA *srna)
 {
-	if (srna->identifier) srna->identifier = BLI_strdup(srna->identifier);
-	if (srna->name) srna->name = BLI_strdup(srna->name);
-	if (srna->description) srna->description = BLI_strdup(srna->description);
+	if (srna->identifier) {
+		srna->identifier = BLI_strdup(srna->identifier);
+		BLI_ghash_replace_key(brna->structs_map, (void *)srna->identifier);
+	}
+	if (srna->name) {
+		srna->name = BLI_strdup(srna->name);
+	}
+	if (srna->description) {
+		srna->description = BLI_strdup(srna->description);
+	}
 
 	srna->flag |= STRUCT_FREE_POINTERS;
 }
 
-void RNA_def_struct_free_pointers(StructRNA *srna)
+void RNA_def_struct_free_pointers(BlenderRNA *brna, StructRNA *srna)
 {
 	if (srna->flag & STRUCT_FREE_POINTERS) {
-		if (srna->identifier) MEM_freeN((void *)srna->identifier);
-		if (srna->name) MEM_freeN((void *)srna->name);
-		if (srna->description) MEM_freeN((void *)srna->description);
+		if (srna->identifier) {
+			if (brna != NULL) {
+				BLI_ghash_remove(brna->structs_map, (void *)srna->identifier, NULL, NULL);
+			}
+			MEM_freeN((void *)srna->identifier);
+		}
+		if (srna->name) {
+			MEM_freeN((void *)srna->name);
+		}
+		if (srna->description) {
+			MEM_freeN((void *)srna->description);
+		}
 	}
 }
 

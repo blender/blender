@@ -217,8 +217,8 @@ void RNA_enum_item_end(EnumPropertyItem **items, int *totitem);
 
 /* Memory management */
 
-void RNA_def_struct_duplicate_pointers(StructRNA *srna);
-void RNA_def_struct_free_pointers(StructRNA *srna);
+void RNA_def_struct_duplicate_pointers(BlenderRNA *brna, StructRNA *srna);
+void RNA_def_struct_free_pointers(BlenderRNA *brna, StructRNA *srna);
 void RNA_def_func_duplicate_pointers(FunctionRNA *func);
 void RNA_def_func_free_pointers(FunctionRNA *func);
 void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA *prop);
