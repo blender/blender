@@ -750,7 +750,8 @@ static void viewops_data_create_ex(
 		vod->use_dyn_ofs = false;
 	}
 
-	if (switch_from_camera) {
+	/* Check we're in the camera view, otherwise we may switch out of axis views, see: T52490 */
+	if (switch_from_camera && (rv3d->persp == RV3D_CAMOB)) {
 		/* switch from camera view when: */
 		if (view3d_ensure_persp(vod->v3d, vod->ar)) {
 			/* If we're switching from camera view to the perspective one,
