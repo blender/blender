@@ -383,3 +383,91 @@ bool BLI_uniquename(ListBase *list, void *vlink, const char *defname, char delim
 
 	return BLI_uniquename_cb(uniquename_unique_check, &data, defname, delim, GIVE_STRADDR(vlink, name_offs), name_len);
 }
+
+/* ------------------------------------------------------------------------- */
+/** \name Join Strings
+ *
+ * For non array versions of these functions, use the macros:
+ * - #BLI_string_joinN
+ * - #BLI_string_join_by_sep_charN
+ * - #BLI_string_join_by_sep_char_with_tableN
+ *
+ * \{ */
+
+/**
+ * Join an array of strings into a newly allocated, null terminated string.
+ */
+char *BLI_string_join_arrayN(
+        const char *strings[], uint strings_len)
+{
+	uint total_len = 1;
+	for (uint i = 0; i < strings_len; i++) {
+		total_len += strlen(strings[i]);
+	}
+	char *result = MEM_mallocN(sizeof(char) * total_len, __func__); 
+	char *c = result;
+	for (uint i = 0; i < strings_len; i++) {
+		c += BLI_strcpy_rlen(c, strings[i]);
+	}
+	return result;
+}
+
+/**
+ * A version of #BLI_string_joinN that takes a separator which can be any character including '\0'.
+ */
+char *BLI_string_join_array_by_sep_charN(
+        char sep, const char *strings[], uint strings_len)
+{
+	uint total_len = 0;
+	for (uint i = 0; i < strings_len; i++) {
+		total_len += strlen(strings[i]) + 1;
+	}
+	if (total_len == 0) {
+		total_len = 1;
+	}
+
+	char *result = MEM_mallocN(sizeof(char) * total_len, __func__); 
+	char *c = result;
+	if (strings_len != 0) {
+		for (uint i = 0; i < strings_len; i++) {
+			c += BLI_strcpy_rlen(c, strings[i]);
+			*c = sep;
+			c++;
+		}
+		c--;
+	}
+	*c = '\0';
+	return result;
+}
+
+/**
+ * A version of #BLI_string_join_array_by_sep_charN that takes a table array.
+ * The new location of each string is written into this array.
+ */
+char *BLI_string_join_array_by_sep_char_with_tableN(
+        char sep, char *table[], const char *strings[], uint strings_len)
+{
+	uint total_len = 0;
+	for (uint i = 0; i < strings_len; i++) {
+		total_len += strlen(strings[i]) + 1;
+	}
+	if (total_len == 0) {
+		total_len = 1;
+	}
+
+	char *result = MEM_mallocN(sizeof(char) * total_len, __func__); 
+	char *c = result;
+	if (strings_len != 0) {
+		for (uint i = 0; i < strings_len; i++) {
+			table[i] = c;  /* <-- only difference to BLI_string_join_array_by_sep_charN. */
+			c += BLI_strcpy_rlen(c, strings[i]);
+			*c = sep;
+			c++;
+		}
+		c--;
+	}
+	*c = '\0';
+	return result;
+}
+
+/** \} */
