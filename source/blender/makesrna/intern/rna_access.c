@@ -814,6 +814,38 @@ char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen, i
 	return NULL;
 }
 
+bool RNA_struct_available_or_report(ReportList *reports, const char *identifier)
+{
+	const StructRNA *srna_exists = RNA_struct_find(identifier);
+	if (UNLIKELY(srna_exists != NULL)) {
+		/* Use comprehensive string construction since this is such a rare occurrence
+		 * and information here may cut down time troubleshooting. */
+		DynStr *dynstr = BLI_dynstr_new();
+		BLI_dynstr_appendf(dynstr, "Type identifier '%s' is already in use: '", identifier);
+		BLI_dynstr_append(dynstr, srna_exists->identifier);
+		int i = 0;
+		if (srna_exists->base) {
+			for (const StructRNA *base = srna_exists->base; base; base = base->base) {
+				BLI_dynstr_append(dynstr, "(");
+				BLI_dynstr_append(dynstr, base->identifier);
+				i += 1;
+			}
+			while (i--) {
+				BLI_dynstr_append(dynstr, ")");
+			}
+		}
+		BLI_dynstr_append(dynstr, "'.");
+		char *result = BLI_dynstr_get_cstring(dynstr);
+		BLI_dynstr_free(dynstr);
+		BKE_report(reports, RPT_ERROR, result);
+		MEM_freeN(result);
+		return false;
+	}
+	else {
+		return true;
+	}
+}
+
 /* Property Information */
 
 const char *RNA_property_identifier(PropertyRNA *prop)

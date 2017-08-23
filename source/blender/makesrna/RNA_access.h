@@ -783,6 +783,8 @@ const struct ListBase *RNA_struct_type_functions(StructRNA *srna);
 
 char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen, int *r_len);
 
+bool RNA_struct_available_or_report(struct ReportList *reports, const char *identifier);
+
 /* Properties
  *
  * Access to struct properties. All this works with RNA pointers rather than

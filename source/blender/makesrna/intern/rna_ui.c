@@ -229,6 +229,9 @@ static StructRNA *rna_Panel_register(Main *bmain, ReportList *reports, void *dat
 			break;
 		}
 	}
+	if (!RNA_struct_available_or_report(reports, identifier)) {
+		return NULL;
+	}
 	
 	/* create a new panel type */
 	pt = MEM_callocN(sizeof(PanelType), "python buttons panel");
@@ -488,8 +491,12 @@ static StructRNA *rna_UIList_register(Main *bmain, ReportList *reports, void *da
 
 	/* check if we have registered this uilist type before, and remove it */
 	ult = WM_uilisttype_find(dummyult.idname, true);
-	if (ult && ult->ext.srna)
+	if (ult && ult->ext.srna) {
 		rna_UIList_unregister(bmain, ult->ext.srna);
+	}
+	if (!RNA_struct_available_or_report(reports, identifier)) {
+		return NULL;
+	}
 
 	/* create a new menu type */
 	ult = MEM_callocN(sizeof(uiListType) + over_alloc, "python uilist");
@@ -591,6 +598,9 @@ static StructRNA *rna_Header_register(Main *bmain, ReportList *reports, void *da
 				rna_Header_unregister(bmain, ht->ext.srna);
 			break;
 		}
+	}
+	if (!RNA_struct_available_or_report(reports, identifier)) {
+		return NULL;
 	}
 	
 	/* create a new header type */
@@ -712,8 +722,12 @@ static StructRNA *rna_Menu_register(Main *bmain, ReportList *reports, void *data
 
 	/* check if we have registered this menu type before, and remove it */
 	mt = WM_menutype_find(dummymt.idname, true);
-	if (mt && mt->ext.srna)
+	if (mt && mt->ext.srna) {
 		rna_Menu_unregister(bmain, mt->ext.srna);
+	}
+	if (!RNA_struct_available_or_report(reports, identifier)) {
+		return NULL;
+	}
 	
 	/* create a new menu type */
 	if (_menu_descr[0]) {

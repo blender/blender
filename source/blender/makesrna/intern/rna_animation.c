@@ -270,9 +270,13 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain, ReportList *reports, v
 	
 	/* check if we have registered this info before, and remove it */
 	ksi = ANIM_keyingset_info_find_name(dummyksi.idname);
-	if (ksi && ksi->ext.srna)
+	if (ksi && ksi->ext.srna) {
 		rna_KeyingSetInfo_unregister(bmain, ksi->ext.srna);
-	
+	}
+	if (!RNA_struct_available_or_report(reports, identifier)) {
+		return NULL;
+	}
+
 	/* create a new KeyingSetInfo type */
 	ksi = MEM_callocN(sizeof(KeyingSetInfo), "python keying set info");
 	memcpy(ksi, &dummyksi, sizeof(KeyingSetInfo));
