@@ -36,7 +36,7 @@ extern "C" {
 	PyTupleObject *op = (PyTupleObject *)op_arg; \
 	PyObject **ob_items = op->ob_item; \
 	CHECK_TYPE_ANY(op_arg, PyObject *, PyTupleObject *); \
-	BLI_assert(_VA_NARGS_COUNT(__VA_ARGS__) == PyTuple_GET_SIZE(op)); \
+	BLI_assert(VA_NARGS_COUNT(__VA_ARGS__) == PyTuple_GET_SIZE(op)); \
 	ARRAY_SET_ITEMS(ob_items, __VA_ARGS__); \
 } (void)0
 

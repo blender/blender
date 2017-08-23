@@ -39,7 +39,7 @@ extern "C" {
 #endif
 
 #include "BLI_compiler_attrs.h"
-#include "BLI_utildefines.h"  /* only for _VA_NARGS_COUNT */
+#include "BLI_variadic_defines.h"
 
 struct ListBase;
 
@@ -60,13 +60,13 @@ char *BLI_string_join_array_by_sep_char_with_tableN(
 /* Take multiple arguments, pass as (array, length). */
 #define BLI_string_joinN(...) \
 	BLI_string_join_arrayN( \
-	((const char *[]){__VA_ARGS__}), _VA_NARGS_COUNT(__VA_ARGS__))
+	((const char *[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
 #define BLI_string_join_by_sep_charN(sep, ...) \
 	BLI_string_join_array_by_sep_charN( \
-	sep, ((const char *[]){__VA_ARGS__}), _VA_NARGS_COUNT(__VA_ARGS__))
+	sep, ((const char *[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
 #define BLI_string_join_by_sep_char_with_tableN(sep, table, ...) \
 	BLI_string_join_array_by_sep_char_with_tableN( \
-	sep, table, ((const char *[]){__VA_ARGS__}), _VA_NARGS_COUNT(__VA_ARGS__))
+	sep, table, ((const char *[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
 
 void BLI_string_flip_side_name(char *r_name, const char *from_name, const bool strip_number, const size_t name_len);
 

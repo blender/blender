@@ -567,7 +567,13 @@ static void node_link_exit(bContext *C, wmOperator *op, bool apply_links)
 	ntree->is_updating = true;
 	for (linkdata = nldrag->links.first; linkdata; linkdata = linkdata->next) {
 		bNodeLink *link = linkdata->data;
-		
+
+		/* See note below, but basically TEST flag means that the link
+		 * was connected to output (or to a node which affects the
+		 * output).
+		 */
+		do_tag_update |= (link->flag & NODE_LINK_TEST) != 0;
+
 		if (apply_links && link->tosock && link->fromsock) {
 			/* before actually adding the link,
 			 * let nodes perform special link insertion handling
@@ -593,11 +599,6 @@ static void node_link_exit(bContext *C, wmOperator *op, bool apply_links)
 			}
 		}
 		else {
-			/* See note below, but basically TEST flag means that the link
-			 * was connected to output (or to a node which affects the
-			 * output).
-			 */
-			do_tag_update |= (link->flag & NODE_LINK_TEST) != 0;
 			nodeRemLink(ntree, link);
 		}
 	}
