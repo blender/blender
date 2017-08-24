@@ -560,6 +560,14 @@ wmManipulator *wm_manipulatormap_highlight_find(
 	ListBase visible_3d_manipulators = {NULL};
 
 	for (wmManipulatorGroup *mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
+
+		/* If it were important we could initialize here,
+		 * but this only happens when events are handled before drawing,
+		 * just skip to keep code-path for initializing manipulators simple. */
+		if ((mgroup->init_flag & WM_MANIPULATORGROUP_INIT_SETUP) == 0) {
+			continue;
+		}
+
 		if (wm_manipulatorgroup_is_visible(mgroup, C)) {
 			if (mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) {
 				if ((mmap->update_flag[WM_MANIPULATORMAP_DRAWSTEP_3D] & MANIPULATORMAP_IS_REFRESH_CALLBACK) &&

@@ -97,6 +97,15 @@ typedef enum eWM_ManipulatorGroupTypeFlag {
 	WM_MANIPULATORGROUPTYPE_DRAW_MODAL_ALL = (1 << 5),
 } eWM_ManipulatorGroupTypeFlag;
 
+
+/**
+ * #wmManipulatorGroup.init_flag
+ */
+typedef enum eWM_ManipulatorGroupInitFlag {
+	/* mgroup has been initialized */
+	WM_MANIPULATORGROUP_INIT_SETUP = (1 << 0),
+} eWM_ManipulatorGroupInitFlag;
+
 /**
  * #wmManipulatorMapType.type_update_flag
  * Manipulator-map type update flag
@@ -362,7 +371,7 @@ typedef struct wmManipulatorGroup {
 
 	void *customdata;
 	void (*customdata_free)(void *); /* for freeing customdata from above */
-	int init_flag; /* private (C source only) */
+	eWM_ManipulatorGroupInitFlag init_flag;
 } wmManipulatorGroup;
 
 /* -------------------------------------------------------------------- */

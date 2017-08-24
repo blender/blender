@@ -66,11 +66,6 @@
  *
  * \{ */
 
-/* wmManipulatorGroup.flag */
-enum {
-	WM_MANIPULATORGROUP_INITIALIZED = (1 << 2), /* mgroup has been initialized */
-};
-
 /**
  * Create a new manipulator-group from \a wgt.
  */
@@ -179,7 +174,7 @@ void wm_manipulatorgroup_intersectable_manipulators_to_list(const wmManipulatorG
 void wm_manipulatorgroup_ensure_initialized(wmManipulatorGroup *mgroup, const bContext *C)
 {
 	/* prepare for first draw */
-	if (UNLIKELY((mgroup->init_flag & WM_MANIPULATORGROUP_INITIALIZED) == 0)) {
+	if (UNLIKELY((mgroup->init_flag & WM_MANIPULATORGROUP_INIT_SETUP) == 0)) {
 		mgroup->type->setup(C, mgroup);
 
 		/* Not ideal, initialize keymap here, needed for RNA runtime generated manipulators. */
@@ -190,7 +185,7 @@ void wm_manipulatorgroup_ensure_initialized(wmManipulatorGroup *mgroup, const bC
 			BLI_assert(wgt->keymap != NULL);
 		}
 
-		mgroup->init_flag |= WM_MANIPULATORGROUP_INITIALIZED;
+		mgroup->init_flag |= WM_MANIPULATORGROUP_INIT_SETUP;
 	}
 }
 
