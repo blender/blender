@@ -134,7 +134,7 @@ static int bpy_bm_elem_hflag_set(BPy_BMElem *self, PyObject *value, void *flag)
 	else {
 		BM_elem_flag_set(self->ele, hflag, param);
 	}
-	return -1;
+	return 0;
 }
 
 PyDoc_STRVAR(bpy_bm_elem_index_doc,
