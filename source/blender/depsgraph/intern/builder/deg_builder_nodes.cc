@@ -320,8 +320,11 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Base *base, Object *ob)
 	if (base != NULL) {
 		id_node->layers |= base->lay;
 	}
-	if (ob == scene->camera) {
-		/* Camera should always be updated, it used directly by viewport. */
+	if (ob->type == OB_CAMERA) {
+		/* Camera should always be updated, it used directly by viewport.
+		 *
+		 * TODO(sergey): Make it only for active scene camera.
+		 */
 		id_node->layers |= (unsigned int)(-1);
 	}
 	/* Skip rest of components if the ID node was already there. */
