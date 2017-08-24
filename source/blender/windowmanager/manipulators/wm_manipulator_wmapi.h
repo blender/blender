@@ -82,8 +82,9 @@ void wm_manipulatormap_highlight_set(
         struct wmManipulator *mpr, int part);
 struct wmManipulator *wm_manipulatormap_highlight_get(struct wmManipulatorMap *mmap);
 void wm_manipulatormap_modal_set(
-        struct wmManipulatorMap *mmap, bContext *C,
-        const struct wmEvent *event, struct wmManipulator *mpr);
+        struct wmManipulatorMap *mmap, bContext *C, struct wmManipulator *mpr,
+        const struct wmEvent *event, bool enable);
+
 struct wmManipulator *wm_manipulatormap_modal_get(struct wmManipulatorMap *mmap);
 struct wmManipulator **wm_manipulatormap_selected_get(wmManipulatorMap *mmap, int *r_selected_len);
 struct ListBase *wm_manipulatormap_groups_get(wmManipulatorMap *mmap);

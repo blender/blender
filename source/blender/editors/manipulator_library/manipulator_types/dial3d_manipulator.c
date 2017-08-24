@@ -71,7 +71,7 @@
 /* to use custom dials exported to geom_dial_manipulator.c */
 // #define USE_MANIPULATOR_CUSTOM_DIAL
 
-static void manipulator_dial_modal(
+static int manipulator_dial_modal(
         bContext *C, wmManipulator *mpr, const wmEvent *event,
         eWM_ManipulatorTweak tweak_flag);
 
@@ -384,7 +384,7 @@ static void manipulator_dial_draw(const bContext *C, wmManipulator *mpr)
 	}
 }
 
-static void manipulator_dial_modal(
+static int manipulator_dial_modal(
         bContext *C, wmManipulator *mpr, const wmEvent *event,
         eWM_ManipulatorTweak UNUSED(tweak_flag))
 {
@@ -408,6 +408,7 @@ static void manipulator_dial_modal(
 	if (WM_manipulator_target_property_is_valid(mpr_prop)) {
 		WM_manipulator_target_property_value_set(C, mpr, mpr_prop, inter->init_prop_angle + angle_delta);
 	}
+	return OPERATOR_RUNNING_MODAL;
 }
 
 
@@ -419,7 +420,7 @@ static void manipulator_dial_setup(wmManipulator *mpr)
 	copy_v3_v3(mpr->matrix_basis[2], dir_default);
 }
 
-static void manipulator_dial_invoke(
+static int manipulator_dial_invoke(
         bContext *UNUSED(C), wmManipulator *mpr, const wmEvent *event)
 {
 	DialInteraction *inter = MEM_callocN(sizeof(DialInteraction), __func__);
@@ -433,6 +434,8 @@ static void manipulator_dial_invoke(
 	}
 
 	mpr->interaction_data = inter;
+
+	return OPERATOR_RUNNING_MODAL;
 }
 
 /* -------------------------------------------------------------------- */

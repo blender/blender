@@ -93,6 +93,7 @@ class MyCustomShapeWidget(Manipulator):
     def invoke(self, context, event):
         self.init_mouse_y = event.mouse_y
         self.init_value = self.target_get_value("offset")
+        return {'RUNNING_MODAL'}
 
     def exit(self, context, cancel):
         context.area.header_text_set()
@@ -108,6 +109,7 @@ class MyCustomShapeWidget(Manipulator):
         value = self.init_value + delta
         self.target_set_value("offset", value)
         context.area.header_text_set("My Manipulator: %.4f" % value)
+        return {'RUNNING_MODAL'}
 
 
 class MyCustomShapeWidgetGroup(ManipulatorGroup):

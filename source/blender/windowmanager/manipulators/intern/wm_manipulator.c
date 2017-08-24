@@ -204,7 +204,7 @@ void WM_manipulator_unlink(ListBase *manipulatorlist, wmManipulatorMap *mmap, wm
 		wm_manipulatormap_highlight_set(mmap, C, NULL, 0);
 	}
 	if (mpr->state & WM_MANIPULATOR_STATE_MODAL) {
-		wm_manipulatormap_modal_set(mmap, C, NULL, NULL);
+		wm_manipulatormap_modal_set(mmap, C, mpr, NULL, false);
 	}
 	/* Unlink instead of setting so we don't run callbacks. */
 	if (mpr->state & WM_MANIPULATOR_STATE_SELECT) {

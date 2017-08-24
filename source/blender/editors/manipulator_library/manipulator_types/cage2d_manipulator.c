@@ -479,7 +479,7 @@ static void manipulator_rect_transform_setup(wmManipulator *mpr)
 	mpr->flag |= WM_MANIPULATOR_DRAW_MODAL;
 }
 
-static void manipulator_rect_transform_invoke(
+static int manipulator_rect_transform_invoke(
         bContext *C, wmManipulator *mpr, const wmEvent *event)
 {
 	RectTransformInteraction *data = MEM_callocN(sizeof(RectTransformInteraction), "cage_interaction");
@@ -493,9 +493,11 @@ static void manipulator_rect_transform_invoke(
 	}
 
 	mpr->interaction_data = data;
+
+	return OPERATOR_RUNNING_MODAL;
 }
 
-static void manipulator_rect_transform_modal(
+static int manipulator_rect_transform_modal(
         bContext *C, wmManipulator *mpr, const wmEvent *event,
         eWM_ManipulatorTweak UNUSED(tweak_flag))
 {
@@ -514,7 +516,7 @@ static void manipulator_rect_transform_modal(
 	if (manipulator_window_project_2d(
 	        C, mpr, (const float[2]){UNPACK2(event->mval)}, 2, false, point_local) == false)
 	{
-		return;
+		return OPERATOR_RUNNING_MODAL;
 	}
 
 	float value_x = (point_local[0] - data->orig_mouse[0]);
@@ -636,6 +638,8 @@ static void manipulator_rect_transform_modal(
 
 	/* tag the region for redraw */
 	ED_region_tag_redraw(CTX_wm_region(C));
+
+	return OPERATOR_RUNNING_MODAL;
 }
 
 static void manipulator_rect_transform_property_update(wmManipulator *mpr, wmManipulatorProperty *mpr_prop)

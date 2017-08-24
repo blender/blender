@@ -77,7 +77,7 @@ static void manipulator_grab_matrix_basis_get(const wmManipulator *mpr, float r_
 	add_v3_v3(r_matrix[3], grab->prop_co);
 }
 
-static void manipulator_grab_modal(
+static int manipulator_grab_modal(
         bContext *C, wmManipulator *mpr, const wmEvent *event,
         eWM_ManipulatorTweak tweak_flag);
 
@@ -236,7 +236,7 @@ static void manipulator_grab_draw(const bContext *C, wmManipulator *mpr)
 	glDisable(GL_BLEND);
 }
 
-static void manipulator_grab_modal(
+static int manipulator_grab_modal(
         bContext *C, wmManipulator *mpr, const wmEvent *event,
         eWM_ManipulatorTweak UNUSED(tweak_flag))
 {
@@ -255,7 +255,7 @@ static void manipulator_grab_modal(
 		    (manipulator_window_project_2d(
 		         C, mpr, (const float[2]){UNPACK2(event->mval)}, 2, false, mval_proj_curr) == false))
 		{
-			return;
+			return OPERATOR_RUNNING_MODAL;
 		}
 		sub_v2_v2v2(prop_delta, mval_proj_curr, mval_proj_init);
 		prop_delta[2] = 0.0f;
@@ -269,9 +269,11 @@ static void manipulator_grab_modal(
 	}
 
 	ED_region_tag_redraw(ar);
+
+	return OPERATOR_RUNNING_MODAL;
 }
 
-static void manipulator_grab_invoke(
+static int manipulator_grab_invoke(
         bContext *UNUSED(C), wmManipulator *mpr, const wmEvent *event)
 {
 	GrabInteraction *inter = MEM_callocN(sizeof(GrabInteraction), __func__);
@@ -298,6 +300,8 @@ static void manipulator_grab_invoke(
 	}
 
 	mpr->interaction_data = inter;
+
+	return OPERATOR_RUNNING_MODAL;
 }
 
 

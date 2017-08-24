@@ -145,7 +145,7 @@ static void manipulator_primitive_setup(wmManipulator *mpr)
 	mpr->flag |= WM_MANIPULATOR_DRAW_MODAL;
 }
 
-static void manipulator_primitive_invoke(
+static int manipulator_primitive_invoke(
         bContext *UNUSED(C), wmManipulator *mpr, const wmEvent *UNUSED(event))
 {
 	ManipulatorInteraction *inter = MEM_callocN(sizeof(ManipulatorInteraction), __func__);
@@ -153,6 +153,8 @@ static void manipulator_primitive_invoke(
 	WM_manipulator_calc_matrix_final(mpr, inter->init_matrix_final);
 
 	mpr->interaction_data = inter;
+
+	return OPERATOR_RUNNING_MODAL;
 }
 
 /* -------------------------------------------------------------------- */

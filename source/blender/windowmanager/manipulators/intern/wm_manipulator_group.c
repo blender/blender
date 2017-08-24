@@ -98,7 +98,7 @@ void wm_manipulatorgroup_free(bContext *C, wmManipulatorGroup *mgroup)
 		wm_manipulatormap_highlight_set(mmap, C, NULL, 0);
 	}
 	if (mmap->mmap_context.modal && mmap->mmap_context.modal->parent_mgroup == mgroup) {
-		wm_manipulatormap_modal_set(mmap, C, NULL, NULL);
+		wm_manipulatormap_modal_set(mmap, C, mmap->mmap_context.modal, NULL, false);
 	}
 
 	for (wmManipulator *mpr = mgroup->manipulators.first, *mpr_next; mpr; mpr = mpr_next) {
@@ -313,7 +313,7 @@ static void manipulator_tweak_finish(bContext *C, wmOperator *op, const bool can
 	if (mtweak->mpr_modal->type->exit) {
 		mtweak->mpr_modal->type->exit(C, mtweak->mpr_modal, cancel);
 	}
-	wm_manipulatormap_modal_set(mtweak->mmap, C, NULL, NULL);
+	wm_manipulatormap_modal_set(mtweak->mmap, C, mtweak->mpr_modal, NULL, false);
 	MEM_freeN(mtweak);
 }
 
@@ -359,11 +359,12 @@ static int manipulator_tweak_modal(bContext *C, wmOperator *op, const wmEvent *e
 	}
 
 	/* handle manipulator */
-	if (mpr->custom_modal) {
-		mpr->custom_modal(C, mpr, event, mtweak->flag);
-	}
-	else if (mpr->type->modal) {
-		mpr->type->modal(C, mpr, event, mtweak->flag);
+	wmManipulatorFnModal modal_fn = mpr->custom_modal ? mpr->custom_modal : mpr->type->modal;
+	int retval = modal_fn(C, mpr, event, mtweak->flag);
+
+	if ((retval & OPERATOR_RUNNING_MODAL) == 0) {
+		manipulator_tweak_finish(C, op, (retval & OPERATOR_CANCELLED) != 0);
+		return OPERATOR_FINISHED;
 	}
 
 	/* always return PASS_THROUGH so modal handlers
@@ -385,7 +386,7 @@ static int manipulator_tweak_invoke(bContext *C, wmOperator *op, const wmEvent *
 
 
 	/* activate highlighted manipulator */
-	wm_manipulatormap_modal_set(mmap, C, event, mpr);
+	wm_manipulatormap_modal_set(mmap, C, mpr, event, true);
 
 	/* XXX temporary workaround for modal manipulator operator
 	 * conflicting with modal operator attached to manipulator */
@@ -395,6 +396,10 @@ static int manipulator_tweak_invoke(bContext *C, wmOperator *op, const wmEvent *
 		}
 	}
 
+	/* Couldn't start the manipulator. */
+	if ((mpr->state & WM_MANIPULATOR_STATE_MODAL) == 0) {
+		return OPERATOR_PASS_THROUGH;
+	}
 
 	ManipulatorTweakData *mtweak = MEM_mallocN(sizeof(ManipulatorTweakData), __func__);
 

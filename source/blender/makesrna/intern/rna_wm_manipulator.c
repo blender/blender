@@ -136,7 +136,7 @@ static int rna_manipulator_test_select_cb(
 	return intersect_id;
 }
 
-static void rna_manipulator_modal_cb(
+static int rna_manipulator_modal_cb(
         struct bContext *C, struct wmManipulator *mpr, const struct wmEvent *event,
         eWM_ManipulatorTweak tweak_flag)
 {
@@ -154,7 +154,13 @@ static void rna_manipulator_modal_cb(
 	RNA_parameter_set_lookup(&list, "event", &event);
 	RNA_parameter_set_lookup(&list, "tweak", &tweak_flag_int);
 	mgroup->type->ext.call((bContext *)C, &mpr_ptr, func, &list);
+
+	void *ret;
+	RNA_parameter_get_lookup(&list, "result", &ret);
+	int ret_enum = *(int *)ret;
+
 	RNA_parameter_list_free(&list);
+	return ret_enum;
 }
 
 static void rna_manipulator_setup_cb(
@@ -174,7 +180,7 @@ static void rna_manipulator_setup_cb(
 }
 
 
-static void rna_manipulator_invoke_cb(
+static int rna_manipulator_invoke_cb(
         struct bContext *C, struct wmManipulator *mpr, const struct wmEvent *event)
 {
 	extern FunctionRNA rna_Manipulator_invoke_func;
@@ -189,7 +195,13 @@ static void rna_manipulator_invoke_cb(
 	RNA_parameter_set_lookup(&list, "context", &C);
 	RNA_parameter_set_lookup(&list, "event", &event);
 	mgroup->type->ext.call((bContext *)C, &mpr_ptr, func, &list);
+
+	void *ret;
+	RNA_parameter_get_lookup(&list, "result", &ret);
+	int ret_enum = *(int *)ret;
+
 	RNA_parameter_list_free(&list);
+	return ret_enum;
 }
 
 static void rna_manipulator_exit_cb(
@@ -949,10 +961,10 @@ static void rna_def_manipulator(BlenderRNA *brna, PropertyRNA *cprop)
 	parm = RNA_def_pointer(func, "event", "Event", "", "");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	/* TODO, shuold be a enum-flag */
-	parm = RNA_def_enum(func, "tweak", tweak_actions, 0, "Tweak", "");
+	parm = RNA_def_enum_flag(func, "tweak", tweak_actions, 0, "Tweak", "");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-	RNA_def_property_flag(parm, PROP_ENUM_FLAG);
-
+	parm = RNA_def_enum_flag(func, "result", rna_enum_operator_return_items, OPERATOR_CANCELLED, "result", "");
+	RNA_def_function_return(func, parm);
 	/* wmManipulator.property_update */
 	/* TODO */
 
@@ -969,6 +981,8 @@ static void rna_def_manipulator(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "event", "Event", "", "");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+	parm = RNA_def_enum_flag(func, "result", rna_enum_operator_return_items, OPERATOR_CANCELLED, "result", "");
+	RNA_def_function_return(func, parm);
 
 	/* wmManipulator.exit */
 	func = RNA_def_function(srna, "exit", NULL);
