@@ -450,7 +450,7 @@ void update_special_pointers(const Depsgraph *depsgraph,
 		}
 		case ID_ME:
 		{
-			/* For meshes we need to update edit_brtmesh to make it to point
+			/* For meshes we need to update edit_btmesh to make it to point
 			 * to the CoW version of object.
 			 *
 			 * This is kind of confusing, because actual bmesh is not owned by
