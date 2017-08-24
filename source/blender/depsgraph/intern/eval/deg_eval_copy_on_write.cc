@@ -826,6 +826,12 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 			 */
 			if (object->type == OB_MESH) {
 				object->data = mesh_evaluated;
+				/* Evaluated mesh simply copied edit_btmesh pointer from
+				 * original mesh during update, need to make sure no dead
+				 * pointers are left behind.
+				 */
+				mesh_evaluated->edit_btmesh =
+				        ((Mesh *)mesh_evaluated->id.newid)->edit_btmesh;
 			}
 		}
 	}
