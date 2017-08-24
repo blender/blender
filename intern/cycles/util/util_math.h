@@ -224,7 +224,7 @@ ccl_device_inline bool isfinite_safe(float f)
 {
 	/* By IEEE 754 rule, 2*Inf equals Inf */
 	unsigned int x = __float_as_uint(f);
-	return (f == f) && (x == 0 || (f != 2.0f*f)) && !((x << 1) > 0xff000000u);
+	return (f == f) && (x == 0 || x == (1 << 31) || (f != 2.0f*f)) && !((x << 1) > 0xff000000u);
 }
 
 ccl_device_inline float ensure_finite(float v)
