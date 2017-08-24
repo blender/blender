@@ -43,7 +43,7 @@ ccl_device_inline bool volume_shader_extinction_sample(KernelGlobals *kg,
                                                        float3 *extinction)
 {
 	sd->P = P;
-	shader_eval_volume(kg, sd, state, state->volume_stack, PATH_RAY_SHADOW, SHADER_CONTEXT_SHADOW);
+	shader_eval_volume(kg, sd, state, state->volume_stack, PATH_RAY_SHADOW);
 
 	if(!(sd->flag & (SD_ABSORPTION|SD_SCATTER)))
 		return false;
@@ -69,7 +69,7 @@ ccl_device_inline bool volume_shader_sample(KernelGlobals *kg,
                                             VolumeShaderCoefficients *coeff)
 {
 	sd->P = P;
-	shader_eval_volume(kg, sd, state, state->volume_stack, state->flag, SHADER_CONTEXT_VOLUME);
+	shader_eval_volume(kg, sd, state, state->volume_stack, state->flag);
 
 	if(!(sd->flag & (SD_ABSORPTION|SD_SCATTER|SD_EMISSION)))
 		return false;

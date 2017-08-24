@@ -86,7 +86,7 @@ struct OSLThreadData {
 	OSL::ShaderGlobals globals;
 	OSL::PerThreadInfo *osl_thread_info;
 	OSLTraceData tracedata;
-	OSL::ShadingContext *context[SHADER_CONTEXT_NUM];
+	OSL::ShadingContext *context;
 	OIIO::TextureSystem::Perthread *oiio_thread_info;
 };
 

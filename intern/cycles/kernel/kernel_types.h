@@ -802,20 +802,6 @@ typedef ccl_addr_space struct ccl_align(16) ShaderClosure {
 	float data[10]; /* pad to 80 bytes */
 } ShaderClosure;
 
-/* Shader Context
- *
- * For OSL we recycle a fixed number of contexts for speed */
-
-typedef enum ShaderContext {
-	SHADER_CONTEXT_MAIN = 0,
-	SHADER_CONTEXT_INDIRECT = 1,
-	SHADER_CONTEXT_EMISSION = 2,
-	SHADER_CONTEXT_SHADOW = 3,
-	SHADER_CONTEXT_SSS = 4,
-	SHADER_CONTEXT_VOLUME = 5,
-	SHADER_CONTEXT_NUM = 6
-} ShaderContext;
-
 /* Shader Data
  *
  * Main shader state at a point on the surface or in a volume. All coordinates

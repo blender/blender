@@ -488,7 +488,7 @@ ccl_device void kernel_branched_path_integrate(KernelGlobals *kg,
 
 		/* setup shading */
 		shader_setup_from_ray(kg, &sd, &isect, &ray);
-		shader_eval_surface(kg, &sd, &state, 0.0f, state.flag, SHADER_CONTEXT_MAIN);
+		shader_eval_surface(kg, &sd, &state, 0.0f, state.flag);
 		shader_merge_closures(&sd);
 
 #ifdef __SHADOW_TRICKS__
