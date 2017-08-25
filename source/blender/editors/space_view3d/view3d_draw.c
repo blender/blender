@@ -2523,8 +2523,13 @@ void ED_view3d_draw_select_loop(
         ViewContext *vc, Scene *scene, View3D *v3d, ARegion *ar,
         bool use_obedit_skip, bool use_nearest)
 {
+	struct bThemeState theme_state;
 	short code = 1;
 	const short dflag = DRAW_PICKING | DRAW_CONSTCOLOR;
+
+	/* Tools may request depth outside of regular drawing code. */
+	UI_Theme_Store(&theme_state);
+	UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
 
 	if (vc->obedit && vc->obedit->type == OB_MBALL) {
 		draw_object(scene, ar, v3d, BASACT, dflag);
@@ -2569,6 +2574,8 @@ void ED_view3d_draw_select_loop(
 			}
 		}
 	}
+
+	UI_Theme_Restore(&theme_state);
 }
 
 typedef struct View3DShadow {
