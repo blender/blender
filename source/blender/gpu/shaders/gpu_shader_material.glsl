@@ -2472,7 +2472,7 @@ void generated_from_orco(vec3 orco, out vec3 generated)
 #ifdef VOLUMETRICS
 	generated = worldPosition;
 #else
-	generated = orco * 0.5 + 0.5;
+	generated = orco;
 #endif
 }
 
