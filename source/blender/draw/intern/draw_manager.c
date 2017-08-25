@@ -1847,8 +1847,9 @@ static void draw_geometry(DRWShadingGroup *shgroup, Gwn_Batch *geom, const float
 		switch (GS(ob_data->name)) {
 			case ID_ME:
 				BKE_mesh_texspace_get_reference((Mesh *)ob_data, NULL, &texcoloc, NULL, &texcosize);
-				/* TODO, curve, metaball? */
+				break;
 			default:
+				/* TODO, curve, metaball? */
 				break;
 		}
 	}
