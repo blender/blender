@@ -37,13 +37,18 @@ public:
 	~scoped_timer()
 	{
 		if(value_ != NULL) {
-			*value_ = time_dt() - time_start_;
+			*value_ = get_time();
 		}
 	}
 
 	double get_start() const
 	{
 		return time_start_;
+	}
+
+	double get_time() const
+	{
+		return time_dt() - time_start_;
 	}
 
 protected:
