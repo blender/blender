@@ -703,6 +703,7 @@ void ED_view3d_draw_depth(
         const EvaluationContext *eval_ctx, struct Depsgraph *graph,
         ARegion *ar, View3D *v3d, bool alphaoverride)
 {
+	struct bThemeState theme_state;
 	Scene *scene = DEG_get_evaluated_scene(graph);
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -715,6 +716,10 @@ void ED_view3d_draw_depth(
 	v3d->flag &= ~V3D_SELECT_OUTLINE;
 	U.glalphaclip = alphaoverride ? 0.5f : glalphaclip; /* not that nice but means we wont zoom into billboards */
 	U.obcenter_dia = 0;
+
+	/* Tools may request depth outside of regular drawing code. */
+	UI_Theme_Store(&theme_state);
+	UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
 
 	ED_view3d_draw_setup_view(NULL, eval_ctx, scene, ar, v3d, NULL, NULL, NULL);
 
@@ -751,6 +756,8 @@ void ED_view3d_draw_depth(
 	U.glalphaclip = glalphaclip;
 	v3d->flag = flag;
 	U.obcenter_dia = obcenter_dia;
+
+	UI_Theme_Restore(&theme_state);
 }
 
 /* ******************** background plates ***************** */

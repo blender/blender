@@ -21,7 +21,7 @@
   Subject to the provisions of the GNU GPL license, BF grants You a
   non-exclusive right to use the Software at any computer You own or use. 
   Artwork you create with the Software - whether it is images, movies, 
-  scripts, exported 3d files or the .blend files themselves - is your sole 
+  exported 3d files or the .blend files themselves - is your sole 
   property, and can be licensed or sold under any conditions you prefer. 
 
   2. Permitted copying and electronic distribution of Software
