@@ -80,122 +80,180 @@ inline void face_split_tri_indices(const int face_flag,
 struct MikkUserData {
 	MikkUserData(const BL::Mesh& b_mesh,
 	             BL::MeshTextureFaceLayer *layer,
-	             int num_faces)
-	        : b_mesh(b_mesh),
-	          layer(layer),
-	          num_faces(num_faces)
+	             const Mesh *mesh,
+	             float3 *tangent,
+	             float *tangent_sign)
+	        : mesh(mesh),
+	          texface(NULL),
+	          orco(NULL),
+	          tangent(tangent),
+	          tangent_sign(tangent_sign)
 	{
-		tangent.resize(num_faces*4);
+		Attribute *attr_vN = mesh->attributes.find(ATTR_STD_VERTEX_NORMAL);
+		vertex_normal = attr_vN->data_float3();
+
+		if(layer == NULL) {
+			Attribute *attr_orco = mesh->attributes.find(ATTR_STD_GENERATED);
+			orco = attr_orco->data_float3();
+			mesh_texture_space(*(BL::Mesh*)&b_mesh, orco_loc, orco_size);
+		}
+		else {
+			Attribute *attr_uv = mesh->attributes.find(ustring(layer->name()));
+			if(attr_uv != NULL) {
+				texface = attr_uv->data_float3();
+			}
+		}
 	}
 
-	BL::Mesh b_mesh;
-	BL::MeshTextureFaceLayer *layer;
+	const Mesh *mesh;
 	int num_faces;
-	vector<float4> tangent;
+
+	float3 *vertex_normal;
+	float3 *texface;
+	float3 *orco;
+	float3 orco_loc, orco_size;
+
+	float3 *tangent;
+	float *tangent_sign;
 };
 
 static int mikk_get_num_faces(const SMikkTSpaceContext *context)
 {
-	MikkUserData *userdata = (MikkUserData*)context->m_pUserData;
-	return userdata->num_faces;
+	const MikkUserData *userdata = (const MikkUserData *)context->m_pUserData;
+	return userdata->mesh->num_triangles();
 }
 
-static int mikk_get_num_verts_of_face(const SMikkTSpaceContext *context, const int face_num)
+static int mikk_get_num_verts_of_face(const SMikkTSpaceContext * /*context*/,
+                                      const int /*face_num*/)
 {
-	MikkUserData *userdata = (MikkUserData*)context->m_pUserData;
-	BL::MeshTessFace f = userdata->b_mesh.tessfaces[face_num];
-	int4 vi = get_int4(f.vertices_raw());
-
-	return (vi[3] == 0)? 3: 4;
+	return 3;
 }
 
-static void mikk_get_position(const SMikkTSpaceContext *context, float P[3], const int face_num, const int vert_num)
+static void mikk_get_position(const SMikkTSpaceContext *context,
+                              float P[3],
+                              const int face_num, const int vert_num)
 {
-	MikkUserData *userdata = (MikkUserData*)context->m_pUserData;
-	BL::MeshTessFace f = userdata->b_mesh.tessfaces[face_num];
-	int4 vi = get_int4(f.vertices_raw());
-	BL::MeshVertex v = userdata->b_mesh.vertices[vi[vert_num]];
-	float3 vP = get_float3(v.co());
+	const MikkUserData *userdata = (const MikkUserData *)context->m_pUserData;
+	const Mesh *mesh = userdata->mesh;
+	const int vert_index = mesh->triangles[face_num * 3 + vert_num];
+	const float3 vP = mesh->verts[vert_index];
 
 	P[0] = vP.x;
 	P[1] = vP.y;
 	P[2] = vP.z;
 }
 
-static void mikk_get_texture_coordinate(const SMikkTSpaceContext *context, float uv[2], const int face_num, const int vert_num)
+static void mikk_get_texture_coordinate(const SMikkTSpaceContext *context,
+                                        float uv[2],
+                                        const int face_num, const int vert_num)
 {
-	MikkUserData *userdata = (MikkUserData*)context->m_pUserData;
-	if(userdata->layer != NULL) {
-		BL::MeshTextureFace tf = userdata->layer->data[face_num];
-		float3 tfuv;
-
-		switch(vert_num) {
-			case 0:
-				tfuv = get_float3(tf.uv1());
-				break;
-			case 1:
-				tfuv = get_float3(tf.uv2());
-				break;
-			case 2:
-				tfuv = get_float3(tf.uv3());
-				break;
-			default:
-				tfuv = get_float3(tf.uv4());
-				break;
-		}
-
+	const MikkUserData *userdata = (const MikkUserData *)context->m_pUserData;
+	if(userdata->texface != NULL) {
+		const size_t corner_index = face_num * 3 + vert_num;
+		float3 tfuv = userdata->texface[corner_index];
 		uv[0] = tfuv.x;
 		uv[1] = tfuv.y;
 	}
-	else {
-		int vert_idx = userdata->b_mesh.tessfaces[face_num].vertices()[vert_num];
-		float3 orco =
-			get_float3(userdata->b_mesh.vertices[vert_idx].undeformed_co());
-		float2 tmp = map_to_sphere(make_float3(orco[0], orco[1], orco[2]));
+	else if(userdata->orco != NULL) {
+		const Mesh *mesh = userdata->mesh;
+		const size_t vertex_index = mesh->triangles[face_num * 3 + vert_num];
+		const float3 orco_loc = userdata->orco_loc;
+		const float3 orco_size = userdata->orco_size;
+		const float3 orco = (userdata->orco[vertex_index] + orco_loc) / orco_size;
+
+		const float2 tmp = map_to_sphere(orco);
 		uv[0] = tmp.x;
 		uv[1] = tmp.y;
 	}
+	else {
+		uv[0] = 0.0f;
+		uv[1] = 0.0f;
+	}
 }
 
-static void mikk_get_normal(const SMikkTSpaceContext *context, float N[3], const int face_num, const int vert_num)
+static void mikk_get_normal(const SMikkTSpaceContext *context, float N[3],
+                            const int face_num, const int vert_num)
 {
-	MikkUserData *userdata = (MikkUserData*)context->m_pUserData;
-	BL::MeshTessFace f = userdata->b_mesh.tessfaces[face_num];
+	const MikkUserData *userdata = (const MikkUserData *)context->m_pUserData;
+	const Mesh *mesh = userdata->mesh;
 	float3 vN;
-
-	if(f.use_smooth()) {
-		int4 vi = get_int4(f.vertices_raw());
-		BL::MeshVertex v = userdata->b_mesh.vertices[vi[vert_num]];
-		vN = get_float3(v.normal());
+	if(mesh->smooth[face_num]) {
+		const size_t vert_index = mesh->triangles[face_num * 3 + vert_num];
+		vN = userdata->vertex_normal[vert_index];
 	}
 	else {
-		vN = get_float3(f.normal());
+		const Mesh::Triangle tri = mesh->get_triangle(face_num);
+		vN = tri.compute_normal(&mesh->verts[0]);
 	}
-
 	N[0] = vN.x;
 	N[1] = vN.y;
 	N[2] = vN.z;
 }
 
-static void mikk_set_tangent_space(const SMikkTSpaceContext *context, const float T[], const float sign, const int face, const int vert)
+static void mikk_set_tangent_space(const SMikkTSpaceContext *context,
+                                   const float T[],
+                                   const float sign,
+                                   const int face_num, const int vert_num)
 {
-	MikkUserData *userdata = (MikkUserData*)context->m_pUserData;
-
-	userdata->tangent[face*4 + vert] = make_float4(T[0], T[1], T[2], sign);
+	MikkUserData *userdata = (MikkUserData *)context->m_pUserData;
+	const size_t corner_index = face_num * 3 + vert_num;
+	userdata->tangent[corner_index] = make_float3(T[0], T[1], T[2]);
+	if(userdata->tangent_sign != NULL) {
+		userdata->tangent_sign[corner_index] = sign;
+	}
 }
 
-static void mikk_compute_tangents(BL::Mesh& b_mesh,
+static void mikk_compute_tangents(const BL::Mesh& b_mesh,
                                   BL::MeshTextureFaceLayer *b_layer,
                                   Mesh *mesh,
-                                  const vector<int>& nverts,
-                                  const vector<int>& face_flags,
                                   bool need_sign,
                                   bool active_render)
 {
-	/* setup userdata */
-	MikkUserData userdata(b_mesh, b_layer, nverts.size());
+	/* Create tangent attributes. */
+	Attribute *attr;
+	ustring name;
+	if(b_layer != NULL) {
+		name = ustring((string(b_layer->name().c_str()) + ".tangent").c_str());
+	}
+	else {
+		name = ustring("orco.tangent");
+	}
+	if(active_render) {
+		attr = mesh->attributes.add(ATTR_STD_UV_TANGENT, name);
+	}
+	else {
+		attr = mesh->attributes.add(name,
+		                            TypeDesc::TypeVector,
+		                            ATTR_ELEMENT_CORNER);
+	}
+	float3 *tangent = attr->data_float3();
+	/* Create bitangent sign attribute. */
+	float *tangent_sign = NULL;
+	if(need_sign) {
+		Attribute *attr_sign;
+		ustring name_sign;
+		if(b_layer != NULL) {
+			name_sign = ustring((string(b_layer->name().c_str()) +
+			                           ".tangent_sign").c_str());
+		}
+		else {
+			name_sign = ustring("orco.tangent_sign");
+		}
 
-	/* setup interface */
+		if(active_render) {
+			attr_sign = mesh->attributes.add(ATTR_STD_UV_TANGENT_SIGN,
+			                                 name_sign);
+		}
+		else {
+			attr_sign = mesh->attributes.add(name_sign,
+			                                 TypeDesc::TypeFloat,
+			                                 ATTR_ELEMENT_CORNER);
+		}
+		tangent_sign = attr_sign->data_float();
+	}
+	/* Setup userdata. */
+	MikkUserData userdata(b_mesh, b_layer, mesh, tangent, tangent_sign);
+	/* Setup interface. */
 	SMikkTSpaceInterface sm_interface;
 	memset(&sm_interface, 0, sizeof(sm_interface));
 	sm_interface.m_getNumFaces = mikk_get_num_faces;
@@ -204,80 +262,13 @@ static void mikk_compute_tangents(BL::Mesh& b_mesh,
 	sm_interface.m_getTexCoord = mikk_get_texture_coordinate;
 	sm_interface.m_getNormal = mikk_get_normal;
 	sm_interface.m_setTSpaceBasic = mikk_set_tangent_space;
-
-	/* setup context */
+	/* Setup context. */
 	SMikkTSpaceContext context;
 	memset(&context, 0, sizeof(context));
 	context.m_pUserData = &userdata;
 	context.m_pInterface = &sm_interface;
-
-	/* compute tangents */
+	/* Compute tangents. */
 	genTangSpaceDefault(&context);
-
-	/* create tangent attributes */
-	Attribute *attr;
-	ustring name;
-	if(b_layer != NULL)
-		name = ustring((string(b_layer->name().c_str()) + ".tangent").c_str());
-	else
-		name = ustring("orco.tangent");
-
-	if(active_render)
-		attr = mesh->attributes.add(ATTR_STD_UV_TANGENT, name);
-	else
-		attr = mesh->attributes.add(name, TypeDesc::TypeVector, ATTR_ELEMENT_CORNER);
-
-	float3 *tangent = attr->data_float3();
-
-	/* create bitangent sign attribute */
-	float *tangent_sign = NULL;
-
-	if(need_sign) {
-		Attribute *attr_sign;
-		ustring name_sign;
-		if(b_layer != NULL)
-			name_sign = ustring((string(b_layer->name().c_str()) + ".tangent_sign").c_str());
-		else
-			name_sign = ustring("orco.tangent_sign");
-
-		if(active_render)
-			attr_sign = mesh->attributes.add(ATTR_STD_UV_TANGENT_SIGN, name_sign);
-		else
-			attr_sign = mesh->attributes.add(name_sign, TypeDesc::TypeFloat, ATTR_ELEMENT_CORNER);
-
-		tangent_sign = attr_sign->data_float();
-	}
-
-	for(int i = 0; i < nverts.size(); i++) {
-		int tri_a[3], tri_b[3];
-		face_split_tri_indices(face_flags[i], tri_a, tri_b);
-
-		tangent[0] = float4_to_float3(userdata.tangent[i*4 + tri_a[0]]);
-		tangent[1] = float4_to_float3(userdata.tangent[i*4 + tri_a[1]]);
-		tangent[2] = float4_to_float3(userdata.tangent[i*4 + tri_a[2]]);
-		tangent += 3;
-
-		if(tangent_sign) {
-			tangent_sign[0] = userdata.tangent[i*4 + tri_a[0]].w;
-			tangent_sign[1] = userdata.tangent[i*4 + tri_a[1]].w;
-			tangent_sign[2] = userdata.tangent[i*4 + tri_a[2]].w;
-			tangent_sign += 3;
-		}
-
-		if(nverts[i] == 4) {
-			tangent[0] = float4_to_float3(userdata.tangent[i*4 + tri_b[0]]);
-			tangent[1] = float4_to_float3(userdata.tangent[i*4 + tri_b[1]]);
-			tangent[2] = float4_to_float3(userdata.tangent[i*4 + tri_b[2]]);
-			tangent += 3;
-
-			if(tangent_sign) {
-				tangent_sign[0] = userdata.tangent[i*4 + tri_b[0]].w;
-				tangent_sign[1] = userdata.tangent[i*4 + tri_b[1]].w;
-				tangent_sign[2] = userdata.tangent[i*4 + tri_b[2]].w;
-				tangent_sign += 3;
-			}
-		}
-	}
 }
 
 /* Create Volume Attribute */
@@ -450,21 +441,39 @@ static void attr_create_uv_map(Scene *scene,
 		BL::Mesh::tessface_uv_textures_iterator l;
 
 		for(b_mesh.tessface_uv_textures.begin(l); l != b_mesh.tessface_uv_textures.end(); ++l) {
-			bool active_render = l->active_render();
-			AttributeStandard std = (active_render)? ATTR_STD_UV: ATTR_STD_NONE;
-			ustring name = ustring(l->name().c_str());
+			const bool active_render = l->active_render();
+			AttributeStandard uv_std = (active_render)? ATTR_STD_UV: ATTR_STD_NONE;
+			ustring uv_name = ustring(l->name().c_str());
+			AttributeStandard tangent_std = (active_render)? ATTR_STD_UV_TANGENT
+			                                               : ATTR_STD_NONE;
+			ustring tangent_name = ustring(
+			        (string(l->name().c_str()) + ".tangent").c_str());
+
+			/* Denotes whether UV map was requested directly. */
+			const bool need_uv = mesh->need_attribute(scene, uv_name) ||
+			                     mesh->need_attribute(scene, uv_std);
+			/* Denotes whether tangent was requested directly. */
+			const bool need_tangent =
+			       mesh->need_attribute(scene, tangent_name) ||
+			       (active_render && mesh->need_attribute(scene, tangent_std));
 
 			/* UV map */
-			if(mesh->need_attribute(scene, name) || mesh->need_attribute(scene, std)) {
-				Attribute *attr;
-
-				if(active_render)
-					attr = mesh->attributes.add(std, name);
-				else
-					attr = mesh->attributes.add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CORNER);
+			/* NOTE: We create temporary UV layer if its needed for tangent but
+			 * wasn't requested by other nodes in shaders.
+			 */
+			Attribute *uv_attr = NULL;
+			if(need_uv || need_tangent) {
+				if(active_render) {
+					uv_attr = mesh->attributes.add(uv_std, uv_name);
+				}
+				else {
+					uv_attr = mesh->attributes.add(uv_name,
+					                               TypeDesc::TypePoint,
+					                               ATTR_ELEMENT_CORNER);
+				}
 
 				BL::MeshTextureFaceLayer::data_iterator t;
-				float3 *fdata = attr->data_float3();
+				float3 *fdata = uv_attr->data_float3();
 				size_t i = 0;
 
 				for(l->data.begin(t); t != l->data.end(); ++t, ++i) {
@@ -494,33 +503,32 @@ static void attr_create_uv_map(Scene *scene,
 			}
 
 			/* UV tangent */
-			std = (active_render)? ATTR_STD_UV_TANGENT: ATTR_STD_NONE;
-			name = ustring((string(l->name().c_str()) + ".tangent").c_str());
-
-			if(mesh->need_attribute(scene, name) || (active_render && mesh->need_attribute(scene, std))) {
-				std = (active_render)? ATTR_STD_UV_TANGENT_SIGN: ATTR_STD_NONE;
-				name = ustring((string(l->name().c_str()) + ".tangent_sign").c_str());
-				bool need_sign = (mesh->need_attribute(scene, name) || mesh->need_attribute(scene, std));
-
+			if(need_tangent) {
+				AttributeStandard sign_std =
+				        (active_render)? ATTR_STD_UV_TANGENT_SIGN
+				                       : ATTR_STD_NONE;
+				ustring sign_name = ustring(
+				        (string(l->name().c_str()) + ".tangent_sign").c_str());
+				bool need_sign = (mesh->need_attribute(scene, sign_name) ||
+				                  mesh->need_attribute(scene, sign_std));
 				mikk_compute_tangents(b_mesh,
 				                      &(*l),
 				                      mesh,
-				                      nverts,
-				                      face_flags,
 				                      need_sign,
 				                      active_render);
+			}
+			/* Remove temporarily created UV attribute. */
+			if(!need_uv && uv_attr != NULL) {
+				mesh->attributes.remove(uv_attr);
 			}
 		}
 	}
 	else if(mesh->need_attribute(scene, ATTR_STD_UV_TANGENT)) {
 		bool need_sign = mesh->need_attribute(scene, ATTR_STD_UV_TANGENT_SIGN);
-		mikk_compute_tangents(b_mesh,
-		                      NULL,
-		                      mesh,
-		                      nverts,
-		                      face_flags,
-		                      need_sign,
-		                      true);
+		mikk_compute_tangents(b_mesh, NULL, mesh, need_sign, true);
+		if(!mesh->need_attribute(scene, ATTR_STD_GENERATED)) {
+			mesh->attributes.remove(ATTR_STD_GENERATED);
+		}
 	}
 }
 
@@ -758,7 +766,13 @@ static void create_mesh(Scene *scene,
 	N = attr_N->data_float3();
 
 	/* create generated coordinates from undeformed coordinates */
-	if(mesh->need_attribute(scene, ATTR_STD_GENERATED)) {
+	const bool need_default_tangent =
+	        (subdivision == false) &&
+	        (b_mesh.tessface_uv_textures.length() == 0) &&
+	        (mesh->need_attribute(scene, ATTR_STD_UV_TANGENT));
+	if(mesh->need_attribute(scene, ATTR_STD_GENERATED) ||
+	   need_default_tangent)
+	{
 		Attribute *attr = attributes.add(ATTR_STD_GENERATED);
 		attr->flags |= ATTR_SUBDIVIDED;
 
@@ -768,8 +782,9 @@ static void create_mesh(Scene *scene,
 		float3 *generated = attr->data_float3();
 		size_t i = 0;
 
-		for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v)
+		for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v) {
 			generated[i++] = get_float3(v->undeformed_co())*size - loc;
+		}
 	}
 
 	/* create faces */
