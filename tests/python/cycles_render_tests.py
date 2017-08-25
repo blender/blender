@@ -154,6 +154,9 @@ class Report:
     def output(self):
         # write intermediate data for single test
         outdir = os.path.join(OUTDIR, self.testname)
+        if not os.path.exists(outdir):
+            os.makedirs(outdir)
+
         f = open(os.path.join(outdir, "failed.data"), "w")
         f.write(self.failed_tests)
         f.close()
