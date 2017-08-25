@@ -1677,6 +1677,19 @@ static void QuickSortEdges(SEdge * pSortBuffer, int iLeft, int iRight, const int
 		}
 		return;
 	}
+	else if(iElems < 16) {
+		int i, j;
+		for (i = 0; i < iElems - 1; i++) {
+			for (j = 0; j < iElems - i - 1; j++) {
+				int index = iLeft + j;
+				if (pSortBuffer[index].array[channel] > pSortBuffer[index + 1].array[channel]) {
+					sTmp = pSortBuffer[index];
+					pSortBuffer[index] = pSortBuffer[index];
+					pSortBuffer[index + 1] = sTmp;
+				}
+			}
+		}
+	}
 
 	// Random
 	t=uSeed&31;
