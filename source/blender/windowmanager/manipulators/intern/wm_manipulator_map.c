@@ -1046,7 +1046,9 @@ void WM_manipulatorconfig_update(struct Main *bmain)
 				     wgt_ref = wgt_ref_next)
 				{
 					wgt_ref_next = wgt_ref->next;
-					WM_manipulatormaptype_group_unlink(NULL, bmain, mmap_type, wgt_ref->type);
+					if (wgt_ref->type->type_update_flag & WM_MANIPULATORMAPTYPE_UPDATE_REMOVE) {
+						WM_manipulatormaptype_group_unlink(NULL, bmain, mmap_type, wgt_ref->type);
+					}
 				}
 			}
 		}
