@@ -267,6 +267,9 @@ static int manipulator_grab_modal(
 	if (WM_manipulator_target_property_is_valid(mpr_prop)) {
 		WM_manipulator_target_property_value_set_array(C, mpr, mpr_prop, grab->prop_co);
 	}
+	else {
+		zero_v3(grab->prop_co);
+	}
 
 	ED_region_tag_redraw(ar);
 
@@ -326,7 +329,12 @@ static int manipulator_grab_test_select(
 static void manipulator_grab_property_update(wmManipulator *mpr, wmManipulatorProperty *mpr_prop)
 {
 	GrabManipulator3D *grab = (GrabManipulator3D *)mpr;
-	WM_manipulator_target_property_value_get_array(mpr, mpr_prop, grab->prop_co);
+	if (WM_manipulator_target_property_is_valid(mpr_prop)) {
+		WM_manipulator_target_property_value_get_array(mpr, mpr_prop, grab->prop_co);
+	}
+	else {
+		zero_v3(grab->prop_co);
+	}
 }
 
 static int manipulator_grab_cursor_get(wmManipulator *UNUSED(mpr))
