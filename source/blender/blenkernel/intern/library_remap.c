@@ -186,8 +186,8 @@ static int foreach_libblock_remap_callback(void *user_data, ID *id_self, ID **id
 		const bool skip_never_null = (id_remap_data->flag & ID_REMAP_SKIP_NEVER_NULL_USAGE) != 0;
 
 #ifdef DEBUG_PRINT
-		printf("In %s: Remapping %s (%p) to %s (%p) (skip_indirect: %d)\n",
-		       id->name, old_id->name, old_id, new_id ? new_id->name : "<NONE>", new_id, skip_indirect);
+		printf("In %s: Remapping %s (%p) to %s (%p) (is_indirect: %d, skip_indirect: %d)\n",
+		       id->name, old_id->name, old_id, new_id ? new_id->name : "<NONE>", new_id, is_indirect, skip_indirect);
 #endif
 
 		if ((id_remap_data->flag & ID_REMAP_FLAG_NEVER_NULL_USAGE) && (cb_flag & IDWALK_CB_NEVER_NULL)) {
@@ -201,6 +201,14 @@ static int foreach_libblock_remap_callback(void *user_data, ID *id_self, ID **id
 		{
 			if (is_indirect) {
 				id_remap_data->skipped_indirect++;
+				if (is_obj) {
+					Object *ob = (Object *)id;
+					if (ob->data == *id_p && ob->proxy != NULL) {
+						/* And another 'Proudly brought to you by Proxy Hell' hack!
+						 * This will allow us to avoid clearing 'LIB_EXTERN' flag of obdata of proxies... */
+						id_remap_data->skipped_direct++;
+					}
+				}
 			}
 			else if (is_never_null || is_obj_editmode) {
 				id_remap_data->skipped_direct++;
