@@ -79,15 +79,17 @@ inline void face_split_tri_indices(const int face_flag,
 /* Tangent Space */
 
 struct MikkUserData {
-	MikkUserData(const BL::Mesh& mesh_,
-	             BL::MeshTextureFaceLayer *layer_,
-	             int num_faces_)
-	: mesh(mesh_), layer(layer_), num_faces(num_faces_)
+	MikkUserData(const BL::Mesh& b_mesh,
+	             BL::MeshTextureFaceLayer *layer,
+	             int num_faces)
+	        : b_mesh(b_mesh),
+	          layer(layer),
+	          num_faces(num_faces)
 	{
 		tangent.resize(num_faces*4);
 	}
 
-	BL::Mesh mesh;
+	BL::Mesh b_mesh;
 	BL::MeshTextureFaceLayer *layer;
 	int num_faces;
 	vector<float4> tangent;
@@ -102,7 +104,7 @@ static int mikk_get_num_faces(const SMikkTSpaceContext *context)
 static int mikk_get_num_verts_of_face(const SMikkTSpaceContext *context, const int face_num)
 {
 	MikkUserData *userdata = (MikkUserData*)context->m_pUserData;
-	BL::MeshTessFace f = userdata->mesh.tessfaces[face_num];
+	BL::MeshTessFace f = userdata->b_mesh.tessfaces[face_num];
 	int4 vi = get_int4(f.vertices_raw());
 
 	return (vi[3] == 0)? 3: 4;
@@ -111,9 +113,9 @@ static int mikk_get_num_verts_of_face(const SMikkTSpaceContext *context, const i
 static void mikk_get_position(const SMikkTSpaceContext *context, float P[3], const int face_num, const int vert_num)
 {
 	MikkUserData *userdata = (MikkUserData*)context->m_pUserData;
-	BL::MeshTessFace f = userdata->mesh.tessfaces[face_num];
+	BL::MeshTessFace f = userdata->b_mesh.tessfaces[face_num];
 	int4 vi = get_int4(f.vertices_raw());
-	BL::MeshVertex v = userdata->mesh.vertices[vi[vert_num]];
+	BL::MeshVertex v = userdata->b_mesh.vertices[vi[vert_num]];
 	float3 vP = get_float3(v.co());
 
 	P[0] = vP.x;
@@ -147,9 +149,9 @@ static void mikk_get_texture_coordinate(const SMikkTSpaceContext *context, float
 		uv[1] = tfuv.y;
 	}
 	else {
-		int vert_idx = userdata->mesh.tessfaces[face_num].vertices()[vert_num];
+		int vert_idx = userdata->b_mesh.tessfaces[face_num].vertices()[vert_num];
 		float3 orco =
-			get_float3(userdata->mesh.vertices[vert_idx].undeformed_co());
+			get_float3(userdata->b_mesh.vertices[vert_idx].undeformed_co());
 		float2 tmp = map_to_sphere(make_float3(orco[0], orco[1], orco[2]));
 		uv[0] = tmp.x;
 		uv[1] = tmp.y;
@@ -159,12 +161,12 @@ static void mikk_get_texture_coordinate(const SMikkTSpaceContext *context, float
 static void mikk_get_normal(const SMikkTSpaceContext *context, float N[3], const int face_num, const int vert_num)
 {
 	MikkUserData *userdata = (MikkUserData*)context->m_pUserData;
-	BL::MeshTessFace f = userdata->mesh.tessfaces[face_num];
+	BL::MeshTessFace f = userdata->b_mesh.tessfaces[face_num];
 	float3 vN;
 
 	if(f.use_smooth()) {
 		int4 vi = get_int4(f.vertices_raw());
-		BL::MeshVertex v = userdata->mesh.vertices[vi[vert_num]];
+		BL::MeshVertex v = userdata->b_mesh.vertices[vi[vert_num]];
 		vN = get_float3(v.normal());
 	}
 	else {
