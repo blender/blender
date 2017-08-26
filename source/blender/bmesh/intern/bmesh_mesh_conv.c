@@ -219,6 +219,11 @@ static BMFace *bm_face_create_from_mpoly(
 
 /**
  * \brief Mesh -> BMesh
+ * \param bm: The mesh to write into, while this is typically a newly created BMesh,
+ * merging into existing data is supported.
+ * Note the custom-data layout isn't used.
+ * If more comprehensive merging is needed we should move this into a separate function
+ * since this should be kept fast for edit-mode switching and storing undo steps.
  *
  * \warning This function doesn't calculate face normals.
  */
@@ -239,8 +244,6 @@ void BM_mesh_bm_from_me(
 	BMFace *f, **ftable = NULL;
 	float (*keyco)[3] = NULL;
 	int totuv, totloops, i;
-
-	/* free custom data */
 
 	if (!me || !me->totvert) {
 		if (me && is_new) { /*no verts? still copy customdata layout*/
@@ -293,18 +296,20 @@ void BM_mesh_bm_from_me(
 	}
 
 	if (tot_shape_keys) {
-		/* check if we need to generate unique ids for the shapekeys.
-		 * this also exists in the file reading code, but is here for
-		 * a sanity check */
-		if (!me->key->uidgen) {
-			fprintf(stderr,
-			        "%s had to generate shape key uid's in a situation we shouldn't need to! "
-			        "(bmesh internal error)\n",
-			        __func__);
+		if (is_new) {
+			/* check if we need to generate unique ids for the shapekeys.
+			 * this also exists in the file reading code, but is here for
+			 * a sanity check */
+			if (!me->key->uidgen) {
+				fprintf(stderr,
+				        "%s had to generate shape key uid's in a situation we shouldn't need to! "
+				        "(bmesh internal error)\n",
+				        __func__);
 
-			me->key->uidgen = 1;
-			for (block = me->key->block.first; block; block = block->next) {
-				block->uid = me->key->uidgen++;
+				me->key->uidgen = 1;
+				for (block = me->key->block.first; block; block = block->next) {
+					block->uid = me->key->uidgen++;
+				}
 			}
 		}
 
