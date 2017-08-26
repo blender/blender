@@ -39,17 +39,23 @@
 
 #define INTERNAL_RND_SORT_SEED		39871946
 
+#ifdef _MSC_VER
+#  define MIKK_INLINE static __forceinline
+#else
+#  define MIKK_INLINE static inline __attribute__((always_inline)) __attribute__((unused))
+#endif
+
 // internal structure
 typedef struct {
 	float x, y, z;
 } SVec3;
 
-static tbool			veq( const SVec3 v1, const SVec3 v2 )
+MIKK_INLINE tbool			veq( const SVec3 v1, const SVec3 v2 )
 {
 	return (v1.x == v2.x) && (v1.y == v2.y) && (v1.z == v2.z);
 }
 
-static SVec3		vadd( const SVec3 v1, const SVec3 v2 )
+MIKK_INLINE SVec3		vadd( const SVec3 v1, const SVec3 v2 )
 {
 	SVec3 vRes;
 
@@ -61,7 +67,7 @@ static SVec3		vadd( const SVec3 v1, const SVec3 v2 )
 }
 
 
-static SVec3		vsub( const SVec3 v1, const SVec3 v2 )
+MIKK_INLINE SVec3		vsub( const SVec3 v1, const SVec3 v2 )
 {
 	SVec3 vRes;
 
@@ -72,7 +78,7 @@ static SVec3		vsub( const SVec3 v1, const SVec3 v2 )
 	return vRes;
 }
 
-static SVec3		vscale(const float fS, const SVec3 v)
+MIKK_INLINE SVec3		vscale(const float fS, const SVec3 v)
 {
 	SVec3 vRes;
 
@@ -83,24 +89,24 @@ static SVec3		vscale(const float fS, const SVec3 v)
 	return vRes;
 }
 
-static float			LengthSquared( const SVec3 v )
+MIKK_INLINE float			LengthSquared( const SVec3 v )
 {
 	return v.x*v.x + v.y*v.y + v.z*v.z;
 }
 
-static float			Length( const SVec3 v )
+MIKK_INLINE float			Length( const SVec3 v )
 {
 	return sqrtf(LengthSquared(v));
 }
 
 #if 0  // UNUSED
-static SVec3		Normalize( const SVec3 v )
+MIKK_INLINE SVec3		Normalize( const SVec3 v )
 {
 	return vscale(1.0f / Length(v), v);
 }
 #endif
 
-static SVec3		NormalizeSafe( const SVec3 v )
+MIKK_INLINE SVec3		NormalizeSafe( const SVec3 v )
 {
 	const float len = Length(v);
 	if (len != 0.0f) {
@@ -112,20 +118,20 @@ static SVec3		NormalizeSafe( const SVec3 v )
 	}
 }
 
-static float		vdot( const SVec3 v1, const SVec3 v2)
+MIKK_INLINE float		vdot( const SVec3 v1, const SVec3 v2)
 {
 	return v1.x*v2.x + v1.y*v2.y + v1.z*v2.z;
 }
 
 
-static tbool NotZero(const float fX)
+MIKK_INLINE tbool NotZero(const float fX)
 {
 	// could possibly use FLT_EPSILON instead
 	return fabsf(fX) > FLT_MIN;
 }
 
 #if 0  // UNUSED
-static tbool VNotZero(const SVec3 v)
+MIKK_INLINE tbool VNotZero(const SVec3 v)
 {
 	// might change this to an epsilon based test
 	return NotZero(v.x) || NotZero(v.y) || NotZero(v.z);
@@ -184,13 +190,13 @@ static tbool GenerateTSpaces(STSpace psTspace[], const STriInfo pTriInfos[], con
                              const int iNrActiveGroups, const int piTriListIn[], const float fThresCos,
                              const SMikkTSpaceContext * pContext);
 
-static int MakeIndex(const int iFace, const int iVert)
+MIKK_INLINE int MakeIndex(const int iFace, const int iVert)
 {
 	assert(iVert>=0 && iVert<4 && iFace>=0);
 	return (iFace<<2) | (iVert&0x3);
 }
 
-static void IndexToData(int * piFace, int * piVert, const int iIndexIn)
+MIKK_INLINE void IndexToData(int * piFace, int * piVert, const int iIndexIn)
 {
 	piVert[0] = iIndexIn&0x3;
 	piFace[0] = iIndexIn>>2;
@@ -226,9 +232,9 @@ static STSpace AvgTSpace(const STSpace * pTS0, const STSpace * pTS1)
 
 
 
-static SVec3 GetPosition(const SMikkTSpaceContext * pContext, const int index);
-static SVec3 GetNormal(const SMikkTSpaceContext * pContext, const int index);
-static SVec3 GetTexCoord(const SMikkTSpaceContext * pContext, const int index);
+MIKK_INLINE SVec3 GetPosition(const SMikkTSpaceContext * pContext, const int index);
+MIKK_INLINE SVec3 GetNormal(const SMikkTSpaceContext * pContext, const int index);
+MIKK_INLINE SVec3 GetTexCoord(const SMikkTSpaceContext * pContext, const int index);
 
 
 // degen triangles
@@ -896,7 +902,7 @@ static int GenerateInitialVerticesIndexList(STriInfo pTriInfos[], int piTriList_
 	return iTSpacesOffs;
 }
 
-static SVec3 GetPosition(const SMikkTSpaceContext * pContext, const int index)
+MIKK_INLINE SVec3 GetPosition(const SMikkTSpaceContext * pContext, const int index)
 {
 	int iF, iI;
 	SVec3 res; float pos[3];
@@ -906,7 +912,7 @@ static SVec3 GetPosition(const SMikkTSpaceContext * pContext, const int index)
 	return res;
 }
 
-static SVec3 GetNormal(const SMikkTSpaceContext * pContext, const int index)
+MIKK_INLINE SVec3 GetNormal(const SMikkTSpaceContext * pContext, const int index)
 {
 	int iF, iI;
 	SVec3 res; float norm[3];
@@ -916,7 +922,7 @@ static SVec3 GetNormal(const SMikkTSpaceContext * pContext, const int index)
 	return res;
 }
 
-static SVec3 GetTexCoord(const SMikkTSpaceContext * pContext, const int index)
+MIKK_INLINE SVec3 GetTexCoord(const SMikkTSpaceContext * pContext, const int index)
 {
 	int iF, iI;
 	SVec3 res; float texc[2];
@@ -1080,7 +1086,7 @@ static void InitTriInfo(STriInfo pTriInfos[], const int piTriListIn[], const SMi
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static tbool AssignRecur(const int piTriListIn[], STriInfo psTriInfos[], const int iMyTriIndex, SGroup * pGroup);
-static void AddTriToGroup(SGroup * pGroup, const int iTriIndex);
+MIKK_INLINE void AddTriToGroup(SGroup * pGroup, const int iTriIndex);
 
 static int Build4RuleGroups(STriInfo pTriInfos[], SGroup pGroups[], int piGroupTrianglesBuffer[], const int piTriListIn[], const int iNrTrianglesIn)
 {
@@ -1146,7 +1152,7 @@ static int Build4RuleGroups(STriInfo pTriInfos[], SGroup pGroups[], int piGroupT
 	return iNrActiveGroups;
 }
 
-static void AddTriToGroup(SGroup * pGroup, const int iTriIndex)
+MIKK_INLINE void AddTriToGroup(SGroup * pGroup, const int iTriIndex)
 {
 	pGroup->pFaceIndices[pGroup->iNrFaces] = iTriIndex;
 	++pGroup->iNrFaces;
@@ -1668,6 +1674,20 @@ static void QuickSortEdges(SEdge * pSortBuffer, int iLeft, int iRight, const int
 			sTmp = pSortBuffer[iLeft];
 			pSortBuffer[iLeft] = pSortBuffer[iRight];
 			pSortBuffer[iRight] = sTmp;
+		}
+		return;
+	}
+	else if(iElems < 16) {
+		int i, j;
+		for (i = 0; i < iElems - 1; i++) {
+			for (j = 0; j < iElems - i - 1; j++) {
+				int index = iLeft + j;
+				if (pSortBuffer[index].array[channel] > pSortBuffer[index + 1].array[channel]) {
+					sTmp = pSortBuffer[index];
+					pSortBuffer[index] = pSortBuffer[index + 1];
+					pSortBuffer[index + 1] = sTmp;
+				}
+			}
 		}
 		return;
 	}

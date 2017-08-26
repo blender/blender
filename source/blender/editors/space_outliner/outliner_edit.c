@@ -994,7 +994,7 @@ static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
 
 	te = outliner_find_id(so, &so->tree, &obact->id);
 
-	if (obact->type == OB_ARMATURE) {
+	if (te != NULL && obact->type == OB_ARMATURE) {
 		/* traverse down the bone hierarchy in case of armature */
 		TreeElement *te_obact = te;
 

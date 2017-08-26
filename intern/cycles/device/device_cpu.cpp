@@ -120,7 +120,7 @@ public:
 		}
 #endif
 
-		if(strstr(architecture_name, logged_architecture) != 0) {
+		if(strcmp(architecture_name, logged_architecture) != 0) {
 			VLOG(1) << "Will be using " << architecture_name << " kernels.";
 			logged_architecture = architecture_name;
 		}

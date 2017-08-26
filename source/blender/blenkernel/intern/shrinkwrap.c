@@ -152,6 +152,9 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
 	BVHTreeNearest nearest  = NULL_BVHTreeNearest;
 
+	if (calc->target != NULL && calc->target->getNumVerts(calc->target) == 0) {
+		return;
+	}
 
 	TIMEIT_BENCH(bvhtree_from_mesh_verts(&treeData, calc->target, 0.0, 2, 6), bvhtree_verts);
 	if (treeData.tree == NULL) {
@@ -376,6 +379,9 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 	if ((calc->smd->shrinkOpts & (MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR | MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR)) == 0)
 		return;
 
+	if (calc->target != NULL && calc->target->getNumPolys(calc->target) == 0) {
+		return;
+	}
 
 	/* Prepare data to retrieve the direction in which we should project each vertex */
 	if (calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL) {
@@ -432,7 +438,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 	if (targ_tree) {
 		BVHTree *aux_tree = NULL;
 		void *aux_callback = NULL;
-		if (auxMesh != NULL) {
+		if (auxMesh != NULL && auxMesh->getNumPolys(auxMesh) != 0) {
 			/* use editmesh to avoid array allocation */
 			if (calc->smd->auxTarget && auxMesh->type == DM_TYPE_EDITBMESH) {
 				emaux = BKE_editmesh_from_object(calc->smd->auxTarget);
@@ -559,6 +565,10 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 {
 	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
 	BVHTreeNearest nearest  = NULL_BVHTreeNearest;
+
+	if (calc->target->getNumPolys(calc->target) == 0) {
+		return;
+	}
 
 	/* Create a bvh-tree of the given target */
 	bvhtree_from_mesh_looptri(&treeData, calc->target, 0.0, 2, 6);
