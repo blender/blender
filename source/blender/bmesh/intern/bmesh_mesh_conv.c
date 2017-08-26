@@ -233,7 +233,7 @@ void BM_mesh_bm_from_me(
 	KeyBlock *actkey, *block;
 	BMVert *v, **vtable = NULL;
 	BMEdge *e, **etable = NULL;
-	BMFace *f;
+	BMFace *f, **ftable = NULL;
 	float (*keyco)[3] = NULL;
 	int totuv, totloops, i, j;
 
@@ -259,7 +259,7 @@ void BM_mesh_bm_from_me(
 		return; /* sanity check */
 	}
 
-	vtable = MEM_mallocN(sizeof(void **) * me->totvert, "mesh to bmesh vtable");
+	vtable = MEM_mallocN(sizeof(BMVert **) * me->totvert, __func__);
 
 	CustomData_copy(&me->vdata, &bm->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&me->edata, &bm->edata, CD_MASK_BMESH, CD_CALLOC, 0);
@@ -368,12 +368,7 @@ void BM_mesh_bm_from_me(
 
 	bm->elem_index_dirty &= ~BM_VERT; /* added in order, clear dirty flag */
 
-	if (!me->totedge) {
-		MEM_freeN(vtable);
-		return;
-	}
-
-	etable = MEM_mallocN(sizeof(void **) * me->totedge, "mesh to bmesh etable");
+	etable = MEM_mallocN(sizeof(BMEdge **) * me->totedge, __func__);
 
 	medge = me->medge;
 	for (i = 0; i < me->totedge; i++, medge++) {
@@ -448,51 +443,50 @@ void BM_mesh_bm_from_me(
 
 	bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP); /* added in order, clear dirty flag */
 
+	/* -------------------------------------------------------------------- */
+	/* MSelect clears the array elements (avoid adding multiple times).
+	 *
+	 * Take care to keep this last and not use (v/e/ftable) after this.
+	 */
+
 	if (me->mselect && me->totselect != 0) {
-
-		BMVert **vert_array = MEM_mallocN(sizeof(BMVert *) * bm->totvert, "VSelConv");
-		BMEdge **edge_array = MEM_mallocN(sizeof(BMEdge *) * bm->totedge, "ESelConv");
-		BMFace **face_array = MEM_mallocN(sizeof(BMFace *) * bm->totface, "FSelConv");
-		MSelect *msel;
-
-#pragma omp parallel sections if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
-		{
-#pragma omp section
-			{ BM_iter_as_array(bm, BM_VERTS_OF_MESH, NULL, (void **)vert_array, bm->totvert); }
-#pragma omp section
-			{ BM_iter_as_array(bm, BM_EDGES_OF_MESH, NULL, (void **)edge_array, bm->totedge); }
-#pragma omp section
-			{ BM_iter_as_array(bm, BM_FACES_OF_MESH, NULL, (void **)face_array, bm->totface); }
+		if (ftable == NULL) {
+			ftable = MEM_mallocN(sizeof(BMFace **) * bm->totface, __func__);
+			BM_iter_as_array(bm, BM_FACES_OF_MESH, NULL, (void **)ftable, bm->totface);
 		}
 
+		MSelect *msel;
 		for (i = 0, msel = me->mselect; i < me->totselect; i++, msel++) {
+			BMElem **ele_p;
 			switch (msel->type) {
 				case ME_VSEL:
-					BM_select_history_store(bm, (BMElem *)vert_array[msel->index]);
+					ele_p = (BMElem **)&vtable[msel->index];
 					break;
 				case ME_ESEL:
-					BM_select_history_store(bm, (BMElem *)edge_array[msel->index]);
+					ele_p = (BMElem **)&etable[msel->index];
 					break;
 				case ME_FSEL:
-					BM_select_history_store(bm, (BMElem *)face_array[msel->index]);
+					ele_p = (BMElem **)&ftable[msel->index];
 					break;
+				default:
+					continue;
+			}
+
+			if (*ele_p != NULL) {
+				BM_select_history_store_notest(bm, *ele_p);
+				*ele_p = NULL;
 			}
 		}
-
-		MEM_freeN(vert_array);
-		MEM_freeN(edge_array);
-		MEM_freeN(face_array);
 	}
 	else {
-		me->totselect = 0;
-		if (me->mselect) {
-			MEM_freeN(me->mselect);
-			me->mselect = NULL;
-		}
+		BM_select_history_clear(bm);
 	}
 
 	MEM_freeN(vtable);
 	MEM_freeN(etable);
+	if (ftable) {
+		MEM_freeN(ftable);
+	}
 }
 
 
