@@ -27,6 +27,8 @@ extern "C" {
 #endif
 }
 
+#include "stubs/bf_intern_eigen_stubs.h"
+
 static void polyfill_to_obj(
         const char *id,
         const float poly[][2], const unsigned int poly_tot,
