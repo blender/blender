@@ -1158,13 +1158,16 @@ void ED_object_check_force_modifiers(Main *bmain, Scene *scene, Object *object)
 
 	/* add/remove modifier as needed */
 	if (!md) {
-		if (pd && (pd->shape == PFIELD_SHAPE_SURFACE) && ELEM(pd->forcefield, PFIELD_GUIDE, PFIELD_TEXTURE) == 0)
-			if (ELEM(object->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVE))
+		if (pd && (pd->shape == PFIELD_SHAPE_SURFACE) && !ELEM(pd->forcefield, 0, PFIELD_GUIDE, PFIELD_TEXTURE)) {
+			if (ELEM(object->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVE)) {
 				ED_object_modifier_add(NULL, bmain, scene, object, NULL, eModifierType_Surface);
+			}
+		}
 	}
 	else {
-		if (!pd || pd->shape != PFIELD_SHAPE_SURFACE || pd->forcefield != PFIELD_FORCE)
+		if (!pd || (pd->shape != PFIELD_SHAPE_SURFACE) || ELEM(pd->forcefield, 0, PFIELD_GUIDE, PFIELD_TEXTURE)) {
 			ED_object_modifier_remove(NULL, bmain, object, md);
+		}
 	}
 }
 
