@@ -55,6 +55,8 @@ void BLI_rcti_do_minmax_v(struct rcti *rect, const int xy[2]);
 void BLI_rctf_do_minmax_v(struct rctf *rect, const float xy[2]);
 
 void BLI_rctf_transform_pt_v(const rctf *dst, const rctf *src, float xy_dst[2], const float xy_src[2]);
+void BLI_rctf_transform_calc_m4_pivot_min_ex(const rctf *dst, const rctf *src, float matrix[4][4], uint x, uint y);
+void BLI_rctf_transform_calc_m4_pivot_min(const rctf *dst, const rctf *src, float matrix[4][4]);
 
 void BLI_rctf_translate(struct rctf *rect, float x, float y);
 void BLI_rcti_translate(struct rcti *rect, int x, int y);

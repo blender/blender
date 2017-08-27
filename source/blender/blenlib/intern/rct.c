@@ -32,6 +32,7 @@
  * A minimalist lib for functions doing stuff with rectangle structs.
  */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 
@@ -40,6 +41,9 @@
 
 #include "DNA_vec_types.h"
 #include "BLI_rect.h"
+
+/* avoid including BLI_math */
+static void unit_m4(float m[4][4]);
 
 /**
  * Determine if a rect is empty. An empty
@@ -405,6 +409,31 @@ void BLI_rctf_transform_pt_v(const rctf *dst, const rctf *src, float xy_dst[2], 
 	xy_dst[1] =               dst->ymin + ((dst->ymax - dst->ymin) * xy_dst[1]);
 }
 
+/**
+ * Calculate a 4x4 matrix representing the transformation between two rectangles.
+ *
+ * \note Multiplying a vector by this matrix does *not* give the same value as #BLI_rctf_transform_pt_v.
+ */
+void BLI_rctf_transform_calc_m4_pivot_min_ex(
+        const rctf *dst, const rctf *src, float matrix[4][4],
+        uint x, uint y)
+{
+	BLI_assert(x < 3 && y < 3);
+
+	unit_m4(matrix);
+
+	matrix[x][x] = BLI_rctf_size_x(src) / BLI_rctf_size_x(dst);
+	matrix[y][y] = BLI_rctf_size_y(src) / BLI_rctf_size_y(dst);
+	matrix[3][x] = (src->xmin - dst->xmin) * matrix[x][x];
+	matrix[3][y] = (src->ymin - dst->ymin) * matrix[y][y];
+}
+
+void BLI_rctf_transform_calc_m4_pivot_min(
+        const rctf *dst, const rctf *src, float matrix[4][4])
+{
+	BLI_rctf_transform_calc_m4_pivot_min_ex(dst, src, matrix, 0, 1);
+}
+
 void BLI_rcti_translate(rcti *rect, int x, int y)
 {
 	rect->xmin += x;
@@ -763,3 +792,12 @@ void BLI_rctf_rotate_expand(rctf *dst, const rctf *src, const float angle)
 #undef ROTATE_SINCOS
 
 /** \} */
+
+static void unit_m4(float m[4][4])
+{
+	m[0][0] = m[1][1] = m[2][2] = m[3][3] = 1.0f;
+	m[0][1] = m[0][2] = m[0][3] = 0.0f;
+	m[1][0] = m[1][2] = m[1][3] = 0.0f;
+	m[2][0] = m[2][1] = m[2][3] = 0.0f;
+	m[3][0] = m[3][1] = m[3][2] = 0.0f;
+}
