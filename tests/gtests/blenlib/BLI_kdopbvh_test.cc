@@ -12,6 +12,8 @@ extern "C" {
 #include "MEM_guardedalloc.h"
 }
 
+#include "stubs/bf_intern_eigen_stubs.h"
+
 /* -------------------------------------------------------------------- */
 /* Helper Functions */
 

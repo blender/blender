@@ -183,6 +183,11 @@ static BMFace *bm_face_create_from_mpoly(
 
 /**
  * \brief Mesh -> BMesh
+ * \param bm: The mesh to write into, while this is typically a newly created BMesh,
+ * merging into existing data is supported.
+ * Note the custom-data layout isn't used.
+ * If more comprehensive merging is needed we should move this into a separate function
+ * since this should be kept fast for edit-mode switching and storing undo steps.
  *
  * \warning This function doesn't calculate face normals.
  */
@@ -190,6 +195,9 @@ void BM_mesh_bm_from_me(
         BMesh *bm, Mesh *me,
         const struct BMeshFromMeshParams *params)
 {
+	const bool is_new =
+	        !(bm->totvert ||
+	          (bm->vdata.totlayer || bm->edata.totlayer || bm->pdata.totlayer || bm->ldata.totlayer));
 	MVert *mvert;
 	MEdge *medge;
 	MLoop *mloop;
@@ -199,17 +207,10 @@ void BM_mesh_bm_from_me(
 	BMEdge *e, **etable = NULL;
 	BMFace *f, **ftable = NULL;
 	float (*keyco)[3] = NULL;
-	int totloops, i, j;
-
-	/* free custom data */
-	/* this isnt needed in most cases but do just incase */
-	CustomData_free(&bm->vdata, bm->totvert);
-	CustomData_free(&bm->edata, bm->totedge);
-	CustomData_free(&bm->ldata, bm->totloop);
-	CustomData_free(&bm->pdata, bm->totface);
+	int totloops, i;
 
 	if (!me || !me->totvert) {
-		if (me) { /*no verts? still copy customdata layout*/
+		if (me && is_new) { /*no verts? still copy customdata layout*/
 			CustomData_copy(&me->vdata, &bm->vdata, CD_MASK_BMESH, CD_ASSIGN, 0);
 			CustomData_copy(&me->edata, &bm->edata, CD_MASK_BMESH, CD_ASSIGN, 0);
 			CustomData_copy(&me->ldata, &bm->ldata, CD_MASK_BMESH, CD_ASSIGN, 0);
@@ -223,12 +224,20 @@ void BM_mesh_bm_from_me(
 		return; /* sanity check */
 	}
 
-	vtable = MEM_mallocN(sizeof(BMVert **) * me->totvert, __func__);
+	if (is_new) {
+		CustomData_copy(&me->vdata, &bm->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
+		CustomData_copy(&me->edata, &bm->edata, CD_MASK_BMESH, CD_CALLOC, 0);
+		CustomData_copy(&me->ldata, &bm->ldata, CD_MASK_BMESH, CD_CALLOC, 0);
+		CustomData_copy(&me->pdata, &bm->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
+	}
 
-	CustomData_copy(&me->vdata, &bm->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&me->edata, &bm->edata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&me->ldata, &bm->ldata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&me->pdata, &bm->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
+	/* -------------------------------------------------------------------- */
+	/* Shape Key */
+	int tot_shape_keys = me->key ? BLI_listbase_count(&me->key->block) : 0;
+	if (is_new == false) {
+		tot_shape_keys = min_ii(tot_shape_keys, CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY));
+	}
+	const float (**shape_key_table)[3] = tot_shape_keys ? BLI_array_alloca(shape_key_table, tot_shape_keys) : NULL;
 
 	if ((params->active_shapekey != 0) && (me->key != NULL)) {
 		actkey = BLI_findlink(&me->key->block, params->active_shapekey - 1);
@@ -237,63 +246,68 @@ void BM_mesh_bm_from_me(
 		actkey = NULL;
 	}
 
-	const int tot_shape_keys = me->key ? BLI_listbase_count(&me->key->block) : 0;
-	const float (**shape_key_table)[3] = tot_shape_keys ? BLI_array_alloca(shape_key_table, tot_shape_keys) : NULL;
-
-	if (tot_shape_keys || params->add_key_index) {
-		CustomData_add_layer(&bm->vdata, CD_SHAPE_KEYINDEX, CD_ASSIGN, NULL, 0);
+	if (is_new) {
+		if (tot_shape_keys || params->add_key_index) {
+			CustomData_add_layer(&bm->vdata, CD_SHAPE_KEYINDEX, CD_ASSIGN, NULL, 0);
+		}
 	}
 
 	if (tot_shape_keys) {
-		/* check if we need to generate unique ids for the shapekeys.
-		 * this also exists in the file reading code, but is here for
-		 * a sanity check */
-		if (!me->key->uidgen) {
-			fprintf(stderr,
-			        "%s had to generate shape key uid's in a situation we shouldn't need to! "
-			        "(bmesh internal error)\n",
-			        __func__);
+		if (is_new) {
+			/* check if we need to generate unique ids for the shapekeys.
+			 * this also exists in the file reading code, but is here for
+			 * a sanity check */
+			if (!me->key->uidgen) {
+				fprintf(stderr,
+				        "%s had to generate shape key uid's in a situation we shouldn't need to! "
+				        "(bmesh internal error)\n",
+				        __func__);
 
-			me->key->uidgen = 1;
-			for (block = me->key->block.first; block; block = block->next) {
-				block->uid = me->key->uidgen++;
+				me->key->uidgen = 1;
+				for (block = me->key->block.first; block; block = block->next) {
+					block->uid = me->key->uidgen++;
+				}
 			}
 		}
 
 		if (actkey && actkey->totelem == me->totvert) {
-			keyco = actkey->data;
-			bm->shapenr = params->active_shapekey;
+			keyco = params->use_shapekey ? actkey->data : NULL;
+			if (is_new) {
+				bm->shapenr = params->active_shapekey;
+			}
 		}
 
-		for (i = 0, block = me->key->block.first; block; block = block->next, i++) {
-			CustomData_add_layer_named(&bm->vdata, CD_SHAPEKEY,
-			                           CD_ASSIGN, NULL, 0, block->name);
-
-			j = CustomData_get_layer_index_n(&bm->vdata, CD_SHAPEKEY, i);
-			bm->vdata.layers[j].uid = block->uid;
-
+		for (i = 0, block = me->key->block.first; i < tot_shape_keys; block = block->next, i++) {
+			if (is_new) {
+				CustomData_add_layer_named(&bm->vdata, CD_SHAPEKEY,
+				                           CD_ASSIGN, NULL, 0, block->name);
+				int j = CustomData_get_layer_index_n(&bm->vdata, CD_SHAPEKEY, i);
+				bm->vdata.layers[j].uid = block->uid;
+			}
 			shape_key_table[i] = (const float (*)[3])block->data;
 		}
 	}
 
-	CustomData_bmesh_init_pool(&bm->vdata, me->totvert, BM_VERT);
-	CustomData_bmesh_init_pool(&bm->edata, me->totedge, BM_EDGE);
-	CustomData_bmesh_init_pool(&bm->ldata, me->totloop, BM_LOOP);
-	CustomData_bmesh_init_pool(&bm->pdata, me->totpoly, BM_FACE);
+	if (is_new) {
+		CustomData_bmesh_init_pool(&bm->vdata, me->totvert, BM_VERT);
+		CustomData_bmesh_init_pool(&bm->edata, me->totedge, BM_EDGE);
+		CustomData_bmesh_init_pool(&bm->ldata, me->totloop, BM_LOOP);
+		CustomData_bmesh_init_pool(&bm->pdata, me->totpoly, BM_FACE);
 
-	BM_mesh_cd_flag_apply(bm, me->cd_flag);
+		BM_mesh_cd_flag_apply(bm, me->cd_flag);
+	}
 
 	const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
 	const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
 	const int cd_edge_crease_offset  = CustomData_get_offset(&bm->edata, CD_CREASE);
 	const int cd_shape_key_offset = me->key ? CustomData_get_offset(&bm->vdata, CD_SHAPEKEY) : -1;
-	const int cd_shape_keyindex_offset = (tot_shape_keys || params->add_key_index) ?
+	const int cd_shape_keyindex_offset = is_new && (tot_shape_keys || params->add_key_index) ?
 	          CustomData_get_offset(&bm->vdata, CD_SHAPE_KEYINDEX) : -1;
 
+	vtable = MEM_mallocN(sizeof(BMVert **) * me->totvert, __func__);
+
 	for (i = 0, mvert = me->mvert; i < me->totvert; i++, mvert++) {
-		v = vtable[i] = BM_vert_create(
-		        bm, keyco && params->use_shapekey ? keyco[i] : mvert->co, NULL,
-		        BM_CREATE_SKIP_CD);
+		v = vtable[i] = BM_vert_create(bm, keyco ? keyco[i] : mvert->co, NULL, BM_CREATE_SKIP_CD);
 		BM_elem_index_set(v, i); /* set_ok */
 
 		/* transfer flag */
@@ -317,13 +331,14 @@ void BM_mesh_bm_from_me(
 		/* set shapekey data */
 		if (tot_shape_keys) {
 			float (*co_dst)[3] = BM_ELEM_CD_GET_VOID_P(v, cd_shape_key_offset);
-			for (j = 0; j < tot_shape_keys; j++, co_dst++) {
+			for (int j = 0; j < tot_shape_keys; j++, co_dst++) {
 				copy_v3_v3(*co_dst, shape_key_table[j][i]);
 			}
 		}
 	}
-
-	bm->elem_index_dirty &= ~BM_VERT; /* added in order, clear dirty flag */
+	if (is_new) {
+		bm->elem_index_dirty &= ~BM_VERT; /* added in order, clear dirty flag */
+	}
 
 	etable = MEM_mallocN(sizeof(BMEdge **) * me->totedge, __func__);
 
@@ -347,8 +362,14 @@ void BM_mesh_bm_from_me(
 		if (cd_edge_crease_offset  != -1) BM_ELEM_CD_SET_FLOAT(e, cd_edge_crease_offset,  (float)medge->crease  / 255.0f);
 
 	}
+	if (is_new) {
+		bm->elem_index_dirty &= ~BM_EDGE; /* added in order, clear dirty flag */
+	}
 
-	bm->elem_index_dirty &= ~BM_EDGE; /* added in order, clear dirty flag */
+	/* only needed for selection. */
+	if (me->mselect && me->totselect != 0) {
+		ftable = MEM_mallocN(sizeof(BMFace **) * me->totpoly, __func__);
+	}
 
 	mloop = me->mloop;
 	mp = me->mpoly;
@@ -358,6 +379,9 @@ void BM_mesh_bm_from_me(
 
 		f = bm_face_create_from_mpoly(mp, mloop + mp->loopstart,
 		                              bm, vtable, etable);
+		if (ftable != NULL) {
+			ftable[i] = f;
+		}
 
 		if (UNLIKELY(f == NULL)) {
 			printf("%s: Warning! Bad face in mesh"
@@ -380,7 +404,7 @@ void BM_mesh_bm_from_me(
 		f->mat_nr = mp->mat_nr;
 		if (i == me->act_face) bm->act_face = f;
 
-		j = mp->loopstart;
+		int j = mp->loopstart;
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
 			/* don't use 'j' since we may have skipped some faces, hence some loops. */
@@ -397,8 +421,9 @@ void BM_mesh_bm_from_me(
 			BM_face_normal_update(f);
 		}
 	}
-
-	bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP); /* added in order, clear dirty flag */
+	if (is_new) {
+		bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP); /* added in order, clear dirty flag */
+	}
 
 	/* -------------------------------------------------------------------- */
 	/* MSelect clears the array elements (avoid adding multiple times).
@@ -407,11 +432,6 @@ void BM_mesh_bm_from_me(
 	 */
 
 	if (me->mselect && me->totselect != 0) {
-		if (ftable == NULL) {
-			ftable = MEM_mallocN(sizeof(BMFace **) * bm->totface, __func__);
-			BM_iter_as_array(bm, BM_FACES_OF_MESH, NULL, (void **)ftable, bm->totface);
-		}
-
 		MSelect *msel;
 		for (i = 0, msel = me->mselect; i < me->totselect; i++, msel++) {
 			BMElem **ele_p;
