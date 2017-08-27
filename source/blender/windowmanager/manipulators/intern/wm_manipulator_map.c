@@ -643,9 +643,8 @@ void wm_manipulatormaps_handled_modal_update(
 
 	/* regular update for running operator */
 	if (modal_running) {
-		if (mpr && (mpr->op_data.type != NULL) &&
-		    (mpr->op_data.type == handler->op->type))
-		{
+		wmManipulatorOpElem *mpop = mpr ? WM_manipulator_operator_get(mpr, mpr->highlight_part) : NULL;
+		if (mpr && mpop && (mpop->type != NULL) && (mpop->type == handler->op->type)) {
 			wmManipulatorFnModal modal_fn = mpr->custom_modal ? mpr->custom_modal : mpr->type->modal;
 			if (modal_fn != NULL) {
 				int retval = modal_fn(C, mpr, event, 0);
@@ -813,7 +812,7 @@ void wm_manipulatormap_highlight_set(
 	{
 		if (mmap->mmap_context.highlight) {
 			mmap->mmap_context.highlight->state &= ~WM_MANIPULATOR_STATE_HIGHLIGHT;
-			mmap->mmap_context.highlight->highlight_part = 0;
+			mmap->mmap_context.highlight->highlight_part = -1;
 		}
 
 		mmap->mmap_context.highlight = mpr;
@@ -873,8 +872,9 @@ void wm_manipulatormap_modal_set(
 		mpr->state |= WM_MANIPULATOR_STATE_MODAL;
 		mmap->mmap_context.modal = mpr;
 
-		if (mpr->op_data.type) {
-			WM_operator_name_call_ptr(C, mpr->op_data.type, WM_OP_INVOKE_DEFAULT, &mpr->op_data.ptr);
+		struct wmManipulatorOpElem *mpop = WM_manipulator_operator_get(mpr, mpr->highlight_part);
+		if (mpop && mpop->type) {
+			WM_operator_name_call_ptr(C, mpop->type, WM_OP_INVOKE_DEFAULT, &mpop->ptr);
 
 			/* we failed to hook the manipulator to the operator handler or operator was cancelled, return */
 			if (!mmap->mmap_context.modal) {

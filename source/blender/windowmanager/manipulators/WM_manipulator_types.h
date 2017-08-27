@@ -138,6 +138,13 @@ typedef enum {
 
 #include "wm_manipulator_fn.h"
 
+typedef struct wmManipulatorOpElem {
+	struct wmOperatorType *type;
+	/* operator properties if manipulator spawns and controls an operator,
+	 * or owner pointer if manipulator spawns and controls a property */
+	PointerRNA ptr;
+} wmManipulatorOpElem;
+
 /* manipulators are set per region by registering them on manipulator-maps */
 struct wmManipulator {
 	struct wmManipulator *next, *prev;
@@ -162,7 +169,8 @@ struct wmManipulator {
 	/* state flags (active, highlighted, selected) */
 	eWM_ManipulatorState state;
 
-	/* Optional ID for highlighting different parts of this manipulator. */
+	/* Optional ID for highlighting different parts of this manipulator.
+	 * -1 when unset, otherwise a valid index. (Used as index to 'op_data'). */
 	int highlight_part;
 
 	/* Transformation of the manipulator in 2d or 3d space.
@@ -192,13 +200,10 @@ struct wmManipulator {
 	/* data used during interaction */
 	void *interaction_data;
 
-	/* name of operator to spawn when activating the manipulator */
-	struct {
-		struct wmOperatorType *type;
-		/* operator properties if manipulator spawns and controls an operator,
-		 * or owner pointer if manipulator spawns and controls a property */
-		PointerRNA ptr;
-	} op_data;
+	/* Operator to spawn when activating the manipulator (overrides property editing),
+	 * an array of items (aligned with #wmManipulator.highlight_part). */
+	wmManipulatorOpElem *op_data;
+	int op_data_len;
 
 	struct IDProperty *properties;
 
@@ -267,7 +272,8 @@ typedef struct wmManipulatorType {
 	/* determines 3d intersection by rendering the manipulator in a selection routine. */
 	wmManipulatorFnDrawSelect draw_select;
 
-	/* determine if the mouse intersects with the manipulator. The calculation should be done in the callback itself */
+	/* Determine if the mouse intersects with the manipulator.
+	 * The calculation should be done in the callback itself, -1 for no seleciton. */
 	wmManipulatorFnTestSelect test_select;
 
 	/* handler used by the manipulator. Usually handles interaction tied to a manipulator type */

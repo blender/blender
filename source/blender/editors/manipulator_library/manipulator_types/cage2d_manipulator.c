@@ -63,11 +63,11 @@
 
 /* wmManipulator->highlight_part */
 enum {
-	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE     = 1,
-	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT   = 2,
-	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT  = 3,
-	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP     = 4,
-	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN   = 5,
+	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE     = 0,
+	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT   = 1,
+	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT  = 2,
+	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP     = 3,
+	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN   = 4,
 };
 
 #define MANIPULATOR_RECT_MIN_WIDTH 15.0f
@@ -367,7 +367,7 @@ static int manipulator_rect_transform_test_select(
 	if (manipulator_window_project_2d(
 	        C, mpr, (const float[2]){UNPACK2(event->mval)}, 2, true, point_local) == false)
 	{
-		return 0;
+		return -1;
 	}
 
 	const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
@@ -438,7 +438,7 @@ static int manipulator_rect_transform_test_select(
 			return ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP;
 	}
 
-	return 0;
+	return -1;
 }
 
 typedef struct RectTransformInteraction {

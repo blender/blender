@@ -146,7 +146,7 @@ wmManipulator *wm_manipulatorgroup_find_intersected_mainpulator(
 {
 	for (wmManipulator *mpr = mgroup->manipulators.first; mpr; mpr = mpr->next) {
 		if (mpr->type->test_select && (mpr->flag & WM_MANIPULATOR_HIDDEN) == 0) {
-			if ((*r_part = mpr->type->test_select(C, mpr, event))) {
+			if ((*r_part = mpr->type->test_select(C, mpr, event)) != -1) {
 				return mpr;
 			}
 		}
@@ -385,8 +385,9 @@ static int manipulator_tweak_invoke(bContext *C, wmOperator *op, const wmEvent *
 
 	/* XXX temporary workaround for modal manipulator operator
 	 * conflicting with modal operator attached to manipulator */
-	if (mpr->op_data.type) {
-		if (mpr->op_data.type->modal) {
+	wmManipulatorOpElem *mpop = WM_manipulator_operator_get(mpr, mpr->highlight_part);
+	if (mpop && mpop->type) {
+		if (mpop->type->modal) {
 			return OPERATOR_FINISHED;
 		}
 	}

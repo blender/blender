@@ -208,7 +208,7 @@ void ED_widgetgroup_manipulator2d_setup(const bContext *UNUSED(C), wmManipulator
 		WM_manipulator_set_color_highlight(axis, color_hi);
 
 		/* assign operator */
-		PointerRNA *ptr = WM_manipulator_set_operator(axis, ot_translate, NULL);
+		PointerRNA *ptr = WM_manipulator_operator_set(axis, 0, ot_translate, NULL);
 		int constraint[3] = {0.0f};
 		constraint[(axis_idx + 1) % 2] = 1;
 		if (RNA_struct_find_property(ptr, "constraint_axis"))

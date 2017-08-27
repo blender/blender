@@ -87,7 +87,7 @@ void WM_manipulator_target_property_def_rna_ptr(
 	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_at_index(mpr, mpr_prop_type->index_in_type);
 
 	/* if manipulator evokes an operator we cannot use it for property manipulation */
-	mpr->op_data.type = NULL;
+	BLI_assert(mpr->op_data == NULL);
 
 	mpr_prop->type = mpr_prop_type;
 
@@ -116,7 +116,7 @@ void WM_manipulator_target_property_def_func_ptr(
 	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_at_index(mpr, mpr_prop_type->index_in_type);
 
 	/* if manipulator evokes an operator we cannot use it for property manipulation */
-	mpr->op_data.type = NULL;
+	BLI_assert(mpr->op_data == NULL);
 
 	mpr_prop->type = mpr_prop_type;
 

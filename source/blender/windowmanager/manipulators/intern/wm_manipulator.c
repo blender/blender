@@ -172,8 +172,11 @@ void WM_manipulator_free(wmManipulator *mpr)
 	}
 #endif
 
-	if (mpr->op_data.ptr.data) {
-		WM_operator_properties_free(&mpr->op_data.ptr);
+	if (mpr->op_data) {
+		for (int i = 0; i < mpr->op_data_len; i++) {
+			WM_operator_properties_free(&mpr->op_data[i].ptr);
+		}
+		MEM_freeN(mpr->op_data);
 	}
 
 	if (mpr->ptr != NULL) {
@@ -228,22 +231,38 @@ void WM_manipulator_unlink(ListBase *manipulatorlist, wmManipulatorMap *mmap, wm
  *
  * \{ */
 
-
-PointerRNA *WM_manipulator_set_operator(
-        wmManipulator *mpr, wmOperatorType *ot, IDProperty *properties)
+struct wmManipulatorOpElem *WM_manipulator_operator_get(
+        wmManipulator *mpr, int part_index)
 {
-	mpr->op_data.type = ot;
-
-	if (mpr->op_data.ptr.data) {
-		WM_operator_properties_free(&mpr->op_data.ptr);
+	if (mpr->op_data && ((part_index >= 0) && (part_index < mpr->op_data_len))) {
+		return &mpr->op_data[part_index];
 	}
-	WM_operator_properties_create_ptr(&mpr->op_data.ptr, ot);
+	return NULL;
+}
+
+PointerRNA *WM_manipulator_operator_set(
+        wmManipulator *mpr, int part_index,
+        wmOperatorType *ot, IDProperty *properties)
+{
+	BLI_assert(part_index < 255);
+	/* We could pre-allocate these but using multiple is such a rare thing. */
+	if (part_index >= mpr->op_data_len) {
+		mpr->op_data_len = part_index + 1;
+		mpr->op_data = MEM_recallocN(mpr->op_data, sizeof(*mpr->op_data) * mpr->op_data_len);
+	}
+	wmManipulatorOpElem *mpop = &mpr->op_data[part_index];
+	mpop->type = ot;
+
+	if (mpop->ptr.data) {
+		WM_operator_properties_free(&mpop->ptr);
+	}
+	WM_operator_properties_create_ptr(&mpop->ptr, ot);
 
 	if (properties) {
-		mpr->op_data.ptr.data = properties;
+		mpop->ptr.data = properties;
 	}
 
-	return &mpr->op_data.ptr;
+	return &mpop->ptr;
 }
 
 static void wm_manipulator_set_matrix_rotation_from_z_axis__internal(

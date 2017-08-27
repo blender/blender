@@ -73,8 +73,11 @@ void WM_manipulator_name_set(struct wmManipulatorGroup *mgroup, struct wmManipul
 bool WM_manipulator_select_unlink(struct wmManipulatorMap *mmap, struct wmManipulator *mpr);
 bool WM_manipulator_select_set(struct wmManipulatorMap *mmap, struct wmManipulator *mpr, bool select);
 
-struct PointerRNA *WM_manipulator_set_operator(
-        struct wmManipulator *, struct wmOperatorType *ot, struct IDProperty *properties);
+struct wmManipulatorOpElem *WM_manipulator_operator_get(
+        struct wmManipulator *mpr, int part_index);
+struct PointerRNA *WM_manipulator_operator_set(
+        struct wmManipulator *mpr, int part_index,
+        struct wmOperatorType *ot, struct IDProperty *properties);
 
 /* callbacks */
 void WM_manipulator_set_fn_custom_modal(struct wmManipulator *mpr, wmManipulatorFnModal fn);

@@ -267,7 +267,7 @@ static void WIDGETGROUP_lamp_target_setup(const bContext *UNUSED(C), wmManipulat
 	RNA_enum_set(mpr->ptr, "draw_options",
 	             ED_MANIPULATOR_GRAB_DRAW_FLAG_FILL | ED_MANIPULATOR_GRAB_DRAW_FLAG_ALIGN_VIEW);
 
-	WM_manipulator_set_operator(mpr, ot, NULL);
+	WM_manipulator_operator_set(mpr, 0, ot, NULL);
 }
 
 static void WIDGETGROUP_lamp_target_draw_prepare(const bContext *C, wmManipulatorGroup *mgroup)

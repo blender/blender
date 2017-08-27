@@ -140,7 +140,7 @@ static void rna_manipulator_target_set_prop(
 }
 
 static PointerRNA rna_manipulator_target_set_operator(
-        wmManipulator *mpr, ReportList *reports, const char *opname)
+        wmManipulator *mpr, ReportList *reports, const char *opname, int part_index)
 {
 	wmOperatorType *ot;
 
@@ -157,9 +157,7 @@ static PointerRNA rna_manipulator_target_set_operator(
 		properties = IDP_New(IDP_GROUP, &val, "wmManipulatorProperties");
 	}
 
-	WM_manipulator_set_operator(mpr, ot, properties);
-
-	return mpr->op_data.ptr;
+	return *WM_manipulator_operator_set(mpr, part_index, ot, properties);
 }
 
 /** \} */
@@ -264,6 +262,8 @@ void RNA_api_manipulator(StructRNA *srna)
 	        "(overrides property targets)");
 	parm = RNA_def_string(func, "operator", NULL, 0, "", "Target operator");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	RNA_def_int(func, "index", 0, 0, 255, "Part index", "", 0, 255);
+
 	/* similar to UILayout.operator */
 	parm = RNA_def_pointer(func, "properties", "OperatorProperties", "", "Operator properties to fill in");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED | PARM_RNAPTR);
