@@ -121,7 +121,7 @@ static void checkmat(cosnt float *m)
 
 void gpuPushMatrix(void)
 {
-	BLI_assert(ModelViewStack.top < MATRIX_STACK_DEPTH);
+	BLI_assert(ModelViewStack.top + 1 < MATRIX_STACK_DEPTH);
 	ModelViewStack.top++;
 	copy_m4_m4(ModelView, ModelViewStack.stack[ModelViewStack.top - 1]);
 }
@@ -135,7 +135,7 @@ void gpuPopMatrix(void)
 
 void gpuPushProjectionMatrix(void)
 {
-	BLI_assert(ProjectionStack.top < MATRIX_STACK_DEPTH);
+	BLI_assert(ProjectionStack.top + 1 < MATRIX_STACK_DEPTH);
 	ProjectionStack.top++;
 	copy_m4_m4(Projection, ProjectionStack.stack[ProjectionStack.top - 1]);
 }
