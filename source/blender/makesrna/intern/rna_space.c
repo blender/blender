@@ -1045,6 +1045,8 @@ static void rna_SpaceProperties_pin_id_update(Main *UNUSED(bmain), Scene *UNUSED
 		case ID_LA:
 			WM_main_add_notifier(NC_LAMP, NULL);
 			break;
+		default:
+			break;
 	}
 }
 

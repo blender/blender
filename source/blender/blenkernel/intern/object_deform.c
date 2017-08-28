@@ -481,6 +481,8 @@ bool BKE_object_defgroup_array_get(ID *id, MDeformVert **dvert_arr, int *dvert_t
 				*dvert_tot = lt->pntsu * lt->pntsv * lt->pntsw;
 				return true;
 			}
+			default:
+				break;
 		}
 	}
 

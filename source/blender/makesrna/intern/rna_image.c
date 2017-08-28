@@ -192,6 +192,8 @@ static char *rna_ImageUser_path(PointerRNA *ptr)
 			{
 				return rna_Node_ImageUser_path(ptr);
 			}
+			default:
+				break;
 		}
 	}
 	

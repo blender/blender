@@ -907,6 +907,8 @@ static char *wm_prop_pystring_from_context(bContext *C, PointerRNA *ptr, Propert
 				CTX_TEST_SPACE_TYPE(SPACE_FILE, "space_data.params", CTX_wm_space_file(C)->params);
 				break;
 			}
+			default:
+				break;
 		}
 
 		if (member_id) {

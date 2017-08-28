@@ -624,6 +624,8 @@ char *BKE_animdata_driver_path_hack(bContext *C, PointerRNA *ptr, PropertyRNA *p
 					}
 					break;
 				}
+				default:
+					break;
 			}
 
 			/* fix RNA pointer, as we've now changed the ID root by changing the paths */

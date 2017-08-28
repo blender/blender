@@ -287,7 +287,7 @@ typedef enum ID_Type {
 #ifdef GS
 #  undef GS
 #endif
-#define GS(a)	(CHECK_TYPE_ANY(a, char *, const char *, char [66], const char[66]), (*((const short *)(a))))
+#define GS(a)	(CHECK_TYPE_ANY(a, char *, const char *, char [66], const char[66]), (ID_Type)(*((const short *)(a))))
 
 #define ID_NEW_SET(_id, _idn) \
 	(((ID *)(_id))->newid = (ID *)(_idn), ((ID *)(_id))->newid->tag |= LIB_TAG_NEW, (void *)((ID *)(_id))->newid)

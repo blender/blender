@@ -238,6 +238,9 @@ bool ED_vgroup_parray_alloc(ID *id, MDeformVert ***dvert_arr, int *dvert_tot, co
 				}
 				return false;
 			}
+
+			default:
+				break;
 		}
 	}
 

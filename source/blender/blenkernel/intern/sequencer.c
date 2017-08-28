@@ -377,6 +377,8 @@ static void seqclipboard_ptr_restore(Main *bmain, ID **id_pt)
 					}
 					break;
 				}
+				default:
+					break;
 			}
 		}
 

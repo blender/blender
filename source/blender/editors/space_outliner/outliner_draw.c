@@ -1273,7 +1273,10 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 			}
 		}
 		else {
-			switch (GS(tselem->id->name)) {
+			/* TODO(sergey): Casting to short here just to handle ID_NLA which is
+			 * NOT inside of IDType enum.
+			 */
+			switch ((short)GS(tselem->id->name)) {
 				case ID_SCE:
 					tselem_draw_icon_uibut(&arg, ICON_SCENE_DATA); break;
 				case ID_ME:
@@ -1343,6 +1346,8 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 					tselem_draw_icon_uibut(&arg, ICON_LINE_DATA); break;
 				case ID_GD:
 					tselem_draw_icon_uibut(&arg, ICON_GREASEPENCIL); break;
+				default:
+					break;
 			}
 		}
 	}

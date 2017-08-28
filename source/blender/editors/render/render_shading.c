@@ -1781,6 +1781,8 @@ static void copy_mtex_copybuf(ID *id)
 		case ID_LS:
 			mtex = &(((FreestyleLineStyle *)id)->mtex[(int)((FreestyleLineStyle *)id)->texact]);
 			break;
+		default:
+			break;
 	}
 	
 	if (mtex && *mtex) {

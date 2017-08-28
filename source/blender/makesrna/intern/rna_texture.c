@@ -267,6 +267,8 @@ void rna_TextureSlot_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 			WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);
 			break;
 		}
+		default:
+			break;
 	}
 }
 
