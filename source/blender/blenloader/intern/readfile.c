@@ -10125,6 +10125,7 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
 						break;
 					case ID_WS:
 						expand_workspace(fd, mainvar, (WorkSpace *)id);
+					default:
 						break;
 					}
 					

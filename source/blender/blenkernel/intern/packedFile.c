@@ -522,6 +522,8 @@ static void unpack_generate_paths(
 		case ID_IM:
 			BLI_snprintf(r_relpath, relpathlen, "//textures/%s", tempname);
 			break;
+		default:
+			break;
 	}
 
 	{
@@ -712,6 +714,8 @@ bool BKE_pack_check(ID *id)
 			Library *li = (Library *)id;
 			return li->packedfile != NULL;
 		}
+		default:
+			break;
 	}
 	return false;
 }
@@ -750,5 +754,7 @@ void BKE_unpack_id(Main *bmain, ID *id, ReportList *reports, int how)
 			BKE_reportf(reports, RPT_ERROR, "Cannot unpack individual Library file, '%s'", li->name);
 			break;
 		}
+		default:
+			break;
 	}
 }

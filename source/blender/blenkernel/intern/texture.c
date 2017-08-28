@@ -1129,6 +1129,8 @@ void set_active_mtex(ID *id, short act)
 		case ID_PA:
 			((ParticleSettings *)id)->texact = act;
 			break;
+		default:
+			break;
 	}
 }
 

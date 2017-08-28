@@ -368,6 +368,8 @@ Material ***give_matarar_id(ID *id)
 			return &(((Curve *)id)->mat);
 		case ID_MB:
 			return &(((MetaBall *)id)->mat);
+		default:
+			break;
 	}
 	return NULL;
 }
@@ -384,6 +386,8 @@ short *give_totcolp_id(ID *id)
 			return &(((Curve *)id)->totcol);
 		case ID_MB:
 			return &(((MetaBall *)id)->totcol);
+		default:
+			break;
 	}
 	return NULL;
 }
@@ -403,6 +407,8 @@ static void material_data_index_remove_id(ID *id, short index)
 		case ID_MB:
 			/* meta-elems don't have materials atm */
 			break;
+		default:
+			break;
 	}
 }
 
@@ -420,6 +426,8 @@ static void material_data_index_clear_id(ID *id)
 			break;
 		case ID_MB:
 			/* meta-elems don't have materials atm */
+			break;
+		default:
 			break;
 	}
 }

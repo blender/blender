@@ -843,6 +843,8 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 			}
 			break;
 		}
+		default:
+			break;
 	}
 }
 

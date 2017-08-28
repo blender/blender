@@ -52,8 +52,8 @@
 #ifndef __ATOMIC_OPS_UTILS_H__
 #define __ATOMIC_OPS_UTILS_H__
 
-/* needed for int types */
-#include "../../../source/blender/blenlib/BLI_sys_types.h"
+#include <stdint.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <limits.h>
 

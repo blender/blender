@@ -179,6 +179,8 @@ static Mesh *rna_KeyBlock_normals_get_mesh(PointerRNA *ptr, ID *id)
 					return ob->data;
 				}
 			}
+			default:
+				break;
 		}
 	}
 

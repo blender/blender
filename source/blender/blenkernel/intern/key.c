@@ -146,6 +146,9 @@ Key *BKE_key_add(ID *id)    /* common function */
 			key->elemsize = 16;
 
 			break;
+
+		default:
+			break;
 	}
 	
 	return key;
@@ -1406,6 +1409,8 @@ Key **BKE_key_from_id_p(ID *id)
 			Lattice *lt = (Lattice *)id;
 			return &lt->key;
 		}
+		default:
+			break;
 	}
 
 	return NULL;

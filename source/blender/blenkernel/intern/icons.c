@@ -255,6 +255,8 @@ PreviewImage **BKE_previewimg_id_get_p(const ID *id)
 		ID_PRV_CASE(ID_SCE, Scene);
 		ID_PRV_CASE(ID_SCR, bScreen);
 #undef ID_PRV_CASE
+		default:
+			break;
 	}
 
 	return NULL;

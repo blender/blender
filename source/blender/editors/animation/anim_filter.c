@@ -2251,6 +2251,8 @@ static void animfilter_modifier_idpoin_cb(void *afm_ptr, Object *ob, ID **idpoin
 		}
 		
 		/* TODO: images? */
+		default:
+			break;
 	}
 }
 

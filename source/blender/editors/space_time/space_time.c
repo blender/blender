@@ -301,6 +301,8 @@ static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel, cons
 		case ID_CF:
 			cachefile_to_keylist(&ads, (CacheFile *)id, &keys, NULL);
 			break;
+		default:
+			break;
 	}
 		
 	/* build linked-list for searching */
