@@ -1144,30 +1144,27 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
 }
 
 /* Recursively build graph for material */
-void DepsgraphNodeBuilder::build_material(Material *ma)
+void DepsgraphNodeBuilder::build_material(Material *material)
 {
-	ID *ma_id = &ma->id;
-	if (ma_id->tag & LIB_TAG_DOIT) {
+	ID *material_id = &material->id;
+	if (material_id->tag & LIB_TAG_DOIT) {
 		return;
 	}
-
-	/* material itself */
-	add_id_node(ma_id);
-
+	material_id->tag |= LIB_TAG_DOIT;
+	/* Material itself. */
+	add_id_node(material_id);
+	Material *material_cow = get_cow_datablock(material);
 	/* Shading update. */
-	add_operation_node(ma_id,
+	add_operation_node(material_id,
 	                   DEG_NODE_TYPE_SHADING,
-	                   function_bind(BKE_material_eval, _1, ma),
+	                   function_bind(BKE_material_eval, _1, material_cow),
 	                   DEG_OPCODE_MATERIAL_UPDATE);
-
-	/* material animation */
-	build_animdata(ma_id);
-
-	/* textures */
-	build_texture_stack(ma->mtex);
-
-	/* material's nodetree */
-	build_nodetree(ma->nodetree);
+	/* Material animation. */
+	build_animdata(material_id);
+	/* Textures. */
+	build_texture_stack(material->mtex);
+	/* Material's nodetree. */
+	build_nodetree(material->nodetree);
 }
 
 /* Texture-stack attached to some shading datablock */
