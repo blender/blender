@@ -1041,6 +1041,13 @@ PyDoc_STRVAR(bpy_bmesh_from_mesh_doc,
 "   :type use_shape_key: boolean\n"
 "   :arg shape_key_index: The shape key index to use.\n"
 "   :type shape_key_index: int\n"
+"\n"
+"   .. note::\n"
+"\n"
+"      Multiple calls can be used to join multiple meshes.\n"
+"\n"
+"      Custom-data layers are only copied from ``mesh`` on initialization.\n"
+"      Further calls will copy custom-data to matching layers, layers missing on the target mesh wont be added.\n"
 );
 static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *kw)
 {
