@@ -169,7 +169,7 @@ struct EdgeRingOpSubdProps {
 };
 
 
-static void mesh_operator_edgering_props(wmOperatorType *ot, const int cuts_default)
+static void mesh_operator_edgering_props(wmOperatorType *ot, const int cuts_min, const int cuts_default)
 {
 	/* Note, these values must match delete_mesh() event values */
 	static EnumPropertyItem prop_subd_edgering_types[] = {
@@ -181,7 +181,7 @@ static void mesh_operator_edgering_props(wmOperatorType *ot, const int cuts_defa
 
 	PropertyRNA *prop;
 
-	prop = RNA_def_int(ot->srna, "number_cuts", cuts_default, 0, 1000, "Number of Cuts", "", 0, 64);
+	prop = RNA_def_int(ot->srna, "number_cuts", cuts_default, 0, 1000, "Number of Cuts", "", cuts_min, 64);
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
 	RNA_def_enum(ot->srna, "interpolation", prop_subd_edgering_types, SUBD_RING_INTERP_PATH,
@@ -248,7 +248,7 @@ void MESH_OT_subdivide_edgering(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	mesh_operator_edgering_props(ot, 10);
+	mesh_operator_edgering_props(ot, 1, 10);
 }
 
 
@@ -5447,7 +5447,7 @@ void MESH_OT_bridge_edge_loops(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "merge_factor", 0.5f, 0.0f, 1.0f, "Merge Factor", "", 0.0f, 1.0f);
 	RNA_def_int(ot->srna, "twist_offset", 0, -1000, 1000, "Twist", "Twist offset for closed loops", -1000, 1000);
 
-	mesh_operator_edgering_props(ot, 0);
+	mesh_operator_edgering_props(ot, 0, 0);
 }
 
 static int edbm_wireframe_exec(bContext *C, wmOperator *op)
