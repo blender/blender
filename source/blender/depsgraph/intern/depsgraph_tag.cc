@@ -109,7 +109,7 @@ void lib_id_recalc_tag_flag(Main *bmain, ID *id, int flag)
 		 * nodes for update after relations update and after layer
 		 * visibility changes.
 		 */
-		short idtype = GS(id->name);
+		ID_Type idtype = GS(id->name);
 		if (idtype == ID_OB) {
 			Object *object = (Object *)id;
 			object->recalc |= (flag & OB_RECALC_ALL);
