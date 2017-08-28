@@ -365,7 +365,7 @@ void WM_report(ReportType type, const char *message) RET_NONE
 void BPY_RNA_manipulatorgroup_wrapper(struct wmManipulatorGroupType *wgt, void *userdata) RET_NONE
 void BPY_RNA_manipulator_wrapper(struct wmManipulatorType *wgt, void *userdata) RET_NONE
 
-PointerRNA *WM_manipulator_operator_set(struct wmManipulator *mpr, struct wmOperatorType *ot, struct IDProperty *properties) RET_NULL
+struct PointerRNA *WM_manipulator_operator_set(struct wmManipulator *mpr, int part_index, struct wmOperatorType *ot, struct IDProperty *properties) RET_NULL
 const struct wmManipulatorPropertyType *WM_manipulatortype_target_property_find(const struct wmManipulatorType *wt, const char *idname) RET_NULL
 const struct wmManipulatorType *WM_manipulatortype_find(const char *idname, bool quiet) RET_NULL
 struct wmManipulator *WM_manipulator_new_ptr(const struct wmManipulatorType *wt, struct wmManipulatorGroup *mgroup, struct PointerRNA *properties) RET_NULL
