@@ -269,8 +269,7 @@ ccl_device void kernel_branched_path_integrate(KernelGlobals *kg,
                                                int sample,
                                                Ray ray,
                                                ccl_global float *buffer,
-                                               PathRadiance *L,
-                                               bool *is_shadow_catcher)
+                                               PathRadiance *L)
 {
 	/* initialize */
 	float3 throughput = make_float3(1.0f, 1.0f, 1.0f);
@@ -374,7 +373,7 @@ ccl_device void kernel_branched_path_integrate(KernelGlobals *kg,
 
 			/* emission and transmittance */
 			if(volume_segment.closure_flag & SD_EMISSION)
-				path_radiance_accum_emission(L, throughput, volume_segment.accum_emission, state.bounce);
+				path_radiance_accum_emission(L, &state, throughput, volume_segment.accum_emission);
 			throughput *= volume_segment.accum_transmittance;
 
 			/* free cached steps */
@@ -539,10 +538,6 @@ ccl_device void kernel_branched_path_integrate(KernelGlobals *kg,
 		kernel_volume_stack_enter_exit(kg, &sd, state.volume_stack);
 #endif  /* __VOLUME__ */
 	}
-
-#ifdef __SHADOW_TRICKS__
-	*is_shadow_catcher = (state.flag & PATH_RAY_SHADOW_CATCHER) != 0;
-#endif  /* __SHADOW_TRICKS__ */
 }
 
 ccl_device void kernel_branched_path_trace(KernelGlobals *kg,
@@ -564,14 +559,13 @@ ccl_device void kernel_branched_path_trace(KernelGlobals *kg,
 
 	/* integrate */
 	PathRadiance L;
-	bool is_shadow_catcher;
 
 	if(ray.t != 0.0f) {
-		kernel_branched_path_integrate(kg, rng_hash, sample, ray, buffer, &L, &is_shadow_catcher);
-		kernel_write_result(kg, buffer, sample, &L, is_shadow_catcher);
+		kernel_branched_path_integrate(kg, rng_hash, sample, ray, buffer, &L);
+		kernel_write_result(kg, buffer, sample, &L);
 	}
 	else {
-		kernel_write_result(kg, buffer, sample, NULL, false);
+		kernel_write_result(kg, buffer, sample, NULL);
 	}
 }
 

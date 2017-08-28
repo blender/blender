@@ -122,7 +122,7 @@ ccl_device_forceinline void kernel_path_lamp_emission(
 		float3 emission;
 
 		if(indirect_lamp_emission(kg, emission_sd, state, &light_ray, &emission))
-			path_radiance_accum_emission(L, throughput, emission, state->bounce);
+			path_radiance_accum_emission(L, state, throughput, emission);
 	}
 #endif  /* __LAMP_MIS__ */
 }
@@ -194,7 +194,7 @@ ccl_device_forceinline VolumeIntegrateResult kernel_path_volume(
 
 			/* emission */
 			if(volume_segment.closure_flag & SD_EMISSION)
-				path_radiance_accum_emission(L, *throughput, volume_segment.accum_emission, state->bounce);
+				path_radiance_accum_emission(L, state, *throughput, volume_segment.accum_emission);
 
 			/* scattering */
 			VolumeIntegrateResult result = VOLUME_PATH_ATTENUATED;
@@ -274,12 +274,12 @@ ccl_device_forceinline bool kernel_path_shader_apply(
 		if(state->flag & PATH_RAY_CAMERA) {
 			state->flag |= (PATH_RAY_SHADOW_CATCHER |
 						   PATH_RAY_STORE_SHADOW_INFO);
+
+			float3 bg = make_float3(0.0f, 0.0f, 0.0f);
 			if(!kernel_data.background.transparent) {
-				L->shadow_background_color =
-						indirect_background(kg, emission_sd, state, ray);
+				bg = indirect_background(kg, emission_sd, state, ray);
 			}
-			L->shadow_radiance_sum = path_radiance_clamp_and_sum(kg, L);
-			L->shadow_throughput = average(throughput);
+			path_radiance_accum_shadowcatcher(L, throughput, bg);
 		}
 	}
 	else if(state->flag & PATH_RAY_SHADOW_CATCHER) {
@@ -331,7 +331,7 @@ ccl_device_forceinline bool kernel_path_shader_apply(
 	/* emission */
 	if(sd->flag & SD_EMISSION) {
 		float3 emission = indirect_primitive_emission(kg, sd, sd->ray_length, state->flag, state->ray_pdf);
-		path_radiance_accum_emission(L, throughput, emission, state->bounce);
+		path_radiance_accum_emission(L, state, throughput, emission);
 	}
 #endif  /* __EMISSION__ */
 
@@ -541,8 +541,7 @@ ccl_device_forceinline void kernel_path_integrate(
 	Ray *ray,
 	PathRadiance *L,
 	ccl_global float *buffer,
-	ShaderData *emission_sd,
-	bool *is_shadow_catcher)
+	ShaderData *emission_sd)
 {
 	/* Shader data memory used for both volumes and surfaces, saves stack space. */
 	ShaderData sd;
@@ -678,10 +677,6 @@ ccl_device_forceinline void kernel_path_integrate(
 		}
 	}
 #endif  /* __SUBSURFACE__ */
-
-#ifdef __SHADOW_TRICKS__
-	*is_shadow_catcher = (state->flag & PATH_RAY_SHADOW_CATCHER) != 0;
-#endif  /* __SHADOW_TRICKS__ */
 }
 
 ccl_device void kernel_path_trace(KernelGlobals *kg,
@@ -702,7 +697,7 @@ ccl_device void kernel_path_trace(KernelGlobals *kg,
 	kernel_path_trace_setup(kg, rng_state, sample, x, y, &rng_hash, &ray);
 
 	if(ray.t == 0.0f) {
-		kernel_write_result(kg, buffer, sample, NULL, false);
+		kernel_write_result(kg, buffer, sample, NULL);
 		return;
 	}
 
@@ -717,17 +712,15 @@ ccl_device void kernel_path_trace(KernelGlobals *kg,
 	path_state_init(kg, &emission_sd, &state, rng_hash, sample, &ray);
 
 	/* Integrate. */
-	bool is_shadow_catcher;
 	kernel_path_integrate(kg,
 	                      &state,
 	                      throughput,
 	                      &ray,
 	                      &L,
 	                      buffer,
-	                      &emission_sd,
-	                      &is_shadow_catcher);
+	                      &emission_sd);
 
-	kernel_write_result(kg, buffer, sample, &L, is_shadow_catcher);
+	kernel_write_result(kg, buffer, sample, &L);
 }
 
 #endif  /* __SPLIT_KERNEL__ */

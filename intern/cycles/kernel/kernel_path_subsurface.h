@@ -124,7 +124,7 @@ bool kernel_path_subsurface_scatter(
 				ss_indirect->num_rays++;
 			}
 			else {
-				path_radiance_accum_sample(L, hit_L, 1);
+				path_radiance_accum_sample(L, hit_L);
 			}
 		}
 		return true;
@@ -145,7 +145,7 @@ ccl_device void kernel_path_subsurface_accum_indirect(
 {
 	if(ss_indirect->tracing) {
 		path_radiance_sum_indirect(L);
-		path_radiance_accum_sample(&ss_indirect->direct_L, L, 1);
+		path_radiance_accum_sample(&ss_indirect->direct_L, L);
 		if(ss_indirect->num_rays == 0) {
 			*L = ss_indirect->direct_L;
 		}

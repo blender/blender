@@ -365,21 +365,11 @@ ccl_device_inline void kernel_write_light_passes(KernelGlobals *kg, ccl_global f
 }
 
 ccl_device_inline void kernel_write_result(KernelGlobals *kg, ccl_global float *buffer,
-	int sample, PathRadiance *L, bool is_shadow_catcher)
+	int sample, PathRadiance *L)
 {
 	if(L) {
-		float3 L_sum;
-		float alpha = 1.0f - L->transparent;
-
-#ifdef __SHADOW_TRICKS__
-		if(is_shadow_catcher) {
-			L_sum = path_radiance_sum_shadowcatcher(kg, L, &alpha);
-		}
-		else
-#endif  /* __SHADOW_TRICKS__ */
-		{
-			L_sum = path_radiance_clamp_and_sum(kg, L);
-		}
+		float alpha;
+		float3 L_sum = path_radiance_clamp_and_sum(kg, L, &alpha);
 
 		kernel_write_pass_float4(buffer, sample, make_float4(L_sum.x, L_sum.y, L_sum.z, alpha));
 
@@ -394,16 +384,7 @@ ccl_device_inline void kernel_write_result(KernelGlobals *kg, ccl_global float *
 #  endif
 			if(kernel_data.film.pass_denoising_clean) {
 				float3 noisy, clean;
-#ifdef __SHADOW_TRICKS__
-				if(is_shadow_catcher) {
-					noisy = L_sum;
-					clean = make_float3(0.0f, 0.0f, 0.0f);
-				}
-				else
-#endif  /* __SHADOW_TRICKS__ */
-				{
-					path_radiance_split_denoising(kg, L, &noisy, &clean);
-				}
+				path_radiance_split_denoising(kg, L, &noisy, &clean);
 				kernel_write_pass_float3_variance(buffer + kernel_data.film.pass_denoising_data + DENOISING_PASS_COLOR,
 				                                  sample, noisy);
 				kernel_write_pass_float3_unaligned(buffer + kernel_data.film.pass_denoising_clean,
