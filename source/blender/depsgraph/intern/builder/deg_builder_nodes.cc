@@ -1121,7 +1121,7 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
 	LINKLIST_FOREACH (bNode *, bnode, &ntree->nodes) {
 		ID *id = bnode->id;
 		if (id != NULL) {
-			short id_type = GS(id->name);
+			ID_Type id_type = GS(id->name);
 			if (id_type == ID_MA) {
 				build_material((Material *)id);
 			}
