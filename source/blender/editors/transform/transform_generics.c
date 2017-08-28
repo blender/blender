@@ -1331,7 +1331,12 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			t->current_orientation = V3D_MANIP_GLOBAL;
 		}
 	}
-	
+
+	if (op && (prop = RNA_struct_find_property(op->ptr, "center_override")) && RNA_property_is_set(op->ptr, prop)) {
+		RNA_property_float_get_array(op->ptr, prop, t->center);
+		t->flag |= T_OVERRIDE_CENTER;
+	}
+
 	if (op && ((prop = RNA_struct_find_property(op->ptr, "release_confirm")) &&
 	           RNA_property_is_set(op->ptr, prop)))
 	{
@@ -1835,7 +1840,9 @@ static void calculateCenter_FromAround(TransInfo *t, int around, float r_center[
 
 void calculateCenter(TransInfo *t)
 {
-	calculateCenter_FromAround(t, t->around, t->center);
+	if ((t->flag & T_OVERRIDE_CENTER) == 0) {
+		calculateCenter_FromAround(t, t->around, t->center);
+	}
 	calculateCenterGlobal(t, t->center, t->center_global);
 
 	/* avoid calculating again */
@@ -1849,7 +1856,7 @@ void calculateCenter(TransInfo *t)
 	calculateCenter2D(t);
 
 	/* for panning from cameraview */
-	if (t->flag & T_OBJECT) {
+	if ((t->flag & T_OBJECT) && (t->flag & T_OVERRIDE_CENTER) == 0) {
 		if (t->spacetype == SPACE_VIEW3D && t->ar && t->ar->regiontype == RGN_TYPE_WINDOW) {
 			
 			if (t->flag & T_CAMERA) {

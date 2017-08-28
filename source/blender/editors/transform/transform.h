@@ -533,6 +533,9 @@ typedef struct TransInfo {
 	/* alternative transformation. used to add offset to tracking markers */
 #define T_ALT_TRANSFORM		(1 << 24)
 
+	/** #TransInfo.center has been set, don't change it. */
+#define T_OVERRIDE_CENTER	(1 << 25)
+
 /* TransInfo->modifiers */
 #define	MOD_CONSTRAINT_SELECT	0x01
 #define	MOD_PRECISION			0x02

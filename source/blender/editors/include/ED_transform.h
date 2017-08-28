@@ -148,7 +148,8 @@ int BIF_countTransformOrientation(const struct bContext *C);
 #define P_CORRECT_UV    (1 << 8)
 #define P_NO_DEFAULTS   (1 << 10)
 #define P_NO_TEXSPACE   (1 << 11)
-#define P_GPENCIL_EDIT  (1 << 12)
+#define P_CENTER        (1 << 12)
+#define P_GPENCIL_EDIT  (1 << 13)
 
 void Transform_Properties(struct wmOperatorType *ot, int flags);
 

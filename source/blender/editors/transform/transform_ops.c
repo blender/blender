@@ -565,6 +565,14 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 		RNA_def_boolean(ot->srna, "correct_uv", 0, "Correct UVs", "Correct UV coordinates when transforming");
 	}
 
+	if (flags & P_CENTER) {
+		/* For manipulators that define their own center. */
+		prop = RNA_def_property(ot->srna, "center_override", PROP_FLOAT, PROP_XYZ);
+		RNA_def_property_array(prop, 3);
+		RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+		RNA_def_property_ui_text(prop, "Center", "Force using this center value (when set)");
+	}
+
 	if ((flags & P_NO_DEFAULTS) == 0) {
 		// Add confirm method all the time. At the end because it's not really that important and should be hidden only in log, not in keymap edit
 		/*prop =*/ RNA_def_boolean(ot->srna, "release_confirm", 0, "Confirm on Release", "Always confirm operation when releasing button");
@@ -612,7 +620,8 @@ static void TRANSFORM_OT_resize(struct wmOperatorType *ot)
 
 	RNA_def_float_vector(ot->srna, "value", 3, VecOne, -FLT_MAX, FLT_MAX, "Vector", "", -FLT_MAX, FLT_MAX);
 
-	Transform_Properties(ot, P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_GEO_SNAP | P_OPTIONS | P_GPENCIL_EDIT);
+	Transform_Properties(
+	        ot, P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_GEO_SNAP | P_OPTIONS | P_GPENCIL_EDIT | P_CENTER);
 }
 
 static int skin_resize_poll(bContext *C)
@@ -663,7 +672,7 @@ static void TRANSFORM_OT_trackball(struct wmOperatorType *ot)
 	/* Maybe we could use float_vector_xyz here too? */
 	RNA_def_float_rotation(ot->srna, "value", 2, NULL, -FLT_MAX, FLT_MAX, "Angle", "", -FLT_MAX, FLT_MAX);
 
-	Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_GPENCIL_EDIT);
+	Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_GPENCIL_EDIT | P_CENTER);
 }
 
 static void TRANSFORM_OT_rotate(struct wmOperatorType *ot)
@@ -683,7 +692,8 @@ static void TRANSFORM_OT_rotate(struct wmOperatorType *ot)
 
 	RNA_def_float_rotation(ot->srna, "value", 0, NULL, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI * 2, M_PI * 2);
 
-	Transform_Properties(ot, P_AXIS | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_GEO_SNAP | P_GPENCIL_EDIT);
+	Transform_Properties(
+	        ot, P_AXIS | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_GEO_SNAP | P_GPENCIL_EDIT | P_CENTER);
 }
 
 static void TRANSFORM_OT_tilt(struct wmOperatorType *ot)
@@ -726,7 +736,7 @@ static void TRANSFORM_OT_bend(struct wmOperatorType *ot)
 
 	RNA_def_float_rotation(ot->srna, "value", 1, NULL, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI * 2, M_PI * 2);
 
-	Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_GPENCIL_EDIT);
+	Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_GPENCIL_EDIT | P_CENTER);
 }
 
 static void TRANSFORM_OT_shear(struct wmOperatorType *ot)
@@ -767,7 +777,7 @@ static void TRANSFORM_OT_push_pull(struct wmOperatorType *ot)
 
 	RNA_def_float(ot->srna, "value", 0, -FLT_MAX, FLT_MAX, "Distance", "", -FLT_MAX, FLT_MAX);
 
-	Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP);
+	Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_CENTER);
 }
 
 static void TRANSFORM_OT_shrink_fatten(struct wmOperatorType *ot)
@@ -810,7 +820,7 @@ static void TRANSFORM_OT_tosphere(struct wmOperatorType *ot)
 
 	RNA_def_float_factor(ot->srna, "value", 0, 0, 1, "Factor", "", 0, 1);
 
-	Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_GPENCIL_EDIT);
+	Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_GPENCIL_EDIT | P_CENTER);
 }
 
 static void TRANSFORM_OT_mirror(struct wmOperatorType *ot)
@@ -828,7 +838,7 @@ static void TRANSFORM_OT_mirror(struct wmOperatorType *ot)
 	ot->cancel = transform_cancel;
 	ot->poll   = ED_operator_screenactive;
 
-	Transform_Properties(ot, P_CONSTRAINT | P_PROPORTIONAL | P_GPENCIL_EDIT);
+	Transform_Properties(ot, P_CONSTRAINT | P_PROPORTIONAL | P_GPENCIL_EDIT | P_CENTER);
 }
 
 static void TRANSFORM_OT_edge_slide(struct wmOperatorType *ot)
@@ -991,7 +1001,8 @@ static void TRANSFORM_OT_transform(struct wmOperatorType *ot)
 
 	RNA_def_float_vector(ot->srna, "value", 4, NULL, -FLT_MAX, FLT_MAX, "Values", "", -FLT_MAX, FLT_MAX);
 
-	Transform_Properties(ot, P_AXIS | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_ALIGN_SNAP | P_GPENCIL_EDIT);
+	Transform_Properties(
+	        ot, P_AXIS | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_ALIGN_SNAP | P_GPENCIL_EDIT | P_CENTER);
 }
 
 void transform_operatortypes(void)
