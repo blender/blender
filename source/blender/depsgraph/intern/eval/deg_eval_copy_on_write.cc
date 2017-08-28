@@ -320,7 +320,7 @@ BLI_INLINE bool check_datablock_expanded(const ID *id_cow)
  */
 static bool check_datablock_expanded_at_construction(const ID *id_orig)
 {
-	const short id_type = GS(id_orig->name);
+	const ID_Type id_type = GS(id_orig->name);
 	return (id_type == ID_SCE) ||
 	       (id_type == ID_OB && ((Object *)id_orig)->type == OB_ARMATURE) ||
 	       (id_type == ID_AR);
@@ -334,7 +334,7 @@ static bool check_datablock_expanded_at_construction(const ID *id_orig)
  */
 static bool check_datablocks_copy_on_writable(const ID *id_orig)
 {
-	const short id_type = GS(id_orig->name);
+	const ID_Type id_type = GS(id_orig->name);
 	/* We shouldn't bother if copied ID is same as original one. */
 	if (!deg_copy_on_write_is_needed(id_orig)) {
 		return false;
@@ -398,8 +398,8 @@ int foreach_libblock_remap_callback(void *user_data_v,
 				 * those or at least make it more reliable check where the
 				 * pointer is coming from.
 				 */
-				const short id_type = GS(id_orig->name);
-				const short id_type_self = GS(id_self->name);
+				const ID_Type id_type = GS(id_orig->name);
+				const ID_Type id_type_self = GS(id_self->name);
 				if (id_type == ID_OB && id_type_self == ID_SCE) {
 					IDDepsNode *id_node = depsgraph->find_id_node(id_orig);
 					if (id_node == NULL) {
@@ -433,7 +433,7 @@ int foreach_libblock_remap_callback(void *user_data_v,
 void update_special_pointers(const Depsgraph *depsgraph,
                              const ID *id_orig, ID *id_cow)
 {
-	const short type = GS(id_orig->name);
+	const ID_Type type = GS(id_orig->name);
 	switch (type) {
 		case ID_OB:
 		{
@@ -480,6 +480,8 @@ void update_special_pointers(const Depsgraph *depsgraph,
 			}
 			break;
 		}
+		default:
+			break;
 	}
 }
 
@@ -560,7 +562,7 @@ void update_copy_on_write_datablock(const Depsgraph *depsgraph,
                                     const ID *id_orig, ID *id_cow)
 {
 	bool ok = false;
-	const short id_type = GS(id_orig->name);
+	const ID_Type id_type = GS(id_orig->name);
 	switch (id_type) {
 		case ID_SCE: {
 			const Scene *scene_orig = (const Scene *)id_orig;
@@ -583,6 +585,8 @@ void update_copy_on_write_datablock(const Depsgraph *depsgraph,
 		case ID_AR:
 			/* Nothing to do currently. */
 			ok = true;
+			break;
+		default:
 			break;
 	}
 	// TODO(sergey): Other ID types here.
@@ -663,7 +667,7 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 	 * or cases where we want to do something smarter than simple datablock
 	 * copy.
 	 */
-	const short id_type = GS(id_orig->name);
+	const ID_Type id_type = GS(id_orig->name);
 	switch (id_type) {
 		case ID_SCE:
 		{
@@ -680,6 +684,8 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 			 */
 			break;
 		}
+		default:
+			break;
 	}
 	if (!done) {
 		if (id_copy_no_main(id_orig, &newid)) {
@@ -749,7 +755,7 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
                                        const IDDepsNode *id_node)
 {
 	const ID *id_orig = id_node->id_orig;
-	const short id_type = GS(id_orig->name);
+	const ID_Type id_type = GS(id_orig->name);
 	ID *id_cow = id_node->id_cow;
 	/* Similar to expansion, no need to do anything here. */
 	if (!deg_copy_on_write_is_needed(id_orig)) {
@@ -805,6 +811,8 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 				}
 				break;
 			}
+			default:
+				break;
 		}
 		if (gpumaterial_ptr != NULL) {
 			gpumaterial_backup = *gpumaterial_ptr;
@@ -860,7 +868,7 @@ void deg_free_copy_on_write_datablock(ID *id_cow)
 		 */
 		return;
 	}
-	const short type = GS(id_cow->name);
+	const ID_Type type = GS(id_cow->name);
 #ifdef NESTED_ID_NASTY_WORKAROUND
 	nested_id_hack_discard_pointers(id_cow);
 #endif
@@ -896,6 +904,8 @@ void deg_free_copy_on_write_datablock(ID *id_cow)
 			id_cow->name[0] = '\0';
 			return;
 		}
+		default:
+			break;
 	}
 	BKE_libblock_free_datablock(id_cow, 0);
 	BKE_libblock_free_data(id_cow, false);
@@ -940,7 +950,7 @@ bool deg_copy_on_write_is_expanded(const ID *id_cow)
 
 bool deg_copy_on_write_is_needed(const ID *id_orig)
 {
-	const short id_type = GS(id_orig->name);
+	const ID_Type id_type = GS(id_orig->name);
 	return !ELEM(id_type, ID_IM);
 }
 

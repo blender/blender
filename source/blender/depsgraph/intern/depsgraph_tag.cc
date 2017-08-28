@@ -151,7 +151,7 @@ void id_tag_update_object_transform(Depsgraph *graph, IDDepsNode *id_node)
 /* Tag corresponding to OB_RECALC_DATA. */
 void id_tag_update_object_data(Depsgraph *graph, IDDepsNode *id_node)
 {
-	const short id_type = GS(id_node->id_orig->name);
+	const ID_Type id_type = GS(id_node->id_orig->name);
 	ComponentDepsNode *data_comp = NULL;
 	switch (id_type) {
 		case ID_OB:
@@ -177,6 +177,8 @@ void id_tag_update_object_data(Depsgraph *graph, IDDepsNode *id_node)
 			break;
 		case ID_PA:
 			return;
+		default:
+			break;
 	}
 	if (data_comp == NULL) {
 #ifdef STRICT_COMPONENT_TAGGING
@@ -290,7 +292,7 @@ void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag)
 		id_tag_update_object_data(graph, id_node);
 #ifdef WITH_COPY_ON_WRITE
 		if (flag & DEG_TAG_COPY_ON_WRITE) {
-			const short id_type = GS(id_node->id_orig->name);
+			const ID_Type id_type = GS(id_node->id_orig->name);
 			if (id_type == ID_OB) {
 				Object *object = (Object *)id_node->id_orig;
 				ID *ob_data = (ID *)object->data;
@@ -334,7 +336,7 @@ void deg_graph_on_visible_update(Main *bmain, Scene *scene, Depsgraph *graph)
 	/* Make sure objects are up to date. */
 	GHASH_FOREACH_BEGIN(DEG::IDDepsNode *, id_node, graph->id_hash)
 	{
-		const short id_type = GS(id_node->id_orig->name);
+		const ID_Type id_type = GS(id_node->id_orig->name);
 		if (id_type != ID_OB) {
 			/* Ignore non-object nodes on visibility changes. */
 			continue;

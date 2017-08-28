@@ -319,7 +319,7 @@ void Depsgraph::clear_id_nodes()
 		if (!deg_copy_on_write_is_expanded(id_node->id_cow)) {
 			continue;
 		}
-		const short id_type = GS(id_node->id_cow->name);
+		const ID_Type id_type = GS(id_node->id_cow->name);
 		if (id_type != ID_PA) {
 			id_node->destroy();
 		}

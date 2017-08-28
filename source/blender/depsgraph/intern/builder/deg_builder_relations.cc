@@ -974,7 +974,7 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 	                        fcu->array_index);
 	bPoseChannel *pchan = NULL;
 	const char *rna_path = fcu->rna_path ? fcu->rna_path : "";
-	const short id_type = GS(id->name);
+	const ID_Type id_type = GS(id->name);
 
 	/* Create dependency between driver and data affected by it. */
 	/* - direct property relationship... */
@@ -1102,6 +1102,8 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 				             "[Driver -> NTree Shading Update]");
 				break;
 			}
+			default:
+				break;
 		}
 	}
 	/* Ensure that affected prop's update callbacks will be triggered once
