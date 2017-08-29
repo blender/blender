@@ -990,6 +990,10 @@ CacheReader *CacheReader_open_alembic_object(AbcArchiveHandle *handle, CacheRead
 
 	ImportSettings settings;
 	AbcObjectReader *abc_reader = create_reader(iobject, settings);
+	if (abc_reader == NULL) {
+		/* This object is not supported */
+		return NULL;
+	}
 	abc_reader->object(object);
 	abc_reader->incref();
 
