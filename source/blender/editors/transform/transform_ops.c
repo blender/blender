@@ -570,7 +570,7 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 		prop = RNA_def_property(ot->srna, "center_override", PROP_FLOAT, PROP_XYZ);
 		RNA_def_property_array(prop, 3);
 		RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
-		RNA_def_property_ui_text(prop, "Center", "Force using this center value (when set)");
+		RNA_def_property_ui_text(prop, "Center Override", "Force using this center value (when set)");
 	}
 
 	if ((flags & P_NO_DEFAULTS) == 0) {
