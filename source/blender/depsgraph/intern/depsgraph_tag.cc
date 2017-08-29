@@ -95,6 +95,8 @@ void lib_id_recalc_data_tag(Main *bmain, ID *id)
 
 namespace {
 
+void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag);
+
 void lib_id_recalc_tag_flag(Main *bmain, ID *id, int flag)
 {
 	/* This bit of code ensures legacy object->recalc flags are still filled in
@@ -270,6 +272,25 @@ void id_tag_update_copy_on_write(Depsgraph *graph, IDDepsNode *id_node)
 }
 #endif
 
+void id_tag_update_ntree_special(Main *bmain, Depsgraph *graph, ID *id, int flag)
+{
+	bNodeTree *ntree = NULL;
+	switch (GS(id->name)) {
+		case ID_MA:
+			ntree = ((Material *)id)->nodetree;
+			break;
+		default:
+			break;
+	}
+	if (ntree == NULL) {
+		return;
+	}
+	IDDepsNode *id_node = graph->find_id_node(&ntree->id);
+	if (id_node != NULL) {
+		deg_graph_id_tag_update(bmain, graph, id_node->id_orig, flag);
+	}
+}
+
 void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag)
 {
 	Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
@@ -283,6 +304,7 @@ void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag)
 	/* Tag components based on flags. */
 	if (flag == 0) {
 		id_tag_update_special_zero_flag(graph, id_node);
+		id_tag_update_ntree_special(bmain, graph, id, flag);
 		return;
 	}
 	if (flag & OB_RECALC_OB) {
@@ -315,6 +337,7 @@ void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag)
 		id_tag_update_copy_on_write(graph, id_node);
 	}
 #endif
+	id_tag_update_ntree_special(bmain, graph, id, flag);
 }
 
 void deg_id_tag_update(Main *bmain, ID *id, int flag)

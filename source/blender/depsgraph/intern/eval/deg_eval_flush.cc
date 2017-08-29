@@ -50,6 +50,7 @@ extern "C" {
 #include "intern/nodes/deg_node_operation.h"
 
 #include "intern/depsgraph_intern.h"
+#include "intern/eval/deg_eval_copy_on_write.h"
 #include "util/deg_util_foreach.h"
 
 namespace DEG {
@@ -122,12 +123,20 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 			IDDepsNode *id_node = comp_node->owner;
 
 			/* TODO(sergey): Do we need to pass original or evaluated ID here? */
-			ID *id = id_node->id_orig;
+			ID *id_orig = id_node->id_orig;
+			ID *id_cow = id_node->id_cow;
 			if (id_node->done == 0) {
-				deg_editors_id_update(bmain, id);
-				lib_id_recalc_tag(bmain, id);
+				/* Copy tag from original data to CoW storage.
+				 * This is because DEG_id_tag_update() sets tags on original
+				 * data.
+				 */
+				id_cow->tag |= (id_orig->tag & LIB_TAG_ID_RECALC_ALL);
+				if (deg_copy_on_write_is_expanded(id_cow)) {
+					deg_editors_id_update(bmain, id_cow);
+				}
+				lib_id_recalc_tag(bmain, id_orig);
 				/* TODO(sergey): For until we've got proper data nodes in the graph. */
-				lib_id_recalc_data_tag(bmain, id);
+				lib_id_recalc_data_tag(bmain, id_orig);
 
 #ifdef WITH_COPY_ON_WRITE
 				/* Currently this is needed to get ob->mesh to be replaced with
@@ -143,8 +152,8 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 
 			if (comp_node->done == 0) {
 				Object *object = NULL;
-				if (GS(id->name) == ID_OB) {
-					object = (Object *)id;
+				if (GS(id_orig->name) == ID_OB) {
+					object = (Object *)id_orig;
 					if (id_node->done == 0) {
 						++num_flushed_objects;
 					}
