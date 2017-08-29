@@ -49,7 +49,7 @@ struct bNodeSocket *node_add_socket_from_template(struct bNodeTree *ntree, struc
 void node_verify_socket_templates(struct bNodeTree *ntree, struct bNode *node);
 
 void node_socket_init_default_value(struct bNodeSocket *sock);
-void node_socket_copy_default_value(struct bNodeSocket *to, struct bNodeSocket *from);
+void node_socket_copy_default_value(struct bNodeSocket *to, const struct bNodeSocket *from);
 void register_standard_node_socket_types(void);
 
 #endif

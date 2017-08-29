@@ -267,7 +267,7 @@ void node_socket_init_default_value(bNodeSocket *sock)
 	}
 }
 
-void node_socket_copy_default_value(bNodeSocket *to, bNodeSocket *from)
+void node_socket_copy_default_value(bNodeSocket *to, const bNodeSocket *from)
 {
 	/* sanity check */
 	if (to->type != from->type)

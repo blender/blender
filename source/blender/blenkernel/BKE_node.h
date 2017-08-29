@@ -1050,4 +1050,11 @@ int ntreeTexExecTree(struct bNodeTree *ntree, struct TexResult *target,
 void init_nodesystem(void);
 void free_nodesystem(void);
 
+/* -------------------------------------------------------------------- */
+/* evaluation support, */
+
+void BKE_nodetree_copy_default_values(struct bNodeTree *ntree_dst,
+                                      const struct bNodeTree *ntree_src);
+
+
 #endif  /* __BKE_NODE_H__ */
