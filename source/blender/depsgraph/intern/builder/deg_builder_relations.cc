@@ -1094,9 +1094,7 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 			}
 			case ID_NT:
 			{
-				OperationKey ntree_key(id,
-				                       DEG_NODE_TYPE_PARAMETERS,
-				                       DEG_OPCODE_PARAMETERS_EVAL);
+				ComponentKey ntree_key(id, DEG_NODE_TYPE_SHADING);
 				add_relation(driver_key,
 				             ntree_key,
 				             "[Driver -> NTree Shading Update]");
@@ -1786,7 +1784,7 @@ void DepsgraphRelationBuilder::build_lamp(Object *ob)
 	/* lamp's nodetree */
 	if (la->nodetree) {
 		build_nodetree(la->nodetree);
-		ComponentKey nodetree_key(&la->nodetree->id, DEG_NODE_TYPE_PARAMETERS);
+		ComponentKey nodetree_key(&la->nodetree->id, DEG_NODE_TYPE_SHADING);
 		add_relation(nodetree_key, parameters_key, "NTree->Lamp Parameters");
 	}
 
@@ -1811,17 +1809,12 @@ void DepsgraphRelationBuilder::build_lamp(Object *ob)
 
 void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 {
-	if (!ntree)
+	if (ntree == NULL) {
 		return;
-
+	}
 	ID *ntree_id = &ntree->id;
-
 	build_animdata(ntree_id);
-
-	OperationKey parameters_key(ntree_id,
-	                            DEG_NODE_TYPE_PARAMETERS,
-	                            DEG_OPCODE_PARAMETERS_EVAL);
-
+	ComponentKey shading_key(ntree_id, DEG_NODE_TYPE_SHADING);
 	/* nodetree's nodes... */
 	LINKLIST_FOREACH (bNode *, bnode, &ntree->nodes) {
 		if (bnode->id) {
@@ -1837,17 +1830,16 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 					build_nodetree(group_ntree);
 					group_ntree->id.tag |= LIB_TAG_DOIT;
 				}
-				OperationKey group_parameters_key(&group_ntree->id,
-				                                  DEG_NODE_TYPE_PARAMETERS,
-				                                  DEG_OPCODE_PARAMETERS_EVAL);
-				add_relation(group_parameters_key, parameters_key, "Group Node");
+				ComponentKey group_shading_key(&group_ntree->id,
+				                               DEG_NODE_TYPE_SHADING);
+				add_relation(group_shading_key, shading_key, "Group Node");
 			}
 		}
 	}
 
 	if (needs_animdata_node(ntree_id)) {
 		ComponentKey animation_key(ntree_id, DEG_NODE_TYPE_ANIMATION);
-		add_relation(animation_key, parameters_key, "NTree Parameters");
+		add_relation(animation_key, shading_key, "NTree Parameters");
 	}
 
 	OperationKey shading_update_key(ntree_id,
@@ -1856,7 +1848,6 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 	OperationKey shading_parameters_key(ntree_id,
 	                                    DEG_NODE_TYPE_SHADING_PARAMETERS,
 	                                    DEG_OPCODE_MATERIAL_UPDATE);
-	add_relation(parameters_key, shading_update_key, "NTree Parameters");
 	add_relation(shading_parameters_key, shading_update_key, "NTree Shading Parameters");
 }
 
