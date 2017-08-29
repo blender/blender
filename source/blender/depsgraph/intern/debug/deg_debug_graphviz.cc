@@ -88,9 +88,10 @@ static const int deg_debug_node_type_color_map[][2] = {
     {DEG_NODE_TYPE_GEOMETRY,          6},
     {DEG_NODE_TYPE_SEQUENCER,         7},
     {DEG_NODE_TYPE_SHADING,           8},
-    {DEG_NODE_TYPE_CACHE,             9},
-    {DEG_NODE_TYPE_LAYER_COLLECTIONS, 10},
-    {DEG_NODE_TYPE_COPY_ON_WRITE,     11},
+    {DEG_NODE_TYPE_SHADING_PARAMETERS,9},
+    {DEG_NODE_TYPE_CACHE,             10},
+    {DEG_NODE_TYPE_LAYER_COLLECTIONS, 11},
+    {DEG_NODE_TYPE_COPY_ON_WRITE,     12},
     {-1,                              0}
 };
 #endif
@@ -377,6 +378,7 @@ static void deg_debug_graphviz_node(const DebugContext &ctx,
 		case DEG_NODE_TYPE_EVAL_POSE:
 		case DEG_NODE_TYPE_BONE:
 		case DEG_NODE_TYPE_SHADING:
+		case DEG_NODE_TYPE_SHADING_PARAMETERS:
 		case DEG_NODE_TYPE_CACHE:
 		case DEG_NODE_TYPE_LAYER_COLLECTIONS:
 		case DEG_NODE_TYPE_EVAL_PARTICLES:
@@ -395,7 +397,9 @@ static void deg_debug_graphviz_node(const DebugContext &ctx,
 			}
 			break;
 		}
-		default:
+		case DEG_NODE_TYPE_UNDEFINED:
+		case DEG_NODE_TYPE_TIMESOURCE:
+		case DEG_NODE_TYPE_OPERATION:
 			deg_debug_graphviz_node_single(ctx, node);
 			break;
 	}

@@ -248,8 +248,13 @@ void id_tag_update_particle(Depsgraph *graph, IDDepsNode *id_node, int tag)
 
 void id_tag_update_shading(Depsgraph *graph, IDDepsNode *id_node)
 {
-	ComponentDepsNode *shading_comp =
-	        id_node->find_component(DEG_NODE_TYPE_SHADING);
+	ComponentDepsNode *shading_comp;
+	if (GS(id_node->id_orig->name) == ID_NT) {
+		shading_comp = id_node->find_component(DEG_NODE_TYPE_SHADING_PARAMETERS);
+	}
+	else {
+		shading_comp = id_node->find_component(DEG_NODE_TYPE_SHADING);
+	}
 	if (shading_comp == NULL) {
 #ifdef STRICT_COMPONENT_TAGGING
 		DEG_ERROR_PRINTF("ERROR: Unable to find shading component for %s\n",

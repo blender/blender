@@ -396,6 +396,11 @@ static DepsNodeFactoryImpl<ParticlesComponentDepsNode> DNTI_EVAL_PARTICLES;
 DEG_DEPSNODE_DEFINE(ShadingComponentDepsNode, DEG_NODE_TYPE_SHADING, "Shading Component");
 static DepsNodeFactoryImpl<ShadingComponentDepsNode> DNTI_SHADING;
 
+/* Shading Parameters Component Defines ============================ */
+
+DEG_DEPSNODE_DEFINE(ShadingParametersComponentDepsNode, DEG_NODE_TYPE_SHADING_PARAMETERS, "Shading Parameters Component");
+static DepsNodeFactoryImpl<ShadingParametersComponentDepsNode> DNTI_SHADING_PARAMETERS;
+
 /* Cache Component Defines ============================ */
 
 DEG_DEPSNODE_DEFINE(CacheComponentDepsNode, DEG_NODE_TYPE_CACHE, "Cache Component");
@@ -426,7 +431,9 @@ void deg_register_component_depsnodes()
 	deg_register_node_typeinfo(&DNTI_BONE);
 
 	deg_register_node_typeinfo(&DNTI_EVAL_PARTICLES);
+
 	deg_register_node_typeinfo(&DNTI_SHADING);
+	deg_register_node_typeinfo(&DNTI_SHADING_PARAMETERS);
 
 	deg_register_node_typeinfo(&DNTI_CACHE);
 

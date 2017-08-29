@@ -1853,7 +1853,11 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 	OperationKey shading_update_key(ntree_id,
 	                                DEG_NODE_TYPE_SHADING,
 	                                DEG_OPCODE_MATERIAL_UPDATE);
+	OperationKey shading_parameters_key(ntree_id,
+	                                    DEG_NODE_TYPE_SHADING_PARAMETERS,
+	                                    DEG_OPCODE_MATERIAL_UPDATE);
 	add_relation(parameters_key, shading_update_key, "NTree Parameters");
+	add_relation(shading_parameters_key, shading_update_key, "NTree Shading Parameters");
 }
 
 /* Recursively build graph for material */
@@ -2003,6 +2007,10 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node
 	{
 		if (comp_node->type == DEG_NODE_TYPE_COPY_ON_WRITE) {
 			/* Copy-on-write component never depends on itself. */
+			continue;
+		}
+		if (!comp_node->depends_on_cow()) {
+			/* Component explicitly requests to not add relation. */
 			continue;
 		}
 		/* All entry operations of each component should wait for a proper

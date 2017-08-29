@@ -144,9 +144,11 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 				 *
 				 * TODO(sergey): This is something we need to avoid.
 				 */
-				ComponentDepsNode *cow_comp =
-				        id_node->find_component(DEG_NODE_TYPE_COPY_ON_WRITE);
-				cow_comp->tag_update(graph);
+				if (comp_node->depends_on_cow()) {
+					ComponentDepsNode *cow_comp =
+					        id_node->find_component(DEG_NODE_TYPE_COPY_ON_WRITE);
+					cow_comp->tag_update(graph);
+				}
 #endif
 			}
 
@@ -201,6 +203,8 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 						case DEG_NODE_TYPE_CACHE:
 						case DEG_NODE_TYPE_PROXY:
 							object->recalc |= OB_RECALC_DATA;
+							break;
+						case DEG_NODE_TYPE_SHADING_PARAMETERS:
 							break;
 					}
 

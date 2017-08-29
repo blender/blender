@@ -130,6 +130,7 @@ typedef enum eDepsNode_Type {
 	DEG_NODE_TYPE_EVAL_PARTICLES,
 	/* Material Shading Component */
 	DEG_NODE_TYPE_SHADING,
+	DEG_NODE_TYPE_SHADING_PARAMETERS,
 	/* Cache Component */
 	DEG_NODE_TYPE_CACHE,
 } eDepsNode_Type;

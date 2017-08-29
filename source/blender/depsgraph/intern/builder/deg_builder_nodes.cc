@@ -1095,28 +1095,33 @@ void DepsgraphNodeBuilder::build_lamp(Object *ob)
 
 void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
 {
-	if (!ntree)
+	if (ntree == NULL) {
 		return;
-
+	}
 	/* nodetree itself */
 	ID *ntree_id = &ntree->id;
 	OperationDepsNode *op_node;
-
+	add_id_node(ntree_id);
+	bNodeTree *ntree_cow = get_cow_datablock(ntree);
+	/* Animation, */
 	build_animdata(ntree_id);
-
 	/* Parameters for drivers. */
 	op_node = add_operation_node(ntree_id,
 	                             DEG_NODE_TYPE_PARAMETERS,
 	                             NULL,
 	                             DEG_OPCODE_PARAMETERS_EVAL);
 	op_node->set_as_exit();
-
 	/* Shading update. */
 	add_operation_node(ntree_id,
 	                   DEG_NODE_TYPE_SHADING,
 	                   NULL,
 	                   DEG_OPCODE_MATERIAL_UPDATE);
 
+	add_operation_node(ntree_id,
+	                   DEG_NODE_TYPE_SHADING_PARAMETERS,
+	                   function_bind(BKE_nodetree_shading_params_eval,
+	                                 _1, ntree_cow, ntree),
+	                   DEG_OPCODE_MATERIAL_UPDATE);
 	/* nodetree's nodes... */
 	LINKLIST_FOREACH (bNode *, bnode, &ntree->nodes) {
 		ID *id = bnode->id;
