@@ -34,6 +34,7 @@
 void ED_manipulatortypes_arrow_2d(void);
 void ED_manipulatortypes_arrow_3d(void);
 void ED_manipulatortypes_cage_2d(void);
+void ED_manipulatortypes_cage_2d_rotate(void);
 void ED_manipulatortypes_dial_3d(void);
 void ED_manipulatortypes_grab_3d(void);
 void ED_manipulatortypes_facemap_3d(void);
@@ -103,6 +104,13 @@ enum {
 	ED_MANIPULATOR_CAGE2D_PART_SCALE_MAX_X   = 2,
 	ED_MANIPULATOR_CAGE2D_PART_SCALE_MIN_Y   = 3,
 	ED_MANIPULATOR_CAGE2D_PART_SCALE_MAX_Y   = 4,
+	/* Corners */
+	ED_MANIPULATOR_CAGE2D_PART_SCALE_MIN_X_MIN_Y = 5,
+	ED_MANIPULATOR_CAGE2D_PART_SCALE_MIN_X_MAX_Y = 6,
+	ED_MANIPULATOR_CAGE2D_PART_SCALE_MAX_X_MIN_Y = 7,
+	ED_MANIPULATOR_CAGE2D_PART_SCALE_MAX_X_MAX_Y = 8,
+
+	ED_MANIPULATOR_CAGE2D_PART_ROTATE = 9,
 };
 
 /* -------------------------------------------------------------------- */
