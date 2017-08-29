@@ -1930,7 +1930,7 @@ static void samevolume_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *
 	
 	/* calculate normalizing scale factor for non-essential values */
 	if (obsize[data->flag] != 0) 
-		fac = sqrtf(volume / obsize[data->flag]) / obsize[data->flag];
+		fac = sqrtf(volume / obsize[data->flag]);
 	
 	/* apply scaling factor to the channels not being kept */
 	switch (data->flag) {
