@@ -281,6 +281,9 @@ void IDDepsNode::tag_update(Depsgraph *graph)
 				do_component_tag = false;
 			}
 		}
+		else if (comp_node->type == DEG_NODE_TYPE_SHADING_PARAMETERS) {
+			do_component_tag = false;
+		}
 		else if (comp_node->type == DEG_NODE_TYPE_EVAL_PARTICLES) {
 			/* Only do explicit particle settings tagging. */
 			do_component_tag = false;
