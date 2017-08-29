@@ -175,7 +175,7 @@ static void WIDGETGROUP_lamp_area_setup(const bContext *UNUSED(C), wmManipulator
 	wwrapper->manipulator = WM_manipulator_new("MANIPULATOR_WT_cage_2d", mgroup, NULL);
 	wmManipulator *mpr = wwrapper->manipulator;
 	RNA_enum_set(mpr->ptr, "transform",
-	             ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE);
+	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE);
 
 	mgroup->customdata = wwrapper;
 
@@ -195,8 +195,8 @@ static void WIDGETGROUP_lamp_area_refresh(const bContext *C, wmManipulatorGroup 
 	copy_m4_m4(mpr->matrix_basis, ob->obmat);
 
 	RNA_enum_set(mpr->ptr, "transform",
-	             ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE |
-	             ((la->area_shape == LA_AREA_SQUARE) ? ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM : 0));
+	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE |
+	             ((la->area_shape == LA_AREA_SQUARE) ? ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_UNIFORM : 0));
 
 	/* need to set property here for undo. TODO would prefer to do this in _init */
 	WM_manipulator_target_property_def_func(

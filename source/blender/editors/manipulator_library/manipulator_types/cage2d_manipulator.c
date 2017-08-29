@@ -61,15 +61,6 @@
 /* own includes */
 #include "../manipulator_library_intern.h"
 
-/* wmManipulator->highlight_part */
-enum {
-	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE     = 0,
-	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT   = 1,
-	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT  = 2,
-	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP     = 3,
-	ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN   = 4,
-};
-
 #define MANIPULATOR_RECT_MIN_WIDTH 15.0f
 #define MANIPULATOR_RESIZER_WIDTH  20.0f
 
@@ -119,7 +110,7 @@ static void rect_transform_draw_interaction(
 	float verts[4][2];
 
 	switch (highlighted) {
-		case ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT:
+		case ED_MANIPULATOR_CAGE2D_PART_SCALE_MIN_X:
 			verts[0][0] = -half_w + w;
 			verts[0][1] = -half_h;
 			verts[1][0] = -half_w;
@@ -130,7 +121,7 @@ static void rect_transform_draw_interaction(
 			verts[3][1] = half_h;
 			break;
 
-		case ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT:
+		case ED_MANIPULATOR_CAGE2D_PART_SCALE_MAX_X:
 			verts[0][0] = half_w - w;
 			verts[0][1] = -half_h;
 			verts[1][0] = half_w;
@@ -141,7 +132,7 @@ static void rect_transform_draw_interaction(
 			verts[3][1] = half_h;
 			break;
 
-		case ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN:
+		case ED_MANIPULATOR_CAGE2D_PART_SCALE_MIN_Y:
 			verts[0][0] = -half_w;
 			verts[0][1] = -half_h + h;
 			verts[1][0] = -half_w;
@@ -152,7 +143,7 @@ static void rect_transform_draw_interaction(
 			verts[3][1] = -half_h + h;
 			break;
 
-		case ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP:
+		case ED_MANIPULATOR_CAGE2D_PART_SCALE_MAX_Y:
 			verts[0][0] = -half_w;
 			verts[0][1] = half_h - h;
 			verts[1][0] = -half_w;
@@ -164,7 +155,7 @@ static void rect_transform_draw_interaction(
 			break;
 
 		/* Only used for 3D view selection, never displayed to the user. */
-		case ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE:
+		case ED_MANIPULATOR_CAGE2D_PART_TRANSLATE:
 			verts[0][0] = -half_w;
 			verts[0][1] = -half_h;
 
@@ -191,7 +182,7 @@ static void rect_transform_draw_interaction(
 	};
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
-	if (highlighted == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE) {
+	if (highlighted == ED_MANIPULATOR_CAGE2D_PART_TRANSLATE) {
 		immBegin(GWN_PRIM_TRI_FAN, 4);
 		immAttrib3f(attr_id.col, 0.0f, 0.0f, 0.0f);
 		immVertex2fv(attr_id.pos, verts[0]);
@@ -280,12 +271,12 @@ static void manipulator_rect_transform_draw_intern(
 	}
 
 	if (select) {
-		if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE) {
+		if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE) {
 			int scale_parts[] = {
-				ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT,
-				ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT,
-				ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP,
-				ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN,
+				ED_MANIPULATOR_CAGE2D_PART_SCALE_MIN_X,
+				ED_MANIPULATOR_CAGE2D_PART_SCALE_MAX_X,
+			    ED_MANIPULATOR_CAGE2D_PART_SCALE_MIN_Y,
+				ED_MANIPULATOR_CAGE2D_PART_SCALE_MAX_Y,
 			};
 			for (int i = 0; i < ARRAY_SIZE(scale_parts); i++) {
 				GPU_select_load_id(select_id | scale_parts[i]);
@@ -294,8 +285,8 @@ static void manipulator_rect_transform_draw_intern(
 				        w, h, mpr->line_width);
 			}
 		}
-		if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_TRANSLATE) {
-			const int transform_part = ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE;
+		if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE) {
+			const int transform_part = ED_MANIPULATOR_CAGE2D_PART_TRANSLATE;
 			GPU_select_load_id(select_id | transform_part);
 			rect_transform_draw_interaction(
 			        mpr->color, transform_part, half_w, half_h,
@@ -304,7 +295,7 @@ static void manipulator_rect_transform_draw_intern(
 	}
 	else {
 		/* Don't draw translate (only for selection). */
-		if (mpr->highlight_part != ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE) {
+		if (mpr->highlight_part != ED_MANIPULATOR_CAGE2D_PART_TRANSLATE) {
 			rect_transform_draw_interaction(
 			        mpr->color, mpr->highlight_part, half_w, half_h,
 			        w, h, mpr->line_width);
@@ -338,13 +329,13 @@ static int manipulator_rect_transform_get_cursor(wmManipulator *mpr)
 	}
 
 	switch (highlight_part) {
-		case ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE:
+		case ED_MANIPULATOR_CAGE2D_PART_TRANSLATE:
 			return BC_HANDCURSOR;
-		case ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT:
-		case ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT:
+		case ED_MANIPULATOR_CAGE2D_PART_SCALE_MIN_X:
+		case ED_MANIPULATOR_CAGE2D_PART_SCALE_MAX_X:
 			return CURSOR_X_MOVE;
-		case ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN:
-		case ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP:
+		case ED_MANIPULATOR_CAGE2D_PART_SCALE_MIN_Y:
+		case ED_MANIPULATOR_CAGE2D_PART_SCALE_MAX_Y:
 			return CURSOR_Y_MOVE;
 		default:
 			return CURSOR_STD;
@@ -391,11 +382,11 @@ static int manipulator_rect_transform_test_select(
 	bool isect = BLI_rctf_isect_pt_v(&r, point_local);
 
 	if (isect)
-		return ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE;
+		return ED_MANIPULATOR_CAGE2D_PART_TRANSLATE;
 
 	/* if manipulator does not have a scale intersection, don't do it */
 	if (transform_flag &
-	    (ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE | ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM))
+	    (ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE | ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_UNIFORM))
 	{
 		r.xmin = -half_w;
 		r.ymin = -half_h;
@@ -405,7 +396,7 @@ static int manipulator_rect_transform_test_select(
 		isect = BLI_rctf_isect_pt_v(&r, point_local);
 
 		if (isect)
-			return ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT;
+			return ED_MANIPULATOR_CAGE2D_PART_SCALE_MIN_X;
 
 		r.xmin = half_w - w;
 		r.ymin = -half_h;
@@ -415,7 +406,7 @@ static int manipulator_rect_transform_test_select(
 		isect = BLI_rctf_isect_pt_v(&r, point_local);
 
 		if (isect)
-			return ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT;
+			return ED_MANIPULATOR_CAGE2D_PART_SCALE_MAX_X;
 
 		r.xmin = -half_w;
 		r.ymin = -half_h;
@@ -425,7 +416,7 @@ static int manipulator_rect_transform_test_select(
 		isect = BLI_rctf_isect_pt_v(&r, point_local);
 
 		if (isect)
-			return ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN;
+			return ED_MANIPULATOR_CAGE2D_PART_SCALE_MIN_Y;
 
 		r.xmin = -half_w;
 		r.ymin = half_h - h;
@@ -435,7 +426,7 @@ static int manipulator_rect_transform_test_select(
 		isect = BLI_rctf_isect_pt_v(&r, point_local);
 
 		if (isect)
-			return ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP;
+			return ED_MANIPULATOR_CAGE2D_PART_SCALE_MAX_Y;
 	}
 
 	return -1;
@@ -454,7 +445,7 @@ static bool manipulator_rect_transform_get_prop_value(
 	}
 	else if (STREQ(mpr_prop->type->idname, "scale")) {
 		const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
-		if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
+		if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_UNIFORM) {
 			if (WM_manipulator_target_property_array_length(mpr, mpr_prop) == 2) {
 				WM_manipulator_target_property_value_get_array(mpr, mpr_prop, value);
 			}
@@ -502,7 +493,7 @@ static int manipulator_rect_transform_modal(
         eWM_ManipulatorTweak UNUSED(tweak_flag))
 {
 	const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
-	const bool pivot_center = (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_TRANSLATE) == 0;
+	const bool pivot_center = (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE) == 0;
 	RectTransformInteraction *data = mpr->interaction_data;
 #if 0
 	/* needed here as well in case clamping occurs */
@@ -531,34 +522,34 @@ static int manipulator_rect_transform_modal(
 	float  scale[2] = {mpr->matrix_offset[0][0], mpr->matrix_offset[1][1]};
 	float *offset = mpr->matrix_offset[3];
 
-	if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_TRANSLATE) {
+	if (mpr->highlight_part == ED_MANIPULATOR_CAGE2D_PART_TRANSLATE) {
 		offset[0] = orig_offset[0] + value_x;
 		offset[1] = orig_offset[1] + value_y;
 	}
-	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_LEFT) {
+	else if (mpr->highlight_part == ED_MANIPULATOR_CAGE2D_PART_SCALE_MIN_X) {
 		value_x = min_ff(value_x, (dims[0] * orig_scale[0]) * (pivot_center ? 2 : 1));
 		if (pivot_center == false) {
 			offset[0] = orig_offset[0] + value_x / 2.0f;
 		}
 		scale[0] = (dims[0] * orig_scale[0] - value_x) / dims[0];
 	}
-	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEX_RIGHT) {
+	else if (mpr->highlight_part == ED_MANIPULATOR_CAGE2D_PART_SCALE_MAX_X) {
 		value_x = max_ff(value_x, (dims[0] * orig_scale[0]) * (pivot_center ? -2 : -1));
 		if (pivot_center == false) {
 			offset[0] = orig_offset[0] + value_x / 2.0f;
 		}
 		scale[0] = (dims[0] * orig_scale[0] + value_x) / dims[0];
 	}
-	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_DOWN) {
-		int a = (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) ? 0 : 1;
+	else if (mpr->highlight_part == ED_MANIPULATOR_CAGE2D_PART_SCALE_MIN_Y) {
+		int a = (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_UNIFORM) ? 0 : 1;
 		value_y = min_ff(value_y, (dims[1] * orig_scale[a]) * (pivot_center ? 2 : 1));
 		if (pivot_center == false) {
 			offset[1] = orig_offset[1] + value_y / 2.0f;
 		}
 		scale[a] = (dims[1] * orig_scale[a] - value_y) / dims[1];
 	}
-	else if (mpr->highlight_part == ED_MANIPULATOR_RECT_TRANSFORM_INTERSECT_SCALEY_UP) {
-		int a = (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) ? 0 : 1;
+	else if (mpr->highlight_part == ED_MANIPULATOR_CAGE2D_PART_SCALE_MAX_Y) {
+		int a = (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_UNIFORM) ? 0 : 1;
 		value_y = max_ff(value_y, (dims[1] * orig_scale[a]) * (pivot_center ? -2 : -1));
 		if (pivot_center == false) {
 			offset[1] = orig_offset[1] + value_y / 2.0f;
@@ -575,7 +566,7 @@ static int manipulator_rect_transform_modal(
 	if (use_clamp == false) {
 		/* pass */
 	}
-	else if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
+	else if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_UNIFORM) {
 		if (scale[0] < MANIPULATOR_RECT_MIN_WIDTH / max_ff(dims[0], dims[1])) {
 			scale[0] = max_ff(MANIPULATOR_RECT_MIN_WIDTH / dims[1], MANIPULATOR_RECT_MIN_WIDTH / dims[0]);
 			offset[0] = orig_ofx;
@@ -606,7 +597,7 @@ static int manipulator_rect_transform_modal(
 	}
 
 	/* Needed for when we're uniform transforming a 2D vector and need to write both. */
-	if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
+	if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_UNIFORM) {
 		scale[1] = scale[0];
 	}
 
@@ -617,7 +608,7 @@ static int manipulator_rect_transform_modal(
 
 	mpr_prop = WM_manipulator_target_property_find(mpr, "scale");
 	if (mpr_prop->type != NULL) {
-		if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
+		if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_UNIFORM) {
 			scale[1] = scale[0];
 			if (WM_manipulator_target_property_array_length(mpr, mpr_prop) == 2) {
 				WM_manipulator_target_property_value_set_array(C, mpr, mpr_prop, scale);
@@ -672,7 +663,7 @@ static void manipulator_rect_transform_exit(bContext *C, wmManipulator *mpr, con
 	if (mpr_prop->type != NULL) {
 		const float orig_scale[2] = {data->orig_matrix_offset[0][0], data->orig_matrix_offset[1][1]};
 		const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
-		if (transform_flag & ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM) {
+		if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_UNIFORM) {
 			if (WM_manipulator_target_property_array_length(mpr, mpr_prop) == 2) {
 				WM_manipulator_target_property_value_set_array(C, mpr, mpr_prop, orig_scale);
 			}
@@ -719,10 +710,10 @@ static void MANIPULATOR_WT_cage_2d(wmManipulatorType *wt)
 
 	/* rna */
 	static EnumPropertyItem rna_enum_transform[] = {
-		{ED_MANIPULATOR_RECT_TRANSFORM_FLAG_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
-		{ED_MANIPULATOR_RECT_TRANSFORM_FLAG_ROTATE, "ROTATE", 0, "Rotate", ""},
-		{ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE, "SCALE", 0, "Scale", ""},
-		{ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM, "SCALE_UNIFORM", 0, "Scale Uniform", ""},
+		{ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
+		{ED_MANIPULATOR_CAGE2D_XFORM_FLAG_ROTATE, "ROTATE", 0, "Rotate", ""},
+		{ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE, "SCALE", 0, "Scale", ""},
+		{ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_UNIFORM, "SCALE_UNIFORM", 0, "Scale Uniform", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	static float unit_v2[2] = {1.0f, 1.0f};

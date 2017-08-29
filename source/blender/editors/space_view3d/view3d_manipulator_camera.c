@@ -329,7 +329,7 @@ static void WIDGETGROUP_camera_view_setup(const bContext *UNUSED(C), wmManipulat
 	viewgroup->border = WM_manipulator_new("MANIPULATOR_WT_cage_2d", mgroup, NULL);
 
 	RNA_enum_set(viewgroup->border->ptr, "transform",
-	             ED_MANIPULATOR_RECT_TRANSFORM_FLAG_TRANSLATE | ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE);
+	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE | ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE);
 
 	mgroup->customdata = viewgroup;
 }
@@ -372,7 +372,7 @@ static void WIDGETGROUP_camera_view_refresh(const bContext *C, wmManipulatorGrou
 		WM_manipulator_set_flag(mpr, WM_MANIPULATOR_DRAW_HOVER, true);
 
 		RNA_enum_set(viewgroup->border->ptr, "transform",
-		             ED_MANIPULATOR_RECT_TRANSFORM_FLAG_TRANSLATE | ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE);
+		             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE | ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE);
 
 		if (rv3d->persp == RV3D_CAMOB) {
 			viewgroup->state.edit_border = &scene->r.border;

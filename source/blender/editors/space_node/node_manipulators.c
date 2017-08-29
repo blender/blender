@@ -105,7 +105,7 @@ static void WIDGETGROUP_node_transform_setup(const bContext *UNUSED(C), wmManipu
 	wwrapper->manipulator = WM_manipulator_new("MANIPULATOR_WT_cage_2d", mgroup, NULL);
 
 	RNA_enum_set(wwrapper->manipulator->ptr, "transform",
-	             ED_MANIPULATOR_RECT_TRANSFORM_FLAG_TRANSLATE | ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM);
+	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE | ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_UNIFORM);
 
 	mgroup->customdata = wwrapper;
 }
@@ -321,7 +321,7 @@ static void WIDGETGROUP_node_crop_setup(const bContext *UNUSED(C), wmManipulator
 	crop_group->border = WM_manipulator_new("MANIPULATOR_WT_cage_2d", mgroup, NULL);
 
 	RNA_enum_set(crop_group->border->ptr, "transform",
-	             ED_MANIPULATOR_RECT_TRANSFORM_FLAG_TRANSLATE | ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE);
+	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE | ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE);
 
 	mgroup->customdata = crop_group;
 }

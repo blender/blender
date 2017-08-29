@@ -137,7 +137,7 @@ static void WIDGETGROUP_empty_image_setup(const bContext *UNUSED(C), wmManipulat
 	imgroup->manipulator = WM_manipulator_new("MANIPULATOR_WT_cage_2d", mgroup, NULL);
 	wmManipulator *mpr = imgroup->manipulator;
 	RNA_enum_set(mpr->ptr, "transform",
-	             ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE);
+	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE);
 
 	mgroup->customdata = imgroup;
 
@@ -156,9 +156,9 @@ static void WIDGETGROUP_empty_image_refresh(const bContext *C, wmManipulatorGrou
 	copy_m4_m4(mpr->matrix_basis, ob->obmat);
 
 	RNA_enum_set(mpr->ptr, "transform",
-	             ED_MANIPULATOR_RECT_TRANSFORM_FLAG_TRANSLATE |
-	             ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE |
-	             ED_MANIPULATOR_RECT_TRANSFORM_FLAG_SCALE_UNIFORM);
+	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE |
+	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE |
+	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_UNIFORM);
 
 	imgroup->state.ob = ob;
 
