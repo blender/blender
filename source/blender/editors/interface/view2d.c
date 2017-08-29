@@ -2138,6 +2138,14 @@ void UI_view2d_view_to_region_rcti(View2D *v2d, const rctf *rect_src, rcti *rect
 	clamp_rctf_to_rcti(rect_dst, &rect_tmp);
 }
 
+void UI_view2d_view_to_region_m4(View2D *v2d, float matrix[4][4])
+{
+	rctf mask;
+	unit_m4(matrix);
+	BLI_rctf_rcti_copy(&mask, &v2d->mask);
+	BLI_rctf_transform_calc_m4_pivot_min(&v2d->cur, &mask, matrix);
+}
+
 bool UI_view2d_view_to_region_rcti_clip(View2D *v2d, const rctf *rect_src, rcti *rect_dst)
 {
 	const float cur_size[2]  = {BLI_rctf_size_x(&v2d->cur),  BLI_rctf_size_y(&v2d->cur)};
