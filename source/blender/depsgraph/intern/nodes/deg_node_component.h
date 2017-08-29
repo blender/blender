@@ -216,6 +216,8 @@ struct LayerCollectionsDepsNode : public ComponentDepsNode {
 
 struct CopyOnWriteDepsNode : public ComponentDepsNode {
 	DEG_DEPSNODE_DECLARE;
+
+	virtual bool depends_on_cow() { return false; }
 };
 
 
