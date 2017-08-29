@@ -203,6 +203,7 @@ bool  UI_view2d_view_to_region_clip(struct View2D *v2d, float x, float y, int *r
 
 void  UI_view2d_view_to_region(struct View2D *v2d, float x, float y, int *r_region_x, int *r_region_y) ATTR_NONNULL();
 void  UI_view2d_view_to_region_fl(struct View2D *v2d, float x, float y, float *r_region_x, float *r_region_y) ATTR_NONNULL();
+void  UI_view2d_view_to_region_m4(struct View2D *v2d, float matrix[4][4]) ATTR_NONNULL();
 void  UI_view2d_view_to_region_rcti(struct View2D *v2d, const struct rctf *rect_src, struct rcti *rect_dst) ATTR_NONNULL();
 bool  UI_view2d_view_to_region_rcti_clip(struct View2D *v2d, const struct rctf *rect_src, struct rcti *rect_dst) ATTR_NONNULL();
 
