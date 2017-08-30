@@ -52,7 +52,7 @@ typedef void    (*wmManipulatorFnDrawSelect)(const struct bContext *, struct wmM
 typedef int     (*wmManipulatorFnTestSelect)(struct bContext *, struct wmManipulator *, const struct wmEvent *);
 typedef int     (*wmManipulatorFnModal)(struct bContext *, struct wmManipulator *, const struct wmEvent *, eWM_ManipulatorTweak);
 typedef void    (*wmManipulatorFnPropertyUpdate)(struct wmManipulator *, struct wmManipulatorProperty *);
-typedef void    (*wmManipulatorFnMatrixWorldGet)(const struct wmManipulator *, float[4][4]);
+typedef void    (*wmManipulatorFnMatrixBasisGet)(const struct wmManipulator *, float[4][4]);
 typedef int     (*wmManipulatorFnInvoke)(struct bContext *, struct wmManipulator *, const struct wmEvent *);
 typedef void    (*wmManipulatorFnExit)(struct bContext *, struct wmManipulator *, const bool);
 typedef int     (*wmManipulatorFnCursorGet)(struct wmManipulator *);
