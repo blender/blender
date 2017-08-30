@@ -51,7 +51,7 @@ static void EEVEE_engine_init(void *ved)
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
-		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
+		stl->g_data = MEM_callocN(sizeof(*stl->g_data), __func__);
 	}
 	stl->g_data->background_alpha = 1.0f;
 	stl->g_data->valid_double_buffer = (txl->color_double_buffer != NULL);
