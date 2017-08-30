@@ -580,6 +580,15 @@ static int manipulator_rect_transform_modal(
 
 		if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE) {
 			manipulator_rect_pivot_from_scale_part(mpr->highlight_part, pivot, constrain_axis);
+
+			/* Move pivot to boundary edges w/ non square aspect. */
+			if (dims[0] < dims[1]) {
+				pivot[0] /= dims[1];
+			}
+			else {
+				pivot[1] /= dims[0];
+			}
+
 		}
 		else {
 			zero_v2(pivot);
