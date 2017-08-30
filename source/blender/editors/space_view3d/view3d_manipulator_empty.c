@@ -147,12 +147,22 @@ static void WIDGETGROUP_empty_image_refresh(const bContext *C, wmManipulatorGrou
 
 	/* Use dimensions for aspect. */
 	if (ob->data != NULL) {
+		const Image *image = ob->data;
 		ImageUser iuser = *ob->iuser;
-		int w, h;
-		BKE_image_get_size(ob->data, &iuser, &w, &h);
-		const float dims_max = max_ff(w, h);
-		imgroup->state.dims[0] = (float)w / dims_max;
-		imgroup->state.dims[1] = (float)h / dims_max;
+		float size[2];
+		BKE_image_get_size_fl(ob->data, &iuser, size);
+
+		/* Get the image aspect even if the buffer is invalid */
+		if (image->aspx > image->aspy) {
+			size[1] *= image->aspy / image->aspx;
+		}
+		else if (image->aspx < image->aspy) {
+			size[0] *= image->aspx / image->aspy;
+		}
+
+		const float dims_max = max_ff(size[0], size[1]);
+		imgroup->state.dims[0] = size[0] / dims_max;
+		imgroup->state.dims[1] = size[1] / dims_max;
 	}
 	else {
 		copy_v2_fl(imgroup->state.dims, 1.0f);
