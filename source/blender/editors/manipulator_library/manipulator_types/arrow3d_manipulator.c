@@ -184,16 +184,11 @@ static void arrow_draw_intern(ArrowManipulator3D *arrow, const bool select, cons
 {
 	wmManipulator *mpr = &arrow->manipulator;
 	float color[4];
-	float matrix_basis_adjust[4][4];
 	float matrix_final[4][4];
 
 	manipulator_color_get(mpr, highlight, color);
-	manipulator_arrow_matrix_basis_get(mpr, matrix_basis_adjust);
 
-	WM_manipulator_calc_matrix_final_params(
-	        mpr, &((struct WM_ManipulatorMatrixParams) {
-	            .matrix_basis = matrix_basis_adjust,
-	        }), matrix_final);
+	WM_manipulator_calc_matrix_final(mpr, matrix_final);
 
 	gpuPushMatrix();
 	gpuMultMatrix(matrix_final);

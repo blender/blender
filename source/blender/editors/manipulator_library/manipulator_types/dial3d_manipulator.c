@@ -96,7 +96,9 @@ typedef struct DialInteraction {
 #define DIAL_WIDTH       1.0f
 #define DIAL_RESOLUTION 32
 
-
+/**
+ * We can't use this for the #wmManipulatorType.matrix_basis_get callback, it conflicts with depth picking.
+ */
 static void dial_calc_matrix(const wmManipulator *mpr, float mat[4][4])
 {
 	float rot[3][3];

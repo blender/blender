@@ -175,15 +175,7 @@ static void grab3d_draw_intern(
 	float matrix_align[4][4];
 
 	manipulator_color_get(mpr, highlight, color);
-
-	{
-		float matrix_basis_adjust[4][4];
-		manipulator_grab_matrix_basis_get(mpr, matrix_basis_adjust);
-		WM_manipulator_calc_matrix_final_params(
-		        mpr, &((struct WM_ManipulatorMatrixParams) {
-		            .matrix_basis = matrix_basis_adjust,
-		        }), matrix_final);
-	}
+	WM_manipulator_calc_matrix_final(mpr, matrix_final);
 
 	gpuPushMatrix();
 	gpuMultMatrix(matrix_final);
@@ -293,14 +285,7 @@ static int manipulator_grab_invoke(
 	}
 #endif
 
-	{
-		float matrix_basis_adjust[4][4];
-		manipulator_grab_matrix_basis_get(mpr, matrix_basis_adjust);
-		WM_manipulator_calc_matrix_final_params(
-		        mpr, &((struct WM_ManipulatorMatrixParams) {
-		            .matrix_basis = matrix_basis_adjust,
-		        }), inter->init_matrix_final);
-	}
+	WM_manipulator_calc_matrix_final(mpr, inter->init_matrix_final);
 
 	mpr->interaction_data = inter;
 

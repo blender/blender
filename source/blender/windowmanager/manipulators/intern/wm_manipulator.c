@@ -541,8 +541,12 @@ void WM_manipulator_calc_matrix_final_params(
 	const float *scale_final = params->scale_final ? params->scale_final : &mpr->scale_final;
 
 	float final_matrix[4][4];
-
-	copy_m4_m4(final_matrix, matrix_basis);
+	if (params->matrix_basis == NULL && mpr->type->matrix_basis_get) {
+		mpr->type->matrix_basis_get(mpr, final_matrix);
+	}
+	else {
+		copy_m4_m4(final_matrix, matrix_basis);
+	}
 
 	if (mpr->flag & WM_MANIPULATOR_DRAW_OFFSET_SCALE) {
 		mul_mat3_m4_fl(final_matrix, *scale_final);
@@ -561,10 +565,10 @@ void WM_manipulator_calc_matrix_final(const wmManipulator *mpr, float r_mat[4][4
 	WM_manipulator_calc_matrix_final_params(
 	        mpr,
 	        &((struct WM_ManipulatorMatrixParams) {
-	            .matrix_space = mpr->matrix_space,
-	            .matrix_basis = mpr->matrix_basis,
-	            .matrix_offset = mpr->matrix_offset,
-	            .scale_final = &mpr->scale_final,
+	            .matrix_space = NULL,
+	            .matrix_basis = NULL,
+	            .matrix_offset = NULL,
+	            .scale_final = NULL,
 	        }), r_mat
 	);
 }
