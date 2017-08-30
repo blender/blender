@@ -85,8 +85,6 @@ typedef struct OCIO_GLSLDrawState {
 
 	bool predivide_used;
 
-	bool texture_size_used;
-
 	/* Cache */
 	std::string lut3dcacheid;
 	std::string shadercacheid;
@@ -240,17 +238,6 @@ bool OCIOImpl::supportGLSLDraw()
 	return GLEW_VERSION_3_0 || GLEW_ARB_texture_float;
 }
 
-static bool supportGLSL13()
-{
-	const char *version = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
-	int major = 1, minor = 0;
-
-	if (version && sscanf(version, "%d.%d", &major, &minor) == 2)
-		return (major > 1 || (major == 1 && minor >= 30));
-
-	return false;
-}
-
 /**
  * Setup OpenGL contexts for a transform defined by processor using GLSL
  * All LUT allocating baking and shader compilation happens here.
@@ -353,13 +340,7 @@ bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRc
 		/* Vertex shader */
 		std::ostringstream osv;
 
-		if (supportGLSL13()) {
-			osv << "#version 330\n";
-		}
-		else {
-			osv << "#version 120\n";
-		}
-
+		osv << "#version 330\n";
 		osv << datatoc_gpu_shader_display_transform_vertex_glsl;
 
 		state->vert_shader = compileShaderText(GL_VERTEX_SHADER, osv.str().c_str());
@@ -367,13 +348,11 @@ bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRc
 		/* Fragment shader */
 		std::ostringstream os;
 
-		if (supportGLSL13()) {
-			os << "#version 330\n";
-		}
-		else {
-			os << "#define USE_TEXTURE_SIZE\n";
-			state->texture_size_used = use_dither;
-		}
+		os << "#version 330\n";
+
+		/* Work around OpenColorIO not supporting latest GLSL yet. */
+		os << "#define texture2D texture\n";
+		os << "#define texture3D texture\n";
 
 		if (use_predivide) {
 			os << "#define USE_PREDIVIDE\n";
@@ -431,18 +410,6 @@ bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRc
 
 		immUniform1i("image_texture", 0);
 		immUniform1i("lut3d_texture", 1);
-
-		if (state->texture_size_used) {
-			/* we use textureSize() if possible for best performance, if not
-			 * supported we query the size and pass it as uniform variables */
-			GLint width, height;
-
-			glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
-			glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
-
-			immUniform1f("image_texture_width", (float)width);
-			immUniform1f("image_texture_height", (float)height);
-		}
 
 		if (use_dither) {
 			immUniform1f("dither", dither);

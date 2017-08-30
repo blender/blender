@@ -5,11 +5,6 @@ uniform sampler3D lut3d_texture;
 uniform float dither;
 #endif
 
-#ifdef USE_TEXTURE_SIZE
-uniform float image_texture_width;
-uniform float image_texture_height;
-#endif
-
 in vec2 texCoord_interp;
 out vec4 fragColor;
 
@@ -122,11 +117,7 @@ float dither_random_value(vec2 co)
 vec2 round_to_pixel(vec2 st)
 {
 	vec2 result;
-#ifdef USE_TEXTURE_SIZE
-	vec2 size = vec2(image_texture_width, image_texture_height);
-#else
 	vec2 size = textureSize(image_texture, 0);
-#endif
 	result.x = float(int(st.x * size.x)) / size.x;
 	result.y = float(int(st.y * size.y)) / size.y;
 	return result;
