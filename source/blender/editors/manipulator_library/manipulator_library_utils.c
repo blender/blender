@@ -174,22 +174,13 @@ bool manipulator_window_project_2d(
 {
 	float mat[4][4];
 	{
-		float matrix_basis_buf[4][4];
-		const void *matrix_basis;
-		if (mpr->type->matrix_basis_get) {
-			mpr->type->matrix_basis_get(mpr, matrix_basis_buf);
-			matrix_basis = &matrix_basis_buf[0][0];
+		float mat_identity[4][4];
+		struct WM_ManipulatorMatrixParams params = {NULL};
+		if (use_offset == false) {
+			unit_m4(mat_identity);
+			params.matrix_offset = mat_identity;
 		}
-		else {
-			matrix_basis = &mpr->matrix_basis[0][0];
-		}
-
-		if (use_offset) {
-			mul_m4_series(mat, mpr->matrix_space, matrix_basis, mpr->matrix_offset);
-		}
-		else {
-			mul_m4_series(mat, mpr->matrix_space, matrix_basis);
-		}
+		WM_manipulator_calc_matrix_final_params(mpr, &params, mat);
 	}
 
 	/* rotate mouse in relation to the center and relocate it */
