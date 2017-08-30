@@ -354,7 +354,7 @@ bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRc
 		std::ostringstream osv;
 
 		if (supportGLSL13()) {
-			osv << "#version 130\n";
+			osv << "#version 330\n";
 		}
 		else {
 			osv << "#version 120\n";
@@ -368,7 +368,7 @@ bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRc
 		std::ostringstream os;
 
 		if (supportGLSL13()) {
-			os << "#version 130\n";
+			os << "#version 330\n";
 		}
 		else {
 			os << "#define USE_TEXTURE_SIZE\n";
