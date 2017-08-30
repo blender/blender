@@ -119,43 +119,34 @@ void VIEW3D_WGT_lamp_spot(wmManipulatorGroupType *wgt)
 /** \name Area Lamp Manipulators
  * \{ */
 
-/* translate callbacks */
-static void manipulator_area_lamp_prop_size_get(
+/* scale callbacks */
+static void manipulator_area_lamp_prop_matrix_get(
         const wmManipulator *UNUSED(mpr), wmManipulatorProperty *mpr_prop,
         void *value_p)
 {
-	float *value = value_p;
-	BLI_assert(mpr_prop->type->array_length == 2);
-	Lamp *la = mpr_prop->custom_func.user_data;
+	BLI_assert(mpr_prop->type->array_length == 16);
+	float (*matrix)[4] = value_p;
+	const Lamp *la = mpr_prop->custom_func.user_data;
 
-	value[0] = la->area_size;
-	value[1] = (la->area_shape == LA_AREA_RECT) ? la->area_sizey : la->area_size;
+	matrix[0][0] = la->area_size;
+	matrix[1][1] = (la->area_shape == LA_AREA_RECT) ? la->area_sizey : la->area_size;
 }
 
-static void manipulator_area_lamp_prop_size_set(
+static void manipulator_area_lamp_prop_matrix_set(
         const wmManipulator *UNUSED(mpr), wmManipulatorProperty *mpr_prop,
         const void *value_p)
 {
-	const float *value = value_p;
-
-	BLI_assert(mpr_prop->type->array_length == 2);
+	const float (*matrix)[4] = value_p;
+	BLI_assert(mpr_prop->type->array_length == 16);
 	Lamp *la = mpr_prop->custom_func.user_data;
+
 	if (la->area_shape == LA_AREA_RECT) {
-		la->area_size = value[0];
-		la->area_sizey = value[1];
+		la->area_size = len_v3(matrix[0]);
+		la->area_sizey = len_v3(matrix[1]);
 	}
 	else {
-		la->area_size = value[0];
+		la->area_size = len_v3(matrix[0]);
 	}
-}
-
-static void manipulator_area_lamp_prop_size_range(
-        const wmManipulator *UNUSED(mpr), wmManipulatorProperty *UNUSED(mpr_prop),
-        void *value_p)
-{
-	float *value = value_p;
-	value[0] = 0.0f;
-	value[1] =  FLT_MAX;
 }
 
 static bool WIDGETGROUP_lamp_area_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
@@ -200,11 +191,11 @@ static void WIDGETGROUP_lamp_area_refresh(const bContext *C, wmManipulatorGroup 
 
 	/* need to set property here for undo. TODO would prefer to do this in _init */
 	WM_manipulator_target_property_def_func(
-	        mpr, "scale",
+	        mpr, "matrix",
 	        &(const struct wmManipulatorPropertyFnParams) {
-	            .value_get_fn = manipulator_area_lamp_prop_size_get,
-	            .value_set_fn = manipulator_area_lamp_prop_size_set,
-	            .range_get_fn = manipulator_area_lamp_prop_size_range,
+	            .value_get_fn = manipulator_area_lamp_prop_matrix_get,
+	            .value_set_fn = manipulator_area_lamp_prop_matrix_set,
+	            .range_get_fn = NULL,
 	            .user_data = la,
 	        });
 }

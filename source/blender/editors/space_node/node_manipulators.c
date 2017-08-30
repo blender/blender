@@ -79,6 +79,32 @@ static void node_manipulator_calc_matrix_space_with_image_dims(
 /** \name Backdrop Manipulator
  * \{ */
 
+static void manipulator_node_backdrop_prop_matrix_get(
+        const wmManipulator *UNUSED(mpr), wmManipulatorProperty *mpr_prop,
+        void *value_p)
+{
+	float (*matrix)[4] = value_p;
+	BLI_assert(mpr_prop->type->array_length == 16);
+	const SpaceNode *snode = mpr_prop->custom_func.user_data;
+	matrix[0][0] = snode->zoom;
+	matrix[1][1] = snode->zoom;
+	matrix[3][0] = snode->xof;
+	matrix[3][1] = snode->yof;
+}
+
+static void manipulator_node_backdrop_prop_matrix_set(
+        const wmManipulator *UNUSED(mpr), wmManipulatorProperty *mpr_prop,
+        const void *value_p)
+{
+	const float (*matrix)[4] = value_p;
+	BLI_assert(mpr_prop->type->array_length == 16);
+	SpaceNode *snode = mpr_prop->custom_func.user_data;
+	snode->zoom = matrix[0][0];
+	snode->zoom = matrix[1][1];
+	snode->xof  = matrix[3][0];
+	snode->yof  = matrix[3][1];
+}
+
 static bool WIDGETGROUP_node_transform_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
@@ -133,10 +159,21 @@ static void WIDGETGROUP_node_transform_refresh(const bContext *C, wmManipulatorG
 
 		/* need to set property here for undo. TODO would prefer to do this in _init */
 		SpaceNode *snode = CTX_wm_space_node(C);
+#if 0
 		PointerRNA nodeptr;
 		RNA_pointer_create(snode->id, &RNA_SpaceNodeEditor, snode, &nodeptr);
 		WM_manipulator_target_property_def_rna(cage, "offset", &nodeptr, "backdrop_offset", -1);
 		WM_manipulator_target_property_def_rna(cage, "scale", &nodeptr, "backdrop_zoom", -1);
+#endif
+
+		WM_manipulator_target_property_def_func(
+		        cage, "matrix",
+		        &(const struct wmManipulatorPropertyFnParams) {
+		            .value_get_fn = manipulator_node_backdrop_prop_matrix_get,
+		            .value_set_fn = manipulator_node_backdrop_prop_matrix_set,
+		            .range_get_fn = NULL,
+		            .user_data = snode,
+		        });
 	}
 	else {
 		WM_manipulator_set_flag(cage, WM_MANIPULATOR_HIDDEN, true);
@@ -216,81 +253,44 @@ static void two_xy_from_rect(NodeTwoXYs *nxy, const rctf *rect, const float dims
 }
 
 /* scale callbacks */
-static void manipulator_node_crop_prop_size_get(
+static void manipulator_node_crop_prop_matrix_get(
         const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
         void *value_p)
 {
-	float *value = value_p;
+	float (*matrix)[4] = value_p;
+	BLI_assert(mpr_prop->type->array_length == 16);
 	struct NodeCropWidgetGroup *crop_group = mpr->parent_mgroup->customdata;
 	const float *dims = crop_group->state.dims;
-	BLI_assert(mpr_prop->type->array_length == 2);
 	const bNode *node = mpr_prop->custom_func.user_data;
 	const NodeTwoXYs *nxy = node->storage;
 	bool is_relative = (bool)node->custom2;
 	rctf rct;
 	two_xy_to_rect(nxy, &rct, dims, is_relative);
-	value[0] = BLI_rctf_size_x(&rct);
-	value[1] = BLI_rctf_size_y(&rct);
+	matrix[0][0] = BLI_rctf_size_x(&rct);
+	matrix[1][1] = BLI_rctf_size_y(&rct);
+	matrix[3][0] = (BLI_rctf_cent_x(&rct) - 0.5f) * dims[0];
+	matrix[3][1] = (BLI_rctf_cent_y(&rct) - 0.5f) * dims[1];
 }
 
-static void manipulator_node_crop_prop_size_set(
+static void manipulator_node_crop_prop_matrix_set(
         const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
         const void *value_p)
 {
-	const float *value = value_p;
+	const float (*matrix)[4] = value_p;
+	BLI_assert(mpr_prop->type->array_length == 16);
 	struct NodeCropWidgetGroup *crop_group = mpr->parent_mgroup->customdata;
 	const float *dims = crop_group->state.dims;
 	bNode *node = mpr_prop->custom_func.user_data;
 	NodeTwoXYs *nxy = node->storage;
 	bool is_relative = (bool)node->custom2;
-	BLI_assert(mpr_prop->type->array_length == 2);
 	rctf rct;
 	two_xy_to_rect(nxy, &rct, dims, is_relative);
-	BLI_rctf_resize(&rct, value[0], value[1]);
+	BLI_rctf_resize(&rct, matrix[0][0], matrix[1][1]);
+	BLI_rctf_recenter(&rct, (matrix[3][0] / dims[0]) + 0.5f, (matrix[3][1] / dims[1]) + 0.5f);
 	BLI_rctf_isect(&(rctf){.xmin = 0, .ymin = 0, .xmax = 1, .ymax = 1}, &rct, &rct);
 	two_xy_from_rect(nxy, &rct, dims, is_relative);
-
 	manipulator_node_crop_update(crop_group);
 }
-
-/* offset callbacks */
-static void manipulator_node_crop_prop_offset_get(
-        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
-        void *value_p)
-{
-	float *value = value_p;
-	struct NodeCropWidgetGroup *crop_group = mpr->parent_mgroup->customdata;
-	const float *dims = crop_group->state.dims;
-	BLI_assert(mpr_prop->type->array_length == 2);
-	const bNode *node = mpr_prop->custom_func.user_data;
-	const NodeTwoXYs *nxy = node->storage;
-	bool is_relative = (bool)node->custom2;
-	rctf rct;
-	two_xy_to_rect(nxy, &rct, dims, is_relative);
-	value[0] = (BLI_rctf_cent_x(&rct) - 0.5f) * dims[0];
-	value[1] = (BLI_rctf_cent_y(&rct) - 0.5f) * dims[1];
-}
-
-static void manipulator_node_crop_prop_offset_set(
-        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
-        const void *value_p)
-{
-	const float *value = value_p;
-	struct NodeCropWidgetGroup *crop_group = mpr->parent_mgroup->customdata;
-	const float *dims = crop_group->state.dims;
-	bNode *node = mpr_prop->custom_func.user_data;
-	NodeTwoXYs *nxy = node->storage;
-	bool is_relative = (bool)node->custom2;
-	BLI_assert(mpr_prop->type->array_length == 2);
-	rctf rct;
-	two_xy_to_rect(nxy, &rct, dims, is_relative);
-	BLI_rctf_recenter(&rct, (value[0] / dims[0]) + 0.5f, (value[1] / dims[1]) + 0.5f);
-	BLI_rctf_isect(&(rctf){.xmin = 0, .ymin = 0, .xmax = 1, .ymax = 1}, &rct, &rct);
-	two_xy_from_rect(nxy, &rct, dims, is_relative);
-
-	manipulator_node_crop_update(crop_group);
-}
-
 
 static bool WIDGETGROUP_node_crop_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
 {
@@ -360,19 +360,10 @@ static void WIDGETGROUP_node_crop_refresh(const bContext *C, wmManipulatorGroup 
 		crop_group->update_data.prop = RNA_struct_find_property(&crop_group->update_data.ptr, "relative");
 
 		WM_manipulator_target_property_def_func(
-		        mpr, "offset",
+		        mpr, "matrix",
 		        &(const struct wmManipulatorPropertyFnParams) {
-		            .value_get_fn = manipulator_node_crop_prop_offset_get,
-		            .value_set_fn = manipulator_node_crop_prop_offset_set,
-		            .range_get_fn = NULL,
-		            .user_data = node,
-		        });
-
-		WM_manipulator_target_property_def_func(
-		        mpr, "scale",
-		        &(const struct wmManipulatorPropertyFnParams) {
-		            .value_get_fn = manipulator_node_crop_prop_size_get,
-		            .value_set_fn = manipulator_node_crop_prop_size_set,
+		            .value_get_fn = manipulator_node_crop_prop_matrix_get,
+		            .value_set_fn = manipulator_node_crop_prop_matrix_set,
 		            .range_get_fn = NULL,
 		            .user_data = node,
 		        });

@@ -136,16 +136,13 @@ static void manipulator2d_get_axis_color(const int axis_idx, float *r_col, float
 static ManipulatorGroup2D *manipulatorgroup2d_init(wmManipulatorGroup *mgroup)
 {
 	const wmManipulatorType *wt_arrow = WM_manipulatortype_find("MANIPULATOR_WT_arrow_2d", true);
-	const wmManipulatorType *wt_cage = WM_manipulatortype_find("MANIPULATOR_WT_cage_2d_rotate", true);
+	const wmManipulatorType *wt_cage = WM_manipulatortype_find("MANIPULATOR_WT_cage_2d", true);
 
 	ManipulatorGroup2D *man = MEM_callocN(sizeof(ManipulatorGroup2D), __func__);
 
 	man->translate_x = WM_manipulator_new_ptr(wt_arrow, mgroup, NULL);
 	man->translate_y = WM_manipulator_new_ptr(wt_arrow, mgroup, NULL);
 	man->cage = WM_manipulator_new_ptr(wt_cage, mgroup, NULL);
-
-	/* Workaround for missing refresh while interacting with the bound-box. */
-	man->cage->flag &= ~WM_MANIPULATOR_DRAW_MODAL;
 
 	RNA_enum_set(man->cage->ptr, "transform",
 	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE |
@@ -346,8 +343,8 @@ void ED_widgetgroup_manipulator2d_draw_prepare(const bContext *C, wmManipulatorG
 
 	UI_view2d_view_to_region_m4(&ar->v2d, man->cage->matrix_space);
 	WM_manipulator_set_matrix_offset_location(man->cage, origin_aa);
-	man->cage->matrix_offset[0][0] = (man->max[0] - man->min[0]) / 2.0f;
-	man->cage->matrix_offset[1][1] = (man->max[1] - man->min[1]) / 2.0f;
+	man->cage->matrix_offset[0][0] = (man->max[0] - man->min[0]);
+	man->cage->matrix_offset[1][1] = (man->max[1] - man->min[1]);
 }
 
 /* TODO (Julian)

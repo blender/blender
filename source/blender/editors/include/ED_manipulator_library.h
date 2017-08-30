@@ -34,7 +34,6 @@
 void ED_manipulatortypes_arrow_2d(void);
 void ED_manipulatortypes_arrow_3d(void);
 void ED_manipulatortypes_cage_2d(void);
-void ED_manipulatortypes_cage_2d_rotate(void);
 void ED_manipulatortypes_dial_3d(void);
 void ED_manipulatortypes_grab_3d(void);
 void ED_manipulatortypes_facemap_3d(void);

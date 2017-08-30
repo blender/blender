@@ -62,63 +62,46 @@ struct EmptyImageWidgetGroup {
 };
 
 /* translate callbacks */
-static void manipulator_empty_image_prop_size_get(
-        const wmManipulator *UNUSED(mpr), wmManipulatorProperty *mpr_prop,
-        void *value_p)
-{
-	float *value = value_p;
-	struct EmptyImageWidgetGroup *imgroup = mpr_prop->custom_func.user_data;
-	const Object *ob = imgroup->state.ob;
-	value[0] = ob->empty_drawsize;
-	value[1] = ob->empty_drawsize;
-}
-
-static void manipulator_empty_image_prop_size_set(
-        const wmManipulator *UNUSED(mpr), wmManipulatorProperty *mpr_prop,
-        const void *value_p)
-{
-	const float *value = value_p;
-	BLI_assert(mpr_prop->type->array_length == 2);
-	struct EmptyImageWidgetGroup *imgroup = mpr_prop->custom_func.user_data;
-	Object *ob = imgroup->state.ob;
-	ob->empty_drawsize = value[0];
-}
-
-/* translate callbacks */
-static void manipulator_empty_image_prop_offset_get(
+static void manipulator_empty_image_prop_matrix_get(
         const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
         void *value_p)
 {
-	float *value = value_p;
-	BLI_assert(mpr_prop->type->array_length == 2);
-	const struct EmptyImageWidgetGroup *imgroup = mpr_prop->custom_func.user_data;
+	float (*matrix)[4] = value_p;
+	BLI_assert(mpr_prop->type->array_length == 16);
+	struct EmptyImageWidgetGroup *imgroup = mpr_prop->custom_func.user_data;
 	const Object *ob = imgroup->state.ob;
+
+	unit_m4(matrix);
+	matrix[0][0] = ob->empty_drawsize;
+	matrix[1][1] = ob->empty_drawsize;
 
 	float dims[2] = {0.0f, 0.0f};
 	RNA_float_get_array(mpr->ptr, "dimensions", dims);
 	dims[0] *= ob->empty_drawsize;
 	dims[1] *= ob->empty_drawsize;
 
-	value[0] = (ob->ima_ofs[0] * dims[0]) + (0.5f * dims[0]);
-	value[1] = (ob->ima_ofs[1] * dims[1]) + (0.5f * dims[1]);
+	matrix[3][0] = (ob->ima_ofs[0] * dims[0]) + (0.5f * dims[0]);
+	matrix[3][1] = (ob->ima_ofs[1] * dims[1]) + (0.5f * dims[1]);
 }
 
-static void manipulator_empty_image_prop_offset_set(
+static void manipulator_empty_image_prop_matrix_set(
         const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
         const void *value_p)
 {
-	const float *value = value_p;
-	BLI_assert(mpr_prop->type->array_length == 2);
+	const float (*matrix)[4] = value_p;
+	BLI_assert(mpr_prop->type->array_length == 16);
 	struct EmptyImageWidgetGroup *imgroup = mpr_prop->custom_func.user_data;
 	Object *ob = imgroup->state.ob;
+
+	ob->empty_drawsize = matrix[0][0];
 
 	float dims[2];
 	RNA_float_get_array(mpr->ptr, "dimensions", dims);
 	dims[0] *= ob->empty_drawsize;
 	dims[1] *= ob->empty_drawsize;
 
-	ob->ima_ofs[0] = (value[0] - (0.5f * dims[0])) / dims[0];
-	ob->ima_ofs[1] = (value[1] - (0.5f * dims[1])) / dims[1];
+	ob->ima_ofs[0] = (matrix[3][0] - (0.5f * dims[0])) / dims[0];
+	ob->ima_ofs[1] = (matrix[3][1] - (0.5f * dims[1])) / dims[1];
 }
 
 static bool WIDGETGROUP_empty_image_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
@@ -177,18 +160,10 @@ static void WIDGETGROUP_empty_image_refresh(const bContext *C, wmManipulatorGrou
 	RNA_float_set_array(mpr->ptr, "dimensions", imgroup->state.dims);
 
 	WM_manipulator_target_property_def_func(
-	        mpr, "scale",
+	        mpr, "matrix",
 	        &(const struct wmManipulatorPropertyFnParams) {
-	            .value_get_fn = manipulator_empty_image_prop_size_get,
-	            .value_set_fn = manipulator_empty_image_prop_size_set,
-	            .range_get_fn = NULL,
-	            .user_data = imgroup,
-	        });
-	WM_manipulator_target_property_def_func(
-	        mpr, "offset",
-	        &(const struct wmManipulatorPropertyFnParams) {
-	            .value_get_fn = manipulator_empty_image_prop_offset_get,
-	            .value_set_fn = manipulator_empty_image_prop_offset_set,
+	            .value_get_fn = manipulator_empty_image_prop_matrix_get,
+	            .value_set_fn = manipulator_empty_image_prop_matrix_set,
 	            .range_get_fn = NULL,
 	            .user_data = imgroup,
 	        });

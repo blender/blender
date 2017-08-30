@@ -548,13 +548,18 @@ void WM_manipulator_calc_matrix_final_params(
 		copy_m4_m4(final_matrix, matrix_basis);
 	}
 
-	if (mpr->flag & WM_MANIPULATOR_DRAW_OFFSET_SCALE) {
-		mul_mat3_m4_fl(final_matrix, *scale_final);
+	if (mpr->flag & WM_MANIPULATOR_DRAW_NO_SCALE) {
 		mul_m4_m4m4(final_matrix, final_matrix, matrix_offset);
 	}
 	else {
-		mul_m4_m4m4(final_matrix, final_matrix, matrix_offset);
-		mul_mat3_m4_fl(final_matrix, *scale_final);
+		if (mpr->flag & WM_MANIPULATOR_DRAW_OFFSET_SCALE) {
+			mul_mat3_m4_fl(final_matrix, *scale_final);
+			mul_m4_m4m4(final_matrix, final_matrix, matrix_offset);
+		}
+		else {
+			mul_m4_m4m4(final_matrix, final_matrix, matrix_offset);
+			mul_mat3_m4_fl(final_matrix, *scale_final);
+		}
 	}
 
 	mul_m4_m4m4(r_mat, matrix_space, final_matrix);
