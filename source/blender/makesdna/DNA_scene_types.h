@@ -1934,16 +1934,18 @@ extern const char *RE_engine_id_CYCLES;
 /* **************** SCENE ********************* */
 
 /* note that much higher maxframes give imprecise sub-frames, see: T46859 */
+/* Current precision is 16 for the sub-frames closer to MAXFRAME. */
+
 /* for general use */
-#define MAXFRAME	500000
-#define MAXFRAMEF	500000.0f
+#define MAXFRAME	1048574
+#define MAXFRAMEF	1048574.0f
 
 #define MINFRAME	0
 #define MINFRAMEF	0.0f
 
 /* (minimum frame number for current-frame) */
-#define MINAFRAME	-500000
-#define MINAFRAMEF	-500000.0f
+#define MINAFRAME	-1048574
+#define MINAFRAMEF	-1048574.0f
 
 /* depricate this! */
 #define TESTBASE(v3d, base)  (                                                \
