@@ -273,7 +273,7 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain, ReportList *reports, v
 	if (ksi && ksi->ext.srna) {
 		rna_KeyingSetInfo_unregister(bmain, ksi->ext.srna);
 	}
-	if (!RNA_struct_available_or_report(reports, identifier)) {
+	if (!RNA_struct_available_or_report(reports, dummyksi.idname)) {
 		return NULL;
 	}
 

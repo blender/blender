@@ -321,7 +321,7 @@ static StructRNA *rna_RenderEngine_register(Main *bmain, ReportList *reports, vo
 			break;
 		}
 	}
-	if (!RNA_struct_available_or_report(reports, identifier)) {
+	if (!RNA_struct_available_or_report(reports, dummyet.idname)) {
 		return NULL;
 	}
 	

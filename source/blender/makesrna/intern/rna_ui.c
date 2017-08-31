@@ -229,7 +229,7 @@ static StructRNA *rna_Panel_register(Main *bmain, ReportList *reports, void *dat
 			break;
 		}
 	}
-	if (!RNA_struct_available_or_report(reports, identifier)) {
+	if (!RNA_struct_available_or_report(reports, dummypt.idname)) {
 		return NULL;
 	}
 	
@@ -494,7 +494,7 @@ static StructRNA *rna_UIList_register(Main *bmain, ReportList *reports, void *da
 	if (ult && ult->ext.srna) {
 		rna_UIList_unregister(bmain, ult->ext.srna);
 	}
-	if (!RNA_struct_available_or_report(reports, identifier)) {
+	if (!RNA_struct_available_or_report(reports, dummyult.idname)) {
 		return NULL;
 	}
 
@@ -599,7 +599,7 @@ static StructRNA *rna_Header_register(Main *bmain, ReportList *reports, void *da
 			break;
 		}
 	}
-	if (!RNA_struct_available_or_report(reports, identifier)) {
+	if (!RNA_struct_available_or_report(reports, dummyht.idname)) {
 		return NULL;
 	}
 	
@@ -725,7 +725,7 @@ static StructRNA *rna_Menu_register(Main *bmain, ReportList *reports, void *data
 	if (mt && mt->ext.srna) {
 		rna_Menu_unregister(bmain, mt->ext.srna);
 	}
-	if (!RNA_struct_available_or_report(reports, identifier)) {
+	if (!RNA_struct_available_or_report(reports, dummymt.idname)) {
 		return NULL;
 	}
 	
