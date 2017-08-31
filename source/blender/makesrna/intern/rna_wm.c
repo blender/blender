@@ -1154,14 +1154,15 @@ static StructRNA *rna_Operator_register(
 		if (ot && ot->ext.srna)
 			rna_Operator_unregister(bmain, ot->ext.srna);
 	}
-	if (!RNA_struct_available_or_report(reports, identifier)) {
+
+	if (!WM_operator_py_idname_ok_or_report(reports, identifier, dummyot.idname)) {
 		return NULL;
 	}
 
 	char idname_conv[sizeof(dummyop.idname)];
-	WM_operator_bl_idname(idname_conv, temp_buffers.idname); /* convert the idname from python */
+	WM_operator_bl_idname(idname_conv, dummyot.idname); /* convert the idname from python */
 
-	if (!WM_operator_py_idname_ok_or_report(reports, idname_conv, temp_buffers.idname)) {
+	if (!RNA_struct_available_or_report(reports, idname_conv)) {
 		return NULL;
 	}
 
@@ -1295,12 +1296,12 @@ static StructRNA *rna_MacroOperator_register(
 			rna_Operator_unregister(bmain, ot->ext.srna);
 	}
 
-	if (!WM_operator_py_idname_ok_or_report(reports, identifier, temp_buffers.idname)) {
+	if (!WM_operator_py_idname_ok_or_report(reports, identifier, dummyot.idname)) {
 		return NULL;
 	}
 
 	char idname_conv[sizeof(dummyop.idname)];
-	WM_operator_bl_idname(idname_conv, temp_buffers.idname); /* convert the idname from python */
+	WM_operator_bl_idname(idname_conv, dummyot.idname); /* convert the idname from python */
 
 	if (!RNA_struct_available_or_report(reports, idname_conv)) {
 		return NULL;
