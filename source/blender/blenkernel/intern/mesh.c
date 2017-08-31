@@ -2099,6 +2099,12 @@ void BKE_mesh_mselect_active_set(Mesh *me, int index, int type)
 	           (me->mselect[me->totselect - 1].type  == type));
 }
 
+/**
+ * Compute 'split' (aka loop, or per face corner's) normals.
+ *
+ * \param r_lnors_spacearr Allows to get computed loop normal space array. That data, among other things,
+ *                         contains 'smooth fan' info, useful e.g. to split geometry along sharp edges...
+ */
 void BKE_mesh_calc_normals_split_ex(Mesh *mesh, MLoopNorSpaceArray *r_lnors_spacearr)
 {
 	float (*r_loopnors)[3];
@@ -2134,7 +2140,10 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh, MLoopNorSpaceArray *r_lnors_spac
 	BKE_mesh_normals_loop_split(
 	        mesh->mvert, mesh->totvert, mesh->medge, mesh->totedge,
 	        mesh->mloop, r_loopnors, mesh->totloop, mesh->mpoly, (const float (*)[3])polynors, mesh->totpoly,
-	        (mesh->flag & ME_AUTOSMOOTH) != 0, mesh->smoothresh, r_lnors_spacearr, clnors, NULL);
+	        /* Note that we enforce computing clnors when the clnor space array is requested by caller here.
+	         * However, we obviously only use the autosmooth angle threshold only in case autosmooth is enabled. */
+	        r_lnors_spacearr != NULL, (mesh->flag & ME_AUTOSMOOTH) != 0 ? mesh->smoothresh : (float)M_PI,
+	        r_lnors_spacearr, clnors, NULL);
 
 	if (free_polynors) {
 		MEM_freeN(polynors);
@@ -2166,118 +2175,70 @@ typedef struct SplitFaceNewEdge {
 /* Detect needed new vertices, and update accordingly loops' vertex indices.
  * WARNING! Leaves mesh in invalid state. */
 static int split_faces_prepare_new_verts(
-        const Mesh *mesh, MLoopNorSpaceArray *lnors_spacearr, SplitFaceNewVert **new_verts, MemArena *memarena,
-        bool *r_need_vnors_recalc)
+        const Mesh *mesh, MLoopNorSpaceArray *lnors_spacearr, SplitFaceNewVert **new_verts, MemArena *memarena)
 {
-	/* Note: if lnors_spacearr is NULL, ther is no autosmooth handling, and we only split out flat polys. */
+	/* This is now mandatory, trying to do the job in simple way without that data is doomed to fail, even when only
+	 * dealing with smooth/flat faces one can find cases that no simple algorithm can handle properly. */
+	BLI_assert(lnors_spacearr != NULL);
+
 	const int num_loops = mesh->totloop;
 	int num_verts = mesh->totvert;
 	MVert *mvert = mesh->mvert;
 	MLoop *mloop = mesh->mloop;
 
 	BLI_bitmap *verts_used = BLI_BITMAP_NEW(num_verts, __func__);
+	BLI_bitmap *done_loops = BLI_BITMAP_NEW(num_loops, __func__);
 
-	if (lnors_spacearr) {
-		BLI_bitmap *done_loops = BLI_BITMAP_NEW(num_loops, __func__);
+	MLoop *ml = mloop;
+	MLoopNorSpace **lnor_space = lnors_spacearr->lspacearr;
 
-		MLoop *ml = mloop;
-		MLoopNorSpace **lnor_space = lnors_spacearr->lspacearr;
-		for (int loop_idx = 0; loop_idx < num_loops; loop_idx++, ml++, lnor_space++) {
-			if (!BLI_BITMAP_TEST(done_loops, loop_idx)) {
-				const int vert_idx = ml->v;
-				const bool vert_used = BLI_BITMAP_TEST_BOOL(verts_used, vert_idx);
-				/* If vert is already used by another smooth fan, we need a new vert for this one. */
-				const int new_vert_idx = vert_used ? num_verts++ : vert_idx;
+	for (int loop_idx = 0; loop_idx < num_loops; loop_idx++, ml++, lnor_space++) {
+		if (!BLI_BITMAP_TEST(done_loops, loop_idx)) {
+			const int vert_idx = ml->v;
+			const bool vert_used = BLI_BITMAP_TEST_BOOL(verts_used, vert_idx);
+			/* If vert is already used by another smooth fan, we need a new vert for this one. */
+			const int new_vert_idx = vert_used ? num_verts++ : vert_idx;
 
-				BLI_assert(*lnor_space);
+			BLI_assert(*lnor_space);
 
-				if ((*lnor_space)->loops) {
-					for (LinkNode *lnode = (*lnor_space)->loops; lnode; lnode = lnode->next) {
-						const int ml_fan_idx = GET_INT_FROM_POINTER(lnode->link);
-						BLI_BITMAP_ENABLE(done_loops, ml_fan_idx);
-						if (vert_used) {
-							mloop[ml_fan_idx].v = new_vert_idx;
-						}
-					}
-				}
-				else {
-					/* Single loop in this fan... */
-					BLI_BITMAP_ENABLE(done_loops, loop_idx);
+			if ((*lnor_space)->loops) {
+				for (LinkNode *lnode = (*lnor_space)->loops; lnode; lnode = lnode->next) {
+					const int ml_fan_idx = GET_INT_FROM_POINTER(lnode->link);
+					BLI_BITMAP_ENABLE(done_loops, ml_fan_idx);
 					if (vert_used) {
-						ml->v = new_vert_idx;
+						mloop[ml_fan_idx].v = new_vert_idx;
 					}
-				}
-
-				if (!vert_used) {
-					BLI_BITMAP_ENABLE(verts_used, vert_idx);
-					/* We need to update that vertex's normal here, we won't go over it again. */
-					/* This is important! *DO NOT* set vnor to final computed lnor, vnor should always be defined to
-					 * 'automatic normal' value computed from its polys, not some custom normal.
-					 * Fortunately, that's the loop normal space's 'lnor' reference vector. ;) */
-					normal_float_to_short_v3(mvert[vert_idx].no, (*lnor_space)->vec_lnor);
-				}
-				else {
-					/* Add new vert to list. */
-					SplitFaceNewVert *new_vert = BLI_memarena_alloc(memarena, sizeof(*new_vert));
-					new_vert->orig_index = vert_idx;
-					new_vert->new_index = new_vert_idx;
-					new_vert->vnor = (*lnor_space)->vec_lnor;  /* See note above. */
-					new_vert->next = *new_verts;
-					*new_verts = new_vert;
 				}
 			}
-		}
-
-		MEM_freeN(done_loops);
-	}
-	else {
-		/* No loop normal spaces available, we only split out flat polys. */
-		const int num_polys = mesh->totpoly;
-		const MPoly *mpoly = mesh->mpoly;
-
-		/* We do that in two loops, to keep original edges/verts to smooth polys preferencially. */
-		const MPoly *mp = mpoly;
-		for (int i = 0; i < num_polys; i++, mp++) {
-			if (mp->flag & ME_SMOOTH) {
-				const MLoop *ml = &mloop[mp->loopstart];
-				for (int j = 0; j < mp->totloop; j++, ml++) {
-					/* Just mark the vertex as used/reserved, that way neighbor flat polys, if any,
-					 * will have to create their own. */
-					BLI_BITMAP_ENABLE(verts_used, ml->v);
+			else {
+				/* Single loop in this fan... */
+				BLI_BITMAP_ENABLE(done_loops, loop_idx);
+				if (vert_used) {
+					ml->v = new_vert_idx;
 				}
 			}
-		}
 
-		mp = mpoly;
-		for (int i = 0; i < num_polys; i++, mp++) {
-			if (!(mp->flag & ME_SMOOTH)) {
-				MLoop *ml = &mloop[mp->loopstart];
-				for (int j = 0; j < mp->totloop; j++, ml++) {
-					const int vert_idx = ml->v;
-
-					if (BLI_BITMAP_TEST(verts_used, vert_idx)) {
-						/* Add new vert to list. */
-						const int new_vert_idx = num_verts++;
-						ml->v = new_vert_idx;
-
-						SplitFaceNewVert *new_vert = BLI_memarena_alloc(memarena, sizeof(*new_vert));
-						new_vert->orig_index = vert_idx;
-						new_vert->new_index = new_vert_idx;
-						new_vert->vnor = NULL;  /* See note below about normals. */
-						new_vert->next = *new_verts;
-						*new_verts = new_vert;
-					}
-					else {
-						BLI_BITMAP_ENABLE(verts_used, vert_idx);
-					}
-				}
-				/* Note: there is no way to get new normals for smooth vertices here (and we don't have direct access
-				 * to poly normals either for flat ones), so we'll have to recompute all vnors at the end... */
-				*r_need_vnors_recalc = true;
+			if (!vert_used) {
+				BLI_BITMAP_ENABLE(verts_used, vert_idx);
+				/* We need to update that vertex's normal here, we won't go over it again. */
+				/* This is important! *DO NOT* set vnor to final computed lnor, vnor should always be defined to
+				 * 'automatic normal' value computed from its polys, not some custom normal.
+				 * Fortunately, that's the loop normal space's 'lnor' reference vector. ;) */
+				normal_float_to_short_v3(mvert[vert_idx].no, (*lnor_space)->vec_lnor);
+			}
+			else {
+				/* Add new vert to list. */
+				SplitFaceNewVert *new_vert = BLI_memarena_alloc(memarena, sizeof(*new_vert));
+				new_vert->orig_index = vert_idx;
+				new_vert->new_index = new_vert_idx;
+				new_vert->vnor = (*lnor_space)->vec_lnor;  /* See note above. */
+				new_vert->next = *new_verts;
+				*new_verts = new_vert;
 			}
 		}
 	}
 
+	MEM_freeN(done_loops);
 	MEM_freeN(verts_used);
 
 	return num_verts - mesh->totvert;
@@ -2396,27 +2357,17 @@ void BKE_mesh_split_faces(Mesh *mesh, bool free_loop_normals)
 	}
 	BKE_mesh_tessface_clear(mesh);
 
-	MLoopNorSpaceArray *lnors_spacearr = NULL;
-	MemArena *memarena;
-	bool need_vnors_recalc = false;
-
-	if (mesh->flag & ME_AUTOSMOOTH) {
-		lnors_spacearr = MEM_callocN(sizeof(*lnors_spacearr), __func__);
-		/* Compute loop normals and loop normal spaces (a.k.a. smooth fans of faces around vertices). */
-		BKE_mesh_calc_normals_split_ex(mesh, lnors_spacearr);
-		/* Stealing memarena from loop normals space array. */
-		memarena = lnors_spacearr->mem;
-	}
-	else {
-		/* We still have to split out flat faces... */
-		memarena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
-	}
+	MLoopNorSpaceArray lnors_spacearr = {NULL};
+	/* Compute loop normals and loop normal spaces (a.k.a. smooth fans of faces around vertices). */
+	BKE_mesh_calc_normals_split_ex(mesh, &lnors_spacearr);
+	/* Stealing memarena from loop normals space array. */
+	MemArena *memarena = lnors_spacearr.mem;
 
 	SplitFaceNewVert *new_verts = NULL;
 	SplitFaceNewEdge *new_edges = NULL;
 
 	/* Detect loop normal spaces (a.k.a. smooth fans) that will need a new vert. */
-	const int num_new_verts = split_faces_prepare_new_verts(mesh, lnors_spacearr, &new_verts, memarena, &need_vnors_recalc);
+	const int num_new_verts = split_faces_prepare_new_verts(mesh, &lnors_spacearr, &new_verts, memarena);
 
 	if (num_new_verts > 0) {
 		/* Reminder: beyond this point, there is no way out, mesh is in invalid state (due to early-reassignment of
@@ -2428,9 +2379,9 @@ void BKE_mesh_split_faces(Mesh *mesh, bool free_loop_normals)
 
 		/* Reallocate all vert and edge related data. */
 		mesh->totvert += num_new_verts;
-		mesh->totedge += num_new_edges;
 		CustomData_realloc(&mesh->vdata, mesh->totvert);
 		if (do_edges) {
+			mesh->totedge += num_new_edges;
 			CustomData_realloc(&mesh->edata, mesh->totedge);
 		}
 		/* Update pointers to a newly allocated memory. */
@@ -2450,18 +2401,9 @@ void BKE_mesh_split_faces(Mesh *mesh, bool free_loop_normals)
 		CustomData_free_layers(&mesh->ldata, CD_NORMAL, mesh->totloop);
 	}
 
-	if (lnors_spacearr) {
-		/* Also frees new_verts/edges temp data, since we used its memarena to allocate them. */
-		BKE_lnor_spacearr_free(lnors_spacearr);
-		MEM_freeN(lnors_spacearr);
-	}
-	else {
-		BLI_memarena_free(memarena);
-	}
+	/* Also frees new_verts/edges temp data, since we used its memarena to allocate them. */
+	BKE_lnor_spacearr_free(&lnors_spacearr);
 
-	if (need_vnors_recalc) {
-		BKE_mesh_calc_normals(mesh);
-	}
 #ifdef VALIDATE_MESH
 	BKE_mesh_validate(mesh, true, true);
 #endif

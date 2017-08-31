@@ -468,7 +468,7 @@ static StructRNA *rna_Manipulator_register(
 			rna_Manipulator_unregister(bmain, wt->ext.srna);
 		}
 	}
-	if (!RNA_struct_available_or_report(reports, identifier)) {
+	if (!RNA_struct_available_or_report(reports, dummywt.idname)) {
 		return NULL;
 	}
 
@@ -773,7 +773,7 @@ static StructRNA *rna_ManipulatorGroup_register(
 			rna_ManipulatorGroup_unregister(bmain, wgt->ext.srna);
 		}
 	}
-	if (!RNA_struct_available_or_report(reports, identifier)) {
+	if (!RNA_struct_available_or_report(reports, dummywgt.idname)) {
 		return NULL;
 	}
 

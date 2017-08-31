@@ -807,9 +807,7 @@ ccl_device_forceinline float triangle_light_pdf(KernelGlobals *kg, ShaderData *s
 {
 	/* A naive heuristic to decide between costly solid angle sampling
 	 * and simple area sampling, comparing the distance to the triangle plane
-	 * to the length of the edtes of the triangle.
-	 * Looking at two edge of the triangle should be a sufficient heuristic,
-	 * the third edge can't possibly be longer than the sum of the other two. */
+	 * to the length of the edges of the triangle. */
 
 	float3 V[3];
 	bool has_motion = triangle_world_space_vertices(kg, sd->object, sd->prim, sd->time, V);
@@ -877,9 +875,7 @@ ccl_device_forceinline void triangle_light_sample(KernelGlobals *kg, int prim, i
 {
 	/* A naive heuristic to decide between costly solid angle sampling
 	 * and simple area sampling, comparing the distance to the triangle plane
-	 * to the length of the edtes of the triangle.
-	 * Looking at two edge of the triangle should be a sufficient heuristic,
-	 * the third edge can't possibly be longer than the sum of the other two. */
+	 * to the length of the edges of the triangle. */
 
 	float3 V[3];
 	bool has_motion = triangle_world_space_vertices(kg, object, prim, time, V);
@@ -968,21 +964,14 @@ ccl_device_forceinline void triangle_light_sample(KernelGlobals *kg, int prim, i
 		const float z = 1.0f - randv * (1.0f - dot(C_, B));
 		ls->D = z * B + safe_sqrtf(1.0f - z*z) * safe_normalize(C_ - dot(C_, B) * B);
 
-		/* calculate intersection with the planar triangle
-		 * mostly standard ray/tri intersection, with u/v clamped */
-		const float3 s1 = cross(ls->D, e1);
-
-		const float divisor = dot(s1, e0);
-		if(UNLIKELY(divisor == 0.0f)) {
-			ls->pdf = 0.0f;
-			return;
-		}
-		const float inv_divisor = 1.0f/divisor;
-		const float3 d = P - V[0];
-		ls->u = clamp(dot(d, s1)*inv_divisor, 0.0f, 1.0f);
-		const float3 s2 = cross(d, e0);
-		ls->v = clamp(dot(ls->D, s2)*inv_divisor, 0.0f, 1.0f);
-		ls->t = dot(e1, s2)*inv_divisor;
+		/* calculate intersection with the planar triangle */
+		ray_triangle_intersect(P, ls->D, FLT_MAX,
+#if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
+							   (ssef*)V,
+#else
+							   V[0], V[1], V[2],
+#endif
+							   &ls->u, &ls->v, &ls->t);
 		ls->P = P + ls->D * ls->t;
 
 		/* pdf_triangles is calculated over triangle area, but we're sampling over solid angle */

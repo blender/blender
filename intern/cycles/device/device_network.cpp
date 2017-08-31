@@ -344,7 +344,6 @@ void device_network_info(vector<DeviceInfo>& devices)
 	info.id = "NETWORK";
 	info.num = 0;
 	info.advanced_shading = true; /* todo: get this info from device */
-	info.pack_images = false;
 
 	devices.push_back(info);
 }
