@@ -436,6 +436,8 @@ typedef enum StructFlag {
 	STRUCT_NO_IDPROPERTIES = (1 << 6), /* Menus and Panels don't need properties */
 	STRUCT_NO_DATABLOCK_IDPROPERTIES = (1 << 7), /* e.g. for Operator */
 	STRUCT_CONTAINS_DATABLOCK_IDPROPERTIES = (1 << 8), /* for PropertyGroup which contains pointers to datablocks */
+	STRUCT_PUBLIC_NAMESPACE = (1 << 9), /* Added to type-map #BlenderRNA.structs_map */
+	STRUCT_PUBLIC_NAMESPACE_INHERIT = (1 << 10), /* All subtypes are added too. */
 } StructFlag;
 
 typedef int (*StructValidateFunc)(struct PointerRNA *ptr, void *data, int *have_function);

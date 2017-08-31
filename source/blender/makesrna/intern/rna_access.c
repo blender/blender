@@ -89,6 +89,7 @@ void RNA_init(void)
 				}
 			}
 		}
+		BLI_assert(srna->flag & STRUCT_PUBLIC_NAMESPACE);
 		BLI_ghash_insert(BLENDER_RNA.structs_map, (void *)srna->identifier, srna);
 		BLENDER_RNA.structs_len += 1;
 	}
@@ -814,6 +815,9 @@ char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen, i
 	return NULL;
 }
 
+/**
+ * Use when registering structs with the #STRUCT_PUBLIC_NAMESPACE flag.
+ */
 bool RNA_struct_available_or_report(ReportList *reports, const char *identifier)
 {
 	const StructRNA *srna_exists = RNA_struct_find(identifier);

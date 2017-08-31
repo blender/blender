@@ -633,9 +633,6 @@ static StructRNA *rna_NodeTree_register(
 	if (nt) {
 		rna_NodeTree_unregister(bmain, nt->ext.srna);
 	}
-	if (!RNA_struct_available_or_report(reports, dummynt.idname)) {
-		return NULL;
-	}
 
 	/* create a new node tree type */
 	nt = MEM_callocN(sizeof(bNodeTreeType), "node tree type");
@@ -1398,9 +1395,6 @@ static bNodeType *rna_Node_register_base(Main *bmain, ReportList *reports, Struc
 	nt = nodeTypeFind(dummynt.idname);
 	if (nt) {
 		rna_Node_unregister(bmain, nt->ext.srna);
-	}
-	if (!RNA_struct_available_or_report(reports, dummynt.idname)) {
-		return NULL;
 	}
 	
 	/* create a new node type */

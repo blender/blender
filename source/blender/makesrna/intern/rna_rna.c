@@ -983,10 +983,18 @@ static int rna_Function_use_self_type_get(PointerRNA *ptr)
 
 /* Blender RNA */
 
+static int rna_struct_is_publc(CollectionPropertyIterator *UNUSED(iter), void *data)
+{
+	StructRNA *srna = data;
+
+	return !(srna->flag & STRUCT_PUBLIC_NAMESPACE);
+}
+
+
 static void rna_BlenderRNA_structs_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	BlenderRNA *brna = ptr->data;
-	rna_iterator_listbase_begin(iter, &brna->structs, NULL);
+	rna_iterator_listbase_begin(iter, &brna->structs, rna_struct_is_publc);
 }
 
 /* optional, for faster lookups */

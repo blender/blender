@@ -641,9 +641,6 @@ static StructRNA *rna_AddonPref_register(Main *bmain, ReportList *reports, void 
 	if (apt && apt->ext.srna) {
 		rna_AddonPref_unregister(bmain, apt->ext.srna);
 	}
-	if (!RNA_struct_available_or_report(reports, identifier)) {
-		return NULL;
-	}
 
 	/* create a new header type */
 	apt = MEM_mallocN(sizeof(bAddonPrefType), "addonpreftype");
