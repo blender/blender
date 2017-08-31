@@ -463,7 +463,7 @@ class GreasePencilBrushCurvesPanel:
 
 ###############################
 
-class GPENCIL_PIE_tool_palette(Menu):
+class GPENCIL_MT_pie_tool_palette(Menu):
     """A pie menu for quick access to Grease Pencil tools"""
     bl_label = "Grease Pencil Tools"
 
@@ -487,7 +487,7 @@ class GPENCIL_PIE_tool_palette(Menu):
         # E - "Settings" Palette is included here too, since it needs to be in a stable position...
         if gpd and gpd.layers.active:
             col.separator()
-            col.operator("wm.call_menu_pie", text="Settings...", icon='SCRIPTWIN').name = "GPENCIL_PIE_settings_palette"
+            col.operator("wm.call_menu_pie", text="Settings...", icon='SCRIPTWIN').name = "GPENCIL_MT_pie_settings_palette"
 
         # Editing tools
         if gpd:
@@ -525,13 +525,13 @@ class GPENCIL_PIE_tool_palette(Menu):
                 col.operator("gpencil.delete", icon='X', text="Delete...")
 
                 # SE - More Tools
-                pie.operator("wm.call_menu_pie", text="More...").name = "GPENCIL_PIE_tools_more"
+                pie.operator("wm.call_menu_pie", text="More...").name = "GPENCIL_MT_pie_tools_more"
             else:
                 # Toggle Edit Mode
                 pie.operator("gpencil.editmode_toggle", text="Enable Stroke Editing", icon='EDIT')
 
 
-class GPENCIL_PIE_settings_palette(Menu):
+class GPENCIL_MT_pie_settings_palette(Menu):
     """A pie menu for quick access to Grease Pencil settings"""
     bl_label = "Grease Pencil Settings"
 
@@ -614,7 +614,7 @@ class GPENCIL_PIE_settings_palette(Menu):
             col.prop(gpd, "show_stroke_direction", text="Show drawing direction")
 
 
-class GPENCIL_PIE_tools_more(Menu):
+class GPENCIL_MT_pie_tools_more(Menu):
     """A pie menu for accessing more Grease Pencil tools"""
     bl_label = "More Grease Pencil Tools"
 
@@ -643,10 +643,10 @@ class GPENCIL_PIE_tools_more(Menu):
         pie.operator("transform.tosphere", icon='MOD_MULTIRES')
 
         pie.operator("gpencil.convert", icon='OUTLINER_OB_CURVE', text="Convert...")
-        pie.operator("wm.call_menu_pie", text="Back to Main Palette...").name = "GPENCIL_PIE_tool_palette"
+        pie.operator("wm.call_menu_pie", text="Back to Main Palette...").name = "GPENCIL_MT_pie_tool_palette"
 
 
-class GPENCIL_PIE_sculpt(Menu):
+class GPENCIL_MT_pie_sculpt(Menu):
     """A pie menu for accessing Grease Pencil stroke sculpting settings"""
     bl_label = "Grease Pencil Sculpt"
 
@@ -1158,10 +1158,10 @@ class GreasePencilToolsPanel:
 
 
 classes = (
-    GPENCIL_PIE_tool_palette,
-    GPENCIL_PIE_settings_palette,
-    GPENCIL_PIE_tools_more,
-    GPENCIL_PIE_sculpt,
+    GPENCIL_MT_pie_tool_palette,
+    GPENCIL_MT_pie_settings_palette,
+    GPENCIL_MT_pie_tools_more,
+    GPENCIL_MT_pie_sculpt,
     GPENCIL_MT_snap,
     GPENCIL_MT_gpencil_edit_specials,
     GPENCIL_UL_brush,

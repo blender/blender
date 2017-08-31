@@ -673,7 +673,7 @@ BVHNode* BVHBuild::build_node(const BVHObjectBinning& range, int level)
 				return create_leaf_node(range, references);
 			}
 		}
-		/* Check whether unaligned split is better than the regulat one. */
+		/* Check whether unaligned split is better than the regular one. */
 		if(unalignedSplitSAH < splitSAH) {
 			do_unalinged_split = true;
 		}

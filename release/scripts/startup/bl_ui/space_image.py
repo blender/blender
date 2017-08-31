@@ -1086,7 +1086,7 @@ class IMAGE_PT_tools_paint_options(BrushButtonsPanel, Panel):
         col.prop(ups, "use_unified_color", text="Color")
 
 
-class IMAGE_UV_sculpt_curve(Panel):
+class IMAGE_PT_uv_sculpt_curve(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "UV Sculpt Curve"
@@ -1117,7 +1117,7 @@ class IMAGE_UV_sculpt_curve(Panel):
         row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
 
 
-class IMAGE_UV_sculpt(Panel, ImagePaintPanel):
+class IMAGE_PT_uv_sculpt(Panel, ImagePaintPanel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'TOOLS'
     bl_category = "Tools"
@@ -1370,8 +1370,8 @@ classes = (
     IMAGE_PT_tools_imagepaint_symmetry,
     IMAGE_PT_tools_brush_appearance,
     IMAGE_PT_tools_paint_options,
-    IMAGE_UV_sculpt,
-    IMAGE_UV_sculpt_curve,
+    IMAGE_PT_uv_sculpt,
+    IMAGE_PT_uv_sculpt_curve,
     IMAGE_PT_view_histogram,
     IMAGE_PT_view_waveform,
     IMAGE_PT_view_vectorscope,

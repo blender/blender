@@ -90,6 +90,7 @@ void RNA_init(void)
 				}
 			}
 		}
+		BLI_assert(srna->flag & STRUCT_PUBLIC_NAMESPACE);
 		BLI_ghash_insert(BLENDER_RNA.structs_map, (void *)srna->identifier, srna);
 		BLENDER_RNA.structs_len += 1;
 	}
@@ -831,6 +832,9 @@ char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen, i
 	return NULL;
 }
 
+/**
+ * Use when registering structs with the #STRUCT_PUBLIC_NAMESPACE flag.
+ */
 bool RNA_struct_available_or_report(ReportList *reports, const char *identifier)
 {
 	const StructRNA *srna_exists = RNA_struct_find(identifier);
@@ -861,6 +865,46 @@ bool RNA_struct_available_or_report(ReportList *reports, const char *identifier)
 	else {
 		return true;
 	}
+}
+
+bool RNA_struct_bl_idname_ok_or_report(ReportList *reports, const char *identifier, const char *sep)
+{
+	const int len_sep = strlen(sep);
+	const int len_id = strlen(identifier);
+	const char *p = strstr(identifier, sep);
+	if (p == NULL || p == identifier || p + len_sep >= identifier + len_id) {
+		BKE_reportf(reports, RPT_ERROR, "'%s' doesn't contain '%s' with prefix & suffix", identifier, sep);
+		return false;
+	}
+
+	const char *c, *start, *end, *last;
+	start = identifier;
+	end = p;
+	last = end - 1;
+	for (c = start; c != end; c++) {
+		if (((*c >= 'A' && *c <= 'Z') ||
+		     ((c != start) && (*c >= '0' && *c <= '9')) ||
+		     ((c != start) && (c != last) && (*c == '_'))) == 0)
+		{
+			BKE_reportf(reports, RPT_ERROR, "'%s' doesn't have upper case alpha-numeric prefix", identifier);
+			return false;
+		}
+	}
+
+	start = p + len_sep;
+	end = identifier + len_id;
+	last = end - 1;
+	for (c = start; c != end; c++) {
+		if (((*c >= 'A' && *c <= 'Z') ||
+		     (*c >= 'a' && *c <= 'z') ||
+		     (*c >= '0' && *c <= '9') ||
+		     ((c != start) && (c != last) && (*c == '_'))) == 0)
+		{
+			BKE_reportf(reports, RPT_ERROR, "'%s' doesn't have an alpha-numeric suffix", identifier);
+			return false;
+		}
+	}
+	return true;
 }
 
 /* Property Information */

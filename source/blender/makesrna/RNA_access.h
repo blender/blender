@@ -800,6 +800,7 @@ const struct ListBase *RNA_struct_type_functions(StructRNA *srna);
 char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen, int *r_len);
 
 bool RNA_struct_available_or_report(struct ReportList *reports, const char *identifier);
+bool RNA_struct_bl_idname_ok_or_report(struct ReportList *reports, const char *identifier, const char *sep);
 
 /* Properties
  *
