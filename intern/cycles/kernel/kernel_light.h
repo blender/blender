@@ -959,7 +959,7 @@ ccl_device_forceinline void triangle_light_sample(KernelGlobals *kg, int prim, i
 
 		const float3 C_ = safe_normalize(q * A + sqrtf(temp) * U);
 
-		/* Finally, select a random point along the edge of the new triangle 
+		/* Finally, select a random point along the edge of the new triangle
 		 * That point on the spherical triangle is the sampled ray direction */
 		const float z = 1.0f - randv * (1.0f - dot(C_, B));
 		ls->D = z * B + safe_sqrtf(1.0f - z*z) * safe_normalize(C_ - dot(C_, B) * B);
@@ -967,11 +967,11 @@ ccl_device_forceinline void triangle_light_sample(KernelGlobals *kg, int prim, i
 		/* calculate intersection with the planar triangle */
 		ray_triangle_intersect(P, ls->D, FLT_MAX,
 #if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
-							   (ssef*)V,
+		                       (ssef*)V,
 #else
-							   V[0], V[1], V[2],
+		                       V[0], V[1], V[2],
 #endif
-							   &ls->u, &ls->v, &ls->t);
+		                       &ls->u, &ls->v, &ls->t);
 		ls->P = P + ls->D * ls->t;
 
 		/* pdf_triangles is calculated over triangle area, but we're sampling over solid angle */
