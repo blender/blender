@@ -321,6 +321,7 @@ classes = (
     RENDERLAYER_PT_eevee_postprocess_settings,
     RENDERLAYER_PT_eevee_screen_space_reflections,
     RENDERLAYER_PT_eevee_volumetric,
+    RENDERLAYER_PT_eevee_shadows,
 )
 
 if __name__ == "__main__":  # only for live edit.

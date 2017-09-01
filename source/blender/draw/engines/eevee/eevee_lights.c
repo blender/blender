@@ -55,8 +55,8 @@ typedef struct ShadowCaster {
 
 static struct {
 	struct GPUShader *shadow_sh;
-	struct GPUShader *shadow_store_cube_sh;
-	struct GPUShader *shadow_store_cascade_sh;
+	struct GPUShader *shadow_store_cube_sh[SHADOW_METHOD_MAX];
+	struct GPUShader *shadow_store_cascade_sh[SHADOW_METHOD_MAX];
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_shadow_vert_glsl[];
@@ -79,8 +79,13 @@ void EEVEE_lights_init(EEVEE_SceneLayerData *sldata)
 		e_data.shadow_sh = DRW_shader_create(
 		        datatoc_shadow_vert_glsl, datatoc_shadow_geom_glsl, datatoc_shadow_frag_glsl, NULL);
 
-		e_data.shadow_store_cube_sh = DRW_shader_create_fullscreen(datatoc_shadow_store_frag_glsl, NULL);
-		e_data.shadow_store_cascade_sh = DRW_shader_create_fullscreen(datatoc_shadow_store_frag_glsl, "#define CSM");
+		e_data.shadow_store_cube_sh[SHADOW_ESM] = DRW_shader_create_fullscreen(datatoc_shadow_store_frag_glsl, "#define ESM\n");
+		e_data.shadow_store_cascade_sh[SHADOW_ESM] = DRW_shader_create_fullscreen(datatoc_shadow_store_frag_glsl, "#define ESM\n"
+		                                                                                                          "#define CSM\n");
+
+		e_data.shadow_store_cube_sh[SHADOW_VSM] = DRW_shader_create_fullscreen(datatoc_shadow_store_frag_glsl, "#define VSM\n");
+		e_data.shadow_store_cascade_sh[SHADOW_VSM] = DRW_shader_create_fullscreen(datatoc_shadow_store_frag_glsl, "#define VSM\n"
+		                                                                                                          "#define CSM\n");
 	}
 
 	if (!sldata->lamps) {
@@ -92,14 +97,14 @@ void EEVEE_lights_init(EEVEE_SceneLayerData *sldata)
 
 	int sh_method = BKE_collection_engine_property_value_get_int(props, "shadow_method");
 	int sh_size = BKE_collection_engine_property_value_get_int(props, "shadow_size");
-	UNUSED_VARS(sh_method);
 
 	EEVEE_LampsInfo *linfo = sldata->lamps;
-	if (linfo->shadow_size != sh_size) {
+	if ((linfo->shadow_size != sh_size) || (linfo->shadow_method != sh_method)) {
 		BLI_assert((sh_size > 0) && (sh_size <= 8192));
 		DRW_TEXTURE_FREE_SAFE(sldata->shadow_pool);
 		DRW_TEXTURE_FREE_SAFE(sldata->shadow_cascade_target);
 
+		linfo->shadow_method = sh_method;
 		linfo->shadow_size = sh_size;
 		linfo->shadow_render_data.stored_texel_size = 1.0 / (float)linfo->shadow_size;
 
@@ -130,7 +135,7 @@ void EEVEE_lights_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 	{
 		psl->shadow_cube_store_pass = DRW_pass_create("Shadow Storage Pass", DRW_STATE_WRITE_COLOR);
 
-		DRWShadingGroup *grp = DRW_shgroup_create(e_data.shadow_store_cube_sh, psl->shadow_cube_store_pass);
+		DRWShadingGroup *grp = DRW_shgroup_create(e_data.shadow_store_cube_sh[linfo->shadow_method], psl->shadow_cube_store_pass);
 		DRW_shgroup_uniform_buffer(grp, "shadowTexture", &sldata->shadow_cube_target);
 		DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
@@ -139,7 +144,7 @@ void EEVEE_lights_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 	{
 		psl->shadow_cascade_store_pass = DRW_pass_create("Shadow Cascade Storage Pass", DRW_STATE_WRITE_COLOR);
 
-		DRWShadingGroup *grp = DRW_shgroup_create(e_data.shadow_store_cascade_sh, psl->shadow_cascade_store_pass);
+		DRWShadingGroup *grp = DRW_shgroup_create(e_data.shadow_store_cascade_sh[linfo->shadow_method], psl->shadow_cascade_store_pass);
 		DRW_shgroup_uniform_buffer(grp, "shadowTexture", &sldata->shadow_cascade_target);
 		DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
@@ -273,8 +278,13 @@ void EEVEE_lights_cache_finish(EEVEE_SceneLayerData *sldata)
 		linfo->update_flag |= LIGHT_UPDATE_SHADOW_CUBE;
 	}
 
-	/* TODO Variance Shadow Map */
-	shadow_pool_format = DRW_TEX_R_32;
+	switch (linfo->shadow_method) {
+		case SHADOW_ESM: shadow_pool_format = DRW_TEX_R_32; break;
+		case SHADOW_VSM: shadow_pool_format = DRW_TEX_RG_32; break;
+		default:
+			BLI_assert(!"Incorrect Shadow Method");
+			break;
+	}
 
 	if (!sldata->shadow_cube_target) {
 		/* TODO render everything on the same 2d render target using clip planes and no Geom Shader. */
@@ -412,7 +422,7 @@ static void eevee_shadow_cube_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE_La
 	evsh->bias = 0.05f * la->bias;
 	evsh->near = la->clipsta;
 	evsh->far = la->clipend;
-	evsh->exp = la->bleedexp;
+	evsh->exp = (linfo->shadow_method == SHADOW_VSM) ? la->bleedbias : la->bleedexp;
 
 	evli->shadowid = (float)(evsmp->shadow_id);
 }
@@ -797,6 +807,8 @@ void EEVEE_draw_shadows(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 void EEVEE_lights_free(void)
 {
 	DRW_SHADER_FREE_SAFE(e_data.shadow_sh);
-	DRW_SHADER_FREE_SAFE(e_data.shadow_store_cube_sh);
-	DRW_SHADER_FREE_SAFE(e_data.shadow_store_cascade_sh);
+	for (int i = 0; i < SHADOW_METHOD_MAX; ++i) {
+		DRW_SHADER_FREE_SAFE(e_data.shadow_store_cube_sh[i]);
+		DRW_SHADER_FREE_SAFE(e_data.shadow_store_cascade_sh[i]);
+	}
 }

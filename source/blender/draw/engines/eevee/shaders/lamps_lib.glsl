@@ -22,14 +22,37 @@ float shadow_cubemap(float shid, vec4 l_vector)
 	ShadowCubeData scd = shadows_cube_data[int(shid)];
 
 	vec3 cubevec = -l_vector.xyz / l_vector.w;
-	float dist = l_vector.w - scd.sh_cube_bias;
+	float dist = l_vector.w;
 
+#if defined(SHADOW_VSM)
+	vec2 moments = texture_octahedron(shadowTexture, vec4(cubevec, shid)).rg;
+	float p = 0.0;
+
+	if (dist <= moments.x)
+		p = 1.0;
+
+	float variance = moments.y - (moments.x * moments.x);
+	variance = max(variance, scd.sh_cube_bias / 10.0);
+
+	float d = moments.x - dist;
+	float p_max = variance / (variance + d * d);
+
+	// Now reduce light-bleeding by removing the [0, x] tail and linearly rescaling (x, 1]
+	p_max = clamp((p_max - scd.sh_cube_bleed) / (1.0 - scd.sh_cube_bleed), 0.0, 1.0);
+
+	float vsm_test = max(p, p_max);
+	return vsm_test;
+
+#elif defined(SHADOW_ESM)
 	float z = texture_octahedron(shadowTexture, vec4(cubevec, shid)).r;
-
-	float esm_test = saturate(exp(scd.sh_cube_exp * (z - dist)));
-	float sh_test = step(0, z - dist);
-
+	float esm_test = saturate(exp(scd.sh_cube_exp * (z - (dist - scd.sh_cube_bias))));
 	return esm_test;
+
+#else
+	float z = texture_octahedron(shadowTexture, vec4(cubevec, shid)).r;
+	float sh_test = step(0, z - (dist - scd.sh_cube_bias));
+	return sh_test;
+#endif
 }
 
 float shadow_cascade(float shid, vec3 W)

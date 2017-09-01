@@ -384,6 +384,7 @@ class DATA_PT_EEVEE_shadow(DataButtonsPanel, Panel):
             col = split.column(align=True)
             col.prop(lamp, "shadow_buffer_bias", text="Bias")
             col.prop(lamp, "shadow_buffer_exp", text="Exponent")
+            col.prop(lamp, "shadow_buffer_bleed_bias", text="Bleed Bias")
 
 
 class DATA_PT_area(DataButtonsPanel, Panel):

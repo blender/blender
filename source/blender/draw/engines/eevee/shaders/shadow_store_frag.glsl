@@ -117,8 +117,6 @@ float wang_hash_noise(uint s)
 	return fract(value);
 }
 
-#define ESM
-
 void main() {
 	vec2 uvs = gl_FragCoord.xy * storedTexelSize;
 
@@ -144,13 +142,14 @@ void main() {
 
 /* TODO Can be optimized by groupping fetches
  * and by converting to radial distance beforehand. */
-#if defined(ESM)
+#if defined(ESM) || defined(VSM)
 	vec3 T, B;
 	make_orthonormal_basis(cubevec, wang_hash_noise(0u), T, B);
 
 	T *= 0.01;
 	B *= 0.01;
 
+#ifdef ESM
 	float accum = 0.0;
 
 	/* Poisson disc blur in log space. */
@@ -164,7 +163,18 @@ void main() {
 	}
 
 	FragColor = vec4(accum);
+#else /* VSM */
+	vec2 accum = vec2(0.0);
 
+	/* Poisson disc blur. */
+	for (int i = 0; i < SAMPLE_NUM; ++i) {
+		float dist = get_cube_radial_distance(cubevec + poisson[i].x * T + poisson[i].y * B);
+		float dist_sqr = dist * dist;
+		accum += vec2(dist, dist_sqr);
+	}
+
+	FragColor = accum.xyxy * shadowInvSampleCount;
+#endif /* Prefilter */
 #else /* PCF (no prefilter) */
 	FragColor = vec4(get_cube_radial_distance(cubevec));
 #endif

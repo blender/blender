@@ -6210,8 +6210,7 @@ static void rna_def_scene_layer_engine_settings_eevee(BlenderRNA *brna)
 	/* Keep in sync with eevee_private.h */
 	static EnumPropertyItem eevee_shadow_method_items[] = {
 		{1, "ESM", 0, "ESM", "Exponential Shadow Mapping"},
-		/* TODO */
-		// {2, "VSM", 0, "VSM", "Variance Shadow Mapping"},
+		{2, "VSM", 0, "VSM", "Variance Shadow Mapping"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

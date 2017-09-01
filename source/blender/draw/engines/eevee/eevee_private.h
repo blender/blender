@@ -64,10 +64,12 @@ enum {
 	VAR_MAT_HAIR     = (1 << 2),
 	VAR_MAT_FLAT     = (1 << 3),
 	VAR_MAT_BLEND    = (1 << 4),
+	VAR_MAT_VSM      = (1 << 5),
+	VAR_MAT_ESM      = (1 << 6),
 	/* Max number of variation */
 	/* IMPORTANT : Leave it last and set
 	 * it's value accordingly. */
-	VAR_MAT_MAX      = (1 << 5),
+	VAR_MAT_MAX      = (1 << 7),
 	/* These are options that are not counted in VAR_MAT_MAX
 	 * because they are not cumulative with the others above. */
 	VAR_MAT_CLIP     = (1 << 8),
@@ -81,6 +83,7 @@ enum {
 enum {
 	SHADOW_ESM = 1,
 	SHADOW_VSM = 2,
+	SHADOW_METHOD_MAX = 3,
 };
 
 typedef struct EEVEE_PassList {
@@ -516,11 +519,12 @@ void EEVEE_materials_cache_finish(EEVEE_Data *vedata);
 struct GPUMaterial *EEVEE_material_world_lightprobe_get(struct Scene *scene, struct World *wo);
 struct GPUMaterial *EEVEE_material_world_background_get(struct Scene *scene, struct World *wo);
 struct GPUMaterial *EEVEE_material_world_volume_get(
-        struct Scene *scene, struct World *wo, bool use_lights, bool use_volume_shadows, bool is_homogeneous, bool use_color_transmit);
+        struct Scene *scene, struct World *wo, bool use_lights, bool use_volume_shadows, bool is_homogeneous, bool use_color_transmit,
+        int shadow_method);
 struct GPUMaterial *EEVEE_material_mesh_get(
-        struct Scene *scene, Material *ma, bool use_blend, bool use_multiply, bool use_refract);
+        struct Scene *scene, Material *ma, bool use_blend, bool use_multiply, bool use_refract, int shadow_method);
 struct GPUMaterial *EEVEE_material_mesh_depth_get(struct Scene *scene, Material *ma, bool use_hashed_alpha, bool is_shadow);
-struct GPUMaterial *EEVEE_material_hair_get(struct Scene *scene, Material *ma);
+struct GPUMaterial *EEVEE_material_hair_get(struct Scene *scene, Material *ma, int shadow_method);
 void EEVEE_materials_free(void);
 void EEVEE_draw_default_passes(EEVEE_PassList *psl);
 void EEVEE_update_util_texture(float offset);

@@ -92,6 +92,7 @@ struct ShadowCascadeData {
 #define sh_cube_far    near_far_bias_exp.y
 #define sh_cube_bias   near_far_bias_exp.z
 #define sh_cube_exp    near_far_bias_exp.w
+#define sh_cube_bleed  near_far_bias_exp.w
 
 /* ------- Convenience functions --------- */
 
