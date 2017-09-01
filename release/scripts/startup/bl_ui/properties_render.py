@@ -746,6 +746,25 @@ class RENDER_PT_eevee_screen_space_reflections(RenderButtonsPanel, Panel):
         col.prop(props, "ssr_firefly_fac")
 
 
+class RENDER_PT_eevee_shadows(RenderButtonsPanel, Panel):
+    bl_label = "Shadows"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        return scene and (scene.render.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        props = scene.layer_properties['BLENDER_EEVEE']
+
+        col = layout.column()
+        col.prop(props, "shadow_method")
+        col.prop(props, "shadow_size")
+
+
 classes = (
     RENDER_MT_presets,
     RENDER_MT_ffmpeg_presets,
@@ -767,6 +786,7 @@ classes = (
     RENDER_PT_eevee_screen_space_reflections,
     RENDER_PT_eevee_poststack_settings,
     RENDER_PT_eevee_postprocess_settings,
+    RENDER_PT_eevee_shadows,
 )
 
 if __name__ == "__main__":  # only for live edit.

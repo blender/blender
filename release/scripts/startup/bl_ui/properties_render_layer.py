@@ -290,6 +290,27 @@ class RENDERLAYER_PT_eevee_screen_space_reflections(RenderLayerButtonsPanel, Pan
         col.template_override_property(layer_props, scene_props, "ssr_firefly_fac")
 
 
+class RENDERLAYER_PT_eevee_shadows(RenderLayerButtonsPanel, Panel):
+    bl_label = "Shadows"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        return scene and (scene.render.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        scene_props = scene.layer_properties['BLENDER_EEVEE']
+        layer = bpy.context.render_layer
+        layer_props = layer.engine_overrides['BLENDER_EEVEE']
+
+        col = layout.column()
+        col.template_override_property(layer_props, scene_props, "shadow_method")
+        col.template_override_property(layer_props, scene_props, "shadow_size")
+
+
 classes = (
     RENDERLAYER_UL_renderlayers,
     RENDERLAYER_PT_layers,

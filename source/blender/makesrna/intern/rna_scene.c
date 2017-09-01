@@ -2658,6 +2658,8 @@ RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(ssr_max_roughness)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(ssr_thickness)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(ssr_border_fade)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(ssr_firefly_fac)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(shadow_method)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(shadow_size)
 
 /* object engine */
 RNA_LAYER_MODE_OBJECT_GET_SET_BOOL(show_wire)
@@ -6205,6 +6207,26 @@ static void rna_def_scene_layer_engine_settings_eevee(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	/* Keep in sync with eevee_private.h */
+	static EnumPropertyItem eevee_shadow_method_items[] = {
+		{1, "ESM", 0, "ESM", "Exponential Shadow Mapping"},
+		/* TODO */
+		// {2, "VSM", 0, "VSM", "Variance Shadow Mapping"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem eevee_shadow_size_items[] = {
+		{64, "64", 0, "64px", ""},
+		{128, "128", 0, "128px", ""},
+		{256, "256", 0, "256px", ""},
+		{512, "512", 0, "512px", ""},
+		{1024, "1024", 0, "1024px", ""},
+		{2048, "2048", 0, "2048px", ""},
+		{4096, "4096", 0, "4096px", ""},
+		{8192, "8192", 0, "8192px", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "SceneLayerEngineSettingsEevee", "SceneLayerSettings");
 	RNA_def_struct_ui_text(srna, "Eevee Scene Layer Settings", "Eevee Engine settings");
 
@@ -6529,6 +6551,21 @@ static void rna_def_scene_layer_engine_settings_eevee(BlenderRNA *brna)
 	                             "rna_LayerEngineSettings_Eevee_motion_blur_shutter_set", NULL);
 	RNA_def_property_ui_text(prop, "Shutter", "Time taken in frames between shutter open and close");
 	RNA_def_property_ui_range(prop, 0.01f, 2.0f, 1, 2);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
+	/* Shadows */
+	prop = RNA_def_property(srna, "shadow_method", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_funcs(prop, "rna_LayerEngineSettings_Eevee_shadow_method_get", "rna_LayerEngineSettings_Eevee_shadow_method_set", NULL);
+	RNA_def_property_enum_items(prop, eevee_shadow_method_items);
+	RNA_def_property_ui_text(prop, "Method", "Technique use to compute the shadows");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "shadow_size", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_funcs(prop, "rna_LayerEngineSettings_Eevee_shadow_size_get", "rna_LayerEngineSettings_Eevee_shadow_size_set", NULL);
+	RNA_def_property_enum_items(prop, eevee_shadow_size_items);
+	RNA_def_property_ui_text(prop, "Size", "Size of every shadow maps");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
 
