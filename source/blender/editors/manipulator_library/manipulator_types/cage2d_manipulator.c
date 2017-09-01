@@ -530,6 +530,13 @@ static int manipulator_rect_transform_modal(
         bContext *C, wmManipulator *mpr, const wmEvent *event,
         eWM_ManipulatorTweak UNUSED(tweak_flag))
 {
+	/* For transform logic to be managable we operate in -0.5..0.5 2D space,
+	 * no matter the size of the rectangle, mouse coorts are scaled to unit space.
+	 * The mouse coords have been projected into the matrix so we don't need to worry about axis alignment.
+	 *
+	 * - The cursor offset are multiplied by 'dims'.
+	 * - Matrix translation is also multiplied by 'dims'.
+	 */
 	RectTransformInteraction *data = mpr->interaction_data;
 	float point_local[2];
 
@@ -550,12 +557,6 @@ static int manipulator_rect_transform_modal(
 	}
 
 	const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
-
-	const float value_xy[2] = {
-		(point_local[0] - data->orig_mouse[0]),
-		(point_local[1] - data->orig_mouse[1]),
-	};
-
 	wmManipulatorProperty *mpr_prop;
 
 	mpr_prop = WM_manipulator_target_property_find(mpr, "matrix");
@@ -566,8 +567,8 @@ static int manipulator_rect_transform_modal(
 	if (mpr->highlight_part == ED_MANIPULATOR_CAGE2D_PART_TRANSLATE) {
 		/* do this to prevent clamping from changing size */
 		copy_m4_m4(mpr->matrix_offset, data->orig_matrix_offset);
-		mpr->matrix_offset[3][0] = data->orig_matrix_offset[3][0] + value_xy[0];
-		mpr->matrix_offset[3][1] = data->orig_matrix_offset[3][1] + value_xy[1];
+		mpr->matrix_offset[3][0] = data->orig_matrix_offset[3][0] + (point_local[0] - data->orig_mouse[0]);
+		mpr->matrix_offset[3][1] = data->orig_matrix_offset[3][1] + (point_local[1] - data->orig_mouse[1]);
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_CAGE2D_PART_ROTATE) {
 		/* rotate */
@@ -580,35 +581,17 @@ static int manipulator_rect_transform_modal(
 
 		if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE) {
 			manipulator_rect_pivot_from_scale_part(mpr->highlight_part, pivot, constrain_axis);
-
-			/* Move pivot to boundary edges w/ non square aspect. */
-			if (dims[0] < dims[1]) {
-				pivot[0] /= dims[1];
-			}
-			else {
-				pivot[1] /= dims[0];
-			}
-
 		}
 		else {
 			zero_v2(pivot);
 		}
 
-		/* scale around pivot */
-		float matrix_scale[4][4];
-		unit_m4(matrix_scale);
-
-		/* cursor deltas */
+		/* Cursor deltas scaled to (-0.5..0.5). */
 		float delta_orig[2], delta_curr[2];
-		sub_v2_v2v2(delta_orig, data->orig_mouse, pivot);
-		sub_v2_v2v2(delta_curr, point_local, pivot);
-
-		/* NOTE: this works but we may want to apply the scale elsewhere. */
-		delta_orig[0] /= dims[0];
-		delta_orig[1] /= dims[1];
-
-		delta_curr[0] /= dims[0];
-		delta_curr[1] /= dims[1];
+		for (int i = 0; i < 2; i++) {
+			delta_orig[i] = (data->orig_mouse[i] / dims[i]) - pivot[i];
+			delta_curr[i] = (point_local[i] / dims[i]) - pivot[i];
+		}
 
 		float scale[2] = {1.0f, 1.0f};
 		for (int i = 0; i < 2; i++) {
@@ -622,18 +605,28 @@ static int manipulator_rect_transform_modal(
 		}
 
 		if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_UNIFORM) {
-			if (fabsf(scale[0] - 1.0f) > fabsf(scale[1] - 1.0f)) {
+			if (constrain_axis[0] == false && constrain_axis[1] == false) {
+				scale[1] = scale[0] = (scale[1] + scale[0]) / 2.0f;
+			}
+			else if (constrain_axis[0] == false) {
 				scale[1] = scale[0];
 			}
-			else {
+			else if (constrain_axis[1] == false) {
 				scale[0] = scale[1];
 			}
+			else {
+				BLI_assert(0);
+			}
 		}
+
+		/* scale around pivot */
+		float matrix_scale[4][4];
+		unit_m4(matrix_scale);
 
 		mul_v3_fl(matrix_scale[0], scale[0]);
 		mul_v3_fl(matrix_scale[1], scale[1]);
 
-		transform_pivot_set_m4(matrix_scale, (const float [3]){pivot[0], pivot[1], 0.0f});
+		transform_pivot_set_m4(matrix_scale, (const float [3]){pivot[0] * dims[0], pivot[1] * dims[1], 0.0f});
 		mul_m4_m4m4(mpr->matrix_offset, data->orig_matrix_offset, matrix_scale);
 	}
 
