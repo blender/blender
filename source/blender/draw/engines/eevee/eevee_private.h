@@ -231,6 +231,7 @@ typedef struct EEVEE_ShadowRender {
 	float clip_far;
 	float shadow_samples_ct;
 	float shadow_inv_samples_ct;
+	float filter_size;
 } EEVEE_ShadowRender;
 
 /* ************ VOLUME DATA ************ */

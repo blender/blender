@@ -754,6 +754,7 @@ void EEVEE_draw_shadows(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 			srd->shadow_inv_samples_ct = 1.0f / srd->shadow_samples_ct;
 			srd->clip_near = la->clipsta;
 			srd->clip_far = la->clipend;
+			srd->filter_size = la->soft * 0.0005f;
 			copy_v3_v3(srd->position, ob->obmat[3]);
 			for (int j = 0; j < 6; j++) {
 				float tmp[4][4];

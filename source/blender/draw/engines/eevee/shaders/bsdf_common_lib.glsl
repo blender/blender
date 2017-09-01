@@ -25,6 +25,7 @@ layout(std140) uniform shadow_render_block {
 	float farClip;
 	float shadowSampleCount;
 	float shadowInvSampleCount;
+	float shadowFilterSize;
 };
 
 flat in int shFace; /* Shadow layer we are rendering to. */

@@ -377,9 +377,12 @@ class DATA_PT_EEVEE_shadow(DataButtonsPanel, Panel):
             split = layout.split()
             split.active = lamp.use_shadow
 
-            col = split.column(align=True)
+            sub = split.column()
+            col = sub.column(align=True)
             col.prop(lamp, "shadow_buffer_clip_start", text="Clip Start")
             col.prop(lamp, "shadow_buffer_clip_end", text="Clip End")
+            col = sub.column()
+            col.prop(lamp, "shadow_buffer_soft", text="Soft")
 
             col = split.column(align=True)
             col.prop(lamp, "shadow_buffer_bias", text="Bias")

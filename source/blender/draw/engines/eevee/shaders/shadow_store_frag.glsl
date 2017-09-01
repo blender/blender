@@ -9,6 +9,7 @@ layout(std140) uniform shadow_render_block {
 	float farClip;
 	float shadowSampleCount;
 	float shadowInvSampleCount;
+	float shadowFilterSize;
 };
 
 #ifdef CSM
@@ -35,12 +36,13 @@ vec3 octahedral_to_cubemap_proj(vec2 co)
 
 void make_orthonormal_basis(vec3 N, float rot, out vec3 T, out vec3 B)
 {
-	vec3 UpVector = (abs(N.z) < max(abs(N.x), abs(N.y))) ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
+	vec3 UpVector = (abs(N.z) < 0.999) ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
 	vec3 nT = normalize(cross(UpVector, N));
 	vec3 nB = cross(N, nT);
 
 	/* Rotate tangent space */
-	vec2 dir = vec2(cos(rot * 3.1415 * 2.0), sin(rot * 3.1415 * 2.0));
+	float angle = rot * 3.1415 * 2.0;
+	vec2 dir = vec2(cos(angle), sin(angle));
 	T =  dir.x * nT + dir.y * nB;
 	B = -dir.y * nT + dir.x * nB;
 }
@@ -138,7 +140,7 @@ void main() {
 	uvs.xy = fract(uvs.xy);
 
 	/* get cubemap vector */
-	vec3 cubevec = octahedral_to_cubemap_proj(uvs.xy);
+	vec3 cubevec = normalize(octahedral_to_cubemap_proj(uvs.xy));
 
 /* TODO Can be optimized by groupping fetches
  * and by converting to radial distance beforehand. */
@@ -146,8 +148,8 @@ void main() {
 	vec3 T, B;
 	make_orthonormal_basis(cubevec, wang_hash_noise(0u), T, B);
 
-	T *= 0.01;
-	B *= 0.01;
+	T *= shadowFilterSize;
+	B *= shadowFilterSize;
 
 #ifdef ESM
 	float accum = 0.0;
