@@ -285,6 +285,13 @@ static int vergaverco(const void *e1, const void *e2)
 
 	if      (x1 > x2) return  1;
 	else if (x1 < x2) return -1;
+
+	const int i1 = BM_elem_index_get(v1);
+	const int i2 = BM_elem_index_get(v2);
+
+	if      (i1 > i2) return  1;
+	else if (i1 < i2) return -1;
+
 	else return 0;
 }
 
@@ -601,6 +608,12 @@ static void bmesh_find_doubles_common(
 
 	/* get the verts as an array we can sort */
 	verts = BMO_slot_as_arrayN(op->slots_in, "verts", &verts_len);
+
+	/* Ensure indices are different so we have a predictable order when values match. */
+	for (i = 0; i < verts_len; i++) {
+		BM_elem_index_set(verts[i], i);  /* set_dirty! */
+	}
+	bm->elem_index_dirty |= BM_VERT;
 
 	/* sort by vertex coordinates added together */
 	qsort(verts, verts_len, sizeof(BMVert *), vergaverco);
