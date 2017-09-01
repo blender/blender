@@ -855,9 +855,17 @@ bool RNA_struct_bl_idname_ok_or_report(ReportList *reports, const char *identifi
 	const int len_sep = strlen(sep);
 	const int len_id = strlen(identifier);
 	const char *p = strstr(identifier, sep);
+	/* TODO: make error, for now warning until add-ons update. */
+#if 1
+	const int report_level = RPT_WARNING;
+	const bool failure = true;
+#else
+	const int report_level = RPT_ERROR;
+	const bool failure = false;
+#endif
 	if (p == NULL || p == identifier || p + len_sep >= identifier + len_id) {
-		BKE_reportf(reports, RPT_ERROR, "'%s' doesn't contain '%s' with prefix & suffix", identifier, sep);
-		return false;
+		BKE_reportf(reports, report_level, "'%s' doesn't contain '%s' with prefix & suffix", identifier, sep);
+		return failure;
 	}
 
 	const char *c, *start, *end, *last;
@@ -869,8 +877,8 @@ bool RNA_struct_bl_idname_ok_or_report(ReportList *reports, const char *identifi
 		     ((c != start) && (*c >= '0' && *c <= '9')) ||
 		     ((c != start) && (c != last) && (*c == '_'))) == 0)
 		{
-			BKE_reportf(reports, RPT_ERROR, "'%s' doesn't have upper case alpha-numeric prefix", identifier);
-			return false;
+			BKE_reportf(reports, report_level, "'%s' doesn't have upper case alpha-numeric prefix", identifier);
+			return failure;
 		}
 	}
 
@@ -883,8 +891,8 @@ bool RNA_struct_bl_idname_ok_or_report(ReportList *reports, const char *identifi
 		     (*c >= '0' && *c <= '9') ||
 		     ((c != start) && (c != last) && (*c == '_'))) == 0)
 		{
-			BKE_reportf(reports, RPT_ERROR, "'%s' doesn't have an alpha-numeric suffix", identifier);
-			return false;
+			BKE_reportf(reports, report_level, "'%s' doesn't have an alpha-numeric suffix", identifier);
+			return failure;
 		}
 	}
 	return true;
