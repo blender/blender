@@ -3,11 +3,19 @@ layout(std140) uniform shadow_render_block {
 	mat4 ShadowMatrix[6];
 	mat4 FaceViewMatrix[6];
 	vec4 lampPosition;
-	int layer;
-	float exponent;
+	float cubeTexelSize;
+	float storedTexelSize;
+	float nearClip;
+	float farClip;
+	float shadowSampleCount;
+	float shadowInvSampleCount;
 };
 
-uniform samplerCube shadowCube;
+#ifdef CSM
+uniform sampler2DArray shadowTexture;
+#else
+uniform samplerCube shadowTexture;
+#endif
 
 out vec4 FragColor;
 
@@ -25,35 +33,31 @@ vec3 octahedral_to_cubemap_proj(vec2 co)
 	return v;
 }
 
-void make_orthonormal_basis(vec3 N, out vec3 T, out vec3 B)
+void make_orthonormal_basis(vec3 N, float rot, out vec3 T, out vec3 B)
 {
-	vec3 UpVector = abs(N.z) < 0.99999 ? vec3(0.0,0.0,1.0) : vec3(1.0,0.0,0.0);
-	T = normalize( cross(UpVector, N) );
-	B = cross(N, T);
+	vec3 UpVector = (abs(N.z) < max(abs(N.x), abs(N.y))) ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
+	vec3 nT = normalize(cross(UpVector, N));
+	vec3 nB = cross(N, nT);
+
+	/* Rotate tangent space */
+	vec2 dir = vec2(cos(rot * 3.1415 * 2.0), sin(rot * 3.1415 * 2.0));
+	T =  dir.x * nT + dir.y * nB;
+	B = -dir.y * nT + dir.x * nB;
 }
 
-#define NUM_SAMPLE 32
-vec2 poisson_disc[32] = vec2[32](
-	vec2( 0.476,  0.854), vec2(-0.659, -0.670),
-	vec2( 0.905, -0.270), vec2( 0.215, -0.133),
-	vec2(-0.595,  0.242), vec2(-0.146,  0.519),
-	vec2( 0.108, -0.930), vec2( 0.807,  0.449),
+float linear_depth(float z)
+{
+	return (nearClip  * farClip) / (z * (nearClip - farClip) + farClip);
+}
 
-	vec2(-0.476, -0.854), vec2( 0.659,  0.670),
-	vec2(-0.905,  0.270), vec2(-0.215,  0.133),
-	vec2( 0.595, -0.242), vec2( 0.146, -0.519),
-	vec2(-0.108,  0.930), vec2(-0.807, -0.449),
-
-	vec2(-0.854,  0.476), vec2( 0.670, -0.659),
-	vec2( 0.270,  0.905), vec2( 0.133,  0.215),
-	vec2(-0.242, -0.595), vec2(-0.519, -0.146),
-	vec2( 0.930,  0.108), vec2(-0.449,  0.807),
-
-	vec2( 0.854, -0.476), vec2(-0.670,  0.659),
-	vec2(-0.270, -0.905), vec2(-0.133, -0.215),
-	vec2( 0.242,  0.595), vec2( 0.519,  0.146),
-	vec2(-0.930, -0.108), vec2( 0.449, -0.807)
-);
+float get_cube_radial_distance(vec3 cubevec)
+{
+	float zdepth = texture(shadowTexture, cubevec).r;
+	float linear_zdepth = linear_depth(zdepth);
+	cubevec = normalize(abs(cubevec));
+	float cos_vec = max(cubevec.x, max(cubevec.y, cubevec.z));
+	return linear_zdepth / cos_vec;
+}
 
 /* Marco Salvi's GDC 2008 presentation about shadow maps pre-filtering techniques slide 24 */
 float ln_space_prefilter(float w0, float x, float w1, float y)
@@ -61,14 +65,66 @@ float ln_space_prefilter(float w0, float x, float w1, float y)
     return x + log(w0 + w1 * exp(y - x));
 }
 
-void main() {
-	const vec2 texelSize = vec2(1.0 / 512.0);
+const int SAMPLE_NUM = 32;
+const float INV_SAMPLE_NUM = 1.0 / float(SAMPLE_NUM);
+const vec2 poisson[32] = vec2[32](
+	vec2(-0.31889129888, 0.945170187163),
+	vec2(0.0291070069348, 0.993645382622),
+	vec2(0.453968568675, 0.882119488776),
+	vec2(-0.59142811398, 0.775098624552),
+	vec2(0.0672147039953, 0.677233646792),
+	vec2(0.632546991242, 0.60080388224),
+	vec2(-0.846282545004, 0.478266943968),
+	vec2(-0.304563967348, 0.550414788876),
+	vec2(0.343951542639, 0.482122717676),
+	vec2(0.903371461134, 0.419225918868),
+	vec2(-0.566433506581, 0.326544955645),
+	vec2(-0.0174468029403, 0.345927250589),
+	vec2(-0.970838848328, 0.131541221423),
+	vec2(-0.317404956404, 0.102175571059),
+	vec2(0.309107085158, 0.136502232088),
+	vec2(0.67009683403, 0.198922062526),
+	vec2(-0.62544683989, -0.0237682928336),
+	vec2(0.0, 0.0),
+	vec2(0.260779995092, -0.192490308513),
+	vec2(0.555635503398, -0.0918935341973),
+	vec2(0.989587880961, -0.03629312269),
+	vec2(-0.93440130633, -0.213478602005),
+	vec2(-0.615716455579, -0.335329659339),
+	vec2(0.813589336772, -0.292544036149),
+	vec2(-0.821106257666, -0.568279197395),
+	vec2(-0.298092257627, -0.457929494012),
+	vec2(0.263233114326, -0.515552889911),
+	vec2(-0.0311374378304, -0.643310533036),
+	vec2(0.785838482787, -0.615972502555),
+	vec2(-0.444079211316, -0.836548440017),
+	vec2(-0.0253421088433, -0.96112294526),
+	vec2(0.350411908643, -0.89783206142)
+);
 
-	vec2 uvs = gl_FragCoord.xy * texelSize;
+float wang_hash_noise(uint s)
+{
+	uint seed = (uint(gl_FragCoord.x) * 1664525u + uint(gl_FragCoord.y)) + s;
+
+	seed = (seed ^ 61u) ^ (seed >> 16u);
+	seed *= 9u;
+	seed = seed ^ (seed >> 4u);
+	seed *= 0x27d4eb2du;
+	seed = seed ^ (seed >> 15u);
+
+	float value = float(seed);
+	value *= 1.0 / 4294967296.0;
+	return fract(value);
+}
+
+#define ESM
+
+void main() {
+	vec2 uvs = gl_FragCoord.xy * storedTexelSize;
 
 	/* add a 2 pixel border to ensure filtering is correct */
-	uvs.xy *= 1.0 + texelSize * 2.0;
-	uvs.xy -= texelSize;
+	uvs.xy *= 1.0 + storedTexelSize * 2.0;
+	uvs.xy -= storedTexelSize;
 
 	float pattern = 1.0;
 
@@ -86,28 +142,30 @@ void main() {
 	/* get cubemap vector */
 	vec3 cubevec = octahedral_to_cubemap_proj(uvs.xy);
 
+/* TODO Can be optimized by groupping fetches
+ * and by converting to radial distance beforehand. */
+#if defined(ESM)
 	vec3 T, B;
-	make_orthonormal_basis(cubevec, T, B);
+	make_orthonormal_basis(cubevec, wang_hash_noise(0u), T, B);
 
-	/* get cubemap shadow value */
-	const float blur_radius = 5.0 / 512.0; /* Totally arbitrary */
-	const float weight = 1.0 / float(NUM_SAMPLE);
+	T *= 0.01;
+	B *= 0.01;
+
 	float accum = 0.0;
 
 	/* Poisson disc blur in log space. */
-	vec2 offsetvec = poisson_disc[0].xy * blur_radius;
-	float depth1 = texture(shadowCube, cubevec + offsetvec.x * T + offsetvec.y * B).r;
+	float depth1 = get_cube_radial_distance(cubevec + poisson[0].x * T + poisson[0].y * B);
+	float depth2 = get_cube_radial_distance(cubevec + poisson[1].x * T + poisson[1].y * B);
+	accum = ln_space_prefilter(INV_SAMPLE_NUM, depth1, INV_SAMPLE_NUM, depth2);
 
-	offsetvec = poisson_disc[1].xy * blur_radius;
-	float depth2 = texture(shadowCube, cubevec + offsetvec.x * T + offsetvec.y * B).r;
-
-	accum = ln_space_prefilter(weight, depth1, weight, depth2);
-
-	for (int i = 2; i < NUM_SAMPLE; ++i) {
-		vec2 offsetvec = poisson_disc[i].xy * blur_radius;
-		depth1 = texture(shadowCube, cubevec + offsetvec.x * T + offsetvec.y * B).r;
-		accum = ln_space_prefilter(1.0, accum, weight, depth1);
+	for (int i = 2; i < SAMPLE_NUM; ++i) {
+		depth1 = get_cube_radial_distance(cubevec + poisson[i].x * T + poisson[i].y * B);
+		accum = ln_space_prefilter(1.0, accum, INV_SAMPLE_NUM, depth1);
 	}
 
-	FragColor = vec4(accum, accum, accum, 1.0);
+	FragColor = vec4(accum);
+
+#else /* PCF (no prefilter) */
+	FragColor = vec4(get_cube_radial_distance(cubevec));
+#endif
 }

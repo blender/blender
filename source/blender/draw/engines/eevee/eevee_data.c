@@ -39,15 +39,11 @@ static void eevee_scene_layer_data_free(void *storage)
 	DRW_UBO_FREE_SAFE(sldata->light_ubo);
 	DRW_UBO_FREE_SAFE(sldata->shadow_ubo);
 	DRW_UBO_FREE_SAFE(sldata->shadow_render_ubo);
-	DRW_FRAMEBUFFER_FREE_SAFE(sldata->shadow_cube_target_fb);
-	DRW_FRAMEBUFFER_FREE_SAFE(sldata->shadow_cube_fb);
-	DRW_FRAMEBUFFER_FREE_SAFE(sldata->shadow_map_fb);
-	DRW_FRAMEBUFFER_FREE_SAFE(sldata->shadow_cascade_fb);
-	DRW_TEXTURE_FREE_SAFE(sldata->shadow_depth_cube_target);
-	DRW_TEXTURE_FREE_SAFE(sldata->shadow_color_cube_target);
-	DRW_TEXTURE_FREE_SAFE(sldata->shadow_depth_cube_pool);
-	DRW_TEXTURE_FREE_SAFE(sldata->shadow_depth_map_pool);
-	DRW_TEXTURE_FREE_SAFE(sldata->shadow_depth_cascade_pool);
+	DRW_FRAMEBUFFER_FREE_SAFE(sldata->shadow_target_fb);
+	DRW_FRAMEBUFFER_FREE_SAFE(sldata->shadow_store_fb);
+	DRW_TEXTURE_FREE_SAFE(sldata->shadow_cube_target);
+	DRW_TEXTURE_FREE_SAFE(sldata->shadow_cascade_target);
+	DRW_TEXTURE_FREE_SAFE(sldata->shadow_pool);
 	BLI_freelistN(&sldata->shadow_casters);
 
 	/* Probes */

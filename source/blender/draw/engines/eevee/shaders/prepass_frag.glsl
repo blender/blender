@@ -62,10 +62,6 @@ float hashed_alpha_threshold(vec3 co)
 uniform float alphaThreshold;
 #endif
 
-#ifdef SHADOW_SHADER
-out vec4 FragColor;
-#endif
-
 void main()
 {
 	/* For now do nothing.
@@ -85,10 +81,5 @@ void main()
 	if (cl.opacity <= alphaThreshold)
 		discard;
 #endif
-#endif
-
-#ifdef SHADOW_SHADER
-	float dist = distance(lampPosition.xyz, worldPosition.xyz);
-	FragColor = vec4(dist, 0.0, 0.0, 1.0);
 #endif
 }

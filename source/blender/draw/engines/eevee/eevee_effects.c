@@ -811,7 +811,7 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 
 		if (grp != NULL) {
 			DRW_shgroup_uniform_buffer(grp, "depthFull", &e_data.depth_src);
-			DRW_shgroup_uniform_buffer(grp, "shadowCubes", &sldata->shadow_depth_cube_pool);
+			DRW_shgroup_uniform_buffer(grp, "shadowTexture", &sldata->shadow_pool);
 			DRW_shgroup_uniform_buffer(grp, "irradianceGrid", &sldata->irradiance_pool);
 			DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
 			DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);

@@ -19,8 +19,12 @@ layout(std140) uniform shadow_render_block {
 	mat4 ShadowMatrix[6];
 	mat4 FaceViewMatrix[6];
 	vec4 lampPosition;
-	int layer;
-	float exponent;
+	float cubeTexelSize;
+	float storedTexelSize;
+	float nearClip;
+	float farClip;
+	float shadowSampleCount;
+	float shadowInvSampleCount;
 };
 
 flat in int shFace; /* Shadow layer we are rendering to. */
@@ -72,23 +76,6 @@ struct ShadowCubeData {
 	vec4 near_far_bias_exp;
 };
 
-/* convenience aliases */
-#define sh_cube_near   near_far_bias_exp.x
-#define sh_cube_far    near_far_bias_exp.y
-#define sh_cube_bias   near_far_bias_exp.z
-#define sh_cube_exp    near_far_bias_exp.w
-
-
-struct ShadowMapData {
-	mat4 shadowmat;
-	vec4 near_far_bias;
-};
-
-/* convenience aliases */
-#define sh_map_near   near_far_bias.x
-#define sh_map_far    near_far_bias.y
-#define sh_map_bias   near_far_bias.z
-
 #ifndef MAX_CASCADE_NUM
 #define MAX_CASCADE_NUM 4
 #endif
@@ -97,8 +84,14 @@ struct ShadowCascadeData {
 	mat4 shadowmat[MAX_CASCADE_NUM];
 	/* arrays of float are not aligned so use vec4 */
 	vec4 split_distances;
-	vec4 bias;
+	vec4 near_far_bias_exp;
 };
+
+/* convenience aliases */
+#define sh_cube_near   near_far_bias_exp.x
+#define sh_cube_far    near_far_bias_exp.y
+#define sh_cube_bias   near_far_bias_exp.z
+#define sh_cube_exp    near_far_bias_exp.w
 
 /* ------- Convenience functions --------- */
 
@@ -114,6 +107,7 @@ vec3 project_point(mat4 m, vec3 v) {
 float min_v2(vec2 v) { return min(v.x, v.y); }
 float min_v3(vec3 v) { return min(v.x, min(v.y, v.z)); }
 float max_v2(vec2 v) { return max(v.x, v.y); }
+float max_v3(vec3 v) { return max(v.x, max(v.y, v.z)); }
 
 float saturate(float a) { return clamp(a, 0.0, 1.0); }
 vec2 saturate(vec2 a) { return clamp(a, 0.0, 1.0); }

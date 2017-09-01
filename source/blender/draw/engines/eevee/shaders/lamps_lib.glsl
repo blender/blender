@@ -1,10 +1,8 @@
 
-uniform sampler2DArray shadowCubes;
-uniform sampler2DArrayShadow shadowCascades;
+uniform sampler2DArray shadowTexture;
 
 layout(std140) uniform shadow_block {
 	ShadowCubeData    shadows_cube_data[MAX_SHADOW_CUBE];
-	ShadowMapData     shadows_map_data[MAX_SHADOW_MAP];
 	ShadowCascadeData shadows_cascade_data[MAX_SHADOW_CASCADE];
 };
 
@@ -26,23 +24,25 @@ float shadow_cubemap(float shid, vec4 l_vector)
 	vec3 cubevec = -l_vector.xyz / l_vector.w;
 	float dist = l_vector.w - scd.sh_cube_bias;
 
-	float z = texture_octahedron(shadowCubes, vec4(cubevec, shid)).r;
+	float z = texture_octahedron(shadowTexture, vec4(cubevec, shid)).r;
 
 	float esm_test = saturate(exp(scd.sh_cube_exp * (z - dist)));
-	// float sh_test = step(0, z - dist);
+	float sh_test = step(0, z - dist);
 
 	return esm_test;
 }
 
 float shadow_cascade(float shid, vec3 W)
 {
+	return 1.0;
+	#if 0
 	/* Shadow Cascade */
-	shid -= (MAX_SHADOW_CUBE + MAX_SHADOW_MAP);
+	shid -= MAX_SHADOW_CUBE;
 	ShadowCascadeData smd = shadows_cascade_data[int(shid)];
 
 	/* Finding Cascade index */
-	vec4 z = vec4(-dot(cameraPos - W, cameraForward));
-	vec4 comp = step(z, smd.split_distances);
+	vec4 view_z = vec4(-dot(cameraPos - W, cameraForward));
+	vec4 comp = step(view_z, smd.split_distances);
 	float cascade = dot(comp, comp);
 	mat4 shadowmat;
 	float bias;
@@ -68,10 +68,15 @@ float shadow_cascade(float shid, vec3 W)
 	}
 
 	vec4 shpos = shadowmat * vec4(W, 1.0);
-	shpos.z -= bias * shpos.w;
+	float dist = shpos.z - bias * shpos.w;
 	shpos.xyz /= shpos.w;
 
-	return texture(shadowCascades, vec4(shpos.xy, shid * float(MAX_CASCADE_NUM) + cascade, shpos.z));
+	float z = texture(shadowTexture, vec4(shpos.xy, shid * float(MAX_CASCADE_NUM) + cascade, shpos.z)).r;
+
+	float esm_test = saturate(exp(smd.sh_cube_exp * (z - dist)));
+
+	return esm_test;
+	#endif
 }
 
 float light_visibility(LightData ld, vec3 W, vec4 l_vector)
@@ -97,7 +102,7 @@ float light_visibility(LightData ld, vec3 W, vec4 l_vector)
 
 #if !defined(VOLUMETRICS) || defined(VOLUME_SHADOW)
 	/* shadowing */
-	if (ld.l_shadowid >= (MAX_SHADOW_MAP + MAX_SHADOW_CUBE)) {
+	if (ld.l_shadowid >= MAX_SHADOW_CUBE) {
 		vis *= shadow_cascade(ld.l_shadowid, W);
 	}
 	else if (ld.l_shadowid >= 0.0) {

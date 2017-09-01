@@ -3,8 +3,12 @@ layout(std140) uniform shadow_render_block {
 	mat4 ShadowMatrix[6];
 	mat4 FaceViewMatrix[6];
 	vec4 lampPosition;
-	int layer;
-	float exponent;
+	float cubeTexelSize;
+	float storedTexelSize;
+	float nearClip;
+	float farClip;
+	float shadowSampleCount;
+	float shadowInvSampleCount;
 };
 
 layout(triangles) in;
