@@ -362,6 +362,9 @@ static int manipulator_tweak_modal(bContext *C, wmOperator *op, const wmEvent *e
 		return OPERATOR_FINISHED;
 	}
 
+	/* Ugly hack to send manipulator events */
+	((wmEvent *)event)->type = EVT_MANIPULATOR_UPDATE;
+
 	/* always return PASS_THROUGH so modal handlers
 	 * with manipulators attached can update */
 	return OPERATOR_PASS_THROUGH;
