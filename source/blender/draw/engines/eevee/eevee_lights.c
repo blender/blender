@@ -97,13 +97,19 @@ void EEVEE_lights_init(EEVEE_SceneLayerData *sldata)
 
 	int sh_method = BKE_collection_engine_property_value_get_int(props, "shadow_method");
 	int sh_size = BKE_collection_engine_property_value_get_int(props, "shadow_size");
+	int sh_high_bitdepth = BKE_collection_engine_property_value_get_int(props, "shadow_high_bitdepth");
 
 	EEVEE_LampsInfo *linfo = sldata->lamps;
-	if ((linfo->shadow_size != sh_size) || (linfo->shadow_method != sh_method)) {
+	if ((linfo->shadow_size != sh_size) ||
+		(linfo->shadow_method != sh_method) ||
+		(linfo->shadow_high_bitdepth != sh_high_bitdepth))
+	{
 		BLI_assert((sh_size > 0) && (sh_size <= 8192));
 		DRW_TEXTURE_FREE_SAFE(sldata->shadow_pool);
+		DRW_TEXTURE_FREE_SAFE(sldata->shadow_cube_target);
 		DRW_TEXTURE_FREE_SAFE(sldata->shadow_cascade_target);
 
+		linfo->shadow_high_bitdepth = sh_high_bitdepth;
 		linfo->shadow_method = sh_method;
 		linfo->shadow_size = sh_size;
 		linfo->shadow_render_data.stored_texel_size = 1.0 / (float)linfo->shadow_size;
@@ -115,11 +121,8 @@ void EEVEE_lights_init(EEVEE_SceneLayerData *sldata)
 
 		CLAMP(new_cube_target_size, 1, 4096);
 
-		if (linfo->shadow_cube_target_size != new_cube_target_size) {
-			linfo->shadow_cube_target_size = new_cube_target_size;
-			DRW_TEXTURE_FREE_SAFE(sldata->shadow_cube_target);
-			linfo->shadow_render_data.cube_texel_size = 1.0 / (float)linfo->shadow_cube_target_size;
-		}
+		linfo->shadow_cube_target_size = new_cube_target_size;
+		linfo->shadow_render_data.cube_texel_size = 1.0 / (float)linfo->shadow_cube_target_size;
 	}
 }
 
@@ -279,8 +282,8 @@ void EEVEE_lights_cache_finish(EEVEE_SceneLayerData *sldata)
 	}
 
 	switch (linfo->shadow_method) {
-		case SHADOW_ESM: shadow_pool_format = DRW_TEX_R_32; break;
-		case SHADOW_VSM: shadow_pool_format = DRW_TEX_RG_32; break;
+		case SHADOW_ESM: shadow_pool_format = ((linfo->shadow_high_bitdepth) ? DRW_TEX_R_32 : DRW_TEX_R_16); break;
+		case SHADOW_VSM: shadow_pool_format = ((linfo->shadow_high_bitdepth) ? DRW_TEX_RG_32 : DRW_TEX_RG_16); break;
 		default:
 			BLI_assert(!"Incorrect Shadow Method");
 			break;

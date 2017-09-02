@@ -309,6 +309,7 @@ class RENDERLAYER_PT_eevee_shadows(RenderLayerButtonsPanel, Panel):
         col = layout.column()
         col.template_override_property(layer_props, scene_props, "shadow_method")
         col.template_override_property(layer_props, scene_props, "shadow_size")
+        col.template_override_property(layer_props, scene_props, "shadow_high_bitdepth")
 
 
 classes = (

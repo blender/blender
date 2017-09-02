@@ -312,6 +312,7 @@ static void EEVEE_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDPr
 
 	BKE_collection_engine_property_add_int(props, "shadow_method", SHADOW_ESM);
 	BKE_collection_engine_property_add_int(props, "shadow_size", 512);
+	BKE_collection_engine_property_add_bool(props, "shadow_high_bitdepth", false);
 }
 
 static const DrawEngineDataSize EEVEE_data_size = DRW_VIEWPORT_DATA_SIZE(EEVEE_Data);

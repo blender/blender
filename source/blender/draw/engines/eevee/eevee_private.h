@@ -249,6 +249,7 @@ typedef struct EEVEE_LampsInfo {
 	int num_shadow, cache_num_shadow;
 	int update_flag;
 	int shadow_size, shadow_method;
+	bool shadow_high_bitdepth;
 	int shadow_cube_target_size;
 	/* List of lights in the scene. */
 	/* XXX This is fragile, can get out of sync quickly. */
