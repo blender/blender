@@ -1709,7 +1709,7 @@ class VIEW3D_MT_brush(Menu):
 
         # skip if no active brush
         if not brush:
-            layout.label(text="No Brushes currently available", icon="INFO")
+            layout.label(text="No Brushes currently available", icon='INFO')
             return
 
         # brush paint modes
@@ -2112,7 +2112,7 @@ class VIEW3D_MT_pose_transform(Menu):
 
         layout.separator()
 
-        layout.operator("pose.user_transforms_clear", text="Reset unkeyed")
+        layout.operator("pose.user_transforms_clear", text="Reset Unkeyed")
 
 
 class VIEW3D_MT_pose_slide(Menu):

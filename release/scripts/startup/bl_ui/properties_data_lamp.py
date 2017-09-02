@@ -258,7 +258,7 @@ class DATA_PT_shadow(DataButtonsPanel, Panel):
             split = layout.split()
 
             col = split.column()
-            col.label(text="Form factor sampling:")
+            col.label(text="Form Factor Sampling:")
 
             sub = col.row(align=True)
 

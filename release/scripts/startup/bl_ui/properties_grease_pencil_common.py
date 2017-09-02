@@ -75,16 +75,16 @@ def gpencil_active_brush_settings_simple(context, layout):
 
     col.prop(brush, "line_width", slider=True)
     row = col.row(align=True)
-    row.prop(brush, "use_random_pressure", text='', icon='RNDCURVE')
+    row.prop(brush, "use_random_pressure", text="", icon='RNDCURVE')
     row.prop(brush, "pen_sensitivity_factor", slider=True)
-    row.prop(brush, "use_pressure", text='', icon='STYLUS_PRESSURE')
+    row.prop(brush, "use_pressure", text="", icon='STYLUS_PRESSURE')
     row = col.row(align=True)
-    row.prop(brush, "use_random_strength", text='', icon='RNDCURVE')
+    row.prop(brush, "use_random_strength", text="", icon='RNDCURVE')
     row.prop(brush, "strength", slider=True)
-    row.prop(brush, "use_strength_pressure", text='', icon='STYLUS_PRESSURE')
+    row.prop(brush, "use_strength_pressure", text="", icon='STYLUS_PRESSURE')
     row = col.row(align=True)
     row.prop(brush, "jitter", slider=True)
-    row.prop(brush, "use_jitter_pressure", text='', icon='STYLUS_PRESSURE')
+    row.prop(brush, "use_jitter_pressure", text="", icon='STYLUS_PRESSURE')
     row = col.row()
     row.prop(brush, "angle", slider=True)
     row.prop(brush, "angle_factor", text="Factor", slider=True)
@@ -340,19 +340,19 @@ class GreasePencilBrushPanel:
             row = layout.row()
             row.prop(brush, "line_width")
             row = layout.row(align=True)
-            row.prop(brush, "use_random_pressure", text='', icon='RNDCURVE')
+            row.prop(brush, "use_random_pressure", text="", icon='RNDCURVE')
             row.prop(brush, "pen_sensitivity_factor", slider=True)
-            row.prop(brush, "use_pressure", text='', icon='STYLUS_PRESSURE')
+            row.prop(brush, "use_pressure", text="", icon='STYLUS_PRESSURE')
             row = layout.row(align=True)
-            row.prop(brush, "use_random_strength", text='', icon='RNDCURVE')
+            row.prop(brush, "use_random_strength", text="", icon='RNDCURVE')
             row.prop(brush, "strength", slider=True)
-            row.prop(brush, "use_strength_pressure", text='', icon='STYLUS_PRESSURE')
+            row.prop(brush, "use_strength_pressure", text="", icon='STYLUS_PRESSURE')
             row = layout.row(align=True)
             row.prop(brush, "random_press", slider=True)
 
             row = layout.row(align=True)
             row.prop(brush, "jitter", slider=True)
-            row.prop(brush, "use_jitter_pressure", text='', icon='STYLUS_PRESSURE')
+            row.prop(brush, "use_jitter_pressure", text="", icon='STYLUS_PRESSURE')
             row = layout.row()
             row.prop(brush, "angle", slider=True)
             row.prop(brush, "angle_factor", text="Factor", slider=True)
@@ -365,7 +365,7 @@ class GreasePencilBrushPanel:
             col.separator()
             row = col.row(align=False)
             row.prop(brush, "pen_subdivision_steps")
-            row.prop(brush, "random_subdiv", text='Randomness', slider=True)
+            row.prop(brush, "random_subdiv", text="Randomness", slider=True)
 
 
 class GreasePencilStrokeSculptPanel:
@@ -609,9 +609,9 @@ class GPENCIL_MT_pie_settings_palette(Menu):
             row = col.row()
             row.operator("gpencil.stroke_join", text="Join").type = 'JOIN'
             row.operator("gpencil.stroke_join", text="Join & Copy").type = 'JOINCOPY'
-            col.operator("gpencil.stroke_flip", text="Flip direction")
+            col.operator("gpencil.stroke_flip", text="Flip Direction")
 
-            col.prop(gpd, "show_stroke_direction", text="Show drawing direction")
+            col.prop(gpd, "show_stroke_direction", text="Show Drawing Direction")
 
 
 class GPENCIL_MT_pie_tools_more(Menu):
@@ -839,8 +839,8 @@ class GPENCIL_MT_brush_specials(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("gpencil.brush_copy", icon='PASTEDOWN', text="Copy current drawing brush")
-        layout.operator("gpencil.brush_presets_create", icon='HELP', text="Create a set of predefined brushes")
+        layout.operator("gpencil.brush_copy", icon='PASTEDOWN', text="Copy Current Drawing Brush")
+        layout.operator("gpencil.brush_presets_create", icon='HELP', text="Create a Set of Predefined Brushes")
 
 
 class GPENCIL_MT_palettecolor_specials(Menu):

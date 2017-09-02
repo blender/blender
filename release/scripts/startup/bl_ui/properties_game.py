@@ -90,11 +90,11 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, Panel):
             split = layout.split()
 
             col = split.column()
-            col.label(text="Linear velocity:")
+            col.label(text="Linear Velocity:")
             sub = col.column(align=True)
             sub.prop(game, "velocity_min", text="Minimum")
             sub.prop(game, "velocity_max", text="Maximum")
-            col.label(text="Angular velocity:")
+            col.label(text="Angular Velocity:")
             sub = col.column(align=True)
             sub.prop(game, "angular_velocity_min", text="Minimum")
             sub.prop(game, "angular_velocity_max", text="Maximum")

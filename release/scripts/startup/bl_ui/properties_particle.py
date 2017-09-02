@@ -628,7 +628,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
                 split = layout.split()
 
                 col = split.column()
-                col.label(text="Fluid properties:")
+                col.label(text="Fluid Properties:")
                 col.prop(fluid, "stiffness", text="Stiffness")
                 col.prop(fluid, "linear_viscosity", text="Viscosity")
                 col.prop(fluid, "buoyancy", text="Buoyancy", slider=True)
@@ -749,7 +749,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
             if part.physics_type == 'BOIDS':
                 layout.label(text="Relations:")
             elif part.physics_type == 'FLUID':
-                layout.label(text="Fluid interaction:")
+                layout.label(text="Fluid Interaction:")
 
             row = layout.row()
             row.template_list("UI_UL_list", "particle_targets", psys, "targets",
@@ -1081,7 +1081,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
             col = row.column()
             col.prop(part, "trail_count")
             if part.trail_count > 1:
-                col.prop(part, "use_absolute_path_time", text="Length in frames")
+                col.prop(part, "use_absolute_path_time", text="Length in Frames")
                 col = row.column()
                 col.prop(part, "path_end", text="Length", slider=not part.use_absolute_path_time)
                 col.prop(part, "length_random", text="Random", slider=True)

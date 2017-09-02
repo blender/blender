@@ -43,7 +43,7 @@ def draw_color_balance(layout, color_balance):
     col.separator()
     col.separator()
     col.prop(color_balance, "lift", text="")
-    col.prop(color_balance, "invert_lift", text="Invert", icon="ARROW_LEFTRIGHT")
+    col.prop(color_balance, "invert_lift", text="Invert", icon='ARROW_LEFTRIGHT')
     split.template_color_picker(color_balance, "lift", value_slider=True,  cubic=True)
 
     box = layout.box()
@@ -53,7 +53,7 @@ def draw_color_balance(layout, color_balance):
     col.separator()
     col.separator()
     col.prop(color_balance, "gamma", text="")
-    col.prop(color_balance, "invert_gamma", text="Invert", icon="ARROW_LEFTRIGHT")
+    col.prop(color_balance, "invert_gamma", text="Invert", icon='ARROW_LEFTRIGHT')
     split.template_color_picker(color_balance, "gamma", value_slider=True, lock_luminosity=True, cubic=True)
 
     box = layout.box()
@@ -63,7 +63,7 @@ def draw_color_balance(layout, color_balance):
     col.separator()
     col.separator()
     col.prop(color_balance, "gain", text="")
-    col.prop(color_balance, "invert_gain", text="Invert", icon="ARROW_LEFTRIGHT")
+    col.prop(color_balance, "invert_gain", text="Invert", icon='ARROW_LEFTRIGHT')
     split.template_color_picker(color_balance, "gain", value_slider=True, lock_luminosity=True, cubic=True)
 
 
@@ -197,7 +197,7 @@ class SEQUENCER_MT_view(Menu):
             layout.operator_context = 'INVOKE_DEFAULT'
         if is_preview:
             layout.operator_context = 'INVOKE_REGION_PREVIEW'
-            layout.operator("sequencer.view_all_preview", text="Fit preview in window")
+            layout.operator("sequencer.view_all_preview", text="Fit Preview in Window")
 
             layout.separator()
 
@@ -246,10 +246,10 @@ class SEQUENCER_MT_select(Menu):
 
         layout.operator("sequencer.select_active_side", text="Strips to the Left").side = 'LEFT'
         layout.operator("sequencer.select_active_side", text="Strips to the Right").side = 'RIGHT'
-        props = layout.operator("sequencer.select", text="All strips to the Left")
+        props = layout.operator("sequencer.select", text="All Strips to the Left")
         props.left_right = 'LEFT'
         props.linked_time = True
-        props = layout.operator("sequencer.select", text="All strips to the Right")
+        props = layout.operator("sequencer.select", text="All Strips to the Right")
         props.left_right = 'RIGHT'
         props.linked_time = True
 
@@ -397,15 +397,15 @@ class SEQUENCER_MT_strip(Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.operator("transform.transform", text="Grab/Move").mode = 'TRANSLATION'
-        layout.operator("transform.transform", text="Grab/Extend from frame").mode = 'TIME_EXTEND'
+        layout.operator("transform.transform", text="Grab/Extend from Frame").mode = 'TIME_EXTEND'
         layout.operator("sequencer.gap_remove").all = False
         layout.operator("sequencer.gap_insert")
 
         #  uiItemO(layout, NULL, 0, "sequencer.strip_snap"); // TODO - add this operator
         layout.separator()
 
-        layout.operator("sequencer.cut", text="Cut (hard) at frame").type = 'HARD'
-        layout.operator("sequencer.cut", text="Cut (soft) at frame").type = 'SOFT'
+        layout.operator("sequencer.cut", text="Cut (Hard) at Frame").type = 'HARD'
+        layout.operator("sequencer.cut", text="Cut (Soft) at Frame").type = 'SOFT'
         layout.operator("sequencer.slip", text="Slip Strip Contents")
         layout.operator("sequencer.images_separate")
         layout.operator("sequencer.offset_clear")
@@ -631,7 +631,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
                 if strip.use_as_speed:
                     layout.prop(strip, "speed_factor")
                 else:
-                    layout.prop(strip, "speed_factor", text="Frame number")
+                    layout.prop(strip, "speed_factor", text="Frame Number")
                     layout.prop(strip, "scale_to_length")
 
         elif strip.type == 'TRANSFORM':
@@ -698,7 +698,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
                         row.label("")
             else:
                 col.separator()
-                col.label(text="Two or more channels are needed below this strip", icon="INFO")
+                col.label(text="Two or more channels are needed below this strip", icon='INFO')
 
 
         elif strip.type == 'TEXT':
@@ -728,7 +728,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
         elif strip.type in {'CROSS', 'GAMMA_CROSS', 'WIPE', 'ALPHA_OVER', 'ALPHA_UNDER', 'OVER_DROP'}:
             col.prop(strip, "use_default_fade", "Default fade")
             if not strip.use_default_fade:
-                col.prop(strip, "effect_fader", text="Effect fader")
+                col.prop(strip, "effect_fader", text="Effect Fader")
         elif strip.type == 'GAUSSIAN_BLUR':
             row = col.row(align=True)
             row.prop(strip, "size_x")
@@ -784,7 +784,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
             split.label(text="Alpha:")
             split.prop(strip, "alpha_mode", text="")
 
-            layout.operator("sequencer.change_path", icon="FILESEL").filter_image = True
+            layout.operator("sequencer.change_path", icon='FILESEL').filter_image = True
 
         elif seq_type == 'MOVIE':
             split = layout.split(percentage=0.2)
@@ -1056,9 +1056,9 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
             proxy = strip.proxy
 
             flow = layout.column_flow()
-            flow.prop(sequencer, "proxy_storage", text='Storage')
+            flow.prop(sequencer, "proxy_storage", text="Storage")
             if sequencer.proxy_storage == 'PROJECT':
-                flow.prop(sequencer, "proxy_dir", text='Directory')
+                flow.prop(sequencer, "proxy_dir", text="Directory")
             else:
                 flow.prop(proxy, "use_proxy_custom_directory")
                 flow.prop(proxy, "use_proxy_custom_file")
@@ -1077,7 +1077,7 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
             layout.prop(proxy, "use_overwrite")
 
             col = layout.column()
-            col.prop(proxy, "quality", text="Build JPEG quality")
+            col.prop(proxy, "quality", text="Build JPEG Quality")
 
             if strip.type == 'MOVIE':
                 col = layout.column()

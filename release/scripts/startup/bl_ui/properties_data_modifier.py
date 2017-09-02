@@ -381,7 +381,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text="Vertex group:")
+        col.label(text="Vertex Group:")
         col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
         sub = col.column()
         sub.active = bool(md.vertex_group)
@@ -917,9 +917,10 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         scene = bpy.context.scene
         engine = scene.render.engine
-        show_adaptive_options = (engine == "CYCLES" and md == ob.modifiers[-1] and
-                                 scene.cycles.feature_set == "EXPERIMENTAL")
-
+        show_adaptive_options = (
+            engine == 'CYCLES' and md == ob.modifiers[-1] and
+            scene.cycles.feature_set == 'EXPERIMENTAL'
+        )
         if show_adaptive_options:
             col.label(text="View:")
             col.prop(md, "levels", text="Levels")
