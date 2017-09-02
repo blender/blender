@@ -117,8 +117,8 @@ static void gp_interpolate_update_points(bGPDstroke *gps_from, bGPDstroke *gps_t
 		
 		/* Interpolate all values */
 		interp_v3_v3v3(&pt->x, &prev->x, &next->x, factor);
-		pt->pressure = interpf(prev->pressure, next->pressure, factor);
-		pt->strength = interpf(prev->strength, next->strength, factor);
+		pt->pressure = interpf(prev->pressure, next->pressure, 1.0f - factor);
+		pt->strength = interpf(prev->strength, next->strength, 1.0f - factor);
 		CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
 	}
 }
