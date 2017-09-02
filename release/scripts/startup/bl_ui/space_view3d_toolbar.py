@@ -1925,7 +1925,7 @@ class VIEW3D_PT_tools_particlemode(View3DPanel, Panel):
         col = layout.column(align=True)
         if pe.is_hair:
             col.active = pe.is_editable
-            col.prop(pe, "use_emitter_deflect", text="Deflect emitter")
+            col.prop(pe, "use_emitter_deflect", text="Deflect Emitter")
             sub = col.row(align=True)
             sub.active = pe.use_emitter_deflect
             sub.prop(pe, "emitter_distance", text="Distance")

@@ -245,7 +245,7 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):
 
                 # paint-map output
                 row = layout.row()
-                row.prop_search(surface, "output_name_a", ob.data, "vertex_colors", text="Paintmap layer")
+                row.prop_search(surface, "output_name_a", ob.data, "vertex_colors", text="Paintmap Layer")
                 if surface.output_exists(object=ob, index=0):
                     ic = 'ZOOMOUT'
                 else:
@@ -255,7 +255,7 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):
 
                 # wet-map output
                 row = layout.row()
-                row.prop_search(surface, "output_name_b", ob.data, "vertex_colors", text="Wetmap layer")
+                row.prop_search(surface, "output_name_b", ob.data, "vertex_colors", text="Wetmap Layer")
                 if surface.output_exists(object=ob, index=1):
                     ic = 'ZOOMOUT'
                 else:
@@ -282,7 +282,7 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):
             layout.prop(surface, "image_output_path", text="")
             row = layout.row()
             row.prop(surface, "image_fileformat", text="")
-            row.prop(surface, "use_premultiply", text="Premultiply alpha")
+            row.prop(surface, "use_premultiply", text="Premultiply Alpha")
 
             if surface_type == 'PAINT':
                 split = layout.split(percentage=0.4)
@@ -439,12 +439,12 @@ class PHYSICS_PT_dp_brush_source(PhysicButtonsPanel, Panel):
         if brush.paint_source == 'PARTICLE_SYSTEM':
             col.prop_search(brush, "particle_system", ob, "particle_systems", text="")
             if brush.particle_system:
-                col.label(text="Particle effect:")
+                col.label(text="Particle Effect:")
                 sub = col.column()
                 sub.active = not brush.use_particle_radius
                 sub.prop(brush, "solid_radius", text="Solid Radius")
                 col.prop(brush, "use_particle_radius", text="Use Particle's Radius")
-                col.prop(brush, "smooth_radius", text="Smooth radius")
+                col.prop(brush, "smooth_radius", text="Smooth Radius")
 
         if brush.paint_source in {'DISTANCE', 'VOLUME_DISTANCE', 'POINT'}:
             col.prop(brush, "paint_distance", text="Paint Distance")

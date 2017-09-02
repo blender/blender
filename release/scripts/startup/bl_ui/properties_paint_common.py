@@ -157,9 +157,9 @@ def brush_texpaint_common(panel, context, layout, brush, settings, projpaint=Fal
         col.separator()
         if projpaint:
             if settings.mode == 'MATERIAL':
-                col.prop(settings, "use_clone_layer", text="Clone from paint slot")
+                col.prop(settings, "use_clone_layer", text="Clone from Paint Slot")
             elif settings.mode == 'IMAGE':
-                col.prop(settings, "use_clone_layer", text="Clone from image/UV map")
+                col.prop(settings, "use_clone_layer", text="Clone from Image/UV Map")
 
             if settings.use_clone_layer:
                 ob = context.active_object

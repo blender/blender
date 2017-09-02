@@ -479,7 +479,7 @@ class USERPREF_PT_system(Panel):
         col.label(text="Sound:")
         col.row().prop(system, "audio_device", expand=False)
         sub = col.column()
-        sub.active = system.audio_device != 'NONE' and system.audio_device != 'Null'
+        sub.active = system.audio_device not in {'NONE', 'Null'}
         #sub.prop(system, "use_preview_images")
         sub.prop(system, "audio_channels", text="Channels")
         sub.prop(system, "audio_mixing_buffer", text="Mixing Buffer")
@@ -1107,29 +1107,29 @@ class USERPREF_MT_ndof_settings(Menu):
             layout.prop(input_prefs, "ndof_show_guide")
 
             layout.separator()
-            layout.label(text="Orbit style")
+            layout.label(text="Orbit Style")
             layout.row().prop(input_prefs, "ndof_view_navigate_method", text="")
             layout.row().prop(input_prefs, "ndof_view_rotate_method", text="")
             layout.separator()
-            layout.label(text="Orbit options")
+            layout.label(text="Orbit Options")
             layout.prop(input_prefs, "ndof_rotx_invert_axis")
             layout.prop(input_prefs, "ndof_roty_invert_axis")
             layout.prop(input_prefs, "ndof_rotz_invert_axis")
 
         # view2d use pan/zoom
         layout.separator()
-        layout.label(text="Pan options")
+        layout.label(text="Pan Options")
         layout.prop(input_prefs, "ndof_panx_invert_axis")
         layout.prop(input_prefs, "ndof_pany_invert_axis")
         layout.prop(input_prefs, "ndof_panz_invert_axis")
         layout.prop(input_prefs, "ndof_pan_yz_swap_axis")
 
-        layout.label(text="Zoom options")
+        layout.label(text="Zoom Options")
         layout.prop(input_prefs, "ndof_zoom_invert")
 
         if is_view3d:
             layout.separator()
-            layout.label(text="Fly/Walk options")
+            layout.label(text="Fly/Walk Options")
             layout.prop(input_prefs, "ndof_fly_helicopter", icon='NDOF_FLY')
             layout.prop(input_prefs, "ndof_lock_horizon", icon='NDOF_DOM')
 
@@ -1454,7 +1454,7 @@ class USERPREF_PT_addons(Panel):
 
                 sub = row.row()
                 sub.active = is_enabled
-                sub.label(text='%s: %s' % (info["category"], info["name"]))
+                sub.label(text="%s: %s" % (info["category"], info["name"]))
                 if info["warning"]:
                     sub.label(icon='ERROR')
 
@@ -1482,11 +1482,11 @@ class USERPREF_PT_addons(Panel):
                     if info["version"]:
                         split = colsub.row().split(percentage=0.15)
                         split.label(text="Version:")
-                        split.label(text='.'.join(str(x) for x in info["version"]), translate=False)
+                        split.label(text=".".join(str(x) for x in info["version"]), translate=False)
                     if info["warning"]:
                         split = colsub.row().split(percentage=0.15)
                         split.label(text="Warning:")
-                        split.label(text='  ' + info["warning"], icon='ERROR')
+                        split.label(text="  " + info["warning"], icon='ERROR')
 
                     user_addon = USERPREF_PT_addons.is_user_addon(mod, user_addon_paths)
                     tot_row = bool(info["wiki_url"]) + bool(user_addon)

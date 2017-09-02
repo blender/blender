@@ -56,7 +56,7 @@ class OUTLINER_HT_header(Header):
                 row.operator("anim.keyframe_delete", text="", icon='KEY_DEHLT')
             else:
                 row = layout.row()
-                row.label(text="No Keying Set active")
+                row.label(text="No Keying Set Active")
         elif space.display_mode == 'ORPHAN_DATA':
             layout.operator("outliner.orphans_purge")
 

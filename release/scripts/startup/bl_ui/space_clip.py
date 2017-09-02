@@ -1033,11 +1033,11 @@ class CLIP_PT_proxy(CLIP_PT_clip_view_panel, Panel):
         if clip.source == 'MOVIE':
             col2 = col.column()
 
-            col2.label(text="Use timecode index:")
+            col2.label(text="Use Timecode Index:")
             col2.prop(clip.proxy, "timecode", text="")
 
         col2 = col.column()
-        col2.label(text="Proxy render size:")
+        col2.label(text="Proxy Render Size:")
 
         col.prop(sc.clip_user, "proxy_render_size", text="")
 
@@ -1418,7 +1418,7 @@ class CLIP_MT_tracking_specials(Menu):
                         text="Enable Markers").action = 'ENABLE'
 
         layout.operator("clip.disable_markers",
-                        text="Disable markers").action = 'DISABLE'
+                        text="Disable Markers").action = 'DISABLE'
 
         layout.separator()
         layout.operator("clip.set_origin")
