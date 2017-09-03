@@ -674,3 +674,123 @@ finally:
 	if (stack != defaultstack)
 		MEM_freeN(stack);
 }
+
+/**
+ * Use when we want to loop over nodes ordered by index.
+ * Requires indices to be aligned with nodes.
+ */
+static uint *kdtree_order(const KDTree *tree)
+{
+	const KDTreeNode *nodes = tree->nodes;
+	uint *order = MEM_mallocN(sizeof(uint) * tree->totnode, __func__);
+	for (uint i = 0; i < tree->totnode; i++) {
+		order[nodes[i].index] = i;
+	}
+	return order;
+}
+
+/* -------------------------------------------------------------------- */
+/** \name BLI_kdtree_calc_duplicates_fast
+ * \{ */
+
+struct DeDuplicateParams {
+	/* Static */
+	const KDTreeNode *nodes;
+	float range;
+	float range_sq;
+	int *duplicates;
+	int *duplicates_found;
+
+	/* Per Search */
+	float search_co[3];
+	int search;
+};
+
+static void deduplicate_recursive(const struct DeDuplicateParams *p, uint i)
+{
+	const KDTreeNode *node = &p->nodes[i];
+	if (p->search_co[node->d] + p->range <= node->co[node->d]) {
+		if (node->left != KD_NODE_UNSET) {
+			deduplicate_recursive(p, node->left);
+		}
+	}
+	else if (p->search_co[node->d] - p->range >= node->co[node->d]) {
+		if (node->right != KD_NODE_UNSET) {
+			deduplicate_recursive(p, node->right);
+		}
+	}
+	else {
+		if ((p->search != node->index) && (p->duplicates[node->index] == -1)) {
+			if (compare_len_squared_v3v3(node->co, p->search_co, p->range_sq)) {
+				p->duplicates[node->index] = (int)p->search;
+				*p->duplicates_found += 1;
+			}
+		}
+		if (node->left != KD_NODE_UNSET) {
+			deduplicate_recursive(p, node->left);
+		}
+		if (node->right != KD_NODE_UNSET) {
+			deduplicate_recursive(p, node->right);
+		}
+	}
+}
+
+/**
+ * Find duplicate points in \a range.
+ * Favors speed over quality since it doesn't find the best target vertex for merging.
+ * Nodes are looped over, duplicates are added when found.
+ * Nevertheless results are predictable.
+ *
+ * \param range: Coordinates in this range are candidates to be merged.
+ * \param use_index_order: Loop over the coordinates ordered by #KDTreeNode.index
+ * At the expense of some performance, this ensures the layout of the tree doesn't influence
+ * the iteration order.
+ * \param duplicates: An array of int's the length of #KDTree.totnode
+ * Values initialized to -1 are candidates to me merged.
+ * Setting the index to it's own position in the array prevents it from being touched,
+ * although it can still be used as a target.
+ * \returns The numebr of merges found (includes any merges already in the \a duplicates array).
+ *
+ * \note Merging is always a single step (target indices wont be marked for merging). 
+ */
+int BLI_kdtree_calc_duplicates_fast(
+        const KDTree *tree, const float range, bool use_index_order,
+        int *duplicates)
+{
+	int found = 0;
+	struct DeDuplicateParams p = {
+		.nodes = tree->nodes,
+		.range = range,
+		.range_sq = range * range,
+		.duplicates = duplicates,
+		.duplicates_found = &found,
+	};
+
+	if (use_index_order) {
+		uint *order = kdtree_order(tree);
+		for (uint i = 0; i < tree->totnode; i++) {
+			const uint node_index = order[i];
+			const int index = (int)i;
+			if (ELEM(duplicates[index], -1, index)) {
+				p.search = index;
+				copy_v3_v3(p.search_co, tree->nodes[node_index].co);
+				deduplicate_recursive(&p, tree->root);
+			}
+		}
+		MEM_freeN(order);
+	}
+	else {
+		for (uint i = 0; i < tree->totnode; i++) {
+			const uint node_index = i;
+			const int index = p.nodes[node_index].index;
+			if (ELEM(duplicates[index], -1, index)) {
+				p.search = index;
+				copy_v3_v3(p.search_co, tree->nodes[node_index].co);
+				deduplicate_recursive(&p, tree->root);
+			}
+		}
+	}
+	return found;
+}
+
+/** \} */
