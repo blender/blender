@@ -262,6 +262,7 @@ static void borderselect_action(bAnimContext *ac, const rcti rect, short mode, s
 		{
 			/* loop over data selecting */
 			switch (ale->type) {
+#if 0 /* XXXX: Keyframes are not currently shown here */
 				case ANIMTYPE_GPDATABLOCK:
 				{
 					bGPdata *gpd = ale->data;
@@ -271,6 +272,7 @@ static void borderselect_action(bAnimContext *ac, const rcti rect, short mode, s
 					}
 					break;
 				}
+#endif
 				case ANIMTYPE_GPLAYER:
 					ED_gplayer_frames_select_border(ale->data, rectf.xmin, rectf.xmax, selectmode);
 					break;
