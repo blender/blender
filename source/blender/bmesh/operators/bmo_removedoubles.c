@@ -30,6 +30,7 @@
 
 #include "BLI_math.h"
 #include "BLI_alloca.h"
+#include "BLI_kdtree.h"
 #include "BLI_stackdefines.h"
 #include "BLI_stack.h"
 
@@ -277,29 +278,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 	BMO_mesh_delete_oflag_context(bm, ELE_DEL, DEL_ONLYTAGGED);
 }
 
-static int vergaverco(const void *e1, const void *e2)
-{
-	const BMVert *v1 = *(const void **)e1, *v2 = *(const void **)e2;
-	float x1 = v1->co[0] + v1->co[1] + v1->co[2];
-	float x2 = v2->co[0] + v2->co[1] + v2->co[2];
-
-	if      (x1 > x2) return  1;
-	else if (x1 < x2) return -1;
-
-	const int i1 = BM_elem_index_get(v1);
-	const int i2 = BM_elem_index_get(v2);
-
-	if      (i1 > i2) return  1;
-	else if (i1 < i2) return -1;
-
-	else return 0;
-}
-
-// #define VERT_TESTED	1 // UNUSED
-#define VERT_DOUBLE	2
-#define VERT_TARGET	4
 #define VERT_KEEP	8
-// #define VERT_MARK	16 // UNUSED
 #define VERT_IN		32
 
 #define EDGE_MARK	1
@@ -591,83 +570,62 @@ static void bmesh_find_doubles_common(
         BMesh *bm, BMOperator *op,
         BMOperator *optarget, BMOpSlot *optarget_slot)
 {
-	BMVert  **verts;
-	int       verts_len;
+	const BMOpSlot *slot_verts = BMO_slot_get(op->slots_in, "verts");
+	BMVert * const *verts = (BMVert **)slot_verts->data.buf;
+	const int       verts_len = slot_verts->len;
 
-	int i, j, keepvert = 0;
+	bool has_keep_vert = false;
+	bool found_duplicates = false;
 
 	const float dist  = BMO_slot_float_get(op->slots_in, "dist");
-	const float dist_sq = dist * dist;
-	const float dist3 = ((float)M_SQRT3 + 0.00005f) * dist;   /* Just above sqrt(3) */
 
 	/* Test whether keep_verts arg exists and is non-empty */
 	if (BMO_slot_exists(op->slots_in, "keep_verts")) {
 		BMOIter oiter;
-		keepvert = BMO_iter_new(&oiter, op->slots_in, "keep_verts", BM_VERT) != NULL;
+		has_keep_vert = BMO_iter_new(&oiter, op->slots_in, "keep_verts", BM_VERT) != NULL;
 	}
-
-	/* get the verts as an array we can sort */
-	verts = BMO_slot_as_arrayN(op->slots_in, "verts", &verts_len);
-
-	/* Ensure indices are different so we have a predictable order when values match. */
-	for (i = 0; i < verts_len; i++) {
-		BM_elem_index_set(verts[i], i);  /* set_dirty! */
-	}
-	bm->elem_index_dirty |= BM_VERT;
-
-	/* sort by vertex coordinates added together */
-	qsort(verts, verts_len, sizeof(BMVert *), vergaverco);
 
 	/* Flag keep_verts */
-	if (keepvert) {
+	if (has_keep_vert) {
 		BMO_slot_buffer_flag_enable(bm, op->slots_in, "keep_verts", BM_VERT, VERT_KEEP);
 	}
 
-	for (i = 0; i < verts_len; i++) {
-		BMVert *v_check = verts[i];
-
-		if (BMO_vert_flag_test(bm, v_check, VERT_DOUBLE | VERT_TARGET)) {
-			continue;
+	int *duplicates = MEM_mallocN(sizeof(int) * verts_len, __func__);
+	{
+		KDTree *tree = BLI_kdtree_new(verts_len);
+		for (int i = 0; i < verts_len; i++) {
+			BLI_kdtree_insert(tree, i, verts[i]->co);
+			if (has_keep_vert && BMO_vert_flag_test(bm, verts[i], VERT_KEEP)) {
+				duplicates[i] = i;
+			}
+			else {
+				duplicates[i] = -1;
+			}
 		}
 
-		for (j = i + 1; j < verts_len; j++) {
-			BMVert *v_other = verts[j];
+		BLI_kdtree_balance(tree);
+		found_duplicates = BLI_kdtree_calc_duplicates_fast(tree, dist, false, duplicates) != 0;
+		BLI_kdtree_free(tree);
+	}
 
-			/* a match has already been found, (we could check which is best, for now don't) */
-			if (BMO_vert_flag_test(bm, v_other, VERT_DOUBLE | VERT_TARGET)) {
-				continue;
+	if (found_duplicates) {
+		for (int i = 0; i < verts_len; i++) {
+			BMVert *v_check = verts[i];
+			if (duplicates[i] == -1) {
+				/* nop (others can use as target) */
 			}
-
-			/* Compare sort values of the verts using 3x tolerance (allowing for the tolerance
-			 * on each of the three axes). This avoids the more expensive length comparison
-			 * for most vertex pairs. */
-			if ((v_other->co[0] + v_other->co[1] + v_other->co[2]) -
-			    (v_check->co[0] + v_check->co[1] + v_check->co[2]) > dist3)
-			{
-				break;
+			else if (duplicates[i] == i) {
+				/* keep (others can use as target) */
 			}
-
-			if (keepvert) {
-				if (BMO_vert_flag_test(bm, v_other, VERT_KEEP) == BMO_vert_flag_test(bm, v_check, VERT_KEEP))
-					continue;
-			}
-
-			if (compare_len_squared_v3v3(v_check->co, v_other->co, dist_sq)) {
-
-				/* If one vert is marked as keep, make sure it will be the target */
-				if (BMO_vert_flag_test(bm, v_other, VERT_KEEP)) {
-					SWAP(BMVert *, v_check, v_other);
-				}
-
-				BMO_vert_flag_enable(bm, v_other, VERT_DOUBLE);
-				BMO_vert_flag_enable(bm, v_check, VERT_TARGET);
-
-				BMO_slot_map_elem_insert(optarget, optarget_slot, v_other, v_check);
+			else {
+				BMVert *v_other = verts[duplicates[i]];
+				BLI_assert(ELEM(duplicates[duplicates[i]], -1, duplicates[i]));
+				BMO_slot_map_elem_insert(optarget, optarget_slot, v_check, v_other);
 			}
 		}
 	}
 
-	MEM_freeN(verts);
+	MEM_freeN(duplicates);
 }
 
 void bmo_remove_doubles_exec(BMesh *bm, BMOperator *op)
