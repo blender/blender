@@ -66,6 +66,10 @@ void BLI_kdtree_range_search_cb(
         const KDTree *tree, const float co[3], float range,
         bool (*search_cb)(void *user_data, int index, const float co[3], float dist_sq), void *user_data);
 
+int BLI_kdtree_calc_duplicates_fast(
+        const KDTree *tree, const float range, bool use_index_order,
+        int *doubles);
+
 /* Normal use is deprecated */
 /* remove __normal functions when last users drop */
 int BLI_kdtree_find_nearest_n__normal(
