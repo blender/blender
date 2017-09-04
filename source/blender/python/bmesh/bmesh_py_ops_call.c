@@ -200,12 +200,12 @@ static int bpy_slot_from_py(
 		{
 			/* XXX - BMesh operator design is crappy here, operator slot should define matrix size,
 			 * not the caller! */
-			unsigned short size;
 			MatrixObject *pymat;
 			if (!Matrix_ParseAny(value, &pymat)) {
 				return -1;
 			}
-			if (((size = pymat->num_col) != pymat->num_row) || (!ELEM(size, 3, 4))) {
+			const ushort size = pymat->num_col;
+			if ((size != pymat->num_row) || (!ELEM(size, 3, 4))) {
 				PyErr_Format(PyExc_TypeError,
 				             "%.200s: keyword \"%.200s\" expected a 3x3 or 4x4 matrix Matrix",
 				             opname, slot_name);
