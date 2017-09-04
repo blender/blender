@@ -53,7 +53,7 @@ static void operator_properties_init(wmOperatorType *ot)
 	 *
 	 * Note the 'no_struct_map' function is used since the actual struct name is already used by the operator.
 	 */
-	RNA_def_struct_identifier(&BLENDER_RNA, ot->srna, ot->idname);
+	RNA_def_struct_identifier_no_struct_map(ot->srna, ot->idname);
 
 	if (pyrna_deferred_register_class(ot->srna, py_class) != 0) {
 		PyErr_Print(); /* failed to register operator props */
