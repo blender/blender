@@ -522,12 +522,20 @@ bool ImageManager::file_load_image(Image *img,
 	vector<StorageType> pixels_storage;
 	StorageType *pixels;
 	const size_t max_size = max(max(width, height), depth);
+	if(max_size == 0) {
+		/* Don't bother with invalid images. */
+		return false;
+	}
 	if(texture_limit > 0 && max_size > texture_limit) {
 		pixels_storage.resize(((size_t)width)*height*depth*4);
 		pixels = &pixels_storage[0];
 	}
 	else {
 		pixels = (StorageType*)tex_img.resize(width, height, depth);
+	}
+	if(pixels == NULL) {
+		/* Could be that we've run out of memory. */
+		return false;
 	}
 	bool cmyk = false;
 	const size_t num_pixels = ((size_t)width) * height * depth;
