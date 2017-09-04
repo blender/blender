@@ -47,6 +47,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_filetype.h"
+#include "IMB_filter.h"
 #include "IMB_moviecache.h"
 
 #include "MEM_guardedalloc.h"
@@ -1635,12 +1636,13 @@ static void *do_processor_transform_thread(void *handle_v)
 	if (float_from_byte) {
 		IMB_buffer_float_from_byte(float_buffer, byte_buffer,
 		                           IB_PROFILE_SRGB, IB_PROFILE_SRGB,
-		                           true,
+		                           false,
 		                           width, height, width, width);
-			IMB_colormanagement_processor_apply(handle->cm_processor,
-			                                    float_buffer,
-			                                    width, height, channels,
-			                                    predivide);
+		IMB_colormanagement_processor_apply(handle->cm_processor,
+		                                    float_buffer,
+		                                    width, height, channels,
+		                                    predivide);
+		IMB_premultiply_rect_float(float_buffer, 4, width, height);
 	}
 	else {
 		if (byte_buffer != NULL) {
@@ -1776,14 +1778,15 @@ void IMB_colormanagement_transform_from_byte_threaded(float *float_buffer, unsig
 		 */
 		IMB_buffer_float_from_byte(float_buffer, byte_buffer,
 		                           IB_PROFILE_SRGB, IB_PROFILE_SRGB,
-		                           true,
+		                           false,
 		                           width, height, width, width);
+		IMB_premultiply_rect_float(float_buffer, 4, width, height);
 		return;
 	}
 	cm_processor = IMB_colormanagement_colorspace_processor_new(from_colorspace, to_colorspace);
 	processor_transform_apply_threaded(byte_buffer, float_buffer,
 	                                   width, height, channels,
-	                                   cm_processor, true, true);
+	                                   cm_processor, false, true);
 	IMB_colormanagement_processor_free(cm_processor);
 }
 
