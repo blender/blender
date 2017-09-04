@@ -39,16 +39,18 @@ class MovieClipAttributeOperation : public NodeOperation {
 private:
 	MovieClip *m_clip;
 	float m_value;
-	bool m_valueSet;
 	int m_framenumber;
 	bool m_invert;
 	MovieClipAttribute m_attribute;
+
 public:
 	/**
 	 * Default constructor
 	 */
 	MovieClipAttributeOperation();
-	
+
+	void initExecution();
+
 	/**
 	 * the inner loop of this program
 	 */
