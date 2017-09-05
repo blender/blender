@@ -658,6 +658,11 @@ void wm_manipulatormaps_handled_modal_update(
 	else {
 		wm_manipulatormap_highlight_set(mmap, C, NULL, 0);
 		if (mpr) {
+			/* This isn't defined if it ends because of success of cancel, we may want to change. */
+			bool cancel = true;
+			if (mpr->type->exit) {
+				mpr->type->exit(C, mpr, cancel);
+			}
 			wm_manipulatormap_modal_set(mmap, C, mpr, NULL, false);
 		}
 	}
