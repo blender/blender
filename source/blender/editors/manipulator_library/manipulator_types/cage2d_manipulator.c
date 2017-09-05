@@ -39,6 +39,7 @@
 #include "BKE_context.h"
 
 #include "BLI_math.h"
+#include "BLI_dial.h"
 #include "BLI_rect.h"
 
 #include "ED_screen.h"
@@ -501,6 +502,8 @@ static int manipulator_rect_transform_test_select(
 typedef struct RectTransformInteraction {
 	float orig_mouse[2];
 	float orig_matrix_offset[4][4];
+	float orig_matrix_final_no_offset[4][4];
+	Dial *dial;
 } RectTransformInteraction;
 
 static void manipulator_rect_transform_setup(wmManipulator *mpr)
@@ -514,6 +517,14 @@ static int manipulator_rect_transform_invoke(
 	RectTransformInteraction *data = MEM_callocN(sizeof(RectTransformInteraction), "cage_interaction");
 
 	copy_m4_m4(data->orig_matrix_offset, mpr->matrix_offset);
+
+	{
+		float mat_identity[4][4];
+		struct WM_ManipulatorMatrixParams params = {NULL};
+		unit_m4(mat_identity);
+		params.matrix_offset = mat_identity;
+		WM_manipulator_calc_matrix_final_params(mpr, &params, data->orig_matrix_final_no_offset);
+	}
 
 	if (manipulator_window_project_2d(
 	        C, mpr, (const float[2]){UNPACK2(event->mval)}, 2, false, data->orig_mouse) == 0)
@@ -571,7 +582,44 @@ static int manipulator_rect_transform_modal(
 		mpr->matrix_offset[3][1] = data->orig_matrix_offset[3][1] + (point_local[1] - data->orig_mouse[1]);
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_CAGE2D_PART_ROTATE) {
+
+#define MUL_V2_V3_M4_FINAL(test_co, mouse_co) \
+		mul_v3_m4v3(test_co, data->orig_matrix_final_no_offset, ((const float[3]){UNPACK2(mouse_co), 0.0}))
+
+		float test_co[3];
+
+		if (data->dial == NULL) {
+			MUL_V2_V3_M4_FINAL(test_co, data->orig_matrix_offset[3]);
+
+			data->dial = BLI_dial_initialize(test_co, FLT_EPSILON);
+
+			MUL_V2_V3_M4_FINAL(test_co, data->orig_mouse);
+			BLI_dial_angle(data->dial, test_co);
+		}
+
 		/* rotate */
+		MUL_V2_V3_M4_FINAL(test_co, point_local);
+		const float angle =  BLI_dial_angle(data->dial, test_co);
+
+		float matrix_space_inv[4][4];
+		float matrix_rotate[4][4];
+		float pivot[3];
+
+		copy_v3_v3(pivot, data->orig_matrix_offset[3]);
+
+		invert_m4_m4(matrix_space_inv, mpr->matrix_space);
+
+		unit_m4(matrix_rotate);
+		mul_m4_m4m4(matrix_rotate, matrix_rotate, matrix_space_inv);
+		rotate_m4(matrix_rotate, 'Z', -angle);
+		mul_m4_m4m4(matrix_rotate, matrix_rotate, mpr->matrix_space);
+
+		zero_v3(matrix_rotate[3]);
+		transform_pivot_set_m4(matrix_rotate, pivot);
+
+		mul_m4_m4m4(mpr->matrix_offset, matrix_rotate, data->orig_matrix_offset);
+
+#undef MUL_V2_V3_M4_FINAL
 	}
 	else {
 		/* scale */
@@ -659,6 +707,8 @@ static void manipulator_rect_transform_property_update(wmManipulator *mpr, wmMan
 static void manipulator_rect_transform_exit(bContext *C, wmManipulator *mpr, const bool cancel)
 {
 	RectTransformInteraction *data = mpr->interaction_data;
+
+	MEM_SAFE_FREE(data->dial);
 
 	if (!cancel)
 		return;
