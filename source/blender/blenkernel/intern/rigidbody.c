@@ -1596,8 +1596,12 @@ void BKE_rigidbody_do_simulation(Scene *scene, float ctime)
 	BKE_ptcache_id_time(&pid, scene, ctime, &startframe, &endframe, NULL);
 	cache = rbw->pointcache;
 
+	if (ctime <= startframe) {
+		rbw->ltime = startframe;
+		return;
+	}
 	/* make sure we don't go out of cache frame range */
-	if (ctime > endframe) {
+	else if (ctime > endframe) {
 		ctime = endframe;
 	}
 
@@ -1611,12 +1615,9 @@ void BKE_rigidbody_do_simulation(Scene *scene, float ctime)
 	// RB_TODO deal with interpolated, old and baked results
 	bool can_simulate = (ctime == rbw->ltime + 1) && !(cache->flag & PTCACHE_BAKED);
 
-	if (cache->flag & PTCACHE_OUTDATED || cache->last_exact == 0) {
-		rbw->ltime = cache->startframe;
-	}
-
-	if (BKE_ptcache_read(&pid, ctime, can_simulate)) {
+	if (BKE_ptcache_read(&pid, ctime, can_simulate) == PTCACHE_READ_EXACT) {
 		BKE_ptcache_validate(cache, (int)ctime);
+		rbw->ltime = ctime;
 		return;
 	}
 
