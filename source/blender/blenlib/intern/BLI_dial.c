@@ -46,7 +46,7 @@ struct Dial {
 };
 
 
-Dial *BLI_dial_initialize(float start_position[2], float threshold)
+Dial *BLI_dial_initialize(const float start_position[2], float threshold)
 {
 	Dial *dial = MEM_callocN(sizeof(Dial), "dial");
 	
@@ -56,7 +56,7 @@ Dial *BLI_dial_initialize(float start_position[2], float threshold)
 	return dial;
 }
 
-float BLI_dial_angle(Dial *dial, float current_position[2])
+float BLI_dial_angle(Dial *dial, const float current_position[2])
 {
 	float current_direction[2];
 	

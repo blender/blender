@@ -252,8 +252,10 @@ bool ED_gplayer_frames_delete(bGPDlayer *gpl)
 	for (gpf = gpl->frames.first; gpf; gpf = gpfn) {
 		gpfn = gpf->next;
 		
-		if (gpf->flag & GP_FRAME_SELECT)
-			changed |= BKE_gpencil_layer_delframe(gpl, gpf);
+		if (gpf->flag & GP_FRAME_SELECT) {
+			BKE_gpencil_layer_delframe(gpl, gpf);
+			changed = true;
+		}
 	}
 	
 	return changed;

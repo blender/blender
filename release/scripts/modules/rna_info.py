@@ -82,6 +82,32 @@ def float_as_string(f):
     return val_str
 
 
+def get_py_class_from_rna(rna_type):
+    """ Get's the Python type for a class which isn't necessarily added to ``bpy.types``.
+    """
+    identifier = rna_type.identifier
+    py_class = getattr(bpy.types, identifier, None)
+    if py_class is not None:
+        return py_class
+
+    def subclasses_recurse(cls):
+        for c in cls.__subclasses__():
+            # is_registered
+            if "bl_rna" in cls.__dict__:
+                yield c
+            yield from subclasses_recurse(c)
+
+    while py_class is None:
+        base = rna_type.base
+        if base is None:
+            raise Exception("can't find type")
+        py_class_base = getattr(bpy.types, base.identifier, None)
+        if py_class_base is not None:
+            for cls in subclasses_recurse(py_class_base):
+                if cls.bl_rna.identifier == identifier:
+                    return cls
+
+
 class InfoStructRNA:
     __slots__ = (
         "bl_rna",
@@ -146,7 +172,8 @@ class InfoStructRNA:
 
     def _get_py_visible_attrs(self):
         attrs = []
-        py_class = getattr(bpy.types, self.identifier)
+        py_class = get_py_class_from_rna(self.bl_rna)
+
         for attr_str in dir(py_class):
             if attr_str.startswith("_"):
                 continue
@@ -437,7 +464,11 @@ class InfoOperatorRNA:
             self.args.append(prop)
 
     def get_location(self):
-        op_class = getattr(bpy.types, self.identifier)
+        try:
+            op_class = getattr(bpy.types, self.identifier)
+        except AttributeError:
+            # defined in C.
+            return None, None
         op_func = getattr(op_class, "execute", None)
         if op_func is None:
             op_func = getattr(op_class, "invoke", None)

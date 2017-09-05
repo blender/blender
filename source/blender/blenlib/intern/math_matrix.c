@@ -1728,6 +1728,9 @@ void rotate_m4(float mat[4][4], const char axis, const float angle)
 				mat[0][col] =  temp;
 			}
 			break;
+		default:
+			BLI_assert(0);
+			break;
 	}
 }
 

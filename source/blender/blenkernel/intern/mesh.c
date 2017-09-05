@@ -2112,6 +2112,11 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh, MLoopNorSpaceArray *r_lnors_spac
 	short (*clnors)[2] = NULL;
 	bool free_polynors = false;
 
+	/* Note that we enforce computing clnors when the clnor space array is requested by caller here.
+	 * However, we obviously only use the autosmooth angle threshold only in case autosmooth is enabled. */
+	const bool use_split_normals = (r_lnors_spacearr != NULL) || ((mesh->flag & ME_AUTOSMOOTH) != 0);
+	const float split_angle = (mesh->flag & ME_AUTOSMOOTH) != 0 ? mesh->smoothresh : (float)M_PI;
+
 	if (CustomData_has_layer(&mesh->ldata, CD_NORMAL)) {
 		r_loopnors = CustomData_get_layer(&mesh->ldata, CD_NORMAL);
 		memset(r_loopnors, 0, sizeof(float[3]) * mesh->totloop);
@@ -2140,10 +2145,7 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh, MLoopNorSpaceArray *r_lnors_spac
 	BKE_mesh_normals_loop_split(
 	        mesh->mvert, mesh->totvert, mesh->medge, mesh->totedge,
 	        mesh->mloop, r_loopnors, mesh->totloop, mesh->mpoly, (const float (*)[3])polynors, mesh->totpoly,
-	        /* Note that we enforce computing clnors when the clnor space array is requested by caller here.
-	         * However, we obviously only use the autosmooth angle threshold only in case autosmooth is enabled. */
-	        r_lnors_spacearr != NULL, (mesh->flag & ME_AUTOSMOOTH) != 0 ? mesh->smoothresh : (float)M_PI,
-	        r_lnors_spacearr, clnors, NULL);
+	        use_split_normals, split_angle, r_lnors_spacearr, clnors, NULL);
 
 	if (free_polynors) {
 		MEM_freeN(polynors);

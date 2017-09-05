@@ -8401,8 +8401,15 @@ static void initTimeSlide(TransInfo *t)
 
 		TransData  *td = t->data;
 		for (i = 0; i < t->total; i++, td++) {
-			if (min > *(td->val)) min = *(td->val);
-			if (max < *(td->val)) max = *(td->val);
+			AnimData *adt = (t->spacetype != SPACE_NLA) ? td->extra : NULL;
+			float val = *(td->val);
+			
+			/* strip/action time to global (mapped) time */
+			if (adt)
+				val = BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_MAP);
+			
+			if (min > val) min = val;
+			if (max < val) max = val;
 		}
 
 		if (min == max) {
@@ -8477,24 +8484,37 @@ static void applyTimeSlideValue(TransInfo *t, float sval)
 		 */
 		AnimData *adt = (t->spacetype != SPACE_NLA) ? td->extra : NULL;
 		float cval = t->values[0];
-
-		/* apply NLA-mapping to necessary values */
-		if (adt)
-			cval = BKE_nla_tweakedit_remap(adt, cval, NLATIME_CONVERT_UNMAP);
-
+		
 		/* only apply to data if in range */
 		if ((sval > minx) && (sval < maxx)) {
 			float cvalc = CLAMPIS(cval, minx, maxx);
+			float ival = td->ival;
 			float timefac;
-
+			
+			/* NLA mapping magic here works as follows:
+			 * - "ival" goes from strip time to global time
+			 * - calculation is performed into td->val in global time
+			 *   (since sval and min/max are all in global time)
+			 * - "td->val" then gets put back into strip time
+			 */
+			if (adt) {
+				/* strip to global */
+				ival = BKE_nla_tweakedit_remap(adt, ival, NLATIME_CONVERT_MAP);
+			}
+			
 			/* left half? */
-			if (td->ival < sval) {
-				timefac = (sval - td->ival) / (sval - minx);
+			if (ival < sval) {
+				timefac = (sval - ival) / (sval - minx);
 				*(td->val) = cvalc - timefac * (cvalc - minx);
 			}
 			else {
-				timefac = (td->ival - sval) / (maxx - sval);
+				timefac = (ival - sval) / (maxx - sval);
 				*(td->val) = cvalc + timefac * (maxx - cvalc);
+			}
+			
+			if (adt) {
+				/* global to strip */
+				*(td->val) = BKE_nla_tweakedit_remap(adt, *(td->val), NLATIME_CONVERT_UNMAP);
 			}
 		}
 	}

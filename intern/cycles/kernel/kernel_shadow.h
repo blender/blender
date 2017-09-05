@@ -204,7 +204,7 @@ ccl_device bool shadow_blocked_transparent_all_loop(KernelGlobals *kg,
 	}
 #    ifdef __VOLUME__
 	if(!blocked && state->volume_stack[0].shader != SHADER_NONE) {
-		/* Apply attenuation from current volume shader/ */
+		/* Apply attenuation from current volume shader. */
 		kernel_volume_shadow(kg, shadow_sd, state, ray, shadow);
 	}
 #    endif
