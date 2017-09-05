@@ -338,7 +338,8 @@ ccl_device bool shadow_blocked_transparent_stepped_loop(
 		PathState *ps = shadow_blocked_volume_path_state(kg,
 		                                                 &volume_state,
 		                                                 state,
-		                                                 sd);
+		                                                 sd,
+		                                                 ray);
 #    endif
 		for(;;) {
 			if(bounce >= kernel_data.integrator.transparent_max_bounce) {
@@ -391,7 +392,8 @@ ccl_device bool shadow_blocked_transparent_stepped_loop(
 		PathState *ps = shadow_blocked_volume_path_state(kg,
 		                                                 &volume_state,
 		                                                 state,
-		                                                 sd);
+		                                                 sd,
+		                                                 ray);
 		kernel_volume_shadow(kg, shadow_sd, ps, ray, shadow);
 	}
 #    endif
