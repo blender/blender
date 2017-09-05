@@ -2861,6 +2861,14 @@ void node_bsdf_principled_clearcoat(vec4 base_color, float subsurface, vec3 subs
 	float clearcoat_roughness, float ior, float transmission, float transmission_roughness, vec3 N, vec3 CN, vec3 T, vec3 I, float ssr_id, out Closure result)
 {
 #ifdef EEVEE_ENGINE
+	if (clearcoat == 0.0) {
+		node_bsdf_principled_simple(
+			base_color, subsurface, subsurface_radius, subsurface_color, metallic, specular,
+			specular_tint, roughness, anisotropic, anisotropic_rotation, sheen, sheen_tint, clearcoat,
+			clearcoat_roughness, ior, transmission, transmission_roughness, N, CN, T, I, ssr_id, result);
+		return;
+	}
+
 	vec3 diffuse, f0, ssr_spec;
 	convert_metallic_to_specular_tinted(base_color.rgb, metallic, specular, specular_tint, diffuse, f0);
 
