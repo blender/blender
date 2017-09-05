@@ -52,8 +52,8 @@
 
 typedef struct Dial Dial;
 
-Dial *BLI_dial_initialize(float start_position[2], float threshold);
+Dial *BLI_dial_initialize(const float start_position[2], float threshold);
 
-float BLI_dial_angle(Dial *dial, float current_position[2]);
+float BLI_dial_angle(Dial *dial, const float current_position[2]);
 
 #endif /* __BLI_DIAL_H__ */
