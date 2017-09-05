@@ -63,8 +63,10 @@
 static void arrow2d_draw_geom(wmManipulator *mpr, const float matrix[4][4], const float color[4])
 {
 	const float size = 0.11f;
-	const float size_h = size / 2.0f;
-	const float arrow_length = RNA_float_get(mpr->ptr, "length");
+	const float size_breadth = size / 2.0f;
+	const float size_length = size * 1.7f;
+	/* Subtract the length so the arrow fits in the hotspot. */
+	const float arrow_length = RNA_float_get(mpr->ptr, "length") - size_length;
 	const float arrow_angle = RNA_float_get(mpr->ptr, "angle");
 
 	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -83,9 +85,9 @@ static void arrow2d_draw_geom(wmManipulator *mpr, const float matrix[4][4], cons
 	immEnd();
 
 	immBegin(GWN_PRIM_TRIS, 3);
-	immVertex2f(pos, size_h, arrow_length);
-	immVertex2f(pos, -size_h, arrow_length);
-	immVertex2f(pos, 0.0f, arrow_length + size * 1.7f);
+	immVertex2f(pos, size_breadth, arrow_length);
+	immVertex2f(pos, -size_breadth, arrow_length);
+	immVertex2f(pos, 0.0f, arrow_length + size_length);
 	immEnd();
 
 	immUnbindProgram();
