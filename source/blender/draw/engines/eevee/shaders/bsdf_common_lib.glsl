@@ -25,7 +25,6 @@ layout(std140) uniform shadow_render_block {
 	float farClip;
 	float shadowSampleCount;
 	float shadowInvSampleCount;
-	float shadowFilterSize;
 };
 
 flat in int shFace; /* Shadow layer we are rendering to. */
@@ -47,6 +46,8 @@ uniform sampler2DArray planarDepth;
 #define viewCameraVec  ((ProjectionMatrix[3][3] == 0.0) ? normalize(-viewPosition) : vec3(0.0, 0.0, 1.0))
 
 /* ------- Structures -------- */
+
+/* ------ Lights ----- */
 struct LightData {
 	vec4 position_influence;      /* w : InfluenceRadius */
 	vec4 color_spec;              /* w : Spec Intensity */
@@ -72,28 +73,34 @@ struct LightData {
 #define l_radius       spotdata_radius_shadow.z
 #define l_shadowid     spotdata_radius_shadow.w
 
-
-struct ShadowCubeData {
-	vec4 near_far_bias_exp;
-};
-
+/* ------ Shadows ----- */
 #ifndef MAX_CASCADE_NUM
 #define MAX_CASCADE_NUM 4
 #endif
 
+struct ShadowData {
+	vec4 near_far_bias_exp;
+	vec4 shadow_data_start_end;
+};
+
+struct ShadowCubeData {
+	vec4 position;
+};
+
 struct ShadowCascadeData {
 	mat4 shadowmat[MAX_CASCADE_NUM];
-	/* arrays of float are not aligned so use vec4 */
 	vec4 split_distances;
-	vec4 near_far_bias_exp;
 };
 
 /* convenience aliases */
-#define sh_cube_near   near_far_bias_exp.x
-#define sh_cube_far    near_far_bias_exp.y
-#define sh_cube_bias   near_far_bias_exp.z
-#define sh_cube_exp    near_far_bias_exp.w
-#define sh_cube_bleed  near_far_bias_exp.w
+#define sh_near   near_far_bias_exp.x
+#define sh_far    near_far_bias_exp.y
+#define sh_bias   near_far_bias_exp.z
+#define sh_exp    near_far_bias_exp.w
+#define sh_bleed  near_far_bias_exp.w
+#define sh_tex_start    shadow_data_start_end.x
+#define sh_data_start   shadow_data_start_end.y
+#define sh_multi_nbr    shadow_data_start_end.z
 
 /* ------- Convenience functions --------- */
 

@@ -9,7 +9,6 @@ layout(std140) uniform shadow_render_block {
 	float farClip;
 	float shadowSampleCount;
 	float shadowInvSampleCount;
-	float shadowFilterSize;
 };
 
 layout(triangles) in;

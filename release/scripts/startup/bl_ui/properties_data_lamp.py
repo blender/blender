@@ -371,23 +371,20 @@ class DATA_PT_EEVEE_shadow(DataButtonsPanel, Panel):
 
         lamp = context.lamp
 
-        if lamp.type == 'SUN':
-            layout.label("Comming Soon")
-        else:
-            split = layout.split()
-            split.active = lamp.use_shadow
+        split = layout.split()
+        split.active = lamp.use_shadow
 
-            sub = split.column()
-            col = sub.column(align=True)
-            col.prop(lamp, "shadow_buffer_clip_start", text="Clip Start")
-            col.prop(lamp, "shadow_buffer_clip_end", text="Clip End")
-            col = sub.column()
-            col.prop(lamp, "shadow_buffer_soft", text="Soft")
+        sub = split.column()
+        col = sub.column(align=True)
+        col.prop(lamp, "shadow_buffer_clip_start", text="Clip Start")
+        col.prop(lamp, "shadow_buffer_clip_end", text="Clip End")
+        col = sub.column()
+        col.prop(lamp, "shadow_buffer_soft", text="Soft")
 
-            col = split.column(align=True)
-            col.prop(lamp, "shadow_buffer_bias", text="Bias")
-            col.prop(lamp, "shadow_buffer_exp", text="Exponent")
-            col.prop(lamp, "shadow_buffer_bleed_bias", text="Bleed Bias")
+        col = split.column(align=True)
+        col.prop(lamp, "shadow_buffer_bias", text="Bias")
+        col.prop(lamp, "shadow_buffer_exp", text="Exponent")
+        col.prop(lamp, "shadow_buffer_bleed_bias", text="Bleed Bias")
 
 
 class DATA_PT_area(DataButtonsPanel, Panel):

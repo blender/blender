@@ -35,9 +35,10 @@ extern struct DrawEngineType draw_engine_eevee_type;
 #define MAX_GRID 64 /* TODO : find size by dividing UBO max size by grid data size */
 #define MAX_PLANAR 16 /* TODO : find size by dividing UBO max size by grid data size */
 #define MAX_LIGHT 128 /* TODO : find size by dividing UBO max size by light data size */
-#define MAX_SHADOW_CUBE 42 /* TODO : Make this depends on GL_MAX_ARRAY_TEXTURE_LAYERS */
-#define MAX_SHADOW_CASCADE 8
 #define MAX_CASCADE_NUM 4
+#define MAX_SHADOW 256 /* TODO : Make this depends on GL_MAX_ARRAY_TEXTURE_LAYERS */
+#define MAX_SHADOW_CASCADE 8
+#define MAX_SHADOW_CUBE (MAX_SHADOW - MAX_CASCADE_NUM * MAX_SHADOW_CASCADE)
 #define MAX_BLOOM_STEP 16
 
 /* Only define one of these. */
@@ -211,14 +212,18 @@ typedef struct EEVEE_Light {
 	float forwardvec[3], lamptype;
 } EEVEE_Light;
 
-typedef struct EEVEE_ShadowCube {
+typedef struct EEVEE_Shadow {
 	float near, far, bias, exp;
+	float shadow_start, data_start, multi_shadow_count, pad;
+} EEVEE_Shadow;
+
+typedef struct EEVEE_ShadowCube {
+	float position[3], pad;
 } EEVEE_ShadowCube;
 
 typedef struct EEVEE_ShadowCascade {
 	float shadowmat[MAX_CASCADE_NUM][4][4]; /* World->Lamp->NDC->Tex : used for sampling the shadow map. */
 	float split[4];
-	float near, far, bias, pad;
 } EEVEE_ShadowCascade;
 
 typedef struct EEVEE_ShadowRender {
@@ -231,7 +236,6 @@ typedef struct EEVEE_ShadowRender {
 	float clip_far;
 	float shadow_samples_ct;
 	float shadow_inv_samples_ct;
-	float filter_size;
 } EEVEE_ShadowRender;
 
 /* ************ VOLUME DATA ************ */
@@ -244,13 +248,15 @@ typedef struct EEVEE_VolumetricsInfo {
 /* ************ LIGHT DATA ************* */
 typedef struct EEVEE_LampsInfo {
 	int num_light, cache_num_light;
-	int num_cube, cache_num_cube;
-	int num_cascade, cache_num_cascade;
-	int num_shadow, cache_num_shadow;
+	int num_layer, cache_num_layer;
+	int gpu_cube_ct, gpu_cascade_ct, gpu_shadow_ct;
+	int cpu_cube_ct, cpu_cascade_ct;
 	int update_flag;
 	int shadow_size, shadow_method;
 	bool shadow_high_bitdepth;
 	int shadow_cube_target_size;
+	int current_shadow_cascade;
+	float filter_size;
 	/* List of lights in the scene. */
 	/* XXX This is fragile, can get out of sync quickly. */
 	struct Object *light_ref[MAX_LIGHT];
@@ -259,6 +265,7 @@ typedef struct EEVEE_LampsInfo {
 	/* UBO Storage : data used by UBO */
 	struct EEVEE_Light         light_data[MAX_LIGHT];
 	struct EEVEE_ShadowRender  shadow_render_data;
+	struct EEVEE_Shadow        shadow_data[MAX_SHADOW];
 	struct EEVEE_ShadowCube    shadow_cube_data[MAX_SHADOW_CUBE];
 	struct EEVEE_ShadowCascade shadow_cascade_data[MAX_SHADOW_CASCADE];
 } EEVEE_LampsInfo;

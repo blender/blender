@@ -2,6 +2,7 @@
 uniform sampler2DArray shadowTexture;
 
 layout(std140) uniform shadow_block {
+	ShadowData        shadows_data[MAX_SHADOW];
 	ShadowCubeData    shadows_cube_data[MAX_SHADOW_CUBE];
 	ShadowCascadeData shadows_cascade_data[MAX_SHADOW_CASCADE];
 };
@@ -17,90 +18,112 @@ layout(std140) uniform light_block {
 #define HEMI     3.0
 #define AREA     4.0
 
-float shadow_cubemap(float shid, vec4 l_vector)
+/* ----------------------------------------------------------- */
+/* ----------------------- Shadow tests ---------------------- */
+/* ----------------------------------------------------------- */
+
+float shadow_test_esm(float z, float dist, float exponent)
 {
-	ShadowCubeData scd = shadows_cube_data[int(shid)];
+	return saturate(exp(exponent * (z - dist)));
+}
 
-	vec3 cubevec = -l_vector.xyz / l_vector.w;
-	float dist = l_vector.w;
+float shadow_test_pcf(float z, float dist)
+{
+	return step(0, z - dist);
+}
 
-#if defined(SHADOW_VSM)
-	vec2 moments = texture_octahedron(shadowTexture, vec4(cubevec, shid)).rg;
+float shadow_test_vsm(vec2 moments, float dist, float bias, float bleed_bias)
+{
 	float p = 0.0;
 
 	if (dist <= moments.x)
 		p = 1.0;
 
 	float variance = moments.y - (moments.x * moments.x);
-	variance = max(variance, scd.sh_cube_bias / 10.0);
+	variance = max(variance, bias / 10.0);
 
 	float d = moments.x - dist;
 	float p_max = variance / (variance + d * d);
 
-	// Now reduce light-bleeding by removing the [0, x] tail and linearly rescaling (x, 1]
-	p_max = clamp((p_max - scd.sh_cube_bleed) / (1.0 - scd.sh_cube_bleed), 0.0, 1.0);
+	/* Now reduce light-bleeding by removing the [0, x] tail and linearly rescaling (x, 1] */
+	p_max = clamp((p_max - bleed_bias) / (1.0 - bleed_bias), 0.0, 1.0);
 
-	float vsm_test = max(p, p_max);
-	return vsm_test;
+	return max(p, p_max);
+}
 
-#elif defined(SHADOW_ESM)
-	float z = texture_octahedron(shadowTexture, vec4(cubevec, shid)).r;
-	float esm_test = saturate(exp(scd.sh_cube_exp * (z - (dist - scd.sh_cube_bias))));
-	return esm_test;
 
+/* ----------------------------------------------------------- */
+/* ----------------------- Shadow types ---------------------- */
+/* ----------------------------------------------------------- */
+
+float shadow_cubemap(ShadowData sd, ShadowCubeData scd, float texid, vec3 W)
+{
+	vec3 cubevec = W - scd.position.xyz;
+	float dist = length(cubevec);
+
+	cubevec /= dist;
+
+#if defined(SHADOW_VSM)
+	vec2 moments = texture_octahedron(shadowTexture, vec4(cubevec, texid)).rg;
 #else
-	float z = texture_octahedron(shadowTexture, vec4(cubevec, shid)).r;
-	float sh_test = step(0, z - (dist - scd.sh_cube_bias));
-	return sh_test;
+	float z = texture_octahedron(shadowTexture, vec4(cubevec, texid)).r;
+#endif
+
+#if defined(SHADOW_VSM)
+	return shadow_test_vsm(moments, dist, sd.sh_bias, sd.sh_bleed);
+#elif defined(SHADOW_ESM)
+	return shadow_test_esm(z, dist - sd.sh_bias, sd.sh_exp);
+#else
+	return shadow_test_pcf(z, dist - sd.sh_bias);
 #endif
 }
 
-float shadow_cascade(float shid, vec3 W)
+float shadow_cascade(ShadowData sd, ShadowCascadeData scd, float texid, vec3 W)
 {
-	return 1.0;
-	#if 0
-	/* Shadow Cascade */
-	shid -= MAX_SHADOW_CUBE;
-	ShadowCascadeData smd = shadows_cascade_data[int(shid)];
-
 	/* Finding Cascade index */
-	vec4 view_z = vec4(-dot(cameraPos - W, cameraForward));
-	vec4 comp = step(view_z, smd.split_distances);
+	vec4 view_z = vec4(dot(W - cameraPos, cameraForward));
+	vec4 comp = step(view_z, scd.split_distances);
 	float cascade = dot(comp, comp);
 	mat4 shadowmat;
-	float bias;
 
 	/* Manual Unrolling of a loop for better performance.
 	 * Doing fetch directly with cascade index leads to
 	 * major performance impact. (0.27ms -> 10.0ms for 1 light) */
 	if (cascade == 0.0) {
-		shadowmat = smd.shadowmat[0];
-		bias = smd.bias[0];
+		shadowmat = scd.shadowmat[0];
 	}
 	else if (cascade == 1.0) {
-		shadowmat = smd.shadowmat[1];
-		bias = smd.bias[1];
+		shadowmat = scd.shadowmat[1];
 	}
 	else if (cascade == 2.0) {
-		shadowmat = smd.shadowmat[2];
-		bias = smd.bias[2];
+		shadowmat = scd.shadowmat[2];
 	}
 	else {
-		shadowmat = smd.shadowmat[3];
-		bias = smd.bias[3];
+		shadowmat = scd.shadowmat[3];
 	}
 
 	vec4 shpos = shadowmat * vec4(W, 1.0);
-	float dist = shpos.z - bias * shpos.w;
-	shpos.xyz /= shpos.w;
+	float dist = shpos.z * abs(sd.sh_far - sd.sh_near); /* Same factor as in get_cascade_world_distance(). */
 
-	float z = texture(shadowTexture, vec4(shpos.xy, shid * float(MAX_CASCADE_NUM) + cascade, shpos.z)).r;
+#if defined(SHADOW_VSM)
+	vec2 moments = texture(shadowTexture, vec3(shpos.xy, texid + cascade)).rg;
+#else
+	float z = texture(shadowTexture, vec3(shpos.xy, texid + cascade)).r;
+#endif
 
-	float esm_test = saturate(exp(smd.sh_cube_exp * (z - dist)));
-
-	return esm_test;
-	#endif
+#if defined(SHADOW_VSM)
+	return shadow_test_vsm(moments, dist, sd.sh_bias, sd.sh_bleed);
+#elif defined(SHADOW_ESM)
+	return shadow_test_esm(z, dist - sd.sh_bias, sd.sh_exp);
+#else
+	return shadow_test_pcf(z, dist - sd.sh_bias);
+#endif
 }
+
+/* ----------------------------------------------------------- */
+/* --------------------- Light Functions --------------------- */
+/* ----------------------------------------------------------- */
+#define MAX_MULTI_SHADOW 4
 
 float light_visibility(LightData ld, vec3 W, vec4 l_vector)
 {
@@ -125,11 +148,24 @@ float light_visibility(LightData ld, vec3 W, vec4 l_vector)
 
 #if !defined(VOLUMETRICS) || defined(VOLUME_SHADOW)
 	/* shadowing */
-	if (ld.l_shadowid >= MAX_SHADOW_CUBE) {
-		vis *= shadow_cascade(ld.l_shadowid, W);
-	}
-	else if (ld.l_shadowid >= 0.0) {
-		vis *= shadow_cubemap(ld.l_shadowid, l_vector);
+	if (ld.l_shadowid >= 0.0) {
+		ShadowData data = shadows_data[int(ld.l_shadowid)];
+		if (ld.l_type == SUN) {
+			/* TODO : MSM */
+			// for (int i = 0; i < MAX_MULTI_SHADOW; ++i) {
+				vis *= shadow_cascade(
+					data, shadows_cascade_data[int(data.sh_data_start)],
+					data.sh_tex_start, W);
+			// }
+		}
+		else {
+			/* TODO : MSM */
+			// for (int i = 0; i < MAX_MULTI_SHADOW; ++i) {
+				vis *= shadow_cubemap(
+					data, shadows_cube_data[int(data.sh_data_start)],
+					data.sh_tex_start, W);
+			// }
+		}
 	}
 #endif
 

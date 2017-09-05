@@ -9,14 +9,15 @@ layout(std140) uniform shadow_render_block {
 	float farClip;
 	float shadowSampleCount;
 	float shadowInvSampleCount;
-	float shadowFilterSize;
 };
 
 #ifdef CSM
 uniform sampler2DArray shadowTexture;
+uniform int cascadeId;
 #else
 uniform samplerCube shadowTexture;
 #endif
+uniform float shadowFilterSize;
 
 out vec4 FragColor;
 
@@ -52,6 +53,13 @@ float linear_depth(float z)
 	return (nearClip  * farClip) / (z * (nearClip - farClip) + farClip);
 }
 
+#ifdef CSM
+float get_cascade_world_distance(vec2 uvs)
+{
+	float zdepth = texture(shadowTexture, vec3(uvs, float(cascadeId))).r;
+	return zdepth * abs(farClip - nearClip); /* Same factor as in shadow_cascade(). */
+}
+#else
 float get_cube_radial_distance(vec3 cubevec)
 {
 	float zdepth = texture(shadowTexture, cubevec).r;
@@ -60,6 +68,7 @@ float get_cube_radial_distance(vec3 cubevec)
 	float cos_vec = max(cubevec.x, max(cubevec.y, cubevec.z));
 	return linear_zdepth / cos_vec;
 }
+#endif
 
 /* Marco Salvi's GDC 2008 presentation about shadow maps pre-filtering techniques slide 24 */
 float ln_space_prefilter(float w0, float x, float w1, float y)
@@ -118,6 +127,55 @@ float wang_hash_noise(uint s)
 	value *= 1.0 / 4294967296.0;
 	return fract(value);
 }
+
+#ifdef CSM
+void main() {
+	vec2 uvs = gl_FragCoord.xy * storedTexelSize;
+
+	vec2 X, Y;
+	X.x = cos(wang_hash_noise(0u) * 3.1415 * 2.0);
+	X.y = sqrt(1.0 - X.x * X.x);
+
+	Y = vec2(-X.y, X.x);
+
+	X *= shadowFilterSize;
+	Y *= shadowFilterSize;
+
+/* TODO Can be optimized by groupping fetches
+ * and by converting to world distance beforehand. */
+#if defined(ESM) || defined(VSM)
+#ifdef ESM
+	float accum = 0.0;
+
+	/* Poisson disc blur in log space. */
+	float depth1 = get_cascade_world_distance(uvs + X * poisson[0].x + Y * poisson[0].y);
+	float depth2 = get_cascade_world_distance(uvs + X * poisson[1].x + Y * poisson[1].y);
+	accum = ln_space_prefilter(INV_SAMPLE_NUM, depth1, INV_SAMPLE_NUM, depth2);
+
+	for (int i = 2; i < SAMPLE_NUM; ++i) {
+		depth1 = get_cascade_world_distance(uvs + X * poisson[i].x + Y * poisson[i].y);
+		accum = ln_space_prefilter(1.0, accum, INV_SAMPLE_NUM, depth1);
+	}
+
+	FragColor = vec4(accum);
+#else /* VSM */
+	vec2 accum = vec2(0.0);
+
+	/* Poisson disc blur. */
+	for (int i = 0; i < SAMPLE_NUM; ++i) {
+		float dist = get_cascade_world_distance(uvs + X * poisson[i].x + Y * poisson[i].y);
+		float dist_sqr = dist * dist;
+		accum += vec2(dist, dist_sqr);
+	}
+
+	FragColor = accum.xyxy * shadowInvSampleCount;
+#endif /* Prefilter */
+#else /* PCF (no prefilter) */
+	FragColor = vec4(get_cascade_world_distance(uvs));
+#endif
+}
+
+#else /* CUBEMAP */
 
 void main() {
 	vec2 uvs = gl_FragCoord.xy * storedTexelSize;
@@ -181,3 +239,4 @@ void main() {
 	FragColor = vec4(get_cube_radial_distance(cubevec));
 #endif
 }
+#endif
