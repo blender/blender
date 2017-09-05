@@ -1206,6 +1206,7 @@ static bool knife_ray_intersect_face(
 
 	for (; tri_i < tottri; tri_i++) {
 		const float *lv1, *lv2, *lv3;
+		float ray_tri_uv[2];
 
 		tri = kcd->em->looptris[tri_i];
 		if (tri[0]->f != f)
@@ -1217,7 +1218,7 @@ static bool knife_ray_intersect_face(
 		 * tesselation edge and might not hit either tesselation tri with
 		 * an exact test;
 		 * we will exclude hits near real edges by a later test */
-		if (isect_ray_tri_epsilon_v3(v1, raydir, lv1, lv2, lv3, &lambda, NULL, KNIFE_FLT_EPS)) {
+		if (isect_ray_tri_epsilon_v3(v1, raydir, lv1, lv2, lv3, &lambda, ray_tri_uv, KNIFE_FLT_EPS)) {
 			/* check if line coplanar with tri */
 			normal_tri_v3(tri_norm, lv1, lv2, lv3);
 			plane_from_point_normal_v3(tri_plane, lv1, tri_norm);
@@ -1226,8 +1227,7 @@ static bool knife_ray_intersect_face(
 			{
 				return false;
 			}
-			copy_v3_v3(hit_cageco, v1);
-			madd_v3_v3fl(hit_cageco, raydir, lambda);
+			interp_v3_v3v3v3_uv(hit_cageco, lv1, lv2, lv3, ray_tri_uv);
 			/* Now check that far enough away from verts and edges */
 			lst = knife_get_face_kedges(kcd, f);
 			for (ref = lst->first; ref; ref = ref->next) {
@@ -1239,11 +1239,7 @@ static bool knife_ray_intersect_face(
 					return false;
 				}
 			}
-
-			transform_point_by_tri_v3(
-			        hit_co, hit_cageco,
-			        tri[0]->v->co, tri[1]->v->co, tri[2]->v->co,
-			        lv1, lv2, lv3);
+			interp_v3_v3v3v3_uv(hit_co, tri[0]->v->co, tri[1]->v->co, tri[2]->v->co, ray_tri_uv);
 			return true;
 		}
 	}
