@@ -3116,15 +3116,17 @@ void node_tex_image(vec3 co, sampler2D ima, out vec4 color, out float alpha)
 }
 
 void node_tex_image_box(vec3 texco,
-                        vec3 nob,
+                        vec3 N,
                         sampler2D ima,
                         float blend,
                         out vec4 color,
                         out float alpha)
 {
+	vec3 signed_N = N;
+
 	/* project from direction vector to barycentric coordinates in triangles */
-	nob = vec3(abs(nob.x), abs(nob.y), abs(nob.z));
-	nob /= (nob.x + nob.y + nob.z);
+	N = vec3(abs(N.x), abs(N.y), abs(N.z));
+	N /= (N.x + N.y + N.z);
 
 	/* basic idea is to think of this as a triangle, each corner representing
 	 * one of the 3 faces of the cube. in the corners we have single textures,
@@ -3140,37 +3142,37 @@ void node_tex_image_box(vec3 texco,
 	float limit = 0.5 * (1.0 + blend);
 
 	/* first test for corners with single texture */
-	if (nob.x > limit * (nob.x + nob.y) && nob.x > limit * (nob.x + nob.z)) {
+	if (N.x > limit * (N.x + N.y) && N.x > limit * (N.x + N.z)) {
 		weight.x = 1.0;
 	}
-	else if (nob.y > limit * (nob.x + nob.y) && nob.y > limit * (nob.y + nob.z)) {
+	else if (N.y > limit * (N.x + N.y) && N.y > limit * (N.y + N.z)) {
 		weight.y = 1.0;
 	}
-	else if (nob.z > limit * (nob.x + nob.z) && nob.z > limit * (nob.y + nob.z)) {
+	else if (N.z > limit * (N.x + N.z) && N.z > limit * (N.y + N.z)) {
 		weight.z = 1.0;
 	}
 	else if (blend > 0.0) {
 		/* in case of blending, test for mixes between two textures */
-		if (nob.z < (1.0 - limit) * (nob.y + nob.x)) {
-			weight.x = nob.x / (nob.x + nob.y);
+		if (N.z < (1.0 - limit) * (N.y + N.x)) {
+			weight.x = N.x / (N.x + N.y);
 			weight.x = clamp((weight.x - 0.5 * (1.0 - blend)) / blend, 0.0, 1.0);
 			weight.y = 1.0 - weight.x;
 		}
-		else if (nob.x < (1.0 - limit) * (nob.y + nob.z)) {
-			weight.y = nob.y / (nob.y + nob.z);
+		else if (N.x < (1.0 - limit) * (N.y + N.z)) {
+			weight.y = N.y / (N.y + N.z);
 			weight.y = clamp((weight.y - 0.5 * (1.0 - blend)) / blend, 0.0, 1.0);
 			weight.z = 1.0 - weight.y;
 		}
-		else if (nob.y < (1.0 - limit) * (nob.x + nob.z)) {
-			weight.x = nob.x / (nob.x + nob.z);
+		else if (N.y < (1.0 - limit) * (N.x + N.z)) {
+			weight.x = N.x / (N.x + N.z);
 			weight.x = clamp((weight.x - 0.5 * (1.0 - blend)) / blend, 0.0, 1.0);
 			weight.z = 1.0 - weight.x;
 		}
 		else {
 			/* last case, we have a mix between three */
-			weight.x = ((2.0 - limit) * nob.x + (limit - 1.0)) / (2.0 * limit - 1.0);
-			weight.y = ((2.0 - limit) * nob.y + (limit - 1.0)) / (2.0 * limit - 1.0);
-			weight.z = ((2.0 - limit) * nob.z + (limit - 1.0)) / (2.0 * limit - 1.0);
+			weight.x = ((2.0 - limit) * N.x + (limit - 1.0)) / (2.0 * limit - 1.0);
+			weight.y = ((2.0 - limit) * N.y + (limit - 1.0)) / (2.0 * limit - 1.0);
+			weight.z = ((2.0 - limit) * N.z + (limit - 1.0)) / (2.0 * limit - 1.0);
 		}
 	}
 	else {
@@ -3179,13 +3181,25 @@ void node_tex_image_box(vec3 texco,
 	}
 	color = vec4(0);
 	if (weight.x > 0.0) {
-		color += weight.x * texture2D(ima, texco.yz);
+		vec2 uv = texco.yz;
+		if(signed_N.x < 0.0) {
+			uv.x = 1.0 - uv.x;
+		}
+		color += weight.x * texture2D(ima, uv);
 	}
 	if (weight.y > 0.0) {
-		color += weight.y * texture2D(ima, texco.xz);
+		vec2 uv = texco.xz;
+		if(signed_N.y > 0.0) {
+			uv.x = 1.0 - uv.x;
+		}
+		color += weight.y * texture2D(ima, uv);
 	}
 	if (weight.z > 0.0) {
-		color += weight.z * texture2D(ima, texco.yx);
+		vec2 uv = texco.yx;
+		if(signed_N.z > 0.0) {
+			uv.x = 1.0 - uv.x;
+		}
+		color += weight.z * texture2D(ima, uv);
 	}
 
 	alpha = color.a;

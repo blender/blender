@@ -211,6 +211,8 @@ ccl_device void svm_node_tex_image_box(KernelGlobals *kg, ShaderData *sd, float 
 	object_inverse_normal_transform(kg, sd, &N);
 
 	/* project from direction vector to barycentric coordinates in triangles */
+	float3 signed_N = N;
+
 	N.x = fabsf(N.x);
 	N.y = fabsf(N.y);
 	N.z = fabsf(N.z);
@@ -280,12 +282,19 @@ ccl_device void svm_node_tex_image_box(KernelGlobals *kg, ShaderData *sd, float 
 	float4 f = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 	uint use_alpha = stack_valid(alpha_offset);
 
-	if(weight.x > 0.0f)
-		f += weight.x*svm_image_texture(kg, id, co.y, co.z, srgb, use_alpha);
-	if(weight.y > 0.0f)
-		f += weight.y*svm_image_texture(kg, id, co.x, co.z, srgb, use_alpha);
-	if(weight.z > 0.0f)
-		f += weight.z*svm_image_texture(kg, id, co.y, co.x, srgb, use_alpha);
+	/* Map so that no textures are flipped, rotation is somewhat arbitrary. */
+	if(weight.x > 0.0f) {
+		float2 uv = make_float2((signed_N.x < 0.0f)? 1.0f - co.y: co.y, co.z);
+		f += weight.x*svm_image_texture(kg, id, uv.x, uv.y, srgb, use_alpha);
+	}
+	if(weight.y > 0.0f) {
+		float2 uv = make_float2((signed_N.y > 0.0f)? 1.0f - co.x: co.x, co.z);
+		f += weight.y*svm_image_texture(kg, id, uv.x, uv.y, srgb, use_alpha);
+	}
+	if(weight.z > 0.0f) {
+		float2 uv = make_float2((signed_N.z > 0.0f)? 1.0f - co.y: co.y, co.x);
+		f += weight.z*svm_image_texture(kg, id, uv.x, uv.y, srgb, use_alpha);
+	}
 
 	if(stack_valid(out_offset))
 		stack_store_float3(stack, out_offset, make_float3(f.x, f.y, f.z));
