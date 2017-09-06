@@ -1415,9 +1415,7 @@ static void view3d_id_remap(ScrArea *sa, SpaceLink *slink, ID *old_id, ID *new_i
 
 		/* Values in local-view aren't used, see: T52663 */
 		if (is_local == false) {
-			if ((ID *)v3d->defmaterial == old_id) {
-				v3d->defmaterial = (Material *)new_id;
-			}
+			/* Skip 'v3d->defmaterial', it's not library data.  */
 
 			if ((ID *)v3d->ob_centre == old_id) {
 				v3d->ob_centre = (Object *)new_id;
