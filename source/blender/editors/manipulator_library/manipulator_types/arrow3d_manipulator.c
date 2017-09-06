@@ -399,17 +399,21 @@ static void manipulator_arrow_exit(bContext *C, wmManipulator *mpr, const bool c
 	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
 	ManipulatorCommonData *data = &arrow->data;
 	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_find(mpr, "offset");
+	const bool is_prop_valid = WM_manipulator_target_property_is_valid(mpr_prop);
 
 	if (!cancel) {
 		/* Assign incase applying the opetration needs an updated offset
 		 * editmesh bisect needs this. */
-		data->offset = WM_manipulator_target_property_value_get(mpr, mpr_prop);
+		if (is_prop_valid) {
+			data->offset = WM_manipulator_target_property_value_get(mpr, mpr_prop);
+		}
 		return;
 	}
 
 	ManipulatorInteraction *inter = mpr->interaction_data;
-
-	manipulator_property_value_reset(C, mpr, inter, mpr_prop);
+	if (is_prop_valid) {
+		manipulator_property_value_reset(C, mpr, inter, mpr_prop);
+	}
 	data->offset = inter->init_offset;
 }
 
