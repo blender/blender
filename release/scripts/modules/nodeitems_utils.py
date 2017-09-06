@@ -59,7 +59,8 @@ class NodeItem:
             return self._label
         else:
             # if no custom label is defined, fall back to the node type UI name
-            return getattr(bpy.types, self.nodetype).bl_rna.name
+            cls = next(cls for cls in bpy.types.Node.__subclasses__() if cls.bl_rna.identifier == self.nodetype)
+            return cls.bl_rna.name
 
     @property
     def translation_context(self):
@@ -67,7 +68,8 @@ class NodeItem:
             return bpy.app.translations.contexts.default
         else:
             # if no custom label is defined, fall back to the node type UI name
-            return getattr(bpy.types, self.nodetype).bl_rna.translation_context
+            cls = next(cls for cls in bpy.types.Node.__subclasses__() if cls.bl_rna.identifier == self.nodetype)
+            return cls.bl_rna.translation_context
 
     # NB: is a staticmethod because called with an explicit self argument
     # NodeItemCustom sets this as a variable attribute in __init__
