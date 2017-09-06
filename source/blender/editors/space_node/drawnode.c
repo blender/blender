@@ -638,7 +638,7 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 	 * highlight also if node itself is selected, since we don't display the node body separately!
 	 */
 	for (sock = node->inputs.first; sock; sock = sock->next) {
-		node_socket_circle_draw(C, ntree, node, sock, socket_size, (sock->flag & SELECT) || (node->flag & SELECT));
+		node_socket_draw(C, ntree, node, sock, socket_size, (sock->flag & SELECT) || (node->flag & SELECT));
 	}
 
 	UI_block_end(C, node->block);

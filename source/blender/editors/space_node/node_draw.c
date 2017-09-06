@@ -617,34 +617,22 @@ static void node_draw_mute_line(View2D *v2d, SpaceNode *snode, bNode *node)
 	glDisable(GL_LINE_SMOOTH);
 }
 
-/* this might have some more generic use */
-static void node_circle_draw(float x, float y, float size, const float col[4], int highlight)
+static void node_socket_shape_draw(
+        float x, float y, float size, const float col[4], bool highlight,
+        const float coords[][2], int coords_len)
 {
-	/* 16 values of sin function */
-	static const float si[16] = {
-		0.00000000f, 0.39435585f, 0.72479278f, 0.93775213f,
-		0.99871650f, 0.89780453f, 0.65137248f, 0.29936312f,
-		-0.10116832f, -0.48530196f, -0.79077573f, -0.96807711f,
-		-0.98846832f, -0.84864425f, -0.57126821f, -0.20129852f
-	};
-	/* 16 values of cos function */
-	static const float co[16] = {
-		1.00000000f, 0.91895781f, 0.68896691f, 0.34730525f,
-		-0.05064916f, -0.44039415f, -0.75875812f, -0.95413925f,
-		-0.99486932f, -0.87434661f, -0.61210598f, -0.25065253f,
-		0.15142777f, 0.52896401f, 0.82076344f, 0.97952994f,
-	};
 	int a;
-	
+
 	glColor4fv(col);
-	
+
 	glEnable(GL_BLEND);
 	glBegin(GL_POLYGON);
-	for (a = 0; a < 16; a++)
-		glVertex2f(x + size * si[a], y + size * co[a]);
+	for (a = 0; a < coords_len; a++) {
+		glVertex2f(x + size * coords[a][0], y + size * coords[a][1]);
+	}
 	glEnd();
 	glDisable(GL_BLEND);
-	
+
 	if (highlight) {
 		UI_ThemeColor(TH_TEXT_HI);
 		glLineWidth(1.5f);
@@ -655,14 +643,16 @@ static void node_circle_draw(float x, float y, float size, const float col[4], i
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
 	glBegin(GL_LINE_LOOP);
-	for (a = 0; a < 16; a++)
-		glVertex2f(x + size * si[a], y + size * co[a]);
+	for (a = 0; a < coords_len; a++) {
+		glVertex2f(x + size * coords[a][0], y + size * coords[a][1]);
+	}
 	glEnd();
 	glDisable(GL_LINE_SMOOTH);
 	glDisable(GL_BLEND);
 }
 
-void node_socket_circle_draw(const bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *sock, float size, int highlight)
+
+void node_socket_draw(const bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *sock, float size, bool highlight)
 {
 	PointerRNA ptr, node_ptr;
 	float color[4];
@@ -670,7 +660,60 @@ void node_socket_circle_draw(const bContext *C, bNodeTree *ntree, bNode *node, b
 	RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
 	RNA_pointer_create((ID *)ntree, &RNA_Node, node, &node_ptr);
 	sock->typeinfo->draw_color((bContext *)C, &ptr, &node_ptr, color);
-	node_circle_draw(sock->locx, sock->locy, size, color, highlight);
+
+	/* 16 values of {sin, cos} function */
+	const float shape_circle[16][2] = {
+		{0.00000000f, 1.00000000f},
+		{0.39435585f, 0.91895781f},
+		{0.72479278f, 0.68896691f},
+		{0.93775213f, 0.34730525f},
+		{0.99871650f, -0.05064916f},
+		{0.89780453f, -0.44039415f},
+		{0.65137248f, -0.75875812f},
+		{0.29936312f, -0.95413925f},
+		{-0.10116832f, -0.99486932f},
+		{-0.48530196f, -0.87434661f},
+		{-0.79077573f, -0.61210598f},
+		{-0.96807711f, -0.25065253f},
+		{-0.98846832f, 0.15142777f},
+		{-0.84864425f, 0.52896401f},
+		{-0.57126821f, 0.82076344f},
+		{-0.20129852f, 0.97952994f }
+	};
+
+	const float shape_diamond[4][2] = {
+		{0.0f, 1.2f},
+		{1.2f, 0.0f},
+		{0.0f, -1.2f},
+		{-1.2f, 0.0f},
+	};
+
+	const float shape_square[4][2] = {
+		{-0.9f, 0.9f},
+		{0.9f, 0.9f},
+		{0.9f, -0.9f},
+		{-0.9f, -0.9f},
+	};
+
+	const float (*shape)[2];
+	int shape_len;
+	switch (sock->draw_shape) {
+		default:
+		case SOCK_DRAW_SHAPE_CIRCLE:
+			shape = shape_circle;
+			shape_len = ARRAY_SIZE(shape_circle);
+			break;
+		case SOCK_DRAW_SHAPE_DIAMOND:
+			shape = shape_diamond;
+			shape_len = ARRAY_SIZE(shape_diamond);
+			break;
+		case SOCK_DRAW_SHAPE_SQUARE:
+			shape = shape_square;
+			shape_len = ARRAY_SIZE(shape_square);
+			break;
+	}
+
+	node_socket_shape_draw(sock->locx, sock->locy, size, color, highlight, shape, shape_len);
 }
 
 /* **************  Socket callbacks *********** */
@@ -935,7 +978,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		if (nodeSocketIsHidden(sock))
 			continue;
 		
-		node_socket_circle_draw(C, ntree, node, sock, NODE_SOCKSIZE, sock->flag & SELECT);
+		node_socket_draw(C, ntree, node, sock, NODE_SOCKSIZE, sock->flag & SELECT);
 	}
 	
 	/* socket outputs */
@@ -943,7 +986,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		if (nodeSocketIsHidden(sock))
 			continue;
 		
-		node_socket_circle_draw(C, ntree, node, sock, NODE_SOCKSIZE, sock->flag & SELECT);
+		node_socket_draw(C, ntree, node, sock, NODE_SOCKSIZE, sock->flag & SELECT);
 	}
 	
 	/* preview */
@@ -1066,13 +1109,15 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 
 	/* sockets */
 	for (sock = node->inputs.first; sock; sock = sock->next) {
-		if (!nodeSocketIsHidden(sock))
-			node_socket_circle_draw(C, ntree, node, sock, socket_size, sock->flag & SELECT);
+		if (!nodeSocketIsHidden(sock)) {
+			node_socket_draw(C, ntree, node, sock, socket_size, sock->flag & SELECT);
+		}
 	}
 	
 	for (sock = node->outputs.first; sock; sock = sock->next) {
-		if (!nodeSocketIsHidden(sock))
-			node_socket_circle_draw(C, ntree, node, sock, socket_size, sock->flag & SELECT);
+		if (!nodeSocketIsHidden(sock)) {
+			node_socket_draw(C, ntree, node, sock, socket_size, sock->flag & SELECT);
+		}
 	}
 	
 	UI_block_end(C, node->block);
