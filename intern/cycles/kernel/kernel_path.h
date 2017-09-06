@@ -84,7 +84,7 @@ ccl_device_noinline void kernel_path_ao(KernelGlobals *kg,
 		light_ray.dP = sd->dP;
 		light_ray.dD = differential3_zero();
 
-		if(!shadow_blocked(kg, emission_sd, state, &light_ray, &ao_shadow)) {
+		if(!shadow_blocked(kg, sd, emission_sd, state, &light_ray, &ao_shadow)) {
 			path_radiance_accum_ao(L, state, throughput, ao_alpha, ao_bsdf, ao_shadow);
 		}
 		else {
