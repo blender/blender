@@ -1412,33 +1412,33 @@ static void view3d_id_remap(ScrArea *sa, SpaceLink *slink, ID *old_id, ID *new_i
 				}
 			}
 		}
-		if ((ID *)v3d->ob_centre == old_id) {
-			v3d->ob_centre = (Object *)new_id;
-			if (new_id == NULL) {  /* Otherwise, bonename may remain valid... We could be smart and check this, too? */
-				v3d->ob_centre_bone[0] = '\0';
+
+		/* Values in local-view aren't used, see: T52663 */
+		if (is_local == false) {
+			if ((ID *)v3d->defmaterial == old_id) {
+				v3d->defmaterial = (Material *)new_id;
 			}
-		}
 
-		if ((ID *)v3d->defmaterial == old_id) {
-			v3d->defmaterial = (Material *)new_id;
-		}
-#if 0  /* XXX Deprecated? */
-		if ((ID *)v3d->gpd == old_id) {
-			v3d->gpd = (bGPData *)new_id;
-		}
-#endif
-
-		if (ELEM(GS(old_id->name), ID_IM, ID_MC)) {
-			for (BGpic *bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next) {
-				if ((ID *)bgpic->ima == old_id) {
-					bgpic->ima = (Image *)new_id;
-					id_us_min(old_id);
-					id_us_plus(new_id);
+			if ((ID *)v3d->ob_centre == old_id) {
+				v3d->ob_centre = (Object *)new_id;
+				/* Otherwise, bonename may remain valid... We could be smart and check this, too? */
+				if (new_id == NULL) {
+					v3d->ob_centre_bone[0] = '\0';
 				}
-				if ((ID *)bgpic->clip == old_id) {
-					bgpic->clip = (MovieClip *)new_id;
-					id_us_min(old_id);
-					id_us_plus(new_id);
+			}
+
+			if (ELEM(GS(old_id->name), ID_IM, ID_MC)) {
+				for (BGpic *bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next) {
+					if ((ID *)bgpic->ima == old_id) {
+						bgpic->ima = (Image *)new_id;
+						id_us_min(old_id);
+						id_us_plus(new_id);
+					}
+					if ((ID *)bgpic->clip == old_id) {
+						bgpic->clip = (MovieClip *)new_id;
+						id_us_min(old_id);
+						id_us_plus(new_id);
+					}
 				}
 			}
 		}
