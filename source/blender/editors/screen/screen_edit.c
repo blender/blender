@@ -1900,7 +1900,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const s
 		sc->state = SCREENNORMAL;
 
 		/* find old area to restore from */
-		ScrArea *fullsa;
+		ScrArea *fullsa = NULL;
 		for (ScrArea *old = sc->areabase.first; old; old = old->next) {
 			/* area to restore from is always first */
 			if (old->full && !fullsa) {
