@@ -3413,6 +3413,13 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Screw", "Offset the revolution along its axis");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+	prop = RNA_def_property(srna, "merge_threshold", PROP_FLOAT, PROP_DISTANCE);
+	RNA_def_property_float_sdna(prop, NULL, "merge_dist");
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0, 1, 1, 4);
+	RNA_def_property_ui_text(prop, "Merge Distance", "Limit below which to merge vertices");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
 	prop = RNA_def_property(srna, "use_normal_flip", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SCREW_NORMAL_FLIP);
 	RNA_def_property_ui_text(prop, "Flip", "Flip normals of lathed faces");
@@ -3426,6 +3433,12 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_object_screw_offset", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SCREW_OBJECT_OFFSET);
 	RNA_def_property_ui_text(prop, "Object Screw", "Use the distance between the objects to make a screw");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	/* Vertex merging parameters */
+	prop = RNA_def_property(srna, "use_merge_vertices", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SCREW_MERGE);
+	RNA_def_property_ui_text(prop, "Merge Vertices", "Merge adjacent vertices (screw offset must be zero)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "use_smooth_shade", PROP_BOOLEAN, PROP_NONE);

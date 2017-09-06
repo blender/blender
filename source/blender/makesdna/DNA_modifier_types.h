@@ -924,9 +924,10 @@ typedef struct ScrewModifierData {
 	unsigned int iter;
 	float screw_ofs;
 	float angle;
-	char axis;
-	char pad;
+	float merge_dist;
 	short flag;
+	char axis;
+	char pad[5];
 } ScrewModifierData;
 
 enum {
@@ -937,6 +938,7 @@ enum {
 	MOD_SCREW_SMOOTH_SHADING = (1 << 5),
 	MOD_SCREW_UV_STRETCH_U   = (1 << 6),
 	MOD_SCREW_UV_STRETCH_V   = (1 << 7),
+	MOD_SCREW_MERGE          = (1 << 8),
 };
 
 typedef struct OceanModifierData {
