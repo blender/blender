@@ -222,7 +222,7 @@ float ED_rollBoneToVector(EditBone *bone, const float align_axis[3], const bool 
 	vec_roll_to_mat3_normalized(nor, 0.0f, mat);
 
 	/* project the new_up_axis along the normal */
-	project_v3_v3v3(vec, align_axis, nor);
+	project_v3_v3v3_normalized(vec, align_axis, nor);
 	sub_v3_v3v3(align_axis_proj, align_axis, vec);
 
 	if (axis_only) {

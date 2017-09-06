@@ -747,6 +747,10 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "steps")
         col.prop(md, "render_steps")
         col.prop(md, "use_smooth_shade")
+        col.prop(md, "use_merge_vertices")
+        sub = col.column()
+        sub.active = md.use_merge_vertices
+        sub.prop(md, "merge_threshold")
 
         col = split.column()
         row = col.row()

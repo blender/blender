@@ -1692,6 +1692,17 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 	}
+
+	{
+		/* Fix for invalid state of screen due to bug in older versions. */
+		for (bScreen *sc = main->screen.first; sc; sc = sc->id.next) {
+			for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
+				if(sa->full && sc->state == SCREENNORMAL) {
+					sa->full = NULL;
+				}
+			}
+		}
+	}
 }
 
 void do_versions_after_linking_270(Main *main)

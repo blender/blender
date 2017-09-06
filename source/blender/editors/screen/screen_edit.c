@@ -1472,17 +1472,28 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const s
 	if (sa && sa->full) {
 		WorkSpaceLayout *layout_old = WM_window_get_active_layout(win);
 		/* restoring back to SCREENNORMAL */
-		ScrArea *old;
-
 		sc = sa->full;       /* the old screen to restore */
 		oldscreen = WM_window_get_active_screen(win); /* the one disappearing */
 
 		sc->state = SCREENNORMAL;
 
-		/* find old area */
-		for (old = sc->areabase.first; old; old = old->next)
-			if (old->full) break;
-		if (old == NULL) {
+		/* find old area to restore from */
+		ScrArea *fullsa = NULL;
+		for (ScrArea *old = sc->areabase.first; old; old = old->next) {
+			/* area to restore from is always first */
+			if (old->full && !fullsa) {
+				fullsa = old;
+			}
+
+			/* clear full screen state */
+			old->full = NULL;
+			old->flag &= ~AREA_TEMP_INFO;
+		}
+
+		sa->flag &= ~AREA_TEMP_INFO;
+		sa->full = NULL;
+
+		if (fullsa == NULL) {
 			if (G.debug & G_DEBUG)
 				printf("%s: something wrong in areafullscreen\n", __func__);
 			return NULL;
@@ -1495,9 +1506,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const s
 			}
 		}
 
-		ED_area_data_swap(old, sa);
-		if (sa->flag & AREA_TEMP_INFO) sa->flag &= ~AREA_TEMP_INFO;
-		old->full = NULL;
+		ED_area_data_swap(fullsa, sa);
 
 		/* animtimer back */
 		sc->animtimer = oldscreen->animtimer;

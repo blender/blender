@@ -1000,7 +1000,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 				if (weight) {
 					sub_v2_v2v2(c, offco, p);
-					project_v2_v2v2(vec, c, no);
+					project_v2_v2v2_normalized(vec, c, no);
 
 					w = len_v2(vec);
 

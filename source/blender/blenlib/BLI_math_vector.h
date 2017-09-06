@@ -300,6 +300,8 @@ void angle_poly_v3(float *angles, const float *verts[3], int len);
 
 void project_v2_v2v2(float out[2], const float p[2], const float v_proj[2]);
 void project_v3_v3v3(float out[3], const float p[3], const float v_proj[3]);
+void project_v2_v2v2_normalized(float out[2], const float p[2], const float v_proj[2]);
+void project_v3_v3v3_normalized(float out[3], const float p[3], const float v_proj[3]);
 void project_plane_v3_v3v3(float out[3], const float p[3], const float v_plane[3]);
 void project_plane_v2_v2v2(float out[2], const float p[2], const float v_plane[2]);
 void project_plane_normalized_v3_v3v3(float out[3], const float p[3], const float v_plane[3]);
