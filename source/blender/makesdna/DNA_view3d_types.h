@@ -225,7 +225,8 @@ typedef struct View3D {
 	struct GPUFXSettings fx_settings;
 
 	void *properties_storage;		/* Nkey panel stores stuff here (runtime only!) */
-	struct Material *defmaterial;	/* used by matcap now */
+	/* Allocated per view, not library data (used by matcap). */
+	struct Material *defmaterial;
 
 	/* XXX deprecated? */
 	struct bGPdata *gpd  DNA_DEPRECATED;		/* Grease-Pencil Data (annotation layers) */
