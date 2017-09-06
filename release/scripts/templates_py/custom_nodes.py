@@ -11,7 +11,7 @@ class MyCustomTree(NodeTree):
     # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'CustomTreeType'
     # Label for nice name display
-    bl_label = 'Custom Node Tree'
+    bl_label = "Custom Node Tree"
     # Icon identifier
     bl_icon = 'NODETREE'
 
@@ -23,24 +23,24 @@ class MyCustomSocket(NodeSocket):
     # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'CustomSocketType'
     # Label for nice name display
-    bl_label = 'Custom Node Socket'
+    bl_label = "Custom Node Socket"
 
     # Enum items list
-    my_items = [
-        ("DOWN", "Down", "Where your feet are"),
-        ("UP", "Up", "Where your head should be"),
-        ("LEFT", "Left", "Not right"),
-        ("RIGHT", "Right", "Not left")
-    ]
+    my_items = (
+        ('DOWN', "Down", "Where your feet are"),
+        ('UP', "Up", "Where your head should be"),
+        ('LEFT', "Left", "Not right"),
+        ('RIGHT', "Right", "Not left")
+    )
 
-    myEnumProperty = bpy.props.EnumProperty(name="Direction", description="Just an example", items=my_items, default='UP')
+    my_enum_prop = bpy.props.EnumProperty(name="Direction", description="Just an example", items=my_items, default='UP')
 
     # Optional function for drawing the socket input value
     def draw(self, context, layout, node, text):
         if self.is_output or self.is_linked:
             layout.label(text)
         else:
-            layout.prop(self, "myEnumProperty", text=text)
+            layout.prop(self, "my_enum_prop", text=text)
 
     # Socket color
     def draw_color(self, context, node):
@@ -63,7 +63,7 @@ class MyCustomNode(Node, MyCustomTreeNode):
     # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'CustomNodeType'
     # Label for nice name display
-    bl_label = 'Custom Node'
+    bl_label = "Custom Node"
     # Icon identifier
     bl_icon = 'SOUND'
 
@@ -71,8 +71,8 @@ class MyCustomNode(Node, MyCustomTreeNode):
     # These work just like custom properties in ID data blocks
     # Extensive information can be found under
     # http://wiki.blender.org/index.php/Doc:2.6/Manual/Extensions/Python/Properties
-    myStringProperty = bpy.props.StringProperty()
-    myFloatProperty = bpy.props.FloatProperty(default=3.1415926)
+    my_string_prop = bpy.props.StringProperty()
+    my_float_prop = bpy.props.FloatProperty(default=3.1415926)
 
     # === Optional Functions ===
     # Initialization function, called when a new node is created.
@@ -99,14 +99,14 @@ class MyCustomNode(Node, MyCustomTreeNode):
     # Additional buttons displayed on the node.
     def draw_buttons(self, context, layout):
         layout.label("Node settings")
-        layout.prop(self, "myFloatProperty")
+        layout.prop(self, "my_float_prop")
 
     # Detail buttons in the sidebar.
     # If this function is not defined, the draw_buttons function is used instead
     def draw_buttons_ext(self, context, layout):
-        layout.prop(self, "myFloatProperty")
-        # myStringProperty button will only be visible in the sidebar
-        layout.prop(self, "myStringProperty")
+        layout.prop(self, "my_float_prop")
+        # my_string_prop button will only be visible in the sidebar
+        layout.prop(self, "my_string_prop")
 
     # Optional: custom label
     # Explicit user label overrides this, but here we can define a label dynamically
@@ -122,7 +122,6 @@ class MyCustomNode(Node, MyCustomTreeNode):
 import nodeitems_utils
 from nodeitems_utils import NodeCategory, NodeItem
 
-
 # our own base class with an appropriate poll function,
 # so the categories only show up in our own tree type
 class MyNodeCategory(NodeCategory):
@@ -130,44 +129,50 @@ class MyNodeCategory(NodeCategory):
     def poll(cls, context):
         return context.space_data.tree_type == 'CustomTreeType'
 
+
 # all categories in a list
 node_categories = [
     # identifier, label, items list
-    MyNodeCategory("SOMENODES", "Some Nodes", items=[
+    MyNodeCategory('SOMENODES', "Some Nodes", items=[
         # our basic node
         NodeItem("CustomNodeType"),
-        ]),
-    MyNodeCategory("OTHERNODES", "Other Nodes", items=[
+    ]),
+    MyNodeCategory('OTHERNODES', "Other Nodes", items=[
         # the node item can have additional settings,
         # which are applied to new nodes
         # NB: settings values are stored as string expressions,
         # for this reason they should be converted to strings using repr()
         NodeItem("CustomNodeType", label="Node A", settings={
-            "myStringProperty": repr("Lorem ipsum dolor sit amet"),
-            "myFloatProperty": repr(1.0),
-            }),
+            "my_string_prop": repr("Lorem ipsum dolor sit amet"),
+            "my_float_prop": repr(1.0),
+        }),
         NodeItem("CustomNodeType", label="Node B", settings={
-            "myStringProperty": repr("consectetur adipisicing elit"),
-            "myFloatProperty": repr(2.0),
-            }),
-        ]),
-    ]
+            "my_string_prop": repr("consectetur adipisicing elit"),
+            "my_float_prop": repr(2.0),
+        }),
+    ]),
+]
 
+classes = (
+    MyCustomTree,
+    MyCustomSocket,
+    MyCustomNode,
+)
 
 def register():
-    bpy.utils.register_class(MyCustomTree)
-    bpy.utils.register_class(MyCustomSocket)
-    bpy.utils.register_class(MyCustomNode)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)
 
-    nodeitems_utils.register_node_categories("CUSTOM_NODES", node_categories)
+    nodeitems_utils.register_node_categories('CUSTOM_NODES', node_categories)
 
 
 def unregister():
-    nodeitems_utils.unregister_node_categories("CUSTOM_NODES")
+    nodeitems_utils.unregister_node_categories('CUSTOM_NODES')
 
-    bpy.utils.unregister_class(MyCustomTree)
-    bpy.utils.unregister_class(MyCustomSocket)
-    bpy.utils.unregister_class(MyCustomNode)
+    from bpy.utils import unregister_class
+    for cls in reversed(classes):
+        unregister_class(cls)
 
 
 if __name__ == "__main__":
