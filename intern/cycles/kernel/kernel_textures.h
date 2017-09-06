@@ -88,10 +88,10 @@ KERNEL_IMAGE_TEX(float4, texture_image_float4, __tex_image_float4_024)
 KERNEL_IMAGE_TEX(float4, texture_image_float4, __tex_image_float4_032)
 
 KERNEL_IMAGE_TEX(float4, texture_image3d_float4, __tex_image_float4_3d_000)
-KERNEL_IMAGE_TEX(float4, texture_image3d_float4, __tex_image_float4_3d_001)
-KERNEL_IMAGE_TEX(float4, texture_image3d_float4, __tex_image_float4_3d_002)
-KERNEL_IMAGE_TEX(float4, texture_image3d_float4, __tex_image_float4_3d_003)
-KERNEL_IMAGE_TEX(float4, texture_image3d_float4, __tex_image_float4_3d_004)
+KERNEL_IMAGE_TEX(float4, texture_image3d_float4, __tex_image_float4_3d_008)
+KERNEL_IMAGE_TEX(float4, texture_image3d_float4, __tex_image_float4_3d_016)
+KERNEL_IMAGE_TEX(float4, texture_image3d_float4, __tex_image_float4_3d_024)
+KERNEL_IMAGE_TEX(float4, texture_image3d_float4, __tex_image_float4_3d_032)
 
 /* image
  * These texture names are encoded to their flattened slots as
