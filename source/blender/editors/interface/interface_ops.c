@@ -497,10 +497,11 @@ static bool copy_to_selected_button(bContext *C, bool all, bool poll)
 		char *path = NULL;
 		bool use_path_from_id;
 		CollectionPointerLink *link;
-		ListBase lb;
+		ListBase lb = {NULL};
 
-		if (!UI_context_copy_to_selected_list(C, &ptr, prop, &lb, &use_path_from_id, &path))
-			return success;
+		if (!UI_context_copy_to_selected_list(C, &ptr, prop, &lb, &use_path_from_id, &path)) {
+			goto finally;
+		}
 
 		for (link = lb.first; link; link = link->next) {
 			if (link->ptr.data != ptr.data) {
@@ -542,6 +543,7 @@ static bool copy_to_selected_button(bContext *C, bool all, bool poll)
 			}
 		}
 
+finally:
 		MEM_SAFE_FREE(path);
 		BLI_freelistN(&lb);
 	}
