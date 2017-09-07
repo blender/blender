@@ -499,51 +499,49 @@ static bool copy_to_selected_button(bContext *C, bool all, bool poll)
 		CollectionPointerLink *link;
 		ListBase lb = {NULL};
 
-		if (!UI_context_copy_to_selected_list(C, &ptr, prop, &lb, &use_path_from_id, &path)) {
-			goto finally;
-		}
+		if (UI_context_copy_to_selected_list(C, &ptr, prop, &lb, &use_path_from_id, &path) &&
+		    !BLI_listbase_is_empty(&lb))
+		{
+			for (link = lb.first; link; link = link->next) {
+				if (link->ptr.data != ptr.data) {
+					if (use_path_from_id) {
+						/* Path relative to ID. */
+						lprop = NULL;
+						RNA_id_pointer_create(link->ptr.id.data, &idptr);
+						RNA_path_resolve_property(&idptr, path, &lptr, &lprop);
+					}
+					else if (path) {
+						/* Path relative to elements from list. */
+						lprop = NULL;
+						RNA_path_resolve_property(&link->ptr, path, &lptr, &lprop);
+					}
+					else {
+						lptr = link->ptr;
+						lprop = prop;
+					}
 
-		for (link = lb.first; link; link = link->next) {
-			if (link->ptr.data != ptr.data) {
-				if (use_path_from_id) {
-					/* Path relative to ID. */
-					lprop = NULL;
-					RNA_id_pointer_create(link->ptr.id.data, &idptr);
-					RNA_path_resolve_property(&idptr, path, &lptr, &lprop);
-				}
-				else if (path) {
-					/* Path relative to elements from list. */
-					lprop = NULL;
-					RNA_path_resolve_property(&link->ptr, path, &lptr, &lprop);
-				}
-				else {
-					lptr = link->ptr;
-					lprop = prop;
-				}
+					if (lptr.data == ptr.data) {
+						/* lptr might not be the same as link->ptr! */
+						continue;
+					}
 
-				if (lptr.data == ptr.data) {
-					/* lptr might not be the same as link->ptr! */
-					continue;
-				}
-
-				if (lprop == prop) {
-					if (RNA_property_editable(&lptr, lprop)) {
-						if (poll) {
-							success = true;
-							break;
-						}
-						else {
-							if (RNA_property_copy(&lptr, &ptr, prop, (all) ? -1 : index)) {
-								RNA_property_update(C, &lptr, prop);
+					if (lprop == prop) {
+						if (RNA_property_editable(&lptr, lprop)) {
+							if (poll) {
 								success = true;
+								break;
+							}
+							else {
+								if (RNA_property_copy(&lptr, &ptr, prop, (all) ? -1 : index)) {
+									RNA_property_update(C, &lptr, prop);
+									success = true;
+								}
 							}
 						}
 					}
 				}
 			}
 		}
-
-finally:
 		MEM_SAFE_FREE(path);
 		BLI_freelistN(&lb);
 	}
