@@ -3757,7 +3757,7 @@ static PyObject *pyrna_struct_bl_rna_get_subclass(PyObject *cls, PyObject *args)
 	char *id;
 	PyObject *ret_default = Py_None;
 
-	if (!PyArg_ParseTuple(args, "s|O:bl_rna_find_subclass", &id, &ret_default)) {
+	if (!PyArg_ParseTuple(args, "s|O:bl_rna_get_subclass", &id, &ret_default)) {
 		return NULL;
 	}
 	PyObject *ret = pyrna_struct_bl_rna_find_subclass_recursive(cls, id);
