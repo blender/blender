@@ -165,6 +165,6 @@ Gwn_Batch *BLI_displist_batch_calc_surface(ListBase *lb)
 
 		return GWN_batch_create_ex(
 		        GWN_PRIM_TRIS, vbo, GWN_indexbuf_build(&elb),
-		        GWN_BATCH_OWNS_VBO | GWN_BATCH_OWNS_VBO);
+		        GWN_BATCH_OWNS_VBO | GWN_BATCH_OWNS_INDEX);
 	}
 }
