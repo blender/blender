@@ -2388,8 +2388,12 @@ void DRW_transform_to_display(GPUTexture *tex)
 
 	{
 		Scene *scene = DST.draw_ctx.scene;
+		/* View transform is already applied for offscreen, don't apply again, see: T52046 */
+		ColorManagedViewSettings *view_settings =
+		        (DST.options.is_image_render && !DST.options.is_scene_render) ?
+		        NULL : &scene->view_settings;
 		use_ocio = IMB_colormanagement_setup_glsl_draw_from_space(
-		        &scene->view_settings, &scene->display_settings, NULL, dither, false);
+		        view_settings, &scene->display_settings, NULL, dither, false);
 	}
 
 	if (!use_ocio) {
