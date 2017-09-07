@@ -81,14 +81,13 @@ ccl_device void kernel_direct_lighting(KernelGlobals *kg,
 
 		if(flag) {
 			/* Sample illumination from lights to find path contribution. */
-			float light_t = path_state_rng_1D(kg, state, PRNG_LIGHT);
 			float light_u, light_v;
 			path_state_rng_2D(kg, state, PRNG_LIGHT_U, &light_u, &light_v);
 			float terminate = path_state_rng_light_termination(kg, state);
 
 			LightSample ls;
 			if(light_sample(kg,
-			                light_t, light_u, light_v,
+			                light_u, light_v,
 			                sd->time,
 			                sd->P,
 			                state->bounce,

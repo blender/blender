@@ -31,7 +31,6 @@ ccl_device_inline void kernel_path_volume_connect_light(
 		return;
 
 	/* sample illumination from lights to find path contribution */
-	float light_t = path_state_rng_1D(kg, state, PRNG_LIGHT);
 	float light_u, light_v;
 	path_state_rng_2D(kg, state, PRNG_LIGHT_U, &light_u, &light_v);
 
@@ -45,7 +44,7 @@ ccl_device_inline void kernel_path_volume_connect_light(
 	light_ray.time = sd->time;
 #  endif
 
-	if(light_sample(kg, light_t, light_u, light_v, sd->time, sd->P, state->bounce, &ls))
+	if(light_sample(kg, light_u, light_v, sd->time, sd->P, state->bounce, &ls))
 	{
 		float terminate = path_state_rng_light_termination(kg, state);
 		if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate)) {
@@ -195,16 +194,15 @@ ccl_device void kernel_branched_path_volume_connect_light(
 
 			for(int j = 0; j < num_samples; j++) {
 				/* sample random position on random triangle */
-				float light_t = path_branched_rng_1D_for_decision(kg, state->rng_hash, state, j, num_samples, PRNG_LIGHT);
 				float light_u, light_v;
 				path_branched_rng_2D(kg, state->rng_hash, state, j, num_samples, PRNG_LIGHT_U, &light_u, &light_v);
 
 				/* only sample triangle lights */
 				if(kernel_data.integrator.num_all_lights)
-					light_t = 0.5f*light_t;
+					light_u = 0.5f*light_u;
 
 				LightSample ls;
-				light_sample(kg, light_t, light_u, light_v, sd->time, ray->P, state->bounce, &ls);
+				light_sample(kg, light_u, light_v, sd->time, ray->P, state->bounce, &ls);
 
 				float3 tp = throughput;
 
@@ -219,7 +217,7 @@ ccl_device void kernel_branched_path_volume_connect_light(
 				kernel_assert(result == VOLUME_PATH_SCATTERED);
 
 				/* todo: split up light_sample so we don't have to call it again with new position */
-				if(light_sample(kg, light_t, light_u, light_v, sd->time, sd->P, state->bounce, &ls)) {
+				if(light_sample(kg, light_u, light_v, sd->time, sd->P, state->bounce, &ls)) {
 					if(kernel_data.integrator.num_all_lights)
 						ls.pdf *= 2.0f;
 
@@ -239,12 +237,11 @@ ccl_device void kernel_branched_path_volume_connect_light(
 	}
 	else {
 		/* sample random position on random light */
-		float light_t = path_state_rng_1D(kg, state, PRNG_LIGHT);
 		float light_u, light_v;
 		path_state_rng_2D(kg, state, PRNG_LIGHT_U, &light_u, &light_v);
 
 		LightSample ls;
-		light_sample(kg, light_t, light_u, light_v, sd->time, ray->P, state->bounce, &ls);
+		light_sample(kg, light_u, light_v, sd->time, ray->P, state->bounce, &ls);
 
 		float3 tp = throughput;
 
@@ -259,7 +256,7 @@ ccl_device void kernel_branched_path_volume_connect_light(
 		kernel_assert(result == VOLUME_PATH_SCATTERED);
 
 		/* todo: split up light_sample so we don't have to call it again with new position */
-		if(light_sample(kg, light_t, light_u, light_v, sd->time, sd->P, state->bounce, &ls)) {
+		if(light_sample(kg, light_u, light_v, sd->time, sd->P, state->bounce, &ls)) {
 			/* sample random light */
 			float terminate = path_state_rng_light_termination(kg, state);
 			if(direct_emission(kg, sd, emission_sd, &ls, state, &light_ray, &L_light, &is_lamp, terminate)) {

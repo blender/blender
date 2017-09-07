@@ -292,7 +292,7 @@ enum PathTraceDimension {
 	PRNG_BSDF_U = 0,
 	PRNG_BSDF_V = 1,
 	PRNG_BSDF = 2,
-	PRNG_LIGHT = 3,
+	PRNG_UNUSED3 = 3,
 	PRNG_LIGHT_U = 4,
 	PRNG_LIGHT_V = 5,
 	PRNG_LIGHT_TERMINATE = 6,

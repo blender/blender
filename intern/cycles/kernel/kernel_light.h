@@ -1013,20 +1013,21 @@ ccl_device_forceinline void triangle_light_sample(KernelGlobals *kg, int prim, i
 
 /* Light Distribution */
 
-ccl_device int light_distribution_sample(KernelGlobals *kg, float randt)
+ccl_device int light_distribution_sample(KernelGlobals *kg, float *randu)
 {
-	/* this is basically std::upper_bound as used by pbrt, to find a point light or
+	/* This is basically std::upper_bound as used by pbrt, to find a point light or
 	 * triangle to emit from, proportional to area. a good improvement would be to
 	 * also sample proportional to power, though it's not so well defined with
-	 * OSL shaders. */
+	 * arbitrary shaders. */
 	int first = 0;
 	int len = kernel_data.integrator.num_distribution + 1;
+	float r = *randu;
 
 	while(len > 0) {
 		int half_len = len >> 1;
 		int middle = first + half_len;
 
-		if(randt < kernel_tex_fetch(__light_distribution, middle).x) {
+		if(r < kernel_tex_fetch(__light_distribution, middle).x) {
 			len = half_len;
 		}
 		else {
@@ -1035,9 +1036,17 @@ ccl_device int light_distribution_sample(KernelGlobals *kg, float randt)
 		}
 	}
 
-	/* clamping should not be needed but float rounding errors seem to
-	 * make this fail on rare occasions */
-	return clamp(first-1, 0, kernel_data.integrator.num_distribution-1);
+	/* Clamping should not be needed but float rounding errors seem to
+	 * make this fail on rare occasions. */
+	int index = clamp(first-1, 0, kernel_data.integrator.num_distribution-1);
+
+	/* Rescale to reuse random number. this helps the 2D samples within
+	 * each area light be stratified as well. */
+	float distr_min = kernel_tex_fetch(__light_distribution, index).x;
+	float distr_max = kernel_tex_fetch(__light_distribution, index+1).x;
+	*randu = (r - distr_min)/(distr_max - distr_min);
+
+	return index;
 }
 
 /* Generic Light */
@@ -1049,7 +1058,6 @@ ccl_device bool light_select_reached_max_bounces(KernelGlobals *kg, int index, i
 }
 
 ccl_device_noinline bool light_sample(KernelGlobals *kg,
-                                      float randt,
                                       float randu,
                                       float randv,
                                       float time,
@@ -1058,7 +1066,7 @@ ccl_device_noinline bool light_sample(KernelGlobals *kg,
                                       LightSample *ls)
 {
 	/* sample index */
-	int index = light_distribution_sample(kg, randt);
+	int index = light_distribution_sample(kg, &randu);
 
 	/* fetch light data */
 	float4 l = kernel_tex_fetch(__light_distribution, index);
