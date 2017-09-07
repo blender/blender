@@ -102,6 +102,10 @@ void BKE_lamp_init(Lamp *la)
 	la->sky_colorspace = BLI_XYZ_CIE;
 	la->sky_exposure = 1.0f;
 	la->shadow_frustum_size = 10.0f;
+	la->cascade_max_dist = 1000.0f;
+	la->cascade_count = 4;
+	la->cascade_exponent = 0.8f;
+	la->cascade_fade = 0.1f;
 	
 	curvemapping_initialize(la->curfalloff);
 }

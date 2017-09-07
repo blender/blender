@@ -78,37 +78,15 @@ float shadow_cubemap(ShadowData sd, ShadowCubeData scd, float texid, vec3 W)
 #endif
 }
 
-float shadow_cascade(ShadowData sd, ShadowCascadeData scd, float texid, vec3 W)
+float evaluate_cascade(ShadowData sd, mat4 shadowmat, vec3 W, float range, float texid)
 {
-	/* Finding Cascade index */
-	vec4 view_z = vec4(dot(W - cameraPos, cameraForward));
-	vec4 comp = step(view_z, scd.split_distances);
-	float cascade = dot(comp, comp);
-	mat4 shadowmat;
-
-	/* Manual Unrolling of a loop for better performance.
-	 * Doing fetch directly with cascade index leads to
-	 * major performance impact. (0.27ms -> 10.0ms for 1 light) */
-	if (cascade == 0.0) {
-		shadowmat = scd.shadowmat[0];
-	}
-	else if (cascade == 1.0) {
-		shadowmat = scd.shadowmat[1];
-	}
-	else if (cascade == 2.0) {
-		shadowmat = scd.shadowmat[2];
-	}
-	else {
-		shadowmat = scd.shadowmat[3];
-	}
-
 	vec4 shpos = shadowmat * vec4(W, 1.0);
-	float dist = shpos.z * abs(sd.sh_far - sd.sh_near); /* Same factor as in get_cascade_world_distance(). */
+	float dist = shpos.z * range;
 
 #if defined(SHADOW_VSM)
-	vec2 moments = texture(shadowTexture, vec3(shpos.xy, texid + cascade)).rg;
+	vec2 moments = texture(shadowTexture, vec3(shpos.xy, texid)).rg;
 #else
-	float z = texture(shadowTexture, vec3(shpos.xy, texid + cascade)).r;
+	float z = texture(shadowTexture, vec3(shpos.xy, texid)).r;
 #endif
 
 #if defined(SHADOW_VSM)
@@ -118,6 +96,38 @@ float shadow_cascade(ShadowData sd, ShadowCascadeData scd, float texid, vec3 W)
 #else
 	return shadow_test_pcf(z, dist - sd.sh_bias);
 #endif
+}
+
+float shadow_cascade(ShadowData sd, ShadowCascadeData scd, float texid, vec3 W)
+{
+	vec4 view_z = vec4(dot(W - cameraPos, cameraForward));
+	vec4 weights = smoothstep(scd.split_end_distances, scd.split_start_distances.yzwx, view_z);
+	weights.yzw -= weights.xyz;
+
+	vec4 vis = vec4(1.0);
+	float range = abs(sd.sh_far - sd.sh_near); /* Same factor as in get_cascade_world_distance(). */
+	if (weights.x > 0.0) {
+		vis.x = evaluate_cascade(sd, scd.shadowmat[0], W, range, texid + 0);
+	}
+	if (weights.y > 0.0) {
+		vis.y = evaluate_cascade(sd, scd.shadowmat[1], W, range, texid + 1);
+	}
+	if (weights.z > 0.0) {
+		vis.z = evaluate_cascade(sd, scd.shadowmat[2], W, range, texid + 2);
+	}
+	if (weights.w > 0.0) {
+		vis.w = evaluate_cascade(sd, scd.shadowmat[3], W, range, texid + 3);
+	}
+
+	float weight_sum = dot(vec4(1.0), weights);
+	if (weight_sum > 0.9999) {
+		float vis_sum = dot(vec4(1.0), vis * weights);
+		return vis_sum / weight_sum;
+	}
+	else {
+		float vis_sum = dot(vec4(1.0), vis * step(0.001, weights));
+		return mix(1.0, vis_sum, weight_sum);
+	}
 }
 
 /* ----------------------------------------------------------- */

@@ -106,6 +106,12 @@ typedef struct Lamp {
 	short pr_texture, use_nodes;
 	char pad6[4];
 
+	/* Eevee */
+	float cascade_max_dist;
+	float cascade_exponent;
+	float cascade_fade;
+	int cascade_count;
+
 	/* preview */
 	struct PreviewImage *preview;
 

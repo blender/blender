@@ -57,6 +57,10 @@ float linear_depth(float z)
 float get_cascade_world_distance(vec2 uvs)
 {
 	float zdepth = texture(shadowTexture, vec3(uvs, float(cascadeId))).r;
+	if (zdepth == 1.0) {
+		/* Background case */
+		return 1e16;
+	}
 	return zdepth * abs(farClip - nearClip); /* Same factor as in shadow_cascade(). */
 }
 #else

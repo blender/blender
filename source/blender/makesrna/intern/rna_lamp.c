@@ -476,7 +476,7 @@ static void rna_def_lamp_falloff(StructRNA *srna)
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 }
 
-static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
+static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area, int sun)
 {
 	PropertyRNA *prop;
 
@@ -698,6 +698,32 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_LAYER_SHADOW);
 	RNA_def_property_ui_text(prop, "Shadow Layer", "Objects on the same layers only cast shadows");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
+
+	if (sun) {
+		prop = RNA_def_property(srna, "shadow_cascade_max_distance", PROP_FLOAT, PROP_DISTANCE);
+		RNA_def_property_float_sdna(prop, NULL, "cascade_max_dist");
+		RNA_def_property_range(prop, 0.0f, 9999.0f);
+		RNA_def_property_ui_text(prop, "Cascade Max Distance", "End distance of the cascaded shadow map (only in perspective view)");
+		RNA_def_property_update(prop, 0, "rna_Lamp_update");
+
+		prop = RNA_def_property(srna, "shadow_cascade_count", PROP_INT, PROP_NONE);
+		RNA_def_property_int_sdna(prop, NULL, "cascade_count");
+		RNA_def_property_range(prop, 1, 4);
+		RNA_def_property_ui_text(prop, "Cascade Count", "Number of texture used by the cascaded shadow map");
+		RNA_def_property_update(prop, 0, "rna_Lamp_update");
+
+		prop = RNA_def_property(srna, "shadow_cascade_exponent", PROP_FLOAT, PROP_FACTOR);
+		RNA_def_property_float_sdna(prop, NULL, "cascade_exponent");
+		RNA_def_property_range(prop, 0.0f, 1.0f);
+		RNA_def_property_ui_text(prop, "Exponential Distribution", "Higher value increase resolution towards the viewpoint");
+		RNA_def_property_update(prop, 0, "rna_Lamp_update");
+
+		prop = RNA_def_property(srna, "shadow_cascade_fade", PROP_FLOAT, PROP_FACTOR);
+		RNA_def_property_float_sdna(prop, NULL, "cascade_fade");
+		RNA_def_property_range(prop, 0.0f, 1.0f);
+		RNA_def_property_ui_text(prop, "Cascade Fade", "How smooth is the transition between each cascade");
+		RNA_def_property_update(prop, 0, "rna_Lamp_update");
+	}
 }
 
 static void rna_def_point_lamp(BlenderRNA *brna)
@@ -710,7 +736,7 @@ static void rna_def_point_lamp(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_LAMP_POINT);
 
 	rna_def_lamp_falloff(srna);
-	rna_def_lamp_shadow(srna, 0, 0);
+	rna_def_lamp_shadow(srna, 0, 0, 0);
 }
 
 static void rna_def_area_lamp(BlenderRNA *brna)
@@ -729,7 +755,7 @@ static void rna_def_area_lamp(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Area Lamp", "Directional area lamp");
 	RNA_def_struct_ui_icon(srna, ICON_LAMP_AREA);
 
-	rna_def_lamp_shadow(srna, 0, 1);
+	rna_def_lamp_shadow(srna, 0, 1, 0);
 	rna_def_lamp_falloff(srna);
 
 	prop = RNA_def_property(srna, "use_umbra", PROP_BOOLEAN, PROP_NONE);
@@ -786,7 +812,7 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_LAMP_SPOT);
 
 	rna_def_lamp_falloff(srna);
-	rna_def_lamp_shadow(srna, 1, 0);
+	rna_def_lamp_shadow(srna, 1, 0, 0);
 
 	prop = RNA_def_property(srna, "use_square", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_SQUARE);
@@ -839,7 +865,7 @@ static void rna_def_sun_lamp(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Sun Lamp", "Constant direction parallel ray lamp");
 	RNA_def_struct_ui_icon(srna, ICON_LAMP_SUN);
 
-	rna_def_lamp_shadow(srna, 0, 0);
+	rna_def_lamp_shadow(srna, 0, 0, 1);
 
 	/* sky */
 	prop = RNA_def_property(srna, "sky", PROP_POINTER, PROP_NONE);

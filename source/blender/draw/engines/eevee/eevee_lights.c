@@ -493,10 +493,12 @@ static void frustum_min_bounding_sphere(const float corners[8][4], float r_cente
 
 static void eevee_shadow_cascade_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE_LampEngineData *led)
 {
+	Lamp *la = (Lamp *)ob->data;
+
 	/* Camera Matrices */
 	float persmat[4][4], persinv[4][4];
 	float viewprojmat[4][4], projinv[4][4];
-	float near, far;
+	float view_near, view_far;
 	float near_v[4] = {0.0f, 0.0f, -1.0f, 1.0f};
 	float far_v[4] = {0.0f, 0.0f,  1.0f, 1.0f};
 	bool is_persp = DRW_viewport_is_persp_get();
@@ -507,75 +509,134 @@ static void eevee_shadow_cascade_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE
 	invert_m4_m4(projinv, viewprojmat);
 	mul_m4_v4(projinv, near_v);
 	mul_m4_v4(projinv, far_v);
-	near = near_v[2];
-	far = far_v[2]; /* TODO: Should be a shadow parameter */
+	view_near = near_v[2];
+	view_far = far_v[2]; /* TODO: Should be a shadow parameter */
 	if (is_persp) {
-		near /= near_v[3];
-		far /= far_v[3];
+		view_near /= near_v[3];
+		view_far /= far_v[3];
 	}
 
 	/* Lamps Matrices */
 	float viewmat[4][4], projmat[4][4];
 	int sh_nbr = 1; /* TODO : MSM */
-	int cascade_nbr = MAX_CASCADE_NUM; /* TODO : Custom cascade number */
+	int cascade_nbr = la->cascade_count;
 
 	EEVEE_ShadowCascadeData *sh_data = (EEVEE_ShadowCascadeData *)led->storage;
 	EEVEE_Light *evli = linfo->light_data + sh_data->light_id;
 	EEVEE_Shadow *ubo_data = linfo->shadow_data + sh_data->shadow_id;
 	EEVEE_ShadowCascade *cascade_data = linfo->shadow_cascade_data + sh_data->cascade_id;
-	Lamp *la = (Lamp *)ob->data;
 
 	/* The technique consists into splitting
 	 * the view frustum into several sub-frustum
 	 * that are individually receiving one shadow map */
 
+	float csm_start, csm_end;
+
+	if (is_persp) {
+		csm_start = view_near;
+		csm_end = max_ff(view_far, -la->cascade_max_dist);
+		/* Avoid artifacts */
+		csm_end = min_ff(view_near, csm_end);
+	}
+	else {
+		csm_start = -view_far;
+		csm_end = view_far;
+	}
+
 	/* init near/far */
 	for (int c = 0; c < MAX_CASCADE_NUM; ++c) {
-		cascade_data->split[c] = far;
+		cascade_data->split_start[c] = csm_end;
+		cascade_data->split_end[c] = csm_end;
 	}
 
 	/* Compute split planes */
-	float splits_ndc[MAX_CASCADE_NUM + 1];
-	splits_ndc[0] = -1.0f;
-	splits_ndc[cascade_nbr] = 1.0f;
-	for (int c = 1; c < cascade_nbr; ++c) {
-		const float lambda = 0.8f; /* TODO : Parameter */
+	float splits_start_ndc[MAX_CASCADE_NUM];
+	float splits_end_ndc[MAX_CASCADE_NUM];
 
-		/* View Space */
-		float linear_split = LERP(((float)(c) / (float)cascade_nbr), near, far);
-		float exp_split = near * powf(far / near, (float)(c) / (float)cascade_nbr);
-
-		if (is_persp) {
-			cascade_data->split[c-1] = LERP(lambda, linear_split, exp_split);
-		}
-		else {
-			cascade_data->split[c-1] = linear_split;
-		}
-
-		/* NDC Space */
-		float p[4] = {1.0f, 1.0f, cascade_data->split[c-1], 1.0f};
+	{
+		/* Nearest plane */
+		float p[4] = {1.0f, 1.0f, csm_start, 1.0f};
+		/* TODO: we don't need full m4 multiply here */
 		mul_m4_v4(viewprojmat, p);
-		splits_ndc[c] = p[2];
-
+		splits_start_ndc[0] = p[2];
 		if (is_persp) {
-			splits_ndc[c] /= p[3];
+			splits_start_ndc[0] /= p[3];
 		}
 	}
+
+	{
+		/* Farthest plane */
+		float p[4] = {1.0f, 1.0f, csm_end, 1.0f};
+		/* TODO: we don't need full m4 multiply here */
+		mul_m4_v4(viewprojmat, p);
+		splits_end_ndc[cascade_nbr - 1] = p[2];
+		if (is_persp) {
+			splits_end_ndc[cascade_nbr - 1] /= p[3];
+		}
+	}
+
+	cascade_data->split_start[0] = csm_start;
+	cascade_data->split_end[cascade_nbr - 1] = csm_end;
+
+	for (int c = 1; c < cascade_nbr; ++c) {
+		/* View Space */
+		float linear_split = LERP(((float)(c) / (float)cascade_nbr), csm_start, csm_end);
+		float exp_split = csm_start * powf(csm_end / csm_start, (float)(c) / (float)cascade_nbr);
+
+		if (is_persp) {
+			cascade_data->split_start[c] = LERP(la->cascade_exponent, linear_split, exp_split);
+		}
+		else {
+			cascade_data->split_start[c] = linear_split;
+		}
+		cascade_data->split_end[c-1] = cascade_data->split_start[c];
+
+		/* Add some overlap for smooth transition */
+		cascade_data->split_start[c] = LERP(la->cascade_fade, cascade_data->split_end[c-1],
+		                                    (c > 1) ? cascade_data->split_end[c-2] : cascade_data->split_start[0]);
+
+		/* NDC Space */
+		{
+			float p[4] = {1.0f, 1.0f, cascade_data->split_start[c], 1.0f};
+			/* TODO: we don't need full m4 multiply here */
+			mul_m4_v4(viewprojmat, p);
+			splits_start_ndc[c] = p[2];
+
+			if (is_persp) {
+				splits_start_ndc[c] /= p[3];
+			}
+		}
+
+		{
+			float p[4] = {1.0f, 1.0f, cascade_data->split_end[c-1], 1.0f};
+			/* TODO: we don't need full m4 multiply here */
+			mul_m4_v4(viewprojmat, p);
+			splits_end_ndc[c-1] = p[2];
+
+			if (is_persp) {
+				splits_end_ndc[c-1] /= p[3];
+			}
+		}
+	}
+
+	/* Set last cascade split fade distance into the first split_start. */
+	float prev_split = (cascade_nbr > 1) ? cascade_data->split_end[cascade_nbr-2] : cascade_data->split_start[0];
+	cascade_data->split_start[0] = LERP(la->cascade_fade, cascade_data->split_end[cascade_nbr-1], prev_split);
 
 	/* For each cascade */
 	for (int c = 0; c < cascade_nbr; ++c) {
 		/* Given 8 frustum corners */
 		float corners[8][4] = {
 			/* Near Cap */
-			{-1.0f, -1.0f, splits_ndc[c], 1.0f},
-			{ 1.0f, -1.0f, splits_ndc[c], 1.0f},
-			{-1.0f,  1.0f, splits_ndc[c], 1.0f},
-			{ 1.0f,  1.0f, splits_ndc[c], 1.0f},
+			{-1.0f, -1.0f, splits_start_ndc[c], 1.0f},
+			{ 1.0f, -1.0f, splits_start_ndc[c], 1.0f},
+			{-1.0f,  1.0f, splits_start_ndc[c], 1.0f},
+			{ 1.0f,  1.0f, splits_start_ndc[c], 1.0f},
 			/* Far Cap */
-			{-1.0f, -1.0f, splits_ndc[c+1], 1.0f},
-			{ 1.0f, -1.0f, splits_ndc[c+1], 1.0f},
-			{-1.0f,  1.0f, splits_ndc[c+1], 1.0f},
-			{ 1.0f,  1.0f, splits_ndc[c+1], 1.0f}
+			{-1.0f, -1.0f, splits_end_ndc[c], 1.0f},
+			{ 1.0f, -1.0f, splits_end_ndc[c], 1.0f},
+			{-1.0f,  1.0f, splits_end_ndc[c], 1.0f},
+			{ 1.0f,  1.0f, splits_end_ndc[c], 1.0f}
 		};
 
 		/* Transform them into world space */
@@ -584,6 +645,7 @@ static void eevee_shadow_cascade_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE
 			mul_v3_fl(corners[i], 1.0f / corners[i][3]);
 			corners[i][3] = 1.0f;
 		}
+
 
 		/* Project them into light space */
 		invert_m4_m4(viewmat, ob->obmat);
@@ -837,7 +899,7 @@ void EEVEE_draw_shadows(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 		srd->shadow_inv_samples_ct = 1.0f / srd->shadow_samples_ct;
 		srd->clip_near = la->clipsta;
 		srd->clip_far = la->clipend;
-		for (int j = 0; j < MAX_CASCADE_NUM; ++j) {
+		for (int j = 0; j < la->cascade_count; ++j) {
 			copy_m4_m4(srd->shadowmat[j], evscd->viewprojmat[j]);
 		}
 		DRW_uniformbuffer_update(sldata->shadow_render_ubo, &linfo->shadow_render_data);
@@ -849,7 +911,7 @@ void EEVEE_draw_shadows(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 		DRW_draw_pass(psl->shadow_cascade_pass);
 
 		for (linfo->current_shadow_cascade = 0;
-		     linfo->current_shadow_cascade < MAX_CASCADE_NUM;
+		     linfo->current_shadow_cascade < la->cascade_count;
 		     ++linfo->current_shadow_cascade)
 		{
 			linfo->filter_size = la->soft * 0.0005f / (evscd->radius[linfo->current_shadow_cascade] * 0.05f);
