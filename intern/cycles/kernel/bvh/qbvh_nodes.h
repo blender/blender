@@ -126,8 +126,8 @@ ccl_device_inline int qbvh_aligned_node_intersect(KernelGlobals *ccl_restrict kg
 	const sseb vmask = cast(tnear) > cast(tfar);
 	int mask = (int)movemask(vmask)^0xf;
 #else
-	const ssef tnear = max4(tnear_x, tnear_y, tnear_z, isect_near);
-	const ssef tfar = min4(tfar_x, tfar_y, tfar_z, isect_far);
+	const ssef tnear = max4(isect_near, tnear_x, tnear_y, tnear_z);
+	const ssef tfar = min4(isect_far, tfar_x, tfar_y, tfar_z);
 	const sseb vmask = tnear <= tfar;
 	int mask = (int)movemask(vmask);
 #endif
@@ -174,8 +174,8 @@ ccl_device_inline int qbvh_aligned_node_intersect_robust(
 
 	const float round_down = 1.0f - difl;
 	const float round_up = 1.0f + difl;
-	const ssef tnear = max4(tnear_x, tnear_y, tnear_z, isect_near);
-	const ssef tfar = min4(tfar_x, tfar_y, tfar_z, isect_far);
+	const ssef tnear = max4(isect_near, tnear_x, tnear_y, tnear_z);
+	const ssef tfar = min4(isect_far, tfar_x, tfar_y, tfar_z);
 	const sseb vmask = round_down*tnear <= round_up*tfar;
 	*dist = tnear;
 	return (int)movemask(vmask);
