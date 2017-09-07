@@ -376,6 +376,9 @@ bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRc
 		}
 
 		if (state->program) {
+			if (state->shader_interface) {
+				GWN_shaderinterface_discard(state->shader_interface);
+			}
 			state->shader_interface = GWN_shaderinterface_create(state->program);
 		}
 
