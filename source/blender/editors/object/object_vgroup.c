@@ -1798,10 +1798,11 @@ static void vgroup_smooth_subset(
 	}
 	else {
 		for (int i = 0; i < dvert_tot; i++) {
-			MVert *v = &me->mvert[i];
+			const MVert *v = &me->mvert[i];
 			if (v->flag & SELECT) {
 				for (int j = 0; j < emap[i].count; j++) {
-					MVert *v_other = &me->mvert[emap[i].indices[j]];
+					const MEdge *e = &me->medge[emap[i].indices[j]];
+					const MVert *v_other = &me->mvert[(e->v1 == i) ? e->v2 : e->v1];
 					if ((source == WEIGHT_SMOOTH_ALL) ||
 					    (source == ((v_other->flag & SELECT) != 0)))
 					{
