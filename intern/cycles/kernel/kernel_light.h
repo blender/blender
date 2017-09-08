@@ -396,11 +396,13 @@ ccl_device_inline float3 background_light_sample(KernelGlobals *kg,
 					     + (1.0f - portal_sampling_pdf) * cdf_pdf);
 				}
 				return D;
-			} else {
+			}
+			else {
 				/* Sample map, but with nonzero portal_sampling_pdf for MIS. */
 				randu = (randu - portal_sampling_pdf) / (1.0f - portal_sampling_pdf);
 			}
-		} else {
+		}
+		else {
 			/* We can't sample a portal.
 			 * Check if we can sample the map instead.
 			 */
@@ -772,7 +774,8 @@ ccl_device_inline bool triangle_world_space_vertices(KernelGlobals *kg, int obje
 	if(object_flag & SD_OBJECT_HAS_VERTEX_MOTION && time >= 0.0f) {
 		motion_triangle_vertices(kg, object, prim, time, V);
 		has_motion = true;
-	} else {
+	}
+	else {
 		triangle_vertices(kg, prim, V);
 	}
 
@@ -839,13 +842,15 @@ ccl_device_forceinline float triangle_light_pdf(KernelGlobals *kg, ShaderData *s
 		/* pdf_triangles is calculated over triangle area, but we're not sampling over its area */
 		if(UNLIKELY(solid_angle == 0.0f)) {
 			return 0.0f;
-		} else {
+		}
+		else {
 			float area = 1.0f;
 			if(has_motion) {
 				/* get the center frame vertices, this is what the PDF was calculated from */
 				triangle_world_space_vertices(kg, sd->object, sd->prim, -1.0f, V);
 				area = triangle_area(V[0], V[1], V[2]);
-			} else {
+			}
+			else {
 				area = 0.5f * len(N);
 			}
 			const float pdf = area * kernel_data.integrator.pdf_triangles;
@@ -965,19 +970,25 @@ ccl_device_forceinline void triangle_light_sample(KernelGlobals *kg, int prim, i
 		ls->D = z * B + safe_sqrtf(1.0f - z*z) * safe_normalize(C_ - dot(C_, B) * B);
 
 		/* calculate intersection with the planar triangle */
-		ray_triangle_intersect(P, ls->D, FLT_MAX,
+		if(!ray_triangle_intersect(P, ls->D, FLT_MAX,
 #if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
-		                       (ssef*)V,
+		                           (ssef*)V,
 #else
-		                       V[0], V[1], V[2],
+		                           V[0], V[1], V[2],
 #endif
-		                       &ls->u, &ls->v, &ls->t);
+		                           &ls->u, &ls->v, &ls->t)) {
+			ls->pdf = 0.0f;
+			return;
+		}
+
 		ls->P = P + ls->D * ls->t;
 
 		/* pdf_triangles is calculated over triangle area, but we're sampling over solid angle */
 		if(UNLIKELY(solid_angle == 0.0f)) {
 			ls->pdf = 0.0f;
-		} else {
+			return;
+		}
+		else {
 			if(has_motion) {
 				/* get the center frame vertices, this is what the PDF was calculated from */
 				triangle_world_space_vertices(kg, object, prim, -1.0f, V);
