@@ -376,10 +376,8 @@ ccl_device void kernel_branched_path_integrate(KernelGlobals *kg,
 					VolumeIntegrateResult result = kernel_volume_decoupled_scatter(kg,
 						&ps, &pray, &sd, &tp, rphase, rscatter, &volume_segment, NULL, false);
 
-					(void)result;
-					kernel_assert(result == VOLUME_PATH_SCATTERED);
-
-					if(kernel_path_volume_bounce(kg,
+					if(result == VOLUME_PATH_SCATTERED &&
+					   kernel_path_volume_bounce(kg,
 					                             &sd,
 					                             &tp,
 					                             &ps,
