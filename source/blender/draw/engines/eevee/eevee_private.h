@@ -91,8 +91,10 @@ typedef struct EEVEE_PassList {
 	/* Shadows */
 	struct DRWPass *shadow_pass;
 	struct DRWPass *shadow_cube_pass;
+	struct DRWPass *shadow_cube_copy_pass;
 	struct DRWPass *shadow_cube_store_pass;
 	struct DRWPass *shadow_cascade_pass;
+	struct DRWPass *shadow_cascade_copy_pass;
 	struct DRWPass *shadow_cascade_store_pass;
 
 	/* Probes */
@@ -257,6 +259,7 @@ typedef struct EEVEE_LampsInfo {
 	bool shadow_high_bitdepth;
 	int shadow_cube_target_size;
 	int current_shadow_cascade;
+	int current_shadow_face;
 	float filter_size;
 	/* List of lights in the scene. */
 	/* XXX This is fragile, can get out of sync quickly. */
@@ -424,7 +427,9 @@ typedef struct EEVEE_SceneLayerData {
 	struct GPUFrameBuffer *shadow_store_fb;
 
 	struct GPUTexture *shadow_cube_target;
+	struct GPUTexture *shadow_cube_blur;
 	struct GPUTexture *shadow_cascade_target;
+	struct GPUTexture *shadow_cascade_blur;
 	struct GPUTexture *shadow_pool;
 
 	struct ListBase shadow_casters; /* Shadow casters gathered during cache iteration */

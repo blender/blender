@@ -42,7 +42,9 @@ static void eevee_scene_layer_data_free(void *storage)
 	DRW_FRAMEBUFFER_FREE_SAFE(sldata->shadow_target_fb);
 	DRW_FRAMEBUFFER_FREE_SAFE(sldata->shadow_store_fb);
 	DRW_TEXTURE_FREE_SAFE(sldata->shadow_cube_target);
+	DRW_TEXTURE_FREE_SAFE(sldata->shadow_cube_blur);
 	DRW_TEXTURE_FREE_SAFE(sldata->shadow_cascade_target);
+	DRW_TEXTURE_FREE_SAFE(sldata->shadow_cascade_blur);
 	DRW_TEXTURE_FREE_SAFE(sldata->shadow_pool);
 	BLI_freelistN(&sldata->shadow_casters);
 

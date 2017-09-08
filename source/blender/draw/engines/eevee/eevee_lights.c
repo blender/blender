@@ -25,6 +25,8 @@
 
 #include "DRW_render.h"
 
+#include "BLI_dynstr.h"
+
 #include "BKE_object.h"
 
 #include "eevee_engine.h"
@@ -57,12 +59,16 @@ static struct {
 	struct GPUShader *shadow_sh;
 	struct GPUShader *shadow_store_cube_sh[SHADOW_METHOD_MAX];
 	struct GPUShader *shadow_store_cascade_sh[SHADOW_METHOD_MAX];
+	struct GPUShader *shadow_copy_cube_sh[SHADOW_METHOD_MAX];
+	struct GPUShader *shadow_copy_cascade_sh[SHADOW_METHOD_MAX];
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_shadow_vert_glsl[];
 extern char datatoc_shadow_geom_glsl[];
 extern char datatoc_shadow_frag_glsl[];
 extern char datatoc_shadow_store_frag_glsl[];
+extern char datatoc_shadow_copy_frag_glsl[];
+extern char datatoc_concentric_samples_lib_glsl[];
 
 /* *********** FUNCTIONS *********** */
 
@@ -80,13 +86,33 @@ void EEVEE_lights_init(EEVEE_SceneLayerData *sldata)
 		e_data.shadow_sh = DRW_shader_create(
 		        datatoc_shadow_vert_glsl, datatoc_shadow_geom_glsl, datatoc_shadow_frag_glsl, NULL);
 
-		e_data.shadow_store_cube_sh[SHADOW_ESM] = DRW_shader_create_fullscreen(datatoc_shadow_store_frag_glsl, "#define ESM\n");
-		e_data.shadow_store_cascade_sh[SHADOW_ESM] = DRW_shader_create_fullscreen(datatoc_shadow_store_frag_glsl, "#define ESM\n"
-		                                                                                                          "#define CSM\n");
+		DynStr *ds_frag = BLI_dynstr_new();
+		BLI_dynstr_append(ds_frag, datatoc_concentric_samples_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_shadow_store_frag_glsl);
+		char *store_shadow_shader_str = BLI_dynstr_get_cstring(ds_frag);
+		BLI_dynstr_free(ds_frag);
 
-		e_data.shadow_store_cube_sh[SHADOW_VSM] = DRW_shader_create_fullscreen(datatoc_shadow_store_frag_glsl, "#define VSM\n");
-		e_data.shadow_store_cascade_sh[SHADOW_VSM] = DRW_shader_create_fullscreen(datatoc_shadow_store_frag_glsl, "#define VSM\n"
-		                                                                                                          "#define CSM\n");
+		e_data.shadow_store_cube_sh[SHADOW_ESM] = DRW_shader_create_fullscreen(store_shadow_shader_str, "#define ESM\n");
+		e_data.shadow_store_cascade_sh[SHADOW_ESM] = DRW_shader_create_fullscreen(store_shadow_shader_str, "#define ESM\n"
+		                                                                                                   "#define CSM\n");
+
+		e_data.shadow_store_cube_sh[SHADOW_VSM] = DRW_shader_create_fullscreen(store_shadow_shader_str, "#define VSM\n");
+		e_data.shadow_store_cascade_sh[SHADOW_VSM] = DRW_shader_create_fullscreen(store_shadow_shader_str, "#define VSM\n"
+		                                                                                                   "#define CSM\n");
+
+		MEM_freeN(store_shadow_shader_str);
+
+		e_data.shadow_copy_cube_sh[SHADOW_ESM] = DRW_shader_create_fullscreen(datatoc_shadow_copy_frag_glsl, "#define ESM\n"
+		                                                                                                     "#define COPY\n");
+		e_data.shadow_copy_cascade_sh[SHADOW_ESM] = DRW_shader_create_fullscreen(datatoc_shadow_copy_frag_glsl, "#define ESM\n"
+		                                                                                                        "#define COPY\n"
+		                                                                                                        "#define CSM\n");
+
+		e_data.shadow_copy_cube_sh[SHADOW_VSM] = DRW_shader_create_fullscreen(datatoc_shadow_copy_frag_glsl, "#define VSM\n"
+		                                                                                                     "#define COPY\n");
+		e_data.shadow_copy_cascade_sh[SHADOW_VSM] = DRW_shader_create_fullscreen(datatoc_shadow_copy_frag_glsl, "#define VSM\n"
+		                                                                                                        "#define COPY\n"
+		                                                                                                        "#define CSM\n");
 	}
 
 	if (!sldata->lamps) {
@@ -153,10 +179,32 @@ void EEVEE_lights_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 		psl->shadow_cascade_store_pass = DRW_pass_create("Shadow Cascade Storage Pass", DRW_STATE_WRITE_COLOR);
 
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.shadow_store_cascade_sh[linfo->shadow_method], psl->shadow_cascade_store_pass);
-		DRW_shgroup_uniform_buffer(grp, "shadowTexture", &sldata->shadow_cascade_target);
+		DRW_shgroup_uniform_buffer(grp, "shadowTexture", &sldata->shadow_cascade_blur);
 		DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
 		DRW_shgroup_uniform_int(grp, "cascadeId", &linfo->current_shadow_cascade, 1);
 		DRW_shgroup_uniform_float(grp, "shadowFilterSize", &linfo->filter_size, 1);
+		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+	}
+
+	{
+		psl->shadow_cube_copy_pass = DRW_pass_create("Shadow Copy Pass", DRW_STATE_WRITE_COLOR);
+
+		DRWShadingGroup *grp = DRW_shgroup_create(e_data.shadow_copy_cube_sh[linfo->shadow_method], psl->shadow_cube_copy_pass);
+		DRW_shgroup_uniform_buffer(grp, "shadowTexture", &sldata->shadow_cube_target);
+		DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
+		DRW_shgroup_uniform_float(grp, "shadowFilterSize", &linfo->filter_size, 1);
+		DRW_shgroup_uniform_int(grp, "faceId", &linfo->current_shadow_face, 1);
+		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+	}
+
+	{
+		psl->shadow_cascade_copy_pass = DRW_pass_create("Shadow Cascade Copy Pass", DRW_STATE_WRITE_COLOR);
+
+		DRWShadingGroup *grp = DRW_shgroup_create(e_data.shadow_copy_cascade_sh[linfo->shadow_method], psl->shadow_cascade_copy_pass);
+		DRW_shgroup_uniform_buffer(grp, "shadowTexture", &sldata->shadow_cascade_target);
+		DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
+		DRW_shgroup_uniform_float(grp, "shadowFilterSize", &linfo->filter_size, 1);
+		DRW_shgroup_uniform_int(grp, "cascadeId", &linfo->current_shadow_cascade, 1);
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 	}
 
@@ -321,12 +369,15 @@ void EEVEE_lights_cache_finish(EEVEE_SceneLayerData *sldata)
 		/* TODO render everything on the same 2d render target using clip planes and no Geom Shader. */
 		/* Cubemaps */
 		sldata->shadow_cube_target = DRW_texture_create_cube(linfo->shadow_cube_target_size, DRW_TEX_DEPTH_24, 0, NULL);
+		sldata->shadow_cube_blur = DRW_texture_create_cube(linfo->shadow_cube_target_size, shadow_pool_format, DRW_TEX_FILTER, NULL);
 	}
 
 	if (!sldata->shadow_cascade_target) {
 		/* CSM */
 		sldata->shadow_cascade_target = DRW_texture_create_2D_array(
 		        linfo->shadow_size, linfo->shadow_size, MAX_CASCADE_NUM, DRW_TEX_DEPTH_24, 0, NULL);
+		sldata->shadow_cascade_blur = DRW_texture_create_2D_array(
+		        linfo->shadow_size, linfo->shadow_size, MAX_CASCADE_NUM, shadow_pool_format, DRW_TEX_FILTER, NULL);
 	}
 
 	/* Initialize Textures Array first so DRW_framebuffer_init just bind them. */
@@ -855,7 +906,6 @@ void EEVEE_draw_shadows(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 			srd->shadow_inv_samples_ct = 1.0f / srd->shadow_samples_ct;
 			srd->clip_near = la->clipsta;
 			srd->clip_far = la->clipend;
-			linfo->filter_size = la->soft * 0.0005f;
 			copy_v3_v3(srd->position, ob->obmat[3]);
 			for (int j = 0; j < 6; j++) {
 				float tmp[4][4];
@@ -874,7 +924,20 @@ void EEVEE_draw_shadows(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 			/* Render shadow cube */
 			DRW_draw_pass(psl->shadow_cube_pass);
 
+			for (linfo->current_shadow_face = 0;
+			     linfo->current_shadow_face < 6;
+			     linfo->current_shadow_face++)
+			{
+				/* Copy using a small 3x3 box filter */
+				linfo->filter_size = (la->soft > 0.00001f) ? 1.0f : 0.0f;
+				DRW_framebuffer_cubeface_attach(sldata->shadow_store_fb, sldata->shadow_cube_blur, 0, linfo->current_shadow_face, 0);
+				DRW_framebuffer_bind(sldata->shadow_store_fb);
+				DRW_draw_pass(psl->shadow_cube_copy_pass);
+				DRW_framebuffer_texture_detach(sldata->shadow_cube_blur);
+			}
+
 			/* Push it to shadowmap array */
+			linfo->filter_size = la->soft * 0.0005f;
 			DRW_framebuffer_texture_layer_attach(sldata->shadow_store_fb, sldata->shadow_pool, 0, i, 0);
 			DRW_framebuffer_bind(sldata->shadow_store_fb);
 			DRW_draw_pass(psl->shadow_cube_store_pass);
@@ -914,9 +977,15 @@ void EEVEE_draw_shadows(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 		     linfo->current_shadow_cascade < la->cascade_count;
 		     ++linfo->current_shadow_cascade)
 		{
-			linfo->filter_size = la->soft * 0.0005f / (evscd->radius[linfo->current_shadow_cascade] * 0.05f);
+			/* Copy using a small 3x3 box filter */
+			linfo->filter_size = (la->soft > 0.00001f) ? 1.0f : 0.0f;
+			DRW_framebuffer_texture_layer_attach(sldata->shadow_store_fb, sldata->shadow_cascade_blur, 0, linfo->current_shadow_cascade, 0);
+			DRW_framebuffer_bind(sldata->shadow_store_fb);
+			DRW_draw_pass(psl->shadow_cascade_copy_pass);
+			DRW_framebuffer_texture_detach(sldata->shadow_cascade_blur);
 
-			/* Push it to shadowmap array */
+			/* Push it to shadowmap array and blur more */
+			linfo->filter_size = la->soft * 0.0005f / (evscd->radius[linfo->current_shadow_cascade] * 0.05f);
 			int layer = evscd->layer_id + linfo->current_shadow_cascade;
 			DRW_framebuffer_texture_layer_attach(sldata->shadow_store_fb, sldata->shadow_pool, 0, layer, 0);
 			DRW_framebuffer_bind(sldata->shadow_store_fb);
@@ -924,7 +993,7 @@ void EEVEE_draw_shadows(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 		}
 	}
 
-	DRW_framebuffer_texture_detach(sldata->shadow_cube_target);
+	DRW_framebuffer_texture_detach(sldata->shadow_cascade_target);
 }
 
 void EEVEE_lights_free(void)
@@ -933,5 +1002,7 @@ void EEVEE_lights_free(void)
 	for (int i = 0; i < SHADOW_METHOD_MAX; ++i) {
 		DRW_SHADER_FREE_SAFE(e_data.shadow_store_cube_sh[i]);
 		DRW_SHADER_FREE_SAFE(e_data.shadow_store_cascade_sh[i]);
+		DRW_SHADER_FREE_SAFE(e_data.shadow_copy_cube_sh[i]);
+		DRW_SHADER_FREE_SAFE(e_data.shadow_copy_cascade_sh[i]);
 	}
 }
