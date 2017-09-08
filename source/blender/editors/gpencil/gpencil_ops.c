@@ -99,8 +99,8 @@ static void ed_keymap_gpencil_general(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "GPENCIL_OT_editmode_toggle", TABKEY, KM_PRESS, 0, DKEY);
 	
 	/* Pie Menu - For standard tools */
-	WM_keymap_add_menu_pie(keymap, "GPENCIL_PIE_tool_palette", QKEY, KM_PRESS, 0, DKEY);
-	WM_keymap_add_menu_pie(keymap, "GPENCIL_PIE_settings_palette", WKEY, KM_PRESS, 0, DKEY);
+	WM_keymap_add_menu_pie(keymap, "GPENCIL_MT_pie_tool_palette", QKEY, KM_PRESS, 0, DKEY);
+	WM_keymap_add_menu_pie(keymap, "GPENCIL_MT_pie_settings_palette", WKEY, KM_PRESS, 0, DKEY);
 	
 	/* Add Blank Frame */
 	/* XXX: BKEY or NKEY? BKEY is easier to reach from DKEY, so we'll use that for now */
@@ -135,7 +135,7 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "GPENCIL_OT_editmode_toggle", TABKEY, KM_PRESS, 0, 0);
 	
 	/* Pie Menu - For settings/tools easy access */
-	WM_keymap_add_menu_pie(keymap, "GPENCIL_PIE_sculpt", EKEY, KM_PRESS, 0, DKEY);
+	WM_keymap_add_menu_pie(keymap, "GPENCIL_MT_pie_sculpt", EKEY, KM_PRESS, 0, DKEY);
 	
 	/* Brush Settings */
 	/* NOTE: We cannot expose these in the standard keymap, as they will interfere with regular hotkeys
