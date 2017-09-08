@@ -3331,8 +3331,8 @@ void RNA_enum_item_end(EnumPropertyItem **items, int *totitem)
 void RNA_def_struct_duplicate_pointers(BlenderRNA *brna, StructRNA *srna)
 {
 	if (srna->identifier) {
+		srna->identifier = BLI_strdup(srna->identifier);
 		if (srna->flag & STRUCT_PUBLIC_NAMESPACE) {
-			srna->identifier = BLI_strdup(srna->identifier);
 			BLI_ghash_replace_key(brna->structs_map, (void *)srna->identifier);
 		}
 	}
