@@ -83,6 +83,9 @@ float evaluate_cascade(ShadowData sd, mat4 shadowmat, vec3 W, float range, float
 	vec4 shpos = shadowmat * vec4(W, 1.0);
 	float dist = shpos.z * range;
 
+	if (shpos.z > 1.0 || shpos.z < 0.0)
+		return 1.0;
+
 #if defined(SHADOW_VSM)
 	vec2 moments = texture(shadowTexture, vec3(shpos.xy, texid)).rg;
 #else
