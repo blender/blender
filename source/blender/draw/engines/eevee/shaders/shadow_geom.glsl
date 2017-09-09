@@ -7,7 +7,7 @@ layout(std140) uniform shadow_render_block {
 	float storedTexelSize;
 	float nearClip;
 	float farClip;
-	float shadowSampleCount;
+	int shadowSampleCount;
 	float shadowInvSampleCount;
 };
 

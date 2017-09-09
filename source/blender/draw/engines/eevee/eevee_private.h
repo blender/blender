@@ -237,7 +237,7 @@ typedef struct EEVEE_ShadowRender {
 	float stored_texel_size;
 	float clip_near;
 	float clip_far;
-	float shadow_samples_ct;
+	int shadow_samples_ct;
 	float shadow_inv_samples_ct;
 } EEVEE_ShadowRender;
 

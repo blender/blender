@@ -7,7 +7,7 @@ layout(std140) uniform shadow_render_block {
 	float storedTexelSize;
 	float nearClip;
 	float farClip;
-	float shadowSampleCount;
+	int shadowSampleCount;
 	float shadowInvSampleCount;
 };
 
@@ -38,8 +38,8 @@ vec3 octahedral_to_cubemap_proj(vec2 co)
 void make_orthonormal_basis(vec3 N, out vec3 T, out vec3 B)
 {
 	vec3 UpVector = (abs(N.z) < 0.999) ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
-	vec3 nT = normalize(cross(UpVector, N));
-	vec3 nB = cross(N, nT);
+	T = normalize(cross(UpVector, N));
+	B = cross(N, T);
 }
 
 /* Marco Salvi's GDC 2008 presentation about shadow maps pre-filtering techniques slide 24 */
@@ -53,9 +53,6 @@ vec4 ln_space_prefilter(float w0, vec4 x, float w1, vec4 y)
     return x + log(w0 + w1 * exp(y - x));
 }
 
-/* globals */
-vec3 T, B;
-
 #ifdef CSM
 vec3 get_texco(vec3 cos, vec2 ofs)
 {
@@ -63,13 +60,12 @@ vec3 get_texco(vec3 cos, vec2 ofs)
 	return cos;
 }
 #else /* CUBEMAP */
+vec3 T, B; /* global vars */
 vec3 get_texco(vec3 cos, vec2 ofs)
 {
 	return cos + ofs.x * T + ofs.y * B;
 }
 #endif
-
-const float INV_SAMPLE_NUM = 1.0 / float(CONCENTRIC_SAMPLE_NUM);
 
 void main() {
 	vec3 cos;
@@ -113,14 +109,14 @@ void main() {
 	depths.y = texture(shadowTexture, get_texco(cos, concentric[1])).r;
 	depths.z = texture(shadowTexture, get_texco(cos, concentric[2])).r;
 	depths.w = texture(shadowTexture, get_texco(cos, concentric[3])).r;
-	accum = ln_space_prefilter(0.0, accum, INV_SAMPLE_NUM, depths);
+	accum = ln_space_prefilter(0.0, accum, shadowInvSampleCount, depths);
 
-	for (int i = 4; i < CONCENTRIC_SAMPLE_NUM; i += 4) {
+	for (int i = 4; i < shadowSampleCount && i < CONCENTRIC_SAMPLE_NUM; i += 4) {
 		depths.x = texture(shadowTexture, get_texco(cos, concentric[i+0])).r;
 		depths.y = texture(shadowTexture, get_texco(cos, concentric[i+1])).r;
 		depths.z = texture(shadowTexture, get_texco(cos, concentric[i+2])).r;
 		depths.w = texture(shadowTexture, get_texco(cos, concentric[i+3])).r;
-		accum = ln_space_prefilter(1.0, accum, INV_SAMPLE_NUM, depths);
+		accum = ln_space_prefilter(1.0, accum, shadowInvSampleCount, depths);
 	}
 
 	accum.x = ln_space_prefilter(1.0, accum.x, 1.0, accum.y);
@@ -133,7 +129,7 @@ void main() {
 
 	/* disc blur. */
 	vec4 depths1, depths2;
-	for (int i = 0; i < CONCENTRIC_SAMPLE_NUM; i += 4) {
+	for (int i = 0; i < shadowSampleCount && i < CONCENTRIC_SAMPLE_NUM; i += 4) {
 		depths1.xy = texture(shadowTexture, get_texco(cos, concentric[i+0])).rg;
 		depths1.zw = texture(shadowTexture, get_texco(cos, concentric[i+1])).rg;
 		depths2.xy = texture(shadowTexture, get_texco(cos, concentric[i+2])).rg;
@@ -141,6 +137,6 @@ void main() {
 		accum += depths1.xy + depths1.zw + depths2.xy + depths2.zw;
 	}
 
-	FragColor = accum.xyxy * INV_SAMPLE_NUM;
+	FragColor = accum.xyxy * shadowInvSampleCount;
 #endif
 }

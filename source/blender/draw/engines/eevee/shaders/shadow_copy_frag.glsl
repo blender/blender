@@ -9,7 +9,7 @@ layout(std140) uniform shadow_render_block {
 	float storedTexelSize;
 	float nearClip;
 	float farClip;
-	float shadowSampleCount;
+	int shadowSampleCount;
 	float shadowInvSampleCount;
 };
 
@@ -18,7 +18,7 @@ uniform sampler2DArray shadowTexture;
 uniform int cascadeId;
 #else
 uniform samplerCube shadowTexture;
-uniform vec3 cubeFaceVec[3];
+uniform int faceId;
 #endif
 uniform float shadowFilterSize;
 
@@ -57,7 +57,7 @@ vec4 get_world_distance(vec4 depths, vec3 cos[4])
 {
 	vec4 is_background = step(vec4(1.0), depths);
 	depths = linear_depth(depths);
-	depths += vec4(1e16) * is_background;
+	depths += vec4(1e1) * is_background;
 	cos[0] = normalize(abs(cos[0]));
 	cos[1] = normalize(abs(cos[1]));
 	cos[2] = normalize(abs(cos[2]));
@@ -74,7 +74,7 @@ float get_world_distance(float depth, vec3 cos)
 {
 	float is_background = step(1.0, depth);
 	depth = linear_depth(depth);
-	depth += 1e16 * is_background;
+	depth += 1e1 * is_background;
 	cos = normalize(abs(cos));
 	float cos_vec = max(cos.x, max(cos.y, cos.z));
 	return depth / cos_vec;
@@ -123,25 +123,25 @@ const vec3 minorAxisX[6] = vec3[6](
 const vec3 minorAxisY[6] = vec3[6](
 	vec3(0.0f, -1.0f, 0.0f),
 	vec3(0.0f, -1.0f, 0.0f),
-	vec3(0.0f, 0.0f, -1.0f),
 	vec3(0.0f, 0.0f, 1.0f),
+	vec3(0.0f, 0.0f, -1.0f),
 	vec3(0.0f, -1.0f, 0.0f),
 	vec3(0.0f, -1.0f, 0.0f)
 );
 
 const vec3 majorAxis[6] = vec3[6](
-	vec3(-1.0f, 0.0f, 0.0f),
 	vec3(1.0f, 0.0f, 0.0f),
+	vec3(-1.0f, 0.0f, 0.0f),
 	vec3(0.0f, 1.0f, 0.0f),
 	vec3(0.0f, -1.0f, 0.0f),
-	vec3(0.0f, 0.0f, -1.0f),
-	vec3(0.0f, 0.0f, 1.0f)
+	vec3(0.0f, 0.0f, 1.0f),
+	vec3(0.0f, 0.0f, -1.0f)
 );
 
 vec3 get_texco(vec2 uvs, vec2 ofs)
 {
 	uvs += ofs;
-	return majorAxis[0] + uvs.x * minorAxisX[1] + uvs.y * minorAxisY[2];
+	return majorAxis[faceId] + uvs.x * minorAxisX[faceId] + uvs.y * minorAxisY[faceId];
 }
 #endif
 
@@ -152,13 +152,23 @@ void main() {
 #ifdef CSM
 	vec2 uvs = gl_FragCoord.xy * storedTexelSize;
 #else /* CUBEMAP */
-	vec2 uvs = gl_FragCoord.xy * cubeTexelSize;
+	vec2 uvs = gl_FragCoord.xy * cubeTexelSize * 2.0 - 1.0;
 #endif
 
 	/* Center texel */
 	vec3 co = get_texco(uvs, vec2(0.0));
 	float depth = texture(shadowTexture, co).r;
 	depth = get_world_distance(depth, co);
+
+	if (shadowFilterSize == 0.0) {
+#ifdef ESM
+		FragColor = vec4(depth);
+#else /* VSM */
+		FragColor = vec2(depth, depth * depth).xyxy;
+#endif
+		return;
+	}
+
 #ifdef ESM
 	float accum = ln_space_prefilter(0.0, 0.0, SAMPLE_WEIGHT, depth);
 #else /* VSM */
@@ -166,9 +176,9 @@ void main() {
 #endif
 
 #ifdef CSM
-	vec3 ofs = storedTexelSize * vec3(1.0, 0.0, -1.0) * shadowFilterSize;
+	vec3 ofs = vec3(1.0, 0.0, -1.0) * shadowFilterSize;
 #else /* CUBEMAP */
-	vec3 ofs = cubeTexelSize * vec3(1.0, 0.0, -1.0) * shadowFilterSize;
+	vec3 ofs = vec3(1.0, 0.0, -1.0) * shadowFilterSize;
 #endif
 
 	vec3 cos[4];
