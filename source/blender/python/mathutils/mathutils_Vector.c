@@ -38,6 +38,11 @@
 #  include "BLI_dynstr.h"
 #endif
 
+/**
+ * Higher dimensions are supported, for many common operations
+ * (dealing with vector/matrix multiply or handling as 3D locations)
+ * stack memory is used with a fixed size - defined here.
+ */
 #define MAX_DIMENSIONS 4
 
 /* Swizzle axes get packed into a single value that is used as a closure. Each
@@ -52,7 +57,8 @@ static PyObject *Vector_deepcopy(VectorObject *self, PyObject *args);
 static PyObject *Vector_to_tuple_ext(VectorObject *self, int ndigits);
 static int row_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject *vec, MatrixObject *mat);
 
-/* Supports 2D, 3D, and 4D vector objects both int and float values
+/**
+ * Supports 2D, 3D, and 4D vector objects both int and float values
  * accepted. Mixed float and int values accepted. Ints are parsed to float
  */
 static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
@@ -838,9 +844,11 @@ static PyObject *Vector_orthogonal(VectorObject *self)
 }
 
 
-/*
- * Vector.reflect(mirror): return a reflected vector on the mirror normal
- *  vec - ((2 * DotVecs(vec, mirror)) * mirror)
+/**
+ * Vector.reflect(mirror): return a reflected vector on the mirror normal.
+ * <pre>
+ *  vec - ((2 * dot(vec, mirror)) * mirror)
+ * </pre>
  */
 PyDoc_STRVAR(Vector_reflect_doc,
 ".. method:: reflect(mirror)\n"
@@ -1646,13 +1654,16 @@ static PyObject *Vector_isub(PyObject *v1, PyObject *v2)
  * multiplication */
 
 
-/* COLUMN VECTOR Multiplication (Matrix X Vector)
+/**
+ *  column vector multiplication (Matrix * Vector)
+ * <pre>
  * [1][4][7]   [a]
  * [2][5][8] * [b]
  * [3][6][9]   [c]
+ * </pre>
  *
- * note: vector/matrix multiplication IS NOT COMMUTATIVE!!!!
- * note: assume read callbacks have been done first.
+ * \note Vector/Matrix multiplication is not commutative.
+ * \note Assume read callbacks have been done first.
  */
 int column_vector_multiplication(float r_vec[MAX_DIMENSIONS], VectorObject *vec, MatrixObject *mat)
 {
@@ -2201,9 +2212,67 @@ static PyObject *Vector_length_squared_get(VectorObject *self, void *UNUSED(clos
 	return PyFloat_FromDouble(dot_vn_vn(self->vec, self->vec, self->size));
 }
 
-/* Get a new Vector according to the provided swizzle. This function has little
- * error checking, as we are in control of the inputs: the closure is set by us
- * in Vector_createSwizzleGetSeter. */
+
+/**
+ * Python script used to make swizzle array:
+ *
+ * \code{.py}
+ * SWIZZLE_BITS_PER_AXIS = 3
+ * SWIZZLE_VALID_AXIS = 0x4
+ *
+ * axis_dict = {}
+ * axis_pos = {'x': 0, 'y': 1, 'z': 2, 'w': 3}
+ * axises = 'xyzw'
+ * while len(axises) >= 2:
+ *     for axis_0 in axises:
+ *         axis_0_pos = axis_pos[axis_0]
+ *         for axis_1 in axises:
+ *             axis_1_pos = axis_pos[axis_1]
+ *             axis_dict[axis_0 + axis_1] = (
+ *                 '((%s | SWIZZLE_VALID_AXIS) | '
+ *                 '((%s | SWIZZLE_VALID_AXIS) << SWIZZLE_BITS_PER_AXIS))' %
+ *                 (axis_0_pos, axis_1_pos))
+ *             if len(axises) > 2:
+ *                 for axis_2 in axises:
+ *                     axis_2_pos = axis_pos[axis_2]
+ *                     axis_dict[axis_0 + axis_1 + axis_2] = (
+ *                         '((%s | SWIZZLE_VALID_AXIS) | '
+ *                         '((%s | SWIZZLE_VALID_AXIS) << SWIZZLE_BITS_PER_AXIS) | '
+ *                         '((%s | SWIZZLE_VALID_AXIS) << (SWIZZLE_BITS_PER_AXIS * 2)))' %
+ *                         (axis_0_pos, axis_1_pos, axis_2_pos))
+ *                     if len(axises) > 3:
+ *                         for axis_3 in axises:
+ *                             axis_3_pos = axis_pos[axis_3]
+ *                             axis_dict[axis_0 + axis_1 + axis_2 + axis_3] = (
+ *                                 '((%s | SWIZZLE_VALID_AXIS) | '
+ *                                 '((%s | SWIZZLE_VALID_AXIS) << SWIZZLE_BITS_PER_AXIS) | '
+ *                                 '((%s | SWIZZLE_VALID_AXIS) << (SWIZZLE_BITS_PER_AXIS * 2)) | '
+ *                                 '((%s | SWIZZLE_VALID_AXIS) << (SWIZZLE_BITS_PER_AXIS * 3)))  ' %
+ *                                 (axis_0_pos, axis_1_pos, axis_2_pos, axis_3_pos))
+ *
+ *     axises = axises[:-1]
+ *
+ *
+ * items = list(axis_dict.items())
+ * items.sort(key=lambda a: a[0].replace('x', '0').replace('y', '1').replace('z', '2').replace('w', '3'))
+ *
+ * unique = set()
+ * for key, val in items:
+ *     num = eval(val)
+ *     set_str = 'Vector_swizzle_set' if (len(set(key)) == len(key)) else 'NULL'
+ *     key_args = ', '.join(["'%s'" % c for c in key.upper()])
+ *     print('\t{(char *)"%s", %s(getter)Vector_swizzle_get, (setter)%s, NULL, SWIZZLE%d(%s)},' %
+ *           (key, (' ' * (4 - len(key))), set_str, len(key), key_args))
+ *     unique.add(num)
+ *
+ * if len(unique) != len(items):
+ *     print("ERROR, duplicate values found")
+ * \endcode
+ */
+
+/**
+ * Get a new Vector according to the provided swizzle bits.
+ */
 static PyObject *Vector_swizzle_get(VectorObject *self, void *closure)
 {
 	size_t axis_to;
@@ -2234,7 +2303,8 @@ static PyObject *Vector_swizzle_get(VectorObject *self, void *closure)
 	return Vector_CreatePyObject(vec, axis_to, Py_TYPE(self));
 }
 
-/* Set the items of this vector using a swizzle.
+/**
+ *  Set the items of this vector using a swizzle.
  * - If value is a vector or list this operates like an array copy, except that
  *   the destination is effectively re-ordered as defined by the swizzle. At
  *   most min(len(source), len(dest)) values will be copied.
@@ -2242,8 +2312,8 @@ static PyObject *Vector_swizzle_get(VectorObject *self, void *closure)
  * - If an axis appears more than once in the swizzle, the final occurrence is
  *   the one that determines its value.
  *
- * Returns 0 on success and -1 on failure. On failure, the vector will be
- * unchanged. */
+ * \return 0 on success and -1 on failure. On failure, the vector will be unchanged.
+ */
 static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure)
 {
 	size_t size_from;
@@ -2351,7 +2421,7 @@ static PyGetSetDef Vector_getseters[] = {
 	{(char *)"is_frozen",  (getter)BaseMathObject_is_frozen_get,  (setter)NULL, BaseMathObject_is_frozen_doc, NULL},
 	{(char *)"owner", (getter)BaseMathObject_owner_get, (setter)NULL, BaseMathObject_owner_doc, NULL},
 
-	/* autogenerated swizzle attrs, see python script below */
+	/* autogenerated swizzle attrs, see Python script above */
 	{(char *)"xx",   (getter)Vector_swizzle_get, (setter)NULL, NULL, SWIZZLE2(0, 0)},
 	{(char *)"xxx",  (getter)Vector_swizzle_get, (setter)NULL, NULL, SWIZZLE3(0, 0, 0)},
 	{(char *)"xxxx", (getter)Vector_swizzle_get, (setter)NULL, NULL, SWIZZLE4(0, 0, 0, 0)},
@@ -2703,67 +2773,14 @@ static PyGetSetDef Vector_getseters[] = {
 };
 
 /**
- * Python script used to make swizzle array:
- *
- * \code{.py}
- * SWIZZLE_BITS_PER_AXIS = 3
- * SWIZZLE_VALID_AXIS = 0x4
- *
- * axis_dict = {}
- * axis_pos = {'x': 0, 'y': 1, 'z': 2, 'w': 3}
- * axises = 'xyzw'
- * while len(axises) >= 2:
- *     for axis_0 in axises:
- *         axis_0_pos = axis_pos[axis_0]
- *         for axis_1 in axises:
- *             axis_1_pos = axis_pos[axis_1]
- *             axis_dict[axis_0 + axis_1] = (
- *                 '((%s | SWIZZLE_VALID_AXIS) | '
- *                 '((%s | SWIZZLE_VALID_AXIS) << SWIZZLE_BITS_PER_AXIS))' %
- *                 (axis_0_pos, axis_1_pos))
- *             if len(axises) > 2:
- *                 for axis_2 in axises:
- *                     axis_2_pos = axis_pos[axis_2]
- *                     axis_dict[axis_0 + axis_1 + axis_2] = (
- *                         '((%s | SWIZZLE_VALID_AXIS) | '
- *                         '((%s | SWIZZLE_VALID_AXIS) << SWIZZLE_BITS_PER_AXIS) | '
- *                         '((%s | SWIZZLE_VALID_AXIS) << (SWIZZLE_BITS_PER_AXIS * 2)))' %
- *                         (axis_0_pos, axis_1_pos, axis_2_pos))
- *                     if len(axises) > 3:
- *                         for axis_3 in axises:
- *                             axis_3_pos = axis_pos[axis_3]
- *                             axis_dict[axis_0 + axis_1 + axis_2 + axis_3] = (
- *                                 '((%s | SWIZZLE_VALID_AXIS) | '
- *                                 '((%s | SWIZZLE_VALID_AXIS) << SWIZZLE_BITS_PER_AXIS) | '
- *                                 '((%s | SWIZZLE_VALID_AXIS) << (SWIZZLE_BITS_PER_AXIS * 2)) | '
- *                                 '((%s | SWIZZLE_VALID_AXIS) << (SWIZZLE_BITS_PER_AXIS * 3)))  ' %
- *                                 (axis_0_pos, axis_1_pos, axis_2_pos, axis_3_pos))
- *
- *     axises = axises[:-1]
- *
- *
- * items = list(axis_dict.items())
- * items.sort(key=lambda a: a[0].replace('x', '0').replace('y', '1').replace('z', '2').replace('w', '3'))
- *
- * unique = set()
- * for key, val in items:
- *     num = eval(val)
- *     set_str = 'Vector_swizzle_set' if (len(set(key)) == len(key)) else 'NULL'
- *     key_args = ', '.join(["'%s'" % c for c in key.upper()])
- *     print('\t{(char *)"%s", %s(getter)Vector_swizzle_get, (setter)%s, NULL, SWIZZLE%d(%s)},' %
- *           (key, (' ' * (4 - len(key))), set_str, len(key), key_args))
- *     unique.add(num)
- *
- * if len(unique) != len(items):
- *     print("ERROR, duplicate values found")
- * \endcode
- */
-
-/* ROW VECTOR Multiplication - Vector X Matrix
+ * Row vector multiplication - (Vector * Matrix)
+ * <pre>
  * [x][y][z] * [1][4][7]
  *             [2][5][8]
  *             [3][6][9]
- * vector/matrix multiplication IS NOT COMMUTATIVE!!!! */
+ * </pre>
+ * \note vector/matrix multiplication is not commutative.
+ */
 static int row_vector_multiplication(float r_vec[MAX_DIMENSIONS], VectorObject *vec, MatrixObject *mat)
 {
 	float vec_cpy[MAX_DIMENSIONS];
@@ -2864,10 +2881,11 @@ static struct PyMethodDef Vector_methods[] = {
 };
 
 
-/* Note
- * Py_TPFLAGS_CHECKTYPES allows us to avoid casting all types to Vector when coercing
- * but this means for eg that
- * (vec * mat) and (mat * vec) both get sent to Vector_mul and it needs to sort out the order
+/**
+ * Note:
+ * #Py_TPFLAGS_CHECKTYPES allows us to avoid casting all types to Vector when coercing
+ * but this means for eg that (vec * mat) and (mat * vec)
+ * both get sent to Vector_mul and it needs to sort out the order
  */
 
 PyDoc_STRVAR(vector_doc,
