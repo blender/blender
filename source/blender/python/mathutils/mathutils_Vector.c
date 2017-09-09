@@ -3029,6 +3029,11 @@ PyObject *Vector_CreatePyObject(
 	return (PyObject *)self;
 }
 
+/**
+ * Create a vector that wraps existing memory.
+ *
+ * \param vec: Use this vector in-place.
+ */
 PyObject *Vector_CreatePyObject_wrap(
         float *vec, const int size,
         PyTypeObject *base_type)
@@ -3055,6 +3060,10 @@ PyObject *Vector_CreatePyObject_wrap(
 	return (PyObject *) self;
 }
 
+/**
+ * Create a vector where the value is defined by registered callbacks,
+ * see: #Mathutils_RegisterCallback
+ */
 PyObject *Vector_CreatePyObject_cb(
         PyObject *cb_user, int size,
         unsigned char cb_type, unsigned char cb_subtype)
@@ -3071,6 +3080,9 @@ PyObject *Vector_CreatePyObject_cb(
 	return (PyObject *)self;
 }
 
+/**
+ * \param vec: Initialized vector value to use in-place, allocated with: PyMem_Malloc
+ */
 PyObject *Vector_CreatePyObject_alloc(
         float *vec, const int size,
         PyTypeObject *base_type)
