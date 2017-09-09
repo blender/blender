@@ -2751,7 +2751,7 @@ static PyGetSetDef Vector_getseters[] = {
  *     set_str = 'Vector_swizzle_set' if (len(set(key)) == len(key)) else 'NULL'
  *     key_args = ', '.join(["'%s'" % c for c in key.upper()])
  *     print('\t{(char *)"%s", %s(getter)Vector_swizzle_get, (setter)%s, NULL, SWIZZLE%d(%s)},' %
- *           (len(key), key, (' ' * (4 - len(key))), set_str, key_args))
+ *           (key, (' ' * (4 - len(key))), set_str, len(key), key_args))
  *     unique.add(num)
  *
  * if len(unique) != len(items):
