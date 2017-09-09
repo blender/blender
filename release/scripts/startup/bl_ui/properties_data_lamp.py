@@ -386,12 +386,20 @@ class DATA_PT_EEVEE_shadow(DataButtonsPanel, Panel):
         col.prop(lamp, "shadow_buffer_exp", text="Exponent")
         col.prop(lamp, "shadow_buffer_bleed_bias", text="Bleed Bias")
 
-        col = layout.column()
-        col.label("Cascaded Shadow Map:")
-        col.prop(lamp, "shadow_cascade_max_distance", text="Max Distance")
-        col.prop(lamp, "shadow_cascade_count", text="Count")
-        col.prop(lamp, "shadow_cascade_exponent", text="Distribution")
-        col.prop(lamp, "shadow_cascade_fade", text="Fade")
+        if lamp.type == 'SUN':
+            col = layout.column()
+            col.active = lamp.use_shadow
+            col.label("Cascaded Shadow Map:")
+
+            split = col.split()
+
+            sub = split.column()
+            sub.prop(lamp, "shadow_cascade_count", text="Count")
+            sub.prop(lamp, "shadow_cascade_fade", text="Fade")
+
+            sub = split.column()
+            sub.prop(lamp, "shadow_cascade_max_distance", text="Max Distance")
+            sub.prop(lamp, "shadow_cascade_exponent", text="Distribution")
 
 
 class DATA_PT_area(DataButtonsPanel, Panel):
