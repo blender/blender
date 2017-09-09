@@ -59,9 +59,9 @@ class NodeItem:
             return self._label
         else:
             # if no custom label is defined, fall back to the node type UI name
-            cls = bpy.types.Node.bl_rna_get_subclass(self.nodetype)
-            if cls is not None:
-                return cls.bl_rna.name
+            bl_rna = bpy.types.Node.bl_rna_get_subclass(self.nodetype)
+            if bl_rna is not None:
+                return bl_rna.name
             else:
                 return "Unknown"
 
@@ -71,9 +71,9 @@ class NodeItem:
             return bpy.app.translations.contexts.default
         else:
             # if no custom label is defined, fall back to the node type UI name
-            cls = bpy.types.Node.bl_rna_get_subclass(self.nodetype)
-            if cls is not None:
-                return cls.bl_rna.translation_context
+            bl_rna = bpy.types.Node.bl_rna_get_subclass(self.nodetype)
+            if bl_rna is not None:
+                return bl_rna.translation_context
             else:
                 return bpy.app.translations.contexts.default
 
