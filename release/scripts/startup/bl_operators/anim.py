@@ -258,27 +258,28 @@ class BakeAction(Operator):
             )
 
     def execute(self, context):
-
         from bpy_extras import anim_utils
 
+        obj = context.object
         action = None
         if self.use_current_action:
-            obj = context.object
             if obj.animation_data:
                 action = obj.animation_data.action
 
-        action = anim_utils.bake_action(self.frame_start,
-                                        self.frame_end,
-                                        frame_step=self.step,
-                                        only_selected=self.only_selected,
-                                        do_pose='POSE' in self.bake_types,
-                                        do_object='OBJECT' in self.bake_types,
-                                        do_visual_keying=self.visual_keying,
-                                        do_constraint_clear=self.clear_constraints,
-                                        do_parents_clear=self.clear_parents,
-                                        do_clean=True,
-                                        action=action,
-                                        )
+        action = anim_utils.bake_action(
+            obj,
+            self.frame_start,
+            self.frame_end,
+            frame_step=self.step,
+            only_selected=self.only_selected,
+            do_pose='POSE' in self.bake_types,
+            do_object='OBJECT' in self.bake_types,
+            do_visual_keying=self.visual_keying,
+            do_constraint_clear=self.clear_constraints,
+            do_parents_clear=self.clear_parents,
+            do_clean=True,
+            action=action,
+        )
 
         if action is None:
             self.report({'INFO'}, "Nothing to bake")

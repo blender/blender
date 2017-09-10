@@ -26,23 +26,27 @@ import bpy
 
 
 # XXX visual keying is actually always considered as True in this code...
-def bake_action(frame_start,
-                frame_end,
-                frame_step=1,
-                only_selected=False,
-                do_pose=True,
-                do_object=True,
-                do_visual_keying=True,
-                do_constraint_clear=False,
-                do_parents_clear=False,
-                do_clean=False,
-                action=None,
-                ):
+def bake_action(
+        obj,
+        frame_start,
+        frame_end,
+        frame_step=1,
+        only_selected=False,
+        do_pose=True,
+        do_object=True,
+        do_visual_keying=True,
+        do_constraint_clear=False,
+        do_parents_clear=False,
+        do_clean=False,
+        action=None,
+):
 
     """
     Return an image from the file path with options to search multiple paths
     and return a placeholder if its not found.
 
+    :arg obj: Object to bake.
+    :type obj: :class:`bpy.types.Object`
     :arg frame_start: First frame to bake.
     :type frame_start: int
     :arg frame_end: Last frame to bake.
@@ -114,7 +118,6 @@ def bake_action(frame_start,
 
     # TODO, pass data rather then grabbing from the context!
     scene = bpy.context.scene
-    obj = bpy.context.object
     frame_back = scene.frame_current
 
     if obj.pose is None:
