@@ -20,17 +20,102 @@
 
 __all__ = (
     "bake_action",
-    )
+    "bake_action_objects",
+
+    "bake_action_iter",
+    "bake_action_objects_iter",
+)
 
 import bpy
 
 
-# XXX visual keying is actually always considered as True in this code...
 def bake_action(
         obj,
-        frame_start,
-        frame_end,
-        frame_step=1,
+        *,
+        action, frames,
+        **kwargs,
+):
+    """
+    :arg obj: Object to bake.
+    :type obj: :class:`bpy.types.Object`
+    :arg action: An action to bake the data into, or None for a new action
+       to be created.
+    :type action: :class:`bpy.types.Action` or None
+    :arg frames: Frames to bake.
+    :type frames: iterable of int
+
+    :return: an action or None
+    :rtype: :class:`bpy.types.Action`
+    """
+    if not (do_pose or do_object):
+        return None
+
+    action, = bake_action_objects(
+        [(obj, action)],
+        frames,
+        **kwargs,
+    )
+    return action
+
+
+def bake_action_objects(
+        object_action_pairs,
+        *,
+        frames,
+        **kwargs,
+):
+    """
+    A version of :func:`bake_action_objects_iter` that takes frames and returns the output.
+
+    :arg frames: Frames to bake.
+    :type frames: iterable of int
+
+    :return: A sequence of Action or None types (aligned with `object_action_pairs`)
+    :rtype: sequence of :class:`bpy.types.Action`
+    """
+    iter = bake_action_objects_iter(object_action_pairs, **kwargs)
+    iter.send(None)
+    for frame in frames:
+        iter.send(frame)
+    return iter.send(None)
+
+
+def bake_action_objects_iter(
+        object_action_pairs,
+        **kwargs,
+):
+    """
+    An coroutine that bakes actions for multiple objects.
+
+    :arg object_action_pairs: Sequence of object action tuples,
+       action is the destination for the baked data. When None a new action will be created.
+    :type object_action_pairs: Sequence of (:class:`bpy.types.Object`, :class:`bpy.types.Action`)
+    """
+    scene = bpy.context.scene
+    frame_back = scene.frame_current
+    iter_all = tuple(
+        bake_action_iter(obj, action=action, **kwargs)
+        for (obj, action) in object_action_pairs
+    )
+    for iter in iter_all:
+        iter.send(None)
+    while True:
+        frame = yield None
+        if frame is None:
+            break
+        scene.frame_set(frame)
+        scene.update()
+        for iter in iter_all:
+            iter.send(frame)
+    scene.frame_set(frame_back)
+    yield tuple(iter.send(None) for iter in iter_all)
+
+
+# XXX visual keying is actually always considered as True in this code...
+def bake_action_iter(
+        obj,
+        *,
+        action,
         only_selected=False,
         do_pose=True,
         do_object=True,
@@ -38,21 +123,15 @@ def bake_action(
         do_constraint_clear=False,
         do_parents_clear=False,
         do_clean=False,
-        action=None,
 ):
-
     """
-    Return an image from the file path with options to search multiple paths
-    and return a placeholder if its not found.
+    An coroutine that bakes action for a single object.
 
     :arg obj: Object to bake.
     :type obj: :class:`bpy.types.Object`
-    :arg frame_start: First frame to bake.
-    :type frame_start: int
-    :arg frame_end: Last frame to bake.
-    :type frame_end: int
-    :arg frame_step: Frame step.
-    :type frame_step: int
+    :arg action: An action to bake the data into, or None for a new action
+       to be created.
+    :type action: :class:`bpy.types.Action` or None
     :arg only_selected: Only bake selected bones.
     :type only_selected: bool
     :arg do_pose: Bake pose channels.
@@ -67,14 +146,10 @@ def bake_action(
     :type do_parents_clear: bool
     :arg do_clean: Remove redundant keyframes after baking.
     :type do_clean: bool
-    :arg action: An action to bake the data into, or None for a new action
-       to be created.
-    :type action: :class:`bpy.types.Action` or None
 
     :return: an action or None
     :rtype: :class:`bpy.types.Action`
     """
-
     # -------------------------------------------------------------------------
     # Helper Functions and vars
 
@@ -116,33 +191,32 @@ def bake_action(
     # -------------------------------------------------------------------------
     # Setup the Context
 
-    # TODO, pass data rather then grabbing from the context!
-    scene = bpy.context.scene
-    frame_back = scene.frame_current
-
     if obj.pose is None:
         do_pose = False
 
     if not (do_pose or do_object):
-        return None
+        raise Exception("Pose and object baking is disabled, no action needed")
 
     pose_info = []
     obj_info = []
 
     options = {'INSERTKEY_NEEDED'}
 
-    frame_range = range(frame_start, frame_end + 1, frame_step)
-
     # -------------------------------------------------------------------------
     # Collect transformations
 
-    for f in frame_range:
-        scene.frame_set(f)
-        scene.update()
+    while True:
+        # Caller is responsible for setting the frame and updating the scene.
+        frame = yield None
+
+        # Signal we're done!
+        if frame is None:
+            break
+
         if do_pose:
-            pose_info.append(pose_frame_info(obj))
+            pose_info.append((frame, pose_frame_info(obj)))
         if do_object:
-            obj_info.append(obj_frame_info(obj))
+            obj_info.append((frame, obj_frame_info(obj)))
 
     # -------------------------------------------------------------------------
     # Clean (store initial data)
@@ -181,7 +255,7 @@ def bake_action(
             # create compatible eulers
             euler_prev = None
 
-            for (f, matrix) in zip(frame_range, pose_info):
+            for (f, matrix) in pose_info:
                 pbone.matrix_basis = matrix[name].copy()
 
                 pbone.keyframe_insert("location", -1, f, name, options)
@@ -213,7 +287,7 @@ def bake_action(
         # create compatible eulers
         euler_prev = None
 
-        for (f, matrix) in zip(frame_range, obj_info):
+        for (f, matrix) in obj_info:
             name = "Action Bake"  # XXX: placeholder
             obj.matrix_basis = matrix
 
@@ -264,6 +338,4 @@ def bake_action(
                 else:
                     i += 1
 
-    scene.frame_set(frame_back)
-
-    return action
+    yield action
