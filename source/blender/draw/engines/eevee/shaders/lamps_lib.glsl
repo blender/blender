@@ -61,6 +61,12 @@ float shadow_cubemap(ShadowData sd, ShadowCubeData scd, float texid, vec3 W)
 	vec3 cubevec = W - scd.position.xyz;
 	float dist = length(cubevec);
 
+	/* If fragment is out of shadowmap range, do not occlude */
+	/* XXX : we check radial distance against a cubeface distance.
+	 * We loose quite a bit of valid area. */
+	if (dist > sd.sh_far)
+		return 1.0;
+
 	cubevec /= dist;
 
 #if defined(SHADOW_VSM)
@@ -83,6 +89,7 @@ float evaluate_cascade(ShadowData sd, mat4 shadowmat, vec3 W, float range, float
 	vec4 shpos = shadowmat * vec4(W, 1.0);
 	float dist = shpos.z * range;
 
+	/* If fragment is out of shadowmap range, do not occlude */
 	if (shpos.z > 1.0 || shpos.z < 0.0)
 		return 1.0;
 
