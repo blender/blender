@@ -873,14 +873,6 @@ void EEVEE_lights_update(EEVEE_SceneLayerData *sldata)
 		eevee_shadow_cube_setup(ob, linfo, led);
 		delete_pruned_shadowcaster(led);
 	}
-
-	for (i = 0; (ob = linfo->shadow_cascade_ref[i]) && (i < MAX_SHADOW_CASCADE); i++) {
-		EEVEE_LampEngineData *led = EEVEE_lamp_data_get(ob);
-		eevee_shadow_cascade_setup(ob, linfo, led);
-	}
-
-	DRW_uniformbuffer_update(sldata->light_ubo, &linfo->light_data);
-	DRW_uniformbuffer_update(sldata->shadow_ubo, &linfo->shadow_data); /* Update all data at once */
 }
 
 /* this refresh lamps shadow buffers */
@@ -892,6 +884,7 @@ void EEVEE_draw_shadows(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 	float clear_col[4] = {FLT_MAX};
 
 	/* Cube Shadow Maps */
+	DRW_stats_group_start("Cube Shadow Maps");
 	DRW_framebuffer_texture_attach(sldata->shadow_target_fb, sldata->shadow_cube_target, 0, 0);
 	/* Render each shadow to one layer of the array */
 	for (i = 0; (ob = linfo->shadow_cube_ref[i]) && (i < MAX_SHADOW_CUBE); i++) {
@@ -972,8 +965,10 @@ void EEVEE_draw_shadows(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 	linfo->update_flag &= ~LIGHT_UPDATE_SHADOW_CUBE;
 
 	DRW_framebuffer_texture_detach(sldata->shadow_cube_target);
+	DRW_stats_group_end();
 
 	/* Cascaded Shadow Maps */
+	DRW_stats_group_start("Cascaded Shadow Maps");
 	DRW_framebuffer_texture_attach(sldata->shadow_target_fb, sldata->shadow_cascade_target, 0, 0);
 	for (i = 0; (ob = linfo->shadow_cascade_ref[i]) && (i < MAX_SHADOW_CASCADE); i++) {
 		EEVEE_LampEngineData *led = EEVEE_lamp_data_get(ob);
@@ -981,6 +976,8 @@ void EEVEE_draw_shadows(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 
 		EEVEE_ShadowCascadeData *evscd = (EEVEE_ShadowCascadeData *)led->storage;
 		EEVEE_ShadowRender *srd = &linfo->shadow_render_data;
+
+		eevee_shadow_cascade_setup(ob, linfo, led);
 
 		srd->clip_near = la->clipsta;
 		srd->clip_far = la->clipend;
@@ -1040,6 +1037,10 @@ void EEVEE_draw_shadows(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 	}
 
 	DRW_framebuffer_texture_detach(sldata->shadow_cascade_target);
+	DRW_stats_group_end();
+
+	DRW_uniformbuffer_update(sldata->light_ubo, &linfo->light_data);
+	DRW_uniformbuffer_update(sldata->shadow_ubo, &linfo->shadow_data); /* Update all data at once */
 }
 
 void EEVEE_lights_free(void)

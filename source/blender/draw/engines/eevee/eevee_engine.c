@@ -161,14 +161,14 @@ static void EEVEE_draw_scene(void *vedata)
 
 	while (loop_ct--) {
 
-		/* Refresh shadows */
-		DRW_stats_group_start("Shadows");
-		EEVEE_draw_shadows(sldata, psl);
-		DRW_stats_group_end();
-
 		/* Refresh Probes */
 		DRW_stats_group_start("Probes Refresh");
 		EEVEE_lightprobes_refresh(sldata, vedata);
+		DRW_stats_group_end();
+
+		/* Refresh shadows */
+		DRW_stats_group_start("Shadows");
+		EEVEE_draw_shadows(sldata, psl);
 		DRW_stats_group_end();
 
 		/* Attach depth to the hdr buffer and bind it */

@@ -2526,29 +2526,35 @@ static void DRW_viewport_var_init(void)
 void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type)
 {
 	RegionView3D *rv3d = DST.draw_ctx.rv3d;
+	BLI_assert(type >= DRW_MAT_PERS && type <= DRW_MAT_WININV);
 
-	switch (type) {
-		case DRW_MAT_PERS:
-			copy_m4_m4(mat, rv3d->persmat);
-			break;
-		case DRW_MAT_PERSINV:
-			copy_m4_m4(mat, rv3d->persinv);
-			break;
-		case DRW_MAT_VIEW:
-			copy_m4_m4(mat, rv3d->viewmat);
-			break;
-		case DRW_MAT_VIEWINV:
-			copy_m4_m4(mat, rv3d->viewinv);
-			break;
-		case DRW_MAT_WIN:
-			copy_m4_m4(mat, rv3d->winmat);
-			break;
-		case DRW_MAT_WININV:
-			invert_m4_m4(mat, rv3d->winmat);
-			break;
-		default:
-			BLI_assert(!"Matrix type invalid");
-			break;
+	if (viewport_matrix_override.override[type]) {
+		copy_m4_m4(mat, viewport_matrix_override.mat[type]);
+	}
+	else {
+		switch (type) {
+			case DRW_MAT_PERS:
+				copy_m4_m4(mat, rv3d->persmat);
+				break;
+			case DRW_MAT_PERSINV:
+				copy_m4_m4(mat, rv3d->persinv);
+				break;
+			case DRW_MAT_VIEW:
+				copy_m4_m4(mat, rv3d->viewmat);
+				break;
+			case DRW_MAT_VIEWINV:
+				copy_m4_m4(mat, rv3d->viewinv);
+				break;
+			case DRW_MAT_WIN:
+				copy_m4_m4(mat, rv3d->winmat);
+				break;
+			case DRW_MAT_WININV:
+				invert_m4_m4(mat, rv3d->winmat);
+				break;
+			default:
+				BLI_assert(!"Matrix type invalid");
+				break;
+		}
 	}
 }
 
