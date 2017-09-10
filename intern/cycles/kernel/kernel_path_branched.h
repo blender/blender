@@ -142,7 +142,6 @@ ccl_device_noinline void kernel_branched_path_surface_indirect_light(KernelGloba
 			                     emission_sd,
 			                     &bsdf_ray,
 			                     tp*num_samples_inv,
-			                     num_samples,
 			                     &ps,
 			                     L);
 
@@ -359,7 +358,6 @@ ccl_device void kernel_branched_path_integrate(KernelGlobals *kg,
 						                     &emission_sd,
 						                     &pray,
 						                     tp*num_samples_inv,
-						                     num_samples,
 						                     &ps,
 						                     L);
 
@@ -415,7 +413,6 @@ ccl_device void kernel_branched_path_integrate(KernelGlobals *kg,
 						                     &emission_sd,
 						                     &pray,
 						                     tp,
-						                     num_samples,
 						                     &ps,
 						                     L);
 

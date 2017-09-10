@@ -134,38 +134,22 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 		 * mainly due to the mixed in MIS that we use. gives too many unneeded
 		 * shader evaluations, only need emission if we are going to terminate.
 		 */
-#ifndef __BRANCHED_PATH__
 		float probability = path_state_continuation_probability(kg, state, throughput);
-#else
-		float probability = 1.0f;
-
-		if(!kernel_data.integrator.branched) {
-			probability = path_state_continuation_probability(kg, state, throughput);
-		}
-		else if(IS_FLAG(ray_state, ray_index, RAY_BRANCHED_INDIRECT)) {
-			int num_samples = kernel_split_state.branched_state[ray_index].num_samples;
-			probability = path_state_continuation_probability(kg, state, throughput*num_samples);
-		}
-		else if(state->flag & PATH_RAY_TRANSPARENT) {
-			probability = path_state_continuation_probability(kg, state, throughput);
-		}
-#endif
 
 		if(probability == 0.0f) {
 			kernel_split_path_end(kg, ray_index);
 		}
+		else if(probability < 1.0f) {
+			float terminate = path_state_rng_1D_for_decision(kg, state, PRNG_TERMINATE);
+			if(terminate >= probability) {
+				kernel_split_path_end(kg, ray_index);
+			}
+			else {
+				kernel_split_state.throughput[ray_index] = throughput/probability;
+			}
+		}
 
 		if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
-			if(probability != 1.0f) {
-				float terminate = path_state_rng_1D_for_decision(kg, state, PRNG_TERMINATE);
-				if(terminate >= probability) {
-					kernel_split_path_end(kg, ray_index);
-				}
-				else {
-					kernel_split_state.throughput[ray_index] = throughput/probability;
-				}
-			}
-
 			PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
 			kernel_update_denoising_features(kg, sd, state, L);
 		}

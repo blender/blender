@@ -29,6 +29,7 @@ ccl_device_inline void path_state_init(KernelGlobals *kg,
 	state->rng_offset = PRNG_BASE_NUM;
 	state->sample = sample;
 	state->num_samples = kernel_data.integrator.aa_samples;
+	state->branch_factor = 1.0f;
 
 	state->bounce = 0;
 	state->diffuse_bounce = 0;
@@ -157,7 +158,9 @@ ccl_device_inline uint path_state_ray_visibility(KernelGlobals *kg, ccl_addr_spa
 	return flag;
 }
 
-ccl_device_inline float path_state_continuation_probability(KernelGlobals *kg, ccl_addr_space PathState *state, const float3 throughput)
+ccl_device_inline float path_state_continuation_probability(KernelGlobals *kg,
+                                                            ccl_addr_space PathState *state,
+                                                            const float3 throughput)
 {
 	if(state->flag & PATH_RAY_TRANSPARENT) {
 		/* Transparent rays are treated separately with own max bounces. */
@@ -201,7 +204,7 @@ ccl_device_inline float path_state_continuation_probability(KernelGlobals *kg, c
 
 	/* Probalistic termination: use sqrt() to roughly match typical view
 	 * transform and do path termination a bit later on average. */
-	return min(sqrtf(max3(fabs(throughput))), 1.0f);
+	return min(sqrtf(max3(fabs(throughput)) * state->branch_factor), 1.0f);
 }
 
 /* TODO(DingTo): Find more meaningful name for this */
@@ -222,6 +225,21 @@ ccl_device_inline bool path_state_ao_bounce(KernelGlobals *kg, ccl_addr_space Pa
 
     int bounce = state->bounce - state->transmission_bounce - (state->glossy_bounce > 0);
     return (bounce > kernel_data.integrator.ao_bounces);
+}
+
+ccl_device_inline void path_state_branch(ccl_addr_space PathState *state,
+                                         int branch,
+                                         int num_branches)
+{
+	state->rng_offset += PRNG_BOUNCE_NUM;
+
+	if(num_branches > 1) {
+		/* Path is splitting into a branch, adjust so that each branch
+		 * still gets a unique sample from the same sequence. */
+		state->sample = state->sample*num_branches + branch;
+		state->num_samples = state->num_samples*num_branches;
+		state->branch_factor *= num_branches;
+	}
 }
 
 CCL_NAMESPACE_END

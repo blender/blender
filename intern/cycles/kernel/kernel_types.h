@@ -1008,9 +1008,10 @@ typedef struct PathState {
 
 	/* random number generator state */
 	uint rng_hash;          /* per pixel hash */
-	int rng_offset;    		/* dimension offset */
-	int sample;        		/* path sample number */
-	int num_samples;		/* total number of times this path will be sampled */
+	int rng_offset;         /* dimension offset */
+	int sample;             /* path sample number */
+	int num_samples;        /* total number of times this path will be sampled */
+	float branch_factor;    /* number of branches in indirect paths */
 
 	/* bounce counting */
 	int bounce;

@@ -72,7 +72,6 @@ ccl_device_noinline bool kernel_split_branched_path_volume_indirect_light_iter(K
 			/* start the indirect path */
 			branched_state->next_closure = 0;
 			branched_state->next_sample = j+1;
-			branched_state->num_samples = num_samples;
 
 			/* Attempting to share too many samples is slow for volumes as it causes us to
 			 * loop here more and have many calls to kernel_volume_integrate which evaluates

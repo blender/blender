@@ -388,7 +388,6 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
                                      ShaderData *emission_sd,
                                      Ray *ray,
                                      float3 throughput,
-                                     int num_samples,
                                      PathState *state,
                                      PathRadiance *L)
 {
@@ -455,10 +454,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 		/* path termination. this is a strange place to put the termination, it's
 		 * mainly due to the mixed in MIS that we use. gives too many unneeded
 		 * shader evaluations, only need emission if we are going to terminate */
-		float probability =
-		        path_state_continuation_probability(kg,
-		                                         state,
-		                                         throughput*num_samples);
+		float probability = path_state_continuation_probability(kg, state, throughput);
 
 		if(probability == 0.0f) {
 			break;

@@ -188,7 +188,6 @@ ccl_device_noinline bool kernel_split_branched_path_surface_indirect_light_iter(
 			/* update state for next iteration */
 			branched_state->next_closure = i;
 			branched_state->next_sample = j+1;
-			branched_state->num_samples = num_samples;
 
 			/* start the indirect path */
 			*tp *= num_samples_inv;
