@@ -90,7 +90,7 @@ float ln_space_prefilter(float w0, float x, float w1, float y)
 #define SAMPLE_WEIGHT 0.11111
 
 #ifdef ESM
-void filter(vec4 depths, inout float accum)
+void prefilter(vec4 depths, inout float accum)
 {
 	accum = ln_space_prefilter(1.0, accum, SAMPLE_WEIGHT, depths.x);
 	accum = ln_space_prefilter(1.0, accum, SAMPLE_WEIGHT, depths.y);
@@ -98,7 +98,7 @@ void filter(vec4 depths, inout float accum)
 	accum = ln_space_prefilter(1.0, accum, SAMPLE_WEIGHT, depths.w);
 }
 #else /* VSM */
-void filter(vec4 depths, inout vec2 accum)
+void prefilter(vec4 depths, inout vec2 accum)
 {
 	vec4 depths_sqr = depths * depths;
 	accum += vec2(dot(vec4(1.0), depths), dot(vec4(1.0), depths_sqr)) * SAMPLE_WEIGHT;
@@ -193,7 +193,7 @@ void main() {
 	depths.z = texture(shadowTexture, cos[2]).r;
 	depths.w = texture(shadowTexture, cos[3]).r;
 	depths = get_world_distance(depths, cos);
-	filter(depths, accum);
+	prefilter(depths, accum);
 
 	cos[0] = get_texco(uvs, ofs.xy);
 	cos[1] = get_texco(uvs, ofs.zx);
@@ -204,7 +204,7 @@ void main() {
 	depths.z = texture(shadowTexture, cos[2]).r;
 	depths.w = texture(shadowTexture, cos[3]).r;
 	depths = get_world_distance(depths, cos);
-	filter(depths, accum);
+	prefilter(depths, accum);
 
 	FragColor = vec2(accum).xyxy;
 }
