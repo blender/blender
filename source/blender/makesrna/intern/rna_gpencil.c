@@ -74,7 +74,7 @@ static void rna_GPencil_editmode_update(Main *UNUSED(bmain), Scene *UNUSED(scene
 {
 	/* Notify all places where GPencil data lives that the editing state is different */
 	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
-	WM_main_add_notifier(NC_SCENE | ND_MODE, NULL);
+	WM_main_add_notifier(NC_SCENE | ND_MODE | NC_MOVIECLIP, NULL);
 }
 
 static void rna_GPencil_onion_skinning_update(Main *bmain, Scene *scene, PointerRNA *ptr)

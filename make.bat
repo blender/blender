@@ -356,6 +356,7 @@ goto EOF
 	echo - x64 ^(override host auto-detect and build 64 bit code^)
 	echo - 2013 ^(build with visual studio 2013^)
 	echo - 2015 ^(build with visual studio 2015^) [EXPERIMENTAL]
+	echo - 2017 ^(build with visual studio 2017^) [EXPERIMENTAL]
 	echo.
 
 :EOF

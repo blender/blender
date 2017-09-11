@@ -52,8 +52,8 @@ ccl_device_forceinline int bvh_aligned_node_intersect(KernelGlobals *kg,
 	float c0hiy = (node1.z - P.y) * idir.y;
 	float c0loz = (node2.x - P.z) * idir.z;
 	float c0hiz = (node2.z - P.z) * idir.z;
-	float c0min = max4(min(c0lox, c0hix), min(c0loy, c0hiy), min(c0loz, c0hiz), 0.0f);
-	float c0max = min4(max(c0lox, c0hix), max(c0loy, c0hiy), max(c0loz, c0hiz), t);
+	float c0min = max4(0.0f, min(c0lox, c0hix), min(c0loy, c0hiy), min(c0loz, c0hiz));
+	float c0max = min4(t, max(c0lox, c0hix), max(c0loy, c0hiy), max(c0loz, c0hiz));
 
 	float c1lox = (node0.y - P.x) * idir.x;
 	float c1hix = (node0.w - P.x) * idir.x;
@@ -61,8 +61,8 @@ ccl_device_forceinline int bvh_aligned_node_intersect(KernelGlobals *kg,
 	float c1hiy = (node1.w - P.y) * idir.y;
 	float c1loz = (node2.y - P.z) * idir.z;
 	float c1hiz = (node2.w - P.z) * idir.z;
-	float c1min = max4(min(c1lox, c1hix), min(c1loy, c1hiy), min(c1loz, c1hiz), 0.0f);
-	float c1max = min4(max(c1lox, c1hix), max(c1loy, c1hiy), max(c1loz, c1hiz), t);
+	float c1min = max4(0.0f, min(c1lox, c1hix), min(c1loy, c1hiy), min(c1loz, c1hiz));
+	float c1max = min4(t, max(c1lox, c1hix), max(c1loy, c1hiy), max(c1loz, c1hiz));
 
 	dist[0] = c0min;
 	dist[1] = c1min;
@@ -101,8 +101,8 @@ ccl_device_forceinline int bvh_aligned_node_intersect_robust(KernelGlobals *kg,
 	float c0hiy = (node1.z - P.y) * idir.y;
 	float c0loz = (node2.x - P.z) * idir.z;
 	float c0hiz = (node2.z - P.z) * idir.z;
-	float c0min = max4(min(c0lox, c0hix), min(c0loy, c0hiy), min(c0loz, c0hiz), 0.0f);
-	float c0max = min4(max(c0lox, c0hix), max(c0loy, c0hiy), max(c0loz, c0hiz), t);
+	float c0min = max4(0.0f, min(c0lox, c0hix), min(c0loy, c0hiy), min(c0loz, c0hiz));
+	float c0max = min4(t, max(c0lox, c0hix), max(c0loy, c0hiy), max(c0loz, c0hiz));
 
 	float c1lox = (node0.y - P.x) * idir.x;
 	float c1hix = (node0.w - P.x) * idir.x;
@@ -110,8 +110,8 @@ ccl_device_forceinline int bvh_aligned_node_intersect_robust(KernelGlobals *kg,
 	float c1hiy = (node1.w - P.y) * idir.y;
 	float c1loz = (node2.y - P.z) * idir.z;
 	float c1hiz = (node2.w - P.z) * idir.z;
-	float c1min = max4(min(c1lox, c1hix), min(c1loy, c1hiy), min(c1loz, c1hiz), 0.0f);
-	float c1max = min4(max(c1lox, c1hix), max(c1loy, c1hiy), max(c1loz, c1hiz), t);
+	float c1min = max4(0.0f, min(c1lox, c1hix), min(c1loy, c1hiy), min(c1loz, c1hiz));
+	float c1max = min4(t, max(c1lox, c1hix), max(c1loy, c1hiy), max(c1loz, c1hiz));
 
 	if(difl != 0.0f) {
 		float hdiff = 1.0f + difl;
@@ -483,8 +483,8 @@ ccl_device_forceinline int bvh_unaligned_node_intersect(KernelGlobals *kg,
 	ssef tfar_y = max(lower_y, upper_y);
 	ssef tfar_z = max(lower_z, upper_z);
 
-	const ssef tnear = max4(tnear_x, tnear_y, tnear_z, isect_near);
-	const ssef tfar = min4(tfar_x, tfar_y, tfar_z, isect_far);
+	const ssef tnear = max4(isect_near, tnear_x, tnear_y, tnear_z);
+	const ssef tfar = min4(isect_far, tfar_x, tfar_y, tfar_z);
 	sseb vmask = tnear <= tfar;
 	dist[0] = tnear.f[0];
 	dist[1] = tnear.f[1];
@@ -545,8 +545,8 @@ ccl_device_forceinline int bvh_unaligned_node_intersect_robust(KernelGlobals *kg
 	ssef tfar_y = max(lower_y, upper_y);
 	ssef tfar_z = max(lower_z, upper_z);
 
-	const ssef tnear = max4(tnear_x, tnear_y, tnear_z, isect_near);
-	const ssef tfar = min4(tfar_x, tfar_y, tfar_z, isect_far);
+	const ssef tnear = max4(isect_near, tnear_x, tnear_y, tnear_z);
+	const ssef tfar = min4(isect_far, tfar_x, tfar_y, tfar_z);
 	sseb vmask;
 	if(difl != 0.0f) {
 		const float round_down = 1.0f - difl;

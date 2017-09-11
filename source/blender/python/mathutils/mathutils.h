@@ -41,9 +41,18 @@ extern char BaseMathObject_owner_doc[];
 	(struct_name *)((base_type ? (base_type)->tp_alloc(base_type, 0) : _PyObject_GC_New(&(root_type))));
 
 
-/* BaseMathObject.flag */
+/** BaseMathObject.flag */
 enum {
+	/**
+	 * Do not own the memory used in this vector,
+	 * \note This is error prone if the memory may be freed while this vector is in use.
+	 * Prefer using callbacks where possible, see: #Mathutils_RegisterCallback
+	 */
 	BASE_MATH_FLAG_IS_WRAP    = (1 << 0),
+	/**
+	 * Prevent changes to the vector so it can be used as a set or dictionary key for example.
+	 * (typical use cases for tuple).
+	 */
 	BASE_MATH_FLAG_IS_FROZEN  = (1 << 1),
 };
 #define BASE_MATH_FLAG_DEFAULT 0

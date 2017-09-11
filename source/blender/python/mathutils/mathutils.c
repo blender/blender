@@ -554,8 +554,8 @@ char BaseMathObject_freeze_doc[] =
 ;
 PyObject *BaseMathObject_freeze(BaseMathObject *self)
 {
-	if (self->flag & BASE_MATH_FLAG_IS_WRAP) {
-		PyErr_SetString(PyExc_TypeError, "Cannot freeze wrapped data");
+	if ((self->flag & BASE_MATH_FLAG_IS_WRAP) || (self->cb_user != NULL)) {
+		PyErr_SetString(PyExc_TypeError, "Cannot freeze wrapped/owned data");
 		return NULL;
 	}
 

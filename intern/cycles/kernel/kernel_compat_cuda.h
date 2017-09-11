@@ -38,11 +38,15 @@
 /* Qualifier wrappers for different names on different devices */
 
 #define ccl_device  __device__ __inline__
+#if __CUDA_ARCH__ < 300
+#  define ccl_device_inline  __device__ __inline__
 #  define ccl_device_forceinline  __device__ __forceinline__
-#if __CUDA_ARCH__ < 500
+#elif __CUDA_ARCH__ < 500
 #  define ccl_device_inline  __device__ __forceinline__
+#  define ccl_device_forceinline  __device__ __forceinline__
 #else
 #  define ccl_device_inline  __device__ __inline__
+#  define ccl_device_forceinline  __device__ __forceinline__
 #endif
 #define ccl_device_noinline  __device__ __noinline__
 #define ccl_global

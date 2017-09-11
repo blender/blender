@@ -589,7 +589,10 @@ static float paint_stroke_integrate_overlap(Brush *br, float factor)
 			max = overlap;
 	}
 
-	return 1.0f / max;
+	if (max == 0.0f)
+		return 1.0f;
+	else
+		return 1.0f / max;
 }
 
 static float paint_space_stroke_spacing_variable(const Scene *scene, PaintStroke *stroke, float pressure, float dpressure, float length)
