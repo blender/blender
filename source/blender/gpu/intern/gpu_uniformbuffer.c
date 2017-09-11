@@ -356,6 +356,11 @@ void GPU_uniformbuffer_bind(GPUUniformBuffer *ubo, int number)
 	ubo->bindpoint = number;
 }
 
+void GPU_uniformbuffer_unbind(GPUUniformBuffer *ubo)
+{
+	ubo->bindpoint = -1;
+}
+
 int GPU_uniformbuffer_bindpoint(GPUUniformBuffer *ubo)
 {
 	return ubo->bindpoint;

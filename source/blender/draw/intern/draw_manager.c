@@ -181,7 +181,6 @@ struct DRWUniform {
 	int location;
 	int length;
 	int arraysize;
-	int bindloc;
 	const void *value;
 };
 
@@ -219,10 +218,6 @@ struct DRWInterface {
 	int orcotexfac;
 	int eye;
 	int clipplanes;
-	/* Textures */
-	int tex_bind; /* next texture binding point */
-	/* UBO */
-	int ubo_bind; /* next ubo binding point */
 	/* Dynamic batch */
 	Gwn_Batch *instance_batch; /* contains instances attributes */
 	GLuint instance_vbo; /* same as instance_batch but generated from DRWCalls */
@@ -327,8 +322,10 @@ enum {
 static struct DRWGlobalState {
 	/* Rendering state */
 	GPUShader *shader;
-	ListBase bound_texs;
-	int tex_bind_id;
+	GPUTexture **bound_texs;
+	GPUUniformBuffer **bound_ubos;
+	int bind_tex_inc;
+	int bind_ubo_inc;
 
 	/* Managed by `DRW_state_set`, `DRW_state_reset` */
 	DRWState state;
@@ -659,8 +656,6 @@ static DRWInterface *DRW_interface_create(GPUShader *shader)
 	interface->attribs_stride = 0;
 	interface->instance_vbo = 0;
 	interface->instance_batch = NULL;
-	interface->tex_bind = GPU_max_textures() - 1;
-	interface->ubo_bind = GPU_max_ubo_binds() - 1;
 
 	memset(&interface->vbo_format, 0, sizeof(Gwn_VertFormat));
 
@@ -681,7 +676,7 @@ static DRWInterface *DRW_interface_duplicate(DRWInterface *interface_src)
 #endif
 
 static void DRW_interface_uniform(DRWShadingGroup *shgroup, const char *name,
-                                  DRWUniformType type, const void *value, int length, int arraysize, int bindloc)
+                                  DRWUniformType type, const void *value, int length, int arraysize)
 {
 	DRWUniform *uni = MEM_mallocN(sizeof(DRWUniform), "DRWUniform");
 
@@ -698,7 +693,6 @@ static void DRW_interface_uniform(DRWShadingGroup *shgroup, const char *name,
 	uni->value = value;
 	uni->length = length;
 	uni->arraysize = arraysize;
-	uni->bindloc = bindloc; /* for textures */
 
 	if (uni->location == -1) {
 		if (G.debug & G_DEBUG)
@@ -1114,102 +1108,77 @@ void DRW_shgroup_attrib_float(DRWShadingGroup *shgroup, const char *name, int si
 
 void DRW_shgroup_uniform_texture(DRWShadingGroup *shgroup, const char *name, const GPUTexture *tex)
 {
-	DRWInterface *interface = shgroup->interface;
-
-	if (interface->tex_bind < 0) {
-		/* TODO alert user */
-		printf("Not enough texture slot for %s\n", name);
-		return;
-	}
-
-	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_TEXTURE, tex, 0, 1, interface->tex_bind--);
+	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_TEXTURE, tex, 0, 1);
 }
 
 void DRW_shgroup_uniform_block(DRWShadingGroup *shgroup, const char *name, const GPUUniformBuffer *ubo)
 {
-	DRWInterface *interface = shgroup->interface;
-
-	/* Be carefull: there is also a limit per shader stage. Usually 1/3 of normal limit. */
-	if (interface->ubo_bind < 0) {
-		/* TODO alert user */
-		printf("Not enough ubo slots for %s\n", name);
-		return;
-	}
-
-	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_BLOCK, ubo, 0, 1, interface->ubo_bind--);
+	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_BLOCK, ubo, 0, 1);
 }
 
 void DRW_shgroup_uniform_buffer(DRWShadingGroup *shgroup, const char *name, GPUTexture **tex)
 {
-	DRWInterface *interface = shgroup->interface;
-
-	if (interface->tex_bind < 0) {
-		/* TODO alert user */
-		printf("Not enough texture slot for %s\n", name);
-		return;
-	}
-
-	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_BUFFER, tex, 0, 1, interface->tex_bind--);
+	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_BUFFER, tex, 0, 1);
 }
 
 void DRW_shgroup_uniform_bool(DRWShadingGroup *shgroup, const char *name, const bool *value, int arraysize)
 {
-	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_BOOL, value, 1, arraysize, 0);
+	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_BOOL, value, 1, arraysize);
 }
 
 void DRW_shgroup_uniform_float(DRWShadingGroup *shgroup, const char *name, const float *value, int arraysize)
 {
-	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_FLOAT, value, 1, arraysize, 0);
+	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_FLOAT, value, 1, arraysize);
 }
 
 void DRW_shgroup_uniform_vec2(DRWShadingGroup *shgroup, const char *name, const float *value, int arraysize)
 {
-	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_FLOAT, value, 2, arraysize, 0);
+	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_FLOAT, value, 2, arraysize);
 }
 
 void DRW_shgroup_uniform_vec3(DRWShadingGroup *shgroup, const char *name, const float *value, int arraysize)
 {
-	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_FLOAT, value, 3, arraysize, 0);
+	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_FLOAT, value, 3, arraysize);
 }
 
 void DRW_shgroup_uniform_vec4(DRWShadingGroup *shgroup, const char *name, const float *value, int arraysize)
 {
-	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_FLOAT, value, 4, arraysize, 0);
+	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_FLOAT, value, 4, arraysize);
 }
 
 void DRW_shgroup_uniform_short_to_int(DRWShadingGroup *shgroup, const char *name, const short *value, int arraysize)
 {
-	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_SHORT_TO_INT, value, 1, arraysize, 0);
+	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_SHORT_TO_INT, value, 1, arraysize);
 }
 
 void DRW_shgroup_uniform_short_to_float(DRWShadingGroup *shgroup, const char *name, const short *value, int arraysize)
 {
-	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_SHORT_TO_FLOAT, value, 1, arraysize, 0);
+	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_SHORT_TO_FLOAT, value, 1, arraysize);
 }
 
 void DRW_shgroup_uniform_int(DRWShadingGroup *shgroup, const char *name, const int *value, int arraysize)
 {
-	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_INT, value, 1, arraysize, 0);
+	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_INT, value, 1, arraysize);
 }
 
 void DRW_shgroup_uniform_ivec2(DRWShadingGroup *shgroup, const char *name, const int *value, int arraysize)
 {
-	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_INT, value, 2, arraysize, 0);
+	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_INT, value, 2, arraysize);
 }
 
 void DRW_shgroup_uniform_ivec3(DRWShadingGroup *shgroup, const char *name, const int *value, int arraysize)
 {
-	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_INT, value, 3, arraysize, 0);
+	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_INT, value, 3, arraysize);
 }
 
 void DRW_shgroup_uniform_mat3(DRWShadingGroup *shgroup, const char *name, const float *value)
 {
-	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_MAT3, value, 9, 1, 0);
+	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_MAT3, value, 9, 1);
 }
 
 void DRW_shgroup_uniform_mat4(DRWShadingGroup *shgroup, const char *name, const float *value)
 {
-	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_MAT4, value, 16, 1, 0);
+	DRW_interface_uniform(shgroup, name, DRW_UNIFORM_MAT4, value, 16, 1);
 }
 
 /* Creates a VBO containing OGL primitives for all DRWCallDynamic */
@@ -1859,13 +1828,49 @@ static void draw_geometry(DRWShadingGroup *shgroup, Gwn_Batch *geom, const float
 	draw_geometry_execute(shgroup, geom);
 }
 
+static void draw_bind_texture(GPUTexture *tex)
+{
+	int bind = GPU_texture_bound_number(tex);
+	if (bind == -1) {
+		if (DST.bind_tex_inc >= 0) {
+			if (DST.bound_texs[DST.bind_tex_inc] != NULL) {
+				GPU_texture_unbind(DST.bound_texs[DST.bind_tex_inc]);
+			}
+			DST.bound_texs[DST.bind_tex_inc] = tex;
+			GPU_texture_bind(tex, DST.bind_tex_inc);
+
+			DST.bind_tex_inc--;
+		}
+		else {
+			printf("Not enough texture slots! Reduce number of textures used by your shader.\n");
+		}
+	}
+}
+
+static void draw_bind_ubo(GPUUniformBuffer *ubo)
+{
+	if (DST.bound_ubos[DST.bind_ubo_inc] != ubo) {
+		if (DST.bind_ubo_inc >= 0) {
+			DST.bound_ubos[DST.bind_ubo_inc] = ubo;
+			GPU_uniformbuffer_bind(ubo, DST.bind_ubo_inc);
+		}
+		else {
+			printf("Not enough ubo slots!\n");
+		}
+	}
+	DST.bind_ubo_inc--;
+}
+
 static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 {
 	BLI_assert(shgroup->shader);
 	BLI_assert(shgroup->interface);
 
+	DST.bind_tex_inc = GPU_max_textures() - 1; /* Reset texture counter. */
+	DST.bind_ubo_inc = GPU_max_ubo_binds() - 1; /* Reset UBO counter. */
 	DRWInterface *interface = shgroup->interface;
 	GPUTexture *tex;
+	GPUUniformBuffer *ubo;
 	int val;
 	float fval;
 
@@ -1886,8 +1891,6 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 	/* Binding Uniform */
 	/* Don't check anything, Interface should already contain the least uniform as possible */
 	for (DRWUniform *uni = interface->uniforms.first; uni; uni = uni->next) {
-		DRWBoundTexture *bound_tex;
-
 		switch (uni->type) {
 			case DRW_UNIFORM_SHORT_TO_INT:
 				val = (int)*((short *)uni->value);
@@ -1913,12 +1916,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 			case DRW_UNIFORM_TEXTURE:
 				tex = (GPUTexture *)uni->value;
 				BLI_assert(tex);
-				GPU_texture_bind(tex, uni->bindloc);
-
-				bound_tex = MEM_callocN(sizeof(DRWBoundTexture), "DRWBoundTexture");
-				bound_tex->tex = tex;
-				BLI_addtail(&DST.bound_texs, bound_tex);
-
+				draw_bind_texture(tex);
 				GPU_shader_uniform_texture(shgroup->shader, uni->location, tex);
 				break;
 			case DRW_UNIFORM_BUFFER:
@@ -1927,17 +1925,13 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 				}
 				tex = *((GPUTexture **)uni->value);
 				BLI_assert(tex);
-				GPU_texture_bind(tex, uni->bindloc);
-
-				bound_tex = MEM_callocN(sizeof(DRWBoundTexture), "DRWBoundTexture");
-				bound_tex->tex = tex;
-				BLI_addtail(&DST.bound_texs, bound_tex);
-
+				draw_bind_texture(tex);
 				GPU_shader_uniform_texture(shgroup->shader, uni->location, tex);
 				break;
 			case DRW_UNIFORM_BLOCK:
-				GPU_uniformbuffer_bind((GPUUniformBuffer *)uni->value, uni->bindloc);
-				GPU_shader_uniform_buffer(shgroup->shader, uni->location, (GPUUniformBuffer *)uni->value);
+				ubo = (GPUUniformBuffer *)uni->value;
+				draw_bind_ubo(ubo);
+				GPU_shader_uniform_buffer(shgroup->shader, uni->location, ubo);
 				break;
 		}
 	}
@@ -2034,10 +2028,8 @@ static void DRW_draw_pass_ex(DRWPass *pass, DRWShadingGroup *start_group, DRWSha
 {
 	/* Start fresh */
 	DST.shader = NULL;
-	DST.tex_bind_id = 0;
 
 	DRW_state_set(pass->state);
-	BLI_listbase_clear(&DST.bound_texs);
 
 	DRW_stats_query_start(pass->name);
 
@@ -2050,11 +2042,12 @@ static void DRW_draw_pass_ex(DRWPass *pass, DRWShadingGroup *start_group, DRWSha
 	}
 
 	/* Clear Bound textures */
-	for (DRWBoundTexture *bound_tex = DST.bound_texs.first; bound_tex; bound_tex = bound_tex->next) {
-		GPU_texture_unbind(bound_tex->tex);
+	for (int i = 0; i < GPU_max_textures(); i++) {
+		if (DST.bound_texs[i] != NULL) {
+			GPU_texture_unbind(DST.bound_texs[i]);
+			DST.bound_texs[i] = NULL;
+		}
 	}
-	DST.tex_bind_id = 0;
-	BLI_freelistN(&DST.bound_texs);
 
 	if (DST.shader) {
 		GPU_shader_unbind();
@@ -2521,6 +2514,16 @@ static void DRW_viewport_var_init(void)
 	DST.frontface = GL_CCW;
 	DST.backface = GL_CW;
 	glFrontFace(DST.frontface);
+
+	/* Alloc array of texture reference. */
+	if (DST.bound_texs == NULL) {
+		DST.bound_texs = MEM_callocN(sizeof(GPUTexture *) * GPU_max_textures(), "Bound GPUTexture refs");
+	}
+
+	/* Alloc array of ubos reference. */
+	if (DST.bound_ubos == NULL) {
+		DST.bound_ubos = MEM_callocN(sizeof(GPUUniformBuffer *) * GPU_max_ubo_binds(), "Bound GPUUniformBuffer refs");
+	}
 }
 
 void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type)
@@ -3231,6 +3234,8 @@ void DRW_draw_render_loop_ex(
 
 #ifdef DEBUG
 	/* Avoid accidental reuse. */
+	MEM_freeN(DST.bound_texs);
+	MEM_freeN(DST.bound_ubos);
 	memset(&DST, 0xFF, sizeof(DST));
 #endif
 }
@@ -3383,6 +3388,8 @@ void DRW_draw_select_loop(
 
 #ifdef DEBUG
 	/* Avoid accidental reuse. */
+	MEM_freeN(DST.bound_texs);
+	MEM_freeN(DST.bound_ubos);
 	memset(&DST, 0xFF, sizeof(DST));
 #endif
 
@@ -3471,6 +3478,8 @@ void DRW_draw_depth_loop(
 
 #ifdef DEBUG
 	/* Avoid accidental reuse. */
+	MEM_freeN(DST.bound_texs);
+	MEM_freeN(DST.bound_ubos);
 	memset(&DST, 0xFF, sizeof(DST));
 #endif
 

@@ -827,12 +827,14 @@ static void OBJECT_cache_init(void *vedata)
 		DRW_shgroup_uniform_int(grp, "gridFlag", &e_data.grid_flag, 1);
 		DRW_shgroup_uniform_vec3(grp, "planeNormal", e_data.grid_normal, 1);
 		DRW_shgroup_uniform_vec3(grp, "planeAxes", e_data.grid_axes, 1);
+		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
 		DRW_shgroup_call_add(grp, quad, mat);
 
 		grp = DRW_shgroup_create(e_data.grid_sh, psl->grid);
 		DRW_shgroup_uniform_int(grp, "gridFlag", &e_data.zpos_flag, 1);
 		DRW_shgroup_uniform_vec3(grp, "planeNormal", e_data.zplane_normal, 1);
 		DRW_shgroup_uniform_vec3(grp, "planeAxes", e_data.zplane_axes, 1);
+		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
 		DRW_shgroup_call_add(grp, quad, mat);
 	}
 
