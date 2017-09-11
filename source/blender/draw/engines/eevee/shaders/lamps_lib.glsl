@@ -89,23 +89,28 @@ float evaluate_cascade(ShadowData sd, mat4 shadowmat, vec3 W, float range, float
 	vec4 shpos = shadowmat * vec4(W, 1.0);
 	float dist = shpos.z * range;
 
-	/* If fragment is out of shadowmap range, do not occlude */
-	if (shpos.z > 1.0 || shpos.z < 0.0)
-		return 1.0;
-
 #if defined(SHADOW_VSM)
 	vec2 moments = texture(shadowTexture, vec3(shpos.xy, texid)).rg;
 #else
 	float z = texture(shadowTexture, vec3(shpos.xy, texid)).r;
 #endif
 
+	float vis;
 #if defined(SHADOW_VSM)
-	return shadow_test_vsm(moments, dist, sd.sh_bias, sd.sh_bleed);
+	vis = shadow_test_vsm(moments, dist, sd.sh_bias, sd.sh_bleed);
 #elif defined(SHADOW_ESM)
-	return shadow_test_esm(z, dist - sd.sh_bias, sd.sh_exp);
+	vis = shadow_test_esm(z, dist - sd.sh_bias, sd.sh_exp);
 #else
-	return shadow_test_pcf(z, dist - sd.sh_bias);
+	vis = shadow_test_pcf(z, dist - sd.sh_bias);
 #endif
+
+	/* If fragment is out of shadowmap range, do not occlude */
+	if (shpos.z < 1.0 && shpos.z > 0.0) {
+		return vis;
+	}
+	else {
+		return 1.0;
+	}
 }
 
 float shadow_cascade(ShadowData sd, ShadowCascadeData scd, float texid, vec3 W)
@@ -116,18 +121,19 @@ float shadow_cascade(ShadowData sd, ShadowCascadeData scd, float texid, vec3 W)
 
 	vec4 vis = vec4(1.0);
 	float range = abs(sd.sh_far - sd.sh_near); /* Same factor as in get_cascade_world_distance(). */
-	if (weights.x > 0.0) {
+	/* Branching is reaally slooow on intel */
+	// if (weights.x > 0.0) {
 		vis.x = evaluate_cascade(sd, scd.shadowmat[0], W, range, texid + 0);
-	}
-	if (weights.y > 0.0) {
+	// }
+	// if (weights.y > 0.0) {
 		vis.y = evaluate_cascade(sd, scd.shadowmat[1], W, range, texid + 1);
-	}
-	if (weights.z > 0.0) {
+	// }
+	// if (weights.z > 0.0) {
 		vis.z = evaluate_cascade(sd, scd.shadowmat[2], W, range, texid + 2);
-	}
-	if (weights.w > 0.0) {
+	// }
+	// if (weights.w > 0.0) {
 		vis.w = evaluate_cascade(sd, scd.shadowmat[3], W, range, texid + 3);
-	}
+	// }
 
 	float weight_sum = dot(vec4(1.0), weights);
 	if (weight_sum > 0.9999) {
