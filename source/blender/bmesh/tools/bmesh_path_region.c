@@ -36,15 +36,25 @@
 #include "bmesh_path_region.h"  /* own include */
 
 
-/* Special handling of vertices with 2 edges
- * (act as if the edge-chain is a single edge). */
+/**
+ * Special handling of vertices with 2 edges
+ * (act as if the edge-chain is a single edge).
+ *
+ * \note Regarding manifold edge stepping: #BM_vert_is_edge_pair_manifold usage.
+ * Logic to skip a chain of vertices is not applied at boundaries because it gives
+ * strange behavior from a user perspective especially with boundary quads, see: T52701
+ *
+ * Restrict walking over a vertex chain to cases where the edges share the same faces.
+ * This is more typical of what a user would consider a vertex chain.
+ */
 #define USE_EDGE_CHAIN
 
 
 #ifdef USE_EDGE_CHAIN
 /**
- * Takes a vertex with 2 edge users and fills in the vertices at each end-point,
- * or nothing if if the edges loop back to its self.
+ * Takes a vertex with 2 edge users and assigns the vertices at each end-point,
+ *
+ * \return Success when \a v_end_pair values are set or false if the edges loop back on themselves.
  */
 static bool bm_vert_pair_ends(BMVert *v_pivot, BMVert *v_end_pair[2])
 {
@@ -53,7 +63,7 @@ static bool bm_vert_pair_ends(BMVert *v_pivot, BMVert *v_end_pair[2])
 	do {
 		BMEdge *e_chain = e;
 		BMVert *v_other = BM_edge_other_vert(e_chain, v_pivot);
-		while (BM_vert_is_edge_pair(v_other)) {
+		while (BM_vert_is_edge_pair_manifold(v_other)) {
 			BMEdge *e_chain_next = BM_DISK_EDGE_NEXT(e_chain, v_other);
 			BLI_assert(BM_DISK_EDGE_NEXT(e_chain_next, v_other) == e_chain);
 			v_other = BM_edge_other_vert(e_chain_next, v_other);
@@ -88,7 +98,7 @@ static bool bm_vert_region_test_chain(BMVert *v, int * const depths[2], const in
 	if (bm_vert_region_test(v, depths, pass)) {
 		return true;
 	}
-	else if (BM_vert_is_edge_pair(v) &&
+	else if (BM_vert_is_edge_pair_manifold(v) &&
 	         bm_vert_pair_ends(v, v_end_pair) &&
 	         bm_vert_region_test(v_end_pair[0], depths, pass) &&
 	         bm_vert_region_test(v_end_pair[1], depths, pass))
@@ -206,7 +216,7 @@ static LinkNode *mesh_calc_path_region_elem(
 			for (int i = 0; i < ele_verts_len[side]; i++) {
 				BMVert *v = ele_verts[side][i];
 				BMVert *v_end_pair[2];
-				if (BM_vert_is_edge_pair(v) && bm_vert_pair_ends(v, v_end_pair)) {
+				if (BM_vert_is_edge_pair_manifold(v) && bm_vert_pair_ends(v, v_end_pair)) {
 					for (int j = 0; j < 2; j++) {
 						const int v_end_index = BM_elem_index_get(v_end_pair[j]);
 						if (depths[side][v_end_index] == -1) {
@@ -239,7 +249,7 @@ static LinkNode *mesh_calc_path_region_elem(
 						/* Walk along the chain, fill in values until we reach a vertex with 3+ edges. */
 						{
 							BMEdge *e_chain = e;
-							while (BM_vert_is_edge_pair(v_b) &&
+							while (BM_vert_is_edge_pair_manifold(v_b) &&
 							       ((depths[side][v_b_index] == -1)))
 							{
 								depths[side][v_b_index] = pass;
@@ -256,7 +266,7 @@ static LinkNode *mesh_calc_path_region_elem(
 						/* Add the other vertex to the stack, to be traversed in the next pass. */
 						if (depths[side][v_b_index] == -1) {
 #ifdef USE_EDGE_CHAIN
-							BLI_assert(!BM_vert_is_edge_pair(v_b));
+							BLI_assert(!BM_vert_is_edge_pair_manifold(v_b));
 #endif
 							BLI_assert(pass == depths[side][BM_elem_index_get(v_a)] + 1);
 							depths[side][v_b_index] = pass;
