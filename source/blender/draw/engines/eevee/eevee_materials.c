@@ -411,6 +411,10 @@ static void add_standard_uniforms(
 		DRW_shgroup_uniform_buffer(shgrp, "horizonBuffer", &vedata->txl->gtao_horizons);
 		DRW_shgroup_uniform_ivec2(shgrp, "aoHorizonTexSize", (int *)vedata->stl->effects->ao_texsize, 1);
 	}
+	else {
+		/* Use shadow_pool as fallback to avoid sampling problem on certain platform, see: T52593 */
+		DRW_shgroup_uniform_buffer(shgrp, "horizonBuffer", &sldata->shadow_pool);
+	}
 }
 
 static void create_default_shader(int options)
