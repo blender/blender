@@ -187,7 +187,7 @@ ccl_device_inline float path_state_terminate_probability(KernelGlobals *kg, ccl_
 	}
 
 	/* probalistic termination */
-	return average(throughput); /* todo: try using max here */
+	return min(average(throughput), 1.0f); /* todo: try using max here */
 }
 
 /* TODO(DingTo): Find more meaningful name for this */
