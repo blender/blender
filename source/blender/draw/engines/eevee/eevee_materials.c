@@ -336,8 +336,6 @@ static char *eevee_get_volume_defines(int options)
 {
 	char *str = NULL;
 
-	BLI_assert(options < VAR_MAT_MAX);
-
 	DynStr *ds = BLI_dynstr_new();
 	BLI_dynstr_appendf(ds, SHADER_DEFINES);
 	BLI_dynstr_appendf(ds, "#define VOLUMETRICS\n");
