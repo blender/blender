@@ -1564,20 +1564,13 @@ void zspan_scanconvert(ZSpan *zspan, void *handle, float *v1, float *v2, float *
 	vy0= ((double)my2)*vyd + (double)xx1;
 	
 	/* correct span */
-	sn1= (my0 + my2)/2;
-	if (zspan->span1[sn1] < zspan->span2[sn1]) {
-		span1= zspan->span1+my2;
-		span2= zspan->span2+my2;
-	}
-	else {
-		span1= zspan->span2+my2;
-		span2= zspan->span1+my2;
-	}
+	span1= zspan->span1+my2;
+	span2= zspan->span2+my2;
 	
 	for (i = 0, y = my2; y >= my0; i++, y--, span1--, span2--) {
 		
-		sn1= floor(*span1);
-		sn2= floor(*span2);
+		sn1= floor(min_ff(*span1, *span2));
+		sn2= floor(max_ff(*span1, *span2));
 		sn1++; 
 		
 		if (sn2>=rectx) sn2= rectx-1;
