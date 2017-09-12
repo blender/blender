@@ -143,7 +143,7 @@ ccl_device_inline void path_state_next(KernelGlobals *kg, ccl_addr_space PathSta
 #endif
 }
 
-ccl_device_inline uint path_state_ray_visibility(KernelGlobals *kg, PathState *state)
+ccl_device_inline uint path_state_ray_visibility(KernelGlobals *kg, ccl_addr_space PathState *state)
 {
 	uint flag = state->flag & PATH_RAY_ALL_VISIBILITY;
 
@@ -212,6 +212,16 @@ ccl_device_inline void path_state_modify_bounce(ccl_addr_space PathState *state,
 		state->bounce += 1;
 	else
 		state->bounce -= 1;
+}
+
+ccl_device_inline bool path_state_ao_bounce(KernelGlobals *kg, ccl_addr_space PathState *state)
+{
+    if(state->bounce <= kernel_data.integrator.ao_bounces) {
+        return false;
+    }
+
+    int bounce = state->bounce - state->transmission_bounce - (state->glossy_bounce > 0);
+    return (bounce > kernel_data.integrator.ao_bounces);
 }
 
 CCL_NAMESPACE_END

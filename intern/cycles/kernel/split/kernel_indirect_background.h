@@ -33,7 +33,7 @@ ccl_device void kernel_indirect_background(KernelGlobals *kg)
 		if(ray_index != QUEUE_EMPTY_SLOT) {
 			if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
 				ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
-				if(state->bounce > kernel_data.integrator.ao_bounces) {
+				if(path_state_ao_bounce(kg, state)) {
 					kernel_split_path_end(kg, ray_index);
 				}
 			}
