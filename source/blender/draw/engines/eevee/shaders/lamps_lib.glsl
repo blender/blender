@@ -121,19 +121,12 @@ float shadow_cascade(ShadowData sd, ShadowCascadeData scd, float texid, vec3 W)
 
 	vec4 vis = vec4(1.0);
 	float range = abs(sd.sh_far - sd.sh_near); /* Same factor as in get_cascade_world_distance(). */
-	/* Branching is reaally slooow on intel */
-	// if (weights.x > 0.0) {
-		vis.x = evaluate_cascade(sd, scd.shadowmat[0], W, range, texid + 0);
-	// }
-	// if (weights.y > 0.0) {
-		vis.y = evaluate_cascade(sd, scd.shadowmat[1], W, range, texid + 1);
-	// }
-	// if (weights.z > 0.0) {
-		vis.z = evaluate_cascade(sd, scd.shadowmat[2], W, range, texid + 2);
-	// }
-	// if (weights.w > 0.0) {
-		vis.w = evaluate_cascade(sd, scd.shadowmat[3], W, range, texid + 3);
-	// }
+
+	/* Branching using (weights > 0.0) is reaally slooow on intel so avoid it for now. */
+	vis.x = evaluate_cascade(sd, scd.shadowmat[0], W, range, texid + 0);
+	vis.y = evaluate_cascade(sd, scd.shadowmat[1], W, range, texid + 1);
+	vis.z = evaluate_cascade(sd, scd.shadowmat[2], W, range, texid + 2);
+	vis.w = evaluate_cascade(sd, scd.shadowmat[3], W, range, texid + 3);
 
 	float weight_sum = dot(vec4(1.0), weights);
 	if (weight_sum > 0.9999) {

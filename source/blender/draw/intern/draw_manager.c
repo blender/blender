@@ -949,9 +949,6 @@ void DRW_shgroup_call_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, float (*obm
 	}
 
 	call->geometry = geom;
-
-
-
 }
 
 void DRW_shgroup_call_object_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, Object *ob)
@@ -975,7 +972,6 @@ void DRW_shgroup_call_object_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, Obje
 	copy_m4_m4(call->obmat, ob->obmat);
 	call->geometry = geom;
 	call->ob_data = ob->data;
-
 }
 
 void DRW_shgroup_call_generate_add(
