@@ -1257,7 +1257,7 @@ void EEVEE_effects_do_ssr(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *veda
 	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_EffectsInfo *effects = stl->effects;
 
-	if ((effects->enabled_effects & EFFECT_SSR) != 0) {
+	if (((effects->enabled_effects & EFFECT_SSR) != 0) && stl->g_data->valid_double_buffer) {
 		DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 		e_data.depth_src = dtxl->depth;
 
@@ -1266,14 +1266,8 @@ void EEVEE_effects_do_ssr(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *veda
 		}
 		DRW_framebuffer_bind(fbl->screen_tracing_fb);
 
-		if (stl->g_data->valid_double_buffer) {
-			/* Raytrace. */
-			DRW_draw_pass(psl->ssr_raytrace);
-		}
-		else {
-			float clear_col[4] = {0.0f, 0.0f, -1.0f, 0.001f};
-			DRW_framebuffer_clear(true, false, false, clear_col, 0.0f);
-		}
+		/* Raytrace. */
+		DRW_draw_pass(psl->ssr_raytrace);
 
 		for (int i = 0; i < effects->ssr_ray_count; ++i) {
 			DRW_framebuffer_texture_detach(stl->g_data->ssr_hit_output[i]);
