@@ -62,7 +62,57 @@
 /* own includes */
 #include "../manipulator_library_intern.h"
 
-#define MANIPULATOR_RESIZER_WIDTH  20.0f
+#define MANIPULATOR_RESIZER_SIZE 10.0f
+
+static void manipulator_calc_matrix_final_no_offset(
+        const wmManipulator *mpr, float orig_matrix_final_no_offset[4][4])
+{
+	float mat_identity[4][4];
+	struct WM_ManipulatorMatrixParams params = {NULL};
+	unit_m4(mat_identity);
+	params.matrix_offset = mat_identity;
+	WM_manipulator_calc_matrix_final_params(mpr, &params, orig_matrix_final_no_offset);
+}
+
+static void manipulator_calc_rect_view_scale(
+        const wmManipulator *mpr, const float dims[2], float scale[2])
+{
+	float matrix_final_no_offset[4][4];
+	float asp[2] = {1.0f, 1.0f};
+	if (dims[0] > dims[1]) {
+		asp[0] = dims[1] / dims[0];
+	}
+	else {
+		asp[1] = dims[0] / dims[1];
+	}
+	float x_axis[3], y_axis[3];
+	manipulator_calc_matrix_final_no_offset(mpr, matrix_final_no_offset);
+	mul_v3_mat3_m4v3(x_axis, matrix_final_no_offset, mpr->matrix_offset[0]);
+	mul_v3_mat3_m4v3(y_axis, matrix_final_no_offset, mpr->matrix_offset[1]);
+
+	mul_v2_v2(x_axis, asp);
+	mul_v2_v2(y_axis, asp);
+
+	scale[0] = 1.0f / len_v3(x_axis);
+	scale[1] = 1.0f / len_v3(y_axis);
+}
+
+static void manipulator_calc_rect_view_margin(
+        const wmManipulator *mpr, const float dims[2], float margin[2])
+{
+	float handle_size;
+	if (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) {
+		handle_size = 0.1f;
+	}
+	else {
+		handle_size = MANIPULATOR_RESIZER_SIZE;
+	}
+	handle_size *= mpr->scale_final;
+	float scale_xy[2];
+	manipulator_calc_rect_view_scale(mpr, dims, scale_xy);
+	margin[0] = ((handle_size * scale_xy[0]));
+	margin[1] = ((handle_size * scale_xy[1]));
+}
 
 /* -------------------------------------------------------------------- */
 
@@ -262,7 +312,6 @@ static void manipulator_rect_transform_draw_intern(
 
 	const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
 
-	float aspx = 1.0f, aspy = 1.0f;
 	const float size[2] = {w / 2.0f, h / 2.0f};
 	const rctf r = {
 		.xmin = -size[0],
@@ -276,17 +325,8 @@ static void manipulator_rect_transform_draw_intern(
 	gpuPushMatrix();
 	gpuMultMatrix(matrix_final);
 
-	if (w > h) {
-		aspx = h / w;
-	}
-	else {
-		aspy = w / h;
-	}
-
-	const float margin[2] = {
-		aspx * w / MANIPULATOR_RESIZER_WIDTH,
-		aspy * h / MANIPULATOR_RESIZER_WIDTH,
-	};
+	float margin[2];
+	manipulator_calc_rect_view_margin(mpr, dims, margin);
 
 	/* corner manipulators */
 	glLineWidth(mpr->line_width + 3.0f);
@@ -410,7 +450,6 @@ static int manipulator_rect_transform_test_select(
 	const float w = dims[0];
 	const float h = dims[1];
 	const float size[2] = {w / 2.0f, h / 2.0f};
-	float aspx = 1.0f, aspy = 1.0f;
 
 	if (manipulator_window_project_2d(
 	        C, mpr, (const float[2]){UNPACK2(event->mval)}, 2, true, point_local) == false)
@@ -418,18 +457,10 @@ static int manipulator_rect_transform_test_select(
 		return -1;
 	}
 
-	const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
-	if (dims[0] > dims[1]) {
-		aspx = h / w;
-	}
-	else {
-		aspy = w / h;
-	}
+	float margin[2];
+	manipulator_calc_rect_view_margin(mpr, dims, margin);
 
-	const float margin[2] = {
-		aspx * w / MANIPULATOR_RESIZER_WIDTH,
-		aspy * h / MANIPULATOR_RESIZER_WIDTH,
-	};
+	const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
 
 	if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE) {
 		const rctf r = {
@@ -517,14 +548,7 @@ static int manipulator_rect_transform_invoke(
 	RectTransformInteraction *data = MEM_callocN(sizeof(RectTransformInteraction), "cage_interaction");
 
 	copy_m4_m4(data->orig_matrix_offset, mpr->matrix_offset);
-
-	{
-		float mat_identity[4][4];
-		struct WM_ManipulatorMatrixParams params = {NULL};
-		unit_m4(mat_identity);
-		params.matrix_offset = mat_identity;
-		WM_manipulator_calc_matrix_final_params(mpr, &params, data->orig_matrix_final_no_offset);
-	}
+	manipulator_calc_matrix_final_no_offset(mpr, data->orig_matrix_final_no_offset);
 
 	if (manipulator_window_project_2d(
 	        C, mpr, (const float[2]){UNPACK2(event->mval)}, 2, false, data->orig_mouse) == 0)
