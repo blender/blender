@@ -284,6 +284,7 @@ struct DRWShadingGroup {
 	DRWState state_extra_disable;    /* State changes for this batch only (and'd with the pass's state) */
 	int type;
 
+	ID *instance_data;         /* Object->data to instance */
 	Gwn_Batch *instance_geom;  /* Geometry to instance */
 	Gwn_Batch *batch_geom;     /* Result of call batching */
 
@@ -757,6 +758,7 @@ DRWShadingGroup *DRW_shgroup_create(struct GPUShader *shader, DRWPass *pass)
 	shgroup->state_extra_disable = ~0x0;
 	shgroup->batch_geom = NULL;
 	shgroup->instance_geom = NULL;
+	shgroup->instance_data = NULL;
 
 #ifdef USE_MEM_ITER
 	shgroup->calls = BLI_memiter_create(BLI_MEMITER_DEFAULT_SIZE);
@@ -840,13 +842,15 @@ DRWShadingGroup *DRW_shgroup_material_create(struct GPUMaterial *material, DRWPa
 	return grp;
 }
 
-DRWShadingGroup *DRW_shgroup_material_instance_create(struct GPUMaterial *material, DRWPass *pass, Gwn_Batch *geom)
+DRWShadingGroup *DRW_shgroup_material_instance_create(
+        struct GPUMaterial *material, DRWPass *pass, Gwn_Batch *geom, Object *ob)
 {
 	DRWShadingGroup *shgroup = DRW_shgroup_material_create(material, pass);
 
 	if (shgroup) {
 		shgroup->type = DRW_SHG_INSTANCE;
 		shgroup->instance_geom = geom;
+		shgroup->instance_data = ob->data;
 	}
 
 	return shgroup;
@@ -1971,7 +1975,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 			(interface->instance_count > 0 || interface->instance_batch != NULL))
 		{
 			GPU_SELECT_LOAD_IF_PICKSEL_LIST(&shgroup->calls);
-			draw_geometry(shgroup, shgroup->instance_geom, obmat, NULL);
+			draw_geometry(shgroup, shgroup->instance_geom, obmat, shgroup->instance_data);
 		}
 		else {
 			/* Some dynamic batch can have no geom (no call to aggregate) */
