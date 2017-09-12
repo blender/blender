@@ -1749,18 +1749,21 @@ void DepsgraphRelationBuilder::build_camera(Object *ob)
 	}
 	camera_id->tag |= LIB_TAG_DOIT;
 
-	ComponentKey parameters_key(camera_id, DEG_NODE_TYPE_PARAMETERS);
+	ComponentKey object_parameters_key(&ob->id, DEG_NODE_TYPE_PARAMETERS);
+	ComponentKey camera_parameters_key(camera_id, DEG_NODE_TYPE_PARAMETERS);
+
+	add_relation(camera_parameters_key, object_parameters_key,
+	             "Camera -> Object");
 
 	if (needs_animdata_node(camera_id)) {
 		ComponentKey animation_key(camera_id, DEG_NODE_TYPE_ANIMATION);
-		add_relation(animation_key, parameters_key, "Camera Parameters");
+		add_relation(animation_key, camera_parameters_key, "Camera Parameters");
 	}
 
 	/* DOF */
-	if (cam->dof_ob) {
-		ComponentKey ob_param_key(&ob->id, DEG_NODE_TYPE_PARAMETERS);
+	if (cam->dof_ob != NULL) {
 		ComponentKey dof_ob_key(&cam->dof_ob->id, DEG_NODE_TYPE_TRANSFORM);
-		add_relation(dof_ob_key, ob_param_key, "Camera DOF");
+		add_relation(dof_ob_key, object_parameters_key, "Camera DOF");
 	}
 }
 
@@ -1774,18 +1777,22 @@ void DepsgraphRelationBuilder::build_lamp(Object *ob)
 	}
 	lamp_id->tag |= LIB_TAG_DOIT;
 
-	ComponentKey parameters_key(lamp_id, DEG_NODE_TYPE_PARAMETERS);
+	ComponentKey object_parameters_key(&ob->id, DEG_NODE_TYPE_PARAMETERS);
+	ComponentKey lamp_parameters_key(lamp_id, DEG_NODE_TYPE_PARAMETERS);
+
+	add_relation(lamp_parameters_key, object_parameters_key,
+	             "Lamp -> Object");
 
 	if (needs_animdata_node(lamp_id)) {
 		ComponentKey animation_key(lamp_id, DEG_NODE_TYPE_ANIMATION);
-		add_relation(animation_key, parameters_key, "Lamp Parameters");
+		add_relation(animation_key, lamp_parameters_key, "Lamp Parameters");
 	}
 
 	/* lamp's nodetree */
 	if (la->nodetree) {
 		build_nodetree(la->nodetree);
 		ComponentKey nodetree_key(&la->nodetree->id, DEG_NODE_TYPE_SHADING);
-		add_relation(nodetree_key, parameters_key, "NTree->Lamp Parameters");
+		add_relation(nodetree_key, lamp_parameters_key, "NTree->Lamp Parameters");
 	}
 
 	/* textures */
@@ -1801,9 +1808,7 @@ void DepsgraphRelationBuilder::build_lamp(Object *ob)
 	OperationKey lamp_copy_on_write_key(lamp_id,
 	                                    DEG_NODE_TYPE_COPY_ON_WRITE,
 	                                    DEG_OPCODE_COPY_ON_WRITE);
-	add_relation(lamp_copy_on_write_key,
-	             ob_copy_on_write_key,
-	             "Evaluation Order");
+	add_relation(lamp_copy_on_write_key, ob_copy_on_write_key, "Eval Order");
 #endif
 }
 

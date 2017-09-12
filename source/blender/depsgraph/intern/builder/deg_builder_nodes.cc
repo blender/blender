@@ -1043,7 +1043,15 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 /* Cameras */
 void DepsgraphNodeBuilder::build_camera(Object *ob)
 {
-	/* TODO: Link scene-camera links in somehow... */
+	/* Object itself. */
+	add_operation_node(&ob->id,
+	                   DEG_NODE_TYPE_PARAMETERS,
+	                   NULL,
+	                   DEG_OPCODE_PARAMETERS_EVAL,
+	                   "Camera Parameters");
+
+	/* Object data. */
+	/* TODO: Link scene-camera links in somehow. */
 	Camera *cam = (Camera *)ob->data;
 	ID *camera_id = &cam->id;
 	if (camera_id->tag & LIB_TAG_DOIT) {
@@ -1056,17 +1064,19 @@ void DepsgraphNodeBuilder::build_camera(Object *ob)
 	                   DEG_NODE_TYPE_PARAMETERS,
 	                   NULL,
 	                   DEG_OPCODE_PARAMETERS_EVAL);
-
-	if (cam->dof_ob != NULL) {
-		/* TODO(sergey): For now parametrs are on object level. */
-		add_operation_node(&ob->id, DEG_NODE_TYPE_PARAMETERS, NULL,
-		                   DEG_OPCODE_PLACEHOLDER, "Camera DOF");
-	}
 }
 
 /* Lamps */
 void DepsgraphNodeBuilder::build_lamp(Object *ob)
 {
+	/* Object itself. */
+	add_operation_node(&ob->id,
+	                   DEG_NODE_TYPE_PARAMETERS,
+	                   NULL,
+	                   DEG_OPCODE_PARAMETERS_EVAL,
+	                   "Lamp Parameters");
+
+	/* Object data. */
 	Lamp *la = (Lamp *)ob->data;
 	ID *lamp_id = &la->id;
 	if (lamp_id->tag & LIB_TAG_DOIT) {
@@ -1076,9 +1086,6 @@ void DepsgraphNodeBuilder::build_lamp(Object *ob)
 	build_animdata(&la->id);
 
 	/* node for obdata */
-	add_component_node(lamp_id, DEG_NODE_TYPE_PARAMETERS);
-
-	/* TODO(sergey): Is it really how we're supposed to work with drivers? */
 	add_operation_node(lamp_id,
 	                   DEG_NODE_TYPE_PARAMETERS,
 	                   NULL,
