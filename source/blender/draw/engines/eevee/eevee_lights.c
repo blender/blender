@@ -227,9 +227,9 @@ void EEVEE_lights_cache_add(EEVEE_SceneLayerData *sldata, Object *ob)
 	EEVEE_LampsInfo *linfo = sldata->lamps;
 
 	/* Step 1 find all lamps in the scene and setup them */
-	if (linfo->num_light > MAX_LIGHT) {
+	if (linfo->num_light >= MAX_LIGHT) {
 		printf("Too much lamps in the scene !!!\n");
-		linfo->num_light = MAX_LIGHT;
+		linfo->num_light = MAX_LIGHT - 1;
 	}
 	else {
 		Lamp *la = (Lamp *)ob->data;
