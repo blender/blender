@@ -161,9 +161,12 @@ mat3 ltc_matrix(vec4 lut)
 
 float ltc_evaluate(vec3 N, vec3 V, mat3 Minv, vec3 corners[4])
 {
+	/* Avoid dot(N, V) == 1 in ortho mode, leading T1 normalize to fail. */
+	V = normalize(V + 1e-8);
+
 	/* construct orthonormal basis around N */
 	vec3 T1, T2;
-	T1 = normalize(V - N*dot(V, N));
+	T1 = normalize(V - N * dot(N, V));
 	T2 = cross(N, T1);
 
 	/* rotate area light in (T1, T2, R) basis */
@@ -206,9 +209,12 @@ float ltc_evaluate(vec3 N, vec3 V, mat3 Minv, vec3 corners[4])
 #define LTC_CIRCLE_RES 8
 float ltc_evaluate_circle(vec3 N, vec3 V, mat3 Minv, vec3 p[LTC_CIRCLE_RES])
 {
+	/* Avoid dot(N, V) == 1 in ortho mode, leading T1 normalize to fail. */
+	V = normalize(V + 1e-8);
+
 	/* construct orthonormal basis around N */
 	vec3 T1, T2;
-	T1 = normalize(V - N*dot(V, N));
+	T1 = normalize(V - N * dot(V, N));
 	T2 = cross(N, T1);
 
 	/* rotate area light in (T1, T2, R) basis */
