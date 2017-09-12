@@ -568,6 +568,9 @@ struct Closure {
 	int ssr_id;
 };
 
+/* This is hacking ssr_id to tag transparent bsdf */
+#define TRANSPARENT_CLOSURE_FLAG -2
+
 #define CLOSURE_DEFAULT Closure(vec3(0.0), 1.0, vec4(0.0), vec2(0.0), -1)
 
 uniform int outputSsrId;
@@ -584,6 +587,12 @@ Closure closure_mix(Closure cl1, Closure cl2, float fac)
 		cl.ssr_data = mix(vec4(vec3(0.0), cl2.ssr_data.w), cl2.ssr_data.xyzw, fac); /* do not blend roughness */
 		cl.ssr_normal = cl2.ssr_normal;
 		cl.ssr_id = cl2.ssr_id;
+	}
+	if (cl1.ssr_id == TRANSPARENT_CLOSURE_FLAG) {
+		cl1.radiance = cl2.radiance;
+	}
+	if (cl2.ssr_id == TRANSPARENT_CLOSURE_FLAG) {
+		cl2.radiance = cl1.radiance;
 	}
 	cl.radiance = mix(cl1.radiance, cl2.radiance, fac);
 	cl.opacity = mix(cl1.opacity, cl2.opacity, fac);

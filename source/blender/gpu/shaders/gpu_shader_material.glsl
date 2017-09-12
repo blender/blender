@@ -2919,8 +2919,8 @@ void node_bsdf_translucent(vec4 color, vec3 N, out Closure result)
 void node_bsdf_transparent(vec4 color, out Closure result)
 {
 	/* this isn't right */
-	result.radiance = color.rgb;
-	result.opacity = color.a;
+	result.radiance = vec3(0.0);
+	result.opacity = 0.0;
 }
 
 void node_bsdf_velvet(vec4 color, float sigma, vec3 N, out Closure result)
