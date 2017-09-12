@@ -201,7 +201,7 @@ ccl_device_inline float path_state_continuation_probability(KernelGlobals *kg, c
 
 	/* Probalistic termination: use sqrt() to roughly match typical view
 	 * transform and do path termination a bit later on average. */
-	return sqrtf(max3(fabs(throughput)));
+	return min(sqrtf(max3(fabs(throughput))), 1.0f);
 }
 
 /* TODO(DingTo): Find more meaningful name for this */
