@@ -637,8 +637,8 @@ static int manipulator_rect_transform_modal(
 		/* Cursor deltas scaled to (-0.5..0.5). */
 		float delta_orig[2], delta_curr[2];
 		for (int i = 0; i < 2; i++) {
-			delta_orig[i] = (data->orig_mouse[i] / dims[i]) - pivot[i];
-			delta_curr[i] = (point_local[i] / dims[i]) - pivot[i];
+			delta_orig[i] = ((data->orig_mouse[i] - data->orig_matrix_offset[3][i]) / dims[i]) - pivot[i];
+			delta_curr[i] = ((point_local[i]      - data->orig_matrix_offset[3][i]) / dims[i]) - pivot[i];
 		}
 
 		float scale[2] = {1.0f, 1.0f};
