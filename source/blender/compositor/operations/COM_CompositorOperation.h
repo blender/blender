@@ -26,11 +26,14 @@
 #include "BLI_rect.h"
 #include "BLI_string.h"
 
+struct Scene;
+
 /**
  * @brief Compositor output operation
  */
 class CompositorOperation : public NodeOperation {
 private:
+	const struct Scene *m_scene;
 	/**
 	 * @brief Scene name, used for getting the render output, includes 'SC' prefix.
 	 */
@@ -84,6 +87,7 @@ public:
 	CompositorOperation();
 	const bool isActiveCompositorOutput() const { return this->m_active; }
 	void executeRegion(rcti *rect, unsigned int tileNumber);
+	void setScene(const struct Scene *scene) { m_scene = scene; }
 	void setSceneName(const char *sceneName) { BLI_strncpy(this->m_sceneName, sceneName, sizeof(this->m_sceneName)); }
 	void setViewName(const char *viewName) { this->m_viewName = viewName; }
 	void setRenderData(const RenderData *rd) { this->m_rd = rd; }

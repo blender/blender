@@ -3320,7 +3320,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 		}
 	}
 	else {
-		Render *re = RE_GetRender(scene->id.name);
+		Render *re = RE_GetSceneRender(scene);
 		const int totviews = BKE_scene_multiview_num_views_get(&scene->r);
 		int i;
 		ImBuf **ibufs_arr;
@@ -3337,7 +3337,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 		 */
 		if (!is_thread_main || is_rendering == false || is_background || context->eval_ctx->mode == DAG_EVAL_RENDER) {
 			if (re == NULL)
-				re = RE_NewRender(scene->id.name);
+				re = RE_NewSceneRender(scene);
 
 			BKE_scene_update_for_newframe(context->eval_ctx, context->bmain, scene, scene->lay);
 			RE_BlenderFrame(re, context->bmain, scene, NULL, camera, scene->lay, frame, false);

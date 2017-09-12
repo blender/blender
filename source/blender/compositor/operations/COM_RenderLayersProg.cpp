@@ -48,7 +48,7 @@ RenderLayersProg::RenderLayersProg(const char *passName, DataType type, int elem
 void RenderLayersProg::initExecution()
 {
 	Scene *scene = this->getScene();
-	Render *re = (scene) ? RE_GetRender(scene->id.name) : NULL;
+	Render *re = (scene) ? RE_GetSceneRender(scene) : NULL;
 	RenderResult *rr = NULL;
 	
 	if (re)
@@ -179,7 +179,7 @@ void RenderLayersProg::deinitExecution()
 void RenderLayersProg::determineResolution(unsigned int resolution[2], unsigned int /*preferredResolution*/[2])
 {
 	Scene *sce = this->getScene();
-	Render *re = (sce) ? RE_GetRender(sce->id.name) : NULL;
+	Render *re = (sce) ? RE_GetSceneRender(sce) : NULL;
 	RenderResult *rr = NULL;
 	
 	resolution[0] = 0;

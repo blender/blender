@@ -307,7 +307,6 @@ Render *RE_GetRender(const char *name)
 	return re;
 }
 
-
 /* if you want to know exactly what has been done */
 RenderResult *RE_AcquireResultRead(Render *re)
 {
@@ -512,6 +511,36 @@ Render *RE_NewRender(const char *name)
 	re->ycor = 1.0f;
 	
 	return re;
+}
+
+/* MAX_ID_NAME + sizeof(Library->name) + space + null-terminator. */
+#define MAX_SCENE_RENDER_NAME (MAX_ID_NAME + 1024 + 2)
+
+static void scene_render_name_get(const Scene *scene,
+                                  const size_t max_size,
+                                  char *render_name)
+{
+	if (ID_IS_LINKED_DATABLOCK(scene)) {
+		BLI_snprintf(render_name, max_size, "%s %s",
+		             scene->id.lib->id.name, scene->id.name);
+	}
+	else {
+		BLI_snprintf(render_name, max_size, "%s", scene->id.name);
+	}
+}
+
+Render *RE_GetSceneRender(const Scene *scene)
+{
+	char render_name[MAX_SCENE_RENDER_NAME];
+	scene_render_name_get(scene, sizeof(render_name), render_name);
+	return RE_GetRender(render_name);
+}
+
+Render *RE_NewSceneRender(const Scene *scene)
+{
+	char render_name[MAX_SCENE_RENDER_NAME];
+	scene_render_name_get(scene, sizeof(render_name), render_name);
+	return RE_NewRender(render_name);
 }
 
 /* called for new renders and when finishing rendering so
@@ -1913,7 +1942,7 @@ static void do_render_fields_blur_3d(Render *re)
  */
 static void render_scene(Render *re, Scene *sce, int cfra)
 {
-	Render *resc = RE_NewRender(sce->id.name);
+	Render *resc = RE_NewSceneRender(sce);
 	int winx = re->winx, winy = re->winy;
 	
 	sce->r.cfra = cfra;
@@ -2348,7 +2377,7 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 		tag_scenes_for_render(re);
 		for (sce = re->main->scene.first; sce; sce = sce->id.next) {
 			if (sce->id.tag & LIB_TAG_DOIT) {
-				re1 = RE_GetRender(sce->id.name);
+				re1 = RE_GetSceneRender(sce);
 
 				if (re1 && (re1->r.scemode & R_FULL_SAMPLE)) {
 					if (sample) {
@@ -3858,9 +3887,9 @@ bool RE_ReadRenderResult(Scene *scene, Scene *scenode)
 		scene = scenode;
 	
 	/* get render: it can be called from UI with draw callbacks */
-	re = RE_GetRender(scene->id.name);
+	re = RE_GetSceneRender(scene);
 	if (re == NULL)
-		re = RE_NewRender(scene->id.name);
+		re = RE_NewSceneRender(scene);
 	RE_InitState(re, NULL, &scene->r, NULL, winx, winy, &disprect);
 	re->scene = scene;
 	re->scene_color_manage = BKE_scene_check_color_management_enabled(scene);

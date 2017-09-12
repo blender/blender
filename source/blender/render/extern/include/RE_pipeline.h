@@ -194,6 +194,10 @@ typedef struct RenderStats {
 struct Render *RE_NewRender(const char *name);
 struct Render *RE_GetRender(const char *name);
 
+struct Scene;
+struct Render *RE_NewSceneRender(const struct Scene *scene);
+struct Render *RE_GetSceneRender(const struct Scene *scene);
+
 /* assign default dummy callbacks */
 void RE_InitRenderCB(struct Render *re);
 

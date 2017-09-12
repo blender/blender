@@ -1735,7 +1735,7 @@ static void stampdata(Scene *scene, Object *camera, StampData *stamp_data, int d
 	}
 
 	{
-		Render *re = RE_GetRender(scene->id.name);
+		Render *re = RE_GetSceneRender(scene);
 		RenderStats *stats = re ? RE_GetStats(re) : NULL;
 
 		if (stats && (scene->r.stamp & R_STAMP_RENDERTIME)) {
@@ -2929,7 +2929,7 @@ RenderResult *BKE_image_acquire_renderresult(Scene *scene, Image *ima)
 	}
 	else if (ima->type == IMA_TYPE_R_RESULT) {
 		if (ima->render_slot == ima->last_render_slot)
-			rr = RE_AcquireResultRead(RE_GetRender(scene->id.name));
+			rr = RE_AcquireResultRead(RE_GetSceneRender(scene));
 		else
 			rr = ima->renders[ima->render_slot];
 
@@ -2947,7 +2947,7 @@ void BKE_image_release_renderresult(Scene *scene, Image *ima)
 	}
 	else if (ima->type == IMA_TYPE_R_RESULT) {
 		if (ima->render_slot == ima->last_render_slot)
-			RE_ReleaseResult(RE_GetRender(scene->id.name));
+			RE_ReleaseResult(RE_GetSceneRender(scene));
 	}
 }
 
@@ -2967,7 +2967,7 @@ void BKE_image_backup_render(Scene *scene, Image *ima, bool free_current_slot)
 {
 	/* called right before rendering, ima->renders contains render
 	 * result pointers for everything but the current render */
-	Render *re = RE_GetRender(scene->id.name);
+	Render *re = RE_GetSceneRender(scene);
 	int slot = ima->render_slot, last = ima->last_render_slot;
 
 	if (slot != last) {
@@ -3692,7 +3692,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
 	if (!r_lock)
 		return NULL;
 
-	re = RE_GetRender(iuser->scene->id.name);
+	re = RE_GetSceneRender(iuser->scene);
 
 	channels = 4;
 	layer = iuser->layer;

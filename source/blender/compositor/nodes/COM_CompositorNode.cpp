@@ -41,6 +41,7 @@ void CompositorNode::convertToOperations(NodeConverter &converter, const Composi
 	NodeInput *depthSocket = this->getInputSocket(2);
 
 	CompositorOperation *compositorOperation = new CompositorOperation();
+	compositorOperation->setScene(context.getScene());
 	compositorOperation->setSceneName(context.getScene()->id.name);
 	compositorOperation->setRenderData(context.getRenderData());
 	compositorOperation->setViewName(context.getViewName());

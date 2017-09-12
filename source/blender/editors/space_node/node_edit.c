@@ -1321,7 +1321,7 @@ static int node_read_fullsamplelayers_exec(bContext *C, wmOperator *UNUSED(op))
 	Main *bmain = CTX_data_main(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
 	Scene *curscene = CTX_data_scene(C);
-	Render *re = RE_NewRender(curscene->id.name);
+	Render *re = RE_NewSceneRender(curscene);
 
 	WM_cursor_wait(1);
 	RE_MergeFullSample(re, bmain, curscene, snode->nodetree);
