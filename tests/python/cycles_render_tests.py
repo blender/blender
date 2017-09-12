@@ -77,6 +77,22 @@ def render_file(filepath):
             '--python', os.path.join(basedir,
                                      "util",
                                      "render_opengl.py")]
+    elif subject == 'bake':
+        command = [
+            BLENDER,
+            "-b",
+            "-noaudio",
+            "--factory-startup",
+            "--enable-autoexec",
+            filepath,
+            "-E", "CYCLES"]
+        command += custom_args
+        command += [
+            "-o", TEMP_FILE_MASK,
+            "-F", "PNG",
+            '--python', os.path.join(basedir,
+                                     "util",
+                                     "render_bake.py")]
     else:
         command = [
             BLENDER,
