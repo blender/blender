@@ -760,7 +760,15 @@ static int manipulator_rect_transform_modal(
 					delta_orig[i] *= -1.0f;
 					delta_curr[i] *= -1.0f;
 				}
+				const int sign = signum_i(scale[i]);
+
 				scale[i] = 1.0f + ((delta_curr[i] - delta_orig[i]) / len_v3(data->orig_matrix_offset[i]));
+
+				if ((transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_SIGNED) == 0) {
+					if (sign != signum_i(scale[i])) {
+						scale[i] = 0.0f;
+					}
+				}
 			}
 		}
 
