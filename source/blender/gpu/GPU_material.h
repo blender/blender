@@ -70,6 +70,7 @@ typedef struct GPUParticleInfo GPUParticleInfo;
 /* Functions to create GPU Materials nodes */
 
 typedef enum GPUType {
+	/* Keep in sync with GPU_DATATYPE_STR */
 	/* The value indicates the number of elements in each type */
 	GPU_NONE = 0,
 	GPU_FLOAT = 1,
@@ -79,11 +80,15 @@ typedef enum GPUType {
 	GPU_MAT3 = 9,
 	GPU_MAT4 = 16,
 
-	GPU_CLOSURE = 17,
-
+	/* Values not in GPU_DATATYPE_STR */
 	GPU_TEX2D = 1002,
 	GPU_SHADOW2D = 1003,
 	GPU_TEXCUBE = 1004,
+
+	/* GLSL Struct types */
+	GPU_CLOSURE = 1005,
+
+	/* Opengl Attributes */
 	GPU_ATTRIB = 3001
 } GPUType;
 

@@ -88,10 +88,9 @@ typedef struct GPUFunction {
 } GPUFunction;
 
 /* Indices match the GPUType enum */
-static const char *GPU_DATATYPE_STR[18] = {
+static const char *GPU_DATATYPE_STR[17] = {
 	"", "float", "vec2", "vec3", "vec4",
-	NULL, NULL, NULL, NULL, "mat3", NULL, NULL, NULL, NULL, NULL, NULL, "mat4",
-	"Closure"
+	NULL, NULL, NULL, NULL, "mat3", NULL, NULL, NULL, NULL, NULL, NULL, "mat4"
 };
 
 /* GLSL code parsing for finding function definitions.
@@ -190,6 +189,10 @@ static void gpu_parse_functions_string(GHash *hash, char *code)
 			}
 			if (!type && gpu_str_prefix(code, "sampler2D")) {
 				type = GPU_TEX2D;
+			}
+
+			if (!type && gpu_str_prefix(code, "Closure")) {
+				type = GPU_CLOSURE;
 			}
 
 			if (type) {
@@ -361,11 +364,6 @@ static void codegen_convert_datatype(DynStr *ds, int from, int to, const char *t
 static void codegen_print_datatype(DynStr *ds, const GPUType type, float *data)
 {
 	int i;
-
-	if (type == GPU_CLOSURE) {
-		BLI_dynstr_append(ds, "CLOSURE_DEFAULT");
-		return;
-	}
 
 	BLI_dynstr_appendf(ds, "%s(", GPU_DATATYPE_STR[type]);
 
@@ -550,6 +548,10 @@ static int codegen_process_uniforms_functions(GPUMaterial *material, DynStr *ds,
 					}
 				}
 			}
+			else if (input->source == GPU_SOURCE_STRUCT) {
+				/* Add other struct here if needed. */
+				BLI_dynstr_appendf(ds, "Closure strct%d = CLOSURE_DEFAULT;\n", input->id);
+			}
 			else if (input->source == GPU_SOURCE_VEC_UNIFORM) {
 				if (input->dynamictype == GPU_DYNAMIC_UBO) {
 					if (!input->link) {
@@ -563,16 +565,8 @@ static int codegen_process_uniforms_functions(GPUMaterial *material, DynStr *ds,
 						GPU_DATATYPE_STR[input->type], input->id);
 				}
 				else {
-					if (input->type != GPU_CLOSURE) {
-						/* for others use const so the compiler can do folding */
-						BLI_dynstr_appendf(ds, "const %s cons%d = ",
-							GPU_DATATYPE_STR[input->type], input->id);
-					}
-					else {
-						/* const keyword does not work with struct */
-						BLI_dynstr_appendf(ds, "%s cons%d = ",
-							GPU_DATATYPE_STR[input->type], input->id);
-					}
+					BLI_dynstr_appendf(ds, "const %s cons%d = ",
+						GPU_DATATYPE_STR[input->type], input->id);
 					codegen_print_datatype(ds, input->type, input->vec);
 					BLI_dynstr_append(ds, ";\n");
 				}
@@ -637,8 +631,13 @@ static void codegen_declare_tmps(DynStr *ds, ListBase *nodes)
 
 		/* declare temporary variables for node output storage */
 		for (output = node->outputs.first; output; output = output->next) {
-			BLI_dynstr_appendf(ds, "\t%s tmp%d;\n",
-			                   GPU_DATATYPE_STR[output->type], output->id);
+			if (output->type == GPU_CLOSURE) {
+				BLI_dynstr_appendf(ds, "\tClosure tmp%d;\n", output->id);
+			}
+			else {
+				BLI_dynstr_appendf(ds, "\t%s tmp%d;\n",
+				                   GPU_DATATYPE_STR[output->type], output->id);
+			}
 		}
 	}
 
@@ -681,6 +680,9 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 					BLI_dynstr_append(ds, "facingnormal");
 				else
 					BLI_dynstr_append(ds, GPU_builtin_name(input->builtin));
+			}
+			else if (input->source == GPU_SOURCE_STRUCT) {
+				BLI_dynstr_appendf(ds, "strct%d", input->id);
 			}
 			else if (input->source == GPU_SOURCE_VEC_UNIFORM) {
 				if (input->dynamicvec)
@@ -1525,6 +1527,12 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const GPUType 
 		BLI_strncpy(input->attribname, link->attribname, sizeof(input->attribname));
 		MEM_freeN(link);
 	}
+	else if (type == GPU_CLOSURE) {
+		input->type = type;
+		input->source = GPU_SOURCE_STRUCT;
+
+		MEM_freeN(link);
+	}
 	else {
 		/* uniform vector */
 		input->type = type;
@@ -1536,6 +1544,7 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const GPUType 
 			input->dynamictype = link->dynamictype;
 			input->dynamicdata = link->ptr2;
 		}
+
 		MEM_freeN(link);
 	}
 
