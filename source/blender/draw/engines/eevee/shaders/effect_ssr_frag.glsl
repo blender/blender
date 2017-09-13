@@ -314,9 +314,13 @@ vec4 get_ssr_sample(
 	/* Do not add light if ray has failed. */
 	sample *= float(has_hit);
 
-#if 0 /* Enable to see where NANs come from. */
-	sample = (any(isnan(sample))) ? vec3(0.0) : sample;
-#endif
+	/* Protection against NaNs in the history buffer.
+	 * This could be removed if some previous pass has already
+	 * sanitized the input. */
+	if (any(isnan(sample))) {
+		sample = vec3(0.0);
+		weight = 0.0;
+	}
 
 	return vec4(sample, mask) * weight;
 }
