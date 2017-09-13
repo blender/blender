@@ -1044,6 +1044,7 @@ static void render_scene_to_probe(
 
 	/* Restore */
 	sldata->probes->specular_toggle = true;
+	sldata->probes->ssr_toggle = true;
 	txl->planar_pool = tmp_planar_pool;
 	stl->g_data->minzbuffer = tmp_minz;
 	txl->maxzbuffer = tmp_maxz;
