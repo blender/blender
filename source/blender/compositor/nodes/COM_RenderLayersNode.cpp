@@ -77,42 +77,36 @@ void RenderLayersNode::testRenderLink(NodeConverter &converter,
 		if (rpass == NULL) {
 			continue;
 		}
+		RenderLayersProg *operation;
+		bool is_preview;
 		if (STREQ(rpass->name, RE_PASSNAME_COMBINED) &&
 		    STREQ(output->getbNodeSocket()->name, "Alpha"))
 		{
-			testSocketLink(converter,
-			               context,
-			               output,
-			               new RenderLayersAlphaProg(rpass->name,
-			                                         COM_DT_VALUE,
-			                                         rpass->channels),
-			               scene,
-			               layerId,
-			               false);
+			operation = new RenderLayersAlphaProg(rpass->name,
+			                                      COM_DT_VALUE,
+			                                      rpass->channels);
+			is_preview = false;
 		}
 		else if (STREQ(rpass->name, RE_PASSNAME_Z)) {
-			testSocketLink(converter,
-			               context,
-			               output,
-			               new RenderLayersDepthProg(rpass->name,
-			                                         COM_DT_VALUE,
-			                                         rpass->channels),
-			               scene,
-			               layerId,
-			               false);
+			operation = new RenderLayersDepthProg(rpass->name,
+			                                      COM_DT_VALUE,
+			                                      rpass->channels);
+			is_preview = false;
 		}
 		else {
 			DataType type = ((rpass->channels == 4)? COM_DT_COLOR : ((rpass->channels == 3)? COM_DT_VECTOR : COM_DT_VALUE));
-			testSocketLink(converter,
-			               context,
-			               output,
-			               new RenderLayersProg(rpass->name,
-			                                    type,
-			                                    rpass->channels),
-			               scene,
-			               layerId,
-			               STREQ(output->getbNodeSocket()->name, "Image"));
+			operation = new RenderLayersProg(rpass->name,
+			                                 type,
+			                                 rpass->channels);
+			is_preview = STREQ(output->getbNodeSocket()->name, "Image");
 		}
+		testSocketLink(converter,
+		               context,
+		               output,
+		               operation,
+		               scene,
+		               layerId,
+		               is_preview);
 	}
 }
 
