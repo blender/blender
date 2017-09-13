@@ -2204,16 +2204,17 @@ static void node_composit_backdrop_viewer(SpaceNode *snode, ImBuf *backdrop, bNo
 	if (node->custom1 == 0) {
 		const float backdropWidth = backdrop->x;
 		const float backdropHeight = backdrop->y;
-		const float cx  = x + snode->zoom * backdropWidth * node->custom3;
+		const float cx = x + snode->zoom * backdropWidth  * node->custom3;
 		const float cy = y + snode->zoom * backdropHeight * node->custom4;
+		const float cross_size = 12 * U.pixelsize;
 
 		glColor3f(1.0, 1.0, 1.0);
 
 		glBegin(GL_LINES);
-		glVertex2f(cx - 25, cy - 25);
-		glVertex2f(cx + 25, cy + 25);
-		glVertex2f(cx + 25, cy - 25);
-		glVertex2f(cx - 25, cy + 25);
+		glVertex2f(cx - cross_size, cy - cross_size);
+		glVertex2f(cx + cross_size, cy + cross_size);
+		glVertex2f(cx + cross_size, cy - cross_size);
+		glVertex2f(cx - cross_size, cy + cross_size);
 		glEnd();
 	}
 }
