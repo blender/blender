@@ -319,7 +319,7 @@ enum {
 	STENCIL_ACTIVE          = (1 << 1),
 };
 
-/* Render State */
+/** Render State: No persistent data between draw calls. */
 static struct DRWGlobalState {
 	/* Rendering state */
 	GPUShader *shader;
@@ -359,7 +359,7 @@ static struct DRWGlobalState {
 	double cache_time;
 } DST = {NULL};
 
-/* GPU Resource State */
+/** GPU Resource State: Memory storage between drawing. */
 static struct DRWResourceState {
 	GPUTexture **bound_texs;
 	GPUUniformBuffer **bound_ubos;
@@ -3666,14 +3666,8 @@ void DRW_engines_free(void)
 	if (globals_ramp)
 		GPU_texture_free(globals_ramp);
 
-	if (RST.bound_texs) {
-		MEM_freeN(RST.bound_texs);
-		RST.bound_texs = NULL;
-	}
-	if (RST.bound_ubos) {
-		MEM_freeN(RST.bound_ubos);
-		RST.bound_ubos = NULL;
-	}
+	MEM_SAFE_FREE(RST.bound_texs);
+	MEM_SAFE_FREE(RST.bound_ubos);
 
 #ifdef WITH_CLAY_ENGINE
 	BLI_remlink(&R_engines, &DRW_engine_viewport_clay_type);
