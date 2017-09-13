@@ -102,7 +102,7 @@ static void manipulator_calc_rect_view_margin(
 {
 	float handle_size;
 	if (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) {
-		handle_size = 0.1f;
+		handle_size = 0.15f;
 	}
 	else {
 		handle_size = MANIPULATOR_RESIZER_SIZE;
@@ -172,7 +172,7 @@ static void rect_transform_draw_corners(
 static void rect_transform_draw_interaction(
         const float color[4], const int highlighted,
         const float size[2], const float margin[2],
-        const float line_width)
+        const float line_width, const bool is_solid)
 {
 	/* 4 verts for translate, otherwise only 3 are used. */
 	float verts[4][2];
@@ -180,55 +180,133 @@ static void rect_transform_draw_interaction(
 
 	switch (highlighted) {
 		case ED_MANIPULATOR_CAGE2D_PART_SCALE_MIN_X:
-			ARRAY_SET_ITEMS(verts[0], -size[0] + margin[0], -size[1]);
-			ARRAY_SET_ITEMS(verts[1], -size[0],             -size[1]);
-			ARRAY_SET_ITEMS(verts[2], -size[0],              size[1]);
-			verts_len = 3;
+		{
+			rctf r = {
+				.xmin = -size[0], .xmax = -size[0] + margin[0],
+				.ymin = -size[1] + margin[1], .ymax = size[1] - margin[1],
+			};
+			ARRAY_SET_ITEMS(verts[0], r.xmin, r.ymin);
+			ARRAY_SET_ITEMS(verts[1], r.xmin, r.ymax);
+			verts_len = 2;
+			if (is_solid) {
+				ARRAY_SET_ITEMS(verts[2], r.xmax, r.ymax);
+				ARRAY_SET_ITEMS(verts[3], r.xmax, r.ymin);
+				verts_len += 2;
+			}
 			break;
+		}
 		case ED_MANIPULATOR_CAGE2D_PART_SCALE_MAX_X:
-			ARRAY_SET_ITEMS(verts[0], size[0] - margin[0], -size[1]);
-			ARRAY_SET_ITEMS(verts[1], size[0],             -size[1]);
-			ARRAY_SET_ITEMS(verts[2], size[0],              size[1]);
-			verts_len = 3;
+		{
+			rctf r = {
+				.xmin = size[0] - margin[0], .xmax = size[0],
+				.ymin = -size[1] + margin[1], .ymax = size[1] - margin[1],
+			};
+			ARRAY_SET_ITEMS(verts[0], r.xmax, r.ymin);
+			ARRAY_SET_ITEMS(verts[1], r.xmax, r.ymax);
+			verts_len = 2;
+			if (is_solid) {
+				ARRAY_SET_ITEMS(verts[2], r.xmin, r.ymax);
+				ARRAY_SET_ITEMS(verts[3], r.xmin, r.ymin);
+				verts_len += 2;
+			}
 			break;
+		}
 		case ED_MANIPULATOR_CAGE2D_PART_SCALE_MIN_Y:
-			ARRAY_SET_ITEMS(verts[0], -size[0], -size[1] + margin[1]);
-			ARRAY_SET_ITEMS(verts[1], -size[0], -size[1]);
-			ARRAY_SET_ITEMS(verts[2], size[0],  -size[1]);
-			verts_len = 3;
+		{
+			rctf r = {
+				.xmin = -size[0] + margin[0], .xmax = size[0] - margin[0],
+				.ymin = -size[1], .ymax = -size[1] + margin[1],
+			};
+			ARRAY_SET_ITEMS(verts[0], r.xmin, r.ymin);
+			ARRAY_SET_ITEMS(verts[1], r.xmax, r.ymin);
+			verts_len = 2;
+			if (is_solid) {
+				ARRAY_SET_ITEMS(verts[2], r.xmax, r.ymax);
+				ARRAY_SET_ITEMS(verts[3], r.xmin, r.ymax);
+				verts_len += 2;
+			}
 			break;
+		}
 		case ED_MANIPULATOR_CAGE2D_PART_SCALE_MAX_Y:
-			ARRAY_SET_ITEMS(verts[0], -size[0], size[1] - margin[1]);
-			ARRAY_SET_ITEMS(verts[1], -size[0], size[1]);
-			ARRAY_SET_ITEMS(verts[2], size[0],  size[1]);
-			verts_len = 3;
+		{
+			rctf r = {
+				.xmin = -size[0] + margin[0], .xmax = size[0] - margin[0],
+				.ymin = size[1] - margin[1], .ymax = size[1],
+			};
+			ARRAY_SET_ITEMS(verts[0], r.xmin, r.ymax);
+			ARRAY_SET_ITEMS(verts[1], r.xmax, r.ymax);
+			verts_len = 2;
+			if (is_solid) {
+				ARRAY_SET_ITEMS(verts[2], r.xmax, r.ymin);
+				ARRAY_SET_ITEMS(verts[3], r.xmin, r.ymin);
+				verts_len += 2;
+			}
 			break;
-
+		}
 		case ED_MANIPULATOR_CAGE2D_PART_SCALE_MIN_X_MIN_Y:
-			ARRAY_SET_ITEMS(verts[0], -size[0] + margin[0], -size[1]);
-			ARRAY_SET_ITEMS(verts[1], -size[0] + margin[0], -size[1] + margin[1]);
-			ARRAY_SET_ITEMS(verts[2], -size[0],             -size[1] + margin[1]);
+		{
+			rctf r = {
+				.xmin = -size[0], .xmax = -size[0] + margin[0],
+				.ymin = -size[1], .ymax = -size[1] + margin[1],
+			};
+			ARRAY_SET_ITEMS(verts[0], r.xmax, r.ymin);
+			ARRAY_SET_ITEMS(verts[1], r.xmax, r.ymax);
+			ARRAY_SET_ITEMS(verts[2], r.xmin, r.ymax);
 			verts_len = 3;
+			if (is_solid) {
+				ARRAY_SET_ITEMS(verts[3], r.xmin, r.ymin);
+				verts_len += 1;
+			}
 			break;
+		}
 		case ED_MANIPULATOR_CAGE2D_PART_SCALE_MIN_X_MAX_Y:
-			ARRAY_SET_ITEMS(verts[0], -size[0] + margin[0], size[1]);
-			ARRAY_SET_ITEMS(verts[1], -size[0] + margin[0], size[1] - margin[1]);
-			ARRAY_SET_ITEMS(verts[2], -size[0],             size[1] - margin[1]);
+		{
+			rctf r = {
+				.xmin = -size[0], .xmax = -size[0] + margin[0],
+				.ymin = size[1] - margin[1], .ymax = size[1],
+			};
+			ARRAY_SET_ITEMS(verts[0], r.xmax, r.ymax);
+			ARRAY_SET_ITEMS(verts[1], r.xmax, r.ymin);
+			ARRAY_SET_ITEMS(verts[2], r.xmin, r.ymin);
 			verts_len = 3;
+			if (is_solid) {
+				ARRAY_SET_ITEMS(verts[3], r.xmin, r.ymax);
+				verts_len += 1;
+			}
 			break;
+		}
 		case ED_MANIPULATOR_CAGE2D_PART_SCALE_MAX_X_MIN_Y:
-			ARRAY_SET_ITEMS(verts[0], size[0] - margin[0], -size[1]);
-			ARRAY_SET_ITEMS(verts[1], size[0] - margin[0], -size[1] + margin[1]);
-			ARRAY_SET_ITEMS(verts[2], size[0],             -size[1] + margin[1]);
+		{
+			rctf r = {
+				.xmin = size[0] - margin[0], .xmax = size[0],
+				.ymin = -size[1], .ymax = -size[1] + margin[1],
+			};
+			ARRAY_SET_ITEMS(verts[0], r.xmin, r.ymin);
+			ARRAY_SET_ITEMS(verts[1], r.xmin, r.ymax);
+			ARRAY_SET_ITEMS(verts[2], r.xmax, r.ymax);
 			verts_len = 3;
+			if (is_solid) {
+				ARRAY_SET_ITEMS(verts[3], r.xmax, r.ymin);
+				verts_len += 1;
+			}
 			break;
+		}
 		case ED_MANIPULATOR_CAGE2D_PART_SCALE_MAX_X_MAX_Y:
-			ARRAY_SET_ITEMS(verts[0], size[0] - margin[0], size[1]);
-			ARRAY_SET_ITEMS(verts[1], size[0] - margin[0], size[1] - margin[1]);
-			ARRAY_SET_ITEMS(verts[2], size[0],             size[1] - margin[1]);
+		{
+			rctf r = {
+				.xmin = size[0] - margin[0], .xmax = size[0],
+				.ymin = size[1] - margin[1], .ymax = size[1],
+			};
+			ARRAY_SET_ITEMS(verts[0], r.xmin, r.ymax);
+			ARRAY_SET_ITEMS(verts[1], r.xmin, r.ymin);
+			ARRAY_SET_ITEMS(verts[2], r.xmax, r.ymin);
 			verts_len = 3;
+			if (is_solid) {
+				ARRAY_SET_ITEMS(verts[3], r.xmax, r.ymax);
+				verts_len += 1;
+			}
 			break;
-
+		}
 		case ED_MANIPULATOR_CAGE2D_PART_ROTATE:
 		{
 			const float rotate_pt[2] = {0.0f, size[1] + margin[1]};
@@ -277,23 +355,33 @@ static void rect_transform_draw_interaction(
 		immEnd();
 	}
 	else {
-		glLineWidth(line_width + 3.0f);
-
-		immBegin(GWN_PRIM_LINE_STRIP, verts_len);
-		immAttrib3f(attr_id.col, 0.0f, 0.0f, 0.0f);
-		for (uint i = 0; i < verts_len; i++) {
-			immVertex2fv(attr_id.pos, verts[i]);
+		if (is_solid) {
+			immBegin(GWN_PRIM_TRI_FAN, verts_len);
+			immAttrib3f(attr_id.col, 0.0f, 0.0f, 0.0f);
+			for (uint i = 0; i < verts_len; i++) {
+				immVertex2fv(attr_id.pos, verts[i]);
+			}
+			immEnd();
 		}
-		immEnd();
+		else {
+			glLineWidth(line_width + 3.0f);
 
-		glLineWidth(line_width);
+			immBegin(GWN_PRIM_LINE_STRIP, verts_len);
+			immAttrib3f(attr_id.col, 0.0f, 0.0f, 0.0f);
+			for (uint i = 0; i < verts_len; i++) {
+				immVertex2fv(attr_id.pos, verts[i]);
+			}
+			immEnd();
 
-		immBegin(GWN_PRIM_LINE_STRIP, verts_len);
-		immAttrib3fv(attr_id.col, color);
-		for (uint i = 0; i < verts_len; i++) {
-			immVertex2fv(attr_id.pos, verts[i]);
+			glLineWidth(line_width);
+
+			immBegin(GWN_PRIM_LINE_STRIP, verts_len);
+			immAttrib3fv(attr_id.col, color);
+			for (uint i = 0; i < verts_len; i++) {
+				immVertex2fv(attr_id.pos, verts[i]);
+			}
+			immEnd();
 		}
-		immEnd();
 	}
 
 	immUnbindProgram();
@@ -367,27 +455,27 @@ static void manipulator_rect_transform_draw_intern(
 			};
 			for (int i = 0; i < ARRAY_SIZE(scale_parts); i++) {
 				GPU_select_load_id(select_id | scale_parts[i]);
-				rect_transform_draw_interaction(mpr->color, scale_parts[i], size, margin, mpr->line_width);
+				rect_transform_draw_interaction(mpr->color, scale_parts[i], size, margin, mpr->line_width, true);
 			}
 		}
 		if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE) {
 			const int transform_part = ED_MANIPULATOR_CAGE2D_PART_TRANSLATE;
 			GPU_select_load_id(select_id | transform_part);
-			rect_transform_draw_interaction(mpr->color, transform_part, size, margin, mpr->line_width);
+			rect_transform_draw_interaction(mpr->color, transform_part, size, margin, mpr->line_width, true);
 		}
 		if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_ROTATE) {
 			rect_transform_draw_interaction(
-			        mpr->color, ED_MANIPULATOR_CAGE2D_PART_ROTATE, size, margin, mpr->line_width);
+			        mpr->color, ED_MANIPULATOR_CAGE2D_PART_ROTATE, size, margin, mpr->line_width, true);
 		}
 	}
 	else {
 		/* Don't draw translate (only for selection). */
 		if (mpr->highlight_part != ED_MANIPULATOR_CAGE2D_PART_TRANSLATE) {
-			rect_transform_draw_interaction(mpr->color, mpr->highlight_part, size, margin, mpr->line_width);
+			rect_transform_draw_interaction(mpr->color, mpr->highlight_part, size, margin, mpr->line_width, false);
 		}
 		if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_ROTATE) {
 			rect_transform_draw_interaction(
-			        mpr->color, ED_MANIPULATOR_CAGE2D_PART_ROTATE, size, margin, mpr->line_width);
+			        mpr->color, ED_MANIPULATOR_CAGE2D_PART_ROTATE, size, margin, mpr->line_width, false);
 		}
 	}
 
