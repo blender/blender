@@ -347,7 +347,6 @@ static void WIDGETGROUP_camera_view_refresh(const bContext *C, wmManipulatorGrou
 	{
 		wmManipulator *mpr = viewgroup->border;
 		WM_manipulator_set_flag(mpr, WM_MANIPULATOR_HIDDEN, false);
-		WM_manipulator_set_flag(mpr, WM_MANIPULATOR_DRAW_HOVER, true);
 
 		RNA_enum_set(viewgroup->border->ptr, "transform",
 		             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE | ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE);
