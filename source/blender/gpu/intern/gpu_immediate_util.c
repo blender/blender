@@ -51,12 +51,13 @@ void imm_cpack(unsigned int x)
 	                   (((x) >> 16) & 0xFF));
 }
 
-static void imm_draw_circle(Gwn_PrimType prim_type, const uint shdr_pos, float x, float y, float rad, int nsegments)
+static void imm_draw_circle(
+        Gwn_PrimType prim_type, const uint shdr_pos, float x, float y, float rad_x, float rad_y, int nsegments)
 {
 	immBegin(prim_type, nsegments);
 	for (int i = 0; i < nsegments; ++i) {
 		const float angle = (float)(2 * M_PI) * ((float)i / (float)nsegments);
-		immVertex2f(shdr_pos, x + rad * cosf(angle), y + rad * sinf(angle));
+		immVertex2f(shdr_pos, x + (rad_x * cosf(angle)), y + (rad_y * sinf(angle)));
 	}
 	immEnd();
 }
@@ -73,7 +74,7 @@ static void imm_draw_circle(Gwn_PrimType prim_type, const uint shdr_pos, float x
  */
 void imm_draw_circle_wire_2d(uint shdr_pos, float x, float y, float rad, int nsegments)
 {
-	imm_draw_circle(GWN_PRIM_LINE_LOOP, shdr_pos, x, y, rad, nsegments);
+	imm_draw_circle(GWN_PRIM_LINE_LOOP, shdr_pos, x, y, rad, rad, nsegments);
 }
 
 /**
@@ -88,7 +89,16 @@ void imm_draw_circle_wire_2d(uint shdr_pos, float x, float y, float rad, int nse
  */
 void imm_draw_circle_fill_2d(uint shdr_pos, float x, float y, float rad, int nsegments)
 {
-	imm_draw_circle(GWN_PRIM_TRI_FAN, shdr_pos, x, y, rad, nsegments);
+	imm_draw_circle(GWN_PRIM_TRI_FAN, shdr_pos, x, y, rad, rad, nsegments);
+}
+
+void imm_draw_circle_wire_aspect_2d(uint shdr_pos, float x, float y, float rad_x, float rad_y, int nsegments)
+{
+	imm_draw_circle(GWN_PRIM_LINE_LOOP, shdr_pos, x, y, rad_x, rad_y, nsegments);
+}
+void imm_draw_circle_fill_aspect_2d(uint shdr_pos, float x, float y, float rad_x, float rad_y, int nsegments)
+{
+	imm_draw_circle(GWN_PRIM_TRI_FAN, shdr_pos, x, y, rad_x, rad_y, nsegments);
 }
 
 /**
