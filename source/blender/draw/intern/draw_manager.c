@@ -3667,6 +3667,15 @@ void DRW_engines_free(void)
 	if (globals_ramp)
 		GPU_texture_free(globals_ramp);
 
+	if (DST.bound_texs) {
+		MEM_freeN(DST.bound_texs);
+		DST.bound_texs = NULL;
+	}
+	if (DST.bound_ubos) {
+		MEM_freeN(DST.bound_ubos);
+		DST.bound_ubos = NULL;
+	}
+
 #ifdef WITH_CLAY_ENGINE
 	BLI_remlink(&R_engines, &DRW_engine_viewport_clay_type);
 #endif
