@@ -310,8 +310,9 @@ static void rna_RenderEngine_unregister(Main *UNUSED(bmain), StructRNA *type)
 	BLI_freelinkN(&R_engines, et);
 }
 
-static StructRNA *rna_RenderEngine_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
-                                            StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_RenderEngine_register(
+        Main *bmain, ReportList *reports, void *data, const char *identifier,
+        StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	RenderEngineType *et, dummyet = {NULL};
 	RenderEngine dummyengine = {NULL};

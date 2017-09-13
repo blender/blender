@@ -53,7 +53,11 @@ echo "OK"
 # Create the tarball
 cd "$blender_srcdir"
 echo -n "Creating archive:            \"$BASE_DIR/$TARBALL\" ..."
-GZIP=-9 tar --transform "s,^,blender-$VERSION/,g" -zcf "$BASE_DIR/$TARBALL" -T "$BASE_DIR/$MANIFEST"
+tar --transform "s,^,blender-$VERSION/,g" \
+	--use-compress-program="gzip --best" \
+	--create \
+	--file="$BASE_DIR/$TARBALL" \
+	--files-from="$BASE_DIR/$MANIFEST"
 echo "OK"
 
 

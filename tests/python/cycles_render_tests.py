@@ -77,6 +77,22 @@ def render_file(filepath):
             '--python', os.path.join(basedir,
                                      "util",
                                      "render_opengl.py")]
+    elif subject == 'bake':
+        command = [
+            BLENDER,
+            "-b",
+            "-noaudio",
+            "--factory-startup",
+            "--enable-autoexec",
+            filepath,
+            "-E", "CYCLES"]
+        command += custom_args
+        command += [
+            "-o", TEMP_FILE_MASK,
+            "-F", "PNG",
+            '--python', os.path.join(basedir,
+                                     "util",
+                                     "render_bake.py")]
     else:
         command = [
             BLENDER,
@@ -142,7 +158,7 @@ def test_get_images(filepath):
         os.makedirs(diff_dirpath)
     diff_img = os.path.join(diff_dirpath, testname + ".diff.png")
 
-    return ref_img, new_img, diff_img
+    return old_img, ref_img, new_img, diff_img
 
 
 class Report:
@@ -239,7 +255,7 @@ class Report:
         name = test_get_name(filepath)
         name = name.replace('_', ' ')
 
-        ref_img, new_img, diff_img = test_get_images(filepath)
+        old_img, ref_img, new_img, diff_img = test_get_images(filepath)
 
         status = error if error else ""
         style = """ style="background-color: #f99;" """ if error else ""
@@ -266,7 +282,7 @@ class Report:
 
 
 def verify_output(report, filepath):
-    ref_img, new_img, diff_img = test_get_images(filepath)
+    old_img, ref_img, new_img, diff_img = test_get_images(filepath)
 
     # copy new image
     if os.path.exists(new_img):
@@ -274,25 +290,35 @@ def verify_output(report, filepath):
     if os.path.exists(TEMP_FILE):
         shutil.copy(TEMP_FILE, new_img)
 
+    update = os.getenv('CYCLESTEST_UPDATE')
 
-    if not os.path.exists(ref_img):
-        return False
+    if os.path.exists(ref_img):
+        # diff test with threshold
+        command = (
+            IDIFF,
+            "-fail", "0.016",
+            "-failpercent", "1",
+            ref_img,
+            TEMP_FILE,
+            )
+        try:
+            subprocess.check_output(command)
+            failed = False
+        except subprocess.CalledProcessError as e:
+            if VERBOSE:
+                print_message(e.output.decode("utf-8"))
+            failed = e.returncode != 1
+    else:
+        if not update:
+            return False
 
-    # diff test with threshold
-    command = (
-        IDIFF,
-        "-fail", "0.016",
-        "-failpercent", "1",
-        ref_img,
-        TEMP_FILE,
-        )
-    try:
-        subprocess.check_output(command)
+        failed = True
+
+    if failed and update:
+        # update reference
+        shutil.copy(new_img, ref_img)
+        shutil.copy(new_img, old_img)
         failed = False
-    except subprocess.CalledProcessError as e:
-        if VERBOSE:
-            print_message(e.output.decode("utf-8"))
-        failed = e.returncode != 1
 
     # generate diff image
     command = (

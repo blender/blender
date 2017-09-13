@@ -296,17 +296,6 @@ ccl_device_inline float path_branched_rng_light_termination(
 	return 0.0f;
 }
 
-ccl_device_inline void path_state_branch(ccl_addr_space PathState *state,
-                                         int branch,
-                                         int num_branches)
-{
-	/* path is splitting into a branch, adjust so that each branch
-	 * still gets a unique sample from the same sequence */
-	state->rng_offset += PRNG_BOUNCE_NUM;
-	state->sample = state->sample*num_branches + branch;
-	state->num_samples = state->num_samples*num_branches;
-}
-
 ccl_device_inline uint lcg_state_init(PathState *state,
                                       uint scramble)
 {

@@ -627,7 +627,9 @@ static Mesh *bake_mesh_new_from_object(EvaluationContext *eval_ctx, Main *bmain,
 		ED_object_editmode_load(ob);
 
 	Mesh *me = BKE_mesh_new_from_object(eval_ctx, bmain, scene, ob, 1, 2, 0, 0);
-	BKE_mesh_split_faces(me, true);
+	if (me->flag & ME_AUTOSMOOTH) {
+		BKE_mesh_split_faces(me, true);
+	}
 
 	return me;
 }

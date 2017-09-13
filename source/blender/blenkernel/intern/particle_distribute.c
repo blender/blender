@@ -1092,13 +1092,10 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 		/* This is to address tricky issues with vertex-emitting when user tries (and expects) exact 1-1 vert/part
 		 * distribution (see T47983 and its two example files). It allows us to consider pos as
 		 * 'midpoint between v and v+1' (or 'p and p+1', depending whether we have more vertices than particles or not),
-		 * and avoid stumbling over float imprecisions in element_sum. */
-		if (from == PART_FROM_VERT) {
-			pos = (totpart < totmapped) ? 0.5 / (double)totmapped : step * 0.5;  /* We choose the smaller step. */
-		}
-		else {
-			pos = 0.0;
-		}
+		 * and avoid stumbling over float imprecisions in element_sum.
+		 * Note: moved face and volume distribution to this as well (instead of starting at zero),
+		 * for the same reasons, see T52682. */
+		pos = (totpart < totmapped) ? 0.5 / (double)totmapped : step * 0.5;  /* We choose the smaller step. */
 
 		for (i = 0, p = 0; p < totpart; p++, pos += step) {
 			for ( ; (i < totmapped - 1) && (pos > (double)element_sum[i]); i++);
@@ -1137,7 +1134,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 		
 		if (jitlevel == 0) {
 			jitlevel= totpart/totelem;
-			if (part->flag & PART_EDISTR) jitlevel*= 2;	/* looks better in general, not very scietific */
+			if (part->flag & PART_EDISTR) jitlevel*= 2;	/* looks better in general, not very scientific */
 			if (jitlevel<3) jitlevel= 3;
 		}
 		

@@ -72,7 +72,6 @@ typedef ccl_global struct SplitBranchedState {
 	/* indirect loop state */
 	int next_closure;
 	int next_sample;
-	int num_samples;
 
 #ifdef __SUBSURFACE__
 	int ss_next_closure;

@@ -70,7 +70,7 @@ ccl_device_inline void compute_light_pass(KernelGlobals *kg,
 		/* sample emission */
 		if((pass_filter & BAKE_FILTER_EMISSION) && (sd->flag & SD_EMISSION)) {
 			float3 emission = indirect_primitive_emission(kg, sd, 0.0f, state.flag, state.ray_pdf);
-			path_radiance_accum_emission(&L_sample, throughput, emission, state.bounce);
+			path_radiance_accum_emission(&L_sample, &state, throughput, emission);
 		}
 
 		bool is_sss_sample = false;
@@ -102,7 +102,6 @@ ccl_device_inline void compute_light_pass(KernelGlobals *kg,
 					                     &emission_sd,
 					                     &ray,
 					                     throughput,
-					                     state.num_samples,
 					                     &state,
 					                     &L_sample);
 					kernel_path_subsurface_accum_indirect(&ss_indirect, &L_sample);
@@ -121,7 +120,7 @@ ccl_device_inline void compute_light_pass(KernelGlobals *kg,
 				state.ray_t = 0.0f;
 #endif
 				/* compute indirect light */
-				kernel_path_indirect(kg, &indirect_sd, &emission_sd, &ray, throughput, 1, &state, &L_sample);
+				kernel_path_indirect(kg, &indirect_sd, &emission_sd, &ray, throughput, &state, &L_sample);
 
 				/* sum and reset indirect light pass variables for the next samples */
 				path_radiance_sum_indirect(&L_sample);
@@ -141,7 +140,7 @@ ccl_device_inline void compute_light_pass(KernelGlobals *kg,
 		/* sample emission */
 		if((pass_filter & BAKE_FILTER_EMISSION) && (sd->flag & SD_EMISSION)) {
 			float3 emission = indirect_primitive_emission(kg, sd, 0.0f, state.flag, state.ray_pdf);
-			path_radiance_accum_emission(&L_sample, throughput, emission, state.bounce);
+			path_radiance_accum_emission(&L_sample, &state, throughput, emission);
 		}
 
 #ifdef __SUBSURFACE__
@@ -172,7 +171,7 @@ ccl_device_inline void compute_light_pass(KernelGlobals *kg,
 #endif
 
 	/* accumulate into master L */
-	path_radiance_accum_sample(L, &L_sample, 1);
+	path_radiance_accum_sample(L, &L_sample);
 }
 
 ccl_device bool is_aa_pass(ShaderEvalType type)
@@ -368,7 +367,8 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 		case SHADER_EVAL_COMBINED:
 		{
 			if((pass_filter & BAKE_FILTER_COMBINED) == BAKE_FILTER_COMBINED) {
-				out = path_radiance_clamp_and_sum(kg, &L);
+				float alpha;
+				out = path_radiance_clamp_and_sum(kg, &L, &alpha);
 				break;
 			}
 

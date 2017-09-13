@@ -125,6 +125,15 @@ typedef struct bAnimListElem {
 	void   *key_data;       /* motion data - mostly F-Curves, but can be other types too */
 	
 	
+	/* NOTE: id here is the "IdAdtTemplate"-style datablock (e.g. Object, Material, Texture, NodeTree)
+	 *       from which evaluation of the RNA-paths takes place. It's used to figure out how deep
+	 *       channels should be nested (e.g. for Textures/NodeTrees) in the tree, and allows property
+	 *       lookups (e.g. for sliders and for inserting keyframes) to work. If we had instead used
+	 *       bAction or something similar, none of this would be possible: although it's trivial
+	 *       to use an IdAdtTemplate type to find the source action a channel (e.g. F-Curve) comes from
+	 *       (i.e. in the AnimEditors, it *must* be the active action, as only that can be edited),
+	 *       it's impossible to go the other way (i.e. one action may be used in multiple places).
+	 */
 	struct ID *id;          /* ID block that channel is attached to */
 	struct AnimData *adt;   /* source of the animation data attached to ID block (for convenience) */
 	

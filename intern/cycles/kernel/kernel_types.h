@@ -292,7 +292,7 @@ enum PathTraceDimension {
 	PRNG_BSDF_U = 0,
 	PRNG_BSDF_V = 1,
 	PRNG_BSDF = 2,
-	PRNG_LIGHT = 3,
+	PRNG_UNUSED3 = 3,
 	PRNG_LIGHT_U = 4,
 	PRNG_LIGHT_V = 5,
 	PRNG_LIGHT_TERMINATE = 6,
@@ -535,11 +535,13 @@ typedef ccl_addr_space struct PathRadiance {
 	/* Path radiance sum and throughput at the moment when ray hits shadow
 	 * catcher object.
 	 */
-	float3 shadow_radiance_sum;
 	float shadow_throughput;
 
 	/* Accumulated transparency along the path after shadow catcher bounce. */
 	float shadow_transparency;
+
+	/* Indicate if any shadow catcher data is set. */
+	int has_shadow_catcher;
 #endif
 
 #ifdef __DENOISING_FEATURES__
@@ -1006,9 +1008,10 @@ typedef struct PathState {
 
 	/* random number generator state */
 	uint rng_hash;          /* per pixel hash */
-	int rng_offset;    		/* dimension offset */
-	int sample;        		/* path sample number */
-	int num_samples;		/* total number of times this path will be sampled */
+	int rng_offset;         /* dimension offset */
+	int sample;             /* path sample number */
+	int num_samples;        /* total number of times this path will be sampled */
+	float branch_factor;    /* number of branches in indirect paths */
 
 	/* bounce counting */
 	int bounce;

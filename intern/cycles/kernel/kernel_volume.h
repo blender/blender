@@ -438,7 +438,7 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_homogeneous(
 		float3 sigma_t = coeff.sigma_a + coeff.sigma_s;
 		float3 transmittance = volume_color_transmittance(sigma_t, ray->t);
 		float3 emission = kernel_volume_emission_integrate(&coeff, closure_flag, transmittance, ray->t);
-		path_radiance_accum_emission(L, *throughput, emission, state->bounce);
+		path_radiance_accum_emission(L, state, *throughput, emission);
 	}
 
 	/* modify throughput */
@@ -558,7 +558,7 @@ ccl_device VolumeIntegrateResult kernel_volume_integrate_heterogeneous_distance(
 			/* integrate emission attenuated by absorption */
 			if(L && (closure_flag & SD_EMISSION)) {
 				float3 emission = kernel_volume_emission_integrate(&coeff, closure_flag, transmittance, dt);
-				path_radiance_accum_emission(L, tp, emission, state->bounce);
+				path_radiance_accum_emission(L, state, tp, emission);
 			}
 
 			/* modify throughput */
@@ -997,8 +997,8 @@ ccl_device VolumeIntegrateResult kernel_volume_decoupled_scatter(
 			mis_weight = 2.0f*power_heuristic(pdf, distance_pdf);
 		}
 	}
-	if(sample_t < 1e-6f || pdf == 0.0f) {
-		return VOLUME_PATH_SCATTERED;
+	if(sample_t < 0.0f || pdf == 0.0f) {
+		return VOLUME_PATH_MISSED;
 	}
 
 	/* compute transmittance up to this step */

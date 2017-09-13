@@ -2154,8 +2154,9 @@ static void node_composit_backdrop_viewer(SpaceNode *snode, ImBuf *backdrop, bNo
 	if (node->custom1 == 0) {
 		const float backdropWidth = backdrop->x;
 		const float backdropHeight = backdrop->y;
-		const float cx  = x + snode->zoom * backdropWidth * node->custom3;
+		const float cx = x + snode->zoom * backdropWidth  * node->custom3;
 		const float cy = y + snode->zoom * backdropHeight * node->custom4;
+		const float cross_size = 12 * U.pixelsize;
 
 		Gwn_VertFormat *format = immVertexFormat();
 		unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -2165,10 +2166,10 @@ static void node_composit_backdrop_viewer(SpaceNode *snode, ImBuf *backdrop, bNo
 		immUniformColor3f(1.0f, 1.0f, 1.0f);
 
 		immBegin(GWN_PRIM_LINES, 4);
-		immVertex2f(pos, cx - 25, cy - 25);
-		immVertex2f(pos, cx + 25, cy + 25);
-		immVertex2f(pos, cx + 25, cy - 25);
-		immVertex2f(pos, cx - 25, cy + 25);
+		immVertex2f(pos, cx - cross_size, cy - cross_size);
+		immVertex2f(pos, cx + cross_size, cy + cross_size);
+		immVertex2f(pos, cx + cross_size, cy - cross_size);
+		immVertex2f(pos, cx - cross_size, cy + cross_size);
 		immEnd();
 
 		immUnbindProgram();

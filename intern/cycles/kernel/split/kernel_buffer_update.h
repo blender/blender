@@ -94,8 +94,7 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
 		buffer += (kernel_split_params.offset + pixel_x + pixel_y*stride) * kernel_data.film.pass_stride;
 
 		/* accumulate result in output buffer */
-		bool is_shadow_catcher = (state->flag & PATH_RAY_SHADOW_CATCHER);
-		kernel_write_result(kg, buffer, sample, L, is_shadow_catcher);
+		kernel_write_result(kg, buffer, sample, L);
 
 		ASSIGN_RAY_STATE(ray_state, ray_index, RAY_TO_REGENERATE);
 	}

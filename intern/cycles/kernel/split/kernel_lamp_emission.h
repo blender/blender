@@ -57,27 +57,10 @@ ccl_device void kernel_lamp_emission(KernelGlobals *kg)
 
 		float3 throughput = kernel_split_state.throughput[ray_index];
 		Ray ray = kernel_split_state.ray[ray_index];
+		ccl_global Intersection *isect = &kernel_split_state.isect[ray_index];
+		ShaderData *emission_sd = &kernel_split_state.sd_DL_shadow[ray_index];
 
-#ifdef __LAMP_MIS__
-		if(kernel_data.integrator.use_lamp_mis && !(state->flag & PATH_RAY_CAMERA)) {
-			/* ray starting from previous non-transparent bounce */
-			Ray light_ray;
-
-			light_ray.P = ray.P - state->ray_t*ray.D;
-			state->ray_t += kernel_split_state.isect[ray_index].t;
-			light_ray.D = ray.D;
-			light_ray.t = state->ray_t;
-			light_ray.time = ray.time;
-			light_ray.dD = ray.dD;
-			light_ray.dP = ray.dP;
-			/* intersect with lamp */
-			float3 emission;
-
-			if(indirect_lamp_emission(kg, &kernel_split_state.sd_DL_shadow[ray_index], state, &light_ray, &emission)) {
-				path_radiance_accum_emission(L, throughput, emission, state->bounce);
-			}
-		}
-#endif  /* __LAMP_MIS__ */
+		kernel_path_lamp_emission(kg, state, &ray, throughput, isect, emission_sd, L);
 	}
 }
 

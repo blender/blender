@@ -131,6 +131,11 @@ def align_objects(context,
 
     cursor = (space if space and space.type == 'VIEW_3D' else scene).cursor_location
 
+    # We are accessing runtime data such as evaluated bounding box, so we need to
+    # be sure it is properly updated and valid (bounding box might be lost on operator
+    # redo).
+    scene.update()
+
     Left_Front_Up_SEL = [0.0, 0.0, 0.0]
     Right_Back_Down_SEL = [0.0, 0.0, 0.0]
 

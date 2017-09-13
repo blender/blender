@@ -247,8 +247,9 @@ static void rna_KeyingSetInfo_unregister(Main *bmain, StructRNA *type)
 	ANIM_keyingset_info_unregister(bmain, ksi);
 }
 
-static StructRNA *rna_KeyingSetInfo_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
-                                             StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_KeyingSetInfo_register(
+        Main *bmain, ReportList *reports, void *data, const char *identifier,
+        StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	KeyingSetInfo dummyksi = {NULL};
 	KeyingSetInfo *ksi;

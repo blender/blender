@@ -37,9 +37,7 @@ ccl_device_noinline float3 direct_emissive_eval(KernelGlobals *kg,
 		ray.D = ls->D;
 		ray.P = ls->P;
 		ray.t = 1.0f;
-#  ifdef __OBJECT_MOTION__
 		ray.time = time;
-#  endif
 		ray.dP = differential3_zero();
 		ray.dD = dI;
 
