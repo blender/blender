@@ -60,9 +60,10 @@ typedef struct EEVEE_LightProbeData {
 
 /* SSR shader variations */
 enum {
-	SSR_RESOLVE      = (1 << 0),
-	SSR_FULL_TRACE   = (1 << 1),
-	SSR_MAX_SHADER   = (1 << 2),
+	SSR_SAMPLES      = (1 << 0) | (1 << 1),
+	SSR_RESOLVE      = (1 << 2),
+	SSR_FULL_TRACE   = (1 << 3),
+	SSR_MAX_SHADER   = (1 << 4),
 };
 
 static struct {
@@ -198,8 +199,11 @@ static struct GPUShader *eevee_effects_ssr_shader_get(int options)
 		char *ssr_shader_str = BLI_dynstr_get_cstring(ds_frag);
 		BLI_dynstr_free(ds_frag);
 
+		int samples = (SSR_SAMPLES & options) + 1;
+
 		DynStr *ds_defines = BLI_dynstr_new();
 		BLI_dynstr_appendf(ds_defines, SHADER_DEFINES);
+		BLI_dynstr_appendf(ds_defines, "#define RAY_COUNT %d\n", samples);
 		if (options & SSR_RESOLVE) {
 			BLI_dynstr_appendf(ds_defines, "#define STEP_RESOLVE\n");
 		}
@@ -856,6 +860,7 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 
 	if ((effects->enabled_effects & EFFECT_SSR) != 0) {
 		int options = (effects->reflection_trace_full) ? SSR_FULL_TRACE : 0;
+		options |= (effects->ssr_ray_count - 1);
 
 		struct GPUShader *trace_shader = eevee_effects_ssr_shader_get(options);
 		struct GPUShader *resolve_shader = eevee_effects_ssr_shader_get(SSR_RESOLVE | options);
@@ -871,7 +876,6 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
 		DRW_shgroup_uniform_vec2(grp, "mipRatio[0]", (float *)stl->g_data->mip_ratio, 10);
 		DRW_shgroup_uniform_vec4(grp, "ssrParameters", &effects->ssr_quality, 1);
-		DRW_shgroup_uniform_int(grp, "rayCount", &effects->ssr_ray_count, 1);
 		DRW_shgroup_uniform_int(grp, "planar_count", &sldata->probes->num_planar, 1);
 		DRW_shgroup_uniform_float(grp, "maxRoughness", &effects->ssr_max_roughness, 1);
 		DRW_shgroup_uniform_buffer(grp, "planarDepth", &vedata->txl->planar_depth);
@@ -900,10 +904,15 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		DRW_shgroup_uniform_buffer(grp, "probeCubes", &sldata->probe_pool);
 		DRW_shgroup_uniform_buffer(grp, "probePlanars", &vedata->txl->planar_pool);
 		DRW_shgroup_uniform_buffer(grp, "hitBuffer0", &stl->g_data->ssr_hit_output[0]);
-		DRW_shgroup_uniform_buffer(grp, "hitBuffer1", (effects->ssr_ray_count < 2) ? &stl->g_data->ssr_hit_output[0] : &stl->g_data->ssr_hit_output[1]);
-		DRW_shgroup_uniform_buffer(grp, "hitBuffer2", (effects->ssr_ray_count < 3) ? &stl->g_data->ssr_hit_output[0] : &stl->g_data->ssr_hit_output[2]);
-		DRW_shgroup_uniform_buffer(grp, "hitBuffer3", (effects->ssr_ray_count < 4) ? &stl->g_data->ssr_hit_output[0] : &stl->g_data->ssr_hit_output[3]);
-		DRW_shgroup_uniform_int(grp, "rayCount", &effects->ssr_ray_count, 1);
+		if (effects->ssr_ray_count > 1) {
+			DRW_shgroup_uniform_buffer(grp, "hitBuffer1", &stl->g_data->ssr_hit_output[1]);
+		}
+		if (effects->ssr_ray_count > 2) {
+			DRW_shgroup_uniform_buffer(grp, "hitBuffer2", &stl->g_data->ssr_hit_output[2]);
+		}
+		if (effects->ssr_ray_count > 3) {
+			DRW_shgroup_uniform_buffer(grp, "hitBuffer3", &stl->g_data->ssr_hit_output[3]);
+		}
 		DRW_shgroup_call_add(grp, quad, NULL);
 	}
 
