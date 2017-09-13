@@ -308,6 +308,9 @@ static void WIDGETGROUP_camera_view_setup(const bContext *UNUSED(C), wmManipulat
 
 	RNA_enum_set(viewgroup->border->ptr, "transform",
 	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE | ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE);
+	/* Box style is more subtle in this case. */
+	RNA_enum_set(viewgroup->border->ptr, "draw_style", ED_MANIPULATOR_CAGE2D_STYLE_BOX);
+
 
 	mgroup->customdata = viewgroup;
 }
