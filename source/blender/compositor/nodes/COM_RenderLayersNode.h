@@ -43,8 +43,11 @@ private:
 	                    Scene *scene,
 	                    int layerId,
 	                    bool is_preview) const;
-
 	void testRenderLink(NodeConverter &converter,
 	                    const CompositorContext &context,
 	                    Render *re) const;
+
+	void missingSocketLink(NodeConverter &converter,
+	                       NodeOutput *output) const;
+	void missingRenderLink(NodeConverter &converter) const;
 };
