@@ -115,10 +115,10 @@ static void grab_geom_draw(
 
 	if (draw_style == ED_MANIPULATOR_GRAB_STYLE_RING_2D) {
 		if (filled) {
-			imm_draw_circle_fill(pos, 0, 0, 1.0f, DIAL_RESOLUTION);
+			imm_draw_circle_fill_2d(pos, 0, 0, 1.0f, DIAL_RESOLUTION);
 		}
 		else {
-			imm_draw_circle_wire(pos, 0, 0, 1.0f, DIAL_RESOLUTION);
+			imm_draw_circle_wire_2d(pos, 0, 0, 1.0f, DIAL_RESOLUTION);
 		}
 	}
 	else if (draw_style == ED_MANIPULATOR_GRAB_STYLE_CROSS_2D) {

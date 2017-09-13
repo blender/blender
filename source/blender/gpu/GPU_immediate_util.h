@@ -27,33 +27,33 @@
 #ifndef __GPU_IMMEDIATE_UTIL_H__
 #define __GPU_IMMEDIATE_UTIL_H__
 
-void imm_cpack(unsigned int x);
+void imm_cpack(uint x);
 
-void imm_draw_circle_wire(uint shdr_pos, float x, float y, float radius, int nsegments);
-void imm_draw_circle_fill(uint shdr_pos, float x, float y, float radius, int nsegments);
+void imm_draw_circle_wire_2d(uint shdr_pos, float x, float y, float radius, int nsegments);
+void imm_draw_circle_fill_2d(uint shdr_pos, float x, float y, float radius, int nsegments);
 
 /* use this version when Gwn_VertFormat has a vec3 position */
-void imm_draw_circle_wire_3d(unsigned pos, float x, float y, float radius, int nsegments);
-void imm_draw_circle_fill_3d(unsigned pos, float x, float y, float radius, int nsegments);
+void imm_draw_circle_wire_3d(uint pos, float x, float y, float radius, int nsegments);
+void imm_draw_circle_fill_3d(uint pos, float x, float y, float radius, int nsegments);
 
-void imm_draw_disk_partial_fill(
-        unsigned pos, float x, float y,
+void imm_draw_disk_partial_fill_2d(
+        uint pos, float x, float y,
         float radius_inner, float radius_outer, int nsegments, float start, float sweep);
 
-void imm_draw_line_box(unsigned pos, float x1, float y1, float x2, float y2);
+void imm_draw_line_box_2d(uint pos, float x1, float y1, float x2, float y2);
 
-void imm_draw_line_box_3d(unsigned pos, float x1, float y1, float x2, float y2);
+void imm_draw_line_box_3d(uint pos, float x1, float y1, float x2, float y2);
 
-void imm_draw_checker_box(float x1, float y1, float x2, float y2);
+void imm_draw_checker_box_2d(float x1, float y1, float x2, float y2);
 
 void imm_draw_cylinder_fill_normal_3d(
-        unsigned int pos, unsigned int nor, float base, float top, float height,
+        uint pos, uint nor, float base, float top, float height,
         int slices, int stacks);
 void imm_draw_cylinder_wire_3d(
-        unsigned int pos, float base, float top, float height,
+        uint pos, float base, float top, float height,
         int slices, int stacks);
 void imm_draw_cylinder_fill_3d(
-        unsigned int pos, float base, float top, float height,
+        uint pos, float base, float top, float height,
         int slices, int stacks);
 
 #endif  /* __GPU_IMMEDIATE_UTIL_H__ */

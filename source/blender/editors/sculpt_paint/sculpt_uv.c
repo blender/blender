@@ -219,7 +219,7 @@ static void brush_drawcursor_uvsculpt(bContext *C, int x, int y, void *UNUSED(cu
 
 		glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_BLEND);
-		imm_draw_circle_wire(pos, (float)x, (float)y, size, 40);
+		imm_draw_circle_wire_2d(pos, (float)x, (float)y, size, 40);
 		glDisable(GL_BLEND);
 		glDisable(GL_LINE_SMOOTH);
 

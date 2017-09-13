@@ -140,10 +140,10 @@ static void dial_geom_draw(
 	immUniformColor4fv(color);
 
 	if (filled) {
-		imm_draw_circle_fill(pos, 0, 0, 1.0, DIAL_RESOLUTION);
+		imm_draw_circle_fill_2d(pos, 0, 0, 1.0, DIAL_RESOLUTION);
 	}
 	else {
-		imm_draw_circle_wire(pos, 0, 0, 1.0, DIAL_RESOLUTION);
+		imm_draw_circle_wire_2d(pos, 0, 0, 1.0, DIAL_RESOLUTION);
 	}
 
 	immUnbindProgram();
@@ -187,7 +187,7 @@ static void dial_ghostarc_draw(
 	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 	immUniformColor4fv(color);
-	imm_draw_disk_partial_fill(
+	imm_draw_disk_partial_fill_2d(
 	        pos, 0, 0, 0.0, width_inner, DIAL_RESOLUTION, RAD2DEGF(angle_ofs), RAD2DEGF(angle_delta));
 	immUnbindProgram();
 }

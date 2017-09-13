@@ -768,7 +768,7 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 			glDisable(GL_BLEND);
 		}
 
-		imm_draw_line_box(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+		imm_draw_line_box_2d(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	}
 	else {
 		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
@@ -780,7 +780,7 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 
-		imm_draw_line_box(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+		imm_draw_line_box_2d(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 
 		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);

@@ -2272,12 +2272,12 @@ static void ui_hsv_cursor(float x, float y)
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	immUniformColor3f(1.0f, 1.0f, 1.0f);
-	imm_draw_circle_fill(pos, x, y, 3.0f * U.pixelsize, 8);
+	imm_draw_circle_fill_2d(pos, x, y, 3.0f * U.pixelsize, 8);
 	
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
 	immUniformColor3f(0.0f, 0.0f, 0.0f);
-	imm_draw_circle_wire(pos, x, y, 3.0f * U.pixelsize, 12);
+	imm_draw_circle_wire_2d(pos, x, y, 3.0f * U.pixelsize, 12);
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
 
@@ -2397,7 +2397,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 	glEnable(GL_LINE_SMOOTH);
 
 	immUniformColor3ubv((unsigned char *)wcol->outline);
-	imm_draw_circle_wire(pos, centx, centy, radius, tot);
+	imm_draw_circle_wire_2d(pos, centx, centy, radius, tot);
 
 	immUnbindProgram();
 
@@ -2637,7 +2637,7 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
 	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor3ub(0, 0, 0);
-	imm_draw_line_box(pos, (rect->xmin), (rect->ymin), (rect->xmax), (rect->ymax));
+	imm_draw_line_box_2d(pos, (rect->xmin), (rect->ymin), (rect->xmax), (rect->ymax));
 	immUnbindProgram();
 }
 
@@ -4172,8 +4172,8 @@ void ui_draw_pie_center(uiBlock *block)
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor4ubv((unsigned char *)btheme->tui.wcol_pie_menu.outline);
 
-	imm_draw_circle_wire(pos, 0.0f, 0.0f, pie_radius_internal, subd);
-	imm_draw_circle_wire(pos, 0.0f, 0.0f, pie_radius_external, subd);
+	imm_draw_circle_wire_2d(pos, 0.0f, 0.0f, pie_radius_internal, subd);
+	imm_draw_circle_wire_2d(pos, 0.0f, 0.0f, pie_radius_external, subd);
 
 	immUnbindProgram();
 

@@ -849,12 +849,12 @@ BLI_INLINE void draw_rect_point(
 	float maxx = co[0] + w;
 	float maxy = co[1] + w;
 
-	imm_draw_line_box(pos, minx, miny, maxx, maxy);
+	imm_draw_line_box_2d(pos, minx, miny, maxx, maxy);
 
 	immUniformColor4f(1.0f, 1.0f, 1.0f, 0.5f);
 	glLineWidth(1.0f);
 
-	imm_draw_line_box(pos, minx, miny, maxx, maxy);
+	imm_draw_line_box_2d(pos, minx, miny, maxx, maxy);
 }
 
 
@@ -1098,11 +1098,11 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	/* draw brush outline */
 	if (ups->stroke_active && BKE_brush_use_size_pressure(scene, brush)) {
 		/* inner at full alpha */
-		imm_draw_circle_wire(pos, translation[0], translation[1], final_radius * ups->size_pressure_value, 40);
+		imm_draw_circle_wire_2d(pos, translation[0], translation[1], final_radius * ups->size_pressure_value, 40);
 		/* outer at half alpha */
 		immUniformColor3fvAlpha(outline_col, outline_alpha * 0.5f);
 	}
-	imm_draw_circle_wire(pos, translation[0], translation[1], final_radius, 40);
+	imm_draw_circle_wire_2d(pos, translation[0], translation[1], final_radius, 40);
 
 	immUnbindProgram();
 

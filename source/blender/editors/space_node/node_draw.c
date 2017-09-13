@@ -716,7 +716,7 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformThemeColorShadeAlpha(TH_BACK, -15, +100);
-	imm_draw_line_box(pos, draw_rect.xmin, draw_rect.ymin, draw_rect.xmax, draw_rect.ymax);
+	imm_draw_line_box_2d(pos, draw_rect.xmin, draw_rect.ymin, draw_rect.xmax, draw_rect.ymax);
 	immUnbindProgram();
 }
 

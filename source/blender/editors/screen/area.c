@@ -228,7 +228,7 @@ static void area_draw_azone_fullscreen(short x1, short y1, short x2, short y2, f
 
 		immAttrib4ub(color, 255, 0, 0, alpha_debug);
 		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-		imm_draw_line_box(pos, click_rect.xmin, click_rect.ymin, click_rect.xmax, click_rect.ymax);
+		imm_draw_line_box_2d(pos, click_rect.xmin, click_rect.ymin, click_rect.xmax, click_rect.ymax);
 
 		immAttrib4ub(color, 0, 255, 255, alpha_debug);
 		immBegin(GWN_PRIM_LINES, 4);

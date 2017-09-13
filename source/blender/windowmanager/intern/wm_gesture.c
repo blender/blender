@@ -224,7 +224,7 @@ static void wm_gesture_draw_rect(wmGesture *gt)
 	immUniformArray4fv("colors", (float *)(float[][4]){{0.4f, 0.4f, 0.4f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}}, 2);
 	immUniform1f("dash_width", 8.0f);
 
-	imm_draw_line_box(shdr_pos, (float)rect->xmin, (float)rect->ymin, (float)rect->xmax, (float)rect->ymax);
+	imm_draw_line_box_2d(shdr_pos, (float)rect->xmin, (float)rect->ymin, (float)rect->xmax, (float)rect->ymax);
 
 	immUnbindProgram();
 
@@ -242,7 +242,7 @@ static void wm_gesture_draw_circle(wmGesture *gt)
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	immUniformColor4f(1.0f, 1.0f, 1.0f, 0.05f);
-	imm_draw_circle_fill(shdr_pos, (float)rect->xmin, (float)rect->ymin, (float)rect->xmax, 40);
+	imm_draw_circle_fill_2d(shdr_pos, (float)rect->xmin, (float)rect->ymin, (float)rect->xmax, 40);
 
 	immUnbindProgram();
 
@@ -258,7 +258,7 @@ static void wm_gesture_draw_circle(wmGesture *gt)
 	immUniformArray4fv("colors", (float *)(float[][4]){{0.4f, 0.4f, 0.4f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}}, 2);
 	immUniform1f("dash_width", 4.0f);
 
-	imm_draw_circle_wire(shdr_pos, (float)rect->xmin, (float)rect->ymin, (float)rect->xmax, 40);
+	imm_draw_circle_wire_2d(shdr_pos, (float)rect->xmin, (float)rect->ymin, (float)rect->xmax, 40);
 
 	immUnbindProgram();
 }

@@ -462,10 +462,10 @@ static void screencast_draw_cursor(bContext *UNUSED(C), int x, int y, void *UNUS
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	immUniformColor4ub(0, 0, 0, 32);
-	imm_draw_circle_fill(pos, (float)x, (float)y, 20, 40);
+	imm_draw_circle_fill_2d(pos, (float)x, (float)y, 20, 40);
 
 	immUniformColor4ub(255, 255, 255, 128);
-	imm_draw_circle_wire(pos, (float)x, (float)y, 20, 40);
+	imm_draw_circle_wire_2d(pos, (float)x, (float)y, 20, 40);
 
 	immUnbindProgram();
 	

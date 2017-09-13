@@ -404,7 +404,7 @@ static void file_draw_preview(
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformColor4f(0.0f, 0.0f, 0.0f, 0.4f);
-		imm_draw_line_box(pos, (float)xco, (float)yco, (float)(xco + ex), (float)(yco + ey));
+		imm_draw_line_box_2d(pos, (float)xco, (float)yco, (float)(xco + ex), (float)(yco + ey));
 		immUnbindProgram();
 	}
 

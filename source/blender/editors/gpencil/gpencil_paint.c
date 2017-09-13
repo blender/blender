@@ -1865,7 +1865,7 @@ static void gpencil_draw_eraser(bContext *UNUSED(C), int x, int y, void *p_ptr)
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		immUniformColor4ub(255, 100, 100, 20);
-		imm_draw_circle_fill(shdr_pos, x, y, p->radius, 40);
+		imm_draw_circle_fill_2d(shdr_pos, x, y, p->radius, 40);
 
 		immUnbindProgram();
 
@@ -1880,7 +1880,7 @@ static void gpencil_draw_eraser(bContext *UNUSED(C), int x, int y, void *p_ptr)
 		immUniform1f("dash_width", 12.0f);
 		immUniform1f("dash_factor", 0.5f);
 
-		imm_draw_circle_wire(shdr_pos, x, y, p->radius,
+		imm_draw_circle_wire_2d(shdr_pos, x, y, p->radius,
 		                     /* XXX Dashed shader gives bad results with sets of small segments currently,
 		                      *     temp hack around the issue. :( */
 		                     max_ii(8, p->radius / 2));  /* was fixed 40 */
