@@ -957,7 +957,7 @@ static void render_scene_to_probe(
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 
-	float winmat[4][4], posmat[4][4], tmp_ao_dist, tmp_ao_samples;
+	float winmat[4][4], posmat[4][4], tmp_ao_dist, tmp_ao_samples, tmp_ao_settings;
 
 	unit_m4(posmat);
 
@@ -971,6 +971,7 @@ static void render_scene_to_probe(
 	/* Disable AO until we find a way to hide really bad discontinuities between cubefaces. */
 	tmp_ao_dist = stl->effects->ao_dist;
 	tmp_ao_samples = stl->effects->ao_samples;
+	tmp_ao_settings = stl->effects->ao_settings;
 	stl->effects->ao_settings = 0.0f; /* Disable AO */
 
 	/* 1 - Render to each cubeface individually.
@@ -1050,6 +1051,7 @@ static void render_scene_to_probe(
 	txl->maxzbuffer = tmp_maxz;
 	stl->effects->ao_dist = tmp_ao_dist;
 	stl->effects->ao_samples = tmp_ao_samples;
+	stl->effects->ao_settings = tmp_ao_settings;
 }
 
 static void render_scene_to_planar(
