@@ -94,7 +94,16 @@ void RenderLayersNode::testRenderLink(NodeConverter &converter,
 			is_preview = false;
 		}
 		else {
-			DataType type = ((rpass->channels == 4)? COM_DT_COLOR : ((rpass->channels == 3)? COM_DT_VECTOR : COM_DT_VALUE));
+			DataType type;
+			switch (rpass->channels) {
+				case 4: type = COM_DT_COLOR; break;
+				case 3: type = COM_DT_VECTOR; break;
+				case 1: type = COM_DT_VALUE; break;
+				default:
+					BLI_assert(!"Unexpected number of channels for pass");
+					type = COM_DT_VALUE;
+					break;
+			}
 			operation = new RenderLayersProg(rpass->name,
 			                                 type,
 			                                 rpass->channels);
