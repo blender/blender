@@ -556,13 +556,7 @@ static void manipulator_cage2d_draw_intern(
 	const int draw_style = RNA_enum_get(mpr->ptr, "draw_style");
 	const int draw_options = RNA_enum_get(mpr->ptr, "draw_options");
 
-	const float size[2] = {dims[0] / 2.0f, dims[1] / 2.0f};
-	const rctf r = {
-		.xmin = -size[0],
-		.ymin = -size[1],
-		.xmax = size[0],
-		.ymax = size[1],
-	};
+	const float size_real[2] = {dims[0] / 2.0f, dims[1] / 2.0f};
 
 	WM_manipulator_calc_matrix_final(mpr, matrix_final);
 
@@ -584,42 +578,10 @@ static void manipulator_cage2d_draw_intern(
 		glDisable(GL_BLEND);
 	}
 
-	if (draw_style == ED_MANIPULATOR_CAGE2D_STYLE_BOX) {
-		/* corner manipulators */
-		glLineWidth(mpr->line_width + 3.0f);
-		cage2d_draw_box_corners(&r, margin, (const float[3]){0, 0, 0});
-
-		/* corner manipulators */
-		float color[4];
-		manipulator_color_get(mpr, highlight, color);
-		glLineWidth(mpr->line_width);
-		cage2d_draw_box_corners(&r, margin, color);
-	}
-	else if (draw_style == ED_MANIPULATOR_CAGE2D_STYLE_CIRCLE) {
-		float color[4];
-		manipulator_color_get(mpr, highlight, color);
-
-		glEnable(GL_LINE_SMOOTH);
-		glEnable(GL_BLEND);
-
-		glLineWidth(mpr->line_width + 3.0f);
-		cage2d_draw_circle_wire(&r, margin, (const float[3]){0, 0, 0}, transform_flag, draw_options);
-		glLineWidth(mpr->line_width);
-		cage2d_draw_circle_wire(&r, margin, color, transform_flag, draw_options);
-
-
-		/* corner manipulators */
-		cage2d_draw_circle_handles(&r, margin, color, transform_flag, true);
-		cage2d_draw_circle_handles(&r, margin, (const float[3]){0, 0, 0}, transform_flag, false);
-
-		glDisable(GL_BLEND);
-		glDisable(GL_LINE_SMOOTH);
-	}
-	else {
-		BLI_assert(0);
-	}
-
 	if (select) {
+		/* expand for hotspot */
+		const float size[2] = {size_real[0] + margin[0] / 2, size_real[1] + margin[1] / 2};
+
 		if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE) {
 			int scale_parts[] = {
 				ED_MANIPULATOR_CAGE2D_PART_SCALE_MIN_X,
@@ -646,12 +608,27 @@ static void manipulator_cage2d_draw_intern(
 		}
 		if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_ROTATE) {
 			cage2d_draw_box_interaction(
-			        mpr->color, ED_MANIPULATOR_CAGE2D_PART_ROTATE, size, margin, mpr->line_width, true, draw_options);
+			        mpr->color, ED_MANIPULATOR_CAGE2D_PART_ROTATE, size_real, margin, mpr->line_width, true, draw_options);
 		}
 	}
 	else {
-		/* Don't draw translate (only for selection). */
+		const rctf r = {
+			.xmin = -size_real[0],
+			.ymin = -size_real[1],
+			.xmax = size_real[0],
+			.ymax = size_real[1],
+		};
 		if (draw_style == ED_MANIPULATOR_CAGE2D_STYLE_BOX) {
+			/* corner manipulators */
+			glLineWidth(mpr->line_width + 3.0f);
+			cage2d_draw_box_corners(&r, margin, (const float[3]){0, 0, 0});
+
+			/* corner manipulators */
+			float color[4];
+			manipulator_color_get(mpr, highlight, color);
+			glLineWidth(mpr->line_width);
+			cage2d_draw_box_corners(&r, margin, color);
+
 			bool show = false;
 			if (mpr->highlight_part == ED_MANIPULATOR_CAGE2D_PART_TRANSLATE) {
 				/* Only show if we're drawing the center handle
@@ -666,13 +643,36 @@ static void manipulator_cage2d_draw_intern(
 
 			if (show) {
 				cage2d_draw_box_interaction(
-				        mpr->color, mpr->highlight_part, size, margin, mpr->line_width, false, draw_options);
+				        mpr->color, mpr->highlight_part, size_real, margin, mpr->line_width, false, draw_options);
 			}
 
 			if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_ROTATE) {
 				cage2d_draw_box_interaction(
-				        mpr->color, ED_MANIPULATOR_CAGE2D_PART_ROTATE, size, margin, mpr->line_width, false, draw_options);
+				        mpr->color, ED_MANIPULATOR_CAGE2D_PART_ROTATE, size_real, margin, mpr->line_width, false, draw_options);
 			}
+		}
+		else if (draw_style == ED_MANIPULATOR_CAGE2D_STYLE_CIRCLE) {
+			float color[4];
+			manipulator_color_get(mpr, highlight, color);
+
+			glEnable(GL_LINE_SMOOTH);
+			glEnable(GL_BLEND);
+
+			glLineWidth(mpr->line_width + 3.0f);
+			cage2d_draw_circle_wire(&r, margin, (const float[3]){0, 0, 0}, transform_flag, draw_options);
+			glLineWidth(mpr->line_width);
+			cage2d_draw_circle_wire(&r, margin, color, transform_flag, draw_options);
+
+
+			/* corner manipulators */
+			cage2d_draw_circle_handles(&r, margin, color, transform_flag, true);
+			cage2d_draw_circle_handles(&r, margin, (const float[3]){0, 0, 0}, transform_flag, false);
+
+			glDisable(GL_BLEND);
+			glDisable(GL_LINE_SMOOTH);
+		}
+		else {
+			BLI_assert(0);
 		}
 	}
 
@@ -732,7 +732,7 @@ static int manipulator_cage2d_test_select(
 	float point_local[2];
 	float dims[2];
 	RNA_float_get_array(mpr->ptr, "dimensions", dims);
-	const float size[2] = {dims[0] / 2.0f, dims[1] / 2.0f};
+	const float size_real[2] = {dims[0] / 2.0f, dims[1] / 2.0f};
 
 	if (manipulator_window_project_2d(
 	        C, mpr, (const float[2]){UNPACK2(event->mval)}, 2, true, point_local) == false)
@@ -742,6 +742,8 @@ static int manipulator_cage2d_test_select(
 
 	float margin[2];
 	manipulator_calc_rect_view_margin(mpr, dims, margin);
+	/* expand for hotspot */
+	const float size[2] = {size_real[0] + margin[0] / 2, size_real[1] + margin[1] / 2};
 
 	const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
 	const int draw_options = RNA_enum_get(mpr->ptr, "draw_options");
@@ -805,7 +807,7 @@ static int manipulator_cage2d_test_select(
 		 * +---+
 		 * |   |
 		 * +---+ */
-		const float r_rotate_pt[2] = {0.0f, size[1] + (margin[1] * MANIPULATOR_MARGIN_OFFSET_SCALE)};
+		const float r_rotate_pt[2] = {0.0f, size_real[1] + (margin[1] * MANIPULATOR_MARGIN_OFFSET_SCALE)};
 		const rctf r_rotate = {
 			.xmin = r_rotate_pt[0] - margin[0] / 2.0f,
 			.xmax = r_rotate_pt[0] + margin[0] / 2.0f,
