@@ -435,9 +435,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 		                      &isect,
 		                      ray);
 		shader_eval_surface(kg, sd, state, state->flag);
-#ifdef __BRANCHED_PATH__
-		shader_merge_closures(sd);
-#endif  /* __BRANCHED_PATH__ */
+		shader_prepare_closures(sd, state);
 
 		/* Apply shadow catcher, holdout, emission. */
 		if(!kernel_path_shader_apply(kg,
@@ -588,6 +586,7 @@ ccl_device_forceinline void kernel_path_integrate(
 		/* Setup and evaluate shader. */
 		shader_setup_from_ray(kg, &sd, &isect, ray);
 		shader_eval_surface(kg, &sd, state, state->flag);
+		shader_prepare_closures(&sd, state);
 
 		/* Apply shadow catcher, holdout, emission. */
 		if(!kernel_path_shader_apply(kg,

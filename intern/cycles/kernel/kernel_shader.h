@@ -494,6 +494,34 @@ ccl_device_inline void shader_merge_closures(ShaderData *sd)
 }
 #endif
 
+/* Defensive sampling. */
+
+ccl_device_inline void shader_prepare_closures(ShaderData *sd,
+                                               ccl_addr_space PathState *state)
+{
+	/* We can likely also do defensive sampling at deeper bounces, particularly
+	 * for cases like a perfect mirror but possibly also others. This will need
+	 * a good heuristic. */
+	if(state->bounce + state->transparent_bounce == 0 && sd->num_closure > 1) {
+		float sum = 0.0f;
+
+		for(int i = 0; i < sd->num_closure; i++) {
+			ShaderClosure *sc = &sd->closure[i];
+			if(CLOSURE_IS_BSDF_OR_BSSRDF(sc->type)) {
+				sum += sc->sample_weight;
+			}
+		}
+
+		for(int i = 0; i < sd->num_closure; i++) {
+			ShaderClosure *sc = &sd->closure[i];
+			if(CLOSURE_IS_BSDF_OR_BSSRDF(sc->type)) {
+				sc->sample_weight = max(sc->sample_weight, 0.125f * sum);
+			}
+		}
+	}
+}
+
+
 /* BSDF */
 
 ccl_device_inline void _shader_bsdf_multi_eval(KernelGlobals *kg, ShaderData *sd, const float3 omega_in, float *pdf,

@@ -52,8 +52,14 @@ ccl_device void kernel_shader_eval(KernelGlobals *kg)
 
 		shader_eval_surface(kg, &kernel_split_state.sd[ray_index], state, state->flag);
 #ifdef __BRANCHED_PATH__
-		shader_merge_closures(&kernel_split_state.sd[ray_index]);
-#endif  /* __BRANCHED_PATH__ */
+		if(kernel_data.integrator.branched) {
+			shader_merge_closures(&kernel_split_state.sd[ray_index]);
+		}
+		else
+#endif
+		{
+			shader_prepare_closures(&kernel_split_state.sd[ray_index], state);
+		}
 	}
 }
 
