@@ -614,8 +614,9 @@ static void rna_AddonPref_unregister(Main *UNUSED(bmain), StructRNA *type)
 	WM_main_add_notifier(NC_WINDOW, NULL);
 }
 
-static StructRNA *rna_AddonPref_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
-                                         StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_AddonPref_register(
+        Main *bmain, ReportList *reports, void *data, const char *identifier,
+        StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	bAddonPrefType *apt, dummyapt = {{'\0'}};
 	bAddon dummyaddon = {NULL};

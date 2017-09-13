@@ -185,8 +185,9 @@ static void rna_Panel_unregister(Main *UNUSED(bmain), StructRNA *type)
 	WM_main_add_notifier(NC_WINDOW, NULL);
 }
 
-static StructRNA *rna_Panel_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
-                                     StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_Panel_register(
+        Main *bmain, ReportList *reports, void *data, const char *identifier,
+        StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	ARegionType *art;
 	PanelType *pt, dummypt = {NULL};
@@ -469,8 +470,9 @@ static void rna_UIList_unregister(Main *UNUSED(bmain), StructRNA *type)
 	WM_main_add_notifier(NC_WINDOW, NULL);
 }
 
-static StructRNA *rna_UIList_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
-                                      StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_UIList_register(
+        Main *bmain, ReportList *reports, void *data, const char *identifier,
+        StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	uiListType *ult, dummyult = {NULL};
 	uiList dummyuilist = {NULL};
@@ -571,8 +573,9 @@ static void rna_Header_unregister(Main *UNUSED(bmain), StructRNA *type)
 	WM_main_add_notifier(NC_WINDOW, NULL);
 }
 
-static StructRNA *rna_Header_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
-                                      StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_Header_register(
+        Main *bmain, ReportList *reports, void *data, const char *identifier,
+        StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	ARegionType *art;
 	HeaderType *ht, dummyht = {NULL};
@@ -699,8 +702,9 @@ static void rna_Menu_unregister(Main *UNUSED(bmain), StructRNA *type)
 	WM_main_add_notifier(NC_WINDOW, NULL);
 }
 
-static StructRNA *rna_Menu_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
-                                    StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_Menu_register(
+        Main *bmain, ReportList *reports, void *data, const char *identifier,
+        StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	MenuType *mt, dummymt = {NULL};
 	Menu dummymenu = {NULL};
