@@ -2054,6 +2054,11 @@ static void DRW_draw_pass_ex(DRWPass *pass, DRWShadingGroup *start_group, DRWSha
 		}
 	}
 
+	/* Clear Bound Ubos */
+	for (int i = 0; i < GPU_max_ubo_binds(); i++) {
+		RST.bound_ubos[i] = NULL;
+	}
+
 	if (DST.shader) {
 		GPU_shader_unbind();
 		DST.shader = NULL;
