@@ -1835,21 +1835,19 @@ static void draw_geometry(DRWShadingGroup *shgroup, Gwn_Batch *geom, const float
 
 static void draw_bind_texture(GPUTexture *tex)
 {
-	int bind = GPU_texture_bound_number(tex);
-	if (bind == -1) {
+	if (RST.bound_texs[RST.bind_tex_inc] != tex) {
 		if (RST.bind_tex_inc >= 0) {
 			if (RST.bound_texs[RST.bind_tex_inc] != NULL) {
 				GPU_texture_unbind(RST.bound_texs[RST.bind_tex_inc]);
 			}
 			RST.bound_texs[RST.bind_tex_inc] = tex;
 			GPU_texture_bind(tex, RST.bind_tex_inc);
-
-			RST.bind_tex_inc--;
 		}
 		else {
 			printf("Not enough texture slots! Reduce number of textures used by your shader.\n");
 		}
 	}
+	RST.bind_tex_inc--;
 }
 
 static void draw_bind_ubo(GPUUniformBuffer *ubo)
