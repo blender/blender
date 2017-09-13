@@ -15,8 +15,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor: 
- *		Jeroen Bakker 
+ * Contributor:
+ *		Jeroen Bakker
  *		Monique Dewanchand
  */
 
@@ -25,16 +25,22 @@
 #include "COM_TranslateOperation.h"
 #include "COM_RotateOperation.h"
 #include "COM_ScaleOperation.h"
+#include "COM_SetColorOperation.h"
 #include "COM_SetValueOperation.h"
+#include "COM_SetVectorOperation.h"
 
 RenderLayersNode::RenderLayersNode(bNode *editorNode) : Node(editorNode)
 {
 	/* pass */
 }
 
-void RenderLayersNode::testSocketLink(NodeConverter &converter, const CompositorContext &context,
-                                      NodeOutput *output, RenderLayersProg *operation,
-                                      Scene *scene, int layerId, bool is_preview) const
+void RenderLayersNode::testSocketLink(NodeConverter &converter,
+                                      const CompositorContext &context,
+                                      NodeOutput *output,
+                                      RenderLayersProg *operation,
+                                      Scene *scene,
+                                      int layerId,
+                                      bool is_preview) const
 {
 	operation->setScene(scene);
 	operation->setLayerId(layerId);
@@ -43,7 +49,7 @@ void RenderLayersNode::testSocketLink(NodeConverter &converter, const Compositor
 
 	converter.mapOutputSocket(output, operation->getOutputSocket());
 	converter.addOperation(operation);
-	
+
 	if (is_preview) /* only for image socket */
 		converter.addPreview(operation->getOutputSocket());
 }
@@ -56,18 +62,21 @@ void RenderLayersNode::testRenderLink(NodeConverter &converter,
 	const short layerId = this->getbNode()->custom1;
 	RenderResult *rr = RE_AcquireResultRead(re);
 	if (rr == NULL) {
+		missingRenderLink(converter);
 		return;
 	}
 	SceneRenderLayer *srl = (SceneRenderLayer *)BLI_findlink(&scene->r.layers, layerId);
 	if (srl == NULL) {
+		missingRenderLink(converter);
 		return;
 	}
 	RenderLayer *rl = RE_GetRenderLayer(rr, srl->name);
 	if (rl == NULL) {
+		missingRenderLink(converter);
 		return;
 	}
-	const int numberOfOutputs = this->getNumberOfOutputSockets();
-	for (int i = 0; i < numberOfOutputs; i++) {
+	const int num_outputs = this->getNumberOfOutputSockets();
+	for (int i = 0; i < num_outputs; i++) {
 		NodeOutput *output = this->getOutputSocket(i);
 		NodeImageLayer *storage = (NodeImageLayer*) output->getbNodeSocket()->storage;
 		RenderPass *rpass = (RenderPass*) BLI_findstring(
@@ -75,6 +84,7 @@ void RenderLayersNode::testRenderLink(NodeConverter &converter,
 		        storage->pass_name,
 		        offsetof(RenderPass, name));
 		if (rpass == NULL) {
+			missingSocketLink(converter, output);
 			continue;
 		}
 		RenderLayersProg *operation;
@@ -119,6 +129,49 @@ void RenderLayersNode::testRenderLink(NodeConverter &converter,
 	}
 }
 
+void RenderLayersNode::missingSocketLink(NodeConverter &converter,
+                                         NodeOutput *output) const
+{
+	NodeOperation *operation;
+	switch (output->getDataType()) {
+		case COM_DT_COLOR:
+		{
+			const float color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+			SetColorOperation *color_operation = new SetColorOperation();
+			color_operation->setChannels(color);
+			operation = color_operation;
+			break;
+		}
+		case COM_DT_VECTOR:
+		{
+			const float vector[3] = {0.0f, 0.0f, 0.0f};
+			SetVectorOperation *vector_operation = new SetVectorOperation();
+			vector_operation->setVector(vector);
+			operation = vector_operation;
+			break;
+		}
+		case COM_DT_VALUE:
+		{
+			SetValueOperation *value_operation = new SetValueOperation();
+			value_operation->setValue(0.0f);
+			operation = value_operation;
+			break;
+		}
+	}
+
+	converter.mapOutputSocket(output, operation->getOutputSocket());
+	converter.addOperation(operation);
+}
+
+void RenderLayersNode::missingRenderLink(NodeConverter &converter) const
+{
+	const int num_outputs = this->getNumberOfOutputSockets();
+	for (int i = 0; i < num_outputs; i++) {
+		NodeOutput *output = this->getOutputSocket(i);
+		missingSocketLink(converter, output);
+	}
+}
+
 void RenderLayersNode::convertToOperations(NodeConverter &converter,
                                            const CompositorContext &context) const
 {
@@ -128,5 +181,8 @@ void RenderLayersNode::convertToOperations(NodeConverter &converter,
 	if (re != NULL) {
 		testRenderLink(converter, context, re);
 		RE_ReleaseResult(re);
+	}
+	else {
+		missingRenderLink(converter);
 	}
 }
