@@ -50,32 +50,16 @@ ccl_device void kernel_indirect_background(KernelGlobals *kg)
 		return;
 	}
 
-	ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
-	PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
-	ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
-	ccl_global float3 *throughput = &kernel_split_state.throughput[ray_index];
-
 	if(IS_STATE(ray_state, ray_index, RAY_HIT_BACKGROUND)) {
-		/* eval background shader if nothing hit */
-		if(kernel_data.background.transparent && (state->flag & PATH_RAY_CAMERA)) {
-			L->transparent += average((*throughput));
-#ifdef __PASSES__
-			if(!(kernel_data.film.pass_flag & PASS_BACKGROUND))
-#endif
-				kernel_split_path_end(kg, ray_index);
-		}
+		ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
+		PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
+		ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
+		float3 throughput = kernel_split_state.throughput[ray_index];
+		ShaderData *emission_sd = &kernel_split_state.sd_DL_shadow[ray_index];
 
-		if(IS_STATE(ray_state, ray_index, RAY_HIT_BACKGROUND)) {
-#ifdef __BACKGROUND__
-			/* sample background shader */
-			float3 L_background = indirect_background(kg, &kernel_split_state.sd_DL_shadow[ray_index], state, ray);
-			path_radiance_accum_background(L, state, (*throughput), L_background);
-#endif
-			kernel_split_path_end(kg, ray_index);
-		}
+		kernel_path_background(kg, state, ray, throughput, emission_sd, L);
+		kernel_split_path_end(kg, ray_index);
 	}
-
-
 }
 
 CCL_NAMESPACE_END

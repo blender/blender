@@ -66,8 +66,8 @@ ccl_device_noinline void shader_setup_from_ray(KernelGlobals *kg,
 	/* matrices and time */
 #ifdef __OBJECT_MOTION__
 	shader_setup_object_transforms(kg, sd, ray->time);
-	sd->time = ray->time;
 #endif
+	sd->time = ray->time;
 
 	sd->prim = kernel_tex_fetch(__prim_index, isect->prim);
 	sd->ray_length = isect->t;
@@ -271,17 +271,17 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals *kg,
 	sd->u = u;
 	sd->v = v;
 #endif
+	sd->time = time;
 	sd->ray_length = t;
 
 	sd->flag = kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*SHADER_SIZE);
 	sd->object_flag = 0;
 	if(sd->object != OBJECT_NONE) {
 		sd->object_flag |= kernel_tex_fetch(__object_flag,
-		                                               sd->object);
+		                                    sd->object);
 
 #ifdef __OBJECT_MOTION__
 		shader_setup_object_transforms(kg, sd, time);
-		sd->time = time;
 	}
 	else if(lamp != LAMP_NONE) {
 		sd->ob_tfm  = lamp_fetch_transform(kg, lamp, false);
@@ -385,9 +385,7 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderDat
 	sd->shader = kernel_data.background.surface_shader;
 	sd->flag = kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*SHADER_SIZE);
 	sd->object_flag = 0;
-#ifdef __OBJECT_MOTION__
 	sd->time = ray->time;
-#endif
 	sd->ray_length = 0.0f;
 
 #ifdef __INSTANCING__
@@ -427,9 +425,7 @@ ccl_device_inline void shader_setup_from_volume(KernelGlobals *kg, ShaderData *s
 	sd->shader = SHADER_NONE;
 	sd->flag = 0;
 	sd->object_flag = 0;
-#ifdef __OBJECT_MOTION__
 	sd->time = ray->time;
-#endif
 	sd->ray_length = 0.0f; /* todo: can we set this to some useful value? */
 
 #ifdef __INSTANCING__

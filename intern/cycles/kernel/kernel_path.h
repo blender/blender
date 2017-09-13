@@ -50,6 +50,294 @@
 
 CCL_NAMESPACE_BEGIN
 
+ccl_device_forceinline bool kernel_path_scene_intersect(
+	KernelGlobals *kg,
+	ccl_addr_space PathState *state,
+	Ray *ray,
+	Intersection *isect,
+	PathRadiance *L)
+{
+	uint visibility = path_state_ray_visibility(kg, state);
+
+#ifdef __HAIR__
+	float difl = 0.0f, extmax = 0.0f;
+	uint lcg_state = 0;
+
+	if(kernel_data.bvh.have_curves) {
+		if((kernel_data.cam.resolution == 1) && (state->flag & PATH_RAY_CAMERA)) {
+			float3 pixdiff = ray->dD.dx + ray->dD.dy;
+			/*pixdiff = pixdiff - dot(pixdiff, ray.D)*ray.D;*/
+			difl = kernel_data.curve.minimum_width * len(pixdiff) * 0.5f;
+		}
+
+		extmax = kernel_data.curve.maximum_width;
+		lcg_state = lcg_state_init_addrspace(state, 0x51633e2d);
+	}
+
+	if(path_state_ao_bounce(kg, state)) {
+		visibility = PATH_RAY_SHADOW;
+		ray->t = kernel_data.background.ao_distance;
+	}
+
+	bool hit = scene_intersect(kg, *ray, visibility, isect, &lcg_state, difl, extmax);
+#else
+	bool hit = scene_intersect(kg, *ray, visibility, isect, NULL, 0.0f, 0.0f);
+#endif  /* __HAIR__ */
+
+#ifdef __KERNEL_DEBUG__
+	if(state->flag & PATH_RAY_CAMERA) {
+		L->debug_data.num_bvh_traversed_nodes += isect->num_traversed_nodes;
+		L->debug_data.num_bvh_traversed_instances += isect->num_traversed_instances;
+		L->debug_data.num_bvh_intersections += isect->num_intersections;
+	}
+	L->debug_data.num_ray_bounces++;
+#endif  /* __KERNEL_DEBUG__ */
+
+	return hit;
+}
+
+ccl_device_forceinline void kernel_path_lamp_emission(
+	KernelGlobals *kg,
+	ccl_addr_space PathState *state,
+	Ray *ray,
+	float3 throughput,
+	ccl_addr_space Intersection *isect,
+	ShaderData *emission_sd,
+	PathRadiance *L)
+{
+#ifdef __LAMP_MIS__
+	if(kernel_data.integrator.use_lamp_mis && !(state->flag & PATH_RAY_CAMERA)) {
+		/* ray starting from previous non-transparent bounce */
+		Ray light_ray;
+
+		light_ray.P = ray->P - state->ray_t*ray->D;
+		state->ray_t += isect->t;
+		light_ray.D = ray->D;
+		light_ray.t = state->ray_t;
+		light_ray.time = ray->time;
+		light_ray.dD = ray->dD;
+		light_ray.dP = ray->dP;
+
+		/* intersect with lamp */
+		float3 emission;
+
+		if(indirect_lamp_emission(kg, emission_sd, state, &light_ray, &emission))
+			path_radiance_accum_emission(L, throughput, emission, state->bounce);
+	}
+#endif  /* __LAMP_MIS__ */
+}
+
+ccl_device_forceinline void kernel_path_background(
+	KernelGlobals *kg,
+	ccl_addr_space PathState *state,
+	ccl_addr_space Ray *ray,
+	float3 throughput,
+	ShaderData *emission_sd,
+	PathRadiance *L)
+{
+	/* eval background shader if nothing hit */
+	if(kernel_data.background.transparent && (state->flag & PATH_RAY_CAMERA)) {
+		L->transparent += average(throughput);
+
+#ifdef __PASSES__
+		if(!(kernel_data.film.pass_flag & PASS_BACKGROUND))
+#endif  /* __PASSES__ */
+			return;
+	}
+
+#ifdef __BACKGROUND__
+	/* sample background shader */
+	float3 L_background = indirect_background(kg, emission_sd, state, ray);
+	path_radiance_accum_background(L, state, throughput, L_background);
+#endif  /* __BACKGROUND__ */
+}
+
+#ifndef __SPLIT_KERNEL__
+
+ccl_device_forceinline VolumeIntegrateResult kernel_path_volume(
+	KernelGlobals *kg,
+	ShaderData *sd,
+	PathState *state,
+	Ray *ray,
+	float3 *throughput,
+	ccl_addr_space Intersection *isect,
+	bool hit,
+	ShaderData *emission_sd,
+	PathRadiance *L)
+{
+#ifdef __VOLUME__
+	/* Sanitize volume stack. */
+	if(!hit) {
+		kernel_volume_clean_stack(kg, state->volume_stack);
+	}
+	/* volume attenuation, emission, scatter */
+	if(state->volume_stack[0].shader != SHADER_NONE) {
+		Ray volume_ray = *ray;
+		volume_ray.t = (hit)? isect->t: FLT_MAX;
+
+		bool heterogeneous = volume_stack_is_heterogeneous(kg, state->volume_stack);
+
+#  ifdef __VOLUME_DECOUPLED__
+		int sampling_method = volume_stack_sampling_method(kg, state->volume_stack);
+		bool direct = (state->flag & PATH_RAY_CAMERA) != 0;
+		bool decoupled = kernel_volume_use_decoupled(kg, heterogeneous, direct, sampling_method);
+
+		if(decoupled) {
+			/* cache steps along volume for repeated sampling */
+			VolumeSegment volume_segment;
+
+			shader_setup_from_volume(kg, sd, &volume_ray);
+			kernel_volume_decoupled_record(kg, state,
+				&volume_ray, sd, &volume_segment, heterogeneous);
+
+			volume_segment.sampling_method = sampling_method;
+
+			/* emission */
+			if(volume_segment.closure_flag & SD_EMISSION)
+				path_radiance_accum_emission(L, *throughput, volume_segment.accum_emission, state->bounce);
+
+			/* scattering */
+			VolumeIntegrateResult result = VOLUME_PATH_ATTENUATED;
+
+			if(volume_segment.closure_flag & SD_SCATTER) {
+				int all = kernel_data.integrator.sample_all_lights_indirect;
+
+				/* direct light sampling */
+				kernel_branched_path_volume_connect_light(kg, sd,
+					emission_sd, *throughput, state, L, all,
+					&volume_ray, &volume_segment);
+
+				/* indirect sample. if we use distance sampling and take just
+				 * one sample for direct and indirect light, we could share
+				 * this computation, but makes code a bit complex */
+				float rphase = path_state_rng_1D_for_decision(kg, state, PRNG_PHASE);
+				float rscatter = path_state_rng_1D_for_decision(kg, state, PRNG_SCATTER_DISTANCE);
+
+				result = kernel_volume_decoupled_scatter(kg,
+					state, &volume_ray, sd, throughput,
+					rphase, rscatter, &volume_segment, NULL, true);
+			}
+
+			/* free cached steps */
+			kernel_volume_decoupled_free(kg, &volume_segment);
+
+			if(result == VOLUME_PATH_SCATTERED) {
+				if(kernel_path_volume_bounce(kg, sd, throughput, state, L, ray))
+					return VOLUME_PATH_SCATTERED;
+				else
+					return VOLUME_PATH_MISSED;
+			}
+			else {
+				*throughput *= volume_segment.accum_transmittance;
+			}
+		}
+		else
+#  endif  /* __VOLUME_DECOUPLED__ */
+		{
+			/* integrate along volume segment with distance sampling */
+			VolumeIntegrateResult result = kernel_volume_integrate(
+				kg, state, sd, &volume_ray, L, throughput, heterogeneous);
+
+#  ifdef __VOLUME_SCATTER__
+			if(result == VOLUME_PATH_SCATTERED) {
+				/* direct lighting */
+				kernel_path_volume_connect_light(kg, sd, emission_sd, *throughput, state, L);
+
+				/* indirect light bounce */
+				if(kernel_path_volume_bounce(kg, sd, throughput, state, L, ray))
+					return VOLUME_PATH_SCATTERED;
+				else
+					return VOLUME_PATH_MISSED;
+			}
+#  endif  /* __VOLUME_SCATTER__ */
+		}
+	}
+#endif  /* __VOLUME__ */
+
+	return VOLUME_PATH_ATTENUATED;
+}
+
+#endif /* __SPLIT_KERNEL__ */
+
+ccl_device_forceinline bool kernel_path_shader_apply(
+	KernelGlobals *kg,
+	ShaderData *sd,
+	ccl_addr_space PathState *state,
+	ccl_addr_space Ray *ray,
+	float3 throughput,
+	ShaderData *emission_sd,
+	PathRadiance *L,
+	ccl_global float *buffer)
+{
+#ifdef __SHADOW_TRICKS__
+	if((sd->object_flag & SD_OBJECT_SHADOW_CATCHER)) {
+		if(state->flag & PATH_RAY_CAMERA) {
+			state->flag |= (PATH_RAY_SHADOW_CATCHER |
+						   PATH_RAY_STORE_SHADOW_INFO);
+			if(!kernel_data.background.transparent) {
+				L->shadow_background_color =
+						indirect_background(kg, emission_sd, state, ray);
+			}
+			L->shadow_radiance_sum = path_radiance_clamp_and_sum(kg, L);
+			L->shadow_throughput = average(throughput);
+		}
+	}
+	else if(state->flag & PATH_RAY_SHADOW_CATCHER) {
+		/* Only update transparency after shadow catcher bounce. */
+		L->shadow_transparency *=
+				average(shader_bsdf_transparency(kg, sd));
+	}
+#endif  /* __SHADOW_TRICKS__ */
+
+	/* holdout */
+#ifdef __HOLDOUT__
+	if(((sd->flag & SD_HOLDOUT) ||
+		(sd->object_flag & SD_OBJECT_HOLDOUT_MASK)) &&
+	   (state->flag & PATH_RAY_CAMERA))
+	{
+		if(kernel_data.background.transparent) {
+			float3 holdout_weight;
+			if(sd->object_flag & SD_OBJECT_HOLDOUT_MASK) {
+				holdout_weight = make_float3(1.0f, 1.0f, 1.0f);
+			}
+			else {
+				holdout_weight = shader_holdout_eval(kg, sd);
+			}
+			/* any throughput is ok, should all be identical here */
+			L->transparent += average(holdout_weight*throughput);
+		}
+
+		if(sd->object_flag & SD_OBJECT_HOLDOUT_MASK) {
+			return false;
+		}
+	}
+#endif  /* __HOLDOUT__ */
+
+	/* holdout mask objects do not write data passes */
+	kernel_write_data_passes(kg, buffer, L, sd, state, throughput);
+
+	/* blurring of bsdf after bounces, for rays that have a small likelihood
+	 * of following this particular path (diffuse, rough glossy) */
+	if(kernel_data.integrator.filter_glossy != FLT_MAX) {
+		float blur_pdf = kernel_data.integrator.filter_glossy*state->min_ray_pdf;
+
+		if(blur_pdf < 1.0f) {
+			float blur_roughness = sqrtf(1.0f - blur_pdf)*0.5f;
+			shader_bsdf_blur(kg, sd, blur_roughness);
+		}
+	}
+
+#ifdef __EMISSION__
+	/* emission */
+	if(sd->flag & SD_EMISSION) {
+		float3 emission = indirect_primitive_emission(kg, sd, sd->ray_length, state->flag, state->ray_pdf);
+		path_radiance_accum_emission(L, throughput, emission, state->bounce);
+	}
+#endif  /* __EMISSION__ */
+
+	return true;
+}
+
 ccl_device_noinline void kernel_path_ao(KernelGlobals *kg,
                                         ShaderData *sd,
                                         ShaderData *emission_sd,
@@ -78,9 +366,7 @@ ccl_device_noinline void kernel_path_ao(KernelGlobals *kg,
 		light_ray.P = ray_offset(sd->P, sd->Ng);
 		light_ray.D = ao_D;
 		light_ray.t = kernel_data.background.ao_distance;
-#ifdef __OBJECT_MOTION__
 		light_ray.time = sd->time;
-#endif  /* __OBJECT_MOTION__ */
 		light_ray.dP = sd->dP;
 		light_ray.dD = differential3_zero();
 
@@ -108,197 +394,41 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 {
 	/* path iteration */
 	for(;;) {
-		/* intersect scene */
+		/* Find intersection with objects in scene. */
 		Intersection isect;
-		uint visibility = path_state_ray_visibility(kg, state);
-		if(path_state_ao_bounce(kg, state)) {
-			visibility = PATH_RAY_SHADOW;
-			ray->t = kernel_data.background.ao_distance;
+		bool hit = kernel_path_scene_intersect(kg, state, ray, &isect, L);
+
+		/* Find intersection with lamps and compute emission for MIS. */
+		kernel_path_lamp_emission(kg, state, ray, throughput, &isect, emission_sd, L);
+
+		/* Volume integration. */
+		VolumeIntegrateResult result = kernel_path_volume(kg,
+		                                                   sd,
+		                                                   state,
+		                                                   ray,
+		                                                   &throughput,
+		                                                   &isect,
+		                                                   hit,
+		                                                   emission_sd,
+		                                                   L);
+
+		if(result == VOLUME_PATH_SCATTERED) {
+			continue;
 		}
-		bool hit = scene_intersect(kg,
-		                           *ray,
-		                           visibility,
-		                           &isect,
-		                           NULL,
-		                           0.0f, 0.0f);
-
-#ifdef __LAMP_MIS__
-		if(kernel_data.integrator.use_lamp_mis && !(state->flag & PATH_RAY_CAMERA)) {
-			/* ray starting from previous non-transparent bounce */
-			Ray light_ray;
-
-			light_ray.P = ray->P - state->ray_t*ray->D;
-			state->ray_t += isect.t;
-			light_ray.D = ray->D;
-			light_ray.t = state->ray_t;
-			light_ray.time = ray->time;
-			light_ray.dD = ray->dD;
-			light_ray.dP = ray->dP;
-
-			/* intersect with lamp */
-			float3 emission;
-			if(indirect_lamp_emission(kg, emission_sd, state, &light_ray, &emission)) {
-				path_radiance_accum_emission(L,
-				                             throughput,
-				                             emission,
-				                             state->bounce);
-			}
-		}
-#endif  /* __LAMP_MIS__ */
-
-#ifdef __VOLUME__
-		/* Sanitize volume stack. */
-		if(!hit) {
-			kernel_volume_clean_stack(kg, state->volume_stack);
-		}
-		/* volume attenuation, emission, scatter */
-		if(state->volume_stack[0].shader != SHADER_NONE) {
-			Ray volume_ray = *ray;
-			volume_ray.t = (hit)? isect.t: FLT_MAX;
-
-			bool heterogeneous =
-			        volume_stack_is_heterogeneous(kg,
-			                                      state->volume_stack);
-
-#  ifdef __VOLUME_DECOUPLED__
-			int sampling_method =
-			        volume_stack_sampling_method(kg,
-			                                     state->volume_stack);
-			bool decoupled = kernel_volume_use_decoupled(kg, heterogeneous, false, sampling_method);
-
-			if(decoupled) {
-				/* cache steps along volume for repeated sampling */
-				VolumeSegment volume_segment;
-
-				shader_setup_from_volume(kg,
-				                         sd,
-				                         &volume_ray);
-				kernel_volume_decoupled_record(kg,
-				                               state,
-				                               &volume_ray,
-				                               sd,
-				                               &volume_segment,
-				                               heterogeneous);
-
-				volume_segment.sampling_method = sampling_method;
-
-				/* emission */
-				if(volume_segment.closure_flag & SD_EMISSION) {
-					path_radiance_accum_emission(L,
-					                             throughput,
-					                             volume_segment.accum_emission,
-					                             state->bounce);
-				}
-
-				/* scattering */
-				VolumeIntegrateResult result = VOLUME_PATH_ATTENUATED;
-
-				if(volume_segment.closure_flag & SD_SCATTER) {
-					int all = kernel_data.integrator.sample_all_lights_indirect;
-
-					/* direct light sampling */
-					kernel_branched_path_volume_connect_light(kg,
-					                                          sd,
-					                                          emission_sd,
-					                                          throughput,
-					                                          state,
-					                                          L,
-					                                          all,
-					                                          &volume_ray,
-					                                          &volume_segment);
-
-					/* indirect sample. if we use distance sampling and take just
-					 * one sample for direct and indirect light, we could share
-					 * this computation, but makes code a bit complex */
-					float rphase = path_state_rng_1D_for_decision(kg, state, PRNG_PHASE);
-					float rscatter = path_state_rng_1D_for_decision(kg, state, PRNG_SCATTER_DISTANCE);
-
-					result = kernel_volume_decoupled_scatter(kg,
-					                                         state,
-					                                         &volume_ray,
-					                                         sd,
-					                                         &throughput,
-					                                         rphase,
-					                                         rscatter,
-					                                         &volume_segment,
-					                                         NULL,
-					                                         true);
-				}
-
-				/* free cached steps */
-				kernel_volume_decoupled_free(kg, &volume_segment);
-
-				if(result == VOLUME_PATH_SCATTERED) {
-					if(kernel_path_volume_bounce(kg,
-					                             sd,
-					                             &throughput,
-					                             state,
-					                             L,
-					                             ray))
-					{
-						continue;
-					}
-					else {
-						break;
-					}
-				}
-				else {
-					throughput *= volume_segment.accum_transmittance;
-				}
-			}
-			else
-#  endif  /* __VOLUME_DECOUPLED__ */
-			{
-				/* integrate along volume segment with distance sampling */
-				VolumeIntegrateResult result = kernel_volume_integrate(
-					kg, state, sd, &volume_ray, L, &throughput, heterogeneous);
-
-#  ifdef __VOLUME_SCATTER__
-				if(result == VOLUME_PATH_SCATTERED) {
-					/* direct lighting */
-					kernel_path_volume_connect_light(kg,
-					                                 sd,
-					                                 emission_sd,
-					                                 throughput,
-					                                 state,
-					                                 L);
-
-					/* indirect light bounce */
-					if(kernel_path_volume_bounce(kg,
-					                             sd,
-					                             &throughput,
-					                             state,
-					                             L,
-					                             ray))
-					{
-						continue;
-					}
-					else {
-						break;
-					}
-				}
-#  endif  /* __VOLUME_SCATTER__ */
-			}
-		}
-#endif  /* __VOLUME__ */
-
-		if(!hit) {
-#ifdef __BACKGROUND__
-			/* sample background shader */
-			float3 L_background = indirect_background(kg, emission_sd, state, ray);
-			path_radiance_accum_background(L,
-			                               state,
-			                               throughput,
-			                               L_background);
-#endif  /* __BACKGROUND__ */
-
-			break;
-		}
-		else if(path_state_ao_bounce(kg, state))  {
+		else if(result == VOLUME_PATH_MISSED) {
 			break;
 		}
 
-		/* setup shading */
+		/* Shade background. */
+		if(!hit) {
+			kernel_path_background(kg, state, ray, throughput, emission_sd, L);
+			break;
+		}
+		else if(path_state_ao_bounce(kg, state)) {
+			break;
+		}
+
+		/* Setup and evaluate shader. */
 		shader_setup_from_ray(kg,
 		                      sd,
 		                      &isect,
@@ -309,38 +439,18 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 		shader_merge_closures(sd);
 #endif  /* __BRANCHED_PATH__ */
 
-#ifdef __SHADOW_TRICKS__
-		if(!(sd->object_flag & SD_OBJECT_SHADOW_CATCHER) &&
-		   (state->flag & PATH_RAY_SHADOW_CATCHER))
+		/* Apply shadow catcher, holdout, emission. */
+		if(!kernel_path_shader_apply(kg,
+		                             sd,
+		                             state,
+		                             ray,
+		                             throughput,
+		                             emission_sd,
+		                             L,
+		                             NULL))
 		{
-			/* Only update transparency after shadow catcher bounce. */
-			L->shadow_transparency *=
-				average(shader_bsdf_transparency(kg, sd));
+			break;
 		}
-#endif  /* __SHADOW_TRICKS__ */
-
-		/* blurring of bsdf after bounces, for rays that have a small likelihood
-		 * of following this particular path (diffuse, rough glossy) */
-		if(kernel_data.integrator.filter_glossy != FLT_MAX) {
-			float blur_pdf = kernel_data.integrator.filter_glossy*state->min_ray_pdf;
-
-			if(blur_pdf < 1.0f) {
-				float blur_roughness = sqrtf(1.0f - blur_pdf)*0.5f;
-				shader_bsdf_blur(kg, sd, blur_roughness);
-			}
-		}
-
-#ifdef __EMISSION__
-		/* emission */
-		if(sd->flag & SD_EMISSION) {
-			float3 emission = indirect_primitive_emission(kg,
-			                                              sd,
-			                                              isect.t,
-			                                              state->flag,
-			                                              state->ray_pdf);
-			path_radiance_accum_emission(L, throughput, emission, state->bounce);
-		}
-#endif  /* __EMISSION__ */
 
 		/* path termination. this is a strange place to put the termination, it's
 		 * mainly due to the mixed in MIS that we use. gives too many unneeded
@@ -430,7 +540,7 @@ ccl_device_forceinline void kernel_path_integrate(
 	float3 throughput,
 	Ray *ray,
 	PathRadiance *L,
-	float *buffer,
+	ccl_global float *buffer,
 	ShaderData *emission_sd,
 	bool *is_shadow_catcher)
 {
@@ -446,252 +556,57 @@ ccl_device_forceinline void kernel_path_integrate(
 
 	/* path iteration */
 	for(;;) {
-		/* intersect scene */
+		/* Find intersection with objects in scene. */
 		Intersection isect;
-		uint visibility = path_state_ray_visibility(kg, state);
+		bool hit = kernel_path_scene_intersect(kg, state, ray, &isect, L);
 
-#ifdef __HAIR__
-		float difl = 0.0f, extmax = 0.0f;
-		uint lcg_state = 0;
+		/* Find intersection with lamps and compute emission for MIS. */
+		kernel_path_lamp_emission(kg, state, ray, throughput, &isect, emission_sd, L);
 
-		if(kernel_data.bvh.have_curves) {
-			if((kernel_data.cam.resolution == 1) && (state->flag & PATH_RAY_CAMERA)) {
-				float3 pixdiff = ray->dD.dx + ray->dD.dy;
-				/*pixdiff = pixdiff - dot(pixdiff, ray->D)*ray->D;*/
-				difl = kernel_data.curve.minimum_width * len(pixdiff) * 0.5f;
-			}
+		/* Volume integration. */
+		VolumeIntegrateResult result = kernel_path_volume(kg,
+		                                                   &sd,
+		                                                   state,
+		                                                   ray,
+		                                                   &throughput,
+		                                                   &isect,
+		                                                   hit,
+		                                                   emission_sd,
+		                                                   L);
 
-			extmax = kernel_data.curve.maximum_width;
-			lcg_state = lcg_state_init(state, 0x51633e2d);
+		if(result == VOLUME_PATH_SCATTERED) {
+			continue;
+		}
+		else if(result == VOLUME_PATH_MISSED) {
+			break;
 		}
 
-		if(path_state_ao_bounce(kg, state)) {
-			visibility = PATH_RAY_SHADOW;
-			ray->t = kernel_data.background.ao_distance;
-		}
-
-		bool hit = scene_intersect(kg, *ray, visibility, &isect, &lcg_state, difl, extmax);
-#else
-		if(path_state_ao_bounce(kg, state)) {
-			visibility = PATH_RAY_SHADOW;
-			ray->t = kernel_data.background.ao_distance;
-		}
-
-		bool hit = scene_intersect(kg, ray, visibility, &isect, NULL, 0.0f, 0.0f);
-#endif  /* __HAIR__ */
-
-#ifdef __KERNEL_DEBUG__
-		if(state->flag & PATH_RAY_CAMERA) {
-			L->debug_data.num_bvh_traversed_nodes += isect.num_traversed_nodes;
-			L->debug_data.num_bvh_traversed_instances += isect.num_traversed_instances;
-			L->debug_data.num_bvh_intersections += isect.num_intersections;
-		}
-		L->debug_data.num_ray_bounces++;
-#endif  /* __KERNEL_DEBUG__ */
-
-#ifdef __LAMP_MIS__
-		if(kernel_data.integrator.use_lamp_mis && !(state->flag & PATH_RAY_CAMERA)) {
-			/* ray starting from previous non-transparent bounce */
-			Ray light_ray;
-
-			light_ray.P = ray->P - state->ray_t*ray->D;
-			state->ray_t += isect.t;
-			light_ray.D = ray->D;
-			light_ray.t = state->ray_t;
-			light_ray.time = ray->time;
-			light_ray.dD = ray->dD;
-			light_ray.dP = ray->dP;
-
-			/* intersect with lamp */
-			float3 emission;
-
-			if(indirect_lamp_emission(kg, emission_sd, state, &light_ray, &emission))
-				path_radiance_accum_emission(L, throughput, emission, state->bounce);
-		}
-#endif  /* __LAMP_MIS__ */
-
-#ifdef __VOLUME__
-		/* Sanitize volume stack. */
+		/* Shade background. */
 		if(!hit) {
-			kernel_volume_clean_stack(kg, state->volume_stack);
-		}
-		/* volume attenuation, emission, scatter */
-		if(state->volume_stack[0].shader != SHADER_NONE) {
-			Ray volume_ray = *ray;
-			volume_ray.t = (hit)? isect.t: FLT_MAX;
-
-			bool heterogeneous = volume_stack_is_heterogeneous(kg, state->volume_stack);
-
-#  ifdef __VOLUME_DECOUPLED__
-			int sampling_method = volume_stack_sampling_method(kg, state->volume_stack);
-			bool decoupled = kernel_volume_use_decoupled(kg, heterogeneous, true, sampling_method);
-
-			if(decoupled) {
-				/* cache steps along volume for repeated sampling */
-				VolumeSegment volume_segment;
-
-				shader_setup_from_volume(kg, &sd, &volume_ray);
-				kernel_volume_decoupled_record(kg, state,
-					&volume_ray, &sd, &volume_segment, heterogeneous);
-
-				volume_segment.sampling_method = sampling_method;
-
-				/* emission */
-				if(volume_segment.closure_flag & SD_EMISSION)
-					path_radiance_accum_emission(L, throughput, volume_segment.accum_emission, state->bounce);
-
-				/* scattering */
-				VolumeIntegrateResult result = VOLUME_PATH_ATTENUATED;
-
-				if(volume_segment.closure_flag & SD_SCATTER) {
-					int all = false;
-
-					/* direct light sampling */
-					kernel_branched_path_volume_connect_light(kg, &sd,
-						emission_sd, throughput, state, L, all,
-						&volume_ray, &volume_segment);
-
-					/* indirect sample. if we use distance sampling and take just
-					 * one sample for direct and indirect light, we could share
-					 * this computation, but makes code a bit complex */
-					float rphase = path_state_rng_1D_for_decision(kg, state, PRNG_PHASE);
-					float rscatter = path_state_rng_1D_for_decision(kg, state, PRNG_SCATTER_DISTANCE);
-
-					result = kernel_volume_decoupled_scatter(kg,
-						state, &volume_ray, &sd, &throughput,
-						rphase, rscatter, &volume_segment, NULL, true);
-				}
-
-				/* free cached steps */
-				kernel_volume_decoupled_free(kg, &volume_segment);
-
-				if(result == VOLUME_PATH_SCATTERED) {
-					if(kernel_path_volume_bounce(kg, &sd, &throughput, state, L, ray))
-						continue;
-					else
-						break;
-				}
-				else {
-					throughput *= volume_segment.accum_transmittance;
-				}
-			}
-			else
-#  endif  /* __VOLUME_DECOUPLED__ */
-			{
-				/* integrate along volume segment with distance sampling */
-				VolumeIntegrateResult result = kernel_volume_integrate(
-					kg, state, &sd, &volume_ray, L, &throughput, heterogeneous);
-
-#  ifdef __VOLUME_SCATTER__
-				if(result == VOLUME_PATH_SCATTERED) {
-					/* direct lighting */
-					kernel_path_volume_connect_light(kg, &sd, emission_sd, throughput, state, L);
-
-					/* indirect light bounce */
-					if(kernel_path_volume_bounce(kg, &sd, &throughput, state, L, ray))
-						continue;
-					else
-						break;
-				}
-#  endif  /* __VOLUME_SCATTER__ */
-			}
-		}
-#endif  /* __VOLUME__ */
-
-		if(!hit) {
-			/* eval background shader if nothing hit */
-			if(kernel_data.background.transparent && (state->flag & PATH_RAY_CAMERA)) {
-				L->transparent += average(throughput);
-
-#ifdef __PASSES__
-				if(!(kernel_data.film.pass_flag & PASS_BACKGROUND))
-#endif  /* __PASSES__ */
-					break;
-			}
-
-#ifdef __BACKGROUND__
-			/* sample background shader */
-			float3 L_background = indirect_background(kg, emission_sd, state, ray);
-			path_radiance_accum_background(L, state, throughput, L_background);
-#endif  /* __BACKGROUND__ */
-
+			kernel_path_background(kg, state, ray, throughput, emission_sd, L);
 			break;
 		}
 		else if(path_state_ao_bounce(kg, state)) {
 			break;
 		}
 
-		/* setup shading */
+		/* Setup and evaluate shader. */
 		shader_setup_from_ray(kg, &sd, &isect, ray);
 		float rbsdf = path_state_rng_1D_for_decision(kg, state, PRNG_BSDF);
 		shader_eval_surface(kg, &sd, state, rbsdf, state->flag);
 
-#ifdef __SHADOW_TRICKS__
-		if((sd.object_flag & SD_OBJECT_SHADOW_CATCHER)) {
-			if(state->flag & PATH_RAY_CAMERA) {
-				state->flag |= (PATH_RAY_SHADOW_CATCHER |
-				               PATH_RAY_STORE_SHADOW_INFO);
-				if(!kernel_data.background.transparent) {
-					L->shadow_background_color =
-					        indirect_background(kg, emission_sd, state, ray);
-				}
-				L->shadow_radiance_sum = path_radiance_clamp_and_sum(kg, L);
-				L->shadow_throughput = average(throughput);
-			}
-		}
-		else if(state->flag & PATH_RAY_SHADOW_CATCHER) {
-			/* Only update transparency after shadow catcher bounce. */
-			L->shadow_transparency *=
-			        average(shader_bsdf_transparency(kg, &sd));
-		}
-#endif  /* __SHADOW_TRICKS__ */
-
-		/* holdout */
-#ifdef __HOLDOUT__
-		if(((sd.flag & SD_HOLDOUT) ||
-		    (sd.object_flag & SD_OBJECT_HOLDOUT_MASK)) &&
-		   (state->flag & PATH_RAY_CAMERA))
+		/* Apply shadow catcher, holdout, emission. */
+		if(!kernel_path_shader_apply(kg,
+		                             &sd,
+		                             state,
+		                             ray,
+		                             throughput,
+		                             emission_sd,
+		                             L,
+		                             buffer))
 		{
-			if(kernel_data.background.transparent) {
-				float3 holdout_weight;
-				if(sd.object_flag & SD_OBJECT_HOLDOUT_MASK) {
-					holdout_weight = make_float3(1.0f, 1.0f, 1.0f);
-				}
-				else {
-					holdout_weight = shader_holdout_eval(kg, &sd);
-				}
-				/* any throughput is ok, should all be identical here */
-				L->transparent += average(holdout_weight*throughput);
-			}
-
-			if(sd.object_flag & SD_OBJECT_HOLDOUT_MASK) {
-				break;
-			}
+			break;
 		}
-#endif  /* __HOLDOUT__ */
-
-		/* holdout mask objects do not write data passes */
-		kernel_write_data_passes(kg, buffer, L, &sd, state->sample, state, throughput);
-
-		/* blurring of bsdf after bounces, for rays that have a small likelihood
-		 * of following this particular path (diffuse, rough glossy) */
-		if(kernel_data.integrator.filter_glossy != FLT_MAX) {
-			float blur_pdf = kernel_data.integrator.filter_glossy*state->min_ray_pdf;
-
-			if(blur_pdf < 1.0f) {
-				float blur_roughness = sqrtf(1.0f - blur_pdf)*0.5f;
-				shader_bsdf_blur(kg, &sd, blur_roughness);
-			}
-		}
-
-#ifdef __EMISSION__
-		/* emission */
-		if(sd.flag & SD_EMISSION) {
-			/* todo: is isect.t wrong here for transparent surfaces? */
-			float3 emission = indirect_primitive_emission(kg, &sd, isect.t, state->flag, state->ray_pdf);
-			path_radiance_accum_emission(L, throughput, emission, state->bounce);
-		}
-#endif  /* __EMISSION__ */
 
 		/* path termination. this is a strange place to put the termination, it's
 		 * mainly due to the mixed in MIS that we use. gives too many unneeded
@@ -798,7 +713,6 @@ ccl_device void kernel_path_trace(KernelGlobals *kg,
 	path_radiance_init(&L, kernel_data.film.use_light_pass);
 
 	ShaderData emission_sd;
-
 	PathState state;
 	path_state_init(kg, &emission_sd, &state, rng_hash, sample, &ray);
 

@@ -48,9 +48,7 @@ ccl_device_inline void kernel_branched_path_ao(KernelGlobals *kg,
 			light_ray.P = ray_offset(sd->P, sd->Ng);
 			light_ray.D = ao_D;
 			light_ray.t = kernel_data.background.ao_distance;
-#ifdef __OBJECT_MOTION__
 			light_ray.time = sd->time;
-#endif  /* __OBJECT_MOTION__ */
 			light_ray.dP = sd->dP;
 			light_ray.dD = differential3_zero();
 
@@ -292,36 +290,9 @@ ccl_device void kernel_branched_path_integrate(KernelGlobals *kg,
 	 * Indirect bounces are handled in kernel_branched_path_surface_indirect_light().
 	 */
 	for(;;) {
-		/* intersect scene */
+		/* Find intersection with objects in scene. */
 		Intersection isect;
-		uint visibility = path_state_ray_visibility(kg, &state);
-
-#ifdef __HAIR__
-		float difl = 0.0f, extmax = 0.0f;
-		uint lcg_state = 0;
-
-		if(kernel_data.bvh.have_curves) {
-			if(kernel_data.cam.resolution == 1) {
-				float3 pixdiff = ray.dD.dx + ray.dD.dy;
-				/*pixdiff = pixdiff - dot(pixdiff, ray.D)*ray.D;*/
-				difl = kernel_data.curve.minimum_width * len(pixdiff) * 0.5f;
-			}
-
-			extmax = kernel_data.curve.maximum_width;
-			lcg_state = lcg_state_init(&state, 0x51633e2d);
-		}
-
-		bool hit = scene_intersect(kg, ray, visibility, &isect, &lcg_state, difl, extmax);
-#else
-		bool hit = scene_intersect(kg, ray, visibility, &isect, NULL, 0.0f, 0.0f);
-#endif  /* __HAIR__ */
-
-#ifdef __KERNEL_DEBUG__
-		L->debug_data.num_bvh_traversed_nodes += isect.num_traversed_nodes;
-		L->debug_data.num_bvh_traversed_instances += isect.num_traversed_instances;
-		L->debug_data.num_bvh_intersections += isect.num_intersections;
-		L->debug_data.num_ray_bounces++;
-#endif  /* __KERNEL_DEBUG__ */
+		bool hit = kernel_path_scene_intersect(kg, &state, &ray, &isect, L);
 
 #ifdef __VOLUME__
 		/* Sanitize volume stack. */
@@ -464,79 +435,29 @@ ccl_device void kernel_branched_path_integrate(KernelGlobals *kg,
 		}
 #endif  /* __VOLUME__ */
 
+		/* Shade background. */
 		if(!hit) {
-			/* eval background shader if nothing hit */
-			if(kernel_data.background.transparent) {
-				L->transparent += average(throughput);
-
-#ifdef __PASSES__
-				if(!(kernel_data.film.pass_flag & PASS_BACKGROUND))
-#endif  /* __PASSES__ */
-					break;
-			}
-
-#ifdef __BACKGROUND__
-			/* sample background shader */
-			float3 L_background = indirect_background(kg, &emission_sd, &state, &ray);
-			path_radiance_accum_background(L, &state, throughput, L_background);
-#endif  /* __BACKGROUND__ */
-
+			kernel_path_background(kg, &state, &ray, throughput, &emission_sd, L);
 			break;
 		}
 
-		/* setup shading */
+		/* Setup and evaluate shader. */
 		shader_setup_from_ray(kg, &sd, &isect, &ray);
 		shader_eval_surface(kg, &sd, &state, 0.0f, state.flag);
 		shader_merge_closures(&sd);
 
-#ifdef __SHADOW_TRICKS__
-		if((sd.object_flag & SD_OBJECT_SHADOW_CATCHER)) {
-			state.flag |= (PATH_RAY_SHADOW_CATCHER |
-			               PATH_RAY_STORE_SHADOW_INFO);
-			if(!kernel_data.background.transparent) {
-				L->shadow_background_color =
-				        indirect_background(kg, &emission_sd, &state, &ray);
-			}
-			L->shadow_radiance_sum = path_radiance_clamp_and_sum(kg, L);
-			L->shadow_throughput = average(throughput);
+		/* Apply shadow catcher, holdout, emission. */
+		if(!kernel_path_shader_apply(kg,
+		                             &sd,
+		                             &state,
+		                             &ray,
+		                             throughput,
+		                             &emission_sd,
+		                             L,
+		                             buffer))
+		{
+			break;
 		}
-		else if(state.flag & PATH_RAY_SHADOW_CATCHER) {
-			/* Only update transparency after shadow catcher bounce. */
-			L->shadow_transparency *=
-				average(shader_bsdf_transparency(kg, &sd));
-		}
-#endif  /* __SHADOW_TRICKS__ */
-
-		/* holdout */
-#ifdef __HOLDOUT__
-		if((sd.flag & SD_HOLDOUT) || (sd.object_flag & SD_OBJECT_HOLDOUT_MASK)) {
-			if(kernel_data.background.transparent) {
-				float3 holdout_weight;
-				if(sd.object_flag & SD_OBJECT_HOLDOUT_MASK) {
-					holdout_weight = make_float3(1.0f, 1.0f, 1.0f);
-				}
-				else {
-					holdout_weight = shader_holdout_eval(kg, &sd);
-				}
-				/* any throughput is ok, should all be identical here */
-				L->transparent += average(holdout_weight*throughput);
-			}
-			if(sd.object_flag & SD_OBJECT_HOLDOUT_MASK) {
-				break;
-			}
-		}
-#endif  /* __HOLDOUT__ */
-
-		/* holdout mask objects do not write data passes */
-		kernel_write_data_passes(kg, buffer, L, &sd, sample, &state, throughput);
-
-#ifdef __EMISSION__
-		/* emission */
-		if(sd.flag & SD_EMISSION) {
-			float3 emission = indirect_primitive_emission(kg, &sd, isect.t, state.flag, state.ray_pdf);
-			path_radiance_accum_emission(L, throughput, emission, state.bounce);
-		}
-#endif  /* __EMISSION__ */
 
 		/* transparency termination */
 		if(state.flag & PATH_RAY_TRANSPARENT) {

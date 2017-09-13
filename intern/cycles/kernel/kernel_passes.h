@@ -225,7 +225,7 @@ ccl_device_inline void kernel_write_debug_passes(KernelGlobals *kg,
 #endif /* __KERNEL_DEBUG__ */
 
 ccl_device_inline void kernel_write_data_passes(KernelGlobals *kg, ccl_global float *buffer, PathRadiance *L,
-	ShaderData *sd, int sample, ccl_addr_space PathState *state, float3 throughput)
+	ShaderData *sd, ccl_addr_space PathState *state, float3 throughput)
 {
 #ifdef __PASSES__
 	int path_flag = state->flag;
@@ -243,6 +243,7 @@ ccl_device_inline void kernel_write_data_passes(KernelGlobals *kg, ccl_global fl
 		   kernel_data.film.pass_alpha_threshold == 0.0f ||
 		   average(shader_bsdf_alpha(kg, sd)) >= kernel_data.film.pass_alpha_threshold)
 		{
+			int sample = state->sample;
 
 			if(sample == 0) {
 				if(flag & PASS_DEPTH) {

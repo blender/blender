@@ -94,125 +94,42 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 
 	ccl_global PathState *state = 0x0;
 	float3 throughput;
-	uint sample;
 
 	ccl_global char *ray_state = kernel_split_state.ray_state;
 	ShaderData *sd = &kernel_split_state.sd[ray_index];
-	ccl_global float *buffer = kernel_split_params.buffer;
 
 	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
 		uint work_index = kernel_split_state.work_array[ray_index];
-		sample = get_work_sample(kg, work_index, ray_index) + kernel_split_params.start_sample;
-
 		uint pixel_x, pixel_y, tile_x, tile_y;
 		get_work_pixel_tile_position(kg, &pixel_x, &pixel_y,
 		                        &tile_x, &tile_y,
 		                        work_index,
 		                        ray_index);
 
+		ccl_global float *buffer = kernel_split_params.buffer;
 		buffer += (kernel_split_params.offset + pixel_x + pixel_y * stride) * kernel_data.film.pass_stride;
+
+		ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
+		ShaderData *emission_sd = &kernel_split_state.sd_DL_shadow[ray_index];
+		PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
 
 		throughput = kernel_split_state.throughput[ray_index];
 		state = &kernel_split_state.path_state[ray_index];
 
-#ifdef __SHADOW_TRICKS__
-		if((sd->object_flag & SD_OBJECT_SHADOW_CATCHER)) {
-			if(state->flag & PATH_RAY_CAMERA) {
-				PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
-				state->flag |= (PATH_RAY_SHADOW_CATCHER |
-				                PATH_RAY_STORE_SHADOW_INFO);
-				if(!kernel_data.background.transparent) {
-					ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
-					L->shadow_background_color = indirect_background(
-					        kg,
-					        &kernel_split_state.sd_DL_shadow[ray_index],
-					        state,
-					        ray);
-				}
-				L->shadow_radiance_sum = path_radiance_clamp_and_sum(kg, L);
-				L->shadow_throughput = average(throughput);
-			}
-		}
-		else if(state->flag & PATH_RAY_SHADOW_CATCHER) {
-			/* Only update transparency after shadow catcher bounce. */
-			PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
-			L->shadow_transparency *= average(shader_bsdf_transparency(kg, sd));
-		}
-#endif  /* __SHADOW_TRICKS__ */
-
-		/* holdout */
-#ifdef __HOLDOUT__
-		if(((sd->flag & SD_HOLDOUT) ||
-		    (sd->object_flag & SD_OBJECT_HOLDOUT_MASK)) &&
-		   (state->flag & PATH_RAY_CAMERA))
+		if(!kernel_path_shader_apply(kg,
+		                             sd,
+		                             state,
+		                             ray,
+		                             throughput,
+		                             emission_sd,
+		                             L,
+		                             buffer))
 		{
-			if(kernel_data.background.transparent) {
-				float3 holdout_weight;
-				if(sd->object_flag & SD_OBJECT_HOLDOUT_MASK) {
-					holdout_weight = make_float3(1.0f, 1.0f, 1.0f);
-				}
-				else {
-					holdout_weight = shader_holdout_eval(kg, sd);
-				}
-				/* any throughput is ok, should all be identical here */
-				PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
-				L->transparent += average(holdout_weight*throughput);
-			}
-			if(sd->object_flag & SD_OBJECT_HOLDOUT_MASK) {
-				kernel_split_path_end(kg, ray_index);
-			}
+			kernel_split_path_end(kg, ray_index);
 		}
-#endif  /* __HOLDOUT__ */
 	}
 
 	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
-		PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
-
-#ifdef __BRANCHED_PATH__
-		if(!IS_FLAG(ray_state, ray_index, RAY_BRANCHED_INDIRECT))
-#endif  /* __BRANCHED_PATH__ */
-		{
-			/* Holdout mask objects do not write data passes. */
-			kernel_write_data_passes(kg,
-				                     buffer,
-				                     L,
-				                     sd,
-				                     sample,
-				                     state,
-				                     throughput);
-		}
-
-		/* Blurring of bsdf after bounces, for rays that have a small likelihood
-		 * of following this particular path (diffuse, rough glossy.
-		 */
-#ifndef __BRANCHED_PATH__
-		if(kernel_data.integrator.filter_glossy != FLT_MAX)
-#else
-		if(kernel_data.integrator.filter_glossy != FLT_MAX &&
-		   (!kernel_data.integrator.branched || IS_FLAG(ray_state, ray_index, RAY_BRANCHED_INDIRECT)))
-#endif  /* __BRANCHED_PATH__ */
-		{
-			float blur_pdf = kernel_data.integrator.filter_glossy*state->min_ray_pdf;
-			if(blur_pdf < 1.0f) {
-				float blur_roughness = sqrtf(1.0f - blur_pdf)*0.5f;
-				shader_bsdf_blur(kg, sd, blur_roughness);
-			}
-		}
-
-#ifdef __EMISSION__
-		/* emission */
-		if(sd->flag & SD_EMISSION) {
-			/* TODO(sergey): is isect.t wrong here for transparent surfaces? */
-			float3 emission = indirect_primitive_emission(
-			        kg,
-			        sd,
-			        kernel_split_state.isect[ray_index].t,
-			        state->flag,
-			        state->ray_pdf);
-			path_radiance_accum_emission(L, throughput, emission, state->bounce);
-		}
-#endif  /* __EMISSION__ */
-
 		/* Path termination. this is a strange place to put the termination, it's
 		 * mainly due to the mixed in MIS that we use. gives too many unneeded
 		 * shader evaluations, only need emission if we are going to terminate.
@@ -249,6 +166,7 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 				}
 			}
 
+			PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
 			kernel_update_denoising_features(kg, sd, state, L);
 		}
 	}

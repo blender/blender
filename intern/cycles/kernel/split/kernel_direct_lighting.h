@@ -94,9 +94,7 @@ ccl_device void kernel_direct_lighting(KernelGlobals *kg,
 			                &ls)) {
 
 				Ray light_ray;
-#  ifdef __OBJECT_MOTION__
 				light_ray.time = sd->time;
-#  endif
 
 				BsdfEval L_light;
 				bool is_lamp;

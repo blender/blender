@@ -40,9 +40,7 @@ ccl_device_inline void kernel_path_volume_connect_light(
 	bool is_lamp;
 
 	/* connect to light from given point where shader has been evaluated */
-#  ifdef __OBJECT_MOTION__
 	light_ray.time = sd->time;
-#  endif
 
 	if(light_sample(kg, light_u, light_v, sd->time, sd->P, state->bounce, &ls))
 	{
@@ -134,9 +132,7 @@ ccl_device void kernel_branched_path_volume_connect_light(
 	BsdfEval L_light;
 	bool is_lamp;
 
-#  ifdef __OBJECT_MOTION__
 	light_ray.time = sd->time;
-#  endif
 
 	if(sample_all_lights) {
 		/* lamp sampling */
