@@ -49,6 +49,7 @@
 #include "GPU_matrix.h"
 #include "GPU_shader.h"
 #include "GPU_immediate.h"
+#include "GPU_immediate_util.h"
 #include "GPU_select.h"
 
 #include "MEM_guardedalloc.h"
@@ -63,6 +64,7 @@
 #include "../manipulator_library_intern.h"
 
 #define MANIPULATOR_RESIZER_SIZE 10.0f
+#define MANIPULATOR_MARGIN_OFFSET_SCALE 1.5f
 
 static void manipulator_calc_matrix_final_no_offset(
         const wmManipulator *mpr, float orig_matrix_final_no_offset[4][4])
@@ -134,8 +136,14 @@ static void manipulator_rect_pivot_from_scale_part(int part, float r_pt[2], bool
 	r_constrain_axis[1] = y;
 }
 
-static void rect_transform_draw_corners(
-        const rctf *r, const float offsetx, const float offsety, const float color[3])
+/* -------------------------------------------------------------------- */
+/** \name Box Draw Style
+ *
+ * Useful for 3D views, see: #ED_MANIPULATOR_CAGE2D_STYLE_BOX
+ * \{ */
+
+static void cage2d_draw_box_corners(
+        const rctf *r, const float margin[2], const float color[3])
 {
 	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
@@ -144,32 +152,32 @@ static void rect_transform_draw_corners(
 
 	immBegin(GWN_PRIM_LINES, 16);
 
-	immVertex2f(pos, r->xmin, r->ymin + offsety);
+	immVertex2f(pos, r->xmin, r->ymin + margin[1]);
 	immVertex2f(pos, r->xmin, r->ymin);
 	immVertex2f(pos, r->xmin, r->ymin);
-	immVertex2f(pos, r->xmin + offsetx, r->ymin);
+	immVertex2f(pos, r->xmin + margin[0], r->ymin);
 
-	immVertex2f(pos, r->xmax, r->ymin + offsety);
+	immVertex2f(pos, r->xmax, r->ymin + margin[1]);
 	immVertex2f(pos, r->xmax, r->ymin);
 	immVertex2f(pos, r->xmax, r->ymin);
-	immVertex2f(pos, r->xmax - offsetx, r->ymin);
+	immVertex2f(pos, r->xmax - margin[0], r->ymin);
 
-	immVertex2f(pos, r->xmax, r->ymax - offsety);
+	immVertex2f(pos, r->xmax, r->ymax - margin[1]);
 	immVertex2f(pos, r->xmax, r->ymax);
 	immVertex2f(pos, r->xmax, r->ymax);
-	immVertex2f(pos, r->xmax - offsetx, r->ymax);
+	immVertex2f(pos, r->xmax - margin[0], r->ymax);
 
-	immVertex2f(pos, r->xmin, r->ymax - offsety);
+	immVertex2f(pos, r->xmin, r->ymax - margin[1]);
 	immVertex2f(pos, r->xmin, r->ymax);
 	immVertex2f(pos, r->xmin, r->ymax);
-	immVertex2f(pos, r->xmin + offsetx, r->ymax);
+	immVertex2f(pos, r->xmin + margin[0], r->ymax);
 
 	immEnd();
 
 	immUnbindProgram();
 }
 
-static void rect_transform_draw_interaction(
+static void cage2d_draw_box_interaction(
         const float color[4], const int highlighted,
         const float size[2], const float margin[2],
         const float line_width, const bool is_solid, const int draw_options)
@@ -365,7 +373,7 @@ static void rect_transform_draw_interaction(
 		}
 
 		case ED_MANIPULATOR_CAGE2D_PART_TRANSLATE:
-			if (draw_options & ED_MANIPULATOR_CAGE2D_STYLE_FLAG_XFORM_CENTER_HANDLE) {
+			if (draw_options & ED_MANIPULATOR_CAGE2D_DRAW_FLAG_XFORM_CENTER_HANDLE) {
 				ARRAY_SET_ITEMS(verts[0], -margin[0] / 2, -margin[1] / 2);
 				ARRAY_SET_ITEMS(verts[1],  margin[0] / 2,  margin[1] / 2);
 				ARRAY_SET_ITEMS(verts[2], -margin[0] / 2,  margin[1] / 2);
@@ -443,23 +451,112 @@ static void rect_transform_draw_interaction(
 	}
 
 	immUnbindProgram();
-
 }
 
-static void manipulator_rect_transform_draw_intern(
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Circle Draw Style
+ *
+ * Useful for 2D views, see: #ED_MANIPULATOR_CAGE2D_STYLE_CIRCLE
+ * \{ */
+
+static void imm_draw_point_aspect_2d(
+        uint pos, float x, float y, float rad_x, float rad_y, bool solid)
+{
+	immBegin(solid ? GWN_PRIM_TRI_FAN : GWN_PRIM_LINE_LOOP, 4);
+	immVertex2f(pos, x - rad_x, y - rad_y);
+	immVertex2f(pos, x - rad_x, y + rad_y);
+	immVertex2f(pos, x + rad_x, y + rad_y);
+	immVertex2f(pos, x + rad_x, y - rad_y);
+	immEnd();
+}
+
+static void cage2d_draw_circle_wire(
+        const rctf *r, const float margin[2], const float color[3],
+        const int transform_flag, const int draw_options)
+{
+	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformColor3fv(color);
+
+	immBegin(GWN_PRIM_LINE_LOOP, 4);
+	immVertex2f(pos, r->xmin, r->ymin);
+	immVertex2f(pos, r->xmax, r->ymin);
+	immVertex2f(pos, r->xmax, r->ymax);
+	immVertex2f(pos, r->xmin, r->ymax);
+	immEnd();
+
+	if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_ROTATE) {
+		immBegin(GWN_PRIM_LINE_LOOP, 2);
+		immVertex2f(pos, BLI_rctf_cent_x(r), r->ymax);
+		immVertex2f(pos, BLI_rctf_cent_x(r), r->ymax + margin[1]);
+		immEnd();
+	}
+
+	if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE) {
+		if (draw_options & ED_MANIPULATOR_CAGE2D_DRAW_FLAG_XFORM_CENTER_HANDLE) {
+			const float rad[2] = {margin[0] / 2, margin[1] / 2};
+			const float center[2] = {BLI_rctf_cent_x(r), BLI_rctf_cent_y(r)};
+
+			immBegin(GWN_PRIM_LINES, 4);
+			immVertex2f(pos, center[0] - rad[0], center[1] - rad[1]);
+			immVertex2f(pos, center[0] + rad[0], center[1] + rad[1]);
+			immVertex2f(pos, center[0] + rad[0], center[1] - rad[1]);
+			immVertex2f(pos, center[0] - rad[0], center[1] + rad[1]);
+			immEnd();
+		}
+	}
+
+	immUnbindProgram();
+}
+
+static void cage2d_draw_circle_handles(
+        const rctf *r, const float margin[2], const float color[3],
+        const int transform_flag,
+        bool solid)
+{
+	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	void (*circle_fn)(uint, float, float, float, float, int) =
+	        (solid) ? imm_draw_circle_fill_aspect_2d : imm_draw_circle_wire_aspect_2d;
+	const int resolu = 12;
+	const float rad[2] = {margin[0] / 3, margin[1] / 3};
+
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformColor3fv(color);
+
+	/* should  really divide by two, but looks too bulky. */
+	{
+		imm_draw_point_aspect_2d(pos, r->xmin, r->ymin, rad[0], rad[1], solid);
+		imm_draw_point_aspect_2d(pos, r->xmax, r->ymin, rad[0], rad[1], solid);
+		imm_draw_point_aspect_2d(pos, r->xmax, r->ymax, rad[0], rad[1], solid);
+		imm_draw_point_aspect_2d(pos, r->xmin, r->ymax, rad[0], rad[1], solid);
+	}
+
+	if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_ROTATE) {
+		const float handle[2] = {BLI_rctf_cent_x(r), r->ymax + (margin[1] * MANIPULATOR_MARGIN_OFFSET_SCALE)};
+		circle_fn(pos, handle[0], handle[1], rad[0], rad[1], resolu);
+	}
+
+	immUnbindProgram();
+}
+
+/** \} */
+
+static void manipulator_cage2d_draw_intern(
         wmManipulator *mpr, const bool select, const bool highlight, const int select_id)
 {
 	// const bool use_clamp = (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) == 0;
 	float dims[2];
 	RNA_float_get_array(mpr->ptr, "dimensions", dims);
-	const float w = dims[0];
-	const float h = dims[1];
 	float matrix_final[4][4];
 
 	const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
+	const int draw_style = RNA_enum_get(mpr->ptr, "draw_style");
 	const int draw_options = RNA_enum_get(mpr->ptr, "draw_options");
 
-	const float size[2] = {w / 2.0f, h / 2.0f};
+	const float size[2] = {dims[0] / 2.0f, dims[1] / 2.0f};
 	const rctf r = {
 		.xmin = -size[0],
 		.ymin = -size[1],
@@ -475,10 +572,6 @@ static void manipulator_rect_transform_draw_intern(
 	float margin[2];
 	manipulator_calc_rect_view_margin(mpr, dims, margin);
 
-	/* corner manipulators */
-	glLineWidth(mpr->line_width + 3.0f);
-	rect_transform_draw_corners(&r, margin[0], margin[1], (const float[3]){0, 0, 0});
-
 	/* Handy for quick testing draw (if it's outside bounds). */
 	if (false) {
 		glEnable(GL_BLEND);
@@ -491,12 +584,39 @@ static void manipulator_rect_transform_draw_intern(
 		glDisable(GL_BLEND);
 	}
 
-	/* corner manipulators */
-	{
+	if (draw_style == ED_MANIPULATOR_CAGE2D_STYLE_BOX) {
+		/* corner manipulators */
+		glLineWidth(mpr->line_width + 3.0f);
+		cage2d_draw_box_corners(&r, margin, (const float[3]){0, 0, 0});
+
+		/* corner manipulators */
 		float color[4];
 		manipulator_color_get(mpr, highlight, color);
 		glLineWidth(mpr->line_width);
-		rect_transform_draw_corners(&r, margin[0], margin[1], color);
+		cage2d_draw_box_corners(&r, margin, color);
+	}
+	else if (draw_style == ED_MANIPULATOR_CAGE2D_STYLE_CIRCLE) {
+		float color[4];
+		manipulator_color_get(mpr, highlight, color);
+
+		glEnable(GL_LINE_SMOOTH);
+		glEnable(GL_BLEND);
+
+		glLineWidth(mpr->line_width + 3.0f);
+		cage2d_draw_circle_wire(&r, margin, (const float[3]){0, 0, 0}, transform_flag, draw_options);
+		glLineWidth(mpr->line_width);
+		cage2d_draw_circle_wire(&r, margin, color, transform_flag, draw_options);
+
+
+		/* corner manipulators */
+		cage2d_draw_circle_handles(&r, margin, color, transform_flag, true);
+		cage2d_draw_circle_handles(&r, margin, (const float[3]){0, 0, 0}, transform_flag, false);
+
+		glDisable(GL_BLEND);
+		glDisable(GL_LINE_SMOOTH);
+	}
+	else {
+		BLI_assert(0);
 	}
 
 	if (select) {
@@ -514,43 +634,45 @@ static void manipulator_rect_transform_draw_intern(
 			};
 			for (int i = 0; i < ARRAY_SIZE(scale_parts); i++) {
 				GPU_select_load_id(select_id | scale_parts[i]);
-				rect_transform_draw_interaction(
+				cage2d_draw_box_interaction(
 				        mpr->color, scale_parts[i], size, margin, mpr->line_width, true, draw_options);
 			}
 		}
 		if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE) {
 			const int transform_part = ED_MANIPULATOR_CAGE2D_PART_TRANSLATE;
 			GPU_select_load_id(select_id | transform_part);
-			rect_transform_draw_interaction(
+			cage2d_draw_box_interaction(
 			        mpr->color, transform_part, size, margin, mpr->line_width, true, draw_options);
 		}
 		if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_ROTATE) {
-			rect_transform_draw_interaction(
+			cage2d_draw_box_interaction(
 			        mpr->color, ED_MANIPULATOR_CAGE2D_PART_ROTATE, size, margin, mpr->line_width, true, draw_options);
 		}
 	}
 	else {
 		/* Don't draw translate (only for selection). */
-		bool show = false;
-		if (mpr->highlight_part == ED_MANIPULATOR_CAGE2D_PART_TRANSLATE) {
-			/* Only show if we're drawing the center handle
-			 * otherwise the entire rectangle is the hotspot. */
-			if (draw_options & ED_MANIPULATOR_CAGE2D_STYLE_FLAG_XFORM_CENTER_HANDLE) {
+		if (draw_style == ED_MANIPULATOR_CAGE2D_STYLE_BOX) {
+			bool show = false;
+			if (mpr->highlight_part == ED_MANIPULATOR_CAGE2D_PART_TRANSLATE) {
+				/* Only show if we're drawing the center handle
+				 * otherwise the entire rectangle is the hotspot. */
+				if (draw_options & ED_MANIPULATOR_CAGE2D_DRAW_FLAG_XFORM_CENTER_HANDLE) {
+					show = true;
+				}
+			}
+			else {
 				show = true;
 			}
-		}
-		else {
-			show = true;
-		}
 
-		if (show) {
-			rect_transform_draw_interaction(
-			        mpr->color, mpr->highlight_part, size, margin, mpr->line_width, false, draw_options);
-		}
+			if (show) {
+				cage2d_draw_box_interaction(
+				        mpr->color, mpr->highlight_part, size, margin, mpr->line_width, false, draw_options);
+			}
 
-		if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_ROTATE) {
-			rect_transform_draw_interaction(
-			        mpr->color, ED_MANIPULATOR_CAGE2D_PART_ROTATE, size, margin, mpr->line_width, false, draw_options);
+			if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_ROTATE) {
+				cage2d_draw_box_interaction(
+				        mpr->color, ED_MANIPULATOR_CAGE2D_PART_ROTATE, size, margin, mpr->line_width, false, draw_options);
+			}
 		}
 	}
 
@@ -561,18 +683,18 @@ static void manipulator_rect_transform_draw_intern(
 /**
  * For when we want to draw 2d cage in 3d views.
  */
-static void manipulator_rect_transform_draw_select(const bContext *UNUSED(C), wmManipulator *mpr, int select_id)
+static void manipulator_cage2d_draw_select(const bContext *UNUSED(C), wmManipulator *mpr, int select_id)
 {
-	manipulator_rect_transform_draw_intern(mpr, true, false, select_id);
+	manipulator_cage2d_draw_intern(mpr, true, false, select_id);
 }
 
-static void manipulator_rect_transform_draw(const bContext *UNUSED(C), wmManipulator *mpr)
+static void manipulator_cage2d_draw(const bContext *UNUSED(C), wmManipulator *mpr)
 {
 	const bool is_highlight = (mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT) != 0;
-	manipulator_rect_transform_draw_intern(mpr, false, is_highlight, -1);
+	manipulator_cage2d_draw_intern(mpr, false, is_highlight, -1);
 }
 
-static int manipulator_rect_transform_get_cursor(wmManipulator *mpr)
+static int manipulator_cage2d_get_cursor(wmManipulator *mpr)
 {
 	int highlight_part = mpr->highlight_part;
 
@@ -604,15 +726,13 @@ static int manipulator_rect_transform_get_cursor(wmManipulator *mpr)
 	}
 }
 
-static int manipulator_rect_transform_test_select(
+static int manipulator_cage2d_test_select(
         bContext *C, wmManipulator *mpr, const wmEvent *event)
 {
 	float point_local[2];
 	float dims[2];
 	RNA_float_get_array(mpr->ptr, "dimensions", dims);
-	const float w = dims[0];
-	const float h = dims[1];
-	const float size[2] = {w / 2.0f, h / 2.0f};
+	const float size[2] = {dims[0] / 2.0f, dims[1] / 2.0f};
 
 	if (manipulator_window_project_2d(
 	        C, mpr, (const float[2]){UNPACK2(event->mval)}, 2, true, point_local) == false)
@@ -628,7 +748,7 @@ static int manipulator_rect_transform_test_select(
 
 	if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE) {
 		rctf r;
-		if (draw_options & ED_MANIPULATOR_CAGE2D_STYLE_FLAG_XFORM_CENTER_HANDLE) {
+		if (draw_options & ED_MANIPULATOR_CAGE2D_DRAW_FLAG_XFORM_CENTER_HANDLE) {
 			r.xmin = -margin[0] / 2;
 			r.ymin = -margin[1] / 2;
 			r.xmax =  margin[0] / 2;
@@ -685,7 +805,7 @@ static int manipulator_rect_transform_test_select(
 		 * +---+
 		 * |   |
 		 * +---+ */
-		const float r_rotate_pt[2] = {0.0f, size[1] + margin[1]};
+		const float r_rotate_pt[2] = {0.0f, size[1] + (margin[1] * MANIPULATOR_MARGIN_OFFSET_SCALE)};
 		const rctf r_rotate = {
 			.xmin = r_rotate_pt[0] - margin[0] / 2.0f,
 			.xmax = r_rotate_pt[0] + margin[0] / 2.0f,
@@ -708,12 +828,12 @@ typedef struct RectTransformInteraction {
 	Dial *dial;
 } RectTransformInteraction;
 
-static void manipulator_rect_transform_setup(wmManipulator *mpr)
+static void manipulator_cage2d_setup(wmManipulator *mpr)
 {
 	mpr->flag |= WM_MANIPULATOR_DRAW_MODAL | WM_MANIPULATOR_DRAW_NO_SCALE;
 }
 
-static int manipulator_rect_transform_invoke(
+static int manipulator_cage2d_invoke(
         bContext *C, wmManipulator *mpr, const wmEvent *event)
 {
 	RectTransformInteraction *data = MEM_callocN(sizeof(RectTransformInteraction), "cage_interaction");
@@ -732,7 +852,7 @@ static int manipulator_rect_transform_invoke(
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int manipulator_rect_transform_modal(
+static int manipulator_cage2d_modal(
         bContext *C, wmManipulator *mpr, const wmEvent *event,
         eWM_ManipulatorTweak UNUSED(tweak_flag))
 {
@@ -892,7 +1012,7 @@ static int manipulator_rect_transform_modal(
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static void manipulator_rect_transform_property_update(wmManipulator *mpr, wmManipulatorProperty *mpr_prop)
+static void manipulator_cage2d_property_update(wmManipulator *mpr, wmManipulatorProperty *mpr_prop)
 {
 	if (STREQ(mpr_prop->type->idname, "matrix")) {
 		if (WM_manipulator_target_property_array_length(mpr, mpr_prop) == 16) {
@@ -907,7 +1027,7 @@ static void manipulator_rect_transform_property_update(wmManipulator *mpr, wmMan
 	}
 }
 
-static void manipulator_rect_transform_exit(bContext *C, wmManipulator *mpr, const bool cancel)
+static void manipulator_cage2d_exit(bContext *C, wmManipulator *mpr, const bool cancel)
 {
 	RectTransformInteraction *data = mpr->interaction_data;
 
@@ -939,19 +1059,24 @@ static void MANIPULATOR_WT_cage_2d(wmManipulatorType *wt)
 	wt->idname = "MANIPULATOR_WT_cage_2d";
 
 	/* api callbacks */
-	wt->draw = manipulator_rect_transform_draw;
-	wt->draw_select = manipulator_rect_transform_draw_select;
-	wt->test_select = manipulator_rect_transform_test_select;
-	wt->setup = manipulator_rect_transform_setup;
-	wt->invoke = manipulator_rect_transform_invoke;
-	wt->property_update = manipulator_rect_transform_property_update;
-	wt->modal = manipulator_rect_transform_modal;
-	wt->exit = manipulator_rect_transform_exit;
-	wt->cursor_get = manipulator_rect_transform_get_cursor;
+	wt->draw = manipulator_cage2d_draw;
+	wt->draw_select = manipulator_cage2d_draw_select;
+	wt->test_select = manipulator_cage2d_test_select;
+	wt->setup = manipulator_cage2d_setup;
+	wt->invoke = manipulator_cage2d_invoke;
+	wt->property_update = manipulator_cage2d_property_update;
+	wt->modal = manipulator_cage2d_modal;
+	wt->exit = manipulator_cage2d_exit;
+	wt->cursor_get = manipulator_cage2d_get_cursor;
 
 	wt->struct_size = sizeof(wmManipulator);
 
 	/* rna */
+	static EnumPropertyItem rna_enum_draw_style[] = {
+		{ED_MANIPULATOR_CAGE2D_STYLE_BOX, "BOX", 0, "Box", ""},
+		{ED_MANIPULATOR_CAGE2D_STYLE_BOX, "CIRCLE", 0, "Circle", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
 	static EnumPropertyItem rna_enum_transform[] = {
 		{ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
 		{ED_MANIPULATOR_CAGE2D_XFORM_FLAG_ROTATE, "ROTATE", 0, "Rotate", ""},
@@ -960,15 +1085,16 @@ static void MANIPULATOR_WT_cage_2d(wmManipulatorType *wt)
 		{0, NULL, 0, NULL, NULL}
 	};
 	static EnumPropertyItem rna_enum_draw_options[] = {
-		{ED_MANIPULATOR_CAGE2D_STYLE_FLAG_XFORM_CENTER_HANDLE, "XFORM_CENTER_HANDLE", 0, "Center Handle", ""},
+		{ED_MANIPULATOR_CAGE2D_DRAW_FLAG_XFORM_CENTER_HANDLE, "XFORM_CENTER_HANDLE", 0, "Center Handle", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	static float unit_v2[2] = {1.0f, 1.0f};
 	RNA_def_float_vector(wt->srna, "dimensions", 2, unit_v2, 0, FLT_MAX, "Dimensions", "", 0.0f, FLT_MAX);
 	RNA_def_enum_flag(wt->srna, "transform", rna_enum_transform, 0, "Transform Options", "");
+	RNA_def_enum(wt->srna, "draw_style", rna_enum_draw_style, ED_MANIPULATOR_CAGE2D_STYLE_CIRCLE, "Draw Style", "");
 	RNA_def_enum_flag(
 	        wt->srna, "draw_options", rna_enum_draw_options,
-	        ED_MANIPULATOR_CAGE2D_STYLE_FLAG_XFORM_CENTER_HANDLE, "Draw Options", "");
+	        ED_MANIPULATOR_CAGE2D_DRAW_FLAG_XFORM_CENTER_HANDLE, "Draw Options", "");
 
 	WM_manipulatortype_target_property_def(wt, "matrix", PROP_FLOAT, 16);
 }

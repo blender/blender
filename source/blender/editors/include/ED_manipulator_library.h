@@ -97,11 +97,17 @@ enum {
 	ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_SIGNED     = (1 << 4), /* Negative scale allowed */
 };
 
+/* draw_style */
+enum {
+	ED_MANIPULATOR_CAGE2D_STYLE_BOX = 0,
+	ED_MANIPULATOR_CAGE2D_STYLE_CIRCLE = 1,
+};
+
 /* draw_options */
 enum {
 	/** Draw a central handle (instead of having the entire area selectable)
 	 * Needed for large rectangles that we don't want to swallow all events. */
-	ED_MANIPULATOR_CAGE2D_STYLE_FLAG_XFORM_CENTER_HANDLE = (1 << 0),
+	ED_MANIPULATOR_CAGE2D_DRAW_FLAG_XFORM_CENTER_HANDLE = (1 << 0),
 };
 
 /** #wmManipulator.highlight_part */
