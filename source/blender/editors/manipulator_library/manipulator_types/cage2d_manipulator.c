@@ -172,11 +172,12 @@ static void rect_transform_draw_corners(
 static void rect_transform_draw_interaction(
         const float color[4], const int highlighted,
         const float size[2], const float margin[2],
-        const float line_width, const bool is_solid)
+        const float line_width, const bool is_solid, const int draw_options)
 {
 	/* 4 verts for translate, otherwise only 3 are used. */
 	float verts[4][2];
 	uint verts_len = 0;
+	Gwn_PrimType prim_type = GWN_PRIM_NONE;
 
 	switch (highlighted) {
 		case ED_MANIPULATOR_CAGE2D_PART_SCALE_MIN_X:
@@ -192,6 +193,10 @@ static void rect_transform_draw_interaction(
 				ARRAY_SET_ITEMS(verts[2], r.xmax, r.ymax);
 				ARRAY_SET_ITEMS(verts[3], r.xmax, r.ymin);
 				verts_len += 2;
+				prim_type = GWN_PRIM_TRI_FAN;
+			}
+			else {
+				prim_type = GWN_PRIM_LINE_STRIP;
 			}
 			break;
 		}
@@ -208,6 +213,10 @@ static void rect_transform_draw_interaction(
 				ARRAY_SET_ITEMS(verts[2], r.xmin, r.ymax);
 				ARRAY_SET_ITEMS(verts[3], r.xmin, r.ymin);
 				verts_len += 2;
+				prim_type = GWN_PRIM_TRI_FAN;
+			}
+			else {
+				prim_type = GWN_PRIM_LINE_STRIP;
 			}
 			break;
 		}
@@ -224,6 +233,10 @@ static void rect_transform_draw_interaction(
 				ARRAY_SET_ITEMS(verts[2], r.xmax, r.ymax);
 				ARRAY_SET_ITEMS(verts[3], r.xmin, r.ymax);
 				verts_len += 2;
+				prim_type = GWN_PRIM_TRI_FAN;
+			}
+			else {
+				prim_type = GWN_PRIM_LINE_STRIP;
 			}
 			break;
 		}
@@ -240,6 +253,10 @@ static void rect_transform_draw_interaction(
 				ARRAY_SET_ITEMS(verts[2], r.xmax, r.ymin);
 				ARRAY_SET_ITEMS(verts[3], r.xmin, r.ymin);
 				verts_len += 2;
+				prim_type = GWN_PRIM_TRI_FAN;
+			}
+			else {
+				prim_type = GWN_PRIM_LINE_STRIP;
 			}
 			break;
 		}
@@ -256,6 +273,10 @@ static void rect_transform_draw_interaction(
 			if (is_solid) {
 				ARRAY_SET_ITEMS(verts[3], r.xmin, r.ymin);
 				verts_len += 1;
+				prim_type = GWN_PRIM_TRI_FAN;
+			}
+			else {
+				prim_type = GWN_PRIM_LINE_STRIP;
 			}
 			break;
 		}
@@ -272,6 +293,10 @@ static void rect_transform_draw_interaction(
 			if (is_solid) {
 				ARRAY_SET_ITEMS(verts[3], r.xmin, r.ymax);
 				verts_len += 1;
+				prim_type = GWN_PRIM_TRI_FAN;
+			}
+			else {
+				prim_type = GWN_PRIM_LINE_STRIP;
 			}
 			break;
 		}
@@ -288,6 +313,10 @@ static void rect_transform_draw_interaction(
 			if (is_solid) {
 				ARRAY_SET_ITEMS(verts[3], r.xmax, r.ymin);
 				verts_len += 1;
+				prim_type = GWN_PRIM_TRI_FAN;
+			}
+			else {
+				prim_type = GWN_PRIM_LINE_STRIP;
 			}
 			break;
 		}
@@ -304,6 +333,10 @@ static void rect_transform_draw_interaction(
 			if (is_solid) {
 				ARRAY_SET_ITEMS(verts[3], r.xmax, r.ymax);
 				verts_len += 1;
+				prim_type = GWN_PRIM_TRI_FAN;
+			}
+			else {
+				prim_type = GWN_PRIM_LINE_STRIP;
 			}
 			break;
 		}
@@ -322,20 +355,51 @@ static void rect_transform_draw_interaction(
 			ARRAY_SET_ITEMS(verts[2], r_rotate.xmax, r_rotate.ymax);
 			ARRAY_SET_ITEMS(verts[3], r_rotate.xmax, r_rotate.ymin);
 			verts_len = 4;
+			if (is_solid) {
+				prim_type = GWN_PRIM_TRI_FAN;
+			}
+			else {
+				prim_type = GWN_PRIM_LINE_STRIP;
+			}
 			break;
 		}
 
-		/* Only used for 3D view selection, never displayed to the user. */
 		case ED_MANIPULATOR_CAGE2D_PART_TRANSLATE:
-			ARRAY_SET_ITEMS(verts[0], -size[0], -size[1]);
-			ARRAY_SET_ITEMS(verts[1], -size[0],  size[1]);
-			ARRAY_SET_ITEMS(verts[2], size[0],   size[1]);
-			ARRAY_SET_ITEMS(verts[3], size[0],  -size[1]);
-			verts_len = 4;
+			if (draw_options & ED_MANIPULATOR_CAGE2D_STYLE_FLAG_XFORM_CENTER_HANDLE) {
+				ARRAY_SET_ITEMS(verts[0], -margin[0] / 2, -margin[1] / 2);
+				ARRAY_SET_ITEMS(verts[1],  margin[0] / 2,  margin[1] / 2);
+				ARRAY_SET_ITEMS(verts[2], -margin[0] / 2,  margin[1] / 2);
+				ARRAY_SET_ITEMS(verts[3],  margin[0] / 2, -margin[1] / 2);
+				verts_len = 4;
+				if (is_solid) {
+					prim_type = GWN_PRIM_TRI_FAN;
+				}
+				else {
+					prim_type = GWN_PRIM_LINES;
+				}
+			}
+			else {
+				/* Only used for 3D view selection, never displayed to the user. */
+				ARRAY_SET_ITEMS(verts[0], -size[0], -size[1]);
+				ARRAY_SET_ITEMS(verts[1], -size[0],  size[1]);
+				ARRAY_SET_ITEMS(verts[2], size[0],   size[1]);
+				ARRAY_SET_ITEMS(verts[3], size[0],  -size[1]);
+				verts_len = 4;
+				if (is_solid) {
+					prim_type = GWN_PRIM_TRI_FAN;
+				}
+				else {
+					/* unreachable */
+					BLI_assert(0);
+					prim_type = GWN_PRIM_LINE_STRIP;
+				}
+			}
 			break;
 		default:
 			return;
 	}
+
+	BLI_assert(prim_type != GWN_PRIM_NONE);
 
 	Gwn_VertFormat *format = immVertexFormat();
 	struct {
@@ -346,17 +410,10 @@ static void rect_transform_draw_interaction(
 	};
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
-	if (highlighted == ED_MANIPULATOR_CAGE2D_PART_TRANSLATE) {
-		immBegin(GWN_PRIM_TRI_FAN, 4);
-		immAttrib3f(attr_id.col, 0.0f, 0.0f, 0.0f);
-		for (uint i = 0; i < verts_len; i++) {
-			immVertex2fv(attr_id.pos, verts[i]);
-		}
-		immEnd();
-	}
-	else {
+	{
 		if (is_solid) {
-			immBegin(GWN_PRIM_TRI_FAN, verts_len);
+			BLI_assert(ELEM(prim_type, GWN_PRIM_TRI_FAN));
+			immBegin(prim_type, verts_len);
 			immAttrib3f(attr_id.col, 0.0f, 0.0f, 0.0f);
 			for (uint i = 0; i < verts_len; i++) {
 				immVertex2fv(attr_id.pos, verts[i]);
@@ -364,9 +421,10 @@ static void rect_transform_draw_interaction(
 			immEnd();
 		}
 		else {
+			BLI_assert(ELEM(prim_type, GWN_PRIM_LINE_STRIP, GWN_PRIM_LINES));
 			glLineWidth(line_width + 3.0f);
 
-			immBegin(GWN_PRIM_LINE_STRIP, verts_len);
+			immBegin(prim_type, verts_len);
 			immAttrib3f(attr_id.col, 0.0f, 0.0f, 0.0f);
 			for (uint i = 0; i < verts_len; i++) {
 				immVertex2fv(attr_id.pos, verts[i]);
@@ -375,7 +433,7 @@ static void rect_transform_draw_interaction(
 
 			glLineWidth(line_width);
 
-			immBegin(GWN_PRIM_LINE_STRIP, verts_len);
+			immBegin(prim_type, verts_len);
 			immAttrib3fv(attr_id.col, color);
 			for (uint i = 0; i < verts_len; i++) {
 				immVertex2fv(attr_id.pos, verts[i]);
@@ -399,6 +457,7 @@ static void manipulator_rect_transform_draw_intern(
 	float matrix_final[4][4];
 
 	const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
+	const int draw_options = RNA_enum_get(mpr->ptr, "draw_options");
 
 	const float size[2] = {w / 2.0f, h / 2.0f};
 	const rctf r = {
@@ -455,27 +514,43 @@ static void manipulator_rect_transform_draw_intern(
 			};
 			for (int i = 0; i < ARRAY_SIZE(scale_parts); i++) {
 				GPU_select_load_id(select_id | scale_parts[i]);
-				rect_transform_draw_interaction(mpr->color, scale_parts[i], size, margin, mpr->line_width, true);
+				rect_transform_draw_interaction(
+				        mpr->color, scale_parts[i], size, margin, mpr->line_width, true, draw_options);
 			}
 		}
 		if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE) {
 			const int transform_part = ED_MANIPULATOR_CAGE2D_PART_TRANSLATE;
 			GPU_select_load_id(select_id | transform_part);
-			rect_transform_draw_interaction(mpr->color, transform_part, size, margin, mpr->line_width, true);
+			rect_transform_draw_interaction(
+			        mpr->color, transform_part, size, margin, mpr->line_width, true, draw_options);
 		}
 		if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_ROTATE) {
 			rect_transform_draw_interaction(
-			        mpr->color, ED_MANIPULATOR_CAGE2D_PART_ROTATE, size, margin, mpr->line_width, true);
+			        mpr->color, ED_MANIPULATOR_CAGE2D_PART_ROTATE, size, margin, mpr->line_width, true, draw_options);
 		}
 	}
 	else {
 		/* Don't draw translate (only for selection). */
-		if (mpr->highlight_part != ED_MANIPULATOR_CAGE2D_PART_TRANSLATE) {
-			rect_transform_draw_interaction(mpr->color, mpr->highlight_part, size, margin, mpr->line_width, false);
+		bool show = false;
+		if (mpr->highlight_part == ED_MANIPULATOR_CAGE2D_PART_TRANSLATE) {
+			/* Only show if we're drawing the center handle
+			 * otherwise the entire rectangle is the hotspot. */
+			if (draw_options & ED_MANIPULATOR_CAGE2D_STYLE_FLAG_XFORM_CENTER_HANDLE) {
+				show = true;
+			}
 		}
+		else {
+			show = true;
+		}
+
+		if (show) {
+			rect_transform_draw_interaction(
+			        mpr->color, mpr->highlight_part, size, margin, mpr->line_width, false, draw_options);
+		}
+
 		if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_ROTATE) {
 			rect_transform_draw_interaction(
-			        mpr->color, ED_MANIPULATOR_CAGE2D_PART_ROTATE, size, margin, mpr->line_width, false);
+			        mpr->color, ED_MANIPULATOR_CAGE2D_PART_ROTATE, size, margin, mpr->line_width, false, draw_options);
 		}
 	}
 
@@ -549,13 +624,21 @@ static int manipulator_rect_transform_test_select(
 	manipulator_calc_rect_view_margin(mpr, dims, margin);
 
 	const int transform_flag = RNA_enum_get(mpr->ptr, "transform");
+	const int draw_options = RNA_enum_get(mpr->ptr, "draw_options");
 
 	if (transform_flag & ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE) {
-		const rctf r = {
-			.xmin = -size[0] + margin[0],
-			.ymin = -size[1] + margin[1],
-			.xmax =  size[0] - margin[0],
-			.ymax =  size[1] - margin[1],
+		rctf r;
+		if (draw_options & ED_MANIPULATOR_CAGE2D_STYLE_FLAG_XFORM_CENTER_HANDLE) {
+			r.xmin = -margin[0] / 2;
+			r.ymin = -margin[1] / 2;
+			r.xmax =  margin[0] / 2;
+			r.ymax =  margin[1] / 2;
+		}
+		else {
+			r.xmin = -size[0] + margin[0];
+			r.ymin = -size[1] + margin[1];
+			r.xmax =  size[0] - margin[0];
+			r.ymax =  size[1] - margin[1];
 		};
 		bool isect = BLI_rctf_isect_pt_v(&r, point_local);
 		if (isect) {
@@ -876,9 +959,16 @@ static void MANIPULATOR_WT_cage_2d(wmManipulatorType *wt)
 		{ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_UNIFORM, "SCALE_UNIFORM", 0, "Scale Uniform", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
+	static EnumPropertyItem rna_enum_draw_options[] = {
+		{ED_MANIPULATOR_CAGE2D_STYLE_FLAG_XFORM_CENTER_HANDLE, "XFORM_CENTER_HANDLE", 0, "Center Handle", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
 	static float unit_v2[2] = {1.0f, 1.0f};
 	RNA_def_float_vector(wt->srna, "dimensions", 2, unit_v2, 0, FLT_MAX, "Dimensions", "", 0.0f, FLT_MAX);
 	RNA_def_enum_flag(wt->srna, "transform", rna_enum_transform, 0, "Transform Options", "");
+	RNA_def_enum_flag(
+	        wt->srna, "draw_options", rna_enum_draw_options,
+	        ED_MANIPULATOR_CAGE2D_STYLE_FLAG_XFORM_CENTER_HANDLE, "Draw Options", "");
 
 	WM_manipulatortype_target_property_def(wt, "matrix", PROP_FLOAT, 16);
 }
