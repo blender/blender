@@ -233,6 +233,9 @@ float *BKE_mask_point_segment_feather_diff(struct MaskSpline *spline, struct Mas
                                            int width, int height,
                                            unsigned int *tot_feather_point);
 
+void BKE_mask_layer_evaluate_animation(struct MaskLayer *masklay, const float ctime);
+void BKE_mask_layer_evaluate_deform(struct MaskLayer *masklay, const float ctime);
+
 /* mask_rasterize.c */
 struct MaskRasterHandle;
 typedef struct MaskRasterHandle MaskRasterHandle;

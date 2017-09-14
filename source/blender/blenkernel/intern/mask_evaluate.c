@@ -810,3 +810,88 @@ float *BKE_mask_point_segment_diff(MaskSpline *spline, MaskSplinePoint *point,
 
 	return diff_points;
 }
+
+
+static void mask_evaluate_apply_point_parent(MaskSplinePoint *point, float ctime)
+{
+	float parent_matrix[3][3];
+	BKE_mask_point_parent_matrix_get(point, ctime, parent_matrix);
+	mul_m3_v2(parent_matrix, point->bezt.vec[0]);
+	mul_m3_v2(parent_matrix, point->bezt.vec[1]);
+	mul_m3_v2(parent_matrix, point->bezt.vec[2]);
+}
+
+void BKE_mask_layer_evaluate_animation(MaskLayer *masklay, const float ctime)
+{
+	/* animation if available */
+	MaskLayerShape *masklay_shape_a;
+	MaskLayerShape *masklay_shape_b;
+	int found;
+	if ((found = BKE_mask_layer_shape_find_frame_range(
+	           masklay, ctime, &masklay_shape_a, &masklay_shape_b)))
+	{
+		if (found == 1) {
+#if 0
+			printf("%s: exact %d %d (%d)\n",
+			       __func__,
+			       (int)ctime,
+			       BLI_listbase_count(&masklay->splines_shapes),
+			       masklay_shape_a->frame);
+#endif
+			BKE_mask_layer_shape_to_mask(masklay, masklay_shape_a);
+		}
+		else if (found == 2) {
+			float w = masklay_shape_b->frame - masklay_shape_a->frame;
+#if 0
+			printf("%s: tween %d %d (%d %d)\n",
+			       __func__,
+			       (int)ctime,
+			       BLI_listbase_count(&masklay->splines_shapes),
+			       masklay_shape_a->frame, masklay_shape_b->frame);
+#endif
+			BKE_mask_layer_shape_to_mask_interp(
+			        masklay,
+			        masklay_shape_a, masklay_shape_b,
+			        (ctime - masklay_shape_a->frame) / w);
+		}
+		else {
+			/* always fail, should never happen */
+			BLI_assert(found == 2);
+		}
+	}
+}
+
+void BKE_mask_layer_evaluate_deform(MaskLayer *masklay, const float ctime)
+{
+	BKE_mask_layer_calc_handles(masklay);
+	for (MaskSpline *spline = masklay->splines.first;
+	     spline != NULL;
+	     spline = spline->next)
+	{
+		bool need_handle_recalc = false;
+		BKE_mask_spline_ensure_deform(spline);
+		for (int i = 0; i < spline->tot_point; i++) {
+			MaskSplinePoint *point = &spline->points[i];
+			MaskSplinePoint *point_deform = &spline->points_deform[i];
+			BKE_mask_point_free(point_deform);
+			*point_deform = *point;
+			point_deform->uw = point->uw ? MEM_dupallocN(point->uw) : NULL;
+			mask_evaluate_apply_point_parent(point_deform, ctime);
+			if (ELEM(point->bezt.h1, HD_AUTO, HD_VECT)) {
+				need_handle_recalc = true;
+			}
+		}
+		/* if the spline has auto or vector handles, these need to be
+		 * recalculated after deformation.
+		 */
+		if (need_handle_recalc) {
+			for (int i = 0; i < spline->tot_point; i++) {
+				MaskSplinePoint *point_deform = &spline->points_deform[i];
+				if (ELEM(point_deform->bezt.h1, HD_AUTO, HD_VECT)) {
+					BKE_mask_calc_handle_point(spline, point_deform);
+				}
+			}
+		}
+		/* end extra calc handles loop */
+	}
+}
