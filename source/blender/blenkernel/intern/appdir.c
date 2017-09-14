@@ -691,13 +691,16 @@ bool BKE_appdir_program_python_search(
 	return is_found;
 }
 
+/** Keep in sync with `bpy.utils.app_template_paths()` */
 static const char *app_template_directory_search[2] = {
 	"startup" SEP_STR "bl_app_templates_user",
 	"startup" SEP_STR "bl_app_templates_system",
 };
 
 static const int app_template_directory_id[2] = {
+	/* Only 'USER' */
 	BLENDER_USER_SCRIPTS,
+	/* Covers 'LOCAL' & 'SYSTEM'. */
 	BLENDER_SYSTEM_SCRIPTS,
 };
 
