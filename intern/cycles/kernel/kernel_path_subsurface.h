@@ -32,7 +32,10 @@ bool kernel_path_subsurface_scatter(
         ccl_addr_space float3 *throughput,
         ccl_addr_space SubsurfaceIndirectRays *ss_indirect)
 {
-	const ShaderClosure *sc = shader_bssrdf_pick(sd, throughput);
+	float bssrdf_u, bssrdf_v;
+	path_state_rng_2D(kg, state, PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
+
+	const ShaderClosure *sc = shader_bssrdf_pick(sd, throughput, &bssrdf_u);
 
 	/* do bssrdf scatter step if we picked a bssrdf closure */
 	if(sc) {
@@ -45,8 +48,6 @@ bool kernel_path_subsurface_scatter(
 		uint lcg_state = lcg_state_init_addrspace(state, 0x68bc21eb);
 
 		SubsurfaceIntersection ss_isect;
-		float bssrdf_u, bssrdf_v;
-		path_state_rng_2D(kg, state, PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
 		int num_hits = subsurface_scatter_multi_intersect(kg,
 		                                                  &ss_isect,
 		                                                  sd,

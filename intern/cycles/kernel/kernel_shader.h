@@ -575,7 +575,8 @@ void shader_bsdf_eval(KernelGlobals *kg,
 	}
 }
 
-ccl_device_inline const ShaderClosure *shader_bsdf_pick(ShaderData *sd)
+ccl_device_inline const ShaderClosure *shader_bsdf_pick(ShaderData *sd,
+                                                        float *randu)
 {
 	int sampled = 0;
 
@@ -591,19 +592,25 @@ ccl_device_inline const ShaderClosure *shader_bsdf_pick(ShaderData *sd)
 			}
 		}
 
-		float r = sd->randb_closure*sum;
+		float r = (*randu)*sum;
 		float partial_sum = 0.0f;
 
 		for(int i = 0; i < sd->num_closure; i++) {
 			const ShaderClosure *sc = &sd->closure[i];
 
 			if(CLOSURE_IS_BSDF(sc->type)) {
-				partial_sum += sc->sample_weight;
+				float next_sum = partial_sum + sc->sample_weight;
 
-				if(r <= partial_sum) {
+				if(r < next_sum) {
 					sampled = i;
+
+					/* Rescale to reuse for direction sample, to better
+					 * preserve stratifaction. */
+					*randu = (r - partial_sum) / sc->sample_weight;
 					break;
 				}
+
+				partial_sum = next_sum;
 			}
 		}
 	}
@@ -612,7 +619,8 @@ ccl_device_inline const ShaderClosure *shader_bsdf_pick(ShaderData *sd)
 }
 
 ccl_device_inline const ShaderClosure *shader_bssrdf_pick(ShaderData *sd,
-                                                          ccl_addr_space float3 *throughput)
+                                                          ccl_addr_space float3 *throughput,
+                                                          float *randu)
 {
 	int sampled = 0;
 
@@ -632,16 +640,16 @@ ccl_device_inline const ShaderClosure *shader_bssrdf_pick(ShaderData *sd,
 			}
 		}
 
-		float r = sd->randb_closure*(sum_bsdf + sum_bssrdf);
+		float r = (*randu)*(sum_bsdf + sum_bssrdf);
 		float partial_sum = 0.0f;
 
 		for(int i = 0; i < sd->num_closure; i++) {
 			const ShaderClosure *sc = &sd->closure[i];
 
 			if(CLOSURE_IS_BSDF_OR_BSSRDF(sc->type)) {
-				partial_sum += sc->sample_weight;
+				float next_sum = partial_sum + sc->sample_weight;
 
-				if(r <= partial_sum) {
+				if(r < next_sum) {
 					if(CLOSURE_IS_BSDF(sc->type)) {
 						*throughput *= (sum_bsdf + sum_bssrdf) / sum_bsdf;
 						return NULL;
@@ -649,9 +657,15 @@ ccl_device_inline const ShaderClosure *shader_bssrdf_pick(ShaderData *sd,
 					else {
 						*throughput *= (sum_bsdf + sum_bssrdf) / sum_bssrdf;
 						sampled = i;
+
+						/* Rescale to reuse for direction sample, to better
+						 * preserve stratifaction. */
+						*randu = (r - partial_sum) / sc->sample_weight;
 						break;
 					}
 				}
+
+				partial_sum = next_sum;
 			}
 		}
 	}
@@ -667,7 +681,7 @@ ccl_device_inline int shader_bsdf_sample(KernelGlobals *kg,
                                          differential3 *domega_in,
                                          float *pdf)
 {
-	const ShaderClosure *sc = shader_bsdf_pick(sd);
+	const ShaderClosure *sc = shader_bsdf_pick(sd, &randu);
 	if(!sc) {
 		*pdf = 0.0f;
 		return LABEL_NONE;
@@ -923,11 +937,10 @@ ccl_device float3 shader_holdout_eval(KernelGlobals *kg, ShaderData *sd)
 /* Surface Evaluation */
 
 ccl_device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd,
-	ccl_addr_space PathState *state, float randb, int path_flag)
+	ccl_addr_space PathState *state, int path_flag)
 {
 	sd->num_closure = 0;
 	sd->num_closure_extra = 0;
-	sd->randb_closure = randb;
 
 #ifdef __OSL__
 	if(kg->osl)
@@ -958,7 +971,6 @@ ccl_device float3 shader_eval_background(KernelGlobals *kg, ShaderData *sd,
 {
 	sd->num_closure = 0;
 	sd->num_closure_extra = 0;
-	sd->randb_closure = 0.0f;
 
 #ifdef __SVM__
 #ifdef __OSL__
@@ -1040,17 +1052,22 @@ ccl_device int shader_volume_phase_sample(KernelGlobals *kg, const ShaderData *s
 				sum += sc->sample_weight;
 		}
 
-		float r = sd->randb_closure*sum;
-		sum = 0.0f;
+		float r = randu*sum;
+		float partial_sum = 0.0f;
 
 		for(sampled = 0; sampled < sd->num_closure; sampled++) {
 			const ShaderClosure *sc = &sd->closure[sampled];
 			
 			if(CLOSURE_IS_PHASE(sc->type)) {
-				sum += sc->sample_weight;
+				float next_sum = partial_sum + sc->sample_weight;
 
-				if(r <= sum)
+				if(r <= next_sum) {
+					/* Rescale to reuse for BSDF direction sample. */
+					randu = (r - partial_sum) / sc->sample_weight;
 					break;
+				}
+
+				partial_sum = next_sum;
 			}
 		}
 
@@ -1154,7 +1171,6 @@ ccl_device void shader_eval_displacement(KernelGlobals *kg, ShaderData *sd, ccl_
 {
 	sd->num_closure = 0;
 	sd->num_closure_extra = 0;
-	sd->randb_closure = 0.0f;
 
 	/* this will modify sd->P */
 #ifdef __SVM__

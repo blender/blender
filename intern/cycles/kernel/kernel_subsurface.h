@@ -79,7 +79,6 @@ ccl_device_inline float3 subsurface_scatter_eval(ShaderData *sd,
 ccl_device void subsurface_scatter_setup_diffuse_bsdf(ShaderData *sd, const ShaderClosure *sc, float3 weight, bool hit, float3 N)
 {
 	sd->flag &= ~SD_CLOSURE_FLAGS;
-	sd->randb_closure = 0.0f;
 	sd->num_closure = 0;
 	sd->num_closure_extra = 0;
 
@@ -155,7 +154,7 @@ ccl_device void subsurface_color_bump_blur(KernelGlobals *kg,
 
 	if(bump || texture_blur > 0.0f) {
 		/* average color and normal at incoming point */
-		shader_eval_surface(kg, sd, state, 0.0f, state_flag);
+		shader_eval_surface(kg, sd, state, state_flag);
 		float3 in_color = shader_bssrdf_sum(sd, (bump)? N: NULL, NULL);
 
 		/* we simply divide out the average color and multiply with the average

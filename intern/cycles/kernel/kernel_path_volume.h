@@ -77,7 +77,7 @@ bool kernel_path_volume_bounce(
 	float3 phase_omega_in;
 	differential3 phase_domega_in;
 	float phase_u, phase_v;
-	path_state_rng_2D(kg, state, PRNG_PHASE_U, &phase_u, &phase_v);
+	path_state_rng_2D(kg, state, PRNG_BSDF_U, &phase_u, &phase_v);
 	int label;
 
 	label = shader_volume_phase_sample(kg, sd, phase_u, phase_v, &phase_eval,
@@ -155,7 +155,7 @@ ccl_device void kernel_branched_path_volume_connect_light(
 				float3 tp = throughput;
 
 				/* sample position on volume segment */
-				float rphase = path_branched_rng_1D(kg, state->rng_hash, state, j, num_samples, PRNG_PHASE);
+				float rphase = path_branched_rng_1D(kg, state->rng_hash, state, j, num_samples, PRNG_PHASE_CHANNEL);
 				float rscatter = path_branched_rng_1D(kg, state->rng_hash, state, j, num_samples, PRNG_SCATTER_DISTANCE);
 
 				VolumeIntegrateResult result = kernel_volume_decoupled_scatter(kg,
@@ -201,7 +201,7 @@ ccl_device void kernel_branched_path_volume_connect_light(
 				float3 tp = throughput;
 
 				/* sample position on volume segment */
-				float rphase = path_branched_rng_1D(kg, state->rng_hash, state, j, num_samples, PRNG_PHASE);
+				float rphase = path_branched_rng_1D(kg, state->rng_hash, state, j, num_samples, PRNG_PHASE_CHANNEL);
 				float rscatter = path_branched_rng_1D(kg, state->rng_hash, state, j, num_samples, PRNG_SCATTER_DISTANCE);
 
 				VolumeIntegrateResult result = kernel_volume_decoupled_scatter(kg,
@@ -238,7 +238,7 @@ ccl_device void kernel_branched_path_volume_connect_light(
 		float3 tp = throughput;
 
 		/* sample position on volume segment */
-		float rphase = path_state_rng_1D(kg, state, PRNG_PHASE);
+		float rphase = path_state_rng_1D(kg, state, PRNG_PHASE_CHANNEL);
 		float rscatter = path_state_rng_1D(kg, state, PRNG_SCATTER_DISTANCE);
 
 		VolumeIntegrateResult result = kernel_volume_decoupled_scatter(kg,
