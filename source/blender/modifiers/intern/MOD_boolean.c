@@ -246,7 +246,7 @@ static DerivedMesh *applyModifier_bmesh(
 
 				looptris = MEM_mallocN(sizeof(*looptris) * looptris_tot, __func__);
 
-				BM_mesh_calc_tessellation(bm, looptris, &tottri);
+				BM_mesh_calc_tessellation_beauty(bm, looptris, &tottri);
 
 				/* postpone this until after tessellating
 				 * so we can use the original normals before the vertex are moved */
