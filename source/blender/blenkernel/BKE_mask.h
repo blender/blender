@@ -32,6 +32,7 @@
  *  \ingroup bke
  */
 
+struct EvaluationContext;
 struct ImageUser;
 struct Image;
 struct ListBase;
@@ -235,6 +236,9 @@ float *BKE_mask_point_segment_feather_diff(struct MaskSpline *spline, struct Mas
 
 void BKE_mask_layer_evaluate_animation(struct MaskLayer *masklay, const float ctime);
 void BKE_mask_layer_evaluate_deform(struct MaskLayer *masklay, const float ctime);
+
+void BKE_mask_eval_animation(struct EvaluationContext *eval_ctx, struct Mask *mask);
+void BKE_mask_eval_update(struct EvaluationContext *eval_ctx, struct Mask *mask);
 
 /* mask_rasterize.c */
 struct MaskRasterHandle;

@@ -1940,8 +1940,6 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 #endif
 	{
 		DEG_evaluate_on_refresh(eval_ctx, scene->depsgraph, scene);
-		/* TODO(sergey): This is to beocme a node in new depsgraph. */
-		BKE_mask_update_scene(bmain, scene);
 	}
 
 	/* update sound system animation (TODO, move to depsgraph) */
@@ -2058,10 +2056,9 @@ void BKE_scene_update_for_newframe_ex(EvaluationContext *eval_ctx, Main *bmain, 
 		/* Following 2 functions are recursive
 		 * so don't call within 'scene_update_tagged_recursive' */
 		DAG_scene_update_flags(bmain, sce, lay, true, do_invisible_flush);   // only stuff that moves or needs display still
+		BKE_mask_evaluate_all_masks(bmain, ctime, true);
 	}
 #endif
-
-	BKE_mask_evaluate_all_masks(bmain, ctime, true);
 
 	/* Update animated cache files for modifiers. */
 	BKE_cachefile_update_frame(bmain, sce, ctime, (((double)sce->r.frs_sec) / (double)sce->r.frs_sec_base));

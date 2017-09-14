@@ -219,6 +219,10 @@ typedef enum eDepsOperation_Code {
 	DEG_OPCODE_PSYS_EVAL_INIT,
 	DEG_OPCODE_PSYS_EVAL,
 
+	/* Masks ------------------------------------------- */
+	DEG_OPCODE_MASK_ANIMATION,
+	DEG_OPCODE_MASK_EVAL,
+
 	DEG_NUM_OPCODES,
 } eDepsOperation_Code;
 

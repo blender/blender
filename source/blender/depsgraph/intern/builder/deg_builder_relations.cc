@@ -1835,8 +1835,18 @@ void DepsgraphRelationBuilder::build_cachefile(CacheFile *cache_file) {
 
 void DepsgraphRelationBuilder::build_mask(Mask *mask)
 {
-	/* Animation. */
-	build_animdata(&mask->id);
+	ID *mask_id = &mask->id;
+	/* F-Curve animation. */
+	build_animdata(mask_id);
+	/* Own mask animation. */
+	OperationKey mask_animation_key(mask_id,
+	                                DEG_NODE_TYPE_ANIMATION,
+	                                DEG_OPCODE_MASK_ANIMATION);
+	TimeSourceKey time_src_key;
+	add_relation(time_src_key, mask_animation_key, "TimeSrc -> Mask Animation");
+	/* Final mask evaluation. */
+	ComponentKey parameters_key(mask_id, DEG_NODE_TYPE_PARAMETERS);
+	add_relation(mask_animation_key, parameters_key, "Mask Animation -> Mask Eval");
 }
 
 void DepsgraphRelationBuilder::build_movieclip(MovieClip *clip)

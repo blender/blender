@@ -42,6 +42,8 @@
 #include "DNA_mask_types.h"
 
 #include "BKE_curve.h"
+#include "BKE_depsgraph.h"
+#include "BKE_global.h"
 #include "BKE_mask.h"
 
 
@@ -811,7 +813,6 @@ float *BKE_mask_point_segment_diff(MaskSpline *spline, MaskSplinePoint *point,
 	return diff_points;
 }
 
-
 static void mask_evaluate_apply_point_parent(MaskSplinePoint *point, float ctime)
 {
 	float parent_matrix[3][3];
@@ -828,7 +829,7 @@ void BKE_mask_layer_evaluate_animation(MaskLayer *masklay, const float ctime)
 	MaskLayerShape *masklay_shape_b;
 	int found;
 	if ((found = BKE_mask_layer_shape_find_frame_range(
-	           masklay, ctime, &masklay_shape_a, &masklay_shape_b)))
+	        masklay, ctime, &masklay_shape_a, &masklay_shape_b)))
 	{
 		if (found == 1) {
 #if 0
@@ -893,5 +894,29 @@ void BKE_mask_layer_evaluate_deform(MaskLayer *masklay, const float ctime)
 			}
 		}
 		/* end extra calc handles loop */
+	}
+}
+
+#define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH) printf
+
+void BKE_mask_eval_animation(struct EvaluationContext *eval_ctx, Mask *mask)
+{
+	DEBUG_PRINT("%s on %s (%p)\n", __func__, mask->id.name, mask);
+	for (MaskLayer *mask_layer = mask->masklayers.first;
+	     mask_layer != NULL;
+	     mask_layer = mask_layer->next)
+	{
+		BKE_mask_layer_evaluate_animation(mask_layer, eval_ctx->ctime);
+	}
+}
+
+void BKE_mask_eval_update(struct EvaluationContext *eval_ctx, Mask *mask)
+{
+	DEBUG_PRINT("%s on %s (%p)\n", __func__, mask->id.name, mask);
+	for (MaskLayer *mask_layer = mask->masklayers.first;
+	     mask_layer != NULL;
+	     mask_layer = mask_layer->next)
+	{
+		BKE_mask_layer_evaluate_deform(mask_layer, eval_ctx->ctime);
 	}
 }
