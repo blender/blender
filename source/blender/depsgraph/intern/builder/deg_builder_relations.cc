@@ -706,8 +706,12 @@ void DepsgraphRelationBuilder::build_constraints(Scene *scene, ID *id,
 					depends_on_camera = true;
 				}
 				if (data->depth_ob) {
-					ComponentKey depth_key(&data->depth_ob->id, DEG_NODE_TYPE_TRANSFORM);
-					add_relation(depth_key, constraint_op_key, cti->name);
+					ComponentKey depth_transform_key(&data->depth_ob->id,
+					                                 DEG_NODE_TYPE_TRANSFORM);
+					ComponentKey depth_geometry_key(&data->depth_ob->id,
+					                                DEG_NODE_TYPE_GEOMETRY);
+					add_relation(depth_transform_key, constraint_op_key, cti->name);
+					add_relation(depth_geometry_key, constraint_op_key, cti->name);
 				}
 			}
 			else if (cti->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
@@ -1943,8 +1947,18 @@ void DepsgraphRelationBuilder::build_cachefile(CacheFile *cache_file) {
 
 void DepsgraphRelationBuilder::build_mask(Mask *mask)
 {
-	/* Animation. */
-	build_animdata(&mask->id);
+	ID *mask_id = &mask->id;
+	/* F-Curve animation. */
+	build_animdata(mask_id);
+	/* Own mask animation. */
+	OperationKey mask_animation_key(mask_id,
+	                                DEG_NODE_TYPE_ANIMATION,
+	                                DEG_OPCODE_MASK_ANIMATION);
+	TimeSourceKey time_src_key;
+	add_relation(time_src_key, mask_animation_key, "TimeSrc -> Mask Animation");
+	/* Final mask evaluation. */
+	ComponentKey parameters_key(mask_id, DEG_NODE_TYPE_PARAMETERS);
+	add_relation(mask_animation_key, parameters_key, "Mask Animation -> Mask Eval");
 }
 
 void DepsgraphRelationBuilder::build_movieclip(MovieClip *clip)

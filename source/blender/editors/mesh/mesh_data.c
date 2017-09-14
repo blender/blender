@@ -253,7 +253,7 @@ void ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me)
 {
 	/* could be ldata or pdata */
 	CustomData *ldata = GET_CD_DATA(me, ldata);
-	const int layernum = CustomData_get_active_layer_index(ldata, CD_MLOOPUV);
+	const int layernum = CustomData_get_active_layer(ldata, CD_MLOOPUV);
 	ED_mesh_uv_loop_reset_ex(me, layernum);
 	
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);

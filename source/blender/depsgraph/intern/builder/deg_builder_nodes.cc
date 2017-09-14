@@ -81,6 +81,7 @@ extern "C" {
 #include "BKE_lattice.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_mask.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_mball.h"
@@ -1262,7 +1263,18 @@ void DepsgraphNodeBuilder::build_mask(Mask *mask)
 {
 	ID *mask_id = &mask->id;
 	add_id_node(mask_id);
+	/* F-Curve based animation/ */
 	build_animdata(mask_id);
+	/* Animation based on mask's shapes. */
+	add_operation_node(mask_id,
+	                   DEG_NODE_TYPE_ANIMATION,
+	                   function_bind(BKE_mask_eval_animation, _1, mask),
+	                   DEG_OPCODE_MASK_ANIMATION);
+	/* Final mask evaluation. */
+	add_operation_node(mask_id,
+	                   DEG_NODE_TYPE_PARAMETERS,
+	                   function_bind(BKE_mask_eval_update, _1, mask),
+	                   DEG_OPCODE_MASK_EVAL);
 }
 
 void DepsgraphNodeBuilder::build_movieclip(MovieClip *clip)

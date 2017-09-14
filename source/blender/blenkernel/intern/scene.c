@@ -1658,8 +1658,6 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 	 * in the future this should handle updates for all datablocks, not
 	 * only objects and scenes. - brecht */
 	DEG_evaluate_on_refresh(eval_ctx, scene->depsgraph_legacy, scene);
-	/* TODO(sergey): This is to beocme a node in new depsgraph. */
-	BKE_mask_update_scene(bmain, scene);
 
 	/* update sound system animation (TODO, move to depsgraph) */
 	BKE_sound_update_scene(bmain, scene);
@@ -1702,8 +1700,6 @@ void BKE_scene_update_for_newframe(EvaluationContext *eval_ctx, Main *bmain, Sce
 
 	for (sce_iter = sce; sce_iter; sce_iter = sce_iter->set)
 		DEG_scene_relations_update(bmain, sce_iter);
-
-	BKE_mask_evaluate_all_masks(bmain, ctime, true);
 
 	/* Update animated cache files for modifiers. */
 	BKE_cachefile_update_frame(bmain, sce, ctime, (((double)sce->r.frs_sec) / (double)sce->r.frs_sec_base));

@@ -513,6 +513,11 @@ static int startffmpeg(struct anim *anim)
 		avformat_close_input(&pFormatCtx);
 		return -1;
 	}
+	if (pCodecCtx->pix_fmt == AV_PIX_FMT_NONE) {
+		avcodec_close(anim->pCodecCtx);
+		avformat_close_input(&pFormatCtx);
+		return -1;
+	}
 
 	frame_rate = av_get_r_frame_rate_compat(pFormatCtx->streams[videoStream]);
 	if (pFormatCtx->streams[videoStream]->nb_frames != 0) {

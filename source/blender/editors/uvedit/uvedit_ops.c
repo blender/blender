@@ -222,7 +222,7 @@ void ED_uvedit_assign_image(Main *UNUSED(bmain), Scene *scene, Object *obedit, I
 		if (!CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV)) {
 			BM_data_layer_add(em->bm, &em->bm->ldata, CD_MLOOPUV);
 			/* make UVs all nice 0-1 */
-			ED_mesh_uv_loop_reset_ex(obedit->data, CustomData_get_active_layer_index(&em->bm->ldata, CD_MLOOPUV));
+			ED_mesh_uv_loop_reset_ex(obedit->data, CustomData_get_active_layer(&em->bm->ldata, CD_MLOOPUV));
 			update = true;
 		}
 

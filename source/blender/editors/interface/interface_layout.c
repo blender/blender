@@ -1648,6 +1648,10 @@ void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRN
 		            coll_search, NULL, NULL);
 		but->free_search_arg = true;
 	}
+	else if (but->type == UI_BTYPE_SEARCH_MENU) {
+		/* In case we fail to find proper searchprop, so other code might have already set but->type to search menu... */
+		but->type = UI_BTYPE_LABEL;
+	}
 }
 
 void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const char *propname, struct PointerRNA *searchptr, const char *searchpropname, const char *name, int icon)

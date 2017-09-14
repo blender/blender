@@ -227,6 +227,10 @@ typedef enum eDepsOperation_Code {
 	DEG_OPCODE_MATERIAL_UPDATE,
 	DEG_OPCODE_WORLD_UPDATE,
 
+	/* Masks ------------------------------------------- */
+	DEG_OPCODE_MASK_ANIMATION,
+	DEG_OPCODE_MASK_EVAL,
+
 	DEG_NUM_OPCODES,
 } eDepsOperation_Code;
 
