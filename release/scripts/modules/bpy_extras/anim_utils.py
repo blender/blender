@@ -33,7 +33,7 @@ def bake_action(
         obj,
         *,
         action, frames,
-        **kwargs,
+        **kwargs
 ):
     """
     :arg obj: Object to bake.
@@ -62,7 +62,7 @@ def bake_action_objects(
         object_action_pairs,
         *,
         frames,
-        **kwargs,
+        **kwargs
 ):
     """
     A version of :func:`bake_action_objects_iter` that takes frames and returns the output.
@@ -82,7 +82,7 @@ def bake_action_objects(
 
 def bake_action_objects_iter(
         object_action_pairs,
-        **kwargs,
+        **kwargs
 ):
     """
     An coroutine that bakes actions for multiple objects.
@@ -122,7 +122,7 @@ def bake_action_iter(
         do_visual_keying=True,
         do_constraint_clear=False,
         do_parents_clear=False,
-        do_clean=False,
+        do_clean=False
 ):
     """
     An coroutine that bakes action for a single object.
