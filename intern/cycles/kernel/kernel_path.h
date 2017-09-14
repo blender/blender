@@ -483,11 +483,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 		/* bssrdf scatter to a different location on the same object, replacing
 		 * the closures with a diffuse BSDF */
 		if(sd->flag & SD_BSSRDF) {
-			float bssrdf_probability;
-			ShaderClosure *sc = subsurface_scatter_pick_closure(kg, sd, &bssrdf_probability);
-
-			/* modify throughput for picking bssrdf or bsdf */
-			throughput *= bssrdf_probability;
+			const ShaderClosure *sc = shader_bssrdf_pick(sd, &throughput);
 
 			/* do bssrdf scatter step if we picked a bssrdf closure */
 			if(sc) {
