@@ -329,10 +329,12 @@ static bool get_path_system(
 			return true;
 		}
 	}
-
 	/* try EXECUTABLE_DIR/release/folder_name */
-	if (test_path(targetpath, targetpath_len, bprogdir, "release", relfolder))
+	if (test_path(targetpath, targetpath_len, bprogdir, "release", relfolder)) {
 		return true;
+	}
+	/* never use if not existing. */
+	targetpath[0] = '\0';
 
 	/* end developer overrides */
 
