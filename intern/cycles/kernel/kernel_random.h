@@ -186,25 +186,6 @@ ccl_device_inline float path_state_rng_1D(KernelGlobals *kg,
 	                   state->rng_offset + dimension);
 }
 
-ccl_device_inline float path_state_rng_1D_for_decision(
-        KernelGlobals *kg,
-        const ccl_addr_space PathState *state,
-        int dimension)
-{
-	/* The rng_offset is not increased for transparent bounces. if we do then
-	 * fully transparent objects can become subtly visible by the different
-	 * sampling patterns used where the transparent object is.
-	 *
-	 * however for some random numbers that will determine if we next bounce
-	 * is transparent we do need to increase the offset to avoid always making
-	 * the same decision. */
-	const int rng_offset = state->rng_offset + state->transparent_bounce * PRNG_BOUNCE_NUM;
-	return path_rng_1D(kg,
-	                   state->rng_hash,
-	                   state->sample, state->num_samples,
-	                   rng_offset + dimension);
-}
-
 ccl_device_inline void path_state_rng_2D(KernelGlobals *kg,
                                          const ccl_addr_space PathState *state,
                                          int dimension,
@@ -232,22 +213,6 @@ ccl_device_inline float path_branched_rng_1D(
 	                   state->rng_offset + dimension);
 }
 
-ccl_device_inline float path_branched_rng_1D_for_decision(
-        KernelGlobals *kg,
-        uint rng_hash,
-        const ccl_addr_space PathState *state,
-        int branch,
-        int num_branches,
-        int dimension)
-{
-	const int rng_offset = state->rng_offset + state->transparent_bounce * PRNG_BOUNCE_NUM;
-	return path_rng_1D(kg,
-	                   rng_hash,
-	                   state->sample * num_branches + branch,
-	                   state->num_samples * num_branches,
-	                   rng_offset + dimension);
-}
-
 ccl_device_inline void path_branched_rng_2D(
         KernelGlobals *kg,
         uint rng_hash,
@@ -273,7 +238,7 @@ ccl_device_inline float path_state_rng_light_termination(
         const ccl_addr_space PathState *state)
 {
 	if(kernel_data.integrator.light_inv_rr_threshold > 0.0f) {
-		return path_state_rng_1D_for_decision(kg, state, PRNG_LIGHT_TERMINATE);
+		return path_state_rng_1D(kg, state, PRNG_LIGHT_TERMINATE);
 	}
 	return 0.0f;
 }
@@ -286,12 +251,12 @@ ccl_device_inline float path_branched_rng_light_termination(
         int num_branches)
 {
 	if(kernel_data.integrator.light_inv_rr_threshold > 0.0f) {
-		return path_branched_rng_1D_for_decision(kg,
-		                                         rng_hash,
-		                                         state,
-		                                         branch,
-		                                         num_branches,
-		                                         PRNG_LIGHT_TERMINATE);
+		return path_branched_rng_1D(kg,
+		                            rng_hash,
+		                            state,
+		                            branch,
+		                            num_branches,
+		                            PRNG_LIGHT_TERMINATE);
 	}
 	return 0.0f;
 }

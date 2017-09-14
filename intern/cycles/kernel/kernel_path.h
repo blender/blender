@@ -210,8 +210,8 @@ ccl_device_forceinline VolumeIntegrateResult kernel_path_volume(
 				/* indirect sample. if we use distance sampling and take just
 				 * one sample for direct and indirect light, we could share
 				 * this computation, but makes code a bit complex */
-				float rphase = path_state_rng_1D_for_decision(kg, state, PRNG_PHASE);
-				float rscatter = path_state_rng_1D_for_decision(kg, state, PRNG_SCATTER_DISTANCE);
+				float rphase = path_state_rng_1D(kg, state, PRNG_PHASE);
+				float rscatter = path_state_rng_1D(kg, state, PRNG_SCATTER_DISTANCE);
 
 				result = kernel_volume_decoupled_scatter(kg,
 					state, &volume_ray, sd, throughput,
@@ -434,7 +434,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 		                      sd,
 		                      &isect,
 		                      ray);
-		float rbsdf = path_state_rng_1D_for_decision(kg, state, PRNG_BSDF);
+		float rbsdf = path_state_rng_1D(kg, state, PRNG_BSDF);
 		shader_eval_surface(kg, sd, state, rbsdf, state->flag);
 #ifdef __BRANCHED_PATH__
 		shader_merge_closures(sd);
@@ -462,7 +462,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 			break;
 		}
 		else if(probability != 1.0f) {
-			float terminate = path_state_rng_1D_for_decision(kg, state, PRNG_TERMINATE);
+			float terminate = path_state_rng_1D(kg, state, PRNG_TERMINATE);
 
 			if(terminate >= probability)
 				break;
@@ -591,7 +591,7 @@ ccl_device_forceinline void kernel_path_integrate(
 
 		/* Setup and evaluate shader. */
 		shader_setup_from_ray(kg, &sd, &isect, ray);
-		float rbsdf = path_state_rng_1D_for_decision(kg, state, PRNG_BSDF);
+		float rbsdf = path_state_rng_1D(kg, state, PRNG_BSDF);
 		shader_eval_surface(kg, &sd, state, rbsdf, state->flag);
 
 		/* Apply shadow catcher, holdout, emission. */
@@ -616,7 +616,7 @@ ccl_device_forceinline void kernel_path_integrate(
 			break;
 		}
 		else if(probability != 1.0f) {
-			float terminate = path_state_rng_1D_for_decision(kg, state, PRNG_TERMINATE);
+			float terminate = path_state_rng_1D(kg, state, PRNG_TERMINATE);
 			if(terminate >= probability)
 				break;
 

@@ -140,7 +140,7 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 			kernel_split_path_end(kg, ray_index);
 		}
 		else if(probability < 1.0f) {
-			float terminate = path_state_rng_1D_for_decision(kg, state, PRNG_TERMINATE);
+			float terminate = path_state_rng_1D(kg, state, PRNG_TERMINATE);
 			if(terminate >= probability) {
 				kernel_split_path_end(kg, ray_index);
 			}

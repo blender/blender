@@ -155,8 +155,8 @@ ccl_device void kernel_branched_path_volume_connect_light(
 				float3 tp = throughput;
 
 				/* sample position on volume segment */
-				float rphase = path_branched_rng_1D_for_decision(kg, state->rng_hash, state, j, num_samples, PRNG_PHASE);
-				float rscatter = path_branched_rng_1D_for_decision(kg, state->rng_hash, state, j, num_samples, PRNG_SCATTER_DISTANCE);
+				float rphase = path_branched_rng_1D(kg, state->rng_hash, state, j, num_samples, PRNG_PHASE);
+				float rscatter = path_branched_rng_1D(kg, state->rng_hash, state, j, num_samples, PRNG_SCATTER_DISTANCE);
 
 				VolumeIntegrateResult result = kernel_volume_decoupled_scatter(kg,
 					state, ray, sd, &tp, rphase, rscatter, segment, (ls.t != FLT_MAX)? &ls.P: NULL, false);
@@ -201,8 +201,8 @@ ccl_device void kernel_branched_path_volume_connect_light(
 				float3 tp = throughput;
 
 				/* sample position on volume segment */
-				float rphase = path_branched_rng_1D_for_decision(kg, state->rng_hash, state, j, num_samples, PRNG_PHASE);
-				float rscatter = path_branched_rng_1D_for_decision(kg, state->rng_hash, state, j, num_samples, PRNG_SCATTER_DISTANCE);
+				float rphase = path_branched_rng_1D(kg, state->rng_hash, state, j, num_samples, PRNG_PHASE);
+				float rscatter = path_branched_rng_1D(kg, state->rng_hash, state, j, num_samples, PRNG_SCATTER_DISTANCE);
 
 				VolumeIntegrateResult result = kernel_volume_decoupled_scatter(kg,
 					state, ray, sd, &tp, rphase, rscatter, segment, (ls.t != FLT_MAX)? &ls.P: NULL, false);
@@ -238,8 +238,8 @@ ccl_device void kernel_branched_path_volume_connect_light(
 		float3 tp = throughput;
 
 		/* sample position on volume segment */
-		float rphase = path_state_rng_1D_for_decision(kg, state, PRNG_PHASE);
-		float rscatter = path_state_rng_1D_for_decision(kg, state, PRNG_SCATTER_DISTANCE);
+		float rphase = path_state_rng_1D(kg, state, PRNG_PHASE);
+		float rscatter = path_state_rng_1D(kg, state, PRNG_SCATTER_DISTANCE);
 
 		VolumeIntegrateResult result = kernel_volume_decoupled_scatter(kg,
 			state, ray, sd, &tp, rphase, rscatter, segment, (ls.t != FLT_MAX)? &ls.P: NULL, false);
