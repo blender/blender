@@ -45,21 +45,20 @@ static float step_cost_3_v3_ex(
         const float v1[3], const float v2[3], const float v3[3],
         bool skip_12, bool skip_23)
 {
-	float cost, d1[3], d2[3];
-
+	float d1[3], d2[3];
 
 	/* The cost is based on the simple sum of the length of the two edgees... */
 	sub_v3_v3v3(d1, v2, v1);
 	sub_v3_v3v3(d2, v3, v2);
-	cost = ((skip_12 ? 0.0f : normalize_v3(d1)) +
-	        (skip_23 ? 0.0f : normalize_v3(d2)));
+	const float cost_12 = normalize_v3(d1);
+	const float cost_23 = normalize_v3(d2);
+	const float cost = ((skip_12 ? 0.0f : cost_12) +
+	                    (skip_23 ? 0.0f : cost_23));
 
 	/* but is biased to give higher values to sharp turns, so that it will take
 	 * paths with fewer "turns" when selecting between equal-weighted paths between
 	 * the two edges */
-	cost = cost * (1.0f + 0.5f * (2.0f - sqrtf(fabsf(dot_v3v3(d1, d2)))));
-
-	return cost;
+	return cost * (1.0f + 0.5f * (2.0f - sqrtf(fabsf(dot_v3v3(d1, d2)))));
 }
 
 static float step_cost_3_v3(
