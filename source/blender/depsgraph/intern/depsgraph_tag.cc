@@ -365,6 +365,10 @@ void deg_graph_on_visible_update(Main *bmain, Scene *scene, Depsgraph *graph)
 	GHASH_FOREACH_BEGIN(DEG::IDDepsNode *, id_node, graph->id_hash)
 	{
 		const ID_Type id_type = GS(id_node->id_orig->name);
+		/* TODO(sergey): Special exception for now. */
+		if (id_type == ID_MSK) {
+			deg_graph_id_tag_update(bmain, graph, id_node->id_orig, 0);
+		}
 		if (id_type != ID_OB) {
 			/* Ignore non-object nodes on visibility changes. */
 			continue;
