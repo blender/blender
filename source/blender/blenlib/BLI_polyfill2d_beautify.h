@@ -33,8 +33,12 @@ void BLI_polyfill_beautify(
         /* structs for reuse */
         struct MemArena *arena, struct Heap *eheap, struct EdgeHash *eh);
 
-float BLI_polyfill_beautify_quad_rotate_calc(
-        const float v1[2], const float v2[2], const float v3[2], const float v4[2]);
+float BLI_polyfill_beautify_quad_rotate_calc_ex(
+        const float v1[2], const float v2[2], const float v3[2], const float v4[2],
+        const bool lock_degenerate);
+#define BLI_polyfill_beautify_quad_rotate_calc(v1, v2, v3, v4) \
+	BLI_polyfill_beautify_quad_rotate_calc_ex(v1, v2, v3, v4, false)
+
 
 /* avoid realloc's when creating new structures for polyfill ngons */
 #define BLI_POLYFILL_ALLOC_NGON_RESERVE 64

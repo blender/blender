@@ -568,6 +568,22 @@ void cleanupFaceEdgeAttrsCallback(const MeshSet<3> *left,
 	                     &descr->orig_face_edge_mapping);
 }
 
+void copyVertexAttrsCallback(const carve::mesh::MeshSet<3>::vertex_t *orig_vert,
+                             const carve::mesh::MeshSet<3>::vertex_t *new_vert,
+                             void *descr_v)
+{
+	CarveMeshDescr *descr = (CarveMeshDescr *) descr_v;
+	if (!descr->orig_vert_mapping.hasAttribute(orig_vert)) {
+		return;
+	}
+	if (descr->orig_vert_mapping.hasAttribute(new_vert)) {
+		return;
+	}
+	OrigIndex attr = descr->orig_vert_mapping.getAttribute(orig_vert);
+	descr->orig_vert_mapping.setAttribute(new_vert, attr);
+	descr->orig_vert_mapping.removeAttribute(orig_vert);
+}
+
 }  // namespace
 
 CarveMeshDescr *carve_addMesh(struct ImportMeshData *import_data,
@@ -751,6 +767,7 @@ bool carve_performBooleanOperation(CarveMeshDescr *left_mesh,
 		// done properly. The only way to make such situations working is to
 		// union intersecting meshes of the same operand.
 		carve_unionIntersections(&csg, &left, &right,
+		                         copyVertexAttrsCallback,
 		                         cleanupFaceEdgeAttrsCallback,
 		                         (void *) output_descr);
 

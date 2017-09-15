@@ -1517,7 +1517,25 @@ void BM_mesh_calc_tessellation_beauty(BMesh *bm, BMLoop *(*looptris)[3], int *r_
 			BMLoop *l_v3 = l_v2->next;
 			BMLoop *l_v4 = l_v1->prev;
 
-			const bool split_24 = (BM_verts_calc_rotate_beauty(l_v1->v, l_v2->v, l_v3->v, l_v4->v, 0, 0) > 0.0f);
+			/* #BM_verts_calc_rotate_beauty performs excessive checks we don't need!
+			 * It's meant for rotating edges, it also calculates a new normal.
+			 *
+			 * Use #BLI_polyfill_beautify_quad_rotate_calc since we have the normal.
+			 */
+#if 0
+			const bool split_24 = (BM_verts_calc_rotate_beauty(
+			        l_v1->v, l_v2->v, l_v3->v, l_v4->v, 0, 0) < 0.0f);
+#else
+			float axis_mat[3][3], v_quad[4][2];
+			axis_dominant_v3_to_m3(axis_mat, efa->no);
+			mul_v2_m3v3(v_quad[0], axis_mat, l_v1->v->co);
+			mul_v2_m3v3(v_quad[1], axis_mat, l_v2->v->co);
+			mul_v2_m3v3(v_quad[2], axis_mat, l_v3->v->co);
+			mul_v2_m3v3(v_quad[3], axis_mat, l_v4->v->co);
+
+			const bool split_24 = BLI_polyfill_beautify_quad_rotate_calc(
+			        v_quad[0], v_quad[1], v_quad[2], v_quad[3]) < 0.0f;
+#endif
 
 			BMLoop **l_ptr_a = looptris[i++];
 			BMLoop **l_ptr_b = looptris[i++];
