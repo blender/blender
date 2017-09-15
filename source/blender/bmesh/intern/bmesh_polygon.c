@@ -1517,7 +1517,7 @@ void BM_mesh_calc_tessellation_beauty(BMesh *bm, BMLoop *(*looptris)[3], int *r_
 			BMLoop *l_v3 = l_v2->next;
 			BMLoop *l_v4 = l_v1->prev;
 
-			const bool split_24 = (BM_verts_calc_rotate_beauty(l_v1->v, l_v2->v, l_v3->v, l_v4->v, 0, 0) > 0.0f);
+			const bool split_24 = (BM_verts_calc_rotate_beauty(l_v1->v, l_v2->v, l_v3->v, l_v4->v, 0, 0) < 0.0f);
 
 			BMLoop **l_ptr_a = looptris[i++];
 			BMLoop **l_ptr_b = looptris[i++];
