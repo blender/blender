@@ -1,3 +1,5 @@
+:tocdepth: 2
+
 Blender API Change Log
 **********************
 
