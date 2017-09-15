@@ -70,6 +70,10 @@ void carve_getRescaleMinMax(const carve::mesh::MeshSet<3> *left,
                             carve::geom3d::Vector *min,
                             carve::geom3d::Vector *max);
 
+typedef void (*VertexAttrsCallback) (const carve::mesh::MeshSet<3>::vertex_t *orig_vert,
+                                     const carve::mesh::MeshSet<3>::vertex_t *new_vert,
+                                     void *userdata);
+
 typedef void (*UnionIntersectionsCallback) (const carve::mesh::MeshSet<3> *left,
                                             const carve::mesh::MeshSet<3> *right,
                                             void *userdata);
@@ -77,6 +81,7 @@ typedef void (*UnionIntersectionsCallback) (const carve::mesh::MeshSet<3> *left,
 void carve_unionIntersections(carve::csg::CSG *csg,
                               carve::mesh::MeshSet<3> **left_r,
                               carve::mesh::MeshSet<3> **right_r,
+                              VertexAttrsCallback vertex_attr_callback,
                               UnionIntersectionsCallback callback,
                               void *user_data);
 
@@ -147,6 +152,13 @@ namespace carve {
 
 			void setAttribute(const meshset_t::vertex_t *v, const attr_t &attr) {
 				attrs[v] = attr;
+			}
+
+			void removeAttribute(const meshset_t::vertex_t *v) {
+				typename attrmap_t::iterator it = attrs.find(v);
+				if (it != attrs.end()) {
+					attrs.erase(it);
+				}
 			}
 		};
 
