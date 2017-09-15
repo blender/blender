@@ -141,6 +141,11 @@ void carve_getRescaleMinMax(const MeshSet<3> *left,
 
 namespace {
 
+struct UnionIntersectionContext {
+	VertexAttrsCallback vertex_attr_callback;
+	void *user_data;
+};
+
 void copyMeshes(const std::vector<MeshSet<3>::mesh_t*> &meshes,
                 std::vector<MeshSet<3>::mesh_t*> *new_meshes)
 {
@@ -154,24 +159,73 @@ void copyMeshes(const std::vector<MeshSet<3>::mesh_t*> &meshes,
 	}
 }
 
-MeshSet<3> *meshSetFromMeshes(const std::vector<MeshSet<3>::mesh_t*> &meshes)
+struct NewMeshMapping {
+	std::map<const MeshSet<3>::edge_t*, MeshSet<3>::vertex_t*> orig_edge_vert;
+};
+
+void prepareNewMeshMapping(const std::vector<MeshSet<3>::mesh_t*> &meshes,
+                           NewMeshMapping *mapping)
 {
-	std::vector<MeshSet<3>::mesh_t*> new_meshes;
-
-	copyMeshes(meshes, &new_meshes);
-
-	return new MeshSet<3>(new_meshes);
+	for (size_t m = 0; m < meshes.size(); ++m) {
+		MeshSet<3>::mesh_t *mesh = meshes[m];
+		for (size_t f = 0; f < mesh->faces.size(); ++f) {
+			MeshSet<3>::face_t *face = mesh->faces[f];
+			MeshSet<3>::edge_t *edge = face->edge;
+			do {
+				mapping->orig_edge_vert[edge] = edge->vert;
+				edge = edge->next;
+			} while (edge != face->edge);
+		}
+	}
 }
 
-MeshSet<3> *meshSetFromTwoMeshes(const std::vector<MeshSet<3>::mesh_t*> &left_meshes,
+void runNewMeshSetHooks(UnionIntersectionContext *ctx,
+                        NewMeshMapping *mapping,
+                        MeshSet<3> *mesh_set)
+{
+	for (size_t m = 0; m < mesh_set->meshes.size(); ++m) {
+		MeshSet<3>::mesh_t *mesh = mesh_set->meshes[m];
+		for (size_t f = 0; f < mesh->faces.size(); ++f) {
+			MeshSet<3>::face_t *face = mesh->faces[f];
+			MeshSet<3>::edge_t *edge = face->edge;
+			do {
+				const MeshSet<3>::vertex_t *orig_vert = mapping->orig_edge_vert[edge];
+				const MeshSet<3>::vertex_t *new_vert = edge->vert;
+				ctx->vertex_attr_callback(orig_vert, new_vert, ctx->user_data);
+				edge = edge->next;
+			} while (edge != face->edge);
+		}
+	}
+}
+
+MeshSet<3> *newMeshSetFromMeshesWithAttrs(
+    UnionIntersectionContext *ctx,
+    std::vector<MeshSet<3>::mesh_t*> &meshes)
+{
+	NewMeshMapping mapping;
+	prepareNewMeshMapping(meshes, &mapping);
+	MeshSet<3> *mesh_set = new MeshSet<3>(meshes);
+	runNewMeshSetHooks(ctx, &mapping, mesh_set);
+	return mesh_set;
+}
+
+
+MeshSet<3> *meshSetFromMeshes(UnionIntersectionContext *ctx,
+                              const std::vector<MeshSet<3>::mesh_t*> &meshes)
+{
+	std::vector<MeshSet<3>::mesh_t*> new_meshes;
+	copyMeshes(meshes, &new_meshes);
+	return newMeshSetFromMeshesWithAttrs(ctx, new_meshes);
+}
+
+MeshSet<3> *meshSetFromTwoMeshes(UnionIntersectionContext *ctx,
+                                 const std::vector<MeshSet<3>::mesh_t*> &left_meshes,
                                  const std::vector<MeshSet<3>::mesh_t*> &right_meshes)
 {
 	std::vector<MeshSet<3>::mesh_t*> new_meshes;
-
 	copyMeshes(left_meshes, &new_meshes);
 	copyMeshes(right_meshes, &new_meshes);
-
-	return new MeshSet<3>(new_meshes);
+	return newMeshSetFromMeshesWithAttrs(ctx, new_meshes);
 }
 
 bool checkEdgeFaceIntersections_do(Intersections &intersections,
@@ -349,7 +403,8 @@ void getIntersectedOperandMeshes(std::vector<MeshSet<3>::mesh_t*> *meshes,
 	}
 }
 
-MeshSet<3> *getIntersectedOperand(std::vector<MeshSet<3>::mesh_t*> *meshes,
+MeshSet<3> *getIntersectedOperand(UnionIntersectionContext *ctx,
+                                  std::vector<MeshSet<3>::mesh_t*> *meshes,
                                   const MeshSet<3>::aabb_t &otherAABB,
                                   RTreeCache *rtree_cache,
                                   IntersectCache *intersect_cache)
@@ -360,13 +415,14 @@ MeshSet<3> *getIntersectedOperand(std::vector<MeshSet<3>::mesh_t*> *meshes,
 	if (operandMeshes.size() == 0)
 		return NULL;
 
-	return meshSetFromMeshes(operandMeshes);
+	return meshSetFromMeshes(ctx, operandMeshes);
 }
 
 MeshSet<3> *unionIntersectingMeshes(carve::csg::CSG *csg,
                                     MeshSet<3> *poly,
                                     const MeshSet<3> *other_poly,
                                     const MeshSet<3>::aabb_t &otherAABB,
+                                    VertexAttrsCallback vertex_attr_callback,
                                     UnionIntersectionsCallback callback,
                                     void *user_data)
 {
@@ -380,7 +436,12 @@ MeshSet<3> *unionIntersectingMeshes(carve::csg::CSG *csg,
 	RTreeCache rtree_cache;
 	IntersectCache intersect_cache;
 
-	MeshSet<3> *left = getIntersectedOperand(&orig_meshes,
+	UnionIntersectionContext ctx;
+	ctx.vertex_attr_callback = vertex_attr_callback;
+	ctx.user_data = user_data;
+
+	MeshSet<3> *left = getIntersectedOperand(&ctx,
+	                                         &orig_meshes,
 	                                         otherAABB,
 	                                         &rtree_cache,
 	                                         &intersect_cache);
@@ -391,7 +452,8 @@ MeshSet<3> *unionIntersectingMeshes(carve::csg::CSG *csg,
 	}
 
 	while (orig_meshes.size()) {
-		MeshSet<3> *right = getIntersectedOperand(&orig_meshes,
+		MeshSet<3> *right = getIntersectedOperand(&ctx,
+		                                          &orig_meshes,
 		                                          otherAABB,
 		                                          &rtree_cache,
 		                                          &intersect_cache);
@@ -422,7 +484,9 @@ MeshSet<3> *unionIntersectingMeshes(carve::csg::CSG *csg,
 		catch (carve::exception e) {
 			std::cerr << "CSG failed, exception " << e.str() << std::endl;
 
-			MeshSet<3> *result = meshSetFromTwoMeshes(left->meshes, right->meshes);
+			MeshSet<3> *result = meshSetFromTwoMeshes(&ctx,
+			                                          left->meshes,
+			                                          right->meshes);
 
 			callback(result, other_poly, user_data);
 
@@ -448,7 +512,9 @@ MeshSet<3> *unionIntersectingMeshes(carve::csg::CSG *csg,
 
 	// Append all meshes which doesn't have intersection with another operand as-is.
 	if (orig_meshes.size()) {
-		MeshSet<3> *result = meshSetFromTwoMeshes(left->meshes, orig_meshes);
+		MeshSet<3> *result = meshSetFromTwoMeshes(&ctx,
+		                                          left->meshes,
+		                                          orig_meshes);
 
 		delete left;
 		left = result;
@@ -464,6 +530,7 @@ MeshSet<3> *unionIntersectingMeshes(carve::csg::CSG *csg,
 void carve_unionIntersections(carve::csg::CSG *csg,
                               MeshSet<3> **left_r,
                               MeshSet<3> **right_r,
+                              VertexAttrsCallback vertex_attr_callback,
                               UnionIntersectionsCallback callback,
                               void *user_data)
 {
@@ -477,9 +544,9 @@ void carve_unionIntersections(carve::csg::CSG *csg,
 	MeshSet<3>::aabb_t rightAABB = right->getAABB();;
 
 	left = unionIntersectingMeshes(csg, left, right, rightAABB,
-	                               callback, user_data);
+	                               vertex_attr_callback, callback, user_data);
 	right = unionIntersectingMeshes(csg, right, left, leftAABB,
-	                                callback, user_data);
+	                                vertex_attr_callback, callback, user_data);
 
 	if (left != *left_r) {
 		delete *left_r;
