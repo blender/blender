@@ -2018,6 +2018,7 @@ void DAG_scene_flush_update(Main *bmain, Scene *sce, unsigned int lay, const sho
 	int lasttime;
 
 	if (!DEG_depsgraph_use_legacy()) {
+		DEG_scene_flush_update(bmain, sce);
 		return;
 	}
 
