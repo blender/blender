@@ -123,8 +123,9 @@ BLI_INLINE bool is_boundary_edge(unsigned int i_a, unsigned int i_b, const unsig
  *
  * \return (negative number means the edge can be rotated, lager == better).
  */
-float BLI_polyfill_beautify_quad_rotate_calc(
-        const float v1[2], const float v2[2], const float v3[2], const float v4[2])
+float BLI_polyfill_beautify_quad_rotate_calc_ex(
+        const float v1[2], const float v2[2], const float v3[2], const float v4[2],
+        const bool lock_degenerate)
 {
 	/* not a loop (only to be able to break out) */
 	do {
@@ -136,12 +137,12 @@ float BLI_polyfill_beautify_quad_rotate_calc(
 		const float area_2x_123 = cross_tri_v2(v1, v2, v3);
 		const float area_2x_134 = cross_tri_v2(v1, v3, v4);
 
-		{
-			BLI_assert((ELEM(v1, v2, v3, v4) == false) &&
-			           (ELEM(v2, v1, v3, v4) == false) &&
-			           (ELEM(v3, v1, v2, v4) == false) &&
-			           (ELEM(v4, v1, v2, v3) == false));
+		BLI_assert((ELEM(v1, v2, v3, v4) == false) &&
+		           (ELEM(v2, v1, v3, v4) == false) &&
+		           (ELEM(v3, v1, v2, v4) == false) &&
+		           (ELEM(v4, v1, v2, v3) == false));
 
+		if (lock_degenerate) {
 			is_zero_a = (fabsf(area_2x_234) <= FLT_EPSILON);
 			is_zero_b = (fabsf(area_2x_241) <= FLT_EPSILON);
 

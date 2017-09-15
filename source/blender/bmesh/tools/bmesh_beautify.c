@@ -182,7 +182,12 @@ static float bm_edge_calc_rotate_beauty__area(
 			}
 		}
 
-		return BLI_polyfill_beautify_quad_rotate_calc(v1_xy, v2_xy, v3_xy, v4_xy);
+		/**
+		 * Important to lock degenerate here,
+		 * since the triangle pars will be projected into different 2D spaces.
+		 * Allowing to rotate out of a degenerate state can flip the faces (when performed iteratively).
+		 */
+		return BLI_polyfill_beautify_quad_rotate_calc_ex(v1_xy, v2_xy, v3_xy, v4_xy, true);
 	} while (false);
 
 	return FLT_MAX;
