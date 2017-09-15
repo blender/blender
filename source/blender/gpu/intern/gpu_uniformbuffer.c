@@ -97,6 +97,7 @@ GPUUniformBuffer *GPU_uniformbuffer_create(int size, const void *data, char err_
 {
 	GPUUniformBuffer *ubo = MEM_callocN(sizeof(GPUUniformBufferStatic), "GPUUniformBufferStatic");
 	ubo->size = size;
+	ubo->bindpoint = -1;
 
 	/* Generate Buffer object */
 	glGenBuffers(1, &ubo->bindcode);
@@ -134,6 +135,7 @@ GPUUniformBuffer *GPU_uniformbuffer_dynamic_create(ListBase *inputs, char err_ou
 
 	GPUUniformBufferDynamic *ubo = MEM_callocN(sizeof(GPUUniformBufferDynamic), "GPUUniformBufferDynamic");
 	ubo->buffer.type = GPU_UBO_DYNAMIC;
+	ubo->buffer.bindpoint = -1;
 	ubo->flag = GPU_UBO_FLAG_DIRTY;
 
 	/* Generate Buffer object. */
