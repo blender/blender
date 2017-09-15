@@ -2887,6 +2887,16 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Is Perspective", "");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 
+	/* This isn't directly accessible from the UI, only an operator. */
+	prop = RNA_def_property(srna, "use_clip_planes", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "rflag", RV3D_CLIPPING);
+	RNA_def_property_ui_text(prop, "Use Clip Planes", "");
+
+	prop = RNA_def_property(srna, "clip_planes", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "clip");
+	RNA_def_property_multi_array(prop, 2, (int[]){6, 4});
+	RNA_def_property_ui_text(prop, "Clipe Planes", "");
+
 	prop = RNA_def_property(srna, "view_location", PROP_FLOAT, PROP_TRANSLATION);
 #if 0
 	RNA_def_property_float_sdna(prop, NULL, "ofs"); /* cant use because its negated */
