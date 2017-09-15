@@ -307,7 +307,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	re = RE_NewRender(scene->id.name);
+	re = RE_NewSceneRender(scene);
 	RE_SetDepsgraph(re, CTX_data_depsgraph(C));
 	lay_override = (v3d && v3d->lay != scene->lay) ? v3d->lay : 0;
 
@@ -967,7 +967,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	rj->image = ima;
 
 	/* setup new render */
-	re = RE_NewRender(scene->id.name);
+	re = RE_NewSceneRender(scene);
 	RE_test_break_cb(re, rj, render_breakjob);
 	RE_draw_lock_cb(re, rj, render_drawlock);
 	RE_display_update_cb(re, rj, image_rect_update);

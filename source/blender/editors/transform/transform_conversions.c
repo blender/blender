@@ -5602,6 +5602,9 @@ static void set_trans_object_base_flags(TransInfo *t)
 		}
 	}
 
+	/* all recalc flags get flushed to all layers, so a layer flip later on works fine */
+	DEG_scene_flush_update(G.main, t->scene);
+
 	/* and we store them temporal in base (only used for transform code) */
 	/* this because after doing updates, the object->recalc is cleared */
 	for (base = sl->object_bases.first; base; base = base->next) {
@@ -5680,6 +5683,7 @@ static int count_proportional_objects(TransInfo *t)
 
 	/* all recalc flags get flushed to all layers, so a layer flip later on works fine */
 	DEG_scene_relations_update(G.main, t->scene);
+	DEG_scene_flush_update(G.main, t->scene);
 
 	/* and we store them temporal in base (only used for transform code) */
 	/* this because after doing updates, the object->recalc is cleared */

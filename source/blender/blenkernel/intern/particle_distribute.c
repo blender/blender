@@ -39,6 +39,7 @@
 #include "BLI_jitter.h"
 #include "BLI_kdtree.h"
 #include "BLI_math.h"
+#include "BLI_math_geom.h"
 #include "BLI_rand.h"
 #include "BLI_sort.h"
 #include "BLI_task.h"
@@ -213,14 +214,22 @@ static void distribute_grid(DerivedMesh *dm, ParticleSystem *psys)
 					copy_v3_v3(co2, co1);
 					co2[a] += delta[a] + 0.001f*d;
 					co1[a] -= 0.001f*d;
-					
+
+					struct IsectRayPrecalc isect_precalc;
+					float ray_direction[3];
+					sub_v3_v3v3(ray_direction, co2, co1);
+					isect_ray_tri_watertight_v3_precalc(&isect_precalc, ray_direction);
+
 					/* lets intersect the faces */
 					for (i=0; i<totface; i++,mface++) {
 						copy_v3_v3(v1, mvert[mface->v1].co);
 						copy_v3_v3(v2, mvert[mface->v2].co);
 						copy_v3_v3(v3, mvert[mface->v3].co);
 
-						bool intersects_tri = isect_axial_line_segment_tri_v3(a, co1, co2, v2, v3, v1, &lambda);
+						bool intersects_tri = isect_ray_tri_watertight_v3(co1,
+						                                                  &isect_precalc,
+						                                                  v1, v2, v3,
+						                                                  &lambda, NULL);
 						if (intersects_tri) {
 							if (from==PART_FROM_FACE)
 								(pa+(int)(lambda*size[a])*a0mul)->flag &= ~PARS_UNEXIST;
@@ -231,7 +240,10 @@ static void distribute_grid(DerivedMesh *dm, ParticleSystem *psys)
 						if (mface->v4 && (!intersects_tri || from==PART_FROM_VOLUME)) {
 							copy_v3_v3(v4, mvert[mface->v4].co);
 
-							if (isect_axial_line_segment_tri_v3(a, co1, co2, v4, v1, v3, &lambda)) {
+							if (isect_ray_tri_watertight_v3(co1,
+							                                &isect_precalc,
+							                                v1, v3, v4,
+							                                &lambda, NULL)) {
 								if (from==PART_FROM_FACE)
 									(pa+(int)(lambda*size[a])*a0mul)->flag &= ~PARS_UNEXIST;
 								else

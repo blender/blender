@@ -38,24 +38,34 @@
 /* -------------------------------------------------------------------- */
 /* Generic Helpers */
 
-static float step_cost_3_v3(const float v1[3], const float v2[3], const float v3[3])
+/**
+ * Use skip options when we want to start measuring from a boundary.
+ */
+static float step_cost_3_v3_ex(
+        const float v1[3], const float v2[3], const float v3[3],
+        bool skip_12, bool skip_23)
 {
-	float cost, d1[3], d2[3];
-
+	float d1[3], d2[3];
 
 	/* The cost is based on the simple sum of the length of the two edgees... */
 	sub_v3_v3v3(d1, v2, v1);
 	sub_v3_v3v3(d2, v3, v2);
-	cost = normalize_v3(d1) + normalize_v3(d2);
+	const float cost_12 = normalize_v3(d1);
+	const float cost_23 = normalize_v3(d2);
+	const float cost = ((skip_12 ? 0.0f : cost_12) +
+	                    (skip_23 ? 0.0f : cost_23));
 
 	/* but is biased to give higher values to sharp turns, so that it will take
 	 * paths with fewer "turns" when selecting between equal-weighted paths between
 	 * the two edges */
-	cost = cost * (1.0f + 0.5f * (2.0f - sqrtf(fabsf(dot_v3v3(d1, d2)))));
-
-	return cost;
+	return cost * (1.0f + 0.5f * (2.0f - sqrtf(fabsf(dot_v3v3(d1, d2)))));
 }
 
+static float step_cost_3_v3(
+        const float v1[3], const float v2[3], const float v3[3])
+{
+	return step_cost_3_v3_ex(v1, v2, v3, false, false);
+}
 
 
 /* -------------------------------------------------------------------- */
@@ -364,7 +374,7 @@ LinkNode *BM_mesh_calc_path_edge(
 /* -------------------------------------------------------------------- */
 /* BM_mesh_calc_path_face */
 
-static float facetag_cut_cost_edge(BMFace *f_a, BMFace *f_b, BMEdge *e)
+static float facetag_cut_cost_edge(BMFace *f_a, BMFace *f_b, BMEdge *e, const void * const f_endpoints[2])
 {
 	float f_a_cent[3];
 	float f_b_cent[3];
@@ -392,10 +402,12 @@ static float facetag_cut_cost_edge(BMFace *f_a, BMFace *f_b, BMEdge *e)
 	}
 #endif
 
-	return step_cost_3_v3(f_a_cent, e_cent, f_b_cent);
+	return step_cost_3_v3_ex(
+	        f_a_cent, e_cent, f_b_cent,
+	        (f_a == f_endpoints[0]), (f_b == f_endpoints[1]));
 }
 
-static float facetag_cut_cost_vert(BMFace *f_a, BMFace *f_b, BMVert *v)
+static float facetag_cut_cost_vert(BMFace *f_a, BMFace *f_b, BMVert *v, const void * const f_endpoints[2])
 {
 	float f_a_cent[3];
 	float f_b_cent[3];
@@ -403,12 +415,14 @@ static float facetag_cut_cost_vert(BMFace *f_a, BMFace *f_b, BMVert *v)
 	BM_face_calc_center_mean_weighted(f_a, f_a_cent);
 	BM_face_calc_center_mean_weighted(f_b, f_b_cent);
 
-	return step_cost_3_v3(f_a_cent, v->co, f_b_cent);
+	return step_cost_3_v3_ex(
+	        f_a_cent, v->co, f_b_cent,
+	        (f_a == f_endpoints[0]), (f_b == f_endpoints[1]));
 }
 
 static void facetag_add_adjacent(
         Heap *heap, BMFace *f_a, BMFace **faces_prev, float *cost,
-        const struct BMCalcPathParams *params)
+        const void * const f_endpoints[2], const struct BMCalcPathParams *params)
 {
 	const int f_a_index = BM_elem_index_get(f_a);
 
@@ -427,7 +441,7 @@ static void facetag_add_adjacent(
 					/* we know 'f_b' is not visited, check it out! */
 					const int f_b_index = BM_elem_index_get(f_b);
 					const float cost_cut = params->use_topology_distance ?
-					        1.0f : facetag_cut_cost_edge(f_a, f_b, l_iter->e);
+					        1.0f : facetag_cut_cost_edge(f_a, f_b, l_iter->e, f_endpoints);
 					const float cost_new = cost[f_a_index] + cost_cut;
 
 					if (cost[f_b_index] > cost_new) {
@@ -454,7 +468,7 @@ static void facetag_add_adjacent(
 						/* we know 'f_b' is not visited, check it out! */
 						const int f_b_index = BM_elem_index_get(f_b);
 						const float cost_cut = params->use_topology_distance ?
-						        1.0f : facetag_cut_cost_vert(f_a, f_b, l_a->v);
+						        1.0f : facetag_cut_cost_vert(f_a, f_b, l_a->v, f_endpoints);
 						const float cost_new = cost[f_a_index] + cost_cut;
 
 						if (cost[f_b_index] > cost_new) {
@@ -481,6 +495,9 @@ LinkNode *BM_mesh_calc_path_face(
 	float *cost;
 	BMFace **faces_prev;
 	int i, totface;
+
+	/* Start measuring face path at the face edges, ignoring their centers. */
+	const void * const f_endpoints[2] = {f_src, f_dst};
 
 	/* note, would pass BM_EDGE except we are looping over all faces anyway */
 	// BM_mesh_elem_index_ensure(bm, BM_VERT /* | BM_EDGE */); // NOT NEEDED FOR FACETAG
@@ -522,7 +539,7 @@ LinkNode *BM_mesh_calc_path_face(
 
 		if (!BM_elem_flag_test(f, BM_ELEM_TAG)) {
 			BM_elem_flag_enable(f, BM_ELEM_TAG);
-			facetag_add_adjacent(heap, f, faces_prev, cost, params);
+			facetag_add_adjacent(heap, f, faces_prev, cost, f_endpoints, params);
 		}
 	}
 

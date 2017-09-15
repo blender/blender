@@ -176,7 +176,7 @@ void RenderLayersNode::convertToOperations(NodeConverter &converter,
                                            const CompositorContext &context) const
 {
 	Scene *scene = (Scene *)this->getbNode()->id;
-	Render *re = (scene) ? RE_GetRender(scene->id.name) : NULL;
+	Render *re = (scene) ? RE_GetSceneRender(scene) : NULL;
 
 	if (re != NULL) {
 		testRenderLink(converter, context, re);
