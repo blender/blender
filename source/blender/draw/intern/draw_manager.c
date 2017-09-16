@@ -362,10 +362,11 @@ static struct DRWGlobalState {
 /** GPU Resource State: Memory storage between drawing. */
 static struct DRWResourceState {
 	GPUTexture **bound_texs;
-	GPUUniformBuffer **bound_ubos;
 
 	bool *bound_tex_slots;
-	bool *bound_ubo_slots;
+
+	int bind_tex_inc;
+	int bind_ubo_inc;
 } RST = {NULL};
 
 static struct DRWMatrixOveride {
@@ -1838,10 +1839,11 @@ static void bind_texture(GPUTexture *tex)
 	int bind_num = GPU_texture_bound_number(tex);
 	if (bind_num == -1) {
 		for (int i = 0; i < GPU_max_textures(); ++i) {
-			if (RST.bound_tex_slots[i] == false) {
-				GPU_texture_bind(tex, i);
-				RST.bound_texs[i] = tex;
-				RST.bound_tex_slots[i] = true;
+			RST.bind_tex_inc = (RST.bind_tex_inc + 1) % GPU_max_textures();
+			if (RST.bound_tex_slots[RST.bind_tex_inc] == false) {
+				GPU_texture_bind(tex, RST.bind_tex_inc);
+				RST.bound_texs[RST.bind_tex_inc] = tex;
+				RST.bound_tex_slots[RST.bind_tex_inc] = true;
 				return;
 			}
 		}
@@ -1853,17 +1855,11 @@ static void bind_texture(GPUTexture *tex)
 
 static void bind_ubo(GPUUniformBuffer *ubo)
 {
-	int bind_num = GPU_uniformbuffer_bindpoint(ubo);
-	if (bind_num == -1) {
-		for (int i = 0; i < GPU_max_ubo_binds(); ++i) {
-			if (RST.bound_ubo_slots[i] == false) {
-				GPU_uniformbuffer_bind(ubo, i);
-				RST.bound_ubos[i] = ubo;
-				RST.bound_ubo_slots[i] = true;
-				return;
-			}
-		}
-
+	if (RST.bind_ubo_inc < GPU_max_ubo_binds()) {
+		GPU_uniformbuffer_bind(ubo, RST.bind_ubo_inc);
+		RST.bind_ubo_inc++;
+	}
+	else {
 		/* This is not depending on user input.
 		 * It is our responsability to make sure there enough slots. */
 		BLI_assert(0 && "Not enough ubo slots! This should not happen!\n");
@@ -1871,7 +1867,6 @@ static void bind_ubo(GPUUniformBuffer *ubo)
 		/* printf so user can report bad behaviour */
 		printf("Not enough ubo slots! This should not happen!\n");
 	}
-	RST.bound_ubo_slots[bind_num] = true;
 }
 
 static void release_texture_slots(void)
@@ -1881,7 +1876,7 @@ static void release_texture_slots(void)
 
 static void release_ubo_slots(void)
 {
-	memset(RST.bound_ubo_slots, 0x0, sizeof(bool) * GPU_max_ubo_binds());
+	RST.bind_ubo_inc = 0;
 }
 
 static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
@@ -2071,14 +2066,6 @@ static void DRW_draw_pass_ex(DRWPass *pass, DRWShadingGroup *start_group, DRWSha
 		if (RST.bound_texs[i] != NULL) {
 			GPU_texture_unbind(RST.bound_texs[i]);
 			RST.bound_texs[i] = NULL;
-		}
-	}
-
-	/* Clear Bound Ubos */
-	for (int i = 0; i < GPU_max_ubo_binds(); i++) {
-		if (RST.bound_ubos[i] != NULL) {
-			GPU_uniformbuffer_unbind(RST.bound_ubos[i]);
-			RST.bound_ubos[i] = NULL;
 		}
 	}
 
@@ -2554,14 +2541,6 @@ static void DRW_viewport_var_init(void)
 	}
 	if (RST.bound_tex_slots == NULL) {
 		RST.bound_tex_slots = MEM_callocN(sizeof(GPUUniformBuffer *) * GPU_max_textures(), "Bound Texture Slots");
-	}
-
-	/* Alloc array of ubos reference. */
-	if (RST.bound_ubos == NULL) {
-		RST.bound_ubos = MEM_callocN(sizeof(GPUUniformBuffer *) * GPU_max_ubo_binds(), "Bound GPUUniformBuffer refs");
-	}
-	if (RST.bound_ubo_slots == NULL) {
-		RST.bound_ubo_slots = MEM_callocN(sizeof(GPUUniformBuffer *) * GPU_max_textures(), "Bound UBO Slots");
 	}
 }
 
@@ -3701,9 +3680,7 @@ void DRW_engines_free(void)
 		GPU_texture_free(globals_ramp);
 
 	MEM_SAFE_FREE(RST.bound_texs);
-	MEM_SAFE_FREE(RST.bound_ubos);
 	MEM_SAFE_FREE(RST.bound_tex_slots);
-	MEM_SAFE_FREE(RST.bound_ubo_slots);
 
 #ifdef WITH_CLAY_ENGINE
 	BLI_remlink(&R_engines, &DRW_engine_viewport_clay_type);
