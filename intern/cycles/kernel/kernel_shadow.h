@@ -25,6 +25,9 @@ typedef struct VolumeState {
 } VolumeState;
 
 /* Get PathState ready for use for volume stack evaluation. */
+#  ifdef __SPLIT_KERNEL__
+ccl_addr_space
+#  endif
 ccl_device_inline PathState *shadow_blocked_volume_path_state(
         KernelGlobals *kg,
         VolumeState *volume_state,
@@ -190,6 +193,9 @@ ccl_device bool shadow_blocked_transparent_all_loop(KernelGlobals *kg,
 		int bounce = state->transparent_bounce;
 		Intersection *isect = hits;
 #    ifdef __VOLUME__
+#      ifdef __SPLIT_KERNEL__
+		ccl_addr_space
+#      endif
 		PathState *ps = shadow_blocked_volume_path_state(kg,
 		                                                 &volume_state,
 		                                                 state,
@@ -240,6 +246,9 @@ ccl_device bool shadow_blocked_transparent_all_loop(KernelGlobals *kg,
 #    ifdef __VOLUME__
 	if(!blocked && state->volume_stack[0].shader != SHADER_NONE) {
 		/* Apply attenuation from current volume shader. */
+#      ifdef __SPLIT_KERNEL__
+		ccl_addr_space
+#      endif
 		PathState *ps = shadow_blocked_volume_path_state(kg,
 		                                                 &volume_state,
 		                                                 state,
@@ -335,6 +344,9 @@ ccl_device bool shadow_blocked_transparent_stepped_loop(
 		float3 Pend = ray->P + ray->D*ray->t;
 		int bounce = state->transparent_bounce;
 #    ifdef __VOLUME__
+#      ifdef __SPLIT_KERNEL__
+		ccl_addr_space
+#      endif
 		PathState *ps = shadow_blocked_volume_path_state(kg,
 		                                                 &volume_state,
 		                                                 state,
@@ -389,6 +401,9 @@ ccl_device bool shadow_blocked_transparent_stepped_loop(
 #    ifdef __VOLUME__
 	if(!blocked && state->volume_stack[0].shader != SHADER_NONE) {
 		/* Apply attenuation from current volume shader. */
+#      ifdef __SPLIT_KERNEL__
+		ccl_addr_space
+#      endif
 		PathState *ps = shadow_blocked_volume_path_state(kg,
 		                                                 &volume_state,
 		                                                 state,
