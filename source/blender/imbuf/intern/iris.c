@@ -703,7 +703,7 @@ static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, cons
 	lumbuf = (unsigned int *)MEM_mallocN(xsize * sizeof(int), "iris lumbuf");
 
 	memset(image, 0, sizeof(IMAGE));
-	image->imagic = IMB_FTYPE_IMAGIC;
+	image->imagic = IMAGIC;
 	image->type = RLE(1);
 	if (zsize > 1)
 		image->dim = 3;
