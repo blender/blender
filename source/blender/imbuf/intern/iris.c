@@ -142,8 +142,8 @@ static ushort getshort(MFileOffset *inf)
 
 	buf = MFILE_DATA(inf);
 	MFILE_STEP(inf, 2);
-	
-	return (buf[0] << 8) + (buf[1] << 0);
+
+	return ((ushort)buf[0] << 8) + ((ushort)buf[1] << 0);
 }
 
 static uint getlong(MFileOffset *mofs)
@@ -152,8 +152,8 @@ static uint getlong(MFileOffset *mofs)
 	
 	buf = MFILE_DATA(mofs);
 	MFILE_STEP(mofs, 4);
-	
-	return (buf[0] << 24) + (buf[1] << 16) + (buf[2] << 8) + (buf[3] << 0);
+
+	return ((uint)buf[0] << 24) + ((uint)buf[1] << 16) + ((uint)buf[2] << 8) + ((uint)buf[3] << 0);
 }
 
 static void putshort(FILE *outf, ushort val)
