@@ -109,9 +109,13 @@ typedef struct MFileOffset {
 	uint _file_offset;
 } MFileOffset;
 
-#define MFILE_DATA(inf) ((void)0, (inf)->_file_data + (inf)->_file_offset)
+#define MFILE_DATA(inf) ((void)0, ((inf)->_file_data + (inf)->_file_offset))
 #define MFILE_STEP(inf, step) { (inf)->_file_offset += step; } ((void)0)
 #define MFILE_SEEK(inf, pos)  { (inf)->_file_offset  = pos;  } ((void)0)
+
+/* error flags */
+#define DIRTY_FLAG_EOF (1 << 0)
+#define DIRTY_FLAG_ENCODING (1 << 1)
 
 /* funcs */
 static void readheader(MFileOffset *inf, IMAGE *image);
@@ -124,8 +128,8 @@ static int putlong(FILE *outf, uint val);
 static int writetab(FILE *outf, uint *tab, int len);
 static void readtab(MFileOffset *inf, uint *tab, int len);
 
-static void expandrow(uchar *optr, const uchar *iptr, int z);
-static void expandrow2(float *optr, const uchar *iptr, int z);
+static int expandrow(uchar *optr, const uchar *optr_end, const uchar *iptr, const uchar *iptr_end, int z);
+static int expandrow2(float *optr, const float *optr_end, const uchar *iptr, const uchar *iptr_end, int z);
 static void interleaverow(uchar *lptr, const uchar *cptr, int z, int n);
 static void interleaverow2(float *lptr, const uchar *cptr, int z, int n);
 static int compressrow(uchar *lbuf, uchar *rlebuf, int z, int cnt);
@@ -265,40 +269,46 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 	float *fbase, *fptr = NULL;
 	uint *zbase, *zptr;
 	const uchar *rledat;
-	uint *starttab, *lengthtab;
+	const uchar *mem_end = mem + size;
 	MFileOffset _inf_data = {mem, 0}, *inf = &_inf_data;
 	IMAGE image;
 	int x, y, z, tablen;
-	int xsize, ysize, zsize;
 	int bpp, rle, cur, badorder;
 	ImBuf *ibuf;
+	uchar dirty_flag = 0;
 
-	(void)size; /* unused */
-	
-	if (!imb_is_a_iris(mem)) return NULL;
+	if (size < HEADER_SIZE) {
+		return NULL;
+	}
+
+	if (!imb_is_a_iris(mem)) {
+		return NULL;
+	}
 
 	/* OCIO_TODO: only tested with 1 byte per pixel, not sure how to test with other settings */
 	colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
-	/*printf("new iris\n");*/
-	
 	readheader(inf, &image);
 	if (image.imagic != IMAGIC) {
 		fprintf(stderr, "longimagedata: bad magic number in image file\n");
 		return(NULL);
 	}
-	
+
 	rle = ISRLE(image.type);
 	bpp = BPP(image.type);
 	if (bpp != 1 && bpp != 2) {
 		fprintf(stderr, "longimagedata: image must have 1 or 2 byte per pix chan\n");
 		return(NULL);
 	}
-	
-	xsize = image.xsize;
-	ysize = image.ysize;
-	zsize = image.zsize;
-	
+	if ((uint)image.zsize > 8) {
+		fprintf(stderr, "longimagedata: channels over 8 not supported\n");
+		return(NULL);
+	}
+
+	const int xsize = image.xsize;
+	const int ysize = image.ysize;
+	const int zsize = image.zsize;
+
 	if (flags & IB_test) {
 		ibuf = IMB_allocImBuf(image.xsize, image.ysize, 8 * image.zsize, 0);
 		if (ibuf) ibuf->ftype = IMB_FTYPE_IMAGIC;
@@ -306,12 +316,17 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 	}
 	
 	if (rle) {
-		
 		tablen = ysize * zsize * sizeof(int);
-		starttab = (uint *)MEM_mallocN(tablen, "iris starttab");
-		lengthtab = (uint *)MEM_mallocN(tablen, "iris endtab");
 		MFILE_SEEK(inf, HEADER_SIZE);
-		
+
+		uint *starttab = MEM_mallocN(tablen, "iris starttab");
+		uint *lengthtab = MEM_mallocN(tablen, "iris endtab");
+
+#define MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(p) \
+		if (UNLIKELY((p) > mem_end)) { dirty_flag |= DIRTY_FLAG_EOF; goto fail_rle; } ((void)0)
+
+		MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(MFILE_DATA(inf) + ((4 * 2) * tablen));
+
 		readtab(inf, starttab, tablen);
 		readtab(inf, lengthtab, tablen);
 	
@@ -344,9 +359,11 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 						MFILE_SEEK(inf, starttab[y + z * ysize]);
 						rledat = MFILE_DATA(inf);
 						MFILE_STEP(inf, lengthtab[y + z * ysize]);
-						
-						expandrow((uchar *)lptr, rledat, 3 - z);
-						lptr += xsize;
+						const uchar *rledat_next = MFILE_DATA(inf);
+						uint *lptr_next = lptr + xsize;
+						MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(rledat_next);
+						dirty_flag |= expandrow((uchar *)lptr, (uchar *)lptr_next, rledat, rledat_next, 3 - z);
+						lptr = lptr_next;
 					}
 				}
 			}
@@ -354,17 +371,25 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 				lptr = base;
 				zptr = zbase;
 				for (y = 0; y < ysize; y++) {
-				
+
+					uint *lptr_next = lptr + xsize;
+					uint *zptr_next = zptr + xsize;
+
 					for (z = 0; z < zsize; z++) {
 						MFILE_SEEK(inf, starttab[y + z * ysize]);
 						rledat = MFILE_DATA(inf);
 						MFILE_STEP(inf, lengthtab[y + z * ysize]);
-						
-						if (z < 4) expandrow((uchar *)lptr, rledat, 3 - z);
-						else if (z < 8) expandrow((uchar *)zptr, rledat, 7 - z);
+						const uchar *rledat_next = MFILE_DATA(inf);
+						MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(rledat_next);
+						if (z < 4) {
+							dirty_flag |= expandrow((uchar *)lptr, (uchar *)lptr_next, rledat, rledat_next, 3 - z);
+						}
+						else if (z < 8) {
+							dirty_flag |= expandrow((uchar *)zptr, (uchar *)zptr_next, rledat, rledat_next, 7 - z);
+						}
 					}
-					lptr += xsize;
-					zptr += xsize;
+					lptr = lptr_next;
+					zptr = zptr_next;
 				}
 			}
 			
@@ -383,14 +408,17 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 						MFILE_SEEK(inf, starttab[y + z * ysize]);
 						rledat = MFILE_DATA(inf);
 						MFILE_STEP(inf, lengthtab[y + z * ysize]);
-						
-						expandrow2(fptr, rledat, 3 - z);
-						fptr += xsize * 4;
+						const uchar *rledat_next = MFILE_DATA(inf);
+						MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(rledat_next);
+						float *fptr_next = fptr + (xsize * 4);
+						dirty_flag |= expandrow2(fptr, fptr_next, rledat, rledat_next, 3 - z);
+						fptr = fptr_next;
 					}
 				}
 			}
 			else {
 				fptr = fbase;
+				float *fptr_next = fptr + (xsize * 4);
 
 				for (y = 0; y < ysize; y++) {
 				
@@ -398,20 +426,24 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 						MFILE_SEEK(inf, starttab[y + z * ysize]);
 						rledat = MFILE_DATA(inf);
 						MFILE_STEP(inf, lengthtab[y + z * ysize]);
-						
-						expandrow2(fptr, rledat, 3 - z);
-						
+						const uchar *rledat_next = MFILE_DATA(inf);
+						MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(rledat_next);
+						dirty_flag |= expandrow2(fptr, fptr_next, rledat, rledat_next, 3 - z);
 					}
-					fptr += xsize * 4;
+					fptr = fptr_next;
 				}
 			}
 		}
-		
+#undef MFILE_CAPACITY_AT_PTR_OK_OR_FAIL
+fail_rle:
 		MEM_freeN(starttab);
 		MEM_freeN(lengthtab);
-
 	}
 	else {
+
+#define MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(p) \
+		if (UNLIKELY((p) > mem_end)) { dirty_flag |= DIRTY_FLAG_EOF; goto fail_uncompressed; } ((void)0)
+
 		if (bpp == 1) {
 			
 			ibuf = IMB_allocImBuf(xsize, ysize, 8 * zsize, IB_rect);
@@ -427,12 +459,13 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 				
 				if (z < 4) lptr = base;
 				else if (z < 8) lptr = zbase;
-				
-				for (y = 0; y < ysize; y++) {
 
-					interleaverow((uchar *)lptr, rledat, 3 - z, xsize);
-					rledat += xsize;
-					
+				for (y = 0; y < ysize; y++) {
+					const uchar *rledat_next = rledat + xsize;
+					const int z_ofs = 3 - z;
+					MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(rledat_next + z_ofs);
+					interleaverow((uchar *)lptr, rledat, z_ofs, xsize);
+					rledat = rledat_next;
 					lptr += xsize;
 				}
 			}
@@ -450,20 +483,23 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 			for (z = 0; z < zsize; z++) {
 				
 				fptr = fbase;
-				
-				for (y = 0; y < ysize; y++) {
 
-					interleaverow2(fptr, rledat, 3 - z, xsize);
-					rledat += xsize * 2;
-					
+				for (y = 0; y < ysize; y++) {
+					const uchar *rledat_next = rledat + xsize * 2;
+					const int z_ofs = 3 - z;
+					MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(rledat_next + z_ofs);
+					interleaverow2(fptr, rledat, z_ofs, xsize);
+					rledat = rledat_next;
 					fptr += xsize * 4;
 				}
 			}
 			
 		}
+#undef MFILE_CAPACITY_AT_PTR_OK_OR_FAIL
+fail_uncompressed:
+		(void)0;
 	}
-	
-	
+
 	if (bpp == 1) {
 		uchar *rect;
 		
@@ -528,6 +564,9 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 		
 	}
 
+	if (dirty_flag) {
+		fprintf(stderr, "longimagedata: corrupt file content (%d)\n", dirty_flag);
+	}
 	ibuf->ftype = IMB_FTYPE_IMAGIC;
 
 	test_endian_zbuf(ibuf);
@@ -560,19 +599,34 @@ static void interleaverow2(float *lptr, const uchar *cptr, int z, int n)
 	}
 }
 
-static void expandrow2(float *optr, const uchar *iptr, int z)
+static int expandrow2(
+        float *optr, const float *optr_end,
+        const uchar *iptr, const uchar *iptr_end, int z)
 {
 	ushort pixel, count;
 	float pixel_f;
 
+#define EXPAND_CAPACITY_AT_INPUT_OK_OR_FAIL(iptr_next) \
+	if (UNLIKELY(iptr_next > iptr_end)) { goto fail; }
+
+#define EXPAND_CAPACITY_AT_OUTPUT_OK_OR_FAIL(optr_next) \
+	if (UNLIKELY(optr_next > optr_end)) { goto fail; }
+
 	optr += z;
+	optr_end += z;
 	while (1) {
+		const uchar *iptr_next = iptr + 2;
+		EXPAND_CAPACITY_AT_INPUT_OK_OR_FAIL(iptr_next);
 		pixel = (iptr[0] << 8) | (iptr[1] << 0);
-		iptr += 2;
-		
+		iptr = iptr_next;
+
 		if (!(count = (pixel & 0x7f)) )
-			return;
+			return false;
+		const float *optr_next = optr + count;
+		EXPAND_CAPACITY_AT_OUTPUT_OK_OR_FAIL(optr_next);
 		if (pixel & 0x80) {
+			iptr_next = iptr + (count * 2);
+			EXPAND_CAPACITY_AT_INPUT_OK_OR_FAIL(iptr_next);
 			while (count >= 8) {
 				optr[0 * 4] = ((iptr[0] << 8) | (iptr[1] << 0)) / (float)0xFFFF;
 				optr[1 * 4] = ((iptr[2] << 8) | (iptr[3] << 0)) / (float)0xFFFF;
@@ -591,10 +645,13 @@ static void expandrow2(float *optr, const uchar *iptr, int z)
 				iptr += 2;
 				optr += 4;
 			}
+			BLI_assert(iptr == iptr_next);
 		}
 		else {
+			iptr_next = iptr + 2;
+			EXPAND_CAPACITY_AT_INPUT_OK_OR_FAIL(iptr_next);
 			pixel_f = ((iptr[0] << 8) | (iptr[1] << 0)) / (float)0xFFFF;
-			iptr += 2;
+			iptr = iptr_next;
 
 			while (count >= 8) {
 				optr[0 * 4] = pixel_f;
@@ -612,20 +669,45 @@ static void expandrow2(float *optr, const uchar *iptr, int z)
 				*optr = pixel_f;
 				optr += 4;
 			}
+			BLI_assert(iptr == iptr_next);
 		}
+		BLI_assert(optr == optr_next);
 	}
+	return false;
+
+#undef EXPAND_CAPACITY_AT_INPUT_OK_OR_FAIL
+#undef EXPAND_CAPACITY_AT_OUTPUT_OK_OR_FAIL
+fail:
+	return DIRTY_FLAG_ENCODING;
 }
 
-static void expandrow(uchar *optr, const uchar *iptr, int z)
+static int expandrow(
+        uchar *optr, const uchar *optr_end,
+        const uchar *iptr, const uchar *iptr_end, int z)
 {
 	uchar pixel, count;
 
+#define EXPAND_CAPACITY_AT_INPUT_OK_OR_FAIL(iptr_next) \
+	if (UNLIKELY(iptr_next > iptr_end)) { goto fail; }
+
+#define EXPAND_CAPACITY_AT_OUTPUT_OK_OR_FAIL(optr_next) \
+	if (UNLIKELY(optr_next > optr_end)) { goto fail; }
+
 	optr += z;
+	optr_end += z;
 	while (1) {
-		pixel = *iptr++;
+		const uchar *iptr_next = iptr + 1;
+		EXPAND_CAPACITY_AT_INPUT_OK_OR_FAIL(iptr_next);
+		pixel = *iptr;
+		iptr = iptr_next;
 		if (!(count = (pixel & 0x7f)) )
-			return;
+			return false;
+		const uchar *optr_next = optr + ((int)count * 4);
+		EXPAND_CAPACITY_AT_OUTPUT_OK_OR_FAIL(optr_next);
+
 		if (pixel & 0x80) {
+			iptr_next = iptr + count;
+			EXPAND_CAPACITY_AT_INPUT_OK_OR_FAIL(iptr_next);
 			while (count >= 8) {
 				optr[0 * 4] = iptr[0];
 				optr[1 * 4] = iptr[1];
@@ -643,8 +725,11 @@ static void expandrow(uchar *optr, const uchar *iptr, int z)
 				*optr = *iptr++;
 				optr += 4;
 			}
+			BLI_assert(iptr == iptr_next);
 		}
 		else {
+			iptr_next = iptr + 1;
+			EXPAND_CAPACITY_AT_INPUT_OK_OR_FAIL(iptr_next);
 			pixel = *iptr++;
 			while (count >= 8) {
 				optr[0 * 4] = pixel;
@@ -662,8 +747,17 @@ static void expandrow(uchar *optr, const uchar *iptr, int z)
 				*optr = pixel;
 				optr += 4;
 			}
+			BLI_assert(iptr == iptr_next);
 		}
+		BLI_assert(optr == optr_next);
 	}
+
+	return false;
+
+#undef EXPAND_CAPACITY_AT_INPUT_OK_OR_FAIL
+#undef EXPAND_CAPACITY_AT_OUTPUT_OK_OR_FAIL
+fail:
+	return DIRTY_FLAG_ENCODING;
 }
 
 /*
