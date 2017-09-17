@@ -56,27 +56,15 @@ typedef struct {
 	ushort  zsize;
 	uint    min;
 	uint    max;
-	uint    wastebytes;
+	uchar   _pad1[4];
 	char    name[80];
 	uint    colormap;
-
-	int     file;       /* stuff used in core only */
-	ushort  flags;
-	short   dorev;
-	short   x;
-	short   y;
-	short   z;
-	short   cnt;
-	ushort *ptr;
-	ushort *base;
-	ushort *tmpbuf;
-	uint    offset;
-	uint    rleend;         /* for rle images */
-	uint      *rowstart;    /* for rle images */
-	const int *rowsize;     /* for rle images */
+	uchar   _pad2[404];
 } IMAGE;
 
 #define HEADER_SIZE 512
+
+BLI_STATIC_ASSERT(sizeof(IMAGE) == HEADER_SIZE, "Invalid header size");
 
 #define RINTLUM (79)
 #define GINTLUM (156)
