@@ -48,32 +48,32 @@
 #define IMAGIC 0732
 
 typedef struct {
-	unsigned short  imagic;      /* stuff saved on disk . . */
-	unsigned short  type;
-	unsigned short  dim;
-	unsigned short  xsize;
-	unsigned short  ysize;
-	unsigned short  zsize;
-	unsigned int    min;
-	unsigned int    max;
-	unsigned int    wastebytes;
-	char name[80];
-	unsigned int    colormap;
+	ushort  imagic;      /* stuff saved on disk . . */
+	ushort  type;
+	ushort  dim;
+	ushort  xsize;
+	ushort  ysize;
+	ushort  zsize;
+	uint    min;
+	uint    max;
+	uint    wastebytes;
+	char    name[80];
+	uint    colormap;
 
-	int file;               /* stuff used in core only */
-	unsigned short  flags;
-	short           dorev;
-	short           x;
-	short           y;
-	short           z;
-	short           cnt;
-	unsigned short *ptr;
-	unsigned short *base;
-	unsigned short *tmpbuf;
-	unsigned int    offset;
-	unsigned int    rleend;        /* for rle images */
-	unsigned int   *rowstart;  /* for rle images */
-	const int            *rowsize;   /* for rle images */
+	int     file;       /* stuff used in core only */
+	ushort  flags;
+	short   dorev;
+	short   x;
+	short   y;
+	short   z;
+	short   cnt;
+	ushort *ptr;
+	ushort *base;
+	ushort *tmpbuf;
+	uint    offset;
+	uint    rleend;         /* for rle images */
+	uint      *rowstart;    /* for rle images */
+	const int *rowsize;     /* for rle images */
 } IMAGE;
 
 #define HEADER_SIZE 512
@@ -106,7 +106,7 @@ typedef struct {
 /* local struct for mem access */
 typedef struct MFileOffset {
 	const uchar *_file_data;
-	unsigned int _file_offset;
+	uint _file_offset;
 } MFileOffset;
 
 #define MFILE_DATA(inf) ((void)0, (inf)->_file_data + (inf)->_file_offset)
@@ -117,28 +117,28 @@ typedef struct MFileOffset {
 static void readheader(MFileOffset *inf, IMAGE *image);
 static int writeheader(FILE *outf, IMAGE *image);
 
-static unsigned short getshort(MFileOffset *inf);
-static unsigned int getlong(MFileOffset *inf);
-static void putshort(FILE *outf, unsigned short val);
-static int putlong(FILE *outf, unsigned int val);
-static int writetab(FILE *outf, unsigned int *tab, int len);
-static void readtab(MFileOffset *inf, unsigned int *tab, int len);
+static ushort getshort(MFileOffset *inf);
+static uint getlong(MFileOffset *inf);
+static void putshort(FILE *outf, ushort val);
+static int putlong(FILE *outf, uint val);
+static int writetab(FILE *outf, uint *tab, int len);
+static void readtab(MFileOffset *inf, uint *tab, int len);
 
-static void expandrow(unsigned char *optr, const unsigned char *iptr, int z);
-static void expandrow2(float *optr, const unsigned char *iptr, int z);
-static void interleaverow(unsigned char *lptr, const unsigned char *cptr, int z, int n);
-static void interleaverow2(float *lptr, const unsigned char *cptr, int z, int n);
-static int compressrow(unsigned char *lbuf, unsigned char *rlebuf, int z, int cnt);
-static void lumrow(unsigned char *rgbptr, unsigned char *lumptr, int n);
+static void expandrow(uchar *optr, const uchar *iptr, int z);
+static void expandrow2(float *optr, const uchar *iptr, int z);
+static void interleaverow(uchar *lptr, const uchar *cptr, int z, int n);
+static void interleaverow2(float *lptr, const uchar *cptr, int z, int n);
+static int compressrow(uchar *lbuf, uchar *rlebuf, int z, int cnt);
+static void lumrow(uchar *rgbptr, uchar *lumptr, int n);
 
 /*
  *	byte order independent read/write of shorts and ints.
  *
  */
 
-static unsigned short getshort(MFileOffset *inf)
+static ushort getshort(MFileOffset *inf)
 {
-	const unsigned char *buf;
+	const uchar *buf;
 
 	buf = MFILE_DATA(inf);
 	MFILE_STEP(inf, 2);
@@ -146,9 +146,9 @@ static unsigned short getshort(MFileOffset *inf)
 	return (buf[0] << 8) + (buf[1] << 0);
 }
 
-static unsigned int getlong(MFileOffset *mofs)
+static uint getlong(MFileOffset *mofs)
 {
-	const unsigned char *buf;
+	const uchar *buf;
 	
 	buf = MFILE_DATA(mofs);
 	MFILE_STEP(mofs, 4);
@@ -156,18 +156,18 @@ static unsigned int getlong(MFileOffset *mofs)
 	return (buf[0] << 24) + (buf[1] << 16) + (buf[2] << 8) + (buf[3] << 0);
 }
 
-static void putshort(FILE *outf, unsigned short val)
+static void putshort(FILE *outf, ushort val)
 {
-	unsigned char buf[2];
+	uchar buf[2];
 
 	buf[0] = (val >> 8);
 	buf[1] = (val >> 0);
 	fwrite(buf, 2, 1, outf);
 }
 
-static int putlong(FILE *outf, unsigned int val)
+static int putlong(FILE *outf, uint val)
 {
-	unsigned char buf[4];
+	uchar buf[4];
 
 	buf[0] = (val >> 24);
 	buf[1] = (val >> 16);
@@ -205,7 +205,7 @@ static int writeheader(FILE *outf, IMAGE *image)
 	return fwrite("no name", 8, 1, outf);
 }
 
-static int writetab(FILE *outf, unsigned int *tab, int len)
+static int writetab(FILE *outf, uint *tab, int len)
 {
 	int r = 0;
 
@@ -216,7 +216,7 @@ static int writetab(FILE *outf, unsigned int *tab, int len)
 	return r;
 }
 
-static void readtab(MFileOffset *inf, unsigned int *tab, int len)
+static void readtab(MFileOffset *inf, uint *tab, int len)
 {
 	while (len) {
 		*tab++ = getlong(inf);
@@ -242,12 +242,12 @@ static void test_endian_zbuf(struct ImBuf *ibuf)
 }
 
 /* from misc_util: flip the bytes from x  */
-#define GS(x) (((unsigned char *)(x))[0] << 8 | ((unsigned char *)(x))[1])
+#define GS(x) (((uchar *)(x))[0] << 8 | ((uchar *)(x))[1])
 
 /* this one is only def-ed once, strangely... */
 #define GSS(x) (((uchar *)(x))[1] << 8 | ((uchar *)(x))[0])
 
-int imb_is_a_iris(const unsigned char *mem)
+int imb_is_a_iris(const uchar *mem)
 {
 	return ((GS(mem) == IMAGIC) || (GSS(mem) == IMAGIC));
 }
@@ -259,13 +259,13 @@ int imb_is_a_iris(const unsigned char *mem)
  *
  */
 
-struct ImBuf *imb_loadiris(const unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
+struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
-	unsigned int *base, *lptr = NULL;
+	uint *base, *lptr = NULL;
 	float *fbase, *fptr = NULL;
-	unsigned int *zbase, *zptr;
-	const unsigned char *rledat;
-	unsigned int *starttab, *lengthtab;
+	uint *zbase, *zptr;
+	const uchar *rledat;
+	uint *starttab, *lengthtab;
 	MFileOffset _inf_data = {mem, 0}, *inf = &_inf_data;
 	IMAGE image;
 	int x, y, z, tablen;
@@ -308,8 +308,8 @@ struct ImBuf *imb_loadiris(const unsigned char *mem, size_t size, int flags, cha
 	if (rle) {
 		
 		tablen = ysize * zsize * sizeof(int);
-		starttab = (unsigned int *)MEM_mallocN(tablen, "iris starttab");
-		lengthtab = (unsigned int *)MEM_mallocN(tablen, "iris endtab");
+		starttab = (uint *)MEM_mallocN(tablen, "iris starttab");
+		lengthtab = (uint *)MEM_mallocN(tablen, "iris endtab");
 		MFILE_SEEK(inf, HEADER_SIZE);
 		
 		readtab(inf, starttab, tablen);
@@ -335,7 +335,7 @@ struct ImBuf *imb_loadiris(const unsigned char *mem, size_t size, int flags, cha
 			ibuf = IMB_allocImBuf(xsize, ysize, 8 * zsize, IB_rect);
 			if (ibuf->planes > 32) ibuf->planes = 32;
 			base = ibuf->rect;
-			zbase = (unsigned int *)ibuf->zbuf;
+			zbase = (uint *)ibuf->zbuf;
 			
 			if (badorder) {
 				for (z = 0; z < zsize; z++) {
@@ -418,7 +418,7 @@ struct ImBuf *imb_loadiris(const unsigned char *mem, size_t size, int flags, cha
 			if (ibuf->planes > 32) ibuf->planes = 32;
 
 			base = ibuf->rect;
-			zbase = (unsigned int *)ibuf->zbuf;
+			zbase = (uint *)ibuf->zbuf;
 			
 			MFILE_SEEK(inf, HEADER_SIZE);
 			rledat = MFILE_DATA(inf);
@@ -541,7 +541,7 @@ struct ImBuf *imb_loadiris(const unsigned char *mem, size_t size, int flags, cha
 
 /* static utility functions for longimagedata */
 
-static void interleaverow(unsigned char *lptr, const unsigned char *cptr, int z, int n)
+static void interleaverow(uchar *lptr, const uchar *cptr, int z, int n)
 {
 	lptr += z;
 	while (n--) {
@@ -550,7 +550,7 @@ static void interleaverow(unsigned char *lptr, const unsigned char *cptr, int z,
 	}
 }
 
-static void interleaverow2(float *lptr, const unsigned char *cptr, int z, int n)
+static void interleaverow2(float *lptr, const uchar *cptr, int z, int n)
 {
 	lptr += z;
 	while (n--) {
@@ -560,9 +560,9 @@ static void interleaverow2(float *lptr, const unsigned char *cptr, int z, int n)
 	}
 }
 
-static void expandrow2(float *optr, const unsigned char *iptr, int z)
+static void expandrow2(float *optr, const uchar *iptr, int z)
 {
-	unsigned short pixel, count;
+	ushort pixel, count;
 	float pixel_f;
 
 	optr += z;
@@ -616,9 +616,9 @@ static void expandrow2(float *optr, const unsigned char *iptr, int z)
 	}
 }
 
-static void expandrow(unsigned char *optr, const unsigned char *iptr, int z)
+static void expandrow(uchar *optr, const uchar *iptr, int z)
 {
-	unsigned char pixel, count;
+	uchar pixel, count;
 
 	optr += z;
 	while (1) {
@@ -679,14 +679,14 @@ static void expandrow(unsigned char *optr, const unsigned char *iptr, int z)
  *  Added: zbuf write
  */
 
-static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, const char *name, int *zptr)
+static int output_iris(uint *lptr, int xsize, int ysize, int zsize, const char *name, int *zptr)
 {
 	FILE *outf;
 	IMAGE *image;
 	int tablen, y, z, pos, len = 0;
-	unsigned int *starttab, *lengthtab;
-	unsigned char *rlebuf;
-	unsigned int *lumbuf;
+	uint *starttab, *lengthtab;
+	uchar *rlebuf;
+	uint *lumbuf;
 	int rlebuflen, goodwrite;
 
 	goodwrite = 1;
@@ -696,11 +696,11 @@ static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, cons
 	tablen = ysize * zsize * sizeof(int);
 
 	image = (IMAGE *)MEM_mallocN(sizeof(IMAGE), "iris image");
-	starttab = (unsigned int *)MEM_mallocN(tablen, "iris starttab");
-	lengthtab = (unsigned int *)MEM_mallocN(tablen, "iris lengthtab");
+	starttab = (uint *)MEM_mallocN(tablen, "iris starttab");
+	lengthtab = (uint *)MEM_mallocN(tablen, "iris lengthtab");
 	rlebuflen = 1.05 * xsize + 10;
-	rlebuf = (unsigned char *)MEM_mallocN(rlebuflen, "iris rlebuf");
-	lumbuf = (unsigned int *)MEM_mallocN(xsize * sizeof(int), "iris lumbuf");
+	rlebuf = (uchar *)MEM_mallocN(rlebuflen, "iris rlebuf");
+	lumbuf = (uint *)MEM_mallocN(xsize * sizeof(int), "iris lumbuf");
 
 	memset(image, 0, sizeof(IMAGE));
 	image->imagic = IMAGIC;
@@ -765,7 +765,7 @@ static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, cons
 
 /* static utility functions for output_iris */
 
-static void lumrow(unsigned char *rgbptr, unsigned char *lumptr, int n)
+static void lumrow(uchar *rgbptr, uchar *lumptr, int n)
 {
 	lumptr += CHANOFFSET(0);
 	while (n--) {
@@ -775,9 +775,9 @@ static void lumrow(unsigned char *rgbptr, unsigned char *lumptr, int n)
 	}
 }
 
-static int compressrow(unsigned char *lbuf, unsigned char *rlebuf, int z, int cnt)
+static int compressrow(uchar *lbuf, uchar *rlebuf, int z, int cnt)
 {
-	unsigned char *iptr, *ibufend, *sptr, *optr;
+	uchar *iptr, *ibufend, *sptr, *optr;
 	short todo, cc;
 	int count;
 
@@ -830,7 +830,7 @@ static int compressrow(unsigned char *lbuf, unsigned char *rlebuf, int z, int cn
 		}
 	}
 	*optr++ = 0;
-	return optr - (unsigned char *)rlebuf;
+	return optr - (uchar *)rlebuf;
 }
 
 int imb_saveiris(struct ImBuf *ibuf, const char *name, int flags)
