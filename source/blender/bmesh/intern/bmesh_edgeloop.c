@@ -707,67 +707,65 @@ void BM_edgeloop_expand(
 		split_swap = !split_swap;
 	}
 
+	/* TODO, move to generic define? */
+	/**
+	 * Even value distribution.
+	 *
+	 * \a src must be larger than \a dst,
+	 * \a dst defines the number of iterations, their values are evenly spaced.
+	 *
+	 * The following pairs represent (src, dst) arguments and the values they loop over.
+	 * <pre>
+	 * (19, 4) ->    [2, 7, 11. 16]
+	 * (100, 5) ->   [9, 29, 49, 69, 89]
+	 * (100, 3) ->   [16, 49, 83]
+	 * (100, 100) -> [0..99]
+	 * </pre>
+	 * \note this is mainly useful for numbers that might not divide evenly into eachother.
+	 */
+#define BLI_FOREACH_SPARSE_RANGE(src, dst, i) \
+	for (int _src = (src), _src2 = _src * 2, _dst2 = (dst) * 2, _error = _dst2 - _src, i = 0, _delta; \
+	     ((void)(_delta = divide_floor_i(_error, _dst2)), \
+	      (void)(i -= _delta), \
+	      (i < _src)); \
+	     _error -= (_delta * _dst2) + _src2)
+
 	if (el_store->len < el_store_len) {
 		LinkData *node_curr = el_store->verts.first;
 
-		/**
-		 * Bresenham's line algorithm is used for even spaced edge-loop distribution.
-		 *
-		 * Step over x until y reaches a large enough error and a new pivot is added.
-		 * Note that x/y aren't meaningful in this context, but keep since logic matches line drawing.
-		 */
-		const int x_span = el_store->len;
-		const int y_span = el_store_len - el_store->len;
+		int iter_prev = 0;
+		BLI_FOREACH_SPARSE_RANGE(el_store->len, (el_store_len - el_store->len), iter) {
+			while (iter_prev < iter) {
+				node_curr = node_curr->next;
+				iter_prev += 1;
+			}
 
-		const int x_span_2x = x_span * 2;
-		const int y_span_2x = y_span * 2;
-
-		BLI_assert(x_span >= y_span);
-
-		/* error may go below zero */
-		int error = y_span_2x - x_span;
-
-		int x_iter = 0;  /* traverse elements in 'el_store->len'. */
-		int y_iter = 0;  /* each step on this variable represents a new pivot. */
-
-		while (x_iter != x_span) {
-			if (error >= 0) {
-				y_iter += 1;
-				error -= x_span_2x;
-
-				/* Split logic */
-				{
-					LinkData *node_curr_copy;
-					node_curr_copy = MEM_dupallocN(node_curr);
-					if (split == false) {
-						BLI_insertlinkafter(&el_store->verts, node_curr, node_curr_copy);
-						node_curr = node_curr_copy->next;
-					}
-					else {
-						if (node_curr->next || (el_store->flag & BM_EDGELOOP_IS_CLOSED)) {
-							EDGE_SPLIT(node_curr_copy,
-							           node_curr->next ? node_curr->next : (LinkData *)el_store->verts.first);
-							BLI_insertlinkafter(&el_store->verts, node_curr, node_curr_copy);
-							node_curr = node_curr_copy->next;
-						}
-						else {
-							EDGE_SPLIT(node_curr_copy, node_curr->prev);
-							BLI_insertlinkbefore(&el_store->verts, node_curr, node_curr_copy);
-							node_curr = node_curr->next;
-						}
-						split_swap = !split_swap;
-					}
-					el_store->len++;
-				}
+			LinkData *node_curr_copy;
+			node_curr_copy = MEM_dupallocN(node_curr);
+			if (split == false) {
+				BLI_insertlinkafter(&el_store->verts, node_curr, node_curr_copy);
+				node_curr = node_curr_copy->next;
 			}
 			else {
-				node_curr = node_curr->next;
+				if (node_curr->next || (el_store->flag & BM_EDGELOOP_IS_CLOSED)) {
+					EDGE_SPLIT(node_curr_copy,
+					           node_curr->next ? node_curr->next : (LinkData *)el_store->verts.first);
+					BLI_insertlinkafter(&el_store->verts, node_curr, node_curr_copy);
+					node_curr = node_curr_copy->next;
+				}
+				else {
+					EDGE_SPLIT(node_curr_copy, node_curr->prev);
+					BLI_insertlinkbefore(&el_store->verts, node_curr, node_curr_copy);
+					node_curr = node_curr->next;
+				}
+				split_swap = !split_swap;
 			}
-			x_iter += 1;
-			error += y_span_2x;
+			el_store->len++;
+			iter_prev += 1;
 		}
 	}
 
+#undef BKE_FOREACH_SUBSET_OF_RANGE
 #undef EDGE_SPLIT
 
 	BLI_assert(el_store->len == el_store_len);
