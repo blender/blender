@@ -226,7 +226,7 @@ void BKE_sound_init_once(void)
 	atexit(BKE_sound_exit_once);
 }
 
-static AUD_Device *sound_device;
+static AUD_Device *sound_device = NULL;
 
 void *BKE_sound_get_device(void)
 {
@@ -235,6 +235,9 @@ void *BKE_sound_get_device(void)
 
 void BKE_sound_init(struct Main *bmain)
 {
+	/* Make sure no instance of the sound system is running, otherwise we get leaks. */
+	BKE_sound_exit();
+
 	AUD_DeviceSpecs specs;
 	int device, buffersize;
 	const char *device_name;
