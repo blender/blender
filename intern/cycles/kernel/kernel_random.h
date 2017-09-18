@@ -30,12 +30,6 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __SOBOL__
 
-/* Skip initial numbers that are not as well distributed, especially the
- * first sequence is just 0 everywhere, which can be problematic for e.g.
- * path termination.
- */
-#define SOBOL_SKIP 64
-
 ccl_device uint sobol_dimension(KernelGlobals *kg, int index, int dimension)
 {
 	uint result = 0;
@@ -73,7 +67,7 @@ ccl_device_forceinline float path_rng_1D(KernelGlobals *kg,
 
 #ifdef __SOBOL__
 	/* Sobol sequence value using direction vectors. */
-	uint result = sobol_dimension(kg, sample + SOBOL_SKIP, dimension);
+	uint result = sobol_dimension(kg, sample, dimension);
 	float r = (float)result * (1.0f/(float)0xFFFFFFFF);
 
 	/* Cranly-Patterson rotation using rng seed */
