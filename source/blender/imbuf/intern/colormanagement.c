@@ -1522,6 +1522,10 @@ static bool is_ibuf_rect_in_display_space(ImBuf *ibuf, const ColorManagedViewSet
 	{
 		const char *from_colorspace = ibuf->rect_colorspace->name;
 		const char *to_colorspace = IMB_colormanagement_get_display_colorspace_name(view_settings, display_settings);
+		ColorManagedLook *look_descr = colormanage_look_get_named(view_settings->look);
+		if (look_descr != NULL && !STREQ(look_descr->process_space, "")) {
+			return false;
+		}
 
 		if (to_colorspace && STREQ(from_colorspace, to_colorspace))
 			return true;
