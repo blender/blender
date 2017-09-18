@@ -996,7 +996,7 @@ void uiItemsFullEnumO(
         struct IDProperty *properties, int context, int flag);
 void uiItemsFullEnumO_items(
         uiLayout *layout, struct wmOperatorType *ot, PointerRNA ptr, PropertyRNA *prop,
-        IDProperty *properties, int context, int flag,
+        struct IDProperty *properties, int context, int flag,
         const EnumPropertyItem *item_array, int totitem);
 
 void uiItemL(uiLayout *layout, const char *name, int icon); /* label */

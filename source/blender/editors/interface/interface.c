@@ -488,6 +488,9 @@ static int ui_but_calc_float_precision(uiBut *but, double value)
 	else if (prec == -1) {
 		prec = (but->hardmax < 10.001f) ? 3 : 2;
 	}
+	else {
+		CLAMP(prec, 0, UI_PRECISION_FLOAT_MAX);
+	}
 
 	return UI_calc_float_precision(prec, value);
 }
