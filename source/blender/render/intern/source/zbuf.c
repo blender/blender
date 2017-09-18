@@ -393,7 +393,7 @@ static void zbuffillAc4(ZSpan *zspan, int obi, int zvlnr,
 			zverg-= zspan->polygon_offset;
 			
 			while (x>=0) {
-				intzverg= (int)CLAMPIS(zverg, INT_MIN, INT_MAX);
+				intzverg = round_db_to_int_clamp(zverg);
 
 				if ( intzverg < *rz) {
 					if (!zspan->rectmask || intzverg > *rm) {
@@ -1137,7 +1137,7 @@ static void zbuffillGLinv4(ZSpan *zspan, int obi, int zvlnr,
 			x= sn2-sn1;
 
 			while (x>=0) {
-				intzverg= (int)CLAMPIS(zverg, INT_MIN, INT_MAX);
+				intzverg = round_db_to_int_clamp(zverg);
 
 				if ( intzverg > *rz || *rz==0x7FFFFFFF) { /* UNIQUE LINE: see comment above */
 					if (!zspan->rectmask || intzverg > *rm) {
@@ -1260,7 +1260,7 @@ static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr,
 			x= sn2-sn1;
 
 			while (x>=0) {
-				intzverg= (int)CLAMPIS(zverg, INT_MIN, INT_MAX);
+				intzverg = round_db_to_int_clamp(zverg);
 
 				if (intzverg < *rz) { /* ONLY UNIQUE LINE: see comment above */
 					if (!zspan->rectmask || intzverg > *rm) {
@@ -1383,7 +1383,7 @@ static void zbuffillGL_onlyZ(ZSpan *zspan, int UNUSED(obi), int UNUSED(zvlnr),
 			x= sn2-sn1;
 			
 			while (x>=0) {
-				int zvergi= (int)CLAMPIS(zverg, INT_MIN, INT_MAX);
+				int zvergi = round_db_to_int_clamp(zverg);
 
 				/* option: maintain two depth values, closest and 2nd closest */
 				if (zvergi < *rz) {
