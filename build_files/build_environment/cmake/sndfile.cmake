@@ -21,6 +21,10 @@ set(SNDFILE_ENV PKG_CONFIG_PATH=${mingw_LIBDIR}/ogg/lib/pkgconfig:${mingw_LIBDIR
 
 if(WIN32)
 	set(SNDFILE_ENV set ${SNDFILE_ENV} &&)
+	#shared for windows because static libs will drag in a libgcc dependency.
+	set(SNDFILE_OPTIONS --disable-static --enable-shared )
+else()
+	set(SNDFILE_OPTIONS --enable-static --disable-shared )
 endif()
 
 ExternalProject_Add(external_sndfile
@@ -28,7 +32,7 @@ ExternalProject_Add(external_sndfile
 	DOWNLOAD_DIR ${DOWNLOAD_DIR}
 	URL_HASH MD5=${SNDFILE_HASH}
 	PREFIX ${BUILD_DIR}/sndfile
-	CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/sndfile/src/external_sndfile/ && ${SNDFILE_ENV} ${CONFIGURE_COMMAND} --enable-static --disable-shared --prefix=${mingw_LIBDIR}/sndfile
+	CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/sndfile/src/external_sndfile/ && ${SNDFILE_ENV} ${CONFIGURE_COMMAND} ${SNDFILE_OPTIONS} --prefix=${mingw_LIBDIR}/sndfile
 	BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/sndfile/src/external_sndfile/ && make -j${MAKE_THREADS}
 	INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/sndfile/src/external_sndfile/ && make install
 	INSTALL_DIR ${LIBDIR}/sndfile
