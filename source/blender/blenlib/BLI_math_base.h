@@ -153,6 +153,20 @@ MINLINE int iroundf(float a);
 MINLINE int divide_round_i(int a, int b);
 MINLINE int mod_i(int i, int n);
 
+MINLINE signed char    round_fl_to_char_clamp(float a);
+MINLINE unsigned char  round_fl_to_uchar_clamp(float a);
+MINLINE short          round_fl_to_short_clamp(float a);
+MINLINE unsigned short round_fl_to_ushort_clamp(float a);
+MINLINE int            round_fl_to_int_clamp(float a);
+MINLINE unsigned int   round_fl_to_uint_clamp(float a);
+
+MINLINE signed char    round_db_to_char_clamp(double a);
+MINLINE unsigned char  round_db_to_uchar_clamp(double a);
+MINLINE short          round_db_to_short_clamp(double a);
+MINLINE unsigned short round_db_to_ushort_clamp(double a);
+MINLINE int            round_db_to_int_clamp(double a);
+MINLINE unsigned int   round_db_to_uint_clamp(double a);
+
 int pow_i(int base, int exp);
 double double_round(double x, int ndigits);
 
