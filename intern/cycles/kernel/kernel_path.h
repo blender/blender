@@ -154,6 +154,7 @@ ccl_device_forceinline void kernel_path_background(
 
 #ifndef __SPLIT_KERNEL__
 
+#ifdef __VOLUME__
 ccl_device_forceinline VolumeIntegrateResult kernel_path_volume(
 	KernelGlobals *kg,
 	ShaderData *sd,
@@ -165,7 +166,6 @@ ccl_device_forceinline VolumeIntegrateResult kernel_path_volume(
 	ShaderData *emission_sd,
 	PathRadiance *L)
 {
-#ifdef __VOLUME__
 	/* Sanitize volume stack. */
 	if(!hit) {
 		kernel_volume_clean_stack(kg, state->volume_stack);
@@ -252,10 +252,10 @@ ccl_device_forceinline VolumeIntegrateResult kernel_path_volume(
 #  endif  /* __VOLUME_SCATTER__ */
 		}
 	}
-#endif  /* __VOLUME__ */
 
 	return VOLUME_PATH_ATTENUATED;
 }
+#endif  /* __VOLUME__ */
 
 #endif /* __SPLIT_KERNEL__ */
 
@@ -400,6 +400,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 		/* Find intersection with lamps and compute emission for MIS. */
 		kernel_path_lamp_emission(kg, state, ray, throughput, &isect, emission_sd, L);
 
+#ifdef __VOLUME__
 		/* Volume integration. */
 		VolumeIntegrateResult result = kernel_path_volume(kg,
 		                                                   sd,
@@ -417,6 +418,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 		else if(result == VOLUME_PATH_MISSED) {
 			break;
 		}
+#endif /* __VOLUME__*/
 
 		/* Shade background. */
 		if(!hit) {
@@ -558,6 +560,7 @@ ccl_device_forceinline void kernel_path_integrate(
 		/* Find intersection with lamps and compute emission for MIS. */
 		kernel_path_lamp_emission(kg, state, ray, throughput, &isect, emission_sd, L);
 
+#ifdef __VOLUME__
 		/* Volume integration. */
 		VolumeIntegrateResult result = kernel_path_volume(kg,
 		                                                   &sd,
@@ -575,6 +578,7 @@ ccl_device_forceinline void kernel_path_integrate(
 		else if(result == VOLUME_PATH_MISSED) {
 			break;
 		}
+#endif /* __VOLUME__*/
 
 		/* Shade background. */
 		if(!hit) {
