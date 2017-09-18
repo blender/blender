@@ -323,7 +323,7 @@ static float rna_MeshVertex_bevel_weight_get(PointerRNA *ptr)
 static void rna_MeshVertex_bevel_weight_set(PointerRNA *ptr, float value)
 {
 	MVert *mvert = (MVert *)ptr->data;
-	mvert->bweight = (char)(CLAMPIS(value * 255.0f, 0, 255));
+	mvert->bweight = round_fl_to_uchar_clamp(value * 255.0f);
 }
 
 static float rna_MEdge_bevel_weight_get(PointerRNA *ptr)
@@ -335,7 +335,7 @@ static float rna_MEdge_bevel_weight_get(PointerRNA *ptr)
 static void rna_MEdge_bevel_weight_set(PointerRNA *ptr, float value)
 {
 	MEdge *medge = (MEdge *)ptr->data;
-	medge->bweight = (char)(CLAMPIS(value * 255.0f, 0, 255));
+	medge->bweight = round_fl_to_uchar_clamp(value * 255.0f);
 }
 
 static float rna_MEdge_crease_get(PointerRNA *ptr)
@@ -347,7 +347,7 @@ static float rna_MEdge_crease_get(PointerRNA *ptr)
 static void rna_MEdge_crease_set(PointerRNA *ptr, float value)
 {
 	MEdge *medge = (MEdge *)ptr->data;
-	medge->crease = (char)(CLAMPIS(value * 255.0f, 0, 255));
+	medge->crease = round_fl_to_uchar_clamp(value * 255.0f);
 }
 
 static void rna_MeshLoop_normal_get(PointerRNA *ptr, float *values)
@@ -605,9 +605,9 @@ static void rna_MeshColor_color1_set(PointerRNA *ptr, const float *values)
 {
 	MCol *mcol = (MCol *)ptr->data;
 
-	(&mcol[0].r)[2] = (char)(CLAMPIS(values[0] * 255.0f, 0, 255));
-	(&mcol[0].r)[1] = (char)(CLAMPIS(values[1] * 255.0f, 0, 255));
-	(&mcol[0].r)[0] = (char)(CLAMPIS(values[2] * 255.0f, 0, 255));
+	(&mcol[0].r)[2] = round_fl_to_uchar_clamp(values[0] * 255.0f);
+	(&mcol[0].r)[1] = round_fl_to_uchar_clamp(values[1] * 255.0f);
+	(&mcol[0].r)[0] = round_fl_to_uchar_clamp(values[2] * 255.0f);
 }
 
 static void rna_MeshColor_color2_get(PointerRNA *ptr, float *values)
@@ -623,9 +623,9 @@ static void rna_MeshColor_color2_set(PointerRNA *ptr, const float *values)
 {
 	MCol *mcol = (MCol *)ptr->data;
 
-	(&mcol[1].r)[2] = (char)(CLAMPIS(values[0] * 255.0f, 0, 255));
-	(&mcol[1].r)[1] = (char)(CLAMPIS(values[1] * 255.0f, 0, 255));
-	(&mcol[1].r)[0] = (char)(CLAMPIS(values[2] * 255.0f, 0, 255));
+	(&mcol[1].r)[2] = round_fl_to_uchar_clamp(values[0] * 255.0f);
+	(&mcol[1].r)[1] = round_fl_to_uchar_clamp(values[1] * 255.0f);
+	(&mcol[1].r)[0] = round_fl_to_uchar_clamp(values[2] * 255.0f);
 }
 
 static void rna_MeshColor_color3_get(PointerRNA *ptr, float *values)
@@ -641,9 +641,9 @@ static void rna_MeshColor_color3_set(PointerRNA *ptr, const float *values)
 {
 	MCol *mcol = (MCol *)ptr->data;
 
-	(&mcol[2].r)[2] = (char)(CLAMPIS(values[0] * 255.0f, 0, 255));
-	(&mcol[2].r)[1] = (char)(CLAMPIS(values[1] * 255.0f, 0, 255));
-	(&mcol[2].r)[0] = (char)(CLAMPIS(values[2] * 255.0f, 0, 255));
+	(&mcol[2].r)[2] = round_fl_to_uchar_clamp(values[0] * 255.0f);
+	(&mcol[2].r)[1] = round_fl_to_uchar_clamp(values[1] * 255.0f);
+	(&mcol[2].r)[0] = round_fl_to_uchar_clamp(values[2] * 255.0f);
 }
 
 static void rna_MeshColor_color4_get(PointerRNA *ptr, float *values)
@@ -659,9 +659,9 @@ static void rna_MeshColor_color4_set(PointerRNA *ptr, const float *values)
 {
 	MCol *mcol = (MCol *)ptr->data;
 
-	(&mcol[3].r)[2] = (char)(CLAMPIS(values[0] * 255.0f, 0, 255));
-	(&mcol[3].r)[1] = (char)(CLAMPIS(values[1] * 255.0f, 0, 255));
-	(&mcol[3].r)[0] = (char)(CLAMPIS(values[2] * 255.0f, 0, 255));
+	(&mcol[3].r)[2] = round_fl_to_uchar_clamp(values[0] * 255.0f);
+	(&mcol[3].r)[1] = round_fl_to_uchar_clamp(values[1] * 255.0f);
+	(&mcol[3].r)[0] = round_fl_to_uchar_clamp(values[2] * 255.0f);
 }
 
 static void rna_MeshLoopColor_color_get(PointerRNA *ptr, float *values)
@@ -677,9 +677,9 @@ static void rna_MeshLoopColor_color_set(PointerRNA *ptr, const float *values)
 {
 	MLoopCol *mcol = (MLoopCol *)ptr->data;
 
-	(&mcol->r)[0] = (char)(CLAMPIS(values[0] * 255.0f, 0, 255));
-	(&mcol->r)[1] = (char)(CLAMPIS(values[1] * 255.0f, 0, 255));
-	(&mcol->r)[2] = (char)(CLAMPIS(values[2] * 255.0f, 0, 255));
+	(&mcol->r)[0] = round_fl_to_uchar_clamp(values[0] * 255.0f);
+	(&mcol->r)[1] = round_fl_to_uchar_clamp(values[1] * 255.0f);
+	(&mcol->r)[2] = round_fl_to_uchar_clamp(values[2] * 255.0f);
 }
 
 static int rna_Mesh_texspace_editable(PointerRNA *ptr, const char **UNUSED(r_info))
