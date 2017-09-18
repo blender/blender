@@ -1076,7 +1076,7 @@ static void MANIPULATOR_WT_cage_2d(wmManipulatorType *wt)
 	/* rna */
 	static EnumPropertyItem rna_enum_draw_style[] = {
 		{ED_MANIPULATOR_CAGE2D_STYLE_BOX, "BOX", 0, "Box", ""},
-		{ED_MANIPULATOR_CAGE2D_STYLE_BOX, "CIRCLE", 0, "Circle", ""},
+		{ED_MANIPULATOR_CAGE2D_STYLE_CIRCLE, "CIRCLE", 0, "Circle", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	static EnumPropertyItem rna_enum_transform[] = {
