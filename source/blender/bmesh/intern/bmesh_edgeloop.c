@@ -707,22 +707,40 @@ void BM_edgeloop_expand(
 		split_swap = !split_swap;
 	}
 
+	/* TODO, move to generic define? */
+	/**
+	 * Even value distribution.
+	 *
+	 * \a src must be larger than \a dst,
+	 * \a dst defines the number of iterations, their values are evenly spaced.
+	 *
+	 * The following pairs represent (src, dst) arguments and the values they loop over.
+	 * <pre>
+	 * (19, 4) ->    [2, 7, 11. 16]
+	 * (100, 5) ->   [9, 29, 49, 69, 89]
+	 * (100, 3) ->   [16, 49, 83]
+	 * (100, 100) -> [0..99]
+	 * </pre>
+	 * \note this is mainly useful for numbers that might not divide evenly into eachother.
+	 */
+#define BLI_FOREACH_SPARSE_RANGE(src, dst, i) \
+	for (int _src = (src), _src2 = _src * 2, _dst2 = (dst) * 2, _error = _dst2 - _src, i = 0, _delta; \
+	     ((void)(_delta = divide_floor_i(_error, _dst2)), \
+	      (void)(i -= _delta), \
+	      (i < _src)); \
+	     _error -= (_delta * _dst2) + _src2)
+
 	if (el_store->len < el_store_len) {
-		const int step = max_ii(1, el_store->len / (el_store->len % el_store_len));
-		LinkData *node_first = el_store->verts.first;
-		LinkData *node_curr = node_first;
+		LinkData *node_curr = el_store->verts.first;
 
-		do {
-			LinkData *node_curr_init = node_curr;
-			LinkData *node_curr_copy;
-			int i = 0;
-			BLI_LISTBASE_CIRCULAR_FORWARD_BEGIN (&el_store->verts, node_curr, node_curr_init) {
-				if (i++ < step) {
-					break;
-				}
+		int iter_prev = 0;
+		BLI_FOREACH_SPARSE_RANGE(el_store->len, (el_store_len - el_store->len), iter) {
+			while (iter_prev < iter) {
+				node_curr = node_curr->next;
+				iter_prev += 1;
 			}
-			BLI_LISTBASE_CIRCULAR_FORWARD_END (&el_store->verts, node_curr, node_curr_init);
 
+			LinkData *node_curr_copy;
 			node_curr_copy = MEM_dupallocN(node_curr);
 			if (split == false) {
 				BLI_insertlinkafter(&el_store->verts, node_curr, node_curr_copy);
@@ -730,7 +748,8 @@ void BM_edgeloop_expand(
 			}
 			else {
 				if (node_curr->next || (el_store->flag & BM_EDGELOOP_IS_CLOSED)) {
-					EDGE_SPLIT(node_curr_copy, node_curr->next ? node_curr->next : (LinkData *)el_store->verts.first);
+					EDGE_SPLIT(node_curr_copy,
+					           node_curr->next ? node_curr->next : (LinkData *)el_store->verts.first);
 					BLI_insertlinkafter(&el_store->verts, node_curr, node_curr_copy);
 					node_curr = node_curr_copy->next;
 				}
@@ -742,9 +761,11 @@ void BM_edgeloop_expand(
 				split_swap = !split_swap;
 			}
 			el_store->len++;
-		} while (el_store->len < el_store_len);
+			iter_prev += 1;
+		}
 	}
 
+#undef BKE_FOREACH_SUBSET_OF_RANGE
 #undef EDGE_SPLIT
 
 	BLI_assert(el_store->len == el_store_len);

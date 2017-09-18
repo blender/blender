@@ -55,6 +55,12 @@ extern "C" {
 
 namespace DEG {
 
+enum {
+	COMPONENT_STATE_NONE      = 0,
+	COMPONENT_STATE_SCHEDULED = 1,
+	COMPONENT_STATE_DONE      = 2,
+};
+
 typedef std::deque<OperationDepsNode *> FlushQueue;
 
 static void flush_init_func(void *data_v, int i)
@@ -67,7 +73,7 @@ static void flush_init_func(void *data_v, int i)
 	ComponentDepsNode *comp_node = node->owner;
 	IDDepsNode *id_node = comp_node->owner;
 	id_node->done = 0;
-	comp_node->done = 0;
+	comp_node->done = COMPONENT_STATE_NONE;
 	node->scheduled = false;
 }
 
@@ -139,7 +145,7 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 				lib_id_recalc_data_tag(bmain, id_orig);
 			}
 
-			if (comp_node->done == 0) {
+			if (comp_node->done == COMPONENT_STATE_DONE) {
 #ifdef WITH_COPY_ON_WRITE
 				/* Currently this is needed to get ob->mesh to be replaced with
 				 * original mesh (rather than being evaluated_mesh).
@@ -210,9 +216,21 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 					/* TODO : replace with more granular flags */
 					object->deg_update_flag |= DEG_RUNTIME_DATA_UPDATE;
 				}
+				/* When some target changes bone, we might need to re-run the
+				 * whole IK solver, otherwise result might be unpredictable.
+				 */
+				if (comp_node->type == DEG_NODE_TYPE_BONE) {
+					ComponentDepsNode *pose_comp =
+					        id_node->find_component(DEG_NODE_TYPE_EVAL_POSE);
+					BLI_assert(pose_comp != NULL);
+					if (pose_comp->done == COMPONENT_STATE_NONE) {
+						queue.push_front(pose_comp->get_entry_operation());
+						pose_comp->done = COMPONENT_STATE_SCHEDULED;
+					}
+				}
 			}
 
-			id_node->done = 1;
+			id_node->done = COMPONENT_STATE_DONE;
 			comp_node->done = 1;
 
 			/* Flush to nodes along links... */

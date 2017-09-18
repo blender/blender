@@ -194,6 +194,17 @@ MINLINE int divide_round_i(int a, int b)
 }
 
 /**
+ * Integer division that floors negative result.
+ * \note This works like Python's int division.
+ */
+MINLINE int divide_floor_i(int a, int b)
+{
+	int d = a / b;
+	int r = a % b;  /* Optimizes into a single division. */
+	return r ? d - ((a < 0) ^ (b < 0)) : d;
+}
+
+/**
  * modulo that handles negative numbers, works the same as Python's.
  */
 MINLINE int mod_i(int i, int n)
