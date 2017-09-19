@@ -211,7 +211,7 @@ void WM_manipulator_target_property_value_get_array(
 		mpr_prop->custom_func.value_get_fn(mpr, mpr_prop, value);
 		return;
 	}
-	return RNA_property_float_get_array(&mpr_prop->ptr, mpr_prop->prop, value);
+	RNA_property_float_get_array(&mpr_prop->ptr, mpr_prop->prop, value);
 }
 
 void WM_manipulator_target_property_value_set_array(
