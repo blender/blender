@@ -1857,34 +1857,33 @@ static void DegenEpilogue(STSpace psTspace[], STriInfo pTriInfos[], int piTriLis
 		// degenerate triangles on a quad with one good triangle are skipped
 		// here but processed in the next loop
 		const tbool bSkip = (pTriInfos[t].iFlag&QUAD_ONE_DEGEN_TRI)!=0 ? TTRUE : TFALSE;
+		if (bSkip) {
+			continue;
+		}
 
-		if (!bSkip)
+		for (i=0; i<3; i++)
 		{
-			for (i=0; i<3; i++)
+			const int index1 = piTriListIn[t*3+i];
+			// search through the good triangles
+			tbool bNotFound = TTRUE;
+			int j=0;
+			while (bNotFound && j<(3*iNrTrianglesIn))
 			{
-				const int index1 = piTriListIn[t*3+i];
-				// search through the good triangles
-				tbool bNotFound = TTRUE;
-				int j=0;
-				while (bNotFound && j<(3*iNrTrianglesIn))
-				{
-					const int index2 = piTriListIn[j];
-					if (index1==index2) bNotFound=TFALSE;
-					else ++j;
-				}
+				const int index2 = piTriListIn[j];
+				if (index1==index2) bNotFound=TFALSE;
+				else ++j;
+			}
 
-				if (!bNotFound)
-				{
-					const int iTri = j/3;
-					const int iVert = j%3;
-					const int iSrcVert=pTriInfos[iTri].vert_num[iVert];
-					const int iSrcOffs=pTriInfos[iTri].iTSpacesOffs;
-					const int iDstVert=pTriInfos[t].vert_num[i];
-					const int iDstOffs=pTriInfos[t].iTSpacesOffs;
-					
-					// copy tspace
-					psTspace[iDstOffs+iDstVert] = psTspace[iSrcOffs+iSrcVert];
-				}
+			if (!bNotFound)
+			{
+				const int iTri = j/3;
+				const int iVert = j%3;
+				const int iSrcVert=pTriInfos[iTri].vert_num[iVert];
+				const int iSrcOffs=pTriInfos[iTri].iTSpacesOffs;
+				const int iDstVert=pTriInfos[t].vert_num[i];
+				const int iDstOffs=pTriInfos[t].iTSpacesOffs;
+				// copy tspace
+				psTspace[iDstOffs+iDstVert] = psTspace[iSrcOffs+iSrcVert];
 			}
 		}
 	}
