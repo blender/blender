@@ -1016,7 +1016,7 @@ static int arg_handle_audio_disable(int UNUSED(argc), const char **UNUSED(argv),
 }
 
 static const char arg_handle_audio_set_doc[] =
-"\n\tForce sound system to a specific device\n\tNULL SDL OPENAL JACK"
+"\n\tForce sound system to a specific device\n\tThe name is the same as found in the user preferences, e.g. OpenAL."
 ;
 static int arg_handle_audio_set(int argc, const char **argv, void *UNUSED(data))
 {
