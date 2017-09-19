@@ -195,7 +195,6 @@ set(SRC
 	BLI_sort.h
 	BLI_sort_utils.h
 	BLI_stack.h
-	BLI_stackdefines.h
 	BLI_strict_flags.h
 	BLI_string.h
 	BLI_string_cursor_utf8.h
@@ -207,8 +206,10 @@ set(SRC
 	BLI_threads.h
 	BLI_timecode.h
 	BLI_utildefines.h
+	BLI_utildefines_iter.h
+	BLI_utildefines_stack.h
+	BLI_utildefines_variadic.h
 	BLI_uvproject.h
-	BLI_variadic_defines.h
 	BLI_vfontdata.h
 	BLI_voronoi.h
 	BLI_voxel.h

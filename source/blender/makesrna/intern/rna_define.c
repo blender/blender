@@ -44,6 +44,8 @@
 
 #include "BLT_translation.h"
 
+#include "UI_interface.h"  /* For things like UI_PRECISION_FLOAT_MAX... */
+
 #include "RNA_define.h"
 
 #include "rna_internal.h"
@@ -1405,13 +1407,13 @@ void RNA_def_property_ui_icon(PropertyRNA *prop, int icon, bool consecutive)
  * For ints, whole values are used.
  *
  * \param precision The number of zeros to show
- * (as a whole number - common range is 1 - 6), see PRECISION_FLOAT_MAX
+ * (as a whole number - common range is 1 - 6), see UI_PRECISION_FLOAT_MAX
  */
 void RNA_def_property_ui_range(PropertyRNA *prop, double min, double max, double step, int precision)
 {
 	StructRNA *srna = DefRNA.laststruct;
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	if (min > max) {
 		fprintf(stderr, "%s: \"%s.%s\", min > max.\n",
 		        __func__, srna->identifier, prop->identifier);
@@ -1424,8 +1426,8 @@ void RNA_def_property_ui_range(PropertyRNA *prop, double min, double max, double
 		DefRNA.error = 1;
 	}
 
-	if (precision < -1 || precision > 10) {
-		fprintf(stderr, "%s: \"%s.%s\", step outside range.\n",
+	if (precision < -1 || precision > UI_PRECISION_FLOAT_MAX) {
+		fprintf(stderr, "%s: \"%s.%s\", precision outside range.\n",
 		        __func__, srna->identifier, prop->identifier);
 		DefRNA.error = 1;
 	}
@@ -1447,21 +1449,6 @@ void RNA_def_property_ui_range(PropertyRNA *prop, double min, double max, double
 			fprop->softmax = (float)max;
 			fprop->step = (float)step;
 			fprop->precision = (int)precision;
-#if 0 /* handy but annoying */
-			if (DefRNA.preprocess) {
-				/* check we're not over PRECISION_FLOAT_MAX */
-				if (fprop->precision > 6) {
-					fprintf(stderr, "%s: \"%s.%s\", precision value over maximum.\n",
-					        __func__, srna->identifier, prop->identifier);
-					DefRNA.error = 1;
-				}
-				else if (fprop->precision < 1) {
-					fprintf(stderr, "%s: \"%s.%s\", precision value under minimum.\n",
-					        __func__, srna->identifier, prop->identifier);
-					DefRNA.error = 1;
-				}
-			}
-#endif
 			break;
 		}
 		default:

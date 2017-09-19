@@ -1847,47 +1847,134 @@ static void DegenPrologue(STriInfo pTriInfos[], int piTriList_out[], const int i
 	assert(iNrTrianglesIn == t);
 }
 
-static void DegenEpilogue(STSpace psTspace[], STriInfo pTriInfos[], int piTriListIn[], const SMikkTSpaceContext * pContext, const int iNrTrianglesIn, const int iTotTris)
+typedef struct VertReverseLookupContext {
+	tbool bIsInitialized;
+	int * pLookup;
+	int iMaxVertIndex;
+} VertReverseLookupContext;
+
+static void GenerateReverseLookup(
+        const int piTriListIn[],
+        const int iNrTrianglesIn,
+        VertReverseLookupContext *pLookupCtx)
+{
+	int t;
+	// Figure out what size of lookup array we need.
+	pLookupCtx->iMaxVertIndex = -1;
+	for (t=0; t<3*iNrTrianglesIn; t++)
+	{
+		int iVertIndex = piTriListIn[t];
+		if (iVertIndex > pLookupCtx->iMaxVertIndex) {
+			pLookupCtx->iMaxVertIndex = iVertIndex;
+		}
+	}
+	// Allocate memory.
+	if (pLookupCtx->iMaxVertIndex < 1)
+	{
+		// Nothing to allocate, all triangles are degenerate.
+		return;
+	}
+	pLookupCtx->pLookup = malloc(sizeof(int) * (pLookupCtx->iMaxVertIndex + 1));
+	if (pLookupCtx->pLookup == NULL)
+	{
+		// Most likely run out of memory.
+		return;
+	}
+	// Fill in lookup.
+	for (t=0; t<=pLookupCtx->iMaxVertIndex; t++) {
+		pLookupCtx->pLookup[t] = -1;
+	}
+	for (t=0; t<3*iNrTrianglesIn; t++)
+	{
+		int iVertIndex = piTriListIn[t];
+		if (pLookupCtx->pLookup[iVertIndex] != -1)
+		{
+			continue;
+		}
+		pLookupCtx->pLookup[iVertIndex] = t;
+	}
+}
+
+static int LookupVertexIndexFromGoodTriangle(
+        VertReverseLookupContext *pLookupCtx,
+        int piTriListIn[],
+        const int iNrTrianglesIn,
+        const int iVertexIndex)
+{
+	// Allocate lookup on demand.
+	if (!pLookupCtx->bIsInitialized)
+	{
+		GenerateReverseLookup(piTriListIn,
+		                      iNrTrianglesIn,
+		                      pLookupCtx);
+		pLookupCtx->bIsInitialized = TTRUE;
+	}
+	// Make sure vertex index is in the mapping.
+	if (iVertexIndex > pLookupCtx->iMaxVertIndex)
+	{
+		return -1;
+	}
+	if (pLookupCtx->pLookup == NULL) {
+		return -1;
+	}
+	// Perform actual lookup.
+	return pLookupCtx->pLookup[iVertexIndex];
+}
+
+static void FreeReverseLookup(VertReverseLookupContext *pLookupCtx)
+{
+	if (!pLookupCtx->bIsInitialized) {
+		return;
+	}
+	if (pLookupCtx->pLookup != NULL) {
+		free(pLookupCtx->pLookup);
+	}
+}
+
+static void DegenEpilogue(STSpace psTspace[],
+                          STriInfo pTriInfos[],
+                          int piTriListIn[],
+                          const SMikkTSpaceContext * pContext,
+                          const int iNrTrianglesIn,
+                          const int iTotTris)
 {
 	int t=0, i=0;
+	VertReverseLookupContext lookupCtx = { TFALSE };
 	// deal with degenerate triangles
-	// punishment for degenerate triangles is O(N^2)
+	// punishment for degenerate triangles is O(iNrTrianglesIn) extra memory.
 	for (t=iNrTrianglesIn; t<iTotTris; t++)
 	{
 		// degenerate triangles on a quad with one good triangle are skipped
 		// here but processed in the next loop
 		const tbool bSkip = (pTriInfos[t].iFlag&QUAD_ONE_DEGEN_TRI)!=0 ? TTRUE : TFALSE;
+		if (bSkip) {
+			continue;
+		}
 
-		if (!bSkip)
+		for (i=0; i<3; i++)
 		{
-			for (i=0; i<3; i++)
+			const int index1 = piTriListIn[t*3+i];
+			int j = LookupVertexIndexFromGoodTriangle(&lookupCtx,
+			                                          piTriListIn,
+			                                          iNrTrianglesIn,
+			                                          index1);
+			if (j < 0)
 			{
-				const int index1 = piTriListIn[t*3+i];
-				// search through the good triangles
-				tbool bNotFound = TTRUE;
-				int j=0;
-				while (bNotFound && j<(3*iNrTrianglesIn))
-				{
-					const int index2 = piTriListIn[j];
-					if (index1==index2) bNotFound=TFALSE;
-					else ++j;
-				}
-
-				if (!bNotFound)
-				{
-					const int iTri = j/3;
-					const int iVert = j%3;
-					const int iSrcVert=pTriInfos[iTri].vert_num[iVert];
-					const int iSrcOffs=pTriInfos[iTri].iTSpacesOffs;
-					const int iDstVert=pTriInfos[t].vert_num[i];
-					const int iDstOffs=pTriInfos[t].iTSpacesOffs;
-					
-					// copy tspace
-					psTspace[iDstOffs+iDstVert] = psTspace[iSrcOffs+iSrcVert];
-				}
+				// Matching vertex from good triangle is not found.
+				continue;
 			}
+
+			const int iTri = j/3;
+			const int iVert = j%3;
+			const int iSrcVert=pTriInfos[iTri].vert_num[iVert];
+			const int iSrcOffs=pTriInfos[iTri].iTSpacesOffs;
+			const int iDstVert=pTriInfos[t].vert_num[i];
+			const int iDstOffs=pTriInfos[t].iTSpacesOffs;
+			// copy tspace
+			psTspace[iDstOffs+iDstVert] = psTspace[iSrcOffs+iSrcVert];
 		}
 	}
+	FreeReverseLookup(&lookupCtx);
 
 	// deal with degenerate quads with one good triangle
 	for (t=0; t<iNrTrianglesIn; t++)

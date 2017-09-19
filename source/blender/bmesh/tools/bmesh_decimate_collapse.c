@@ -40,7 +40,7 @@
 #include "BLI_edgehash.h"
 #include "BLI_polyfill2d.h"
 #include "BLI_polyfill2d_beautify.h"
-#include "BLI_stackdefines.h"
+#include "BLI_utildefines_stack.h"
 
 
 #include "BKE_customdata.h"

@@ -681,6 +681,7 @@ static AVStream *alloc_video_stream(FFMpegContext *context, RenderData *rd, int 
 	/* xasp & yasp got float lately... */
 
 	st->sample_aspect_ratio = c->sample_aspect_ratio = av_d2q(((double) rd->xasp / (double) rd->yasp), 255);
+	st->avg_frame_rate = av_inv_q(c->time_base);
 
 	set_ffmpeg_properties(rd, c, "video", &opts);
 

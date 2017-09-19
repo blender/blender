@@ -33,7 +33,7 @@
 
 #include "BLI_math.h"
 #include "BLI_alloca.h"
-#include "BLI_stackdefines.h"
+#include "BLI_utildefines_stack.h"
 
 #include "BKE_customdata.h"
 
