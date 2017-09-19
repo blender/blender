@@ -45,10 +45,9 @@ ExternalProject_Add(external_numpy
 	DOWNLOAD_DIR ${DOWNLOAD_DIR}
 	URL_HASH MD5=${NUMPY_HASH}
 	PREFIX ${BUILD_DIR}/numpy
-	PATCH_COMMAND ${PATCH_CMD} --verbose -p 1 -N -d ${BUILD_DIR}/numpy/src/external_numpy < ${PATCH_DIR}/numpy.diff
 	CONFIGURE_COMMAND ""
 	LOG_BUILD 1
-	BUILD_COMMAND ${PYTHON_BINARY} ${BUILD_DIR}/numpy/src/external_numpy/setup.py build ${NUMPY_BUILD_OPTION} install
+	BUILD_COMMAND ${PYTHON_BINARY} ${BUILD_DIR}/numpy/src/external_numpy/setup.py build ${NUMPY_BUILD_OPTION} install --old-and-unmanageable
 	INSTALL_COMMAND ${NUMPY_INSTALL}
 )
 
