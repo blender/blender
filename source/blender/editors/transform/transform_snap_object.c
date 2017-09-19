@@ -1065,36 +1065,20 @@ static float dist_squared_to_projected_aabb(
 		main_axis += 3;
 	}
 
-	/* if rtmin < rtmax, ray intersect `AABB` */
-	if (rtmin <= rtmax) {
 #define IGNORE_BEHIND_RAY
 #ifdef IGNORE_BEHIND_RAY
-		/* `if rtmax < depth_min`, the hit is behind us */
-		if (rtmax < data->ray_min_dist) {
-			/* Test if the entire AABB is behind us */
-			float depth = depth_get(
-			        local_bvmax, data->ray_origin_local, data->ray_direction_local);
-			if (depth < (data->ray_min_dist)) {
-				return FLT_MAX;
-			}
-		}
-#endif
-		const float proj = rtmin * data->ray_direction_local[main_axis];
-		r_axis_closest[main_axis] = (proj - va[main_axis]) < (vb[main_axis] - proj);
-		return 0.0f;
-	}
-#ifdef IGNORE_BEHIND_RAY
-	/* `if rtmin < depth_min`, the hit is behing us */
-	else if (rtmin < data->ray_min_dist) {
-		/* Test if the entire AABB is behind us */
-		float depth = depth_get(
-		        local_bvmax, data->ray_origin_local, data->ray_direction_local);
-		if (depth < (data->ray_min_dist)) {
-			return FLT_MAX;
-		}
+	float depth_max = depth_get(local_bvmax, data->ray_origin_local, data->ray_direction_local);
+	if (depth_max < data->ray_min_dist) {
+		return FLT_MAX;
 	}
 #endif
 #undef IGNORE_BEHIND_RAY
+
+	/* if rtmin <= rtmax, ray intersect `AABB` */
+	if (rtmin <= rtmax) {
+		return 0;
+	}
+
 	if (data->sign[main_axis]) {
 		va[main_axis] = local_bvmax[main_axis];
 		vb[main_axis] = local_bvmin[main_axis];
