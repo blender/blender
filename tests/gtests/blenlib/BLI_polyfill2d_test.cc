@@ -540,7 +540,6 @@ TEST(polyfill2d, IssueT41986_axis_align)
 	TEST_POLYFILL_TEMPLATE_STATIC(poly, false);
 }
 
-#if 0
 /* Blender bug T52834 */
 TEST(polyfill2d, IssueT52834_axis_align_co_linear)
 {
@@ -554,5 +553,3 @@ TEST(polyfill2d, IssueT52834_axis_align_co_linear)
 
 	TEST_POLYFILL_TEMPLATE_STATIC(poly, false);
 }
-#endif
-

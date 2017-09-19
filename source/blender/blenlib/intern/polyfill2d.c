@@ -411,11 +411,11 @@ static bool kdtree2d_isect_tri_recursive(
 	}
 
 #define KDTREE2D_ISECT_TRI_RECURSE_NEG \
-	(((node->neg != KDNODE_UNSET) && (co[node->axis] > bounds[node->axis].min)) &&   \
+	(((node->neg != KDNODE_UNSET) && (co[node->axis] >= bounds[node->axis].min)) &&  \
 	  (kdtree2d_isect_tri_recursive(tree, tri_index, tri_coords, tri_center, bounds, \
 	                                &tree->nodes[node->neg])))
 #define KDTREE2D_ISECT_TRI_RECURSE_POS \
-	(((node->pos != KDNODE_UNSET) && (co[node->axis] < bounds[node->axis].max)) &&   \
+	(((node->pos != KDNODE_UNSET) && (co[node->axis] <= bounds[node->axis].max)) &&  \
 	  (kdtree2d_isect_tri_recursive(tree, tri_index, tri_coords, tri_center, bounds, \
 	                                &tree->nodes[node->pos])))
 
