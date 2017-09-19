@@ -1919,12 +1919,16 @@ void CDDM_recalc_looptri(DerivedMesh *dm)
 	const unsigned int totloop = dm->numLoopData;
 
 	DM_ensure_looptri_data(dm);
+	BLI_assert(cddm->dm.looptris.array_wip != NULL);
 
 	BKE_mesh_recalc_looptri(
 	        cddm->mloop, cddm->mpoly,
 	        cddm->mvert,
 	        totloop, totpoly,
-	        cddm->dm.looptris.array);
+	        cddm->dm.looptris.array_wip);
+
+	BLI_assert(cddm->dm.looptris.array == NULL);
+	SWAP(MLoopTri *, cddm->dm.looptris.array, cddm->dm.looptris.array_wip);
 }
 
 static void cdDM_free_internal(CDDerivedMesh *cddm)
