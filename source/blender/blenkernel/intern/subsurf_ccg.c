@@ -4482,8 +4482,9 @@ static void ccgDM_recalcLoopTri(DerivedMesh *dm)
 	int i, poly_index;
 
 	DM_ensure_looptri_data(dm);
-	mlooptri = dm->looptris.array;
+	mlooptri = dm->looptris.array_wip;
 
+	BLI_assert(mlooptri != NULL);
 	BLI_assert(poly_to_tri_count(dm->numPolyData, dm->numLoopData) == dm->looptris.num);
 	BLI_assert(tottri == dm->looptris.num);
 
@@ -4502,6 +4503,9 @@ static void ccgDM_recalcLoopTri(DerivedMesh *dm)
 		lt->tri[2] = (poly_index * 4) + 2;
 		lt->poly = poly_index;
 	}
+
+	BLI_assert(dm->looptris.array == NULL);
+	SWAP(MLoopTri *, dm->looptris.array, dm->looptris.array_wip);
 }
 
 static void ccgDM_calcNormals(DerivedMesh *dm)
