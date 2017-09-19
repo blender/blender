@@ -1523,7 +1523,7 @@ void BM_mesh_calc_tessellation_beauty(BMesh *bm, BMLoop *(*looptris)[3], int *r_
 			 * Use #BLI_polyfill_beautify_quad_rotate_calc since we have the normal.
 			 */
 #if 0
-			const bool split_24 = (BM_verts_calc_rotate_beauty(
+			const bool split_13 = (BM_verts_calc_rotate_beauty(
 			        l_v1->v, l_v2->v, l_v3->v, l_v4->v, 0, 0) < 0.0f);
 #else
 			float axis_mat[3][3], v_quad[4][2];
@@ -1533,13 +1533,13 @@ void BM_mesh_calc_tessellation_beauty(BMesh *bm, BMLoop *(*looptris)[3], int *r_
 			mul_v2_m3v3(v_quad[2], axis_mat, l_v3->v->co);
 			mul_v2_m3v3(v_quad[3], axis_mat, l_v4->v->co);
 
-			const bool split_24 = BLI_polyfill_beautify_quad_rotate_calc(
+			const bool split_13 = BLI_polyfill_beautify_quad_rotate_calc(
 			        v_quad[0], v_quad[1], v_quad[2], v_quad[3]) < 0.0f;
 #endif
 
 			BMLoop **l_ptr_a = looptris[i++];
 			BMLoop **l_ptr_b = looptris[i++];
-			if (split_24 == 0) {
+			if (split_13) {
 				l_ptr_a[0] = l_v1;
 				l_ptr_a[1] = l_v2;
 				l_ptr_a[2] = l_v3;
