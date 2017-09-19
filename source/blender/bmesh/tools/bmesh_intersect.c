@@ -44,7 +44,7 @@
 #include "BLI_sort_utils.h"
 
 #include "BLI_linklist_stack.h"
-#include "BLI_stackdefines.h"
+#include "BLI_utildefines_stack.h"
 #ifndef NDEBUG
 #  include "BLI_array_utils.h"
 #endif

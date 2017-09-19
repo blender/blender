@@ -39,7 +39,7 @@ extern "C" {
 /* avoid many includes for now */
 #include "BLI_sys_types.h"
 #include "BLI_compiler_compat.h"
-#include "BLI_variadic_defines.h"
+#include "BLI_utildefines_variadic.h"
 
 #ifndef NDEBUG /* for BLI_assert */
 #include <stdio.h>

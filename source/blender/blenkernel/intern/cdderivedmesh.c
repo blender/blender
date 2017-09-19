@@ -37,7 +37,7 @@
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_utildefines.h"
-#include "BLI_stackdefines.h"
+#include "BLI_utildefines_stack.h"
 
 #include "BKE_pbvh.h"
 #include "BKE_cdderivedmesh.h"

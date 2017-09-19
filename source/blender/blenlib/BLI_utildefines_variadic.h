@@ -18,10 +18,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BLI_VARIADIC_DEFINES_H__
-#define __BLI_VARIADIC_DEFINES_H__
+#ifndef __BLI_UTILDEFINES_VARIADIC_H__
+#define __BLI_UTILDEFINES_VARIADIC_H__
 
-/** \file BLI_variadic_defines.h
+/** \file BLI_utildefines_variadic.h
  *  \ingroup bli
  */
 
@@ -47,4 +47,4 @@
 #define VA_NARGS_CALL_OVERLOAD(name, ...) \
 	_VA_NARGS_GLUE(_VA_NARGS_OVERLOAD_MACRO(name, VA_NARGS_COUNT(__VA_ARGS__)), (__VA_ARGS__))
 
-#endif  /* __BLI_VARIADIC_DEFINES_H__ */
+#endif  /* __BLI_UTILDEFINES_VARIADIC_H__ */

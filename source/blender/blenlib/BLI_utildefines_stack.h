@@ -18,10 +18,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BLI_STACKDEFINES_H__
-#define __BLI_STACKDEFINES_H__
+#ifndef __BLI_UTILDEFINES_STACK_H__
+#define __BLI_UTILDEFINES_STACK_H__
 
-/** \file BLI_stackdefines.h
+/** \file BLI_utildefines_stack.h
  *  \ingroup bli
  *
  * Macro's for a simple array based stack
@@ -86,4 +86,4 @@
 	} ((void)0)
 #endif
 
-#endif  /* __BLI_STACKDEFINES_H__ */
+#endif  /* __BLI_UTILDEFINES_STACK_H__ */

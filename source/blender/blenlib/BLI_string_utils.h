@@ -39,7 +39,7 @@ extern "C" {
 #endif
 
 #include "BLI_compiler_attrs.h"
-#include "BLI_variadic_defines.h"
+#include "BLI_utildefines_variadic.h"
 
 struct ListBase;
 

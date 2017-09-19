@@ -28,7 +28,7 @@
 #define __PY_CAPI_UTILS_H__
 
 #include "BLI_sys_types.h"
-#include "BLI_variadic_defines.h"
+#include "BLI_utildefines_variadic.h"
 
 void			PyC_ObSpit(const char *name, PyObject *var);
 void			PyC_LineSpit(void);

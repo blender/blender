@@ -27,7 +27,7 @@
  */
 
 #include "BLI_utildefines.h"
-#include "BLI_stackdefines.h"
+#include "BLI_utildefines_stack.h"
 #include "BLI_alloca.h"
 #include "BLI_linklist_stack.h"
 
