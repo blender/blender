@@ -210,6 +210,26 @@ static void test_polyfill_template(
 #endif
 }
 
+static void test_polyfill_template_flip_sign(
+        const char *id, bool is_degenerate,
+        const float poly[][2], const unsigned int poly_tot,
+        unsigned int tris[][3], const unsigned int tris_tot)
+{
+	float (*poly_copy)[2] = (float (*)[2])MEM_mallocN(sizeof(float[2]) * poly_tot, id);
+	for (int flip_x = 0; flip_x < 2; flip_x++) {
+		for (int flip_y = 0; flip_y < 2; flip_y++) {
+			float sign_x = flip_x ? -1.0f : 1.0f;
+			float sign_y = flip_y ? -1.0f : 1.0f;
+			for (int i = 0; i < poly_tot; i++) {
+				poly_copy[i][0] = poly[i][0] * sign_x;
+				poly_copy[i][1] = poly[i][1] * sign_y;
+			}
+			test_polyfill_template(id, is_degenerate, poly_copy, poly_tot, tris, tris_tot);
+		}
+	}
+	MEM_freeN(poly_copy);
+}
+
 #ifdef USE_COMBINATIONS_ALL
 static void test_polyfill_template_main(
         const char *id, bool is_degenerate,
@@ -232,7 +252,7 @@ static void test_polyfill_template_main(
 
 		for (poly_cycle = 0; poly_cycle < poly_tot; poly_cycle++) {
 			// printf("polytest %s ofs=%d, reverse=%d\n", id, poly_cycle, poly_reverse);
-			test_polyfill_template(id, is_degenerate, poly, poly_tot, tris, tris_tot);
+			test_polyfill_template_flip_sign(id, is_degenerate, poly, poly_tot, tris, tris_tot);
 
 			/* cycle */
 			copy_v2_v2(tmp, poly_copy[0]);
@@ -249,7 +269,7 @@ static void test_polyfill_template_main(
         const float poly[][2], const unsigned int poly_tot,
         unsigned int tris[][3], const unsigned int tris_tot)
 {
-	test_polyfill_template(id, is_degenerate, poly, poly_tot, tris, tris_tot);
+	test_polyfill_template_flip_sign(id, is_degenerate, poly, poly_tot, tris, tris_tot);
 }
 #endif  /* USE_COMBINATIONS_ALL */
 
