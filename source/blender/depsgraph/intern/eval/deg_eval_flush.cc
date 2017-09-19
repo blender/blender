@@ -210,8 +210,8 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 				}
 			}
 
-			id_node->done = COMPONENT_STATE_DONE;
-			comp_node->done = 1;
+			id_node->done = 1;
+			comp_node->done = COMPONENT_STATE_DONE;
 
 			/* Flush to nodes along links... */
 			/* TODO(sergey): This is mainly giving speedup due ot less queue pushes, which
