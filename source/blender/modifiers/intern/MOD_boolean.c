@@ -59,6 +59,7 @@
 #include "BLI_alloca.h"
 #include "BLI_math_geom.h"
 #include "BKE_material.h"
+#include "BKE_global.h"  /* only to check G.debug */
 #include "MEM_guardedalloc.h"
 
 #include "bmesh.h"
@@ -322,10 +323,16 @@ static DerivedMesh *applyModifier_bmesh(
 				 * currently this is ok for 'BM_mesh_intersect' */
 				// BM_mesh_normals_update(bm);
 
-				/* change for testing */
 				bool use_separate = false;
 				bool use_dissolve = true;
 				bool use_island_connect = true;
+
+				/* change for testing */
+				if (G.debug & G_DEBUG) {
+					use_separate = (bmd->bm_flag & eBooleanModifierBMeshFlag_BMesh_Separate) != 0;
+					use_dissolve = (bmd->bm_flag & eBooleanModifierBMeshFlag_BMesh_NoDissolve) == 0;
+					use_island_connect = (bmd->bm_flag & eBooleanModifierBMeshFlag_BMesh_NoConnectRegions) == 0;
+				}
 
 				BM_mesh_intersect(
 				        bm,
