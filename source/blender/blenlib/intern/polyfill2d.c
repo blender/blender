@@ -698,12 +698,12 @@ static bool pf_ear_tip_check(PolyFill *pf, PolyIndex *pi_ear_tip)
 	/* check if counting is wrong */
 	{
 		uint coords_tot_concave_test = 0;
-		uint i = pf->coords_tot;
-		while (i--) {
-			if (coords_sign[indices[i]] != CONVEX) {
+		PolyIndex *pi_iter = pi_ear_tip;
+		do {
+			if (pi_iter->sign != CONVEX) {
 				coords_tot_concave_test += 1;
 			}
-		}
+		} while ((pi_iter = pi_iter->next) != pi_ear_tip);
 		BLI_assert(coords_tot_concave_test == pf->coords_tot_concave);
 	}
 #endif
