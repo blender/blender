@@ -25,6 +25,9 @@
 
 #if defined(i386) || defined(_M_IX86)
 
+/* We require minimum SSE2 support on x86, so auto enable. */
+#  define __KERNEL_SSE2__
+
 #  ifdef WITH_KERNEL_SSE2
 #    define WITH_CYCLES_OPTIMIZED_KERNEL_SSE2
 #  endif
