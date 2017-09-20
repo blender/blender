@@ -210,6 +210,26 @@ static void test_polyfill_template(
 #endif
 }
 
+static void test_polyfill_template_flip_sign(
+        const char *id, bool is_degenerate,
+        const float poly[][2], const unsigned int poly_tot,
+        unsigned int tris[][3], const unsigned int tris_tot)
+{
+	float (*poly_copy)[2] = (float (*)[2])MEM_mallocN(sizeof(float[2]) * poly_tot, id);
+	for (int flip_x = 0; flip_x < 2; flip_x++) {
+		for (int flip_y = 0; flip_y < 2; flip_y++) {
+			float sign_x = flip_x ? -1.0f : 1.0f;
+			float sign_y = flip_y ? -1.0f : 1.0f;
+			for (int i = 0; i < poly_tot; i++) {
+				poly_copy[i][0] = poly[i][0] * sign_x;
+				poly_copy[i][1] = poly[i][1] * sign_y;
+			}
+			test_polyfill_template(id, is_degenerate, poly_copy, poly_tot, tris, tris_tot);
+		}
+	}
+	MEM_freeN(poly_copy);
+}
+
 #ifdef USE_COMBINATIONS_ALL
 static void test_polyfill_template_main(
         const char *id, bool is_degenerate,
@@ -232,7 +252,7 @@ static void test_polyfill_template_main(
 
 		for (poly_cycle = 0; poly_cycle < poly_tot; poly_cycle++) {
 			// printf("polytest %s ofs=%d, reverse=%d\n", id, poly_cycle, poly_reverse);
-			test_polyfill_template(id, is_degenerate, poly, poly_tot, tris, tris_tot);
+			test_polyfill_template_flip_sign(id, is_degenerate, poly, poly_tot, tris, tris_tot);
 
 			/* cycle */
 			copy_v2_v2(tmp, poly_copy[0]);
@@ -249,7 +269,7 @@ static void test_polyfill_template_main(
         const float poly[][2], const unsigned int poly_tot,
         unsigned int tris[][3], const unsigned int tris_tot)
 {
-	test_polyfill_template(id, is_degenerate, poly, poly_tot, tris, tris_tot);
+	test_polyfill_template_flip_sign(id, is_degenerate, poly, poly_tot, tris, tris_tot);
 }
 #endif  /* USE_COMBINATIONS_ALL */
 
@@ -308,6 +328,43 @@ static void polyfill_to_obj(
 
 /* -------------------------------------------------------------------- */
 /* tests */
+
+/**
+ * Script to generate the data below:
+ *
+ * \code{.py}
+ * # This example assumes we have a mesh object in edit-mode
+ *
+ * import bpy
+ * import bmesh
+ *
+ * obj = bpy.context.edit_object
+ * me = obj.data
+ * bm = bmesh.from_edit_mesh(me)
+ *
+ * def clean_float(num):
+ *     if int(num) == num:
+ *         return str(int(num))
+ *     prec = 1
+ *     while True:
+ *         text = f"{num:.{prec}f}"
+ *         if float(text) == num:
+ *             return text
+ *         prec += 1
+ *
+ * for f in bm.faces:
+ *     if f.select:
+ *         print(f"\t// data for face: {f.index}")
+ *         print("\tconst float poly[][2] = {", end="")
+ *         coords = [[clean_float(num) for num in l.vert.co[0:2]] for l in f.loops]
+ *         print("\t    ", end="")
+ *         for i, (x, y) in enumerate(coords):
+ *             if (i % 2) == 0:
+ *                 print("\n\t    ", end="")
+ *             print(f"{{{x}, {y}}}", end=",")
+ *         print("\n\t};")
+ * \endcode
+ */
 
 #define POLY_TRI_COUNT(len) ((len) - 2)
 
@@ -516,6 +573,20 @@ TEST(polyfill2d, IssueT41986_axis_align)
 	    {0.12, 1.62}, {0.36, 1.07}, {0.12, 0.67}, {0.29, 0.57}, {0.44, 0.45}, {0.57, 0.29},
 	    {0.66, 0.12}, {0.68, 0.06}, {0.57, -0.36}, {-0.25, -0.37}, {0.49, -0.74}, {-0.59, -1.21},
 	    {-0.25, -0.15}, {-0.46, -0.52}, {-1.08, -0.83}, {-1.45, -0.33}, {-1.25, -0.04}};
+
+	TEST_POLYFILL_TEMPLATE_STATIC(poly, false);
+}
+
+/* Blender bug T52834 */
+TEST(polyfill2d, IssueT52834_axis_align_co_linear)
+{
+	const float poly[][2] = {
+	    {40, 0}, {36, 0}, {36, 5}, {35, 5}, {35, 0}, {30, 0}, {30, 5}, {29, 5}, {29, 0}, {24, 0}, {24, 3},
+	    {23, 4}, {23, 0}, {18, 0}, {18, 5}, {17, 5}, {17, 0}, {12, 0}, {12, 5}, {11, 5}, {11, 0}, {6, 0},
+	    {6, 5}, {5, 5}, {5, 0}, {0, 0}, {0, 5}, {-1, 5}, {-1, 0}, {-6, 0}, {-9, -3}, {-6, -3}, {-6, -2},
+	    {-1, -2}, {0, -2}, {5, -2}, {6, -2}, {11, -2}, {12, -2}, {17, -2}, {18, -2}, {23, -2}, {24, -2},
+	    {29, -2}, {30, -2}, {35, -2}, {36, -2}, {40, -2},
+	};
 
 	TEST_POLYFILL_TEMPLATE_STATIC(poly, false);
 }

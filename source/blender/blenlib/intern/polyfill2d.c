@@ -411,11 +411,11 @@ static bool kdtree2d_isect_tri_recursive(
 	}
 
 #define KDTREE2D_ISECT_TRI_RECURSE_NEG \
-	(((node->neg != KDNODE_UNSET) && (co[node->axis] > bounds[node->axis].min)) &&   \
+	(((node->neg != KDNODE_UNSET) && (co[node->axis] >= bounds[node->axis].min)) &&  \
 	  (kdtree2d_isect_tri_recursive(tree, tri_index, tri_coords, tri_center, bounds, \
 	                                &tree->nodes[node->neg])))
 #define KDTREE2D_ISECT_TRI_RECURSE_POS \
-	(((node->pos != KDNODE_UNSET) && (co[node->axis] < bounds[node->axis].max)) &&   \
+	(((node->pos != KDNODE_UNSET) && (co[node->axis] <= bounds[node->axis].max)) &&  \
 	  (kdtree2d_isect_tri_recursive(tree, tri_index, tri_coords, tri_center, bounds, \
 	                                &tree->nodes[node->pos])))
 
@@ -698,12 +698,12 @@ static bool pf_ear_tip_check(PolyFill *pf, PolyIndex *pi_ear_tip)
 	/* check if counting is wrong */
 	{
 		uint coords_tot_concave_test = 0;
-		uint i = pf->coords_tot;
-		while (i--) {
-			if (coords_sign[indices[i]] != CONVEX) {
+		PolyIndex *pi_iter = pi_ear_tip;
+		do {
+			if (pi_iter->sign != CONVEX) {
 				coords_tot_concave_test += 1;
 			}
-		}
+		} while ((pi_iter = pi_iter->next) != pi_ear_tip);
 		BLI_assert(coords_tot_concave_test == pf->coords_tot_concave);
 	}
 #endif
