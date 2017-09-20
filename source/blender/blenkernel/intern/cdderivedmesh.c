@@ -1919,7 +1919,7 @@ void CDDM_recalc_looptri(DerivedMesh *dm)
 	const unsigned int totloop = dm->numLoopData;
 
 	DM_ensure_looptri_data(dm);
-	BLI_assert(cddm->dm.looptris.array_wip != NULL);
+	BLI_assert(totpoly == 0 || cddm->dm.looptris.array_wip != NULL);
 
 	BKE_mesh_recalc_looptri(
 	        cddm->mloop, cddm->mpoly,
