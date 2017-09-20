@@ -610,6 +610,22 @@ static int rna_Property_array_length_get(PointerRNA *ptr)
 	return prop->totarraylength;
 }
 
+static void rna_Property_array_dimensions_get(PointerRNA *ptr, int dimensions[RNA_MAX_ARRAY_DIMENSION])
+{
+	PropertyRNA *prop = (PropertyRNA *)ptr->data;
+	rna_idproperty_check(&prop, ptr);
+
+	if (prop->arraydimension > 1) {
+		for (int i = RNA_MAX_ARRAY_DIMENSION; i--; ) {
+			dimensions[i] = (i >= prop->arraydimension) ? 0 : prop->arraylength[i];
+		}
+	}
+	else {
+		memset(dimensions, 0, sizeof(*dimensions) * RNA_MAX_ARRAY_DIMENSION);
+		dimensions[0] = prop->totarraylength;
+	}
+}
+
 static int rna_Property_is_registered_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
@@ -1353,6 +1369,12 @@ static void rna_def_number_property(StructRNA *srna, PropertyType type)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_Property_array_length_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Array Length", "Maximum length of the array, 0 means unlimited");
+
+	prop = RNA_def_property(srna, "array_dimensions", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_array(prop, RNA_MAX_ARRAY_DIMENSION);
+	RNA_def_property_int_funcs(prop, "rna_Property_array_dimensions_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Array Dimensions", "Length of each dimension of the array");
 
 	prop = RNA_def_property(srna, "is_array", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
