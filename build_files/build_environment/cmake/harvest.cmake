@@ -114,11 +114,11 @@ if(BUILD_MODE STREQUAL Release)
 				${CMAKE_COMMAND} -E copy ${LIBDIR}/BlendThumb64/bin/blendthumb.dll ${HARVEST_TARGET}/ThumbHandler/lib/BlendThumb64.dll &&
 				${CMAKE_COMMAND} -E copy ${LIBDIR}/BlendThumb32/bin/blendthumb.dll ${HARVEST_TARGET}/ThumbHandler/lib/BlendThumb.dll &&
 				# python
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/python35.tar.gz ${HARVEST_TARGET}/Release/python35.tar.gz &&
+				${CMAKE_COMMAND} -E copy ${LIBDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}.tar.gz ${HARVEST_TARGET}/Release/python${PYTHON_SHORT_VERSION_NO_DOTS}.tar.gz &&
 				# requests
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/requests ${HARVEST_TARGET}/Release/site-packages/requests &&
 				# numpy
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/python35_numpy${PYTHON_POSTFIX}_1.10.tar.gz ${HARVEST_TARGET}/Release/python35_numpy_1.10.tar.gz &&
+				${CMAKE_COMMAND} -E copy ${LIBDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}_numpy_${NUMPY_SHORT_VERSION}.tar.gz ${HARVEST_TARGET}/Release/python${PYTHON_SHORT_VERSION_NO_DOTS}_numpy_${NUMPY_SHORT_VERSION}.tar.gz &&
 				# hidapi
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/hidapi/ ${HARVEST_TARGET}/hidapi/ &&
 				# webp, straight up copy
@@ -178,9 +178,9 @@ if(BUILD_MODE STREQUAL Debug)
 				# hdf5
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/hdf5/lib ${HARVEST_TARGET}/hdf5/lib &&
 				# numpy
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/python35_numpy_1.10d.tar.gz ${HARVEST_TARGET}/Release/python35_numpy_1.10d.tar.gz &&
+				${CMAKE_COMMAND} -E copy ${LIBDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}_numpy_${NUMPY_SHORT_VERSION}d.tar.gz ${HARVEST_TARGET}/Release/python${PYTHON_SHORT_VERSION_NO_DOTS}_numpy_${NUMPY_SHORT_VERSION}d.tar.gz &&
 				# python
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/python35_d.tar.gz ${HARVEST_TARGET}/Release/python35_d.tar.gz
+				${CMAKE_COMMAND} -E copy ${LIBDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}_d.tar.gz ${HARVEST_TARGET}/Release/python${PYTHON_SHORT_VERSION_NO_DOTS}_d.tar.gz
 		DEPENDS Package_Python
 )
 endif(BUILD_MODE STREQUAL Debug)

@@ -40,14 +40,15 @@ if(WIN32)
 	set(semi_path "${PATCH_DIR}/semi.txt")
 	FILE(TO_NATIVE_PATH ${semi_path} semi_path)
 	set(BOOST_CONFIGURE_COMMAND bootstrap.bat &&
-								echo using python : 3.5 : ${PYTHON_OUTPUTDIR}\\python.exe > "${JAM_FILE}" &&
+								echo using python : ${PYTHON_OUTPUTDIR}\\python.exe > "${JAM_FILE}" &&
 								echo.   : ${BUILD_DIR}/python/src/external_python/include ${BUILD_DIR}/python/src/external_python/pc >> "${JAM_FILE}" &&
 								echo.   : ${BUILD_DIR}/python/src/external_python/pcbuild >> "${JAM_FILE}" &&
 								type ${semi_path} >> "${JAM_FILE}"
 	)
 	set(BOOST_BUILD_COMMAND bjam)
-	set(BOOST_BUILD_OPTIONS runtime-link=static --user-config=user-config.jam)
-	set(BOOST_WITH_PYTHON --with-python)
+	#--user-config=user-config.jam
+	set(BOOST_BUILD_OPTIONS runtime-link=static )
+	#set(BOOST_WITH_PYTHON --with-python)
 elseif(APPLE)
 	set(BOOST_CONFIGURE_COMMAND ./bootstrap.sh)
 	set(BOOST_BUILD_COMMAND ./bjam)
