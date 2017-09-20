@@ -191,27 +191,40 @@ static short manipulator_get_axis_type(const int axis_idx)
 	return -1;
 }
 
-/* get index within axis type, so that x == 0, y == 1 and z == 2, no matter which axis type */
-static uint manipulator_index_normalize(const int axis_idx)
+static uint manipulator_orientation_axis(const int axis_idx, bool *r_is_plane)
 {
 	switch (axis_idx) {
+		case MAN_AXIS_TRANS_YZ:
+		case MAN_AXIS_SCALE_YZ:
+			if (r_is_plane) {
+				*r_is_plane = true;
+			}
+			ATTR_FALLTHROUGH;
 		case MAN_AXIS_TRANS_X:
 		case MAN_AXIS_ROT_X:
 		case MAN_AXIS_SCALE_X:
-		case MAN_AXIS_TRANS_XY:
-		case MAN_AXIS_SCALE_XY:
 			return 0;
+
+		case MAN_AXIS_TRANS_ZX:
+		case MAN_AXIS_SCALE_ZX:
+			if (r_is_plane) {
+				*r_is_plane = true;
+			}
+			ATTR_FALLTHROUGH;
 		case MAN_AXIS_TRANS_Y:
 		case MAN_AXIS_ROT_Y:
 		case MAN_AXIS_SCALE_Y:
-		case MAN_AXIS_TRANS_YZ:
-		case MAN_AXIS_SCALE_YZ:
 			return 1;
+
+		case MAN_AXIS_TRANS_XY:
+		case MAN_AXIS_SCALE_XY:
+			if (r_is_plane) {
+				*r_is_plane = true;
+			}
+			ATTR_FALLTHROUGH;
 		case MAN_AXIS_TRANS_Z:
 		case MAN_AXIS_ROT_Z:
 		case MAN_AXIS_SCALE_Z:
-		case MAN_AXIS_TRANS_ZX:
-		case MAN_AXIS_SCALE_ZX:
 			return 2;
 	}
 	return 3;
@@ -221,10 +234,17 @@ static bool manipulator_is_axis_visible(
         const View3D *v3d, const RegionView3D *rv3d,
         const float idot[3], const int axis_type, const int axis_idx)
 {
-	const uint aidx_norm = manipulator_index_normalize(axis_idx);
+	bool is_plane = false;
+	const uint aidx_norm = manipulator_orientation_axis(axis_idx, &is_plane);
 	/* don't draw axis perpendicular to the view */
-	if (aidx_norm < 3 && idot[aidx_norm] < TW_AXIS_DOT_MIN) {
-		return false;
+	if (aidx_norm < 3) {
+		float idot_axis = idot[aidx_norm];
+		if (is_plane) {
+			idot_axis = 1.0f - idot_axis;
+		}
+		if (idot_axis < TW_AXIS_DOT_MIN) {
+			return false;
+		}
 	}
 
 	if ((axis_type == MAN_AXES_TRANSLATE && !(v3d->twtype & V3D_MANIP_TRANSLATE)) ||
@@ -300,10 +320,14 @@ static void manipulator_get_axis_color(
 	const float alpha_hi = 1.0f;
 	float alpha_fac;
 
-	const int axis_idx_norm = manipulator_index_normalize(axis_idx);
+	bool is_plane = false;
+	const int axis_idx_norm = manipulator_orientation_axis(axis_idx, &is_plane);
 	/* get alpha fac based on axis angle, to fade axis out when hiding it because it points towards view */
 	if (axis_idx_norm < 3) {
-		const float idot_axis = idot[axis_idx_norm];
+		float idot_axis = idot[axis_idx_norm];
+		if (is_plane) {
+			idot_axis = 1.0f - idot_axis;
+		}
 		alpha_fac = (idot_axis > TW_AXIS_DOT_MAX) ?
 		        1.0f : (idot_axis < TW_AXIS_DOT_MIN) ?
 		        0.0f : ((idot_axis - TW_AXIS_DOT_MIN) / (TW_AXIS_DOT_MAX - TW_AXIS_DOT_MIN));
@@ -1242,7 +1266,7 @@ static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGrou
 	MAN_ITER_AXES_BEGIN(axis, axis_idx)
 	{
 		const short axis_type = manipulator_get_axis_type(axis_idx);
-		const int aidx_norm = manipulator_index_normalize(axis_idx);
+		const int aidx_norm = manipulator_orientation_axis(axis_idx, NULL);
 
 		WM_manipulator_set_matrix_location(axis, rv3d->twmat[3]);
 
@@ -1277,8 +1301,8 @@ static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGrou
 			case MAN_AXIS_SCALE_YZ:
 			case MAN_AXIS_SCALE_ZX:
 			{
-				const float *y_axis = rv3d->twmat[aidx_norm + 1 > 2 ? 0 : aidx_norm + 1];
-				const float *z_axis = rv3d->twmat[aidx_norm - 1 < 0 ? 2 : aidx_norm - 1];
+				const float *y_axis = rv3d->twmat[aidx_norm - 1 < 0 ? 2 : aidx_norm - 1];
+				const float *z_axis = rv3d->twmat[aidx_norm];
 				WM_manipulator_set_matrix_rotation_from_yz_axis(axis, y_axis, z_axis);
 				break;
 			}
