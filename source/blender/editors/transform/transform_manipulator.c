@@ -114,27 +114,31 @@ enum {
 	MAN_AXIS_TRANS_Z,
 	MAN_AXIS_TRANS_C,
 
+	MAN_AXIS_TRANS_XY,
+	MAN_AXIS_TRANS_YZ,
+	MAN_AXIS_TRANS_ZX,
+#define MAN_AXIS_RANGE_TRANS_START MAN_AXIS_TRANS_X
+#define MAN_AXIS_RANGE_TRANS_END (MAN_AXIS_TRANS_ZX + 1)
+
 	MAN_AXIS_ROT_X,
 	MAN_AXIS_ROT_Y,
 	MAN_AXIS_ROT_Z,
 	MAN_AXIS_ROT_C,
 	MAN_AXIS_ROT_T, /* trackball rotation */
+#define MAN_AXIS_RANGE_ROT_START MAN_AXIS_ROT_X
+#define MAN_AXIS_RANGE_ROT_END (MAN_AXIS_ROT_T + 1)
 
 	MAN_AXIS_SCALE_X,
 	MAN_AXIS_SCALE_Y,
 	MAN_AXIS_SCALE_Z,
 	MAN_AXIS_SCALE_C,
-
-	/* special */
-	MAN_AXIS_TRANS_XY,
-	MAN_AXIS_TRANS_YZ,
-	MAN_AXIS_TRANS_ZX,
-
 	MAN_AXIS_SCALE_XY,
 	MAN_AXIS_SCALE_YZ,
 	MAN_AXIS_SCALE_ZX,
+#define MAN_AXIS_RANGE_SCALE_START MAN_AXIS_SCALE_X
+#define MAN_AXIS_RANGE_SCALE_END (MAN_AXIS_SCALE_ZX + 1)
 
-	MAN_AXIS_LAST,
+	MAN_AXIS_LAST = MAN_AXIS_RANGE_SCALE_END,
 };
 
 /* axis types */
@@ -148,27 +152,7 @@ enum {
 typedef struct ManipulatorGroup {
 	bool all_hidden;
 
-	struct wmManipulator *translate_x,
-	                *translate_y,
-	                *translate_z,
-	                *translate_xy,
-	                *translate_yz,
-	                *translate_zx,
-	                *translate_c,
-
-	                *rotate_x,
-	                *rotate_y,
-	                *rotate_z,
-	                *rotate_c,
-	                *rotate_t, /* trackball rotation */
-
-	                *scale_x,
-	                *scale_y,
-	                *scale_z,
-	                *scale_xy,
-	                *scale_yz,
-	                *scale_zx,
-	                *scale_c;
+	struct wmManipulator *manipulators[MAN_AXIS_LAST];
 } ManipulatorGroup;
 
 
@@ -189,83 +173,48 @@ typedef struct ManipulatorGroup {
 static wmManipulator *manipulator_get_axis_from_index(const ManipulatorGroup *man, const short axis_idx)
 {
 	BLI_assert(IN_RANGE_INCL(axis_idx, (float)MAN_AXIS_TRANS_X, (float)MAN_AXIS_LAST));
-
-	switch (axis_idx) {
-		case MAN_AXIS_TRANS_X:
-			return man->translate_x;
-		case MAN_AXIS_TRANS_Y:
-			return man->translate_y;
-		case MAN_AXIS_TRANS_Z:
-			return man->translate_z;
-		case MAN_AXIS_TRANS_XY:
-			return man->translate_xy;
-		case MAN_AXIS_TRANS_YZ:
-			return man->translate_yz;
-		case MAN_AXIS_TRANS_ZX:
-			return man->translate_zx;
-		case MAN_AXIS_TRANS_C:
-			return man->translate_c;
-		case MAN_AXIS_ROT_X:
-			return man->rotate_x;
-		case MAN_AXIS_ROT_Y:
-			return man->rotate_y;
-		case MAN_AXIS_ROT_Z:
-			return man->rotate_z;
-		case MAN_AXIS_ROT_C:
-			return man->rotate_c;
-		case MAN_AXIS_ROT_T:
-			return man->rotate_t;
-		case MAN_AXIS_SCALE_X:
-			return man->scale_x;
-		case MAN_AXIS_SCALE_Y:
-			return man->scale_y;
-		case MAN_AXIS_SCALE_Z:
-			return man->scale_z;
-		case MAN_AXIS_SCALE_XY:
-			return man->scale_xy;
-		case MAN_AXIS_SCALE_YZ:
-			return man->scale_yz;
-		case MAN_AXIS_SCALE_ZX:
-			return man->scale_zx;
-		case MAN_AXIS_SCALE_C:
-			return man->scale_c;
-	}
-
-	return NULL;
+	return man->manipulators[axis_idx];
 }
 
-static short manipulator_get_axis_type(const ManipulatorGroup *man, const wmManipulator *axis)
+static short manipulator_get_axis_type(const int axis_idx)
 {
-	if (ELEM(axis, man->translate_x, man->translate_y, man->translate_z, man->translate_c,
-	         man->translate_xy, man->translate_yz, man->translate_zx))
-	{
+	if (axis_idx >= MAN_AXIS_RANGE_TRANS_START && axis_idx < MAN_AXIS_RANGE_TRANS_END) {
 		return MAN_AXES_TRANSLATE;
 	}
-	else if (ELEM(axis, man->rotate_x, man->rotate_y, man->rotate_z, man->rotate_c, man->rotate_t)) {
+	if (axis_idx >= MAN_AXIS_RANGE_ROT_START && axis_idx < MAN_AXIS_RANGE_ROT_END) {
 		return MAN_AXES_ROTATE;
 	}
-	else {
+	if (axis_idx >= MAN_AXIS_RANGE_SCALE_START && axis_idx < MAN_AXIS_RANGE_SCALE_END) {
 		return MAN_AXES_SCALE;
 	}
+	BLI_assert(0);
+	return -1;
 }
 
 /* get index within axis type, so that x == 0, y == 1 and z == 2, no matter which axis type */
 static uint manipulator_index_normalize(const int axis_idx)
 {
-	if (axis_idx > MAN_AXIS_TRANS_ZX) {
-		return axis_idx - 16;
+	switch (axis_idx) {
+		case MAN_AXIS_TRANS_X:
+		case MAN_AXIS_ROT_X:
+		case MAN_AXIS_SCALE_X:
+		case MAN_AXIS_TRANS_XY:
+		case MAN_AXIS_SCALE_XY:
+			return 0;
+		case MAN_AXIS_TRANS_Y:
+		case MAN_AXIS_ROT_Y:
+		case MAN_AXIS_SCALE_Y:
+		case MAN_AXIS_TRANS_YZ:
+		case MAN_AXIS_SCALE_YZ:
+			return 1;
+		case MAN_AXIS_TRANS_Z:
+		case MAN_AXIS_ROT_Z:
+		case MAN_AXIS_SCALE_Z:
+		case MAN_AXIS_TRANS_ZX:
+		case MAN_AXIS_SCALE_ZX:
+			return 2;
 	}
-	else if (axis_idx > MAN_AXIS_SCALE_C) {
-		return axis_idx - 13;
-	}
-	else if (axis_idx > MAN_AXIS_ROT_T) {
-		return axis_idx - 9;
-	}
-	else if (axis_idx > MAN_AXIS_TRANS_C) {
-		return axis_idx - 4;
-	}
-
-	return axis_idx;
+	return 3;
 }
 
 static bool manipulator_is_axis_visible(
@@ -1091,47 +1040,47 @@ static ManipulatorGroup *manipulatorgroup_init(wmManipulatorGroup *mgroup)
 	const wmManipulatorType *wt_prim = WM_manipulatortype_find("MANIPULATOR_WT_primitive_3d", true);
 
 #define MANIPULATOR_NEW_ARROW(v, draw_style) { \
-	v = WM_manipulator_new_ptr(wt_arrow, mgroup, NULL); \
-	RNA_enum_set((v)->ptr, "draw_style", draw_style); \
+	man->manipulators[v] = WM_manipulator_new_ptr(wt_arrow, mgroup, NULL); \
+	RNA_enum_set(man->manipulators[v]->ptr, "draw_style", draw_style); \
 } ((void)0)
 #define MANIPULATOR_NEW_DIAL(v, draw_options) { \
-	v = WM_manipulator_new_ptr(wt_dial, mgroup, NULL); \
-	RNA_enum_set((v)->ptr, "draw_options", draw_options); \
+	man->manipulators[v] = WM_manipulator_new_ptr(wt_dial, mgroup, NULL); \
+	RNA_enum_set(man->manipulators[v]->ptr, "draw_options", draw_options); \
 } ((void)0)
 #define MANIPULATOR_NEW_PRIM(v, draw_style) { \
-	v = WM_manipulator_new_ptr(wt_prim, mgroup, NULL); \
-	RNA_enum_set((v)->ptr, "draw_style", draw_style); \
+	man->manipulators[v] = WM_manipulator_new_ptr(wt_prim, mgroup, NULL); \
+	RNA_enum_set(man->manipulators[v]->ptr, "draw_style", draw_style); \
 } ((void)0)
 
 	/* add/init widgets - order matters! */
-	MANIPULATOR_NEW_DIAL(man->rotate_t, ED_MANIPULATOR_DIAL_DRAW_FLAG_FILL);
+	MANIPULATOR_NEW_DIAL(MAN_AXIS_ROT_T, ED_MANIPULATOR_DIAL_DRAW_FLAG_FILL);
 
-	MANIPULATOR_NEW_DIAL(man->scale_c, ED_MANIPULATOR_DIAL_DRAW_FLAG_NOP);
+	MANIPULATOR_NEW_DIAL(MAN_AXIS_SCALE_C, ED_MANIPULATOR_DIAL_DRAW_FLAG_NOP);
 
-	MANIPULATOR_NEW_ARROW(man->scale_x, ED_MANIPULATOR_ARROW_STYLE_BOX);
-	MANIPULATOR_NEW_ARROW(man->scale_y, ED_MANIPULATOR_ARROW_STYLE_BOX);
-	MANIPULATOR_NEW_ARROW(man->scale_z, ED_MANIPULATOR_ARROW_STYLE_BOX);
+	MANIPULATOR_NEW_ARROW(MAN_AXIS_SCALE_X, ED_MANIPULATOR_ARROW_STYLE_BOX);
+	MANIPULATOR_NEW_ARROW(MAN_AXIS_SCALE_Y, ED_MANIPULATOR_ARROW_STYLE_BOX);
+	MANIPULATOR_NEW_ARROW(MAN_AXIS_SCALE_Z, ED_MANIPULATOR_ARROW_STYLE_BOX);
 
-	MANIPULATOR_NEW_PRIM(man->scale_xy, ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE);
-	MANIPULATOR_NEW_PRIM(man->scale_yz, ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE);
-	MANIPULATOR_NEW_PRIM(man->scale_zx, ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE);
+	MANIPULATOR_NEW_PRIM(MAN_AXIS_SCALE_XY, ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE);
+	MANIPULATOR_NEW_PRIM(MAN_AXIS_SCALE_YZ, ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE);
+	MANIPULATOR_NEW_PRIM(MAN_AXIS_SCALE_ZX, ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE);
 
-	MANIPULATOR_NEW_DIAL(man->rotate_x, ED_MANIPULATOR_DIAL_DRAW_FLAG_CLIP);
-	MANIPULATOR_NEW_DIAL(man->rotate_y, ED_MANIPULATOR_DIAL_DRAW_FLAG_CLIP);
-	MANIPULATOR_NEW_DIAL(man->rotate_z, ED_MANIPULATOR_DIAL_DRAW_FLAG_CLIP);
+	MANIPULATOR_NEW_DIAL(MAN_AXIS_ROT_X, ED_MANIPULATOR_DIAL_DRAW_FLAG_CLIP);
+	MANIPULATOR_NEW_DIAL(MAN_AXIS_ROT_Y, ED_MANIPULATOR_DIAL_DRAW_FLAG_CLIP);
+	MANIPULATOR_NEW_DIAL(MAN_AXIS_ROT_Z, ED_MANIPULATOR_DIAL_DRAW_FLAG_CLIP);
 
 	/* init screen aligned widget last here, looks better, behaves better */
-	MANIPULATOR_NEW_DIAL(man->rotate_c, ED_MANIPULATOR_DIAL_DRAW_FLAG_NOP);
+	MANIPULATOR_NEW_DIAL(MAN_AXIS_ROT_C, ED_MANIPULATOR_DIAL_DRAW_FLAG_NOP);
 
-	MANIPULATOR_NEW_DIAL(man->translate_c, ED_MANIPULATOR_DIAL_DRAW_FLAG_NOP);
+	MANIPULATOR_NEW_DIAL(MAN_AXIS_TRANS_C, ED_MANIPULATOR_DIAL_DRAW_FLAG_NOP);
 
-	MANIPULATOR_NEW_ARROW(man->translate_x, ED_MANIPULATOR_ARROW_STYLE_NORMAL);
-	MANIPULATOR_NEW_ARROW(man->translate_y, ED_MANIPULATOR_ARROW_STYLE_NORMAL);
-	MANIPULATOR_NEW_ARROW(man->translate_z, ED_MANIPULATOR_ARROW_STYLE_NORMAL);
+	MANIPULATOR_NEW_ARROW(MAN_AXIS_TRANS_X, ED_MANIPULATOR_ARROW_STYLE_NORMAL);
+	MANIPULATOR_NEW_ARROW(MAN_AXIS_TRANS_Y, ED_MANIPULATOR_ARROW_STYLE_NORMAL);
+	MANIPULATOR_NEW_ARROW(MAN_AXIS_TRANS_Z, ED_MANIPULATOR_ARROW_STYLE_NORMAL);
 
-	MANIPULATOR_NEW_PRIM(man->translate_xy, ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE);
-	MANIPULATOR_NEW_PRIM(man->translate_yz, ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE);
-	MANIPULATOR_NEW_PRIM(man->translate_zx, ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE);
+	MANIPULATOR_NEW_PRIM(MAN_AXIS_TRANS_XY, ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE);
+	MANIPULATOR_NEW_PRIM(MAN_AXIS_TRANS_YZ, ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE);
+	MANIPULATOR_NEW_PRIM(MAN_AXIS_TRANS_ZX, ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE);
 
 	return man;
 }
@@ -1171,7 +1120,7 @@ static void WIDGETGROUP_manipulator_setup(const bContext *UNUSED(C), wmManipulat
 
 	MAN_ITER_AXES_BEGIN(axis, axis_idx)
 	{
-		const short axis_type = manipulator_get_axis_type(man, axis);
+		const short axis_type = manipulator_get_axis_type(axis_idx);
 		int constraint_axis[3] = {1, 0, 0};
 		PointerRNA *ptr;
 
@@ -1292,7 +1241,7 @@ static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGrou
 
 	MAN_ITER_AXES_BEGIN(axis, axis_idx)
 	{
-		const short axis_type = manipulator_get_axis_type(man, axis);
+		const short axis_type = manipulator_get_axis_type(axis_idx);
 		const int aidx_norm = manipulator_index_normalize(axis_idx);
 
 		WM_manipulator_set_matrix_location(axis, rv3d->twmat[3]);
@@ -1363,7 +1312,7 @@ static void WIDGETGROUP_manipulator_draw_prepare(const bContext *C, wmManipulato
 
 	MAN_ITER_AXES_BEGIN(axis, axis_idx)
 	{
-		const short axis_type = manipulator_get_axis_type(man, axis);
+		const short axis_type = manipulator_get_axis_type(axis_idx);
 		/* XXX maybe unset _HIDDEN flag on redraw? */
 		if (manipulator_is_axis_visible(v3d, rv3d, idot, axis_type, axis_idx)) {
 			WM_manipulator_set_flag(axis, WM_MANIPULATOR_HIDDEN, false);
