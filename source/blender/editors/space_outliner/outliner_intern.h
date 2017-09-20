@@ -144,11 +144,12 @@ typedef enum {
 /* size constants */
 #define OL_Y_OFFSET 2
 
-#define OL_TOG_RESTRICT_VIEWX   (UI_UNIT_X * 3.0f)
-#define OL_TOG_RESTRICT_SELECTX (UI_UNIT_X * 2.0f)
+#define OL_TOG_RESTRICT_ENABLEX (UI_UNIT_X * 3.0f)
+#define OL_TOG_RESTRICT_VIEWX   (UI_UNIT_X * 2.0f)
+#define OL_TOG_RESTRICT_SELECTX UI_UNIT_X
 #define OL_TOG_RESTRICT_RENDERX UI_UNIT_X
 
-#define OL_TOGW OL_TOG_RESTRICT_VIEWX
+#define OL_TOGW OL_TOG_RESTRICT_ENABLEX
 
 #define OL_RNA_COLX         (UI_UNIT_X * 15)
 #define OL_RNA_COL_SIZEX    (UI_UNIT_X * 7.5f)
@@ -318,6 +319,7 @@ struct SceneCollection *outliner_scene_collection_from_tree_element(TreeElement 
 
 void OUTLINER_OT_collections_delete(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_select(struct wmOperatorType *ot);
+void OUTLINER_OT_collection_toggle(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_link(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_unlink(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_new(struct wmOperatorType *ot);

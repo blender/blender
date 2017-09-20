@@ -57,6 +57,7 @@
 /* prototype */
 struct EngineSettingsCB_Type;
 static void layer_collection_free(SceneLayer *sl, LayerCollection *lc);
+static void layer_collection_objects_populate(SceneLayer *sl, LayerCollection *lc, ListBase *objects);
 static LayerCollection *layer_collection_add(SceneLayer *sl, LayerCollection *parent, SceneCollection *sc);
 static LayerCollection *find_layer_collection_by_scene_collection(LayerCollection *lc, const SceneCollection *sc);
 static IDProperty *collection_engine_settings_create(struct EngineSettingsCB_Type *ces_type, const bool populate);
@@ -288,11 +289,7 @@ static Base *object_base_add(SceneLayer *sl, Object *ob)
 
 /* LayerCollection */
 
-/**
- * When freeing the entire SceneLayer at once we don't bother with unref
- * otherwise SceneLayer is passed to keep the syncing of the LayerCollection tree
- */
-static void layer_collection_free(SceneLayer *sl, LayerCollection *lc)
+static void layer_collection_objects_unpopulate(SceneLayer *sl, LayerCollection *lc)
 {
 	if (sl) {
 		for (LinkData *link = lc->object_bases.first; link; link = link->next) {
@@ -301,6 +298,15 @@ static void layer_collection_free(SceneLayer *sl, LayerCollection *lc)
 	}
 
 	BLI_freelistN(&lc->object_bases);
+}
+
+/**
+ * When freeing the entire SceneLayer at once we don't bother with unref
+ * otherwise SceneLayer is passed to keep the syncing of the LayerCollection tree
+ */
+static void layer_collection_free(SceneLayer *sl, LayerCollection *lc)
+{
+	layer_collection_objects_unpopulate(sl, lc);
 	BLI_freelistN(&lc->overrides);
 
 	if (lc->properties) {
@@ -349,6 +355,15 @@ static LayerCollection *collection_from_index(ListBase *lb, const int number, in
 		}
 	}
 	return NULL;
+}
+
+/**
+ * Get the collection for a given index
+ */
+LayerCollection *BKE_layer_collection_from_index(SceneLayer *sl, const int index)
+{
+	int i = 0;
+	return collection_from_index(&sl->layer_collections, index, &i);
 }
 
 /**
@@ -795,6 +810,60 @@ void BKE_collection_unlink(SceneLayer *sl, LayerCollection *lc)
 	BLI_remlink(&sl->layer_collections, lc);
 	MEM_freeN(lc);
 	sl->active_collection = 0;
+}
+
+/**
+ * Recursively enable nested collections
+ */
+static void layer_collection_enable(SceneLayer *sl, LayerCollection *lc)
+{
+	layer_collection_objects_populate(sl, lc, &lc->scene_collection->objects);
+
+	for (LayerCollection *nlc = lc->layer_collections.first; nlc; nlc = nlc->next) {
+		layer_collection_enable(sl, nlc);
+	}
+}
+
+/**
+ * Enable collection
+ * Add its objects bases to SceneLayer
+ * Depsgraph needs to be rebuilt afterwards
+ */
+void BKE_collection_enable(SceneLayer *sl, LayerCollection *lc)
+{
+	if ((lc->flag & COLLECTION_DISABLED) == 0) {
+		return;
+	}
+
+	lc->flag &= ~COLLECTION_DISABLED;
+	layer_collection_enable(sl, lc);
+}
+
+/**
+ * Recursively disable nested collections
+ */
+static void layer_collection_disable(SceneLayer *sl, LayerCollection *lc)
+{
+	layer_collection_objects_unpopulate(sl, lc);
+
+	for (LayerCollection *nlc = lc->layer_collections.first; nlc; nlc = nlc->next) {
+		layer_collection_disable(sl, nlc);
+	}
+}
+
+/**
+ * Disable collection
+ * Remove all its object bases from SceneLayer
+ * Depsgraph needs to be rebuilt afterwards
+ */
+void BKE_collection_disable(SceneLayer *sl, LayerCollection *lc)
+{
+	if ((lc->flag & COLLECTION_DISABLED) != 0) {
+		return;
+	}
+
+	lc->flag |= COLLECTION_DISABLED;
+	layer_collection_disable(sl, lc);
 }
 
 static void layer_collection_object_add(SceneLayer *sl, LayerCollection *lc, Object *ob)

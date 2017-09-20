@@ -27,6 +27,7 @@
 #include "BKE_context.h"
 #include "BKE_collection.h"
 #include "BKE_layer.h"
+#include "BKE_main.h"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
@@ -402,6 +403,82 @@ void OUTLINER_OT_collection_select(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "collection_index", 0, 0, INT_MAX, "Index",
 	            "Index of collection to select", 0, INT_MAX);
 }
+
+#define ACTION_DISABLE 0
+#define ACTION_ENABLE 1
+#define ACTION_TOGGLE 2
+
+static int collection_toggle_exec(bContext *C, wmOperator *op)
+{
+	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
+	SceneLayer *scene_layer = CTX_data_scene_layer(C);
+	int action = RNA_enum_get(op->ptr, "action");
+	LayerCollection *layer_collection = CTX_data_layer_collection(C);
+
+	if (layer_collection->flag & COLLECTION_DISABLED) {
+		if (ELEM(action, ACTION_TOGGLE, ACTION_ENABLE)) {
+			BKE_collection_enable(scene_layer, layer_collection);
+		}
+		else { /* ACTION_DISABLE */
+			BKE_reportf(op->reports, RPT_ERROR, "Layer collection %s already disabled",
+			            layer_collection->scene_collection->name);
+			return OPERATOR_CANCELLED;
+		}
+	}
+	else {
+		if (ELEM(action, ACTION_TOGGLE, ACTION_DISABLE)) {
+			BKE_collection_disable(scene_layer, layer_collection);
+		}
+		else { /* ACTION_ENABLE */
+			BKE_reportf(op->reports, RPT_ERROR, "Layer collection %s already enabled",
+			            layer_collection->scene_collection->name);
+			return OPERATOR_CANCELLED;
+		}
+	}
+
+	DEG_relations_tag_update(bmain);
+	/* TODO(sergey): Use proper flag for tagging here. */
+	DEG_id_tag_update(&scene->id, 0);
+
+	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+	WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
+
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_collection_toggle(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	static EnumPropertyItem actions_items[] = {
+		{ACTION_DISABLE, "DISABLE", 0, "Disable", "Disable selected markers"},
+		{ACTION_ENABLE, "ENABLE", 0, "Enable", "Enable selected markers"},
+		{ACTION_TOGGLE, "TOGGLE", 0, "Toggle", "Toggle disabled flag for selected markers"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name = "Toggle Collection";
+	ot->idname = "OUTLINER_OT_collection_toggle";
+	ot->description = "Deselect collection objects";
+
+	/* api callbacks */
+	ot->exec = collection_toggle_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	prop = RNA_def_int(ot->srna, "collection_index", -1, -1, INT_MAX, "Collection Index", "Index of collection to toggle", 0, INT_MAX);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_enum(ot->srna, "action", actions_items, ACTION_TOGGLE, "Action", "Selection action to execute");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
+#undef ACTION_TOGGLE
+#undef ACTION_ENABLE
+#undef ACTION_DISABLE
 
 /* -------------------------------------------------------------------- */
 

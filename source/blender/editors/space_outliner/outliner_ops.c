@@ -328,6 +328,7 @@ void outliner_operatortypes(void)
 	/* collections */
 	WM_operatortype_append(OUTLINER_OT_collections_delete);
 	WM_operatortype_append(OUTLINER_OT_collection_select);
+	WM_operatortype_append(OUTLINER_OT_collection_toggle);
 	WM_operatortype_append(OUTLINER_OT_collection_link);
 	WM_operatortype_append(OUTLINER_OT_collection_unlink);
 	WM_operatortype_append(OUTLINER_OT_collection_new);

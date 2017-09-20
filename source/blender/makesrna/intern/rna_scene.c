@@ -2899,6 +2899,39 @@ static void rna_LayerCollection_flag_update(bContext *C, PointerRNA *UNUSED(ptr)
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 }
 
+static void rna_LayerCollection_enable_set(
+        ID *id, LayerCollection *layer_collection, Main *bmain, bContext *C, ReportList *reports, int value)
+{
+	Scene *scene = (Scene *)id;
+	SceneLayer *scene_layer = BKE_scene_layer_find_from_collection(scene, layer_collection);
+
+	if (layer_collection->flag & COLLECTION_DISABLED) {
+		if (value == 1) {
+			BKE_collection_enable(scene_layer, layer_collection);
+		}
+		else {
+			BKE_reportf(reports, RPT_ERROR, "Layer collection '%s' is already disabled",
+			            layer_collection->scene_collection->name);
+			return;
+		}
+	}
+	else {
+		if (value == 0) {
+			BKE_collection_disable(scene_layer, layer_collection);
+		}
+		else {
+			BKE_reportf(reports, RPT_ERROR, "Layer collection '%s' is already enabled",
+			            layer_collection->scene_collection->name);
+		}
+	}
+
+	DEG_relations_tag_update(bmain);
+	/* TODO(sergey): Use proper flag for tagging here. */
+	DEG_id_tag_update(&scene->id, 0);
+	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+	WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
+}
+
 static int rna_LayerCollections_active_collection_index_get(PointerRNA *ptr)
 {
 	SceneLayer *sl = (SceneLayer *)ptr->data;
@@ -6991,7 +7024,17 @@ static void rna_def_layer_collection(BlenderRNA *brna)
 	parm = RNA_def_boolean(func, "result", false, "Result", "Whether the operation succeded");
 	RNA_def_function_return(func, parm);
 
+	func = RNA_def_function(srna, "enable_set", "rna_LayerCollection_enable_set");
+	RNA_def_function_ui_description(func, "Enable or disable a collection");
+	parm = RNA_def_boolean(func, "value", 1, "Enable", "");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+
 	/* Flags */
+	prop = RNA_def_property(srna, "is_enabled", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", COLLECTION_DISABLED);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Enabled", "Enable or disable collection from depsgraph");
+
 	prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", COLLECTION_VISIBLE);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);

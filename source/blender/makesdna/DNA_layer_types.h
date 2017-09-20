@@ -114,6 +114,7 @@ enum {
 enum {
 	COLLECTION_VISIBLE    = (1 << 0),
 	COLLECTION_SELECTABLE = (1 << 1),
+	COLLECTION_DISABLED   = (1 << 2),
 };
 
 /* SceneLayer->flag */
