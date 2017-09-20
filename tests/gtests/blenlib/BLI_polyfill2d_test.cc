@@ -329,6 +329,43 @@ static void polyfill_to_obj(
 /* -------------------------------------------------------------------- */
 /* tests */
 
+/**
+ * Script to generate the data below:
+ *
+ * \code{.py}
+ * # This example assumes we have a mesh object in edit-mode
+ *
+ * import bpy
+ * import bmesh
+ *
+ * obj = bpy.context.edit_object
+ * me = obj.data
+ * bm = bmesh.from_edit_mesh(me)
+ *
+ * def clean_float(num):
+ *     if int(num) == num:
+ *         return str(int(num))
+ *     prec = 1
+ *     while True:
+ *         text = f"{num:.{prec}f}"
+ *         if float(text) == num:
+ *             return text
+ *         prec += 1
+ *
+ * for f in bm.faces:
+ *     if f.select:
+ *         print(f"\t// data for face: {f.index}")
+ *         print("\tconst float poly[][2] = {", end="")
+ *         coords = [[clean_float(num) for num in l.vert.co[0:2]] for l in f.loops]
+ *         print("\t    ", end="")
+ *         for i, (x, y) in enumerate(coords):
+ *             if (i % 2) == 0:
+ *                 print("\n\t    ", end="")
+ *             print(f"{{{x}, {y}}}", end=",")
+ *         print("\n\t};")
+ * \endcode
+ */
+
 #define POLY_TRI_COUNT(len) ((len) - 2)
 
 
