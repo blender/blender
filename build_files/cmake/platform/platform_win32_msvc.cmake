@@ -302,7 +302,7 @@ if(WITH_JACK)
 endif()
 
 if(WITH_PYTHON)
-	set(PYTHON_VERSION 3.5) # CACHE STRING)
+	set(PYTHON_VERSION 3.6) # CACHE STRING)
 
 	string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
 	# Use shared libs for vc2008 and vc2010 until we actually have vc2010 libs

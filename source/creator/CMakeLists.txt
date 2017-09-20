@@ -701,7 +701,7 @@ elseif(WIN32)
 			)
 
 			if(WITH_PYTHON_INSTALL_NUMPY)
-				set(PYTHON_NUMPY_VERSION 1.10)
+				set(PYTHON_NUMPY_VERSION 1.13)
 				add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib/site-packages
 					COMMAND ${CMAKE_COMMAND} -E
 					        make_directory ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib/site-packages)
