@@ -632,7 +632,7 @@ def BuildRNAInfo():
 
             for rna_prop_ptr in (getattr(rna_prop, "fixed_type", None), getattr(rna_prop, "srna", None)):
                 # Does this property point to me?
-                if rna_prop_ptr:
+                if rna_prop_ptr and rna_prop_ptr.identifier in rna_references_dict:
                     rna_references_dict[rna_prop_ptr.identifier].append(
                         "%s.%s" % (rna_struct_path, rna_prop_identifier))
 
@@ -645,7 +645,7 @@ def BuildRNAInfo():
                 rna_prop_ptr = getattr(rna_prop, "fixed_type", None)
 
                 # Does this property point to me?
-                if rna_prop_ptr:
+                if rna_prop_ptr and rna_prop_ptr.identifier in rna_references_dict:
                     rna_references_dict[rna_prop_ptr.identifier].append(
                         "%s.%s" % (rna_struct_path, rna_func.identifier))
 
@@ -680,16 +680,22 @@ def BuildRNAInfo():
     for rna_info_prop in InfoFunctionRNA.global_lookup.values():
         rna_info_prop.build()
 
-    for rna_info in InfoStructRNA.global_lookup.values():
-        rna_info.build()
-        for prop in rna_info.properties:
-            prop.build()
-        for func in rna_info.functions:
-            func.build()
-            for prop in func.args:
+    done_keys = set()
+    new_keys = set(InfoStructRNA.global_lookup.keys())
+    while new_keys:
+        for rna_key in new_keys:
+            rna_info = InfoStructRNA.global_lookup[rna_key]
+            rna_info.build()
+            for prop in rna_info.properties:
                 prop.build()
-            for prop in func.return_values:
-                prop.build()
+            for func in rna_info.functions:
+                func.build()
+                for prop in func.args:
+                    prop.build()
+                for prop in func.return_values:
+                    prop.build()
+        done_keys |= new_keys
+        new_keys = set(InfoStructRNA.global_lookup.keys()) - done_keys
 
     # there are too many invalid defaults, unless we intend to fix, leave this off
     if 0:
