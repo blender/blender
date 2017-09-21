@@ -29,38 +29,32 @@ ccl_device void kernel_path_init(KernelGlobals *kg) {
 	 */
 	kernel_split_state.ray_state[ray_index] = RAY_ACTIVE;
 
-	uint work_index = 0;
 	/* Get work. */
-	if(!get_next_work(kg, &work_index, ray_index)) {
+	uint work_index;
+	if(!get_next_work(kg, ray_index, &work_index)) {
 		/* No more work, mark ray as inactive */
 		kernel_split_state.ray_state[ray_index] = RAY_INACTIVE;
 
 		return;
 	}
 
-	/* Get the sample associated with the work. */
-	uint sample = get_work_sample(kg, work_index, ray_index) + kernel_split_params.start_sample;
+	uint x, y, sample;
+	get_work_pixel(kg, work_index, &x, &y, &sample);
 
-	/* Get pixel and tile position associated with the work. */
-	uint pixel_x, pixel_y, tile_x, tile_y;
-	get_work_pixel_tile_position(kg, &pixel_x, &pixel_y,
-	                             &tile_x, &tile_y,
-	                             work_index,
-	                             ray_index);
-	kernel_split_state.work_array[ray_index] = work_index;
-
+	/* Remap rng_state and buffer to current pixel. */
 	ccl_global uint *rng_state = kernel_split_params.rng_state;
-	rng_state += kernel_split_params.offset + pixel_x + pixel_y*kernel_split_params.stride;
+	rng_state += kernel_split_params.offset + x + y*kernel_split_params.stride;
 
-	ccl_global float *buffer = kernel_split_params.buffer;
-	buffer += (kernel_split_params.offset + pixel_x + pixel_y * kernel_split_params.stride) * kernel_data.film.pass_stride;
+	/* Store buffer offset for writing to passes. */
+	uint buffer_offset = (kernel_split_params.offset + x + y*kernel_split_params.stride) * kernel_data.film.pass_stride;
+	kernel_split_state.buffer_offset[ray_index] = buffer_offset;
 
 	/* Initialize random numbers and ray. */
 	uint rng_hash;
 	kernel_path_trace_setup(kg,
 	                        rng_state,
 	                        sample,
-	                        pixel_x, pixel_y,
+	                        x, y,
 	                        &rng_hash,
 	                        &kernel_split_state.ray[ray_index]);
 
@@ -84,6 +78,7 @@ ccl_device void kernel_path_init(KernelGlobals *kg) {
 		/* These rays do not participate in path-iteration. */
 		float4 L_rad = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 		/* Accumulate result in output buffer. */
+		ccl_global float *buffer = kernel_split_params.buffer + buffer_offset;
 		kernel_write_pass_float4(buffer, sample, L_rad);
 		ASSIGN_RAY_STATE(kernel_split_state.ray_state, ray_index, RAY_TO_REGENERATE);
 	}

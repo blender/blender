@@ -90,8 +90,6 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 	if(ray_index != QUEUE_EMPTY_SLOT) {
 #endif
 
-	int stride = kernel_split_params.stride;
-
 	ccl_global PathState *state = 0x0;
 	float3 throughput;
 
@@ -99,15 +97,8 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 	ShaderData *sd = &kernel_split_state.sd[ray_index];
 
 	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
-		uint work_index = kernel_split_state.work_array[ray_index];
-		uint pixel_x, pixel_y, tile_x, tile_y;
-		get_work_pixel_tile_position(kg, &pixel_x, &pixel_y,
-		                        &tile_x, &tile_y,
-		                        work_index,
-		                        ray_index);
-
-		ccl_global float *buffer = kernel_split_params.buffer;
-		buffer += (kernel_split_params.offset + pixel_x + pixel_y * stride) * kernel_data.film.pass_stride;
+		uint buffer_offset = kernel_split_state.buffer_offset[ray_index];
+		ccl_global float *buffer = kernel_split_params.buffer + buffer_offset;
 
 		ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
 		ShaderData *emission_sd = &kernel_split_state.sd_DL_shadow[ray_index];
