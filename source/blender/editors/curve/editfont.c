@@ -1201,6 +1201,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 		case DEL_ALL:
 			ef->len = ef->pos = 0;
 			ef->textbuf[0] = 0;
+			BKE_vfont_select_clamp(obedit);
 			break;
 		case DEL_SELECTION:
 			if (!kill_selection(obedit, 0))
