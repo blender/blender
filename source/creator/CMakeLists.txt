@@ -607,7 +607,7 @@ if(UNIX AND NOT APPLE)
 					PATTERN "*.pyo" EXCLUDE                 # * any cache *
 				)
 				# On some platforms requests does have extra dependencies.
-				set(_requests_deps "chardet" "urllib3")
+				set(_requests_deps "certifi" "chardet" "idna" "urllib3")
 				foreach(_requests_dep ${_requests_deps})
 					if(EXISTS ${PYTHON_REQUESTS_PATH}/${_requests_dep})
 						install(
