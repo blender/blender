@@ -15,10 +15,8 @@ void main()
 
 	FragColor = wire_color;
 
-	/* this works because not rendered depth is 1.0 and the
-	 * following test is always true even when no wires */
-	if ((wire_depth > scene_depth) && (wire_color.a > 0)) {
-		/* Note : Using wire_color.a * alpha produce unwanted result */
-		FragColor.a = alpha;
+	/* Modulate alpha if occluded */
+	if (wire_depth > scene_depth) {
+		FragColor.a *= alpha;
 	}
 }

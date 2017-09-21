@@ -88,6 +88,17 @@ float distToEdge(vec2 o, vec2 dir)
 	return sqrt(abs(dot(af, af) - daf * daf));
 }
 
+#define ANTI_ALIASING
+
+#ifdef ANTI_ALIASING
+void colorDistEdge(vec4 color, float dist)
+{
+	FragColor = mix(color, FragColor, clamp(dist, 0.0, 1.0));
+}
+#else
+#define colorDistEdge colorDist
+#endif
+
 void main()
 {
 	vec3 e, p;
@@ -143,27 +154,33 @@ void main()
 	/* Edges */
 	for (int v = 0; v < 3; ++v) {
 		if ((flag[v] & EDGE_EXISTS) != 0) {
-			float largeEdge = e[v] - sizeEdge * 2.0;
+			/* Outer large edge */
+			float largeEdge = e[v] - sizeEdge * 3.0;
+
+			vec4 large_edge_color = vec4(0.0);
+			large_edge_color = ((flag[v] & EDGE_SHARP) != 0) ? colorEdgeSharp : large_edge_color;
+			large_edge_color = (edgesCrease[v] > 0.0) ? vec4(colorEdgeCrease.rgb, edgesCrease[v]) : large_edge_color;
+			large_edge_color = (edgesBweight[v] > 0.0) ? vec4(colorEdgeBWeight.rgb, edgesBweight[v]) : large_edge_color;
+			large_edge_color = ((flag[v] & EDGE_SEAM) != 0) ? colorEdgeSeam : large_edge_color;
+
+			if (large_edge_color != 0.0) {
+				colorDistEdge(large_edge_color, largeEdge);
+			}
+
+			/* Inner thin edge */
 			float innerEdge = e[v] - sizeEdge;
+#ifdef ANTI_ALIASING
+			innerEdge += 0.125;
+#endif
 
-			if ((flag[v] & EDGE_SEAM) != 0)
-				colorDist(colorEdgeSeam, largeEdge);
-			else if (edgesBweight[v] > 0.0)
-				colorDist(vec4(colorEdgeBWeight.rgb, edgesBweight[v]), largeEdge);
-			else if (edgesCrease[v] > 0.0)
-				colorDist(vec4(colorEdgeCrease.rgb, edgesCrease[v]), largeEdge);
-			else if ((flag[v] & EDGE_SHARP) != 0)
-				colorDist(colorEdgeSharp, largeEdge);
-#ifndef VERTEX_SELECTION
-			else
-				colorDist(colorWireEdit, innerEdge);
-
-			if ((flag[v] & EDGE_ACTIVE) != 0)
-				colorDist(vec4(colorEditMeshActive.xyz, 1.0), innerEdge);
-			else if ((flag[v] & EDGE_SELECTED) != 0)
-				colorDist(colorEdgeSelect, innerEdge);
+#ifdef VERTEX_SELECTION
+			colorDistEdge(vec4(vertexColor, 1.0), innerEdge);
 #else
-			colorDist(vec4(vertexColor, 1.0), innerEdge);
+			vec4 inner_edge_color = colorWireEdit;
+			inner_edge_color = ((flag[v] & EDGE_SELECTED) != 0) ? colorEdgeSelect : inner_edge_color;
+			inner_edge_color = ((flag[v] & EDGE_ACTIVE) != 0) ? vec4(colorEditMeshActive.xyz, 1.0) : inner_edge_color;
+
+			colorDistEdge(inner_edge_color, innerEdge);
 #endif
 		}
 	}
@@ -173,15 +190,14 @@ void main()
 	for (int v = 0; v < 3; ++v) {
 		float size = p[v] - sizeVertex;
 
-		if ((flag[v] & VERTEX_ACTIVE) != 0)
-			colorDist(vec4(colorEditMeshActive.xyz, 1.0), size);
-		else if ((flag[v] & VERTEX_SELECTED) != 0)
-			colorDist(colorVertexSelect, size);
-		else
-			colorDist(colorVertex, size);
+		vec4 point_color = colorVertex;
+		point_color = ((flag[v] & VERTEX_SELECTED) != 0) ? colorVertexSelect : point_color;
+		point_color = ((flag[v] & VERTEX_ACTIVE) != 0) ? vec4(colorEditMeshActive.xyz, 1.0) : point_color;
+
+		colorDist(point_color, size);
 	}
 #endif
 
 	/* don't write depth if not opaque */
-	if (FragColor.a == 0.0)	discard;
+	if (FragColor.a == 0.0) discard;
 }
