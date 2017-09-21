@@ -28,8 +28,24 @@ ExternalProject_Add(external_clang
 	URL_HASH MD5=${CLANG_HASH}
 	PATCH_COMMAND ${PATCH_CMD} -p 2 -N -R -d ${BUILD_DIR}/clang/src/external_clang < ${PATCH_DIR}/clang.diff
 	PREFIX ${BUILD_DIR}/clang
-	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/llvm ${DEFAULT_CMAKE_FLAGS} ${CLANG_EXTRA_ARGS}
-	INSTALL_DIR ${LIBDIR}/llvm
+	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/clang ${DEFAULT_CMAKE_FLAGS} ${CLANG_EXTRA_ARGS}
+	INSTALL_DIR ${LIBDIR}/clang
 )
+
+if (MSVC)
+	if (BUILD_MODE STREQUAL Release)
+		set(CLANG_HARVEST_COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/clang/ ${HARVEST_TARGET}/llvm/ )
+	else()
+		set(CLANG_HARVEST_COMMAND
+				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/clang/lib/ ${HARVEST_TARGET}/llvm/debug/lib/ &&
+				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/clang/bin/ ${HARVEST_TARGET}/llvm/debug/bin/ &&
+				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/clang/include/ ${HARVEST_TARGET}/llvm/debug/include/ 
+			)
+	endif()
+	ExternalProject_Add_Step(external_clang after_install
+		COMMAND ${CLANG_HARVEST_COMMAND}
+		DEPENDEES mkdir update patch download configure build install
+	)
+endif()
 
 add_dependencies(external_clang ll)
