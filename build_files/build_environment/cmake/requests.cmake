@@ -16,22 +16,12 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-if(BUILD_MODE STREQUAL Release)
-	if(WIN32)
-		set(REQUESTS_INSTALL_DIR ${LIBDIR}/requests)
-	else()
-		set(REQUESTS_INSTALL_DIR ${LIBDIR}/python/lib/python${PYTHON_SHORT_VERSION}/site-packages/requests)
-	endif()
+ExternalProject_Add(external_requests
+	DOWNLOAD_COMMAND ""
+	CONFIGURE_COMMAND ""
+	BUILD_COMMAND ""
+	PREFIX ${BUILD_DIR}/requests
+	INSTALL_COMMAND ${PYTHON_BINARY} -m pip install idna==${IDNA_VERSION} chardet==${CHARDET_VERSION} urllib3==${URLLIB3_VERSION} certifi==${CERTIFI_VERSION} requests==${REQUESTS_VERSION} --no-binary :all:
+)
 
-	ExternalProject_Add(external_requests
-		URL ${REQUESTS_URI}
-		DOWNLOAD_DIR ${DOWNLOAD_DIR}
-		URL_HASH MD5=${REQUESTS_HASH}
-		PREFIX ${BUILD_DIR}/requests
-		CONFIGURE_COMMAND ""
-		BUILD_COMMAND ""
-		INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory ${BUILD_DIR}/requests/src/external_requests/requests ${REQUESTS_INSTALL_DIR}
-	)
-
-	add_dependencies(external_requests Make_Python_Environment)
-endif(BUILD_MODE STREQUAL Release)
+add_dependencies(external_requests Make_Python_Environment)
