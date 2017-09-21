@@ -59,7 +59,7 @@ set(OPENIMAGEIO_EXTRA_ARGS
 	-DUSE_GIF=OFF
 	-DUSE_OPENCV=OFF
 	-DUSE_OPENSSL=OFF
-	-DUSE_OPENJPEG=OFF
+	-DUSE_OPENJPEG=ON
 	-DUSE_FFMPEG=OFF
 	-DUSE_PTEX=OFF
 	-DUSE_FREETYPE=OFF
@@ -78,6 +78,8 @@ set(OPENIMAGEIO_EXTRA_ARGS
 	-DTIFF_INCLUDE_DIR=${LIBDIR}/tiff/include
 	-DJPEG_LIBRARY=${LIBDIR}/jpg/lib/${JPEG_LIBRARY}
 	-DJPEG_INCLUDE_DIR=${LIBDIR}/jpg/include
+	-DOPENJPEG_INCLUDE_DIR=${LIBDIR}/openjpeg/include/openjpeg-${OPENJPEG_VERSION}
+	-DOPENJPEG_LIBRARY=${LIBDIR}/openjpeg/lib/${OPENJPEG_LIBRARY}
 	-DOCIO_PATH=${LIBDIR}/opencolorio/
 	-DOpenEXR_USE_STATIC_LIBS=On
 	-DOPENEXR_HOME=${LIBDIR}/openexr/
@@ -107,7 +109,7 @@ ExternalProject_Add(external_openimageio
 	INSTALL_DIR ${LIBDIR}/openimageio
 )
 
-add_dependencies(external_openimageio external_png external_zlib external_ilmbase external_openexr external_jpeg external_boost external_tiff external_webp external_opencolorio)
+add_dependencies(external_openimageio external_png external_zlib external_ilmbase external_openexr external_jpeg external_boost external_tiff external_webp external_opencolorio external_openjpeg)
 if(NOT WIN32)
 	add_dependencies(external_openimageio external_opencolorio_extra)
 endif()
