@@ -34,5 +34,5 @@ void main()
 	FragColor = (btests.z) ? color[2] : FragColor;
 	FragColor = (btests.w) ? color[3] : FragColor;
 
-	FragColor *= (is_blank_pixel) ? alpha : 1.0;
+	FragColor.a *= (is_blank_pixel) ? alpha : 1.0;
 }
