@@ -2164,6 +2164,10 @@ bool DRW_object_is_renderable(Object *ob)
 	Scene *scene = DST.draw_ctx.scene;
 	Object *obedit = scene->obedit;
 
+	if (!BKE_object_is_visible(ob)) {
+		return false;
+	}
+
 	if (ob->type == OB_MESH) {
 		if (ob == obedit) {
 			IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_EDIT, "");

@@ -43,6 +43,7 @@
 #include "BKE_camera.h"
 #include "BKE_curve.h"
 #include "BKE_global.h"
+#include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_image.h"
 #include "BKE_texture.h"
@@ -1562,7 +1563,7 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, Object *ob, SceneLay
 
 static void DRW_shgroup_relationship_lines(OBJECT_StorageList *stl, Object *ob)
 {
-	if (ob->parent && ((ob->parent->base_flag & BASE_VISIBLED) != 0)) {
+	if (ob->parent && BKE_object_is_visible(ob->parent)) {
 		DRW_shgroup_call_dynamic_add(stl->g_data->relationship_lines, ob->obmat[3]);
 		DRW_shgroup_call_dynamic_add(stl->g_data->relationship_lines, ob->parent->obmat[3]);
 	}
@@ -1676,6 +1677,10 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 	SceneLayer *sl = draw_ctx->scene_layer;
 	View3D *v3d = draw_ctx->v3d;
 	int theme_id = TH_UNDEFINED;
+
+	if (!BKE_object_is_visible(ob)) {
+		return;
+	}
 
 	//CollectionEngineSettings *ces_mode_ob = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_OBJECT, "");
 

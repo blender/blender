@@ -1860,6 +1860,9 @@ void BKE_layer_eval_layer_collection(const struct EvaluationContext *UNUSED(eval
 			IDP_MergeGroup(base->collection_properties, layer_collection->properties_evaluated, true);
 			base->flag |= BASE_VISIBLED;
 		}
+		else {
+			base->flag &= ~BASE_VISIBLED;
+		}
 
 		if (is_selectable) {
 			base->flag |= BASE_SELECTABLED;

@@ -329,11 +329,6 @@ static void rna_Object_shape_key_remove(
 	RNA_POINTER_INVALIDATE(kb_ptr);
 }
 
-static int rna_Object_is_visible(Object *ob, Scene *sce)
-{
-	return !(ob->restrictflag & OB_RESTRICT_VIEW) && (ob->lay & sce->lay);
-}
-
 #if 0
 static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int *indices, int totindex,
                                            float weight, int assignmode)
@@ -754,12 +749,6 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_function_output(func, parm);
 
 	/* View */
-	func = RNA_def_function(srna, "is_visible", "rna_Object_is_visible");
-	RNA_def_function_ui_description(func, "Determine if object is visible in a given scene");
-	parm = RNA_def_pointer(func, "scene", "Scene", "", "");
-	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-	parm = RNA_def_boolean(func, "result", 0, "", "Object visibility");
-	RNA_def_function_return(func, parm);
 
 	/* utility function for checking if the object is modified */
 	func = RNA_def_function(srna, "is_modified", "rna_Object_is_modified");

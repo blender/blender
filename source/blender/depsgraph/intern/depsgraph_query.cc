@@ -211,33 +211,30 @@ void DEG_objects_iterator_next(BLI_Iterator *iter)
 	}
 
 	base = data->base->next;
-	while (base != NULL) {
-		if ((base->flag & BASE_VISIBLED) != 0) {
-			// Object *ob = DEG_get_evaluated_object(data->graph, base->object);
-			Object *ob = base->object;
-			iter->current = ob;
-			data->base = base;
+	if (base != NULL) {
+		// Object *ob = DEG_get_evaluated_object(data->graph, base->object);
+		Object *ob = base->object;
+		iter->current = ob;
+		data->base = base;
 
-			BLI_assert(DEG::deg_validate_copy_on_write_datablock(&ob->id));
+		BLI_assert(DEG::deg_validate_copy_on_write_datablock(&ob->id));
 
-			/* Make sure we have the base collection settings is already populated.
-			 * This will fail when BKE_layer_eval_layer_collection_pre hasn't run yet
-			 * Which usually means a missing call to DEG_id_tag_update(). */
-			BLI_assert(!BLI_listbase_is_empty(&base->collection_properties->data.group));
+		/* Make sure we have the base collection settings is already populated.
+		 * This will fail when BKE_layer_eval_layer_collection_pre hasn't run yet
+		 * Which usually means a missing call to DEG_id_tag_update(). */
+		BLI_assert(!BLI_listbase_is_empty(&base->collection_properties->data.group));
 
-			/* Flushing depsgraph data. */
-			deg_flush_base_flags_and_settings(ob,
-			                                  base,
-			                                  data->base_flag);
+		/* Flushing depsgraph data. */
+		deg_flush_base_flags_and_settings(ob,
+										  base,
+										  data->base_flag);
 
-			if ((data->flag & DEG_OBJECT_ITER_FLAG_DUPLI) && (ob->transflag & OB_DUPLI)) {
-				data->dupli_parent = ob;
-				data->dupli_list = object_duplilist(&data->eval_ctx, data->scene, ob);
-				data->dupli_object_next = (DupliObject *)data->dupli_list->first;
-			}
-			return;
+		if ((data->flag & DEG_OBJECT_ITER_FLAG_DUPLI) && (ob->transflag & OB_DUPLI)) {
+			data->dupli_parent = ob;
+			data->dupli_list = object_duplilist(&data->eval_ctx, data->scene, ob);
+			data->dupli_object_next = (DupliObject *)data->dupli_list->first;
 		}
-		base = base->next;
+		return;
 	}
 
 	/* Look for an object in the next set. */

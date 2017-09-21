@@ -519,6 +519,10 @@ void BlenderSync::sync_objects(float motion_time)
 	    ++b_dupli_iter)
 	{
 		BL::Object b_ob = b_dupli_iter->object();
+		if(!b_ob.is_visible()) {
+			continue;
+		}
+
 		progress.set_sync_status("Synchronizing object", b_ob.name());
 
 		/* load per-object culling data */

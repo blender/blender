@@ -562,6 +562,15 @@ bool BKE_object_is_in_wpaint_select_vert(Object *ob)
 	return false;
 }
 
+/**
+ * Return if the object is visible, as evaluated by depsgraph
+ * Keep in sync with rna_object.c (object.is_visible).
+ */
+bool BKE_object_is_visible(Object *ob)
+{
+	return (ob->base_flag & BASE_VISIBLED) != 0;
+}
+
 bool BKE_object_exists_check(Object *obtest)
 {
 	Object *ob;
