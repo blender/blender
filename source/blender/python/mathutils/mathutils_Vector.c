@@ -2401,7 +2401,6 @@ static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure
 #define _SWIZZLE3(a, b, c)    (_SWIZZLE2(a, b)    | (((c) | SWIZZLE_VALID_AXIS) << (SWIZZLE_BITS_PER_AXIS * 2)))
 #define _SWIZZLE4(a, b, c, d) (_SWIZZLE3(a, b, c) | (((d) | SWIZZLE_VALID_AXIS) << (SWIZZLE_BITS_PER_AXIS * 3)))
 
-#define SWIZZLE1(a)          SET_INT_IN_POINTER(_SWIZZLE1(a))
 #define SWIZZLE2(a, b)       SET_INT_IN_POINTER(_SWIZZLE2(a, b))
 #define SWIZZLE3(a, b, c)    SET_INT_IN_POINTER(_SWIZZLE3(a, b, c))
 #define SWIZZLE4(a, b, c, d) SET_INT_IN_POINTER(_SWIZZLE4(a, b, c, d))
