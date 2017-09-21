@@ -49,11 +49,18 @@ if(WIN32)
 	#--user-config=user-config.jam
 	set(BOOST_BUILD_OPTIONS runtime-link=static )
 	#set(BOOST_WITH_PYTHON --with-python)
+	set(BOOST_HARVEST_CMD 	${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/boost/lib/ ${HARVEST_TARGET}/boost/lib/ )
+	if(BUILD_MODE STREQUAL Release)
+		set(BOOST_HARVEST_CMD ${BOOST_HARVEST_CMD} && ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/boost/include/boost-1_60/ ${HARVEST_TARGET}/boost/include/)
+	endif()
+
 elseif(APPLE)
 	set(BOOST_CONFIGURE_COMMAND ./bootstrap.sh)
 	set(BOOST_BUILD_COMMAND ./bjam)
 	set(BOOST_BUILD_OPTIONS toolset=clang cxxflags=${PLATFORM_CXXFLAGS} linkflags=${PLATFORM_LDFLAGS} --disable-icu boost.locale.icu=off)
+	set(BOOST_HARVEST_CMD echo .)
 else()
+	set(BOOST_HARVEST_CMD echo .)
 	set(BOOST_CONFIGURE_COMMAND ./bootstrap.sh)
 	set(BOOST_BUILD_COMMAND ./bjam)
 	set(BOOST_BUILD_OPTIONS cxxflags=${PLATFORM_CXXFLAGS} --disable-icu boost.locale.icu=off)
@@ -92,7 +99,7 @@ ExternalProject_Add(external_boost
 	CONFIGURE_COMMAND ${BOOST_CONFIGURE_COMMAND}
 	BUILD_COMMAND ${BOOST_BUILD_COMMAND} ${BOOST_BUILD_OPTIONS} -j${MAKE_THREADS} architecture=x86 address-model=${BOOST_ADDRESS_MODEL} variant=${BOOST_BUILD_TYPE} link=static threading=multi ${BOOST_OPTIONS}	--prefix=${LIBDIR}/boost install
 	BUILD_IN_SOURCE 1
-	INSTALL_COMMAND ""
+	INSTALL_COMMAND "${BOOST_HARVEST_CMD}"
 )
 
 if(WIN32)
