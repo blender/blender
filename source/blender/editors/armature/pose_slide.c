@@ -39,6 +39,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_fcurve.h"
+#include "BKE_nla.h"
 
 #include "BKE_context.h"
 #include "BKE_object.h"
@@ -94,9 +95,13 @@ typedef struct tPoseSlideOp {
 	ListBase pfLinks;   /* links between posechannels and f-curves  */
 	DLRBT_Tree keys;    /* binary tree for quicker searching for keyframes (when applicable) */
 
-	int cframe;         /* current frame number */
-	int prevFrame;      /* frame before current frame (blend-from) */
-	int nextFrame;      /* frame after current frame (blend-to) */
+	int cframe;         /* current frame number - global time */
+	
+	int prevFrame;      /* frame before current frame (blend-from) - global time */
+	int nextFrame;      /* frame after current frame (blend-to)    - global time */
+	
+	float prevFrameF;   /* prevFrame, but in local action time (for F-Curve lookups to work) */
+	float nextFrameF;   /* nextFrame, but in local action time (for F-Curve lookups to work) */
 	
 	short mode;         /* sliding mode (ePoseSlide_Modes) */
 	short flag;         /* unused for now, but can later get used for storing runtime settings.... */
@@ -189,11 +194,15 @@ static int pose_slide_init(bContext *C, wmOperator *op, short mode)
 	pso->channels = RNA_enum_get(op->ptr, "channels");
 	pso->axislock = RNA_enum_get(op->ptr, "axis_lock");
 	
-	/* check the settings from the context */
+	/* ensure validity of the settings from the context */
 	if (ELEM(NULL, pso->ob, pso->arm, pso->ob->adt, pso->ob->adt->action))
 		return 0;
-	else
-		act = pso->ob->adt->action;
+	
+	act = pso->ob->adt->action;
+	
+	/* apply NLA mapping corrections so the frame lookups work */
+	pso->prevFrameF = BKE_nla_tweakedit_remap(pso->ob->adt, pso->prevFrame, NLATIME_CONVERT_UNMAP);
+	pso->nextFrameF = BKE_nla_tweakedit_remap(pso->ob->adt, pso->nextFrame, NLATIME_CONVERT_UNMAP);
 	
 	/* for each Pose-Channel which gets affected, get the F-Curves for that channel 
 	 * and set the relevant transform flags...
@@ -259,9 +268,9 @@ static void pose_slide_apply_val(tPoseSlideOp *pso, FCurve *fcu, float *val)
 	
 	/* get keyframe values for endpoint poses to blend with */
 	/* previous/start */
-	sVal = evaluate_fcurve(fcu, (float)pso->prevFrame);
+	sVal = evaluate_fcurve(fcu, pso->prevFrameF);
 	/* next/end */
-	eVal = evaluate_fcurve(fcu, (float)pso->nextFrame);
+	eVal = evaluate_fcurve(fcu, pso->nextFrameF);
 	
 	/* if both values are equal, don't do anything */
 	if (IS_EQF(sVal, eVal)) {
@@ -483,15 +492,15 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 		float quat_prev[4], quat_next[4];
 		
 		/* get 2 quats */
-		quat_prev[0] = evaluate_fcurve(fcu_w, pso->prevFrame);
-		quat_prev[1] = evaluate_fcurve(fcu_x, pso->prevFrame);
-		quat_prev[2] = evaluate_fcurve(fcu_y, pso->prevFrame);
-		quat_prev[3] = evaluate_fcurve(fcu_z, pso->prevFrame);
+		quat_prev[0] = evaluate_fcurve(fcu_w, pso->prevFrameF);
+		quat_prev[1] = evaluate_fcurve(fcu_x, pso->prevFrameF);
+		quat_prev[2] = evaluate_fcurve(fcu_y, pso->prevFrameF);
+		quat_prev[3] = evaluate_fcurve(fcu_z, pso->prevFrameF);
 		
-		quat_next[0] = evaluate_fcurve(fcu_w, pso->nextFrame);
-		quat_next[1] = evaluate_fcurve(fcu_x, pso->nextFrame);
-		quat_next[2] = evaluate_fcurve(fcu_y, pso->nextFrame);
-		quat_next[3] = evaluate_fcurve(fcu_z, pso->nextFrame);
+		quat_next[0] = evaluate_fcurve(fcu_w, pso->nextFrameF);
+		quat_next[1] = evaluate_fcurve(fcu_x, pso->nextFrameF);
+		quat_next[2] = evaluate_fcurve(fcu_y, pso->nextFrameF);
+		quat_next[3] = evaluate_fcurve(fcu_z, pso->nextFrameF);
 		
 		/* perform blending */
 		if (pso->mode == POSESLIDE_BREAKDOWN) {
@@ -543,6 +552,10 @@ static void pose_slide_apply(bContext *C, tPoseSlideOp *pso)
 		/* move out one step either side */
 		pso->prevFrame--;
 		pso->nextFrame++;
+		
+		/* apply NLA mapping corrections so the frame lookups work */
+		pso->prevFrameF = BKE_nla_tweakedit_remap(pso->ob->adt, pso->prevFrame, NLATIME_CONVERT_UNMAP);
+		pso->nextFrameF = BKE_nla_tweakedit_remap(pso->ob->adt, pso->nextFrame, NLATIME_CONVERT_UNMAP);
 	}
 	
 	/* for each link, handle each set of transforms */
@@ -746,6 +759,10 @@ static int pose_slide_invoke_common(bContext *C, wmOperator *op, tPoseSlideOp *p
 			pso->nextFrame = (ak->next) ? (ak->next->cfra) : (pso->cframe + 1);
 			RNA_int_set(op->ptr, "next_frame", pso->nextFrame);
 		}
+		
+		/* apply NLA mapping corrections so the frame lookups work */
+		pso->prevFrameF = BKE_nla_tweakedit_remap(pso->ob->adt, pso->prevFrame, NLATIME_CONVERT_UNMAP);
+		pso->nextFrameF = BKE_nla_tweakedit_remap(pso->ob->adt, pso->nextFrame, NLATIME_CONVERT_UNMAP);
 	}
 	else {
 		BKE_report(op->reports, RPT_ERROR, "No keyframes to slide between");
