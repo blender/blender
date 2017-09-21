@@ -2544,7 +2544,7 @@ static void DRW_viewport_var_init(void)
 		RST.bound_texs = MEM_callocN(sizeof(GPUTexture *) * GPU_max_textures(), "Bound GPUTexture refs");
 	}
 	if (RST.bound_tex_slots == NULL) {
-		RST.bound_tex_slots = MEM_callocN(sizeof(GPUUniformBuffer *) * GPU_max_textures(), "Bound Texture Slots");
+		RST.bound_tex_slots = MEM_callocN(sizeof(bool) * GPU_max_textures(), "Bound Texture Slots");
 	}
 }
 
