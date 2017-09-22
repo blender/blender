@@ -63,12 +63,6 @@
 #  include "AVI_avi.h"
 #endif
 
-#ifdef WITH_QUICKTIME
-#  if defined(_WIN32) || defined(__APPLE__)
-#    include "quicktime_import.h"
-#  endif /* _WIN32 || __APPLE__ */
-#endif /* WITH_QUICKTIME */
-
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
@@ -136,11 +130,6 @@ struct anim {
 	PAVISTREAM pavi[MAXNUMSTREAMS];     // the current streams
 	PGETFRAME pgf;
 #endif
-
-#ifdef WITH_QUICKTIME
-	/* quicktime */
-	struct _QuicktimeMovie *qtime;
-#endif /* WITH_QUICKTIME */
 
 #ifdef WITH_FFMPEG
 	AVFormatContext *pFormatCtx;

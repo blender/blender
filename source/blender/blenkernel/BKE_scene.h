@@ -42,7 +42,6 @@ struct Base;
 struct EvaluationContext;
 struct Main;
 struct Object;
-struct QuicktimeCodecData;
 struct RenderData;
 struct SceneRenderLayer;
 struct Scene;
@@ -64,7 +63,6 @@ struct Main;
 struct Base *_setlooper_base_step(struct Scene **sce_iter, struct Base *base);
 
 void free_avicodecdata(struct AviCodecData *acd);
-void free_qtcodecdata(struct QuicktimeCodecData *acd);
 
 void BKE_scene_free(struct Scene *sce);
 void BKE_scene_init(struct Scene *sce);
@@ -178,4 +176,3 @@ int         BKE_scene_multiview_num_videos_get(const struct RenderData *rd);
 #endif
 
 #endif
-

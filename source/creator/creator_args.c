@@ -1129,7 +1129,7 @@ static const char arg_handle_image_type_set_doc[] =
 "\t\tTGA RAWTGA JPEG IRIS IRIZ\n"
 "\t\tAVIRAW AVIJPEG PNG BMP\n"
 "\t(formats that can be compiled into blender, not available on all systems)\n"
-"\t\tHDR TIFF EXR MULTILAYER MPEG FRAMESERVER QUICKTIME CINEON DPX DDS JP2"
+"\t\tHDR TIFF EXR MULTILAYER MPEG FRAMESERVER CINEON DPX DDS JP2"
 ;
 static int arg_handle_image_type_set(int argc, const char **argv, void *data)
 {

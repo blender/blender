@@ -138,10 +138,6 @@ if(WITH_CODEC_AVI)
 	add_subdirectory(avi)
 endif()
 
-if(WITH_CODEC_QUICKTIME)
-	add_subdirectory(quicktime)
-endif()
-
 if(WITH_PYTHON)
 	add_subdirectory(python)
 endif()

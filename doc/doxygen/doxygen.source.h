@@ -160,9 +160,6 @@
  *   merged in docs.
  */
 
-/** \defgroup quicktime QuickTime
- *  \ingroup blender
-
 /** \defgroup gui GUI */
 
 /** \defgroup wm Window Manager

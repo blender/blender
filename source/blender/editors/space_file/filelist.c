@@ -1994,8 +1994,7 @@ int ED_path_extension_type(const char *path)
 	else if (BLI_testextensie(path, ".abc")) {
 		return FILE_TYPE_ALEMBIC;
 	}
-	else if (BLI_testextensie_array(path, imb_ext_image) ||
-	         (G.have_quicktime && BLI_testextensie_array(path, imb_ext_image_qt)))
+	else if (BLI_testextensie_array(path, imb_ext_image))
 	{
 		return FILE_TYPE_IMAGE;
 	}

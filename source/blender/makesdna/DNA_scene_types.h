@@ -99,42 +99,6 @@ typedef struct AviCodecData {
 	char			avicodecname[128];
 } AviCodecData;
 
-typedef struct QuicktimeCodecData {
-	/*Old quicktime implementation compatibility fields, read only in 2.5 - deprecated*/
-	void			*cdParms;   /* codec/compressor options */
-	void			*pad;	    /* padding */
-
-	unsigned int	cdSize;		    /* size of cdParms buffer */
-	unsigned int	pad2;		    /* padding */
-
-	char			qtcodecname[128];
-} QuicktimeCodecData;
-	
-typedef struct QuicktimeCodecSettings {
-	/* Codec settings detailed for 2.5 implementation*/
-	int codecType; /* Types defined in quicktime_export.h */
-	int	codecSpatialQuality; /* in 0-100 scale, to be translated in 0-1024 for qt use */
-
-	/* Settings not available in current QTKit API */
-	int	codec;
-	int	codecFlags;
-	int	colorDepth;
-	int	codecTemporalQuality; /* in 0-100 scale, to be translated in 0-1024 for qt use */
-	int	minSpatialQuality; /* in 0-100 scale, to be translated in 0-1024 for qt use */
-	int	minTemporalQuality; /* in 0-100 scale, to be translated in 0-1024 for qt use */
-	int	keyFrameRate;
-	int	bitRate;	/* bitrate in bps */
-	
-	/* Audio Codec settings */
-	int audiocodecType;
-	int audioSampleRate;
-	short audioBitDepth;
-	short audioChannels;
-	int audioCodecFlags;
-	int audioBitRate;
-	int pad1;
-} QuicktimeCodecSettings;
-
 typedef enum FFMpegPreset {
 	FFM_PRESET_NONE,
 	FFM_PRESET_ULTRAFAST,
@@ -456,7 +420,7 @@ typedef struct ImageFormatData {
 #define R_IMF_IMTYPE_AVIJPEG        16
 #define R_IMF_IMTYPE_PNG            17
 /* #define R_IMF_IMTYPE_AVICODEC    18 */ /* avicodec is nomore */
-#define R_IMF_IMTYPE_QUICKTIME      19
+/* #define R_IMF_IMTYPE_QUICKTIME   19 */ /* quicktime is nomore */
 #define R_IMF_IMTYPE_BMP            20
 #define R_IMF_IMTYPE_RADHDR         21
 #define R_IMF_IMTYPE_TIFF           22
@@ -585,8 +549,6 @@ typedef struct RenderData {
 	struct ImageFormatData im_format;
 	
 	struct AviCodecData *avicodecdata;
-	struct QuicktimeCodecData *qtcodecdata;
-	struct QuicktimeCodecSettings qtcodecsettings;
 	struct FFMpegCodecData ffcodecdata;
 
 	int cfra, sfra, efra;	/* frames as in 'images' */
@@ -1728,6 +1690,8 @@ typedef struct Scene {
 
 	/* Movie Tracking */
 	struct MovieClip *clip;			/* active movie clip */
+
+	void *pad4;
 
 	uint64_t customdata_mask;	/* XXX. runtime flag for drawing, actually belongs in the window, only used by BKE_object_handle_update() */
 	uint64_t customdata_mask_modal; /* XXX. same as above but for temp operator use (gl renders) */

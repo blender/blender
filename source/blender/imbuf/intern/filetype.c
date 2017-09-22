@@ -47,10 +47,6 @@
 #include "dds/dds_api.h"
 #endif
 
-#ifdef WITH_QUICKTIME
-#include "quicktime_import.h"
-#endif
-
 static int imb_ftype_default(const ImFileType *type, ImBuf *ibuf)
 {
 	return (ibuf->ftype == type->filetype);
@@ -101,10 +97,6 @@ void imb_filetypes_init(void)
 	for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++)
 		if (type->init)
 			type->init();
-
-#ifdef WITH_QUICKTIME
-	quicktime_init();
-#endif
 }
 
 void imb_filetypes_exit(void)
@@ -114,9 +106,5 @@ void imb_filetypes_exit(void)
 	for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++)
 		if (type->exit)
 			type->exit();
-
-#ifdef WITH_QUICKTIME
-	quicktime_exit();
-#endif
 }
 

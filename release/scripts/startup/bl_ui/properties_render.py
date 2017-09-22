@@ -410,37 +410,6 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
         if rd.use_multiview:
             layout.template_image_views(image_settings)
 
-        if file_format == 'QUICKTIME':
-            quicktime = rd.quicktime
-
-            split = layout.split()
-            col = split.column()
-            col.prop(quicktime, "codec_type", text="Video Codec")
-            col.prop(quicktime, "codec_spatial_quality", text="Quality")
-
-            # Audio
-            col.prop(quicktime, "audiocodec_type", text="Audio Codec")
-            if quicktime.audiocodec_type != 'No audio':
-                split = layout.split()
-                if quicktime.audiocodec_type == 'LPCM':
-                    split.prop(quicktime, "audio_bitdepth", text="")
-
-                split.prop(quicktime, "audio_samplerate", text="")
-
-                split = layout.split()
-                col = split.column()
-                if quicktime.audiocodec_type == 'AAC':
-                    col.prop(quicktime, "audio_bitrate")
-
-                subsplit = split.split()
-                col = subsplit.column()
-
-                if quicktime.audiocodec_type == 'AAC':
-                    col.prop(quicktime, "audio_codec_isvbr")
-
-                col = subsplit.column()
-                col.prop(quicktime, "audio_resampling_hq")
-
 
 class RENDER_PT_encoding(RenderButtonsPanel, Panel):
     bl_label = "Encoding"

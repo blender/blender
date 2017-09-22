@@ -334,10 +334,6 @@ option(WITH_CODEC_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd
 option(WITH_ALEMBIC             "Enable Alembic Support" OFF)
 option(WITH_ALEMBIC_HDF5        "Enable Legacy Alembic Support (not officially supported)" OFF)
 
-if(APPLE)
-	option(WITH_CODEC_QUICKTIME     "Enable Quicktime Support" OFF)
-endif()
-
 # 3D format support
 # Disable opencollada when we don't have precompiled libs
 option(WITH_OPENCOLLADA   "Enable OpenCollada Support (http://www.opencollada.org)" ${_init_OPENCOLLADA})
@@ -736,10 +732,6 @@ if(WITH_AUDASPACE)
 			"-DAUD_TYPES_H=<AUD_Space.h>"
 		)
 	endif()
-endif()
-
-if(APPLE)
-	apple_check_quicktime()
 endif()
 
 #-----------------------------------------------------------------------------
@@ -1759,4 +1751,3 @@ endif()
 if(0)
 	print_all_vars()
 endif()
-

@@ -148,16 +148,6 @@ if(WITH_FREESTYLE)
 	add_definitions(-DWITH_FREESTYLE)
 endif()
 
-if(WITH_CODEC_QUICKTIME)
-	list(APPEND INC
-		../quicktime
-	)
-	list(APPEND INC_SYS
-		${QUICKTIME_INCLUDE_DIRS}
-	)
-	add_definitions(-DWITH_QUICKTIME)
-endif()
-
 if(WITH_GAMEENGINE)
 	add_definitions(-DWITH_GAMEENGINE)
 endif()

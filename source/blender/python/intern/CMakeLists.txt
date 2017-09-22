@@ -147,10 +147,6 @@ if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
 endif()
 
-if(WITH_CODEC_QUICKTIME)
-	add_definitions(-DWITH_QUICKTIME)
-endif()
-
 if(WITH_CODEC_SNDFILE)
 	add_definitions(-DWITH_SNDFILE)
 endif()

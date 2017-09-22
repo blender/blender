@@ -199,13 +199,6 @@ set(PLATFORM_CFLAGS "-pipe -funsigned-char")
 set(PLATFORM_LINKFLAGS
 	"-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Cocoa -framework Carbon -framework AudioUnit -framework AudioToolbox -framework CoreAudio"
 )
-if(WITH_CODEC_QUICKTIME)
-	set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QTKit")
-	if(CMAKE_OSX_ARCHITECTURES MATCHES i386)
-		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QuickTime")
-		# libSDL still needs 32bit carbon quicktime
-	endif()
-endif()
 
 if(WITH_CXX11)
 	list(APPEND PLATFORM_LINKLIBS c++)

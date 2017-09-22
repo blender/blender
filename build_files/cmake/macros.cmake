@@ -403,9 +403,6 @@ function(setup_liblinks
 	if(WITH_SDL AND NOT WITH_SDL_DYNLOAD)
 		target_link_libraries(${target} ${SDL_LIBRARY})
 	endif()
-	if(WITH_CODEC_QUICKTIME)
-		target_link_libraries(${target} ${QUICKTIME_LIBRARIES})
-	endif()
 	if(WITH_IMAGE_TIFF)
 		target_link_libraries(${target} ${TIFF_LIBRARY})
 	endif()
@@ -713,10 +710,6 @@ function(SETUP_BLENDER_SORTED_LIBS)
 
 	if(WITH_IK_ITASC)
 		list(APPEND BLENDER_SORTED_LIBS bf_intern_itasc)
-	endif()
-
-	if(WITH_CODEC_QUICKTIME)
-		list(APPEND BLENDER_SORTED_LIBS bf_quicktime)
 	endif()
 
 	if(WITH_MOD_BOOLEAN)
