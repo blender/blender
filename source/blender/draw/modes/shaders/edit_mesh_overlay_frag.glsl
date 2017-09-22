@@ -164,7 +164,7 @@ void main()
 			large_edge_color = (edgesBweight[v] > 0.0) ? vec4(colorEdgeBWeight.rgb, edgesBweight[v]) : large_edge_color;
 			large_edge_color = ((flag[v] & EDGE_SEAM) != 0) ? colorEdgeSeam : large_edge_color;
 
-			if (large_edge_color != 0.0) {
+			if (large_edge_color.a != 0.0) {
 				colorDistEdge(large_edge_color, largeEdge);
 			}
 
