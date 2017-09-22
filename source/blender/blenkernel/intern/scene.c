@@ -383,12 +383,6 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 			sce_copy->r.avicodecdata->lpParms = MEM_dupallocN(sce_copy->r.avicodecdata->lpParms);
 		}
 
-		/* make a private copy of the qtcodecdata */
-		if (sce->r.qtcodecdata) {
-			sce_copy->r.qtcodecdata = MEM_dupallocN(sce->r.qtcodecdata);
-			sce_copy->r.qtcodecdata->cdParms = MEM_dupallocN(sce_copy->r.qtcodecdata->cdParms);
-		}
-
 		if (sce->r.ffcodecdata.properties) { /* intentionally check scen not sce. */
 			sce_copy->r.ffcodecdata.properties = IDP_CopyProperty(sce->r.ffcodecdata.properties);
 		}
