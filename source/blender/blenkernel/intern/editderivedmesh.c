@@ -281,7 +281,7 @@ static void emDM_recalcLoopTri(DerivedMesh *dm)
 	DM_ensure_looptri_data(dm);
 	mlooptri = dm->looptris.array_wip;
 
-	BLI_assert(mlooptri != NULL);
+	BLI_assert(tottri == 0 || mlooptri != NULL);
 	BLI_assert(poly_to_tri_count(dm->numPolyData, dm->numLoopData) == dm->looptris.num);
 	BLI_assert(tottri == dm->looptris.num);
 

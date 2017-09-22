@@ -210,8 +210,8 @@ ccl_device_forceinline VolumeIntegrateResult kernel_path_volume(
 				/* indirect sample. if we use distance sampling and take just
 				 * one sample for direct and indirect light, we could share
 				 * this computation, but makes code a bit complex */
-				float rphase = path_state_rng_1D_for_decision(kg, state, PRNG_PHASE);
-				float rscatter = path_state_rng_1D_for_decision(kg, state, PRNG_SCATTER_DISTANCE);
+				float rphase = path_state_rng_1D(kg, state, PRNG_PHASE_CHANNEL);
+				float rscatter = path_state_rng_1D(kg, state, PRNG_SCATTER_DISTANCE);
 
 				result = kernel_volume_decoupled_scatter(kg,
 					state, &volume_ray, sd, throughput,
@@ -434,11 +434,8 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 		                      sd,
 		                      &isect,
 		                      ray);
-		float rbsdf = path_state_rng_1D_for_decision(kg, state, PRNG_BSDF);
-		shader_eval_surface(kg, sd, state, rbsdf, state->flag);
-#ifdef __BRANCHED_PATH__
-		shader_merge_closures(sd);
-#endif  /* __BRANCHED_PATH__ */
+		shader_eval_surface(kg, sd, state, state->flag);
+		shader_prepare_closures(sd, state);
 
 		/* Apply shadow catcher, holdout, emission. */
 		if(!kernel_path_shader_apply(kg,
@@ -462,7 +459,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 			break;
 		}
 		else if(probability != 1.0f) {
-			float terminate = path_state_rng_1D_for_decision(kg, state, PRNG_TERMINATE);
+			float terminate = path_state_rng_1D(kg, state, PRNG_TERMINATE);
 
 			if(terminate >= probability)
 				break;
@@ -483,21 +480,18 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 		/* bssrdf scatter to a different location on the same object, replacing
 		 * the closures with a diffuse BSDF */
 		if(sd->flag & SD_BSSRDF) {
-			float bssrdf_probability;
-			ShaderClosure *sc = subsurface_scatter_pick_closure(kg, sd, &bssrdf_probability);
+			float bssrdf_u, bssrdf_v;
+			path_state_rng_2D(kg,
+			                  state,
+			                  PRNG_BSDF_U,
+			                  &bssrdf_u, &bssrdf_v);
 
-			/* modify throughput for picking bssrdf or bsdf */
-			throughput *= bssrdf_probability;
+			const ShaderClosure *sc = shader_bssrdf_pick(sd, &throughput, &bssrdf_u);
 
 			/* do bssrdf scatter step if we picked a bssrdf closure */
 			if(sc) {
 				uint lcg_state = lcg_state_init(state, 0x68bc21eb);
 
-				float bssrdf_u, bssrdf_v;
-				path_state_rng_2D(kg,
-				                  state,
-				                  PRNG_BSDF_U,
-				                  &bssrdf_u, &bssrdf_v);
 				subsurface_scatter_step(kg,
 				                        sd,
 				                        state,
@@ -591,8 +585,8 @@ ccl_device_forceinline void kernel_path_integrate(
 
 		/* Setup and evaluate shader. */
 		shader_setup_from_ray(kg, &sd, &isect, ray);
-		float rbsdf = path_state_rng_1D_for_decision(kg, state, PRNG_BSDF);
-		shader_eval_surface(kg, &sd, state, rbsdf, state->flag);
+		shader_eval_surface(kg, &sd, state, state->flag);
+		shader_prepare_closures(&sd, state);
 
 		/* Apply shadow catcher, holdout, emission. */
 		if(!kernel_path_shader_apply(kg,
@@ -616,7 +610,7 @@ ccl_device_forceinline void kernel_path_integrate(
 			break;
 		}
 		else if(probability != 1.0f) {
-			float terminate = path_state_rng_1D_for_decision(kg, state, PRNG_TERMINATE);
+			float terminate = path_state_rng_1D(kg, state, PRNG_TERMINATE);
 			if(terminate >= probability)
 				break;
 

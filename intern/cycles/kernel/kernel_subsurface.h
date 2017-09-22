@@ -28,87 +28,31 @@ CCL_NAMESPACE_BEGIN
  * - try to reduce one sample model variance
  */
 
-#define BSSRDF_MULTI_EVAL
-
-ccl_device ShaderClosure *subsurface_scatter_pick_closure(KernelGlobals *kg, ShaderData *sd, float *probability)
-{
-	/* sum sample weights of bssrdf and bsdf */
-	float bsdf_sum = 0.0f;
-	float bssrdf_sum = 0.0f;
-
-	for(int i = 0; i < sd->num_closure; i++) {
-		ShaderClosure *sc = &sd->closure[i];
-		
-		if(CLOSURE_IS_BSDF(sc->type))
-			bsdf_sum += sc->sample_weight;
-		else if(CLOSURE_IS_BSSRDF(sc->type))
-			bssrdf_sum += sc->sample_weight;
-	}
-
-	/* use bsdf or bssrdf? */
-	float r = sd->randb_closure*(bsdf_sum + bssrdf_sum);
-
-	if(r < bsdf_sum) {
-		/* use bsdf, and adjust randb so we can reuse it for picking a bsdf */
-		sd->randb_closure = r/bsdf_sum;
-		*probability = (bsdf_sum > 0.0f)? (bsdf_sum + bssrdf_sum)/bsdf_sum: 1.0f;
-		return NULL;
-	}
-
-	/* use bssrdf */
-	r -= bsdf_sum;
-
-	float sum = 0.0f;
-
-	for(int i = 0; i < sd->num_closure; i++) {
-		ShaderClosure *sc = &sd->closure[i];
-		
-		if(CLOSURE_IS_BSSRDF(sc->type)) {
-			sum += sc->sample_weight;
-
-			if(r <= sum) {
-				sd->randb_closure = (r - (sum - sc->sample_weight))/sc->sample_weight;
-
-#ifdef BSSRDF_MULTI_EVAL
-				*probability = (bssrdf_sum > 0.0f)? (bsdf_sum + bssrdf_sum)/bssrdf_sum: 1.0f;
-#else
-				*probability = (bssrdf_sum > 0.0f)? (bsdf_sum + bssrdf_sum)/sc->sample_weight: 1.0f;
-#endif
-				return sc;
-			}
-		}
-	}
-
-	/* should never happen */
-	sd->randb_closure = 0.0f;
-	*probability = 1.0f;
-	return NULL;
-}
-
 ccl_device_inline float3 subsurface_scatter_eval(ShaderData *sd,
-                                                 ShaderClosure *sc,
+                                                 const ShaderClosure *sc,
                                                  float disk_r,
                                                  float r,
                                                  bool all)
 {
-#ifdef BSSRDF_MULTI_EVAL
 	/* this is the veach one-sample model with balance heuristic, some pdf
 	 * factors drop out when using balance heuristic weighting */
 	float3 eval_sum = make_float3(0.0f, 0.0f, 0.0f);
 	float pdf_sum = 0.0f;
-	float sample_weight_sum = 0.0f;
-	int num_bssrdf = 0;
+	float sample_weight_inv = 0.0f;
 
-	for(int i = 0; i < sd->num_closure; i++) {
-		sc = &sd->closure[i];
-		
-		if(CLOSURE_IS_BSSRDF(sc->type)) {
-			float sample_weight = (all)? 1.0f: sc->sample_weight;
-			sample_weight_sum += sample_weight;
+	if(!all) {
+		float sample_weight_sum = 0.0f;
+
+		for(int i = 0; i < sd->num_closure; i++) {
+			sc = &sd->closure[i];
+
+			if(CLOSURE_IS_BSSRDF(sc->type)) {
+				sample_weight_sum += sc->sample_weight;
+			}
 		}
-	}
 
-	float sample_weight_inv = 1.0f/sample_weight_sum;
+		sample_weight_inv = 1.0f/sample_weight_sum;
+	}
 
 	for(int i = 0; i < sd->num_closure; i++) {
 		sc = &sd->closure[i];
@@ -125,25 +69,16 @@ ccl_device_inline float3 subsurface_scatter_eval(ShaderData *sd,
 			/* TODO power heuristic is not working correct here */
 			eval_sum += sc->weight*pdf; //*sample_weight*disk_pdf;
 			pdf_sum += sample_weight*disk_pdf; //*sample_weight*disk_pdf;
-
-			num_bssrdf++;
 		}
 	}
 
 	return (pdf_sum > 0.0f)? eval_sum / pdf_sum : make_float3(0.0f, 0.0f, 0.0f);
-#else
-	float pdf = bssrdf_pdf(pick_sc, r);
-	float disk_pdf = bssrdf_pdf(pick_sc, disk_r);
-
-	return pick_sc->weight * pdf / disk_pdf;
-#endif
 }
 
 /* replace closures with a single diffuse bsdf closure after scatter step */
-ccl_device void subsurface_scatter_setup_diffuse_bsdf(ShaderData *sd, ShaderClosure *sc, float3 weight, bool hit, float3 N)
+ccl_device void subsurface_scatter_setup_diffuse_bsdf(ShaderData *sd, const ShaderClosure *sc, float3 weight, bool hit, float3 N)
 {
 	sd->flag &= ~SD_CLOSURE_FLAGS;
-	sd->randb_closure = 0.0f;
 	sd->num_closure = 0;
 	sd->num_closure_extra = 0;
 
@@ -219,7 +154,7 @@ ccl_device void subsurface_color_bump_blur(KernelGlobals *kg,
 
 	if(bump || texture_blur > 0.0f) {
 		/* average color and normal at incoming point */
-		shader_eval_surface(kg, sd, state, 0.0f, state_flag);
+		shader_eval_surface(kg, sd, state, state_flag);
 		float3 in_color = shader_bssrdf_sum(sd, (bump)? N: NULL, NULL);
 
 		/* we simply divide out the average color and multiply with the average
@@ -242,7 +177,7 @@ ccl_device_inline int subsurface_scatter_multi_intersect(
         KernelGlobals *kg,
         SubsurfaceIntersection *ss_isect,
         ShaderData *sd,
-        ShaderClosure *sc,
+        const ShaderClosure *sc,
         uint *lcg_state,
         float disk_u,
         float disk_v,
@@ -255,26 +190,20 @@ ccl_device_inline int subsurface_scatter_multi_intersect(
 	disk_N = sd->Ng;
 	make_orthonormals(disk_N, &disk_T, &disk_B);
 
-	/* reusing variable for picking the closure gives a bit nicer stratification
-	 * for path tracer, for branched we do all closures so it doesn't help */
-	float axisu = (all)? disk_u: sd->randb_closure;
-
-	if(axisu < 0.5f) {
+	if(disk_u < 0.5f) {
 		pick_pdf_N = 0.5f;
 		pick_pdf_T = 0.25f;
 		pick_pdf_B = 0.25f;
-		if(all)
-			disk_u *= 2.0f;
+		disk_u *= 2.0f;
 	}
-	else if(axisu < 0.75f) {
+	else if(disk_u < 0.75f) {
 		float3 tmp = disk_N;
 		disk_N = disk_T;
 		disk_T = tmp;
 		pick_pdf_N = 0.25f;
 		pick_pdf_T = 0.5f;
 		pick_pdf_B = 0.25f;
-		if(all)
-			disk_u = (disk_u - 0.5f)*4.0f;
+		disk_u = (disk_u - 0.5f)*4.0f;
 	}
 	else {
 		float3 tmp = disk_N;
@@ -283,8 +212,7 @@ ccl_device_inline int subsurface_scatter_multi_intersect(
 		pick_pdf_N = 0.25f;
 		pick_pdf_T = 0.25f;
 		pick_pdf_B = 0.5f;
-		if(all)
-			disk_u = (disk_u - 0.75f)*4.0f;
+		disk_u = (disk_u - 0.75f)*4.0f;
 	}
 
 	/* sample point on disk */
@@ -390,7 +318,7 @@ ccl_device_noinline void subsurface_scatter_multi_setup(
         ShaderData *sd,
         ccl_addr_space PathState *state,
         int state_flag,
-        ShaderClosure *sc,
+        const ShaderClosure *sc,
         bool all)
 {
 #ifdef __SPLIT_KERNEL__
@@ -419,7 +347,7 @@ ccl_device_noinline void subsurface_scatter_multi_setup(
 
 /* subsurface scattering step, from a point on the surface to another nearby point on the same object */
 ccl_device void subsurface_scatter_step(KernelGlobals *kg, ShaderData *sd, ccl_addr_space PathState *state,
-	int state_flag, ShaderClosure *sc, uint *lcg_state, float disk_u, float disk_v, bool all)
+	int state_flag, const ShaderClosure *sc, uint *lcg_state, float disk_u, float disk_v, bool all)
 {
 	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
 
@@ -430,18 +358,20 @@ ccl_device void subsurface_scatter_step(KernelGlobals *kg, ShaderData *sd, ccl_a
 	disk_N = sd->Ng;
 	make_orthonormals(disk_N, &disk_T, &disk_B);
 
-	if(sd->randb_closure < 0.5f) {
+	if(disk_u < 0.5f) {
 		pick_pdf_N = 0.5f;
 		pick_pdf_T = 0.25f;
 		pick_pdf_B = 0.25f;
+		disk_u *= 2.0f;
 	}
-	else if(sd->randb_closure < 0.75f) {
+	else if(disk_u < 0.75f) {
 		float3 tmp = disk_N;
 		disk_N = disk_T;
 		disk_T = tmp;
 		pick_pdf_N = 0.25f;
 		pick_pdf_T = 0.5f;
 		pick_pdf_B = 0.25f;
+		disk_u = (disk_u - 0.5f)*4.0f;
 	}
 	else {
 		float3 tmp = disk_N;
@@ -450,6 +380,7 @@ ccl_device void subsurface_scatter_step(KernelGlobals *kg, ShaderData *sd, ccl_a
 		pick_pdf_N = 0.25f;
 		pick_pdf_T = 0.25f;
 		pick_pdf_B = 0.5f;
+		disk_u = (disk_u - 0.75f)*4.0f;
 	}
 
 	/* sample point on disk */

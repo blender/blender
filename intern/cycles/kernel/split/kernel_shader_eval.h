@@ -50,20 +50,16 @@ ccl_device void kernel_shader_eval(KernelGlobals *kg)
 	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
 		ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
 
-#ifndef __BRANCHED_PATH__
-		float rbsdf = path_state_rng_1D_for_decision(kg, state, PRNG_BSDF);
-		shader_eval_surface(kg, &kernel_split_state.sd[ray_index], state, rbsdf, state->flag);
-#else
-		float rbsdf = 0.0f;
-
-		if(!kernel_data.integrator.branched || IS_FLAG(ray_state, ray_index, RAY_BRANCHED_INDIRECT)) {
-			rbsdf = path_state_rng_1D_for_decision(kg, state, PRNG_BSDF);
-
+		shader_eval_surface(kg, &kernel_split_state.sd[ray_index], state, state->flag);
+#ifdef __BRANCHED_PATH__
+		if(kernel_data.integrator.branched) {
+			shader_merge_closures(&kernel_split_state.sd[ray_index]);
 		}
-
-		shader_eval_surface(kg, &kernel_split_state.sd[ray_index], state, rbsdf, state->flag);
-		shader_merge_closures(&kernel_split_state.sd[ray_index]);
-#endif  /* __BRANCHED_PATH__ */
+		else
+#endif
+		{
+			shader_prepare_closures(&kernel_split_state.sd[ray_index], state);
+		}
 	}
 }
 

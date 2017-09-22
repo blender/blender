@@ -173,13 +173,11 @@ class Report:
         if not os.path.exists(outdir):
             os.makedirs(outdir)
 
-        f = open(os.path.join(outdir, "failed.data"), "w")
-        f.write(self.failed_tests)
-        f.close()
+        filepath = os.path.join(outdir, "failed.data")
+        pathlib.Path(filepath).write_text(self.failed_tests)
 
-        f = open(os.path.join(outdir, "passed.data"), "w")
-        f.write(self.passed_tests)
-        f.close()
+        filepath = os.path.join(outdir, "passed.data")
+        pathlib.Path(filepath).write_text(self.passed_tests)
 
         # gather intermediate data for all tests
         failed_data = sorted(glob.glob(os.path.join(OUTDIR, "*/failed.data")))
@@ -189,9 +187,11 @@ class Report:
         passed_tests = ""
 
         for filename in failed_data:
-            failed_tests += open(os.path.join(OUTDIR, filename), "r").read()
+            filepath = os.path.join(OUTDIR, filename)
+            failed_tests += pathlib.Path(filepath).read_text()
         for filename in passed_data:
-            passed_tests += open(os.path.join(OUTDIR, filename), "r").read()
+            filepath = os.path.join(OUTDIR, filename)
+            passed_tests += pathlib.Path(filepath).read_text()
 
         # write html for all tests
         self.html = """
@@ -241,9 +241,7 @@ class Report:
             """ . format(failed_tests, passed_tests)
 
         filepath = os.path.join(OUTDIR, "report.html")
-        f = open(filepath, "w")
-        f.write(self.html)
-        f.close()
+        pathlib.Path(filepath).write_text(self.html)
 
         print_message("Report saved to: " + pathlib.Path(filepath).as_uri())
 

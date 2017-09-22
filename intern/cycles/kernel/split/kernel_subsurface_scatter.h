@@ -250,20 +250,17 @@ ccl_device void kernel_subsurface_scatter(KernelGlobals *kg)
 #ifdef __BRANCHED_PATH__
 			}
 			else if(IS_FLAG(ray_state, ray_index, RAY_BRANCHED_INDIRECT)) {
-				float bssrdf_probability;
-				ShaderClosure *sc = subsurface_scatter_pick_closure(kg, sd, &bssrdf_probability);
+				float bssrdf_u, bssrdf_v;
+				path_state_rng_2D(kg,
+				                  state,
+				                  PRNG_BSDF_U,
+				                  &bssrdf_u, &bssrdf_v);
 
-				/* modify throughput for picking bssrdf or bsdf */
-				*throughput *= bssrdf_probability;
+				const ShaderClosure *sc = shader_bssrdf_pick(sd, throughput, &bssrdf_u);
 
 				/* do bssrdf scatter step if we picked a bssrdf closure */
 				if(sc) {
 					uint lcg_state = lcg_state_init_addrspace(state, 0x68bc21eb);
-					float bssrdf_u, bssrdf_v;
-					path_state_rng_2D(kg,
-					                  state,
-					                  PRNG_BSDF_U,
-					                  &bssrdf_u, &bssrdf_v);
 					subsurface_scatter_step(kg,
 					                        sd,
 					                        state,

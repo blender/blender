@@ -38,6 +38,7 @@ ExternalProject_Add(external_openjpeg
 	INSTALL_DIR ${LIBDIR}/openjpeg
 )
 
+	set(OPENJPEG_LIBRARY libopenjpeg${LIBEXT})
 if(MSVC)
 	set_target_properties(external_openjpeg PROPERTIES FOLDER Mingw)
 endif(MSVC)

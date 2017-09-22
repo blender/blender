@@ -400,7 +400,7 @@ ccl_device int bssrdf_setup(Bssrdf *bssrdf, ClosureType type)
 			bssrdf_burley_setup(bssrdf);
 		}
 
-		return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSSRDF;
+		return SD_BSSRDF;
 	}
 }
 

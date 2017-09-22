@@ -1177,9 +1177,10 @@ void FONT_OT_line_break(wmOperatorType *ot)
 /******************* delete operator **********************/
 
 static EnumPropertyItem delete_type_items[] = {
-	{DEL_ALL, "ALL", 0, "All", ""},
 	{DEL_NEXT_CHAR, "NEXT_CHARACTER", 0, "Next Character", ""},
 	{DEL_PREV_CHAR, "PREVIOUS_CHARACTER", 0, "Previous Character", ""},
+	{DEL_NEXT_WORD, "NEXT_WORD", 0, "Next Word", ""},
+	{DEL_PREV_WORD, "PREVIOUS_WORD", 0, "Previous Word", ""},
 	{DEL_SELECTION, "SELECTION", 0, "Selection", ""},
 	{DEL_NEXT_SEL, "NEXT_OR_SELECTION", 0, "Next or Selection", ""},
 	{DEL_PREV_SEL, "PREVIOUS_OR_SELECTION", 0, "Previous or Selection", ""},
@@ -1190,7 +1191,9 @@ static int delete_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	Curve *cu = obedit->data;
 	EditFont *ef = cu->editfont;
-	int x, selstart, selend, type = RNA_enum_get(op->ptr, "type");
+	int selstart, selend, type = RNA_enum_get(op->ptr, "type");
+	int range[2] = {0, 0};
+	bool has_select = false;
 
 	if (ef->len == 0)
 		return OPERATOR_CANCELLED;
@@ -1198,6 +1201,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 	if (BKE_vfont_select_get(obedit, &selstart, &selend)) {
 		if (type == DEL_NEXT_SEL) type = DEL_SELECTION;
 		else if (type == DEL_PREV_SEL) type = DEL_SELECTION;
+		has_select = true;
 	}
 	else {
 		if (type == DEL_NEXT_SEL) type = DEL_NEXT_CHAR;
@@ -1205,10 +1209,6 @@ static int delete_exec(bContext *C, wmOperator *op)
 	}
 
 	switch (type) {
-		case DEL_ALL:
-			ef->len = ef->pos = 0;
-			ef->textbuf[0] = 0;
-			break;
 		case DEL_SELECTION:
 			if (!kill_selection(obedit, 0))
 				return OPERATOR_CANCELLED;
@@ -1217,27 +1217,67 @@ static int delete_exec(bContext *C, wmOperator *op)
 			if (ef->pos <= 0)
 				return OPERATOR_CANCELLED;
 
-			for (x = ef->pos; x <= ef->len; x++)
-				ef->textbuf[x - 1] = ef->textbuf[x];
-			for (x = ef->pos; x <= ef->len; x++)
-				ef->textbufinfo[x - 1] = ef->textbufinfo[x];
+			range[0] = ef->pos - 1;
+			range[1] = ef->pos;
 
 			ef->pos--;
-			ef->textbuf[--ef->len] = '\0';
 			break;
 		case DEL_NEXT_CHAR:
 			if (ef->pos >= ef->len)
 				return OPERATOR_CANCELLED;
 
-			for (x = ef->pos; x < ef->len; x++)
-				ef->textbuf[x] = ef->textbuf[x + 1];
-			for (x = ef->pos; x < ef->len; x++)
-				ef->textbufinfo[x] = ef->textbufinfo[x + 1];
-
-			ef->textbuf[--ef->len] = '\0';
+			range[0] = ef->pos;
+			range[1] = ef->pos + 1;
 			break;
+		case DEL_NEXT_WORD:
+		{
+			int pos = ef->pos;
+			BLI_str_cursor_step_wchar(ef->textbuf, ef->len, &pos, STRCUR_DIR_NEXT, STRCUR_JUMP_DELIM, true);
+			range[0] = ef->pos;
+			range[1] = pos;
+			break;
+		}
+
+		case DEL_PREV_WORD:
+		{
+			int pos = ef->pos;
+			BLI_str_cursor_step_wchar(ef->textbuf, ef->len, &pos, STRCUR_DIR_PREV, STRCUR_JUMP_DELIM, true);
+			range[0] = pos;
+			range[1] = ef->pos;
+			ef->pos = pos;
+			break;
+		}
 		default:
 			return OPERATOR_CANCELLED;
+	}
+
+	if (range[0] != range[1]) {
+		BLI_assert(range[0] < range[1]);
+		int len_remove = range[1] - range[0];
+		int len_tail = ef->len - range[1];
+		if (has_select) {
+			for (int i = 0; i < 2; i++) {
+				int *sel = i ? &ef->selend : &ef->selstart;
+				if (*sel <= range[0]) {
+					/* pass */
+				}
+				else if (*sel >= range[1]) {
+					*sel -= len_remove;
+				}
+				else if (*sel < range[1]) {
+					/* pass */
+					*sel = range[0];
+				}
+			}
+		}
+
+		memmove(&ef->textbuf[range[0]], &ef->textbuf[range[1]], sizeof(*ef->textbuf) * len_tail);
+		memmove(&ef->textbufinfo[range[0]], &ef->textbufinfo[range[1]], sizeof(*ef->textbufinfo) * len_tail);
+
+		ef->len -= len_remove;
+		ef->textbuf[ef->len] = '\0';
+
+		BKE_vfont_select_clamp(obedit);
 	}
 
 	text_update_edited(C, obedit, FO_EDIT);
@@ -1260,7 +1300,7 @@ void FONT_OT_delete(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", delete_type_items, DEL_ALL, "Type", "Which part of the text to delete");
+	RNA_def_enum(ot->srna, "type", delete_type_items, DEL_PREV_CHAR, "Type", "Which part of the text to delete");
 }
 
 /*********************** insert text operator *************************/

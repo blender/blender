@@ -237,6 +237,7 @@ class InfoPropertyRNA:
         "min",
         "max",
         "array_length",
+        "array_dimensions",
         "collection_type",
         "type",
         "fixed_type",
@@ -262,6 +263,7 @@ class InfoPropertyRNA:
         self.min = getattr(rna_prop, "hard_min", -1)
         self.max = getattr(rna_prop, "hard_max", -1)
         self.array_length = getattr(rna_prop, "array_length", 0)
+        self.array_dimensions = getattr(rna_prop, "array_dimensions", ())[:]
         self.collection_type = GetInfoStructRNA(rna_prop.srna)
         self.is_required = rna_prop.is_required
         self.is_readonly = rna_prop.is_readonly
@@ -281,13 +283,21 @@ class InfoPropertyRNA:
         else:
             self.is_enum_flag = False
 
+        self.default_str = ""  # fallback
+
         if self.array_length:
             self.default = tuple(getattr(rna_prop, "default_array", ()))
+            if self.array_dimensions[1] != 0:  # Multi-dimensional array, convert default flat one accordingly.
+                self.default_str = tuple(float_as_string(v) if self.type == "float" else str(v) for v in self.default)
+                for dim in self.array_dimensions[::-1]:
+                    if dim != 0:
+                        self.default = tuple(zip(*((iter(self.default),) * dim)))
+                        self.default_str = tuple("(%s)" % ", ".join(s for s in b) for b in zip(*((iter(self.default_str),) * dim)))
+                self.default_str = self.default_str[0]
         elif self.type == "enum" and self.is_enum_flag:
             self.default = getattr(rna_prop, "default_flag", set())
         else:
             self.default = getattr(rna_prop, "default", None)
-        self.default_str = ""  # fallback
 
         if self.type == "pointer":
             # pointer has no default, just set as None
@@ -302,13 +312,12 @@ class InfoPropertyRNA:
             else:
                 self.default_str = "'%s'" % self.default
         elif self.array_length:
-            self.default_str = ''
-            # special case for floats
-            if len(self.default) > 0:
-                if self.type == "float":
+            if self.array_dimensions[1] == 0:  # single dimension array, we already took care of multi-dimensions ones.
+                # special case for floats
+                if self.type == "float" and len(self.default) > 0:
                     self.default_str = "(%s)" % ", ".join(float_as_string(f) for f in self.default)
-            if not self.default_str:
-                self.default_str = str(self.default)
+                else:
+                    self.default_str = str(self.default)
         else:
             if self.type == "float":
                 self.default_str = float_as_string(self.default)
@@ -328,7 +337,10 @@ class InfoPropertyRNA:
         if self.fixed_type is None:
             type_str += self.type
             if self.array_length:
-                type_str += " array of %d items" % (self.array_length)
+                if self.array_dimensions[1] != 0:
+                    type_str += " multi-dimensional array of %s items" % (" * ".join(str(d) for d in self.array_dimensions if d != 0))
+                else:
+                    type_str += " array of %d items" % (self.array_length)
 
             if self.type in {"float", "int"}:
                 type_str += " in [%s, %s]" % (range_str(self.min), range_str(self.max))
@@ -632,7 +644,7 @@ def BuildRNAInfo():
 
             for rna_prop_ptr in (getattr(rna_prop, "fixed_type", None), getattr(rna_prop, "srna", None)):
                 # Does this property point to me?
-                if rna_prop_ptr:
+                if rna_prop_ptr and rna_prop_ptr.identifier in rna_references_dict:
                     rna_references_dict[rna_prop_ptr.identifier].append(
                         "%s.%s" % (rna_struct_path, rna_prop_identifier))
 
@@ -645,7 +657,7 @@ def BuildRNAInfo():
                 rna_prop_ptr = getattr(rna_prop, "fixed_type", None)
 
                 # Does this property point to me?
-                if rna_prop_ptr:
+                if rna_prop_ptr and rna_prop_ptr.identifier in rna_references_dict:
                     rna_references_dict[rna_prop_ptr.identifier].append(
                         "%s.%s" % (rna_struct_path, rna_func.identifier))
 
@@ -680,16 +692,22 @@ def BuildRNAInfo():
     for rna_info_prop in InfoFunctionRNA.global_lookup.values():
         rna_info_prop.build()
 
-    for rna_info in InfoStructRNA.global_lookup.values():
-        rna_info.build()
-        for prop in rna_info.properties:
-            prop.build()
-        for func in rna_info.functions:
-            func.build()
-            for prop in func.args:
+    done_keys = set()
+    new_keys = set(InfoStructRNA.global_lookup.keys())
+    while new_keys:
+        for rna_key in new_keys:
+            rna_info = InfoStructRNA.global_lookup[rna_key]
+            rna_info.build()
+            for prop in rna_info.properties:
                 prop.build()
-            for prop in func.return_values:
-                prop.build()
+            for func in rna_info.functions:
+                func.build()
+                for prop in func.args:
+                    prop.build()
+                for prop in func.return_values:
+                    prop.build()
+        done_keys |= new_keys
+        new_keys = set(InfoStructRNA.global_lookup.keys()) - done_keys
 
     # there are too many invalid defaults, unless we intend to fix, leave this off
     if 0:

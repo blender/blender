@@ -339,8 +339,8 @@ ccl_device void kernel_branched_path_integrate(KernelGlobals *kg,
 					/* scatter sample. if we use distance sampling and take just one
 					 * sample for direct and indirect light, we could share this
 					 * computation, but makes code a bit complex */
-					float rphase = path_state_rng_1D_for_decision(kg, &ps, PRNG_PHASE);
-					float rscatter = path_state_rng_1D_for_decision(kg, &ps, PRNG_SCATTER_DISTANCE);
+					float rphase = path_state_rng_1D(kg, &ps, PRNG_PHASE_CHANNEL);
+					float rscatter = path_state_rng_1D(kg, &ps, PRNG_SCATTER_DISTANCE);
 
 					VolumeIntegrateResult result = kernel_volume_decoupled_scatter(kg,
 						&ps, &pray, &sd, &tp, rphase, rscatter, &volume_segment, NULL, false);
@@ -439,7 +439,7 @@ ccl_device void kernel_branched_path_integrate(KernelGlobals *kg,
 
 		/* Setup and evaluate shader. */
 		shader_setup_from_ray(kg, &sd, &isect, &ray);
-		shader_eval_surface(kg, &sd, &state, 0.0f, state.flag);
+		shader_eval_surface(kg, &sd, &state, state.flag);
 		shader_merge_closures(&sd);
 
 		/* Apply shadow catcher, holdout, emission. */
@@ -466,7 +466,7 @@ ccl_device void kernel_branched_path_integrate(KernelGlobals *kg,
 				break;
 			}
 			else if(probability != 1.0f) {
-				float terminate = path_state_rng_1D_for_decision(kg, &state, PRNG_TERMINATE);
+				float terminate = path_state_rng_1D(kg, &state, PRNG_TERMINATE);
 
 				if(terminate >= probability)
 					break;

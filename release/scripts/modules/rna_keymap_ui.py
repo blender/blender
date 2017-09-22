@@ -230,6 +230,7 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
                 "`": 'ACCENT_GRAVE',
                 "*": 'NUMPAD_ASTERIX',
                 "/": 'NUMPAD_SLASH',
+                '+': 'NUMPAD_PLUS',
                 "RMB": 'RIGHTMOUSE',
                 "LMB": 'LEFTMOUSE',
                 "MMB": 'MIDDLEMOUSE',

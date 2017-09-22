@@ -27,12 +27,18 @@ else()
 	set(SNDFILE_OPTIONS --enable-static --disable-shared )
 endif()
 
+if(APPLE)
+	set(SNDFILE_CONFIGURE_ENV echo .)
+else()
+	set(SNDFILE_CONFIGURE_ENV ${CONFIGURE_ENV})
+endif()
+
 ExternalProject_Add(external_sndfile
 	URL ${SNDFILE_URI}
 	DOWNLOAD_DIR ${DOWNLOAD_DIR}
 	URL_HASH MD5=${SNDFILE_HASH}
 	PREFIX ${BUILD_DIR}/sndfile
-	CONFIGURE_COMMAND cd ${BUILD_DIR}/sndfile/src/external_sndfile/ && ${SNDFILE_ENV} ${CONFIGURE_COMMAND} ${SNDFILE_OPTIONS} --prefix=${mingw_LIBDIR}/sndfile
+	CONFIGURE_COMMAND ${SNDFILE_CONFIGURE_ENV} && cd ${BUILD_DIR}/sndfile/src/external_sndfile/ && ${SNDFILE_ENV} ${CONFIGURE_COMMAND} ${SNDFILE_OPTIONS} --prefix=${mingw_LIBDIR}/sndfile
 	BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/sndfile/src/external_sndfile/ && make -j${MAKE_THREADS}
 	INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/sndfile/src/external_sndfile/ && make install
 	INSTALL_DIR ${LIBDIR}/sndfile

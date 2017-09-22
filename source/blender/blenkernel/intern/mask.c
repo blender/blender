@@ -61,6 +61,8 @@
 #include "BKE_movieclip.h"
 #include "BKE_image.h"
 
+#include "DEG_depsgraph_build.h"
+
 static struct {
 	ListBase splines;
 	struct GHash *id_hash;
@@ -816,6 +818,8 @@ Mask *BKE_mask_new(Main *bmain, const char *name)
 	/* arbitrary defaults */
 	mask->sfra = 1;
 	mask->efra = 100;
+
+	DEG_relations_tag_update(bmain);
 
 	return mask;
 }

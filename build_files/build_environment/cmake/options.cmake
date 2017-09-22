@@ -115,10 +115,14 @@ else()
 	set(LIBPREFIX "lib")
 
 	if(APPLE)
+# Let's get the current Xcode dir, to support xcode-select
+  	    	execute_process(
+			COMMAND xcode-select --print-path
+			OUTPUT_VARIABLE XCODE_DEV_PATH OUTPUT_STRIP_TRAILING_WHITESPACE)
 		set(OSX_ARCHITECTURES x86_64)
 		set(OSX_DEPLOYMENT_TARGET 10.9)
 		set(OSX_SDK_VERSION 10.12)
-		set(OSX_SYSROOT /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX${OSX_SDK_VERSION}.sdk)
+		set(OSX_SYSROOT ${XCODE_DEV_PATH}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX${OSX_SDK_VERSION}.sdk)
 
 		set(PLATFORM_CFLAGS "-isysroot ${OSX_SYSROOT} -mmacosx-version-min=${OSX_DEPLOYMENT_TARGET}")
 		set(PLATFORM_CXXFLAGS "-isysroot ${OSX_SYSROOT} -mmacosx-version-min=${OSX_DEPLOYMENT_TARGET} -std=c++11 -stdlib=libc++")

@@ -613,7 +613,7 @@ if(UNIX AND NOT APPLE)
 					PATTERN "*.pyo" EXCLUDE                 # * any cache *
 				)
 				# On some platforms requests does have extra dependencies.
-				set(_requests_deps "chardet" "urllib3")
+				set(_requests_deps "certifi" "chardet" "idna" "urllib3")
 				foreach(_requests_dep ${_requests_deps})
 					if(EXISTS ${PYTHON_REQUESTS_PATH}/${_requests_dep})
 						install(
@@ -707,7 +707,7 @@ elseif(WIN32)
 			)
 
 			if(WITH_PYTHON_INSTALL_NUMPY)
-				set(PYTHON_NUMPY_VERSION 1.10)
+				set(PYTHON_NUMPY_VERSION 1.13)
 				add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib/site-packages
 					COMMAND ${CMAKE_COMMAND} -E
 					        make_directory ${CMAKE_CURRENT_BINARY_DIR}/${BLENDER_VERSION}/python/lib/site-packages)

@@ -281,31 +281,21 @@ enum PathTraceDimension {
 	PRNG_FILTER_V = 1,
 	PRNG_LENS_U = 2,
 	PRNG_LENS_V = 3,
-#ifdef __CAMERA_MOTION__
 	PRNG_TIME = 4,
 	PRNG_UNUSED_0 = 5,
 	PRNG_UNUSED_1 = 6,	/* for some reason (6, 7) is a bad sobol pattern */
 	PRNG_UNUSED_2 = 7,  /* with a low number of samples (< 64) */
-#endif
-	PRNG_BASE_NUM = 8,
+	PRNG_BASE_NUM = 10,
 
 	PRNG_BSDF_U = 0,
 	PRNG_BSDF_V = 1,
-	PRNG_BSDF = 2,
-	PRNG_UNUSED3 = 3,
-	PRNG_LIGHT_U = 4,
-	PRNG_LIGHT_V = 5,
-	PRNG_LIGHT_TERMINATE = 6,
-	PRNG_TERMINATE = 7,
-
-#ifdef __VOLUME__
-	PRNG_PHASE_U = 8,
-	PRNG_PHASE_V = 9,
-	PRNG_PHASE = 10,
-	PRNG_SCATTER_DISTANCE = 11,
-#endif
-
-	PRNG_BOUNCE_NUM = 12,
+	PRNG_LIGHT_U = 2,
+	PRNG_LIGHT_V = 3,
+	PRNG_LIGHT_TERMINATE = 4,
+	PRNG_TERMINATE = 5,
+	PRNG_PHASE_CHANNEL = 6,
+	PRNG_SCATTER_DISTANCE = 7,
+	PRNG_BOUNCE_NUM = 8,
 };
 
 enum SamplingPattern {

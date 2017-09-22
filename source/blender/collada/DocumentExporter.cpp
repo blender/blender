@@ -303,7 +303,10 @@ int DocumentExporter::exportCurrentScene(const EvaluationContext *eval_ctx, Scen
 	// <library_visual_scenes>
 
 	SceneExporter se(writer, &arm_exporter, this->export_settings);
-
+#if 0
+	/* The following code seems to be an obsolete workaround
+	   Comment out until it proofs correct that we no longer need it.
+	*/
 	if (has_animations && this->export_settings->export_transformation_type == BC_TRANSFORMATION_TYPE_MATRIX) {
 		// channels adressing <matrix> objects is not (yet) supported
 		// So we force usage of <location>, <translation> and <scale>
@@ -315,7 +318,9 @@ int DocumentExporter::exportCurrentScene(const EvaluationContext *eval_ctx, Scen
 	else {
 		se.setExportTransformationType(this->export_settings->export_transformation_type);
 	}
-
+#else
+	se.setExportTransformationType(this->export_settings->export_transformation_type);
+#endif
 	se.exportScene(eval_ctx, sce);
 	
 	// <scene>
