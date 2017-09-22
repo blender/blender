@@ -91,8 +91,6 @@ float distToEdge(vec2 o, vec2 dir)
 	return sqrt(abs(dot(af, af) - daf * daf));
 }
 
-#define ANTI_ALIASING
-
 #ifdef ANTI_ALIASING
 void colorDistEdge(vec4 color, float dist)
 {

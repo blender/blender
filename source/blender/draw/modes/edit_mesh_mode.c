@@ -154,6 +154,7 @@ static void EDIT_MESH_engine_init(void *vedata)
 		        datatoc_edit_mesh_overlay_frag_glsl,
 		        datatoc_common_globals_lib_glsl,
 		        "#define EDGE_FIX\n"
+		        "#define ANTI_ALIASING\n"
 		        "#define VERTEX_FACING");
 	}
 	if (!e_data.overlay_tri_fast_sh) {
@@ -162,6 +163,7 @@ static void EDIT_MESH_engine_init(void *vedata)
 		        datatoc_edit_mesh_overlay_geom_tri_glsl,
 		        datatoc_edit_mesh_overlay_frag_glsl,
 		        datatoc_common_globals_lib_glsl,
+		        "#define ANTI_ALIASING"
 		        "#define VERTEX_FACING");
 	}
 	if (!e_data.overlay_tri_vcol_sh) {
@@ -172,6 +174,7 @@ static void EDIT_MESH_engine_init(void *vedata)
 		        datatoc_common_globals_lib_glsl,
 		        "#define EDGE_FIX\n"
 		        "#define VERTEX_SELECTION\n"
+		        "#define ANTI_ALIASING\n"
 		        "#define VERTEX_FACING");
 	}
 	if (!e_data.overlay_tri_vcol_fast_sh) {
@@ -181,6 +184,7 @@ static void EDIT_MESH_engine_init(void *vedata)
 		        datatoc_edit_mesh_overlay_frag_glsl,
 		        datatoc_common_globals_lib_glsl,
 		        "#define VERTEX_SELECTION\n"
+		        "#define ANTI_ALIASING\n"
 		        "#define VERTEX_FACING");
 	}
 	if (!e_data.overlay_edge_sh) {
@@ -189,6 +193,7 @@ static void EDIT_MESH_engine_init(void *vedata)
 		        datatoc_edit_mesh_overlay_geom_edge_glsl,
 		        datatoc_edit_mesh_overlay_frag_glsl,
 		        datatoc_common_globals_lib_glsl,
+		        "#define ANTI_ALIASING"
 		        "#define VERTEX_FACING");
 	}
 	if (!e_data.overlay_edge_vcol_sh) {
