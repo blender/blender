@@ -51,6 +51,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_curve.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -816,6 +817,8 @@ Mask *BKE_mask_new(Main *bmain, const char *name)
 	/* arbitrary defaults */
 	mask->sfra = 1;
 	mask->efra = 100;
+
+	DAG_relations_tag_update(bmain);
 
 	return mask;
 }
