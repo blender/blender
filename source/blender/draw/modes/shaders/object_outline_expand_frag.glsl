@@ -4,7 +4,6 @@ in vec4 uvcoordsvar;
 out vec4 FragColor;
 
 uniform sampler2D outlineColor;
-uniform sampler2D outlineDepth;
 
 uniform float alpha;
 uniform bool doExpand;
@@ -13,7 +12,6 @@ void main()
 {
 	ivec2 uv = ivec2(gl_FragCoord.xy);
 	FragColor = texelFetch(outlineColor, uv, 0).rgba;
-	float depth = texelFetch(outlineDepth, uv, 0).r;
 
 	vec4 color[4];
 	color[0] = texelFetchOffset(outlineColor, uv, 0, ivec2( 1,  0)).rgba;
@@ -23,16 +21,17 @@ void main()
 
 	vec4 values = vec4(color[0].a, color[1].a, color[2].a, color[3].a);
 
-	bool is_blank_pixel = !(FragColor.a != 0.0 || (depth == 1.0 && !doExpand));
-	vec4 tests = vec4(is_blank_pixel);
-	tests *= step(vec4(1e-6), values); /* (color.a != 0.0) */
-	tests *= (doExpand) ? vec4(1.0) : step(values, vec4(0.999)); /* (doExpand || color.a != 1.0) */
+	vec4 tests = step(vec4(1e-6), values); /* (color.a != 0.0) */
 	bvec4 btests = equal(tests, vec4(1.0));
+
+	if (FragColor.a != 0.0) {
+		return;
+	}
 
 	FragColor = (btests.x) ? color[0] : FragColor;
 	FragColor = (btests.y) ? color[1] : FragColor;
 	FragColor = (btests.z) ? color[2] : FragColor;
 	FragColor = (btests.w) ? color[3] : FragColor;
 
-	FragColor.a *= (is_blank_pixel) ? alpha : 1.0;
+	FragColor.a *= (!doExpand) ? 0.0 : 1.0;
 }
