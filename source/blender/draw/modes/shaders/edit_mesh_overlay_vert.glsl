@@ -15,9 +15,25 @@ out vec4 vPos;
 out vec4 pPos;
 out ivec4 vData;
 
+#ifdef VERTEX_FACING
+uniform mat4 ProjectionMatrix;
+uniform mat3 NormalMatrix;
+uniform vec3 eye;
+
+in vec3 vnor;
+out float vFacing;
+#endif
+
 void main()
 {
 	vPos = ModelViewMatrix * vec4(pos, 1.0);
 	pPos = ModelViewProjectionMatrix * vec4(pos, 1.0);
 	vData = data;
+#ifdef VERTEX_FACING
+	vec3 view_normal = normalize(NormalMatrix * vnor);
+	vec3 view_vec = (ProjectionMatrix[3][3] == 0.0)
+		? normalize(vPos.xyz)
+		: vec3(0.0, 0.0, 1.0);
+	vFacing = dot(view_vec, view_normal);
+#endif
 }

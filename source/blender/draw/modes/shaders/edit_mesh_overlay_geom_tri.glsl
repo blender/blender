@@ -29,6 +29,9 @@ uniform vec2 viewportSize;
 in vec4 vPos[];
 in vec4 pPos[];
 in ivec4 vData[];
+#ifdef VERTEX_FACING
+in float vFacing[];
+#endif
 
 /* these are the same for all vertices
  * and does not need interpolation */
@@ -39,6 +42,9 @@ flat out vec4 faceColor;
 flat out int clipCase;
 #ifdef VERTEX_SELECTION
 out vec3 vertexColor;
+#endif
+#ifdef VERTEX_FACING
+out float facing;
 #endif
 
 /* See fragment shader */
@@ -101,6 +107,10 @@ void doVertex(int v, vec4 pos)
 {
 #ifdef VERTEX_SELECTION
 	vertexColor = getVertexColor(v);
+#endif
+
+#ifdef VERTEX_FACING
+	facing = vFacing[v];
 #endif
 
 	gl_Position = pos;

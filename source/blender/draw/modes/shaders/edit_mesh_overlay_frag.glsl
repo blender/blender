@@ -15,6 +15,9 @@ flat in int clipCase;
 #ifdef VERTEX_SELECTION
 in vec3 vertexColor;
 #endif
+#ifdef VERTEX_FACING
+in float facing;
+#endif
 
 /* We use a vec4[2] interface to pass edge data
  * (without fragmenting memory accesses)
@@ -196,6 +199,10 @@ void main()
 
 		colorDist(point_color, size);
 	}
+#endif
+
+#ifdef VERTEX_FACING
+	FragColor.a *= 1.0 - abs(facing) * 0.4;
 #endif
 
 	/* don't write depth if not opaque */

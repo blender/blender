@@ -1,5 +1,8 @@
 
 flat in int isSelected;
+#ifdef VERTEX_FACING
+in float facing;
+#endif
 
 out vec4 FragColor;
 
@@ -9,4 +12,8 @@ void main()
 		FragColor = colorFaceDot;
 	else
 		FragColor = colorWireEdit;
+
+#ifdef VERTEX_FACING
+	FragColor.a *= 1.0 - abs(facing) * 0.4;
+#endif
 }
