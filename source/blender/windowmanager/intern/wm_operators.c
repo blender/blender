@@ -1887,8 +1887,8 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	if (version_suffix != NULL && version_suffix[0]) {
 		/* placed after the version number in the image,
 		 * placing y is tricky to match baseline */
-		int x = 260 * U.pixelsize - (2 * UI_DPI_FAC);
-		int y = 242 * U.pixelsize + (4 * UI_DPI_FAC);
+		int x = 236 * U.pixelsize - (2 * UI_DPI_FAC);
+		int y = 231 * U.pixelsize + (4 * UI_DPI_FAC);
 		int w = 240 * U.pixelsize;
 
 		/* hack to have text draw 'text_sel' */
@@ -1901,17 +1901,32 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 
 #ifdef WITH_BUILDINFO
 	if (build_commit_timestamp != 0) {
-		uiDefBut(block, UI_BTYPE_LABEL, 0, date_buf, U.pixelsize * 494 - date_width, U.pixelsize * 270, date_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+		but = uiDefBut(
+		          block, UI_BTYPE_LABEL, 0, date_buf,
+		          U.pixelsize * 502 - date_width, U.pixelsize * 267,
+		          date_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+		/* XXX, set internal flag - UI_SELECT */
+		UI_but_flag_enable(but, 1);
 		label_delta = 12;
 	}
-	uiDefBut(block, UI_BTYPE_LABEL, 0, hash_buf, U.pixelsize * 494 - hash_width, U.pixelsize * (270 - label_delta), hash_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+	but = uiDefBut(
+	          block, UI_BTYPE_LABEL, 0, hash_buf,
+	          U.pixelsize * 502 - hash_width, U.pixelsize * (267 - label_delta),
+	          hash_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+	/* XXX, set internal flag - UI_SELECT */
+	UI_but_flag_enable(but, 1);
 
 	if (!STREQ(build_branch, "master")) {
 		char branch_buf[128] = "\0";
 		int branch_width;
 		BLI_snprintf(branch_buf, sizeof(branch_buf), "Branch: %s", build_branch);
 		branch_width = (int)BLF_width(style->widgetlabel.uifont_id, branch_buf, sizeof(branch_buf)) + U.widget_unit;
-		uiDefBut(block, UI_BTYPE_LABEL, 0, branch_buf, U.pixelsize * 494 - branch_width, U.pixelsize * (258 - label_delta), branch_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+		but = uiDefBut(
+		          block, UI_BTYPE_LABEL, 0, branch_buf,
+		          U.pixelsize * 502 - branch_width, U.pixelsize * (255 - label_delta),
+		          branch_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+		/* XXX, set internal flag - UI_SELECT */
+		UI_but_flag_enable(but, 1);
 	}
 #endif  /* WITH_BUILDINFO */
 	
