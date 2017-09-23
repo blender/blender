@@ -211,11 +211,10 @@ vec3 raycast(int index, vec3 ray_origin, vec3 ray_dir, float thickness, float ra
 	ray_time = max(0.001, min(ray_time, max_time - 1.5));
 
 	vec4 ss_ray = ss_start + ss_step * ray_time;
-	vec3 hit_pos = get_view_space_from_depth(ss_ray.xy, ss_ray.z);
 
 	/* Tag Z if ray failed. */
-	hit_pos.z *= (hit) ? 1.0 : -1.0;
-	return hit_pos;
+	ss_ray.z *= (hit) ? 1.0 : -1.0;
+	return ss_ray.xyz;
 }
 
 float screen_border_mask(vec2 hit_co)
