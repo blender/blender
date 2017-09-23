@@ -176,6 +176,7 @@ static int track_markers_initjob(bContext *C,
 		else {
 			tmj->efra = EFRA;
 		}
+		tmj->efra = BKE_movieclip_remap_scene_to_clip_frame(clip, tmj->efra);
 	}
 	else {
 		if (backwards) {
