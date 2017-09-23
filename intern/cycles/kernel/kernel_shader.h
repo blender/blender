@@ -710,7 +710,7 @@ ccl_device_inline int shader_bsdf_sample(KernelGlobals *kg,
                                          float *pdf)
 {
 	const ShaderClosure *sc = shader_bsdf_pick(sd, &randu);
-	if(!sc) {
+	if(sc == NULL) {
 		*pdf = 0.0f;
 		return LABEL_NONE;
 	}
