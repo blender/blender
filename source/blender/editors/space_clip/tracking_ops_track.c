@@ -196,8 +196,6 @@ static int track_markers_initjob(bContext *C,
 		}
 	}
 
-	tmj->efra = BKE_movieclip_remap_scene_to_clip_frame(clip, tmj->efra);
-
 	if (settings->speed != TRACKING_SPEED_FASTEST) {
 		tmj->delay = 1.0f / scene->r.frs_sec * 1000.0f;
 
