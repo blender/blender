@@ -165,7 +165,7 @@ static int track_markers_initjob(bContext *C,
 
 	track_init_markers(sc, clip, framenr, &frames_limit);
 
-	tmj->sfra = ED_space_clip_get_clip_frame_number(sc);
+	tmj->sfra = framenr;
 	tmj->clip = clip;
 	tmj->backwards = backwards;
 
