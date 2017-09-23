@@ -120,11 +120,16 @@ static void EDIT_ARMATURE_cache_populate(void *vedata, Object *ob)
 static void EDIT_ARMATURE_draw_scene(void *vedata)
 {
 	EDIT_ARMATURE_PassList *psl = ((EDIT_ARMATURE_Data *)vedata)->psl;
+	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+
+	MULTISAMPLE_SYNC_ENABLE(dfbl)
 
 	DRW_draw_pass(psl->bone_envelope);
 	DRW_draw_pass(psl->bone_solid);
 	DRW_draw_pass(psl->bone_wire);
 	DRW_draw_pass(psl->relationship);
+
+	MULTISAMPLE_SYNC_DISABLE(dfbl)
 }
 
 #if 0
