@@ -235,7 +235,7 @@ __kernel void kernel_ocl_filter_nlm_construct_gramian(int dx,
 }
 
 __kernel void kernel_ocl_filter_finalize(int w,
-	                                     int h,
+                                         int h,
                                          ccl_global float *buffer,
                                          ccl_global int *rank,
                                          ccl_global float *XtWX,
