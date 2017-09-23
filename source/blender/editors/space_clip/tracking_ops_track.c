@@ -310,6 +310,7 @@ static void track_markers_endjob(void *tmv)
 static void track_markers_freejob(void *tmv)
 {
 	TrackMarkersJob *tmj = (TrackMarkersJob *)tmv;
+	tmj->clip->tracking_context = NULL;
 	BKE_autotrack_context_free(tmj->context);
 	MEM_freeN(tmj);
 }
