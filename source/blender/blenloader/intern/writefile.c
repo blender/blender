@@ -2739,13 +2739,6 @@ static void write_scene(WriteData *wd, Scene *sce)
 			writedata(wd, DATA, sce->r.avicodecdata->cbParms, sce->r.avicodecdata->lpParms);
 		}
 	}
-
-	if (sce->r.qtcodecdata) {
-		writestruct(wd, DATA, QuicktimeCodecData, 1, sce->r.qtcodecdata);
-		if (sce->r.qtcodecdata->cdParms) {
-			writedata(wd, DATA, sce->r.qtcodecdata->cdSize, sce->r.qtcodecdata->cdParms);
-		}
-	}
 	if (sce->r.ffcodecdata.properties) {
 		IDP_WriteProperty(sce->r.ffcodecdata.properties, wd);
 	}

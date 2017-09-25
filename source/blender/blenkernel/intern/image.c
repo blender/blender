@@ -1204,7 +1204,6 @@ bool BKE_imtype_is_movie(const char imtype)
 	switch (imtype) {
 		case R_IMF_IMTYPE_AVIRAW:
 		case R_IMF_IMTYPE_AVIJPEG:
-		case R_IMF_IMTYPE_QUICKTIME:
 		case R_IMF_IMTYPE_FFMPEG:
 		case R_IMF_IMTYPE_H264:
 		case R_IMF_IMTYPE_THEORA:
@@ -1276,7 +1275,6 @@ char BKE_imtype_valid_channels(const char imtype, bool write_file)
 		case R_IMF_IMTYPE_MULTILAYER:
 		case R_IMF_IMTYPE_DDS:
 		case R_IMF_IMTYPE_JP2:
-		case R_IMF_IMTYPE_QUICKTIME:
 		case R_IMF_IMTYPE_DPX:
 			chan_flag |= IMA_CHAN_FLAG_ALPHA;
 			break;
@@ -1339,7 +1337,6 @@ char BKE_imtype_from_arg(const char *imtype_arg)
 	else if (STREQ(imtype_arg, "AVIRAW")) return R_IMF_IMTYPE_AVIRAW;
 	else if (STREQ(imtype_arg, "AVIJPEG")) return R_IMF_IMTYPE_AVIJPEG;
 	else if (STREQ(imtype_arg, "PNG")) return R_IMF_IMTYPE_PNG;
-	else if (STREQ(imtype_arg, "QUICKTIME")) return R_IMF_IMTYPE_QUICKTIME;
 	else if (STREQ(imtype_arg, "BMP")) return R_IMF_IMTYPE_BMP;
 #ifdef WITH_HDR
 	else if (STREQ(imtype_arg, "HDR")) return R_IMF_IMTYPE_RADHDR;
@@ -1450,7 +1447,7 @@ static bool do_add_image_extension(char *string, const char imtype, const ImageF
 		}
 	}
 #endif
-	else { //   R_IMF_IMTYPE_AVIRAW, R_IMF_IMTYPE_AVIJPEG, R_IMF_IMTYPE_JPEG90, R_IMF_IMTYPE_QUICKTIME etc
+	else { //   R_IMF_IMTYPE_AVIRAW, R_IMF_IMTYPE_AVIJPEG, R_IMF_IMTYPE_JPEG90 etc
 		if (!(BLI_testextensie_n(string, extension_test = ".jpg", ".jpeg", NULL)))
 			extension = extension_test;
 	}
@@ -1458,8 +1455,7 @@ static bool do_add_image_extension(char *string, const char imtype, const ImageF
 	if (extension) {
 		/* prefer this in many cases to avoid .png.tga, but in certain cases it breaks */
 		/* remove any other known image extension */
-		if (BLI_testextensie_array(string, imb_ext_image) ||
-		    (G.have_quicktime && BLI_testextensie_array(string, imb_ext_image_qt)))
+		if (BLI_testextensie_array(string, imb_ext_image))
 		{
 			return BLI_replace_extension(string, FILE_MAX, extension);
 		}

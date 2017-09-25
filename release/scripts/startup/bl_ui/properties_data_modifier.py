@@ -571,8 +571,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         col = split.column()
         col.label(text="Textures:")
-        col.prop(md, "use_mirror_u", text="U")
-        col.prop(md, "use_mirror_v", text="V")
+        col.prop(md, "use_mirror_u", text="Flip U")
+        col.prop(md, "use_mirror_v", text="Flip V")
 
         col = layout.column(align=True)
 
@@ -581,6 +581,10 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         if md.use_mirror_v:
             col.prop(md, "mirror_offset_v")
+
+        col = layout.column(align=True)
+        col.prop(md, "offset_u")
+        col.prop(md, "offset_v")
 
         col = layout.column()
 

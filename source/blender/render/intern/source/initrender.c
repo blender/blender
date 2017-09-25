@@ -50,10 +50,6 @@
 
 #include "DEG_depsgraph.h"
 
-#ifdef WITH_QUICKTIME
-#include "quicktime_export.h"
-#endif
-
 /* this module */
 #include "renderpipeline.h"
 #include "render_types.h"

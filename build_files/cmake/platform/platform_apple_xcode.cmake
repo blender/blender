@@ -124,12 +124,3 @@ if(NOT ${CMAKE_GENERATOR} MATCHES "Xcode")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET}")
 	add_definitions("-DMACOSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}")
 endif()
-
-macro(apple_check_quicktime)
-	# QuickTime framework is no longer available in SDK 10.12+
-	if(WITH_CODEC_QUICKTIME AND ${OSX_SYSTEM} VERSION_GREATER 10.11)
-		set(WITH_CODEC_QUICKTIME OFF CACHE BOOL "" FORCE)
-		message(STATUS "QuickTime not supported by SDK ${OSX_SYSTEM}, disabling WITH_CODEC_QUICKTIME")
-	endif()
-endmacro()
-

@@ -42,6 +42,8 @@
 #include <math.h>
 #include <float.h>
 
+#include "atomic_ops.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"
@@ -4251,7 +4253,8 @@ static void ccgDM_recalcLoopTri(DerivedMesh *dm)
 	}
 
 	BLI_assert(dm->looptris.array == NULL);
-	SWAP(MLoopTri *, dm->looptris.array, dm->looptris.array_wip);
+	atomic_cas_ptr((void **)&dm->looptris.array, dm->looptris.array, dm->looptris.array_wip);
+	dm->looptris.array_wip = NULL;
 }
 
 static void ccgDM_calcNormals(DerivedMesh *dm)

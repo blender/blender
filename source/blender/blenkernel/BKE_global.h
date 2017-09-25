@@ -83,8 +83,6 @@ typedef struct Global {
 	/* debug flag, G_DEBUG, G_DEBUG_PYTHON & friends, set python or command line args */
 	int debug;
 
-	bool have_quicktime;
-
 	/* this variable is written to / read from FileGlobal->fileflags */
 	int fileflags;
 

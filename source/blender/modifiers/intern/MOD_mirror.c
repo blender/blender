@@ -249,7 +249,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 
 	/* handle uvs,
 	 * let tessface recalc handle updating the MTFace data */
-	if (mmd->flag & (MOD_MIR_MIRROR_U | MOD_MIR_MIRROR_V)) {
+	if (mmd->flag & (MOD_MIR_MIRROR_U | MOD_MIR_MIRROR_V) || (is_zero_v2(mmd->uv_offset_copy) == false)) {
 		const bool do_mirr_u = (mmd->flag & MOD_MIR_MIRROR_U) != 0;
 		const bool do_mirr_v = (mmd->flag & MOD_MIR_MIRROR_V) != 0;
 
@@ -262,6 +262,8 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 			for (; j-- > 0; dmloopuv++) {
 				if (do_mirr_u) dmloopuv->uv[0] = 1.0f - dmloopuv->uv[0] + mmd->uv_offset[0];
 				if (do_mirr_v) dmloopuv->uv[1] = 1.0f - dmloopuv->uv[1] + mmd->uv_offset[1];
+				dmloopuv->uv[0] += mmd->uv_offset_copy[0];
+				dmloopuv->uv[1] += mmd->uv_offset_copy[1];
 			}
 		}
 	}

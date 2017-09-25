@@ -32,10 +32,29 @@ endif()
 
 if(WIN32)
 	set(PNG_LIBNAME libpng16_static${LIBEXT})
-	set(OIIO_SIMD_FLAGS -DUSE_SIMD=sse2)
+	set(OIIO_SIMD_FLAGS -DUSE_SIMD=sse2 -DOPJ_STATIC=1)
+	set(OPENJPEG_POSTFIX _msvc)
 else()
 	set(PNG_LIBNAME libpng${LIBEXT})
 	set(OIIO_SIMD_FLAGS)
+endif()
+
+if (WITH_WEBP)
+	set(WEBP_ARGS	-DWEBP_INCLUDE_DIR=${LIBDIR}/webp/include
+					-DWEBP_LIBRARY=${LIBDIR}/webp/lib/${LIBPREFIX}webp${LIBEXT} )
+	set(WEBP_DEP external_webp)
+endif() 
+
+if (MSVC)
+set(OPENJPEG_FLAGS -DOPENJPEG_HOME=${LIBDIR}/openjpeg_msvc
+				   -DOPENJPEG_INCLUDE_DIR=${LIBDIR}/openjpeg_msvc/include/openjpeg-${OPENJPEG_SHORT_VERSION}
+				   -DOPENJPEG_LIBRARY=${LIBDIR}/openjpeg_msvc/lib/openjpeg${LIBEXT}
+				   -DOPENJPEG_LIBRARY_DEBUG=${LIBDIR}/openjpeg_msvc/lib/openjpeg${LIBEXT}
+   )
+else()
+set(OPENJPEG_FLAGS 	-DOPENJPEG_INCLUDE_DIR=${LIBDIR}/openjpeg/include/openjpeg-${OPENJPEG_SHORT_VERSION}
+					-DOPENJPEG_LIBRARY=${LIBDIR}/openjpeg/lib/${OPENJPEG_LIBRARY}
+	)
 endif()
 
 set(OPENIMAGEIO_EXTRA_ARGS
@@ -78,8 +97,7 @@ set(OPENIMAGEIO_EXTRA_ARGS
 	-DTIFF_INCLUDE_DIR=${LIBDIR}/tiff/include
 	-DJPEG_LIBRARY=${LIBDIR}/jpg/lib/${JPEG_LIBRARY}
 	-DJPEG_INCLUDE_DIR=${LIBDIR}/jpg/include
-	-DOPENJPEG_INCLUDE_DIR=${LIBDIR}/openjpeg/include/openjpeg-${OPENJPEG_VERSION}
-	-DOPENJPEG_LIBRARY=${LIBDIR}/openjpeg/lib/${OPENJPEG_LIBRARY}
+	${OPENJPEG_FLAGS}
 	-DOCIO_PATH=${LIBDIR}/opencolorio/
 	-DOpenEXR_USE_STATIC_LIBS=On
 	-DOPENEXR_HOME=${LIBDIR}/openexr/
@@ -93,8 +111,7 @@ set(OPENIMAGEIO_EXTRA_ARGS
 	-DOPENEXR_INCLUDE_DIR=${LIBDIR}/openexr/include/
 	-DOPENEXR_ILMIMF_LIBRARY=${LIBDIR}/openexr/lib/${LIBPREFIX}IlmImf-2_2${LIBEXT}
 	-DSTOP_ON_WARNING=OFF
-	-DWEBP_INCLUDE_DIR=${LIBDIR}/webp/include
-	-DWEBP_LIBRARY=${LIBDIR}/webp/lib/${LIBPREFIX}webp${LIBEXT}
+	${WEBP_FLAGS}
 	${OIIO_SIMD_FLAGS}
 )
 
@@ -109,7 +126,7 @@ ExternalProject_Add(external_openimageio
 	INSTALL_DIR ${LIBDIR}/openimageio
 )
 
-add_dependencies(external_openimageio external_png external_zlib external_ilmbase external_openexr external_jpeg external_boost external_tiff external_webp external_opencolorio external_openjpeg)
+add_dependencies(external_openimageio external_png external_zlib external_ilmbase external_openexr external_jpeg external_boost external_tiff external_opencolorio external_openjpeg${OPENJPEG_POSTFIX} ${WEBP_DEP})
 if(NOT WIN32)
 	add_dependencies(external_openimageio external_opencolorio_extra)
 endif()

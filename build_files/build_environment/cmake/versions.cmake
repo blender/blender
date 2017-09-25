@@ -195,9 +195,11 @@ set(XVIDCORE_VERSION 1.3.4)
 set(XVIDCORE_URI http://downloads.xvid.org/downloads/xvidcore-${XVIDCORE_VERSION}.tar.gz)
 set(XVIDCORE_HASH 4e9fd62728885855bc5007fe1be58df42e5e274497591fec37249e1052ae316f)
 
-set(OPENJPEG_VERSION 1.5)
+#this has to be in sync with the version in blenders /extern folder
+set(OPENJPEG_VERSION 1.5.2)
+set(OPENJPEG_SHORT_VERSION 1.5)
 set(OPENJPEG_URI https://github.com/uclouvain/openjpeg/archive/version.${OPENJPEG_VERSION}.tar.gz)
-set(OPENJPEG_HASH 60662566595e02104c0f6d1052f8b1669624c646e62b6280d5fd5a66d4e92f8d)
+set(OPENJPEG_HASH 3734e95edd0bef6e056815591755efd822228dc3cd866894e00a2c929026b16d)
 
 set(FAAD_VERSION 2-2.7)
 set(FAAD_URI http://downloads.sourceforge.net/faac/faad${FAAD_VERSION}.tar.bz2)

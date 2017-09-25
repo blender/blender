@@ -178,8 +178,10 @@ typedef enum eDepsOperation_Code {
 	DEG_OPCODE_GEOMETRY_UBEREVAL,
 
 	/* Pose. -------------------------------------------- */
-	/* Init IK Trees, etc. */
+	/* Init pose, clear flags, etc. */
 	DEG_OPCODE_POSE_INIT,
+	/* Initialize IK solver related pose stuff. */
+	DEG_OPCODE_POSE_INIT_IK,
 	/* Free IK Trees + Compute Deform Matrices */
 	DEG_OPCODE_POSE_DONE,
 	/* IK/Spline Solvers */

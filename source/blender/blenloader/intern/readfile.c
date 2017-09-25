@@ -6289,11 +6289,6 @@ static void direct_link_scene(FileData *fd, Scene *sce, Main *bmain)
 		sce->r.avicodecdata->lpFormat = newdataadr(fd, sce->r.avicodecdata->lpFormat);
 		sce->r.avicodecdata->lpParms = newdataadr(fd, sce->r.avicodecdata->lpParms);
 	}
-	
-	sce->r.qtcodecdata = newdataadr(fd, sce->r.qtcodecdata);
-	if (sce->r.qtcodecdata) {
-		sce->r.qtcodecdata->cdParms = newdataadr(fd, sce->r.qtcodecdata->cdParms);
-	}
 	if (sce->r.ffcodecdata.properties) {
 		sce->r.ffcodecdata.properties = newdataadr(fd, sce->r.ffcodecdata.properties);
 		IDP_DirectLinkGroup_OrFree(&sce->r.ffcodecdata.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);

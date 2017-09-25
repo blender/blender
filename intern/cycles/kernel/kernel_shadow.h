@@ -540,6 +540,7 @@ ccl_device_inline bool shadow_blocked(KernelGlobals *kg,
 #  else  /* __SHADOW_RECORD_ALL__ */
 	/* Fallback to a slowest version which works on all devices. */
 	return shadow_blocked_transparent_stepped(kg,
+	                                          sd,
 	                                          shadow_sd,
 	                                          state,
 	                                          visibility,

@@ -80,10 +80,6 @@ static void *context_create_avi(void);
 static void context_free_avi(void *context_v);
 #endif  /* WITH_AVI */
 
-#ifdef WITH_QUICKTIME
-#  include "quicktime_export.h"
-#endif
-
 #ifdef WITH_FFMPEG
 #  include "BKE_writeffmpeg.h"
 #endif
@@ -115,16 +111,6 @@ bMovieHandle *BKE_movie_handle_get(const char imtype)
 #endif
 
 	/* do the platform specific handles */
-#ifdef WITH_QUICKTIME
-	if (imtype == R_IMF_IMTYPE_QUICKTIME) {
-		mh.start_movie = start_qt;
-		mh.append_movie = append_qt;
-		mh.end_movie = end_qt;
-		mh.get_movie_path = filepath_qt;
-		mh.context_create = context_create_qt;
-		mh.context_free = context_free_qt;
-	}
-#endif
 #ifdef WITH_FFMPEG
 	if (ELEM(imtype, R_IMF_IMTYPE_FFMPEG, R_IMF_IMTYPE_H264, R_IMF_IMTYPE_XVID, R_IMF_IMTYPE_THEORA)) {
 		mh.start_movie = BKE_ffmpeg_start;

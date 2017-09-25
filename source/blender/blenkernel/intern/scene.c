@@ -131,17 +131,6 @@ void free_avicodecdata(AviCodecData *acd)
 	}
 }
 
-void free_qtcodecdata(QuicktimeCodecData *qcd)
-{
-	if (qcd) {
-		if (qcd->cdParms) {
-			MEM_freeN(qcd->cdParms);
-			qcd->cdParms = NULL;
-			qcd->cdSize = 0;
-		}
-	}
-}
-
 static void remove_sequencer_fcurves(Scene *sce)
 {
 	AnimData *adt = BKE_animdata_from_id(&sce->id);
@@ -402,12 +391,6 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 		sce_dst->r.avicodecdata->lpParms = MEM_dupallocN(sce_dst->r.avicodecdata->lpParms);
 	}
 
-	/* make a private copy of the qtcodecdata */
-	if (sce_src->r.qtcodecdata) {
-		sce_dst->r.qtcodecdata = MEM_dupallocN(sce_src->r.qtcodecdata);
-		sce_dst->r.qtcodecdata->cdParms = MEM_dupallocN(sce_dst->r.qtcodecdata->cdParms);
-	}
-
 	if (sce_src->r.ffcodecdata.properties) { /* intentionally check sce_dst not sce_src. */  /* XXX ??? comment outdated... */
 		sce_dst->r.ffcodecdata.properties = IDP_CopyProperty_ex(sce_src->r.ffcodecdata.properties, flag_subdata);
 	}
@@ -529,12 +512,6 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 			sce_copy->r.avicodecdata->lpParms = MEM_dupallocN(sce_copy->r.avicodecdata->lpParms);
 		}
 
-		/* make a private copy of the qtcodecdata */
-		if (sce->r.qtcodecdata) {
-			sce_copy->r.qtcodecdata = MEM_dupallocN(sce->r.qtcodecdata);
-			sce_copy->r.qtcodecdata->cdParms = MEM_dupallocN(sce_copy->r.qtcodecdata->cdParms);
-		}
-
 		if (sce->r.ffcodecdata.properties) { /* intentionally check scen not sce. */
 			sce_copy->r.ffcodecdata.properties = IDP_CopyProperty(sce->r.ffcodecdata.properties);
 		}
@@ -640,11 +617,6 @@ void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
 		free_avicodecdata(sce->r.avicodecdata);
 		MEM_freeN(sce->r.avicodecdata);
 		sce->r.avicodecdata = NULL;
-	}
-	if (sce->r.qtcodecdata) {
-		free_qtcodecdata(sce->r.qtcodecdata);
-		MEM_freeN(sce->r.qtcodecdata);
-		sce->r.qtcodecdata = NULL;
 	}
 	if (sce->r.ffcodecdata.properties) {
 		IDP_FreeProperty(sce->r.ffcodecdata.properties);

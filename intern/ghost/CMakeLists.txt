@@ -168,10 +168,6 @@ elseif(APPLE AND NOT WITH_X11)
 		)
 	endif()
 
-	if(WITH_CODEC_QUICKTIME)
-		add_definitions(-DWITH_QUICKTIME)
-	endif()
-
 elseif(WITH_X11)
 	list(APPEND INC_SYS
 		${X11_X11_INCLUDE_PATH}

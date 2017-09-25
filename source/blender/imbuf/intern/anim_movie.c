@@ -73,12 +73,6 @@
 #  include "AVI_avi.h"
 #endif
 
-#ifdef WITH_QUICKTIME
-#if defined(_WIN32) || defined(__APPLE__)
-#include "quicktime_import.h"
-#endif /* _WIN32 || __APPLE__ */
-#endif /* WITH_QUICKTIME */
-
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
@@ -221,9 +215,6 @@ void IMB_free_anim(struct anim *anim)
 	free_anim_avi(anim);
 #endif
 
-#ifdef WITH_QUICKTIME
-	free_anim_quicktime(anim);
-#endif
 #ifdef WITH_FFMPEG
 	free_anim_ffmpeg(anim);
 #endif
@@ -1219,9 +1210,6 @@ static ImBuf *anim_getnew(struct anim *anim)
 	free_anim_avi(anim);
 #endif
 
-#ifdef WITH_QUICKTIME
-	free_anim_quicktime(anim);
-#endif
 #ifdef WITH_FFMPEG
 	free_anim_ffmpeg(anim);
 #endif
@@ -1247,12 +1235,6 @@ static ImBuf *anim_getnew(struct anim *anim)
 				printf("couldnt start avi\n");
 				return (NULL);
 			}
-			ibuf = IMB_allocImBuf(anim->x, anim->y, 24, 0);
-			break;
-#endif
-#ifdef WITH_QUICKTIME
-		case ANIM_QTIME:
-			if (startquicktime(anim)) return (0);
 			ibuf = IMB_allocImBuf(anim->x, anim->y, 24, 0);
 			break;
 #endif
@@ -1343,21 +1325,6 @@ struct ImBuf *IMB_anim_absolute(struct anim *anim, int position,
 			ibuf = avi_fetchibuf(anim, position);
 			if (ibuf)
 				anim->curposition = position;
-			break;
-#endif
-#ifdef WITH_QUICKTIME
-		case ANIM_QTIME:
-			ibuf = qtime_fetchibuf(anim, position);
-			if (ibuf) {
-				if (ibuf->rect) {
-					/* OCIO_TODO: should happen in quicktime module, but it currently doesn't have access
-					 *            to color management's internals
-					 */
-					ibuf->rect_colorspace = colormanage_colorspace_get_named(anim->colorspace);
-				}
-
-				anim->curposition = position;
-			}
 			break;
 #endif
 #ifdef WITH_FFMPEG
