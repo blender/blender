@@ -123,6 +123,7 @@ typedef struct EEVEE_PassList {
 	struct DRWPass *ssr_resolve;
 	struct DRWPass *color_downsample_ps;
 	struct DRWPass *color_downsample_cube_ps;
+	struct DRWPass *taa_resolve;
 
 	/* HiZ */
 	struct DRWPass *minz_downlevel_ps;
@@ -169,6 +170,7 @@ typedef struct EEVEE_FramebufferList {
 
 	struct GPUFrameBuffer *main;
 	struct GPUFrameBuffer *double_buffer;
+	struct GPUFrameBuffer *depth_double_buffer_fb;
 } EEVEE_FramebufferList;
 
 typedef struct EEVEE_TextureList {
@@ -195,6 +197,7 @@ typedef struct EEVEE_TextureList {
 
 	struct GPUTexture *color; /* R16_G16_B16 */
 	struct GPUTexture *color_double_buffer;
+	struct GPUTexture *depth_double_buffer;
 } EEVEE_TextureList;
 
 typedef struct EEVEE_StorageList {
@@ -364,6 +367,17 @@ typedef struct EEVEE_EffectsInfo {
 	float ssr_thickness;
 	float ssr_pixelsize[2];
 
+	/* Temporal Anti Aliasing */
+	int taa_current_sample;
+	int taa_total_sample;
+	float taa_jit_ofs[32][2];
+	float taa_alpha;
+	float prev_drw_persmat[4][4];
+	float overide_persmat[4][4];
+	float overide_persinv[4][4];
+	float overide_winmat[4][4];
+	float overide_wininv[4][4];
+
 	/* Ambient Occlusion */
 	bool use_ao, use_bent_normals;
 	float ao_dist, ao_samples, ao_factor, ao_samples_inv;
@@ -411,6 +425,7 @@ enum {
 	EFFECT_DOUBLE_BUFFER       = (1 << 5), /* Not really an effect but a feature */
 	EFFECT_REFRACT             = (1 << 6),
 	EFFECT_GTAO                = (1 << 7),
+	EFFECT_TAA                 = (1 << 8),
 };
 
 /* ************** SCENE LAYER DATA ************** */
@@ -515,6 +530,7 @@ typedef struct EEVEE_PrivateData {
 	/* To correct mip level texel mis-alignement */
 	float mip_ratio[10][2]; /* TODO put in a UBO */
 	/* For double buffering */
+	bool view_updated;
 	bool valid_double_buffer;
 	float prev_persmat[4][4];
 } EEVEE_PrivateData; /* Transient data */

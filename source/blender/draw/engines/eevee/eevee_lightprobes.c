@@ -967,7 +967,7 @@ static void render_scene_to_probe(
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 
-	float winmat[4][4], posmat[4][4], tmp_ao_dist, tmp_ao_samples, tmp_ao_settings;
+	float winmat[4][4], wininv[4][4], posmat[4][4], tmp_ao_dist, tmp_ao_samples, tmp_ao_settings;
 
 	unit_m4(posmat);
 
@@ -1012,12 +1012,14 @@ static void render_scene_to_probe(
 		mul_m4_m4m4(persmat, winmat, viewmat);
 		invert_m4_m4(persinv, persmat);
 		invert_m4_m4(viewinv, viewmat);
+		invert_m4_m4(wininv, winmat);
 
 		DRW_viewport_matrix_override_set(persmat, DRW_MAT_PERS);
 		DRW_viewport_matrix_override_set(persinv, DRW_MAT_PERSINV);
 		DRW_viewport_matrix_override_set(viewmat, DRW_MAT_VIEW);
 		DRW_viewport_matrix_override_set(viewinv, DRW_MAT_VIEWINV);
 		DRW_viewport_matrix_override_set(winmat, DRW_MAT_WIN);
+		DRW_viewport_matrix_override_set(wininv, DRW_MAT_WININV);
 
 		/* Be sure that cascaded shadow maps are updated. */
 		EEVEE_draw_shadows(sldata, psl);
@@ -1052,6 +1054,7 @@ static void render_scene_to_probe(
 	DRW_viewport_matrix_override_unset(DRW_MAT_VIEW);
 	DRW_viewport_matrix_override_unset(DRW_MAT_VIEWINV);
 	DRW_viewport_matrix_override_unset(DRW_MAT_WIN);
+	DRW_viewport_matrix_override_unset(DRW_MAT_WININV);
 
 	/* Restore */
 	sldata->probes->specular_toggle = true;
@@ -1149,7 +1152,7 @@ static void render_scene_to_planar(
 static void render_world_to_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 {
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
-	float winmat[4][4];
+	float winmat[4][4], wininv[4][4];
 
 	/* 1 - Render to cubemap target using geometry shader. */
 	/* For world probe, we don't need to clear since we render the background directly. */
@@ -1178,6 +1181,7 @@ static void render_world_to_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *
 		DRW_viewport_matrix_override_set(viewmat, DRW_MAT_VIEW);
 		DRW_viewport_matrix_override_set(viewinv, DRW_MAT_VIEWINV);
 		DRW_viewport_matrix_override_set(winmat, DRW_MAT_WIN);
+		DRW_viewport_matrix_override_set(wininv, DRW_MAT_WININV);
 
 		DRW_draw_pass(psl->probe_background);
 
@@ -1190,6 +1194,7 @@ static void render_world_to_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *
 	DRW_viewport_matrix_override_unset(DRW_MAT_VIEW);
 	DRW_viewport_matrix_override_unset(DRW_MAT_VIEWINV);
 	DRW_viewport_matrix_override_unset(DRW_MAT_WIN);
+	DRW_viewport_matrix_override_unset(DRW_MAT_WININV);
 }
 
 static void lightprobe_cell_location_get(EEVEE_LightGrid *egrid, int cell_idx, float r_pos[3])
@@ -1213,6 +1218,7 @@ void EEVEE_lightprobes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_PassList *psl = vedata->psl;
+	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 	Object *ob;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -1300,6 +1306,9 @@ void EEVEE_lightprobes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 #endif
 					/* Only do one probe per frame */
 					DRW_viewport_request_redraw();
+					/* Do not let this frame accumulate. */
+					stl->effects->taa_current_sample = 1;
+
 					goto update_planar;
 				}
 			}
@@ -1338,6 +1347,8 @@ void EEVEE_lightprobes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 				printf("Update Cubemap %d\n", i);
 #endif
 				DRW_viewport_request_redraw();
+				/* Do not let this frame accumulate. */
+				stl->effects->taa_current_sample = 1;
 
 				/* Only do one probe per frame */
 				goto update_planar;

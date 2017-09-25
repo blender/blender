@@ -312,6 +312,27 @@ class RENDERLAYER_PT_eevee_shadows(RenderLayerButtonsPanel, Panel):
         col.template_override_property(layer_props, scene_props, "shadow_high_bitdepth")
 
 
+class RENDERLAYER_PT_eevee_antialiasing(RenderLayerButtonsPanel, Panel):
+    bl_label = "Viewport Anti Aliasing"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        return scene and (scene.render.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        scene_props = scene.layer_properties['BLENDER_EEVEE']
+        layer = bpy.context.render_layer
+        layer_props = layer.engine_overrides['BLENDER_EEVEE']
+
+        col = layout.column()
+        col.template_override_property(layer_props, scene_props, "taa_enable")
+        col.template_override_property(layer_props, scene_props, "taa_samples")
+
+
 classes = (
     RENDERLAYER_UL_renderlayers,
     RENDERLAYER_PT_layers,
@@ -323,6 +344,7 @@ classes = (
     RENDERLAYER_PT_eevee_screen_space_reflections,
     RENDERLAYER_PT_eevee_volumetric,
     RENDERLAYER_PT_eevee_shadows,
+    RENDERLAYER_PT_eevee_antialiasing,
 )
 
 if __name__ == "__main__":  # only for live edit.

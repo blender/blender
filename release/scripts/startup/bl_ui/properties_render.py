@@ -735,6 +735,25 @@ class RENDER_PT_eevee_shadows(RenderButtonsPanel, Panel):
         col.prop(props, "shadow_high_bitdepth")
 
 
+class RENDER_PT_eevee_antialiasing(RenderButtonsPanel, Panel):
+    bl_label = "Viewport Anti Aliasing"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        return scene and (scene.render.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        props = scene.layer_properties['BLENDER_EEVEE']
+
+        col = layout.column()
+        col.prop(props, "taa_enable")
+        col.prop(props, "taa_samples")
+
+
 classes = (
     RENDER_MT_presets,
     RENDER_MT_ffmpeg_presets,
@@ -757,6 +776,7 @@ classes = (
     RENDER_PT_eevee_poststack_settings,
     RENDER_PT_eevee_postprocess_settings,
     RENDER_PT_eevee_shadows,
+    RENDER_PT_eevee_antialiasing,
 )
 
 if __name__ == "__main__":  # only for live edit.

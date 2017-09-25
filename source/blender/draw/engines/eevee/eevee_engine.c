@@ -43,6 +43,22 @@ extern GlobalsUboStorage ts;
 
 /* *********** FUNCTIONS *********** */
 
+/* TODO : put this somewhere in BLI */
+static float halton_1D(int prime, int n)
+{
+	float inv_prime = 1.0f / (float)prime;
+	float f = 1.0f;
+	float r = 0.0f;
+
+	while (n > 0) {
+		f = f * inv_prime;
+		r += f * (n % prime);
+		n = (int)(n * inv_prime);
+	}
+
+	return r;
+}
+
 static void EEVEE_engine_init(void *ved)
 {
 	EEVEE_Data *vedata = (EEVEE_Data *)ved;
@@ -65,10 +81,20 @@ static void EEVEE_engine_init(void *ved)
 	                    (int)viewport_size[0], (int)viewport_size[1],
 	                    &tex, 1);
 
+	/* EEVEE_effects_init needs to go first for TAA */
+	EEVEE_effects_init(sldata, vedata);
+
 	EEVEE_materials_init(stl);
 	EEVEE_lights_init(sldata);
 	EEVEE_lightprobes_init(sldata, vedata);
-	EEVEE_effects_init(sldata, vedata);
+
+	if (stl->effects->taa_current_sample > 1) {
+		/* XXX otherwise it would break the other engines. */
+		DRW_viewport_matrix_override_unset(DRW_MAT_PERS);
+		DRW_viewport_matrix_override_unset(DRW_MAT_PERSINV);
+		DRW_viewport_matrix_override_unset(DRW_MAT_WIN);
+		DRW_viewport_matrix_override_unset(DRW_MAT_WININV);
+	}
 }
 
 static void EEVEE_cache_init(void *vedata)
@@ -144,6 +170,7 @@ static void EEVEE_cache_finish(void *vedata)
 static void EEVEE_draw_scene(void *vedata)
 {
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
+	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 	EEVEE_FramebufferList *fbl = ((EEVEE_Data *)vedata)->fbl;
 	EEVEE_SceneLayerData *sldata = EEVEE_scene_layer_data_get();
 
@@ -164,6 +191,13 @@ static void EEVEE_draw_scene(void *vedata)
 		/* Set jitter offset */
 		EEVEE_update_util_texture(rand);
 	}
+	else if (((stl->effects->enabled_effects & EFFECT_TAA) != 0) && (stl->effects->taa_current_sample > 1)) {
+		rand = halton_1D(2, stl->effects->taa_current_sample - 1);
+
+		/* Set jitter offset */
+		/* PERF This is killing perf ! */
+		EEVEE_update_util_texture(rand);
+	}
 
 	while (loop_ct--) {
 
@@ -182,6 +216,13 @@ static void EEVEE_draw_scene(void *vedata)
 		DRW_framebuffer_texture_attach(fbl->main, dtxl->depth, 0, 0);
 		DRW_framebuffer_bind(fbl->main);
 		DRW_framebuffer_clear(false, true, false, NULL, 1.0f);
+
+		if (((stl->effects->enabled_effects & EFFECT_TAA) != 0) && stl->effects->taa_current_sample > 1) {
+			DRW_viewport_matrix_override_set(stl->effects->overide_persmat, DRW_MAT_PERS);
+			DRW_viewport_matrix_override_set(stl->effects->overide_persinv, DRW_MAT_PERSINV);
+			DRW_viewport_matrix_override_set(stl->effects->overide_winmat, DRW_MAT_WIN);
+			DRW_viewport_matrix_override_set(stl->effects->overide_wininv, DRW_MAT_WININV);
+		}
 
 		/* Depth prepass */
 		DRW_stats_group_start("Prepass");
@@ -242,6 +283,23 @@ static void EEVEE_draw_scene(void *vedata)
 		DRW_stats_group_start("Post FX");
 		EEVEE_draw_effects(vedata);
 		DRW_stats_group_end();
+
+		if (stl->effects->taa_current_sample > 1) {
+			DRW_viewport_matrix_override_unset(DRW_MAT_PERS);
+			DRW_viewport_matrix_override_unset(DRW_MAT_PERSINV);
+			DRW_viewport_matrix_override_unset(DRW_MAT_WIN);
+			DRW_viewport_matrix_override_unset(DRW_MAT_WININV);
+		}
+	}
+
+	stl->g_data->view_updated = false;
+}
+
+static void EEVEE_view_update(void *vedata)
+{
+	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
+	if (stl->g_data) {
+		stl->g_data->view_updated = true;
 	}
 }
 
@@ -268,6 +326,8 @@ static void EEVEE_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDPr
 	           props->type == IDP_GROUP &&
 	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
 
+	BKE_collection_engine_property_add_bool(props, "taa_enable", true);
+	BKE_collection_engine_property_add_int(props, "taa_samples", 8);
 
 	BKE_collection_engine_property_add_bool(props, "ssr_enable", false);
 	BKE_collection_engine_property_add_bool(props, "ssr_refraction", false);
@@ -333,7 +393,8 @@ DrawEngineType draw_engine_eevee_type = {
 	&EEVEE_cache_populate,
 	&EEVEE_cache_finish,
 	&EEVEE_draw_scene,
-	NULL//&EEVEE_draw_scene
+	NULL, //&EEVEE_draw_scene
+	&EEVEE_view_update,
 };
 
 RenderEngineType DRW_engine_viewport_eevee_type = {

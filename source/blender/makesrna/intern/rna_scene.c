@@ -2572,6 +2572,8 @@ RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(ssr_firefly_fac)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(shadow_method)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(shadow_size)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(shadow_high_bitdepth)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(taa_enable)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(taa_samples)
 
 /* object engine */
 RNA_LAYER_MODE_OBJECT_GET_SET_BOOL(show_wire)
@@ -6177,6 +6179,22 @@ static void rna_def_scene_layer_engine_settings_eevee(BlenderRNA *brna)
 	RNA_define_verify_sdna(0); /* not in sdna */
 
 	/* see RNA_LAYER_ENGINE_GET_SET macro */
+
+	/* Temporal Anti-Aliasing */
+	prop = RNA_def_property(srna, "taa_enable", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_Eevee_taa_enable_get",
+	                               "rna_LayerEngineSettings_Eevee_taa_enable_set");
+	RNA_def_property_ui_text(prop, "Temporal Anti-Aliasing", "Enable temporal anti-aliasing (only used by viewport)");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "taa_samples", PROP_INT, PROP_NONE);
+	RNA_def_property_int_funcs(prop, "rna_LayerEngineSettings_Eevee_taa_samples_get",
+	                               "rna_LayerEngineSettings_Eevee_taa_samples_set", NULL);
+	RNA_def_property_ui_text(prop, "Samples", "Minimum number of temporal samples");
+	RNA_def_property_range(prop, 1, 32);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
 
 	/* Screen Space Reflection */
 	prop = RNA_def_property(srna, "ssr_enable", PROP_BOOLEAN, PROP_NONE);
