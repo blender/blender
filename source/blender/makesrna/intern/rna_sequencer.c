@@ -725,8 +725,9 @@ static void rna_Sequence_filepath_update(Main *bmain, Scene *UNUSED(scene), Poin
 static void rna_Sequence_sound_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Sequence *seq = (Sequence *) ptr->data;
-
-	BKE_sound_update_scene_sound(seq->scene_sound, seq->sound);
+	if (seq->sound != NULL) {
+		BKE_sound_update_scene_sound(seq->scene_sound, seq->sound);
+	}
 	rna_Sequence_update(bmain, scene, ptr);
 }
 
