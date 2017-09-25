@@ -182,6 +182,11 @@ void DepsgraphNodeBuilder::build_rig(Scene *scene, Object *ob)
 
 	op_node = add_operation_node(&ob->id,
 	                             DEG_NODE_TYPE_EVAL_POSE,
+	                             function_bind(BKE_pose_eval_init_ik, _1, scene, ob, ob->pose),
+	                             DEG_OPCODE_POSE_INIT_IK);
+
+	op_node = add_operation_node(&ob->id,
+	                             DEG_NODE_TYPE_EVAL_POSE,
 	                             function_bind(BKE_pose_eval_flush, _1, scene, ob, ob->pose),
 	                             DEG_OPCODE_POSE_DONE);
 	op_node->set_as_exit();
