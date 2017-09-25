@@ -66,6 +66,8 @@ void DRW_engine_viewport_data_size_get(
         const void *engine_type,
         int *r_fbl_len, int *r_txl_len, int *r_psl_len, int *r_stl_len);
 
+void DRW_notify_view_update(const struct bContext *C);
+
 void DRW_draw_view(const struct bContext *C);
 
 void DRW_draw_render_loop_ex(

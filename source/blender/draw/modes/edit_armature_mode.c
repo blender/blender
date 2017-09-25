@@ -152,5 +152,6 @@ DrawEngineType draw_engine_edit_armature_type = {
 	&EDIT_ARMATURE_cache_populate,
 	NULL,
 	NULL,
-	&EDIT_ARMATURE_draw_scene
+	&EDIT_ARMATURE_draw_scene,
+	NULL,
 };

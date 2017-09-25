@@ -58,6 +58,7 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_immediate.h"
+#include "GPU_viewport.h"
 
 #include "RE_engine.h"
 
@@ -136,6 +137,7 @@ static void wm_region_test_render_do_draw(const Scene *scene, ScrArea *sa, ARegi
 	if (sa->spacetype == SPACE_VIEW3D) {
 		RegionView3D *rv3d = ar->regiondata;
 		RenderEngine *engine = (rv3d) ? rv3d->render_engine : NULL;
+		GPUViewport *viewport = (rv3d) ? rv3d->viewport : NULL;
 
 		if (engine && (engine->flag & RE_ENGINE_DO_DRAW)) {
 			View3D *v3d = sa->spacedata.first;
@@ -148,6 +150,9 @@ static void wm_region_test_render_do_draw(const Scene *scene, ScrArea *sa, ARegi
 				ED_region_tag_redraw(ar);
 
 			engine->flag &= ~RE_ENGINE_DO_DRAW;
+		}
+		else if (viewport && GPU_viewport_do_update(viewport)) {
+			ED_region_tag_redraw(ar);
 		}
 	}
 }

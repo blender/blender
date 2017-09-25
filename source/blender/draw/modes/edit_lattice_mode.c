@@ -292,5 +292,6 @@ DrawEngineType draw_engine_edit_lattice_type = {
 	&EDIT_LATTICE_cache_populate,
 	&EDIT_LATTICE_cache_finish,
 	NULL, /* draw_background but not needed by mode engines */
-	&EDIT_LATTICE_draw_scene
+	&EDIT_LATTICE_draw_scene,
+	NULL,
 };

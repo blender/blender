@@ -329,5 +329,6 @@ DrawEngineType draw_engine_edit_curve_type = {
 	&EDIT_CURVE_cache_populate,
 	&EDIT_CURVE_cache_finish,
 	NULL, /* draw_background but not needed by mode engines */
-	&EDIT_CURVE_draw_scene
+	&EDIT_CURVE_draw_scene,
+	NULL,
 };

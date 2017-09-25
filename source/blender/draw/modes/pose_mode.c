@@ -193,5 +193,6 @@ DrawEngineType draw_engine_pose_type = {
 	&POSE_cache_populate,
 	NULL,
 	NULL,
-	&POSE_draw_scene
+	&POSE_draw_scene,
+	NULL,
 };

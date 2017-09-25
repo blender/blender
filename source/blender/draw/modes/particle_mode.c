@@ -259,5 +259,6 @@ DrawEngineType draw_engine_particle_type = {
 	&PARTICLE_cache_populate,
 	&PARTICLE_cache_finish,
 	NULL, /* draw_background but not needed by mode engines */
-	&PARTICLE_draw_scene
+	&PARTICLE_draw_scene,
+	NULL,
 };

@@ -2549,6 +2549,8 @@ static void DRW_viewport_var_init(void)
 	if (RST.bound_tex_slots == NULL) {
 		RST.bound_tex_slots = MEM_callocN(sizeof(bool) * GPU_max_textures(), "Bound Texture Slots");
 	}
+
+	memset(viewport_matrix_override.override, 0x0, sizeof(viewport_matrix_override.override));
 }
 
 void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type)
@@ -2615,8 +2617,7 @@ DefaultTextureList *DRW_viewport_texture_list_get(void)
 
 void DRW_viewport_request_redraw(void)
 {
-	/* XXXXXXXXXXX HAAAAAAAACKKKK */
-	WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, NULL);
+	GPU_viewport_tag_update(DST.viewport);
 }
 
 /** \} */
@@ -3138,6 +3139,50 @@ static void DRW_debug_gpu_stats(void)
 	DRW_stats_draw(&rect);
 }
 
+/* -------------------------------------------------------------------- */
+
+/** \name View Update
+ * \{ */
+
+void DRW_notify_view_update(const bContext *C)
+{
+	struct Depsgraph *graph = CTX_data_depsgraph(C);
+	ARegion *ar = CTX_wm_region(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d = ar->regiondata;
+	Scene *scene = DEG_get_evaluated_scene(graph);
+	SceneLayer *sl = DEG_get_evaluated_scene_layer(graph);
+
+	if (rv3d->viewport == NULL) {
+		return;
+	}
+
+
+	/* Reset before using it. */
+	memset(&DST, 0x0, sizeof(DST));
+
+	DST.viewport = rv3d->viewport;
+	DST.draw_ctx = (DRWContextState){
+		ar, rv3d, v3d, scene, sl, OBACT_NEW(sl), C,
+	};
+
+	DRW_engines_enable(scene, sl);
+
+	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
+		DrawEngineType *engine = link->data;
+		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
+
+		if (engine->view_update) {
+			engine->view_update(data);
+		}
+	}
+
+	DST.viewport = NULL;
+
+	DRW_engines_disable();
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 

@@ -923,7 +923,8 @@ DrawEngineType draw_engine_clay_type = {
 	&CLAY_cache_populate,
 	&CLAY_cache_finish,
 	NULL,
-	&CLAY_draw_scene
+	&CLAY_draw_scene,
+	NULL,
 };
 
 RenderEngineType DRW_engine_viewport_clay_type = {

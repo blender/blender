@@ -211,5 +211,6 @@ DrawEngineType draw_engine_paint_vertex_type = {
 	&PAINT_VERTEX_cache_populate,
 	NULL,
 	NULL,
-	&PAINT_VERTEX_draw_scene
+	&PAINT_VERTEX_draw_scene,
+	NULL,
 };

@@ -72,7 +72,9 @@ struct GPUViewport {
 	/* debug */
 	GPUTexture *debug_depth;
 	int size[2];
+
 	int samples;
+	int flag;
 
 	ListBase data;  /* ViewportEngineData wrapped in LinkData */
 	unsigned int data_hash;  /* If hash mismatch we free all ViewportEngineData in this viewport */
@@ -83,10 +85,26 @@ struct GPUViewport {
 	ListBase tex_pool;  /* ViewportTempTexture list : Temporary textures shared across draw engines */
 };
 
+enum {
+	DO_UPDATE = (1 << 0),
+};
+
 static void gpu_viewport_buffers_free(FramebufferList *fbl, int fbl_len, TextureList *txl, int txl_len);
 static void gpu_viewport_storage_free(StorageList *stl, int stl_len);
 static void gpu_viewport_passes_free(PassList *psl, int psl_len);
 static void gpu_viewport_texture_pool_free(GPUViewport *viewport);
+
+void GPU_viewport_tag_update(GPUViewport *viewport)
+{
+	viewport->flag |= DO_UPDATE;
+}
+
+bool GPU_viewport_do_update(GPUViewport *viewport)
+{
+	bool ret = (viewport->flag & DO_UPDATE);
+	viewport->flag &= ~DO_UPDATE;
+	return ret;
+}
 
 GPUViewport *GPU_viewport_create(void)
 {

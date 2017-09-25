@@ -41,6 +41,8 @@
 #include "DNA_world_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "DRW_engine.h"
+
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -137,6 +139,16 @@ void ED_render_scene_update(Main *bmain, Scene *scene, int updated)
 
 					engine->flag &= ~RE_ENGINE_DO_UPDATE;
 					engine->type->view_update(engine, C);
+
+				}
+				else if ((RE_engines_find(scene->r.engine)->flag & RE_USE_LEGACY_PIPELINE) == 0) {
+					if (updated) {
+						CTX_wm_screen_set(C, sc);
+						CTX_wm_area_set(C, sa);
+						CTX_wm_region_set(C, ar);
+
+						DRW_notify_view_update(C);
+					}
 				}
 			}
 		}

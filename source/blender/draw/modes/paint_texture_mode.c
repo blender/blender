@@ -412,5 +412,6 @@ DrawEngineType draw_engine_paint_texture_type = {
 	&PAINT_TEXTURE_cache_populate,
 	&PAINT_TEXTURE_cache_finish,
 	NULL, /* draw_background but not needed by mode engines */
-	&PAINT_TEXTURE_draw_scene
+	&PAINT_TEXTURE_draw_scene,
+	NULL,
 };

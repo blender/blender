@@ -300,5 +300,6 @@ DrawEngineType draw_engine_sculpt_type = {
 	&SCULPT_cache_populate,
 	&SCULPT_cache_finish,
 	NULL, /* draw_background but not needed by mode engines */
-	&SCULPT_draw_scene
+	&SCULPT_draw_scene,
+	NULL,
 };

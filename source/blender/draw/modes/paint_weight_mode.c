@@ -249,5 +249,6 @@ DrawEngineType draw_engine_paint_weight_type = {
 	&PAINT_WEIGHT_cache_populate,
 	NULL,
 	NULL,
-	&PAINT_WEIGHT_draw_scene
+	&PAINT_WEIGHT_draw_scene,
+	NULL,
 };

@@ -307,5 +307,6 @@ DrawEngineType draw_engine_edit_text_type = {
 	&EDIT_TEXT_cache_populate,
 	&EDIT_TEXT_cache_finish,
 	NULL, /* draw_background but not needed by mode engines */
-	&EDIT_TEXT_draw_scene
+	&EDIT_TEXT_draw_scene,
+	NULL,
 };

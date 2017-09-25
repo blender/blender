@@ -264,5 +264,6 @@ DrawEngineType draw_engine_edit_metaball_type = {
 	&EDIT_METABALL_cache_populate,
 	&EDIT_METABALL_cache_finish,
 	NULL, /* draw_background but not needed by mode engines */
-	&EDIT_METABALL_draw_scene
+	&EDIT_METABALL_draw_scene,
+	NULL,
 };

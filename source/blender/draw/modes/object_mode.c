@@ -1876,5 +1876,6 @@ DrawEngineType draw_engine_object_type = {
 	&OBJECT_cache_populate,
 	NULL,
 	NULL,
-	&OBJECT_draw_scene
+	&OBJECT_draw_scene,
+	NULL,
 };

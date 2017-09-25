@@ -593,5 +593,6 @@ DrawEngineType draw_engine_edit_mesh_type = {
 	&EDIT_MESH_cache_populate,
 	NULL,
 	NULL,
-	&EDIT_MESH_draw_scene
+	&EDIT_MESH_draw_scene,
+	NULL,
 };

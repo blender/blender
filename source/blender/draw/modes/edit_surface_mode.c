@@ -264,5 +264,6 @@ DrawEngineType draw_engine_edit_surface_type = {
 	&EDIT_SURFACE_cache_populate,
 	&EDIT_SURFACE_cache_finish,
 	NULL, /* draw_background but not needed by mode engines */
-	&EDIT_SURFACE_draw_scene
+	&EDIT_SURFACE_draw_scene,
+	NULL,
 };
