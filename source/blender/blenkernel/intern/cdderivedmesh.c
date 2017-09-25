@@ -34,6 +34,8 @@
  *  \ingroup bke
  */
 
+#include "atomic_ops.h"
+
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_utildefines.h"
@@ -1928,7 +1930,8 @@ void CDDM_recalc_looptri(DerivedMesh *dm)
 	        cddm->dm.looptris.array_wip);
 
 	BLI_assert(cddm->dm.looptris.array == NULL);
-	SWAP(MLoopTri *, cddm->dm.looptris.array, cddm->dm.looptris.array_wip);
+	atomic_cas_z((size_t *)&cddm->dm.looptris.array, *(size_t *)&cddm->dm.looptris.array, *(size_t *)&cddm->dm.looptris.array_wip);
+	cddm->dm.looptris.array_wip = NULL;
 }
 
 static void cdDM_free_internal(CDDerivedMesh *cddm)

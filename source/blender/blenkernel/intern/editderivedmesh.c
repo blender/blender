@@ -41,6 +41,8 @@
  * is likely to be a little slow.
  */
 
+#include "atomic_ops.h"
+
 #include "BLI_math.h"
 #include "BLI_jitter.h"
 #include "BLI_bitmap.h"
@@ -662,7 +664,8 @@ static void emDM_recalcLoopTri(DerivedMesh *dm)
 	}
 
 	BLI_assert(dm->looptris.array == NULL);
-	SWAP(MLoopTri *, dm->looptris.array, dm->looptris.array_wip);
+	atomic_cas_z((size_t *)&dm->looptris.array, *(size_t *)&dm->looptris.array, *(size_t *)&dm->looptris.array_wip);
+	dm->looptris.array_wip = NULL;
 }
 
 static void emDM_foreachMappedVert(
