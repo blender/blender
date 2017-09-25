@@ -83,7 +83,15 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *ob,
 	 * - see notes on direction of rel below...
 	 */
 	bPoseChannel *rootchan = BKE_armature_ik_solver_find_root(pchan, data);
-	OperationKey solver_key(&ob->id, DEG_NODE_TYPE_EVAL_POSE, rootchan->name, DEG_OPCODE_POSE_IK_SOLVER);
+	OperationKey pchan_local_key(&ob->id, DEG_NODE_TYPE_BONE,
+	                             pchan->name, DEG_OPCODE_BONE_LOCAL);
+	OperationKey init_ik_key(&ob->id, DEG_NODE_TYPE_EVAL_POSE, DEG_OPCODE_POSE_INIT_IK);
+	OperationKey solver_key(&ob->id, DEG_NODE_TYPE_EVAL_POSE,
+	                        rootchan->name,
+	                        DEG_OPCODE_POSE_IK_SOLVER);
+
+	add_relation(pchan_local_key, init_ik_key, "IK Constraint -> Init IK Tree");
+	add_relation(init_ik_key, solver_key, "Init IK -> IK Solver");
 
 	/* IK target */
 	// XXX: this should get handled as part of the constraint code
@@ -300,9 +308,11 @@ void DepsgraphRelationBuilder::build_rig(Scene *scene, Object *ob)
 
 	/* attach links between pose operations */
 	OperationKey init_key(&ob->id, DEG_NODE_TYPE_EVAL_POSE, DEG_OPCODE_POSE_INIT);
+	OperationKey init_ik_key(&ob->id, DEG_NODE_TYPE_EVAL_POSE, DEG_OPCODE_POSE_INIT_IK);
 	OperationKey flush_key(&ob->id, DEG_NODE_TYPE_EVAL_POSE, DEG_OPCODE_POSE_DONE);
 
-	add_relation(init_key, flush_key, "[Pose Init -> Pose Cleanup]");
+	add_relation(init_key, init_ik_key, "Pose Init -> Pose Init IK");
+	add_relation(init_ik_key, flush_key, "Pose Init IK -> Pose Cleanup");
 
 	/* Make sure pose is up-to-date with armature updates. */
 	OperationKey armature_key(&arm->id,

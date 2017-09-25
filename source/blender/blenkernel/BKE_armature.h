@@ -172,6 +172,11 @@ void BKE_pose_eval_init(struct EvaluationContext *eval_ctx,
                         struct Object *ob,
                         struct bPose *pose);
 
+void BKE_pose_eval_init_ik(struct EvaluationContext *eval_ctx,
+                           struct Scene *scene,
+                           struct Object *ob,
+                           struct bPose *pose);
+
 void BKE_pose_eval_bone(struct EvaluationContext *eval_ctx,
                         struct Scene *scene,
                         struct Object *ob,
