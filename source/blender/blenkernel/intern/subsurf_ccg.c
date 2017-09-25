@@ -4507,7 +4507,7 @@ static void ccgDM_recalcLoopTri(DerivedMesh *dm)
 	}
 
 	BLI_assert(dm->looptris.array == NULL);
-	atomic_cas_z((size_t *)&dm->looptris.array, *(size_t *)&dm->looptris.array, *(size_t *)&dm->looptris.array_wip);
+	atomic_cas_ptr((void **)&dm->looptris.array, dm->looptris.array, dm->looptris.array_wip);
 	dm->looptris.array_wip = NULL;
 }
 

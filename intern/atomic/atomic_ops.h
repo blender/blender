@@ -108,6 +108,8 @@ ATOMIC_INLINE unsigned int atomic_fetch_and_add_u(unsigned int *p, unsigned int 
 ATOMIC_INLINE unsigned int atomic_fetch_and_sub_u(unsigned int *p, unsigned int x);
 ATOMIC_INLINE unsigned int atomic_cas_u(unsigned int *v, unsigned int old, unsigned int _new);
 
+ATOMIC_INLINE void *atomic_cas_ptr(void **v, void *old, void *_new);
+
 /* WARNING! Float 'atomics' are really faked ones, those are actually closer to some kind of spinlock-sync'ed operation,
  *          which means they are only efficient if collisions are highly unlikely (i.e. if probability of two threads
  *          working on the same pointer at the same time is very low). */

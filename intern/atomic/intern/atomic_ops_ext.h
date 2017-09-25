@@ -180,6 +180,18 @@ ATOMIC_INLINE unsigned int atomic_cas_u(unsigned int *v, unsigned int old, unsig
 }
 
 /******************************************************************************/
+/* Pointer operations. */
+
+ATOMIC_INLINE void *atomic_cas_ptr(void **v, void *old, void *_new)
+{
+#if (LG_SIZEOF_PTR == 8)
+	return (void *)atomic_cas_uint64((uint64_t *)v, *(uint64_t *)&old, *(uint64_t *)&_new);
+#elif (LG_SIZEOF_PTR == 4)
+	return (void *)atomic_cas_uint32((uint32_t *)v, *(uint32_t *)&old, *(uint32_t *)&_new);
+#endif
+}
+
+/******************************************************************************/
 /* float operations. */
 
 ATOMIC_INLINE float atomic_add_and_fetch_fl(float *p, const float x)
