@@ -40,6 +40,7 @@
 #include "BLI_string.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_object_types.h"
 #include "DNA_texture_types.h"
 
 #include "BKE_animsys.h"
