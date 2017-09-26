@@ -1448,6 +1448,21 @@ enum RayState {
 #define PATCH_MAP_NODE_IS_LEAF (1u << 31)
 #define PATCH_MAP_NODE_INDEX_MASK (~(PATCH_MAP_NODE_IS_SET | PATCH_MAP_NODE_IS_LEAF))
 
+/* Work Tiles */
+
+typedef struct WorkTile {
+	uint x, y, w, h;
+
+	uint start_sample;
+	uint num_samples;
+
+	uint offset;
+	uint stride;
+
+	ccl_global float *buffer;
+	ccl_global uint *rng_state;
+} WorkTile;
+
 CCL_NAMESPACE_END
 
 #endif /*  __KERNEL_TYPES_H__ */

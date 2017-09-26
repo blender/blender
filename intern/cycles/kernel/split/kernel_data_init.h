@@ -73,27 +73,27 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
 	kg->data = data;
 #endif
 
-	kernel_split_params.x = sx;
-	kernel_split_params.y = sy;
-	kernel_split_params.w = sw;
-	kernel_split_params.h = sh;
+	kernel_split_params.tile.x = sx;
+	kernel_split_params.tile.y = sy;
+	kernel_split_params.tile.w = sw;
+	kernel_split_params.tile.h = sh;
 
-	kernel_split_params.offset = offset;
-	kernel_split_params.stride = stride;
+	kernel_split_params.tile.start_sample = start_sample;
+	kernel_split_params.tile.num_samples = num_samples;
 
-	kernel_split_params.rng_state = rng_state;
+	kernel_split_params.tile.offset = offset;
+	kernel_split_params.tile.stride = stride;
 
-	kernel_split_params.start_sample = start_sample;
-	kernel_split_params.end_sample = end_sample;
+	kernel_split_params.tile.rng_state = rng_state;
+	kernel_split_params.tile.buffer = buffer;
+
+	kernel_split_params.total_work_size = sw * sh * num_samples;
 
 	kernel_split_params.work_pools = work_pools;
-	kernel_split_params.num_samples = num_samples;
 
 	kernel_split_params.queue_index = Queue_index;
 	kernel_split_params.queue_size = queuesize;
 	kernel_split_params.use_queues_flag = use_queues_flag;
-
-	kernel_split_params.buffer = buffer;
 
 	split_data_init(kg, &kernel_split_state, num_elements, split_data_buffer, ray_state);
 

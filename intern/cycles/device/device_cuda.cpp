@@ -1293,8 +1293,6 @@ public:
 		CUDAContextScope scope(this);
 
 		CUfunction cuPathTrace;
-		CUdeviceptr d_buffer = cuda_device_ptr(rtile.buffer);
-		CUdeviceptr d_rng_state = cuda_device_ptr(rtile.rng_state);
 
 		/* get kernel function */
 		if(branched) {
@@ -1308,40 +1306,48 @@ public:
 			return;
 		}
 
-		/* pass in parameters */
-		void *args[] = {&d_buffer,
-		                &d_rng_state,
-		                &sample,
-		                &rtile.x,
-		                &rtile.y,
-		                &rtile.w,
-		                &rtile.h,
-		                &rtile.offset,
-		                &rtile.stride};
-
-		/* launch kernel */
-		int threads_per_block;
-		cuda_assert(cuFuncGetAttribute(&threads_per_block, CU_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK, cuPathTrace));
-
-		/*int num_registers;
-		cuda_assert(cuFuncGetAttribute(&num_registers, CU_FUNC_ATTRIBUTE_NUM_REGS, cuPathTrace));
-
-		printf("threads_per_block %d\n", threads_per_block);
-		printf("num_registers %d\n", num_registers);*/
-
-		int xthreads = (int)sqrt(threads_per_block);
-		int ythreads = (int)sqrt(threads_per_block);
-		int xblocks = (rtile.w + xthreads - 1)/xthreads;
-		int yblocks = (rtile.h + ythreads - 1)/ythreads;
-
 		cuda_assert(cuFuncSetCacheConfig(cuPathTrace, CU_FUNC_CACHE_PREFER_L1));
 
+		/* allocate work tile */
+		device_vector<WorkTile> work_tiles;
+		work_tiles.resize(1);
+
+		WorkTile *wtile = work_tiles.get_data();
+		wtile->x = rtile.x;
+		wtile->y = rtile.y;
+		wtile->w = rtile.w;
+		wtile->h = rtile.h;
+		wtile->offset = rtile.offset;
+		wtile->stride = rtile.stride;
+		wtile->start_sample = sample;
+		wtile->num_samples = 1;
+		wtile->buffer = (float*)cuda_device_ptr(rtile.buffer);
+		wtile->rng_state = (uint*)cuda_device_ptr(rtile.rng_state);
+
+		mem_alloc("work_tiles", work_tiles, MEM_READ_ONLY);
+		mem_copy_to(work_tiles);
+
+		CUdeviceptr d_work_tiles = cuda_device_ptr(work_tiles.device_pointer);
+
+		uint total_work_size = wtile->w * wtile->h * wtile->num_samples;
+
+		/* pass in parameters */
+		void *args[] = {&d_work_tiles,
+		                &total_work_size};
+
+		/* launch kernel */
+		int num_threads_per_block;
+		cuda_assert(cuFuncGetAttribute(&num_threads_per_block, CU_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK, cuPathTrace));
+		int num_blocks = divide_up(total_work_size, num_threads_per_block);
+
 		cuda_assert(cuLaunchKernel(cuPathTrace,
-		                           xblocks , yblocks, 1, /* blocks */
-		                           xthreads, ythreads, 1, /* threads */
+		                           num_blocks, 1, 1,
+		                           num_threads_per_block, 1, 1,
 		                           0, 0, args, 0));
 
 		cuda_assert(cuCtxSynchronize());
+
+		mem_free(work_tiles);
 	}
 
 	void film_convert(DeviceTask& task, device_ptr buffer, device_ptr rgba_byte, device_ptr rgba_half)

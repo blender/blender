@@ -20,6 +20,7 @@
 
 #include "kernel/kernel_compat_cuda.h"
 #include "kernel_config.h"
+
 #include "kernel/kernel_math.h"
 #include "kernel/kernel_types.h"
 #include "kernel/kernel_globals.h"
@@ -27,32 +28,37 @@
 #include "kernel/kernel_path.h"
 #include "kernel/kernel_path_branched.h"
 #include "kernel/kernel_bake.h"
+#include "kernel/kernel_work_stealing.h"
 
 /* kernels */
 extern "C" __global__ void
 CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_MAX_REGISTERS)
-kernel_cuda_path_trace(float *buffer, uint *rng_state, int sample, int sx, int sy, int sw, int sh, int offset, int stride)
+kernel_cuda_path_trace(WorkTile *tile, uint total_work_size)
 {
-	int x = sx + blockDim.x*blockIdx.x + threadIdx.x;
-	int y = sy + blockDim.y*blockIdx.y + threadIdx.y;
+	int work_index = ccl_global_id(0);
 
-	if(x < sx + sw && y < sy + sh) {
+	if(work_index < total_work_size) {
+		uint x, y, sample;
+		get_work_pixel(tile, work_index, &x, &y, &sample);
+
 		KernelGlobals kg;
-		kernel_path_trace(&kg, buffer, rng_state, sample, x, y, offset, stride);
+		kernel_path_trace(&kg, tile->buffer, tile->rng_state, sample, x, y, tile->offset, tile->stride);
 	}
 }
 
 #ifdef __BRANCHED_PATH__
 extern "C" __global__ void
 CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_BRANCHED_MAX_REGISTERS)
-kernel_cuda_branched_path_trace(float *buffer, uint *rng_state, int sample, int sx, int sy, int sw, int sh, int offset, int stride)
+kernel_cuda_branched_path_trace(WorkTile *tile, uint total_work_size)
 {
-	int x = sx + blockDim.x*blockIdx.x + threadIdx.x;
-	int y = sy + blockDim.y*blockIdx.y + threadIdx.y;
+	int work_index = ccl_global_id(0);
 
-	if(x < sx + sw && y < sy + sh) {
+	if(work_index < total_work_size) {
+		uint x, y, sample;
+		get_work_pixel(tile, work_index, &x, &y, &sample);
+
 		KernelGlobals kg;
-		kernel_branched_path_trace(&kg, buffer, rng_state, sample, x, y, offset, stride);
+		kernel_branched_path_trace(&kg, tile->buffer, tile->rng_state, sample, x, y, tile->offset, tile->stride);
 	}
 }
 #endif
