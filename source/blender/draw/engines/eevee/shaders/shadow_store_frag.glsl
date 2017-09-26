@@ -35,13 +35,6 @@ vec3 octahedral_to_cubemap_proj(vec2 co)
 	return v;
 }
 
-void make_orthonormal_basis(vec3 N, out vec3 T, out vec3 B)
-{
-	vec3 UpVector = (abs(N.z) < 0.999) ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
-	T = normalize(cross(UpVector, N));
-	B = cross(N, T);
-}
-
 /* Marco Salvi's GDC 2008 presentation about shadow maps pre-filtering techniques slide 24 */
 float ln_space_prefilter(float w0, float x, float w1, float y)
 {
@@ -60,11 +53,22 @@ vec3 get_texco(vec3 cos, vec2 ofs)
 	return cos;
 }
 #else /* CUBEMAP */
-vec3 T, B; /* global vars */
+/* global vars */
+vec3 T = vec3(0.0);
+vec3 B = vec3(0.0);
+
+void make_orthonormal_basis(vec3 N)
+{
+	vec3 UpVector = (abs(N.z) < 0.999) ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
+	T = normalize(cross(UpVector, N));
+	B = cross(N, T);
+}
+
 vec3 get_texco(vec3 cos, vec2 ofs)
 {
 	return cos + ofs.x * T + ofs.y * B;
 }
+
 #endif
 
 void main() {
@@ -94,7 +98,7 @@ void main() {
 
 	/* get cubemap vector */
 	cos = normalize(octahedral_to_cubemap_proj(cos.xy));
-	make_orthonormal_basis(cos, T, B);
+	make_orthonormal_basis(cos);
 
 	T *= shadowFilterSize;
 	B *= shadowFilterSize;
