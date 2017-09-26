@@ -2320,21 +2320,21 @@ static void collision_point_on_surface(float p[3], ParticleCollisionElement *pce
 		}
 		case 3:
 		{
-				float p0[3], e1[3], e2[3], nor[3];
+			float p0[3], e1[3], e2[3], nor[3];
 
-				sub_v3_v3v3(e1, pce->x1, pce->x0);
-				sub_v3_v3v3(e2, pce->x2, pce->x0);
-				sub_v3_v3v3(p0, p, pce->x0);
+			sub_v3_v3v3(e1, pce->x1, pce->x0);
+			sub_v3_v3v3(e2, pce->x2, pce->x0);
+			sub_v3_v3v3(p0, p, pce->x0);
 
-				cross_v3_v3v3(nor, e1, e2);
-				normalize_v3(nor);
+			cross_v3_v3v3(nor, e1, e2);
+			normalize_v3(nor);
 
-				if (pce->inv_nor == 1)
-					negate_v3(nor);
+			if (pce->inv_nor == 1)
+				negate_v3(nor);
 
-				madd_v3_v3v3fl(co, pce->x0, nor, col->radius);
-				madd_v3_v3fl(co, e1, pce->uv[0]);
-				madd_v3_v3fl(co, e2, pce->uv[1]);
+			madd_v3_v3v3fl(co, pce->x0, nor, col->radius);
+			madd_v3_v3fl(co, e1, pce->uv[0]);
+			madd_v3_v3fl(co, e2, pce->uv[1]);
 			break;
 		}
 	}

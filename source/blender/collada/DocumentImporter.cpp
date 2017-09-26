@@ -511,9 +511,9 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 	std::vector<Object *> *root_objects = new std::vector<Object *>();
 
 	fprintf(stderr,
-			"Writing node id='%s', name='%s'\n",
-			id.c_str(),
-			name.c_str());
+	        "Writing node id='%s', name='%s'\n",
+	        id.c_str(),
+	        name.c_str());
 
 	if (is_joint) {
 		if (parent_node == NULL && !is_library_node) {
