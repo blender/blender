@@ -570,6 +570,7 @@ struct Closure {
 
 /* This is hacking ssr_id to tag transparent bsdf */
 #define TRANSPARENT_CLOSURE_FLAG -2
+#define REFRACT_CLOSURE_FLAG -3
 
 #define CLOSURE_DEFAULT Closure(vec3(0.0), 1.0, vec4(0.0), vec2(0.0), -1)
 

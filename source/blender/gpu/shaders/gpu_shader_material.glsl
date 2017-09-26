@@ -2897,7 +2897,7 @@ void node_bsdf_principled_clearcoat(vec4 base_color, float subsurface, vec3 subs
 	}
 	result = Closure(surface_color.rgb / surface_color.a, 1.0);
 #else
-	vec3 L_trans = (transmission <= 0.0) ? vec3(0.0) : eevee_surface_glass(N, base_color.rgb * ((refractionDepth > 0.0) ? base_color.rgb : vec3(1.0)), roughness, ior, int(-2), ssr_spec);
+	vec3 L_trans = (transmission <= 0.0) ? vec3(0.0) : eevee_surface_glass(N, base_color.rgb * ((refractionDepth > 0.0) ? base_color.rgb : vec3(1.0)), roughness, ior, REFRACT_CLOSURE_FLAG, ssr_spec);
 	vec3 L = eevee_surface_clearcoat_lit(N, diffuse, f0, roughness, CN, clearcoat, clearcoat_roughness, 1.0, int(ssr_id), ssr_spec);
 	L = mix(L, L_trans, transmission);
 	vec3 vN = normalize(mat3(ViewMatrix) * N);
@@ -2921,6 +2921,9 @@ void node_bsdf_transparent(vec4 color, out Closure result)
 	/* this isn't right */
 	result.radiance = vec3(0.0);
 	result.opacity = 0.0;
+#ifdef EEVEE_ENGINE
+	result.ssr_id = TRANSPARENT_CLOSURE_FLAG;
+#endif
 }
 
 void node_bsdf_velvet(vec4 color, float sigma, vec3 N, out Closure result)
@@ -2941,7 +2944,7 @@ void node_bsdf_refraction(vec4 color, float roughness, float ior, vec3 N, out Cl
 	color.rgb *= (refractionDepth > 0.0) ? color.rgb : vec3(1.0); /* Simulate 2 absorption event. */
 	roughness = sqrt(roughness);
 	vec3 L = eevee_surface_refraction(N, vec3(1.0), roughness, ior);
-	result = Closure(L * color.rgb, 1.0, vec4(0.0), vec2(0.0), int(-2));
+	result = Closure(L * color.rgb, 1.0, vec4(0.0), vec2(0.0), REFRACT_CLOSURE_FLAG);
 #else
 	node_bsdf_diffuse(color, 0.0, N, result);
 #endif /* EEVEE_ENGINE */
