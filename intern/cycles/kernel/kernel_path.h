@@ -672,21 +672,20 @@ ccl_device_forceinline void kernel_path_integrate(
 }
 
 ccl_device void kernel_path_trace(KernelGlobals *kg,
-	ccl_global float *buffer, ccl_global uint *rng_state,
+	ccl_global float *buffer,
 	int sample, int x, int y, int offset, int stride)
 {
 	/* buffer offset */
 	int index = offset + x + y*stride;
 	int pass_stride = kernel_data.film.pass_stride;
 
-	rng_state += index;
 	buffer += index*pass_stride;
 
 	/* Initialize random numbers and sample ray. */
 	uint rng_hash;
 	Ray ray;
 
-	kernel_path_trace_setup(kg, rng_state, sample, x, y, &rng_hash, &ray);
+	kernel_path_trace_setup(kg, sample, x, y, &rng_hash, &ray);
 
 	if(ray.t == 0.0f) {
 		kernel_write_result(kg, buffer, sample, NULL);

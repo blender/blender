@@ -171,7 +171,7 @@ public:
 
 	DeviceRequestedFeatures requested_features;
 
-	KernelFunctions<void(*)(KernelGlobals *, float *, unsigned int *, int, int, int, int, int)>   path_trace_kernel;
+	KernelFunctions<void(*)(KernelGlobals *, float *, int, int, int, int, int)>   path_trace_kernel;
 	KernelFunctions<void(*)(KernelGlobals *, uchar4 *, float *, float, int, int, int, int)>       convert_to_half_float_kernel;
 	KernelFunctions<void(*)(KernelGlobals *, uchar4 *, float *, float, int, int, int, int)>       convert_to_byte_kernel;
 	KernelFunctions<void(*)(KernelGlobals *, uint4 *, float4 *, float*, int, int, int, int, int)> shader_kernel;
@@ -192,7 +192,7 @@ public:
 	KernelFunctions<void(*)(int, int, int, int, int, float*, int*, float*, float3*, int*, int)>                       filter_finalize_kernel;
 
 	KernelFunctions<void(*)(KernelGlobals *, ccl_constant KernelData*, ccl_global void*, int, ccl_global char*,
-	                       ccl_global uint*, int, int, int, int, int, int, int, int, ccl_global int*, int,
+	                       int, int, int, int, int, int, int, int, ccl_global int*, int,
 	                       ccl_global char*, ccl_global unsigned int*, unsigned int, ccl_global float*)>        data_init_kernel;
 	unordered_map<string, KernelFunctions<void(*)(KernelGlobals*, KernelData*)> > split_kernels;
 
@@ -617,7 +617,6 @@ public:
 	void path_trace(DeviceTask &task, RenderTile &tile, KernelGlobals *kg)
 	{
 		float *render_buffer = (float*)tile.buffer;
-		uint *rng_state = (uint*)tile.rng_state;
 		int start_sample = tile.start_sample;
 		int end_sample = tile.start_sample + tile.num_samples;
 
@@ -629,7 +628,7 @@ public:
 
 			for(int y = tile.y; y < tile.y + tile.h; y++) {
 				for(int x = tile.x; x < tile.x + tile.w; x++) {
-					path_trace_kernel()(kg, render_buffer, rng_state,
+					path_trace_kernel()(kg, render_buffer,
 					                    sample, x, y, tile.offset, tile.stride);
 				}
 			}
@@ -913,7 +912,6 @@ bool CPUSplitKernel::enqueue_split_kernel_data_init(const KernelDimensions& dim,
 			                           (void*)split_data.device_pointer,
 			                           num_global_elements,
 			                           (char*)ray_state.device_pointer,
-			                           (uint*)rtile.rng_state,
 			                           rtile.start_sample,
 			                           rtile.start_sample + rtile.num_samples,
 			                           rtile.x,

@@ -50,7 +50,6 @@
 __kernel void kernel_ocl_path_trace(
 	ccl_constant KernelData *data,
 	ccl_global float *buffer,
-	ccl_global uint *rng_state,
 
 	KERNEL_BUFFER_PARAMS,
 
@@ -68,7 +67,7 @@ __kernel void kernel_ocl_path_trace(
 	int y = sy + ccl_global_id(1);
 
 	if(x < sx + sw && y < sy + sh)
-		kernel_path_trace(kg, buffer, rng_state, sample, x, y, offset, stride);
+		kernel_path_trace(kg, buffer, sample, x, y, offset, stride);
 }
 
 #else  /* __COMPILE_ONLY_MEGAKERNEL__ */

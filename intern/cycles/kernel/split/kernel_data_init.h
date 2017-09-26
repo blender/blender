@@ -49,7 +49,6 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
         ccl_global void *split_data_buffer,
         int num_elements,
         ccl_global char *ray_state,
-        ccl_global uint *rng_state,
 
 #ifdef __KERNEL_OPENCL__
 		KERNEL_BUFFER_PARAMS,
@@ -84,7 +83,6 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
 	kernel_split_params.tile.offset = offset;
 	kernel_split_params.tile.stride = stride;
 
-	kernel_split_params.tile.rng_state = rng_state;
 	kernel_split_params.tile.buffer = buffer;
 
 	kernel_split_params.total_work_size = sw * sh * num_samples;
@@ -122,7 +120,7 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
 		*use_queues_flag = 0;
 	}
 
-	/* zero the tiles pixels and initialize rng_state if this is the first sample */
+	/* zero the tiles pixels if this is the first sample */
 	if(start_sample == 0) {
 		int pass_stride = kernel_data.film.pass_stride;
 
@@ -130,9 +128,6 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
 		for(int y = sy; y < sy + sh; y++) {
 			int index = offset + y * stride;
 			memset(buffer + (sx + index) * pass_stride, 0, sizeof(float) * pass_stride * sw);
-			for(int x = sx; x < sx + sw; x++) {
-				rng_state[index + x] = hash_int_2d(x, y);
-			}
 		}
 #else
 		parallel_for(kg, i, sw * sh * pass_stride) {
@@ -145,14 +140,6 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
 			int index = (offset + x + y*stride) * pass_stride + pass;
 
 			*(buffer + index) = 0.0f;
-		}
-
-		parallel_for(kg, i, sw * sh) {
-			int x = sx + i % sw;
-			int y = sy + i / sw;
-
-			int index = (offset + x + y*stride);
-			*(rng_state + index) = hash_int_2d(x, y);
 		}
 #endif
 	}

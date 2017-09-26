@@ -142,7 +142,7 @@ public:
 		archive & tile.x & tile.y & tile.w & tile.h;
 		archive & tile.start_sample & tile.num_samples & tile.sample;
 		archive & tile.resolution & tile.offset & tile.stride;
-		archive & tile.buffer & tile.rng_state;
+		archive & tile.buffer;
 	}
 
 	void write()
@@ -303,7 +303,7 @@ public:
 		*archive & tile.x & tile.y & tile.w & tile.h;
 		*archive & tile.start_sample & tile.num_samples & tile.sample;
 		*archive & tile.resolution & tile.offset & tile.stride;
-		*archive & tile.buffer & tile.rng_state;
+		*archive & tile.buffer;
 
 		tile.buffers = NULL;
 	}

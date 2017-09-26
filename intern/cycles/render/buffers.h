@@ -74,8 +74,6 @@ public:
 
 	/* float buffer */
 	device_vector<float> buffer;
-	/* random number generator state */
-	device_vector<uint> rng_state;
 
 	Device *device;
 
@@ -149,7 +147,6 @@ public:
 	int tile_index;
 
 	device_ptr buffer;
-	device_ptr rng_state;
 
 	RenderBuffers *buffers;
 

@@ -42,7 +42,7 @@ kernel_cuda_path_trace(WorkTile *tile, uint total_work_size)
 		get_work_pixel(tile, work_index, &x, &y, &sample);
 
 		KernelGlobals kg;
-		kernel_path_trace(&kg, tile->buffer, tile->rng_state, sample, x, y, tile->offset, tile->stride);
+		kernel_path_trace(&kg, tile->buffer, sample, x, y, tile->offset, tile->stride);
 	}
 }
 
@@ -58,7 +58,7 @@ kernel_cuda_branched_path_trace(WorkTile *tile, uint total_work_size)
 		get_work_pixel(tile, work_index, &x, &y, &sample);
 
 		KernelGlobals kg;
-		kernel_branched_path_trace(&kg, tile->buffer, tile->rng_state, sample, x, y, tile->offset, tile->stride);
+		kernel_branched_path_trace(&kg, tile->buffer, sample, x, y, tile->offset, tile->stride);
 	}
 }
 #endif

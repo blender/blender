@@ -281,7 +281,6 @@ public:
 		foreach(SubDevice& sub, devices) {
 			if(sub.device == sub_device) {
 				if(tile.buffer) tile.buffer = sub.ptr_map[tile.buffer];
-				if(tile.rng_state) tile.rng_state = sub.ptr_map[tile.rng_state];
 			}
 		}
 	}

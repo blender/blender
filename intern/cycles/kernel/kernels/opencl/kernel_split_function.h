@@ -23,7 +23,6 @@ __kernel void KERNEL_NAME_EVAL(kernel_ocl_path_trace, KERNEL_NAME)(
 
 		ccl_global void *split_data_buffer,
 		ccl_global char *ray_state,
-		ccl_global uint *rng_state,
 
 		KERNEL_BUFFER_PARAMS,
 
@@ -42,7 +41,6 @@ __kernel void KERNEL_NAME_EVAL(kernel_ocl_path_trace, KERNEL_NAME)(
 	if(ccl_local_id(0) + ccl_local_id(1) == 0) {
 		kg->data = data;
 
-		kernel_split_params.tile.rng_state = rng_state;
 		kernel_split_params.queue_index = queue_index;
 		kernel_split_params.use_queues_flag = use_queues_flag;
 		kernel_split_params.work_pools = work_pools;

@@ -1322,7 +1322,6 @@ public:
 		wtile->start_sample = sample;
 		wtile->num_samples = 1;
 		wtile->buffer = (float*)cuda_device_ptr(rtile.buffer);
-		wtile->rng_state = (uint*)cuda_device_ptr(rtile.rng_state);
 
 		mem_alloc("work_tiles", work_tiles, MEM_READ_ONLY);
 		mem_copy_to(work_tiles);
@@ -1945,7 +1944,6 @@ bool CUDASplitKernel::enqueue_split_kernel_data_init(const KernelDimensions& dim
 	CUdeviceptr d_use_queues_flag = device->cuda_device_ptr(use_queues_flag.device_pointer);
 	CUdeviceptr d_work_pool_wgs = device->cuda_device_ptr(work_pool_wgs.device_pointer);
 
-	CUdeviceptr d_rng_state = device->cuda_device_ptr(rtile.rng_state);
 	CUdeviceptr d_buffer = device->cuda_device_ptr(rtile.buffer);
 
 	int end_sample = rtile.start_sample + rtile.num_samples;
@@ -1955,7 +1953,6 @@ bool CUDASplitKernel::enqueue_split_kernel_data_init(const KernelDimensions& dim
 		CUdeviceptr* split_data_buffer;
 		int* num_elements;
 		CUdeviceptr* ray_state;
-		CUdeviceptr* rng_state;
 		int* start_sample;
 		int* end_sample;
 		int* sx;
@@ -1976,7 +1973,6 @@ bool CUDASplitKernel::enqueue_split_kernel_data_init(const KernelDimensions& dim
 		&d_split_data,
 		&num_global_elements,
 		&d_ray_state,
-		&d_rng_state,
 		&rtile.start_sample,
 		&end_sample,
 		&rtile.x,

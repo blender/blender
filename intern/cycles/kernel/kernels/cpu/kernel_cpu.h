@@ -18,7 +18,6 @@
 
 void KERNEL_FUNCTION_FULL_NAME(path_trace)(KernelGlobals *kg,
                                            float *buffer,
-                                           unsigned int *rng_state,
                                            int sample,
                                            int x, int y,
                                            int offset,
@@ -57,7 +56,6 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
         ccl_global void *split_data_buffer,
         int num_elements,
         ccl_global char *ray_state,
-        ccl_global uint *rng_state,
         int start_sample,
         int end_sample,
         int sx, int sy, int sw, int sh, int offset, int stride,

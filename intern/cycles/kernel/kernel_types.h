@@ -1460,7 +1460,6 @@ typedef struct WorkTile {
 	uint stride;
 
 	ccl_global float *buffer;
-	ccl_global uint *rng_state;
 } WorkTile;
 
 CCL_NAMESPACE_END

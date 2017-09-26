@@ -45,10 +45,6 @@ ccl_device void kernel_path_init(KernelGlobals *kg) {
 	uint x, y, sample;
 	get_work_pixel(tile, work_index, &x, &y, &sample);
 
-	/* Remap rng_state and buffer to current pixel. */
-	ccl_global uint *rng_state = kernel_split_params.tile.rng_state;
-	rng_state += tile->offset + x + y*tile->stride;
-
 	/* Store buffer offset for writing to passes. */
 	uint buffer_offset = (tile->offset + x + y*tile->stride) * kernel_data.film.pass_stride;
 	ccl_global float *buffer = tile->buffer + buffer_offset;
@@ -57,7 +53,6 @@ ccl_device void kernel_path_init(KernelGlobals *kg) {
 	/* Initialize random numbers and ray. */
 	uint rng_hash;
 	kernel_path_trace_setup(kg,
-	                        rng_state,
 	                        sample,
 	                        x, y,
 	                        &rng_hash,

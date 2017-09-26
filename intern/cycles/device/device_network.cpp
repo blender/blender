@@ -737,7 +737,6 @@ protected:
 					tile = entry.tile;
 
 					if(tile.buffer) tile.buffer = ptr_map[tile.buffer];
-					if(tile.rng_state) tile.rng_state = ptr_map[tile.rng_state];
 
 					result = true;
 					break;
@@ -769,7 +768,6 @@ protected:
 		thread_scoped_lock acquire_lock(acquire_mutex);
 
 		if(tile.buffer) tile.buffer = ptr_imap[tile.buffer];
-		if(tile.rng_state) tile.rng_state = ptr_imap[tile.rng_state];
 
 		{
 			thread_scoped_lock lock(rpc_lock);
