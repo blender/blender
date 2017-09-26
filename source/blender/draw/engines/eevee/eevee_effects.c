@@ -758,13 +758,8 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 
 		view_is_valid = view_is_valid && (stl->g_data->view_updated == false);
 
-		int taa_pref_samples = BKE_collection_engine_property_value_get_int(props, "taa_samples");
-		CLAMP(taa_pref_samples, 1, 32);
-		view_is_valid = view_is_valid && (effects->taa_total_sample == taa_pref_samples);
-
-		if (effects->taa_total_sample != taa_pref_samples) {
-			effects->taa_total_sample = taa_pref_samples;
-		}
+		effects->taa_total_sample = BKE_collection_engine_property_value_get_int(props, "taa_samples");
+		MAX2(effects->taa_total_sample, 0);
 
 		DRW_viewport_matrix_get(persmat, DRW_MAT_PERS);
 		DRW_viewport_matrix_get(viewmat, DRW_MAT_VIEW);
@@ -772,8 +767,10 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		view_is_valid = view_is_valid && compare_m4m4(persmat, effects->prev_drw_persmat, 0.0001f);
 		copy_m4_m4(effects->prev_drw_persmat, persmat);
 
-
-		if (view_is_valid && (effects->taa_current_sample < effects->taa_total_sample)) {
+		if (view_is_valid &&
+		    ((effects->taa_total_sample == 0) ||
+		     (effects->taa_current_sample < effects->taa_total_sample)))
+		{
 			effects->taa_current_sample += 1;
 
 			effects->taa_alpha = 1.0f - (1.0f / (float)(effects->taa_current_sample));
@@ -1484,7 +1481,9 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 			DRW_framebuffer_blit(fbl->main, fbl->depth_double_buffer_fb, true);
 		}
 
-		if (effects->taa_current_sample < effects->taa_total_sample) {
+		if ((effects->taa_total_sample == 0) ||
+		    (effects->taa_current_sample < effects->taa_total_sample))
+		{
 			DRW_viewport_request_redraw();
 		}
 	}
