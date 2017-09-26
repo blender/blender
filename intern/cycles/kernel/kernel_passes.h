@@ -16,19 +16,23 @@
 
 CCL_NAMESPACE_BEGIN
 
+#if defined(__SPLIT_KERNEL__) || defined(__KERNEL_CUDA__)
+#define __ATOMIC_PASS_WRITE__
+#endif
+
 ccl_device_inline void kernel_write_pass_float(ccl_global float *buffer, float value)
 {
 	ccl_global float *buf = buffer;
-#if defined(__SPLIT_KERNEL__)
+#ifdef __ATOMIC_PASS_WRITE__
 	atomic_add_and_fetch_float(buf, value);
 #else
 	*buf += value;
-#endif  /* __SPLIT_KERNEL__ */
+#endif
 }
 
 ccl_device_inline void kernel_write_pass_float3(ccl_global float *buffer, float3 value)
 {
-#if defined(__SPLIT_KERNEL__)
+#ifdef __ATOMIC_PASS_WRITE__
 	ccl_global float *buf_x = buffer + 0;
 	ccl_global float *buf_y = buffer + 1;
 	ccl_global float *buf_z = buffer + 2;
@@ -39,12 +43,12 @@ ccl_device_inline void kernel_write_pass_float3(ccl_global float *buffer, float3
 #else
 	ccl_global float3 *buf = (ccl_global float3*)buffer;
 	*buf += value;
-#endif  /* __SPLIT_KERNEL__ */
+#endif
 }
 
 ccl_device_inline void kernel_write_pass_float4(ccl_global float *buffer, float4 value)
 {
-#if defined(__SPLIT_KERNEL__)
+#ifdef __ATOMIC_PASS_WRITE__
 	ccl_global float *buf_x = buffer + 0;
 	ccl_global float *buf_y = buffer + 1;
 	ccl_global float *buf_z = buffer + 2;
@@ -57,7 +61,7 @@ ccl_device_inline void kernel_write_pass_float4(ccl_global float *buffer, float4
 #else
 	ccl_global float4 *buf = (ccl_global float4*)buffer;
 	*buf += value;
-#endif  /* __SPLIT_KERNEL__ */
+#endif
 }
 
 #ifdef __DENOISING_FEATURES__
@@ -70,7 +74,7 @@ ccl_device_inline void kernel_write_pass_float_variance(ccl_global float *buffer
 	kernel_write_pass_float(buffer+1, value*value);
 }
 
-#  if defined(__SPLIT_KERNEL__)
+#  ifdef __ATOMIC_PASS_WRITE__
 #    define kernel_write_pass_float3_unaligned kernel_write_pass_float3
 #  else
 ccl_device_inline void kernel_write_pass_float3_unaligned(ccl_global float *buffer, float3 value)

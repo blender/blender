@@ -21,6 +21,8 @@
 #include "kernel/kernel_compat_cuda.h"
 #include "kernel_config.h"
 
+#include "util/util_atomic.h"
+
 #include "kernel/kernel_math.h"
 #include "kernel/kernel_types.h"
 #include "kernel/kernel_globals.h"

@@ -1281,17 +1281,16 @@ public:
 		task.unmap_neighbor_tiles(rtiles, this);
 	}
 
-	void path_trace(RenderTile& rtile, int sample, bool branched)
+	void path_trace(DeviceTask& task, RenderTile& rtile)
 	{
 		if(have_error())
 			return;
 
 		CUDAContextScope scope(this);
-
 		CUfunction cuPathTrace;
 
-		/* get kernel function */
-		if(branched) {
+		/* Get kernel function. */
+		if(task.integrator_branched) {
 			cuda_assert(cuModuleGetFunction(&cuPathTrace, cuModule, "kernel_cuda_branched_path_trace"));
 		}
 		else {
@@ -1304,7 +1303,7 @@ public:
 
 		cuda_assert(cuFuncSetCacheConfig(cuPathTrace, CU_FUNC_CACHE_PREFER_L1));
 
-		/* allocate work tile */
+		/* Allocate work tile. */
 		device_vector<WorkTile> work_tiles;
 		work_tiles.resize(1);
 
@@ -1315,32 +1314,50 @@ public:
 		wtile->h = rtile.h;
 		wtile->offset = rtile.offset;
 		wtile->stride = rtile.stride;
-		wtile->start_sample = sample;
-		wtile->num_samples = 1;
 		wtile->buffer = (float*)cuda_device_ptr(rtile.buffer);
-
 		mem_alloc("work_tiles", work_tiles, MEM_READ_ONLY);
-		mem_copy_to(work_tiles);
 
 		CUdeviceptr d_work_tiles = cuda_device_ptr(work_tiles.device_pointer);
 
-		uint total_work_size = wtile->w * wtile->h * wtile->num_samples;
+		/* Prepare work size. More step samples render faster, but for now we
+		 * remain conservative to avoid driver timeouts. */
+		int min_blocks, num_threads_per_block;
+		cuda_assert(cuOccupancyMaxPotentialBlockSize(&min_blocks, &num_threads_per_block, cuPathTrace, NULL, 0, 0));
+		uint step_samples = divide_up(min_blocks * num_threads_per_block, wtile->w * wtile->h);;
 
-		/* pass in parameters */
-		void *args[] = {&d_work_tiles,
-		                &total_work_size};
+		/* Render all samples. */
+		int start_sample = rtile.start_sample;
+		int end_sample = rtile.start_sample + rtile.num_samples;
 
-		/* launch kernel */
-		int num_threads_per_block;
-		cuda_assert(cuFuncGetAttribute(&num_threads_per_block, CU_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK, cuPathTrace));
-		int num_blocks = divide_up(total_work_size, num_threads_per_block);
+		for(int sample = start_sample; sample < end_sample; sample += step_samples) {
+			/* Setup and copy work tile to device. */
+			wtile->start_sample = sample;
+			wtile->num_samples = min(step_samples, end_sample - sample);;
+			mem_copy_to(work_tiles);
 
-		cuda_assert(cuLaunchKernel(cuPathTrace,
-		                           num_blocks, 1, 1,
-		                           num_threads_per_block, 1, 1,
-		                           0, 0, args, 0));
+			uint total_work_size = wtile->w * wtile->h * wtile->num_samples;
+			uint num_blocks = divide_up(total_work_size, num_threads_per_block);
 
-		cuda_assert(cuCtxSynchronize());
+			/* Launch kernel. */
+			void *args[] = {&d_work_tiles,
+			                &total_work_size};
+
+			cuda_assert(cuLaunchKernel(cuPathTrace,
+			                           num_blocks, 1, 1,
+			                           num_threads_per_block, 1, 1,
+			                           0, 0, args, 0));
+
+			cuda_assert(cuCtxSynchronize());
+
+			/* Update progress. */
+			rtile.sample = sample + wtile->num_samples;
+			task.update_progress(&rtile, rtile.w*rtile.h);
+
+			if(task.get_cancel()) {
+				if(task.need_finish_queue == false)
+					break;
+			}
+		}
 
 		mem_free(work_tiles);
 	}
@@ -1700,8 +1717,6 @@ public:
 		if(task->type == DeviceTask::RENDER) {
 			RenderTile tile;
 
-			bool branched = task->integrator_branched;
-
 			/* Upload Bindless Mapping */
 			load_bindless_mapping();
 
@@ -1725,21 +1740,7 @@ public:
 						split_kernel->path_trace(task, tile, void_buffer, void_buffer);
 					}
 					else {
-						int start_sample = tile.start_sample;
-						int end_sample = tile.start_sample + tile.num_samples;
-
-						for(int sample = start_sample; sample < end_sample; sample++) {
-							if(task->get_cancel()) {
-								if(task->need_finish_queue == false)
-									break;
-							}
-
-							path_trace(tile, sample, branched);
-
-							tile.sample = sample + 1;
-
-							task->update_progress(&tile, tile.w*tile.h);
-						}
+						path_trace(*task, tile);
 					}
 				}
 				else if(tile.task == RenderTile::DENOISE) {
