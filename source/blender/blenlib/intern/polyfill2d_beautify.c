@@ -149,22 +149,24 @@ float BLI_polyfill_beautify_quad_rotate_calc_ex(
 		 * - Area sign flipping to check faces aren't going to point in opposite directions.
 		 * - Area epsilon check that the one of the faces won't be zero area.
 		 */
-		if (((area_2x_123 >= 0.0f) != (area_2x_134 >= 0.0f)) ||
-		    (fabsf(area_2x_123) <= FLT_EPSILON) || (fabsf(area_2x_134) <= FLT_EPSILON))
-		{
+		if ((area_2x_123 >= 0.0f) != (area_2x_134 >= 0.0f)) {
+			break;
+		}
+		else if ((fabsf(area_2x_123) <= FLT_EPSILON) || (fabsf(area_2x_134) <= FLT_EPSILON)) {
 			break;
 		}
 
 		/* Test for unusable (2-4) state (same as above). */
-		if (((area_2x_234 >= 0.0f) != (area_2x_241 >= 0.0f)) ||
-		    ((fabsf(area_2x_234) <= FLT_EPSILON) || (fabsf(area_2x_241) <= FLT_EPSILON)))
-		{
+		if ((area_2x_234 >= 0.0f) != (area_2x_241 >= 0.0f)) {
 			if (lock_degenerate) {
 				break;
 			}
 			else {
 				return -FLT_MAX;  /* always rotate */
 			}
+		}
+		else if ((fabsf(area_2x_234) <= FLT_EPSILON) || (fabsf(area_2x_241) <= FLT_EPSILON)) {
+			return -FLT_MAX;  /* always rotate */
 		}
 
 		{
