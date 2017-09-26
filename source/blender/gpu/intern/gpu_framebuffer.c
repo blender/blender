@@ -348,6 +348,10 @@ void GPU_framebuffer_bind(GPUFrameBuffer *fb)
 		glReadBuffer(readattachement);
 	}
 
+	if (GPU_texture_target(tex) == GL_TEXTURE_2D_MULTISAMPLE) {
+		glEnable(GL_MULTISAMPLE);
+	}
+
 	glViewport(0, 0, GPU_texture_width(tex), GPU_texture_height(tex));
 	GG.currentfb = fb->object;
 }
