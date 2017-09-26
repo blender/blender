@@ -67,18 +67,7 @@ ccl_device_inline void kernel_write_pass_float_variance(ccl_global float *buffer
 
 	/* The online one-pass variance update that's used for the megakernel can't easily be implemented
 	 * with atomics, so for the split kernel the E[x^2] - 1/N * (E[x])^2 fallback is used. */
-#  ifdef __SPLIT_KERNEL__
 	kernel_write_pass_float(buffer+1, sample, value*value);
-#  else
-	if(sample == 0) {
-		kernel_write_pass_float(buffer+1, sample, 0.0f);
-	}
-	else {
-		float new_mean = buffer[0] * (1.0f / (sample + 1));
-		float old_mean = (buffer[0] - value) * (1.0f / sample);
-		kernel_write_pass_float(buffer+1, sample, (value - new_mean) * (value - old_mean));
-	}
-#  endif
 }
 
 #  if defined(__SPLIT_KERNEL__)
@@ -95,19 +84,7 @@ ccl_device_inline void kernel_write_pass_float3_unaligned(ccl_global float *buff
 ccl_device_inline void kernel_write_pass_float3_variance(ccl_global float *buffer, int sample, float3 value)
 {
 	kernel_write_pass_float3_unaligned(buffer, sample, value);
-#  ifdef __SPLIT_KERNEL__
 	kernel_write_pass_float3_unaligned(buffer+3, sample, value*value);
-#  else
-	if(sample == 0) {
-		kernel_write_pass_float3_unaligned(buffer+3, sample, make_float3(0.0f, 0.0f, 0.0f));
-	}
-	else {
-		float3 sum = make_float3(buffer[0], buffer[1], buffer[2]);
-		float3 new_mean = sum * (1.0f / (sample + 1));
-		float3 old_mean = (sum - value) * (1.0f / sample);
-		kernel_write_pass_float3_unaligned(buffer+3, sample, (value - new_mean) * (value - old_mean));
-	}
-#  endif
 }
 
 ccl_device_inline void kernel_write_denoising_shadow(KernelGlobals *kg, ccl_global float *buffer,
@@ -125,18 +102,7 @@ ccl_device_inline void kernel_write_denoising_shadow(KernelGlobals *kg, ccl_glob
 	kernel_write_pass_float(buffer+1, sample/2, path_total_shaded);
 
 	float value = path_total_shaded / max(path_total, 1e-7f);
-#  ifdef __SPLIT_KERNEL__
 	kernel_write_pass_float(buffer+2, sample/2, value*value);
-#  else
-	if(sample < 2) {
-		kernel_write_pass_float(buffer+2, sample/2, 0.0f);
-	}
-	else {
-		float old_value = (buffer[1] - path_total_shaded) / max(buffer[0] - path_total, 1e-7f);
-		float new_value = buffer[1] / max(buffer[0], 1e-7f);
-		kernel_write_pass_float(buffer+2, sample, (value - new_value) * (value - old_value));
-	}
-#  endif
 }
 #endif /* __DENOISING_FEATURES__ */
 

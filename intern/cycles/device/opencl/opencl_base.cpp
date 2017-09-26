@@ -982,7 +982,6 @@ bool OpenCLDeviceBase::denoising_divide_shadow(device_ptr a_ptr,
 
 	cl_kernel ckFilterDivideShadow = denoising_program(ustring("filter_divide_shadow"));
 
-	char split_kernel = is_split_kernel()? 1 : 0;
 	kernel_set_args(ckFilterDivideShadow, 0,
 	                task->render_buffer.samples,
 	                tiles_mem,
@@ -993,8 +992,7 @@ bool OpenCLDeviceBase::denoising_divide_shadow(device_ptr a_ptr,
 	                buffer_variance_mem,
 	                task->rect,
 	                task->render_buffer.pass_stride,
-	                task->render_buffer.denoising_data_offset,
-	                split_kernel);
+	                task->render_buffer.denoising_data_offset);
 	enqueue_kernel(ckFilterDivideShadow,
 	               task->rect.z-task->rect.x,
 	               task->rect.w-task->rect.y);
@@ -1015,7 +1013,6 @@ bool OpenCLDeviceBase::denoising_get_feature(int mean_offset,
 
 	cl_kernel ckFilterGetFeature = denoising_program(ustring("filter_get_feature"));
 
-	char split_kernel = is_split_kernel()? 1 : 0;
 	kernel_set_args(ckFilterGetFeature, 0,
 	                task->render_buffer.samples,
 	                tiles_mem,
@@ -1025,8 +1022,7 @@ bool OpenCLDeviceBase::denoising_get_feature(int mean_offset,
 	                variance_mem,
 	                task->rect,
 	                task->render_buffer.pass_stride,
-	                task->render_buffer.denoising_data_offset,
-	                split_kernel);
+	                task->render_buffer.denoising_data_offset);
 	enqueue_kernel(ckFilterGetFeature,
 	               task->rect.z-task->rect.x,
 	               task->rect.w-task->rect.y);

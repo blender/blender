@@ -35,8 +35,7 @@ ccl_device void kernel_filter_divide_shadow(int sample,
                                             ccl_global float *bufferVariance,
                                             int4 rect,
                                             int buffer_pass_stride,
-                                            int buffer_denoising_offset,
-                                            bool use_split_variance)
+                                            int buffer_denoising_offset)
 {
 	int xtile = (x < tiles->x[1])? 0: ((x < tiles->x[2])? 1: 2);
 	int ytile = (y < tiles->y[1])? 0: ((y < tiles->y[2])? 1: 2);
@@ -57,10 +56,12 @@ ccl_device void kernel_filter_divide_shadow(int sample,
 	float varB = center_buffer[5];
 	int odd_sample = (sample+1)/2;
 	int even_sample = sample/2;
-	if(use_split_variance) {
-		varA = max(0.0f, varA - unfilteredA[idx]*unfilteredA[idx]*odd_sample);
-		varB = max(0.0f, varB - unfilteredB[idx]*unfilteredB[idx]*even_sample);
-	}
+
+	/* Approximate variance as E[x^2] - 1/N * (E[x])^2, since online variance
+	 * update does not work efficiently with atomics in the kernel. */
+	varA = max(0.0f, varA - unfilteredA[idx]*unfilteredA[idx]*odd_sample);
+	varB = max(0.0f, varB - unfilteredB[idx]*unfilteredB[idx]*even_sample);
+
 	varA /= max(odd_sample - 1, 1);
 	varB /= max(even_sample - 1, 1);
 
@@ -84,8 +85,7 @@ ccl_device void kernel_filter_get_feature(int sample,
                                           ccl_global float *mean,
                                           ccl_global float *variance,
                                           int4 rect, int buffer_pass_stride,
-                                          int buffer_denoising_offset,
-                                          bool use_split_variance)
+                                          int buffer_denoising_offset)
 {
 	int xtile = (x < tiles->x[1])? 0: ((x < tiles->x[2])? 1: 2);
 	int ytile = (y < tiles->y[1])? 0: ((y < tiles->y[2])? 1: 2);
@@ -97,12 +97,9 @@ ccl_device void kernel_filter_get_feature(int sample,
 
 	mean[idx] = center_buffer[m_offset] / sample;
 	if(sample > 1) {
-		if(use_split_variance) {
-			variance[idx] = max(0.0f, (center_buffer[v_offset] - mean[idx]*mean[idx]*sample) / (sample * (sample-1)));
-		}
-		else {
-			variance[idx] = center_buffer[v_offset] / (sample * (sample-1));
-		}
+		/* Approximate variance as E[x^2] - 1/N * (E[x])^2, since online variance
+		 * update does not work efficiently with atomics in the kernel. */
+		variance[idx] = max(0.0f, (center_buffer[v_offset] - mean[idx]*mean[idx]*sample) / (sample * (sample-1)));
 	}
 	else {
 		/* Can't compute variance with single sample, just set it very high. */

@@ -31,8 +31,7 @@ __kernel void kernel_ocl_filter_divide_shadow(int sample,
                                               ccl_global float *bufferVariance,
                                               int4 prefilter_rect,
                                               int buffer_pass_stride,
-                                              int buffer_denoising_offset,
-                                              char use_split_variance)
+                                              int buffer_denoising_offset)
 {
 	int x = prefilter_rect.x + get_global_id(0);
 	int y = prefilter_rect.y + get_global_id(1);
@@ -47,8 +46,7 @@ __kernel void kernel_ocl_filter_divide_shadow(int sample,
 		                            bufferVariance,
 		                            prefilter_rect,
 		                            buffer_pass_stride,
-		                            buffer_denoising_offset,
-		                            use_split_variance);
+		                            buffer_denoising_offset);
 	}
 }
 
@@ -60,8 +58,7 @@ __kernel void kernel_ocl_filter_get_feature(int sample,
                                             ccl_global float *variance,
                                             int4 prefilter_rect,
                                             int buffer_pass_stride,
-                                            int buffer_denoising_offset,
-                                            char use_split_variance)
+                                            int buffer_denoising_offset)
 {
 	int x = prefilter_rect.x + get_global_id(0);
 	int y = prefilter_rect.y + get_global_id(1);
@@ -73,8 +70,7 @@ __kernel void kernel_ocl_filter_get_feature(int sample,
 		                          mean, variance,
 		                          prefilter_rect,
 		                          buffer_pass_stride,
-		                          buffer_denoising_offset,
-		                          use_split_variance);
+		                          buffer_denoising_offset);
 	}
 }
 

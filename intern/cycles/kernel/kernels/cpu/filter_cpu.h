@@ -27,8 +27,7 @@ void KERNEL_FUNCTION_FULL_NAME(filter_divide_shadow)(int sample,
                                                      float *bufferV,
                                                      int* prefilter_rect,
                                                      int buffer_pass_stride,
-                                                     int buffer_denoising_offset,
-                                                     bool use_split_variance);
+                                                     int buffer_denoising_offset);
 
 void KERNEL_FUNCTION_FULL_NAME(filter_get_feature)(int sample,
                                                    TilesInfo *tiles,
@@ -40,8 +39,7 @@ void KERNEL_FUNCTION_FULL_NAME(filter_get_feature)(int sample,
                                                    float *variance,
                                                    int* prefilter_rect,
                                                    int buffer_pass_stride,
-                                                   int buffer_denoising_offset,
-                                                   bool use_split_variance);
+                                                   int buffer_denoising_offset);
 
 void KERNEL_FUNCTION_FULL_NAME(filter_detect_outliers)(int x, int y,
                                                        ccl_global float *image,
