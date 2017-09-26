@@ -1724,12 +1724,10 @@ static void draw_geometry_prepare(
 	          ? viewport_matrix_override.mat[DRW_MAT_VIEWINV] : rv3d->viewinv;
 	winmat = (viewport_matrix_override.override[DRW_MAT_WIN])
 	          ? viewport_matrix_override.mat[DRW_MAT_WIN] : rv3d->winmat;
+	wininv = viewport_matrix_override.mat[DRW_MAT_WININV];
 
 	if (do_pi) {
-		if (viewport_matrix_override.override[DRW_MAT_WININV]) {
-			wininv = viewport_matrix_override.mat[DRW_MAT_WININV];
-		}
-		else {
+		if (!viewport_matrix_override.override[DRW_MAT_WININV]) {
 			invert_m4_m4(pi, winmat);
 			wininv = pi;
 		}
@@ -2291,8 +2289,8 @@ void DRW_framebuffer_init(
 			if (!is_depth) {
 				++color_attachment;
 			}
-			drw_texture_set_parameters(*fbotex.tex, fbotex.flag);
 			GPU_framebuffer_texture_attach(*fb, *fbotex.tex, color_attachment, 0);
+			drw_texture_set_parameters(*fbotex.tex, fbotex.flag);
 		}
 	}
 
