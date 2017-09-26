@@ -1027,19 +1027,19 @@ static void manipulator_prepare_mat(
 		case V3D_AROUND_CENTER_BOUNDS:
 		case V3D_AROUND_ACTIVE:
 		{
-				bGPdata *gpd = CTX_data_gpencil_data(C);
-				Object *ob = OBACT_NEW(sl);
+			bGPdata *gpd = CTX_data_gpencil_data(C);
+			Object *ob = OBACT_NEW(sl);
 
-				if (((v3d->around == V3D_AROUND_ACTIVE) && (scene->obedit == NULL)) &&
-				    ((gpd == NULL) || !(gpd->flag & GP_DATA_STROKE_EDITMODE)) &&
-				    (!(ob->mode & OB_MODE_POSE)))
-				{
-					copy_v3_v3(rv3d->twmat[3], ob->obmat[3]);
-				}
-				else {
-					mid_v3_v3v3(rv3d->twmat[3], tbounds->min, tbounds->max);
-				}
-				break;
+			if (((v3d->around == V3D_AROUND_ACTIVE) && (scene->obedit == NULL)) &&
+			    ((gpd == NULL) || !(gpd->flag & GP_DATA_STROKE_EDITMODE)) &&
+			    (!(ob->mode & OB_MODE_POSE)))
+			{
+				copy_v3_v3(rv3d->twmat[3], ob->obmat[3]);
+			}
+			else {
+				mid_v3_v3v3(rv3d->twmat[3], tbounds->min, tbounds->max);
+			}
+			break;
 		}
 		case V3D_AROUND_LOCAL_ORIGINS:
 		case V3D_AROUND_CENTER_MEAN:
