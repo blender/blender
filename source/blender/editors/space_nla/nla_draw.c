@@ -498,7 +498,7 @@ static void nla_draw_strip(SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStri
 	if (muted) {
 		/* muted - draw dotted, squarish outline (for simplicity) */
 		shdr_pos = nla_draw_use_dashed_outlines(color, muted);
-		imm_draw_line_box_2d(shdr_pos, strip->start, yminc, strip->end, ymaxc);
+		imm_draw_box_wire_2d(shdr_pos, strip->start, yminc, strip->end, ymaxc);
 	}
 	else {
 		/* non-muted - draw solid, rounded outline */

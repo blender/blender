@@ -849,12 +849,12 @@ BLI_INLINE void draw_rect_point(
 	float maxx = co[0] + w;
 	float maxy = co[1] + w;
 
-	imm_draw_line_box_2d(pos, minx, miny, maxx, maxy);
+	imm_draw_box_wire_2d(pos, minx, miny, maxx, maxy);
 
 	immUniformColor4f(1.0f, 1.0f, 1.0f, 0.5f);
 	glLineWidth(1.0f);
 
-	imm_draw_line_box_2d(pos, minx, miny, maxx, maxy);
+	imm_draw_box_wire_2d(pos, minx, miny, maxx, maxy);
 }
 
 

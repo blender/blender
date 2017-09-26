@@ -316,7 +316,7 @@ static void draw_movieclip_buffer(const bContext *C, SpaceClip *sc, ARegion *ar,
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		imm_draw_checker_box_2d(x, y, x + zoomx * ibuf->x, y + zoomy * ibuf->y);
+		imm_draw_box_checker_2d(x, y, x + zoomx * ibuf->x, y + zoomy * ibuf->y);
 	}
 
 	/* non-scaled proxy shouldn't use filtering */
@@ -372,7 +372,7 @@ static void draw_stabilization_border(SpaceClip *sc, ARegion *ar, int width, int
 		immUniform1f("dash_width", 6.0f);
 		immUniform1f("dash_factor", 0.5f);
 
-		imm_draw_line_box_2d(shdr_pos, 0.0f, 0.0f, width, height);
+		imm_draw_box_wire_2d(shdr_pos, 0.0f, 0.0f, width, height);
 
 		immUnbindProgram();
 
@@ -618,7 +618,7 @@ static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieT
 	               ((marker->flag & MARKER_DISABLED) == 0 || (sc->flag & SC_SHOW_MARKER_PATTERN) == 0)) != 0;
 
 	if (sc->flag & SC_SHOW_MARKER_SEARCH && show_search) {
-		imm_draw_line_box_2d(position, marker->search_min[0],
+		imm_draw_box_wire_2d(position, marker->search_min[0],
 		                            marker->search_min[1],
 		                            marker->search_max[0],
 		                            marker->search_max[1]);
@@ -795,7 +795,7 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	               ((marker->flag & MARKER_DISABLED) == 0 || (sc->flag & SC_SHOW_MARKER_PATTERN) == 0)) != 0;
 
 	if ((track->search_flag & SELECT) == sel && (sc->flag & SC_SHOW_MARKER_SEARCH) && show_search) {
-		imm_draw_line_box_2d(shdr_pos, marker->search_min[0], marker->search_min[1],
+		imm_draw_box_wire_2d(shdr_pos, marker->search_min[0], marker->search_min[1],
 		                            marker->search_max[0], marker->search_max[1]);
 	}
 

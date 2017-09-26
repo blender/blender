@@ -319,7 +319,7 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		imm_draw_checker_box_2d(offs_x, offs_y, offs_x + span_x, offs_y + span_y);
+		imm_draw_box_checker_2d(offs_x, offs_y, offs_x + span_x, offs_y + span_y);
 	}
 
 	IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);

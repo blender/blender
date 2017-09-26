@@ -176,7 +176,7 @@ void imm_draw_circle_fill_3d(unsigned pos, float x, float y, float rad, int nseg
 * \param x2 right.
 * \param y2 top.
 */
-void imm_draw_line_box_2d(unsigned pos, float x1, float y1, float x2, float y2)
+void imm_draw_box_wire_2d(unsigned pos, float x1, float y1, float x2, float y2)
 {
 	immBegin(GWN_PRIM_LINE_LOOP, 4);
 	immVertex2f(pos, x1, y1);
@@ -186,7 +186,7 @@ void imm_draw_line_box_2d(unsigned pos, float x1, float y1, float x2, float y2)
 	immEnd();
 }
 
-void imm_draw_line_box_3d(unsigned pos, float x1, float y1, float x2, float y2)
+void imm_draw_box_wire_3d(unsigned pos, float x1, float y1, float x2, float y2)
 {
 	/* use this version when Gwn_VertFormat has a vec3 position */
 	immBegin(GWN_PRIM_LINE_LOOP, 4);
@@ -200,7 +200,7 @@ void imm_draw_line_box_3d(unsigned pos, float x1, float y1, float x2, float y2)
 /**
  * Draw a standard checkerboard to indicate transparent backgrounds.
  */
-void imm_draw_checker_box_2d(float x1, float y1, float x2, float y2)
+void imm_draw_box_checker_2d(float x1, float y1, float x2, float y2)
 {
 	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_CHECKER);

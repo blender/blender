@@ -768,7 +768,7 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 			glDisable(GL_BLEND);
 		}
 
-		imm_draw_line_box_2d(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+		imm_draw_box_wire_2d(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	}
 	else {
 		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
@@ -780,7 +780,7 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 
-		imm_draw_line_box_2d(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+		imm_draw_box_wire_2d(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 
 		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
@@ -1478,7 +1478,7 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 				 * previously it adjusted to always to show it but that seems
 				 * confusing because it doesn't show the actual blend size */
 				if (blend != 0.0f && blend != z_abs) {
-					imm_draw_line_box_3d(pos, blend, -blend, -blend, blend);
+					imm_draw_box_wire_3d(pos, blend, -blend, -blend, blend);
 				}
 			}
 		}
@@ -1588,9 +1588,9 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 	else if (la->type == LA_AREA) {
 		setlinestyle(3);
 		if (la->area_shape == LA_AREA_SQUARE)
-			imm_draw_line_box_3d(pos, -la->area_size * 0.5f, -la->area_size * 0.5f, la->area_size * 0.5f, la->area_size * 0.5f);
+			imm_draw_box_wire_3d(pos, -la->area_size * 0.5f, -la->area_size * 0.5f, la->area_size * 0.5f, la->area_size * 0.5f);
 		else if (la->area_shape == LA_AREA_RECT)
-			imm_draw_line_box_3d(pos, -la->area_size * 0.5f, -la->area_sizey * 0.5f, la->area_size * 0.5f, la->area_sizey * 0.5f);
+			imm_draw_box_wire_3d(pos, -la->area_size * 0.5f, -la->area_sizey * 0.5f, la->area_size * 0.5f, la->area_sizey * 0.5f);
 
 		immBegin(GWN_PRIM_LINES, 2);
 		immVertex3f(pos, 0.0f, 0.0f, -circrad);

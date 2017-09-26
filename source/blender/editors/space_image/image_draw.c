@@ -369,7 +369,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, bool color_manage, bool use_d
 	pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor3ub(128, 128, 128);
-	imm_draw_line_box_2d(pos, color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
+	imm_draw_box_wire_2d(pos, color_rect.xmin, color_rect.ymin, color_rect.xmax, color_rect.ymax);
 	immUnbindProgram();
 
 	dx += 1.75f * UI_UNIT_X;
@@ -503,7 +503,7 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 		                         &clip_max_x, &clip_max_y);
 
 		if (sima->flag & SI_USE_ALPHA) {
-			imm_draw_checker_box_2d(x, y, x + ibuf->x * zoomx, y + ibuf->y * zoomy);
+			imm_draw_box_checker_2d(x, y, x + ibuf->x * zoomx, y + ibuf->y * zoomy);
 
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

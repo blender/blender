@@ -224,7 +224,7 @@ static void wm_gesture_draw_rect(wmGesture *gt)
 	immUniformArray4fv("colors", (float *)(float[][4]){{0.4f, 0.4f, 0.4f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}}, 2);
 	immUniform1f("dash_width", 8.0f);
 
-	imm_draw_line_box_2d(shdr_pos, (float)rect->xmin, (float)rect->ymin, (float)rect->xmax, (float)rect->ymax);
+	imm_draw_box_wire_2d(shdr_pos, (float)rect->xmin, (float)rect->ymin, (float)rect->xmax, (float)rect->ymax);
 
 	immUnbindProgram();
 

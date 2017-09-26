@@ -504,12 +504,12 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		}
 
 		immUniformThemeColor(TH_BACK);
-		imm_draw_line_box_2d(shdr_pos, x1i, y1i, x2i, y2i);
+		imm_draw_box_wire_2d(shdr_pos, x1i, y1i, x2i, y2i);
 
 #ifdef VIEW3D_CAMERA_BORDER_HACK
 		if (view3d_camera_border_hack_test == true) {
 			immUniformColor3ubv(view3d_camera_border_hack_col);
-			imm_draw_line_box_2d(shdr_pos, x1i + 1, y1i + 1, x2i - 1, y2i - 1);
+			imm_draw_box_wire_2d(shdr_pos, x1i + 1, y1i + 1, x2i - 1, y2i - 1);
 			view3d_camera_border_hack_test = false;
 		}
 #endif
@@ -532,11 +532,11 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		/* outer line not to confuse with object selection */
 		if (v3d->flag2 & V3D_LOCK_CAMERA) {
 			immUniformThemeColor(TH_REDALERT);
-			imm_draw_line_box_2d(shdr_pos, x1i - 1, y1i - 1, x2i + 1, y2i + 1);
+			imm_draw_box_wire_2d(shdr_pos, x1i - 1, y1i - 1, x2i + 1, y2i + 1);
 		}
 
 		immUniformThemeColor(TH_VIEW_OVERLAY);
-		imm_draw_line_box_2d(shdr_pos, x1i, y1i, x2i, y2i);
+		imm_draw_box_wire_2d(shdr_pos, x1i, y1i, x2i, y2i);
 	}
 
 	/* border */
@@ -549,7 +549,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		y4 = floorf(y1 + (scene->r.border.ymax * (y2 - y1))) + (U.pixelsize - 1);
 
 		immUniformColor3f(1.0f, 0.25f, 0.25f);
-		imm_draw_line_box_2d(shdr_pos, x3, y3, x4, y4);
+		imm_draw_box_wire_2d(shdr_pos, x3, y3, x4, y4);
 	}
 
 	/* safety border */
@@ -658,7 +658,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 			/* TODO Was using UI_draw_roundbox_4fv(false, rect.xmin, rect.ymin, rect.xmax, rect.ymax, 2.0f, color).
 			 * We'll probably need a new imm_draw_line_roundbox_dashed dor that - though in practice the
 			 * 2.0f round corner effect was nearly not visible anyway... */
-			imm_draw_line_box_2d(shdr_pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+			imm_draw_box_wire_2d(shdr_pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 		}
 	}
 
@@ -692,7 +692,7 @@ static void drawrenderborder(ARegion *ar, View3D *v3d)
 	immUniform1f("dash_width", 6.0f);
 	immUniform1f("dash_factor", 0.5f);
 
-	imm_draw_line_box_2d(shdr_pos,
+	imm_draw_box_wire_2d(shdr_pos,
 	                  v3d->render_border.xmin * ar->winx, v3d->render_border.ymin * ar->winy,
 	                  v3d->render_border.xmax * ar->winx, v3d->render_border.ymax * ar->winy);
 

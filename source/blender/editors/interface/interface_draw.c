@@ -604,7 +604,7 @@ void UI_draw_safe_areas(
 			float maxx = x2 - margin_x;
 			float maxy = y2 - margin_y;
 
-			imm_draw_line_box_2d(pos, minx, miny, maxx, maxy);
+			imm_draw_box_wire_2d(pos, minx, miny, maxx, maxy);
 		}
 	}
 }
@@ -1377,7 +1377,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti 
 
 	/* layer: box outline */
 	immUniformColor4f(0.0f, 0.0f, 0.0f, 1.0f);
-	imm_draw_line_box_2d(position, x1, y1, x1 + sizex, rect->ymax);
+	imm_draw_box_wire_2d(position, x1, y1, x1 + sizex, rect->ymax);
 
 	/* layer: box outline */
 	glEnable(GL_BLEND);
@@ -1717,7 +1717,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	immUniformColor3ubv((unsigned char *)wcol->outline);
-	imm_draw_line_box_2d(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+	imm_draw_box_wire_2d(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 
 	immUnbindProgram();
 }

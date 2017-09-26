@@ -2637,7 +2637,7 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
 	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor3ub(0, 0, 0);
-	imm_draw_line_box_2d(pos, (rect->xmin), (rect->ymin), (rect->xmax), (rect->ymax));
+	imm_draw_box_wire_2d(pos, (rect->xmin), (rect->ymin), (rect->xmax), (rect->ymax));
 	immUnbindProgram();
 }
 

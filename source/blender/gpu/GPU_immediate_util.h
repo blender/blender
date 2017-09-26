@@ -43,11 +43,11 @@ void imm_draw_disk_partial_fill_2d(
         uint pos, float x, float y,
         float radius_inner, float radius_outer, int nsegments, float start, float sweep);
 
-void imm_draw_line_box_2d(uint pos, float x1, float y1, float x2, float y2);
+void imm_draw_box_wire_2d(uint pos, float x1, float y1, float x2, float y2);
 
-void imm_draw_line_box_3d(uint pos, float x1, float y1, float x2, float y2);
+void imm_draw_box_wire_3d(uint pos, float x1, float y1, float x2, float y2);
 
-void imm_draw_checker_box_2d(float x1, float y1, float x2, float y2);
+void imm_draw_box_checker_2d(float x1, float y1, float x2, float y2);
 
 void imm_draw_cylinder_fill_normal_3d(
         uint pos, uint nor, float base, float top, float height,

@@ -1891,7 +1891,7 @@ static bool view3d_main_region_draw_engine(
 	if (v3d->flag & V3D_DISPBGPICS)
 		view3d_draw_bgpic_test(scene, ar, v3d, false, true);
 	else
-		imm_draw_checker_box_2d(0, 0, ar->winx, ar->winy);
+		imm_draw_box_checker_2d(0, 0, ar->winx, ar->winy);
 
 	/* render result draw */
 	type = rv3d->render_engine->type;

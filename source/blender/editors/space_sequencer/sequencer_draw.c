@@ -644,7 +644,7 @@ static void draw_sequence_extensions(Scene *scene, ARegion *ar, Sequence *seq, u
 
 		immUniformColor3ubvAlpha(col, col[3] + 50);
 
-		imm_draw_line_box_2d(pos, (float)(seq->start), y1 - SEQ_STRIP_OFSBOTTOM, x1, y1);  /* outline */
+		imm_draw_box_wire_2d(pos, (float)(seq->start), y1 - SEQ_STRIP_OFSBOTTOM, x1, y1);  /* outline */
 	}
 	if (seq->endofs) {
 		immUniformColor4ubv(col);
@@ -652,7 +652,7 @@ static void draw_sequence_extensions(Scene *scene, ARegion *ar, Sequence *seq, u
 
 		immUniformColor3ubvAlpha(col, col[3] + 50);
 
-		imm_draw_line_box_2d(pos, x2, y2, (float)(seq->start + seq->len), y2 + SEQ_STRIP_OFSBOTTOM); /* outline */
+		imm_draw_box_wire_2d(pos, x2, y2, (float)(seq->start + seq->len), y2 + SEQ_STRIP_OFSBOTTOM); /* outline */
 	}
 
 	if (seq->startofs || seq->endofs) {
@@ -847,7 +847,7 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 		immUniformColor3ubv(col);
 	}
 
-	imm_draw_line_box_2d(pos, x1, y1, x2, y2); /* outline */
+	imm_draw_box_wire_2d(pos, x1, y1, x2, y2); /* outline */
 
 	immUnbindProgram();
 
@@ -1047,7 +1047,7 @@ static void sequencer_draw_borders(const SpaceSeq *sseq, const View2D *v2d, cons
 	immUniform1f("dash_width", 6.0f);
 	immUniform1f("dash_factor", 0.5f);
 
-	imm_draw_line_box_2d(shdr_pos, x1 - 0.5f, y1 - 0.5f, x2 + 0.5f, y2 + 0.5f);
+	imm_draw_box_wire_2d(shdr_pos, x1 - 0.5f, y1 - 0.5f, x2 + 0.5f, y2 + 0.5f);
 
 	/* safety border */
 	if (sseq->flag & SEQ_SHOW_SAFE_MARGINS) {
@@ -1081,7 +1081,7 @@ static void sequencer_draw_background(
 	/* only draw alpha for main buffer */
 	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
 		if ((sseq->flag & SEQ_USE_ALPHA) && !draw_overlay) {
-			imm_draw_checker_box_2d(v2d->tot.xmin, v2d->tot.ymin, v2d->tot.xmax, v2d->tot.ymax);
+			imm_draw_box_checker_2d(v2d->tot.xmin, v2d->tot.ymin, v2d->tot.xmax, v2d->tot.ymax);
 		}
 	}
 }
