@@ -1150,6 +1150,7 @@ static void render_world_to_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *
 	pinfo->layer = 0;
 
 	perspective_m4(winmat, -0.1f, 0.1f, -0.1f, 0.1f, 0.1f, 1.0f);
+	invert_m4_m4(wininv, winmat);
 
 	/* Detach to rebind the right cubeface. */
 	DRW_framebuffer_bind(sldata->probe_fb);
