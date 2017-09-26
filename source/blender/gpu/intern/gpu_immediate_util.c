@@ -33,6 +33,39 @@
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 
+static const float cube_coords[8][3] = {
+	{-1, -1, -1},
+	{-1, -1, +1},
+	{-1, +1, -1},
+	{-1, +1, +1},
+	{+1, -1, -1},
+	{+1, -1, +1},
+	{+1, +1, -1},
+	{+1, +1, +1},
+};
+static const int cube_quad_index[6][4] = {
+	{0, 1, 3, 2},
+	{0, 2, 6, 4},
+	{0, 4, 5, 1},
+	{1, 5, 7, 3},
+	{2, 3, 7, 6},
+	{4, 6, 7, 5},
+};
+static const int cube_line_index[12][2] = {
+	{0, 1},
+	{0, 2},
+	{0, 4},
+	{1, 3},
+	{1, 5},
+	{2, 3},
+	{2, 6},
+	{3, 7},
+	{4, 5},
+	{4, 6},
+	{5, 7},
+	{6, 7},
+};
+
 /**
  * Pack color into 3 bytes
  *
@@ -212,6 +245,43 @@ void imm_draw_box_checker_2d(float x1, float y1, float x2, float y2)
 	immRectf(pos, x1, y1, x2, y2);
 
 	immUnbindProgram();
+}
+
+void imm_draw_cube_fill_3d(uint pos, const float co[3], const float aspect[3])
+{
+	float coords[ARRAY_SIZE(cube_coords)][3];
+
+	for (int i = 0; i < ARRAY_SIZE(cube_coords); i++) {
+		madd_v3_v3v3v3(coords[i], co, cube_coords[i], aspect);
+	}
+
+	immBegin(GWN_PRIM_TRIS, ARRAY_SIZE(cube_quad_index) * 3 * 2);
+	for (int i = 0; i < ARRAY_SIZE(cube_quad_index); i++) {
+		immVertex3fv(pos, coords[cube_quad_index[i][0]]);
+		immVertex3fv(pos, coords[cube_quad_index[i][1]]);
+		immVertex3fv(pos, coords[cube_quad_index[i][2]]);
+
+		immVertex3fv(pos, coords[cube_quad_index[i][0]]);
+		immVertex3fv(pos, coords[cube_quad_index[i][2]]);
+		immVertex3fv(pos, coords[cube_quad_index[i][3]]);
+	}
+	immEnd();
+}
+
+void imm_draw_cube_wire_3d(uint pos, const float co[3], const float aspect[3])
+{
+	float coords[ARRAY_SIZE(cube_coords)][3];
+
+	for (int i = 0; i < ARRAY_SIZE(cube_coords); i++) {
+		madd_v3_v3v3v3(coords[i], co, cube_coords[i], aspect);
+	}
+
+	immBegin(GWN_PRIM_LINES, ARRAY_SIZE(cube_line_index) * 2);
+	for (int i = 0; i < ARRAY_SIZE(cube_line_index); i++) {
+		immVertex3fv(pos, coords[cube_line_index[i][0]]);
+		immVertex3fv(pos, coords[cube_line_index[i][1]]);
+	}
+	immEnd();
 }
 
 /**
