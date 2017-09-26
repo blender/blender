@@ -43,7 +43,7 @@
 #include "DEG_depsgraph.h"
 
 #include "BLI_dynstr.h"
-#include "BLI_jitter.h"
+#include "BLI_rand.h"
 
 #include "eevee_private.h"
 #include "GPU_texture.h"
@@ -764,7 +764,6 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 
 		if (effects->taa_total_sample != taa_pref_samples) {
 			effects->taa_total_sample = taa_pref_samples;
-			BLI_jitter_init(effects->taa_jit_ofs, effects->taa_total_sample);
 		}
 
 		DRW_viewport_matrix_get(persmat, DRW_MAT_PERS);
@@ -779,10 +778,16 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 
 			effects->taa_alpha = 1.0f - (1.0f / (float)(effects->taa_current_sample));
 
+			double ht_point[2];
+			double ht_offset[2] = {0.0, 0.0};
+			unsigned int ht_primes[2] = {2, 3};
+
+			BLI_halton_2D(ht_primes, ht_offset, effects->taa_current_sample - 1, ht_point);
+
 			window_translate_m4(
 			        effects->overide_winmat, persmat,
-			        (effects->taa_jit_ofs[effects->taa_current_sample][0] * 2.0f) / viewport_size[0],
-			        (effects->taa_jit_ofs[effects->taa_current_sample][1] * 2.0f) / viewport_size[1]);
+			        ((float)(ht_point[0]) * 2.0f - 1.0f) / viewport_size[0],
+			        ((float)(ht_point[1]) * 2.0f - 1.0f) / viewport_size[1]);
 
 			mul_m4_m4m4(effects->overide_persmat, effects->overide_winmat, viewmat);
 			invert_m4_m4(effects->overide_persinv, effects->overide_persmat);

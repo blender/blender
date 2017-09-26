@@ -312,19 +312,16 @@ static void distribute_grid(DerivedMesh *dm, ParticleSystem *psys)
 static void hammersley_create(float *out, int n, int seed, float amount)
 {
 	RNG *rng;
-	double p, t, offs[2];
-	int k, kk;
+
+	double offs[2], t;
 
 	rng = BLI_rng_new(31415926 + n + seed);
 	offs[0] = BLI_rng_get_double(rng) + (double)amount;
 	offs[1] = BLI_rng_get_double(rng) + (double)amount;
 	BLI_rng_free(rng);
 
-	for (k = 0; k < n; k++) {
-		t = 0;
-		for (p = 0.5, kk = k; kk; p *= 0.5, kk >>= 1)
-			if (kk & 1) /* kk mod 2 = 1 */
-				t += p;
+	for (int k = 0; k < n; k++) {
+		BLI_hammersley_1D(k, &t);
 
 		out[2*k + 0] = fmod((double)k/(double)n + offs[0], 1.0);
 		out[2*k + 1] = fmod(t + offs[1], 1.0);

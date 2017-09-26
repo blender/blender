@@ -277,19 +277,6 @@ static int matcap_to_index(int matcap)
 	return 0;
 }
 
-/* Van der Corput sequence */
-/* TODO this is duplicated code from eevee_lightprobes.c */
- /* From http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html */
-static float radical_inverse(int i) {
-	unsigned int bits = (unsigned int)i;
-	bits = (bits << 16u) | (bits >> 16u);
-	bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
-	bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
-	bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
-	bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
-	return (float)bits * 2.3283064365386963e-10f;
-}
-
 /* Using Hammersley distribution */
 static float *create_disk_samples(int num_samples)
 {
@@ -299,7 +286,10 @@ static float *create_disk_samples(int num_samples)
 
 	for (int i = 0; i < num_samples; i++) {
 		float r = (i + 0.5f) * num_samples_inv;
-		float phi = radical_inverse(i) * 2.0f * M_PI;
+		double dphi;
+		BLI_hammersley_1D(i, &dphi);
+
+		float phi = (float)dphi * 2.0f * M_PI;
 		texels[i][0] = cosf(phi);
 		texels[i][1] = sinf(phi);
 		/* This deliberatly distribute more samples

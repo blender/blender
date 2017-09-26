@@ -43,22 +43,6 @@ extern GlobalsUboStorage ts;
 
 /* *********** FUNCTIONS *********** */
 
-/* TODO : put this somewhere in BLI */
-static float halton_1D(int prime, int n)
-{
-	float inv_prime = 1.0f / (float)prime;
-	float f = 1.0f;
-	float r = 0.0f;
-
-	while (n > 0) {
-		f = f * inv_prime;
-		r += f * (n % prime);
-		n = (int)(n * inv_prime);
-	}
-
-	return r;
-}
-
 static void EEVEE_engine_init(void *ved)
 {
 	EEVEE_Data *vedata = (EEVEE_Data *)ved;
@@ -192,11 +176,12 @@ static void EEVEE_draw_scene(void *vedata)
 		EEVEE_update_util_texture(rand);
 	}
 	else if (((stl->effects->enabled_effects & EFFECT_TAA) != 0) && (stl->effects->taa_current_sample > 1)) {
-		rand = halton_1D(2, stl->effects->taa_current_sample - 1);
+		double r;
+		BLI_halton_1D(2, 0.0, stl->effects->taa_current_sample - 1, &r);
 
 		/* Set jitter offset */
 		/* PERF This is killing perf ! */
-		EEVEE_update_util_texture(rand);
+		EEVEE_update_util_texture((float)r);
 	}
 
 	while (loop_ct--) {
