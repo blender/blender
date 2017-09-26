@@ -897,6 +897,7 @@ void EEVEE_draw_shadows(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 
 		if (led->need_update) {
 			EEVEE_ShadowRender *srd = &linfo->shadow_render_data;
+			EEVEE_ShadowCubeData *evscd = (EEVEE_ShadowCubeData *)led->storage;
 
 			srd->clip_near = la->clipsta;
 			srd->clip_far = la->clipend;
@@ -956,7 +957,7 @@ void EEVEE_draw_shadows(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
 			srd->shadow_inv_samples_ct = 1.0f / (float)srd->shadow_samples_ct;
 			DRW_uniformbuffer_update(sldata->shadow_render_ubo, srd);
 
-			DRW_framebuffer_texture_layer_attach(sldata->shadow_store_fb, sldata->shadow_pool, 0, i, 0);
+			DRW_framebuffer_texture_layer_attach(sldata->shadow_store_fb, sldata->shadow_pool, 0, evscd->layer_id, 0);
 			DRW_framebuffer_bind(sldata->shadow_store_fb);
 			DRW_draw_pass(psl->shadow_cube_store_pass);
 
