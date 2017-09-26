@@ -28,9 +28,9 @@ else()
 endif()
 
 if(APPLE)
-	set(SNDFILE_CONFIGURE_ENV echo .)
+	set(SNDFILE_PATCH_CMD ${PATCH_CMD} --verbose -p 0 -d ${BUILD_DIR}/sndfile/src/external_sndfile < ${PATCH_DIR}/sndfile.diff)
 else()
-	set(SNDFILE_CONFIGURE_ENV ${CONFIGURE_ENV})
+	set(SNDFILE_PATCH_CMD)
 endif()
 
 ExternalProject_Add(external_sndfile
@@ -38,7 +38,8 @@ ExternalProject_Add(external_sndfile
 	DOWNLOAD_DIR ${DOWNLOAD_DIR}
 	URL_HASH MD5=${SNDFILE_HASH}
 	PREFIX ${BUILD_DIR}/sndfile
-	CONFIGURE_COMMAND ${SNDFILE_CONFIGURE_ENV} && cd ${BUILD_DIR}/sndfile/src/external_sndfile/ && ${SNDFILE_ENV} ${CONFIGURE_COMMAND} ${SNDFILE_OPTIONS} --prefix=${mingw_LIBDIR}/sndfile
+	PATCH_COMMAND ${SNDFILE_PATCH_CMD}
+	CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/sndfile/src/external_sndfile/ && ${SNDFILE_ENV} ${CONFIGURE_COMMAND} ${SNDFILE_OPTIONS} --prefix=${mingw_LIBDIR}/sndfile
 	BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/sndfile/src/external_sndfile/ && make -j${MAKE_THREADS}
 	INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/sndfile/src/external_sndfile/ && make install
 	INSTALL_DIR ${LIBDIR}/sndfile

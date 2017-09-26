@@ -851,6 +851,13 @@ static void drawObjectConstraint(TransInfo *t)
 			}
 		}
 
+		if (t->options & CTX_GPENCIL_STROKES) {
+			/* only draw a constraint line for one point, otherwise we can't see anything */
+			if ((options & DRAWLIGHT) == 0) {
+				break;
+			}
+		}
+
 		if (t->flag & T_OBJECT) {
 			copy_v3_v3(co, td->ob->obmat[3]);
 			axismtx = td->axismtx;

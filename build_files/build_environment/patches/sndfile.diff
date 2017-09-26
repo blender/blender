@@ -1,0 +1,42 @@
+--- src/Makefile.in	2017-09-26 01:28:47.000000000 +0300
++++ src/Makefile.in	2017-09-26 01:19:06.000000000 +0300
+@@ -513,7 +513,7 @@
+ libcommon_la_SOURCES = common.c file_io.c command.c pcm.c ulaw.c alaw.c \
+ 		float32.c double64.c ima_adpcm.c ms_adpcm.c gsm610.c dwvw.c vox_adpcm.c \
+ 		interleave.c strings.c dither.c cart.c broadcast.c audio_detect.c \
+- 		ima_oki_adpcm.c ima_oki_adpcm.h alac.c chunk.c ogg.c chanmap.c \
++		ima_oki_adpcm.c ima_oki_adpcm.h alac.c chunk.c ogg.c chanmap.c \
+ 		windows.c id3.c $(WIN_VERSION_FILE)
+ 
+ 
+@@ -719,10 +719,10 @@
+ 	$(AM_V_CCLD)$(LINK)  $(GSM610_libgsm_la_OBJECTS) $(GSM610_libgsm_la_LIBADD) $(LIBS)
+ 
+ libcommon.la: $(libcommon_la_OBJECTS) $(libcommon_la_DEPENDENCIES) $(EXTRA_libcommon_la_DEPENDENCIES) 
+-	$(AM_V_CCLD)$(LINK)  $(libcommon_la_OBJECTS) $(libcommon_la_LIBADD) $(LIBS)
++	$(AM_V_CCLD)$(LINK)  $(libcommon_la_OBJECTS) $(libcommon_la_LIBADD) $(LIBS) $(EXTERNAL_XIPH_LIBS)
+ 
+ libsndfile.la: $(libsndfile_la_OBJECTS) $(libsndfile_la_DEPENDENCIES) $(EXTRA_libsndfile_la_DEPENDENCIES) 
+-	$(AM_V_CCLD)$(libsndfile_la_LINK) -rpath $(libdir) $(libsndfile_la_OBJECTS) $(libsndfile_la_LIBADD) $(LIBS)
++	$(AM_V_CCLD)$(libsndfile_la_LINK) -rpath $(libdir) $(libsndfile_la_OBJECTS) $(libsndfile_la_LIBADD) $(LIBS) $(EXTERNAL_XIPH_LIBS)
+ 
+ clean-checkPROGRAMS:
+ 	@list='$(check_PROGRAMS)'; test -n "$$list" || exit 0; \
+@@ -924,7 +924,7 @@
+ @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsndfile_la_CPPFLAGS) $(CPPFLAGS) $(libsndfile_la_CFLAGS) $(CFLAGS) -c -o libsndfile_la-dwd.lo `test -f 'dwd.c' || echo '$(srcdir)/'`dwd.c
+ 
+ libsndfile_la-flac.lo: flac.c
+-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsndfile_la_CPPFLAGS) $(CPPFLAGS) $(libsndfile_la_CFLAGS) $(CFLAGS) -MT libsndfile_la-flac.lo -MD -MP -MF $(DEPDIR)/libsndfile_la-flac.Tpo -c -o libsndfile_la-flac.lo `test -f 'flac.c' || echo '$(srcdir)/'`flac.c
++@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsndfile_la_CPPFLAGS) $(CPPFLAGS) $(libsndfile_la_CFLAGS) $(CFLAGS) $(EXTERNAL_XIPH_CFLAGS) -MT libsndfile_la-flac.lo -MD -MP -MF $(DEPDIR)/libsndfile_la-flac.Tpo -c -o libsndfile_la-flac.lo `test -f 'flac.c' || echo '$(srcdir)/'`flac.c
+ @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsndfile_la-flac.Tpo $(DEPDIR)/libsndfile_la-flac.Plo
+ @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='flac.c' object='libsndfile_la-flac.lo' libtool=yes @AMDEPBACKSLASH@
+ @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@@ -1092,7 +1092,7 @@
+ @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsndfile_la_CPPFLAGS) $(CPPFLAGS) $(libsndfile_la_CFLAGS) $(CFLAGS) -c -o libsndfile_la-rf64.lo `test -f 'rf64.c' || echo '$(srcdir)/'`rf64.c
+ 
+ libsndfile_la-ogg_vorbis.lo: ogg_vorbis.c
+-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsndfile_la_CPPFLAGS) $(CPPFLAGS) $(libsndfile_la_CFLAGS) $(CFLAGS) -MT libsndfile_la-ogg_vorbis.lo -MD -MP -MF $(DEPDIR)/libsndfile_la-ogg_vorbis.Tpo -c -o libsndfile_la-ogg_vorbis.lo `test -f 'ogg_vorbis.c' || echo '$(srcdir)/'`ogg_vorbis.c
++@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsndfile_la_CPPFLAGS) $(CPPFLAGS) $(libsndfile_la_CFLAGS) $(CFLAGS) $(EXTERNAL_XIPH_CFLAGS) -MT libsndfile_la-ogg_vorbis.lo -MD -MP -MF $(DEPDIR)/libsndfile_la-ogg_vorbis.Tpo -c -o libsndfile_la-ogg_vorbis.lo `test -f 'ogg_vorbis.c' || echo '$(srcdir)/'`ogg_vorbis.c
+ @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsndfile_la-ogg_vorbis.Tpo $(DEPDIR)/libsndfile_la-ogg_vorbis.Plo
+ @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ogg_vorbis.c' object='libsndfile_la-ogg_vorbis.lo' libtool=yes @AMDEPBACKSLASH@
+ @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@

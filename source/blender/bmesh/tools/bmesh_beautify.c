@@ -150,7 +150,7 @@ static float bm_edge_calc_rotate_beauty__area(
 			           (ELEM(v4, v1, v2, v3) == false));
 
 			add_v3_v3v3(no, no_a, no_b);
-			if (UNLIKELY((no_scale = normalize_v3(no)) <= FLT_EPSILON)) {
+			if (UNLIKELY((no_scale = normalize_v3(no)) == 0.0f)) {
 				break;
 			}
 
