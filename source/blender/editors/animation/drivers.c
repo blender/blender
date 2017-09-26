@@ -1029,6 +1029,11 @@ static int paste_driver_button_exec(bContext *C, wmOperator *op)
 			
 			UI_context_update_anim_flag(C);
 			
+			DAG_relations_tag_update(CTX_data_main(C));
+			DAG_id_tag_update(ptr.id.data, OB_RECALC_OB | OB_RECALC_DATA);
+			
+			WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME_PROP, NULL);  // XXX
+			
 			MEM_freeN(path);
 		}
 	}
