@@ -86,6 +86,8 @@
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 
+// #define USE_AXIS_BOUNDS
+
 /* return codes for select, and drawing flags */
 
 #define MAN_TRANS_X		(1 << 0)
@@ -158,6 +160,12 @@ typedef struct ManipulatorGroup {
 struct TransformBounds {
 	float center[3];		/* Center for transform widget. */
 	float min[3], max[3];	/* Boundbox of selection for transform widget. */
+
+#ifdef USE_AXIS_BOUNDS
+	/* Normalized axis */
+	float axis[3][3];
+	float axis_min[3], axis_max[3];
+#endif
 };
 
 /* **************** Utilities **************** */
@@ -422,6 +430,14 @@ static void calc_tw_center(struct TransformBounds *tbounds, const float co[3])
 {
 	minmax_v3v3_v3(tbounds->min, tbounds->max, co);
 	add_v3_v3(tbounds->center, co);
+
+#ifdef USE_AXIS_BOUNDS
+	for (int i = 0; i < 3; i++) {
+		const float d = dot_v3v3(tbounds->axis[i], co);
+		tbounds->axis_min[i] = min_ff(d, tbounds->axis_min[i]);
+		tbounds->axis_max[i] = max_ff(d, tbounds->axis_max[i]);
+	}
+#endif
 }
 
 static void protectflag_to_drawflags(short protectflag, short *drawflags)
@@ -586,10 +602,88 @@ static int calc_manipulator_stats(const bContext *C, struct TransformBounds *tbo
 
 	rv3d->twdrawflag = 0xFFFF;
 
+
+	/* global, local or normal orientation?
+	 * if we could check 'totsel' now, this should be skipped with no selection. */
+	if (ob && !is_gp_edit) {
+
+		switch (v3d->twmode) {
+
+			case V3D_MANIP_GLOBAL:
+			{
+				break; /* nothing to do */
+			}
+			case V3D_MANIP_GIMBAL:
+			{
+				float mat[3][3];
+				if (gimbal_axis(ob, mat)) {
+					copy_m4_m3(rv3d->twmat, mat);
+					break;
+				}
+				/* if not gimbal, fall through to normal */
+				ATTR_FALLTHROUGH;
+			}
+			case V3D_MANIP_NORMAL:
+			{
+				if (obedit || ob->mode & OB_MODE_POSE) {
+					float mat[3][3];
+					ED_getTransformOrientationMatrix(C, mat, v3d->around);
+					copy_m4_m3(rv3d->twmat, mat);
+					break;
+				}
+				/* no break we define 'normal' as 'local' in Object mode */
+				ATTR_FALLTHROUGH;
+			}
+			case V3D_MANIP_LOCAL:
+			{
+				if (ob->mode & OB_MODE_POSE) {
+					/* each bone moves on its own local axis, but  to avoid confusion,
+					 * use the active pones axis for display [#33575], this works as expected on a single bone
+					 * and users who select many bones will understand whats going on and what local means
+					 * when they start transforming */
+					float mat[3][3];
+					ED_getTransformOrientationMatrix(C, mat, v3d->around);
+					copy_m4_m3(rv3d->twmat, mat);
+					break;
+				}
+				copy_m4_m4(rv3d->twmat, ob->obmat);
+				normalize_m4(rv3d->twmat);
+				break;
+			}
+			case V3D_MANIP_VIEW:
+			{
+				float mat[3][3];
+				copy_m3_m4(mat, rv3d->viewinv);
+				normalize_m3(mat);
+				copy_m4_m3(rv3d->twmat, mat);
+				break;
+			}
+			case V3D_MANIP_CUSTOM:
+			{
+				TransformOrientation *custom_orientation = BKE_workspace_transform_orientation_find(
+				        CTX_wm_workspace(C), v3d->custom_orientation_index);
+				float mat[3][3];
+
+				if (applyTransformOrientation(custom_orientation, mat, NULL)) {
+					copy_m4_m3(rv3d->twmat, mat);
+				}
+				break;
+			}
+		}
+	}
+
 	/* transform widget centroid/center */
 	INIT_MINMAX(tbounds->min, tbounds->max);
 	zero_v3(tbounds->center);
-	
+
+#ifdef USE_AXIS_BOUNDS
+	copy_m3_m4(tbounds->axis, rv3d->twmat);
+	for (int i = 0; i < 3; i++) {
+		tbounds->axis_min[i] = +FLT_MAX;
+		tbounds->axis_max[i] = -FLT_MAX;
+	}
+#endif
+
 	if (is_gp_edit) {
 		float diff_mat[4][4];
 		float fpt[3];
@@ -906,73 +1000,8 @@ static int calc_manipulator_stats(const bContext *C, struct TransformBounds *tbo
 		}
 	}
 
-	/* global, local or normal orientation? */
-	if (ob && totsel && !is_gp_edit) {
-
-		switch (v3d->twmode) {
-		
-			case V3D_MANIP_GLOBAL:
-			{
-				break; /* nothing to do */
-			}
-			case V3D_MANIP_GIMBAL:
-			{
-				float mat[3][3];
-				if (gimbal_axis(ob, mat)) {
-					copy_m4_m3(rv3d->twmat, mat);
-					break;
-				}
-				/* if not gimbal, fall through to normal */
-				ATTR_FALLTHROUGH;
-			}
-			case V3D_MANIP_NORMAL:
-			{
-				if (obedit || ob->mode & OB_MODE_POSE) {
-					float mat[3][3];
-					ED_getTransformOrientationMatrix(C, mat, v3d->around);
-					copy_m4_m3(rv3d->twmat, mat);
-					break;
-				}
-				/* no break we define 'normal' as 'local' in Object mode */
-				ATTR_FALLTHROUGH;
-			}
-			case V3D_MANIP_LOCAL:
-			{
-				if (ob->mode & OB_MODE_POSE) {
-					/* each bone moves on its own local axis, but  to avoid confusion,
-					 * use the active pones axis for display [#33575], this works as expected on a single bone
-					 * and users who select many bones will understand whats going on and what local means
-					 * when they start transforming */
-					float mat[3][3];
-					ED_getTransformOrientationMatrix(C, mat, v3d->around);
-					copy_m4_m3(rv3d->twmat, mat);
-					break;
-				}
-				copy_m4_m4(rv3d->twmat, ob->obmat);
-				normalize_m4(rv3d->twmat);
-				break;
-			}
-			case V3D_MANIP_VIEW:
-			{
-				float mat[3][3];
-				copy_m3_m4(mat, rv3d->viewinv);
-				normalize_m3(mat);
-				copy_m4_m3(rv3d->twmat, mat);
-				break;
-			}
-			case V3D_MANIP_CUSTOM:
-			{
-				TransformOrientation *custom_orientation = BKE_workspace_transform_orientation_find(
-				                                               CTX_wm_workspace(C), v3d->custom_orientation_index);
-				float mat[3][3];
-
-				if (applyTransformOrientation(custom_orientation, mat, NULL)) {
-					copy_m4_m3(rv3d->twmat, mat);
-				}
-				break;
-			}
-		}
-
+	if (totsel == 0) {
+		unit_m4(rv3d->twmat);
 	}
 
 	return totsel;
