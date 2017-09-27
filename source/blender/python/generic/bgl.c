@@ -838,8 +838,8 @@ static PyObject *Buffer_item(Buffer *self, int i)
 			offset *= self->dimensions[j];
 		}
 
-		return BGL_MakeBuffer_FromData(
-		        self, self->type,
+		return (PyObject *)BGL_MakeBuffer_FromData(
+		        (PyObject *)self, self->type,
 		        self->ndimensions - 1,
 		        self->dimensions + 1,
 		        self->buf.asbyte + offset);
