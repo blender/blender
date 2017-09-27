@@ -30,7 +30,9 @@
 #include "BLI_utildefines.h"
 #include "BLI_math_base.h"
 #include "BLI_math_vector.h"
+#include "BLI_path_util.h"
 
+#include "BKE_appdir.h"
 #include "BKE_global.h"
 
 #include "GPU_compositing.h"
@@ -259,6 +261,53 @@ GPUShader *GPU_shader_create(const char *vertexcode,
 	                            GPU_SHADER_FLAGS_NONE);
 }
 
+#define DEBUG_SHADER_NONE ""
+#define DEBUG_SHADER_VERTEX "vert"
+#define DEBUG_SHADER_FRAGMENT "frag"
+#define DEBUG_SHADER_GEOMETRY "geom"
+
+/**
+ * Dump GLSL shaders to disk
+ *
+ * This is used for profiling shader performance externally and debug if shader code is correct.
+ * If called with no code, it simply bumps the shader index, so different shaders for the same
+ * program share the same index.
+ */
+static void gpu_dump_shaders(const char **code, const int num_shaders, const char *extension)
+{
+	if ((G.debug & G_DEBUG_GPU_SHADERS) == 0) {
+		return;
+	}
+
+	/* We use the same shader index for shaders in the same program.
+	 * So we call this function once before calling for the invidual shaders. */
+	static int shader_index = 0;
+	if (code == NULL) {
+		shader_index++;
+		BLI_assert(STREQ(DEBUG_SHADER_NONE, extension));
+		return;
+	}
+
+	/* Determine the full path of the new shader. */
+	char shader_path[FILE_MAX];
+
+	char file_name[512] = {'\0'};
+	sprintf(file_name, "%04d.%s", shader_index, extension);
+
+	BLI_join_dirfile(shader_path, sizeof(shader_path), BKE_tempdir_session(), file_name);
+
+	/* Write shader to disk. */
+	FILE *f = fopen(shader_path, "w");
+	if (f == NULL) {
+		printf("Error writing to file: %s\n", shader_path);
+	}
+	for (int j = 0; j < num_shaders; j++) {
+		fprintf(f, "%s", code[j]);
+	}
+	fclose(f);
+	printf("Shader file written to disk: %s\n", shader_path);
+}
+
 GPUShader *GPU_shader_create_ex(const char *vertexcode,
                                 const char *fragcode,
                                 const char *geocode,
@@ -290,6 +339,7 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
 		return NULL;
 
 	shader = MEM_callocN(sizeof(GPUShader), "GPUShader");
+	gpu_dump_shaders(NULL, 0, DEBUG_SHADER_NONE);
 
 	if (vertexcode)
 		shader->vertex = glCreateShader(GL_VERTEX_SHADER);
@@ -326,6 +376,8 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
 
 		if (defines) source[num_source++] = defines;
 		source[num_source++] = vertexcode;
+
+		gpu_dump_shaders(source, num_source, DEBUG_SHADER_VERTEX);
 
 		glAttachShader(shader->program, shader->vertex);
 		glShaderSource(shader->vertex, num_source, source, NULL);
@@ -366,6 +418,8 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
 		if (libcode) source[num_source++] = libcode;
 		source[num_source++] = fragcode;
 
+		gpu_dump_shaders(source, num_source, DEBUG_SHADER_FRAGMENT);
+
 		glAttachShader(shader->program, shader->fragment);
 		glShaderSource(shader->fragment, num_source, source, NULL);
 
@@ -391,6 +445,8 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
 
 		if (defines) source[num_source++] = defines;
 		source[num_source++] = geocode;
+
+		gpu_dump_shaders(source, num_source, DEBUG_SHADER_GEOMETRY);
 
 		glAttachShader(shader->program, shader->geometry);
 		glShaderSource(shader->geometry, num_source, source, NULL);
@@ -451,6 +507,11 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
 
 	return shader;
 }
+
+#undef DEBUG_SHADER_GEOMETRY
+#undef DEBUG_SHADER_FRAGMENT
+#undef DEBUG_SHADER_VERTEX
+#undef DEBUG_SHADER_NONE
 
 void GPU_shader_bind(GPUShader *shader)
 {
