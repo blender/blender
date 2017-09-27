@@ -365,8 +365,8 @@ static int nlaedit_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
 	/* set the range directly */
 	get_nlastrip_extents(&ac, &min, &max, true);
 	scene->r.flag |= SCER_PRV_RANGE;
-	scene->r.psfra = iroundf(min);
-	scene->r.pefra = iroundf(max);
+	scene->r.psfra = round_fl_to_int(min);
+	scene->r.pefra = round_fl_to_int(max);
 	
 	/* set notifier that things have changed */
 	// XXX err... there's nothing for frame ranges yet, but this should do fine too

@@ -137,7 +137,7 @@ int wm_gesture_evaluate(wmGesture *gesture)
 		int dx = BLI_rcti_size_x(rect);
 		int dy = BLI_rcti_size_y(rect);
 		if (abs(dx) + abs(dy) > U.tweak_threshold) {
-			int theta = iroundf(4.0f * atan2f((float)dy, (float)dx) / (float)M_PI);
+			int theta = round_fl_to_int(4.0f * atan2f((float)dy, (float)dx) / (float)M_PI);
 			int val = EVT_GESTURE_W;
 
 			if (theta == 0) val = EVT_GESTURE_E;

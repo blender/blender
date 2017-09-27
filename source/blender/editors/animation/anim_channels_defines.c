@@ -4458,8 +4458,8 @@ void ANIM_channel_draw_widgets(const bContext *C, bAnimContext *ac, bAnimListEle
 		 *       a callback available (e.g. broken F-Curve rename)
 		 */
 		if (acf->name_prop(ale, &ptr, &prop)) {
-			const short margin_x = 3 * iroundf(UI_DPI_FAC);
-			const short channel_height = iroundf(ymaxc - yminc);
+			const short margin_x = 3 * round_fl_to_int(UI_DPI_FAC);
+			const short channel_height = round_fl_to_int(ymaxc - yminc);
 			const short width = ac->ar->winx - offset - (margin_x * 2);
 			uiBut *but;
 			

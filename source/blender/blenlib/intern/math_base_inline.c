@@ -184,11 +184,6 @@ MINLINE unsigned power_of_2_min_u(unsigned x)
 
 /* rounding and clamping */
 
-MINLINE int iroundf(float a)
-{
-	return (int)floorf(a + 0.5f);
-}
-
 #define _round_clamp_fl_impl(arg, ty, min, max) { \
 	float r = floorf(arg + 0.5f); \
 	if      (UNLIKELY(r <= (float)min)) return (ty)min; \
@@ -202,6 +197,26 @@ MINLINE int iroundf(float a)
 	else if (UNLIKELY(r >= (double)max)) return (ty)max; \
 	else return (ty)r; \
 }
+
+#define _round_fl_impl(arg, ty) { return (ty)floorf(arg + 0.5f); }
+#define _round_db_impl(arg, ty) { return (ty)floor(arg + 0.5); }
+
+MINLINE signed char    round_fl_to_char(float a) { _round_fl_impl(a, signed char) }
+MINLINE unsigned char  round_fl_to_uchar(float a) { _round_fl_impl(a, unsigned char) }
+MINLINE short          round_fl_to_short(float a) { _round_fl_impl(a, short) }
+MINLINE unsigned short round_fl_to_ushort(float a) { _round_fl_impl(a, unsigned short) }
+MINLINE int            round_fl_to_int(float a) { _round_fl_impl(a, int) }
+MINLINE unsigned int   round_fl_to_uint(float a) { _round_fl_impl(a, unsigned int) }
+
+MINLINE signed char    round_db_to_char(double a) { _round_db_impl(a, signed char) }
+MINLINE unsigned char  round_db_to_uchar(double a) { _round_db_impl(a, unsigned char) }
+MINLINE short          round_db_to_short(double a) { _round_db_impl(a, short) }
+MINLINE unsigned short round_db_to_ushort(double a) { _round_db_impl(a, unsigned short) }
+MINLINE int            round_db_to_int(double a) { _round_db_impl(a, int) }
+MINLINE unsigned int   round_db_to_uint(double a) { _round_db_impl(a, unsigned int) }
+
+#undef _round_fl_impl
+#undef _round_db_impl
 
 MINLINE signed char    round_fl_to_char_clamp(float a) { _round_clamp_fl_impl(a, signed char, SCHAR_MIN, SCHAR_MAX) }
 MINLINE unsigned char  round_fl_to_uchar_clamp(float a) { _round_clamp_fl_impl(a, unsigned char, 0, UCHAR_MAX) }

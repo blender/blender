@@ -94,11 +94,11 @@ size_t BLI_timecode_string_from_time(
 		 * to cope with 'half' frames, etc., which should be fine in most cases
 		 */
 		seconds = (int)time;
-		frames = iroundf((float)(((double)time - (double)seconds) * fps));
+		frames = round_fl_to_int((float)(((double)time - (double)seconds) * fps));
 	}
 	else {
 		/* seconds (with pixel offset rounding) */
-		seconds = iroundf(time);
+		seconds = round_fl_to_int(time);
 	}
 
 	switch (timecode_style) {
@@ -169,7 +169,7 @@ size_t BLI_timecode_string_from_time(
 
 			/* precision of decimal part */
 			const int ms_dp = (power <= 0) ? (1 - power) : 1;
-			const int ms = iroundf((time - (float)seconds) * 1000.0f);
+			const int ms = round_fl_to_int((time - (float)seconds) * 1000.0f);
 
 			rlen = BLI_snprintf_rlen(
 			           str, maxncpy, "%s%02d:%02d:%02d,%0*d", neg, hours, minutes, seconds, ms_dp, ms);
@@ -183,7 +183,7 @@ size_t BLI_timecode_string_from_time(
 				rlen = BLI_snprintf_rlen(str, maxncpy, "%.*f", 1 - power, time_seconds);
 			}
 			else {
-				rlen = BLI_snprintf_rlen(str, maxncpy, "%d", iroundf(time_seconds));
+				rlen = BLI_snprintf_rlen(str, maxncpy, "%d", round_fl_to_int(time_seconds));
 			}
 			break;
 		}
@@ -250,7 +250,7 @@ size_t BLI_timecode_string_from_time_seconds(
 		rlen = BLI_snprintf_rlen(str, maxncpy, "%.*f", 1 - power, time_seconds);
 	}
 	else {
-		rlen = BLI_snprintf_rlen(str, maxncpy, "%d", iroundf(time_seconds));
+		rlen = BLI_snprintf_rlen(str, maxncpy, "%d", round_fl_to_int(time_seconds));
 	}
 
 	return rlen;

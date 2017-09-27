@@ -2841,7 +2841,7 @@ static void uilist_resize_update_cb(bContext *C, void *arg1, void *UNUSED(arg2))
 	uiListDyn *dyn_data = ui_list->dyn_data;
 
 	/* This way we get diff in number of additional items to show (positive) or hide (negative). */
-	const int diff = iroundf((float)(dyn_data->resize - dyn_data->resize_prev) / (float)UI_UNIT_Y);
+	const int diff = round_fl_to_int((float)(dyn_data->resize - dyn_data->resize_prev) / (float)UI_UNIT_Y);
 
 	if (diff != 0) {
 		ui_list->list_grip += diff;

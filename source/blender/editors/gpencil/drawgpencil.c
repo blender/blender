@@ -1732,10 +1732,10 @@ void ED_gpencil_draw_view3d(wmWindowManager *wm, Scene *scene, View3D *v3d, AReg
 		rctf rectf;
 		ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &rectf, true); /* no shift */
 		
-		offsx = iroundf(rectf.xmin);
-		offsy = iroundf(rectf.ymin);
-		winx  = iroundf(rectf.xmax - rectf.xmin);
-		winy  = iroundf(rectf.ymax - rectf.ymin);
+		offsx = round_fl_to_int(rectf.xmin);
+		offsy = round_fl_to_int(rectf.ymin);
+		winx  = round_fl_to_int(rectf.xmax - rectf.xmin);
+		winy  = round_fl_to_int(rectf.ymax - rectf.ymin);
 	}
 	else {
 		offsx = 0;
