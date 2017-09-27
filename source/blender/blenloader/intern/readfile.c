@@ -6130,16 +6130,6 @@ static void direct_link_scene(FileData *fd, Scene *sce, Main *bmain)
 		sce->toolsettings->particle.scene_layer = NULL;
 		sce->toolsettings->particle.object = NULL;
 		sce->toolsettings->gp_sculpt.paintcursor = NULL;
-
-		/* in rare cases this is needed, see [#33806] */
-		if (sce->toolsettings->vpaint) {
-			sce->toolsettings->vpaint->vpaint_prev = NULL;
-			sce->toolsettings->vpaint->tot = 0;
-		}
-		if (sce->toolsettings->wpaint) {
-			sce->toolsettings->wpaint->wpaint_prev = NULL;
-			sce->toolsettings->wpaint->tot = 0;
-		}
 		
 		/* relink grease pencil drawing brushes */
 		link_list(fd, &sce->toolsettings->gp_brushes);

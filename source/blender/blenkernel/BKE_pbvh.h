@@ -33,6 +33,7 @@
 struct Gwn_Batch;
 struct CCGElem;
 struct CCGKey;
+struct CCGDerivedMesh;
 struct CustomData;
 struct DMFlagMat;
 struct MPoly;
@@ -72,7 +73,7 @@ void BKE_pbvh_build_grids(PBVH *bvh, struct CCGElem **grid_elems,
                           struct CCGKey *key, void **gridfaces, struct DMFlagMat *flagmats,
                           unsigned int **grid_hidden);
 void BKE_pbvh_build_bmesh(PBVH *bvh, struct BMesh *bm, bool smooth_shading, struct BMLog *log, const int cd_vert_node_offset, const int cd_face_node_offset);
-
+void BKE_pbvh_set_ccgdm(PBVH *bvh, struct CCGDerivedMesh *ccgdm);
 void BKE_pbvh_free(PBVH *bvh);
 void BKE_pbvh_free_layer_disp(PBVH *bvh);
 
@@ -119,6 +120,7 @@ void BKE_pbvh_raycast_project_ray_root(
 void BKE_pbvh_node_draw(PBVHNode *node, void *data);
 void BKE_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
                    int (*setMaterial)(int matnr, void *attribs), bool wireframe, bool fast);
+void BKE_pbvh_draw_BB(PBVH *bvh);
 void BKE_pbvh_draw_cb(
         PBVH *bvh, float (*planes)[4], float (*fnors)[3], bool fast,
         void (*draw_fn)(void *user_data, struct Gwn_Batch *batch), void *user_data);
@@ -145,6 +147,7 @@ int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
 
 /* multires level, only valid for type == PBVH_GRIDS */
 void BKE_pbvh_get_grid_key(const PBVH *pbvh, struct CCGKey *key);
+struct CCGDerivedMesh *BKE_pbvh_get_ccgdm(const PBVH *bvh);
 
 /* Only valid for type == PBVH_BMESH */
 struct BMesh *BKE_pbvh_get_bmesh(PBVH *pbvh);

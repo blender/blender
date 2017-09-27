@@ -34,6 +34,7 @@
 
 #include "BKE_pbvh.h"
 #include "BKE_ccg.h"
+#include "BKE_subsurf.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h" /* for BKE_mesh_calc_normals */
@@ -607,6 +608,10 @@ void BKE_pbvh_build_grids(PBVH *bvh, CCGElem **grids,
 	MEM_freeN(prim_bbc);
 }
 
+void BKE_pbvh_set_ccgdm(PBVH *bvh, CCGDerivedMesh *ccgdm) {
+	bvh->ccgdm = ccgdm;
+}
+
 PBVH *BKE_pbvh_new(void)
 {
 	PBVH *bvh = MEM_callocN(sizeof(PBVH), "pbvh");
@@ -1157,7 +1162,7 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 	}
 }
 
-static void pbvh_draw_BB(PBVH *bvh)
+void BKE_pbvh_draw_BB(PBVH *bvh)
 {
 	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
@@ -1330,6 +1335,11 @@ void BKE_pbvh_get_grid_key(const PBVH *bvh, CCGKey *key)
 	BLI_assert(bvh->type == PBVH_GRIDS);
 	*key = bvh->gridkey;
 }
+
+CCGDerivedMesh *BKE_pbvh_get_ccgdm(const PBVH *bvh) {
+	return bvh->ccgdm;
+}
+
 
 BMesh *BKE_pbvh_get_bmesh(PBVH *bvh)
 {
@@ -1844,7 +1854,7 @@ void BKE_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*fnors)[3],
 	}
 
 	if (G.debug_value == 14)
-		pbvh_draw_BB(bvh);
+		BKE_pbvh_draw_BB(bvh);
 }
 
 struct PBVHNodeDrawCallbackData {

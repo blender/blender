@@ -1121,13 +1121,8 @@ typedef struct UvSculpt {
 /* Vertex Paint */
 typedef struct VPaint {
 	Paint paint;
-
 	short flag, pad;
-	int tot;							/* allocation size of prev buffers */
-	unsigned int *vpaint_prev;			/* previous mesh colors */
-	struct MDeformVert *wpaint_prev;	/* previous vertex weights */
-	
-	void *paintcursor;					/* wm handle */
+	int radial_symm[3]; /* For mirrored painting */
 } VPaint;
 
 /* VPaint.flag */

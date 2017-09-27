@@ -2736,7 +2736,7 @@ void BKE_object_sculpt_modifiers_changed(Object *ob)
 {
 	SculptSession *ss = ob->sculpt;
 
-	if (ss) {
+	if (ss && ss->building_vp_handle == false) {
 		if (!ss->cache) {
 			/* we free pbvh on changes, except during sculpt since it can't deal with
 			 * changing PVBH node organization, we hope topology does not change in
@@ -2747,6 +2747,9 @@ void BKE_object_sculpt_modifiers_changed(Object *ob)
 			}
 
 			BKE_sculptsession_free_deformMats(ob->sculpt);
+
+			/* In vertex/weight paint, force maps to be rebuilt. */
+			BKE_sculptsession_free_vwpaint_data(ob->sculpt);
 		}
 		else {
 			PBVHNode **nodes;

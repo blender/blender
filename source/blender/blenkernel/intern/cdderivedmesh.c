@@ -551,6 +551,11 @@ static void cdDM_drawMappedFaces(
 
 	const int *index_mp_to_orig  = dm->getPolyDataArray(dm, CD_ORIGINDEX);
 
+	if (cddm->pbvh) {
+		if (G.debug_value == 14)
+			BKE_pbvh_draw_BB(cddm->pbvh);
+	}
+
 	/* fist, setup common buffers */
 	GPU_vertex_setup(dm);
 	GPU_triangle_setup(dm);

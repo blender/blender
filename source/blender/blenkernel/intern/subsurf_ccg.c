@@ -3429,6 +3429,11 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 	int gridFaces = gridSize - 1, totface;
 	int prev_mat_nr = -1;
 
+	if (ccgdm->pbvh) {
+		if (G.debug_value == 14)
+			BKE_pbvh_draw_BB(ccgdm->pbvh);
+	}
+
 #ifdef WITH_OPENSUBDIV
 	if (ccgdm->useGpuBackend) {
 		int new_matnr;
@@ -4162,7 +4167,8 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 	if (!ob->sculpt)
 		return NULL;
 
-	grid_pbvh = ccgDM_use_grid_pbvh(ccgdm);
+	/* In vwpaint, we always use a grid_pbvh for multires/subsurf */
+	grid_pbvh = (!(ob->mode & OB_MODE_SCULPT) || ccgDM_use_grid_pbvh(ccgdm));
 
 	if (ob->sculpt->pbvh) {
 		if (grid_pbvh) {
@@ -4178,12 +4184,18 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 		ccgdm->pbvh = ob->sculpt->pbvh;
 	}
 
-	if (ccgdm->pbvh)
+	if (ccgdm->pbvh) {
+		/* For vertex paint, keep track of ccgdm */
+		if (!(ob->mode & OB_MODE_SCULPT)) {
+			BKE_pbvh_set_ccgdm(ccgdm->pbvh, ccgdm);
+		}
 		return ccgdm->pbvh;
+	}
 
 	/* no pbvh exists yet, we need to create one. only in case of multires
 	 * we build a pbvh over the modified mesh, in other cases the base mesh
 	 * is being sculpted, so we build a pbvh from that. */
+	/* Note: vwpaint always builds a pbvh over the modified mesh. */
 	if (grid_pbvh) {
 		ccgdm_create_grids(dm);
 
@@ -4214,6 +4226,10 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 	if (ccgdm->pbvh)
 		pbvh_show_diffuse_color_set(ccgdm->pbvh, ob->sculpt->show_diffuse_color);
 
+	/* For vertex paint, keep track of ccgdm */
+	if (!(ob->mode & OB_MODE_SCULPT) && ccgdm->pbvh) {
+		BKE_pbvh_set_ccgdm(ccgdm->pbvh, ccgdm);
+	}
 	return ccgdm->pbvh;
 }
 

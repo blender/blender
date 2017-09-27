@@ -676,6 +676,29 @@ void BKE_sculptsession_free_deformMats(SculptSession *ss)
 	MEM_SAFE_FREE(ss->deform_imats);
 }
 
+void BKE_sculptsession_free_vwpaint_data(struct SculptSession *ss)
+{
+	struct SculptVertexPaintGeomMap *gmap = NULL;
+	if (ss->mode_type == OB_MODE_VERTEX_PAINT) {
+		gmap = &ss->mode.vpaint.gmap;
+
+		MEM_SAFE_FREE(ss->mode.vpaint.previous_color);
+	}
+	else if (ss->mode_type == OB_MODE_WEIGHT_PAINT) {
+		gmap = &ss->mode.wpaint.gmap;
+
+		MEM_SAFE_FREE(ss->mode.wpaint.alpha_weight);
+		MEM_SAFE_FREE(ss->mode.wpaint.previous_weight);
+	}
+	else {
+		return;
+	}
+	MEM_SAFE_FREE(gmap->vert_to_loop);
+	MEM_SAFE_FREE(gmap->vert_map_mem);
+	MEM_SAFE_FREE(gmap->vert_to_poly);
+	MEM_SAFE_FREE(gmap->poly_map_mem);
+}
+
 /* Write out the sculpt dynamic-topology BMesh to the Mesh */
 static void sculptsession_bm_to_me_update_data_only(Object *ob, bool reorder)
 {
@@ -717,10 +740,7 @@ void BKE_sculptsession_bm_to_me_for_render(Object *object)
 			 */
 			BKE_object_free_derived_caches(object);
 
-			if (object->sculpt->pbvh) {
-				BKE_pbvh_free(object->sculpt->pbvh);
-				object->sculpt->pbvh = NULL;
-			}
+			MEM_SAFE_FREE(object->sculpt->pbvh);
 
 			sculptsession_bm_to_me_update_data_only(object, false);
 
@@ -766,6 +786,8 @@ void BKE_sculptsession_free(Object *ob)
 			MEM_freeN(ss->deform_cos);
 		if (ss->deform_imats)
 			MEM_freeN(ss->deform_imats);
+
+		BKE_sculptsession_free_vwpaint_data(ob->sculpt);
 
 		MEM_freeN(ss);
 
@@ -852,6 +874,8 @@ void BKE_sculpt_update_mesh_elements(
 	ss->modifiers_active = sculpt_modifiers_active(scene, sd, ob);
 	ss->show_diffuse_color = (sd->flags & SCULPT_SHOW_DIFFUSE) != 0;
 
+	ss->building_vp_handle = false;
+
 	if (need_mask) {
 		if (mmd == NULL) {
 			if (!CustomData_has_layer(&me->vdata, CD_PAINT_MASK)) {
@@ -880,7 +904,8 @@ void BKE_sculpt_update_mesh_elements(
 
 	dm = mesh_get_derived_final(eval_ctx, scene, ob, CD_MASK_BAREMESH);
 
-	if (mmd) {
+	/* VWPaint require mesh info for loop lookup, so require sculpt mode here */
+	if (mmd && ob->mode & OB_MODE_SCULPT) {
 		ss->multires = mmd;
 		ss->totvert = dm->getNumVerts(dm);
 		ss->totpoly = dm->getNumPolys(dm);

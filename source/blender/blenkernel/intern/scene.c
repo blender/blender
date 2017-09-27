@@ -346,16 +346,10 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 		ToolSettings *ts = sce_dst->toolsettings = MEM_dupallocN(sce_dst->toolsettings);
 		if (ts->vpaint) {
 			ts->vpaint = MEM_dupallocN(ts->vpaint);
-			ts->vpaint->paintcursor = NULL;
-			ts->vpaint->vpaint_prev = NULL;
-			ts->vpaint->wpaint_prev = NULL;
 			BKE_paint_copy(&ts->vpaint->paint, &ts->vpaint->paint, flag_subdata);
 		}
 		if (ts->wpaint) {
 			ts->wpaint = MEM_dupallocN(ts->wpaint);
-			ts->wpaint->paintcursor = NULL;
-			ts->wpaint->vpaint_prev = NULL;
-			ts->wpaint->wpaint_prev = NULL;
 			BKE_paint_copy(&ts->wpaint->paint, &ts->wpaint->paint, flag_subdata);
 		}
 		if (ts->sculpt) {
@@ -464,16 +458,10 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 		if (ts) {
 			if (ts->vpaint) {
 				ts->vpaint = MEM_dupallocN(ts->vpaint);
-				ts->vpaint->paintcursor = NULL;
-				ts->vpaint->vpaint_prev = NULL;
-				ts->vpaint->wpaint_prev = NULL;
 				BKE_paint_copy(&ts->vpaint->paint, &ts->vpaint->paint, 0);
 			}
 			if (ts->wpaint) {
 				ts->wpaint = MEM_dupallocN(ts->wpaint);
-				ts->wpaint->paintcursor = NULL;
-				ts->wpaint->vpaint_prev = NULL;
-				ts->wpaint->wpaint_prev = NULL;
 				BKE_paint_copy(&ts->wpaint->paint, &ts->wpaint->paint, 0);
 			}
 			if (ts->sculpt) {
