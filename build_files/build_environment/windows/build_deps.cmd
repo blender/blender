@@ -101,8 +101,8 @@ cd %Staging%\%BuildDir%%ARCH%R
 echo %DATE% %TIME% : Start > %StatusFile%
 cmake -G "%CMAKE_BUILDER%" %SOURCE_DIR% -DDOWNLOAD_DIR=%BUILD_DIR%/downloads -DBUILD_MODE=Release -DHARVEST_TARGET=%HARVEST_DIR%/%HARVESTROOT%%VSVER_SHORT%/
 echo %DATE% %TIME% : Release Configuration done >> %StatusFile%
-msbuild /m "ll.vcxproj" /p:Configuration=Release /fl /flp:logfile=BlenderDeps_llvm.log 
-msbuild /m "BlenderDependencies.sln" /p:Configuration=Release /fl /flp:logfile=BlenderDeps.log 
+msbuild /m "ll.vcxproj" /p:Configuration=Release /fl /flp:logfile=BlenderDeps_llvm.log;Verbosity=normal
+msbuild /m "BlenderDependencies.sln" /p:Configuration=Release /fl /flp:logfile=BlenderDeps.log;Verbosity=minimal  /verbosity:minimal
 echo %DATE% %TIME% : Release Build done >> %StatusFile%
 cmake --build . --target Harvest_Release_Results  > Harvest_Release.txt
 echo %DATE% %TIME% : Release Harvest done >> %StatusFile%
@@ -111,8 +111,8 @@ mkdir %STAGING%\%BuildDir%%ARCH%D
 cd %Staging%\%BuildDir%%ARCH%D
 cmake -G "%CMAKE_BUILDER%" %SOURCE_DIR% -DDOWNLOAD_DIR=%BUILD_DIR%/downloads -DCMAKE_BUILD_TYPE=Debug -DBUILD_MODE=Debug -DHARVEST_TARGET=%HARVEST_DIR%/%HARVESTROOT%%VSVER_SHORT%/  %CMAKE_DEBUG_OPTIONS%
 echo %DATE% %TIME% : Debug Configuration done >> %StatusFile%
-msbuild /m "ll.vcxproj" /p:Configuration=Debug /fl /flp:logfile=BlenderDeps_llvm.log 
-msbuild /m "BlenderDependencies.sln" /p:Configuration=Debug /fl /flp:logfile=BlenderDeps.log
+msbuild /m "ll.vcxproj" /p:Configuration=Debug /fl /flp:logfile=BlenderDeps_llvm.log;;Verbosity=normal 
+msbuild /m "BlenderDependencies.sln" /p:Configuration=Debug /verbosity:n /fl /flp:logfile=BlenderDeps.log;;Verbosity=normal
 echo %DATE% %TIME% : Debug Build done >> %StatusFile%
 cmake --build . --target Harvest_Debug_Results> Harvest_Debug.txt
 echo %DATE% %TIME% : Debug Harvest done >> %StatusFile%
