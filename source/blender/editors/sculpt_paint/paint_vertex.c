@@ -1727,11 +1727,11 @@ static void do_weight_paint_vertex(
 
 
 /* Toggle operator for turning vertex paint mode on or off (copied from sculpt.c) */
-static void vertex_paint_init_session(Scene *scene, Object *ob)
+static void vertex_paint_init_session(const EvaluationContext *eval_ctx, Scene *scene, Object *ob)
 {
 	if (ob->sculpt == NULL) {
 		ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
-		BKE_sculpt_update_mesh_elements(scene, scene->toolsettings->sculpt, ob, 0, false);
+		BKE_sculpt_update_mesh_elements(eval_ctx, scene, scene->toolsettings->sculpt, ob, 0, false);
 	}
 }
 
@@ -1848,6 +1848,10 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		paint_cursor_delete_textures();
 	}
 	else {
+		EvaluationContext eval_ctx;
+
+		CTX_data_eval_ctx(C, &eval_ctx);
+
 		ob->mode |= mode_flag;
 
 		if (wp == NULL)
@@ -1865,8 +1869,10 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		if (ob->sculpt) {
 			BKE_sculptsession_free(ob);
 		}
-		vertex_paint_init_session(scene, ob);
+		vertex_paint_init_session(&eval_ctx, scene, ob);
 	}
+
+	BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
 	
 	/* Weightpaint works by overriding colors in mesh,
 	 * so need to make sure we recalc on enter and
@@ -2142,12 +2148,15 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 	bool *defbase_sel;
 	SculptSession *ss = ob->sculpt;
 	VPaint *vd = CTX_data_tool_settings(C)->wpaint;
+	EvaluationContext eval_ctx;
 
 	float mat[4][4], imat[4][4];
 
 	if (wpaint_ensure_data(C, op, WPAINT_ENSURE_MIRROR, &vgroup_index) == false) {
 		return false;
 	}
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 
 	{
 		/* check if we are attempting to paint onto a locked vertex group,
@@ -2242,7 +2251,7 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 
 	/* painting on subsurfs should give correct points too, this returns me->totvert amount */
 	ob->sculpt->building_vp_handle = true;
-	wpd->vp_handle = ED_vpaint_proj_handle_create(scene, ob, &wpd->vertexcosnos);
+	wpd->vp_handle = ED_vpaint_proj_handle_create(&eval_ctx, scene, ob, &wpd->vertexcosnos);
 	ob->sculpt->building_vp_handle = false;
 
 	/* imat for normals */
@@ -2251,7 +2260,7 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 	copy_m3_m4(wpd->wpimat, imat);
 
 	/* If not previously created, create vertex/weight paint mode session data */
-	vertex_paint_init_session(scene, ob);
+	vertex_paint_init_session(&eval_ctx, scene, ob);
 	vwpaint_update_cache_invariants(C, vd, ss, op, mouse);
 	vertex_paint_init_session_data(ts, ob);
 
@@ -2900,6 +2909,8 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	/* also needed for "View Selected" on last stroke */
 	paint_last_stroke_update(scene, vc->ar, mval);
 
+	BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
+
 	DEG_id_tag_update(ob->data, 0);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	swap_m4m4(wpd->vc.rv3d->persmat, mat);
@@ -3117,6 +3128,10 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		paint_cursor_delete_textures();
 	}
 	else {
+		EvaluationContext eval_ctx;
+
+		CTX_data_eval_ctx(C, &eval_ctx);
+
 		ob->mode |= mode_flag;
 
 		if (me->mloopcol == NULL) {
@@ -3138,9 +3153,11 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 			}
 			BKE_sculptsession_free(ob);
 		}
-		vertex_paint_init_session(scene, ob);
+		vertex_paint_init_session(&eval_ctx, scene, ob);
 	}
-	
+
+	BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
+
 	/* update modifier stack for mapping requirements */
 	DEG_id_tag_update(&me->id, 0);
 	
@@ -3224,6 +3241,9 @@ static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const f
 	Mesh *me;
 	float mat[4][4], imat[4][4];
 	SculptSession *ss = ob->sculpt;
+	EvaluationContext eval_ctx;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 
 	/* context checks could be a poll() */
 	me = BKE_mesh_from_object(ob);
@@ -3264,7 +3284,7 @@ static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const f
 	/* Create projection handle */
 	if (vpd->is_texbrush) {
 		ob->sculpt->building_vp_handle = true;
-		vpd->vp_handle = ED_vpaint_proj_handle_create(scene, ob, &vpd->vertexcosnos);
+		vpd->vp_handle = ED_vpaint_proj_handle_create(&eval_ctx, scene, ob, &vpd->vertexcosnos);
 		ob->sculpt->building_vp_handle = false;
 	}
 
@@ -3274,7 +3294,7 @@ static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const f
 	copy_m3_m4(vpd->vpimat, imat);
 
 	/* If not previously created, create vertex/weight paint mode session data */
-	vertex_paint_init_session(scene, ob);
+	vertex_paint_init_session(&eval_ctx, scene, ob);
 	vwpaint_update_cache_invariants(C, vp, ss, op, mouse);
 	vertex_paint_init_session_data(ts, ob);
 
@@ -3818,6 +3838,8 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
 	swap_m4m4(vc->rv3d->persmat, mat);
 
+	BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
+
 	/* calculate pivot for rotation around seletion if needed */
 	/* also needed for "View Selected" on last stroke */
 	paint_last_stroke_update(scene, vc->ar, mval);
@@ -3933,8 +3955,10 @@ static int weight_from_bones_exec(bContext *C, wmOperator *op)
 	Object *armob = modifiers_isDeformedByArmature(ob);
 	Mesh *me = ob->data;
 	int type = RNA_enum_get(op->ptr, "type");
+	EvaluationContext eval_ctx;
 
-	create_vgroups_from_armature(op->reports, scene, ob, armob, type, (me->editflag & ME_EDIT_MIRROR_X));
+	CTX_data_eval_ctx(C, &eval_ctx);
+	create_vgroups_from_armature(op->reports, &eval_ctx, scene, ob, armob, type, (me->editflag & ME_EDIT_MIRROR_X));
 
 	DEG_id_tag_update(&me->id, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
@@ -4152,6 +4176,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 	struct ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
+	EvaluationContext eval_ctx;
 	Mesh *me = ob->data;
 	int x_start = RNA_int_get(op->ptr, "xstart");
 	int y_start = RNA_int_get(op->ptr, "ystart");
@@ -4160,7 +4185,11 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 	float sco_start[2] = {x_start, y_start};
 	float sco_end[2] = {x_end, y_end};
 	const bool is_interactive = (gesture != NULL);
-	DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
+	DerivedMesh *dm;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
+
+	dm = mesh_get_derived_final(&eval_ctx, scene, ob, scene->customdata_mask);
 
 	DMGradient_userData data = {NULL};
 

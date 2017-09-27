@@ -250,8 +250,9 @@ static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], i
 	}
 }
 
-static void add_verts_to_dgroups(ReportList *reports, const bContext *C, Scene *scene, Object *ob, Object *par,
-                                 int heat, const bool mirror)
+static void add_verts_to_dgroups(
+        ReportList *reports, const EvaluationContext *eval_ctx, Scene *scene, Object *ob, Object *par,
+        int heat, const bool mirror)
 {
 	/* This functions implements the automatic computation of vertex group
 	 * weights, either through envelopes or using a heat equilibrium.
@@ -265,7 +266,6 @@ static void add_verts_to_dgroups(ReportList *reports, const bContext *C, Scene *
 	 * when parenting, or simply the original mesh coords.
 	 */
 
-	EvaluationContext eval_ctx;
 	bArmature *arm = par->data;
 	Bone **bonelist, *bone;
 	bDeformGroup **dgrouplist, **dgroupflip;
@@ -278,8 +278,6 @@ static void add_verts_to_dgroups(ReportList *reports, const bContext *C, Scene *
 	int numbones, vertsfilled = 0, i, j, segments = 0;
 	int wpmode = (ob->mode & OB_MODE_WEIGHT_PAINT);
 	struct { Object *armob; void *list; int heat; } looper_data;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
 
 	looper_data.armob = par;
 	looper_data.heat = heat;
@@ -378,7 +376,7 @@ static void add_verts_to_dgroups(ReportList *reports, const bContext *C, Scene *
 
 	if (wpmode) {
 		/* if in weight paint mode, use final verts from derivedmesh */
-		DerivedMesh *dm = mesh_get_derived_final(&eval_ctx, scene, ob, CD_MASK_BAREMESH);
+		DerivedMesh *dm = mesh_get_derived_final(eval_ctx, scene, ob, CD_MASK_BAREMESH);
 		
 		if (dm->foreachMappedVert) {
 			mesh_get_mapped_verts_coords(dm, verts, mesh->totvert);
@@ -430,8 +428,9 @@ static void add_verts_to_dgroups(ReportList *reports, const bContext *C, Scene *
 	MEM_freeN(verts);
 }
 
-void create_vgroups_from_armature(ReportList *reports, const bContext *C, Scene *scene, Object *ob, Object *par,
-                                  const int mode, const bool mirror)
+void create_vgroups_from_armature(
+        ReportList *reports, const EvaluationContext *eval_ctx, Scene *scene, Object *ob, Object *par,
+        const int mode, const bool mirror)
 {
 	/* Lets try to create some vertex groups 
 	 * based on the bones of the parent armature.
@@ -457,6 +456,6 @@ void create_vgroups_from_armature(ReportList *reports, const bContext *C, Scene 
 		 * that are populated with the vertices for which the
 		 * bone is closest.
 		 */
-		add_verts_to_dgroups(reports, C, scene, ob, par, (mode == ARM_GROUPS_AUTO), mirror);
+		add_verts_to_dgroups(reports, eval_ctx, scene, ob, par, (mode == ARM_GROUPS_AUTO), mirror);
 	}
 }

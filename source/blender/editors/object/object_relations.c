@@ -784,13 +784,15 @@ bool ED_object_parent_set(ReportList *reports, const bContext *C, Scene *scene, 
 				copy_v3_v3(ob->loc, vec);
 			}
 			else if (pararm && (ob->type == OB_MESH) && (par->type == OB_ARMATURE)) {
-				if (partype == PAR_ARMATURE_NAME)
-					create_vgroups_from_armature(reports, C, scene, ob, par, ARM_GROUPS_NAME, false);
-				else if (partype == PAR_ARMATURE_ENVELOPE)
-					create_vgroups_from_armature(reports, C, scene, ob, par, ARM_GROUPS_ENVELOPE, xmirror);
+				if (partype == PAR_ARMATURE_NAME) {
+					create_vgroups_from_armature(reports, &eval_ctx, scene, ob, par, ARM_GROUPS_NAME, false);
+				}
+				else if (partype == PAR_ARMATURE_ENVELOPE) {
+					create_vgroups_from_armature(reports, &eval_ctx, scene, ob, par, ARM_GROUPS_ENVELOPE, xmirror);
+				}
 				else if (partype == PAR_ARMATURE_AUTO) {
 					WM_cursor_wait(1);
-					create_vgroups_from_armature(reports, C, scene, ob, par, ARM_GROUPS_AUTO, xmirror);
+					create_vgroups_from_armature(reports, &eval_ctx, scene, ob, par, ARM_GROUPS_AUTO, xmirror);
 					WM_cursor_wait(0);
 				}
 				/* get corrected inverse */
