@@ -930,7 +930,7 @@ void Session::update_status_time(bool show_pause, bool show_done)
 		const bool rendering_finished = (tile == num_tiles);
 		const bool is_last_tile = (tile + 1) == num_tiles;
 
-		substatus = string_printf("Path Tracing Tile %d/%d", tile, num_tiles);
+		substatus = string_printf("Rendered %d/%d Tiles", tile, num_tiles);
 
 		if(!rendering_finished && (device->show_samples() || (is_cpu && is_last_tile))) {
 			/* Some devices automatically support showing the sample number:
