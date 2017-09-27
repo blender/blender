@@ -526,7 +526,7 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		DRW_viewport_matrix_get(persmat, DRW_MAT_PERS);
 		DRW_viewport_matrix_get(viewmat, DRW_MAT_VIEW);
 		DRW_viewport_matrix_get(effects->overide_winmat, DRW_MAT_WIN);
-		view_is_valid = view_is_valid && compare_m4m4(persmat, effects->prev_drw_persmat, 0.0001f);
+		view_is_valid = view_is_valid && compare_m4m4(persmat, effects->prev_drw_persmat, FLT_MIN);
 		copy_m4_m4(effects->prev_drw_persmat, persmat);
 
 		if (view_is_valid &&
