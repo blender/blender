@@ -1306,10 +1306,11 @@ static void rna_SpaceDopeSheetEditor_action_set(PointerRNA *ptr, PointerRNA valu
 	}
 }
 
-static void rna_SpaceDopeSheetEditor_action_update(Main *bmain, bContext *C, Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
 {
 	SpaceAction *saction = (SpaceAction *)(ptr->data);
 	SceneLayer *sl = CTX_data_scene_layer(C);
+	Main *bmain = CTX_data_main(C);
 	Object *obact = OBACT_NEW(sl);
 
 	/* we must set this action to be the one used by active object (if not pinned) */
