@@ -509,6 +509,71 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		}
 	}
 
+	if (BKE_collection_engine_property_value_get_bool(props, "taa_enable")) {
+		float persmat[4][4], viewmat[4][4];
+
+		enabled_effects |= EFFECT_TAA | EFFECT_DOUBLE_BUFFER;
+
+		/* Until we support reprojection, we need to make sure
+		 * that the history buffer contains correct information. */
+		bool view_is_valid = stl->g_data->valid_double_buffer;
+
+		view_is_valid = view_is_valid && (stl->g_data->view_updated == false);
+
+		effects->taa_total_sample = BKE_collection_engine_property_value_get_int(props, "taa_samples");
+		MAX2(effects->taa_total_sample, 0);
+
+		DRW_viewport_matrix_get(persmat, DRW_MAT_PERS);
+		DRW_viewport_matrix_get(viewmat, DRW_MAT_VIEW);
+		DRW_viewport_matrix_get(effects->overide_winmat, DRW_MAT_WIN);
+		view_is_valid = view_is_valid && compare_m4m4(persmat, effects->prev_drw_persmat, 0.0001f);
+		copy_m4_m4(effects->prev_drw_persmat, persmat);
+
+		if (view_is_valid &&
+		    ((effects->taa_total_sample == 0) ||
+		     (effects->taa_current_sample < effects->taa_total_sample)))
+		{
+			effects->taa_current_sample += 1;
+
+			effects->taa_alpha = 1.0f / (float)(effects->taa_current_sample);
+
+			double ht_point[2];
+			double ht_offset[2] = {0.0, 0.0};
+			unsigned int ht_primes[2] = {2, 3};
+
+			BLI_halton_2D(ht_primes, ht_offset, effects->taa_current_sample - 1, ht_point);
+
+			window_translate_m4(
+			        effects->overide_winmat, persmat,
+			        ((float)(ht_point[0]) * 2.0f - 1.0f) / viewport_size[0],
+			        ((float)(ht_point[1]) * 2.0f - 1.0f) / viewport_size[1]);
+
+			mul_m4_m4m4(effects->overide_persmat, effects->overide_winmat, viewmat);
+			invert_m4_m4(effects->overide_persinv, effects->overide_persmat);
+			invert_m4_m4(effects->overide_wininv, effects->overide_winmat);
+
+			DRW_viewport_matrix_override_set(effects->overide_persmat, DRW_MAT_PERS);
+			DRW_viewport_matrix_override_set(effects->overide_persinv, DRW_MAT_PERSINV);
+			DRW_viewport_matrix_override_set(effects->overide_winmat, DRW_MAT_WIN);
+			DRW_viewport_matrix_override_set(effects->overide_wininv, DRW_MAT_WININV);
+		}
+		else {
+			effects->taa_current_sample = 1;
+		}
+
+		DRWFboTexture tex_double_buffer = {&txl->depth_double_buffer, DRW_TEX_DEPTH_24};
+
+		DRW_framebuffer_init(&fbl->depth_double_buffer_fb, &draw_engine_eevee_type,
+		                    (int)viewport_size[0], (int)viewport_size[1],
+		                    &tex_double_buffer, 1);
+	}
+	else {
+		/* Cleanup to release memory */
+		DRW_TEXTURE_FREE_SAFE(txl->depth_double_buffer);
+		DRW_FRAMEBUFFER_FREE_SAFE(fbl->depth_double_buffer_fb);
+	}
+
+
 	effects->enabled_effects = enabled_effects;
 
 	/* Only allocate if at least one effect is activated */
@@ -747,70 +812,6 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		}
 	}
 
-	if (BKE_collection_engine_property_value_get_bool(props, "taa_enable")) {
-		float persmat[4][4], viewmat[4][4];
-
-		effects->enabled_effects |= EFFECT_TAA | EFFECT_DOUBLE_BUFFER;
-
-		/* Until we support reprojection, we need to make sure
-		 * that the history buffer contains correct information. */
-		bool view_is_valid = stl->g_data->valid_double_buffer;
-
-		view_is_valid = view_is_valid && (stl->g_data->view_updated == false);
-
-		effects->taa_total_sample = BKE_collection_engine_property_value_get_int(props, "taa_samples");
-		MAX2(effects->taa_total_sample, 0);
-
-		DRW_viewport_matrix_get(persmat, DRW_MAT_PERS);
-		DRW_viewport_matrix_get(viewmat, DRW_MAT_VIEW);
-		DRW_viewport_matrix_get(effects->overide_winmat, DRW_MAT_WIN);
-		view_is_valid = view_is_valid && compare_m4m4(persmat, effects->prev_drw_persmat, 0.0001f);
-		copy_m4_m4(effects->prev_drw_persmat, persmat);
-
-		if (view_is_valid &&
-		    ((effects->taa_total_sample == 0) ||
-		     (effects->taa_current_sample < effects->taa_total_sample)))
-		{
-			effects->taa_current_sample += 1;
-
-			effects->taa_alpha = 1.0f - (1.0f / (float)(effects->taa_current_sample));
-
-			double ht_point[2];
-			double ht_offset[2] = {0.0, 0.0};
-			unsigned int ht_primes[2] = {2, 3};
-
-			BLI_halton_2D(ht_primes, ht_offset, effects->taa_current_sample - 1, ht_point);
-
-			window_translate_m4(
-			        effects->overide_winmat, persmat,
-			        ((float)(ht_point[0]) * 2.0f - 1.0f) / viewport_size[0],
-			        ((float)(ht_point[1]) * 2.0f - 1.0f) / viewport_size[1]);
-
-			mul_m4_m4m4(effects->overide_persmat, effects->overide_winmat, viewmat);
-			invert_m4_m4(effects->overide_persinv, effects->overide_persmat);
-			invert_m4_m4(effects->overide_wininv, effects->overide_winmat);
-
-			DRW_viewport_matrix_override_set(effects->overide_persmat, DRW_MAT_PERS);
-			DRW_viewport_matrix_override_set(effects->overide_persinv, DRW_MAT_PERSINV);
-			DRW_viewport_matrix_override_set(effects->overide_winmat, DRW_MAT_WIN);
-			DRW_viewport_matrix_override_set(effects->overide_wininv, DRW_MAT_WININV);
-		}
-		else {
-			effects->taa_current_sample = 1;
-		}
-
-		DRWFboTexture tex_double_buffer = {&txl->depth_double_buffer, DRW_TEX_DEPTH_24};
-
-		DRW_framebuffer_init(&fbl->depth_double_buffer_fb, &draw_engine_eevee_type,
-		                    (int)viewport_size[0], (int)viewport_size[1],
-		                    &tex_double_buffer, 1);
-	}
-	else {
-		/* Cleanup to release memory */
-		DRW_TEXTURE_FREE_SAFE(txl->depth_double_buffer);
-		DRW_FRAMEBUFFER_FREE_SAFE(fbl->depth_double_buffer_fb);
-	}
-
 	/* Normal buffer for deferred passes. */
 	if ((((effects->enabled_effects & EFFECT_GTAO) != 0) && G.debug_value == 6) ||
 	    ((effects->enabled_effects & EFFECT_SSR) != 0))
@@ -874,10 +875,11 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 	struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
 
 	if ((effects->enabled_effects & EFFECT_TAA) != 0) {
-		psl->taa_resolve = DRW_pass_create("Temporal AA Resolve", DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND);
+		psl->taa_resolve = DRW_pass_create("Temporal AA Resolve", DRW_STATE_WRITE_COLOR);
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.taa_resolve_sh, psl->taa_resolve);
 
-		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &effects->source_buffer);
+		DRW_shgroup_uniform_buffer(grp, "historyBuffer", &txl->color_double_buffer);
+		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &txl->color);
 		DRW_shgroup_uniform_float(grp, "alpha", &effects->taa_alpha, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
 	}
@@ -1432,7 +1434,7 @@ void EEVEE_effects_do_gtao(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *ved
 } ((void)0)
 
 #define SWAP_BUFFERS() {                           \
-	if (effects->source_buffer == txl->color) {    \
+	if (effects->target_buffer != fbl->main) {     \
 		SWAP_DOUBLE_BUFFERS();                     \
 		effects->source_buffer = txl->color_post;  \
 		effects->target_buffer = fbl->main;        \
@@ -1463,16 +1465,22 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 	effects->source_buffer = txl->color; /* latest updated texture */
 	effects->target_buffer = fbl->effect_fb; /* next target to render to */
 
-	/* Motion Blur */
+	/* Temporal Anti-Aliasing */
+	/* MUST COME FIRST. */
 	if ((effects->enabled_effects & EFFECT_TAA) != 0) {
 		if (effects->taa_current_sample != 1) {
-			effects->source_buffer = txl->color_double_buffer;
-			DRW_framebuffer_bind(fbl->main);
+			DRW_framebuffer_bind(fbl->effect_fb);
 			DRW_draw_pass(psl->taa_resolve);
-			effects->source_buffer = txl->color;
 
 			/* Restore the depth from sample 1. */
 			DRW_framebuffer_blit(fbl->depth_double_buffer_fb, fbl->main, true);
+
+			/* Special Swap */
+			SWAP(struct GPUFrameBuffer *, fbl->effect_fb, fbl->double_buffer);
+			SWAP(GPUTexture *, txl->color_post, txl->color_double_buffer);
+			swap_double_buffer = false;
+			effects->source_buffer = txl->color_double_buffer;
+			effects->target_buffer = fbl->main;
 		}
 		else {
 			/* Save the depth buffer for the next frame.
