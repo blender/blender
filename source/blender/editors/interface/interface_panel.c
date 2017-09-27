@@ -507,14 +507,14 @@ static void ui_draw_panel_dragwidget(unsigned int pos, const rctf *rect)
 	const int col_tint = 84;
 
 	const int px = (int)U.pixelsize;
-	const int px_zoom = max_ii(iroundf(BLI_rctf_size_y(rect) / 22.0f), 1);
+	const int px_zoom = max_ii(round_fl_to_int(BLI_rctf_size_y(rect) / 22.0f), 1);
 
-	const int box_margin = max_ii(iroundf((float)(px_zoom * 2.0f)), px);
-	const int box_size = max_ii(iroundf((BLI_rctf_size_y(rect) / 8.0f) - px), px);
+	const int box_margin = max_ii(round_fl_to_int((float)(px_zoom * 2.0f)), px);
+	const int box_size = max_ii(round_fl_to_int((BLI_rctf_size_y(rect) / 8.0f) - px), px);
 
 	const int x_min = rect->xmin;
 	const int y_min = rect->ymin;
-	const int y_ofs = max_ii(iroundf(BLI_rctf_size_y(rect) / 3.0f), px);
+	const int y_ofs = max_ii(round_fl_to_int(BLI_rctf_size_y(rect) / 3.0f), px);
 	const int x_ofs = y_ofs;
 	int i_x, i_y;
 
@@ -917,8 +917,8 @@ static bool uiAlignPanelStep(ScrArea *sa, ARegion *ar, const float fac, const bo
 	for (a = 0; a < tot; a++, ps++) {
 		if ((ps->pa->flag & PNL_SELECT) == 0) {
 			if ((ps->orig->ofsx != ps->pa->ofsx) || (ps->orig->ofsy != ps->pa->ofsy)) {
-				ps->orig->ofsx = iroundf(fac * (float)ps->pa->ofsx + (1.0f - fac) * (float)ps->orig->ofsx);
-				ps->orig->ofsy = iroundf(fac * (float)ps->pa->ofsy + (1.0f - fac) * (float)ps->orig->ofsy);
+				ps->orig->ofsx = round_fl_to_int(fac * (float)ps->pa->ofsx + (1.0f - fac) * (float)ps->orig->ofsx);
+				ps->orig->ofsy = round_fl_to_int(fac * (float)ps->pa->ofsy + (1.0f - fac) * (float)ps->orig->ofsy);
 				done = true;
 			}
 		}
@@ -1678,11 +1678,11 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 	PanelCategoryDyn *pc_dyn;
 	const float aspect = ((uiBlock *)ar->uiblocks.first)->aspect;
 	const float zoom = 1.0f / aspect;
-	const int px = max_ii(1, iroundf(U.pixelsize));
-	const int category_tabs_width = iroundf(UI_PANEL_CATEGORY_MARGIN_WIDTH * zoom);
+	const int px = max_ii(1, round_fl_to_int(U.pixelsize));
+	const int category_tabs_width = round_fl_to_int(UI_PANEL_CATEGORY_MARGIN_WIDTH * zoom);
 	const float dpi_fac = UI_DPI_FAC;
-	const int tab_v_pad_text = iroundf((2 + ((px * 3) * dpi_fac)) * zoom);  /* pading of tabs around text */
-	const int tab_v_pad = iroundf((4 + (2 * px * dpi_fac)) * zoom);  /* padding between tabs */
+	const int tab_v_pad_text = round_fl_to_int((2 + ((px * 3) * dpi_fac)) * zoom);  /* pading of tabs around text */
+	const int tab_v_pad = round_fl_to_int((4 + (2 * px * dpi_fac)) * zoom);  /* padding between tabs */
 	const float tab_curve_radius = ((px * 3) * dpi_fac) * zoom;
 	const int roundboxtype = UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT;
 	bool is_alpha;

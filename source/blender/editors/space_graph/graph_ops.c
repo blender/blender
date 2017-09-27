@@ -94,7 +94,7 @@ static void graphview_cursor_apply(bContext *C, wmOperator *op)
 		 * NOTE: sync this part of the code with ANIM_OT_change_frame
 		 */
 		/* 1) frame is rounded to the nearest int, since frames are ints */
-		CFRA = iroundf(frame);
+		CFRA = round_fl_to_int(frame);
 		
 		if (scene->r.flag & SCER_LOCK_FRAME_SELECTION) {
 			/* Clip to preview range

@@ -4291,7 +4291,7 @@ static bool ui_numedit_but_NUM(
 
 
 		if (!is_float) {
-			temp = iroundf(tempf);
+			temp = round_fl_to_int(tempf);
 
 			temp = ui_numedit_apply_snap(temp, softmin, softmax, snap);
 
@@ -4576,7 +4576,7 @@ static bool ui_numedit_but_SLI(
 
 
 	tempf = softmin + f * softrange;
-	temp = iroundf(tempf);
+	temp = round_fl_to_int(tempf);
 
 	if (snap) {
 		if (tempf == softmin || tempf == softmax) {

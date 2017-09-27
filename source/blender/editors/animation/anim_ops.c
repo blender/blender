@@ -108,7 +108,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 		SUBFRA = frame - (int)frame;
 	}
 	else {
-		CFRA = iroundf(frame);
+		CFRA = round_fl_to_int(frame);
 		SUBFRA = 0.0f;
 	}
 	FRAMENUMBER_MIN_CLAMP(CFRA);
@@ -301,8 +301,8 @@ static int previewrange_define_exec(bContext *C, wmOperator *op)
 	if (efra < sfra) efra = sfra;
 	
 	scene->r.flag |= SCER_PRV_RANGE;
-	scene->r.psfra = iroundf(sfra);
-	scene->r.pefra = iroundf(efra);
+	scene->r.psfra = round_fl_to_int(sfra);
+	scene->r.pefra = round_fl_to_int(efra);
 	
 	/* send notifiers */
 	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);

@@ -149,9 +149,22 @@ MINLINE int power_of_2_min_i(int n);
 MINLINE unsigned int power_of_2_max_u(unsigned int x);
 MINLINE unsigned int power_of_2_min_u(unsigned int x);
 
-MINLINE int iroundf(float a);
 MINLINE int divide_round_i(int a, int b);
 MINLINE int mod_i(int i, int n);
+
+MINLINE signed char    round_fl_to_char(float a);
+MINLINE unsigned char  round_fl_to_uchar(float a);
+MINLINE short          round_fl_to_short(float a);
+MINLINE unsigned short round_fl_to_ushort(float a);
+MINLINE int            round_fl_to_int(float a);
+MINLINE unsigned int   round_fl_to_uint(float a);
+
+MINLINE signed char    round_db_to_char(double a);
+MINLINE unsigned char  round_db_to_uchar(double a);
+MINLINE short          round_db_to_short(double a);
+MINLINE unsigned short round_db_to_ushort(double a);
+MINLINE int            round_db_to_int(double a);
+MINLINE unsigned int   round_db_to_uint(double a);
 
 MINLINE signed char    round_fl_to_char_clamp(float a);
 MINLINE unsigned char  round_fl_to_uchar_clamp(float a);

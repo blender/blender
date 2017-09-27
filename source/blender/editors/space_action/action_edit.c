@@ -1522,7 +1522,7 @@ static int actkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 	/* set the new current frame value, based on the average time */
 	if (ked.i1) {
 		Scene *scene = ac.scene;
-		CFRA = iroundf(ked.f1 / ked.i1);
+		CFRA = round_fl_to_int(ked.f1 / ked.i1);
 		SUBFRA = 0.f;
 	}
 	
