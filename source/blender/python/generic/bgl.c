@@ -472,20 +472,32 @@ int BGL_typeSize(int type)
 	return -1;
 }
 
-static int gl_buffer_type_from_py_format_char(char format)
+static int gl_buffer_type_from_py_format_char(char *typestr)
 {
+	if (ELEM(typestr[0], '<', '>', '|')) {
+		typestr += 1;
+	}
+	char format = typestr[0];
+	char byte_num = typestr[1];
+
 	switch (format) {
+		case 't':
 		case 'b':
-			return GL_BYTE;
 		case 'h':
+			if (!byte_num) return GL_BYTE;
 		case 'i':
-			return GL_SHORT;
+			if (!byte_num) return GL_SHORT;
 		case 'l':
-			return GL_INT;
+			if (!byte_num || byte_num == '4') return GL_INT;
+			if (byte_num == '1') return GL_BYTE;
+			if (byte_num == '2') return GL_SHORT;
+			break;
 		case 'f':
-			return GL_FLOAT;
+			if (!byte_num) return GL_FLOAT;
 		case 'd':
-			return GL_DOUBLE;
+			if (!byte_num || byte_num == '8') return GL_DOUBLE;
+			if (byte_num == '4') return GL_FLOAT;
+			break;
 	}
 	return -1; /* UNKNOWN */
 }
@@ -782,9 +794,9 @@ static PyObject *Buffer_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject
 			return NULL;
 		}
 
-		if (type != gl_buffer_type_from_py_format_char(*pybuffer.format)) {
+		if (type != gl_buffer_type_from_py_format_char(pybuffer.format)) {
 			PyErr_Format(PyExc_TypeError,
-			             "`GL_TYPE` and `format` of object with buffer interface do not match");
+			             "`GL_TYPE` and `typestr` of object with buffer interface do not match. '%s'", pybuffer.format);
 		}
 		else if (ndimensions != pybuffer.ndim ||
 		        !compare_dimensions(ndimensions, dimensions, pybuffer.shape))
