@@ -109,6 +109,16 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 				sculpt->detail_size = 12;
 			}
 			
+			if (ts->vpaint) {
+				VPaint *vp = ts->vpaint;
+				vp->radial_symm[0] = vp->radial_symm[1] = vp->radial_symm[2] = 1;
+			}
+
+			if (ts->wpaint) {
+				VPaint *wp = ts->wpaint;
+				wp->radial_symm[0] = wp->radial_symm[1] = wp->radial_symm[2] = 1;
+			}
+
 			if (ts->gp_sculpt.brush[0].size == 0) {
 				GP_BrushEdit_Settings *gset = &ts->gp_sculpt;
 				GP_EditBrush_Data *brush;

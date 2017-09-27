@@ -60,6 +60,7 @@
 #include "DNA_genfile.h"
 
 #include "BKE_animsys.h"
+#include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -1681,6 +1682,24 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				}
 			}
 		}
+
+		{
+			Brush *br;
+			br = (Brush *)BKE_libblock_find_name_ex(main, ID_BR, "Average");
+			if (!br) {
+				br = BKE_brush_add(main, "Average", OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT);
+				br->vertexpaint_tool = PAINT_BLEND_AVERAGE;
+				br->ob_mode = OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT;
+			}
+
+			br = (Brush *)BKE_libblock_find_name_ex(main, ID_BR, "Smear");
+			if (!br) {
+				br = BKE_brush_add(main, "Smear", OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT);
+				br->vertexpaint_tool = PAINT_BLEND_SMEAR;
+				br->ob_mode = OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT;
+			}
+		}
+
 	}
 }
 

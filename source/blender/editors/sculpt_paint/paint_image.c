@@ -1448,7 +1448,20 @@ void PAINT_OT_texture_paint_toggle(wmOperatorType *ot)
 static int brush_colors_flip_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
-	Brush *br = image_paint_brush(C);
+
+	Brush *br;
+	Object *ob = CTX_data_active_object(C);
+	if (!(ob && (ob->mode & OB_MODE_VERTEX_PAINT))) {
+		br = image_paint_brush(C);
+	}
+	else {
+		/* At the moment, wpaint does not support the color flipper. 
+		 * So for now we're only handling vpaint */
+		ToolSettings *ts = CTX_data_tool_settings(C);
+		VPaint *vp = ts->vpaint;
+		br = BKE_paint_brush(&vp->paint);
+	}
+
 	if (ups->flag & UNIFIED_PAINT_COLOR) {
 		swap_v3_v3(ups->rgb, ups->secondary_rgb);
 	}
@@ -1467,7 +1480,12 @@ static int brush_colors_flip_poll(bContext *C)
 		if (br->imagepaint_tool == PAINT_TOOL_DRAW)
 			return 1;
 	}
-
+	else {
+		Object *ob = CTX_data_active_object(C);
+		if (ob && (ob->mode & OB_MODE_VERTEX_PAINT)) {
+			return 1;
+		}
+	}
 	return 0;
 }
 

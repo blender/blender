@@ -97,7 +97,7 @@ int vertex_paint_poll(struct bContext *C);
 int vertex_paint_mode_poll(struct bContext *C);
 
 bool ED_vpaint_fill(struct Object *ob, unsigned int paintcol);
-bool ED_wpaint_fill(struct VPaint *wp, struct Object *ob, float paintweight);
+bool ED_wpaint_fill(struct Object *ob, float paintweight);
 
 bool ED_vpaint_smooth(struct Object *ob);
 
