@@ -18,7 +18,6 @@ out ivec4 vData;
 #ifdef VERTEX_FACING
 uniform mat4 ProjectionMatrix;
 uniform mat3 NormalMatrix;
-uniform vec3 eye;
 
 in vec3 vnor;
 out float vFacing;

@@ -1,7 +1,7 @@
 
 flat in int isSelected;
 #ifdef VERTEX_FACING
-in float facing;
+flat in float facing;
 #endif
 
 out vec4 FragColor;

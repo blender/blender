@@ -10,10 +10,8 @@ flat out int isSelected;
 uniform mat4 ProjectionMatrix;
 uniform mat4 ModelViewMatrix;
 uniform mat3 NormalMatrix;
-uniform vec3 eye;
 
-in vec3 vnor;
-out float facing;
+flat out float facing;
 #endif
 
 void main()
