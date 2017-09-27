@@ -970,7 +970,12 @@ void Session::update_status_time(bool show_pause, bool show_done)
 
 void Session::render()
 {
-	/* add path trace task */
+	/* Clear buffers. */
+	if(buffers && tile_manager.state.sample == 0) {
+		buffers->zero(device);
+	}
+
+	/* Add path trace task. */
 	DeviceTask task(DeviceTask::RENDER);
 	
 	task.acquire_tile = function_bind(&Session::acquire_tile, this, _1, _2);

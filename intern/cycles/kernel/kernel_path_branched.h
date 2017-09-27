@@ -560,9 +560,6 @@ ccl_device void kernel_branched_path_trace(KernelGlobals *kg,
 		kernel_branched_path_integrate(kg, rng_hash, sample, ray, buffer, &L);
 		kernel_write_result(kg, buffer, sample, &L);
 	}
-	else {
-		kernel_write_result(kg, buffer, sample, NULL);
-	}
 }
 
 #endif  /* __SPLIT_KERNEL__ */

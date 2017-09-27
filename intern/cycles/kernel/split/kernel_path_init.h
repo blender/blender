@@ -47,7 +47,6 @@ ccl_device void kernel_path_init(KernelGlobals *kg) {
 
 	/* Store buffer offset for writing to passes. */
 	uint buffer_offset = (tile->offset + x + y*tile->stride) * kernel_data.film.pass_stride;
-	ccl_global float *buffer = tile->buffer + buffer_offset;
 	kernel_split_state.buffer_offset[ray_index] = buffer_offset;
 
 	/* Initialize random numbers and ray. */
@@ -75,10 +74,6 @@ ccl_device void kernel_path_init(KernelGlobals *kg) {
 #endif
 	}
 	else {
-		/* These rays do not participate in path-iteration. */
-		float4 L_rad = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-		/* Accumulate result in output buffer. */
-		kernel_write_pass_float4(buffer, sample, L_rad);
 		ASSIGN_RAY_STATE(kernel_split_state.ray_state, ray_index, RAY_TO_REGENERATE);
 	}
 }

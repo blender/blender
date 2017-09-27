@@ -145,6 +145,13 @@ void RenderBuffers::reset(Device *device, BufferParams& params_)
 	device->mem_zero(buffer);
 }
 
+void RenderBuffers::zero(Device *device)
+{
+	if(buffer.device_pointer) {
+		device->mem_zero(buffer);
+	}
+}
+
 bool RenderBuffers::copy_from_device(Device *from_device)
 {
 	if(!buffer.device_pointer)

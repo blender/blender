@@ -688,7 +688,6 @@ ccl_device void kernel_path_trace(KernelGlobals *kg,
 	kernel_path_trace_setup(kg, sample, x, y, &rng_hash, &ray);
 
 	if(ray.t == 0.0f) {
-		kernel_write_result(kg, buffer, sample, NULL);
 		return;
 	}
 
