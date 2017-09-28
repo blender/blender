@@ -485,8 +485,10 @@ static int gl_buffer_type_from_py_format_char(char *typestr)
 		case 'b':
 		case 'h':
 			if (!byte_num) return GL_BYTE;
+			ATTR_FALLTHROUGH;
 		case 'i':
 			if (!byte_num) return GL_SHORT;
+			ATTR_FALLTHROUGH;
 		case 'l':
 			if (!byte_num || byte_num == '4') return GL_INT;
 			if (byte_num == '1') return GL_BYTE;
@@ -494,6 +496,7 @@ static int gl_buffer_type_from_py_format_char(char *typestr)
 			break;
 		case 'f':
 			if (!byte_num) return GL_FLOAT;
+			ATTR_FALLTHROUGH;
 		case 'd':
 			if (!byte_num || byte_num == '8') return GL_DOUBLE;
 			if (byte_num == '4') return GL_FLOAT;
