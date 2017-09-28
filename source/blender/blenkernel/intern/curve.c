@@ -4044,7 +4044,7 @@ bool BKE_nurb_check_valid_u(struct Nurb *nu)
 		return true;           /* not a nurb, lets assume its valid */
 
 	if (nu->pntsu < nu->orderu) return false;
-	if (((nu->flag & CU_NURB_CYCLIC) == 0) && (nu->flagu & CU_NURB_BEZIER)) { /* Bezier U Endpoints */
+	if (((nu->flagu & CU_NURB_CYCLIC) == 0) && (nu->flagu & CU_NURB_BEZIER)) { /* Bezier U Endpoints */
 		if (nu->orderu == 4) {
 			if (nu->pntsu < 5)
 				return false;  /* bezier with 4 orderu needs 5 points */
@@ -4065,7 +4065,7 @@ bool BKE_nurb_check_valid_v(struct Nurb *nu)
 
 	if (nu->pntsv < nu->orderv)
 		return false;
-	if (((nu->flag & CU_NURB_CYCLIC) == 0) && (nu->flagv & CU_NURB_BEZIER)) { /* Bezier V Endpoints */
+	if (((nu->flagv & CU_NURB_CYCLIC) == 0) && (nu->flagv & CU_NURB_BEZIER)) { /* Bezier V Endpoints */
 		if (nu->orderv == 4) {
 			if (nu->pntsv < 5)
 				return false;  /* bezier with 4 orderu needs 5 points */
