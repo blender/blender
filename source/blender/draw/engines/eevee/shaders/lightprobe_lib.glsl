@@ -47,15 +47,16 @@ struct GridData {
 	ivec4 resolution_offset;
 	vec4 ws_corner_atten_scale; /* world space corner position */
 	vec4 ws_increment_x_atten_bias; /* world space vector between 2 opposite cells */
-	vec4 ws_increment_y;
+	vec4 ws_increment_y_lvl_bias;
 	vec4 ws_increment_z;
 };
 
 #define g_corner        ws_corner_atten_scale.xyz
 #define g_atten_scale   ws_corner_atten_scale.w
 #define g_atten_bias    ws_increment_x_atten_bias.w
+#define g_level_bias    ws_increment_y_lvl_bias.w
 #define g_increment_x   ws_increment_x_atten_bias.xyz
-#define g_increment_y   ws_increment_y.xyz
+#define g_increment_y   ws_increment_y_lvl_bias.xyz
 #define g_increment_z   ws_increment_z.xyz
 #define g_resolution    resolution_offset.xyz
 #define g_offset        resolution_offset.w
@@ -212,8 +213,10 @@ vec3 probe_evaluate_grid(GridData gd, vec3 W, vec3 N, vec3 localpos)
 		vec3 cell_cos = clamp(localpos_floored + vec3(offset), vec3(0.0), vec3(gd.g_resolution) - 1.0);
 
 		/* Keep in sync with update_irradiance_probe */
-		ivec3 icell_cos = ivec3(cell_cos);
-		int cell = gd.g_offset + icell_cos.z + icell_cos.y * gd.g_resolution.z + icell_cos.x * gd.g_resolution.z * gd.g_resolution.y;
+		ivec3 icell_cos = ivec3(gd.g_level_bias * floor(cell_cos / gd.g_level_bias));
+		int cell = gd.g_offset + icell_cos.z
+		                       + icell_cos.y * gd.g_resolution.z
+		                       + icell_cos.x * gd.g_resolution.z * gd.g_resolution.y;
 
 		vec3 color = irradiance_from_cell_get(cell, N);
 
