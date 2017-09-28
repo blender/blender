@@ -303,8 +303,6 @@ protected:
 
 	GHOST_TabletData m_tablet;
 
-	bool m_lionStyleFullScreen;
-
 	bool m_immediateDraw;
 	bool m_debug_context; // for debug messages during context setup
 };

@@ -28,11 +28,7 @@ macro(find_package_wrapper)
 endmacro()
 
 if(NOT DEFINED LIBDIR)
-	if(WITH_CXX11)
-		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin)
-	else()
-		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-9.x.universal)
-	endif()
+	set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin)
 else()
 	message(STATUS "Using pre-compiled LIBDIR: ${LIBDIR}")
 endif()
@@ -93,11 +89,7 @@ if(WITH_PYTHON)
 		# normally cached but not since we include them with blender
 		set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}m")
 		set(PYTHON_EXECUTABLE "${LIBDIR}/python/bin/python${PYTHON_VERSION}m")
-		if(WITH_CXX11)
-			set(PYTHON_LIBRARY ${LIBDIR}/python/lib/libpython${PYTHON_VERSION}m.a)
-		else()
-			set(PYTHON_LIBRARY python${PYTHON_VERSION}m)
-		endif()
+		set(PYTHON_LIBRARY ${LIBDIR}/python/lib/libpython${PYTHON_VERSION}m.a)
 		set(PYTHON_LIBPATH "${LIBDIR}/python/lib/python${PYTHON_VERSION}")
 		# set(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
 	else()
@@ -148,11 +140,7 @@ if(WITH_IMAGE_OPENEXR)
 	set(OPENEXR ${LIBDIR}/openexr)
 	set(OPENEXR_INCLUDE_DIR ${OPENEXR}/include)
 	set(OPENEXR_INCLUDE_DIRS ${OPENEXR_INCLUDE_DIR} ${OPENEXR}/include/OpenEXR)
-	if(WITH_CXX11)
-		set(OPENEXR_POSTFIX -2_2)
-	else()
-		set(OPENEXR_POSTFIX)
-	endif()
+	set(OPENEXR_POSTFIX -2_2)
 	set(OPENEXR_LIBRARIES
 		Iex${OPENEXR_POSTFIX}
 		Half
@@ -169,20 +157,16 @@ if(WITH_CODEC_FFMPEG)
 		avcodec avdevice avformat avutil
 		mp3lame swscale x264 xvidcore theora theoradec theoraenc vorbis vorbisenc vorbisfile ogg
 	)
-	if(WITH_CXX11)
-		set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} schroedinger orc vpx webp swresample)
-	endif()
+	set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} schroedinger orc vpx webp swresample)
 	set(FFMPEG_LIBPATH ${FFMPEG}/lib)
 endif()
 
 if(WITH_OPENJPEG OR WITH_CODEC_FFMPEG)
 	# use openjpeg from libdir that is linked into ffmpeg
-	if(WITH_CXX11)
-		set(OPENJPEG ${LIBDIR}/openjpeg)
-		set(WITH_SYSTEM_OPENJPEG ON)
-		set(OPENJPEG_INCLUDE_DIRS ${OPENJPEG}/include)
-		set(OPENJPEG_LIBRARIES ${OPENJPEG}/lib/libopenjpeg.a)
-	endif()
+	set(OPENJPEG ${LIBDIR}/openjpeg)
+	set(WITH_SYSTEM_OPENJPEG ON)
+	set(OPENJPEG_INCLUDE_DIRS ${OPENJPEG}/include)
+	set(OPENJPEG_LIBRARIES ${OPENJPEG}/lib/libopenjpeg.a)
 endif()
 
 find_library(SYSTEMSTUBS_LIBRARY
@@ -200,11 +184,7 @@ set(PLATFORM_LINKFLAGS
 	"-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Cocoa -framework Carbon -framework AudioUnit -framework AudioToolbox -framework CoreAudio"
 )
 
-if(WITH_CXX11)
-	list(APPEND PLATFORM_LINKLIBS c++)
-else()
-	list(APPEND PLATFORM_LINKLIBS stdc++)
-endif()
+list(APPEND PLATFORM_LINKLIBS c++)
 
 if(WITH_JACK)
 	set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -F/Library/Frameworks -weak_framework jackmp")
@@ -255,11 +235,7 @@ if(WITH_SDL)
 	set(SDL_INCLUDE_DIR ${SDL}/include)
 	set(SDL_LIBRARY SDL2)
 	set(SDL_LIBPATH ${SDL}/lib)
-	if(WITH_CXX11)
-		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework ForceFeedback")
-	else()
-		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -lazy_framework ForceFeedback")
-	endif()
+	set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework ForceFeedback")
 endif()
 
 set(PNG "${LIBDIR}/png")
@@ -280,11 +256,7 @@ endif()
 if(WITH_BOOST)
 	set(BOOST ${LIBDIR}/boost)
 	set(BOOST_INCLUDE_DIR ${BOOST}/include)
-	if(WITH_CXX11)
-		set(BOOST_POSTFIX)
-	else()
-		set(BOOST_POSTFIX -mt)
-	endif()
+	set(BOOST_POSTFIX)
 	set(BOOST_LIBRARIES
 		boost_date_time${BOOST_POSTFIX}
 		boost_filesystem${BOOST_POSTFIX}
@@ -321,9 +293,7 @@ if(WITH_OPENIMAGEIO)
 		${OPENEXR_LIBRARIES}
 		${ZLIB_LIBRARIES}
 	)
-	if(WITH_CXX11)
-		set(OPENIMAGEIO_LIBRARIES ${OPENIMAGEIO_LIBRARIES} ${LIBDIR}/ffmpeg/lib/libwebp.a)
-	endif()
+	set(OPENIMAGEIO_LIBRARIES ${OPENIMAGEIO_LIBRARIES} ${LIBDIR}/ffmpeg/lib/libwebp.a)
 	set(OPENIMAGEIO_LIBPATH
 		${OPENIMAGEIO}/lib
 		${JPEG_LIBPATH}
@@ -461,10 +431,8 @@ set(PLATFORM_LINKFLAGS
 	"${PLATFORM_LINKFLAGS} -Xlinker -unexported_symbols_list -Xlinker ${CMAKE_SOURCE_DIR}/source/creator/osx_locals.map"
 )
 
-if(WITH_CXX11)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-	set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -stdlib=libc++")
-endif()
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -stdlib=libc++")
 
 # Suppress ranlib "has no symbols" warnings (workaround for T48250)
 set(CMAKE_C_ARCHIVE_CREATE   "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")

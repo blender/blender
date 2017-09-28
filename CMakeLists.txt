@@ -500,7 +500,12 @@ endif()
 # Experimental support of C11 and C++11
 #
 # We default options to whatever default standard in the current compiler.
-if(CMAKE_COMPILER_IS_GNUCC AND (NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "6.0") AND (NOT WITH_CXX11))
+if(APPLE)
+	set(_c11_init ON)
+	set(_cxx11_init ON)
+	set(WITH_C11 ON)
+	set(WITH_CXX11 ON)
+elseif(CMAKE_COMPILER_IS_GNUCC AND (NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "6.0") AND (NOT WITH_CXX11))
 	set(_c11_init ON)
 	set(_cxx11_init ON)
 else()
