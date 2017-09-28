@@ -101,6 +101,7 @@ typedef struct EEVEE_PassList {
 	struct DRWPass *probe_background;
 	struct DRWPass *probe_glossy_compute;
 	struct DRWPass *probe_diffuse_compute;
+	struct DRWPass *probe_grid_fill;
 	struct DRWPass *probe_display;
 	struct DRWPass *probe_planar_downsample_ps;
 
@@ -318,6 +319,7 @@ typedef struct EEVEE_LightProbesInfo {
 	int num_planar, cache_num_planar;
 	int update_flag;
 	int updated_bounce;
+	int grid_initialized;
 	/* Actual number of probes that have datas. */
 	int num_render_cube;
 	int num_render_grid;
