@@ -1472,6 +1472,7 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "MSVC")
 		"/wd4800"  # forcing value to bool 'true' or 'false'
 		# errors:
 		"/we4013"  # 'function' undefined; assuming extern returning int
+		"/we4133"  # incompatible pointer types
 		"/we4431"  # missing type specifier - int assumed
 	)
 
