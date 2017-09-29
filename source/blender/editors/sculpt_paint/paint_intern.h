@@ -96,21 +96,11 @@ int weight_paint_mode_poll(struct bContext *C);
 int vertex_paint_poll(struct bContext *C);
 int vertex_paint_mode_poll(struct bContext *C);
 
-bool ED_vpaint_fill(struct Object *ob, unsigned int paintcol);
-bool ED_wpaint_fill(struct Object *ob, float paintweight);
-
-bool ED_vpaint_smooth(struct Object *ob);
-
 typedef void (*VPaintTransform_Callback)(const float col[3], const void *user_data, float r_col[3]);
-
-bool ED_vpaint_color_transform(struct Object *ob, VPaintTransform_Callback vpaint_tx_fn, const void *user_data);
 
 void PAINT_OT_weight_paint_toggle(struct wmOperatorType *ot);
 void PAINT_OT_weight_paint(struct wmOperatorType *ot);
 void PAINT_OT_weight_set(struct wmOperatorType *ot);
-void PAINT_OT_weight_from_bones(struct wmOperatorType *ot);
-void PAINT_OT_weight_sample(struct wmOperatorType *ot);
-void PAINT_OT_weight_sample_group(struct wmOperatorType *ot);
 
 enum {
 	WPAINT_GRADIENT_TYPE_LINEAR,
@@ -123,8 +113,44 @@ void PAINT_OT_vertex_paint(struct wmOperatorType *ot);
 
 unsigned int vpaint_get_current_col(struct Scene *scene, struct VPaint *vp);
 
+/* paint_vertex_color_utils.c */
+unsigned int ED_vpaint_blend_tool(
+        const int tool, const uint col,
+        const uint paintcol, const int alpha_i);
+bool ED_vpaint_color_transform(
+        struct Object *ob, VPaintTransform_Callback vpaint_tx_fn, const void *user_data);
+
+/* paint_vertex_weight_utils.c */
+float ED_wpaint_blend_tool(
+        const int tool,
+        const float weight,
+        const float paintval, const float alpha);
+/* Utility for tools to ensure vertex groups exist before they begin. */
+enum eWPaintFlag {
+	WPAINT_ENSURE_MIRROR = (1 << 0),
+};
+struct WPaintVGroupIndex {
+	int active;
+	int mirror;
+};
+bool ED_wpaint_ensure_data(
+        struct bContext *C, struct ReportList *reports,
+        enum eWPaintFlag flag, struct WPaintVGroupIndex *vgroup_index);
+int ED_wpaint_mirror_vgroup_ensure(struct Object *ob, const int vgroup_active);
+
 /* paint_vertex_color_ops.c */
+void PAINT_OT_vertex_color_set(struct wmOperatorType *ot);
 void PAINT_OT_vertex_color_from_weight(struct wmOperatorType *ot);
+void PAINT_OT_vertex_color_smooth(struct wmOperatorType *ot);
+void PAINT_OT_vertex_color_brightness_contrast(struct wmOperatorType *ot);
+void PAINT_OT_vertex_color_hsv(struct wmOperatorType *ot);
+void PAINT_OT_vertex_color_invert(struct wmOperatorType *ot);
+void PAINT_OT_vertex_color_levels(struct wmOperatorType *ot);
+
+/* paint_vertex_weight_ops.c */
+void PAINT_OT_weight_from_bones(struct wmOperatorType *ot);
+void PAINT_OT_weight_sample(struct wmOperatorType *ot);
+void PAINT_OT_weight_sample_group(struct wmOperatorType *ot);
 
 /* paint_vertex_proj.c */
 struct VertProjHandle;
@@ -162,7 +188,7 @@ void set_imapaintpartial(struct ImagePaintPartialRedraw *ippr);
 void imapaint_region_tiles(struct ImBuf *ibuf, int x, int y, int w, int h, int *tx, int *ty, int *tw, int *th);
 int get_imapaint_zoom(struct bContext *C, float *zoomx, float *zoomy);
 void *paint_2d_new_stroke(struct bContext *, struct wmOperator *, int mode);
-void paint_2d_redraw(const bContext *C, void *ps, bool final);
+void paint_2d_redraw(const struct bContext *C, void *ps, bool final);
 void paint_2d_stroke_done(void *ps);
 void paint_2d_stroke(void *ps, const float prev_mval[2], const float mval[2], const bool eraser, float pressure, float distance, float size);
 void paint_2d_bucket_fill(const struct bContext *C, const float color[3], struct Brush *br, const float mouse_init[2], void *ps);
@@ -219,7 +245,7 @@ float paint_calc_object_space_radius(struct ViewContext *vc, const float center[
 float paint_get_tex_pixel(struct MTex *mtex, float u, float v, struct ImagePool *pool, int thread);
 void paint_get_tex_pixel_col(struct MTex *mtex, float u, float v, float rgba[4], struct ImagePool *pool, int thread, bool convert, struct ColorSpace *colorspace);
 
-void paint_sample_color(bContext *C, struct ARegion *ar, int x, int y, bool texpaint_proj, bool palette);
+void paint_sample_color(struct bContext *C, struct ARegion *ar, int x, int y, bool texpaint_proj, bool palette);
 
 void paint_stroke_operator_properties(struct wmOperatorType *ot);
 
