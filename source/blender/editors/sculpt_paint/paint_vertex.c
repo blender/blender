@@ -922,7 +922,7 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
 		if ((ts->vpaint->flag & VP_SPRAY) == 0) {
 			if (ob->sculpt->mode.vpaint.previous_color == NULL) {
 				ob->sculpt->mode.vpaint.previous_color =
-				        MEM_callocN(me->totloop * sizeof(uint), "previous_color");
+				        MEM_callocN(me->totloop * sizeof(uint), __func__);
 			}
 		}
 		else {
@@ -932,7 +932,7 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
 		if (brush && brush->flag & BRUSH_ACCUMULATE) {
 			if (ob->sculpt->mode.vpaint.previous_accum == NULL) {
 				ob->sculpt->mode.vpaint.previous_accum =
-				        MEM_callocN(me->totloop * sizeof(uint), "previous_color");
+				        MEM_callocN(me->totloop * sizeof(float), __func__);
 			}
 		}
 		else {
@@ -943,16 +943,24 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
 		if ((ts->wpaint->flag & VP_SPRAY) == 0) {
 			if (ob->sculpt->mode.wpaint.alpha_weight == NULL) {
 				ob->sculpt->mode.wpaint.alpha_weight =
-				        MEM_callocN(me->totvert * sizeof(float), "alpha_weight");
+				        MEM_callocN(me->totvert * sizeof(float), __func__);
 			}
 			if (ob->sculpt->mode.wpaint.previous_weight == NULL) {
 				ob->sculpt->mode.wpaint.previous_weight =
-				        MEM_mallocN(me->totvert * sizeof(float), "previous_weight");
+				        MEM_mallocN(me->totvert * sizeof(float), __func__);
 			}
 		}
 		else {
 			MEM_SAFE_FREE(ob->sculpt->mode.wpaint.alpha_weight);
-			MEM_SAFE_FREE(ob->sculpt->mode.wpaint.previous_weight);
+		}
+		if (brush && brush->flag & BRUSH_ACCUMULATE) {
+			if (ob->sculpt->mode.wpaint.previous_accum == NULL) {
+				ob->sculpt->mode.wpaint.previous_accum =
+				        MEM_callocN(me->totvert * sizeof(float), __func__);
+			}
+		}
+		else {
+			MEM_SAFE_FREE(ob->sculpt->mode.wpaint.previous_accum);
 		}
 	}
 
@@ -1351,7 +1359,6 @@ static void get_brush_alpha_data(
 	*r_brush_alpha_value =
 	        BKE_brush_alpha_get(scene, brush);
 	*r_brush_alpha_pressure =
-	        *r_brush_alpha_value *
 	        (BKE_brush_use_alpha_pressure(scene, brush) ? ss->cache->pressure : 1.0f);
 }
 
@@ -1410,11 +1417,17 @@ static void do_wpaint_brush_blur_task_cb_ex(
 					const float view_dot = (vd.no) ? dot_vf3vs3(cache->sculpt_normal_symm, vd.no) : 1.0;
 					if (view_dot > 0.0f) {
 						const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
-						const float final_alpha =
+						float final_alpha =
 						        view_dot * brush_fade * brush_strength *
 						        grid_alpha * brush_alpha_pressure;
-						weight_final /= total_hit_loops;
 
+						if (brush->flag & BRUSH_ACCUMULATE) {
+							float mask_accum = ss->mode.wpaint.previous_accum[v_index];
+							final_alpha = min_ff(final_alpha + mask_accum, brush_strength);
+							ss->mode.wpaint.previous_accum[v_index] = final_alpha;
+						}
+
+						weight_final /= total_hit_loops;
 						/* Only paint visable verts */
 						do_weight_paint_vertex(
 						        data->vp, data->ob, data->wpi,
@@ -1558,6 +1571,12 @@ static void do_wpaint_brush_draw_task_cb_ex(
 				if (view_dot > 0.0f) {
 					const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
 					float final_alpha = view_dot * brush_fade * brush_strength * grid_alpha * brush_alpha_pressure;
+
+					if (brush->flag & BRUSH_ACCUMULATE) {
+						float mask_accum = ss->mode.wpaint.previous_accum[v_index];
+						final_alpha = min_ff(final_alpha + mask_accum, brush_strength);
+						ss->mode.wpaint.previous_accum[v_index] = final_alpha;
+					}
 
 					/* Non-spray logic. */
 					if ((data->vp->flag & VP_SPRAY) == 0) {
@@ -2329,7 +2348,7 @@ static void do_vpaint_brush_draw_task_cb_ex(
 
 							if (brush->flag & BRUSH_ACCUMULATE) {
 								float mask_accum = ss->mode.vpaint.previous_accum[l_index];
-								final_alpha = min_ff(final_alpha + mask_accum, 255.0f);
+								final_alpha = min_ff(final_alpha + mask_accum, 255.0f * brush_strength);
 								ss->mode.vpaint.previous_accum[l_index] = final_alpha;
 							}
 
