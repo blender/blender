@@ -426,6 +426,7 @@ update: .FORCE
 		svn cleanup ../lib/* ; \
 		svn update ../lib/* ; \
 	fi
+	git pull --rebase
 	git submodule update --init --recursive
 	git submodule foreach git checkout master
 	git submodule foreach git pull --rebase origin master
