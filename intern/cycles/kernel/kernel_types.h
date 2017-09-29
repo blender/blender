@@ -514,7 +514,7 @@ typedef ccl_addr_space struct PathRadiance {
 	float mist;
 #endif
 
-	PathRadianceState state;
+	struct PathRadianceState state;
 
 #ifdef __SHADOW_TRICKS__
 	/* Total light reachable across the path, ignoring shadow blocked queries. */
