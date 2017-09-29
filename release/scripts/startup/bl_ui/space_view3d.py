@@ -55,7 +55,7 @@ class VIEW3D_HT_header(Header):
 
             # Occlude geometry
             if ((view.viewport_shade not in {'BOUNDBOX', 'WIREFRAME'} and (mode == 'PARTICLE_EDIT' or (mode == 'EDIT' and obj.type == 'MESH'))) or
-                    (mode == 'WEIGHT_PAINT')):
+                    (mode in {'WEIGHT_PAINT', 'VERTEX_PAINT'})):
                 row.prop(view, "use_occlude_geometry", text="")
 
             # Proportional editing
@@ -170,7 +170,7 @@ class VIEW3D_MT_editor_menus(Menu):
             mesh = obj.data
             if mesh.use_paint_mask:
                 layout.menu("VIEW3D_MT_select_paint_mask")
-            elif mesh.use_paint_mask_vertex and mode_string == 'PAINT_WEIGHT':
+            elif mesh.use_paint_mask_vertex and mode_string in {'PAINT_WEIGHT', 'PAINT_VERTEX'}:
                 layout.menu("VIEW3D_MT_select_paint_mask_vertex")
         elif mode_string != 'SCULPT':
             layout.menu("VIEW3D_MT_select_%s" % mode_string.lower())
@@ -1780,6 +1780,7 @@ class VIEW3D_MT_paint_vertex(Menu):
         layout.operator("paint.vertex_color_set")
         layout.operator("paint.vertex_color_smooth")
         layout.operator("paint.vertex_color_dirt")
+        layout.operator("paint.vertex_color_from_weight")
 
         layout.separator()
 

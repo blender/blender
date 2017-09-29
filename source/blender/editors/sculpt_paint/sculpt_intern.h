@@ -192,14 +192,14 @@ typedef struct {
 	bool original;
 } SculptSearchSphereData;
 
-void sculpt_brush_test_init(SculptSession *ss, SculptBrushTest *test);
+void sculpt_brush_test_init(struct SculptSession *ss, SculptBrushTest *test);
 bool sculpt_brush_test(SculptBrushTest *test, const float co[3]);
 bool sculpt_brush_test_sq(SculptBrushTest *test, const float co[3]);
 bool sculpt_brush_test_fast(const SculptBrushTest *test, const float co[3]);
 bool sculpt_brush_test_cube(SculptBrushTest *test, const float co[3], float local[4][4]);
 bool sculpt_search_sphere_cb(PBVHNode *node, void *data_v);
 float tex_strength(
-        SculptSession *ss, struct Brush *br,
+        struct SculptSession *ss, struct Brush *br,
         const float point[3],
         const float len,
         const short vno[3],

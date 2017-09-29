@@ -82,7 +82,7 @@ static const GPUBufferTypeSettings gpu_buffer_type_settings[] = {
     /* normal */
     {GL_ARRAY_BUFFER, 4}, /* we copy 3 shorts per normal but we add a fourth for alignment */
     /* mcol */
-    {GL_ARRAY_BUFFER, 3},
+    {GL_ARRAY_BUFFER, 4},
     /* uv */
     {GL_ARRAY_BUFFER, 2},
     /* uv for texpaint */
@@ -690,7 +690,7 @@ void GPU_color_setup(DerivedMesh *dm, int colType)
 
 	glEnableClientState(GL_COLOR_ARRAY);
 	glBindBuffer(GL_ARRAY_BUFFER, dm->drawObject->colors->id);
-	glColorPointer(3, GL_UNSIGNED_BYTE, 0, 0);
+	glColorPointer(4, GL_UNSIGNED_BYTE, 0, 0);
 
 	GLStates |= GPU_BUFFER_COLOR_STATE;
 }

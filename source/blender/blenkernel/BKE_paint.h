@@ -220,6 +220,7 @@ typedef struct SculptSession {
 
 			/* For non-airbrush painting to re-apply from the original (MLoop aligned). */
 			unsigned int *previous_color;
+			unsigned int *previous_accum;
 		} vpaint;
 
 		struct {

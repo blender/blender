@@ -8457,8 +8457,8 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 			else {
 				Mesh *me = ob->data;
 				if ((me->editflag & ME_EDIT_PAINT_VERT_SEL) &&
-				    /* currently vertex select only supports weight paint */
-				    (ob->mode & OB_MODE_WEIGHT_PAINT))
+				    /* currently vertex select supports weight paint and vertex paint*/
+				    ((ob->mode & OB_MODE_WEIGHT_PAINT) || (ob->mode & OB_MODE_VERTEX_PAINT)))
 				{
 					bbs_mesh_solid_verts(scene, ob);
 				}
