@@ -1479,10 +1479,9 @@ static void do_wpaint_brush_smear_task_cb_ex(
 					const int v_index = ccgdm ? data->me->mloop[vd.grid_indices[vd.g]].v : vd.vert_indices[vd.i];
 					const float grid_alpha = ccgdm ? 1.0f / vd.gridsize : 1.0f;
 					const MVert *mv_curr = &data->me->mvert[v_index];
-					const char v_flag = data->me->mvert[v_index].flag;
 
 					/* If the vertex is selected */
-					if (!(use_face_sel || use_vert_sel) || v_flag & SELECT) {
+					if (!(use_face_sel || use_vert_sel) || mv_curr->flag & SELECT) {
 						/* Minimum dot product between brush direction and current
 						 * to neighbor direction is 0.0, meaning orthogonal. */
 						float stroke_dot_max = 0.0f;
@@ -1493,24 +1492,25 @@ static void do_wpaint_brush_smear_task_cb_ex(
 						for (int j = 0; j < gmap->vert_to_poly[v_index].count; j++) {
 							const int p_index = gmap->vert_to_poly[v_index].indices[j];
 							const MPoly *mp = &data->me->mpoly[p_index];
-							for (int k = 0; k < mp->totloop; k++) {
-								const uint l_index = mp->loopstart + k;
-								const MLoop *ml = &data->me->mloop[l_index];
-								const uint v_other_index = ml->v;
-								const MVert *mv_other = &data->me->mvert[v_other_index];
+							const MLoop *ml_other = &data->me->mloop[mp->loopstart];
+							for (int k = 0; k < mp->totloop; k++, ml_other++) {
+								const uint v_other_index = ml_other->v;
+								if (v_other_index != v_index) {
+									const MVert *mv_other = &data->me->mvert[v_other_index];
 
-								/* Get the direction from the selected vert to the neighbor. */
-								float other_dir[3];
-								sub_v3_v3v3(other_dir, mv_curr->co, mv_other->co);
-								normalize_v3(other_dir);
+									/* Get the direction from the selected vert to the neighbor. */
+									float other_dir[3];
+									sub_v3_v3v3(other_dir, mv_curr->co, mv_other->co);
+									normalize_v3(other_dir);
 
-								const float stroke_dot = dot_v3v3(other_dir, brush_dir);
+									const float stroke_dot = dot_v3v3(other_dir, brush_dir);
 
-								if (stroke_dot > stroke_dot_max) {
-									stroke_dot_max = stroke_dot;
-									MDeformVert *dv = &data->me->dvert[v_other_index];
-									weight_final = defvert_find_weight(dv, data->wpi->active.index);
-									do_color = true;
+									if (stroke_dot > stroke_dot_max) {
+										stroke_dot_max = stroke_dot;
+										MDeformVert *dv = &data->me->dvert[v_other_index];
+										weight_final = defvert_find_weight(dv, data->wpi->active.index);
+										do_color = true;
+									}
 								}
 							}
 						}
@@ -2523,22 +2523,24 @@ static void do_vpaint_brush_smear_task_cb_ex(
 							BLI_assert(data->me->mloop[l_index].v == v_index);
 							const MPoly *mp = &data->me->mpoly[p_index];
 							if (!use_face_sel || mp->flag & ME_FACE_SEL) {
-								for (int k = 0; k < mp->totloop; k++) {
-									const MLoop *ml = &data->me->mloop[l_index];
-									const uint v_other_index = ml->v;
-									const MVert *mv_other = &data->me->mvert[v_other_index];
+								const MLoop *ml_other = &data->me->mloop[mp->loopstart];
+								for (int k = 0; k < mp->totloop; k++, ml_other++) {
+									const uint v_other_index = ml_other->v;
+									if (v_other_index != v_index) {
+										const MVert *mv_other = &data->me->mvert[v_other_index];
 
-									/* Get the direction from the selected vert to the neighbor. */
-									float other_dir[3];
-									sub_v3_v3v3(other_dir, mv_curr->co, mv_other->co);
-									normalize_v3(other_dir);
+										/* Get the direction from the selected vert to the neighbor. */
+										float other_dir[3];
+										sub_v3_v3v3(other_dir, mv_curr->co, mv_other->co);
+										normalize_v3(other_dir);
 
-									const float stroke_dot = dot_v3v3(other_dir, brush_dir);
+										const float stroke_dot = dot_v3v3(other_dir, brush_dir);
 
-									if (stroke_dot > stroke_dot_max) {
-										stroke_dot_max = stroke_dot;
-										color_final = lcol[l_index];
-										do_color = true;
+										if (stroke_dot > stroke_dot_max) {
+											stroke_dot_max = stroke_dot;
+											color_final = lcol[mp->loopstart + k];
+											do_color = true;
+										}
 									}
 								}
 							}
