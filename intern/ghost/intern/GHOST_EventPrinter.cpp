@@ -193,16 +193,6 @@ void GHOST_EventPrinter::getKeyString(GHOST_TKey key, char str[32]) const
 	}
 	else if ((key >= GHOST_kKeyNumpad0) && (key <= GHOST_kKeyNumpad9)) {
 		sprintf(str, "Numpad %d", (key - GHOST_kKeyNumpad0));
-#if defined(__sun__) || defined(__sun)
-	}
-	else if (key == 268828432) {   /* solaris keyboards are messed up */
-		/* This should really test XK_F11 but that doesn't work */
-		strcpy(str, "F11");
-	}
-	else if (key == 268828433) {   /* solaris keyboards are messed up */
-		/* This should really test XK_F12 but that doesn't work */
-		strcpy(str, "F12");
-#endif
 	}
 	else if ((key >= GHOST_kKeyF1) && (key <= GHOST_kKeyF24)) {
 		sprintf(str, "F%d", key - GHOST_kKeyF1 + 1);

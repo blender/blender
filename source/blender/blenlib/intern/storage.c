@@ -37,14 +37,10 @@
 
 #include <sys/stat.h>
 
-#if defined(__NetBSD__) || defined(__DragonFly__) || defined(__sun__) || defined(__sun)
+#if defined(__NetBSD__) || defined(__DragonFly__)
    /* Other modern unix os's should probably use this also */
 #  include <sys/statvfs.h>
 #  define USE_STATFS_STATVFS
-#elif (defined(__sparc) || defined(__sparc__)) && !defined(__FreeBSD__) && !defined(__linux__)
-#  include <sys/statfs.h>
-   /* 4 argument version (not common) */
-#  define USE_STATFS_4ARGS
 #endif
 
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFly__)

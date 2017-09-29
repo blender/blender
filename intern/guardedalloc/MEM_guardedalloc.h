@@ -225,7 +225,7 @@ public:                                                                       \
 			MEM_freeN(mem);                                                   \
 	}                                                                         \
 
-#if defined __GNUC__ || defined __sun
+#if defined __GNUC__
 #  define OBJECT_GUARDED_NEW(type, args ...) \
 	new(MEM_mallocN(sizeof(type), __func__)) type(args)
 #else
