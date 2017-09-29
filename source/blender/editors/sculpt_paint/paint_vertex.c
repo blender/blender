@@ -1334,142 +1334,11 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 	return true;
 }
 
-static void calc_area_normal_and_center_task_cb(void *userdata, const int n)
-{
-	SculptThreadedTaskData *data = userdata;
-	SculptSession *ss = data->ob->sculpt;
-	float(*area_nos)[3] = data->area_nos;
-	float(*area_cos)[3] = data->area_cos;
-
-	float private_co[2][3] = {{0.0f}};
-	float private_no[2][3] = {{0.0f}};
-	int   private_count[2] = {0};
-
-	SculptBrushTest test;
-	sculpt_brush_test_init(ss, &test);
-
-	PBVHVertexIter vd;
-	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-	{
-		const float *co;
-
-		co = vd.co;
-
-		if (sculpt_brush_test_fast(&test, co)) {
-			float no_buf[3];
-			const float *no;
-			int flip_index;
-
-			if (vd.no) {
-				normal_short_to_float_v3(no_buf, vd.no);
-				no = no_buf;
-			}
-			else {
-				no = vd.fno;
-			}
-
-			flip_index = (dot_v3v3(ss->cache->view_normal, no) <= 0.0f);
-			if (area_cos)
-				add_v3_v3(private_co[flip_index], co);
-			if (area_nos)
-				add_v3_v3(private_no[flip_index], no);
-			private_count[flip_index] += 1;
-		}
-	}
-	BKE_pbvh_vertex_iter_end;
-
-
-	BLI_mutex_lock(&data->mutex);
-
-	/* for flatten center */
-	if (area_cos) {
-		add_v3_v3(area_cos[0], private_co[0]);
-		add_v3_v3(area_cos[1], private_co[1]);
-	}
-
-	/* for area normal */
-	if (area_nos) {
-		add_v3_v3(area_nos[0], private_no[0]);
-		add_v3_v3(area_nos[1], private_no[1]);
-	}
-
-	/* weights */
-	data->count[0] += private_count[0];
-	data->count[1] += private_count[1];
-
-	BLI_mutex_unlock(&data->mutex);
-}
-
-static void calc_area_normal(
-        VPaint *vp, Object *ob,
-        PBVHNode **nodes, int totnode,
-        float r_area_no[3])
-{
-	/* 0=towards view, 1=flipped */
-	float area_nos[2][3] = {{0.0f}};
-
-	int count[2] = {0};
-
-	SculptThreadedTaskData data = {
-		.vp = vp, .ob = ob, .nodes = nodes, .totnode = totnode,
-		.area_cos = NULL, .area_nos = area_nos, .count = count,
-	};
-	BLI_mutex_init(&data.mutex);
-
-	BLI_task_parallel_range(
-	        0, totnode, &data, calc_area_normal_and_center_task_cb, true);
-
-	BLI_mutex_end(&data.mutex);
-
-	/* for area normal */
-	for (int i = 0; i < ARRAY_SIZE(area_nos); i++) {
-		if (normalize_v3_v3(r_area_no, area_nos[i]) != 0.0f) {
-			break;
-		}
-	}
-}
-
 static float dot_vf3vs3(const float brushNormal[3], const short vertexNormal[3])
 {
 	float normal[3];
 	normal_short_to_float_v3(normal, vertexNormal);
 	return dot_v3v3(brushNormal, normal);
-}
-
-/* Flip all the editdata across the axis/axes specified by symm. Used to
- * calculate multiple modifications to the mesh when symmetry is enabled. */
-static void calc_brushdata_symm(
-        VPaint *vd, StrokeCache *cache, const char symm,
-        const char axis, const float angle)
-{
-	(void)vd; /* unused */
-
-	flip_v3_v3(cache->location, cache->true_location, symm);
-	flip_v3_v3(cache->last_location, cache->true_last_location, symm);
-	flip_v3_v3(cache->grab_delta_symmetry, cache->grab_delta, symm);
-	flip_v3_v3(cache->view_normal, cache->true_view_normal, symm);
-
-	unit_m4(cache->symm_rot_mat);
-	unit_m4(cache->symm_rot_mat_inv);
-	zero_v3(cache->plane_offset);
-
-	if (axis) { /* expects XYZ */
-		rotate_m4(cache->symm_rot_mat, axis, angle);
-		rotate_m4(cache->symm_rot_mat_inv, axis, -angle);
-	}
-
-	mul_m4_v3(cache->symm_rot_mat, cache->location);
-	mul_m4_v3(cache->symm_rot_mat, cache->last_location);
-	mul_m4_v3(cache->symm_rot_mat, cache->grab_delta_symmetry);
-
-	if (cache->supports_gravity) {
-		flip_v3_v3(cache->gravity_direction, cache->true_gravity_direction, symm);
-		mul_m4_v3(cache->symm_rot_mat, cache->gravity_direction);
-	}
-
-	if (cache->is_rake_rotation_valid) {
-		flip_qt_qt(cache->rake_rotation_symmetry, cache->rake_rotation, symm);
-	}
 }
 
 static void get_brush_alpha_data(
@@ -1829,11 +1698,11 @@ static void wpaint_paint_leaves(
 
 static void wpaint_do_paint(
         bContext *C, Object *ob, VPaint *wp, Sculpt *sd, struct WPaintData *wpd, WeightPaintInfo *wpi,
-        Mesh *me, Brush *UNUSED(brush), const char symm, const int axis, const int i, const float angle)
+        Mesh *me, Brush *brush, const char symm, const int axis, const int i, const float angle)
 {
 	SculptSession *ss = ob->sculpt;
 	ss->cache->radial_symmetry_pass = i;
-	calc_brushdata_symm(wp, ss->cache, symm, axis, angle);
+	sculpt_cache_calc_brushdata_symm(ss->cache, symm, axis, angle);
 
 	SculptSearchSphereData data;
 	PBVHNode **nodes = NULL;
@@ -1847,7 +1716,7 @@ static void wpaint_do_paint(
 	data.original = true;
 	BKE_pbvh_search_gather(ss->pbvh, sculpt_search_sphere_cb, &data, &nodes, &totnode);
 
-	calc_area_normal(wp, ob, nodes, totnode, ss->cache->sculpt_normal_symm);
+	sculpt_pbvh_calc_area_normal(brush, ob, nodes, totnode, true, ss->cache->sculpt_normal_symm);
 	wpaint_paint_leaves(C, ob, sd, wp, wpd, wpi, me, nodes, totnode);
 
 	if (nodes)
@@ -1864,6 +1733,7 @@ static void wpaint_do_radial_symmetry(
 	}
 }
 
+/* near duplicate of: sculpt.c's, 'do_symmetrical_brush_actions' and 'vpaint_do_symmetrical_brush_actions'. */
 static void wpaint_do_symmetrical_brush_actions(
         bContext *C, Object *ob, VPaint *wp, Sculpt *sd, struct WPaintData *wpd, WeightPaintInfo *wpi)
 {
@@ -1887,7 +1757,7 @@ static void wpaint_do_symmetrical_brush_actions(
 		if ((symm & i && (symm != 5 || i != 3) && (symm != 6 || (i != 3 && i != 5)))) {
 			cache->mirror_symmetry_pass = i;
 			cache->radial_symmetry_pass = 0;
-			calc_brushdata_symm(wp, cache, i, 0, 0);
+			sculpt_cache_calc_brushdata_symm(cache, i, 0, 0);
 
 			if (i & (1 << 0)) {
 				wpaint_do_paint(C, ob, wp, sd, wpd, wpi, me, brush, i, 'X', 0, 0);
@@ -2757,11 +2627,11 @@ static void vpaint_paint_leaves(
 
 static void vpaint_do_paint(
         bContext *C, Sculpt *sd, VPaint *vd, struct VPaintData *vpd,
-        Object *ob, Mesh *me, Brush *UNUSED(brush), const char symm, const int axis, const int i, const float angle)
+        Object *ob, Mesh *me, Brush *brush, const char symm, const int axis, const int i, const float angle)
 {
 	SculptSession *ss = ob->sculpt;
 	ss->cache->radial_symmetry_pass = i;
-	calc_brushdata_symm(vd, ss->cache, symm, axis, angle);
+	sculpt_cache_calc_brushdata_symm(ss->cache, symm, axis, angle);
 	SculptSearchSphereData data;
 	PBVHNode **nodes = NULL;
 	int totnode;
@@ -2773,7 +2643,7 @@ static void vpaint_do_paint(
 	data.original = true;
 	BKE_pbvh_search_gather(ss->pbvh, sculpt_search_sphere_cb, &data, &nodes, &totnode);
 
-	calc_area_normal(vd, ob, nodes, totnode, ss->cache->sculpt_normal_symm);
+	sculpt_pbvh_calc_area_normal(brush, ob, nodes, totnode, true, ss->cache->sculpt_normal_symm);
 
 	/* Paint those leaves. */
 	vpaint_paint_leaves(C, sd, vd, vpd, ob, me, nodes, totnode);
@@ -2793,6 +2663,7 @@ static void vpaint_do_radial_symmetry(
 	}
 }
 
+/* near duplicate of: sculpt.c's, 'do_symmetrical_brush_actions' and 'wpaint_do_symmetrical_brush_actions'. */
 static void vpaint_do_symmetrical_brush_actions(
         bContext *C, Sculpt *sd, VPaint *vd, struct VPaintData *vpd, Object *ob)
 {
@@ -2816,7 +2687,7 @@ static void vpaint_do_symmetrical_brush_actions(
 		if (symm & i && (symm != 5 || i != 3) && (symm != 6 || (i != 3 && i != 5))) {
 			cache->mirror_symmetry_pass = i;
 			cache->radial_symmetry_pass = 0;
-			calc_brushdata_symm(vd, cache, i, 0, 0);
+			sculpt_cache_calc_brushdata_symm(cache, i, 0, 0);
 
 			if (i & (1 << 0)) {
 				vpaint_do_paint(C, sd, vd, vpd, ob, me, brush, i, 'X', 0, 0);

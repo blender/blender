@@ -752,17 +752,19 @@ static void calc_area_normal_and_center_task_cb(void *userdata, const int n)
 
 	PBVHVertexIter vd;
 	SculptBrushTest test;
-	SculptUndoNode *unode;
+	SculptUndoNode *unode = NULL;
 
 	float private_co[2][3] = {{0.0f}};
 	float private_no[2][3] = {{0.0f}};
 	int   private_count[2] = {0};
-	bool use_original;
+	bool use_original = false;
 
-	unode = sculpt_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
+	if (ss->cache->original) {
+		unode = sculpt_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
+		use_original = (unode->co || unode->bm_entry);
+	}
 	sculpt_brush_test_init(ss, &test);
 
-	use_original = (ss->cache->original && (unode->co || unode->bm_entry));
 
 	/* when the mesh is edited we can't rely on original coords
 	 * (original mesh may not even have verts in brush radius) */
@@ -884,8 +886,9 @@ static void calc_area_center(
 
 	int count[2] = {0};
 
+	/* Intentionally set 'sd' to NULL since we share logic with vertex paint. */
 	SculptThreadedTaskData data = {
-		.sd = sd, .ob = ob, .nodes = nodes, .totnode = totnode,
+		.sd = NULL, .ob = ob, .nodes = nodes, .totnode = totnode,
 		.has_bm_orco = has_bm_orco, .area_cos = area_cos, .area_nos = NULL, .count = count,
 	};
 	BLI_mutex_init(&data.mutex);
@@ -908,41 +911,52 @@ static void calc_area_center(
 	}
 }
 
-
 static void calc_area_normal(
         Sculpt *sd, Object *ob,
         PBVHNode **nodes, int totnode,
         float r_area_no[3])
 {
 	const Brush *brush = BKE_paint_brush(&sd->paint);
+	bool use_threading = (sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_THREADED_LIMIT;
+	sculpt_pbvh_calc_area_normal(brush, ob, nodes, totnode, use_threading, r_area_no);
+}
+
+/* expose 'calc_area_normal' externally. */
+void sculpt_pbvh_calc_area_normal(
+        const Brush *brush, Object *ob,
+        PBVHNode **nodes, int totnode,
+        bool use_threading,
+        float r_area_no[3])
+{
 	SculptSession *ss = ob->sculpt;
 	const bool has_bm_orco = ss->bm && sculpt_stroke_is_dynamic_topology(ss, brush);
-	int n;
 
 	/* 0=towards view, 1=flipped */
 	float area_nos[2][3] = {{0.0f}};
 
 	int count[2] = {0};
 
+	/* Intentionally set 'sd' to NULL since this is used for vertex paint too. */
 	SculptThreadedTaskData data = {
-		.sd = sd, .ob = ob, .nodes = nodes, .totnode = totnode,
+		.sd = NULL, .ob = ob, .nodes = nodes, .totnode = totnode,
 		.has_bm_orco = has_bm_orco, .area_cos = NULL, .area_nos = area_nos, .count = count,
 	};
 	BLI_mutex_init(&data.mutex);
 
 	BLI_task_parallel_range(
 	            0, totnode, &data, calc_area_normal_and_center_task_cb,
-	            ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_THREADED_LIMIT));
+	            use_threading);
 
 	BLI_mutex_end(&data.mutex);
 
 	/* for area normal */
-	for (n = 0; n < ARRAY_SIZE(area_nos); n++) {
-		if (normalize_v3_v3(r_area_no, area_nos[n]) != 0.0f) {
+	for (int i = 0; i < ARRAY_SIZE(area_nos); i++) {
+		if (normalize_v3_v3(r_area_no, area_nos[i]) != 0.0f) {
 			break;
 		}
 	}
 }
+
 
 /* this calculates flatten center and area normal together,
  * amortizing the memory bandwidth and loop overhead to calculate both at the same time */
@@ -962,8 +976,9 @@ static void calc_area_normal_and_center(
 
 	int count[2] = {0};
 
+	/* Intentionally set 'sd' to NULL since this is used for vertex paint too. */
 	SculptThreadedTaskData data = {
-		.sd = sd, .ob = ob, .nodes = nodes, .totnode = totnode,
+		.sd = NULL, .ob = ob, .nodes = nodes, .totnode = totnode,
 		.has_bm_orco = has_bm_orco, .area_cos = area_cos, .area_nos = area_nos, .count = count,
 	};
 	BLI_mutex_init(&data.mutex);
@@ -3552,12 +3567,10 @@ static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob)
 
 /* Flip all the editdata across the axis/axes specified by symm. Used to
  * calculate multiple modifications to the mesh when symmetry is enabled. */
-static void calc_brushdata_symm(Sculpt *sd, StrokeCache *cache, const char symm,
-                                const char axis, const float angle,
-                                const float UNUSED(feather))
+void sculpt_cache_calc_brushdata_symm(
+        StrokeCache *cache, const char symm,
+        const char axis, const float angle)
 {
-	(void)sd; /* unused */
-
 	flip_v3_v3(cache->location, cache->true_location, symm);
 	flip_v3_v3(cache->grab_delta_symmetry, cache->grab_delta, symm);
 	flip_v3_v3(cache->view_normal, cache->true_view_normal, symm);
@@ -3655,7 +3668,7 @@ static void do_tiled(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings 
 static void do_radial_symmetry(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings *ups,
                                BrushActionFunc action,
                                const char symm, const int axis,
-                               const float feather)
+                               const float UNUSED(feather))
 {
 	SculptSession *ss = ob->sculpt;
 	int i;
@@ -3663,7 +3676,7 @@ static void do_radial_symmetry(Sculpt *sd, Object *ob, Brush *brush, UnifiedPain
 	for (i = 1; i < sd->radial_symm[axis - 'X']; ++i) {
 		const float angle = 2 * M_PI * i / sd->radial_symm[axis - 'X'];
 		ss->cache->radial_symmetry_pass = i;
-		calc_brushdata_symm(sd, ss->cache, symm, axis, angle, feather);
+		sculpt_cache_calc_brushdata_symm(ss->cache, symm, axis, angle);
 		do_tiled(sd, ob, brush, ups, action);
 	}
 }
@@ -3681,8 +3694,9 @@ static void sculpt_fix_noise_tear(Sculpt *sd, Object *ob)
 		multires_stitch_grids(ob);
 }
 
-static void do_symmetrical_brush_actions(Sculpt *sd, Object *ob,
-                                         BrushActionFunc action, UnifiedPaintSettings *ups)
+static void do_symmetrical_brush_actions(
+        Sculpt *sd, Object *ob,
+        BrushActionFunc action, UnifiedPaintSettings *ups)
 {
 	Brush *brush = BKE_paint_brush(&sd->paint);
 	SculptSession *ss = ob->sculpt;
@@ -3701,7 +3715,7 @@ static void do_symmetrical_brush_actions(Sculpt *sd, Object *ob,
 			cache->mirror_symmetry_pass = i;
 			cache->radial_symmetry_pass = 0;
 
-			calc_brushdata_symm(sd, cache, i, 0, 0, feather);
+			sculpt_cache_calc_brushdata_symm(cache, i, 0, 0);
 			do_tiled(sd, ob, brush, ups, action);
 
 			do_radial_symmetry(sd, ob, brush, ups, action, i, 'X', feather);

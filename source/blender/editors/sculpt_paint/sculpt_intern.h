@@ -207,6 +207,12 @@ float tex_strength(
         const float mask,
         const int thread_id);
 
+/* just for vertex paint. */
+void sculpt_pbvh_calc_area_normal(
+        const struct Brush *brush, Object *ob,
+        PBVHNode **nodes, int totnode,
+        bool use_threading,
+        float r_area_no[3]);
 
 /* Cache stroke properties. Used because
 * RNA property lookup isn't particularly fast.
@@ -304,6 +310,9 @@ typedef struct StrokeCache {
 
 } StrokeCache;
 
+void sculpt_cache_calc_brushdata_symm(
+        StrokeCache *cache, const char symm,
+        const char axis, const float angle);
 void sculpt_cache_free(StrokeCache *cache);
 
 SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType type);
