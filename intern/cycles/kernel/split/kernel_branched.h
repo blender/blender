@@ -87,7 +87,6 @@ ccl_device_inline bool kernel_split_branched_indirect_start_shared(KernelGlobals
 	PathRadiance *inactive_L = &kernel_split_state.path_radiance[inactive_ray];
 
 	path_radiance_init(inactive_L, kernel_data.film.use_light_pass);
-	inactive_L->direct_throughput = L->direct_throughput;
 	path_radiance_copy_indirect(inactive_L, L);
 
 	ray_state[inactive_ray] = RAY_REGENERATED;
@@ -176,7 +175,7 @@ ccl_device_noinline bool kernel_split_branched_path_surface_indirect_light_iter(
 			                                        num_samples,
 			                                        tp,
 			                                        ps,
-			                                        L,
+			                                        &L->state,
 			                                        bsdf_ray,
 			                                        sum_sample_weight))
 			{

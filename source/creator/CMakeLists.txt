@@ -921,49 +921,11 @@ elseif(APPLE)
 
 	# python
 	if(WITH_PYTHON AND NOT WITH_PYTHON_MODULE AND NOT WITH_PYTHON_FRAMEWORK)
-		if(WITH_CXX11)
-			# Copy the python libs into the install directory
-			install_dir(
-				${PYTHON_LIBPATH}
-				${TARGETDIR_VER}/python/lib
-			)
-		else()
-			# the python zip is first extracted as part of the build process,
-			# and then later installed as part of make install. this is much
-			# quicker, and means we can easily exclude files on copy
-			# Not needed for PYTHON_MODULE or WEB_PLUGIN due uses Pyhon framework
-			# use a hash of the .zip path to handle switching between different
-			# lib directories without needing a clean build
-			string(SHA1 PYTHON_ZIP_HASH ${LIBDIR}/release/${PYTHON_ZIP})
-			set(PYTHON_EXTRACT_DIR ${CMAKE_CURRENT_BINARY_DIR}/${PYTHON_ZIP_HASH}/python)
-
-			add_custom_target(
-				extractpyzip
-				DEPENDS ${PYTHON_EXTRACT_DIR})
-
-			set(PYTHON_ZIP "python_${CMAKE_OSX_ARCHITECTURES}.zip")
-
-			add_custom_command(
-				OUTPUT ${PYTHON_EXTRACT_DIR}
-				COMMAND ${CMAKE_COMMAND} -E remove_directory "${PYTHON_EXTRACT_DIR}/"
-				COMMAND ${CMAKE_COMMAND} -E make_directory "${PYTHON_EXTRACT_DIR}/"
-				COMMAND ${CMAKE_COMMAND} -E chdir "${PYTHON_EXTRACT_DIR}/"
-						${CMAKE_COMMAND} -E tar xzfv "${LIBDIR}/release/${PYTHON_ZIP}"
-				DEPENDS ${LIBDIR}/release/${PYTHON_ZIP})
-
-			add_dependencies(blender extractpyzip)
-
-			# copy extracted python files
-			install_dir(
-				${PYTHON_EXTRACT_DIR}
-				\${TARGETDIR_VER}
-			)
-			# copy site-packages files
-			install_dir(
-				${LIBDIR}/release/site-packages
-				\${TARGETDIR_VER}/python/lib/python${PYTHON_VERSION}
-			)
-		endif()
+		# Copy the python libs into the install directory
+		install_dir(
+			${PYTHON_LIBPATH}
+			${TARGETDIR_VER}/python/lib
+		)
 
 		install(DIRECTORY ${LIBDIR}/python/bin
 			DESTINATION ${TARGETDIR_VER}/python
@@ -1018,27 +980,11 @@ elseif(APPLE)
 
 		# python
 		if(WITH_PYTHON AND NOT WITH_PYTHON_FRAMEWORK)
-			if(WITH_CXX11)
-				# Copy the python libs into the install directory
-				install_dir(
-					${PYTHON_LIBPATH}
-					${PLAYER_TARGETDIR_VER}/python/lib
-				)
-			else()
-				add_custom_command(
-					OUTPUT ${PYTHON_EXTRACT_DIR}
-					COMMAND ${CMAKE_COMMAND} -E remove_directory "${PYTHON_EXTRACT_DIR}/"
-					COMMAND ${CMAKE_COMMAND} -E make_directory "${PYTHON_EXTRACT_DIR}/"
-					COMMAND ${CMAKE_COMMAND} -E chdir "${PYTHON_EXTRACT_DIR}/"
-							${CMAKE_COMMAND} -E tar xzfv "${LIBDIR}/release/${PYTHON_ZIP}"
-					DEPENDS ${LIBDIR}/release/${PYTHON_ZIP})
-
-				# copy extracted python files
-				install_dir(
-					${PYTHON_EXTRACT_DIR}
-					\${PLAYER_TARGETDIR_VER}
-				)
-			endif()
+			# Copy the python libs into the install directory
+			install_dir(
+				${PYTHON_LIBPATH}
+				${PLAYER_TARGETDIR_VER}/python/lib
+			)
 		endif()
 
 	endif()

@@ -43,14 +43,6 @@
 
 #include <sys/sysctl.h>
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED < 1070
-/* Lion style fullscreen support when building with the 10.6 SDK */
-enum {
-	NSWindowCollectionBehaviorFullScreenPrimary = 1 << 7,
-	NSFullScreenWindowMask = 1 << 14
-};
-#endif
-
 #pragma mark Cocoa window delegate object
 
 @interface CocoaWindowDelegate : NSObject
@@ -511,14 +503,6 @@ enum {
 
 #pragma mark initialization / finalization
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED < 1070
-@interface NSView (NSOpenGLSurfaceResolution)
-- (BOOL)wantsBestResolutionOpenGLSurface;
-- (void)setWantsBestResolutionOpenGLSurface:(BOOL)flag;
-- (NSRect)convertRectToBacking:(NSRect)bounds;
-@end
-#endif
-
 GHOST_WindowCocoa::GHOST_WindowCocoa(
 	GHOST_SystemCocoa *systemCocoa,
 	const STR_String& title,
@@ -537,7 +521,6 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	m_systemCocoa = systemCocoa;
 	m_fullScreen = false;
 	m_immediateDraw = false;
-	m_lionStyleFullScreen = false;
 
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
@@ -613,16 +596,6 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	if (state == GHOST_kWindowStateFullScreen)
 		setState(GHOST_kWindowStateFullScreen);
 
-	// Starting with 10.9 (darwin 13.x.x), we can use Lion fullscreen,
-	// since it now has better multi-monitor support
-	// if the screens are spawned, additional screens get useless,
-	// so we only use lionStyleFullScreen when screens have separate spaces
-	
-	if ([NSScreen respondsToSelector:@selector(screensHaveSeparateSpaces)] && [NSScreen screensHaveSeparateSpaces]) {
-		// implies we are on >= OSX 10.9
-		m_lionStyleFullScreen = true;
-	}
-	
 	[pool drain];
 }
 
@@ -760,28 +733,18 @@ void GHOST_WindowCocoa::getClientBounds(GHOST_Rect& bounds) const
 	
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
-	if (!m_fullScreen) {
-		NSRect screenSize = [[m_window screen] visibleFrame];
+	NSRect screenSize = [[m_window screen] visibleFrame];
 
-		//Max window contents as screen size (excluding title bar...)
-		NSRect contentRect = [CocoaWindow contentRectForFrameRect:screenSize
-		                      styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)];
+	//Max window contents as screen size (excluding title bar...)
+	NSRect contentRect = [CocoaWindow contentRectForFrameRect:screenSize
+						  styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)];
 
-		rect = [m_window contentRectForFrameRect:[m_window frame]];
-		
-		bounds.m_b = contentRect.size.height - (rect.origin.y -contentRect.origin.y);
-		bounds.m_l = rect.origin.x -contentRect.origin.x;
-		bounds.m_r = rect.origin.x-contentRect.origin.x + rect.size.width;
-		bounds.m_t = contentRect.size.height - (rect.origin.y + rect.size.height -contentRect.origin.y);
-	}
-	else {
-		NSRect screenSize = [[m_window screen] frame];
-		
-		bounds.m_b = screenSize.origin.y + screenSize.size.height;
-		bounds.m_l = screenSize.origin.x;
-		bounds.m_r = screenSize.origin.x + screenSize.size.width;
-		bounds.m_t = screenSize.origin.y;
-	}
+	rect = [m_window contentRectForFrameRect:[m_window frame]];
+	
+	bounds.m_b = contentRect.size.height - (rect.origin.y -contentRect.origin.y);
+	bounds.m_l = rect.origin.x -contentRect.origin.x;
+	bounds.m_r = rect.origin.x-contentRect.origin.x + rect.size.width;
+	bounds.m_t = contentRect.size.height - (rect.origin.y + rect.size.height -contentRect.origin.y);
 	[pool drain];
 }
 
@@ -856,9 +819,6 @@ GHOST_TWindowState GHOST_WindowCocoa::getState() const
 			state = GHOST_kWindowStateNormal;
 		}
 	}
-	else if (m_fullScreen) {
-		state = GHOST_kWindowStateFullScreen;
-	} 
 	else if ([m_window isMiniaturized]) {
 		state = GHOST_kWindowStateMinimized;
 	}
@@ -940,15 +900,12 @@ NSScreen* GHOST_WindowCocoa::getScreen()
 /* called for event, when window leaves monitor to another */
 void GHOST_WindowCocoa::setNativePixelSize(void)
 {
-	/* make sure 10.6 keeps running */
-	if ([m_openGLView respondsToSelector:@selector(setWantsBestResolutionOpenGLSurface:)]) {
-		NSRect backingBounds = [m_openGLView convertRectToBacking:[m_openGLView bounds]];
-		
-		GHOST_Rect rect;
-		getClientBounds(rect);
+	NSRect backingBounds = [m_openGLView convertRectToBacking:[m_openGLView bounds]];
+	
+	GHOST_Rect rect;
+	getClientBounds(rect);
 
-		m_nativePixelSize = (float)backingBounds.size.width / (float)rect.getWidth();
-	}
+	m_nativePixelSize = (float)backingBounds.size.width / (float)rect.getWidth();
 }
 
 /**
@@ -973,35 +930,8 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 		{
 			NSUInteger masks = [m_window styleMask];
 
-			if (!m_fullScreen && !(masks & NSFullScreenWindowMask)) {
-				if (m_lionStyleFullScreen) {
-					[m_window toggleFullScreen:nil];
-					break;
-				}
-				NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-			
-				/* This status change needs to be done before Cocoa call to enter fullscreen mode
-				 * to give window delegate hint not to forward its deactivation to ghost wm that
-				 * doesn't know view/window difference. */
-				m_fullScreen = true;
-
-				/* Disable toggle for Lion style fullscreen */
-				[m_window setCollectionBehavior:NSWindowCollectionBehaviorDefault];
-
-				//10.6 provides Cocoa functions to autoshow menu bar, and to change a window style
-				//Hide menu & dock if on primary screen. else only menu
-				if ([[m_window screen] isEqual:[[NSScreen screens] objectAtIndex:0]]) {
-					[NSApp setPresentationOptions:(NSApplicationPresentationAutoHideDock | NSApplicationPresentationAutoHideMenuBar)];
-				}
-				//Make window borderless and enlarge it
-				[m_window setStyleMask:NSBorderlessWindowMask];
-				[m_window setFrame:[[m_window screen] frame] display:YES];
-				[m_window makeFirstResponder:m_openGLView];
-			
-				//Tell WM of view new size
-				m_systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, this);
-				
-				[pool drain];
+			if (!(masks & NSFullScreenWindowMask)) {
+				[m_window toggleFullScreen:nil];
 			}
 			break;
 		}
@@ -1013,26 +943,6 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 			if (masks & NSFullScreenWindowMask) {
 				// Lion style fullscreen
 				[m_window toggleFullScreen:nil];
-			}
-			else if (m_fullScreen) {
-				m_fullScreen = false;
-
-				/* Enable toggle for into Lion style fullscreen */
-				[m_window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
-
-				//Exit fullscreen
-				//Show again menu & dock if needed
-				if ([[m_window screen] isEqual:[NSScreen mainScreen]]) {
-					[NSApp setPresentationOptions:NSApplicationPresentationDefault];
-				}
-				//Make window normal and resize it
-				[m_window setStyleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask)];
-				[m_window setFrame:[[m_window screen] visibleFrame] display:YES];
-				//TODO for 10.6 only : window title is forgotten after the style change
-				[m_window makeFirstResponder:m_openGLView];
-			
-				//Tell WM of view new size
-				m_systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, this);
 			}
 			else if ([m_window isMiniaturized])
 				[m_window deminiaturize:nil];
@@ -1164,7 +1074,6 @@ GHOST_TSuccess GHOST_WindowCocoa::setProgressBar(float progress)
 	return GHOST_kSuccess;
 }
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1080
 static void postNotification()
 {
 	NSUserNotification *notification = [[NSUserNotification alloc] init];
@@ -1174,7 +1083,6 @@ static void postNotification()
 	[[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:notification];
 	[notification release];
 }
-#endif
 
 GHOST_TSuccess GHOST_WindowCocoa::endProgressBar()
 {
@@ -1189,15 +1097,13 @@ GHOST_TSuccess GHOST_WindowCocoa::endProgressBar()
 	[dockIcon unlockFocus];
 	[NSApp setApplicationIconImage:dockIcon];
 	
-	
-	// With OSX 10.8 and later, we can use notifications to inform the user when the progress reached 100%
-	// Atm. just fire this when the progressbar ends, the behavior is controlled in the NotificationCenter
-	// If Blender is not frontmost window, a message pops up with sound, in any case an entry in notifications
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1080
+	// We use notifications to inform the user when the progress reached 100%
+	// Atm. just fire this when the progressbar ends, the behavior is controlled
+	// in the NotificationCenter If Blender is not frontmost window, a message
+	// pops up with sound, in any case an entry in notifications
 	if ([NSUserNotificationCenter respondsToSelector:@selector(defaultUserNotificationCenter)]) {
 		postNotification();
 	}
-#endif
 
 	[dockIcon release];
 	

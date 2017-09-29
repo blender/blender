@@ -41,7 +41,7 @@
 
 
 /* macro which inserts the function name */
-#if defined __GNUC__ || defined __sun
+#if defined __GNUC__
 #  define ERRMSG(format, args...) { fprintf(stderr, "%s: " format ", " AT "\n", __func__, ##args); errtot++; } (void)0
 #else
 #  define ERRMSG(format, ...) { fprintf(stderr, "%s: " format ", " AT "\n", __func__, __VA_ARGS__); errtot++; } (void)0

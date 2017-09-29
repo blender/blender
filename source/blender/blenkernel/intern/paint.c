@@ -469,7 +469,7 @@ bool BKE_paint_select_vert_test(Object *ob)
 	         (ob->type == OB_MESH) &&
 	         (ob->data != NULL) &&
 	         (((Mesh *)ob->data)->editflag & ME_EDIT_PAINT_VERT_SEL) &&
-	         (ob->mode & OB_MODE_WEIGHT_PAINT)
+	         (ob->mode & OB_MODE_WEIGHT_PAINT || ob->mode & OB_MODE_VERTEX_PAINT)
 	         );
 }
 
@@ -683,6 +683,7 @@ void BKE_sculptsession_free_vwpaint_data(struct SculptSession *ss)
 		gmap = &ss->mode.vpaint.gmap;
 
 		MEM_SAFE_FREE(ss->mode.vpaint.previous_color);
+		MEM_SAFE_FREE(ss->mode.vpaint.previous_accum);
 	}
 	else if (ss->mode_type == OB_MODE_WEIGHT_PAINT) {
 		gmap = &ss->mode.wpaint.gmap;
@@ -740,7 +741,10 @@ void BKE_sculptsession_bm_to_me_for_render(Object *object)
 			 */
 			BKE_object_free_derived_caches(object);
 
-			MEM_SAFE_FREE(object->sculpt->pbvh);
+			if (object->sculpt->pbvh) {
+				BKE_pbvh_free(object->sculpt->pbvh);
+				object->sculpt->pbvh = NULL;
+			}
 
 			sculptsession_bm_to_me_update_data_only(object, false);
 

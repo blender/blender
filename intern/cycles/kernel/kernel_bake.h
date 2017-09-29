@@ -103,7 +103,6 @@ ccl_device_inline void compute_light_pass(KernelGlobals *kg,
 					                     throughput,
 					                     &state,
 					                     &L_sample);
-					kernel_path_subsurface_accum_indirect(&ss_indirect, &L_sample);
 				}
 				is_sss_sample = true;
 			}
@@ -114,7 +113,7 @@ ccl_device_inline void compute_light_pass(KernelGlobals *kg,
 		if(!is_sss_sample && (pass_filter & (BAKE_FILTER_DIRECT | BAKE_FILTER_INDIRECT))) {
 			kernel_path_surface_connect_light(kg, sd, &emission_sd, throughput, &state, &L_sample);
 
-			if(kernel_path_surface_bounce(kg, sd, &throughput, &state, &L_sample, &ray)) {
+			if(kernel_path_surface_bounce(kg, sd, &throughput, &state, &L_sample.state, &ray)) {
 #ifdef __LAMP_MIS__
 				state.ray_t = 0.0f;
 #endif

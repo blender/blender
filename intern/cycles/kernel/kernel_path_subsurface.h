@@ -43,7 +43,7 @@ bool kernel_path_subsurface_scatter(
 		 * the second one should be converted to a diffuse BSDF to
 		 * avoid this.
 		 */
-		kernel_assert(!ss_indirect->tracing);
+		kernel_assert(!(state->flag & PATH_RAY_DIFFUSE_ANCESTOR));
 
 		uint lcg_state = lcg_state_init_addrspace(state, 0x68bc21eb);
 
@@ -56,7 +56,7 @@ bool kernel_path_subsurface_scatter(
 		                                                  bssrdf_u, bssrdf_v,
 		                                                  false);
 #  ifdef __VOLUME__
-		ss_indirect->need_update_volume_stack =
+		bool need_update_volume_stack =
 		        kernel_data.integrator.use_volumes &&
 		        sd->object_flag & SD_OBJECT_INTERSECTS_VOLUME;
 #  endif  /* __VOLUME__ */
@@ -75,28 +75,25 @@ bool kernel_path_subsurface_scatter(
 			                               sc,
 			                               false);
 
+			kernel_path_surface_connect_light(kg, sd, emission_sd, *throughput, state, L);
+
 			ccl_addr_space PathState *hit_state = &ss_indirect->state[ss_indirect->num_rays];
 			ccl_addr_space Ray *hit_ray = &ss_indirect->rays[ss_indirect->num_rays];
 			ccl_addr_space float3 *hit_tp = &ss_indirect->throughputs[ss_indirect->num_rays];
-			PathRadiance *hit_L = &ss_indirect->L[ss_indirect->num_rays];
+			PathRadianceState *hit_L_state = &ss_indirect->L_state[ss_indirect->num_rays];
 
 			*hit_state = *state;
 			*hit_ray = *ray;
 			*hit_tp = *throughput;
+			*hit_L_state = L->state;
 
 			hit_state->rng_offset += PRNG_BOUNCE_NUM;
-
-			path_radiance_init(hit_L, kernel_data.film.use_light_pass);
-			hit_L->direct_throughput = L->direct_throughput;
-			path_radiance_copy_indirect(hit_L, L);
-
-			kernel_path_surface_connect_light(kg, sd, emission_sd, *hit_tp, state, hit_L);
 
 			if(kernel_path_surface_bounce(kg,
 			                              sd,
 			                              hit_tp,
 			                              hit_state,
-			                              hit_L,
+			                              hit_L_state,
 			                              hit_ray))
 			{
 #  ifdef __LAMP_MIS__
@@ -104,7 +101,7 @@ bool kernel_path_subsurface_scatter(
 #  endif  /* __LAMP_MIS__ */
 
 #  ifdef __VOLUME__
-				if(ss_indirect->need_update_volume_stack) {
+				if(need_update_volume_stack) {
 					Ray volume_ray = *ray;
 					/* Setup ray from previous surface point to the new one. */
 					volume_ray.D = normalize_len(hit_ray->P - volume_ray.P,
@@ -117,11 +114,7 @@ bool kernel_path_subsurface_scatter(
 					    hit_state->volume_stack);
 				}
 #  endif  /* __VOLUME__ */
-				path_radiance_reset_indirect(L);
 				ss_indirect->num_rays++;
-			}
-			else {
-				path_radiance_accum_sample(L, hit_L);
 			}
 		}
 		return true;
@@ -132,21 +125,7 @@ bool kernel_path_subsurface_scatter(
 ccl_device_inline void kernel_path_subsurface_init_indirect(
         ccl_addr_space SubsurfaceIndirectRays *ss_indirect)
 {
-	ss_indirect->tracing = false;
 	ss_indirect->num_rays = 0;
-}
-
-ccl_device void kernel_path_subsurface_accum_indirect(
-        ccl_addr_space SubsurfaceIndirectRays *ss_indirect,
-        PathRadiance *L)
-{
-	if(ss_indirect->tracing) {
-		path_radiance_sum_indirect(L);
-		path_radiance_accum_sample(&ss_indirect->direct_L, L);
-		if(ss_indirect->num_rays == 0) {
-			*L = ss_indirect->direct_L;
-		}
-	}
 }
 
 ccl_device void kernel_path_subsurface_setup_indirect(
@@ -157,20 +136,15 @@ ccl_device void kernel_path_subsurface_setup_indirect(
         PathRadiance *L,
         ccl_addr_space float3 *throughput)
 {
-	if(!ss_indirect->tracing) {
-		ss_indirect->direct_L = *L;
-	}
-	ss_indirect->tracing = true;
-
 	/* Setup state, ray and throughput for indirect SSS rays. */
 	ss_indirect->num_rays--;
 
-	ccl_addr_space Ray *indirect_ray = &ss_indirect->rays[ss_indirect->num_rays];
-	PathRadiance *indirect_L = &ss_indirect->L[ss_indirect->num_rays];
+	path_radiance_sum_indirect(L);
+	path_radiance_reset_indirect(L);
 
 	*state = ss_indirect->state[ss_indirect->num_rays];
-	*ray = *indirect_ray;
-	*L = *indirect_L;
+	*ray = ss_indirect->rays[ss_indirect->num_rays];
+	L->state = ss_indirect->L_state[ss_indirect->num_rays];
 	*throughput = ss_indirect->throughputs[ss_indirect->num_rays];
 
 	state->rng_offset += ss_indirect->num_rays * PRNG_BOUNCE_NUM;

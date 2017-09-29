@@ -440,6 +440,20 @@ int ED_mesh_color_add(Mesh *me, const char *name, const bool active_set)
 	return layernum;
 }
 
+bool ED_mesh_color_ensure(struct Mesh *me, const char *name)
+{
+	BLI_assert(me->edit_btmesh == NULL);
+
+	if (!me->mloopcol && me->totloop) {
+		CustomData_add_layer_named(&me->ldata, CD_MLOOPCOL, CD_DEFAULT, NULL, me->totloop, name);
+		BKE_mesh_update_customdata_pointers(me, true);
+	}
+
+	DEG_id_tag_update(&me->id, 0);
+
+	return (me->mloopcol != NULL);
+}
+
 bool ED_mesh_color_remove_index(Mesh *me, const int n)
 {
 	CustomData *ldata = GET_CD_DATA(me, ldata);

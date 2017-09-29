@@ -134,7 +134,7 @@ ccl_device void kernel_next_iteration_setup(KernelGlobals *kg,
 		if(!kernel_data.integrator.branched || IS_FLAG(ray_state, ray_index, RAY_BRANCHED_INDIRECT)) {
 #endif
 			/* Compute direct lighting and next bounce. */
-			if(!kernel_path_surface_bounce(kg, sd, throughput, state, L, ray)) {
+			if(!kernel_path_surface_bounce(kg, sd, throughput, state, &L->state, ray)) {
 				kernel_split_path_end(kg, ray_index);
 			}
 #ifdef __BRANCHED_PATH__

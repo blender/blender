@@ -123,6 +123,8 @@ void PAINT_OT_vertex_paint(struct wmOperatorType *ot);
 
 unsigned int vpaint_get_current_col(struct Scene *scene, struct VPaint *vp);
 
+/* paint_vertex_color_ops.c */
+void PAINT_OT_vertex_color_from_weight(struct wmOperatorType *ot);
 
 /* paint_vertex_proj.c */
 struct VertProjHandle;

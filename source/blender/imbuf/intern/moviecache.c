@@ -49,7 +49,7 @@
 #include "IMB_imbuf.h"
 
 #ifdef DEBUG_MESSAGES
-#  if defined __GNUC__ || defined __sun
+#  if defined __GNUC__
 #    define PRINT(format, args ...) printf(format, ##args)
 #  else
 #    define PRINT(format, ...) printf(__VA_ARGS__)

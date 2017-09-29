@@ -466,6 +466,18 @@ typedef struct DebugData {
 } DebugData;
 #endif
 
+typedef ccl_addr_space struct PathRadianceState {
+#ifdef __PASSES__
+	float3 diffuse;
+	float3 glossy;
+	float3 transmission;
+	float3 subsurface;
+	float3 scatter;
+
+	float3 direct;
+#endif
+} PathRadianceState;
+
 typedef ccl_addr_space struct PathRadiance {
 #ifdef __PASSES__
 	int use_light_pass;
@@ -478,7 +490,6 @@ typedef ccl_addr_space struct PathRadiance {
 	float3 ao;
 
 	float3 indirect;
-	float3 direct_throughput;
 	float3 direct_emission;
 
 	float3 color_diffuse;
@@ -499,15 +510,11 @@ typedef ccl_addr_space struct PathRadiance {
 	float3 indirect_subsurface;
 	float3 indirect_scatter;
 
-	float3 path_diffuse;
-	float3 path_glossy;
-	float3 path_transmission;
-	float3 path_subsurface;
-	float3 path_scatter;
-
 	float4 shadow;
 	float mist;
 #endif
+
+	PathRadianceState state;
 
 #ifdef __SHADOW_TRICKS__
 	/* Total light reachable across the path, ignoring shadow blocked queries. */
@@ -1032,8 +1039,7 @@ typedef struct PathState {
 /* Subsurface */
 
 /* Struct to gather multiple SSS hits. */
-typedef struct SubsurfaceIntersection
-{
+typedef struct SubsurfaceIntersection {
 	Ray ray;
 	float3 weight[BSSRDF_MAX_HITS];
 
@@ -1043,17 +1049,14 @@ typedef struct SubsurfaceIntersection
 } SubsurfaceIntersection;
 
 /* Struct to gather SSS indirect rays and delay tracing them. */
-typedef struct SubsurfaceIndirectRays
-{
-	bool need_update_volume_stack;
-	bool tracing;
+typedef struct SubsurfaceIndirectRays {
 	PathState state[BSSRDF_MAX_HITS];
-	struct PathRadiance direct_L;
 
 	int num_rays;
+
 	struct Ray rays[BSSRDF_MAX_HITS];
 	float3 throughputs[BSSRDF_MAX_HITS];
-	struct PathRadiance L[BSSRDF_MAX_HITS];
+	struct PathRadianceState L_state[BSSRDF_MAX_HITS];
 } SubsurfaceIndirectRays;
 
 /* Constant Kernel Data

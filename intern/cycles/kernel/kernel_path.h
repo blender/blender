@@ -222,7 +222,7 @@ ccl_device_forceinline VolumeIntegrateResult kernel_path_volume(
 			kernel_volume_decoupled_free(kg, &volume_segment);
 
 			if(result == VOLUME_PATH_SCATTERED) {
-				if(kernel_path_volume_bounce(kg, sd, throughput, state, L, ray))
+				if(kernel_path_volume_bounce(kg, sd, throughput, state, &L->state, ray))
 					return VOLUME_PATH_SCATTERED;
 				else
 					return VOLUME_PATH_MISSED;
@@ -244,7 +244,7 @@ ccl_device_forceinline VolumeIntegrateResult kernel_path_volume(
 				kernel_path_volume_connect_light(kg, sd, emission_sd, *throughput, state, L);
 
 				/* indirect light bounce */
-				if(kernel_path_volume_bounce(kg, sd, throughput, state, L, ray))
+				if(kernel_path_volume_bounce(kg, sd, throughput, state, &L->state, ray))
 					return VOLUME_PATH_SCATTERED;
 				else
 					return VOLUME_PATH_MISSED;
@@ -519,7 +519,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 		}
 #endif  /* defined(__EMISSION__) */
 
-		if(!kernel_path_surface_bounce(kg, sd, &throughput, state, L, ray))
+		if(!kernel_path_surface_bounce(kg, sd, &throughput, state, &L->state, ray))
 			break;
 	}
 }
@@ -648,13 +648,11 @@ ccl_device_forceinline void kernel_path_integrate(
 		kernel_path_surface_connect_light(kg, &sd, emission_sd, throughput, state, L);
 
 		/* compute direct lighting and next bounce */
-		if(!kernel_path_surface_bounce(kg, &sd, &throughput, state, L, ray))
+		if(!kernel_path_surface_bounce(kg, &sd, &throughput, state, &L->state, ray))
 			break;
 	}
 
 #ifdef __SUBSURFACE__
-		kernel_path_subsurface_accum_indirect(&ss_indirect, L);
-
 		/* Trace indirect subsurface rays by restarting the loop. this uses less
 		 * stack memory than invoking kernel_path_indirect.
 		 */

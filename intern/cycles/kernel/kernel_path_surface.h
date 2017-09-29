@@ -150,7 +150,7 @@ ccl_device bool kernel_branched_path_surface_bounce(
         int num_samples,
         ccl_addr_space float3 *throughput,
         ccl_addr_space PathState *state,
-        PathRadiance *L,
+        PathRadianceState *L_state,
         ccl_addr_space Ray *ray,
         float sum_sample_weight)
 {
@@ -170,7 +170,7 @@ ccl_device bool kernel_branched_path_surface_bounce(
 		return false;
 
 	/* modify throughput */
-	path_radiance_bsdf_bounce(L, throughput, &bsdf_eval, bsdf_pdf, state->bounce, label);
+	path_radiance_bsdf_bounce(kg, L_state, throughput, &bsdf_eval, bsdf_pdf, state->bounce, label);
 
 #ifdef __DENOISING_FEATURES__
 	state->denoising_feature_weight *= sc->sample_weight / (sum_sample_weight * num_samples);
@@ -271,7 +271,7 @@ ccl_device bool kernel_path_surface_bounce(KernelGlobals *kg,
                                            ShaderData *sd,
                                            ccl_addr_space float3 *throughput,
                                            ccl_addr_space PathState *state,
-                                           PathRadiance *L,
+                                           PathRadianceState *L_state,
                                            ccl_addr_space Ray *ray)
 {
 	/* no BSDF? we can stop here */
@@ -292,7 +292,7 @@ ccl_device bool kernel_path_surface_bounce(KernelGlobals *kg,
 			return false;
 
 		/* modify throughput */
-		path_radiance_bsdf_bounce(L, throughput, &bsdf_eval, bsdf_pdf, state->bounce, label);
+		path_radiance_bsdf_bounce(kg, L_state, throughput, &bsdf_eval, bsdf_pdf, state->bounce, label);
 
 		/* set labels */
 		if(!(label & LABEL_TRANSPARENT)) {
