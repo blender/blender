@@ -63,8 +63,25 @@ bool BlenderSync::object_is_mesh(BL::Object& b_ob)
 {
 	BL::ID b_ob_data = b_ob.data();
 
-	return (b_ob_data && (b_ob_data.is_a(&RNA_Mesh) ||
-		b_ob_data.is_a(&RNA_Curve) || b_ob_data.is_a(&RNA_MetaBall)));
+	if(!b_ob_data) {
+		return false;
+	}
+
+	if(b_ob.type() == BL::Object::type_CURVE) {
+		/* Skip exporting curves without faces, overhead can be
+		 * significant if there are many for path animation. */
+		BL::Curve b_curve(b_ob.data());
+
+		return (b_curve.bevel_object() ||
+		        b_curve.extrude() != 0.0f ||
+		        b_curve.bevel_depth() != 0.0f ||
+		        b_ob.modifiers.length());
+	}
+	else {
+		return (b_ob_data.is_a(&RNA_Mesh) ||
+		        b_ob_data.is_a(&RNA_Curve) ||
+		        b_ob_data.is_a(&RNA_MetaBall));
+	}
 }
 
 bool BlenderSync::object_is_light(BL::Object& b_ob)
@@ -268,6 +285,29 @@ Object *BlenderSync::sync_object(BL::Object& b_parent,
 		return NULL;
 	}
 
+	/* Visibility flags for both parent and child. */
+	bool use_holdout = (layer_flag & render_layer.holdout_layer) != 0;
+	uint visibility = object_ray_visibility(b_ob) & PATH_RAY_ALL_VISIBILITY;
+
+	if(b_parent.ptr.data != b_ob.ptr.data) {
+		visibility &= object_ray_visibility(b_parent);
+	}
+
+	/* Make holdout objects on excluded layer invisible for non-camera rays. */
+	if(use_holdout && (layer_flag & render_layer.exclude_layer)) {
+		visibility &= ~(PATH_RAY_ALL_VISIBILITY - PATH_RAY_CAMERA);
+	}
+
+	/* Hide objects not on render layer from camera rays. */
+	if(!(layer_flag & render_layer.layer)) {
+		visibility &= ~PATH_RAY_CAMERA;
+	}
+
+	/* Don't export completely invisible objects. */
+	if(visibility == 0) {
+		return NULL;
+	}
+
 	/* key to lookup object */
 	ObjectKey key(b_parent, persistent_id, b_ob);
 	Object *object;
@@ -308,8 +348,6 @@ Object *BlenderSync::sync_object(BL::Object& b_parent,
 	if(object_map.sync(&object, b_ob, b_parent, key))
 		object_updated = true;
 	
-	bool use_holdout = (layer_flag & render_layer.holdout_layer) != 0;
-	
 	/* mesh sync */
 	object->mesh = sync_mesh(b_ob, object_updated, hide_tris);
 
@@ -320,22 +358,6 @@ Object *BlenderSync::sync_object(BL::Object& b_parent,
 		object->use_holdout = use_holdout;
 		scene->object_manager->tag_update(scene);
 		object_updated = true;
-	}
-
-	/* visibility flags for both parent and child */
-	uint visibility = object_ray_visibility(b_ob) & PATH_RAY_ALL_VISIBILITY;
-	if(b_parent.ptr.data != b_ob.ptr.data) {
-		visibility &= object_ray_visibility(b_parent);
-	}
-
-	/* make holdout objects on excluded layer invisible for non-camera rays */
-	if(use_holdout && (layer_flag & render_layer.exclude_layer)) {
-		visibility &= ~(PATH_RAY_ALL_VISIBILITY - PATH_RAY_CAMERA);
-	}
-
-	/* hide objects not on render layer from camera rays */
-	if(!(layer_flag & render_layer.layer)) {
-		visibility &= ~PATH_RAY_CAMERA;
 	}
 
 	if(visibility != object->visibility) {

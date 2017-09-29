@@ -719,6 +719,11 @@ static void create_mesh(Scene *scene,
 	int numngons = 0;
 	bool use_loop_normals = b_mesh.use_auto_smooth() && (mesh->subdivision_type != Mesh::SUBDIVISION_CATMULL_CLARK);
 
+	/* If no faces, create empty mesh. */
+	if(numfaces == 0) {
+		return;
+	}
+
 	BL::Mesh::vertices_iterator v;
 	BL::Mesh::tessfaces_iterator f;
 	BL::Mesh::polygons_iterator p;
