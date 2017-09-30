@@ -222,14 +222,14 @@ typedef struct SculptSession {
 
 			/* For non-airbrush painting to re-apply from the original (MLoop aligned). */
 			unsigned int *previous_color;
-			unsigned int *previous_accum;
+			float        *previous_accum;
 		} vpaint;
 
 		struct {
 			struct SculptVertexPaintGeomMap gmap;
 
 			/* Vertex aligned arrays of weights. */
-			/* For non-airbrush painting to re-apply from the original. */
+			float *previous_accum;
 			float *previous_weight;
 			/* Keep track of how much each vertex has been painted (non-airbrush only). */
 			float *alpha_weight;

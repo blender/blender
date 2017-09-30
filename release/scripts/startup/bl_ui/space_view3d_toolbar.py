@@ -1133,7 +1133,7 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
 
             col.prop(brush, "vertex_tool", text="Blend")
 
-            if brush.vertex_tool == 'BLUR':
+            if brush.vertex_tool != 'SMEAR':
                 col.prop(brush, "use_accumulate")
                 col.separator()
 

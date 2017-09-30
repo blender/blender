@@ -690,6 +690,7 @@ void BKE_sculptsession_free_vwpaint_data(struct SculptSession *ss)
 
 		MEM_SAFE_FREE(ss->mode.wpaint.alpha_weight);
 		MEM_SAFE_FREE(ss->mode.wpaint.previous_weight);
+		MEM_SAFE_FREE(ss->mode.wpaint.previous_accum);
 	}
 	else {
 		return;

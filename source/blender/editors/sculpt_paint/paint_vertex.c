@@ -27,20 +27,20 @@
 
 /** \file blender/editors/sculpt_paint/paint_vertex.c
  *  \ingroup edsculpt
+ *
+ * Used for vertex color & weight paint and mode switching.
+ *
+ * \note This file is already big,
+ * use `paint_vertex_color_ops.c` & `paint_vertex_weight_ops.c` for general purpose operators.
  */
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
+#include "BLI_rect.h"
 #include "BLI_math.h"
 #include "BLI_array_utils.h"
-#include "BLI_bitmap.h"
 #include "BLI_task.h"
-#include "BLI_string_utils.h"
-
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_colormanagement.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
@@ -51,20 +51,15 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_enum_types.h"
 
-#include "BKE_DerivedMesh.h"
-#include "BKE_action.h"
 #include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
-#include "BKE_modifier.h"
 #include "BKE_object_deform.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
-#include "BKE_colortools.h"
 #include "BKE_subsurf.h"
 
 #include "DEG_depsgraph.h"
@@ -72,7 +67,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_armature.h"
 #include "ED_object.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
@@ -83,8 +77,6 @@
 
 #include "sculpt_intern.h"
 #include "paint_intern.h"  /* own include */
-
-#define EPS_SATURATION 0.0005f
 
 /* Use for 'blur' brush, align with PBVH nodes, created and freed on each update. */
 struct VPaintAverageAccum {
@@ -203,929 +195,6 @@ uint vpaint_get_current_col(Scene *scene, VPaint *vp)
 	return *(uint *)col;
 }
 
-static void do_shared_vertexcol(Mesh *me, bool *mlooptag)
-{
-	const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
-	const MPoly *mp;
-	int (*scol)[4];
-	int i, j;
-	bool has_shared = false;
-
-	/* if no mloopcol: do not do */
-	/* if mtexpoly: only the involved faces, otherwise all */
-
-	if (me->mloopcol == NULL || me->totvert == 0 || me->totpoly == 0) return;
-
-	scol = MEM_callocN(sizeof(int) * me->totvert * 5, "scol");
-
-	for (i = 0, mp = me->mpoly; i < me->totpoly; i++, mp++) {
-		if ((use_face_sel == false) || (mp->flag & ME_FACE_SEL)) {
-			const MLoop *ml = me->mloop + mp->loopstart;
-			MLoopCol *lcol = me->mloopcol + mp->loopstart;
-			for (j = 0; j < mp->totloop; j++, ml++, lcol++) {
-				scol[ml->v][0] += lcol->r;
-				scol[ml->v][1] += lcol->g;
-				scol[ml->v][2] += lcol->b;
-				scol[ml->v][3] += 1;
-				has_shared = 1;
-			}
-		}
-	}
-
-	if (has_shared) {
-		for (i = 0; i < me->totvert; i++) {
-			if (scol[i][3] != 0) {
-				scol[i][0] = divide_round_i(scol[i][0], scol[i][3]);
-				scol[i][1] = divide_round_i(scol[i][1], scol[i][3]);
-				scol[i][2] = divide_round_i(scol[i][2], scol[i][3]);
-			}
-		}
-
-		for (i = 0, mp = me->mpoly; i < me->totpoly; i++, mp++) {
-			if ((use_face_sel == false) || (mp->flag & ME_FACE_SEL)) {
-				const MLoop *ml = me->mloop + mp->loopstart;
-				MLoopCol *lcol = me->mloopcol + mp->loopstart;
-				for (j = 0; j < mp->totloop; j++, ml++, lcol++) {
-					if (mlooptag[mp->loopstart + j]) {
-						lcol->r = scol[ml->v][0];
-						lcol->g = scol[ml->v][1];
-						lcol->b = scol[ml->v][2];
-					}
-				}
-			}
-		}
-	}
-
-	MEM_freeN(scol);
-}
-
-/* mirror_vgroup is set to -1 when invalid */
-static int wpaint_mirror_vgroup_ensure(Object *ob, const int vgroup_active)
-{
-	bDeformGroup *defgroup = BLI_findlink(&ob->defbase, vgroup_active);
-
-	if (defgroup) {
-		int mirrdef;
-		char name_flip[MAXBONENAME];
-
-		BLI_string_flip_side_name(name_flip, defgroup->name, false, sizeof(name_flip));
-		mirrdef = defgroup_name_index(ob, name_flip);
-		if (mirrdef == -1) {
-			if (BKE_defgroup_new(ob, name_flip)) {
-				mirrdef = BLI_listbase_count(&ob->defbase) - 1;
-			}
-		}
-
-		/* curdef should never be NULL unless this is
-		 * a  lamp and BKE_object_defgroup_add_name fails */
-		return mirrdef;
-	}
-
-	return -1;
-}
-
-struct WPaintPrev {
-	struct MDeformVert *wpaint_prev;	/* previous vertex weights */
-	int tot;							/* allocation size of prev buffers */
-};
-
-static void wpaint_prev_init(struct WPaintPrev *wpp)
-{
-	wpp->wpaint_prev = NULL;
-	wpp->tot = 0;
-}
-
-static void wpaint_prev_create(struct WPaintPrev *wpp, MDeformVert *dverts, int dcount)
-{
-	wpaint_prev_init(wpp);
-
-	if (dverts && dcount) {
-		wpp->wpaint_prev = MEM_mallocN(sizeof(MDeformVert) * dcount, "wpaint prev");
-		wpp->tot = dcount;
-		BKE_defvert_array_copy(wpp->wpaint_prev, dverts, dcount);
-	}
-}
-
-static void wpaint_prev_destroy(struct WPaintPrev *wpp)
-{
-	if (wpp->wpaint_prev) {
-		BKE_defvert_array_free(wpp->wpaint_prev, wpp->tot);
-	}
-	wpp->wpaint_prev = NULL;
-	wpp->tot = 0;
-}
-
-bool ED_vpaint_fill(Object *ob, uint paintcol)
-{
-	Mesh *me;
-	const MPoly *mp;
-	int i, j;
-
-	if (((me = BKE_mesh_from_object(ob)) == NULL) ||
-	    (ED_mesh_color_ensure(me, NULL) == false))
-	{
-		return false;
-	}
-
-	const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
-	const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
-
-	mp = me->mpoly;
-	for (i = 0; i < me->totpoly; i++, mp++) {
-		MLoopCol *lcol = me->mloopcol + mp->loopstart;
-
-		if (use_face_sel && !(mp->flag & ME_FACE_SEL))
-			continue;
-
-		j = 0;
-		do {
-			uint vidx = me->mloop[mp->loopstart + j].v;
-			if (!(use_vert_sel && !(me->mvert[vidx].flag & SELECT))) {
-				*(int *)lcol = paintcol;
-			}
-			lcol++;
-			j++;
-		} while (j < mp->totloop);
-
-	}
-	
-	/* remove stale me->mcol, will be added later */
-	BKE_mesh_tessface_clear(me);
-
-	DEG_id_tag_update(&me->id, 0);
-
-	return true;
-}
-
-
-/* fills in the selected faces with the current weight and vertex group */
-bool ED_wpaint_fill(Object *ob, float paintweight)
-{
-	Mesh *me = ob->data;
-	const MPoly *mp;
-	MDeformWeight *dw, *dw_prev;
-	int vgroup_active, vgroup_mirror = -1;
-	uint index;
-	const bool topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
-
-	/* mutually exclusive, could be made into a */
-	const short paint_selmode = ME_EDIT_PAINT_SEL_MODE(me);
-
-	if (me->totpoly == 0 || me->dvert == NULL || !me->mpoly) {
-		return false;
-	}
-	
-	vgroup_active = ob->actdef - 1;
-
-	/* if mirror painting, find the other group */
-	if (me->editflag & ME_EDIT_MIRROR_X) {
-		vgroup_mirror = wpaint_mirror_vgroup_ensure(ob, vgroup_active);
-	}
-	
-	struct WPaintPrev wpp;
-	wpaint_prev_create(&wpp, me->dvert, me->totvert);
-	
-	for (index = 0, mp = me->mpoly; index < me->totpoly; index++, mp++) {
-		uint fidx = mp->totloop - 1;
-
-		if ((paint_selmode == SCE_SELECT_FACE) && !(mp->flag & ME_FACE_SEL)) {
-			continue;
-		}
-
-		do {
-			uint vidx = me->mloop[mp->loopstart + fidx].v;
-
-			if (!me->dvert[vidx].flag) {
-				if ((paint_selmode == SCE_SELECT_VERTEX) && !(me->mvert[vidx].flag & SELECT)) {
-					continue;
-				}
-
-				dw = defvert_verify_index(&me->dvert[vidx], vgroup_active);
-				if (dw) {
-					dw_prev = defvert_verify_index(wpp.wpaint_prev + vidx, vgroup_active);
-					dw_prev->weight = dw->weight; /* set the undo weight */
-					dw->weight = paintweight;
-
-					if (me->editflag & ME_EDIT_MIRROR_X) {  /* x mirror painting */
-						int j = mesh_get_x_mirror_vert(ob, NULL, vidx, topology);
-						if (j >= 0) {
-							/* copy, not paint again */
-							if (vgroup_mirror != -1) {
-								dw = defvert_verify_index(me->dvert + j, vgroup_mirror);
-								dw_prev = defvert_verify_index(wpp.wpaint_prev + j, vgroup_mirror);
-							}
-							else {
-								dw = defvert_verify_index(me->dvert + j, vgroup_active);
-								dw_prev = defvert_verify_index(wpp.wpaint_prev + j, vgroup_active);
-							}
-							dw_prev->weight = dw->weight; /* set the undo weight */
-							dw->weight = paintweight;
-						}
-					}
-				}
-				me->dvert[vidx].flag = 1;
-			}
-
-		} while (fidx--);
-	}
-
-	{
-		MDeformVert *dv = me->dvert;
-		for (index = me->totvert; index != 0; index--, dv++) {
-			dv->flag = 0;
-		}
-	}
-
-	wpaint_prev_destroy(&wpp);
-
-	DEG_id_tag_update(&me->id, 0);
-
-	return true;
-}
-
-bool ED_vpaint_smooth(Object *ob)
-{
-	Mesh *me;
-	const MPoly *mp;
-
-	int i, j;
-
-	bool *mlooptag;
-
-	if (((me = BKE_mesh_from_object(ob)) == NULL) ||
-	    (ED_mesh_color_ensure(me, NULL) == false))
-	{
-		return false;
-	}
-
-	const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
-
-	mlooptag = MEM_callocN(sizeof(bool) * me->totloop, "VPaintData mlooptag");
-
-	/* simply tag loops of selected faces */
-	mp = me->mpoly;
-	for (i = 0; i < me->totpoly; i++, mp++) {
-		const MLoop *ml = me->mloop + mp->loopstart;
-		int ml_index = mp->loopstart;
-
-		if (use_face_sel && !(mp->flag & ME_FACE_SEL))
-			continue;
-
-		for (j = 0; j < mp->totloop; j++, ml_index++, ml++) {
-			mlooptag[ml_index] = true;
-		}
-	}
-
-	/* remove stale me->mcol, will be added later */
-	BKE_mesh_tessface_clear(me);
-
-	do_shared_vertexcol(me, mlooptag);
-
-	MEM_freeN(mlooptag);
-
-	DEG_id_tag_update(&me->id, 0);
-
-	return true;
-}
-
-/**
- * Apply callback to each vertex of the active vertex color layer.
- */
-bool ED_vpaint_color_transform(
-        struct Object *ob,
-        VPaintTransform_Callback vpaint_tx_fn,
-        const void *user_data)
-{
-	Mesh *me;
-	const MPoly *mp;
-
-	if (((me = BKE_mesh_from_object(ob)) == NULL) ||
-	    (ED_mesh_color_ensure(me, NULL) == false))
-	{
-		return false;
-	}
-
-	const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
-	mp = me->mpoly;
-
-	for (int i = 0; i < me->totpoly; i++, mp++) {
-		MLoopCol *lcol = &me->mloopcol[mp->loopstart];
-
-		if (use_face_sel && !(mp->flag & ME_FACE_SEL)) {
-			continue;
-		}
-
-		for (int j = 0; j < mp->totloop; j++, lcol++) {
-			float col[3];
-			rgb_uchar_to_float(col, &lcol->r);
-
-			vpaint_tx_fn(col, user_data, col);
-
-			rgb_float_to_uchar(&lcol->r, col);
-		}
-	}
-
-	/* remove stale me->mcol, will be added later */
-	BKE_mesh_tessface_clear(me);
-
-	DEG_id_tag_update(&me->id, 0);
-
-	return true;
-}
-
-/* XXX: should be re-implemented as a vertex/weight paint 'color correct' operator */
-#if 0
-void vpaint_dogamma(Scene *scene)
-{
-	VPaint *vp = scene->toolsettings->vpaint;
-	Mesh *me;
-	Object *ob;
-	float igam, fac;
-	int a, temp;
-	uchar *cp, gamtab[256];
-
-	ob = OBACT;
-	me = BKE_mesh_from_object(ob);
-
-	if (!(ob->mode & OB_MODE_VERTEX_PAINT)) return;
-	if (me == 0 || me->mcol == 0 || me->totface == 0) return;
-
-	igam = 1.0 / vp->gamma;
-	for (a = 0; a < 256; a++) {
-
-		fac = ((float)a) / 255.0;
-		fac = vp->mul * pow(fac, igam);
-
-		temp = 255.9 * fac;
-
-		if (temp <= 0) gamtab[a] = 0;
-		else if (temp >= 255) gamtab[a] = 255;
-		else gamtab[a] = temp;
-	}
-
-	a = 4 * me->totface;
-	cp = (uchar *)me->mcol;
-	while (a--) {
-
-		cp[1] = gamtab[cp[1]];
-		cp[2] = gamtab[cp[2]];
-		cp[3] = gamtab[cp[3]];
-
-		cp += 4;
-	}
-}
-#endif
-
-BLI_INLINE uint mcol_blend(uint col1, uint col2, int fac)
-{
-	uchar *cp1, *cp2, *cp;
-	int mfac;
-	uint col = 0;
-
-	if (fac == 0) {
-		return col1;
-	}
-
-	if (fac >= 255) {
-		return col2;
-	}
-
-	mfac = 255 - fac;
-
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp  = (uchar *)&col;
-
-	/* Updated to use the rgb squared color model which blends nicer. */
-	int r1 = cp1[0] * cp1[0];
-	int g1 = cp1[1] * cp1[1];
-	int b1 = cp1[2] * cp1[2];
-	int a1 = cp1[3] * cp1[3];
-
-	int r2 = cp2[0] * cp2[0];
-	int g2 = cp2[1] * cp2[1];
-	int b2 = cp2[2] * cp2[2];
-	int a2 = cp2[3] * cp2[3];
-
-	cp[0] = round_fl_to_uchar(sqrtf(divide_round_i((mfac * r1 + fac * r2), 255)));
-	cp[1] = round_fl_to_uchar(sqrtf(divide_round_i((mfac * g1 + fac * g2), 255)));
-	cp[2] = round_fl_to_uchar(sqrtf(divide_round_i((mfac * b1 + fac * b2), 255)));
-	cp[3] = round_fl_to_uchar(sqrtf(divide_round_i((mfac * a1 + fac * a2), 255)));
-
-	return col;
-}
-
-BLI_INLINE uint mcol_add(uint col1, uint col2, int fac)
-{
-	uchar *cp1, *cp2, *cp;
-	int temp;
-	uint col = 0;
-
-	if (fac == 0) {
-		return col1;
-	}
-
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp  = (uchar *)&col;
-
-	temp = cp1[0] + divide_round_i((fac * cp2[0]), 255);
-	cp[0] = (temp > 254) ? 255 : temp;
-	temp = cp1[1] + divide_round_i((fac * cp2[1]), 255);
-	cp[1] = (temp > 254) ? 255 : temp;
-	temp = cp1[2] + divide_round_i((fac * cp2[2]), 255);
-	cp[2] = (temp > 254) ? 255 : temp;
-	temp = cp1[3] + divide_round_i((fac * cp2[3]), 255);
-	cp[3] = (temp > 254) ? 255 : temp;
-	
-	return col;
-}
-
-BLI_INLINE uint mcol_sub(uint col1, uint col2, int fac)
-{
-	uchar *cp1, *cp2, *cp;
-	int temp;
-	uint col = 0;
-
-	if (fac == 0) {
-		return col1;
-	}
-
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp  = (uchar *)&col;
-
-	temp = cp1[0] - divide_round_i((fac * cp2[0]), 255);
-	cp[0] = (temp < 0) ? 0 : temp;
-	temp = cp1[1] - divide_round_i((fac * cp2[1]), 255);
-	cp[1] = (temp < 0) ? 0 : temp;
-	temp = cp1[2] - divide_round_i((fac * cp2[2]), 255);
-	cp[2] = (temp < 0) ? 0 : temp;
-	temp = cp1[3] - divide_round_i((fac * cp2[3]), 255);
-	cp[3] = (temp < 0) ? 0 : temp;
-
-	return col;
-}
-
-BLI_INLINE uint mcol_mul(uint col1, uint col2, int fac)
-{
-	uchar *cp1, *cp2, *cp;
-	int mfac;
-	uint col = 0;
-
-	if (fac == 0) {
-		return col1;
-	}
-
-	mfac = 255 - fac;
-
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp  = (uchar *)&col;
-
-	/* first mul, then blend the fac */
-	cp[0] = divide_round_i(mfac * cp1[0] * 255 + fac * cp2[0] * cp1[0], 255 * 255);
-	cp[1] = divide_round_i(mfac * cp1[1] * 255 + fac * cp2[1] * cp1[1], 255 * 255);
-	cp[2] = divide_round_i(mfac * cp1[2] * 255 + fac * cp2[2] * cp1[2], 255 * 255);
-	cp[3] = divide_round_i(mfac * cp1[3] * 255 + fac * cp2[3] * cp1[3], 255 * 255);
-
-	return col;
-}
-
-BLI_INLINE uint mcol_lighten(uint col1, uint col2, int fac)
-{
-	uchar *cp1, *cp2, *cp;
-	int mfac;
-	uint col = 0;
-
-	if (fac == 0) {
-		return col1;
-	}
-	else if (fac >= 255) {
-		return col2;
-	}
-
-	mfac = 255 - fac;
-
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp  = (uchar *)&col;
-
-	/* See if are lighter, if so mix, else don't do anything.
-	 * if the paint col is darker then the original, then ignore */
-	if (IMB_colormanagement_get_luminance_byte(cp1) > IMB_colormanagement_get_luminance_byte(cp2)) {
-		return col1;
-	}
-
-	cp[0] = divide_round_i(mfac * cp1[0] + fac * cp2[0], 255);
-	cp[1] = divide_round_i(mfac * cp1[1] + fac * cp2[1], 255);
-	cp[2] = divide_round_i(mfac * cp1[2] + fac * cp2[2], 255);
-	cp[3] = divide_round_i(mfac * cp1[3] + fac * cp2[3], 255);
-
-	return col;
-}
-
-BLI_INLINE uint mcol_darken(uint col1, uint col2, int fac)
-{
-	uchar *cp1, *cp2, *cp;
-	int mfac;
-	uint col = 0;
-
-	if (fac == 0) {
-		return col1;
-	}
-	else if (fac >= 255) {
-		return col2;
-	}
-
-	mfac = 255 - fac;
-
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp  = (uchar *)&col;
-
-	/* See if were darker, if so mix, else don't do anything.
-	 * if the paint col is brighter then the original, then ignore */
-	if (IMB_colormanagement_get_luminance_byte(cp1) < IMB_colormanagement_get_luminance_byte(cp2)) {
-		return col1;
-	}
-
-	cp[0] = divide_round_i((mfac * cp1[0] + fac * cp2[0]), 255);
-	cp[1] = divide_round_i((mfac * cp1[1] + fac * cp2[1]), 255);
-	cp[2] = divide_round_i((mfac * cp1[2] + fac * cp2[2]), 255);
-	cp[3] = divide_round_i((mfac * cp1[3] + fac * cp2[3]), 255);
-	return col;
-}
-
-BLI_INLINE uint mcol_colordodge(uint col1, uint col2, int fac)
-{
-	uchar *cp1, *cp2, *cp;
-	int mfac,temp;
-	uint col = 0;
-
-	if (fac == 0) {
-		return col1;
-	}
-
-	mfac = 255 - fac;
-
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp = (uchar *)&col;
-
-	temp = (cp2[0] == 255) ? 255 : min_ii((cp1[0] * 225) / (255 - cp2[0]), 255);
-	cp[0] = (mfac * cp1[0] + temp * fac) / 255;
-	temp = (cp2[1] == 255) ? 255 : min_ii((cp1[1] * 225) / (255 - cp2[1]), 255);
-	cp[1] = (mfac * cp1[1] + temp * fac) / 255;
-	temp = (cp2[2] == 255) ? 255 : min_ii((cp1[2] * 225 )/ (255 - cp2[2]), 255);
-	cp[2] = (mfac * cp1[2] + temp * fac) / 255;
-	temp = (cp2[3] == 255) ? 255 : min_ii((cp1[3] * 225) / (255 - cp2[3]), 255);
-	cp[3] = (mfac * cp1[3] + temp * fac) / 255;
-	return col;
-}
-
-BLI_INLINE uint mcol_difference(uint col1, uint col2, int fac)
-{
-	uchar *cp1, *cp2, *cp;
-	int mfac, temp;
-	uint col = 0;
-
-	if (fac == 0) {
-		return col1;
-	}
-
-	mfac = 255 - fac;
-
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp = (uchar *)&col;
-
-	temp = abs(cp1[0] - cp2[0]);
-	cp[0] = (mfac * cp1[0] + temp * fac) / 255;
-	temp = abs(cp1[1] - cp2[1]);
-	cp[1] = (mfac * cp1[1] + temp * fac) / 255;
-	temp = abs(cp1[2] - cp2[2]);
-	cp[2] = (mfac * cp1[2] + temp * fac) / 255;
-	temp = abs(cp1[3] - cp2[3]);
-	cp[3] = (mfac * cp1[3] + temp * fac) / 255;
-	return col;
-}
-
-BLI_INLINE uint mcol_screen(uint col1, uint col2, int fac)
-{
-	uchar *cp1, *cp2, *cp;
-	int mfac, temp;
-	uint col = 0;
-
-	if (fac == 0) {
-		return col1;
-	}
-
-	mfac = 255 - fac;
-
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp = (uchar *)&col;
-
-	temp = max_ii(255 - (((255 - cp1[0]) * (255 - cp2[0])) / 255), 0);
-	cp[0] = (mfac * cp1[0] + temp * fac) / 255;
-	temp = max_ii(255 - (((255 - cp1[1]) * (255 - cp2[1])) / 255), 0);
-	cp[1] = (mfac * cp1[1] + temp * fac) / 255;
-	temp = max_ii(255 - (((255 - cp1[2]) * (255 - cp2[2])) / 255), 0);
-	cp[2] = (mfac * cp1[2] + temp * fac) / 255;
-	temp = max_ii(255 - (((255 - cp1[3]) * (255 - cp2[3])) / 255), 0);
-	cp[3] = (mfac * cp1[3] + temp * fac) / 255;
-	return col;
-}
-
-BLI_INLINE uint mcol_hardlight(uint col1, uint col2, int fac)
-{
-	uchar *cp1, *cp2, *cp;
-	int mfac, temp;
-	uint col = 0;
-
-	if (fac == 0) {
-		return col1;
-	}
-
-	mfac = 255 - fac;
-
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp = (uchar *)&col;
-
-	int i = 0;
-
-	for (i = 0; i < 4; i++) {
-		if (cp2[i] > 127) {
-			temp = 255 - ((255 - 2 * (cp2[i] - 127)) * (255 - cp1[i]) / 255);
-		}
-		else {
-			temp = (2 * cp2[i] * cp1[i]) >> 8;
-		}
-		cp[i] = min_ii((mfac * cp1[i] + temp * fac) / 255, 255);
-	}
-	return col;
-}
-
-BLI_INLINE uint mcol_overlay(uint col1, uint col2, int fac)
-{
-	uchar *cp1, *cp2, *cp;
-	int mfac, temp;
-	uint col = 0;
-
-	if (fac == 0) {
-		return col1;
-	}
-
-	mfac = 255 - fac;
-
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp = (uchar *)&col;
-
-	int i = 0;
-
-	for (i = 0; i < 4; i++) {
-		if (cp1[i] > 127) {
-			temp = 255 - ((255 - 2 * (cp1[i] - 127)) * (255 - cp2[i]) / 255);
-		}
-		else {
-			temp = (2 * cp2[i] * cp1[i]) >> 8;
-		}
-		cp[i] = min_ii((mfac * cp1[i] + temp * fac) / 255, 255);
-	}
-	return col;
-}
-
-BLI_INLINE uint mcol_softlight(uint col1, uint col2, int fac)
-{
-	uchar *cp1, *cp2, *cp;
-	int mfac, temp;
-	uint col = 0;
-
-	if (fac == 0) {
-		return col1;
-	}
-
-	mfac = 255 - fac;
-
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp = (uchar *)&col;
-
-	int i = 0;
-
-	for (i = 0; i < 4; i++) {
-		if (cp1[i] < 127) {
-			temp = ((2 * ((cp2[i] / 2) + 64)) * cp1[i]) / 255;
-		}
-		else {
-			temp = 255 - (2 * (255 - ((cp2[i] / 2) + 64)) * (255 - cp1[i]) / 255);
-		}
-		cp[i] = (temp * fac + cp1[i] * mfac) / 255;
-	}
-	return col;
-}
-
-BLI_INLINE uint mcol_exclusion(uint col1, uint col2, int fac)
-{
-	uchar *cp1, *cp2, *cp;
-	int mfac, temp;
-	uint col = 0;
-
-	if (fac == 0) {
-		return col1;
-	}
-
-	mfac = 255 - fac;
-
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp = (uchar *)&col;
-
-	int i = 0;
-
-	for (i = 0; i < 4; i++) {
-		temp = 127 - ((2 * (cp1[i] - 127) * (cp2[i] - 127)) / 255);
-		cp[i] = (temp * fac + cp1[i] * mfac) / 255;
-	}
-	return col;
-}
-
-BLI_INLINE uint mcol_luminosity(uint col1, uint col2, int fac)
-{
-	uchar *cp1, *cp2, *cp;
-	int mfac;
-	uint col = 0;
-
-	if (fac == 0) {
-		return col1;
-	}
-
-	mfac = 255 - fac;
-
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp = (uchar *)&col;
-
-	float h1, s1, v1;
-	float h2, s2, v2;
-	float r, g, b;
-	rgb_to_hsv(cp1[0] / 255.0f, cp1[1] / 255.0f, cp1[2] / 255.0f, &h1, &s1, &v1);
-	rgb_to_hsv(cp2[0] / 255.0f, cp2[1] / 255.0f, cp2[2] / 255.0f, &h2, &s2, &v2);
-
-	v1 = v2;
-
-	hsv_to_rgb(h1, s1, v1, &r, &g, &b);
-
-	cp[0] = ((int)(r * 255.0f) * fac + mfac * cp1[0]) / 255;
-	cp[1] = ((int)(g * 255.0f) * fac + mfac * cp1[1]) / 255;
-	cp[2] = ((int)(b * 255.0f) * fac + mfac * cp1[2]) / 255;
-	cp[3] = ((int)(cp2[3])     * fac + mfac * cp1[3]) / 255;
-	return col;
-}
-
-BLI_INLINE uint mcol_saturation(uint col1, uint col2, int fac)
-{
-	uchar *cp1, *cp2, *cp;
-	int mfac;
-	uint col = 0;
-
-	if (fac == 0) {
-		return col1;
-	}
-
-	mfac = 255 - fac;
-
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp = (uchar *)&col;
-
-	float h1, s1, v1;
-	float h2, s2, v2;
-	float r, g, b;
-	rgb_to_hsv(cp1[0] / 255.0f, cp1[1] / 255.0f, cp1[2] / 255.0f, &h1, &s1, &v1);
-	rgb_to_hsv(cp2[0] / 255.0f, cp2[1] / 255.0f, cp2[2] / 255.0f, &h2, &s2, &v2);
-
-	if (s1 > EPS_SATURATION) {
-		s1 = s2;
-	}
-
-	hsv_to_rgb(h1, s1, v1, &r, &g, &b);
-
-	cp[0] = ((int)(r * 255.0f) * fac + mfac * cp1[0]) / 255;
-	cp[1] = ((int)(g * 255.0f) * fac + mfac * cp1[1]) / 255;
-	cp[2] = ((int)(b * 255.0f) * fac + mfac * cp1[2]) / 255;
-	return col;
-}
-
-BLI_INLINE uint mcol_hue(uint col1, uint col2, int fac)
-{
-	uchar *cp1, *cp2, *cp;
-	int mfac;
-	uint col = 0;
-
-	if (fac == 0) {
-		return col1;
-	}
-
-	mfac = 255 - fac;
-
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp = (uchar *)&col;
-
-	float h1, s1, v1;
-	float h2, s2, v2;
-	float r, g, b;
-	rgb_to_hsv(cp1[0] / 255.0f, cp1[1] / 255.0f, cp1[2] / 255.0f, &h1, &s1, &v1);
-	rgb_to_hsv(cp2[0] / 255.0f, cp2[1] / 255.0f, cp2[2] / 255.0f, &h2, &s2, &v2);
-
-	h1 = h2;
-
-	hsv_to_rgb(h1, s1, v1, &r, &g, &b);
-
-	cp[0] = ((int)(r * 255.0f) * fac + mfac * cp1[0]) / 255;
-	cp[1] = ((int)(g * 255.0f) * fac + mfac * cp1[1]) / 255;
-	cp[2] = ((int)(b * 255.0f) * fac + mfac * cp1[2]) / 255;
-	cp[3] = ((int)(cp2[3])     * fac + mfac * cp1[3]) / 255;
-	return col;
-}
-
-BLI_INLINE uint mcol_alpha_add(uint col1, int fac)
-{
-	uchar *cp1, *cp;
-	int temp;
-	uint col = 0;
-
-	if (fac == 0) {
-		return col1;
-	}
-
-	cp1 = (uchar *)&col1;
-	cp  = (uchar *)&col;
-
-	temp = cp1[3] + fac;
-	cp[3] = (temp > 254) ? 255 : temp;
-
-	return col;
-}
-
-BLI_INLINE uint mcol_alpha_sub(uint col1, int fac)
-{
-	uchar *cp1, *cp;
-	int temp;
-	uint col = 0;
-
-	if (fac == 0) {
-		return col1;
-	}
-
-	cp1 = (uchar *)&col1;
-	cp  = (uchar *)&col;
-
-	temp = cp1[3] - fac;
-	cp[3] = temp < 0 ? 0 : temp;
-
-	return col;
-}
-
-
-/* wpaint has 'wpaint_blend_tool' */
-static uint vpaint_blend_tool(
-        const int tool, const uint col,
-        const uint paintcol, const int alpha_i)
-{
-	switch (tool) {
-		case PAINT_BLEND_MIX:
-		case PAINT_BLEND_BLUR:       return mcol_blend(col, paintcol, alpha_i);
-		case PAINT_BLEND_AVERAGE:    return mcol_blend(col, paintcol, alpha_i);
-		case PAINT_BLEND_SMEAR:      return mcol_blend(col, paintcol, alpha_i);
-		case PAINT_BLEND_ADD:        return mcol_add(col, paintcol, alpha_i);
-		case PAINT_BLEND_SUB:        return mcol_sub(col, paintcol, alpha_i);
-		case PAINT_BLEND_MUL:        return mcol_mul(col, paintcol, alpha_i);
-		case PAINT_BLEND_LIGHTEN:    return mcol_lighten(col, paintcol, alpha_i);
-		case PAINT_BLEND_DARKEN:     return mcol_darken(col, paintcol, alpha_i);
-		case PAINT_BLEND_COLORDODGE: return mcol_colordodge(col, paintcol, alpha_i);
-		case PAINT_BLEND_DIFFERENCE: return mcol_difference(col, paintcol, alpha_i);
-		case PAINT_BLEND_SCREEN:     return mcol_screen(col, paintcol, alpha_i);
-		case PAINT_BLEND_HARDLIGHT:  return mcol_hardlight(col, paintcol, alpha_i);
-		case PAINT_BLEND_OVERLAY:    return mcol_overlay(col, paintcol, alpha_i);
-		case PAINT_BLEND_SOFTLIGHT:  return mcol_softlight(col, paintcol, alpha_i);
-		case PAINT_BLEND_EXCLUSION:  return mcol_exclusion(col, paintcol, alpha_i);
-		case PAINT_BLEND_LUMINOCITY: return mcol_luminosity(col, paintcol, alpha_i);
-		case PAINT_BLEND_SATURATION: return mcol_saturation(col, paintcol, alpha_i);
-		case PAINT_BLEND_HUE:        return mcol_hue(col, paintcol, alpha_i);
-		/* non-color */
-		case PAINT_BLEND_ALPHA_SUB:  return mcol_alpha_sub(col, alpha_i);
-		case PAINT_BLEND_ALPHA_ADD:  return mcol_alpha_add(col, alpha_i);
-		default:
-			BLI_assert(0);
-			return 0;
-	}
-}
-
 /* wpaint has 'wpaint_blend' */
 static uint vpaint_blend(
         VPaint *vp, uint color_curr, uint color_orig,
@@ -1136,14 +205,14 @@ static uint vpaint_blend(
 	Brush *brush = BKE_paint_brush(&vp->paint);
 	const int tool = brush->vertexpaint_tool;
 
-	uint color_blend = vpaint_blend_tool(tool, color_curr, color_paint, alpha_i);
+	uint color_blend = ED_vpaint_blend_tool(tool, color_curr, color_paint, alpha_i);
 
 	/* if no spray, clip color adding with colorig & orig alpha */
 	if ((vp->flag & VP_SPRAY) == 0) {
 		uint color_test, a;
 		char *cp, *ct, *co;
 
-		color_test = vpaint_blend_tool(tool, color_orig, color_paint, brush_alpha_value_i);
+		color_test = ED_vpaint_blend_tool(tool, color_orig, color_paint, brush_alpha_value_i);
 
 		cp = (char *)&color_blend;
 		ct = (char *)&color_test;
@@ -1246,57 +315,6 @@ static float calc_vp_alpha_col_dl(
 	return 0.0f;
 }
 
-
-BLI_INLINE float wval_blend(const float weight, const float paintval, const float alpha)
-{
-	const float talpha = min_ff(alpha, 1.0f);  /* blending with values over 1 doesn't make sense */
-	return (paintval * talpha) + (weight * (1.0f - talpha));
-}
-BLI_INLINE float wval_add(const float weight, const float paintval, const float alpha)
-{
-	return weight + (paintval * alpha);
-}
-BLI_INLINE float wval_sub(const float weight, const float paintval, const float alpha)
-{
-	return weight - (paintval * alpha);
-}
-BLI_INLINE float wval_mul(const float weight, const float paintval, const float alpha)
-{   /* first mul, then blend the fac */
-	return ((1.0f - alpha) + (alpha * paintval)) * weight;
-}
-BLI_INLINE float wval_lighten(const float weight, const float paintval, const float alpha)
-{
-	return (weight < paintval) ? wval_blend(weight, paintval, alpha) : weight;
-}
-BLI_INLINE float wval_darken(const float weight, const float paintval, const float alpha)
-{
-	return (weight > paintval) ? wval_blend(weight, paintval, alpha) : weight;
-}
-
-
-/* vpaint has 'vpaint_blend_tool' */
-/* result is not clamped from [0-1] */
-static float wpaint_blend_tool(const int tool,
-                               /* dw->weight */
-                               const float weight,
-                               const float paintval, const float alpha)
-{
-	switch (tool) {
-		case PAINT_BLEND_MIX:
-		case PAINT_BLEND_AVERAGE:
-		case PAINT_BLEND_SMEAR:
-		case PAINT_BLEND_BLUR:     return wval_blend(weight, paintval, alpha);
-		case PAINT_BLEND_ADD:      return wval_add(weight, paintval, alpha);
-		case PAINT_BLEND_SUB:      return wval_sub(weight, paintval, alpha);
-		case PAINT_BLEND_MUL:      return wval_mul(weight, paintval, alpha);
-		case PAINT_BLEND_LIGHTEN:  return wval_lighten(weight, paintval, alpha);
-		case PAINT_BLEND_DARKEN:   return wval_darken(weight, paintval, alpha);
-		default:
-			BLI_assert(0);
-			return 0.0f;
-	}
-}
-
 /* vpaint has 'vpaint_blend' */
 static float wpaint_blend(VPaint *wp, float weight,
                           const float alpha, float paintval,
@@ -1321,7 +339,7 @@ static float wpaint_blend(VPaint *wp, float weight,
 		}
 	}
 	
-	weight = wpaint_blend_tool(tool, weight, paintval, alpha);
+	weight = ED_wpaint_blend_tool(tool, weight, paintval, alpha);
 
 	CLAMP(weight, 0.0f, 1.0f);
 	
@@ -1329,228 +347,6 @@ static float wpaint_blend(VPaint *wp, float weight,
 }
 
 /* ----------------------------------------------------- */
-
-
-/* sets wp->weight to the closest weight value to vertex */
-/* note: we cant sample frontbuf, weight colors are interpolated too unpredictable */
-static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-	ViewContext vc;
-	Mesh *me;
-	bool changed = false;
-
-	view3d_set_viewcontext(C, &vc);
-	me = BKE_mesh_from_object(vc.obact);
-
-	if (me && me->dvert && vc.v3d && vc.rv3d && (vc.obact->actdef != 0)) {
-		const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
-		int v_idx_best = -1;
-		uint index;
-
-		view3d_operator_needs_opengl(C);
-		ED_view3d_init_mats_rv3d(vc.obact, vc.rv3d);
-
-		if (use_vert_sel) {
-			if (ED_mesh_pick_vert(C, vc.obact, event->mval, &index, ED_MESH_PICK_DEFAULT_VERT_SIZE, true)) {
-				v_idx_best = index;
-			}
-		}
-		else {
-			if (ED_mesh_pick_face_vert(C, vc.obact, event->mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE)) {
-				v_idx_best = index;
-			}
-			else if (ED_mesh_pick_face(C, vc.obact, event->mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE)) {
-				/* this relies on knowning the internal worksings of ED_mesh_pick_face_vert() */
-				BKE_report(op->reports, RPT_WARNING, "The modifier used does not support deformed locations");
-			}
-		}
-
-		if (v_idx_best != -1) { /* should always be valid */
-			ToolSettings *ts = vc.scene->toolsettings;
-			Brush *brush = BKE_paint_brush(&ts->wpaint->paint);
-			const int vgroup_active = vc.obact->actdef - 1;
-			float vgroup_weight = defvert_find_weight(&me->dvert[v_idx_best], vgroup_active);
-
-			/* use combined weight in multipaint mode, since that's what is displayed to the user in the colors */
-			if (ts->multipaint) {
-				int defbase_tot_sel;
-				const int defbase_tot = BLI_listbase_count(&vc.obact->defbase);
-				bool *defbase_sel = BKE_object_defgroup_selected_get(vc.obact, defbase_tot, &defbase_tot_sel);
-
-				if (defbase_tot_sel > 1) {
-					if (me->editflag & ME_EDIT_MIRROR_X) {
-						BKE_object_defgroup_mirror_selection(
-						        vc.obact, defbase_tot, defbase_sel, defbase_sel, &defbase_tot_sel);
-					}
-
-					vgroup_weight = BKE_defvert_multipaint_collective_weight(
-					        &me->dvert[v_idx_best], defbase_tot, defbase_sel, defbase_tot_sel, ts->auto_normalize);
-
-					/* if autonormalize is enabled, but weights are not normalized, the value can exceed 1 */
-					CLAMP(vgroup_weight, 0.0f, 1.0f);
-				}
-
-				MEM_freeN(defbase_sel);
-			}
-
-			BKE_brush_weight_set(vc.scene, brush, vgroup_weight);
-			changed = true;
-		}
-	}
-
-	if (changed) {
-		/* not really correct since the brush didnt change, but redraws the toolbar */
-		WM_main_add_notifier(NC_BRUSH | NA_EDITED, NULL); /* ts->wpaint->paint.brush */
-
-		return OPERATOR_FINISHED;
-	}
-	else {
-		return OPERATOR_CANCELLED;
-	}
-}
-
-void PAINT_OT_weight_sample(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Weight Paint Sample Weight";
-	ot->idname = "PAINT_OT_weight_sample";
-	ot->description = "Use the mouse to sample a weight in the 3D view";
-
-	/* api callbacks */
-	ot->invoke = weight_sample_invoke;
-	ot->poll = weight_paint_mode_poll;
-
-	/* flags */
-	ot->flag = OPTYPE_UNDO;
-}
-
-/* samples cursor location, and gives menu with vertex groups to activate */
-static bool weight_paint_sample_enum_itemf__helper(const MDeformVert *dvert, const int defbase_tot, int *groups)
-{
-	/* this func fills in used vgroup's */
-	bool found = false;
-	int i = dvert->totweight;
-	MDeformWeight *dw;
-	for (dw = dvert->dw; i > 0; dw++, i--) {
-		if (dw->def_nr < defbase_tot) {
-			groups[dw->def_nr] = true;
-			found = true;
-		}
-	}
-	return found;
-}
-static EnumPropertyItem *weight_paint_sample_enum_itemf(
-        bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
-{
-	if (C) {
-		wmWindow *win = CTX_wm_window(C);
-		if (win && win->eventstate) {
-			ViewContext vc;
-			Mesh *me;
-
-			view3d_set_viewcontext(C, &vc);
-			me = BKE_mesh_from_object(vc.obact);
-
-			if (me && me->dvert && vc.v3d && vc.rv3d && vc.obact->defbase.first) {
-				const int defbase_tot = BLI_listbase_count(&vc.obact->defbase);
-				const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
-				int *groups = MEM_callocN(defbase_tot * sizeof(int), "groups");
-				bool found = false;
-				uint index;
-
-				const int mval[2] = {
-				    win->eventstate->x - vc.ar->winrct.xmin,
-				    win->eventstate->y - vc.ar->winrct.ymin,
-				};
-
-				view3d_operator_needs_opengl(C);
-				ED_view3d_init_mats_rv3d(vc.obact, vc.rv3d);
-
-				if (use_vert_sel) {
-					if (ED_mesh_pick_vert(C, vc.obact, mval, &index, ED_MESH_PICK_DEFAULT_VERT_SIZE, true)) {
-						MDeformVert *dvert = &me->dvert[index];
-						found |= weight_paint_sample_enum_itemf__helper(dvert, defbase_tot, groups);
-					}
-				}
-				else {
-					if (ED_mesh_pick_face(C, vc.obact, mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE)) {
-						const MPoly *mp = &me->mpoly[index];
-						uint fidx = mp->totloop - 1;
-
-						do {
-							MDeformVert *dvert = &me->dvert[me->mloop[mp->loopstart + fidx].v];
-							found |= weight_paint_sample_enum_itemf__helper(dvert, defbase_tot, groups);
-						} while (fidx--);
-					}
-				}
-
-				if (found == false) {
-					MEM_freeN(groups);
-				}
-				else {
-					EnumPropertyItem *item = NULL, item_tmp = {0};
-					int totitem = 0;
-					int i = 0;
-					bDeformGroup *dg;
-					for (dg = vc.obact->defbase.first; dg && i < defbase_tot; i++, dg = dg->next) {
-						if (groups[i]) {
-							item_tmp.identifier = item_tmp.name = dg->name;
-							item_tmp.value = i;
-							RNA_enum_item_add(&item, &totitem, &item_tmp);
-						}
-					}
-
-					RNA_enum_item_end(&item, &totitem);
-					*r_free = true;
-
-					MEM_freeN(groups);
-					return item;
-				}
-			}
-		}
-	}
-
-	return DummyRNA_NULL_items;
-}
-
-static int weight_sample_group_exec(bContext *C, wmOperator *op)
-{
-	int type = RNA_enum_get(op->ptr, "group");
-	ViewContext vc;
-	view3d_set_viewcontext(C, &vc);
-
-	BLI_assert(type + 1 >= 0);
-	vc.obact->actdef = type + 1;
-
-	DEG_id_tag_update(&vc.obact->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, vc.obact);
-	return OPERATOR_FINISHED;
-}
-
-/* TODO, we could make this a menu into OBJECT_OT_vertex_group_set_active rather than its own operator */
-void PAINT_OT_weight_sample_group(wmOperatorType *ot)
-{
-	PropertyRNA *prop = NULL;
-
-	/* identifiers */
-	ot->name = "Weight Paint Sample Group";
-	ot->idname = "PAINT_OT_weight_sample_group";
-	ot->description = "Select one of the vertex groups available under current mouse position";
-
-	/* api callbacks */
-	ot->exec = weight_sample_group_exec;
-	ot->invoke = WM_menu_invoke;
-	ot->poll = weight_paint_mode_poll;
-
-	/* flags */
-	ot->flag = OPTYPE_UNDO;
-
-	/* keyingset to use (dynamic enum) */
-	prop = RNA_def_enum(ot->srna, "group", DummyRNA_DEFAULT_items, 0, "Keying Set", "The Keying Set to use");
-	RNA_def_enum_funcs(prop, weight_paint_sample_enum_itemf);
-	RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
-	ot->prop = prop;
-}
 
 static void do_weight_paint_normalize_all(MDeformVert *dvert, const int defbase_tot, const bool *vgroup_validmap)
 {
@@ -2127,7 +923,7 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
 		if ((ts->vpaint->flag & VP_SPRAY) == 0) {
 			if (ob->sculpt->mode.vpaint.previous_color == NULL) {
 				ob->sculpt->mode.vpaint.previous_color =
-				        MEM_callocN(me->totloop * sizeof(uint), "previous_color");
+				        MEM_callocN(me->totloop * sizeof(uint), __func__);
 			}
 		}
 		else {
@@ -2137,7 +933,7 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
 		if (brush && brush->flag & BRUSH_ACCUMULATE) {
 			if (ob->sculpt->mode.vpaint.previous_accum == NULL) {
 				ob->sculpt->mode.vpaint.previous_accum =
-				        MEM_callocN(me->totloop * sizeof(uint), "previous_color");
+				        MEM_callocN(me->totloop * sizeof(float), __func__);
 			}
 		}
 		else {
@@ -2148,16 +944,24 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
 		if ((ts->wpaint->flag & VP_SPRAY) == 0) {
 			if (ob->sculpt->mode.wpaint.alpha_weight == NULL) {
 				ob->sculpt->mode.wpaint.alpha_weight =
-				        MEM_callocN(me->totvert * sizeof(float), "alpha_weight");
+				        MEM_callocN(me->totvert * sizeof(float), __func__);
 			}
 			if (ob->sculpt->mode.wpaint.previous_weight == NULL) {
 				ob->sculpt->mode.wpaint.previous_weight =
-				        MEM_mallocN(me->totvert * sizeof(float), "previous_weight");
+				        MEM_mallocN(me->totvert * sizeof(float), __func__);
 			}
 		}
 		else {
 			MEM_SAFE_FREE(ob->sculpt->mode.wpaint.alpha_weight);
-			MEM_SAFE_FREE(ob->sculpt->mode.wpaint.previous_weight);
+		}
+		if (brush && brush->flag & BRUSH_ACCUMULATE) {
+			if (ob->sculpt->mode.wpaint.previous_accum == NULL) {
+				ob->sculpt->mode.wpaint.previous_accum =
+				        MEM_callocN(me->totvert * sizeof(float), __func__);
+			}
+		}
+		else {
+			MEM_SAFE_FREE(ob->sculpt->mode.wpaint.previous_accum);
 		}
 	}
 
@@ -2280,15 +1084,6 @@ void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
 
 /* ************ weight paint operator ********** */
 
-enum eWPaintFlag {
-	WPAINT_ENSURE_MIRROR = (1 << 0),
-};
-
-struct WPaintVGroupIndex {
-	int active;
-	int mirror;
-};
-
 struct WPaintData {
 	ViewContext vc;
 
@@ -2310,82 +1105,6 @@ struct WPaintData {
 
 	int defbase_tot;
 };
-
-/* ensure we have data on wpaint start, add if needed */
-static bool wpaint_ensure_data(
-        bContext *C, wmOperator *op,
-        enum eWPaintFlag flag, struct WPaintVGroupIndex *vgroup_index)
-{
-	Scene *scene = CTX_data_scene(C);
-	Object *ob = CTX_data_active_object(C);
-	Mesh *me = BKE_mesh_from_object(ob);
-
-	if (vgroup_index) {
-		vgroup_index->active = -1;
-		vgroup_index->mirror = -1;
-	}
-
-	if (scene->obedit) {
-		return false;
-	}
-
-	if (me == NULL || me->totpoly == 0) {
-		return false;
-	}
-
-	/* if nothing was added yet, we make dverts and a vertex deform group */
-	if (!me->dvert) {
-		BKE_object_defgroup_data_create(&me->id);
-		WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
-	}
-
-	/* this happens on a Bone select, when no vgroup existed yet */
-	if (ob->actdef <= 0) {
-		Object *modob;
-		if ((modob = modifiers_isDeformedByArmature(ob))) {
-			Bone *actbone = ((bArmature *)modob->data)->act_bone;
-			if (actbone) {
-				bPoseChannel *pchan = BKE_pose_channel_find_name(modob->pose, actbone->name);
-
-				if (pchan) {
-					bDeformGroup *dg = defgroup_find_name(ob, pchan->name);
-					if (dg == NULL) {
-						dg = BKE_object_defgroup_add_name(ob, pchan->name);  /* sets actdef */
-					}
-					else {
-						int actdef = 1 + BLI_findindex(&ob->defbase, dg);
-						BLI_assert(actdef >= 0);
-						ob->actdef = actdef;
-					}
-				}
-			}
-		}
-	}
-	if (BLI_listbase_is_empty(&ob->defbase)) {
-		BKE_object_defgroup_add(ob);
-	}
-
-	/* ensure we don't try paint onto an invalid group */
-	if (ob->actdef <= 0) {
-		BKE_report(op->reports, RPT_WARNING, "No active vertex group for painting, aborting");
-		return false;
-	}
-
-	if (vgroup_index) {
-		vgroup_index->active = ob->actdef - 1;
-	}
-
-	if (flag & WPAINT_ENSURE_MIRROR) {
-		if (me->editflag & ME_EDIT_MIRROR_X) {
-			int mirror = wpaint_mirror_vgroup_ensure(ob, ob->actdef - 1);
-			if (vgroup_index) {
-				vgroup_index->mirror = mirror;
-			}
-		}
-	}
-
-	return true;
-}
 
 /* Initialize the stroke cache invariants from operator properties */
 static void vwpaint_update_cache_invariants(
@@ -2514,7 +1233,7 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 
 	float mat[4][4], imat[4][4];
 
-	if (wpaint_ensure_data(C, op, WPAINT_ENSURE_MIRROR, &vgroup_index) == false) {
+	if (ED_wpaint_ensure_data(C, op->reports, WPAINT_ENSURE_MIRROR, &vgroup_index) == false) {
 		return false;
 	}
 
@@ -2633,142 +1352,11 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 	return true;
 }
 
-static void calc_area_normal_and_center_task_cb(void *userdata, const int n)
-{
-	SculptThreadedTaskData *data = userdata;
-	SculptSession *ss = data->ob->sculpt;
-	float(*area_nos)[3] = data->area_nos;
-	float(*area_cos)[3] = data->area_cos;
-
-	float private_co[2][3] = {{0.0f}};
-	float private_no[2][3] = {{0.0f}};
-	int   private_count[2] = {0};
-
-	SculptBrushTest test;
-	sculpt_brush_test_init(ss, &test);
-
-	PBVHVertexIter vd;
-	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
-	{
-		const float *co;
-
-		co = vd.co;
-
-		if (sculpt_brush_test_fast(&test, co)) {
-			float no_buf[3];
-			const float *no;
-			int flip_index;
-
-			if (vd.no) {
-				normal_short_to_float_v3(no_buf, vd.no);
-				no = no_buf;
-			}
-			else {
-				no = vd.fno;
-			}
-
-			flip_index = (dot_v3v3(ss->cache->view_normal, no) <= 0.0f);
-			if (area_cos)
-				add_v3_v3(private_co[flip_index], co);
-			if (area_nos)
-				add_v3_v3(private_no[flip_index], no);
-			private_count[flip_index] += 1;
-		}
-	}
-	BKE_pbvh_vertex_iter_end;
-
-
-	BLI_mutex_lock(&data->mutex);
-
-	/* for flatten center */
-	if (area_cos) {
-		add_v3_v3(area_cos[0], private_co[0]);
-		add_v3_v3(area_cos[1], private_co[1]);
-	}
-
-	/* for area normal */
-	if (area_nos) {
-		add_v3_v3(area_nos[0], private_no[0]);
-		add_v3_v3(area_nos[1], private_no[1]);
-	}
-
-	/* weights */
-	data->count[0] += private_count[0];
-	data->count[1] += private_count[1];
-
-	BLI_mutex_unlock(&data->mutex);
-}
-
-static void calc_area_normal(
-        VPaint *vp, Object *ob,
-        PBVHNode **nodes, int totnode,
-        float r_area_no[3])
-{
-	/* 0=towards view, 1=flipped */
-	float area_nos[2][3] = {{0.0f}};
-
-	int count[2] = {0};
-
-	SculptThreadedTaskData data = {
-		.vp = vp, .ob = ob, .nodes = nodes, .totnode = totnode,
-		.area_cos = NULL, .area_nos = area_nos, .count = count,
-	};
-	BLI_mutex_init(&data.mutex);
-
-	BLI_task_parallel_range(
-	        0, totnode, &data, calc_area_normal_and_center_task_cb, true);
-
-	BLI_mutex_end(&data.mutex);
-
-	/* for area normal */
-	for (int i = 0; i < ARRAY_SIZE(area_nos); i++) {
-		if (normalize_v3_v3(r_area_no, area_nos[i]) != 0.0f) {
-			break;
-		}
-	}
-}
-
 static float dot_vf3vs3(const float brushNormal[3], const short vertexNormal[3])
 {
 	float normal[3];
 	normal_short_to_float_v3(normal, vertexNormal);
 	return dot_v3v3(brushNormal, normal);
-}
-
-/* Flip all the editdata across the axis/axes specified by symm. Used to
- * calculate multiple modifications to the mesh when symmetry is enabled. */
-static void calc_brushdata_symm(
-        VPaint *vd, StrokeCache *cache, const char symm,
-        const char axis, const float angle)
-{
-	(void)vd; /* unused */
-
-	flip_v3_v3(cache->location, cache->true_location, symm);
-	flip_v3_v3(cache->last_location, cache->true_last_location, symm);
-	flip_v3_v3(cache->grab_delta_symmetry, cache->grab_delta, symm);
-	flip_v3_v3(cache->view_normal, cache->true_view_normal, symm);
-
-	unit_m4(cache->symm_rot_mat);
-	unit_m4(cache->symm_rot_mat_inv);
-	zero_v3(cache->plane_offset);
-
-	if (axis) { /* expects XYZ */
-		rotate_m4(cache->symm_rot_mat, axis, angle);
-		rotate_m4(cache->symm_rot_mat_inv, axis, -angle);
-	}
-
-	mul_m4_v3(cache->symm_rot_mat, cache->location);
-	mul_m4_v3(cache->symm_rot_mat, cache->last_location);
-	mul_m4_v3(cache->symm_rot_mat, cache->grab_delta_symmetry);
-
-	if (cache->supports_gravity) {
-		flip_v3_v3(cache->gravity_direction, cache->true_gravity_direction, symm);
-		mul_m4_v3(cache->symm_rot_mat, cache->gravity_direction);
-	}
-
-	if (cache->is_rake_rotation_valid) {
-		flip_qt_qt(cache->rake_rotation_symmetry, cache->rake_rotation, symm);
-	}
 }
 
 static void get_brush_alpha_data(
@@ -2781,7 +1369,6 @@ static void get_brush_alpha_data(
 	*r_brush_alpha_value =
 	        BKE_brush_alpha_get(scene, brush);
 	*r_brush_alpha_pressure =
-	        *r_brush_alpha_value *
 	        (BKE_brush_use_alpha_pressure(scene, brush) ? ss->cache->pressure : 1.0f);
 }
 
@@ -2840,11 +1427,17 @@ static void do_wpaint_brush_blur_task_cb_ex(
 					const float view_dot = (vd.no) ? dot_vf3vs3(cache->sculpt_normal_symm, vd.no) : 1.0;
 					if (view_dot > 0.0f) {
 						const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
-						const float final_alpha =
+						float final_alpha =
 						        view_dot * brush_fade * brush_strength *
 						        grid_alpha * brush_alpha_pressure;
-						weight_final /= total_hit_loops;
 
+						if (brush->flag & BRUSH_ACCUMULATE) {
+							float mask_accum = ss->mode.wpaint.previous_accum[v_index];
+							final_alpha = min_ff(final_alpha + mask_accum, brush_strength);
+							ss->mode.wpaint.previous_accum[v_index] = final_alpha;
+						}
+
+						weight_final /= total_hit_loops;
 						/* Only paint visable verts */
 						do_weight_paint_vertex(
 						        data->vp, data->ob, data->wpi,
@@ -2876,6 +1469,8 @@ static void do_wpaint_brush_smear_task_cb_ex(
 	float brush_dir[3];
 
 	sub_v3_v3v3(brush_dir, cache->location, cache->last_location);
+	project_plane_v3_v3v3(brush_dir, brush_dir, cache->view_normal);
+
 	if (normalize_v3(brush_dir) != 0.0f) {
 
 		SculptBrushTest test;
@@ -2896,10 +1491,9 @@ static void do_wpaint_brush_smear_task_cb_ex(
 					const int v_index = ccgdm ? data->me->mloop[vd.grid_indices[vd.g]].v : vd.vert_indices[vd.i];
 					const float grid_alpha = ccgdm ? 1.0f / vd.gridsize : 1.0f;
 					const MVert *mv_curr = &data->me->mvert[v_index];
-					const char v_flag = data->me->mvert[v_index].flag;
 
 					/* If the vertex is selected */
-					if (!(use_face_sel || use_vert_sel) || v_flag & SELECT) {
+					if (!(use_face_sel || use_vert_sel) || mv_curr->flag & SELECT) {
 						/* Minimum dot product between brush direction and current
 						 * to neighbor direction is 0.0, meaning orthogonal. */
 						float stroke_dot_max = 0.0f;
@@ -2910,24 +1504,27 @@ static void do_wpaint_brush_smear_task_cb_ex(
 						for (int j = 0; j < gmap->vert_to_poly[v_index].count; j++) {
 							const int p_index = gmap->vert_to_poly[v_index].indices[j];
 							const MPoly *mp = &data->me->mpoly[p_index];
-							for (int k = 0; k < mp->totloop; k++) {
-								const uint l_index = mp->loopstart + k;
-								const MLoop *ml = &data->me->mloop[l_index];
-								const uint v_other_index = ml->v;
-								const MVert *mv_other = &data->me->mvert[v_other_index];
+							const MLoop *ml_other = &data->me->mloop[mp->loopstart];
+							for (int k = 0; k < mp->totloop; k++, ml_other++) {
+								const uint v_other_index = ml_other->v;
+								if (v_other_index != v_index) {
+									const MVert *mv_other = &data->me->mvert[v_other_index];
 
-								/* Get the direction from the selected vert to the neighbor. */
-								float other_dir[3];
-								sub_v3_v3v3(other_dir, mv_curr->co, mv_other->co);
-								normalize_v3(other_dir);
+									/* Get the direction from the selected vert to the neighbor. */
+									float other_dir[3];
+									sub_v3_v3v3(other_dir, mv_curr->co, mv_other->co);
+									project_plane_v3_v3v3(other_dir, other_dir, cache->view_normal);
 
-								const float stroke_dot = dot_v3v3(other_dir, brush_dir);
+									normalize_v3(other_dir);
 
-								if (stroke_dot > stroke_dot_max) {
-									stroke_dot_max = stroke_dot;
-									MDeformVert *dv = &data->me->dvert[v_other_index];
-									weight_final = defvert_find_weight(dv, data->wpi->active.index);
-									do_color = true;
+									const float stroke_dot = dot_v3v3(other_dir, brush_dir);
+
+									if (stroke_dot > stroke_dot_max) {
+										stroke_dot_max = stroke_dot;
+										MDeformVert *dv = &data->me->dvert[v_other_index];
+										weight_final = defvert_find_weight(dv, data->wpi->active.index);
+										do_color = true;
+									}
 								}
 							}
 						}
@@ -2988,6 +1585,12 @@ static void do_wpaint_brush_draw_task_cb_ex(
 				if (view_dot > 0.0f) {
 					const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
 					float final_alpha = view_dot * brush_fade * brush_strength * grid_alpha * brush_alpha_pressure;
+
+					if (brush->flag & BRUSH_ACCUMULATE) {
+						float mask_accum = ss->mode.wpaint.previous_accum[v_index];
+						final_alpha = min_ff(final_alpha + mask_accum, brush_strength);
+						ss->mode.wpaint.previous_accum[v_index] = final_alpha;
+					}
 
 					/* Non-spray logic. */
 					if ((data->vp->flag & VP_SPRAY) == 0) {
@@ -3128,11 +1731,11 @@ static void wpaint_paint_leaves(
 
 static void wpaint_do_paint(
         bContext *C, Object *ob, VPaint *wp, Sculpt *sd, struct WPaintData *wpd, WeightPaintInfo *wpi,
-        Mesh *me, Brush *UNUSED(brush), const char symm, const int axis, const int i, const float angle)
+        Mesh *me, Brush *brush, const char symm, const int axis, const int i, const float angle)
 {
 	SculptSession *ss = ob->sculpt;
 	ss->cache->radial_symmetry_pass = i;
-	calc_brushdata_symm(wp, ss->cache, symm, axis, angle);
+	sculpt_cache_calc_brushdata_symm(ss->cache, symm, axis, angle);
 
 	SculptSearchSphereData data;
 	PBVHNode **nodes = NULL;
@@ -3146,7 +1749,7 @@ static void wpaint_do_paint(
 	data.original = true;
 	BKE_pbvh_search_gather(ss->pbvh, sculpt_search_sphere_cb, &data, &nodes, &totnode);
 
-	calc_area_normal(wp, ob, nodes, totnode, ss->cache->sculpt_normal_symm);
+	sculpt_pbvh_calc_area_normal(brush, ob, nodes, totnode, true, ss->cache->sculpt_normal_symm);
 	wpaint_paint_leaves(C, ob, sd, wp, wpd, wpi, me, nodes, totnode);
 
 	if (nodes)
@@ -3163,6 +1766,7 @@ static void wpaint_do_radial_symmetry(
 	}
 }
 
+/* near duplicate of: sculpt.c's, 'do_symmetrical_brush_actions' and 'vpaint_do_symmetrical_brush_actions'. */
 static void wpaint_do_symmetrical_brush_actions(
         bContext *C, Object *ob, VPaint *wp, Sculpt *sd, struct WPaintData *wpd, WeightPaintInfo *wpi)
 {
@@ -3186,7 +1790,7 @@ static void wpaint_do_symmetrical_brush_actions(
 		if ((symm & i && (symm != 5 || i != 3) && (symm != 6 || (i != 3 && i != 5)))) {
 			cache->mirror_symmetry_pass = i;
 			cache->radial_symmetry_pass = 0;
-			calc_brushdata_symm(wp, cache, i, 0, 0);
+			sculpt_cache_calc_brushdata_symm(cache, i, 0, 0);
 
 			if (i & (1 << 0)) {
 				wpaint_do_paint(C, ob, wp, sd, wpd, wpi, me, brush, i, 'X', 0, 0);
@@ -3411,42 +2015,6 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING;
 	
 	paint_stroke_operator_properties(ot);
-}
-
-static int weight_paint_set_exec(bContext *C, wmOperator *op)
-{
-	struct Scene *scene = CTX_data_scene(C);
-	Object *obact = CTX_data_active_object(C);
-	ToolSettings *ts = CTX_data_tool_settings(C);
-	Brush *brush = BKE_paint_brush(&ts->wpaint->paint);
-	float vgroup_weight = BKE_brush_weight_get(scene, brush);
-
-	if (wpaint_ensure_data(C, op, WPAINT_ENSURE_MIRROR, NULL) == false) {
-		return OPERATOR_CANCELLED;
-	}
-
-	if (ED_wpaint_fill(obact, vgroup_weight)) {
-		ED_region_tag_redraw(CTX_wm_region(C)); /* XXX - should redraw all 3D views */
-		return OPERATOR_FINISHED;
-	}
-	else {
-		return OPERATOR_CANCELLED;
-	}
-}
-
-void PAINT_OT_weight_set(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Set Weight";
-	ot->idname = "PAINT_OT_weight_set";
-	ot->description = "Fill the active vertex group with the current paint weight";
-
-	/* api callbacks */
-	ot->exec = weight_paint_set_exec;
-	ot->poll = mask_paint_poll;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* ************ set / clear vertex paint mode ********** */
@@ -3805,7 +2373,7 @@ static void do_vpaint_brush_draw_task_cb_ex(
 
 							if (brush->flag & BRUSH_ACCUMULATE) {
 								float mask_accum = ss->mode.vpaint.previous_accum[l_index];
-								final_alpha = min_ff(final_alpha + mask_accum, 255.0f);
+								final_alpha = min_ff(final_alpha + mask_accum, 255.0f * brush_strength);
 								ss->mode.vpaint.previous_accum[l_index] = final_alpha;
 							}
 
@@ -3942,6 +2510,8 @@ static void do_vpaint_brush_smear_task_cb_ex(
 	const bool use_face_sel = (data->me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
 	sub_v3_v3v3(brush_dir, cache->location, cache->last_location);
+	project_plane_v3_v3v3(brush_dir, brush_dir, cache->view_normal);
+
 	if (normalize_v3(brush_dir) != 0.0f) {
 
 		SculptBrushTest test;
@@ -3980,22 +2550,26 @@ static void do_vpaint_brush_smear_task_cb_ex(
 							BLI_assert(data->me->mloop[l_index].v == v_index);
 							const MPoly *mp = &data->me->mpoly[p_index];
 							if (!use_face_sel || mp->flag & ME_FACE_SEL) {
-								for (int k = 0; k < mp->totloop; k++) {
-									const MLoop *ml = &data->me->mloop[l_index];
-									const uint v_other_index = ml->v;
-									const MVert *mv_other = &data->me->mvert[v_other_index];
+								const MLoop *ml_other = &data->me->mloop[mp->loopstart];
+								for (int k = 0; k < mp->totloop; k++, ml_other++) {
+									const uint v_other_index = ml_other->v;
+									if (v_other_index != v_index) {
+										const MVert *mv_other = &data->me->mvert[v_other_index];
 
-									/* Get the direction from the selected vert to the neighbor. */
-									float other_dir[3];
-									sub_v3_v3v3(other_dir, mv_curr->co, mv_other->co);
-									normalize_v3(other_dir);
+										/* Get the direction from the selected vert to the neighbor. */
+										float other_dir[3];
+										sub_v3_v3v3(other_dir, mv_curr->co, mv_other->co);
+										project_plane_v3_v3v3(other_dir, other_dir, cache->view_normal);
 
-									const float stroke_dot = dot_v3v3(other_dir, brush_dir);
+										normalize_v3(other_dir);
 
-									if (stroke_dot > stroke_dot_max) {
-										stroke_dot_max = stroke_dot;
-										color_final = lcol[l_index];
-										do_color = true;
+										const float stroke_dot = dot_v3v3(other_dir, brush_dir);
+
+										if (stroke_dot > stroke_dot_max) {
+											stroke_dot_max = stroke_dot;
+											color_final = lcol[mp->loopstart + k];
+											do_color = true;
+										}
 									}
 								}
 							}
@@ -4103,11 +2677,11 @@ static void vpaint_paint_leaves(
 
 static void vpaint_do_paint(
         bContext *C, Sculpt *sd, VPaint *vd, struct VPaintData *vpd,
-        Object *ob, Mesh *me, Brush *UNUSED(brush), const char symm, const int axis, const int i, const float angle)
+        Object *ob, Mesh *me, Brush *brush, const char symm, const int axis, const int i, const float angle)
 {
 	SculptSession *ss = ob->sculpt;
 	ss->cache->radial_symmetry_pass = i;
-	calc_brushdata_symm(vd, ss->cache, symm, axis, angle);
+	sculpt_cache_calc_brushdata_symm(ss->cache, symm, axis, angle);
 	SculptSearchSphereData data;
 	PBVHNode **nodes = NULL;
 	int totnode;
@@ -4119,7 +2693,7 @@ static void vpaint_do_paint(
 	data.original = true;
 	BKE_pbvh_search_gather(ss->pbvh, sculpt_search_sphere_cb, &data, &nodes, &totnode);
 
-	calc_area_normal(vd, ob, nodes, totnode, ss->cache->sculpt_normal_symm);
+	sculpt_pbvh_calc_area_normal(brush, ob, nodes, totnode, true, ss->cache->sculpt_normal_symm);
 
 	/* Paint those leaves. */
 	vpaint_paint_leaves(C, sd, vd, vpd, ob, me, nodes, totnode);
@@ -4139,6 +2713,7 @@ static void vpaint_do_radial_symmetry(
 	}
 }
 
+/* near duplicate of: sculpt.c's, 'do_symmetrical_brush_actions' and 'wpaint_do_symmetrical_brush_actions'. */
 static void vpaint_do_symmetrical_brush_actions(
         bContext *C, Sculpt *sd, VPaint *vd, struct VPaintData *vpd, Object *ob)
 {
@@ -4162,7 +2737,7 @@ static void vpaint_do_symmetrical_brush_actions(
 		if (symm & i && (symm != 5 || i != 3) && (symm != 6 || (i != 3 && i != 5))) {
 			cache->mirror_symmetry_pass = i;
 			cache->radial_symmetry_pass = 0;
-			calc_brushdata_symm(vd, cache, i, 0, 0);
+			sculpt_cache_calc_brushdata_symm(cache, i, 0, 0);
 
 			if (i & (1 << 0)) {
 				vpaint_do_paint(C, sd, vd, vpd, ob, me, brush, i, 'X', 0, 0);
@@ -4310,387 +2885,3 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
 	paint_stroke_operator_properties(ot);
 }
 
-/* ********************** weight from bones operator ******************* */
-
-static int weight_from_bones_poll(bContext *C)
-{
-	Object *ob = CTX_data_active_object(C);
-
-	return (ob && (ob->mode & OB_MODE_WEIGHT_PAINT) && modifiers_isDeformedByArmature(ob));
-}
-
-static int weight_from_bones_exec(bContext *C, wmOperator *op)
-{
-	Scene *scene = CTX_data_scene(C);
-	Object *ob = CTX_data_active_object(C);
-	Object *armob = modifiers_isDeformedByArmature(ob);
-	Mesh *me = ob->data;
-	int type = RNA_enum_get(op->ptr, "type");
-	EvaluationContext eval_ctx;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
-	create_vgroups_from_armature(op->reports, &eval_ctx, scene, ob, armob, type, (me->editflag & ME_EDIT_MIRROR_X));
-
-	DEG_id_tag_update(&me->id, 0);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
-
-	return OPERATOR_FINISHED;
-}
-
-void PAINT_OT_weight_from_bones(wmOperatorType *ot)
-{
-	static EnumPropertyItem type_items[] = {
-		{ARM_GROUPS_AUTO, "AUTOMATIC", 0, "Automatic", "Automatic weights from bones"},
-		{ARM_GROUPS_ENVELOPE, "ENVELOPES", 0, "From Envelopes", "Weights from envelopes with user defined radius"},
-		{0, NULL, 0, NULL, NULL}};
-
-	/* identifiers */
-	ot->name = "Weight from Bones";
-	ot->idname = "PAINT_OT_weight_from_bones";
-	ot->description = "Set the weights of the groups matching the attached armature's selected bones, "
-	                  "using the distance between the vertices and the bones";
-	
-	/* api callbacks */
-	ot->exec = weight_from_bones_exec;
-	ot->invoke = WM_menu_invoke;
-	ot->poll = weight_from_bones_poll;
-	
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	/* properties */
-	ot->prop = RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "Method to use for assigning weights");
-}
-
-/* *** VGroups Gradient *** */
-typedef struct DMGradient_vertStore {
-	float sco[2];
-	float weight_orig;
-	enum {
-		VGRAD_STORE_NOP      = 0,
-		VGRAD_STORE_DW_EXIST = (1 << 0)
-	} flag;
-} DMGradient_vertStore;
-
-typedef struct DMGradient_vertStoreBase {
-	struct WPaintPrev wpp;
-	DMGradient_vertStore elem[0];
-} DMGradient_vertStoreBase;
-
-typedef struct DMGradient_userData {
-	struct ARegion *ar;
-	Scene *scene;
-	Mesh *me;
-	Brush *brush;
-	const float *sco_start;     /* [2] */
-	const float *sco_end;       /* [2] */
-	float        sco_line_div;  /* store (1.0f / len_v2v2(sco_start, sco_end)) */
-	int def_nr;
-	bool is_init;
-	DMGradient_vertStoreBase *vert_cache;
-	/* only for init */
-	BLI_bitmap *vert_visit;
-
-	/* options */
-	short use_select;
-	short type;
-	float weightpaint;
-} DMGradient_userData;
-
-static void gradientVert_update(DMGradient_userData *grad_data, int index)
-{
-	Mesh *me = grad_data->me;
-	DMGradient_vertStore *vs = &grad_data->vert_cache->elem[index];
-	float alpha;
-
-	if (grad_data->type == WPAINT_GRADIENT_TYPE_LINEAR) {
-		alpha = line_point_factor_v2(vs->sco, grad_data->sco_start, grad_data->sco_end);
-	}
-	else {
-		BLI_assert(grad_data->type == WPAINT_GRADIENT_TYPE_RADIAL);
-		alpha = len_v2v2(grad_data->sco_start, vs->sco) * grad_data->sco_line_div;
-	}
-	/* no need to clamp 'alpha' yet */
-
-	/* adjust weight */
-	alpha = BKE_brush_curve_strength_clamped(grad_data->brush, alpha, 1.0f);
-
-	if (alpha != 0.0f) {
-		MDeformVert *dv = &me->dvert[index];
-		MDeformWeight *dw = defvert_verify_index(dv, grad_data->def_nr);
-		// dw->weight = alpha; // testing
-		int tool = grad_data->brush->vertexpaint_tool;
-		float testw;
-
-		/* init if we just added */
-		testw = wpaint_blend_tool(tool, vs->weight_orig, grad_data->weightpaint, alpha * grad_data->brush->alpha);
-		CLAMP(testw, 0.0f, 1.0f);
-		dw->weight = testw;
-	}
-	else {
-		MDeformVert *dv = &me->dvert[index];
-		if (vs->flag & VGRAD_STORE_DW_EXIST) {
-			/* normally we NULL check, but in this case we know it exists */
-			MDeformWeight *dw = defvert_find_index(dv, grad_data->def_nr);
-			dw->weight = vs->weight_orig;
-		}
-		else {
-			/* wasn't originally existing, remove */
-			MDeformWeight *dw = defvert_find_index(dv, grad_data->def_nr);
-			if (dw) {
-				defvert_remove_group(dv, dw);
-			}
-		}
-	}
-}
-
-static void gradientVertUpdate__mapFunc(
-        void *userData, int index, const float UNUSED(co[3]),
-        const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
-{
-	DMGradient_userData *grad_data = userData;
-	Mesh *me = grad_data->me;
-	if ((grad_data->use_select == false) || (me->mvert[index].flag & SELECT)) {
-		DMGradient_vertStore *vs = &grad_data->vert_cache->elem[index];
-		if (vs->sco[0] != FLT_MAX) {
-			gradientVert_update(grad_data, index);
-		}
-	}
-}
-
-static void gradientVertInit__mapFunc(
-        void *userData, int index, const float co[3],
-        const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
-{
-	DMGradient_userData *grad_data = userData;
-	Mesh *me = grad_data->me;
-
-	if ((grad_data->use_select == false) || (me->mvert[index].flag & SELECT)) {
-		/* run first pass only,
-		 * the screen coords of the verts need to be cached because
-		 * updating the mesh may move them about (entering feedback loop) */
-
-		if (BLI_BITMAP_TEST(grad_data->vert_visit, index) == 0) {
-			DMGradient_vertStore *vs = &grad_data->vert_cache->elem[index];
-			if (ED_view3d_project_float_object(grad_data->ar,
-			                                   co, vs->sco,
-			                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
-			{
-				/* ok */
-				MDeformVert *dv = &me->dvert[index];
-				const MDeformWeight *dw;
-				dw = defvert_find_index(dv, grad_data->def_nr);
-				if (dw) {
-					vs->weight_orig = dw->weight;
-					vs->flag = VGRAD_STORE_DW_EXIST;
-				}
-				else {
-					vs->weight_orig = 0.0f;
-					vs->flag = VGRAD_STORE_NOP;
-				}
-
-				BLI_BITMAP_ENABLE(grad_data->vert_visit, index);
-
-				gradientVert_update(grad_data, index);
-			}
-			else {
-				/* no go */
-				copy_v2_fl(vs->sco, FLT_MAX);
-			}
-		}
-	}
-}
-
-static int paint_weight_gradient_modal(bContext *C, wmOperator *op, const wmEvent *event)
-{
-	int ret = WM_gesture_straightline_modal(C, op, event);
-	wmGesture *gesture = op->customdata;
-	DMGradient_vertStoreBase *vert_cache = gesture->userdata;
-	bool do_gesture_free = false;
-
-	if (ret & OPERATOR_RUNNING_MODAL) {
-		if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {  /* XXX, hardcoded */
-			/* generally crap! redo! */
-			do_gesture_free = true;
-			ret &= ~OPERATOR_RUNNING_MODAL;
-			ret |= OPERATOR_FINISHED;
-		}
-	}
-
-	if (ret & OPERATOR_CANCELLED) {
-		Object *ob = CTX_data_active_object(C);
-		Mesh *me = ob->data;
-		if (vert_cache->wpp.wpaint_prev) {
-			BKE_defvert_array_free_elems(me->dvert, me->totvert);
-			BKE_defvert_array_copy(me->dvert, vert_cache->wpp.wpaint_prev, me->totvert);
-			wpaint_prev_destroy(&vert_cache->wpp);
-		}
-
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
-	}
-	else if (ret & OPERATOR_FINISHED) {
-		wpaint_prev_destroy(&vert_cache->wpp);
-	}
-
-	if (do_gesture_free) {
-		WM_gesture_straightline_cancel(C, op);
-	}
-
-	return ret;
-}
-
-static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
-{
-	wmGesture *gesture = op->customdata;
-	DMGradient_vertStoreBase *vert_cache;
-	struct ARegion *ar = CTX_wm_region(C);
-	Scene *scene = CTX_data_scene(C);
-	Object *ob = CTX_data_active_object(C);
-	EvaluationContext eval_ctx;
-	Mesh *me = ob->data;
-	int x_start = RNA_int_get(op->ptr, "xstart");
-	int y_start = RNA_int_get(op->ptr, "ystart");
-	int x_end = RNA_int_get(op->ptr, "xend");
-	int y_end = RNA_int_get(op->ptr, "yend");
-	float sco_start[2] = {x_start, y_start};
-	float sco_end[2] = {x_end, y_end};
-	const bool is_interactive = (gesture != NULL);
-	DerivedMesh *dm;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
-
-	dm = mesh_get_derived_final(&eval_ctx, scene, ob, scene->customdata_mask);
-
-	DMGradient_userData data = {NULL};
-
-	if (is_interactive) {
-		if (gesture->userdata == NULL) {
-			gesture->userdata = MEM_mallocN(
-			        sizeof(DMGradient_vertStoreBase) +
-			        (sizeof(DMGradient_vertStore) * me->totvert),
-			        __func__);
-			data.is_init = true;
-
-			wpaint_prev_create(&((DMGradient_vertStoreBase *)gesture->userdata)->wpp, me->dvert, me->totvert);
-
-			/* on init only, convert face -> vert sel  */
-			if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
-				BKE_mesh_flush_select_from_polys(me);
-			}
-		}
-
-		vert_cache = gesture->userdata;
-	}
-	else {
-		if (wpaint_ensure_data(C, op, 0, NULL) == false) {
-			return OPERATOR_CANCELLED;
-		}
-
-		data.is_init = true;
-		vert_cache = MEM_mallocN(
-		        sizeof(DMGradient_vertStoreBase) +
-		        (sizeof(DMGradient_vertStore) * me->totvert),
-		        __func__);
-	}
-
-	data.ar = ar;
-	data.scene = scene;
-	data.me = ob->data;
-	data.sco_start = sco_start;
-	data.sco_end   = sco_end;
-	data.sco_line_div = 1.0f / len_v2v2(sco_start, sco_end);
-	data.def_nr = ob->actdef - 1;
-	data.use_select = (me->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL));
-	data.vert_cache = vert_cache;
-	data.vert_visit = NULL;
-	data.type = RNA_enum_get(op->ptr, "type");
-
-	{
-		ToolSettings *ts = CTX_data_tool_settings(C);
-		VPaint *wp = ts->wpaint;
-		struct Brush *brush = BKE_paint_brush(&wp->paint);
-
-		curvemapping_initialize(brush->curve);
-
-		data.brush = brush;
-		data.weightpaint = BKE_brush_weight_get(scene, brush);
-	}
-
-	ED_view3d_init_mats_rv3d(ob, ar->regiondata);
-
-	if (data.is_init) {
-		data.vert_visit = BLI_BITMAP_NEW(me->totvert, __func__);
-
-		dm->foreachMappedVert(dm, gradientVertInit__mapFunc, &data, DM_FOREACH_NOP);
-
-		MEM_freeN(data.vert_visit);
-		data.vert_visit = NULL;
-	}
-	else {
-		dm->foreachMappedVert(dm, gradientVertUpdate__mapFunc, &data, DM_FOREACH_NOP);
-	}
-
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
-
-	if (is_interactive == false) {
-		MEM_freeN(vert_cache);
-	}
-
-	return OPERATOR_FINISHED;
-}
-
-static int paint_weight_gradient_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-	int ret;
-
-	if (wpaint_ensure_data(C, op, 0, NULL) == false) {
-		return OPERATOR_CANCELLED;
-	}
-
-	ret = WM_gesture_straightline_invoke(C, op, event);
-	if (ret & OPERATOR_RUNNING_MODAL) {
-		struct ARegion *ar = CTX_wm_region(C);
-		if (ar->regiontype == RGN_TYPE_WINDOW) {
-			/* TODO, hardcoded, extend WM_gesture_straightline_ */
-			if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
-				wmGesture *gesture = op->customdata;
-				gesture->mode = 1;
-			}
-		}
-	}
-	return ret;
-}
-
-void PAINT_OT_weight_gradient(wmOperatorType *ot)
-{
-	/* defined in DNA_space_types.h */
-	static EnumPropertyItem gradient_types[] = {
-		{WPAINT_GRADIENT_TYPE_LINEAR, "LINEAR", 0, "Linear", ""},
-		{WPAINT_GRADIENT_TYPE_RADIAL, "RADIAL", 0, "Radial", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-
-	PropertyRNA *prop;
-
-	/* identifiers */
-	ot->name = "Weight Gradient";
-	ot->idname = "PAINT_OT_weight_gradient";
-	ot->description = "Draw a line to apply a weight gradient to selected vertices";
-
-	/* api callbacks */
-	ot->invoke = paint_weight_gradient_invoke;
-	ot->modal = paint_weight_gradient_modal;
-	ot->exec = paint_weight_gradient_exec;
-	ot->poll = weight_paint_poll;
-	ot->cancel = WM_gesture_straightline_cancel;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	prop = RNA_def_enum(ot->srna, "type", gradient_types, 0, "Type", "");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-
-	WM_operator_properties_gesture_straightline(ot, CURSOR_EDIT);
-}
