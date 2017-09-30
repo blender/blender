@@ -449,15 +449,6 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 							/* adjust settings to fit (allocate a new data-array) */
 							kbn->data = MEM_callocN(sizeof(float) * 3 * totvert, "joined_shapekey");
 							kbn->totelem = totvert;
-		
-							/* XXX 2.5 Animato */
-#if 0
-							/* also, copy corresponding ipo-curve to ipo-block if applicable */
-							if (me->key->ipo && key->ipo) {
-								/* FIXME... this is a luxury item! */
-								puts("FIXME: ignoring IPO's when joining shapekeys on Meshes for now...");
-							}
-#endif
 						}
 
 						kb_map[i] = kbn;
