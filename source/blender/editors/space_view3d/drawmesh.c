@@ -678,6 +678,7 @@ static void update_tface_color_layer(DerivedMesh *dm, bool use_mcol)
 				finalCol[loop_index].r = 255;
 				finalCol[loop_index].g = 0;
 				finalCol[loop_index].b = 255;
+				finalCol[loop_index].a = 255;
 			}
 			copy_mode = COPY_PREV;
 		}
@@ -685,6 +686,7 @@ static void update_tface_color_layer(DerivedMesh *dm, bool use_mcol)
 			int loop_index = mp->loopstart;
 			for (j = 0; j < mp->totloop; j++, loop_index++) {
 				copy_v3_v3_uchar(&finalCol[loop_index].r, Gtexdraw.obcol);
+				finalCol[loop_index].a = 255;
 			}
 			copy_mode = COPY_PREV;
 		}
@@ -1297,6 +1299,13 @@ void draw_mesh_paint_vcolor_faces(DerivedMesh *dm, const bool use_light,
 		flags |= DM_DRAW_NEED_NORMALS;
 	}
 
+	/* Don't show alpha in wire mode. */
+	const bool show_alpha = use_light;
+	if (show_alpha) {
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
+
 	if (me->mloopcol) {
 		dm->drawMappedFaces(dm, facemask_cb, setMaterial, NULL, user_data,
 		                    DM_DRAW_USE_COLORS | flags);
@@ -1304,6 +1313,10 @@ void draw_mesh_paint_vcolor_faces(DerivedMesh *dm, const bool use_light,
 	else {
 		glColor3f(1.0f, 1.0f, 1.0f);
 		dm->drawMappedFaces(dm, facemask_cb, setMaterial, NULL, user_data, flags);
+	}
+
+	if (show_alpha) {
+		glDisable(GL_BLEND);
 	}
 
 	if (use_light) {
