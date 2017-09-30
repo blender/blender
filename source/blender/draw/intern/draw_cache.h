@@ -35,6 +35,7 @@ void DRW_shape_cache_free(void);
 
 /* Common Shapes */
 struct Gwn_Batch *DRW_cache_fullscreen_quad_get(void);
+struct Gwn_Batch *DRW_cache_quad_get(void);
 struct Gwn_Batch *DRW_cache_sphere_get(void);
 struct Gwn_Batch *DRW_cache_single_vert_get(void);
 struct Gwn_Batch *DRW_cache_single_line_get(void);
