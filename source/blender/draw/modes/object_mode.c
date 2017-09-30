@@ -71,6 +71,7 @@ extern char datatoc_object_grid_frag_glsl[];
 extern char datatoc_object_grid_vert_glsl[];
 extern char datatoc_object_empty_image_frag_glsl[];
 extern char datatoc_object_empty_image_vert_glsl[];
+extern char datatoc_object_lightprobe_grid_vert_glsl[];
 extern char datatoc_object_particle_prim_vert_glsl[];
 extern char datatoc_object_particle_prim_frag_glsl[];
 extern char datatoc_object_particle_dot_vert_glsl[];
@@ -78,6 +79,7 @@ extern char datatoc_object_particle_dot_frag_glsl[];
 extern char datatoc_common_globals_lib_glsl[];
 extern char datatoc_common_fxaa_lib_glsl[];
 extern char datatoc_gpu_shader_fullscreen_vert_glsl[];
+extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
 
 /* *********** LISTS *********** */
 typedef struct OBJECT_PassList {
@@ -93,6 +95,7 @@ typedef struct OBJECT_PassList {
 	struct DRWPass *bone_wire;
 	struct DRWPass *bone_envelope;
 	struct DRWPass *particle;
+	struct DRWPass *lightprobes;
 	/* use for empty/background images */
 	struct DRWPass *reference_image;
 } OBJECT_PassList;
@@ -191,6 +194,10 @@ typedef struct OBJECT_PrivateData{
 	DRWShadingGroup *outlines_select_group;
 	DRWShadingGroup *outlines_transform;
 
+	/* Lightprobes */
+	DRWShadingGroup *lightprobes_cube;
+	DRWShadingGroup *lightprobes_planar;
+
 	/* Wire */
 	DRWShadingGroup *wire;
 	DRWShadingGroup *wire_active;
@@ -214,6 +221,7 @@ static struct {
 	GPUShader *part_dot_sh;
 	GPUShader *part_prim_sh;
 	GPUShader *part_axis_sh;
+	GPUShader *lightprobe_grid_sh;
 	float camera_pos[3];
 	float screenvecs[3][4];
 	float grid_settings[5];
@@ -329,6 +337,11 @@ static void OBJECT_engine_init(void *vedata)
 	if (!e_data.part_dot_sh) {
 		e_data.part_dot_sh = DRW_shader_create(
 		        datatoc_object_particle_dot_vert_glsl, NULL, datatoc_object_particle_dot_frag_glsl, NULL);
+	}
+
+	if (!e_data.lightprobe_grid_sh) {
+		e_data.lightprobe_grid_sh = DRW_shader_create(
+		        datatoc_object_lightprobe_grid_vert_glsl, NULL, datatoc_gpu_shader_uniform_color_frag_glsl, NULL);
 	}
 
 	{
@@ -525,6 +538,7 @@ static void OBJECT_engine_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.part_prim_sh);
 	DRW_SHADER_FREE_SAFE(e_data.part_axis_sh);
 	DRW_SHADER_FREE_SAFE(e_data.part_dot_sh);
+	DRW_SHADER_FREE_SAFE(e_data.lightprobe_grid_sh);
 }
 
 static DRWShadingGroup *shgroup_outline(DRWPass *pass, const float col[4], GPUShader *sh)
@@ -724,6 +738,17 @@ static void OBJECT_cache_init(void *vedata)
 		/* Active */
 		stl->g_data->outlines_active = shgroup_outline(psl->outlines, ts.colorActive, sh);
 		stl->g_data->outlines_active_group = shgroup_outline(psl->outlines, ts.colorGroupActive, sh);
+	}
+
+	{
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+		psl->lightprobes = DRW_pass_create("Object Probe Pass", state);
+
+		/* Cubemap */
+		stl->g_data->lightprobes_cube = shgroup_instance(psl->lightprobes, DRW_cache_sphere_get());
+
+		/* Planar */
+		stl->g_data->lightprobes_planar = shgroup_instance(psl->lightprobes, DRW_cache_quad_get());
 	}
 
 	{
@@ -1395,12 +1420,91 @@ static void DRW_shgroup_speaker(OBJECT_StorageList *stl, Object *ob, SceneLayer 
 	DRW_shgroup_call_dynamic_add(stl->g_data->speaker, color, &one, ob->obmat);
 }
 
-static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, Object *ob, SceneLayer *sl)
+typedef struct OBJECT_LightProbeEngineData {
+	float prb_mats[6][4][4];
+	float probe_cube_mat[4][4];
+	float draw_size;
+	float increment_x[3];
+	float increment_y[3];
+	float increment_z[3];
+	float corner[3];
+} OBJECT_LightProbeEngineData;
+
+static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, OBJECT_PassList *psl, Object *ob, SceneLayer *sl)
 {
 	float *color;
 	static float one = 1.0f;
 	LightProbe *prb = (LightProbe *)ob->data;
+	bool do_outlines = ((ob->base_flag & BASE_SELECTED) != 0);
 	DRW_object_wire_theme_get(ob, sl, &color);
+
+	OBJECT_LightProbeEngineData *prb_data;
+	OBJECT_LightProbeEngineData **prb_data_pt = (OBJECT_LightProbeEngineData **)DRW_object_engine_data_get(ob, &draw_engine_object_type, NULL);
+	if (*prb_data_pt == NULL) {
+		*prb_data_pt = MEM_mallocN(sizeof(OBJECT_LightProbeEngineData), "Probe Clip distances Matrices");
+	}
+
+	prb_data = *prb_data_pt;
+
+	if ((DRW_state_is_select() || do_outlines) && ((prb->flag & LIGHTPROBE_FLAG_SHOW_DATA) != 0)) {
+
+		if (prb->type == LIGHTPROBE_TYPE_GRID) {
+			/* Update transforms */
+			float cell_dim[3], half_cell_dim[3];
+			cell_dim[0] = 2.0f / (float)(prb->grid_resolution_x);
+			cell_dim[1] = 2.0f / (float)(prb->grid_resolution_y);
+			cell_dim[2] = 2.0f / (float)(prb->grid_resolution_z);
+
+			mul_v3_v3fl(half_cell_dim, cell_dim, 0.5f);
+
+			/* First cell. */
+			copy_v3_fl(prb_data->corner, -1.0f);
+			add_v3_v3(prb_data->corner, half_cell_dim);
+			mul_m4_v3(ob->obmat, prb_data->corner);
+
+			/* Opposite neighbor cell. */
+			copy_v3_fl3(prb_data->increment_x, cell_dim[0], 0.0f, 0.0f);
+			add_v3_v3(prb_data->increment_x, half_cell_dim);
+			add_v3_fl(prb_data->increment_x, -1.0f);
+			mul_m4_v3(ob->obmat, prb_data->increment_x);
+			sub_v3_v3(prb_data->increment_x, prb_data->corner);
+
+			copy_v3_fl3(prb_data->increment_y, 0.0f, cell_dim[1], 0.0f);
+			add_v3_v3(prb_data->increment_y, half_cell_dim);
+			add_v3_fl(prb_data->increment_y, -1.0f);
+			mul_m4_v3(ob->obmat, prb_data->increment_y);
+			sub_v3_v3(prb_data->increment_y, prb_data->corner);
+
+			copy_v3_fl3(prb_data->increment_z, 0.0f, 0.0f, cell_dim[2]);
+			add_v3_v3(prb_data->increment_z, half_cell_dim);
+			add_v3_fl(prb_data->increment_z, -1.0f);
+			mul_m4_v3(ob->obmat, prb_data->increment_z);
+			sub_v3_v3(prb_data->increment_z, prb_data->corner);
+
+			DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.lightprobe_grid_sh, psl->lightprobes, DRW_cache_sphere_get());
+			/* Dummy call just to save select ID */
+			DRW_shgroup_call_dynamic_add(grp);
+			/* Then overide the instance count */
+			DRW_shgroup_set_instance_count(grp, prb->grid_resolution_x * prb->grid_resolution_y * prb->grid_resolution_z);
+			DRW_shgroup_uniform_vec4(grp, "color", color, 1);
+			DRW_shgroup_uniform_vec3(grp, "corner", prb_data->corner, 1);
+			DRW_shgroup_uniform_vec3(grp, "increment_x", prb_data->increment_x, 1);
+			DRW_shgroup_uniform_vec3(grp, "increment_y", prb_data->increment_y, 1);
+			DRW_shgroup_uniform_vec3(grp, "increment_z", prb_data->increment_z, 1);
+			DRW_shgroup_uniform_ivec3(grp, "grid_resolution", &prb->grid_resolution_x, 1);
+			DRW_shgroup_uniform_float(grp, "sphere_size", &prb->data_draw_size, 1);
+		}
+		else if (prb->type == LIGHTPROBE_TYPE_CUBE) {
+			prb_data->draw_size = prb->data_draw_size * 0.1f;
+			unit_m4(prb_data->probe_cube_mat);
+			copy_v3_v3(prb_data->probe_cube_mat[3], ob->obmat[3]);
+			DRW_shgroup_call_dynamic_add(stl->g_data->lightprobes_cube, color, &prb_data->draw_size, prb_data->probe_cube_mat);
+		}
+		else {
+			prb_data->draw_size = 1.0f;
+			DRW_shgroup_call_dynamic_add(stl->g_data->lightprobes_planar, color, &prb_data->draw_size, ob->obmat);
+		}
+	}
 
 	switch (prb->type) {
 		case LIGHTPROBE_TYPE_PLANAR:
@@ -1415,22 +1519,18 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, Object *ob, SceneLay
 			break;
 	}
 
-	float **prb_mats = (float **)DRW_object_engine_data_get(ob, &draw_engine_object_type, NULL);
-	if (*prb_mats == NULL) {
-		/* we need 6 matrices */
-		*prb_mats = MEM_mallocN(sizeof(float) * 16 * 6, "Probe Clip distances Matrices");
-	}
+
 
 	if (prb->type == LIGHTPROBE_TYPE_PLANAR) {
 		float (*mat)[4];
-		mat = (float (*)[4])(*prb_mats);
+		mat = (float (*)[4])(prb_data->prb_mats[0]);
 		copy_m4_m4(mat, ob->obmat);
 		normalize_m4(mat);
 
 		DRW_shgroup_call_dynamic_add(stl->g_data->single_arrow, color, &ob->empty_drawsize, mat);
 		DRW_shgroup_call_dynamic_add(stl->g_data->single_arrow_line, color, &ob->empty_drawsize, mat);
 
-		mat = (float (*)[4])(*prb_mats + 16);
+		mat = (float (*)[4])(prb_data->prb_mats[1]);
 		copy_m4_m4(mat, ob->obmat);
 		zero_v3(mat[2]);
 
@@ -1455,14 +1555,14 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, Object *ob, SceneLay
 		}
 		else if (prb->type == LIGHTPROBE_TYPE_PLANAR) {
 			float (*rangemat)[4];
-			rangemat = (float (*)[4])(*prb_mats + 32);
+			rangemat = (float (*)[4])(prb_data->prb_mats[2]);
 			copy_m4_m4(rangemat, ob->obmat);
 			normalize_v3(rangemat[2]);
 			mul_v3_fl(rangemat[2], prb->distinf);
 
 			DRW_shgroup_call_dynamic_add(stl->g_data->cube, color, &one, rangemat);
 
-			rangemat = (float (*)[4])(*prb_mats + 64);
+			rangemat = (float (*)[4])(prb_data->prb_mats[3]);
 			copy_m4_m4(rangemat, ob->obmat);
 			normalize_v3(rangemat[2]);
 			mul_v3_fl(rangemat[2], prb->distfalloff);
@@ -1511,7 +1611,7 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, Object *ob, SceneLay
 
 			for (int i = 0; i < 6; ++i) {
 				float (*clipmat)[4];
-				clipmat = (float (*)[4])(*prb_mats + 16 * i);
+				clipmat = (float (*)[4])(prb_data->prb_mats[i]);
 
 				normalize_m4_m4(clipmat, ob->obmat);
 				mul_m4_m4m4(clipmat, clipmat, cubefacemat[i]);
@@ -1734,7 +1834,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			DRW_shgroup_speaker(stl, ob, sl);
 			break;
 		case OB_LIGHTPROBE:
-			DRW_shgroup_lightprobe(stl, ob, sl);
+			DRW_shgroup_lightprobe(stl, psl, ob, sl);
 			break;
 		case OB_ARMATURE:
 		{
@@ -1800,7 +1900,7 @@ static void OBJECT_draw_scene(void *vedata)
 		DRW_framebuffer_bind(fbl->outlines);
 		DRW_framebuffer_clear(true, true, false, clearcol, 1.0f);
 		DRW_draw_pass(psl->outlines);
-
+		DRW_draw_pass(psl->lightprobes);
 
 		/* detach textures */
 		DRW_framebuffer_texture_detach(e_data.outlines_depth_tx);
@@ -1824,6 +1924,10 @@ static void OBJECT_draw_scene(void *vedata)
 		/* restore main framebuffer */
 		DRW_framebuffer_bind(dfbl->default_fb);
 		DRW_stats_group_end();
+	}
+	else if (DRW_state_is_select()) {
+		/* Render probes spheres/planes so we can select them. */
+		DRW_draw_pass(psl->lightprobes);
 	}
 
 	MULTISAMPLE_SYNC_ENABLE(dfbl)

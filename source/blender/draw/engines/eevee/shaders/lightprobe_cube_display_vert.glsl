@@ -1,6 +1,5 @@
 
 in vec3 pos;
-in vec3 nor;
 
 /* Instance attrib */
 in int probe_id;
@@ -16,7 +15,13 @@ out vec3 worldPosition;
 void main()
 {
 	pid = probe_id;
-	worldPosition = pos * 0.1 * sphere_size + probe_location;
-	gl_Position = ViewProjectionMatrix * vec4(worldPosition, 1.0);
-	worldNormal = normalize(nor);
+
+	/* While this is not performant, we do this to
+	 * match the object mode engine instancing shader. */
+	mat4 offsetmat = mat4(1.0); /* Identity */
+	offsetmat[3].xyz = probe_location;
+
+	worldPosition = pos * sphere_size;
+	gl_Position = ViewProjectionMatrix * offsetmat * vec4(worldPosition, 1.0);
+	worldNormal = normalize(pos);
 }

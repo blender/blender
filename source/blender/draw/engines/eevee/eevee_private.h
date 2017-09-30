@@ -486,6 +486,7 @@ typedef struct EEVEE_LightProbeEngineData {
 	int num_cell;
 	int max_lvl;
 	int probe_id; /* Only used for display data */
+	float probe_size; /* Only used for display data */
 	/* For planar reflection rendering */
 	float viewmat[4][4];
 	float persmat[4][4];
@@ -518,6 +519,7 @@ typedef struct EEVEE_PrivateData {
 	struct DRWShadingGroup *refract_depth_shgrp_clip;
 	struct DRWShadingGroup *refract_depth_shgrp_clip_cull;
 	struct DRWShadingGroup *cube_display_shgrp;
+	struct DRWShadingGroup *planar_display_shgrp;
 	struct DRWShadingGroup *planar_downsample;
 	struct GHash *material_hash;
 	struct GHash *hair_material_hash;
