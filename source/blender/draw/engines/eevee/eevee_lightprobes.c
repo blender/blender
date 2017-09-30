@@ -1320,8 +1320,9 @@ void EEVEE_lightprobes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 					float pos[3], grid_loc[3];
 
 					/* Other levels */
-					int current_stride = 1 << (ped->max_lvl - (ped->updated_lvl + 1));
+					int current_stride = 1 << max_ii(0, ped->max_lvl - ped->updated_lvl);
 					int prev_stride = current_stride << 1;
+
 					while (!valid_cell) {
 						cell_id = ped->updated_cells;
 						lightprobe_cell_grid_location_get(egrid, cell_id, grid_loc);
@@ -1381,11 +1382,11 @@ skip_rendering:
 						ped->updated_lvl++;
 						ped->updated_cells = 0;
 
-						if (ped->updated_lvl == ped->max_lvl) {
+						if (ped->updated_lvl > ped->max_lvl) {
 							ped->need_update = false;
 						}
 
-						egrid->level_bias = (float)(1 << (ped->max_lvl - ped->updated_lvl));
+						egrid->level_bias = (float)(1 << max_ii(0, ped->max_lvl - ped->updated_lvl + 1));
 						DRW_uniformbuffer_update(sldata->grid_ubo, &sldata->probes->grid_data);
 					}
 #if 0
