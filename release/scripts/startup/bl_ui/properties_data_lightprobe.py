@@ -139,20 +139,6 @@ class DATA_PT_lightprobe_display(DataButtonsPanel, Panel):
 
         ob = context.object
         probe = context.lightprobe
-        is_planar = (probe.type is "PLANAR")
-
-        split = layout.split()
-
-        col = split.column()
-        col.prop(probe, "show_influence")
-
-        col = split.column()
-        col.active = is_planar
-        col.prop(probe, "show_parallax")
-
-        col = split.column()
-        col.active = is_planar
-        col.prop(probe, "show_clip")
 
         row = layout.row()
         row.prop(probe, "show_data")
@@ -161,6 +147,20 @@ class DATA_PT_lightprobe_display(DataButtonsPanel, Panel):
             row.prop(probe, "data_draw_size", text="Size")
         else:
             row.prop(ob, "empty_draw_size", text="Arrow Size")
+
+        split = layout.split()
+
+        if probe.type in {'GRID', 'CUBEMAP'}:
+            col = split.column()
+            col.prop(probe, "show_influence")
+
+            col = split.column()
+            col.prop(probe, "show_clip")
+
+        if probe.type == 'CUBEMAP':
+            col = split.column()
+            col.active = probe.use_custom_parallax
+            col.prop(probe, "show_parallax")
 
 
 classes = (
