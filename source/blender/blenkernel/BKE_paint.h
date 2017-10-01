@@ -228,9 +228,12 @@ typedef struct SculptSession {
 
 			/* Vertex aligned arrays of weights. */
 			float *previous_accum;
-			float *previous_weight;
 			/* Keep track of how much each vertex has been painted (non-airbrush only). */
 			float *alpha_weight;
+
+			/* Needed to continuously re-apply over the same weights (VP_SPRAY disabled).
+			 * Lazy initialize as needed (flag is set to 1 to tag it as uninitialized). */
+			struct MDeformVert *dvert_prev;
 		} wpaint;
 
 		//struct {

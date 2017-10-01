@@ -88,10 +88,16 @@ struct WPaintAverageAccum {
 	double value;
 };
 
-static void defweight_prev_init(const MDeformWeight *dw, float *weight_prev)
+static void defweight_prev_restore_or_init(MDeformVert *dvert_prev, MDeformVert *dvert_curr, int index)
 {
-	if (UNLIKELY(*weight_prev == -1.0f)) {
-		*weight_prev = dw ? dw->weight : 0.0f;
+	MDeformVert *dv_curr = &dvert_curr[index];
+	MDeformVert *dv_prev = &dvert_prev[index];
+	if (dv_prev->flag == 1) {
+		dv_prev->flag = 0;
+		defvert_copy(dv_prev, dv_curr);
+	}
+	else {
+		defvert_copy(dv_curr, dv_prev);
 	}
 }
 
@@ -645,18 +651,6 @@ static void do_weight_paint_vertex_single(
 	MDeformVert *dv_mirr;
 	MDeformWeight *dw_mirr;
 
-	if (wp->flag & VP_ONLYVGROUP) {
-		dw = defvert_find_index(dv, wpi->active.index);
-	}
-	else {
-		dw = defvert_verify_index(dv, wpi->active.index);
-	}
-
-	if (dw == NULL) {
-		return;
-	}
-
-
 	/* from now on we can check if mirrors enabled if this var is -1 and not bother with the flag */
 	if (me->editflag & ME_EDIT_MIRROR_X) {
 		index_mirr = mesh_get_x_mirror_vert(ob, NULL, index, topology);
@@ -672,6 +666,24 @@ static void do_weight_paint_vertex_single(
 		index_mirr = vgroup_mirr = -1;
 	}
 
+	if ((wp->flag & VP_SPRAY) == 0) {
+		struct MDeformVert *dvert_prev = ob->sculpt->mode.wpaint.dvert_prev;
+		defweight_prev_restore_or_init(dvert_prev, me->dvert, index);
+		if (index_mirr != -1) {
+			defweight_prev_restore_or_init(dvert_prev, me->dvert, index_mirr);
+		}
+	}
+
+	if (wp->flag & VP_ONLYVGROUP) {
+		dw = defvert_find_index(dv, wpi->active.index);
+	}
+	else {
+		dw = defvert_verify_index(dv, wpi->active.index);
+	}
+
+	if (dw == NULL) {
+		return;
+	}
 
 	/* get the mirror def vars */
 	if (index_mirr != -1) {
@@ -791,6 +803,17 @@ static void do_weight_paint_vertex_multi(
 
 		if (index_mirr != -1 && index_mirr != index) {
 			dv_mirr = &me->dvert[index_mirr];
+		}
+		else {
+			index_mirr = -1;
+		}
+	}
+
+	if ((wp->flag & VP_SPRAY) == 0) {
+		struct MDeformVert *dvert_prev = ob->sculpt->mode.wpaint.dvert_prev;
+		defweight_prev_restore_or_init(dvert_prev, me->dvert, index);
+		if (index_mirr != -1) {
+			defweight_prev_restore_or_init(dvert_prev, me->dvert, index_mirr);
 		}
 	}
 
@@ -945,13 +968,23 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
 				ob->sculpt->mode.wpaint.alpha_weight =
 				        MEM_callocN(me->totvert * sizeof(float), __func__);
 			}
-			if (ob->sculpt->mode.wpaint.previous_weight == NULL) {
-				ob->sculpt->mode.wpaint.previous_weight =
-				        MEM_mallocN(me->totvert * sizeof(float), __func__);
+			if (ob->sculpt->mode.wpaint.dvert_prev == NULL) {
+				ob->sculpt->mode.wpaint.dvert_prev =
+				        MEM_callocN(me->totvert * sizeof(MDeformVert), __func__);
+				MDeformVert *dv = ob->sculpt->mode.wpaint.dvert_prev;
+				for (int i = 0; i < me->totvert; i++, dv++) {
+					/* Use to show this isn't initialized, never apply to the mesh data. */
+					dv->flag = 1;
+				}
 			}
 		}
 		else {
 			MEM_SAFE_FREE(ob->sculpt->mode.wpaint.alpha_weight);
+			if (ob->sculpt->mode.wpaint.dvert_prev != NULL) {
+				BKE_defvert_array_free_elems(ob->sculpt->mode.wpaint.dvert_prev, me->totvert);
+				MEM_freeN(ob->sculpt->mode.wpaint.dvert_prev);
+				ob->sculpt->mode.wpaint.dvert_prev = NULL;
+			}
 		}
 		if (brush && brush->flag & BRUSH_ACCUMULATE) {
 			if (ob->sculpt->mode.wpaint.previous_accum == NULL) {
@@ -1335,8 +1368,12 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 	vwpaint_update_cache_invariants(C, vd, ss, op, mouse);
 	vertex_paint_init_session_data(ts, ob);
 
-	if (ss->mode.wpaint.previous_weight != NULL) {
-		copy_vn_fl(ss->mode.wpaint.previous_weight, me->totvert, -1.0f);
+	if (ob->sculpt->mode.wpaint.dvert_prev != NULL) {
+		MDeformVert *dv = ob->sculpt->mode.wpaint.dvert_prev;
+		for (int i = 0; i < me->totvert; i++, dv++) {
+			/* Use to show this isn't initialized, never apply to the mesh data. */
+			dv->flag = 1;
+		}
 	}
 
 	return true;
@@ -1604,14 +1641,6 @@ static void do_wpaint_brush_draw_task_cb_ex(
 						}
 						else {
 							continue;
-						}
-
-						MDeformVert *dv = &data->me->dvert[v_index];
-						MDeformWeight *dw = defvert_find_index(dv, data->wpi->active.index);
-						float *weight_prev = &ss->mode.wpaint.previous_weight[v_index];
-						defweight_prev_init(dw, weight_prev);
-						if (dw) {
-							dw->weight = *weight_prev;
 						}
 					}
 

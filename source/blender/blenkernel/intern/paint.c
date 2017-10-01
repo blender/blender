@@ -49,6 +49,7 @@
 
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
+#include "BKE_deform.h"
 #include "BKE_main.h"
 #include "BKE_context.h"
 #include "BKE_crazyspace.h"
@@ -686,8 +687,12 @@ void BKE_sculptsession_free_vwpaint_data(struct SculptSession *ss)
 		gmap = &ss->mode.wpaint.gmap;
 
 		MEM_SAFE_FREE(ss->mode.wpaint.alpha_weight);
-		MEM_SAFE_FREE(ss->mode.wpaint.previous_weight);
 		MEM_SAFE_FREE(ss->mode.wpaint.previous_accum);
+		if (ss->mode.wpaint.dvert_prev) {
+			BKE_defvert_array_free_elems(ss->mode.wpaint.dvert_prev, ss->totvert);
+			MEM_freeN(ss->mode.wpaint.dvert_prev);
+			ss->mode.wpaint.dvert_prev = NULL;
+		}
 	}
 	else {
 		return;
