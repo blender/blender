@@ -423,6 +423,7 @@ typedef struct wmGesture {
 
 	/* free pointer to use for operator allocs (if set, its freed on exit)*/
 	void *userdata;
+	bool  userdata_free;
 } wmGesture;
 
 /* ************** wmEvent ************************ */

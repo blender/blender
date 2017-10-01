@@ -671,15 +671,14 @@ static void gradientVertInit__mapFunc(
 
 static int paint_weight_gradient_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	int ret = WM_gesture_straightline_modal(C, op, event);
 	wmGesture *gesture = op->customdata;
 	DMGradient_vertStoreBase *vert_cache = gesture->userdata;
-	bool do_gesture_free = false;
+	int ret = WM_gesture_straightline_modal(C, op, event);
 
 	if (ret & OPERATOR_RUNNING_MODAL) {
 		if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {  /* XXX, hardcoded */
 			/* generally crap! redo! */
-			do_gesture_free = true;
+			WM_gesture_straightline_cancel(C, op);
 			ret &= ~OPERATOR_RUNNING_MODAL;
 			ret |= OPERATOR_FINISHED;
 		}
@@ -693,16 +692,14 @@ static int paint_weight_gradient_modal(bContext *C, wmOperator *op, const wmEven
 			BKE_defvert_array_copy(me->dvert, vert_cache->wpp.wpaint_prev, me->totvert);
 			wpaint_prev_destroy(&vert_cache->wpp);
 		}
+		MEM_freeN(vert_cache);
 
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	}
 	else if (ret & OPERATOR_FINISHED) {
 		wpaint_prev_destroy(&vert_cache->wpp);
-	}
-
-	if (do_gesture_free) {
-		WM_gesture_straightline_cancel(C, op);
+		MEM_freeN(vert_cache);
 	}
 
 	return ret;
@@ -733,6 +730,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 			        sizeof(DMGradient_vertStoreBase) +
 			        (sizeof(DMGradient_vertStore) * me->totvert),
 			        __func__);
+			gesture->userdata_free = false;
 			data.is_init = true;
 
 			wpaint_prev_create(&((DMGradient_vertStoreBase *)gesture->userdata)->wpp, me->dvert, me->totvert);
