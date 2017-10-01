@@ -1362,6 +1362,20 @@ static void get_brush_alpha_data(
 	        (BKE_brush_use_alpha_pressure(scene, brush) ? ss->cache->pressure : 1.0f);
 }
 
+static float wpaint_get_active_weight(const MDeformVert *dv, const WeightPaintInfo *wpi)
+{
+	if (wpi->do_multipaint) {
+		float weight = BKE_defvert_multipaint_collective_weight(
+		     dv, wpi->defbase_tot, wpi->defbase_sel, wpi->defbase_tot_sel, wpi->do_auto_normalize);
+
+		CLAMP(weight, 0.0f, 1.0f);
+		return weight;
+	}
+	else {
+		return defvert_find_weight(dv, wpi->active.index);
+	}
+}
+
 static void do_wpaint_brush_blur_task_cb_ex(
         void *userdata, void *UNUSED(userdata_chunk), const int n, const int UNUSED(thread_id))
 {
@@ -1408,7 +1422,7 @@ static void do_wpaint_brush_blur_task_cb_ex(
 						const int l_index = mp->loopstart + k;
 						const MLoop *ml = &data->me->mloop[l_index];
 						const MDeformVert *dv = &data->me->dvert[ml->v];
-						weight_final += defvert_find_weight(dv, data->wpi->active.index);
+						weight_final += wpaint_get_active_weight(dv, data->wpi);
 					}
 				}
 
@@ -1512,7 +1526,7 @@ static void do_wpaint_brush_smear_task_cb_ex(
 									if (stroke_dot > stroke_dot_max) {
 										stroke_dot_max = stroke_dot;
 										MDeformVert *dv = &data->me->dvert[v_other_index];
-										weight_final = defvert_find_weight(dv, data->wpi->active.index);
+										weight_final = wpaint_get_active_weight(dv, data->wpi);
 										do_color = true;
 									}
 								}
@@ -1645,7 +1659,7 @@ static void do_wpaint_brush_calc_average_weight_cb_ex(
 				if (!(use_face_sel || use_vert_sel) || v_flag & SELECT) {
 					const MDeformVert *dv = &data->me->dvert[v_index];
 					accum->len += 1;
-					accum->value += defvert_find_weight(dv, data->wpi->active.index);
+					accum->value += wpaint_get_active_weight(dv, data->wpi);
 				}
 			}
 		}
