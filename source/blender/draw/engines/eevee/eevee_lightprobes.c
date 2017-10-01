@@ -166,6 +166,10 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
 
 void EEVEE_lightprobes_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *UNUSED(vedata))
 {
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	SceneLayer *scene_layer = draw_ctx->scene_layer;
+	IDProperty *props = BKE_scene_layer_engine_evaluated_get(scene_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
+
 	/* Shaders */
 	if (!e_data.probe_filter_glossy_sh) {
 		char *shader_str = NULL;
@@ -276,6 +280,11 @@ void EEVEE_lightprobes_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *UNUSED(ved
 		sldata->planar_ubo = DRW_uniformbuffer_create(sizeof(EEVEE_PlanarReflection) * MAX_PLANAR, NULL);
 	}
 
+	int prop_bounce_num = BKE_collection_engine_property_value_get_int(props, "gi_diffuse_bounces");
+	/* Update all probes if number of bounces mismatch. */
+	e_data.update_world = (sldata->probes->num_bounce != prop_bounce_num);
+	sldata->probes->num_bounce = prop_bounce_num;
+
 	/* Setup Render Target Cubemap */
 
 	/* We do this detach / attach dance to not generate an invalid framebuffer (mixed cubemap / 2D map) */
@@ -340,7 +349,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *veda
 		float *col = ts.colorBackground;
 		if (wo) {
 			col = &wo->horr;
-			e_data.update_world = (wo->update_flag != 0);
+			e_data.update_world |= (wo->update_flag != 0);
 			wo->update_flag = 0;
 
 			if (wo->use_nodes && wo->nodetree) {
@@ -1303,8 +1312,7 @@ void EEVEE_lightprobes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 
 		/* Reflection probes depend on diffuse lighting thus on irradiance grid,
 		 * so update them first. */
-		const int max_bounce = 3;
-		while (pinfo->updated_bounce < max_bounce) {
+		while (pinfo->updated_bounce < pinfo->num_bounce) {
 			pinfo->num_render_grid = pinfo->num_grid;
 
 			for (int i = 1; (ob = pinfo->probes_grid_ref[i]) && (i < MAX_GRID); i++) {
@@ -1391,7 +1399,7 @@ skip_rendering:
 					}
 #if 0
 					printf("Updated Grid %d : cell %d / %d, bounce %d / %d\n",
-						i, ped->updated_cells, ped->num_cell, pinfo->updated_bounce + 1, max_bounce);
+						i, ped->updated_cells, ped->num_cell, pinfo->updated_bounce + 1, pinfo->num_bounce);
 #endif
 					/* Only do one probe per frame */
 					DRW_viewport_request_redraw();
@@ -1405,7 +1413,7 @@ skip_rendering:
 			pinfo->updated_bounce++;
 			pinfo->num_render_grid = pinfo->num_grid;
 
-			if (pinfo->updated_bounce < max_bounce) {
+			if (pinfo->updated_bounce < pinfo->num_bounce) {
 				/* Retag all grids to update for next bounce */
 				for (int i = 1; (ob = pinfo->probes_grid_ref[i]) && (i < MAX_GRID); i++) {
 					EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);

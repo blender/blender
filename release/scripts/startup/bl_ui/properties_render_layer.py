@@ -333,6 +333,26 @@ class RENDERLAYER_PT_eevee_antialiasing(RenderLayerButtonsPanel, Panel):
         col.template_override_property(layer_props, scene_props, "taa_samples")
 
 
+class RENDERLAYER_PT_eevee_global_illumination(RenderLayerButtonsPanel, Panel):
+    bl_label = "Global Illumination"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        return scene and (scene.render.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        scene_props = scene.layer_properties['BLENDER_EEVEE']
+        layer = bpy.context.render_layer
+        layer_props = layer.engine_overrides['BLENDER_EEVEE']
+
+        col = layout.column()
+        col.template_override_property(layer_props, scene_props, "gi_diffuse_bounces")
+
+
 classes = (
     RENDERLAYER_UL_renderlayers,
     RENDERLAYER_PT_layers,
@@ -345,6 +365,7 @@ classes = (
     RENDERLAYER_PT_eevee_volumetric,
     RENDERLAYER_PT_eevee_shadows,
     RENDERLAYER_PT_eevee_antialiasing,
+    RENDERLAYER_PT_eevee_global_illumination,
 )
 
 if __name__ == "__main__":  # only for live edit.

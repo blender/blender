@@ -754,6 +754,24 @@ class RENDER_PT_eevee_antialiasing(RenderButtonsPanel, Panel):
         col.prop(props, "taa_samples")
 
 
+class RENDER_PT_eevee_global_illumination(RenderButtonsPanel, Panel):
+    bl_label = "Global Illumination"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        return scene and (scene.render.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        props = scene.layer_properties['BLENDER_EEVEE']
+
+        col = layout.column()
+        col.prop(props, "gi_diffuse_bounces")
+
+
 classes = (
     RENDER_MT_presets,
     RENDER_MT_ffmpeg_presets,
@@ -777,6 +795,7 @@ classes = (
     RENDER_PT_eevee_postprocess_settings,
     RENDER_PT_eevee_shadows,
     RENDER_PT_eevee_antialiasing,
+    RENDER_PT_eevee_global_illumination,
 )
 
 if __name__ == "__main__":  # only for live edit.

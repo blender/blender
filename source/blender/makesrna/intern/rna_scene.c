@@ -2574,6 +2574,7 @@ RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(shadow_size)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(shadow_high_bitdepth)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(taa_enable)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(taa_samples)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(gi_diffuse_bounces)
 
 /* object engine */
 RNA_LAYER_MODE_OBJECT_GET_SET_BOOL(show_wire)
@@ -6179,6 +6180,16 @@ static void rna_def_scene_layer_engine_settings_eevee(BlenderRNA *brna)
 	RNA_define_verify_sdna(0); /* not in sdna */
 
 	/* see RNA_LAYER_ENGINE_GET_SET macro */
+
+	/* Indirect Lighting */
+	prop = RNA_def_property(srna, "gi_diffuse_bounces", PROP_INT, PROP_NONE);
+	RNA_def_property_int_funcs(prop, "rna_LayerEngineSettings_Eevee_gi_diffuse_bounces_get",
+	                               "rna_LayerEngineSettings_Eevee_gi_diffuse_bounces_set", NULL);
+	RNA_def_property_ui_text(prop, "Bounces", "Number of time the light is reinjected inside light grids, "
+	                                          "0 disable indirect diffuse light");
+	RNA_def_property_range(prop, 0, INT_MAX);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
 
 	/* Temporal Anti-Aliasing */
 	prop = RNA_def_property(srna, "taa_enable", PROP_BOOLEAN, PROP_NONE);
