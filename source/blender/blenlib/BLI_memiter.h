@@ -30,6 +30,7 @@ extern "C"
 {
 #endif
 
+#include "BLI_sys_types.h"
 #include "BLI_compiler_attrs.h"
 #include "BLI_compiler_compat.h"
 
