@@ -1469,9 +1469,12 @@ static void do_wpaint_brush_blur_task_cb_ex(
 					if (view_dot > 0.0f) {
 						const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
 						float final_alpha =
-						        view_dot * brush_fade * brush_strength *
+						        brush_fade * brush_strength *
 						        grid_alpha * brush_alpha_pressure;
 
+						if (data->vp->flag & VP_NORMALS) {
+							final_alpha *= view_dot;
+						}
 						if (brush->flag & BRUSH_ACCUMULATE) {
 							float mask_accum = ss->mode.wpaint.previous_accum[v_index];
 							final_alpha = min_ff(final_alpha + mask_accum, brush_strength);
@@ -1572,9 +1575,13 @@ static void do_wpaint_brush_smear_task_cb_ex(
 						/* Apply weight to vertex */
 						if (do_color) {
 							const float brush_fade = BKE_brush_curve_strength(brush, test.dist, cache->radius);
-							const float final_alpha =
-							        view_dot * brush_fade * brush_strength *
+							float final_alpha =
+							        brush_fade * brush_strength *
 							        grid_alpha * brush_alpha_pressure;
+
+							if (data->vp->flag & VP_NORMALS) {
+								final_alpha *= view_dot;
+							}
 							do_weight_paint_vertex(
 							        data->vp, data->ob, data->wpi,
 							        v_index, final_alpha, (float)weight_final);
@@ -1625,8 +1632,11 @@ static void do_wpaint_brush_draw_task_cb_ex(
 				const float view_dot = (vd.no) ? dot_vf3vs3(cache->sculpt_normal_symm, vd.no) : 1.0;
 				if (view_dot > 0.0f) {
 					const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
-					float final_alpha = view_dot * brush_fade * brush_strength * grid_alpha * brush_alpha_pressure;
+					float final_alpha = brush_fade * brush_strength * grid_alpha * brush_alpha_pressure;
 
+					if (data->vp->flag & VP_NORMALS) {
+						final_alpha *= view_dot;
+					}
 					if (brush->flag & BRUSH_ACCUMULATE) {
 						float mask_accum = ss->mode.wpaint.previous_accum[v_index];
 						final_alpha = min_ff(final_alpha + mask_accum, brush_strength);
@@ -2390,9 +2400,12 @@ static void do_vpaint_brush_draw_task_cb_ex(
 								color_orig = ss->mode.vpaint.previous_color[l_index];
 							}
 							float final_alpha =
-							        255 * brush_fade * brush_strength * view_dot *
+							        255 * brush_fade * brush_strength *
 							        tex_alpha * brush_alpha_pressure * grid_alpha;
 
+							if (data->vp->flag & VP_NORMALS) {
+								final_alpha *= view_dot;
+							}
 							if (brush->flag & BRUSH_ACCUMULATE) {
 								float mask_accum = ss->mode.vpaint.previous_accum[l_index];
 								final_alpha = min_ff(final_alpha + mask_accum, 255.0f * brush_strength);
@@ -2494,9 +2507,13 @@ static void do_vpaint_brush_blur_task_cb_ex(
 									}
 									color_orig = ss->mode.vpaint.previous_color[l_index];
 								}
-								const float final_alpha =
-								        255 * brush_fade * brush_strength * view_dot *
+								float final_alpha =
+								        255 * brush_fade * brush_strength *
 								        brush_alpha_pressure * grid_alpha;
+
+								if (data->vp->flag & VP_NORMALS) {
+									final_alpha *= view_dot;
+								}
 								/* Mix the new color with the original
 								 * based on the brush strength and the curve. */
 								lcol[l_index] = vpaint_blend(
@@ -2614,9 +2631,13 @@ static void do_vpaint_brush_smear_task_cb_ex(
 										}
 										color_orig = ss->mode.vpaint.previous_color[l_index];
 									}
-									const float final_alpha =
+									float final_alpha =
 									        255 * brush_fade * brush_strength *
-									        view_dot * brush_alpha_pressure * grid_alpha;
+									        brush_alpha_pressure * grid_alpha;
+
+									if (data->vp->flag & VP_NORMALS) {
+										final_alpha *= view_dot;
+									}
 									/* Mix the new color with the original
 									 * based on the brush strength and the curve. */
 									lcol[l_index] = vpaint_blend(
