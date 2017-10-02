@@ -119,6 +119,26 @@ float dist_squared_ray_to_seg_v3(
         const float ray_origin[3], const float ray_direction[3],
         const float v0[3], const float v1[3],
         float r_point[3], float *r_depth);
+
+struct DistRayAABB_Precalc {
+	float ray_origin[3];
+	float ray_direction[3];
+	float ray_inv_dir[3];
+	bool sign[3];
+};
+void dist_squared_ray_to_aabb_precalc(
+        struct DistRayAABB_Precalc *neasrest_precalc,
+        const float ray_origin[3], const float ray_direction[3]);
+float dist_squared_ray_to_aabb(
+        const struct DistRayAABB_Precalc *data,
+        const float bb_min[3], const float bb_max[3],
+        float r_point[3], float *r_depth);
+/* when there is no advantage to precalc. */
+float dist_squared_to_ray_to_aabb_simple(
+        const float ray_origin[3], const float ray_direction[3],
+        const float bb_min[3], const float bb_max[3],
+        float r_point[3], float *r_depth);
+
 float closest_to_line_v2(float r_close[2], const float p[2], const float l1[2], const float l2[2]);
 float closest_to_line_v3(float r_close[3], const float p[3], const float l1[3], const float l2[3]);
 void closest_to_line_segment_v2(float r_close[2], const float p[2], const float l1[2], const float l2[2]);
