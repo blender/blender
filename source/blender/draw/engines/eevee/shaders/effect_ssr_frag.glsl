@@ -186,10 +186,15 @@ uniform mat4 PastViewProjectionMatrix;
 
 out vec4 fragColor;
 
-void fallback_cubemap(vec3 N, vec3 V, vec3 W, float roughness, float roughnessSquared, inout vec4 spec_accum)
+void fallback_cubemap(vec3 N, vec3 V, vec3 W, vec3 viewPosition, float roughness, float roughnessSquared, inout vec4 spec_accum)
 {
 	/* Specular probes */
 	vec3 spec_dir = get_specular_reflection_dominant_dir(N, V, roughnessSquared);
+
+	vec4 rand = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0));
+	vec3 bent_normal;
+	float final_ao = occlusion_compute(N, viewPosition, 1.0, rand.rg, bent_normal);
+	final_ao = specular_occlusion(dot(N, V), final_ao, roughness);
 
 	/* Starts at 1 because 0 is world probe */
 	for (int i = 1; i < MAX_PROBE && i < probe_count && spec_accum.a < 0.999; ++i) {
@@ -198,14 +203,14 @@ void fallback_cubemap(vec3 N, vec3 V, vec3 W, float roughness, float roughnessSq
 		float fade = probe_attenuation_cube(cd, W);
 
 		if (fade > 0.0) {
-			vec3 spec = probe_evaluate_cube(float(i), cd, W, spec_dir, roughness);
+			vec3 spec = final_ao * probe_evaluate_cube(float(i), cd, W, spec_dir, roughness);
 			accumulate_light(spec, fade, spec_accum);
 		}
 	}
 
 	/* World Specular */
 	if (spec_accum.a < 0.999) {
-		vec3 spec = probe_evaluate_world_spec(spec_dir, roughness);
+		vec3 spec = final_ao * probe_evaluate_world_spec(spec_dir, roughness);
 		accumulate_light(spec, 1.0, spec_accum);
 	}
 }
@@ -436,7 +441,7 @@ void main()
 
 	/* If SSR contribution is not 1.0, blend with cubemaps */
 	if (spec_accum.a < 1.0) {
-		fallback_cubemap(N, V, worldPosition, roughness, roughnessSquared, spec_accum);
+		fallback_cubemap(N, V, worldPosition, viewPosition, roughness, roughnessSquared, spec_accum);
 	}
 
 	fragColor = vec4(spec_accum.rgb * speccol_roughness.rgb, 1.0);

@@ -327,7 +327,13 @@ float occlusion_compute(vec3 N, vec3 vpos, float user_occlusion, vec2 randuv, ou
 		float visibility;
 		vec3 vnor = mat3(ViewMatrix) * N;
 
-#if defined(MESH_SHADER) && !defined(USE_ALPHA_HASH) && !defined(USE_ALPHA_CLIP) && !defined(SHADOW_SHADER) && !defined(USE_MULTIPLY) && !defined(USE_ALPHA_BLEND)
+#if (defined(MESH_SHADER) && \
+	 !defined(USE_ALPHA_HASH) && \
+	 !defined(USE_ALPHA_CLIP) && \
+	 !defined(SHADOW_SHADER) && \
+	 !defined(USE_MULTIPLY) && \
+	 !defined(USE_ALPHA_BLEND)) \
+	|| defined(STEP_RESOLVE)
 		gtao_deferred(vnor, vpos, gl_FragCoord.z, visibility, bent_normal);
 #else
 		gtao(vnor, vpos, randuv, visibility, bent_normal);

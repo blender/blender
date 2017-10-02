@@ -201,6 +201,7 @@ static struct GPUShader *eevee_effects_ssr_shader_get(int options)
 		BLI_dynstr_append(ds_frag, datatoc_bsdf_sampling_lib_glsl);
 		BLI_dynstr_append(ds_frag, datatoc_octahedron_lib_glsl);
 		BLI_dynstr_append(ds_frag, datatoc_lightprobe_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_ambient_occlusion_lib_glsl);
 		BLI_dynstr_append(ds_frag, datatoc_raytrace_lib_glsl);
 		BLI_dynstr_append(ds_frag, datatoc_effect_ssr_frag_glsl);
 		char *ssr_shader_str = BLI_dynstr_get_cstring(ds_frag);
@@ -997,6 +998,17 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		if (effects->ssr_ray_count > 3) {
 			DRW_shgroup_uniform_buffer(grp, "hitBuffer3", &stl->g_data->ssr_hit_output[3]);
 		}
+
+		DRW_shgroup_uniform_vec4(grp, "aoParameters[0]", &effects->ao_dist, 2);
+		if (effects->use_ao) {
+			DRW_shgroup_uniform_buffer(grp, "horizonBuffer", &vedata->txl->gtao_horizons);
+			DRW_shgroup_uniform_ivec2(grp, "aoHorizonTexSize", (int *)vedata->stl->effects->ao_texsize, 1);
+		}
+		else {
+			/* Use shadow_pool as fallback to avoid sampling problem on certain platform, see: T52593 */
+			DRW_shgroup_uniform_buffer(grp, "horizonBuffer", &sldata->shadow_pool);
+		}
+
 		DRW_shgroup_call_add(grp, quad, NULL);
 	}
 
