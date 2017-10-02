@@ -1841,27 +1841,30 @@ static void wpaint_paint_leaves(
 		.sd = sd, .ob = ob, .brush = brush, .nodes = nodes, .vp = vp, .wpd = wpd, .wpi = wpi, .me = me, .C = C,
 	};
 
+	/* current mirroring code cannot be run in parallel */
+	bool use_threading = !(me->editflag & ME_EDIT_MIRROR_X);
+
 	switch (brush->vertexpaint_tool) {
 		case PAINT_BLEND_AVERAGE:
 			calculate_average_weight(&data, nodes, totnode);
 			BLI_task_parallel_range_ex(
 			        0, totnode, &data, NULL, 0,
-			        do_wpaint_brush_draw_task_cb_ex, true, false);
+			        do_wpaint_brush_draw_task_cb_ex, use_threading, false);
 			break;
 		case PAINT_BLEND_SMEAR:
 			BLI_task_parallel_range_ex(
 			        0, totnode, &data, NULL, 0,
-			        do_wpaint_brush_smear_task_cb_ex, true, false);
+			        do_wpaint_brush_smear_task_cb_ex, use_threading, false);
 			break;
 		case PAINT_BLEND_BLUR:
 			BLI_task_parallel_range_ex(
 			        0, totnode, &data, NULL, 0,
-			        do_wpaint_brush_blur_task_cb_ex, true, false);
+			        do_wpaint_brush_blur_task_cb_ex, use_threading, false);
 			break;
 		default:
 			BLI_task_parallel_range_ex(
 			        0, totnode, &data, NULL, 0,
-			        do_wpaint_brush_draw_task_cb_ex, true, false);
+			        do_wpaint_brush_draw_task_cb_ex, use_threading, false);
 			break;
 	}
 }
