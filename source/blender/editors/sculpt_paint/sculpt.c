@@ -523,6 +523,9 @@ void sculpt_brush_test_init(SculptSession *ss, SculptBrushTest *test)
 	copy_v3_v3(test->location, ss->cache->location);
 	test->dist = 0.0f;   /* just for initialize */
 
+	/* Only for 2D projection. */
+	zero_v4(test->plane);
+
 	test->mirror_symmetry_pass = ss->cache->mirror_symmetry_pass;
 
 	if (rv3d->rflag & RV3D_CLIPPING) {
@@ -2613,16 +2616,6 @@ static void calc_sculpt_plane(
 	}
 }
 
-/* Projects a point onto a plane along the plane's normal */
-static void point_plane_project(
-        float intr[3],
-        const float co[3], const float plane_normal[3], const float plane_center[3])
-{
-	sub_v3_v3v3(intr, co, plane_center);
-	mul_v3_v3fl(intr, plane_normal, dot_v3v3(plane_normal, intr));
-	sub_v3_v3v3(intr, co, intr);
-}
-
 static int plane_trim(const StrokeCache *cache, const Brush *brush, const float val[3])
 {
 	return (!(brush->flag & BRUSH_PLANE_TRIM) ||
@@ -2630,26 +2623,18 @@ static int plane_trim(const StrokeCache *cache, const Brush *brush, const float 
 }
 
 static bool plane_point_side_flip(
-        const float co[3], const float plane_normal[3], const float plane_center[3],
+        const float co[3], const float plane[4],
         const bool flip)
 {
-	float delta[3];
-	float d;
-
-	sub_v3_v3v3(delta, co, plane_center);
-	d = dot_v3v3(plane_normal, delta);
-
+	float d = plane_point_side_v3(plane, co);
 	if (flip) d = -d;
-
 	return d <= 0.0f;
 }
 
-static int plane_point_side(const float co[3], const float plane_normal[3], const float plane_center[3])
+static int plane_point_side(const float co[3], const float plane[4])
 {
-	float delta[3];
-
-	sub_v3_v3v3(delta, co, plane_center);
-	return dot_v3v3(plane_normal, delta) <= 0.0f;
+	float d = plane_point_side_v3(plane, co);
+	return d <= 0.0f;
 }
 
 static float get_offset(Sculpt *sd, SculptSession *ss)
@@ -2682,6 +2667,7 @@ static void do_flatten_brush_task_cb_ex(
 	proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
 	sculpt_brush_test_init(ss, &test);
+	plane_from_point_normal_v3(test.plane, area_co, area_no);
 
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
@@ -2689,7 +2675,7 @@ static void do_flatten_brush_task_cb_ex(
 			float intr[3];
 			float val[3];
 
-			point_plane_project(intr, vd.co, area_no, area_co);
+			closest_to_plane_normalized_v3(intr, test.plane, vd.co);
 
 			sub_v3_v3v3(val, intr, vd.co);
 
@@ -2758,15 +2744,16 @@ static void do_clay_brush_task_cb_ex(
 	proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
 	sculpt_brush_test_init(ss, &test);
+	plane_from_point_normal_v3(test.plane, area_co, area_no);
 
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
 		if (sculpt_brush_test_sphere_sq(&test, vd.co)) {
-			if (plane_point_side_flip(vd.co, area_no, area_co, flip)) {
+			if (plane_point_side_flip(vd.co, test.plane, flip)) {
 				float intr[3];
 				float val[3];
 
-				point_plane_project(intr, vd.co, area_no, area_co);
+				closest_to_plane_normalized_v3(intr, test.plane, vd.co);
 
 				sub_v3_v3v3(val, intr, vd.co);
 
@@ -2842,15 +2829,16 @@ static void do_clay_strips_brush_task_cb_ex(
 	proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
 	sculpt_brush_test_init(ss, &test);
+	plane_from_point_normal_v3(test.plane, area_co, area_no_sp);
 
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
 		if (sculpt_brush_test_cube(&test, vd.co, mat)) {
-			if (plane_point_side_flip(vd.co, area_no_sp, area_co, flip)) {
+			if (plane_point_side_flip(vd.co, test.plane, flip)) {
 				float intr[3];
 				float val[3];
 
-				point_plane_project(intr, vd.co, area_no_sp, area_co);
+				closest_to_plane_normalized_v3(intr, test.plane, vd.co);
 
 				sub_v3_v3v3(val, intr, vd.co);
 
@@ -2949,15 +2937,16 @@ static void do_fill_brush_task_cb_ex(
 	proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
 	sculpt_brush_test_init(ss, &test);
+	plane_from_point_normal_v3(test.plane, area_co, area_no);
 
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
 		if (sculpt_brush_test_sphere_sq(&test, vd.co)) {
-			if (plane_point_side(vd.co, area_no, area_co)) {
+			if (plane_point_side(vd.co, test.plane)) {
 				float intr[3];
 				float val[3];
 
-				point_plane_project(intr, vd.co, area_no, area_co);
+				closest_to_plane_normalized_v3(intr, test.plane, vd.co);
 
 				sub_v3_v3v3(val, intr, vd.co);
 
@@ -3027,15 +3016,16 @@ static void do_scrape_brush_task_cb_ex(
 	proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
 	sculpt_brush_test_init(ss, &test);
+	plane_from_point_normal_v3(test.plane, area_co, area_no);
 
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
 		if (sculpt_brush_test_sphere_sq(&test, vd.co)) {
-			if (!plane_point_side(vd.co, area_no, area_co)) {
+			if (!plane_point_side(vd.co, test.plane)) {
 				float intr[3];
 				float val[3];
 
-				point_plane_project(intr, vd.co, area_no, area_co);
+				closest_to_plane_normalized_v3(intr, test.plane, vd.co);
 
 				sub_v3_v3v3(val, intr, vd.co);
 

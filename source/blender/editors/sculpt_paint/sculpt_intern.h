@@ -181,6 +181,9 @@ typedef struct SculptBrushTest {
 	float dist;
 	int mirror_symmetry_pass;
 
+	/* For circle (not sphere) projection. */
+	float plane[4];
+
 	/* View3d clipping - only set rv3d for clipping */
 	struct RegionView3D *clip_rv3d;
 } SculptBrushTest;
