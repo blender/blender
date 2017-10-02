@@ -352,6 +352,8 @@ typedef struct EEVEE_LightProbesInfo {
 /* EEVEE_LightProbesInfo->update_flag */
 enum {
 	PROBE_UPDATE_CUBE = (1 << 0),
+	PROBE_UPDATE_GRID = (1 << 1),
+	PROBE_UPDATE_ALL  = 0xFFFFFF,
 };
 
 /* ************ EFFECTS DATA ************* */
