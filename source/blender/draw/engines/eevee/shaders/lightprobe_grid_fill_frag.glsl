@@ -14,7 +14,7 @@ void main()
 	ivec2 coord = ivec2(gl_FragCoord.xy) % data_size;
 	FragColor = texelFetch(gridTexture, coord, 0);
 
-	if (any(greaterThan(ivec2(gl_FragCoord.xy), data_size))) {
+	if (any(greaterThanEqual(ivec2(gl_FragCoord.xy), data_size))) {
 		FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 	}
 }
