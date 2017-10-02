@@ -1809,6 +1809,9 @@ static void draw_geometry_execute(DRWShadingGroup *shgroup, Gwn_Batch *geom)
 	else {
 		GWN_batch_draw_stupid(geom);
 	}
+	/* XXX this just tells gawain we are done with the shader.
+	 * This does not unbind the shader. */
+	GWN_batch_program_unset(geom);
 }
 
 static void draw_geometry(DRWShadingGroup *shgroup, Gwn_Batch *geom, const float (*obmat)[4], ID *ob_data)

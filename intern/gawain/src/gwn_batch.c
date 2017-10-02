@@ -110,6 +110,14 @@ void GWN_batch_program_set(Gwn_Batch* batch, GLuint program, const Gwn_ShaderInt
 	GWN_batch_program_use_begin(batch); // hack! to make Batch_Uniform* simpler
 	}
 
+// fclem : hack !
+// we need this because we don't want to unbind the shader between drawcalls
+// but we still want the correct shader to be bound outside the draw manager
+void GWN_batch_program_unset(Gwn_Batch* batch)
+	{
+	batch->program_in_use = false;
+	}
+
 static void Batch_update_program_bindings(Gwn_Batch* batch)
 	{
 	// disable all as a precaution
