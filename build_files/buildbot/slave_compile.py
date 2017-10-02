@@ -75,7 +75,6 @@ if 'cmake' in builder:
         cmake_extra_options.append('-DCMAKE_OSX_DEPLOYMENT_TARGET=10.9')
         cmake_extra_options.append('-DCUDA_HOST_COMPILER=/usr/local/cuda-hack/clang')
         cmake_extra_options.append('-DCUDA_NVCC_EXECUTABLE=/usr/local/cuda-hack/nvcc')
-        build_cubins = False
 
     elif builder.startswith('win'):
         if builder.endswith('_vc2015'):
