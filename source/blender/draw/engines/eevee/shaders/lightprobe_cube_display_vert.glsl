@@ -21,7 +21,8 @@ void main()
 	mat4 offsetmat = mat4(1.0); /* Identity */
 	offsetmat[3].xyz = probe_location;
 
-	worldPosition = pos * sphere_size;
-	gl_Position = ViewProjectionMatrix * offsetmat * vec4(worldPosition, 1.0);
+	vec4 wpos = offsetmat * vec4(pos * sphere_size, 1.0);
+	worldPosition = wpos.xyz;
+	gl_Position = ViewProjectionMatrix * wpos;
 	worldNormal = normalize(pos);
 }
