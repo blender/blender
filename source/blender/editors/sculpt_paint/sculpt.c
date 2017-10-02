@@ -587,6 +587,24 @@ bool sculpt_brush_test_sphere_fast(const SculptBrushTest *test, const float co[3
 	return len_squared_v3v3(co, test->location) <= test->radius_squared;
 }
 
+bool sculpt_brush_test_circle_sq(SculptBrushTest *test, const float co[3])
+{
+	float co_proj[3];
+	closest_to_plane_normalized_v3(co_proj, test->plane, co);
+	float distsq = len_squared_v3v3(co_proj, test->location);
+
+	if (distsq <= test->radius_squared) {
+		if (sculpt_brush_test_clipping(test, co)) {
+			return 0;
+		}
+		test->dist = distsq;
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
 bool sculpt_brush_test_cube(SculptBrushTest *test, const float co[3], float local[4][4])
 {
 	float side = M_SQRT1_2;
@@ -1214,6 +1232,24 @@ bool sculpt_search_sphere_cb(PBVHNode *node, void *data_v)
 	sub_v3_v3v3(t, center, nearest);
 
 	return len_squared_v3(t) < data->radius_squared;
+}
+
+/* 2D projection (distance to line). */
+bool sculpt_search_circle_cb(PBVHNode *node, void *data_v)
+{
+	SculptSearchCircleData *data = data_v;
+	float bb_min[3], bb_max[3];
+
+	if (data->original)
+		BKE_pbvh_node_get_original_BB(node, bb_min, bb_max);
+	else
+		BKE_pbvh_node_get_BB(node, bb_min, bb_min);
+
+	float dummy_co[3], dummy_depth;
+	const float dist_sq = dist_squared_ray_to_aabb(
+	        data->dist_ray_to_aabb_precalc, bb_min, bb_max, dummy_co, &dummy_depth);
+
+	return dist_sq < data->radius_squared;
 }
 
 /* Handles clipping against a mirror modifier and SCULPT_LOCK axis flags */

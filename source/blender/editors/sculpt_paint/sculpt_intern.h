@@ -188,6 +188,8 @@ typedef struct SculptBrushTest {
 	struct RegionView3D *clip_rv3d;
 } SculptBrushTest;
 
+typedef bool (*SculptBrushTestFn)(SculptBrushTest *test, const float co[3]);
+
 typedef struct {
 	struct Sculpt *sd;
 	struct SculptSession *ss;
@@ -195,12 +197,22 @@ typedef struct {
 	bool original;
 } SculptSearchSphereData;
 
+typedef struct {
+	struct Sculpt *sd;
+	struct SculptSession *ss;
+	float radius_squared;
+	bool original;
+	struct DistRayAABB_Precalc *dist_ray_to_aabb_precalc;
+} SculptSearchCircleData;
+
 void sculpt_brush_test_init(struct SculptSession *ss, SculptBrushTest *test);
 bool sculpt_brush_test_sphere(SculptBrushTest *test, const float co[3]);
 bool sculpt_brush_test_sphere_sq(SculptBrushTest *test, const float co[3]);
 bool sculpt_brush_test_sphere_fast(const SculptBrushTest *test, const float co[3]);
 bool sculpt_brush_test_cube(SculptBrushTest *test, const float co[3], float local[4][4]);
+bool sculpt_brush_test_circle_sq(SculptBrushTest *test, const float co[3]);
 bool sculpt_search_sphere_cb(PBVHNode *node, void *data_v);
+bool sculpt_search_circle_cb(PBVHNode *node, void *data_v);
 float tex_strength(
         struct SculptSession *ss, struct Brush *br,
         const float point[3],
