@@ -530,6 +530,10 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		view_is_valid = view_is_valid && compare_m4m4(persmat, effects->prev_drw_persmat, FLT_MIN);
 		copy_m4_m4(effects->prev_drw_persmat, persmat);
 
+		/* Prevent ghosting from probe data. */
+		view_is_valid = view_is_valid && (effects->prev_drw_support == DRW_state_draw_support());
+		effects->prev_drw_support = DRW_state_draw_support();
+
 		if (view_is_valid &&
 		    ((effects->taa_total_sample == 0) ||
 		     (effects->taa_current_sample < effects->taa_total_sample)))
