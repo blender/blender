@@ -1443,7 +1443,7 @@ static void do_wpaint_brush_blur_task_cb_ex(
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
 		/* Test to see if the vertex coordinates are within the spherical brush region. */
-		if (sculpt_brush_test_sq(&test, vd.co)) {
+		if (sculpt_brush_test_sphere_sq(&test, vd.co)) {
 			/* For grid based pbvh, take the vert whose loop coopresponds to the current grid.
 			 * Otherwise, take the current vert. */
 			const int v_index = ccgdm ? data->me->mloop[vd.grid_indices[vd.g]].v : vd.vert_indices[vd.i];
@@ -1529,7 +1529,7 @@ static void do_wpaint_brush_smear_task_cb_ex(
 		BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 		{
 			/* Test to see if the vertex coordinates are within the spherical brush region. */
-			if (sculpt_brush_test_fast(&test, vd.co)) {
+			if (sculpt_brush_test_sphere_fast(&test, vd.co)) {
 				const float view_dot = (vd.no) ? dot_vf3vs3(cache->sculpt_normal_symm, vd.no) : 1.0;
 				if (view_dot > 0.0f) {
 					bool do_color = false;
@@ -1623,7 +1623,7 @@ static void do_wpaint_brush_draw_task_cb_ex(
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
 		/* Test to see if the vertex coordinates are within the spherical brush region. */
-		if (sculpt_brush_test_sq(&test, vd.co)) {
+		if (sculpt_brush_test_sphere_sq(&test, vd.co)) {
 			/* Note: grids are 1:1 with corners (aka loops).
 			 * For multires, take the vert whose loop cooresponds to the current grid.
 			 * Otherwise, take the current vert. */
@@ -1691,7 +1691,7 @@ static void do_wpaint_brush_calc_average_weight_cb_ex(
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
 		/* Test to see if the vertex coordinates are within the spherical brush region. */
-		if (sculpt_brush_test_sq(&test, vd.co)) {
+		if (sculpt_brush_test_sphere_sq(&test, vd.co)) {
 			const float view_dot = (vd.no) ? dot_vf3vs3(cache->sculpt_normal_symm, vd.no) : 1.0;
 			if (view_dot > 0.0 && BKE_brush_curve_strength(data->brush, sqrtf(test.dist), cache->radius) > 0.0) {
 				const int v_index = ccgdm ? data->me->mloop[vd.grid_indices[vd.g]].v : vd.vert_indices[vd.i];
@@ -2294,7 +2294,7 @@ static void do_vpaint_brush_calc_average_color_cb_ex(
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
 		/* Test to see if the vertex coordinates are within the spherical brush region. */
-		if (sculpt_brush_test_fast(&test, vd.co)) {
+		if (sculpt_brush_test_sphere_fast(&test, vd.co)) {
 			const int v_index = ccgdm ? data->me->mloop[vd.grid_indices[vd.g]].v : vd.vert_indices[vd.i];
 			if (BKE_brush_curve_strength(data->brush, test.dist, cache->radius) > 0.0) {
 				/* If the vertex is selected for painting. */
@@ -2362,7 +2362,7 @@ static void do_vpaint_brush_draw_task_cb_ex(
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
 		/* Test to see if the vertex coordinates are within the spherical brush region. */
-		if (sculpt_brush_test_sq(&test, vd.co)) {
+		if (sculpt_brush_test_sphere_sq(&test, vd.co)) {
 			/* Note: Grids are 1:1 with corners (aka loops).
 			 * For grid based pbvh, take the vert whose loop cooresponds to the current grid.
 			 * Otherwise, take the current vert. */
@@ -2453,7 +2453,7 @@ static void do_vpaint_brush_blur_task_cb_ex(
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
 		/* Test to see if the vertex coordinates are within the spherical brush region. */
-		if (sculpt_brush_test_sq(&test, vd.co)) {
+		if (sculpt_brush_test_sphere_sq(&test, vd.co)) {
 			/* For grid based pbvh, take the vert whose loop cooresponds to the current grid.
 			 * Otherwise, take the current vert. */
 			const int v_index = ccgdm ? data->me->mloop[vd.grid_indices[vd.g]].v : vd.vert_indices[vd.i];
@@ -2563,7 +2563,7 @@ static void do_vpaint_brush_smear_task_cb_ex(
 		BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 		{
 			/* Test to see if the vertex coordinates are within the spherical brush region. */
-			if (sculpt_brush_test_sq(&test, vd.co)) {
+			if (sculpt_brush_test_sphere_sq(&test, vd.co)) {
 				/* For grid based pbvh, take the vert whose loop cooresponds to the current grid.
 				 * Otherwise, take the current vert. */
 				const int v_index = ccgdm ? data->me->mloop[vd.grid_indices[vd.g]].v : vd.vert_indices[vd.i];

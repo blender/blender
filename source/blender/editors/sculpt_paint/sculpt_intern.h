@@ -193,9 +193,9 @@ typedef struct {
 } SculptSearchSphereData;
 
 void sculpt_brush_test_init(struct SculptSession *ss, SculptBrushTest *test);
-bool sculpt_brush_test(SculptBrushTest *test, const float co[3]);
-bool sculpt_brush_test_sq(SculptBrushTest *test, const float co[3]);
-bool sculpt_brush_test_fast(const SculptBrushTest *test, const float co[3]);
+bool sculpt_brush_test_sphere(SculptBrushTest *test, const float co[3]);
+bool sculpt_brush_test_sphere_sq(SculptBrushTest *test, const float co[3]);
+bool sculpt_brush_test_sphere_fast(const SculptBrushTest *test, const float co[3]);
 bool sculpt_brush_test_cube(SculptBrushTest *test, const float co[3], float local[4][4]);
 bool sculpt_search_sphere_cb(PBVHNode *node, void *data_v);
 float tex_strength(
