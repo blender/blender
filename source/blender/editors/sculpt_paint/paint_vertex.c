@@ -1697,7 +1697,7 @@ static void do_wpaint_brush_smear_task_cb_ex(
 						}
 						/* Apply weight to vertex */
 						if (do_color) {
-							const float brush_fade = BKE_brush_curve_strength(brush, 0.0f, cache->radius);
+							const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
 							const float final_alpha =
 							        brush_fade * brush_strength *
 							        grid_alpha * brush_alpha_pressure;
@@ -2804,6 +2804,10 @@ static void do_vpaint_brush_smear_task_cb_ex(
 						}
 
 						if (do_color) {
+							const float final_alpha =
+							        255 * brush_fade * brush_strength *
+							        brush_alpha_pressure * grid_alpha;
+
 							/* For each poly owning this vert, paint each loop belonging to this vert. */
 							for (int j = 0; j < gmap->vert_to_poly[v_index].count; j++) {
 								const int p_index = gmap->vert_to_poly[v_index].indices[j];
@@ -2820,9 +2824,6 @@ static void do_vpaint_brush_smear_task_cb_ex(
 										}
 										color_orig = ss->mode.vpaint.previous_color[l_index];
 									}
-									const float final_alpha =
-									        255 * brush_fade * brush_strength *
-									        brush_alpha_pressure * grid_alpha;
 									/* Mix the new color with the original
 									 * based on the brush strength and the curve. */
 									lcol[l_index] = vpaint_blend(
