@@ -335,12 +335,14 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 		/* data passes */
 		case SHADER_EVAL_NORMAL:
 		{
+			float3 N = sd.N;
 			if((sd.flag & SD_HAS_BUMP)) {
 				shader_eval_surface(kg, &sd, &state, 0);
+				N = shader_bsdf_average_normal(kg, &sd);
 			}
 
 			/* encoding: normal = (2 * color) - 1 */
-			out = shader_bsdf_average_normal(kg, &sd) * 0.5f + make_float3(0.5f, 0.5f, 0.5f);
+			out = N * 0.5f + make_float3(0.5f, 0.5f, 0.5f);
 			break;
 		}
 		case SHADER_EVAL_UV:
