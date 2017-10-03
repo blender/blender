@@ -510,7 +510,7 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		}
 	}
 
-	if (BKE_collection_engine_property_value_get_bool(props, "taa_enable")) {
+	if (BKE_collection_engine_property_value_get_int(props, "taa_samples") != 1) {
 		float persmat[4][4], viewmat[4][4];
 
 		enabled_effects |= EFFECT_TAA | EFFECT_DOUBLE_BUFFER;

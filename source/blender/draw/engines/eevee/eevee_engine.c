@@ -313,7 +313,6 @@ static void EEVEE_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDPr
 
 	BKE_collection_engine_property_add_int(props, "gi_diffuse_bounces", 3);
 
-	BKE_collection_engine_property_add_bool(props, "taa_enable", true);
 	BKE_collection_engine_property_add_int(props, "taa_samples", 8);
 
 	BKE_collection_engine_property_add_bool(props, "ssr_enable", false);

@@ -2572,7 +2572,6 @@ RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(ssr_firefly_fac)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(shadow_method)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(shadow_size)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(shadow_high_bitdepth)
-RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(taa_enable)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(taa_samples)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(gi_diffuse_bounces)
 
@@ -6185,24 +6184,18 @@ static void rna_def_scene_layer_engine_settings_eevee(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "gi_diffuse_bounces", PROP_INT, PROP_NONE);
 	RNA_def_property_int_funcs(prop, "rna_LayerEngineSettings_Eevee_gi_diffuse_bounces_get",
 	                               "rna_LayerEngineSettings_Eevee_gi_diffuse_bounces_set", NULL);
-	RNA_def_property_ui_text(prop, "Bounces", "Number of time the light is reinjected inside light grids, "
-	                                          "0 disable indirect diffuse light");
+	RNA_def_property_ui_text(prop, "Diffuse Bounces", "Number of time the light is reinjected inside light grids, "
+	                                                  "0 disable indirect diffuse light");
 	RNA_def_property_range(prop, 0, INT_MAX);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
 
-	/* Temporal Anti-Aliasing */
-	prop = RNA_def_property(srna, "taa_enable", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_Eevee_taa_enable_get",
-	                               "rna_LayerEngineSettings_Eevee_taa_enable_set");
-	RNA_def_property_ui_text(prop, "Temporal Anti-Aliasing", "Enable temporal anti-aliasing (only used by viewport)");
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
-
+	/* Temporal Anti-Aliasing (super sampling) */
 	prop = RNA_def_property(srna, "taa_samples", PROP_INT, PROP_NONE);
 	RNA_def_property_int_funcs(prop, "rna_LayerEngineSettings_Eevee_taa_samples_get",
 	                               "rna_LayerEngineSettings_Eevee_taa_samples_set", NULL);
-	RNA_def_property_ui_text(prop, "Samples", "Minimum number of temporal samples, unlimited if 0");
+	RNA_def_property_ui_text(prop, "Viewport Samples", "Number of temporal samples, unlimited if 0, "
+	                                                   "disabled if 1");
 	RNA_def_property_range(prop, 0, INT_MAX);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
