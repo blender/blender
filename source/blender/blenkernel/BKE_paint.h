@@ -220,18 +220,14 @@ typedef struct SculptSession {
 
 			/* For non-airbrush painting to re-apply from the original (MLoop aligned). */
 			unsigned int *previous_color;
-			float        *previous_accum;
 		} vpaint;
 
 		struct {
 			struct SculptVertexPaintGeomMap gmap;
-
-			/* Vertex aligned arrays of weights. */
-			float *previous_accum;
 			/* Keep track of how much each vertex has been painted (non-airbrush only). */
 			float *alpha_weight;
 
-			/* Needed to continuously re-apply over the same weights (VP_FLAG_SPRAY disabled).
+			/* Needed to continuously re-apply over the same weights (BRUSH_ACCUMULATE disabled).
 			 * Lazy initialize as needed (flag is set to 1 to tag it as uninitialized). */
 			struct MDeformVert *dvert_prev;
 		} wpaint;

@@ -1128,7 +1128,6 @@ enum {
 	/* TODO */
 	// VP_FLAG_PROJECT_XRAY        = (1 << 1),
 	VP_FLAG_PROJECT_FLAT        = (1 << 3),
-	VP_FLAG_SPRAY               = (1 << 4),
 	/* weight paint only */
 	VP_FLAG_VGROUP_RESTRICT     = (1 << 7)
 };

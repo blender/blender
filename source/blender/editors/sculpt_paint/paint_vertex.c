@@ -241,11 +241,10 @@ int weight_paint_poll(bContext *C)
 	return 0;
 }
 
-static VPaint *new_vpaint(int wpaint)
+static VPaint *new_vpaint(void)
 {
 	VPaint *vp = MEM_callocN(sizeof(VPaint), "VPaint");
 
-	vp->flag = (wpaint) ? 0 : VP_FLAG_SPRAY;
 	vp->paint.flags |= PAINT_SHOW_BRUSH;
 
 	return vp;
@@ -272,8 +271,8 @@ static uint vpaint_blend(
 
 	uint color_blend = ED_vpaint_blend_tool(tool, color_curr, color_paint, alpha_i);
 
-	/* if no spray, clip color adding with colorig & orig alpha */
-	if ((vp->flag & VP_FLAG_SPRAY) == 0) {
+	/* if no accumulate, clip color adding with colorig & orig alpha */
+	if ((brush->flag & BRUSH_ACCUMULATE) == 0) {
 		uint color_test, a;
 		char *cp, *ct, *co;
 
@@ -730,7 +729,7 @@ static void do_weight_paint_vertex_single(
 		index_mirr = vgroup_mirr = -1;
 	}
 
-	if ((wp->flag & VP_FLAG_SPRAY) == 0) {
+	if ((wp->paint.brush->flag & BRUSH_ACCUMULATE) == 0) {
 		struct MDeformVert *dvert_prev = ob->sculpt->mode.wpaint.dvert_prev;
 		defweight_prev_restore_or_init(dvert_prev, me->dvert, index);
 		if (index_mirr != -1) {
@@ -874,7 +873,7 @@ static void do_weight_paint_vertex_multi(
 		}
 	}
 
-	if ((wp->flag & VP_FLAG_SPRAY) == 0) {
+	if ((wp->paint.brush->flag & BRUSH_ACCUMULATE) == 0) {
 		struct MDeformVert *dvert_prev = ob->sculpt->mode.wpaint.dvert_prev;
 		defweight_prev_restore_or_init(dvert_prev, me->dvert, index);
 		if (index_mirr != -1) {
@@ -1007,7 +1006,7 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
 
 	/* Create average brush arrays */
 	if (ob->mode == OB_MODE_VERTEX_PAINT) {
-		if ((ts->vpaint->flag & VP_FLAG_SPRAY) == 0) {
+		if ((brush->flag & BRUSH_ACCUMULATE) == 0) {
 			if (ob->sculpt->mode.vpaint.previous_color == NULL) {
 				ob->sculpt->mode.vpaint.previous_color =
 				        MEM_callocN(me->totloop * sizeof(uint), __func__);
@@ -1016,19 +1015,9 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
 		else {
 			MEM_SAFE_FREE(ob->sculpt->mode.vpaint.previous_color);
 		}
-
-		if (brush && brush->flag & BRUSH_ACCUMULATE) {
-			if (ob->sculpt->mode.vpaint.previous_accum == NULL) {
-				ob->sculpt->mode.vpaint.previous_accum =
-				        MEM_callocN(me->totloop * sizeof(float), __func__);
-			}
-		}
-		else {
-			MEM_SAFE_FREE(ob->sculpt->mode.vpaint.previous_accum);
-		}
 	}
 	else if (ob->mode == OB_MODE_WEIGHT_PAINT) {
-		if ((ts->wpaint->flag & VP_FLAG_SPRAY) == 0) {
+		if ((brush->flag & BRUSH_ACCUMULATE) == 0) {
 			if (ob->sculpt->mode.wpaint.alpha_weight == NULL) {
 				ob->sculpt->mode.wpaint.alpha_weight =
 				        MEM_callocN(me->totvert * sizeof(float), __func__);
@@ -1050,15 +1039,6 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
 				MEM_freeN(ob->sculpt->mode.wpaint.dvert_prev);
 				ob->sculpt->mode.wpaint.dvert_prev = NULL;
 			}
-		}
-		if (brush && brush->flag & BRUSH_ACCUMULATE) {
-			if (ob->sculpt->mode.wpaint.previous_accum == NULL) {
-				ob->sculpt->mode.wpaint.previous_accum =
-				        MEM_callocN(me->totvert * sizeof(float), __func__);
-			}
-		}
-		else {
-			MEM_SAFE_FREE(ob->sculpt->mode.wpaint.previous_accum);
 		}
 	}
 
@@ -1114,7 +1094,7 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		ob->mode |= mode_flag;
 
 		if (wp == NULL)
-			wp = scene->toolsettings->wpaint = new_vpaint(1);
+			wp = scene->toolsettings->wpaint = new_vpaint();
 
 		paint_cursor_start(C, weight_paint_poll);
 
@@ -1557,14 +1537,17 @@ static void do_wpaint_brush_blur_task_cb_ex(
 					     view_angle_limits_apply_falloff(&data->wpd->normal_angle_precalc, angle_cos, &brush_strength)))
 					{
 						const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
-						float final_alpha =
+						const float final_alpha =
 						        brush_fade * brush_strength *
 						        grid_alpha * brush_alpha_pressure;
 
-						if (brush->flag & BRUSH_ACCUMULATE) {
-							float mask_accum = ss->mode.wpaint.previous_accum[v_index];
-							final_alpha = min_ff(final_alpha + mask_accum, brush_strength);
-							ss->mode.wpaint.previous_accum[v_index] = final_alpha;
+						if ((brush->flag & BRUSH_ACCUMULATE) == 0) {
+							if (ss->mode.wpaint.alpha_weight[v_index] < final_alpha) {
+								ss->mode.wpaint.alpha_weight[v_index] = final_alpha;
+							}
+							else {
+								continue;
+							}
 						}
 
 						weight_final /= total_hit_loops;
@@ -1729,16 +1712,9 @@ static void do_wpaint_brush_draw_task_cb_ex(
 				     view_angle_limits_apply_falloff(&data->wpd->normal_angle_precalc, angle_cos, &brush_strength)))
 				{
 					const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
-					float final_alpha = brush_fade * brush_strength * grid_alpha * brush_alpha_pressure;
-					if (brush->flag & BRUSH_ACCUMULATE) {
-						float mask_accum = ss->mode.wpaint.previous_accum[v_index];
-						final_alpha = min_ff(final_alpha + mask_accum, brush_strength);
-						ss->mode.wpaint.previous_accum[v_index] = final_alpha;
-					}
+					const float final_alpha = brush_fade * brush_strength * grid_alpha * brush_alpha_pressure;
 
-					/* Non-spray logic. */
-					if ((data->vp->flag & VP_FLAG_SPRAY) == 0) {
-						/* Only paint if we have greater alpha. */
+					if ((brush->flag & BRUSH_ACCUMULATE) == 0) {
 						if (ss->mode.wpaint.alpha_weight[v_index] < final_alpha) {
 							ss->mode.wpaint.alpha_weight[v_index] = final_alpha;
 						}
@@ -1804,9 +1780,6 @@ static void do_wpaint_brush_calc_average_weight_cb_ex(
 
 static void calculate_average_weight(SculptThreadedTaskData *data, PBVHNode **UNUSED(nodes), int totnode)
 {
-	Scene *scene = CTX_data_scene(data->C);
-	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
-
 	struct WPaintAverageAccum *accum = MEM_mallocN(sizeof(*accum) * totnode, __func__);
 	data->custom_data = accum;
 
@@ -2236,7 +2209,7 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		ED_mesh_color_ensure(me, NULL);
 
 		if (vp == NULL)
-			vp = scene->toolsettings->vpaint = new_vpaint(0);
+			vp = scene->toolsettings->vpaint = new_vpaint();
 
 		paint_cursor_start(C, vertex_paint_poll);
 
@@ -2538,14 +2511,9 @@ static void do_vpaint_brush_draw_task_cb_ex(
 								}
 								color_orig = ss->mode.vpaint.previous_color[l_index];
 							}
-							float final_alpha =
+							const float final_alpha =
 							        255 * brush_fade * brush_strength *
 							        tex_alpha * brush_alpha_pressure * grid_alpha;
-							if (brush->flag & BRUSH_ACCUMULATE) {
-								float mask_accum = ss->mode.vpaint.previous_accum[l_index];
-								final_alpha = min_ff(final_alpha + mask_accum, 255.0f * brush_strength);
-								ss->mode.vpaint.previous_accum[l_index] = final_alpha;
-							}
 
 							/* Mix the new color with the original based on final_alpha. */
 							lcol[l_index] = vpaint_blend(
@@ -2649,7 +2617,7 @@ static void do_vpaint_brush_blur_task_cb_ex(
 									}
 									color_orig = ss->mode.vpaint.previous_color[l_index];
 								}
-								float final_alpha =
+								const float final_alpha =
 								        255 * brush_fade * brush_strength *
 								        brush_alpha_pressure * grid_alpha;
 								/* Mix the new color with the original
@@ -2777,7 +2745,7 @@ static void do_vpaint_brush_smear_task_cb_ex(
 										}
 										color_orig = ss->mode.vpaint.previous_color[l_index];
 									}
-									float final_alpha =
+									const float final_alpha =
 									        255 * brush_fade * brush_strength *
 									        brush_alpha_pressure * grid_alpha;
 									/* Mix the new color with the original

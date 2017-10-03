@@ -692,12 +692,6 @@ static void rna_def_vertex_paint(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", VP_FLAG_PROJECT_FLAT);
 	RNA_def_property_ui_text(prop, "Normals", "Paint most on faces pointing towards the view");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
-	
-
-	prop = RNA_def_property(srna, "use_spray", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", VP_FLAG_SPRAY);
-	RNA_def_property_ui_text(prop, "Spray", "Keep applying paint effect while holding mouse");
-	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
 	/* weight paint only */
 	prop = RNA_def_property(srna, "use_group_restrict", PROP_BOOLEAN, PROP_NONE);
