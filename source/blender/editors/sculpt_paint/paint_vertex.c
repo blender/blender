@@ -1584,7 +1584,7 @@ static void do_wpaint_brush_smear_task_cb_ex(
 	sub_v3_v3v3(brush_dir, cache->location, cache->last_location);
 	project_plane_v3_v3v3(brush_dir, brush_dir, cache->view_normal);
 
-	if (normalize_v3(brush_dir) != 0.0f) {
+	if (cache->is_last_valid && (normalize_v3(brush_dir) != 0.0f)) {
 
 		SculptBrushTest test;
 		SculptBrushTestFn sculpt_brush_test_sq_fn =
@@ -2661,7 +2661,7 @@ static void do_vpaint_brush_smear_task_cb_ex(
 	sub_v3_v3v3(brush_dir, cache->location, cache->last_location);
 	project_plane_v3_v3v3(brush_dir, brush_dir, cache->view_normal);
 
-	if (normalize_v3(brush_dir) != 0.0f) {
+	if (cache->is_last_valid && (normalize_v3(brush_dir) != 0.0f)) {
 
 		SculptBrushTest test;
 		SculptBrushTestFn sculpt_brush_test_sq_fn =

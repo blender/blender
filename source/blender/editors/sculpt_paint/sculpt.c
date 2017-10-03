@@ -3598,6 +3598,7 @@ void sculpt_cache_calc_brushdata_symm(
         const char axis, const float angle)
 {
 	flip_v3_v3(cache->location, cache->true_location, symm);
+	flip_v3_v3(cache->last_location, cache->true_last_location, symm);
 	flip_v3_v3(cache->grab_delta_symmetry, cache->grab_delta, symm);
 	flip_v3_v3(cache->view_normal, cache->true_view_normal, symm);
 
