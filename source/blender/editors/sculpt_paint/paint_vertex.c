@@ -1183,9 +1183,6 @@ struct WPaintData {
 
 	struct WeightPaintGroupData active, mirror;
 
-	void *vp_handle;
-	DMCoNo *vertexcosnos;
-
 	float wpimat[3][3];
 
 	/* variables for auto normalize */
@@ -1447,11 +1444,6 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 		}
 		wpd->smear.weight_curr = MEM_dupallocN(wpd->smear.weight_prev);
 	}
-
-	/* painting on subsurfs should give correct points too, this returns me->totvert amount */
-	ob->sculpt->building_vp_handle = true;
-	wpd->vp_handle = ED_vpaint_proj_handle_create(scene, ob, &wpd->vertexcosnos);
-	ob->sculpt->building_vp_handle = false;
 
 	/* imat for normals */
 	mul_m4_m4m4(mat, wpd->vc.rv3d->viewmat, ob->obmat);
@@ -2113,8 +2105,6 @@ static void wpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 	struct WPaintData *wpd = paint_stroke_mode_data(stroke);
 
 	if (wpd) {
-		ED_vpaint_proj_handle_free(wpd->vp_handle);
-
 		if (wpd->defbase_sel)
 			MEM_freeN((void *)wpd->defbase_sel);
 		if (wpd->vgroup_validmap)
