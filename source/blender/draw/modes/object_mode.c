@@ -1590,10 +1590,10 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, OBJECT_PassList *psl
 			}
 
 			if (prb->parallax_type == LIGHTPROBE_SHAPE_BOX) {
-				DRW_shgroup_call_dynamic_add(stl->g_data->cube, color, &dist, obmat);
+				DRW_shgroup_call_dynamic_add(stl->g_data->cube, color, dist, obmat);
 			}
 			else {
-				DRW_shgroup_call_dynamic_add(stl->g_data->sphere, color, &dist, obmat);
+				DRW_shgroup_call_dynamic_add(stl->g_data->sphere, color, dist, obmat);
 			}
 		}
 	}
