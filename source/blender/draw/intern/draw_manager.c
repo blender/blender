@@ -2292,8 +2292,8 @@ void DRW_framebuffer_init(
 			if (!is_depth) {
 				++color_attachment;
 			}
-			GPU_framebuffer_texture_attach(*fb, *fbotex.tex, color_attachment, 0);
 			drw_texture_set_parameters(*fbotex.tex, fbotex.flag);
+			GPU_framebuffer_texture_attach(*fb, *fbotex.tex, color_attachment, 0);
 		}
 	}
 
