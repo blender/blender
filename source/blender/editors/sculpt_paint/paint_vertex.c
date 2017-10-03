@@ -1198,6 +1198,12 @@ struct WPaintData {
 	bool do_multipaint;           /* true if multipaint enabled and multiple groups selected */
 
 	int defbase_tot;
+
+	/* Special storage for smear brush, avoid feedback loop - update each step and swap. */
+	struct {
+		float *weight_prev;
+		float *weight_curr;
+	} smear;
 };
 
 /* Initialize the stroke cache invariants from operator properties */
@@ -1420,6 +1426,26 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 		        MEM_callocN(sizeof(bool) * defbase_tot, __func__);
 		tmpflags[(wpd->mirror.index != -1) ? wpd->mirror.index : wpd->active.index] = true;
 		wpd->mirror.lock = tmpflags;
+	}
+
+	if (vp->paint.brush->vertexpaint_tool == PAINT_BLEND_SMEAR) {
+		wpd->smear.weight_prev = MEM_mallocN(sizeof(float) * me->totvert, __func__);
+		const MDeformVert *dv = me->dvert;
+		if (wpd->do_multipaint) {
+			const bool do_auto_normalize = ((ts->auto_normalize != 0) && (wpd->vgroup_validmap != NULL));
+			for (int i = 0; i < me->totvert; i++, dv++) {
+				float weight = BKE_defvert_multipaint_collective_weight(
+				        dv, wpd->defbase_tot, wpd->defbase_sel, wpd->defbase_tot_sel, do_auto_normalize);
+				CLAMP(weight, 0.0f, 1.0f);
+				wpd->smear.weight_prev[i] = weight;
+			}
+		}
+		else {
+			for (int i = 0; i < me->totvert; i++, dv++) {
+				wpd->smear.weight_prev[i] = defvert_find_weight(dv, wpd->active.index);
+			}
+		}
+		wpd->smear.weight_curr = MEM_dupallocN(wpd->smear.weight_prev);
 	}
 
 	/* painting on subsurfs should give correct points too, this returns me->totvert amount */
@@ -1663,8 +1689,7 @@ static void do_wpaint_brush_smear_task_cb_ex(
 
 									if (stroke_dot > stroke_dot_max) {
 										stroke_dot_max = stroke_dot;
-										MDeformVert *dv = &data->me->dvert[v_other_index];
-										weight_final = wpaint_get_active_weight(dv, data->wpi);
+										weight_final = data->wpd->smear.weight_prev[v_other_index];
 										do_color = true;
 									}
 								}
@@ -1679,6 +1704,9 @@ static void do_wpaint_brush_smear_task_cb_ex(
 							do_weight_paint_vertex(
 							        data->vp, data->ob, data->wpi,
 							        v_index, final_alpha, (float)weight_final);
+							/* Access the weight again because it might not have been applied completely. */
+							data->wpd->smear.weight_curr[v_index] =
+							        wpaint_get_active_weight(&data->me->dvert[v_index], data->wpi);
 						}
 					}
 				}
@@ -2044,6 +2072,10 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
 	swap_m4m4(vc->rv3d->persmat, mat);
 
+	if (wp->paint.brush->vertexpaint_tool == PAINT_BLEND_SMEAR) {
+		SWAP(float *, wpd->smear.weight_curr, wpd->smear.weight_prev);
+	}
+
 	/* calculate pivot for rotation around seletion if needed */
 	/* also needed for "View Selected" on last stroke */
 	paint_last_stroke_update(scene, vc->ar, mval);
@@ -2093,6 +2125,10 @@ static void wpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 			MEM_freeN((void *)wpd->active.lock);
 		if (wpd->mirror.lock)
 			MEM_freeN((void *)wpd->mirror.lock);
+		if (wpd->smear.weight_prev)
+			MEM_freeN(wpd->smear.weight_prev);
+		if (wpd->smear.weight_curr)
+			MEM_freeN(wpd->smear.weight_curr);
 
 		MEM_freeN(wpd);
 	}
@@ -2323,6 +2359,12 @@ struct VPaintData {
 	bool *mlooptag;
 
 	bool is_texbrush;
+
+	/* Special storage for smear brush, avoid feedback loop - update each step and swap. */
+	struct {
+		uint *color_prev;
+		uint *color_curr;
+	} smear;
 };
 
 static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const float mouse[2])
@@ -2372,6 +2414,12 @@ static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const f
 	/* to keep tracked of modified loops for shared vertex color blending */
 	if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
 		vpd->mlooptag = MEM_mallocN(sizeof(bool) * me->totloop, "VPaintData mlooptag");
+	}
+
+	if (brush->vertexpaint_tool == PAINT_BLEND_SMEAR) {
+		vpd->smear.color_prev = MEM_mallocN(sizeof(uint) * me->totloop, __func__);
+		memcpy(vpd->smear.color_prev, me->mloopcol, sizeof(uint) * me->totloop);
+		vpd->smear.color_curr = MEM_dupallocN(vpd->smear.color_prev);
 	}
 
 	/* Create projection handle */
@@ -2747,7 +2795,7 @@ static void do_vpaint_brush_smear_task_cb_ex(
 
 										if (stroke_dot > stroke_dot_max) {
 											stroke_dot_max = stroke_dot;
-											color_final = lcol[mp->loopstart + k];
+											color_final = data->vpd->smear.color_prev[mp->loopstart + k];
 											do_color = true;
 										}
 									}
@@ -2780,6 +2828,8 @@ static void do_vpaint_brush_smear_task_cb_ex(
 									lcol[l_index] = vpaint_blend(
 									        data->vp, lcol[l_index], color_orig, color_final,
 									        final_alpha, 255 * brush_strength);
+
+									data->vpd->smear.color_curr[l_index] = lcol[l_index];
 								}
 							}
 						}
@@ -2955,6 +3005,10 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
 	swap_m4m4(vc->rv3d->persmat, mat);
 
+	if (vp->paint.brush->vertexpaint_tool == PAINT_BLEND_SMEAR) {
+		SWAP(uint *, vpd->smear.color_curr, vpd->smear.color_prev);
+	}
+
 	/* calculate pivot for rotation around seletion if needed */
 	/* also needed for "View Selected" on last stroke */
 	paint_last_stroke_update(scene, vc->ar, mval);
@@ -2980,6 +3034,10 @@ static void vpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 
 	if (vpd->mlooptag)
 		MEM_freeN(vpd->mlooptag);
+	if (vpd->smear.color_prev)
+		MEM_freeN(vpd->smear.color_prev);
+	if (vpd->smear.color_curr)
+		MEM_freeN(vpd->smear.color_curr);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
