@@ -641,18 +641,8 @@ static void cdDM_drawMappedFaces(
 		/* avoid buffer problems in following code */
 	}
 	else if (setDrawOptions == NULL) {
-		const bool show_alpha = true;
-		if (show_alpha) {
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		}
-
 		/* just draw the entire face array */
 		GPU_buffer_draw_elements(dm->drawObject->triangles, GL_TRIANGLES, 0, tot_tri_elem);
-
-		if (show_alpha) {
-			glDisable(GL_BLEND);
-		}
 	}
 	else {
 		for (mat_index = 0; mat_index < dm->drawObject->totmaterial; mat_index++) {

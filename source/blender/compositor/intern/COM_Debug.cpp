@@ -28,9 +28,11 @@
 #include <vector>
 
 extern "C" {
+#include "BLI_sys_types.h"
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+
 #include "DNA_node_types.h"
 #include "BKE_appdir.h"
 #include "BKE_node.h"
@@ -174,7 +176,7 @@ int DebugInfo::graphviz_operation(const ExecutionSystem *system, const NodeOpera
 	
 	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "%s\\n(%s)", m_op_names[operation].c_str(), typeid(*operation).name());
 	
-	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, " (%d,%d)", operation->getWidth(), operation->getHeight());
+	len += snprintf(str + len, maxlen > len ? maxlen - len : 0, " (%u,%u)", operation->getWidth(), operation->getHeight());
 	
 	int totoutputs = operation->getNumberOfOutputSockets();
 	if (totoutputs != 0) {

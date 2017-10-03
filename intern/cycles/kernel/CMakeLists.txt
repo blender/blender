@@ -321,7 +321,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
 	set(CUDA_VERSION "${CUDA_VERSION_MAJOR}${CUDA_VERSION_MINOR}")
 
 	# warn for other versions
-	if(CUDA_VERSION MATCHES "80")
+	if(CUDA_VERSION MATCHES "80" OR CUDA_VERSION MATCHES "90")
 	else()
 		message(WARNING
 			"CUDA version ${CUDA_VERSION_MAJOR}.${CUDA_VERSION_MINOR} detected, "
@@ -399,13 +399,17 @@ if(WITH_CYCLES_CUDA_BINARIES)
 	endmacro()
 
 	foreach(arch ${CYCLES_CUDA_BINARIES_ARCH})
-		# Compile regular kernel
-		CYCLES_CUDA_KERNEL_ADD(${arch} kernel "" "${cuda_sources}" FALSE)
-		CYCLES_CUDA_KERNEL_ADD(${arch} filter "" "${cuda_filter_sources}" FALSE)
+		if(CUDA_VERSION MATCHES "90" AND ${arch} MATCHES "sm_2.")
+			message(STATUS "CUDA binaries for ${arch} disabled, not supported by CUDA 9.")
+		else()
+			# Compile regular kernel
+			CYCLES_CUDA_KERNEL_ADD(${arch} kernel "" "${cuda_sources}" FALSE)
+			CYCLES_CUDA_KERNEL_ADD(${arch} filter "" "${cuda_filter_sources}" FALSE)
 
-		if(WITH_CYCLES_CUDA_SPLIT_KERNEL_BINARIES)
-			# Compile split kernel
-			CYCLES_CUDA_KERNEL_ADD(${arch} kernel_split "-D__SPLIT__" ${cuda_sources} FALSE)
+			if(WITH_CYCLES_CUDA_SPLIT_KERNEL_BINARIES)
+				# Compile split kernel
+				CYCLES_CUDA_KERNEL_ADD(${arch} kernel_split "-D__SPLIT__" ${cuda_sources} FALSE)
+			endif()
 		endif()
 	endforeach()
 

@@ -185,6 +185,93 @@ BLI_INLINE float wval_darken(const float weight, const float paintval, const flo
 	return (weight > paintval) ? wval_blend(weight, paintval, alpha) : weight;
 }
 
+/* mainly for color */
+BLI_INLINE float wval_colordodge(float weight, float paintval, float fac)
+{
+	float mfac, temp;
+	if (fac == 0.0f) {
+		return weight;
+	}
+	mfac = 1.0f - fac;
+	temp = (paintval == 1.0f) ? 1.0f : min_ff((weight * (225.0f / 255.0f)) / (1.0f - paintval), 1.0f);
+	return mfac * weight + temp * fac;
+}
+BLI_INLINE float wval_difference(float weight, float paintval, float fac)
+{
+	float mfac, temp;
+	if (fac == 0.0f) {
+		return weight;
+	}
+	mfac = 1.0f - fac;
+	temp = fabsf(weight - paintval);
+	return mfac * weight + temp * fac;
+}
+BLI_INLINE float wval_screen(float weight, float paintval, float fac)
+{
+	float mfac, temp;
+	if (fac == 0.0f) {
+		return weight;
+	}
+	mfac = 1.0f - fac;
+	temp = max_ff(1.0f - (((1.0f - weight) * (1.0f - paintval))), 0);
+	return mfac * weight + temp * fac;
+}
+BLI_INLINE float wval_hardlight(float weight, float paintval, float fac)
+{
+	float mfac, temp;
+	if (fac == 0.0f) {
+		return weight;
+	}
+	mfac = 1.0f - fac;
+	if (paintval > 0.5f) {
+		temp = 1.0f - ((1.0f - 2.0f * (paintval - 0.5f)) * (1.0f - weight));
+	}
+	else {
+		temp = (2.0f * paintval * weight);
+	}
+	return mfac * weight + temp * fac;
+}
+BLI_INLINE float wval_overlay(float weight, float paintval, float fac)
+{
+	float mfac, temp;
+	if (fac == 0.0f) {
+		return weight;
+	}
+	mfac = 1.0f - fac;
+	if (weight > 0.5f) {
+		temp = 1.0f - ((1.0f - 2.0f * (weight - 0.5f)) * (1.0f - paintval));
+	}
+	else {
+		temp = (2.0f * paintval * weight);
+	}
+	return mfac * weight + temp * fac;
+}
+BLI_INLINE float wval_softlight(float weight, float paintval, float fac)
+{
+	float mfac, temp;
+	if (fac == 0.0f) {
+		return weight;
+	}
+	mfac = 1.0f - fac;
+	if (weight < 0.5f) {
+		temp = ((2.0f * ((paintval / 2.0f) + 0.25f)) * weight);
+	}
+	else {
+		temp = 1.0f - (2.0f * (1.0f - ((paintval / 2.0f) + 0.25f)) * (1.0f - weight));
+	}
+	return temp * fac + weight * mfac;
+}
+BLI_INLINE float wval_exclusion(float weight, float paintval, float fac)
+{
+	float mfac, temp;
+	if (fac == 0.0f) {
+		return weight;
+	}
+	mfac = 1.0f - fac;
+	temp = 0.5f - ((2.0f * (weight - 0.5f) * (paintval - 0.5f)));
+	return temp * fac + weight * mfac;
+}
+
 /* vpaint has 'vpaint_blend_tool' */
 /* result is not clamped from [0-1] */
 float ED_wpaint_blend_tool(
@@ -197,15 +284,27 @@ float ED_wpaint_blend_tool(
 		case PAINT_BLEND_MIX:
 		case PAINT_BLEND_AVERAGE:
 		case PAINT_BLEND_SMEAR:
-		case PAINT_BLEND_BLUR:     return wval_blend(weight, paintval, alpha);
-		case PAINT_BLEND_ADD:      return wval_add(weight, paintval, alpha);
-		case PAINT_BLEND_SUB:      return wval_sub(weight, paintval, alpha);
-		case PAINT_BLEND_MUL:      return wval_mul(weight, paintval, alpha);
-		case PAINT_BLEND_LIGHTEN:  return wval_lighten(weight, paintval, alpha);
-		case PAINT_BLEND_DARKEN:   return wval_darken(weight, paintval, alpha);
-		default:
-			BLI_assert(0);
-			return 0.0f;
+		case PAINT_BLEND_BLUR:       return wval_blend(weight, paintval, alpha);
+		case PAINT_BLEND_ADD:        return wval_add(weight, paintval, alpha);
+		case PAINT_BLEND_SUB:        return wval_sub(weight, paintval, alpha);
+		case PAINT_BLEND_MUL:        return wval_mul(weight, paintval, alpha);
+		case PAINT_BLEND_LIGHTEN:    return wval_lighten(weight, paintval, alpha);
+		case PAINT_BLEND_DARKEN:     return wval_darken(weight, paintval, alpha);
+		/* Mostly make sense for color: support anyway. */
+		case PAINT_BLEND_COLORDODGE: return wval_colordodge(weight, paintval, alpha);
+		case PAINT_BLEND_DIFFERENCE: return wval_difference(weight, paintval, alpha);
+		case PAINT_BLEND_SCREEN:     return wval_screen(weight, paintval, alpha);
+		case PAINT_BLEND_HARDLIGHT:  return wval_hardlight(weight, paintval, alpha);
+		case PAINT_BLEND_OVERLAY:    return wval_overlay(weight, paintval, alpha);
+		case PAINT_BLEND_SOFTLIGHT:  return wval_softlight(weight, paintval, alpha);
+		case PAINT_BLEND_EXCLUSION:  return wval_exclusion(weight, paintval, alpha);
+		/* Only for color: just use blend. */
+		case PAINT_BLEND_LUMINOCITY:
+		case PAINT_BLEND_SATURATION:
+		case PAINT_BLEND_HUE:
+		case PAINT_BLEND_ALPHA_SUB:
+		case PAINT_BLEND_ALPHA_ADD:
+		default:                     return wval_blend(weight, paintval, alpha);
 	}
 }
 

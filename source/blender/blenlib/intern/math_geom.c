@@ -619,6 +619,152 @@ float dist_squared_ray_to_seg_v3(
 	return len_squared_v3(t) - SQUARE(*r_depth);
 }
 
+/* -------------------------------------------------------------------- */
+/** \name dist_squared_to_ray_to_aabb and helpers
+ * \{ */
+
+void dist_squared_ray_to_aabb_precalc(
+        struct DistRayAABB_Precalc *neasrest_precalc,
+        const float ray_origin[3], const float ray_direction[3])
+{
+	copy_v3_v3(neasrest_precalc->ray_origin, ray_origin);
+	copy_v3_v3(neasrest_precalc->ray_direction, ray_direction);
+
+	for (int i = 0; i < 3; i++) {
+		neasrest_precalc->ray_inv_dir[i] =
+		        (neasrest_precalc->ray_direction[i] != 0.0f) ?
+		        (1.0f / neasrest_precalc->ray_direction[i]) : FLT_MAX;
+		neasrest_precalc->sign[i] = (neasrest_precalc->ray_inv_dir[i] < 0.0f);
+	}
+}
+
+/**
+ * Returns the distance from a ray to a bound-box (projected on ray)
+ */
+float dist_squared_ray_to_aabb(
+        const struct DistRayAABB_Precalc *data,
+        const float bb_min[3], const float bb_max[3],
+        float r_point[3], float *r_depth)
+{
+	// bool r_axis_closest[3];
+	float local_bvmin[3], local_bvmax[3];
+	if (data->sign[0]) {
+		local_bvmin[0] = bb_max[0];
+		local_bvmax[0] = bb_min[0];
+	}
+	else {
+		local_bvmin[0] = bb_min[0];
+		local_bvmax[0] = bb_max[0];
+	}
+	if (data->sign[1]) {
+		local_bvmin[1] = bb_max[1];
+		local_bvmax[1] = bb_min[1];
+	}
+	else {
+		local_bvmin[1] = bb_min[1];
+		local_bvmax[1] = bb_max[1];
+	}
+	if (data->sign[2]) {
+		local_bvmin[2] = bb_max[2];
+		local_bvmax[2] = bb_min[2];
+	}
+	else {
+		local_bvmin[2] = bb_min[2];
+		local_bvmax[2] = bb_max[2];
+	}
+
+	const float tmin[3] = {
+		(local_bvmin[0] - data->ray_origin[0]) * data->ray_inv_dir[0],
+		(local_bvmin[1] - data->ray_origin[1]) * data->ray_inv_dir[1],
+		(local_bvmin[2] - data->ray_origin[2]) * data->ray_inv_dir[2],
+	};
+	const float tmax[3] = {
+		(local_bvmax[0] - data->ray_origin[0]) * data->ray_inv_dir[0],
+		(local_bvmax[1] - data->ray_origin[1]) * data->ray_inv_dir[1],
+		(local_bvmax[2] - data->ray_origin[2]) * data->ray_inv_dir[2],
+	};
+	/* `va` and `vb` are the coordinates of the AABB edge closest to the ray */
+	float va[3], vb[3];
+	/* `rtmin` and `rtmax` are the minimum and maximum distances of the ray hits on the AABB */
+	float rtmin, rtmax;
+	int main_axis;
+
+	if ((tmax[0] <= tmax[1]) && (tmax[0] <= tmax[2])) {
+		rtmax = tmax[0];
+		va[0] = vb[0] = local_bvmax[0];
+		main_axis = 3;
+		// r_axis_closest[0] = data->sign[0];
+	}
+	else if ((tmax[1] <= tmax[0]) && (tmax[1] <= tmax[2])) {
+		rtmax = tmax[1];
+		va[1] = vb[1] = local_bvmax[1];
+		main_axis = 2;
+		// r_axis_closest[1] = data->sign[1];
+	}
+	else {
+		rtmax = tmax[2];
+		va[2] = vb[2] = local_bvmax[2];
+		main_axis = 1;
+		// r_axis_closest[2] = data->sign[2];
+	}
+
+	if ((tmin[0] >= tmin[1]) && (tmin[0] >= tmin[2])) {
+		rtmin = tmin[0];
+		va[0] = vb[0] = local_bvmin[0];
+		main_axis -= 3;
+		// r_axis_closest[0] = !data->sign[0];
+	}
+	else if ((tmin[1] >= tmin[0]) && (tmin[1] >= tmin[2])) {
+		rtmin = tmin[1];
+		va[1] = vb[1] = local_bvmin[1];
+		main_axis -= 1;
+		// r_axis_closest[1] = !data->sign[1];
+	}
+	else {
+		rtmin = tmin[2];
+		va[2] = vb[2] = local_bvmin[2];
+		main_axis -= 2;
+		// r_axis_closest[2] = !data->sign[2];
+	}
+	if (main_axis < 0) {
+		main_axis += 3;
+	}
+
+	/* if rtmin <= rtmax, ray intersect `AABB` */
+	if (rtmin <= rtmax) {
+		float dvec[3];
+		copy_v3_v3(r_point, local_bvmax);
+		sub_v3_v3v3(dvec, local_bvmax, data->ray_origin);
+		*r_depth = dot_v3v3(dvec, data->ray_direction);
+		return 0.0f;
+	}
+
+	if (data->sign[main_axis]) {
+		va[main_axis] = local_bvmax[main_axis];
+		vb[main_axis] = local_bvmin[main_axis];
+	}
+	else {
+		va[main_axis] = local_bvmin[main_axis];
+		vb[main_axis] = local_bvmax[main_axis];
+	}
+
+	return dist_squared_ray_to_seg_v3(
+	        data->ray_origin, data->ray_direction, va, vb,
+	        r_point, r_depth);
+}
+
+float dist_squared_to_ray_to_aabb_simple(
+        const float ray_origin[3], const float ray_direction[3],
+        const float bbmin[3], const float bbmax[3],
+        float r_point[3], float *r_depth)
+{
+	struct DistRayAABB_Precalc data;
+	dist_squared_ray_to_aabb_precalc(&data, ray_origin, ray_direction);
+	return dist_squared_ray_to_aabb(&data, bbmin, bbmax, r_point, r_depth);
+}
+/** \} */
+
+
 /* Adapted from "Real-Time Collision Detection" by Christer Ericson,
  * published by Morgan Kaufmann Publishers, copyright 2005 Elsevier Inc.
  * 

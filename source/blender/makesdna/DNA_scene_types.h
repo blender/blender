@@ -1121,18 +1121,26 @@ typedef struct UvSculpt {
 /* Vertex Paint */
 typedef struct VPaint {
 	Paint paint;
-	short flag, pad;
+	short flag;
+	char falloff_shape, normal_angle;
 	int radial_symm[3]; /* For mirrored painting */
 } VPaint;
 
 /* VPaint.flag */
 enum {
-	// VP_COLINDEX  = (1 << 0),  /* only paint onto active material*/  /* deprecated since before 2.49 */
-	// VP_AREA      = (1 << 1),  /* deprecated since 2.70 */
-	VP_NORMALS      = (1 << 3),
-	VP_SPRAY        = (1 << 4),
-	// VP_MIRROR_X  = (1 << 5),  /* deprecated in 2.5x use (me->editflag & ME_EDIT_MIRROR_X) */
-	VP_ONLYVGROUP   = (1 << 7)   /* weight paint only */
+	VP_FLAG_PROJECT_BACKFACE    = (1 << 0),
+	/* TODO */
+	// VP_FLAG_PROJECT_XRAY        = (1 << 1),
+	VP_FLAG_PROJECT_FLAT        = (1 << 3),
+	VP_FLAG_SPRAY               = (1 << 4),
+	/* weight paint only */
+	VP_FLAG_VGROUP_RESTRICT     = (1 << 7)
+};
+
+/* VPaint.falloff_shape */
+enum {
+	VP_FALLOFF_SHAPE_SPHERE = 0,
+	VP_FALLOFF_SHAPE_TUBE = 1,
 };
 
 /* ------------------------------------------- */

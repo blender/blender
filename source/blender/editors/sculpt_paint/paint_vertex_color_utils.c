@@ -281,7 +281,7 @@ BLI_INLINE uint mcol_darken(uint col1, uint col2, int fac)
 BLI_INLINE uint mcol_colordodge(uint col1, uint col2, int fac)
 {
 	uchar *cp1, *cp2, *cp;
-	int mfac,temp;
+	int mfac, temp;
 	uint col = 0;
 
 	if (fac == 0) {

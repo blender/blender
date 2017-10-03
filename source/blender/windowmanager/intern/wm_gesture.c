@@ -71,6 +71,7 @@ wmGesture *WM_gesture_new(bContext *C, const wmEvent *event, int type)
 	gesture->type = type;
 	gesture->event_type = event->type;
 	gesture->swinid = ar->swinid;    /* means only in area-region context! */
+	gesture->userdata_free = true;   /* Free if userdata is set. */
 	
 	wm_subwindow_origin_get(window, gesture->swinid, &sx, &sy);
 	
@@ -114,7 +115,7 @@ void WM_gesture_end(bContext *C, wmGesture *gesture)
 		win->tweak = NULL;
 	BLI_remlink(&win->gesture, gesture);
 	MEM_freeN(gesture->customdata);
-	if (gesture->userdata) {
+	if (gesture->userdata && gesture->userdata_free) {
 		MEM_freeN(gesture->userdata);
 	}
 	MEM_freeN(gesture);

@@ -2199,12 +2199,12 @@ static void ccgDM_buffer_copy_color(
 		for (S = 0; S < numVerts; S++) {
 			for (y = 0; y < gridFaces; y++) {
 				for (x = 0; x < gridFaces; x++) {
-					copy_v3_v3_uchar(&varray[start + 0], &mloopcol[iface * 16 + 0]);
-					copy_v3_v3_uchar(&varray[start + 3], &mloopcol[iface * 16 + 12]);
-					copy_v3_v3_uchar(&varray[start + 6], &mloopcol[iface * 16 + 8]);
-					copy_v3_v3_uchar(&varray[start + 9], &mloopcol[iface * 16 + 4]);
+					copy_v4_v4_uchar(&varray[start + 0], &mloopcol[iface * 16 + 0]);
+					copy_v4_v4_uchar(&varray[start + 4], &mloopcol[iface * 16 + 12]);
+					copy_v4_v4_uchar(&varray[start + 8], &mloopcol[iface * 16 + 8]);
+					copy_v4_v4_uchar(&varray[start + 12], &mloopcol[iface * 16 + 4]);
 
-					start += 12;
+					start += 16;
 					iface++;
 				}
 			}
@@ -3544,16 +3544,16 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 								float *c = CCG_grid_elem_co(&key, faceGridData, x + 1, y + 1);
 								float *d = CCG_grid_elem_co(&key, faceGridData, x, y + 1);
 
-								if (cp) glColor3ubv(&cp[4]);
+								if (cp) glColor4ubv(&cp[4]);
 								glNormal3fv(ln[1]);
 								glVertex3fv(d);
-								if (cp) glColor3ubv(&cp[8]);
+								if (cp) glColor4ubv(&cp[8]);
 								glNormal3fv(ln[2]);
 								glVertex3fv(c);
-								if (cp) glColor3ubv(&cp[12]);
+								if (cp) glColor4ubv(&cp[12]);
 								glNormal3fv(ln[3]);
 								glVertex3fv(b);
-								if (cp) glColor3ubv(&cp[0]);
+								if (cp) glColor4ubv(&cp[0]);
 								glNormal3fv(ln[0]);
 								glVertex3fv(a);
 
@@ -3571,10 +3571,10 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 								a = CCG_grid_elem(&key, faceGridData, x, y + 0);
 								b = CCG_grid_elem(&key, faceGridData, x, y + 1);
 	
-								if (cp) glColor3ubv(&cp[0]);
+								if (cp) glColor4ubv(&cp[0]);
 								glNormal3fv(CCG_elem_no(&key, a));
 								glVertex3fv(CCG_elem_co(&key, a));
-								if (cp) glColor3ubv(&cp[4]);
+								if (cp) glColor4ubv(&cp[4]);
 								glNormal3fv(CCG_elem_no(&key, b));
 								glVertex3fv(CCG_elem_co(&key, b));
 
@@ -3586,10 +3586,10 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 							a = CCG_grid_elem(&key, faceGridData, x, y + 0);
 							b = CCG_grid_elem(&key, faceGridData, x, y + 1);
 
-							if (cp) glColor3ubv(&cp[12]);
+							if (cp) glColor4ubv(&cp[12]);
 							glNormal3fv(CCG_elem_no(&key, a));
 							glVertex3fv(CCG_elem_co(&key, a));
-							if (cp) glColor3ubv(&cp[8]);
+							if (cp) glColor4ubv(&cp[8]);
 							glNormal3fv(CCG_elem_no(&key, b));
 							glVertex3fv(CCG_elem_co(&key, b));
 
@@ -3609,13 +3609,13 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm,
 
 								ccgDM_glNormalFast(a, b, c, d);
 	
-								if (cp) glColor3ubv(&cp[4]);
+								if (cp) glColor4ubv(&cp[4]);
 								glVertex3fv(d);
-								if (cp) glColor3ubv(&cp[8]);
+								if (cp) glColor4ubv(&cp[8]);
 								glVertex3fv(c);
-								if (cp) glColor3ubv(&cp[12]);
+								if (cp) glColor4ubv(&cp[12]);
 								glVertex3fv(b);
-								if (cp) glColor3ubv(&cp[0]);
+								if (cp) glColor4ubv(&cp[0]);
 								glVertex3fv(a);
 
 								if (cp) cp += 16;

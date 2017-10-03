@@ -1653,23 +1653,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 
-		{
-			Brush *br;
-			br = (Brush *)BKE_libblock_find_name_ex(main, ID_BR, "Average");
-			if (!br) {
-				br = BKE_brush_add(main, "Average", OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT);
-				br->vertexpaint_tool = PAINT_BLEND_AVERAGE;
-				br->ob_mode = OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT;
-			}
-
-			br = (Brush *)BKE_libblock_find_name_ex(main, ID_BR, "Smear");
-			if (!br) {
-				br = BKE_brush_add(main, "Smear", OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT);
-				br->vertexpaint_tool = PAINT_BLEND_SMEAR;
-				br->ob_mode = OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT;
-			}
-		}
-
 		FOREACH_NODETREE(main, ntree, id) {
 			if (ntree->type == NTREE_COMPOSIT) {
 				do_versions_compositor_render_passes(ntree);
@@ -1717,6 +1700,20 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
 				if(sa->full && sc->state == SCREENNORMAL) {
 					sa->full = NULL;
+				}
+			}
+		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "VPaint", "char", "falloff_shape")) {
+			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+				ToolSettings *ts = scene->toolsettings;
+				for (int i = 0; i < 2; i++) {
+					VPaint *vp = i ? ts->vpaint : ts->wpaint;
+					if (vp != NULL) {
+						/* remove all other flags */
+						vp->flag &= (VP_FLAG_SPRAY | VP_FLAG_VGROUP_RESTRICT);
+						vp->normal_angle = 80;
+					}
 				}
 			}
 		}
