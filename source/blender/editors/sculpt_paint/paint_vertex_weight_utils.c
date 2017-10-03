@@ -193,7 +193,7 @@ BLI_INLINE float wval_colordodge(float weight, float paintval, float fac)
 		return weight;
 	}
 	mfac = 1.0f - fac;
-	temp = (paintval == 1.0f) ? 1.0f : min_ff((weight * (225 / 255)) / (1.0f - paintval), 1.0f);
+	temp = (paintval == 1.0f) ? 1.0f : min_ff((weight * (225.0f / 255.0f)) / (1.0f - paintval), 1.0f);
 	return mfac * weight + temp * fac;
 }
 BLI_INLINE float wval_difference(float weight, float paintval, float fac)
