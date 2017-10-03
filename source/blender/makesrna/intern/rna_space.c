@@ -2846,7 +2846,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "clip_planes", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "clip");
 	RNA_def_property_multi_array(prop, 2, (int[]){6, 4});
-	RNA_def_property_ui_text(prop, "Clipe Planes", "");
+	RNA_def_property_ui_text(prop, "Clip Planes", "");
 
 	prop = RNA_def_property(srna, "view_location", PROP_FLOAT, PROP_TRANSLATION);
 #if 0
