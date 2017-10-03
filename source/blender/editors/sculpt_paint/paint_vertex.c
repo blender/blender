@@ -148,7 +148,7 @@ static bool vwpaint_use_normal(const VPaint *vp)
 }
 
 
-static void defweight_prev_restore_or_init(MDeformVert *dvert_prev, MDeformVert *dvert_curr, int index)
+static MDeformVert *defweight_prev_init(MDeformVert *dvert_prev, MDeformVert *dvert_curr, int index)
 {
 	MDeformVert *dv_curr = &dvert_curr[index];
 	MDeformVert *dv_prev = &dvert_prev[index];
@@ -156,9 +156,7 @@ static void defweight_prev_restore_or_init(MDeformVert *dvert_prev, MDeformVert 
 		dv_prev->flag = 0;
 		defvert_copy(dv_prev, dv_curr);
 	}
-	else {
-		defvert_copy(dv_curr, dv_prev);
-	}
+	return dv_prev;
 }
 
 /* check if we can do partial updates and have them draw realtime
@@ -410,6 +408,16 @@ static float wpaint_blend(
 	CLAMP(weight, 0.0f, 1.0f);
 
 	return weight;
+}
+
+static float wpaint_clamp_monotonic(float oldval, float curval, float newval)
+{
+	if (newval < oldval)
+		return MIN2(newval, curval);
+	else if (newval > oldval)
+		return MAX2(newval, curval);
+	else
+		return newval;
 }
 
 /* ----------------------------------------------------- */
@@ -706,6 +714,7 @@ static void do_weight_paint_vertex_single(
 	bool topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
 	MDeformWeight *dw;
+	float weight_prev;
 
 	/* mirror vars */
 	int index_mirr;
@@ -727,14 +736,6 @@ static void do_weight_paint_vertex_single(
 	}
 	else {
 		index_mirr = vgroup_mirr = -1;
-	}
-
-	if ((wp->paint.brush->flag & BRUSH_ACCUMULATE) == 0) {
-		struct MDeformVert *dvert_prev = ob->sculpt->mode.wpaint.dvert_prev;
-		defweight_prev_restore_or_init(dvert_prev, me->dvert, index);
-		if (index_mirr != -1) {
-			defweight_prev_restore_or_init(dvert_prev, me->dvert, index_mirr);
-		}
 	}
 
 	if (wp->flag & VP_FLAG_VGROUP_RESTRICT) {
@@ -781,13 +782,28 @@ static void do_weight_paint_vertex_single(
 		dw_mirr = NULL;
 	}
 
+	if ((wp->paint.brush->flag & BRUSH_ACCUMULATE) == 0) {
+		MDeformVert *dvert_prev = ob->sculpt->mode.wpaint.dvert_prev;
+		MDeformVert *dv_prev = defweight_prev_init(dvert_prev, me->dvert, index);
+		if (index_mirr != -1) {
+			defweight_prev_init(dvert_prev, me->dvert, index_mirr);
+		}
+
+		weight_prev = defvert_find_weight(dv_prev, wpi->active.index);
+	}
+	else {
+		weight_prev = dw->weight;
+	}
+
 	/* If there are no normalize-locks or multipaint,
 	 * then there is no need to run the more complicated checks */
 
 	{
-		dw->weight = wpaint_blend(
-		        wp, dw->weight, alpha, paintweight,
+		float new_weight = wpaint_blend(
+		        wp, weight_prev, alpha, paintweight,
 		        wpi->brush_alpha_value, wpi->do_flip);
+
+		dw->weight = wpaint_clamp_monotonic(weight_prev, dw->weight, new_weight);
 
 		/* WATCH IT: take care of the ordering of applying mirror -> normalize,
 		 * can give wrong results [#26193], least confusing if normalize is done last */
@@ -859,7 +875,7 @@ static void do_weight_paint_vertex_multi(
 	MDeformVert *dv_mirr = NULL;
 
 	/* weights */
-	float curw, neww, change, curw_mirr, change_mirr;
+	float curw, oldw, neww, change, curw_mirr, change_mirr;
 
 	/* from now on we can check if mirrors enabled if this var is -1 and not bother with the flag */
 	if (me->editflag & ME_EDIT_MIRROR_X) {
@@ -873,14 +889,6 @@ static void do_weight_paint_vertex_multi(
 		}
 	}
 
-	if ((wp->paint.brush->flag & BRUSH_ACCUMULATE) == 0) {
-		struct MDeformVert *dvert_prev = ob->sculpt->mode.wpaint.dvert_prev;
-		defweight_prev_restore_or_init(dvert_prev, me->dvert, index);
-		if (index_mirr != -1) {
-			defweight_prev_restore_or_init(dvert_prev, me->dvert, index_mirr);
-		}
-	}
-
 	/* compute weight change by applying the brush to average or sum of group weights */
 	curw = BKE_defvert_multipaint_collective_weight(
 	        dv, wpi->defbase_tot, wpi->defbase_sel, wpi->defbase_tot_sel, wpi->do_auto_normalize);
@@ -890,7 +898,22 @@ static void do_weight_paint_vertex_multi(
 		return;
 	}
 
-	neww = wpaint_blend(wp, curw, alpha, paintweight, wpi->brush_alpha_value, wpi->do_flip);
+	if ((wp->paint.brush->flag & BRUSH_ACCUMULATE) == 0) {
+		MDeformVert *dvert_prev = ob->sculpt->mode.wpaint.dvert_prev;
+		MDeformVert *dv_prev = defweight_prev_init(dvert_prev, me->dvert, index);
+		if (index_mirr != -1) {
+			defweight_prev_init(dvert_prev, me->dvert, index_mirr);
+		}
+
+		oldw = BKE_defvert_multipaint_collective_weight(
+			dv_prev, wpi->defbase_tot, wpi->defbase_sel, wpi->defbase_tot_sel, wpi->do_auto_normalize);
+	}
+	else {
+		oldw = curw;
+	}
+
+	neww = wpaint_blend(wp, oldw, alpha, paintweight, wpi->brush_alpha_value, wpi->do_flip);
+	neww = wpaint_clamp_monotonic(oldw, curw, neww);
 
 	change = neww / curw;
 
