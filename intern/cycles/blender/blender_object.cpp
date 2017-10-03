@@ -75,6 +75,7 @@ bool BlenderSync::object_is_mesh(BL::Object& b_ob)
 		return (b_curve.bevel_object() ||
 		        b_curve.extrude() != 0.0f ||
 		        b_curve.bevel_depth() != 0.0f ||
+		        b_curve.dimensions() == BL::Curve::dimensions_2D ||
 		        b_ob.modifiers.length());
 	}
 	else {
