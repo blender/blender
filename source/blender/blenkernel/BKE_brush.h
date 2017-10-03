@@ -74,7 +74,7 @@ float BKE_brush_curve_strength(const struct Brush *br, float p, const float len)
 
 /* sampling */
 float BKE_brush_sample_tex_3D(
-        const struct Scene *scene, struct Brush *br, const float point[3],
+        const struct Scene *scene, const struct Brush *br, const float point[3],
         float rgba[4], const int thread, struct ImagePool *pool);
 float BKE_brush_sample_masktex(
         const struct Scene *scene, struct Brush *br, const float point[2],

@@ -521,13 +521,13 @@ int BKE_brush_clone_image_delete(Brush *brush)
  * region space mouse coordinates, or 3d world coordinates for 3D mapping.
  *
  * rgba outputs straight alpha. */
-float BKE_brush_sample_tex_3D(const Scene *scene, Brush *br,
+float BKE_brush_sample_tex_3D(const Scene *scene, const Brush *br,
                               const float point[3],
                               float rgba[4], const int thread,
                               struct ImagePool *pool)
 {
 	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
-	MTex *mtex = &br->mtex;
+	const MTex *mtex = &br->mtex;
 	float intensity = 1.0;
 	bool hasrgb = false;
 

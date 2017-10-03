@@ -262,12 +262,12 @@ uint vpaint_get_current_col(Scene *scene, VPaint *vp)
 
 /* wpaint has 'wpaint_blend' */
 static uint vpaint_blend(
-        VPaint *vp, uint color_curr, uint color_orig,
+        const VPaint *vp, uint color_curr, uint color_orig,
         uint color_paint, const int alpha_i,
         /* pre scaled from [0-1] --> [0-255] */
         const int brush_alpha_value_i)
 {
-	Brush *brush = BKE_paint_brush(&vp->paint);
+	const Brush *brush = vp->paint.brush;
 	const int tool = brush->vertexpaint_tool;
 
 	uint color_blend = ED_vpaint_blend_tool(tool, color_curr, color_paint, alpha_i);
@@ -383,12 +383,12 @@ static float calc_vp_alpha_col_dl(
 
 /* vpaint has 'vpaint_blend' */
 static float wpaint_blend(
-        VPaint *wp, float weight,
+        const VPaint *wp, float weight,
         const float alpha, float paintval,
         const float UNUSED(brush_alpha_value),
         const short do_flip)
 {
-	Brush *brush = BKE_paint_brush(&wp->paint);
+	const Brush *brush = wp->paint.brush;
 	int tool = brush->vertexpaint_tool;
 
 	if (do_flip) {
@@ -698,7 +698,7 @@ typedef struct WeightPaintInfo {
 
 static void do_weight_paint_vertex_single(
         /* vars which remain the same for every vert */
-        VPaint *wp, Object *ob, const WeightPaintInfo *wpi,
+        const VPaint *wp, Object *ob, const WeightPaintInfo *wpi,
         /* vars which change on each stroke */
         const uint index, float alpha, float paintweight)
 {
@@ -847,7 +847,7 @@ static void do_weight_paint_vertex_single(
 
 static void do_weight_paint_vertex_multi(
         /* vars which remain the same for every vert */
-        VPaint *wp, Object *ob, const WeightPaintInfo *wpi,
+        const VPaint *wp, Object *ob, const WeightPaintInfo *wpi,
         /* vars which change on each stroke */
         const uint index, float alpha, float paintweight)
 {
@@ -945,7 +945,7 @@ static void do_weight_paint_vertex_multi(
 
 static void do_weight_paint_vertex(
         /* vars which remain the same for every vert */
-        VPaint *wp, Object *ob, const WeightPaintInfo *wpi,
+        const VPaint *wp, Object *ob, const WeightPaintInfo *wpi,
         /* vars which change on each stroke */
         const uint index, float alpha, float paintweight)
 {
@@ -1199,12 +1199,12 @@ struct WPaintData {
 
 /* Initialize the stroke cache invariants from operator properties */
 static void vwpaint_update_cache_invariants(
-        bContext *C, VPaint *vp, SculptSession *ss, wmOperator *op, const float mouse[2])
+        bContext *C, const VPaint *vp, SculptSession *ss, wmOperator *op, const float mouse[2])
 {
 	StrokeCache *cache;
 	Scene *scene = CTX_data_scene(C);
 	UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
-	Brush *brush = BKE_paint_brush(&vp->paint);
+	const Brush *brush = vp->paint.brush;
 	ViewContext *vc = paint_stroke_view_context(op->customdata);
 	Object *ob = CTX_data_active_object(C);
 	float mat[3][3];
@@ -1667,7 +1667,7 @@ static void do_wpaint_brush_smear_task_cb_ex(
 						/* Apply weight to vertex */
 						if (do_color) {
 							const float brush_fade = BKE_brush_curve_strength(brush, 0.0f, cache->radius);
-							float final_alpha =
+							const float final_alpha =
 							        brush_fade * brush_strength *
 							        grid_alpha * brush_alpha_pressure;
 							do_weight_paint_vertex(
@@ -1692,7 +1692,9 @@ static void do_wpaint_brush_draw_task_cb_ex(
 
 	const Brush *brush = data->brush;
 	const StrokeCache *cache = ss->cache;
-	const float paintweight = BKE_brush_weight_get(scene, brush);
+	/* note: normally `BKE_brush_weight_get(scene, brush)` is used,
+	 * however in this case we calculate a new weight each time. */
+	const float paintweight = data->strength;
 	float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
 	get_brush_alpha_data(scene, ss, brush, &brush_size_pressure, &brush_alpha_value, &brush_alpha_pressure);
 	const bool use_normal = vwpaint_use_normal(data->vp);
@@ -1820,10 +1822,7 @@ static void calculate_average_weight(SculptThreadedTaskData *data, PBVHNode **UN
 	}
 	if (accum_len != 0) {
 		accum_weight /= accum_len;
-		if (ups->flag & UNIFIED_PAINT_WEIGHT)
-			ups->weight = (float)accum_weight;
-		else
-			data->brush->weight = (float)accum_weight;
+		data->strength = (float)accum_weight;
 	}
 
 	MEM_SAFE_FREE(data->custom_data);  /* 'accum' */
@@ -1834,7 +1833,7 @@ static void wpaint_paint_leaves(
         bContext *C, Object *ob, Sculpt *sd, VPaint *vp, struct WPaintData *wpd, WeightPaintInfo *wpi,
         Mesh *me, PBVHNode **nodes, int totnode)
 {
-	Brush *brush = ob->sculpt->cache->brush;
+	const Brush *brush = ob->sculpt->cache->brush;
 
 	/* threaded loop over nodes */
 	SculptThreadedTaskData data = {
@@ -2733,6 +2732,7 @@ static void do_vpaint_brush_smear_task_cb_ex(
 							const int p_index = gmap->vert_to_poly[v_index].indices[j];
 							const int l_index = gmap->vert_to_loop[v_index].indices[j];
 							BLI_assert(data->me->mloop[l_index].v == v_index);
+							UNUSED_VARS_NDEBUG(l_index);
 							const MPoly *mp = &data->me->mpoly[p_index];
 							if (!use_face_sel || mp->flag & ME_FACE_SEL) {
 								const MLoop *ml_other = &data->me->mloop[mp->loopstart];
@@ -2829,7 +2829,7 @@ static void vpaint_paint_leaves(
         bContext *C, Sculpt *sd, VPaint *vp, struct VPaintData *vpd,
         Object *ob, Mesh *me, PBVHNode **nodes, int totnode)
 {
-	Brush *brush = ob->sculpt->cache->brush;
+	const Brush *brush = ob->sculpt->cache->brush;
 
 	SculptThreadedTaskData data = {
 		.sd = sd, .ob = ob, .brush = brush, .nodes = nodes, .vp = vp, .vpd = vpd,

@@ -634,7 +634,7 @@ bool sculpt_brush_test_cube(SculptBrushTest *test, const float co[3], float loca
 	}
 }
 
-static float frontface(Brush *br, const float sculpt_normal[3],
+static float frontface(const Brush *br, const float sculpt_normal[3],
                        const short no[3], const float fno[3])
 {
 	if (br->flag & BRUSH_FRONTFACE) {
@@ -1128,7 +1128,7 @@ static float brush_strength(
 }
 
 /* Return a multiplier for brush strength on a particular vertex. */
-float tex_strength(SculptSession *ss, Brush *br,
+float tex_strength(SculptSession *ss, const Brush *br,
                    const float brush_point[3],
                    const float len,
                    const short vno[3],
@@ -1138,7 +1138,7 @@ float tex_strength(SculptSession *ss, Brush *br,
 {
 	StrokeCache *cache = ss->cache;
 	const Scene *scene = cache->vc->scene;
-	MTex *mtex = &br->mtex;
+	const MTex *mtex = &br->mtex;
 	float avg = 1;
 	float rgba[4];
 	float point[3];
@@ -1556,7 +1556,7 @@ static void do_smooth_brush_mesh_task_cb_ex(
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
 	Sculpt *sd = data->sd;
-	Brush *brush = data->brush;
+	const Brush *brush = data->brush;
 	const bool smooth_mask = data->smooth_mask;
 	float bstrength = data->strength;
 
@@ -1604,7 +1604,7 @@ static void do_smooth_brush_bmesh_task_cb_ex(
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
 	Sculpt *sd = data->sd;
-	Brush *brush = data->brush;
+	const Brush *brush = data->brush;
 	const bool smooth_mask = data->smooth_mask;
 	float bstrength = data->strength;
 
@@ -1652,7 +1652,7 @@ static void do_smooth_brush_multires_task_cb_ex(
 	SculptDoBrushSmoothGridDataChunk *data_chunk = userdata_chunk;
 	SculptSession *ss = data->ob->sculpt;
 	Sculpt *sd = data->sd;
-	Brush *brush = data->brush;
+	const Brush *brush = data->brush;
 	const bool smooth_mask = data->smooth_mask;
 	float bstrength = data->strength;
 
@@ -1866,7 +1866,7 @@ static void do_mask_brush_draw_task_cb_ex(
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
-	Brush *brush = data->brush;
+	const Brush *brush = data->brush;
 	const float bstrength = ss->cache->bstrength;
 
 	PBVHVertexIter vd;
@@ -1923,7 +1923,7 @@ static void do_draw_brush_task_cb_ex(
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
-	Brush *brush = data->brush;
+	const Brush *brush = data->brush;
 	const float *offset = data->offset;
 
 	PBVHVertexIter vd;
@@ -1978,7 +1978,7 @@ static void do_crease_brush_task_cb_ex(
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
-	Brush *brush = data->brush;
+	const Brush *brush = data->brush;
 	SculptProjectVector *spvc = data->spvc;
 	const float flippedbstrength = data->flippedbstrength;
 	const float *offset = data->offset;
@@ -2066,7 +2066,7 @@ static void do_pinch_brush_task_cb_ex(
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
-	Brush *brush = data->brush;
+	const Brush *brush = data->brush;
 
 	PBVHVertexIter vd;
 	SculptBrushTest test;
@@ -2112,7 +2112,7 @@ static void do_grab_brush_task_cb_ex(
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
-	Brush *brush = data->brush;
+	const Brush *brush = data->brush;
 	const float *grab_delta = data->grab_delta;
 
 	PBVHVertexIter vd;
@@ -2172,7 +2172,7 @@ static void do_nudge_brush_task_cb_ex(
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
-	Brush *brush = data->brush;
+	const Brush *brush = data->brush;
 	const float *cono = data->cono;
 
 	PBVHVertexIter vd;
@@ -2226,7 +2226,7 @@ static void do_snake_hook_brush_task_cb_ex(
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
-	Brush *brush = data->brush;
+	const Brush *brush = data->brush;
 	SculptProjectVector *spvc = data->spvc;
 	const float *grab_delta = data->grab_delta;
 
@@ -2327,7 +2327,7 @@ static void do_thumb_brush_task_cb_ex(
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
-	Brush *brush = data->brush;
+	const Brush *brush = data->brush;
 	const float *cono = data->cono;
 
 	PBVHVertexIter vd;
@@ -2387,7 +2387,7 @@ static void do_rotate_brush_task_cb_ex(
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
-	Brush *brush = data->brush;
+	const Brush *brush = data->brush;
 	const float angle = data->angle;
 
 	PBVHVertexIter vd;
@@ -2449,7 +2449,7 @@ static void do_layer_brush_task_cb_ex(
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
 	Sculpt *sd = data->sd;
-	Brush *brush = data->brush;
+	const Brush *brush = data->brush;
 	const float *offset = data->offset;
 
 	PBVHVertexIter vd;
@@ -2533,7 +2533,7 @@ static void do_inflate_brush_task_cb_ex(
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
-	Brush *brush = data->brush;
+	const Brush *brush = data->brush;
 
 	PBVHVertexIter vd;
 	SculptBrushTest test;
@@ -2691,7 +2691,7 @@ static void do_flatten_brush_task_cb_ex(
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
-	Brush *brush = data->brush;
+	const Brush *brush = data->brush;
 	const float *area_no = data->area_no;
 	const float *area_co = data->area_co;
 
@@ -2767,7 +2767,7 @@ static void do_clay_brush_task_cb_ex(
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
-	Brush *brush = data->brush;
+	const Brush *brush = data->brush;
 	const float *area_no = data->area_no;
 	const float *area_co = data->area_co;
 
@@ -2851,7 +2851,7 @@ static void do_clay_strips_brush_task_cb_ex(
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
-	Brush *brush = data->brush;
+	const Brush *brush = data->brush;
 	float (*mat)[4] = data->mat;
 	const float *area_no_sp = data->area_no_sp;
 	const float *area_co = data->area_co;
@@ -2961,7 +2961,7 @@ static void do_fill_brush_task_cb_ex(
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
-	Brush *brush = data->brush;
+	const Brush *brush = data->brush;
 	const float *area_no = data->area_no;
 	const float *area_co = data->area_co;
 
@@ -3040,7 +3040,7 @@ static void do_scrape_brush_task_cb_ex(
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
-	Brush *brush = data->brush;
+	const Brush *brush = data->brush;
 	const float *area_no = data->area_no;
 	const float *area_co = data->area_co;
 
@@ -3119,7 +3119,7 @@ static void do_gravity_task_cb_ex(
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
-	Brush *brush = data->brush;
+	const Brush *brush = data->brush;
 	float *offset = data->offset;
 
 	PBVHVertexIter vd;
@@ -4654,6 +4654,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 	if (ss->cache) {
 		UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
 		Brush *brush = BKE_paint_brush(&sd->paint);
+		BLI_assert(brush == ss->cache->brush);  /* const, so we shouldn't change. */
 		ups->draw_inverted = false;
 
 		sculpt_stroke_modifiers_check(C, ob);
@@ -4664,11 +4665,10 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 				brush->mask_tool = ss->cache->saved_mask_brush_tool;
 			}
 			else {
-				Paint *p = &sd->paint;
-				BKE_brush_size_set(scene, ss->cache->brush, ss->cache->saved_smooth_size);
+				BKE_brush_size_set(scene, brush, ss->cache->saved_smooth_size);
 				brush = (Brush *)BKE_libblock_find_name(ID_BR, ss->cache->saved_active_brush_name);
 				if (brush) {
-					BKE_paint_brush_set(p, brush);
+					BKE_paint_brush_set(&sd->paint, brush);
 				}
 			}
 		}
