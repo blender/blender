@@ -1806,12 +1806,16 @@ static void wpaint_paint_leaves(
         bContext *C, Object *ob, Sculpt *sd, VPaint *vp, struct WPaintData *wpd, WeightPaintInfo *wpi,
         Mesh *me, PBVHNode **nodes, int totnode)
 {
+	Scene *scene = CTX_data_scene(C);
 	const Brush *brush = ob->sculpt->cache->brush;
 
 	/* threaded loop over nodes */
 	SculptThreadedTaskData data = {
 		.sd = sd, .ob = ob, .brush = brush, .nodes = nodes, .vp = vp, .wpd = wpd, .wpi = wpi, .me = me, .C = C,
 	};
+
+	/* Use this so average can modify its weight without touching the brush. */
+	data.strength = BKE_brush_weight_get(scene, brush);
 
 	/* current mirroring code cannot be run in parallel */
 	bool use_threading = !(me->editflag & ME_EDIT_MIRROR_X);
