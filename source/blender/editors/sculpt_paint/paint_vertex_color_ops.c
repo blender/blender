@@ -190,7 +190,7 @@ void PAINT_OT_vertex_color_from_weight(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Vertex Color from Weight";
 	ot->idname = "PAINT_OT_vertex_color_from_weight";
-	ot->description = "Convert active weight into grey scale vertex colors";
+	ot->description = "Convert active weight into gray scale vertex colors";
 
 	/* api callback */
 	ot->exec = vertex_paint_from_weight_exec;
