@@ -477,8 +477,12 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
 		
 		/* store actual window size in blender window */
 		bounds = GHOST_GetClientBounds(win->ghostwin);
-		win->sizex = GHOST_GetWidthRectangle(bounds);
-		win->sizey = GHOST_GetHeightRectangle(bounds);
+
+		/* win32: gives undefined window size when minimized */
+		if (GHOST_GetWindowState(win->ghostwin) != GHOST_kWindowStateMinimized) {
+			win->sizex = GHOST_GetWidthRectangle(bounds);
+			win->sizey = GHOST_GetHeightRectangle(bounds);
+		}
 		GHOST_DisposeRectangle(bounds);
 		
 #ifndef __APPLE__
