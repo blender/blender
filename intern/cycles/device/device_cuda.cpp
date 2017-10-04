@@ -1351,7 +1351,7 @@ public:
 
 			/* Update progress. */
 			rtile.sample = sample + wtile->num_samples;
-			task.update_progress(&rtile, rtile.w*rtile.h);
+			task.update_progress(&rtile, rtile.w*rtile.h*wtile->num_samples);
 
 			if(task.get_cancel()) {
 				if(task.need_finish_queue == false)
