@@ -118,10 +118,11 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 	bool absolute = false;
 	bool packed   = false;
 	bool local    = false;
-	static const char *kwlist[] = {"absolute", "packed", "local", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(
-	        args, kw, "|O&O&O&:blend_paths", (char **)kwlist,
+	static const char *_keywords[] = {"absolute", "packed", "local", NULL};
+	static _PyArg_Parser _parser = {"|O&O&O&:blend_paths", _keywords, 0};
+	if (!_PyArg_ParseTupleAndKeywordsFast(
+	        args, kw, &_parser,
 	        PyC_ParseBool, &absolute,
 	        PyC_ParseBool, &packed,
 	        PyC_ParseBool, &local))
@@ -147,13 +148,18 @@ static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObj
 	const char *type;
 	const char *subdir = NULL;
 	int folder_id;
-	static const char *kwlist[] = {"type", "subdir", NULL};
 
 	const char *path;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|s:user_resource", (char **)kwlist, &type, &subdir))
+	static const char *_keywords[] = {"type", "subdir", NULL};
+	static _PyArg_Parser _parser = {"s|s:user_resource", _keywords, 0};
+	if (!_PyArg_ParseTupleAndKeywordsFast(
+	        args, kw, &_parser,
+	        &type, &subdir))
+	{
 		return NULL;
-	
+	}
+
 	/* stupid string compare */
 	if      (STREQ(type, "DATAFILES")) folder_id = BLENDER_USER_DATAFILES;
 	else if (STREQ(type, "CONFIG"))    folder_id = BLENDER_USER_CONFIG;
@@ -191,12 +197,17 @@ static PyObject *bpy_resource_path(PyObject *UNUSED(self), PyObject *args, PyObj
 {
 	const char *type;
 	int major = BLENDER_VERSION / 100, minor = BLENDER_VERSION % 100;
-	static const char *kwlist[] = {"type", "major", "minor", NULL};
 	int folder_id;
 	const char *path;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ii:resource_path", (char **)kwlist, &type, &major, &minor))
+	static const char *_keywords[] = {"type", "major", "minor", NULL};
+	static _PyArg_Parser _parser = {"s|ii:resource_path", _keywords, 0};
+	if (!_PyArg_ParseTupleAndKeywordsFast(
+	        args, kw, &_parser,
+	        &type, &major, &minor))
+	{
 		return NULL;
+	}
 
 	/* stupid string compare */
 	if      (STREQ(type, "USER"))    folder_id = BLENDER_RESOURCE_PATH_USER;
