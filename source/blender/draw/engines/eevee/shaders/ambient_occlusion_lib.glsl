@@ -3,6 +3,26 @@
  * http://blog.selfshadow.com/publications/s2016-shading-course/activision/s2016_pbs_activision_occlusion.pdf
  * http://blog.selfshadow.com/publications/s2016-shading-course/activision/s2016_pbs_activision_occlusion.pptx */
 
+#if defined(MESH_SHADER)
+# if !defined(USE_ALPHA_HASH)
+#  if !defined(USE_ALPHA_CLIP)
+#   if !defined(SHADOW_SHADER)
+#    if !defined(USE_MULTIPLY)
+#     if !defined(USE_ALPHA_BLEND)
+#      define ENABLE_DEFERED_AO
+#     endif
+#    endif
+#   endif
+#  endif
+# endif
+#endif
+
+#ifndef ENABLE_DEFERED_AO
+# if defined(STEP_RESOLVE)
+#  define ENABLE_DEFERED_AO
+# endif
+#endif
+
 #define MAX_PHI_STEP 32
 #define MAX_SEARCH_ITER 32
 #define MAX_LOD 6.0
@@ -327,13 +347,7 @@ float occlusion_compute(vec3 N, vec3 vpos, float user_occlusion, vec2 randuv, ou
 		float visibility;
 		vec3 vnor = mat3(ViewMatrix) * N;
 
-#if (defined(MESH_SHADER) && \
-	 !defined(USE_ALPHA_HASH) && \
-	 !defined(USE_ALPHA_CLIP) && \
-	 !defined(SHADOW_SHADER) && \
-	 !defined(USE_MULTIPLY) && \
-	 !defined(USE_ALPHA_BLEND)) \
-	|| defined(STEP_RESOLVE)
+#ifdef ENABLE_DEFERED_AO
 		gtao_deferred(vnor, vpos, gl_FragCoord.z, visibility, bent_normal);
 #else
 		gtao(vnor, vpos, randuv, visibility, bent_normal);
