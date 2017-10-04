@@ -1684,7 +1684,7 @@ static BMOpDefine bmo_create_circle_def = {
 	{{"cap_ends",        BMO_OP_SLOT_BOOL},  /* whether or not to fill in the ends with faces */
 	 {"cap_tris",        BMO_OP_SLOT_BOOL},  /* fill ends with triangles instead of ngons */
 	 {"segments",        BMO_OP_SLOT_INT},
-	 {"diameter",        BMO_OP_SLOT_FLT},  /* diameter of one end */
+	 {"radius",          BMO_OP_SLOT_FLT},  /* Radius of the circle. */
 	 {"matrix",          BMO_OP_SLOT_MAT},  /* matrix to multiply the new geometry with */
 	 {"calc_uvs",        BMO_OP_SLOT_BOOL}, /* calculate default UVs */
 	 {{'\0'}},

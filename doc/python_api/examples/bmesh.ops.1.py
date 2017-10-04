@@ -12,7 +12,7 @@ bm = bmesh.new()
 bmesh.ops.create_circle(
         bm,
         cap_ends=False,
-        diameter=0.2,
+        radius=0.2,
         segments=8)
 
 
