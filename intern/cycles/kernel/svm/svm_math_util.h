@@ -134,32 +134,19 @@ ccl_device float3 svm_math_blackbody_color(float t) {
 		{  6.72595954e-13f, -2.73059993e-08f,  4.24068546e-04f, -7.52204323e-01f },
 	};
 
-	int i;
 	if(t >= 12000.0f) {
 		return make_float3(0.826270103f, 0.994478524f, 1.56626022f);
 	}
-	else if(t >= 6365.0f) {
-		i = 5;
-	}
-	else if(t >= 3315.0f) {
-		i = 4;
-	}
-	else if(t >= 1902.0f) {
-		i = 3;
-	}
-	else if(t >= 1449.0f) {
-		i = 2;
-	}
-	else if(t >= 1167.0f) {
-		i = 1;
-	}
-	else if(t >= 965.0f) {
-		i = 0;
-	}
-	else {
+	else if(t < 965.0f) {
 		/* For 800 <= t < 965 color does not change in OSL implementation, so keep color the same */
 		return make_float3(4.70366907f, 0.0f, 0.0f);
 	}
+
+	int i = (t >= 6365.0f)? 5:
+		(t >= 3315.0f)? 4:
+		(t >= 1902.0f)? 3:
+		(t >= 1449.0f)? 2:
+		(t >= 1167.0f)? 1: 0;
 
 	const float t_inv = 1.0f / t;
 	return make_float3(rc[i][0] * t_inv + rc[i][1] * t + rc[i][2],
