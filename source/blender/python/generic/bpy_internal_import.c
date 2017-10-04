@@ -253,7 +253,7 @@ PyObject *bpy_text_reimport(PyObject *module, int *found)
 		if (module_file == NULL) {
 			return NULL;
 		}
-		filepath = (char *)_PyUnicode_AsString(module_file);
+		filepath = _PyUnicode_AsString(module_file);
 		Py_DECREF(module_file);
 		if (filepath == NULL) {
 			return NULL;
