@@ -67,6 +67,75 @@ GWN_INLINE void set_input_name(Gwn_ShaderInput* input, const char* name)
 	input->name_hash = hash_string(name);
 	}
 
+GWN_INLINE void shader_input_to_bucket(Gwn_ShaderInput* input,
+                                       Gwn_ShaderInput_Entry* buckets[GWN_NUM_SHADERINTERFACE_BUCKETS])
+	{
+	Gwn_ShaderInput_Entry* entry = malloc(sizeof(Gwn_ShaderInput_Entry));
+	const unsigned bucket_index = input->name_hash % GWN_NUM_SHADERINTERFACE_BUCKETS;
+	entry->next = buckets[bucket_index];
+	entry->shader_input = input;
+	buckets[bucket_index] = entry;
+	}
+
+GWN_INLINE Gwn_ShaderInput* buckets_lookup(Gwn_ShaderInput_Entry* const buckets[GWN_NUM_SHADERINTERFACE_BUCKETS],
+                                           const char *name)
+	{
+	const unsigned name_hash = hash_string(name);
+	const unsigned bucket_index = name_hash % GWN_NUM_SHADERINTERFACE_BUCKETS;
+	const Gwn_ShaderInput_Entry* entry = buckets[bucket_index];
+	if (entry == NULL)
+		{
+			// Requested uniform is not found at all.
+			return NULL;
+		}
+	// Optimization bit: if there is no hash collision detected when constructing shader interface
+	// it means we can only request the single possible uniform. Surely, it's possible we request
+	// uniform which causes hash collision, but that will be detected in debug builds.
+	if (entry->next == NULL)
+		{
+			if (name_hash == entry->shader_input->name_hash)
+				{
+#if TRUST_NO_ONE
+				assert(match(entry->shader_input->name, name));
+#endif
+				return entry->shader_input;
+				}
+			return NULL;
+		}
+	// Work through possible collisions.
+	while (entry != NULL)
+		{
+		Gwn_ShaderInput* uniform = entry->shader_input;
+		entry = entry->next;
+#if SUPPORT_LEGACY_GLSL
+		if (uniform->name == NULL) continue;
+#endif
+		if (uniform->name_hash != name_hash)
+			{
+				continue;
+			}
+		if (match(uniform->name, name))
+			{
+			return uniform;
+			}
+		}
+	return NULL; // not found
+	}
+
+GWN_INLINE void buckets_free(Gwn_ShaderInput_Entry* buckets[GWN_NUM_SHADERINTERFACE_BUCKETS])
+	{
+	for (unsigned bucket_index = 0; bucket_index < GWN_NUM_SHADERINTERFACE_BUCKETS; ++bucket_index)
+		{
+		Gwn_ShaderInput_Entry *entry = buckets[bucket_index];
+		while (entry != NULL)
+			{
+			Gwn_ShaderInput_Entry *entry_next = entry->next;
+			free(entry);
+			entry = entry_next;
+			}
+		}
+	}
+
 // keep these in sync with Gwn_UniformBuiltin order
 #define FIRST_MAT4_UNIFORM GWN_UNIFORM_MODELVIEW
 #define LAST_MAT4_UNIFORM GWN_UNIFORM_PROJECTION_INV
@@ -240,35 +309,33 @@ Gwn_ShaderInterface* GWN_shaderinterface_create(GLint program)
 			}
 		}
 
+	for (uint32_t i = 0; i < shaderface->uniform_ct; ++i)
+		{
+			Gwn_ShaderInput* input = &shaderface->inputs[i];
+			shader_input_to_bucket(input, shaderface->uniform_buckets);
+		}
+	for (uint32_t i = 0; i < shaderface->attrib_ct; ++i)
+		{
+			Gwn_ShaderInput* input = &shaderface->inputs[i + shaderface->uniform_ct];
+			shader_input_to_bucket(input, shaderface->attrib_buckets);
+		}
+
 	return shaderface;
 	}
 
 void GWN_shaderinterface_discard(Gwn_ShaderInterface* shaderface)
 	{
-	// allocated as one chunk, so discard is simple
+	// Free memory used by buckets and has entries.
+	buckets_free(shaderface->uniform_buckets);
+	buckets_free(shaderface->attrib_buckets);
+	// Free memory used by shader interface by its self.
 	free(shaderface);
 	}
 
 const Gwn_ShaderInput* GWN_shaderinterface_uniform(const Gwn_ShaderInterface* shaderface, const char* name)
 	{
-	const unsigned name_hash = hash_string(name);
-	for (uint32_t i = 0; i < shaderface->uniform_ct; ++i)
-		{
-		const Gwn_ShaderInput* uniform = shaderface->inputs + i;
-
-#if SUPPORT_LEGACY_GLSL
-		if (uniform->name == NULL) continue;
-#endif
-
-		if (uniform->name_hash != name_hash) continue;
-
-		if (match(uniform->name, name))
-			return uniform;
-
-		// TODO: warn if we find a matching builtin, since these can be looked up much quicker --v
-		}
-
-	return NULL; // not found
+	// TODO: Warn if we find a matching builtin, since these can be looked up much quicker.
+	return buckets_lookup(shaderface->uniform_buckets, name);
 	}
 
 const Gwn_ShaderInput* GWN_shaderinterface_uniform_builtin(const Gwn_ShaderInterface* shaderface, Gwn_UniformBuiltin builtin)
@@ -291,21 +358,5 @@ const Gwn_ShaderInput* GWN_shaderinterface_uniform_builtin(const Gwn_ShaderInter
 
 const Gwn_ShaderInput* GWN_shaderinterface_attr(const Gwn_ShaderInterface* shaderface, const char* name)
 	{
-	// attribs are stored after uniforms
-	const uint32_t input_ct = shaderface->uniform_ct + shaderface->attrib_ct;
-	const unsigned name_hash = hash_string(name);
-	for (uint32_t i = shaderface->uniform_ct; i < input_ct; ++i)
-		{
-		const Gwn_ShaderInput* attrib = shaderface->inputs + i;
-
-#if SUPPORT_LEGACY_GLSL
-		if (attrib->name == NULL) continue;
-#endif
-
-		if (attrib->name_hash != name_hash) continue;
-
-		if (match(attrib->name, name))
-			return attrib;
-		}
-	return NULL; // not found
+	return buckets_lookup(shaderface->attrib_buckets, name);
 	}
