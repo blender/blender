@@ -1773,7 +1773,6 @@ class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
         sub.prop(wpaint, "normal_angle", text="")
         col = layout.column()
         row = col.row()
-        row.prop(wpaint, "use_spray")
         row.prop(wpaint, "use_group_restrict")
 
         obj = context.weight_paint_object
@@ -1815,8 +1814,6 @@ class VIEW3D_PT_tools_vertexpaint(Panel, View3DPaintPanel):
         sub = row.row()
         sub.active = (vpaint.use_normal_falloff)
         sub.prop(vpaint, "normal_angle", text="")
-
-        col.prop(vpaint, "use_spray")
 
         self.unified_paint_settings(col, context)
 

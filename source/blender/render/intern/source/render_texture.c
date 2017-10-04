@@ -781,7 +781,8 @@ static int cubemap_glob(const float n[3], float x, float y, float z, float *adr1
 /* ------------------------------------------------------------------------- */
 
 /* mtex argument only for projection switches */
-static int cubemap(MTex *mtex, VlakRen *vlr, const float n[3], float x, float y, float z, float *adr1, float *adr2)
+static int cubemap(
+        const MTex *mtex, VlakRen *vlr, const float n[3], float x, float y, float z, float *adr1, float *adr2)
 {
 	int proj[4]={0, ME_PROJXY, ME_PROJXZ, ME_PROJYZ}, ret= 0;
 	
@@ -873,7 +874,8 @@ static int cubemap_ob(Object *ob, const float n[3], float x, float y, float z, f
 
 /* ------------------------------------------------------------------------- */
 
-static void do_2d_mapping(MTex *mtex, float texvec[3], VlakRen *vlr, const float n[3], float dxt[3], float dyt[3])
+static void do_2d_mapping(
+        const MTex *mtex, float texvec[3], VlakRen *vlr, const float n[3], float dxt[3], float dyt[3])
 {
 	Tex *tex;
 	Object *ob= NULL;
@@ -3594,7 +3596,7 @@ void do_lamp_tex(LampRen *la, const float lavec[3], ShadeInput *shi, float col_r
 
 /* ------------------------------------------------------------------------- */
 
-int externtex(MTex *mtex,
+int externtex(const MTex *mtex,
               const float vec[3],
               float *tin, float *tr, float *tg, float *tb, float *ta,
               const int thread,

@@ -684,13 +684,11 @@ void BKE_sculptsession_free_vwpaint_data(struct SculptSession *ss)
 		gmap = &ss->mode.vpaint.gmap;
 
 		MEM_SAFE_FREE(ss->mode.vpaint.previous_color);
-		MEM_SAFE_FREE(ss->mode.vpaint.previous_accum);
 	}
 	else if (ss->mode_type == OB_MODE_WEIGHT_PAINT) {
 		gmap = &ss->mode.wpaint.gmap;
 
 		MEM_SAFE_FREE(ss->mode.wpaint.alpha_weight);
-		MEM_SAFE_FREE(ss->mode.wpaint.previous_accum);
 		if (ss->mode.wpaint.dvert_prev) {
 			BKE_defvert_array_free_elems(ss->mode.wpaint.dvert_prev, ss->totvert);
 			MEM_freeN(ss->mode.wpaint.dvert_prev);

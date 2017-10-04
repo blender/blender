@@ -253,7 +253,7 @@ PyObject *bpy_text_reimport(PyObject *module, int *found)
 		if (module_file == NULL) {
 			return NULL;
 		}
-		filepath = (char *)_PyUnicode_AsString(module_file);
+		filepath = _PyUnicode_AsString(module_file);
 		Py_DECREF(module_file);
 		if (filepath == NULL) {
 			return NULL;
@@ -285,13 +285,13 @@ static PyObject *blender_import(PyObject *UNUSED(self), PyObject *args, PyObject
 	int found = 0;
 	PyObject *globals = NULL, *locals = NULL, *fromlist = NULL;
 	int level = 0; /* relative imports */
-	
 	PyObject *newmodule;
-	//PyObject_Print(args, stderr, 0);
-	static const char *kwlist[] = {"name", "globals", "locals", "fromlist", "level", NULL};
-	
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|OOOi:bpy_import_meth", (char **)kwlist,
-	                                 &name, &globals, &locals, &fromlist, &level))
+
+	static const char *_keywords[] = {"name", "globals", "locals", "fromlist", "level", NULL};
+	static _PyArg_Parser _parser = {"s|OOOi:bpy_import_meth", _keywords, 0};
+	if (!_PyArg_ParseTupleAndKeywordsFast(
+	        args, kw, &_parser,
+	        &name, &globals, &locals, &fromlist, &level))
 	{
 		return NULL;
 	}

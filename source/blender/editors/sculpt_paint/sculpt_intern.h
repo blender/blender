@@ -132,7 +132,7 @@ typedef struct SculptThreadedTaskData {
 	struct bContext *C;
 	struct Sculpt *sd;
 	struct Object *ob;
-	struct Brush *brush;
+	const struct Brush *brush;
 	struct PBVHNode **nodes;
 	int totnode;
 
@@ -214,7 +214,7 @@ bool sculpt_brush_test_circle_sq(SculptBrushTest *test, const float co[3]);
 bool sculpt_search_sphere_cb(PBVHNode *node, void *data_v);
 bool sculpt_search_circle_cb(PBVHNode *node, void *data_v);
 float tex_strength(
-        struct SculptSession *ss, struct Brush *br,
+        struct SculptSession *ss, const struct Brush *br,
         const float point[3],
         const float len,
         const short vno[3],
@@ -268,7 +268,7 @@ typedef struct StrokeCache {
 
 	/* Clean this up! */
 	struct ViewContext *vc;
-	struct Brush *brush;
+	const struct Brush *brush;
 
 	float special_rotation;
 	float grab_delta[3], grab_delta_symmetry[3];

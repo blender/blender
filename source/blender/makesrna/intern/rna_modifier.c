@@ -1999,8 +1999,8 @@ static void rna_def_modifier_boolean(BlenderRNA *brna)
 	/* BMesh intersection options */
 	static EnumPropertyItem debug_items[] = {
 		{eBooleanModifierBMeshFlag_BMesh_Separate, "SEPARATE", 0, "Separate", ""},
-		{eBooleanModifierBMeshFlag_BMesh_NoDissolve, "NO_DISSOLVE", 0, "NoDissolve", ""},
-		{eBooleanModifierBMeshFlag_BMesh_NoConnectRegions, "NO_CONNECT_REGIONS", 0, "NoConnectRegions", ""},
+		{eBooleanModifierBMeshFlag_BMesh_NoDissolve, "NO_DISSOLVE", 0, "No Dissolve", ""},
+		{eBooleanModifierBMeshFlag_BMesh_NoConnectRegions, "NO_CONNECT_REGIONS", 0, "No Connect Regions", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 

@@ -233,7 +233,7 @@ static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 
 	if (!EDBM_op_call_and_selectf(
 	        em, op, "verts.out", false,
-	        "create_circle segments=%i diameter=%f cap_ends=%b cap_tris=%b matrix=%m4 calc_uvs=%b",
+	        "create_circle segments=%i radius=%f cap_ends=%b cap_tris=%b matrix=%m4 calc_uvs=%b",
 	        RNA_int_get(op->ptr, "vertices"), RNA_float_get(op->ptr, "radius"),
 	        cap_end, cap_tri, mat, calc_uvs))
 	{

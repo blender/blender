@@ -1711,7 +1711,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 					VPaint *vp = i ? ts->vpaint : ts->wpaint;
 					if (vp != NULL) {
 						/* remove all other flags */
-						vp->flag &= (VP_FLAG_SPRAY | VP_FLAG_VGROUP_RESTRICT);
+						vp->flag &= (VP_FLAG_VGROUP_RESTRICT);
 						vp->normal_angle = 80;
 					}
 				}

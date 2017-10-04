@@ -1300,7 +1300,7 @@ static void outliner_add_library_contents(Main *mainvar, SpaceOops *soops, TreeE
 				ten = outliner_add_element(soops, &te->subtree, lbarray[a], NULL, TSE_ID_BASE, 0);
 				ten->directdata = lbarray[a];
 				
-				ten->name = (char *)BKE_idcode_to_name_plural(GS(id->name));
+				ten->name = BKE_idcode_to_name_plural(GS(id->name));
 				if (ten->name == NULL)
 					ten->name = "UNKNOWN";
 				
@@ -1340,7 +1340,7 @@ static void outliner_add_orphaned_datablocks(Main *mainvar, SpaceOops *soops)
 				ten = outliner_add_element(soops, &soops->tree, lbarray[a], NULL, TSE_ID_BASE, 0);
 				ten->directdata = lbarray[a];
 				
-				ten->name = (char *)BKE_idcode_to_name_plural(GS(id->name));
+				ten->name = BKE_idcode_to_name_plural(GS(id->name));
 				if (ten->name == NULL)
 					ten->name = "UNKNOWN";
 				
