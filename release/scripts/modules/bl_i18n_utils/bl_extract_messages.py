@@ -227,6 +227,8 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
         # More builtin classes we don't need to parse.
         blacklist_rna_class |= {cls for cls in bpy.types.Property.__subclasses__()}
 
+        # None of this seems needed anymore, and it's broken anyway with current master (blender 2.79.1)...
+        """
         _rna = {getattr(bpy.types, cls) for cls in dir(bpy.types)}
 
         # Classes which are attached to collections can be skipped too, these are api access only.
@@ -276,6 +278,7 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
             #op = get_instance(idname)
             #if 'INTERNAL' in path_resolve(op, "bl_options"):
                 #blacklist_rna_class.add(idname)
+        """
 
         return blacklist_rna_class
 
