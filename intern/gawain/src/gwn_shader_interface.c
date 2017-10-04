@@ -44,12 +44,12 @@ static const char* BuiltinUniform_name(Gwn_UniformBuiltin u)
 	return names[u];
 	}
 
-static bool match(const char* a, const char* b)
+GWN_INLINE bool match(const char* a, const char* b)
 	{
 	return strcmp(a, b) == 0;
 	}
 
-static unsigned hash_string(const char *str)
+GWN_INLINE unsigned hash_string(const char *str)
 	{
 	unsigned i = 0, c;
 
@@ -61,7 +61,7 @@ static unsigned hash_string(const char *str)
 	return i;
 	}
 
-static void set_input_name(Gwn_ShaderInput* input, const char* name)
+GWN_INLINE void set_input_name(Gwn_ShaderInput* input, const char* name)
 	{
 	input->name = name;
 	input->name_hash = hash_string(name);
