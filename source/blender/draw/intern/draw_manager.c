@@ -685,30 +685,31 @@ static DRWInterface *DRW_interface_duplicate(DRWInterface *interface_src)
 static void DRW_interface_uniform(DRWShadingGroup *shgroup, const char *name,
                                   DRWUniformType type, const void *value, int length, int arraysize)
 {
-	DRWUniform *uni = MEM_mallocN(sizeof(DRWUniform), "DRWUniform");
-
+	int location;
 	if (type == DRW_UNIFORM_BLOCK) {
-		uni->location = GPU_shader_get_uniform_block(shgroup->shader, name);
+		location = GPU_shader_get_uniform_block(shgroup->shader, name);
 	}
 	else {
-		uni->location = GPU_shader_get_uniform(shgroup->shader, name);
+		location = GPU_shader_get_uniform(shgroup->shader, name);
 	}
 
-	BLI_assert(arraysize > 0);
-
-	uni->type = type;
-	uni->value = value;
-	uni->length = length;
-	uni->arraysize = arraysize;
-
-	if (uni->location == -1) {
+	if (location == -1) {
 		if (G.debug & G_DEBUG)
 			fprintf(stderr, "Uniform '%s' not found!\n", name);
 		/* Nice to enable eventually, for now eevee uses uniforms that might not exist. */
 		// BLI_assert(0);
-		MEM_freeN(uni);
 		return;
 	}
+
+	DRWUniform *uni = MEM_mallocN(sizeof(DRWUniform), "DRWUniform");
+
+	BLI_assert(arraysize > 0);
+
+	uni->location = location;
+	uni->type = type;
+	uni->value = value;
+	uni->length = length;
+	uni->arraysize = arraysize;
 
 	BLI_addtail(&shgroup->interface->uniforms, uni);
 }
