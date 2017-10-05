@@ -1424,14 +1424,16 @@ public:
 		CUfunction cuShader;
 		CUdeviceptr d_input = cuda_device_ptr(task.shader_input);
 		CUdeviceptr d_output = cuda_device_ptr(task.shader_output);
-		CUdeviceptr d_output_luma = cuda_device_ptr(task.shader_output_luma);
 
 		/* get kernel function */
 		if(task.shader_eval_type >= SHADER_EVAL_BAKE) {
 			cuda_assert(cuModuleGetFunction(&cuShader, cuModule, "kernel_cuda_bake"));
 		}
+		else if(task.shader_eval_type == SHADER_EVAL_DISPLACE) {
+			cuda_assert(cuModuleGetFunction(&cuShader, cuModule, "kernel_cuda_displace"));
+		}
 		else {
-			cuda_assert(cuModuleGetFunction(&cuShader, cuModule, "kernel_cuda_shader"));
+			cuda_assert(cuModuleGetFunction(&cuShader, cuModule, "kernel_cuda_background"));
 		}
 
 		/* do tasks in smaller chunks, so we can cancel it */
@@ -1450,9 +1452,6 @@ public:
 				int arg = 0;
 				args[arg++] = &d_input;
 				args[arg++] = &d_output;
-				if(task.shader_eval_type < SHADER_EVAL_BAKE) {
-					args[arg++] = &d_output_luma;
-				}
 				args[arg++] = &task.shader_eval_type;
 				if(task.shader_eval_type >= SHADER_EVAL_BAKE) {
 					args[arg++] = &task.shader_filter;

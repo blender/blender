@@ -149,7 +149,6 @@ void KERNEL_FUNCTION_FULL_NAME(convert_to_half_float)(KernelGlobals *kg,
 void KERNEL_FUNCTION_FULL_NAME(shader)(KernelGlobals *kg,
                                        uint4 *input,
                                        float4 *output,
-                                       float *output_luma,
                                        int type,
                                        int filter,
                                        int i,
@@ -160,7 +159,6 @@ void KERNEL_FUNCTION_FULL_NAME(shader)(KernelGlobals *kg,
 	STUB_ASSERT(KERNEL_ARCH, shader);
 #else
 	if(type >= SHADER_EVAL_BAKE) {
-		kernel_assert(output_luma == NULL);
 #  ifdef __BAKING__
 		kernel_bake_evaluate(kg,
 		                     input,
@@ -172,14 +170,11 @@ void KERNEL_FUNCTION_FULL_NAME(shader)(KernelGlobals *kg,
 		                     sample);
 #  endif
 	}
+	else if(type == SHADER_EVAL_DISPLACE) {
+		kernel_displace_evaluate(kg, input, output, i);
+	}
 	else {
-		kernel_shader_evaluate(kg,
-		                       input,
-		                       output,
-		                       output_luma,
-		                       (ShaderEvalType)type,
-		                       i,
-		                       sample);
+		kernel_background_evaluate(kg, input, output, i);
 	}
 #endif /* KERNEL_STUB */
 }

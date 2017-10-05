@@ -72,11 +72,10 @@ __kernel void kernel_ocl_path_trace(
 
 #else  /* __COMPILE_ONLY_MEGAKERNEL__ */
 
-__kernel void kernel_ocl_shader(
+__kernel void kernel_ocl_displace(
 	ccl_constant KernelData *data,
 	ccl_global uint4 *input,
 	ccl_global float4 *output,
-	ccl_global float *output_luma,
 
 	KERNEL_BUFFER_PARAMS,
 
@@ -92,13 +91,29 @@ __kernel void kernel_ocl_shader(
 	int x = sx + ccl_global_id(0);
 
 	if(x < sx + sw) {
-		kernel_shader_evaluate(kg,
-		                       input,
-		                       output,
-		                       output_luma,
-		                       (ShaderEvalType)type,
-		                       x,
-		                       sample);
+		kernel_displace_evaluate(kg, input, output, x);
+	}
+}
+__kernel void kernel_ocl_background(
+	ccl_constant KernelData *data,
+	ccl_global uint4 *input,
+	ccl_global float4 *output,
+
+	KERNEL_BUFFER_PARAMS,
+
+	int type, int sx, int sw, int offset, int sample)
+{
+	KernelGlobals kglobals, *kg = &kglobals;
+
+	kg->data = data;
+
+	kernel_set_buffer_pointers(kg, KERNEL_BUFFER_ARGS);
+	kernel_set_buffer_info(kg);
+
+	int x = sx + ccl_global_id(0);
+
+	if(x < sx + sw) {
+		kernel_background_evaluate(kg, input, output, x);
 	}
 }
 

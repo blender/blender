@@ -1204,7 +1204,7 @@ ccl_device void shader_eval_displacement(KernelGlobals *kg, ShaderData *sd, ccl_
 #ifdef __SVM__
 #  ifdef __OSL__
 	if(kg->osl)
-		OSLShader::eval_displacement(kg, sd);
+		OSLShader::eval_displacement(kg, sd, state);
 	else
 #  endif
 	{

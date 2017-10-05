@@ -228,7 +228,8 @@ bool OpenCLDeviceBase::load_kernels(const DeviceRequestedFeatures& requested_fea
 	base_program = OpenCLProgram(this, "base", "kernel.cl", build_options_for_base_program(requested_features));
 	base_program.add_kernel(ustring("convert_to_byte"));
 	base_program.add_kernel(ustring("convert_to_half_float"));
-	base_program.add_kernel(ustring("shader"));
+	base_program.add_kernel(ustring("displace"));
+	base_program.add_kernel(ustring("background"));
 	base_program.add_kernel(ustring("bake"));
 	base_program.add_kernel(ustring("zero_buffer"));
 
@@ -1112,7 +1113,6 @@ void OpenCLDeviceBase::shader(DeviceTask& task)
 	cl_mem d_data = CL_MEM_PTR(const_mem_map["__data"]->device_pointer);
 	cl_mem d_input = CL_MEM_PTR(task.shader_input);
 	cl_mem d_output = CL_MEM_PTR(task.shader_output);
-	cl_mem d_output_luma = CL_MEM_PTR(task.shader_output_luma);
 	cl_int d_shader_eval_type = task.shader_eval_type;
 	cl_int d_shader_filter = task.shader_filter;
 	cl_int d_shader_x = task.shader_x;
@@ -1121,10 +1121,15 @@ void OpenCLDeviceBase::shader(DeviceTask& task)
 
 	cl_kernel kernel;
 
-	if(task.shader_eval_type >= SHADER_EVAL_BAKE)
+	if(task.shader_eval_type >= SHADER_EVAL_BAKE) {
 		kernel = base_program(ustring("bake"));
-	else
-		kernel = base_program(ustring("shader"));
+	}
+	else if(task.shader_eval_type >= SHADER_EVAL_DISPLACE) {
+		kernel = base_program(ustring("displace"));
+	}
+	else {
+		kernel = base_program(ustring("background"));
+	}
 
 	cl_uint start_arg_index =
 		kernel_set_args(kernel,
@@ -1132,12 +1137,6 @@ void OpenCLDeviceBase::shader(DeviceTask& task)
 		                d_data,
 		                d_input,
 		                d_output);
-
-	if(task.shader_eval_type < SHADER_EVAL_BAKE) {
-		start_arg_index += kernel_set_args(kernel,
-		                                   start_arg_index,
-		                                   d_output_luma);
-	}
 
 	set_kernel_arg_buffers(kernel, &start_arg_index);
 

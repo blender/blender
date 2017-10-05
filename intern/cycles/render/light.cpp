@@ -60,6 +60,7 @@ static void shade_background_pixels(Device *device, DeviceScene *dscene, int res
 	device->mem_alloc("shade_background_pixels_input", d_input, MEM_READ_ONLY);
 	device->mem_copy_to(d_input);
 	device->mem_alloc("shade_background_pixels_output", d_output, MEM_WRITE_ONLY);
+	device->mem_zero(d_output);
 
 	DeviceTask main_task(DeviceTask::SHADER);
 	main_task.shader_input = d_input.device_pointer;
