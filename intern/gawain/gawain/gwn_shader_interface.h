@@ -14,7 +14,7 @@
 #include "gwn_common.h"
 
 typedef enum {
-	GWN_UNIFORM_NONE, // uninitialized/unknown
+	GWN_UNIFORM_NONE = 0, // uninitialized/unknown
 
 	GWN_UNIFORM_MODELVIEW,  // mat4 ModelViewMatrix
 	GWN_UNIFORM_PROJECTION, // mat4 ProjectionMatrix
@@ -27,7 +27,9 @@ typedef enum {
 
 	GWN_UNIFORM_COLOR, // vec4 color
 
-	GWN_UNIFORM_CUSTOM // custom uniform, not one of the above built-ins
+	GWN_UNIFORM_CUSTOM, // custom uniform, not one of the above built-ins
+
+	GWN_NUM_UNIFORMS, // Special value, denotes number of builtin uniforms.
 } Gwn_UniformBuiltin;
 
 typedef struct Gwn_ShaderInput {
@@ -51,6 +53,7 @@ typedef struct Gwn_ShaderInterface {
 	uint16_t attrib_ct;
 	Gwn_ShaderInput_Entry* uniform_buckets[GWN_NUM_SHADERINTERFACE_BUCKETS];
 	Gwn_ShaderInput_Entry* attrib_buckets[GWN_NUM_SHADERINTERFACE_BUCKETS];
+	Gwn_ShaderInput* builtin_uniforms[GWN_NUM_UNIFORMS];
 	Gwn_ShaderInput inputs[0]; // dynamic size, uniforms followed by attribs
 } Gwn_ShaderInterface;
 

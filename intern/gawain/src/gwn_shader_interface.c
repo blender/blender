@@ -38,7 +38,8 @@ static const char* BuiltinUniform_name(Gwn_UniformBuiltin u)
 
 		[GWN_UNIFORM_COLOR] = "color",
 
-		[GWN_UNIFORM_CUSTOM] = NULL
+		[GWN_UNIFORM_CUSTOM] = NULL,
+		[GWN_NUM_UNIFORMS] = NULL,
 		};
 
 	return names[u];
@@ -309,10 +310,16 @@ Gwn_ShaderInterface* GWN_shaderinterface_create(GLint program)
 			}
 		}
 
+	memset(shaderface->builtin_uniforms, 0, sizeof(shaderface->builtin_uniforms));
 	for (uint32_t i = 0; i < shaderface->uniform_ct; ++i)
 		{
 			Gwn_ShaderInput* input = &shaderface->inputs[i];
 			shader_input_to_bucket(input, shaderface->uniform_buckets);
+			if (input->builtin_type != GWN_UNIFORM_NONE &&
+			    input->builtin_type != GWN_UNIFORM_CUSTOM)
+				{
+				shaderface->builtin_uniforms[input->builtin_type] = input;
+				}
 		}
 	for (uint32_t i = 0; i < shaderface->attrib_ct; ++i)
 		{
@@ -343,17 +350,10 @@ const Gwn_ShaderInput* GWN_shaderinterface_uniform_builtin(const Gwn_ShaderInter
 #if TRUST_NO_ONE
 	assert(builtin != GWN_UNIFORM_NONE);
 	assert(builtin != GWN_UNIFORM_CUSTOM);
+	assert(builtin != GWN_NUM_UNIFORMS);
 #endif
 
-	// look up by enum, not name
-	for (uint32_t i = 0; i < shaderface->uniform_ct; ++i)
-		{
-		const Gwn_ShaderInput* uniform = shaderface->inputs + i;
-
-		if (uniform->builtin_type == builtin)
-			return uniform;
-		}
-	return NULL; // not found
+	return shaderface->builtin_uniforms[builtin];
 	}
 
 const Gwn_ShaderInput* GWN_shaderinterface_attr(const Gwn_ShaderInterface* shaderface, const char* name)
