@@ -42,6 +42,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_view3d_types.h"
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
@@ -1002,14 +1003,18 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	 * mouse over too, not just during a stroke */
 	view3d_set_viewcontext(C, &vc);
 
-	get_imapaint_zoom(C, &zoomx, &zoomy);
-	zoomx = max_ff(zoomx, zoomy);
+	if (vc.rv3d->rflag & RV3D_NAVIGATING) {
+		return;
+	}
 
 	/* skip everything and draw brush here */
 	if (brush->flag & BRUSH_CURVE) {
 		paint_draw_curve_cursor(brush);
 		return;
 	}
+
+	get_imapaint_zoom(C, &zoomx, &zoomy);
+	zoomx = max_ff(zoomx, zoomy);
 
 	/* set various defaults */
 	translation[0] = x;
