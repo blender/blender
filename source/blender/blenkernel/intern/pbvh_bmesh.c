@@ -1554,6 +1554,47 @@ bool BKE_pbvh_bmesh_node_raycast_detail(
 	return hit;
 }
 
+bool pbvh_bmesh_node_nearest_to_ray(
+        PBVHNode *node, const float ray_start[3],
+        const float ray_normal[3], float *depth, float *dist_sq,
+        bool use_original)
+{
+	bool hit = false;
+
+	if (use_original && node->bm_tot_ortri) {
+		for (int i = 0; i < node->bm_tot_ortri; i++) {
+			const int *t = node->bm_ortri[i];
+			hit |= ray_face_nearest_tri(
+			        ray_start, ray_normal,
+			        node->bm_orco[t[0]],
+			        node->bm_orco[t[1]],
+			        node->bm_orco[t[2]],
+			        depth, dist_sq);
+		}
+	}
+	else {
+		GSetIterator gs_iter;
+
+		GSET_ITER (gs_iter, node->bm_faces) {
+			BMFace *f = BLI_gsetIterator_getKey(&gs_iter);
+
+			BLI_assert(f->len == 3);
+			if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+				BMVert *v_tri[3];
+
+				BM_face_as_array_vert_tri(f, v_tri);
+				hit |= ray_face_nearest_tri(
+				        ray_start, ray_normal,
+				        v_tri[0]->co,
+				        v_tri[1]->co,
+				        v_tri[2]->co,
+				        depth, dist_sq);
+			}
+		}
+	}
+
+	return hit;
+}
 
 void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode)
 {

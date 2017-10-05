@@ -1549,6 +1549,15 @@ typedef struct {
 	float detail;
 } SculptDetailRaycastData;
 
+typedef struct {
+	SculptSession *ss;
+	const float *ray_start, *ray_normal;
+	bool hit;
+	float depth;
+	float dist_sq_to_ray;
+	bool original;
+} SculptFindNearestToRayData;
+
 static void do_smooth_brush_mesh_task_cb_ex(
         void *userdata, void *UNUSED(userdata_chunk), const int n, const int thread_id)
 {
@@ -4330,6 +4339,36 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
 	}
 }
 
+static void sculpt_find_nearest_to_ray_cb(PBVHNode *node, void *data_v, float *tmin)
+{
+	if (BKE_pbvh_node_get_tmin(node) < *tmin) {
+		SculptFindNearestToRayData *srd = data_v;
+		float (*origco)[3] = NULL;
+		bool use_origco = false;
+
+		if (srd->original && srd->ss->cache) {
+			if (BKE_pbvh_type(srd->ss->pbvh) == PBVH_BMESH) {
+				use_origco = true;
+			}
+			else {
+				/* intersect with coordinates from before we started stroke */
+				SculptUndoNode *unode = sculpt_undo_get_node(node);
+				origco = (unode) ? unode->co : NULL;
+				use_origco = origco ? true : false;
+			}
+		}
+
+		if (BKE_pbvh_node_find_nearest_to_ray(
+		        srd->ss->pbvh, node, origco, use_origco,
+		        srd->ray_start, srd->ray_normal,
+		        &srd->depth, &srd->dist_sq_to_ray))
+		{
+			srd->hit = 1;
+			*tmin = srd->dist_sq_to_ray;
+		}
+	}
+}
+
 static void sculpt_raycast_detail_cb(PBVHNode *node, void *data_v, float *tmin)
 {
 	if (BKE_pbvh_node_get_tmin(node) < *tmin) {
@@ -4413,6 +4452,30 @@ bool sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 		};
 		BKE_pbvh_raycast(
 		        ss->pbvh, sculpt_raycast_cb, &srd,
+		        ray_start, ray_normal, srd.original);
+		if (srd.hit) {
+			hit = true;
+			copy_v3_v3(out, ray_normal);
+			mul_v3_fl(out, srd.depth);
+			add_v3_v3(out, ray_start);
+		}
+	}
+
+	/* We may want to move this into a brush option, it could be useful in sculpt mode too. */
+	const bool use_nearest = ((ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) != 0);
+
+	if (hit == false && use_nearest) {
+		SculptFindNearestToRayData srd = {
+			.original = original,
+			.ss = ob->sculpt,
+			.hit = 0,
+			.ray_start = ray_start,
+			.ray_normal = ray_normal,
+			.depth = FLT_MAX,
+			.dist_sq_to_ray = FLT_MAX,
+		};
+		BKE_pbvh_find_nearest_to_ray(
+		        ss->pbvh, sculpt_find_nearest_to_ray_cb, &srd,
 		        ray_start, ray_normal, srd.original);
 		if (srd.hit) {
 			hit = true;
