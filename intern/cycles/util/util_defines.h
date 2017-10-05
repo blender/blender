@@ -30,7 +30,8 @@
 #  define ccl_device static inline
 #  define ccl_device_noinline static
 #  define ccl_global
-#  define ccl_constant
+#  define ccl_static_constant static const
+#  define ccl_constant const
 #  define ccl_local
 #  define ccl_local_param
 #  define ccl_private

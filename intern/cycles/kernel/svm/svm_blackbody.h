@@ -41,8 +41,7 @@ ccl_device void svm_node_blackbody(KernelGlobals *kg, ShaderData *sd, float *sta
 
 	float3 color_rgb = svm_math_blackbody_color(temperature);
 
-	if(stack_valid(col_offset))
-		stack_store_float3(stack, col_offset, color_rgb);
+	stack_store_float3(stack, col_offset, color_rgb);
 }
 
 CCL_NAMESPACE_END

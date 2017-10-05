@@ -36,6 +36,7 @@
 #define ccl_device_forceinline ccl_device
 #define ccl_device_noinline ccl_device ccl_noinline
 #define ccl_may_alias
+#define ccl_static_constant static __constant
 #define ccl_constant __constant
 #define ccl_global __global
 #define ccl_local __local
