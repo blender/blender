@@ -1540,7 +1540,6 @@ typedef struct {
 	bool hit;
 	float dist;
 	bool original;
-	PBVHNode* node;
 } SculptRaycastData;
 
 typedef struct {
@@ -4327,9 +4326,6 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
 		{
 			srd->hit = 1;
 			*tmin = srd->dist;
-
-			//for vwpaint testing
-			srd->node = node;
 		}
 	}
 }
