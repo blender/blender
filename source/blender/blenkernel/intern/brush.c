@@ -844,6 +844,16 @@ int BKE_brush_use_alpha_pressure(const Scene *scene, const Brush *brush)
 	       (brush->flag & BRUSH_ALPHA_PRESSURE);
 }
 
+bool BKE_brush_sculpt_has_secondary_color(const Brush *brush)
+{
+	return ELEM(
+	        brush->sculpt_tool, SCULPT_TOOL_BLOB, SCULPT_TOOL_DRAW,
+	        SCULPT_TOOL_INFLATE, SCULPT_TOOL_CLAY, SCULPT_TOOL_CLAY_STRIPS,
+	        SCULPT_TOOL_PINCH, SCULPT_TOOL_CREASE, SCULPT_TOOL_LAYER,
+	        SCULPT_TOOL_FLATTEN, SCULPT_TOOL_FILL, SCULPT_TOOL_SCRAPE,
+	        SCULPT_TOOL_MASK);
+}
+
 void BKE_brush_unprojected_radius_set(Scene *scene, Brush *brush, float unprojected_radius)
 {
 	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;

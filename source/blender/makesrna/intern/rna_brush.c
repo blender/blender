@@ -223,11 +223,7 @@ static int rna_SculptToolCapabilities_has_sculpt_plane_get(PointerRNA *ptr)
 static int rna_SculptToolCapabilities_has_secondary_color_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
-	return ELEM(br->sculpt_tool,
-	            SCULPT_TOOL_BLOB, SCULPT_TOOL_CLAY, SCULPT_TOOL_CLAY_STRIPS,
-	            SCULPT_TOOL_CREASE, SCULPT_TOOL_DRAW, SCULPT_TOOL_FILL,
-	            SCULPT_TOOL_FLATTEN, SCULPT_TOOL_INFLATE, SCULPT_TOOL_PINCH,
-	            SCULPT_TOOL_SCRAPE);
+	return BKE_brush_sculpt_has_secondary_color(br);
 }
 
 static int rna_SculptToolCapabilities_has_smooth_stroke_get(PointerRNA *ptr)

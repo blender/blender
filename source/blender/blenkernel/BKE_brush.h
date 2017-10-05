@@ -106,6 +106,8 @@ int  BKE_brush_use_locked_size(const struct Scene *scene, const struct Brush *br
 int  BKE_brush_use_alpha_pressure(const struct Scene *scene, const struct Brush *brush);
 int  BKE_brush_use_size_pressure(const struct Scene *scene, const struct Brush *brush);
 
+bool BKE_brush_sculpt_has_secondary_color(const struct Brush *brush);
+
 /* scale unprojected radius to reflect a change in the brush's 2D size */
 void BKE_brush_scale_unprojected_radius(
         float *unprojected_radius,
