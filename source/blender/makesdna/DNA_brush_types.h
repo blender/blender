@@ -95,8 +95,11 @@ typedef struct Brush {
 	float plane_offset;     /* offset for plane brushes (clay, flatten, fill, scrape) */
 
 	int gradient_spacing;
-	int gradient_stroke_mode; /* source for stroke color gradient application */
-	int gradient_fill_mode;   /* source for fill tool color gradient application */
+	char gradient_stroke_mode; /* source for stroke color gradient application */
+	char gradient_fill_mode;   /* source for fill tool color gradient application */
+
+	char falloff_shape;     /* Projection shape (sphere, circle) */
+	char pad[5];
 
 	char sculpt_tool;       /* active sculpt tool */
 	char vertexpaint_tool;  /* active vertex/weight paint blend mode (poorly named) */
@@ -342,6 +345,12 @@ typedef enum BlurKernelType {
 	KERNEL_GAUSSIAN,
 	KERNEL_BOX
 } BlurKernelType;
+
+/* Brush.falloff_shape */
+enum {
+	PAINT_FALLOFF_SHAPE_SPHERE = 0,
+	PAINT_FALLOFF_SHAPE_TUBE = 1,
+};
 
 #define MAX_BRUSH_PIXEL_RADIUS 500
 

@@ -168,7 +168,7 @@ typedef enum {
 bool BKE_pbvh_bmesh_update_topology(
         PBVH *bvh, PBVHTopologyUpdateMode mode,
         const float center[3], const float view_normal[3],
-        float radius);
+        float radius, const bool use_frontface, const bool use_projected);
 
 /* Node Access */
 

@@ -1118,7 +1118,8 @@ typedef struct UvSculpt {
 typedef struct VPaint {
 	Paint paint;
 	short flag;
-	char falloff_shape, normal_angle;
+	char normal_angle;
+	char pad;
 	int radial_symm[3]; /* For mirrored painting */
 } VPaint;
 
@@ -1130,12 +1131,6 @@ enum {
 	VP_FLAG_PROJECT_FLAT        = (1 << 3),
 	/* weight paint only */
 	VP_FLAG_VGROUP_RESTRICT     = (1 << 7)
-};
-
-/* VPaint.falloff_shape */
-enum {
-	VP_FALLOFF_SHAPE_SPHERE = 0,
-	VP_FALLOFF_SHAPE_TUBE = 1,
 };
 
 /* ------------------------------------------- */

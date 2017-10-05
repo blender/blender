@@ -1500,22 +1500,6 @@ static float wpaint_get_active_weight(const MDeformVert *dv, const WeightPaintIn
 	}
 }
 
-static SculptBrushTestFn sculpt_brush_test_init_with_falloff_shape(
-        SculptSession *ss, SculptBrushTest *test, char falloff_shape)
-{
-	sculpt_brush_test_init(ss, test);
-	SculptBrushTestFn sculpt_brush_test_sq_fn;
-	if (falloff_shape == VP_FALLOFF_SHAPE_SPHERE) {
-		sculpt_brush_test_sq_fn = sculpt_brush_test_sphere_sq;
-	}
-	else {
-		/* VP_FALLOFF_SHAPE_TUBE */
-		plane_from_point_normal_v3(test->plane, test->location, ss->cache->view_normal);
-		sculpt_brush_test_sq_fn = sculpt_brush_test_circle_sq;
-	}
-	return sculpt_brush_test_sq_fn;
-}
-
 static void do_wpaint_brush_blur_task_cb_ex(
         void *userdata, void *UNUSED(userdata_chunk), const int n, const int UNUSED(thread_id))
 {
@@ -1536,7 +1520,7 @@ static void do_wpaint_brush_blur_task_cb_ex(
 
 	SculptBrushTest test;
 	SculptBrushTestFn sculpt_brush_test_sq_fn =
-	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->vp->falloff_shape);
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 	/* For each vertex */
 	PBVHVertexIter vd;
@@ -1629,7 +1613,7 @@ static void do_wpaint_brush_smear_task_cb_ex(
 
 		SculptBrushTest test;
 		SculptBrushTestFn sculpt_brush_test_sq_fn =
-		        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->vp->falloff_shape);
+		        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 		/* For each vertex */
 		PBVHVertexIter vd;
@@ -1729,7 +1713,7 @@ static void do_wpaint_brush_draw_task_cb_ex(
 
 	SculptBrushTest test;
 	SculptBrushTestFn sculpt_brush_test_sq_fn =
-	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->vp->falloff_shape);
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 	/* For each vertex */
 	PBVHVertexIter vd;
@@ -1794,7 +1778,7 @@ static void do_wpaint_brush_calc_average_weight_cb_ex(
 
 	SculptBrushTest test;
 	SculptBrushTestFn sculpt_brush_test_sq_fn =
-	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->vp->falloff_shape);
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 	/* For each vertex */
 	PBVHVertexIter vd;
@@ -1896,7 +1880,7 @@ static PBVHNode **vwpaint_pbvh_gather_generic(
 	PBVHNode **nodes = NULL;
 
 	/* Build a list of all nodes that are potentially within the brush's area of influence */
-	if (wp->falloff_shape == VP_FALLOFF_SHAPE_SPHERE) {
+	if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
 		SculptSearchSphereData data = {
 			.ss = ss,
 			.sd = sd,
@@ -2455,7 +2439,7 @@ static void do_vpaint_brush_calc_average_color_cb_ex(
 
 	SculptBrushTest test;
 	SculptBrushTestFn sculpt_brush_test_sq_fn =
-	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->vp->falloff_shape);
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 	/* For each vertex */
 	PBVHVertexIter vd;
@@ -2524,7 +2508,7 @@ static void do_vpaint_brush_draw_task_cb_ex(
 
 	SculptBrushTest test;
 	SculptBrushTestFn sculpt_brush_test_sq_fn =
-	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->vp->falloff_shape);
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 	/* For each vertex */
 	PBVHVertexIter vd;
@@ -2613,7 +2597,7 @@ static void do_vpaint_brush_blur_task_cb_ex(
 
 	SculptBrushTest test;
 	SculptBrushTestFn sculpt_brush_test_sq_fn =
-	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->vp->falloff_shape);
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 	/* For each vertex */
 	PBVHVertexIter vd;
@@ -2726,7 +2710,7 @@ static void do_vpaint_brush_smear_task_cb_ex(
 
 		SculptBrushTest test;
 		SculptBrushTestFn sculpt_brush_test_sq_fn =
-		        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->vp->falloff_shape);
+		        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 		/* For each vertex */
 		PBVHVertexIter vd;
