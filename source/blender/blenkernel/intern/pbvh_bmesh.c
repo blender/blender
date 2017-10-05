@@ -1466,7 +1466,7 @@ static bool pbvh_bmesh_collapse_short_edges(
 
 bool pbvh_bmesh_node_raycast(
         PBVHNode *node, const float ray_start[3],
-        const float ray_normal[3], float *dist,
+        const float ray_normal[3], float *depth,
         bool use_original)
 {
 	bool hit = false;
@@ -1479,7 +1479,7 @@ bool pbvh_bmesh_node_raycast(
 			        node->bm_orco[t[0]],
 			        node->bm_orco[t[1]],
 			        node->bm_orco[t[2]],
-			        dist);
+			        depth);
 		}
 	}
 	else {
@@ -1498,7 +1498,7 @@ bool pbvh_bmesh_node_raycast(
 				        v_tri[0]->co,
 				        v_tri[1]->co,
 				        v_tri[2]->co,
-				        dist);
+				        depth);
 			}
 		}
 	}
@@ -1509,7 +1509,7 @@ bool pbvh_bmesh_node_raycast(
 bool BKE_pbvh_bmesh_node_raycast_detail(
         PBVHNode *node,
         const float ray_start[3], const float ray_normal[3],
-        float *dist, float *r_detail)
+        float *depth, float *r_detail)
 {
 	if (node->flag & PBVH_FullyHidden)
 		return 0;
@@ -1531,7 +1531,7 @@ bool BKE_pbvh_bmesh_node_raycast_detail(
 			        v_tri[0]->co,
 			        v_tri[1]->co,
 			        v_tri[2]->co,
-			        dist);
+			        depth);
 
 			if (hit_local) {
 				f_hit = f;

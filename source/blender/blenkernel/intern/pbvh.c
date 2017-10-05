@@ -1537,14 +1537,16 @@ void BKE_pbvh_raycast(
 bool ray_face_intersection_quad(
         const float ray_start[3], const float ray_normal[3],
         const float t0[3], const float t1[3], const float t2[3], const float t3[3],
-        float *dist)
+        float *depth)
 {
-	float dist_test;
+	float depth_test;
 
-	if ((isect_ray_tri_epsilon_v3(ray_start, ray_normal, t0, t1, t2, &dist_test, NULL, 0.1f) && (dist_test < *dist)) ||
-	    (isect_ray_tri_epsilon_v3(ray_start, ray_normal, t0, t2, t3, &dist_test, NULL, 0.1f) && (dist_test < *dist)))
+	if ((isect_ray_tri_epsilon_v3(
+	         ray_start, ray_normal, t0, t1, t2, &depth_test, NULL, 0.1f) && (depth_test < *depth)) ||
+	    (isect_ray_tri_epsilon_v3(
+	         ray_start, ray_normal, t0, t2, t3, &depth_test, NULL, 0.1f) && (depth_test < *depth)))
 	{
-		*dist = dist_test;
+		*depth = depth_test;
 		return true;
 	}
 	else {
@@ -1555,12 +1557,14 @@ bool ray_face_intersection_quad(
 bool ray_face_intersection_tri(
         const float ray_start[3], const float ray_normal[3],
         const float t0[3], const float t1[3], const float t2[3],
-        float *dist)
+        float *depth)
 {
-	float dist_test;
+	float depth_test;
 
-	if ((isect_ray_tri_epsilon_v3(ray_start, ray_normal, t0, t1, t2, &dist_test, NULL, 0.1f) && (dist_test < *dist))) {
-		*dist = dist_test;
+	if ((isect_ray_tri_epsilon_v3(
+	         ray_start, ray_normal, t0, t1, t2, &depth_test, NULL, 0.1f) && (depth_test < *depth)))
+	{
+		*depth = depth_test;
 		return true;
 	}
 	else {
@@ -1572,7 +1576,7 @@ static bool pbvh_faces_node_raycast(
         PBVH *bvh, const PBVHNode *node,
         float (*origco)[3],
         const float ray_start[3], const float ray_normal[3],
-        float *dist)
+        float *depth)
 {
 	const MVert *vert = bvh->verts;
 	const MLoop *mloop = bvh->mloop;
@@ -1594,7 +1598,7 @@ static bool pbvh_faces_node_raycast(
 			        origco[face_verts[0]],
 			        origco[face_verts[1]],
 			        origco[face_verts[2]],
-			        dist);
+			        depth);
 		}
 		else {
 			/* intersect with current coordinates */
@@ -1603,7 +1607,7 @@ static bool pbvh_faces_node_raycast(
 			        vert[mloop[lt->tri[0]].v].co,
 			        vert[mloop[lt->tri[1]].v].co,
 			        vert[mloop[lt->tri[2]].v].co,
-			        dist);
+			        depth);
 		}
 	}
 
@@ -1614,7 +1618,7 @@ static bool pbvh_grids_node_raycast(
         PBVH *bvh, PBVHNode *node,
         float (*origco)[3],
         const float ray_start[3], const float ray_normal[3],
-        float *dist)
+        float *depth)
 {
 	const int totgrid = node->totprim;
 	const int gridsize = bvh->gridkey.grid_size;
@@ -1644,7 +1648,7 @@ static bool pbvh_grids_node_raycast(
 					        origco[y * gridsize + x + 1],
 					        origco[(y + 1) * gridsize + x + 1],
 					        origco[(y + 1) * gridsize + x],
-					        dist);
+					        depth);
 				}
 				else {
 					hit |= ray_face_intersection_quad(
@@ -1653,7 +1657,7 @@ static bool pbvh_grids_node_raycast(
 					        CCG_grid_elem_co(&bvh->gridkey, grid, x + 1, y),
 					        CCG_grid_elem_co(&bvh->gridkey, grid, x + 1, y + 1),
 					        CCG_grid_elem_co(&bvh->gridkey, grid, x, y + 1),
-					        dist);
+					        depth);
 				}
 			}
 		}
@@ -1668,7 +1672,7 @@ static bool pbvh_grids_node_raycast(
 bool BKE_pbvh_node_raycast(
         PBVH *bvh, PBVHNode *node, float (*origco)[3], bool use_origco,
         const float ray_start[3], const float ray_normal[3],
-        float *dist)
+        float *depth)
 {
 	bool hit = false;
 
@@ -1679,16 +1683,16 @@ bool BKE_pbvh_node_raycast(
 		case PBVH_FACES:
 			hit |= pbvh_faces_node_raycast(
 			        bvh, node, origco,
-			        ray_start, ray_normal, dist);
+			        ray_start, ray_normal, depth);
 			break;
 		case PBVH_GRIDS:
 			hit |= pbvh_grids_node_raycast(
 			        bvh, node, origco,
-			        ray_start, ray_normal, dist);
+			        ray_start, ray_normal, depth);
 			break;
 		case PBVH_BMESH:
 			hit = pbvh_bmesh_node_raycast(
-			        node, ray_start, ray_normal, dist, use_origco);
+			        node, ray_start, ray_normal, depth, use_origco);
 			break;
 	}
 

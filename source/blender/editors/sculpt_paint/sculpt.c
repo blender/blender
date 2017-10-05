@@ -1538,14 +1538,14 @@ typedef struct {
 	SculptSession *ss;
 	const float *ray_start, *ray_normal;
 	bool hit;
-	float dist;
+	float depth;
 	bool original;
 } SculptRaycastData;
 
 typedef struct {
 	const float *ray_start, *ray_normal;
 	bool hit;
-	float dist;
+	float depth;
 	float detail;
 } SculptDetailRaycastData;
 
@@ -4322,10 +4322,10 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
 		}
 
 		if (BKE_pbvh_node_raycast(srd->ss->pbvh, node, origco, use_origco,
-		                          srd->ray_start, srd->ray_normal, &srd->dist))
+		                          srd->ray_start, srd->ray_normal, &srd->depth))
 		{
 			srd->hit = 1;
-			*tmin = srd->dist;
+			*tmin = srd->depth;
 		}
 	}
 }
@@ -4335,10 +4335,10 @@ static void sculpt_raycast_detail_cb(PBVHNode *node, void *data_v, float *tmin)
 	if (BKE_pbvh_node_get_tmin(node) < *tmin) {
 		SculptDetailRaycastData *srd = data_v;
 		if (BKE_pbvh_bmesh_node_raycast_detail(node, srd->ray_start, srd->ray_normal,
-		                                       &srd->dist, &srd->detail))
+		                                       &srd->depth, &srd->detail))
 		{
 			srd->hit = 1;
-			*tmin = srd->dist;
+			*tmin = srd->depth;
 		}
 	}
 }
@@ -4385,8 +4385,7 @@ bool sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 	Object *ob;
 	SculptSession *ss;
 	StrokeCache *cache;
-	float ray_start[3], ray_end[3], ray_normal[3], dist;
-	SculptRaycastData srd;
+	float ray_start[3], ray_end[3], ray_normal[3], depth;
 	bool original;
 	ViewContext vc;
 
@@ -4400,28 +4399,35 @@ bool sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 
 	sculpt_stroke_modifiers_check(C, ob);
 
-	dist = sculpt_raycast_init(&vc, mouse, ray_start, ray_end, ray_normal, original);
+	depth = sculpt_raycast_init(&vc, mouse, ray_start, ray_end, ray_normal, original);
 
-	srd.original = original;
-	srd.ss = ob->sculpt;
-	srd.hit = 0;
-	srd.ray_start = ray_start;
-	srd.ray_normal = ray_normal;
-	srd.dist = dist;
-
-	BKE_pbvh_raycast(ss->pbvh, sculpt_raycast_cb, &srd,
-			 ray_start, ray_normal, srd.original);
-
-	copy_v3_v3(out, ray_normal);
-	mul_v3_fl(out, srd.dist);
-	add_v3_v3(out, ray_start);
+	bool hit = false;
+	{
+		SculptRaycastData srd = {
+			.original = original,
+			.ss = ob->sculpt,
+			.hit = 0,
+			.ray_start = ray_start,
+			.ray_normal = ray_normal,
+			.depth = depth,
+		};
+		BKE_pbvh_raycast(
+		        ss->pbvh, sculpt_raycast_cb, &srd,
+		        ray_start, ray_normal, srd.original);
+		if (srd.hit) {
+			hit = true;
+			copy_v3_v3(out, ray_normal);
+			mul_v3_fl(out, srd.depth);
+			add_v3_v3(out, ray_start);
+		}
+	}
 
 	//used in vwpaint
-	if (cache && srd.hit){
+	if (cache && hit){
 		copy_v3_v3(cache->true_location, out);
 	}
 
-	return srd.hit;
+	return hit;
 }
 
 static void sculpt_brush_init_tex(const Scene *scene, Sculpt *sd, SculptSession *ss)
@@ -5487,7 +5493,7 @@ static void sample_detail(bContext *C, int ss_co[2])
 	ViewContext vc;
 	Object *ob;
 	Sculpt *sd;
-	float ray_start[3], ray_end[3], ray_normal[3], dist;
+	float ray_start[3], ray_end[3], ray_normal[3], depth;
 	SculptDetailRaycastData srd;
 	float mouse[2] = {ss_co[0], ss_co[1]};
 	view3d_set_viewcontext(C, &vc);
@@ -5497,12 +5503,12 @@ static void sample_detail(bContext *C, int ss_co[2])
 
 	sculpt_stroke_modifiers_check(C, ob);
 
-	dist = sculpt_raycast_init(&vc, mouse, ray_start, ray_end, ray_normal, false);
+	depth = sculpt_raycast_init(&vc, mouse, ray_start, ray_end, ray_normal, false);
 
 	srd.hit = 0;
 	srd.ray_start = ray_start;
 	srd.ray_normal = ray_normal;
-	srd.dist = dist;
+	srd.depth = depth;
 	srd.detail = sd->constant_detail;
 
 	BKE_pbvh_raycast(ob->sculpt->pbvh, sculpt_raycast_detail_cb, &srd,

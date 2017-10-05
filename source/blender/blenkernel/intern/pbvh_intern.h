@@ -185,11 +185,11 @@ void pbvh_grow_nodes(PBVH *bvh, int totnode);
 bool ray_face_intersection_quad(
         const float ray_start[3], const float ray_normal[3],
         const float *t0, const float *t1, const float *t2, const float *t3,
-        float *r_dist);
+        float *depth);
 bool ray_face_intersection_tri(
         const float ray_start[3], const float ray_normal[3],
         const float *t0, const float *t1, const float *t2,
-        float *r_dist);
+        float *depth);
 void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes, int totnode, int flag);
 
 /* pbvh_bmesh.c */
