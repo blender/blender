@@ -821,7 +821,7 @@ int BKE_brush_size_get(const Scene *scene, const Brush *brush)
 	return size;
 }
 
-int BKE_brush_use_locked_size(const Scene *scene, const Brush *brush)
+bool BKE_brush_use_locked_size(const Scene *scene, const Brush *brush)
 {
 	const short us_flag = scene->toolsettings->unified_paint_settings.flag;
 
@@ -830,7 +830,7 @@ int BKE_brush_use_locked_size(const Scene *scene, const Brush *brush)
 	       (brush->flag & BRUSH_LOCK_SIZE);
 }
 
-int BKE_brush_use_size_pressure(const Scene *scene, const Brush *brush)
+bool BKE_brush_use_size_pressure(const Scene *scene, const Brush *brush)
 {
 	const short us_flag = scene->toolsettings->unified_paint_settings.flag;
 
@@ -839,7 +839,7 @@ int BKE_brush_use_size_pressure(const Scene *scene, const Brush *brush)
 	       (brush->flag & BRUSH_SIZE_PRESSURE);
 }
 
-int BKE_brush_use_alpha_pressure(const Scene *scene, const Brush *brush)
+bool BKE_brush_use_alpha_pressure(const Scene *scene, const Brush *brush)
 {
 	const short us_flag = scene->toolsettings->unified_paint_settings.flag;
 
