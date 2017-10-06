@@ -1,16 +1,12 @@
 #define MAX_STEP 256
-#define MAX_REFINE_STEP 32 /* Should be max allowed stride */
 
 uniform vec4 ssrParameters;
-uniform int rayCount;
 
 #define ssrQuality    ssrParameters.x
 #define ssrThickness  ssrParameters.y
 #define ssrPixelSize  ssrParameters.zw
 
-uniform float maxRoughness;
 uniform float borderFadeFactor;
-uniform float fireflyFactor;
 
 float sample_depth(vec2 uv, int index, float lod)
 {
@@ -62,13 +58,13 @@ float refine_isect(float prev_delta, float curr_delta)
 	return saturate(prev_delta / (prev_delta - curr_delta));
 }
 
-void prepare_raycast(vec3 ray_origin, vec3 ray_dir, float thickness, out vec4 ss_step, out vec4 ss_ray, out float max_time)
+void prepare_raycast(vec3 ray_origin, vec3 ray_end, float thickness, out vec4 ss_step, out vec4 ss_ray, out float max_time)
 {
 	/* Negate the ray direction if it goes towards the camera.
 	 * This way we don't need to care if the projected point
 	 * is behind the near plane. */
-	float z_sign = -sign(ray_dir.z);
-	vec3 ray_end = z_sign * ray_dir * 1e16 + ray_origin;
+	float z_sign = -sign(ray_end.z);
+	ray_end = z_sign * ray_end + ray_origin;
 
 	/* Project into screen space. */
 	vec4 ss_start, ss_end;
@@ -89,6 +85,7 @@ void prepare_raycast(vec3 ray_origin, vec3 ray_dir, float thickness, out vec4 ss
 	ss_end.w = 2.0 * ss_end.z - ss_end.w;
 
 	ss_step = ss_end - ss_start;
+	max_time = length(ss_step.xyz);
 	ss_step = z_sign * ss_step / length(ss_step.xyz);
 
 	/* If the line is degenerate, make it cover at least one pixel
@@ -99,8 +96,11 @@ void prepare_raycast(vec3 ray_origin, vec3 ray_dir, float thickness, out vec4 ss
 	ss_step /= max(abs(ss_step.x), abs(ss_step.y));
 	ss_step *= ((abs(ss_step.x) > abs(ss_step.y)) ? ssrPixelSize.x : ssrPixelSize.y);
 
+	/* Clip to segment's end. */
+	max_time /= length(ss_step.xyz);
+
 	/* Clipping to frustum sides. */
-	max_time = line_unit_box_intersect_dist(ss_start.xyz, ss_step.xyz);
+	max_time = min(max_time, line_unit_box_intersect_dist(ss_start.xyz, ss_step.xyz));
 
 	/* Convert to texture coords. Z component included
 	 * since this is how it's stored in the depth buffer.
@@ -117,11 +117,12 @@ void prepare_raycast(vec3 ray_origin, vec3 ray_dir, float thickness, out vec4 ss
 
 // #define GROUPED_FETCHES /* is still slower, need to see where is the bottleneck. */
 /* Return the hit position, and negate the z component (making it positive) if not hit occured. */
-vec3 raycast(int index, vec3 ray_origin, vec3 ray_dir, float thickness, float ray_jitter, float roughness)
+/* __ray_end__ is the ray direction premultiplied by it's maximum length */
+vec3 raycast(int index, vec3 ray_origin, vec3 ray_end, float thickness, float ray_jitter, float trace_quality, float roughness)
 {
 	vec4 ss_step, ss_start;
 	float max_time;
-	prepare_raycast(ray_origin, ray_dir, thickness, ss_step, ss_start, max_time);
+	prepare_raycast(ray_origin, ray_end, thickness, ss_step, ss_start, max_time);
 
 	float max_trace_time = max(0.001, max_time - 0.01);
 
@@ -141,8 +142,8 @@ vec3 raycast(int index, vec3 ray_origin, vec3 ray_dir, float thickness, float ra
 	float iter;
 	for (iter = 1.0; !hit && (ray_time < max_time) && (iter < MAX_STEP); iter++) {
 		/* Minimum stride of 2 because we are using half res minmax zbuffer. */
-		float stride = max(1.0, iter * ssrQuality) * 2.0;
-		float lod = log2(stride * 0.5 * ssrQuality) * lod_fac;
+		float stride = max(1.0, iter * trace_quality) * 2.0;
+		float lod = log2(stride * 0.5 * trace_quality) * lod_fac;
 		ray_time += stride;
 
 		/* Save previous values. */

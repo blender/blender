@@ -749,6 +749,10 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		}
 	}
 
+	/* Compute pixel size, (shared with contact shadows) */
+	copy_v2_v2(effects->ssr_pixelsize, viewport_size);
+	invert_v2(effects->ssr_pixelsize);
+
 	if (BKE_collection_engine_property_value_get_bool(props, "ssr_enable")) {
 		effects->enabled_effects |= EFFECT_SSR;
 
@@ -803,10 +807,6 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		                               {&stl->g_data->ssr_hit_output[3], DRW_TEX_RGBA_16, DRW_TEX_TEMP}};
 
 		DRW_framebuffer_init(&fbl->screen_tracing_fb, &draw_engine_eevee_type, tracing_res[0], tracing_res[1], tex_output, effects->ssr_ray_count);
-
-		/* Compute pixel size */
-		copy_v2_v2(effects->ssr_pixelsize, viewport_size);
-		invert_v2(effects->ssr_pixelsize);
 	}
 	else {
 		/* Cleanup to release memory */

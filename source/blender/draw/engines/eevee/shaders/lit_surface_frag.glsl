@@ -25,6 +25,9 @@ in vec3 worldNormal;
 in vec3 viewNormal;
 #endif
 
+uniform float maxRoughness;
+uniform int rayCount;
+
 /* ----------- default -----------  */
 
 vec3 eevee_surface_lit(vec3 N, vec3 albedo, vec3 f0, float roughness, float ao, int ssr_id, out vec3 ssr_spec)
