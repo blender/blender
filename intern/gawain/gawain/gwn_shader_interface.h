@@ -42,7 +42,7 @@ typedef struct Gwn_ShaderInput {
 	GLint location;
 } Gwn_ShaderInput;
 
-#define GWN_NUM_SHADERINTERFACE_BUCKETS 1009
+#define GWN_NUM_SHADERINTERFACE_BUCKETS 257
 
 typedef struct Gwn_ShaderInterface {
 	GLint program;
