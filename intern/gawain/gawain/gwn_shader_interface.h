@@ -49,6 +49,7 @@ typedef struct Gwn_ShaderInterface {
 	uint32_t name_buffer_offset;
 	Gwn_ShaderInput* attrib_buckets[GWN_NUM_SHADERINTERFACE_BUCKETS];
 	Gwn_ShaderInput* uniform_buckets[GWN_NUM_SHADERINTERFACE_BUCKETS];
+	Gwn_ShaderInput* ubo_buckets[GWN_NUM_SHADERINTERFACE_BUCKETS];
 	Gwn_ShaderInput* builtin_uniforms[GWN_NUM_UNIFORMS];
 	char* name_buffer;
 } Gwn_ShaderInterface;
@@ -58,4 +59,5 @@ void GWN_shaderinterface_discard(Gwn_ShaderInterface*);
 
 const Gwn_ShaderInput* GWN_shaderinterface_uniform(const Gwn_ShaderInterface*, const char* name);
 const Gwn_ShaderInput* GWN_shaderinterface_uniform_builtin(const Gwn_ShaderInterface*, Gwn_UniformBuiltin);
+const Gwn_ShaderInput* GWN_shaderinterface_ubo(const Gwn_ShaderInterface*, const char* name);
 const Gwn_ShaderInput* GWN_shaderinterface_attr(const Gwn_ShaderInterface*, const char* name);

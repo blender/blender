@@ -198,9 +198,14 @@ Gwn_ShaderInterface* GWN_shaderinterface_create(GLint program)
 	glGetProgramiv(program, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &max_attrib_name_len);
 	glGetProgramiv(program, GL_ACTIVE_ATTRIBUTES, &attrib_ct);
 
-	const uint32_t name_buffer_len = attrib_ct * max_attrib_name_len;
+	GLint max_ubo_name_len, ubo_ct;
+	glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH, &max_ubo_name_len);
+	glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &ubo_ct);
+
+	const uint32_t name_buffer_len = attrib_ct * max_attrib_name_len + ubo_ct * max_ubo_name_len;
 	shaderface->name_buffer = malloc(name_buffer_len);
 
+	// Attributes
 	for (uint32_t i = 0; i < attrib_ct; ++i)
 		{
 		Gwn_ShaderInput* input = malloc(sizeof(Gwn_ShaderInput));
@@ -223,6 +228,27 @@ Gwn_ShaderInterface* GWN_shaderinterface_create(GLint program)
 #endif
 		}
 
+	// Uniform Blocks
+	for (uint32_t i = 0; i < ubo_ct; ++i)
+		{
+		Gwn_ShaderInput* input = malloc(sizeof(Gwn_ShaderInput));
+		GLsizei remaining_buffer = name_buffer_len - shaderface->name_buffer_offset;
+		char* name = shaderface->name_buffer + shaderface->name_buffer_offset;
+		GLsizei name_len = 0;
+
+		glGetActiveUniformBlockName(program, i, remaining_buffer, &name_len, name);
+
+		input->location = i;
+
+		set_input_name(shaderface, input, name, name_len);
+
+		shader_input_to_bucket(input, shaderface->ubo_buckets);
+
+#if DEBUG_SHADER_INTERFACE
+		printf("attrib[%u] '%s' at location %d\n", i, name, input->location);
+#endif
+		}
+
 	return shaderface;
 	}
 
@@ -231,6 +257,7 @@ void GWN_shaderinterface_discard(Gwn_ShaderInterface* shaderface)
 	// Free memory used by buckets and has entries.
 	buckets_free(shaderface->uniform_buckets);
 	buckets_free(shaderface->attrib_buckets);
+	buckets_free(shaderface->ubo_buckets);
 	// Free memory used by name_buffer.
 	free(shaderface->name_buffer);
 	// Free memory used by shader interface by its self.
@@ -264,6 +291,11 @@ const Gwn_ShaderInput* GWN_shaderinterface_uniform_builtin(const Gwn_ShaderInter
 		input = add_uniform((Gwn_ShaderInterface*)shaderface, BuiltinUniform_name(builtin));
 
 	return (input->location != -1) ? input : NULL;
+	}
+
+const Gwn_ShaderInput* GWN_shaderinterface_ubo(const Gwn_ShaderInterface* shaderface, const char* name)
+	{
+	return buckets_lookup(shaderface->ubo_buckets, shaderface->name_buffer, name);
 	}
 
 const Gwn_ShaderInput* GWN_shaderinterface_attr(const Gwn_ShaderInterface* shaderface, const char* name)

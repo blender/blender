@@ -561,7 +561,8 @@ int GPU_shader_get_uniform_block(GPUShader *shader, const char *name)
 {
 	BLI_assert(shader && shader->program);
 
-	return glGetUniformBlockIndex(shader->program, name);
+	const Gwn_ShaderInput *ubo = GWN_shaderinterface_ubo(shader->interface, name);
+	return ubo ? ubo->location : -1;
 }
 
 void *GPU_fx_shader_get_interface(GPUShader *shader)
