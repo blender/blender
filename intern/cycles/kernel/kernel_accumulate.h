@@ -557,7 +557,11 @@ ccl_device_inline void path_radiance_sum_shadowcatcher(KernelGlobals *kg,
 	float path_total = average(L->path_total);
 	float shadow;
 
-	if(path_total == 0.0f) {
+	if(UNLIKELY(!isfinite_safe(path_total))) {
+		kernel_assert(!"Non-finite total radiance along the path");
+		shadow = 0.0f;
+	}
+	else if(path_total == 0.0f) {
 		shadow = L->shadow_transparency;
 	}
 	else {

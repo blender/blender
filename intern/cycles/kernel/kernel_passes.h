@@ -327,8 +327,10 @@ ccl_device_inline void kernel_write_light_passes(KernelGlobals *kg, ccl_global f
 #endif
 }
 
-ccl_device_inline void kernel_write_result(KernelGlobals *kg, ccl_global float *buffer,
-	int sample, PathRadiance *L)
+ccl_device_inline void kernel_write_result(KernelGlobals *kg,
+                                           ccl_global float *buffer,
+                                           int sample,
+                                           PathRadiance *L)
 {
 	float alpha;
 	float3 L_sum = path_radiance_clamp_and_sum(kg, L, &alpha);
@@ -340,29 +342,41 @@ ccl_device_inline void kernel_write_result(KernelGlobals *kg, ccl_global float *
 #ifdef __DENOISING_FEATURES__
 	if(kernel_data.film.pass_denoising_data) {
 #  ifdef __SHADOW_TRICKS__
-		kernel_write_denoising_shadow(kg, buffer + kernel_data.film.pass_denoising_data, sample, average(L->path_total), average(L->path_total_shaded));
+		kernel_write_denoising_shadow(kg,
+		                              buffer + kernel_data.film.pass_denoising_data,
+		                              sample,
+		                              average(L->path_total),
+		                              average(L->path_total_shaded));
 #  else
-		kernel_write_denoising_shadow(kg, buffer + kernel_data.film.pass_denoising_data, sample, 0.0f, 0.0f);
+		kernel_write_denoising_shadow(kg,
+		                              buffer + kernel_data.film.pass_denoising_data,
+		                              sample,
+		                              0.0f, 0.0f);
 #  endif
 		if(kernel_data.film.pass_denoising_clean) {
 			float3 noisy, clean;
 			path_radiance_split_denoising(kg, L, &noisy, &clean);
-			kernel_write_pass_float3_variance(buffer + kernel_data.film.pass_denoising_data + DENOISING_PASS_COLOR,
-											  noisy);
-			kernel_write_pass_float3_unaligned(buffer + kernel_data.film.pass_denoising_clean,
-											   clean);
+			kernel_write_pass_float3_variance(
+			        buffer + kernel_data.film.pass_denoising_data + DENOISING_PASS_COLOR,
+			        noisy);
+			kernel_write_pass_float3_unaligned(
+			        buffer + kernel_data.film.pass_denoising_clean,
+			        clean);
 		}
 		else {
 			kernel_write_pass_float3_variance(buffer + kernel_data.film.pass_denoising_data + DENOISING_PASS_COLOR,
-											  ensure_finite3(L_sum));
+			                                    ensure_finite3(L_sum));
 		}
 
-		kernel_write_pass_float3_variance(buffer + kernel_data.film.pass_denoising_data + DENOISING_PASS_NORMAL,
-										  L->denoising_normal);
-		kernel_write_pass_float3_variance(buffer + kernel_data.film.pass_denoising_data + DENOISING_PASS_ALBEDO,
-										  L->denoising_albedo);
-		kernel_write_pass_float_variance(buffer + kernel_data.film.pass_denoising_data + DENOISING_PASS_DEPTH,
-										 L->denoising_depth);
+		kernel_write_pass_float3_variance(
+		        buffer + kernel_data.film.pass_denoising_data + DENOISING_PASS_NORMAL,
+		        L->denoising_normal);
+		kernel_write_pass_float3_variance(
+		        buffer + kernel_data.film.pass_denoising_data + DENOISING_PASS_ALBEDO,
+		        L->denoising_albedo);
+		kernel_write_pass_float_variance(
+		        buffer + kernel_data.film.pass_denoising_data + DENOISING_PASS_DEPTH,
+		        L->denoising_depth);
 	}
 #endif  /* __DENOISING_FEATURES__ */
 

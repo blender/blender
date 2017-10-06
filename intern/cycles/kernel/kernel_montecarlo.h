@@ -67,8 +67,8 @@ ccl_device_inline void sample_cos_hemisphere(const float3 N,
 
 /* sample direction uniformly distributed in hemisphere */
 ccl_device_inline void sample_uniform_hemisphere(const float3 N,
-                                               float randu, float randv,
-                                               float3 *omega_in, float *pdf)
+                                                 float randu, float randv,
+                                                 float3 *omega_in, float *pdf)
 {
 	float z = randu;
 	float r = sqrtf(max(0.0f, 1.0f - z*z));
@@ -84,8 +84,8 @@ ccl_device_inline void sample_uniform_hemisphere(const float3 N,
 
 /* sample direction uniformly distributed in cone */
 ccl_device_inline void sample_uniform_cone(const float3 N, float angle,
-                                         float randu, float randv,
-                                         float3 *omega_in, float *pdf)
+                                           float randu, float randv,
+                                           float3 *omega_in, float *pdf)
 {
 	float z = cosf(angle*randu);
 	float r = sqrtf(max(0.0f, 1.0f - z*z));
@@ -187,4 +187,3 @@ ccl_device float2 regular_polygon_sample(float corners, float rotation, float u,
 CCL_NAMESPACE_END
 
 #endif /* __KERNEL_MONTECARLO_CL__ */
-
