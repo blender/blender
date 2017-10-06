@@ -775,7 +775,7 @@ static void bm_mesh_loops_calc_normals(
 					}
 
 					{
-						/* Code similar to accumulate_vertex_normals_poly. */
+						/* Code similar to accumulate_vertex_normals_poly_v3. */
 						/* Calculate angle between the two poly edges incident on this vertex. */
 						const BMFace *f = lfan_pivot->f;
 						const float fac = saacos(dot_v3v3(vec_next, vec_curr));

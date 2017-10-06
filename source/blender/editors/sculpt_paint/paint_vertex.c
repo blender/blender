@@ -1907,7 +1907,7 @@ static PBVHNode **vwpaint_pbvh_gather_generic(
 	}
 	else {
 		struct DistRayAABB_Precalc dist_ray_to_aabb_precalc;
-		dist_squared_ray_to_aabb_precalc(&dist_ray_to_aabb_precalc, ss->cache->location, ss->cache->view_normal);
+		dist_squared_ray_to_aabb_v3_precalc(&dist_ray_to_aabb_precalc, ss->cache->location, ss->cache->view_normal);
 		SculptSearchCircleData data = {
 			.ss = ss,
 			.sd = sd,

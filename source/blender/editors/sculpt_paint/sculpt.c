@@ -1278,7 +1278,7 @@ bool sculpt_search_circle_cb(PBVHNode *node, void *data_v)
 		BKE_pbvh_node_get_BB(node, bb_min, bb_min);
 
 	float dummy_co[3], dummy_depth;
-	const float dist_sq = dist_squared_ray_to_aabb(
+	const float dist_sq = dist_squared_ray_to_aabb_v3(
 	        data->dist_ray_to_aabb_precalc, bb_min, bb_max, dummy_co, &dummy_depth);
 
 	return dist_sq < data->radius_squared || 1;
@@ -1318,7 +1318,7 @@ static PBVHNode **sculpt_pbvh_gather_generic(
 	}
 	else {
 		struct DistRayAABB_Precalc dist_ray_to_aabb_precalc;
-		dist_squared_ray_to_aabb_precalc(&dist_ray_to_aabb_precalc, ss->cache->location, ss->cache->view_normal);
+		dist_squared_ray_to_aabb_v3_precalc(&dist_ray_to_aabb_precalc, ss->cache->location, ss->cache->view_normal);
 		SculptSearchCircleData data = {
 			.ss = ss,
 			.sd = sd,

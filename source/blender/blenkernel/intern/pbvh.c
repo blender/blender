@@ -1837,7 +1837,7 @@ static bool nearest_to_ray_aabb_dist_sq(PBVHNode *node, void *data_v)
 	}
 
 	float co_dummy[3], depth;
-	node->tmin = dist_squared_ray_to_aabb(&rcd->dist_ray_to_aabb_precalc, bb_min, bb_max, co_dummy, &depth);
+	node->tmin = dist_squared_ray_to_aabb_v3(&rcd->dist_ray_to_aabb_precalc, bb_min, bb_max, co_dummy, &depth);
 	/* Ideally we would skip distances outside the range. */
 	return depth > 0.0f;
 }
@@ -1849,7 +1849,7 @@ void BKE_pbvh_find_nearest_to_ray(
 {
 	FindNearestRayData ncd;
 
-	dist_squared_ray_to_aabb_precalc(&ncd.dist_ray_to_aabb_precalc, ray_start, ray_normal);
+	dist_squared_ray_to_aabb_v3_precalc(&ncd.dist_ray_to_aabb_precalc, ray_start, ray_normal);
 	ncd.original = original;
 
 	BKE_pbvh_search_callback_occluded(bvh, nearest_to_ray_aabb_dist_sq, &ncd, cb, data);
