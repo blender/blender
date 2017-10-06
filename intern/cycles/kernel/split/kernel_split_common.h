@@ -29,7 +29,10 @@
 #endif
 
 #ifdef __KERNEL_OPENCL__
-#  include "kernel/kernel_image_opencl.h"
+#  include "kernel/kernels/opencl/kernel_opencl_image.h"
+#endif
+#ifdef __KERNEL_CUDA__
+#  include "kernel/kernels/cuda/kernel_cuda_image.h"
 #endif
 #ifdef __KERNEL_CPU__
 #  include "kernel/kernels/cpu/kernel_cpu_image.h"

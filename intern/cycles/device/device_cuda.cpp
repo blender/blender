@@ -129,7 +129,7 @@ public:
 	CUcontext cuContext;
 	CUmodule cuModule, cuFilterModule;
 	map<device_ptr, bool> tex_interp_map;
-	map<device_ptr, uint> tex_bindless_map;
+	map<device_ptr, CUtexObject> tex_bindless_map;
 	int cuDevId;
 	int cuDevArchitecture;
 	bool first_error;
@@ -145,8 +145,8 @@ public:
 	map<device_ptr, PixelMem> pixel_mem_map;
 
 	/* Bindless Textures */
-	device_vector<uint> bindless_mapping;
-	bool need_bindless_mapping;
+	device_vector<TextureInfo> texture_info;
+	bool need_texture_info;
 
 	CUdeviceptr cuda_device_ptr(device_ptr mem)
 	{
@@ -231,7 +231,7 @@ public:
 
 		split_kernel = NULL;
 
-		need_bindless_mapping = false;
+		need_texture_info = false;
 
 		/* intialize */
 		if(cuda_error(cuInit(0)))
@@ -274,7 +274,7 @@ public:
 		delete split_kernel;
 
 		if(info.has_bindless_textures) {
-			tex_free(bindless_mapping);
+			tex_free(texture_info);
 		}
 
 		cuda_assert(cuCtxDestroy(cuContext));
@@ -544,12 +544,12 @@ public:
 		return (result == CUDA_SUCCESS);
 	}
 
-	void load_bindless_mapping()
+	void load_texture_info()
 	{
-		if(info.has_bindless_textures && need_bindless_mapping) {
-			tex_free(bindless_mapping);
-			tex_alloc("__bindless_mapping", bindless_mapping, INTERPOLATION_NONE, EXTENSION_REPEAT);
-			need_bindless_mapping = false;
+		if(info.has_bindless_textures && need_texture_info) {
+			tex_free(texture_info);
+			tex_alloc("__texture_info", texture_info, INTERPOLATION_NONE, EXTENSION_REPEAT);
+			need_texture_info = false;
 		}
 	}
 
@@ -646,8 +646,7 @@ public:
 		        << string_human_readable_number(mem.memory_size()) << " bytes. ("
 		        << string_human_readable_size(mem.memory_size()) << ")";
 
-		/* Check if we are on sm_30 or above.
-		 * We use arrays and bindles textures for storage there */
+		/* Check if we are on sm_30 or above, for bindless textures. */
 		bool has_bindless_textures = info.has_bindless_textures;
 
 		/* General variables for both architectures */
@@ -679,20 +678,10 @@ public:
 			filter_mode = CU_TR_FILTER_MODE_LINEAR;
 		}
 
-		CUarray_format_enum format;
-		switch(mem.data_type) {
-			case TYPE_UCHAR: format = CU_AD_FORMAT_UNSIGNED_INT8; break;
-			case TYPE_UINT: format = CU_AD_FORMAT_UNSIGNED_INT32; break;
-			case TYPE_INT: format = CU_AD_FORMAT_SIGNED_INT32; break;
-			case TYPE_FLOAT: format = CU_AD_FORMAT_FLOAT; break;
-			case TYPE_HALF: format = CU_AD_FORMAT_HALF; break;
-			default: assert(0); return;
-		}
-
 		/* General variables for Fermi */
 		CUtexref texref = NULL;
 
-		if(!has_bindless_textures) {
+		if(!has_bindless_textures && interpolation != INTERPOLATION_NONE) {
 			if(mem.data_depth > 1) {
 				/* Kernel uses different bind names for 2d and 3d float textures,
 				 * so we have to adjust couple of things here.
@@ -711,40 +700,40 @@ public:
 			}
 		}
 
-		/* Data Storage */
 		if(interpolation == INTERPOLATION_NONE) {
-			if(has_bindless_textures) {
-				mem_alloc(NULL, mem, MEM_READ_ONLY);
-				mem_copy_to(mem);
+			/* Data Storage */
+			mem_alloc(NULL, mem, MEM_READ_ONLY);
+			mem_copy_to(mem);
 
-				CUdeviceptr cumem;
-				size_t cubytes;
+			CUdeviceptr cumem;
+			size_t cubytes;
 
-				cuda_assert(cuModuleGetGlobal(&cumem, &cubytes, cuModule, bind_name.c_str()));
+			cuda_assert(cuModuleGetGlobal(&cumem, &cubytes, cuModule, bind_name.c_str()));
 
-				if(cubytes == 8) {
-					/* 64 bit device pointer */
-					uint64_t ptr = mem.device_pointer;
-					cuda_assert(cuMemcpyHtoD(cumem, (void*)&ptr, cubytes));
-				}
-				else {
-					/* 32 bit device pointer */
-					uint32_t ptr = (uint32_t)mem.device_pointer;
-					cuda_assert(cuMemcpyHtoD(cumem, (void*)&ptr, cubytes));
-				}
+			if(cubytes == 8) {
+				/* 64 bit device pointer */
+				uint64_t ptr = mem.device_pointer;
+				cuda_assert(cuMemcpyHtoD(cumem, (void*)&ptr, cubytes));
 			}
 			else {
-				mem_alloc(NULL, mem, MEM_READ_ONLY);
-				mem_copy_to(mem);
-
-				cuda_assert(cuTexRefSetAddress(NULL, texref, cuda_device_ptr(mem.device_pointer), size));
-				cuda_assert(cuTexRefSetFilterMode(texref, CU_TR_FILTER_MODE_POINT));
-				cuda_assert(cuTexRefSetFlags(texref, CU_TRSF_READ_AS_INTEGER));
+				/* 32 bit device pointer */
+				uint32_t ptr = (uint32_t)mem.device_pointer;
+				cuda_assert(cuMemcpyHtoD(cumem, (void*)&ptr, cubytes));
 			}
 		}
-		/* Texture Storage */
 		else {
+			/* Texture Storage */
 			CUarray handle = NULL;
+
+			CUarray_format_enum format;
+			switch(mem.data_type) {
+				case TYPE_UCHAR: format = CU_AD_FORMAT_UNSIGNED_INT8; break;
+				case TYPE_UINT: format = CU_AD_FORMAT_UNSIGNED_INT32; break;
+				case TYPE_INT: format = CU_AD_FORMAT_SIGNED_INT32; break;
+				case TYPE_FLOAT: format = CU_AD_FORMAT_FLOAT; break;
+				case TYPE_HALF: format = CU_AD_FORMAT_HALF; break;
+				default: assert(0); return;
+			}
 
 			if(mem.data_depth > 1) {
 				CUDA_ARRAY3D_DESCRIPTOR desc;
@@ -810,8 +799,8 @@ public:
 
 			stats.mem_alloc(size);
 
-			/* Bindless Textures - Kepler */
 			if(has_bindless_textures) {
+				/* Bindless Textures - Kepler */
 				int flat_slot = 0;
 				if(string_startswith(name, "__tex_image")) {
 					int pos =  string(name).rfind("_");
@@ -844,35 +833,39 @@ public:
 				}
 
 				/* Resize once */
-				if(flat_slot >= bindless_mapping.size()) {
+				if(flat_slot >= texture_info.size()) {
 					/* Allocate some slots in advance, to reduce amount
-					 * of re-allocations.
-					 */
-					bindless_mapping.resize(flat_slot + 128);
+					 * of re-allocations. */
+					texture_info.resize(flat_slot + 128);
 				}
 
 				/* Set Mapping and tag that we need to (re-)upload to device */
-				bindless_mapping.get_data()[flat_slot] = (uint)tex;
-				tex_bindless_map[mem.device_pointer] = (uint)tex;
-				need_bindless_mapping = true;
+				TextureInfo& info = texture_info.get_data()[flat_slot];
+				info.data = (uint64_t)tex;
+				info.cl_buffer = 0;
+				info.interpolation = interpolation;
+				info.extension = extension;
+				info.width = mem.data_width;
+				info.height = mem.data_height;
+				info.depth = mem.data_depth;
+
+				tex_bindless_map[mem.device_pointer] = tex;
+				need_texture_info = true;
 			}
-			/* Regular Textures - Fermi */
 			else {
+				/* Regular Textures - Fermi */
 				cuda_assert(cuTexRefSetArray(texref, handle, CU_TRSA_OVERRIDE_FORMAT));
 				cuda_assert(cuTexRefSetFilterMode(texref, filter_mode));
 				cuda_assert(cuTexRefSetFlags(texref, CU_TRSF_NORMALIZED_COORDINATES));
-			}
-		}
 
-		/* Fermi, Data and Image Textures */
-		if(!has_bindless_textures) {
-			cuda_assert(cuTexRefSetAddressMode(texref, 0, address_mode));
-			cuda_assert(cuTexRefSetAddressMode(texref, 1, address_mode));
-			if(mem.data_depth > 1) {
-				cuda_assert(cuTexRefSetAddressMode(texref, 2, address_mode));
-			}
+				cuda_assert(cuTexRefSetAddressMode(texref, 0, address_mode));
+				cuda_assert(cuTexRefSetAddressMode(texref, 1, address_mode));
+				if(mem.data_depth > 1) {
+					cuda_assert(cuTexRefSetAddressMode(texref, 2, address_mode));
+				}
 
-			cuda_assert(cuTexRefSetFormat(texref, format, mem.data_elements));
+				cuda_assert(cuTexRefSetFormat(texref, format, mem.data_elements));
+			}
 		}
 
 		/* Fermi and Kepler */
@@ -888,8 +881,8 @@ public:
 
 				/* Free CUtexObject (Bindless Textures) */
 				if(info.has_bindless_textures && tex_bindless_map[mem.device_pointer]) {
-					uint flat_slot = tex_bindless_map[mem.device_pointer];
-					cuTexObjectDestroy(flat_slot);
+					CUtexObject tex = tex_bindless_map[mem.device_pointer];
+					cuTexObjectDestroy(tex);
 				}
 
 				tex_interp_map.erase(tex_interp_map.find(mem.device_pointer));
@@ -1716,9 +1709,6 @@ public:
 		if(task->type == DeviceTask::RENDER) {
 			RenderTile tile;
 
-			/* Upload Bindless Mapping */
-			load_bindless_mapping();
-
 			DeviceRequestedFeatures requested_features;
 			if(use_split_kernel()) {
 				if(!use_adaptive_compilation()) {
@@ -1759,9 +1749,6 @@ public:
 			}
 		}
 		else if(task->type == DeviceTask::SHADER) {
-			/* Upload Bindless Mapping */
-			load_bindless_mapping();
-
 			shader(*task);
 
 			cuda_assert(cuCtxSynchronize());
@@ -1784,9 +1771,12 @@ public:
 
 	void task_add(DeviceTask& task)
 	{
-		if(task.type == DeviceTask::FILM_CONVERT) {
-			CUDAContextScope scope(this);
+		CUDAContextScope scope(this);
 
+		/* Load texture info. */
+		load_texture_info();
+
+		if(task.type == DeviceTask::FILM_CONVERT) {
 			/* must be done in main thread due to opengl access */
 			film_convert(task, task.buffer, task.rgba_byte, task.rgba_half);
 			cuda_assert(cuCtxSynchronize());

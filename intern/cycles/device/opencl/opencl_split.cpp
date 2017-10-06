@@ -117,14 +117,8 @@ public:
 				ccl_constant KernelData *data;
 				ccl_global char *buffers[8];
 
-				typedef struct _tex_info_t {
-					uint buffer, padding;
-					uint64_t offset;
-					uint width, height, depth, options;
-				} _tex_info_t;
-
-#define KERNEL_TEX(type, ttype, name) \
-				_tex_info_t name;
+#define KERNEL_TEX(type, name) \
+				TextureInfo name;
 #include "kernel/kernel_textures.h"
 #undef KERNEL_TEX
 

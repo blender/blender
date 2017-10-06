@@ -126,42 +126,16 @@ ccl_device_inline uint ccl_num_groups(uint d)
 
 /* Textures */
 
-typedef texture<float4, 1> texture_float4;
-typedef texture<float2, 1> texture_float2;
-typedef texture<float, 1> texture_float;
-typedef texture<uint, 1> texture_uint;
-typedef texture<int, 1> texture_int;
-typedef texture<uint4, 1> texture_uint4;
-typedef texture<uchar, 1> texture_uchar;
-typedef texture<uchar4, 1> texture_uchar4;
+/* Use arrays for regular data. This is a little slower than textures on Fermi,
+ * but allows for cleaner code and we will stop supporting Fermi soon. */
+#define kernel_tex_fetch(t, index) t[(index)]
+
+/* On Kepler (6xx) and above, we use Bindless Textures for images.
+ * On Fermi cards (4xx and 5xx), we have to use regular textures. */
+#if __CUDA_ARCH__ < 300
 typedef texture<float4, 2> texture_image_float4;
 typedef texture<float4, 3> texture_image3d_float4;
 typedef texture<uchar4, 2, cudaReadModeNormalizedFloat> texture_image_uchar4;
-
-/* Macros to handle different memory storage on different devices */
-
-/* On Fermi cards (4xx and 5xx), we use regular textures for both data and images.
- * On Kepler (6xx) and above, we use Bindless Textures for images and arrays for data.
- *
- * Arrays are necessary in order to use the full VRAM on newer cards, and it's slightly faster.
- * Using Arrays on Fermi turned out to be slower.*/
-
-/* Fermi */
-#if __CUDA_ARCH__ < 300
-#  define __KERNEL_CUDA_TEX_STORAGE__
-#  define kernel_tex_fetch(t, index) tex1Dfetch(t, index)
-
-#  define kernel_tex_image_interp(t, x, y) tex2D(t, x, y)
-#  define kernel_tex_image_interp_3d(t, x, y, z) tex3D(t, x, y, z)
-
-/* Kepler */
-#else
-#  define kernel_tex_fetch(t, index) t[(index)]
-
-#  define kernel_tex_image_interp_float4(t, x, y) tex2D<float4>(t, x, y)
-#  define kernel_tex_image_interp_float(t, x, y) tex2D<float>(t, x, y)
-#  define kernel_tex_image_interp_3d_float4(t, x, y, z) tex3D<float4>(t, x, y, z)
-#  define kernel_tex_image_interp_3d_float(t, x, y, z) tex3D<float>(t, x, y, z)
 #endif
 
 #define kernel_data __data

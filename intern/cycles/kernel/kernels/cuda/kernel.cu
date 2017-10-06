@@ -26,6 +26,7 @@
 #include "kernel/kernel_math.h"
 #include "kernel/kernel_types.h"
 #include "kernel/kernel_globals.h"
+#include "kernel/kernels/cuda/kernel_cuda_image.h"
 #include "kernel/kernel_film.h"
 #include "kernel/kernel_path.h"
 #include "kernel/kernel_path_branched.h"

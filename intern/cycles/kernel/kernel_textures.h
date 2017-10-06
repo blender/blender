@@ -15,7 +15,7 @@
  */
 
 #ifndef KERNEL_TEX
-#  define KERNEL_TEX(type, ttype, name)
+#  define KERNEL_TEX(type, name)
 #endif
 
 #ifndef KERNEL_IMAGE_TEX
@@ -23,63 +23,65 @@
 #endif
 
 /* bvh */
-KERNEL_TEX(float4, texture_float4, __bvh_nodes)
-KERNEL_TEX(float4, texture_float4, __bvh_leaf_nodes)
-KERNEL_TEX(float4, texture_float4, __prim_tri_verts)
-KERNEL_TEX(uint, texture_uint, __prim_tri_index)
-KERNEL_TEX(uint, texture_uint, __prim_type)
-KERNEL_TEX(uint, texture_uint, __prim_visibility)
-KERNEL_TEX(uint, texture_uint, __prim_index)
-KERNEL_TEX(uint, texture_uint, __prim_object)
-KERNEL_TEX(uint, texture_uint, __object_node)
-KERNEL_TEX(float2, texture_float2, __prim_time)
+KERNEL_TEX(float4, __bvh_nodes)
+KERNEL_TEX(float4, __bvh_leaf_nodes)
+KERNEL_TEX(float4, __prim_tri_verts)
+KERNEL_TEX(uint, __prim_tri_index)
+KERNEL_TEX(uint, __prim_type)
+KERNEL_TEX(uint, __prim_visibility)
+KERNEL_TEX(uint, __prim_index)
+KERNEL_TEX(uint, __prim_object)
+KERNEL_TEX(uint, __object_node)
+KERNEL_TEX(float2, __prim_time)
 
 /* objects */
-KERNEL_TEX(float4, texture_float4, __objects)
-KERNEL_TEX(float4, texture_float4, __objects_vector)
+KERNEL_TEX(float4, __objects)
+KERNEL_TEX(float4, __objects_vector)
 
 /* triangles */
-KERNEL_TEX(uint, texture_uint, __tri_shader)
-KERNEL_TEX(float4, texture_float4, __tri_vnormal)
-KERNEL_TEX(uint4, texture_uint4, __tri_vindex)
-KERNEL_TEX(uint, texture_uint, __tri_patch)
-KERNEL_TEX(float2, texture_float2, __tri_patch_uv)
+KERNEL_TEX(uint, __tri_shader)
+KERNEL_TEX(float4, __tri_vnormal)
+KERNEL_TEX(uint4, __tri_vindex)
+KERNEL_TEX(uint, __tri_patch)
+KERNEL_TEX(float2, __tri_patch_uv)
 
 /* curves */
-KERNEL_TEX(float4, texture_float4, __curves)
-KERNEL_TEX(float4, texture_float4, __curve_keys)
+KERNEL_TEX(float4, __curves)
+KERNEL_TEX(float4, __curve_keys)
 
 /* patches */
-KERNEL_TEX(uint, texture_uint, __patches)
+KERNEL_TEX(uint, __patches)
 
 /* attributes */
-KERNEL_TEX(uint4, texture_uint4, __attributes_map)
-KERNEL_TEX(float, texture_float, __attributes_float)
-KERNEL_TEX(float4, texture_float4, __attributes_float3)
-KERNEL_TEX(uchar4, texture_uchar4, __attributes_uchar4)
+KERNEL_TEX(uint4, __attributes_map)
+KERNEL_TEX(float, __attributes_float)
+KERNEL_TEX(float4, __attributes_float3)
+KERNEL_TEX(uchar4, __attributes_uchar4)
 
 /* lights */
-KERNEL_TEX(float4, texture_float4, __light_distribution)
-KERNEL_TEX(float4, texture_float4, __light_data)
-KERNEL_TEX(float2, texture_float2, __light_background_marginal_cdf)
-KERNEL_TEX(float2, texture_float2, __light_background_conditional_cdf)
+KERNEL_TEX(float4, __light_distribution)
+KERNEL_TEX(float4, __light_data)
+KERNEL_TEX(float2, __light_background_marginal_cdf)
+KERNEL_TEX(float2, __light_background_conditional_cdf)
 
 /* particles */
-KERNEL_TEX(float4, texture_float4, __particles)
+KERNEL_TEX(float4, __particles)
 
 /* shaders */
-KERNEL_TEX(uint4, texture_uint4, __svm_nodes)
-KERNEL_TEX(uint, texture_uint, __shader_flag)
-KERNEL_TEX(uint, texture_uint, __object_flag)
+KERNEL_TEX(uint4, __svm_nodes)
+KERNEL_TEX(uint, __shader_flag)
+KERNEL_TEX(uint, __object_flag)
 
 /* lookup tables */
-KERNEL_TEX(float, texture_float, __lookup_table)
+KERNEL_TEX(float, __lookup_table)
 
 /* sobol */
-KERNEL_TEX(uint, texture_uint, __sobol_directions)
+KERNEL_TEX(uint, __sobol_directions)
 
-#ifdef __KERNEL_CUDA__
-#  if __CUDA_ARCH__ < 300
+#if !defined(__KERNEL_CUDA__) || __CUDA_ARCH__ >= 300
+/* image textures */
+KERNEL_TEX(TextureInfo, __texture_info)
+#else
 /* full-float image */
 KERNEL_IMAGE_TEX(float4, texture_image_float4, __tex_image_float4_000)
 KERNEL_IMAGE_TEX(float4, texture_image_float4, __tex_image_float4_008)
@@ -180,12 +182,7 @@ KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_byte4_641)
 KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_byte4_649)
 KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_byte4_657)
 KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_byte4_665)
-
-#  else
-/* bindless textures */
-KERNEL_TEX(uint, texture_uint, __bindless_mapping)
-#  endif  /* __CUDA_ARCH__ */
-#endif  /* __KERNEL_CUDA__ */
+#endif  /* defined(__KERNEL_CUDA__) && __CUDA_ARCH__ < 300 */
 
 #undef KERNEL_TEX
 #undef KERNEL_IMAGE_TEX
