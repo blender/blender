@@ -1362,6 +1362,10 @@ static void update_sculpt_normal(Sculpt *sd, Object *ob,
 	    (cache->first_time || !(brush->flag & BRUSH_ORIGINAL_NORMAL)))
 	{
 		calc_sculpt_normal(sd, ob, nodes, totnode, cache->sculpt_normal);
+		if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
+			project_plane_v3_v3v3(cache->sculpt_normal, cache->sculpt_normal, cache->view_normal);
+			normalize_v3(cache->sculpt_normal);
+		}
 		copy_v3_v3(cache->sculpt_normal_symm, cache->sculpt_normal);
 	}
 	else {
@@ -2690,6 +2694,10 @@ static void calc_sculpt_plane(
 
 			case SCULPT_DISP_DIR_AREA:
 				calc_area_normal_and_center(sd, ob, nodes, totnode, r_area_no, r_area_co);
+				if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
+					project_plane_v3_v3v3(r_area_no, r_area_no, ss->cache->view_normal);
+					normalize_v3(r_area_no);
+				}
 				break;
 
 			default:
