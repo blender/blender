@@ -1913,16 +1913,10 @@ static void RVBlurBitmap2_float(float *map, int width, int height, float blur, i
 			for (i = x - halfWidth; i < x + halfWidth; i++) {
 				if ((i >= 0) && (i < width)) {
 					index = (i + y * width) * 4;
-					curColor[0] += map[index + GlowR] * filter[fx];
-					curColor[1] += map[index + GlowG] * filter[fx];
-					curColor[2] += map[index + GlowB] * filter[fx];
-					curColor[3] += map[index + GlowA] * filter[fx];
+					madd_v4_v4fl(curColor, map + index, filter[fx]);
 
 					index = (width - 1 - i + y * width) * 4;
-					curColor2[0] += map[index + GlowR] * filter[fx];
-					curColor2[1] += map[index + GlowG] * filter[fx];
-					curColor2[2] += map[index + GlowB] * filter[fx];
-					curColor2[3] += map[index + GlowA] * filter[fx];
+					madd_v4_v4fl(curColor2, map + index, filter[fx]);
 				}
 				fx++;
 			}
@@ -1939,10 +1933,7 @@ static void RVBlurBitmap2_float(float *map, int width, int height, float blur, i
 			zero_v4(curColor);
 			for (i = x - halfWidth; i < x + halfWidth; i++) {
 				index = (i + y * width) * 4;
-				curColor[0] += map[index + GlowR] * filter[fx];
-				curColor[1] += map[index + GlowG] * filter[fx];
-				curColor[2] += map[index + GlowB] * filter[fx];
-				curColor[3] += map[index + GlowA] * filter[fx];
+				madd_v4_v4fl(curColor, map + index, filter[fx]);
 				fx++;
 			}
 			index = (x + y * width) * 4;
@@ -1964,17 +1955,11 @@ static void RVBlurBitmap2_float(float *map, int width, int height, float blur, i
 				if ((i >= 0) && (i < height)) {
 					/* Bottom */
 					index = (x + i * width) * 4;
-					curColor[0] += map[index + GlowR] * filter[fy];
-					curColor[1] += map[index + GlowG] * filter[fy];
-					curColor[2] += map[index + GlowB] * filter[fy];
-					curColor[3] += map[index + GlowA] * filter[fy];
+					madd_v4_v4fl(curColor, map + index, filter[fy]);
 
 					/* Top */
 					index = (x + (height - 1 - i) * width) * 4;
-					curColor2[0] += map[index + GlowR] * filter[fy];
-					curColor2[1] += map[index + GlowG] * filter[fy];
-					curColor2[2] += map[index + GlowB] * filter[fy];
-					curColor2[3] += map[index + GlowA] * filter[fy];
+					madd_v4_v4fl(curColor2, map + index, filter[fy]);
 				}
 				fy++;
 			}
@@ -1991,10 +1976,7 @@ static void RVBlurBitmap2_float(float *map, int width, int height, float blur, i
 			zero_v4(curColor);
 			for (i = y - halfWidth; i < y + halfWidth; i++) {
 				index = (x + i * width) * 4;
-				curColor[0] += map[index + GlowR] * filter[fy];
-				curColor[1] += map[index + GlowG] * filter[fy];
-				curColor[2] += map[index + GlowB] * filter[fy];
-				curColor[3] += map[index + GlowA] * filter[fy];
+				madd_v4_v4fl(curColor, map + index, filter[fy]);
 				fy++;
 			}
 			index = (x + y * width) * 4;
