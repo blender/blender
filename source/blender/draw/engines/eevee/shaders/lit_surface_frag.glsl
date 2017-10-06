@@ -66,7 +66,7 @@ vec3 eevee_surface_lit(vec3 N, vec3 albedo, vec3 f0, float roughness, float ao, 
 		l_vector.xyz = ld.l_position - worldPosition;
 		l_vector.w = length(l_vector.xyz);
 
-		vec3 l_color_vis = ld.l_color * light_visibility(ld, worldPosition, l_vector);
+		vec3 l_color_vis = ld.l_color * light_visibility(ld, worldPosition, viewPosition, viewNormal, l_vector);
 
 #ifdef HAIR_SHADER
 		vec3 norm_lamp, view_vec;
@@ -224,7 +224,7 @@ vec3 eevee_surface_clearcoat_lit(
 		l_vector.xyz = ld.l_position - worldPosition;
 		l_vector.w = length(l_vector.xyz);
 
-		vec3 l_color_vis = ld.l_color * light_visibility(ld, worldPosition, l_vector);
+		vec3 l_color_vis = ld.l_color * light_visibility(ld, worldPosition, viewPosition, viewNormal, l_vector);
 
 #ifdef HAIR_SHADER
 		vec3 norm_lamp, view_vec;
@@ -388,7 +388,7 @@ vec3 eevee_surface_diffuse_lit(vec3 N, vec3 albedo, float ao)
 		l_vector.xyz = ld.l_position - worldPosition;
 		l_vector.w = length(l_vector.xyz);
 
-		vec3 l_color_vis = ld.l_color * light_visibility(ld, worldPosition, l_vector);
+		vec3 l_color_vis = ld.l_color * light_visibility(ld, worldPosition, viewPosition, viewNormal, l_vector);
 
 #ifdef HAIR_SHADER
 		vec3 norm_lamp, view_vec;
@@ -480,7 +480,7 @@ vec3 eevee_surface_glossy_lit(vec3 N, vec3 f0, float roughness, float ao, int ss
 		l_vector.xyz = ld.l_position - worldPosition;
 		l_vector.w = length(l_vector.xyz);
 
-		vec3 l_color_vis = ld.l_color * light_visibility(ld, worldPosition, l_vector);
+		vec3 l_color_vis = ld.l_color * light_visibility(ld, worldPosition, viewPosition, viewNormal, l_vector);
 
 #ifdef HAIR_SHADER
 		vec3 norm_lamp, view_vec;
@@ -681,7 +681,7 @@ vec3 eevee_surface_glass(vec3 N, vec3 transmission_col, float roughness, float i
 		l_vector.xyz = ld.l_position - worldPosition;
 		l_vector.w = length(l_vector.xyz);
 
-		vec3 l_color_vis = ld.l_color * light_visibility(ld, worldPosition, l_vector);
+		vec3 l_color_vis = ld.l_color * light_visibility(ld, worldPosition, viewPosition, viewNormal, l_vector);
 
 #ifdef HAIR_SHADER
 		vec3 norm_lamp, view_vec;

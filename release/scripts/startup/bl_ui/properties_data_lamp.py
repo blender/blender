@@ -401,6 +401,19 @@ class DATA_PT_EEVEE_shadow(DataButtonsPanel, Panel):
             sub.prop(lamp, "shadow_cascade_max_distance", text="Max Distance")
             sub.prop(lamp, "shadow_cascade_exponent", text="Distribution")
 
+        layout.separator()
+
+        layout.prop(lamp, "use_contact_shadow")
+        split = layout.split()
+        split.active = lamp.use_contact_shadow
+        col = split.column()
+        col.prop(lamp, "contact_shadow_distance", text="Distance")
+        col.prop(lamp, "contact_shadow_soft_size", text="Soft")
+
+        col = split.column()
+        col.prop(lamp, "contact_shadow_bias", text="Bias")
+        col.prop(lamp, "contact_shadow_thickness", text="Thickness")
+
 
 class DATA_PT_area(DataButtonsPanel, Panel):
     bl_label = "Area Shape"

@@ -112,6 +112,8 @@ typedef struct Lamp {
 	float cascade_fade;
 	int cascade_count;
 
+	float contact_dist, contact_bias, contact_spread, contact_thickness;
+
 	/* preview */
 	struct PreviewImage *preview;
 
@@ -157,6 +159,7 @@ typedef struct Lamp {
 #define LA_SHAD_TEX     (1 << 16)
 #define LA_SHOW_CONE    (1 << 17)
 #define LA_SHOW_SHADOW_BOX (1 << 18)
+#define LA_SHAD_CONTACT (1 << 19)
 
 /* layer_shadow */
 #define LA_LAYER_SHADOW_BOTH	0

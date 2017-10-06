@@ -144,7 +144,7 @@ float shadow_cascade(ShadowData sd, ShadowCascadeData scd, float texid, vec3 W)
 /* ----------------------------------------------------------- */
 #define MAX_MULTI_SHADOW 4
 
-float light_visibility(LightData ld, vec3 W, vec4 l_vector)
+float light_visibility(LightData ld, vec3 W, vec3 viewPosition, vec3 viewNormal, vec4 l_vector)
 {
 	float vis = 1.0;
 
@@ -169,6 +169,7 @@ float light_visibility(LightData ld, vec3 W, vec4 l_vector)
 	/* shadowing */
 	if (ld.l_shadowid >= 0.0) {
 		ShadowData data = shadows_data[int(ld.l_shadowid)];
+
 		if (ld.l_type == SUN) {
 			/* TODO : MSM */
 			// for (int i = 0; i < MAX_MULTI_SHADOW; ++i) {
@@ -184,6 +185,35 @@ float light_visibility(LightData ld, vec3 W, vec4 l_vector)
 					data, shadows_cube_data[int(data.sh_data_start)],
 					data.sh_tex_start, W);
 			// }
+		}
+#endif
+
+#ifndef VOLUMETRICS
+		/* Only compute if not already in shadow. */
+		if ((vis > 0.001) && (data.sh_contact_dist > 0.0)) {
+			vec4 L = (ld.l_type != SUN) ? l_vector : vec4(-ld.l_forward, 1.0);
+			float trace_distance = (ld.l_type != SUN) ? min(data.sh_contact_dist, l_vector.w) : data.sh_contact_dist;
+
+			vec3 T, B;
+			make_orthonormal_basis(L.xyz / L.w, T, B);
+
+			vec3 rand = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0)).xzw;
+			rand.yz *= rand.x * data.sh_contact_spread;
+
+			/* We use the full l_vector.xyz so that the spread is minimize
+			 * if the shading point is further away from the light source */
+			vec3 ray_dir = L.xyz + T * rand.y + B * rand.z;
+			ray_dir = transform_direction(ViewMatrix, ray_dir);
+			ray_dir = normalize(ray_dir);
+			vec3 ray_origin = viewPosition + viewNormal * data.sh_contact_offset;
+			vec3 hit_pos = raycast(-1, ray_origin, ray_dir * trace_distance, data.sh_contact_thickness, rand.x, 0.75, 0.01);
+
+			if (hit_pos.z > 0.0) {
+				hit_pos = get_view_space_from_depth(hit_pos.xy, hit_pos.z);
+				float hit_dist = distance(viewPosition, hit_pos);
+				float dist_ratio = hit_dist / trace_distance;
+				return mix(0.0, vis, dist_ratio * dist_ratio * dist_ratio);
+			}
 		}
 	}
 #endif

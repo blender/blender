@@ -221,6 +221,7 @@ typedef struct EEVEE_Light {
 typedef struct EEVEE_Shadow {
 	float near, far, bias, exp;
 	float shadow_start, data_start, multi_shadow_count, pad;
+	float contact_dist, contact_bias, contact_spread, contact_thickness;
 } EEVEE_Shadow;
 
 typedef struct EEVEE_ShadowCube {

@@ -432,12 +432,23 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-	if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "cascade_max_dist"))	{
-		for (Lamp *la = main->lamp.first; la; la = la->id.next) {
-			la->cascade_max_dist = 1000.0f;
-			la->cascade_count = 4;
-			la->cascade_exponent = 0.8f;
-			la->cascade_fade = 0.1f;
+	{
+		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "cascade_max_dist"))	{
+			for (Lamp *la = main->lamp.first; la; la = la->id.next) {
+				la->cascade_max_dist = 1000.0f;
+				la->cascade_count = 4;
+				la->cascade_exponent = 0.8f;
+				la->cascade_fade = 0.1f;
+			}
+		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "contact_dist"))	{
+			for (Lamp *la = main->lamp.first; la; la = la->id.next) {
+				la->contact_dist = 1.0f;
+				la->contact_bias = 0.03f;
+				la->contact_spread = 0.2f;
+				la->contact_thickness = 0.5f;
+			}
 		}
 	}
 
