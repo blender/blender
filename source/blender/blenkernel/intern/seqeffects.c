@@ -2027,10 +2027,10 @@ static void RVAddBitmaps_float(float *a, float *b, float *c, int width, int heig
 	for (y = 0; y < height; y++) {
 		for (x = 0; x < width; x++) {
 			index = (x + y * width) * 4;
-			c[index + GlowR] = MIN2(1.0f, a[index + GlowR] + b[index + GlowR]);
-			c[index + GlowG] = MIN2(1.0f, a[index + GlowG] + b[index + GlowG]);
-			c[index + GlowB] = MIN2(1.0f, a[index + GlowB] + b[index + GlowB]);
-			c[index + GlowA] = MIN2(1.0f, a[index + GlowA] + b[index + GlowA]);
+			c[index + GlowR] = min_ff(1.0f, a[index + GlowR] + b[index + GlowR]);
+			c[index + GlowG] = min_ff(1.0f, a[index + GlowG] + b[index + GlowG]);
+			c[index + GlowB] = min_ff(1.0f, a[index + GlowB] + b[index + GlowB]);
+			c[index + GlowA] = min_ff(1.0f, a[index + GlowA] + b[index + GlowA]);
 		}
 	}
 }
@@ -2047,10 +2047,10 @@ static void RVIsolateHighlights_float(float *in, float *out, int width, int heig
 			/* Isolate the intensity */
 			intensity = (in[index + GlowR] + in[index + GlowG] + in[index + GlowB] - threshold);
 			if (intensity > 0) {
-				out[index + GlowR] = MIN2(clamp, (in[index + GlowR] * boost * intensity));
-				out[index + GlowG] = MIN2(clamp, (in[index + GlowG] * boost * intensity));
-				out[index + GlowB] = MIN2(clamp, (in[index + GlowB] * boost * intensity));
-				out[index + GlowA] = MIN2(clamp, (in[index + GlowA] * boost * intensity));
+				out[index + GlowR] = min_ff(clamp, (in[index + GlowR] * boost * intensity));
+				out[index + GlowG] = min_ff(clamp, (in[index + GlowG] * boost * intensity));
+				out[index + GlowB] = min_ff(clamp, (in[index + GlowB] * boost * intensity));
+				out[index + GlowA] = min_ff(clamp, (in[index + GlowA] * boost * intensity));
 			}
 			else {
 				out[index + GlowR] = 0;
