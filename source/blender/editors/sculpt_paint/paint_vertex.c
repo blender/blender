@@ -143,7 +143,7 @@ static float view_angle_limits_apply_falloff(
 
 static bool vwpaint_use_normal(const VPaint *vp)
 {
-	return ((vp->flag & VP_FLAG_PROJECT_BACKFACE) == 0) ||
+	return ((vp->paint.brush->flag & BRUSH_FRONTFACE) != 0) ||
 	       ((vp->flag & VP_FLAG_PROJECT_FLAT) == 0);
 }
 
@@ -1556,7 +1556,7 @@ static void do_wpaint_brush_blur_task_cb_ex(
 					float brush_strength = cache->bstrength;
 					const float angle_cos = (use_normal && vd.no) ?
 					        dot_vf3vs3(ss->cache->sculpt_normal_symm, vd.no) : 1.0f;
-					if (((data->vp->flag & VP_FLAG_PROJECT_BACKFACE) ||
+					if (((brush->flag & BRUSH_FRONTFACE) == 0 ||
 					     (angle_cos > 0.0f)) &&
 					    ((data->vp->flag & VP_FLAG_PROJECT_FLAT) ||
 					     view_angle_limits_apply_falloff(&data->wpd->normal_angle_precalc, angle_cos, &brush_strength)))
@@ -1632,7 +1632,7 @@ static void do_wpaint_brush_smear_task_cb_ex(
 					float brush_strength = cache->bstrength;
 					const float angle_cos = (use_normal && vd.no) ?
 					        dot_vf3vs3(ss->cache->sculpt_normal_symm, vd.no) : 1.0f;
-					if (((data->vp->flag & VP_FLAG_PROJECT_BACKFACE) ||
+					if (((brush->flag & BRUSH_FRONTFACE) == 0 ||
 					     (angle_cos > 0.0f)) &&
 					    ((data->vp->flag & VP_FLAG_PROJECT_FLAT) ||
 					     view_angle_limits_apply_falloff(&data->wpd->normal_angle_precalc, angle_cos, &brush_strength)))
@@ -1733,7 +1733,7 @@ static void do_wpaint_brush_draw_task_cb_ex(
 				float brush_strength = cache->bstrength;
 				const float angle_cos = (use_normal && vd.no) ?
 				        dot_vf3vs3(ss->cache->sculpt_normal_symm, vd.no) : 1.0f;
-				if (((data->vp->flag & VP_FLAG_PROJECT_BACKFACE) ||
+				if (((brush->flag & BRUSH_FRONTFACE) == 0 ||
 				     (angle_cos > 0.0f)) &&
 				    ((data->vp->flag & VP_FLAG_PROJECT_FLAT) ||
 				     view_angle_limits_apply_falloff(&data->wpd->normal_angle_precalc, angle_cos, &brush_strength)))
@@ -2530,7 +2530,7 @@ static void do_vpaint_brush_draw_task_cb_ex(
 				float brush_strength = cache->bstrength;
 				const float angle_cos = (use_normal && vd.no) ?
 				        dot_vf3vs3(ss->cache->sculpt_normal_symm, vd.no) : 1.0f;
-				if (((data->vp->flag & VP_FLAG_PROJECT_BACKFACE) ||
+				if (((brush->flag & BRUSH_FRONTFACE) == 0 ||
 				     (angle_cos > 0.0f)) &&
 				    ((data->vp->flag & VP_FLAG_PROJECT_FLAT) ||
 				     view_angle_limits_apply_falloff(&data->vpd->normal_angle_precalc, angle_cos, &brush_strength)))
@@ -2616,7 +2616,7 @@ static void do_vpaint_brush_blur_task_cb_ex(
 				float brush_strength = cache->bstrength;
 				const float angle_cos = (use_normal && vd.no) ?
 				        dot_vf3vs3(ss->cache->sculpt_normal_symm, vd.no) : 1.0f;
-				if (((data->vp->flag & VP_FLAG_PROJECT_BACKFACE) ||
+				if (((brush->flag & BRUSH_FRONTFACE) == 0 ||
 				     (angle_cos > 0.0f)) &&
 				    ((data->vp->flag & VP_FLAG_PROJECT_FLAT) ||
 				     view_angle_limits_apply_falloff(&data->vpd->normal_angle_precalc, angle_cos, &brush_strength)))
@@ -2731,7 +2731,7 @@ static void do_vpaint_brush_smear_task_cb_ex(
 					float brush_strength = cache->bstrength;
 					const float angle_cos = (use_normal && vd.no) ?
 					        dot_vf3vs3(ss->cache->sculpt_normal_symm, vd.no) : 1.0f;
-					if (((data->vp->flag & VP_FLAG_PROJECT_BACKFACE) ||
+					if (((brush->flag & BRUSH_FRONTFACE) == 0 ||
 					     (angle_cos > 0.0f)) &&
 					    ((data->vp->flag & VP_FLAG_PROJECT_FLAT) ||
 					     view_angle_limits_apply_falloff(&data->vpd->normal_angle_precalc, angle_cos, &brush_strength)))

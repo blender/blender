@@ -1125,7 +1125,6 @@ typedef struct VPaint {
 
 /* VPaint.flag */
 enum {
-	VP_FLAG_PROJECT_BACKFACE    = (1 << 0),
 	/* TODO */
 	// VP_FLAG_PROJECT_XRAY        = (1 << 1),
 	VP_FLAG_PROJECT_FLAT        = (1 << 3),
