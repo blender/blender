@@ -200,8 +200,9 @@ protected:
 	typedef unordered_map<ustring, uint, ustringHash> AttributeIDMap;
 	AttributeIDMap unique_attribute_id;
 
-	thread_mutex lookup_table_mutex;
+	static thread_mutex lookup_table_mutex;
 	static vector<float> beckmann_table;
+	static bool beckmann_table_ready;
 
 	size_t beckmann_table_offset;
 
