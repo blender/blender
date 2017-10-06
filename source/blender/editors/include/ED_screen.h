@@ -140,7 +140,7 @@ struct WorkSpace *ED_workspace_duplicate(
 bool ED_workspace_delete(
         struct WorkSpace *workspace,
         struct Main *bmain, struct bContext *C,
-        struct wmWindowManager *wm, struct wmWindow *win) ATTR_NONNULL();
+        struct wmWindowManager *wm) ATTR_NONNULL();
 void ED_workspace_scene_data_sync(
         struct WorkSpaceInstanceHook *hook, Scene *scene) ATTR_NONNULL();
 void ED_workspace_render_layer_unset(

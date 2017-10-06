@@ -239,7 +239,7 @@ WorkSpace *ED_workspace_duplicate(
  * \return if succeeded.
  */
 bool ED_workspace_delete(
-        WorkSpace *workspace, Main *bmain, bContext *C, wmWindowManager *wm, wmWindow *win)
+        WorkSpace *workspace, Main *bmain, bContext *C, wmWindowManager *wm)
 {
 	ID *workspace_id = (ID *)workspace;
 
@@ -247,7 +247,7 @@ bool ED_workspace_delete(
 		return false;
 	}
 
-	if (WM_window_get_active_workspace(win) == workspace) {
+	for (wmWindow *win = wm->windows.first; win; win = win->next) {
 		WorkSpace *prev = workspace_id->prev;
 		WorkSpace *next = workspace_id->next;
 
@@ -315,7 +315,7 @@ static int workspace_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win = CTX_wm_window(C);
 
-	ED_workspace_delete(WM_window_get_active_workspace(win), bmain, C, wm, win);
+	ED_workspace_delete(WM_window_get_active_workspace(win), bmain, C, wm);
 
 	return OPERATOR_FINISHED;
 }
