@@ -789,7 +789,6 @@ static void calc_area_normal_and_center_task_cb(void *userdata, const int n)
 	float (*area_cos)[3] = data->area_cos;
 
 	PBVHVertexIter vd;
-	SculptBrushTest test;
 	SculptUndoNode *unode = NULL;
 
 	float private_co[2][3] = {{0.0f}};
@@ -801,7 +800,10 @@ static void calc_area_normal_and_center_task_cb(void *userdata, const int n)
 		unode = sculpt_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
 		use_original = (unode->co || unode->bm_entry);
 	}
-	sculpt_brush_test_init(ss, &test);
+
+	SculptBrushTest test;
+	SculptBrushTestFn sculpt_brush_test_sq_fn =
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 
 	/* when the mesh is edited we can't rely on original coords
@@ -824,7 +826,7 @@ static void calc_area_normal_and_center_task_cb(void *userdata, const int n)
 
 			closest_on_tri_to_point_v3(co, test.location, UNPACK3(co_tri));
 
-			if (sculpt_brush_test_sphere_fast(&test, co)) {
+			if (sculpt_brush_test_sq_fn(&test, co)) {
 				float no[3];
 				int flip_index;
 
@@ -858,7 +860,7 @@ static void calc_area_normal_and_center_task_cb(void *userdata, const int n)
 				co = vd.co;
 			}
 
-			if (sculpt_brush_test_sphere_fast(&test, co)) {
+			if (sculpt_brush_test_sq_fn(&test, co)) {
 				float no_buf[3];
 				const float *no;
 				int flip_index;
@@ -976,7 +978,7 @@ void sculpt_pbvh_calc_area_normal(
 
 	/* Intentionally set 'sd' to NULL since this is used for vertex paint too. */
 	SculptThreadedTaskData data = {
-		.sd = NULL, .ob = ob, .nodes = nodes, .totnode = totnode,
+		.sd = NULL, .ob = ob, .brush = brush, .nodes = nodes, .totnode = totnode,
 		.has_bm_orco = has_bm_orco, .area_cos = NULL, .area_nos = area_nos, .count = count,
 	};
 	BLI_mutex_init(&data.mutex);
@@ -1016,7 +1018,7 @@ static void calc_area_normal_and_center(
 
 	/* Intentionally set 'sd' to NULL since this is used for vertex paint too. */
 	SculptThreadedTaskData data = {
-		.sd = NULL, .ob = ob, .nodes = nodes, .totnode = totnode,
+		.sd = NULL, .ob = ob, .brush = brush, .nodes = nodes, .totnode = totnode,
 		.has_bm_orco = has_bm_orco, .area_cos = area_cos, .area_nos = area_nos, .count = count,
 	};
 	BLI_mutex_init(&data.mutex);
@@ -2041,6 +2043,9 @@ static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 	            ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_THREADED_LIMIT), false);
 }
 
+/**
+ * Used for 'SCULPT_TOOL_CREASE' and 'SCULPT_TOOL_BLOB'
+ */
 static void do_crease_brush_task_cb_ex(
         void *userdata, void *UNUSED(userdata_chunk), const int n, const int thread_id)
 {
@@ -2072,6 +2077,10 @@ static void do_crease_brush_task_cb_ex(
 
 			/* first we pinch */
 			sub_v3_v3v3(val1, test.location, vd.co);
+			if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
+				project_plane_v3_v3v3(val1, val1, ss->cache->view_normal);
+			}
+
 			mul_v3_fl(val1, fade * flippedbstrength);
 
 			sculpt_project_v3(spvc, val1, val1);
@@ -2157,6 +2166,9 @@ static void do_pinch_brush_task_cb_ex(
 			float val[3];
 
 			sub_v3_v3v3(val, test.location, vd.co);
+			if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
+				project_plane_v3_v3v3(val, val, ss->cache->view_normal);
+			}
 			mul_v3_v3fl(proxy[vd.i], val, fade);
 
 			if (vd.mvert)
@@ -2333,6 +2345,9 @@ static void do_snake_hook_brush_task_cb_ex(
 				float delta_pinch_init[3], delta_pinch[3];
 
 				sub_v3_v3v3(delta_pinch, vd.co, test.location);
+				if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
+					project_plane_v3_v3v3(delta_pinch, delta_pinch, ss->cache->true_view_normal);
+				}
 
 				/* important to calculate based on the grabbed location (intentionally ignore fade here). */
 				add_v3_v3(delta_pinch, grab_delta);
@@ -4199,7 +4214,6 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
 						sub_v3_v3v3(cache->grab_delta, grab_location,
 						            cache->old_grab_location);
 					}
-				
 					invert_m4_m4(imat, ob->obmat);
 					mul_mat3_m4_v3(imat, cache->grab_delta);
 					break;
@@ -4207,6 +4221,10 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
 		}
 		else {
 			zero_v3(cache->grab_delta);
+		}
+
+		if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
+			project_plane_v3_v3v3(cache->grab_delta, cache->grab_delta, ss->cache->true_view_normal);
 		}
 
 		copy_v3_v3(cache->old_grab_location, grab_location);
