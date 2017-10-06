@@ -313,7 +313,7 @@ static void set_preview_layer(SceneLayer *scene_layer, char pr_type)
 			lc->flag = COLLECTION_VISIBLE;
 		}
 		else {
-			lc->flag = 0;
+			lc->flag = COLLECTION_DISABLED;
 		}
 	}
 }
