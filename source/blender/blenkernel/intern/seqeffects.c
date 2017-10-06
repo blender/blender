@@ -1906,49 +1906,53 @@ static void RVBlurBitmap2_float(float *map, int width, int height, float blur, i
 	for (y = 0; y < height; y++) {
 		/* Do the left & right strips */
 		for (x = 0; x < halfWidth; x++) {
-			index = (x + y * width) * 4;
 			fx = 0;
 			zero_v4(curColor);
 			zero_v4(curColor2);
 
 			for (i = x - halfWidth; i < x + halfWidth; i++) {
 				if ((i >= 0) && (i < width)) {
-					curColor[0] += map[(i + y * width) * 4 + GlowR] * filter[fx];
-					curColor[1] += map[(i + y * width) * 4 + GlowG] * filter[fx];
-					curColor[2] += map[(i + y * width) * 4 + GlowB] * filter[fx];
-					curColor[3] += map[(i + y * width) * 4 + GlowA] * filter[fx];
+					index = (i + y * width) * 4;
+					curColor[0] += map[index + GlowR] * filter[fx];
+					curColor[1] += map[index + GlowG] * filter[fx];
+					curColor[2] += map[index + GlowB] * filter[fx];
+					curColor[3] += map[index + GlowA] * filter[fx];
 
-					curColor2[0] += map[(width - 1 - i + y * width) * 4 + GlowR] * filter[fx];
-					curColor2[1] += map[(width - 1 - i + y * width) * 4 + GlowG] * filter[fx];
-					curColor2[2] += map[(width - 1 - i + y * width) * 4 + GlowB] * filter[fx];
-					curColor2[3] += map[(width - 1 - i + y * width) * 4 + GlowA] * filter[fx];
+					index = (width - 1 - i + y * width) * 4;
+					curColor2[0] += map[index + GlowR] * filter[fx];
+					curColor2[1] += map[index + GlowG] * filter[fx];
+					curColor2[2] += map[index + GlowB] * filter[fx];
+					curColor2[3] += map[index + GlowA] * filter[fx];
 				}
 				fx++;
 			}
+			index = (x + y * width) * 4;
 			temp[index + GlowR] = curColor[0];
 			temp[index + GlowG] = curColor[1];
 			temp[index + GlowB] = curColor[2];
 			temp[index + GlowA] = curColor[3];
 
-			temp[((width - 1 - x + y * width) * 4) + GlowR] = curColor2[0];
-			temp[((width - 1 - x + y * width) * 4) + GlowG] = curColor2[1];
-			temp[((width - 1 - x + y * width) * 4) + GlowB] = curColor2[2];
-			temp[((width - 1 - x + y * width) * 4) + GlowA] = curColor2[3];
+			index = (width - 1 - x + y * width) * 4;
+			temp[index + GlowR] = curColor2[0];
+			temp[index + GlowG] = curColor2[1];
+			temp[index + GlowB] = curColor2[2];
+			temp[index + GlowA] = curColor2[3];
 
 		}
 
 		/* Do the main body */
 		for (x = halfWidth; x < width - halfWidth; x++) {
-			index = (x + y * width) * 4;
 			fx = 0;
 			zero_v4(curColor);
 			for (i = x - halfWidth; i < x + halfWidth; i++) {
-				curColor[0] += map[(i + y * width) * 4 + GlowR] * filter[fx];
-				curColor[1] += map[(i + y * width) * 4 + GlowG] * filter[fx];
-				curColor[2] += map[(i + y * width) * 4 + GlowB] * filter[fx];
-				curColor[3] += map[(i + y * width) * 4 + GlowA] * filter[fx];
+				index = (i + y * width) * 4;
+				curColor[0] += map[index + GlowR] * filter[fx];
+				curColor[1] += map[index + GlowG] * filter[fx];
+				curColor[2] += map[index + GlowB] * filter[fx];
+				curColor[3] += map[index + GlowA] * filter[fx];
 				fx++;
 			}
+			index = (x + y * width) * 4;
 			temp[index + GlowR] = curColor[0];
 			temp[index + GlowG] = curColor[1];
 			temp[index + GlowB] = curColor[2];
@@ -1963,48 +1967,53 @@ static void RVBlurBitmap2_float(float *map, int width, int height, float blur, i
 	for (x = 0; x < width; x++) {
 		/* Do the top & bottom strips */
 		for (y = 0; y < halfWidth; y++) {
-			index = (x + y * width) * 4;
 			fy = 0;
 			zero_v4(curColor);
 			zero_v4(curColor2);
 			for (i = y - halfWidth; i < y + halfWidth; i++) {
 				if ((i >= 0) && (i < height)) {
 					/* Bottom */
-					curColor[0] += map[(x + i * width) * 4 + GlowR] * filter[fy];
-					curColor[1] += map[(x + i * width) * 4 + GlowG] * filter[fy];
-					curColor[2] += map[(x + i * width) * 4 + GlowB] * filter[fy];
-					curColor[3] += map[(x + i * width) * 4 + GlowA] * filter[fy];
+					index = (x + i * width) * 4;
+					curColor[0] += map[index + GlowR] * filter[fy];
+					curColor[1] += map[index + GlowG] * filter[fy];
+					curColor[2] += map[index + GlowB] * filter[fy];
+					curColor[3] += map[index + GlowA] * filter[fy];
 
 					/* Top */
-					curColor2[0] += map[(x + (height - 1 - i) * width) * 4 + GlowR] * filter[fy];
-					curColor2[1] += map[(x + (height - 1 - i) * width) * 4 + GlowG] * filter[fy];
-					curColor2[2] += map[(x + (height - 1 - i) * width) * 4 + GlowB] * filter[fy];
-					curColor2[3] += map[(x + (height - 1 - i) * width) * 4 + GlowA] * filter[fy];
+					index = (x + (height - 1 - i) * width) * 4;
+					curColor2[0] += map[index + GlowR] * filter[fy];
+					curColor2[1] += map[index + GlowG] * filter[fy];
+					curColor2[2] += map[index + GlowB] * filter[fy];
+					curColor2[3] += map[index + GlowA] * filter[fy];
 				}
 				fy++;
 			}
+			index = (x + y * width) * 4;
 			temp[index + GlowR] = curColor[0];
 			temp[index + GlowG] = curColor[1];
 			temp[index + GlowB] = curColor[2];
 			temp[index + GlowA] = curColor[3];
-			temp[((x + (height - 1 - y) * width) * 4) + GlowR] = curColor2[0];
-			temp[((x + (height - 1 - y) * width) * 4) + GlowG] = curColor2[1];
-			temp[((x + (height - 1 - y) * width) * 4) + GlowB] = curColor2[2];
-			temp[((x + (height - 1 - y) * width) * 4) + GlowA] = curColor2[3];
+
+			index = (x + (height - 1 - y) * width) * 4;
+			temp[index + GlowR] = curColor2[0];
+			temp[index + GlowG] = curColor2[1];
+			temp[index + GlowB] = curColor2[2];
+			temp[index + GlowA] = curColor2[3];
 		}
 	
 		/* Do the main body */
 		for (y = halfWidth; y < height - halfWidth; y++) {
-			index = (x + y * width) * 4;
 			fy = 0;
 			zero_v4(curColor);
 			for (i = y - halfWidth; i < y + halfWidth; i++) {
-				curColor[0] += map[(x + i * width) * 4 + GlowR] * filter[fy];
-				curColor[1] += map[(x + i * width) * 4 + GlowG] * filter[fy];
-				curColor[2] += map[(x + i * width) * 4 + GlowB] * filter[fy];
-				curColor[3] += map[(x + i * width) * 4 + GlowA] * filter[fy];
+				index = (x + i * width) * 4;
+				curColor[0] += map[index + GlowR] * filter[fy];
+				curColor[1] += map[index + GlowG] * filter[fy];
+				curColor[2] += map[index + GlowB] * filter[fy];
+				curColor[3] += map[index + GlowA] * filter[fy];
 				fy++;
 			}
+			index = (x + y * width) * 4;
 			temp[index + GlowR] = curColor[0];
 			temp[index + GlowG] = curColor[1];
 			temp[index + GlowB] = curColor[2];
