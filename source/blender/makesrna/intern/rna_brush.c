@@ -1116,6 +1116,13 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Blur Mode", "");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
+	prop = RNA_def_property(srna, "falloff_angle", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_sdna(prop, NULL, "falloff_angle");
+	RNA_def_property_range(prop, 0, M_PI * 2);
+	RNA_def_property_ui_text(prop, "Falloff Angle",
+	                         "Paint most on faces pointing towards the view according to this angle");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
+
 	/* flag */
 	/* This is an enum but its unlikely we add other shapes, so expose as a boolean. */
 	prop = RNA_def_property(srna, "use_projected", PROP_BOOLEAN, PROP_NONE);
@@ -1197,6 +1204,11 @@ static void rna_def_brush(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_frontface", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_FRONTFACE);
 	RNA_def_property_ui_text(prop, "Use Front-Face", "Brush only affects vertexes that face the viewer");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+	prop = RNA_def_property(srna, "use_frontface_falloff", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_FRONTFACE_FALLOFF);
+	RNA_def_property_ui_text(prop, "Use Front-Face Falloff", "Blend brush influence by how much they face the front");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop = RNA_def_property(srna, "use_anchor", PROP_BOOLEAN, PROP_NONE);

@@ -671,20 +671,11 @@ static void rna_def_vertex_paint(BlenderRNA *brna)
 	RNA_def_struct_path_func(srna, "rna_VertexPaint_path");
 	RNA_def_struct_ui_text(srna, "Vertex Paint", "Properties of vertex and weight paint mode");
 
-	prop = RNA_def_property(srna, "use_normal_falloff", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", VP_FLAG_PROJECT_FLAT);
-	RNA_def_property_ui_text(prop, "Normals", "Paint most on faces pointing towards the view");
-	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
-
 	/* weight paint only */
 	prop = RNA_def_property(srna, "use_group_restrict", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", VP_FLAG_VGROUP_RESTRICT);
 	RNA_def_property_ui_text(prop, "Restrict", "Restrict painting to vertices in the group");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
-
-	prop = RNA_def_property(srna, "normal_angle", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_range(prop, 0, 90);
-	RNA_def_property_ui_text(prop, "Angle", "Paint most on faces pointing towards the view according to this angle");
 
 	/* Mirroring */
 	prop = RNA_def_property(srna, "radial_symmetry", PROP_INT, PROP_XYZ);

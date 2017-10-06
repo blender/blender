@@ -1139,6 +1139,12 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
                 col.separator()
 
             col.prop(brush, "use_frontface", text="Front Faces Only")
+            row = col.row()
+            row.prop(brush, "use_frontface_falloff", text="Falloff Angle")
+            sub = row.row()
+            sub.active = brush.use_frontface_falloff
+            sub.prop(brush, "falloff_angle", text="")
+
             col.prop(brush, "use_projected")
 
             col = layout.column()
@@ -1175,6 +1181,12 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
                 col.separator()
 
             col.prop(brush, "use_frontface", text="Front Faces Only")
+            row = col.row()
+            row.prop(brush, "use_frontface_falloff", text="Falloff Angle")
+            sub = row.row()
+            sub.active = brush.use_frontface_falloff
+            sub.prop(brush, "falloff_angle", text="")
+
             col.prop(brush, "use_projected")
 
             col.separator()
@@ -1767,16 +1779,7 @@ class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
         wpaint = tool_settings.weight_paint
 
         col = layout.column()
-        col.label("Falloff:")
-
-        row = col.row()
-        row.prop(wpaint, "use_normal_falloff")
-        sub = row.row()
-        sub.active = (wpaint.use_normal_falloff)
-        sub.prop(wpaint, "normal_angle", text="")
-        col = layout.column()
-        row = col.row()
-        row.prop(wpaint, "use_group_restrict")
+        col.prop(wpaint, "use_group_restrict")
 
         obj = context.weight_paint_object
         if obj.type == 'MESH':

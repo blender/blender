@@ -1117,17 +1117,13 @@ typedef struct UvSculpt {
 /* Vertex Paint */
 typedef struct VPaint {
 	Paint paint;
-	short flag;
-	char normal_angle;
-	char pad;
+	char flag;
+	char pad[3];
 	int radial_symm[3]; /* For mirrored painting */
 } VPaint;
 
 /* VPaint.flag */
 enum {
-	/* TODO */
-	// VP_FLAG_PROJECT_XRAY        = (1 << 1),
-	VP_FLAG_PROJECT_FLAT        = (1 << 3),
 	/* weight paint only */
 	VP_FLAG_VGROUP_RESTRICT     = (1 << 7)
 };

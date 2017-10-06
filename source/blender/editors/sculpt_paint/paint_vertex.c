@@ -104,6 +104,7 @@ struct NormalAnglePrecalc {
 static void view_angle_limits_init(
         struct NormalAnglePrecalc *a, float angle, bool do_mask_normal)
 {
+	angle = RAD2DEGF(angle);
 	a->do_mask_normal = do_mask_normal;
 	if (do_mask_normal) {
 		a->angle_inner = angle;
@@ -144,7 +145,7 @@ static float view_angle_limits_apply_falloff(
 static bool vwpaint_use_normal(const VPaint *vp)
 {
 	return ((vp->paint.brush->flag & BRUSH_FRONTFACE) != 0) ||
-	       ((vp->flag & VP_FLAG_PROJECT_FLAT) == 0);
+	       ((vp->paint.brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0);
 }
 
 
@@ -356,7 +357,7 @@ static float calc_vp_alpha_col_dl(
 	if (strength > 0.0f) {
 		float alpha = brush_alpha_pressure * strength;
 
-		if ((vp->flag & VP_FLAG_PROJECT_FLAT) == 0) {
+		if ((vp->paint.brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0) {
 			float dvec[3];
 
 			/* transpose ! */
@@ -1380,7 +1381,8 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 	wpd = MEM_callocN(sizeof(struct WPaintData), "WPaintData");
 	paint_stroke_set_mode_data(stroke, wpd);
 	view3d_set_viewcontext(C, &wpd->vc);
-	view_angle_limits_init(&wpd->normal_angle_precalc, vp->normal_angle, (vp->flag & VP_FLAG_PROJECT_FLAT) == 0);
+	view_angle_limits_init(&wpd->normal_angle_precalc, vp->paint.brush->falloff_angle,
+	                       (vp->paint.brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0);
 
 	wpd->active.index = vgroup_index.active;
 	wpd->mirror.index = vgroup_index.mirror;
@@ -1560,7 +1562,7 @@ static void do_wpaint_brush_blur_task_cb_ex(
 					        dot_vf3vs3(sculpt_normal_frontface, vd.no) : 1.0f;
 					if (((brush->flag & BRUSH_FRONTFACE) == 0 ||
 					     (angle_cos > 0.0f)) &&
-					    ((data->vp->flag & VP_FLAG_PROJECT_FLAT) ||
+					    ((brush->flag & BRUSH_FRONTFACE_FALLOFF) == 0 ||
 					     view_angle_limits_apply_falloff(&data->wpd->normal_angle_precalc, angle_cos, &brush_strength)))
 					{
 						const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
@@ -1638,7 +1640,7 @@ static void do_wpaint_brush_smear_task_cb_ex(
 					        dot_vf3vs3(sculpt_normal_frontface, vd.no) : 1.0f;
 					if (((brush->flag & BRUSH_FRONTFACE) == 0 ||
 					     (angle_cos > 0.0f)) &&
-					    ((data->vp->flag & VP_FLAG_PROJECT_FLAT) ||
+					    ((brush->flag & BRUSH_FRONTFACE_FALLOFF) == 0 ||
 					     view_angle_limits_apply_falloff(&data->wpd->normal_angle_precalc, angle_cos, &brush_strength)))
 					{
 						bool do_color = false;
@@ -1741,7 +1743,7 @@ static void do_wpaint_brush_draw_task_cb_ex(
 				        dot_vf3vs3(sculpt_normal_frontface, vd.no) : 1.0f;
 				if (((brush->flag & BRUSH_FRONTFACE) == 0 ||
 				     (angle_cos > 0.0f)) &&
-				    ((data->vp->flag & VP_FLAG_PROJECT_FLAT) ||
+				    ((brush->flag & BRUSH_FRONTFACE_FALLOFF) == 0 ||
 				     view_angle_limits_apply_falloff(&data->wpd->normal_angle_precalc, angle_cos, &brush_strength)))
 				{
 					const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
@@ -2375,7 +2377,8 @@ static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const f
 	vpd = MEM_callocN(sizeof(*vpd), "VPaintData");
 	paint_stroke_set_mode_data(stroke, vpd);
 	view3d_set_viewcontext(C, &vpd->vc);
-	view_angle_limits_init(&vpd->normal_angle_precalc, vp->normal_angle, (vp->flag & VP_FLAG_PROJECT_FLAT) == 0);
+	view_angle_limits_init(&vpd->normal_angle_precalc, vp->paint.brush->falloff_angle,
+	                       (vp->paint.brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0);
 
 	vpd->paintcol = vpaint_get_current_col(scene, vp);
 
@@ -2542,7 +2545,7 @@ static void do_vpaint_brush_draw_task_cb_ex(
 				        dot_vf3vs3(sculpt_normal_frontface, vd.no) : 1.0f;
 				if (((brush->flag & BRUSH_FRONTFACE) == 0 ||
 				     (angle_cos > 0.0f)) &&
-				    ((data->vp->flag & VP_FLAG_PROJECT_FLAT) ||
+				    ((brush->flag & BRUSH_FRONTFACE_FALLOFF) == 0 ||
 				     view_angle_limits_apply_falloff(&data->vpd->normal_angle_precalc, angle_cos, &brush_strength)))
 				{
 					const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
@@ -2630,7 +2633,7 @@ static void do_vpaint_brush_blur_task_cb_ex(
 				        dot_vf3vs3(sculpt_normal_frontface, vd.no) : 1.0f;
 				if (((brush->flag & BRUSH_FRONTFACE) == 0 ||
 				     (angle_cos > 0.0f)) &&
-				    ((data->vp->flag & VP_FLAG_PROJECT_FLAT) ||
+				    ((brush->flag & BRUSH_FRONTFACE_FALLOFF) == 0 ||
 				     view_angle_limits_apply_falloff(&data->vpd->normal_angle_precalc, angle_cos, &brush_strength)))
 				{
 					const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
@@ -2747,7 +2750,7 @@ static void do_vpaint_brush_smear_task_cb_ex(
 					        dot_vf3vs3(sculpt_normal_frontface, vd.no) : 1.0f;
 					if (((brush->flag & BRUSH_FRONTFACE) == 0 ||
 					     (angle_cos > 0.0f)) &&
-					    ((data->vp->flag & VP_FLAG_PROJECT_FLAT) ||
+					    ((brush->flag & BRUSH_FRONTFACE_FALLOFF) == 0 ||
 					     view_angle_limits_apply_falloff(&data->vpd->normal_angle_precalc, angle_cos, &brush_strength)))
 					{
 						const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);

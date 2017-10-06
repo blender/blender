@@ -98,8 +98,9 @@ typedef struct Brush {
 	char gradient_stroke_mode; /* source for stroke color gradient application */
 	char gradient_fill_mode;   /* source for fill tool color gradient application */
 
+	char pad;
 	char falloff_shape;     /* Projection shape (sphere, circle) */
-	char pad[5];
+	float falloff_angle;
 
 	char sculpt_tool;       /* active sculpt tool */
 	char vertexpaint_tool;  /* active vertex/weight paint blend mode (poorly named) */
@@ -184,13 +185,13 @@ typedef enum BrushGradientSourceFill {
 /* Brush.flag */
 typedef enum BrushFlags {
 	BRUSH_AIRBRUSH = (1 << 0),
-//	BRUSH_TORUS = (1 << 1), deprecated, use paint->symmetry_flags & PAINT_TILE_*
+	BRUSH_FLAG_DEPRECATED_1 = (1 << 1),
 	BRUSH_ALPHA_PRESSURE = (1 << 2),
 	BRUSH_SIZE_PRESSURE = (1 << 3),
 	BRUSH_JITTER_PRESSURE = (1 << 4),
 	BRUSH_SPACING_PRESSURE = (1 << 5),
-	BRUSH_UNUSED = (1 << 6),
-//	BRUSH_RAKE = (1 << 7), deprecated, use brush_angle_mode
+	BRUSH_FLAG_DEPRECATED_2 = (1 << 6),
+	BRUSH_FLAG_DEPRECATED_3 = (1 << 7),
 	BRUSH_ANCHORED = (1 << 8),
 	BRUSH_DIR_IN = (1 << 9),
 	BRUSH_SPACE = (1 << 10),
@@ -200,6 +201,7 @@ typedef enum BrushFlags {
 	BRUSH_LOCK_ALPHA = (1 << 14),
 	BRUSH_ORIGINAL_NORMAL = (1 << 15),
 	BRUSH_OFFSET_PRESSURE = (1 << 16),
+	BRUSH_FLAG_DEPRECATED_4 = (1 << 17),
 	BRUSH_SPACE_ATTEN = (1 << 18),
 	BRUSH_ADAPTIVE_SPACE = (1 << 19),
 	BRUSH_LOCK_SIZE = (1 << 20),
@@ -207,7 +209,7 @@ typedef enum BrushFlags {
 	BRUSH_EDGE_TO_EDGE = (1 << 22),
 	BRUSH_DRAG_DOT = (1 << 23),
 	BRUSH_INVERSE_SMOOTH_PRESSURE = (1 << 24),
-//	BRUSH_RANDOM_ROTATION = (1 << 25), deprecated, use brush_angle_mode
+	BRUSH_FRONTFACE_FALLOFF = (1 << 25),
 	BRUSH_PLANE_TRIM = (1 << 26),
 	BRUSH_FRONTFACE = (1 << 27),
 	BRUSH_CUSTOM_ICON = (1 << 28),

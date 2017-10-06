@@ -1683,7 +1683,15 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 
-		if (!DNA_struct_elem_find(fd->filesdna, "VPaint", "char", "normal_angle")) {
+		if (!DNA_struct_elem_find(fd->filesdna, "Brush", "float", "falloff_angle")) {
+			for (Brush *br = main->brush.first; br; br = br->id.next) {
+				br->falloff_angle = DEG2RADF(80);
+				br->flag &= ~(
+				        BRUSH_FLAG_DEPRECATED_1 | BRUSH_FLAG_DEPRECATED_2 |
+				        BRUSH_FLAG_DEPRECATED_3 | BRUSH_FLAG_DEPRECATED_4 |
+				        BRUSH_FRONTFACE_FALLOFF);
+			}
+
 			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
 				ToolSettings *ts = scene->toolsettings;
 				for (int i = 0; i < 2; i++) {
@@ -1691,7 +1699,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 					if (vp != NULL) {
 						/* remove all other flags */
 						vp->flag &= (VP_FLAG_VGROUP_RESTRICT);
-						vp->normal_angle = 80;
 					}
 				}
 			}
