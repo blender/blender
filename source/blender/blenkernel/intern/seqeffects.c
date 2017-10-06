@@ -1927,17 +1927,10 @@ static void RVBlurBitmap2_float(float *map, int width, int height, float blur, i
 				fx++;
 			}
 			index = (x + y * width) * 4;
-			temp[index + GlowR] = curColor[0];
-			temp[index + GlowG] = curColor[1];
-			temp[index + GlowB] = curColor[2];
-			temp[index + GlowA] = curColor[3];
+			copy_v4_v4(temp + index, curColor);
 
 			index = (width - 1 - x + y * width) * 4;
-			temp[index + GlowR] = curColor2[0];
-			temp[index + GlowG] = curColor2[1];
-			temp[index + GlowB] = curColor2[2];
-			temp[index + GlowA] = curColor2[3];
-
+			copy_v4_v4(temp + index, curColor2);
 		}
 
 		/* Do the main body */
@@ -1953,10 +1946,7 @@ static void RVBlurBitmap2_float(float *map, int width, int height, float blur, i
 				fx++;
 			}
 			index = (x + y * width) * 4;
-			temp[index + GlowR] = curColor[0];
-			temp[index + GlowG] = curColor[1];
-			temp[index + GlowB] = curColor[2];
-			temp[index + GlowA] = curColor[3];
+			copy_v4_v4(temp + index, curColor);
 		}
 	}
 
@@ -1989,16 +1979,10 @@ static void RVBlurBitmap2_float(float *map, int width, int height, float blur, i
 				fy++;
 			}
 			index = (x + y * width) * 4;
-			temp[index + GlowR] = curColor[0];
-			temp[index + GlowG] = curColor[1];
-			temp[index + GlowB] = curColor[2];
-			temp[index + GlowA] = curColor[3];
+			copy_v4_v4(temp + index, curColor);
 
 			index = (x + (height - 1 - y) * width) * 4;
-			temp[index + GlowR] = curColor2[0];
-			temp[index + GlowG] = curColor2[1];
-			temp[index + GlowB] = curColor2[2];
-			temp[index + GlowA] = curColor2[3];
+			copy_v4_v4(temp + index, curColor2);
 		}
 	
 		/* Do the main body */
@@ -2014,10 +1998,7 @@ static void RVBlurBitmap2_float(float *map, int width, int height, float blur, i
 				fy++;
 			}
 			index = (x + y * width) * 4;
-			temp[index + GlowR] = curColor[0];
-			temp[index + GlowG] = curColor[1];
-			temp[index + GlowB] = curColor[2];
-			temp[index + GlowA] = curColor[3];
+			copy_v4_v4(temp + index, curColor);
 		}
 	}
 
