@@ -219,6 +219,8 @@ bool sculpt_search_circle_cb(PBVHNode *node, void *data_v);
 
 SculptBrushTestFn sculpt_brush_test_init_with_falloff_shape(
         SculptSession *ss, SculptBrushTest *test, char falloff_shape);
+const float *sculpt_brush_frontface_normal_from_falloff_shape(
+        SculptSession *ss, char falloff_shape);
 
 float tex_strength(
         struct SculptSession *ss, const struct Brush *br,

@@ -651,6 +651,19 @@ SculptBrushTestFn sculpt_brush_test_init_with_falloff_shape(
 	return sculpt_brush_test_sq_fn;
 }
 
+const float *sculpt_brush_frontface_normal_from_falloff_shape(
+        SculptSession *ss, char falloff_shape)
+{
+	if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
+		return ss->cache->sculpt_normal_symm;
+	}
+	else {
+		/* PAINT_FALLOFF_SHAPE_TUBE */
+		return ss->cache->view_normal;
+	}
+}
+
+
 static float frontface(const Brush *br, const float sculpt_normal[3],
                        const short no[3], const float fno[3])
 {
