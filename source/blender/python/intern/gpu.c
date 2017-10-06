@@ -207,7 +207,7 @@ PyDoc_STRVAR(GPU_export_shader_doc,
 "   :return: Dictionary defining the shader, uniforms and attributes.\n"
 "   :rtype: Dict"
 );
-static PyObject *GPU_export_shader(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
+static PyObject *GPU_export_shader(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	PyObject *pyscene;
 	PyObject *pymat;
@@ -224,11 +224,14 @@ static PyObject *GPU_export_shader(PyObject *UNUSED(self), PyObject *args, PyObj
 	GPUInputUniform *uniform;
 	GPUInputAttribute *attribute;
 
-	static const char *kwlist[] = {"scene", "material", NULL};
-
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO:export_shader", (char **)(kwlist), &pyscene, &pymat))
+	static const char *_keywords[] = {"scene", "material", NULL};
+	static _PyArg_Parser _parser = {"OO:export_shader", _keywords, 0};
+	if (!_PyArg_ParseTupleAndKeywordsFast(
+	        args, kw, &_parser,
+	        &pyscene, &pymat))
+	{
 		return NULL;
-
+	}
 	scene = (Scene *)PyC_RNA_AsPointer(pyscene, "Scene");
 	if (scene == NULL) {
 		return NULL;

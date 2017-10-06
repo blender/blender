@@ -683,10 +683,11 @@ static void ui_node_draw_input(uiLayout *layout, bContext *C, bNodeTree *ntree, 
 	RNA_pointer_create(&ntree->id, &RNA_Node, node, &nodeptr);
 
 	/* indented label */
-	for (i = 0; i < indent; i++)
+	for (i = 0; i < indent; i++) {
 		label[i] = ' ';
+	}
 	label[indent] = '\0';
-	BLI_snprintf(label, UI_MAX_NAME_STR, "%s%s:", label, IFACE_(input->name));
+	BLI_snprintf(label + indent, UI_MAX_NAME_STR - indent, "%s:", IFACE_(input->name));
 
 	/* split in label and value */
 	split = uiLayoutSplit(layout, 0.35f, false);

@@ -69,24 +69,23 @@ PyDoc_STRVAR(bpy_lib_write_doc,
 "   :arg compress: When True, write a compressed blend file.\n"
 "   :type compress: bool\n"
 );
-static PyObject *bpy_lib_write(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
+static PyObject *bpy_lib_write(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
-	static const char *kwlist[] = {
-		"filepath", "datablocks",
-		/* optional */
-		"relative_remap", "fake_user", "compress",
-		NULL,
-	};
-
 	/* args */
 	const char *filepath;
 	char filepath_abs[FILE_MAX];
 	PyObject *datablocks = NULL;
 	bool use_relative_remap = false, use_fake_user = false, use_compress = false;
 
-	if (!PyArg_ParseTupleAndKeywords(
-	        args, kwds,
-	        "sO!|$O&O&O&:write", (char **)kwlist,
+	static const char *_keywords[] = {
+		"filepath", "datablocks",
+		/* optional */
+		"relative_remap", "fake_user", "compress",
+		NULL,
+	};
+	static _PyArg_Parser _parser = {"sO!|$O&O&O&:write", _keywords, 0};
+	if (!_PyArg_ParseTupleAndKeywordsFast(
+	        args, kw, &_parser,
 	        &filepath,
 	        &PySet_Type, &datablocks,
 	        PyC_ParseBool, &use_relative_remap,

@@ -284,7 +284,6 @@ public:
 		foreach(SubDevice& sub, devices) {
 			if(sub.device == sub_device) {
 				if(tile.buffer) tile.buffer = sub.ptr_map[tile.buffer];
-				if(tile.rng_state) tile.rng_state = sub.ptr_map[tile.rng_state];
 			}
 		}
 	}
@@ -387,7 +386,6 @@ public:
 				if(task.rgba_half) subtask.rgba_half = sub.ptr_map[task.rgba_half];
 				if(task.shader_input) subtask.shader_input = sub.ptr_map[task.shader_input];
 				if(task.shader_output) subtask.shader_output = sub.ptr_map[task.shader_output];
-				if(task.shader_output_luma) subtask.shader_output_luma = sub.ptr_map[task.shader_output_luma];
 
 				sub.device->task_add(subtask);
 			}

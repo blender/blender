@@ -1321,7 +1321,7 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 				if (restore)
 					RE_DataBase_IncrementalView(re, rp->viewmat, 1);
 
-				rp->resolution_divider = MAX2(rp->resolution_divider/2, pixel_size);
+				rp->resolution_divider = MAX2(rp->resolution_divider / 2, pixel_size);
 				*do_update = 1;
 
 				render_update_resolution(re, rp, use_border, &cliprct);

@@ -1041,9 +1041,12 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		}
 		case RETKEY:
 		{
-			view3d_ruler_to_gpencil(C, ruler_info);
-			do_draw = true;
-			exit_code = OPERATOR_FINISHED;
+			/* Enter may be used to invoke from search. */
+			if (event->val == KM_PRESS) {
+				view3d_ruler_to_gpencil(C, ruler_info);
+				do_draw = true;
+				exit_code = OPERATOR_FINISHED;
+			}
 			break;
 		}
 		case DELKEY:

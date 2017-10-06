@@ -1173,7 +1173,6 @@ public:
 		                   task->rect.z-task->rect.x,
 		                   task->rect.w-task->rect.y);
 
-		bool use_split_variance = use_split_kernel();
 		void *args[] = {&task->render_buffer.samples,
 		                &task->tiles_mem.device_pointer,
 		                &a_ptr,
@@ -1183,8 +1182,7 @@ public:
 		                &buffer_variance_ptr,
 		                &task->rect,
 		                &task->render_buffer.pass_stride,
-		                &task->render_buffer.denoising_data_offset,
-		                &use_split_variance};
+		                &task->render_buffer.denoising_data_offset};
 		CUDA_LAUNCH_KERNEL(cuFilterDivideShadow, args);
 		cuda_assert(cuCtxSynchronize());
 
@@ -1209,7 +1207,6 @@ public:
 		                   task->rect.z-task->rect.x,
 		                   task->rect.w-task->rect.y);
 
-		bool use_split_variance = use_split_kernel();
 		void *args[] = {&task->render_buffer.samples,
 		                &task->tiles_mem.device_pointer,
 				        &mean_offset,
@@ -1218,8 +1215,7 @@ public:
 		                &variance_ptr,
 		                &task->rect,
 		                &task->render_buffer.pass_stride,
-		                &task->render_buffer.denoising_data_offset,
-		                &use_split_variance};
+		                &task->render_buffer.denoising_data_offset};
 		CUDA_LAUNCH_KERNEL(cuFilterGetFeature, args);
 		cuda_assert(cuCtxSynchronize());
 
@@ -1285,19 +1281,16 @@ public:
 		task.unmap_neighbor_tiles(rtiles, this);
 	}
 
-	void path_trace(RenderTile& rtile, int sample, bool branched)
+	void path_trace(DeviceTask& task, RenderTile& rtile)
 	{
 		if(have_error())
 			return;
 
 		CUDAContextScope scope(this);
-
 		CUfunction cuPathTrace;
-		CUdeviceptr d_buffer = cuda_device_ptr(rtile.buffer);
-		CUdeviceptr d_rng_state = cuda_device_ptr(rtile.rng_state);
 
-		/* get kernel function */
-		if(branched) {
+		/* Get kernel function. */
+		if(task.integrator_branched) {
 			cuda_assert(cuModuleGetFunction(&cuPathTrace, cuModule, "kernel_cuda_branched_path_trace"));
 		}
 		else {
@@ -1308,40 +1301,65 @@ public:
 			return;
 		}
 
-		/* pass in parameters */
-		void *args[] = {&d_buffer,
-		                &d_rng_state,
-		                &sample,
-		                &rtile.x,
-		                &rtile.y,
-		                &rtile.w,
-		                &rtile.h,
-		                &rtile.offset,
-		                &rtile.stride};
-
-		/* launch kernel */
-		int threads_per_block;
-		cuda_assert(cuFuncGetAttribute(&threads_per_block, CU_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK, cuPathTrace));
-
-		/*int num_registers;
-		cuda_assert(cuFuncGetAttribute(&num_registers, CU_FUNC_ATTRIBUTE_NUM_REGS, cuPathTrace));
-
-		printf("threads_per_block %d\n", threads_per_block);
-		printf("num_registers %d\n", num_registers);*/
-
-		int xthreads = (int)sqrt(threads_per_block);
-		int ythreads = (int)sqrt(threads_per_block);
-		int xblocks = (rtile.w + xthreads - 1)/xthreads;
-		int yblocks = (rtile.h + ythreads - 1)/ythreads;
-
 		cuda_assert(cuFuncSetCacheConfig(cuPathTrace, CU_FUNC_CACHE_PREFER_L1));
 
-		cuda_assert(cuLaunchKernel(cuPathTrace,
-		                           xblocks , yblocks, 1, /* blocks */
-		                           xthreads, ythreads, 1, /* threads */
-		                           0, 0, args, 0));
+		/* Allocate work tile. */
+		device_vector<WorkTile> work_tiles;
+		work_tiles.resize(1);
 
-		cuda_assert(cuCtxSynchronize());
+		WorkTile *wtile = work_tiles.get_data();
+		wtile->x = rtile.x;
+		wtile->y = rtile.y;
+		wtile->w = rtile.w;
+		wtile->h = rtile.h;
+		wtile->offset = rtile.offset;
+		wtile->stride = rtile.stride;
+		wtile->buffer = (float*)cuda_device_ptr(rtile.buffer);
+		mem_alloc("work_tiles", work_tiles, MEM_READ_ONLY);
+
+		CUdeviceptr d_work_tiles = cuda_device_ptr(work_tiles.device_pointer);
+
+		/* Prepare work size. More step samples render faster, but for now we
+		 * remain conservative to avoid driver timeouts. */
+		int min_blocks, num_threads_per_block;
+		cuda_assert(cuOccupancyMaxPotentialBlockSize(&min_blocks, &num_threads_per_block, cuPathTrace, NULL, 0, 0));
+		uint step_samples = divide_up(min_blocks * num_threads_per_block, wtile->w * wtile->h);;
+
+		/* Render all samples. */
+		int start_sample = rtile.start_sample;
+		int end_sample = rtile.start_sample + rtile.num_samples;
+
+		for(int sample = start_sample; sample < end_sample; sample += step_samples) {
+			/* Setup and copy work tile to device. */
+			wtile->start_sample = sample;
+			wtile->num_samples = min(step_samples, end_sample - sample);;
+			mem_copy_to(work_tiles);
+
+			uint total_work_size = wtile->w * wtile->h * wtile->num_samples;
+			uint num_blocks = divide_up(total_work_size, num_threads_per_block);
+
+			/* Launch kernel. */
+			void *args[] = {&d_work_tiles,
+			                &total_work_size};
+
+			cuda_assert(cuLaunchKernel(cuPathTrace,
+			                           num_blocks, 1, 1,
+			                           num_threads_per_block, 1, 1,
+			                           0, 0, args, 0));
+
+			cuda_assert(cuCtxSynchronize());
+
+			/* Update progress. */
+			rtile.sample = sample + wtile->num_samples;
+			task.update_progress(&rtile, rtile.w*rtile.h*wtile->num_samples);
+
+			if(task.get_cancel()) {
+				if(task.need_finish_queue == false)
+					break;
+			}
+		}
+
+		mem_free(work_tiles);
 	}
 
 	void film_convert(DeviceTask& task, device_ptr buffer, device_ptr rgba_byte, device_ptr rgba_half)
@@ -1406,14 +1424,16 @@ public:
 		CUfunction cuShader;
 		CUdeviceptr d_input = cuda_device_ptr(task.shader_input);
 		CUdeviceptr d_output = cuda_device_ptr(task.shader_output);
-		CUdeviceptr d_output_luma = cuda_device_ptr(task.shader_output_luma);
 
 		/* get kernel function */
 		if(task.shader_eval_type >= SHADER_EVAL_BAKE) {
 			cuda_assert(cuModuleGetFunction(&cuShader, cuModule, "kernel_cuda_bake"));
 		}
+		else if(task.shader_eval_type == SHADER_EVAL_DISPLACE) {
+			cuda_assert(cuModuleGetFunction(&cuShader, cuModule, "kernel_cuda_displace"));
+		}
 		else {
-			cuda_assert(cuModuleGetFunction(&cuShader, cuModule, "kernel_cuda_shader"));
+			cuda_assert(cuModuleGetFunction(&cuShader, cuModule, "kernel_cuda_background"));
 		}
 
 		/* do tasks in smaller chunks, so we can cancel it */
@@ -1432,9 +1452,6 @@ public:
 				int arg = 0;
 				args[arg++] = &d_input;
 				args[arg++] = &d_output;
-				if(task.shader_eval_type < SHADER_EVAL_BAKE) {
-					args[arg++] = &d_output_luma;
-				}
 				args[arg++] = &task.shader_eval_type;
 				if(task.shader_eval_type >= SHADER_EVAL_BAKE) {
 					args[arg++] = &task.shader_filter;
@@ -1720,8 +1737,6 @@ public:
 		if(task->type == DeviceTask::RENDER) {
 			RenderTile tile;
 
-			bool branched = task->integrator_branched;
-
 			/* Upload Bindless Mapping */
 			load_bindless_mapping();
 
@@ -1745,21 +1760,7 @@ public:
 						split_kernel->path_trace(task, tile, void_buffer, void_buffer);
 					}
 					else {
-						int start_sample = tile.start_sample;
-						int end_sample = tile.start_sample + tile.num_samples;
-
-						for(int sample = start_sample; sample < end_sample; sample++) {
-							if(task->get_cancel()) {
-								if(task->need_finish_queue == false)
-									break;
-							}
-
-							path_trace(tile, sample, branched);
-
-							tile.sample = sample + 1;
-
-							task->update_progress(&tile, tile.w*tile.h);
-						}
+						path_trace(*task, tile);
 					}
 				}
 				else if(tile.task == RenderTile::DENOISE) {
@@ -1960,7 +1961,6 @@ bool CUDASplitKernel::enqueue_split_kernel_data_init(const KernelDimensions& dim
 	CUdeviceptr d_use_queues_flag = device->cuda_device_ptr(use_queues_flag.device_pointer);
 	CUdeviceptr d_work_pool_wgs = device->cuda_device_ptr(work_pool_wgs.device_pointer);
 
-	CUdeviceptr d_rng_state = device->cuda_device_ptr(rtile.rng_state);
 	CUdeviceptr d_buffer = device->cuda_device_ptr(rtile.buffer);
 
 	int end_sample = rtile.start_sample + rtile.num_samples;
@@ -1970,7 +1970,6 @@ bool CUDASplitKernel::enqueue_split_kernel_data_init(const KernelDimensions& dim
 		CUdeviceptr* split_data_buffer;
 		int* num_elements;
 		CUdeviceptr* ray_state;
-		CUdeviceptr* rng_state;
 		int* start_sample;
 		int* end_sample;
 		int* sx;
@@ -1991,7 +1990,6 @@ bool CUDASplitKernel::enqueue_split_kernel_data_init(const KernelDimensions& dim
 		&d_split_data,
 		&num_global_elements,
 		&d_ray_state,
-		&d_rng_state,
 		&rtile.start_sample,
 		&end_sample,
 		&rtile.x,

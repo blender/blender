@@ -272,7 +272,7 @@ static void calc_tangent_vector(ObjectRen *obr, VlakRen *vlr, int do_tangent)
 	}
 	else return;
 
-	tangent_from_uv(uv1, uv2, uv3, v1->co, v2->co, v3->co, vlr->n, tang);
+	tangent_from_uv_v3(uv1, uv2, uv3, v1->co, v2->co, v3->co, vlr->n, tang);
 	
 	if (do_tangent) {
 		tav= RE_vertren_get_tangent(obr, v1, 1);
@@ -284,7 +284,7 @@ static void calc_tangent_vector(ObjectRen *obr, VlakRen *vlr, int do_tangent)
 	}
 	
 	if (v4) {
-		tangent_from_uv(uv1, uv3, uv4, v1->co, v3->co, v4->co, vlr->n, tang);
+		tangent_from_uv_v3(uv1, uv3, uv4, v1->co, v3->co, v4->co, vlr->n, tang);
 		
 		if (do_tangent) {
 			tav= RE_vertren_get_tangent(obr, v1, 1);
@@ -399,7 +399,7 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, bool do_verte
 			float *n4= (vlr->v4)? vlr->v4->n: NULL;
 			const float *c4= (vlr->v4)? vlr->v4->co: NULL;
 
-			accumulate_vertex_normals(vlr->v1->n, vlr->v2->n, vlr->v3->n, n4,
+			accumulate_vertex_normals_v3(vlr->v1->n, vlr->v2->n, vlr->v3->n, n4,
 				vlr->n, vlr->v1->co, vlr->v2->co, vlr->v3->co, c4);
 		}
 		if (do_tangent) {

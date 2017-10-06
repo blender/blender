@@ -1333,7 +1333,8 @@ static int image_open_exec(bContext *C, wmOperator *op)
 		iuser->framenr = 1;
 		if (ima->source == IMA_SRC_MOVIE) {
 			iuser->offset = 0;
-		} else {
+		}
+		else {
 			iuser->offset = frame_ofs - 1;
 		}
 		iuser->fie_ima = 2;

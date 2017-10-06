@@ -74,8 +74,6 @@ public:
 
 	/* float buffer */
 	device_vector<float> buffer;
-	/* random number generator state */
-	device_vector<uint> rng_state;
 
 	Device *device;
 
@@ -83,6 +81,7 @@ public:
 	~RenderBuffers();
 
 	void reset(Device *device, BufferParams& params);
+	void zero(Device *device);
 
 	bool copy_from_device(Device *from_device = NULL);
 	bool get_pass_rect(PassType type, float exposure, int sample, int components, float *pixels);
@@ -149,7 +148,6 @@ public:
 	int tile_index;
 
 	device_ptr buffer;
-	device_ptr rng_state;
 
 	RenderBuffers *buffers;
 

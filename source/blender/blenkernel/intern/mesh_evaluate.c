@@ -225,7 +225,7 @@ static void mesh_calc_normals_poly_accum_task_cb(void *userdata, const int pidx)
 	}
 
 	/* accumulate angle weighted face normal */
-	/* inline version of #accumulate_vertex_normals_poly */
+	/* inline version of #accumulate_vertex_normals_poly_v3 */
 	{
 		const float *prev_edge = edgevecbuf[nverts - 1];
 
@@ -334,8 +334,9 @@ void BKE_mesh_calc_normals_tessface(
 		else
 			normal_tri_v3(f_no, mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co);
 
-		accumulate_vertex_normals(tnorms[mf->v1], tnorms[mf->v2], tnorms[mf->v3], n4,
-		                          f_no, mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, c4);
+		accumulate_vertex_normals_v3(
+		        tnorms[mf->v1], tnorms[mf->v2], tnorms[mf->v3], n4,
+		        f_no, mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, c4);
 	}
 
 	/* following Mesh convention; we use vertex coordinate itself for normal in this case */
@@ -379,7 +380,7 @@ void BKE_mesh_calc_normals_looptri(
 		        f_no,
 		        mverts[vtri[0]].co, mverts[vtri[1]].co, mverts[vtri[2]].co);
 
-		accumulate_vertex_normals_tri(
+		accumulate_vertex_normals_tri_v3(
 		        tnorms[vtri[0]], tnorms[vtri[1]], tnorms[vtri[2]],
 		        f_no, mverts[vtri[0]].co, mverts[vtri[1]].co, mverts[vtri[2]].co);
 	}
@@ -845,7 +846,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
 //		printf("\thandling edge %d / loop %d\n", mlfan_curr->e, mlfan_curr_index);
 
 		{
-			/* Code similar to accumulate_vertex_normals_poly. */
+			/* Code similar to accumulate_vertex_normals_poly_v3. */
 			/* Calculate angle between the two poly edges incident on this vertex. */
 			const float fac = saacos(dot_v3v3(vec_curr, vec_prev));
 			/* Accumulate */

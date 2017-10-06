@@ -623,7 +623,7 @@ float dist_squared_ray_to_seg_v3(
 /** \name dist_squared_to_ray_to_aabb and helpers
  * \{ */
 
-void dist_squared_ray_to_aabb_precalc(
+void dist_squared_ray_to_aabb_v3_precalc(
         struct DistRayAABB_Precalc *neasrest_precalc,
         const float ray_origin[3], const float ray_direction[3])
 {
@@ -641,7 +641,7 @@ void dist_squared_ray_to_aabb_precalc(
 /**
  * Returns the distance from a ray to a bound-box (projected on ray)
  */
-float dist_squared_ray_to_aabb(
+float dist_squared_ray_to_aabb_v3(
         const struct DistRayAABB_Precalc *data,
         const float bb_min[3], const float bb_max[3],
         float r_point[3], float *r_depth)
@@ -753,14 +753,14 @@ float dist_squared_ray_to_aabb(
 	        r_point, r_depth);
 }
 
-float dist_squared_to_ray_to_aabb_simple(
+float dist_squared_ray_to_aabb_v3_simple(
         const float ray_origin[3], const float ray_direction[3],
         const float bbmin[3], const float bbmax[3],
         float r_point[3], float *r_depth)
 {
 	struct DistRayAABB_Precalc data;
-	dist_squared_ray_to_aabb_precalc(&data, ray_origin, ray_direction);
-	return dist_squared_ray_to_aabb(&data, bbmin, bbmax, r_point, r_depth);
+	dist_squared_ray_to_aabb_v3_precalc(&data, ray_origin, ray_direction);
+	return dist_squared_ray_to_aabb_v3(&data, bbmin, bbmax, r_point, r_depth);
 }
 /** \} */
 
@@ -4053,7 +4053,7 @@ void map_to_plane_axis_angle_v2_v3v3fl(float r_co[2], const float co[3], const f
 
 /********************************* Normals **********************************/
 
-void accumulate_vertex_normals_tri(
+void accumulate_vertex_normals_tri_v3(
         float n1[3], float n2[3], float n3[3],
         const float f_no[3],
         const float co1[3], const float co2[3], const float co3[3])
@@ -4087,7 +4087,7 @@ void accumulate_vertex_normals_tri(
 	}
 }
 
-void accumulate_vertex_normals(
+void accumulate_vertex_normals_v3(
         float n1[3], float n2[3], float n3[3], float n4[3],
         const float f_no[3],
         const float co1[3], const float co2[3], const float co3[3], const float co4[3])
@@ -4131,7 +4131,7 @@ void accumulate_vertex_normals(
 
 /* Add weighted face normal component into normals of the face vertices.
  * Caller must pass pre-allocated vdiffs of nverts length. */
-void accumulate_vertex_normals_poly(float **vertnos, const float polyno[3],
+void accumulate_vertex_normals_poly_v3(float **vertnos, const float polyno[3],
                                     const float **vertcos, float vdiffs[][3], const int nverts)
 {
 	int i;
@@ -4162,7 +4162,7 @@ void accumulate_vertex_normals_poly(float **vertnos, const float polyno[3],
 
 /********************************* Tangents **********************************/
 
-void tangent_from_uv(
+void tangent_from_uv_v3(
         const float uv1[2], const float uv2[2], const float uv3[3],
         const float co1[3], const float co2[3], const float co3[3],
         const float n[3],
@@ -4204,30 +4204,28 @@ void tangent_from_uv(
 /****************************** Vector Clouds ********************************/
 
 /* vector clouds */
-/* void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight, float (*rpos)[3], float *rweight,
- *                                float lloc[3], float rloc[3], float lrot[3][3], float lscale[3][3])
- *
+/**
  * input
- * (
- * int list_size
- * 4 lists as pointer to array[list_size]
- * 1. current pos array of 'new' positions
- * 2. current weight array of 'new'weights (may be NULL pointer if you have no weights )
- * 3. reference rpos array of 'old' positions
- * 4. reference rweight array of 'old'weights (may be NULL pointer if you have no weights )
- * )
+ *
+ * \param list_size: 4 lists as pointer to array[list_size]
+ * \param pos: current pos array of 'new' positions
+ * \param weight: current weight array of 'new'weights (may be NULL pointer if you have no weights)
+ * \param rpos: Reference rpos array of 'old' positions
+ * \param rweight: Reference rweight array of 'old'weights (may be NULL pointer if you have no weights).
+ *
  * output
- * (
- * float lloc[3] center of mass pos
- * float rloc[3] center of mass rpos
- * float lrot[3][3] rotation matrix
- * float lscale[3][3] scale matrix
+ *
+ * \param lloc: Center of mass pos.
+ * \param rloc: Center of mass rpos.
+ * \param lrot: Rotation matrix.
+ * \param lscale: Scale matrix.
+ *
  * pointers may be NULL if not needed
- * )
  */
 
-void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight, float (*rpos)[3], float *rweight,
-                               float lloc[3], float rloc[3], float lrot[3][3], float lscale[3][3])
+void vcloud_estimate_transform_v3(
+        const int list_size, const float (*pos)[3], const float *weight, const float (*rpos)[3], const float *rweight,
+        float lloc[3], float rloc[3], float lrot[3][3], float lscale[3][3])
 {
 	float accu_com[3] = {0.0f, 0.0f, 0.0f}, accu_rcom[3] = {0.0f, 0.0f, 0.0f};
 	float accu_weight = 0.0f, accu_rweight = 0.0f;

@@ -15,6 +15,7 @@
  */
 
 #include "kernel/kernel_jitter.h"
+#include "util/util_hash.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -115,14 +116,13 @@ ccl_device_forceinline void path_rng_2D(KernelGlobals *kg,
 }
 
 ccl_device_inline void path_rng_init(KernelGlobals *kg,
-                                     ccl_global uint *rng_state,
                                      int sample, int num_samples,
                                      uint *rng_hash,
                                      int x, int y,
                                      float *fx, float *fy)
 {
 	/* load state */
-	*rng_hash = *rng_state;
+	*rng_hash = hash_int_2d(x, y);
 	*rng_hash ^= kernel_data.integrator.seed;
 
 #ifdef __DEBUG_CORRELATION__

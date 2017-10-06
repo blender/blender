@@ -132,7 +132,7 @@ public:
 		archive & type & task.x & task.y & task.w & task.h;
 		archive & task.rgba_byte & task.rgba_half & task.buffer & task.sample & task.num_samples;
 		archive & task.offset & task.stride;
-		archive & task.shader_input & task.shader_output & task.shader_output_luma & task.shader_eval_type;
+		archive & task.shader_input & task.shader_output & task.shader_eval_type;
 		archive & task.shader_x & task.shader_w;
 		archive & task.need_finish_queue;
 	}
@@ -142,7 +142,7 @@ public:
 		archive & tile.x & tile.y & tile.w & tile.h;
 		archive & tile.start_sample & tile.num_samples & tile.sample;
 		archive & tile.resolution & tile.offset & tile.stride;
-		archive & tile.buffer & tile.rng_state;
+		archive & tile.buffer;
 	}
 
 	void write()
@@ -291,7 +291,7 @@ public:
 		*archive & type & task.x & task.y & task.w & task.h;
 		*archive & task.rgba_byte & task.rgba_half & task.buffer & task.sample & task.num_samples;
 		*archive & task.offset & task.stride;
-		*archive & task.shader_input & task.shader_output & task.shader_output_luma & task.shader_eval_type;
+		*archive & task.shader_input & task.shader_output & task.shader_eval_type;
 		*archive & task.shader_x & task.shader_w;
 		*archive & task.need_finish_queue;
 
@@ -303,7 +303,7 @@ public:
 		*archive & tile.x & tile.y & tile.w & tile.h;
 		*archive & tile.start_sample & tile.num_samples & tile.sample;
 		*archive & tile.resolution & tile.offset & tile.stride;
-		*archive & tile.buffer & tile.rng_state;
+		*archive & tile.buffer;
 
 		tile.buffers = NULL;
 	}

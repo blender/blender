@@ -45,8 +45,7 @@ void KERNEL_FUNCTION_FULL_NAME(filter_divide_shadow)(int sample,
                                                      float *bufferVariance,
                                                      int* prefilter_rect,
                                                      int buffer_pass_stride,
-                                                     int buffer_denoising_offset,
-                                                     bool use_split_variance)
+                                                     int buffer_denoising_offset)
 {
 #ifdef KERNEL_STUB
 	STUB_ASSERT(KERNEL_ARCH, filter_divide_shadow);
@@ -60,8 +59,7 @@ void KERNEL_FUNCTION_FULL_NAME(filter_divide_shadow)(int sample,
 	                            bufferVariance,
 	                            load_int4(prefilter_rect),
 	                            buffer_pass_stride,
-	                            buffer_denoising_offset,
-	                            use_split_variance);
+	                            buffer_denoising_offset);
 #endif
 }
 
@@ -74,8 +72,7 @@ void KERNEL_FUNCTION_FULL_NAME(filter_get_feature)(int sample,
                                                    float *mean, float *variance,
                                                    int* prefilter_rect,
                                                    int buffer_pass_stride,
-                                                   int buffer_denoising_offset,
-                                                   bool use_split_variance)
+                                                   int buffer_denoising_offset)
 {
 #ifdef KERNEL_STUB
 	STUB_ASSERT(KERNEL_ARCH, filter_get_feature);
@@ -86,8 +83,7 @@ void KERNEL_FUNCTION_FULL_NAME(filter_get_feature)(int sample,
 	                          mean, variance,
 	                          load_int4(prefilter_rect),
 	                          buffer_pass_stride,
-	                          buffer_denoising_offset,
-	                          use_split_variance);
+	                          buffer_denoising_offset);
 #endif
 }
 

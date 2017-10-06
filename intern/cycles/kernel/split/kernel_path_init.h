@@ -30,29 +30,28 @@ ccl_device void kernel_path_init(KernelGlobals *kg) {
 	kernel_split_state.ray_state[ray_index] = RAY_ACTIVE;
 
 	/* Get work. */
+	ccl_global uint *work_pools = kernel_split_params.work_pools;
+	uint total_work_size = kernel_split_params.total_work_size;
 	uint work_index;
-	if(!get_next_work(kg, ray_index, &work_index)) {
+
+	if(!get_next_work(kg, work_pools, total_work_size, ray_index, &work_index)) {
 		/* No more work, mark ray as inactive */
 		kernel_split_state.ray_state[ray_index] = RAY_INACTIVE;
 
 		return;
 	}
 
+	ccl_global WorkTile *tile = &kernel_split_params.tile;
 	uint x, y, sample;
-	get_work_pixel(kg, work_index, &x, &y, &sample);
-
-	/* Remap rng_state and buffer to current pixel. */
-	ccl_global uint *rng_state = kernel_split_params.rng_state;
-	rng_state += kernel_split_params.offset + x + y*kernel_split_params.stride;
+	get_work_pixel(tile, work_index, &x, &y, &sample);
 
 	/* Store buffer offset for writing to passes. */
-	uint buffer_offset = (kernel_split_params.offset + x + y*kernel_split_params.stride) * kernel_data.film.pass_stride;
+	uint buffer_offset = (tile->offset + x + y*tile->stride) * kernel_data.film.pass_stride;
 	kernel_split_state.buffer_offset[ray_index] = buffer_offset;
 
 	/* Initialize random numbers and ray. */
 	uint rng_hash;
 	kernel_path_trace_setup(kg,
-	                        rng_state,
 	                        sample,
 	                        x, y,
 	                        &rng_hash,
@@ -75,11 +74,6 @@ ccl_device void kernel_path_init(KernelGlobals *kg) {
 #endif
 	}
 	else {
-		/* These rays do not participate in path-iteration. */
-		float4 L_rad = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-		/* Accumulate result in output buffer. */
-		ccl_global float *buffer = kernel_split_params.buffer + buffer_offset;
-		kernel_write_pass_float4(buffer, sample, L_rad);
 		ASSIGN_RAY_STATE(kernel_split_state.ray_state, ray_index, RAY_TO_REGENERATE);
 	}
 }

@@ -105,6 +105,7 @@ struct NormalAnglePrecalc {
 static void view_angle_limits_init(
         struct NormalAnglePrecalc *a, float angle, bool do_mask_normal)
 {
+	angle = RAD2DEGF(angle);
 	a->do_mask_normal = do_mask_normal;
 	if (do_mask_normal) {
 		a->angle_inner = angle;
@@ -144,8 +145,8 @@ static float view_angle_limits_apply_falloff(
 
 static bool vwpaint_use_normal(const VPaint *vp)
 {
-	return ((vp->flag & VP_FLAG_PROJECT_BACKFACE) == 0) ||
-	       ((vp->flag & VP_FLAG_PROJECT_FLAT) == 0);
+	return ((vp->paint.brush->flag & BRUSH_FRONTFACE) != 0) ||
+	       ((vp->paint.brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0);
 }
 
 
@@ -357,7 +358,7 @@ static float calc_vp_alpha_col_dl(
 	if (strength > 0.0f) {
 		float alpha = brush_alpha_pressure * strength;
 
-		if ((vp->flag & VP_FLAG_PROJECT_FLAT) == 0) {
+		if ((vp->paint.brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0) {
 			float dvec[3];
 
 			/* transpose ! */
@@ -1390,7 +1391,8 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 	wpd = MEM_callocN(sizeof(struct WPaintData), "WPaintData");
 	paint_stroke_set_mode_data(stroke, wpd);
 	view3d_set_viewcontext(C, &wpd->vc);
-	view_angle_limits_init(&wpd->normal_angle_precalc, vp->normal_angle, (vp->flag & VP_FLAG_PROJECT_FLAT) == 0);
+	view_angle_limits_init(&wpd->normal_angle_precalc, vp->paint.brush->falloff_angle,
+	                       (vp->paint.brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0);
 
 	wpd->active.index = vgroup_index.active;
 	wpd->mirror.index = vgroup_index.mirror;
@@ -1510,22 +1512,6 @@ static float wpaint_get_active_weight(const MDeformVert *dv, const WeightPaintIn
 	}
 }
 
-static SculptBrushTestFn sculpt_brush_test_init_with_falloff_shape(
-        SculptSession *ss, SculptBrushTest *test, char falloff_shape)
-{
-	sculpt_brush_test_init(ss, test);
-	SculptBrushTestFn sculpt_brush_test_sq_fn;
-	if (falloff_shape == VP_FALLOFF_SHAPE_SPHERE) {
-		sculpt_brush_test_sq_fn = sculpt_brush_test_sphere_sq;
-	}
-	else {
-		/* VP_FALLOFF_SHAPE_TUBE */
-		plane_from_point_normal_v3(test->plane, test->location, ss->cache->view_normal);
-		sculpt_brush_test_sq_fn = sculpt_brush_test_circle_sq;
-	}
-	return sculpt_brush_test_sq_fn;
-}
-
 static void do_wpaint_brush_blur_task_cb_ex(
         void *userdata, void *UNUSED(userdata_chunk), const int n, const int UNUSED(thread_id))
 {
@@ -1546,7 +1532,9 @@ static void do_wpaint_brush_blur_task_cb_ex(
 
 	SculptBrushTest test;
 	SculptBrushTestFn sculpt_brush_test_sq_fn =
-	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->vp->falloff_shape);
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
+	const float *sculpt_normal_frontface =
+	        sculpt_brush_frontface_normal_from_falloff_shape(ss, data->brush->falloff_shape);
 
 	/* For each vertex */
 	PBVHVertexIter vd;
@@ -1581,10 +1569,10 @@ static void do_wpaint_brush_blur_task_cb_ex(
 				if (total_hit_loops != 0) {
 					float brush_strength = cache->bstrength;
 					const float angle_cos = (use_normal && vd.no) ?
-					        dot_vf3vs3(ss->cache->sculpt_normal_symm, vd.no) : 1.0f;
-					if (((data->vp->flag & VP_FLAG_PROJECT_BACKFACE) ||
+					        dot_vf3vs3(sculpt_normal_frontface, vd.no) : 1.0f;
+					if (((brush->flag & BRUSH_FRONTFACE) == 0 ||
 					     (angle_cos > 0.0f)) &&
-					    ((data->vp->flag & VP_FLAG_PROJECT_FLAT) ||
+					    ((brush->flag & BRUSH_FRONTFACE_FALLOFF) == 0 ||
 					     view_angle_limits_apply_falloff(&data->wpd->normal_angle_precalc, angle_cos, &brush_strength)))
 					{
 						const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
@@ -1639,7 +1627,9 @@ static void do_wpaint_brush_smear_task_cb_ex(
 
 		SculptBrushTest test;
 		SculptBrushTestFn sculpt_brush_test_sq_fn =
-		        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->vp->falloff_shape);
+		        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
+		const float *sculpt_normal_frontface =
+		        sculpt_brush_frontface_normal_from_falloff_shape(ss, data->brush->falloff_shape);
 
 		/* For each vertex */
 		PBVHVertexIter vd;
@@ -1657,10 +1647,10 @@ static void do_wpaint_brush_smear_task_cb_ex(
 				if (!(use_face_sel || use_vert_sel) || mv_curr->flag & SELECT) {
 					float brush_strength = cache->bstrength;
 					const float angle_cos = (use_normal && vd.no) ?
-					        dot_vf3vs3(ss->cache->sculpt_normal_symm, vd.no) : 1.0f;
-					if (((data->vp->flag & VP_FLAG_PROJECT_BACKFACE) ||
+					        dot_vf3vs3(sculpt_normal_frontface, vd.no) : 1.0f;
+					if (((brush->flag & BRUSH_FRONTFACE) == 0 ||
 					     (angle_cos > 0.0f)) &&
-					    ((data->vp->flag & VP_FLAG_PROJECT_FLAT) ||
+					    ((brush->flag & BRUSH_FRONTFACE_FALLOFF) == 0 ||
 					     view_angle_limits_apply_falloff(&data->wpd->normal_angle_precalc, angle_cos, &brush_strength)))
 					{
 						bool do_color = false;
@@ -1739,7 +1729,9 @@ static void do_wpaint_brush_draw_task_cb_ex(
 
 	SculptBrushTest test;
 	SculptBrushTestFn sculpt_brush_test_sq_fn =
-	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->vp->falloff_shape);
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
+	const float *sculpt_normal_frontface =
+	        sculpt_brush_frontface_normal_from_falloff_shape(ss, data->brush->falloff_shape);
 
 	/* For each vertex */
 	PBVHVertexIter vd;
@@ -1758,10 +1750,10 @@ static void do_wpaint_brush_draw_task_cb_ex(
 			if (!(use_face_sel || use_vert_sel) || v_flag & SELECT) {
 				float brush_strength = cache->bstrength;
 				const float angle_cos = (use_normal && vd.no) ?
-				        dot_vf3vs3(ss->cache->sculpt_normal_symm, vd.no) : 1.0f;
-				if (((data->vp->flag & VP_FLAG_PROJECT_BACKFACE) ||
+				        dot_vf3vs3(sculpt_normal_frontface, vd.no) : 1.0f;
+				if (((brush->flag & BRUSH_FRONTFACE) == 0 ||
 				     (angle_cos > 0.0f)) &&
-				    ((data->vp->flag & VP_FLAG_PROJECT_FLAT) ||
+				    ((brush->flag & BRUSH_FRONTFACE_FALLOFF) == 0 ||
 				     view_angle_limits_apply_falloff(&data->wpd->normal_angle_precalc, angle_cos, &brush_strength)))
 				{
 					const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
@@ -1804,7 +1796,9 @@ static void do_wpaint_brush_calc_average_weight_cb_ex(
 
 	SculptBrushTest test;
 	SculptBrushTestFn sculpt_brush_test_sq_fn =
-	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->vp->falloff_shape);
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
+	const float *sculpt_normal_frontface =
+	        sculpt_brush_frontface_normal_from_falloff_shape(ss, data->brush->falloff_shape);
 
 	/* For each vertex */
 	PBVHVertexIter vd;
@@ -1813,7 +1807,7 @@ static void do_wpaint_brush_calc_average_weight_cb_ex(
 		/* Test to see if the vertex coordinates are within the spherical brush region. */
 		if (sculpt_brush_test_sq_fn(&test, vd.co)) {
 			const float angle_cos = (use_normal && vd.no) ?
-			        dot_vf3vs3(ss->cache->sculpt_normal_symm, vd.no) : 1.0f;
+			        dot_vf3vs3(sculpt_normal_frontface, vd.no) : 1.0f;
 			if (angle_cos > 0.0 && BKE_brush_curve_strength(data->brush, sqrtf(test.dist), cache->radius) > 0.0) {
 				const int v_index = ccgdm ? data->me->mloop[vd.grid_indices[vd.g]].v : vd.vert_indices[vd.i];
 				// const float grid_alpha = ccgdm ? 1.0f / vd.gridsize : 1.0f;
@@ -1906,7 +1900,7 @@ static PBVHNode **vwpaint_pbvh_gather_generic(
 	PBVHNode **nodes = NULL;
 
 	/* Build a list of all nodes that are potentially within the brush's area of influence */
-	if (wp->falloff_shape == VP_FALLOFF_SHAPE_SPHERE) {
+	if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
 		SculptSearchSphereData data = {
 			.ss = ss,
 			.sd = sd,
@@ -1923,7 +1917,7 @@ static PBVHNode **vwpaint_pbvh_gather_generic(
 	}
 	else {
 		struct DistRayAABB_Precalc dist_ray_to_aabb_precalc;
-		dist_squared_ray_to_aabb_precalc(&dist_ray_to_aabb_precalc, ss->cache->location, ss->cache->view_normal);
+		dist_squared_ray_to_aabb_v3_precalc(&dist_ray_to_aabb_precalc, ss->cache->location, ss->cache->view_normal);
 		SculptSearchCircleData data = {
 			.ss = ss,
 			.sd = sd,
@@ -2404,7 +2398,8 @@ static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const f
 	vpd = MEM_callocN(sizeof(*vpd), "VPaintData");
 	paint_stroke_set_mode_data(stroke, vpd);
 	view3d_set_viewcontext(C, &vpd->vc);
-	view_angle_limits_init(&vpd->normal_angle_precalc, vp->normal_angle, (vp->flag & VP_FLAG_PROJECT_FLAT) == 0);
+	view_angle_limits_init(&vpd->normal_angle_precalc, vp->paint.brush->falloff_angle,
+	                       (vp->paint.brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0);
 
 	vpd->paintcol = vpaint_get_current_col(scene, vp);
 
@@ -2476,7 +2471,7 @@ static void do_vpaint_brush_calc_average_color_cb_ex(
 
 	SculptBrushTest test;
 	SculptBrushTestFn sculpt_brush_test_sq_fn =
-	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->vp->falloff_shape);
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 	/* For each vertex */
 	PBVHVertexIter vd;
@@ -2545,7 +2540,9 @@ static void do_vpaint_brush_draw_task_cb_ex(
 
 	SculptBrushTest test;
 	SculptBrushTestFn sculpt_brush_test_sq_fn =
-	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->vp->falloff_shape);
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
+	const float *sculpt_normal_frontface =
+	        sculpt_brush_frontface_normal_from_falloff_shape(ss, data->brush->falloff_shape);
 
 	/* For each vertex */
 	PBVHVertexIter vd;
@@ -2566,10 +2563,10 @@ static void do_vpaint_brush_draw_task_cb_ex(
 				 * (ie splash prevention factor), and only paint front facing verts. */
 				float brush_strength = cache->bstrength;
 				const float angle_cos = (use_normal && vd.no) ?
-				        dot_vf3vs3(ss->cache->sculpt_normal_symm, vd.no) : 1.0f;
-				if (((data->vp->flag & VP_FLAG_PROJECT_BACKFACE) ||
+				        dot_vf3vs3(sculpt_normal_frontface, vd.no) : 1.0f;
+				if (((brush->flag & BRUSH_FRONTFACE) == 0 ||
 				     (angle_cos > 0.0f)) &&
-				    ((data->vp->flag & VP_FLAG_PROJECT_FLAT) ||
+				    ((brush->flag & BRUSH_FRONTFACE_FALLOFF) == 0 ||
 				     view_angle_limits_apply_falloff(&data->vpd->normal_angle_precalc, angle_cos, &brush_strength)))
 				{
 					const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
@@ -2634,7 +2631,9 @@ static void do_vpaint_brush_blur_task_cb_ex(
 
 	SculptBrushTest test;
 	SculptBrushTestFn sculpt_brush_test_sq_fn =
-	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->vp->falloff_shape);
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
+	const float *sculpt_normal_frontface =
+	        sculpt_brush_frontface_normal_from_falloff_shape(ss, data->brush->falloff_shape);
 
 	/* For each vertex */
 	PBVHVertexIter vd;
@@ -2652,10 +2651,10 @@ static void do_vpaint_brush_blur_task_cb_ex(
 			if (!use_vert_sel || mv->flag & SELECT) {
 				float brush_strength = cache->bstrength;
 				const float angle_cos = (use_normal && vd.no) ?
-				        dot_vf3vs3(ss->cache->sculpt_normal_symm, vd.no) : 1.0f;
-				if (((data->vp->flag & VP_FLAG_PROJECT_BACKFACE) ||
+				        dot_vf3vs3(sculpt_normal_frontface, vd.no) : 1.0f;
+				if (((brush->flag & BRUSH_FRONTFACE) == 0 ||
 				     (angle_cos > 0.0f)) &&
-				    ((data->vp->flag & VP_FLAG_PROJECT_FLAT) ||
+				    ((brush->flag & BRUSH_FRONTFACE_FALLOFF) == 0 ||
 				     view_angle_limits_apply_falloff(&data->vpd->normal_angle_precalc, angle_cos, &brush_strength)))
 				{
 					const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
@@ -2747,7 +2746,9 @@ static void do_vpaint_brush_smear_task_cb_ex(
 
 		SculptBrushTest test;
 		SculptBrushTestFn sculpt_brush_test_sq_fn =
-		        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->vp->falloff_shape);
+		        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
+		const float *sculpt_normal_frontface =
+		        sculpt_brush_frontface_normal_from_falloff_shape(ss, data->brush->falloff_shape);
 
 		/* For each vertex */
 		PBVHVertexIter vd;
@@ -2767,10 +2768,10 @@ static void do_vpaint_brush_smear_task_cb_ex(
 					 * (ie splash prevention factor), and only paint front facing verts. */
 					float brush_strength = cache->bstrength;
 					const float angle_cos = (use_normal && vd.no) ?
-					        dot_vf3vs3(ss->cache->sculpt_normal_symm, vd.no) : 1.0f;
-					if (((data->vp->flag & VP_FLAG_PROJECT_BACKFACE) ||
+					        dot_vf3vs3(sculpt_normal_frontface, vd.no) : 1.0f;
+					if (((brush->flag & BRUSH_FRONTFACE) == 0 ||
 					     (angle_cos > 0.0f)) &&
-					    ((data->vp->flag & VP_FLAG_PROJECT_FLAT) ||
+					    ((brush->flag & BRUSH_FRONTFACE_FALLOFF) == 0 ||
 					     view_angle_limits_apply_falloff(&data->vpd->normal_angle_precalc, angle_cos, &brush_strength)))
 					{
 						const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);

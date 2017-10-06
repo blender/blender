@@ -98,7 +98,7 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 
 	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
 		uint buffer_offset = kernel_split_state.buffer_offset[ray_index];
-		ccl_global float *buffer = kernel_split_params.buffer + buffer_offset;
+		ccl_global float *buffer = kernel_split_params.tile.buffer + buffer_offset;
 
 		ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
 		ShaderData *emission_sd = &kernel_split_state.sd_DL_shadow[ray_index];

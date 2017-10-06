@@ -718,20 +718,24 @@ static void pbvh_bmesh_node_drop_orig(PBVHNode *node)
 
 /****************************** EdgeQueue *****************************/
 
-typedef struct {
+struct EdgeQueue;
+
+typedef struct EdgeQueue {
 	Heap *heap;
 	const float *center;
+	float  center_proj[3];  /* for when we use projected coords. */
 	float radius_squared;
 	float limit_len_squared;
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
 	float limit_len;
 #endif
 
-#ifdef USE_EDGEQUEUE_FRONTFACE
+	bool (*edge_queue_tri_in_range)(const struct EdgeQueue *q, BMFace *f);
+
 	const float *view_normal;
+#ifdef USE_EDGEQUEUE_FRONTFACE
 	unsigned int use_view_normal : 1;
 #endif
-
 } EdgeQueue;
 
 typedef struct {
@@ -785,13 +789,31 @@ static bool edge_queue_tri_in_sphere(const EdgeQueue *q, BMFace *f)
 	float c[3];
 
 	/* Get closest point in triangle to sphere center */
-	// BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f, (void **)v_tri, 3);
 	BM_face_as_array_vert_tri(f, v_tri);
 
 	closest_on_tri_to_point_v3(c, q->center, v_tri[0]->co, v_tri[1]->co, v_tri[2]->co);
 
 	/* Check if triangle intersects the sphere */
 	return len_squared_v3v3(q->center, c) <= q->radius_squared;
+}
+
+static bool edge_queue_tri_in_circle(const EdgeQueue *q, BMFace *f)
+{
+	BMVert *v_tri[3];
+	float c[3];
+	float tri_proj[3][3];
+
+	/* Get closest point in triangle to sphere center */
+	BM_face_as_array_vert_tri(f, v_tri);
+
+	project_plane_normalized_v3_v3v3(tri_proj[0], v_tri[0]->co, q->view_normal);
+	project_plane_normalized_v3_v3v3(tri_proj[1], v_tri[1]->co, q->view_normal);
+	project_plane_normalized_v3_v3v3(tri_proj[2], v_tri[2]->co, q->view_normal);
+
+	closest_on_tri_to_point_v3(c, q->center_proj, tri_proj[0], tri_proj[1], tri_proj[2]);
+
+	/* Check if triangle intersects the sphere */
+	return len_squared_v3v3(q->center_proj, c) <= q->radius_squared;
 }
 
 /* Return true if the vertex mask is less than 1.0, false otherwise */
@@ -929,7 +951,7 @@ static void long_edge_queue_face_add(
 	}
 #endif
 
-	if (edge_queue_tri_in_sphere(eq_ctx->q, f)) {
+	if (eq_ctx->q->edge_queue_tri_in_range(eq_ctx->q, f)) {
 		/* Check each edge of the face */
 		BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
 		BMLoop *l_iter = l_first;
@@ -960,7 +982,7 @@ static void short_edge_queue_face_add(
 	}
 #endif
 
-	if (edge_queue_tri_in_sphere(eq_ctx->q, f)) {
+	if (eq_ctx->q->edge_queue_tri_in_range(eq_ctx->q, f)) {
 		BMLoop *l_iter;
 		BMLoop *l_first;
 
@@ -984,7 +1006,7 @@ static void short_edge_queue_face_add(
 static void long_edge_queue_create(
         EdgeQueueContext *eq_ctx,
         PBVH *bvh, const float center[3], const float view_normal[3],
-        float radius)
+        float radius, const bool use_frontface, const bool use_projected)
 {
 	eq_ctx->q->heap = BLI_heap_new();
 	eq_ctx->q->center = center;
@@ -994,12 +1016,21 @@ static void long_edge_queue_create(
 	eq_ctx->q->limit_len = bvh->bm_max_edge_len;
 #endif
 
-#ifdef USE_EDGEQUEUE_FRONTFACE
 	eq_ctx->q->view_normal = view_normal;
-	eq_ctx->q->use_view_normal = (view_normal != NULL);
+
+#ifdef USE_EDGEQUEUE_FRONTFACE
+	eq_ctx->q->use_view_normal = use_frontface;
 #else
-	UNUSED_VARS(view_normal);
+	UNUSED_VARS(use_frontface);
 #endif
+
+	if (use_projected) {
+		eq_ctx->q->edge_queue_tri_in_range = edge_queue_tri_in_circle;
+		project_plane_normalized_v3_v3v3(eq_ctx->q->center_proj, center, view_normal);
+	}
+	else {
+		eq_ctx->q->edge_queue_tri_in_range = edge_queue_tri_in_sphere;
+	}
 
 #ifdef USE_EDGEQUEUE_TAG_VERIFY
 	pbvh_bmesh_edge_tag_verify(bvh);
@@ -1037,7 +1068,7 @@ static void long_edge_queue_create(
 static void short_edge_queue_create(
         EdgeQueueContext *eq_ctx,
         PBVH *bvh, const float center[3], const float view_normal[3],
-        float radius)
+        float radius, const bool use_frontface, const bool use_projected)
 {
 	eq_ctx->q->heap = BLI_heap_new();
 	eq_ctx->q->center = center;
@@ -1047,12 +1078,21 @@ static void short_edge_queue_create(
 	eq_ctx->q->limit_len = bvh->bm_min_edge_len;
 #endif
 
-#ifdef USE_EDGEQUEUE_FRONTFACE
 	eq_ctx->q->view_normal = view_normal;
-	eq_ctx->q->use_view_normal = (view_normal != NULL);
+
+#ifdef USE_EDGEQUEUE_FRONTFACE
+	eq_ctx->q->use_view_normal = use_frontface;
 #else
-	UNUSED_VARS(view_normal);
+	UNUSED_VARS(use_frontface);
 #endif
+
+	if (use_projected) {
+		eq_ctx->q->edge_queue_tri_in_range = edge_queue_tri_in_circle;
+		project_plane_normalized_v3_v3v3(eq_ctx->q->center_proj, center, view_normal);
+	}
+	else {
+		eq_ctx->q->edge_queue_tri_in_range = edge_queue_tri_in_sphere;
+	}
 
 	for (int n = 0; n < bvh->totnode; n++) {
 		PBVHNode *node = &bvh->nodes[n];
@@ -1466,7 +1506,7 @@ static bool pbvh_bmesh_collapse_short_edges(
 
 bool pbvh_bmesh_node_raycast(
         PBVHNode *node, const float ray_start[3],
-        const float ray_normal[3], float *dist,
+        const float ray_normal[3], float *depth,
         bool use_original)
 {
 	bool hit = false;
@@ -1479,7 +1519,7 @@ bool pbvh_bmesh_node_raycast(
 			        node->bm_orco[t[0]],
 			        node->bm_orco[t[1]],
 			        node->bm_orco[t[2]],
-			        dist);
+			        depth);
 		}
 	}
 	else {
@@ -1498,7 +1538,7 @@ bool pbvh_bmesh_node_raycast(
 				        v_tri[0]->co,
 				        v_tri[1]->co,
 				        v_tri[2]->co,
-				        dist);
+				        depth);
 			}
 		}
 	}
@@ -1509,7 +1549,7 @@ bool pbvh_bmesh_node_raycast(
 bool BKE_pbvh_bmesh_node_raycast_detail(
         PBVHNode *node,
         const float ray_start[3], const float ray_normal[3],
-        float *dist, float *r_detail)
+        float *depth, float *r_detail)
 {
 	if (node->flag & PBVH_FullyHidden)
 		return 0;
@@ -1531,7 +1571,7 @@ bool BKE_pbvh_bmesh_node_raycast_detail(
 			        v_tri[0]->co,
 			        v_tri[1]->co,
 			        v_tri[2]->co,
-			        dist);
+			        depth);
 
 			if (hit_local) {
 				f_hit = f;
@@ -1554,6 +1594,47 @@ bool BKE_pbvh_bmesh_node_raycast_detail(
 	return hit;
 }
 
+bool pbvh_bmesh_node_nearest_to_ray(
+        PBVHNode *node, const float ray_start[3],
+        const float ray_normal[3], float *depth, float *dist_sq,
+        bool use_original)
+{
+	bool hit = false;
+
+	if (use_original && node->bm_tot_ortri) {
+		for (int i = 0; i < node->bm_tot_ortri; i++) {
+			const int *t = node->bm_ortri[i];
+			hit |= ray_face_nearest_tri(
+			        ray_start, ray_normal,
+			        node->bm_orco[t[0]],
+			        node->bm_orco[t[1]],
+			        node->bm_orco[t[2]],
+			        depth, dist_sq);
+		}
+	}
+	else {
+		GSetIterator gs_iter;
+
+		GSET_ITER (gs_iter, node->bm_faces) {
+			BMFace *f = BLI_gsetIterator_getKey(&gs_iter);
+
+			BLI_assert(f->len == 3);
+			if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+				BMVert *v_tri[3];
+
+				BM_face_as_array_vert_tri(f, v_tri);
+				hit |= ray_face_nearest_tri(
+				        ray_start, ray_normal,
+				        v_tri[0]->co,
+				        v_tri[1]->co,
+				        v_tri[2]->co,
+				        depth, dist_sq);
+			}
+		}
+	}
+
+	return hit;
+}
 
 void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode)
 {
@@ -1854,7 +1935,7 @@ void BKE_pbvh_build_bmesh(
 bool BKE_pbvh_bmesh_update_topology(
         PBVH *bvh, PBVHTopologyUpdateMode mode,
         const float center[3], const float view_normal[3],
-        float radius)
+        float radius, const bool use_frontface, const bool use_projected)
 {
 	/* 2 is enough for edge faces - manifold edge */
 	BLI_buffer_declare_static(BMLoop *, edge_loops, BLI_BUFFER_NOP, 2);
@@ -1877,7 +1958,7 @@ bool BKE_pbvh_bmesh_update_topology(
 		    cd_vert_mask_offset, cd_vert_node_offset, cd_face_node_offset,
 		};
 
-		short_edge_queue_create(&eq_ctx, bvh, center, view_normal, radius);
+		short_edge_queue_create(&eq_ctx, bvh, center, view_normal, radius, use_frontface, use_projected);
 		modified |= pbvh_bmesh_collapse_short_edges(
 		        &eq_ctx, bvh, &deleted_faces);
 		BLI_heap_free(q.heap, NULL);
@@ -1892,7 +1973,7 @@ bool BKE_pbvh_bmesh_update_topology(
 		    cd_vert_mask_offset, cd_vert_node_offset, cd_face_node_offset,
 		};
 
-		long_edge_queue_create(&eq_ctx, bvh, center, view_normal, radius);
+		long_edge_queue_create(&eq_ctx, bvh, center, view_normal, radius, use_frontface, use_projected);
 		modified |= pbvh_bmesh_subdivide_long_edges(
 		        &eq_ctx, bvh, &edge_loops);
 		BLI_heap_free(q.heap, NULL);

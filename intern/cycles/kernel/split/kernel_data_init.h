@@ -23,22 +23,6 @@ CCL_NAMESPACE_BEGIN
  * The number of elements in the queues is initialized to 0;
  */
 
-/* Distributes an amount of work across all threads
- * note: work done inside the loop may not show up to all threads till after
- * the current kernel has completed
- */
-#define parallel_for(kg, iter_name, work_size) \
-	for(size_t _size = (work_size), \
-	    _global_size = ccl_global_size(0) * ccl_global_size(1), \
-	    _n = _size / _global_size, \
-		_thread = ccl_global_id(0) + ccl_global_id(1) * ccl_global_size(0), \
-	    iter_name = (_n > 0) ? (_thread * _n) : (_thread) \
-		; \
-		(iter_name < (_thread+1) * _n) || (iter_name == _n * _global_size + _thread && _thread < _size % _global_size) \
-		; \
-		iter_name = (iter_name != (_thread+1) * _n - 1) ? (iter_name + 1) : (_n * _global_size + _thread) \
-	)
-
 #ifndef __KERNEL_CPU__
 ccl_device void kernel_data_init(
 #else
@@ -49,7 +33,6 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
         ccl_global void *split_data_buffer,
         int num_elements,
         ccl_global char *ray_state,
-        ccl_global uint *rng_state,
 
 #ifdef __KERNEL_OPENCL__
 		KERNEL_BUFFER_PARAMS,
@@ -73,27 +56,26 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
 	kg->data = data;
 #endif
 
-	kernel_split_params.x = sx;
-	kernel_split_params.y = sy;
-	kernel_split_params.w = sw;
-	kernel_split_params.h = sh;
+	kernel_split_params.tile.x = sx;
+	kernel_split_params.tile.y = sy;
+	kernel_split_params.tile.w = sw;
+	kernel_split_params.tile.h = sh;
 
-	kernel_split_params.offset = offset;
-	kernel_split_params.stride = stride;
+	kernel_split_params.tile.start_sample = start_sample;
+	kernel_split_params.tile.num_samples = num_samples;
 
-	kernel_split_params.rng_state = rng_state;
+	kernel_split_params.tile.offset = offset;
+	kernel_split_params.tile.stride = stride;
 
-	kernel_split_params.start_sample = start_sample;
-	kernel_split_params.end_sample = end_sample;
+	kernel_split_params.tile.buffer = buffer;
+
+	kernel_split_params.total_work_size = sw * sh * num_samples;
 
 	kernel_split_params.work_pools = work_pools;
-	kernel_split_params.num_samples = num_samples;
 
 	kernel_split_params.queue_index = Queue_index;
 	kernel_split_params.queue_size = queuesize;
 	kernel_split_params.use_queues_flag = use_queues_flag;
-
-	kernel_split_params.buffer = buffer;
 
 	split_data_init(kg, &kernel_split_state, num_elements, split_data_buffer, ray_state);
 
@@ -121,42 +103,6 @@ void KERNEL_FUNCTION_FULL_NAME(data_init)(
 		 */
 		*use_queues_flag = 0;
 	}
-
-	/* zero the tiles pixels and initialize rng_state if this is the first sample */
-	if(start_sample == 0) {
-		int pass_stride = kernel_data.film.pass_stride;
-
-#ifdef __KERNEL_CPU__
-		for(int y = sy; y < sy + sh; y++) {
-			int index = offset + y * stride;
-			memset(buffer + (sx + index) * pass_stride, 0, sizeof(float) * pass_stride * sw);
-			for(int x = sx; x < sx + sw; x++) {
-				rng_state[index + x] = hash_int_2d(x, y);
-			}
-		}
-#else
-		parallel_for(kg, i, sw * sh * pass_stride) {
-			int pixel = i / pass_stride;
-			int pass = i % pass_stride;
-
-			int x = sx + pixel % sw;
-			int y = sy + pixel / sw;
-
-			int index = (offset + x + y*stride) * pass_stride + pass;
-
-			*(buffer + index) = 0.0f;
-		}
-
-		parallel_for(kg, i, sw * sh) {
-			int x = sx + i % sw;
-			int y = sy + i / sw;
-
-			int index = (offset + x + y*stride);
-			*(rng_state + index) = hash_int_2d(x, y);
-		}
-#endif
-	}
-
 #endif  /* KERENL_STUB */
 }
 

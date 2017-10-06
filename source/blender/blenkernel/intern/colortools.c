@@ -1380,7 +1380,7 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 
 	/* Keep number of threads in sync with the merge parts below. */
 	ScopesUpdateData data = {
-		.scopes = scopes, . ibuf = ibuf,
+		.scopes = scopes, .ibuf = ibuf,
 		.cm_processor = cm_processor, .display_buffer = display_buffer, .ycc_mode = ycc_mode,
 		.bin_lum = bin_lum, .bin_r = bin_r, .bin_g = bin_g, .bin_b = bin_b, .bin_a = bin_a,
 	};

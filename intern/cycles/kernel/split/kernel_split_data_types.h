@@ -22,27 +22,14 @@ CCL_NAMESPACE_BEGIN
 /* parameters used by the split kernels, we use a single struct to avoid passing these to each kernel */
 
 typedef struct SplitParams {
-	int x;
-	int y;
-	int w;
-	int h;
-
-	int offset;
-	int stride;
-
-	ccl_global uint *rng_state;
-
-	int start_sample;
-	int end_sample;
+	WorkTile tile;
+	uint total_work_size;
 
 	ccl_global unsigned int *work_pools;
-	unsigned int num_samples;
 
 	ccl_global int *queue_index;
 	int queue_size;
 	ccl_global char *use_queues_flag;
-
-	ccl_global float *buffer;
 
 	/* Place for storing sd->flag. AMD GPU OpenCL compiler workaround */
 	int dummy_sd_flag;

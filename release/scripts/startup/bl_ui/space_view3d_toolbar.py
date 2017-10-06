@@ -1080,8 +1080,8 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
 
             # use_frontface
             col.separator()
-            row = col.row()
-            row.prop(brush, "use_frontface", text="Front Faces Only")
+            col.prop(brush, "use_frontface", text="Front Faces Only")
+            col.prop(brush, "use_projected")
 
             # direction
             col.separator()
@@ -1131,11 +1131,21 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
             self.prop_unified_strength(row, context, brush, "strength", text="Strength")
             self.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
+            col.separator()
             col.prop(brush, "vertex_tool", text="Blend")
 
             if brush.vertex_tool != 'SMEAR':
                 col.prop(brush, "use_accumulate")
                 col.separator()
+
+            col.prop(brush, "use_frontface", text="Front Faces Only")
+            row = col.row()
+            row.prop(brush, "use_frontface_falloff", text="Falloff Angle")
+            sub = row.row()
+            sub.active = brush.use_frontface_falloff
+            sub.prop(brush, "falloff_angle", text="")
+
+            col.prop(brush, "use_projected")
 
             col = layout.column()
             col.prop(toolsettings, "use_auto_normalize", text="Auto Normalize")
@@ -1162,14 +1172,22 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
             self.prop_unified_strength(row, context, brush, "strength", text="Strength")
             self.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
-            # XXX - TODO
-            # row = col.row(align=True)
-            # row.prop(brush, "jitter", slider=True)
-            # row.prop(brush, "use_pressure_jitter", toggle=True, text="")
             col.separator()
             col.prop(brush, "vertex_tool", text="Blend")
-            col.prop(brush, "use_accumulate")
             col.prop(brush, "use_alpha")
+
+            if brush.vertex_tool != 'SMEAR':
+                col.prop(brush, "use_accumulate")
+                col.separator()
+
+            col.prop(brush, "use_frontface", text="Front Faces Only")
+            row = col.row()
+            row.prop(brush, "use_frontface_falloff", text="Falloff Angle")
+            sub = row.row()
+            sub.active = brush.use_frontface_falloff
+            sub.prop(brush, "falloff_angle", text="")
+
+            col.prop(brush, "use_projected")
 
             col.separator()
             col.template_ID(settings, "palette", new="palette.new")
@@ -1761,19 +1779,7 @@ class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
         wpaint = tool_settings.weight_paint
 
         col = layout.column()
-        col.label("Falloff:")
-        row = col.row()
-        row.prop(wpaint, "falloff_shape", expand=True)
-        row = col.row()
-        row.prop(wpaint, "use_backface_culling")
-        row = col.row()
-        row.prop(wpaint, "use_normal_falloff")
-        sub = row.row()
-        sub.active = (wpaint.use_normal_falloff)
-        sub.prop(wpaint, "normal_angle", text="")
-        col = layout.column()
-        row = col.row()
-        row.prop(wpaint, "use_group_restrict")
+        col.prop(wpaint, "use_group_restrict")
 
         obj = context.weight_paint_object
         if obj.type == 'MESH':
@@ -1805,10 +1811,6 @@ class VIEW3D_PT_tools_vertexpaint(Panel, View3DPaintPanel):
 
         col = layout.column()
         col.label("Falloff:")
-        row = col.row()
-        row.prop(vpaint, "falloff_shape", expand=True)
-        row = col.row()
-        row.prop(vpaint, "use_backface_culling")
         row = col.row()
         row.prop(vpaint, "use_normal_falloff")
         sub = row.row()

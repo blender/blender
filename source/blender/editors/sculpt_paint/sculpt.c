@@ -524,7 +524,8 @@ void sculpt_brush_test_init(SculptSession *ss, SculptBrushTest *test)
 	test->dist = 0.0f;   /* just for initialize */
 
 	/* Only for 2D projection. */
-	zero_v4(test->plane);
+	zero_v4(test->plane_view);
+	zero_v4(test->plane_tool);
 
 	test->mirror_symmetry_pass = ss->cache->mirror_symmetry_pass;
 
@@ -590,7 +591,7 @@ bool sculpt_brush_test_sphere_fast(const SculptBrushTest *test, const float co[3
 bool sculpt_brush_test_circle_sq(SculptBrushTest *test, const float co[3])
 {
 	float co_proj[3];
-	closest_to_plane_normalized_v3(co_proj, test->plane, co);
+	closest_to_plane_normalized_v3(co_proj, test->plane_view, co);
 	float distsq = len_squared_v3v3(co_proj, test->location);
 
 	if (distsq <= test->radius_squared) {
@@ -633,6 +634,35 @@ bool sculpt_brush_test_cube(SculptBrushTest *test, const float co[3], float loca
 		return 0;
 	}
 }
+
+SculptBrushTestFn sculpt_brush_test_init_with_falloff_shape(
+        SculptSession *ss, SculptBrushTest *test, char falloff_shape)
+{
+	sculpt_brush_test_init(ss, test);
+	SculptBrushTestFn sculpt_brush_test_sq_fn;
+	if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
+		sculpt_brush_test_sq_fn = sculpt_brush_test_sphere_sq;
+	}
+	else {
+		/* PAINT_FALLOFF_SHAPE_TUBE */
+		plane_from_point_normal_v3(test->plane_view, test->location, ss->cache->view_normal);
+		sculpt_brush_test_sq_fn = sculpt_brush_test_circle_sq;
+	}
+	return sculpt_brush_test_sq_fn;
+}
+
+const float *sculpt_brush_frontface_normal_from_falloff_shape(
+        SculptSession *ss, char falloff_shape)
+{
+	if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
+		return ss->cache->sculpt_normal_symm;
+	}
+	else {
+		/* PAINT_FALLOFF_SHAPE_TUBE */
+		return ss->cache->view_normal;
+	}
+}
+
 
 static float frontface(const Brush *br, const float sculpt_normal[3],
                        const short no[3], const float fno[3])
@@ -772,7 +802,6 @@ static void calc_area_normal_and_center_task_cb(void *userdata, const int n)
 	float (*area_cos)[3] = data->area_cos;
 
 	PBVHVertexIter vd;
-	SculptBrushTest test;
 	SculptUndoNode *unode = NULL;
 
 	float private_co[2][3] = {{0.0f}};
@@ -784,7 +813,10 @@ static void calc_area_normal_and_center_task_cb(void *userdata, const int n)
 		unode = sculpt_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
 		use_original = (unode->co || unode->bm_entry);
 	}
-	sculpt_brush_test_init(ss, &test);
+
+	SculptBrushTest test;
+	SculptBrushTestFn sculpt_brush_test_sq_fn =
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 
 	/* when the mesh is edited we can't rely on original coords
@@ -807,7 +839,7 @@ static void calc_area_normal_and_center_task_cb(void *userdata, const int n)
 
 			closest_on_tri_to_point_v3(co, test.location, UNPACK3(co_tri));
 
-			if (sculpt_brush_test_sphere_fast(&test, co)) {
+			if (sculpt_brush_test_sq_fn(&test, co)) {
 				float no[3];
 				int flip_index;
 
@@ -841,7 +873,7 @@ static void calc_area_normal_and_center_task_cb(void *userdata, const int n)
 				co = vd.co;
 			}
 
-			if (sculpt_brush_test_sphere_fast(&test, co)) {
+			if (sculpt_brush_test_sq_fn(&test, co)) {
 				float no_buf[3];
 				const float *no;
 				int flip_index;
@@ -959,7 +991,7 @@ void sculpt_pbvh_calc_area_normal(
 
 	/* Intentionally set 'sd' to NULL since this is used for vertex paint too. */
 	SculptThreadedTaskData data = {
-		.sd = NULL, .ob = ob, .nodes = nodes, .totnode = totnode,
+		.sd = NULL, .ob = ob, .brush = brush, .nodes = nodes, .totnode = totnode,
 		.has_bm_orco = has_bm_orco, .area_cos = NULL, .area_nos = area_nos, .count = count,
 	};
 	BLI_mutex_init(&data.mutex);
@@ -999,7 +1031,7 @@ static void calc_area_normal_and_center(
 
 	/* Intentionally set 'sd' to NULL since this is used for vertex paint too. */
 	SculptThreadedTaskData data = {
-		.sd = NULL, .ob = ob, .nodes = nodes, .totnode = totnode,
+		.sd = NULL, .ob = ob, .brush = brush, .nodes = nodes, .totnode = totnode,
 		.has_bm_orco = has_bm_orco, .area_cos = area_cos, .area_nos = area_nos, .count = count,
 	};
 	BLI_mutex_init(&data.mutex);
@@ -1246,10 +1278,10 @@ bool sculpt_search_circle_cb(PBVHNode *node, void *data_v)
 		BKE_pbvh_node_get_BB(node, bb_min, bb_min);
 
 	float dummy_co[3], dummy_depth;
-	const float dist_sq = dist_squared_ray_to_aabb(
+	const float dist_sq = dist_squared_ray_to_aabb_v3(
 	        data->dist_ray_to_aabb_precalc, bb_min, bb_max, dummy_co, &dummy_depth);
 
-	return dist_sq < data->radius_squared;
+	return dist_sq < data->radius_squared || 1;
 }
 
 /* Handles clipping against a mirror modifier and SCULPT_LOCK axis flags */
@@ -1266,6 +1298,37 @@ static void sculpt_clip(Sculpt *sd, SculptSession *ss, float co[3], const float 
 		else
 			co[i] = val[i];
 	}
+}
+
+static PBVHNode **sculpt_pbvh_gather_generic(
+        Object *ob, Sculpt *sd, const Brush *brush, bool use_original, float radius_scale, int *r_totnode)
+{
+	SculptSession *ss = ob->sculpt;
+	PBVHNode **nodes = NULL;
+
+	/* Build a list of all nodes that are potentially within the brush's area of influence */
+	if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
+		SculptSearchSphereData data = {
+			.ss = ss,
+			.sd = sd,
+			.radius_squared = SQUARE(ss->cache->radius * radius_scale),
+			.original = use_original,
+		};
+		BKE_pbvh_search_gather(ss->pbvh, sculpt_search_sphere_cb, &data, &nodes, r_totnode);
+	}
+	else {
+		struct DistRayAABB_Precalc dist_ray_to_aabb_precalc;
+		dist_squared_ray_to_aabb_v3_precalc(&dist_ray_to_aabb_precalc, ss->cache->location, ss->cache->view_normal);
+		SculptSearchCircleData data = {
+			.ss = ss,
+			.sd = sd,
+			.radius_squared = SQUARE(ss->cache->radius * radius_scale),
+			.original = use_original,
+			.dist_ray_to_aabb_precalc = &dist_ray_to_aabb_precalc,
+		};
+		BKE_pbvh_search_gather(ss->pbvh, sculpt_search_circle_cb, &data, &nodes, r_totnode);
+	}
+	return nodes;
 }
 
 /* Calculate primary direction of movement for many brushes */
@@ -1314,6 +1377,10 @@ static void update_sculpt_normal(Sculpt *sd, Object *ob,
 	    (cache->first_time || !(brush->flag & BRUSH_ORIGINAL_NORMAL)))
 	{
 		calc_sculpt_normal(sd, ob, nodes, totnode, cache->sculpt_normal);
+		if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
+			project_plane_v3_v3v3(cache->sculpt_normal, cache->sculpt_normal, cache->view_normal);
+			normalize_v3(cache->sculpt_normal);
+		}
 		copy_v3_v3(cache->sculpt_normal_symm, cache->sculpt_normal);
 	}
 	else {
@@ -1538,17 +1605,25 @@ typedef struct {
 	SculptSession *ss;
 	const float *ray_start, *ray_normal;
 	bool hit;
-	float dist;
+	float depth;
 	bool original;
-	PBVHNode* node;
 } SculptRaycastData;
 
 typedef struct {
 	const float *ray_start, *ray_normal;
 	bool hit;
-	float dist;
+	float depth;
 	float detail;
 } SculptDetailRaycastData;
+
+typedef struct {
+	SculptSession *ss;
+	const float *ray_start, *ray_normal;
+	bool hit;
+	float depth;
+	float dist_sq_to_ray;
+	bool original;
+} SculptFindNearestToRayData;
 
 static void do_smooth_brush_mesh_task_cb_ex(
         void *userdata, void *UNUSED(userdata_chunk), const int n, const int thread_id)
@@ -1561,19 +1636,19 @@ static void do_smooth_brush_mesh_task_cb_ex(
 	float bstrength = data->strength;
 
 	PBVHVertexIter vd;
-	SculptBrushTest test;
 
 	CLAMP(bstrength, 0.0f, 1.0f);
 
-	sculpt_brush_test_init(ss, &test);
+	SculptBrushTest test;
+	SculptBrushTestFn sculpt_brush_test_sq_fn =
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
-		if (sculpt_brush_test_sphere(&test, vd.co)) {
+		if (sculpt_brush_test_sq_fn(&test, vd.co)) {
 			const float fade = bstrength * tex_strength(
-			                       ss, brush, vd.co, test.dist, vd.no, vd.fno,
-			                       smooth_mask ? 0.0f : (vd.mask ? *vd.mask : 0.0f),
-			                       thread_id);
+			        ss, brush, vd.co, sqrtf(test.dist),
+			        vd.no, vd.fno, smooth_mask ? 0.0f : (vd.mask ? *vd.mask : 0.0f), thread_id);
 			if (smooth_mask) {
 				float val = neighbor_average_mask(ss, vd.vert_indices[vd.i]) - *vd.mask;
 				val *= fade * bstrength;
@@ -1609,18 +1684,19 @@ static void do_smooth_brush_bmesh_task_cb_ex(
 	float bstrength = data->strength;
 
 	PBVHVertexIter vd;
-	SculptBrushTest test;
 
 	CLAMP(bstrength, 0.0f, 1.0f);
 
-	sculpt_brush_test_init(ss, &test);
+	SculptBrushTest test;
+	SculptBrushTestFn sculpt_brush_test_sq_fn =
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
-		if (sculpt_brush_test_sphere(&test, vd.co)) {
+		if (sculpt_brush_test_sq_fn(&test, vd.co)) {
 			const float fade = bstrength * tex_strength(
-			                       ss, brush, vd.co, test.dist, vd.no, vd.fno, smooth_mask ? 0.0f : *vd.mask,
-			                       thread_id);
+			        ss, brush, vd.co, sqrtf(test.dist),
+			        vd.no, vd.fno, smooth_mask ? 0.0f : *vd.mask, thread_id);
 			if (smooth_mask) {
 				float val = bmesh_neighbor_average_mask(vd.bm_vert, vd.cd_vert_mask_offset) - *vd.mask;
 				val *= fade * bstrength;
@@ -1656,7 +1732,6 @@ static void do_smooth_brush_multires_task_cb_ex(
 	const bool smooth_mask = data->smooth_mask;
 	float bstrength = data->strength;
 
-	SculptBrushTest test;
 	CCGElem **griddata, *gddata;
 	CCGKey key;
 
@@ -1669,7 +1744,9 @@ static void do_smooth_brush_multires_task_cb_ex(
 	int *grid_indices, totgrid, gridsize;
 	int i, x, y;
 
-	sculpt_brush_test_init(ss, &test);
+	SculptBrushTest test;
+	SculptBrushTestFn sculpt_brush_test_sq_fn =
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 	CLAMP(bstrength, 0.0f, 1.0f);
 
@@ -1756,10 +1833,11 @@ static void do_smooth_brush_multires_task_cb_ex(
 				fno = CCG_elem_offset_no(&key, gddata, index);
 				mask = CCG_elem_offset_mask(&key, gddata, index);
 
-				if (sculpt_brush_test_sphere(&test, co)) {
+				if (sculpt_brush_test_sq_fn(&test, co)) {
 					const float strength_mask = (smooth_mask ? 0.0f : *mask);
 					const float fade = bstrength * tex_strength(
-					                       ss, brush, co, test.dist, NULL, fno, strength_mask, thread_id);
+					        ss, brush, co, sqrtf(test.dist),
+					        NULL, fno, strength_mask, thread_id);
 					float f = 1.0f / 16.0f;
 
 					if (x == 0 || x == gridsize - 1)
@@ -1870,14 +1948,17 @@ static void do_mask_brush_draw_task_cb_ex(
 	const float bstrength = ss->cache->bstrength;
 
 	PBVHVertexIter vd;
-	SculptBrushTest test;
 
-	sculpt_brush_test_init(ss, &test);
+	SculptBrushTest test;
+	SculptBrushTestFn sculpt_brush_test_sq_fn =
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
-		if (sculpt_brush_test_sphere(&test, vd.co)) {
-			const float fade = tex_strength(ss, brush, vd.co, test.dist, vd.no, vd.fno, 0.0f, thread_id);
+		if (sculpt_brush_test_sq_fn(&test, vd.co)) {
+			const float fade = tex_strength(
+			        ss, brush, vd.co, sqrtf(test.dist),
+			        vd.no, vd.fno, 0.0f, thread_id);
 
 			(*vd.mask) += fade * bstrength;
 			CLAMP(*vd.mask, 0, 1);
@@ -1927,19 +2008,21 @@ static void do_draw_brush_task_cb_ex(
 	const float *offset = data->offset;
 
 	PBVHVertexIter vd;
-	SculptBrushTest test;
 	float (*proxy)[3];
 
 	proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
-	sculpt_brush_test_init(ss, &test);
+	SculptBrushTest test;
+	SculptBrushTestFn sculpt_brush_test_sq_fn =
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
-		if (sculpt_brush_test_sphere(&test, vd.co)) {
+		if (sculpt_brush_test_sq_fn(&test, vd.co)) {
 			/* offset vertex */
 			const float fade = tex_strength(
-			                       ss, brush, vd.co, test.dist, vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f, thread_id);
+			        ss, brush, vd.co, sqrtf(test.dist),
+			        vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f, thread_id);
 
 			mul_v3_v3fl(proxy[vd.i], offset, fade);
 
@@ -1977,6 +2060,9 @@ static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 	            ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_THREADED_LIMIT), false);
 }
 
+/**
+ * Used for 'SCULPT_TOOL_CREASE' and 'SCULPT_TOOL_BLOB'
+ */
 static void do_crease_brush_task_cb_ex(
         void *userdata, void *UNUSED(userdata_chunk), const int n, const int thread_id)
 {
@@ -1988,24 +2074,30 @@ static void do_crease_brush_task_cb_ex(
 	const float *offset = data->offset;
 
 	PBVHVertexIter vd;
-	SculptBrushTest test;
 	float (*proxy)[3];
 
 	proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
-	sculpt_brush_test_init(ss, &test);
+	SculptBrushTest test;
+	SculptBrushTestFn sculpt_brush_test_sq_fn =
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
-		if (sculpt_brush_test_sphere(&test, vd.co)) {
+		if (sculpt_brush_test_sq_fn(&test, vd.co)) {
 			/* offset vertex */
 			const float fade = tex_strength(
-			                       ss, brush, vd.co, test.dist, vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f, thread_id);
+			        ss, brush, vd.co, sqrtf(test.dist),
+			        vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f, thread_id);
 			float val1[3];
 			float val2[3];
 
 			/* first we pinch */
 			sub_v3_v3v3(val1, test.location, vd.co);
+			if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
+				project_plane_v3_v3v3(val1, val1, ss->cache->view_normal);
+			}
+
 			mul_v3_fl(val1, fade * flippedbstrength);
 
 			sculpt_project_v3(spvc, val1, val1);
@@ -2073,22 +2165,27 @@ static void do_pinch_brush_task_cb_ex(
 	const Brush *brush = data->brush;
 
 	PBVHVertexIter vd;
-	SculptBrushTest test;
 	float (*proxy)[3];
 	const float bstrength = ss->cache->bstrength;
 
 	proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
-	sculpt_brush_test_init(ss, &test);
+	SculptBrushTest test;
+	SculptBrushTestFn sculpt_brush_test_sq_fn =
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
-		if (sculpt_brush_test_sphere(&test, vd.co)) {
+		if (sculpt_brush_test_sq_fn(&test, vd.co)) {
 			const float fade = bstrength * tex_strength(
-			                       ss, brush, vd.co, test.dist, vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f, thread_id);
+			        ss, brush, vd.co, sqrtf(test.dist),
+			        vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f, thread_id);
 			float val[3];
 
 			sub_v3_v3v3(val, test.location, vd.co);
+			if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
+				project_plane_v3_v3v3(val, val, ss->cache->view_normal);
+			}
 			mul_v3_v3fl(proxy[vd.i], val, fade);
 
 			if (vd.mvert)
@@ -2120,7 +2217,6 @@ static void do_grab_brush_task_cb_ex(
 	const float *grab_delta = data->grab_delta;
 
 	PBVHVertexIter vd;
-	SculptBrushTest test;
 	SculptOrigVertData orig_data;
 	float (*proxy)[3];
 	const float bstrength = ss->cache->bstrength;
@@ -2129,16 +2225,18 @@ static void do_grab_brush_task_cb_ex(
 
 	proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
-	sculpt_brush_test_init(ss, &test);
+	SculptBrushTest test;
+	SculptBrushTestFn sculpt_brush_test_sq_fn =
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
 		sculpt_orig_vert_data_update(&orig_data, &vd);
 
-		if (sculpt_brush_test_sphere(&test, orig_data.co)) {
+		if (sculpt_brush_test_sq_fn(&test, orig_data.co)) {
 			const float fade = bstrength * tex_strength(
-			                       ss, brush, orig_data.co, test.dist, orig_data.no, NULL, vd.mask ? *vd.mask : 0.0f,
-			                       thread_id);
+			        ss, brush, orig_data.co, sqrtf(test.dist),
+			        orig_data.no, NULL, vd.mask ? *vd.mask : 0.0f, thread_id);
 
 			mul_v3_v3fl(proxy[vd.i], grab_delta, fade);
 
@@ -2180,19 +2278,21 @@ static void do_nudge_brush_task_cb_ex(
 	const float *cono = data->cono;
 
 	PBVHVertexIter vd;
-	SculptBrushTest test;
 	float (*proxy)[3];
 	const float bstrength = ss->cache->bstrength;
 
 	proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
-	sculpt_brush_test_init(ss, &test);
+	SculptBrushTest test;
+	SculptBrushTestFn sculpt_brush_test_sq_fn =
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
-		if (sculpt_brush_test_sphere(&test, vd.co)) {
+		if (sculpt_brush_test_sq_fn(&test, vd.co)) {
 			const float fade = bstrength * tex_strength(
-			                       ss, brush, vd.co, test.dist, vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f, thread_id);
+			        ss, brush, vd.co, sqrtf(test.dist),
+			        vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f, thread_id);
 
 			mul_v3_v3fl(proxy[vd.i], cono, fade);
 
@@ -2235,7 +2335,6 @@ static void do_snake_hook_brush_task_cb_ex(
 	const float *grab_delta = data->grab_delta;
 
 	PBVHVertexIter vd;
-	SculptBrushTest test;
 	float (*proxy)[3];
 	const float bstrength = ss->cache->bstrength;
 	const bool do_rake_rotation = ss->cache->is_rake_rotation_valid;
@@ -2245,13 +2344,16 @@ static void do_snake_hook_brush_task_cb_ex(
 
 	proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
-	sculpt_brush_test_init(ss, &test);
+	SculptBrushTest test;
+	SculptBrushTestFn sculpt_brush_test_sq_fn =
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
-		if (sculpt_brush_test_sphere(&test, vd.co)) {
+		if (sculpt_brush_test_sq_fn(&test, vd.co)) {
 			const float fade = bstrength * tex_strength(
-			                       ss, brush, vd.co, test.dist, vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f, thread_id);
+			        ss, brush, vd.co, sqrtf(test.dist),
+			        vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f, thread_id);
 
 			mul_v3_v3fl(proxy[vd.i], grab_delta, fade);
 
@@ -2260,6 +2362,9 @@ static void do_snake_hook_brush_task_cb_ex(
 				float delta_pinch_init[3], delta_pinch[3];
 
 				sub_v3_v3v3(delta_pinch, vd.co, test.location);
+				if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
+					project_plane_v3_v3v3(delta_pinch, delta_pinch, ss->cache->true_view_normal);
+				}
 
 				/* important to calculate based on the grabbed location (intentionally ignore fade here). */
 				add_v3_v3(delta_pinch, grab_delta);
@@ -2335,7 +2440,6 @@ static void do_thumb_brush_task_cb_ex(
 	const float *cono = data->cono;
 
 	PBVHVertexIter vd;
-	SculptBrushTest test;
 	SculptOrigVertData orig_data;
 	float (*proxy)[3];
 	const float bstrength = ss->cache->bstrength;
@@ -2344,16 +2448,18 @@ static void do_thumb_brush_task_cb_ex(
 
 	proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
-	sculpt_brush_test_init(ss, &test);
+	SculptBrushTest test;
+	SculptBrushTestFn sculpt_brush_test_sq_fn =
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
 		sculpt_orig_vert_data_update(&orig_data, &vd);
 
-		if (sculpt_brush_test_sphere(&test, orig_data.co)) {
+		if (sculpt_brush_test_sq_fn(&test, orig_data.co)) {
 			const float fade = bstrength * tex_strength(
-			                       ss, brush, orig_data.co, test.dist, orig_data.no, NULL, vd.mask ? *vd.mask : 0.0f,
-			                       thread_id);
+			        ss, brush, orig_data.co, sqrtf(test.dist),
+			        orig_data.no, NULL, vd.mask ? *vd.mask : 0.0f, thread_id);
 
 			mul_v3_v3fl(proxy[vd.i], cono, fade);
 
@@ -2395,7 +2501,6 @@ static void do_rotate_brush_task_cb_ex(
 	const float angle = data->angle;
 
 	PBVHVertexIter vd;
-	SculptBrushTest test;
 	SculptOrigVertData orig_data;
 	float (*proxy)[3];
 	const float bstrength = ss->cache->bstrength;
@@ -2404,17 +2509,19 @@ static void do_rotate_brush_task_cb_ex(
 
 	proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
-	sculpt_brush_test_init(ss, &test);
+	SculptBrushTest test;
+	SculptBrushTestFn sculpt_brush_test_sq_fn =
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
 		sculpt_orig_vert_data_update(&orig_data, &vd);
 
-		if (sculpt_brush_test_sphere(&test, orig_data.co)) {
+		if (sculpt_brush_test_sq_fn(&test, orig_data.co)) {
 			float vec[3], rot[3][3];
 			const float fade = bstrength * tex_strength(
-			                       ss, brush, orig_data.co, test.dist, orig_data.no, NULL, vd.mask ? *vd.mask : 0.0f,
-			                       thread_id);
+			        ss, brush, orig_data.co, sqrtf(test.dist),
+			        orig_data.no, NULL, vd.mask ? *vd.mask : 0.0f, thread_id);
 
 			sub_v3_v3v3(vec, orig_data.co, ss->cache->location);
 			axis_angle_normalized_to_mat3(rot, ss->cache->sculpt_normal_symm, angle * fade);
@@ -2457,7 +2564,6 @@ static void do_layer_brush_task_cb_ex(
 	const float *offset = data->offset;
 
 	PBVHVertexIter vd;
-	SculptBrushTest test;
 	SculptOrigVertData orig_data;
 	float *layer_disp;
 	const float bstrength = ss->cache->bstrength;
@@ -2472,15 +2578,18 @@ static void do_layer_brush_task_cb_ex(
 	layer_disp = BKE_pbvh_node_layer_disp_get(ss->pbvh, data->nodes[n]);
 	BLI_mutex_unlock(&data->mutex);
 
-	sculpt_brush_test_init(ss, &test);
+	SculptBrushTest test;
+	SculptBrushTestFn sculpt_brush_test_sq_fn =
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
 		sculpt_orig_vert_data_update(&orig_data, &vd);
 
-		if (sculpt_brush_test_sphere(&test, orig_data.co)) {
+		if (sculpt_brush_test_sq_fn(&test, orig_data.co)) {
 			const float fade = bstrength * tex_strength(
-			                       ss, brush, vd.co, test.dist, vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f, thread_id);
+			        ss, brush, vd.co, sqrtf(test.dist),
+			        vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f, thread_id);
 			float *disp = &layer_disp[vd.i];
 			float val[3];
 
@@ -2540,19 +2649,21 @@ static void do_inflate_brush_task_cb_ex(
 	const Brush *brush = data->brush;
 
 	PBVHVertexIter vd;
-	SculptBrushTest test;
 	float (*proxy)[3];
 	const float bstrength = ss->cache->bstrength;
 
 	proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
-	sculpt_brush_test_init(ss, &test);
+	SculptBrushTest test;
+	SculptBrushTestFn sculpt_brush_test_sq_fn =
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
-		if (sculpt_brush_test_sphere(&test, vd.co)) {
+		if (sculpt_brush_test_sq_fn(&test, vd.co)) {
 			const float fade = bstrength * tex_strength(
-			                       ss, brush, vd.co, test.dist, vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f, thread_id);
+			        ss, brush, vd.co, sqrtf(test.dist),
+			        vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f, thread_id);
 			float val[3];
 
 			if (vd.fno)
@@ -2615,6 +2726,10 @@ static void calc_sculpt_plane(
 
 			case SCULPT_DISP_DIR_AREA:
 				calc_area_normal_and_center(sd, ob, nodes, totnode, r_area_no, r_area_co);
+				if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
+					project_plane_v3_v3v3(r_area_no, r_area_no, ss->cache->view_normal);
+					normalize_v3(r_area_no);
+				}
 				break;
 
 			default:
@@ -2700,29 +2815,31 @@ static void do_flatten_brush_task_cb_ex(
 	const float *area_co = data->area_co;
 
 	PBVHVertexIter vd;
-	SculptBrushTest test;
 	float (*proxy)[3];
 	const float bstrength = ss->cache->bstrength;
 
 	proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
-	sculpt_brush_test_init(ss, &test);
-	plane_from_point_normal_v3(test.plane, area_co, area_no);
+	SculptBrushTest test;
+	SculptBrushTestFn sculpt_brush_test_sq_fn =
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
+
+	plane_from_point_normal_v3(test.plane_tool, area_co, area_no);
 
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
-		if (sculpt_brush_test_sphere_sq(&test, vd.co)) {
+		if (sculpt_brush_test_sq_fn(&test, vd.co)) {
 			float intr[3];
 			float val[3];
 
-			closest_to_plane_normalized_v3(intr, test.plane, vd.co);
+			closest_to_plane_normalized_v3(intr, test.plane_tool, vd.co);
 
 			sub_v3_v3v3(val, intr, vd.co);
 
 			if (plane_trim(ss->cache, brush, val)) {
 				const float fade = bstrength * tex_strength(
-				                       ss, brush, vd.co, sqrtf(test.dist), vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f,
-				                       thread_id);
+				        ss, brush, vd.co, sqrtf(test.dist),
+				        vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f, thread_id);
 
 				mul_v3_v3fl(proxy[vd.i], val, fade);
 
@@ -2776,24 +2893,26 @@ static void do_clay_brush_task_cb_ex(
 	const float *area_co = data->area_co;
 
 	PBVHVertexIter vd;
-	SculptBrushTest test;
 	float (*proxy)[3];
 	const bool flip = (ss->cache->bstrength < 0);
 	const float bstrength = flip ? -ss->cache->bstrength : ss->cache->bstrength;
 
 	proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
-	sculpt_brush_test_init(ss, &test);
-	plane_from_point_normal_v3(test.plane, area_co, area_no);
+	SculptBrushTest test;
+	SculptBrushTestFn sculpt_brush_test_sq_fn =
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
+
+	plane_from_point_normal_v3(test.plane_tool, area_co, area_no);
 
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
-		if (sculpt_brush_test_sphere_sq(&test, vd.co)) {
-			if (plane_point_side_flip(vd.co, test.plane, flip)) {
+		if (sculpt_brush_test_sq_fn(&test, vd.co)) {
+			if (plane_point_side_flip(vd.co, test.plane_tool, flip)) {
 				float intr[3];
 				float val[3];
 
-				closest_to_plane_normalized_v3(intr, test.plane, vd.co);
+				closest_to_plane_normalized_v3(intr, test.plane_tool, vd.co);
 
 				sub_v3_v3v3(val, intr, vd.co);
 
@@ -2801,8 +2920,8 @@ static void do_clay_brush_task_cb_ex(
 					/* note, the normal from the vertices is ignored,
 					 * causes glitch with planes, see: T44390 */
 					const float fade = bstrength * tex_strength(
-					                       ss, brush, vd.co, sqrtf(test.dist), vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f,
-					                       thread_id);
+					        ss, brush, vd.co, sqrtf(test.dist),
+					        vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f, thread_id);
 
 					mul_v3_v3fl(proxy[vd.i], val, fade);
 
@@ -2869,16 +2988,16 @@ static void do_clay_strips_brush_task_cb_ex(
 	proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
 	sculpt_brush_test_init(ss, &test);
-	plane_from_point_normal_v3(test.plane, area_co, area_no_sp);
+	plane_from_point_normal_v3(test.plane_tool, area_co, area_no_sp);
 
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
 		if (sculpt_brush_test_cube(&test, vd.co, mat)) {
-			if (plane_point_side_flip(vd.co, test.plane, flip)) {
+			if (plane_point_side_flip(vd.co, test.plane_tool, flip)) {
 				float intr[3];
 				float val[3];
 
-				closest_to_plane_normalized_v3(intr, test.plane, vd.co);
+				closest_to_plane_normalized_v3(intr, test.plane_tool, vd.co);
 
 				sub_v3_v3v3(val, intr, vd.co);
 
@@ -2886,8 +3005,8 @@ static void do_clay_strips_brush_task_cb_ex(
 					/* note, the normal from the vertices is ignored,
 					 * causes glitch with planes, see: T44390 */
 					const float fade = bstrength * tex_strength(
-					                       ss, brush, vd.co, ss->cache->radius * test.dist,
-					                       vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f, thread_id);
+					        ss, brush, vd.co, ss->cache->radius * test.dist,
+					        vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f, thread_id);
 
 					mul_v3_v3fl(proxy[vd.i], val, fade);
 
@@ -2970,30 +3089,32 @@ static void do_fill_brush_task_cb_ex(
 	const float *area_co = data->area_co;
 
 	PBVHVertexIter vd;
-	SculptBrushTest test;
 	float (*proxy)[3];
 	const float bstrength = ss->cache->bstrength;
 
 	proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
-	sculpt_brush_test_init(ss, &test);
-	plane_from_point_normal_v3(test.plane, area_co, area_no);
+	SculptBrushTest test;
+	SculptBrushTestFn sculpt_brush_test_sq_fn =
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
+
+	plane_from_point_normal_v3(test.plane_tool, area_co, area_no);
 
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
-		if (sculpt_brush_test_sphere_sq(&test, vd.co)) {
-			if (plane_point_side(vd.co, test.plane)) {
+		if (sculpt_brush_test_sq_fn(&test, vd.co)) {
+			if (plane_point_side(vd.co, test.plane_tool)) {
 				float intr[3];
 				float val[3];
 
-				closest_to_plane_normalized_v3(intr, test.plane, vd.co);
+				closest_to_plane_normalized_v3(intr, test.plane_tool, vd.co);
 
 				sub_v3_v3v3(val, intr, vd.co);
 
 				if (plane_trim(ss->cache, brush, val)) {
 					const float fade = bstrength * tex_strength(
-					                       ss, brush, vd.co, sqrtf(test.dist),
-					                       vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f, thread_id);
+					        ss, brush, vd.co, sqrtf(test.dist),
+					        vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f, thread_id);
 
 					mul_v3_v3fl(proxy[vd.i], val, fade);
 
@@ -3049,30 +3170,31 @@ static void do_scrape_brush_task_cb_ex(
 	const float *area_co = data->area_co;
 
 	PBVHVertexIter vd;
-	SculptBrushTest test;
 	float (*proxy)[3];
 	const float bstrength = ss->cache->bstrength;
 
 	proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
-	sculpt_brush_test_init(ss, &test);
-	plane_from_point_normal_v3(test.plane, area_co, area_no);
+	SculptBrushTest test;
+	SculptBrushTestFn sculpt_brush_test_sq_fn =
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
+	plane_from_point_normal_v3(test.plane_tool, area_co, area_no);
 
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
 	{
-		if (sculpt_brush_test_sphere_sq(&test, vd.co)) {
-			if (!plane_point_side(vd.co, test.plane)) {
+		if (sculpt_brush_test_sq_fn(&test, vd.co)) {
+			if (!plane_point_side(vd.co, test.plane_tool)) {
 				float intr[3];
 				float val[3];
 
-				closest_to_plane_normalized_v3(intr, test.plane, vd.co);
+				closest_to_plane_normalized_v3(intr, test.plane_tool, vd.co);
 
 				sub_v3_v3v3(val, intr, vd.co);
 
 				if (plane_trim(ss->cache, brush, val)) {
 					const float fade = bstrength * tex_strength(
-					                       ss, brush, vd.co, sqrtf(test.dist), vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f,
-					                       thread_id);
+					        ss, brush, vd.co, sqrtf(test.dist),
+					        vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f, thread_id);
 
 					mul_v3_v3fl(proxy[vd.i], val, fade);
 
@@ -3127,18 +3249,19 @@ static void do_gravity_task_cb_ex(
 	float *offset = data->offset;
 
 	PBVHVertexIter vd;
-	SculptBrushTest test;
 	float (*proxy)[3];
 
 	proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
-	sculpt_brush_test_init(ss, &test);
+	SculptBrushTest test;
+	SculptBrushTestFn sculpt_brush_test_sq_fn =
+	        sculpt_brush_test_init_with_falloff_shape(ss, &test, data->brush->falloff_shape);
 
 	BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-		if (sculpt_brush_test_sphere_sq(&test, vd.co)) {
+		if (sculpt_brush_test_sq_fn(&test, vd.co)) {
 			const float fade = tex_strength(
-			                       ss, brush, vd.co, sqrtf(test.dist), vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f,
-			                       thread_id);
+			        ss, brush, vd.co, sqrtf(test.dist),
+			        vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f, thread_id);
 
 			mul_v3_v3fl(proxy[vd.i], offset, fade);
 
@@ -3222,22 +3345,12 @@ void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 static void sculpt_topology_update(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings *UNUSED(ups))
 {
 	SculptSession *ss = ob->sculpt;
-	SculptSearchSphereData data;
-	PBVHNode **nodes = NULL;
-	float radius;
+
 	int n, totnode;
-
-	/* Build a list of all nodes that are potentially within the
-	 * brush's area of influence */
-	data.ss = ss;
-	data.sd = sd;
-
-	radius = ss->cache->radius * 1.25f;
-
-	data.radius_squared = radius * radius;
-	data.original = sculpt_tool_needs_original(brush->sculpt_tool) ? true : ss->cache->original;
-
-	BKE_pbvh_search_gather(ss->pbvh, sculpt_search_sphere_cb, &data, &nodes, &totnode);
+	/* Build a list of all nodes that are potentially within the brush's area of influence */
+	const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) ? true : ss->cache->original;
+	const float radius_scale = 1.25f;
+	PBVHNode **nodes = sculpt_pbvh_gather_generic(ob, sd, brush, use_original, radius_scale, &totnode);
 
 	/* Only act if some verts are inside the brush area */
 	if (totnode) {
@@ -3269,8 +3382,10 @@ static void sculpt_topology_update(Sculpt *sd, Object *ob, Brush *brush, Unified
 			BKE_pbvh_bmesh_update_topology(
 			        ss->pbvh, mode,
 			        ss->cache->location,
-			        (brush->flag & BRUSH_FRONTFACE) ? ss->cache->view_normal : NULL,
-			        ss->cache->radius);
+			        ss->cache->view_normal,
+			        ss->cache->radius,
+			        (brush->flag & BRUSH_FRONTFACE) != 0,
+			        (brush->falloff_shape != PAINT_FALLOFF_SHAPE_SPHERE));
 		}
 
 		MEM_freeN(nodes);
@@ -3293,16 +3408,12 @@ static void do_brush_action_task_cb(void *userdata, const int n)
 static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings *ups)
 {
 	SculptSession *ss = ob->sculpt;
-	SculptSearchSphereData data;
-	PBVHNode **nodes = NULL;
 	int totnode;
 
 	/* Build a list of all nodes that are potentially within the brush's area of influence */
-	data.ss = ss;
-	data.sd = sd;
-	data.radius_squared = ss->cache->radius_squared;
-	data.original = sculpt_tool_needs_original(brush->sculpt_tool) ? true : ss->cache->original;
-	BKE_pbvh_search_gather(ss->pbvh, sculpt_search_sphere_cb, &data, &nodes, &totnode);
+	const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) ? true : ss->cache->original;
+	const float radius_scale = 1.0f;
+	PBVHNode **nodes = sculpt_pbvh_gather_generic(ob, sd, brush, use_original, radius_scale, &totnode);
 
 	/* Only act if some verts are inside the brush area */
 	if (totnode) {
@@ -4120,7 +4231,6 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
 						sub_v3_v3v3(cache->grab_delta, grab_location,
 						            cache->old_grab_location);
 					}
-				
 					invert_m4_m4(imat, ob->obmat);
 					mul_mat3_m4_v3(imat, cache->grab_delta);
 					break;
@@ -4128,6 +4238,10 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
 		}
 		else {
 			zero_v3(cache->grab_delta);
+		}
+
+		if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
+			project_plane_v3_v3v3(cache->grab_delta, cache->grab_delta, ss->cache->true_view_normal);
 		}
 
 		copy_v3_v3(cache->old_grab_location, grab_location);
@@ -4330,13 +4444,40 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
 		}
 
 		if (BKE_pbvh_node_raycast(srd->ss->pbvh, node, origco, use_origco,
-		                          srd->ray_start, srd->ray_normal, &srd->dist))
+		                          srd->ray_start, srd->ray_normal, &srd->depth))
 		{
 			srd->hit = 1;
-			*tmin = srd->dist;
+			*tmin = srd->depth;
+		}
+	}
+}
 
-			//for vwpaint testing
-			srd->node = node;
+static void sculpt_find_nearest_to_ray_cb(PBVHNode *node, void *data_v, float *tmin)
+{
+	if (BKE_pbvh_node_get_tmin(node) < *tmin) {
+		SculptFindNearestToRayData *srd = data_v;
+		float (*origco)[3] = NULL;
+		bool use_origco = false;
+
+		if (srd->original && srd->ss->cache) {
+			if (BKE_pbvh_type(srd->ss->pbvh) == PBVH_BMESH) {
+				use_origco = true;
+			}
+			else {
+				/* intersect with coordinates from before we started stroke */
+				SculptUndoNode *unode = sculpt_undo_get_node(node);
+				origco = (unode) ? unode->co : NULL;
+				use_origco = origco ? true : false;
+			}
+		}
+
+		if (BKE_pbvh_node_find_nearest_to_ray(
+		        srd->ss->pbvh, node, origco, use_origco,
+		        srd->ray_start, srd->ray_normal,
+		        &srd->depth, &srd->dist_sq_to_ray))
+		{
+			srd->hit = 1;
+			*tmin = srd->dist_sq_to_ray;
 		}
 	}
 }
@@ -4346,10 +4487,10 @@ static void sculpt_raycast_detail_cb(PBVHNode *node, void *data_v, float *tmin)
 	if (BKE_pbvh_node_get_tmin(node) < *tmin) {
 		SculptDetailRaycastData *srd = data_v;
 		if (BKE_pbvh_bmesh_node_raycast_detail(node, srd->ray_start, srd->ray_normal,
-		                                       &srd->dist, &srd->detail))
+		                                       &srd->depth, &srd->detail))
 		{
 			srd->hit = 1;
-			*tmin = srd->dist;
+			*tmin = srd->depth;
 		}
 	}
 }
@@ -4396,8 +4537,7 @@ bool sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 	Object *ob;
 	SculptSession *ss;
 	StrokeCache *cache;
-	float ray_start[3], ray_end[3], ray_normal[3], dist;
-	SculptRaycastData srd;
+	float ray_start[3], ray_end[3], ray_normal[3], depth;
 	bool original;
 	ViewContext vc;
 
@@ -4411,28 +4551,58 @@ bool sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 
 	sculpt_stroke_modifiers_check(C, ob);
 
-	dist = sculpt_raycast_init(&vc, mouse, ray_start, ray_end, ray_normal, original);
+	depth = sculpt_raycast_init(&vc, mouse, ray_start, ray_end, ray_normal, original);
 
-	srd.original = original;
-	srd.ss = ob->sculpt;
-	srd.hit = 0;
-	srd.ray_start = ray_start;
-	srd.ray_normal = ray_normal;
-	srd.dist = dist;
+	bool hit = false;
+	{
+		SculptRaycastData srd = {
+			.original = original,
+			.ss = ob->sculpt,
+			.hit = 0,
+			.ray_start = ray_start,
+			.ray_normal = ray_normal,
+			.depth = depth,
+		};
+		BKE_pbvh_raycast(
+		        ss->pbvh, sculpt_raycast_cb, &srd,
+		        ray_start, ray_normal, srd.original);
+		if (srd.hit) {
+			hit = true;
+			copy_v3_v3(out, ray_normal);
+			mul_v3_fl(out, srd.depth);
+			add_v3_v3(out, ray_start);
+		}
+	}
 
-	BKE_pbvh_raycast(ss->pbvh, sculpt_raycast_cb, &srd,
-			 ray_start, ray_normal, srd.original);
+	if (hit == false) {
+		const Brush *brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
+		if (ELEM(brush->falloff_shape, PAINT_FALLOFF_SHAPE_TUBE)) {
+			SculptFindNearestToRayData srd = {
+				.original = original,
+				.ss = ob->sculpt,
+				.hit = 0,
+				.ray_start = ray_start,
+				.ray_normal = ray_normal,
+				.depth = FLT_MAX,
+				.dist_sq_to_ray = FLT_MAX,
+			};
+			BKE_pbvh_find_nearest_to_ray(
+			        ss->pbvh, sculpt_find_nearest_to_ray_cb, &srd,
+			        ray_start, ray_normal, srd.original);
+			if (srd.hit) {
+				hit = true;
+				copy_v3_v3(out, ray_normal);
+				mul_v3_fl(out, srd.depth);
+				add_v3_v3(out, ray_start);
+			}
+		}
+	}
 
-	copy_v3_v3(out, ray_normal);
-	mul_v3_fl(out, srd.dist);
-	add_v3_v3(out, ray_start);
-
-	//used in vwpaint
-	if (cache && srd.hit){
+	if (cache && hit) {
 		copy_v3_v3(cache->true_location, out);
 	}
 
-	return srd.hit;
+	return hit;
 }
 
 static void sculpt_brush_init_tex(const Scene *scene, Sculpt *sd, SculptSession *ss)
@@ -5475,7 +5645,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
 
 	while (BKE_pbvh_bmesh_update_topology(
 	               ss->pbvh, PBVH_Collapse | PBVH_Subdivide,
-	               center, NULL, size))
+	               center, NULL, size, false, false))
 	{
 		for (i = 0; i < totnodes; i++)
 			BKE_pbvh_node_mark_topology_update(nodes[i]);
@@ -5511,7 +5681,7 @@ static void sample_detail(bContext *C, int ss_co[2])
 	ViewContext vc;
 	Object *ob;
 	Sculpt *sd;
-	float ray_start[3], ray_end[3], ray_normal[3], dist;
+	float ray_start[3], ray_end[3], ray_normal[3], depth;
 	SculptDetailRaycastData srd;
 	float mouse[2] = {ss_co[0], ss_co[1]};
 	view3d_set_viewcontext(C, &vc);
@@ -5521,12 +5691,12 @@ static void sample_detail(bContext *C, int ss_co[2])
 
 	sculpt_stroke_modifiers_check(C, ob);
 
-	dist = sculpt_raycast_init(&vc, mouse, ray_start, ray_end, ray_normal, false);
+	depth = sculpt_raycast_init(&vc, mouse, ray_start, ray_end, ray_normal, false);
 
 	srd.hit = 0;
 	srd.ray_start = ray_start;
 	srd.ray_normal = ray_normal;
-	srd.dist = dist;
+	srd.depth = depth;
 	srd.detail = sd->constant_detail;
 
 	BKE_pbvh_raycast(ob->sculpt->pbvh, sculpt_raycast_detail_cb, &srd,

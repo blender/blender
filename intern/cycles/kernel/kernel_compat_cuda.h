@@ -50,7 +50,8 @@
 #endif
 #define ccl_device_noinline  __device__ __noinline__
 #define ccl_global
-#define ccl_constant
+#define ccl_static_constant __constant__
+#define ccl_constant const
 #define ccl_local __shared__
 #define ccl_local_param
 #define ccl_private

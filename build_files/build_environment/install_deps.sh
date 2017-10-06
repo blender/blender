@@ -1152,7 +1152,7 @@ compile_Numpy() {
 
     cd $_src
 
-    $_python/bin/python3 setup.py install --prefix=$_inst
+    $_python/bin/python3 setup.py install --old-and-unmanageable --prefix=$_inst
 
     if [ -d $_inst ]; then
       # Can't use _create_inst_shortcut here...

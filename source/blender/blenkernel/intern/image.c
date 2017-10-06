@@ -1455,8 +1455,7 @@ static bool do_add_image_extension(char *string, const char imtype, const ImageF
 	if (extension) {
 		/* prefer this in many cases to avoid .png.tga, but in certain cases it breaks */
 		/* remove any other known image extension */
-		if (BLI_testextensie_array(string, imb_ext_image))
-		{
+		if (BLI_testextensie_array(string, imb_ext_image)) {
 			return BLI_replace_extension(string, FILE_MAX, extension);
 		}
 		else {

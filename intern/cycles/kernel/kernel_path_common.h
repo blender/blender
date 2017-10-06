@@ -19,7 +19,6 @@
 CCL_NAMESPACE_BEGIN
 
 ccl_device_inline void kernel_path_trace_setup(KernelGlobals *kg,
-                                               ccl_global uint *rng_state,
                                                int sample,
                                                int x, int y,
                                                uint *rng_hash,
@@ -30,11 +29,7 @@ ccl_device_inline void kernel_path_trace_setup(KernelGlobals *kg,
 
 	int num_samples = kernel_data.integrator.aa_samples;
 
-	if(sample == kernel_data.integrator.start_sample) {
-		*rng_state = hash_int_2d(x, y);
-	}
-
-	path_rng_init(kg, rng_state, sample, num_samples, rng_hash, x, y, &filter_u, &filter_v);
+	path_rng_init(kg, sample, num_samples, rng_hash, x, y, &filter_u, &filter_v);
 
 	/* sample camera ray */
 

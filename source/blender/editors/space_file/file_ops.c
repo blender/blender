@@ -1302,7 +1302,6 @@ void file_sfile_filepath_set(SpaceFile *sfile, const char *filepath)
 
 	if (BLI_is_dir(filepath)) {
 		BLI_strncpy(sfile->params->dir, filepath, sizeof(sfile->params->dir));
-		sfile->params->file[0] = '\0';
 	}
 	else {
 		if ((sfile->params->flag & FILE_DIRSEL_ONLY) == 0) {

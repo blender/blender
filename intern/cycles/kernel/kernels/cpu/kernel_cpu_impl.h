@@ -75,7 +75,6 @@ CCL_NAMESPACE_BEGIN
 
 void KERNEL_FUNCTION_FULL_NAME(path_trace)(KernelGlobals *kg,
                                            float *buffer,
-                                           unsigned int *rng_state,
                                            int sample,
                                            int x, int y,
                                            int offset,
@@ -88,7 +87,6 @@ void KERNEL_FUNCTION_FULL_NAME(path_trace)(KernelGlobals *kg,
 	if(kernel_data.integrator.branched) {
 		kernel_branched_path_trace(kg,
 		                           buffer,
-		                           rng_state,
 		                           sample,
 		                           x, y,
 		                           offset,
@@ -97,7 +95,7 @@ void KERNEL_FUNCTION_FULL_NAME(path_trace)(KernelGlobals *kg,
 	else
 #  endif
 	{
-		kernel_path_trace(kg, buffer, rng_state, sample, x, y, offset, stride);
+		kernel_path_trace(kg, buffer, sample, x, y, offset, stride);
 	}
 #endif /* KERNEL_STUB */
 }
@@ -151,7 +149,6 @@ void KERNEL_FUNCTION_FULL_NAME(convert_to_half_float)(KernelGlobals *kg,
 void KERNEL_FUNCTION_FULL_NAME(shader)(KernelGlobals *kg,
                                        uint4 *input,
                                        float4 *output,
-                                       float *output_luma,
                                        int type,
                                        int filter,
                                        int i,
@@ -162,7 +159,6 @@ void KERNEL_FUNCTION_FULL_NAME(shader)(KernelGlobals *kg,
 	STUB_ASSERT(KERNEL_ARCH, shader);
 #else
 	if(type >= SHADER_EVAL_BAKE) {
-		kernel_assert(output_luma == NULL);
 #  ifdef __BAKING__
 		kernel_bake_evaluate(kg,
 		                     input,
@@ -174,14 +170,11 @@ void KERNEL_FUNCTION_FULL_NAME(shader)(KernelGlobals *kg,
 		                     sample);
 #  endif
 	}
+	else if(type == SHADER_EVAL_DISPLACE) {
+		kernel_displace_evaluate(kg, input, output, i);
+	}
 	else {
-		kernel_shader_evaluate(kg,
-		                       input,
-		                       output,
-		                       output_luma,
-		                       (ShaderEvalType)type,
-		                       i,
-		                       sample);
+		kernel_background_evaluate(kg, input, output, i);
 	}
 #endif /* KERNEL_STUB */
 }

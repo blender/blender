@@ -56,7 +56,7 @@ public:
 	static void eval_surface(KernelGlobals *kg, ShaderData *sd, PathState *state, int path_flag);
 	static void eval_background(KernelGlobals *kg, ShaderData *sd, PathState *state, int path_flag);
 	static void eval_volume(KernelGlobals *kg, ShaderData *sd, PathState *state, int path_flag);
-	static void eval_displacement(KernelGlobals *kg, ShaderData *sd);
+	static void eval_displacement(KernelGlobals *kg, ShaderData *sd, PathState *state);
 
 	/* attributes */
 	static int find_attribute(KernelGlobals *kg, const ShaderData *sd, uint id, AttributeDescriptor *desc);

@@ -108,7 +108,6 @@ RenderTile::RenderTile()
 	stride = 0;
 
 	buffer = 0;
-	rng_state = 0;
 
 	buffers = NULL;
 }
@@ -131,11 +130,6 @@ void RenderBuffers::device_free()
 		device->mem_free(buffer);
 		buffer.clear();
 	}
-
-	if(rng_state.device_pointer) {
-		device->mem_free(rng_state);
-		rng_state.clear();
-	}
 }
 
 void RenderBuffers::reset(Device *device, BufferParams& params_)
@@ -149,11 +143,13 @@ void RenderBuffers::reset(Device *device, BufferParams& params_)
 	buffer.resize(params.width*params.height*params.get_passes_size());
 	device->mem_alloc("render_buffer", buffer, MEM_READ_WRITE);
 	device->mem_zero(buffer);
+}
 
-	/* allocate rng state */
-	rng_state.resize(params.width, params.height);
-
-	device->mem_alloc("rng_state", rng_state, MEM_READ_WRITE);
+void RenderBuffers::zero(Device *device)
+{
+	if(buffer.device_pointer) {
+		device->mem_zero(buffer);
+	}
 }
 
 bool RenderBuffers::copy_from_device(Device *from_device)

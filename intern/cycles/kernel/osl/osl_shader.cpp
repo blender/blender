@@ -348,14 +348,12 @@ void OSLShader::eval_volume(KernelGlobals *kg, ShaderData *sd, PathState *state,
 
 /* Displacement */
 
-void OSLShader::eval_displacement(KernelGlobals *kg, ShaderData *sd)
+void OSLShader::eval_displacement(KernelGlobals *kg, ShaderData *sd, PathState *state)
 {
 	/* setup shader globals from shader data */
 	OSLThreadData *tdata = kg->osl_tdata;
 
-	PathState state = {0};
-
-	shaderdata_to_shaderglobals(kg, sd, &state, 0, tdata);
+	shaderdata_to_shaderglobals(kg, sd, state, 0, tdata);
 
 	/* execute shader */
 	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)kg->osl_ss;

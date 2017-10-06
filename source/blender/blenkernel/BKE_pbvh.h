@@ -60,6 +60,8 @@ typedef bool (*BKE_pbvh_SearchCallback)(PBVHNode *node, void *data);
 typedef void (*BKE_pbvh_HitCallback)(PBVHNode *node, void *data);
 typedef void (*BKE_pbvh_HitOccludedCallback)(PBVHNode *node, void *data, float *tmin);
 
+typedef void (*BKE_pbvh_SearchNearestCallback)(PBVHNode *node, void *data, float *tmin);
+
 /* Building */
 
 PBVH *BKE_pbvh_new(void);
@@ -102,18 +104,28 @@ void BKE_pbvh_raycast(
 bool BKE_pbvh_node_raycast(
         PBVH *bvh, PBVHNode *node, float (*origco)[3], bool use_origco,
         const float ray_start[3], const float ray_normal[3],
-        float *dist);
+        float *depth);
 
 bool BKE_pbvh_bmesh_node_raycast_detail(
         PBVHNode *node,
         const float ray_start[3], const float ray_normal[3],
-        float *dist, float *r_detail);
+        float *depth, float *r_detail);
 
 /* for orthographic cameras, project the far away ray segment points to the root node so
  * we can have better precision. */
 void BKE_pbvh_raycast_project_ray_root(
         PBVH *bvh, bool original,
         float ray_start[3], float ray_end[3], float ray_normal[3]);
+
+void BKE_pbvh_find_nearest_to_ray(
+        PBVH *bvh, BKE_pbvh_HitOccludedCallback cb, void *data,
+        const float ray_start[3], const float ray_normal[3],
+        bool original);
+
+bool BKE_pbvh_node_find_nearest_to_ray(
+        PBVH *bvh, PBVHNode *node, float (*origco)[3], bool use_origco,
+        const float ray_start[3], const float ray_normal[3],
+        float *depth, float *dist_sq);
 
 /* Drawing */
 
@@ -160,7 +172,7 @@ typedef enum {
 bool BKE_pbvh_bmesh_update_topology(
         PBVH *bvh, PBVHTopologyUpdateMode mode,
         const float center[3], const float view_normal[3],
-        float radius);
+        float radius, const bool use_frontface, const bool use_projected);
 
 /* Node Access */
 

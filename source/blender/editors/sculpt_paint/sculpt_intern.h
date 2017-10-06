@@ -182,7 +182,10 @@ typedef struct SculptBrushTest {
 	int mirror_symmetry_pass;
 
 	/* For circle (not sphere) projection. */
-	float plane[4];
+	float plane_view[4];
+
+	/* Some tool code uses a plane for it's calculateions. */
+	float plane_tool[4];
 
 	/* View3d clipping - only set rv3d for clipping */
 	struct RegionView3D *clip_rv3d;
@@ -213,6 +216,12 @@ bool sculpt_brush_test_cube(SculptBrushTest *test, const float co[3], float loca
 bool sculpt_brush_test_circle_sq(SculptBrushTest *test, const float co[3]);
 bool sculpt_search_sphere_cb(PBVHNode *node, void *data_v);
 bool sculpt_search_circle_cb(PBVHNode *node, void *data_v);
+
+SculptBrushTestFn sculpt_brush_test_init_with_falloff_shape(
+        SculptSession *ss, SculptBrushTest *test, char falloff_shape);
+const float *sculpt_brush_frontface_normal_from_falloff_shape(
+        SculptSession *ss, char falloff_shape);
+
 float tex_strength(
         struct SculptSession *ss, const struct Brush *br,
         const float point[3],

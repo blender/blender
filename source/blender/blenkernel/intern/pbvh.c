@@ -608,7 +608,8 @@ void BKE_pbvh_build_grids(PBVH *bvh, CCGElem **grids,
 	MEM_freeN(prim_bbc);
 }
 
-void BKE_pbvh_set_ccgdm(PBVH *bvh, CCGDerivedMesh *ccgdm) {
+void BKE_pbvh_set_ccgdm(PBVH *bvh, CCGDerivedMesh *ccgdm)
+{
 	bvh->ccgdm = ccgdm;
 }
 
@@ -1336,7 +1337,8 @@ void BKE_pbvh_get_grid_key(const PBVH *bvh, CCGKey *key)
 	*key = bvh->gridkey;
 }
 
-CCGDerivedMesh *BKE_pbvh_get_ccgdm(const PBVH *bvh) {
+CCGDerivedMesh *BKE_pbvh_get_ccgdm(const PBVH *bvh)
+{
 	return bvh->ccgdm;
 }
 
@@ -1539,14 +1541,16 @@ void BKE_pbvh_raycast(
 bool ray_face_intersection_quad(
         const float ray_start[3], const float ray_normal[3],
         const float t0[3], const float t1[3], const float t2[3], const float t3[3],
-        float *dist)
+        float *depth)
 {
-	float dist_test;
+	float depth_test;
 
-	if ((isect_ray_tri_epsilon_v3(ray_start, ray_normal, t0, t1, t2, &dist_test, NULL, 0.1f) && (dist_test < *dist)) ||
-	    (isect_ray_tri_epsilon_v3(ray_start, ray_normal, t0, t2, t3, &dist_test, NULL, 0.1f) && (dist_test < *dist)))
+	if ((isect_ray_tri_epsilon_v3(
+	         ray_start, ray_normal, t0, t1, t2, &depth_test, NULL, 0.1f) && (depth_test < *depth)) ||
+	    (isect_ray_tri_epsilon_v3(
+	         ray_start, ray_normal, t0, t2, t3, &depth_test, NULL, 0.1f) && (depth_test < *depth)))
 	{
-		*dist = dist_test;
+		*depth = depth_test;
 		return true;
 	}
 	else {
@@ -1557,12 +1561,82 @@ bool ray_face_intersection_quad(
 bool ray_face_intersection_tri(
         const float ray_start[3], const float ray_normal[3],
         const float t0[3], const float t1[3], const float t2[3],
-        float *dist)
+        float *depth)
 {
-	float dist_test;
+	float depth_test;
 
-	if ((isect_ray_tri_epsilon_v3(ray_start, ray_normal, t0, t1, t2, &dist_test, NULL, 0.1f) && (dist_test < *dist))) {
-		*dist = dist_test;
+	if ((isect_ray_tri_epsilon_v3(
+	         ray_start, ray_normal, t0, t1, t2, &depth_test, NULL, 0.1f) && (depth_test < *depth)))
+	{
+		*depth = depth_test;
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+/* Take advantage of the fact we know this wont be an intersection.
+ * Just handle ray-tri edges. */
+static float dist_squared_ray_to_tri_v3_fast(
+        const float ray_origin[3], const float ray_direction[3],
+        const float v0[3], const float v1[3], const float v2[3],
+        float r_point[3], float *r_depth)
+{
+	const float *tri[3] = {v0, v1, v2};
+	float dist_sq_best = FLT_MAX;
+	for (int i = 0, j = 2; i < 3; j = i++) {
+		float point_test[3], depth_test = FLT_MAX;
+		const float dist_sq_test = dist_squared_ray_to_seg_v3(
+		        ray_origin, ray_direction, tri[i], tri[j], point_test, &depth_test);
+		if (dist_sq_test < dist_sq_best || i == 0) {
+			copy_v3_v3(r_point, point_test);
+			*r_depth = depth_test;
+			dist_sq_best = dist_sq_test;
+		}
+	}
+	return dist_sq_best;
+}
+
+bool ray_face_nearest_quad(
+        const float ray_start[3], const float ray_normal[3],
+        const float t0[3], const float t1[3], const float t2[3], const float t3[3],
+        float *depth, float *dist_sq)
+{
+	float dist_sq_test;
+	float co[3], depth_test;
+
+	if (((dist_sq_test = dist_squared_ray_to_tri_v3_fast(
+	         ray_start, ray_normal, t0, t1, t2, co, &depth_test)) < *dist_sq))
+	{
+		*dist_sq = dist_sq_test;
+		*depth = depth_test;
+		if (((dist_sq_test = dist_squared_ray_to_tri_v3_fast(
+		         ray_start, ray_normal, t0, t2, t3, co, &depth_test)) < *dist_sq))
+		{
+			*dist_sq = dist_sq_test;
+			*depth = depth_test;
+		}
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool ray_face_nearest_tri(
+        const float ray_start[3], const float ray_normal[3],
+        const float t0[3], const float t1[3], const float t2[3],
+        float *depth, float *dist_sq)
+{
+	float dist_sq_test;
+	float co[3], depth_test;
+
+	if (((dist_sq_test = dist_squared_ray_to_tri_v3_fast(
+	         ray_start, ray_normal, t0, t1, t2, co, &depth_test)) < *dist_sq))
+	{
+		*dist_sq = dist_sq_test;
+		*depth = depth_test;
 		return true;
 	}
 	else {
@@ -1574,7 +1648,7 @@ static bool pbvh_faces_node_raycast(
         PBVH *bvh, const PBVHNode *node,
         float (*origco)[3],
         const float ray_start[3], const float ray_normal[3],
-        float *dist)
+        float *depth)
 {
 	const MVert *vert = bvh->verts;
 	const MLoop *mloop = bvh->mloop;
@@ -1596,7 +1670,7 @@ static bool pbvh_faces_node_raycast(
 			        origco[face_verts[0]],
 			        origco[face_verts[1]],
 			        origco[face_verts[2]],
-			        dist);
+			        depth);
 		}
 		else {
 			/* intersect with current coordinates */
@@ -1605,7 +1679,7 @@ static bool pbvh_faces_node_raycast(
 			        vert[mloop[lt->tri[0]].v].co,
 			        vert[mloop[lt->tri[1]].v].co,
 			        vert[mloop[lt->tri[2]].v].co,
-			        dist);
+			        depth);
 		}
 	}
 
@@ -1616,7 +1690,7 @@ static bool pbvh_grids_node_raycast(
         PBVH *bvh, PBVHNode *node,
         float (*origco)[3],
         const float ray_start[3], const float ray_normal[3],
-        float *dist)
+        float *depth)
 {
 	const int totgrid = node->totprim;
 	const int gridsize = bvh->gridkey.grid_size;
@@ -1646,7 +1720,7 @@ static bool pbvh_grids_node_raycast(
 					        origco[y * gridsize + x + 1],
 					        origco[(y + 1) * gridsize + x + 1],
 					        origco[(y + 1) * gridsize + x],
-					        dist);
+					        depth);
 				}
 				else {
 					hit |= ray_face_intersection_quad(
@@ -1655,7 +1729,7 @@ static bool pbvh_grids_node_raycast(
 					        CCG_grid_elem_co(&bvh->gridkey, grid, x + 1, y),
 					        CCG_grid_elem_co(&bvh->gridkey, grid, x + 1, y + 1),
 					        CCG_grid_elem_co(&bvh->gridkey, grid, x, y + 1),
-					        dist);
+					        depth);
 				}
 			}
 		}
@@ -1670,7 +1744,7 @@ static bool pbvh_grids_node_raycast(
 bool BKE_pbvh_node_raycast(
         PBVH *bvh, PBVHNode *node, float (*origco)[3], bool use_origco,
         const float ray_start[3], const float ray_normal[3],
-        float *dist)
+        float *depth)
 {
 	bool hit = false;
 
@@ -1681,16 +1755,16 @@ bool BKE_pbvh_node_raycast(
 		case PBVH_FACES:
 			hit |= pbvh_faces_node_raycast(
 			        bvh, node, origco,
-			        ray_start, ray_normal, dist);
+			        ray_start, ray_normal, depth);
 			break;
 		case PBVH_GRIDS:
 			hit |= pbvh_grids_node_raycast(
 			        bvh, node, origco,
-			        ray_start, ray_normal, dist);
+			        ray_start, ray_normal, depth);
 			break;
 		case PBVH_BMESH:
 			hit = pbvh_bmesh_node_raycast(
-			        node, ray_start, ray_normal, dist, use_origco);
+			        node, ray_start, ray_normal, depth, use_origco);
 			break;
 	}
 
@@ -1739,6 +1813,176 @@ void BKE_pbvh_raycast_project_ray_root(
 		madd_v3_v3v3fl(ray_start, ray_start, ray_normal, rootmin_start);
 		madd_v3_v3v3fl(ray_end, ray_end, ray_normal_inv, rootmin_end);
 	}
+}
+
+/* -------------------------------------------------------------------- */
+
+typedef struct {
+	struct DistRayAABB_Precalc dist_ray_to_aabb_precalc;
+	bool original;
+} FindNearestRayData;
+
+static bool nearest_to_ray_aabb_dist_sq(PBVHNode *node, void *data_v)
+{
+	FindNearestRayData *rcd = data_v;
+	const float *bb_min, *bb_max;
+
+	if (rcd->original) {
+		/* BKE_pbvh_node_get_original_BB */
+		bb_min = node->orig_vb.bmin;
+		bb_max = node->orig_vb.bmax;
+	}
+	else {
+		/* BKE_pbvh_node_get_BB */
+		bb_min = node->vb.bmin;
+		bb_max = node->vb.bmax;
+	}
+
+	float co_dummy[3], depth;
+	node->tmin = dist_squared_ray_to_aabb_v3(&rcd->dist_ray_to_aabb_precalc, bb_min, bb_max, co_dummy, &depth);
+	/* Ideally we would skip distances outside the range. */
+	return depth > 0.0f;
+}
+
+void BKE_pbvh_find_nearest_to_ray(
+        PBVH *bvh, BKE_pbvh_SearchNearestCallback cb, void *data,
+        const float ray_start[3], const float ray_normal[3],
+        bool original)
+{
+	FindNearestRayData ncd;
+
+	dist_squared_ray_to_aabb_v3_precalc(&ncd.dist_ray_to_aabb_precalc, ray_start, ray_normal);
+	ncd.original = original;
+
+	BKE_pbvh_search_callback_occluded(bvh, nearest_to_ray_aabb_dist_sq, &ncd, cb, data);
+}
+
+
+static bool pbvh_faces_node_nearest_to_ray(
+        PBVH *bvh, const PBVHNode *node,
+        float (*origco)[3],
+        const float ray_start[3], const float ray_normal[3],
+        float *depth, float *dist_sq)
+{
+	const MVert *vert = bvh->verts;
+	const MLoop *mloop = bvh->mloop;
+	const int *faces = node->prim_indices;
+	int i, totface = node->totprim;
+	bool hit = false;
+
+	for (i = 0; i < totface; ++i) {
+		const MLoopTri *lt = &bvh->looptri[faces[i]];
+		const int *face_verts = node->face_vert_indices[i];
+
+		if (paint_is_face_hidden(lt, vert, mloop))
+			continue;
+
+		if (origco) {
+			/* intersect with backuped original coordinates */
+			hit |= ray_face_nearest_tri(
+			        ray_start, ray_normal,
+			        origco[face_verts[0]],
+			        origco[face_verts[1]],
+			        origco[face_verts[2]],
+			        depth, dist_sq);
+		}
+		else {
+			/* intersect with current coordinates */
+			hit |= ray_face_nearest_tri(
+			        ray_start, ray_normal,
+			        vert[mloop[lt->tri[0]].v].co,
+			        vert[mloop[lt->tri[1]].v].co,
+			        vert[mloop[lt->tri[2]].v].co,
+			        depth, dist_sq);
+		}
+	}
+
+	return hit;
+}
+
+static bool pbvh_grids_node_nearest_to_ray(
+        PBVH *bvh, PBVHNode *node,
+        float (*origco)[3],
+        const float ray_start[3], const float ray_normal[3],
+        float *depth, float *dist_sq)
+{
+	const int totgrid = node->totprim;
+	const int gridsize = bvh->gridkey.grid_size;
+	bool hit = false;
+
+	for (int i = 0; i < totgrid; ++i) {
+		CCGElem *grid = bvh->grids[node->prim_indices[i]];
+		BLI_bitmap *gh;
+
+		if (!grid)
+			continue;
+
+		gh = bvh->grid_hidden[node->prim_indices[i]];
+
+		for (int y = 0; y < gridsize - 1; ++y) {
+			for (int x = 0; x < gridsize - 1; ++x) {
+				/* check if grid face is hidden */
+				if (gh) {
+					if (paint_is_grid_face_hidden(gh, gridsize, x, y))
+						continue;
+				}
+
+				if (origco) {
+					hit |= ray_face_nearest_quad(
+					        ray_start, ray_normal,
+					        origco[y * gridsize + x],
+					        origco[y * gridsize + x + 1],
+					        origco[(y + 1) * gridsize + x + 1],
+					        origco[(y + 1) * gridsize + x],
+					        depth, dist_sq);
+				}
+				else {
+					hit |= ray_face_nearest_quad(
+					        ray_start, ray_normal,
+					        CCG_grid_elem_co(&bvh->gridkey, grid, x, y),
+					        CCG_grid_elem_co(&bvh->gridkey, grid, x + 1, y),
+					        CCG_grid_elem_co(&bvh->gridkey, grid, x + 1, y + 1),
+					        CCG_grid_elem_co(&bvh->gridkey, grid, x, y + 1),
+					        depth, dist_sq);
+				}
+			}
+		}
+
+		if (origco)
+			origco += gridsize * gridsize;
+	}
+
+	return hit;
+}
+
+bool BKE_pbvh_node_find_nearest_to_ray(
+        PBVH *bvh, PBVHNode *node, float (*origco)[3], bool use_origco,
+        const float ray_start[3], const float ray_normal[3],
+        float *depth, float *dist_sq)
+{
+	bool hit = false;
+
+	if (node->flag & PBVH_FullyHidden)
+		return false;
+
+	switch (bvh->type) {
+		case PBVH_FACES:
+			hit |= pbvh_faces_node_nearest_to_ray(
+			        bvh, node, origco,
+			        ray_start, ray_normal, depth, dist_sq);
+			break;
+		case PBVH_GRIDS:
+			hit |= pbvh_grids_node_nearest_to_ray(
+			        bvh, node, origco,
+			        ray_start, ray_normal, depth, dist_sq);
+			break;
+		case PBVH_BMESH:
+			hit = pbvh_bmesh_node_nearest_to_ray(
+			        node, ray_start, ray_normal, depth, dist_sq, use_origco);
+			break;
+	}
+
+	return hit;
 }
 
 typedef struct {

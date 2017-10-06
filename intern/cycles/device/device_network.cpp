@@ -660,10 +660,6 @@ protected:
 			if(task.shader_output)
 				task.shader_output = device_ptr_from_client_pointer(task.shader_output);
 
-			if(task.shader_output_luma)
-				task.shader_output_luma = device_ptr_from_client_pointer(task.shader_output_luma);
-
-
 			task.acquire_tile = function_bind(&DeviceServer::task_acquire_tile, this, _1, _2);
 			task.release_tile = function_bind(&DeviceServer::task_release_tile, this, _1);
 			task.update_progress_sample = function_bind(&DeviceServer::task_update_progress_sample, this);
@@ -737,7 +733,6 @@ protected:
 					tile = entry.tile;
 
 					if(tile.buffer) tile.buffer = ptr_map[tile.buffer];
-					if(tile.rng_state) tile.rng_state = ptr_map[tile.rng_state];
 
 					result = true;
 					break;
@@ -769,7 +764,6 @@ protected:
 		thread_scoped_lock acquire_lock(acquire_mutex);
 
 		if(tile.buffer) tile.buffer = ptr_imap[tile.buffer];
-		if(tile.rng_state) tile.rng_state = ptr_imap[tile.rng_state];
 
 		{
 			thread_scoped_lock lock(rpc_lock);

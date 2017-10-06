@@ -424,13 +424,13 @@ static void make_face(PROCESS *process, int i1, int i2, int i3, int i4)
 #ifdef USE_ACCUM_NORMAL
 	if (i4 == 0) {
 		normal_tri_v3(n, process->co[i1], process->co[i2], process->co[i3]);
-		accumulate_vertex_normals(
+		accumulate_vertex_normals_v3(
 		        process->no[i1], process->no[i2], process->no[i3], NULL, n,
 		        process->co[i1], process->co[i2], process->co[i3], NULL);
 	}
 	else {
 		normal_quad_v3(n, process->co[i1], process->co[i2], process->co[i3], process->co[i4]);
-		accumulate_vertex_normals(
+		accumulate_vertex_normals_v3(
 		        process->no[i1], process->no[i2], process->no[i3], process->no[i4], n,
 		        process->co[i1], process->co[i2], process->co[i3], process->co[i4]);
 	}

@@ -384,7 +384,6 @@ bool Session::acquire_tile(Device *tile_device, RenderTile& rtile)
 		tile_manager.state.buffer.get_offset_stride(rtile.offset, rtile.stride);
 
 		rtile.buffer = buffers->buffer.device_pointer;
-		rtile.rng_state = buffers->rng_state.device_pointer;
 		rtile.buffers = buffers;
 		tile->buffers = buffers;
 
@@ -442,7 +441,6 @@ bool Session::acquire_tile(Device *tile_device, RenderTile& rtile)
 	tile->buffers->params.get_offset_stride(rtile.offset, rtile.stride);
 
 	rtile.buffer = tile->buffers->buffer.device_pointer;
-	rtile.rng_state = tile->buffers->rng_state.device_pointer;
 	rtile.buffers = tile->buffers;
 	rtile.sample = 0;
 
@@ -972,7 +970,12 @@ void Session::update_status_time(bool show_pause, bool show_done)
 
 void Session::render()
 {
-	/* add path trace task */
+	/* Clear buffers. */
+	if(buffers && tile_manager.state.sample == 0) {
+		buffers->zero(device);
+	}
+
+	/* Add path trace task. */
 	DeviceTask task(DeviceTask::RENDER);
 	
 	task.acquire_tile = function_bind(&Session::acquire_tile, this, _1, _2);

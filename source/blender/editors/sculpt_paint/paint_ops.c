@@ -264,9 +264,14 @@ static int brush_reset_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (!ob || !brush) return OPERATOR_CANCELLED;
 
-	if (ob->mode & OB_MODE_SCULPT)
-		BKE_brush_sculpt_reset(brush);
 	/* TODO: other modes */
+	if (ob->mode & OB_MODE_SCULPT) {
+		BKE_brush_sculpt_reset(brush);
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+	WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
 
 	return OPERATOR_FINISHED;
 }

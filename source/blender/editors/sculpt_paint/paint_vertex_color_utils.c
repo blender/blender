@@ -298,7 +298,7 @@ BLI_INLINE uint mcol_colordodge(uint col1, uint col2, int fac)
 	cp[0] = (mfac * cp1[0] + temp * fac) / 255;
 	temp = (cp2[1] == 255) ? 255 : min_ii((cp1[1] * 225) / (255 - cp2[1]), 255);
 	cp[1] = (mfac * cp1[1] + temp * fac) / 255;
-	temp = (cp2[2] == 255) ? 255 : min_ii((cp1[2] * 225 )/ (255 - cp2[2]), 255);
+	temp = (cp2[2] == 255) ? 255 : min_ii((cp1[2] * 225) / (255 - cp2[2]), 255);
 	cp[2] = (mfac * cp1[2] + temp * fac) / 255;
 	temp = (cp2[3] == 255) ? 255 : min_ii((cp1[3] * 225) / (255 - cp2[3]), 255);
 	cp[3] = (mfac * cp1[3] + temp * fac) / 255;
