@@ -4531,29 +4531,28 @@ bool sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 	if (hit == false) {
 		const Brush *brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
 		if (ELEM(brush->falloff_shape, PAINT_FALLOFF_SHAPE_TUBE)) {
-		SculptFindNearestToRayData srd = {
-			.original = original,
-			.ss = ob->sculpt,
-			.hit = 0,
-			.ray_start = ray_start,
-			.ray_normal = ray_normal,
-			.depth = FLT_MAX,
-			.dist_sq_to_ray = FLT_MAX,
-		};
-		BKE_pbvh_find_nearest_to_ray(
-		        ss->pbvh, sculpt_find_nearest_to_ray_cb, &srd,
-		        ray_start, ray_normal, srd.original);
-		if (srd.hit) {
-			hit = true;
-			copy_v3_v3(out, ray_normal);
-			mul_v3_fl(out, srd.depth);
-			add_v3_v3(out, ray_start);
-		}
+			SculptFindNearestToRayData srd = {
+				.original = original,
+				.ss = ob->sculpt,
+				.hit = 0,
+				.ray_start = ray_start,
+				.ray_normal = ray_normal,
+				.depth = FLT_MAX,
+				.dist_sq_to_ray = FLT_MAX,
+			};
+			BKE_pbvh_find_nearest_to_ray(
+			        ss->pbvh, sculpt_find_nearest_to_ray_cb, &srd,
+			        ray_start, ray_normal, srd.original);
+			if (srd.hit) {
+				hit = true;
+				copy_v3_v3(out, ray_normal);
+				mul_v3_fl(out, srd.depth);
+				add_v3_v3(out, ray_start);
+			}
 		}
 	}
 
-	//used in vwpaint
-	if (cache && hit){
+	if (cache && hit) {
 		copy_v3_v3(cache->true_location, out);
 	}
 

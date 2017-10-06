@@ -607,7 +607,8 @@ void BKE_pbvh_build_grids(PBVH *bvh, CCGElem **grids,
 	MEM_freeN(prim_bbc);
 }
 
-void BKE_pbvh_set_ccgdm(PBVH *bvh, CCGDerivedMesh *ccgdm) {
+void BKE_pbvh_set_ccgdm(PBVH *bvh, CCGDerivedMesh *ccgdm)
+{
 	bvh->ccgdm = ccgdm;
 }
 
@@ -1334,7 +1335,8 @@ void BKE_pbvh_get_grid_key(const PBVH *bvh, CCGKey *key)
 	*key = bvh->gridkey;
 }
 
-CCGDerivedMesh *BKE_pbvh_get_ccgdm(const PBVH *bvh) {
+CCGDerivedMesh *BKE_pbvh_get_ccgdm(const PBVH *bvh)
+{
 	return bvh->ccgdm;
 }
 

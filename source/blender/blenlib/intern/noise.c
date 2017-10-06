@@ -1395,9 +1395,9 @@ static float voronoi_CrS(float x, float y, float z)
 static float cellNoiseU(float x, float y, float z)
 {
 	/* avoid precision issues on unit coordinates */
-	x = (x + 0.000001f)*1.00001f;
-	y = (y + 0.000001f)*1.00001f;
-	z = (z + 0.000001f)*1.00001f;
+	x = (x + 0.000001f) * 1.00001f;
+	y = (y + 0.000001f) * 1.00001f;
+	z = (z + 0.000001f) * 1.00001f;
 
 	int xi = (int)(floor(x));
 	int yi = (int)(floor(y));
@@ -1417,9 +1417,9 @@ float cellNoise(float x, float y, float z)
 void cellNoiseV(float x, float y, float z, float ca[3])
 {
 	/* avoid precision issues on unit coordinates */
-	x = (x + 0.000001f)*1.00001f;
-	y = (y + 0.000001f)*1.00001f;
-	z = (z + 0.000001f)*1.00001f;
+	x = (x + 0.000001f) * 1.00001f;
+	y = (y + 0.000001f) * 1.00001f;
+	z = (z + 0.000001f) * 1.00001f;
 
 	int xi = (int)(floor(x));
 	int yi = (int)(floor(y));

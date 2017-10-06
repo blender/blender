@@ -609,8 +609,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 			return 1;
 		}
 	}
-	else if (CTX_data_equals(member, "selected_editable_fcurves"))
-	{
+	else if (CTX_data_equals(member, "selected_editable_fcurves")) {
 		bAnimContext ac;
 
 		if (ANIM_animdata_get_context(C, &ac) && ELEM(ac.spacetype, SPACE_ACTION, SPACE_IPO)) {

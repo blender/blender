@@ -2371,7 +2371,7 @@ int BKE_scene_num_threads(const Scene *scene)
 int BKE_render_preview_pixel_size(const RenderData *r)
 {
 	if (r->preview_pixel_size == 0) {
-		return (U.pixelsize > 1.5f)? 2 : 1;
+		return (U.pixelsize > 1.5f) ? 2 : 1;
 	}
 	return r->preview_pixel_size;
 }

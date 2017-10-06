@@ -9249,7 +9249,8 @@ static int ui_handle_menu_event(
 							              UI_BTYPE_BUT_MENU,
 							              UI_BTYPE_MENU, UI_BTYPE_BLOCK,
 							              UI_BTYPE_PULLDOWN) &&
-							         count == act) {
+							         count == act)
+							{
 								doit = true;
 							}
 
@@ -10228,9 +10229,9 @@ void UI_popup_handlers_remove(ListBase *handlers, uiPopupBlockHandle *popup)
 		    handler->ui_userdata == popup)
 		{
 			/* tag refresh parent popup */
-			if (handler->next && 
-				handler->next->ui_handle == ui_popup_handler && 
-				handler->next->ui_remove == ui_popup_handler_remove) 
+			if (handler->next &&
+			    handler->next->ui_handle == ui_popup_handler &&
+			    handler->next->ui_remove == ui_popup_handler_remove)
 			{
 				uiPopupBlockHandle *parent_popup = handler->next->ui_userdata;
 				ED_region_tag_refresh_ui(parent_popup->region);
