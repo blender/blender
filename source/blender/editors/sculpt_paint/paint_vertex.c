@@ -148,6 +148,10 @@ static bool vwpaint_use_normal(const VPaint *vp)
 	       ((vp->paint.brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0);
 }
 
+static bool brush_use_accumulate(const Brush *brush)
+{
+	return (brush->flag & BRUSH_ACCUMULATE) != 0 || brush->vertexpaint_tool == PAINT_BLEND_SMEAR;
+}
 
 static MDeformVert *defweight_prev_init(MDeformVert *dvert_prev, MDeformVert *dvert_curr, int index)
 {
@@ -271,7 +275,7 @@ static uint vpaint_blend(
 	uint color_blend = ED_vpaint_blend_tool(tool, color_curr, color_paint, alpha_i);
 
 	/* if no accumulate, clip color adding with colorig & orig alpha */
-	if ((brush->flag & BRUSH_ACCUMULATE) == 0) {
+	if (!brush_use_accumulate(brush)) {
 		uint color_test, a;
 		char *cp, *ct, *co;
 
@@ -783,7 +787,7 @@ static void do_weight_paint_vertex_single(
 		dw_mirr = NULL;
 	}
 
-	if ((wp->paint.brush->flag & BRUSH_ACCUMULATE) == 0) {
+	if (!brush_use_accumulate(wp->paint.brush)) {
 		MDeformVert *dvert_prev = ob->sculpt->mode.wpaint.dvert_prev;
 		MDeformVert *dv_prev = defweight_prev_init(dvert_prev, me->dvert, index);
 		if (index_mirr != -1) {
@@ -899,7 +903,7 @@ static void do_weight_paint_vertex_multi(
 		return;
 	}
 
-	if ((wp->paint.brush->flag & BRUSH_ACCUMULATE) == 0) {
+	if (!brush_use_accumulate(wp->paint.brush)) {
 		MDeformVert *dvert_prev = ob->sculpt->mode.wpaint.dvert_prev;
 		MDeformVert *dv_prev = defweight_prev_init(dvert_prev, me->dvert, index);
 		if (index_mirr != -1) {
@@ -1030,7 +1034,7 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
 
 	/* Create average brush arrays */
 	if (ob->mode == OB_MODE_VERTEX_PAINT) {
-		if ((brush->flag & BRUSH_ACCUMULATE) == 0) {
+		if (!brush_use_accumulate(brush)) {
 			if (ob->sculpt->mode.vpaint.previous_color == NULL) {
 				ob->sculpt->mode.vpaint.previous_color =
 				        MEM_callocN(me->totloop * sizeof(uint), __func__);
@@ -1041,7 +1045,7 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
 		}
 	}
 	else if (ob->mode == OB_MODE_WEIGHT_PAINT) {
-		if ((brush->flag & BRUSH_ACCUMULATE) == 0) {
+		if (!brush_use_accumulate(brush)) {
 			if (ob->sculpt->mode.wpaint.alpha_weight == NULL) {
 				ob->sculpt->mode.wpaint.alpha_weight =
 				        MEM_callocN(me->totvert * sizeof(float), __func__);
@@ -1496,7 +1500,7 @@ static void do_wpaint_precompute_weight_cb_ex(
 static void precompute_weight_values(
         bContext *C, Object *ob, Brush *brush, struct WPaintData *wpd, WeightPaintInfo *wpi, Mesh *me)
 {
-	if (wpd->precomputed_weight_ready && (brush->flag & BRUSH_ACCUMULATE) == 0)
+	if (wpd->precomputed_weight_ready && !brush_use_accumulate(brush))
 		return;
 
 	/* threaded loop over vertices */
@@ -1691,6 +1695,10 @@ static void do_wpaint_brush_smear_task_cb_ex(
 							const float final_alpha =
 							        brush_fade * brush_strength *
 							        grid_alpha * brush_alpha_pressure;
+
+							if (final_alpha <= 0.0f)
+								continue;
+
 							do_weight_paint_vertex(
 							        data->vp, data->ob, data->wpi,
 							        v_index, final_alpha, (float)weight_final);
