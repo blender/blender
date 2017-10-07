@@ -142,7 +142,7 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals *kg, int id, float x, fl
 }
 
 
-ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float x, float y, float z)
+ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float x, float y, float z, int interp)
 {
 	const ccl_global TextureInfo *info = kernel_tex_info(kg, id);
 
@@ -150,7 +150,7 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float x,
 	uint height = info->height;
 	uint offset = 0;
 	uint depth = info->depth;
-	uint interpolation = info->interpolation;
+	uint interpolation = (interp == INTERPOLATION_NONE)? info->interpolation: interp;
 	uint extension = info->extension;
 
 	/* Actual sampling. */

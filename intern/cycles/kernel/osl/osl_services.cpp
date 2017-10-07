@@ -1043,7 +1043,7 @@ bool OSLRenderServices::texture3d(ustring filename,
 	bool status;
 	if(filename.length() && filename[0] == '@') {
 		int slot = atoi(filename.c_str() + 1);
-		float4 rgba = kernel_tex_image_interp_3d(kg, slot, P.x, P.y, P.z);
+		float4 rgba = kernel_tex_image_interp_3d(kg, slot, P.x, P.y, P.z, INTERPOLATION_NONE);
 
 		result[0] = rgba[0];
 		if(nchannels > 1)

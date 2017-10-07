@@ -430,12 +430,12 @@ template<typename T> struct TextureInterpolator  {
 
 	static ccl_always_inline float4 interp_3d(const TextureInfo& info,
 	                                          float x, float y, float z,
-	                                          int interpolation = INTERPOLATION_LINEAR)
+	                                          InterpolationType interp)
 	{
 		if(UNLIKELY(!info.data))
 			return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 
-		switch(interpolation) {
+		switch((interp == INTERPOLATION_NONE)? info.interpolation: interp) {
 			case INTERPOLATION_CLOSEST:
 				return interp_3d_closest(info, x, y, z);
 			case INTERPOLATION_LINEAR:
@@ -468,29 +468,7 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals *kg, int id, float x, fl
 	}
 }
 
-ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float x, float y, float z)
-{
-	const TextureInfo& info = kernel_tex_fetch(__texture_info, id);
-	InterpolationType interp = (InterpolationType)info.interpolation;
-
-	switch(kernel_tex_type(id)) {
-		case IMAGE_DATA_TYPE_HALF:
-			return TextureInterpolator<half>::interp_3d(info, x, y, z, interp);
-		case IMAGE_DATA_TYPE_BYTE:
-			return TextureInterpolator<uchar>::interp_3d(info, x, y, z, interp);
-		case IMAGE_DATA_TYPE_FLOAT:
-			return TextureInterpolator<float>::interp_3d(info, x, y, z, interp);
-		case IMAGE_DATA_TYPE_HALF4:
-			return TextureInterpolator<half4>::interp_3d(info, x, y, z, interp);
-		case IMAGE_DATA_TYPE_BYTE4:
-			return TextureInterpolator<uchar4>::interp_3d(info, x, y, z, interp);
-		case IMAGE_DATA_TYPE_FLOAT4:
-		default:
-			return TextureInterpolator<float4>::interp_3d(info, x, y, z, interp);
-	}
-}
-
-ccl_device float4 kernel_tex_image_interp_3d_ex(KernelGlobals *kg, int id, float x, float y, float z, int interp)
+ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float x, float y, float z, InterpolationType interp)
 {
 	const TextureInfo& info = kernel_tex_fetch(__texture_info, id);
 

@@ -50,15 +50,8 @@ ccl_device_inline float3 volume_normalized_position(KernelGlobals *kg,
 ccl_device float volume_attribute_float(KernelGlobals *kg, const ShaderData *sd, const AttributeDescriptor desc, float *dx, float *dy)
 {
 	float3 P = volume_normalized_position(kg, sd, sd->P);
-#ifdef __KERNEL_GPU__
-	float4 r = kernel_tex_image_interp_3d(kg, desc.offset, P.x, P.y, P.z);
-#else
-	float4 r;
-	if(sd->flag & SD_VOLUME_CUBIC)
-		r = kernel_tex_image_interp_3d_ex(kg, desc.offset, P.x, P.y, P.z, INTERPOLATION_CUBIC);
-	else
-		r = kernel_tex_image_interp_3d(kg, desc.offset, P.x, P.y, P.z);
-#endif
+	InterpolationType interp = (sd->flag & SD_VOLUME_CUBIC)? INTERPOLATION_CUBIC: INTERPOLATION_NONE;
+	float4 r = kernel_tex_image_interp_3d(kg, desc.offset, P.x, P.y, P.z, interp);
 
 	if(dx) *dx = 0.0f;
 	if(dy) *dy = 0.0f;
@@ -69,15 +62,8 @@ ccl_device float volume_attribute_float(KernelGlobals *kg, const ShaderData *sd,
 ccl_device float3 volume_attribute_float3(KernelGlobals *kg, const ShaderData *sd, const AttributeDescriptor desc, float3 *dx, float3 *dy)
 {
 	float3 P = volume_normalized_position(kg, sd, sd->P);
-#ifdef __KERNEL_GPU__
-	float4 r = kernel_tex_image_interp_3d(kg, desc.offset, P.x, P.y, P.z);
-#else
-	float4 r;
-	if(sd->flag & SD_VOLUME_CUBIC)
-		r = kernel_tex_image_interp_3d_ex(kg, desc.offset, P.x, P.y, P.z, INTERPOLATION_CUBIC);
-	else
-		r = kernel_tex_image_interp_3d(kg, desc.offset, P.x, P.y, P.z);
-#endif
+	InterpolationType interp = (sd->flag & SD_VOLUME_CUBIC)? INTERPOLATION_CUBIC: INTERPOLATION_NONE;
+	float4 r = kernel_tex_image_interp_3d(kg, desc.offset, P.x, P.y, P.z, interp);
 
 	if(dx) *dx = make_float3(0.0f, 0.0f, 0.0f);
 	if(dy) *dy = make_float3(0.0f, 0.0f, 0.0f);

@@ -1208,6 +1208,8 @@ class CYCLES_WORLD_PT_settings(CyclesButtonsPanel, Panel):
         sub = col.column()
         sub.active = use_cpu(context)
         sub.prop(cworld, "volume_sampling", text="")
+        sub = col.column()
+        sub.active = not use_opencl(context)
         sub.prop(cworld, "volume_interpolation", text="")
         col.prop(cworld, "homogeneous_volume", text="Homogeneous")
 
@@ -1307,6 +1309,8 @@ class CYCLES_MATERIAL_PT_settings(CyclesButtonsPanel, Panel):
         sub = col.column()
         sub.active = use_cpu(context)
         sub.prop(cmat, "volume_sampling", text="")
+        sub = col.column()
+        sub.active = not use_opencl(context)
         sub.prop(cmat, "volume_interpolation", text="")
         col.prop(cmat, "homogeneous_volume", text="Homogeneous")
 
