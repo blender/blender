@@ -1420,7 +1420,7 @@ void BKE_collection_engine_property_add_float_array(
 	val.array.len = array_length;
 	val.array.type = IDP_FLOAT;
 
-	IDProperty *idprop= IDP_New(IDP_ARRAY, &val, name);
+	IDProperty *idprop = IDP_New(IDP_ARRAY, &val, name);
 	memcpy(IDP_Array(idprop), values, sizeof(float) * idprop->len);
 	IDP_AddToGroup(props, idprop);
 }

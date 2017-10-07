@@ -281,7 +281,7 @@ GPUFX *GPU_fx_compositor_create(void)
 	}
 	Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
 	GWN_vertbuf_data_alloc(vbo, 4);
-	for (int i = 0; i < 4; ++i)	{
+	for (int i = 0; i < 4; ++i) {
 		GWN_vertbuf_attr_set(vbo, pos, i, fullscreencos[i]);
 		GWN_vertbuf_attr_set(vbo, uvs, i, fullscreenuvs[i]);
 	}

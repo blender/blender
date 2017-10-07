@@ -1574,8 +1574,9 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *ar
 	UI_GetThemeColor4fv(TH_STITCH_PREVIEW_ACTIVE, col);
 	vbo = GWN_vertbuf_create_with_format(&format);
 	GWN_vertbuf_data_alloc(vbo, stitch_preview->num_static_tris * 3);
-	for (int i = 0; i < stitch_preview->num_static_tris * 3; i++)
-		GWN_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->static_tris[i*2]);
+	for (int i = 0; i < stitch_preview->num_static_tris * 3; i++) {
+		GWN_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->static_tris[i * 2]);
+	}
 	stitch_draw_vbo(vbo, GWN_PRIM_TRIS, col);
 
 
@@ -1601,16 +1602,17 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *ar
 
 		for (j = 1; j < stitch_preview->uvs_per_polygon[i] - 1; ++j) {
 			GWN_vertbuf_attr_set(vbo, pos_id, tri_idx++, &stitch_preview->preview_polys[index]);
-			GWN_vertbuf_attr_set(vbo, pos_id, tri_idx++, &stitch_preview->preview_polys[index + (j+0)*2]);
-			GWN_vertbuf_attr_set(vbo, pos_id, tri_idx++, &stitch_preview->preview_polys[index + (j+1)*2]);
+			GWN_vertbuf_attr_set(vbo, pos_id, tri_idx++, &stitch_preview->preview_polys[index + (j + 0) * 2]);
+			GWN_vertbuf_attr_set(vbo, pos_id, tri_idx++, &stitch_preview->preview_polys[index + (j + 1) * 2]);
 
-			GWN_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + (j+0)*2]);
-			GWN_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + (j+1)*2]);
+			GWN_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + (j + 0) * 2]);
+			GWN_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + (j + 1) * 2]);
 		}
 
 		/* Closing line */
 		GWN_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index]);
-		GWN_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + j*2]); /* j = uvs_per_polygon[i] - 1*/
+		/* j = uvs_per_polygon[i] - 1*/
+		GWN_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + j * 2]);
 
 		index += stitch_preview->uvs_per_polygon[i] * 2;
 	}
@@ -1629,30 +1631,34 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *ar
 		UI_GetThemeColor4fv(TH_STITCH_PREVIEW_STITCHABLE, col);
 		vbo = GWN_vertbuf_create_with_format(&format);
 		GWN_vertbuf_data_alloc(vbo, stitch_preview->num_stitchable);
-		for (int i = 0; i < stitch_preview->num_stitchable; i++)
-			GWN_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->preview_stitchable[i*2]);
+		for (int i = 0; i < stitch_preview->num_stitchable; i++) {
+			GWN_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->preview_stitchable[i * 2]);
+		}
 		stitch_draw_vbo(vbo, GWN_PRIM_POINTS, col);
 
 		UI_GetThemeColor4fv(TH_STITCH_PREVIEW_UNSTITCHABLE, col);
 		vbo = GWN_vertbuf_create_with_format(&format);
 		GWN_vertbuf_data_alloc(vbo, stitch_preview->num_unstitchable);
-		for (int i = 0; i < stitch_preview->num_unstitchable; i++)
-			GWN_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->preview_unstitchable[i*2]);
+		for (int i = 0; i < stitch_preview->num_unstitchable; i++) {
+			GWN_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->preview_unstitchable[i * 2]);
+		}
 		stitch_draw_vbo(vbo, GWN_PRIM_POINTS, col);
 	}
 	else {
 		UI_GetThemeColor4fv(TH_STITCH_PREVIEW_STITCHABLE, col);
 		vbo = GWN_vertbuf_create_with_format(&format);
 		GWN_vertbuf_data_alloc(vbo, stitch_preview->num_stitchable * 2);
-		for (int i = 0; i < stitch_preview->num_stitchable * 2; i++)
-			GWN_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->preview_stitchable[i*2]);
+		for (int i = 0; i < stitch_preview->num_stitchable * 2; i++) {
+			GWN_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->preview_stitchable[i * 2]);
+		}
 		stitch_draw_vbo(vbo, GWN_PRIM_LINES, col);
 
 		UI_GetThemeColor4fv(TH_STITCH_PREVIEW_UNSTITCHABLE, col);
 		vbo = GWN_vertbuf_create_with_format(&format);
 		GWN_vertbuf_data_alloc(vbo, stitch_preview->num_unstitchable * 2);
-		for (int i = 0; i < stitch_preview->num_unstitchable * 2; i++)
-			GWN_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->preview_unstitchable[i*2]);
+		for (int i = 0; i < stitch_preview->num_unstitchable * 2; i++) {
+			GWN_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->preview_unstitchable[i * 2]);
+		}
 		stitch_draw_vbo(vbo, GWN_PRIM_LINES, col);
 	}
 }

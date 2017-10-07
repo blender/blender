@@ -195,7 +195,7 @@ void normalize_m3_m3(float R[3][3], const float A[3][3]) ATTR_NONNULL();
 void normalize_m4_ex(float R[4][4], float r_scale[3]) ATTR_NONNULL();
 void normalize_m4(float R[4][4]) ATTR_NONNULL();
 void normalize_m4_m4_ex(float R[4][4], const float A[4][4], float r_scale[3]) ATTR_NONNULL();
-void normalize_m4_m4(float R[4][4],const float A[4][4]) ATTR_NONNULL();
+void normalize_m4_m4(float R[4][4], const float A[4][4]) ATTR_NONNULL();
 
 void orthogonalize_m3(float R[3][3], int axis);
 void orthogonalize_m4(float R[4][4], int axis);

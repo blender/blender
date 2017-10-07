@@ -42,7 +42,6 @@
 
 #include "BLI_iterator.h"
 #include "BKE_report.h"
-#include "DNA_object_types.h"
 
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_debug.h"
@@ -266,7 +265,7 @@ static void rna_def_depsgraph_iter(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "persistent_id", PROP_INT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Persistent ID",
 	                         "Persistent identifier for inter-frame matching of objects with motion blur");
-	RNA_def_property_array(prop, 2*MAX_DUPLI_RECUR);
+	RNA_def_property_array(prop, 2 * MAX_DUPLI_RECUR);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_DepsgraphIter_persistent_id_get", NULL, NULL);
 

@@ -301,11 +301,14 @@ void BKE_editmesh_loop_tangent_calc(
 	        &calc_act, &calc_ren, &act_uv_n, &ren_uv_n, act_uv_name, ren_uv_name, &tangent_mask);
 
 	if ((tangent_mask_curr | tangent_mask) != tangent_mask_curr) {
-		for (int i = 0; i < tangent_names_len; i++)
-			if (tangent_names[i][0])
-				BKE_mesh_add_loop_tangent_named_layer_for_uv(&bm->ldata, loopdata_out, (int)loopdata_out_len, tangent_names[i]);
+		for (int i = 0; i < tangent_names_len; i++) {
+			if (tangent_names[i][0]) {
+				BKE_mesh_add_loop_tangent_named_layer_for_uv(
+				        &bm->ldata, loopdata_out, (int)loopdata_out_len, tangent_names[i]);
+			}
+		}
 		if ((tangent_mask & DM_TANGENT_MASK_ORCO) && CustomData_get_named_layer_index(loopdata_out, CD_TANGENT, "") == -1)
-					CustomData_add_layer_named(loopdata_out, CD_TANGENT, CD_CALLOC, NULL, (int)loopdata_out_len, "");
+			CustomData_add_layer_named(loopdata_out, CD_TANGENT, CD_CALLOC, NULL, (int)loopdata_out_len, "");
 		if (calc_act && act_uv_name[0])
 			BKE_mesh_add_loop_tangent_named_layer_for_uv(&bm->ldata, loopdata_out, (int)loopdata_out_len, act_uv_name);
 		if (calc_ren && ren_uv_name[0])

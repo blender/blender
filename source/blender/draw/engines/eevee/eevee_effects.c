@@ -1189,7 +1189,7 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		/* This create an empty batch of N triangles to be positioned
 		 * by the vertex shader 0.4ms against 6ms with instancing */
 		const float *viewport_size = DRW_viewport_size_get();
-		const int sprite_ct = ((int)viewport_size[0]/2) * ((int)viewport_size[1]/2); /* brackets matters */
+		const int sprite_ct = ((int)viewport_size[0] / 2) * ((int)viewport_size[1] / 2); /* brackets matters */
 		grp = DRW_shgroup_empty_tri_batch_create(e_data.dof_scatter_sh, psl->dof_scatter, sprite_ct);
 
 		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &effects->unf_source_buffer);
@@ -1577,7 +1577,7 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 		last = txl->bloom_downsample[0];
 
 		for (int i = 1; i < effects->bloom_iteration_ct; ++i) {
-			copy_v2_v2(effects->unf_source_texel_size, effects->downsamp_texel_size[i-1]);
+			copy_v2_v2(effects->unf_source_texel_size, effects->downsamp_texel_size[i - 1]);
 			effects->unf_source_buffer = last;
 
 			DRW_framebuffer_bind(fbl->bloom_down_fb[i]);
@@ -1646,8 +1646,8 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 	SWAP_DOUBLE_BUFFERS();
 
 	if (!stl->g_data->valid_double_buffer &&
-		((effects->enabled_effects & EFFECT_DOUBLE_BUFFER) != 0) &&
-		(DRW_state_is_image_render() == false))
+	    ((effects->enabled_effects & EFFECT_DOUBLE_BUFFER) != 0) &&
+	    (DRW_state_is_image_render() == false))
 	{
 		/* If history buffer is not valid request another frame.
 		 * This fix black reflections on area resize. */

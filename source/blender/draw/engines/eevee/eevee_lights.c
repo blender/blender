@@ -128,8 +128,8 @@ void EEVEE_lights_init(EEVEE_SceneLayerData *sldata)
 
 	EEVEE_LampsInfo *linfo = sldata->lamps;
 	if ((linfo->shadow_size != sh_size) ||
-		(linfo->shadow_method != sh_method) ||
-		(linfo->shadow_high_bitdepth != sh_high_bitdepth))
+	    (linfo->shadow_method != sh_method) ||
+	    (linfo->shadow_high_bitdepth != sh_high_bitdepth))
 	{
 		BLI_assert((sh_size > 0) && (sh_size <= 8192));
 		DRW_TEXTURE_FREE_SAFE(sldata->shadow_pool);
@@ -242,7 +242,7 @@ void EEVEE_lights_cache_add(EEVEE_SceneLayerData *sldata, Object *ob)
 		MEM_SAFE_FREE(led->storage);
 
 		if (la->mode & (LA_SHAD_BUF | LA_SHAD_RAY)) {
-			if (la->type == LA_SUN)	{
+			if (la->type == LA_SUN) {
 				int sh_nbr = 1; /* TODO : MSM */
 				int cascade_nbr = MAX_CASCADE_NUM; /* TODO : Custom cascade number */
 
@@ -463,12 +463,12 @@ static void eevee_light_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE_LampEngi
 
 	/* Make illumination power constant */
 	if (la->type == LA_AREA) {
-		power = 1.0f / (evli->sizex * evli->sizey * 4.0f * M_PI) /* 1/(w*h*Pi) */
-		        * 80.0f; /* XXX : Empirical, Fit cycles power */
+		power = 1.0f / (evli->sizex * evli->sizey * 4.0f * M_PI) * /* 1/(w*h*Pi) */
+		        80.0f; /* XXX : Empirical, Fit cycles power */
 	}
 	else if (la->type == LA_SPOT || la->type == LA_LOCAL) {
-		power = 1.0f / (4.0f * evli->radius * evli->radius * M_PI * M_PI) /* 1/(4*r²*Pi²) */
-		        * M_PI * M_PI * M_PI * 10.0; /* XXX : Empirical, Fit cycles power */
+		power = 1.0f / (4.0f * evli->radius * evli->radius * M_PI * M_PI) * /* 1/(4*r²*Pi²) */
+		        M_PI * M_PI * M_PI * 10.0; /* XXX : Empirical, Fit cycles power */
 
 		/* for point lights (a.k.a radius == 0.0) */
 		// power = M_PI * M_PI * 0.78; /* XXX : Empirical, Fit cycles power */
@@ -525,7 +525,7 @@ static void frustum_min_bounding_sphere(const float corners[8][4], float r_cente
 
 	/* compute the bounding box */
 	INIT_MINMAX(minvec, maxvec);
-	for (int i = 0; i < 8; ++i)	{
+	for (int i = 0; i < 8; ++i) {
 		minmax_v3v3_v3(minvec, maxvec, corners[i]);
 	}
 
@@ -542,7 +542,7 @@ static void frustum_min_bounding_sphere(const float corners[8][4], float r_cente
 	/* Search the largest distance between the sphere center
 	 * and the front plane corners. */
 	for (int i = 0; i < 4; ++i) {
-		float rad = len_v3v3(corners[4+i], r_center);
+		float rad = len_v3v3(corners[4 + i], r_center);
 		if (rad > *r_radius) {
 			*r_radius = rad;
 		}
@@ -648,11 +648,11 @@ static void eevee_shadow_cascade_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE
 		else {
 			cascade_data->split_start[c] = linear_split;
 		}
-		cascade_data->split_end[c-1] = cascade_data->split_start[c];
+		cascade_data->split_end[c - 1] = cascade_data->split_start[c];
 
 		/* Add some overlap for smooth transition */
-		cascade_data->split_start[c] = LERP(la->cascade_fade, cascade_data->split_end[c-1],
-		                                    (c > 1) ? cascade_data->split_end[c-2] : cascade_data->split_start[0]);
+		cascade_data->split_start[c] = LERP(la->cascade_fade, cascade_data->split_end[c - 1],
+		                                    (c > 1) ? cascade_data->split_end[c - 2] : cascade_data->split_start[0]);
 
 		/* NDC Space */
 		{
@@ -667,20 +667,20 @@ static void eevee_shadow_cascade_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE
 		}
 
 		{
-			float p[4] = {1.0f, 1.0f, cascade_data->split_end[c-1], 1.0f};
+			float p[4] = {1.0f, 1.0f, cascade_data->split_end[c - 1], 1.0f};
 			/* TODO: we don't need full m4 multiply here */
 			mul_m4_v4(viewprojmat, p);
-			splits_end_ndc[c-1] = p[2];
+			splits_end_ndc[c - 1] = p[2];
 
 			if (is_persp) {
-				splits_end_ndc[c-1] /= p[3];
+				splits_end_ndc[c - 1] /= p[3];
 			}
 		}
 	}
 
 	/* Set last cascade split fade distance into the first split_start. */
-	float prev_split = (cascade_nbr > 1) ? cascade_data->split_end[cascade_nbr-2] : cascade_data->split_start[0];
-	cascade_data->split_start[0] = LERP(la->cascade_fade, cascade_data->split_end[cascade_nbr-1], prev_split);
+	float prev_split = (cascade_nbr > 1) ? cascade_data->split_end[cascade_nbr - 2] : cascade_data->split_start[0];
+	cascade_data->split_start[0] = LERP(la->cascade_fade, cascade_data->split_end[cascade_nbr - 1], prev_split);
 
 	/* For each cascade */
 	for (int c = 0; c < cascade_nbr; ++c) {
@@ -699,7 +699,7 @@ static void eevee_shadow_cascade_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE
 		};
 
 		/* Transform them into world space */
-		for (int i = 0; i < 8; ++i)	{
+		for (int i = 0; i < 8; ++i) {
 			mul_m4_v4(persinv, corners[i]);
 			mul_v3_fl(corners[i], 1.0f / corners[i][3]);
 			corners[i][3] = 1.0f;
@@ -712,7 +712,7 @@ static void eevee_shadow_cascade_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE
 		normalize_v3(viewmat[1]);
 		normalize_v3(viewmat[2]);
 
-		for (int i = 0; i < 8; ++i)	{
+		for (int i = 0; i < 8; ++i) {
 			mul_m4_v4(viewmat, corners[i]);
 		}
 
@@ -779,8 +779,8 @@ static bool cube_bbox_intersect(const float cube_center[3], float cube_half_dim,
 		minmax_v3v3_v3(min, max, vec);
 	}
 
-    if (MAX3(max[0], max[1], max[2]) < -cube_half_dim) return false;
-    if (MIN3(min[0], min[1], min[2]) >  cube_half_dim) return false;
+	if (MAX3(max[0], max[1], max[2]) < -cube_half_dim) return false;
+	if (MIN3(min[0], min[1], min[2]) >  cube_half_dim) return false;
 
 	return true;
 }

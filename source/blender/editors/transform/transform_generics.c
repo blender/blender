@@ -317,7 +317,7 @@ static bool fcu_test_selected(FCurve *fcu)
 /* helper for recalcData() - for Action Editor transforms */
 static void recalcData_actedit(TransInfo *t)
 {
-	SceneLayer *sl= t->scene_layer;
+	SceneLayer *sl = t->scene_layer;
 	SpaceAction *saction = (SpaceAction *)t->sa->spacedata.first;
 	
 	bAnimContext ac = {NULL};

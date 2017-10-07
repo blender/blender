@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file eeveee_lut.h
+/** \file eevee_lut.h
  *  \ingroup gpu
  */
 

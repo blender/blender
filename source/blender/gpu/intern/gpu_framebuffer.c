@@ -573,7 +573,7 @@ void GPU_framebuffer_recursive_downsample(
 		glReadBuffer(GL_COLOR_ATTACHMENT0);
 	}
 
-	for (i=1; i < num_iter+1 && (current_dim[0] > 4 && current_dim[1] > 4); i++) {
+	for (i = 1; i < num_iter + 1 && (current_dim[0] > 4 && current_dim[1] > 4); i++) {
 
 		/* calculate next viewport size */
 		current_dim[0] /= 2;
@@ -587,8 +587,8 @@ void GPU_framebuffer_recursive_downsample(
 
 		/* bind next level for rendering but first restrict fetches only to previous level */
 		GPU_texture_bind(tex, 0);
-		glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_BASE_LEVEL, i-1);
-		glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_MAX_LEVEL, i-1);
+		glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_BASE_LEVEL, i - 1);
+		glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_MAX_LEVEL, i - 1);
 		GPU_texture_unbind(tex);
 
 		glFramebufferTexture(GL_FRAMEBUFFER, attachment, GPU_texture_opengl_bindcode(tex), i);
@@ -601,7 +601,7 @@ void GPU_framebuffer_recursive_downsample(
 	/* reset mipmap level range for the depth image */
 	GPU_texture_bind(tex, 0);
 	glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_BASE_LEVEL, 0);
-	glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_MAX_LEVEL, i-1);
+	glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_MAX_LEVEL, i - 1);
 	GPU_texture_unbind(tex);
 }
 

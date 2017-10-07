@@ -88,7 +88,7 @@ static const int deg_debug_node_type_color_map[][2] = {
     {DEG_NODE_TYPE_GEOMETRY,          6},
     {DEG_NODE_TYPE_SEQUENCER,         7},
     {DEG_NODE_TYPE_SHADING,           8},
-    {DEG_NODE_TYPE_SHADING_PARAMETERS,9},
+    {DEG_NODE_TYPE_SHADING_PARAMETERS, 9},
     {DEG_NODE_TYPE_CACHE,             10},
     {DEG_NODE_TYPE_LAYER_COLLECTIONS, 11},
     {DEG_NODE_TYPE_COPY_ON_WRITE,     12},

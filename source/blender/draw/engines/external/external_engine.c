@@ -19,7 +19,7 @@
  *
  */
 
-/** \file external_engine.h
+/** \file external_engine.c
  *  \ingroup draw_engine
  *
  * Base engine for external render engines.

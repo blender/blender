@@ -234,7 +234,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 
 				/* check if visible */
 				if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
-					 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax))
+				    IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax))
 				{
 					MovieTrackingTrack *track = channel->track;
 					int i;

@@ -1565,7 +1565,7 @@ void UI_view2d_multi_grid_draw(View2D *v2d, int colorid, float step, int level_s
 	}
 
 	/* X and Y axis */
-	UI_GetThemeColorShade3ubv(colorid, -18 + ((totlevels - 1) * -6) , grid_line_color);
+	UI_GetThemeColorShade3ubv(colorid, -18 + ((totlevels - 1) * -6), grid_line_color);
 
 	immSkipAttrib(color);
 	immVertex2f(pos, 0.0f, v2d->cur.ymin);

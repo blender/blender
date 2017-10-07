@@ -439,7 +439,7 @@ static void drawcube_size(float xsize, float ysize, float zsize)
 		/* Elements */
 		GWN_indexbuf_init(&elb, GWN_PRIM_LINES, 12, 8);
 		for (int i = 0; i < 12; ++i) {
-			GWN_indexbuf_add_line_verts(&elb, cube_wire[i*2], cube_wire[i*2+1]);
+			GWN_indexbuf_add_line_verts(&elb, cube_wire[i * 2], cube_wire[i * 2 + 1]);
 		}
 		GWN_indexbuf_build_in_place(&elb, &el);
 
@@ -591,7 +591,7 @@ static void draw_bone_octahedral(void)
 		/* Elements */
 		GWN_indexbuf_init(&elb, GWN_PRIM_LINES, 12, 6);
 		for (int i = 0; i < 12; ++i) {
-			GWN_indexbuf_add_line_verts(&elb, bone_octahedral_wire[i*2], bone_octahedral_wire[i*2+1]);
+			GWN_indexbuf_add_line_verts(&elb, bone_octahedral_wire[i * 2], bone_octahedral_wire[i * 2 + 1]);
 		}
 		GWN_indexbuf_build_in_place(&elb, &el);
 
@@ -938,7 +938,7 @@ static void draw_sphere_bone_wire(float smat[4][4], float imat[4][4],
 	
 	/* base */
 	if (armflag & ARM_EDITMODE) {
-		if (boneflag & BONE_SELECTED){
+		if (boneflag & BONE_SELECTED) {
 			UI_GetThemeColor4fv(TH_SELECT, fcolor);
 		}
 		else {
@@ -1738,7 +1738,7 @@ static void imm_sphere_project(unsigned int pos, float ax, float az)
 static void draw_dof_ellipse(unsigned int pos, float ax, float az)
 {
 	const int n = 16;
-	const int tri = n*n - 2*n + 1; /* Yay fancy math ! */
+	const int tri = n * n - 2 * n + 1; /* Yay fancy math ! */
 	const float staticSine[16] = {
 		0.0f, 0.104528463268f, 0.207911690818f, 0.309016994375f,
 		0.406736643076f, 0.5f, 0.587785252292f, 0.669130606359f,
@@ -1755,7 +1755,7 @@ static void draw_dof_ellipse(unsigned int pos, float ax, float az)
 
 	immUniformColor4ub(70, 70, 70, 50);
 
-	immBegin(GWN_PRIM_TRIS, tri*3);
+	immBegin(GWN_PRIM_TRIS, tri * 3);
 	pz = 0.0f;
 	for (i = 1; i < n; i++) {
 		z = staticSine[i];
@@ -2245,8 +2245,11 @@ static void draw_pose_bones(
 						if (arm->flag & ARM_POSEMODE) {
 							if (constflag & PCHAN_HAS_IK) {
 								if (bone->flag & BONE_SELECTED) {
-									if (constflag & PCHAN_HAS_TARGET) rgba_float_args_set(fcolor, 200.f/255.f, 120.f/255.f, 0.f/255.f, 1.0f);
-									else rgba_float_args_set(fcolor, 200.f/255.f, 200.f/255.f, 50.f/255.f, 1.0f);  /* add theme! */
+									if (constflag & PCHAN_HAS_TARGET) {
+										rgba_float_args_set(fcolor, 200.f / 255.f, 120.f / 255.f, 0.f / 255.f, 1.0f);
+									}
+									/* add theme! */
+									else rgba_float_args_set(fcolor, 200.f / 255.f, 200.f / 255.f, 50.f / 255.f, 1.0f);
 
 									GPU_select_load_id(index & 0xFFFF);
 									pchan_draw_IK_root_lines(pchan, !(do_dashed & DASH_HELP_LINES));
@@ -2254,8 +2257,9 @@ static void draw_pose_bones(
 							}
 							else if (constflag & PCHAN_HAS_SPLINEIK) {
 								if (bone->flag & BONE_SELECTED) {
-									rgba_float_args_set(fcolor, 150.f/255.f, 200.f/255.f, 50.f/255.f, 1.0f);  /* add theme! */
-									
+									/* add theme! */
+									rgba_float_args_set(fcolor, 150.f / 255.f, 200.f / 255.f, 50.f / 255.f, 1.0f);
+
 									GPU_select_load_id(index & 0xFFFF);
 									pchan_draw_IK_root_lines(pchan, !(do_dashed & DASH_HELP_LINES));
 								}

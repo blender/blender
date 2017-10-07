@@ -49,8 +49,6 @@
 #include "ED_node.h"
 #include "ED_render.h"
 #include "ED_screen.h"
-#include "WM_api.h"
-#include "WM_types.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"
@@ -58,6 +56,7 @@
 #include "RNA_access.h"
 
 #include "WM_api.h"
+#include "WM_types.h"
 
 #include "node_intern.h"  /* own include */
 

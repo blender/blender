@@ -146,7 +146,7 @@ static void object_fmap_swap_object_mode(Object *ob, int num1, int num2)
 					if (num1 != -1) {
 						if (map[i] == num1)
 							map[i] = num2;
-						else if (map[i]== num2)
+						else if (map[i] == num2)
 							map[i] = num1;
 					}
 				}

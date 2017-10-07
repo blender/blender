@@ -41,7 +41,6 @@
 
 #include "rna_internal.h"
 
-#include "WM_api.h"
 #include "WM_types.h"
 
 #ifdef RNA_RUNTIME
@@ -53,7 +52,6 @@
 #include <assert.h>
 
 #include "WM_api.h"
-#include "WM_types.h"
 
 #include "DNA_workspace_types.h"
 

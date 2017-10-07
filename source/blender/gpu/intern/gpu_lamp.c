@@ -376,7 +376,7 @@ GPULamp *GPU_lamp_from_blender(Scene *scene, Object *ob, Object *par)
 
 void GPU_lamp_engine_data_free(LampEngineData *led)
 {
-	for (int i = 0; i < MAX_LAMP_DATA; ++i)	{
+	for (int i = 0; i < MAX_LAMP_DATA; ++i) {
 		if (led->storage[i]) {
 			MEM_freeN(led->storage[i]);
 			led->storage[i] = NULL;

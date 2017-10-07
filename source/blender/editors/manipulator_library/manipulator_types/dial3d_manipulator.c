@@ -221,7 +221,7 @@ static void dial_ghostarc_get_angles(
 	plane_from_point_normal_v3(dial_plane, mpr->matrix_basis[3], axis_vec);
 
 	if (!ED_view3d_win_to_ray(ar, v3d, inter->init_mval, ray_co, ray_no, false) ||
-		!isect_ray_plane_v3(ray_co, ray_no, dial_plane, &ray_lambda, false))
+	    !isect_ray_plane_v3(ray_co, ray_no, dial_plane, &ray_lambda, false))
 	{
 		goto fail;
 	}
@@ -229,7 +229,7 @@ static void dial_ghostarc_get_angles(
 	sub_v3_v3(proj_mval_init_rel, mpr->matrix_basis[3]);
 
 	if (!ED_view3d_win_to_ray(ar, v3d, mval, ray_co, ray_no, false) ||
-		!isect_ray_plane_v3(ray_co, ray_no, dial_plane, &ray_lambda, false))
+	    !isect_ray_plane_v3(ray_co, ray_no, dial_plane, &ray_lambda, false))
 	{
 		goto fail;
 	}

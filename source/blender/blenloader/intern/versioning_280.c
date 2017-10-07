@@ -377,13 +377,13 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(main, 280, 1)) {
-		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "bleedexp"))	{
+		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "bleedexp")) {
 			for (Lamp *la = main->lamp.first; la; la = la->id.next) {
 				la->bleedexp = 120.0f;
 			}
 		}
 
-		if (!DNA_struct_elem_find(fd->filesdna, "GPUDOFSettings", "float", "ratio"))	{
+		if (!DNA_struct_elem_find(fd->filesdna, "GPUDOFSettings", "float", "ratio")) {
 			for (Camera *ca = main->camera.first; ca; ca = ca->id.next) {
 				ca->gpu_dof.ratio = 1.0f;
 			}
@@ -433,7 +433,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 	}
 
 	{
-		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "cascade_max_dist"))	{
+		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "cascade_max_dist")) {
 			for (Lamp *la = main->lamp.first; la; la = la->id.next) {
 				la->cascade_max_dist = 1000.0f;
 				la->cascade_count = 4;
@@ -442,7 +442,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 
-		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "contact_dist"))	{
+		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "contact_dist")) {
 			for (Lamp *la = main->lamp.first; la; la = la->id.next) {
 				la->contact_dist = 1.0f;
 				la->contact_bias = 0.03f;
@@ -470,7 +470,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 			if (ntree->type == NTREE_SHADER) {
 				for (bNode *node = ntree->nodes.first; node; node = node->next) {
 					if (node->type == 194 /* SH_NODE_EEVEE_METALLIC */ &&
-						STREQ(node->idname, "ShaderNodeOutputMetallic"))
+					    STREQ(node->idname, "ShaderNodeOutputMetallic"))
 					{
 						BLI_strncpy(node->idname, "ShaderNodeEeveeMetallic", sizeof(node->idname));
 						error |= NTREE_DOVERSION_NEED_OUTPUT;
@@ -482,14 +482,14 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 					}
 
 					else if (node->type == 196 /* SH_NODE_OUTPUT_EEVEE_MATERIAL */ &&
-							 STREQ(node->idname, "ShaderNodeOutputEeveeMaterial"))
+					         STREQ(node->idname, "ShaderNodeOutputEeveeMaterial"))
 					{
 						node->type = SH_NODE_OUTPUT_MATERIAL;
 						BLI_strncpy(node->idname, "ShaderNodeOutputMaterial", sizeof(node->idname));
 					}
 
 					else if (node->type == 194 /* SH_NODE_EEVEE_METALLIC */ &&
-							 STREQ(node->idname, "ShaderNodeEeveeMetallic"))
+					         STREQ(node->idname, "ShaderNodeEeveeMetallic"))
 					{
 						node->type = SH_NODE_BSDF_PRINCIPLED;
 						BLI_strncpy(node->idname, "ShaderNodeBsdfPrincipled", sizeof(node->idname));

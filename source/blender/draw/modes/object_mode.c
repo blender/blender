@@ -49,7 +49,6 @@
 #include "BKE_texture.h"
 
 #include "ED_view3d.h"
-#include "ED_view3d.h"
 
 #include "GPU_shader.h"
 #include "GPU_texture.h"
@@ -119,7 +118,7 @@ typedef struct OBJECT_Data {
 
 /* *********** STATIC *********** */
 
-typedef struct OBJECT_PrivateData{
+typedef struct OBJECT_PrivateData {
 	/* Empties */
 	DRWShadingGroup *plain_axes;
 	DRWShadingGroup *cube;
@@ -487,7 +486,8 @@ static void OBJECT_engine_init(void *vedata)
 			/* Persp : If camera is below floor plane, we switch clipping
 			 * Ortho : If eye vector is looking up, we switch clipping */
 			if (((winmat[3][3] == 0.0f) && (e_data.camera_pos[2] > 0.0f)) ||
-				((winmat[3][3] != 0.0f) && (zvec[2] < 0.0f))) {
+			    ((winmat[3][3] != 0.0f) && (zvec[2] < 0.0f)))
+			{
 				e_data.zpos_flag |= CLIP_ZPOS;
 				e_data.zneg_flag |= CLIP_ZNEG;
 			}
@@ -1548,7 +1548,7 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, OBJECT_PassList *psl
 		}
 
 		if (prb->type == LIGHTPROBE_TYPE_GRID ||
-			prb->attenuation_type == LIGHTPROBE_SHAPE_BOX)
+		    prb->attenuation_type == LIGHTPROBE_SHAPE_BOX)
 		{
 			DRW_shgroup_call_dynamic_add(stl->g_data->cube, color, &prb->distgridinf, ob->obmat);
 			DRW_shgroup_call_dynamic_add(stl->g_data->cube, color, &prb->distfalloff, ob->obmat);

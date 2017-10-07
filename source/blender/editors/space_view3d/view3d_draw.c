@@ -64,13 +64,11 @@
 
 #include "DRW_engine.h"
 
-#include "ED_keyframing.h"
 #include "ED_armature.h"
 #include "ED_keyframing.h"
 #include "ED_gpencil.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
-#include "ED_gpencil.h"
 
 #include "DEG_depsgraph_query.h"
 

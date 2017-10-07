@@ -238,8 +238,8 @@ GPUTexture *GPU_viewport_texture_pool_query(GPUViewport *viewport, void *engine,
 
 	for (ViewportTempTexture *tmp_tex = viewport->tex_pool.first; tmp_tex; tmp_tex = tmp_tex->next) {
 		if ((GPU_texture_width(tmp_tex->texture) == width) &&
-			(GPU_texture_height(tmp_tex->texture) == height) &&
-			(GPU_texture_format(tmp_tex->texture) == format))
+		    (GPU_texture_height(tmp_tex->texture) == height) &&
+		    (GPU_texture_format(tmp_tex->texture) == format))
 		{
 			/* Search if the engine is not already using this texture */
 			for (int i = 0; i < MAX_ENGINE_BUFFER_SHARING; ++i) {

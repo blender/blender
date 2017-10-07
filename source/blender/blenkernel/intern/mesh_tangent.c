@@ -230,8 +230,6 @@ typedef struct {
 } SGLSLMeshToTangent;
 
 /* interface */
-#include "mikktspace.h"
-
 static int dm_ts_GetNumFaces(const SMikkTSpaceContext *pContext)
 {
 	SGLSLMeshToTangent *pMesh = pContext->m_pUserData;

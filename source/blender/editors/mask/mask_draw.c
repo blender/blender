@@ -823,8 +823,8 @@ void ED_mask_draw_frames(Mask *mask, ARegion *ar, const int cfra, const int sfra
 			immBegin(GWN_PRIM_LINES, 2 * num_lines);
 
 			for (MaskLayerShape *masklay_shape = masklay->splines_shapes.first;
-				  masklay_shape;
-				  masklay_shape = masklay_shape->next)
+			     masklay_shape;
+			     masklay_shape = masklay_shape->next)
 			{
 				int frame = masklay_shape->frame;
 

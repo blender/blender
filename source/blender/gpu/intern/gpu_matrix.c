@@ -574,33 +574,33 @@ void gpuBindMatrices(const Gwn_ShaderInterface *shaderface)
 	const Gwn_ShaderInput *P_inv = GWN_shaderinterface_uniform_builtin(shaderface, GWN_UNIFORM_PROJECTION_INV);
 
 	if (MV) {
-		#if DEBUG_MATRIX_BIND
+#if DEBUG_MATRIX_BIND
 		puts("setting MV matrix");
-		#endif
+#endif
 
 		glUniformMatrix4fv(MV->location, 1, GL_FALSE, (const float *)gpuGetModelViewMatrix(NULL));
 	}
 
 	if (P) {
-		#if DEBUG_MATRIX_BIND
+#if DEBUG_MATRIX_BIND
 		puts("setting P matrix");
-		#endif
+#endif
 
 		glUniformMatrix4fv(P->location, 1, GL_FALSE, (const float *)gpuGetProjectionMatrix(NULL));
 	}
 
 	if (MVP) {
-		#if DEBUG_MATRIX_BIND
+#if DEBUG_MATRIX_BIND
 		puts("setting MVP matrix");
-		#endif
+#endif
 
 		glUniformMatrix4fv(MVP->location, 1, GL_FALSE, (const float *)gpuGetModelViewProjectionMatrix(NULL));
 	}
 
 	if (N) {
-		#if DEBUG_MATRIX_BIND
+#if DEBUG_MATRIX_BIND
 		puts("setting normal matrix");
-		#endif
+#endif
 
 		glUniformMatrix3fv(N->location, 1, GL_FALSE, (const float *)gpuGetNormalMatrix(NULL));
 	}
@@ -609,14 +609,14 @@ void gpuBindMatrices(const Gwn_ShaderInterface *shaderface)
 		Mat4 m;
 		gpuGetModelViewMatrix(m);
 		invert_m4(m);
-		glUniformMatrix4fv(MV_inv->location, 1, GL_FALSE, (const float*) m);
+		glUniformMatrix4fv(MV_inv->location, 1, GL_FALSE, (const float *)m);
 	}
 
 	if (P_inv) {
 		Mat4 m;
 		gpuGetProjectionMatrix(m);
 		invert_m4(m);
-		glUniformMatrix4fv(P_inv->location, 1, GL_FALSE, (const float*) m);
+		glUniformMatrix4fv(P_inv->location, 1, GL_FALSE, (const float *)m);
 	}
 
 	state.dirty = false;

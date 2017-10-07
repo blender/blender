@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenkernel/intern/probe.c
+/** \file blender/blenkernel/intern/lightprobe.c
  *  \ingroup bke
  */
 

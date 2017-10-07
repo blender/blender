@@ -236,7 +236,7 @@ bool WM_manipulator_target_property_range_get(
 			mpr_prop->custom_func.range_get_fn(mpr, mpr_prop, range);
 			return true;
 		}
-		else{
+		else {
 			return false;
 
 		}

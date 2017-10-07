@@ -258,7 +258,7 @@ void RNA_api_manipulator(StructRNA *srna)
 	func = RNA_def_function(srna, "target_set_operator", "rna_manipulator_target_set_operator");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(
-	        func,"Operator to run when activating the manipulator "
+	        func, "Operator to run when activating the manipulator "
 	        "(overrides property targets)");
 	parm = RNA_def_string(func, "operator", NULL, 0, "", "Target operator");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);

@@ -117,11 +117,11 @@ static void *workspace_relation_get_data_matching_parent(
  * Hence, this should only be used as assert check before assigining a screen to a workspace.
  */
 #ifndef NDEBUG
-static bool workspaces_is_screen_used(
+static bool workspaces_is_screen_used
 #else
-static bool UNUSED_FUNCTION(workspaces_is_screen_used)(
+static bool UNUSED_FUNCTION(workspaces_is_screen_used)
 #endif
-        const Main *bmain, bScreen *screen)
+        (const Main *bmain, bScreen *screen)
 {
 	for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
 		if (workspace_layout_find_exec(workspace, screen)) {

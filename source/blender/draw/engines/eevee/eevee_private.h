@@ -159,7 +159,7 @@ typedef struct EEVEE_FramebufferList {
 	struct GPUFrameBuffer *effect_fb;
 	struct GPUFrameBuffer *bloom_blit_fb;
 	struct GPUFrameBuffer *bloom_down_fb[MAX_BLOOM_STEP];
-	struct GPUFrameBuffer *bloom_accum_fb[MAX_BLOOM_STEP-1];
+	struct GPUFrameBuffer *bloom_accum_fb[MAX_BLOOM_STEP - 1];
 	struct GPUFrameBuffer *dof_down_fb;
 	struct GPUFrameBuffer *dof_scatter_far_fb;
 	struct GPUFrameBuffer *dof_scatter_near_fb;
@@ -184,7 +184,7 @@ typedef struct EEVEE_TextureList {
 	struct GPUTexture *dof_far_blur; /* R16_G16_B16_A16 */
 	struct GPUTexture *bloom_blit; /* R16_G16_B16 */
 	struct GPUTexture *bloom_downsample[MAX_BLOOM_STEP]; /* R16_G16_B16 */
-	struct GPUTexture *bloom_upsample[MAX_BLOOM_STEP-1]; /* R16_G16_B16 */
+	struct GPUTexture *bloom_upsample[MAX_BLOOM_STEP - 1]; /* R16_G16_B16 */
 	struct GPUTexture *ssr_normal_input;
 	struct GPUTexture *ssr_specrough_input;
 	struct GPUTexture *refract_color;

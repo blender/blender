@@ -1413,7 +1413,8 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 		}
 		else if ((psys->flag & PSYS_HAIR_DYNAMICS) &&
 		         psys->clmd != NULL &&
-		         psys->clmd->coll_parms != NULL) {
+		         psys->clmd->coll_parms != NULL)
+		{
 			add_collision_relations(psys_key,
 			                        scene,
 			                        ob,

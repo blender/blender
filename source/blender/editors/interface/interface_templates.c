@@ -121,7 +121,7 @@ static void template_add_button_search_menu(
 		/* Ugly exception for screens here, drawing their preview in icon size looks ugly/useless */
 		const bool use_preview_icon = use_big_size || (id && (GS(id->name) != ID_SCR));
 		const short width = UI_UNIT_X * (use_big_size ? 6 : 1.6f);
-		const short height = UI_UNIT_Y * (use_big_size ? 6: 1);
+		const short height = UI_UNIT_Y * (use_big_size ? 6 : 1);
 
 		but = uiDefBlockButN(block, block_func, block_argN, "", 0, 0, width, height, tip);
 		if (use_preview_icon) {

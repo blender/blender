@@ -654,7 +654,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 
 			/* If tangent from orco is requested, decrement tangent_len */
 			int actual_tangent_len = (cd_lused[CD_TANGENT] & DM_TANGENT_MASK_ORCO) ?
-						rdata->cd.layers.tangent_len - 1 : rdata->cd.layers.tangent_len;
+			        rdata->cd.layers.tangent_len - 1 : rdata->cd.layers.tangent_len;
 			if (rdata->edit_bmesh) {
 				BMEditMesh *em = rdata->edit_bmesh;
 				BMesh *bm = em->bm;
@@ -3107,7 +3107,7 @@ static Gwn_VertBuf *mesh_create_edge_pos_with_sel(
 
 		const int edge_len = mesh_render_data_edges_len_get(rdata);
 
-		vbo= GWN_vertbuf_create_with_format(&format);
+		vbo = GWN_vertbuf_create_with_format(&format);
 
 		const int vbo_len_capacity = edge_len * 2;
 		int vbo_len_used = 0;

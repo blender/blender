@@ -401,7 +401,7 @@ static PointerRNA rna_RenderEngine_scene_layer_get(PointerRNA *ptr)
 {
 	RenderEngine *engine = (RenderEngine *)ptr->data;
 	if (engine->re != NULL) {
-		SceneLayer* scene_layer = RE_engine_get_scene_layer(engine->re);
+		SceneLayer *scene_layer = RE_engine_get_scene_layer(engine->re);
 		return rna_pointer_inherit_refine(ptr, &RNA_SceneLayer, scene_layer);
 	}
 	return rna_pointer_inherit_refine(ptr, &RNA_SceneLayer, NULL);

@@ -823,7 +823,7 @@ static void drawcentercircle(View3D *v3d, RegionView3D *UNUSED(rv3d), const floa
 	const float outlineWidth = 1.0f * U.pixelsize;
 	const float size = U.obcenter_dia * U.pixelsize + outlineWidth;
 
- 	if (v3d->zbuf) {
+	if (v3d->zbuf) {
 		glDisable(GL_DEPTH_TEST);
 		/* TODO(merwin): fit things like this into plates/buffers design */
 	}
@@ -860,7 +860,7 @@ static void drawcentercircle(View3D *v3d, RegionView3D *UNUSED(rv3d), const floa
 	GPU_disable_program_point_size();
 	glDisable(GL_BLEND);
 
- 	if (v3d->zbuf) {
+	if (v3d->zbuf) {
 		glEnable(GL_DEPTH_TEST);
 	}
 }
@@ -8760,7 +8760,7 @@ void draw_object(
 		if ((dflag & DRAW_PICKING) == 0) {
 			if ((dt == OB_BOUNDBOX) || ELEM(ob->type, OB_EMPTY, OB_LAMP, OB_CAMERA, OB_SPEAKER)) {
 				goto afterdraw;
-				}
+			}
 		}
 
 		switch (ob->type) {

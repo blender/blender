@@ -1997,7 +1997,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 		unit_m4(obmat);
 
 		if (shgroup->type == DRW_SHG_INSTANCE &&
-			(interface->instance_count > 0 || interface->instance_batch != NULL))
+		    (interface->instance_count > 0 || interface->instance_batch != NULL))
 		{
 			GPU_SELECT_LOAD_IF_PICKSEL_LIST(&shgroup->calls);
 			draw_geometry(shgroup, shgroup->instance_geom, obmat, shgroup->instance_data);

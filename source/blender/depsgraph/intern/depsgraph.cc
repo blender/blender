@@ -296,7 +296,8 @@ IDDepsNode *Depsgraph::add_id_node(ID *id, bool do_tag, ID *id_cow_hint)
 		 * referencing to.
 		 */
 		BLI_ghash_insert(id_hash, id, id_node);
-	} else if (do_tag) {
+	}
+	else if (do_tag) {
 		id->tag |= LIB_TAG_DOIT;
 	}
 	return id_node;

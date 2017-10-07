@@ -1185,7 +1185,7 @@ static void WIDGETGROUP_manipulator_setup(const bContext *UNUSED(C), wmManipulat
 		/* custom handler! */
 		WM_manipulator_set_fn_custom_modal(axis, manipulator_modal);
 
-		switch(axis_idx) {
+		switch (axis_idx) {
 			case MAN_AXIS_TRANS_X:
 			case MAN_AXIS_TRANS_Y:
 			case MAN_AXIS_TRANS_Z:

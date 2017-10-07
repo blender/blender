@@ -1967,7 +1967,7 @@ void WM_window_set_active_workspace(wmWindow *win, WorkSpace *workspace)
 WorkSpaceLayout *WM_window_get_active_layout(const wmWindow *win)
 {
 	const WorkSpace *workspace = WM_window_get_active_workspace(win);
-	return (LIKELY(workspace != NULL) ? BKE_workspace_active_layout_get(win->workspace_hook): NULL);
+	return (LIKELY(workspace != NULL) ? BKE_workspace_active_layout_get(win->workspace_hook) : NULL);
 }
 void WM_window_set_active_layout(wmWindow *win, WorkSpace *workspace, WorkSpaceLayout *layout)
 {

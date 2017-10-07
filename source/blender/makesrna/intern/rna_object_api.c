@@ -111,13 +111,13 @@ static void rna_Object_select_set(Object *ob, bContext *C, ReportList *reports, 
 	}
 
 	switch (action) {
-	    case 1: /* DESELECT */
-		    base->flag &= ~BASE_SELECTED;
-		    break;
-	    case 0: /* SELECT */
-	    default:
-		    BKE_scene_layer_base_select(sl, base);
-		    break;
+		case 1: /* DESELECT */
+			base->flag &= ~BASE_SELECTED;
+			break;
+		case 0: /* SELECT */
+		default:
+			BKE_scene_layer_base_select(sl, base);
+			break;
 	}
 }
 

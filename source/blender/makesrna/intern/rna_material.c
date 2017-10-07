@@ -1865,13 +1865,13 @@ void RNA_def_material(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "transparent_hide_backside", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "blend_flag", MA_BL_HIDE_BACKSIDE);
-	RNA_def_property_ui_text(prop, "Hide Backside" , "Limit transparency to a single layer "
+	RNA_def_property_ui_text(prop, "Hide Backside", "Limit transparency to a single layer "
 	                                                 "(avoids transparency sorting problems)");
 	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
 	prop = RNA_def_property(srna, "use_screen_refraction", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "blend_flag", MA_BL_SS_REFRACTION);
-	RNA_def_property_ui_text(prop, "Screen Space Refraction" , "Use raytraced screen space refractions");
+	RNA_def_property_ui_text(prop, "Screen Space Refraction", "Use raytraced screen space refractions");
 	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
 	prop = RNA_def_property(srna, "refraction_depth", PROP_FLOAT, PROP_DISTANCE);

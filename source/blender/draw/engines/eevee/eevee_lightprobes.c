@@ -19,7 +19,7 @@
  *
  */
 
-/** \file eevee_lights.c
+/** \file eevee_lightprobes.c
  *  \ingroup DNA
  */
 
@@ -35,8 +35,6 @@
 #include "BLI_rand.h"
 
 #include "ED_screen.h"
-
-#include "DRW_render.h"
 
 #include "GPU_material.h"
 #include "GPU_texture.h"
@@ -473,7 +471,7 @@ void EEVEE_lightprobes_cache_add(EEVEE_SceneLayerData *sldata, Object *ob)
 
 	/* Step 1 find all lamps in the scene and setup them */
 	if ((probe->type == LIGHTPROBE_TYPE_CUBE && pinfo->num_cube >= MAX_PROBE) ||
-		(probe->type == LIGHTPROBE_TYPE_GRID && pinfo->num_grid >= MAX_PROBE))
+	    (probe->type == LIGHTPROBE_TYPE_GRID && pinfo->num_grid >= MAX_PROBE))
 	{
 		printf("Too much probes in the scene !!!\n");
 		return;
@@ -669,7 +667,7 @@ static void EEVEE_lightprobes_updates(EEVEE_SceneLayerData *sldata, EEVEE_PassLi
 
 		/* Debug Display */
 		if (BKE_object_is_visible(ob) &&
-			DRW_state_draw_support() &&
+		    DRW_state_draw_support() &&
 		    (probe->flag & LIGHTPROBE_FLAG_SHOW_DATA))
 		{
 			ped->probe_size = probe->data_draw_size * 0.1f;
@@ -1347,9 +1345,9 @@ void EEVEE_lightprobes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 						else if (((((int)grid_loc[0] % current_stride) == 0) &&
 						          (((int)grid_loc[1] % current_stride) == 0) &&
 						          (((int)grid_loc[2] % current_stride) == 0)) &&
-						        !((((int)grid_loc[0] % prev_stride) == 0) &&
-						          (((int)grid_loc[1] % prev_stride) == 0) &&
-						          (((int)grid_loc[2] % prev_stride) == 0)))
+						         !((((int)grid_loc[0] % prev_stride) == 0) &&
+						           (((int)grid_loc[1] % prev_stride) == 0) &&
+						           (((int)grid_loc[2] % prev_stride) == 0)))
 						{
 							valid_cell = true;
 						}

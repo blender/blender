@@ -3303,13 +3303,13 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 		/* editmode separate */
 		switch (type) {
 			case MESH_SEPARATE_SELECTED:
-			    retval = mesh_separate_selected(bmain, scene, sl, base, em->bm);
+				retval = mesh_separate_selected(bmain, scene, sl, base, em->bm);
 				break;
 			case MESH_SEPARATE_MATERIAL:
-			    retval = mesh_separate_material(bmain, scene, sl, base, em->bm);
+				retval = mesh_separate_material(bmain, scene, sl, base, em->bm);
 				break;
 			case MESH_SEPARATE_LOOSE:
-			    retval = mesh_separate_loose(bmain, scene, sl, base, em->bm);
+				retval = mesh_separate_loose(bmain, scene, sl, base, em->bm);
 				break;
 			default:
 				BLI_assert(0);
@@ -3344,10 +3344,10 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 
 					switch (type) {
 						case MESH_SEPARATE_MATERIAL:
-						    retval_iter = mesh_separate_material(bmain, scene, sl, base_iter, bm_old);
+							retval_iter = mesh_separate_material(bmain, scene, sl, base_iter, bm_old);
 							break;
 						case MESH_SEPARATE_LOOSE:
-						    retval_iter = mesh_separate_loose(bmain, scene, sl, base_iter, bm_old);
+							retval_iter = mesh_separate_loose(bmain, scene, sl, base_iter, bm_old);
 							break;
 						default:
 							BLI_assert(0);

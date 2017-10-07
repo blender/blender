@@ -169,7 +169,8 @@ static void scene_collection_copy(SceneCollection *sc_dst, SceneCollection *sc_s
 	BLI_duplicatelist(&sc_dst->scene_collections, &sc_src->scene_collections);
 	for (SceneCollection *nsc_src = sc_src->scene_collections.first, *nsc_dst = sc_dst->scene_collections.first;
 	     nsc_src;
-	     nsc_src = nsc_src->next, nsc_dst = nsc_dst->next) {
+	     nsc_src = nsc_src->next, nsc_dst = nsc_dst->next)
+	{
 		scene_collection_copy(nsc_dst, nsc_src, flag);
 	}
 }
@@ -2330,7 +2331,7 @@ int BKE_scene_multiview_num_videos_get(const RenderData *rd)
 	}
 }
 
-Depsgraph* BKE_scene_get_depsgraph(Scene *scene, SceneLayer *scene_layer)
+Depsgraph *BKE_scene_get_depsgraph(Scene *scene, SceneLayer *scene_layer)
 {
 	(void) scene_layer;
 	return scene->depsgraph_legacy;

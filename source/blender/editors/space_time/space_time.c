@@ -333,9 +333,7 @@ static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel, cons
 
 		immBeginAtMost(GWN_PRIM_LINES, max_len * 2);
 
-		for (; (ak) && (ak->cfra <= v2d->cur.xmax);
-			ak = ak->next)
-		{
+		for (; (ak) && (ak->cfra <= v2d->cur.xmax); ak = ak->next) {
 			immVertex2f(pos, ak->cfra, ymin);
 			immVertex2f(pos, ak->cfra, ymax);
 		}

@@ -39,7 +39,7 @@
 #include "GPU_shader.h"
 
 /* Extend GWN_batch_program_set to use Blender’s library of built-in shader programs. */
-void GWN_batch_program_set_builtin(Gwn_Batch*, GPUBuiltinShader);
+void GWN_batch_program_set_builtin(Gwn_Batch *, GPUBuiltinShader);
 
 /* Replacement for gluSphere */
 Gwn_Batch *GPU_batch_preset_sphere(int lod);

@@ -471,7 +471,6 @@ EnumPropertyItem rna_enum_layer_collection_mode_settings_type_items[] = {
 #include "BKE_node.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
-#include "BKE_idprop.h"
 #include "BKE_mesh.h"
 #include "BKE_sound.h"
 #include "BKE_screen.h"
@@ -479,9 +478,6 @@ EnumPropertyItem rna_enum_layer_collection_mode_settings_type_items[] = {
 #include "BKE_animsys.h"
 #include "BKE_freestyle.h"
 #include "BKE_gpencil.h"
-
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
 
 #include "ED_info.h"
 #include "ED_node.h"
@@ -492,6 +488,7 @@ EnumPropertyItem rna_enum_layer_collection_mode_settings_type_items[] = {
 #include "ED_scene.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
 #ifdef WITH_FREESTYLE
@@ -2967,7 +2964,7 @@ static int rna_SceneLayer_objects_selected_skip(CollectionPropertyIterator *iter
 	Base *base = (Base *)internal->link;
 
 	if ((base->flag & BASE_SELECTED) != 0) {
-			return 0;
+		return 0;
 	}
 
 	return 1;

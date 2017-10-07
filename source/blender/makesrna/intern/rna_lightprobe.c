@@ -37,8 +37,6 @@
 
 #ifdef RNA_RUNTIME
 
-#include "DNA_object_types.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "BKE_main.h"
@@ -47,7 +45,6 @@
 #include "DNA_object_types.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 
 static void rna_LightProbe_recalc(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {

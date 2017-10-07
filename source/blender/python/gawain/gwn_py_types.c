@@ -647,7 +647,7 @@ static PyObject *bpygwn_VertBatch_uniform_f32(BPyGwn_Batch *self, PyObject *args
 		return NULL;
 	}
 
-	switch(PyTuple_GET_SIZE(args)) {
+	switch (PyTuple_GET_SIZE(args)) {
 		case 2: GWN_batch_uniform_1f(self->batch,  params.id,  params.values[0]); break;
 		case 3: GWN_batch_uniform_2fv(self->batch, params.id, params.values);     break;
 		case 4: GWN_batch_uniform_3fv(self->batch, params.id, params.values);     break;

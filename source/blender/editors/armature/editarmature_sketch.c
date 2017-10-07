@@ -2033,12 +2033,12 @@ static void sk_drawSketch(Scene *scene, View3D *UNUSED(v3d), SK_Sketch *sketch, 
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 				switch (sketch->next_point.mode) {
-				case PT_SNAP:
-					copy_v4_fl4(tmp_color, 0.0f, 1.0f, 0.0f, 1.0f);
-					break;
-				case PT_PROJECT:
-					copy_v4_fl4(tmp_color, 0.0f, 0.0f, 0.0f, 1.0f);
-					break;
+					case PT_SNAP:
+						copy_v4_fl4(tmp_color, 0.0f, 1.0f, 0.0f, 1.0f);
+						break;
+					case PT_PROJECT:
+						copy_v4_fl4(tmp_color, 0.0f, 0.0f, 0.0f, 1.0f);
+						break;
 				}
 
 				sk_drawPoint(&sketch->next_point, 0.1, tmp_color);

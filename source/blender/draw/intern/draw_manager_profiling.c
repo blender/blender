@@ -85,7 +85,7 @@ void DRW_stats_begin(void)
 		DTP.timer_count = DTP.chunk_count * CHUNK_SIZE;
 		DTP.timers = MEM_callocN(sizeof(DRWTimer) * DTP.timer_count, "DRWTimer stack");
 	}
-	else if(!DTP.is_recording && DTP.timers != NULL) {
+	else if (!DTP.is_recording && DTP.timers != NULL) {
 		DRW_stats_free();
 	}
 

@@ -3676,8 +3676,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 		new_dist = rv3d->dist;
 
 		/* convert the drawn rectangle into 3d space */
-		if (depth_close != FLT_MAX && ED_view3d_unproject(ar, centx, centy, depth_close, p))
-		{
+		if (depth_close != FLT_MAX && ED_view3d_unproject(ar, centx, centy, depth_close, p)) {
 			negate_v3_v3(new_ofs, p);
 		}
 		else {
@@ -4940,8 +4939,7 @@ bool ED_view3d_autodist(
 		float centx = (float)mval[0] + 0.5f;
 		float centy = (float)mval[1] + 0.5f;
 
-		if (ED_view3d_unproject(ar, centx, centy, depth_close, mouse_worldloc))
-		{
+		if (ED_view3d_unproject(ar, centx, centy, depth_close, mouse_worldloc)) {
 			return true;
 		}
 	}

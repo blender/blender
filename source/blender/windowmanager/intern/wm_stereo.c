@@ -85,13 +85,13 @@ static void wm_method_draw_stereo3d_pageflip(wmWindow *win)
 static GPUInterlaceShader interlace_gpu_id_from_type(eStereo3dInterlaceType interlace_type)
 {
 	switch (interlace_type) {
-	    case S3D_INTERLACE_ROW:
-		    return GPU_SHADER_INTERLACE_ROW;
-	    case S3D_INTERLACE_COLUMN:
-		    return GPU_SHADER_INTERLACE_COLUMN;
-	    case S3D_INTERLACE_CHECKERBOARD:
-	    default:
-		    return GPU_SHADER_INTERLACE_CHECKER;
+		case S3D_INTERLACE_ROW:
+			return GPU_SHADER_INTERLACE_ROW;
+		case S3D_INTERLACE_COLUMN:
+			return GPU_SHADER_INTERLACE_COLUMN;
+		case S3D_INTERLACE_CHECKERBOARD:
+		default:
+			return GPU_SHADER_INTERLACE_CHECKER;
 	}
 }
 

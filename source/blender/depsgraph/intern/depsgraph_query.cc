@@ -225,9 +225,8 @@ void DEG_objects_iterator_next(BLI_Iterator *iter)
 		BLI_assert(!BLI_listbase_is_empty(&base->collection_properties->data.group));
 
 		/* Flushing depsgraph data. */
-		deg_flush_base_flags_and_settings(ob,
-										  base,
-										  data->base_flag);
+		deg_flush_base_flags_and_settings(
+		        ob, base, data->base_flag);
 
 		if ((data->flag & DEG_OBJECT_ITER_FLAG_DUPLI) && (ob->transflag & OB_DUPLI)) {
 			data->dupli_parent = ob;

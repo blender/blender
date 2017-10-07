@@ -72,8 +72,6 @@
 
 #include "DEG_depsgraph.h"
 
-#include "RE_engine.h"
-
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_colormanagement.h"

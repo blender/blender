@@ -940,13 +940,13 @@ static int object_select_all_exec(bContext *C, wmOperator *op)
 	{
 		switch (action) {
 			case SEL_SELECT:
-			    ED_object_base_select(base, BA_SELECT);
+				ED_object_base_select(base, BA_SELECT);
 				break;
 			case SEL_DESELECT:
-			    ED_object_base_select(base, BA_DESELECT);
+				ED_object_base_select(base, BA_DESELECT);
 				break;
 			case SEL_INVERT:
-			    if ((base->flag & BASE_SELECTED) != 0) {
+				if ((base->flag & BASE_SELECTED) != 0) {
 					ED_object_base_select(base, BA_DESELECT);
 				}
 				else {

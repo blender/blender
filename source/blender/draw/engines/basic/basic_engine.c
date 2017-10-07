@@ -19,7 +19,7 @@
  *
  */
 
-/** \file basic_engine.h
+/** \file basic_engine.c
  *  \ingroup draw_engine
  *
  * Simple engine for drawing color and/or depth.

@@ -1650,7 +1650,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 	immUniformColor3ubv((unsigned char *)wcol->item);
 	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_BLEND);
-	immBegin(GWN_PRIM_LINE_STRIP, (CM_TABLE+1) + 2);
+	immBegin(GWN_PRIM_LINE_STRIP, (CM_TABLE + 1) + 2);
 	
 	if (cuma->table == NULL)
 		curvemapping_changed(cumap, false);
@@ -1812,14 +1812,14 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 			UI_GetThemeColor4fv(TH_MARKER_OUTLINE, col_outline);
 
 			/* Do stipple cross with geometry */
-			immBegin(GWN_PRIM_LINES, 7*2*2);
+			immBegin(GWN_PRIM_LINES, 7 * 2 * 2);
 			float pos_sel[8] = {-10.0f, -7.0f, -4.0f, -1.0f, 2.0f, 5.0f, 8.0f, 11.0f};
 			for (int axe = 0; axe < 2; ++axe) {
 				for (int i = 0; i < 7; ++i) {
 					float x1 = pos_sel[i] * (1 - axe);
 					float y1 = pos_sel[i] * axe;
-					float x2 = pos_sel[i+1] * (1 - axe);
-					float y2 = pos_sel[i+1] * axe;
+					float x2 = pos_sel[i + 1] * (1 - axe);
+					float y2 = pos_sel[i + 1] * axe;
 
 					if (i % 2 == 1)
 						immAttrib4fv(col, col_sel);
