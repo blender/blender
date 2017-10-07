@@ -1493,6 +1493,9 @@ endif()
 # with _any_ library but since we used a fixed python version this tends to
 # be most problematic.
 if(WITH_PYTHON)
+	if(${PYTHON_VERSION} VERSION_LESS "3.6")
+		message(FATAL_ERROR "Atleast Python 3.6 is required to build")
+	endif()
 	if(NOT EXISTS "${PYTHON_INCLUDE_DIR}/Python.h")
 		message(FATAL_ERROR
 			"Missing: \"${PYTHON_INCLUDE_DIR}/Python.h\",\n"
