@@ -605,8 +605,7 @@ ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals *kg, const ShaderClosure
 
 						/* if fresnel is used, calculate the color with reflection_color(...) */
 						if(use_fresnel) {
-							*pdf = 1.0f;
-							*eval = reflection_color(bsdf, *omega_in, m);
+							*eval *= reflection_color(bsdf, *omega_in, m);
 						}
 
 						label = LABEL_REFLECT | LABEL_SINGULAR;
