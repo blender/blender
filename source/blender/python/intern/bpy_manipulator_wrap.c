@@ -71,27 +71,16 @@ static bool bpy_manipulatortype_target_property_def(
 	};
 
 	static const char * const _keywords[] = {"id", "type", "array_length", NULL};
-#define KW_FMT "|$ssi:register_class"
-#if PY_VERSION_HEX >= 0x03060000
-	static _PyArg_Parser _parser = {KW_FMT, _keywords, 0};
+	static _PyArg_Parser _parser = {"|$ssi:register_class", _keywords, 0};
 	if (!_PyArg_ParseTupleAndKeywordsFast(
 	        empty_tuple, item,
 	        &_parser,
 	        &params.id,
 	        &params.type_id,
 	        &params.array_length))
-#else
-	if (!PyArg_ParseTupleAndKeywords(
-	        empty_tuple, item,
-	        KW_FMT, (char **)_keywords,
-	        &params.id,
-	        &params.type_id,
-	        &params.array_length))
-#endif
 	{
 		goto fail;
 	}
-#undef KW_FMT
 
 	if (params.id == NULL) {
 		PyErr_SetString(PyExc_ValueError, "'id' argument not given");

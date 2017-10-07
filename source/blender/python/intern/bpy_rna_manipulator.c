@@ -241,7 +241,7 @@ PyDoc_STRVAR(bpy_manipulator_target_set_handler_doc,
 "   :arg range: Function that returns a (min, max) tuple for manipulators that use a range.\n"
 "   :type range: callable\n"
 );
-static PyObject *bpy_manipulator_target_set_handler(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
+static PyObject *bpy_manipulator_target_set_handler(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 
@@ -259,31 +259,17 @@ static PyObject *bpy_manipulator_target_set_handler(PyObject *UNUSED(self), PyOb
 	 * 'Manipulator.target_set_prop & target_set_operator'
 	 * (see: rna_wm_manipulator_api.c). conventions should match. */
 	static const char * const _keywords[] = {"self", "target", "get", "set", "range", NULL};
-#define KW_FMT "Os|$OOO:target_set_handler"
-#if PY_VERSION_HEX >= 0x03070000
-	static _PyArg_Parser _parser = {KW_FMT, _keywords, 0};
+	static _PyArg_Parser _parser = {"Os|$OOO:target_set_handler", _keywords, 0};
 	if (!_PyArg_ParseTupleAndKeywordsFast(
-	        args, kwds,
-	        &_parser,
+	        args, kw, &_parser,
 	        &params.self,
 	        &params.target,
 	        &params.py_fn_slots[BPY_MANIPULATOR_FN_SLOT_GET],
 	        &params.py_fn_slots[BPY_MANIPULATOR_FN_SLOT_SET],
 	        &params.py_fn_slots[BPY_MANIPULATOR_FN_SLOT_RANGE_GET]))
-#else
-	if (!PyArg_ParseTupleAndKeywords(
-	        args, kwds,
-	        KW_FMT, (char **)_keywords,
-	        &params.self,
-	        &params.target,
-	        &params.py_fn_slots[BPY_MANIPULATOR_FN_SLOT_GET],
-	        &params.py_fn_slots[BPY_MANIPULATOR_FN_SLOT_SET],
-	        &params.py_fn_slots[BPY_MANIPULATOR_FN_SLOT_RANGE_GET]))
-#endif
 	{
 		goto fail;
 	}
-#undef KW_FMT
 
 	wmManipulator *mpr = ((BPy_StructRNA *)params.self)->ptr.data;
 
@@ -355,7 +341,7 @@ PyDoc_STRVAR(bpy_manipulator_target_get_value_doc,
 "   :return: The value of the target property.\n"
 "   :rtype: Single value or array based on the target type\n"
 );
-static PyObject *bpy_manipulator_target_get_value(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
+static PyObject *bpy_manipulator_target_get_value(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	struct {
 		PyObject *self;
@@ -366,25 +352,14 @@ static PyObject *bpy_manipulator_target_get_value(PyObject *UNUSED(self), PyObje
 	};
 
 	static const char * const _keywords[] = {"self", "target", NULL};
-#define KW_FMT "Os:target_get_value"
-#if PY_VERSION_HEX >= 0x03070000
-	static _PyArg_Parser _parser = {KW_FMT, _keywords, 0};
+	static _PyArg_Parser _parser = {"Os:target_get_value", _keywords, 0};
 	if (!_PyArg_ParseTupleAndKeywordsFast(
-	        args, kwds,
-	        &_parser,
+	        args, kw, &_parser,
 	        &params.self,
 	        &params.target))
-#else
-	if (!PyArg_ParseTupleAndKeywords(
-	        args, kwds,
-	        KW_FMT, (char **)_keywords,
-	        &params.self,
-	        &params.target))
-#endif
 	{
 		goto fail;
 	}
-#undef KW_FMT
 
 	wmManipulator *mpr = ((BPy_StructRNA *)params.self)->ptr.data;
 
@@ -431,7 +406,7 @@ PyDoc_STRVAR(bpy_manipulator_target_set_value_doc,
 "   :arg target: Target property name.\n"
 "   :type target: string\n"
 );
-static PyObject *bpy_manipulator_target_set_value(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
+static PyObject *bpy_manipulator_target_set_value(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	struct {
 		PyObject *self;
@@ -444,27 +419,15 @@ static PyObject *bpy_manipulator_target_set_value(PyObject *UNUSED(self), PyObje
 	};
 
 	static const char * const _keywords[] = {"self", "target", "value", NULL};
-#define KW_FMT "OsO:target_set_value"
-#if PY_VERSION_HEX >= 0x03070000
-	static _PyArg_Parser _parser = {KW_FMT, _keywords, 0};
+	static _PyArg_Parser _parser = {"OsO:target_set_value", _keywords, 0};
 	if (!_PyArg_ParseTupleAndKeywordsFast(
-	        args, kwds,
-	        &_parser,
+	        args, kw, &_parser,
 	        &params.self,
 	        &params.target,
 	        &params.value))
-#else
-	if (!PyArg_ParseTupleAndKeywords(
-	        args, kwds,
-	        KW_FMT, (char **)_keywords,
-	        &params.self,
-	        &params.target,
-	        &params.value))
-#endif
 	{
 		goto fail;
 	}
-#undef KW_FMT
 
 	wmManipulator *mpr = ((BPy_StructRNA *)params.self)->ptr.data;
 
@@ -521,7 +484,7 @@ PyDoc_STRVAR(bpy_manipulator_target_get_range_doc,
 "   :return: The range of this property (min, max).\n"
 "   :rtype: tuple pair.\n"
 );
-static PyObject *bpy_manipulator_target_get_range(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
+static PyObject *bpy_manipulator_target_get_range(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	struct {
 		PyObject *self;
@@ -532,25 +495,14 @@ static PyObject *bpy_manipulator_target_get_range(PyObject *UNUSED(self), PyObje
 	};
 
 	static const char * const _keywords[] = {"self", "target", NULL};
-#define KW_FMT "Os:target_get_range"
-#if PY_VERSION_HEX >= 0x03070000
-	static _PyArg_Parser _parser = {KW_FMT, _keywords, 0};
+	static _PyArg_Parser _parser = {"Os:target_get_range", _keywords, 0};
 	if (!_PyArg_ParseTupleAndKeywordsFast(
-	        args, kwds,
-	        &_parser,
+	        args, kw, &_parser,
 	        &params.self,
 	        &params.target))
-#else
-	if (!PyArg_ParseTupleAndKeywords(
-	        args, kwds,
-	        KW_FMT, (char **)_keywords,
-	        &params.self,
-	        &params.target))
-#endif
 	{
 		goto fail;
 	}
-#undef KW_FMT
 
 	wmManipulator *mpr = ((BPy_StructRNA *)params.self)->ptr.data;
 
