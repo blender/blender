@@ -3721,7 +3721,7 @@ static const EnumPropertyItem sh_tex_prop_interpolation_items[] = {
 	{SHD_INTERP_CLOSEST, "Closest", 0, "Closest",
 	                     "No interpolation (sample closest texel)"},
 	{SHD_INTERP_CUBIC,   "Cubic", 0, "Cubic",
-	                     "Cubic interpolation (CPU only)"},
+	                     "Cubic interpolation"},
 	{SHD_INTERP_SMART,   "Smart", 0, "Smart",
 	                     "Bicubic when magnifying, else bilinear (OSL only)"},
 	{0, NULL, 0, NULL, NULL}
@@ -4087,7 +4087,7 @@ static void def_sh_tex_pointdensity(StructRNA *srna)
 		{SHD_INTERP_LINEAR,  "Linear", 0, "Linear",
 		                     "Linear interpolation"},
 		{SHD_INTERP_CUBIC,   "Cubic", 0, "Cubic",
-		                     "Cubic interpolation (CPU only)"},
+		                     "Cubic interpolation"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

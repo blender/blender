@@ -75,20 +75,26 @@ ccl_device_inline float svm_image_texture_frac(float x, int *ix)
 	return x - (float)i;
 }
 
+#define SET_CUBIC_SPLINE_WEIGHTS(u, t) \
+	{ \
+		u[0] = (((-1.0f/6.0f)* t + 0.5f) * t - 0.5f) * t + (1.0f/6.0f); \
+		u[1] =  ((      0.5f * t - 1.0f) * t       ) * t + (2.0f/3.0f); \
+		u[2] =  ((     -0.5f * t + 0.5f) * t + 0.5f) * t + (1.0f/6.0f); \
+		u[3] = (1.0f / 6.0f) * t * t * t; \
+	} (void)0
+
 ccl_device float4 kernel_tex_image_interp(KernelGlobals *kg, int id, float x, float y)
 {
 	const ccl_global TextureInfo *info = kernel_tex_info(kg, id);
 
 	uint width = info->width;
 	uint height = info->height;
-	uint offset = 0;
 	uint interpolation = info->interpolation;
 	uint extension = info->extension;
 
 	/* Actual sampling. */
-	float4 r;
-	int ix, iy, nix, niy;
 	if(interpolation == INTERPOLATION_CLOSEST) {
+		int ix, iy;
 		svm_image_texture_frac(x*width, &ix);
 		svm_image_texture_frac(y*height, &iy);
 
@@ -108,16 +114,17 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals *kg, int id, float x, fl
 			iy = svm_image_texture_wrap_clamp(iy, height);
 		}
 
-		r = svm_image_texture_read(kg, id, offset + ix + iy*width);
+		return svm_image_texture_read(kg, id, ix + iy*width);
 	}
-	else { /* INTERPOLATION_LINEAR */
+	else {
+		/* Bilinear or bicubic interpolation. */
+		int ix, iy, nix, niy;
 		float tx = svm_image_texture_frac(x*width - 0.5f, &ix);
 		float ty = svm_image_texture_frac(y*height - 0.5f, &iy);
 
 		if(extension == EXTENSION_REPEAT) {
 			ix = svm_image_texture_wrap_periodic(ix, width);
 			iy = svm_image_texture_wrap_periodic(iy, height);
-
 			nix = svm_image_texture_wrap_periodic(ix+1, width);
 			niy = svm_image_texture_wrap_periodic(iy+1, height);
 		}
@@ -127,18 +134,61 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals *kg, int id, float x, fl
 					return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 				}
 			}
-			nix = svm_image_texture_wrap_clamp(ix+1, width);
-			niy = svm_image_texture_wrap_clamp(iy+1, height);
 			ix = svm_image_texture_wrap_clamp(ix, width);
 			iy = svm_image_texture_wrap_clamp(iy, height);
+			nix = svm_image_texture_wrap_clamp(ix+1, width);
+			niy = svm_image_texture_wrap_clamp(iy+1, height);
 		}
 
-		r = (1.0f - ty)*(1.0f - tx)*svm_image_texture_read(kg, id, offset + ix + iy*width);
-		r += (1.0f - ty)*tx*svm_image_texture_read(kg, id, offset + nix + iy*width);
-		r += ty*(1.0f - tx)*svm_image_texture_read(kg, id, offset + ix + niy*width);
-		r += ty*tx*svm_image_texture_read(kg, id, offset + nix + niy*width);
+		if(interpolation == INTERPOLATION_LINEAR) {
+			/* Bilinear interpolation. */
+			float4 r;
+			r = (1.0f - ty)*(1.0f - tx)*svm_image_texture_read(kg, id, ix + iy*width);
+			r += (1.0f - ty)*tx*svm_image_texture_read(kg, id, nix + iy*width);
+			r += ty*(1.0f - tx)*svm_image_texture_read(kg, id, ix + niy*width);
+			r += ty*tx*svm_image_texture_read(kg, id, nix + niy*width);
+			return r;
+		}
+
+		/* Bicubic interpolation. */
+		int pix, piy, nnix, nniy;
+		if(extension == EXTENSION_REPEAT) {
+			pix = svm_image_texture_wrap_periodic(ix-1, width);
+			piy = svm_image_texture_wrap_periodic(iy-1, height);
+			nnix = svm_image_texture_wrap_periodic(ix+2, width);
+			nniy = svm_image_texture_wrap_periodic(iy+2, height);
+		}
+		else {
+			pix = svm_image_texture_wrap_clamp(ix-1, width);
+			piy = svm_image_texture_wrap_clamp(iy-1, height);
+			nnix = svm_image_texture_wrap_clamp(ix+2, width);
+			nniy = svm_image_texture_wrap_clamp(iy+2, height);
+		}
+
+		const int xc[4] = {pix, ix, nix, nnix};
+		const int yc[4] = {width * piy,
+		                   width * iy,
+		                   width * niy,
+		                   width * nniy};
+		float u[4], v[4];
+		/* Some helper macro to keep code reasonable size,
+		 * let compiler to inline all the matrix multiplications.
+		 */
+#define DATA(x, y) (svm_image_texture_read(kg, id, xc[x] + yc[y]))
+#define TERM(col) \
+		(v[col] * (u[0] * DATA(0, col) + \
+		           u[1] * DATA(1, col) + \
+		           u[2] * DATA(2, col) + \
+		           u[3] * DATA(3, col)))
+
+		SET_CUBIC_SPLINE_WEIGHTS(u, tx);
+		SET_CUBIC_SPLINE_WEIGHTS(v, ty);
+
+		/* Actual interpolation. */
+		return TERM(0) + TERM(1) + TERM(2) + TERM(3);
+#undef TERM
+#undef DATA
 	}
-	return r;
 }
 
 
@@ -148,15 +198,13 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float x,
 
 	uint width = info->width;
 	uint height = info->height;
-	uint offset = 0;
 	uint depth = info->depth;
 	uint interpolation = (interp == INTERPOLATION_NONE)? info->interpolation: interp;
 	uint extension = info->extension;
 
 	/* Actual sampling. */
-	float4 r;
-	int ix, iy, iz, nix, niy, niz;
 	if(interpolation == INTERPOLATION_CLOSEST) {
+		int ix, iy, iz;
 		svm_image_texture_frac(x*width, &ix);
 		svm_image_texture_frac(y*height, &iy);
 		svm_image_texture_frac(z*depth, &iz);
@@ -180,9 +228,11 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float x,
 			iy = svm_image_texture_wrap_clamp(iy, height);
 			iz = svm_image_texture_wrap_clamp(iz, depth);
 		}
-		r = svm_image_texture_read(kg, id, offset + ix + iy*width + iz*width*height);
+		return svm_image_texture_read(kg, id, ix + iy*width + iz*width*height);
 	}
-	else { /* INTERPOLATION_LINEAR */
+	else {
+		/* Bilinear or bicubic interpolation. */
+		int ix, iy, iz, nix, niy, niz;
 		float tx = svm_image_texture_frac(x*(float)width - 0.5f, &ix);
 		float ty = svm_image_texture_frac(y*(float)height - 0.5f, &iy);
 		float tz = svm_image_texture_frac(z*(float)depth - 0.5f, &iz);
@@ -215,15 +265,77 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float x,
 			iz = svm_image_texture_wrap_clamp(iz, depth);
 		}
 
-		r  = (1.0f - tz)*(1.0f - ty)*(1.0f - tx)*svm_image_texture_read(kg, id, offset + ix + iy*width + iz*width*height);
-		r += (1.0f - tz)*(1.0f - ty)*tx*svm_image_texture_read(kg, id, offset + nix + iy*width + iz*width*height);
-		r += (1.0f - tz)*ty*(1.0f - tx)*svm_image_texture_read(kg, id, offset + ix + niy*width + iz*width*height);
-		r += (1.0f - tz)*ty*tx*svm_image_texture_read(kg, id, offset + nix + niy*width + iz*width*height);
+		if(interpolation == INTERPOLATION_LINEAR) {
+			/* Bilinear interpolation. */
+			float4 r;
+			r  = (1.0f - tz)*(1.0f - ty)*(1.0f - tx)*svm_image_texture_read(kg, id, ix + iy*width + iz*width*height);
+			r += (1.0f - tz)*(1.0f - ty)*tx*svm_image_texture_read(kg, id, nix + iy*width + iz*width*height);
+			r += (1.0f - tz)*ty*(1.0f - tx)*svm_image_texture_read(kg, id, ix + niy*width + iz*width*height);
+			r += (1.0f - tz)*ty*tx*svm_image_texture_read(kg, id, nix + niy*width + iz*width*height);
 
-		r += tz*(1.0f - ty)*(1.0f - tx)*svm_image_texture_read(kg, id, offset + ix + iy*width + niz*width*height);
-		r += tz*(1.0f - ty)*tx*svm_image_texture_read(kg, id, offset + nix + iy*width + niz*width*height);
-		r += tz*ty*(1.0f - tx)*svm_image_texture_read(kg, id, offset + ix + niy*width + niz*width*height);
-		r += tz*ty*tx*svm_image_texture_read(kg, id, offset + nix + niy*width + niz*width*height);
+			r += tz*(1.0f - ty)*(1.0f - tx)*svm_image_texture_read(kg, id, ix + iy*width + niz*width*height);
+			r += tz*(1.0f - ty)*tx*svm_image_texture_read(kg, id, nix + iy*width + niz*width*height);
+			r += tz*ty*(1.0f - tx)*svm_image_texture_read(kg, id, ix + niy*width + niz*width*height);
+			r += tz*ty*tx*svm_image_texture_read(kg, id, nix + niy*width + niz*width*height);
+			return r;
+		}
+
+		/* Bicubic interpolation. */
+		int pix, piy, piz, nnix, nniy, nniz;
+		if(extension == EXTENSION_REPEAT) {
+			pix = svm_image_texture_wrap_periodic(ix-1, width);
+			piy = svm_image_texture_wrap_periodic(iy-1, height);
+			piz = svm_image_texture_wrap_periodic(iz-1, depth);
+			nnix = svm_image_texture_wrap_periodic(ix+2, width);
+			nniy = svm_image_texture_wrap_periodic(iy+2, height);
+			nniz = svm_image_texture_wrap_periodic(iz+2, depth);
+		}
+		else {
+			pix = svm_image_texture_wrap_clamp(ix-1, width);
+			piy = svm_image_texture_wrap_clamp(iy-1, height);
+			piz = svm_image_texture_wrap_clamp(iz-1, depth);
+			nnix = svm_image_texture_wrap_clamp(ix+2, width);
+			nniy = svm_image_texture_wrap_clamp(iy+2, height);
+			nniz = svm_image_texture_wrap_clamp(iz+2, depth);
+		}
+
+		const int xc[4] = {pix, ix, nix, nnix};
+		const int yc[4] = {width * piy,
+		                   width * iy,
+		                   width * niy,
+		                   width * nniy};
+		const int zc[4] = {width * height * piz,
+		                   width * height * iz,
+		                   width * height * niz,
+		                   width * height * nniz};
+		float u[4], v[4], w[4];
+
+		/* Some helper macro to keep code reasonable size,
+		 * let compiler to inline all the matrix multiplications.
+		 */
+#define DATA(x, y, z) (svm_image_texture_read(kg, id, xc[x] + yc[y] + zc[z]))
+#define COL_TERM(col, row) \
+		(v[col] * (u[0] * DATA(0, col, row) + \
+		           u[1] * DATA(1, col, row) + \
+		           u[2] * DATA(2, col, row) + \
+		           u[3] * DATA(3, col, row)))
+#define ROW_TERM(row) \
+		(w[row] * (COL_TERM(0, row) + \
+		           COL_TERM(1, row) + \
+		           COL_TERM(2, row) + \
+		           COL_TERM(3, row)))
+
+		SET_CUBIC_SPLINE_WEIGHTS(u, tx);
+		SET_CUBIC_SPLINE_WEIGHTS(v, ty);
+		SET_CUBIC_SPLINE_WEIGHTS(w, tz);
+
+		/* Actual interpolation. */
+		return ROW_TERM(0) + ROW_TERM(1) + ROW_TERM(2) + ROW_TERM(3);
+
+#undef COL_TERM
+#undef ROW_TERM
+#undef DATA
 	}
-	return r;
 }
+
+#undef SET_CUBIC_SPLINE_WEIGHTS

@@ -52,7 +52,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Interpolation types for textures
  * cuda also use texture space to store other objects */
-enum InterpolationType {
+typedef enum InterpolationType {
 	INTERPOLATION_NONE = -1,
 	INTERPOLATION_LINEAR = 0,
 	INTERPOLATION_CLOSEST = 1,
@@ -60,12 +60,12 @@ enum InterpolationType {
 	INTERPOLATION_SMART = 3,
 
 	INTERPOLATION_NUM_TYPES,
-};
+} InterpolationType;
 
 /* Texture types
  * Since we store the type in the lower bits of a flat index,
  * the shift and bit mask constant below need to be kept in sync. */
-enum ImageDataType {
+typedef enum ImageDataType {
 	IMAGE_DATA_TYPE_FLOAT4 = 0,
 	IMAGE_DATA_TYPE_BYTE4 = 1,
 	IMAGE_DATA_TYPE_HALF4 = 2,
@@ -74,7 +74,7 @@ enum ImageDataType {
 	IMAGE_DATA_TYPE_HALF = 5,
 
 	IMAGE_DATA_NUM_TYPES
-};
+} ImageDataType;
 
 #define IMAGE_DATA_TYPE_SHIFT 3
 #define IMAGE_DATA_TYPE_MASK 0x7
@@ -82,7 +82,7 @@ enum ImageDataType {
 /* Extension types for textures.
  *
  * Defines how the image is extrapolated past its original bounds. */
-enum ExtensionType {
+typedef enum ExtensionType {
 	/* Cause the image to repeat horizontally and vertically. */
 	EXTENSION_REPEAT = 0,
 	/* Extend by repeating edge pixels of the image. */
@@ -91,7 +91,7 @@ enum ExtensionType {
 	EXTENSION_CLIP = 2,
 
 	EXTENSION_NUM_TYPES,
-};
+} ExtensionType;
 
 typedef struct TextureInfo {
 	/* Pointer, offset or texture depending on device. */
