@@ -144,7 +144,12 @@ float shadow_cascade(ShadowData sd, ShadowCascadeData scd, float texid, vec3 W)
 /* ----------------------------------------------------------- */
 #define MAX_MULTI_SHADOW 4
 
-float light_visibility(LightData ld, vec3 W, vec3 viewPosition, vec3 viewNormal, vec4 l_vector)
+float light_visibility(LightData ld, vec3 W,
+#ifndef VOLUMETRICS
+                       vec3 viewPosition,
+                       vec3 viewNormal,
+#endif
+                       vec4 l_vector)
 {
 	float vis = 1.0;
 
@@ -186,7 +191,6 @@ float light_visibility(LightData ld, vec3 W, vec3 viewPosition, vec3 viewNormal,
 					data.sh_tex_start, W);
 			// }
 		}
-#endif
 
 #ifndef VOLUMETRICS
 		/* Only compute if not already in shadow. */
@@ -215,6 +219,7 @@ float light_visibility(LightData ld, vec3 W, vec3 viewPosition, vec3 viewNormal,
 				return mix(0.0, vis, dist_ratio * dist_ratio * dist_ratio);
 			}
 		}
+#endif
 	}
 #endif
 
