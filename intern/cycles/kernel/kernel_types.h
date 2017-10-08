@@ -1262,6 +1262,7 @@ typedef struct KernelIntegrator {
 
 	/* branched path */
 	int branched;
+	int volume_decoupled;
 	int diffuse_samples;
 	int glossy_samples;
 	int transmission_samples;
@@ -1287,7 +1288,6 @@ typedef struct KernelIntegrator {
 	float light_inv_rr_threshold;
 
 	int start_sample;
-	int pad1;
 } KernelIntegrator;
 static_assert_align(KernelIntegrator, 16);
 

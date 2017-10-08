@@ -1026,6 +1026,9 @@ ccl_device bool kernel_volume_use_decoupled(KernelGlobals *kg, bool heterogeneou
 	/* decoupled ray marching for heterogeneous volumes not supported on the GPU,
 	 * which also means equiangular and multiple importance sampling is not
 	 * support for that case */
+	if(!kernel_data.integrator.volume_decoupled)
+		return false;
+
 #ifdef __KERNEL_GPU__
 	if(heterogeneous)
 		return false;

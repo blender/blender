@@ -282,7 +282,8 @@ public:
 	void pack_curves(Scene *scene, float4 *curve_key_co, float4 *curve_data, size_t curvekey_offset);
 	void pack_patches(uint *patch_data, uint vert_offset, uint face_offset, uint corner_offset);
 
-	void compute_bvh(DeviceScene *dscene,
+	void compute_bvh(Device *device,
+	                 DeviceScene *dscene,
 	                 SceneParams *params,
 	                 Progress *progress,
 	                 int n,

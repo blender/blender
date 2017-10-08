@@ -145,6 +145,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	kintegrator->sample_clamp_indirect = (sample_clamp_indirect == 0.0f)? FLT_MAX: sample_clamp_indirect*3.0f;
 
 	kintegrator->branched = (method == BRANCHED_PATH);
+	kintegrator->volume_decoupled = device->info.has_volume_decoupled;
 	kintegrator->diffuse_samples = diffuse_samples;
 	kintegrator->glossy_samples = glossy_samples;
 	kintegrator->transmission_samples = transmission_samples;

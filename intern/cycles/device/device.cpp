@@ -379,10 +379,14 @@ DeviceInfo Device::get_multi_device(vector<DeviceInfo> subdevices)
 	info.num = 0;
 
 	info.has_bindless_textures = true;
+	info.has_volume_decoupled = true;
+	info.has_qbvh = true;
 	foreach(DeviceInfo &device, subdevices) {
 		assert(device.type == info.multi_devices[0].type);
 
 		info.has_bindless_textures &= device.has_bindless_textures;
+		info.has_volume_decoupled &= device.has_volume_decoupled;
+		info.has_qbvh &= device.has_qbvh;
 	}
 
 	return info;
