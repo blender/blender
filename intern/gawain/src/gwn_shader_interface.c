@@ -26,16 +26,27 @@ static const char* BuiltinUniform_name(Gwn_UniformBuiltin u)
 		{
 		[GWN_UNIFORM_NONE] = NULL,
 
+		[GWN_UNIFORM_MODEL] = "ModelMatrix",
+		[GWN_UNIFORM_VIEW] = "ViewMatrix",
 		[GWN_UNIFORM_MODELVIEW] = "ModelViewMatrix",
 		[GWN_UNIFORM_PROJECTION] = "ProjectionMatrix",
+		[GWN_UNIFORM_VIEWPROJECTION] = "ViewProjectionMatrix",
 		[GWN_UNIFORM_MVP] = "ModelViewProjectionMatrix",
 
-		[GWN_UNIFORM_MODELVIEW_INV] = "ModelViewInverseMatrix",
-		[GWN_UNIFORM_PROJECTION_INV] = "ProjectionInverseMatrix",
+		[GWN_UNIFORM_MODEL_INV] = "ModelMatrixInverse",
+		[GWN_UNIFORM_VIEW_INV] = "ViewMatrixInverse",
+		[GWN_UNIFORM_MODELVIEW_INV] = "ModelViewMatrixInverse",
+		[GWN_UNIFORM_PROJECTION_INV] = "ProjectionMatrixInverse",
+		[GWN_UNIFORM_VIEWPROJECTION_INV] = "ViewProjectionMatrixInverse",
 
 		[GWN_UNIFORM_NORMAL] = "NormalMatrix",
+		[GWN_UNIFORM_WORLDNORMAL] = "WorldNormalMatrix",
+		[GWN_UNIFORM_CAMERATEXCO] = "CameraTexCoFactors",
+		[GWN_UNIFORM_ORCO] = "OrcoTexCoFactors",
+		[GWN_UNIFORM_CLIPPLANES] = "ClipPlanes",
 
 		[GWN_UNIFORM_COLOR] = "color",
+		[GWN_UNIFORM_EYE] = "eye",
 
 		[GWN_UNIFORM_CUSTOM] = NULL,
 		[GWN_NUM_UNIFORMS] = NULL,
@@ -135,16 +146,12 @@ GWN_INLINE void buckets_free(Gwn_ShaderInput* buckets[GWN_NUM_SHADERINTERFACE_BU
 		}
 	}
 
-// keep these in sync with Gwn_UniformBuiltin order
-#define FIRST_UNIFORM GWN_UNIFORM_MODELVIEW
-#define LAST_UNIFORM GWN_UNIFORM_COLOR
-
 static bool setup_builtin_uniform(Gwn_ShaderInput* input, const char* name)
 	{
 	// TODO: reject DOUBLE, IMAGE, ATOMIC_COUNTER gl_types
 
 	// detect built-in uniforms (name must match)
-	for (Gwn_UniformBuiltin u = FIRST_UNIFORM; u <= LAST_UNIFORM; ++u)
+	for (Gwn_UniformBuiltin u = GWN_UNIFORM_NONE + 1; u < GWN_UNIFORM_CUSTOM; ++u)
 		{
 		const char* builtin_name = BuiltinUniform_name(u);
 		if (match(name, builtin_name))

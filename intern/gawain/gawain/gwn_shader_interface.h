@@ -16,16 +16,27 @@
 typedef enum {
 	GWN_UNIFORM_NONE = 0, // uninitialized/unknown
 
+	GWN_UNIFORM_MODEL,      // mat4 ModelMatrix
+	GWN_UNIFORM_VIEW,       // mat4 ViewMatrix
 	GWN_UNIFORM_MODELVIEW,  // mat4 ModelViewMatrix
 	GWN_UNIFORM_PROJECTION, // mat4 ProjectionMatrix
+	GWN_UNIFORM_VIEWPROJECTION, // mat4 ViewProjectionMatrix
 	GWN_UNIFORM_MVP,        // mat4 ModelViewProjectionMatrix
 
-	GWN_UNIFORM_MODELVIEW_INV,  // mat4 ModelViewInverseMatrix
-	GWN_UNIFORM_PROJECTION_INV, // mat4 ProjectionInverseMatrix
+	GWN_UNIFORM_MODEL_INV,           // mat4 ModelMatrixInverse
+	GWN_UNIFORM_VIEW_INV,            // mat4 ViewMatrixInverse
+	GWN_UNIFORM_MODELVIEW_INV,       // mat4 ModelViewMatrixInverse
+	GWN_UNIFORM_PROJECTION_INV,      // mat4 ProjectionMatrixInverse
+	GWN_UNIFORM_VIEWPROJECTION_INV,  // mat4 ViewProjectionMatrixInverse
 
-	GWN_UNIFORM_NORMAL,     // mat3 NormalMatrix
+	GWN_UNIFORM_NORMAL,      // mat3 NormalMatrix
+	GWN_UNIFORM_WORLDNORMAL, // mat3 WorldNormalMatrix
+	GWN_UNIFORM_CAMERATEXCO, // vec4 CameraTexCoFactors
+	GWN_UNIFORM_ORCO,        // vec3 OrcoTexCoFactors[]
+	GWN_UNIFORM_CLIPPLANES,  // vec4 ClipPlanes[]
 
 	GWN_UNIFORM_COLOR, // vec4 color
+	GWN_UNIFORM_EYE, // vec3 eye
 
 	GWN_UNIFORM_CUSTOM, // custom uniform, not one of the above built-ins
 
