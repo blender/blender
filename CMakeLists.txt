@@ -758,6 +758,17 @@ if(WITH_INTERNATIONAL)
 endif()
 
 if(WITH_PYTHON)
+	# While we have this as an '#error' in bpy_util.h,
+	# upgrading Python tends to cause confusion for users who build.
+	# Give the error message early to make this more obvious.
+	#
+	# Do this before main 'platform_*' checks,
+	# because UNIX will search for the old Python paths which may not exist.
+	# giving errors about missing paths before this case is met.
+	if(DEFINED PYTHON_VERSION AND "${PYTHON_VERSION}" VERSION_LESS "3.6")
+		message(FATAL_ERROR "At least Python 3.6 is required to build")
+	endif()
+
 	if(NOT EXISTS "${CMAKE_SOURCE_DIR}/release/scripts/addons/modules")
 		message(WARNING
 			"Addons path '${CMAKE_SOURCE_DIR}/release/scripts/addons' is missing, "
@@ -1493,9 +1504,6 @@ endif()
 # with _any_ library but since we used a fixed python version this tends to
 # be most problematic.
 if(WITH_PYTHON)
-	if(${PYTHON_VERSION} VERSION_LESS "3.6")
-		message(FATAL_ERROR "Atleast Python 3.6 is required to build")
-	endif()
 	if(NOT EXISTS "${PYTHON_INCLUDE_DIR}/Python.h")
 		message(FATAL_ERROR
 			"Missing: \"${PYTHON_INCLUDE_DIR}/Python.h\",\n"
