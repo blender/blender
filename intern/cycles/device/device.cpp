@@ -324,14 +324,15 @@ vector<DeviceInfo>& Device::available_devices()
 {
 	if(need_devices_update) {
 		devices.clear();
-#ifdef WITH_CUDA
-		if(device_cuda_init())
-			device_cuda_info(devices);
-#endif
 
 #ifdef WITH_OPENCL
 		if(device_opencl_init())
 			device_opencl_info(devices);
+#endif
+
+#ifdef WITH_CUDA
+		if(device_cuda_init())
+			device_cuda_info(devices);
 #endif
 
 		device_cpu_info(devices);
@@ -350,17 +351,18 @@ string Device::device_capabilities()
 {
 	string capabilities = "CPU device capabilities: ";
 	capabilities += device_cpu_capabilities() + "\n";
-#ifdef WITH_CUDA
-	if(device_cuda_init()) {
-		capabilities += "\nCUDA device capabilities:\n";
-		capabilities += device_cuda_capabilities();
-	}
-#endif
 
 #ifdef WITH_OPENCL
 	if(device_opencl_init()) {
 		capabilities += "\nOpenCL device capabilities:\n";
 		capabilities += device_opencl_capabilities();
+	}
+#endif
+
+#ifdef WITH_CUDA
+	if(device_cuda_init()) {
+		capabilities += "\nCUDA device capabilities:\n";
+		capabilities += device_cuda_capabilities();
 	}
 #endif
 
