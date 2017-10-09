@@ -1232,7 +1232,7 @@ static int sequencer_snap_invoke(bContext *C, wmOperator *op, const wmEvent *UNU
 void SEQUENCER_OT_snap(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Snap Strips";
+	ot->name = "Snap Strips to Frame";
 	ot->idname = "SEQUENCER_OT_snap";
 	ot->description = "Frame where selected strips will be snapped";
 	
