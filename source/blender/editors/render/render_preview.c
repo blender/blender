@@ -308,12 +308,14 @@ static void set_preview_layer(SceneLayer *scene_layer, char pr_type)
 {
 	LayerCollection *lc;
 	const char *collection_name = preview_layer_name(pr_type);
+
 	for (lc = scene_layer->layer_collections.first; lc; lc = lc->next) {
 		if (STREQ(lc->scene_collection->name, collection_name)) {
-			lc->flag = COLLECTION_VISIBLE;
+			lc->flag = COLLECTION_VISIBLE | COLLECTION_DISABLED;
+			BKE_collection_enable(scene_layer, lc);
 		}
 		else {
-			lc->flag = COLLECTION_DISABLED;
+			BKE_collection_disable(scene_layer, lc);
 		}
 	}
 }
