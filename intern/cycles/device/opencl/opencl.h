@@ -545,15 +545,10 @@ private:
 	MemoryManager memory_manager;
 	friend class MemoryManager;
 
-	struct tex_info_t {
-		uint buffer, padding;
-		cl_ulong offset;
-		uint width, height, depth, options;
-	};
-	static_assert_align(tex_info_t, 16);
+	static_assert_align(TextureInfo, 16);
 
-	vector<tex_info_t> texture_descriptors;
-	device_memory texture_descriptors_buffer;
+	vector<TextureInfo> texture_info;
+	device_memory texture_info_buffer;
 
 	struct Texture {
 		Texture() {}

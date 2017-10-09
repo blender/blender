@@ -136,11 +136,11 @@ OpenCLDeviceBase::OpenCLDeviceBase(DeviceInfo& info, Stats &stats, bool backgrou
 		return;
 	}
 
-	/* Allocate this right away so that texture_descriptors_buffer is placed at offset 0 in the device memory buffers */
-	texture_descriptors.resize(1);
-	texture_descriptors_buffer.resize(1);
-	texture_descriptors_buffer.data_pointer = (device_ptr)&texture_descriptors[0];
-	memory_manager.alloc("texture_descriptors", texture_descriptors_buffer);
+	/* Allocate this right away so that texture_info_buffer is placed at offset 0 in the device memory buffers */
+	texture_info.resize(1);
+	texture_info_buffer.resize(1);
+	texture_info_buffer.data_pointer = (device_ptr)&texture_info[0];
+	memory_manager.alloc("texture_info", texture_info_buffer);
 
 	fprintf(stderr, "Device init success\n");
 	device_initialized = true;
@@ -625,7 +625,7 @@ void OpenCLDeviceBase::flush_texture_buffers()
 
 	vector<texture_slot_t> texture_slots;
 
-#define KERNEL_TEX(type, ttype, name) \
+#define KERNEL_TEX(type, name) \
 	if(textures.find(#name) != textures.end()) { \
 		texture_slots.push_back(texture_slot_t(#name, num_slots)); \
 	} \
@@ -647,55 +647,38 @@ void OpenCLDeviceBase::flush_texture_buffers()
 	}
 
 	/* Realloc texture descriptors buffer. */
-	memory_manager.free(texture_descriptors_buffer);
+	memory_manager.free(texture_info_buffer);
 
-	texture_descriptors.resize(num_slots);
-	texture_descriptors_buffer.resize(num_slots * sizeof(tex_info_t));
-	texture_descriptors_buffer.data_pointer = (device_ptr)&texture_descriptors[0];
+	texture_info.resize(num_slots);
+	texture_info_buffer.resize(num_slots * sizeof(TextureInfo));
+	texture_info_buffer.data_pointer = (device_ptr)&texture_info[0];
 
-	memory_manager.alloc("texture_descriptors", texture_descriptors_buffer);
+	memory_manager.alloc("texture_info", texture_info_buffer);
 
 	/* Fill in descriptors */
 	foreach(texture_slot_t& slot, texture_slots) {
 		Texture& tex = textures[slot.name];
 
-		tex_info_t& info = texture_descriptors[slot.slot];
+		TextureInfo& info = texture_info[slot.slot];
 
 		MemoryManager::BufferDescriptor desc = memory_manager.get_descriptor(slot.name);
 
-		info.offset = desc.offset;
-		info.buffer = desc.device_buffer;
+		info.data = desc.offset;
+		info.cl_buffer = desc.device_buffer;
 
 		if(string_startswith(slot.name, "__tex_image")) {
 			info.width = tex.mem->data_width;
 			info.height = tex.mem->data_height;
 			info.depth = tex.mem->data_depth;
 
-			info.options = 0;
-
-			if(tex.interpolation == INTERPOLATION_CLOSEST) {
-				info.options |= (1 << 0);
-			}
-
-			switch(tex.extension) {
-				case EXTENSION_REPEAT:
-					info.options |= (1 << 1);
-					break;
-				case EXTENSION_EXTEND:
-					info.options |= (1 << 2);
-					break;
-				case EXTENSION_CLIP:
-					info.options |= (1 << 3);
-					break;
-				default:
-					break;
-			}
+			info.interpolation = tex.interpolation;
+			info.extension = tex.extension;
 		}
 	}
 
 	/* Force write of descriptors. */
-	memory_manager.free(texture_descriptors_buffer);
-	memory_manager.alloc("texture_descriptors", texture_descriptors_buffer);
+	memory_manager.free(texture_info_buffer);
+	memory_manager.alloc("texture_info", texture_info_buffer);
 }
 
 void OpenCLDeviceBase::film_convert(DeviceTask& task, device_ptr buffer, device_ptr rgba_byte, device_ptr rgba_half)

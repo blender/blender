@@ -144,7 +144,7 @@
 
 /* data lookup defines */
 #define kernel_data (*kg->data)
-#define kernel_tex_fetch(tex, index) ((ccl_global tex##_t*)(kg->buffers[kg->tex.buffer] + kg->tex.offset))[(index)]
+#define kernel_tex_fetch(tex, index) ((const ccl_global tex##_t*)(kg->buffers[kg->tex.cl_buffer] + kg->tex.data))[(index)]
 
 /* define NULL */
 #define NULL 0

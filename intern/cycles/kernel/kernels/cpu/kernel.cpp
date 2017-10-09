@@ -84,130 +84,16 @@ void kernel_tex_copy(KernelGlobals *kg,
 	if(0) {
 	}
 
-#define KERNEL_TEX(type, ttype, tname) \
+#define KERNEL_TEX(type, tname) \
 	else if(strcmp(name, #tname) == 0) { \
 		kg->tname.data = (type*)mem; \
 		kg->tname.width = width; \
 	}
-#define KERNEL_IMAGE_TEX(type, ttype, tname)
+#define KERNEL_IMAGE_TEX(type, tname)
 #include "kernel/kernel_textures.h"
-
-	else if(strstr(name, "__tex_image_float4")) {
-		texture_image_float4 *tex = NULL;
-		int id = atoi(name + strlen("__tex_image_float4_"));
-		int array_index = kernel_tex_index(id);
-
-		if(array_index >= 0) {
-			if(array_index >= kg->texture_float4_images.size()) {
-				kg->texture_float4_images.resize(array_index+1);
-			}
-			tex = &kg->texture_float4_images[array_index];
-		}
-
-		if(tex) {
-			tex->data = (float4*)mem;
-			tex->dimensions_set(width, height, depth);
-			tex->interpolation = interpolation;
-			tex->extension = extension;
-		}
-	}
-	else if(strstr(name, "__tex_image_float")) {
-		texture_image_float *tex = NULL;
-		int id = atoi(name + strlen("__tex_image_float_"));
-		int array_index = kernel_tex_index(id);
-
-		if(array_index >= 0) {
-			if(array_index >= kg->texture_float_images.size()) {
-				kg->texture_float_images.resize(array_index+1);
-			}
-			tex = &kg->texture_float_images[array_index];
-		}
-
-		if(tex) {
-			tex->data = (float*)mem;
-			tex->dimensions_set(width, height, depth);
-			tex->interpolation = interpolation;
-			tex->extension = extension;
-		}
-	}
-	else if(strstr(name, "__tex_image_byte4")) {
-		texture_image_uchar4 *tex = NULL;
-		int id = atoi(name + strlen("__tex_image_byte4_"));
-		int array_index = kernel_tex_index(id);
-
-		if(array_index >= 0) {
-			if(array_index >= kg->texture_byte4_images.size()) {
-				kg->texture_byte4_images.resize(array_index+1);
-			}
-			tex = &kg->texture_byte4_images[array_index];
-		}
-
-		if(tex) {
-			tex->data = (uchar4*)mem;
-			tex->dimensions_set(width, height, depth);
-			tex->interpolation = interpolation;
-			tex->extension = extension;
-		}
-	}
-	else if(strstr(name, "__tex_image_byte")) {
-		texture_image_uchar *tex = NULL;
-		int id = atoi(name + strlen("__tex_image_byte_"));
-		int array_index = kernel_tex_index(id);
-
-		if(array_index >= 0) {
-			if(array_index >= kg->texture_byte_images.size()) {
-				kg->texture_byte_images.resize(array_index+1);
-			}
-			tex = &kg->texture_byte_images[array_index];
-		}
-
-		if(tex) {
-			tex->data = (uchar*)mem;
-			tex->dimensions_set(width, height, depth);
-			tex->interpolation = interpolation;
-			tex->extension = extension;
-		}
-	}
-	else if(strstr(name, "__tex_image_half4")) {
-		texture_image_half4 *tex = NULL;
-		int id = atoi(name + strlen("__tex_image_half4_"));
-		int array_index = kernel_tex_index(id);
-
-		if(array_index >= 0) {
-			if(array_index >= kg->texture_half4_images.size()) {
-				kg->texture_half4_images.resize(array_index+1);
-			}
-			tex = &kg->texture_half4_images[array_index];
-		}
-
-		if(tex) {
-			tex->data = (half4*)mem;
-			tex->dimensions_set(width, height, depth);
-			tex->interpolation = interpolation;
-			tex->extension = extension;
-		}
-	}
-	else if(strstr(name, "__tex_image_half")) {
-		texture_image_half *tex = NULL;
-		int id = atoi(name + strlen("__tex_image_half_"));
-		int array_index = kernel_tex_index(id);
-
-		if(array_index >= 0) {
-			if(array_index >= kg->texture_half_images.size()) {
-				kg->texture_half_images.resize(array_index+1);
-			}
-			tex = &kg->texture_half_images[array_index];
-		}
-
-		if(tex) {
-			tex->data = (half*)mem;
-			tex->dimensions_set(width, height, depth);
-			tex->interpolation = interpolation;
-			tex->extension = extension;
-		}
-	}
-	else
+	else {
 		assert(0);
+	}
 }
 
 CCL_NAMESPACE_END

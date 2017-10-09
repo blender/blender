@@ -42,29 +42,8 @@ ccl_device void svm_node_tex_voxel(KernelGlobals *kg,
 		tfm.w = read_node_float(kg, offset);
 		co = transform_point(&tfm, co);
 	}
-	float4 r;
-#  if defined(__KERNEL_CUDA__)
-#    if __CUDA_ARCH__ >= 300
-	CUtexObject tex = kernel_tex_fetch(__bindless_mapping, id);
-	const int texture_type = kernel_tex_type(id);
-	if(texture_type == IMAGE_DATA_TYPE_FLOAT4 ||
-	   texture_type == IMAGE_DATA_TYPE_BYTE4 ||
-	   texture_type == IMAGE_DATA_TYPE_HALF4)
-	{
-		r = kernel_tex_image_interp_3d_float4(tex, co.x, co.y, co.z);
-	}
-	else {
-		float f = kernel_tex_image_interp_3d_float(tex, co.x, co.y, co.z);
-		r = make_float4(f, f, f, 1.0f);
-	}
-#    else /* __CUDA_ARCH__ >= 300 */
-	r = volume_image_texture_3d(id, co.x, co.y, co.z);
-#    endif
-#  elif defined(__KERNEL_OPENCL__)
-	r = kernel_tex_image_interp_3d(kg, id, co.x, co.y, co.z);
-#  else
-	r = kernel_tex_image_interp_3d(id, co.x, co.y, co.z);
-#  endif /* __KERNEL_CUDA__ */
+
+	float4 r = kernel_tex_image_interp_3d(kg, id, co.x, co.y, co.z, INTERPOLATION_NONE);
 #else
 	float4 r = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 #endif

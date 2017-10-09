@@ -163,6 +163,9 @@ public:
 	TaskPool task_pool;
 	KernelGlobals kernel_globals;
 
+	device_vector<TextureInfo> texture_info;
+	bool need_texture_info;
+
 #ifdef WITH_OSL
 	OSLGlobals osl_globals;
 #endif
@@ -235,6 +238,8 @@ public:
 			VLOG(1) << "Will be using split kernel.";
 		}
 
+		need_texture_info = false;
+
 #define REGISTER_SPLIT_KERNEL(name) split_kernels[#name] = KernelFunctions<void(*)(KernelGlobals*, KernelData*)>(KERNEL_FUNCTIONS(name))
 		REGISTER_SPLIT_KERNEL(path_init);
 		REGISTER_SPLIT_KERNEL(scene_intersect);
@@ -261,11 +266,21 @@ public:
 	~CPUDevice()
 	{
 		task_pool.stop();
+		tex_free(texture_info);
 	}
 
 	virtual bool show_samples() const
 	{
 		return (TaskScheduler::num_threads() == 1);
+	}
+
+	void load_texture_info()
+	{
+		if(need_texture_info) {
+			tex_free(texture_info);
+			tex_alloc("__texture_info", texture_info, INTERPOLATION_NONE, EXTENSION_REPEAT);
+			need_texture_info = false;
+		}
 	}
 
 	void mem_alloc(const char *name, device_memory& mem, MemoryType /*type*/)
@@ -333,14 +348,47 @@ public:
 		VLOG(1) << "Texture allocate: " << name << ", "
 		        << string_human_readable_number(mem.memory_size()) << " bytes. ("
 		        << string_human_readable_size(mem.memory_size()) << ")";
-		kernel_tex_copy(&kernel_globals,
-		                name,
-		                mem.data_pointer,
-		                mem.data_width,
-		                mem.data_height,
-		                mem.data_depth,
-		                interpolation,
-		                extension);
+
+		if(interpolation == INTERPOLATION_NONE) {
+			/* Data texture. */
+			kernel_tex_copy(&kernel_globals,
+							name,
+							mem.data_pointer,
+							mem.data_width,
+							mem.data_height,
+							mem.data_depth,
+							interpolation,
+							extension);
+		}
+		else {
+			/* Image Texture. */
+			int flat_slot = 0;
+			if(string_startswith(name, "__tex_image")) {
+				int pos =  string(name).rfind("_");
+				flat_slot = atoi(name + pos + 1);
+			}
+			else {
+				assert(0);
+			}
+
+			if(flat_slot >= texture_info.size()) {
+				/* Allocate some slots in advance, to reduce amount
+				 * of re-allocations. */
+				texture_info.resize(flat_slot + 128);
+			}
+
+			TextureInfo& info = texture_info.get_data()[flat_slot];
+			info.data = (uint64_t)mem.data_pointer;
+			info.cl_buffer = 0;
+			info.interpolation = interpolation;
+			info.extension = extension;
+			info.width = mem.data_width;
+			info.height = mem.data_height;
+			info.depth = mem.data_depth;
+
+			need_texture_info = true;
+		}
+
 		mem.device_pointer = mem.data_pointer;
 		mem.device_size = mem.memory_size();
 		stats.mem_alloc(mem.device_size);
@@ -352,6 +400,7 @@ public:
 			mem.device_pointer = 0;
 			stats.mem_free(mem.device_size);
 			mem.device_size = 0;
+			need_texture_info = true;
 		}
 	}
 
@@ -784,6 +833,9 @@ public:
 
 	void task_add(DeviceTask& task)
 	{
+		/* Load texture info. */
+		load_texture_info();
+
 		/* split task into smaller ones */
 		list<DeviceTask> tasks;
 

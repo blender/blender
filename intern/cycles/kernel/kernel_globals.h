@@ -46,14 +46,7 @@ struct Intersection;
 struct VolumeStep;
 
 typedef struct KernelGlobals {
-	vector<texture_image_float4> texture_float4_images;
-	vector<texture_image_uchar4> texture_byte4_images;
-	vector<texture_image_half4> texture_half4_images;
-	vector<texture_image_float> texture_float_images;
-	vector<texture_image_uchar> texture_byte_images;
-	vector<texture_image_half> texture_half_images;
-
-#  define KERNEL_TEX(type, ttype, name) ttype name;
+#  define KERNEL_TEX(type, name) texture<type> name;
 #  define KERNEL_IMAGE_TEX(type, ttype, name)
 #  include "kernel/kernel_textures.h"
 
@@ -99,11 +92,7 @@ typedef struct KernelGlobals {
 	Intersection hits_stack[64];
 } KernelGlobals;
 
-#  ifdef __KERNEL_CUDA_TEX_STORAGE__
-#    define KERNEL_TEX(type, ttype, name) ttype name;
-#  else
-#    define KERNEL_TEX(type, ttype, name) const __constant__ __device__ type *name;
-#  endif
+#  define KERNEL_TEX(type, name) const __constant__ __device__ type *name;
 #  define KERNEL_IMAGE_TEX(type, ttype, name) ttype name;
 #  include "kernel/kernel_textures.h"
 
@@ -113,22 +102,16 @@ typedef struct KernelGlobals {
 
 #ifdef __KERNEL_OPENCL__
 
-#  define KERNEL_TEX(type, ttype, name) \
+#  define KERNEL_TEX(type, name) \
 typedef type name##_t;
 #  include "kernel/kernel_textures.h"
-
-typedef struct tex_info_t {
-	uint buffer, padding;
-	uint64_t offset;
-	uint width, height, depth, options;
-} tex_info_t;
 
 typedef ccl_addr_space struct KernelGlobals {
 	ccl_constant KernelData *data;
 	ccl_global char *buffers[8];
 
-#  define KERNEL_TEX(type, ttype, name) \
-	tex_info_t name;
+#  define KERNEL_TEX(type, name) \
+	TextureInfo name;
 #  include "kernel/kernel_textures.h"
 
 #  ifdef __SPLIT_KERNEL__
@@ -176,9 +159,9 @@ ccl_device_inline void kernel_set_buffer_info(KernelGlobals *kg)
 	if(ccl_local_id(0) + ccl_local_id(1) == 0)
 #  endif
 	{
-		ccl_global tex_info_t *info = (ccl_global tex_info_t*)kg->buffers[0];
+		ccl_global TextureInfo *info = (ccl_global TextureInfo*)kg->buffers[0];
 
-#  define KERNEL_TEX(type, ttype, name) \
+#  define KERNEL_TEX(type, name) \
 		kg->name = *(info++);
 #  include "kernel/kernel_textures.h"
 	}

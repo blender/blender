@@ -101,52 +101,6 @@ ccl_device_inline size_t round_down(size_t x, size_t multiple)
 	return (x / multiple) * multiple;
 }
 
-/* Interpolation types for textures
- * cuda also use texture space to store other objects */
-enum InterpolationType {
-	INTERPOLATION_NONE = -1,
-	INTERPOLATION_LINEAR = 0,
-	INTERPOLATION_CLOSEST = 1,
-	INTERPOLATION_CUBIC = 2,
-	INTERPOLATION_SMART = 3,
-
-	INTERPOLATION_NUM_TYPES,
-};
-
-/* Texture types
- * Since we store the type in the lower bits of a flat index,
- * the shift and bit mask constant below need to be kept in sync.
- */
-
-enum ImageDataType {
-	IMAGE_DATA_TYPE_FLOAT4 = 0,
-	IMAGE_DATA_TYPE_BYTE4 = 1,
-	IMAGE_DATA_TYPE_HALF4 = 2,
-	IMAGE_DATA_TYPE_FLOAT = 3,
-	IMAGE_DATA_TYPE_BYTE = 4,
-	IMAGE_DATA_TYPE_HALF = 5,
-
-	IMAGE_DATA_NUM_TYPES
-};
-
-#define IMAGE_DATA_TYPE_SHIFT 3
-#define IMAGE_DATA_TYPE_MASK 0x7
-
-/* Extension types for textures.
- *
- * Defines how the image is extrapolated past its original bounds.
- */
-enum ExtensionType {
-	/* Cause the image to repeat horizontally and vertically. */
-	EXTENSION_REPEAT = 0,
-	/* Extend by repeating edge pixels of the image. */
-	EXTENSION_EXTEND = 1,
-	/* Clip to image size and set exterior pixels as transparent. */
-	EXTENSION_CLIP = 2,
-
-	EXTENSION_NUM_TYPES,
-};
-
 CCL_NAMESPACE_END
 
 /* Vectorized types declaration. */
