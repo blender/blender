@@ -120,6 +120,10 @@ typedef struct RegionView3D {
 
 	/* transform manipulator matrix */
 	float twmat[4][4];
+	/* min/max dot product on twmat xyz axis. */
+	float tw_axis_min[3], tw_axis_max[3];
+	float tw_axis_matrix[3][3];
+	char _pad[4];
 
 	float viewquat[4];			/* view rotation, must be kept normalized */
 	float dist;					/* distance from 'ofs' along -viewinv[2] vector, where result is negative as is 'ofs' */

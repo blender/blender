@@ -86,7 +86,8 @@
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 
-// #define USE_AXIS_BOUNDS
+#define USE_AXIS_BOUNDS
+#define USE_CAGE3D
 
 /* return codes for select, and drawing flags */
 
@@ -155,6 +156,10 @@ typedef struct ManipulatorGroup {
 	bool all_hidden;
 
 	struct wmManipulator *manipulators[MAN_AXIS_LAST];
+
+#ifdef USE_CAGE3D
+	struct wmManipulator *cage;
+#endif
 } ManipulatorGroup;
 
 struct TransformBounds {
@@ -600,8 +605,13 @@ static int calc_manipulator_stats(const bContext *C, struct TransformBounds *tbo
 	/* transform widget matrix */
 	unit_m4(rv3d->twmat);
 
-	rv3d->twdrawflag = 0xFFFF;
+#ifdef USE_AXIS_BOUNDS
+	unit_m3(rv3d->tw_axis_matrix);
+	zero_v3(rv3d->tw_axis_min);
+	zero_v3(rv3d->tw_axis_max);
+#endif
 
+	rv3d->twdrawflag = 0xFFFF;
 
 	/* global, local or normal orientation?
 	 * if we could check 'totsel' now, this should be skipped with no selection. */
@@ -678,6 +688,15 @@ static int calc_manipulator_stats(const bContext *C, struct TransformBounds *tbo
 
 #ifdef USE_AXIS_BOUNDS
 	copy_m3_m4(tbounds->axis, rv3d->twmat);
+	if (ob && ob->mode & OB_MODE_EDIT) {
+		float diff_mat[3][3];
+		copy_m3_m4(diff_mat, ob->obmat);
+		normalize_m3(diff_mat);
+		invert_m3(diff_mat);
+		mul_m3_m3m3(tbounds->axis, tbounds->axis, diff_mat);
+		normalize_m3(tbounds->axis);
+	}
+
 	for (int i = 0; i < 3; i++) {
 		tbounds->axis_min[i] = +FLT_MAX;
 		tbounds->axis_max[i] = -FLT_MAX;
@@ -1003,6 +1022,13 @@ static int calc_manipulator_stats(const bContext *C, struct TransformBounds *tbo
 	if (totsel == 0) {
 		unit_m4(rv3d->twmat);
 	}
+	else {
+#ifdef USE_AXIS_BOUNDS
+		copy_v3_v3(rv3d->tw_axis_min, tbounds->axis_min);
+		copy_v3_v3(rv3d->tw_axis_max, tbounds->axis_max);
+		copy_m3_m3(rv3d->tw_axis_matrix, tbounds->axis);
+#endif
+	}
 
 	return totsel;
 }
@@ -1135,6 +1161,17 @@ static ManipulatorGroup *manipulatorgroup_init(wmManipulatorGroup *mgroup)
 	MANIPULATOR_NEW_PRIM(MAN_AXIS_TRANS_XY, ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE);
 	MANIPULATOR_NEW_PRIM(MAN_AXIS_TRANS_YZ, ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE);
 	MANIPULATOR_NEW_PRIM(MAN_AXIS_TRANS_ZX, ED_MANIPULATOR_PRIMITIVE_STYLE_PLANE);
+
+#ifdef USE_CAGE3D
+	{
+		const wmManipulatorType *wt_cage = WM_manipulatortype_find("MANIPULATOR_WT_cage_3d", true);
+		man->cage = WM_manipulator_new_ptr(wt_cage, mgroup, NULL);
+
+		RNA_enum_set(man->cage->ptr, "transform",
+		             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE |
+		             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE);
+	}
+#endif
 
 	return man;
 }
@@ -1277,6 +1314,34 @@ static void WIDGETGROUP_manipulator_setup(const bContext *UNUSED(C), wmManipulat
 		RNA_boolean_set(ptr, "release_confirm", 1);
 	}
 	MAN_ITER_AXES_END;
+
+#ifdef USE_CAGE3D
+	{
+		wmOperatorType *ot_resize = WM_operatortype_find("TRANSFORM_OT_resize", true);
+		PointerRNA *ptr;
+
+		/* assign operator */
+		PropertyRNA *prop_release_confirm = NULL;
+		PropertyRNA *prop_constraint_axis = NULL;
+
+		int i = ED_MANIPULATOR_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z;
+		for (int x = 0; x < 3; x++) {
+			for (int y = 0; y < 3; y++) {
+				for (int z = 0; z < 3; z++) {
+					int constraint[3] = {x != 1, y != 1, z != 1};
+					ptr = WM_manipulator_operator_set(man->cage, i, ot_resize, NULL);
+					if (prop_release_confirm == NULL) {
+						prop_release_confirm = RNA_struct_find_property(ptr, "release_confirm");
+						prop_constraint_axis = RNA_struct_find_property(ptr, "constraint_axis");
+					}
+					RNA_property_boolean_set(ptr, prop_release_confirm, true);
+					RNA_property_boolean_set_array(ptr, prop_constraint_axis, constraint);
+					i++;
+				}
+			}
+		}
+	}
+#endif
 }
 
 static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGroup *mgroup)
@@ -1342,6 +1407,47 @@ static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGrou
 		}
 	}
 	MAN_ITER_AXES_END;
+
+#ifdef USE_CAGE3D
+	if (((v3d->twtype & V3D_MANIP_SCALE) == 0) ||
+	    equals_v3v3(rv3d->tw_axis_min, rv3d->tw_axis_max))
+	{
+		WM_manipulator_set_flag(man->cage, WM_MANIPULATOR_HIDDEN, true);
+	}
+	else {
+		WM_manipulator_set_flag(man->cage, WM_MANIPULATOR_HIDDEN, false);
+
+		float dims[3];
+		sub_v3_v3v3(dims, rv3d->tw_axis_max, rv3d->tw_axis_min);
+		RNA_float_set_array(man->cage->ptr, "dimensions", dims);
+		mul_v3_fl(dims, 0.5f);
+
+		copy_m4_m3(man->cage->matrix_offset, rv3d->tw_axis_matrix);
+		mid_v3_v3v3(man->cage->matrix_offset[3], rv3d->tw_axis_max, rv3d->tw_axis_min);
+		mul_m3_v3(rv3d->tw_axis_matrix, man->cage->matrix_offset[3]);
+
+		PropertyRNA *prop_center_override = NULL;
+		float center[3];
+		float center_global[3];
+		int i = ED_MANIPULATOR_CAGE3D_PART_SCALE_MIN_X_MIN_Y_MIN_Z;
+		for (int x = 0; x < 3; x++) {
+			center[0] = (float)(1 - x) * dims[0];
+			for (int y = 0; y < 3; y++) {
+				center[1] = (float)(1 - y) * dims[1];
+				for (int z = 0; z < 3; z++) {
+					center[2] = (float)(1 - z) * dims[2];
+					struct wmManipulatorOpElem *mpop = WM_manipulator_operator_get(man->cage, i);
+					if (prop_center_override == NULL) {
+						prop_center_override = RNA_struct_find_property(&mpop->ptr, "center_override");
+					}
+					mul_v3_m4v3(center_global, man->cage->matrix_offset, center);
+					RNA_property_float_set_array(&mpop->ptr, prop_center_override, center_global);
+					i++;
+				}
+			}
+		}
+	}
+#endif
 }
 
 static void WIDGETGROUP_manipulator_draw_prepare(const bContext *C, wmManipulatorGroup *mgroup)
@@ -1394,6 +1500,19 @@ static void WIDGETGROUP_manipulator_draw_prepare(const bContext *C, wmManipulato
 		}
 	}
 	MAN_ITER_AXES_END;
+
+#ifdef USE_CAGE3D
+	{
+		SceneLayer *sl = CTX_data_scene_layer(C);
+		Object *ob = OBACT_NEW(sl);
+		if (ob && ob->mode & OB_MODE_EDIT) {
+			copy_m4_m4(man->cage->matrix_space, ob->obmat);
+		}
+		else {
+			unit_m4(man->cage->matrix_space);
+		}
+	}
+#endif
 }
 
 static bool WIDGETGROUP_manipulator_poll(const struct bContext *C, struct wmManipulatorGroupType *UNUSED(wgt))

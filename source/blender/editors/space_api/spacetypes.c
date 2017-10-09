@@ -133,6 +133,7 @@ void ED_spacetypes_init(void)
 	ED_manipulatortypes_arrow_3d();
 	ED_manipulatortypes_primitive_3d();
 	ED_manipulatortypes_cage_2d();
+	ED_manipulatortypes_cage_3d();
 
 	/* register types for operators and manipulators */
 	spacetypes = BKE_spacetypes_list();
