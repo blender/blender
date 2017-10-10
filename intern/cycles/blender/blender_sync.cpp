@@ -573,8 +573,7 @@ array<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
 
 	PointerRNA crp = RNA_pointer_get(&b_srlay.ptr, "cycles");
 	if(get_boolean(crp, "denoising_store_passes") &&
-	   get_boolean(crp, "use_denoising") &&
-	   !session_params.progressive_refine) {
+	   get_boolean(crp, "use_denoising")) {
 		b_engine.add_pass("Denoising Normal",          3, "XYZ", b_srlay.name().c_str());
 		b_engine.add_pass("Denoising Normal Variance", 3, "XYZ", b_srlay.name().c_str());
 		b_engine.add_pass("Denoising Albedo",          3, "RGB", b_srlay.name().c_str());
@@ -676,8 +675,9 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 	params.experimental = (get_enum(cscene, "feature_set") != 0);
 
 	/* threads */
-	if(b_scene.render().threads_mode() == BL::RenderSettings::threads_mode_FIXED)
-		params.threads = b_scene.render().threads();
+	BL::RenderSettings b_r = b_scene.render();
+	if(b_r.threads_mode() == BL::RenderSettings::threads_mode_FIXED)
+		params.threads = b_r.threads();
 	else
 		params.threads = 0;
 
@@ -819,11 +819,24 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 	params.start_resolution = get_int(cscene, "preview_start_resolution");
 	params.pixel_size = b_engine.get_preview_pixel_size(b_scene);
 
+	/* other parameters */
 	params.cancel_timeout = (double)get_float(cscene, "debug_cancel_timeout");
 	params.reset_timeout = (double)get_float(cscene, "debug_reset_timeout");
 	params.text_timeout = (double)get_float(cscene, "debug_text_timeout");
 
-	params.progressive_refine = get_boolean(cscene, "use_progressive_refine");
+	/* progressive refine */
+	params.progressive_refine = get_boolean(cscene, "use_progressive_refine") &&
+	                            !b_r.use_save_buffers();
+
+	if(params.progressive_refine) {
+		BL::RenderSettings::layers_iterator b_rlay;
+		for(b_r.layers.begin(b_rlay); b_rlay != b_r.layers.end(); ++b_rlay) {
+			PointerRNA crl = RNA_pointer_get(&b_rlay->ptr, "cycles");
+			if(get_boolean(crl, "use_denoising")) {
+				params.progressive_refine = false;
+			}
+		}
+	}
 
 	if(background) {
 		if(params.progressive_refine)

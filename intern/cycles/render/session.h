@@ -221,8 +221,6 @@ protected:
 	double last_update_time;
 	bool update_progressive_refine(bool cancel);
 
-	vector<RenderTile> render_tiles;
-
 	DeviceRequestedFeatures get_requested_device_features();
 
 	/* ** Split kernel routines ** */
