@@ -309,78 +309,29 @@ static uint vpaint_blend(
 	return color_blend;
 }
 
-
-/* whats _dl mean? */
-static float calc_vp_strength_col_dl(
+static void tex_color_alpha(
         VPaint *vp, const ViewContext *vc, const float co[3],
-        const float mval[2], const float brush_size_pressure, float rgba[4])
+        float r_rgba[4])
 {
-	float co_ss[2];  /* screenspace */
-
-	if (ED_view3d_project_float_object(
-	        vc->ar,
-	        co, co_ss,
-	        V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
-	{
-		const float dist_sq = len_squared_v2v2(mval, co_ss);
-
-		if (dist_sq <= SQUARE(brush_size_pressure)) {
-			Brush *brush = BKE_paint_brush(&vp->paint);
-			const float dist = sqrtf(dist_sq);
-			float factor;
-
-			if (brush->mtex.tex && rgba) {
-				if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) {
-					BKE_brush_sample_tex_3D(vc->scene, brush, co, rgba, 0, NULL);
-				}
-				else {
-					const float co_ss_3d[3] = {co_ss[0], co_ss[1], 0.0f};  /* we need a 3rd empty value */
-					BKE_brush_sample_tex_3D(vc->scene, brush, co_ss_3d, rgba, 0, NULL);
-				}
-				factor = rgba[3];
-			}
-			else {
-				factor = 1.0f;
-			}
-			return factor * BKE_brush_curve_strength_clamped(brush, dist, brush_size_pressure);
+	const Brush *brush = BKE_paint_brush(&vp->paint);
+	BLI_assert(brush->mtex.tex != NULL);
+	if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) {
+		BKE_brush_sample_tex_3D(vc->scene, brush, co, r_rgba, 0, NULL);
+	}
+	else {
+		float co_ss[2];  /* screenspace */
+		if (ED_view3d_project_float_object(
+		        vc->ar,
+		        co, co_ss,
+		        V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
+		{
+			const float co_ss_3d[3] = {co_ss[0], co_ss[1], 0.0f};  /* we need a 3rd empty value */
+			BKE_brush_sample_tex_3D(vc->scene, brush, co_ss_3d, r_rgba, 0, NULL);
+		}
+		else {
+			zero_v4(r_rgba);
 		}
 	}
-	if (rgba)
-		zero_v4(rgba);
-	return 0.0f;
-}
-
-static float calc_vp_alpha_col_dl(
-        VPaint *vp, const ViewContext *vc,
-        float vpimat[3][3], const DMCoNo *v_co_no,
-        const float mval[2],
-        const float brush_size_pressure, const float brush_alpha_pressure, float rgba[4])
-{
-	float strength = calc_vp_strength_col_dl(vp, vc, v_co_no->co, mval, brush_size_pressure, rgba);
-
-	if (strength > 0.0f) {
-		float alpha = brush_alpha_pressure * strength;
-
-		if ((vp->paint.brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0) {
-			float dvec[3];
-
-			/* transpose ! */
-			dvec[2] = dot_v3v3(vpimat[2], v_co_no->no);
-			if (dvec[2] > 0.0f) {
-				dvec[0] = dot_v3v3(vpimat[0], v_co_no->no);
-				dvec[1] = dot_v3v3(vpimat[1], v_co_no->no);
-
-				alpha *= dvec[2] / len_v3(dvec);
-			}
-			else {
-				return 0.0f;
-			}
-		}
-
-		return alpha;
-	}
-
-	return 0.0f;
 }
 
 /* vpaint has 'vpaint_blend' */
@@ -1188,8 +1139,6 @@ struct WPaintData {
 
 	struct WeightPaintGroupData active, mirror;
 
-	float wpimat[3][3];
-
 	/* variables for auto normalize */
 	const bool *vgroup_validmap; /* stores if vgroups tie to deforming bones or not */
 	const bool *lock_flags;
@@ -1330,8 +1279,6 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 	SculptSession *ss = ob->sculpt;
 	VPaint *vp = CTX_data_tool_settings(C)->wpaint;
 
-	float mat[4][4], imat[4][4];
-
 	if (ED_wpaint_ensure_data(C, op->reports, WPAINT_ENSURE_MIRROR, &vgroup_index) == false) {
 		return false;
 	}
@@ -1432,11 +1379,6 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 	if (ELEM(vp->paint.brush->vertexpaint_tool, PAINT_BLEND_SMEAR, PAINT_BLEND_BLUR)) {
 		wpd->precomputed_weight = MEM_mallocN(sizeof(float) * me->totvert, __func__);
 	}
-
-	/* imat for normals */
-	mul_m4_m4m4(mat, wpd->vc.rv3d->viewmat, ob->obmat);
-	invert_m4_m4(imat, mat);
-	copy_m3_m4(wpd->wpimat, imat);
 
 	/* If not previously created, create vertex/weight paint mode session data */
 	vertex_paint_init_session(scene, ob);
@@ -2343,8 +2285,6 @@ struct VPaintData {
 	struct VertProjHandle *vp_handle;
 	struct DMCoNo *vertexcosnos;
 
-	float vpimat[3][3];
-
 	/* modify 'me->mcol' directly, since the derived mesh is drawing from this
 	 * array, otherwise we need to refresh the modifier stack */
 	bool use_fast_update;
@@ -2372,7 +2312,6 @@ static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const f
 	struct VPaintData *vpd;
 	Object *ob = CTX_data_active_object(C);
 	Mesh *me;
-	float mat[4][4], imat[4][4];
 	SculptSession *ss = ob->sculpt;
 
 	/* context checks could be a poll() */
@@ -2424,11 +2363,6 @@ static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const f
 		vpd->vp_handle = ED_vpaint_proj_handle_create(scene, ob, &vpd->vertexcosnos);
 		ob->sculpt->building_vp_handle = false;
 	}
-
-	/* some old cruft to sort out later */
-	mul_m4_m4m4(mat, vpd->vc.rv3d->viewmat, ob->obmat);
-	invert_m4_m4(imat, mat);
-	copy_m3_m4(vpd->vpimat, imat);
 
 	/* If not previously created, create vertex/weight paint mode session data */
 	vertex_paint_init_session(scene, ob);
@@ -2491,21 +2425,17 @@ static void do_vpaint_brush_calc_average_color_cb_ex(
 	BKE_pbvh_vertex_iter_end;
 }
 
-static void handle_texture_brush(
-        SculptThreadedTaskData *data, const int v_index, float size_pressure, float alpha_pressure,
-        float *r_alpha, uint *r_color)
+static float tex_color_alpha_ubyte(
+        SculptThreadedTaskData *data, const float v_co[3],
+        uint *r_color)
 {
-	SculptSession *ss = data->ob->sculpt;
-
 	float rgba[4];
 	float rgba_br[3];
-
-	*r_alpha = calc_vp_alpha_col_dl(
-	        data->vp, &data->vpd->vc, data->vpd->vpimat,
-	        &data->vpd->vertexcosnos[v_index], ss->cache->mouse, size_pressure, alpha_pressure, rgba);
+	tex_color_alpha(data->vp, &data->vpd->vc, v_co, rgba);
 	rgb_uchar_to_float(rgba_br, (const uchar *)&data->vpd->paintcol);
 	mul_v3_v3(rgba_br, rgba);
 	rgb_float_to_uchar((uchar *)r_color, rgba_br);
+	return rgba[3];
 }
 
 static void do_vpaint_brush_draw_task_cb_ex(
@@ -2563,9 +2493,10 @@ static void do_vpaint_brush_draw_task_cb_ex(
 					/* If we're painting with a texture, sample the texture color and alpha. */
 					float tex_alpha = 1.0;
 					if (data->vpd->is_texbrush) {
-						handle_texture_brush(
-						        data, v_index, brush_size_pressure, brush_alpha_pressure,
-						        &tex_alpha, &color_final);
+						/* Note: we may want to paint alpha as vertex color alpha. */
+						tex_alpha = tex_color_alpha_ubyte(
+						        data, data->vpd->vertexcosnos[v_index].co,
+						        &color_final);
 					}
 					/* For each poly owning this vert, paint each loop belonging to this vert. */
 					for (int j = 0; j < gmap->vert_to_poly[v_index].count; j++) {
