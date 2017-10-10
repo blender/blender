@@ -2355,7 +2355,7 @@ struct VPaintData {
 
 	bool is_texbrush;
 
-	/* Special storage for smear brush, avoid feedback loop - update each step and swap. */
+	/* Special storage for smear brush, avoid feedback loop - update each step. */
 	struct {
 		uint *color_prev;
 		uint *color_curr;
@@ -3009,7 +3009,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	swap_m4m4(vc->rv3d->persmat, mat);
 
 	if (vp->paint.brush->vertexpaint_tool == PAINT_BLEND_SMEAR) {
-		SWAP(uint *, vpd->smear.color_curr, vpd->smear.color_prev);
+		memcpy(vpd->smear.color_prev, vpd->smear.color_curr, sizeof(uint) * ((Mesh *)ob->data)->totloop);
 	}
 
 	/* calculate pivot for rotation around seletion if needed */
