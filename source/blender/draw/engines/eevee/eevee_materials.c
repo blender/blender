@@ -1008,7 +1008,9 @@ static void material_opaque(
 				*shgrp_depth_clip = DRW_shgroup_material_create(*gpumat_depth, (do_cull) ? psl->depth_pass_clip_cull : psl->depth_pass_clip);
 			}
 
-			if (*shgrp != NULL) {
+			if (*shgrp_depth != NULL) {
+				add_standard_uniforms(*shgrp_depth, sldata, vedata, NULL, NULL, false);
+
 				if (ma->blend_method == MA_BM_CLIP) {
 					DRW_shgroup_uniform_float(*shgrp_depth, "alphaThreshold", &ma->alpha_threshold, 1);
 					DRW_shgroup_uniform_float(*shgrp_depth_clip, "alphaThreshold", &ma->alpha_threshold, 1);
