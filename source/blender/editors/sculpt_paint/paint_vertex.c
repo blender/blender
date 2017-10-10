@@ -2492,12 +2492,10 @@ static void do_vpaint_brush_calc_average_color_cb_ex(
 }
 
 static void handle_texture_brush(
-        SculptThreadedTaskData *data, PBVHVertexIter vd, float size_pressure, float alpha_pressure,
+        SculptThreadedTaskData *data, const int v_index, float size_pressure, float alpha_pressure,
         float *r_alpha, uint *r_color)
 {
 	SculptSession *ss = data->ob->sculpt;
-	CCGDerivedMesh *ccgdm = BKE_pbvh_get_ccgdm(ss->pbvh);
-	const int v_index = ccgdm ? data->me->mloop[vd.grid_indices[vd.g]].v : vd.vert_indices[vd.i];
 
 	float rgba[4];
 	float rgba_br[3];
@@ -2566,7 +2564,7 @@ static void do_vpaint_brush_draw_task_cb_ex(
 					float tex_alpha = 1.0;
 					if (data->vpd->is_texbrush) {
 						handle_texture_brush(
-						        data, vd, brush_size_pressure, brush_alpha_pressure,
+						        data, v_index, brush_size_pressure, brush_alpha_pressure,
 						        &tex_alpha, &color_final);
 					}
 					/* For each poly owning this vert, paint each loop belonging to this vert. */
@@ -3034,6 +3032,10 @@ static void vpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 	struct VPaintData *vpd = paint_stroke_mode_data(stroke);
 	ViewContext *vc = &vpd->vc;
 	Object *ob = vc->obact;
+
+	if (vpd->is_texbrush) {
+		ED_vpaint_proj_handle_free(vpd->vp_handle);
+	}
 
 	if (vpd->mlooptag)
 		MEM_freeN(vpd->mlooptag);
