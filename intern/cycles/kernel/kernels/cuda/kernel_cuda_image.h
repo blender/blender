@@ -293,7 +293,7 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals *kg, int id, float x, fl
 	return r;
 }
 
-ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float x, float y, float z)
+ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float x, float y, float z, InterpolationType interp)
 {
 	float4 r;
 	switch(id) {
