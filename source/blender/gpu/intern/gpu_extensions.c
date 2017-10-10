@@ -178,6 +178,13 @@ void gpu_extensions_init(void)
 		GG.device = GPU_DEVICE_ATI;
 		GG.driver = GPU_DRIVER_OFFICIAL;
 	}
+	/* XXX : TODO : Remove this once this sampling mipmap problem is gone.
+	 * https://github.com/dfelinto/opengl-sandbox/blob/downsample/README.md */
+	else if (strstr(renderer, "AMD VEGA") ||
+	         strstr(vendor, "X.Org")) {
+		GG.device = GPU_DEVICE_AMD_VEGA;
+		GG.driver = GPU_DRIVER_OPENSOURCE;
+	}
 	else if (strstr(vendor, "NVIDIA")) {
 		GG.device = GPU_DEVICE_NVIDIA;
 		GG.driver = GPU_DRIVER_OFFICIAL;
