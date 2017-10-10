@@ -830,6 +830,11 @@ void EEVEE_lightprobes_cache_finish(EEVEE_SceneLayerData *sldata, EEVEE_Data *ve
 		}
 	}
 
+	if (pinfo->num_render_grid > pinfo->num_grid) {
+		/* This can happen when deleting a probe. */
+		pinfo->num_render_grid = pinfo->num_grid;
+	}
+
 	EEVEE_lightprobes_updates(sldata, vedata->psl, vedata->stl);
 	EEVEE_planar_reflections_updates(sldata, vedata->stl);
 
