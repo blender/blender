@@ -599,7 +599,7 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 	/* Only allocate if at least one effect is activated */
 	if (effects->enabled_effects != 0) {
 		/* Ping Pong buffer */
-		DRWFboTexture tex = {&txl->color_post, DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
+		DRWFboTexture tex = {&txl->color_post, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
 
 		DRW_framebuffer_init(&fbl->effect_fb, &draw_engine_eevee_type,
 		                    (int)viewport_size[0], (int)viewport_size[1],
@@ -853,7 +853,7 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 
 	/* Setup double buffer so we can access last frame as it was before post processes */
 	if ((effects->enabled_effects & EFFECT_DOUBLE_BUFFER) != 0) {
-		DRWFboTexture tex_double_buffer = {&txl->color_double_buffer, DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
+		DRWFboTexture tex_double_buffer = {&txl->color_double_buffer, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
 
 		DRW_framebuffer_init(&fbl->double_buffer, &draw_engine_eevee_type,
 		                    (int)viewport_size[0], (int)viewport_size[1],

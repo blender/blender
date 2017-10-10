@@ -58,7 +58,7 @@ static void EEVEE_engine_init(void *ved)
 	stl->g_data->background_alpha = 1.0f;
 	stl->g_data->valid_double_buffer = (txl->color_double_buffer != NULL);
 
-	DRWFboTexture tex = {&txl->color, DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
+	DRWFboTexture tex = {&txl->color, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
 
 	const float *viewport_size = DRW_viewport_size_get();
 	DRW_framebuffer_init(&fbl->main, &draw_engine_eevee_type,
