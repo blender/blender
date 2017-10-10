@@ -321,6 +321,8 @@ typedef struct EEVEE_LightProbesInfo {
 	int update_flag;
 	int updated_bounce;
 	int num_bounce;
+	int cubemap_res;
+	int target_size;
 	int grid_initialized;
 	/* Actual number of probes that have datas. */
 	int num_render_cube;

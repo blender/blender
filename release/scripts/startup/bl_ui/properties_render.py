@@ -822,6 +822,7 @@ class RENDER_PT_eevee_indirect_lighting(RenderButtonsPanel, Panel):
 
         col = layout.column()
         col.prop(props, "gi_diffuse_bounces")
+        col.prop(props, "gi_cubemap_resolution")
 
 
 classes = (

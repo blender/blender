@@ -45,9 +45,6 @@
 #include "eevee_engine.h"
 #include "eevee_private.h"
 
-/* TODO Option */
-#define PROBE_RT_SIZE 512 /* Cube render target */
-#define PROBE_OCTAHEDRON_SIZE 1024
 #define IRRADIANCE_POOL_SIZE 1024
 
 static struct {
@@ -287,6 +284,20 @@ void EEVEE_lightprobes_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *UNUSED(ved
 	}
 	sldata->probes->num_bounce = prop_bounce_num;
 
+	int prop_cubemap_res = BKE_collection_engine_property_value_get_int(props, "gi_cubemap_resolution");
+	if (sldata->probes->cubemap_res != prop_cubemap_res) {
+		sldata->probes->cubemap_res = prop_cubemap_res;
+
+		e_data.update_world |= PROBE_UPDATE_ALL;
+		sldata->probes->updated_bounce = 0;
+		sldata->probes->grid_initialized = false;
+
+		sldata->probes->target_size = prop_cubemap_res >> 1;
+
+		DRW_TEXTURE_FREE_SAFE(sldata->probe_rt);
+		DRW_TEXTURE_FREE_SAFE(sldata->probe_pool);
+	}
+
 	/* Setup Render Target Cubemap */
 
 	/* We do this detach / attach dance to not generate an invalid framebuffer (mixed cubemap / 2D map) */
@@ -296,10 +307,10 @@ void EEVEE_lightprobes_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *UNUSED(ved
 	}
 
 	DRWFboTexture tex_probe = {&e_data.cube_face_depth, DRW_TEX_DEPTH_24, DRW_TEX_TEMP};
-	DRW_framebuffer_init(&sldata->probe_fb, &draw_engine_eevee_type, PROBE_RT_SIZE, PROBE_RT_SIZE, &tex_probe, 1);
+	DRW_framebuffer_init(&sldata->probe_fb, &draw_engine_eevee_type, sldata->probes->target_size, sldata->probes->target_size, &tex_probe, 1);
 
 	if (!sldata->probe_rt) {
-		sldata->probe_rt = DRW_texture_create_cube(PROBE_RT_SIZE, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
+		sldata->probe_rt = DRW_texture_create_cube(sldata->probes->target_size, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
 	}
 
 	if (sldata->probe_rt) {
@@ -778,7 +789,7 @@ void EEVEE_lightprobes_cache_finish(EEVEE_SceneLayerData *sldata, EEVEE_Data *ve
 	DRW_shgroup_set_instance_count(stl->g_data->planar_downsample, pinfo->num_planar);
 
 	if (!sldata->probe_pool) {
-		sldata->probe_pool = DRW_texture_create_2D_array(PROBE_OCTAHEDRON_SIZE, PROBE_OCTAHEDRON_SIZE, max_ff(1, pinfo->num_cube),
+		sldata->probe_pool = DRW_texture_create_2D_array(pinfo->cubemap_res, pinfo->cubemap_res, max_ff(1, pinfo->num_cube),
 		                                                 DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
 		if (sldata->probe_filter_fb) {
 			DRW_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->probe_pool, 0, 0);
@@ -800,7 +811,7 @@ void EEVEE_lightprobes_cache_finish(EEVEE_SceneLayerData *sldata, EEVEE_Data *ve
 
 	DRWFboTexture tex_filter = {&sldata->probe_pool, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
 
-	DRW_framebuffer_init(&sldata->probe_filter_fb, &draw_engine_eevee_type, PROBE_OCTAHEDRON_SIZE, PROBE_OCTAHEDRON_SIZE, &tex_filter, 1);
+	DRW_framebuffer_init(&sldata->probe_filter_fb, &draw_engine_eevee_type, pinfo->cubemap_res, pinfo->cubemap_res, &tex_filter, 1);
 
 
 #ifdef IRRADIANCE_SH_L2
@@ -867,7 +878,7 @@ static void glossy_filter_probe(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 
 	/* Max lod used from the render target probe */
-	pinfo->lod_rt_max = floorf(log2f(PROBE_RT_SIZE)) - 2.0f;
+	pinfo->lod_rt_max = floorf(log2f(pinfo->target_size)) - 2.0f;
 
 	/* 2 - Let gpu create Mipmaps for Filtered Importance Sampling. */
 	/* Bind next framebuffer to be able to gen. mips for probe_rt. */
@@ -877,8 +888,8 @@ static void glossy_filter_probe(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata
 	/* 3 - Render to probe array to the specified layer, do prefiltering. */
 	/* Detach to rebind the right mipmap. */
 	DRW_framebuffer_texture_detach(sldata->probe_pool);
-	float mipsize = PROBE_OCTAHEDRON_SIZE;
-	const int maxlevel = (int)floorf(log2f(PROBE_OCTAHEDRON_SIZE));
+	float mipsize = pinfo->cubemap_res;
+	const int maxlevel = (int)floorf(log2f(pinfo->cubemap_res));
 	const int min_lod_level = 3;
 	for (int i = 0; i < maxlevel - min_lod_level; i++) {
 		float bias = (i == 0) ? -1.0f : 1.0f;
@@ -917,7 +928,7 @@ static void glossy_filter_probe(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata
 #endif
 
 		pinfo->invsamples_ct = 1.0f / pinfo->samples_ct;
-		pinfo->lodfactor = bias + 0.5f * log((float)(PROBE_RT_SIZE * PROBE_RT_SIZE) * pinfo->invsamples_ct) / log(2);
+		pinfo->lodfactor = bias + 0.5f * log((float)(pinfo->target_size * pinfo->target_size) * pinfo->invsamples_ct) / log(2);
 
 		DRW_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->probe_pool, 0, i);
 		DRW_framebuffer_viewport_size(sldata->probe_filter_fb, 0, 0, mipsize, mipsize);
@@ -959,8 +970,8 @@ static void diffuse_filter_probe(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedat
 	/* Tweaking parameters to balance perf. vs precision */
 	const float bias = 0.0f;
 	pinfo->invsamples_ct = 1.0f / pinfo->samples_ct;
-	pinfo->lodfactor = bias + 0.5f * log((float)(PROBE_RT_SIZE * PROBE_RT_SIZE) * pinfo->invsamples_ct) / log(2);
-	pinfo->lod_rt_max = floorf(log2f(PROBE_RT_SIZE)) - 2.0f;
+	pinfo->lodfactor = bias + 0.5f * log((float)(pinfo->target_size * pinfo->target_size) * pinfo->invsamples_ct) / log(2);
+	pinfo->lod_rt_max = floorf(log2f(pinfo->target_size)) - 2.0f;
 #else
 	pinfo->shres = 32; /* Less texture fetches & reduce branches */
 	pinfo->lod_rt_max = 2.0f; /* Improve cache reuse */
@@ -1049,7 +1060,7 @@ static void render_scene_to_probe(
 		EEVEE_draw_shadows(sldata, psl);
 
 		DRW_framebuffer_cubeface_attach(sldata->probe_fb, sldata->probe_rt, 0, i, 0);
-		DRW_framebuffer_viewport_size(sldata->probe_fb, 0, 0, PROBE_RT_SIZE, PROBE_RT_SIZE);
+		DRW_framebuffer_viewport_size(sldata->probe_fb, 0, 0, pinfo->target_size, pinfo->target_size);
 
 		DRW_framebuffer_clear(false, true, false, NULL, 1.0);
 
@@ -1081,8 +1092,8 @@ static void render_scene_to_probe(
 	DRW_viewport_matrix_override_unset(DRW_MAT_WININV);
 
 	/* Restore */
-	sldata->probes->specular_toggle = true;
-	sldata->probes->ssr_toggle = true;
+	pinfo->specular_toggle = true;
+	pinfo->ssr_toggle = true;
 	txl->planar_pool = tmp_planar_pool;
 	stl->g_data->minzbuffer = tmp_minz;
 	txl->maxzbuffer = tmp_maxz;
@@ -1193,7 +1204,7 @@ static void render_world_to_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *
 		float viewinv[4][4], persinv[4][4];
 
 		DRW_framebuffer_cubeface_attach(sldata->probe_fb, sldata->probe_rt, 0, i, 0);
-		DRW_framebuffer_viewport_size(sldata->probe_fb, 0, 0, PROBE_RT_SIZE, PROBE_RT_SIZE);
+		DRW_framebuffer_viewport_size(sldata->probe_fb, 0, 0, pinfo->target_size, pinfo->target_size);
 
 		/* Setup custom matrices */
 		copy_m4_m4(viewmat, cubefacemat[i]);
