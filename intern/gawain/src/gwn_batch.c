@@ -396,6 +396,10 @@ void GWN_batch_draw_stupid_instanced(Gwn_Batch* batch, unsigned int instance_vbo
 	else
 		glDrawArraysInstanced(batch->gl_prim_type, 0, batch->verts[0]->vertex_ct, instance_count);
 
+	// Reset divisor to prevent messing the next draw
+	for (unsigned a_idx = 0; a_idx < GWN_VERT_ATTR_MAX_LEN; ++a_idx)
+		glVertexAttribDivisor(a_idx, 0);
+
 	// GWN_batch_program_use_end(batch);
 	glBindVertexArray(0);
 	}
@@ -465,6 +469,10 @@ void GWN_batch_draw_stupid_instanced_with_batch(Gwn_Batch* batch_instanced, Gwn_
 		}
 	else
 		glDrawArraysInstanced(batch_instanced->gl_prim_type, 0, batch_instanced->verts[0]->vertex_ct, verts->vertex_ct);
+
+	// Reset divisor to prevent messing the next draw
+	for (unsigned a_idx = 0; a_idx < GWN_VERT_ATTR_MAX_LEN; ++a_idx)
+		glVertexAttribDivisor(a_idx, 0);
 
 	// GWN_batch_program_use_end(batch);
 	glBindVertexArray(0);
