@@ -982,6 +982,8 @@ public:
 
 	/* ideally we could beter detect this, but we can't query this now */
 	bool has_spatial_varying() { return true; }
+	bool has_volume_support() { return true; }
+
 	virtual bool equals(const ShaderNode& /*other*/) { return false; }
 
 	string filepath;
