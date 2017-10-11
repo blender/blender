@@ -1025,7 +1025,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	ViewContext vc;
 	view3d_set_viewcontext(C, &vc);
 
-	if (vc.rv3d->rflag & RV3D_NAVIGATING) {
+	if (vc.rv3d && (vc.rv3d->rflag & RV3D_NAVIGATING)) {
 		return;
 	}
 

@@ -56,8 +56,7 @@ public:
 	            BL::Scene& b_scene,
 	            Scene *scene,
 	            bool preview,
-	            Progress &progress,
-	            bool is_cpu);
+	            Progress &progress);
 	~BlenderSync();
 
 	/* sync */
@@ -85,8 +84,7 @@ public:
 
 	/* get parameters */
 	static SceneParams get_scene_params(BL::Scene& b_scene,
-	                                    bool background,
-	                                    bool is_cpu);
+	                                    bool background);
 	static SessionParams get_session_params(BL::RenderEngine& b_engine,
 	                                        BL::UserPreferences& b_userpref,
 	                                        BL::Scene& b_scene,
@@ -182,7 +180,6 @@ private:
 	Scene *scene;
 	bool preview;
 	bool experimental;
-	bool is_cpu;
 
 	float dicing_rate;
 	int max_subdivisions;

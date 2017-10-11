@@ -1313,9 +1313,14 @@ public:
 		CUdeviceptr d_work_tiles = cuda_device_ptr(work_tiles.device_pointer);
 
 		/* Prepare work size. More step samples render faster, but for now we
-		 * remain conservative to avoid driver timeouts. */
+		 * remain conservative for GPUs connected to a display to avoid driver
+		 * timeouts and display freezing. */
 		int min_blocks, num_threads_per_block;
 		cuda_assert(cuOccupancyMaxPotentialBlockSize(&min_blocks, &num_threads_per_block, cuPathTrace, NULL, 0, 0));
+		if(!info.display_device) {
+			min_blocks *= 8;
+		}
+
 		uint step_samples = divide_up(min_blocks * num_threads_per_block, wtile->w * wtile->h);;
 
 		/* Render all samples. */
@@ -2130,7 +2135,6 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 
 	for(int num = 0; num < count; num++) {
 		char name[256];
-		int attr;
 
 		if(cuDeviceGetName(name, 256, num) != CUDA_SUCCESS)
 			continue;
@@ -2149,6 +2153,8 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 
 		info.advanced_shading = (major >= 2);
 		info.has_bindless_textures = (major >= 3);
+		info.has_volume_decoupled = false;
+		info.has_qbvh = false;
 
 		int pci_location[3] = {0, 0, 0};
 		cuDeviceGetAttribute(&pci_location[0], CU_DEVICE_ATTRIBUTE_PCI_DOMAIN_ID, num);
@@ -2160,14 +2166,21 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 		                        (unsigned int)pci_location[1],
 		                        (unsigned int)pci_location[2]);
 
-		/* if device has a kernel timeout, assume it is used for display */
-		if(cuDeviceGetAttribute(&attr, CU_DEVICE_ATTRIBUTE_KERNEL_EXEC_TIMEOUT, num) == CUDA_SUCCESS && attr == 1) {
+		/* If device has a kernel timeout and no compute preemption, we assume
+		 * it is connected to a display and will freeze the display while doing
+		 * computations. */
+		int timeout_attr = 0, preempt_attr = 0;
+		cuDeviceGetAttribute(&timeout_attr, CU_DEVICE_ATTRIBUTE_KERNEL_EXEC_TIMEOUT, num);
+		cuDeviceGetAttribute(&preempt_attr, CU_DEVICE_ATTRIBUTE_COMPUTE_PREEMPTION_SUPPORTED, num);
+
+		if(timeout_attr && !preempt_attr) {
 			info.description += " (Display)";
 			info.display_device = true;
 			display_devices.push_back(info);
 		}
-		else
+		else {
 			devices.push_back(info);
+		}
 	}
 
 	if(!display_devices.empty())

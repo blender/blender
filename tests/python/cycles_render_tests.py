@@ -43,7 +43,8 @@ def print_message(message, type=None, status=''):
         status_text = "  FAILED  "
     else:
         status_text = status
-    print("[{}]" . format(status_text), end="")
+    if status_text:
+        print("[{}]" . format(status_text), end="")
     print(COLORS.ENDC, end="")
     print(" {}" . format(message))
     sys.stdout.flush()

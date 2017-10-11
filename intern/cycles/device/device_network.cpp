@@ -343,7 +343,11 @@ void device_network_info(vector<DeviceInfo>& devices)
 	info.description = "Network Device";
 	info.id = "NETWORK";
 	info.num = 0;
-	info.advanced_shading = true; /* todo: get this info from device */
+
+	/* todo: get this info from device */
+	info.advanced_shading = true;
+	info.has_volume_decoupled = false;
+	info.has_qbvh = false;
 
 	devices.push_back(info);
 }

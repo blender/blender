@@ -35,6 +35,7 @@ CCL_NAMESPACE_BEGIN
 
 bool Device::need_types_update = true;
 bool Device::need_devices_update = true;
+thread_mutex Device::device_mutex;
 vector<DeviceType> Device::types;
 vector<DeviceInfo> Device::devices;
 
@@ -443,53 +444,49 @@ string Device::string_from_type(DeviceType type)
 
 vector<DeviceType>& Device::available_types()
 {
+	thread_scoped_lock lock(device_mutex);
 	if(need_types_update) {
 		types.clear();
 		types.push_back(DEVICE_CPU);
-
 #ifdef WITH_CUDA
-		if(device_cuda_init())
+		if(device_cuda_init()) {
 			types.push_back(DEVICE_CUDA);
+		}
 #endif
-
 #ifdef WITH_OPENCL
-		if(device_opencl_init())
+		if(device_opencl_init()) {
 			types.push_back(DEVICE_OPENCL);
+		}
 #endif
-
 #ifdef WITH_NETWORK
 		types.push_back(DEVICE_NETWORK);
 #endif
-
 		need_types_update = false;
 	}
-
 	return types;
 }
 
 vector<DeviceInfo>& Device::available_devices()
 {
+	thread_scoped_lock lock(device_mutex);
 	if(need_devices_update) {
 		devices.clear();
-#ifdef WITH_CUDA
-		if(device_cuda_init())
-			device_cuda_info(devices);
-#endif
-
 #ifdef WITH_OPENCL
-		if(device_opencl_init())
+		if(device_opencl_init()) {
 			device_opencl_info(devices);
+		}
 #endif
-
+#ifdef WITH_CUDA
+		if(device_cuda_init()) {
+			device_cuda_info(devices);
+		}
+#endif
 		device_cpu_info(devices);
-
 #ifdef WITH_NETWORK
 		device_network_info(devices);
 #endif
-
 		need_devices_update = false;
 	}
-
 	return devices;
 }
 
@@ -497,17 +494,18 @@ string Device::device_capabilities()
 {
 	string capabilities = "CPU device capabilities: ";
 	capabilities += device_cpu_capabilities() + "\n";
-#ifdef WITH_CUDA
-	if(device_cuda_init()) {
-		capabilities += "\nCUDA device capabilities:\n";
-		capabilities += device_cuda_capabilities();
-	}
-#endif
 
 #ifdef WITH_OPENCL
 	if(device_opencl_init()) {
 		capabilities += "\nOpenCL device capabilities:\n";
 		capabilities += device_opencl_capabilities();
+	}
+#endif
+
+#ifdef WITH_CUDA
+	if(device_cuda_init()) {
+		capabilities += "\nCUDA device capabilities:\n";
+		capabilities += device_cuda_capabilities();
 	}
 #endif
 
@@ -526,10 +524,14 @@ DeviceInfo Device::get_multi_device(vector<DeviceInfo> subdevices)
 	info.num = 0;
 
 	info.has_bindless_textures = true;
+	info.has_volume_decoupled = true;
+	info.has_qbvh = true;
 	foreach(DeviceInfo &device, subdevices) {
 		assert(device.type == info.multi_devices[0].type);
 
 		info.has_bindless_textures &= device.has_bindless_textures;
+		info.has_volume_decoupled &= device.has_volume_decoupled;
+		info.has_qbvh &= device.has_qbvh;
 	}
 
 	return info;
