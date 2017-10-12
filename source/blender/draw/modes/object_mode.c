@@ -224,7 +224,6 @@ static struct {
 	float camera_pos[3];
 	float screenvecs[3][4];
 	float grid_settings[5];
-	float grid_mat[4][4];
 	int grid_flag;
 	float grid_normal[3];
 	float grid_axes[3];
@@ -352,7 +351,7 @@ static void OBJECT_engine_init(void *vedata)
 		Scene *scene = draw_ctx->scene;
 		RegionView3D *rv3d = draw_ctx->rv3d;
 		float grid_scale = ED_view3d_grid_scale(scene, v3d, NULL);
-		float grid_res, offs;
+		float grid_res;
 
 		const bool show_axis_x = (v3d->gridflag & V3D_SHOW_X) != 0;
 		const bool show_axis_y = (v3d->gridflag & V3D_SHOW_Y) != 0;
@@ -385,10 +384,6 @@ static void OBJECT_engine_init(void *vedata)
 			fov = angle_v3v3(viewvecs[0], viewvecs[1]) / 2.0f;
 			grid_res = fabsf(tanf(fov)) / grid_scale;
 
-			/* Grid matrix polygon offset (fix depth fighting) */
-			/* see ED_view3d_polygon_offset */
-			offs = winmat[3][2] * -0.0025f;
-
 			e_data.grid_flag = (1 << 4); /* XY plane */
 			if (show_axis_x)
 				e_data.grid_flag |= SHOW_AXIS_X;
@@ -402,9 +397,6 @@ static void OBJECT_engine_init(void *vedata)
 			float viewdist = 1.0f / max_ff(fabsf(winmat[0][0]), fabsf(winmat[1][1]));
 			grid_res = viewdist / grid_scale;
 
-			/* Grid matrix polygon offset (fix depth fighting) */
-			/* see ED_view3d_polygon_offset */
-			offs = 0.00001f * viewdist;
 			if (ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT)) {
 				e_data.grid_flag = PLANE_YZ;
 				e_data.grid_flag |= SHOW_AXIS_Y;
@@ -508,9 +500,6 @@ static void OBJECT_engine_init(void *vedata)
 		else {
 			e_data.zneg_flag = e_data.zpos_flag = CLIP_ZNEG | CLIP_ZPOS;
 		}
-
-		winmat[3][2] -= offs;
-		mul_m4_m4m4(e_data.grid_mat, winmat, viewmat);
 
 		float dist = (rv3d->persp == RV3D_CAMOB && v3d->camera)
 		             ? ((Camera *)v3d->camera)->clipend : v3d->far;
@@ -796,7 +785,7 @@ static void OBJECT_cache_init(void *vedata)
 
 	{
 		/* Grid pass */
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND;
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND;
 		psl->grid = DRW_pass_create("Infinite Grid Pass", state);
 
 		struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
@@ -808,13 +797,13 @@ static void OBJECT_cache_init(void *vedata)
 		DRW_shgroup_uniform_int(grp, "gridFlag", &e_data.zneg_flag, 1);
 		DRW_shgroup_uniform_vec3(grp, "planeNormal", e_data.zplane_normal, 1);
 		DRW_shgroup_uniform_vec3(grp, "planeAxes", e_data.zplane_axes, 1);
-		DRW_shgroup_uniform_mat4(grp, "ViewProjectionOffsetMatrix", (float *)e_data.grid_mat);
 		DRW_shgroup_uniform_vec3(grp, "cameraPos", e_data.camera_pos, 1);
 		DRW_shgroup_uniform_vec4(grp, "screenvecs[0]", e_data.screenvecs[0], 3);
 		DRW_shgroup_uniform_vec4(grp, "gridSettings", e_data.grid_settings, 1);
 		DRW_shgroup_uniform_float(grp, "gridOneOverLogSubdiv", &e_data.grid_settings[4], 1);
 		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
 		DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
+		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth);
 		DRW_shgroup_call_add(grp, quad, mat);
 
 		grp = DRW_shgroup_create(e_data.grid_sh, psl->grid);
@@ -822,6 +811,7 @@ static void OBJECT_cache_init(void *vedata)
 		DRW_shgroup_uniform_vec3(grp, "planeNormal", e_data.grid_normal, 1);
 		DRW_shgroup_uniform_vec3(grp, "planeAxes", e_data.grid_axes, 1);
 		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
+		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth);
 		DRW_shgroup_call_add(grp, quad, mat);
 
 		grp = DRW_shgroup_create(e_data.grid_sh, psl->grid);
@@ -829,6 +819,7 @@ static void OBJECT_cache_init(void *vedata)
 		DRW_shgroup_uniform_vec3(grp, "planeNormal", e_data.zplane_normal, 1);
 		DRW_shgroup_uniform_vec3(grp, "planeAxes", e_data.zplane_axes, 1);
 		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
+		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth);
 		DRW_shgroup_call_add(grp, quad, mat);
 	}
 
@@ -1887,6 +1878,8 @@ static void OBJECT_draw_scene(void *vedata)
 	OBJECT_StorageList *stl = ((OBJECT_Data *)vedata)->stl;
 	OBJECT_FramebufferList *fbl = ((OBJECT_Data *)vedata)->fbl;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+
 	float clearcol[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	if (DRW_state_is_fbo()) {
@@ -1944,9 +1937,11 @@ static void OBJECT_draw_scene(void *vedata)
 
 	DRW_draw_pass(psl->ob_center);
 
-	if (!DRW_state_is_select()) {
+	if (DRW_state_is_fbo()) {
 		if (e_data.draw_grid) {
+			DRW_framebuffer_texture_detach(dtxl->depth);
 			DRW_draw_pass(psl->grid);
+			DRW_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0, 0);
 		}
 
 		/* Combine with scene buffer last */

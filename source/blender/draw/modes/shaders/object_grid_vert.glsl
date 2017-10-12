@@ -2,7 +2,7 @@
 /* Infinite grid
  * Clément Foucault */
 
-uniform mat4 ViewProjectionOffsetMatrix;
+uniform mat4 ViewProjectionMatrix;
 uniform mat4 ProjectionMatrix;
 uniform vec3 cameraPos;
 uniform vec4 gridSettings;
@@ -59,5 +59,5 @@ void main()
 		realPos.z = min(-realPos.z, 0.0);
 	}
 
-	gl_Position = ViewProjectionOffsetMatrix * vec4(realPos, 1.0);
+	gl_Position = ViewProjectionMatrix * vec4(realPos, 1.0);
 }
