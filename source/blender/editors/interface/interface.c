@@ -366,10 +366,10 @@ static void ui_block_bounds_calc_centered_pie(uiBlock *block)
 
 static void ui_block_bounds_calc_popup(
         wmWindow *window, uiBlock *block,
-        eBlockBoundsCalc bounds_calc, const int xy[2])
+        eBlockBoundsCalc bounds_calc, const int xy[2], int r_xy[2])
 {
 	int width, height, oldwidth, oldheight;
-	int oldbounds, xmax, ymax;
+	int oldbounds, xmax, ymax, raw_x, raw_y;
 	const int margin = UI_SCREEN_MARGIN;
 	rcti rect, rect_bounds;
 	int ofs_dummy[2];
@@ -407,8 +407,8 @@ static void ui_block_bounds_calc_popup(
 
 	/* offset block based on mouse position, user offset is scaled
 	 * along in case we resized the block in ui_block_bounds_calc_text */
-	rect.xmin = xy[0] + block->rect.xmin + (block->mx * width) / oldwidth;
-	rect.ymin = xy[1] + block->rect.ymin + (block->my * height) / oldheight;
+	raw_x = rect.xmin = xy[0] + block->rect.xmin + (block->mx * width) / oldwidth;
+	raw_y = rect.ymin = xy[1] + block->rect.ymin + (block->my * height) / oldheight;
 	rect.xmax = rect.xmin + width;
 	rect.ymax = rect.ymin + height;
 
@@ -422,6 +422,13 @@ static void ui_block_bounds_calc_popup(
 
 	/* now recompute bounds and safety */
 	ui_block_bounds_calc(block);
+
+	/* If given, adjust input coordinates such that they would generate real final popup position.
+	 * Needed to handle correctly floating panels once they have been dragged around, see T52999. */
+	if (r_xy) {
+		r_xy[0] = xy[0] + block->rect.xmin - raw_x;
+		r_xy[1] = xy[1] + block->rect.ymin - raw_y;
+	}
 }
 
 /* used for various cases */
@@ -1231,7 +1238,7 @@ void UI_block_update_from_old(const bContext *C, uiBlock *block)
 	block->oldblock = NULL;
 }
 
-void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2])
+void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2], int r_xy[2])
 {
 	wmWindow *window = CTX_wm_window(C);
 	Scene *scene = CTX_data_scene(C);
@@ -1299,7 +1306,7 @@ void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2])
 			/* fallback */
 		case UI_BLOCK_BOUNDS_POPUP_MOUSE:
 		case UI_BLOCK_BOUNDS_POPUP_MENU:
-			ui_block_bounds_calc_popup(window, block, block->bounds_type, xy);
+			ui_block_bounds_calc_popup(window, block, block->bounds_type, xy, r_xy);
 			break;
 	}
 
@@ -1317,7 +1324,7 @@ void UI_block_end(const bContext *C, uiBlock *block)
 {
 	wmWindow *window = CTX_wm_window(C);
 
-	UI_block_end_ex(C, block, &window->eventstate->x);
+	UI_block_end_ex(C, block, &window->eventstate->x, NULL);
 }
 
 /* ************** BLOCK DRAWING FUNCTION ************* */
