@@ -33,7 +33,7 @@ vec4 screen_space_refraction(vec3 viewPosition, vec3 N, vec3 V, float ior, float
 
 	R = transform_direction(ViewMatrix, R);
 
-	vec3 hit_pos = raycast(-1, viewPosition, R * 1e16, ssrThickness, jitter, ssrQuality, roughnessSquared);
+	vec3 hit_pos = raycast(-1, viewPosition, R * 1e16, ssrThickness, jitter, ssrQuality, roughnessSquared, false);
 
 	if ((hit_pos.z > 0.0) && (F_eta(ior, dot(H, V)) < 1.0)) {
 		hit_pos = get_view_space_from_depth(hit_pos.xy, hit_pos.z);

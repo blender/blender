@@ -118,7 +118,9 @@ void prepare_raycast(vec3 ray_origin, vec3 ray_end, float thickness, out vec4 ss
 // #define GROUPED_FETCHES /* is still slower, need to see where is the bottleneck. */
 /* Return the hit position, and negate the z component (making it positive) if not hit occured. */
 /* __ray_end__ is the ray direction premultiplied by it's maximum length */
-vec3 raycast(int index, vec3 ray_origin, vec3 ray_end, float thickness, float ray_jitter, float trace_quality, float roughness)
+vec3 raycast(
+        int index, vec3 ray_origin, vec3 ray_end, float thickness, float ray_jitter,
+        float trace_quality, float roughness, const bool discard_backface)
 {
 	vec4 ss_step, ss_start;
 	float max_time;
@@ -199,8 +201,10 @@ vec3 raycast(int index, vec3 ray_origin, vec3 ray_end, float thickness, float ra
 #endif
 	}
 
-	/* Discard backface hits */
-	hit = hit && (prev_delta > 0.0);
+	if (discard_backface) {
+		/* Discard backface hits */
+		hit = hit && (prev_delta > 0.0);
+	}
 
 	/* Reject hit if background. */
 	hit = hit && (depth_sample != 1.0);
