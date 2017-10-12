@@ -502,6 +502,16 @@ Attribute *AttributeSet::find(AttributeRequest& req)
 		return find(req.std);
 }
 
+void AttributeSet::remove(Attribute *attribute)
+{
+	if(attribute->std == ATTR_STD_NONE) {
+		remove(attribute->name);
+	}
+	else {
+		remove(attribute->std);
+	}
+}
+
 void AttributeSet::resize(bool reserve_only)
 {
 	foreach(Attribute& attr, attributes) {

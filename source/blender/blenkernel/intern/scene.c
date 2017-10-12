@@ -420,7 +420,7 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 		ListBase rl, rv;
 
 		sce_copy = BKE_scene_add(bmain, sce->id.name + 2);
-		
+
 		rl = sce_copy->r.layers;
 		rv = sce_copy->r.views;
 		curvemapping_free_data(&sce_copy->r.mblur_shutter_curve);
@@ -517,6 +517,8 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 	}
 	else {
 		BKE_id_copy_ex(bmain, (ID *)sce, (ID **)&sce_copy, LIB_ID_COPY_ACTIONS, false);
+		id_us_min(&sce_copy->id);
+		id_us_ensure_real(&sce_copy->id);
 
 		/* Extra actions, most notably SCE_FULL_COPY also duplicates several 'children' datablocks... */
 

@@ -444,7 +444,7 @@ void UI_popup_block_close(struct bContext *C, struct wmWindow *win, uiBlock *blo
  * */
 
 uiBlock *UI_block_begin(const struct bContext *C, struct ARegion *region, const char *name, short dt);
-void UI_block_end_ex(const struct bContext *C, uiBlock *block, const int xy[2]);
+void UI_block_end_ex(const struct bContext *C, uiBlock *block, const int xy[2], int r_xy[2]);
 void UI_block_end(const struct bContext *C, uiBlock *block);
 void UI_block_draw(const struct bContext *C, struct uiBlock *block);
 void UI_block_update_from_old(const struct bContext *C, struct uiBlock *block);

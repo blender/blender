@@ -1877,8 +1877,9 @@ uiBlock *ui_popup_block_refresh(
 	/* defer this until blocks are translated (below) */
 	block->oldblock = NULL;
 
-	if (!block->endblock)
-		UI_block_end_ex(C, block, handle->popup_create_vars.event_xy);
+	if (!block->endblock) {
+		UI_block_end_ex(C, block, handle->popup_create_vars.event_xy, handle->popup_create_vars.event_xy);
+	}
 
 	/* if this is being created from a button */
 	if (but) {
