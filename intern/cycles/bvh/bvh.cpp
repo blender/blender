@@ -108,6 +108,73 @@ void BVH::refit(Progress& progress)
 	refit_nodes();
 }
 
+void BVH::refit_primitives(int start, int end, BoundBox& bbox, uint& visibility)
+{
+	/* Refit range of primitives. */
+	for(int prim = start; prim < end; prim++) {
+		int pidx = pack.prim_index[prim];
+		int tob = pack.prim_object[prim];
+		Object *ob = objects[tob];
+
+		if(pidx == -1) {
+			/* Object instance. */
+			bbox.grow(ob->bounds);
+		}
+		else {
+			/* Primitives. */
+			const Mesh *mesh = ob->mesh;
+
+			if(pack.prim_type[prim] & PRIMITIVE_ALL_CURVE) {
+				/* Curves. */
+				int str_offset = (params.top_level)? mesh->curve_offset: 0;
+				Mesh::Curve curve = mesh->get_curve(pidx - str_offset);
+				int k = PRIMITIVE_UNPACK_SEGMENT(pack.prim_type[prim]);
+
+				curve.bounds_grow(k, &mesh->curve_keys[0], &mesh->curve_radius[0], bbox);
+
+				visibility |= PATH_RAY_CURVE;
+
+				/* Motion curves. */
+				if(mesh->use_motion_blur) {
+					Attribute *attr = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+
+					if(attr) {
+						size_t mesh_size = mesh->curve_keys.size();
+						size_t steps = mesh->motion_steps - 1;
+						float3 *key_steps = attr->data_float3();
+
+						for(size_t i = 0; i < steps; i++)
+							curve.bounds_grow(k, key_steps + i*mesh_size, &mesh->curve_radius[0], bbox);
+					}
+				}
+			}
+			else {
+				/* Triangles. */
+				int tri_offset = (params.top_level)? mesh->tri_offset: 0;
+				Mesh::Triangle triangle = mesh->get_triangle(pidx - tri_offset);
+				const float3 *vpos = &mesh->verts[0];
+
+				triangle.bounds_grow(vpos, bbox);
+
+				/* Motion triangles. */
+				if(mesh->use_motion_blur) {
+					Attribute *attr = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
+
+					if(attr) {
+						size_t mesh_size = mesh->verts.size();
+						size_t steps = mesh->motion_steps - 1;
+						float3 *vert_steps = attr->data_float3();
+
+						for(size_t i = 0; i < steps; i++)
+							triangle.bounds_grow(vert_steps + i*mesh_size, bbox);
+					}
+				}
+			}
+		}
+		visibility |= ob->visibility_for_tracing();
+	}
+}
+
 /* Triangles */
 
 void BVH::pack_triangle(int idx, float4 tri_verts[3])

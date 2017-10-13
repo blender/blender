@@ -91,6 +91,9 @@ public:
 protected:
 	BVH(const BVHParams& params, const vector<Object*>& objects);
 
+	/* Refit range of primitives. */
+	void refit_primitives(int start, int end, BoundBox& bbox, uint& visibility);
+
 	/* triangles and strands */
 	void pack_primitives();
 	void pack_triangle(int idx, float4 storage[3]);
