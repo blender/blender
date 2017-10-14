@@ -2648,7 +2648,7 @@ static void tweak_gesture_modal(bContext *C, const wmEvent *event)
 }
 
 /* standard tweak, called after window handlers passed on event */
-void wm_tweakevent_test(bContext *C, wmEvent *event, int action)
+void wm_tweakevent_test(bContext *C, const wmEvent *event, int action)
 {
 	wmWindow *win = CTX_wm_window(C);
 	

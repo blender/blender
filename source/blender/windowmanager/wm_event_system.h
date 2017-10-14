@@ -95,7 +95,7 @@ void        wm_event_do_notifiers(bContext *C);
 
 /* wm_dropbox.c */
 void        wm_dropbox_free(void);
-void        wm_drags_check_ops(bContext *C, wmEvent *event);
+void        wm_drags_check_ops(bContext *C, const wmEvent *event);
 void        wm_drags_draw(bContext *C, wmWindow *win, rcti *rect);
 
 #endif /* __WM_EVENT_SYSTEM_H__ */

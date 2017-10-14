@@ -1073,7 +1073,7 @@ static int group_instance_add_exec(bContext *C, wmOperator *op)
 		group = (Group *)BKE_libblock_find_name(ID_GR, name);
 		
 		if (0 == RNA_struct_property_is_set(op->ptr, "location")) {
-			wmEvent *event = CTX_wm_window(C)->eventstate;
+			const wmEvent *event = CTX_wm_window(C)->eventstate;
 			ARegion *ar = CTX_wm_region(C);
 			const int mval[2] = {event->x - ar->winrct.xmin,
 			                     event->y - ar->winrct.ymin};

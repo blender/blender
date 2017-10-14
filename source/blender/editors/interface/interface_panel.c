@@ -1321,7 +1321,7 @@ static int ui_panel_drag_collapse_handler(bContext *C, const wmEvent *event, voi
 static void ui_panel_drag_collapse_handler_add(const bContext *C, const bool was_open)
 {
 	wmWindow *win = CTX_wm_window(C);
-	wmEvent *event = win->eventstate;
+	const wmEvent *event = win->eventstate;
 	uiPanelDragCollapseHandle *dragcol_data = MEM_mallocN(sizeof(*dragcol_data), __func__);
 
 	dragcol_data->was_first_open = was_open;
