@@ -805,7 +805,7 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
 	const float radius_range = cps->radius_max - cps->radius_min;
 
 	Nurb *nu = MEM_callocN(sizeof(Nurb), __func__);
-	nu->pntsv = 1;
+	nu->pntsv = 0;
 	nu->resolu = cu->resolu;
 	nu->resolv = cu->resolv;
 	nu->flag |= CU_SMOOTH;

@@ -745,7 +745,7 @@ BezTriple *BKE_nurb_bezt_get_prev(Nurb *nu, BezTriple *bezt)
 	BezTriple *bezt_prev;
 
 	BLI_assert(ARRAY_HAS_ITEM(bezt, nu->bezt, nu->pntsu));
-	BLI_assert(nu->pntsv == 1);
+	BLI_assert(nu->pntsv <= 1);
 
 	if (bezt == nu->bezt) {
 		if (nu->flagu & CU_NURB_CYCLIC) {
@@ -4144,6 +4144,7 @@ bool BKE_nurb_type_convert(Nurb *nu, const short type, const bool use_handles)
 			MEM_freeN(nu->bp);
 			nu->bp = NULL;
 			nu->pntsu = nr;
+			nu->pntsv = 0;
 			nu->type = CU_BEZIER;
 			BKE_nurb_handles_calc(nu);
 		}
