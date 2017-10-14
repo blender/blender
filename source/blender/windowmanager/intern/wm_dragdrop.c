@@ -185,7 +185,7 @@ void WM_drag_free_list(struct ListBase *lb)
 	}
 }
 
-static const char *dropbox_active(bContext *C, ListBase *handlers, wmDrag *drag, wmEvent *event)
+static const char *dropbox_active(bContext *C, ListBase *handlers, wmDrag *drag, const wmEvent *event)
 {
 	wmEventHandler *handler = handlers->first;
 	for (; handler; handler = handler->next) {
@@ -203,7 +203,7 @@ static const char *dropbox_active(bContext *C, ListBase *handlers, wmDrag *drag,
 }
 
 /* return active operator name when mouse is in box */
-static const char *wm_dropbox_active(bContext *C, wmDrag *drag, wmEvent *event)
+static const char *wm_dropbox_active(bContext *C, wmDrag *drag, const wmEvent *event)
 {
 	wmWindow *win = CTX_wm_window(C);
 	ScrArea *sa = CTX_wm_area(C);
@@ -223,7 +223,7 @@ static const char *wm_dropbox_active(bContext *C, wmDrag *drag, wmEvent *event)
 }
 
 
-static void wm_drop_operator_options(bContext *C, wmDrag *drag, wmEvent *event)
+static void wm_drop_operator_options(bContext *C, wmDrag *drag, const wmEvent *event)
 {
 	wmWindow *win = CTX_wm_window(C);
 	const int winsize_x = WM_window_pixels_x(win);
@@ -253,7 +253,7 @@ static void wm_drop_operator_options(bContext *C, wmDrag *drag, wmEvent *event)
 }
 
 /* called in inner handler loop, region context */
-void wm_drags_check_ops(bContext *C, wmEvent *event)
+void wm_drags_check_ops(bContext *C, const wmEvent *event)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmDrag *drag;

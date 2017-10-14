@@ -57,7 +57,7 @@ void wm_operatortype_free(void);
 void wm_operatortype_init(void);
 void wm_window_keymap(wmKeyConfig *keyconf);
 
-void wm_tweakevent_test(bContext *C, wmEvent *event, int action);
+void wm_tweakevent_test(bContext *C, const wmEvent *event, int action);
 
 /* wm_gesture.c */
 #define WM_LASSO_MIN_POINTS		1024

@@ -107,7 +107,7 @@ bool    ED_screen_set(struct bContext *C, struct bScreen *sc);
 bool    ED_screen_delete(struct bContext *C, struct bScreen *sc);
 void    ED_screen_set_scene(struct bContext *C, struct bScreen *screen, struct Scene *scene);
 bool    ED_screen_delete_scene(struct bContext *C, struct Scene *scene);
-void    ED_screen_set_subwinactive(struct bContext *C, struct wmEvent *event);
+void    ED_screen_set_subwinactive(struct bContext *C, const struct wmEvent *event);
 void    ED_screen_exit(struct bContext *C, struct wmWindow *window, struct bScreen *screen);
 void    ED_screen_animation_timer(struct bContext *C, int redraws, int refresh, int sync, int enable);
 void    ED_screen_animation_timer_update(struct bScreen *screen, int redraws, int refresh);
