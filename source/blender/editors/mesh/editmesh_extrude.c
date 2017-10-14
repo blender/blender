@@ -506,8 +506,8 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
 	ViewContext vc;
 	BMVert *v1;
 	BMIter iter;
-	float min[3], max[3];
-	bool done = false;
+	float center[3];
+	uint verts_len;
 	bool use_proj;
 
 	em_setup_viewcontext(C, &vc);
@@ -519,29 +519,33 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
 	use_proj = ((vc.scene->toolsettings->snap_flag & SCE_SNAP) &&
 	            (vc.scene->toolsettings->snap_mode == SCE_SNAP_MODE_FACE));
 
-	INIT_MINMAX(min, max);
+	zero_v3(center);
+	verts_len = 0;
 	
 	BM_ITER_MESH (v1, &iter, vc.em->bm, BM_VERTS_OF_MESH) {
 		if (BM_elem_flag_test(v1, BM_ELEM_SELECT)) {
-			minmax_v3v3_v3(min, max, v1->co);
-			done = true;
+			add_v3_v3(center, v1->co);
+			verts_len += 1;
 		}
 	}
 
 	/* call extrude? */
-	if (done) {
+	if (verts_len != 0) {
 		const char extrude_htype = edbm_extrude_htype_from_em_select(vc.em);
 		const bool rot_src = RNA_boolean_get(op->ptr, "rotate_source");
 		BMEdge *eed;
-		float vec[3], cent[3], mat[3][3];
+		float mat[3][3];
+		float vec[3], ofs[3];
 		float nor[3] = {0.0, 0.0, 0.0};
 
 		/* 2D normal calc */
 		const float mval_f[2] = {(float)event->mval[0],
 		                         (float)event->mval[1]};
 
+		mul_v3_fl(center, 1.0f / (float)verts_len);
+
 		/* check for edges that are half selected, use for rotation */
-		done = false;
+		bool done = false;
 		BM_ITER_MESH (eed, &iter, vc.em->bm, BM_EDGES_OF_MESH) {
 			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 				float co1[2], co2[2];
@@ -582,21 +586,20 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
 		}
 		
 		/* center */
-		mid_v3_v3v3(cent, min, max);
-		copy_v3_v3(min, cent);
+		copy_v3_v3(ofs, center);
 
-		mul_m4_v3(vc.obedit->obmat, min);  /* view space */
-		ED_view3d_win_to_3d_int(vc.v3d, vc.ar, min, event->mval, min);
-		mul_m4_v3(vc.obedit->imat, min); // back in object space
+		mul_m4_v3(vc.obedit->obmat, ofs);  /* view space */
+		ED_view3d_win_to_3d_int(vc.v3d, vc.ar, ofs, event->mval, ofs);
+		mul_m4_v3(vc.obedit->imat, ofs); // back in object space
 
-		sub_v3_v3(min, cent);
+		sub_v3_v3(ofs, center);
 		
 		/* calculate rotation */
 		unit_m3(mat);
 		if (done) {
 			float angle;
 
-			normalize_v3_v3(vec, min);
+			normalize_v3_v3(vec, ofs);
 
 			angle = angle_normalized_v3v3(vec, nor);
 
@@ -616,7 +619,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
 		
 		if (rot_src) {
 			EDBM_op_callf(vc.em, op, "rotate verts=%hv cent=%v matrix=%m3",
-			              BM_ELEM_SELECT, cent, mat);
+			              BM_ELEM_SELECT, center, mat);
 
 			/* also project the source, for retopo workflow */
 			if (use_proj)
@@ -625,21 +628,21 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
 
 		edbm_extrude_ex(vc.obedit, vc.em, extrude_htype, BM_ELEM_SELECT, true, true);
 		EDBM_op_callf(vc.em, op, "rotate verts=%hv cent=%v matrix=%m3",
-		              BM_ELEM_SELECT, cent, mat);
+		              BM_ELEM_SELECT, center, mat);
 		EDBM_op_callf(vc.em, op, "translate verts=%hv vec=%v",
-		              BM_ELEM_SELECT, min);
+		              BM_ELEM_SELECT, ofs);
 	}
 	else {
-		const float *curs = ED_view3d_cursor3d_get(vc.scene, vc.v3d);
+		const float *cursor = ED_view3d_cursor3d_get(vc.scene, vc.v3d);
 		BMOperator bmop;
 		BMOIter oiter;
-		
-		copy_v3_v3(min, curs);
-		ED_view3d_win_to_3d_int(vc.v3d, vc.ar, min, event->mval, min);
 
-		mul_m4_v3(vc.obedit->imat, min); // back in object space
+		copy_v3_v3(center, cursor);
+		ED_view3d_win_to_3d_int(vc.v3d, vc.ar, center, event->mval, center);
+
+		mul_m4_v3(vc.obedit->imat, center); // back in object space
 		
-		EDBM_op_init(vc.em, &bmop, op, "create_vert co=%v", min);
+		EDBM_op_init(vc.em, &bmop, op, "create_vert co=%v", center);
 		BMO_op_exec(vc.em->bm, &bmop);
 
 		BMO_ITER (v1, &oiter, bmop.slots_out, "vert.out", BM_VERT) {

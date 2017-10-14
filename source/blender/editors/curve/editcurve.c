@@ -4791,13 +4791,13 @@ static int ed_editcurve_addvert(Curve *cu, EditNurb *editnurb, const float locat
 {
 	Nurb *nu;
 
-	float minmax[2][3];
+	float center[3];
 	float temp[3];
-	bool nu_has_select = false;
-
+	uint verts_len;
 	bool changed = false;
 
-	INIT_MINMAX(minmax[0], minmax[1]);
+	zero_v3(center);
+	verts_len = 0;
 
 	for (nu = editnurb->nurbs.first; nu; nu = nu->next) {
 		int i;
@@ -4806,8 +4806,8 @@ static int ed_editcurve_addvert(Curve *cu, EditNurb *editnurb, const float locat
 
 			for (i = 0, bezt = nu->bezt; i < nu->pntsu; i++, bezt++) {
 				if (BEZT_ISSEL_ANY_HIDDENHANDLES(cu, bezt)) {
-					minmax_v3v3_v3(UNPACK2(minmax), bezt->vec[1]);
-					nu_has_select = true;
+					add_v3_v3(center, bezt->vec[1]);
+					verts_len += 1;
 				}
 			}
 		}
@@ -4816,18 +4816,18 @@ static int ed_editcurve_addvert(Curve *cu, EditNurb *editnurb, const float locat
 
 			for (i = 0, bp = nu->bp; i < nu->pntsu; i++, bp++) {
 				if (bp->f1 & SELECT) {
-					minmax_v3v3_v3(UNPACK2(minmax), bp->vec);
-					nu_has_select = true;
+					add_v3_v3(center, bp->vec);
+					verts_len += 1;
 				}
 			}
 		}
 	}
 
-	if (nu_has_select && ed_editcurve_extrude(cu, editnurb)) {
-		float ofs[3], center[3];
+	if (verts_len && ed_editcurve_extrude(cu, editnurb)) {
+		float ofs[3];
 		int i;
 
-		mid_v3_v3v3(center, minmax[0], minmax[1]);
+		mul_v3_fl(center, 1.0f / (float)verts_len);
 		sub_v3_v3v3(ofs, location_init, center);
 
 		if ((cu->flag & CU_3D) == 0) {
