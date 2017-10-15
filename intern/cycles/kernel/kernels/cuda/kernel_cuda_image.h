@@ -87,7 +87,7 @@ ccl_device T kernel_tex_image_interp_bicubic(const TextureInfo& info, CUtexObjec
 	                       g1x * tex2D<T>(tex, x1, y1));
 }
 
-/* Fast tricubic texture lookup using 8 bilinear lookups. */
+/* Fast tricubic texture lookup using 8 trilinear lookups. */
 template<typename T>
 ccl_device T kernel_tex_image_interp_bicubic_3d(const TextureInfo& info, CUtexObject tex, float x, float y, float z)
 {
