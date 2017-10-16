@@ -2336,7 +2336,7 @@ int WM_border_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	if (event->type == MOUSEMOVE) {
 		wm_subwindow_origin_get(CTX_wm_window(C), gesture->swinid, &sx, &sy);
 
-		if (gesture->type == WM_GESTURE_CROSS_RECT && gesture->mode == 0) {
+		if (gesture->type == WM_GESTURE_CROSS_RECT && gesture->is_active == false) {
 			rect->xmin = rect->xmax = event->x - sx;
 			rect->ymin = rect->ymax = event->y - sy;
 		}
@@ -2351,8 +2351,8 @@ int WM_border_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	else if (event->type == EVT_MODAL_MAP) {
 		switch (event->val) {
 			case GESTURE_MODAL_BEGIN:
-				if (gesture->type == WM_GESTURE_CROSS_RECT && gesture->mode == 0) {
-					gesture->mode = 1;
+				if (gesture->type == WM_GESTURE_CROSS_RECT && gesture->is_active == false) {
+					gesture->is_active = true;
 					wm_gesture_tag_redraw(C);
 				}
 				break;
@@ -2447,8 +2447,9 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 		wm_gesture_tag_redraw(C);
 
-		if (gesture->mode)
+		if (gesture->is_active) {
 			gesture_circle_apply(C, op);
+		}
 	}
 	else if (event->type == EVT_MODAL_MAP) {
 		float fac;
@@ -2481,7 +2482,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				if (event->val != GESTURE_MODAL_NOP) {
 					/* apply first click */
 					gesture_circle_apply(C, op);
-					gesture->mode = 1;
+					gesture->is_active = true;
 					wm_gesture_tag_redraw(C);
 				}
 				break;
@@ -2881,7 +2882,7 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
 	if (event->type == MOUSEMOVE) {
 		wm_subwindow_origin_get(CTX_wm_window(C), gesture->swinid, &sx, &sy);
 		
-		if (gesture->mode == 0) {
+		if (gesture->is_active == false) {
 			rect->xmin = rect->xmax = event->x - sx;
 			rect->ymin = rect->ymax = event->y - sy;
 		}
@@ -2896,8 +2897,8 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
 	else if (event->type == EVT_MODAL_MAP) {
 		switch (event->val) {
 			case GESTURE_MODAL_BEGIN:
-				if (gesture->mode == 0) {
-					gesture->mode = 1;
+				if (gesture->is_active == false) {
+					gesture->is_active = true;
 					wm_gesture_tag_redraw(C);
 				}
 				break;

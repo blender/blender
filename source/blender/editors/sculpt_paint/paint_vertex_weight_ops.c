@@ -817,7 +817,7 @@ static int paint_weight_gradient_invoke(bContext *C, wmOperator *op, const wmEve
 			/* TODO, hardcoded, extend WM_gesture_straightline_ */
 			if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
 				wmGesture *gesture = op->customdata;
-				gesture->mode = 1;
+				gesture->is_active = true;
 			}
 		}
 	}

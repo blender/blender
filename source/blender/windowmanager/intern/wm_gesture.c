@@ -377,10 +377,12 @@ void wm_gesture_draw(wmWindow *win)
 		else if (gt->type == WM_GESTURE_CIRCLE)
 			wm_gesture_draw_circle(gt);
 		else if (gt->type == WM_GESTURE_CROSS_RECT) {
-			if (gt->mode == 1)
+			if (gt->is_active) {
 				wm_gesture_draw_rect(gt);
-			else
+			}
+			else {
 				wm_gesture_draw_cross(win, gt);
+			}
 		}
 		else if (gt->type == WM_GESTURE_LINES)
 			wm_gesture_draw_lasso(win, gt, false);
