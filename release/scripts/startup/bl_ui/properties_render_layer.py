@@ -54,6 +54,7 @@ class RENDERLAYER_PT_layers(RenderLayerButtonsPanel, Panel):
         layout = self.layout
 
         scene = context.scene
+        rd = scene.render
         view_render = scene.view_render
 
         if view_render.engine == 'BLENDER_GAME':

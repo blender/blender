@@ -332,8 +332,7 @@ class SCENE_PT_rigid_body_world(SceneButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        rd = scene.render
-        return scene and (view_render.engine in cls.COMPAT_ENGINES)
+        return scene and (scene.view_render.engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
         scene = context.scene
@@ -412,13 +411,13 @@ class SCENE_PT_simplify(SceneButtonsPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
 
     def draw_header(self, context):
-        view_render = context.scene.view_render
+        rd = context.scene.render
         self.layout.prop(rd, "use_simplify", text="")
 
     def draw(self, context):
         layout = self.layout
 
-        view_render = context.scene.view_render
+        rd = context.scene.render
 
         layout.active = rd.use_simplify
 
