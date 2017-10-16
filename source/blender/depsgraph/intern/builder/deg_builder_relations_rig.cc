@@ -83,6 +83,9 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *ob,
 	 * - see notes on direction of rel below...
 	 */
 	bPoseChannel *rootchan = BKE_armature_ik_solver_find_root(pchan, data);
+	if (rootchan == NULL) {
+		return;
+	}
 	OperationKey pchan_local_key(&ob->id, DEG_NODE_TYPE_BONE,
 	                             pchan->name, DEG_OPCODE_BONE_LOCAL);
 	OperationKey init_ik_key(&ob->id, DEG_NODE_TYPE_EVAL_POSE, DEG_OPCODE_POSE_INIT_IK);
