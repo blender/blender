@@ -1938,6 +1938,16 @@ Scene *WM_windows_scene_get_from_screen(const wmWindowManager *wm, const bScreen
 	return NULL;
 }
 
+WorkSpace *WM_windows_workspace_get_from_screen(const wmWindowManager *wm, const bScreen *screen)
+{
+	for (wmWindow *win = wm->windows.first; win; win = win->next) {
+		if (WM_window_get_active_screen(win) == screen) {
+			return WM_window_get_active_workspace(win);
+		}
+	}
+	return NULL;
+}
+
 Scene *WM_window_get_active_scene(const wmWindow *win)
 {
 	return win->scene;

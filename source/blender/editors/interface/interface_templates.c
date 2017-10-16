@@ -1193,7 +1193,7 @@ static uiLayout *draw_modifier(
 		/* When Modifier is a simulation, show button to switch to context rather than the delete button. */
 		if (modifier_can_delete(md) &&
 		    (!modifier_is_simulation(md) ||
-		     STREQ(scene->r.engine, RE_engine_id_BLENDER_GAME)))
+		     STREQ(scene->view_render.engine_id, RE_engine_id_BLENDER_GAME)))
 		{
 			uiItemO(row, "", ICON_X, "OBJECT_OT_modifier_remove");
 		}

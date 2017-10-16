@@ -37,8 +37,8 @@ class PhysicButtonsPanel:
     @classmethod
     def poll(cls, context):
         ob = context.object
-        rd = context.scene.render
-        return (ob and ob.type == 'MESH') and rd.engine in cls.COMPAT_ENGINES and (context.fluid)
+        view_render = context.scene.view_render
+        return (ob and ob.type == 'MESH') and view_render.engine in cls.COMPAT_ENGINES and (context.fluid)
 
 
 class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
@@ -211,8 +211,8 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         md = context.fluid
-        rd = context.scene.render
-        return md and md.settings and (md.settings.type == 'DOMAIN') and rd.engine in cls.COMPAT_ENGINES
+        view_render = context.scene.view_render
+        return md and md.settings and (md.settings.type == 'DOMAIN') and view_render.engine in cls.COMPAT_ENGINES
 
     def draw(self, context):
         layout = self.layout
@@ -265,8 +265,8 @@ class PHYSICS_PT_domain_boundary(PhysicButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         md = context.fluid
-        rd = context.scene.render
-        return md and md.settings and (md.settings.type == 'DOMAIN') and rd.engine in cls.COMPAT_ENGINES
+        view_render = context.scene.view_render
+        return md and md.settings and (md.settings.type == 'DOMAIN') and view_render.engine in cls.COMPAT_ENGINES
 
     def draw(self, context):
         layout = self.layout
@@ -296,8 +296,8 @@ class PHYSICS_PT_domain_particles(PhysicButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         md = context.fluid
-        rd = context.scene.render
-        return md and md.settings and (md.settings.type == 'DOMAIN') and rd.engine in cls.COMPAT_ENGINES
+        view_render = context.scene.view_render
+        return md and md.settings and (md.settings.type == 'DOMAIN') and view_render.engine in cls.COMPAT_ENGINES
 
     def draw(self, context):
         layout = self.layout

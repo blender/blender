@@ -468,7 +468,8 @@ static void time_draw_keyframes(const bContext *C, ARegion *ar)
 /* ---------------- */
 
 /* editor level listener */
-static void time_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, const Scene *UNUSED(scene))
+static void time_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, const Scene *UNUSED(scene),
+                          const WorkSpace *UNUSED(workspace))
 {
 
 	/* mainly for updating cache display */

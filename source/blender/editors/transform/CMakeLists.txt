@@ -29,6 +29,7 @@ set(INC
 	../../ikplugin
 	../../makesdna
 	../../makesrna
+	../../render/extern/include
 	../../windowmanager
 	../../depsgraph
 	../../../../intern/guardedalloc

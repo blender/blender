@@ -1451,8 +1451,9 @@ class VIEW3D_MT_object_specials(Menu):
             lamp = obj.data
 
             layout.operator_context = 'INVOKE_REGION_WIN'
+            use_shading_nodes = context.view_render.use_shading_nodes
 
-            if scene.render.use_shading_nodes:
+            if use_shading_nodes:
                 try:
                     value = lamp.node_tree.nodes["Emission"].inputs["Strength"].default_value
                 except AttributeError:
@@ -1510,7 +1511,7 @@ class VIEW3D_MT_object_specials(Menu):
                 props.input_scale = -0.01
                 props.header_text = "Spot Blend: %.2f"
 
-                if not scene.render.use_shading_nodes:
+                if not use_shading_nodes:
                     props = layout.operator("wm.context_modal_mouse", text="Clip Start")
                     props.data_path_iter = "selected_editable_objects"
                     props.data_path_item = "data.shadow_buffer_clip_start"

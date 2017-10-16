@@ -34,8 +34,8 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         ob = context.active_object
-        rd = context.scene.render
-        return ob and ob.game and (rd.engine in cls.COMPAT_ENGINES)
+        view_render = context.scene.view_render
+        return ob and ob.game and (view_render.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -205,8 +205,8 @@ class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         game = context.object.game
-        rd = context.scene.render
-        return (rd.engine in cls.COMPAT_ENGINES) \
+        view_render = context.scene.view_render
+        return (view_render.engine in cls.COMPAT_ENGINES) \
                 and (game.physics_type in {'SENSOR', 'STATIC', 'DYNAMIC', 'RIGID_BODY', 'CHARACTER', 'SOFT_BODY'})
 
     def draw_header(self, context):
@@ -246,8 +246,8 @@ class PHYSICS_PT_game_obstacles(PhysicsButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         game = context.object.game
-        rd = context.scene.render
-        return (rd.engine in cls.COMPAT_ENGINES) \
+        view_render = context.scene.view_render
+        return (view_render.engine in cls.COMPAT_ENGINES) \
                 and (game.physics_type in {'SENSOR', 'STATIC', 'DYNAMIC', 'RIGID_BODY', 'SOFT_BODY', 'CHARACTER', 'NO_COLLISION'})
 
     def draw_header(self, context):
@@ -274,8 +274,8 @@ class RenderButtonsPanel:
 
     @classmethod
     def poll(cls, context):
-        rd = context.scene.render
-        return (rd.engine in cls.COMPAT_ENGINES)
+        view_render = context.scene.view_render
+        return (view_render.engine in cls.COMPAT_ENGINES)
 
 
 class RENDER_PT_embedded(RenderButtonsPanel, Panel):
@@ -285,7 +285,7 @@ class RENDER_PT_embedded(RenderButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render
+        view_render = context.scene.view_render
 
         row = layout.row()
         row.operator("view3d.game_start", text="Start")
@@ -474,7 +474,7 @@ class SCENE_PT_game_physics(SceneButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        return (scene.render.engine in cls.COMPAT_ENGINES)
+        return (scene.view_render.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -532,7 +532,7 @@ class SCENE_PT_game_physics_obstacles(SceneButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        return (scene.render.engine in cls.COMPAT_ENGINES)
+        return (scene.view_render.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -553,7 +553,7 @@ class SCENE_PT_game_navmesh(SceneButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        return (scene and scene.render.engine in cls.COMPAT_ENGINES)
+        return (scene and scene.view_render.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -614,7 +614,7 @@ class SCENE_PT_game_hysteresis(SceneButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        return (scene and scene.render.engine in cls.COMPAT_ENGINES)
+        return (scene and scene.view_render.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -640,8 +640,8 @@ class WORLD_PT_game_context_world(WorldButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        rd = context.scene.render
-        return (context.scene) and (rd.engine in cls.COMPAT_ENGINES)
+        view_render = context.scene.view_render
+        return (context.scene) and (view_render.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -664,7 +664,7 @@ class WORLD_PT_game_world(WorldButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        return (scene.world and scene.render.engine in cls.COMPAT_ENGINES)
+        return (scene.world and scene.view_render.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -684,7 +684,7 @@ class WORLD_PT_game_environment_lighting(WorldButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        return (scene.world and scene.render.engine in cls.COMPAT_ENGINES)
+        return (scene.world and scene.view_render.engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
         light = context.world.light_settings
@@ -709,7 +709,7 @@ class WORLD_PT_game_mist(WorldButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        return (scene.world and scene.render.engine in cls.COMPAT_ENGINES)
+        return (scene.world and scene.view_render.engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
         world = context.world
@@ -746,7 +746,7 @@ class DATA_PT_shadow_game(DataButtonsPanel, Panel):
     def poll(cls, context):
         COMPAT_LIGHTS = {'SPOT', 'SUN'}
         lamp = context.lamp
-        engine = context.scene.render.engine
+        engine = context.engine
         return (lamp and lamp.type in COMPAT_LIGHTS) and (engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
@@ -815,7 +815,7 @@ class OBJECT_PT_levels_of_detail(ObjectButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.scene.render.engine in cls.COMPAT_ENGINES
+        return context.engine in cls.COMPAT_ENGINES
 
     def draw(self, context):
         layout = self.layout

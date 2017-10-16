@@ -749,7 +749,7 @@ typedef struct RenderData {
 	float unit_line_thickness; /* in pixels */
 
 	/* render engine */
-	char engine[32];
+	char engine[32] DNA_DEPRECATED; // XXX deprecated since 2.8
 
 	/* Cycles baking */
 	struct BakeData bake;
@@ -771,6 +771,12 @@ typedef struct RenderData {
 	/* Motion blur shutter */
 	struct CurveMapping mblur_shutter_curve;
 } RenderData;
+
+/* *************************************************************** */
+/* Settings related to viewport drawing/render, only settings used by WorkSpace and Scene. */
+typedef struct ViewRender {
+	char engine_id[32];
+} ViewRender;
 
 /* *************************************************************** */
 /* Render Conversion/Simplfication Settings */
@@ -883,7 +889,6 @@ typedef struct GameData {
 	/* Scene LoD */
 	short lodflag, pad2;
 	int scehysteresis, pad5;
-
 } GameData;
 
 #define STEREO_NOSTEREO		1
@@ -1699,6 +1704,8 @@ typedef struct Scene {
 	IDProperty *layer_properties;  /* settings to be override by workspaces */
 
 	int pad5[2];
+
+	ViewRender view_render;
 } Scene;
 
 /* **************** RENDERDATA ********************* */

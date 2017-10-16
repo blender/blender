@@ -42,7 +42,7 @@ def particle_panel_enabled(context, psys):
 
 def particle_panel_poll(cls, context):
     psys = context.particle_system
-    engine = context.scene.render.engine
+    engine = context.engine
     settings = 0
 
     if psys:
@@ -135,13 +135,13 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        engine = context.scene.render.engine
+        engine = context.engine
         return (context.particle_system or context.object or context.space_data.pin_id) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
 
-        if context.scene.render.engine == 'BLENDER_GAME':
+        if context.engine == 'BLENDER_GAME':
             layout.label("Not available in the Game Engine")
             return
 
@@ -319,7 +319,7 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         psys = context.particle_system
-        engine = context.scene.render.engine
+        engine = context.engine
         if psys is None:
             return False
         if psys.settings is None:
@@ -417,7 +417,7 @@ class PARTICLE_PT_cache(ParticleButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         psys = context.particle_system
-        engine = context.scene.render.engine
+        engine = context.engine
         if psys is None:
             return False
         if psys.settings is None:
@@ -802,7 +802,7 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel, Panel):
     def poll(cls, context):
         psys = context.particle_system
         settings = particle_get_settings(context)
-        engine = context.scene.render.engine
+        engine = context.engine
 
         if settings is None:
             return False
@@ -904,7 +904,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         settings = particle_get_settings(context)
-        engine = context.scene.render.engine
+        engine = context.engine
         if settings is None:
             return False
 
@@ -1103,7 +1103,7 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         settings = particle_get_settings(context)
-        engine = context.scene.render.engine
+        engine = context.engine
         if settings is None:
             return False
         return engine in cls.COMPAT_ENGINES

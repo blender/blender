@@ -806,13 +806,76 @@ void BKE_sound_read_waveform(bSound *sound, short *stop)
 	BLI_spin_unlock(sound->spinlock);
 }
 
-void BKE_sound_update_scene(Main *bmain, struct Scene *scene)
+static void sound_update_base(Scene *scene, Base *base, void *new_set)
 {
-	Object *ob;
-	Base *base;
+	Object *ob = base->object;
 	NlaTrack *track;
 	NlaStrip *strip;
 	Speaker *speaker;
+	float quat[4];
+
+	if ((ob->id.tag & LIB_TAG_DOIT) == 0) {
+		return;
+	}
+
+	ob->id.tag &= ~LIB_TAG_DOIT;
+
+	if ((ob->type != OB_SPEAKER) || !ob->adt) {
+		return;
+	}
+
+	for (track = ob->adt->nla_tracks.first; track; track = track->next) {
+		for (strip = track->strips.first; strip; strip = strip->next) {
+			if (strip->type != NLASTRIP_TYPE_SOUND) {
+				continue;
+			}
+			speaker = (Speaker *)ob->data;
+
+			if (AUD_removeSet(scene->speaker_handles, strip->speaker_handle)) {
+				if (speaker->sound) {
+					AUD_SequenceEntry_move(strip->speaker_handle, (double)strip->start / FPS, FLT_MAX, 0);
+				}
+				else {
+					AUD_Sequence_remove(scene->sound_scene, strip->speaker_handle);
+					strip->speaker_handle = NULL;
+				}
+			}
+			else {
+				if (speaker->sound) {
+					strip->speaker_handle = AUD_Sequence_add(scene->sound_scene,
+					                                        speaker->sound->playback_handle,
+					                                        (double)strip->start / FPS, FLT_MAX, 0);
+					AUD_SequenceEntry_setRelative(strip->speaker_handle, 0);
+				}
+			}
+
+			if (strip->speaker_handle) {
+				const bool mute = ((strip->flag & NLASTRIP_FLAG_MUTED) || (speaker->flag & SPK_MUTED));
+				AUD_addSet(new_set, strip->speaker_handle);
+				AUD_SequenceEntry_setVolumeMaximum(strip->speaker_handle, speaker->volume_max);
+				AUD_SequenceEntry_setVolumeMinimum(strip->speaker_handle, speaker->volume_min);
+				AUD_SequenceEntry_setDistanceMaximum(strip->speaker_handle, speaker->distance_max);
+				AUD_SequenceEntry_setDistanceReference(strip->speaker_handle, speaker->distance_reference);
+				AUD_SequenceEntry_setAttenuation(strip->speaker_handle, speaker->attenuation);
+				AUD_SequenceEntry_setConeAngleOuter(strip->speaker_handle, speaker->cone_angle_outer);
+				AUD_SequenceEntry_setConeAngleInner(strip->speaker_handle, speaker->cone_angle_inner);
+				AUD_SequenceEntry_setConeVolumeOuter(strip->speaker_handle, speaker->cone_volume_outer);
+
+				mat4_to_quat(quat, ob->obmat);
+				AUD_SequenceEntry_setAnimationData(strip->speaker_handle, AUD_AP_LOCATION, CFRA, ob->obmat[3], 1);
+				AUD_SequenceEntry_setAnimationData(strip->speaker_handle, AUD_AP_ORIENTATION, CFRA, quat, 1);
+				AUD_SequenceEntry_setAnimationData(strip->speaker_handle, AUD_AP_VOLUME, CFRA, &speaker->volume, 1);
+				AUD_SequenceEntry_setAnimationData(strip->speaker_handle, AUD_AP_PITCH, CFRA, &speaker->pitch, 1);
+				AUD_SequenceEntry_setSound(strip->speaker_handle, speaker->sound->playback_handle);
+				AUD_SequenceEntry_setMuted(strip->speaker_handle, mute);
+			}
+		}
+	}
+}
+
+void BKE_sound_update_scene(Main *bmain, Scene *scene)
+{
+	Base *base;
 	Scene *sce_it;
 
 	void *new_set = AUD_createSet();
@@ -821,59 +884,18 @@ void BKE_sound_update_scene(Main *bmain, struct Scene *scene)
 
 	/* cheap test to skip looping over all objects (no speakers is a common case) */
 	if (!BLI_listbase_is_empty(&bmain->speaker)) {
-		for (SETLOOPER(scene, sce_it, base)) {
-			ob = base->object;
-			if ((ob->type != OB_SPEAKER) || !ob->adt) {
-				continue;
-			}
-			for (track = ob->adt->nla_tracks.first; track; track = track->next) {
-				for (strip = track->strips.first; strip; strip = strip->next) {
-					if (strip->type != NLASTRIP_TYPE_SOUND) {
-						continue;
-					}
-					speaker = (Speaker *)ob->data;
+		BKE_main_id_tag_listbase(&bmain->object, LIB_TAG_DOIT, true);
 
-					if (AUD_removeSet(scene->speaker_handles, strip->speaker_handle)) {
-						if (speaker->sound) {
-							AUD_SequenceEntry_move(strip->speaker_handle, (double)strip->start / FPS, FLT_MAX, 0);
-						}
-						else {
-							AUD_Sequence_remove(scene->sound_scene, strip->speaker_handle);
-							strip->speaker_handle = NULL;
-						}
-					}
-					else {
-						if (speaker->sound) {
-							strip->speaker_handle = AUD_Sequence_add(scene->sound_scene,
-							                                        speaker->sound->playback_handle,
-							                                        (double)strip->start / FPS, FLT_MAX, 0);
-							AUD_SequenceEntry_setRelative(strip->speaker_handle, 0);
-						}
-					}
-
-					if (strip->speaker_handle) {
-						const bool mute = ((strip->flag & NLASTRIP_FLAG_MUTED) || (speaker->flag & SPK_MUTED));
-						AUD_addSet(new_set, strip->speaker_handle);
-						AUD_SequenceEntry_setVolumeMaximum(strip->speaker_handle, speaker->volume_max);
-						AUD_SequenceEntry_setVolumeMinimum(strip->speaker_handle, speaker->volume_min);
-						AUD_SequenceEntry_setDistanceMaximum(strip->speaker_handle, speaker->distance_max);
-						AUD_SequenceEntry_setDistanceReference(strip->speaker_handle, speaker->distance_reference);
-						AUD_SequenceEntry_setAttenuation(strip->speaker_handle, speaker->attenuation);
-						AUD_SequenceEntry_setConeAngleOuter(strip->speaker_handle, speaker->cone_angle_outer);
-						AUD_SequenceEntry_setConeAngleInner(strip->speaker_handle, speaker->cone_angle_inner);
-						AUD_SequenceEntry_setConeVolumeOuter(strip->speaker_handle, speaker->cone_volume_outer);
-
-						mat4_to_quat(quat, ob->obmat);
-						AUD_SequenceEntry_setAnimationData(strip->speaker_handle, AUD_AP_LOCATION, CFRA, ob->obmat[3], 1);
-						AUD_SequenceEntry_setAnimationData(strip->speaker_handle, AUD_AP_ORIENTATION, CFRA, quat, 1);
-						AUD_SequenceEntry_setAnimationData(strip->speaker_handle, AUD_AP_VOLUME, CFRA, &speaker->volume, 1);
-						AUD_SequenceEntry_setAnimationData(strip->speaker_handle, AUD_AP_PITCH, CFRA, &speaker->pitch, 1);
-						AUD_SequenceEntry_setSound(strip->speaker_handle, speaker->sound->playback_handle);
-						AUD_SequenceEntry_setMuted(strip->speaker_handle, mute);
-					}
-				}
+		for (SceneLayer *scene_layer = scene->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
+			for (base = scene_layer->object_bases.first; base; base = base->next) {
+				sound_update_base(scene, base, new_set);
 			}
 		}
+
+		for (SETLOOPER_SET_ONLY(scene, sce_it, base)) {
+			sound_update_base(scene, base, new_set);
+		}
+
 	}
 
 	while ((handle = AUD_getSet(scene->speaker_handles))) {

@@ -152,8 +152,7 @@ RenderEngineType *RE_engines_find(const char *idname)
 
 bool RE_engine_is_external(Render *re)
 {
-	RenderEngineType *type = RE_engines_find(re->r.engine);
-	return (type && type->render_to_image);
+	return (re->engine && re->engine->type && re->engine->type->render_to_image);
 }
 
 /* Create, Free */
@@ -521,11 +520,12 @@ void RE_bake_engine_set_engine_parameters(Render *re, Main *bmain, Depsgraph *gr
 	re->scene = scene;
 	re->main = bmain;
 	render_copy_renderdata(&re->r, &scene->r);
+	render_copy_viewrender(&re->view_render, &scene->view_render);
 }
 
 bool RE_bake_has_engine(Render *re)
 {
-	RenderEngineType *type = RE_engines_find(re->r.engine);
+	RenderEngineType *type = RE_engines_find(re->view_render.engine_id);
 	return (type->bake != NULL);
 }
 
@@ -536,7 +536,7 @@ bool RE_bake_engine(
         const ScenePassType pass_type, const int pass_filter,
         float result[])
 {
-	RenderEngineType *type = RE_engines_find(re->r.engine);
+	RenderEngineType *type = RE_engines_find(re->view_render.engine_id);
 	RenderEngine *engine;
 	bool persistent_data = (re->r.mode & R_PERSISTENT_DATA) != 0;
 
@@ -630,7 +630,7 @@ void RE_engine_frame_set(RenderEngine *engine, int frame, float subframe)
 
 int RE_engine_render(Render *re, int do_all)
 {
-	RenderEngineType *type = RE_engines_find(re->r.engine);
+	RenderEngineType *type = RE_engines_find(re->view_render.engine_id);
 	RenderEngine *engine;
 	bool persistent_data = (re->r.mode & R_PERSISTENT_DATA) != 0;
 

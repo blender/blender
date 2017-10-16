@@ -41,6 +41,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_scene.h"
 
 /* **************** IMAGE (and RenderResult, multilayer image) ******************** */
 
@@ -218,7 +219,7 @@ static void cmp_node_rlayer_create_outputs(bNodeTree *ntree, bNode *node, LinkNo
 	Scene *scene = (Scene *)node->id;
 
 	if (scene) {
-		RenderEngineType *engine_type = RE_engines_find(scene->r.engine);
+		RenderEngineType *engine_type = RE_engines_find(scene->view_render.engine_id);
 		if (engine_type && engine_type->update_render_passes) {
 			SceneRenderLayer *srl = BLI_findlink(&scene->r.layers, node->custom1);
 			if (srl) {

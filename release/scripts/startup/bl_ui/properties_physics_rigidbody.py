@@ -35,7 +35,7 @@ class PHYSICS_PT_rigid_body(PHYSICS_PT_rigidbody_panel, Panel):
     def poll(cls, context):
         obj = context.object
         return (obj and obj.rigid_body and
-                (context.scene.render.engine in cls.COMPAT_ENGINES))
+                (context.engine in cls.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -62,7 +62,7 @@ class PHYSICS_PT_rigid_body_collisions(PHYSICS_PT_rigidbody_panel, Panel):
     def poll(cls, context):
         obj = context.object
         return (obj and obj.rigid_body and
-                (context.scene.render.engine in cls.COMPAT_ENGINES))
+                (context.engine in cls.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -108,7 +108,7 @@ class PHYSICS_PT_rigid_body_dynamics(PHYSICS_PT_rigidbody_panel, Panel):
         obj = context.object
         return (obj and obj.rigid_body and
                 obj.rigid_body.type == 'ACTIVE' and
-                (context.scene.render.engine in cls.COMPAT_ENGINES))
+                (context.engine in cls.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout

@@ -163,7 +163,7 @@ class OBJECT_PT_relations_extras(ObjectButtonsPanel, Panel):
 
         split = layout.split()
 
-        if context.scene.render.engine != 'BLENDER_GAME':
+        if context.engine != 'BLENDER_GAME':
             col = split.column()
             col.label(text="Tracking Axes:")
             col.prop(ob, "track_axis", text="Axis")

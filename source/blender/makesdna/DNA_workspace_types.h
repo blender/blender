@@ -29,6 +29,7 @@
 #ifndef __DNA_WORKSPACE_TYPES_H__
 #define __DNA_WORKSPACE_TYPES_H__
 
+#include "DNA_scene_types.h"
 
 /* Same logic as DNA_DEPRECATED_ALLOW, but throws 'deprecated'
  * warnings if DNA_PRIVATE_WORKSPACE_ALLOW is not defined */
@@ -77,9 +78,12 @@ typedef struct WorkSpace {
 	ListBase transform_orientations DNA_PRIVATE_WORKSPACE;
 
 	int object_mode DNA_PRIVATE_WORKSPACE; /* enum ObjectMode */
-	int pad;
+	int flags DNA_PRIVATE_WORKSPACE; /* enum eWorkSpaceFlags */
 
 	struct SceneLayer *render_layer DNA_PRIVATE_WORKSPACE;
+
+	char engine_id[32]; /* Render Engine. */
+	struct ViewRender view_render;
 } WorkSpace;
 
 /* internal struct, but exported for read/write */
@@ -131,5 +135,9 @@ typedef struct WorkSpaceInstanceHook {
 	WorkSpace *temp_workspace_store;
 	struct WorkSpaceLayout *temp_layout_store;
 } WorkSpaceInstanceHook;
+
+typedef enum eWorkSpaceFlags {
+	WORKSPACE_USE_SCENE_SETTINGS = (1 << 0),
+} eWorkSpaceFlags;
 
 #endif /* __DNA_WORKSPACE_TYPES_H__ */

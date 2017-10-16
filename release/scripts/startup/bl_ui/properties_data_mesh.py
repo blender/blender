@@ -130,7 +130,7 @@ class MeshButtonsPanel:
 
     @classmethod
     def poll(cls, context):
-        engine = context.scene.render.engine
+        engine = context.engine
         return context.mesh and (engine in cls.COMPAT_ENGINES)
 
 
@@ -198,7 +198,7 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        engine = context.scene.render.engine
+        engine = context.engine
         obj = context.object
         return (obj and obj.type in {'MESH', 'LATTICE'} and (engine in cls.COMPAT_ENGINES))
 
@@ -285,7 +285,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        engine = context.scene.render.engine
+        engine = context.engine
         obj = context.object
         return (obj and obj.type in {'MESH', 'LATTICE', 'CURVE', 'SURFACE'} and (engine in cls.COMPAT_ENGINES))
 

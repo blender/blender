@@ -409,7 +409,8 @@ static void action_main_region_listener(
 
 /* editor level listener */
 static void action_listener(
-        bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, const Scene *UNUSED(scene))
+        bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, Scene *UNUSED(scene),
+        WorkSpace *UNUSED(workspace))
 {
 	SpaceAction *saction = (SpaceAction *)sa->spacedata.first;
 	

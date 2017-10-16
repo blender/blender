@@ -433,8 +433,9 @@ void wm_file_read_report(bContext *C)
 	Scene *sce;
 
 	for (sce = G.main->scene.first; sce; sce = sce->id.next) {
-		if (sce->r.engine[0] &&
-		    BLI_findstring(&R_engines, sce->r.engine, offsetof(RenderEngineType, idname)) == NULL)
+		ViewRender *view_render = &sce->view_render;
+		if (view_render->engine_id[0] &&
+		    BLI_findstring(&R_engines, view_render->engine_id, offsetof(RenderEngineType, idname)) == NULL)
 		{
 			if (reports == NULL) {
 				reports = CTX_wm_reports(C);
@@ -442,7 +443,7 @@ void wm_file_read_report(bContext *C)
 
 			BKE_reportf(reports, RPT_ERROR,
 			            "Engine '%s' not available for scene '%s' (an add-on may need to be installed or enabled)",
-			            sce->r.engine, sce->id.name + 2);
+			            view_render->engine_id, sce->id.name + 2);
 		}
 	}
 
@@ -1000,7 +1001,7 @@ static void wm_history_file_update(void)
 
 
 /* screen can be NULL */
-static ImBuf *blend_file_thumb(const bContext *C, Scene *scene, SceneLayer *sl, bScreen *screen, BlendThumbnail **thumb_pt)
+static ImBuf *blend_file_thumb(const bContext *C, Scene *scene, SceneLayer *scene_layer, bScreen *screen, BlendThumbnail **thumb_pt)
 {
 	/* will be scaled down, but gives some nice oversampling */
 	ImBuf *ibuf;
@@ -1041,14 +1042,14 @@ static ImBuf *blend_file_thumb(const bContext *C, Scene *scene, SceneLayer *sl, 
 	/* gets scaled to BLEN_THUMB_SIZE */
 	if (scene->camera) {
 		ibuf = ED_view3d_draw_offscreen_imbuf_simple(
-		        &eval_ctx, scene, sl, scene->camera,
+		        &eval_ctx, scene, scene_layer, scene->camera,
 		        BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2,
 		        IB_rect, OB_SOLID, false, false, false, R_ALPHAPREMUL, 0, false, NULL,
 		        NULL, NULL, err_out);
 	}
 	else {
 		ibuf = ED_view3d_draw_offscreen_imbuf(
-		        &eval_ctx, scene, sl, v3d, ar,
+		        &eval_ctx, scene, scene_layer, v3d, ar,
 		        BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2,
 		        IB_rect, false, R_ALPHAPREMUL, 0, false, NULL,
 		        NULL, NULL, err_out);

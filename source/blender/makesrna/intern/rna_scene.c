@@ -454,6 +454,7 @@ EnumPropertyItem rna_enum_layer_collection_mode_settings_type_items[] = {
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_text_types.h"
+#include "DNA_workspace_types.h"
 
 #include "RNA_access.h"
 
@@ -1007,6 +1008,11 @@ static void rna_RenderSettings_stereoViews_begin(CollectionPropertyIterator *ite
 	rna_iterator_listbase_begin(iter, &rd->views, rna_RenderSettings_stereoViews_skip);
 }
 
+static char *rna_ViewRenderSettings_path(PointerRNA *UNUSED(ptr))
+{
+	return BLI_sprintfN("viewport_render");
+}
+
 static char *rna_RenderSettings_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_sprintfN("render");
@@ -1482,19 +1488,32 @@ static void rna_RenderView_remove(
 	WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, NULL);
 }
 
-static void rna_RenderSettings_engine_set(PointerRNA *ptr, int value)
+static void rna_RenderSettings_views_format_set(PointerRNA *ptr, int value)
 {
 	RenderData *rd = (RenderData *)ptr->data;
-	RenderEngineType *type = BLI_findlink(&R_engines, value);
-	Scene *scene = (Scene *)ptr->id.data;
 
-	if (type)
-		BLI_strncpy_utf8(rd->engine, type->idname, sizeof(rd->engine));
+	if (rd->views_format == SCE_VIEWS_FORMAT_MULTIVIEW &&
+	    value == SCE_VIEWS_FORMAT_STEREO_3D)
+	{
+		/* make sure the actview is visible */
+		if (rd->actview > 1) rd->actview = 1;
+	}
 
-	DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
+	rd->views_format = value;
 }
 
-static EnumPropertyItem *rna_RenderSettings_engine_itemf(
+static void rna_ViewRenderSettings_engine_set(PointerRNA *ptr, int value)
+{
+	ViewRender *view_render = (ViewRender *)ptr->data;
+	RenderEngineType *type = BLI_findlink(&R_engines, value);
+
+	if (type) {
+		BLI_strncpy_utf8(view_render->engine_id, type->idname, sizeof(view_render->engine_id));
+		DEG_id_tag_update(ptr->id.data, DEG_TAG_COPY_ON_WRITE);
+	}
+}
+
+static EnumPropertyItem *rna_ViewRenderSettings_engine_itemf(
         bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	RenderEngineType *type;
@@ -1515,20 +1534,20 @@ static EnumPropertyItem *rna_RenderSettings_engine_itemf(
 	return item;
 }
 
-static int rna_RenderSettings_engine_get(PointerRNA *ptr)
+static int rna_ViewRenderSettings_engine_get(PointerRNA *ptr)
 {
-	RenderData *rd = (RenderData *)ptr->data;
+	ViewRender *view_render = (ViewRender *)ptr->data;
 	RenderEngineType *type;
 	int a = 0;
 
 	for (type = R_engines.first; type; type = type->next, a++)
-		if (STREQ(type->idname, rd->engine))
+		if (STREQ(type->idname, view_render->engine_id))
 			return a;
 	
 	return 0;
 }
 
-static void rna_RenderSettings_engine_update(Main *bmain, Scene *UNUSED(unused), PointerRNA *UNUSED(ptr))
+static void rna_ViewRenderSettings_engine_update(Main *bmain, Scene *UNUSED(unused), PointerRNA *UNUSED(ptr))
 {
 	ED_render_engine_changed(bmain);
 }
@@ -1624,44 +1643,30 @@ static char *rna_SceneRenderView_path(PointerRNA *ptr)
 	return BLI_sprintfN("render.views[\"%s\"]", srv->name);
 }
 
-static void rna_RenderSettings_views_format_set(PointerRNA *ptr, int value)
-{
-	RenderData *rd = (RenderData *)ptr->data;
-
-	if (rd->views_format == SCE_VIEWS_FORMAT_MULTIVIEW &&
-	    value == SCE_VIEWS_FORMAT_STEREO_3D)
-	{
-		/* make sure the actview is visible */
-		if (rd->actview > 1) rd->actview = 1;
-	}
-
-	rd->views_format = value;
-}
-
-static int rna_RenderSettings_multiple_engines_get(PointerRNA *UNUSED(ptr))
+static int rna_ViewRenderSettings_multiple_engines_get(PointerRNA *UNUSED(ptr))
 {
 	return (BLI_listbase_count(&R_engines) > 1);
 }
 
-static int rna_RenderSettings_use_shading_nodes_get(PointerRNA *ptr)
+static int rna_ViewRenderSettings_use_shading_nodes_get(PointerRNA *ptr)
 {
-	Scene *scene = (Scene *)ptr->id.data;
-	return BKE_scene_use_new_shading_nodes(scene);
+	ViewRender *view_render = (ViewRender *)ptr->data;
+	return BKE_viewrender_use_new_shading_nodes(view_render);
 }
 
-static int rna_RenderSettings_use_spherical_stereo_get(PointerRNA *ptr)
+static int rna_ViewRenderSettings_use_spherical_stereo_get(PointerRNA *ptr)
 {
-	Scene *scene = (Scene *)ptr->id.data;
-	return BKE_scene_use_spherical_stereo(scene);
+	ViewRender *view_render = (ViewRender *)ptr->data;
+	return BKE_viewrender_use_spherical_stereo(view_render);
 }
 
-static int rna_RenderSettings_use_game_engine_get(PointerRNA *ptr)
+static int rna_ViewRenderSettings_use_game_engine_get(PointerRNA *ptr)
 {
-	RenderData *rd = (RenderData *)ptr->data;
+	ViewRender *view_render = (ViewRender *)ptr->data;
 	RenderEngineType *type;
 
 	for (type = R_engines.first; type; type = type->next)
-		if (STREQ(type->idname, rd->engine))
+		if (STREQ(type->idname, view_render->engine_id))
 			return (type->flag & RE_GAME) != 0;
 	
 	return 0;
@@ -1771,26 +1776,32 @@ static void object_simplify_update(Object *ob)
 	}
 }
 
-static void rna_Scene_use_simplify_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Scene_use_simplify_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *sce = ptr->id.data;
 	Scene *sce_iter;
 	Base *base;
 
-	BKE_main_id_tag_listbase(&bmain->object, LIB_TAG_DOIT, true);
-	for (SETLOOPER(sce, sce_iter, base))
+	FOREACH_SCENE_OBJECT(sce, ob)
+	{
+		object_simplify_update(ob);
+	}
+	FOREACH_SCENE_OBJECT_END
+
+	for (SETLOOPER_SET_ONLY(sce, sce_iter, base)) {
 		object_simplify_update(base->object);
+	}
 	
 	WM_main_add_notifier(NC_GEOM | ND_DATA, NULL);
-	DEG_id_tag_update(&scene->id, 0);
+	DEG_id_tag_update(&sce->id, 0);
 }
 
-static void rna_Scene_simplify_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Scene_simplify_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Scene *sce = ptr->id.data;
 
 	if (sce->r.mode & R_SIMPLIFY)
-		rna_Scene_use_simplify_update(bmain, sce, ptr);
+		rna_Scene_use_simplify_update(bmain, scene, ptr);
 }
 
 static void rna_SceneRenderData_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -2975,59 +2986,6 @@ static void rna_LayerObjects_selected_begin(CollectionPropertyIterator *iter, Po
 {
 	SceneLayer *sl = (SceneLayer *)ptr->data;
 	rna_iterator_listbase_begin(iter, &sl->object_bases, rna_SceneLayer_objects_selected_skip);
-}
-
-static void rna_SceneLayer_engine_set(PointerRNA *ptr, int value)
-{
-	SceneLayer *sl = (SceneLayer *)ptr->data;
-	RenderEngineType *type = BLI_findlink(&R_engines, value);
-
-	if (type)
-		BKE_scene_layer_engine_set(sl, type->idname);
-}
-
-static EnumPropertyItem *rna_SceneLayer_engine_itemf(
-        bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
-{
-	RenderEngineType *type;
-	EnumPropertyItem *item = NULL;
-	EnumPropertyItem tmp = {0, "", 0, "", ""};
-	int a = 0, totitem = 0;
-
-	for (type = R_engines.first; type; type = type->next, a++) {
-		tmp.value = a;
-		tmp.identifier = type->idname;
-		tmp.name = type->name;
-		RNA_enum_item_add(&item, &totitem, &tmp);
-	}
-
-	RNA_enum_item_end(&item, &totitem);
-	*r_free = true;
-
-	return item;
-}
-
-static int rna_SceneLayer_engine_get(PointerRNA *ptr)
-{
-	SceneLayer *sl = (SceneLayer *)ptr->data;
-	RenderEngineType *type;
-	int a = 0;
-
-	for (type = R_engines.first; type; type = type->next, a++)
-		if (STREQ(type->idname, sl->engine))
-			return a;
-
-	return 0;
-}
-
-static void rna_SceneLayer_engine_update(Main *bmain, Scene *UNUSED(unused), PointerRNA *UNUSED(ptr))
-{
-	ED_render_engine_changed(bmain);
-}
-
-static int rna_SceneLayer_multiple_engines_get(PointerRNA *UNUSED(ptr))
-{
-	return (BLI_listbase_count(&R_engines) > 1);
 }
 
 static void rna_SceneLayer_update_tagged(SceneLayer *UNUSED(sl), bContext *C)
@@ -7067,11 +7025,6 @@ static void rna_def_scene_layer(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem engine_items[] = {
-	    {0, "BLENDER_RENDER", 0, "Blender Render", "Use the Blender internal rendering engine for rendering"},
-	    {0, NULL, 0, NULL, NULL}
-	};
-
 	srna = RNA_def_struct(brna, "SceneLayer", NULL);
 	RNA_def_struct_ui_text(srna, "Render Layer", "Render layer");
 	RNA_def_struct_ui_icon(srna, ICON_RENDERLAYERS);
@@ -7106,20 +7059,6 @@ static void rna_def_scene_layer(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "properties->data.group", NULL);
 	RNA_def_property_struct_type(prop, "SceneLayerSettings");
 	RNA_def_property_ui_text(prop, "Layer Settings", "Override of engine specific render settings");
-
-	/* engine */
-	prop = RNA_def_property(srna, "engine", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, engine_items);
-	RNA_def_property_enum_funcs(prop, "rna_SceneLayer_engine_get", "rna_SceneLayer_engine_set",
-	                            "rna_SceneLayer_engine_itemf");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Engine", "Engine to use for rendering");
-	RNA_def_property_update(prop, NC_WINDOW, "rna_SceneLayer_engine_update");
-
-	prop = RNA_def_property(srna, "has_multiple_engines", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_SceneLayer_multiple_engines_get", NULL);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Multiple Engines", "More than one rendering engine is available");
 
 	/* debug update routine */
 	func = RNA_def_function(srna, "update", "rna_SceneLayer_update_tagged");
@@ -7937,11 +7876,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem engine_items[] = {
-		{0, "BLENDER_RENDER", 0, "Blender Render", "Use the Blender internal rendering engine for rendering"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	static EnumPropertyItem freestyle_thickness_items[] = {
 		{R_LINE_THICKNESS_ABSOLUTE, "ABSOLUTE", 0, "Absolute", "Specify unit line thickness in pixels"},
 		{R_LINE_THICKNESS_RELATIVE, "RELATIVE", 0, "Relative",
@@ -8678,35 +8612,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, NULL, "rna_RenderSettings_views_format_set", NULL);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-	/* engine */
-	prop = RNA_def_property(srna, "engine", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, engine_items);
-	RNA_def_property_enum_funcs(prop, "rna_RenderSettings_engine_get", "rna_RenderSettings_engine_set",
-	                            "rna_RenderSettings_engine_itemf");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Engine", "Engine to use for rendering");
-	RNA_def_property_update(prop, NC_WINDOW, "rna_RenderSettings_engine_update");
-
-	prop = RNA_def_property(srna, "has_multiple_engines", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_RenderSettings_multiple_engines_get", NULL);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Multiple Engines", "More than one rendering engine is available");
-
-	prop = RNA_def_property(srna, "use_shading_nodes", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_RenderSettings_use_shading_nodes_get", NULL);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Use Shading Nodes", "Active render engine uses new shading nodes system");
-
-	prop = RNA_def_property(srna, "use_spherical_stereo", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_RenderSettings_use_spherical_stereo_get", NULL);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Use Spherical Stereo", "Active render engine supports spherical stereo rendering");
-
-	prop = RNA_def_property(srna, "use_game_engine", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_RenderSettings_use_game_engine_get", NULL);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Use Game Engine", "Current rendering engine is a game engine");
-
 	/* simplify */
 	prop = RNA_def_property(srna, "use_simplify", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_SIMPLIFY);
@@ -8786,6 +8691,52 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
 	/* Scene API */
 	RNA_api_scene_render(srna);
+}
+
+static void rna_def_scene_view_render(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem engine_items[] = {
+		{0, "BLENDER_RENDER", 0, "Blender Render", "Use the Blender internal rendering engine for rendering"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	srna = RNA_def_struct(brna, "ViewRenderSettings", NULL);
+	RNA_def_struct_sdna(srna, "ViewRender");
+	RNA_def_struct_nested(brna, srna, "Scene");
+	RNA_def_struct_path_func(srna, "rna_ViewRenderSettings_path");
+	RNA_def_struct_ui_text(srna, "View Render", "Rendering settings related to viewport drawing/rendering");
+
+	/* engine */
+	prop = RNA_def_property(srna, "engine", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, engine_items);
+	RNA_def_property_enum_funcs(prop, "rna_ViewRenderSettings_engine_get", "rna_ViewRenderSettings_engine_set",
+	                            "rna_ViewRenderSettings_engine_itemf");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Engine", "Engine to use for rendering");
+	RNA_def_property_update(prop, NC_WINDOW, "rna_ViewRenderSettings_engine_update");
+
+	prop = RNA_def_property(srna, "has_multiple_engines", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_ViewRenderSettings_multiple_engines_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Multiple Engines", "More than one rendering engine is available");
+
+	prop = RNA_def_property(srna, "use_shading_nodes", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_ViewRenderSettings_use_shading_nodes_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Use Shading Nodes", "Active render engine uses new shading nodes system");
+
+	prop = RNA_def_property(srna, "use_spherical_stereo", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_ViewRenderSettings_use_spherical_stereo_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Use Spherical Stereo", "Active render engine supports spherical stereo rendering");
+
+	prop = RNA_def_property(srna, "use_game_engine", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_ViewRenderSettings_use_game_engine_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Use Game Engine", "Current rendering engine is a game engine");
 }
 
 /* scene.objects */
@@ -9335,6 +9286,12 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "RenderSettings");
 	RNA_def_property_ui_text(prop, "Render Data", "");
 
+	/* View Render */
+	prop = RNA_def_property(srna, "view_render", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "ViewRenderSettings");
+	RNA_def_property_ui_text(prop, "View Render", "");
+
 	/* Render Engine Data */
 	prop = RNA_def_property(srna, "layer_properties", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "layer_properties->data.group", NULL);
@@ -9497,6 +9454,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	rna_def_scene_layer_settings(brna);
 	rna_def_layer_collection_settings(brna);
 	rna_def_scene_render_data(brna);
+	rna_def_scene_view_render(brna);
 	rna_def_scene_render_layer(brna);
 	rna_def_gpu_fx(brna);
 	rna_def_scene_render_view(brna);

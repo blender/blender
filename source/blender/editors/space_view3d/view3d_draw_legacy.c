@@ -1786,8 +1786,7 @@ void ED_scene_draw_fps(Scene *scene, const rcti *rect)
 
 static bool view3d_main_region_do_render_draw(const Scene *scene)
 {
-	RenderEngineType *type = RE_engines_find(scene->r.engine);
-
+	RenderEngineType *type = RE_engines_find(scene->view_render.engine_id);
 	return (type && type->view_update && type->render_to_view);
 }
 
@@ -1849,8 +1848,7 @@ static bool view3d_main_region_draw_engine(
 	/* create render engine */
 	if (!rv3d->render_engine) {
 		RenderEngine *engine;
-
-		type = RE_engines_find(scene->r.engine);
+		type = RE_engines_find(scene->view_render.engine_id);
 
 		if (!(type->view_update && type->render_to_view))
 			return false;
@@ -1979,7 +1977,7 @@ static void view3d_main_region_draw_objects(const bContext *C, Scene *scene, Sce
 
 	rv3d->rflag &= ~RV3D_IS_GAME_ENGINE;
 #ifdef WITH_GAMEENGINE
-	if (STREQ(scene->r.engine, RE_engine_id_BLENDER_GAME)) {
+	if (STREQ(scene->view_render.engine_id, RE_engine_id_BLENDER_GAME)) {
 		rv3d->rflag |= RV3D_IS_GAME_ENGINE;
 
 		/* Make sure LoDs are up to date */

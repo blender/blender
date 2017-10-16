@@ -442,7 +442,8 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 	}
 }
 
-static void image_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, const Scene *scene)
+static void image_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, Scene *scene,
+                           WorkSpace *workspace)
 {
 	SpaceImage *sima = (SpaceImage *)sa->spacedata.first;
 	
@@ -536,7 +537,7 @@ static void image_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, co
 				case ND_TRANSFORM:
 				case ND_MODIFIER:
 				{
-					SceneLayer *sl = BKE_scene_layer_context_active_PLACEHOLDER(scene);
+					SceneLayer *sl = BKE_scene_layer_from_workspace_get(scene, workspace);
 					Object *ob = OBACT_NEW(sl);
 					if (ob && (ob == wmn->reference) && (ob->mode & OB_MODE_EDIT)) {
 						if (sima->lock && (sima->flag & SI_DRAWSHADOW)) {

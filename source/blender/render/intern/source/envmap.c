@@ -142,7 +142,6 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	envre->flag = re->flag;
 	
 	/* set up renderdata */
-	render_copy_renderdata(&envre->r, &re->r);
 	envre->r.mode &= ~(R_BORDER | R_PANORAMA | R_ORTHO | R_MBLUR);
 	BLI_freelistN(&envre->r.layers);
 	BLI_freelistN(&envre->r.views);
@@ -152,7 +151,7 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	envre->r.size = 100;
 	envre->r.yasp = envre->r.xasp = 1;
 	
-	RE_InitState(envre, NULL, &envre->r, NULL, cuberes, cuberes, NULL);
+	RE_InitState(envre, NULL, &envre->r, &envre->view_render, NULL, cuberes, cuberes, NULL);
 	envre->main = re->main;
 	envre->scene = re->scene;    /* unsure about this... */
 	envre->scene_color_manage = re->scene_color_manage;

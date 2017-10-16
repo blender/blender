@@ -105,6 +105,8 @@
 #include "WM_types.h"
 #include "WM_api.h"
 
+#include "RE_engine.h"
+
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
@@ -1122,10 +1124,12 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 	Object *obedit = CTX_data_edit_object(C);
 	Object *ob = CTX_data_active_object(C);
 	bGPdata *gpd = CTX_data_gpencil_data(C);
+	RenderEngineType *engine = CTX_data_engine(C);
 	PropertyRNA *prop;
 	
 	t->scene = sce;
 	t->scene_layer = sl;
+	t->engine = engine;
 	t->sa = sa;
 	t->ar = ar;
 	t->obedit = obedit;

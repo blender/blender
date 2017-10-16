@@ -29,12 +29,14 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.h"
 #include "BLI_listbase.h"
 
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
 
@@ -161,6 +163,7 @@ void BKE_workspace_remove(Main *bmain, WorkSpace *workspace)
 		BKE_workspace_layout_remove(bmain, workspace, layout);
 	}
 
+	BKE_viewrender_free(&workspace->view_render);
 	BKE_libblock_free(bmain, workspace);
 }
 
@@ -429,4 +432,28 @@ void BKE_workspace_hook_layout_for_workspace_set(
 {
 	hook->act_layout = layout;
 	workspace_relation_ensure_updated(&workspace->hook_layout_relations, hook, layout);
+}
+
+/**
+ * Get the render engine of a workspace, to be used in the viewport.
+ */
+ViewRender *BKE_workspace_view_render_get(WorkSpace *workspace)
+{
+	return &workspace->view_render;
+}
+
+/* Flags */
+bool BKE_workspace_use_scene_settings_get(const WorkSpace *workspace)
+{
+	return (workspace->flags & WORKSPACE_USE_SCENE_SETTINGS) != 0;
+}
+
+void BKE_workspace_use_scene_settings_set(WorkSpace *workspace, bool value)
+{
+	if (value) {
+		workspace->flags |= WORKSPACE_USE_SCENE_SETTINGS;
+	}
+	else {
+		workspace->flags &= ~WORKSPACE_USE_SCENE_SETTINGS;
+	}
 }

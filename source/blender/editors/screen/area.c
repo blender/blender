@@ -145,11 +145,11 @@ void ED_region_do_listen(bScreen *sc, ScrArea *sa, ARegion *ar, wmNotifier *note
 }
 
 /* only exported for WM */
-void ED_area_do_listen(bScreen *sc, ScrArea *sa, wmNotifier *note, const Scene *scene)
+void ED_area_do_listen(bScreen *sc, ScrArea *sa, wmNotifier *note, const Scene *scene, const WorkSpace *workspace)
 {
 	/* no generic notes? */
 	if (sa->type && sa->type->listener) {
-		sa->type->listener(sc, sa, note, scene);
+		sa->type->listener(sc, sa, note, scene, workspace);
 	}
 }
 

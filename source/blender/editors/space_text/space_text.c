@@ -125,7 +125,8 @@ static SpaceLink *text_duplicate(SpaceLink *sl)
 	return (SpaceLink *)stextn;
 }
 
-static void text_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, const Scene *UNUSED(scene))
+static void text_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, Scene *UNUSED(scene),
+                          WorkSpace *UNUSED(workspace))
 {
 	SpaceText *st = sa->spacedata.first;
 

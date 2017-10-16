@@ -39,6 +39,8 @@
 
 #ifdef RNA_RUNTIME
 
+#include "RE_engine.h"
+
 static PointerRNA rna_Context_manager_get(PointerRNA *ptr)
 {
 	bContext *C = (bContext *)ptr->data;
@@ -131,6 +133,26 @@ static PointerRNA rna_Context_scene_layer_get(PointerRNA *ptr)
 {
 	bContext *C = (bContext *)ptr->data;
 	return rna_pointer_inherit_refine(ptr, &RNA_SceneLayer, CTX_data_scene_layer(C));
+}
+
+static PointerRNA rna_Context_view_render_get(PointerRNA *ptr)
+{
+	bContext *C = (bContext *)ptr->data;
+	return rna_pointer_inherit_refine(ptr, &RNA_ViewRenderSettings, CTX_data_view_render(C));
+}
+
+static void rna_Context_engine_get(PointerRNA *ptr, char *value)
+ {
+	bContext *C = (bContext *)ptr->data;
+	RenderEngineType *engine = CTX_data_engine(C);
+	strcpy(value, engine->idname);
+}
+
+static int rna_Context_engine_length(PointerRNA *ptr)
+{
+	bContext *C = (bContext *)ptr->data;
+	RenderEngineType *engine = CTX_data_engine(C);
+	return strlen(engine->idname);
 }
 
 static PointerRNA rna_Context_scene_collection_get(PointerRNA *ptr)
@@ -262,6 +284,15 @@ void RNA_def_context(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "SceneLayer");
 	RNA_def_property_pointer_funcs(prop, "rna_Context_scene_layer_get", NULL, NULL, NULL);
+
+	prop = RNA_def_property(srna, "view_render", PROP_POINTER, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_struct_type(prop, "ViewRenderSettings");
+	RNA_def_property_pointer_funcs(prop, "rna_Context_view_render_get", NULL, NULL, NULL);
+
+	prop = RNA_def_property(srna, "engine", PROP_STRING, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_string_funcs(prop, "rna_Context_engine_get", "rna_Context_engine_length", NULL);
 
 	prop = RNA_def_property(srna, "scene_collection", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

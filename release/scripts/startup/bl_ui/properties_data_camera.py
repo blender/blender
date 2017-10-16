@@ -29,7 +29,7 @@ class CameraButtonsPanel:
 
     @classmethod
     def poll(cls, context):
-        engine = context.scene.render.engine
+        engine = context.engine
         return context.camera and (engine in cls.COMPAT_ENGINES)
 
 
@@ -96,7 +96,7 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
             col.prop(cam, "ortho_scale")
 
         elif cam.type == 'PANO':
-            engine = context.scene.render.engine
+            engine = context.engine
             if engine == 'CYCLES':
                 ccam = cam.cycles
                 col.prop(ccam, "panorama_type", text="Type")
@@ -147,11 +147,11 @@ class DATA_PT_camera_stereoscopy(CameraButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-        render = context.scene.render
+        view_render = context.scene.view_render
         st = context.camera.stereo
         cam = context.camera
 
-        is_spherical_stereo = cam.type != 'ORTHO' and render.use_spherical_stereo
+        is_spherical_stereo = cam.type != 'ORTHO' and view_render.use_spherical_stereo
         use_spherical_stereo = is_spherical_stereo and st.use_spherical_stereo
 
         col = layout.column()
@@ -234,10 +234,10 @@ class DATA_PT_camera_dof(CameraButtonsPanel, Panel):
         sub.active = (cam.dof_object is None)
         sub.prop(cam, "dof_distance", text="Distance")
 
-        if context.scene.render.engine == 'BLENDER_EEVEE':
+        if context.engine == 'BLENDER_EEVEE':
             col = split.column(align=True)
             col.label("Aperture:")
-            engine = context.scene.render.engine
+            engine = context.engine
             sub = col.column(align=True)
             sub.prop(dof_options, "fstop")
             sub.prop(dof_options, "blades")

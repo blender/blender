@@ -929,7 +929,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col = split.column()
 
         scene = bpy.context.scene
-        engine = scene.render.engine
+        engine = scene.view_render.engine
         show_adaptive_options = (
             engine == 'CYCLES' and md == ob.modifiers[-1] and
             scene.cycles.feature_set == 'EXPERIMENTAL'

@@ -608,7 +608,7 @@ class IMAGE_PT_game_properties(Panel):
     def poll(cls, context):
         sima = context.space_data
         # display even when not in game mode because these settings effect the 3d view
-        return (sima and sima.image and not sima.show_maskedit)  # and (rd.engine == 'BLENDER_GAME')
+        return (sima and sima.image and not sima.show_maskedit)  # and (view_render.engine == 'BLENDER_GAME')
 
     def draw(self, context):
         layout = self.layout

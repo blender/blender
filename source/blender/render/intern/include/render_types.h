@@ -192,6 +192,7 @@ struct Render {
 	Scene *scene;
 	RenderData r;
 	World wrld;
+	ViewRender view_render;
 	struct Object *camera_override;
 	unsigned int lay, layer_override;
 	

@@ -338,7 +338,8 @@ static SpaceLink *sequencer_duplicate(SpaceLink *sl)
 }
 
 static void sequencer_listener(
-        bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, const Scene *UNUSED(scene))
+        bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, Scene *UNUSED(scene),
+        WorkSpace *UNUSED(workspace))
 {
 	/* context changes */
 	switch (wmn->category) {

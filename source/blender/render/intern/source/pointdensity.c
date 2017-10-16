@@ -945,7 +945,7 @@ static void particle_system_minmax(EvaluationContext *eval_ctx,
 
 void RE_point_density_cache(
         Scene *scene,
-        SceneLayer *sl,
+        SceneLayer *scene_layer,
         PointDensity *pd,
         const bool use_render_params)
 {
@@ -955,7 +955,7 @@ void RE_point_density_cache(
 	DEG_evaluation_context_init(&eval_ctx, use_render_params ? DAG_EVAL_RENDER
 	                                                         : DAG_EVAL_VIEWPORT);
 
-	eval_ctx.scene_layer = sl;
+	eval_ctx.scene_layer = scene_layer;
 
 	/* Same matricies/resolution as dupli_render_particle_set(). */
 	unit_m4(mat);

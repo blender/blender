@@ -30,7 +30,7 @@ class RenderLayerButtonsPanel:
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        return scene and (scene.render.engine in cls.COMPAT_ENGINES)
+        return scene and (scene.view_render.engine in cls.COMPAT_ENGINES)
 
 
 class RENDERLAYER_UL_renderlayers(UIList):
@@ -54,9 +54,9 @@ class RENDERLAYER_PT_layers(RenderLayerButtonsPanel, Panel):
         layout = self.layout
 
         scene = context.scene
-        rd = scene.render
+        view_render = scene.view_render
 
-        if rd.engine == 'BLENDER_GAME':
+        if view_render.engine == 'BLENDER_GAME':
             layout.label("Not available in the Game Engine")
             return
 
@@ -137,7 +137,7 @@ class RENDERLAYER_PT_clay_settings(RenderLayerButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        return scene and (scene.render.engine in cls.COMPAT_ENGINES)
+        return scene and (scene.view_render.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -158,7 +158,7 @@ class RENDERLAYER_PT_eevee_ambient_occlusion(RenderLayerButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        return scene and (scene.render.engine in cls.COMPAT_ENGINES)
+        return scene and (scene.view_render.engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
         scene = context.scene
@@ -193,7 +193,7 @@ class RENDERLAYER_PT_eevee_motion_blur(RenderLayerButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        return scene and (scene.render.engine in cls.COMPAT_ENGINES)
+        return scene and (scene.view_render.engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
         scene = context.scene
@@ -223,7 +223,7 @@ class RENDERLAYER_PT_eevee_depth_of_field(RenderLayerButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        return scene and (scene.render.engine in cls.COMPAT_ENGINES)
+        return scene and (scene.view_render.engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
         scene = context.scene
@@ -253,7 +253,7 @@ class RENDERLAYER_PT_eevee_bloom(RenderLayerButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        return scene and (scene.render.engine in cls.COMPAT_ENGINES)
+        return scene and (scene.view_render.engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
         scene = context.scene
@@ -287,7 +287,7 @@ class RENDERLAYER_PT_eevee_volumetric(RenderLayerButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        return scene and (scene.render.engine in cls.COMPAT_ENGINES)
+        return scene and (scene.view_render.engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
         scene = context.scene
@@ -324,7 +324,7 @@ class RENDERLAYER_PT_eevee_screen_space_reflections(RenderLayerButtonsPanel, Pan
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        return scene and (scene.render.engine in cls.COMPAT_ENGINES)
+        return scene and (scene.view_render.engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
         scene = context.scene
@@ -360,7 +360,7 @@ class RENDERLAYER_PT_eevee_shadows(RenderLayerButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        return scene and (scene.render.engine in cls.COMPAT_ENGINES)
+        return scene and (scene.view_render.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -383,7 +383,7 @@ class RENDERLAYER_PT_eevee_sampling(RenderLayerButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        return scene and (scene.render.engine in cls.COMPAT_ENGINES)
+        return scene and (scene.view_render.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -404,7 +404,7 @@ class RENDERLAYER_PT_eevee_indirect_lighting(RenderLayerButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        return scene and (scene.render.engine in cls.COMPAT_ENGINES)
+        return scene and (scene.view_render.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout

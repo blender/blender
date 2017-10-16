@@ -49,6 +49,7 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_workspace_types.h"
 #include "DNA_gpencil_types.h"
 
 #include "BLI_math.h"
@@ -905,7 +906,7 @@ void BKE_scene_init(Scene *sce)
 	sce->r.ffcodecdata.audio_bitrate = 192;
 	sce->r.ffcodecdata.audio_channels = 2;
 
-	BLI_strncpy(sce->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(sce->r.engine));
+	BKE_viewrender_init(&sce->view_render);
 
 	sce->audio.distance_model = 2.0f;
 	sce->audio.doppler_factor = 1.0f;
@@ -1541,9 +1542,11 @@ static bool check_rendered_viewport_visible(Main *bmain)
 	wmWindow *window;
 	for (window = wm->windows.first; window != NULL; window = window->next) {
 		const bScreen *screen = BKE_workspace_active_screen_get(window->workspace_hook);
+		WorkSpace *workspace = BKE_workspace_active_get(window->workspace_hook);
 		Scene *scene = window->scene;
+		ViewRender *view_render = BKE_viewrender_get(scene, workspace);
 		ScrArea *area;
-		RenderEngineType *type = RE_engines_find(scene->r.engine);
+		RenderEngineType *type = RE_engines_find(view_render->engine_id);
 		if ((type->draw_engine != NULL) || (type->render_to_view == NULL)) {
 			continue;
 		}
@@ -1833,38 +1836,32 @@ float get_render_aosss_error(const RenderData *r, float error)
 }
 
 /**
-  * Helper function for the SETLOOPER macro
+  * Helper function for the SETLOOPER and SETLOOPER_SCENE_LAYER macros
   *
   * It iterates over the bases of the active layer and then the bases
   * of the active layer of the background (set) scenes recursively.
   */
-Base *_setlooper_base_step(Scene **sce_iter, Base *base)
+Base *_setlooper_base_step(Scene **sce_iter, SceneLayer *scene_layer, Base *base)
 {
 	if (base && base->next) {
-		/* common case, step to the next */
+		/* Common case, step to the next. */
 		return base->next;
 	}
-	else if (base == NULL) {
-		/* first time looping, return the scenes first base */
-
-		/* for the first loop we should get the layer from context */
-		SceneLayer *sl = BKE_scene_layer_context_active_PLACEHOLDER((*sce_iter));
-		/* TODO For first scene (non-background set), we should pass the render layer as argument.
-		 * In some cases we want it to be the workspace one, in other the scene one. */
-		TODO_LAYER;
-
-		if (sl->object_bases.first) {
-			return (Base *)sl->object_bases.first;
+	else if ((base == NULL) && (scene_layer != NULL)) {
+		/* First time looping, return the scenes first base. */
+		/* For the first loop we should get the layer from workspace when available. */
+		if (scene_layer->object_bases.first) {
+			return (Base *)scene_layer->object_bases.first;
 		}
-		/* no base on this scene layer */
+		/* No base on this scene layer. */
 		goto next_set;
 	}
 	else {
 next_set:
-		/* reached the end, get the next base in the set */
+		/* Reached the end, get the next base in the set. */
 		while ((*sce_iter = (*sce_iter)->set)) {
-			SceneLayer *sl = BKE_scene_layer_from_scene_get((*sce_iter));
-			base = (Base *)sl->object_bases.first;
+			SceneLayer *scene_layer_set = BKE_scene_layer_from_scene_get((*sce_iter));
+			base = (Base *)scene_layer_set->object_bases.first;
 
 			if (base) {
 				return base;
@@ -1877,42 +1874,39 @@ next_set:
 
 bool BKE_scene_use_new_shading_nodes(const Scene *scene)
 {
-	const RenderEngineType *type = RE_engines_find(scene->r.engine);
-	return (type && type->flag & RE_USE_SHADING_NODES);
+	return BKE_viewrender_use_new_shading_nodes(&scene->view_render);
 }
 
 bool BKE_scene_use_shading_nodes_custom(Scene *scene)
 {
-	RenderEngineType *type = RE_engines_find(scene->r.engine);
-	return (type && type->flag & RE_USE_SHADING_NODES_CUSTOM);
+	return BKE_viewrender_use_shading_nodes_custom(&scene->view_render);
 }
 
 bool BKE_scene_use_world_space_shading(Scene *scene)
 {
-	const RenderEngineType *type = RE_engines_find(scene->r.engine);
+	RenderEngineType *type = RE_engines_find(scene->view_render.engine_id);
 	return ((scene->r.mode & R_USE_WS_SHADING) ||
 	        (type && (type->flag & RE_USE_SHADING_NODES)));
 }
 
 bool BKE_scene_use_spherical_stereo(Scene *scene)
 {
-	RenderEngineType *type = RE_engines_find(scene->r.engine);
-	return (type && type->flag & RE_USE_SPHERICAL_STEREO);
+	return BKE_viewrender_use_spherical_stereo(&scene->view_render);
 }
 
-bool BKE_scene_uses_blender_internal(const  Scene *scene)
+bool BKE_scene_uses_blender_internal(const Scene *scene)
 {
-	return STREQ(scene->r.engine, RE_engine_id_BLENDER_RENDER);
+	return BKE_viewrender_uses_blender_internal(&scene->view_render);
 }
 
 bool BKE_scene_uses_blender_game(const Scene *scene)
 {
-	return STREQ(scene->r.engine, RE_engine_id_BLENDER_GAME);
+	return BKE_viewrender_uses_blender_game(&scene->view_render);
 }
 
 bool BKE_scene_uses_blender_eevee(const Scene *scene)
 {
-	return STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
+	return BKE_viewrender_uses_blender_eevee(&scene->view_render);
 }
 
 void BKE_scene_base_flag_to_objects(SceneLayer *sl)
@@ -2026,6 +2020,81 @@ int BKE_render_preview_pixel_size(const RenderData *r)
 	}
 	return r->preview_pixel_size;
 }
+
+/* ***************************************************** */
+/* render engine settings */
+
+ViewRender *BKE_viewrender_get(Scene *scene, WorkSpace *workspace)
+{
+	if (workspace == NULL || BKE_workspace_use_scene_settings_get(workspace)) {
+		return &scene->view_render;
+	}
+	return BKE_workspace_view_render_get(workspace);
+}
+
+/**
+ * Initialize a static created struct for WorkSpace and Scene to store the viewport
+ * related drawing data.
+ */
+void BKE_viewrender_init(ViewRender *view_render)
+{
+	BLI_strncpy(view_render->engine_id, RE_engine_id_BLENDER_EEVEE, sizeof(view_render->engine_id));
+}
+
+/**
+ * Do not free ViewRender itself since it's not even allocated.
+ */
+void BKE_viewrender_free(ViewRender *UNUSED(view_render))
+{
+	/* Do nothing. */
+}
+
+/**
+ * Copy used by libblock copying.
+ */
+void BKE_viewrender_copy(ViewRender *to, const ViewRender *from)
+{
+	*to = *from;
+}
+
+bool BKE_viewrender_use_new_shading_nodes(const ViewRender *view_render)
+{
+	RenderEngineType *type = RE_engines_find(view_render->engine_id);
+	return (type && type->flag & RE_USE_SHADING_NODES);
+}
+
+bool BKE_viewrender_use_shading_nodes_custom(const ViewRender *view_render)
+{
+	RenderEngineType *type = RE_engines_find(view_render->engine_id);
+	return (type && type->flag & RE_USE_SHADING_NODES_CUSTOM);
+}
+
+bool BKE_viewrender_use_spherical_stereo(const ViewRender *view_render)
+{
+	const char *engine_id = view_render->engine_id;
+	RenderEngineType *type = RE_engines_find(engine_id);
+	return (type && type->flag & RE_USE_SPHERICAL_STEREO);
+}
+
+bool BKE_viewrender_uses_blender_internal(const ViewRender *view_render)
+{
+	const char *engine_id = view_render->engine_id;
+	return STREQ(engine_id, RE_engine_id_BLENDER_RENDER);
+}
+
+bool BKE_viewrender_uses_blender_game(const ViewRender *view_render)
+{
+	const char *engine_id = view_render->engine_id;
+	return STREQ(engine_id, RE_engine_id_BLENDER_GAME);
+}
+
+bool BKE_viewrender_uses_blender_eevee(const ViewRender *view_render)
+{
+	const char *engine_id = view_render->engine_id;
+	return STREQ(engine_id, RE_engine_id_BLENDER_EEVEE);
+}
+
+/* ***************************************************** */
 
 /* Apply the needed correction factor to value, based on unit_type (only length-related are affected currently)
  * and unit->scale_length.

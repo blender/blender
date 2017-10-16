@@ -28,11 +28,18 @@
 
 #include "BKE_workspace.h"
 
+#include "ED_render.h"
+
+#include "RE_engine.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "rna_internal.h"
 
+/* Allow accessing private members of DNA_workspace_types.h */
+#define DNA_PRIVATE_WORKSPACE_ALLOW
+#include "DNA_workspace_types.h"
 
 #ifdef RNA_RUNTIME
 
@@ -42,7 +49,6 @@
 
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_workspace_types.h"
 
 #include "RNA_access.h"
 
@@ -153,6 +159,20 @@ static void rna_def_workspace(BlenderRNA *brna)
 	                               NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Render Layer", "The active render layer used in this workspace");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_NULL);
+	RNA_def_property_update(prop, NC_SCREEN | ND_LAYER, NULL);
+
+	/* View Render */
+	prop = RNA_def_property(srna, "view_render", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "ViewRenderSettings");
+	RNA_def_property_ui_text(prop, "View Render", "");
+
+	/* Flags */
+	prop = RNA_def_property(srna, "use_scene_settings", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", WORKSPACE_USE_SCENE_SETTINGS);
+	RNA_def_property_ui_text(prop, "Scene Settings",
+	                         "Use scene settings instead of workspace settings");
 	RNA_def_property_update(prop, NC_SCREEN | ND_LAYER, NULL);
 }
 

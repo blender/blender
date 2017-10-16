@@ -60,8 +60,8 @@ class SceneButtonsPanel:
 
     @classmethod
     def poll(cls, context):
-        rd = context.scene.render
-        return context.scene and (rd.engine in cls.COMPAT_ENGINES)
+        view_render = context.scene.view_render
+        return context.scene and (view_render.engine in cls.COMPAT_ENGINES)
 
 
 class SCENE_PT_scene(SceneButtonsPanel, Panel):
@@ -75,7 +75,7 @@ class SCENE_PT_scene(SceneButtonsPanel, Panel):
 
         layout.prop(scene, "camera")
         layout.prop(scene, "background_set", text="Background")
-        if context.scene.render.engine != 'BLENDER_GAME':
+        if context.engine != 'BLENDER_GAME':
             layout.prop(scene, "active_clip", text="Active Clip")
 
 
@@ -333,7 +333,7 @@ class SCENE_PT_rigid_body_world(SceneButtonsPanel, Panel):
     def poll(cls, context):
         scene = context.scene
         rd = scene.render
-        return scene and (rd.engine in cls.COMPAT_ENGINES)
+        return scene and (view_render.engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
         scene = context.scene
@@ -378,9 +378,9 @@ class SCENE_PT_rigid_body_cache(SceneButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        rd = context.scene.render
         scene = context.scene
-        return scene and scene.rigidbody_world and (rd.engine in cls.COMPAT_ENGINES)
+        view_render = scene.view_render
+        return scene and scene.rigidbody_world and (view_render.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         scene = context.scene
@@ -396,9 +396,9 @@ class SCENE_PT_rigid_body_field_weights(SceneButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        rd = context.scene.render
+        view_render = context.scene.view_render
         scene = context.scene
-        return scene and scene.rigidbody_world and (rd.engine in cls.COMPAT_ENGINES)
+        return scene and scene.rigidbody_world and (view_render.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         scene = context.scene
@@ -412,13 +412,13 @@ class SCENE_PT_simplify(SceneButtonsPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
 
     def draw_header(self, context):
-        rd = context.scene.render
+        view_render = context.scene.view_render
         self.layout.prop(rd, "use_simplify", text="")
 
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render
+        view_render = context.scene.view_render
 
         layout.active = rd.use_simplify
 

@@ -409,12 +409,13 @@ void wm_event_do_notifiers(bContext *C)
 		for (win = wm->windows.first; win; win = win->next) {
 			Scene *scene = WM_window_get_active_scene(win);
 			bScreen *screen = WM_window_get_active_screen(win);
+			WorkSpace *workspace = WM_window_get_active_workspace(win);
 
 			/* filter out notifiers */
 			if (note->category == NC_SCREEN &&
 			    note->reference &&
 			    note->reference != screen &&
-			    note->reference != WM_window_get_active_workspace(win) &&
+			    note->reference != workspace &&
 			    note->reference != WM_window_get_active_layout(win))
 			{
 				/* pass */
@@ -437,7 +438,7 @@ void wm_event_do_notifiers(bContext *C)
 				}
 				
 				for (sa = screen->areabase.first; sa; sa = sa->next) {
-					ED_area_do_listen(screen, sa, note, scene);
+					ED_area_do_listen(screen, sa, note, scene, workspace);
 					for (ar = sa->regionbase.first; ar; ar = ar->next) {
 						ED_region_do_listen(screen, sa, ar, note, scene);
 					}

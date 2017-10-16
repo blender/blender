@@ -90,6 +90,7 @@ struct ParticleKey;
 struct ParticleSystem;
 struct PointCache;
 struct Scene;
+struct SceneLayer;
 struct SmokeModifierData;
 struct SoftBody;
 struct RigidBodyWorld;
@@ -186,6 +187,7 @@ typedef struct PTCacheID {
 typedef struct PTCacheBaker {
 	struct Main *main;
 	struct Scene *scene;
+	struct SceneLayer *scene_layer;
 	int bake;
 	int render;
 	int anim_init;
@@ -319,7 +321,7 @@ struct PointCache *BKE_ptcache_copy_list(struct ListBase *ptcaches_new, const st
 /********************** Baking *********************/
 
 /* Bakes cache with cache_step sized jumps in time, not accurate but very fast. */
-void BKE_ptcache_quick_cache_all(struct Main *bmain, struct Scene *scene);
+void BKE_ptcache_quick_cache_all(struct Main *bmain, struct Scene *scene, struct SceneLayer *scene_layer);
 
 /* Bake cache or simulate to current frame with settings defined in the baker. */
 void BKE_ptcache_bake(struct PTCacheBaker *baker);

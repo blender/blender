@@ -114,6 +114,7 @@ void view3d_set_viewcontext(bContext *C, ViewContext *vc)
 	vc->depsgraph = CTX_data_depsgraph(C);
 	vc->scene = CTX_data_scene(C);
 	vc->scene_layer = CTX_data_scene_layer(C);
+	vc->engine = CTX_data_engine(C);
 	vc->v3d = CTX_wm_view3d(C);
 	vc->win = CTX_wm_window(C);
 	vc->rv3d = CTX_wm_region_view3d(C);

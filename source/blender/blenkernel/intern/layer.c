@@ -82,9 +82,14 @@ SceneLayer *BKE_scene_layer_from_scene_get(const Scene *scene)
 /**
  * Returns the SceneLayer to be used for drawing, outliner, and other context related areas.
  */
-SceneLayer *BKE_scene_layer_from_workspace_get(const struct WorkSpace *workspace)
+SceneLayer *BKE_scene_layer_from_workspace_get(const struct Scene *scene, const struct WorkSpace *workspace)
 {
-	return BKE_workspace_render_layer_get(workspace);
+	if (BKE_workspace_use_scene_settings_get(workspace)) {
+		return BKE_scene_layer_from_scene_get(scene);
+	}
+	else {
+		return BKE_workspace_render_layer_get(workspace);
+	}
 }
 
 /**
@@ -168,14 +173,6 @@ void BKE_scene_layer_free(SceneLayer *sl)
 	MEM_SAFE_FREE(sl->stats);
 
 	MEM_freeN(sl);
-}
-
-/**
- * Set the render engine of a renderlayer
- */
-void BKE_scene_layer_engine_set(SceneLayer *sl, const char *engine)
-{
-	BLI_strncpy_utf8(sl->engine, engine, sizeof(sl->engine));
 }
 
 /**
@@ -1779,6 +1776,89 @@ void BKE_visible_bases_iterator_next(BLI_Iterator *iter)
 void BKE_visible_bases_iterator_end(BLI_Iterator *UNUSED(iter))
 {
 	/* do nothing */
+}
+
+void BKE_renderable_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
+{
+	ObjectsRenderableIteratorData *data = data_in;
+
+	for (Scene *scene = data->scene; scene; scene = scene->set) {
+		for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
+			for (Base *base = sl->object_bases.first; base; base = base->next) {
+				 base->object->id.flag |=  LIB_TAG_DOIT;
+			}
+		}
+	}
+
+	SceneLayer *scene_layer = data->scene->render_layers.first;
+	data->iter.scene_layer = scene_layer;
+
+	Base base = {(Base *)scene_layer->object_bases.first, NULL};
+	data->iter.base = &base;
+
+	data->iter.set = NULL;
+
+	iter->data = data_in;
+	BKE_renderable_objects_iterator_next(iter);
+}
+
+void BKE_renderable_objects_iterator_next(BLI_Iterator *iter)
+{
+	ObjectsRenderableIteratorData *data = iter->data;
+	Base *base = data->iter.base->next;
+
+	/* There is still a base in the current scene layer. */
+	if (base != NULL) {
+		Object *ob = base->object;
+
+		iter->current = ob;
+		data->iter.base = base;
+
+		if ((base->flag & BASE_VISIBLED) == 0) {
+			BKE_renderable_objects_iterator_next(iter);
+		}
+		return;
+	}
+
+	/* Time to go to the next scene layer. */
+	if (data->iter.set == NULL) {
+		while ((data->iter.scene_layer = data->iter.scene_layer->next)) {
+			SceneLayer *scene_layer = data->iter.scene_layer;
+			if (scene_layer->flag & SCENE_LAYER_RENDER) {
+
+				Base base_iter = {(Base *)scene_layer->object_bases.first, NULL};
+				data->iter.base = &base_iter;
+
+				BKE_renderable_objects_iterator_next(iter);
+				return;
+			}
+		}
+
+		/* Setup the "set" for the next iteration. */
+		Scene scene = {.set = data->scene};
+		data->iter.set = &scene;
+		BKE_renderable_objects_iterator_next(iter);
+		return;
+	}
+
+	/* Look for an object in the next set. */
+	while ((data->iter.set = data->iter.set->set)) {
+		SceneLayer *scene_layer = BKE_scene_layer_from_scene_get(data->iter.set);
+
+		Base base_iter = {(Base *)scene_layer->object_bases.first, NULL};
+		data->iter.base = &base_iter;
+
+		BKE_renderable_objects_iterator_next(iter);
+		return;
+	}
+
+	iter->current = NULL;
+	iter->valid = false;
+}
+
+void BKE_renderable_objects_iterator_end(BLI_Iterator *UNUSED(iter))
+{
+	/* Do nothing - iter->data was static allocated, we can't free it. */
 }
 
 /* Evaluation  */

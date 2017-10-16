@@ -141,7 +141,7 @@ void ED_render_scene_update(Main *bmain, Scene *scene, int updated)
 					engine->type->view_update(engine, C);
 
 				}
-				else if ((RE_engines_find(scene->r.engine)->flag & RE_USE_LEGACY_PIPELINE) == 0) {
+				else if ((RE_engines_find(scene->view_render.engine_id)->flag & RE_USE_LEGACY_PIPELINE) == 0) {
 					if (updated) {
 						CTX_wm_screen_set(C, sc);
 						CTX_wm_area_set(C, sa);

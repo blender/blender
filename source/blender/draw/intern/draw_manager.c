@@ -37,6 +37,7 @@
 #include "BKE_object.h"
 #include "BKE_pbvh.h"
 #include "BKE_paint.h"
+#include "BKE_workspace.h"
 
 #include "BLT_translation.h"
 #include "BLF_api.h"
@@ -2905,15 +2906,14 @@ static void use_drw_engine(DrawEngineType *engine)
 /* TODO revisit this when proper layering is implemented */
 /* Gather all draw engines needed and store them in DST.enabled_engines
  * That also define the rendering order of engines */
-static void DRW_engines_enable_from_engine(const Scene *scene)
+static void DRW_engines_enable_from_engine(RenderEngineType *engine)
 {
 	/* TODO layers */
-	RenderEngineType *type = RE_engines_find(scene->r.engine);
-	if (type->draw_engine != NULL) {
-		use_drw_engine(type->draw_engine);
+	if (engine->draw_engine != NULL) {
+		use_drw_engine(engine->draw_engine);
 	}
 
-	if ((type->flag & RE_INTERNAL) == 0) {
+	if ((engine->flag & RE_INTERNAL) == 0) {
 		DRW_engines_enable_external();
 	}
 }
@@ -2990,11 +2990,12 @@ static void DRW_engines_enable_external(void)
 	use_drw_engine(DRW_engine_viewport_external_type.draw_engine);
 }
 
-static void DRW_engines_enable(const Scene *scene, SceneLayer *sl)
+static void DRW_engines_enable(const Scene *scene, SceneLayer *sl, RenderEngineType *engine)
 {
 	Object *obact = OBACT_NEW(sl);
 	const int mode = CTX_data_mode_enum_ex(scene->obedit, obact);
-	DRW_engines_enable_from_engine(scene);
+
+	DRW_engines_enable_from_engine(engine);
 
 	if (DRW_state_draw_support()) {
 		DRW_engines_enable_from_object_mode();
@@ -3153,7 +3154,8 @@ void DRW_notify_view_update(const bContext *C)
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = ar->regiondata;
 	Scene *scene = DEG_get_evaluated_scene(graph);
-	SceneLayer *sl = DEG_get_evaluated_scene_layer(graph);
+	RenderEngineType *engine = CTX_data_engine(C);
+	SceneLayer *scene_layer = CTX_data_scene_layer(C);
 
 	if (rv3d->viewport == NULL) {
 		return;
@@ -3165,17 +3167,17 @@ void DRW_notify_view_update(const bContext *C)
 
 	DST.viewport = rv3d->viewport;
 	DST.draw_ctx = (DRWContextState){
-		ar, rv3d, v3d, scene, sl, OBACT_NEW(sl), C,
+		ar, rv3d, v3d, scene, scene_layer, OBACT_NEW(scene_layer), engine, C,
 	};
 
-	DRW_engines_enable(scene, sl);
+	DRW_engines_enable(scene, scene_layer, engine);
 
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
-		DrawEngineType *engine = link->data;
-		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
+		DrawEngineType *draw_engine = link->data;
+		ViewportEngineData *data = DRW_viewport_engine_data_get(draw_engine);
 
-		if (engine->view_update) {
-			engine->view_update(data);
+		if (draw_engine->view_update) {
+			draw_engine->view_update(data);
 		}
 	}
 
@@ -3197,12 +3199,13 @@ void DRW_notify_view_update(const bContext *C)
 void DRW_draw_view(const bContext *C)
 {
 	struct Depsgraph *graph = CTX_data_depsgraph(C);
+	RenderEngineType *engine = CTX_data_engine(C);
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 
 	/* Reset before using it. */
 	memset(&DST, 0x0, sizeof(DST));
-	DRW_draw_render_loop_ex(graph, ar, v3d, C);
+	DRW_draw_render_loop_ex(graph, engine, ar, v3d, C);
 }
 
 /**
@@ -3211,11 +3214,12 @@ void DRW_draw_view(const bContext *C)
  */
 void DRW_draw_render_loop_ex(
         struct Depsgraph *graph,
+        RenderEngineType *engine,
         ARegion *ar, View3D *v3d,
         const bContext *evil_C)
 {
 	Scene *scene = DEG_get_evaluated_scene(graph);
-	SceneLayer *sl = DEG_get_evaluated_scene_layer(graph);
+	SceneLayer *scene_layer = DEG_get_evaluated_scene_layer(graph);
 	RegionView3D *rv3d = ar->regiondata;
 
 	DST.draw_ctx.evil_C = evil_C;
@@ -3228,15 +3232,16 @@ void DRW_draw_render_loop_ex(
 	cache_is_dirty = GPU_viewport_cache_validate(DST.viewport, DRW_engines_get_hash());
 
 	DST.draw_ctx = (DRWContextState){
-		ar, rv3d, v3d, scene, sl, OBACT_NEW(sl),
-		/* reuse if caller sets */
-		DST.draw_ctx.evil_C,
+	    ar, rv3d, v3d, scene, scene_layer, OBACT_NEW(scene_layer), engine,
+
+	    /* reuse if caller sets */
+	    DST.draw_ctx.evil_C,
 	};
 
 	DRW_viewport_var_init();
 
 	/* Get list of enabled engines */
-	DRW_engines_enable(scene, sl);
+	DRW_engines_enable(scene, scene_layer, engine);
 
 	/* Update ubos */
 	DRW_globals_update();
@@ -3316,11 +3321,15 @@ void DRW_draw_render_loop(
 {
 	/* Reset before using it. */
 	memset(&DST, 0x0, sizeof(DST));
-	DRW_draw_render_loop_ex(graph, ar, v3d, NULL);
+
+	Scene *scene = DEG_get_evaluated_scene(graph);
+	RenderEngineType *engine = RE_engines_find(scene->view_render.engine_id);
+
+	DRW_draw_render_loop_ex(graph, engine, ar, v3d, NULL);
 }
 
 void DRW_draw_render_loop_offscreen(
-        struct Depsgraph *graph,
+        struct Depsgraph *graph, RenderEngineType *engine,
         ARegion *ar, View3D *v3d, GPUOffScreen *ofs)
 {
 	RegionView3D *rv3d = ar->regiondata;
@@ -3335,7 +3344,7 @@ void DRW_draw_render_loop_offscreen(
 	/* Reset before using it. */
 	memset(&DST, 0x0, sizeof(DST));
 	DST.options.is_image_render = true;
-	DRW_draw_render_loop_ex(graph, ar, v3d, NULL);
+	DRW_draw_render_loop_ex(graph, engine, ar, v3d, NULL);
 
 	/* restore */
 	{
@@ -3360,6 +3369,7 @@ void DRW_draw_select_loop(
         bool UNUSED(use_obedit_skip), bool UNUSED(use_nearest), const rcti *rect)
 {
 	Scene *scene = DEG_get_evaluated_scene(graph);
+	RenderEngineType *engine = RE_engines_find(scene->view_render.engine_id);
 	SceneLayer *sl = DEG_get_evaluated_scene_layer(graph);
 #ifndef USE_GPU_SELECT
 	UNUSED_VARS(vc, scene, sl, v3d, ar, rect);
@@ -3412,7 +3422,7 @@ void DRW_draw_select_loop(
 
 	/* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
 	DST.draw_ctx = (DRWContextState){
-		ar, rv3d, v3d, scene, sl, OBACT_NEW(sl), (bContext *)NULL,
+		ar, rv3d, v3d, scene, sl, OBACT_NEW(sl), engine, (bContext *)NULL,
 	};
 
 	DRW_viewport_var_init();
@@ -3478,6 +3488,7 @@ void DRW_draw_depth_loop(
         ARegion *ar, View3D *v3d)
 {
 	Scene *scene = DEG_get_evaluated_scene(graph);
+	RenderEngineType *engine = RE_engines_find(scene->view_render.engine_id);
 	SceneLayer *sl = DEG_get_evaluated_scene_layer(graph);
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -3508,7 +3519,7 @@ void DRW_draw_depth_loop(
 
 	/* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
 	DST.draw_ctx = (DRWContextState){
-		ar, rv3d, v3d, scene, sl, OBACT_NEW(sl), (bContext *)NULL,
+		ar, rv3d, v3d, scene, sl, OBACT_NEW(sl), engine, (bContext *)NULL,
 	};
 
 	DRW_viewport_var_init();

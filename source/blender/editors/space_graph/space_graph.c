@@ -475,7 +475,8 @@ static void graph_region_listener(
 }
 
 /* editor level listener */
-static void graph_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, const Scene *UNUSED(scene))
+static void graph_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, Scene *UNUSED(scene),
+                           WorkSpace *UNUSED(workspace))
 {
 	SpaceIpo *sipo = (SpaceIpo *)sa->spacedata.first;
 	

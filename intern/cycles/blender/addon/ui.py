@@ -50,8 +50,7 @@ class CyclesButtonsPanel:
 
     @classmethod
     def poll(cls, context):
-        rd = context.scene.render
-        return rd.engine in cls.COMPAT_ENGINES
+        return context.engine in cls.COMPAT_ENGINES
 
 
 def get_device_type(context):
@@ -1691,7 +1690,7 @@ def draw_device(self, context):
     scene = context.scene
     layout = self.layout
 
-    if scene.render.engine == 'CYCLES':
+    if context.engine == 'CYCLES':
         from . import engine
         cscene = scene.cycles
 
@@ -1711,7 +1710,7 @@ def draw_pause(self, context):
     layout = self.layout
     scene = context.scene
 
-    if scene.render.engine == "CYCLES":
+    if context.engine == "CYCLES":
         view = context.space_data
 
         cscene = scene.cycles

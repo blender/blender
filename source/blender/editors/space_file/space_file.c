@@ -292,7 +292,8 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 	}
 }
 
-static void file_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, const Scene *UNUSED(scene))
+static void file_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, Scene *UNUSED(scene),
+                          WorkSpace *UNUSED(workspace))
 {
 	SpaceFile *sfile = (SpaceFile *)sa->spacedata.first;
 

@@ -57,6 +57,7 @@
 #include "BKE_screen.h"
 #include "BKE_texture.h"
 #include "BKE_linestyle.h"
+#include "BKE_workspace.h"
 
 #include "RNA_access.h"
 
@@ -168,29 +169,53 @@ static int buttons_context_path_linestyle(ButsContextPath *path)
 	return 0;
 }
 
+static int buttons_context_path_workspace(ButsContextPath *path)
+{
+	PointerRNA *ptr = &path->ptr[path->len - 1];
+
+	/* This one just verifies. */
+	return RNA_struct_is_a(ptr->type, &RNA_WorkSpace);
+}
+
+static int buttons_context_path_collection(ButsContextPath *path)
+{
+	PointerRNA *ptr = &path->ptr[path->len - 1];
+
+	/* if we already have a (pinned) Collection, we're done */
+	if (RNA_struct_is_a(ptr->type, &RNA_LayerCollection)) {
+		return 1;
+	}
+
+	SceneLayer *sl = ptr->data;
+	LayerCollection *sc = BKE_layer_collection_get_active(sl);
+
+	if (sc) {
+		RNA_pointer_create(NULL, &RNA_LayerCollection, sc, &path->ptr[path->len]);
+		path->len++;
+		return 1;
+	}
+
+	/* no path to a collection possible */
+	return 0;
+}
+
 static int buttons_context_path_object(ButsContextPath *path)
 {
-	Scene *scene;
-	Object *ob;
 	PointerRNA *ptr = &path->ptr[path->len - 1];
 
 	/* if we already have a (pinned) object, we're done */
 	if (RNA_struct_is_a(ptr->type, &RNA_Object)) {
 		return 1;
 	}
-	/* if we have a scene, use the scene's active object */
-	else if (buttons_context_path_scene(path)) {
-		scene = path->ptr[path->len - 1].data;
 
-		SceneLayer *sl = BKE_scene_layer_context_active_PLACEHOLDER(scene);
-		ob = (sl->basact) ? sl->basact->object : NULL;
+	SceneLayer *sl = ptr->data;
+	Object *ob = (sl->basact) ? sl->basact->object : NULL;
 
-		if (ob) {
-			RNA_id_pointer_create(&ob->id, &path->ptr[path->len]);
-			path->len++;
+	if (ob) {
+		RNA_id_pointer_create(&ob->id, &path->ptr[path->len]);
+		path->len++;
 
-			return 1;
-		}
+		return 1;
 	}
 
 	/* no path to a object possible */
@@ -559,39 +584,11 @@ static bool buttons_context_linestyle_pinnable(const bContext *C)
 }
 #endif
 
-static int buttons_context_path_collection(const bContext *C, ButsContextPath *path)
-{
-	PointerRNA *ptr = &path->ptr[path->len - 1];
-
-	/* if we already have a (pinned) Collection, we're done */
-	if (RNA_struct_is_a(ptr->type, &RNA_LayerCollection)) {
-		return 1;
-	}
-
-	SceneLayer *sl = CTX_data_scene_layer(C);
-	LayerCollection *sc = BKE_layer_collection_get_active(sl);
-
-	if (sc) {
-		RNA_pointer_create(NULL, &RNA_LayerCollection, sc, &path->ptr[path->len]);
-		path->len++;
-
-		/* temporary object in context path to get edit mode */
-		Object *ob = CTX_data_active_object(C);
-		if (ob) {
-			RNA_id_pointer_create(&ob->id, &path->ptr[path->len]);
-			path->len++;
-		}
-
-		return 1;
-	}
-
-	/* no path to a collection possible */
-	return 0;
-}
-
 static int buttons_context_path(const bContext *C, ButsContextPath *path, int mainb, int flag)
 {
 	SpaceButs *sbuts = CTX_wm_space_buts(C);
+	Scene *scene = CTX_data_scene(C);
+	WorkSpace *workspace = CTX_wm_workspace(C);
 	ID *id;
 	int found;
 
@@ -599,18 +596,32 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 	path->flag = flag;
 	path->tex_ctx = sbuts->texture_context;
 
-	/* if some ID datablock is pinned, set the root pointer */
+	const bool use_scene_settings = BKE_workspace_use_scene_settings_get(workspace);
+
+	/* If some ID datablock is pinned, set the root pointer. */
 	if (sbuts->pinid) {
 		id = sbuts->pinid;
 
 		RNA_id_pointer_create(id, &path->ptr[0]);
 		path->len++;
 	}
+	/* No pinned root, use scene or workspace as initial root. */
+	else {
+		if ((mainb != BCONTEXT_WORKSPACE) && (use_scene_settings ||
+		    ELEM(mainb, BCONTEXT_SCENE, BCONTEXT_RENDER, BCONTEXT_RENDER_LAYER, BCONTEXT_WORLD)))
+		{
+			RNA_id_pointer_create(&scene->id, &path->ptr[0]);
+			path->len++;
+		}
+		else {
+			RNA_id_pointer_create(&workspace->id, &path->ptr[0]);
+			path->len++;
+		}
+	}
 
-	/* no pinned root, use scene as root */
-	if (path->len == 0) {
-		id = (ID *)CTX_data_scene(C);
-		RNA_id_pointer_create(id, &path->ptr[0]);
+	if (!ELEM(mainb, BCONTEXT_WORKSPACE, BCONTEXT_SCENE, BCONTEXT_RENDER, BCONTEXT_RENDER_LAYER, BCONTEXT_WORLD)) {
+		SceneLayer *scene_layer = BKE_scene_layer_from_workspace_get(scene, workspace);
+		RNA_pointer_create(NULL, &RNA_SceneLayer, scene_layer, &path->ptr[path->len]);
 		path->len++;
 	}
 
@@ -634,6 +645,12 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 			break;
 		case BCONTEXT_WORLD:
 			found = buttons_context_path_world(path);
+			break;
+		case BCONTEXT_WORKSPACE:
+			found = buttons_context_path_workspace(path);
+			break;
+		case BCONTEXT_COLLECTION:
+			found = buttons_context_path_collection(path);
 			break;
 		case BCONTEXT_OBJECT:
 		case BCONTEXT_PHYSICS:
@@ -662,9 +679,6 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 			break;
 		case BCONTEXT_BONE_CONSTRAINT:
 			found = buttons_context_path_pose_bone(path);
-			break;
-		case BCONTEXT_COLLECTION:
-			found = buttons_context_path_collection(C, path);
 			break;
 		default:
 			found = 0;
@@ -783,7 +797,7 @@ const char *buttons_context_dir[] = {
 	"texture", "texture_user", "texture_user_property", "bone", "edit_bone",
 	"pose_bone", "particle_system", "particle_system_editable", "particle_settings",
 	"cloth", "soft_body", "fluid", "smoke", "collision", "brush", "dynamic_paint",
-	"line_style", "collection", NULL
+	"line_style", "collection", "workspace", NULL
 };
 
 int buttons_context(const bContext *C, const char *member, bContextDataResult *result)
@@ -811,6 +825,10 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 	else if (CTX_data_equals(member, "world")) {
 		set_pointer_type(path, result, &RNA_World);
 		return 1;
+	}
+	else if (CTX_data_equals(member, "workspace")) {
+		/* Do not return one here if scene not found in path, in this case we want to get default context scene! */
+		return set_pointer_type(path, result, &RNA_WorkSpace);
 	}
 	else if (CTX_data_equals(member, "object")) {
 		set_pointer_type(path, result, &RNA_Object);
@@ -1168,10 +1186,14 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 			name = RNA_struct_name_get_alloc(ptr, namebuf, sizeof(namebuf), NULL);
 
 			if (name) {
-				if (!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_SCENE, BCONTEXT_RENDER_LAYER) && ptr->type == &RNA_Scene)
+				if ((!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_SCENE, BCONTEXT_RENDER_LAYER) && ptr->type == &RNA_Scene) ||
+				    (!ELEM(sbuts->mainb, BCONTEXT_WORKSPACE) && ptr->type == &RNA_WorkSpace))
+				{
 					uiItemLDrag(row, ptr, "", icon);  /* save some space */
-				else
+				}
+				else {
 					uiItemLDrag(row, ptr, name, icon);
+				}
 
 				if (name != namebuf)
 					MEM_freeN(name);

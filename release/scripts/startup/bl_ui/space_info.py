@@ -32,7 +32,7 @@ class INFO_HT_header(Header):
         screen = context.screen
         scene = context.scene
         layer = context.render_layer
-        rd = scene.render
+        view_render = workspace.view_render
 
         row = layout.row(align=True)
         row.template_header()
@@ -54,14 +54,16 @@ class INFO_HT_header(Header):
             act_mode_item = bpy.types.Object.bl_rna.properties['mode'].enum_items[layer.objects.active.mode]
         layout.operator_menu_enum("object.mode_set", "mode", text=act_mode_item.name, icon=act_mode_item.icon)
 
-        layout.template_search(workspace, "render_layer", scene, "render_layers")
+        row = layout.row()
+        row.active = not workspace.use_scene_settings
+        row.template_search(workspace, "render_layer", scene, "render_layers")
+
+        if view_render.has_multiple_engines:
+            row.prop(view_render, "engine", text="")
 
         layout.separator()
 
         layout.template_ID(window, "scene", new="scene.new", unlink="scene.delete")
-
-        if rd.has_multiple_engines:
-            layout.prop(rd, "engine", text="")
 
         layout.separator()
 
@@ -96,12 +98,11 @@ class INFO_MT_editor_menus(Menu):
 
     @staticmethod
     def draw_menus(layout, context):
-        scene = context.scene
-        rd = scene.render
+        view_render = context.view_render
 
         layout.menu("INFO_MT_file")
 
-        if rd.use_game_engine:
+        if view_render.use_game_engine:
             layout.menu("INFO_MT_game")
         else:
             layout.menu("INFO_MT_render")

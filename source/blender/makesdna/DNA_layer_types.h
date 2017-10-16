@@ -74,7 +74,6 @@ typedef struct LayerCollection {
 typedef struct SceneLayer {
 	struct SceneLayer *next, *prev;
 	char name[64]; /* MAX_NAME */
-	char engine[32]; /* render engine */
 	short active_collection;
 	short flag;
 	short pad[2];

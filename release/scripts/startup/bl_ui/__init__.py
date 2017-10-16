@@ -42,6 +42,7 @@ _modules = [
     "properties_data_modifier",
     "properties_data_lightprobe",
     "properties_data_speaker",
+    "properties_data_workspace",
     "properties_game",
     "properties_mask_common",
     "properties_material",

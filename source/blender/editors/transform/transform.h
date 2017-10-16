@@ -37,6 +37,8 @@
 #include "ED_numinput.h"
 #include "ED_view3d.h"
 
+#include "RE_engine.h"
+
 #include "DNA_listBase.h"
 
 /* ************************** Types ***************************** */
@@ -60,6 +62,7 @@ struct wmTimer;
 struct ARegion;
 struct ReportList;
 struct EditBone;
+struct RenderEngineType;
 struct SnapObjectContext;
 
 /* transinfo->redraw */
@@ -467,6 +470,7 @@ typedef struct TransInfo {
 	struct ARegion	*ar;
 	struct Scene	*scene;
 	struct SceneLayer *scene_layer;
+	struct RenderEngineType *engine;
 	struct ToolSettings *settings;
 	struct wmTimer *animtimer;
 	struct wmKeyMap *keymap;  /* so we can do lookups for header text */

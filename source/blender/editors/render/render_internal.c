@@ -56,6 +56,7 @@
 #include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
@@ -64,6 +65,7 @@
 #include "BKE_sequencer.h"
 #include "BKE_screen.h"
 #include "BKE_scene.h"
+#include "BKE_workspace.h"
 
 #include "DEG_depsgraph.h"
 
@@ -787,33 +789,46 @@ static void screen_render_cancel(bContext *C, wmOperator *op)
 	WM_jobs_kill_type(wm, scene, WM_JOB_TYPE_RENDER);
 }
 
+static void clean_viewport_memory_base(Base *base)
+{
+	if ((base->flag & BASE_VISIBLED) == 0) {
+		return;
+	}
+
+	Object *object = base->object;
+
+	if (object->id.tag & LIB_TAG_DOIT) {
+		return;
+	}
+
+	object->id.tag &= ~LIB_TAG_DOIT;
+	if (RE_allow_render_generic_object(object)) {
+		BKE_object_free_derived_caches(object);
+	}
+}
+
 static void clean_viewport_memory(Main *bmain, Scene *scene)
 {
-	Object *object;
 	Scene *sce_iter;
 	Base *base;
 
-	for (object = bmain->object.first; object; object = object->id.next) {
-		object->id.tag |= LIB_TAG_DOIT;
+	/* Tag all the available objects. */
+	BKE_main_id_tag_listbase(&bmain->object, LIB_TAG_DOIT, true);
+
+	/* Go over all the visible objects. */
+	for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
+		for (wmWindow *win = wm->windows.first; win; win = win->next) {
+			WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);
+			SceneLayer *scene_layer = BKE_scene_layer_from_workspace_get(scene, workspace);
+
+			for (base = scene_layer->object_bases.first; base; base = base->next) {
+				clean_viewport_memory_base(base);
+			}
+		}
 	}
 
-	for (SETLOOPER(scene, sce_iter, base)) {
-		if ((base->flag & BASE_VISIBLED) == 0) {
-			continue;
-		}
-		if (RE_allow_render_generic_object(base->object)) {
-			base->object->id.tag &= ~LIB_TAG_DOIT;
-		}
-	}
-
-	for (SETLOOPER(scene, sce_iter, base)) {
-		object = base->object;
-		if ((object->id.tag & LIB_TAG_DOIT) == 0) {
-			continue;
-		}
-		object->id.tag &= ~LIB_TAG_DOIT;
-
-		BKE_object_free_derived_caches(object);
+    for (SETLOOPER_SET_ONLY(scene, sce_iter, base)) {
+		clean_viewport_memory_base(base);
 	}
 }
 
@@ -1256,10 +1271,10 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 		/* initalize always */
 		if (use_border) {
 			rdata.mode |= R_BORDER;
-			RE_InitState(re, NULL, &rdata, NULL, rp->ar->winx, rp->ar->winy, &cliprct);
+			RE_InitState(re, NULL, &rdata, &rp->scene->view_render, NULL, rp->ar->winx, rp->ar->winy, &cliprct);
 		}
 		else
-			RE_InitState(re, NULL, &rdata, NULL, rp->ar->winx, rp->ar->winy, NULL);
+			RE_InitState(re, NULL, &rdata, &rp->scene->view_render, NULL, rp->ar->winx, rp->ar->winy, NULL);
 	}
 
 	if (orth)

@@ -210,6 +210,7 @@ static EnumPropertyItem buttons_context_items[] = {
 	{BCONTEXT_PARTICLE, "PARTICLES", ICON_PARTICLES, "Particles", "Particle"},
 	{BCONTEXT_PHYSICS, "PHYSICS", ICON_PHYSICS, "Physics", "Physics"},
 	{BCONTEXT_COLLECTION, "COLLECTION", ICON_COLLAPSEMENU, "Collection", "Collection"},
+	{BCONTEXT_WORKSPACE, "WORKSPACE", ICON_RENDER_RESULT, "Workspace", "Workspace"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -726,8 +727,14 @@ static void rna_RegionView3D_view_matrix_set(PointerRNA *ptr, const float *value
 
 static int rna_SpaceView3D_viewport_shade_get(PointerRNA *ptr)
 {
-	Scene *scene = WM_windows_scene_get_from_screen(G.main->wm.first, ptr->id.data);
-	RenderEngineType *type = RE_engines_find(scene->r.engine);
+	bScreen *screen = ptr->id.data;
+
+	Scene *scene = WM_windows_scene_get_from_screen(G.main->wm.first, screen);
+	WorkSpace *workspace = WM_windows_workspace_get_from_screen(G.main->wm.first, screen);
+
+	ViewRender *view_render = BKE_viewrender_get(scene, workspace);
+	RenderEngineType *type = RE_engines_find(view_render->engine_id);
+
 	View3D *v3d = (View3D *)ptr->data;
 	int drawtype = v3d->drawtype;
 
@@ -751,7 +758,9 @@ static EnumPropertyItem *rna_SpaceView3D_viewport_shade_itemf(bContext *C, Point
 {
 	wmWindow *win = CTX_wm_window(C);
 	Scene *scene = WM_window_get_active_scene(win);
-	RenderEngineType *type = RE_engines_find(scene->r.engine);
+	WorkSpace *workspace = WM_window_get_active_workspace(win);
+	ViewRender *view_render = BKE_viewrender_get(scene, workspace);
+	RenderEngineType *type = RE_engines_find(view_render->engine_id);
 
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;
@@ -1117,12 +1126,16 @@ static EnumPropertyItem *rna_SpaceProperties_context_itemf(bContext *UNUSED(C), 
 		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_SCENE);
 	}
 
-	if (sbuts->pathflag & (1 << BCONTEXT_COLLECTION)) {
-		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_COLLECTION);
-	}
-
 	if (sbuts->pathflag & (1 << BCONTEXT_WORLD)) {
 		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_WORLD);
+	}
+
+	if (sbuts->pathflag & (1 << BCONTEXT_WORKSPACE)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_WORKSPACE);
+	}
+
+	if (sbuts->pathflag & (1 << BCONTEXT_COLLECTION)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_COLLECTION);
 	}
 
 	if (sbuts->pathflag & (1 << BCONTEXT_OBJECT)) {

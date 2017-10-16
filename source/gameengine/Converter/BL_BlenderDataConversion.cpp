@@ -147,6 +147,7 @@ extern "C" {
 #include "BKE_customdata.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_layer.h"
 #include "BKE_material.h" /* give_current_material */
 #include "BKE_image.h"
 #include "IMB_imbuf_types.h"

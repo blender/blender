@@ -30,8 +30,8 @@ class PhysicButtonsPanel:
 
     @classmethod
     def poll(cls, context):
-        rd = context.scene.render
-        return (context.object) and rd.engine in cls.COMPAT_ENGINES
+        view_render = context.scene.view_render
+        return (context.object) and view_render.engine in cls.COMPAT_ENGINES
 
 
 def physics_add(self, layout, md, name, type, typeicon, toggles):

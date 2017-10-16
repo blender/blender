@@ -47,6 +47,7 @@
 
 #include "BKE_cloth.h"
 #include "BKE_effect.h"
+#include "BKE_layer.h"
 #include "BKE_modifier.h"
 #include "BKE_scene.h"
 

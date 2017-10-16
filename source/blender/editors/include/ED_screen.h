@@ -35,6 +35,7 @@
 #include "DNA_space_types.h"
 #include "DNA_view2d_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BLI_compiler_attrs.h"
 
@@ -92,7 +93,8 @@ int     ED_area_header_switchbutton(const struct bContext *C, struct uiBlock *bl
 void    ED_area_initialize(struct wmWindowManager *wm, struct wmWindow *win, struct ScrArea *sa);
 void    ED_area_exit(struct bContext *C, struct ScrArea *sa);
 int     ED_screen_area_active(const struct bContext *C);
-void    ED_area_do_listen(struct bScreen *sc, ScrArea *sa, struct wmNotifier *note, const Scene *scene);
+void    ED_area_do_listen(struct bScreen *sc, ScrArea *sa, struct wmNotifier *note, const Scene *scene,
+                          const struct WorkSpace *workspace);
 void    ED_area_tag_redraw(ScrArea *sa);
 void    ED_area_tag_redraw_regiontype(ScrArea *sa, int type);
 void    ED_area_tag_refresh(ScrArea *sa);
@@ -129,7 +131,8 @@ void    ED_screen_preview_render(const struct bScreen *screen, int size_x, int s
 struct WorkSpace *ED_workspace_add(
         struct Main *bmain,
         const char *name,
-        SceneLayer *act_render_layer) ATTR_NONNULL();
+        SceneLayer *act_render_layer,
+        struct ViewRender *view_render) ATTR_NONNULL();
 bool ED_workspace_change(
         struct WorkSpace *workspace_new,
         struct bContext *C,

@@ -47,14 +47,14 @@ class ShaderNewNodeCategory(SortedNodeCategory):
     @classmethod
     def poll(cls, context):
         return (context.space_data.tree_type == 'ShaderNodeTree' and
-                context.scene.render.use_shading_nodes)
+                context.view_render.use_shading_nodes)
 
 
 class ShaderOldNodeCategory(SortedNodeCategory):
     @classmethod
     def poll(cls, context):
         return (context.space_data.tree_type == 'ShaderNodeTree' and
-                not context.scene.render.use_shading_nodes)
+                not context.view_render.use_shading_nodes)
 
 
 class TextureNodeCategory(SortedNodeCategory):
@@ -142,11 +142,11 @@ def object_shader_nodes_poll(context):
 
 
 def cycles_shader_nodes_poll(context):
-    return context.scene.render.engine == 'CYCLES'
+    return context.view_render.engine == 'CYCLES'
 
 
 def eevee_shader_nodes_poll(context):
-    return context.scene.render.engine == 'BLENDER_EEVEE'
+    return context.view_render.engine == 'BLENDER_EEVEE'
 
 
 def eevee_cycles_shader_nodes_poll(context):

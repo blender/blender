@@ -2485,7 +2485,7 @@ static void createTransEditVerts(TransInfo *t)
 	int *island_vert_map = NULL;
 
 	DEG_evaluation_context_init_from_scene(&eval_ctx,
-	                                       t->scene, t->scene_layer,
+	                                       t->scene, t->scene_layer, t->engine,
 	                                       DAG_EVAL_VIEWPORT);
 
 	/* Even for translation this is needed because of island-orientation, see: T51651. */
@@ -5557,7 +5557,7 @@ static void set_trans_object_base_flags(TransInfo *t)
 	/* handle pending update events, otherwise they got copied below */
 	EvaluationContext eval_ctx;
 	DEG_evaluation_context_init_from_scene(&eval_ctx,
-	                                       t->scene, t->scene_layer,
+	                                       t->scene, t->scene_layer, t->engine,
 	                                       DAG_EVAL_VIEWPORT);
 	for (base = sl->object_bases.first; base; base = base->next) {
 		if (base->object->recalc & OB_RECALC_ALL) {

@@ -37,7 +37,7 @@ class DataButtonsPanel:
 
     @classmethod
     def poll(cls, context):
-        engine = context.scene.render.engine
+        engine = context.engine
         return context.lamp and (engine in cls.COMPAT_ENGINES)
 
 
@@ -172,7 +172,7 @@ class DATA_PT_sunsky(DataButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         lamp = context.lamp
-        engine = context.scene.render.engine
+        engine = context.engine
         return (lamp and lamp.type == 'SUN') and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
@@ -244,7 +244,7 @@ class DATA_PT_shadow(DataButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         lamp = context.lamp
-        engine = context.scene.render.engine
+        engine = context.engine
         return (lamp and lamp.type in {'POINT', 'SUN', 'SPOT', 'AREA'}) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
@@ -359,7 +359,7 @@ class DATA_PT_EEVEE_shadow(DataButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         lamp = context.lamp
-        engine = context.scene.render.engine
+        engine = context.engine
         return (lamp and lamp.type in {'POINT', 'SUN', 'SPOT', 'AREA'}) and (engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
@@ -422,7 +422,7 @@ class DATA_PT_area(DataButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         lamp = context.lamp
-        engine = context.scene.render.engine
+        engine = context.engine
         return (lamp and lamp.type == 'AREA') and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
@@ -448,7 +448,7 @@ class DATA_PT_spot(DataButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         lamp = context.lamp
-        engine = context.scene.render.engine
+        engine = context.engine
         return (lamp and lamp.type == 'SPOT') and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
@@ -483,7 +483,7 @@ class DATA_PT_spot(DataButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         lamp = context.lamp
-        engine = context.scene.render.engine
+        engine = context.engine
         return (lamp and lamp.type == 'SPOT') and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
@@ -509,7 +509,7 @@ class DATA_PT_falloff_curve(DataButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         lamp = context.lamp
-        engine = context.scene.render.engine
+        engine = context.engine
 
         return (lamp and lamp.type in {'POINT', 'SPOT'} and lamp.falloff_type == 'CUSTOM_CURVE') and (engine in cls.COMPAT_ENGINES)
 

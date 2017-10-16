@@ -29,7 +29,7 @@ class DataButtonsPanel:
 
     @classmethod
     def poll(cls, context):
-        engine = context.scene.render.engine
+        engine = context.engine
         return context.speaker and (engine in cls.COMPAT_ENGINES)
 
 

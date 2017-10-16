@@ -527,9 +527,9 @@ void update_copy_on_write_scene(const Depsgraph *depsgraph,
 		scene_cow->obedit = NULL;
 	}
 	/* Synchronize active render engine. */
-	BLI_strncpy_utf8(scene_cow->r.engine,
-	                 scene_orig->r.engine,
-	                 sizeof(scene_cow->r.engine));
+	BLI_strncpy_utf8(scene_cow->view_render.engine_id,
+	                 scene_orig->view_render.engine_id,
+	                 sizeof(scene_cow->view_render.engine_id));
 	/* TODO(sergey): What else do we need here? */
 }
 

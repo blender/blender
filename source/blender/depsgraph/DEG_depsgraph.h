@@ -65,6 +65,7 @@ struct Main;
 
 struct PointerRNA;
 struct PropertyRNA;
+struct RenderEngineType;
 struct Scene;
 struct SceneLayer;
 
@@ -84,6 +85,7 @@ typedef struct EvaluationContext {
 	float ctime;
 
 	struct SceneLayer *scene_layer;
+	struct RenderEngineType *engine;
 } EvaluationContext;
 
 /* DagNode->eval_flags */
@@ -213,6 +215,7 @@ void DEG_evaluation_context_init(struct EvaluationContext *eval_ctx,
 void DEG_evaluation_context_init_from_scene(struct EvaluationContext *eval_ctx,
                                             struct Scene *scene,
                                             struct SceneLayer *scene_layer,
+                                            struct RenderEngineType *engine,
                                             eEvaluationMode mode);
 
 /* Free evaluation context. */

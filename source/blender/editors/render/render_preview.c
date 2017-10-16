@@ -173,6 +173,7 @@ typedef struct ShaderPreview {
 
 	Main *bmain;
 	Main *pr_main;
+	ViewRender *view_render;
 } ShaderPreview;
 
 typedef struct IconPreviewSize {
@@ -187,6 +188,7 @@ typedef struct IconPreview {
 	void *owner;
 	ID *id;
 	ListBase sizes;
+	ViewRender *view_render;
 } IconPreview;
 
 /* *************************** Preview for buttons *********************** */
@@ -229,7 +231,7 @@ void ED_preview_ensure_dbase(void)
 
 static bool check_engine_supports_textures(Scene *scene)
 {
-	RenderEngineType *type = RE_engines_find(scene->r.engine);
+	RenderEngineType *type = RE_engines_find(scene->view_render.engine_id);
 	return type->flag & RE_USE_TEXTURE_PREVIEW;
 }
 
@@ -383,10 +385,10 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 			 * seems commonly used render engines does not support
 			 * such kind of rendering.
 			 */
-			BLI_strncpy(sce->r.engine, RE_engine_id_BLENDER_RENDER, sizeof(sce->r.engine));
+			BLI_strncpy(sce->view_render.engine_id, RE_engine_id_BLENDER_RENDER, sizeof(sce->view_render.engine_id));
 		}
 		else {
-			BLI_strncpy(sce->r.engine, scene->r.engine, sizeof(sce->r.engine));
+			BLI_strncpy(sce->view_render.engine_id, scene->view_render.engine_id, sizeof(sce->view_render.engine_id));
 		}
 		
 		if (id_type == ID_MA) {
@@ -857,7 +859,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 		((Camera *)sce->camera->data)->lens *= (float)sp->sizey / (float)sizex;
 
 	/* entire cycle for render engine */
-	RE_PreviewRender(re, pr_main, sce);
+	RE_PreviewRender(re, pr_main, sce, sp->view_render);
 
 	((Camera *)sce->camera->data)->lens = oldlens;
 
@@ -1184,6 +1186,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, short *stop, short
 
 		/* construct shader preview from image size and previewcustomdata */
 		sp->scene = ip->scene;
+		sp->view_render = ip->view_render;
 		sp->owner = ip->owner;
 		sp->sizex = cur_size->sizex;
 		sp->sizey = cur_size->sizey;
@@ -1268,6 +1271,7 @@ void ED_preview_icon_render(Main *bmain, Scene *scene, ID *id, unsigned int *rec
 
 	ip.bmain = bmain;
 	ip.scene = scene;
+	ip.view_render = &scene->view_render;
 	ip.owner = BKE_previewimg_id_ensure(id);
 	ip.id = id;
 
@@ -1301,6 +1305,7 @@ void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *r
 	/* customdata for preview thread */
 	ip->bmain = CTX_data_main(C);
 	ip->scene = CTX_data_scene(C);
+	ip->view_render = &ip->scene->view_render;
 	ip->owner = owner;
 	ip->id = id;
 
@@ -1328,8 +1333,12 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	wmJob *wm_job;
 	ShaderPreview *sp;
 	Scene *scene = CTX_data_scene(C);
+	WorkSpace *workspace = CTX_wm_workspace(C);
 	short id_type = GS(id->name);
-	bool use_new_shading = BKE_scene_use_new_shading_nodes(scene);
+
+	/* Use workspace render only for buttons Window, since the other previews are related to the datablock. */
+	ViewRender *view_render = (method == PR_BUTS_RENDER) ? BKE_viewrender_get(scene, workspace) : &scene->view_render;
+	bool use_new_shading = BKE_viewrender_use_new_shading_nodes(view_render);
 
 	/* Only texture node preview is supported with Cycles. */
 	if (use_new_shading && method == PR_NODE_RENDER && id_type != ID_TE) {
@@ -1352,6 +1361,7 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	sp->parent = parent;
 	sp->slot = slot;
 	sp->bmain = CTX_data_main(C);
+	sp->view_render = view_render;
 
 	/* hardcoded preview .blend for cycles/internal, this should be solved
 	 * once with custom preview .blend path for external engines */
