@@ -2394,14 +2394,15 @@ void WM_border_select_cancel(bContext *C, wmOperator *op)
 /* **************** circle gesture *************** */
 /* works now only for selection or modal paint stuff, calls exec while hold mouse, exit on release */
 
-#ifdef GESTURE_MEMORY
-int circle_select_size = 25; /* XXX - need some operator memory thing! */
-#endif
-
 int WM_gesture_circle_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	op->customdata = WM_gesture_new(C, event, WM_GESTURE_CIRCLE);
+	wmGesture *gesture = op->customdata;
+	rcti *rect = gesture->customdata;
 	
+	/* Default or previously stored value. */
+	rect->xmax = RNA_int_get(op->ptr, "radius");
+
 	/* add modal handler */
 	WM_event_add_modal_handler(C, op);
 	
@@ -2428,9 +2429,6 @@ static void gesture_circle_apply(bContext *C, wmOperator *op)
 		retval = op->type->exec(C, op);
 		OPERATOR_RETVAL_CHECK(retval);
 	}
-#ifdef GESTURE_MEMORY
-	circle_select_size = rect->xmax;
-#endif
 }
 
 int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -2452,6 +2450,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		}
 	}
 	else if (event->type == EVT_MODAL_MAP) {
+		bool is_circle_size = false;
 		float fac;
 		
 		switch (event->val) {
@@ -2462,22 +2461,25 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				else
 					rect->xmax += floor(fac);
 				if (rect->xmax < 1) rect->xmax = 1;
-				wm_gesture_tag_redraw(C);
+				is_circle_size = true;
 				break;
 			case GESTURE_MODAL_CIRCLE_ADD:
 				rect->xmax += 2 + rect->xmax / 10;
-				wm_gesture_tag_redraw(C);
+				is_circle_size = true;
 				break;
 			case GESTURE_MODAL_CIRCLE_SUB:
 				rect->xmax -= 2 + rect->xmax / 10;
 				if (rect->xmax < 1) rect->xmax = 1;
-				wm_gesture_tag_redraw(C);
+				is_circle_size = true;
 				break;
 			case GESTURE_MODAL_SELECT:
 			case GESTURE_MODAL_DESELECT:
 			case GESTURE_MODAL_NOP:
-				if (RNA_struct_find_property(op->ptr, "gesture_mode"))
-					RNA_int_set(op->ptr, "gesture_mode", event->val);
+			{
+				PropertyRNA *prop = RNA_struct_find_property(op->ptr, "gesture_mode");
+				if (prop != NULL) {
+					RNA_property_int_set(op->ptr, prop, event->val);
+				}
 
 				if (event->val != GESTURE_MODAL_NOP) {
 					/* apply first click */
@@ -2486,11 +2488,21 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					wm_gesture_tag_redraw(C);
 				}
 				break;
-
+			}
 			case GESTURE_MODAL_CANCEL:
 			case GESTURE_MODAL_CONFIRM:
+				/* Normally we wouldn't store last-properties on cancel,
+				 * this is an exception since the circle tool is modal. */
+				WM_operator_last_properties_store(op);
 				wm_gesture_end(C, op);
 				return OPERATOR_FINISHED; /* use finish or we don't get an undo */
+		}
+
+		if (is_circle_size) {
+			wm_gesture_tag_redraw(C);
+
+			/* So next use remembers last seen size, even if we didn't apply it. */
+			RNA_int_set(op->ptr, "radius", rect->xmax);
 		}
 	}
 #ifdef WITH_INPUT_NDOF
@@ -2522,12 +2534,10 @@ void WM_OT_circle_gesture(wmOperatorType *ot)
 	
 	ot->invoke = WM_gesture_circle_invoke;
 	ot->modal = WM_gesture_circle_modal;
-	
 	ot->poll = WM_operator_winactive;
-	
-	RNA_def_property(ot->srna, "x", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "y", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "radius", PROP_INT, PROP_NONE);
+
+	/* properties */
+	WM_operator_properties_gesture_circle(ot);
 
 }
 #endif

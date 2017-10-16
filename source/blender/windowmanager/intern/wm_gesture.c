@@ -84,11 +84,7 @@ wmGesture *WM_gesture_new(bContext *C, const wmEvent *event, int type)
 		rect->xmin = event->x - sx;
 		rect->ymin = event->y - sy;
 		if (type == WM_GESTURE_CIRCLE) {
-#ifdef GESTURE_MEMORY
-			rect->xmax = circle_select_size;
-#else
-			rect->xmax = 25;    // XXX temp
-#endif
+			/* caller is responsible for initializing 'xmax' to radius. */
 		}
 		else {
 			rect->xmax = event->x - sx;

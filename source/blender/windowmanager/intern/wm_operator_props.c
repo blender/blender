@@ -224,6 +224,9 @@ void WM_operator_properties_border_to_rctf(struct wmOperator *op, rctf *rect)
 	BLI_rctf_rcti_copy(rect, &rect_i);
 }
 
+/**
+ * Use with #WM_border_select_invoke
+ */
 void WM_operator_properties_gesture_border(wmOperatorType *ot, bool extend)
 {
 	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
@@ -235,19 +238,9 @@ void WM_operator_properties_gesture_border(wmOperatorType *ot, bool extend)
 	}
 }
 
-void WM_operator_properties_mouse_select(wmOperatorType *ot)
-{
-	PropertyRNA *prop;
-
-	prop = RNA_def_boolean(ot->srna, "extend", false, "Extend",
-	                       "Extend selection instead of deselecting everything first");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-	prop = RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "Remove from selection");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-	prop = RNA_def_boolean(ot->srna, "toggle", false, "Toggle Selection", "Toggle the selection");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-}
-
+/**
+ * Use with #WM_gesture_straightline_invoke
+ */
 void WM_operator_properties_gesture_straightline(wmOperatorType *ot, int cursor)
 {
 	PropertyRNA *prop;
@@ -266,6 +259,36 @@ void WM_operator_properties_gesture_straightline(wmOperatorType *ot, int cursor)
 		                   "Cursor", "Mouse cursor style to use during the modal operator", 0, INT_MAX);
 		RNA_def_property_flag(prop, PROP_HIDDEN);
 	}
+}
+
+/**
+ * Use with #WM_gesture_circle_invoke
+ */
+void WM_operator_properties_gesture_circle(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	const int radius_default = 25;
+
+	prop = RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+	prop = RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+	RNA_def_int(ot->srna, "radius", radius_default, 1, INT_MAX, "Radius", "", 1, INT_MAX);
+	prop = RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+}
+
+void WM_operator_properties_mouse_select(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	prop = RNA_def_boolean(ot->srna, "extend", false, "Extend",
+	                       "Extend selection instead of deselecting everything first");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "Remove from selection");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "toggle", false, "Toggle Selection", "Toggle the selection");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /**
