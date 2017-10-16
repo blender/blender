@@ -86,12 +86,11 @@ void free_fcurve(FCurve *fcu)
 		return;
 
 	/* free curve data */
-	if (fcu->bezt) MEM_freeN(fcu->bezt);
-	if (fcu->fpt)  MEM_freeN(fcu->fpt);
+	MEM_SAFE_FREE(fcu->bezt);
+	MEM_SAFE_FREE(fcu->fpt);
 	
 	/* free RNA-path, as this were allocated when getting the path string */
-	if (fcu->rna_path)
-		MEM_freeN(fcu->rna_path);
+	MEM_SAFE_FREE(fcu->rna_path);
 	
 	/* free extra data - i.e. modifiers, and driver */
 	fcurve_free_driver(fcu);
