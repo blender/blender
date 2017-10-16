@@ -239,6 +239,28 @@ void WM_operator_properties_gesture_border(wmOperatorType *ot, bool extend)
 }
 
 /**
+ * Use with #WM_gesture_lasso_invoke
+ */
+void WM_operator_properties_gesture_lasso_ex(wmOperatorType *ot, bool deselect, bool extend)
+{
+	PropertyRNA *prop;
+	prop = RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
+	if (deselect) {
+		RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "Deselect rather than select items");
+	}
+	if (extend) {
+		RNA_def_boolean(ot->srna, "extend", true, "Extend", "Extend selection instead of deselecting everything first");
+	}
+}
+
+void WM_operator_properties_gesture_lasso(wmOperatorType *ot)
+{
+	WM_operator_properties_gesture_lasso_ex(ot, true, true);
+}
+
+/**
  * Use with #WM_gesture_straightline_invoke
  */
 void WM_operator_properties_gesture_straightline(wmOperatorType *ot, int cursor)

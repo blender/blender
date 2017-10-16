@@ -217,7 +217,10 @@ void paint_stroke_operator_properties(wmOperatorType *ot)
 		{0}
 	};
 
-	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
+	PropertyRNA *prop;
+
+	prop = RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
 	RNA_def_enum(ot->srna, "mode", stroke_mode_items, BRUSH_STROKE_NORMAL, 
 	             "Stroke Mode",

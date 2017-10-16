@@ -309,6 +309,8 @@ void        WM_operator_properties_border(struct wmOperatorType *ot);
 void        WM_operator_properties_border_to_rcti(struct wmOperator *op, struct rcti *rect);
 void        WM_operator_properties_border_to_rctf(struct wmOperator *op, rctf *rect);
 void        WM_operator_properties_gesture_border(struct wmOperatorType *ot, bool extend);
+void        WM_operator_properties_gesture_lasso_ex(struct wmOperatorType *ot, bool deselect, bool extend);
+void        WM_operator_properties_gesture_lasso(struct wmOperatorType *ot);
 void        WM_operator_properties_gesture_straightline(struct wmOperatorType *ot, int cursor);
 void        WM_operator_properties_gesture_circle(struct wmOperatorType *ot);
 void        WM_operator_properties_mouse_select(struct wmOperatorType *ot);

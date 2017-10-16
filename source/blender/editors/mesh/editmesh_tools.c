@@ -2978,8 +2978,6 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_knife_cut(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	ot->name = "Knife Cut";
 	ot->description = "Cut selected edges and faces into parts";
 	ot->idname = "MESH_OT_knife_cut";
@@ -2992,10 +2990,13 @@ void MESH_OT_knife_cut(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
+
+	/* properties */
+	PropertyRNA *prop;
+	prop = RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
 	RNA_def_enum(ot->srna, "type", knife_items, KNIFE_EXACT, "Type", "");
-	prop = RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_struct_runtime(prop, &RNA_OperatorMousePath);
 	
 	/* internal */
 	RNA_def_int(ot->srna, "cursor", BC_KNIFECURSOR, 0, BC_NUMCURSORS, "Cursor", "", 0, BC_NUMCURSORS);

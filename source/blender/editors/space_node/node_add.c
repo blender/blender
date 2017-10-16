@@ -277,8 +277,6 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
 
 void NODE_OT_add_reroute(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	ot->name = "Add Reroute";
 	ot->idname = "NODE_OT_add_reroute";
 	ot->description = "Add a reroute node";
@@ -293,8 +291,10 @@ void NODE_OT_add_reroute(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	prop = RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_struct_runtime(prop, &RNA_OperatorMousePath);
+	/* properties */
+	PropertyRNA *prop;
+	prop = RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	/* internal */
 	RNA_def_int(ot->srna, "cursor", BC_CROSSCURSOR, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
 }

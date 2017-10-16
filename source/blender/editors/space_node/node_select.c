@@ -725,9 +725,7 @@ void NODE_OT_select_lasso(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
-	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect rather than select items");
-	RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first");
+	WM_operator_properties_gesture_lasso(ot);
 }
 
 /* ****** Select/Deselect All ****** */
