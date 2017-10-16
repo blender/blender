@@ -85,7 +85,8 @@ typedef struct SpaceType {
 	void (*exit)(struct wmWindowManager *, struct ScrArea *);
 	/* Listeners can react to bContext changes */
 	void (*listener)(struct bScreen *sc, struct ScrArea *,
-	                 struct wmNotifier *, struct Scene *scene, struct WorkSpace *workspace);
+	                 struct wmNotifier *, struct Scene *scene,
+	                 struct WorkSpace *workspace);
 	
 	/* refresh context, called after filereads, ED_area_tag_refresh() */
 	void (*refresh)(const struct bContext *, struct ScrArea *);
