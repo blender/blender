@@ -154,6 +154,7 @@ void BKE_workspace_free(WorkSpace *workspace)
 	}
 	BLI_freelistN(&workspace->layouts);
 	BLI_freelistN(&workspace->transform_orientations);
+	BKE_viewrender_free(&workspace->view_render);
 }
 
 void BKE_workspace_remove(Main *bmain, WorkSpace *workspace)
@@ -162,8 +163,6 @@ void BKE_workspace_remove(Main *bmain, WorkSpace *workspace)
 		layout_next = layout->next;
 		BKE_workspace_layout_remove(bmain, workspace, layout);
 	}
-
-	BKE_viewrender_free(&workspace->view_render);
 	BKE_libblock_free(bmain, workspace);
 }
 
