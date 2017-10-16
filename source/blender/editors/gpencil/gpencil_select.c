@@ -933,10 +933,10 @@ void GPENCIL_OT_select_border(wmOperatorType *ot)
 	ot->idname = "GPENCIL_OT_select_border";
 	
 	/* callbacks */
-	ot->invoke = WM_border_select_invoke;
+	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = gpencil_border_select_exec;
-	ot->modal = WM_border_select_modal;
-	ot->cancel = WM_border_select_cancel;
+	ot->modal = WM_gesture_border_modal;
+	ot->cancel = WM_gesture_border_cancel;
 	
 	ot->poll = gpencil_select_poll;
 	

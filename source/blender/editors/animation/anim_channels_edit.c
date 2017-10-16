@@ -2493,10 +2493,10 @@ static void ANIM_OT_channels_select_border(wmOperatorType *ot)
 	ot->description = "Select all animation channels within the specified region";
 	
 	/* api callbacks */
-	ot->invoke = WM_border_select_invoke;
+	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = animchannels_borderselect_exec;
-	ot->modal = WM_border_select_modal;
-	ot->cancel = WM_border_select_cancel;
+	ot->modal = WM_gesture_border_modal;
+	ot->cancel = WM_gesture_border_cancel;
 	
 	ot->poll = animedit_poll_channels_nla_tweakmode_off;
 	

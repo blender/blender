@@ -370,7 +370,7 @@ static int file_border_select_modal(bContext *C, wmOperator *op, const wmEvent *
 
 	int result;
 
-	result = WM_border_select_modal(C, op, event);
+	result = WM_gesture_border_modal(C, op, event);
 
 	if (result == OPERATOR_RUNNING_MODAL) {
 		WM_operator_properties_border_to_rcti(op, &rect);
@@ -452,11 +452,11 @@ void FILE_OT_select_border(wmOperatorType *ot)
 	ot->idname = "FILE_OT_select_border";
 	
 	/* api callbacks */
-	ot->invoke = WM_border_select_invoke;
+	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = file_border_select_exec;
 	ot->modal = file_border_select_modal;
 	ot->poll = ED_operator_file_active;
-	ot->cancel = WM_border_select_cancel;
+	ot->cancel = WM_gesture_border_cancel;
 
 	/* properties */
 	WM_operator_properties_gesture_border(ot, 1);

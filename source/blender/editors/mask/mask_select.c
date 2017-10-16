@@ -471,9 +471,9 @@ void MASK_OT_select_border(wmOperatorType *ot)
 	ot->idname = "MASK_OT_select_border";
 
 	/* api callbacks */
-	ot->invoke = WM_border_select_invoke;
+	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = border_select_exec;
-	ot->modal = WM_border_select_modal;
+	ot->modal = WM_gesture_border_modal;
 	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */

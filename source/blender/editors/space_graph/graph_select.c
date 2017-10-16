@@ -391,10 +391,10 @@ void GRAPH_OT_select_border(wmOperatorType *ot)
 	ot->description = "Select all keyframes within the specified region";
 	
 	/* api callbacks */
-	ot->invoke = WM_border_select_invoke;
+	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = graphkeys_borderselect_exec;
-	ot->modal = WM_border_select_modal;
-	ot->cancel = WM_border_select_cancel;
+	ot->modal = WM_gesture_border_modal;
+	ot->cancel = WM_gesture_border_cancel;
 	
 	ot->poll = graphop_visible_keyframes_poll;
 	

@@ -3421,11 +3421,11 @@ void SEQUENCER_OT_view_ghost_border(wmOperatorType *ot)
 	ot->description = "Set the boundaries of the border used for offset-view";
 
 	/* api callbacks */
-	ot->invoke = WM_border_select_invoke;
+	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = view_ghost_border_exec;
-	ot->modal = WM_border_select_modal;
+	ot->modal = WM_gesture_border_modal;
 	ot->poll = sequencer_view_preview_poll;
-	ot->cancel = WM_border_select_cancel;
+	ot->cancel = WM_gesture_border_cancel;
 
 	/* flags */
 	ot->flag = 0;

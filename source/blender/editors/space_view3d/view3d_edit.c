@@ -3507,10 +3507,10 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
 	ot->idname = "VIEW3D_OT_render_border";
 
 	/* api callbacks */
-	ot->invoke = WM_border_select_invoke;
+	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = render_border_exec;
-	ot->modal = WM_border_select_modal;
-	ot->cancel = WM_border_select_cancel;
+	ot->modal = WM_gesture_border_modal;
+	ot->cancel = WM_gesture_border_cancel;
 
 	ot->poll = ED_operator_view3d_active;
 
@@ -3728,7 +3728,7 @@ static int view3d_zoom_border_invoke(bContext *C, wmOperator *op, const wmEvent 
 
 	/* if in camera view do not exec the operator so we do not conflict with set render border*/
 	if ((rv3d->persp != RV3D_CAMOB) || ED_view3d_camera_lock_check(v3d, rv3d))
-		return WM_border_select_invoke(C, op, event);
+		return WM_gesture_border_invoke(C, op, event);
 	else
 		return OPERATOR_PASS_THROUGH;
 }
@@ -3743,8 +3743,8 @@ void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = view3d_zoom_border_invoke;
 	ot->exec = view3d_zoom_border_exec;
-	ot->modal = WM_border_select_modal;
-	ot->cancel = WM_border_select_cancel;
+	ot->modal = WM_gesture_border_modal;
+	ot->cancel = WM_gesture_border_cancel;
 
 	ot->poll = ED_operator_region_view3d_active;
 
@@ -4672,7 +4672,7 @@ static int view3d_clipping_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 		return OPERATOR_FINISHED;
 	}
 	else {
-		return WM_border_select_invoke(C, op, event);
+		return WM_gesture_border_invoke(C, op, event);
 	}
 }
 
@@ -4688,8 +4688,8 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = view3d_clipping_invoke;
 	ot->exec = view3d_clipping_exec;
-	ot->modal = WM_border_select_modal;
-	ot->cancel = WM_border_select_cancel;
+	ot->modal = WM_gesture_border_modal;
+	ot->cancel = WM_gesture_border_cancel;
 
 	ot->poll = ED_operator_region_view3d_active;
 

@@ -2214,11 +2214,11 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 	ot->idname = "VIEW3D_OT_select_border";
 	
 	/* api callbacks */
-	ot->invoke = WM_border_select_invoke;
+	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = view3d_borderselect_exec;
-	ot->modal = WM_border_select_modal;
+	ot->modal = WM_gesture_border_modal;
 	ot->poll = view3d_selectable_data;
-	ot->cancel = WM_border_select_cancel;
+	ot->cancel = WM_gesture_border_cancel;
 	
 	/* flags */
 	ot->flag = OPTYPE_UNDO;

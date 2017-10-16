@@ -2312,7 +2312,7 @@ static void wm_gesture_end(bContext *C, wmOperator *op)
 	}
 }
 
-int WM_border_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+int WM_gesture_border_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	if (ISTWEAK(event->type))
 		op->customdata = WM_gesture_new(C, event, WM_GESTURE_RECT);
@@ -2327,7 +2327,7 @@ int WM_border_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-int WM_border_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
+int WM_gesture_border_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	wmGesture *gesture = op->customdata;
 	rcti *rect = gesture->customdata;
@@ -2386,7 +2386,7 @@ int WM_border_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void WM_border_select_cancel(bContext *C, wmOperator *op)
+void WM_gesture_border_cancel(bContext *C, wmOperator *op)
 {
 	wm_gesture_end(C, op);
 }

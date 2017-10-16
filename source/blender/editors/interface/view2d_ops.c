@@ -1289,10 +1289,10 @@ static void VIEW2D_OT_zoom_border(wmOperatorType *ot)
 	ot->idname = "VIEW2D_OT_zoom_border";
 	
 	/* api callbacks */
-	ot->invoke = WM_border_select_invoke;
+	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = view_borderzoom_exec;
-	ot->modal = WM_border_select_modal;
-	ot->cancel = WM_border_select_cancel;
+	ot->modal = WM_gesture_border_modal;
+	ot->cancel = WM_gesture_border_cancel;
 	
 	ot->poll = view_zoom_poll;
 	

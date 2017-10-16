@@ -571,7 +571,7 @@ static int node_border_select_invoke(bContext *C, wmOperator *op, const wmEvent 
 			return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
 	}
 	
-	return WM_border_select_invoke(C, op, event);
+	return WM_gesture_border_invoke(C, op, event);
 }
 
 void NODE_OT_select_border(wmOperatorType *ot)
@@ -584,8 +584,8 @@ void NODE_OT_select_border(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = node_border_select_invoke;
 	ot->exec = node_borderselect_exec;
-	ot->modal = WM_border_select_modal;
-	ot->cancel = WM_border_select_cancel;
+	ot->modal = WM_gesture_border_modal;
+	ot->cancel = WM_gesture_border_cancel;
 	
 	ot->poll = ED_operator_node_active;
 	

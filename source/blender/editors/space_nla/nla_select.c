@@ -329,10 +329,10 @@ void NLA_OT_select_border(wmOperatorType *ot)
 	ot->description = "Use box selection to grab NLA-Strips";
 	
 	/* api callbacks */
-	ot->invoke = WM_border_select_invoke;
+	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = nlaedit_borderselect_exec;
-	ot->modal = WM_border_select_modal;
-	ot->cancel = WM_border_select_cancel;
+	ot->modal = WM_gesture_border_modal;
+	ot->cancel = WM_gesture_border_cancel;
 	
 	ot->poll = nlaop_poll_tweakmode_off;
 	

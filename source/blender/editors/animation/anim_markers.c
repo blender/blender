@@ -1265,7 +1265,7 @@ static int ed_marker_border_select_exec(bContext *C, wmOperator *op)
 
 static int ed_marker_select_border_invoke_wrapper(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	return ed_markers_opwrap_invoke_custom(C, op, event, WM_border_select_invoke);
+	return ed_markers_opwrap_invoke_custom(C, op, event, WM_gesture_border_invoke);
 }
 
 static void MARKER_OT_select_border(wmOperatorType *ot)
@@ -1278,8 +1278,8 @@ static void MARKER_OT_select_border(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = ed_marker_border_select_exec;
 	ot->invoke = ed_marker_select_border_invoke_wrapper;
-	ot->modal = WM_border_select_modal;
-	ot->cancel = WM_border_select_cancel;
+	ot->modal = WM_gesture_border_modal;
+	ot->cancel = WM_gesture_border_cancel;
 	
 	ot->poll = ed_markers_poll_markers_exist;
 	

@@ -402,9 +402,9 @@ void CLIP_OT_graph_select_border(wmOperatorType *ot)
 	ot->idname = "CLIP_OT_graph_select_border";
 
 	/* api callbacks */
-	ot->invoke = WM_border_select_invoke;
+	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = border_select_graph_exec;
-	ot->modal = WM_border_select_modal;
+	ot->modal = WM_gesture_border_modal;
 	ot->poll = clip_graph_knots_poll;
 
 	/* flags */

@@ -225,7 +225,7 @@ void WM_operator_properties_border_to_rctf(struct wmOperator *op, rctf *rect)
 }
 
 /**
- * Use with #WM_border_select_invoke
+ * Use with #WM_gesture_border_invoke
  */
 void WM_operator_properties_gesture_border(wmOperatorType *ot, bool extend)
 {
