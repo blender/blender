@@ -38,6 +38,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_workspace_types.h"
 #include "DNA_world_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -56,6 +57,7 @@
 #include "BKE_node.h"
 #include "BKE_paint.h"
 #include "BKE_scene.h"
+#include "BKE_workspace.h"
 
 #include "GPU_lamp.h"
 #include "GPU_material.h"
@@ -113,7 +115,9 @@ void ED_render_scene_update(Main *bmain, Scene *scene, int updated)
 		ARegion *ar;
 		
 		CTX_wm_window_set(C, win);
-		
+		WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);
+		ViewRender *view_render = BKE_viewrender_get(win->scene, workspace);
+
 		for (sa = sc->areabase.first; sa; sa = sa->next) {
 			if (sa->spacetype != SPACE_VIEW3D)
 				continue;
@@ -141,7 +145,7 @@ void ED_render_scene_update(Main *bmain, Scene *scene, int updated)
 					engine->type->view_update(engine, C);
 
 				}
-				else if ((RE_engines_find(scene->view_render.engine_id)->flag & RE_USE_LEGACY_PIPELINE) == 0) {
+				else if ((RE_engines_find(view_render->engine_id)->flag & RE_USE_LEGACY_PIPELINE) == 0) {
 					if (updated) {
 						CTX_wm_screen_set(C, sc);
 						CTX_wm_area_set(C, sa);
