@@ -2389,7 +2389,7 @@ int WM_border_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	if (event->type == MOUSEMOVE) {
 		wm_subwindow_origin_get(CTX_wm_window(C), gesture->swinid, &sx, &sy);
 
-		if (gesture->type == WM_GESTURE_CROSS_RECT && gesture->mode == 0) {
+		if (gesture->type == WM_GESTURE_CROSS_RECT && gesture->is_active == false) {
 			rect->xmin = rect->xmax = event->x - sx;
 			rect->ymin = rect->ymax = event->y - sy;
 		}
@@ -2404,8 +2404,8 @@ int WM_border_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	else if (event->type == EVT_MODAL_MAP) {
 		switch (event->val) {
 			case GESTURE_MODAL_BEGIN:
-				if (gesture->type == WM_GESTURE_CROSS_RECT && gesture->mode == 0) {
-					gesture->mode = 1;
+				if (gesture->type == WM_GESTURE_CROSS_RECT && gesture->is_active == false) {
+					gesture->is_active = true;
 					wm_gesture_tag_redraw(C);
 				}
 				break;
@@ -2500,8 +2500,9 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 		wm_gesture_tag_redraw(C);
 
-		if (gesture->mode)
+		if (gesture->is_active) {
 			gesture_circle_apply(C, op);
+		}
 	}
 	else if (event->type == EVT_MODAL_MAP) {
 		float fac;
@@ -2534,7 +2535,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				if (event->val != GESTURE_MODAL_NOP) {
 					/* apply first click */
 					gesture_circle_apply(C, op);
-					gesture->mode = 1;
+					gesture->is_active = true;
 					wm_gesture_tag_redraw(C);
 				}
 				break;
@@ -2744,28 +2745,24 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	switch (event->type) {
 		case MOUSEMOVE:
 		case INBETWEEN_MOUSEMOVE:
-			
+
 			wm_gesture_tag_redraw(C);
-			
+
 			wm_subwindow_origin_get(CTX_wm_window(C), gesture->swinid, &sx, &sy);
 
-			if (gesture->points == gesture->size) {
-				short *old_lasso = gesture->customdata;
-				gesture->customdata = MEM_callocN(2 * sizeof(short) * (gesture->size + WM_LASSO_MIN_POINTS), "lasso points");
-				memcpy(gesture->customdata, old_lasso, 2 * sizeof(short) * gesture->size);
-				gesture->size = gesture->size + WM_LASSO_MIN_POINTS;
-				MEM_freeN(old_lasso);
-				// printf("realloc\n");
+			if (gesture->points == gesture->points_alloc) {
+				gesture->points_alloc *= 2;
+				gesture->customdata = MEM_reallocN(gesture->customdata, sizeof(short[2]) * gesture->points_alloc);
 			}
 
 			{
 				int x, y;
 				short *lasso = gesture->customdata;
-				
+
 				lasso += (2 * gesture->points - 2);
 				x = (event->x - sx - lasso[0]);
 				y = (event->y - sy - lasso[1]);
-				
+
 				/* make a simple distance check to get a smoother lasso
 				 * add only when at least 2 pixels between this and previous location */
 				if ((x * x + y * y) > 4) {
@@ -2776,7 +2773,7 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				}
 			}
 			break;
-			
+
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE:
@@ -2934,7 +2931,7 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
 	if (event->type == MOUSEMOVE) {
 		wm_subwindow_origin_get(CTX_wm_window(C), gesture->swinid, &sx, &sy);
 		
-		if (gesture->mode == 0) {
+		if (gesture->is_active == false) {
 			rect->xmin = rect->xmax = event->x - sx;
 			rect->ymin = rect->ymax = event->y - sy;
 		}
@@ -2949,8 +2946,8 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
 	else if (event->type == EVT_MODAL_MAP) {
 		switch (event->val) {
 			case GESTURE_MODAL_BEGIN:
-				if (gesture->mode == 0) {
-					gesture->mode = 1;
+				if (gesture->is_active == false) {
+					gesture->is_active = true;
 					wm_gesture_tag_redraw(C);
 				}
 				break;

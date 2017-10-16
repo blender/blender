@@ -97,11 +97,11 @@ wmGesture *WM_gesture_new(bContext *C, const wmEvent *event, int type)
 	}
 	else if (ELEM(type, WM_GESTURE_LINES, WM_GESTURE_LASSO)) {
 		short *lasso;
-		gesture->customdata = lasso = MEM_callocN(2 * sizeof(short) * WM_LASSO_MIN_POINTS, "lasso points");
+		gesture->points_alloc = 1024;
+		gesture->customdata = lasso = MEM_mallocN(sizeof(short[2]) * gesture->points_alloc, "lasso points");
 		lasso[0] = event->x - sx;
 		lasso[1] = event->y - sy;
 		gesture->points = 1;
-		gesture->size = WM_LASSO_MIN_POINTS;
 	}
 	
 	return gesture;
@@ -437,10 +437,12 @@ void wm_gesture_draw(wmWindow *win)
 		else if (gt->type == WM_GESTURE_CIRCLE)
 			wm_gesture_draw_circle(gt);
 		else if (gt->type == WM_GESTURE_CROSS_RECT) {
-			if (gt->mode == 1)
+			if (gt->is_active) {
 				wm_gesture_draw_rect(gt);
-			else
+			}
+			else {
 				wm_gesture_draw_cross(win, gt);
+			}
 		}
 		else if (gt->type == WM_GESTURE_LINES)
 			wm_gesture_draw_lasso(win, gt, false);
