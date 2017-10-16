@@ -143,6 +143,12 @@ WorkSpace *BKE_workspace_add(Main *bmain, const char *name)
 	return new_workspace;
 }
 
+/**
+ * The function that actually frees the workspace data (not workspace itself). It shouldn't be called
+ * directly, instead #BKE_workspace_remove should be, which calls this through #BKE_libblock_free then.
+ *
+ * Should something like a bke_internal.h be added, this should go there!
+ */
 void BKE_workspace_free(WorkSpace *workspace)
 {
 	for (WorkSpaceDataRelation *relation = workspace->hook_layout_relations.first, *relation_next;
@@ -157,6 +163,13 @@ void BKE_workspace_free(WorkSpace *workspace)
 	BKE_viewrender_free(&workspace->view_render);
 }
 
+/**
+ * Remove \a workspace by freeing itself and its data. This is a higher-level wrapper that
+ * calls #BKE_workspace_free (through #BKE_libblock_free) to free the workspace data, and frees
+ * other data-blocks owned by \a workspace and its layouts (currently that is screens only).
+ *
+ * Always use this to remove (and free) workspaces. Don't free non-ID workspace members here.
+ */
 void BKE_workspace_remove(Main *bmain, WorkSpace *workspace)
 {
 	for (WorkSpaceLayout *layout = workspace->layouts.first, *layout_next; layout; layout = layout_next) {
