@@ -370,7 +370,7 @@ static int file_border_select_modal(bContext *C, wmOperator *op, const wmEvent *
 
 	int result;
 
-	result = WM_border_select_modal(C, op, event);
+	result = WM_gesture_border_modal(C, op, event);
 
 	if (result == OPERATOR_RUNNING_MODAL) {
 		WM_operator_properties_border_to_rcti(op, &rect);
@@ -419,7 +419,7 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	rcti rect;
 	FileSelect ret;
-	const bool select = (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT);
+	const bool select = !RNA_boolean_get(op->ptr, "deselect");
 	const bool extend = RNA_boolean_get(op->ptr, "extend");
 
 	WM_operator_properties_border_to_rcti(op, &rect);
@@ -452,14 +452,14 @@ void FILE_OT_select_border(wmOperatorType *ot)
 	ot->idname = "FILE_OT_select_border";
 	
 	/* api callbacks */
-	ot->invoke = WM_border_select_invoke;
+	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = file_border_select_exec;
 	ot->modal = file_border_select_modal;
 	ot->poll = ED_operator_file_active;
-	ot->cancel = WM_border_select_cancel;
+	ot->cancel = WM_gesture_border_cancel;
 
 	/* properties */
-	WM_operator_properties_gesture_border(ot, 1);
+	WM_operator_properties_gesture_border_select(ot);
 }
 
 static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)

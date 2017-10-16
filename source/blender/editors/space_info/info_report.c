@@ -230,7 +230,7 @@ static int borderselect_exec(bContext *C, wmOperator *op)
 
 	rcti rect;
 	//rctf rectf, rq;
-	const bool select = (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT);
+	const bool select = !RNA_boolean_get(op->ptr, "deselect");
 	//int mval[2];
 
 	WM_operator_properties_border_to_rcti(op, &rect);
@@ -298,10 +298,10 @@ void INFO_OT_select_border(wmOperatorType *ot)
 	ot->idname = "INFO_OT_select_border";
 
 	/* api callbacks */
-	ot->invoke = WM_border_select_invoke;
+	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = borderselect_exec;
-	ot->modal = WM_border_select_modal;
-	ot->cancel = WM_border_select_cancel;
+	ot->modal = WM_gesture_border_modal;
+	ot->cancel = WM_gesture_border_cancel;
 
 	ot->poll = ED_operator_info_active;
 
@@ -309,7 +309,7 @@ void INFO_OT_select_border(wmOperatorType *ot)
 	/* ot->flag = OPTYPE_REGISTER; */
 
 	/* rna */
-	WM_operator_properties_gesture_border(ot, true);
+	WM_operator_properties_gesture_border_select(ot);
 }
 
 

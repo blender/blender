@@ -309,26 +309,27 @@ static int actkeys_borderselect_exec(bContext *C, wmOperator *op)
 	bAnimContext ac;
 	rcti rect;
 	short mode = 0, selectmode = 0;
-	int gesture_mode;
-	bool extend;
+	const bool select = !RNA_boolean_get(op->ptr, "deselect");
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 
 	/* clear all selection if not extending selection */
-	extend = RNA_boolean_get(op->ptr, "extend");
-	if (!extend)
+	if (!extend) {
 		deselect_action_keys(&ac, 1, SELECT_SUBTRACT);
+	}
 	
 	/* get settings from operator */
 	WM_operator_properties_border_to_rcti(op, &rect);
-		
-	gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
-	if (gesture_mode == GESTURE_MODAL_SELECT)
+
+	if (select) {
 		selectmode = SELECT_ADD;
-	else
+	}
+	else {
 		selectmode = SELECT_SUBTRACT;
+	}
 	
 	/* selection 'mode' depends on whether borderselect region only matters on one axis */
 	if (RNA_boolean_get(op->ptr, "axis_range")) {
@@ -362,10 +363,10 @@ void ACTION_OT_select_border(wmOperatorType *ot)
 	ot->description = "Select all keyframes within the specified region";
 	
 	/* api callbacks */
-	ot->invoke = WM_border_select_invoke;
+	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = actkeys_borderselect_exec;
-	ot->modal = WM_border_select_modal;
-	ot->cancel = WM_border_select_cancel;
+	ot->modal = WM_gesture_border_modal;
+	ot->cancel = WM_gesture_border_cancel;
 	
 	ot->poll = ED_operator_action_active;
 	
@@ -373,7 +374,7 @@ void ACTION_OT_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* rna */
-	WM_operator_properties_gesture_border(ot, true);
+	WM_operator_properties_gesture_border_select(ot);
 	
 	ot->prop = RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
 }
@@ -572,9 +573,7 @@ void ACTION_OT_select_lasso(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
-	RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "Deselect rather than select items");
-	RNA_def_boolean(ot->srna, "extend", true, "Extend", "Extend selection instead of deselecting everything first");
+	WM_operator_properties_gesture_lasso_select(ot);
 }
 
 /* ------------------- */
@@ -582,8 +581,8 @@ void ACTION_OT_select_lasso(wmOperatorType *ot)
 static int action_circle_select_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
-	const int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
-	const short selectmode = (gesture_mode == GESTURE_MODAL_SELECT) ? SELECT_ADD : SELECT_SUBTRACT;
+	const bool select = !RNA_boolean_get(op->ptr, "deselect");
+	const short selectmode = select ? SELECT_ADD : SELECT_SUBTRACT;
 	
 	KeyframeEdit_CircleData data = {0};
 	rctf rect_fl;
@@ -629,11 +628,9 @@ void ACTION_OT_select_circle(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
-	
-	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "radius", 1, 1, INT_MAX, "Radius", "", 1, INT_MAX);
-	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
+
+	/* properties */
+	WM_operator_properties_gesture_circle_select(ot);
 }
 
 /* ******************** Column Select Operator **************************** */

@@ -2760,9 +2760,9 @@ static int uv_border_select_exec(bContext *C, wmOperator *op)
 	UI_view2d_region_to_view_rctf(&ar->v2d, &rectf, &rectf);
 
 	/* figure out what to select/deselect */
-	select = (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT);
-	pinned = RNA_boolean_get(op->ptr, "pinned");
+	select = !RNA_boolean_get(op->ptr, "deselect");
 	extend = RNA_boolean_get(op->ptr, "extend");
+	pinned = RNA_boolean_get(op->ptr, "pinned");
 
 	if (!extend)
 		uv_select_all_perform(scene, ima, em, SEL_DESELECT);
@@ -2839,11 +2839,11 @@ static void UV_OT_select_border(wmOperatorType *ot)
 	ot->idname = "UV_OT_select_border";
 	
 	/* api callbacks */
-	ot->invoke = WM_border_select_invoke;
+	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = uv_border_select_exec;
-	ot->modal = WM_border_select_modal;
+	ot->modal = WM_gesture_border_modal;
 	ot->poll = ED_operator_uvedit_space_image; /* requires space image */;
-	ot->cancel = WM_border_select_cancel;
+	ot->cancel = WM_gesture_border_cancel;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2851,7 +2851,7 @@ static void UV_OT_select_border(wmOperatorType *ot)
 	/* properties */
 	RNA_def_boolean(ot->srna, "pinned", 0, "Pinned", "Border select pinned UVs only");
 
-	WM_operator_properties_gesture_border(ot, true);
+	WM_operator_properties_gesture_border_select(ot);
 }
 
 /* ******************** circle select operator **************** */
@@ -2892,8 +2892,7 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
 	MLoopUV *luv;
 	int x, y, radius, width, height;
 	float zoomx, zoomy, offset[2], ellipse[2];
-	int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
-	const bool select = (gesture_mode == GESTURE_MODAL_SELECT);
+	const bool select = !RNA_boolean_get(op->ptr, "deselect");
 	bool changed = false;
 	const bool use_face_center = (ts->uv_flag & UV_SYNC_SELECTION) ?
 	                             (ts->selectmode == SCE_SELECT_FACE) :
@@ -2971,12 +2970,9 @@ static void UV_OT_circle_select(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
+
 	/* properties */
-	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "radius", 1, 1, INT_MAX, "Radius", "", 1, INT_MAX);
-	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
+	WM_operator_properties_gesture_circle_select(ot);
 }
 
 
@@ -3104,9 +3100,8 @@ static void UV_OT_select_lasso(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
 
-	RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
-	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect rather than select items");
-	RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first");
+	/* properties */
+	WM_operator_properties_gesture_lasso_select(ot);
 }
 
 

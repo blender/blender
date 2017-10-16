@@ -142,8 +142,6 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 
 void LOGIC_OT_links_cut(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	ot->name = "Cut Links";
 	ot->idname = "LOGIC_OT_links_cut";
 	ot->description = "Remove logic brick connections";
@@ -158,8 +156,10 @@ void LOGIC_OT_links_cut(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	prop = RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_struct_runtime(prop, &RNA_OperatorMousePath);
+	/* properties */
+	PropertyRNA *prop;
+	prop = RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	/* internal */
 	RNA_def_int(ot->srna, "cursor", BC_KNIFECURSOR, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
 }

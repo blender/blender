@@ -769,8 +769,7 @@ static int gpencil_circle_select_exec(bContext *C, wmOperator *op)
 	const int my = RNA_int_get(op->ptr, "y");
 	const int radius = RNA_int_get(op->ptr, "radius");
 	
-	const int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
-	const bool select = (gesture_mode == GESTURE_MODAL_SELECT);
+	bool select = !RNA_boolean_get(op->ptr, "deselect");
 	
 	GP_SpaceConversion gsc = {NULL};
 	rcti rect = {0};            /* for bounding rect around circle (for quicky intersection testing) */
@@ -830,10 +829,7 @@ void GPENCIL_OT_select_circle(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "radius", 1, 1, INT_MAX, "Radius", "", 1, INT_MAX);
-	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
+	WM_operator_properties_gesture_circle_select(ot);
 }
 
 /* ********************************************** */
@@ -843,8 +839,7 @@ static int gpencil_border_select_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	
-	const int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
-	const bool select = (gesture_mode == GESTURE_MODAL_SELECT);
+	const bool select = !RNA_boolean_get(op->ptr, "deselect");
 	const bool extend = RNA_boolean_get(op->ptr, "extend");
 	
 	GP_SpaceConversion gsc = {NULL};
@@ -936,10 +931,10 @@ void GPENCIL_OT_select_border(wmOperatorType *ot)
 	ot->idname = "GPENCIL_OT_select_border";
 	
 	/* callbacks */
-	ot->invoke = WM_border_select_invoke;
+	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = gpencil_border_select_exec;
-	ot->modal = WM_border_select_modal;
-	ot->cancel = WM_border_select_cancel;
+	ot->modal = WM_gesture_border_modal;
+	ot->cancel = WM_gesture_border_cancel;
 	
 	ot->poll = gpencil_select_poll;
 	
@@ -947,7 +942,7 @@ void GPENCIL_OT_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* rna */
-	WM_operator_properties_gesture_border(ot, true);
+	WM_operator_properties_gesture_border_select(ot);
 }
 
 /* ********************************************** */
@@ -1056,9 +1051,8 @@ void GPENCIL_OT_select_lasso(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
 	
-	RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
-	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect rather than select items");
-	RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first");
+	/* properties */
+	WM_operator_properties_gesture_lasso_select(ot);
 }
 
 /* ********************************************** */

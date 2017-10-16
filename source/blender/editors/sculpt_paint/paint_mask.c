@@ -511,8 +511,6 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 
 void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	ot->name = "Mask Lasso Gesture";
 	ot->idname = "PAINT_OT_mask_lasso_gesture";
 	ot->description = "Add mask within the lasso as you move the brush";
@@ -525,8 +523,8 @@ void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot)
 
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	prop = RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_struct_runtime(prop, &RNA_OperatorMousePath);
+	/* properties */
+	WM_operator_properties_gesture_lasso(ot);
 
 	RNA_def_enum(ot->srna, "mode", mode_items, PAINT_MASK_FLOOD_VALUE, "Mode", NULL);
 	RNA_def_float(ot->srna, "value", 1.0, 0, 1.0, "Value",

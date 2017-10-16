@@ -2568,17 +2568,17 @@ void NODE_OT_viewer_border(wmOperatorType *ot)
 	ot->idname = "NODE_OT_viewer_border";
 
 	/* api callbacks */
-	ot->invoke = WM_border_select_invoke;
+	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = viewer_border_exec;
-	ot->modal = WM_border_select_modal;
-	ot->cancel = WM_border_select_cancel;
+	ot->modal = WM_gesture_border_modal;
+	ot->cancel = WM_gesture_border_cancel;
 	ot->poll = composite_node_active;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_gesture_border(ot, true);
+	WM_operator_properties_gesture_border_select(ot);
 }
 
 static int clear_viewer_border_exec(bContext *C, wmOperator *UNUSED(op))

@@ -1003,7 +1003,7 @@ static int image_view_zoom_border_exec(bContext *C, wmOperator *op)
 	SpaceImage *sima = CTX_wm_space_image(C);
 	ARegion *ar = CTX_wm_region(C);
 	rctf bounds;
-	const int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
+	const bool zoom_in = !RNA_boolean_get(op->ptr, "zoom_out");
 
 	WM_operator_properties_border_to_rctf(op, &bounds);
 
@@ -1022,7 +1022,7 @@ static int image_view_zoom_border_exec(bContext *C, wmOperator *op)
 	sima_zoom_set_from_bounds(sima, ar, &bounds);
 
 	/* zoom out */
-	if (gesture_mode == GESTURE_MODAL_OUT) {
+	if (!zoom_in) {
 		sima->xof = sima_view_prev.xof + (sima->xof - sima_view_prev.xof);
 		sima->yof = sima_view_prev.yof + (sima->yof - sima_view_prev.yof);
 		sima->zoom = sima_view_prev.zoom * (sima_view_prev.zoom / sima->zoom);
@@ -1041,15 +1041,15 @@ void IMAGE_OT_view_zoom_border(wmOperatorType *ot)
 	ot->idname = "IMAGE_OT_view_zoom_border";
 
 	/* api callbacks */
-	ot->invoke = WM_border_select_invoke;
+	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = image_view_zoom_border_exec;
-	ot->modal = WM_border_select_modal;
-	ot->cancel = WM_border_select_cancel;
+	ot->modal = WM_gesture_border_modal;
+	ot->cancel = WM_gesture_border_cancel;
 
 	ot->poll = space_image_main_region_poll;
 
 	/* rna */
-	WM_operator_properties_gesture_border(ot, false);
+	WM_operator_properties_gesture_border_zoom(ot);
 }
 
 /**************** load/replace/save callbacks ******************/
@@ -3691,10 +3691,10 @@ void IMAGE_OT_render_border(wmOperatorType *ot)
 	ot->idname = "IMAGE_OT_render_border";
 
 	/* api callbacks */
-	ot->invoke = WM_border_select_invoke;
+	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = render_border_exec;
-	ot->modal = WM_border_select_modal;
-	ot->cancel = WM_border_select_cancel;
+	ot->modal = WM_gesture_border_modal;
+	ot->cancel = WM_gesture_border_cancel;
 	ot->poll = image_cycle_render_slot_poll;
 
 	/* flags */

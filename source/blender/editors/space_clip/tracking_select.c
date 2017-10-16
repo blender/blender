@@ -438,7 +438,6 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	rcti rect;
 	rctf rectf;
 	bool changed = false;
-	int mode, extend;
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 
 	/* get rectangle from operator */
@@ -447,8 +446,8 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	ED_clip_point_stable_pos(sc, ar, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
 	ED_clip_point_stable_pos(sc, ar, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 
-	mode = RNA_int_get(op->ptr, "gesture_mode");
-	extend = RNA_boolean_get(op->ptr, "extend");
+	const bool select = !RNA_boolean_get(op->ptr, "deselect");
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
 
 	/* do actual selection */
 	track = tracksbase->first;
@@ -458,10 +457,12 @@ static int border_select_exec(bContext *C, wmOperator *op)
 
 			if (MARKER_VISIBLE(sc, track, marker)) {
 				if (BLI_rctf_isect_pt_v(&rectf, marker->pos)) {
-					if (mode == GESTURE_MODAL_SELECT)
+					if (select) {
 						BKE_tracking_track_flag_set(track, TRACK_AREA_ALL, SELECT);
-					else
+					}
+					else {
 						BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
+					}
 				}
 				else if (!extend) {
 					BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
@@ -485,7 +486,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 
 			for (i = 0; i < 4; i++) {
 				if (BLI_rctf_isect_pt_v(&rectf, plane_marker->corners[i])) {
-					if (mode == GESTURE_MODAL_SELECT) {
+					if (select) {
 						plane_track->flag |= SELECT;
 					}
 					else {
@@ -520,16 +521,16 @@ void CLIP_OT_select_border(wmOperatorType *ot)
 	ot->idname = "CLIP_OT_select_border";
 
 	/* api callbacks */
-	ot->invoke = WM_border_select_invoke;
+	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = border_select_exec;
-	ot->modal = WM_border_select_modal;
+	ot->modal = WM_gesture_border_modal;
 	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_gesture_border(ot, true);
+	WM_operator_properties_gesture_border_select(ot);
 }
 
 /********************** lasso select operator *********************/
@@ -656,9 +657,7 @@ void CLIP_OT_select_lasso(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
-	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect rather than select items");
-	RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first");
+	WM_operator_properties_gesture_lasso_select(ot);
 }
 
 /********************** circle select operator *********************/
@@ -690,17 +689,17 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	MovieTrackingPlaneTrack *plane_track;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
-	int x, y, radius, width, height, mode;
+	int width, height;
 	bool changed = false;
 	float zoomx, zoomy, offset[2], ellipse[2];
 	int framenr = ED_space_clip_get_clip_frame_number(sc);
 
 	/* get operator properties */
-	x = RNA_int_get(op->ptr, "x");
-	y = RNA_int_get(op->ptr, "y");
-	radius = RNA_int_get(op->ptr, "radius");
+	const int x = RNA_int_get(op->ptr, "x");
+	const int y = RNA_int_get(op->ptr, "y");
+	const int radius = RNA_int_get(op->ptr, "radius");
 
-	mode = RNA_int_get(op->ptr, "gesture_mode");
+	const bool select = !RNA_boolean_get(op->ptr, "deselect");
 
 	/* compute ellipse and position in unified coordinates */
 	ED_space_clip_get_size(sc, &width, &height);
@@ -718,11 +717,12 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 			MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
 
 			if (MARKER_VISIBLE(sc, track, marker) && marker_inside_ellipse(marker, offset, ellipse)) {
-				if (mode == GESTURE_MODAL_SELECT)
+				if (select) {
 					BKE_tracking_track_flag_set(track, TRACK_AREA_ALL, SELECT);
-				else
+				}
+				else {
 					BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
-
+				}
 				changed = true;
 			}
 		}
@@ -741,7 +741,7 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 
 			for (i = 0; i < 4; i++) {
 				if (point_inside_ellipse(plane_marker->corners[i], offset, ellipse)) {
-					if (mode == GESTURE_MODAL_SELECT) {
+					if (select) {
 						plane_track->flag |= SELECT;
 					}
 					else {
@@ -782,10 +782,7 @@ void CLIP_OT_select_circle(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "radius", 1, 1, INT_MAX, "Radius", "", 1, INT_MAX);
-	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
+	WM_operator_properties_gesture_circle_select(ot);
 }
 
 /********************** select all operator *********************/

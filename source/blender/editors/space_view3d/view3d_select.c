@@ -896,9 +896,8 @@ void VIEW3D_OT_select_lasso(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
 	
-	RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
-	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect rather than select items");
-	RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first");
+	/* properties */
+	WM_operator_properties_gesture_lasso_select(ot);
 }
 
 
@@ -2161,9 +2160,9 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	CTX_data_eval_ctx(C, &eval_ctx);
 	view3d_set_viewcontext(C, &vc);
 	
-	select = (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT);
-	WM_operator_properties_border_to_rcti(op, &rect);
+	select = !RNA_boolean_get(op->ptr, "deselect");
 	extend = RNA_boolean_get(op->ptr, "extend");
+	WM_operator_properties_border_to_rcti(op, &rect);
 
 	if (vc.obedit) {
 		switch (vc.obedit->type) {
@@ -2238,17 +2237,17 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 	ot->idname = "VIEW3D_OT_select_border";
 	
 	/* api callbacks */
-	ot->invoke = WM_border_select_invoke;
+	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = view3d_borderselect_exec;
-	ot->modal = WM_border_select_modal;
+	ot->modal = WM_gesture_border_modal;
 	ot->poll = view3d_selectable_data;
-	ot->cancel = WM_border_select_cancel;
+	ot->cancel = WM_gesture_border_cancel;
 	
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
 	
 	/* rna */
-	WM_operator_properties_gesture_border(ot, true);
+	WM_operator_properties_gesture_border_select(ot);
 }
 
 
@@ -2860,8 +2859,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Object *obact = CTX_data_active_object(C);
 	const int radius = RNA_int_get(op->ptr, "radius");
-	const int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
-	const bool select = (gesture_mode == GESTURE_MODAL_SELECT);
+	const bool select = !RNA_boolean_get(op->ptr, "deselect");
 	const int mval[2] = {RNA_int_get(op->ptr, "x"),
 	                     RNA_int_get(op->ptr, "y")};
 
@@ -2922,9 +2920,7 @@ void VIEW3D_OT_select_circle(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
-	
-	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "radius", 1, 1, INT_MAX, "Radius", "", 1, INT_MAX);
-	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
+
+	/* properties */
+	WM_operator_properties_gesture_circle_select(ot);
 }

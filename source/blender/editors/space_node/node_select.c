@@ -524,23 +524,23 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 	bNode *node;
 	rctf rectf;
-	int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
+	const bool select = !RNA_boolean_get(op->ptr, "deselect");
 	const bool extend = RNA_boolean_get(op->ptr, "extend");
 	
 	WM_operator_properties_border_to_rctf(op, &rectf);
 	UI_view2d_region_to_view_rctf(&ar->v2d, &rectf, &rectf);
 	
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
-		bool select;
+		bool is_inside;
 		if (node->type == NODE_FRAME) {
-			select = BLI_rctf_inside_rctf(&rectf, &node->totr);
+			is_inside = BLI_rctf_inside_rctf(&rectf, &node->totr);
 		}
 		else {
-			select = BLI_rctf_isect(&rectf, &node->totr, NULL);
+			is_inside = BLI_rctf_isect(&rectf, &node->totr, NULL);
 		}
 
-		if (select) {
-			nodeSetSelected(node, (gesture_mode == GESTURE_MODAL_SELECT));
+		if (is_inside) {
+			nodeSetSelected(node, select);
 		}
 		else if (!extend) {
 			nodeSetSelected(node, false);
@@ -571,7 +571,7 @@ static int node_border_select_invoke(bContext *C, wmOperator *op, const wmEvent 
 			return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
 	}
 	
-	return WM_border_select_invoke(C, op, event);
+	return WM_gesture_border_invoke(C, op, event);
 }
 
 void NODE_OT_select_border(wmOperatorType *ot)
@@ -584,8 +584,8 @@ void NODE_OT_select_border(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = node_border_select_invoke;
 	ot->exec = node_borderselect_exec;
-	ot->modal = WM_border_select_modal;
-	ot->cancel = WM_border_select_cancel;
+	ot->modal = WM_gesture_border_modal;
+	ot->cancel = WM_gesture_border_cancel;
 	
 	ot->poll = ED_operator_node_active;
 	
@@ -593,7 +593,7 @@ void NODE_OT_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* rna */
-	WM_operator_properties_gesture_border(ot, true);
+	WM_operator_properties_gesture_border_select(ot);
 	RNA_def_boolean(ot->srna, "tweak", 0, "Tweak", "Only activate when mouse is not over a node - useful for tweak gesture");
 }
 
@@ -605,12 +605,12 @@ static int node_circleselect_exec(bContext *C, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 	bNode *node;
 
-	int x, y, radius, gesture_mode;
+	int x, y, radius;
 	float offset[2];
 
 	float zoom  = (float)(BLI_rcti_size_x(&ar->winrct)) / (float)(BLI_rctf_size_x(&ar->v2d.cur));
 
-	gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
+	const bool select = !RNA_boolean_get(op->ptr, "deselect");
 
 	/* get operator properties */
 	x = RNA_int_get(op->ptr, "x");
@@ -621,7 +621,7 @@ static int node_circleselect_exec(bContext *C, wmOperator *op)
 
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		if (BLI_rctf_isect_circle(&node->totr, offset, radius / zoom)) {
-			nodeSetSelected(node, (gesture_mode == GESTURE_MODAL_SELECT));
+			nodeSetSelected(node, select);
 		}
 	}
 
@@ -647,11 +647,8 @@ void NODE_OT_select_circle(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	/* rna */
-	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "radius", 1, 1, INT_MAX, "Radius", "", 1, INT_MAX);
-	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
+	/* properties */
+	WM_operator_properties_gesture_circle_select(ot);
 }
 
 /* ****** Lasso Select ****** */
@@ -728,9 +725,7 @@ void NODE_OT_select_lasso(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
-	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect rather than select items");
-	RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first");
+	WM_operator_properties_gesture_lasso_select(ot);
 }
 
 /* ****** Select/Deselect All ****** */

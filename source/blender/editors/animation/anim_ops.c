@@ -318,10 +318,10 @@ static void ANIM_OT_previewrange_set(wmOperatorType *ot)
 	ot->description = "Interactively define frame range used for playback";
 	
 	/* api callbacks */
-	ot->invoke = WM_border_select_invoke;
+	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = previewrange_define_exec;
-	ot->modal = WM_border_select_modal;
-	ot->cancel = WM_border_select_cancel;
+	ot->modal = WM_gesture_border_modal;
+	ot->cancel = WM_gesture_border_cancel;
 	
 	ot->poll = ED_operator_animview_active;
 	

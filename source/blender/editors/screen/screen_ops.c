@@ -3804,9 +3804,9 @@ static void SCREEN_OT_border_select(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = border_select_exec;
-	ot->invoke = WM_border_select_invoke;
-	ot->modal = WM_border_select_modal;
-	ot->cancel = WM_border_select_cancel;
+	ot->invoke = WM_gesture_border_invoke;
+	ot->modal = WM_gesture_border_modal;
+	ot->cancel = WM_gesture_border_cancel;
 	
 	ot->poll = ED_operator_areaactive;
 	

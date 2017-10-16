@@ -418,10 +418,13 @@ typedef struct wmGesture {
 	int swinid;		/* initial subwindow id where it started */
 	int points;		/* optional, amount of points stored */
 	int points_alloc;	/* optional, maximum amount of points stored */
+	int modal_state;
 
 	/* For modal operators which may be running idle, waiting for an event to activate the gesture.
 	 * Typically this is set when the user is click-dragging the gesture (border and circle select for eg). */
 	uint is_active : 1;
+	/* Use for gestures that support both immediate or delayed activation. */
+	uint wait_for_input : 1;
 	
 	void *customdata;
 	/* customdata for border is a recti */
