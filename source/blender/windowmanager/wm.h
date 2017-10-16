@@ -60,7 +60,6 @@ void wm_window_keymap(wmKeyConfig *keyconf);
 void wm_tweakevent_test(bContext *C, const wmEvent *event, int action);
 
 /* wm_gesture.c */
-#define WM_LASSO_MIN_POINTS		1024
 void wm_gesture_draw(struct wmWindow *win);
 int wm_gesture_evaluate(wmGesture *gesture);
 void wm_gesture_tag_redraw(bContext *C);

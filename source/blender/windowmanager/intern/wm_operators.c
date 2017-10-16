@@ -2692,28 +2692,24 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	switch (event->type) {
 		case MOUSEMOVE:
 		case INBETWEEN_MOUSEMOVE:
-			
+
 			wm_gesture_tag_redraw(C);
-			
+
 			wm_subwindow_origin_get(CTX_wm_window(C), gesture->swinid, &sx, &sy);
 
-			if (gesture->points == gesture->size) {
-				short *old_lasso = gesture->customdata;
-				gesture->customdata = MEM_callocN(2 * sizeof(short) * (gesture->size + WM_LASSO_MIN_POINTS), "lasso points");
-				memcpy(gesture->customdata, old_lasso, 2 * sizeof(short) * gesture->size);
-				gesture->size = gesture->size + WM_LASSO_MIN_POINTS;
-				MEM_freeN(old_lasso);
-				// printf("realloc\n");
+			if (gesture->points == gesture->points_alloc) {
+				gesture->points_alloc *= 2;
+				gesture->customdata = MEM_reallocN(gesture->customdata, sizeof(short[2]) * gesture->points_alloc);
 			}
 
 			{
 				int x, y;
 				short *lasso = gesture->customdata;
-				
+
 				lasso += (2 * gesture->points - 2);
 				x = (event->x - sx - lasso[0]);
 				y = (event->y - sy - lasso[1]);
-				
+
 				/* make a simple distance check to get a smoother lasso
 				 * add only when at least 2 pixels between this and previous location */
 				if ((x * x + y * y) > 4) {
@@ -2724,7 +2720,7 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				}
 			}
 			break;
-			
+
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE:
