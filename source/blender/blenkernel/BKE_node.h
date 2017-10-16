@@ -251,9 +251,9 @@ typedef struct bNodeType {
 #define NODE_CLASS_LAYOUT			100
 
 /* nodetype->compatibility */
-#define NODE_OLD_SHADING	1
-#define NODE_NEW_SHADING	2
-#define NODE_NEWER_SHADING	3
+#define NODE_OLD_SHADING	(1 << 0)
+#define NODE_NEW_SHADING	(1 << 1)
+#define NODE_NEWER_SHADING	(1 << 2)
 
 /* node resize directions */
 #define NODE_RESIZE_TOP		1

@@ -2154,7 +2154,7 @@ GPUMaterial *GPU_material_from_nodetree(
 	mat->engine_type = engine_type;
 	mat->options = options;
 
-	ntreeGPUMaterialNodes(ntree, mat, NODE_NEWER_SHADING);
+	ntreeGPUMaterialNodes(ntree, mat, NODE_NEW_SHADING | NODE_NEWER_SHADING);
 
 	/* Let Draw manager finish the construction. */
 	if (mat->outlink) {

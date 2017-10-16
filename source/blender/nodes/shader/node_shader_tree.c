@@ -504,7 +504,7 @@ static bool ntree_tag_ssr_bsdf_cb(bNode *fromnode, bNode *UNUSED(tonode), void *
  */
 static void ntree_shader_tag_ssr_node(bNodeTree *ntree, short compatibility)
 {
-	if (compatibility != NODE_NEWER_SHADING) {
+	if (compatibility & NODE_NEWER_SHADING) {
 		/* We can only deal with new shading system here. */
 		return;
 	}
