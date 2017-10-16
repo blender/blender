@@ -2491,9 +2491,6 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			}
 			case GESTURE_MODAL_CANCEL:
 			case GESTURE_MODAL_CONFIRM:
-				/* Normally we wouldn't store last-properties on cancel,
-				 * this is an exception since the circle tool is modal. */
-				WM_operator_last_properties_store(op);
 				wm_gesture_end(C, op);
 				return OPERATOR_FINISHED; /* use finish or we don't get an undo */
 		}
