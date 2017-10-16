@@ -2250,6 +2250,43 @@ void WM_paint_cursor_end(wmWindowManager *wm, void *handle)
  * These are default callbacks for use in operators requiring gesture input
  */
 
+static void gesture_modal_state_to_operator(wmOperator *op, int modal_state)
+{
+	PropertyRNA *prop;
+
+	switch (modal_state) {
+		case GESTURE_MODAL_SELECT:
+		case GESTURE_MODAL_DESELECT:
+			if ((prop = RNA_struct_find_property(op->ptr, "deselect"))) {
+				RNA_property_boolean_set(op->ptr, prop, (modal_state == GESTURE_MODAL_DESELECT));
+			}
+			break;
+		case GESTURE_MODAL_IN:
+		case GESTURE_MODAL_OUT:
+			if ((prop = RNA_struct_find_property(op->ptr, "zoom_out"))) {
+				RNA_property_boolean_set(op->ptr, prop, (modal_state == GESTURE_MODAL_OUT));
+			}
+			break;
+	}
+}
+
+static int gesture_modal_state_from_operator(wmOperator *op)
+{
+	PropertyRNA *prop;
+
+	if ((prop = RNA_struct_find_property(op->ptr, "deselect"))) {
+		if (RNA_property_is_set(op->ptr, prop)) {
+			return RNA_property_boolean_get(op->ptr, prop) ? GESTURE_MODAL_DESELECT : GESTURE_MODAL_SELECT;
+		}
+	}
+	if ((prop = RNA_struct_find_property(op->ptr, "zoom_out"))) {
+		if (RNA_property_is_set(op->ptr, prop)) {
+			return RNA_property_boolean_get(op->ptr, prop) ? GESTURE_MODAL_OUT : GESTURE_MODAL_IN;
+		}
+	}
+	return GESTURE_MODAL_NOP;
+}
+
 /* **************** Border gesture *************** */
 
 /**
@@ -2260,7 +2297,7 @@ void WM_paint_cursor_end(wmWindowManager *wm, void *handle)
  * It stores 4 values (xmin, xmax, ymin, ymax) and event it ended with (event_type)
  */
 
-static int border_apply_rect(wmOperator *op)
+static bool gesture_border_apply_rect(wmOperator *op)
 {
 	wmGesture *gesture = op->customdata;
 	rcti *rect = gesture->customdata;
@@ -2278,19 +2315,17 @@ static int border_apply_rect(wmOperator *op)
 	return 1;
 }
 
-static int border_apply(bContext *C, wmOperator *op, int gesture_mode)
+static bool gesture_border_apply(bContext *C, wmOperator *op)
 {
-	PropertyRNA *prop;
+	wmGesture *gesture = op->customdata;
 
 	int retval;
 
-	if (!border_apply_rect(op))
+	if (!gesture_border_apply_rect(op)) {
 		return 0;
-	
-	/* XXX weak; border should be configured for this without reading event types */
-	if ((prop = RNA_struct_find_property(op->ptr, "gesture_mode"))) {
-		RNA_property_int_set(op->ptr, prop, gesture_mode);
 	}
+
+	gesture_modal_state_to_operator(op, gesture->modal_state);
 
 	retval = op->type->exec(C, op);
 	OPERATOR_RETVAL_CHECK(retval);
@@ -2314,14 +2349,28 @@ static void wm_gesture_end(bContext *C, wmOperator *op)
 
 int WM_gesture_border_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	if (ISTWEAK(event->type))
+	int modal_state = gesture_modal_state_from_operator(op);
+
+	if (ISTWEAK(event->type) || (modal_state != GESTURE_MODAL_NOP)) {
 		op->customdata = WM_gesture_new(C, event, WM_GESTURE_RECT);
-	else
+	}
+	else {
 		op->customdata = WM_gesture_new(C, event, WM_GESTURE_CROSS_RECT);
+	}
+
+	/* Starting with the mode starts immediately, like having 'wait_for_input' disabled (some tools use this). */
+	if (modal_state == GESTURE_MODAL_NOP) {
+		wmGesture *gesture = op->customdata;
+		gesture->wait_for_input = true;
+	}
+	else {
+		wmGesture *gesture = op->customdata;
+		gesture->modal_state = modal_state;
+	}
 
 	/* add modal handler */
 	WM_event_add_modal_handler(C, op);
-	
+
 	wm_gesture_tag_redraw(C);
 
 	return OPERATOR_RUNNING_MODAL;
@@ -2344,7 +2393,7 @@ int WM_gesture_border_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			rect->xmax = event->x - sx;
 			rect->ymax = event->y - sy;
 		}
-		border_apply_rect(op);
+		gesture_border_apply_rect(op);
 
 		wm_gesture_tag_redraw(C);
 	}
@@ -2360,7 +2409,10 @@ int WM_gesture_border_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			case GESTURE_MODAL_DESELECT:
 			case GESTURE_MODAL_IN:
 			case GESTURE_MODAL_OUT:
-				if (border_apply(C, op, event->val)) {
+				if (gesture->wait_for_input) {
+					gesture->modal_state = event->val;
+				}
+				if (gesture_border_apply(C, op)) {
 					wm_gesture_end(C, op);
 					return OPERATOR_FINISHED;
 				}
@@ -2394,14 +2446,28 @@ void WM_gesture_border_cancel(bContext *C, wmOperator *op)
 /* **************** circle gesture *************** */
 /* works now only for selection or modal paint stuff, calls exec while hold mouse, exit on release */
 
+static void gesture_circle_apply(bContext *C, wmOperator *op);
+
 int WM_gesture_circle_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+	int modal_state = gesture_modal_state_from_operator(op);
+
 	op->customdata = WM_gesture_new(C, event, WM_GESTURE_CIRCLE);
 	wmGesture *gesture = op->customdata;
 	rcti *rect = gesture->customdata;
 	
 	/* Default or previously stored value. */
 	rect->xmax = RNA_int_get(op->ptr, "radius");
+
+	/* Starting with the mode starts immediately, like having 'wait_for_input' disabled (some tools use this). */
+	if (modal_state == GESTURE_MODAL_NOP) {
+		gesture->wait_for_input = true;
+	}
+	else {
+		gesture->is_active = true;
+		gesture->modal_state = modal_state;
+		gesture_circle_apply(C, op);
+	}
 
 	/* add modal handler */
 	WM_event_add_modal_handler(C, op);
@@ -2415,15 +2481,18 @@ static void gesture_circle_apply(bContext *C, wmOperator *op)
 {
 	wmGesture *gesture = op->customdata;
 	rcti *rect = gesture->customdata;
-	
-	if (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_NOP)
+
+	if (gesture->modal_state == GESTURE_MODAL_NOP) {
 		return;
+	}
 
 	/* operator arguments and storage. */
 	RNA_int_set(op->ptr, "x", rect->xmin);
 	RNA_int_set(op->ptr, "y", rect->ymin);
 	RNA_int_set(op->ptr, "radius", rect->xmax);
-	
+
+	gesture_modal_state_to_operator(op, gesture->modal_state);
+
 	if (op->type->exec) {
 		int retval;
 		retval = op->type->exec(C, op);
@@ -2451,6 +2520,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	}
 	else if (event->type == EVT_MODAL_MAP) {
 		bool is_circle_size = false;
+		bool is_finished = false;
 		float fac;
 		
 		switch (event->val) {
@@ -2476,12 +2546,16 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			case GESTURE_MODAL_DESELECT:
 			case GESTURE_MODAL_NOP:
 			{
-				PropertyRNA *prop = RNA_struct_find_property(op->ptr, "gesture_mode");
-				if (prop != NULL) {
-					RNA_property_int_set(op->ptr, prop, event->val);
+				if (gesture->wait_for_input) {
+					gesture->modal_state = event->val;
 				}
-
-				if (event->val != GESTURE_MODAL_NOP) {
+				if (event->val == GESTURE_MODAL_NOP) {
+					/* Single action, click-drag & release to exit. */
+					if (gesture->wait_for_input == false) {
+						is_finished = true;
+					}
+				}
+				else {
 					/* apply first click */
 					gesture_circle_apply(C, op);
 					gesture->is_active = true;
@@ -2491,8 +2565,12 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			}
 			case GESTURE_MODAL_CANCEL:
 			case GESTURE_MODAL_CONFIRM:
-				wm_gesture_end(C, op);
-				return OPERATOR_FINISHED; /* use finish or we don't get an undo */
+				is_finished = true;
+		}
+
+		if (is_finished) {
+			wm_gesture_end(C, op);
+			return OPERATOR_FINISHED; /* use finish or we don't get an undo */
 		}
 
 		if (is_circle_size) {
@@ -4288,14 +4366,15 @@ static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_SELECT);
 
+	/* Note: use 'KM_ANY' for release, so the circle exits on any mouse release,
+	 * this is needed when circle select is activated as a tool. */
+
 	/* left mouse shift for deselect too */
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_SHIFT, 0, GESTURE_MODAL_DESELECT);
-	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, KM_SHIFT, 0, GESTURE_MODAL_NOP);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, KM_ANY, 0, GESTURE_MODAL_NOP);
 
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_DESELECT); //  default 2.4x
-	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, 0, 0, GESTURE_MODAL_NOP); //  default 2.4x
-
-	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, 0, 0, GESTURE_MODAL_NOP);
+	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, GESTURE_MODAL_NOP); //  default 2.4x
 
 	WM_modalkeymap_add_item(keymap, WHEELUPMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_CIRCLE_SUB);
 	WM_modalkeymap_add_item(keymap, PADMINUS, KM_PRESS, 0, 0, GESTURE_MODAL_CIRCLE_SUB);

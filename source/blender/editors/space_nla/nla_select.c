@@ -278,25 +278,28 @@ static int nlaedit_borderselect_exec(bContext *C, wmOperator *op)
 	bAnimContext ac;
 	rcti rect;
 	short mode = 0, selectmode = 0;
-	int extend;
+	const bool select = !RNA_boolean_get(op->ptr, "deselect");
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 
 	/* clear all selection if not extending selection */
-	extend = RNA_boolean_get(op->ptr, "extend");
-	if (!extend)
+	if (!extend) {
 		deselect_nla_strips(&ac, DESELECT_STRIPS_TEST, SELECT_SUBTRACT);
+	}
 
 	/* get settings from operator */
 	WM_operator_properties_border_to_rcti(op, &rect);
-		
-	if (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT)
+
+	if (select) {
 		selectmode = SELECT_ADD;
-	else
+	}
+	else {
 		selectmode = SELECT_SUBTRACT;
-	
+	}
+
 	/* selection 'mode' depends on whether borderselect region only matters on one axis */
 	if (RNA_boolean_get(op->ptr, "axis_range")) {
 		/* mode depends on which axis of the range is larger to determine which axis to use 
@@ -340,7 +343,7 @@ void NLA_OT_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* rna */
-	WM_operator_properties_gesture_border(ot, 1);
+	WM_operator_properties_gesture_border_select(ot);
 	
 	RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
 }

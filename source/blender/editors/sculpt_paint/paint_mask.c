@@ -519,7 +519,7 @@ void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_gesture_lasso_ex(ot, false, false);
+	WM_operator_properties_gesture_lasso(ot);
 
 	RNA_def_enum(ot->srna, "mode", mode_items, PAINT_MASK_FLOOD_VALUE, "Mode", NULL);
 	RNA_def_float(ot->srna, "value", 1.0, 0, 1.0, "Value",

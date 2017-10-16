@@ -431,6 +431,7 @@ enum {
 	GESTURE_MODAL_CANCEL      = 1,
 	GESTURE_MODAL_CONFIRM     = 2,
 
+	/* Uses 'deselect' operator property. */
 	GESTURE_MODAL_SELECT      = 3,
 	GESTURE_MODAL_DESELECT    = 4,
 
@@ -441,6 +442,7 @@ enum {
 
 	GESTURE_MODAL_BEGIN       = 8, /* border select/straight line, activate, use release to detect which button */
 
+	/* Uses 'zoom_out' operator property. */
 	GESTURE_MODAL_IN          = 9,
 	GESTURE_MODAL_OUT         = 10,
 

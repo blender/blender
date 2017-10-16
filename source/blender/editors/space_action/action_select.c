@@ -309,26 +309,27 @@ static int actkeys_borderselect_exec(bContext *C, wmOperator *op)
 	bAnimContext ac;
 	rcti rect;
 	short mode = 0, selectmode = 0;
-	int gesture_mode;
-	bool extend;
+	const bool select = !RNA_boolean_get(op->ptr, "deselect");
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 
 	/* clear all selection if not extending selection */
-	extend = RNA_boolean_get(op->ptr, "extend");
-	if (!extend)
+	if (!extend) {
 		deselect_action_keys(&ac, 1, SELECT_SUBTRACT);
+	}
 	
 	/* get settings from operator */
 	WM_operator_properties_border_to_rcti(op, &rect);
-		
-	gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
-	if (gesture_mode == GESTURE_MODAL_SELECT)
+
+	if (select) {
 		selectmode = SELECT_ADD;
-	else
+	}
+	else {
 		selectmode = SELECT_SUBTRACT;
+	}
 	
 	/* selection 'mode' depends on whether borderselect region only matters on one axis */
 	if (RNA_boolean_get(op->ptr, "axis_range")) {
@@ -373,7 +374,7 @@ void ACTION_OT_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* rna */
-	WM_operator_properties_gesture_border(ot, true);
+	WM_operator_properties_gesture_border_select(ot);
 	
 	ot->prop = RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
 }
@@ -572,7 +573,7 @@ void ACTION_OT_select_lasso(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 	
 	/* properties */
-	WM_operator_properties_gesture_lasso(ot);
+	WM_operator_properties_gesture_lasso_select(ot);
 }
 
 /* ------------------- */
@@ -580,8 +581,8 @@ void ACTION_OT_select_lasso(wmOperatorType *ot)
 static int action_circle_select_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
-	const int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
-	const short selectmode = (gesture_mode == GESTURE_MODAL_SELECT) ? SELECT_ADD : SELECT_SUBTRACT;
+	const bool select = !RNA_boolean_get(op->ptr, "deselect");
+	const short selectmode = select ? SELECT_ADD : SELECT_SUBTRACT;
 	
 	KeyframeEdit_CircleData data = {0};
 	rctf rect_fl;
@@ -629,7 +630,7 @@ void ACTION_OT_select_circle(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_gesture_circle(ot);
+	WM_operator_properties_gesture_circle_select(ot);
 }
 
 /* ******************** Column Select Operator **************************** */

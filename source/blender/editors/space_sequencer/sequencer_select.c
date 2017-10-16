@@ -889,7 +889,7 @@ static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
 	
 	Sequence *seq;
 	rctf rectf, rq;
-	const bool select = (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT);
+	const bool select = !RNA_boolean_get(op->ptr, "deselect");
 	const bool extend = RNA_boolean_get(op->ptr, "extend");
 
 	if (ed == NULL)
@@ -938,7 +938,7 @@ void SEQUENCER_OT_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* rna */
-	WM_operator_properties_gesture_border(ot, true);
+	WM_operator_properties_gesture_border_select(ot);
 }
 
 /* ****** Selected Grouped ****** */

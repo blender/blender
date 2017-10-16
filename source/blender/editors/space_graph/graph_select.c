@@ -332,25 +332,27 @@ static int graphkeys_borderselect_exec(bContext *C, wmOperator *op)
 	rctf rect_fl;
 	short mode = 0, selectmode = 0;
 	bool incl_handles;
-	bool extend;
+	const bool select = !RNA_boolean_get(op->ptr, "deselect");
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 
 	/* clear all selection if not extending selection */
-	extend = RNA_boolean_get(op->ptr, "extend");
+
 	if (!extend)
 		deselect_graph_keys(&ac, 1, SELECT_SUBTRACT, true);
 
 	/* get select mode 
-	 *	- 'gesture_mode' from the operator specifies how to select
 	 *	- 'include_handles' from the operator specifies whether to include handles in the selection
 	 */
-	if (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT)
+	if (select) {
 		selectmode = SELECT_ADD;
-	else
+	}
+	else {
 		selectmode = SELECT_SUBTRACT;
+	}
 		
 	incl_handles = RNA_boolean_get(op->ptr, "include_handles");
 	
@@ -402,7 +404,7 @@ void GRAPH_OT_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* rna */
-	WM_operator_properties_gesture_border(ot, true);
+	WM_operator_properties_gesture_border_select(ot);
 	
 	ot->prop = RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
 	RNA_def_boolean(ot->srna, "include_handles", 0, "Include Handles", "Are handles tested individually against the selection criteria");
@@ -486,7 +488,7 @@ void GRAPH_OT_select_lasso(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 	
 	/* properties */
-	WM_operator_properties_gesture_lasso(ot);
+	WM_operator_properties_gesture_lasso_select(ot);
 }
 
 /* ------------------- */
@@ -494,8 +496,8 @@ void GRAPH_OT_select_lasso(wmOperatorType *ot)
 static int graph_circle_select_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
-	const int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
-	const short selectmode = (gesture_mode == GESTURE_MODAL_SELECT) ? SELECT_ADD : SELECT_SUBTRACT;
+	const bool select = !RNA_boolean_get(op->ptr, "deselect");
+	const short selectmode = select ? SELECT_ADD : SELECT_SUBTRACT;
 	bool incl_handles = false;
 	
 	KeyframeEdit_CircleData data = {0};
@@ -555,7 +557,7 @@ void GRAPH_OT_select_circle(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_gesture_circle(ot);
+	WM_operator_properties_gesture_circle_select(ot);
 }
 
 /* ******************** Column Select Operator **************************** */

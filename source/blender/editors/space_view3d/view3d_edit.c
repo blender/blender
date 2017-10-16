@@ -3580,7 +3580,6 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	Scene *scene = CTX_data_scene(C);
-	int gesture_mode;
 	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 
 	/* Zooms in on a border drawn by the user */
@@ -3604,7 +3603,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 	WM_operator_properties_border_to_rcti(op, &rect);
 
 	/* check if zooming in/out view */
-	gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
+	const bool zoom_in = !RNA_boolean_get(op->ptr, "zoom_out");
 
 	ED_view3d_dist_range_get(v3d, dist_range);
 
@@ -3702,7 +3701,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 		new_dist *= max_ff(xscale, yscale);
 	}
 
-	if (gesture_mode == GESTURE_MODAL_OUT) {
+	if (!zoom_in) {
 		sub_v3_v3v3(dvec, new_ofs, rv3d->ofs);
 		new_dist = rv3d->dist * (rv3d->dist / new_dist);
 		add_v3_v3v3(new_ofs, rv3d->ofs, dvec);
@@ -3752,7 +3751,7 @@ void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 	ot->flag = 0;
 
 	/* rna */
-	WM_operator_properties_gesture_border(ot, false);
+	WM_operator_properties_gesture_border_zoom(ot);
 }
 
 /* sets the view to 1:1 camera/render-pixel */

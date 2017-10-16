@@ -408,17 +408,15 @@ static int border_select_exec(bContext *C, wmOperator *op)
 
 	rcti rect;
 	rctf rectf;
-	int mode;
-	bool changed = false, extend;
+	bool changed = false;
+	const bool select = !RNA_boolean_get(op->ptr, "deselect");
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
 
 	/* get rectangle from operator */
 	WM_operator_properties_border_to_rcti(op, &rect);
 
 	ED_mask_point_pos(sa, ar, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
 	ED_mask_point_pos(sa, ar, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
-
-	mode = RNA_int_get(op->ptr, "gesture_mode");
-	extend = RNA_boolean_get(op->ptr, "extend");
 
 	/* do actual selection */
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
@@ -439,8 +437,8 @@ static int border_select_exec(bContext *C, wmOperator *op)
 				/* TODO: uw? */
 
 				if (BLI_rctf_isect_pt_v(&rectf, point_deform->bezt.vec[1])) {
-					BKE_mask_point_select_set(point, mode == GESTURE_MODAL_SELECT);
-					BKE_mask_point_select_set_handle(point, MASK_WHICH_HANDLE_BOTH, mode == GESTURE_MODAL_SELECT);
+					BKE_mask_point_select_set(point, select);
+					BKE_mask_point_select_set_handle(point, MASK_WHICH_HANDLE_BOTH, select);
 				}
 				else if (!extend) {
 					BKE_mask_point_select_set(point, false);
@@ -480,7 +478,7 @@ void MASK_OT_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_gesture_border(ot, true);
+	WM_operator_properties_gesture_border_select(ot);
 }
 
 static bool do_lasso_select_mask(bContext *C, const int mcords[][2], short moves, short select)
@@ -580,7 +578,7 @@ void MASK_OT_select_lasso(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_gesture_lasso(ot);
+	WM_operator_properties_gesture_lasso_select(ot);
 }
 
 /********************** circle select operator *********************/
@@ -606,15 +604,15 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	int i;
 
 	float zoomx, zoomy, offset[2], ellipse[2];
-	int x, y, radius, width, height, mode;
+	int width, height;
 	bool changed = false;
 
 	/* get operator properties */
-	x = RNA_int_get(op->ptr, "x");
-	y = RNA_int_get(op->ptr, "y");
-	radius = RNA_int_get(op->ptr, "radius");
+	const int x = RNA_int_get(op->ptr, "x");
+	const int y = RNA_int_get(op->ptr, "y");
+	const int radius = RNA_int_get(op->ptr, "radius");
 
-	mode = RNA_int_get(op->ptr, "gesture_mode");
+	const bool select = !RNA_boolean_get(op->ptr, "deselect");
 
 	/* compute ellipse and position in unified coordinates */
 	ED_mask_get_size(sa, &width, &height);
@@ -642,8 +640,8 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 				MaskSplinePoint *point_deform = &points_array[i];
 
 				if (mask_spline_point_inside_ellipse(&point_deform->bezt, offset, ellipse)) {
-					BKE_mask_point_select_set(point, mode == GESTURE_MODAL_SELECT);
-					BKE_mask_point_select_set_handle(point, MASK_WHICH_HANDLE_BOTH, mode == GESTURE_MODAL_SELECT);
+					BKE_mask_point_select_set(point, select);
+					BKE_mask_point_select_set_handle(point, MASK_WHICH_HANDLE_BOTH, select);
 
 					changed = true;
 				}
@@ -679,7 +677,7 @@ void MASK_OT_select_circle(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_gesture_circle(ot);
+	WM_operator_properties_gesture_circle_select(ot);
 }
 
 static int mask_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)

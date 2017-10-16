@@ -72,6 +72,7 @@ wmGesture *WM_gesture_new(bContext *C, const wmEvent *event, int type)
 	gesture->event_type = event->type;
 	gesture->swinid = ar->swinid;    /* means only in area-region context! */
 	gesture->userdata_free = true;   /* Free if userdata is set. */
+	gesture->modal_state = GESTURE_MODAL_NOP;
 	
 	wm_subwindow_origin_get(window, gesture->swinid, &sx, &sy);
 	

@@ -3431,7 +3431,7 @@ void SEQUENCER_OT_view_ghost_border(wmOperatorType *ot)
 	ot->flag = 0;
 
 	/* rna */
-	WM_operator_properties_gesture_border(ot, false);
+	WM_operator_properties_gesture_border(ot);
 }
 
 /* rebuild_proxy operator */

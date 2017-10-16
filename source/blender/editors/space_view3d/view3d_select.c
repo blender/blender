@@ -915,7 +915,7 @@ void VIEW3D_OT_select_lasso(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 	
 	/* properties */
-	WM_operator_properties_gesture_lasso(ot);
+	WM_operator_properties_gesture_lasso_select(ot);
 }
 
 
@@ -2137,9 +2137,9 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	/* setup view context for argument to callbacks */
 	view3d_set_viewcontext(C, &vc);
 	
-	select = (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT);
-	WM_operator_properties_border_to_rcti(op, &rect);
+	select = !RNA_boolean_get(op->ptr, "deselect");
 	extend = RNA_boolean_get(op->ptr, "extend");
+	WM_operator_properties_border_to_rcti(op, &rect);
 
 	if (vc.obedit) {
 		switch (vc.obedit->type) {
@@ -2224,7 +2224,7 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 	
 	/* rna */
-	WM_operator_properties_gesture_border(ot, true);
+	WM_operator_properties_gesture_border_select(ot);
 }
 
 
@@ -2835,8 +2835,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Object *obact = CTX_data_active_object(C);
 	const int radius = RNA_int_get(op->ptr, "radius");
-	const int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
-	const bool select = (gesture_mode == GESTURE_MODAL_SELECT);
+	const bool select = !RNA_boolean_get(op->ptr, "deselect");
 	const int mval[2] = {RNA_int_get(op->ptr, "x"),
 	                     RNA_int_get(op->ptr, "y")};
 
@@ -2897,5 +2896,5 @@ void VIEW3D_OT_select_circle(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_gesture_circle(ot);
+	WM_operator_properties_gesture_circle_select(ot);
 }

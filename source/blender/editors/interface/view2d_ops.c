@@ -1223,7 +1223,6 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 	View2D *v2d = &ar->v2d;
 	rctf rect;
 	rctf cur_new = v2d->cur;
-	int gesture_mode;
 	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 	
 	/* convert coordinates of rect to 'tot' rect coordinates */
@@ -1231,9 +1230,9 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 	UI_view2d_region_to_view_rctf(v2d, &rect, &rect);
 	
 	/* check if zooming in/out view */
-	gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
+	const bool zoom_in = !RNA_boolean_get(op->ptr, "zoom_out");
 	
-	if (gesture_mode == GESTURE_MODAL_IN) {
+	if (zoom_in) {
 		/* zoom in: 
 		 *	- 'cur' rect will be defined by the coordinates of the border region 
 		 *	- just set the 'cur' rect to have the same coordinates as the border region
@@ -1248,8 +1247,7 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 			cur_new.ymax = rect.ymax;
 		}
 	}
-	else { /* if (gesture_mode == GESTURE_MODAL_OUT) */
-
+	else {
 		/* zoom out:
 		 *	- the current 'cur' rect coordinates are going to end up where the 'rect' ones are,
 		 *	  but the 'cur' rect coordinates will need to be adjusted to take in more of the view
@@ -1297,7 +1295,7 @@ static void VIEW2D_OT_zoom_border(wmOperatorType *ot)
 	ot->poll = view_zoom_poll;
 	
 	/* rna */
-	WM_operator_properties_gesture_border(ot, false);
+	WM_operator_properties_gesture_border_zoom(ot);
 }
 
 #ifdef WITH_INPUT_NDOF
@@ -1545,7 +1543,7 @@ static void VIEW2D_OT_smoothview(wmOperatorType *ot)
 	ot->flag = OPTYPE_INTERNAL;
 
 	/* rna */
-	WM_operator_properties_gesture_border(ot, false);
+	WM_operator_properties_gesture_border(ot);
 }
 
 /* ********************************************************* */

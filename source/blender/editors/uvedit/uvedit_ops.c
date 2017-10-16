@@ -2875,9 +2875,9 @@ static int uv_border_select_exec(bContext *C, wmOperator *op)
 	UI_view2d_region_to_view_rctf(&ar->v2d, &rectf, &rectf);
 
 	/* figure out what to select/deselect */
-	select = (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT);
-	pinned = RNA_boolean_get(op->ptr, "pinned");
+	select = !RNA_boolean_get(op->ptr, "deselect");
 	extend = RNA_boolean_get(op->ptr, "extend");
+	pinned = RNA_boolean_get(op->ptr, "pinned");
 
 	if (!extend)
 		uv_select_all_perform(scene, ima, em, SEL_DESELECT);
@@ -2968,7 +2968,7 @@ static void UV_OT_select_border(wmOperatorType *ot)
 	/* properties */
 	RNA_def_boolean(ot->srna, "pinned", 0, "Pinned", "Border select pinned UVs only");
 
-	WM_operator_properties_gesture_border(ot, true);
+	WM_operator_properties_gesture_border_select(ot);
 }
 
 /* ******************** circle select operator **************** */
@@ -3009,8 +3009,7 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
 	MLoopUV *luv;
 	int x, y, radius, width, height;
 	float zoomx, zoomy, offset[2], ellipse[2];
-	int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
-	const bool select = (gesture_mode == GESTURE_MODAL_SELECT);
+	const bool select = !RNA_boolean_get(op->ptr, "deselect");
 	bool changed = false;
 	const bool use_face_center = (ts->uv_flag & UV_SYNC_SELECTION) ?
 	                             (ts->selectmode == SCE_SELECT_FACE) :
@@ -3090,7 +3089,7 @@ static void UV_OT_circle_select(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_gesture_circle(ot);
+	WM_operator_properties_gesture_circle_select(ot);
 }
 
 
@@ -3222,7 +3221,7 @@ static void UV_OT_select_lasso(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_gesture_lasso(ot);
+	WM_operator_properties_gesture_lasso_select(ot);
 }
 
 

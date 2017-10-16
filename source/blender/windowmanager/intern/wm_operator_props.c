@@ -227,15 +227,34 @@ void WM_operator_properties_border_to_rctf(struct wmOperator *op, rctf *rect)
 /**
  * Use with #WM_gesture_border_invoke
  */
-void WM_operator_properties_gesture_border(wmOperatorType *ot, bool extend)
+void WM_operator_properties_gesture_border_ex(wmOperatorType *ot, bool deselect, bool extend)
 {
-	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
-
 	WM_operator_properties_border(ot);
 
+	if (deselect) {
+		RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "Deselect rather than select items");
+	}
 	if (extend) {
 		RNA_def_boolean(ot->srna, "extend", true, "Extend", "Extend selection instead of deselecting everything first");
 	}
+}
+
+void WM_operator_properties_gesture_border_select(wmOperatorType *ot)
+{
+	WM_operator_properties_gesture_border_ex(ot, true, true);
+}
+void WM_operator_properties_gesture_border(wmOperatorType *ot)
+{
+	WM_operator_properties_gesture_border_ex(ot, false, false);
+}
+
+void WM_operator_properties_gesture_border_zoom(wmOperatorType *ot)
+{
+	WM_operator_properties_border(ot);
+
+	PropertyRNA *prop;
+	prop = RNA_def_boolean(ot->srna, "zoom_out", false, "Zoom Out", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /**
@@ -256,6 +275,11 @@ void WM_operator_properties_gesture_lasso_ex(wmOperatorType *ot, bool deselect, 
 }
 
 void WM_operator_properties_gesture_lasso(wmOperatorType *ot)
+{
+	WM_operator_properties_gesture_lasso_ex(ot, false, false);
+}
+
+void WM_operator_properties_gesture_lasso_select(wmOperatorType *ot)
 {
 	WM_operator_properties_gesture_lasso_ex(ot, true, true);
 }
@@ -286,7 +310,7 @@ void WM_operator_properties_gesture_straightline(wmOperatorType *ot, int cursor)
 /**
  * Use with #WM_gesture_circle_invoke
  */
-void WM_operator_properties_gesture_circle(wmOperatorType *ot)
+void WM_operator_properties_gesture_circle_ex(wmOperatorType *ot, bool deselect)
 {
 	PropertyRNA *prop;
 	const int radius_default = 25;
@@ -296,8 +320,20 @@ void WM_operator_properties_gesture_circle(wmOperatorType *ot)
 	prop = RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	RNA_def_int(ot->srna, "radius", radius_default, 1, INT_MAX, "Radius", "", 1, INT_MAX);
-	prop = RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
-	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
+	if (deselect) {
+		RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "Deselect rather than select items");
+	}
+}
+
+void WM_operator_properties_gesture_circle(wmOperatorType *ot)
+{
+	WM_operator_properties_gesture_circle_ex(ot, false);
+}
+
+void WM_operator_properties_gesture_circle_select(wmOperatorType *ot)
+{
+	WM_operator_properties_gesture_circle_ex(ot, true);
 }
 
 void WM_operator_properties_mouse_select(wmOperatorType *ot)

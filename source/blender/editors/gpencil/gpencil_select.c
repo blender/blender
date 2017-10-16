@@ -769,8 +769,7 @@ static int gpencil_circle_select_exec(bContext *C, wmOperator *op)
 	const int my = RNA_int_get(op->ptr, "y");
 	const int radius = RNA_int_get(op->ptr, "radius");
 	
-	const int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
-	const bool select = (gesture_mode == GESTURE_MODAL_SELECT);
+	bool select = !RNA_boolean_get(op->ptr, "deselect");
 	
 	GP_SpaceConversion gsc = {NULL};
 	rcti rect = {0};            /* for bounding rect around circle (for quicky intersection testing) */
@@ -830,7 +829,7 @@ void GPENCIL_OT_select_circle(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
-	WM_operator_properties_gesture_circle(ot);
+	WM_operator_properties_gesture_circle_select(ot);
 }
 
 /* ********************************************** */
@@ -840,8 +839,7 @@ static int gpencil_border_select_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	
-	const int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
-	const bool select = (gesture_mode == GESTURE_MODAL_SELECT);
+	const bool select = !RNA_boolean_get(op->ptr, "deselect");
 	const bool extend = RNA_boolean_get(op->ptr, "extend");
 	
 	GP_SpaceConversion gsc = {NULL};
@@ -944,7 +942,7 @@ void GPENCIL_OT_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* rna */
-	WM_operator_properties_gesture_border(ot, true);
+	WM_operator_properties_gesture_border_select(ot);
 }
 
 /* ********************************************** */
@@ -1054,7 +1052,7 @@ void GPENCIL_OT_select_lasso(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 	
 	/* properties */
-	WM_operator_properties_gesture_lasso(ot);
+	WM_operator_properties_gesture_lasso_select(ot);
 }
 
 /* ********************************************** */
