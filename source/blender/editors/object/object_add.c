@@ -1459,8 +1459,9 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 			ob_dst->totcol = 0;
 		}
 
-		BKE_collection_object_add_from(scene, ob_src, ob_dst);
+		BKE_collection_object_add_from(scene, base->object, ob_dst);
 		base_dst = BKE_scene_layer_base_find(sl, ob_dst);
+		BLI_assert(base_dst != NULL);
 
 		BKE_scene_object_base_flag_sync_from_base(base_dst);
 
