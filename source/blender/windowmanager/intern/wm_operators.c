@@ -2995,6 +2995,11 @@ int WM_gesture_straightline_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
 	op->customdata = WM_gesture_new(C, event, WM_GESTURE_STRAIGHTLINE);
 	
+	if (ISTWEAK(event->type)) {
+		wmGesture *gesture = op->customdata;
+		gesture->is_active = true;
+	}
+
 	/* add modal handler */
 	WM_event_add_modal_handler(C, op);
 	
@@ -4488,7 +4493,7 @@ static void gesture_straightline_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_ANY, KM_ANY, 0, GESTURE_MODAL_CANCEL);
 	
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_BEGIN);
-	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, 0, 0, GESTURE_MODAL_SELECT);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, KM_ANY, 0, GESTURE_MODAL_SELECT);
 	
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "IMAGE_OT_sample_line");

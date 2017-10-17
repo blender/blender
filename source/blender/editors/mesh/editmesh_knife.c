@@ -274,6 +274,8 @@ static bool knife_verts_edge_in_face(KnifeVert *v1, KnifeVert *v2, BMFace *f);
 
 static void knifetool_free_bmbvh(KnifeTool_OpData *kcd);
 
+static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event);
+
 static void knife_update_header(bContext *C, wmOperator *op, KnifeTool_OpData *kcd)
 {
 	char header[UI_MAX_DRAW_STR];
@@ -2679,6 +2681,7 @@ static int knifetool_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	const bool only_select = RNA_boolean_get(op->ptr, "only_selected");
 	const bool cut_through = !RNA_boolean_get(op->ptr, "use_occlude_geometry");
+	const bool wait_for_input = RNA_boolean_get(op->ptr, "wait_for_input");
 
 	KnifeTool_OpData *kcd;
 
@@ -2705,6 +2708,18 @@ static int knifetool_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	WM_event_add_modal_handler(C, op);
 
 	knifetool_update_mval_i(kcd, event->mval);
+
+	if (wait_for_input == false) {
+		/* Avoid copy-paste logic. */
+		wmEvent event_modal = {
+			.prevval = KM_NOTHING,
+			.type = EVT_MODAL_MAP,
+			.val = KNF_MODAL_ADD_CUT,
+		};
+		int ret = knifetool_modal(C, op, &event_modal);
+		BLI_assert(ret == OPERATOR_RUNNING_MODAL);
+		UNUSED_VARS_NDEBUG(ret);
+	}
 
 	knife_update_header(C, op, kcd);
 
@@ -2973,8 +2988,13 @@ void MESH_OT_knife_tool(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 
+	/* properties */
+	PropertyRNA *prop;
 	RNA_def_boolean(ot->srna, "use_occlude_geometry", true, "Occlude Geometry", "Only cut the front most geometry");
 	RNA_def_boolean(ot->srna, "only_selected", false, "Only Selected", "Only cut selected geometry");
+
+	prop = RNA_def_boolean(ot->srna, "wait_for_input", true, "Wait for Input", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 
