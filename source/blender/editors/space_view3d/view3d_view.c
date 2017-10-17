@@ -1520,8 +1520,6 @@ static void restore_localviewdata(wmWindowManager *wm, wmWindow *win, Main *bmai
 	camera_old = v3d->camera;
 	camera_new = v3d->localvd->camera;
 
-	v3d->near = v3d->localvd->near;
-	v3d->far = v3d->localvd->far;
 	v3d->lay = v3d->localvd->lay;
 	v3d->layact = v3d->localvd->layact;
 	v3d->drawtype = v3d->localvd->drawtype;
