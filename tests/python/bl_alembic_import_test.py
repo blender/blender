@@ -220,9 +220,9 @@ class VertexColourImportTest(AbstractAlembicTest):
         layer = ob.data.vertex_colors['Cf']  # MeshLoopColorLayer
 
         # Test some known-good values.
-        self.assertAlmostEqualFloatArray(layer.data[0].color, (0, 0, 0))
-        self.assertAlmostEqualFloatArray(layer.data[98].color, (0.9019607, 0.4745098, 0.2666666))
-        self.assertAlmostEqualFloatArray(layer.data[99].color, (0.8941176, 0.4705882, 0.2627451))
+        self.assertAlmostEqualFloatArray(layer.data[0].color, (0, 0, 0, 1.0))
+        self.assertAlmostEqualFloatArray(layer.data[98].color, (0.9019607, 0.4745098, 0.2666666, 1.0))
+        self.assertAlmostEqualFloatArray(layer.data[99].color, (0.8941176, 0.4705882, 0.2627451, 1.0))
 
     def test_import_from_blender(self):
         # Blender saved per-vertex, and as RGBA.
@@ -235,9 +235,9 @@ class VertexColourImportTest(AbstractAlembicTest):
         layer = ob.data.vertex_colors['Cf']  # MeshLoopColorLayer
 
         # Test some known-good values.
-        self.assertAlmostEqualFloatArray(layer.data[0].color, (1.0, 0.0156862, 0.3607843))
-        self.assertAlmostEqualFloatArray(layer.data[98].color, (0.0941176, 0.1215686, 0.9137254))
-        self.assertAlmostEqualFloatArray(layer.data[99].color, (0.1294117, 0.3529411, 0.7529411))
+        self.assertAlmostEqualFloatArray(layer.data[0].color, (1.0, 0.0156862, 0.3607843, 1.0))
+        self.assertAlmostEqualFloatArray(layer.data[98].color, (0.0941176, 0.1215686, 0.9137254, 1.0))
+        self.assertAlmostEqualFloatArray(layer.data[99].color, (0.1294117, 0.3529411, 0.7529411, 1.0))
 
 
 def main():
