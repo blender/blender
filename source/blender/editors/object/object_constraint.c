@@ -1025,7 +1025,7 @@ static int followpath_path_animate_exec(bContext *C, wmOperator *op)
 	 * and define basic slope of this curve based on the properties
 	 */
 	if (!fcu->bezt && !fcu->fpt && !fcu->modifiers.first) {
-		FModifier *fcm = add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_GENERATOR);
+		FModifier *fcm = add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_GENERATOR, fcu);
 		FMod_Generator *gen = fcm->data;
 		
 		/* Assume that we have the following equation:

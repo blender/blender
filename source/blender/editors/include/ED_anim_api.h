@@ -572,7 +572,7 @@ bool ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, bool active);
 /* 'Paste' the F-Modifier(s) from the buffer to the specified list 
  *	- replace: free all the existing modifiers to leave only the pasted ones 
  */
-bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace);
+bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace, struct FCurve *curve);
 
 /* ************************************************* */
 /* ASSORTED TOOLS */

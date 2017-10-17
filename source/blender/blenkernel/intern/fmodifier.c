@@ -1077,7 +1077,7 @@ const FModifierTypeInfo *fmodifier_get_typeinfo(const FModifier *fcm)
 /* API --------------------------- */
 
 /* Add a new F-Curve Modifier to the given F-Curve of a certain type */
-FModifier *add_fmodifier(ListBase *modifiers, int type)
+FModifier *add_fmodifier(ListBase *modifiers, int type, FCurve *owner_fcu)
 {
 	const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(type);
 	FModifier *fcm;
@@ -1098,6 +1098,7 @@ FModifier *add_fmodifier(ListBase *modifiers, int type)
 	fcm = MEM_callocN(sizeof(FModifier), "F-Curve Modifier");
 	fcm->type = type;
 	fcm->flag = FMODIFIER_FLAG_EXPANDED;
+	fcm->curve = owner_fcu;
 	fcm->influence = 1.0f;
 	BLI_addtail(modifiers, fcm);
 	
@@ -1111,6 +1112,10 @@ FModifier *add_fmodifier(ListBase *modifiers, int type)
 	/* init custom settings if necessary */
 	if (fmi->new_data)
 		fmi->new_data(fcm->data);
+
+	/* update the fcurve if the Cycles modifier is added */
+	if ((owner_fcu) && (type == FMODIFIER_TYPE_CYCLES))
+		calchandles_fcurve(owner_fcu);
 		
 	/* return modifier for further editing */
 	return fcm;
@@ -1129,6 +1134,7 @@ FModifier *copy_fmodifier(const FModifier *src)
 	/* copy the base data, clearing the links */
 	dst = MEM_dupallocN(src);
 	dst->next = dst->prev = NULL;
+	dst->curve = NULL;
 	
 	/* make a new copy of the F-Modifier's data */
 	dst->data = MEM_dupallocN(src->data);
@@ -1157,6 +1163,7 @@ void copy_fmodifiers(ListBase *dst, const ListBase *src)
 		
 		/* make a new copy of the F-Modifier's data */
 		fcm->data = MEM_dupallocN(fcm->data);
+		fcm->curve = NULL;
 		
 		/* only do specific constraints if required */
 		if (fmi && fmi->copy_data)
@@ -1173,6 +1180,9 @@ bool remove_fmodifier(ListBase *modifiers, FModifier *fcm)
 	if (fcm == NULL)
 		return false;
 	
+	/* removing the cycles modifier requires a handle update */
+	FCurve *update_fcu = (fcm->type == FMODIFIER_TYPE_CYCLES) ? fcm->curve : NULL;
+
 	/* free modifier's special data (stored inside fcm->data) */
 	if (fcm->data) {
 		if (fmi && fmi->free_data)
@@ -1185,6 +1195,11 @@ bool remove_fmodifier(ListBase *modifiers, FModifier *fcm)
 	/* remove modifier from stack */
 	if (modifiers) {
 		BLI_freelinkN(modifiers, fcm);
+
+		/* update the fcurve if the Cycles modifier is removed */
+		if (update_fcu)
+			calchandles_fcurve(update_fcu);
+
 		return true;
 	}
 	else {

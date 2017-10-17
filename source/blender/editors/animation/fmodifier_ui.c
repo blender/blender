@@ -736,7 +736,7 @@ bool ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, bool active)
 /* 'Paste' the F-Modifier(s) from the buffer to the specified list 
  *	- replace: free all the existing modifiers to leave only the pasted ones 
  */
-bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace)
+bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace, FCurve *curve)
 {
 	FModifier *fcm;
 	bool ok = false;
@@ -745,6 +745,8 @@ bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace)
 	if (modifiers == NULL)
 		return 0;
 		
+	bool was_cyclic = curve && BKE_fcurve_is_cyclic(curve);
+
 	/* if replacing the list, free the existing modifiers */
 	if (replace)
 		free_fmodifiers(modifiers);
@@ -753,6 +755,8 @@ bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace)
 	for (fcm = fmodifier_copypaste_buf.first; fcm; fcm = fcm->next) {
 		/* make a copy of it */
 		FModifier *fcmN = copy_fmodifier(fcm);
+
+		fcmN->curve = curve;
 		
 		/* make sure the new one isn't active, otherwise the list may get several actives */
 		fcmN->flag &= ~FMODIFIER_FLAG_ACTIVE;
@@ -762,6 +766,10 @@ bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace)
 		ok = 1;
 	}
 	
+	/* adding or removing the Cycles modifier requires an update to handles */
+	if (curve && BKE_fcurve_is_cyclic(curve) != was_cyclic)
+		calchandles_fcurve(curve);
+
 	/* did we succeed? */
 	return ok;
 }

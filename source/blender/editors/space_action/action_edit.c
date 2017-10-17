@@ -1146,7 +1146,7 @@ static void setexpo_action_keys(bAnimContext *ac, short mode)
 				/* only add if one doesn't exist */
 				if (list_has_suitable_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_CYCLES, -1) == 0) {
 					/* TODO: add some more preset versions which set different extrapolation options? */
-					add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_CYCLES);
+					add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_CYCLES, fcu);
 				}
 			}
 			else if (mode == CLEAR_CYCLIC_EXPO) {

@@ -1192,7 +1192,7 @@ static void icu_to_fcurves(ID *id, ListBase *groups, ListBase *list, IpoCurve *i
 			/* Add a new FModifier (Cyclic) instead of setting extend value 
 			 * as that's the new equivalent of that option.
 			 */
-			FModifier *fcm = add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_CYCLES);
+			FModifier *fcm = add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_CYCLES, fcu);
 			FMod_Cycles *data = (FMod_Cycles *)fcm->data;
 			
 			/* if 'offset' one is in use, set appropriate settings */

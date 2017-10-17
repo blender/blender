@@ -637,7 +637,7 @@ bool ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object
 
 				/* setup dummy 'generator' modifier here to get 1-1 correspondence still working */
 				if (!fcu->bezt && !fcu->fpt && !fcu->modifiers.first)
-					add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_GENERATOR);
+					add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_GENERATOR, fcu);
 			}
 
 			/* fall back on regular parenting now (for follow only) */
