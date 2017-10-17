@@ -39,7 +39,7 @@ extern "C" {
 #include "DNA_listBase.h"
 
 /* pd->forcefield:  Effector Fields types */
-typedef enum PFieldType {
+typedef enum ePFieldType {
 	PFIELD_NULL   = 0,	/* (this is used for general effector weight)							*/
 	PFIELD_FORCE  = 1,	/* Force away/towards a point depending on force strength				*/
 	PFIELD_VORTEX = 2,	/* Force around the effector normal										*/
@@ -56,8 +56,8 @@ typedef enum PFieldType {
 	PFIELD_DRAG       = 12,	/* Linear & quadratic drag												*/
 	PFIELD_SMOKEFLOW  = 13,	/* Force based on smoke simulation air flow								*/
 	NUM_PFIELD_TYPES
-} PFieldType;
-	
+} ePFieldType;
+
 typedef struct PartDeflect {
 	int	  flag;			/* general settings flag										*/
 	short deflect;		/* Deflection flag - does mesh deflect particles				*/

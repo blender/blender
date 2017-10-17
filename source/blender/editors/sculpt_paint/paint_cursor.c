@@ -249,12 +249,12 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 	TexSnapshot *target;
 
 	MTex *mtex = (primary) ? &br->mtex : &br->mask_mtex;
-	OverlayControlFlags overlay_flags = BKE_paint_get_overlay_flags();
+	eOverlayControlFlags overlay_flags = BKE_paint_get_overlay_flags();
 	GLubyte *buffer = NULL;
 
 	int size;
 	bool refresh;
-	OverlayControlFlags invalid = (primary) ? (overlay_flags & PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY) :
+	eOverlayControlFlags invalid = (primary) ? (overlay_flags & PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY) :
 	                                          (overlay_flags & PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY);
 
 	target = (primary) ? &primary_snap : &secondary_snap;
@@ -397,7 +397,7 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
 {
 	bool init;
 
-	OverlayControlFlags overlay_flags = BKE_paint_get_overlay_flags();
+	eOverlayControlFlags overlay_flags = BKE_paint_get_overlay_flags();
 	GLubyte *buffer = NULL;
 
 	int size;
@@ -778,11 +778,11 @@ static void paint_draw_cursor_overlay(UnifiedPaintSettings *ups, Brush *brush,
 }
 
 static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
-                                     ViewContext *vc, int x, int y, float zoom, PaintMode mode)
+                                     ViewContext *vc, int x, int y, float zoom, ePaintMode mode)
 {
 	/* color means that primary brush texture is colured and secondary is used for alpha/mask control */
 	bool col = ELEM(mode, ePaintTextureProjective, ePaintTexture2D, ePaintVertex) ? true : false;
-	OverlayControlFlags flags = BKE_paint_get_overlay_flags();
+	eOverlayControlFlags flags = BKE_paint_get_overlay_flags();
 	gpuPushAttrib(GPU_DEPTH_BUFFER_BIT | GPU_BLEND_BIT);
 
 	/* coloured overlay should be drawn separately */
@@ -997,7 +997,7 @@ static void paint_cursor_on_hit(UnifiedPaintSettings *ups, Brush *brush, ViewCon
 	}
 }
 
-static bool ommit_cursor_drawing(Paint *paint, PaintMode mode, Brush *brush)
+static bool ommit_cursor_drawing(Paint *paint, ePaintMode mode, Brush *brush)
 {
 	if (paint->flags & PAINT_SHOW_BRUSH) {
 		if (ELEM(mode, ePaintTexture2D, ePaintTextureProjective) && brush->imagepaint_tool == PAINT_TOOL_FILL) {
@@ -1014,7 +1014,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 	Paint *paint = BKE_paint_get_active_from_context(C);
 	Brush *brush = BKE_paint_brush(paint);
-	PaintMode mode = BKE_paintmode_get_active_from_context(C);
+	ePaintMode mode = BKE_paintmode_get_active_from_context(C);
 
 	/* check that brush drawing is enabled */
 	if (ommit_cursor_drawing(paint, mode, brush))

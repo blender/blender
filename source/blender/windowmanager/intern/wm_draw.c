@@ -648,7 +648,7 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 	}
 }
 
-static void wm_method_draw_triple_multiview(bContext *C, wmWindow *win, StereoViews sview)
+static void wm_method_draw_triple_multiview(bContext *C, wmWindow *win, eStereoViews sview)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmDrawData *drawdata;

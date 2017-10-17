@@ -105,7 +105,7 @@ static float ResizeBetween(TransInfo *t, const float p1[3], const float p2[3]);
 
 /****************** IMPLEMENTATIONS *********************/
 
-static bool snapNodeTest(View2D *v2d, bNode *node, SnapSelect snap_select);
+static bool snapNodeTest(View2D *v2d, bNode *node, eSnapSelect snap_select);
 static NodeBorder snapNodeBorder(int snap_node_mode);
 
 #if 0
@@ -1299,7 +1299,7 @@ bool peelObjectsTransform(
 
 /******************** NODES ***********************************/
 
-static bool snapNodeTest(View2D *v2d, bNode *node, SnapSelect snap_select)
+static bool snapNodeTest(View2D *v2d, bNode *node, eSnapSelect snap_select)
 {
 	/* node is use for snapping only if a) snap mode matches and b) node is inside the view */
 	return ((snap_select == SNAP_NOT_SELECTED && !(node->flag & NODE_SELECT)) ||
@@ -1378,7 +1378,7 @@ static bool snapNode(
 
 static bool snapNodes(
         ToolSettings *ts, SpaceNode *snode, ARegion *ar,
-        const int mval[2], SnapSelect snap_select,
+        const int mval[2], eSnapSelect snap_select,
         float r_loc[2], float *r_dist_px, char *r_node_border)
 {
 	bNodeTree *ntree = snode->edittree;

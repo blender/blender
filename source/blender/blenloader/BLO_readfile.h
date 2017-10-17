@@ -54,11 +54,11 @@ struct wmWindowManager;
 
 typedef struct BlendHandle BlendHandle;
 
-typedef enum BlenFileType {
+typedef enum eBlenFileType {
 	BLENFILETYPE_BLEND = 1,
 	BLENFILETYPE_PUB = 2,
 	BLENFILETYPE_RUNTIME = 3
-} BlenFileType;
+} eBlenFileType;
 
 typedef struct BlendFileData {
 	struct Main *main;
@@ -72,7 +72,7 @@ typedef struct BlendFileData {
 	struct Scene *curscene;
 	struct SceneLayer *cur_render_layer; /* layer to activate in workspaces when reading without UI */
 
-	BlenFileType type;
+	eBlenFileType type;
 } BlendFileData;
 
 typedef struct WorkspaceConfigFileData {

@@ -1466,7 +1466,7 @@ static const char *object_mode_op_string(int mode)
 /* checks the mode to be set is compatible with the object
  * should be made into a generic function
  */
-static bool object_mode_compat_test(Object *ob, ObjectMode mode)
+static bool object_mode_compat_test(Object *ob, eObjectMode mode)
 {
 	if (ob) {
 		if (mode == OB_MODE_OBJECT)
@@ -1551,8 +1551,8 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_active_object(C);
 	bGPdata *gpd = CTX_data_gpencil_data(C);
-	ObjectMode mode = RNA_enum_get(op->ptr, "mode");
-	ObjectMode restore_mode = (ob) ? ob->mode : OB_MODE_OBJECT;
+	eObjectMode mode = RNA_enum_get(op->ptr, "mode");
+	eObjectMode restore_mode = (ob) ? ob->mode : OB_MODE_OBJECT;
 	const bool toggle = RNA_boolean_get(op->ptr, "toggle");
 	
 	if (gpd) {

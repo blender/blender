@@ -489,7 +489,7 @@ static void rna_Brush_set_unprojected_radius(PointerRNA *ptr, float value)
 static EnumPropertyItem *rna_Brush_direction_itemf(bContext *C, PointerRNA *ptr,
                                                    PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
-	PaintMode mode = BKE_paintmode_get_active_from_context(C);
+	ePaintMode mode = BKE_paintmode_get_active_from_context(C);
 
 	static EnumPropertyItem prop_default_items[] = {
 		{0, NULL, 0, NULL, NULL}
@@ -595,7 +595,7 @@ static EnumPropertyItem *rna_Brush_direction_itemf(bContext *C, PointerRNA *ptr,
 static EnumPropertyItem *rna_Brush_stroke_itemf(bContext *C, PointerRNA *UNUSED(ptr),
                                                 PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
-	PaintMode mode = BKE_paintmode_get_active_from_context(C);
+	ePaintMode mode = BKE_paintmode_get_active_from_context(C);
 
 	static EnumPropertyItem brush_stroke_method_items[] = {
 		{0, "DOTS", 0, "Dots", "Apply paint on each mouse move step"},

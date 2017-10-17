@@ -650,7 +650,7 @@ void drawaxes(const float viewmat_local[4][4], float size, char drawtype, const 
 
 
 /* Function to draw an Image on an empty Object */
-static void draw_empty_image(Object *ob, const short dflag, const unsigned char ob_wire_col[4], StereoViews sview)
+static void draw_empty_image(Object *ob, const short dflag, const unsigned char ob_wire_col[4], eStereoViews sview)
 {
 	Image *ima = ob->data;
 

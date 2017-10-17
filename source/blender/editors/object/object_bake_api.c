@@ -89,7 +89,7 @@ typedef struct BakeAPIRender {
 	ReportList *reports;
 	ListBase selected_objects;
 
-	ScenePassType pass_type;
+	eScenePassType pass_type;
 	int pass_filter;
 	int margin;
 
@@ -103,7 +103,7 @@ typedef struct BakeAPIRender {
 
 	float cage_extrusion;
 	int normal_space;
-	BakeNormalSwizzle normal_swizzle[3];
+	eBakeNormalSwizzle normal_swizzle[3];
 
 	char uv_layer[MAX_CUSTOMDATA_LAYER_NAME];
 	char custom_cage[MAX_NAME];
@@ -342,7 +342,7 @@ static bool write_external_bake_pixels(
 	return ok;
 }
 
-static bool is_noncolor_pass(ScenePassType pass_type)
+static bool is_noncolor_pass(eScenePassType pass_type)
 {
 	return ELEM(pass_type,
 	            SCE_PASS_Z,
@@ -433,7 +433,7 @@ static bool bake_object_check(Scene *scene, Object *ob, ReportList *reports)
 	return true;
 }
 
-static bool bake_pass_filter_check(ScenePassType pass_type, const int pass_filter, ReportList *reports)
+static bool bake_pass_filter_check(eScenePassType pass_type, const int pass_filter, ReportList *reports)
 {
 	switch (pass_type) {
 		case SCE_PASS_COMBINED:
@@ -636,10 +636,10 @@ static Mesh *bake_mesh_new_from_object(EvaluationContext *eval_ctx, Main *bmain,
 
 static int bake(
         Render *re, Main *bmain, Depsgraph *graph, Scene *scene, Object *ob_low, ListBase *selected_objects, ReportList *reports,
-        const ScenePassType pass_type, const int pass_filter, const int margin,
-        const BakeSaveMode save_mode, const bool is_clear, const bool is_split_materials,
+        const eScenePassType pass_type, const int pass_filter, const int margin,
+        const eBakeSaveMode save_mode, const bool is_clear, const bool is_split_materials,
         const bool is_automatic_name, const bool is_selected_to_active, const bool is_cage,
-        const float cage_extrusion, const int normal_space, const BakeNormalSwizzle normal_swizzle[],
+        const float cage_extrusion, const int normal_space, const eBakeNormalSwizzle normal_swizzle[],
         const char *custom_cage, const char *filepath, const int width, const int height,
         const char *identifier, ScrArea *sa, const char *uv_layer)
 {

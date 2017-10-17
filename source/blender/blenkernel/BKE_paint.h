@@ -60,14 +60,14 @@ struct ImagePool;
 struct UnifiedPaintSettings;
 struct EvaluationContext;
 
-enum OverlayFlags;
+enum eOverlayFlags;
 
 extern const char PAINT_CURSOR_SCULPT[3];
 extern const char PAINT_CURSOR_VERTEX_PAINT[3];
 extern const char PAINT_CURSOR_WEIGHT_PAINT[3];
 extern const char PAINT_CURSOR_TEXTURE_PAINT[3];
 
-typedef enum PaintMode {
+typedef enum ePaintMode {
 	ePaintSculpt = 0,
 	ePaintVertex = 1,
 	ePaintWeight = 2,
@@ -75,17 +75,17 @@ typedef enum PaintMode {
 	ePaintTexture2D = 4,
 	ePaintSculptUV = 5,
 	ePaintInvalid = 6
-} PaintMode;
+} ePaintMode;
 
 /* overlay invalidation */
-typedef enum OverlayControlFlags {
+typedef enum eOverlayControlFlags {
 	PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY = 1,
 	PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY = (1 << 2),
 	PAINT_INVALID_OVERLAY_CURVE = (1 << 3),
 	PAINT_OVERLAY_OVERRIDE_CURSOR = (1 << 4),
 	PAINT_OVERLAY_OVERRIDE_PRIMARY = (1 << 5),
 	PAINT_OVERLAY_OVERRIDE_SECONDARY = (1 << 6)
-} OverlayControlFlags;
+} eOverlayControlFlags;
 
 #define PAINT_OVERRIDE_MASK (PAINT_OVERLAY_OVERRIDE_SECONDARY | \
 						     PAINT_OVERLAY_OVERRIDE_PRIMARY | \
@@ -94,9 +94,9 @@ typedef enum OverlayControlFlags {
 void BKE_paint_invalidate_overlay_tex(struct Scene *scene, struct SceneLayer *sl, const struct Tex *tex);
 void BKE_paint_invalidate_cursor_overlay(struct Scene *scene, struct SceneLayer *sl, struct CurveMapping *curve);
 void BKE_paint_invalidate_overlay_all(void);
-OverlayControlFlags BKE_paint_get_overlay_flags(void);
-void BKE_paint_reset_overlay_invalid(OverlayControlFlags flag);
-void BKE_paint_set_overlay_override(enum OverlayFlags flag);
+eOverlayControlFlags BKE_paint_get_overlay_flags(void);
+void BKE_paint_reset_overlay_invalid(eOverlayControlFlags flag);
+void BKE_paint_set_overlay_override(enum eOverlayFlags flag);
 
 /* palettes */
 void                 BKE_palette_free(struct Palette *palette);
@@ -118,17 +118,17 @@ void BKE_paint_curve_copy_data(
 struct PaintCurve *BKE_paint_curve_copy(struct Main *bmain, const struct PaintCurve *pc);
 void               BKE_paint_curve_make_local(struct Main *bmain, struct PaintCurve *pc, const bool lib_local);
 
-void BKE_paint_init(struct Scene *sce, PaintMode mode, const char col[3]);
+void BKE_paint_init(struct Scene *sce, ePaintMode mode, const char col[3]);
 void BKE_paint_free(struct Paint *p);
 void BKE_paint_copy(struct Paint *src, struct Paint *tar, const int flag);
 
 void BKE_paint_cavity_curve_preset(struct Paint *p, int preset);
 
-short BKE_paint_object_mode_from_paint_mode(PaintMode mode);
-struct Paint *BKE_paint_get_active_from_paintmode(struct Scene *sce, PaintMode mode);
+short BKE_paint_object_mode_from_paint_mode(ePaintMode mode);
+struct Paint *BKE_paint_get_active_from_paintmode(struct Scene *sce, ePaintMode mode);
 struct Paint *BKE_paint_get_active(struct Scene *sce, struct SceneLayer *sl);
 struct Paint *BKE_paint_get_active_from_context(const struct bContext *C);
-PaintMode BKE_paintmode_get_active_from_context(const struct bContext *C);
+ePaintMode BKE_paintmode_get_active_from_context(const struct bContext *C);
 struct Brush *BKE_paint_brush(struct Paint *paint);
 void BKE_paint_brush_set(struct Paint *paint, struct Brush *br);
 struct Palette *BKE_paint_palette(struct Paint *paint);

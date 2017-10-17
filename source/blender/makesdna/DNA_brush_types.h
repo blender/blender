@@ -105,7 +105,7 @@ typedef struct Brush {
 	char sculpt_tool;       /* active sculpt tool */
 	char vertexpaint_tool;  /* active vertex/weight paint blend mode (poorly named) */
 	char imagepaint_tool;   /* active image paint tool */
-	char mask_tool;         /* enum BrushMaskTool, only used if sculpt_tool is SCULPT_TOOL_MASK */
+	char mask_tool;         /* enum eBrushMaskTool, only used if sculpt_tool is SCULPT_TOOL_MASK */
 
 	float autosmooth_factor;
 
@@ -171,19 +171,19 @@ typedef struct PaintCurve {
 } PaintCurve;
 
 /* Brush.gradient_source */
-typedef enum BrushGradientSourceStroke {
+typedef enum eBrushGradientSourceStroke {
 	BRUSH_GRADIENT_PRESSURE = 0, /* gradient from pressure */
 	BRUSH_GRADIENT_SPACING_REPEAT = 1, /* gradient from spacing */
 	BRUSH_GRADIENT_SPACING_CLAMP = 2 /* gradient from spacing */
-} BrushGradientSourceStroke;
+} eBrushGradientSourceStroke;
 
-typedef enum BrushGradientSourceFill {
+typedef enum eBrushGradientSourceFill {
 	BRUSH_GRADIENT_LINEAR = 0, /* gradient from pressure */
 	BRUSH_GRADIENT_RADIAL = 1 /* gradient from spacing */
-} BrushGradientSourceFill;
+} eBrushGradientSourceFill;
 
 /* Brush.flag */
-typedef enum BrushFlags {
+typedef enum eBrushFlags {
 	BRUSH_AIRBRUSH = (1 << 0),
 	BRUSH_FLAG_DEPRECATED_1 = (1 << 1),
 	BRUSH_ALPHA_PRESSURE = (1 << 2),
@@ -216,7 +216,7 @@ typedef enum BrushFlags {
 	BRUSH_LINE = (1 << 29),
 	BRUSH_ABSOLUTE_JITTER = (1 << 30),
 	BRUSH_CURVE = (1u << 31)
-} BrushFlags;
+} eBrushFlags;
 
 typedef enum {
 	BRUSH_MASK_PRESSURE_RAMP = (1 << 1),
@@ -224,21 +224,21 @@ typedef enum {
 } BrushMaskPressureFlags;
 
 /* Brush.overlay_flags */
-typedef enum OverlayFlags {
+typedef enum eOverlayFlags {
 	BRUSH_OVERLAY_CURSOR = (1),
 	BRUSH_OVERLAY_PRIMARY = (1 << 1),
 	BRUSH_OVERLAY_SECONDARY = (1 << 2),
 	BRUSH_OVERLAY_CURSOR_OVERRIDE_ON_STROKE = (1 << 3),
 	BRUSH_OVERLAY_PRIMARY_OVERRIDE_ON_STROKE = (1 << 4),
 	BRUSH_OVERLAY_SECONDARY_OVERRIDE_ON_STROKE = (1 << 5)
-} OverlayFlags;
+} eOverlayFlags;
 
 #define BRUSH_OVERLAY_OVERRIDE_MASK (BRUSH_OVERLAY_CURSOR_OVERRIDE_ON_STROKE | \
 									 BRUSH_OVERLAY_PRIMARY_OVERRIDE_ON_STROKE | \
 									 BRUSH_OVERLAY_SECONDARY_OVERRIDE_ON_STROKE)
 
 /* Brush.sculpt_tool */
-typedef enum BrushSculptTool {
+typedef enum eBrushSculptTool {
 	SCULPT_TOOL_DRAW = 1,
 	SCULPT_TOOL_SMOOTH = 2,
 	SCULPT_TOOL_PINCH = 3,
@@ -258,7 +258,7 @@ typedef enum BrushSculptTool {
 	SCULPT_TOOL_BLOB = 17,
 	SCULPT_TOOL_CLAY_STRIPS = 18,
 	SCULPT_TOOL_MASK = 19
-} BrushSculptTool;
+} eBrushSculptTool;
 
 /** When #BRUSH_ACCUMULATE is used */
 #define SCULPT_TOOL_HAS_ACCUMULATE(t) ELEM(t, \
@@ -295,14 +295,14 @@ typedef enum BrushSculptTool {
 	) == 0)
 
 /* ImagePaintSettings.tool */
-typedef enum BrushImagePaintTool {
+typedef enum eBrushImagePaintTool {
 	PAINT_TOOL_DRAW = 0,
 	PAINT_TOOL_SOFTEN = 1,
 	PAINT_TOOL_SMEAR = 2,
 	PAINT_TOOL_CLONE = 3,
 	PAINT_TOOL_FILL = 4,
 	PAINT_TOOL_MASK = 5
-} BrushImagePaintTool;
+} eBrushImagePaintTool;
 
 /* direction that the brush displaces along */
 enum {
@@ -343,10 +343,10 @@ typedef enum {
 } BrushMaskTool;
 
 /* blur kernel types, Brush.blur_mode */
-typedef enum BlurKernelType {
+typedef enum eBlurKernelType {
 	KERNEL_GAUSSIAN,
 	KERNEL_BOX
-} BlurKernelType;
+} eBlurKernelType;
 
 /* Brush.falloff_shape */
 enum {

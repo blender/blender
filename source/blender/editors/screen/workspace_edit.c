@@ -94,8 +94,8 @@ static void workspace_change_update_mode(
         const WorkSpace *workspace_old, const WorkSpace *workspace_new,
         bContext *C, Object *ob_act, ReportList *reports)
 {
-	ObjectMode mode_old = BKE_workspace_object_mode_get(workspace_old);
-	ObjectMode mode_new = BKE_workspace_object_mode_get(workspace_new);
+	eObjectMode mode_old = BKE_workspace_object_mode_get(workspace_old);
+	eObjectMode mode_new = BKE_workspace_object_mode_get(workspace_new);
 
 	if (mode_old != mode_new) {
 		ED_object_mode_compat_set(C, ob_act, mode_new, reports);

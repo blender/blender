@@ -438,9 +438,8 @@ void BKE_brush_sculpt_reset(Brush *br)
 
 /**
  * Library Operations
- * \param preset  CurveMappingPreset
  */
-void BKE_brush_curve_preset(Brush *b, int preset)
+void BKE_brush_curve_preset(Brush *b, eCurveMappingPreset preset)
 {
 	CurveMap *cm = NULL;
 

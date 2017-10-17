@@ -73,7 +73,7 @@ const char PAINT_CURSOR_VERTEX_PAINT[3] = {255, 255, 255};
 const char PAINT_CURSOR_WEIGHT_PAINT[3] = {200, 200, 255};
 const char PAINT_CURSOR_TEXTURE_PAINT[3] = {255, 255, 255};
 
-static OverlayControlFlags overlay_flags = 0;
+static eOverlayControlFlags overlay_flags = 0;
 
 void BKE_paint_invalidate_overlay_tex(Scene *scene, SceneLayer *sl, const Tex *tex)
 {
@@ -105,12 +105,12 @@ void BKE_paint_invalidate_overlay_all(void)
 	                  PAINT_INVALID_OVERLAY_CURVE);
 }
 
-OverlayControlFlags BKE_paint_get_overlay_flags(void)
+eOverlayControlFlags BKE_paint_get_overlay_flags(void)
 {
 	return overlay_flags;
 }
 
-void BKE_paint_set_overlay_override(OverlayFlags flags)
+void BKE_paint_set_overlay_override(eOverlayFlags flags)
 {
 	if (flags & BRUSH_OVERLAY_OVERRIDE_MASK) {
 		if (flags & BRUSH_OVERLAY_CURSOR_OVERRIDE_ON_STROKE)
@@ -125,12 +125,12 @@ void BKE_paint_set_overlay_override(OverlayFlags flags)
 	}
 }
 
-void BKE_paint_reset_overlay_invalid(OverlayControlFlags flag)
+void BKE_paint_reset_overlay_invalid(eOverlayControlFlags flag)
 {
 	overlay_flags &= ~(flag);
 }
 
-Paint *BKE_paint_get_active_from_paintmode(Scene *sce, PaintMode mode)
+Paint *BKE_paint_get_active_from_paintmode(Scene *sce, ePaintMode mode)
 {
 	if (sce) {
 		ToolSettings *ts = sce->toolsettings;
@@ -237,7 +237,7 @@ Paint *BKE_paint_get_active_from_context(const bContext *C)
 	return NULL;
 }
 
-PaintMode BKE_paintmode_get_active_from_context(const bContext *C)
+ePaintMode BKE_paintmode_get_active_from_context(const bContext *C)
 {
 	Scene *sce = CTX_data_scene(C);
 	SceneLayer *sl = CTX_data_scene_layer(C);
@@ -499,7 +499,7 @@ void BKE_paint_cavity_curve_preset(Paint *p, int preset)
 	curvemapping_changed(p->cavity_curve, false);
 }
 
-short BKE_paint_object_mode_from_paint_mode(PaintMode mode)
+short BKE_paint_object_mode_from_paint_mode(ePaintMode mode)
 {
 	switch (mode) {
 		case ePaintSculpt:
@@ -520,7 +520,7 @@ short BKE_paint_object_mode_from_paint_mode(PaintMode mode)
 	}
 }
 
-void BKE_paint_init(Scene *sce, PaintMode mode, const char col[3])
+void BKE_paint_init(Scene *sce, ePaintMode mode, const char col[3])
 {
 	UnifiedPaintSettings *ups = &sce->toolsettings->unified_paint_settings;
 	Brush *brush;

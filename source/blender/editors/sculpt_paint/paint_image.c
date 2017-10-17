@@ -511,7 +511,7 @@ BlurKernel *paint_new_blur_kernel(Brush *br, bool proj)
 	BlurKernel *kernel = MEM_mallocN(sizeof(BlurKernel), "blur kernel");
 	float radius;
 	int side;
-	BlurKernelType type = br->blur_mode;
+	eBlurKernelType type = br->blur_mode;
 
 	if (proj) {
 		radius = 0.5f;
@@ -625,13 +625,13 @@ static int image_paint_2d_clone_poll(bContext *C)
 }
 
 /************************ paint operator ************************/
-typedef enum TexPaintMode {
+typedef enum eTexPaintMode {
 	PAINT_MODE_2D,
 	PAINT_MODE_3D_PROJECT
-} TexPaintMode;
+} eTexPaintMode;
 
 typedef struct PaintOperation {
-	TexPaintMode mode;
+	eTexPaintMode mode;
 
 	void *custom_paint;
 
@@ -1208,7 +1208,7 @@ static int sample_color_exec(bContext *C, wmOperator *op)
 {
 	Paint *paint = BKE_paint_get_active_from_context(C);
 	Brush *brush = BKE_paint_brush(paint);
-	PaintMode mode = BKE_paintmode_get_active_from_context(C);
+	ePaintMode mode = BKE_paintmode_get_active_from_context(C);
 	ARegion *ar = CTX_wm_region(C);
 	wmWindow *win = CTX_wm_window(C);
 	const bool show_cursor = ((paint->flags & PAINT_SHOW_BRUSH) != 0);
@@ -1260,7 +1260,7 @@ static int sample_color_invoke(bContext *C, wmOperator *op, const wmEvent *event
 
 	RNA_int_set_array(op->ptr, "location", event->mval);
 
-	PaintMode mode = BKE_paintmode_get_active_from_context(C);
+	ePaintMode mode = BKE_paintmode_get_active_from_context(C);
 	const bool use_sample_texture = (mode == ePaintTextureProjective) && !RNA_boolean_get(op->ptr, "merged");
 
 	paint_sample_color(C, ar, event->mval[0], event->mval[1], use_sample_texture, false);
@@ -1296,7 +1296,7 @@ static int sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		return OPERATOR_FINISHED;
 	}
 
-	PaintMode mode = BKE_paintmode_get_active_from_context(C);
+	ePaintMode mode = BKE_paintmode_get_active_from_context(C);
 	const bool use_sample_texture = (mode == ePaintTextureProjective) && !RNA_boolean_get(op->ptr, "merged");
 
 	switch (event->type) {

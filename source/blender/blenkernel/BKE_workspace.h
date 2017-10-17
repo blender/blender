@@ -95,9 +95,9 @@ void             BKE_workspace_active_layout_set(struct WorkSpaceInstanceHook *h
 struct bScreen *BKE_workspace_active_screen_get(const struct WorkSpaceInstanceHook *hook) GETTER_ATTRS;
 void            BKE_workspace_active_screen_set(
         struct WorkSpaceInstanceHook *hook, struct WorkSpace *workspace, struct bScreen *screen) SETTER_ATTRS;
-enum ObjectMode BKE_workspace_object_mode_get(const struct WorkSpace *workspace) GETTER_ATTRS;
+enum eObjectMode BKE_workspace_object_mode_get(const struct WorkSpace *workspace) GETTER_ATTRS;
 #ifdef USE_WORKSPACE_MODE
-void            BKE_workspace_object_mode_set(struct WorkSpace *workspace, const enum ObjectMode mode) SETTER_ATTRS;
+void            BKE_workspace_object_mode_set(struct WorkSpace *workspace, const enum eObjectMode mode) SETTER_ATTRS;
 #endif
 struct ListBase *BKE_workspace_transform_orientations_get(struct WorkSpace *workspace) GETTER_ATTRS;
 struct SceneLayer *BKE_workspace_render_layer_get(const struct WorkSpace *workspace) GETTER_ATTRS;

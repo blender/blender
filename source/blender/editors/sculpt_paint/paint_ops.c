@@ -66,7 +66,7 @@ static int brush_add_exec(bContext *C, wmOperator *UNUSED(op))
 	Paint *paint = BKE_paint_get_active_from_context(C);
 	Brush *br = BKE_paint_brush(paint);
 	Main *bmain = CTX_data_main(C);
-	PaintMode mode = BKE_paintmode_get_active_from_context(C);
+	ePaintMode mode = BKE_paintmode_get_active_from_context(C);
 
 	if (br)
 		br = BKE_brush_copy(bmain, br);
@@ -195,7 +195,7 @@ static int palette_color_add_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene = CTX_data_scene(C);
 	Paint *paint = BKE_paint_get_active_from_context(C);
 	Brush *brush = paint->brush;
-	PaintMode mode = BKE_paintmode_get_active_from_context(C);
+	ePaintMode mode = BKE_paintmode_get_active_from_context(C);
 	Palette *palette = paint->palette;
 	PaletteColor *color;
 
@@ -776,7 +776,7 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
 
 static int stencil_control_poll(bContext *C)
 {
-	PaintMode mode = BKE_paintmode_get_active_from_context(C);
+	ePaintMode mode = BKE_paintmode_get_active_from_context(C);
 
 	Paint *paint;
 	Brush *br;

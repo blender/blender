@@ -27,13 +27,14 @@
  * General operations for brushes.
  */
 
+enum eCurveMappingPreset;
 struct Brush;
 struct ImBuf;
 struct ImagePool;
 struct Main;
 struct Scene;
 struct UnifiedPaintSettings;
-// enum CurveMappingPreset;
+// enum eCurveMappingPreset;
 
 
 /* globals for brush execution */
@@ -68,7 +69,7 @@ void BKE_brush_jitter_pos(
 void BKE_brush_randomize_texture_coords(struct UnifiedPaintSettings *ups, bool mask);
 
 /* brush curve */
-void BKE_brush_curve_preset(struct Brush *b, int preset);
+void BKE_brush_curve_preset(struct Brush *b, enum eCurveMappingPreset preset);
 float BKE_brush_curve_strength_clamped(struct Brush *br, float p, const float len);
 float BKE_brush_curve_strength(const struct Brush *br, float p, const float len);
 

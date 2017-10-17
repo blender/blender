@@ -54,7 +54,7 @@ struct wmOperator;
 struct wmOperatorType;
 struct wmWindowManager;
 struct DMCoNo;
-enum PaintMode;
+enum ePaintMode;
 
 /* paint_stroke.c */
 typedef bool (*StrokeGetLocation)(struct bContext *C, float location[3], const float mouse[2]);
@@ -69,12 +69,12 @@ struct PaintStroke *paint_stroke_new(struct bContext *C, struct wmOperator *op,
                                      StrokeDone done, int event_type);
 void paint_stroke_data_free(struct wmOperator *op);
 
-bool paint_space_stroke_enabled(struct Brush *br, enum PaintMode mode);
-bool paint_supports_dynamic_size(struct Brush *br, enum PaintMode mode);
-bool paint_supports_dynamic_tex_coords(struct Brush *br, enum PaintMode mode);
-bool paint_supports_smooth_stroke(struct Brush *br, enum PaintMode mode);
-bool paint_supports_texture(enum PaintMode mode);
-bool paint_supports_jitter(enum PaintMode mode);
+bool paint_space_stroke_enabled(struct Brush *br, enum ePaintMode mode);
+bool paint_supports_dynamic_size(struct Brush *br, enum ePaintMode mode);
+bool paint_supports_dynamic_tex_coords(struct Brush *br, enum ePaintMode mode);
+bool paint_supports_smooth_stroke(struct Brush *br, enum ePaintMode mode);
+bool paint_supports_texture(enum ePaintMode mode);
+bool paint_supports_jitter(enum ePaintMode mode);
 
 struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf);
 int paint_stroke_modal(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
@@ -335,7 +335,7 @@ typedef struct {
 	int pixel_len; /* pixels around center that kernel is wide */
 } BlurKernel;
 
-enum BlurKernelType;
+enum eBlurKernelType;
 /* can be extended to other blur kernels later */
 BlurKernel *paint_new_blur_kernel(struct Brush *br, bool proj);
 void paint_delete_blur_kernel(BlurKernel *);

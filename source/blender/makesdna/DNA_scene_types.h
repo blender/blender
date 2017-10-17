@@ -96,7 +96,7 @@ typedef struct AviCodecData {
 	char			avicodecname[128];
 } AviCodecData;
 
-typedef enum FFMpegPreset {
+typedef enum eFFMpegPreset {
 	FFM_PRESET_NONE,
 	FFM_PRESET_ULTRAFAST,
 	FFM_PRESET_SUPERFAST,
@@ -107,7 +107,7 @@ typedef enum FFMpegPreset {
 	FFM_PRESET_SLOW,
 	FFM_PRESET_SLOWER,
 	FFM_PRESET_VERYSLOW,
-} FFMpegPreset;
+} eFFMpegPreset;
 
 
 /* Mapping from easily-understandable descriptions to CRF values.
@@ -116,7 +116,7 @@ typedef enum FFMpegPreset {
  * We use a slightly wider than "subjectively sane range" according
  * to https://trac.ffmpeg.org/wiki/Encode/H.264#a1.ChooseaCRFvalue
  */
-typedef enum FFMpegCrf {
+typedef enum eFFMpegCrf {
 	FFM_CRF_NONE = -1,
 	FFM_CRF_LOSSLESS = 0,
 	FFM_CRF_PERC_LOSSLESS = 17,
@@ -125,7 +125,7 @@ typedef enum FFMpegCrf {
 	FFM_CRF_LOW = 26,
 	FFM_CRF_VERYLOW = 29,
 	FFM_CRF_LOWEST = 32,
-} FFMpegCrf;
+} eFFMpegCrf;
 
 typedef struct FFMpegCodecData {
 	int type;
@@ -141,7 +141,7 @@ typedef struct FFMpegCodecData {
 	int max_b_frames; /* only used if FFMPEG_USE_MAX_B_FRAMES flag is set. */
 	int flags;
 	int constant_rate_factor;
-	int ffmpeg_preset; /* see FFMpegPreset */
+	int ffmpeg_preset; /* see eFFMpegPreset */
 
 	int rc_min_rate;
 	int rc_max_rate;
@@ -214,7 +214,7 @@ typedef struct SceneRenderLayer {
 #define SCE_LAY_NEG_ZMASK	0x80000
 
 /* srl->passflag */
-typedef enum ScenePassType {
+typedef enum eScenePassType {
 	SCE_PASS_COMBINED                 = (1 << 0),
 	SCE_PASS_Z                        = (1 << 1),
 	SCE_PASS_RGBA                     = (1 << 2),
@@ -246,7 +246,7 @@ typedef enum ScenePassType {
 	SCE_PASS_SUBSURFACE_DIRECT        = (1 << 28),
 	SCE_PASS_SUBSURFACE_INDIRECT      = (1 << 29),
 	SCE_PASS_SUBSURFACE_COLOR         = (1 << 30),
-} ScenePassType;
+} eScenePassType;
 
 #define RE_PASSNAME_COMBINED "Combined"
 #define RE_PASSNAME_Z "Depth"
@@ -508,23 +508,23 @@ typedef struct BakeData {
 } BakeData;
 
 /* (char) normal_swizzle */
-typedef enum BakeNormalSwizzle {
+typedef enum eBakeNormalSwizzle {
 	R_BAKE_POSX = 0,
 	R_BAKE_POSY = 1,
 	R_BAKE_POSZ = 2,
 	R_BAKE_NEGX = 3,
 	R_BAKE_NEGY = 4,
 	R_BAKE_NEGZ = 5,
-} BakeNormalSwizzle;
+} eBakeNormalSwizzle;
 
 /* (char) save_mode */
-typedef enum BakeSaveMode {
+typedef enum eBakeSaveMode {
 	R_BAKE_SAVE_INTERNAL = 0,
 	R_BAKE_SAVE_EXTERNAL = 1,
-} BakeSaveMode;
+} eBakeSaveMode;
 
 /* bake->pass_filter */
-typedef enum BakePassFilter {
+typedef enum eBakePassFilter {
 	R_BAKE_PASS_FILTER_NONE           = 0,
 	R_BAKE_PASS_FILTER_AO             = (1 << 0),
 	R_BAKE_PASS_FILTER_EMIT           = (1 << 1),
@@ -535,7 +535,7 @@ typedef enum BakePassFilter {
 	R_BAKE_PASS_FILTER_DIRECT         = (1 << 6),
 	R_BAKE_PASS_FILTER_INDIRECT       = (1 << 7),
 	R_BAKE_PASS_FILTER_COLOR          = (1 << 8),
-} BakePassFilter;
+} eBakePassFilter;
 
 #define R_BAKE_PASS_FILTER_ALL (~0)
 
@@ -980,12 +980,12 @@ enum {
 #define STEREO_RIGHT_SUFFIX "_R"
 #define STEREO_LEFT_SUFFIX "_L"
 
-typedef enum StereoViews {
+typedef enum eStereoViews {
 	STEREO_LEFT_ID = 0,
 	STEREO_RIGHT_ID = 1,
 	STEREO_3D_ID = 2,
 	STEREO_MONO_ID = 3,
-} StereoViews;
+} eStereoViews;
 
 /* *************************************************************** */
 /* Markers */
@@ -1013,7 +1013,7 @@ typedef struct Paint {
 	void *paint_cursor;
 	unsigned char paint_cursor_col[4];
 
-	/* enum PaintFlags */
+	/* enum ePaintFlags */
 	int flags;
 
 	/* Paint stroke can use up to PAINT_MAX_INPUT_SAMPLES inputs to
@@ -1349,7 +1349,7 @@ typedef enum {
 	/* only used if unified alpha is enabled, mirrors the brush flag
 	 * BRUSH_ALPHA_PRESSURE */
 	UNIFIED_PAINT_BRUSH_ALPHA_PRESSURE  = (1 << 4)
-} UnifiedPaintSettingsFlags;
+} eUnifiedPaintSettingsFlags;
 
 
 typedef struct CurvePaintSettings {
@@ -2078,16 +2078,16 @@ enum {
 };
 
 /* Paint.flags */
-typedef enum {
+typedef enum ePaintFlags {
 	PAINT_SHOW_BRUSH = (1 << 0),
 	PAINT_FAST_NAVIGATE = (1 << 1),
 	PAINT_SHOW_BRUSH_ON_SURFACE = (1 << 2),
 	PAINT_USE_CAVITY_MASK = (1 << 3)
-} PaintFlags;
+} ePaintFlags;
 
 /* Paint.symmetry_flags
  * (for now just a duplicate of sculpt symmetry flags) */
-typedef enum SymmetryFlags {
+typedef enum ePaintSymmetryFlags {
 	PAINT_SYMM_X = (1 << 0),
 	PAINT_SYMM_Y = (1 << 1),
 	PAINT_SYMM_Z = (1 << 2),
@@ -2095,13 +2095,13 @@ typedef enum SymmetryFlags {
 	PAINT_TILE_X = (1 << 4),
 	PAINT_TILE_Y = (1 << 5),
 	PAINT_TILE_Z = (1 << 6),
-} SymmetryFlags;
+} ePaintSymmetryFlags;
 
 #define PAINT_SYMM_AXIS_ALL (PAINT_SYMM_X | PAINT_SYMM_Y | PAINT_SYMM_Z)
 
 /* Sculpt.flags */
 /* These can eventually be moved to paint flags? */
-typedef enum SculptFlags {
+typedef enum eSculptFlags {
 #ifdef DNA_DEPRECATED
 	/* deprecated, part of paint struct symmetry_flags now */
 	SCULPT_SYMM_X = (1 << 0),
@@ -2131,12 +2131,12 @@ typedef enum SculptFlags {
 	/* If set, dynamic-topology detail size will be constant in object space */
 	SCULPT_DYNTOPO_DETAIL_CONSTANT = (1 << 13),
 	SCULPT_DYNTOPO_DETAIL_BRUSH = (1 << 14),
-} SculptFlags;
+} eSculptFlags;
 
-typedef enum ImagePaintMode {
+typedef enum eImageePaintMode {
 	IMAGEPAINT_MODE_MATERIAL, /* detect texture paint slots from the material */
 	IMAGEPAINT_MODE_IMAGE,    /* select texture paint image directly */
-} ImagePaintMode;
+} eImageePaintMode;
 
 /* ImagePaintSettings.flag */
 #define IMAGEPAINT_DRAWING				1
