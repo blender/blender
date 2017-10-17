@@ -379,7 +379,7 @@ bool                WM_menutype_add(struct MenuType *mt);
 void                WM_menutype_freelink(struct MenuType *mt);
 void                WM_menutype_free(void);
 
-			/* default operator callbacks for border/circle/lasso */
+/* wm_gesture_ops.c */
 int			WM_gesture_border_invoke	(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
 int			WM_gesture_border_modal	(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
 void		WM_gesture_border_cancel(struct bContext *C, struct wmOperator *op);

@@ -57,12 +57,13 @@ void wm_operatortype_free(void);
 void wm_operatortype_init(void);
 void wm_window_keymap(wmKeyConfig *keyconf);
 
-void wm_tweakevent_test(bContext *C, const wmEvent *event, int action);
-
 /* wm_gesture.c */
 void wm_gesture_draw(struct wmWindow *win);
 int wm_gesture_evaluate(wmGesture *gesture);
 void wm_gesture_tag_redraw(bContext *C);
+
+/* wm_gesture_ops.c */
+void wm_tweakevent_test(bContext *C, const wmEvent *event, int action);
 
 /* wm_jobs.c */
 void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt);
