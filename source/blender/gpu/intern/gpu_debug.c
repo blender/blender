@@ -502,6 +502,7 @@ void GPU_state_print(void)
 	gpu_state_print_fl(GL_COLOR_SUM);
 	gpu_state_print_fl(GL_COLOR_TABLE);
 	gpu_state_print_fl(GL_COLOR_WRITEMASK);
+	gpu_state_print_fl(GL_NUM_COMPRESSED_TEXTURE_FORMATS);
 	gpu_state_print_fl(GL_COMPRESSED_TEXTURE_FORMATS);
 	gpu_state_print_fl(GL_CONVOLUTION_1D);
 	gpu_state_print_fl(GL_CONVOLUTION_2D);
