@@ -734,7 +734,7 @@ static void normal_uncompress(float out[3], const float in[3])
 		out[i] = 2.0f * in[i] - 1.0f;
 }
 
-static void normal_compress(float out[3], const float in[3], const BakeNormalSwizzle normal_swizzle[3])
+static void normal_compress(float out[3], const float in[3], const eBakeNormalSwizzle normal_swizzle[3])
 {
 	const int swizzle_index[6] = {
 		0,  /* R_BAKE_POSX */
@@ -777,7 +777,7 @@ static void normal_compress(float out[3], const float in[3], const BakeNormalSwi
  */
 void RE_bake_normal_world_to_tangent(
         const BakePixel pixel_array[], const size_t num_pixels, const int depth,
-        float result[], Mesh *me, const BakeNormalSwizzle normal_swizzle[3],
+        float result[], Mesh *me, const eBakeNormalSwizzle normal_swizzle[3],
         float mat[4][4])
 {
 	size_t i;
@@ -888,7 +888,7 @@ void RE_bake_normal_world_to_tangent(
 
 void RE_bake_normal_world_to_object(
         const BakePixel pixel_array[], const size_t num_pixels, const int depth,
-        float result[], struct Object *ob, const BakeNormalSwizzle normal_swizzle[3])
+        float result[], struct Object *ob, const eBakeNormalSwizzle normal_swizzle[3])
 {
 	size_t i;
 	float iobmat[4][4];
@@ -916,7 +916,7 @@ void RE_bake_normal_world_to_object(
 
 void RE_bake_normal_world_to_world(
         const BakePixel pixel_array[], const size_t num_pixels, const int depth,
-        float result[], const BakeNormalSwizzle normal_swizzle[3])
+        float result[], const eBakeNormalSwizzle normal_swizzle[3])
 {
 	size_t i;
 
@@ -975,7 +975,7 @@ static bool bake_uv(const BakePixel pixel_array[], const size_t num_pixels, cons
 
 bool RE_bake_internal(
         Render *UNUSED(re), Object *UNUSED(object), const BakePixel pixel_array[],
-        const size_t num_pixels, const int depth, const ScenePassType pass_type, float result[])
+        const size_t num_pixels, const int depth, const eScenePassType pass_type, float result[])
 {
 	switch (pass_type) {
 		case SCE_PASS_UV:
@@ -988,7 +988,7 @@ bool RE_bake_internal(
 	return false;
 }
 
-int RE_pass_depth(const ScenePassType pass_type)
+int RE_pass_depth(const eScenePassType pass_type)
 {
 	/* IMB_buffer_byte_from_float assumes 4 channels
 	 * making it work for now - XXX */

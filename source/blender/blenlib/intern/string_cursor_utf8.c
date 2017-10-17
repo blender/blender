@@ -40,7 +40,7 @@
 #  pragma GCC diagnostic error "-Wsign-conversion"
 #endif
 
-typedef enum strCursorDelimType {
+typedef enum eStrCursorDelimType {
 	STRCUR_DELIM_NONE,
 	STRCUR_DELIM_ALPHANUMERIC,
 	STRCUR_DELIM_PUNCT,
@@ -49,9 +49,9 @@ typedef enum strCursorDelimType {
 	STRCUR_DELIM_QUOTE,
 	STRCUR_DELIM_WHITESPACE,
 	STRCUR_DELIM_OTHER
-} strCursorDelimType;
+} eStrCursorDelimType;
 
-static strCursorDelimType cursor_delim_type_unicode(const unsigned int uch)
+static eStrCursorDelimType cursor_delim_type_unicode(const unsigned int uch)
 {
 	switch (uch) {
 		case ',':
@@ -108,7 +108,7 @@ static strCursorDelimType cursor_delim_type_unicode(const unsigned int uch)
 	return STRCUR_DELIM_ALPHANUMERIC; /* Not quite true, but ok for now */
 }
 
-static strCursorDelimType cursor_delim_type_utf8(const char *ch_utf8)
+static eStrCursorDelimType cursor_delim_type_utf8(const char *ch_utf8)
 {
 	/* for full unicode support we really need to have large lookup tables to figure
 	 * out whats what in every possible char set - and python, glib both have these. */
@@ -146,9 +146,10 @@ bool BLI_str_cursor_step_prev_utf8(const char *str, size_t UNUSED(maxlen), int *
 	return false;
 }
 
-void BLI_str_cursor_step_utf8(const char *str, size_t maxlen,
-                              int *pos, strCursorJumpDirection direction,
-                              strCursorJumpType jump, bool use_init_step)
+void BLI_str_cursor_step_utf8(
+        const char *str, size_t maxlen,
+        int *pos, eStrCursorJumpDirection direction,
+        eStrCursorJumpType jump, bool use_init_step)
 {
 	const int pos_orig = *pos;
 
@@ -161,13 +162,16 @@ void BLI_str_cursor_step_utf8(const char *str, size_t maxlen,
 		}
 
 		if (jump != STRCUR_JUMP_NONE) {
-			const strCursorDelimType delim_type = (*pos) < maxlen ? cursor_delim_type_utf8(&str[*pos]) : STRCUR_DELIM_NONE;
+			const eStrCursorDelimType delim_type =
+			        (*pos) < maxlen ? cursor_delim_type_utf8(&str[*pos]) : STRCUR_DELIM_NONE;
 			/* jump between special characters (/,\,_,-, etc.),
 			 * look at function cursor_delim_type() for complete
 			 * list of special character, ctr -> */
 			while ((*pos) < maxlen) {
 				if (BLI_str_cursor_step_next_utf8(str, maxlen, pos)) {
-					if ((jump != STRCUR_JUMP_ALL) && (delim_type != cursor_delim_type_utf8(&str[*pos]))) {
+					if ((jump != STRCUR_JUMP_ALL) &&
+					    (delim_type != cursor_delim_type_utf8(&str[*pos])))
+					{
 						break;
 					}
 				}
@@ -186,14 +190,17 @@ void BLI_str_cursor_step_utf8(const char *str, size_t maxlen,
 		}
 
 		if (jump != STRCUR_JUMP_NONE) {
-			const strCursorDelimType delim_type = (*pos) > 0 ? cursor_delim_type_utf8(&str[(*pos) - 1]) : STRCUR_DELIM_NONE;
+			const eStrCursorDelimType delim_type =
+			        (*pos) > 0 ? cursor_delim_type_utf8(&str[(*pos) - 1]) : STRCUR_DELIM_NONE;
 			/* jump between special characters (/,\,_,-, etc.),
 			 * look at function cursor_delim_type() for complete
 			 * list of special character, ctr -> */
 			while ((*pos) > 0) {
 				const int pos_prev = *pos;
 				if (BLI_str_cursor_step_prev_utf8(str, maxlen, pos)) {
-					if ((jump != STRCUR_JUMP_ALL) && (delim_type != cursor_delim_type_utf8(&str[*pos]))) {
+					if ((jump != STRCUR_JUMP_ALL) &&
+					    (delim_type != cursor_delim_type_utf8(&str[*pos])))
+					{
 						/* left only: compensate for index/change in direction */
 						if ((pos_orig - (*pos)) >= 1) {
 							*pos = pos_prev;
@@ -235,9 +242,10 @@ static bool wchar_t_step_prev(const wchar_t *UNUSED(str), size_t UNUSED(maxlen),
 	return true;
 }
 
-void BLI_str_cursor_step_wchar(const wchar_t *str, size_t maxlen,
-                               int *pos, strCursorJumpDirection direction,
-                               strCursorJumpType jump, bool use_init_step)
+void BLI_str_cursor_step_wchar(
+        const wchar_t *str, size_t maxlen,
+        int *pos, eStrCursorJumpDirection direction,
+        eStrCursorJumpType jump, bool use_init_step)
 {
 	const int pos_orig = *pos;
 
@@ -250,13 +258,16 @@ void BLI_str_cursor_step_wchar(const wchar_t *str, size_t maxlen,
 		}
 
 		if (jump != STRCUR_JUMP_NONE) {
-			const strCursorDelimType delim_type = (*pos) < maxlen ? cursor_delim_type_unicode((unsigned int)str[*pos]) : STRCUR_DELIM_NONE;
+			const eStrCursorDelimType delim_type =
+			        (*pos) < maxlen ? cursor_delim_type_unicode((unsigned int)str[*pos]) : STRCUR_DELIM_NONE;
 			/* jump between special characters (/,\,_,-, etc.),
 			 * look at function cursor_delim_type_unicode() for complete
 			 * list of special character, ctr -> */
 			while ((*pos) < maxlen) {
 				if (wchar_t_step_next(str, maxlen, pos)) {
-					if ((jump != STRCUR_JUMP_ALL) && (delim_type != cursor_delim_type_unicode((unsigned int)str[*pos]))) {
+					if ((jump != STRCUR_JUMP_ALL) &&
+					    (delim_type != cursor_delim_type_unicode((unsigned int)str[*pos])))
+					{
 						break;
 					}
 				}
@@ -275,14 +286,17 @@ void BLI_str_cursor_step_wchar(const wchar_t *str, size_t maxlen,
 		}
 
 		if (jump != STRCUR_JUMP_NONE) {
-			const strCursorDelimType delim_type = (*pos) > 0 ? cursor_delim_type_unicode((unsigned int)str[(*pos) - 1]) : STRCUR_DELIM_NONE;
+			const eStrCursorDelimType delim_type =
+			        (*pos) > 0 ? cursor_delim_type_unicode((unsigned int)str[(*pos) - 1]) : STRCUR_DELIM_NONE;
 			/* jump between special characters (/,\,_,-, etc.),
 			 * look at function cursor_delim_type() for complete
 			 * list of special character, ctr -> */
 			while ((*pos) > 0) {
 				const int pos_prev = *pos;
 				if (wchar_t_step_prev(str, maxlen, pos)) {
-					if ((jump != STRCUR_JUMP_ALL) && (delim_type != cursor_delim_type_unicode((unsigned int)str[*pos]))) {
+					if ((jump != STRCUR_JUMP_ALL) &&
+					    (delim_type != cursor_delim_type_unicode((unsigned int)str[*pos])))
+					{
 						/* left only: compensate for index/change in direction */
 						if ((pos_orig - (*pos)) >= 1) {
 							*pos = pos_prev;

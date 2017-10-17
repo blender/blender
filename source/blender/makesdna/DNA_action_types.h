@@ -749,7 +749,7 @@ typedef struct bActionChannel {
 } bActionChannel;
 
 /* Action Channel flags (ONLY USED FOR DO_VERSIONS...) */
-typedef enum ACHAN_FLAG {
+typedef enum eActionChannelFlag {
 	ACHAN_SELECTED  = (1 << 0),
 	ACHAN_HIGHLIGHTED = (1 << 1),
 	ACHAN_HIDDEN    = (1 << 2),
@@ -758,6 +758,6 @@ typedef enum ACHAN_FLAG {
 	ACHAN_SHOWIPO   = (1 << 5),
 	ACHAN_SHOWCONS  = (1 << 6),
 	ACHAN_MOVED     = (1u << 31)
-} ACHAN_FLAG; 
+} eActionChannelFlag;
 
 #endif  /* __DNA_ACTION_TYPES_H__ */

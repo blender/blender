@@ -128,7 +128,7 @@ static void paintcurve_undo_delete(ListBase *lb)
 
 static void paintcurve_undo_begin(bContext *C, wmOperator *op, PaintCurve *pc)
 {
-	PaintMode mode = BKE_paintmode_get_active_from_context(C);
+	ePaintMode mode = BKE_paintmode_get_active_from_context(C);
 	ListBase *lb = NULL;
 	int undo_stack_id;
 	UndoCurve *uc;
@@ -733,7 +733,7 @@ void PAINTCURVE_OT_slide(wmOperatorType *ot)
 
 static int paintcurve_draw_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	PaintMode mode = BKE_paintmode_get_active_from_context(C);
+	ePaintMode mode = BKE_paintmode_get_active_from_context(C);
 	const char *name;
 
 	switch (mode) {
@@ -774,7 +774,7 @@ void PAINTCURVE_OT_draw(wmOperatorType *ot)
 
 static int paintcurve_cursor_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
-	PaintMode mode = BKE_paintmode_get_active_from_context(C);
+	ePaintMode mode = BKE_paintmode_get_active_from_context(C);
 	
 	switch (mode) {
 		case ePaintTexture2D:

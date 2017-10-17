@@ -51,11 +51,11 @@ struct FileData;
 
 typedef struct BlendHandle BlendHandle;
 
-typedef enum BlenFileType {
+typedef enum eBlenFileType {
 	BLENFILETYPE_BLEND = 1,
 	BLENFILETYPE_PUB = 2,
 	BLENFILETYPE_RUNTIME = 3
-} BlenFileType;
+} eBlenFileType;
 
 typedef struct BlendFileData {
 	struct Main *main;
@@ -68,7 +68,7 @@ typedef struct BlendFileData {
 	struct bScreen *curscreen;
 	struct Scene *curscene;
 	
-	BlenFileType type;
+	eBlenFileType type;
 } BlendFileData;
 
 

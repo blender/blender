@@ -75,7 +75,7 @@ typedef struct FFMpegContext {
 	bool ffmpeg_preview;
 
 	int ffmpeg_crf;  /* set to 0 to not use CRF mode; we have another flag for lossless anyway. */
-	int ffmpeg_preset; /* see FFMpegPreset */
+	int ffmpeg_preset; /* see eFFMpegPreset */
 
 	AVFormatContext *outfile;
 	AVStream *video_stream;

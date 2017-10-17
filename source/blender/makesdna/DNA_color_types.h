@@ -91,7 +91,7 @@ typedef struct CurveMapping {
 #define CUMA_DRAW_SAMPLE		8
 
 /* cumapping->preset */
-typedef enum CurveMappingPreset {
+typedef enum eCurveMappingPreset {
 	CURVE_PRESET_LINE   = 0,
 	CURVE_PRESET_SHARP  = 1,
 	CURVE_PRESET_SMOOTH = 2,
@@ -99,7 +99,7 @@ typedef enum CurveMappingPreset {
 	CURVE_PRESET_MID9   = 4,
 	CURVE_PRESET_ROUND  = 5,
 	CURVE_PRESET_ROOT   = 6,
-} CurveMappingPreset;
+} eCurveMappingPreset;
 
 /* histogram->mode */
 enum {

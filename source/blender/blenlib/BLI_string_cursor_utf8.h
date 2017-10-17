@@ -30,26 +30,28 @@
  *  \ingroup bli
  */
 
-typedef enum strCursorJumpType {
+typedef enum eStrCursorJumpType {
 	STRCUR_JUMP_NONE,
 	STRCUR_JUMP_DELIM,
 	STRCUR_JUMP_ALL
-} strCursorJumpType;
+} eStrCursorJumpType;
 
-typedef enum strCursorJumpDirection {
+typedef enum eStrCursorJumpDirection {
 	STRCUR_DIR_PREV,
 	STRCUR_DIR_NEXT
-} strCursorJumpDirection;
+} eStrCursorJumpDirection;
 
 bool BLI_str_cursor_step_next_utf8(const char *str, size_t maxlen, int *pos);
 bool BLI_str_cursor_step_prev_utf8(const char *str, size_t maxlen, int *pos);
 
-void BLI_str_cursor_step_utf8(const char *str, size_t maxlen,
-                              int *pos, strCursorJumpDirection direction,
-                              strCursorJumpType jump, bool use_init_step);
+void BLI_str_cursor_step_utf8(
+        const char *str, size_t maxlen,
+        int *pos, eStrCursorJumpDirection direction,
+        eStrCursorJumpType jump, bool use_init_step);
 
-void BLI_str_cursor_step_wchar(const wchar_t *str, size_t maxlen,
-                               int *pos, strCursorJumpDirection direction,
-                               strCursorJumpType jump, bool use_init_step);
+void BLI_str_cursor_step_wchar(
+        const wchar_t *str, size_t maxlen,
+        int *pos, eStrCursorJumpDirection direction,
+        eStrCursorJumpType jump, bool use_init_step);
 
 #endif /* __BLI_STRING_CURSOR_UTF8_H__ */

@@ -92,23 +92,22 @@ typedef struct bConstraintTarget {
 	
 	short space;			/* space that target should be evaluated in (overrides bConstraint->tarspace) */
 	short flag;				/* runtime settings (for editor, etc.) */
-	short type;				/* type of target (B_CONSTRAINT_OB_TYPE) */
+	short type;				/* type of target (eConstraintObType) */
 	short rotOrder;			/* rotation order for target (as defined in BLI_math.h) */
 } bConstraintTarget;
 
 /* bConstraintTarget -> flag */
-typedef enum B_CONSTRAINT_TARGET_FLAG {
+typedef enum eConstraintTargetFlag {
 	CONSTRAINT_TAR_TEMP = (1<<0)		/* temporary target-struct that needs to be freed after use */
-} B_CONSTRAINT_TARGET_FLAG;
+} eConstraintTargetFlag;
 
 /* bConstraintTarget/bConstraintOb -> type */
-typedef enum B_CONSTRAINT_OB_TYPE {
+typedef enum eConstraintObType {
 	CONSTRAINT_OBTYPE_OBJECT = 1,	/*	string is ""				*/
 	CONSTRAINT_OBTYPE_BONE   = 2,	/*	string is bone-name		*/
 	CONSTRAINT_OBTYPE_VERT   = 3,	/*	string is vertex-group name 	*/
 	CONSTRAINT_OBTYPE_CV     = 4	/*	string is vertex-group name - is not available until curves get vgroups */
-} B_CONSTRAINT_OB_TYPE;
-
+} eConstraintObType;
 
 
 /* Python Script Constraint */
@@ -128,7 +127,7 @@ typedef struct bPythonConstraint {
 
 /* Inverse-Kinematics (IK) constraint
  * This constraint supports a variety of mode determine by the type field
- * according to B_CONSTRAINT_IK_TYPE.
+ * according to eConstraint_IK_Type.
  * Some fields are used by all types, some are specific to some types
  * This is indicated in the comments for each field
  */
@@ -145,15 +144,15 @@ typedef struct bKinematicConstraint {
 	float		weight;			/* All: Weight of constraint in IK tree */
 	float		orientweight;	/* CopyPose: Amount of rotation a target applies on chain */
 	float		grabtarget[3];	/* CopyPose: for target-less IK */
-	short		type;			/* subtype of IK constraint: B_CONSTRAINT_IK_TYPE */
+	short		type;			/* subtype of IK constraint: eConstraint_IK_Type */
 	short 		mode;			/* Distance: how to limit in relation to clamping sphere: LIMITDIST_.. */
 	float 		dist;			/* Distance: distance (radius of clamping sphere) from target */
 } bKinematicConstraint;
 
-typedef enum B_CONSTRAINT_IK_TYPE {
+typedef enum eConstraint_IK_Type {
 	CONSTRAINT_IK_COPYPOSE = 0,		/* 'standard' IK constraint: match position and/or orientation of target */
 	CONSTRAINT_IK_DISTANCE = 1		/* maintain distance with target */
-} B_CONSTRAINT_IK_TYPE;
+} eConstraint_IK_Type;
 
 
 /* Spline IK Constraint 

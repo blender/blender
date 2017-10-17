@@ -1226,19 +1226,19 @@ enum {
 };
 
 /* Remesh modifier */
-typedef enum RemeshModifierFlags {
+typedef enum eRemeshModifierFlags {
 	MOD_REMESH_FLOOD_FILL     = 1,
 	MOD_REMESH_SMOOTH_SHADING = 2,
 } RemeshModifierFlags;
 
-typedef enum RemeshModifierMode {
+typedef enum eRemeshModifierMode {
 	/* blocky */
 	MOD_REMESH_CENTROID       = 0,
 	/* smooth */
 	MOD_REMESH_MASS_POINT     = 1,
 	/* keeps sharp edges */
 	MOD_REMESH_SHARP_FEATURES = 2,
-} RemeshModifierMode;
+} eRemeshModifierMode;
 
 typedef struct RemeshModifierData {
 	ModifierData modifier;

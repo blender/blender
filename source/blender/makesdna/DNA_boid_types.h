@@ -34,7 +34,7 @@
 
 #include "DNA_listBase.h"
 
-typedef enum BoidRuleType {
+typedef enum eBoidRuleType {
 	eBoidRuleType_None = 0,
 	eBoidRuleType_Goal = 1,             /* go to goal assigned object or loudest assigned signal source */
 	eBoidRuleType_Avoid = 2,            /* get away from assigned object or loudest assigned signal source */
@@ -49,7 +49,7 @@ typedef enum BoidRuleType {
 	//eBoidRuleType_FollowPath = 11,    /* move along a assigned curve or closest curve in a group */
 	//eBoidRuleType_FollowWall = 12,    /* move next to a deflector object's in direction of it's tangent */
 	NUM_BOID_RULE_TYPES
-} BoidRuleType;
+} eBoidRuleType;
 
 /* boidrule->flag */
 #define BOIDRULE_CURRENT		1
@@ -96,14 +96,14 @@ typedef struct BoidRuleFight {
 	float distance, flee_distance;
 } BoidRuleFight;
 
-typedef enum BoidMode {
+typedef enum eBoidMode {
 	eBoidMode_InAir = 0,
 	eBoidMode_OnLand = 1,
 	eBoidMode_Climbing = 2,
 	eBoidMode_Falling = 3,
 	eBoidMode_Liftoff = 4,
 	NUM_BOID_MODES
-} BoidMode;
+} eBoidMode;
 
 
 typedef struct BoidData {
@@ -140,12 +140,12 @@ typedef struct BoidData {
 //	int signal_id, channels;
 //} BoidCondition;
 
-typedef enum BoidRulesetType {
+typedef enum eBoidRulesetType {
 	eBoidRulesetType_Fuzzy = 0,
 	eBoidRulesetType_Random = 1,
 	eBoidRulesetType_Average = 2,
 	NUM_BOID_RULESET_TYPES
-} BoidRulesetType;
+} eBoidRulesetType;
 #define BOIDSTATE_CURRENT	1
 typedef struct BoidState {
 	struct BoidState *next, *prev;
