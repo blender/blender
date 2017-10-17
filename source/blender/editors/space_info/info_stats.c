@@ -301,7 +301,7 @@ static void stats_dupli_object(Base *base, Object *ob, SceneStats *stats)
 			}
 		}
 		
-		stats_object(ob, base->flag_legacy & SELECT, 1, stats);
+		stats_object(ob, base->flag & BASE_SELECTED, 1, stats);
 		stats->totobj++;
 	}
 	else if (ob->parent && (ob->parent->transflag & (OB_DUPLIVERTS | OB_DUPLIFACES))) {
@@ -317,23 +317,23 @@ static void stats_dupli_object(Base *base, Object *ob, SceneStats *stats)
 		}
 
 		stats->totobj += tot;
-		stats_object(ob, base->flag_legacy & SELECT, tot, stats);
+		stats_object(ob, base->flag & BASE_SELECTED, tot, stats);
 	}
 	else if (ob->transflag & OB_DUPLIFRAMES) {
 		/* Dupli Frames */
 		int tot = count_duplilist(ob);
 		stats->totobj += tot;
-		stats_object(ob, base->flag_legacy & SELECT, tot, stats);
+		stats_object(ob, base->flag & BASE_SELECTED, tot, stats);
 	}
 	else if ((ob->transflag & OB_DUPLIGROUP) && ob->dup_group) {
 		/* Dupli Group */
 		int tot = count_duplilist(ob);
 		stats->totobj += tot;
-		stats_object(ob, base->flag_legacy & SELECT, tot, stats);
+		stats_object(ob, base->flag & BASE_SELECTED, tot, stats);
 	}
 	else {
 		/* No Dupli */
-		stats_object(ob, base->flag_legacy & SELECT, 1, stats);
+		stats_object(ob, base->flag & BASE_SELECTED, 1, stats);
 		stats->totobj++;
 	}
 }
