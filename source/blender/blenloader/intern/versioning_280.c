@@ -100,6 +100,14 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 		BKE_workspace_layout_add(workspace, screen, screen->id.name + 2);
 		BKE_workspace_render_layer_set(workspace, layer);
 
+#ifdef WITH_CLAY_ENGINE
+		BLI_strncpy(workspace->view_render.engine_id, RE_engine_id_BLENDER_CLAY,
+		            sizeof(workspace->view_render.engine_id));
+#else
+		BLI_strncpy(workspace->view_render.engine_id, RE_engine_id_BLENDER_EEVEE,
+		            sizeof(workspace->view_render.engine_id));
+#endif
+
 		transform_orientations = BKE_workspace_transform_orientations_get(workspace);
 		BLI_duplicatelist(transform_orientations, &screen->scene->transform_spaces);
 	}
