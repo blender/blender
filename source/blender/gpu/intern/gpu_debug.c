@@ -425,9 +425,11 @@ void GPU_assert_no_gl_errors(const char *file, int line, const char *str)
 
 static void gpu_state_print_fl_ex(const char *name, GLenum type)
 {
+#define MAX_ARRAY_SIZE 64
+
 	const unsigned char err_mark[4] = {0xff, 0xff, 0xff, 0xff};
 
-	float value[32];
+	float value[MAX_ARRAY_SIZE];
 	int a;
 
 	memset(value, 0xff, sizeof(value));
@@ -435,7 +437,7 @@ static void gpu_state_print_fl_ex(const char *name, GLenum type)
 
 	if (glGetError() == GL_NO_ERROR) {
 		printf("%s: ", name);
-		for (a = 0; a < 32; a++) {
+		for (a = 0; a < MAX_ARRAY_SIZE; a++) {
 			if (memcmp(&value[a], err_mark, sizeof(value[a])) == 0) {
 				break;
 			}
@@ -443,6 +445,8 @@ static void gpu_state_print_fl_ex(const char *name, GLenum type)
 		}
 		printf("\n");
 	}
+
+#undef MAX_ARRAY_SIZE
 }
 
 #define gpu_state_print_fl(val) gpu_state_print_fl_ex(#val, val)
