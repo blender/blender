@@ -282,6 +282,7 @@ bool ccgSubSurf_prepareGLMesh(CCGSubSurf *ss,
 		                      sizeof(GLfloat) * 6, (float *)12);
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
 	}
 	else if (ss->osd_coarse_coords_invalid) {
 		ccgSubSurf__updateGLMeshCoords(ss);
@@ -299,6 +300,7 @@ void ccgSubSurf_drawGLMesh(CCGSubSurf *ss, bool fill_quads,
                            int start_partition, int num_partitions)
 {
 	if (LIKELY(ss->osd_mesh != NULL)) {
+		glBindVertexArray(ss->osd_vao);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
 		             openSubdiv_getOsdGLMeshPatchIndexBuffer(ss->osd_mesh));
 

@@ -188,7 +188,7 @@ const FModifierTypeInfo *get_fmodifier_typeinfo(const int type);
 
 /* ---------------------- */
 
-struct FModifier *add_fmodifier(ListBase *modifiers, int type);
+struct FModifier *add_fmodifier(ListBase *modifiers, int type, struct FCurve *owner_fcu);
 struct FModifier *copy_fmodifier(const struct FModifier *src);
 void copy_fmodifiers(ListBase *dst, const ListBase *src);
 bool remove_fmodifier(ListBase *modifiers, struct FModifier *fcm);
@@ -265,6 +265,9 @@ bool fcurve_are_keyframes_usable(struct FCurve *fcu);
 /* Can keyframes be added to F-Curve? */
 bool fcurve_is_keyframable(struct FCurve *fcu);
 bool BKE_fcurve_is_protected(struct FCurve *fcu);
+
+/* The curve is an infinite cycle via Cycles modifier */
+bool BKE_fcurve_is_cyclic(struct FCurve *fcu);
 
 /* -------- Curve Sanity --------  */
 

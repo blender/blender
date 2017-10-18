@@ -52,6 +52,7 @@ extern "C" {
 typedef struct FModifier {
 	struct FModifier *next, *prev;
 	
+	struct FCurve *curve;  /* containing curve, only used for updates to CYCLES */
 	void *data;			/* pointer to modifier data */
 	
 	char name[64];		/* user-defined description for the modifier - MAX_ID_NAME-2 */
