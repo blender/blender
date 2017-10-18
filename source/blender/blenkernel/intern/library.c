@@ -529,7 +529,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag, con
                             ID_IP  /* Deprecated */
 
 	BLI_assert(test || (r_newid != NULL));
-	if (r_newid != NULL) {
+	if (r_newid != NULL && (flag & LIB_ID_CREATE_NO_ALLOCATE) == 0) {
 		*r_newid = NULL;
 	}
 	if (id == NULL) {
