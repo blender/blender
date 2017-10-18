@@ -97,14 +97,13 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(
 	EvaluationContext eval_ctx;
 	EnumPropertyItem *item = NULL, tmp_item = {0};
 	int totitem = 0;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
-
 	const int data_type = RNA_enum_get(ptr, "data_type");
 
 	if (!C) {  /* needed for docs and i18n tools */
 		return rna_enum_dt_layers_select_src_items;
 	}
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 
 	RNA_enum_items_add_value(&item, &totitem, rna_enum_dt_layers_select_src_items, DT_LAYERS_ACTIVE_SRC);
 	RNA_enum_items_add_value(&item, &totitem, rna_enum_dt_layers_select_src_items, DT_LAYERS_ALL_SRC);

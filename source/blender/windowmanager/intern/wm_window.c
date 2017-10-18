@@ -59,9 +59,9 @@
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
 
-
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -883,6 +883,9 @@ int wm_window_new_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(even
 const EnumPropertyItem *wm_window_new_screen_itemf(
         bContext *C, struct PointerRNA *UNUSED(ptr), struct PropertyRNA *UNUSED(prop), bool *r_free)
 {
+	if (C == NULL) {
+		return DummyRNA_NULL_items;
+	}
 	wmWindow *win = CTX_wm_window(C);
 	WorkSpace *workspace = WM_window_get_active_workspace(win);
 	ListBase *listbase = BKE_workspace_layouts_get(workspace);
