@@ -309,24 +309,26 @@ IDDepsNode *Depsgraph::add_id_node(ID *id, bool do_tag, ID *id_cow_hint)
 
 void Depsgraph::clear_id_nodes()
 {
-	/* Stupid workaround to ensure we free IDs in a proper order. */
-	GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, id_hash)
-	{
-		if (id_node->id_cow == NULL) {
-			/* This means builder "stole" ownership of the copy-on-written
-			 * datablock for her own dirty needs.
-			 */
-			continue;
+	if (use_copy_on_write) {
+		/* Stupid workaround to ensure we free IDs in a proper order. */
+		GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, id_hash)
+		{
+			if (id_node->id_cow == NULL) {
+				/* This means builder "stole" ownership of the copy-on-written
+				 * datablock for her own dirty needs.
+				 */
+				continue;
+			}
+			if (!deg_copy_on_write_is_expanded(id_node->id_cow)) {
+				continue;
+			}
+			const ID_Type id_type = GS(id_node->id_cow->name);
+			if (id_type != ID_PA) {
+				id_node->destroy();
+			}
 		}
-		if (!deg_copy_on_write_is_expanded(id_node->id_cow)) {
-			continue;
-		}
-		const ID_Type id_type = GS(id_node->id_cow->name);
-		if (id_type != ID_PA) {
-			id_node->destroy();
-		}
+		GHASH_FOREACH_END();
 	}
-	GHASH_FOREACH_END();
 	GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, id_hash)
 	{
 		OBJECT_GUARDED_DELETE(id_node, IDDepsNode);
