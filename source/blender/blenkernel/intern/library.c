@@ -515,7 +515,7 @@ static int id_copy_libmanagement_cb(void *user_data, ID *UNUSED(id_self), ID **i
  *
  * \note Usercount of new copy is always set to 1.
  *
- * \param bmain Main database, may be NULL only if LIB_ID_COPY_NO_MAIN is specified.
+ * \param bmain Main database, may be NULL only if LIB_ID_CREATE_NO_MAIN is specified.
  * \param id Source datablock.
  * \param r_newid Pointer to new (copied) ID pointer.
  * \param flag Set of copy options, see DNA_ID.h enum for details (leave to zero for default, full copy).
