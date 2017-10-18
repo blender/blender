@@ -348,6 +348,9 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 				offset++;
 
 				Mesh::Triangle t = mesh->get_triangle(i);
+				if(!t.valid(&mesh->verts[0])) {
+					continue;
+				}
 				float3 p1 = mesh->verts[t.v[0]];
 				float3 p2 = mesh->verts[t.v[1]];
 				float3 p3 = mesh->verts[t.v[2]];

@@ -70,6 +70,8 @@ public:
 		                    size_t num_steps,
 		                    size_t step,
 		                    float3 r_verts[3]) const;
+
+		bool valid(const float3 *verts) const;
 	};
 
 	Triangle get_triangle(size_t i) const
