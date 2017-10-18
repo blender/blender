@@ -82,6 +82,7 @@ static void flush_init_func(void *data_v, int i)
  */
 void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 {
+	const bool use_copy_on_write = DEG_depsgraph_use_copy_on_write();
 	/* Sanity check. */
 	if (graph == NULL) {
 		return;
@@ -146,18 +147,17 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 			}
 
 			if (comp_node->done != COMPONENT_STATE_DONE) {
-#ifdef WITH_COPY_ON_WRITE
 				/* Currently this is needed to get ob->mesh to be replaced with
 				 * original mesh (rather than being evaluated_mesh).
 				 *
 				 * TODO(sergey): This is something we need to avoid.
 				 */
-				if (comp_node->depends_on_cow()) {
+				if (use_copy_on_write && comp_node->depends_on_cow()) {
 					ComponentDepsNode *cow_comp =
 					        id_node->find_component(DEG_NODE_TYPE_COPY_ON_WRITE);
 					cow_comp->tag_update(graph);
 				}
-#endif
+
 				Object *object = NULL;
 				if (GS(id_orig->name) == ID_OB) {
 					object = (Object *)id_orig;

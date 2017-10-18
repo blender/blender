@@ -1803,18 +1803,18 @@ void DepsgraphRelationBuilder::build_lamp(Object *ob)
 	/* textures */
 	build_texture_stack(la->mtex);
 
-#ifdef WITH_COPY_ON_WRITE
-	/* Make sure copy on write of lamp data is always properly updated for
-	 * visible lamps.
-	 */
-	OperationKey ob_copy_on_write_key(&ob->id,
-	                                  DEG_NODE_TYPE_COPY_ON_WRITE,
-	                                  DEG_OPCODE_COPY_ON_WRITE);
-	OperationKey lamp_copy_on_write_key(lamp_id,
-	                                    DEG_NODE_TYPE_COPY_ON_WRITE,
-	                                    DEG_OPCODE_COPY_ON_WRITE);
-	add_relation(lamp_copy_on_write_key, ob_copy_on_write_key, "Eval Order");
-#endif
+	if (DEG_depsgraph_use_copy_on_write()) {
+		/* Make sure copy on write of lamp data is always properly updated for
+		 * visible lamps.
+		 */
+		OperationKey ob_copy_on_write_key(&ob->id,
+		                                  DEG_NODE_TYPE_COPY_ON_WRITE,
+		                                  DEG_OPCODE_COPY_ON_WRITE);
+		OperationKey lamp_copy_on_write_key(lamp_id,
+		                                    DEG_NODE_TYPE_COPY_ON_WRITE,
+		                                    DEG_OPCODE_COPY_ON_WRITE);
+		add_relation(lamp_copy_on_write_key, ob_copy_on_write_key, "Eval Order");
+	}
 }
 
 void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)

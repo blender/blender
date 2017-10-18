@@ -174,7 +174,9 @@ DepsgraphNodeBuilder::~DepsgraphNodeBuilder()
 
 IDDepsNode *DepsgraphNodeBuilder::add_id_node(ID *id, bool do_tag)
 {
-#ifdef WITH_COPY_ON_WRITE
+	if (!DEG_depsgraph_use_copy_on_write()) {
+		return m_graph->add_id_node(id);
+	}
 	IDDepsNode *id_node = NULL;
 	ID *id_cow = (ID *)BLI_ghash_lookup(m_cow_id_hash, id);
 	if (id_cow != NULL) {
@@ -197,10 +199,6 @@ IDDepsNode *DepsgraphNodeBuilder::add_id_node(ID *id, bool do_tag)
 		    "", -1);
 		m_graph->operations.push_back(op_cow);
 	}
-#else
-	IDDepsNode *id_node = m_graph->add_id_node(id);
-	UNUSED_VARS(do_tag);
-#endif
 	return id_node;
 }
 
@@ -358,23 +356,25 @@ void DepsgraphNodeBuilder::begin_build(Main *bmain) {
 	}
 	FOREACH_NODETREE_END;
 
-#ifdef WITH_COPY_ON_WRITE
-	/* Store existing copy-on-write versions of datablock, so we can re-use
-	 * them for new ID nodes.
-	 */
-	m_cow_id_hash = BLI_ghash_ptr_new("Depsgraph id hash");
-	GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, m_graph->id_hash)
-	{
-		if (GS(id_node->id_orig->name) != ID_SCE) {
-			continue;
+	if (DEG_depsgraph_use_copy_on_write()) {
+		/* Store existing copy-on-write versions of datablock, so we can re-use
+		 * them for new ID nodes.
+		 */
+		m_cow_id_hash = BLI_ghash_ptr_new("Depsgraph id hash");
+		GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, m_graph->id_hash)
+		{
+			if (GS(id_node->id_orig->name) != ID_SCE) {
+				continue;
+			}
+			if (deg_copy_on_write_is_expanded(id_node->id_cow)) {
+				BLI_ghash_insert(m_cow_id_hash,
+				                 id_node->id_orig,
+				                 id_node->id_cow);
+				id_node->id_cow = NULL;
+			}
 		}
-		if (deg_copy_on_write_is_expanded(id_node->id_cow)) {
-			BLI_ghash_insert(m_cow_id_hash, id_node->id_orig, id_node->id_cow);
-			id_node->id_cow = NULL;
-		}
+		GHASH_FOREACH_END();
 	}
-	GHASH_FOREACH_END();
-#endif
 
 	/* Make sure graph has no nodes left from previous state. */
 	m_graph->clear_all_nodes();

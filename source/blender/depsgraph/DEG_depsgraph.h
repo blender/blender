@@ -105,6 +105,9 @@ enum {
 extern "C" {
 #endif
 
+bool DEG_depsgraph_use_copy_on_write(void);
+void DEG_depsgraph_enable_copy_on_write(void);
+
 /* ************************************************ */
 /* Depsgraph API */
 

@@ -269,16 +269,17 @@ void id_tag_update_shading(Depsgraph *graph, IDDepsNode *id_node)
 	shading_comp->tag_update(graph);
 }
 
-#ifdef WITH_COPY_ON_WRITE
 /* Tag corresponding to DEG_TAG_COPY_ON_WRITE. */
 void id_tag_update_copy_on_write(Depsgraph *graph, IDDepsNode *id_node)
 {
+	if (!DEG_depsgraph_use_copy_on_write()) {
+		return;
+	}
 	ComponentDepsNode *cow_comp =
 	        id_node->find_component(DEG_NODE_TYPE_COPY_ON_WRITE);
 	OperationDepsNode *cow_node = cow_comp->get_entry_operation();
 	cow_node->tag_update(graph);
 }
-#endif
 
 void id_tag_update_ntree_special(Main *bmain, Depsgraph *graph, ID *id, int flag)
 {
@@ -320,16 +321,16 @@ void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag)
 	}
 	if (flag & OB_RECALC_DATA) {
 		id_tag_update_object_data(graph, id_node);
-#ifdef WITH_COPY_ON_WRITE
-		if (flag & DEG_TAG_COPY_ON_WRITE) {
-			const ID_Type id_type = GS(id_node->id_orig->name);
-			if (id_type == ID_OB) {
-				Object *object = (Object *)id_node->id_orig;
-				ID *ob_data = (ID *)object->data;
-				DEG_id_tag_update_ex(bmain, ob_data, flag);
+		if (DEG_depsgraph_use_copy_on_write()) {
+			if (flag & DEG_TAG_COPY_ON_WRITE) {
+				const ID_Type id_type = GS(id_node->id_orig->name);
+				if (id_type == ID_OB) {
+					Object *object = (Object *)id_node->id_orig;
+					ID *ob_data = (ID *)object->data;
+					DEG_id_tag_update_ex(bmain, ob_data, flag);
+				}
 			}
 		}
-#endif
 	}
 	if (flag & OB_RECALC_TIME) {
 		id_tag_update_object_time(graph, id_node);
@@ -340,11 +341,9 @@ void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag)
 	if (flag & DEG_TAG_SHADING_UPDATE) {
 		id_tag_update_shading(graph, id_node);
 	}
-#ifdef WITH_COPY_ON_WRITE
 	if (flag & DEG_TAG_COPY_ON_WRITE) {
 		id_tag_update_copy_on_write(graph, id_node);
 	}
-#endif
 	id_tag_update_ntree_special(bmain, graph, id, flag);
 }
 

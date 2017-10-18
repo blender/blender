@@ -96,12 +96,14 @@ void DepsgraphNodeBuilder::build_layer_collections(Scene *scene,
 
 void DepsgraphNodeBuilder::build_scene_layer_collections(Scene *scene)
 {
-#ifdef WITH_COPY_ON_WRITE
-	/* Make sure we've got ID node, so we can get pointer to CoW datablock. */
-	Scene *scene_cow = expand_cow_datablock(scene);
-#else
-	Scene *scene_cow = scene;
-#endif
+	Scene *scene_cow;
+	if (DEG_depsgraph_use_copy_on_write()) {
+		/* Make sure we've got ID node, so we can get pointer to CoW datablock. */
+		scene_cow = expand_cow_datablock(scene);
+	}
+	else {
+		scene_cow = scene;
+	}
 
 	LayerCollectionState state;
 	state.index = 0;

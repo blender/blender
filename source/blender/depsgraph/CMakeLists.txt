@@ -128,8 +128,4 @@ if(WITH_OPENSUBDIV)
 	add_definitions(-DWITH_OPENSUBDIV)
 endif()
 
-if(WITH_DEPSGRAPH_COPY_ON_WRITE)
-	add_definitions(-DWITH_COPY_ON_WRITE)
-endif()
-
 blender_add_lib(bf_depsgraph "${SRC}" "${INC}" "${INC_SYS}")

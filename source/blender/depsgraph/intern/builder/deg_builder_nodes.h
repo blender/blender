@@ -32,6 +32,8 @@
 
 #include "intern/depsgraph_types.h"
 
+#include "DEG_depsgraph.h"  /* used for DEG_depsgraph_use_copy_on_write() */
+
 struct CacheFile;
 struct bGPdata;
 struct ListBase;
@@ -98,11 +100,12 @@ struct DepsgraphNodeBuilder {
 	/* For a given COW datablock get corresponding original one. */
 	template<typename T>
 	T *get_orig_datablock(const T *cow) const {
-#ifdef WITH_COPY_ON_WRITE
-		return (T *)cow->id.newid;
-#else
-		return (T *)cow;
-#endif
+		if (DEG_depsgraph_use_copy_on_write()) {
+			return (T *)cow->id.newid;
+		}
+		else {
+			return (T *)cow;
+		}
 	}
 
 	void begin_build(Main *bmain);
