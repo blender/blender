@@ -328,7 +328,7 @@ static int group_move_exec(bContext *C, wmOperator *op)
 
 void POSE_OT_group_move(wmOperatorType *ot)
 {
-	static EnumPropertyItem group_slot_move[] = {
+	static const EnumPropertyItem group_slot_move[] = {
 		{-1, "UP", 0, "Up", ""},
 		{1, "DOWN", 0, "Down", ""},
 		{0, NULL, 0, NULL, NULL}

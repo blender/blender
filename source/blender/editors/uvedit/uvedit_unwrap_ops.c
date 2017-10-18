@@ -995,13 +995,13 @@ static void uv_map_transform(bContext *C, wmOperator *op, float center[3], float
 
 static void uv_transform_properties(wmOperatorType *ot, int radius)
 {
-	static EnumPropertyItem direction_items[] = {
+	static const EnumPropertyItem direction_items[] = {
 		{VIEW_ON_EQUATOR, "VIEW_ON_EQUATOR", 0, "View on Equator", "3D view is on the equator"},
 		{VIEW_ON_POLES, "VIEW_ON_POLES", 0, "View on Poles", "3D view is on the poles"},
 		{ALIGN_TO_OBJECT, "ALIGN_TO_OBJECT", 0, "Align to Object", "Align according to object transform"},
 		{0, NULL, 0, NULL, NULL}
 	};
-	static EnumPropertyItem align_items[] = {
+	static const EnumPropertyItem align_items[] = {
 		{POLAR_ZX, "POLAR_ZX", 0, "Polar ZX", "Polar 0 is X"},
 		{POLAR_ZY, "POLAR_ZY", 0, "Polar ZY", "Polar 0 is Y"},
 		{0, NULL, 0, NULL, NULL}
@@ -1236,7 +1236,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 
 void UV_OT_unwrap(wmOperatorType *ot)
 {
-	static EnumPropertyItem method_items[] = {
+	static const EnumPropertyItem method_items[] = {
 		{0, "ANGLE_BASED", 0, "Angle Based", ""},
 		{1, "CONFORMAL", 0, "Conformal", ""},
 		{0, NULL, 0, NULL, NULL}

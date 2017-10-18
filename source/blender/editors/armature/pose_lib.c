@@ -530,7 +530,7 @@ void POSELIB_OT_pose_add(wmOperatorType *ot)
 /* ----- */
 
 /* can be called with C == NULL */
-static EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	Object *ob = get_poselib_object(C);
 	bAction *act = (ob) ? ob->poselib : NULL;
@@ -786,7 +786,7 @@ static int poselib_move_exec(bContext *C, wmOperator *op)
 void POSELIB_OT_pose_move(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
-	static EnumPropertyItem pose_lib_pose_move[] = {
+	static const EnumPropertyItem pose_lib_pose_move[] = {
 		{-1, "UP", 0, "Up", ""},
 		{1, "DOWN", 0, "Down", ""},
 		{0, NULL, 0, NULL, NULL}

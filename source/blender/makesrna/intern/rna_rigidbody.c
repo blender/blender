@@ -44,13 +44,13 @@
 #include "WM_types.h"
 
 /* roles of objects in RigidBody Sims */
-EnumPropertyItem rna_enum_rigidbody_object_type_items[] = {
+const EnumPropertyItem rna_enum_rigidbody_object_type_items[] = {
 	{RBO_TYPE_ACTIVE, "ACTIVE", 0, "Active", "Object is directly controlled by simulation results"},
 	{RBO_TYPE_PASSIVE, "PASSIVE", 0, "Passive", "Object is directly controlled by animation system"},
 	{0, NULL, 0, NULL, NULL}};
 
 /* collision shapes of objects in rigid body sim */
-EnumPropertyItem rna_enum_rigidbody_object_shape_items[] = {
+const EnumPropertyItem rna_enum_rigidbody_object_shape_items[] = {
 	{RB_SHAPE_BOX, "BOX", ICON_MESH_CUBE, "Box", "Box-like shapes (i.e. cubes), including planes (i.e. ground planes)"},
 	{RB_SHAPE_SPHERE, "SPHERE", ICON_MESH_UVSPHERE, "Sphere", ""},
 	{RB_SHAPE_CAPSULE, "CAPSULE", ICON_MESH_CAPSULE, "Capsule", ""},
@@ -64,7 +64,7 @@ EnumPropertyItem rna_enum_rigidbody_object_shape_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 /* collision shapes of constraints in rigid body sim */
-EnumPropertyItem rna_enum_rigidbody_constraint_type_items[] = {
+const EnumPropertyItem rna_enum_rigidbody_constraint_type_items[] = {
 	{RBC_TYPE_FIXED, "FIXED", ICON_NONE, "Fixed", "Glue rigid bodies together"},
 	{RBC_TYPE_POINT, "POINT", ICON_NONE, "Point", "Constrain rigid bodies to move around common pivot point"},
 	{RBC_TYPE_HINGE, "HINGE", ICON_NONE, "Hinge", "Restrict rigid body rotation to one axis"},
@@ -78,7 +78,7 @@ EnumPropertyItem rna_enum_rigidbody_constraint_type_items[] = {
 
 #ifndef RNA_RUNTIME
 /* mesh source for collision shape creation */
-static EnumPropertyItem rigidbody_mesh_source_items[] = {
+static const EnumPropertyItem rigidbody_mesh_source_items[] = {
 	{RBO_MESH_BASE, "BASE", 0, "Base", "Base mesh"},
 	{RBO_MESH_DEFORM, "DEFORM", 0, "Deform", "Deformations (shape keys, deform modifiers)"},
 	{RBO_MESH_FINAL, "FINAL", 0, "Final", "All modifiers"},

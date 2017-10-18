@@ -701,7 +701,7 @@ static int graph_disable_markers_exec(bContext *C, wmOperator *op)
 
 void CLIP_OT_graph_disable_markers(wmOperatorType *ot)
 {
-	static EnumPropertyItem actions_items[] = {
+	static const EnumPropertyItem actions_items[] = {
 		{0, "DISABLE", 0, "Disable", "Disable selected markers"},
 		{1, "ENABLE", 0, "Enable", "Enable selected markers"},
 		{2, "TOGGLE", 0, "Toggle", "Toggle disabled flag for selected markers"},

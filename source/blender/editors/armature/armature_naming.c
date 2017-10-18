@@ -436,7 +436,7 @@ static int armature_autoside_names_exec(bContext *C, wmOperator *op)
 
 void ARMATURE_OT_autoside_names(wmOperatorType *ot)
 {
-	static EnumPropertyItem axis_items[] = {
+	static const EnumPropertyItem axis_items[] = {
 		{0, "XAXIS", 0, "X-Axis", "Left/Right"},
 		{1, "YAXIS", 0, "Y-Axis", "Front/Back"},
 		{2, "ZAXIS", 0, "Z-Axis", "Top/Bottom"},

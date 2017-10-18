@@ -1211,7 +1211,7 @@ static int copy_particle_systems_exec(bContext *C, wmOperator *op)
 
 void PARTICLE_OT_copy_particle_systems(wmOperatorType *ot)
 {
-	static EnumPropertyItem space_items[] = {
+	static const EnumPropertyItem space_items[] = {
 		{PAR_COPY_SPACE_OBJECT, "OBJECT", 0, "Object", "Copy inside each object's local space"},
 		{PAR_COPY_SPACE_WORLD, "WORLD", 0, "World", "Copy in world space"},
 		{0, NULL, 0, NULL, NULL}

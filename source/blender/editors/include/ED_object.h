@@ -213,7 +213,7 @@ bool ED_object_multires_update_totlevels_cb(struct Object *ob, void *totlevel_v)
 /* object_select.c */
 void ED_object_select_linked_by_id(struct bContext *C, struct ID *id);
 
-struct EnumPropertyItem *ED_object_vgroup_selection_itemf_helper(
+const struct EnumPropertyItem *ED_object_vgroup_selection_itemf_helper(
         const struct bContext *C,
         struct PointerRNA *ptr,
         struct PropertyRNA *prop,

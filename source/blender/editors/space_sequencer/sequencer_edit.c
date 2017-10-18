@@ -107,7 +107,7 @@ EnumPropertyItem prop_side_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static EnumPropertyItem prop_side_lr_types[] = {
+static const EnumPropertyItem prop_side_lr_types[] = {
 	{SEQ_SIDE_LEFT, "LEFT", 0, "Left", ""},
 	{SEQ_SIDE_RIGHT, "RIGHT", 0, "Right", ""},
 	{0, NULL, 0, NULL, NULL}
@@ -2010,7 +2010,7 @@ void SEQUENCER_OT_swap_inputs(struct wmOperatorType *ot)
 
 
 /* cut operator */
-static EnumPropertyItem prop_cut_types[] = {
+static const EnumPropertyItem prop_cut_types[] = {
 	{SEQ_CUT_SOFT, "SOFT", 0, "Soft", ""},
 	{SEQ_CUT_HARD, "HARD", 0, "Hard", ""},
 	{0, NULL, 0, NULL, NULL}
@@ -2800,7 +2800,7 @@ void SEQUENCER_OT_view_zoom_ratio(wmOperatorType *ot)
 
 
 #if 0
-static EnumPropertyItem view_type_items[] = {
+static const EnumPropertyItem view_type_items[] = {
 	{SEQ_VIEW_SEQUENCE, "SEQUENCER", ICON_SEQ_SEQUENCER, "Sequencer", ""},
 	{SEQ_VIEW_PREVIEW,  "PREVIEW", ICON_SEQ_PREVIEW, "Image Preview", ""},
 	{SEQ_VIEW_SEQUENCE_PREVIEW,  "SEQUENCER_PREVIEW", ICON_SEQ_SEQUENCER, "Sequencer and Image Preview", ""},
@@ -3562,7 +3562,7 @@ void SEQUENCER_OT_enable_proxies(wmOperatorType *ot)
 
 /* change ops */
 
-static EnumPropertyItem prop_change_effect_input_types[] = {
+static const EnumPropertyItem prop_change_effect_input_types[] = {
 	{0, "A_B", 0, "A -> B", ""},
 	{1, "B_C", 0, "B -> C", ""},
 	{2, "A_C", 0, "A -> C", ""},

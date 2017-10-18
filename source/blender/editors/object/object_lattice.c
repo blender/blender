@@ -820,7 +820,7 @@ static int lattice_flip_exec(bContext *C, wmOperator *op)
 
 void LATTICE_OT_flip(wmOperatorType *ot)
 {
-	static EnumPropertyItem flip_items[] = {
+	static const EnumPropertyItem flip_items[] = {
 		{LATTICE_FLIP_U, "U", 0, "U (X) Axis", ""},
 		{LATTICE_FLIP_V, "V", 0, "V (Y) Axis", ""},
 		{LATTICE_FLIP_W, "W", 0, "W (Z) Axis", ""},

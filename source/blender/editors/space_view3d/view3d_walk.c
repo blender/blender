@@ -132,7 +132,7 @@ typedef enum eWalkGravityState {
 /* called in transform_ops.c, on each regeneration of keymaps  */
 void walk_modal_keymap(wmKeyConfig *keyconf)
 {
-	static EnumPropertyItem modal_items[] = {
+	static const EnumPropertyItem modal_items[] = {
 		{WALK_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
 		{WALK_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},
 

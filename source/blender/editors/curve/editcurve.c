@@ -3596,7 +3596,7 @@ static int set_spline_type_exec(bContext *C, wmOperator *op)
 
 void CURVE_OT_spline_type_set(wmOperatorType *ot)
 {
-	static EnumPropertyItem type_items[] = {
+	static const EnumPropertyItem type_items[] = {
 		{CU_POLY, "POLY", 0, "Poly", ""},
 		{CU_BEZIER, "BEZIER", 0, "Bezier", ""},
 //		{CU_CARDINAL, "CARDINAL", 0, "Cardinal", ""},
@@ -3641,7 +3641,7 @@ static int set_handle_type_exec(bContext *C, wmOperator *op)
 void CURVE_OT_handle_type_set(wmOperatorType *ot)
 {
 	/* keep in sync with graphkeys_handle_type_items */
-	static EnumPropertyItem editcurve_handle_type_items[] = {
+	static const EnumPropertyItem editcurve_handle_type_items[] = {
 		{HD_AUTO, "AUTOMATIC", 0, "Automatic", ""},
 		{HD_VECT, "VECTOR", 0, "Vector", ""},
 		{5, "ALIGNED", 0, "Aligned", ""},
@@ -5258,7 +5258,7 @@ static int toggle_cyclic_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 
 void CURVE_OT_cyclic_toggle(wmOperatorType *ot)
 {
-	static EnumPropertyItem direction_items[] = {
+	static const EnumPropertyItem direction_items[] = {
 		{0, "CYCLIC_U", 0, "Cyclic U", ""},
 		{1, "CYCLIC_V", 0, "Cyclic V", ""},
 		{0, NULL, 0, NULL, NULL}
@@ -5752,13 +5752,13 @@ static int curve_delete_exec(bContext *C, wmOperator *op)
 	return retval;
 }
 
-static EnumPropertyItem curve_delete_type_items[] = {
+static const EnumPropertyItem curve_delete_type_items[] = {
 	{CURVE_VERTEX, "VERT", 0, "Vertices", ""},
 	{CURVE_SEGMENT, "SEGMENT", 0, "Segments", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
-static EnumPropertyItem *rna_curve_delete_type_itemf(bContext *C, PointerRNA *UNUSED(ptr),
+static const EnumPropertyItem *rna_curve_delete_type_itemf(bContext *C, PointerRNA *UNUSED(ptr),
                                                             PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem *item = NULL;

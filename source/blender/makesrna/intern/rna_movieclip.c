@@ -211,7 +211,7 @@ static void rna_def_moviecliUser(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem clip_render_size_items[] = {
+	static const EnumPropertyItem clip_render_size_items[] = {
 		{MCLIP_PROXY_RENDER_SIZE_25, "PROXY_25", 0, "Proxy size 25%", ""},
 		{MCLIP_PROXY_RENDER_SIZE_50, "PROXY_50", 0, "Proxy size 50%", ""},
 		{MCLIP_PROXY_RENDER_SIZE_75, "PROXY_75", 0, "Proxy size 75%", ""},
@@ -258,7 +258,7 @@ static void rna_def_movieclip(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem clip_source_items[] = {
+	static const EnumPropertyItem clip_source_items[] = {
 		{MCLIP_SRC_SEQUENCE, "SEQUENCE", 0, "Image Sequence", "Multiple image files, as a sequence"},
 		{MCLIP_SRC_MOVIE, "MOVIE", 0, "Movie File", "Movie file"},
 		{0, NULL, 0, NULL, NULL}

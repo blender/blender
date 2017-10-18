@@ -333,7 +333,7 @@ static int node_select_grouped_exec(bContext *C, wmOperator *op)
 
 void NODE_OT_select_grouped(wmOperatorType *ot)
 {
-	static EnumPropertyItem prop_select_grouped_types[] = {
+	static const EnumPropertyItem prop_select_grouped_types[] = {
 		{NODE_SELECT_GROUPED_TYPE, "TYPE", 0, "Type", ""},
 		{NODE_SELECT_GROUPED_COLOR, "COLOR", 0, "Color", ""},
 		{NODE_SELECT_GROUPED_PREFIX, "PREFIX", 0, "Prefix", ""},

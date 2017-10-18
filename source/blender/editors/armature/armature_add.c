@@ -778,7 +778,7 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_symmetrize(wmOperatorType *ot)
 {
 	/* subset of 'rna_enum_symmetrize_direction_items' */
-	static EnumPropertyItem arm_symmetrize_direction_items[] = {
+	static const EnumPropertyItem arm_symmetrize_direction_items[] = {
 		{-1, "NEGATIVE_X", 0, "-X to +X", ""},
 		{+1, "POSITIVE_X", 0, "+X to -X", ""},
 		{0, NULL, 0, NULL, NULL}

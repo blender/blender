@@ -45,7 +45,7 @@
 
 #include "WM_types.h"
 
-EnumPropertyItem rna_enum_prop_dynamicpaint_type_items[] = {
+const EnumPropertyItem rna_enum_prop_dynamicpaint_type_items[] = {
 	{MOD_DYNAMICPAINT_TYPE_CANVAS, "CANVAS", 0, "Canvas", ""},
 	{MOD_DYNAMICPAINT_TYPE_BRUSH, "BRUSH", 0, "Brush", ""},
 	{0, NULL, 0, NULL, NULL}
@@ -246,7 +246,7 @@ static int rna_DynamicPaint_is_output_exists(DynamicPaintSurface *surface, Objec
 }
 
 
-static EnumPropertyItem *rna_DynamicPaint_surface_type_itemf(
+static const EnumPropertyItem *rna_DynamicPaint_surface_type_itemf(
         bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	DynamicPaintSurface *surface = (DynamicPaintSurface *)ptr->data;
@@ -332,7 +332,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	FunctionRNA *func;
 
 	/*  Surface format */
-	static EnumPropertyItem prop_dynamicpaint_surface_format[] = {
+	static const EnumPropertyItem prop_dynamicpaint_surface_format[] = {
 		/*{MOD_DPAINT_SURFACE_F_PTEX, "PTEX", ICON_TEXTURE_SHADED, "Ptex", ""}, */
 		{MOD_DPAINT_SURFACE_F_VERTEX, "VERTEX", ICON_OUTLINER_DATA_MESH, "Vertex", ""},
 		{MOD_DPAINT_SURFACE_F_IMAGESEQ, "IMAGE", ICON_FILE_IMAGE, "Image Sequence", ""},
@@ -340,20 +340,20 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	};
 
 	/*  Surface type - generated dynamically based on surface format */
-	static EnumPropertyItem prop_dynamicpaint_surface_type[] = {
+	static const EnumPropertyItem prop_dynamicpaint_surface_type[] = {
 		{MOD_DPAINT_SURFACE_T_PAINT, "PAINT", 0, "Paint", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
 	/*  Surface output preview. currently only paint has multiple outputs */
-	static EnumPropertyItem prop_dynamicpaint_surface_preview[] = {
+	static const EnumPropertyItem prop_dynamicpaint_surface_preview[] = {
 		{MOD_DPAINT_SURFACE_PREV_PAINT, "PAINT", 0, "Paint", ""},
 		{MOD_DPAINT_SURFACE_PREV_WETMAP, "WETMAP", 0, "Wetmap", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
 	/*  Initial color setting */
-	static EnumPropertyItem prop_dynamicpaint_init_color_type[] = {
+	static const EnumPropertyItem prop_dynamicpaint_init_color_type[] = {
 		{MOD_DPAINT_INITIAL_NONE, "NONE", 0, "None", ""},
 		{MOD_DPAINT_INITIAL_COLOR, "COLOR", ICON_COLOR, "Color", ""},
 		{MOD_DPAINT_INITIAL_TEXTURE, "TEXTURE", ICON_TEXTURE, "UV Texture", ""},
@@ -363,7 +363,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 
 	/*  Effect type
 	 *   Only used by ui to view per effect settings */
-	static EnumPropertyItem prop_dynamicpaint_effecttype[] = {
+	static const EnumPropertyItem prop_dynamicpaint_effecttype[] = {
 		{1, "SPREAD", 0, "Spread", ""},
 		{2, "DRIP", 0, "Drip", ""},
 		{3, "SHRINK", 0, "Shrink", ""},
@@ -371,7 +371,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	};
 
 	/* Displacemap file format */
-	static EnumPropertyItem prop_dynamicpaint_image_fileformat[] = {
+	static const EnumPropertyItem prop_dynamicpaint_image_fileformat[] = {
 		{MOD_DPAINT_IMGFORMAT_PNG, "PNG", 0, "PNG", ""},
 #ifdef WITH_OPENEXR
 		{MOD_DPAINT_IMGFORMAT_OPENEXR, "OPENEXR", 0, "OpenEXR", ""},
@@ -380,7 +380,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	};
 
 	/* Displacemap type */
-	static EnumPropertyItem prop_dynamicpaint_displace_type[] = {
+	static const EnumPropertyItem prop_dynamicpaint_displace_type[] = {
 		{MOD_DPAINT_DISP_DISPLACE, "DISPLACE", 0, "Displacement", ""},
 		{MOD_DPAINT_DISP_DEPTH, "DEPTH", 0, "Depth", ""},
 		{0, NULL, 0, NULL, NULL}
@@ -773,7 +773,7 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	/* paint collision type */
-	static EnumPropertyItem prop_dynamicpaint_collisiontype[] = {
+	static const EnumPropertyItem prop_dynamicpaint_collisiontype[] = {
 		{MOD_DPAINT_COL_PSYS, "PARTICLE_SYSTEM", ICON_PARTICLES, "Particle System", ""},
 		{MOD_DPAINT_COL_POINT, "POINT", ICON_META_EMPTY, "Object Center", ""},
 		{MOD_DPAINT_COL_DIST, "DISTANCE", ICON_META_EMPTY, "Proximity", ""},
@@ -782,14 +782,14 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_dynamicpaint_prox_falloff[] = {
+	static const EnumPropertyItem prop_dynamicpaint_prox_falloff[] = {
 		{MOD_DPAINT_PRFALL_SMOOTH, "SMOOTH", ICON_SPHERECURVE, "Smooth", ""},
 		{MOD_DPAINT_PRFALL_CONSTANT, "CONSTANT", ICON_NOCURVE, "Constant", ""},
 		{MOD_DPAINT_PRFALL_RAMP, "RAMP", ICON_COLOR, "Color Ramp", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_dynamicpaint_brush_wave_type[] = {
+	static const EnumPropertyItem prop_dynamicpaint_brush_wave_type[] = {
 		{MOD_DPAINT_WAVEB_CHANGE, "CHANGE", 0, "Depth Change", ""},
 		{MOD_DPAINT_WAVEB_DEPTH, "DEPTH", 0, "Obstacle", ""},
 		{MOD_DPAINT_WAVEB_FORCE, "FORCE", 0, "Force", ""},
@@ -797,7 +797,7 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_dynamicpaint_brush_ray_dir[] = {
+	static const EnumPropertyItem prop_dynamicpaint_brush_ray_dir[] = {
 		{MOD_DPAINT_RAY_CANVAS, "CANVAS", 0, "Canvas Normal", ""},
 		{MOD_DPAINT_RAY_BRUSH_AVG, "BRUSH", 0, "Brush Normal", ""},
 		{MOD_DPAINT_RAY_ZPLUS, "Z_AXIS", 0, "Z-Axis", ""},

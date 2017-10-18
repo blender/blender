@@ -1910,7 +1910,7 @@ static int node_output_file_move_active_socket_exec(bContext *C, wmOperator *op)
 
 void NODE_OT_output_file_move_active_socket(wmOperatorType *ot)
 {
-	static EnumPropertyItem direction_items[] = {
+	static const EnumPropertyItem direction_items[] = {
 		{1, "UP", 0, "Up", ""},
 		{2, "DOWN", 0, "Down", ""},
 		{ 0, NULL, 0, NULL, NULL }
@@ -2278,7 +2278,7 @@ void NODE_OT_tree_socket_remove(wmOperatorType *ot)
 
 /********************** Move interface socket operator *********************/
 
-static EnumPropertyItem move_direction_items[] = {
+static const EnumPropertyItem move_direction_items[] = {
 	{ 1, "UP", 0, "Up", "" },
 	{ 2, "DOWN", 0, "Down", "" },
 	{ 0, NULL, 0, NULL, NULL },

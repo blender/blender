@@ -975,7 +975,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	static EnumPropertyItem prop_drawtype_items[] = {
+	static const EnumPropertyItem prop_drawtype_items[] = {
 		{ARM_OCTA, "OCTAHEDRAL", 0, "Octahedral", "Display bones as octahedral shape (default)"},
 		{ARM_LINE, "STICK", 0, "Stick", "Display bones as simple 2D lines with dots"},
 		{ARM_B_BONE, "BBONE", 0, "B-Bone", "Display bones as boxes, showing subdivision and B-Splines"},
@@ -984,12 +984,12 @@ static void rna_def_armature(BlenderRNA *brna)
 		{ARM_WIRE, "WIRE", 0, "Wire", "Display bones as thin wires, showing subdivision and B-Splines"},
 		{0, NULL, 0, NULL, NULL}
 	};
-	static EnumPropertyItem prop_vdeformer[] = {
+	static const EnumPropertyItem prop_vdeformer[] = {
 		{ARM_VDEF_BLENDER, "BLENDER", 0, "Blender", "Use Blender's armature vertex deformation"},
 		{ARM_VDEF_BGE_CPU, "BGE_CPU", 0, "BGE", "Use vertex deformation code optimized for the BGE"},
 		{0, NULL, 0, NULL, NULL}
 	};
-	static EnumPropertyItem prop_ghost_type_items[] = {
+	static const EnumPropertyItem prop_ghost_type_items[] = {
 		{ARM_GHOST_CUR, "CURRENT_FRAME", 0, "Around Frame",
 		                "Display Ghosts of poses within a fixed number of frames around the current frame"},
 		{ARM_GHOST_RANGE, "RANGE", 0, "In Range", "Display Ghosts of poses within specified range"},

@@ -41,7 +41,7 @@
 
 #include "WM_types.h"
 
-EnumPropertyItem rna_enum_controller_type_items[] = {
+const EnumPropertyItem rna_enum_controller_type_items[] = {
 	{CONT_LOGIC_AND, "LOGIC_AND", 0, "And", "Logic And"},
 	{CONT_LOGIC_OR, "LOGIC_OR", 0, "Or", "Logic Or"},
 	{CONT_LOGIC_NAND, "LOGIC_NAND", 0, "Nand", "Logic Nand"},
@@ -190,7 +190,7 @@ void RNA_def_controller(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem python_controller_modes[] = {
+	static const EnumPropertyItem python_controller_modes[] = {
 		{CONT_PY_SCRIPT, "SCRIPT", 0, "Script", ""},
 		{CONT_PY_MODULE, "MODULE", 0, "Module", ""},
 		{0, NULL, 0, NULL, NULL}

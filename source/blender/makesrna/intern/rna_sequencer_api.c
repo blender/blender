@@ -457,7 +457,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
 	PropertyRNA *parm;
 	FunctionRNA *func;
 
-	static EnumPropertyItem seq_effect_items[] = {
+	static const EnumPropertyItem seq_effect_items[] = {
 		{SEQ_TYPE_CROSS, "CROSS", 0, "Cross", ""},
 		{SEQ_TYPE_ADD, "ADD", 0, "Add", ""},
 		{SEQ_TYPE_SUB, "SUBTRACT", 0, "Subtract", ""},

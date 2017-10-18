@@ -533,7 +533,7 @@ static int get_undo_system(bContext *C)
 }
 
 /* create enum based on undo items */
-static EnumPropertyItem *rna_undo_itemf(bContext *C, int undosys, int *totitem)
+static const EnumPropertyItem *rna_undo_itemf(bContext *C, int undosys, int *totitem)
 {
 	EnumPropertyItem item_tmp = {0}, *item = NULL;
 	int i = 0;
@@ -586,7 +586,7 @@ static int undo_history_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 	undosys = get_undo_system(C);
 	
 	if (undosys) {
-		EnumPropertyItem *item = rna_undo_itemf(C, undosys, &totitem);
+		const EnumPropertyItem *item = rna_undo_itemf(C, undosys, &totitem);
 		
 		if (totitem > 0) {
 			uiPopupMenu *pup = UI_popup_menu_begin(C, RNA_struct_ui_name(op->type->srna), ICON_NONE);
@@ -609,7 +609,7 @@ static int undo_history_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 				}
 			}
 			
-			MEM_freeN(item);
+			MEM_freeN((void *)item);
 			
 			UI_popup_menu_end(C, pup);
 		}

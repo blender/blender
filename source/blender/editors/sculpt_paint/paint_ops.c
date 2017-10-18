@@ -455,7 +455,7 @@ static int brush_select_exec(bContext *C, wmOperator *op)
 
 static void PAINT_OT_brush_select(wmOperatorType *ot)
 {
-	static EnumPropertyItem paint_mode_items[] = {
+	static const EnumPropertyItem paint_mode_items[] = {
 		{OB_MODE_ACTIVE, "ACTIVE", 0, "Current", "Set brush for active paint mode"},
 		{OB_MODE_SCULPT, "SCULPT", ICON_SCULPTMODE_HLT, "Sculpt", ""},
 		{OB_MODE_VERTEX_PAINT, "VERTEX_PAINT", ICON_VPAINT_HLT, "Vertex Paint", ""},
@@ -793,14 +793,14 @@ static int stencil_control_poll(bContext *C)
 
 static void BRUSH_OT_stencil_control(wmOperatorType *ot)
 {
-	static EnumPropertyItem stencil_control_items[] = {
+	static const EnumPropertyItem stencil_control_items[] = {
 		{STENCIL_TRANSLATE, "TRANSLATION", 0, "Translation", ""},
 		{STENCIL_SCALE, "SCALE", 0, "Scale", ""},
 		{STENCIL_ROTATE, "ROTATION", 0, "Rotation", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem stencil_texture_items[] = {
+	static const EnumPropertyItem stencil_texture_items[] = {
 		{STENCIL_PRIMARY, "PRIMARY", 0, "Primary", ""},
 		{STENCIL_SECONDARY, "SECONDARY", 0, "Secondary", ""},
 		{0, NULL, 0, NULL, NULL}

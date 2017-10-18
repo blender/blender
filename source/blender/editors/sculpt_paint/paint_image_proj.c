@@ -5645,7 +5645,7 @@ bool BKE_paint_proj_mesh_data_check(Scene *scene, Object *ob, bool *uvs, bool *m
 
 /* Add layer operator */
 
-static EnumPropertyItem layer_type_items[] = {
+static const EnumPropertyItem layer_type_items[] = {
 	{MAP_COL, "DIFFUSE_COLOR", 0, "Diffuse Color", ""},
 	{MAP_REF, "DIFFUSE_INTENSITY", 0, "Diffuse Intensity", ""},
 	{MAP_ALPHA, "ALPHA", 0, "Alpha", ""},

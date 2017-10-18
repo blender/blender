@@ -1114,7 +1114,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_origin_set(wmOperatorType *ot)
 {
-	static EnumPropertyItem prop_set_center_types[] = {
+	static const EnumPropertyItem prop_set_center_types[] = {
 		{GEOMETRY_TO_ORIGIN, "GEOMETRY_ORIGIN", 0, "Geometry to Origin", "Move object geometry to object origin"},
 		{ORIGIN_TO_GEOMETRY, "ORIGIN_GEOMETRY", 0, "Origin to Geometry",
 		 "Calculate the center of geometry based on the current pivot point (median, otherwise bounding-box)"},
@@ -1128,7 +1128,7 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}
 	};
 	
-	static EnumPropertyItem prop_set_bounds_types[] = {
+	static const EnumPropertyItem prop_set_bounds_types[] = {
 		{V3D_AROUND_CENTER_MEAN, "MEDIAN", 0, "Median Center", ""},
 		{V3D_AROUND_CENTER_BOUNDS, "BOUNDS", 0, "Bounds Center", ""},
 		{0, NULL, 0, NULL, NULL}

@@ -2872,7 +2872,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 			int i, defaultfound = 0, totflag = 0;
 
 			if (eprop->item) {
-				fprintf(f, "static EnumPropertyItem rna_%s%s_%s_items[%d] = {\n\t", srna->identifier,
+				fprintf(f, "static const EnumPropertyItem rna_%s%s_%s_items[%d] = {\n\t", srna->identifier,
 				        strnest, prop->identifier, eprop->totitem + 1);
 
 				for (i = 0; i < eprop->totitem; i++) {

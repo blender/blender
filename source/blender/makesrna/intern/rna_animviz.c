@@ -43,7 +43,7 @@
 
 /* Which part of bone(s) get baked */
 // TODO: icons?
-EnumPropertyItem rna_enum_motionpath_bake_location_items[] = {
+const EnumPropertyItem rna_enum_motionpath_bake_location_items[] = {
 	{MOTIONPATH_BAKE_HEADS, "HEADS", 0, "Heads", "Calculate bone paths from heads"},
 	{0, "TAILS", 0, "Tails", "Calculate bone paths from tails"},
 	//{MOTIONPATH_BAKE_CENTERS, "CENTROID", 0, "Centers", "Calculate bone paths from center of mass"},

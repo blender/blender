@@ -443,13 +443,13 @@ static int hide_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 void PAINT_OT_hide_show(struct wmOperatorType *ot)
 {
-	static EnumPropertyItem action_items[] = {
+	static const EnumPropertyItem action_items[] = {
 		{PARTIALVIS_HIDE, "HIDE", 0, "Hide", "Hide vertices"},
 		{PARTIALVIS_SHOW, "SHOW", 0, "Show", "Show vertices"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem area_items[] = {
+	static const EnumPropertyItem area_items[] = {
 		{PARTIALVIS_OUTSIDE, "OUTSIDE", 0, "Outside", "Hide or show vertices outside the selection"},
 		{PARTIALVIS_INSIDE, "INSIDE", 0, "Inside", "Hide or show vertices inside the selection"},
 		{PARTIALVIS_ALL, "ALL", 0, "All", "Hide or show all vertices"},

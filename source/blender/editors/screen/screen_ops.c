@@ -1786,7 +1786,7 @@ static int area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static EnumPropertyItem prop_direction_items[] = {
+static const EnumPropertyItem prop_direction_items[] = {
 	{'h', "HORIZONTAL", 0, "Horizontal", ""},
 	{'v', "VERTICAL", 0, "Vertical", ""},
 	{0, NULL, 0, NULL, NULL}
@@ -4081,7 +4081,7 @@ enum {
 	SPACE_CONTEXT_CYCLE_NEXT,
 };
 
-static EnumPropertyItem space_context_cycle_direction[] = {
+static const EnumPropertyItem space_context_cycle_direction[] = {
 	{SPACE_CONTEXT_CYCLE_PREV, "PREV", 0, "Previous", ""},
 	{SPACE_CONTEXT_CYCLE_NEXT, "NEXT", 0, "Next", ""},
 	{0, NULL, 0, NULL, NULL}
@@ -4220,7 +4220,7 @@ void ED_operatortypes_screen(void)
 
 static void keymap_modal_set(wmKeyConfig *keyconf)
 {
-	static EnumPropertyItem modal_items[] = {
+	static const EnumPropertyItem modal_items[] = {
 		{KM_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
 		{KM_MODAL_APPLY, "APPLY", 0, "Apply", ""},
 		{KM_MODAL_STEP10, "STEP10", 0, "Steps on", ""},

@@ -3302,7 +3302,7 @@ static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *bu
 	uiBut *but = (uiBut *)but_p;
 
 	/* see comment in ui_item_enum_expand, re: uiname  */
-	EnumPropertyItem *item, *item_array;
+	const EnumPropertyItem *item, *item_array;
 	bool free;
 
 	uiLayout *split, *column = NULL;
@@ -3412,9 +3412,8 @@ static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *bu
 	UI_block_layout_set_current(block, layout);
 
 	if (free) {
-		MEM_freeN(item_array);
+		MEM_freeN((void *)item_array);
 	}
-
 	BLI_assert((block->flag & UI_BLOCK_IS_FLIP) == 0);
 	block->flag |= UI_BLOCK_IS_FLIP;
 }
@@ -3445,7 +3444,7 @@ static uiBut *ui_def_but_rna(
 	/* use rna values if parameters are not specified */
 	if ((proptype == PROP_ENUM) && ELEM(type, UI_BTYPE_MENU, UI_BTYPE_ROW, UI_BTYPE_LISTROW)) {
 		/* UI_BTYPE_MENU is handled a little differently here */
-		EnumPropertyItem *item;
+		const EnumPropertyItem *item;
 		int value;
 		bool free;
 		int i;
@@ -3487,7 +3486,7 @@ static uiBut *ui_def_but_rna(
 		}
 
 		if (free) {
-			MEM_freeN(item);
+			MEM_freeN((void *)item);
 		}
 	}
 	else {
@@ -4449,7 +4448,7 @@ static void operator_enum_search_cb(const struct bContext *C, void *but, const c
 	}
 	else {
 		PointerRNA *ptr = UI_but_operator_ptr_get(but);  /* Will create it if needed! */
-		EnumPropertyItem *item, *item_array;
+		const EnumPropertyItem *item, *item_array;
 		bool do_free;
 
 		RNA_property_enum_items_gettexted((bContext *)C, ptr, prop, &item_array, NULL, &do_free);
@@ -4462,8 +4461,9 @@ static void operator_enum_search_cb(const struct bContext *C, void *but, const c
 			}
 		}
 
-		if (do_free)
-			MEM_freeN(item_array);
+		if (do_free) {
+			MEM_freeN((void *)item_array);
+		}
 	}
 }
 
@@ -4537,7 +4537,7 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
 	va_list args;
 	uiStringInfo *si;
 
-	EnumPropertyItem *items = NULL, *item = NULL;
+	const EnumPropertyItem *items = NULL, *item = NULL;
 	int totitems;
 	bool free_items = false;
 
@@ -4716,8 +4716,9 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
 	}
 	va_end(args);
 
-	if (free_items && items)
-		MEM_freeN(items);
+	if (free_items && items) {
+		MEM_freeN((void *)items);
+	}
 }
 
 /* Program Init/Exit */

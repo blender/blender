@@ -219,8 +219,8 @@ void RNA_def_parameter_clear_flags(PropertyRNA *prop, PropertyFlag flag_property
 
 void RNA_enum_item_add(EnumPropertyItem **items, int *totitem, const EnumPropertyItem *item);
 void RNA_enum_item_add_separator(EnumPropertyItem **items, int *totitem);
-void RNA_enum_items_add(EnumPropertyItem **items, int *totitem, EnumPropertyItem *item);
-void RNA_enum_items_add_value(EnumPropertyItem **items, int *totitem, EnumPropertyItem *item, int value);
+void RNA_enum_items_add(EnumPropertyItem **items, int *totitem, const EnumPropertyItem *item);
+void RNA_enum_items_add_value(EnumPropertyItem **items, int *totitem, const EnumPropertyItem *item, int value);
 void RNA_enum_item_end(EnumPropertyItem **items, int *totitem);
 
 /* Memory management */

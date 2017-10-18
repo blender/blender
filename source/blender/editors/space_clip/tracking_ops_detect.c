@@ -128,7 +128,7 @@ static int detect_features_exec(bContext *C, wmOperator *op)
 
 void CLIP_OT_detect_features(wmOperatorType *ot)
 {
-	static EnumPropertyItem placement_items[] = {
+	static const EnumPropertyItem placement_items[] = {
 		{0, "FRAME",            0, "Whole Frame",
 		 "Place markers across the whole frame"},
 		{1, "INSIDE_GPENCIL",   0, "Inside grease pencil",

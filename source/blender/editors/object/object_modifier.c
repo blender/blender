@@ -752,10 +752,12 @@ static int modifier_add_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static EnumPropertyItem *modifier_add_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *modifier_add_itemf(
+        bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {	
 	Object *ob = ED_object_active_context(C);
-	EnumPropertyItem *item = NULL, *md_item, *group_item = NULL;
+	EnumPropertyItem *item = NULL;
+	const EnumPropertyItem *md_item, *group_item = NULL;
 	const ModifierTypeInfo *mti;
 	int totitem = 0, a;
 	
@@ -1027,7 +1029,7 @@ static int modifier_apply_invoke(bContext *C, wmOperator *op, const wmEvent *UNU
 		return OPERATOR_CANCELLED;
 }
 
-static EnumPropertyItem modifier_apply_as_items[] = {
+static const EnumPropertyItem modifier_apply_as_items[] = {
 	{MODIFIER_APPLY_DATA, "DATA", 0, "Object Data", "Apply modifier to the object's data"},
 	{MODIFIER_APPLY_SHAPE, "SHAPE", 0, "New Shape", "Apply deform-only modifier to a new shape on this object"},
 	{0, NULL, 0, NULL, NULL}
@@ -1585,7 +1587,7 @@ static int skin_loose_mark_clear_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_skin_loose_mark_clear(wmOperatorType *ot)
 {
-	static EnumPropertyItem action_items[] = {
+	static const EnumPropertyItem action_items[] = {
 		{SKIN_LOOSE_MARK, "MARK", 0, "Mark", "Mark selected vertices as loose"},
 		{SKIN_LOOSE_CLEAR, "CLEAR", 0, "Clear", "Set selected vertices as not loose"},
 		{0, NULL, 0, NULL, NULL}

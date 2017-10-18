@@ -592,7 +592,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 
 void POSE_OT_select_hierarchy(wmOperatorType *ot)
 {
-	static EnumPropertyItem direction_items[] = {
+	static const EnumPropertyItem direction_items[] = {
 		{BONE_SELECT_PARENT, "PARENT", 0, "Select Parent", ""},
 		{BONE_SELECT_CHILD, "CHILD", 0, "Select Child", ""},
 		{0, NULL, 0, NULL, NULL}
@@ -841,7 +841,7 @@ static int pose_select_grouped_exec(bContext *C, wmOperator *op)
 
 void POSE_OT_select_grouped(wmOperatorType *ot)
 {
-	static EnumPropertyItem prop_select_grouped_types[] = {
+	static const EnumPropertyItem prop_select_grouped_types[] = {
 		{POSE_SEL_SAME_LAYER, "LAYER", 0, "Layer", "Shared layers"},
 		{POSE_SEL_SAME_GROUP, "GROUP", 0, "Group", "Shared group"},
 		{POSE_SEL_SAME_KEYINGSET, "KEYINGSET", 0, "Keying Set", "All bones affected by active Keying Set"},

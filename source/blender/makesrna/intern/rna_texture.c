@@ -52,7 +52,7 @@
 #include "WM_types.h"
 
 #ifndef RNA_RUNTIME
-static EnumPropertyItem texture_filter_items[] = {
+static const EnumPropertyItem texture_filter_items[] = {
 	{TXF_BOX, "BOX", 0, "Box", ""},
 	{TXF_EWA, "EWA", 0, "EWA", ""},
 	{TXF_FELINE, "FELINE", 0, "FELINE", ""},
@@ -61,7 +61,7 @@ static EnumPropertyItem texture_filter_items[] = {
 };
 #endif
 
-EnumPropertyItem rna_enum_texture_type_items[] = {
+const EnumPropertyItem rna_enum_texture_type_items[] = {
 	{0, "NONE", 0, "None", ""},
 	{TEX_BLEND, "BLEND", ICON_TEXTURE, "Blend", "Procedural - create a ramp texture"},
 	{TEX_CLOUDS, "CLOUDS", ICON_TEXTURE, "Clouds", "Procedural - create a cloud-like fractal noise texture"},
@@ -85,7 +85,7 @@ EnumPropertyItem rna_enum_texture_type_items[] = {
 };
 
 #ifndef RNA_RUNTIME
-static EnumPropertyItem blend_type_items[] = {
+static const EnumPropertyItem blend_type_items[] = {
 	{MTEX_BLEND, "MIX", 0, "Mix", ""},
 	{MTEX_ADD, "ADD", 0, "Add", ""},
 	{MTEX_SUB, "SUBTRACT", 0, "Subtract", ""},
@@ -362,8 +362,9 @@ static int rna_TextureSlot_output_node_get(PointerRNA *ptr)
 }
 
 
-static EnumPropertyItem *rna_TextureSlot_output_node_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                           PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *rna_TextureSlot_output_node_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr,
+        PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	MTex *mtex = ptr->data;
 	Tex *tex = mtex->tex;
@@ -483,7 +484,7 @@ static char *rna_OceanTex_path(PointerRNA *UNUSED(ptr))
 
 static void rna_def_texmapping(BlenderRNA *brna)
 {
-	static EnumPropertyItem prop_mapping_items[] = {
+	static const EnumPropertyItem prop_mapping_items[] = {
 		{MTEX_FLAT, "FLAT", 0, "Flat", "Map X and Y coordinates directly"},
 		{MTEX_CUBE, "CUBE", 0, "Cube", "Map using the normal vector"},
 		{MTEX_TUBE, "TUBE", 0, "Tube", "Map with Z as central axis"},
@@ -491,7 +492,7 @@ static void rna_def_texmapping(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 		
-	static EnumPropertyItem prop_vect_type_items[] = {
+	static const EnumPropertyItem prop_vect_type_items[] = {
 		{TEXMAP_TYPE_TEXTURE, "TEXTURE", 0, "Texture", "Transform a texture by inverse mapping the texture coordinate"},
 		{TEXMAP_TYPE_POINT,   "POINT",   0, "Point",   "Transform a point"},
 		{TEXMAP_TYPE_VECTOR,  "VECTOR",  0, "Vector",  "Transform a direction vector"},
@@ -499,7 +500,7 @@ static void rna_def_texmapping(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_xyz_mapping_items[] = {
+	static const EnumPropertyItem prop_xyz_mapping_items[] = {
 		{0, "NONE", 0, "None", ""},
 		{1, "X", 0, "X", ""},
 		{2, "Y", 0, "Y", ""},
@@ -636,7 +637,7 @@ static void rna_def_mtex(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem output_node_items[] = {
+	static const EnumPropertyItem output_node_items[] = {
 		{0, "DUMMY", 0, "Dummy", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
@@ -782,14 +783,14 @@ static void rna_def_environment_map(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_source_items[] = {
+	static const EnumPropertyItem prop_source_items[] = {
 		{ENV_STATIC, "STATIC", 0, "Static", "Calculate environment map only once"},
 		{ENV_ANIM, "ANIMATED", 0, "Animated", "Calculate environment map at each rendering"},
 		{ENV_LOAD, "IMAGE_FILE", 0, "Image File", "Load a saved environment map image from disk"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
-	static EnumPropertyItem prop_mapping_items[] = {
+	static const EnumPropertyItem prop_mapping_items[] = {
 		{ENV_CUBE, "CUBE", 0, "Cube", "Use environment map with six cube sides"},
 		{ENV_PLANE, "PLANE", 0, "Plane", "Only one side is rendered, with Z axis pointing in direction of image"},
 		{0, NULL, 0, NULL, NULL}
@@ -865,7 +866,7 @@ static void rna_def_environment_map(BlenderRNA *brna)
 	RNA_api_environment_map(srna);
 }
 
-static EnumPropertyItem prop_noise_basis_items[] = {
+static const EnumPropertyItem prop_noise_basis_items[] = {
 	{TEX_BLENDER, "BLENDER_ORIGINAL", 0, "Blender Original",
 	              "Noise algorithm - Blender original: Smooth interpolated noise"},
 	{TEX_STDPERLIN, "ORIGINAL_PERLIN", 0, "Original Perlin",
@@ -888,7 +889,7 @@ static EnumPropertyItem prop_noise_basis_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static EnumPropertyItem prop_noise_type[] = {
+static const EnumPropertyItem prop_noise_type[] = {
 	{TEX_NOISESOFT, "SOFT_NOISE", 0, "Soft", "Generate soft noise (smooth transitions)"},
 	{TEX_NOISEPERL, "HARD_NOISE", 0, "Hard", "Generate hard noise (sharp transitions)"},
 	{0, NULL, 0, NULL, NULL}
@@ -900,7 +901,7 @@ static void rna_def_texture_clouds(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_clouds_stype[] = {
+	static const EnumPropertyItem prop_clouds_stype[] = {
 		{TEX_DEFAULT, "GRAYSCALE", 0, "Grayscale", ""},
 		{TEX_COLOR, "COLOR", 0, "Color", ""},
 		{0, NULL, 0, NULL, NULL}
@@ -954,7 +955,7 @@ static void rna_def_texture_wood(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_wood_stype[] = {
+	static const EnumPropertyItem prop_wood_stype[] = {
 		{TEX_BAND, "BANDS", 0, "Bands", "Use standard wood texture in bands"},
 		{TEX_RING, "RINGS", 0, "Rings", "Use wood texture in rings"},
 		{TEX_BANDNOISE, "BANDNOISE", 0, "Band Noise", "Add noise to standard wood"},
@@ -962,7 +963,7 @@ static void rna_def_texture_wood(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_wood_noisebasis2[] = {
+	static const EnumPropertyItem prop_wood_noisebasis2[] = {
 		{TEX_SIN, "SIN", 0, "Sine", "Use a sine wave to produce bands"},
 		{TEX_SAW, "SAW", 0, "Saw", "Use a saw wave to produce bands"},
 		{TEX_TRI, "TRI", 0, "Tri", "Use a triangle wave to produce bands"},
@@ -1024,14 +1025,14 @@ static void rna_def_texture_marble(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_marble_stype[] = {
+	static const EnumPropertyItem prop_marble_stype[] = {
 		{TEX_SOFT, "SOFT", 0, "Soft", "Use soft marble"},
 		{TEX_SHARP, "SHARP", 0, "Sharp", "Use more clearly defined marble"},
 		{TEX_SHARPER, "SHARPER", 0, "Sharper", "Use very clearly defined marble"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_marble_noisebasis2[] = {
+	static const EnumPropertyItem prop_marble_noisebasis2[] = {
 		{TEX_SIN, "SIN", 0, "Sin", "Use a sine wave to produce bands"},
 		{TEX_SAW, "SAW", 0, "Saw", "Use a saw wave to produce bands"},
 		{TEX_TRI, "TRI", 0, "Tri", "Use a triangle wave to produce bands"},
@@ -1124,7 +1125,7 @@ static void rna_def_texture_blend(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_blend_progression[] = {
+	static const EnumPropertyItem prop_blend_progression[] = {
 		{TEX_LIN, "LINEAR", 0, "Linear", "Create a linear progression"},
 		{TEX_QUAD, "QUADRATIC", 0, "Quadratic", "Create a quadratic progression"},
 		{TEX_EASE, "EASING", 0, "Easing", "Create a progression easing from one step to the next"},
@@ -1165,7 +1166,7 @@ static void rna_def_texture_stucci(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_stucci_stype[] = {
+	static const EnumPropertyItem prop_stucci_stype[] = {
 		{TEX_PLASTIC, "PLASTIC", 0, "Plastic", "Use standard stucci"},
 		{TEX_WALLIN, "WALL_IN", 0, "Wall in", "Create Dimples"},
 		{TEX_WALLOUT, "WALL_OUT", 0, "Wall out", "Create Ridges"},
@@ -1223,7 +1224,7 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_image_extension[] = {
+	static const EnumPropertyItem prop_image_extension[] = {
 		{TEX_EXTEND, "EXTEND", 0, "Extend", "Extend by repeating edge pixels of the image"},
 		{TEX_CLIP, "CLIP", 0, "Clip", "Clip to image size and set exterior pixels as transparent"},
 		{TEX_CLIPCUBE, "CLIP_CUBE", 0, "Clip Cube",
@@ -1414,7 +1415,7 @@ static void rna_def_texture_musgrave(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_musgrave_type[] = {
+	static const EnumPropertyItem prop_musgrave_type[] = {
 		{TEX_MFRACTAL, "MULTIFRACTAL", 0, "Multifractal", "Use Perlin noise as a basis"},
 		{TEX_RIDGEDMF, "RIDGED_MULTIFRACTAL", 0, "Ridged Multifractal",
 		               "Use Perlin noise with inflection as a basis"},
@@ -1496,7 +1497,7 @@ static void rna_def_texture_voronoi(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_distance_metric_items[] = {
+	static const EnumPropertyItem prop_distance_metric_items[] = {
 		{TEX_DISTANCE, "DISTANCE", 0, "Actual Distance", "sqrt(x*x+y*y+z*z)"},
 		{TEX_DISTANCE_SQUARED, "DISTANCE_SQUARED", 0, "Distance Squared", "(x*x+y*y+z*z)"},
 		{TEX_MANHATTAN, "MANHATTAN", 0, "Manhattan",
@@ -1513,7 +1514,7 @@ static void rna_def_texture_voronoi(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_coloring_items[] = {
+	static const EnumPropertyItem prop_coloring_items[] = {
 		/* XXX: OK names / descriptions? */
 		{TEX_INTENSITY, "INTENSITY", 0, "Intensity", "Only calculate intensity"},
 		{TEX_COL1, "POSITION", 0, "Position", "Color cells by position"},
@@ -1636,28 +1637,28 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	static EnumPropertyItem point_source_items[] = {
+	static const EnumPropertyItem point_source_items[] = {
 		{TEX_PD_PSYS, "PARTICLE_SYSTEM", 0, "Particle System", "Generate point density from a particle system"},
 		{TEX_PD_OBJECT, "OBJECT", 0, "Object Vertices", "Generate point density from an object's vertices"},
 		/*{TEX_PD_FILE, "FILE", 0, "File", ""}, */
 		{0, NULL, 0, NULL, NULL}
 	};
 	
-	static EnumPropertyItem particle_cache_items[] = {
+	static const EnumPropertyItem particle_cache_items[] = {
 		{TEX_PD_OBJECTLOC, "OBJECT_LOCATION", 0, "Emit Object Location", ""},
 		{TEX_PD_OBJECTSPACE, "OBJECT_SPACE", 0, "Emit Object Space", ""},
 		{TEX_PD_WORLDSPACE, "WORLD_SPACE", 0, "Global Space", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 		
-	static EnumPropertyItem vertex_cache_items[] = {
+	static const EnumPropertyItem vertex_cache_items[] = {
 		{TEX_PD_OBJECTLOC, "OBJECT_LOCATION", 0, "Object Location", ""},
 		{TEX_PD_OBJECTSPACE, "OBJECT_SPACE", 0, "Object Space", ""},
 		{TEX_PD_WORLDSPACE, "WORLD_SPACE", 0, "Global Space", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem falloff_items[] = {
+	static const EnumPropertyItem falloff_items[] = {
 		{TEX_PD_FALLOFF_STD, "STANDARD", 0, "Standard", ""},
 		{TEX_PD_FALLOFF_SMOOTH, "SMOOTH", 0, "Smooth", ""},
 		{TEX_PD_FALLOFF_SOFT, "SOFT", 0, "Soft", ""},
@@ -1668,7 +1669,7 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 	
-	static EnumPropertyItem particle_color_source_items[] = {
+	static const EnumPropertyItem particle_color_source_items[] = {
 		{TEX_PD_COLOR_CONSTANT, "CONSTANT", 0, "Constant", ""},
 		{TEX_PD_COLOR_PARTAGE, "PARTICLE_AGE", 0, "Particle Age", "Lifetime mapped as 0.0 - 1.0 intensity"},
 		{TEX_PD_COLOR_PARTSPEED, "PARTICLE_SPEED", 0, "Particle Speed",
@@ -1677,7 +1678,7 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 	
-	static EnumPropertyItem vertex_color_source_items[] = {
+	static const EnumPropertyItem vertex_color_source_items[] = {
 		{TEX_PD_COLOR_CONSTANT, "CONSTANT", 0, "Constant", ""},
 		{TEX_PD_COLOR_VERTCOL, "VERTEX_COLOR", 0, "Vertex Color", "Vertex color layer"},
 		{TEX_PD_COLOR_VERTWEIGHT, "VERTEX_WEIGHT", 0, "Vertex Weight", "Vertex group weight"},
@@ -1685,7 +1686,7 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 	
-	static EnumPropertyItem turbulence_influence_items[] = {
+	static const EnumPropertyItem turbulence_influence_items[] = {
 		{TEX_PD_NOISE_STATIC, "STATIC", 0, "Static",
 		                      "Noise patterns will remain unchanged, faster and suitable for stills"},
 		{TEX_PD_NOISE_VEL, "PARTICLE_VELOCITY", 0, "Particle Velocity",
@@ -1849,7 +1850,7 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	static EnumPropertyItem interpolation_type_items[] = {
+	static const EnumPropertyItem interpolation_type_items[] = {
 		{TEX_VD_NEARESTNEIGHBOR, "NEREASTNEIGHBOR", 0, "Nearest Neighbor",
 		                         "No interpolation, fast but blocky and low quality"},
 		{TEX_VD_LINEAR, "TRILINEAR", 0, "Linear", "Good smoothness and speed"},
@@ -1860,7 +1861,7 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem file_format_items[] = {
+	static const EnumPropertyItem file_format_items[] = {
 		{TEX_VD_BLENDERVOXEL, "BLENDER_VOXEL", 0, "Blender Voxel", "Default binary voxel file format"},
 		{TEX_VD_RAW_8BIT, "RAW_8BIT", 0, "8 bit RAW", "8 bit grayscale binary data"},
 		/*{TEX_VD_RAW_16BIT, "RAW_16BIT", 0, "16 bit RAW", ""}, */
@@ -1871,14 +1872,14 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 	
-	static EnumPropertyItem voxeldata_extension[] = {
+	static const EnumPropertyItem voxeldata_extension[] = {
 		{TEX_EXTEND, "EXTEND", 0, "Extend", "Extend by repeating edge pixels of the image"},
 		{TEX_CLIP, "CLIP", 0, "Clip", "Clip to image size and set exterior pixels as transparent"},
 		{TEX_REPEAT, "REPEAT", 0, "Repeat", "Cause the image to repeat horizontally and vertically"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem smoked_type_items[] = {
+	static const EnumPropertyItem smoked_type_items[] = {
 		{TEX_VD_SMOKEDENSITY, "SMOKEDENSITY", 0, "Smoke", "Use smoke density and color as texture data"},
 		{TEX_VD_SMOKEFLAME, "SMOKEFLAME", 0, "Flame", "Use flame temperature as texture data"},
 		{TEX_VD_SMOKEHEAT, "SMOKEHEAT", 0, "Heat", "Use smoke heat as texture data. Values from -2.0 to 2.0 are used"},
@@ -1886,7 +1887,7 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem hair_type_items[] = {
+	static const EnumPropertyItem hair_type_items[] = {
 		{TEX_VD_HAIRDENSITY, "HAIRDENSITY", 0, "Density", "Use hair density as texture data"},
 		{TEX_VD_HAIRRESTDENSITY, "HAIRRESTDENSITY", 0, "Rest Density", "Use hair rest density as texture data"},
 		{TEX_VD_HAIRVELOCITY, "HAIRVELOCITY", 0, "Velocity", "Use hair velocity as texture data"},
@@ -1993,7 +1994,7 @@ static void rna_def_texture_ocean(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	static EnumPropertyItem ocean_output_items[] = {
+	static const EnumPropertyItem ocean_output_items[] = {
 		{TEX_OCN_DISPLACEMENT, "DISPLACEMENT", 0, "Displacement", "Output XYZ displacement in RGB channels"},
 		/*{TEX_OCN_NORMALS, "NORMALS", 0, "Normals", "Outputs wave normals"},	 *//* these are in nor channel now */
 		{TEX_OCN_FOAM, "FOAM", 0, "Foam", "Output Foam (wave overlap) amount in single channel"},

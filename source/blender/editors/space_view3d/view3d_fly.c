@@ -99,7 +99,7 @@ typedef enum eFlyPanState {
 /* called in transform_ops.c, on each regeneration of keymaps  */
 void fly_modal_keymap(wmKeyConfig *keyconf)
 {
-	static EnumPropertyItem modal_items[] = {
+	static const EnumPropertyItem modal_items[] = {
 		{FLY_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
 		{FLY_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},
 		{FLY_MODAL_ACCELERATE, "ACCELERATE", 0, "Accelerate", ""},

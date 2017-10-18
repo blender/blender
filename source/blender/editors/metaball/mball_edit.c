@@ -188,7 +188,7 @@ enum {
 	SIMMBALL_ROTATION
 };
 
-static EnumPropertyItem prop_similar_types[] = {
+static const EnumPropertyItem prop_similar_types[] = {
 	{SIMMBALL_TYPE, "TYPE", 0, "Type", ""},
 	{SIMMBALL_RADIUS, "RADIUS", 0, "Radius", ""},
 	{SIMMBALL_STIFFNESS, "STIFFNESS", 0, "Stiffness", ""},

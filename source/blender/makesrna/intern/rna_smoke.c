@@ -405,7 +405,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_noise_type_items[] = {
+	static const EnumPropertyItem prop_noise_type_items[] = {
 		{MOD_SMOKE_NOISEWAVE, "NOISEWAVE", 0, "Wavelet", ""},
 #ifdef WITH_FFTW3
 		{MOD_SMOKE_NOISEFFT, "NOISEFFT", 0, "FFT", ""},
@@ -414,7 +414,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_compression_items[] = {
+	static const EnumPropertyItem prop_compression_items[] = {
 		{ VDB_COMPRESSION_ZIP, "ZIP", 0, "Zip", "Effective but slow compression" },
 #ifdef WITH_OPENVDB_BLOSC
 		{ VDB_COMPRESSION_BLOSC, "BLOSC", 0, "Blosc", "Multithreaded compression, similar in size and quality as 'Zip'" },
@@ -423,26 +423,26 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 		{ 0, NULL, 0, NULL, NULL }
 	};
 
-	static EnumPropertyItem smoke_cache_comp_items[] = {
+	static const EnumPropertyItem smoke_cache_comp_items[] = {
 		{SM_CACHE_LIGHT, "CACHELIGHT", 0, "Light", "Fast but not so effective compression"},
 		{SM_CACHE_HEAVY, "CACHEHEAVY", 0, "Heavy", "Effective but slow compression"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem smoke_highres_sampling_items[] = {
+	static const EnumPropertyItem smoke_highres_sampling_items[] = {
 		{SM_HRES_FULLSAMPLE, "FULLSAMPLE", 0, "Full Sample", ""},
 		{SM_HRES_LINEAR, "LINEAR", 0, "Linear", ""},
 		{SM_HRES_NEAREST, "NEAREST", 0, "Nearest", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem smoke_data_depth_items[] = {
+	static const EnumPropertyItem smoke_data_depth_items[] = {
 		{16, "16", 0, "Float (Half)", "Half float (16 bit data)"},
 		{0,  "32", 0, "Float (Full)", "Full float (32 bit data)"},  /* default */
 		{0, NULL, 0, NULL, NULL},
 	};
 
-	static EnumPropertyItem smoke_domain_colli_items[] = {
+	static const EnumPropertyItem smoke_domain_colli_items[] = {
 		{SM_BORDER_OPEN, "BORDEROPEN", 0, "Open", "Smoke doesn't collide with any border"},
 		{SM_BORDER_VERTICAL, "BORDERVERTICAL", 0, "Vertically Open",
 		 "Smoke doesn't collide with top and bottom sides"},
@@ -450,7 +450,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem cache_file_type_items[] = {
+	static const EnumPropertyItem cache_file_type_items[] = {
 		{PTCACHE_FILE_PTCACHE, "POINTCACHE", 0, "Point Cache", "Blender specific point cache file format"},
 #ifdef WITH_OPENVDB
 		{PTCACHE_FILE_OPENVDB, "OPENVDB", 0, "OpenVDB", "OpenVDB file format"},
@@ -458,19 +458,19 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem smoke_view_items[] = {
+	static const EnumPropertyItem smoke_view_items[] = {
 	    {MOD_SMOKE_SLICE_VIEW_ALIGNED, "VIEW_ALIGNED", 0, "View", "Slice volume parallel to the view plane"},
 	    {MOD_SMOKE_SLICE_AXIS_ALIGNED, "AXIS_ALIGNED", 0, "Axis", "Slice volume parallel to the major axis"},
 	    {0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem axis_slice_method_items[] = {
+	static const EnumPropertyItem axis_slice_method_items[] = {
 	    {AXIS_SLICE_FULL, "FULL", 0, "Full", "Slice the whole domain object"},
 	    {AXIS_SLICE_SINGLE, "SINGLE", 0, "Single", "Perform a single slice of the domain object"},
 	    {0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem axis_slice_position_items[] = {
+	static const EnumPropertyItem axis_slice_position_items[] = {
 	    {SLICE_AXIS_AUTO, "AUTO", 0, "Auto", "Adjust slice direction according to the view direction"},
 	    {SLICE_AXIS_X, "X", 0, "X", "Slice along the X axis"},
 	    {SLICE_AXIS_Y, "Y", 0, "Y", "Slice along the Y axis"},
@@ -478,7 +478,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	    {0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem vector_draw_items[] = {
+	static const EnumPropertyItem vector_draw_items[] = {
 	    {VECTOR_DRAW_NEEDLE, "NEEDLE", 0, "Needle", "Draw vectors as needles"},
 	    {VECTOR_DRAW_STREAMLINE, "STREAMLINE", 0, "Streamlines", "Draw vectors as streamlines"},
 	    {0, NULL, 0, NULL, NULL}
@@ -830,7 +830,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	                         "Render a simulation field while mapping its voxels values to the colors of a ramp");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
-	static EnumPropertyItem coba_field_items[] = {
+	static const EnumPropertyItem coba_field_items[] = {
 	    {FLUID_FIELD_COLOR_R, "COLOR_R", 0, "Red", "Red component of the color field"},
 	    {FLUID_FIELD_COLOR_G, "COLOR_G", 0, "Green", "Green component of the color field"},
 	    {FLUID_FIELD_COLOR_B, "COLOR_B", 0, "Blue", "Blue component of the color field"},
@@ -862,7 +862,7 @@ static void rna_def_smoke_flow_settings(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem smoke_flow_types[] = {
+	static const EnumPropertyItem smoke_flow_types[] = {
 		{MOD_SMOKE_FLOW_TYPE_OUTFLOW, "OUTFLOW", 0, "Outflow", "Delete smoke from simulation"},
 		{MOD_SMOKE_FLOW_TYPE_SMOKE, "SMOKE", 0, "Smoke", "Add smoke"},
 		{MOD_SMOKE_FLOW_TYPE_SMOKEFIRE, "BOTH", 0, "Fire + Smoke", "Add fire and smoke"},
@@ -870,13 +870,13 @@ static void rna_def_smoke_flow_settings(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem smoke_flow_sources[] = {
+	static const EnumPropertyItem smoke_flow_sources[] = {
 		{MOD_SMOKE_FLOW_SOURCE_PARTICLES, "PARTICLES", ICON_PARTICLES, "Particle System", "Emit smoke from particles"},
 		{MOD_SMOKE_FLOW_SOURCE_MESH, "MESH", ICON_META_CUBE, "Mesh", "Emit smoke from mesh surface or volume"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem smoke_flow_texture_types[] = {
+	static const EnumPropertyItem smoke_flow_texture_types[] = {
 		{MOD_SMOKE_FLOW_TEXTURE_MAP_AUTO, "AUTO", 0, "Generated", "Generated coordinates centered to flow object"},
 		{MOD_SMOKE_FLOW_TEXTURE_MAP_UV, "UV", 0, "UV", "Use UV layer for texture coordinates"},
 		{0, NULL, 0, NULL, NULL}
@@ -1037,7 +1037,7 @@ static void rna_def_smoke_flow_settings(BlenderRNA *brna)
 
 static void rna_def_smoke_coll_settings(BlenderRNA *brna)
 {
-	static EnumPropertyItem smoke_coll_type_items[] = {
+	static const EnumPropertyItem smoke_coll_type_items[] = {
 		{SM_COLL_STATIC, "COLLSTATIC", 0, "Static", "Non moving obstacle"},
 		{SM_COLL_RIGID, "COLLRIGID", 0, "Rigid", "Rigid obstacle"},
 		{SM_COLL_ANIMATED, "COLLANIMATED", 0, "Animated", "Animated obstacle"},

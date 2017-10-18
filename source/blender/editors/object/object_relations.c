@@ -389,7 +389,7 @@ static int make_proxy_exec(bContext *C, wmOperator *op)
 }
 
 /* Generic itemf's for operators that take library args */
-static EnumPropertyItem *proxy_group_object_itemf(bContext *C, PointerRNA *UNUSED(ptr),
+static const EnumPropertyItem *proxy_group_object_itemf(bContext *C, PointerRNA *UNUSED(ptr),
                                                   PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem item_tmp = {0}, *item = NULL;
@@ -1142,7 +1142,7 @@ enum {
 	CLEAR_TRACK_KEEP_TRANSFORM = 2,
 };
 
-static EnumPropertyItem prop_clear_track_types[] = {
+static const EnumPropertyItem prop_clear_track_types[] = {
 	{CLEAR_TRACK, "CLEAR", 0, "Clear Track", ""},
 	{CLEAR_TRACK_KEEP_TRANSFORM, "CLEAR_KEEP_TRANSFORM", 0, "Clear and Keep Transformation (Clear Track)", ""},
 	{0, NULL, 0, NULL, NULL}
@@ -1211,7 +1211,7 @@ enum {
 	CREATE_TRACK_LOCKTRACK = 3,
 };
 
-static EnumPropertyItem prop_make_track_types[] = {
+static const EnumPropertyItem prop_make_track_types[] = {
 	{CREATE_TRACK_DAMPTRACK, "DAMPTRACK", 0, "Damped Track Constraint", ""},
 	{CREATE_TRACK_TRACKTO, "TRACKTO", 0, "Track To Constraint", ""},
 	{CREATE_TRACK_LOCKTRACK, "LOCKTRACK", 0, "Lock Track Constraint", ""},
@@ -1596,7 +1596,7 @@ void OBJECT_OT_make_links_scene(wmOperatorType *ot)
 
 void OBJECT_OT_make_links_data(wmOperatorType *ot)
 {
-	static EnumPropertyItem make_links_items[] = {
+	static const EnumPropertyItem make_links_items[] = {
 		{MAKE_LINKS_OBDATA,     "OBDATA", 0, "Object Data", ""},
 		{MAKE_LINKS_MATERIALS,  "MATERIAL", 0, "Materials", ""},
 		{MAKE_LINKS_ANIMDATA,   "ANIMATION", 0, "Animation Data", ""},
@@ -2299,7 +2299,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_make_local(wmOperatorType *ot)
 {
-	static EnumPropertyItem type_items[] = {
+	static const EnumPropertyItem type_items[] = {
 		{MAKE_LOCAL_SELECT_OB, "SELECT_OBJECT", 0, "Selected Objects", ""},
 		{MAKE_LOCAL_SELECT_OBDATA, "SELECT_OBDATA", 0, "Selected Objects and Data", ""},
 		{MAKE_LOCAL_SELECT_OBDATA_MATERIAL, "SELECT_OBDATA_MATERIAL", 0, "Selected Objects, Data and Materials", ""},
@@ -2381,7 +2381,7 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_make_single_user(wmOperatorType *ot)
 {
-	static EnumPropertyItem type_items[] = {
+	static const EnumPropertyItem type_items[] = {
 		{MAKE_SINGLE_USER_SELECTED, "SELECTED_OBJECTS", 0, "Selected Objects", ""},
 		{MAKE_SINGLE_USER_ALL, "ALL", 0, "All", ""},
 		{0, NULL, 0, NULL, NULL}};

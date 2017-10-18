@@ -1910,7 +1910,7 @@ static int set_handle_type_exec(bContext *C, wmOperator *op)
 
 void MASK_OT_handle_type_set(wmOperatorType *ot)
 {
-	static EnumPropertyItem editcurve_handle_type_items[] = {
+	static const EnumPropertyItem editcurve_handle_type_items[] = {
 		{HD_AUTO, "AUTO", 0, "Auto", ""},
 		{HD_VECT, "VECTOR", 0, "Vector", ""},
 		{HD_ALIGN, "ALIGNED", 0, "Aligned Single", ""},
@@ -2152,7 +2152,7 @@ static int mask_layer_move_exec(bContext *C, wmOperator *op)
 
 void MASK_OT_layer_move(wmOperatorType *ot)
 {
-	static EnumPropertyItem direction_items[] = {
+	static const EnumPropertyItem direction_items[] = {
 		{-1, "UP", 0, "Up", ""},
 		{1, "DOWN", 0, "Down", ""},
 		{0, NULL, 0, NULL, NULL}

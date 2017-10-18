@@ -730,7 +730,7 @@ static int file_walk_select_invoke(bContext *C, wmOperator *op, const wmEvent *U
 
 void FILE_OT_select_walk(wmOperatorType *ot)
 {
-	static EnumPropertyItem direction_items[] = {
+	static const EnumPropertyItem direction_items[] = {
 		{FILE_SELECT_WALK_UP,    "UP",    0, "Prev",  ""},
 		{FILE_SELECT_WALK_DOWN,  "DOWN",  0, "Next",  ""},
 		{FILE_SELECT_WALK_LEFT,  "LEFT",  0, "Left",  ""},
@@ -1041,7 +1041,7 @@ static int bookmark_move_exec(bContext *C, wmOperator *op)
 
 void FILE_OT_bookmark_move(wmOperatorType *ot)
 {
-	static EnumPropertyItem slot_move[] = {
+	static const EnumPropertyItem slot_move[] = {
 		{FILE_BOOKMARK_MOVE_TOP, "TOP", 0, "Top", "Top of the list"},
 		{FILE_BOOKMARK_MOVE_UP, "UP", 0, "Up", ""},
 		{FILE_BOOKMARK_MOVE_DOWN, "DOWN", 0, "Down", ""},

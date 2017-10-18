@@ -265,7 +265,7 @@ typedef enum eCalcRollTypes {
 	CALC_ROLL_CURSOR,
 } eCalcRollTypes;
 
-static EnumPropertyItem prop_calc_roll_types[] = {
+static const EnumPropertyItem prop_calc_roll_types[] = {
 	{0, "", 0, N_("Positive"), ""},
 	{CALC_ROLL_TAN_POS_X, "POS_X", 0, "Local +X Tangent", ""},
 	{CALC_ROLL_TAN_POS_Z, "POS_Z", 0, "Local +Z Tangent", ""},
@@ -967,7 +967,7 @@ static int armature_merge_exec(bContext *C, wmOperator *op)
 
 void ARMATURE_OT_merge(wmOperatorType *ot)
 {
-	static EnumPropertyItem merge_types[] = {
+	static const EnumPropertyItem merge_types[] = {
 		{1, "WITHIN_CHAIN", 0, "Within Chains", ""},
 		{0, NULL, 0, NULL, NULL}
 	};

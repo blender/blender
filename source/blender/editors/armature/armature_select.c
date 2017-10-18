@@ -809,7 +809,7 @@ enum {
 	SIMEDBONE_LAYER,
 };
 
-static EnumPropertyItem prop_similar_types[] = {
+static const EnumPropertyItem prop_similar_types[] = {
 	{SIMEDBONE_CHILDREN, "CHILDREN", 0, "Children", ""},
 	{SIMEDBONE_CHILDREN_IMMEDIATE, "CHILDREN_IMMEDIATE", 0, "Immediate children", ""},
 	{SIMEDBONE_SIBLINGS, "SIBLINGS", 0, "Siblings", ""},
@@ -1122,7 +1122,7 @@ static int armature_select_hierarchy_exec(bContext *C, wmOperator *op)
 
 void ARMATURE_OT_select_hierarchy(wmOperatorType *ot)
 {
-	static EnumPropertyItem direction_items[] = {
+	static const EnumPropertyItem direction_items[] = {
 		{BONE_SELECT_PARENT, "PARENT", 0, "Select Parent", ""},
 		{BONE_SELECT_CHILD, "CHILD", 0, "Select Child", ""},
 		{0, NULL, 0, NULL, NULL}

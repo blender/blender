@@ -1393,9 +1393,10 @@ static void UNUSED_FUNCTION(image_aspect) (Scene *scene, SceneLayer *sl)
 	
 }
 
-static EnumPropertyItem *object_mode_set_itemsf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *object_mode_set_itemsf(
+        bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	EnumPropertyItem *input = rna_enum_object_mode_items;
+	const EnumPropertyItem *input = rna_enum_object_mode_items;
 	EnumPropertyItem *item = NULL;
 	Object *ob;
 	bGPdata *gpd;
@@ -1775,7 +1776,7 @@ static int game_property_move(bContext *C, wmOperator *op)
 
 void OBJECT_OT_game_property_move(wmOperatorType *ot)
 {
-	static EnumPropertyItem direction_property_move[] = {
+	static const EnumPropertyItem direction_property_move[] = {
 		{GAME_PROPERTY_MOVE_UP,   "UP",   0, "Up",   ""},
 		{GAME_PROPERTY_MOVE_DOWN, "DOWN", 0, "Down", ""},
 		{0, NULL, 0, NULL, NULL}
@@ -1808,14 +1809,14 @@ void OBJECT_OT_game_property_move(wmOperatorType *ot)
 #define COPY_PROPERTIES_MERGE   2
 #define COPY_PROPERTIES_COPY    3
 
-static EnumPropertyItem game_properties_copy_operations[] = {
+static const EnumPropertyItem game_properties_copy_operations[] = {
 	{COPY_PROPERTIES_REPLACE, "REPLACE", 0, "Replace Properties", ""},
 	{COPY_PROPERTIES_MERGE, "MERGE", 0, "Merge Properties", ""},
 	{COPY_PROPERTIES_COPY, "COPY", 0, "Copy a Property", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
-static EnumPropertyItem *gameprops_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *gameprops_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {	
 	Object *ob = ED_object_active_context(C);
 	EnumPropertyItem tmp = {0, "", 0, "", ""};

@@ -38,7 +38,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-static EnumPropertyItem prop_texture_coordinates_items[] = {
+static const EnumPropertyItem prop_texture_coordinates_items[] = {
 	{TEXCO_GLOB, "GLOBAL", 0, "Global", "Use global coordinates for the texture coordinates"},
 	{TEXCO_OBJECT, "OBJECT", 0, "Object", "Use linked object's coordinates for texture coordinates"},
 	{TEXCO_UV, "UV", 0, "UV", "Use UV coordinates for texture coordinates"},
@@ -54,7 +54,7 @@ static EnumPropertyItem prop_texture_coordinates_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem rna_enum_ramp_blend_items[] = {
+const EnumPropertyItem rna_enum_ramp_blend_items[] = {
 	{MA_RAMP_BLEND, "MIX", 0, "Mix", ""},
 	{MA_RAMP_ADD, "ADD", 0, "Add", ""},
 	{MA_RAMP_MULT, "MULTIPLY", 0, "Multiply", ""},
@@ -346,7 +346,7 @@ static void rna_Material_use_nodes_update(bContext *C, PointerRNA *ptr)
 	rna_Material_draw_update(CTX_data_main(C), CTX_data_scene(C), ptr);
 }
 
-static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *UNUSED(C), PointerRNA *ptr,
+static const EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *UNUSED(C), PointerRNA *ptr,
                                                                 PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	Material *ma = (Material *)ptr->id.data;
@@ -442,7 +442,7 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_mapping_items[] = {
+	static const EnumPropertyItem prop_mapping_items[] = {
 		{MTEX_FLAT, "FLAT", 0, "Flat", "Map X and Y coordinates directly"},
 		{MTEX_CUBE, "CUBE", 0, "Cube", "Map using the normal vector"},
 		{MTEX_TUBE, "TUBE", 0, "Tube", "Map with Z as central axis"},
@@ -450,7 +450,7 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 		
-	static EnumPropertyItem prop_x_mapping_items[] = {
+	static const EnumPropertyItem prop_x_mapping_items[] = {
 		{0, "NONE", 0, "None", ""},
 		{1, "X", 0, "X", ""},
 		{2, "Y", 0, "Y", ""},
@@ -458,7 +458,7 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 		
-	static EnumPropertyItem prop_y_mapping_items[] = {
+	static const EnumPropertyItem prop_y_mapping_items[] = {
 		{0, "NONE", 0, "None", ""},
 		{1, "X", 0, "X", ""},
 		{2, "Y", 0, "Y", ""},
@@ -466,7 +466,7 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 		
-	static EnumPropertyItem prop_z_mapping_items[] = {
+	static const EnumPropertyItem prop_z_mapping_items[] = {
 		{0, "NONE", 0, "None", ""},
 		{1, "X", 0, "X", ""},
 		{2, "Y", 0, "Y", ""},
@@ -474,7 +474,7 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_normal_map_space_items[] = {
+	static const EnumPropertyItem prop_normal_map_space_items[] = {
 		{MTEX_NSPACE_CAMERA, "CAMERA", 0, "Camera", ""},
 		{MTEX_NSPACE_WORLD, "WORLD", 0, "World", ""},
 		{MTEX_NSPACE_OBJECT, "OBJECT", 0, "Object", ""},
@@ -482,7 +482,7 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_bump_method_items[] = {
+	static const EnumPropertyItem prop_bump_method_items[] = {
 		{0, "BUMP_ORIGINAL", 0, "Original", ""},
 		{MTEX_COMPAT_BUMP, "BUMP_COMPATIBLE", 0, "Compatible", ""},
 		{MTEX_3TAP_BUMP, "BUMP_LOW_QUALITY", 0, "Low Quality", "Use 3 tap filtering"},
@@ -493,7 +493,7 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_bump_space_items[] = {
+	static const EnumPropertyItem prop_bump_space_items[] = {
 		{0, "BUMP_VIEWSPACE", 0, "ViewSpace", ""},
 		{MTEX_BUMP_OBJECTSPACE, "BUMP_OBJECTSPACE", 0, "ObjectSpace", ""},
 		{MTEX_BUMP_TEXTURESPACE, "BUMP_TEXTURESPACE", 0, "TextureSpace", ""},
@@ -830,7 +830,7 @@ static void rna_def_material_gamesettings(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_alpha_blend_items[] = {
+	static const EnumPropertyItem prop_alpha_blend_items[] = {
 		{GEMAT_SOLID, "OPAQUE", 0, "Opaque", "Render color of textured face as color"},
 		{GEMAT_ADD, "ADD", 0, "Add", "Render face transparent and add color of face"},
 		{GEMAT_CLIP, "CLIP", 0, "Alpha Clip", "Use the image alpha values clipped with no blending (binary alpha)"},
@@ -843,7 +843,7 @@ static void rna_def_material_gamesettings(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_face_orientation_items[] = {
+	static const EnumPropertyItem prop_face_orientation_items[] = {
 		{GEMAT_NORMAL, "NORMAL", 0, "Normal", "No transformation"},
 		{GEMAT_HALO, "HALO", 0, "Halo", "Screen aligned billboard"},
 		{GEMAT_BILLBOARD, "BILLBOARD", 0, "Billboard", "Billboard with Z-axis constraint"},
@@ -890,7 +890,7 @@ static void rna_def_material_colors(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_ramp_input_items[] = {
+	static const EnumPropertyItem prop_ramp_input_items[] = {
 		{MA_RAMP_IN_SHADER, "SHADER", 0, "Shader", ""},
 		{MA_RAMP_IN_ENERGY, "ENERGY", 0, "Energy", ""},
 		{MA_RAMP_IN_NOR, "NORMAL", 0, "Normal", ""},
@@ -1007,7 +1007,7 @@ static void rna_def_material_diffuse(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_diff_shader_items[] = {
+	static const EnumPropertyItem prop_diff_shader_items[] = {
 		{MA_DIFF_LAMBERT, "LAMBERT", 0, "Lambert", "Use a Lambertian shader"},
 		{MA_DIFF_ORENNAYAR, "OREN_NAYAR", 0, "Oren-Nayar", "Use an Oren-Nayar shader"},
 		{MA_DIFF_TOON, "TOON", 0, "Toon", "Use a toon shader"},
@@ -1068,7 +1068,7 @@ static void rna_def_material_raymirror(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_fadeto_mir_items[] = {
+	static const EnumPropertyItem prop_fadeto_mir_items[] = {
 		{MA_RAYMIR_FADETOSKY, "FADE_TO_SKY", 0, "Sky", ""},
 		{MA_RAYMIR_FADETOMAT, "FADE_TO_MATERIAL", 0, "Material", ""},
 		{0, NULL, 0, NULL, NULL}
@@ -1238,7 +1238,7 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_lighting_items[] = {
+	static const EnumPropertyItem prop_lighting_items[] = {
 		{MA_VOL_SHADE_SHADELESS, "SHADELESS", 0, "Shadeless", "Do not calculate lighting and shadows"},
 		{MA_VOL_SHADE_SHADOWED, "SHADOWED", 0, "Shadowed", ""},
 		{MA_VOL_SHADE_SHADED, "SHADED", 0, "Shaded", ""},
@@ -1247,7 +1247,7 @@ static void rna_def_material_volume(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_stepsize_items[] = {
+	static const EnumPropertyItem prop_stepsize_items[] = {
 		{MA_VOL_STEP_RANDOMIZED, "RANDOMIZED", 0, "Randomized", ""},
 		{MA_VOL_STEP_CONSTANT, "CONSTANT", 0, "Constant", ""},
 		/*{MA_VOL_STEP_ADAPTIVE, "ADAPTIVE", 0, "Adaptive", ""}, */
@@ -1595,7 +1595,7 @@ static void rna_def_material_specularity(StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
-	static EnumPropertyItem prop_specular_shader_items[] = {
+	static const EnumPropertyItem prop_specular_shader_items[] = {
 		{MA_SPEC_COOKTORR, "COOKTORR", 0, "CookTorr", "Use a Cook-Torrance shader"},
 		{MA_SPEC_PHONG, "PHONG", 0, "Phong", "Use a Phong shader"},
 		{MA_SPEC_BLINN, "BLINN", 0, "Blinn", "Use a Blinn shader"},
@@ -1772,14 +1772,14 @@ void RNA_def_material(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_type_items[] = {
+	static const EnumPropertyItem prop_type_items[] = {
 		{MA_TYPE_SURFACE, "SURFACE", 0, "Surface", "Render object as a surface"},
 		{MA_TYPE_WIRE, "WIRE", 0, "Wire", "Render the edges of faces as wires (not supported in raytracing)"},
 		{MA_TYPE_VOLUME, "VOLUME", 0, "Volume", "Render object as a volume"},
 		{MA_TYPE_HALO, "HALO", 0, "Halo", "Render object as halo particles"},
 		{0, NULL, 0, NULL, NULL}
 	};
-	static EnumPropertyItem transparency_items[] = {
+	static const EnumPropertyItem transparency_items[] = {
 		{0, "MASK", 0, "Mask", "Mask the background"},
 		{MA_ZTRANSP, "Z_TRANSPARENCY", 0, "Z Transparency", "Use alpha buffer for transparent faces"},
 		{MA_RAYTRANSP, "RAYTRACE", 0, "Raytrace", "Use raytracing for transparent refraction rendering"},
@@ -1787,7 +1787,7 @@ void RNA_def_material(BlenderRNA *brna)
 	};
 	
 	/* Render Preview Types */
-	static EnumPropertyItem preview_type_items[] = {
+	static const EnumPropertyItem preview_type_items[] = {
 		{MA_FLAT, "FLAT", ICON_MATPLANE, "Flat", "Flat XY plane"},
 		{MA_SPHERE, "SPHERE", ICON_MATSPHERE, "Sphere", "Sphere"},
 		{MA_CUBE, "CUBE", ICON_MATCUBE, "Cube", "Cube"},
@@ -1797,7 +1797,7 @@ void RNA_def_material(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_shadows_only_items[] = {
+	static const EnumPropertyItem prop_shadows_only_items[] = {
 		{MA_SO_OLD, "SHADOW_ONLY_OLD", 0, "Shadow and Distance", "Old shadow only method"},
 		{MA_SO_SHADOW, "SHADOW_ONLY", 0, "Shadow Only", "Improved shadow only method"},
 		{MA_SO_SHADED, "SHADOW_ONLY_SHADED", 0, "Shadow and Shading",

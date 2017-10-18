@@ -785,7 +785,7 @@ wmKeyMap *WM_keymap_find_all(const bContext *C, const char *idname, int spaceid,
 
 /* modal maps get linked to a running operator, and filter the keys before sending to modal() callback */
 
-wmKeyMap *WM_modalkeymap_add(wmKeyConfig *keyconf, const char *idname, EnumPropertyItem *items)
+wmKeyMap *WM_modalkeymap_add(wmKeyConfig *keyconf, const char *idname, const EnumPropertyItem *items)
 {
 	wmKeyMap *km = WM_keymap_find(keyconf, idname, 0, 0);
 	km->flag |= KEYMAP_MODAL;
@@ -919,7 +919,7 @@ static void wm_user_modal_keymap_set_items(wmWindowManager *wm, wmKeyMap *km)
 
 const char *WM_key_event_string(const short type, const bool compact)
 {
-	EnumPropertyItem *it;
+	const EnumPropertyItem *it;
 	const int i = RNA_enum_from_value(rna_enum_event_type_items, (int)type);
 
 	if (i == -1) {

@@ -43,7 +43,7 @@
 
 #include "WM_types.h"
 
-EnumPropertyItem rna_enum_gameproperty_type_items[] = {
+const EnumPropertyItem rna_enum_gameproperty_type_items[] = {
 	{GPROP_BOOL, "BOOL", 0, "Boolean", "Boolean Property"},
 	{GPROP_INT, "INT", 0, "Integer", "Integer Property"},
 	{GPROP_FLOAT, "FLOAT", 0, "Float", "Floating-Point Property"},

@@ -352,7 +352,7 @@ void NLA_OT_select_border(wmOperatorType *ot)
 /* Select keyframes left/right of the current frame indicator */
 
 /* defines for left-right select tool */
-static EnumPropertyItem prop_nlaedit_leftright_select_types[] = {
+static const EnumPropertyItem prop_nlaedit_leftright_select_types[] = {
 	{NLAEDIT_LRSEL_TEST, "CHECK", 0, "Check if Select Left or Right", ""},
 	{NLAEDIT_LRSEL_LEFT, "LEFT", 0, "Before current frame", ""},
 	{NLAEDIT_LRSEL_RIGHT, "RIGHT", 0, "After current frame", ""},

@@ -972,7 +972,7 @@ static int select_groped_exec(bContext *C, wmOperator *op)
 
 void CLIP_OT_select_grouped(wmOperatorType *ot)
 {
-	static EnumPropertyItem select_group_items[] = {
+	static const EnumPropertyItem select_group_items[] = {
 		{0, "KEYFRAMED", 0, "Keyframed tracks", "Select all keyframed tracks"},
 		{1, "ESTIMATED", 0, "Estimated tracks", "Select all estimated tracks"},
 		{2, "TRACKED", 0, "Tracked tracks", "Select all tracked tracks"},

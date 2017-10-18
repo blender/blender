@@ -60,7 +60,7 @@ typedef struct EffectInfo {
 	int inputs;
 } EffectInfo;
 
-EnumPropertyItem rna_enum_sequence_modifier_type_items[] = {
+const EnumPropertyItem rna_enum_sequence_modifier_type_items[] = {
 	{seqModifierType_ColorBalance, "COLOR_BALANCE", ICON_NONE, "Color Balance", ""},
 	{seqModifierType_Curves, "CURVES", ICON_NONE, "Curves", ""},
 	{seqModifierType_HueCorrect, "HUE_CORRECT", ICON_NONE, "Hue Correct", ""},
@@ -1328,7 +1328,7 @@ static void rna_def_strip_color_balance(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "StripColorBalance");
 }
 
-static EnumPropertyItem blend_mode_items[] = {
+static const EnumPropertyItem blend_mode_items[] = {
 	{SEQ_BLEND_REPLACE, "REPLACE", 0, "Replace", ""},
 	{SEQ_TYPE_CROSS, "CROSS", 0, "Cross", ""},
 	{SEQ_TYPE_ADD, "ADD", 0, "Add", ""},
@@ -2308,13 +2308,13 @@ static void rna_def_gaussian_blur(StructRNA *srna)
 
 static void rna_def_text(StructRNA *srna)
 {
-	static EnumPropertyItem text_align_x_items[] = {
+	static const EnumPropertyItem text_align_x_items[] = {
 		{SEQ_TEXT_ALIGN_X_LEFT, "LEFT", 0, "Left", ""},
 		{SEQ_TEXT_ALIGN_X_CENTER, "CENTER", 0, "Center", ""},
 		{SEQ_TEXT_ALIGN_X_RIGHT, "RIGHT", 0, "Right", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
-	static EnumPropertyItem text_align_y_items[] = {
+	static const EnumPropertyItem text_align_y_items[] = {
 		{SEQ_TEXT_ALIGN_Y_TOP, "TOP", 0, "Top", ""},
 		{SEQ_TEXT_ALIGN_Y_CENTER, "CENTER", 0, "Center", ""},
 		{SEQ_TEXT_ALIGN_Y_BOTTOM, "BOTTOM", 0, "Bottom", ""},
@@ -2592,7 +2592,7 @@ static void rna_def_tonemap_modifier(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem type_items[] = {
+	static const EnumPropertyItem type_items[] = {
 		{SEQ_TONEMAP_RD_PHOTORECEPTOR, "RD_PHOTORECEPTOR", 0, "R/D Photoreceptor", ""},
 		{SEQ_TONEMAP_RH_SIMPLE,        "RH_SIMPLE",        0, "Rh Simple",         ""},
 		{0, NULL, 0, NULL, NULL}

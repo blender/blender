@@ -758,7 +758,7 @@ thick_wrap_slice:
 
 /* same as RNA_enum_value_from_id but raises an exception */
 int pyrna_enum_value_from_id(
-        EnumPropertyItem *item, const char *identifier, int *r_value,
+        const EnumPropertyItem *item, const char *identifier, int *r_value,
         const char *error_prefix)
 {
 	if (RNA_enum_value_from_id(item, identifier, r_value) == 0) {
@@ -1167,7 +1167,7 @@ static void pyrna_prop_array_dealloc(BPy_PropertyRNA *self)
 
 static const char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
 {
-	EnumPropertyItem *item;
+	const EnumPropertyItem *item;
 	const char *result;
 	bool free = false;
 
@@ -1179,8 +1179,9 @@ static const char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
 		result = "";
 	}
 
-	if (free)
-		MEM_freeN(item);
+	if (free) {
+		MEM_freeN((void *)item);
+	}
 
 	return result;
 }
@@ -1221,7 +1222,7 @@ static int pyrna_string_to_enum(
  * needed when we want to use the full range of a signed short/char.
  */
 BLI_bitmap *pyrna_set_to_enum_bitmap(
-        EnumPropertyItem *items, PyObject *value,
+        const EnumPropertyItem *items, PyObject *value,
         int type_size, bool type_convert_sign,
         int bitmap_size,
         const char *error_prefix)
@@ -1277,7 +1278,7 @@ error:
 
 /* 'value' _must_ be a set type, error check before calling */
 int pyrna_set_to_enum_bitfield(
-        EnumPropertyItem *items, PyObject *value, int *r_value,
+        const EnumPropertyItem *items, PyObject *value, int *r_value,
         const char *error_prefix)
 {
 	/* set of enum items, concatenate all values with OR */
@@ -1315,7 +1316,7 @@ static int pyrna_prop_to_enum_bitfield(
         PointerRNA *ptr, PropertyRNA *prop, PyObject *value, int *r_value,
         const char *error_prefix)
 {
-	EnumPropertyItem *item;
+	const EnumPropertyItem *item;
 	int ret;
 	bool free = false;
 
@@ -1346,13 +1347,14 @@ static int pyrna_prop_to_enum_bitfield(
 		}
 	}
 
-	if (free)
-		MEM_freeN(item);
+	if (free) {
+		MEM_freeN((void *)item);
+	}
 
 	return ret;
 }
 
-PyObject *pyrna_enum_bitfield_to_py(EnumPropertyItem *items, int value)
+PyObject *pyrna_enum_bitfield_to_py(const EnumPropertyItem *items, int value)
 {
 	PyObject *ret = PySet_New(NULL);
 	const char *identifier[RNA_ENUM_BITFLAG_SIZE + 1];
@@ -1396,7 +1398,7 @@ static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
 			ret = PyUnicode_FromString(identifier);
 		}
 		else {
-			EnumPropertyItem *enum_item;
+			const EnumPropertyItem *enum_item;
 			bool free;
 
 			/* don't throw error here, can't trust blender 100% to give the
@@ -1407,7 +1409,7 @@ static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
 			}
 			else {
 				if (free) {
-					MEM_freeN(enum_item);
+					MEM_freeN((void *)enum_item);
 				}
 				RNA_property_enum_items(NULL, ptr, prop, &enum_item, NULL, &free);
 
@@ -1439,8 +1441,9 @@ static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
 				ret = PyUnicode_FromString("");
 			}
 
-			if (free)
-				MEM_freeN(enum_item);
+			if (free) {
+				MEM_freeN((void *)enum_item);
+			}
 #if 0
 			PyErr_Format(PyExc_AttributeError,
 			             "RNA Error: Current value \"%d\" matches no enum", val);

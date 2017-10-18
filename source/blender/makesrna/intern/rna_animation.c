@@ -47,7 +47,7 @@
 #include "ED_keyframing.h"
 
 /* exported for use in API */
-EnumPropertyItem rna_enum_keyingset_path_grouping_items[] = {
+const EnumPropertyItem rna_enum_keyingset_path_grouping_items[] = {
 	{KSP_GROUP_NAMED, "NAMED", 0, "Named Group", ""},
 	{KSP_GROUP_NONE, "NONE", 0, "None", ""},
 	{KSP_GROUP_KSNAME, "KEYINGSET", 0, "Keying Set Name", ""},
@@ -57,7 +57,7 @@ EnumPropertyItem rna_enum_keyingset_path_grouping_items[] = {
 /* It would be cool to get rid of this 'INSERTKEY_' prefix in 'py strings' values, but it would break existing
  * exported keyingset... :/
  */
-EnumPropertyItem rna_enum_keying_flag_items[] = {
+const EnumPropertyItem rna_enum_keying_flag_items[] = {
 	{INSERTKEY_NEEDED, "INSERTKEY_NEEDED", 0, "Only Needed",
 	                   "Only insert keyframes where they're needed in the relevant F-Curves"},
 	{INSERTKEY_MATRIX, "INSERTKEY_VISUAL", 0, "Visual Keying",

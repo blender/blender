@@ -562,7 +562,7 @@ static void LOGIC_OT_actuator_add(wmOperatorType *ot)
 }
 
 /* ************* Move Logic Bricks Operator ************* */
-static EnumPropertyItem logicbricks_move_direction[] = {
+static const EnumPropertyItem logicbricks_move_direction[] = {
 	{1, "UP", 0, "Move Up", ""},
 	{2, "DOWN", 0, "Move Down", ""},
 	{0, NULL, 0, NULL, NULL}

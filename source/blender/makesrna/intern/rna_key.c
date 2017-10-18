@@ -592,7 +592,7 @@ static char *rna_ShapeKeyPoint_path(PointerRNA *ptr)
 
 #else
 
-EnumPropertyItem rna_enum_keyblock_type_items[] = {
+const EnumPropertyItem rna_enum_keyblock_type_items[] = {
 	{KEY_LINEAR, "KEY_LINEAR", 0, "Linear", ""},
 	{KEY_CARDINAL, "KEY_CARDINAL", 0, "Cardinal", ""},
 	{KEY_CATMULL_ROM, "KEY_CATMULL_ROM", 0, "Catmull-Rom", ""},

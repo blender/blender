@@ -82,7 +82,8 @@ void		wm_window_IME_end	(wmWindow *win);
 int			wm_window_close_exec(bContext *C, struct wmOperator *op);
 int			wm_window_fullscreen_toggle_exec(bContext *C, struct wmOperator *op);
 
-struct EnumPropertyItem *wm_window_new_screen_itemf(bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
+const struct EnumPropertyItem *wm_window_new_screen_itemf(
+        bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
 int			wm_window_new_exec(bContext *C, struct wmOperator *op);
 int			wm_window_new_invoke(bContext *C, struct wmOperator *op, const struct wmEvent *event);
 

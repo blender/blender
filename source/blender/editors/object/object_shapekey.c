@@ -479,7 +479,7 @@ static int shape_key_move_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_shape_key_move(wmOperatorType *ot)
 {
-	static EnumPropertyItem slot_move[] = {
+	static const EnumPropertyItem slot_move[] = {
 		{KB_MOVE_TOP, "TOP", 0, "Top", "Top of the list"},
 		{KB_MOVE_UP, "UP", 0, "Up", ""},
 		{KB_MOVE_DOWN, "DOWN", 0, "Down", ""},

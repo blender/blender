@@ -880,7 +880,7 @@ int wm_window_new_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(even
 	}
 }
 
-struct EnumPropertyItem *wm_window_new_screen_itemf(
+const EnumPropertyItem *wm_window_new_screen_itemf(
         bContext *C, struct PointerRNA *UNUSED(ptr), struct PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	wmWindow *win = CTX_wm_window(C);
