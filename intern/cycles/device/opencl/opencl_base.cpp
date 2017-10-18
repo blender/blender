@@ -1107,7 +1107,7 @@ void OpenCLDeviceBase::shader(DeviceTask& task)
 	if(task.shader_eval_type >= SHADER_EVAL_BAKE) {
 		kernel = base_program(ustring("bake"));
 	}
-	else if(task.shader_eval_type >= SHADER_EVAL_DISPLACE) {
+	else if(task.shader_eval_type == SHADER_EVAL_DISPLACE) {
 		kernel = base_program(ustring("displace"));
 	}
 	else {
