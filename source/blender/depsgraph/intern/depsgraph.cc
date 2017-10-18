@@ -62,7 +62,7 @@ extern "C" {
 #include "intern/depsgraph_intern.h"
 #include "util/deg_util_foreach.h"
 
-static bool use_copy_on_write = true;
+static bool use_copy_on_write = false;
 
 bool DEG_depsgraph_use_copy_on_write(void)
 {
