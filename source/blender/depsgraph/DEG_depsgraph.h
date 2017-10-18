@@ -105,10 +105,6 @@ enum {
 extern "C" {
 #endif
 
-bool DEG_depsgraph_use_legacy(void);
-void DEG_depsgraph_switch_to_legacy(void);
-void DEG_depsgraph_switch_to_new(void);
-
 /* ************************************************ */
 /* Depsgraph API */
 
