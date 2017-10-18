@@ -248,32 +248,33 @@ struct ValidateData {
 	bool is_valid;
 };
 
-/* Similar to generic id_copy() but does not require main.
- *
- * TODO(sergey): Get rid of this once T51804 is handled.
+/* Similar to generic id_copy() but does not require main and assumes pointer
+ * is already allocated,
  */
-bool id_copy_no_main(const ID *id, ID **newid)
+bool id_copy_inplace_no_main(const ID *id, ID *newid)
 {
 	const ID *id_for_copy = id;
-	Main temp_bmain = {0};
-	SpinLock lock;
-	temp_bmain.lock = (MainLock *)&lock;
-	BLI_spin_init(&lock);
 
 #ifdef NESTED_ID_NASTY_WORKAROUND
 	NestedIDHackTempStorage id_hack_storage;
 	id_for_copy = nested_id_hack_get_discarded_pointers(&id_hack_storage, id);
 #endif
 
-	bool result = id_copy(&temp_bmain, (ID *)id_for_copy, newid, false);
+	bool result = BKE_id_copy_ex(NULL,
+	                             (ID *)id_for_copy,
+	                             &newid,
+	                             LIB_ID_CREATE_NO_MAIN |
+	                             LIB_ID_CREATE_NO_USER_REFCOUNT |
+	                             LIB_ID_CREATE_NO_ALLOCATE |
+	                             LIB_ID_CREATE_NO_DEG_TAG,
+	                             false);
 
 #ifdef NESTED_ID_NASTY_WORKAROUND
 	if (result) {
-		nested_id_hack_restore_pointers(id, *newid);
+		nested_id_hack_restore_pointers(id, newid);
 	}
 #endif
 
-	BLI_spin_end(&lock);
 	return result;
 }
 
@@ -686,17 +687,7 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 			break;
 	}
 	if (!done) {
-		if (id_copy_no_main(id_orig, &newid)) {
-			/* We copy contents of new ID to our CoW placeholder and free ID memory
-			 * returned by id_copy().
-			 *
-			 * TODO(sergey): We can avoid having extra ID allocation here if we'll
-			 * have some smarter id_copy() which can use externally allocated memory.
-			 */
-			const size_t size = BKE_libblock_get_alloc_info(GS(newid->name), NULL);
-			memcpy(id_cow, newid, size);
-			done = true;
-		}
+		done = id_copy_inplace_no_main(id_orig, id_cow);
 	}
 	if (!done) {
 		BLI_assert(!"No idea how to perform CoW on datablock");
