@@ -47,7 +47,7 @@
 #include "WM_types.h"
 
 #ifndef RNA_RUNTIME
-static EnumPropertyItem beztriple_handle_type_items[] = {
+static const EnumPropertyItem beztriple_handle_type_items[] = {
 	{HD_FREE, "FREE", 0, "Free", ""},
 	{HD_VECT, "VECTOR", 0, "Vector", ""},
 	{HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
@@ -56,7 +56,7 @@ static EnumPropertyItem beztriple_handle_type_items[] = {
 };
 #endif
 		
-EnumPropertyItem rna_enum_keyframe_handle_type_items[] = {
+const EnumPropertyItem rna_enum_keyframe_handle_type_items[] = {
 	{HD_FREE, "FREE", 0, "Free", ""},
 	{HD_VECT, "VECTOR", 0, "Vector", ""},
 	{HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
@@ -65,7 +65,7 @@ EnumPropertyItem rna_enum_keyframe_handle_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem rna_enum_beztriple_interpolation_mode_items[] = {
+const EnumPropertyItem rna_enum_beztriple_interpolation_mode_items[] = {
 	/* interpolation */
 	{0, "", 0, N_("Interpolation"), "Standard transitions between keyframes"},
 	{BEZT_IPO_CONST, "CONSTANT", ICON_IPO_CONSTANT, "Constant", "No interpolation, value of A gets held until B is encountered"},
@@ -91,7 +91,7 @@ EnumPropertyItem rna_enum_beztriple_interpolation_mode_items[] = {
 };
 
 #ifndef RNA_RUNTIME
-static EnumPropertyItem curve_type_items[] = {
+static const EnumPropertyItem curve_type_items[] = {
 	{CU_POLY, "POLY", 0, "Poly", ""},
 	{CU_BEZIER, "BEZIER", 0, "Bezier", ""},
 	{CU_BSPLINE, "BSPLINE", 0, "BSpline", ""},
@@ -300,7 +300,7 @@ static void rna_Curve_dimension_set(PointerRNA *ptr, int value)
 	BKE_curve_curve_dimension_update(cu);
 }
 
-static EnumPropertyItem *rna_Curve_fill_mode_itemf(bContext *UNUSED(C), PointerRNA *ptr,
+static const EnumPropertyItem *rna_Curve_fill_mode_itemf(bContext *UNUSED(C), PointerRNA *ptr,
                                                    PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	Curve *cu = (Curve *)ptr->id.data;
@@ -953,7 +953,7 @@ static void rna_def_font(BlenderRNA *UNUSED(brna), StructRNA *srna)
 {
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_align_items[] = {
+	static const EnumPropertyItem prop_align_items[] = {
 		{CU_ALIGN_X_LEFT, "LEFT", 0, "Left", "Align text to the left"},
 		{CU_ALIGN_X_MIDDLE, "CENTER", 0, "Center", "Center text"},
 		{CU_ALIGN_X_RIGHT, "RIGHT", 0, "Right", "Align text to the right"},
@@ -962,7 +962,7 @@ static void rna_def_font(BlenderRNA *UNUSED(brna), StructRNA *srna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_align_y_items[] = {
+	static const EnumPropertyItem prop_align_y_items[] = {
 		{CU_ALIGN_Y_TOP_BASELINE, "TOP_BASELINE", 0, "Top Base-Line", "Align to top but use the base-line of the text"},
 		{CU_ALIGN_Y_TOP, "TOP", 0, "Top", "Align text to the top"},
 		{CU_ALIGN_Y_CENTER, "CENTER", 0, "Center", "Align text to the middle"},
@@ -1334,7 +1334,7 @@ static void rna_def_curve(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	static EnumPropertyItem curve_twist_mode_items[] = {
+	static const EnumPropertyItem curve_twist_mode_items[] = {
 		{CU_TWIST_Z_UP, "Z_UP", 0, "Z-Up", "Use Z-Up axis to calculate the curve twist at each point"},
 		{CU_TWIST_MINIMUM, "MINIMUM", 0, "Minimum", "Use the least twist over the entire curve"},
 		{CU_TWIST_TANGENT, "TANGENT", 0, "Tangent", "Use the tangent to calculate twist"},
@@ -1348,7 +1348,7 @@ static void rna_def_curve(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem bevfac_mapping_items[] = {
+	static const EnumPropertyItem bevfac_mapping_items[] = {
 		{CU_BEVFAC_MAP_RESOLU, "RESOLUTION", 0, "Resolution", "Map the bevel factor to the number of subdivisions of a spline (U resolution)"},
 		{CU_BEVFAC_MAP_SEGMENT, "SEGMENTS", 0, "Segments", "Map the bevel factor to the length of a segment and to the number of subdivisions of a segment"},
 		{CU_BEVFAC_MAP_SPLINE, "SPLINE", 0, "Spline", "Map the bevel factor to the length of a spline"},
@@ -1600,7 +1600,7 @@ static void rna_def_curve(BlenderRNA *brna)
 
 static void rna_def_curve_nurb(BlenderRNA *brna)
 {
-	static EnumPropertyItem spline_interpolation_items[] = {
+	static const EnumPropertyItem spline_interpolation_items[] = {
 		{KEY_LINEAR, "LINEAR", 0, "Linear", ""},
 		{KEY_CARDINAL, "CARDINAL", 0, "Cardinal", ""},
 		{KEY_BSPLINE, "BSPLINE", 0, "BSpline", ""},

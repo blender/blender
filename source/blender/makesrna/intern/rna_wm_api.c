@@ -46,7 +46,7 @@
 #include "rna_internal.h"  /* own include */
 
 /* confusingm 2 enums mixed up here */
-EnumPropertyItem rna_enum_window_cursor_items[] = {
+const EnumPropertyItem rna_enum_window_cursor_items[] = {
 	{CURSOR_STD, "DEFAULT", 0, "Default", ""},
 	{CURSOR_NONE, "NONE", 0, "None", ""},
 	{CURSOR_WAIT, "WAIT", 0, "Wait", ""},

@@ -50,7 +50,7 @@
 #define DEF_ICON_BLANK_SKIP
 #define DEF_ICON(name) {ICON_##name, (#name), 0, (#name), ""},
 #define DEF_VICO(name) {VICO_##name, (#name), 0, (#name), ""},
-EnumPropertyItem rna_enum_icon_items[] = {
+const EnumPropertyItem rna_enum_icon_items[] = {
 #include "UI_icons.h"
 	{0, NULL, 0, NULL, NULL}
 };
@@ -285,7 +285,7 @@ static int rna_ui_get_rnaptr_icon(bContext *C, PointerRNA *ptr_icon)
 static const char *rna_ui_get_enum_name(bContext *C, PointerRNA *ptr, const char *propname, const char *identifier)
 {
 	PropertyRNA *prop = NULL;
-	EnumPropertyItem *items = NULL, *item;
+	const EnumPropertyItem *items = NULL, *item;
 	bool free;
 	const char *name = "";
 
@@ -305,7 +305,7 @@ static const char *rna_ui_get_enum_name(bContext *C, PointerRNA *ptr, const char
 			}
 		}
 		if (free) {
-			MEM_freeN(items);
+			MEM_freeN((void *)items);
 		}
 	}
 
@@ -316,7 +316,7 @@ static const char *rna_ui_get_enum_description(bContext *C, PointerRNA *ptr, con
                                                const char *identifier)
 {
 	PropertyRNA *prop = NULL;
-	EnumPropertyItem *items = NULL, *item;
+	const EnumPropertyItem *items = NULL, *item;
 	bool free;
 	const char *desc = "";
 
@@ -336,7 +336,7 @@ static const char *rna_ui_get_enum_description(bContext *C, PointerRNA *ptr, con
 			}
 		}
 		if (free) {
-			MEM_freeN(items);
+			MEM_freeN((void *)items);
 		}
 	}
 
@@ -346,7 +346,7 @@ static const char *rna_ui_get_enum_description(bContext *C, PointerRNA *ptr, con
 static int rna_ui_get_enum_icon(bContext *C, PointerRNA *ptr, const char *propname, const char *identifier)
 {
 	PropertyRNA *prop = NULL;
-	EnumPropertyItem *items = NULL, *item;
+	const EnumPropertyItem *items = NULL, *item;
 	bool free;
 	int icon = ICON_NONE;
 
@@ -366,7 +366,7 @@ static int rna_ui_get_enum_icon(bContext *C, PointerRNA *ptr, const char *propna
 			}
 		}
 		if (free) {
-			MEM_freeN(items);
+			MEM_freeN((void *)items);
 		}
 	}
 
@@ -421,7 +421,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	static EnumPropertyItem curve_type_items[] = {
+	static const EnumPropertyItem curve_type_items[] = {
 		{0, "NONE", 0, "None", ""},
 		{'v', "VECTOR", 0, "Vector", ""},
 		{'c', "COLOR", 0, "Color", ""},

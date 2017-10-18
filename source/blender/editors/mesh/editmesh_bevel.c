@@ -596,7 +596,7 @@ void MESH_OT_bevel(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
-	static EnumPropertyItem offset_type_items[] = {
+	static const EnumPropertyItem offset_type_items[] = {
 		{BEVEL_AMT_OFFSET, "OFFSET", 0, "Offset", "Amount is offset of new edges from original"},
 		{BEVEL_AMT_WIDTH, "WIDTH", 0, "Width", "Amount is width of new face"},
 		{BEVEL_AMT_DEPTH, "DEPTH", 0, "Depth", "Amount is perpendicular distance from original edge to bevel face"},

@@ -962,7 +962,7 @@ static int unified_findnearest(ViewContext *vc, BMVert **r_eve, BMEdge **r_eed, 
 
 
 /* ****************  SIMILAR "group" SELECTS. FACE, EDGE AND VERTEX ************** */
-static EnumPropertyItem prop_similar_compare_types[] = {
+static const EnumPropertyItem prop_similar_compare_types[] = {
 	{SIM_CMP_EQ, "EQUAL", 0, "Equal", ""},
 	{SIM_CMP_GT, "GREATER", 0, "Greater", ""},
 	{SIM_CMP_LT, "LESS", 0, "Less", ""},
@@ -970,7 +970,7 @@ static EnumPropertyItem prop_similar_compare_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static EnumPropertyItem prop_similar_types[] = {
+static const EnumPropertyItem prop_similar_types[] = {
 	{SIMVERT_NORMAL, "NORMAL", 0, "Normal", ""},
 	{SIMVERT_FACE, "FACE", 0, "Amount of Adjacent Faces", ""},
 	{SIMVERT_VGROUP, "VGROUP", 0, "Vertex Groups", ""},
@@ -1144,7 +1144,7 @@ static int edbm_select_similar_exec(bContext *C, wmOperator *op)
 	else                 return similar_face_select_exec(C, op);
 }
 
-static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop),
+static const EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop),
                                                    bool *r_free)
 {
 	Object *obedit;
@@ -1339,14 +1339,14 @@ void MESH_OT_select_mode(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
-	static EnumPropertyItem elem_items[] = {
+	static const EnumPropertyItem elem_items[] = {
 		{SCE_SELECT_VERTEX, "VERT", ICON_VERTEXSEL, "Vertices", ""},
 		{SCE_SELECT_EDGE,   "EDGE", ICON_EDGESEL, "Edges", ""},
 		{SCE_SELECT_FACE,   "FACE", ICON_FACESEL, "Faces", ""},
 		{0, NULL, 0, NULL, NULL},
 	};
 
-	static EnumPropertyItem actions_items[] = {
+	static const EnumPropertyItem actions_items[] = {
 		{0, "DISABLE", 0, "Disable", "Disable selected markers"},
 		{1, "ENABLE", 0, "Enable", "Enable selected markers"},
 		{2, "TOGGLE", 0, "Toggle", "Toggle disabled flag for selected markers"},
@@ -3788,14 +3788,14 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_select_axis(wmOperatorType *ot)
 {
-	static EnumPropertyItem axis_mode_items[] = {
+	static const EnumPropertyItem axis_mode_items[] = {
 		{0,  "POSITIVE", 0, "Positive Axis", ""},
 		{1,  "NEGATIVE", 0, "Negative Axis", ""},
 		{-1, "ALIGNED",  0, "Aligned Axis", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem axis_items_xyz[] = {
+	static const EnumPropertyItem axis_items_xyz[] = {
 		{0, "X_AXIS", 0, "X Axis", ""},
 		{1, "Y_AXIS", 0, "Y Axis", ""},
 		{2, "Z_AXIS", 0, "Z Axis", ""},

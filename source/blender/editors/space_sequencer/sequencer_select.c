@@ -548,7 +548,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
 void SEQUENCER_OT_select(wmOperatorType *ot)
 {
-	static EnumPropertyItem sequencer_select_left_right_types[] = {
+	static const EnumPropertyItem sequencer_select_left_right_types[] = {
 		{SEQ_SELECT_LR_NONE, "NONE", 0, "None", "Don't do left-right selection"},
 		{SEQ_SELECT_LR_MOUSE, "MOUSE", 0, "Mouse", "Use mouse position for selection"},
 		{SEQ_SELECT_LR_LEFT, "LEFT", 0, "Left", "Select left"},
@@ -953,7 +953,7 @@ enum {
 	SEQ_SELECT_GROUP_OVERLAP,
 };
 
-static EnumPropertyItem sequencer_prop_select_grouped_types[] = {
+static const EnumPropertyItem sequencer_prop_select_grouped_types[] = {
 	{SEQ_SELECT_GROUP_TYPE, "TYPE", 0, "Type", "Shared strip type"},
 	{SEQ_SELECT_GROUP_TYPE_BASIC, "TYPE_BASIC", 0, "Global Type", "All strips of same basic type (Graphical or Sound)"},
 	{SEQ_SELECT_GROUP_TYPE_EFFECT, "TYPE_EFFECT", 0, "Effect Type",

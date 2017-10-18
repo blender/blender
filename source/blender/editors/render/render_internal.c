@@ -1677,7 +1677,7 @@ static int render_shutter_curve_preset_exec(bContext *C, wmOperator *op)
 void RENDER_OT_shutter_curve_preset(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
-	static EnumPropertyItem prop_shape_items[] = {
+	static const EnumPropertyItem prop_shape_items[] = {
 		{CURVE_PRESET_SHARP, "SHARP", 0, "Sharp", ""},
 		{CURVE_PRESET_SMOOTH, "SMOOTH", 0, "Smooth", ""},
 		{CURVE_PRESET_MAX, "MAX", 0, "Max", ""},

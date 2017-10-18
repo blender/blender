@@ -214,7 +214,7 @@ static void rna_def_fluidsim_slip(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
-	static EnumPropertyItem slip_items[] = {
+	static const EnumPropertyItem slip_items[] = {
 		{OB_FSBND_NOSLIP, "NOSLIP", 0, "No Slip",
 		                  "Obstacle causes zero normal and tangential velocity (=sticky), default for all "
 		                  "(only option for moving objects)"},
@@ -260,7 +260,7 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem quality_items[] = {
+	static const EnumPropertyItem quality_items[] = {
 		{OB_FSDOM_GEOM, "GEOMETRY", 0, "Geometry", "Display geometry"},
 		{OB_FSDOM_PREVIEW, "PREVIEW", 0, "Preview", "Display preview quality results"},
 		{OB_FSDOM_FINAL, "FINAL", 0, "Final", "Display final quality results"},
@@ -444,7 +444,7 @@ static void rna_def_fluidsim_volume(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
-	static EnumPropertyItem volume_type_items[] = {
+	static const EnumPropertyItem volume_type_items[] = {
 		{1, "VOLUME", 0, "Volume", "Use only the inner volume of the mesh"},
 		{2, "SHELL", 0, "Shell", "Use only the outer shell of the mesh"},
 		{3, "BOTH", 0, "Both", "Use both the inner volume and the outer shell of the mesh"},
@@ -667,7 +667,7 @@ void RNA_def_fluidsim(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_fluid_type_items[] = {
+	static const EnumPropertyItem prop_fluid_type_items[] = {
 		{OB_FLUIDSIM_ENABLE, "NONE", 0, "None", ""},
 		{OB_FLUIDSIM_DOMAIN, "DOMAIN", 0, "Domain",
 		                     "Bounding box of this object represents the computational domain of the "

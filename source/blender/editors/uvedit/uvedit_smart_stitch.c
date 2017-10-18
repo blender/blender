@@ -2254,7 +2254,7 @@ void UV_OT_stitch(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
-	static EnumPropertyItem stitch_modes[] = {
+	static const EnumPropertyItem stitch_modes[] = {
 	    {STITCH_VERT, "VERTEX", 0, "Vertex", ""},
 	    {STITCH_EDGE, "EDGE", 0, "Edge", ""},
 	    {0, NULL, 0, NULL, NULL}

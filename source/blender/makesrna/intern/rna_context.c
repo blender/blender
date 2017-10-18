@@ -134,7 +134,7 @@ void RNA_def_context(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem mode_items[] = {
+	static const EnumPropertyItem mode_items[] = {
 		{CTX_MODE_EDIT_MESH, "EDIT_MESH", 0, "Mesh Edit", ""},
 		{CTX_MODE_EDIT_CURVE, "EDIT_CURVE", 0, "Curve Edit", ""},
 		{CTX_MODE_EDIT_SURFACE, "EDIT_SURFACE", 0, "Surface Edit", ""},

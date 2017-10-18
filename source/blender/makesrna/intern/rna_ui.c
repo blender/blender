@@ -43,7 +43,7 @@
 #include "WM_types.h"
 
 /* see WM_types.h */
-EnumPropertyItem rna_enum_operator_context_items[] = {
+const EnumPropertyItem rna_enum_operator_context_items[] = {
 	{WM_OP_INVOKE_DEFAULT, "INVOKE_DEFAULT", 0, "Invoke Default", ""},
 	{WM_OP_INVOKE_REGION_WIN, "INVOKE_REGION_WIN", 0, "Invoke Region Window", ""},
 	{WM_OP_INVOKE_REGION_CHANNELS, "INVOKE_REGION_CHANNELS", 0, "Invoke Region Channels", ""},
@@ -59,7 +59,7 @@ EnumPropertyItem rna_enum_operator_context_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem rna_enum_uilist_layout_type_items[] = {
+const EnumPropertyItem rna_enum_uilist_layout_type_items[] = {
 	{UILST_LAYOUT_DEFAULT, "DEFAULT", 0, "Default Layout", "Use the default, multi-rows layout"},
 	{UILST_LAYOUT_COMPACT, "COMPACT", 0, "Compact Layout", "Use the compact, single-row layout"},
 	{UILST_LAYOUT_GRID, "GRID", 0, "Grid Layout", "Use the grid-based layout"},
@@ -896,7 +896,7 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem alignment_items[] = {
+	static const EnumPropertyItem alignment_items[] = {
 		{UI_LAYOUT_ALIGN_EXPAND, "EXPAND", 0, "Expand", ""},
 		{UI_LAYOUT_ALIGN_LEFT, "LEFT", 0, "Left", ""},
 		{UI_LAYOUT_ALIGN_CENTER, "CENTER", 0, "Center", ""},
@@ -950,7 +950,7 @@ static void rna_def_panel(BlenderRNA *brna)
 	PropertyRNA *parm;
 	FunctionRNA *func;
 	
-	static EnumPropertyItem panel_flag_items[] = {
+	static const EnumPropertyItem panel_flag_items[] = {
 		{PNL_DEFAULT_CLOSED, "DEFAULT_CLOSED", 0, "Default Closed",
 		                     "Defines if the panel has to be open or collapsed at the time of its creation"},
 		{PNL_NO_HEADER, "HIDE_HEADER", 0, "Hide Header",

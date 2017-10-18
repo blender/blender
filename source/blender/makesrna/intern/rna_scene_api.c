@@ -49,7 +49,7 @@
 #  include "../../alembic/ABC_alembic.h"
 #endif
 
-EnumPropertyItem rna_enum_abc_compression_items[] = {
+const EnumPropertyItem rna_enum_abc_compression_items[] = {
 #ifdef WITH_ALEMBIC
 	{ ABC_ARCHIVE_OGAWA, "OGAWA", 0, "Ogawa", "" },
 	{ ABC_ARCHIVE_HDF5, "HDF5", 0, "HDF5", "" },

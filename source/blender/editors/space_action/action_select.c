@@ -642,7 +642,7 @@ void ACTION_OT_select_circle(wmOperatorType *ot)
  */
 
 /* defines for column-select mode */
-static EnumPropertyItem prop_column_select_types[] = {
+static const EnumPropertyItem prop_column_select_types[] = {
 	{ACTKEYS_COLUMNSEL_KEYS, "KEYS", 0, "On Selected Keyframes", ""},
 	{ACTKEYS_COLUMNSEL_CFRA, "CFRA", 0, "On Current Frame", ""},
 	{ACTKEYS_COLUMNSEL_MARKERS_COLUMN, "MARKERS_COLUMN", 0, "On Selected Markers", ""},
@@ -1010,7 +1010,7 @@ void ACTION_OT_select_less(wmOperatorType *ot)
 /* Select keyframes left/right of the current frame indicator */
 
 /* defines for left-right select tool */
-static EnumPropertyItem prop_actkeys_leftright_select_types[] = {
+static const EnumPropertyItem prop_actkeys_leftright_select_types[] = {
 	{ACTKEYS_LRSEL_TEST, "CHECK", 0, "Check if Select Left or Right", ""},
 	{ACTKEYS_LRSEL_LEFT, "LEFT", 0, "Before current frame", ""},
 	{ACTKEYS_LRSEL_RIGHT, "RIGHT", 0, "After current frame", ""},

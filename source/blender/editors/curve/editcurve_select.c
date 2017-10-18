@@ -1192,7 +1192,7 @@ enum {
 	SIM_CMP_LT,
 };
 
-static EnumPropertyItem curve_prop_similar_compare_types[] = {
+static const EnumPropertyItem curve_prop_similar_compare_types[] = {
 	{SIM_CMP_EQ, "EQUAL", 0, "Equal", ""},
 	{SIM_CMP_GT, "GREATER", 0, "Greater", ""},
 	{SIM_CMP_LT, "LESS", 0, "Less", ""},
@@ -1207,7 +1207,7 @@ enum {
 	SIMCURHAND_DIRECTION,
 };
 
-static EnumPropertyItem curve_prop_similar_types[] = {
+static const EnumPropertyItem curve_prop_similar_types[] = {
 	{SIMCURHAND_TYPE, "TYPE", 0, "Type", ""},
 	{SIMCURHAND_RADIUS, "RADIUS", 0, "Radius", ""},
 	{SIMCURHAND_WEIGHT, "WEIGHT", 0, "Weight", ""},

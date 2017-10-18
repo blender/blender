@@ -302,7 +302,7 @@ static int gp_layer_move_exec(bContext *C, wmOperator *op)
 
 void GPENCIL_OT_layer_move(wmOperatorType *ot)
 {
-	static EnumPropertyItem slot_move[] = {
+	static const EnumPropertyItem slot_move[] = {
 		{GP_LAYER_MOVE_UP, "UP", 0, "Up", ""},
 		{GP_LAYER_MOVE_DOWN, "DOWN", 0, "Down", ""},
 		{0, NULL, 0, NULL, NULL}
@@ -831,7 +831,7 @@ static int gp_stroke_arrange_exec(bContext *C, wmOperator *op)
 
 void GPENCIL_OT_stroke_arrange(wmOperatorType *ot)
 {
-	static EnumPropertyItem slot_move[] = {
+	static const EnumPropertyItem slot_move[] = {
 		{GP_STROKE_MOVE_UP, "UP", 0, "Bring Forward", ""},
 		{GP_STROKE_MOVE_DOWN, "DOWN", 0, "Send Backward", ""},
 		{GP_STROKE_MOVE_TOP, "TOP", 0, "Bring to Front", ""},
@@ -1165,7 +1165,7 @@ static int gp_brush_move_exec(bContext *C, wmOperator *op)
 
 void GPENCIL_OT_brush_move(wmOperatorType *ot)
 {
-	static EnumPropertyItem slot_move[] = {
+	static const EnumPropertyItem slot_move[] = {
 		{GP_BRUSH_MOVE_UP, "UP", 0, "Up", ""},
 		{GP_BRUSH_MOVE_DOWN, "DOWN", 0, "Down", ""},
 		{0, NULL, 0, NULL, NULL }
@@ -1922,7 +1922,7 @@ static int gp_palettecolor_move_exec(bContext *C, wmOperator *op)
 
 void GPENCIL_OT_palettecolor_move(wmOperatorType *ot)
 {
-	static EnumPropertyItem slot_move[] = {
+	static const EnumPropertyItem slot_move[] = {
 		{GP_COLOR_MOVE_UP, "UP", 0, "Up", ""},
 		{GP_COLOR_MOVE_DOWN, "DOWN", 0, "Down", ""},
 		{0, NULL, 0, NULL, NULL}

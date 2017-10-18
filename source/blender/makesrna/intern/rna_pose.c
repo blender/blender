@@ -52,7 +52,7 @@
 
 /* XXX: this RNA enum define is currently duplicated for objects,
  * since there is some text here which is not applicable */
-EnumPropertyItem rna_enum_posebone_rotmode_items[] = {
+const EnumPropertyItem rna_enum_posebone_rotmode_items[] = {
 	{ROT_MODE_QUAT, "QUATERNION", 0, "Quaternion (WXYZ)", "No Gimbal Lock (default)"},
 	{ROT_MODE_XYZ, "XYZ", 0, "XYZ Euler", "XYZ Rotation Order (prone to Gimbal Lock)"},
 	{ROT_MODE_XZY, "XZY", 0, "XZY Euler", "XZY Rotation Order (prone to Gimbal Lock)"},
@@ -66,7 +66,7 @@ EnumPropertyItem rna_enum_posebone_rotmode_items[] = {
 };
 
 /* Bone and Group Color Sets */
-EnumPropertyItem rna_enum_color_sets_items[] = {
+const EnumPropertyItem rna_enum_color_sets_items[] = {
 	{0, "DEFAULT", 0, "Default Colors", ""},
 	{1, "THEME01", VICO_COLORSET_01_VEC, "01 - Theme Color Set", ""},
 	{2, "THEME02", VICO_COLORSET_02_VEC, "02 - Theme Color Set", ""},
@@ -729,13 +729,13 @@ static void rna_def_bone_group(BlenderRNA *brna)
 	rna_def_actionbone_group_common(srna, NC_OBJECT | ND_POSE, "rna_Pose_update");
 }
 
-static EnumPropertyItem prop_iksolver_items[] = {
+static const EnumPropertyItem prop_iksolver_items[] = {
 	{IKSOLVER_STANDARD, "LEGACY", 0, "Standard", "Original IK solver"},
 	{IKSOLVER_ITASC, "ITASC", 0, "iTaSC", "Multi constraint, stateful IK solver"},
 	{0, NULL, 0, NULL, NULL}
 };
 
-static EnumPropertyItem prop_solver_items[] = {
+static const EnumPropertyItem prop_solver_items[] = {
 	{ITASC_SOLVER_SDLS, "SDLS", 0, "SDLS", "Selective Damped Least Square"},
 	{ITASC_SOLVER_DLS, "DLS", 0, "DLS", "Damped Least Square with Numerical Filtering"},
 	{0, NULL, 0, NULL, NULL}

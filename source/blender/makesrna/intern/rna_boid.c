@@ -48,7 +48,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-EnumPropertyItem rna_enum_boidrule_type_items[] = {
+const EnumPropertyItem rna_enum_boidrule_type_items[] = {
 	{eBoidRuleType_Goal, "GOAL", 0, "Goal", "Go to assigned object or loudest assigned signal source"},
 	{eBoidRuleType_Avoid, "AVOID", 0, "Avoid", "Get away from assigned object or loudest assigned signal source"},
 	{eBoidRuleType_AvoidCollision, "AVOID_COLLISION", 0, "Avoid Collision",
@@ -71,7 +71,7 @@ EnumPropertyItem rna_enum_boidrule_type_items[] = {
 };
 
 #ifndef RNA_RUNTIME
-static EnumPropertyItem boidruleset_type_items[] = {
+static const EnumPropertyItem boidruleset_type_items[] = {
 	{eBoidRulesetType_Fuzzy, "FUZZY", 0, "Fuzzy",
 	                         "Rules are gone through top to bottom (only the first rule which effect is above "
 	                         "fuzziness threshold is evaluated)"},

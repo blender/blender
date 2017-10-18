@@ -2553,7 +2553,7 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	PropertyRNA *prop;
 	static float default_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 
-	static EnumPropertyItem gen_context_items[] = {
+	static const EnumPropertyItem gen_context_items[] = {
 		{GEN_CONTEXT_NONE, "NONE", 0, "None", ""},
 		{GEN_CONTEXT_PAINT_CANVAS, "PAINT_CANVAS", 0, "Paint Canvas", ""},
 		{GEN_CONTEXT_PAINT_STENCIL, "PAINT_STENCIL", 0, "Paint Stencil", ""},
@@ -3260,7 +3260,7 @@ void IMAGE_OT_sample_line(wmOperatorType *ot)
 
 void IMAGE_OT_curves_point_set(wmOperatorType *ot)
 {
-	static EnumPropertyItem point_items[] = {
+	static const EnumPropertyItem point_items[] = {
 		{0, "BLACK_POINT", 0, "Black Point", ""},
 		{1, "WHITE_POINT", 0, "White Point", ""},
 		{0, NULL, 0, NULL, NULL}

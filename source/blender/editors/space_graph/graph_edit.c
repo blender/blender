@@ -502,7 +502,7 @@ typedef enum eGraphKeys_InsertKey_Types {
 } eGraphKeys_InsertKey_Types;
 
 /* RNA mode types for insert keyframes tool */
-static EnumPropertyItem prop_graphkeys_insertkey_types[] = {
+static const EnumPropertyItem prop_graphkeys_insertkey_types[] = {
 	{GRAPHKEYS_INSERTKEY_ALL,   "ALL", 0, "All Channels",
 	 "Insert a keyframe on all visible and editable F-Curves using each curve's current value"},
 	{GRAPHKEYS_INSERTKEY_SEL,   "SEL", 0, "Only Selected Channels",
@@ -1466,7 +1466,7 @@ void GRAPH_OT_sample(wmOperatorType *ot)
 #define CLEAR_CYCLIC_EXPO   -2
 
 /* defines for set extrapolation-type for selected keyframes tool */
-static EnumPropertyItem prop_graphkeys_expo_types[] = {
+static const EnumPropertyItem prop_graphkeys_expo_types[] = {
 	{FCURVE_EXTRAPOLATE_CONSTANT, "CONSTANT", 0, "Constant Extrapolation", "Values on endpoint keyframes are held"},
 	{FCURVE_EXTRAPOLATE_LINEAR, "LINEAR", 0, "Linear Extrapolation", "Straight-line slope of end segments are extended past the endpoint keyframes"},
 	
@@ -2066,7 +2066,7 @@ void GRAPH_OT_frame_jump(wmOperatorType *ot)
 /* ******************** Snap Keyframes Operator *********************** */
 
 /* defines for snap keyframes tool */
-static EnumPropertyItem prop_graphkeys_snap_types[] = {
+static const EnumPropertyItem prop_graphkeys_snap_types[] = {
 	{GRAPHKEYS_SNAP_CFRA, "CFRA", 0, "Current Frame",
 	 "Snap selected keyframes to the current frame"},
 	{GRAPHKEYS_SNAP_VALUE, "VALUE", 0, "Cursor Value",
@@ -2195,7 +2195,7 @@ void GRAPH_OT_snap(wmOperatorType *ot)
 /* ******************** Mirror Keyframes Operator *********************** */
 
 /* defines for mirror keyframes tool */
-static EnumPropertyItem prop_graphkeys_mirror_types[] = {
+static const EnumPropertyItem prop_graphkeys_mirror_types[] = {
 	{GRAPHKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current Frame",
 	 "Flip times of selected keyframes using the current frame as the mirror line"},
 	{GRAPHKEYS_MIRROR_VALUE, "VALUE", 0, "By Values over Cursor Value",
@@ -2386,7 +2386,7 @@ void GRAPH_OT_smooth(wmOperatorType *ot)
 
 /* ******************** Add F-Modifier Operator *********************** */
 
-static EnumPropertyItem *graph_fmodifier_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *graph_fmodifier_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;

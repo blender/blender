@@ -63,7 +63,7 @@
 /* All possible data to transfer.
  * Note some are 'fake' ones, i.e. they are not hold by real CDLayers. */
 /* Not shared with modifier, since we use a usual enum here, not a multi-choice one. */
-static EnumPropertyItem DT_layer_items[] = {
+static const EnumPropertyItem DT_layer_items[] = {
 	{0, "", 0, "Vertex Data", ""},
 	{DT_TYPE_MDEFORMVERT, "VGROUP_WEIGHTS", 0, "Vertex Group(s)", "Transfer active or all vertex groups"},
 #if 0  /* XXX For now, would like to finish/merge work from 2014 gsoc first. */
@@ -90,7 +90,7 @@ static EnumPropertyItem DT_layer_items[] = {
 };
 
 /* Note: rna_enum_dt_layers_select_src_items enum is from rna_modifier.c */
-static EnumPropertyItem *dt_layers_select_src_itemf(
+static const EnumPropertyItem *dt_layers_select_src_itemf(
         bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem *item = NULL, tmp_item = {0};
@@ -183,7 +183,7 @@ static EnumPropertyItem *dt_layers_select_src_itemf(
 }
 
 /* Note: rna_enum_dt_layers_select_dst_items enum is from rna_modifier.c */
-static EnumPropertyItem *dt_layers_select_dst_itemf(
+static const EnumPropertyItem *dt_layers_select_dst_itemf(
         bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem *item = NULL;
@@ -209,7 +209,7 @@ static EnumPropertyItem *dt_layers_select_dst_itemf(
 	return item;
 }
 
-static EnumPropertyItem *dt_layers_select_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *prop, bool *r_free)
+static const EnumPropertyItem *dt_layers_select_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *prop, bool *r_free)
 {
 	const bool reverse_transfer = RNA_boolean_get(ptr, "use_reverse_transfer");
 
@@ -230,7 +230,7 @@ static EnumPropertyItem *dt_layers_select_itemf(bContext *C, PointerRNA *ptr, Pr
 }
 
 /* Note: rna_enum_dt_mix_mode_items enum is from rna_modifier.c */
-static EnumPropertyItem *dt_mix_mode_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *dt_mix_mode_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;

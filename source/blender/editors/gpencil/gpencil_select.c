@@ -371,7 +371,7 @@ static int gpencil_select_grouped_exec(bContext *C, wmOperator *op)
 
 void GPENCIL_OT_select_grouped(wmOperatorType *ot)
 {
-	static EnumPropertyItem prop_select_grouped_types[] = {
+	static const EnumPropertyItem prop_select_grouped_types[] = {
 		{GP_SEL_SAME_LAYER, "LAYER", 0, "Layer", "Shared layers"},
 		{GP_SEL_SAME_COLOR, "COLOR", 0, "Color", "Shared colors"},
 		{0, NULL, 0, NULL, NULL}

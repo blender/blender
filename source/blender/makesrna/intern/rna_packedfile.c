@@ -35,7 +35,7 @@
 
 #include "rna_internal.h"
 
-EnumPropertyItem rna_enum_unpack_method_items[] = {
+const EnumPropertyItem rna_enum_unpack_method_items[] = {
 	{PF_USE_LOCAL, "USE_LOCAL", 0, "Use Local File", ""},
 	{PF_WRITE_LOCAL, "WRITE_LOCAL", 0, "Write Local File (overwrite existing)", ""},
 	{PF_USE_ORIGINAL, "USE_ORIGINAL", 0, "Use Original File", ""},

@@ -52,7 +52,7 @@
 
 #include "WM_types.h"
 
-EnumPropertyItem rna_enum_mesh_delimit_mode_items[] = {
+const EnumPropertyItem rna_enum_mesh_delimit_mode_items[] = {
 	{BMO_DELIM_NORMAL, "NORMAL", 0, "Normal", "Delimit by face directions"},
 	{BMO_DELIM_MATERIAL, "MATERIAL", 0, "Material", "Delimit by face material"},
 	{BMO_DELIM_SEAM, "SEAM", 0, "Seam", "Delimit by edge seams"},

@@ -47,7 +47,7 @@
 #include "WM_types.h"
 
 /* Always keep in alphabetical order */
-static EnumPropertyItem actuator_type_items[] = {
+static const EnumPropertyItem actuator_type_items[] = {
 	{ACT_ACTION, "ACTION", 0, "Action", ""},
 	{ACT_ARMATURE, "ARMATURE", 0, "Armature", ""},
 	{ACT_CAMERA, "CAMERA", 0, "Camera", ""},
@@ -432,7 +432,7 @@ static void rna_StateActuator_state_set(PointerRNA *ptr, const int *values)
 }
 
 /* Always keep in alphabetical order */
-EnumPropertyItem *rna_Actuator_type_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
+const EnumPropertyItem *rna_Actuator_type_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem *item = NULL;
 	Object *ob = NULL;
@@ -579,7 +579,7 @@ static void rna_def_action_actuator(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_type_items[] = {
+	static const EnumPropertyItem prop_type_items[] = {
 		{ACT_ACTION_PLAY, "PLAY", 0, "Play", ""},
 		{ACT_ACTION_PINGPONG, "PINGPONG", 0, "Ping Pong", ""},
 		{ACT_ACTION_FLIPPER, "FLIPPER", 0, "Flipper", ""},
@@ -592,7 +592,7 @@ static void rna_def_action_actuator(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_blend_items[] = {
+	static const EnumPropertyItem prop_blend_items[] = {
 	    {ACT_ACTION_BLEND, "BLEND", 0, "Blend", ""},
 	    {ACT_ACTION_ADD, "ADD", 0, "Add", ""},
 	    {0, NULL, 0, NULL, NULL}
@@ -714,7 +714,7 @@ static void rna_def_object_actuator(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_type_items[] = {
+	static const EnumPropertyItem prop_type_items[] = {
 		{ACT_OBJECT_NORMAL, "OBJECT_NORMAL", 0, "Simple Motion", ""},
 		{ACT_OBJECT_SERVO, "OBJECT_SERVO", 0, "Servo Control", ""},
 		{ACT_OBJECT_CHARACTER, "OBJECT_CHARACTER", 0, "Character Motion", ""},
@@ -915,7 +915,7 @@ static void rna_def_camera_actuator(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_axis_items[] = {
+	static const EnumPropertyItem prop_axis_items[] = {
 		{OB_POSX, "POS_X", 0, "+X", "Camera tries to get behind the X axis"},
 		{OB_POSY, "POS_Y", 0, "+Y", "Camera tries to get behind the Y axis"},
 		{OB_NEGX, "NEG_X", 0, "-X", "Camera tries to get behind the -X axis"},
@@ -970,7 +970,7 @@ static void rna_def_sound_actuator(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_type_items[] = {
+	static const EnumPropertyItem prop_type_items[] = {
 		{ACT_SND_PLAY_STOP_SOUND, "PLAYSTOP", 0, "Play Stop", ""},
 		{ACT_SND_PLAY_END_SOUND, "PLAYEND", 0, "Play End", ""},
 		{ACT_SND_LOOP_STOP_SOUND, "LOOPSTOP", 0, "Loop Stop", ""},
@@ -1072,7 +1072,7 @@ static void rna_def_property_actuator(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_type_items[] = {
+	static const EnumPropertyItem prop_type_items[] = {
 		{ACT_PROP_ASSIGN, "ASSIGN", 0, "Assign", ""},
 		{ACT_PROP_ADD, "ADD", 0, "Add", ""},
 		{ACT_PROP_COPY, "COPY", 0, "Copy", ""},
@@ -1120,7 +1120,7 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_type_items[] = {
+	static const EnumPropertyItem prop_type_items[] = {
 		{ACT_CONST_TYPE_LOC, "LOC", 0, "Location Constraint", ""},
 		{ACT_CONST_TYPE_DIST, "DIST", 0, "Distance Constraint", ""},
 		{ACT_CONST_TYPE_ORI, "ORI", 0, "Orientation Constraint", ""},
@@ -1128,7 +1128,7 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_limit_items[] = {
+	static const EnumPropertyItem prop_limit_items[] = {
 		{ACT_CONST_NONE, "NONE", 0, "None", ""},
 		{ACT_CONST_LOCX, "LOCX", 0, "Loc X", ""},
 		{ACT_CONST_LOCY, "LOCY", 0, "Loc Y", ""},
@@ -1136,7 +1136,7 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_direction_items[] = {
+	static const EnumPropertyItem prop_direction_items[] = {
 		{ACT_CONST_NONE, "NONE", 0, "None", ""},
 		{ACT_CONST_DIRPX, "DIRPX", 0, "X axis", ""},
 		{ACT_CONST_DIRPY, "DIRPY", 0, "Y axis", ""},
@@ -1147,7 +1147,7 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_direction_pos_items[] = {
+	static const EnumPropertyItem prop_direction_pos_items[] = {
 		{ACT_CONST_NONE, "NONE", 0, "None", ""},
 		{ACT_CONST_DIRPX, "DIRPX", 0, "X axis", ""},
 		{ACT_CONST_DIRPY, "DIRPY", 0, "Y axis", ""},
@@ -1339,7 +1339,7 @@ static void rna_def_edit_object_actuator(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_dyn_items[] = {
+	static const EnumPropertyItem prop_dyn_items[] = {
 		{ACT_EDOB_RESTORE_DYN, "RESTOREDYN", 0, "Restore Dynamics", ""},
 		{ACT_EDOB_SUSPEND_DYN, "SUSPENDDYN", 0, "Suspend Dynamics", ""},
 		{ACT_EDOB_ENABLE_RB, "ENABLERIGIDBODY", 0, "Enable Rigid Body", ""},
@@ -1348,7 +1348,7 @@ static void rna_def_edit_object_actuator(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_type_items[] = {
+	static const EnumPropertyItem prop_type_items[] = {
 		{ACT_EDOB_ADD_OBJECT, "ADDOBJECT", 0, "Add Object", ""},
 		{ACT_EDOB_END_OBJECT, "ENDOBJECT", 0, "End Object", ""},
 		{ACT_EDOB_REPLACE_MESH, "REPLACEMESH", 0, "Replace Mesh", ""},
@@ -1357,7 +1357,7 @@ static void rna_def_edit_object_actuator(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_track_axis_items[] = {
+	static const EnumPropertyItem prop_track_axis_items[] = {
 		{ACT_TRACK_TRAXIS_X, "TRACKAXISX", 0, "X axis", ""},
 		{ACT_TRACK_TRAXIS_Y, "TRACKAXISY", 0, "Y axis", ""},
 		{ACT_TRACK_TRAXIS_Z, "TRACKAXISZ", 0, "Z axis", ""},
@@ -1367,7 +1367,7 @@ static void rna_def_edit_object_actuator(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_up_axis_items[] = {
+	static const EnumPropertyItem prop_up_axis_items[] = {
 		{ACT_TRACK_UP_X, "UPAXISX", 0, "X axis", ""},
 		{ACT_TRACK_UP_Y, "UPAXISY", 0, "Y axis", ""},
 		{ACT_TRACK_UP_Z, "UPAXISZ", 0, "Z axis", ""},
@@ -1484,7 +1484,7 @@ static void rna_def_scene_actuator(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_type_items[] = {
+	static const EnumPropertyItem prop_type_items[] = {
 		{ACT_SCENE_RESTART, "RESTART", 0, "Restart", ""},
 		{ACT_SCENE_SET, "SET", 0, "Set Scene", ""},
 		{ACT_SCENE_CAMERA, "CAMERA", 0, "Set Camera", ""},
@@ -1525,7 +1525,7 @@ static void rna_def_random_actuator(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_distribution_items[] = {
+	static const EnumPropertyItem prop_distribution_items[] = {
 		{ACT_RANDOM_BOOL_CONST, "BOOL_CONSTANT", 0, "Bool Constant", ""},
 		{ACT_RANDOM_BOOL_UNIFORM, "BOOL_UNIFORM", 0, "Bool Uniform", ""},
 		{ACT_RANDOM_BOOL_BERNOUILLI, "BOOL_BERNOUILLI", 0, "Bool Bernoulli", ""},
@@ -1653,7 +1653,7 @@ static void rna_def_message_actuator(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_body_type_items[] = {
+	static const EnumPropertyItem prop_body_type_items[] = {
 		{ACT_MESG_MESG, "TEXT", 0, "Text", ""},
 		{ACT_MESG_PROP, "PROPERTY", 0, "Property", ""},
 		{0, NULL, 0, NULL, NULL}
@@ -1696,7 +1696,7 @@ static void rna_def_game_actuator(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_type_items[] = {
+	static const EnumPropertyItem prop_type_items[] = {
 /*		{ACT_GAME_LOAD, "LOAD", 0, "Load Game", ""}, */
 /*		{ACT_GAME_START, "START", 0, "Start Loaded Game", ""},	 */
 /*		keeping the load/start hacky for compatibility with 2.49 */
@@ -1765,7 +1765,7 @@ static void rna_def_twodfilter_actuator(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_type_items[] = {
+	static const EnumPropertyItem prop_type_items[] = {
 		{ACT_2DFILTER_ENABLED, "ENABLE", 0, "Enable Filter", ""},
 		{ACT_2DFILTER_DISABLED, "DISABLE", 0, "Disable Filter", ""},
 		{ACT_2DFILTER_NOFILTER, "REMOVE", 0, "Remove Filter", ""},
@@ -1826,7 +1826,7 @@ static void rna_def_parent_actuator(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	static EnumPropertyItem prop_type_items[] = {
+	static const EnumPropertyItem prop_type_items[] = {
 		{ACT_PARENT_SET, "SETPARENT", 0, "Set Parent", ""},
 		{ACT_PARENT_REMOVE, "REMOVEPARENT", 0, "Remove Parent", ""},
 		{0, NULL, 0, NULL, NULL}
@@ -1868,7 +1868,7 @@ static void rna_def_state_actuator(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_type_items[] = {
+	static const EnumPropertyItem prop_type_items[] = {
 		{ACT_STATE_SET, "SET", 0, "Set State", ""},
 		{ACT_STATE_ADD, "ADD", 0, "Add State", ""},
 		{ACT_STATE_REMOVE, "REMOVE", 0, "Remove State", ""},
@@ -1898,7 +1898,7 @@ static void rna_def_armature_actuator(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_type_items[] = {
+	static const EnumPropertyItem prop_type_items[] = {
 		{ACT_ARM_RUN, "RUN", 0, "Run Armature", ""},
 		{ACT_ARM_ENABLE, "ENABLE", 0, "Enable", ""},
 		{ACT_ARM_DISABLE, "DISABLE", 0, "Disable", ""},
@@ -1961,14 +1961,14 @@ static void rna_def_steering_actuator(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_type_items[] = {
+	static const EnumPropertyItem prop_type_items[] = {
 		{ACT_STEERING_SEEK, "SEEK", 0, "Seek", ""},
 		{ACT_STEERING_FLEE, "FLEE", 0, "Flee", ""},
 		{ACT_STEERING_PATHFOLLOWING, "PATHFOLLOWING", 0, "Path following", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem facingaxis_items[] = {
+	static const EnumPropertyItem facingaxis_items[] = {
 		{1, "X", 0, "X", ""},
 		{2, "Y", 0, "Y", ""},
 		{3, "Z", 0, "Z", ""},
@@ -2070,13 +2070,13 @@ static void rna_def_mouse_actuator(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_type_items[] = {
+	static const EnumPropertyItem prop_type_items[] = {
 		{ACT_MOUSE_VISIBILITY, "VISIBILITY", 0, "Visibility", ""},
 		{ACT_MOUSE_LOOK, "LOOK", 0, "Look", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_object_axis_items[] = {
+	static const EnumPropertyItem prop_object_axis_items[] = {
 		{ACT_MOUSE_OBJECT_AXIS_X, "OBJECT_AXIS_X", 0, "X Axis", ""},
 		{ACT_MOUSE_OBJECT_AXIS_Y, "OBJECT_AXIS_Y", 0, "Y Axis", ""},
 		{ACT_MOUSE_OBJECT_AXIS_Z, "OBJECT_AXIS_Z", 0, "Z Axis", ""},

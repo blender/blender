@@ -214,7 +214,7 @@ static int edbm_intersect_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_intersect(struct wmOperatorType *ot)
 {
-	static EnumPropertyItem isect_mode_items[] = {
+	static const EnumPropertyItem isect_mode_items[] = {
 		{ISECT_SEL, "SELECT", 0, "Self Intersect",
 		 "Self intersect selected faces"},
 		{ISECT_SEL_UNSEL, "SELECT_UNSELECT", 0, "Selected/Unselected",
@@ -222,7 +222,7 @@ void MESH_OT_intersect(struct wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem isect_separate_items[] = {
+	static const EnumPropertyItem isect_separate_items[] = {
 		{ISECT_SEPARATE_ALL, "ALL", 0, "All",
 		 "Separate all geometry from intersections"},
 		{ISECT_SEPARATE_CUT, "CUT", 0, "Cut",
@@ -298,7 +298,7 @@ static int edbm_intersect_boolean_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_intersect_boolean(struct wmOperatorType *ot)
 {
-	static EnumPropertyItem isect_boolean_operation_items[] = {
+	static const EnumPropertyItem isect_boolean_operation_items[] = {
 		{BMESH_ISECT_BOOLEAN_ISECT, "INTERSECT", 0, "Intersect", ""},
 		{BMESH_ISECT_BOOLEAN_UNION, "UNION", 0, "Union", ""},
 		{BMESH_ISECT_BOOLEAN_DIFFERENCE, "DIFFERENCE", 0, "Difference", ""},

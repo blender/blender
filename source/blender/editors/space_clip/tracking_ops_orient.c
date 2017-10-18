@@ -504,7 +504,7 @@ static int set_plane_exec(bContext *C, wmOperator *op)
 
 void CLIP_OT_set_plane(wmOperatorType *ot)
 {
-	static EnumPropertyItem plane_items[] = {
+	static const EnumPropertyItem plane_items[] = {
 		{0, "FLOOR", 0, "Floor", "Set floor plane"},
 		{1, "WALL", 0, "Wall", "Set wall plane"},
 		{0, NULL, 0, NULL, NULL}
@@ -578,7 +578,7 @@ static int set_axis_exec(bContext *C, wmOperator *op)
 
 void CLIP_OT_set_axis(wmOperatorType *ot)
 {
-	static EnumPropertyItem axis_actions[] = {
+	static const EnumPropertyItem axis_actions[] = {
 		{0, "X", 0, "X", "Align bundle align X axis"},
 		{1, "Y", 0, "Y", "Align bundle align Y axis"},
 		{0, NULL, 0, NULL, NULL}

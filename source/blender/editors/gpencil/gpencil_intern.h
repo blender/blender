@@ -121,16 +121,22 @@ void gp_randomize_stroke(bGPDstroke *gps, bGPDbrush *brush);
 
 /* Layers Enums -------------------------------------- */
 
-struct EnumPropertyItem *ED_gpencil_layers_enum_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
-struct EnumPropertyItem *ED_gpencil_layers_with_new_enum_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
+const struct EnumPropertyItem *ED_gpencil_layers_enum_itemf(
+        struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop,
+        bool *r_free);
+const struct EnumPropertyItem *ED_gpencil_layers_with_new_enum_itemf(
+        struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop,
+        bool *r_free);
 
 /* Enums of GP Brushes */
-EnumPropertyItem *ED_gpencil_brushes_enum_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop),
-                                                bool *r_free);
+const EnumPropertyItem *ED_gpencil_brushes_enum_itemf(
+        bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop),
+        bool *r_free);
 
 /* Enums of GP palettes */
-EnumPropertyItem *ED_gpencil_palettes_enum_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop),
-                                                 bool *r_free);
+const EnumPropertyItem *ED_gpencil_palettes_enum_itemf(
+        bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop),
+        bool *r_free);
 
 /* ***************************************************** */
 /* Operator Defines */

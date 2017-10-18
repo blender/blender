@@ -680,7 +680,7 @@ typedef enum eRearrangeAnimChan_Mode {
 } eRearrangeAnimChan_Mode;
 
 /* defines for rearranging channels */
-static EnumPropertyItem prop_animchannel_rearrange_types[] = {
+static const EnumPropertyItem prop_animchannel_rearrange_types[] = {
 	{REARRANGE_ANIMCHAN_TOP, "TOP", 0, "To Top", ""},
 	{REARRANGE_ANIMCHAN_UP, "UP", 0, "Up", ""},
 	{REARRANGE_ANIMCHAN_DOWN, "DOWN", 0, "Down", ""},
@@ -1743,7 +1743,7 @@ static void ANIM_OT_channels_delete(wmOperatorType *ot)
 /* ********************** Set Flags Operator *********************** */
 
 /* defines for setting animation-channel flags */
-static EnumPropertyItem prop_animchannel_setflag_types[] = {
+static const EnumPropertyItem prop_animchannel_setflag_types[] = {
 	{ACHANNEL_SETFLAG_TOGGLE, "TOGGLE", 0, "Toggle", ""},
 	{ACHANNEL_SETFLAG_CLEAR, "DISABLE", 0, "Disable", ""},
 	{ACHANNEL_SETFLAG_ADD, "ENABLE", 0, "Enable", ""},
@@ -1753,7 +1753,7 @@ static EnumPropertyItem prop_animchannel_setflag_types[] = {
 
 /* defines for set animation-channel settings */
 // TODO: could add some more types, but those are really quite dependent on the mode...
-static EnumPropertyItem prop_animchannel_settings_types[] = {
+static const EnumPropertyItem prop_animchannel_settings_types[] = {
 	{ACHANNEL_SETTING_PROTECT, "PROTECT", 0, "Protect", ""},
 	{ACHANNEL_SETTING_MUTE, "MUTE", 0, "Mute", ""},
 	{0, NULL, 0, NULL, NULL}

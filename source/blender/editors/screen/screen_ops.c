@@ -1771,7 +1771,7 @@ static int area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static EnumPropertyItem prop_direction_items[] = {
+static const EnumPropertyItem prop_direction_items[] = {
 	{'h', "HORIZONTAL", 0, "Horizontal", ""},
 	{'v', "VERTICAL", 0, "Vertical", ""},
 	{0, NULL, 0, NULL, NULL}
@@ -3992,7 +3992,7 @@ static int scene_new_exec(bContext *C, wmOperator *op)
 
 static void SCENE_OT_new(wmOperatorType *ot)
 {
-	static EnumPropertyItem type_items[] = {
+	static const EnumPropertyItem type_items[] = {
 		{SCE_COPY_NEW, "NEW", 0, "New", "Add new scene"},
 		{SCE_COPY_EMPTY, "EMPTY", 0, "Copy Settings", "Make a copy without any objects"},
 		{SCE_COPY_LINK_OB, "LINK_OBJECTS", 0, "Link Objects", "Link to the objects from the current scene"},
@@ -4198,7 +4198,7 @@ enum {
 	SPACE_CONTEXT_CYCLE_NEXT,
 };
 
-static EnumPropertyItem space_context_cycle_direction[] = {
+static const EnumPropertyItem space_context_cycle_direction[] = {
 	{SPACE_CONTEXT_CYCLE_PREV, "PREV", 0, "Previous", ""},
 	{SPACE_CONTEXT_CYCLE_NEXT, "NEXT", 0, "Next", ""},
 	{0, NULL, 0, NULL, NULL}
@@ -4339,7 +4339,7 @@ void ED_operatortypes_screen(void)
 
 static void keymap_modal_set(wmKeyConfig *keyconf)
 {
-	static EnumPropertyItem modal_items[] = {
+	static const EnumPropertyItem modal_items[] = {
 		{KM_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
 		{KM_MODAL_APPLY, "APPLY", 0, "Apply", ""},
 		{KM_MODAL_STEP10, "STEP10", 0, "Steps on", ""},

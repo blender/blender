@@ -660,7 +660,7 @@ void ACTION_OT_paste(wmOperatorType *ot)
 /* ******************** Insert Keyframes Operator ************************* */
 
 /* defines for insert keyframes tool */
-static EnumPropertyItem prop_actkeys_insertkey_types[] = {
+static const EnumPropertyItem prop_actkeys_insertkey_types[] = {
 	{1, "ALL", 0, "All Channels", ""},
 	{2, "SEL", 0, "Only Selected Channels", ""},
 	{3, "GROUP", 0, "In Active Group", ""},  /* XXX not in all cases */
@@ -1110,7 +1110,7 @@ void ACTION_OT_sample(wmOperatorType *ot)
 #define CLEAR_CYCLIC_EXPO   -2
 
 /* defines for set extrapolation-type for selected keyframes tool */
-static EnumPropertyItem prop_actkeys_expo_types[] = {
+static const EnumPropertyItem prop_actkeys_expo_types[] = {
 	{FCURVE_EXTRAPOLATE_CONSTANT, "CONSTANT", 0, "Constant Extrapolation", "Values on endpoint keyframes are held"},
 	{FCURVE_EXTRAPOLATE_LINEAR, "LINEAR", 0, "Linear Extrapolation", "Straight-line slope of end segments are extended past the endpoint keyframes"},
 	
@@ -1550,7 +1550,7 @@ void ACTION_OT_frame_jump(wmOperatorType *ot)
 /* ******************** Snap Keyframes Operator *********************** */
 
 /* defines for snap keyframes tool */
-static EnumPropertyItem prop_actkeys_snap_types[] = {
+static const EnumPropertyItem prop_actkeys_snap_types[] = {
 	{ACTKEYS_SNAP_CFRA, "CFRA", 0, "Current frame",
 	 "Snap selected keyframes to the current frame"},
 	{ACTKEYS_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame",
@@ -1659,7 +1659,7 @@ void ACTION_OT_snap(wmOperatorType *ot)
 /* ******************** Mirror Keyframes Operator *********************** */
 
 /* defines for mirror keyframes tool */
-static EnumPropertyItem prop_actkeys_mirror_types[] = {
+static const EnumPropertyItem prop_actkeys_mirror_types[] = {
 	{ACTKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current frame",
 	 "Flip times of selected keyframes using the current frame as the mirror line"},
 	{ACTKEYS_MIRROR_XAXIS, "XAXIS", 0, "By Values over Value=0",

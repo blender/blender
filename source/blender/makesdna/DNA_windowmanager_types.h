@@ -311,7 +311,7 @@ typedef struct wmKeyMap {
 
 	/* runtime */
 	int (*poll)(struct bContext *);  /* verify if enabled in the current context */
-	void *modal_items;               /* for modal, EnumPropertyItem for now */
+	const void *modal_items;         /* for modal, EnumPropertyItem for now */
 } wmKeyMap;
 
 /* wmKeyMap.flag */

@@ -60,7 +60,7 @@ enum {
 
 extern BPy_StructRNA *bpy_context_module;
 
-static EnumPropertyItem property_flag_items[] = {
+static const EnumPropertyItem property_flag_items[] = {
 	{PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
 	{PROP_SKIP_SAVE, "SKIP_SAVE", 0, "Skip Save", ""},
 	{PROP_ANIMATABLE, "ANIMATABLE", 0, "Animatable", ""},
@@ -74,7 +74,7 @@ static EnumPropertyItem property_flag_items[] = {
                                 "'TEXTEDIT_UPDATE'].\n" \
 "   :type options: set\n" \
 
-static EnumPropertyItem property_flag_enum_items[] = {
+static const EnumPropertyItem property_flag_enum_items[] = {
 	{PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
 	{PROP_SKIP_SAVE, "SKIP_SAVE", 0, "Skip Save", ""},
 	{PROP_ANIMATABLE, "ANIMATABLE", 0, "Animatable", ""},
@@ -90,7 +90,7 @@ static EnumPropertyItem property_flag_enum_items[] = {
 /* XXX Keep in sync with rna_rna.c's rna_enum_property_subtype_items ???
  *     Currently it is not...
  */
-static EnumPropertyItem property_subtype_string_items[] = {
+static const EnumPropertyItem property_subtype_string_items[] = {
 	{PROP_FILEPATH, "FILE_PATH", 0, "File Path", ""},
 	{PROP_DIRPATH, "DIR_PATH", 0, "Directory Path", ""},
 	{PROP_FILENAME, "FILE_NAME", 0, "Filename", ""},
@@ -104,7 +104,7 @@ static EnumPropertyItem property_subtype_string_items[] = {
 "   :arg subtype: Enumerator in ['FILE_PATH', 'DIR_PATH', 'FILE_NAME', 'BYTE_STRING', 'PASSWORD', 'NONE'].\n" \
 "   :type subtype: string\n" \
 
-static EnumPropertyItem property_subtype_number_items[] = {
+static const EnumPropertyItem property_subtype_number_items[] = {
 	{PROP_PIXEL, "PIXEL", 0, "Pixel", ""},
 	{PROP_UNSIGNED, "UNSIGNED", 0, "Unsigned", ""},
 	{PROP_PERCENTAGE, "PERCENTAGE", 0, "Percentage", ""},
@@ -120,7 +120,7 @@ static EnumPropertyItem property_subtype_number_items[] = {
 "   :arg subtype: Enumerator in ['PIXEL', 'UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', 'TIME', 'DISTANCE', 'NONE'].\n" \
 "   :type subtype: string\n" \
 
-static EnumPropertyItem property_subtype_array_items[] = {
+static const EnumPropertyItem property_subtype_array_items[] = {
 	{PROP_COLOR, "COLOR", 0, "Color", ""},
 	{PROP_TRANSLATION, "TRANSLATION", 0, "Translation", ""},
 	{PROP_DIRECTION, "DIRECTION", 0, "Direction", ""},
@@ -1335,7 +1335,7 @@ static size_t strswapbufcpy(char *buf, const char **orig)
 
 static int icon_id_from_name(const char *name)
 {
-	EnumPropertyItem *item;
+	const EnumPropertyItem *item;
 	int id;
 
 	if (name[0]) {
@@ -1349,7 +1349,7 @@ static int icon_id_from_name(const char *name)
 	return 0;
 }
 
-static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, int *defvalue, const bool is_enum_flag)
+static const EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, int *defvalue, const bool is_enum_flag)
 {
 	EnumPropertyItem *items;
 	PyObject *item;
@@ -1505,7 +1505,7 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 	return items;
 }
 
-static EnumPropertyItem *bpy_prop_enum_itemf_cb(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, bool *r_free)
+static const EnumPropertyItem *bpy_prop_enum_itemf_cb(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, bool *r_free)
 {
 	PyGILState_STATE gilstate;
 
@@ -1514,7 +1514,7 @@ static EnumPropertyItem *bpy_prop_enum_itemf_cb(struct bContext *C, PointerRNA *
 	PyObject *args;
 	PyObject *items; /* returned from the function call */
 
-	EnumPropertyItem *eitems = NULL;
+	const EnumPropertyItem *eitems = NULL;
 	int err = 0;
 
 	if (C) {
@@ -2748,7 +2748,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		int id_len;
 		int defvalue = 0;
 		PyObject *items, *items_fast;
-		EnumPropertyItem *eitems;
+		const EnumPropertyItem *eitems;
 		PropertyRNA *prop;
 		PyObject *pyopts = NULL;
 		int opts = 0;
@@ -2841,7 +2841,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 			 * otherwise if this is a generator it may free the strings before we copy them */
 			Py_DECREF(items_fast);
 
-			MEM_freeN(eitems);
+			MEM_freeN((void *)eitems);
 		}
 	}
 	Py_RETURN_NONE;

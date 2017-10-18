@@ -63,7 +63,7 @@
 /********************* 3d view operators ***********************/
 
 /* can be called with C == NULL */
-static EnumPropertyItem *group_object_active_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *group_object_active_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	Object *ob;
 	EnumPropertyItem *item = NULL, item_tmp = {0};

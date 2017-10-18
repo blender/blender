@@ -2089,7 +2089,7 @@ void NLA_OT_clear_scale(wmOperatorType *ot)
 /* Moves the start-point of the selected strips to the specified places */
 
 /* defines for snap keyframes tool */
-static EnumPropertyItem prop_nlaedit_snap_types[] = {
+static const EnumPropertyItem prop_nlaedit_snap_types[] = {
 	{NLAEDIT_SNAP_CFRA, "CFRA", 0, "Current Frame", ""},
 	{NLAEDIT_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame", ""}, // XXX as single entry?
 	{NLAEDIT_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Nearest Second", ""}, // XXX as single entry?
@@ -2239,7 +2239,7 @@ void NLA_OT_snap(wmOperatorType *ot)
 
 /* ******************** Add F-Modifier Operator *********************** */
 
-static EnumPropertyItem *nla_fmodifier_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *nla_fmodifier_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;

@@ -73,7 +73,7 @@
 #include "BLI_threads.h"
 
 #ifdef WITH_OPENEXR
-EnumPropertyItem rna_enum_exr_codec_items[] = {
+const EnumPropertyItem rna_enum_exr_codec_items[] = {
 	{R_IMF_EXR_CODEC_NONE, "NONE", 0, "None", ""},
 	{R_IMF_EXR_CODEC_PXR24, "PXR24", 0, "Pxr24 (lossy)", ""},
 	{R_IMF_EXR_CODEC_ZIP, "ZIP", 0, "ZIP (lossless)", ""},
@@ -90,14 +90,14 @@ EnumPropertyItem rna_enum_exr_codec_items[] = {
 #endif
 
 #ifndef RNA_RUNTIME
-static EnumPropertyItem uv_sculpt_relaxation_items[] = {
+static const EnumPropertyItem uv_sculpt_relaxation_items[] = {
 	{UV_SCULPT_TOOL_RELAX_LAPLACIAN, "LAPLACIAN", 0, "Laplacian", "Use Laplacian method for relaxation"},
 	{UV_SCULPT_TOOL_RELAX_HC, "HC", 0, "HC", "Use HC method for relaxation"},
 	{0, NULL, 0, NULL, NULL}
 };
 #endif
 
-EnumPropertyItem rna_enum_uv_sculpt_tool_items[] = {
+const EnumPropertyItem rna_enum_uv_sculpt_tool_items[] = {
 	{UV_SCULPT_TOOL_PINCH, "PINCH", 0, "Pinch", "Pinch UVs"},
 	{UV_SCULPT_TOOL_RELAX, "RELAX", 0, "Relax", "Relax UVs"},
 	{UV_SCULPT_TOOL_GRAB, "GRAB", 0, "Grab", "Grab UVs"},
@@ -105,7 +105,7 @@ EnumPropertyItem rna_enum_uv_sculpt_tool_items[] = {
 };
 
 
-EnumPropertyItem rna_enum_snap_target_items[] = {
+const EnumPropertyItem rna_enum_snap_target_items[] = {
 	{SCE_SNAP_TARGET_CLOSEST, "CLOSEST", 0, "Closest", "Snap closest point onto target"},
 	{SCE_SNAP_TARGET_CENTER, "CENTER", 0, "Center", "Snap center onto target"},
 	{SCE_SNAP_TARGET_MEDIAN, "MEDIAN", 0, "Median", "Snap median onto target"},
@@ -113,7 +113,7 @@ EnumPropertyItem rna_enum_snap_target_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 	
-EnumPropertyItem rna_enum_proportional_falloff_items[] = {
+const EnumPropertyItem rna_enum_proportional_falloff_items[] = {
 	{PROP_SMOOTH, "SMOOTH", ICON_SMOOTHCURVE, "Smooth", "Smooth falloff"},
 	{PROP_SPHERE, "SPHERE", ICON_SPHERECURVE, "Sphere", "Spherical falloff"},
 	{PROP_ROOT, "ROOT", ICON_ROOTCURVE, "Root", "Root falloff"},
@@ -126,7 +126,7 @@ EnumPropertyItem rna_enum_proportional_falloff_items[] = {
 };
 
 /* subset of the enum - only curves, missing random and const */
-EnumPropertyItem rna_enum_proportional_falloff_curve_only_items[] = {
+const EnumPropertyItem rna_enum_proportional_falloff_curve_only_items[] = {
 	{PROP_SMOOTH, "SMOOTH", ICON_SMOOTHCURVE, "Smooth", "Smooth falloff"},
 	{PROP_SPHERE, "SPHERE", ICON_SPHERECURVE, "Sphere", "Spherical falloff"},
 	{PROP_ROOT, "ROOT", ICON_ROOTCURVE, "Root", "Root falloff"},
@@ -137,7 +137,7 @@ EnumPropertyItem rna_enum_proportional_falloff_curve_only_items[] = {
 };
 
 
-EnumPropertyItem rna_enum_proportional_editing_items[] = {
+const EnumPropertyItem rna_enum_proportional_editing_items[] = {
 	{PROP_EDIT_OFF, "DISABLED", ICON_PROP_OFF, "Disable", "Proportional Editing disabled"},
 	{PROP_EDIT_ON, "ENABLED", ICON_PROP_ON, "Enable", "Proportional Editing enabled"},
 	{PROP_EDIT_PROJECTED, "PROJECTED", ICON_PROP_ON, "Projected (2D)",
@@ -148,14 +148,14 @@ EnumPropertyItem rna_enum_proportional_editing_items[] = {
 };
 
 /* keep for operators, not used here */
-EnumPropertyItem rna_enum_mesh_select_mode_items[] = {
+const EnumPropertyItem rna_enum_mesh_select_mode_items[] = {
 	{SCE_SELECT_VERTEX, "VERTEX", ICON_VERTEXSEL, "Vertex", "Vertex selection mode"},
 	{SCE_SELECT_EDGE, "EDGE", ICON_EDGESEL, "Edge", "Edge selection mode"},
 	{SCE_SELECT_FACE, "FACE", ICON_FACESEL, "Face", "Face selection mode"},
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem rna_enum_snap_element_items[] = {
+const EnumPropertyItem rna_enum_snap_element_items[] = {
 	{SCE_SNAP_MODE_INCREMENT, "INCREMENT", ICON_SNAP_INCREMENT, "Increment", "Snap to increments of grid"},
 	{SCE_SNAP_MODE_VERTEX, "VERTEX", ICON_SNAP_VERTEX, "Vertex", "Snap to vertices"},
 	{SCE_SNAP_MODE_EDGE, "EDGE", ICON_SNAP_EDGE, "Edge", "Snap to edges"},
@@ -164,7 +164,7 @@ EnumPropertyItem rna_enum_snap_element_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem rna_enum_snap_node_element_items[] = {
+const EnumPropertyItem rna_enum_snap_node_element_items[] = {
 	{SCE_SNAP_MODE_GRID, "GRID", ICON_SNAP_GRID, "Grid", "Snap to grid"},
 	{SCE_SNAP_MODE_NODE_X, "NODE_X", ICON_SNAP_EDGE, "Node X", "Snap to left/right node border"},
 	{SCE_SNAP_MODE_NODE_Y, "NODE_Y", ICON_SNAP_EDGE, "Node Y", "Snap to top/bottom node border"},
@@ -173,14 +173,14 @@ EnumPropertyItem rna_enum_snap_node_element_items[] = {
 };
 
 #ifndef RNA_RUNTIME
-static EnumPropertyItem snap_uv_element_items[] = {
+static const EnumPropertyItem snap_uv_element_items[] = {
 	{SCE_SNAP_MODE_INCREMENT, "INCREMENT", ICON_SNAP_INCREMENT, "Increment", "Snap to increments of grid"},
 	{SCE_SNAP_MODE_VERTEX, "VERTEX", ICON_SNAP_VERTEX, "Vertex", "Snap to vertices"},
 	{0, NULL, 0, NULL, NULL}
 };
 #endif
 
-EnumPropertyItem rna_enum_curve_fit_method_items[] = {
+const EnumPropertyItem rna_enum_curve_fit_method_items[] = {
 	{CURVE_PAINT_FIT_METHOD_REFIT, "REFIT", 0, "Refit", "Incrementally re-fit the curve (high quality)"},
 	{CURVE_PAINT_FIT_METHOD_SPLIT, "SPLIT", 0, "Split", "Split the curve until the tolerance is met (fast)"},
 	{0, NULL, 0, NULL, NULL}};
@@ -265,7 +265,7 @@ EnumPropertyItem rna_enum_curve_fit_method_items[] = {
 
 
 #ifdef RNA_RUNTIME
-static EnumPropertyItem image_only_type_items[] = {
+static const EnumPropertyItem image_only_type_items[] = {
 
 	IMAGE_TYPE_ITEMS_IMAGE_ONLY
 
@@ -273,7 +273,7 @@ static EnumPropertyItem image_only_type_items[] = {
 };
 #endif
 
-EnumPropertyItem rna_enum_image_type_items[] = {
+const EnumPropertyItem rna_enum_image_type_items[] = {
 	{0, "", 0, N_("Image"), NULL},
 
 	IMAGE_TYPE_ITEMS_IMAGE_ONLY
@@ -290,7 +290,7 @@ EnumPropertyItem rna_enum_image_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem rna_enum_image_color_mode_items[] = {
+const EnumPropertyItem rna_enum_image_color_mode_items[] = {
 	{R_IMF_PLANES_BW, "BW", 0, "BW", "Images get saved in 8 bits grayscale (only PNG, JPEG, TGA, TIF)"},
 	{R_IMF_PLANES_RGB, "RGB", 0, "RGB", "Images are saved with RGB (color) data"},
 	{R_IMF_PLANES_RGBA, "RGBA", 0, "RGBA", "Images are saved with RGB and Alpha data (if supported)"},
@@ -303,7 +303,7 @@ EnumPropertyItem rna_enum_image_color_mode_items[] = {
 #define IMAGE_COLOR_MODE_RGBA rna_enum_image_color_mode_items[2]
 #endif
 
-EnumPropertyItem rna_enum_image_color_depth_items[] = {
+const EnumPropertyItem rna_enum_image_color_depth_items[] = {
 	/* 1 (monochrome) not used */
 	{R_IMF_CHAN_DEPTH_8,   "8", 0, "8",  "8 bit color channels"},
 	{R_IMF_CHAN_DEPTH_10, "10", 0, "10", "10 bit color channels"},
@@ -314,13 +314,13 @@ EnumPropertyItem rna_enum_image_color_depth_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem rna_enum_normal_space_items[] = {
+const EnumPropertyItem rna_enum_normal_space_items[] = {
 	{R_BAKE_SPACE_OBJECT, "OBJECT", 0, "Object", "Bake the normals in object space"},
 	{R_BAKE_SPACE_TANGENT, "TANGENT", 0, "Tangent", "Bake the normals in tangent space"},
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem rna_enum_normal_swizzle_items[] = {
+const EnumPropertyItem rna_enum_normal_swizzle_items[] = {
 	{R_BAKE_POSX, "POS_X", 0, "+X", ""},
 	{R_BAKE_POSY, "POS_Y", 0, "+Y", ""},
 	{R_BAKE_POSZ, "POS_Z", 0, "+Z", ""},
@@ -330,7 +330,7 @@ EnumPropertyItem rna_enum_normal_swizzle_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem rna_enum_bake_save_mode_items[] = {
+const EnumPropertyItem rna_enum_bake_save_mode_items[] = {
 	{R_BAKE_SAVE_INTERNAL, "INTERNAL", 0, "Internal", "Save the baking map in an internal image data-block"},
 	{R_BAKE_SAVE_EXTERNAL, "EXTERNAL", 0, "External", "Save the baking map in an external file"},
 	{0, NULL, 0, NULL, NULL}
@@ -342,19 +342,19 @@ EnumPropertyItem rna_enum_bake_save_mode_items[] = {
                                    "Single file with an encoded stereo pair"},
 #define R_IMF_VIEWS_ENUM_MV       {R_IMF_VIEWS_MULTIVIEW, "MULTIVIEW", 0, "Multi-View", "Single file with all the views"},
 
-EnumPropertyItem rna_enum_views_format_items[] = {
+const EnumPropertyItem rna_enum_views_format_items[] = {
 	R_IMF_VIEWS_ENUM_IND
 	R_IMF_VIEWS_ENUM_S3D
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem rna_enum_views_format_multilayer_items[] = {
+const EnumPropertyItem rna_enum_views_format_multilayer_items[] = {
 	R_IMF_VIEWS_ENUM_IND
 	R_IMF_VIEWS_ENUM_MV
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem rna_enum_views_format_multiview_items[] = {
+const EnumPropertyItem rna_enum_views_format_multiview_items[] = {
 	R_IMF_VIEWS_ENUM_IND
 	R_IMF_VIEWS_ENUM_S3D
 	R_IMF_VIEWS_ENUM_MV
@@ -365,7 +365,7 @@ EnumPropertyItem rna_enum_views_format_multiview_items[] = {
 #undef R_IMF_VIEWS_ENUM_S3D
 #undef R_IMF_VIEWS_ENUM_MV
 
-EnumPropertyItem rna_enum_stereo3d_display_items[] = {
+const EnumPropertyItem rna_enum_stereo3d_display_items[] = {
 	{S3D_DISPLAY_ANAGLYPH, "ANAGLYPH", 0, "Anaglyph",
 	 "Render views for left and right eyes as two differently filtered colors in a single image "
 	 "(anaglyph glasses are required)"},
@@ -378,21 +378,21 @@ EnumPropertyItem rna_enum_stereo3d_display_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem rna_enum_stereo3d_anaglyph_type_items[] = {
+const EnumPropertyItem rna_enum_stereo3d_anaglyph_type_items[] = {
 	{S3D_ANAGLYPH_REDCYAN, "RED_CYAN", 0, "Red-Cyan", ""},
 	{S3D_ANAGLYPH_GREENMAGENTA, "GREEN_MAGENTA", 0, "Green-Magenta", ""},
 	{S3D_ANAGLYPH_YELLOWBLUE, "YELLOW_BLUE", 0, "Yellow-Blue", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem rna_enum_stereo3d_interlace_type_items[] = {
+const EnumPropertyItem rna_enum_stereo3d_interlace_type_items[] = {
 	{S3D_INTERLACE_ROW, "ROW_INTERLEAVED", 0, "Row Interleaved", ""},
 	{S3D_INTERLACE_COLUMN, "COLUMN_INTERLEAVED", 0, "Column Interleaved", ""},
 	{S3D_INTERLACE_CHECKERBOARD, "CHECKERBOARD_INTERLEAVED", 0, "Checkerboard Interleaved", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem rna_enum_bake_pass_filter_type_items[] = {
+const EnumPropertyItem rna_enum_bake_pass_filter_type_items[] = {
 	{R_BAKE_PASS_FILTER_NONE, "NONE", 0, "None", ""},
 	{R_BAKE_PASS_FILTER_AO, "AO", 0, "AO", ""},
 	{R_BAKE_PASS_FILTER_EMIT, "EMIT", 0, "Emit", ""},
@@ -407,7 +407,7 @@ EnumPropertyItem rna_enum_bake_pass_filter_type_items[] = {
 };
 
 #ifndef RNA_RUNTIME
-static EnumPropertyItem rna_enum_gpencil_interpolation_mode_items[] = {
+static const EnumPropertyItem rna_enum_gpencil_interpolation_mode_items[] = {
 	/* interpolation */
 	{0, "", 0, N_("Interpolation"), "Standard transitions between keyframes"},
 	{GP_IPO_LINEAR,   "LINEAR", ICON_IPO_LINEAR, "Linear", "Straight-line interpolation between A and B (i.e. no ease in/out)"},
@@ -1122,7 +1122,7 @@ static void rna_ImageFormatSettings_file_format_set(PointerRNA *ptr, int value)
 	}
 }
 
-static EnumPropertyItem *rna_ImageFormatSettings_file_format_itemf(
+static const EnumPropertyItem *rna_ImageFormatSettings_file_format_itemf(
         bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	ID *id = ptr->id.data;
@@ -1134,7 +1134,7 @@ static EnumPropertyItem *rna_ImageFormatSettings_file_format_itemf(
 	}
 }
 
-static EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(
+static const EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(
         bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	ImageFormatData *imf = (ImageFormatData *)ptr->data;
@@ -1179,7 +1179,7 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(
 	}
 }
 
-static EnumPropertyItem *rna_ImageFormatSettings_color_depth_itemf(
+static const EnumPropertyItem *rna_ImageFormatSettings_color_depth_itemf(
         bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	ImageFormatData *imf = (ImageFormatData *)ptr->data;
@@ -1191,11 +1191,11 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_depth_itemf(
 		const int depth_ok = BKE_imtype_valid_depths(imf->imtype);
 		const int is_float = ELEM(imf->imtype, R_IMF_IMTYPE_RADHDR, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER);
 
-		EnumPropertyItem *item_8bit =  &rna_enum_image_color_depth_items[0];
-		EnumPropertyItem *item_10bit = &rna_enum_image_color_depth_items[1];
-		EnumPropertyItem *item_12bit = &rna_enum_image_color_depth_items[2];
-		EnumPropertyItem *item_16bit = &rna_enum_image_color_depth_items[3];
-		EnumPropertyItem *item_32bit = &rna_enum_image_color_depth_items[4];
+		const EnumPropertyItem *item_8bit =  &rna_enum_image_color_depth_items[0];
+		const EnumPropertyItem *item_10bit = &rna_enum_image_color_depth_items[1];
+		const EnumPropertyItem *item_12bit = &rna_enum_image_color_depth_items[2];
+		const EnumPropertyItem *item_16bit = &rna_enum_image_color_depth_items[3];
+		const EnumPropertyItem *item_32bit = &rna_enum_image_color_depth_items[4];
 
 		int totitem = 0;
 		EnumPropertyItem *item = NULL;
@@ -1242,7 +1242,7 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_depth_itemf(
 	}
 }
 
-static EnumPropertyItem *rna_ImageFormatSettings_views_format_itemf(
+static const EnumPropertyItem *rna_ImageFormatSettings_views_format_itemf(
         bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	ImageFormatData *imf = (ImageFormatData *)ptr->data;
@@ -1264,7 +1264,7 @@ static EnumPropertyItem *rna_ImageFormatSettings_views_format_itemf(
 #ifdef WITH_OPENEXR
 	/* OpenEXR */
 
-static EnumPropertyItem *rna_ImageFormatSettings_exr_codec_itemf(
+static const EnumPropertyItem *rna_ImageFormatSettings_exr_codec_itemf(
         bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	ImageFormatData *imf = (ImageFormatData *)ptr->data;
@@ -1469,7 +1469,7 @@ static void rna_RenderSettings_engine_set(PointerRNA *ptr, int value)
 		BLI_strncpy_utf8(rd->engine, type->idname, sizeof(rd->engine));
 }
 
-static EnumPropertyItem *rna_RenderSettings_engine_itemf(
+static const EnumPropertyItem *rna_RenderSettings_engine_itemf(
         bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	RenderEngineType *type;
@@ -2445,7 +2445,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem uv_select_mode_items[] = {
+	static const EnumPropertyItem uv_select_mode_items[] = {
 		{UV_SELECT_VERTEX, "VERTEX", ICON_UV_VERTEXSEL, "Vertex", "Vertex selection mode"},
 		{UV_SELECT_EDGE, "EDGE", ICON_UV_EDGESEL, "Edge", "Edge selection mode"},
 		{UV_SELECT_FACE, "FACE", ICON_UV_FACESEL, "Face", "Face selection mode"},
@@ -2457,20 +2457,20 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	 * with 1st position only for for on/off (and exposed as boolean), while others are mutually
 	 * exclusive options but which will only have any effect when autokey is enabled
 	 */
-	static EnumPropertyItem auto_key_items[] = {
+	static const EnumPropertyItem auto_key_items[] = {
 		{AUTOKEY_MODE_NORMAL & ~AUTOKEY_ON, "ADD_REPLACE_KEYS", 0, "Add & Replace", ""},
 		{AUTOKEY_MODE_EDITKEYS & ~AUTOKEY_ON, "REPLACE_KEYS", 0, "Replace", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem retarget_roll_items[] = {
+	static const EnumPropertyItem retarget_roll_items[] = {
 		{SK_RETARGET_ROLL_NONE, "NONE", 0, "None", "Don't adjust roll"},
 		{SK_RETARGET_ROLL_VIEW, "VIEW", 0, "View", "Roll bones to face the view"},
 		{SK_RETARGET_ROLL_JOINT, "JOINT", 0, "Joint", "Roll bone to original joint plane offset"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
-	static EnumPropertyItem sketch_convert_items[] = {
+	static const EnumPropertyItem sketch_convert_items[] = {
 		{SK_CONVERT_CUT_FIXED, "FIXED", 0, "Fixed", "Subdivide stroke in fixed number of bones"},
 		{SK_CONVERT_CUT_LENGTH, "LENGTH", 0, "Length", "Subdivide stroke in bones of specific length"},
 		{SK_CONVERT_CUT_ADAPTATIVE, "ADAPTIVE", 0, "Adaptive",
@@ -2479,7 +2479,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem edge_tag_items[] = {
+	static const EnumPropertyItem edge_tag_items[] = {
 		{EDGE_MODE_SELECT, "SELECT", 0, "Select", ""},
 		{EDGE_MODE_TAG_SEAM, "SEAM", 0, "Tag Seam", ""},
 		{EDGE_MODE_TAG_SHARP, "SHARP", 0, "Tag Sharp", ""},
@@ -2489,21 +2489,21 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem draw_groupuser_items[] = {
+	static const EnumPropertyItem draw_groupuser_items[] = {
 		{OB_DRAW_GROUPUSER_NONE, "NONE", 0, "None", ""},
 		{OB_DRAW_GROUPUSER_ACTIVE, "ACTIVE", 0, "Active", "Show vertices with no weights in the active group"},
 		{OB_DRAW_GROUPUSER_ALL, "ALL", 0, "All", "Show vertices with no weights in any group"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem vertex_group_select_items[] = {
+	static const EnumPropertyItem vertex_group_select_items[] = {
 		{WT_VGROUP_ALL, "ALL", 0, "All", "All Vertex Groups"},
 		{WT_VGROUP_BONE_DEFORM, "BONE_DEFORM", 0, "Deform", "Vertex Groups assigned to Deform Bones"},
 		{WT_VGROUP_BONE_DEFORM_OFF, "OTHER_DEFORM", 0, "Other", "Vertex Groups assigned to non Deform Bones"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
-	static EnumPropertyItem gpencil_source_3d_items[] = {
+	static const EnumPropertyItem gpencil_source_3d_items[] = {
 		{GP_TOOL_SOURCE_SCENE, "SCENE", 0, "Scene",
 		 "Grease Pencil data attached to the current scene is used, "
 		 "unless the active object already has Grease Pencil data (i.e. for old files)"},
@@ -2513,7 +2513,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 	
-	static EnumPropertyItem gpencil_stroke_placement_items[] = {
+	static const EnumPropertyItem gpencil_stroke_placement_items[] = {
 		{GP_PROJECT_VIEWSPACE, "CURSOR", 0, "Cursor", "Draw stroke at the 3D cursor"},
 		{0, "VIEW", 0, "View", "Stick stroke to the view "}, /* weird, GP_PROJECT_VIEWALIGN is inverted */
 		{GP_PROJECT_VIEWSPACE | GP_PROJECT_DEPTH_VIEW, "SURFACE", 0, "Surface", "Stick stroke to surfaces"},
@@ -3063,7 +3063,7 @@ static void rna_def_curve_paint_settings(BlenderRNA  *brna)
 	RNA_def_struct_path_func(srna, "rna_CurvePaintSettings_path");
 	RNA_def_struct_ui_text(srna, "Curve Paint Settings", "");
 
-	static EnumPropertyItem curve_type_items[] = {
+	static const EnumPropertyItem curve_type_items[] = {
 		{CU_POLY, "POLY", 0, "Poly", ""},
 		{CU_BEZIER, "BEZIER", 0, "Bezier", ""},
 		{0, NULL, 0, NULL, NULL}};
@@ -3130,7 +3130,7 @@ static void rna_def_curve_paint_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_range(prop, -1.0f, 1.0, 1, 2);
 	RNA_def_property_ui_text(prop, "Offset", "Offset the stroke from the surface");
 
-	static EnumPropertyItem depth_mode_items[] = {
+	static const EnumPropertyItem depth_mode_items[] = {
 		{CURVE_PAINT_PROJECT_CURSOR,  "CURSOR",  0, "Cursor",  ""},
 		{CURVE_PAINT_PROJECT_SURFACE, "SURFACE", 0, "Surface", ""},
 		{0, NULL, 0, NULL, NULL}};
@@ -3140,7 +3140,7 @@ static void rna_def_curve_paint_settings(BlenderRNA  *brna)
 	RNA_def_property_enum_items(prop, depth_mode_items);
 	RNA_def_property_ui_text(prop, "Depth", "Method of projecting depth");
 
-	static EnumPropertyItem surface_plane_items[] = {
+	static const EnumPropertyItem surface_plane_items[] = {
 		{CURVE_PAINT_SURFACE_PLANE_NORMAL_VIEW,  "NORMAL_VIEW", 0, "Normal/View", "Draw perpendicular to the surface"},
 		{CURVE_PAINT_SURFACE_PLANE_NORMAL_SURFACE, "NORMAL_SURFACE", 0, "Normal/Surface", "Draw aligned to the surface"},
 		{CURVE_PAINT_SURFACE_PLANE_VIEW, "VIEW", 0, "View", "Draw aligned to the viewport"},
@@ -3157,7 +3157,7 @@ static void rna_def_statvis(BlenderRNA  *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem stat_type[] = {
+	static const EnumPropertyItem stat_type[] = {
 		{SCE_STATVIS_OVERHANG,  "OVERHANG",  0, "Overhang",  ""},
 		{SCE_STATVIS_THICKNESS, "THICKNESS", 0, "Thickness", ""},
 		{SCE_STATVIS_INTERSECT, "INTERSECT", 0, "Intersect", ""},
@@ -3262,14 +3262,14 @@ static void rna_def_unit_settings(BlenderRNA  *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem unit_systems[] = {
+	static const EnumPropertyItem unit_systems[] = {
 		{USER_UNIT_NONE, "NONE", 0, "None", ""},
 		{USER_UNIT_METRIC, "METRIC", 0, "Metric", ""},
 		{USER_UNIT_IMPERIAL, "IMPERIAL", 0, "Imperial", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
-	static EnumPropertyItem rotation_units[] = {
+	static const EnumPropertyItem rotation_units[] = {
 		{0, "DEGREES", 0, "Degrees", "Use degrees for measuring angles and rotations"},
 		{USER_UNIT_ROT_RADIANS, "RADIANS", 0, "Radians", ""},
 		{0, NULL, 0, NULL, NULL}
@@ -3752,42 +3752,42 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem edge_type_negation_items[] = {
+	static const EnumPropertyItem edge_type_negation_items[] = {
 		{0, "INCLUSIVE", 0, "Inclusive", "Select feature edges satisfying the given edge type conditions"},
 		{FREESTYLE_LINESET_FE_NOT, "EXCLUSIVE", 0, "Exclusive",
 		                           "Select feature edges not satisfying the given edge type conditions"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem edge_type_combination_items[] = {
+	static const EnumPropertyItem edge_type_combination_items[] = {
 		{0, "OR", 0, "Logical OR", "Select feature edges satisfying at least one of edge type conditions"},
 		{FREESTYLE_LINESET_FE_AND, "AND", 0, "Logical AND",
 		                           "Select feature edges satisfying all edge type conditions"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem group_negation_items[] = {
+	static const EnumPropertyItem group_negation_items[] = {
 		{0, "INCLUSIVE", 0, "Inclusive", "Select feature edges belonging to some object in the group"},
 		{FREESTYLE_LINESET_GR_NOT, "EXCLUSIVE", 0, "Exclusive",
 		                           "Select feature edges not belonging to any object in the group"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem face_mark_negation_items[] = {
+	static const EnumPropertyItem face_mark_negation_items[] = {
 		{0, "INCLUSIVE", 0, "Inclusive", "Select feature edges satisfying the given face mark conditions"},
 		{FREESTYLE_LINESET_FM_NOT, "EXCLUSIVE", 0, "Exclusive",
 		                           "Select feature edges not satisfying the given face mark conditions"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem face_mark_condition_items[] = {
+	static const EnumPropertyItem face_mark_condition_items[] = {
 		{0, "ONE", 0, "One Face", "Select a feature edge if either of its adjacent faces is marked"},
 		{FREESTYLE_LINESET_FM_BOTH, "BOTH", 0, "Both Faces",
 		                            "Select a feature edge if both of its adjacent faces are marked"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem freestyle_ui_mode_items[] = {
+	static const EnumPropertyItem freestyle_ui_mode_items[] = {
 		{FREESTYLE_CONTROL_SCRIPT_MODE, "SCRIPT", 0, "Python Scripting Mode",
 		                                "Advanced mode for using style modules written in Python"},
 		{FREESTYLE_CONTROL_EDITOR_MODE, "EDITOR", 0, "Parameter Editor Mode",
@@ -3795,7 +3795,7 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem visibility_items[] = {
+	static const EnumPropertyItem visibility_items[] = {
 		{FREESTYLE_QI_VISIBLE, "VISIBLE", 0, "Visible", "Select visible feature edges"},
 		{FREESTYLE_QI_HIDDEN, "HIDDEN", 0, "Hidden", "Select hidden feature edges"},
 		{FREESTYLE_QI_RANGE, "RANGE", 0, "QI Range",
@@ -4122,7 +4122,7 @@ static void rna_def_scene_game_recast_data(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem rna_enum_partitioning_items[] = {
+	static const EnumPropertyItem rna_enum_partitioning_items[] = {
 		{RC_PARTITION_WATERSHED, "WATERSHED", 0, "Watershed", "Classic Recast partitioning method generating the nicest tessellation"},
 		{RC_PARTITION_MONOTONE, "MONOTONE", 0, "Monotone", "Fastest navmesh generation method, may create long thin polygons"},
 		{RC_PARTITION_LAYERS, "LAYERS", 0, "Layers", "Reasonably fast method that produces better triangles than monotone partitioning"},
@@ -4402,7 +4402,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem aasamples_items[] = {
+	static const EnumPropertyItem aasamples_items[] = {
 		{0, "SAMPLES_0", 0, "Off", ""},
 		{2, "SAMPLES_2", 0, "2x", ""},
 		{4, "SAMPLES_4", 0, "4x", ""},
@@ -4411,7 +4411,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem framing_types_items[] = {
+	static const EnumPropertyItem framing_types_items[] = {
 		{SCE_GAMEFRAMING_BARS, "LETTERBOX", 0, "Letterbox",
 		                       "Show the entire viewport in the display window, using bar horizontally or vertically"},
 		{SCE_GAMEFRAMING_EXTEND, "EXTEND", 0, "Extend",
@@ -4421,7 +4421,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem dome_modes_items[] = {
+	static const EnumPropertyItem dome_modes_items[] = {
 		{DOME_FISHEYE, "FISHEYE", 0, "Fisheye", ""},
 		{DOME_TRUNCATED_FRONT, "TRUNCATED_FRONT", 0, "Front-Truncated", ""},
 		{DOME_TRUNCATED_REAR, "TRUNCATED_REAR", 0, "Rear-Truncated", ""},
@@ -4430,7 +4430,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 		
-	static EnumPropertyItem stereo_modes_items[] = {
+	static const EnumPropertyItem stereo_modes_items[] = {
 		{STEREO_QUADBUFFERED, "QUADBUFFERED", 0, "Quad-Buffer", ""},
 		{STEREO_ABOVEBELOW, "ABOVEBELOW", 0, "Above-Below", ""},
 		{STEREO_INTERLACED, "INTERLACED", 0, "Interlaced", ""},
@@ -4441,40 +4441,40 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 		
-	static EnumPropertyItem stereo_items[] = {
+	static const EnumPropertyItem stereo_items[] = {
 		{STEREO_NOSTEREO, "NONE", 0, "None", "Disable Stereo and Dome environments"},
 		{STEREO_ENABLED, "STEREO", 0, "Stereo", "Enable Stereo environment"},
 		{STEREO_DOME, "DOME", 0, "Dome", "Enable Dome environment"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem physics_engine_items[] = {
+	static const EnumPropertyItem physics_engine_items[] = {
 		{WOPHY_NONE, "NONE", 0, "None", "Don't use a physics engine"},
 		{WOPHY_BULLET, "BULLET", 0, "Bullet", "Use the Bullet physics engine"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem material_items[] = {
+	static const EnumPropertyItem material_items[] = {
 		{GAME_MAT_MULTITEX, "MULTITEXTURE", 0, "Multitexture", "Multitexture materials"},
 		{GAME_MAT_GLSL, "GLSL", 0, "GLSL", "OpenGL shading language shaders"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem obstacle_simulation_items[] = {
+	static const EnumPropertyItem obstacle_simulation_items[] = {
 		{OBSTSIMULATION_NONE, "NONE", 0, "None", ""},
 		{OBSTSIMULATION_TOI_rays, "RVO_RAYS", 0, "RVO (rays)", ""},
 		{OBSTSIMULATION_TOI_cells, "RVO_CELLS", 0, "RVO (cells)", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem vsync_items[] = {
+	static const EnumPropertyItem vsync_items[] = {
 		{VSYNC_OFF, "OFF", 0, "Off", "Disable vsync"},
 		{VSYNC_ON, "ON", 0, "On", "Enable vsync"},
 		{VSYNC_ADAPTIVE, "ADAPTIVE", 0, "Adaptive", "Enable adaptive vsync (if supported)"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem storage_items[] = {
+	static const EnumPropertyItem storage_items[] = {
 		{RAS_STORE_AUTO, "AUTO", 0, "Auto Select", "Choose the best supported mode"},
 		{RAS_STORE_VA, "VERTEX_ARRAY", 0, "Vertex Arrays", "Usually the best choice (good performance with display lists)"},
 		{RAS_STORE_VBO, "VERTEX_BUFFER_OBJECT", 0, "Vertex Buffer Objects",
@@ -5175,7 +5175,7 @@ static void rna_def_image_format_stereo3d_format(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	/* rna_enum_stereo3d_display_items, without (S3D_DISPLAY_PAGEFLIP) */
-	static EnumPropertyItem stereo3d_display_items[] = {
+	static const EnumPropertyItem stereo3d_display_items[] = {
 		{S3D_DISPLAY_ANAGLYPH, "ANAGLYPH", 0, "Anaglyph",
 		 "Render views for left and right eyes as two differently filtered colors in a single image "
 		 "(anaglyph glasses are required)"},
@@ -5232,7 +5232,7 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 {
 
 #ifdef WITH_OPENJPEG
-	static EnumPropertyItem jp2_codec_items[] = {
+	static const EnumPropertyItem jp2_codec_items[] = {
 		{R_IMF_JP2_CODEC_JP2, "JP2", 0, "JP2", ""},
 		{R_IMF_JP2_CODEC_J2K, "J2K", 0, "J2K", ""},
 		{0, NULL, 0, NULL, NULL}
@@ -5240,7 +5240,7 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 #endif
 
 #ifdef WITH_TIFF
-	static EnumPropertyItem tiff_codec_items[] = {
+	static const EnumPropertyItem tiff_codec_items[] = {
 		{R_IMF_TIFF_CODEC_NONE, "NONE", 0, "None", ""},
 		{R_IMF_TIFF_CODEC_DEFLATE, "DEFLATE", 0, "Deflate", ""},
 		{R_IMF_TIFF_CODEC_LZW, "LZW", 0, "LZW", ""},
@@ -5415,7 +5415,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 
 #ifdef WITH_FFMPEG
 	/* Container types */
-	static EnumPropertyItem ffmpeg_format_items[] = {
+	static const EnumPropertyItem ffmpeg_format_items[] = {
 		{FFMPEG_MPEG1, "MPEG1", 0, "MPEG-1", ""},
 		{FFMPEG_MPEG2, "MPEG2", 0, "MPEG-2", ""},
 		{FFMPEG_MPEG4, "MPEG4", 0, "MPEG-4", ""},
@@ -5430,7 +5430,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem ffmpeg_codec_items[] = {
+	static const EnumPropertyItem ffmpeg_codec_items[] = {
 		{AV_CODEC_ID_NONE, "NONE", 0, "None", ""},
 		{AV_CODEC_ID_MPEG1VIDEO, "MPEG1", 0, "MPEG-1", ""},
 		{AV_CODEC_ID_MPEG2VIDEO, "MPEG2", 0, "MPEG-2", ""},
@@ -5447,7 +5447,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem ffmpeg_preset_items[] = {
+	static const EnumPropertyItem ffmpeg_preset_items[] = {
 		{FFM_PRESET_ULTRAFAST, "ULTRAFAST", 0, "Ultra fast; biggest file", ""},
 		{FFM_PRESET_SUPERFAST, "SUPERFAST", 0, "Super fast", ""},
 		{FFM_PRESET_VERYFAST, "VERYFAST", 0, "Very fast", ""},
@@ -5460,7 +5460,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem ffmpeg_crf_items[] = {
+	static const EnumPropertyItem ffmpeg_crf_items[] = {
 		{FFM_CRF_NONE, "NONE", 0, "None; use constant bit-rate",
 		 "Use constant bit rate, rather than constant output quality"},
 		{FFM_CRF_LOSSLESS, "LOSSLESS", 0, "Lossless", ""},
@@ -5473,7 +5473,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem ffmpeg_audio_codec_items[] = {
+	static const EnumPropertyItem ffmpeg_audio_codec_items[] = {
 		{AV_CODEC_ID_NONE, "NONE", 0, "None", ""},
 		{AV_CODEC_ID_MP2, "MP2", 0, "MP2", ""},
 		{AV_CODEC_ID_MP3, "MP3", 0, "MP3", ""},
@@ -5486,7 +5486,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 	};
 #endif
 
-	static EnumPropertyItem audio_channel_items[] = {
+	static const EnumPropertyItem audio_channel_items[] = {
 		{1, "MONO", 0, "Mono", "Set audio channels to mono"},
 		{2, "STEREO", 0, "Stereo", "Set audio channels to stereo"},
 		{4, "SURROUND4", 0, "4 Channels", "Set audio channels to 4 channels"},
@@ -5654,7 +5654,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	static EnumPropertyItem pixel_filter_items[] = {
+	static const EnumPropertyItem pixel_filter_items[] = {
 		{R_FILTER_BOX, "BOX", 0, "Box", "Use a box filter for anti-aliasing"},
 		{R_FILTER_TENT, "TENT", 0, "Tent", "Use a tent filter for anti-aliasing"},
 		{R_FILTER_QUAD, "QUADRATIC", 0, "Quadratic", "Use a quadratic filter for anti-aliasing"},
@@ -5665,13 +5665,13 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 		
-	static EnumPropertyItem alpha_mode_items[] = {
+	static const EnumPropertyItem alpha_mode_items[] = {
 		{R_ADDSKY, "SKY", 0, "Sky", "Transparent pixels are filled with sky color"},
 		{R_ALPHAPREMUL, "TRANSPARENT", 0, "Transparent", "World background is transparent with premultiplied alpha"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem display_mode_items[] = {
+	static const EnumPropertyItem display_mode_items[] = {
 		{R_OUTPUT_SCREEN, "SCREEN", 0, "Full Screen", "Images are rendered in full Screen"},
 		{R_OUTPUT_AREA, "AREA", 0, "Image Editor", "Images are rendered in Image Editor"},
 		{R_OUTPUT_WINDOW, "WINDOW", 0, "New Window", "Images are rendered in new Window"},
@@ -5680,7 +5680,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	};
 	
 	/* Bake */
-	static EnumPropertyItem bake_mode_items[] = {
+	static const EnumPropertyItem bake_mode_items[] = {
 		{RE_BAKE_ALL, "FULL", 0, "Full Render", "Bake everything"},
 		{RE_BAKE_AO, "AO", 0, "Ambient Occlusion", "Bake ambient occlusion"},
 		{RE_BAKE_SHADOW, "SHADOW", 0, "Shadow", "Bake shadows"},
@@ -5698,7 +5698,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem bake_normal_space_items[] = {
+	static const EnumPropertyItem bake_normal_space_items[] = {
 		{R_BAKE_SPACE_CAMERA, "CAMERA", 0, "Camera", "Bake the normals in camera space"},
 		{R_BAKE_SPACE_WORLD, "WORLD", 0, "World", "Bake the normals in world space"},
 		{R_BAKE_SPACE_OBJECT, "OBJECT", 0, "Object", "Bake the normals in object space"},
@@ -5706,14 +5706,14 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem bake_qyad_split_items[] = {
+	static const EnumPropertyItem bake_qyad_split_items[] = {
 		{0, "AUTO", 0, "Automatic", "Split quads to give the least distortion while baking"},
 		{1, "FIXED", 0, "Fixed", "Split quads predictably (0,1,2) (0,2,3)"},
 		{2, "FIXED_ALT", 0, "Fixed Alternate", "Split quads predictably (1,2,3) (1,3,0)"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
-	static EnumPropertyItem pixel_size_items[] = {
+	static const EnumPropertyItem pixel_size_items[] = {
 		{0, "AUTO", 0, "Automatic", "Automatic pixel size, depends on the UI scale"},
 		{1, "1", 0, "1x", "Render at full resolution"},
 		{2, "2", 0, "2x", "Render at 50% resolution"},
@@ -5722,7 +5722,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem octree_resolution_items[] = {
+	static const EnumPropertyItem octree_resolution_items[] = {
 		{64, "64", 0, "64", ""},
 		{128, "128", 0, "128", ""},
 		{256, "256", 0, "256", ""},
@@ -5730,7 +5730,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem raytrace_structure_items[] = {
+	static const EnumPropertyItem raytrace_structure_items[] = {
 		{R_RAYSTRUCTURE_AUTO, "AUTO", 0, "Auto", "Automatically select acceleration structure"},
 		{R_RAYSTRUCTURE_OCTREE, "OCTREE", 0, "Octree", "Use old Octree structure"},
 		{R_RAYSTRUCTURE_VBVH, "VBVH", 0, "vBVH", "Use vBVH"},
@@ -5739,7 +5739,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem fixed_oversample_items[] = {
+	static const EnumPropertyItem fixed_oversample_items[] = {
 		{5, "5", 0, "5", ""},
 		{8, "8", 0, "8", ""},
 		{11, "11", 0, "11", ""},
@@ -5747,31 +5747,31 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 		
-	static EnumPropertyItem field_order_items[] = {
+	static const EnumPropertyItem field_order_items[] = {
 		{0, "EVEN_FIRST", 0, "Upper First", "Upper field first"},
 		{R_ODDFIELD, "ODD_FIRST", 0, "Lower First", "Lower field first"},
 		{0, NULL, 0, NULL, NULL}
 	};
 		
-	static EnumPropertyItem threads_mode_items[] = {
+	static const EnumPropertyItem threads_mode_items[] = {
 		{0, "AUTO", 0, "Auto-detect", "Automatically determine the number of threads, based on CPUs"},
 		{R_FIXED_THREADS, "FIXED", 0, "Fixed", "Manually determine the number of threads"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem engine_items[] = {
+	static const EnumPropertyItem engine_items[] = {
 		{0, "BLENDER_RENDER", 0, "Blender Render", "Use the Blender internal rendering engine for rendering"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem freestyle_thickness_items[] = {
+	static const EnumPropertyItem freestyle_thickness_items[] = {
 		{R_LINE_THICKNESS_ABSOLUTE, "ABSOLUTE", 0, "Absolute", "Specify unit line thickness in pixels"},
 		{R_LINE_THICKNESS_RELATIVE, "RELATIVE", 0, "Relative",
 		                            "Unit line thickness is scaled by the proportion of the present vertical image "
 		                            "resolution to 480 pixels"},
 		{0, NULL, 0, NULL, NULL}};
 
-	static EnumPropertyItem views_format_items[] = {
+	static const EnumPropertyItem views_format_items[] = {
 		{SCE_VIEWS_FORMAT_STEREO_3D, "STEREO_3D", 0, "Stereo 3D",
 		                        "Single stereo camera system, adjust the stereo settings in the camera panel"},
 		{SCE_VIEWS_FORMAT_MULTIVIEW, "MULTIVIEW", 0, "Multi-View",
@@ -6853,7 +6853,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 	
-	static EnumPropertyItem audio_distance_model_items[] = {
+	static const EnumPropertyItem audio_distance_model_items[] = {
 		{0, "NONE", 0, "None", "No distance attenuation"},
 		{1, "INVERSE", 0, "Inverse", "Inverse distance model"},
 		{2, "INVERSE_CLAMPED", 0, "Inverse Clamped", "Inverse distance model with clamping"},
@@ -6864,7 +6864,7 @@ void RNA_def_scene(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem sync_mode_items[] = {
+	static const EnumPropertyItem sync_mode_items[] = {
 		{0, "NONE", 0, "No Sync", "Do not sync, play every frame"},
 		{SCE_FRAME_DROP, "FRAME_DROP", 0, "Frame Dropping", "Drop frames if playback is too slow"},
 		{AUDIO_SYNC, "AUDIO_SYNC", 0, "AV-sync", "Sync to audio playback, dropping frames"},

@@ -291,7 +291,7 @@ static void rna_def_cloth_solver_result(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	static EnumPropertyItem status_items[] = {
+	static const EnumPropertyItem status_items[] = {
 	    {BPH_SOLVER_SUCCESS, "SUCCESS", 0, "Success", "Computation was successful"},
 	    {BPH_SOLVER_NUMERICAL_ISSUE, "NUMERICAL_ISSUE", 0, "Numerical Issue", "The provided data did not satisfy the prerequisites"},
 	    {BPH_SOLVER_NO_CONVERGENCE, "NO_CONVERGENCE", 0, "No Convergence", "Iterative procedure did not converge"},

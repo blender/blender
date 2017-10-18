@@ -307,7 +307,8 @@ int gp_active_palettecolor_poll(bContext *C)
 /* NOTE: These include an option to create a new layer and use that... */
 
 /* Just existing layers */
-EnumPropertyItem *ED_gpencil_layers_enum_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+const EnumPropertyItem *ED_gpencil_layers_enum_itemf(
+        bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	bGPDlayer *gpl;
@@ -340,7 +341,8 @@ EnumPropertyItem *ED_gpencil_layers_enum_itemf(bContext *C, PointerRNA *UNUSED(p
 }
 
 /* Existing + Option to add/use new layer */
-EnumPropertyItem *ED_gpencil_layers_with_new_enum_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+const EnumPropertyItem *ED_gpencil_layers_with_new_enum_itemf(
+        bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	bGPDlayer *gpl;
@@ -1098,7 +1100,7 @@ bool ED_gpencil_stroke_minmax(
 }
 
 /* Dynamic Enums of GP Brushes */
-EnumPropertyItem *ED_gpencil_brushes_enum_itemf(
+const EnumPropertyItem *ED_gpencil_brushes_enum_itemf(
         bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop),
         bool *r_free)
 {
@@ -1133,7 +1135,7 @@ EnumPropertyItem *ED_gpencil_brushes_enum_itemf(
 }
 
 /* Dynamic Enums of GP Palettes */
-EnumPropertyItem *ED_gpencil_palettes_enum_itemf(
+const EnumPropertyItem *ED_gpencil_palettes_enum_itemf(
         bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop),
         bool *r_free)
 {

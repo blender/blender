@@ -106,20 +106,20 @@ enum {
 };
 
 /* RNA enum define */
-static EnumPropertyItem prop_gpencil_convertmodes[] = {
+static const EnumPropertyItem prop_gpencil_convertmodes[] = {
 	{GP_STROKECONVERT_PATH, "PATH", ICON_CURVE_PATH, "Path", "Animation path"},
 	{GP_STROKECONVERT_CURVE, "CURVE", ICON_CURVE_BEZCURVE, "Bezier Curve", "Smooth Bezier curve"},
 	{GP_STROKECONVERT_POLY, "POLY", ICON_MESH_DATA, "Polygon Curve", "Bezier curve with straight-line segments (vector handles)"},
 	{0, NULL, 0, NULL, NULL}
 };
 
-static EnumPropertyItem prop_gpencil_convert_timingmodes_restricted[] = {
+static const EnumPropertyItem prop_gpencil_convert_timingmodes_restricted[] = {
 	{GP_STROKECONVERT_TIMING_NONE, "NONE", 0, "No Timing", "Ignore timing"},
 	{GP_STROKECONVERT_TIMING_LINEAR, "LINEAR", 0, "Linear", "Simple linear timing"},
 	{0, NULL, 0, NULL, NULL},
 };
 
-static EnumPropertyItem prop_gpencil_convert_timingmodes[] = {
+static const EnumPropertyItem prop_gpencil_convert_timingmodes[] = {
 	{GP_STROKECONVERT_TIMING_NONE, "NONE", 0, "No Timing", "Ignore timing"},
 	{GP_STROKECONVERT_TIMING_LINEAR, "LINEAR", 0, "Linear", "Simple linear timing"},
 	{GP_STROKECONVERT_TIMING_FULL, "FULL", 0, "Original", "Use the original timing, gaps included"},
@@ -128,7 +128,7 @@ static EnumPropertyItem prop_gpencil_convert_timingmodes[] = {
 	{0, NULL, 0, NULL, NULL},
 };
 
-static EnumPropertyItem *rna_GPConvert_mode_items(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop),
+static const EnumPropertyItem *rna_GPConvert_mode_items(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop),
                                                   bool *UNUSED(r_free))
 {
 	if (RNA_boolean_get(ptr, "use_timing_data")) {

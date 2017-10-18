@@ -1716,7 +1716,7 @@ static int uv_align_exec(bContext *C, wmOperator *op)
 
 static void UV_OT_align(wmOperatorType *ot)
 {
-	static EnumPropertyItem axis_items[] = {
+	static const EnumPropertyItem axis_items[] = {
 		{'s', "ALIGN_S", 0, "Straighten", "Align UVs along the line defined by the endpoints"},
 		{'t', "ALIGN_T", 0, "Straighten X", "Align UVs along the line defined by the endpoints along the X axis"},
 		{'u', "ALIGN_U", 0, "Straighten Y", "Align UVs along the line defined by the endpoints along the Y axis"},
@@ -3275,7 +3275,7 @@ static int uv_snap_cursor_exec(bContext *C, wmOperator *op)
 
 static void UV_OT_snap_cursor(wmOperatorType *ot)
 {
-	static EnumPropertyItem target_items[] = {
+	static const EnumPropertyItem target_items[] = {
 		{0, "PIXELS", 0, "Pixels", ""},
 		{1, "SELECTED", 0, "Selected", ""},
 		{0, NULL, 0, NULL, NULL}};
@@ -3494,7 +3494,7 @@ static int uv_snap_selection_exec(bContext *C, wmOperator *op)
 
 static void UV_OT_snap_selected(wmOperatorType *ot)
 {
-	static EnumPropertyItem target_items[] = {
+	static const EnumPropertyItem target_items[] = {
 		{0, "PIXELS", 0, "Pixels", ""},
 		{1, "CURSOR", 0, "Cursor", ""},
 		{2, "CURSOR_OFFSET", 0, "Cursor (Offset)", ""},

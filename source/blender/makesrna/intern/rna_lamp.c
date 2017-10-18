@@ -166,7 +166,7 @@ static void rna_Lamp_use_nodes_update(bContext *C, PointerRNA *ptr)
 
 #else
 /* Don't define icons here, so they don't show up in the Lamp UI (properties Editor) - DingTo */
-EnumPropertyItem rna_enum_lamp_type_items[] = {
+const EnumPropertyItem rna_enum_lamp_type_items[] = {
 	{LA_LOCAL, "POINT", 0, "Point", "Omnidirectional point light source"},
 	{LA_SUN, "SUN", 0, "Sun", "Constant direction parallel ray light source"},
 	{LA_SPOT, "SPOT", 0, "Spot", "Directional cone light source"},
@@ -180,7 +180,7 @@ static void rna_def_lamp_mtex(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_texture_coordinates_items[] = {
+	static const EnumPropertyItem prop_texture_coordinates_items[] = {
 		{TEXCO_GLOB, "GLOBAL", 0, "Global", "Use global coordinates for the texture coordinates"},
 		{TEXCO_VIEW, "VIEW", 0, "View", "Use view coordinates for the texture coordinates"},
 		{TEXCO_OBJECT, "OBJECT", 0, "Object", "Use linked object's coordinates for texture coordinates"},
@@ -230,7 +230,7 @@ static void rna_def_lamp_sky_settings(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_skycolorspace_items[] = {
+	static const EnumPropertyItem prop_skycolorspace_items[] = {
 		{0, "SMPTE", 0, "SMPTE", ""},
 		{1, "REC709", 0, "REC709", ""},
 		{2, "CIE", 0, "CIE", ""},
@@ -416,7 +416,7 @@ static void rna_def_lamp_falloff(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_fallofftype_items[] = {
+	static const EnumPropertyItem prop_fallofftype_items[] = {
 		{LA_FALLOFF_CONSTANT, "CONSTANT", 0, "Constant", ""},
 		{LA_FALLOFF_INVLINEAR, "INVERSE_LINEAR", 0, "Inverse Linear", ""},
 		{LA_FALLOFF_INVSQUARE, "INVERSE_SQUARE", 0, "Inverse Square", ""},
@@ -479,33 +479,33 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 {
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_shadow_items[] = {
+	static const EnumPropertyItem prop_shadow_items[] = {
 		{0, "NOSHADOW", 0, "No Shadow", ""},
 		{LA_SHAD_RAY, "RAY_SHADOW", 0, "Ray Shadow", "Use ray tracing for shadow"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_spot_shadow_items[] = {
+	static const EnumPropertyItem prop_spot_shadow_items[] = {
 		{0, "NOSHADOW", 0, "No Shadow", ""},
 		{LA_SHAD_BUF, "BUFFER_SHADOW", 0, "Buffer Shadow", "Let spotlight produce shadows using shadow buffer"},
 		{LA_SHAD_RAY, "RAY_SHADOW", 0, "Ray Shadow", "Use ray tracing for shadow"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_ray_sampling_method_items[] = {
+	static const EnumPropertyItem prop_ray_sampling_method_items[] = {
 		{LA_SAMP_HALTON, "ADAPTIVE_QMC", 0, "Adaptive QMC", ""},
 		{LA_SAMP_HAMMERSLEY, "CONSTANT_QMC", 0, "Constant QMC", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
-	static EnumPropertyItem prop_spot_ray_sampling_method_items[] = {
+	static const EnumPropertyItem prop_spot_ray_sampling_method_items[] = {
 		{LA_SAMP_HALTON, "ADAPTIVE_QMC", 0, "Adaptive QMC", ""},
 		{LA_SAMP_HAMMERSLEY, "CONSTANT_QMC", 0, "Constant QMC", ""},
 		{LA_SAMP_CONSTANT, "CONSTANT_JITTERED", 0, "Constant Jittered", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_shadbuftype_items[] = {
+	static const EnumPropertyItem prop_shadbuftype_items[] = {
 		{LA_SHADBUF_REGULAR, "REGULAR", 0, "Classical", "Classic shadow buffer"},
 		{LA_SHADBUF_HALFWAY, "HALFWAY", 0, "Classic-Halfway",
 		                     "Regular buffer, averaging the closest and 2nd closest Z value to reducing "
@@ -518,14 +518,14 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_shadbuffiltertype_items[] = {
+	static const EnumPropertyItem prop_shadbuffiltertype_items[] = {
 		{LA_SHADBUF_BOX, "BOX", 0, "Box", "Apply the Box filter to shadow buffer samples"},
 		{LA_SHADBUF_TENT, "TENT", 0, "Tent", "Apply the Tent Filter to shadow buffer samples"},
 		{LA_SHADBUF_GAUSS, "GAUSS", 0, "Gauss", "Apply the Gauss filter to shadow buffer samples"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_numbuffer_items[] = {
+	static const EnumPropertyItem prop_numbuffer_items[] = {
 		{1, "BUFFERS_1", 0, "1", "Only one buffer rendered"},
 		{4, "BUFFERS_4", 0, "4", "Render 4 buffers for better AA, this quadruples memory usage"},
 		{9, "BUFFERS_9", 0, "9", "Render 9 buffers for better AA, this uses nine times more memory"},
@@ -533,7 +533,7 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 	};
 
 	/* GE only */
-	static EnumPropertyItem prop_ge_shadowbuffer_type_items[] = {
+	static const EnumPropertyItem prop_ge_shadowbuffer_type_items[] = {
 		{LA_SHADMAP_SIMPLE, "SIMPLE", 0, "Simple", "Simple shadow maps"},
 		{LA_SHADMAP_VARIANCE, "VARIANCE", 0, "Variance", "Variance shadow maps"},
 		{0, NULL, 0, NULL, NULL}
@@ -710,7 +710,7 @@ static void rna_def_area_lamp(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_areashape_items[] = {
+	static const EnumPropertyItem prop_areashape_items[] = {
 		{LA_AREA_SQUARE, "SQUARE", 0, "Square", ""},
 		{LA_AREA_RECT, "RECTANGLE", 0, "Rectangle", ""},
 		{0, NULL, 0, NULL, NULL}

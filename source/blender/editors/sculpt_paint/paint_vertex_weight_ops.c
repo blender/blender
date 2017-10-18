@@ -140,7 +140,7 @@ static int weight_from_bones_exec(bContext *C, wmOperator *op)
 
 void PAINT_OT_weight_from_bones(wmOperatorType *ot)
 {
-	static EnumPropertyItem type_items[] = {
+	static const EnumPropertyItem type_items[] = {
 		{ARM_GROUPS_AUTO, "AUTOMATIC", 0, "Automatic", "Automatic weights from bones"},
 		{ARM_GROUPS_ENVELOPE, "ENVELOPES", 0, "From Envelopes", "Weights from envelopes with user defined radius"},
 		{0, NULL, 0, NULL, NULL}};
@@ -283,7 +283,7 @@ static bool weight_paint_sample_enum_itemf__helper(const MDeformVert *dvert, con
 	}
 	return found;
 }
-static EnumPropertyItem *weight_paint_sample_enum_itemf(
+static const EnumPropertyItem *weight_paint_sample_enum_itemf(
         bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	if (C) {
@@ -827,7 +827,7 @@ static int paint_weight_gradient_invoke(bContext *C, wmOperator *op, const wmEve
 void PAINT_OT_weight_gradient(wmOperatorType *ot)
 {
 	/* defined in DNA_space_types.h */
-	static EnumPropertyItem gradient_types[] = {
+	static const EnumPropertyItem gradient_types[] = {
 		{WPAINT_GRADIENT_TYPE_LINEAR, "LINEAR", 0, "Linear", ""},
 		{WPAINT_GRADIENT_TYPE_RADIAL, "RADIAL", 0, "Radial", ""},
 		{0, NULL, 0, NULL, NULL}

@@ -122,7 +122,7 @@ static TransformModeItem transform_modes[] =
 	{NULL, 0}
 };
 
-EnumPropertyItem rna_enum_transform_mode_types[] =
+const EnumPropertyItem rna_enum_transform_mode_types[] =
 {
 	{TFM_INIT, "INIT", 0, "Init", ""},
 	{TFM_DUMMY, "DUMMY", 0, "Dummy", ""},

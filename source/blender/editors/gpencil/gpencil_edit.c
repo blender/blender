@@ -651,7 +651,7 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 
 void GPENCIL_OT_paste(wmOperatorType *ot)
 {
-	static EnumPropertyItem copy_type[] = {
+	static const EnumPropertyItem copy_type[] = {
 		{GP_COPY_ONLY, "COPY", 0, "Copy", ""},
 		{GP_COPY_MERGE, "MERGE", 0, "Merge", ""},
 		{0, NULL, 0, NULL, NULL}
@@ -1316,7 +1316,7 @@ static int gp_delete_exec(bContext *C, wmOperator *op)
 
 void GPENCIL_OT_delete(wmOperatorType *ot)
 {
-	static EnumPropertyItem prop_gpencil_delete_types[] = {
+	static const EnumPropertyItem prop_gpencil_delete_types[] = {
 		{GP_DELETEOP_POINTS, "POINTS", 0, "Points", "Delete selected points and split strokes into segments"},
 		{GP_DELETEOP_STROKES, "STROKES", 0, "Strokes", "Delete selected strokes"},
 		{GP_DELETEOP_FRAME, "FRAME", 0, "Frame", "Delete active frame"},
@@ -1736,7 +1736,7 @@ static int gp_stroke_cyclical_set_exec(bContext *C, wmOperator *op)
  */
 void GPENCIL_OT_stroke_cyclical_set(wmOperatorType *ot)
 {
-	static EnumPropertyItem cyclic_type[] = {
+	static const EnumPropertyItem cyclic_type[] = {
 		{GP_STROKE_CYCLIC_CLOSE, "CLOSE", 0, "Close all", ""},
 		{GP_STROKE_CYCLIC_OPEN, "OPEN", 0, "Open all", ""},
 		{GP_STROKE_CYCLIC_TOGGLE, "TOGGLE", 0, "Toggle", ""},
@@ -1998,7 +1998,7 @@ static int gp_stroke_join_exec(bContext *C, wmOperator *op)
 
 void GPENCIL_OT_stroke_join(wmOperatorType *ot)
 {
-	static EnumPropertyItem join_type[] = {
+	static const EnumPropertyItem join_type[] = {
 		{GP_STROKE_JOIN, "JOIN", 0, "Join", ""},
 		{GP_STROKE_JOINCOPY, "JOINCOPY", 0, "Join and Copy", ""},
 		{0, NULL, 0, NULL, NULL}
@@ -2184,7 +2184,7 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
 
 void GPENCIL_OT_reproject(wmOperatorType *ot)
 {
-	static EnumPropertyItem reproject_type[] = {
+	static const EnumPropertyItem reproject_type[] = {
 		{GP_REPROJECT_PLANAR, "PLANAR", 0, "Planar", 
 		 "Reproject the strokes to end up on the same plane, as if drawn from the current viewpoint "
 		 "using 'Cursor' Stroke Placement"},

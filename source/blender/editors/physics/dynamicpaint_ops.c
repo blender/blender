@@ -253,7 +253,7 @@ static int output_toggle_exec(bContext *C, wmOperator *op)
 
 void DPAINT_OT_output_toggle(wmOperatorType *ot)
 {
-	static EnumPropertyItem prop_output_toggle_types[] = {
+	static const EnumPropertyItem prop_output_toggle_types[] = {
 		{0, "A", 0, "Output A", ""},
 		{1, "B", 0, "Output B", ""},
 		{0, NULL, 0, NULL, NULL}

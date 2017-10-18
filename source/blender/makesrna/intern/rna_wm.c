@@ -45,7 +45,7 @@
 #include "WM_types.h"
 
 #ifdef RNA_RUNTIME
-static EnumPropertyItem event_keymouse_value_items[] = {
+static const EnumPropertyItem event_keymouse_value_items[] = {
 	{KM_ANY, "ANY", 0, "Any", ""},
 	{KM_PRESS, "PRESS", 0, "Press", ""},
 	{KM_RELEASE, "RELEASE", 0, "Release", ""},
@@ -54,7 +54,7 @@ static EnumPropertyItem event_keymouse_value_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static EnumPropertyItem event_tweak_value_items[] = {
+static const EnumPropertyItem event_tweak_value_items[] = {
 	{KM_ANY, "ANY", 0, "Any", ""},
 	{EVT_GESTURE_N, "NORTH", 0, "North", ""},
 	{EVT_GESTURE_NE, "NORTH_EAST", 0, "North-East", ""},
@@ -67,7 +67,7 @@ static EnumPropertyItem event_tweak_value_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static EnumPropertyItem event_tweak_type_items[] = {
+static const EnumPropertyItem event_tweak_type_items[] = {
 	{EVT_TWEAK_L, "EVT_TWEAK_L", 0, "Left", ""},
 	{EVT_TWEAK_M, "EVT_TWEAK_M", 0, "Middle", ""},
 	{EVT_TWEAK_R, "EVT_TWEAK_R", 0, "Right", ""},
@@ -76,7 +76,7 @@ static EnumPropertyItem event_tweak_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static EnumPropertyItem event_mouse_type_items[] = {
+static const EnumPropertyItem event_mouse_type_items[] = {
 	{LEFTMOUSE, "LEFTMOUSE", 0, "Left", ""},
 	{MIDDLEMOUSE, "MIDDLEMOUSE", 0, "Middle", ""},
 	{RIGHTMOUSE, "RIGHTMOUSE", 0, "Right", ""},
@@ -102,7 +102,7 @@ static EnumPropertyItem event_mouse_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static EnumPropertyItem event_timer_type_items[] = {
+static const EnumPropertyItem event_timer_type_items[] = {
 	{TIMER, "TIMER", 0, "Timer", ""},
 	{TIMER0, "TIMER0", 0, "Timer 0", ""},
 	{TIMER1, "TIMER1", 0, "Timer 1", ""},
@@ -114,12 +114,12 @@ static EnumPropertyItem event_timer_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static EnumPropertyItem event_textinput_type_items[] = {
+static const EnumPropertyItem event_textinput_type_items[] = {
 	{KM_TEXTINPUT, "TEXTINPUT", 0, "Text Input", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
-static EnumPropertyItem event_ndof_type_items[] = {
+static const EnumPropertyItem event_ndof_type_items[] = {
 	{NDOF_MOTION, "NDOF_MOTION", 0, "Motion", ""},
 	/* buttons on all 3dconnexion devices */
 	{NDOF_BUTTON_MENU, "NDOF_BUTTON_MENU", 0, "Menu", ""},
@@ -171,7 +171,7 @@ static EnumPropertyItem event_ndof_type_items[] = {
 #endif /* RNA_RUNTIME */
 
 /* not returned: CAPSLOCKKEY, UNKNOWNKEY */
-EnumPropertyItem rna_enum_event_type_items[] = {
+const EnumPropertyItem rna_enum_event_type_items[] = {
 	/* Note we abuse 'tooltip' message here to store a 'compact' form of some (too) long names. */
 	{0, "NONE", 0, "", ""},
 	{LEFTMOUSE, "LEFTMOUSE", 0, "Left Mouse", "LMB"},
@@ -382,7 +382,7 @@ EnumPropertyItem rna_enum_event_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem rna_enum_event_value_items[] = {
+const EnumPropertyItem rna_enum_event_value_items[] = {
 	{KM_ANY, "ANY", 0, "Any", ""},
 	{KM_NOTHING, "NOTHING", 0, "Nothing", ""},
 	{KM_PRESS, "PRESS", 0, "Press", ""},
@@ -400,13 +400,13 @@ EnumPropertyItem rna_enum_event_value_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem rna_enum_keymap_propvalue_items[] = {
+const EnumPropertyItem rna_enum_keymap_propvalue_items[] = {
 	{0, "NONE", 0, "", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
 #if 0
-static EnumPropertyItem keymap_modifiers_items[] = {
+static const EnumPropertyItem keymap_modifiers_items[] = {
 	{KM_ANY, "ANY", 0, "Any", ""},
 	{0, "NONE", 0, "None", ""},
 	{1, "FIRST", 0, "First", ""},
@@ -417,7 +417,7 @@ static EnumPropertyItem keymap_modifiers_items[] = {
 
 
 #ifndef RNA_RUNTIME
-static EnumPropertyItem operator_flag_items[] = {
+static const EnumPropertyItem operator_flag_items[] = {
 	{OPTYPE_REGISTER, "REGISTER", 0, "Register", "Display in the info window and support the redo toolbar panel"},
 	{OPTYPE_UNDO, "UNDO", 0, "Undo", "Push an undo event (needed for operator redo)"},
 	{OPTYPE_UNDO_GROUPED, "UNDO_GROUPED", 0, "Grouped Undo", "Push a single undo event for repetead instances of this operator"},
@@ -432,7 +432,7 @@ static EnumPropertyItem operator_flag_items[] = {
 };
 #endif
 
-EnumPropertyItem rna_enum_operator_return_items[] = {
+const EnumPropertyItem rna_enum_operator_return_items[] = {
 	{OPERATOR_RUNNING_MODAL, "RUNNING_MODAL", 0, "Running Modal", "Keep the operator running with blender"},
 	{OPERATOR_CANCELLED, "CANCELLED", 0, "Cancelled", "When no action has been taken, operator exits"},
 	{OPERATOR_FINISHED, "FINISHED", 0, "Finished", "When the operator is complete, operator exits"},
@@ -443,7 +443,7 @@ EnumPropertyItem rna_enum_operator_return_items[] = {
 };
 
 /* flag/enum */
-EnumPropertyItem rna_enum_wm_report_items[] = {
+const EnumPropertyItem rna_enum_wm_report_items[] = {
 	{RPT_DEBUG, "DEBUG", 0, "Debug", ""},
 	{RPT_INFO, "INFO", 0, "Info", ""},
 	{RPT_OPERATOR, "OPERATOR", 0, "Operator", ""},
@@ -732,7 +732,7 @@ static void rna_wmKeyMapItem_keymodifier_set(PointerRNA *ptr, int value)
 }
 
 
-static EnumPropertyItem *rna_KeyMapItem_type_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop),
+static const EnumPropertyItem *rna_KeyMapItem_type_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop),
                                                    bool *UNUSED(r_free))
 {
 	int map_type = rna_wmKeyMapItem_map_type_get(ptr);
@@ -745,7 +745,7 @@ static EnumPropertyItem *rna_KeyMapItem_type_itemf(bContext *UNUSED(C), PointerR
 	else return rna_enum_event_type_items;
 }
 
-static EnumPropertyItem *rna_KeyMapItem_value_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop),
+static const EnumPropertyItem *rna_KeyMapItem_value_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop),
                                                     bool *UNUSED(r_free))
 {
 	int map_type = rna_wmKeyMapItem_map_type_get(ptr);
@@ -758,7 +758,7 @@ static EnumPropertyItem *rna_KeyMapItem_value_itemf(bContext *UNUSED(C), Pointer
 		return rna_enum_event_value_items;
 }
 
-static EnumPropertyItem *rna_KeyMapItem_propvalue_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop),
+static const EnumPropertyItem *rna_KeyMapItem_propvalue_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop),
                                                         bool *UNUSED(r_free))
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
@@ -2041,7 +2041,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem map_type_items[] = {
+	static const EnumPropertyItem map_type_items[] = {
 		{KMI_TYPE_KEYBOARD, "KEYBOARD", 0, "Keyboard", ""},
 		{KMI_TYPE_TWEAK, "TWEAK", 0, "Tweak", ""},
 		{KMI_TYPE_MOUSE, "MOUSE", 0, "Mouse", ""},

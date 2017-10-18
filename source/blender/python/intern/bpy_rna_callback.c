@@ -53,7 +53,7 @@
 #define RNA_CAPSULE_ID "RNA_HANDLE"
 #define RNA_CAPSULE_ID_INVALID "RNA_HANDLE_REMOVED"
 
-static EnumPropertyItem region_draw_mode_items[] = {
+static const EnumPropertyItem region_draw_mode_items[] = {
 	{REGION_DRAW_POST_PIXEL, "POST_PIXEL", 0, "Post Pixel", ""},
 	{REGION_DRAW_POST_VIEW, "POST_VIEW", 0, "Post View", ""},
 	{REGION_DRAW_PRE_VIEW, "PRE_VIEW", 0, "Pre View", ""},

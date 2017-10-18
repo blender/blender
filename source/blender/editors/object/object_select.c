@@ -198,7 +198,7 @@ enum {
 	OBJECT_SELECT_LINKED_LIBRARY_OBDATA
 };
 
-static EnumPropertyItem prop_select_linked_types[] = {
+static const EnumPropertyItem prop_select_linked_types[] = {
 	//{OBJECT_SELECT_LINKED_IPO, "IPO", 0, "Object IPO", ""}, // XXX deprecated animation system stuff...
 	{OBJECT_SELECT_LINKED_OBDATA, "OBDATA", 0, "Object Data", ""},
 	{OBJECT_SELECT_LINKED_MATERIAL, "MATERIAL", 0, "Material", ""},
@@ -527,7 +527,7 @@ enum {
 	OBJECT_GRPSEL_LAMP_TYPE          = 12,
 };
 
-static EnumPropertyItem prop_select_grouped_types[] = {
+static const EnumPropertyItem prop_select_grouped_types[] = {
 	{OBJECT_GRPSEL_CHILDREN_RECURSIVE, "CHILDREN_RECURSIVE", 0, "Children", ""},
 	{OBJECT_GRPSEL_CHILDREN, "CHILDREN", 0, "Immediate Children", ""},
 	{OBJECT_GRPSEL_PARENT, "PARENT", 0, "Parent", ""},
@@ -982,7 +982,7 @@ static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 {
-	static EnumPropertyItem match_items[] = {
+	static const EnumPropertyItem match_items[] = {
 		{OB_SEL_LAYERMATCH_EXACT, "EXACT", 0, "Exact Match", ""},
 		{OB_SEL_LAYERMATCH_SHARED, "SHARED", 0, "Shared Layers", ""},
 		{0, NULL, 0, NULL, NULL}

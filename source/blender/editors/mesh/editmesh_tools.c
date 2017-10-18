@@ -113,7 +113,7 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 }
 
 /* Note, these values must match delete_mesh() event values */
-static EnumPropertyItem prop_mesh_cornervert_types[] = {
+static const EnumPropertyItem prop_mesh_cornervert_types[] = {
 	{SUBD_CORNER_INNERVERT,     "INNERVERT", 0,      "Inner Vert", ""},
 	{SUBD_CORNER_PATH,          "PATH", 0,           "Path", ""},
 	{SUBD_CORNER_STRAIGHT_CUT,  "STRAIGHT_CUT", 0,   "Straight Cut", ""},
@@ -172,7 +172,7 @@ struct EdgeRingOpSubdProps {
 static void mesh_operator_edgering_props(wmOperatorType *ot, const int cuts_min, const int cuts_default)
 {
 	/* Note, these values must match delete_mesh() event values */
-	static EnumPropertyItem prop_subd_edgering_types[] = {
+	static const EnumPropertyItem prop_subd_edgering_types[] = {
 		{SUBD_RING_INTERP_LINEAR, "LINEAR", 0, "Linear", ""},
 		{SUBD_RING_INTERP_PATH, "PATH", 0, "Blend Path", ""},
 		{SUBD_RING_INTERP_SURF, "SURFACE", 0, "Blend Surface", ""},
@@ -392,7 +392,7 @@ static int edbm_delete_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_delete(wmOperatorType *ot)
 {
-	static EnumPropertyItem prop_mesh_delete_types[] = {
+	static const EnumPropertyItem prop_mesh_delete_types[] = {
 		{MESH_DELETE_VERT,      "VERT",      0, "Vertices", ""},
 		{MESH_DELETE_EDGE,      "EDGE",      0, "Edges", ""},
 		{MESH_DELETE_FACE,      "FACE",      0, "Faces", ""},
@@ -2268,7 +2268,7 @@ static int edbm_merge_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static EnumPropertyItem merge_type_items[] = {
+static const EnumPropertyItem merge_type_items[] = {
 	{MESH_MERGE_FIRST, "FIRST", 0, "At First", ""},
 	{MESH_MERGE_LAST, "LAST", 0, "At Last", ""},
 	{MESH_MERGE_CENTER, "CENTER", 0, "At Center", ""},
@@ -2277,7 +2277,7 @@ static EnumPropertyItem merge_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *UNUSED(ptr),  PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *UNUSED(ptr),  PropertyRNA *UNUSED(prop), bool *r_free)
 {	
 	Object *obedit;
 	EnumPropertyItem *item = NULL;
@@ -2540,7 +2540,7 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static EnumPropertyItem *shape_itemf(bContext *C, PointerRNA *UNUSED(ptr),  PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *shape_itemf(bContext *C, PointerRNA *UNUSED(ptr),  PropertyRNA *UNUSED(prop), bool *r_free)
 {	
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em;
@@ -2692,7 +2692,7 @@ void MESH_OT_solidify(wmOperatorType *ot)
 #define KNIFE_MIDPOINT  2
 #define KNIFE_MULTICUT  3
 
-static EnumPropertyItem knife_items[] = {
+static const EnumPropertyItem knife_items[] = {
 	{KNIFE_EXACT, "EXACT", 0, "Exact", ""},
 	{KNIFE_MIDPOINT, "MIDPOINTS", 0, "Midpoints", ""},
 	{KNIFE_MULTICUT, "MULTICUT", 0, "Multicut", ""},
@@ -3380,7 +3380,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_separate(wmOperatorType *ot)
 {
-	static EnumPropertyItem prop_separate_types[] = {
+	static const EnumPropertyItem prop_separate_types[] = {
 		{MESH_SEPARATE_SELECTED, "SELECTED", 0, "Selection", ""},
 		{MESH_SEPARATE_MATERIAL, "MATERIAL", 0, "By Material", ""},
 		{MESH_SEPARATE_LOOSE, "LOOSE", 0, "By loose parts", ""},
@@ -3846,7 +3846,7 @@ static int edbm_poke_face_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_poke(wmOperatorType *ot)
 {
-	static EnumPropertyItem poke_center_modes[] = {
+	static const EnumPropertyItem poke_center_modes[] = {
 		{BMOP_POKE_MEAN_WEIGHTED, "MEAN_WEIGHTED", 0, "Weighted Mean", "Weighted Mean Face Center"},
 		{BMOP_POKE_MEAN, "MEAN", 0, "Mean", "Mean Face Center"},
 		{BMOP_POKE_BOUNDS, "BOUNDS", 0, "Bounds", "Face Bounds Center"},
@@ -5148,7 +5148,7 @@ static void edbm_sort_elements_ui(bContext *C, wmOperator *op)
 
 void MESH_OT_sort_elements(wmOperatorType *ot)
 {
-	static EnumPropertyItem type_items[] = {
+	static const EnumPropertyItem type_items[] = {
 		{SRT_VIEW_ZAXIS, "VIEW_ZAXIS", 0, "View Z Axis",
 		                 "Sort selected elements from farthest to nearest one in current view"},
 		{SRT_VIEW_XAXIS, "VIEW_XAXIS", 0, "View X Axis",
@@ -5165,7 +5165,7 @@ void MESH_OT_sort_elements(wmOperatorType *ot)
 		{0, NULL, 0, NULL, NULL},
 	};
 
-	static EnumPropertyItem elem_items[] = {
+	static const EnumPropertyItem elem_items[] = {
 		{BM_VERT, "VERT", 0, "Vertices", ""},
 		{BM_EDGE, "EDGE", 0, "Edges", ""},
 		{BM_FACE, "FACE", 0, "Faces", ""},
@@ -5422,7 +5422,7 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_bridge_edge_loops(wmOperatorType *ot)
 {
-	static EnumPropertyItem type_items[] = {
+	static const EnumPropertyItem type_items[] = {
 		{MESH_BRIDGELOOP_SINGLE, "SINGLE", 0, "Open Loop", ""},
 		{MESH_BRIDGELOOP_CLOSED, "CLOSED", 0, "Closed Loop", ""},
 		{MESH_BRIDGELOOP_PAIRS, "PAIRS", 0, "Loop Pairs", ""},

@@ -2711,7 +2711,7 @@ static int knifetool_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 wmKeyMap *knifetool_modal_keymap(wmKeyConfig *keyconf)
 {
-	static EnumPropertyItem modal_items[] = {
+	static const EnumPropertyItem modal_items[] = {
 		{KNF_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
 		{KNF_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},
 		{KNF_MODAL_MIDPOINT_ON, "SNAP_MIDPOINTS_ON", 0, "Snap To Midpoints On", ""},

@@ -128,7 +128,7 @@ static void rna_def_world_mtex(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem texco_items[] = {
+	static const EnumPropertyItem texco_items[] = {
 		{TEXCO_VIEW, "VIEW", 0, "View", "Use view vector for the texture coordinates"},
 		{TEXCO_GLOB, "GLOBAL", 0, "Global", "Use global coordinates for the texture coordinates (interior mist)"},
 		{TEXCO_ANGMAP, "ANGMAP", 0, "AngMap", "Use 360 degree angular coordinates, e.g. for spherical light probes"},
@@ -208,27 +208,27 @@ static void rna_def_lighting(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem blend_mode_items[] = {
+	static const EnumPropertyItem blend_mode_items[] = {
 		{WO_AOMUL, "MULTIPLY", 0, "Multiply", "Multiply direct lighting with ambient occlusion, darkening the result"},
 		{WO_AOADD, "ADD", 0, "Add", "Add light and shadow"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_color_items[] = {
+	static const EnumPropertyItem prop_color_items[] = {
 		{WO_AOPLAIN, "PLAIN", 0, "White", "Plain diffuse energy (white.)"},
 		{WO_AOSKYCOL, "SKY_COLOR", 0, "Sky Color", "Use horizon and zenith color for diffuse energy"},
 		{WO_AOSKYTEX, "SKY_TEXTURE", 0, "Sky Texture", "Does full Sky texture render for diffuse energy"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_sample_method_items[] = {
+	static const EnumPropertyItem prop_sample_method_items[] = {
 		{WO_AOSAMP_CONSTANT, "CONSTANT_JITTERED", 0, "Constant Jittered", "Fastest and gives the most noise"},
 		{WO_AOSAMP_HALTON, "ADAPTIVE_QMC", 0, "Adaptive QMC", "Fast in high-contrast areas"},
 		{WO_AOSAMP_HAMMERSLEY, "CONSTANT_QMC", 0, "Constant QMC", "Best quality"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_gather_method_items[] = {
+	static const EnumPropertyItem prop_gather_method_items[] = {
 		{WO_AOGATHER_RAYTRACE, "RAYTRACE", 0, "Raytrace", "Accurate, but slow when noise-free results are required"},
 		{WO_AOGATHER_APPROX, "APPROXIMATE", 0, "Approximate", "Inaccurate, but faster and without noise"},
 		{0, NULL, 0, NULL, NULL}
@@ -389,7 +389,7 @@ static void rna_def_world_mist(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	static EnumPropertyItem falloff_items[] = {
+	static const EnumPropertyItem falloff_items[] = {
 		{0, "QUADRATIC", 0, "Quadratic", "Use quadratic progression"},
 		{1, "LINEAR", 0, "Linear", "Use linear progression"},
 		{2, "INVERSE_QUADRATIC", 0, "Inverse Quadratic", "Use inverse quadratic progression"},

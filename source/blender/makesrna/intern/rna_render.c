@@ -46,7 +46,7 @@
 #include "ED_render.h"
 
 /* Deprecated, only provided for API compatibility. */
-EnumPropertyItem rna_enum_render_pass_type_items[] = {
+const EnumPropertyItem rna_enum_render_pass_type_items[] = {
 	{SCE_PASS_COMBINED, "COMBINED", 0, "Combined", ""},
 	{SCE_PASS_Z, "Z", 0, "Z", ""},
 	{SCE_PASS_RGBA, "COLOR", 0, "Color", ""},
@@ -82,7 +82,7 @@ EnumPropertyItem rna_enum_render_pass_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem rna_enum_bake_pass_type_items[] = {
+const EnumPropertyItem rna_enum_bake_pass_type_items[] = {
 	{SCE_PASS_COMBINED, "COMBINED", 0, "Combined", ""},
 	{SCE_PASS_AO, "AO", 0, "AO", ""},
 	{SCE_PASS_SHADOW, "SHADOW", 0, "Shadow", ""},
@@ -455,7 +455,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	static EnumPropertyItem render_pass_type_items[] = {
+	static const EnumPropertyItem render_pass_type_items[] = {
 	        {SOCK_FLOAT,   "VALUE",     0,    "Value",     ""},
 	        {SOCK_VECTOR,  "VECTOR",    0,    "Vector",    ""},
 	        {SOCK_RGBA,    "COLOR",     0,    "Color",     ""},

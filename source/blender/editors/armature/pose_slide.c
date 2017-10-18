@@ -136,7 +136,7 @@ typedef enum ePoseSlide_Channels {
 } ePoseSlide_Channels;
 
 /* Property enum for ePoseSlide_Channels */
-static EnumPropertyItem prop_channels_types[] = {
+static const EnumPropertyItem prop_channels_types[] = {
 	{PS_TFM_ALL, "ALL", 0, "All Properties", 
 	 "All properties, including transforms, bendy bone shape, and custom properties"},
 	{PS_TFM_LOC, "LOC", 0, "Location", "Location only"},
@@ -155,7 +155,7 @@ typedef enum ePoseSlide_AxisLock {
 } ePoseSlide_AxisLock;
 
 /* Property enum for ePoseSlide_AxisLock */
-static EnumPropertyItem prop_axis_lock_types[] = {
+static const EnumPropertyItem prop_axis_lock_types[] = {
 	{0, "FREE", 0, "Free", "All axes are affected"},
 	{PS_LOCK_X, "X", 0, "X", "Only X-axis transforms are affected"},
 	{PS_LOCK_Y, "Y", 0, "Y", "Only Y-axis transforms are affected"},
@@ -1575,7 +1575,7 @@ static int pose_propagate_exec(bContext *C, wmOperator *op)
 
 void POSE_OT_propagate(wmOperatorType *ot)
 {
-	static EnumPropertyItem terminate_items[] = {
+	static const EnumPropertyItem terminate_items[] = {
 		{POSE_PROPAGATE_SMART_HOLDS, "WHILE_HELD", 0, "While Held",
 	     "Propagate pose to all keyframes after current frame that don't change (Default behavior)"},
 		{POSE_PROPAGATE_NEXT_KEY, "NEXT_KEY", 0, "To Next Keyframe",

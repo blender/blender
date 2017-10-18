@@ -482,7 +482,7 @@ static int outliner_id_remap_invoke(bContext *C, wmOperator *op, const wmEvent *
 	return WM_operator_props_dialog_popup(C, op, 200, 100);
 }
 
-static EnumPropertyItem *outliner_id_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *outliner_id_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem item_tmp = {0}, *item = NULL;
 	int totitem = 0;

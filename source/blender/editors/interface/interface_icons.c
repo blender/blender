@@ -1192,7 +1192,7 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 	else {
 		Object *ob = CTX_data_active_object(C);
 		SpaceImage *sima;
-		EnumPropertyItem *items = NULL;
+		const EnumPropertyItem *items = NULL;
 		int tool = PAINT_TOOL_DRAW, mode = 0;
 
 		/* XXX: this is not nice, should probably make brushes

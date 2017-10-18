@@ -299,7 +299,7 @@ static bool console_line_column_from_index(
 /* static funcs for text editing */
 
 /* similar to the text editor, with some not used. keep compatible */
-static EnumPropertyItem console_move_type_items[] = {
+static const EnumPropertyItem console_move_type_items[] = {
 	{LINE_BEGIN, "LINE_BEGIN", 0, "Line Begin", ""},
 	{LINE_END, "LINE_END", 0, "Line End", ""},
 	{PREV_CHAR, "PREVIOUS_CHARACTER", 0, "Previous Character", ""},
@@ -570,7 +570,7 @@ void CONSOLE_OT_unindent(wmOperatorType *ot)
 	ot->poll = ED_operator_console_active;
 }
 
-static EnumPropertyItem console_delete_type_items[] = {
+static const EnumPropertyItem console_delete_type_items[] = {
 	{DEL_NEXT_CHAR, "NEXT_CHARACTER", 0, "Next Character", ""},
 	{DEL_PREV_CHAR, "PREVIOUS_CHARACTER", 0, "Previous Character", ""},
 	{DEL_NEXT_WORD, "NEXT_WORD", 0, "Next Word", ""},
@@ -895,7 +895,7 @@ static int console_scrollback_append_exec(bContext *C, wmOperator *op)
 void CONSOLE_OT_scrollback_append(wmOperatorType *ot)
 {
 	/* defined in DNA_space_types.h */
-	static EnumPropertyItem console_line_type_items[] = {
+	static const EnumPropertyItem console_line_type_items[] = {
 		{CONSOLE_LINE_OUTPUT,   "OUTPUT", 0, "Output", ""},
 		{CONSOLE_LINE_INPUT,    "INPUT", 0, "Input", ""},
 		{CONSOLE_LINE_INFO,     "INFO", 0, "Information", ""},

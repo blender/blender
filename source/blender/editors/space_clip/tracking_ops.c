@@ -1137,7 +1137,7 @@ static int clear_track_path_exec(bContext *C, wmOperator *op)
 
 void CLIP_OT_clear_track_path(wmOperatorType *ot)
 {
-	static EnumPropertyItem clear_path_actions[] = {
+	static const EnumPropertyItem clear_path_actions[] = {
 		{TRACK_CLEAR_UPTO, "UPTO", 0, "Clear up-to", "Clear path up to current frame"},
 		{TRACK_CLEAR_REMAINED, "REMAINED", 0, "Clear remained", "Clear path at remaining frames (after current)"},
 		{TRACK_CLEAR_ALL, "ALL", 0, "Clear all", "Clear the whole path"},
@@ -1209,7 +1209,7 @@ static int disable_markers_exec(bContext *C, wmOperator *op)
 
 void CLIP_OT_disable_markers(wmOperatorType *ot)
 {
-	static EnumPropertyItem actions_items[] = {
+	static const EnumPropertyItem actions_items[] = {
 		{MARKER_OP_DISABLE, "DISABLE", 0, "Disable",
 		 "Disable selected markers"},
 		{MARKER_OP_ENABLE,  "ENABLE", 0, "Enable",
@@ -1476,7 +1476,7 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
 
 void CLIP_OT_frame_jump(wmOperatorType *ot)
 {
-	static EnumPropertyItem position_items[] = {
+	static const EnumPropertyItem position_items[] = {
 		{0, "PATHSTART",  0, "Path Start",      "Jump to start of current path"},
 		{1, "PATHEND",    0, "Path End",        "Jump to end of current path"},
 		{2, "FAILEDPREV", 0, "Previous Failed", "Jump to previous failed frame"},
@@ -1644,7 +1644,7 @@ static int lock_tracks_exec(bContext *C, wmOperator *op)
 
 void CLIP_OT_lock_tracks(wmOperatorType *ot)
 {
-	static EnumPropertyItem actions_items[] = {
+	static const EnumPropertyItem actions_items[] = {
 		{TRACK_ACTION_LOCK, "LOCK", 0, "Lock", "Lock selected tracks"},
 		{TRACK_ACTION_UNLOCK, "UNLOCK", 0, "Unlock", "Unlock selected tracks"},
 		{TRACK_ACTION_TOGGLE, "TOGGLE", 0, "Toggle",
@@ -1700,7 +1700,7 @@ static int set_solver_keyframe_exec(bContext *C, wmOperator *op)
 
 void CLIP_OT_set_solver_keyframe(wmOperatorType *ot)
 {
-	static EnumPropertyItem keyframe_items[] = {
+	static const EnumPropertyItem keyframe_items[] = {
 		{SOLVER_KEYFRAME_A, "KEYFRAME_A", 0, "Keyframe A", ""},
 		{SOLVER_KEYFRAME_B, "KEYFRAME_B", 0, "Keyframe B", ""},
 		{0, NULL, 0, NULL, NULL}
@@ -1971,7 +1971,7 @@ static int clean_tracks_invoke(bContext *C,
 
 void CLIP_OT_clean_tracks(wmOperatorType *ot)
 {
-	static EnumPropertyItem actions_items[] = {
+	static const EnumPropertyItem actions_items[] = {
 		{TRACKING_CLEAN_SELECT, "SELECT", 0, "Select",
 		 "Select unclean tracks"},
 		{TRACKING_CLEAN_DELETE_TRACK, "DELETE_TRACK", 0, "Delete Track",

@@ -36,7 +36,7 @@
 
 #include "rna_internal.h"
 
-EnumPropertyItem rna_enum_property_type_items[] = {
+const EnumPropertyItem rna_enum_property_type_items[] = {
 	{PROP_BOOLEAN, "BOOLEAN", 0, "Boolean", ""},
 	{PROP_INT, "INT", 0, "Integer", ""},
 	{PROP_FLOAT, "FLOAT", 0, "Float", ""},
@@ -50,7 +50,7 @@ EnumPropertyItem rna_enum_property_type_items[] = {
 /* XXX Keep in sync with bpy_props.c's property_subtype_xxx_items ???
  *     Currently it is not...
  */
-EnumPropertyItem rna_enum_property_subtype_items[] = {
+const EnumPropertyItem rna_enum_property_subtype_items[] = {
 	{PROP_NONE, "NONE", 0, "None", ""},
 
 	/* strings */
@@ -90,7 +90,7 @@ EnumPropertyItem rna_enum_property_subtype_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem rna_enum_property_unit_items[] = {
+const EnumPropertyItem rna_enum_property_unit_items[] = {
 	{PROP_UNIT_NONE, "NONE", 0, "None", ""},
 	{PROP_UNIT_LENGTH, "LENGTH", 0, "Length", ""},
 	{PROP_UNIT_AREA, "AREA", 0, "Area", ""},
@@ -824,7 +824,7 @@ static int rna_StringProperty_max_length_get(PointerRNA *ptr)
 	return ((StringPropertyRNA *)prop)->maxlength;
 }
 
-static EnumPropertyItem *rna_EnumProperty_default_itemf(bContext *C, PointerRNA *ptr,
+static const EnumPropertyItem *rna_EnumProperty_default_itemf(bContext *C, PointerRNA *ptr,
                                                         PropertyRNA *prop_parent, bool *r_free)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
@@ -870,7 +870,7 @@ static void rna_EnumProperty_items_begin(CollectionPropertyIterator *iter, Point
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 	/* EnumPropertyRNA *eprop;  *//* UNUSED */
-	EnumPropertyItem *item = NULL;
+	const EnumPropertyItem *item = NULL;
 	int totitem;
 	bool free;
 	
@@ -1118,7 +1118,7 @@ static void rna_def_property(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	static EnumPropertyItem subtype_items[] = {
+	static const EnumPropertyItem subtype_items[] = {
 		{PROP_NONE, "NONE", 0, "None", ""},
 		{PROP_FILEPATH, "FILE_PATH", 0, "File Path", ""},
 		{PROP_DIRPATH, "DIR_PATH", 0, "Directory Path", ""},
@@ -1442,7 +1442,7 @@ static void rna_def_enum_property(BlenderRNA *brna, StructRNA *srna)
 	PropertyRNA *prop;
 
 	/* the itemf func is used instead, keep blender happy */
-	static EnumPropertyItem default_dummy_items[] = {
+	static const EnumPropertyItem default_dummy_items[] = {
 		{PROP_NONE, "DUMMY", 0, "Dummy", ""},
 		{0, NULL, 0, NULL, NULL}
 	};

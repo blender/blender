@@ -471,7 +471,7 @@ static void rna_NlaTrack_solo_set(PointerRNA *ptr, int value)
 #else
 
 /* enum defines exported for rna_animation.c */
-EnumPropertyItem rna_enum_nla_mode_blend_items[] = {
+const EnumPropertyItem rna_enum_nla_mode_blend_items[] = {
 	{NLASTRIP_MODE_REPLACE, "REPLACE", 0, "Replace",
 	                        "Result strip replaces the accumulated results by amount specified by influence"},
 	{NLASTRIP_MODE_ADD, "ADD", 0, "Add", "Weighted result of strip is added to the accumulated results"},
@@ -482,7 +482,7 @@ EnumPropertyItem rna_enum_nla_mode_blend_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem rna_enum_nla_mode_extend_items[] = {
+const EnumPropertyItem rna_enum_nla_mode_extend_items[] = {
 	{NLASTRIP_EXTEND_NOTHING, "NOTHING", 0, "Nothing", "Strip has no influence past its extents"},
 	{NLASTRIP_EXTEND_HOLD, "HOLD", 0, "Hold",
 	                       "Hold the first frame if no previous strips in track, and always hold last frame"},
@@ -521,7 +521,7 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	/* enum defs */
-	static EnumPropertyItem prop_type_items[] = {
+	static const EnumPropertyItem prop_type_items[] = {
 		{NLASTRIP_TYPE_CLIP, "CLIP", 0, "Action Clip", "NLA Strip references some Action"},
 		{NLASTRIP_TYPE_TRANSITION, "TRANSITION", 0, "Transition", "NLA Strip 'transitions' between adjacent strips"},
 		{NLASTRIP_TYPE_META, "META", 0, "Meta", "NLA Strip acts as a container for adjacent strips"},

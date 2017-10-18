@@ -49,7 +49,7 @@ void WM_operator_properties_filesel(
 {
 	PropertyRNA *prop;
 
-	static EnumPropertyItem file_display_items[] = {
+	static const EnumPropertyItem file_display_items[] = {
 		{FILE_DEFAULTDISPLAY, "DEFAULT", 0, "Default", "Automatically determine display type for files"},
 		{FILE_SHORTDISPLAY, "LIST_SHORT", ICON_SHORTDISPLAY, "Short List", "Display files as short list"},
 		{FILE_LONGDISPLAY, "LIST_LONG", ICON_LONGDISPLAY, "Long List", "Display files as a detailed list"},
@@ -135,7 +135,7 @@ static void wm_operator_properties_select_action_ex(wmOperatorType *ot, int defa
 
 void WM_operator_properties_select_action(wmOperatorType *ot, int default_action)
 {
-	static EnumPropertyItem select_actions[] = {
+	static const EnumPropertyItem select_actions[] = {
 		{SEL_TOGGLE, "TOGGLE", 0, "Toggle", "Toggle selection for all elements"},
 		{SEL_SELECT, "SELECT", 0, "Select", "Select all elements"},
 		{SEL_DESELECT, "DESELECT", 0, "Deselect", "Deselect all elements"},
@@ -151,7 +151,7 @@ void WM_operator_properties_select_action(wmOperatorType *ot, int default_action
  */
 void WM_operator_properties_select_action_simple(wmOperatorType *ot, int default_action)
 {
-	static EnumPropertyItem select_actions[] = {
+	static const EnumPropertyItem select_actions[] = {
 		{SEL_SELECT, "SELECT", 0, "Select", "Select all elements"},
 		{SEL_DESELECT, "DESELECT", 0, "Deselect", "Deselect all elements"},
 		{0, NULL, 0, NULL, NULL}

@@ -711,7 +711,7 @@ char *WM_operator_pystring_ex(struct bContext *C, struct wmOperator *op, const b
 char *WM_operator_pystring(struct bContext *C, struct wmOperator *op, const bool all_args, const bool macro_args) RET_NULL
 struct wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value) RET_NULL
 struct wmKeyMapItem *WM_modalkeymap_add_item_str(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, const char *value) RET_NULL
-struct wmKeyMap *WM_modalkeymap_add(struct wmKeyConfig *keyconf, const char *idname, struct EnumPropertyItem *items) RET_NULL
+struct wmKeyMap *WM_modalkeymap_add(struct wmKeyConfig *keyconf, const char *idname, const struct EnumPropertyItem *items) RET_NULL
 struct uiPopupMenu *UI_popup_menu_begin(struct bContext *C, const char *title, int icon) RET_NULL
 void UI_popup_menu_end(struct bContext *C, struct uiPopupMenu *head) RET_NONE
 struct uiLayout *UI_popup_menu_layout(struct uiPopupMenu *head) RET_NULL

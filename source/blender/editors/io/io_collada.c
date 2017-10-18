@@ -308,19 +308,19 @@ void WM_OT_collada_export(wmOperatorType *ot)
 {
 	struct StructRNA *func = ot->srna;
 
-	static EnumPropertyItem prop_bc_export_mesh_type[] = {
+	static const EnumPropertyItem prop_bc_export_mesh_type[] = {
 		{BC_MESH_TYPE_VIEW, "view", 0, "View", "Apply modifier's view settings"},
 		{BC_MESH_TYPE_RENDER, "render", 0, "Render", "Apply modifier's render settings"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem prop_bc_export_transformation_type[] = {
+	static const EnumPropertyItem prop_bc_export_transformation_type[] = {
 		{ BC_TRANSFORMATION_TYPE_MATRIX, "matrix", 0, "Matrix", "Use <matrix> to specify transformations" },
 		{ BC_TRANSFORMATION_TYPE_TRANSROTLOC, "transrotloc", 0, "TransRotLoc", "Use <translate>, <rotate>, <scale> to specify transformations" },
 		{ 0, NULL, 0, NULL, NULL }
 	};
 
-	static EnumPropertyItem prop_bc_export_texture_type[] = {
+	static const EnumPropertyItem prop_bc_export_texture_type[] = {
 		{ BC_TEXTURE_TYPE_MAT, "mat", 0, "Materials", "Export Materials" },
 		{ BC_TEXTURE_TYPE_UV, "uv", 0, "UV Textures", "Export UV Textures (Face textures) as materials" },
 		{ 0, NULL, 0, NULL, NULL }

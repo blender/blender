@@ -3284,17 +3284,17 @@ void RNA_enum_item_add(EnumPropertyItem **items, int *totitem, const EnumPropert
 
 void RNA_enum_item_add_separator(EnumPropertyItem **items, int *totitem)
 {
-	static EnumPropertyItem sepr = {0, "", 0, NULL, NULL};
+	static const EnumPropertyItem sepr = {0, "", 0, NULL, NULL};
 	RNA_enum_item_add(items, totitem, &sepr);
 }
 
-void RNA_enum_items_add(EnumPropertyItem **items, int *totitem, EnumPropertyItem *item)
+void RNA_enum_items_add(EnumPropertyItem **items, int *totitem, const EnumPropertyItem *item)
 {
 	for (; item->identifier; item++)
 		RNA_enum_item_add(items, totitem, item);
 }
 
-void RNA_enum_items_add_value(EnumPropertyItem **items, int *totitem, EnumPropertyItem *item, int value)
+void RNA_enum_items_add_value(EnumPropertyItem **items, int *totitem, const EnumPropertyItem *item, int value)
 {
 	for (; item->identifier; item++) {
 		if (item->value == value) {
@@ -3308,7 +3308,7 @@ void RNA_enum_items_add_value(EnumPropertyItem **items, int *totitem, EnumProper
 
 void RNA_enum_item_end(EnumPropertyItem **items, int *totitem)
 {
-	static EnumPropertyItem empty = {0, NULL, 0, NULL, NULL};
+	static const EnumPropertyItem empty = {0, NULL, 0, NULL, NULL};
 	RNA_enum_item_add(items, totitem, &empty);
 }
 
@@ -3425,12 +3425,12 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
 				eprop->item = earray;
 
 				for (a = 0; a < eprop->totitem; a++) {
-					if (eprop->item[a].identifier)
-						eprop->item[a].identifier = BLI_strdup(eprop->item[a].identifier);
-					if (eprop->item[a].name)
-						eprop->item[a].name = BLI_strdup(eprop->item[a].name);
-					if (eprop->item[a].description)
-						eprop->item[a].description = BLI_strdup(eprop->item[a].description);
+					if (earray[a].identifier)
+						earray[a].identifier = BLI_strdup(earray[a].identifier);
+					if (earray[a].name)
+						earray[a].name = BLI_strdup(earray[a].name);
+					if (earray[a].description)
+						earray[a].description = BLI_strdup(earray[a].description);
 				}
 			}
 			break;
