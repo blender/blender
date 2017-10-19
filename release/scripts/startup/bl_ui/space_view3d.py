@@ -783,7 +783,7 @@ class VIEW3D_MT_edit_mesh_select_by_trait(Menu):
             layout.operator("mesh.select_non_manifold", text="Non Manifold")
         layout.operator("mesh.select_loose", text="Loose Geometry")
         layout.operator("mesh.select_interior_faces", text="Interior Faces")
-        layout.operator("mesh.select_face_by_sides")
+        layout.operator("mesh.select_face_by_sides", text="Faces by Sides")
 
         layout.separator()
 
@@ -803,6 +803,32 @@ class VIEW3D_MT_edit_mesh_select_more_less(Menu):
 
         layout.operator("mesh.select_next_item", text="Next Active")
         layout.operator("mesh.select_prev_item", text="Previous Active")
+
+
+class VIEW3D_MT_edit_mesh_select_linked(Menu):
+    bl_label = "Select Linked"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("mesh.select_linked", text="Linked")
+        layout.operator("mesh.shortest_path_select", text="Shortest Path")
+        layout.operator("mesh.faces_select_linked_flat", text="Linked Flat Faces")
+
+
+class VIEW3D_MT_edit_mesh_select_loops(Menu):
+    bl_label = "Select Loops"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("mesh.loop_multi_select", text="Edge Loops").ring = False
+        layout.operator("mesh.loop_multi_select", text="Edge Rings").ring = True
+
+        layout.separator()
+
+        layout.operator("mesh.loop_to_region")
+        layout.operator("mesh.region_to_loop")
 
 
 class VIEW3D_MT_select_edit_mesh(Menu):
@@ -830,7 +856,6 @@ class VIEW3D_MT_select_edit_mesh(Menu):
 
         # geometric
         layout.operator("mesh.edges_select_sharp", text="Sharp Edges")
-        layout.operator("mesh.faces_select_linked_flat", text="Linked Flat Faces")
 
         layout.separator()
 
@@ -847,18 +872,16 @@ class VIEW3D_MT_select_edit_mesh(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.select_mirror", text="Mirror")
-        layout.operator("mesh.select_axis", text="Side of Active")
-
-        layout.operator("mesh.select_linked", text="Linked")
-        layout.operator("mesh.shortest_path_select", text="Shortest Path")
-        layout.operator("mesh.loop_multi_select", text="Edge Loops").ring = False
-        layout.operator("mesh.loop_multi_select", text="Edge Rings").ring = True
+        layout.menu("VIEW3D_MT_edit_mesh_select_loops")
 
         layout.separator()
 
-        layout.operator("mesh.loop_to_region")
-        layout.operator("mesh.region_to_loop")
+        layout.menu("VIEW3D_MT_edit_mesh_select_linked")
+
+        layout.separator()
+
+        layout.operator("mesh.select_axis", text="Side of Active")
+        layout.operator("mesh.select_mirror", text="Mirror")
 
 
 class VIEW3D_MT_select_edit_curve(Menu):
@@ -3954,6 +3977,8 @@ classes = (
     VIEW3D_MT_bone_options_disable,
     VIEW3D_MT_edit_mesh_specials,
     VIEW3D_MT_edit_mesh_select_mode,
+    VIEW3D_MT_edit_mesh_select_linked,
+    VIEW3D_MT_edit_mesh_select_loops,
     VIEW3D_MT_edit_mesh_extrude,
     VIEW3D_MT_edit_mesh_vertices,
     VIEW3D_MT_edit_mesh_edges,
