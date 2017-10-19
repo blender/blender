@@ -959,19 +959,19 @@ static void rna_def_gpencil_triangle(BlenderRNA *brna)
 
 	/* point v1 */
 	prop = RNA_def_property(srna, "v1", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "v1");
+	RNA_def_property_int_sdna(prop, NULL, "verts[0]");
 	RNA_def_property_ui_text(prop, "v1", "First triangle vertex index");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	/* point v2 */
 	prop = RNA_def_property(srna, "v2", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "v2");
+	RNA_def_property_int_sdna(prop, NULL, "verts[1]");
 	RNA_def_property_ui_text(prop, "v2", "Second triangle vertex index");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	/* point v3 */
 	prop = RNA_def_property(srna, "v3", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "v3");
+	RNA_def_property_int_sdna(prop, NULL, "verts[2]");
 	RNA_def_property_ui_text(prop, "v3", "Third triangle vertex index");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }

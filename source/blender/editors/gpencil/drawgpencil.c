@@ -475,10 +475,7 @@ static void gp_triangulate_stroke_fill(bGPDstroke *gps)
 		}
 
 		for (int i = 0; i < gps->tot_triangles; i++) {
-			bGPDtriangle *stroke_triangle = &gps->triangles[i];
-			stroke_triangle->v1 = tmp_triangles[i][0];
-			stroke_triangle->v2 = tmp_triangles[i][1];
-			stroke_triangle->v3 = tmp_triangles[i][2];
+			memcpy(gps->triangles[i].verts, tmp_triangles[i], sizeof(uint[3]));
 		}
 	}
 	else {
@@ -538,38 +535,24 @@ static void gp_draw_stroke_fill(
 		bGPDtriangle *stroke_triangle = gps->triangles;
 		bGPDspoint *pt;
 
-		for (int i = 0; i < gps->tot_triangles; i++, stroke_triangle++) {
-			if (gps->flag & GP_STROKE_3DSPACE) {
-				/* vertex 1 */
-				pt = &gps->points[stroke_triangle->v1];
-				mul_v3_m4v3(fpt, diff_mat, &pt->x);
-				immVertex3fv(pos, fpt);
-				/* vertex 2 */
-				pt = &gps->points[stroke_triangle->v2];
-				mul_v3_m4v3(fpt, diff_mat, &pt->x);
-				immVertex3fv(pos, fpt);
-				/* vertex 3 */
-				pt = &gps->points[stroke_triangle->v3];
-				mul_v3_m4v3(fpt, diff_mat, &pt->x);
-				immVertex3fv(pos, fpt);
+		if (gps->flag & GP_STROKE_3DSPACE) {
+			for (int i = 0; i < gps->tot_triangles; i++, stroke_triangle++) {
+				for (int j = 0; j < 3; j++) {
+					pt = &gps->points[stroke_triangle->verts[j]];
+					mul_v3_m4v3(fpt, diff_mat, &pt->x);
+					immVertex3fv(pos, fpt);
+				}
 			}
-			else {
-				float co[2];
-				/* vertex 1 */
-				pt = &gps->points[stroke_triangle->v1];
-				mul_v3_m4v3(fpt, diff_mat, &pt->x);
-				gp_calc_2d_stroke_fxy(fpt, gps->flag, offsx, offsy, winx, winy, co);
-				immVertex2fv(pos, co);
-				/* vertex 2 */
-				pt = &gps->points[stroke_triangle->v2];
-				mul_v3_m4v3(fpt, diff_mat, &pt->x);
-				gp_calc_2d_stroke_fxy(fpt, gps->flag, offsx, offsy, winx, winy, co);
-				immVertex2fv(pos, co);
-				/* vertex 3 */
-				pt = &gps->points[stroke_triangle->v3];
-				mul_v3_m4v3(fpt, diff_mat, &pt->x);
-				gp_calc_2d_stroke_fxy(fpt, gps->flag, offsx, offsy, winx, winy, co);
-				immVertex2fv(pos, co);
+		}
+		else {
+			for (int i = 0; i < gps->tot_triangles; i++, stroke_triangle++) {
+				for (int j = 0; j < 3; j++) {
+					float co[2];
+					pt = &gps->points[stroke_triangle->verts[j]];
+					mul_v3_m4v3(fpt, diff_mat, &pt->x);
+					gp_calc_2d_stroke_fxy(fpt, gps->flag, offsx, offsy, winx, winy, co);
+					immVertex3fv(pos, fpt);
+				}
 			}
 		}
 
