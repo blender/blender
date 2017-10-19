@@ -968,6 +968,10 @@ class VIEW3D_MT_select_edit_text(Menu):
     def draw(self, context):
         layout = self.layout
 
+        layout.menu("VIEW3D_MT_undo_redo")
+
+        layout.separator()
+
         layout.operator("font.text_paste", text="Paste")
         layout.operator("font.text_cut", text="Cut")
         layout.operator("font.text_copy", text="Copy")
@@ -1356,7 +1360,19 @@ class INFO_MT_add(Menu):
             )
 
 
-# ********** Object menu **********
+class VIEW3D_MT_undo_redo(Menu):
+    bl_label = "Undo/Redo"
+    _operator_name = ""
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("ed.undo")
+        layout.operator("ed.redo")
+
+        layout.separator()
+
+        layout.operator("ed.undo_history")
 
 
 class VIEW3D_MT_object(Menu):
@@ -1368,9 +1384,7 @@ class VIEW3D_MT_object(Menu):
         view = context.space_data
         is_local_view = (view.local_view is not None)
 
-        layout.operator("ed.undo")
-        layout.operator("ed.redo")
-        layout.operator("ed.undo_history")
+        layout.menu("VIEW3D_MT_undo_redo")
 
         layout.separator()
 
@@ -1879,8 +1893,7 @@ class VIEW3D_MT_paint_vertex(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("ed.redo")
-        layout.operator("ed.undo")
+        layout.menu("VIEW3D_MT_undo_redo")
 
         layout.separator()
 
@@ -1957,9 +1970,7 @@ class VIEW3D_MT_paint_weight(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("ed.undo")
-        layout.operator("ed.redo")
-        layout.operator("ed.undo_history")
+        layout.menu("VIEW3D_MT_undo_redo")
 
         layout.separator()
 
@@ -2007,8 +2018,7 @@ class VIEW3D_MT_sculpt(Menu):
         toolsettings = context.tool_settings
         sculpt = toolsettings.sculpt
 
-        layout.operator("ed.redo")
-        layout.operator("ed.undo")
+        layout.menu("VIEW3D_MT_undo_redo")
 
         layout.separator()
 
@@ -2081,18 +2091,19 @@ class VIEW3D_MT_particle(Menu):
 
         particle_edit = context.tool_settings.particle_edit
 
-        layout.operator("ed.undo")
-        layout.operator("ed.redo")
-        layout.operator("ed.undo_history")
+        layout.menu("VIEW3D_MT_undo_redo")
+
+        layout.separator()
+
+        layout.operator("particle.delete")
 
         layout.separator()
 
         layout.operator("particle.mirror")
 
-        layout.separator()
-
         layout.operator("particle.remove_doubles")
-        layout.operator("particle.delete")
+
+        layout.separator()
 
         if particle_edit.select_mode == 'POINT':
             layout.operator("particle.subdivide")
@@ -2168,9 +2179,7 @@ class VIEW3D_MT_pose(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("ed.undo")
-        layout.operator("ed.redo")
-        layout.operator("ed.undo_history")
+        layout.menu("VIEW3D_MT_undo_redo")
 
         layout.separator()
 
@@ -2448,9 +2457,7 @@ class VIEW3D_MT_edit_mesh(Menu):
 
         toolsettings = context.tool_settings
 
-        layout.operator("ed.undo")
-        layout.operator("ed.redo")
-        layout.operator("ed.undo_history")
+        layout.menu("VIEW3D_MT_undo_redo")
 
         layout.separator()
 
@@ -2848,6 +2855,10 @@ class VIEW3D_MT_edit_gpencil_delete(Menu):
 def draw_curve(self, context):
     layout = self.layout
 
+    layout.menu("VIEW3D_MT_undo_redo")
+
+    layout.separator()
+
     layout.menu("VIEW3D_MT_edit_curve_delete")
 
     layout.separator()
@@ -2973,6 +2984,9 @@ class VIEW3D_MT_edit_font(Menu):
     def draw(self, context):
         layout = self.layout
 
+        # Break convention of having undo menu here,
+        # instead place in "Edit" menu, matching the text menu.
+
         layout.menu("VIEW3D_MT_edit_text_chars")
 
         layout.separator()
@@ -3032,11 +3046,7 @@ class VIEW3D_MT_edit_meta(Menu):
     def draw(self, context):
         layout = self.layout
 
-        toolsettings = context.tool_settings
-
-        layout.operator("ed.undo")
-        layout.operator("ed.redo")
-        layout.operator("ed.undo_history")
+        layout.menu("VIEW3D_MT_undo_redo")
 
         layout.separator()
 
@@ -3078,7 +3088,9 @@ class VIEW3D_MT_edit_lattice(Menu):
     def draw(self, context):
         layout = self.layout
 
-        toolsettings = context.tool_settings
+        layout.menu("VIEW3D_MT_undo_redo")
+
+        layout.separator()
 
         layout.menu("VIEW3D_MT_transform")
         layout.menu("VIEW3D_MT_mirror")
@@ -3106,6 +3118,10 @@ class VIEW3D_MT_edit_armature(Menu):
 
         edit_object = context.edit_object
         arm = edit_object.data
+
+        layout.menu("VIEW3D_MT_undo_redo")
+
+        layout.separator()
 
         layout.operator("armature.delete")
 
@@ -3227,9 +3243,7 @@ class VIEW3D_MT_edit_gpencil(Menu):
 
         layout = self.layout
 
-        layout.operator("ed.undo")
-        layout.operator("ed.redo")
-        layout.operator("ed.undo_history")
+        layout.menu("VIEW3D_MT_undo_redo")
 
         layout.separator()
 
@@ -3978,6 +3992,7 @@ classes = (
     INFO_MT_lightprobe_add,
     INFO_MT_camera_add,
     INFO_MT_add,
+    VIEW3D_MT_undo_redo,
     VIEW3D_MT_object,
     VIEW3D_MT_object_animation,
     VIEW3D_MT_object_clear,
