@@ -247,6 +247,8 @@ void BKE_material_copy_data(Main *bmain, Material *ma_dst, const Material *ma_sr
 	}
 
 	if (ma_src->nodetree) {
+		/* Note: nodetree is *not* in bmain, however this specific case is handled at lower level
+		 *       (see BKE_libblock_copy_ex()). */
 		BKE_id_copy_ex(bmain, (ID *)ma_src->nodetree, (ID **)&ma_dst->nodetree, flag, false);
 	}
 
