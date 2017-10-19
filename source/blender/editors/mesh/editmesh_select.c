@@ -2649,7 +2649,7 @@ void MESH_OT_select_linked(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Linked All";
 	ot->idname = "MESH_OT_select_linked";
-	ot->description = "Select all vertices linked to the active mesh";
+	ot->description = "Select all vertices connected to the current selection";
 
 	/* api callbacks */
 	ot->exec = edbm_select_linked_exec;
