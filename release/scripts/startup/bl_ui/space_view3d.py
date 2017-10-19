@@ -435,49 +435,38 @@ class VIEW3D_MT_view(Menu):
 
     def draw(self, context):
         layout = self.layout
+        view = context.space_data
 
         layout.operator("view3d.properties", icon='MENU_PANEL')
         layout.operator("view3d.toolshelf", icon='MENU_PANEL')
 
         layout.separator()
 
-        layout.operator("view3d.viewnumpad", text="Camera").type = 'CAMERA'
-        layout.operator("view3d.viewnumpad", text="Top").type = 'TOP'
-        layout.operator("view3d.viewnumpad", text="Bottom").type = 'BOTTOM'
-        layout.operator("view3d.viewnumpad", text="Front").type = 'FRONT'
-        layout.operator("view3d.viewnumpad", text="Back").type = 'BACK'
-        layout.operator("view3d.viewnumpad", text="Right").type = 'RIGHT'
-        layout.operator("view3d.viewnumpad", text="Left").type = 'LEFT'
+        layout.operator("view3d.view_selected").use_all_regions = False
+        if view.region_quadviews:
+            layout.operator("view3d.view_selected", text="View Selected (Quad View)").use_all_regions = True
 
-        layout.menu("VIEW3D_MT_view_cameras", text="Cameras")
-
-        layout.separator()
-
+        layout.operator("view3d.view_all").center = False
+        layout.operator("view3d.localview", text="View Global/Local")
         layout.operator("view3d.view_persportho")
 
         layout.separator()
 
+        layout.menu("VIEW3D_MT_view_cameras", text="Cameras")
+
+        layout.separator()
+        layout.menu("VIEW3D_MT_view_viewpoint")
         layout.menu("VIEW3D_MT_view_navigation")
         layout.menu("VIEW3D_MT_view_align")
 
         layout.separator()
 
         layout.operator_context = 'INVOKE_REGION_WIN'
-
-        layout.operator("view3d.clip_border", text="Clipping Border...")
-        layout.operator("view3d.zoom_border", text="Zoom Border...")
-        layout.operator("view3d.render_border", text="Render Border...").camera_only = False
-        layout.operator("view3d.clear_render_border")
+        layout.menu("VIEW3D_MT_view_borders", text="View Borders")
 
         layout.separator()
 
         layout.operator("view3d.layers", text="Show All Layers").nr = 0
-
-        layout.separator()
-
-        layout.operator("view3d.localview", text="View Global/Local")
-        layout.operator("view3d.view_selected").use_all_regions = False
-        layout.operator("view3d.view_all").center = False
 
         layout.separator()
 
@@ -489,6 +478,40 @@ class VIEW3D_MT_view(Menu):
         layout.operator("screen.region_quadview")
         layout.operator("screen.screen_full_area")
         layout.operator("screen.screen_full_area", text="Toggle Fullscreen Area").use_hide_panels = True
+
+
+class VIEW3D_MT_view_cameras(Menu):
+    bl_label = "Cameras"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("view3d.object_as_camera")
+        layout.operator("view3d.viewnumpad", text="Active Camera").type = 'CAMERA'
+
+
+class VIEW3D_MT_view_viewpoint(Menu):
+    bl_label = "Viewpoint"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("view3d.viewnumpad", text="Camera").type = 'CAMERA'
+
+        layout.separator()
+
+        layout.operator("view3d.viewnumpad", text="Top").type = 'TOP'
+        layout.operator("view3d.viewnumpad", text="Bottom").type = 'BOTTOM'
+
+        layout.separator()
+
+        layout.operator("view3d.viewnumpad", text="Front").type = 'FRONT'
+        layout.operator("view3d.viewnumpad", text="Back").type = 'BACK'
+
+        layout.separator()
+
+        layout.operator("view3d.viewnumpad", text="Right").type = 'RIGHT'
+        layout.operator("view3d.viewnumpad", text="Left").type = 'LEFT'
 
 
 class VIEW3D_MT_view_navigation(Menu):
@@ -516,6 +539,7 @@ class VIEW3D_MT_view_navigation(Menu):
 
         layout.operator("view3d.zoom", text="Zoom In").delta = 1
         layout.operator("view3d.zoom", text="Zoom Out").delta = -1
+        layout.operator("view3d.zoom_border", text="Zoom Border...")
         layout.operator("view3d.zoom_camera_1_to_1", text="Zoom Camera 1:1")
 
         layout.separator()
@@ -537,7 +561,6 @@ class VIEW3D_MT_view_align(Menu):
         layout.operator("view3d.view_all", text="Center Cursor and View All").center = True
         layout.operator("view3d.camera_to_view", text="Align Active Camera to View")
         layout.operator("view3d.camera_to_view_selected", text="Align Active Camera to Selected")
-        layout.operator("view3d.view_selected")
         layout.operator("view3d.view_center_cursor")
 
         layout.separator()
@@ -577,14 +600,17 @@ class VIEW3D_MT_view_align_selected(Menu):
         props.type = 'LEFT'
 
 
-class VIEW3D_MT_view_cameras(Menu):
-    bl_label = "Cameras"
+class VIEW3D_MT_view_borders(Menu):
+    bl_label = "View Borders"
 
     def draw(self, context):
         layout = self.layout
+        layout.operator("view3d.clip_border", text="Clipping Border...")
+        layout.operator("view3d.render_border", text="Render Border...").camera_only = False
 
-        layout.operator("view3d.object_as_camera")
-        layout.operator("view3d.viewnumpad", text="Active Camera").type = 'CAMERA'
+        layout.separator()
+
+        layout.operator("view3d.clear_render_border")
 
 
 # ********** Select menus, suffix from context.mode **********
@@ -3850,10 +3876,12 @@ classes = (
     VIEW3D_MT_uv_map,
     VIEW3D_MT_edit_proportional,
     VIEW3D_MT_view,
+    VIEW3D_MT_view_cameras,
     VIEW3D_MT_view_navigation,
     VIEW3D_MT_view_align,
     VIEW3D_MT_view_align_selected,
-    VIEW3D_MT_view_cameras,
+    VIEW3D_MT_view_viewpoint,
+    VIEW3D_MT_view_borders,
     VIEW3D_MT_select_object,
     VIEW3D_MT_select_object_more_less,
     VIEW3D_MT_select_pose,
