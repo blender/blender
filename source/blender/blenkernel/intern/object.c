@@ -724,32 +724,65 @@ Object *BKE_object_add_only_object(Main *bmain, int type, const char *name)
 	return ob;
 }
 
-/* general add: to scene, with layer from area and default name */
-/* creates minimum required data, but without vertices etc. */
-Object *BKE_object_add(
-        Main *bmain, Scene *scene, SceneLayer *sl,
-        int type, const char *name)
+
+static Object *object_add_common(Main *bmain, SceneLayer *scene_layer, int type, const char *name)
 {
 	Object *ob;
-	Base *base;
-	LayerCollection *lc;
 
 	ob = BKE_object_add_only_object(bmain, type, name);
-
 	ob->data = BKE_object_obdata_add_from_type(bmain, type, name);
-
-	lc = BKE_layer_collection_get_active_ensure(scene, sl);
-
-	BKE_collection_object_add(scene, lc->scene_collection, ob);
-
-	base = BKE_scene_layer_base_find(sl, ob);
-	BKE_scene_layer_base_deselect_all(sl);
-	BKE_scene_layer_base_select(sl, base);
+	BKE_scene_layer_base_deselect_all(scene_layer);
 
 	DEG_id_tag_update_ex(bmain, &ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 	return ob;
 }
 
+/**
+ * General add: to scene, with layer from area and default name
+ *
+ * Object is added to the active SceneCollection.
+ * If there is no linked collection to the active SceneLayer we create a new one.
+ */
+/* creates minimum required data, but without vertices etc. */
+Object *BKE_object_add(
+        Main *bmain, Scene *scene, SceneLayer *scene_layer,
+        int type, const char *name)
+{
+	Object *ob;
+	Base *base;
+	LayerCollection *layer_collection;
+
+	ob = object_add_common(bmain, scene_layer, type, name);
+
+	layer_collection = BKE_layer_collection_get_active_ensure(scene, scene_layer);
+	BKE_collection_object_add(scene, layer_collection->scene_collection, ob);
+
+	base = BKE_scene_layer_base_find(scene_layer, ob);
+	BKE_scene_layer_base_select(scene_layer, base);
+
+	return ob;
+}
+
+/**
+ * Add a new object, using another one as a reference
+ *
+ * /param ob_src object to use to determine the collections of the new object.
+ */
+Object *BKE_object_add_from(
+        Main *bmain, Scene *scene, SceneLayer *scene_layer,
+        int type, const char *name, Object *ob_src)
+{
+	Object *ob;
+	Base *base;
+
+	ob = object_add_common(bmain, scene_layer, type, name);
+	BKE_collection_object_add_from(scene, ob_src, ob);
+
+	base = BKE_scene_layer_base_find(scene_layer, ob);
+	BKE_scene_layer_base_select(scene_layer, base);
+
+	return ob;
+}
 
 #ifdef WITH_GAMEENGINE
 
