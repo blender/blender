@@ -788,7 +788,7 @@ void MESH_OT_shortest_path_select(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Shortest Path";
 	ot->idname = "MESH_OT_shortest_path_select";
-	ot->description = "Selected vertex path between two vertices";
+	ot->description = "Selected shortest path between two vertices/edges/faces";
 
 	/* api callbacks */
 	ot->exec = edbm_shortest_path_select_exec;

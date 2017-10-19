@@ -179,7 +179,7 @@ class MeshSelectNext(Operator):
 
 
 class MeshSelectPrev(Operator):
-    """Select the next element (using selection order)"""
+    """Select the previous element (using selection order)"""
     bl_idname = "mesh.select_prev_item"
     bl_label = "Select Previous Element"
     bl_options = {'REGISTER', 'UNDO'}
