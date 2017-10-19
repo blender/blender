@@ -175,7 +175,10 @@ void BKE_linestyle_copy_data(
 			*linestyle_dst->mtex[a] = *linestyle_src->mtex[a];
 		}
 	}
+
 	if (linestyle_src->nodetree) {
+		/* Note: nodetree is *not* in bmain, however this specific case is handled at lower level
+		 *       (see BKE_libblock_copy_ex()). */
 		BKE_id_copy_ex(bmain, (ID *)linestyle_src->nodetree, (ID **)&linestyle_dst->nodetree, flag, false);
 	}
 
