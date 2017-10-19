@@ -44,6 +44,8 @@
 #include "BLI_fileops.h"
 #include "BLI_mempool.h"
 
+#include "BLO_readfile.h"  /* only for BLO_has_bfile_extension */
+
 #include "BKE_blender_version.h"
 #include "BKE_context.h"
 
@@ -1740,11 +1742,18 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
 			return -1;
 		}
 
-		/* Just pretend a file was loaded, so the user can press Save and it'll save at the filename from the CLI. */
-		BLI_strncpy(G.main->name, filename, FILE_MAX);
-		G.relbase_valid = true;
-		G.save_over = true;
-		printf("... opened default scene instead; saving will write to %s\n", filename);
+		if (BLO_has_bfile_extension(filename)) {
+			/* Just pretend a file was loaded, so the user can press Save and it'll save at the filename from the CLI. */
+			BLI_strncpy(G.main->name, filename, FILE_MAX);
+			G.relbase_valid = true;
+			G.save_over = true;
+			printf("... opened default scene instead; saving will write to: %s\n", filename);
+		}
+		else {
+			printf("Error: argument has no '.blend' file extension, not using as new file, exiting! %s\n", filename);
+			G.is_break = true;
+			WM_exit(C);
+		}
 	}
 
 	G.file_loaded = 1;
