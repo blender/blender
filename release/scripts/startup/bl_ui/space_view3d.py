@@ -1361,6 +1361,27 @@ class VIEW3D_MT_undo_redo(Menu):
         layout.operator("ed.undo_history")
 
 
+class VIEW3D_MT_object_relations(Menu):
+    bl_label = "Relations"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("object.proxy_make", text="Make Proxy...")
+
+        layout.operator("object.make_dupli_face")
+
+        layout.separator()
+
+        layout.operator_menu_enum("object.make_local", "type", text="Make Local...")
+        layout.menu("VIEW3D_MT_make_single_user")
+
+        layout.separator()
+
+        layout.operator("object.data_transfer")
+        layout.operator("object.datalayout_transfer")
+
+
 class VIEW3D_MT_object(Menu):
     bl_context = "objectmode"
     bl_label = "Object"
@@ -1374,33 +1395,42 @@ class VIEW3D_MT_object(Menu):
 
         layout.separator()
 
+        layout.operator("object.delete", text="Delete...").use_global = False
+
+        layout.separator()
+
         layout.menu("VIEW3D_MT_transform_object")
         layout.menu("VIEW3D_MT_mirror")
         layout.menu("VIEW3D_MT_object_clear")
         layout.menu("VIEW3D_MT_object_apply")
-        layout.menu("VIEW3D_MT_snap")
 
         layout.separator()
 
-        layout.menu("VIEW3D_MT_object_animation")
+        layout.menu("VIEW3D_MT_object_parent")
+        layout.menu("VIEW3D_MT_object_group")
+        layout.menu("VIEW3D_MT_snap")
 
         layout.separator()
 
         layout.operator("object.duplicate_move")
         layout.operator("object.duplicate_move_linked")
-        layout.operator("object.delete", text="Delete...").use_global = False
-        layout.operator("object.proxy_make", text="Make Proxy...")
+        layout.operator("object.join")
+        if is_local_view:
+            layout.operator_context = 'EXEC_REGION_WIN'
+            layout.operator("object.move_to_layer", text="Move out of Local View")
+            layout.operator_context = 'INVOKE_REGION_WIN'
+        else:
+            layout.operator("object.move_to_layer", text="Move to Layer...")
+
+        layout.separator()
         layout.menu("VIEW3D_MT_make_links", text="Make Links...")
-        layout.operator("object.make_dupli_face")
-        layout.operator_menu_enum("object.make_local", "type", text="Make Local...")
-        layout.menu("VIEW3D_MT_make_single_user")
+        layout.menu("VIEW3D_MT_object_relations")
+        layout.menu("VIEW3D_MT_object_constraints")
+        layout.menu("VIEW3D_MT_object_track")
 
         layout.separator()
 
-        layout.menu("VIEW3D_MT_object_parent")
-        layout.menu("VIEW3D_MT_object_track")
-        layout.menu("VIEW3D_MT_object_group")
-        layout.menu("VIEW3D_MT_object_constraints")
+        layout.menu("VIEW3D_MT_object_animation")
 
         layout.separator()
 
@@ -1411,19 +1441,6 @@ class VIEW3D_MT_object(Menu):
         layout.menu("VIEW3D_MT_object_game")
 
         layout.separator()
-
-        layout.operator("object.join")
-        layout.operator("object.data_transfer")
-        layout.operator("object.datalayout_transfer")
-
-        layout.separator()
-
-        if is_local_view:
-            layout.operator_context = 'EXEC_REGION_WIN'
-            layout.operator("object.move_to_layer", text="Move out of Local View")
-            layout.operator_context = 'INVOKE_REGION_WIN'
-        else:
-            layout.operator("object.move_to_layer", text="Move to Layer...")
 
         layout.menu("VIEW3D_MT_object_showhide")
 
@@ -4047,6 +4064,7 @@ classes = (
     INFO_MT_camera_add,
     INFO_MT_add,
     VIEW3D_MT_undo_redo,
+    VIEW3D_MT_object_relations,
     VIEW3D_MT_object,
     VIEW3D_MT_object_animation,
     VIEW3D_MT_object_clear,
