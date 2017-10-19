@@ -1775,7 +1775,8 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
 		}
 		else {
 			printf("Error: argument has no '.blend' file extension, not using as new file, exiting! %s\n", filename);
-			exit(1);
+			G.is_break = true;
+			WM_exit(C);
 		}
 	}
 
