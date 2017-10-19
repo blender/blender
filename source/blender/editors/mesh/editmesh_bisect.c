@@ -200,7 +200,7 @@ static int mesh_bisect_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		{
 			View3D *v3d = CTX_wm_view3d(C);
 			if (v3d && (v3d->twtype & V3D_MANIPULATOR_DRAW)) {
-				WM_manipulator_group_type_add("MESH_WGT_bisect");
+				WM_manipulator_group_type_ensure("MESH_WGT_bisect");
 			}
 		}
 #endif
@@ -675,6 +675,9 @@ static void manipulator_mesh_bisect_draw_prepare(
         const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
 {
 	ManipulatorGroup *man = mgroup->customdata;
+	if (man->data.op->next) {
+		man->data.op = WM_operator_last_redo((bContext *)man->data.context);
+	}
 	manipulator_mesh_bisect_update_from_op(man);
 }
 

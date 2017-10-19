@@ -700,14 +700,12 @@ void WM_manipulator_group_type_add_ptr_ex(
 
 	WM_manipulatorconfig_update_tag_init(mmap_type, wgt);
 }
-
 void WM_manipulator_group_type_add_ptr(
         wmManipulatorGroupType *wgt)
 {
 	wmManipulatorMapType *mmap_type = WM_manipulatormaptype_ensure(&wgt->mmap_params);
 	WM_manipulator_group_type_add_ptr_ex(wgt, mmap_type);
 }
-
 void WM_manipulator_group_type_add(const char *idname)
 {
 	wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find(idname, false);
@@ -715,6 +713,27 @@ void WM_manipulator_group_type_add(const char *idname)
 	WM_manipulator_group_type_add_ptr(wgt);
 }
 
+void WM_manipulator_group_type_ensure_ptr_ex(
+        wmManipulatorGroupType *wgt,
+        wmManipulatorMapType *mmap_type)
+{
+	wmManipulatorGroupTypeRef *wgt_ref = WM_manipulatormaptype_group_find_ptr(mmap_type, wgt);
+	if (wgt_ref == NULL) {
+		WM_manipulator_group_type_add_ptr_ex(wgt, mmap_type);
+	}
+}
+void WM_manipulator_group_type_ensure_ptr(
+        wmManipulatorGroupType *wgt)
+{
+	wmManipulatorMapType *mmap_type = WM_manipulatormaptype_ensure(&wgt->mmap_params);
+	WM_manipulator_group_type_ensure_ptr_ex(wgt, mmap_type);
+}
+void WM_manipulator_group_type_ensure(const char *idname)
+{
+	wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find(idname, false);
+	BLI_assert(wgt != NULL);
+	WM_manipulator_group_type_ensure_ptr(wgt);
+}
 
 void WM_manipulator_group_type_remove_ptr_ex(
         struct Main *bmain, wmManipulatorGroupType *wgt,
@@ -723,14 +742,12 @@ void WM_manipulator_group_type_remove_ptr_ex(
 	WM_manipulatormaptype_group_unlink(NULL, bmain, mmap_type, wgt);
 	WM_manipulatorgrouptype_free_ptr(wgt);
 }
-
 void WM_manipulator_group_type_remove_ptr(
         struct Main *bmain, wmManipulatorGroupType *wgt)
 {
 	wmManipulatorMapType *mmap_type = WM_manipulatormaptype_ensure(&wgt->mmap_params);
 	WM_manipulator_group_type_remove_ptr_ex(bmain, wgt, mmap_type);
 }
-
 void WM_manipulator_group_type_remove(struct Main *bmain, const char *idname)
 {
 	wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find(idname, false);
