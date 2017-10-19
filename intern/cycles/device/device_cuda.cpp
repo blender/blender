@@ -2115,12 +2115,17 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 	for(int num = 0; num < count; num++) {
 		char name[256];
 
-		if(cuDeviceGetName(name, 256, num) != CUDA_SUCCESS)
+		result = cuDeviceGetName(name, 256, num);
+		if(result != CUDA_SUCCESS) {
+			fprintf(stderr, "CUDA cuDeviceGetName: %s\n", cuewErrorString(result));
 			continue;
+		}
 
 		int major;
 		cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, num);
 		if(major < 2) {
+			VLOG(1) << "Ignoring device \"" << name
+			        << "\", compute capability is too low.";
 			continue;
 		}
 
@@ -2153,6 +2158,7 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 		cuDeviceGetAttribute(&preempt_attr, CU_DEVICE_ATTRIBUTE_COMPUTE_PREEMPTION_SUPPORTED, num);
 
 		if(timeout_attr && !preempt_attr) {
+			VLOG(1) << "Device is recognized as display.";
 			info.description += " (Display)";
 			info.display_device = true;
 			display_devices.push_back(info);
@@ -2160,6 +2166,7 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 		else {
 			devices.push_back(info);
 		}
+		VLOG(1) << "Added device \"" << name << "\" with id \"" << info.id << "\".";
 	}
 
 	if(!display_devices.empty())
