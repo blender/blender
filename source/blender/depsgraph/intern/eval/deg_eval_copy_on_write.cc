@@ -278,17 +278,12 @@ bool id_copy_inplace_no_main(const ID *id, ID *newid)
 	return result;
 }
 
-/* Similar to BKE_scene_copy() but does not require main.
- *
- * TODO(sergey): Get rid of this once T51804 is handled.
+/* Similar to BKE_scene_copy() but does not require main and assumes pointer
+ * is already allocated.
  */
-Scene *scene_copy_no_main(Scene *scene)
+bool scene_copy_inplace_no_main(const Scene *scene, Scene *new_scene)
 {
 	const ID *id_for_copy = &scene->id;
-	Main temp_bmain = {0};
-	SpinLock lock;
-	temp_bmain.lock = (MainLock *)&lock;
-	BLI_spin_init(&lock);
 
 #ifdef NESTED_ID_NASTY_WORKAROUND
 	NestedIDHackTempStorage id_hack_storage;
@@ -296,16 +291,23 @@ Scene *scene_copy_no_main(Scene *scene)
 	                                                    &scene->id);
 #endif
 
-	Scene *new_scene = BKE_scene_copy(&temp_bmain,
-	                                  (Scene *)id_for_copy,
-	                                  SCE_COPY_LINK_OB);
+	bool result = BKE_id_copy_ex(NULL,
+	                             id_for_copy,
+	                             (ID **)&new_scene,
+	                             LIB_ID_COPY_ACTIONS |
+	                             LIB_ID_CREATE_NO_MAIN |
+	                             LIB_ID_CREATE_NO_USER_REFCOUNT |
+	                             LIB_ID_CREATE_NO_ALLOCATE |
+	                             LIB_ID_CREATE_NO_DEG_TAG,
+	                             false);
 
 #ifdef NESTED_ID_NASTY_WORKAROUND
-	nested_id_hack_restore_pointers(&scene->id, &new_scene->id);
+	if (result) {
+		nested_id_hack_restore_pointers(&scene->id, &new_scene->id);
+	}
 #endif
 
-	BLI_spin_end(&lock);
-	return new_scene;
+	return result;
 }
 
 /* Check whether given ID is expanded or still a shallow copy. */
@@ -670,10 +672,7 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 	switch (id_type) {
 		case ID_SCE:
 		{
-			Scene *new_scene = scene_copy_no_main((Scene *)id_orig);
-			*(Scene *)id_cow = *new_scene;
-			MEM_freeN(new_scene);
-			done = true;
+			done = scene_copy_inplace_no_main((Scene *)id_orig, (Scene*)id_cow);
 			break;
 		}
 		case ID_ME:
