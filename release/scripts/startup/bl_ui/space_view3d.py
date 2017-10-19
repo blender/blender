@@ -20,9 +20,9 @@
 import bpy
 from bpy.types import Header, Menu, Panel
 from bl_ui.properties_grease_pencil_common import (
-        GreasePencilDataPanel,
-        GreasePencilPaletteColorPanel,
-        )
+    GreasePencilDataPanel,
+    GreasePencilPaletteColorPanel,
+)
 from bl_ui.properties_paint_common import UnifiedPaintPanel
 from bpy.app.translations import contexts as i18n_contexts
 
@@ -1263,7 +1263,12 @@ class INFO_MT_add(Menu):
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("object.group_instance_add", text="Group Instance...", icon='OUTLINER_OB_GROUP_INSTANCE')
         else:
-            layout.operator_menu_enum("object.group_instance_add", "group", text="Group Instance", icon='OUTLINER_OB_GROUP_INSTANCE')
+            layout.operator_menu_enum(
+                "object.group_instance_add",
+                "group",
+                text="Group Instance",
+                icon='OUTLINER_OB_GROUP_INSTANCE',
+            )
 
 
 # ********** Object menu **********
@@ -1539,17 +1544,41 @@ class VIEW3D_MT_object_apply(Menu):
 
         layout.separator()
 
-        layout.operator("object.transforms_to_deltas", text="Location to Deltas", text_ctxt=i18n_contexts.default).mode = 'LOC'
-        layout.operator("object.transforms_to_deltas", text="Rotation to Deltas", text_ctxt=i18n_contexts.default).mode = 'ROT'
-        layout.operator("object.transforms_to_deltas", text="Scale to Deltas", text_ctxt=i18n_contexts.default).mode = 'SCALE'
+        layout.operator(
+            "object.transforms_to_deltas",
+            text="Location to Deltas",
+            text_ctxt=i18n_contexts.default,
+        ).mode = 'LOC'
+        layout.operator(
+            "object.transforms_to_deltas",
+            text="Rotation to Deltas",
+            text_ctxt=i18n_contexts.default,
+        ).mode = 'ROT'
+        layout.operator(
+            "object.transforms_to_deltas",
+            text="Scale to Deltas",
+            text_ctxt=i18n_contexts.default,
+        ).mode = 'SCALE'
 
-        layout.operator("object.transforms_to_deltas", text="All Transforms to Deltas", text_ctxt=i18n_contexts.default).mode = 'ALL'
+        layout.operator(
+            "object.transforms_to_deltas",
+            text="All Transforms to Deltas",
+            text_ctxt=i18n_contexts.default,
+        ).mode = 'ALL'
         layout.operator("object.anim_transforms_to_deltas")
 
         layout.separator()
 
-        layout.operator("object.visual_transform_apply", text="Visual Transform", text_ctxt=i18n_contexts.default)
-        layout.operator("object.convert", text="Visual Geometry to Mesh", text_ctxt=i18n_contexts.default).target = 'MESH'
+        layout.operator(
+            "object.visual_transform_apply",
+            text="Visual Transform",
+            text_ctxt=i18n_contexts.default,
+        )
+        layout.operator(
+            "object.convert",
+            text="Visual Geometry to Mesh",
+            text_ctxt=i18n_contexts.default,
+        ).target = 'MESH'
         layout.operator("object.duplicates_make_real")
 
 
@@ -1824,7 +1853,10 @@ class VIEW3D_MT_vertex_group(Menu):
             if ob.vertex_groups.active:
                 layout.separator()
                 layout.operator("object.vertex_group_assign", text="Assign to Active Group")
-                layout.operator("object.vertex_group_remove_from", text="Remove from Active Group").use_all_groups = False
+                layout.operator(
+                    "object.vertex_group_remove_from",
+                    text="Remove from Active Group",
+                ).use_all_groups = False
                 layout.operator("object.vertex_group_remove_from", text="Remove from All").use_all_groups = True
                 layout.separator()
 
@@ -3804,6 +3836,7 @@ class VIEW3D_PT_context_properties(Panel):
         if member:
             # Draw with no edit button
             rna_prop_ui.draw(self.layout, context, member, object, False)
+
 
 classes = (
     VIEW3D_HT_header,
