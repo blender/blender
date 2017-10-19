@@ -1177,11 +1177,7 @@ class VIEW3D_MT_angle_control(Menu):
                 layout.prop(tex_slot, "use_random", text="Random")
 
 
-# ********** Add menu **********
-
 # XXX: INFO_MT_ names used to keep backwards compatibility (Add-ons etc. that hook into the menu)
-
-
 class INFO_MT_mesh_add(Menu):
     bl_idname = "INFO_MT_mesh_add"
     bl_label = "Mesh"
@@ -1840,7 +1836,6 @@ class VIEW3D_MT_object_game(Menu):
         layout.operator("object.game_property_clear")
 
 
-# ********** Brush menu **********
 class VIEW3D_MT_brush(Menu):
     bl_label = "Brush"
 
@@ -1911,7 +1906,6 @@ class VIEW3D_MT_brush_paint_modes(Menu):
         layout.prop(brush, "use_paint_image", text="Texture Paint")
 
 
-# ********** Vertex paint menu **********
 class VIEW3D_MT_paint_vertex(Menu):
     bl_label = "Paint"
 
@@ -1987,8 +1981,6 @@ class VIEW3D_MT_vertex_group(Menu):
             layout.operator("object.vertex_group_remove", text="Remove All Groups").all = True
 
 
-# ********** Weight paint menu **********
-
 class VIEW3D_MT_paint_weight(Menu):
     bl_label = "Weights"
 
@@ -2029,9 +2021,6 @@ class VIEW3D_MT_paint_weight(Menu):
         layout.separator()
 
         layout.operator("paint.weight_set")
-
-
-# ********** Sculpt menu **********
 
 
 class VIEW3D_MT_sculpt(Menu):
@@ -2103,9 +2092,6 @@ class VIEW3D_MT_hide_mask(Menu):
 
         props = layout.operator("view3d.select_border", text="Box Mask")
         props = layout.operator("paint.mask_lasso_gesture", text="Lasso Mask")
-
-
-# ********** Particle menu **********
 
 
 class VIEW3D_MT_particle(Menu):
@@ -2193,9 +2179,6 @@ class VIEW3D_MT_particle_specials(Menu):
 
 class VIEW3D_MT_particle_showhide(ShowHideMenu, Menu):
     _operator_name = "particle"
-
-
-# ********** Pose Menu **********
 
 
 class VIEW3D_MT_pose(Menu):
