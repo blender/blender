@@ -60,11 +60,13 @@ typedef enum eGPDspoint_Flag {
 } eGPSPoint_Flag;
 
 /* Grease-Pencil Annotations - 'Triangle'
- * 	-> A triangle contains the index of three vertices for filling the stroke
- *	   This is only used if high quality fill is enabled
+ * A triangle contains the index of three vertices for filling the stroke
+ * This is only used if high quality fill is enabled.
+ * (not saved to blend file).
  */
 typedef struct bGPDtriangle {
-	int v1, v2, v3;         /* indices for tesselated triangle used for GP Fill */
+	/* indices for tesselated triangle used for GP Fill */
+	unsigned int verts[3];
 } bGPDtriangle;
 
 /* GP brush (used for new strokes) */
