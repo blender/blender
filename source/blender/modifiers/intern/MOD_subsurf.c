@@ -156,6 +156,7 @@ static DerivedMesh *applyModifier(ModifierData *md, const EvaluationContext *eva
 
 #ifndef WITH_OPESUBDIV
 	(void) do_cddm_convert;
+	UNUSED_VARS(eval_ctx);
 #endif
 
 	return result;
