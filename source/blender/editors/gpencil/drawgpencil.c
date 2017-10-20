@@ -426,7 +426,7 @@ static void gp_triangulate_stroke_fill(bGPDstroke *gps)
 	
 	/* convert to 2d and triangulate */
 	gp_stroke_2d_flat(gps->points, gps->totpoints, points2d, &direction);
-	BLI_polyfill_calc((const float(*)[2])points2d, (unsigned int)gps->totpoints, direction, (unsigned int(*)[3])tmp_triangles);
+	BLI_polyfill_calc(points2d, (unsigned int)gps->totpoints, direction, tmp_triangles);
 
 	/* Number of triangles */
 	gps->tot_triangles = gps->totpoints - 2;

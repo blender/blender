@@ -178,7 +178,7 @@ void BM_face_calc_tessellation(
 		} while ((l_iter = l_iter->next) != l_first);
 
 		/* complete the loop */
-		BLI_polyfill_calc((const float (*)[2])projverts, f->len, -1, r_index);
+		BLI_polyfill_calc(projverts, f->len, -1, r_index);
 	}
 }
 
@@ -885,7 +885,7 @@ bool BM_face_point_inside_test(const BMFace *f, const float co[3])
 		mul_v2_m3v3(projverts[i], axis_mat, l_iter->v->co);
 	}
 
-	return isect_point_poly_v2(co_2d, (const float (*)[2])projverts, f->len, false);
+	return isect_point_poly_v2(co_2d, projverts, f->len, false);
 }
 
 /**
@@ -1035,12 +1035,12 @@ void BM_face_triangulate(
 				mul_v2_m3v3(projverts[i], axis_mat, l_iter->v->co);
 			}
 
-			BLI_polyfill_calc_arena((const float (*)[2])projverts, f->len, 1, tris,
+			BLI_polyfill_calc_arena(projverts, f->len, 1, tris,
 			                        pf_arena);
 
 			if (use_beauty) {
 				BLI_polyfill_beautify(
-				        (const float (*)[2])projverts, f->len, tris,
+				        projverts, f->len, tris,
 				        pf_arena, pf_heap, pf_ehash);
 			}
 
@@ -1171,7 +1171,7 @@ void BM_face_splits_check_legal(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int l
 	}
 
 	/* first test for completely convex face */
-	if (is_poly_convex_v2((const float (*)[2])projverts, f->len)) {
+	if (is_poly_convex_v2(projverts, f->len)) {
 		return;
 	}
 
@@ -1449,7 +1449,7 @@ void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptri
 				j++;
 			} while ((l_iter = l_iter->next) != l_first);
 
-			BLI_polyfill_calc_arena((const float (*)[2])projverts, efa->len, 1, tris, arena);
+			BLI_polyfill_calc_arena(projverts, efa->len, 1, tris, arena);
 
 			for (j = 0; j < totfilltri; j++) {
 				BMLoop **l_ptr = looptris[i++];
@@ -1591,9 +1591,9 @@ void BM_mesh_calc_tessellation_beauty(BMesh *bm, BMLoop *(*looptris)[3], int *r_
 				j++;
 			} while ((l_iter = l_iter->next) != l_first);
 
-			BLI_polyfill_calc_arena((const float (*)[2])projverts, efa->len, 1, tris, pf_arena);
+			BLI_polyfill_calc_arena(projverts, efa->len, 1, tris, pf_arena);
 
-			BLI_polyfill_beautify((const float (*)[2])projverts, efa->len, tris, pf_arena, pf_heap, pf_ehash);
+			BLI_polyfill_beautify(projverts, efa->len, tris, pf_arena, pf_heap, pf_ehash);
 
 			for (j = 0; j < totfilltri; j++) {
 				BMLoop **l_ptr = looptris[i++];

@@ -872,7 +872,7 @@ static PyObject *C_BVHTree_FromPolygons(PyObject *UNUSED(cls), PyObject *args, P
 					mul_v2_m3v3(proj_coords[j], axis_mat, coords[plink->poly[j]]);
 				}
 
-				BLI_polyfill_calc_arena((const float (*)[2])proj_coords, plink->len, 1, tris_offset, pf_arena);
+				BLI_polyfill_calc_arena(proj_coords, plink->len, 1, tris_offset, pf_arena);
 
 				j = plink->len - 2;
 				while (j--) {

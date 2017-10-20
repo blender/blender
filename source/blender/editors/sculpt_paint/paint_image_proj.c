@@ -2777,7 +2777,7 @@ static void project_paint_face_init(
 						interp_v3_v3v3(edge_verts_inset_clip[1], insetCos[fidx1], insetCos[fidx2], fac2);
 
 
-						if (pixel_bounds_uv((const float (*)[2])seam_subsection, &bounds_px, ibuf->x, ibuf->y)) {
+						if (pixel_bounds_uv(seam_subsection, &bounds_px, ibuf->x, ibuf->y)) {
 							/* bounds between the seam rect and the uvspace bucket pixels */
 
 							has_isect = 0;
