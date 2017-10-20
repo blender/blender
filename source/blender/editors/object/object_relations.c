@@ -375,6 +375,15 @@ static int make_proxy_exec(bContext *C, wmOperator *op)
 
 		BKE_object_make_proxy(newob, ob, gob);
 
+		/* Set back pointer immediately so dependency graph knows that this is
+		 * is a proxy and will act accordingly. Otherwise correctness of graph
+		 * will depend on order of bases.
+		 *
+		 * TODO(sergey): We really need to get rid of this bi-directional links
+		 * in proxies with something like static overrides.
+		 */
+		newob->proxy->proxy_from = newob;
+
 		/* depsgraph flushes are needed for the new data */
 		DEG_relations_tag_update(bmain);
 		DEG_id_tag_update(&newob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
