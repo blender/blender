@@ -37,6 +37,8 @@
 
 extern "C" {
 #include "BKE_scene.h"
+
+#include "DNA_scene_types.h"
 } /* extern "C" */
 
 #include "DEG_depsgraph.h"
@@ -83,6 +85,8 @@ void DEG_evaluation_context_init_from_scene(EvaluationContext *eval_ctx,
                                             eEvaluationMode mode)
 {
 	DEG_evaluation_context_init(eval_ctx, mode);
+	/* TODO(sergey): Use proper depsgraph here. */
+	eval_ctx->depsgraph = scene->depsgraph_legacy;
 	eval_ctx->scene_layer = scene_layer;
 	eval_ctx->engine = engine;
 	eval_ctx->ctime = BKE_scene_frame_get(scene);

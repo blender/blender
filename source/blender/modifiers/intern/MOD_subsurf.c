@@ -98,7 +98,7 @@ static bool isDisabled(ModifierData *md, int useRenderParams)
 	return get_render_subsurf_level(&md->scene->r, levels, useRenderParams != 0) == 0;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, const EvaluationContext *UNUSED(eval_ctx),
+static DerivedMesh *applyModifier(ModifierData *md, const EvaluationContext *eval_ctx,
                                   Object *ob, DerivedMesh *derivedData,
                                   ModifierApplyFlag flag)
 {
@@ -135,8 +135,7 @@ static DerivedMesh *applyModifier(ModifierData *md, const EvaluationContext *UNU
 		else if ((ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) != 0) {
 			modifier_setError(md, "OpenSubdiv is not supported in paint modes");
 		}
-		/* TODO(sergey): How do we get depsgraph here? */
-		else if ((DEG_get_eval_flags_for_id(md->scene->depsgraph_legacy, &ob->id) & DAG_EVAL_NEED_CPU) == 0) {
+		else if ((DEG_get_eval_flags_for_id(eval_ctx->depsgraph, &ob->id) & DAG_EVAL_NEED_CPU) == 0) {
 			subsurf_flags |= SUBSURF_USE_GPU_BACKEND;
 			do_cddm_convert = false;
 		}

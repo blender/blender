@@ -1745,9 +1745,8 @@ static void do_makeDispListCurveTypes(
 		}
 
 		if (!for_orco) {
-			/* TODO(sergey): How do we get depsgraph here? */
 			if ((cu->flag & CU_PATH) ||
-			    DEG_get_eval_flags_for_id(scene->depsgraph_legacy, &ob->id) & DAG_EVAL_NEED_CURVE_PATH)
+			    DEG_get_eval_flags_for_id(eval_ctx->depsgraph, &ob->id) & DAG_EVAL_NEED_CURVE_PATH)
 			{
 				calc_curvepath(ob, &nubase);
 			}

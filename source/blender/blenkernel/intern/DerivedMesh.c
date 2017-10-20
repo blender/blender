@@ -2611,7 +2611,8 @@ static void editbmesh_calc_modifiers(
  * we'll be using GPU backend of OpenSubdiv. This is so
  * playback performance is kept as high as possible.
  */
-static bool calc_modifiers_skip_orco(Scene *scene,
+static bool calc_modifiers_skip_orco(const EvaluationContext *eval_ctx,
+                                     Scene *scene,
                                      Object *ob,
                                      bool use_render_params)
 {
@@ -2627,8 +2628,7 @@ static bool calc_modifiers_skip_orco(Scene *scene,
 		else if ((ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) != 0) {
 			return false;
 		}
-		/* TODO(sergey): How do we get depsgraph here? */
-		else if ((DEG_get_eval_flags_for_id(scene->depsgraph_legacy, &ob->id) & DAG_EVAL_NEED_CPU) != 0) {
+		else if ((DEG_get_eval_flags_for_id(eval_ctx->depsgraph, &ob->id) & DAG_EVAL_NEED_CPU) != 0) {
 			return false;
 		}
 		SubsurfModifierData *smd = (SubsurfModifierData *)last_md;
@@ -2649,7 +2649,7 @@ static void mesh_build_data(
 	BKE_object_sculpt_modifiers_changed(ob);
 
 #ifdef WITH_OPENSUBDIV
-	if (calc_modifiers_skip_orco(scene, ob, false)) {
+	if (calc_modifiers_skip_orco(eval_ctx, scene, ob, false)) {
 		dataMask &= ~(CD_MASK_ORCO | CD_MASK_PREVIEW_MCOL);
 	}
 #endif
@@ -2686,7 +2686,7 @@ static void editbmesh_build_data(
 	BKE_editmesh_free_derivedmesh(em);
 
 #ifdef WITH_OPENSUBDIV
-	if (calc_modifiers_skip_orco(scene, obedit, false)) {
+	if (calc_modifiers_skip_orco(eval_ctx, scene, obedit, false)) {
 		dataMask &= ~(CD_MASK_ORCO | CD_MASK_PREVIEW_MCOL);
 	}
 #endif
