@@ -84,6 +84,7 @@ typedef struct EvaluationContext {
 	eEvaluationMode mode;
 	float ctime;
 
+	struct Depsgraph *depsgraph;
 	struct SceneLayer *scene_layer;
 	struct RenderEngineType *engine;
 } EvaluationContext;
