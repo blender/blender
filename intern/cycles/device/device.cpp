@@ -380,10 +380,13 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo>& subdevices, int th
 	info.has_bindless_textures = true;
 	info.has_volume_decoupled = true;
 	info.has_qbvh = true;
+	info.has_osl = true;
+
 	foreach(const DeviceInfo &device, subdevices) {
 		info.has_bindless_textures &= device.has_bindless_textures;
 		info.has_volume_decoupled &= device.has_volume_decoupled;
 		info.has_qbvh &= device.has_qbvh;
+		info.has_osl &= device.has_osl;
 
 		if(device.type == DEVICE_CPU && subdevices.size() > 1) {
 			if(background) {

@@ -57,6 +57,7 @@ public:
 	bool has_bindless_textures; /* flag for GPU and Multi device */
 	bool has_volume_decoupled;
 	bool has_qbvh;
+	bool has_osl;
 	bool use_split_kernel; /* Denotes if the device is going to run cycles using split-kernel */
 	int cpu_threads;
 	vector<DeviceInfo> multi_devices;
@@ -72,6 +73,7 @@ public:
 		has_bindless_textures = false;
 		has_volume_decoupled = false;
 		has_qbvh = false;
+		has_osl = false;
 		use_split_kernel = false;
 	}
 

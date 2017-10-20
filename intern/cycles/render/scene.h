@@ -201,7 +201,7 @@ public:
 	/* mutex must be locked manually by callers */
 	thread_mutex mutex;
 
-	Scene(const SceneParams& params, const DeviceInfo& device_info);
+	Scene(const SceneParams& params, Device *device);
 	~Scene();
 
 	void device_update(Device *device, Progress& progress);

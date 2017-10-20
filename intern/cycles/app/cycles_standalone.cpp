@@ -97,27 +97,9 @@ static BufferParams& session_buffer_params()
 	return buffer_params;
 }
 
-static void session_init()
-{
-	options.session = new Session(options.session_params);
-	options.session->reset(session_buffer_params(), options.session_params.samples);
-	options.session->scene = options.scene;
-
-	if(options.session_params.background && !options.quiet)
-		options.session->progress.set_update_callback(function_bind(&session_print_status));
-#ifdef WITH_CYCLES_STANDALONE_GUI
-	else
-		options.session->progress.set_update_callback(function_bind(&view_redraw));
-#endif
-
-	options.session->start();
-
-	options.scene = NULL;
-}
-
 static void scene_init()
 {
-	options.scene = new Scene(options.scene_params, options.session_params.device);
+	options.scene = new Scene(options.scene_params, options.session->device);
 
 	/* Read XML */
 	xml_read_file(options.scene, options.filepath.c_str());
@@ -134,6 +116,25 @@ static void scene_init()
 
 	/* Calculate Viewplane */
 	options.scene->camera->compute_auto_viewplane();
+}
+
+static void session_init()
+{
+	options.session = new Session(options.session_params);
+	options.session->reset(session_buffer_params(), options.session_params.samples);
+
+	if(options.session_params.background && !options.quiet)
+		options.session->progress.set_update_callback(function_bind(&session_print_status));
+#ifdef WITH_CYCLES_STANDALONE_GUI
+	else
+		options.session->progress.set_update_callback(function_bind(&view_redraw));
+#endif
+
+	options.session->start();
+
+	/* load scene */
+	scene_init();
+	options.session->scene = options.scene;
 }
 
 static void session_exit()
@@ -430,7 +431,6 @@ static void options_parse(int argc, const char **argv)
 	/* find matching device */
 	DeviceType device_type = Device::type_from_string(devicename.c_str());
 	vector<DeviceInfo>& devices = Device::available_devices();
-	DeviceInfo device_info;
 	bool device_available = false;
 
 	foreach(DeviceInfo& device, devices) {
@@ -467,9 +467,6 @@ static void options_parse(int argc, const char **argv)
 
 	/* For smoother Viewport */
 	options.session_params.start_resolution = 64;
-
-	/* load scene */
-	scene_init();
 }
 
 CCL_NAMESPACE_END

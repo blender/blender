@@ -348,6 +348,7 @@ void device_network_info(vector<DeviceInfo>& devices)
 	info.advanced_shading = true;
 	info.has_volume_decoupled = false;
 	info.has_qbvh = false;
+	info.has_osl = false;
 
 	devices.push_back(info);
 }

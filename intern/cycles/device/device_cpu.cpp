@@ -1028,6 +1028,7 @@ void device_cpu_info(vector<DeviceInfo>& devices)
 	info.advanced_shading = true;
 	info.has_qbvh = system_cpu_support_sse2();
 	info.has_volume_decoupled = true;
+	info.has_osl = true;
 
 	devices.insert(devices.begin(), info);
 }

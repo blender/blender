@@ -40,10 +40,9 @@
 
 CCL_NAMESPACE_BEGIN
 
-Scene::Scene(const SceneParams& params_, const DeviceInfo& device_info_)
-: params(params_)
+Scene::Scene(const SceneParams& params_, Device *device)
+: device(device), params(params_)
 {
-	device = NULL;
 	memset(&dscene.data, 0, sizeof(dscene.data));
 
 	camera = new Camera();
@@ -54,13 +53,13 @@ Scene::Scene(const SceneParams& params_, const DeviceInfo& device_info_)
 	mesh_manager = new MeshManager();
 	object_manager = new ObjectManager();
 	integrator = new Integrator();
-	image_manager = new ImageManager(device_info_);
+	image_manager = new ImageManager(device->info);
 	particle_system_manager = new ParticleSystemManager();
 	curve_system_manager = new CurveSystemManager();
 	bake_manager = new BakeManager();
 
 	/* OSL only works on the CPU */
-	if(device_info_.type == DEVICE_CPU)
+	if(device->info.has_osl)
 		shader_manager = ShaderManager::create(this, params.shadingsystem);
 	else
 		shader_manager = ShaderManager::create(this, SHADINGSYSTEM_SVM);
