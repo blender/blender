@@ -662,8 +662,6 @@ void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
 	}
 	
 	DEG_scene_graph_free(sce);
-	if (sce->depsgraph_legacy)
-		DEG_graph_free(sce->depsgraph_legacy);
 
 	MEM_SAFE_FREE(sce->fps_info);
 
