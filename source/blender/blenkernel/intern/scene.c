@@ -238,6 +238,7 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 
 	sce_dst->ed = NULL;
 	sce_dst->depsgraph_legacy = NULL;
+	sce_dst->depsgraph_hash = NULL;
 	sce_dst->obedit = NULL;
 	sce_dst->fps_info = NULL;
 
@@ -661,7 +662,7 @@ void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
 		sce->toolsettings = NULL;
 	}
 	
-	DEG_scene_graph_free(sce);
+	BKE_scene_free_depsgraph_hash(sce);
 
 	MEM_SAFE_FREE(sce->fps_info);
 
@@ -2400,6 +2401,72 @@ int BKE_scene_multiview_num_videos_get(const RenderData *rd)
 		return BKE_scene_multiview_num_views_get(rd);
 	}
 }
+
+/* Manipulation of depsgraph storage. */
+
+/* This is a key which identifies depsgraph. */
+typedef struct DepsgraphKey {
+	SceneLayer *scene_layer;
+	/* TODO(sergey): Need to include window somehow (same layer might be in a
+	 * different states in different windows).
+	 */
+} DepsgraphKey;
+
+static unsigned int depsgraph_key_hash(const void *key_v)
+{
+	const DepsgraphKey *key = key_v;
+	unsigned int hash = BLI_ghashutil_ptrhash(key->scene_layer);
+	/* TODO(sergey): Include hash from other fields in the key. */
+	return hash;
+}
+
+static bool depsgraph_key_compare(const void *key_a_v, const void *key_b_v)
+{
+	const DepsgraphKey *key_a = key_a_v;
+	const DepsgraphKey *key_b = key_b_v;
+	/* TODO(sergey): Compare rest of  */
+	return !(key_a->scene_layer == key_b->scene_layer);
+}
+
+static void depsgraph_key_free(void *key_v)
+{
+	DepsgraphKey *key = key_v;
+	MEM_freeN(key);
+}
+
+static void depsgraph_key_value_free(void *value)
+{
+	Depsgraph *depsgraph = value;
+	DEG_graph_free(depsgraph);
+}
+
+void BKE_scene_allocate_depsgraph_hash(Scene *scene)
+{
+	scene->depsgraph_hash = BLI_ghash_new(depsgraph_key_hash,
+	                                      depsgraph_key_compare,
+	                                      "Scene Depsgraph Hash");
+}
+
+void BKE_scene_ensure_depsgraph_hash(Scene *scene)
+{
+	if (scene->depsgraph_hash == NULL) {
+		BKE_scene_allocate_depsgraph_hash(scene);
+	}
+}
+
+void BKE_scene_free_depsgraph_hash(Scene *scene)
+{
+	/* TODO(sergey): Keep this for until we get rid of depsgraph_legacy. */
+	DEG_scene_graph_free(scene);
+	if (scene->depsgraph_hash == NULL) {
+		return;
+	}
+	BLI_ghash_free(scene->depsgraph_hash,
+	               depsgraph_key_free,
+	               depsgraph_key_value_free);
+}
+
+/* Query depsgraph for a specific contexts. */
 
 Depsgraph *BKE_scene_get_depsgraph(Scene *scene, SceneLayer *scene_layer)
 {

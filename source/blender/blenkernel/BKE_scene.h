@@ -215,6 +215,10 @@ void        BKE_scene_multiview_videos_dimensions_get(const struct RenderData *r
 int         BKE_scene_multiview_num_videos_get(const struct RenderData *rd);
 
 /* depsgraph */
+void BKE_scene_allocate_depsgraph_hash(struct Scene *scene);
+void BKE_scene_ensure_depsgraph_hash(struct Scene *scene);
+void BKE_scene_free_depsgraph_hash(struct Scene *scene);
+
 struct Depsgraph *BKE_scene_get_depsgraph(struct Scene *scene, struct SceneLayer *scene_layer);
 
 #ifdef __cplusplus
