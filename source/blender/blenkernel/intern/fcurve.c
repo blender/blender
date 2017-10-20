@@ -61,6 +61,7 @@
 #include "BKE_curve.h" 
 #include "BKE_global.h"
 #include "BKE_object.h"
+#include "BKE_nla.h"
 
 #include "RNA_access.h"
 
@@ -335,7 +336,7 @@ FCurve *rna_get_fcurve_context_ui(
 	if (r_action) *r_action = NULL;
 	
 	/* Special case for NLA Control Curves... */
-	if (ptr->type == &RNA_NlaStrip) {
+	if (BKE_nlastrip_has_curves_for_property(ptr, prop)) {
 		NlaStrip *strip = (NlaStrip *)ptr->data;
 		
 		/* Set the special flag, since it cannot be a normal action/driver
