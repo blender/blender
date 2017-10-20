@@ -48,7 +48,6 @@ float  *IMB_exr_channel_rect        (void * /*handle*/, const char * /*layname*/
 void    IMB_exr_read_channels       (void * /*handle*/) { }
 void    IMB_exr_write_channels      (void * /*handle*/) { }
 void    IMB_exrtile_write_channels  (void * /*handle*/, int /*partx*/, int /*party*/, int /*level*/, const char * /*viewname*/) { }
-void    IMB_exrmultiview_write_channels(void * /*handle*/, const char * /*viewname*/) { }
 void    IMB_exr_clear_channels  (void * /*handle*/) { }
 
 void    IMB_exr_multilayer_convert(
@@ -60,24 +59,7 @@ void    IMB_exr_multilayer_convert(
 {
 }
 
-void    IMB_exr_multiview_convert(
-        void * /*handle*/, void * /*base*/,
-        void (* /*addview*/)(void *base, const char *str),
-        void (* /*addbuffer*/)(void *base, const char *str, struct ImBuf *ibuf, const int frame),
-        const int /*frame*/)
-{
-}
-
-bool    IMB_exr_multiview_save(
-        struct ImBuf * /*ibuf*/, const char * /*name*/, const int /*flags*/, const int /*totviews*/,
-        const char *(* /*getview*/)(void *base, const int view_id),
-        struct ImBuf *(* /*getbuffer*/)(void *base, const int view_id))
-{
-	return false;
-}
-
 void    IMB_exr_close               (void * /*handle*/) { }
 
 void    IMB_exr_add_view(void * /*handle*/, const char * /*name*/) { }
 bool    IMB_exr_has_multilayer(void * /*handle*/) { return false; }
-bool    IMB_exr_has_singlelayer_multiview(void * /*handle*/) { return false; }

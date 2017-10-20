@@ -437,6 +437,8 @@ void RE_AcquireResultImage(Render *re, RenderResult *rr, const int view_id)
 			rr->rectz = rv->rectz;
 			rr->rect32 = rv->rect32;
 
+			rr->have_combined = (rv->rectf != NULL);
+
 			/* active layer */
 			rl = render_get_active_layer(re, re->result);
 
@@ -3307,19 +3309,18 @@ void RE_RenderFreestyleExternal(Render *re)
 
 bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scene, const bool stamp, char *name)
 {
-	bool is_mono;
 	bool ok = true;
 	RenderData *rd = &scene->r;
 
 	if (!rr)
 		return false;
 
-	is_mono = BLI_listbase_count_ex(&rr->views, 2) < 2;
+	bool is_mono = BLI_listbase_count_ex(&rr->views, 2) < 2;
+	bool is_exr_rr = ELEM(rd->im_format.imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER);
 
-	if (ELEM(rd->im_format.imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER) &&
-	    rd->im_format.views_format == R_IMF_VIEWS_MULTIVIEW)
+	if (rd->im_format.views_format == R_IMF_VIEWS_MULTIVIEW && is_exr_rr)
 	{
-		ok = RE_WriteRenderResult(reports, rr, name, &rd->im_format, true, NULL);
+		ok = RE_WriteRenderResult(reports, rr, name, &rd->im_format, NULL, -1);
 		render_print_save_message(reports, name, ok, errno);
 	}
 
@@ -3337,9 +3338,26 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 				BKE_scene_multiview_view_filepath_get(&scene->r, filepath, rv->name, name);
 			}
 
-			if (rd->im_format.imtype == R_IMF_IMTYPE_MULTILAYER) {
-				ok = RE_WriteRenderResult(reports, rr, name, &rd->im_format, false, rv->name);
+			if (is_exr_rr) {
+				ok = RE_WriteRenderResult(reports, rr, name, &rd->im_format, rv->name, -1);
 				render_print_save_message(reports, name, ok, errno);
+
+				/* optional preview images for exr */
+				if (ok && (rd->im_format.flag & R_IMF_FLAG_PREVIEW_JPG)) {
+					ImageFormatData imf = rd->im_format;
+					imf.imtype = R_IMF_IMTYPE_JPEG90;
+
+					if (BLI_testextensie(name, ".exr"))
+						name[strlen(name) - 4] = 0;
+					BKE_image_path_ensure_ext_from_imformat(name, &imf);
+
+					ImBuf *ibuf = render_result_rect_to_ibuf(rr, rd, view_id);
+					ibuf->planes = 24;
+
+					ok = render_imbuf_write_stamp_test(reports, scene, rr, ibuf, name, &imf, stamp);
+
+					IMB_freeImBuf(ibuf);
+				}
 			}
 			else {
 				ImBuf *ibuf = render_result_rect_to_ibuf(rr, rd, view_id);
@@ -3348,19 +3366,6 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 				                                    &scene->display_settings, &rd->im_format);
 
 				ok = render_imbuf_write_stamp_test(reports, scene, rr, ibuf, name, &rd->im_format, stamp);
-
-				/* optional preview images for exr */
-				if (ok && rd->im_format.imtype == R_IMF_IMTYPE_OPENEXR && (rd->im_format.flag & R_IMF_FLAG_PREVIEW_JPG)) {
-					ImageFormatData imf = rd->im_format;
-					imf.imtype = R_IMF_IMTYPE_JPEG90;
-
-					if (BLI_testextensie(name, ".exr"))
-						name[strlen(name) - 4] = 0;
-					BKE_image_path_ensure_ext_from_imformat(name, &imf);
-					ibuf->planes = 24;
-
-					ok = render_imbuf_write_stamp_test(reports, scene, rr, ibuf, name, &imf, stamp);
-				}
 
 				/* imbuf knows which rects are not part of ibuf */
 				IMB_freeImBuf(ibuf);
@@ -3391,7 +3396,7 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 			ok = render_imbuf_write_stamp_test(reports, scene, rr, ibuf_arr[2], name, &rd->im_format, stamp);
 
 			/* optional preview images for exr */
-			if (ok && rd->im_format.imtype == R_IMF_IMTYPE_OPENEXR &&
+			if (ok && is_exr_rr &&
 			    (rd->im_format.flag & R_IMF_FLAG_PREVIEW_JPG))
 			{
 				ImageFormatData imf = rd->im_format;
