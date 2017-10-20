@@ -273,6 +273,15 @@ public:
 		push_back_slow(t);
 	}
 
+	void append(const array<T>& from)
+	{
+		if(from.size()) {
+			size_t old_size = size();
+			resize(old_size + from.size());
+			memcpy(data_ + old_size, from.data(), sizeof(T) * from.size());
+		}
+	}
+
 protected:
 	inline T* mem_allocate(size_t N)
 	{

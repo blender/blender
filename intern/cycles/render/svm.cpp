@@ -48,15 +48,15 @@ void SVMShaderManager::reset(Scene * /*scene*/)
 void SVMShaderManager::device_update_shader(Scene *scene,
                                             Shader *shader,
                                             Progress *progress,
-                                            vector<int4> *global_svm_nodes)
+                                            array<int4> *global_svm_nodes)
 {
 	if(progress->get_cancel()) {
 		return;
 	}
 	assert(shader->graph);
 
-	vector<int4> svm_nodes;
-	svm_nodes.push_back(make_int4(NODE_SHADER_JUMP, 0, 0, 0));
+	array<int4> svm_nodes;
+	svm_nodes.push_back_slow(make_int4(NODE_SHADER_JUMP, 0, 0, 0));
 
 	SVMCompiler::Summary summary;
 	SVMCompiler compiler(scene->shader_manager, scene->image_manager);
@@ -79,12 +79,12 @@ void SVMShaderManager::device_update_shader(Scene *scene,
 	global_svm_nodes->resize(global_nodes_size + svm_nodes.size());
 	
 	/* Offset local SVM nodes to a global address space. */
-	int4& jump_node = global_svm_nodes->at(shader->id);
+	int4& jump_node = (*global_svm_nodes)[shader->id];
 	jump_node.y = svm_nodes[0].y + global_nodes_size - 1;
 	jump_node.z = svm_nodes[0].z + global_nodes_size - 1;
 	jump_node.w = svm_nodes[0].w + global_nodes_size - 1;
 	/* Copy new nodes to global storage. */
-	memcpy(&global_svm_nodes->at(global_nodes_size),
+	memcpy(&(*global_svm_nodes)[global_nodes_size],
 	       &svm_nodes[1],
 	       sizeof(int4) * (svm_nodes.size() - 1));
 	nodes_lock_.unlock();
@@ -106,11 +106,11 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 	device_update_shaders_used(scene);
 
 	/* svm_nodes */
-	vector<int4> svm_nodes;
+	array<int4> svm_nodes;
 	size_t i;
 
 	for(i = 0; i < scene->shaders.size(); i++) {
-		svm_nodes.push_back(make_int4(NODE_SHADER_JUMP, 0, 0, 0));
+		svm_nodes.push_back_slow(make_int4(NODE_SHADER_JUMP, 0, 0, 0));
 	}
 
 	TaskPool task_pool;
@@ -129,7 +129,7 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 		return;
 	}
 
-	dscene->svm_nodes.copy((uint4*)&svm_nodes[0], svm_nodes.size());
+	dscene->svm_nodes.steal_data(svm_nodes);
 	device->tex_alloc("__svm_nodes", dscene->svm_nodes);
 
 	for(i = 0; i < scene->shaders.size(); i++) {
@@ -366,17 +366,17 @@ uint SVMCompiler::encode_uchar4(uint x, uint y, uint z, uint w)
 
 void SVMCompiler::add_node(int a, int b, int c, int d)
 {
-	current_svm_nodes.push_back(make_int4(a, b, c, d));
+	current_svm_nodes.push_back_slow(make_int4(a, b, c, d));
 }
 
 void SVMCompiler::add_node(ShaderNodeType type, int a, int b, int c)
 {
-	current_svm_nodes.push_back(make_int4(type, a, b, c));
+	current_svm_nodes.push_back_slow(make_int4(type, a, b, c));
 }
 
 void SVMCompiler::add_node(ShaderNodeType type, const float3& f)
 {
-	current_svm_nodes.push_back(make_int4(type,
+	current_svm_nodes.push_back_slow(make_int4(type,
 		__float_as_int(f.x),
 		__float_as_int(f.y),
 		__float_as_int(f.z)));
@@ -384,7 +384,7 @@ void SVMCompiler::add_node(ShaderNodeType type, const float3& f)
 
 void SVMCompiler::add_node(const float4& f)
 {
-	current_svm_nodes.push_back(make_int4(
+	current_svm_nodes.push_back_slow(make_int4(
 		__float_as_int(f.x),
 		__float_as_int(f.y),
 		__float_as_int(f.z),
@@ -627,7 +627,7 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
 				/* Add instruction to skip closure and its dependencies if mix
 				 * weight is zero.
 				 */
-				current_svm_nodes.push_back(make_int4(NODE_JUMP_IF_ONE,
+				current_svm_nodes.push_back_slow(make_int4(NODE_JUMP_IF_ONE,
 				                                      0,
 				                                      stack_assign(facin),
 				                                      0));
@@ -645,7 +645,7 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
 				/* Add instruction to skip closure and its dependencies if mix
 				 * weight is zero.
 				 */
-				current_svm_nodes.push_back(make_int4(NODE_JUMP_IF_ZERO,
+				current_svm_nodes.push_back_slow(make_int4(NODE_JUMP_IF_ZERO,
 				                                      0,
 				                                      stack_assign(facin),
 				                                      0));
@@ -797,7 +797,7 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 
 void SVMCompiler::compile(Scene *scene,
                           Shader *shader,
-                          vector<int4>& svm_nodes,
+                          array<int4>& svm_nodes,
                           int index,
                           Summary *summary)
 {
@@ -839,9 +839,7 @@ void SVMCompiler::compile(Scene *scene,
 		scoped_timer timer((summary != NULL)? &summary->time_generate_bump: NULL);
 		compile_type(shader, shader->graph, SHADER_TYPE_BUMP);
 		svm_nodes[index].y = svm_nodes.size();
-		svm_nodes.insert(svm_nodes.end(),
-		                 current_svm_nodes.begin(),
-		                 current_svm_nodes.end());
+		svm_nodes.append(current_svm_nodes);
 	}
 
 	/* generate surface shader */
@@ -852,9 +850,7 @@ void SVMCompiler::compile(Scene *scene,
 		if(!has_bump) {
 			svm_nodes[index].y = svm_nodes.size();
 		}
-		svm_nodes.insert(svm_nodes.end(),
-		                 current_svm_nodes.begin(),
-		                 current_svm_nodes.end());
+		svm_nodes.append(current_svm_nodes);
 	}
 
 	/* generate volume shader */
@@ -862,9 +858,7 @@ void SVMCompiler::compile(Scene *scene,
 		scoped_timer timer((summary != NULL)? &summary->time_generate_volume: NULL);
 		compile_type(shader, shader->graph, SHADER_TYPE_VOLUME);
 		svm_nodes[index].z = svm_nodes.size();
-		svm_nodes.insert(svm_nodes.end(),
-		                 current_svm_nodes.begin(),
-		                 current_svm_nodes.end());
+		svm_nodes.append(current_svm_nodes);
 	}
 
 	/* generate displacement shader */
@@ -872,9 +866,7 @@ void SVMCompiler::compile(Scene *scene,
 		scoped_timer timer((summary != NULL)? &summary->time_generate_displacement: NULL);
 		compile_type(shader, shader->graph, SHADER_TYPE_DISPLACEMENT);
 		svm_nodes[index].w = svm_nodes.size();
-		svm_nodes.insert(svm_nodes.end(),
-		                 current_svm_nodes.begin(),
-		                 current_svm_nodes.end());
+		svm_nodes.append(current_svm_nodes);
 	}
 
 	/* Fill in summary information. */

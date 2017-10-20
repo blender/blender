@@ -309,6 +309,7 @@ public:
 		device->opencl_assert_err(device->ciErr, "clEnqueueNDRangeKernel");
 
 		device->mem_copy_from(size_buffer, 0, 1, 1, sizeof(uint64_t));
+		size_t size = size_buffer[0];
 		device->mem_free(size_buffer);
 
 		if(device->ciErr != CL_SUCCESS) {
@@ -318,7 +319,7 @@ public:
 			return 0;
 		}
 
-		return *size_buffer.get_data();
+		return size;
 	}
 
 	virtual bool enqueue_split_kernel_data_init(const KernelDimensions& dim,

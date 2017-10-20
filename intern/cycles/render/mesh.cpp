@@ -1127,14 +1127,12 @@ bool Mesh::is_instanced() const
 
 MeshManager::MeshManager()
 {
-	bvh = NULL;
 	need_update = true;
 	need_flags_update = true;
 }
 
 MeshManager::~MeshManager()
 {
-	delete bvh;
 }
 
 void MeshManager::update_osl_attributes(Device *device, Scene *scene, vector<AttributeRequestSet>& mesh_attributes)
@@ -1393,11 +1391,11 @@ static void update_attribute_element_size(Mesh *mesh,
 }
 
 static void update_attribute_element_offset(Mesh *mesh,
-                                            vector<float>& attr_float,
+                                            device_vector<float>& attr_float,
                                             size_t& attr_float_offset,
-                                            vector<float4>& attr_float3,
+                                            device_vector<float4>& attr_float3,
                                             size_t& attr_float3_offset,
-                                            vector<uchar4>& attr_uchar4,
+                                            device_vector<uchar4>& attr_uchar4,
                                             size_t& attr_uchar4_offset,
                                             Attribute *mattr,
                                             AttributePrimitive prim,
@@ -1425,7 +1423,7 @@ static void update_attribute_element_offset(Mesh *mesh,
 			uchar4 *data = mattr->data_uchar4();
 			offset = attr_uchar4_offset;
 
-			assert(attr_uchar4.capacity() >= offset + size);
+			assert(attr_uchar4.size() >= offset + size);
 			for(size_t k = 0; k < size; k++) {
 				attr_uchar4[offset+k] = data[k];
 			}
@@ -1435,7 +1433,7 @@ static void update_attribute_element_offset(Mesh *mesh,
 			float *data = mattr->data_float();
 			offset = attr_float_offset;
 
-			assert(attr_float.capacity() >= offset + size);
+			assert(attr_float.size() >= offset + size);
 			for(size_t k = 0; k < size; k++) {
 				attr_float[offset+k] = data[k];
 			}
@@ -1445,7 +1443,7 @@ static void update_attribute_element_offset(Mesh *mesh,
 			Transform *tfm = mattr->data_transform();
 			offset = attr_float3_offset;
 
-			assert(attr_float3.capacity() >= offset + size * 4);
+			assert(attr_float3.size() >= offset + size * 4);
 			for(size_t k = 0; k < size*4; k++) {
 				attr_float3[offset+k] = (&tfm->x)[k];
 			}
@@ -1455,7 +1453,7 @@ static void update_attribute_element_offset(Mesh *mesh,
 			float4 *data = mattr->data_float4();
 			offset = attr_float3_offset;
 
-			assert(attr_float3.capacity() >= offset + size);
+			assert(attr_float3.size() >= offset + size);
 			for(size_t k = 0; k < size; k++) {
 				attr_float3[offset+k] = data[k];
 			}
@@ -1556,9 +1554,9 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 		}
 	}
 
-	vector<float> attr_float(attr_float_size);
-	vector<float4> attr_float3(attr_float3_size);
-	vector<uchar4> attr_uchar4(attr_uchar4_size);
+	dscene->attributes_float.resize(attr_float_size);
+	dscene->attributes_float3.resize(attr_float3_size);
+	dscene->attributes_uchar4.resize(attr_uchar4_size);
 
 	size_t attr_float_offset = 0;
 	size_t attr_float3_offset = 0;
@@ -1577,27 +1575,27 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 			Attribute *subd_mattr = mesh->subd_attributes.find(req);
 
 			update_attribute_element_offset(mesh,
-			                                attr_float, attr_float_offset,
-			                                attr_float3, attr_float3_offset,
-			                                attr_uchar4, attr_uchar4_offset,
+			                                dscene->attributes_float, attr_float_offset,
+			                                dscene->attributes_float3, attr_float3_offset,
+			                                dscene->attributes_uchar4, attr_uchar4_offset,
 			                                triangle_mattr,
 			                                ATTR_PRIM_TRIANGLE,
 			                                req.triangle_type,
 			                                req.triangle_desc);
 
 			update_attribute_element_offset(mesh,
-			                                attr_float, attr_float_offset,
-			                                attr_float3, attr_float3_offset,
-			                                attr_uchar4, attr_uchar4_offset,
+			                                dscene->attributes_float, attr_float_offset,
+			                                dscene->attributes_float3, attr_float3_offset,
+			                                dscene->attributes_uchar4, attr_uchar4_offset,
 			                                curve_mattr,
 			                                ATTR_PRIM_CURVE,
 			                                req.curve_type,
 			                                req.curve_desc);
 
 			update_attribute_element_offset(mesh,
-			                                attr_float, attr_float_offset,
-			                                attr_float3, attr_float3_offset,
-			                                attr_uchar4, attr_uchar4_offset,
+			                                dscene->attributes_float, attr_float_offset,
+			                                dscene->attributes_float3, attr_float3_offset,
+			                                dscene->attributes_uchar4, attr_uchar4_offset,
 			                                subd_mattr,
 			                                ATTR_PRIM_SUBD,
 			                                req.subd_type,
@@ -1618,16 +1616,13 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 	/* copy to device */
 	progress.set_status("Updating Mesh", "Copying Attributes to device");
 
-	if(attr_float.size()) {
-		dscene->attributes_float.copy(&attr_float[0], attr_float.size());
+	if(dscene->attributes_float.size()) {
 		device->tex_alloc("__attributes_float", dscene->attributes_float);
 	}
-	if(attr_float3.size()) {
-		dscene->attributes_float3.copy(&attr_float3[0], attr_float3.size());
+	if(dscene->attributes_float3.size()) {
 		device->tex_alloc("__attributes_float3", dscene->attributes_float3);
 	}
-	if(attr_uchar4.size()) {
-		dscene->attributes_uchar4.copy(&attr_uchar4[0], attr_uchar4.size());
+	if(dscene->attributes_uchar4.size()) {
 		device->tex_alloc("__attributes_uchar4", dscene->attributes_uchar4);
 	}
 }
@@ -1725,10 +1720,9 @@ void MeshManager::device_update_mesh(Device *device,
 		}
 	}
 	else {
-		PackedBVH& pack = bvh->pack;
-		for(size_t i = 0; i < pack.prim_index.size(); ++i) {
-			if((pack.prim_type[i] & PRIMITIVE_ALL_TRIANGLE) != 0) {
-				tri_prim_index[pack.prim_index[i]] = pack.prim_tri_index[i];
+		for(size_t i = 0; i < dscene->prim_index.size(); ++i) {
+			if((dscene->prim_type[i] & PRIMITIVE_ALL_TRIANGLE) != 0) {
+				tri_prim_index[dscene->prim_index[i]] = dscene->prim_tri_index[i];
 			}
 		}
 	}
@@ -1832,11 +1826,13 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 	VLOG(1) << (bparams.use_qbvh ? "Using QBVH optimization structure"
 	                             : "Using regular BVH optimization structure");
 
-	delete bvh;
-	bvh = BVH::create(bparams, scene->objects);
+	BVH *bvh = BVH::create(bparams, scene->objects);
 	bvh->build(progress);
 
-	if(progress.get_cancel()) return;
+	if(progress.get_cancel()) {
+		delete bvh;
+		return;
+	}
 
 	/* copy to device */
 	progress.set_status("Updating Scene BVH", "Copying BVH to device");
@@ -1844,49 +1840,51 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 	PackedBVH& pack = bvh->pack;
 
 	if(pack.nodes.size()) {
-		dscene->bvh_nodes.reference((float4*)&pack.nodes[0], pack.nodes.size());
+		dscene->bvh_nodes.steal_data(pack.nodes);
 		device->tex_alloc("__bvh_nodes", dscene->bvh_nodes);
 	}
 	if(pack.leaf_nodes.size()) {
-		dscene->bvh_leaf_nodes.reference((float4*)&pack.leaf_nodes[0], pack.leaf_nodes.size());
+		dscene->bvh_leaf_nodes.steal_data(pack.leaf_nodes);
 		device->tex_alloc("__bvh_leaf_nodes", dscene->bvh_leaf_nodes);
 	}
 	if(pack.object_node.size()) {
-		dscene->object_node.reference((uint*)&pack.object_node[0], pack.object_node.size());
+		dscene->object_node.steal_data(pack.object_node);
 		device->tex_alloc("__object_node", dscene->object_node);
 	}
 	if(pack.prim_tri_index.size()) {
-		dscene->prim_tri_index.reference((uint*)&pack.prim_tri_index[0], pack.prim_tri_index.size());
+		dscene->prim_tri_index.steal_data(pack.prim_tri_index);
 		device->tex_alloc("__prim_tri_index", dscene->prim_tri_index);
 	}
 	if(pack.prim_tri_verts.size()) {
-		dscene->prim_tri_verts.reference((float4*)&pack.prim_tri_verts[0], pack.prim_tri_verts.size());
+		dscene->prim_tri_verts.steal_data(pack.prim_tri_verts);
 		device->tex_alloc("__prim_tri_verts", dscene->prim_tri_verts);
 	}
 	if(pack.prim_type.size()) {
-		dscene->prim_type.reference((uint*)&pack.prim_type[0], pack.prim_type.size());
+		dscene->prim_type.steal_data(pack.prim_type);
 		device->tex_alloc("__prim_type", dscene->prim_type);
 	}
 	if(pack.prim_visibility.size()) {
-		dscene->prim_visibility.reference((uint*)&pack.prim_visibility[0], pack.prim_visibility.size());
+		dscene->prim_visibility.steal_data(pack.prim_visibility);
 		device->tex_alloc("__prim_visibility", dscene->prim_visibility);
 	}
 	if(pack.prim_index.size()) {
-		dscene->prim_index.reference((uint*)&pack.prim_index[0], pack.prim_index.size());
+		dscene->prim_index.steal_data(pack.prim_index);
 		device->tex_alloc("__prim_index", dscene->prim_index);
 	}
 	if(pack.prim_object.size()) {
-		dscene->prim_object.reference((uint*)&pack.prim_object[0], pack.prim_object.size());
+		dscene->prim_object.steal_data(pack.prim_object);
 		device->tex_alloc("__prim_object", dscene->prim_object);
 	}
 	if(pack.prim_time.size()) {
-		dscene->prim_time.reference((float2*)&pack.prim_time[0], pack.prim_time.size());
+		dscene->prim_time.steal_data(pack.prim_time);
 		device->tex_alloc("__prim_time", dscene->prim_time);
 	}
 
 	dscene->data.bvh.root = pack.root_index;
 	dscene->data.bvh.use_qbvh = bparams.use_qbvh;
 	dscene->data.bvh.use_bvh_steps = (scene->params.num_bvh_time_steps != 0);
+
+	delete bvh;
 }
 
 void MeshManager::device_update_flags(Device * /*device*/,
@@ -2168,6 +2166,7 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 	device->tex_free(dscene->attributes_uchar4);
 
 	dscene->bvh_nodes.clear();
+	dscene->bvh_leaf_nodes.clear();
 	dscene->object_node.clear();
 	dscene->prim_tri_verts.clear();
 	dscene->prim_tri_index.clear();

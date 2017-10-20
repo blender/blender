@@ -321,8 +321,6 @@ public:
 
 class MeshManager {
 public:
-	BVH *bvh;
-
 	bool need_update;
 	bool need_flags_update;
 

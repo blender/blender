@@ -379,7 +379,7 @@ public:
 				texture_info.resize(flat_slot + 128);
 			}
 
-			TextureInfo& info = texture_info.get_data()[flat_slot];
+			TextureInfo& info = texture_info[flat_slot];
 			info.data = (uint64_t)mem.data_pointer;
 			info.cl_buffer = 0;
 			info.interpolation = interpolation;

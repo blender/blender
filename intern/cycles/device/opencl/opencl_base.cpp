@@ -494,20 +494,21 @@ void OpenCLDeviceBase::mem_free_sub_ptr(device_ptr device_pointer)
 void OpenCLDeviceBase::const_copy_to(const char *name, void *host, size_t size)
 {
 	ConstMemMap::iterator i = const_mem_map.find(name);
+	device_vector<uchar> *data;
 
 	if(i == const_mem_map.end()) {
-		device_vector<uchar> *data = new device_vector<uchar>();
-		data->copy((uchar*)host, size);
+		data = new device_vector<uchar>();
+		data->resize(size);
 
 		mem_alloc(name, *data, MEM_READ_ONLY);
-		i = const_mem_map.insert(ConstMemMap::value_type(name, data)).first;
+		const_mem_map.insert(ConstMemMap::value_type(name, data));
 	}
 	else {
-		device_vector<uchar> *data = i->second;
-		data->copy((uchar*)host, size);
+		data = i->second;
 	}
 
-	mem_copy_to(*i->second);
+	memcpy(data->get_data(), host, size);
+	mem_copy_to(*data);
 }
 
 void OpenCLDeviceBase::tex_alloc(const char *name,
