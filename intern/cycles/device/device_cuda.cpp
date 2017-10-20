@@ -218,7 +218,7 @@ public:
 
 	CUDADevice(DeviceInfo& info, Stats &stats, bool background_)
 	: Device(info, stats, background_),
-	  texture_info(this, "__texture_info")
+	  texture_info(this, "__texture_info", MEM_TEXTURE)
 	{
 		first_error = true;
 		background = background_;
@@ -275,7 +275,7 @@ public:
 		delete split_kernel;
 
 		if(info.has_bindless_textures) {
-			tex_free(texture_info);
+			texture_info.free();
 		}
 
 		cuda_assert(cuCtxDestroy(cuContext));
@@ -548,20 +548,19 @@ public:
 	void load_texture_info()
 	{
 		if(info.has_bindless_textures && need_texture_info) {
-			tex_free(texture_info);
-			tex_alloc(texture_info);
+			texture_info.copy_to_device();
 			need_texture_info = false;
 		}
 	}
 
-	void mem_alloc(device_memory& mem)
+	void generic_alloc(device_memory& mem)
 	{
 		CUDAContextScope scope(this);
 
 		if(mem.name) {
 			VLOG(1) << "Buffer allocate: " << mem.name << ", "
-			        << string_human_readable_number(mem.memory_size()) << " bytes. ("
-			        << string_human_readable_size(mem.memory_size()) << ")";
+					<< string_human_readable_number(mem.memory_size()) << " bytes. ("
+					<< string_human_readable_size(mem.memory_size()) << ")";
 		}
 
 		CUdeviceptr device_pointer;
@@ -572,31 +571,88 @@ public:
 		stats.mem_alloc(size);
 	}
 
+	void generic_copy_to(device_memory& mem)
+	{
+		if(mem.device_pointer) {
+			CUDAContextScope scope(this);
+			cuda_assert(cuMemcpyHtoD(cuda_device_ptr(mem.device_pointer), (void*)mem.data_pointer, mem.memory_size()));
+		}
+	}
+
+	void generic_free(device_memory& mem)
+	{
+		if(mem.device_pointer) {
+			CUDAContextScope scope(this);
+
+			cuda_assert(cuMemFree(cuda_device_ptr(mem.device_pointer)));
+
+			mem.device_pointer = 0;
+
+			stats.mem_free(mem.device_size);
+			mem.device_size = 0;
+		}
+	}
+
+	void mem_alloc(device_memory& mem)
+	{
+		if(mem.type == MEM_PIXELS && !background) {
+			pixels_alloc(mem);
+		}
+		else if(mem.type == MEM_TEXTURE) {
+			assert(!"mem_alloc not supported for textures.");
+		}
+		else {
+			generic_alloc(mem);
+		}
+	}
+
 	void mem_copy_to(device_memory& mem)
 	{
-		CUDAContextScope scope(this);
+		if(mem.type == MEM_PIXELS) {
+			assert(!"mem_copy_to not supported for pixels.");
+		}
+		else if(mem.type == MEM_TEXTURE) {
+			tex_free(mem);
+			tex_alloc(mem);
+		}
+		else {
+			if(!mem.device_pointer) {
+				generic_alloc(mem);
+			}
 
-		if(mem.device_pointer)
-			cuda_assert(cuMemcpyHtoD(cuda_device_ptr(mem.device_pointer), (void*)mem.data_pointer, mem.memory_size()));
+			generic_copy_to(mem);
+		}
 	}
 
 	void mem_copy_from(device_memory& mem, int y, int w, int h, int elem)
 	{
-		CUDAContextScope scope(this);
-		size_t offset = elem*y*w;
-		size_t size = elem*w*h;
-
-		if(mem.device_pointer) {
-			cuda_assert(cuMemcpyDtoH((uchar*)mem.data_pointer + offset,
-			                         (CUdeviceptr)(mem.device_pointer + offset), size));
+		if(mem.type == MEM_PIXELS && !background) {
+			pixels_copy_from(mem, y, w, h);
+		}
+		else if(mem.type == MEM_TEXTURE) {
+			assert(!"mem_copy_from not supported for textures.");
 		}
 		else {
-			memset((char*)mem.data_pointer + offset, 0, size);
+			CUDAContextScope scope(this);
+			size_t offset = elem*y*w;
+			size_t size = elem*w*h;
+
+			if(mem.device_pointer) {
+				cuda_assert(cuMemcpyDtoH((uchar*)mem.data_pointer + offset,
+										 (CUdeviceptr)(mem.device_pointer + offset), size));
+			}
+			else {
+				memset((char*)mem.data_pointer + offset, 0, size);
+			}
 		}
 	}
 
 	void mem_zero(device_memory& mem)
 	{
+		if(!mem.device_pointer) {
+			mem_alloc(mem);
+		}
+
 		if(mem.data_pointer) {
 			memset((void*)mem.data_pointer, 0, mem.memory_size());
 		}
@@ -609,14 +665,14 @@ public:
 
 	void mem_free(device_memory& mem)
 	{
-		if(mem.device_pointer) {
-			CUDAContextScope scope(this);
-			cuda_assert(cuMemFree(cuda_device_ptr(mem.device_pointer)));
-
-			mem.device_pointer = 0;
-
-			stats.mem_free(mem.device_size);
-			mem.device_size = 0;
+		if(mem.type == MEM_PIXELS && !background) {
+			pixels_free(mem);
+		}
+		else if(mem.type == MEM_TEXTURE) {
+			tex_free(mem);
+		}
+		else {
+			generic_free(mem);
 		}
 	}
 
@@ -700,8 +756,8 @@ public:
 
 		if(mem.interpolation == INTERPOLATION_NONE) {
 			/* Data Storage */
-			mem_alloc(mem);
-			mem_copy_to(mem);
+			generic_alloc(mem);
+			generic_copy_to(mem);
 
 			CUdeviceptr cumem;
 			size_t cubytes;
@@ -891,21 +947,19 @@ public:
 			}
 			else {
 				tex_interp_map.erase(tex_interp_map.find(mem.device_pointer));
-				mem_free(mem);
+				generic_free(mem);
 			}
 		}
 	}
 
 	bool denoising_set_tiles(device_ptr *buffers, DenoisingTask *task)
 	{
-		mem_alloc(task->tiles_mem);
-
 		TilesInfo *tiles = (TilesInfo*) task->tiles_mem.data_pointer;
 		for(int i = 0; i < 9; i++) {
 			tiles->buffers[i] = buffers[i];
 		}
 
-		mem_copy_to(task->tiles_mem);
+		task->tiles_mem.copy_to_device();
 
 		return !have_error();
 	}
@@ -1272,7 +1326,7 @@ public:
 		task.unmap_neighbor_tiles(rtiles, this);
 	}
 
-	void path_trace(DeviceTask& task, RenderTile& rtile)
+	void path_trace(DeviceTask& task, RenderTile& rtile, device_vector<WorkTile>& work_tiles)
 	{
 		if(have_error())
 			return;
@@ -1295,8 +1349,7 @@ public:
 		cuda_assert(cuFuncSetCacheConfig(cuPathTrace, CU_FUNC_CACHE_PREFER_L1));
 
 		/* Allocate work tile. */
-		device_vector<WorkTile> work_tiles(this, "work_tiles", MEM_READ_ONLY);
-		work_tiles.resize(1);
+		work_tiles.alloc(1);
 
 		WorkTile *wtile = work_tiles.get_data();
 		wtile->x = rtile.x;
@@ -1306,9 +1359,6 @@ public:
 		wtile->offset = rtile.offset;
 		wtile->stride = rtile.stride;
 		wtile->buffer = (float*)cuda_device_ptr(rtile.buffer);
-		mem_alloc(work_tiles);
-
-		CUdeviceptr d_work_tiles = cuda_device_ptr(work_tiles.device_pointer);
 
 		/* Prepare work size. More step samples render faster, but for now we
 		 * remain conservative for GPUs connected to a display to avoid driver
@@ -1329,8 +1379,9 @@ public:
 			/* Setup and copy work tile to device. */
 			wtile->start_sample = sample;
 			wtile->num_samples = min(step_samples, end_sample - sample);;
-			mem_copy_to(work_tiles);
+			work_tiles.copy_to_device();
 
+			CUdeviceptr d_work_tiles = cuda_device_ptr(work_tiles.device_pointer);
 			uint total_work_size = wtile->w * wtile->h * wtile->num_samples;
 			uint num_blocks = divide_up(total_work_size, num_threads_per_block);
 
@@ -1354,8 +1405,6 @@ public:
 					break;
 			}
 		}
-
-		mem_free(work_tiles);
 	}
 
 	void film_convert(DeviceTask& task, device_ptr buffer, device_ptr rgba_byte, device_ptr rgba_half)
@@ -1508,104 +1557,90 @@ public:
 
 	void pixels_alloc(device_memory& mem)
 	{
-		if(!background) {
-			PixelMem pmem;
+		PixelMem pmem;
 
-			pmem.w = mem.data_width;
-			pmem.h = mem.data_height;
+		pmem.w = mem.data_width;
+		pmem.h = mem.data_height;
 
-			CUDAContextScope scope(this);
+		CUDAContextScope scope(this);
 
-			glGenBuffers(1, &pmem.cuPBO);
-			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pmem.cuPBO);
-			if(mem.data_type == TYPE_HALF)
-				glBufferData(GL_PIXEL_UNPACK_BUFFER, pmem.w*pmem.h*sizeof(GLhalf)*4, NULL, GL_DYNAMIC_DRAW);
-			else
-				glBufferData(GL_PIXEL_UNPACK_BUFFER, pmem.w*pmem.h*sizeof(uint8_t)*4, NULL, GL_DYNAMIC_DRAW);
+		glGenBuffers(1, &pmem.cuPBO);
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pmem.cuPBO);
+		if(mem.data_type == TYPE_HALF)
+			glBufferData(GL_PIXEL_UNPACK_BUFFER, pmem.w*pmem.h*sizeof(GLhalf)*4, NULL, GL_DYNAMIC_DRAW);
+		else
+			glBufferData(GL_PIXEL_UNPACK_BUFFER, pmem.w*pmem.h*sizeof(uint8_t)*4, NULL, GL_DYNAMIC_DRAW);
 
-			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
-			glGenTextures(1, &pmem.cuTexId);
-			glBindTexture(GL_TEXTURE_2D, pmem.cuTexId);
-			if(mem.data_type == TYPE_HALF)
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F_ARB, pmem.w, pmem.h, 0, GL_RGBA, GL_HALF_FLOAT, NULL);
-			else
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, pmem.w, pmem.h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glBindTexture(GL_TEXTURE_2D, 0);
+		glGenTextures(1, &pmem.cuTexId);
+		glBindTexture(GL_TEXTURE_2D, pmem.cuTexId);
+		if(mem.data_type == TYPE_HALF)
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F_ARB, pmem.w, pmem.h, 0, GL_RGBA, GL_HALF_FLOAT, NULL);
+		else
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, pmem.w, pmem.h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glBindTexture(GL_TEXTURE_2D, 0);
 
-			CUresult result = cuGraphicsGLRegisterBuffer(&pmem.cuPBOresource, pmem.cuPBO, CU_GRAPHICS_MAP_RESOURCE_FLAGS_NONE);
+		CUresult result = cuGraphicsGLRegisterBuffer(&pmem.cuPBOresource, pmem.cuPBO, CU_GRAPHICS_MAP_RESOURCE_FLAGS_NONE);
 
-			if(result == CUDA_SUCCESS) {
-				mem.device_pointer = pmem.cuTexId;
-				pixel_mem_map[mem.device_pointer] = pmem;
+		if(result == CUDA_SUCCESS) {
+			mem.device_pointer = pmem.cuTexId;
+			pixel_mem_map[mem.device_pointer] = pmem;
 
-				mem.device_size = mem.memory_size();
-				stats.mem_alloc(mem.device_size);
+			mem.device_size = mem.memory_size();
+			stats.mem_alloc(mem.device_size);
 
-				return;
-			}
-			else {
-				/* failed to register buffer, fallback to no interop */
-				glDeleteBuffers(1, &pmem.cuPBO);
-				glDeleteTextures(1, &pmem.cuTexId);
-
-				background = true;
-			}
+			return;
 		}
+		else {
+			/* failed to register buffer, fallback to no interop */
+			glDeleteBuffers(1, &pmem.cuPBO);
+			glDeleteTextures(1, &pmem.cuTexId);
 
-		Device::pixels_alloc(mem);
+			background = true;
+		}
 	}
 
 	void pixels_copy_from(device_memory& mem, int y, int w, int h)
 	{
-		if(!background) {
-			PixelMem pmem = pixel_mem_map[mem.device_pointer];
+		PixelMem pmem = pixel_mem_map[mem.device_pointer];
 
-			CUDAContextScope scope(this);
+		CUDAContextScope scope(this);
 
-			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pmem.cuPBO);
-			uchar *pixels = (uchar*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_READ_ONLY);
-			size_t offset = sizeof(uchar)*4*y*w;
-			memcpy((uchar*)mem.data_pointer + offset, pixels + offset, sizeof(uchar)*4*w*h);
-			glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
-			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-
-			return;
-		}
-
-		Device::pixels_copy_from(mem, y, w, h);
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pmem.cuPBO);
+		uchar *pixels = (uchar*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_READ_ONLY);
+		size_t offset = sizeof(uchar)*4*y*w;
+		memcpy((uchar*)mem.data_pointer + offset, pixels + offset, sizeof(uchar)*4*w*h);
+		glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 	}
 
 	void pixels_free(device_memory& mem)
 	{
 		if(mem.device_pointer) {
-			if(!background) {
-				PixelMem pmem = pixel_mem_map[mem.device_pointer];
+			PixelMem pmem = pixel_mem_map[mem.device_pointer];
 
-				CUDAContextScope scope(this);
+			CUDAContextScope scope(this);
 
-				cuda_assert(cuGraphicsUnregisterResource(pmem.cuPBOresource));
-				glDeleteBuffers(1, &pmem.cuPBO);
-				glDeleteTextures(1, &pmem.cuTexId);
+			cuda_assert(cuGraphicsUnregisterResource(pmem.cuPBOresource));
+			glDeleteBuffers(1, &pmem.cuPBO);
+			glDeleteTextures(1, &pmem.cuTexId);
 
-				pixel_mem_map.erase(pixel_mem_map.find(mem.device_pointer));
-				mem.device_pointer = 0;
+			pixel_mem_map.erase(pixel_mem_map.find(mem.device_pointer));
+			mem.device_pointer = 0;
 
-				stats.mem_free(mem.device_size);
-				mem.device_size = 0;
-
-				return;
-			}
-
-			Device::pixels_free(mem);
+			stats.mem_free(mem.device_size);
+			mem.device_size = 0;
 		}
 	}
 
 	void draw_pixels(device_memory& mem, int y, int w, int h, int dx, int dy, int width, int height, bool transparent,
 		const DeviceDrawParams &draw_params)
 	{
+		assert(mem.type == MEM_PIXELS);
+
 		if(!background) {
 			PixelMem pmem = pixel_mem_map[mem.device_pointer];
 			float *vpointer;
@@ -1724,6 +1759,8 @@ public:
 				}
 			}
 
+			device_vector<WorkTile> work_tiles(this, "work_tiles", MEM_READ_ONLY);
+
 			/* keep rendering tiles until done */
 			while(task->acquire_tile(this, tile)) {
 				if(tile.task == RenderTile::PATH_TRACE) {
@@ -1732,7 +1769,7 @@ public:
 						split_kernel->path_trace(task, tile, void_buffer, void_buffer);
 					}
 					else {
-						path_trace(*task, tile);
+						path_trace(*task, tile, work_tiles);
 					}
 				}
 				else if(tile.task == RenderTile::DENOISE) {
@@ -1750,6 +1787,8 @@ public:
 						break;
 				}
 			}
+
+			work_tiles.free();
 		}
 		else if(task->type == DeviceTask::SHADER) {
 			shader(*task);
@@ -1884,8 +1923,8 @@ uint64_t CUDASplitKernel::state_buffer_size(device_memory& /*kg*/, device_memory
 	CUDAContextScope scope(device);
 
 	device_vector<uint64_t> size_buffer(device, "size_buffer", MEM_READ_WRITE);
-	size_buffer.resize(1);
-	device->mem_alloc(size_buffer);
+	size_buffer.alloc(1);
+	size_buffer.zero_to_device();
 
 	uint threads = num_threads;
 	CUdeviceptr d_size = device->cuda_device_ptr(size_buffer.device_pointer);
@@ -1908,9 +1947,9 @@ uint64_t CUDASplitKernel::state_buffer_size(device_memory& /*kg*/, device_memory
 	                           1, 1, 1,
 	                           0, 0, (void**)&args, 0));
 
-	device->mem_copy_from(size_buffer, 0, 1, 1, sizeof(uint64_t));
+	size_buffer.copy_from_device(0, 1, 1);
 	size_t size = size_buffer[0];
-	device->mem_free(size_buffer);
+	size_buffer.free();
 
 	return size;
 }

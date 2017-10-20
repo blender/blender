@@ -75,20 +75,15 @@ public:
 	/* float buffer */
 	device_vector<float> buffer;
 
-	Device *device;
-
 	explicit RenderBuffers(Device *device);
 	~RenderBuffers();
 
-	void reset(Device *device, BufferParams& params);
-	void zero(Device *device);
+	void reset(BufferParams& params);
+	void zero();
 
-	bool copy_from_device(Device *from_device = NULL);
+	bool copy_from_device();
 	bool get_pass_rect(PassType type, float exposure, int sample, int components, float *pixels);
 	bool get_denoising_pass_rect(int offset, float exposure, int sample, int components, float *pixels);
-
-protected:
-	void device_free();
 };
 
 /* Display Buffer
@@ -109,25 +104,18 @@ public:
 	/* use half float? */
 	bool half_float;
 	/* byte buffer for converted result */
-	device_vector<uchar4> rgba_byte;
-	device_vector<half4> rgba_half;
+	device_pixels<uchar4> rgba_byte;
+	device_pixels<half4> rgba_half;
 
 	DisplayBuffer(Device *device, bool linear = false);
 	~DisplayBuffer();
 
-	void reset(Device *device, BufferParams& params);
-	void write(Device *device, const string& filename);
+	void reset(BufferParams& params);
+	void write(const string& filename);
 
 	void draw_set(int width, int height);
 	void draw(Device *device, const DeviceDrawParams& draw_params);
 	bool draw_ready();
-
-	device_memory& rgba_data();
-
-protected:
-	void device_free();
-
-	Device *device;
 };
 
 /* Render Tile

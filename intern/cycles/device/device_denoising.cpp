@@ -44,7 +44,7 @@ void DenoisingTask::init_from_devicetask(const DeviceTask &task)
 
 void DenoisingTask::tiles_from_rendertiles(RenderTile *rtiles)
 {
-	tiles = (TilesInfo*) tiles_mem.resize(sizeof(TilesInfo)/sizeof(int));
+	tiles = (TilesInfo*) tiles_mem.alloc(sizeof(TilesInfo)/sizeof(int));
 
 	device_ptr buffers[9];
 	for(int i = 0; i < 9; i++) {
@@ -75,8 +75,7 @@ bool DenoisingTask::run_denoising()
 	buffer.w = align_up(rect.z - rect.x, 4);
 	buffer.h = rect.w - rect.y;
 	buffer.pass_stride = align_up(buffer.w * buffer.h, divide_up(device->mem_address_alignment(), sizeof(float)));
-	buffer.mem.resize(buffer.pass_stride * buffer.passes);
-	device->mem_alloc(buffer.mem);
+	buffer.mem.alloc_to_device(buffer.pass_stride * buffer.passes);
 
 	device_ptr null_ptr = (device_ptr) 0;
 
@@ -161,8 +160,7 @@ bool DenoisingTask::run_denoising()
 		int num_color_passes = 3;
 
 		device_only_memory<float> temp_color(device, "Denoising temporary color");
-		temp_color.resize(3*buffer.pass_stride);
-		device->mem_alloc(temp_color);
+		temp_color.alloc_to_device(3*buffer.pass_stride);
 
 		for(int pass = 0; pass < num_color_passes; pass++) {
 			device_sub_ptr color_pass(temp_color, pass*buffer.pass_stride, buffer.pass_stride);
@@ -177,31 +175,25 @@ bool DenoisingTask::run_denoising()
 			functions.detect_outliers(temp_color.device_pointer, *color_var_pass, *depth_pass, *output_pass);
 		}
 
-		device->mem_free(temp_color);
+		temp_color.free();
 	}
 
 	storage.w = filter_area.z;
 	storage.h = filter_area.w;
-	storage.transform.resize(storage.w*storage.h*TRANSFORM_SIZE);
-	storage.rank.resize(storage.w*storage.h);
-	device->mem_alloc(storage.transform);
-	device->mem_alloc(storage.rank);
+	storage.transform.alloc_to_device(storage.w*storage.h*TRANSFORM_SIZE);
+	storage.rank.alloc_to_device(storage.w*storage.h);
 
 	functions.construct_transform();
 
 	device_only_memory<float> temporary_1(device, "Denoising NLM temporary 1");
 	device_only_memory<float> temporary_2(device, "Denoising NLM temporary 2");
-	temporary_1.resize(buffer.w*buffer.h);
-	temporary_2.resize(buffer.w*buffer.h);
-	device->mem_alloc(temporary_1);
-	device->mem_alloc(temporary_2);
+	temporary_1.alloc_to_device(buffer.w*buffer.h);
+	temporary_2.alloc_to_device(buffer.w*buffer.h);
 	reconstruction_state.temporary_1_ptr = temporary_1.device_pointer;
 	reconstruction_state.temporary_2_ptr = temporary_2.device_pointer;
 
-	storage.XtWX.resize(storage.w*storage.h*XTWX_SIZE);
-	storage.XtWY.resize(storage.w*storage.h*XTWY_SIZE);
-	device->mem_alloc(storage.XtWX);
-	device->mem_alloc(storage.XtWY);
+	storage.XtWX.alloc_to_device(storage.w*storage.h*XTWX_SIZE);
+	storage.XtWY.alloc_to_device(storage.w*storage.h*XTWY_SIZE);
 
 	reconstruction_state.filter_rect = make_int4(filter_area.x-rect.x, filter_area.y-rect.y, storage.w, storage.h);
 	int tile_coordinate_offset = filter_area.y*render_buffer.stride + filter_area.x;
@@ -218,14 +210,14 @@ bool DenoisingTask::run_denoising()
 		functions.reconstruct(*color_ptr, *color_var_ptr, render_buffer.ptr);
 	}
 
-	device->mem_free(storage.XtWX);
-	device->mem_free(storage.XtWY);
-	device->mem_free(storage.transform);
-	device->mem_free(storage.rank);
-	device->mem_free(temporary_1);
-	device->mem_free(temporary_2);
-	device->mem_free(buffer.mem);
-	device->mem_free(tiles_mem);
+	storage.XtWX.free();
+	storage.XtWY.free();
+	storage.transform.free();
+	storage.rank.free();
+	temporary_1.free();
+	temporary_2.free();
+	buffer.mem.free();
+	tiles_mem.free();
 	return true;
 }
 

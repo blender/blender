@@ -209,7 +209,7 @@ public:
 
 	CPUDevice(DeviceInfo& info_, Stats &stats_, bool background_)
 	: Device(info_, stats_, background_),
-	  texture_info(this, "__texture_info"),
+	  texture_info(this, "__texture_info", MEM_TEXTURE),
 #define REGISTER_KERNEL(name) name ## _kernel(KERNEL_FUNCTIONS(name))
 	  REGISTER_KERNEL(path_trace),
 	  REGISTER_KERNEL(convert_to_half_float),
@@ -269,7 +269,7 @@ public:
 	~CPUDevice()
 	{
 		task_pool.stop();
-		tex_free(texture_info);
+		texture_info.free();
 	}
 
 	virtual bool show_samples() const
@@ -280,33 +280,50 @@ public:
 	void load_texture_info()
 	{
 		if(need_texture_info) {
-			tex_free(texture_info);
-			tex_alloc(texture_info);
+			texture_info.copy_to_device();
 			need_texture_info = false;
 		}
 	}
 
 	void mem_alloc(device_memory& mem)
 	{
-		if(mem.name) {
-			VLOG(1) << "Buffer allocate: " << mem.name << ", "
-			        << string_human_readable_number(mem.memory_size()) << " bytes. ("
-			        << string_human_readable_size(mem.memory_size()) << ")";
+		if(mem.type == MEM_TEXTURE) {
+			assert(!"mem_alloc not supported for textures.");
 		}
+		else {
+			if(mem.name) {
+				VLOG(1) << "Buffer allocate: " << mem.name << ", "
+						<< string_human_readable_number(mem.memory_size()) << " bytes. ("
+						<< string_human_readable_size(mem.memory_size()) << ")";
+			}
 
-		mem.device_pointer = mem.data_pointer;
+			mem.device_pointer = mem.data_pointer;
 
-		if(!mem.device_pointer) {
-			mem.device_pointer = (device_ptr)malloc(mem.memory_size());
+			if(!mem.device_pointer) {
+				mem.device_pointer = (device_ptr)malloc(mem.memory_size());
+			}
+
+			mem.device_size = mem.memory_size();
+			stats.mem_alloc(mem.device_size);
 		}
-
-		mem.device_size = mem.memory_size();
-		stats.mem_alloc(mem.device_size);
 	}
 
-	void mem_copy_to(device_memory& /*mem*/)
+	void mem_copy_to(device_memory& mem)
 	{
-		/* no-op */
+		if(mem.type == MEM_TEXTURE) {
+			tex_free(mem);
+			tex_alloc(mem);
+		}
+		else if(mem.type == MEM_PIXELS) {
+			assert(!"mem_copy_to not supported for pixels.");
+		}
+		else {
+			if(!mem.device_pointer) {
+				mem_alloc(mem);
+			}
+
+			/* copy is no-op */
+		}
 	}
 
 	void mem_copy_from(device_memory& /*mem*/,
@@ -318,12 +335,21 @@ public:
 
 	void mem_zero(device_memory& mem)
 	{
-		memset((void*)mem.device_pointer, 0, mem.memory_size());
+		if(!mem.device_pointer) {
+			mem_alloc(mem);
+		}
+
+		if(mem.device_pointer) {
+			memset((void*)mem.device_pointer, 0, mem.memory_size());
+		}
 	}
 
 	void mem_free(device_memory& mem)
 	{
-		if(mem.device_pointer) {
+		if(mem.type == MEM_TEXTURE) {
+			tex_free(mem);
+		}
+		else if(mem.device_pointer) {
 			if(!mem.data_pointer) {
 				free((void*)mem.device_pointer);
 			}
@@ -354,7 +380,7 @@ public:
 			kernel_tex_copy(&kernel_globals,
 							mem.name,
 							mem.data_pointer,
-							mem.data_width);
+							mem.data_size);
 		}
 		else {
 			/* Image Texture. */
@@ -431,12 +457,12 @@ public:
 
 	bool denoising_set_tiles(device_ptr *buffers, DenoisingTask *task)
 	{
-		mem_alloc(task->tiles_mem);
-
 		TilesInfo *tiles = (TilesInfo*) task->tiles_mem.data_pointer;
 		for(int i = 0; i < 9; i++) {
 			tiles->buffers[i] = buffers[i];
 		}
+
+		task->tiles_mem.copy_to_device();
 
 		return true;
 	}
@@ -723,8 +749,7 @@ public:
 
 		/* allocate buffer for kernel globals */
 		device_only_memory<KernelGlobals> kgbuffer(this, "kernel_globals");
-		kgbuffer.resize(1);
-		mem_alloc(kgbuffer);
+		kgbuffer.alloc_to_device(1);
 
 		KernelGlobals *kg = new ((void*) kgbuffer.device_pointer) KernelGlobals(thread_kernel_globals_init());
 
@@ -734,8 +759,7 @@ public:
 			requested_features.max_closure = MAX_CLOSURE;
 			if(!split_kernel->load_kernels(requested_features)) {
 				thread_kernel_globals_free((KernelGlobals*)kgbuffer.device_pointer);
-				mem_free(kgbuffer);
-
+				kgbuffer.free();
 				delete split_kernel;
 				return;
 			}
@@ -766,7 +790,7 @@ public:
 
 		thread_kernel_globals_free((KernelGlobals*)kgbuffer.device_pointer);
 		kg->~KernelGlobals();
-		mem_free(kgbuffer);
+		kgbuffer.free();
 		delete split_kernel;
 	}
 

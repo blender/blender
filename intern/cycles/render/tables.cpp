@@ -35,25 +35,22 @@ LookupTables::~LookupTables()
 	assert(lookup_tables.size() == 0);
 }
 
-void LookupTables::device_update(Device *device, DeviceScene *dscene)
+void LookupTables::device_update(Device *, DeviceScene *dscene)
 {
 	if(!need_update)
 		return;
 
 	VLOG(1) << "Total " << lookup_tables.size() << " lookup tables.";
 
-	device->tex_free(dscene->lookup_table);
-
 	if(lookup_tables.size() > 0)
-		device->tex_alloc(dscene->lookup_table);
+		dscene->lookup_table.copy_to_device();
 
 	need_update = false;
 }
 
-void LookupTables::device_free(Device *device, DeviceScene *dscene)
+void LookupTables::device_free(Device *, DeviceScene *dscene)
 {
-	device->tex_free(dscene->lookup_table);
-	dscene->lookup_table.clear();
+	dscene->lookup_table.free();
 }
 
 static size_t round_up_to_multiple(size_t size, size_t chunk)

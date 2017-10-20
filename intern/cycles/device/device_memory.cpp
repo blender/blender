@@ -43,6 +43,68 @@ device_memory::~device_memory()
 {
 }
 
+device_ptr device_memory::host_alloc(size_t size)
+{
+	if(!size) {
+		return 0;
+	}
+
+	size_t alignment = device->mem_address_alignment();
+	device_ptr ptr = (device_ptr)util_aligned_malloc(size, alignment);
+
+	if(ptr) {
+		util_guarded_mem_alloc(size);
+	}
+	else {
+		throw std::bad_alloc();
+	}
+
+	return ptr;
+}
+
+void device_memory::host_free(device_ptr ptr, size_t size)
+{
+	if(ptr) {
+		util_guarded_mem_free(size);
+		util_aligned_free((void*)ptr);
+	}
+}
+
+void device_memory::device_alloc()
+{
+	assert(!device_pointer && type != MEM_TEXTURE);
+	device->mem_alloc(*this);
+}
+
+void device_memory::device_free()
+{
+	if(device_pointer) {
+		device->mem_free(*this);
+	}
+}
+
+void device_memory::device_copy_to()
+{
+	assert(type != MEM_PIXELS && type != MEM_WRITE_ONLY);
+	if(data_size) {
+		device->mem_copy_to(*this);
+	}
+}
+
+void device_memory::device_copy_from(int y, int w, int h, int elem)
+{
+	assert(type != MEM_TEXTURE && type != MEM_READ_ONLY);
+	device->mem_copy_from(*this, y, w, h, elem);
+}
+
+void device_memory::device_zero()
+{
+	assert(type != MEM_PIXELS && type != MEM_WRITE_ONLY);
+	if(data_size) {
+		device->mem_zero(*this);
+	}
+}
+
 /* Device Sub Ptr */
 
 device_sub_ptr::device_sub_ptr(device_memory& mem, int offset, int size)

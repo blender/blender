@@ -85,28 +85,12 @@ Device::~Device()
 	}
 }
 
-void Device::pixels_alloc(device_memory& mem)
-{
-	mem_alloc(mem);
-}
-
-void Device::pixels_copy_from(device_memory& mem, int y, int w, int h)
-{
-	if(mem.data_type == TYPE_HALF)
-		mem_copy_from(mem, y, w, h, sizeof(half4));
-	else
-		mem_copy_from(mem, y, w, h, sizeof(uchar4));
-}
-
-void Device::pixels_free(device_memory& mem)
-{
-	mem_free(mem);
-}
-
 void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int dx, int dy, int width, int height, bool transparent,
 	const DeviceDrawParams &draw_params)
 {
-	pixels_copy_from(rgba, y, w, h);
+	assert(mem.type == MEM_PIXELS);
+
+	mem_copy_from(rgba, y, w, h, rgba.memory_elements_size(1));
 
 	if(transparent) {
 		glEnable(GL_BLEND);

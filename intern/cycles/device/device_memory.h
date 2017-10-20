@@ -19,14 +19,7 @@
 
 /* Device Memory
  *
- * This file defines data types that can be used in device memory arrays, and
- * a device_vector<T> type to store such arrays.
- *
- * device_vector<T> contains an STL vector, metadata about the data type,
- * dimensions, elements, and a device pointer. For the CPU device this is just
- * a pointer to the STL vector data, as no copying needs to take place. For
- * other devices this is a pointer to device memory, where we will copy memory
- * to and from. */
+ * Data types for allocating, copying and freeing device memory. */
 
 #include "util/util_debug.h"
 #include "util/util_half.h"
@@ -41,7 +34,9 @@ class Device;
 enum MemoryType {
 	MEM_READ_ONLY,
 	MEM_WRITE_ONLY,
-	MEM_READ_WRITE
+	MEM_READ_WRITE,
+	MEM_TEXTURE,
+	MEM_PIXELS
 };
 
 /* Supported Data Types */
@@ -172,7 +167,10 @@ template<> struct device_type_traits<uint64_t> {
 	static const int num_elements = 1;
 };
 
-/* Device Memory */
+/* Device Memory
+ *
+ * Base class for all device memory. This should not be allocated directly,
+ * instead the appropriate subclass can be used. */
 
 class device_memory
 {
@@ -182,7 +180,7 @@ public:
 		return elements*data_elements*datatype_size(data_type);
 	}
 
-	/* data information */
+	/* Data information. */
 	DataType data_type;
 	int data_elements;
 	device_ptr data_pointer;
@@ -196,24 +194,38 @@ public:
 	InterpolationType interpolation;
 	ExtensionType extension;
 
-	/* device pointer */
+	/* Device pointer. */
 	Device *device;
 	device_ptr device_pointer;
 
-	device_memory(Device *device, const char *name, MemoryType type);
 	virtual ~device_memory();
 
-	void resize(size_t size)
-	{
-		data_size = size;
-		data_width = size;
-	}
-
 protected:
-	/* no copying */
+	/* Only create through subclasses. */
+	device_memory(Device *device, const char *name, MemoryType type);
+
+	/* No copying allowed. */
 	device_memory(const device_memory&);
 	device_memory& operator = (const device_memory&);
+
+	/* Host allocation on the device. All data_pointer memory should be
+	 * allocated with these functions, for devices that support using
+	 * the same pointer for host and device. */
+	device_ptr host_alloc(size_t size);
+	void host_free(device_ptr ptr, size_t size);
+
+	/* Device memory allocation and copying. */
+	void device_alloc();
+	void device_free();
+	void device_copy_to();
+	void device_copy_from(int y, int w, int h, int elem);
+	void device_zero();
 };
+
+/* Device Only Memory
+ *
+ * Working memory only needed by the device, with no corresponding allocation
+ * on the host. Only used internally in the device implementations. */
 
 template<typename T>
 class device_only_memory : public device_memory
@@ -226,18 +238,43 @@ public:
 		data_elements = max(device_type_traits<T>::num_elements, 1);
 	}
 
-	void resize(size_t num)
+	virtual ~device_only_memory()
 	{
-		device_memory::resize(num*sizeof(T));
+		free();
+	}
+
+	void alloc_to_device(size_t num)
+	{
+		data_size = num*sizeof(T);
+		device_alloc();
+	}
+
+	void free()
+	{
+		device_free();
+	}
+
+	void zero_to_device()
+	{
+		device_zero();
 	}
 };
 
-/* Device Vector */
+/* Device Vector
+ *
+ * Data vector to exchange data between host and device. Memory will be
+ * allocated on the host first with alloc() and resize, and then filled
+ * in and copied to the device with copy_to_device(). Or alternatively
+ * allocated and set to zero on the device with zero_to_device().
+ *
+ * When using memory type MEM_TEXTURE, a pointer to this memory will be
+ * automatically attached to kernel globals, using the provided name
+ * matching an entry in kernel_textures.h. */
 
 template<typename T> class device_vector : public device_memory
 {
 public:
-	device_vector(Device *device, const char *name, MemoryType type = MEM_READ_ONLY)
+	device_vector(Device *device, const char *name, MemoryType type)
 	: device_memory(device, name, type)
 	{
 		data_type = device_type_traits<T>::data_type;
@@ -246,84 +283,175 @@ public:
 		assert(data_elements > 0);
 	}
 
-	virtual ~device_vector() {}
-
-	/* vector functions */
-	T *resize(size_t width, size_t height = 0, size_t depth = 0)
+	virtual ~device_vector()
 	{
-		data_size = width * ((height == 0)? 1: height) * ((depth == 0)? 1: depth);
-		if(data.resize(data_size) == NULL) {
-			clear();
-			return NULL;
+		free();
+	}
+
+	/* Host memory allocation. */
+	T *alloc(size_t width, size_t height = 0, size_t depth = 0)
+	{
+		size_t new_size = size(width, height, depth);
+
+		if(new_size != data_size) {
+			device_free();
+			host_free(data_pointer, sizeof(T)*data_size);
+			data_pointer = host_alloc(sizeof(T)*new_size);
 		}
+
+		data_size = new_size;
 		data_width = width;
 		data_height = height;
 		data_depth = depth;
-		if(data_size == 0) {
-			data_pointer = 0;
-			return NULL;
-		}
-		data_pointer = (device_ptr)&data[0];
-		return &data[0];
+		assert(device_ptr == 0);
+
+		return get_data();
 	}
 
+	/* Host memory resize. Only use this if the original data needs to be
+	 * preserved, it is faster to call alloc() if it can be discarded. */
+	T *resize(size_t width, size_t height = 0, size_t depth = 0)
+	{
+		size_t new_size = size(width, height, depth);
+
+		if(new_size != data_size) {
+			device_ptr new_ptr = host_alloc(sizeof(T)*new_size);
+
+			if(new_size && data_size) {
+				size_t min_size = ((new_size < data_size)? new_size: data_size);
+				memcpy((T*)new_ptr, (T*)data_pointer, sizeof(T)*min_size);
+			}
+
+			device_free();
+			host_free(data_pointer, sizeof(T)*data_size);
+			data_pointer = new_ptr;
+		}
+
+		data_size = new_size;
+		data_width = width;
+		data_height = height;
+		data_depth = depth;
+		assert(device_ptr == 0);
+
+		return get_data();
+	}
+
+	/* Take over data from an existing array. */
 	void steal_data(array<T>& from)
 	{
-		data.steal_data(from);
-		data_size = data.size();
-		data_pointer = (data_size)? (device_ptr)&data[0]: 0;
-		data_width = data_size;
-		data_height = 0;
-		data_depth = 0;
-	}
+		device_free();
+		host_free(data_pointer, sizeof(T)*data_size);
 
-	void clear()
-	{
-		data.clear();
-		data_pointer = 0;
+		data_size = from.size();
 		data_width = 0;
 		data_height = 0;
 		data_depth = 0;
+		data_pointer = (device_ptr)from.steal_pointer();
+		assert(device_pointer == 0);
+	}
+
+	/* Free device and host memory. */
+	void free()
+	{
+		device_free();
+		host_free(data_pointer, sizeof(T)*data_size);
+
 		data_size = 0;
-		device_pointer = 0;
+		data_width = 0;
+		data_height = 0;
+		data_depth = 0;
+		data_pointer = 0;
+		assert(device_pointer == 0);
 	}
 
 	size_t size()
 	{
-		return data.size();
+		return data_size;
 	}
 
 	T* get_data()
 	{
-		return &data[0];
+		return (T*)data_pointer;
 	}
 
 	T& operator[](size_t i)
 	{
-		return data[i];
+		assert(i < data_size);
+		return get_data()[i];
 	}
 
-private:
-	array<T> data;
+	void copy_to_device()
+	{
+		device_copy_to();
+	}
+
+	void copy_from_device(int y, int w, int h)
+	{
+		device_copy_from(y, w, h, sizeof(T));
+	}
+
+	void zero_to_device()
+	{
+		device_zero();
+	}
+
+protected:
+	size_t size(size_t width, size_t height, size_t depth)
+	{
+		return width * ((height == 0)? 1: height) * ((depth == 0)? 1: depth);
+	}
 };
 
-/* A device_sub_ptr is a pointer into another existing memory.
- * Therefore, it is not allocated separately, but just created from the already allocated base memory.
- * It is freed automatically when it goes out of scope, which should happen before the base memory is freed.
- * Note that some devices require the offset and size of the sub_ptr to be properly aligned. */
+/* Pixel Memory
+ *
+ * Device memory to efficiently draw as pixels to the screen in interactive
+ * rendering. Only copying pixels from the device is supported, not copying to. */
+
+template<typename T> class device_pixels : public device_vector<T>
+{
+public:
+	device_pixels(Device *device, const char *name)
+	: device_vector<T>(device, name, MEM_PIXELS)
+	{
+	}
+
+	void alloc_to_device(size_t width, size_t height, size_t depth = 0)
+	{
+		device_vector<T>::alloc(width, height, depth);
+		device_memory::device_alloc();
+	}
+
+	T *copy_from_device(int y, int w, int h)
+	{
+		device_memory::device_copy_from(y, w, h, sizeof(T));
+		return device_vector<T>::get_data();
+	}
+};
+
+/* Device Sub Memory
+ *
+ * Pointer into existing memory. It is not allocated separately, but created
+ * from an already allocated base memory. It is freed automatically when it
+ * goes out of scope, which should happen before base memory is freed.
+ *
+ * Note: some devices require offset and size of the sub_ptr to be properly
+ * aligned to device->mem_address_alingment(). */
+
 class device_sub_ptr
 {
 public:
 	device_sub_ptr(device_memory& mem, int offset, int size);
 	~device_sub_ptr();
-	/* No copying. */
-	device_sub_ptr& operator = (const device_sub_ptr&);
 
 	device_ptr operator*() const
 	{
 		return ptr;
 	}
+
 protected:
+	/* No copying. */
+	device_sub_ptr& operator = (const device_sub_ptr&);
+
 	Device *device;
 	device_ptr ptr;
 };

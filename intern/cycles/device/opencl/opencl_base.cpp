@@ -74,7 +74,7 @@ void OpenCLDeviceBase::opencl_assert_err(cl_int err, const char* where)
 OpenCLDeviceBase::OpenCLDeviceBase(DeviceInfo& info, Stats &stats, bool background_)
 : Device(info, stats, background_),
   memory_manager(this),
-  texture_info_buffer(this, "__texture_info", MEM_READ_ONLY)
+  texture_info(this, "__texture_info", MEM_TEXTURE)
 {
 	cpPlatform = NULL;
 	cdDevice = NULL;
@@ -157,7 +157,6 @@ OpenCLDeviceBase::~OpenCLDeviceBase()
 
 	ConstMemMap::iterator mt;
 	for(mt = const_mem_map.begin(); mt != const_mem_map.end(); mt++) {
-		mem_free(*(mt->second));
 		delete mt->second;
 	}
 
@@ -318,9 +317,9 @@ void OpenCLDeviceBase::mem_alloc(device_memory& mem)
 	cl_mem_flags mem_flag;
 	void *mem_ptr = NULL;
 
-	if(mem.type == MEM_READ_ONLY)
+	if(mem.type == MEM_READ_ONLY || mem.type == MEM_TEXTURE)
 		mem_flag = CL_MEM_READ_ONLY;
-	else if(mem.type == MEM_WRITE_ONLY)
+	else if(mem.type == MEM_WRITE_ONLY || mem.type == MEM_PIXELS)
 		mem_flag = CL_MEM_WRITE_ONLY;
 	else
 		mem_flag = CL_MEM_READ_WRITE;
@@ -348,17 +347,27 @@ void OpenCLDeviceBase::mem_alloc(device_memory& mem)
 
 void OpenCLDeviceBase::mem_copy_to(device_memory& mem)
 {
-	/* this is blocking */
-	size_t size = mem.memory_size();
-	if(size != 0) {
-		opencl_assert(clEnqueueWriteBuffer(cqCommandQueue,
-		                                   CL_MEM_PTR(mem.device_pointer),
-		                                   CL_TRUE,
-		                                   0,
-		                                   size,
-		                                   (void*)mem.data_pointer,
-		                                   0,
-		                                   NULL, NULL));
+	if(mem.type == MEM_TEXTURE) {
+		tex_free(mem);
+		tex_alloc(mem);
+	}
+	else {
+		if(!mem.device_pointer) {
+			mem_alloc(mem);
+		}
+
+		/* this is blocking */
+		size_t size = mem.memory_size();
+		if(size != 0) {
+			opencl_assert(clEnqueueWriteBuffer(cqCommandQueue,
+			                                   CL_MEM_PTR(mem.device_pointer),
+			                                   CL_TRUE,
+			                                   0,
+			                                   size,
+			                                   (void*)mem.data_pointer,
+			                                   0,
+			                                   NULL, NULL));
+		}
 	}
 }
 
@@ -410,6 +419,10 @@ void OpenCLDeviceBase::mem_zero_kernel(device_ptr mem, size_t size)
 
 void OpenCLDeviceBase::mem_zero(device_memory& mem)
 {
+	if(!mem.device_pointer) {
+		mem_alloc(mem);
+	}
+
 	if(mem.device_pointer) {
 		if(base_program.is_loaded()) {
 			mem_zero_kernel(mem.device_pointer, mem.memory_size());
@@ -445,14 +458,19 @@ void OpenCLDeviceBase::mem_zero(device_memory& mem)
 
 void OpenCLDeviceBase::mem_free(device_memory& mem)
 {
-	if(mem.device_pointer) {
-		if(mem.device_pointer != null_mem) {
-			opencl_assert(clReleaseMemObject(CL_MEM_PTR(mem.device_pointer)));
-		}
-		mem.device_pointer = 0;
+	if(mem.type == MEM_TEXTURE) {
+		tex_free(mem);
+	}
+	else {
+		if(mem.device_pointer) {
+			if(mem.device_pointer != null_mem) {
+				opencl_assert(clReleaseMemObject(CL_MEM_PTR(mem.device_pointer)));
+			}
+			mem.device_pointer = 0;
 
-		stats.mem_free(mem.device_size);
-		mem.device_size = 0;
+			stats.mem_free(mem.device_size);
+			mem.device_size = 0;
+		}
 	}
 }
 
@@ -464,9 +482,9 @@ int OpenCLDeviceBase::mem_address_alignment()
 device_ptr OpenCLDeviceBase::mem_alloc_sub_ptr(device_memory& mem, int offset, int size)
 {
 	cl_mem_flags mem_flag;
-	if(mem.type == MEM_READ_ONLY)
+	if(mem.type == MEM_READ_ONLY || mem.type == MEM_TEXTURE)
 		mem_flag = CL_MEM_READ_ONLY;
-	else if(mem.type == MEM_WRITE_ONLY)
+	else if(mem.type == MEM_WRITE_ONLY || mem.type == MEM_PIXELS)
 		mem_flag = CL_MEM_WRITE_ONLY;
 	else
 		mem_flag = CL_MEM_READ_WRITE;
@@ -498,9 +516,7 @@ void OpenCLDeviceBase::const_copy_to(const char *name, void *host, size_t size)
 
 	if(i == const_mem_map.end()) {
 		data = new device_vector<uchar>(this, name, MEM_READ_ONLY);
-		data->resize(size);
-
-		mem_alloc(*data);
+		data->alloc(size);
 		const_mem_map.insert(ConstMemMap::value_type(name, data));
 	}
 	else {
@@ -508,7 +524,7 @@ void OpenCLDeviceBase::const_copy_to(const char *name, void *host, size_t size)
 	}
 
 	memcpy(data->get_data(), host, size);
-	mem_copy_to(*data);
+	data->copy_to_device();
 }
 
 void OpenCLDeviceBase::tex_alloc(device_memory& mem)
@@ -1037,8 +1053,7 @@ bool OpenCLDeviceBase::denoising_detect_outliers(device_ptr image_ptr,
 bool OpenCLDeviceBase::denoising_set_tiles(device_ptr *buffers,
                                            DenoisingTask *task)
 {
-	mem_alloc(task->tiles_mem);
-	mem_copy_to(task->tiles_mem);
+	task->tiles_mem.copy_to_device();
 
 	cl_mem tiles_mem = CL_MEM_PTR(task->tiles_mem.device_pointer);
 

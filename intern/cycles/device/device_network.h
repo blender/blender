@@ -279,6 +279,11 @@ public:
 
 		mem.name = name.c_str();
 		mem.data_pointer = 0;
+
+		/* Can't transfer OpenGL texture over network. */
+		if(mem.type == MEM_PIXELS) {
+			mem.type = MEM_WRITE_ONLY;
+		}
 	}
 
 	template<typename T> void read(T& data)

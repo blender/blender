@@ -1252,7 +1252,7 @@ void MeshManager::update_osl_attributes(Device *device, Scene *scene, vector<Att
 #endif
 }
 
-void MeshManager::update_svm_attributes(Device *device, DeviceScene *dscene, Scene *scene, vector<AttributeRequestSet>& mesh_attributes)
+void MeshManager::update_svm_attributes(Device *, DeviceScene *dscene, Scene *scene, vector<AttributeRequestSet>& mesh_attributes)
 {
 	/* for SVM, the attributes_map table is used to lookup the offset of an
 	 * attribute, based on a unique shader attribute id. */
@@ -1267,7 +1267,7 @@ void MeshManager::update_svm_attributes(Device *device, DeviceScene *dscene, Sce
 		return;
 
 	/* create attribute map */
-	uint4 *attr_map = dscene->attributes_map.resize(attr_map_stride*scene->objects.size());
+	uint4 *attr_map = dscene->attributes_map.alloc(attr_map_stride*scene->objects.size());
 	memset(attr_map, 0, dscene->attributes_map.size()*sizeof(uint));
 
 	for(size_t i = 0; i < scene->objects.size(); i++) {
@@ -1359,7 +1359,7 @@ void MeshManager::update_svm_attributes(Device *device, DeviceScene *dscene, Sce
 
 	/* copy to device */
 	dscene->data.bvh.attributes_map_stride = attr_map_stride;
-	device->tex_alloc(dscene->attributes_map);
+	dscene->attributes_map.copy_to_device();
 }
 
 static void update_attribute_element_size(Mesh *mesh,
@@ -1554,9 +1554,9 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 		}
 	}
 
-	dscene->attributes_float.resize(attr_float_size);
-	dscene->attributes_float3.resize(attr_float3_size);
-	dscene->attributes_uchar4.resize(attr_uchar4_size);
+	dscene->attributes_float.alloc(attr_float_size);
+	dscene->attributes_float3.alloc(attr_float3_size);
+	dscene->attributes_uchar4.alloc(attr_uchar4_size);
 
 	size_t attr_float_offset = 0;
 	size_t attr_float3_offset = 0;
@@ -1617,13 +1617,13 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 	progress.set_status("Updating Mesh", "Copying Attributes to device");
 
 	if(dscene->attributes_float.size()) {
-		device->tex_alloc(dscene->attributes_float);
+		dscene->attributes_float.copy_to_device();
 	}
 	if(dscene->attributes_float3.size()) {
-		device->tex_alloc(dscene->attributes_float3);
+		dscene->attributes_float3.copy_to_device();
 	}
 	if(dscene->attributes_uchar4.size()) {
-		device->tex_alloc(dscene->attributes_uchar4);
+		dscene->attributes_uchar4.copy_to_device();
 	}
 }
 
@@ -1671,7 +1671,7 @@ void MeshManager::mesh_calc_offset(Scene *scene)
 	}
 }
 
-void MeshManager::device_update_mesh(Device *device,
+void MeshManager::device_update_mesh(Device *,
                                      DeviceScene *dscene,
                                      Scene *scene,
                                      bool for_displacement,
@@ -1732,11 +1732,11 @@ void MeshManager::device_update_mesh(Device *device,
 		/* normals */
 		progress.set_status("Updating Mesh", "Computing normals");
 
-		uint *tri_shader = dscene->tri_shader.resize(tri_size);
-		float4 *vnormal = dscene->tri_vnormal.resize(vert_size);
-		uint4 *tri_vindex = dscene->tri_vindex.resize(tri_size);
-		uint *tri_patch = dscene->tri_patch.resize(tri_size);
-		float2 *tri_patch_uv = dscene->tri_patch_uv.resize(vert_size);
+		uint *tri_shader = dscene->tri_shader.alloc(tri_size);
+		float4 *vnormal = dscene->tri_vnormal.alloc(vert_size);
+		uint4 *tri_vindex = dscene->tri_vindex.alloc(tri_size);
+		uint *tri_patch = dscene->tri_patch.alloc(tri_size);
+		float2 *tri_patch_uv = dscene->tri_patch_uv.alloc(vert_size);
 
 		foreach(Mesh *mesh, scene->meshes) {
 			mesh->pack_normals(scene,
@@ -1754,32 +1754,32 @@ void MeshManager::device_update_mesh(Device *device,
 		/* vertex coordinates */
 		progress.set_status("Updating Mesh", "Copying Mesh to device");
 
-		device->tex_alloc(dscene->tri_shader);
-		device->tex_alloc(dscene->tri_vnormal);
-		device->tex_alloc(dscene->tri_vindex);
-		device->tex_alloc(dscene->tri_patch);
-		device->tex_alloc(dscene->tri_patch_uv);
+		dscene->tri_shader.copy_to_device();
+		dscene->tri_vnormal.copy_to_device();
+		dscene->tri_vindex.copy_to_device();
+		dscene->tri_patch.copy_to_device();
+		dscene->tri_patch_uv.copy_to_device();
 	}
 
 	if(curve_size != 0) {
 		progress.set_status("Updating Mesh", "Copying Strands to device");
 
-		float4 *curve_keys = dscene->curve_keys.resize(curve_key_size);
-		float4 *curves = dscene->curves.resize(curve_size);
+		float4 *curve_keys = dscene->curve_keys.alloc(curve_key_size);
+		float4 *curves = dscene->curves.alloc(curve_size);
 
 		foreach(Mesh *mesh, scene->meshes) {
 			mesh->pack_curves(scene, &curve_keys[mesh->curvekey_offset], &curves[mesh->curve_offset], mesh->curvekey_offset);
 			if(progress.get_cancel()) return;
 		}
 
-		device->tex_alloc(dscene->curve_keys);
-		device->tex_alloc(dscene->curves);
+		dscene->curve_keys.copy_to_device();
+		dscene->curves.copy_to_device();
 	}
 
 	if(patch_size != 0) {
 		progress.set_status("Updating Mesh", "Copying Patches to device");
 
-		uint *patch_data = dscene->patches.resize(patch_size);
+		uint *patch_data = dscene->patches.alloc(patch_size);
 
 		foreach(Mesh *mesh, scene->meshes) {
 			mesh->pack_patches(&patch_data[mesh->patch_offset], mesh->vert_offset, mesh->face_offset, mesh->corner_offset);
@@ -1791,11 +1791,11 @@ void MeshManager::device_update_mesh(Device *device,
 			if(progress.get_cancel()) return;
 		}
 
-		device->tex_alloc(dscene->patches);
+		dscene->patches.copy_to_device();
 	}
 
 	if(for_displacement) {
-		float4 *prim_tri_verts = dscene->prim_tri_verts.resize(tri_size * 3);
+		float4 *prim_tri_verts = dscene->prim_tri_verts.alloc(tri_size * 3);
 		foreach(Mesh *mesh, scene->meshes) {
 			for(size_t i = 0; i < mesh->num_triangles(); ++i) {
 				Mesh::Triangle t = mesh->get_triangle(i);
@@ -1805,7 +1805,7 @@ void MeshManager::device_update_mesh(Device *device,
 				prim_tri_verts[offset + 2] = float3_to_float4(mesh->verts[t.v[2]]);
 			}
 		}
-		device->tex_alloc(dscene->prim_tri_verts);
+		dscene->prim_tri_verts.copy_to_device();
 	}
 }
 
@@ -1841,43 +1841,43 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 
 	if(pack.nodes.size()) {
 		dscene->bvh_nodes.steal_data(pack.nodes);
-		device->tex_alloc(dscene->bvh_nodes);
+		dscene->bvh_nodes.copy_to_device();
 	}
 	if(pack.leaf_nodes.size()) {
 		dscene->bvh_leaf_nodes.steal_data(pack.leaf_nodes);
-		device->tex_alloc(dscene->bvh_leaf_nodes);
+		dscene->bvh_leaf_nodes.copy_to_device();
 	}
 	if(pack.object_node.size()) {
 		dscene->object_node.steal_data(pack.object_node);
-		device->tex_alloc(dscene->object_node);
+		dscene->object_node.copy_to_device();
 	}
 	if(pack.prim_tri_index.size()) {
 		dscene->prim_tri_index.steal_data(pack.prim_tri_index);
-		device->tex_alloc(dscene->prim_tri_index);
+		dscene->prim_tri_index.copy_to_device();
 	}
 	if(pack.prim_tri_verts.size()) {
 		dscene->prim_tri_verts.steal_data(pack.prim_tri_verts);
-		device->tex_alloc(dscene->prim_tri_verts);
+		dscene->prim_tri_verts.copy_to_device();
 	}
 	if(pack.prim_type.size()) {
 		dscene->prim_type.steal_data(pack.prim_type);
-		device->tex_alloc(dscene->prim_type);
+		dscene->prim_type.copy_to_device();
 	}
 	if(pack.prim_visibility.size()) {
 		dscene->prim_visibility.steal_data(pack.prim_visibility);
-		device->tex_alloc(dscene->prim_visibility);
+		dscene->prim_visibility.copy_to_device();
 	}
 	if(pack.prim_index.size()) {
 		dscene->prim_index.steal_data(pack.prim_index);
-		device->tex_alloc(dscene->prim_index);
+		dscene->prim_index.copy_to_device();
 	}
 	if(pack.prim_object.size()) {
 		dscene->prim_object.steal_data(pack.prim_object);
-		device->tex_alloc(dscene->prim_object);
+		dscene->prim_object.copy_to_device();
 	}
 	if(pack.prim_time.size()) {
 		dscene->prim_time.steal_data(pack.prim_time);
-		device->tex_alloc(dscene->prim_time);
+		dscene->prim_time.copy_to_device();
 	}
 
 	dscene->data.bvh.root = pack.root_index;
@@ -2142,51 +2142,28 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 
 void MeshManager::device_free(Device *device, DeviceScene *dscene)
 {
-	device->tex_free(dscene->bvh_nodes);
-	device->tex_free(dscene->bvh_leaf_nodes);
-	device->tex_free(dscene->object_node);
-	device->tex_free(dscene->prim_tri_verts);
-	device->tex_free(dscene->prim_tri_index);
-	device->tex_free(dscene->prim_type);
-	device->tex_free(dscene->prim_visibility);
-	device->tex_free(dscene->prim_index);
-	device->tex_free(dscene->prim_object);
-	device->tex_free(dscene->prim_time);
-	device->tex_free(dscene->tri_shader);
-	device->tex_free(dscene->tri_vnormal);
-	device->tex_free(dscene->tri_vindex);
-	device->tex_free(dscene->tri_patch);
-	device->tex_free(dscene->tri_patch_uv);
-	device->tex_free(dscene->curves);
-	device->tex_free(dscene->curve_keys);
-	device->tex_free(dscene->patches);
-	device->tex_free(dscene->attributes_map);
-	device->tex_free(dscene->attributes_float);
-	device->tex_free(dscene->attributes_float3);
-	device->tex_free(dscene->attributes_uchar4);
-
-	dscene->bvh_nodes.clear();
-	dscene->bvh_leaf_nodes.clear();
-	dscene->object_node.clear();
-	dscene->prim_tri_verts.clear();
-	dscene->prim_tri_index.clear();
-	dscene->prim_type.clear();
-	dscene->prim_visibility.clear();
-	dscene->prim_index.clear();
-	dscene->prim_object.clear();
-	dscene->prim_time.clear();
-	dscene->tri_shader.clear();
-	dscene->tri_vnormal.clear();
-	dscene->tri_vindex.clear();
-	dscene->tri_patch.clear();
-	dscene->tri_patch_uv.clear();
-	dscene->curves.clear();
-	dscene->curve_keys.clear();
-	dscene->patches.clear();
-	dscene->attributes_map.clear();
-	dscene->attributes_float.clear();
-	dscene->attributes_float3.clear();
-	dscene->attributes_uchar4.clear();
+	dscene->bvh_nodes.free();
+	dscene->bvh_leaf_nodes.free();
+	dscene->object_node.free();
+	dscene->prim_tri_verts.free();
+	dscene->prim_tri_index.free();
+	dscene->prim_type.free();
+	dscene->prim_visibility.free();
+	dscene->prim_index.free();
+	dscene->prim_object.free();
+	dscene->prim_time.free();
+	dscene->tri_shader.free();
+	dscene->tri_vnormal.free();
+	dscene->tri_vindex.free();
+	dscene->tri_patch.free();
+	dscene->tri_patch_uv.free();
+	dscene->curves.free();
+	dscene->curve_keys.free();
+	dscene->patches.free();
+	dscene->attributes_map.free();
+	dscene->attributes_float.free();
+	dscene->attributes_float3.free();
+	dscene->attributes_uchar4.free();
 
 #ifdef WITH_OSL
 	OSLGlobals *og = (OSLGlobals*)device->osl_memory();

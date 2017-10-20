@@ -65,7 +65,7 @@ bool MeshManager::displace(Device *device, DeviceScene *dscene, Scene *scene, Me
 	const size_t num_verts = mesh->verts.size();
 	vector<bool> done(num_verts, false);
 	device_vector<uint4> d_input(device, "displace_input", MEM_READ_ONLY);
-	uint4 *d_input_data = d_input.resize(num_verts);
+	uint4 *d_input_data = d_input.alloc(num_verts);
 	size_t d_input_size = 0;
 
 	size_t num_triangles = mesh->num_triangles();
@@ -116,15 +116,12 @@ bool MeshManager::displace(Device *device, DeviceScene *dscene, Scene *scene, Me
 	
 	/* run device task */
 	device_vector<float4> d_output(device, "displace_output", MEM_WRITE_ONLY);
-	d_output.resize(d_input_size);
+	d_output.alloc(d_input_size);
+	d_output.zero_to_device();
+	d_input.copy_to_device();
 
 	/* needs to be up to data for attribute access */
 	device->const_copy_to("__data", &dscene->data, sizeof(dscene->data));
-
-	device->mem_alloc(d_input);
-	device->mem_copy_to(d_input);
-	device->mem_alloc(d_output);
-	device->mem_zero(d_output);
 
 	DeviceTask task(DeviceTask::SHADER);
 	task.shader_input = d_input.device_pointer;
@@ -139,14 +136,13 @@ bool MeshManager::displace(Device *device, DeviceScene *dscene, Scene *scene, Me
 	device->task_wait();
 
 	if(progress.get_cancel()) {
-		device->mem_free(d_input);
-		device->mem_free(d_output);
+		d_input.free();
+		d_output.free();
 		return false;
 	}
 
-	device->mem_copy_from(d_output, 0, 1, d_output.size(), sizeof(float4));
-	device->mem_free(d_input);
-	device->mem_free(d_output);
+	d_output.copy_from_device(0, 1, d_output.size());
+	d_input.free();
 
 	/* read result */
 	done.clear();
@@ -182,6 +178,8 @@ bool MeshManager::displace(Device *device, DeviceScene *dscene, Scene *scene, Me
 			}
 		}
 	}
+
+	d_output.free();
 
 	/* for displacement method both, we only need to recompute the face
 	 * normals, as bump mapping in the shader will already alter the

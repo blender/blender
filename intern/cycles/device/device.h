@@ -281,27 +281,11 @@ public:
 	/* statistics */
 	Stats &stats;
 
-	/* regular memory */
-	virtual void mem_alloc(device_memory& mem) = 0;
-	virtual void mem_copy_to(device_memory& mem) = 0;
-	virtual void mem_copy_from(device_memory& mem,
-		int y, int w, int h, int elem) = 0;
-	virtual void mem_zero(device_memory& mem) = 0;
-	virtual void mem_free(device_memory& mem) = 0;
-
+	/* memory alignment */
 	virtual int mem_address_alignment() { return 16; }
 
 	/* constant memory */
 	virtual void const_copy_to(const char *name, void *host, size_t size) = 0;
-
-	/* texture memory */
-	virtual void tex_alloc(device_memory& /*mem*/) {};
-	virtual void tex_free(device_memory& /*mem*/) {};
-
-	/* pixel memory */
-	virtual void pixels_alloc(device_memory& mem);
-	virtual void pixels_copy_from(device_memory& mem, int y, int w, int h);
-	virtual void pixels_free(device_memory& mem);
 
 	/* open shading language, only for CPU device */
 	virtual void *osl_memory() { return NULL; }
@@ -349,6 +333,20 @@ public:
 	static void tag_update();
 
 	static void free_memory();
+
+protected:
+	/* Memory allocation, only accessed through device_memory. */
+	friend class MultiDevice;
+	friend class DeviceServer;
+	friend class device_memory;
+
+	virtual void mem_alloc(device_memory& mem) = 0;
+	virtual void mem_copy_to(device_memory& mem) = 0;
+	virtual void mem_copy_from(device_memory& mem,
+		int y, int w, int h, int elem) = 0;
+	virtual void mem_zero(device_memory& mem) = 0;
+	virtual void mem_free(device_memory& mem) = 0;
+
 private:
 	/* Indicted whether device types and devices lists were initialized. */
 	static bool need_types_update, need_devices_update;
