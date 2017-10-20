@@ -584,7 +584,7 @@ UvVertMap *BM_uv_vert_map_create(
 			}
 
 			if (use_winding) {
-				winding[a] = cross_poly_v2((const float (*)[2])tf_uv, efa->len) > 0;
+				winding[a] = cross_poly_v2(tf_uv, efa->len) > 0;
 			}
 		}
 	}
@@ -734,7 +734,7 @@ UvElementMap *BM_uv_element_map_create(
 			}
 
 			if (use_winding) {
-				winding[j] = cross_poly_v2((const float (*)[2])tf_uv, efa->len) > 0;
+				winding[j] = cross_poly_v2(tf_uv, efa->len) > 0;
 			}
 		}
 	}

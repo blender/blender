@@ -4483,7 +4483,7 @@ static void param_pack_rotate(ParamHandle *handle)
 
 		p_chart_uv_to_array(chart, points);
 
-		angle = BLI_convexhull_aabb_fit_points_2d((const float (*)[2])points, chart->nverts);
+		angle = BLI_convexhull_aabb_fit_points_2d(points, chart->nverts);
 
 		MEM_freeN(points);
 

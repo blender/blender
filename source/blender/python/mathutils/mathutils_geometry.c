@@ -1430,7 +1430,7 @@ static PyObject *M_Geometry_box_fit_2d(PyObject *UNUSED(self), PyObject *pointli
 
 	if (len) {
 		/* Non Python function */
-		angle = BLI_convexhull_aabb_fit_points_2d((const float (*)[2])points, len);
+		angle = BLI_convexhull_aabb_fit_points_2d(points, len);
 
 		PyMem_Free(points);
 	}
@@ -1468,7 +1468,7 @@ static PyObject *M_Geometry_convex_hull_2d(PyObject *UNUSED(self), PyObject *poi
 		index_map  = MEM_mallocN(sizeof(*index_map) * len * 2, __func__);
 
 		/* Non Python function */
-		len_ret = BLI_convexhull_2d((const float (*)[2])points, len, index_map);
+		len_ret = BLI_convexhull_2d(points, len, index_map);
 
 		ret = PyList_New(len_ret);
 		for (i = 0; i < len_ret; i++) {
