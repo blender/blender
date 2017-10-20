@@ -87,10 +87,10 @@ public:
 		snd.write();
 	}
 
-	void mem_alloc(const char *name, device_memory& mem, MemoryType type)
+	void mem_alloc(device_memory& mem)
 	{
-		if(name) {
-			VLOG(1) << "Buffer allocate: " << name << ", "
+		if(mem.name) {
+			VLOG(1) << "Buffer allocate: " << mem.name << ", "
 				    << string_human_readable_number(mem.memory_size()) << " bytes. ("
 				    << string_human_readable_size(mem.memory_size()) << ")";
 		}
@@ -100,9 +100,7 @@ public:
 		mem.device_pointer = ++mem_counter;
 
 		RPCSend snd(socket, &error_func, "mem_alloc");
-
 		snd.add(mem);
-		snd.add(type);
 		snd.write();
 	}
 
@@ -174,12 +172,9 @@ public:
 		snd.write_buffer(host, size);
 	}
 
-	void tex_alloc(const char *name,
-	               device_memory& mem,
-	               InterpolationType interpolation,
-	               ExtensionType extension)
+	void tex_alloc(device_memory& mem)
 	{
-		VLOG(1) << "Texture allocate: " << name << ", "
+		VLOG(1) << "Texture allocate: " << mem.name << ", "
 		        << string_human_readable_number(mem.memory_size()) << " bytes. ("
 		        << string_human_readable_size(mem.memory_size()) << ")";
 
@@ -188,13 +183,7 @@ public:
 		mem.device_pointer = ++mem_counter;
 
 		RPCSend snd(socket, &error_func, "tex_alloc");
-
-		string name_string(name);
-
-		snd.add(name_string);
 		snd.add(mem);
-		snd.add(interpolation);
-		snd.add(extension);
 		snd.write();
 		snd.write_buffer((void*)mem.data_pointer, mem.memory_size());
 	}
@@ -470,16 +459,12 @@ protected:
 	void process(RPCReceive& rcv, thread_scoped_lock &lock)
 	{
 		if(rcv.name == "mem_alloc") {
-			MemoryType type;
-			network_device_memory mem;
-			device_ptr client_pointer;
-
-			rcv.read(mem);
-			rcv.read(type);
-
+			string name;
+			network_device_memory mem(device);
+			rcv.read(mem, name);
 			lock.unlock();
 
-			client_pointer = mem.device_pointer;
+			device_ptr client_pointer = mem.device_pointer;
 
 			/* create a memory buffer for the device buffer */
 			size_t data_size = mem.memory_size();
@@ -491,15 +476,15 @@ protected:
 				mem.data_pointer = 0;
 
 			/* perform the allocation on the actual device */
-			device->mem_alloc(NULL, mem, type);
+			device->mem_alloc(mem);
 
 			/* store a mapping to/from client_pointer and real device pointer */
 			pointer_mapping_insert(client_pointer, mem.device_pointer);
 		}
 		else if(rcv.name == "mem_copy_to") {
-			network_device_memory mem;
-
-			rcv.read(mem);
+			string name;
+			network_device_memory mem(device);
+			rcv.read(mem, name);
 			lock.unlock();
 
 			device_ptr client_pointer = mem.device_pointer;
@@ -521,10 +506,11 @@ protected:
 			device->mem_copy_to(mem);
 		}
 		else if(rcv.name == "mem_copy_from") {
-			network_device_memory mem;
+			string name;
+			network_device_memory mem(device);
 			int y, w, h, elem;
 
-			rcv.read(mem);
+			rcv.read(mem, name);
 			rcv.read(y);
 			rcv.read(w);
 			rcv.read(h);
@@ -547,9 +533,9 @@ protected:
 			lock.unlock();
 		}
 		else if(rcv.name == "mem_zero") {
-			network_device_memory mem;
-			
-			rcv.read(mem);
+			string name;
+			network_device_memory mem(device);
+			rcv.read(mem, name);
 			lock.unlock();
 
 			device_ptr client_pointer = mem.device_pointer;
@@ -562,13 +548,13 @@ protected:
 			device->mem_zero(mem);
 		}
 		else if(rcv.name == "mem_free") {
-			network_device_memory mem;
-			device_ptr client_pointer;
+			string name;
+			network_device_memory mem(device);
 
-			rcv.read(mem);
+			rcv.read(mem, name);
 			lock.unlock();
 
-			client_pointer = mem.device_pointer;
+			device_ptr client_pointer = mem.device_pointer;
 
 			mem.device_pointer = device_ptr_from_client_pointer_erase(client_pointer);
 
@@ -588,16 +574,11 @@ protected:
 			device->const_copy_to(name_string.c_str(), &host_vector[0], size);
 		}
 		else if(rcv.name == "tex_alloc") {
-			network_device_memory mem;
 			string name;
-			InterpolationType interpolation;
-			ExtensionType extension_type;
+			network_device_memory mem(device);
 			device_ptr client_pointer;
 
-			rcv.read(name);
-			rcv.read(mem);
-			rcv.read(interpolation);
-			rcv.read(extension_type);
+			rcv.read(mem, name);
 			lock.unlock();
 
 			client_pointer = mem.device_pointer;
@@ -613,15 +594,16 @@ protected:
 
 			rcv.read_buffer((uint8_t*)mem.data_pointer, data_size);
 
-			device->tex_alloc(name.c_str(), mem, interpolation, extension_type);
+			device->tex_alloc(mem);
 
 			pointer_mapping_insert(client_pointer, mem.device_pointer);
 		}
 		else if(rcv.name == "tex_free") {
-			network_device_memory mem;
+			string name;
+			network_device_memory mem(device);
 			device_ptr client_pointer;
 
-			rcv.read(mem);
+			rcv.read(mem, name);
 			lock.unlock();
 
 			client_pointer = mem.device_pointer;

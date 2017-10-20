@@ -91,7 +91,7 @@ void ParticleSystemManager::device_update_particles(Device *device, DeviceScene 
 		}
 	}
 	
-	device->tex_alloc("__particles", dscene->particles);
+	device->tex_alloc(dscene->particles);
 }
 
 void ParticleSystemManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)

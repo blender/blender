@@ -130,7 +130,7 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 	}
 
 	dscene->svm_nodes.steal_data(svm_nodes);
-	device->tex_alloc("__svm_nodes", dscene->svm_nodes);
+	device->tex_alloc(dscene->svm_nodes);
 
 	for(i = 0; i < scene->shaders.size(); i++) {
 		Shader *shader = scene->shaders[i];

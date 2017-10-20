@@ -1359,7 +1359,7 @@ void MeshManager::update_svm_attributes(Device *device, DeviceScene *dscene, Sce
 
 	/* copy to device */
 	dscene->data.bvh.attributes_map_stride = attr_map_stride;
-	device->tex_alloc("__attributes_map", dscene->attributes_map);
+	device->tex_alloc(dscene->attributes_map);
 }
 
 static void update_attribute_element_size(Mesh *mesh,
@@ -1617,13 +1617,13 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 	progress.set_status("Updating Mesh", "Copying Attributes to device");
 
 	if(dscene->attributes_float.size()) {
-		device->tex_alloc("__attributes_float", dscene->attributes_float);
+		device->tex_alloc(dscene->attributes_float);
 	}
 	if(dscene->attributes_float3.size()) {
-		device->tex_alloc("__attributes_float3", dscene->attributes_float3);
+		device->tex_alloc(dscene->attributes_float3);
 	}
 	if(dscene->attributes_uchar4.size()) {
-		device->tex_alloc("__attributes_uchar4", dscene->attributes_uchar4);
+		device->tex_alloc(dscene->attributes_uchar4);
 	}
 }
 
@@ -1754,11 +1754,11 @@ void MeshManager::device_update_mesh(Device *device,
 		/* vertex coordinates */
 		progress.set_status("Updating Mesh", "Copying Mesh to device");
 
-		device->tex_alloc("__tri_shader", dscene->tri_shader);
-		device->tex_alloc("__tri_vnormal", dscene->tri_vnormal);
-		device->tex_alloc("__tri_vindex", dscene->tri_vindex);
-		device->tex_alloc("__tri_patch", dscene->tri_patch);
-		device->tex_alloc("__tri_patch_uv", dscene->tri_patch_uv);
+		device->tex_alloc(dscene->tri_shader);
+		device->tex_alloc(dscene->tri_vnormal);
+		device->tex_alloc(dscene->tri_vindex);
+		device->tex_alloc(dscene->tri_patch);
+		device->tex_alloc(dscene->tri_patch_uv);
 	}
 
 	if(curve_size != 0) {
@@ -1772,8 +1772,8 @@ void MeshManager::device_update_mesh(Device *device,
 			if(progress.get_cancel()) return;
 		}
 
-		device->tex_alloc("__curve_keys", dscene->curve_keys);
-		device->tex_alloc("__curves", dscene->curves);
+		device->tex_alloc(dscene->curve_keys);
+		device->tex_alloc(dscene->curves);
 	}
 
 	if(patch_size != 0) {
@@ -1791,7 +1791,7 @@ void MeshManager::device_update_mesh(Device *device,
 			if(progress.get_cancel()) return;
 		}
 
-		device->tex_alloc("__patches", dscene->patches);
+		device->tex_alloc(dscene->patches);
 	}
 
 	if(for_displacement) {
@@ -1805,7 +1805,7 @@ void MeshManager::device_update_mesh(Device *device,
 				prim_tri_verts[offset + 2] = float3_to_float4(mesh->verts[t.v[2]]);
 			}
 		}
-		device->tex_alloc("__prim_tri_verts", dscene->prim_tri_verts);
+		device->tex_alloc(dscene->prim_tri_verts);
 	}
 }
 
@@ -1841,43 +1841,43 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 
 	if(pack.nodes.size()) {
 		dscene->bvh_nodes.steal_data(pack.nodes);
-		device->tex_alloc("__bvh_nodes", dscene->bvh_nodes);
+		device->tex_alloc(dscene->bvh_nodes);
 	}
 	if(pack.leaf_nodes.size()) {
 		dscene->bvh_leaf_nodes.steal_data(pack.leaf_nodes);
-		device->tex_alloc("__bvh_leaf_nodes", dscene->bvh_leaf_nodes);
+		device->tex_alloc(dscene->bvh_leaf_nodes);
 	}
 	if(pack.object_node.size()) {
 		dscene->object_node.steal_data(pack.object_node);
-		device->tex_alloc("__object_node", dscene->object_node);
+		device->tex_alloc(dscene->object_node);
 	}
 	if(pack.prim_tri_index.size()) {
 		dscene->prim_tri_index.steal_data(pack.prim_tri_index);
-		device->tex_alloc("__prim_tri_index", dscene->prim_tri_index);
+		device->tex_alloc(dscene->prim_tri_index);
 	}
 	if(pack.prim_tri_verts.size()) {
 		dscene->prim_tri_verts.steal_data(pack.prim_tri_verts);
-		device->tex_alloc("__prim_tri_verts", dscene->prim_tri_verts);
+		device->tex_alloc(dscene->prim_tri_verts);
 	}
 	if(pack.prim_type.size()) {
 		dscene->prim_type.steal_data(pack.prim_type);
-		device->tex_alloc("__prim_type", dscene->prim_type);
+		device->tex_alloc(dscene->prim_type);
 	}
 	if(pack.prim_visibility.size()) {
 		dscene->prim_visibility.steal_data(pack.prim_visibility);
-		device->tex_alloc("__prim_visibility", dscene->prim_visibility);
+		device->tex_alloc(dscene->prim_visibility);
 	}
 	if(pack.prim_index.size()) {
 		dscene->prim_index.steal_data(pack.prim_index);
-		device->tex_alloc("__prim_index", dscene->prim_index);
+		device->tex_alloc(dscene->prim_index);
 	}
 	if(pack.prim_object.size()) {
 		dscene->prim_object.steal_data(pack.prim_object);
-		device->tex_alloc("__prim_object", dscene->prim_object);
+		device->tex_alloc(dscene->prim_object);
 	}
 	if(pack.prim_time.size()) {
 		dscene->prim_time.steal_data(pack.prim_time);
-		device->tex_alloc("__prim_time", dscene->prim_time);
+		device->tex_alloc(dscene->prim_time);
 	}
 
 	dscene->data.bvh.root = pack.root_index;

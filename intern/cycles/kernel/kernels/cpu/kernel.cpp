@@ -75,11 +75,7 @@ void kernel_const_copy(KernelGlobals *kg, const char *name, void *host, size_t s
 void kernel_tex_copy(KernelGlobals *kg,
                      const char *name,
                      device_ptr mem,
-                     size_t width,
-                     size_t height,
-                     size_t depth,
-                     InterpolationType interpolation,
-                     ExtensionType extension)
+                     size_t size)
 {
 	if(0) {
 	}
@@ -87,7 +83,7 @@ void kernel_tex_copy(KernelGlobals *kg,
 #define KERNEL_TEX(type, tname) \
 	else if(strcmp(name, #tname) == 0) { \
 		kg->tname.data = (type*)mem; \
-		kg->tname.width = width; \
+		kg->tname.width = size; \
 	}
 #define KERNEL_IMAGE_TEX(type, tname)
 #include "kernel/kernel_textures.h"

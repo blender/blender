@@ -114,6 +114,8 @@ public:
 	device_vector<uint> sobol_directions;
 
 	KernelData data;
+
+	DeviceScene(Device *device);
 };
 
 /* Scene Parameters */

@@ -38,6 +38,7 @@
 #include "util/util_foreach.h"
 #include "util/util_list.h"
 #include "util/util_map.h"
+#include "util/util_param.h"
 #include "util/util_string.h"
 
 CCL_NAMESPACE_BEGIN
@@ -68,8 +69,15 @@ typedef boost::archive::binary_iarchive i_archive;
 class network_device_memory : public device_memory
 {
 public:
-	network_device_memory() {}
-	~network_device_memory() { device_pointer = 0; };
+	network_device_memory(Device *device)
+	: device_memory(device, "", MEM_READ_ONLY)
+	{
+	}
+
+	~network_device_memory()
+	{
+		device_pointer = 0;
+	};
 
 	vector<char> local_data;
 };
@@ -119,6 +127,9 @@ public:
 	{
 		archive & mem.data_type & mem.data_elements & mem.data_size;
 		archive & mem.data_width & mem.data_height & mem.data_depth & mem.device_pointer;
+		archive & mem.type & string(mem.name);
+		archive & mem.interpolation & mem.extension;
+		archive & mem.device_pointer;
 	}
 
 	template<typename T> void add(const T& data)
@@ -258,11 +269,15 @@ public:
 		delete archive_stream;
 	}
 
-	void read(network_device_memory& mem)
+	void read(network_device_memory& mem, string& name)
 	{
 		*archive & mem.data_type & mem.data_elements & mem.data_size;
 		*archive & mem.data_width & mem.data_height & mem.data_depth & mem.device_pointer;
+		*archive & mem.type & name;
+		*archive & mem.interpolation & mem.extension;
+		*archive & mem.device_pointer;
 
+		mem.name = name.c_str();
 		mem.data_pointer = 0;
 	}
 

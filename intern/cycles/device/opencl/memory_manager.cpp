@@ -73,10 +73,12 @@ void MemoryManager::DeviceBuffer::update_device_memory(OpenCLDeviceBase *device)
 			return;
 		}
 
-		device_memory *new_buffer = new device_memory;
+		device_memory *new_buffer = new device_memory(device,
+		                                              "memory manager buffer",
+		                                              MEM_READ_ONLY);
 
 		new_buffer->resize(total_size);
-		device->mem_alloc(string_printf("buffer_%p", this).data(), *new_buffer, MEM_READ_ONLY);
+		device->mem_alloc(*new_buffer);
 
 		size_t offset = 0;
 
@@ -161,8 +163,14 @@ MemoryManager::DeviceBuffer* MemoryManager::smallest_device_buffer()
 	return smallest;
 }
 
-MemoryManager::MemoryManager(OpenCLDeviceBase *device) : device(device), need_update(false)
+MemoryManager::MemoryManager(OpenCLDeviceBase *device)
+: device(device), need_update(false)
 {
+	foreach(DeviceBuffer& device_buffer, device_buffers) {
+		device_buffer.buffer = new device_memory(device,
+		                                         "memory manager buffer",
+		                                         MEM_READ_ONLY);
+	}
 }
 
 void MemoryManager::free()

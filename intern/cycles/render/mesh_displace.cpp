@@ -64,7 +64,7 @@ bool MeshManager::displace(Device *device, DeviceScene *dscene, Scene *scene, Me
 	/* setup input for device task */
 	const size_t num_verts = mesh->verts.size();
 	vector<bool> done(num_verts, false);
-	device_vector<uint4> d_input;
+	device_vector<uint4> d_input(device, "displace_input", MEM_READ_ONLY);
 	uint4 *d_input_data = d_input.resize(num_verts);
 	size_t d_input_size = 0;
 
@@ -115,15 +115,15 @@ bool MeshManager::displace(Device *device, DeviceScene *dscene, Scene *scene, Me
 		return false;
 	
 	/* run device task */
-	device_vector<float4> d_output;
+	device_vector<float4> d_output(device, "displace_output", MEM_WRITE_ONLY);
 	d_output.resize(d_input_size);
 
 	/* needs to be up to data for attribute access */
 	device->const_copy_to("__data", &dscene->data, sizeof(dscene->data));
 
-	device->mem_alloc("displace_input", d_input, MEM_READ_ONLY);
+	device->mem_alloc(d_input);
 	device->mem_copy_to(d_input);
-	device->mem_alloc("displace_output", d_output, MEM_WRITE_ONLY);
+	device->mem_alloc(d_output);
 	device->mem_zero(d_output);
 
 	DeviceTask task(DeviceTask::SHADER);

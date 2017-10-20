@@ -253,7 +253,7 @@ protected:
 	/* used for real time display */
 	unsigned int vertex_buffer;
 
-	virtual device_ptr mem_alloc_sub_ptr(device_memory& /*mem*/, int /*offset*/, int /*size*/, MemoryType /*type*/)
+	virtual device_ptr mem_alloc_sub_ptr(device_memory& /*mem*/, int /*offset*/, int /*size*/)
 	{
 		/* Only required for devices that implement denoising. */
 		assert(false);
@@ -282,7 +282,7 @@ public:
 	Stats &stats;
 
 	/* regular memory */
-	virtual void mem_alloc(const char *name, device_memory& mem, MemoryType type) = 0;
+	virtual void mem_alloc(device_memory& mem) = 0;
 	virtual void mem_copy_to(device_memory& mem) = 0;
 	virtual void mem_copy_from(device_memory& mem,
 		int y, int w, int h, int elem) = 0;
@@ -295,15 +295,7 @@ public:
 	virtual void const_copy_to(const char *name, void *host, size_t size) = 0;
 
 	/* texture memory */
-	virtual void tex_alloc(const char * /*name*/,
-	                       device_memory& /*mem*/,
-	                       InterpolationType interpolation = INTERPOLATION_NONE,
-	                       ExtensionType extension = EXTENSION_REPEAT)
-	{
-		(void)interpolation;  /* Ignored. */
-		(void)extension;  /* Ignored. */
-	};
-
+	virtual void tex_alloc(device_memory& /*mem*/) {};
 	virtual void tex_free(device_memory& /*mem*/) {};
 
 	/* pixel memory */

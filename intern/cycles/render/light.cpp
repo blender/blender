@@ -36,8 +36,8 @@ static void shade_background_pixels(Device *device, DeviceScene *dscene, int res
 	int width = res;
 	int height = res;
 
-	device_vector<uint4> d_input;
-	device_vector<float4> d_output;
+	device_vector<uint4> d_input(device, "background_input", MEM_READ_ONLY);
+	device_vector<float4> d_output(device, "background_output", MEM_WRITE_ONLY);
 
 	uint4 *d_input_data = d_input.resize(width*height);
 
@@ -57,9 +57,9 @@ static void shade_background_pixels(Device *device, DeviceScene *dscene, int res
 
 	device->const_copy_to("__data", &dscene->data, sizeof(dscene->data));
 
-	device->mem_alloc("shade_background_pixels_input", d_input, MEM_READ_ONLY);
+	device->mem_alloc(d_input);
 	device->mem_copy_to(d_input);
-	device->mem_alloc("shade_background_pixels_output", d_output, MEM_WRITE_ONLY);
+	device->mem_alloc(d_output);
 	device->mem_zero(d_output);
 
 	DeviceTask main_task(DeviceTask::SHADER);
@@ -451,7 +451,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 			kfilm->pass_shadow_scale *= (float)(num_lights - num_background_lights)/(float)num_lights;
 
 		/* CDF */
-		device->tex_alloc("__light_distribution", dscene->light_distribution);
+		device->tex_alloc(dscene->light_distribution);
 
 		/* Portals */
 		if(num_portals > 0) {
@@ -611,8 +611,8 @@ void LightManager::device_update_background(Device *device,
 	VLOG(2) << "Background MIS build time " << time_dt() - time_start << "\n";
 
 	/* update device */
-	device->tex_alloc("__light_background_marginal_cdf", dscene->light_background_marginal_cdf);
-	device->tex_alloc("__light_background_conditional_cdf", dscene->light_background_conditional_cdf);
+	device->tex_alloc(dscene->light_background_marginal_cdf);
+	device->tex_alloc(dscene->light_background_conditional_cdf);
 }
 
 void LightManager::device_update_points(Device *device,
@@ -813,7 +813,7 @@ void LightManager::device_update_points(Device *device,
 	VLOG(1) << "Number of lights without contribution: "
 	        << num_scene_lights - light_index;
 
-	device->tex_alloc("__light_data", dscene->light_data);
+	device->tex_alloc(dscene->light_data);
 }
 
 void LightManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)

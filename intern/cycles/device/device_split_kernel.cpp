@@ -26,7 +26,13 @@ CCL_NAMESPACE_BEGIN
 
 static const double alpha = 0.1; /* alpha for rolling average */
 
-DeviceSplitKernel::DeviceSplitKernel(Device *device) : device(device)
+DeviceSplitKernel::DeviceSplitKernel(Device *device)
+: device(device),
+  split_data(device, "split_data", MEM_READ_WRITE),
+  ray_state(device, "ray_state", MEM_READ_WRITE),
+  queue_index(device, "queue_index"),
+  use_queues_flag(device, "use_queues_flag"),
+  work_pool_wgs(device, "work_pool_wgs")
 {
 	current_max_closure = -1;
 	first_tile = true;
@@ -170,19 +176,19 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 
 		/* Allocate work_pool_wgs memory. */
 		work_pool_wgs.resize(max_work_groups);
-		device->mem_alloc("work_pool_wgs", work_pool_wgs, MEM_READ_WRITE);
+		device->mem_alloc(work_pool_wgs);
 
 		queue_index.resize(NUM_QUEUES);
-		device->mem_alloc("queue_index", queue_index, MEM_READ_WRITE);
+		device->mem_alloc(queue_index);
 
 		use_queues_flag.resize(1);
-		device->mem_alloc("use_queues_flag", use_queues_flag, MEM_READ_WRITE);
+		device->mem_alloc(use_queues_flag);
 
 		ray_state.resize(num_global_elements);
-		device->mem_alloc("ray_state", ray_state, MEM_READ_WRITE);
+		device->mem_alloc(ray_state);
 
 		split_data.resize(state_buffer_size(kgbuffer, kernel_data, num_global_elements));
-		device->mem_alloc("split_data", split_data, MEM_READ_WRITE);
+		device->mem_alloc(split_data);
 	}
 
 #define ENQUEUE_SPLIT_KERNEL(name, global_size, local_size) \

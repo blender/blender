@@ -127,9 +127,9 @@ public:
 			} KernelGlobals;
 
 			/* Allocate buffer for kernel globals */
-			device_memory kgbuffer;
+			device_memory kgbuffer(this, "kernel_globals", MEM_READ_WRITE);
 			kgbuffer.resize(sizeof(KernelGlobals));
-			mem_alloc("kernel_globals", kgbuffer, MEM_READ_WRITE);
+			mem_alloc(kgbuffer);
 
 			/* Keep rendering tiles until done. */
 			while(task->acquire_tile(this, tile)) {
@@ -288,9 +288,9 @@ public:
 
 	virtual uint64_t state_buffer_size(device_memory& kg, device_memory& data, size_t num_threads)
 	{
-		device_vector<uint64_t> size_buffer;
+		device_vector<uint64_t> size_buffer(device, "size_buffer", MEM_READ_WRITE);
 		size_buffer.resize(1);
-		device->mem_alloc(NULL, size_buffer, MEM_READ_WRITE);
+		device->mem_alloc(size_buffer);
 
 		uint threads = num_threads;
 		device->kernel_set_args(device->program_state_buffer_size(), 0, kg, data, threads, size_buffer);

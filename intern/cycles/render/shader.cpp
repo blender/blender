@@ -479,7 +479,7 @@ void ShaderManager::device_update_common(Device *device,
 		has_transparent_shadow |= (flag & SD_HAS_TRANSPARENT_SHADOW) != 0;
 	}
 
-	device->tex_alloc("__shader_flag", dscene->shader_flag);
+	device->tex_alloc(dscene->shader_flag);
 
 	/* lookup tables */
 	KernelTables *ktables = &dscene->data.tables;

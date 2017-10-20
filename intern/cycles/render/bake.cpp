@@ -150,7 +150,7 @@ bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progre
 		size_t shader_size = (size_t)fminf(num_pixels - shader_offset, m_shader_limit);
 
 		/* setup input for device task */
-		device_vector<uint4> d_input;
+		device_vector<uint4> d_input(device, "bake_input", MEM_READ_ONLY);
 		uint4 *d_input_data = d_input.resize(shader_size * 2);
 		size_t d_input_size = 0;
 
@@ -165,15 +165,15 @@ bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progre
 		}
 
 		/* run device task */
-		device_vector<float4> d_output;
+		device_vector<float4> d_output(device, "bake_output", MEM_READ_WRITE);
 		d_output.resize(shader_size);
 
 		/* needs to be up to data for attribute access */
 		device->const_copy_to("__data", &dscene->data, sizeof(dscene->data));
 
-		device->mem_alloc("bake_input", d_input, MEM_READ_ONLY);
+		device->mem_alloc(d_input);
 		device->mem_copy_to(d_input);
-		device->mem_alloc("bake_output", d_output, MEM_READ_WRITE);
+		device->mem_alloc(d_output);
 		device->mem_zero(d_output);
 
 		DeviceTask task(DeviceTask::SHADER);

@@ -40,8 +40,47 @@
 
 CCL_NAMESPACE_BEGIN
 
+DeviceScene::DeviceScene(Device *device)
+: bvh_nodes(device, "__bvh_nodes"),
+  bvh_leaf_nodes(device, "__bvh_leaf_nodes"),
+  object_node(device, "__object_node"),
+  prim_tri_index(device, "__prim_tri_index"),
+  prim_tri_verts(device, "__prim_tri_verts"),
+  prim_type(device, "__prim_type"),
+  prim_visibility(device, "__prim_visibility"),
+  prim_index(device, "__prim_index"),
+  prim_object(device, "__prim_object"),
+  prim_time(device, "__prim_time"),
+  tri_shader(device, "__tri_shader"),
+  tri_vnormal(device, "__tri_vnormal"),
+  tri_vindex(device, "__tri_vindex"),
+  tri_patch(device, "__tri_patch"),
+  tri_patch_uv(device, "__tri_patch_uv"),
+  curves(device, "__curves"),
+  curve_keys(device, "__curve_keys"),
+  patches(device, "__patches"),
+  objects(device, "__objects"),
+  objects_vector(device, "__objects_vector"),
+  attributes_map(device, "__attributes_map"),
+  attributes_float(device, "__attributes_float"),
+  attributes_float3(device, "__attributes_float3"),
+  attributes_uchar4(device, "__attributes_uchar4"),
+  light_distribution(device, "__light_distribution"),
+  light_data(device, "__light_data"),
+  light_background_marginal_cdf(device, "__light_background_marginal_cdf"),
+  light_background_conditional_cdf(device, "__light_background_conditional_cdf"),
+  particles(device, "__particles"),
+  svm_nodes(device, "__svm_nodes"),
+  shader_flag(device, "__shader_flag"),
+  object_flag(device, "__object_flag"),
+  lookup_table(device, "__lookup_table"),
+  sobol_directions(device, "__sobol_directions")
+{
+	memset(&data, 0, sizeof(data));
+}
+
 Scene::Scene(const SceneParams& params_, Device *device)
-: device(device), params(params_)
+: device(device), dscene(device), params(params_)
 {
 	memset(&dscene.data, 0, sizeof(dscene.data));
 

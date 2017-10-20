@@ -30,6 +30,7 @@
 
 #include "util/util_debug.h"
 #include "util/util_half.h"
+#include "util/util_texture.h"
 #include "util/util_types.h"
 #include "util/util_vector.h"
 
@@ -190,23 +191,17 @@ public:
 	size_t data_width;
 	size_t data_height;
 	size_t data_depth;
+	MemoryType type;
+	const char *name;
+	InterpolationType interpolation;
+	ExtensionType extension;
 
 	/* device pointer */
+	Device *device;
 	device_ptr device_pointer;
 
-	device_memory()
-	{
-		data_type = device_type_traits<uchar>::data_type;
-		data_elements = device_type_traits<uchar>::num_elements;
-		data_pointer = 0;
-		data_size = 0;
-		device_size = 0;
-		data_width = 0;
-		data_height = 0;
-		data_depth = 0;
-		device_pointer = 0;
-	}
-	virtual ~device_memory() { assert(!device_pointer); }
+	device_memory(Device *device, const char *name, MemoryType type);
+	virtual ~device_memory();
 
 	void resize(size_t size)
 	{
@@ -224,7 +219,8 @@ template<typename T>
 class device_only_memory : public device_memory
 {
 public:
-	device_only_memory()
+	device_only_memory(Device *device, const char *name)
+	: device_memory(device, name, MEM_READ_WRITE)
 	{
 		data_type = device_type_traits<T>::data_type;
 		data_elements = max(device_type_traits<T>::num_elements, 1);
@@ -241,7 +237,8 @@ public:
 template<typename T> class device_vector : public device_memory
 {
 public:
-	device_vector()
+	device_vector(Device *device, const char *name, MemoryType type = MEM_READ_ONLY)
+	: device_memory(device, name, type)
 	{
 		data_type = device_type_traits<T>::data_type;
 		data_elements = device_type_traits<T>::num_elements;
@@ -317,7 +314,7 @@ private:
 class device_sub_ptr
 {
 public:
-	device_sub_ptr(Device *device, device_memory& mem, int offset, int size, MemoryType type);
+	device_sub_ptr(device_memory& mem, int offset, int size);
 	~device_sub_ptr();
 	/* No copying. */
 	device_sub_ptr& operator = (const device_sub_ptr&);

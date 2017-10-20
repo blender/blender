@@ -195,7 +195,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 
 	sobol_generate_direction_vectors((uint(*)[SOBOL_BITS])directions, dimensions);
 
-	device->tex_alloc("__sobol_directions", dscene->sobol_directions);
+	device->tex_alloc(dscene->sobol_directions);
 
 	/* Clamping. */
 	bool use_sample_clamp = (sample_clamp_direct != 0.0f ||

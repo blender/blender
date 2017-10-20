@@ -209,6 +209,7 @@ public:
 
 	CPUDevice(DeviceInfo& info_, Stats &stats_, bool background_)
 	: Device(info_, stats_, background_),
+	  texture_info(this, "__texture_info"),
 #define REGISTER_KERNEL(name) name ## _kernel(KERNEL_FUNCTIONS(name))
 	  REGISTER_KERNEL(path_trace),
 	  REGISTER_KERNEL(convert_to_half_float),
@@ -280,15 +281,15 @@ public:
 	{
 		if(need_texture_info) {
 			tex_free(texture_info);
-			tex_alloc("__texture_info", texture_info, INTERPOLATION_NONE, EXTENSION_REPEAT);
+			tex_alloc(texture_info);
 			need_texture_info = false;
 		}
 	}
 
-	void mem_alloc(const char *name, device_memory& mem, MemoryType /*type*/)
+	void mem_alloc(device_memory& mem)
 	{
-		if(name) {
-			VLOG(1) << "Buffer allocate: " << name << ", "
+		if(mem.name) {
+			VLOG(1) << "Buffer allocate: " << mem.name << ", "
 			        << string_human_readable_number(mem.memory_size()) << " bytes. ("
 			        << string_human_readable_size(mem.memory_size()) << ")";
 		}
@@ -332,7 +333,7 @@ public:
 		}
 	}
 
-	virtual device_ptr mem_alloc_sub_ptr(device_memory& mem, int offset, int /*size*/, MemoryType /*type*/)
+	virtual device_ptr mem_alloc_sub_ptr(device_memory& mem, int offset, int /*size*/)
 	{
 		return (device_ptr) (((char*) mem.device_pointer) + mem.memory_elements_size(offset));
 	}
@@ -342,32 +343,25 @@ public:
 		kernel_const_copy(&kernel_globals, name, host, size);
 	}
 
-	void tex_alloc(const char *name,
-	               device_memory& mem,
-	               InterpolationType interpolation,
-	               ExtensionType extension)
+	void tex_alloc(device_memory& mem)
 	{
-		VLOG(1) << "Texture allocate: " << name << ", "
+		VLOG(1) << "Texture allocate: " << mem.name << ", "
 		        << string_human_readable_number(mem.memory_size()) << " bytes. ("
 		        << string_human_readable_size(mem.memory_size()) << ")";
 
-		if(interpolation == INTERPOLATION_NONE) {
+		if(mem.interpolation == INTERPOLATION_NONE) {
 			/* Data texture. */
 			kernel_tex_copy(&kernel_globals,
-							name,
+							mem.name,
 							mem.data_pointer,
-							mem.data_width,
-							mem.data_height,
-							mem.data_depth,
-							interpolation,
-							extension);
+							mem.data_width);
 		}
 		else {
 			/* Image Texture. */
 			int flat_slot = 0;
-			if(string_startswith(name, "__tex_image")) {
-				int pos =  string(name).rfind("_");
-				flat_slot = atoi(name + pos + 1);
+			if(string_startswith(mem.name, "__tex_image")) {
+				int pos =  string(mem.name).rfind("_");
+				flat_slot = atoi(mem.name + pos + 1);
 			}
 			else {
 				assert(0);
@@ -382,8 +376,8 @@ public:
 			TextureInfo& info = texture_info[flat_slot];
 			info.data = (uint64_t)mem.data_pointer;
 			info.cl_buffer = 0;
-			info.interpolation = interpolation;
-			info.extension = extension;
+			info.interpolation = mem.interpolation;
+			info.extension = mem.extension;
 			info.width = mem.data_width;
 			info.height = mem.data_height;
 			info.depth = mem.data_depth;
@@ -437,7 +431,7 @@ public:
 
 	bool denoising_set_tiles(device_ptr *buffers, DenoisingTask *task)
 	{
-		mem_alloc("Denoising Tile Info", task->tiles_mem, MEM_READ_ONLY);
+		mem_alloc(task->tiles_mem);
 
 		TilesInfo *tiles = (TilesInfo*) task->tiles_mem.data_pointer;
 		for(int i = 0; i < 9; i++) {
@@ -728,9 +722,9 @@ public:
 		}
 
 		/* allocate buffer for kernel globals */
-		device_only_memory<KernelGlobals> kgbuffer;
+		device_only_memory<KernelGlobals> kgbuffer(this, "kernel_globals");
 		kgbuffer.resize(1);
-		mem_alloc("kernel_globals", kgbuffer, MEM_READ_WRITE);
+		mem_alloc(kgbuffer);
 
 		KernelGlobals *kg = new ((void*) kgbuffer.device_pointer) KernelGlobals(thread_kernel_globals_init());
 
@@ -751,8 +745,8 @@ public:
 		while(task.acquire_tile(this, tile)) {
 			if(tile.task == RenderTile::PATH_TRACE) {
 				if(use_split_kernel) {
-					device_memory data;
-					split_kernel->path_trace(&task, tile, kgbuffer, data);
+					device_memory void_buffer(this, "void_buffer", MEM_READ_ONLY);
+					split_kernel->path_trace(&task, tile, kgbuffer, void_buffer);
 				}
 				else {
 					path_trace(task, tile, kg);

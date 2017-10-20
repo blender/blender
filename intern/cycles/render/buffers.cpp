@@ -114,9 +114,10 @@ RenderTile::RenderTile()
 
 /* Render Buffers */
 
-RenderBuffers::RenderBuffers(Device *device_)
+RenderBuffers::RenderBuffers(Device *device)
+: buffer(device, "RenderBuffers", MEM_READ_WRITE),
+  device(device)
 {
-	device = device_;
 }
 
 RenderBuffers::~RenderBuffers()
@@ -138,10 +139,10 @@ void RenderBuffers::reset(Device *device, BufferParams& params_)
 
 	/* free existing buffers */
 	device_free();
-	
+
 	/* allocate buffer */
 	buffer.resize(params.width*params.height*params.get_passes_size());
-	device->mem_alloc("render_buffer", buffer, MEM_READ_WRITE);
+	device->mem_alloc(buffer);
 	device->mem_zero(buffer);
 }
 
@@ -396,13 +397,15 @@ bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int
 
 /* Display Buffer */
 
-DisplayBuffer::DisplayBuffer(Device *device_, bool linear)
+DisplayBuffer::DisplayBuffer(Device *device, bool linear)
+: draw_width(0),
+  draw_height(0),
+  transparent(true), /* todo: determine from background */
+  half_float(linear),
+  rgba_byte(device, "display buffer byte", MEM_WRITE_ONLY),
+  rgba_half(device, "display buffer half", MEM_WRITE_ONLY),
+  device(device)
 {
-	device = device_;
-	draw_width = 0;
-	draw_height = 0;
-	transparent = true; /* todo: determine from background */
-	half_float = linear;
 }
 
 DisplayBuffer::~DisplayBuffer()

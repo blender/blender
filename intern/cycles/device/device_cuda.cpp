@@ -217,7 +217,8 @@ public:
 	}
 
 	CUDADevice(DeviceInfo& info, Stats &stats, bool background_)
-	: Device(info, stats, background_)
+	: Device(info, stats, background_),
+	  texture_info(this, "__texture_info")
 	{
 		first_error = true;
 		background = background_;
@@ -548,17 +549,17 @@ public:
 	{
 		if(info.has_bindless_textures && need_texture_info) {
 			tex_free(texture_info);
-			tex_alloc("__texture_info", texture_info, INTERPOLATION_NONE, EXTENSION_REPEAT);
+			tex_alloc(texture_info);
 			need_texture_info = false;
 		}
 	}
 
-	void mem_alloc(const char *name, device_memory& mem, MemoryType /*type*/)
+	void mem_alloc(device_memory& mem)
 	{
 		CUDAContextScope scope(this);
 
-		if(name) {
-			VLOG(1) << "Buffer allocate: " << name << ", "
+		if(mem.name) {
+			VLOG(1) << "Buffer allocate: " << mem.name << ", "
 			        << string_human_readable_number(mem.memory_size()) << " bytes. ("
 			        << string_human_readable_size(mem.memory_size()) << ")";
 		}
@@ -619,7 +620,7 @@ public:
 		}
 	}
 
-	virtual device_ptr mem_alloc_sub_ptr(device_memory& mem, int offset, int /*size*/, MemoryType /*type*/)
+	virtual device_ptr mem_alloc_sub_ptr(device_memory& mem, int offset, int /*size*/)
 	{
 		return (device_ptr) (((char*) mem.device_pointer) + mem.memory_elements_size(offset));
 	}
@@ -635,14 +636,11 @@ public:
 		cuda_assert(cuMemcpyHtoD(mem, host, size));
 	}
 
-	void tex_alloc(const char *name,
-	               device_memory& mem,
-	               InterpolationType interpolation,
-	               ExtensionType extension)
+	void tex_alloc(device_memory& mem)
 	{
 		CUDAContextScope scope(this);
 
-		VLOG(1) << "Texture allocate: " << name << ", "
+		VLOG(1) << "Texture allocate: " << mem.name << ", "
 		        << string_human_readable_number(mem.memory_size()) << " bytes. ("
 		        << string_human_readable_size(mem.memory_size()) << ")";
 
@@ -650,12 +648,12 @@ public:
 		bool has_bindless_textures = info.has_bindless_textures;
 
 		/* General variables for both architectures */
-		string bind_name = name;
+		string bind_name = mem.name;
 		size_t dsize = datatype_size(mem.data_type);
 		size_t size = mem.memory_size();
 
 		CUaddress_mode address_mode = CU_TR_ADDRESS_MODE_WRAP;
-		switch(extension) {
+		switch(mem.extension) {
 			case EXTENSION_REPEAT:
 				address_mode = CU_TR_ADDRESS_MODE_WRAP;
 				break;
@@ -671,7 +669,7 @@ public:
 		}
 
 		CUfilter_mode filter_mode;
-		if(interpolation == INTERPOLATION_CLOSEST) {
+		if(mem.interpolation == INTERPOLATION_CLOSEST) {
 			filter_mode = CU_TR_FILTER_MODE_POINT;
 		}
 		else {
@@ -681,13 +679,13 @@ public:
 		/* General variables for Fermi */
 		CUtexref texref = NULL;
 
-		if(!has_bindless_textures && interpolation != INTERPOLATION_NONE) {
+		if(!has_bindless_textures && mem.interpolation != INTERPOLATION_NONE) {
 			if(mem.data_depth > 1) {
 				/* Kernel uses different bind names for 2d and 3d float textures,
 				 * so we have to adjust couple of things here.
 				 */
 				vector<string> tokens;
-				string_split(tokens, name, "_");
+				string_split(tokens, mem.name, "_");
 				bind_name = string_printf("__tex_image_%s_3d_%s",
 				                          tokens[2].c_str(),
 				                          tokens[3].c_str());
@@ -700,9 +698,9 @@ public:
 			}
 		}
 
-		if(interpolation == INTERPOLATION_NONE) {
+		if(mem.interpolation == INTERPOLATION_NONE) {
 			/* Data Storage */
-			mem_alloc(NULL, mem, MEM_READ_ONLY);
+			mem_alloc(mem);
 			mem_copy_to(mem);
 
 			CUdeviceptr cumem;
@@ -802,9 +800,9 @@ public:
 			if(has_bindless_textures) {
 				/* Bindless Textures - Kepler */
 				int flat_slot = 0;
-				if(string_startswith(name, "__tex_image")) {
-					int pos =  string(name).rfind("_");
-					flat_slot = atoi(name + pos + 1);
+				if(string_startswith(mem.name, "__tex_image")) {
+					int pos =  string(mem.name).rfind("_");
+					flat_slot = atoi(mem.name + pos + 1);
 				}
 				else {
 					assert(0);
@@ -843,8 +841,8 @@ public:
 				TextureInfo& info = texture_info[flat_slot];
 				info.data = (uint64_t)tex;
 				info.cl_buffer = 0;
-				info.interpolation = interpolation;
-				info.extension = extension;
+				info.interpolation = mem.interpolation;
+				info.extension = mem.extension;
 				info.width = mem.data_width;
 				info.height = mem.data_height;
 				info.depth = mem.data_depth;
@@ -869,7 +867,7 @@ public:
 		}
 
 		/* Fermi and Kepler */
-		tex_interp_map[mem.device_pointer] = (interpolation != INTERPOLATION_NONE);
+		tex_interp_map[mem.device_pointer] = (mem.interpolation != INTERPOLATION_NONE);
 	}
 
 	void tex_free(device_memory& mem)
@@ -900,7 +898,7 @@ public:
 
 	bool denoising_set_tiles(device_ptr *buffers, DenoisingTask *task)
 	{
-		mem_alloc("Denoising Tile Info", task->tiles_mem, MEM_READ_ONLY);
+		mem_alloc(task->tiles_mem);
 
 		TilesInfo *tiles = (TilesInfo*) task->tiles_mem.data_pointer;
 		for(int i = 0; i < 9; i++) {
@@ -1297,7 +1295,7 @@ public:
 		cuda_assert(cuFuncSetCacheConfig(cuPathTrace, CU_FUNC_CACHE_PREFER_L1));
 
 		/* Allocate work tile. */
-		device_vector<WorkTile> work_tiles;
+		device_vector<WorkTile> work_tiles(this, "work_tiles", MEM_READ_ONLY);
 		work_tiles.resize(1);
 
 		WorkTile *wtile = work_tiles.get_data();
@@ -1308,7 +1306,7 @@ public:
 		wtile->offset = rtile.offset;
 		wtile->stride = rtile.stride;
 		wtile->buffer = (float*)cuda_device_ptr(rtile.buffer);
-		mem_alloc("work_tiles", work_tiles, MEM_READ_ONLY);
+		mem_alloc(work_tiles);
 
 		CUdeviceptr d_work_tiles = cuda_device_ptr(work_tiles.device_pointer);
 
@@ -1730,7 +1728,7 @@ public:
 			while(task->acquire_tile(this, tile)) {
 				if(tile.task == RenderTile::PATH_TRACE) {
 					if(use_split_kernel()) {
-						device_memory void_buffer;
+						device_memory void_buffer(this, "void_buffer", MEM_READ_ONLY);
 						split_kernel->path_trace(task, tile, void_buffer, void_buffer);
 					}
 					else {
@@ -1885,9 +1883,9 @@ uint64_t CUDASplitKernel::state_buffer_size(device_memory& /*kg*/, device_memory
 {
 	CUDAContextScope scope(device);
 
-	device_vector<uint64_t> size_buffer;
+	device_vector<uint64_t> size_buffer(device, "size_buffer", MEM_READ_WRITE);
 	size_buffer.resize(1);
-	device->mem_alloc(NULL, size_buffer, MEM_READ_WRITE);
+	device->mem_alloc(size_buffer);
 
 	uint threads = num_threads;
 	CUdeviceptr d_size = device->cuda_device_ptr(size_buffer.device_pointer);

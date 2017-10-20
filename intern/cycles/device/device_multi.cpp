@@ -106,11 +106,11 @@ public:
 		return true;
 	}
 
-	void mem_alloc(const char *name, device_memory& mem, MemoryType type)
+	void mem_alloc(device_memory& mem)
 	{
 		foreach(SubDevice& sub, devices) {
 			mem.device_pointer = 0;
-			sub.device->mem_alloc(name, mem, type);
+			sub.device->mem_alloc(mem);
 			sub.ptr_map[unique_ptr] = mem.device_pointer;
 		}
 
@@ -179,19 +179,15 @@ public:
 			sub.device->const_copy_to(name, host, size);
 	}
 
-	void tex_alloc(const char *name,
-	               device_memory& mem,
-	               InterpolationType
-	               interpolation,
-	               ExtensionType extension)
+	void tex_alloc(device_memory& mem)
 	{
-		VLOG(1) << "Texture allocate: " << name << ", "
+		VLOG(1) << "Texture allocate: " << mem.name << ", "
 		        << string_human_readable_number(mem.memory_size()) << " bytes. ("
 		        << string_human_readable_size(mem.memory_size()) << ")";
 
 		foreach(SubDevice& sub, devices) {
 			mem.device_pointer = 0;
-			sub.device->tex_alloc(name, mem, interpolation, extension);
+			sub.device->tex_alloc(mem);
 			sub.ptr_map[unique_ptr] = mem.device_pointer;
 		}
 
@@ -314,7 +310,7 @@ public:
 				tiles[i].buffers->copy_from_device();
 				device_ptr original_ptr = mem.device_pointer;
 				mem.device_pointer = 0;
-				sub_device->mem_alloc("Temporary memory for neighboring tile", mem, MEM_READ_WRITE);
+				sub_device->mem_alloc(mem);
 				sub_device->mem_copy_to(mem);
 				tiles[i].buffer = mem.device_pointer;
 				mem.device_pointer = original_ptr;

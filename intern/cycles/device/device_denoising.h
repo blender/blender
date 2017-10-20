@@ -123,9 +123,21 @@ public:
 		device_only_memory<float3> XtWY;
 		int w;
 		int h;
+
+		Storage(Device *device)
+		: transform(device, "denoising transform"),
+		  rank(device, "denoising rank"),
+		  XtWX(device, "denoising XtWX"),
+		  XtWY(device, "denoising XtWY")
+		{}
 	} storage;
 
-	DenoisingTask(Device *device) : device(device) {}
+	DenoisingTask(Device *device)
+	: tiles_mem(device, "denoising tiles_mem", MEM_READ_WRITE),
+	  storage(device),
+	  buffer(device),
+	  device(device)
+	{}
 
 	void init_from_devicetask(const DeviceTask &task);
 
@@ -137,6 +149,10 @@ public:
 		int w;
 		int h;
 		device_only_memory<float> mem;
+
+		DenoiseBuffers(Device *device)
+		: mem(device, "denoising pixel buffer")
+	    {}
 	} buffer;
 
 protected:

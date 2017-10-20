@@ -534,9 +534,9 @@ void ObjectManager::device_update_transforms(Device *device,
 		}
 	}
 
-	device->tex_alloc("__objects", dscene->objects);
+	device->tex_alloc(dscene->objects);
 	if(state.need_motion == Scene::MOTION_PASS) {
-		device->tex_alloc("__objects_vector", dscene->objects_vector);
+		device->tex_alloc(dscene->objects_vector);
 	}
 
 	dscene->data.bvh.have_motion = state.have_motion;
@@ -638,7 +638,7 @@ void ObjectManager::device_update_flags(Device *device,
 	}
 
 	/* allocate object flag */
-	device->tex_alloc("__object_flag", dscene->object_flag);
+	device->tex_alloc(dscene->object_flag);
 }
 
 void ObjectManager::device_update_patch_map_offsets(Device *device, DeviceScene *dscene, Scene *scene)
@@ -672,7 +672,7 @@ void ObjectManager::device_update_patch_map_offsets(Device *device, DeviceScene 
 
 	if(update) {
 		device->tex_free(dscene->objects);
-		device->tex_alloc("__objects", dscene->objects);
+		device->tex_alloc(dscene->objects);
 	}
 }
 
