@@ -1913,7 +1913,6 @@ void MeshManager::device_update_flags(Device * /*device*/,
 }
 
 void MeshManager::device_update_displacement_images(Device *device,
-                                                    DeviceScene *dscene,
                                                     Scene *scene,
                                                     Progress& progress)
 {
@@ -1941,12 +1940,10 @@ void MeshManager::device_update_displacement_images(Device *device,
 			}
 		}
 	}
-	image_manager->device_prepare_update(dscene);
 	foreach(int slot, bump_images) {
 		pool.push(function_bind(&ImageManager::device_update_slot,
 		                        image_manager,
 		                        device,
-		                        dscene,
 		                        scene,
 		                        slot,
 		                        &progress));
@@ -2029,7 +2026,7 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 	}
 	if(true_displacement_used) {
 		VLOG(1) << "Updating images used for true displacement.";
-		device_update_displacement_images(device, dscene, scene, progress);
+		device_update_displacement_images(device, scene, progress);
 		old_need_object_flags_update = scene->object_manager->need_flags_update;
 		scene->object_manager->device_update_flags(device,
 		                                           dscene,

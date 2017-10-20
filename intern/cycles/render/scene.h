@@ -113,14 +113,6 @@ public:
 	/* integrator */
 	device_vector<uint> sobol_directions;
 
-	/* cpu images */
-	vector<device_vector<float4>* > tex_float4_image;
-	vector<device_vector<uchar4>* > tex_byte4_image;
-	vector<device_vector<half4>* > tex_half4_image;
-	vector<device_vector<float>* > tex_float_image;
-	vector<device_vector<uchar>* > tex_byte_image;
-	vector<device_vector<half>* > tex_half_image;
-
 	KernelData data;
 };
 

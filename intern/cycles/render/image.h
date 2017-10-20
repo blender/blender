@@ -28,7 +28,6 @@
 CCL_NAMESPACE_BEGIN
 
 class Device;
-class DeviceScene;
 class Progress;
 class Scene;
 
@@ -62,18 +61,15 @@ public:
 	                                 bool& is_linear,
 	                                 bool& builtin_free_cache);
 
-	void device_prepare_update(DeviceScene *dscene);
 	void device_update(Device *device,
-	                   DeviceScene *dscene,
 	                   Scene *scene,
 	                   Progress& progress);
 	void device_update_slot(Device *device,
-	                        DeviceScene *dscene,
 	                        Scene *scene,
 	                        int flat_slot,
 	                        Progress *progress);
-	void device_free(Device *device, DeviceScene *dscene);
-	void device_free_builtin(Device *device, DeviceScene *dscene);
+	void device_free(Device *device);
+	void device_free_builtin(Device *device);
 
 	void set_osl_texture_system(void *texture_system);
 	bool set_animation_frame_update(int frame);
@@ -115,6 +111,8 @@ public:
 		InterpolationType interpolation;
 		ExtensionType extension;
 
+		device_memory *mem;
+
 		int users;
 	};
 
@@ -151,13 +149,11 @@ private:
 	string name_from_type(int type);
 
 	void device_load_image(Device *device,
-	                       DeviceScene *dscene,
 	                       Scene *scene,
 	                       ImageDataType type,
 	                       int slot,
 	                       Progress *progess);
 	void device_free_image(Device *device,
-	                       DeviceScene *dscene,
 	                       ImageDataType type,
 	                       int slot);
 };

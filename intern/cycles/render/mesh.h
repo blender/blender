@@ -368,7 +368,6 @@ protected:
 	                       Progress& progress);
 
 	void device_update_displacement_images(Device *device,
-	                                       DeviceScene *dscene,
 	                                       Scene *scene,
 	                                       Progress& progress);
 };

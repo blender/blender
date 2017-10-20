@@ -107,9 +107,9 @@ void Scene::free_memory(bool final)
 		bake_manager->device_free(device, &dscene);
 
 		if(!params.persistent_data || final)
-			image_manager->device_free(device, &dscene);
+			image_manager->device_free(device);
 		else
-			image_manager->device_free_builtin(device, &dscene);
+			image_manager->device_free_builtin(device);
 
 		lookup_tables->device_free(device, &dscene);
 	}
@@ -185,7 +185,7 @@ void Scene::device_update(Device *device_, Progress& progress)
 	if(progress.get_cancel() || device->have_error()) return;
 
 	progress.set_status("Updating Images");
-	image_manager->device_update(device, &dscene, this, progress);
+	image_manager->device_update(device, this, progress);
 
 	if(progress.get_cancel() || device->have_error()) return;
 
