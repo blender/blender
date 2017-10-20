@@ -2169,7 +2169,7 @@ void BKE_mesh_remap_calc_polys_from_dm(
 					tri_vidx_2d[1][2] = 3;
 				}
 				else {
-					BLI_polyfill_calc((const float(*)[2])poly_vcos_2d, (unsigned int)mp->totloop, -1,
+					BLI_polyfill_calc(poly_vcos_2d, (unsigned int)mp->totloop, -1,
 					                  (unsigned int (*)[3])tri_vidx_2d);
 				}
 

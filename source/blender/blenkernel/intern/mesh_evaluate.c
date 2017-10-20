@@ -2750,7 +2750,7 @@ int BKE_mesh_recalc_tessellation(
 				mul_v2_m3v3(projverts[j], axis_mat, mvert[ml->v].co);
 			}
 
-			BLI_polyfill_calc_arena((const float (*)[2])projverts, mp_totloop, 1, tris, arena);
+			BLI_polyfill_calc_arena(projverts, mp_totloop, 1, tris, arena);
 
 			/* apply fill */
 			for (j = 0; j < totfilltri; j++) {
@@ -2949,7 +2949,7 @@ void BKE_mesh_recalc_looptri(
 				mul_v2_m3v3(projverts[j], axis_mat, mvert[ml->v].co);
 			}
 
-			BLI_polyfill_calc_arena((const float (*)[2])projverts, mp_totloop, 1, tris, arena);
+			BLI_polyfill_calc_arena(projverts, mp_totloop, 1, tris, arena);
 
 			/* apply fill */
 			for (j = 0; j < totfilltri; j++) {
