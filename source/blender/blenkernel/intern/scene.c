@@ -237,7 +237,6 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 	const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
 
 	sce_dst->ed = NULL;
-	sce_dst->theDag = NULL;
 	sce_dst->depsgraph_legacy = NULL;
 	sce_dst->obedit = NULL;
 	sce_dst->fps_info = NULL;

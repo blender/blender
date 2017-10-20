@@ -1655,8 +1655,6 @@ typedef struct Scene {
 	
 	/* none of the dependency graph  vars is mean to be saved */
 	struct Depsgraph *depsgraph_legacy;
-	void *pad1;
-	struct  DagForest *theDag;
 	short dagflags;
 	short pad3;
 
