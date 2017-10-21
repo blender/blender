@@ -517,7 +517,7 @@ bool TileManager::next()
 
 		state.resolution_divider = pixel_size;
 
-		if(state.sample == 0) {
+		if(state.sample == range_start_sample) {
 			set_tiles();
 		}
 		else {

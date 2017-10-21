@@ -922,7 +922,7 @@ void Session::update_status_time(bool show_pause, bool show_done)
 void Session::render()
 {
 	/* Clear buffers. */
-	if(buffers && tile_manager.state.sample == 0) {
+	if(buffers && tile_manager.state.sample == tile_manager.range_start_sample) {
 		buffers->zero(device);
 	}
 
