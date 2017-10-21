@@ -168,7 +168,12 @@ bool RenderBuffers::copy_from_device(Device *from_device)
 
 bool RenderBuffers::get_denoising_pass_rect(int offset, float exposure, int sample, int components, float *pixels)
 {
-	float scale = 1.0f/sample;
+	float invsample = 1.0f/sample;
+	float scale = invsample;
+	bool variance = (offset == DENOISING_PASS_NORMAL_VAR) ||
+	                (offset == DENOISING_PASS_ALBEDO_VAR) ||
+	                (offset == DENOISING_PASS_DEPTH_VAR) ||
+	                (offset == DENOISING_PASS_COLOR_VAR);
 
 	if(offset == DENOISING_PASS_COLOR) {
 		scale *= exposure;
@@ -178,24 +183,51 @@ bool RenderBuffers::get_denoising_pass_rect(int offset, float exposure, int samp
 	}
 
 	offset += params.get_denoising_offset();
-	float *in = (float*)buffer.data_pointer + offset;
 	int pass_stride = params.get_passes_size();
 	int size = params.width*params.height;
 
-	if(components == 1) {
-		for(int i = 0; i < size; i++, in += pass_stride, pixels++) {
-			pixels[0] = in[0]*scale;
+	if(variance) {
+		/* Approximate variance as E[x^2] - 1/N * (E[x])^2, since online variance
+		 * update does not work efficiently with atomics in the kernel. */
+		int mean_offset = offset - components;
+		float *mean = (float*)buffer.data_pointer + mean_offset;
+		float *var = (float*)buffer.data_pointer + offset;
+		assert(mean_offset >= 0);
+
+		if(components == 1) {
+			for(int i = 0; i < size; i++, mean += pass_stride, var += pass_stride, pixels++) {
+				pixels[0] = max(0.0f, var[0] - mean[0]*mean[0]*invsample)*scale;
+			}
 		}
-	}
-	else if(components == 3) {
-		for(int i = 0; i < size; i++, in += pass_stride, pixels += 3) {
-			pixels[0] = in[0]*scale;
-			pixels[1] = in[1]*scale;
-			pixels[2] = in[2]*scale;
+		else if(components == 3) {
+			for(int i = 0; i < size; i++, mean += pass_stride, var += pass_stride, pixels += 3) {
+				pixels[0] = max(0.0f, var[0] - mean[0]*mean[0]*invsample)*scale;
+				pixels[1] = max(0.0f, var[1] - mean[1]*mean[1]*invsample)*scale;
+				pixels[2] = max(0.0f, var[2] - mean[2]*mean[2]*invsample)*scale;
+			}
+		}
+		else {
+			return false;
 		}
 	}
 	else {
-		return false;
+		float *in = (float*)buffer.data_pointer + offset;
+
+		if(components == 1) {
+			for(int i = 0; i < size; i++, in += pass_stride, pixels++) {
+				pixels[0] = in[0]*scale;
+			}
+		}
+		else if(components == 3) {
+			for(int i = 0; i < size; i++, in += pass_stride, pixels += 3) {
+				pixels[0] = in[0]*scale;
+				pixels[1] = in[1]*scale;
+				pixels[2] = in[2]*scale;
+			}
+		}
+		else {
+			return false;
+		}
 	}
 
 	return true;

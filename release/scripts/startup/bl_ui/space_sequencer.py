@@ -20,7 +20,7 @@
 import bpy
 from bpy.types import Header, Menu, Panel
 from rna_prop_ui import PropertyPanel
-from bl_ui.properties_grease_pencil_common import (
+from .properties_grease_pencil_common import (
     GreasePencilDataPanel,
     GreasePencilPaletteColorPanel,
     GreasePencilToolsPanel,
@@ -276,7 +276,7 @@ class SEQUENCER_MT_marker(Menu):
     def draw(self, context):
         layout = self.layout
 
-        from bl_ui.space_time import marker_menu_generic
+        from .space_time import marker_menu_generic
         marker_menu_generic(layout)
 
 
@@ -1166,7 +1166,7 @@ class SEQUENCER_PT_view_safe_areas(SequencerButtonsPanel_Output, Panel):
         self.layout.prop(st, "show_safe_areas", text="")
 
     def draw(self, context):
-        from bl_ui.properties_data_camera import draw_display_safe_settings
+        from .properties_data_camera import draw_display_safe_settings
 
         layout = self.layout
         st = context.space_data

@@ -1417,6 +1417,40 @@ void BKE_nlastrip_validate_fcurves(NlaStrip *strip)
 	}
 }
 
+/* Check if the given RNA pointer + property combo should be handled by
+ * NLA strip curves or not.
+ */
+bool BKE_nlastrip_has_curves_for_property(const PointerRNA *ptr, const PropertyRNA *prop)
+{
+	/* sanity checks */
+	if (ELEM(NULL, ptr, prop))
+		return false;
+	
+	/* 1) Must be NLA strip */
+	if (ptr->type == &RNA_NlaStrip) {
+		/* 2) Must be one of the predefined properties */
+		static PropertyRNA *prop_influence = NULL; 
+		static PropertyRNA *prop_time = NULL;
+		static bool needs_init = true;
+		
+		/* Init the properties on first use */
+		if (needs_init) {
+			prop_influence = RNA_struct_type_find_property(&RNA_NlaStrip, "influence");
+			prop_time = RNA_struct_type_find_property(&RNA_NlaStrip, "strip_time");
+			
+			needs_init = false;
+		}
+		
+		/* Check if match */
+		if (ELEM(prop, prop_influence, prop_time)) {
+			return true;
+		}
+	}
+	
+	/* No criteria met */
+	return false;
+}
+
 /* Sanity Validation ------------------------------------ */
 
 static bool nla_editbone_name_check(void *arg, const char *name)
