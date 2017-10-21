@@ -675,6 +675,15 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 	/* feature set */
 	params.experimental = (get_enum(cscene, "feature_set") != 0);
 
+	/* threads */
+	if(b_scene.render().threads_mode() == BL::RenderSettings::threads_mode_FIXED)
+		params.threads = b_scene.render().threads();
+	else
+		params.threads = 0;
+
+	/* Background */
+	params.background = background;
+
 	/* device type */
 	vector<DeviceInfo>& devices = Device::available_devices();
 	
@@ -703,12 +712,28 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 			}
 		}
 
-		int compute_device = get_enum(b_preferences, "compute_device_type");
+		enum ComputeDevice {
+			COMPUTE_DEVICE_CPU = 0,
+			COMPUTE_DEVICE_CUDA = 1,
+			COMPUTE_DEVICE_OPENCL = 2,
+			COMPUTE_DEVICE_NUM = 3,
+		};
 
-		if(compute_device != 0) {
+		ComputeDevice compute_device = (ComputeDevice)get_enum(b_preferences,
+		                                                       "compute_device_type",
+		                                                       COMPUTE_DEVICE_NUM,
+		                                                       COMPUTE_DEVICE_CPU);
+
+		if(compute_device != COMPUTE_DEVICE_CPU) {
 			vector<DeviceInfo> used_devices;
 			RNA_BEGIN(&b_preferences, device, "devices") {
-				if(get_enum(device, "type") == compute_device && get_boolean(device, "use")) {
+				ComputeDevice device_type = (ComputeDevice)get_enum(device,
+				                                                    "type",
+				                                                    COMPUTE_DEVICE_NUM,
+				                                                    COMPUTE_DEVICE_CPU);
+
+				if(get_boolean(device, "use") &&
+				   (device_type == compute_device || device_type == COMPUTE_DEVICE_CPU)) {
 					string id = get_string(device, "id");
 					foreach(DeviceInfo& info, devices) {
 						if(info.id == id) {
@@ -723,14 +748,13 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 				params.device = used_devices[0];
 			}
 			else if(used_devices.size() > 1) {
-				params.device = Device::get_multi_device(used_devices);
+				params.device = Device::get_multi_device(used_devices,
+				                                         params.threads,
+				                                         params.background);
 			}
 			/* Else keep using the CPU device that was set before. */
 		}
 	}
-
-	/* Background */
-	params.background = background;
 
 	/* samples */
 	int samples = get_int(cscene, "samples");
@@ -791,14 +815,9 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 		params.tile_order = TILE_BOTTOM_TO_TOP;
 	}
 
+	/* other parameters */
 	params.start_resolution = get_int(cscene, "preview_start_resolution");
 	params.pixel_size = b_engine.get_preview_pixel_size(b_scene);
-
-	/* other parameters */
-	if(b_scene.render().threads_mode() == BL::RenderSettings::threads_mode_FIXED)
-		params.threads = b_scene.render().threads();
-	else
-		params.threads = 0;
 
 	params.cancel_timeout = (double)get_float(cscene, "debug_cancel_timeout");
 	params.reset_timeout = (double)get_float(cscene, "debug_reset_timeout");

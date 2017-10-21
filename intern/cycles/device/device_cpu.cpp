@@ -207,8 +207,8 @@ public:
 	      KERNEL_NAME_EVAL(cpu_avx, name), \
 	      KERNEL_NAME_EVAL(cpu_avx2, name)
 
-	CPUDevice(DeviceInfo& info, Stats &stats, bool background)
-	: Device(info, stats, background),
+	CPUDevice(DeviceInfo& info_, Stats &stats_, bool background_)
+	: Device(info_, stats_, background_),
 #define REGISTER_KERNEL(name) name ## _kernel(KERNEL_FUNCTIONS(name))
 	  REGISTER_KERNEL(path_trace),
 	  REGISTER_KERNEL(convert_to_half_float),
@@ -229,6 +229,9 @@ public:
 	  REGISTER_KERNEL(data_init)
 #undef REGISTER_KERNEL
 	{
+		if(info.cpu_threads == 0) {
+			info.cpu_threads = TaskScheduler::num_threads();
+		}
 
 #ifdef WITH_OSL
 		kernel_globals.osl = &osl_globals;
@@ -237,7 +240,6 @@ public:
 		if(use_split_kernel) {
 			VLOG(1) << "Will be using split kernel.";
 		}
-
 		need_texture_info = false;
 
 #define REGISTER_SPLIT_KERNEL(name) split_kernels[#name] = KernelFunctions<void(*)(KernelGlobals*, KernelData*)>(KERNEL_FUNCTIONS(name))
@@ -271,7 +273,7 @@ public:
 
 	virtual bool show_samples() const
 	{
-		return (TaskScheduler::num_threads() == 1);
+		return (info.cpu_threads == 1);
 	}
 
 	void load_texture_info()
@@ -826,9 +828,9 @@ public:
 	int get_split_task_count(DeviceTask& task)
 	{
 		if(task.type == DeviceTask::SHADER)
-			return task.get_subtask_count(TaskScheduler::num_threads(), 256);
+			return task.get_subtask_count(info.cpu_threads, 256);
 		else
-			return task.get_subtask_count(TaskScheduler::num_threads());
+			return task.get_subtask_count(info.cpu_threads);
 	}
 
 	void task_add(DeviceTask& task)
@@ -840,9 +842,9 @@ public:
 		list<DeviceTask> tasks;
 
 		if(task.type == DeviceTask::SHADER)
-			task.split(tasks, TaskScheduler::num_threads(), 256);
+			task.split(tasks, info.cpu_threads, 256);
 		else
-			task.split(tasks, TaskScheduler::num_threads());
+			task.split(tasks, info.cpu_threads);
 
 		foreach(DeviceTask& task, tasks)
 			task_pool.push(new CPUDeviceTask(this, task));

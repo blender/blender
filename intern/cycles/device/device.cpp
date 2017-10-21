@@ -23,9 +23,11 @@
 #include "util/util_debug.h"
 #include "util/util_foreach.h"
 #include "util/util_half.h"
+#include "util/util_logging.h"
 #include "util/util_math.h"
 #include "util/util_opengl.h"
 #include "util/util_time.h"
+#include "util/util_system.h"
 #include "util/util_types.h"
 #include "util/util_vector.h"
 #include "util/util_string.h"
@@ -365,7 +367,7 @@ string Device::device_capabilities()
 	return capabilities;
 }
 
-DeviceInfo Device::get_multi_device(vector<DeviceInfo> subdevices)
+DeviceInfo Device::get_multi_device(const vector<DeviceInfo>& subdevices, int threads, bool background)
 {
 	assert(subdevices.size() > 1);
 
@@ -373,18 +375,38 @@ DeviceInfo Device::get_multi_device(vector<DeviceInfo> subdevices)
 	info.type = DEVICE_MULTI;
 	info.id = "MULTI";
 	info.description = "Multi Device";
-	info.multi_devices = subdevices;
 	info.num = 0;
 
 	info.has_bindless_textures = true;
 	info.has_volume_decoupled = true;
 	info.has_qbvh = true;
-	foreach(DeviceInfo &device, subdevices) {
-		assert(device.type == info.multi_devices[0].type);
-
+	foreach(const DeviceInfo &device, subdevices) {
 		info.has_bindless_textures &= device.has_bindless_textures;
 		info.has_volume_decoupled &= device.has_volume_decoupled;
 		info.has_qbvh &= device.has_qbvh;
+
+		if(device.type == DEVICE_CPU && subdevices.size() > 1) {
+			if(background) {
+				int orig_cpu_threads = (threads)? threads: system_cpu_thread_count();
+				int cpu_threads = max(orig_cpu_threads - (subdevices.size() - 1), 0);
+
+				if(cpu_threads >= 1) {
+					DeviceInfo cpu_device = device;
+					cpu_device.cpu_threads = cpu_threads;
+					info.multi_devices.push_back(cpu_device);
+				}
+
+				VLOG(1) << "CPU render threads reduced from "
+						<< orig_cpu_threads << " to " << cpu_threads
+						<< ", to dedicate to GPU.";
+			}
+			else {
+				VLOG(1) << "CPU render threads disabled for interactive render.";
+			}
+		}
+		else {
+			info.multi_devices.push_back(device);
+		}
 	}
 
 	return info;
