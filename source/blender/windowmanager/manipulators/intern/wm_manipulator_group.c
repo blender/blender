@@ -757,25 +757,25 @@ void WM_manipulator_group_type_remove(struct Main *bmain, const char *idname)
 
 /* delayed versions */
 
-void WM_manipulator_group_type_remove_ptr_delayed_ex(
+void WM_manipulator_group_type_unlink_delayed_ptr_ex(
         wmManipulatorGroupType *wgt,
         wmManipulatorMapType *mmap_type)
 {
 	WM_manipulatorconfig_update_tag_remove(mmap_type, wgt);
 }
 
-void WM_manipulator_group_type_remove_ptr_delayed(
+void WM_manipulator_group_type_unlink_delayed_ptr(
         wmManipulatorGroupType *wgt)
 {
 	wmManipulatorMapType *mmap_type = WM_manipulatormaptype_ensure(&wgt->mmap_params);
-	WM_manipulator_group_type_remove_ptr_delayed_ex(wgt, mmap_type);
+	WM_manipulator_group_type_unlink_delayed_ptr_ex(wgt, mmap_type);
 }
 
-void WM_manipulator_group_type_remove_delayed(const char *idname)
+void WM_manipulator_group_type_unlink_delayed(const char *idname)
 {
 	wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find(idname, false);
 	BLI_assert(wgt != NULL);
-	WM_manipulator_group_type_remove_ptr_delayed(wgt);
+	WM_manipulator_group_type_unlink_delayed_ptr(wgt);
 }
 
 /** \} */

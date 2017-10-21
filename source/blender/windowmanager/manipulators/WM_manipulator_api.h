@@ -297,12 +297,12 @@ void WM_manipulator_group_type_remove_ptr(
         struct Main *bmain, struct wmManipulatorGroupType *wgt);
 void WM_manipulator_group_type_remove(struct Main *bmain, const char *idname);
 
-void WM_manipulator_group_type_remove_ptr_delayed_ex(
+void WM_manipulator_group_type_unlink_delayed_ptr_ex(
         struct wmManipulatorGroupType *wgt,
         struct wmManipulatorMapType *mmap_type);
-void WM_manipulator_group_type_remove_ptr_delayed(
+void WM_manipulator_group_type_unlink_delayed_ptr(
         struct wmManipulatorGroupType *wgt);
-void WM_manipulator_group_type_remove_delayed(const char *idname);
+void WM_manipulator_group_type_unlink_delayed(const char *idname);
 
 /* Utilities */
 void WM_manipulator_group_type_is_any_selected(const char *idname);

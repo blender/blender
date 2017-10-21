@@ -1063,7 +1063,7 @@ static bool manipulator_mesh_spin_poll(const bContext *C, wmManipulatorGroupType
 {
 	wmOperator *op = WM_operator_last_redo(C);
 	if (op == NULL || !STREQ(op->type->idname, "MESH_OT_spin")) {
-		WM_manipulator_group_type_remove_ptr_delayed(wgt);
+		WM_manipulator_group_type_unlink_delayed_ptr(wgt);
 		return false;
 	}
 	return true;

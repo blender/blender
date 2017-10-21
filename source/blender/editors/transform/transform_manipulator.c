@@ -1463,7 +1463,7 @@ static bool WIDGETGROUP_xform_cage_poll(const bContext *C, wmManipulatorGroupTyp
 {
 	WorkSpace *workspace = CTX_wm_workspace(C);
 	if (!STREQ(wgt->idname, workspace->tool.manipulator_group)) {
-		WM_manipulator_group_type_remove_ptr_delayed(wgt);
+		WM_manipulator_group_type_unlink_delayed_ptr(wgt);
 		return false;
 	}
 	return true;
