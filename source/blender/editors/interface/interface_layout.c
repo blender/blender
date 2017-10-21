@@ -64,8 +64,6 @@
 
 /************************ Structs and Defines *************************/
 
-// #define USE_OP_RESET_BUT  // we may want to make this optional, disable for now.
-
 #define UI_OPERATOR_ERROR_RET(_ot, _opname, return_statement)                 \
 	if (ot == NULL) {                                                         \
 		ui_item_disabled(layout, _opname);                                    \
@@ -3559,125 +3557,6 @@ const char *uiLayoutIntrospect(uiLayout *layout)
 	BLI_dynstr_free(ds);
 
 	return str;
-}
-
-#ifdef USE_OP_RESET_BUT
-static void ui_layout_operator_buts__reset_cb(bContext *UNUSED(C), void *op_pt, void *UNUSED(arg_dummy2))
-{
-	WM_operator_properties_reset((wmOperator *)op_pt);
-}
-#endif
-
-/* this function does not initialize the layout, functions can be called on the layout before and after */
-void uiLayoutOperatorButs(
-        const bContext *C, uiLayout *layout, wmOperator *op,
-        bool (*check_prop)(struct PointerRNA *, struct PropertyRNA *),
-        const char label_align, const short flag)
-{
-	if (!op->properties) {
-		IDPropertyTemplate val = {0};
-		op->properties = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
-	}
-
-	if (flag & UI_LAYOUT_OP_SHOW_TITLE) {
-		uiItemL(layout, RNA_struct_ui_name(op->type->srna), ICON_NONE);
-	}
-
-	/* poll() on this operator may still fail, at the moment there is no nice feedback when this happens
-	 * just fails silently */
-	if (!WM_operator_repeat_check(C, op)) {
-		UI_block_lock_set(uiLayoutGetBlock(layout), true, "Operator can't' redo");
-
-		/* XXX, could give some nicer feedback or not show redo panel at all? */
-		uiItemL(layout, IFACE_("* Redo Unsupported *"), ICON_NONE);
-	}
-	else {
-		/* useful for macros where only one of the steps can't be re-done */
-		UI_block_lock_clear(uiLayoutGetBlock(layout));
-	}
-
-	/* menu */
-	if (op->type->flag & OPTYPE_PRESET) {
-		/* XXX, no simple way to get WM_MT_operator_presets.bl_label from python! Label remains the same always! */
-		PointerRNA op_ptr;
-		uiLayout *row;
-
-		uiLayoutGetBlock(layout)->ui_operator = op;
-
-		row = uiLayoutRow(layout, true);
-		uiItemM(row, (bContext *)C, "WM_MT_operator_presets", NULL, ICON_NONE);
-
-		wmOperatorType *ot = WM_operatortype_find("WM_OT_operator_preset_add", false);
-		op_ptr = uiItemFullO_ptr(row, ot, "", ICON_ZOOMIN, NULL, WM_OP_INVOKE_DEFAULT, UI_ITEM_O_RETURN_PROPS);
-		RNA_string_set(&op_ptr, "operator", op->type->idname);
-
-		op_ptr = uiItemFullO_ptr(row, ot, "", ICON_ZOOMOUT, NULL, WM_OP_INVOKE_DEFAULT, UI_ITEM_O_RETURN_PROPS);
-		RNA_string_set(&op_ptr, "operator", op->type->idname);
-		RNA_boolean_set(&op_ptr, "remove_active", true);
-	}
-
-	if (op->type->ui) {
-		op->layout = layout;
-		op->type->ui((bContext *)C, op);
-		op->layout = NULL;
-
-		/* UI_LAYOUT_OP_SHOW_EMPTY ignored */
-	}
-	else {
-		wmWindowManager *wm = CTX_wm_manager(C);
-		PointerRNA ptr;
-		int empty;
-
-		RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-
-		/* main draw call */
-		empty = uiDefAutoButsRNA(layout, &ptr, check_prop, label_align) == 0;
-
-		if (empty && (flag & UI_LAYOUT_OP_SHOW_EMPTY)) {
-			uiItemL(layout, IFACE_("No Properties"), ICON_NONE);
-		}
-	}
-
-#ifdef USE_OP_RESET_BUT
-	/* its possible that reset can do nothing if all have PROP_SKIP_SAVE enabled
-	 * but this is not so important if this button is drawn in those cases
-	 * (which isn't all that likely anyway) - campbell */
-	if (op->properties->len) {
-		uiBlock *block;
-		uiBut *but;
-		uiLayout *col; /* needed to avoid alignment errors with previous buttons */
-
-		col = uiLayoutColumn(layout, false);
-		block = uiLayoutGetBlock(col);
-		but = uiDefIconTextBut(block, UI_BTYPE_BUT, 0, ICON_FILE_REFRESH, IFACE_("Reset"), 0, 0, UI_UNIT_X, UI_UNIT_Y,
-		                       NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Reset operator defaults"));
-		UI_but_func_set(but, ui_layout_operator_buts__reset_cb, op, NULL);
-	}
-#endif
-
-	/* set various special settings for buttons */
-	{
-		uiBlock *block = uiLayoutGetBlock(layout);
-		const bool is_popup = (block->flag & UI_BLOCK_KEEP_OPEN) != 0;
-		uiBut *but;
-
-		
-		for (but = block->buttons.first; but; but = but->next) {
-			/* no undo for buttons for operator redo panels */
-			UI_but_flag_disable(but, UI_BUT_UNDO);
-			
-			/* only for popups, see [#36109] */
-
-			/* if button is operator's default property, and a text-field, enable focus for it
-			 *	- this is used for allowing operators with popups to rename stuff with fewer clicks
-			 */
-			if (is_popup) {
-				if ((but->rnaprop == op->type->prop) && (but->type == UI_BTYPE_TEXT)) {
-					UI_but_focus_on_enter_event(CTX_wm_window(C), but);
-				}
-			}
-		}
-	}
 }
 
 /* this is a bit of a hack but best keep it in one place at least */
