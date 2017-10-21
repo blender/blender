@@ -238,7 +238,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	/* only for region 3D window */
 	keymap = WM_keymap_find(keyconf, "3D View", SPACE_VIEW3D, 0);
 
-	WM_keymap_verify_item(keymap, "VIEW3D_OT_cursor3d", ACTIONMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "VIEW3D_OT_cursor3d", ACTIONMOUSE, KM_CLICK, 0, 0);
 	
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_rotate", MIDDLEMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_move", MIDDLEMOUSE, KM_PRESS, KM_SHIFT, 0);

@@ -52,6 +52,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BLT_translation.h"
 
@@ -1742,6 +1743,60 @@ static void WM_OT_operator_defaults(wmOperatorType *ot)
 
 	ot->flag = OPTYPE_INTERNAL;
 }
+
+#ifdef USE_WORKSPACE_TOOL
+/* ***************** Set Active Tool ************************* */
+
+/* Developers note: in it's current form this doesn't need to be an operator,
+ * keep this as-is for now since it may end up setting an active key-map.
+ */
+
+static int wm_operator_tool_set_exec(bContext *C, wmOperator *op)
+{
+	Main *bmain = CTX_data_main(C);
+	WorkSpace *workspace = CTX_wm_workspace(C);
+	ScrArea *sa = CTX_wm_area(C);
+	char id_keymap[sizeof(workspace->tool.keymap)];
+	char id_manipulator_group[sizeof(workspace->tool.manipulator_group)];
+	RNA_string_get(op->ptr, "keymap", id_keymap);
+	RNA_string_get(op->ptr, "manipulator_group", id_manipulator_group);
+
+	if (workspace->tool.manipulator_group[0]) {
+		wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find(workspace->tool.manipulator_group, false);
+		if (wgt != NULL) {
+			wmManipulatorMapType *mmap_type = WM_manipulatormaptype_ensure(&wgt->mmap_params);
+			WM_manipulatormaptype_group_unlink(C, bmain, mmap_type, wgt);
+		}
+	}
+
+	/* NOTE: we may want to move this logic into a function. */
+	{
+		BLI_strncpy(workspace->tool.keymap, id_keymap, sizeof(workspace->tool.keymap));
+		BLI_strncpy(workspace->tool.manipulator_group, id_manipulator_group, sizeof(workspace->tool.manipulator_group));
+		workspace->tool.spacetype = sa->spacetype;
+	}
+
+	if (workspace->tool.manipulator_group[0]) {
+		WM_manipulator_group_type_ensure(workspace->tool.manipulator_group);
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+static void WM_OT_tool_set(wmOperatorType *ot)
+{
+	ot->name = "Set Active Tool";
+	ot->idname = "WM_OT_tool_set";
+	ot->description = "Set the active tool";
+
+	ot->exec = wm_operator_tool_set_exec;
+
+	ot->flag = OPTYPE_INTERNAL;
+
+	RNA_def_string(ot->srna, "keymap", NULL, KMAP_MAX_NAME, "Key Map", "");
+	RNA_def_string(ot->srna, "manipulator_group", NULL, MAX_NAME, "Manipulator Group", "");
+}
+#endif /* USE_WORKSPACE_TOOL */
 
 /* ***************** Splash Screen ************************* */
 
@@ -3604,6 +3659,9 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_memory_statistics);
 	WM_operatortype_append(WM_OT_debug_menu);
 	WM_operatortype_append(WM_OT_operator_defaults);
+#ifdef USE_WORKSPACE_TOOL
+	WM_operatortype_append(WM_OT_tool_set);
+#endif
 	WM_operatortype_append(WM_OT_splash);
 	WM_operatortype_append(WM_OT_search_menu);
 	WM_operatortype_append(WM_OT_call_menu);

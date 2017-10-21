@@ -2722,8 +2722,41 @@ void wm_event_do_handlers(bContext *C)
 											wm_drags_check_ops(C, event);
 										}
 									}
-									
+
+#ifdef USE_WORKSPACE_TOOL
+									/* How to solve properly?
+									 *
+									 * Handlers are stored in each region,
+									 * however the tool-system swaps keymaps often and isn't stored
+									 * per region.
+									 *
+									 * Need to investigate how this could be done better.
+									 * We might need to add a more dynamic handler type that uses a callback
+									 * to fetch its current keymap.
+									 */
+									wmEventHandler sneaky_handler = {NULL};
+									if (ar->regiontype == RGN_TYPE_WINDOW) {
+										WorkSpace *workspace = WM_window_get_active_workspace(win);
+										if (workspace->tool.keymap[0] &&
+										    workspace->tool.spacetype == sa->spacetype)
+										{
+											wmKeyMap *km = WM_keymap_find_all(
+											        C, workspace->tool.keymap, sa->spacetype, RGN_TYPE_WINDOW);
+											if (km != NULL) {
+												sneaky_handler.keymap = km;
+												BLI_addhead(&ar->handlers, &sneaky_handler);
+											}
+										}
+									}
+#endif /* USE_WORKSPACE_TOOL */
+
 									action |= wm_handlers_do(C, event, &ar->handlers);
+
+#ifdef USE_WORKSPACE_TOOL
+									if (sneaky_handler.keymap) {
+										BLI_remlink(&ar->handlers, &sneaky_handler);
+									}
+#endif /* USE_WORKSPACE_TOOL */
 
 									/* fileread case (python), [#29489] */
 									if (CTX_wm_window(C) == NULL)

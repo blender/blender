@@ -146,6 +146,16 @@ static void rna_def_workspace(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Mode", "Object interaction mode");
 #endif
 
+	prop = RNA_def_property(srna, "tool_keymap", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "tool.keymap");
+	RNA_def_property_ui_text(prop, "Active Tool", "Currently active tool keymap");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "tool_manipulator_group", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "tool.manipulator_group");
+	RNA_def_property_ui_text(prop, "Active Tool", "Currently active tool manipulator");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
 	prop = RNA_def_property(srna, "orientations", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "transform_orientations", NULL);
 	RNA_def_property_struct_type(prop, "TransformOrientation");

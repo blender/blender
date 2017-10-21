@@ -50,6 +50,16 @@
 #  endif
 #endif
 
+/* Currently testing, allow to disable. */
+#define USE_WORKSPACE_TOOL
+
+typedef struct bToolDef {
+	/* either the keymap AND/OR manipulator_group must be defined. */
+	char keymap[64];
+	char manipulator_group[64];
+	int  spacetype;
+	int  _pad;
+} bToolDef;
 
 /**
  * \brief Wrapper for bScreen.
@@ -79,6 +89,9 @@ typedef struct WorkSpace {
 
 	int object_mode DNA_PRIVATE_WORKSPACE; /* enum eObjectMode */
 	int flags DNA_PRIVATE_WORKSPACE; /* enum eWorkSpaceFlags */
+
+	/* should be: '#ifdef USE_WORKSPACE_TOOL'. */
+	bToolDef tool;
 
 	struct SceneLayer *render_layer DNA_PRIVATE_WORKSPACE;
 
