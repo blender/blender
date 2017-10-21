@@ -20,10 +20,10 @@
 import bpy
 from bpy.types import Panel
 
-from bl_ui.properties_physics_common import (
-        point_cache_ui,
-        effector_weights_ui,
-        )
+from .properties_physics_common import (
+    point_cache_ui,
+    effector_weights_ui,
+)
 
 
 COMPAT_OB_TYPES = {'MESH', 'LATTICE', 'CURVE', 'SURFACE', 'FONT'}

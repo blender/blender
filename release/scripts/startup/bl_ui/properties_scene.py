@@ -26,10 +26,10 @@ from bpy.types import (
 
 from rna_prop_ui import PropertyPanel
 
-from bl_ui.properties_physics_common import (
-        point_cache_ui,
-        effector_weights_ui,
-        )
+from .properties_physics_common import (
+    point_cache_ui,
+    effector_weights_ui,
+)
 
 
 class SCENE_MT_units_length_presets(Menu):

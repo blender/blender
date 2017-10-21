@@ -64,9 +64,9 @@ def register():
     # In this example, we need to see the main render image button and
     # the material preview panel.
     from bl_ui import (
-            properties_render,
-            properties_material,
-            )
+        properties_render,
+        properties_material,
+    )
     properties_render.RENDER_PT_render.COMPAT_ENGINES.add(CustomRenderEngine.bl_idname)
     properties_material.MATERIAL_PT_preview.COMPAT_ENGINES.add(CustomRenderEngine.bl_idname)
 
@@ -75,9 +75,9 @@ def unregister():
     bpy.utils.unregister_class(CustomRenderEngine)
 
     from bl_ui import (
-            properties_render,
-            properties_material,
-            )
+        properties_render,
+        properties_material,
+    )
     properties_render.RENDER_PT_render.COMPAT_ENGINES.remove(CustomRenderEngine.bl_idname)
     properties_material.MATERIAL_PT_preview.COMPAT_ENGINES.remove(CustomRenderEngine.bl_idname)
 

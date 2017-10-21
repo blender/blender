@@ -20,10 +20,10 @@
 import bpy
 from bpy.types import Menu, Panel
 
-from bl_ui.properties_physics_common import (
-        point_cache_ui,
-        effector_weights_ui,
-        )
+from .properties_physics_common import (
+    point_cache_ui,
+    effector_weights_ui,
+)
 
 
 def cloth_panel_enabled(md):

@@ -21,16 +21,16 @@ import bpy
 import nodeitems_utils
 from bpy.types import Header, Menu, Panel
 from bpy.app.translations import pgettext_iface as iface_
-from bl_ui.properties_grease_pencil_common import (
-        GreasePencilDrawingToolsPanel,
-        GreasePencilStrokeEditPanel,
-        GreasePencilStrokeSculptPanel,
-        GreasePencilBrushPanel,
-        GreasePencilBrushCurvesPanel,
-        GreasePencilDataPanel,
-        GreasePencilPaletteColorPanel,
-        GreasePencilToolsPanel
-        )
+from .properties_grease_pencil_common import (
+    GreasePencilDrawingToolsPanel,
+    GreasePencilStrokeEditPanel,
+    GreasePencilStrokeSculptPanel,
+    GreasePencilBrushPanel,
+    GreasePencilBrushCurvesPanel,
+    GreasePencilDataPanel,
+    GreasePencilPaletteColorPanel,
+    GreasePencilToolsPanel
+)
 
 
 class NODE_HT_header(Header):
