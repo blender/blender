@@ -21,7 +21,6 @@
 #ifndef __BLI_POLYFILL2D_BEAUTIFY_H__
 #define __BLI_POLYFILL2D_BEAUTIFY_H__
 
-struct EdgeHash;
 struct Heap;
 struct MemArena;
 
@@ -31,7 +30,7 @@ void BLI_polyfill_beautify(
         unsigned int (*tris)[3],
 
         /* structs for reuse */
-        struct MemArena *arena, struct Heap *eheap, struct EdgeHash *eh);
+        struct MemArena *arena, struct Heap *eheap);
 
 float BLI_polyfill_beautify_quad_rotate_calc_ex(
         const float v1[2], const float v2[2], const float v3[2], const float v4[2],
