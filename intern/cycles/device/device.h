@@ -58,6 +58,7 @@ public:
 	bool has_volume_decoupled;
 	bool has_qbvh;
 	bool use_split_kernel; /* Denotes if the device is going to run cycles using split-kernel */
+	int cpu_threads;
 	vector<DeviceInfo> multi_devices;
 
 	DeviceInfo()
@@ -65,6 +66,7 @@ public:
 		type = DEVICE_CPU;
 		id = "CPU";
 		num = 0;
+		cpu_threads = 0;
 		display_device = false;
 		advanced_shading = true;
 		has_bindless_textures = false;
@@ -359,7 +361,9 @@ public:
 	static vector<DeviceType>& available_types();
 	static vector<DeviceInfo>& available_devices();
 	static string device_capabilities();
-	static DeviceInfo get_multi_device(vector<DeviceInfo> subdevices);
+	static DeviceInfo get_multi_device(const vector<DeviceInfo>& subdevices,
+	                                   int threads,
+	                                   bool background);
 
 	/* Tag devices lists for update. */
 	static void tag_update();

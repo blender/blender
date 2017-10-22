@@ -840,7 +840,7 @@ public:
 				}
 
 				/* Set Mapping and tag that we need to (re-)upload to device */
-				TextureInfo& info = texture_info.get_data()[flat_slot];
+				TextureInfo& info = texture_info[flat_slot];
 				info.data = (uint64_t)tex;
 				info.cl_buffer = 0;
 				info.interpolation = interpolation;
@@ -1932,9 +1932,10 @@ uint64_t CUDASplitKernel::state_buffer_size(device_memory& /*kg*/, device_memory
 	                           0, 0, (void**)&args, 0));
 
 	device->mem_copy_from(size_buffer, 0, 1, 1, sizeof(uint64_t));
+	size_t size = size_buffer[0];
 	device->mem_free(size_buffer);
 
-	return *size_buffer.get_data();
+	return size;
 }
 
 bool CUDASplitKernel::enqueue_split_kernel_data_init(const KernelDimensions& dim,

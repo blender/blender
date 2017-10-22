@@ -1080,6 +1080,7 @@ cl_device_type OpenCLInfo::get_device_type(cl_device_id device_id)
 
 string OpenCLInfo::get_readable_device_name(cl_device_id device_id)
 {
+	string name = "";
 	char board_name[1024];
 	size_t length = 0;
 	if(clGetDeviceInfo(device_id,
@@ -1089,11 +1090,21 @@ string OpenCLInfo::get_readable_device_name(cl_device_id device_id)
 	                   &length) == CL_SUCCESS)
 	{
 		if(length != 0 && board_name[0] != '\0') {
-			return board_name;
+			name = board_name;
 		}
 	}
+
 	/* Fallback to standard device name API. */
-	return get_device_name(device_id);
+	if(name.empty()) {
+		name = get_device_name(device_id);
+	}
+
+	/* Distinguish from our native CPU device. */
+	if(get_device_type(device_id) & CL_DEVICE_TYPE_CPU) {
+		name += " (OpenCL)";
+	}
+
+	return name;
 }
 
 bool OpenCLInfo::get_driver_version(cl_device_id device_id,

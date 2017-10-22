@@ -1345,8 +1345,9 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
         cuda_devices = []
         opencl_devices = []
+        cpu_devices = []
         for device in device_list:
-            if not device[1] in {'CUDA', 'OPENCL'}:
+            if not device[1] in {'CUDA', 'OPENCL', 'CPU'}:
                 continue
 
             entry = None
@@ -1355,18 +1356,28 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 if dev.id == device[2] and dev.type == device[1]:
                     entry = dev
                     break
-            # Create new entry if no existing one was found
             if not entry:
+                # Create new entry if no existing one was found
                 entry = self.devices.add()
                 entry.id   = device[2]
                 entry.name = device[0]
                 entry.type = device[1]
+                entry.use  = entry.type != 'CPU'
+            elif entry.name != device[0]:
+                # Update name in case it changed
+                entry.name = device[0]
 
             # Sort entries into lists
             if entry.type == 'CUDA':
                 cuda_devices.append(entry)
             elif entry.type == 'OPENCL':
                 opencl_devices.append(entry)
+            else:
+                cpu_devices.append(entry)
+
+        cuda_devices.extend(cpu_devices)
+        opencl_devices.extend(cpu_devices)
+
         return cuda_devices, opencl_devices
 
 

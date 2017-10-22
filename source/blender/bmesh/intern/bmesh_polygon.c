@@ -925,7 +925,7 @@ void BM_face_triangulate(
         MemArena *pf_arena,
 
         /* use for MOD_TRIANGULATE_NGON_BEAUTY only! */
-        struct Heap *pf_heap, struct EdgeHash *pf_ehash)
+        struct Heap *pf_heap)
 {
 	const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
 	const bool use_beauty = (ngon_method == MOD_TRIANGULATE_NGON_BEAUTY);
@@ -1041,7 +1041,7 @@ void BM_face_triangulate(
 			if (use_beauty) {
 				BLI_polyfill_beautify(
 				        projverts, f->len, tris,
-				        pf_arena, pf_heap, pf_ehash);
+				        pf_arena, pf_heap);
 			}
 
 			BLI_memarena_clear(pf_arena);
@@ -1497,7 +1497,6 @@ void BM_mesh_calc_tessellation_beauty(BMesh *bm, BMLoop *(*looptris)[3], int *r_
 
 	/* use_beauty */
 	Heap *pf_heap = NULL;
-	EdgeHash *pf_ehash = NULL;
 
 	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 		/* don't consider two-edged faces */
@@ -1574,7 +1573,6 @@ void BM_mesh_calc_tessellation_beauty(BMesh *bm, BMLoop *(*looptris)[3], int *r_
 			if (UNLIKELY(pf_arena == NULL)) {
 				pf_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 				pf_heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
-				pf_ehash = BLI_edgehash_new_ex(__func__, BLI_POLYFILL_ALLOC_NGON_RESERVE);
 			}
 
 			tris = BLI_memarena_alloc(pf_arena, sizeof(*tris) * totfilltri);
@@ -1593,7 +1591,7 @@ void BM_mesh_calc_tessellation_beauty(BMesh *bm, BMLoop *(*looptris)[3], int *r_
 
 			BLI_polyfill_calc_arena(projverts, efa->len, 1, tris, pf_arena);
 
-			BLI_polyfill_beautify(projverts, efa->len, tris, pf_arena, pf_heap, pf_ehash);
+			BLI_polyfill_beautify(projverts, efa->len, tris, pf_arena, pf_heap);
 
 			for (j = 0; j < totfilltri; j++) {
 				BMLoop **l_ptr = looptris[i++];
@@ -1612,7 +1610,6 @@ void BM_mesh_calc_tessellation_beauty(BMesh *bm, BMLoop *(*looptris)[3], int *r_
 		BLI_memarena_free(pf_arena);
 
 		BLI_heap_free(pf_heap, NULL);
-		BLI_edgehash_free(pf_ehash, NULL);
 	}
 
 	*r_looptris_tot = i;

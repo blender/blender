@@ -42,77 +42,56 @@
 #include "BLI_math.h"
 
 #include "BLI_memarena.h"
-#include "BLI_edgehash.h"
 #include "BLI_heap.h"
 
 #include "BLI_polyfill2d_beautify.h"  /* own include */
 
 #include "BLI_strict_flags.h"
 
-struct PolyEdge {
-	/** ordered vert indices (smaller first) */
-	unsigned int verts[2];
-	/** ordered face indices (depends on winding compared to the edge verts)
-	 * - (verts[0], verts[1])  == faces[0]
-	 * - (verts[1], verts[0])  == faces[1]
-	 */
-	unsigned int faces[2];
-	/**
-	 * The face-index which isn't used by either of the edges verts [0 - 2].
-	 * could be calculated each time, but cleaner to store for reuse.
-	 */
-	unsigned int faces_other_v[2];
+/* Used to find matching edges. */
+struct OrderEdge {
+	uint verts[2];
+	uint e_half;
 };
 
+/* Half edge used for rotating in-place. */
+struct HalfEdge {
+	uint v;
+	uint e_next;
+	uint e_radial;
+	uint base_index;
+};
 
-#ifndef NDEBUG
-/**
- * Only to check for error-cases.
- */
-static void polyfill_validate_tri(unsigned int (*tris)[3], unsigned int tri_index, EdgeHash *ehash)
+static int oedge_cmp(const void *a1, const void *a2)
 {
-	const unsigned int *tri = tris[tri_index];
-	int j_curr;
-
-	BLI_assert(!ELEM(tri[0], tri[1], tri[2]) &&
-	           !ELEM(tri[1], tri[0], tri[2]) &&
-	           !ELEM(tri[2], tri[0], tri[1]));
-
-	for (j_curr = 0; j_curr < 3; j_curr++) {
-		struct PolyEdge *e;
-		unsigned int e_v1 = tri[(j_curr    )    ];
-		unsigned int e_v2 = tri[(j_curr + 1) % 3];
-		e = BLI_edgehash_lookup(ehash, e_v1, e_v2);
-		if (e) {
-			if (e->faces[0] == tri_index) {
-				BLI_assert(e->verts[0] == e_v1);
-				BLI_assert(e->verts[1] == e_v2);
-			}
-			else if (e->faces[1] == tri_index) {
-				BLI_assert(e->verts[0] == e_v2);
-				BLI_assert(e->verts[1] == e_v1);
-			}
-			else {
-				BLI_assert(0);
-			}
-
-			BLI_assert(e->faces[0] != e->faces[1]);
-			BLI_assert(ELEM(e_v1, UNPACK3(tri)));
-			BLI_assert(ELEM(e_v2, UNPACK3(tri)));
-			BLI_assert(ELEM(e_v1, UNPACK2(e->verts)));
-			BLI_assert(ELEM(e_v2, UNPACK2(e->verts)));
-			BLI_assert(e_v1 != tris[e->faces[0]][e->faces_other_v[0]]);
-			BLI_assert(e_v1 != tris[e->faces[1]][e->faces_other_v[1]]);
-			BLI_assert(e_v2 != tris[e->faces[0]][e->faces_other_v[0]]);
-			BLI_assert(e_v2 != tris[e->faces[1]][e->faces_other_v[1]]);
-
-			BLI_assert(ELEM(tri_index, UNPACK2(e->faces)));
-		}
+	const struct OrderEdge *x1 = a1, *x2 = a2;
+	if (x1->verts[0] > x2->verts[0]) {
+		return 1;
 	}
-}
-#endif
+	else if (x1->verts[0] < x2->verts[0]) {
+		return -1;
+	}
 
-BLI_INLINE bool is_boundary_edge(unsigned int i_a, unsigned int i_b, const unsigned int coord_last)
+	if (x1->verts[1] > x2->verts[1]) {
+		return 1;
+	}
+	else if (x1->verts[1] < x2->verts[1]) {
+		return -1;
+	}
+
+	/* only for pradictability */
+	if (x1->e_half > x2->e_half) {
+		return 1;
+	}
+	else if (x1->e_half < x2->e_half) {
+		return -1;
+	}
+	/* Should never get here, no two edges should be the same. */
+	BLI_assert(false);
+	return 0;
+}
+
+BLI_INLINE bool is_boundary_edge(uint i_a, uint i_b, const uint coord_last)
 {
 	BLI_assert(i_a < i_b);
 	return ((i_a + 1 == i_b) || UNLIKELY((i_a == 0) && (i_b == coord_last)));
@@ -215,27 +194,31 @@ float BLI_polyfill_beautify_quad_rotate_calc_ex(
 
 static float polyedge_rotate_beauty_calc(
         const float (*coords)[2],
-        const unsigned int (*tris)[3],
-        const struct PolyEdge *e)
+        const struct HalfEdge *edges,
+        const struct HalfEdge *e_a)
 {
+	const struct HalfEdge *e_b = &edges[e_a->e_radial];
+
+	const struct HalfEdge *e_a_other = &edges[edges[e_a->e_next].e_next];
+	const struct HalfEdge *e_b_other = &edges[edges[e_b->e_next].e_next];
+
 	const float *v1, *v2, *v3, *v4;
 
-	v1 = coords[tris[e->faces[0]][e->faces_other_v[0]]];
-	v3 = coords[tris[e->faces[1]][e->faces_other_v[1]]];
-	v2 = coords[e->verts[0]];
-	v4 = coords[e->verts[1]];
+	v1 = coords[e_a_other->v];
+	v2 = coords[e_a->v];
+	v3 = coords[e_b_other->v];
+	v4 = coords[e_b->v];
 
 	return BLI_polyfill_beautify_quad_rotate_calc(v1, v2, v3, v4);
 }
 
 static void polyedge_beauty_cost_update_single(
         const float (*coords)[2],
-        const unsigned int (*tris)[3],
-        const struct PolyEdge *edges,
-        struct PolyEdge *e,
+        const struct HalfEdge *edges,
+        struct HalfEdge *e,
         Heap *eheap, HeapNode **eheap_table)
 {
-	const unsigned int i = (unsigned int)(e - edges);
+	const uint i = e->base_index;
 
 	if (eheap_table[i]) {
 		BLI_heap_remove(eheap, eheap_table[i]);
@@ -244,7 +227,7 @@ static void polyedge_beauty_cost_update_single(
 
 	{
 		/* recalculate edge */
-		const float cost = polyedge_rotate_beauty_calc(coords, tris, e);
+		const float cost = polyedge_rotate_beauty_calc(coords, edges, e);
 		/* We can get cases where both choices generate very small negative costs, which leads to infinite loop.
 		 * Anyway, costs above that are not worth recomputing, maybe we could even optimize it to a smaller limit?
 		 * Actually, FLT_EPSILON is too small in some cases, 1e-6f seems to work OK hopefully?
@@ -260,39 +243,22 @@ static void polyedge_beauty_cost_update_single(
 
 static void polyedge_beauty_cost_update(
         const float (*coords)[2],
-        const unsigned int (*tris)[3],
-        const struct PolyEdge *edges,
-        struct PolyEdge *e,
-        Heap *eheap, HeapNode **eheap_table,
-        EdgeHash *ehash)
+        struct HalfEdge *edges,
+        struct HalfEdge *e,
+        Heap *eheap, HeapNode **eheap_table)
 {
-	const unsigned int *tri_0 = tris[e->faces[0]];
-	const unsigned int *tri_1 = tris[e->faces[1]];
-	unsigned int i;
+	struct HalfEdge *e_arr[4];
+	e_arr[0] = &edges[e->e_next];
+	e_arr[1] = &edges[e_arr[0]->e_next];
 
-	struct PolyEdge *e_arr[4] = {
-		BLI_edgehash_lookup(ehash,
-		        tri_0[(e->faces_other_v[0]    ) % 3],
-		        tri_0[(e->faces_other_v[0] + 1) % 3]),
-		BLI_edgehash_lookup(ehash,
-		        tri_0[(e->faces_other_v[0] + 2) % 3],
-		        tri_0[(e->faces_other_v[0]    ) % 3]),
-		BLI_edgehash_lookup(ehash,
-		        tri_1[(e->faces_other_v[1]    ) % 3],
-		        tri_1[(e->faces_other_v[1] + 1) % 3]),
-		BLI_edgehash_lookup(ehash,
-		        tri_1[(e->faces_other_v[1] + 2) % 3],
-		        tri_1[(e->faces_other_v[1]    ) % 3]),
-	};
+	e = &edges[e->e_radial];
+	e_arr[2] = &edges[e->e_next];
+	e_arr[3] = &edges[e_arr[2]->e_next];
 
-
-	for (i = 0; i < 4; i++) {
-		if (e_arr[i]) {
-			BLI_assert(!(ELEM(e_arr[i]->faces[0], UNPACK2(e->faces)) &&
-			             ELEM(e_arr[i]->faces[1], UNPACK2(e->faces))));
-
+	for (uint i = 0; i < 4; i++) {
+		if (e_arr[i] && e_arr[i]->base_index != UINT_MAX) {
 			polyedge_beauty_cost_update_single(
-			        coords, tris, edges,
+			        coords, edges,
 			        e_arr[i],
 			        eheap, eheap_table);
 		}
@@ -300,91 +266,49 @@ static void polyedge_beauty_cost_update(
 }
 
 static void polyedge_rotate(
-        unsigned int (*tris)[3],
-        struct PolyEdge *e,
-        EdgeHash *ehash)
+        struct HalfEdge *edges,
+        struct HalfEdge *e)
 {
-	unsigned int e_v1_new = tris[e->faces[0]][e->faces_other_v[0]];
-	unsigned int e_v2_new = tris[e->faces[1]][e->faces_other_v[1]];
+	/** CCW winding, rotate internal edge to new vertical state.
+	 * <pre>
+	 *   Before         After
+	 *      X             X
+	 *     / \           /|\
+	 *  e4/   \e5     e4/ | \e5
+	 *   / e3  \       /  |  \
+	 * X ------- X -> X e0|e3 X
+	 *   \ e0  /       \  |  /
+	 *  e2\   /e1     e2\ | /e1
+	 *     \ /           \|/
+	 *      X             X
+	 * </pre>
+	 */
+	struct HalfEdge *ed[6];
+	uint ed_index[6];
 
-#ifndef NDEBUG
-	polyfill_validate_tri(tris, e->faces[0], ehash);
-	polyfill_validate_tri(tris, e->faces[1], ehash);
-#endif
+	ed_index[0] = (uint)(e - edges);
+	ed[0] = &edges[ed_index[0]];
+	ed_index[1] = ed[0]->e_next;
+	ed[1] = &edges[ed_index[1]];
+	ed_index[2] = ed[1]->e_next;
+	ed[2] = &edges[ed_index[2]];
 
-	BLI_assert(e_v1_new != e_v2_new);
-	BLI_assert(!ELEM(e_v2_new, UNPACK3(tris[e->faces[0]])));
-	BLI_assert(!ELEM(e_v1_new, UNPACK3(tris[e->faces[1]])));
+	ed_index[3] = e->e_radial;
+	ed[3] = &edges[ed_index[3]];
+	ed_index[4] = ed[3]->e_next;
+	ed[4] = &edges[ed_index[4]];
+	ed_index[5] = ed[4]->e_next;
+	ed[5] = &edges[ed_index[5]];
 
-	tris[e->faces[0]][(e->faces_other_v[0] + 1) % 3] = e_v2_new;
-	tris[e->faces[1]][(e->faces_other_v[1] + 1) % 3] = e_v1_new;
+	ed[0]->e_next = ed_index[2];
+	ed[1]->e_next = ed_index[3];
+	ed[2]->e_next = ed_index[4];
+	ed[3]->e_next = ed_index[5];
+	ed[4]->e_next = ed_index[0];
+	ed[5]->e_next = ed_index[1];
 
-	e->faces_other_v[0] = (e->faces_other_v[0] + 2) % 3;
-	e->faces_other_v[1] = (e->faces_other_v[1] + 2) % 3;
-
-	BLI_assert((tris[e->faces[0]][e->faces_other_v[0]] != e_v1_new) &&
-	           (tris[e->faces[0]][e->faces_other_v[0]] != e_v2_new));
-	BLI_assert((tris[e->faces[1]][e->faces_other_v[1]] != e_v1_new) &&
-	           (tris[e->faces[1]][e->faces_other_v[1]] != e_v2_new));
-
-	BLI_edgehash_remove(ehash, e->verts[0], e->verts[1], NULL);
-	BLI_edgehash_insert(ehash, e_v1_new, e_v2_new, e);
-
-	if (e_v1_new < e_v2_new) {
-		e->verts[0] = e_v1_new;
-		e->verts[1] = e_v2_new;
-	}
-	else {
-		/* maintain winding info */
-		e->verts[0] = e_v2_new;
-		e->verts[1] = e_v1_new;
-
-		SWAP(unsigned int, e->faces[0], e->faces[1]);
-		SWAP(unsigned int, e->faces_other_v[0], e->faces_other_v[1]);
-	}
-
-	/* update adjacent data */
-	{
-		unsigned int e_side = 0;
-
-		for (e_side = 0; e_side < 2; e_side++) {
-			/* 't_other' which we need to swap out is always the same edge-order */
-			const unsigned int t_other = (((e->faces_other_v[e_side]) + 2)) % 3;
-			unsigned int t_index = e->faces[e_side];
-			unsigned int t_index_other = e->faces[!e_side];
-			unsigned int *tri = tris[t_index];
-
-			struct PolyEdge *e_other;
-			unsigned int e_v1 = tri[(t_other    )    ];
-			unsigned int e_v2 = tri[(t_other + 1) % 3];
-
-			e_other = BLI_edgehash_lookup(ehash, e_v1, e_v2);
-			if (e_other) {
-				BLI_assert(t_index != e_other->faces[0] && t_index != e_other->faces[1]);
-				if (t_index_other == e_other->faces[0]) {
-					e_other->faces[0] = t_index;
-					e_other->faces_other_v[0] = (t_other + 2) % 3;
-					BLI_assert(!ELEM(tri[e_other->faces_other_v[0]], e_v1, e_v2));
-				}
-				else if (t_index_other == e_other->faces[1]) {
-					e_other->faces[1] = t_index;
-					e_other->faces_other_v[1] = (t_other + 2) % 3;
-					BLI_assert(!ELEM(tri[e_other->faces_other_v[1]], e_v1, e_v2));
-				}
-				else {
-					BLI_assert(0);
-				}
-			}
-		}
-	}
-
-#ifndef NDEBUG
-	polyfill_validate_tri(tris, e->faces[0], ehash);
-	polyfill_validate_tri(tris, e->faces[1], ehash);
-#endif
-
-	BLI_assert(!ELEM(tris[e->faces[0]][e->faces_other_v[0]], UNPACK2(e->verts)));
-	BLI_assert(!ELEM(tris[e->faces[1]][e->faces_other_v[1]], UNPACK2(e->verts)));
+	ed[0]->v = ed[5]->v;
+	ed[3]->v = ed[2]->v;
 }
 
 /**
@@ -397,108 +321,124 @@ static void polyedge_rotate(
  */
 void BLI_polyfill_beautify(
         const float (*coords)[2],
-        const unsigned int coords_tot,
-        unsigned int (*tris)[3],
+        const uint coords_tot,
+        uint (*tris)[3],
 
         /* structs for reuse */
-        MemArena *arena, Heap *eheap, EdgeHash *ehash)
+        MemArena *arena, Heap *eheap)
 {
-	const unsigned int coord_last = coords_tot - 1;
-	const unsigned int tris_tot = coords_tot - 2;
+	const uint coord_last = coords_tot - 1;
+	const uint tris_len = coords_tot - 2;
 	/* internal edges only (between 2 tris) */
-	const unsigned int edges_tot = tris_tot - 1;
-	unsigned int edges_tot_used = 0;
-	unsigned int i;
+	const uint edges_len = tris_len - 1;
 
 	HeapNode **eheap_table;
 
-	struct PolyEdge *edges = BLI_memarena_alloc(arena, edges_tot * sizeof(*edges));
-
-	BLI_assert(BLI_heap_size(eheap) == 0);
-	BLI_assert(BLI_edgehash_size(ehash) == 0);
+	const uint half_edges_len = 3 * tris_len;
+	struct HalfEdge *half_edges = BLI_memarena_alloc(arena, sizeof(*half_edges) * half_edges_len);
+	struct OrderEdge *order_edges = BLI_memarena_alloc(arena, sizeof(struct OrderEdge) * 2 * edges_len);
+	uint order_edges_len = 0;
 
 	/* first build edges */
-	for (i = 0; i < tris_tot; i++) {
-		unsigned int j_prev, j_curr, j_next;
-		j_prev = 2;
-		j_next = 1;
-		for (j_curr = 0; j_curr < 3; j_next = j_prev, j_prev = j_curr++) {
-			int e_index;
+	for (uint i = 0; i < tris_len; i++) {
+		for (uint j_curr = 0, j_prev = 2; j_curr < 3; j_prev = j_curr++) {
+			const uint e_index_prev = (i * 3) + j_prev;
+			const uint e_index_curr = (i * 3) + j_curr;
 
-			unsigned int e_pair[2] = {
-				tris[i][j_prev],
-				tris[i][j_curr],
-			};
+			half_edges[e_index_prev].v = tris[i][j_prev];
+			half_edges[e_index_prev].e_next = e_index_curr;
+			half_edges[e_index_prev].e_radial = UINT_MAX;
+			half_edges[e_index_prev].base_index = UINT_MAX;
 
+			uint e_pair[2] = {tris[i][j_prev], tris[i][j_curr]};
 			if (e_pair[0] > e_pair[1]) {
-				SWAP(unsigned int, e_pair[0], e_pair[1]);
-				e_index = 1;
-			}
-			else {
-				e_index = 0;
+				SWAP(uint, e_pair[0], e_pair[1]);
 			}
 
+			/* ensure internal edges. */
 			if (!is_boundary_edge(e_pair[0], e_pair[1], coord_last)) {
-				struct PolyEdge *e;
-				void **val_p;
-
-				if (!BLI_edgehash_ensure_p(ehash, e_pair[0], e_pair[1], &val_p)) {
-					e = &edges[edges_tot_used++];
-					*val_p = e;
-					memcpy(e->verts, e_pair, sizeof(e->verts));
-#ifndef NDEBUG
-					e->faces[!e_index] = (unsigned int)-1;
-#endif
-				}
-				else {
-					e = *val_p;
-					/* ensure each edge only ever has 2x users */
-#ifndef NDEBUG
-					BLI_assert(e->faces[e_index] == (unsigned int)-1);
-					BLI_assert((e->verts[0] == e_pair[0]) &&
-					           (e->verts[1] == e_pair[1]));
-#endif
-				}
-
-				e->faces[e_index] = i;
-				e->faces_other_v[e_index] = j_next;
+				order_edges[order_edges_len].verts[0] = e_pair[0];
+				order_edges[order_edges_len].verts[1] = e_pair[1];
+				order_edges[order_edges_len].e_half = e_index_prev;
+				order_edges_len += 1;
 			}
 		}
 	}
+	BLI_assert(edges_len * 2 == order_edges_len);
 
-	/* now perform iterative rotations */
-	eheap_table = BLI_memarena_alloc(arena, sizeof(HeapNode *) * (size_t)edges_tot);
+	qsort(order_edges, order_edges_len, sizeof(struct OrderEdge), oedge_cmp);
 
-	// for (i = 0; i < tris_tot; i++) { polyfill_validate_tri(tris, i, eh); }
+	for (uint i = 0, base_index = 0; i < order_edges_len; base_index++) {
+		const struct OrderEdge *oe_a = &order_edges[i++];
+		const struct OrderEdge *oe_b = &order_edges[i++];
+		BLI_assert(oe_a->verts[0] == oe_a->verts[0] && oe_a->verts[1] == oe_a->verts[1]);
+		half_edges[oe_a->e_half].e_radial = oe_b->e_half;
+		half_edges[oe_b->e_half].e_radial = oe_a->e_half;
+		half_edges[oe_a->e_half].base_index = base_index;
+		half_edges[oe_b->e_half].base_index = base_index;
+	}
+	/* order_edges could be freed now. */
 
-	/* build heap */
-	for (i = 0; i < edges_tot; i++) {
-		struct PolyEdge *e = &edges[i];
-		const float cost = polyedge_rotate_beauty_calc(coords, (const unsigned int (*)[3])tris, e);
-		if (cost < 0.0f) {
-			eheap_table[i] = BLI_heap_insert(eheap, cost, e);
-		}
-		else {
-			eheap_table[i] = NULL;
+	/* Now perform iterative rotations. */
+#if 0
+	eheap_table = BLI_memarena_alloc(arena, sizeof(HeapNode *) * (size_t)edges_len);
+#else
+	/* We can re-use this since its big enough. */
+	eheap_table = (void *)order_edges;
+	order_edges = NULL;
+#endif
+
+	/* Build heap. */
+	{
+		struct HalfEdge *e = half_edges;
+		for (uint i = 0; i < half_edges_len; i++, e++) {
+			/* Accounts for boundary edged too (UINT_MAX). */
+			if (e->e_radial < i) {
+				const float cost = polyedge_rotate_beauty_calc(coords, half_edges, e);
+				if (cost < 0.0f) {
+					eheap_table[e->base_index] = BLI_heap_insert(eheap, cost, e);
+				}
+				else {
+					eheap_table[e->base_index] = NULL;
+				}
+			}
 		}
 	}
 
 	while (BLI_heap_is_empty(eheap) == false) {
-		struct PolyEdge *e = BLI_heap_popmin(eheap);
-		i = (unsigned int)(e - edges);
-		eheap_table[i] = NULL;
+		struct HalfEdge *e = BLI_heap_popmin(eheap);
+		eheap_table[e->base_index] = NULL;
 
-		polyedge_rotate(tris, e, ehash);
+		polyedge_rotate(half_edges, e);
 
 		/* recalculate faces connected on the heap */
 		polyedge_beauty_cost_update(
-		        coords, (const unsigned int (*)[3])tris, edges,
+		        coords, half_edges,
 		        e,
-		        eheap, eheap_table, ehash);
+		        eheap, eheap_table);
 	}
 
 	BLI_heap_clear(eheap, NULL);
-	BLI_edgehash_clear_ex(ehash, NULL, BLI_POLYFILL_ALLOC_NGON_RESERVE);
 
 	/* MEM_freeN(eheap_table); */  /* arena */
+
+	/* get tris from half edge. */
+	uint tri_index = 0;
+	for (uint i = 0; i < half_edges_len; i++) {
+		struct HalfEdge *e = &half_edges[i];
+		if (e->v != UINT_MAX) {
+			uint *tri = tris[tri_index++];
+
+			tri[0] = e->v;
+			e->v = UINT_MAX;
+
+			e = &half_edges[e->e_next];
+			tri[1] = e->v;
+			e->v = UINT_MAX;
+
+			e = &half_edges[e->e_next];
+			tri[2] = e->v;
+			e->v = UINT_MAX;
+		}
+	}
 }

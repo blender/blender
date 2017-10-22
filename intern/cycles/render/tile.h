@@ -91,7 +91,7 @@ public:
 	            bool preserve_tile_device, bool background, TileOrder tile_order, int num_devices = 1, int pixel_size = 1);
 	~TileManager();
 
-	void free_device();
+	void device_free();
 	void reset(BufferParams& params, int num_samples);
 	void set_samples(int num_samples);
 	bool next();
@@ -146,6 +146,7 @@ protected:
 
 	/* Generate tile list, return number of tiles. */
 	int gen_tiles(bool sliced);
+	void gen_render_tiles();
 
 	int get_neighbor_index(int index, int neighbor);
 	bool check_neighbor_state(int index, Tile::State state);

@@ -364,6 +364,7 @@ int ImageManager::add_image(const string& filename,
 	img->extension = extension;
 	img->users = 1;
 	img->use_alpha = use_alpha;
+	img->mem = NULL;
 
 	images[type][slot] = img;
 
@@ -696,7 +697,6 @@ bool ImageManager::file_load_image(Image *img,
 }
 
 void ImageManager::device_load_image(Device *device,
-                                     DeviceScene *dscene,
                                      Scene *scene,
                                      ImageDataType type,
                                      int slot,
@@ -717,26 +717,27 @@ void ImageManager::device_load_image(Device *device,
 
 	/* Slot assignment */
 	int flat_slot = type_index_to_flattened_slot(slot, type);
-
 	string name = string_printf("__tex_image_%s_%03d", name_from_type(type).c_str(), flat_slot);
 
-	if(type == IMAGE_DATA_TYPE_FLOAT4) {
-		if(dscene->tex_float4_image[slot] == NULL)
-			dscene->tex_float4_image[slot] = new device_vector<float4>();
-		device_vector<float4>& tex_img = *dscene->tex_float4_image[slot];
+	/* Free previous texture in slot. */
+	if(img->mem) {
+		thread_scoped_lock device_lock(device_mutex);
+		device->tex_free(*img->mem);
+		delete img->mem;
+		img->mem = NULL;
+	}
 
-		if(tex_img.device_pointer) {
-			thread_scoped_lock device_lock(device_mutex);
-			device->tex_free(tex_img);
-		}
+	/* Create new texture. */
+	if(type == IMAGE_DATA_TYPE_FLOAT4) {
+		device_vector<float4> *tex_img = new device_vector<float4>();
 
 		if(!file_load_image<TypeDesc::FLOAT, float>(img,
 		                                            type,
 		                                            texture_limit,
-		                                            tex_img))
+		                                            *tex_img))
 		{
 			/* on failure to load, we set a 1x1 pixels pink image */
-			float *pixels = (float*)tex_img.resize(1, 1);
+			float *pixels = (float*)tex_img->resize(1, 1);
 
 			pixels[0] = TEX_IMAGE_MISSING_R;
 			pixels[1] = TEX_IMAGE_MISSING_G;
@@ -744,60 +745,34 @@ void ImageManager::device_load_image(Device *device,
 			pixels[3] = TEX_IMAGE_MISSING_A;
 		}
 
-		{
-			thread_scoped_lock device_lock(device_mutex);
-			device->tex_alloc(name.c_str(),
-			                  tex_img,
-			                  img->interpolation,
-			                  img->extension);
-		}
+		img->mem = tex_img;
 	}
 	else if(type == IMAGE_DATA_TYPE_FLOAT) {
-		if(dscene->tex_float_image[slot] == NULL)
-			dscene->tex_float_image[slot] = new device_vector<float>();
-		device_vector<float>& tex_img = *dscene->tex_float_image[slot];
-
-		if(tex_img.device_pointer) {
-			thread_scoped_lock device_lock(device_mutex);
-			device->tex_free(tex_img);
-		}
+		device_vector<float> *tex_img = new device_vector<float>();
 
 		if(!file_load_image<TypeDesc::FLOAT, float>(img,
 		                                            type,
 		                                            texture_limit,
-		                                            tex_img))
+		                                            *tex_img))
 		{
 			/* on failure to load, we set a 1x1 pixels pink image */
-			float *pixels = (float*)tex_img.resize(1, 1);
+			float *pixels = (float*)tex_img->resize(1, 1);
 
 			pixels[0] = TEX_IMAGE_MISSING_R;
 		}
 
-		{
-			thread_scoped_lock device_lock(device_mutex);
-			device->tex_alloc(name.c_str(),
-			                  tex_img,
-			                  img->interpolation,
-			                  img->extension);
-		}
+		img->mem = tex_img;
 	}
 	else if(type == IMAGE_DATA_TYPE_BYTE4) {
-		if(dscene->tex_byte4_image[slot] == NULL)
-			dscene->tex_byte4_image[slot] = new device_vector<uchar4>();
-		device_vector<uchar4>& tex_img = *dscene->tex_byte4_image[slot];
-
-		if(tex_img.device_pointer) {
-			thread_scoped_lock device_lock(device_mutex);
-			device->tex_free(tex_img);
-		}
+		device_vector<uchar4> *tex_img = new device_vector<uchar4>();
 
 		if(!file_load_image<TypeDesc::UINT8, uchar>(img,
 		                                            type,
 		                                            texture_limit,
-		                                            tex_img))
+		                                            *tex_img))
 		{
 			/* on failure to load, we set a 1x1 pixels pink image */
-			uchar *pixels = (uchar*)tex_img.resize(1, 1);
+			uchar *pixels = (uchar*)tex_img->resize(1, 1);
 
 			pixels[0] = (TEX_IMAGE_MISSING_R * 255);
 			pixels[1] = (TEX_IMAGE_MISSING_G * 255);
@@ -805,58 +780,32 @@ void ImageManager::device_load_image(Device *device,
 			pixels[3] = (TEX_IMAGE_MISSING_A * 255);
 		}
 
-		{
-			thread_scoped_lock device_lock(device_mutex);
-			device->tex_alloc(name.c_str(),
-			                  tex_img,
-			                  img->interpolation,
-			                  img->extension);
-		}
+		img->mem = tex_img;
 	}
-	else if(type == IMAGE_DATA_TYPE_BYTE){
-		if(dscene->tex_byte_image[slot] == NULL)
-			dscene->tex_byte_image[slot] = new device_vector<uchar>();
-		device_vector<uchar>& tex_img = *dscene->tex_byte_image[slot];
-
-		if(tex_img.device_pointer) {
-			thread_scoped_lock device_lock(device_mutex);
-			device->tex_free(tex_img);
-		}
+	else if(type == IMAGE_DATA_TYPE_BYTE) {
+		device_vector<uchar> *tex_img = new device_vector<uchar>();
 
 		if(!file_load_image<TypeDesc::UINT8, uchar>(img,
 		                                            type,
 		                                            texture_limit,
-		                                            tex_img)) {
+		                                            *tex_img)) {
 			/* on failure to load, we set a 1x1 pixels pink image */
-			uchar *pixels = (uchar*)tex_img.resize(1, 1);
+			uchar *pixels = (uchar*)tex_img->resize(1, 1);
 
 			pixels[0] = (TEX_IMAGE_MISSING_R * 255);
 		}
 
-		{
-			thread_scoped_lock device_lock(device_mutex);
-			device->tex_alloc(name.c_str(),
-			                  tex_img,
-			                  img->interpolation,
-			                  img->extension);
-		}
+		img->mem = tex_img;
 	}
-	else if(type == IMAGE_DATA_TYPE_HALF4){
-		if(dscene->tex_half4_image[slot] == NULL)
-			dscene->tex_half4_image[slot] = new device_vector<half4>();
-		device_vector<half4>& tex_img = *dscene->tex_half4_image[slot];
-
-		if(tex_img.device_pointer) {
-			thread_scoped_lock device_lock(device_mutex);
-			device->tex_free(tex_img);
-		}
+	else if(type == IMAGE_DATA_TYPE_HALF4) {
+		device_vector<half4> *tex_img = new device_vector<half4>();
 
 		if(!file_load_image<TypeDesc::HALF, half>(img,
 		                                          type,
 		                                          texture_limit,
-		                                          tex_img)) {
+		                                          *tex_img)) {
 			/* on failure to load, we set a 1x1 pixels pink image */
-			half *pixels = (half*)tex_img.resize(1, 1);
+			half *pixels = (half*)tex_img->resize(1, 1);
 
 			pixels[0] = TEX_IMAGE_MISSING_R;
 			pixels[1] = TEX_IMAGE_MISSING_G;
@@ -864,47 +813,38 @@ void ImageManager::device_load_image(Device *device,
 			pixels[3] = TEX_IMAGE_MISSING_A;
 		}
 
-		{
-			thread_scoped_lock device_lock(device_mutex);
-			device->tex_alloc(name.c_str(),
-			                  tex_img,
-			                  img->interpolation,
-			                  img->extension);
-		}
+		img->mem = tex_img;
 	}
-	else if(type == IMAGE_DATA_TYPE_HALF){
-		if(dscene->tex_half_image[slot] == NULL)
-			dscene->tex_half_image[slot] = new device_vector<half>();
-		device_vector<half>& tex_img = *dscene->tex_half_image[slot];
-
-		if(tex_img.device_pointer) {
-			thread_scoped_lock device_lock(device_mutex);
-			device->tex_free(tex_img);
-		}
+	else if(type == IMAGE_DATA_TYPE_HALF) {
+		device_vector<half> *tex_img = new device_vector<half>();
 
 		if(!file_load_image<TypeDesc::HALF, half>(img,
 		                                          type,
 		                                          texture_limit,
-		                                          tex_img)) {
+		                                          *tex_img)) {
 			/* on failure to load, we set a 1x1 pixels pink image */
-			half *pixels = (half*)tex_img.resize(1, 1);
+			half *pixels = (half*)tex_img->resize(1, 1);
 
 			pixels[0] = TEX_IMAGE_MISSING_R;
 		}
 
-		{
-			thread_scoped_lock device_lock(device_mutex);
-			device->tex_alloc(name.c_str(),
-			                  tex_img,
-			                  img->interpolation,
-			                  img->extension);
-		}
+		img->mem = tex_img;
 	}
+
+	/* Copy to device. */
+	if(img->mem) {
+		thread_scoped_lock device_lock(device_mutex);
+		device->tex_alloc(name.c_str(),
+						  *img->mem,
+						  img->interpolation,
+						  img->extension);
+	}
+
 
 	img->need_load = false;
 }
 
-void ImageManager::device_free_image(Device *device, DeviceScene *dscene, ImageDataType type, int slot)
+void ImageManager::device_free_image(Device *device, ImageDataType type, int slot)
 {
 	Image *img = images[type][slot];
 
@@ -915,114 +855,26 @@ void ImageManager::device_free_image(Device *device, DeviceScene *dscene, ImageD
 			((OSL::TextureSystem*)osl_texture_system)->invalidate(filename);
 #endif
 		}
-		else {
-			device_memory *tex_img = NULL;
-			switch(type) {
-				case IMAGE_DATA_TYPE_FLOAT4:
-					if(slot >= dscene->tex_float4_image.size()) {
-						break;
-					}
-					tex_img = dscene->tex_float4_image[slot];
-					dscene->tex_float4_image[slot] = NULL;
-					break;
-				case IMAGE_DATA_TYPE_BYTE4:
-					if(slot >= dscene->tex_byte4_image.size()) {
-						break;
-					}
-					tex_img = dscene->tex_byte4_image[slot];
-					dscene->tex_byte4_image[slot]= NULL;
-					break;
-				case IMAGE_DATA_TYPE_HALF4:
-					if(slot >= dscene->tex_half4_image.size()) {
-						break;
-					}
-					tex_img = dscene->tex_half4_image[slot];
-					dscene->tex_half4_image[slot]= NULL;
-					break;
-				case IMAGE_DATA_TYPE_FLOAT:
-					if(slot >= dscene->tex_float_image.size()) {
-						break;
-					}
-					tex_img = dscene->tex_float_image[slot];
-					dscene->tex_float_image[slot] = NULL;
-					break;
-				case IMAGE_DATA_TYPE_BYTE:
-					if(slot >= dscene->tex_byte_image.size()) {
-						break;
-					}
-					tex_img = dscene->tex_byte_image[slot];
-					dscene->tex_byte_image[slot]= NULL;
-					break;
-				case IMAGE_DATA_TYPE_HALF:
-					if(slot >= dscene->tex_half_image.size()) {
-						break;
-					}
-					tex_img = dscene->tex_half_image[slot];
-					dscene->tex_half_image[slot]= NULL;
-					break;
-				default:
-					assert(0);
-					tex_img = NULL;
-			}
-			if(tex_img) {
-				if(tex_img->device_pointer) {
-					thread_scoped_lock device_lock(device_mutex);
-					device->tex_free(*tex_img);
-				}
 
-				delete tex_img;
-			}
+		if(img->mem) {
+			thread_scoped_lock device_lock(device_mutex);
+			device->tex_free(*img->mem);
+			delete img->mem;
 		}
 
-		delete images[type][slot];
+		delete img;
 		images[type][slot] = NULL;
 		--tex_num_images[type];
 	}
 }
 
-void ImageManager::device_prepare_update(DeviceScene *dscene)
-{
-	for(int type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
-		switch(type) {
-			case IMAGE_DATA_TYPE_FLOAT4:
-				if(dscene->tex_float4_image.size() <= tex_num_images[IMAGE_DATA_TYPE_FLOAT4])
-					dscene->tex_float4_image.resize(tex_num_images[IMAGE_DATA_TYPE_FLOAT4]);
-				break;
-			case IMAGE_DATA_TYPE_BYTE4:
-				if(dscene->tex_byte4_image.size() <= tex_num_images[IMAGE_DATA_TYPE_BYTE4])
-					dscene->tex_byte4_image.resize(tex_num_images[IMAGE_DATA_TYPE_BYTE4]);
-				break;
-			case IMAGE_DATA_TYPE_HALF4:
-				if(dscene->tex_half4_image.size() <= tex_num_images[IMAGE_DATA_TYPE_HALF4])
-					dscene->tex_half4_image.resize(tex_num_images[IMAGE_DATA_TYPE_HALF4]);
-				break;
-			case IMAGE_DATA_TYPE_BYTE:
-				if(dscene->tex_byte_image.size() <= tex_num_images[IMAGE_DATA_TYPE_BYTE])
-					dscene->tex_byte_image.resize(tex_num_images[IMAGE_DATA_TYPE_BYTE]);
-				break;
-			case IMAGE_DATA_TYPE_FLOAT:
-				if(dscene->tex_float_image.size() <= tex_num_images[IMAGE_DATA_TYPE_FLOAT])
-					dscene->tex_float_image.resize(tex_num_images[IMAGE_DATA_TYPE_FLOAT]);
-				break;
-			case IMAGE_DATA_TYPE_HALF:
-				if(dscene->tex_half_image.size() <= tex_num_images[IMAGE_DATA_TYPE_HALF])
-					dscene->tex_half_image.resize(tex_num_images[IMAGE_DATA_TYPE_HALF]);
-				break;
-		}
-	}
-}
-
 void ImageManager::device_update(Device *device,
-                                 DeviceScene *dscene,
                                  Scene *scene,
                                  Progress& progress)
 {
 	if(!need_update) {
 		return;
 	}
-
-	/* Make sure arrays are proper size. */
-	device_prepare_update(dscene);
 
 	TaskPool pool;
 	for(int type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
@@ -1031,14 +883,13 @@ void ImageManager::device_update(Device *device,
 				continue;
 
 			if(images[type][slot]->users == 0) {
-				device_free_image(device, dscene, (ImageDataType)type, slot);
+				device_free_image(device, (ImageDataType)type, slot);
 			}
 			else if(images[type][slot]->need_load) {
 				if(!osl_texture_system || images[type][slot]->builtin_data)
 					pool.push(function_bind(&ImageManager::device_load_image,
 					                        this,
 					                        device,
-					                        dscene,
 					                        scene,
 					                        (ImageDataType)type,
 					                        slot,
@@ -1053,7 +904,6 @@ void ImageManager::device_update(Device *device,
 }
 
 void ImageManager::device_update_slot(Device *device,
-                                      DeviceScene *dscene,
                                       Scene *scene,
                                       int flat_slot,
                                       Progress *progress)
@@ -1065,12 +915,11 @@ void ImageManager::device_update_slot(Device *device,
 	assert(image != NULL);
 
 	if(image->users == 0) {
-		device_free_image(device, dscene, type, slot);
+		device_free_image(device, type, slot);
 	}
 	else if(image->need_load) {
 		if(!osl_texture_system || image->builtin_data)
 			device_load_image(device,
-			                  dscene,
 			                  scene,
 			                  type,
 			                  slot,
@@ -1078,31 +927,24 @@ void ImageManager::device_update_slot(Device *device,
 	}
 }
 
-void ImageManager::device_free_builtin(Device *device, DeviceScene *dscene)
+void ImageManager::device_free_builtin(Device *device)
 {
 	for(int type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
 		for(size_t slot = 0; slot < images[type].size(); slot++) {
 			if(images[type][slot] && images[type][slot]->builtin_data)
-				device_free_image(device, dscene, (ImageDataType)type, slot);
+				device_free_image(device, (ImageDataType)type, slot);
 		}
 	}
 }
 
-void ImageManager::device_free(Device *device, DeviceScene *dscene)
+void ImageManager::device_free(Device *device)
 {
 	for(int type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
 		for(size_t slot = 0; slot < images[type].size(); slot++) {
-			device_free_image(device, dscene, (ImageDataType)type, slot);
+			device_free_image(device, (ImageDataType)type, slot);
 		}
 		images[type].clear();
 	}
-
-	dscene->tex_float4_image.clear();
-	dscene->tex_byte4_image.clear();
-	dscene->tex_half4_image.clear();
-	dscene->tex_float_image.clear();
-	dscene->tex_byte_image.clear();
-	dscene->tex_half_image.clear();
 }
 
 CCL_NAMESPACE_END

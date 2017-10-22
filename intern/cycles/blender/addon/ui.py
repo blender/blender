@@ -405,7 +405,12 @@ class CYCLES_RENDER_PT_performance(CyclesButtonsPanel, Panel):
         sub.prop(rd, "tile_x", text="X")
         sub.prop(rd, "tile_y", text="Y")
 
-        sub.prop(cscene, "use_progressive_refine")
+        subsub = sub.column()
+        subsub.active = not rd.use_save_buffers
+        for rl in rd.layers:
+            if rl.cycles.use_denoising:
+                subsub.active = False
+        subsub.prop(cscene, "use_progressive_refine")
 
         col = split.column()
 
@@ -595,7 +600,6 @@ class CYCLES_RENDER_PT_denoising(CyclesButtonsPanel, Panel):
         cscene = context.scene.cycles
         layout = self.layout
 
-        layout.active = not cscene.use_progressive_refine
         layout.prop(crl, "use_denoising", text="")
 
     def draw(self, context):
@@ -607,7 +611,7 @@ class CYCLES_RENDER_PT_denoising(CyclesButtonsPanel, Panel):
         rl = rd.layers.active
         crl = rl.cycles
 
-        layout.active = crl.use_denoising and not cscene.use_progressive_refine
+        layout.active = crl.use_denoising
 
         split = layout.split()
 

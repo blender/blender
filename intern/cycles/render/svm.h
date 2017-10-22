@@ -55,7 +55,7 @@ protected:
 	void device_update_shader(Scene *scene,
 	                          Shader *shader,
 	                          Progress *progress,
-	                          vector<int4> *global_svm_nodes);
+	                          array<int4> *global_svm_nodes);
 };
 
 /* Graph Compiler */
@@ -98,7 +98,7 @@ public:
 	SVMCompiler(ShaderManager *shader_manager, ImageManager *image_manager);
 	void compile(Scene *scene,
 	             Shader *shader,
-	             vector<int4>& svm_nodes,
+	             array<int4>& svm_nodes,
 	             int index,
 	             Summary *summary = NULL);
 
@@ -207,7 +207,7 @@ protected:
 	/* compile */
 	void compile_type(Shader *shader, ShaderGraph *graph, ShaderType type);
 
-	vector<int4> current_svm_nodes;
+	array<int4> current_svm_nodes;
 	ShaderType current_type;
 	Shader *current_shader;
 	ShaderGraph *current_graph;

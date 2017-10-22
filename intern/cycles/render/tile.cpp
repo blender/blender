@@ -17,6 +17,7 @@
 #include "render/tile.h"
 
 #include "util/util_algorithm.h"
+#include "util/util_foreach.h"
 #include "util/util_types.h"
 
 CCL_NAMESPACE_BEGIN
@@ -113,14 +114,16 @@ TileManager::~TileManager()
 {
 }
 
-void TileManager::free_device()
+void TileManager::device_free()
 {
-	if(schedule_denoising) {
+	if(schedule_denoising || progressive) {
 		for(int i = 0; i < state.tiles.size(); i++) {
 			delete state.tiles[i].buffers;
 			state.tiles[i].buffers = NULL;
 		}
 	}
+
+	state.tiles.clear();
 }
 
 static int get_divider(int w, int h, int start_resolution)
@@ -150,7 +153,7 @@ void TileManager::reset(BufferParams& params_, int num_samples_)
 	state.resolution_divider = get_divider(params.width, params.height, start_resolution);
 	state.render_tiles.clear();
 	state.denoising_tiles.clear();
-	state.tiles.clear();
+	device_free();
 }
 
 void TileManager::set_samples(int num_samples_)
@@ -196,7 +199,7 @@ int TileManager::gen_tiles(bool sliced)
 	int slice_num = sliced? num: 1;
 	int tile_w = (tile_size.x >= image_w) ? 1 : divide_up(image_w, tile_size.x);
 
-	state.tiles.clear();
+	device_free();
 	state.render_tiles.clear();
 	state.denoising_tiles.clear();
 	state.render_tiles.resize(num);
@@ -345,6 +348,14 @@ int TileManager::gen_tiles(bool sliced)
 	return idx;
 }
 
+void TileManager::gen_render_tiles()
+{
+	/* Regenerate just the render tiles for progressive render. */
+	foreach(Tile& tile, state.tiles) {
+		state.render_tiles[tile.device].push_back(tile.index);
+	}
+}
+
 void TileManager::set_tiles()
 {
 	int resolution = state.resolution_divider;
@@ -400,6 +411,10 @@ bool TileManager::check_neighbor_state(int index, Tile::State min_state)
 bool TileManager::finish_tile(int index, bool &delete_tile)
 {
 	delete_tile = false;
+
+	if(progressive) {
+		return true;
+	}
 
 	switch(state.tiles[index].state) {
 		case Tile::RENDER:
@@ -501,7 +516,13 @@ bool TileManager::next()
 			state.num_samples = range_num_samples;
 
 		state.resolution_divider = pixel_size;
-		set_tiles();
+
+		if(state.sample == range_start_sample) {
+			set_tiles();
+		}
+		else {
+			gen_render_tiles();
+		}
 	}
 
 	return true;
