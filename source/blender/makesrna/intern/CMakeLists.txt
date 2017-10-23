@@ -56,6 +56,7 @@ set(DEFSRC
 	rna_key.c
 	rna_lamp.c
 	rna_lattice.c
+	rna_layer.c
 	rna_linestyle.c
 	rna_main.c
 	rna_mask.c
