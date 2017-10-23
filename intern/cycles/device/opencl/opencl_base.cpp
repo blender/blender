@@ -138,11 +138,9 @@ OpenCLDeviceBase::OpenCLDeviceBase(DeviceInfo& info, Stats &stats, bool backgrou
 		return;
 	}
 
-	/* Allocate this right away so that texture_info_buffer is placed at offset 0 in the device memory buffers */
+	/* Allocate this right away so that texture_info is placed at offset 0 in the device memory buffers */
 	texture_info.resize(1);
-	texture_info_buffer.resize(1);
-	texture_info_buffer.data_pointer = (device_ptr)&texture_info[0];
-	memory_manager.alloc("texture_info", texture_info_buffer);
+	memory_manager.alloc("texture_info", texture_info);
 
 	fprintf(stderr, "Device init success\n");
 	device_initialized = true;
@@ -647,13 +645,9 @@ void OpenCLDeviceBase::flush_texture_buffers()
 	}
 
 	/* Realloc texture descriptors buffer. */
-	memory_manager.free(texture_info_buffer);
-
+	memory_manager.free(texture_info);
 	texture_info.resize(num_slots);
-	texture_info_buffer.resize(num_slots * sizeof(TextureInfo));
-	texture_info_buffer.data_pointer = (device_ptr)&texture_info[0];
-
-	memory_manager.alloc("texture_info", texture_info_buffer);
+	memory_manager.alloc("texture_info", texture_info);
 
 	/* Fill in descriptors */
 	foreach(texture_slot_t& slot, texture_slots) {
@@ -676,8 +670,8 @@ void OpenCLDeviceBase::flush_texture_buffers()
 	}
 
 	/* Force write of descriptors. */
-	memory_manager.free(texture_info_buffer);
-	memory_manager.alloc("texture_info", texture_info_buffer);
+	memory_manager.free(texture_info);
+	memory_manager.alloc("texture_info", texture_info);
 }
 
 void OpenCLDeviceBase::film_convert(DeviceTask& task, device_ptr buffer, device_ptr rgba_byte, device_ptr rgba_half)

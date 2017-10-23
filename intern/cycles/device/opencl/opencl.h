@@ -458,6 +458,11 @@ protected:
 		}
 
 		template<typename T>
+		ArgumentWrapper(device_only_memory<T>& argument) : size(sizeof(void*)),
+		                                                   pointer((void*)(&argument.device_pointer))
+		{
+		}
+		template<typename T>
 		ArgumentWrapper(T& argument) : size(sizeof(argument)),
 		                               pointer(&argument)
 		{
@@ -543,9 +548,7 @@ private:
 	friend class MemoryManager;
 
 	static_assert_align(TextureInfo, 16);
-
-	vector<TextureInfo> texture_info;
-	device_memory texture_info_buffer;
+	device_vector<TextureInfo> texture_info;
 
 	typedef map<string, device_memory*> TexturesMap;
 	TexturesMap textures;

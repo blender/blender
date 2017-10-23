@@ -745,7 +745,7 @@ public:
 		while(task.acquire_tile(this, tile)) {
 			if(tile.task == RenderTile::PATH_TRACE) {
 				if(use_split_kernel) {
-					device_memory void_buffer(this, "void_buffer", MEM_READ_ONLY);
+					device_only_memory<uchar> void_buffer(this, "void_buffer");
 					split_kernel->path_trace(&task, tile, kgbuffer, void_buffer);
 				}
 				else {

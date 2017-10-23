@@ -127,8 +127,8 @@ public:
 			} KernelGlobals;
 
 			/* Allocate buffer for kernel globals */
-			device_memory kgbuffer(this, "kernel_globals", MEM_READ_WRITE);
-			kgbuffer.resize(sizeof(KernelGlobals));
+			device_only_memory<KernelGlobals> kgbuffer(this, "kernel_globals");
+			kgbuffer.resize(1);
 			mem_alloc(kgbuffer);
 
 			/* Keep rendering tiles until done. */

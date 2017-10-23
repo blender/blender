@@ -73,9 +73,8 @@ void MemoryManager::DeviceBuffer::update_device_memory(OpenCLDeviceBase *device)
 			return;
 		}
 
-		device_memory *new_buffer = new device_memory(device,
-		                                              "memory manager buffer",
-		                                              MEM_READ_ONLY);
+		device_only_memory<uchar> *new_buffer =
+			new device_only_memory<uchar>(device, "memory manager buffer");
 
 		new_buffer->resize(total_size);
 		device->mem_alloc(*new_buffer);
@@ -167,9 +166,8 @@ MemoryManager::MemoryManager(OpenCLDeviceBase *device)
 : device(device), need_update(false)
 {
 	foreach(DeviceBuffer& device_buffer, device_buffers) {
-		device_buffer.buffer = new device_memory(device,
-		                                         "memory manager buffer",
-		                                         MEM_READ_ONLY);
+		device_buffer.buffer =
+			new device_only_memory<uchar>(device, "memory manager buffer");
 	}
 }
 

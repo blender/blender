@@ -28,7 +28,7 @@ static const double alpha = 0.1; /* alpha for rolling average */
 
 DeviceSplitKernel::DeviceSplitKernel(Device *device)
 : device(device),
-  split_data(device, "split_data", MEM_READ_WRITE),
+  split_data(device, "split_data"),
   ray_state(device, "ray_state", MEM_READ_WRITE),
   queue_index(device, "queue_index"),
   use_queues_flag(device, "use_queues_flag"),
