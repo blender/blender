@@ -10,8 +10,10 @@
 #define USE_BEAUTIFY
 
 extern "C" {
+#include "BLI_utildefines.h"
 #include "BLI_array_utils.h"
 #include "BLI_polyfill2d.h"
+#include "BLI_edgehash.h"
 #include "BLI_math.h"
 #include "MEM_guardedalloc.h"
 
