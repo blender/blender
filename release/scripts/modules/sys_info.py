@@ -185,14 +185,19 @@ def write_sysinfo(filepath):
                 output.write("version:\t%r\n" % (bgl.glGetString(bgl.GL_VERSION)))
                 output.write("extensions:\n")
 
-                glext = sorted(bgl.glGetString(bgl.GL_EXTENSIONS).split())
+                limit = bgl.Buffer(bgl.GL_INT, 1)
+                bgl.glGetIntegerv(bgl.GL_NUM_EXTENSIONS, limit)
+
+                glext = []
+                for i in range(limit[0]):
+                    glext.append(bgl.glGetStringi(bgl.GL_EXTENSIONS, i))
+
+                glext = sorted(glext)
+
                 for l in glext:
                     output.write("\t%s\n" % l)
 
                 output.write(title("Implementation Dependent OpenGL Limits"))
-                limit = bgl.Buffer(bgl.GL_INT, 1)
-                bgl.glGetIntegerv(bgl.GL_MAX_TEXTURE_UNITS, limit)
-                output.write("Maximum Fixed Function Texture Units:\t%d\n" % limit[0])
                 bgl.glGetIntegerv(bgl.GL_MAX_ELEMENTS_VERTICES, limit)
                 output.write("Maximum DrawElements Vertices:\t%d\n" % limit[0])
                 bgl.glGetIntegerv(bgl.GL_MAX_ELEMENTS_INDICES, limit)

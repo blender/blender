@@ -1298,6 +1298,7 @@ BGL_Wrap(UniformMatrix4x3fv,        void,      (GLint, GLsizei, GLboolean, GLflo
 BGL_Wrap(BindVertexArray,           void,      (GLuint))
 BGL_Wrap(DeleteVertexArrays,        void,      (GLsizei, GLuintP))
 BGL_Wrap(GenVertexArrays,           void,      (GLsizei, GLuintP))
+BGL_Wrap(GetStringi,                GLstring,  (GLenum, GLuint))
 BGL_Wrap(IsVertexArray,             GLboolean, (GLuint))
 
 
@@ -1628,6 +1629,7 @@ PyObject *BPyInit_bgl(void)
 		PY_MOD_ADD_METHOD(BindVertexArray);
 		PY_MOD_ADD_METHOD(DeleteVertexArrays);
 		PY_MOD_ADD_METHOD(GenVertexArrays);
+		PY_MOD_ADD_METHOD(GetStringi);
 		PY_MOD_ADD_METHOD(IsVertexArray);
 	}
 
