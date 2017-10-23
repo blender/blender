@@ -1395,9 +1395,9 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 }
 
 /* Draw a constant grid in given 2d-region */
-void UI_view2d_constant_grid_draw(View2D *v2d)
+void UI_view2d_constant_grid_draw(View2D *v2d, float step)
 {
-	float start, step = 25.0f;
+	float start;
 
 	UI_ThemeColorShade(TH_BACK, -10);
 	
