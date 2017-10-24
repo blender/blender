@@ -106,6 +106,7 @@ int   BLI_rng_thread_rand(RNG_THREAD_ARRAY *rngarr, int thread) ATTR_WARN_UNUSED
 /** Return the _n_th number of the given low-discrepancy sequence. */
 void BLI_halton_1D(unsigned int prime, double offset, int n, double *r);
 void BLI_halton_2D(unsigned int prime[2], double offset[2], int n, double *r);
+void BLI_halton_3D(unsigned int prime[3], double offset[3], int n, double *r);
 void BLI_hammersley_1D(unsigned int n, double *r);
 
 /** Return the whole low-discrepancy sequence up to _n_. */

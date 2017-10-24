@@ -402,6 +402,17 @@ void BLI_halton_2D(unsigned int prime[2], double offset[2], int n, double *r)
 	}
 }
 
+void BLI_halton_3D(unsigned int prime[3], double offset[3], int n, double *r)
+{
+	const double invprimes[3] = {1.0 / (double)prime[0], 1.0 / (double)prime[1], 1.0 / (double)prime[2]};
+
+	for (int s = 0; s < n; s++) {
+		for (int i = 0; i < 3; i++) {
+			r[i] = halton_ex(invprimes[i], &offset[i]);
+		}
+	}
+}
+
 void BLI_halton_2D_sequence(unsigned int prime[2], double offset[2], int n, double *r)
 {
 	const double invprimes[2] = {1.0 / (double)prime[0], 1.0 / (double)prime[1]};
