@@ -59,8 +59,7 @@ float direct_diffuse_sphere(LightData ld, vec3 N, vec4 l_vector)
 	return bsdf;
 }
 
-/* From Frostbite PBR Course
- * http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf */
+#ifdef USE_LTC
 float direct_diffuse_rectangle(LightData ld, vec3 N, vec3 V, vec4 l_vector)
 {
 	vec3 corners[4];
@@ -73,7 +72,7 @@ float direct_diffuse_rectangle(LightData ld, vec3 N, vec3 V, vec4 l_vector)
 	bsdf *= M_1_2PI;
 	return bsdf;
 }
-
+#endif
 
 #if 0
 float direct_diffuse_unit_disc(vec3 N, vec3 L)
@@ -104,6 +103,7 @@ vec3 direct_ggx_sun(LightData ld, vec3 N, vec3 V, float roughness, vec3 f0)
 	return F_schlick(f0, VH) * bsdf;
 }
 
+#ifdef USE_LTC
 vec3 direct_ggx_sphere(LightData ld, vec3 N, vec3 V, vec4 l_vector, float roughness, vec3 f0)
 {
 	vec3 L = l_vector.xyz / l_vector.w;
@@ -173,6 +173,7 @@ vec3 direct_ggx_rectangle(LightData ld, vec3 N, vec3 V, vec4 l_vector, float rou
 
 	return spec;
 }
+#endif
 
 #if 0
 float direct_ggx_disc(vec3 N, vec3 L)

@@ -1,6 +1,8 @@
 
 uniform sampler2DArray shadowTexture;
 
+#define LAMPS_LIB
+
 layout(std140) uniform shadow_block {
 	ShadowData        shadows_data[MAX_SHADOW];
 	ShadowCubeData    shadows_cube_data[MAX_SHADOW_CUBE];
@@ -244,7 +246,7 @@ float light_diffuse(LightData ld, vec3 N, vec3 V, vec4 l_vector)
 	}
 #else
 	if (ld.l_type == SUN) {
-		return direct_diffuse_sun(ld, N, V);
+		return direct_diffuse_sun(ld, N);
 	}
 	else {
 		return direct_diffuse_point(N, l_vector);

@@ -308,6 +308,7 @@ class RENDERLAYER_PT_eevee_volumetric(RenderLayerButtonsPanel, Panel):
         col = layout.column()
         col.template_override_property(layer_props, scene_props, "volumetric_start")
         col.template_override_property(layer_props, scene_props, "volumetric_end")
+        col.template_override_property(layer_props, scene_props, "volumetric_tile_size")
         col.template_override_property(layer_props, scene_props, "volumetric_samples")
         col.template_override_property(layer_props, scene_props, "volumetric_sample_distribution")
         col.template_override_property(layer_props, scene_props, "volumetric_lights")

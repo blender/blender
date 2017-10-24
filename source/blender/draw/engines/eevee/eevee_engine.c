@@ -253,15 +253,15 @@ static void EEVEE_draw_scene(void *vedata)
 		DRW_draw_pass(psl->refract_pass);
 		DRW_stats_group_end();
 
+		/* Volumetrics */
+		DRW_stats_group_start("Volumetrics");
+		EEVEE_effects_do_volumetrics(sldata, vedata);
+		DRW_stats_group_end();
+
 		/* Transparent */
 		DRW_pass_sort_shgroup_z(psl->transparent_pass);
 		DRW_stats_group_start("Transparent");
 		DRW_draw_pass(psl->transparent_pass);
-		DRW_stats_group_end();
-
-		/* Volumetrics */
-		DRW_stats_group_start("Volumetrics");
-		EEVEE_effects_do_volumetrics(sldata, vedata);
 		DRW_stats_group_end();
 
 		/* Post Process */
@@ -329,6 +329,7 @@ static void EEVEE_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDPr
 	BKE_collection_engine_property_add_bool(props, "volumetric_enable", false);
 	BKE_collection_engine_property_add_float(props, "volumetric_start", 0.1f);
 	BKE_collection_engine_property_add_float(props, "volumetric_end", 100.0f);
+	BKE_collection_engine_property_add_int(props, "volumetric_tile_size", 8);
 	BKE_collection_engine_property_add_int(props, "volumetric_samples", 64);
 	BKE_collection_engine_property_add_float(props, "volumetric_sample_distribution", 0.8f);
 	BKE_collection_engine_property_add_bool(props, "volumetric_lights", true);

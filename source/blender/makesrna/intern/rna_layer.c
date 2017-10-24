@@ -359,6 +359,7 @@ RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(motion_blur_shutter)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(volumetric_enable)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(volumetric_start)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(volumetric_end)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(volumetric_tile_size)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(volumetric_samples)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(volumetric_sample_distribution)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(volumetric_lights)
@@ -1142,6 +1143,14 @@ static void rna_def_scene_layer_engine_settings_eevee(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static const EnumPropertyItem eevee_volumetric_tile_size_items[] = {
+		{2, "2", 0, "2px", ""},
+		{4, "4", 0, "4px", ""},
+		{8, "8", 0, "8px", ""},
+		{16, "16", 0, "16px", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "SceneLayerEngineSettingsEevee", "SceneLayerSettings");
 	RNA_def_struct_ui_text(srna, "Eevee Scene Layer Settings", "Eevee Engine settings");
 
@@ -1270,6 +1279,14 @@ static void rna_def_scene_layer_engine_settings_eevee(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "End", "End distance of the volumetric effect");
 	RNA_def_property_range(prop, 1e-6f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 10, 3);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "volumetric_tile_size", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_funcs(prop, "rna_LayerEngineSettings_Eevee_volumetric_tile_size_get",
+	                                  "rna_LayerEngineSettings_Eevee_volumetric_tile_size_set", NULL);
+	RNA_def_property_enum_items(prop, eevee_volumetric_tile_size_items);
+	RNA_def_property_ui_text(prop, "Tile Size", "Number of samples to compute volumetric effects");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
 

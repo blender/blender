@@ -878,6 +878,20 @@ DRWShadingGroup *DRW_shgroup_material_instance_create(
 	return shgroup;
 }
 
+DRWShadingGroup *DRW_shgroup_material_empty_tri_batch_create(
+        struct GPUMaterial *material, DRWPass *pass, int size)
+{
+	DRWShadingGroup *shgroup = DRW_shgroup_material_create(material, pass);
+
+	if (shgroup) {
+		shgroup->type = DRW_SHG_TRIANGLE_BATCH;
+		shgroup->interface->instance_count = size * 3;
+		DRW_interface_attrib(shgroup, "dummy", DRW_ATTRIB_FLOAT, 1, true);
+	}
+
+	return shgroup;
+}
+
 DRWShadingGroup *DRW_shgroup_instance_create(struct GPUShader *shader, DRWPass *pass, Gwn_Batch *geom)
 {
 	DRWShadingGroup *shgroup = DRW_shgroup_create(shader, pass);

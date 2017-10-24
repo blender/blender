@@ -46,16 +46,31 @@ extern struct DrawEngineType draw_engine_eevee_type;
 // #define IRRADIANCE_CUBEMAP
 #define IRRADIANCE_HL2
 
+#if defined(IRRADIANCE_SH_L2)
+#define SHADER_IRRADIANCE "#define IRRADIANCE_SH_L2\n"
+#elif defined(IRRADIANCE_CUBEMAP)
+#define SHADER_IRRADIANCE "#define IRRADIANCE_CUBEMAP\n"
+#elif defined(IRRADIANCE_HL2)
+#define SHADER_IRRADIANCE "#define IRRADIANCE_HL2\n"
+#endif
+
+#define SHADER_DEFINES \
+	"#define EEVEE_ENGINE\n" \
+	"#define MAX_PROBE " STRINGIFY(MAX_PROBE) "\n" \
+	"#define MAX_GRID " STRINGIFY(MAX_GRID) "\n" \
+	"#define MAX_PLANAR " STRINGIFY(MAX_PLANAR) "\n" \
+	"#define MAX_LIGHT " STRINGIFY(MAX_LIGHT) "\n" \
+	"#define MAX_SHADOW " STRINGIFY(MAX_SHADOW) "\n" \
+	"#define MAX_SHADOW_CUBE " STRINGIFY(MAX_SHADOW_CUBE) "\n" \
+	"#define MAX_SHADOW_CASCADE " STRINGIFY(MAX_SHADOW_CASCADE) "\n" \
+	"#define MAX_CASCADE_NUM " STRINGIFY(MAX_CASCADE_NUM) "\n" \
+	SHADER_IRRADIANCE
+
 /* World shader variations */
 enum {
 	VAR_WORLD_BACKGROUND    = 0,
 	VAR_WORLD_PROBE         = 1,
 	VAR_WORLD_VOLUME        = 2,
-
-	VAR_VOLUME_SHADOW     = (1 << 2),
-	VAR_VOLUME_HOMO       = (1 << 3),
-	VAR_VOLUME_LIGHT      = (1 << 4),
-	VAR_VOLUME_COLOR      = (1 << 5),
 };
 
 /* Material shader variations */
@@ -117,9 +132,10 @@ typedef struct EEVEE_PassList {
 	struct DRWPass *dof_down;
 	struct DRWPass *dof_scatter;
 	struct DRWPass *dof_resolve;
-	struct DRWPass *volumetric_integrate_ps;
+	struct DRWPass *volumetric_ps;
+	struct DRWPass *volumetric_scatter_ps;
+	struct DRWPass *volumetric_integration_ps;
 	struct DRWPass *volumetric_resolve_ps;
-	struct DRWPass *volumetric_resolve_transmit_ps;
 	struct DRWPass *ssr_raytrace;
 	struct DRWPass *ssr_resolve;
 	struct DRWPass *color_downsample_ps;
@@ -164,6 +180,8 @@ typedef struct EEVEE_FramebufferList {
 	struct GPUFrameBuffer *dof_scatter_far_fb;
 	struct GPUFrameBuffer *dof_scatter_near_fb;
 	struct GPUFrameBuffer *volumetric_fb;
+	struct GPUFrameBuffer *volumetric_scat_fb;
+	struct GPUFrameBuffer *volumetric_integ_fb;
 	struct GPUFrameBuffer *screen_tracing_fb;
 	struct GPUFrameBuffer *refract_fb;
 
@@ -188,6 +206,15 @@ typedef struct EEVEE_TextureList {
 	struct GPUTexture *ssr_normal_input;
 	struct GPUTexture *ssr_specrough_input;
 	struct GPUTexture *refract_color;
+
+	struct GPUTexture *volume_prop_scattering;
+	struct GPUTexture *volume_prop_extinction;
+	struct GPUTexture *volume_prop_emission;
+	struct GPUTexture *volume_prop_phase;
+	struct GPUTexture *volume_scatter;
+	struct GPUTexture *volume_transmittance;
+	struct GPUTexture *volume_scatter_history;
+	struct GPUTexture *volume_transmittance_history;
 
 	struct GPUTexture *planar_pool;
 	struct GPUTexture *planar_depth;
@@ -250,7 +277,12 @@ typedef struct EEVEE_ShadowRender {
 typedef struct EEVEE_VolumetricsInfo {
 	float integration_step_count, shadow_step_count, sample_distribution, light_clamp;
 	float integration_start, integration_end;
-	bool use_lights, use_volume_shadows, use_colored_transmit;
+	float depth_param[3], history_alpha;
+	bool use_lights, use_volume_shadows;
+	int froxel_tex_size[3];
+	float inv_tex_size[3];
+	float volume_coord_scale[2];
+	float jitter[3];
 } EEVEE_VolumetricsInfo;
 
 /* ************ LIGHT DATA ************* */
@@ -532,8 +564,6 @@ typedef struct EEVEE_PrivateData {
 	struct GHash *hair_material_hash;
 	struct GPUTexture *minzbuffer;
 	struct GPUTexture *ssr_hit_output[4];
-	struct GPUTexture *volumetric;
-	struct GPUTexture *volumetric_transmit;
 	struct GPUTexture *gtao_horizons_debug;
 	float background_alpha; /* TODO find a better place for this. */
 	float viewvecs[2][4];
@@ -561,9 +591,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 void EEVEE_materials_cache_finish(EEVEE_Data *vedata);
 struct GPUMaterial *EEVEE_material_world_lightprobe_get(struct Scene *scene, struct World *wo);
 struct GPUMaterial *EEVEE_material_world_background_get(struct Scene *scene, struct World *wo);
-struct GPUMaterial *EEVEE_material_world_volume_get(
-        struct Scene *scene, struct World *wo, bool use_lights, bool use_volume_shadows, bool is_homogeneous, bool use_color_transmit,
-        int shadow_method);
+struct GPUMaterial *EEVEE_material_world_volume_get(struct Scene *scene, struct World *wo);
 struct GPUMaterial *EEVEE_material_mesh_get(
         struct Scene *scene, Material *ma, bool use_blend, bool use_multiply, bool use_refract, int shadow_method);
 struct GPUMaterial *EEVEE_material_mesh_depth_get(struct Scene *scene, Material *ma, bool use_hashed_alpha, bool is_shadow);

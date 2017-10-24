@@ -747,6 +747,7 @@ class RENDER_PT_eevee_volumetric(RenderButtonsPanel, Panel):
         col = layout.column()
         col.prop(props, "volumetric_start")
         col.prop(props, "volumetric_end")
+        col.prop(props, "volumetric_tile_size")
         col.prop(props, "volumetric_samples")
         col.prop(props, "volumetric_sample_distribution")
         col.prop(props, "volumetric_lights")

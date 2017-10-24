@@ -303,6 +303,17 @@ float get_view_z_from_depth(float depth)
 	}
 }
 
+float get_depth_from_view_z(float z)
+{
+	if (ProjectionMatrix[3][3] == 0.0) {
+		float d = (-ProjectionMatrix[3][2] / z) - ProjectionMatrix[2][2];
+		return d * 0.5 + 0.5;
+	}
+	else {
+		return (z - viewvecs[0].z) / viewvecs[1].z;
+	}
+}
+
 vec2 get_uvs_from_view(vec3 view)
 {
 	vec3 ndc = project_point(ProjectionMatrix, view);

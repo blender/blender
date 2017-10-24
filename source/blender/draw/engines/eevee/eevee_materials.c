@@ -43,26 +43,6 @@
 #include "eevee_lut.h"
 #include "eevee_private.h"
 
-#if defined(IRRADIANCE_SH_L2)
-#define SHADER_IRRADIANCE "#define IRRADIANCE_SH_L2\n"
-#elif defined(IRRADIANCE_CUBEMAP)
-#define SHADER_IRRADIANCE "#define IRRADIANCE_CUBEMAP\n"
-#elif defined(IRRADIANCE_HL2)
-#define SHADER_IRRADIANCE "#define IRRADIANCE_HL2\n"
-#endif
-
-#define SHADER_DEFINES \
-	"#define EEVEE_ENGINE\n" \
-	"#define MAX_PROBE " STRINGIFY(MAX_PROBE) "\n" \
-	"#define MAX_GRID " STRINGIFY(MAX_GRID) "\n" \
-	"#define MAX_PLANAR " STRINGIFY(MAX_PLANAR) "\n" \
-	"#define MAX_LIGHT " STRINGIFY(MAX_LIGHT) "\n" \
-	"#define MAX_SHADOW " STRINGIFY(MAX_SHADOW) "\n" \
-	"#define MAX_SHADOW_CUBE " STRINGIFY(MAX_SHADOW_CUBE) "\n" \
-	"#define MAX_SHADOW_CASCADE " STRINGIFY(MAX_SHADOW_CASCADE) "\n" \
-	"#define MAX_CASCADE_NUM " STRINGIFY(MAX_CASCADE_NUM) "\n" \
-	SHADER_IRRADIANCE
-
 /* *********** STATIC *********** */
 static struct {
 	char *frag_shader_lib;
@@ -105,7 +85,10 @@ extern char datatoc_shadow_geom_glsl[];
 extern char datatoc_lightprobe_geom_glsl[];
 extern char datatoc_lightprobe_vert_glsl[];
 extern char datatoc_background_vert_glsl[];
+extern char datatoc_volumetric_vert_glsl[];
+extern char datatoc_volumetric_geom_glsl[];
 extern char datatoc_volumetric_frag_glsl[];
+extern char datatoc_volumetric_lib_glsl[];
 
 extern Material defmaterial;
 extern GlobalsUboStorage ts;
@@ -332,26 +315,13 @@ static char *eevee_get_defines(int options)
 	return str;
 }
 
-static char *eevee_get_volume_defines(int options)
+static char *eevee_get_volume_defines(int UNUSED(options))
 {
 	char *str = NULL;
 
 	DynStr *ds = BLI_dynstr_new();
 	BLI_dynstr_appendf(ds, SHADER_DEFINES);
 	BLI_dynstr_appendf(ds, "#define VOLUMETRICS\n");
-
-	if ((options & VAR_VOLUME_SHADOW) != 0) {
-		BLI_dynstr_appendf(ds, "#define VOLUME_SHADOW\n");
-	}
-	if ((options & VAR_VOLUME_HOMO) != 0) {
-		BLI_dynstr_appendf(ds, "#define VOLUME_HOMOGENEOUS\n");
-	}
-	if ((options & VAR_VOLUME_LIGHT) != 0) {
-		BLI_dynstr_appendf(ds, "#define VOLUME_LIGHTING\n");
-	}
-	if ((options & VAR_VOLUME_COLOR) != 0) {
-		BLI_dynstr_appendf(ds, "#define COLOR_TRANSMITTANCE\n");
-	}
 
 	str = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
@@ -516,6 +486,7 @@ void EEVEE_materials_init(EEVEE_StorageList *stl)
 		BLI_dynstr_append(ds_frag, datatoc_ltc_lib_glsl);
 		BLI_dynstr_append(ds_frag, datatoc_bsdf_direct_lib_glsl);
 		BLI_dynstr_append(ds_frag, datatoc_lamps_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_volumetric_lib_glsl);
 		BLI_dynstr_append(ds_frag, datatoc_volumetric_frag_glsl);
 		e_data.volume_shader_lib = BLI_dynstr_get_cstring(ds_frag);
 		BLI_dynstr_free(ds_frag);
@@ -617,19 +588,10 @@ struct GPUMaterial *EEVEE_material_world_background_get(struct Scene *scene, Wor
 	        SHADER_DEFINES "#define WORLD_BACKGROUND\n");
 }
 
-struct GPUMaterial *EEVEE_material_world_volume_get(
-        struct Scene *scene, World *wo,
-        bool use_lights, bool use_volume_shadows, bool is_homogeneous, bool use_color_transmit, int shadow_method)
+struct GPUMaterial *EEVEE_material_world_volume_get(struct Scene *scene, World *wo)
 {
 	const void *engine = &DRW_engine_viewport_eevee_type;
 	int options = VAR_WORLD_VOLUME;
-
-	if (use_lights) options |= VAR_VOLUME_LIGHT;
-	if (is_homogeneous) options |= VAR_VOLUME_HOMO;
-	if (use_volume_shadows) options |= VAR_VOLUME_SHADOW;
-	if (use_color_transmit) options |= VAR_VOLUME_COLOR;
-
-	options |= eevee_material_shadow_option(shadow_method);
 
 	GPUMaterial *mat = GPU_material_from_nodetree_find(&wo->gpumaterial, engine, options);
 	if (mat != NULL) {
@@ -640,7 +602,7 @@ struct GPUMaterial *EEVEE_material_world_volume_get(
 
 	mat = GPU_material_from_nodetree(
 	        scene, wo->nodetree, &wo->gpumaterial, engine, options,
-	        datatoc_background_vert_glsl, NULL, e_data.volume_shader_lib,
+	        datatoc_volumetric_vert_glsl, datatoc_volumetric_geom_glsl, e_data.volume_shader_lib,
 	        defines);
 
 	MEM_freeN(defines);
