@@ -2108,7 +2108,8 @@ bool BM_face_exists_multi(BMVert **varr, BMEdge **earr, int len)
 
 	if (tot_tag == 0) {
 		/* no faces use only boundary verts, quit early */
-		return false;
+		ok = false;
+		goto finally;
 	}
 
 	/* 2) loop over non-boundary edges that use boundary verts,
@@ -2143,6 +2144,12 @@ bool BM_face_exists_multi(BMVert **varr, BMEdge **earr, int len)
 		}
 	}
 
+finally:
+	/* Cleanup */
+	for (i = 0; i < len; i++) {
+		BM_elem_flag_disable(varr[i], BM_ELEM_INTERNAL_TAG);
+		BM_elem_flag_disable(earr[i], BM_ELEM_INTERNAL_TAG);
+	}
 	return ok;
 }
 

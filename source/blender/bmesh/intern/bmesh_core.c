@@ -2090,24 +2090,32 @@ BMFace *bmesh_kernel_join_face_kill_edge(BMesh *bm, BMFace *f1, BMFace *f2, BMEd
 	}
 
 	/* validate no internal join */
-	for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f1); i < f1len; i++, l_iter = l_iter->next) {
-		BM_elem_flag_disable(l_iter->v, BM_ELEM_INTERNAL_TAG);
-	}
-	for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f2); i < f2len; i++, l_iter = l_iter->next) {
-		BM_elem_flag_disable(l_iter->v, BM_ELEM_INTERNAL_TAG);
-	}
+	{
+		bool is_dupe = false;
 
-	for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f1); i < f1len; i++, l_iter = l_iter->next) {
-		if (l_iter != l_f1) {
-			BM_elem_flag_enable(l_iter->v, BM_ELEM_INTERNAL_TAG);
+		/* TODO: skip clearing once this is ensured. */
+		for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f2); i < f2len; i++, l_iter = l_iter->next) {
+			BM_elem_flag_disable(l_iter->v, BM_ELEM_INTERNAL_TAG);
 		}
-	}
-	for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f2); i < f2len; i++, l_iter = l_iter->next) {
-		if (l_iter != l_f2) {
-			/* as soon as a duplicate is found, bail out */
-			if (BM_elem_flag_test(l_iter->v, BM_ELEM_INTERNAL_TAG)) {
-				return NULL;
+
+		for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f1); i < f1len; i++, l_iter = l_iter->next) {
+			BM_elem_flag_set(l_iter->v, BM_ELEM_INTERNAL_TAG, l_iter != l_f1);
+		}
+		for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f2); i < f2len; i++, l_iter = l_iter->next) {
+			if (l_iter != l_f2) {
+				/* as soon as a duplicate is found, bail out */
+				if (BM_elem_flag_test(l_iter->v, BM_ELEM_INTERNAL_TAG)) {
+					is_dupe = true;
+					break;
+				}
 			}
+		}
+		/* Cleanup tags. */
+		for (i = 0, l_iter = BM_FACE_FIRST_LOOP(f1); i < f1len; i++, l_iter = l_iter->next) {
+			BM_elem_flag_disable(l_iter->v, BM_ELEM_INTERNAL_TAG);
+		}
+		if (is_dupe) {
+			return NULL;
 		}
 	}
 
