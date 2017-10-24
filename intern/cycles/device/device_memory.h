@@ -33,7 +33,6 @@ class Device;
 
 enum MemoryType {
 	MEM_READ_ONLY,
-	MEM_WRITE_ONLY,
 	MEM_READ_WRITE,
 	MEM_TEXTURE,
 	MEM_PIXELS
@@ -325,13 +324,13 @@ public:
 			device_free();
 			host_free(data_pointer, sizeof(T)*data_size);
 			data_pointer = new_ptr;
+			assert(device_pointer == 0);
 		}
 
 		data_size = new_size;
 		data_width = width;
 		data_height = height;
 		data_depth = depth;
-		assert(device_pointer == 0);
 
 		return get_data();
 	}

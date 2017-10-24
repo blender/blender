@@ -85,7 +85,6 @@ void device_memory::device_free()
 
 void device_memory::device_copy_to()
 {
-	assert(type != MEM_PIXELS && type != MEM_WRITE_ONLY);
 	if(data_size) {
 		device->mem_copy_to(*this);
 	}
@@ -99,7 +98,6 @@ void device_memory::device_copy_from(int y, int w, int h, int elem)
 
 void device_memory::device_zero()
 {
-	assert(type != MEM_PIXELS && type != MEM_WRITE_ONLY);
 	if(data_size) {
 		device->mem_zero(*this);
 	}

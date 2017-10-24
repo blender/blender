@@ -115,7 +115,7 @@ bool MeshManager::displace(Device *device, DeviceScene *dscene, Scene *scene, Me
 		return false;
 	
 	/* run device task */
-	device_vector<float4> d_output(device, "displace_output", MEM_WRITE_ONLY);
+	device_vector<float4> d_output(device, "displace_output", MEM_READ_WRITE);
 	d_output.alloc(d_input_size);
 	d_output.zero_to_device();
 	d_input.copy_to_device();

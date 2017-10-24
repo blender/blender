@@ -319,8 +319,6 @@ void OpenCLDeviceBase::mem_alloc(device_memory& mem)
 
 	if(mem.type == MEM_READ_ONLY || mem.type == MEM_TEXTURE)
 		mem_flag = CL_MEM_READ_ONLY;
-	else if(mem.type == MEM_WRITE_ONLY || mem.type == MEM_PIXELS)
-		mem_flag = CL_MEM_WRITE_ONLY;
 	else
 		mem_flag = CL_MEM_READ_WRITE;
 
@@ -484,8 +482,6 @@ device_ptr OpenCLDeviceBase::mem_alloc_sub_ptr(device_memory& mem, int offset, i
 	cl_mem_flags mem_flag;
 	if(mem.type == MEM_READ_ONLY || mem.type == MEM_TEXTURE)
 		mem_flag = CL_MEM_READ_ONLY;
-	else if(mem.type == MEM_WRITE_ONLY || mem.type == MEM_PIXELS)
-		mem_flag = CL_MEM_WRITE_ONLY;
 	else
 		mem_flag = CL_MEM_READ_WRITE;
 

@@ -282,7 +282,7 @@ public:
 
 		/* Can't transfer OpenGL texture over network. */
 		if(mem.type == MEM_PIXELS) {
-			mem.type = MEM_WRITE_ONLY;
+			mem.type = MEM_READ_WRITE;
 		}
 	}
 
