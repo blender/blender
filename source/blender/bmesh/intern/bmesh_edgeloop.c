@@ -33,6 +33,7 @@
 #include "BLI_listbase.h"
 #include "BLI_mempool.h"
 #include "BLI_utildefines_iter.h"
+#include "BLI_stack.h"
 
 #include "bmesh.h"
 
@@ -141,28 +142,36 @@ int BM_mesh_edgeloops_find(
 	}
 
 	/* first flush edges to tags, and tag verts */
+	BLI_Stack *edge_stack = BLI_stack_new(sizeof(BMEdge *), __func__);
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+		BLI_assert(!BM_elem_flag_test(e, BM_ELEM_INTERNAL_TAG));
 		if (test_fn(e, user_data)) {
 			BM_elem_flag_enable(e,     BM_ELEM_INTERNAL_TAG);
 			BM_elem_flag_enable(e->v1, BM_ELEM_INTERNAL_TAG);
 			BM_elem_flag_enable(e->v2, BM_ELEM_INTERNAL_TAG);
+			BLI_stack_push(edge_stack, (void *)&e);
 		}
 		else {
 			BM_elem_flag_disable(e, BM_ELEM_INTERNAL_TAG);
 		}
 	}
 
-	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+	const uint edges_len = BLI_stack_count(edge_stack);
+	BMEdge **edges = MEM_mallocN(sizeof(*edges) * edges_len, __func__);
+	BLI_stack_pop_n_reverse(edge_stack, edges, BLI_stack_count(edge_stack));
+	BLI_stack_free(edge_stack);
+	
+	for (uint i = 0; i < edges_len; i += 1) {
+		e = edges[i];
 		if (BM_elem_flag_test(e, BM_ELEM_INTERNAL_TAG)) {
 			BMEdgeLoopStore *el_store = MEM_callocN(sizeof(BMEdgeLoopStore), __func__);
 
 			/* add both directions */
 			if (bm_loop_build(el_store, e->v1, e->v2,  1) &&
-			    bm_loop_build(el_store, e->v2, e->v1, -1) &&
-			    el_store->len > 1)
+				bm_loop_build(el_store, e->v2, e->v1, -1) &&
+				el_store->len > 1)
 			{
 				BLI_addtail(r_eloops, el_store);
-				BM_elem_flag_disable(e, BM_ELEM_INTERNAL_TAG);
 				count++;
 			}
 			else {
@@ -170,6 +179,15 @@ int BM_mesh_edgeloops_find(
 			}
 		}
 	}
+
+	for (uint i = 0; i < edges_len; i += 1) {
+		e = edges[i];
+		BM_elem_flag_disable(e, BM_ELEM_INTERNAL_TAG);
+		BM_elem_flag_disable(e->v1, BM_ELEM_INTERNAL_TAG);
+		BM_elem_flag_disable(e->v2, BM_ELEM_INTERNAL_TAG);
+	}
+
+	MEM_freeN(edges);
 	return count;
 }
 
@@ -267,6 +285,7 @@ bool BM_mesh_edgeloops_find_path(
 {
 	BMIter iter;
 	BMEdge *e;
+	bool found = false;
 
 	BLI_assert(v_src != v_dst);
 
@@ -274,28 +293,43 @@ bool BM_mesh_edgeloops_find_path(
 		BMVert *v;
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			BM_elem_index_set(v, 0);
+			BM_elem_flag_disable(v, BM_ELEM_INTERNAL_TAG);
 		}
 	}
 	bm->elem_index_dirty |= BM_VERT;
 
 	/* first flush edges to tags, and tag verts */
+	int edges_len;
+	BMEdge **edges;
+
 	if (test_fn) {
+		BLI_Stack *edge_stack = BLI_stack_new(sizeof(BMEdge *), __func__);
 		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 			if (test_fn(e, user_data)) {
 				BM_elem_flag_enable(e,     BM_ELEM_INTERNAL_TAG);
 				BM_elem_flag_enable(e->v1, BM_ELEM_INTERNAL_TAG);
 				BM_elem_flag_enable(e->v2, BM_ELEM_INTERNAL_TAG);
+				BLI_stack_push(edge_stack, (void *)&e);
 			}
 			else {
 				BM_elem_flag_disable(e, BM_ELEM_INTERNAL_TAG);
 			}
 		}
+		edges_len = BLI_stack_count(edge_stack);
+		edges = MEM_mallocN(sizeof(*edges) * edges_len, __func__);
+		BLI_stack_pop_n_reverse(edge_stack, edges, BLI_stack_count(edge_stack));
+		BLI_stack_free(edge_stack);
 	}
 	else {
-		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+		int i = 0;
+		edges_len = bm->totedge;
+		edges = MEM_mallocN(sizeof(*edges) * edges_len, __func__);
+
+		BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
 			BM_elem_flag_enable(e,     BM_ELEM_INTERNAL_TAG);
 			BM_elem_flag_enable(e->v1, BM_ELEM_INTERNAL_TAG);
 			BM_elem_flag_enable(e->v2, BM_ELEM_INTERNAL_TAG);
+			edges[i] = e;
 		}
 	}
 
@@ -354,11 +388,19 @@ bool BM_mesh_edgeloops_find_path(
 
 			BLI_addtail(r_eloops, el_store);
 
-			return true;
+			found = true;
 		}
 	}
 
-	return false;
+	for (uint i = 0; i < edges_len; i += 1) {
+		e = edges[i];
+		BM_elem_flag_disable(e, BM_ELEM_INTERNAL_TAG);
+		BM_elem_flag_disable(e->v1, BM_ELEM_INTERNAL_TAG);
+		BM_elem_flag_disable(e->v2, BM_ELEM_INTERNAL_TAG);
+	}
+	MEM_freeN(edges);
+
+	return found;
 }
 
 
@@ -753,19 +795,29 @@ bool BM_edgeloop_overlap_check(struct BMEdgeLoopStore *el_store_a, struct BMEdge
 {
 	LinkData *node;
 
-	/* init */
-	for (node = el_store_a->verts.first; node; node = node->next) {
-		BM_elem_flag_disable((BMVert *)node->data, BM_ELEM_INTERNAL_TAG);
-	}
-	for (node = el_store_b->verts.first; node; node = node->next) {
-		BM_elem_flag_enable((BMVert *)node->data, BM_ELEM_INTERNAL_TAG);
+	/* A little more efficient if 'a' as smaller. */
+	if (el_store_a->len > el_store_b->len) {
+		SWAP(BMEdgeLoopStore *, el_store_a, el_store_b);
 	}
 
-	/* check 'a' */
+	/* init */
 	for (node = el_store_a->verts.first; node; node = node->next) {
-		if (BM_elem_flag_test((BMVert *)node->data, BM_ELEM_INTERNAL_TAG)) {
+		BM_elem_flag_enable((BMVert *)node->data, BM_ELEM_INTERNAL_TAG);
+	}
+	for (node = el_store_b->verts.first; node; node = node->next) {
+		BM_elem_flag_disable((BMVert *)node->data, BM_ELEM_INTERNAL_TAG);
+	}
+
+	/* Check 'a' (clear as we go). */
+	for (node = el_store_a->verts.first; node; node = node->next) {
+		if (!BM_elem_flag_test((BMVert *)node->data, BM_ELEM_INTERNAL_TAG)) {
+			/* Finish clearing 'a', leave tag clean. */
+			while ((node = node->next)) {
+				BM_elem_flag_disable((BMVert *)node->data, BM_ELEM_INTERNAL_TAG);
+			}
 			return true;
 		}
+		BM_elem_flag_disable((BMVert *)node->data, BM_ELEM_INTERNAL_TAG);
 	}
 	return false;
 }

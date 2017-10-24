@@ -240,7 +240,7 @@ void Device::draw_pixels(
 {
 	const bool use_fallback_shader = (draw_params.bind_display_space_shader_cb == NULL);
 
-	assert(mem.type == MEM_PIXELS);
+	assert(rgba.type == MEM_PIXELS);
 	mem_copy_from(rgba, y, w, h, rgba.memory_elements_size(1));
 
 	GLuint texid;

@@ -35,6 +35,25 @@ CCL_NAMESPACE_BEGIN
 
 class OpenCLSplitKernel;
 
+namespace {
+
+/* Copy dummy KernelGlobals related to OpenCL from kernel_globals.h to
+ * fetch its size.
+ */
+typedef struct KernelGlobalsDummy {
+	ccl_constant KernelData *data;
+	ccl_global char *buffers[8];
+
+#define KERNEL_TEX(type, name) \
+	TextureInfo name;
+#  include "kernel/kernel_textures.h"
+#undef KERNEL_TEX
+	SplitData split_data;
+	SplitParams split_param_data;
+} KernelGlobalsDummy;
+
+}  // namespace
+
 static string get_build_options(OpenCLDeviceBase *device, const DeviceRequestedFeatures& requested_features)
 {
 	string build_options = "-D__SPLIT_KERNEL__ ";
@@ -110,24 +129,8 @@ public:
 		else if(task->type == DeviceTask::RENDER) {
 			RenderTile tile;
 
-			/* Copy dummy KernelGlobals related to OpenCL from kernel_globals.h to
-			 * fetch its size.
-			 */
-			typedef struct KernelGlobals {
-				ccl_constant KernelData *data;
-				ccl_global char *buffers[8];
-
-#define KERNEL_TEX(type, name) \
-				TextureInfo name;
-#include "kernel/kernel_textures.h"
-#undef KERNEL_TEX
-
-				SplitData split_data;
-				SplitParams split_param_data;
-			} KernelGlobals;
-
 			/* Allocate buffer for kernel globals */
-			device_only_memory<KernelGlobals> kgbuffer(this, "kernel_globals");
+			device_only_memory<KernelGlobalsDummy> kgbuffer(this, "kernel_globals");
 			kgbuffer.alloc_to_device(1);
 
 			/* Keep rendering tiles until done. */

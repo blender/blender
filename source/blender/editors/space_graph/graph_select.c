@@ -1085,6 +1085,8 @@ typedef struct tNearestVertInfo {
 	int dist;           /* distance from mouse to vert */
 	
 	eAnim_ChannelType ctype; /* type of animation channel this FCurve comes from */
+	
+	float frame;        /* frame that point was on when it matched (global time) */
 } tNearestVertInfo;
 
 /* Tags for the type of graph vert that we have */
@@ -1150,6 +1152,8 @@ static void nearest_fcurve_vert_store(
 			nvi->bezt = bezt;
 			nvi->hpoint = hpoint;
 			nvi->dist = dist;
+			
+			nvi->frame = bezt->vec[1][0]; /* currently in global time... */
 			
 			nvi->sel = BEZT_ISSEL_ANY(bezt); // XXX... should this use the individual verts instead?
 			
@@ -1435,10 +1439,7 @@ static void graphkeys_mselect_column(bAnimContext *ac, const int mval[2], short 
 	
 	/* get frame number on which elements should be selected */
 	// TODO: should we restrict to integer frames only?
-	if (nvi->bezt)
-		selx = nvi->bezt->vec[1][0];
-	else if (nvi->fpt)
-		selx = nvi->fpt->vec[0];
+	selx = nvi->frame;
 	
 	/* if select mode is replace, deselect all keyframes first */
 	if (select_mode == SELECT_REPLACE) {

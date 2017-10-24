@@ -74,7 +74,7 @@ protected:
 
 class ShaderGraphBuilder {
 public:
-	explicit ShaderGraphBuilder(ShaderGraph *graph)
+	ShaderGraphBuilder(ShaderGraph *graph)
 	  : graph_(graph)
 	{
 		node_map_["Output"] = graph->output();
@@ -155,15 +155,39 @@ protected:
 
 }  // namespace
 
-#define DEFINE_COMMON_VARIABLES(builder_name, mock_log_name) \
-	util_logging_start(); \
-	util_logging_verbosity_set(1); \
-	ScopedMockLog mock_log_name; \
-	DeviceInfo device_info; \
-	SceneParams scene_params; \
-	Scene scene(scene_params, device_info); \
-	ShaderGraph graph; \
-	ShaderGraphBuilder builder(&graph); \
+class RenderGraph : public testing::Test
+{
+protected:
+	ScopedMockLog log;
+	Stats stats;
+	DeviceInfo device_info;
+	Device *device_cpu;
+	SceneParams scene_params;
+	Scene *scene;
+	ShaderGraph graph;
+	ShaderGraphBuilder builder;
+
+	RenderGraph()
+	        : testing::Test(),
+	          builder(&graph)
+	{
+	}
+
+	virtual void SetUp()
+	{
+		util_logging_start();
+		util_logging_verbosity_set(1);
+
+		device_cpu = Device::create(device_info, stats, true);
+		scene = new Scene(scene_params, device_cpu);
+	}
+
+	virtual void TearDown()
+	{
+		delete scene;
+		delete device_cpu;
+	}
+};
 
 #define EXPECT_ANY_MESSAGE(log) \
 	EXPECT_CALL(log, Log(_, _, _)).Times(AnyNumber()); \
@@ -177,10 +201,8 @@ protected:
 /*
  * Test deduplication of nodes that have inputs, some of them folded.
  */
-TEST(render_graph, deduplicate_deep)
+TEST_F(RenderGraph, deduplicate_deep)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding Value1::Value to constant (0.8).");
 	CORRECT_INFO_MESSAGE(log, "Folding Value2::Value to constant (0.8).");
@@ -206,7 +228,7 @@ TEST(render_graph, deduplicate_deep)
 		.add_connection("Noise2::Color", "Mix::Color2")
 		.output_color("Mix::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 
 	EXPECT_EQ(graph.nodes.size(), 5);
 }
@@ -214,10 +236,8 @@ TEST(render_graph, deduplicate_deep)
 /*
  * Test RGB to BW node.
  */
-TEST(render_graph, constant_fold_rgb_to_bw)
+TEST_F(RenderGraph, constant_fold_rgb_to_bw)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding RGBToBWNodeNode::Val to constant (0.8).");
 	CORRECT_INFO_MESSAGE(log, "Folding convert_float_to_color::value_color to constant (0.8, 0.8, 0.8).");
@@ -227,17 +247,15 @@ TEST(render_graph, constant_fold_rgb_to_bw)
 		          .set("Color", make_float3(0.8f, 0.8f, 0.8f)))
 		.output_color("RGBToBWNodeNode::Val");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests:
  *  - folding of Emission nodes that don't emit to nothing.
  */
-TEST(render_graph, constant_fold_emission1)
+TEST_F(RenderGraph, constant_fold_emission1)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Discarding closure Emission.");
 
@@ -246,13 +264,11 @@ TEST(render_graph, constant_fold_emission1)
 		          .set("Color", make_float3(0.0f, 0.0f, 0.0f)))
 		.output_closure("Emission::Emission");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
-TEST(render_graph, constant_fold_emission2)
+TEST_F(RenderGraph, constant_fold_emission2)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Discarding closure Emission.");
 
@@ -261,17 +277,15 @@ TEST(render_graph, constant_fold_emission2)
 		          .set("Strength", 0.0f))
 		.output_closure("Emission::Emission");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests:
  *  - folding of Background nodes that don't emit to nothing.
  */
-TEST(render_graph, constant_fold_background1)
+TEST_F(RenderGraph, constant_fold_background1)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Discarding closure Background.");
 
@@ -280,13 +294,11 @@ TEST(render_graph, constant_fold_background1)
 		          .set("Color", make_float3(0.0f, 0.0f, 0.0f)))
 		.output_closure("Background::Background");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
-TEST(render_graph, constant_fold_background2)
+TEST_F(RenderGraph, constant_fold_background2)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Discarding closure Background.");
 
@@ -295,17 +307,15 @@ TEST(render_graph, constant_fold_background2)
 		          .set("Strength", 0.0f))
 		.output_closure("Background::Background");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests:
  *  - Folding of Add Closure with only one input.
  */
-TEST(render_graph, constant_fold_shader_add)
+TEST_F(RenderGraph, constant_fold_shader_add)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding AddClosure1::Closure to socket Diffuse::BSDF.");
 	CORRECT_INFO_MESSAGE(log, "Folding AddClosure2::Closure to socket Diffuse::BSDF.");
@@ -322,7 +332,7 @@ TEST(render_graph, constant_fold_shader_add)
 		.add_connection("AddClosure2::Closure", "AddClosure3::Closure2")
 		.output_closure("AddClosure3::Closure");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
@@ -330,10 +340,8 @@ TEST(render_graph, constant_fold_shader_add)
  *  - Folding of Mix Closure with 0 or 1 fac.
  *  - Folding of Mix Closure with both inputs folded to the same node.
  */
-TEST(render_graph, constant_fold_shader_mix)
+TEST_F(RenderGraph, constant_fold_shader_mix)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding MixClosure1::Closure to socket Diffuse::BSDF.");
 	CORRECT_INFO_MESSAGE(log, "Folding MixClosure2::Closure to socket Diffuse::BSDF.");
@@ -357,17 +365,15 @@ TEST(render_graph, constant_fold_shader_mix)
 		.add_connection("MixClosure2::Closure", "MixClosure3::Closure2")
 		.output_closure("MixClosure3::Closure");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests:
  *  - Folding of Invert with all constant inputs.
  */
-TEST(render_graph, constant_fold_invert)
+TEST_F(RenderGraph, constant_fold_invert)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding Invert::Color to constant (0.68, 0.5, 0.32).");
 
@@ -377,17 +383,15 @@ TEST(render_graph, constant_fold_invert)
 		          .set("Color", make_float3(0.2f, 0.5f, 0.8f)))
 		.output_color("Invert::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests:
  *  - Folding of Invert with zero Fac.
  */
-TEST(render_graph, constant_fold_invert_fac_0)
+TEST_F(RenderGraph, constant_fold_invert_fac_0)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding Invert::Color to socket Attribute::Color.");
 
@@ -398,17 +402,15 @@ TEST(render_graph, constant_fold_invert_fac_0)
 		.add_connection("Attribute::Color", "Invert::Color")
 		.output_color("Invert::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests:
  *  - Folding of Invert with zero Fac and constant input.
  */
-TEST(render_graph, constant_fold_invert_fac_0_const)
+TEST_F(RenderGraph, constant_fold_invert_fac_0_const)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding Invert::Color to constant (0.2, 0.5, 0.8).");
 
@@ -418,17 +420,15 @@ TEST(render_graph, constant_fold_invert_fac_0_const)
 		          .set("Color", make_float3(0.2f, 0.5f, 0.8f)))
 		.output_color("Invert::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests:
  *  - Folding of MixRGB Add with all constant inputs (clamp false).
  */
-TEST(render_graph, constant_fold_mix_add)
+TEST_F(RenderGraph, constant_fold_mix_add)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding MixAdd::Color to constant (0.62, 1.14, 1.42).");
 
@@ -441,17 +441,15 @@ TEST(render_graph, constant_fold_mix_add)
 		          .set("Color2", make_float3(0.4, 0.8, 0.9)))
 		.output_color("MixAdd::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests:
  *  - Folding of MixRGB Add with all constant inputs (clamp true).
  */
-TEST(render_graph, constant_fold_mix_add_clamp)
+TEST_F(RenderGraph, constant_fold_mix_add_clamp)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding MixAdd::Color to constant (0.62, 1, 1).");
 
@@ -464,17 +462,15 @@ TEST(render_graph, constant_fold_mix_add_clamp)
 		          .set("Color2", make_float3(0.4, 0.8, 0.9)))
 		.output_color("MixAdd::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests:
  *  - No folding on fac 0 for dodge.
  */
-TEST(render_graph, constant_fold_part_mix_dodge_no_fac_0)
+TEST_F(RenderGraph, constant_fold_part_mix_dodge_no_fac_0)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	INVALID_INFO_MESSAGE(log, "Folding ");
 
@@ -489,17 +485,15 @@ TEST(render_graph, constant_fold_part_mix_dodge_no_fac_0)
 		.add_connection("Attribute2::Color", "Mix::Color2")
 		.output_color("Mix::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests:
  *  - No folding on fac 0 for light.
  */
-TEST(render_graph, constant_fold_part_mix_light_no_fac_0)
+TEST_F(RenderGraph, constant_fold_part_mix_light_no_fac_0)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	INVALID_INFO_MESSAGE(log, "Folding ");
 
@@ -514,17 +508,15 @@ TEST(render_graph, constant_fold_part_mix_light_no_fac_0)
 		.add_connection("Attribute2::Color", "Mix::Color2")
 		.output_color("Mix::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests:
  *  - No folding on fac 0 for burn.
  */
-TEST(render_graph, constant_fold_part_mix_burn_no_fac_0)
+TEST_F(RenderGraph, constant_fold_part_mix_burn_no_fac_0)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	INVALID_INFO_MESSAGE(log, "Folding ");
 
@@ -539,17 +531,15 @@ TEST(render_graph, constant_fold_part_mix_burn_no_fac_0)
 		.add_connection("Attribute2::Color", "Mix::Color2")
 		.output_color("Mix::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests:
  *  - No folding on fac 0 for clamped blend.
  */
-TEST(render_graph, constant_fold_part_mix_blend_clamped_no_fac_0)
+TEST_F(RenderGraph, constant_fold_part_mix_blend_clamped_no_fac_0)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	INVALID_INFO_MESSAGE(log, "Folding ");
 
@@ -564,7 +554,7 @@ TEST(render_graph, constant_fold_part_mix_blend_clamped_no_fac_0)
 		.add_connection("Attribute2::Color", "Mix::Color2")
 		.output_color("Mix::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
@@ -572,10 +562,8 @@ TEST(render_graph, constant_fold_part_mix_blend_clamped_no_fac_0)
  *  - Folding of Mix with 0 or 1 Fac.
  *  - Folding of Mix with both inputs folded to the same node.
  */
-TEST(render_graph, constant_fold_part_mix_blend)
+TEST_F(RenderGraph, constant_fold_part_mix_blend)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding MixBlend1::Color to socket Attribute1::Color.");
 	CORRECT_INFO_MESSAGE(log, "Folding MixBlend2::Color to socket Attribute1::Color.");
@@ -607,17 +595,15 @@ TEST(render_graph, constant_fold_part_mix_blend)
 		.add_connection("MixBlend2::Color", "MixBlend3::Color2")
 		.output_color("MixBlend3::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests:
  *  - NOT folding of MixRGB Sub with the same inputs and fac NOT 1.
  */
-TEST(render_graph, constant_fold_part_mix_sub_same_fac_bad)
+TEST_F(RenderGraph, constant_fold_part_mix_sub_same_fac_bad)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	INVALID_INFO_MESSAGE(log, "Folding Mix::");
 
@@ -631,17 +617,15 @@ TEST(render_graph, constant_fold_part_mix_sub_same_fac_bad)
 		.add_connection("Attribute::Color", "Mix::Color2")
 		.output_color("Mix::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests:
  *  - Folding of MixRGB Sub with the same inputs and fac 1.
  */
-TEST(render_graph, constant_fold_part_mix_sub_same_fac_1)
+TEST_F(RenderGraph, constant_fold_part_mix_sub_same_fac_1)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding Mix::Color to constant (0, 0, 0).");
 
@@ -655,7 +639,7 @@ TEST(render_graph, constant_fold_part_mix_sub_same_fac_1)
 		.add_connection("Attribute::Color", "Mix::Color2")
 		.output_color("Mix::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
@@ -717,10 +701,8 @@ static void build_mix_partial_test_graph(ShaderGraphBuilder &builder, NodeMix ty
 /*
  * Tests: partial folding for RGB Add with known 0.
  */
-TEST(render_graph, constant_fold_part_mix_add_0)
+TEST_F(RenderGraph, constant_fold_part_mix_add_0)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	/* 0 + X (fac 1) == X */
 	INVALID_INFO_MESSAGE(log, "Folding Mix_Cx_Fx::Color");
@@ -731,16 +713,14 @@ TEST(render_graph, constant_fold_part_mix_add_0)
 	INVALID_INFO_MESSAGE(log, "Folding Out");
 
 	build_mix_partial_test_graph(builder, NODE_MIX_ADD, make_float3(0, 0, 0));
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: partial folding for RGB Sub with known 0.
  */
-TEST(render_graph, constant_fold_part_mix_sub_0)
+TEST_F(RenderGraph, constant_fold_part_mix_sub_0)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	INVALID_INFO_MESSAGE(log, "Folding Mix_Cx_Fx::Color");
 	INVALID_INFO_MESSAGE(log, "Folding Mix_Cx_F1::Color");
@@ -750,16 +730,14 @@ TEST(render_graph, constant_fold_part_mix_sub_0)
 	INVALID_INFO_MESSAGE(log, "Folding Out");
 
 	build_mix_partial_test_graph(builder, NODE_MIX_SUB, make_float3(0, 0, 0));
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: partial folding for RGB Mul with known 1.
  */
-TEST(render_graph, constant_fold_part_mix_mul_1)
+TEST_F(RenderGraph, constant_fold_part_mix_mul_1)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	/* 1 * X (fac 1) == X */
 	INVALID_INFO_MESSAGE(log, "Folding Mix_Cx_Fx::Color");
@@ -770,16 +748,14 @@ TEST(render_graph, constant_fold_part_mix_mul_1)
 	INVALID_INFO_MESSAGE(log, "Folding Out");
 
 	build_mix_partial_test_graph(builder, NODE_MIX_MUL, make_float3(1, 1, 1));
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: partial folding for RGB Div with known 1.
  */
-TEST(render_graph, constant_fold_part_mix_div_1)
+TEST_F(RenderGraph, constant_fold_part_mix_div_1)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	INVALID_INFO_MESSAGE(log, "Folding Mix_Cx_Fx::Color");
 	INVALID_INFO_MESSAGE(log, "Folding Mix_Cx_F1::Color");
@@ -789,16 +765,14 @@ TEST(render_graph, constant_fold_part_mix_div_1)
 	INVALID_INFO_MESSAGE(log, "Folding Out");
 
 	build_mix_partial_test_graph(builder, NODE_MIX_DIV, make_float3(1, 1, 1));
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: partial folding for RGB Mul with known 0.
  */
-TEST(render_graph, constant_fold_part_mix_mul_0)
+TEST_F(RenderGraph, constant_fold_part_mix_mul_0)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	/* 0 * ? (fac ?) == 0 */
 	CORRECT_INFO_MESSAGE(log, "Folding Mix_Cx_Fx::Color to constant (0, 0, 0).");
@@ -811,16 +785,14 @@ TEST(render_graph, constant_fold_part_mix_mul_0)
 	INVALID_INFO_MESSAGE(log, "Folding Out1234");
 
 	build_mix_partial_test_graph(builder, NODE_MIX_MUL, make_float3(0, 0, 0));
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: partial folding for RGB Div with known 0.
  */
-TEST(render_graph, constant_fold_part_mix_div_0)
+TEST_F(RenderGraph, constant_fold_part_mix_div_0)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	/* 0 / ? (fac ?) == 0 */
 	CORRECT_INFO_MESSAGE(log, "Folding Mix_Cx_Fx::Color to constant (0, 0, 0).");
@@ -832,16 +804,14 @@ TEST(render_graph, constant_fold_part_mix_div_0)
 	INVALID_INFO_MESSAGE(log, "Folding Out1234");
 
 	build_mix_partial_test_graph(builder, NODE_MIX_DIV, make_float3(0, 0, 0));
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: Separate/Combine RGB with all constant inputs.
  */
-TEST(render_graph, constant_fold_separate_combine_rgb)
+TEST_F(RenderGraph, constant_fold_separate_combine_rgb)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding SeparateRGB::R to constant (0.3).");
 	CORRECT_INFO_MESSAGE(log, "Folding SeparateRGB::G to constant (0.5).");
@@ -857,16 +827,14 @@ TEST(render_graph, constant_fold_separate_combine_rgb)
 		.add_connection("SeparateRGB::B", "CombineRGB::B")
 		.output_color("CombineRGB::Image");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: Separate/Combine XYZ with all constant inputs.
  */
-TEST(render_graph, constant_fold_separate_combine_xyz)
+TEST_F(RenderGraph, constant_fold_separate_combine_xyz)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding SeparateXYZ::X to constant (0.3).");
 	CORRECT_INFO_MESSAGE(log, "Folding SeparateXYZ::Y to constant (0.5).");
@@ -883,16 +851,14 @@ TEST(render_graph, constant_fold_separate_combine_xyz)
 		.add_connection("SeparateXYZ::Z", "CombineXYZ::Z")
 		.output_color("CombineXYZ::Vector");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: Separate/Combine HSV with all constant inputs.
  */
-TEST(render_graph, constant_fold_separate_combine_hsv)
+TEST_F(RenderGraph, constant_fold_separate_combine_hsv)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding SeparateHSV::H to constant (0.583333).");
 	CORRECT_INFO_MESSAGE(log, "Folding SeparateHSV::S to constant (0.571429).");
@@ -908,16 +874,14 @@ TEST(render_graph, constant_fold_separate_combine_hsv)
 		.add_connection("SeparateHSV::V", "CombineHSV::V")
 		.output_color("CombineHSV::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: Gamma with all constant inputs.
  */
-TEST(render_graph, constant_fold_gamma)
+TEST_F(RenderGraph, constant_fold_gamma)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding Gamma::Color to constant (0.164317, 0.353553, 0.585662).");
 
@@ -927,16 +891,14 @@ TEST(render_graph, constant_fold_gamma)
 		          .set("Gamma", 1.5f))
 		.output_color("Gamma::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: Gamma with one constant 0 input.
  */
-TEST(render_graph, constant_fold_gamma_part_0)
+TEST_F(RenderGraph, constant_fold_gamma_part_0)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	INVALID_INFO_MESSAGE(log, "Folding Gamma_Cx::");
 	CORRECT_INFO_MESSAGE(log, "Folding Gamma_xC::Color to constant (1, 1, 1).");
@@ -960,16 +922,14 @@ TEST(render_graph, constant_fold_gamma_part_0)
 		.add_connection("Gamma_xC::Color", "Out::Color2")
 		.output_color("Out::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: Gamma with one constant 1 input.
  */
-TEST(render_graph, constant_fold_gamma_part_1)
+TEST_F(RenderGraph, constant_fold_gamma_part_1)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding Gamma_Cx::Color to constant (1, 1, 1).");
 	CORRECT_INFO_MESSAGE(log, "Folding Gamma_xC::Color to socket Attribute::Color.");
@@ -993,16 +953,14 @@ TEST(render_graph, constant_fold_gamma_part_1)
 		.add_connection("Gamma_xC::Color", "Out::Color2")
 		.output_color("Out::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: BrightnessContrast with all constant inputs.
  */
-TEST(render_graph, constant_fold_bright_contrast)
+TEST_F(RenderGraph, constant_fold_bright_contrast)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding BrightContrast::Color to constant (0.16, 0.6, 1.04).");
 
@@ -1013,16 +971,14 @@ TEST(render_graph, constant_fold_bright_contrast)
 		          .set("Contrast", 1.2f))
 		.output_color("BrightContrast::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: blackbody with all constant inputs.
  */
-TEST(render_graph, constant_fold_blackbody)
+TEST_F(RenderGraph, constant_fold_blackbody)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding Blackbody::Color to constant (3.94163, 0.226523, 0).");
 
@@ -1031,16 +987,14 @@ TEST(render_graph, constant_fold_blackbody)
 		          .set("Temperature", 1200.0f))
 		.output_color("Blackbody::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: Math with all constant inputs (clamp false).
  */
-TEST(render_graph, constant_fold_math)
+TEST_F(RenderGraph, constant_fold_math)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding Math::Value to constant (1.6).");
 
@@ -1052,16 +1006,14 @@ TEST(render_graph, constant_fold_math)
 		          .set("Value2", 0.9f))
 		.output_value("Math::Value");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: Math with all constant inputs (clamp true).
  */
-TEST(render_graph, constant_fold_math_clamp)
+TEST_F(RenderGraph, constant_fold_math_clamp)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding Math::Value to constant (1).");
 
@@ -1073,7 +1025,7 @@ TEST(render_graph, constant_fold_math_clamp)
 		          .set("Value2", 0.9f))
 		.output_value("Math::Value");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
@@ -1108,10 +1060,8 @@ static void build_math_partial_test_graph(ShaderGraphBuilder &builder, NodeMath 
 /*
  * Tests: partial folding for Math Add with known 0.
  */
-TEST(render_graph, constant_fold_part_math_add_0)
+TEST_F(RenderGraph, constant_fold_part_math_add_0)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	/* X + 0 == 0 + X == X */
 	CORRECT_INFO_MESSAGE(log, "Folding Math_Cx::Value to socket Attribute::Fac.");
@@ -1119,16 +1069,14 @@ TEST(render_graph, constant_fold_part_math_add_0)
 	INVALID_INFO_MESSAGE(log, "Folding Out::");
 
 	build_math_partial_test_graph(builder, NODE_MATH_ADD, 0.0f);
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: partial folding for Math Sub with known 0.
  */
-TEST(render_graph, constant_fold_part_math_sub_0)
+TEST_F(RenderGraph, constant_fold_part_math_sub_0)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	/* X - 0 == X */
 	INVALID_INFO_MESSAGE(log, "Folding Math_Cx::");
@@ -1136,16 +1084,14 @@ TEST(render_graph, constant_fold_part_math_sub_0)
 	INVALID_INFO_MESSAGE(log, "Folding Out::");
 
 	build_math_partial_test_graph(builder, NODE_MATH_SUBTRACT, 0.0f);
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: partial folding for Math Mul with known 1.
  */
-TEST(render_graph, constant_fold_part_math_mul_1)
+TEST_F(RenderGraph, constant_fold_part_math_mul_1)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	/* X * 1 == 1 * X == X */
 	CORRECT_INFO_MESSAGE(log, "Folding Math_Cx::Value to socket Attribute::Fac.");
@@ -1153,16 +1099,14 @@ TEST(render_graph, constant_fold_part_math_mul_1)
 	INVALID_INFO_MESSAGE(log, "Folding Out::");
 
 	build_math_partial_test_graph(builder, NODE_MATH_MULTIPLY, 1.0f);
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: partial folding for Math Div with known 1.
  */
-TEST(render_graph, constant_fold_part_math_div_1)
+TEST_F(RenderGraph, constant_fold_part_math_div_1)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	/* X / 1 == X */
 	INVALID_INFO_MESSAGE(log, "Folding Math_Cx::");
@@ -1170,16 +1114,14 @@ TEST(render_graph, constant_fold_part_math_div_1)
 	INVALID_INFO_MESSAGE(log, "Folding Out::");
 
 	build_math_partial_test_graph(builder, NODE_MATH_DIVIDE, 1.0f);
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: partial folding for Math Mul with known 0.
  */
-TEST(render_graph, constant_fold_part_math_mul_0)
+TEST_F(RenderGraph, constant_fold_part_math_mul_0)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	/* X * 0 == 0 * X == 0 */
 	CORRECT_INFO_MESSAGE(log, "Folding Math_Cx::Value to constant (0).");
@@ -1188,16 +1130,14 @@ TEST(render_graph, constant_fold_part_math_mul_0)
 	CORRECT_INFO_MESSAGE(log, "Discarding closure EmissionNode.");
 
 	build_math_partial_test_graph(builder, NODE_MATH_MULTIPLY, 0.0f);
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: partial folding for Math Div with known 0.
  */
-TEST(render_graph, constant_fold_part_math_div_0)
+TEST_F(RenderGraph, constant_fold_part_math_div_0)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	/* 0 / X == 0 */
 	CORRECT_INFO_MESSAGE(log, "Folding Math_Cx::Value to constant (0).");
@@ -1205,16 +1145,14 @@ TEST(render_graph, constant_fold_part_math_div_0)
 	INVALID_INFO_MESSAGE(log, "Folding Out::");
 
 	build_math_partial_test_graph(builder, NODE_MATH_DIVIDE, 0.0f);
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: partial folding for Math Power with known 0.
  */
-TEST(render_graph, constant_fold_part_math_pow_0)
+TEST_F(RenderGraph, constant_fold_part_math_pow_0)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	/* X ^ 0 == 1 */
 	INVALID_INFO_MESSAGE(log, "Folding Math_Cx::");
@@ -1222,16 +1160,14 @@ TEST(render_graph, constant_fold_part_math_pow_0)
 	INVALID_INFO_MESSAGE(log, "Folding Out::");
 
 	build_math_partial_test_graph(builder, NODE_MATH_POWER, 0.0f);
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: partial folding for Math Power with known 1.
  */
-TEST(render_graph, constant_fold_part_math_pow_1)
+TEST_F(RenderGraph, constant_fold_part_math_pow_1)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	/* 1 ^ X == 1; X ^ 1 == X */
 	CORRECT_INFO_MESSAGE(log, "Folding Math_Cx::Value to constant (1)");
@@ -1239,16 +1175,14 @@ TEST(render_graph, constant_fold_part_math_pow_1)
 	INVALID_INFO_MESSAGE(log, "Folding Out::");
 
 	build_math_partial_test_graph(builder, NODE_MATH_POWER, 1.0f);
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: Vector Math with all constant inputs.
  */
-TEST(render_graph, constant_fold_vector_math)
+TEST_F(RenderGraph, constant_fold_vector_math)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding VectorMath::Value to constant (1).");
 	CORRECT_INFO_MESSAGE(log, "Folding VectorMath::Vector to constant (3, 0, 0).");
@@ -1267,7 +1201,7 @@ TEST(render_graph, constant_fold_vector_math)
 		.add_connection("VectorMath::Value", "Math::Value2")
 		.output_color("Math::Value");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
@@ -1299,10 +1233,8 @@ static void build_vecmath_partial_test_graph(ShaderGraphBuilder &builder, NodeVe
 /*
  * Tests: partial folding for Vector Math Add with known 0.
  */
-TEST(render_graph, constant_fold_part_vecmath_add_0)
+TEST_F(RenderGraph, constant_fold_part_vecmath_add_0)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	/* X + 0 == 0 + X == X */
 	CORRECT_INFO_MESSAGE(log, "Folding Math_Cx::Vector to socket Attribute::Vector.");
@@ -1310,16 +1242,14 @@ TEST(render_graph, constant_fold_part_vecmath_add_0)
 	INVALID_INFO_MESSAGE(log, "Folding Out::");
 
 	build_vecmath_partial_test_graph(builder, NODE_VECTOR_MATH_ADD, make_float3(0,0,0));
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: partial folding for Vector Math Sub with known 0.
  */
-TEST(render_graph, constant_fold_part_vecmath_sub_0)
+TEST_F(RenderGraph, constant_fold_part_vecmath_sub_0)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	/* X - 0 == X */
 	INVALID_INFO_MESSAGE(log, "Folding Math_Cx::");
@@ -1327,16 +1257,14 @@ TEST(render_graph, constant_fold_part_vecmath_sub_0)
 	INVALID_INFO_MESSAGE(log, "Folding Out::");
 
 	build_vecmath_partial_test_graph(builder, NODE_VECTOR_MATH_SUBTRACT, make_float3(0,0,0));
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: partial folding for Vector Math Dot Product with known 0.
  */
-TEST(render_graph, constant_fold_part_vecmath_dot_0)
+TEST_F(RenderGraph, constant_fold_part_vecmath_dot_0)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	/* X * 0 == 0 * X == X */
 	CORRECT_INFO_MESSAGE(log, "Folding Math_Cx::Vector to constant (0, 0, 0).");
@@ -1345,16 +1273,14 @@ TEST(render_graph, constant_fold_part_vecmath_dot_0)
 	CORRECT_INFO_MESSAGE(log, "Discarding closure EmissionNode.");
 
 	build_vecmath_partial_test_graph(builder, NODE_VECTOR_MATH_DOT_PRODUCT, make_float3(0,0,0));
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: partial folding for Vector Math Cross Product with known 0.
  */
-TEST(render_graph, constant_fold_part_vecmath_cross_0)
+TEST_F(RenderGraph, constant_fold_part_vecmath_cross_0)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	/* X * 0 == 0 * X == X */
 	CORRECT_INFO_MESSAGE(log, "Folding Math_Cx::Vector to constant (0, 0, 0).");
@@ -1363,16 +1289,14 @@ TEST(render_graph, constant_fold_part_vecmath_cross_0)
 	CORRECT_INFO_MESSAGE(log, "Discarding closure EmissionNode.");
 
 	build_vecmath_partial_test_graph(builder, NODE_VECTOR_MATH_CROSS_PRODUCT, make_float3(0,0,0));
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: Bump with no height input folded to Normal input.
  */
-TEST(render_graph, constant_fold_bump)
+TEST_F(RenderGraph, constant_fold_bump)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding Bump::Normal to socket Geometry1::Normal.");
 
@@ -1382,16 +1306,14 @@ TEST(render_graph, constant_fold_bump)
 		.add_connection("Geometry1::Normal", "Bump::Normal")
 		.output_color("Bump::Normal");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests: Bump with no inputs folded to Geometry::Normal.
  */
-TEST(render_graph, constant_fold_bump_no_input)
+TEST_F(RenderGraph, constant_fold_bump_no_input)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding Bump::Normal to socket geometry::Normal.");
 
@@ -1399,7 +1321,7 @@ TEST(render_graph, constant_fold_bump_no_input)
 		.add_node(ShaderNodeBuilder<BumpNode>("Bump"))
 		.output_color("Bump::Normal");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 template<class T>
@@ -1416,10 +1338,8 @@ void init_test_curve(array<T> &buffer, T start, T end, int steps)
  * Tests:
  *  - Folding of RGB Curves with all constant inputs.
  */
-TEST(render_graph, constant_fold_rgb_curves)
+TEST_F(RenderGraph, constant_fold_rgb_curves)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding Curves::Color to constant (0.275, 0.5, 0.475).");
 
@@ -1435,17 +1355,15 @@ TEST(render_graph, constant_fold_rgb_curves)
 		          .set("Color", make_float3(0.3f, 0.5f, 0.7f)))
 		.output_color("Curves::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests:
  *  - Folding of RGB Curves with zero Fac.
  */
-TEST(render_graph, constant_fold_rgb_curves_fac_0)
+TEST_F(RenderGraph, constant_fold_rgb_curves_fac_0)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding Curves::Color to socket Attribute::Color.");
 
@@ -1462,7 +1380,7 @@ TEST(render_graph, constant_fold_rgb_curves_fac_0)
 		.add_connection("Attribute::Color", "Curves::Color")
 		.output_color("Curves::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 
@@ -1470,10 +1388,8 @@ TEST(render_graph, constant_fold_rgb_curves_fac_0)
  * Tests:
  *  - Folding of RGB Curves with zero Fac and all constant inputs.
  */
-TEST(render_graph, constant_fold_rgb_curves_fac_0_const)
+TEST_F(RenderGraph, constant_fold_rgb_curves_fac_0_const)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding Curves::Color to constant (0.3, 0.5, 0.7).");
 
@@ -1489,17 +1405,15 @@ TEST(render_graph, constant_fold_rgb_curves_fac_0_const)
 		          .set("Color", make_float3(0.3f, 0.5f, 0.7f)))
 		.output_color("Curves::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests:
  *  - Folding of Vector Curves with all constant inputs.
  */
-TEST(render_graph, constant_fold_vector_curves)
+TEST_F(RenderGraph, constant_fold_vector_curves)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding Curves::Vector to constant (0.275, 0.5, 0.475).");
 
@@ -1515,17 +1429,15 @@ TEST(render_graph, constant_fold_vector_curves)
 		          .set("Vector", make_float3(0.3f, 0.5f, 0.7f)))
 		.output_color("Curves::Vector");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests:
  *  - Folding of Vector Curves with zero Fac.
  */
-TEST(render_graph, constant_fold_vector_curves_fac_0)
+TEST_F(RenderGraph, constant_fold_vector_curves_fac_0)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding Curves::Vector to socket Attribute::Vector.");
 
@@ -1542,17 +1454,15 @@ TEST(render_graph, constant_fold_vector_curves_fac_0)
 		.add_connection("Attribute::Vector", "Curves::Vector")
 		.output_color("Curves::Vector");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests:
  *  - Folding of Color Ramp with all constant inputs.
  */
-TEST(render_graph, constant_fold_rgb_ramp)
+TEST_F(RenderGraph, constant_fold_rgb_ramp)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding Ramp::Color to constant (0.14, 0.39, 0.64).");
 	CORRECT_INFO_MESSAGE(log, "Folding Ramp::Alpha to constant (0.89).");
@@ -1574,17 +1484,15 @@ TEST(render_graph, constant_fold_rgb_ramp)
 		.add_connection("Ramp::Alpha", "Mix::Color2")
 		.output_color("Mix::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests:
  *  - Folding of Color Ramp with all constant inputs (interpolate false).
  */
-TEST(render_graph, constant_fold_rgb_ramp_flat)
+TEST_F(RenderGraph, constant_fold_rgb_ramp_flat)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding Ramp::Color to constant (0.125, 0.375, 0.625).");
 	CORRECT_INFO_MESSAGE(log, "Folding Ramp::Alpha to constant (0.875).");
@@ -1606,17 +1514,15 @@ TEST(render_graph, constant_fold_rgb_ramp_flat)
 		.add_connection("Ramp::Alpha", "Mix::Color2")
 		.output_color("Mix::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests:
  *  - Folding of redundant conversion of float to color to float.
  */
-TEST(render_graph, constant_fold_convert_float_color_float)
+TEST_F(RenderGraph, constant_fold_convert_float_color_float)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding Invert::Color to socket convert_float_to_color::value_color.");
 	CORRECT_INFO_MESSAGE(log, "Folding convert_color_to_float::value_float to socket Attribute::Fac.");
@@ -1628,17 +1534,15 @@ TEST(render_graph, constant_fold_convert_float_color_float)
 		.add_connection("Attribute::Fac", "Invert::Color")
 		.output_value("Invert::Color");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests:
  *  - Folding of redundant conversion of color to vector to color.
  */
-TEST(render_graph, constant_fold_convert_color_vector_color)
+TEST_F(RenderGraph, constant_fold_convert_color_vector_color)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding VecAdd::Vector to socket convert_color_to_vector::value_vector.");
 	CORRECT_INFO_MESSAGE(log, "Folding convert_vector_to_color::value_color to socket Attribute::Color.");
@@ -1651,17 +1555,15 @@ TEST(render_graph, constant_fold_convert_color_vector_color)
 		.add_connection("Attribute::Color", "VecAdd::Vector1")
 		.output_color("VecAdd::Vector");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 /*
  * Tests:
  *  - NOT folding conversion of color to float to color.
  */
-TEST(render_graph, constant_fold_convert_color_float_color)
+TEST_F(RenderGraph, constant_fold_convert_color_float_color)
 {
-	DEFINE_COMMON_VARIABLES(builder, log);
-
 	EXPECT_ANY_MESSAGE(log);
 	CORRECT_INFO_MESSAGE(log, "Folding MathAdd::Value to socket convert_color_to_float::value_float.");
 	INVALID_INFO_MESSAGE(log, "Folding convert_float_to_color::");
@@ -1674,7 +1576,7 @@ TEST(render_graph, constant_fold_convert_color_float_color)
 		.add_connection("Attribute::Color", "MathAdd::Value1")
 		.output_color("MathAdd::Value");
 
-	graph.finalize(&scene);
+	graph.finalize(scene);
 }
 
 CCL_NAMESPACE_END
