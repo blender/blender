@@ -216,6 +216,7 @@ static void setup_app_data(
 			wmWindowManager *wm = bfd->main->wm.first;
 			if (wm_scene_is_visible(wm, bfd->curscene) == false) {
 				curscene = bfd->curscene;
+				win->scene = curscene;
 				BKE_screen_view3d_scene_sync(curscreen, curscene);
 			}
 		}
