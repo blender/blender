@@ -303,7 +303,7 @@ public:
 		data_width = width;
 		data_height = height;
 		data_depth = depth;
-		assert(device_ptr == 0);
+		assert(device_pointer == 0);
 
 		return get_data();
 	}
@@ -331,7 +331,7 @@ public:
 		data_width = width;
 		data_height = height;
 		data_depth = depth;
-		assert(device_ptr == 0);
+		assert(device_pointer == 0);
 
 		return get_data();
 	}

@@ -88,7 +88,7 @@ Device::~Device()
 void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int dx, int dy, int width, int height, bool transparent,
 	const DeviceDrawParams &draw_params)
 {
-	assert(mem.type == MEM_PIXELS);
+	assert(rgba.type == MEM_PIXELS);
 
 	mem_copy_from(rgba, y, w, h, rgba.memory_elements_size(1));
 
