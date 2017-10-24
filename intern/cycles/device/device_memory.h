@@ -296,13 +296,13 @@ public:
 			device_free();
 			host_free(data_pointer, sizeof(T)*data_size);
 			data_pointer = host_alloc(sizeof(T)*new_size);
+			assert(device_pointer == 0);
 		}
 
 		data_size = new_size;
 		data_width = width;
 		data_height = height;
 		data_depth = depth;
-		assert(device_pointer == 0);
 
 		return get_data();
 	}
