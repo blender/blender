@@ -82,7 +82,7 @@ static DEG_EditorUpdateScenePreCb deg_editor_update_scene_pre_cb = NULL;
 
 Depsgraph::Depsgraph()
   : time_source(NULL),
-    need_update(false)
+    need_update(true)
 {
 	BLI_spin_init(&lock);
 	id_hash = BLI_ghash_ptr_new("Depsgraph id hash");

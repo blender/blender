@@ -245,6 +245,9 @@ void DEG_graph_build_from_scene(Depsgraph *graph, Main *bmain, Scene *scene)
 #ifdef DEBUG_TIME
 	TIMEIT_END(DEG_graph_build_from_scene);
 #endif
+
+	/* Relations are up to date. */
+	deg_graph->need_update = false;
 }
 
 /* Tag graph relations for update. */
@@ -290,8 +293,6 @@ void DEG_scene_relations_update(Main *bmain, Scene *scene)
 	DEG_graph_build_from_scene(reinterpret_cast< ::Depsgraph * >(graph),
 	                           bmain,
 	                           scene);
-
-	graph->need_update = false;
 }
 
 /* Rebuild dependency graph only for a given scene. */
