@@ -134,7 +134,7 @@ void DEG_free_node_types(void);
 /* Update Tagging -------------------------------- */
 
 /* Update dependency graph when visible scenes/layers changes. */
-void DEG_graph_on_visible_update(struct Main *bmain, struct Scene *scene);
+void DEG_graph_on_visible_update(struct Main *bmain, Depsgraph *depsgraph);
 
 /* Update all dependency graphs when visible scenes/layers changes. */
 void DEG_on_visible_update(struct Main *bmain, const bool do_time);
@@ -167,9 +167,7 @@ enum {
 	DEG_TAG_SHADING_UPDATE  = (1 << 9),
 };
 void DEG_id_tag_update(struct ID *id, int flag);
-void DEG_id_tag_update_ex(struct Main *bmain,
-                          struct ID *id,
-                          int flag);
+void DEG_id_tag_update_ex(struct Main *bmain, struct ID *id, int flag);
 
 /* Tag given ID type for update.
  *

@@ -141,7 +141,7 @@ static void rna_Depsgraph_debug_rebuild(Depsgraph *UNUSED(graph), bContext *C)
 	DEG_relations_tag_update(bmain);
 	for (sce = bmain->scene.first; sce; sce = sce->id.next) {
 		DEG_scene_relations_rebuild(bmain, sce);
-		DEG_graph_on_visible_update(bmain, sce);
+		DEG_graph_on_visible_update(bmain, sce->depsgraph_legacy);
 	}
 }
 
