@@ -41,29 +41,8 @@ extern "C" {
 #include "DEG_depsgraph_debug.h"
 #include "DEG_depsgraph_build.h"
 
-#include "intern/eval/deg_eval_debug.h"
 #include "intern/depsgraph_intern.h"
 #include "util/deg_util_foreach.h"
-
-/* ************************************************ */
-
-DepsgraphStats *DEG_stats(void)
-{
-	return DEG::DepsgraphDebug::stats;
-}
-
-void DEG_stats_verify()
-{
-	DEG::DepsgraphDebug::verify_stats();
-}
-
-DepsgraphStatsID *DEG_stats_id(ID *id)
-{
-	if (!DEG::DepsgraphDebug::stats) {
-		return NULL;
-	}
-	return DEG::DepsgraphDebug::get_id_stats(id, false);
-}
 
 bool DEG_debug_compare(const struct Depsgraph *graph1,
                        const struct Depsgraph *graph2)

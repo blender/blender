@@ -53,7 +53,6 @@ set(SRC
 	intern/builder/deg_builder_transitive.cc
 	intern/debug/deg_debug_graphviz.cc
 	intern/eval/deg_eval.cc
-	intern/eval/deg_eval_debug.cc
 	intern/eval/deg_eval_flush.cc
 	intern/nodes/deg_node.cc
 	intern/nodes/deg_node_component.cc
@@ -78,7 +77,6 @@ set(SRC
 	intern/builder/deg_builder_relations.h
 	intern/builder/deg_builder_transitive.h
 	intern/eval/deg_eval.h
-	intern/eval/deg_eval_debug.h
 	intern/eval/deg_eval_flush.h
 	intern/nodes/deg_node.h
 	intern/nodes/deg_node_component.h

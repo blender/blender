@@ -47,7 +47,6 @@ extern "C" {
 
 #include "atomic_ops.h"
 
-#include "intern/eval/deg_eval_debug.h"
 #include "intern/eval/deg_eval_flush.h"
 #include "intern/nodes/deg_node.h"
 #include "intern/nodes/deg_node_component.h"
@@ -341,14 +340,10 @@ void deg_evaluate_on_refresh(EvaluationContext *eval_ctx,
 	}
 #endif
 
-	DepsgraphDebug::eval_begin(eval_ctx);
-
 	schedule_graph(task_pool, graph, layers);
 
 	BLI_task_pool_work_and_wait(task_pool);
 	BLI_task_pool_free(task_pool);
-
-	DepsgraphDebug::eval_end(eval_ctx);
 
 	/* Clear any uncleared tags - just in case. */
 	deg_graph_clear_tags(graph);
