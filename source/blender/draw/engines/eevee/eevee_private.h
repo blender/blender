@@ -93,6 +93,7 @@ enum {
 	VAR_MAT_MULT     = (1 << 10),
 	VAR_MAT_SHADOW   = (1 << 11),
 	VAR_MAT_REFRACT  = (1 << 12),
+	VAR_MAT_VOLUME   = (1 << 13),
 };
 
 /* Shadow Technique */
@@ -395,6 +396,9 @@ enum {
 typedef struct EEVEE_EffectsInfo {
 	int enabled_effects;
 
+	/* Volumetrics */
+	bool use_volumetrics;
+
 	/* SSR */
 	bool use_ssr;
 	bool reflection_trace_full;
@@ -593,7 +597,8 @@ struct GPUMaterial *EEVEE_material_world_lightprobe_get(struct Scene *scene, str
 struct GPUMaterial *EEVEE_material_world_background_get(struct Scene *scene, struct World *wo);
 struct GPUMaterial *EEVEE_material_world_volume_get(struct Scene *scene, struct World *wo);
 struct GPUMaterial *EEVEE_material_mesh_get(
-        struct Scene *scene, Material *ma, bool use_blend, bool use_multiply, bool use_refract, int shadow_method);
+        struct Scene *scene, Material *ma, EEVEE_Data *vedata,
+        bool use_blend, bool use_multiply, bool use_refract, int shadow_method);
 struct GPUMaterial *EEVEE_material_mesh_depth_get(struct Scene *scene, Material *ma, bool use_hashed_alpha, bool is_shadow);
 struct GPUMaterial *EEVEE_material_hair_get(struct Scene *scene, Material *ma, int shadow_method);
 void EEVEE_materials_free(void);

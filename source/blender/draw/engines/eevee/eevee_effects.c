@@ -1079,9 +1079,7 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		DRW_shgroup_uniform_mat4(grp, "PastViewProjectionMatrix", (float *)stl->g_data->prev_persmat);
 		DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
 		DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
-		DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
 		DRW_shgroup_uniform_int(grp, "light_count", (volumetrics->use_lights) ? &sldata->lamps->num_light : &zero, 1);
-		DRW_shgroup_uniform_int(grp, "grid_count", &sldata->probes->num_render_grid, 1);
 		DRW_shgroup_uniform_buffer(grp, "irradianceGrid", &sldata->irradiance_pool);
 		DRW_shgroup_uniform_buffer(grp, "shadowTexture", &sldata->shadow_pool);
 		DRW_shgroup_uniform_float(grp, "volume_light_clamp", &volumetrics->light_clamp, 1);

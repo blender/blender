@@ -631,11 +631,24 @@ layout(location = 2) out vec4 ssrData;
 
 Closure nodetree_exec(void); /* Prototype */
 
+#if defined(USE_ALPHA_BLEND_VOLUMETRICS)
+/* Prototype because this file is included before volumetric_lib.glsl */
+vec4 volumetric_resolve(vec4 scene_color, vec2 frag_uvs, float frag_depth);
+#endif
+
 #define NODETREE_EXEC
 void main()
 {
 	Closure cl = nodetree_exec();
+
+#if defined(USE_ALPHA_BLEND_VOLUMETRICS)
+	/* XXX fragile, better use real viewport resolution */
+	vec2 uvs = gl_FragCoord.xy / vec2(2 * textureSize(maxzBuffer, 0).xy);
+	fragColor = volumetric_resolve(vec4(cl.radiance, cl.opacity), uvs, gl_FragCoord.z);
+#else
 	fragColor = vec4(cl.radiance, cl.opacity);
+#endif
+
 	ssrNormals = cl.ssr_normal.xyyy;
 	ssrData = cl.ssr_data;
 }

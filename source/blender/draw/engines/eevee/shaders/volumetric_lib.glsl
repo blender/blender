@@ -132,3 +132,16 @@ vec3 irradiance_volumetric(vec3 wpos)
 	return irradiance;
 }
 #endif
+
+uniform sampler3D inScattering;
+uniform sampler3D inTransmittance;
+
+vec4 volumetric_resolve(vec4 scene_color, vec2 frag_uvs, float frag_depth)
+{
+	vec3 volume_cos = ndc_to_volume(vec3(frag_uvs, frag_depth));
+
+	vec3 scattering = texture(inScattering, volume_cos).rgb;
+	vec3 transmittance = texture(inTransmittance, volume_cos).rgb;
+
+	return vec4(scene_color.rgb * transmittance + scattering, scene_color.a);
+}
