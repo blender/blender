@@ -87,10 +87,10 @@ public:
 		snd.write();
 	}
 
-	void mem_alloc(const char *name, device_memory& mem, MemoryType type)
+	void mem_alloc(device_memory& mem)
 	{
-		if(name) {
-			VLOG(1) << "Buffer allocate: " << name << ", "
+		if(mem.name) {
+			VLOG(1) << "Buffer allocate: " << mem.name << ", "
 				    << string_human_readable_number(mem.memory_size()) << " bytes. ("
 				    << string_human_readable_size(mem.memory_size()) << ")";
 		}
@@ -100,9 +100,7 @@ public:
 		mem.device_pointer = ++mem_counter;
 
 		RPCSend snd(socket, &error_func, "mem_alloc");
-
 		snd.add(mem);
-		snd.add(type);
 		snd.write();
 	}
 
@@ -172,45 +170,6 @@ public:
 		snd.add(size);
 		snd.write();
 		snd.write_buffer(host, size);
-	}
-
-	void tex_alloc(const char *name,
-	               device_memory& mem,
-	               InterpolationType interpolation,
-	               ExtensionType extension)
-	{
-		VLOG(1) << "Texture allocate: " << name << ", "
-		        << string_human_readable_number(mem.memory_size()) << " bytes. ("
-		        << string_human_readable_size(mem.memory_size()) << ")";
-
-		thread_scoped_lock lock(rpc_lock);
-
-		mem.device_pointer = ++mem_counter;
-
-		RPCSend snd(socket, &error_func, "tex_alloc");
-
-		string name_string(name);
-
-		snd.add(name_string);
-		snd.add(mem);
-		snd.add(interpolation);
-		snd.add(extension);
-		snd.write();
-		snd.write_buffer((void*)mem.data_pointer, mem.memory_size());
-	}
-
-	void tex_free(device_memory& mem)
-	{
-		if(mem.device_pointer) {
-			thread_scoped_lock lock(rpc_lock);
-
-			RPCSend snd(socket, &error_func, "tex_free");
-
-			snd.add(mem);
-			snd.write();
-
-			mem.device_pointer = 0;
-		}
 	}
 
 	bool load_kernels(const DeviceRequestedFeatures& requested_features)
@@ -321,7 +280,7 @@ public:
 		snd.write();
 	}
 
-	int get_split_task_count(DeviceTask& task)
+	int get_split_task_count(DeviceTask&)
 	{
 		return 1;
 	}
@@ -348,6 +307,7 @@ void device_network_info(vector<DeviceInfo>& devices)
 	info.advanced_shading = true;
 	info.has_volume_decoupled = false;
 	info.has_qbvh = false;
+	info.has_osl = false;
 
 	devices.push_back(info);
 }
@@ -469,61 +429,64 @@ protected:
 	void process(RPCReceive& rcv, thread_scoped_lock &lock)
 	{
 		if(rcv.name == "mem_alloc") {
-			MemoryType type;
-			network_device_memory mem;
-			device_ptr client_pointer;
-
-			rcv.read(mem);
-			rcv.read(type);
-
+			string name;
+			network_device_memory mem(device);
+			rcv.read(mem, name);
 			lock.unlock();
 
-			client_pointer = mem.device_pointer;
-
-			/* create a memory buffer for the device buffer */
+			/* Allocate host side data buffer. */
 			size_t data_size = mem.memory_size();
+			device_ptr client_pointer = mem.device_pointer;
+
 			DataVector &data_v = data_vector_insert(client_pointer, data_size);
+			mem.data_pointer = (data_size)? (device_ptr)&(data_v[0]): 0;
 
-			if(data_size)
-				mem.data_pointer = (device_ptr)&(data_v[0]);
-			else
-				mem.data_pointer = 0;
+			/* Perform the allocation on the actual device. */
+			device->mem_alloc(mem);
 
-			/* perform the allocation on the actual device */
-			device->mem_alloc(NULL, mem, type);
-
-			/* store a mapping to/from client_pointer and real device pointer */
+			/* Store a mapping to/from client_pointer and real device pointer. */
 			pointer_mapping_insert(client_pointer, mem.device_pointer);
 		}
 		else if(rcv.name == "mem_copy_to") {
-			network_device_memory mem;
-
-			rcv.read(mem);
+			string name;
+			network_device_memory mem(device);
+			rcv.read(mem, name);
 			lock.unlock();
 
+			size_t data_size = mem.memory_size();
 			device_ptr client_pointer = mem.device_pointer;
 
-			DataVector &data_v = data_vector_find(client_pointer);
+			if(client_pointer) {
+				/* Lookup existing host side data buffer. */
+				DataVector &data_v = data_vector_find(client_pointer);
+				mem.data_pointer = (device_ptr)&data_v[0];
 
-			size_t data_size = mem.memory_size();
+				/* Translate the client pointer to a real device pointer. */
+				mem.device_pointer = device_ptr_from_client_pointer(client_pointer);
+			}
+			else {
+				/* Allocate host side data buffer. */
+				DataVector &data_v = data_vector_insert(client_pointer, data_size);
+				mem.data_pointer = (data_size)? (device_ptr)&(data_v[0]): 0;
+			}
 
-			/* get pointer to memory buffer	for device buffer */
-			mem.data_pointer = (device_ptr)&data_v[0];
-
-			/* copy data from network into memory buffer */
+			/* Copy data from network into memory buffer. */
 			rcv.read_buffer((uint8_t*)mem.data_pointer, data_size);
 
-			/* translate the client pointer to a real device pointer */
-			mem.device_pointer = device_ptr_from_client_pointer(client_pointer);
-
-			/* copy the data from the memory buffer to the device buffer */
+			/* Copy the data from the memory buffer to the device buffer. */
 			device->mem_copy_to(mem);
+
+			if(!client_pointer) {
+				/* Store a mapping to/from client_pointer and real device pointer. */
+				pointer_mapping_insert(client_pointer, mem.device_pointer);
+			}
 		}
 		else if(rcv.name == "mem_copy_from") {
-			network_device_memory mem;
+			string name;
+			network_device_memory mem(device);
 			int y, w, h, elem;
 
-			rcv.read(mem);
+			rcv.read(mem, name);
 			rcv.read(y);
 			rcv.read(w);
 			rcv.read(h);
@@ -546,28 +509,44 @@ protected:
 			lock.unlock();
 		}
 		else if(rcv.name == "mem_zero") {
-			network_device_memory mem;
-			
-			rcv.read(mem);
+			string name;
+			network_device_memory mem(device);
+			rcv.read(mem, name);
+			lock.unlock();
+
+			size_t data_size = mem.memory_size();
+			device_ptr client_pointer = mem.device_pointer;
+
+			if(client_pointer) {
+				/* Lookup existing host side data buffer. */
+				DataVector &data_v = data_vector_find(client_pointer);
+				mem.data_pointer = (device_ptr)&data_v[0];
+
+				/* Translate the client pointer to a real device pointer. */
+				mem.device_pointer = device_ptr_from_client_pointer(client_pointer);
+			}
+			else {
+				/* Allocate host side data buffer. */
+				DataVector &data_v = data_vector_insert(client_pointer, data_size);
+				mem.data_pointer = (data_size)? (device_ptr)&(data_v[0]): 0;
+			}
+
+			/* Zero memory. */
+			device->mem_zero(mem);
+
+			if(!client_pointer) {
+				/* Store a mapping to/from client_pointer and real device pointer. */
+				pointer_mapping_insert(client_pointer, mem.device_pointer);
+			}
+		}
+		else if(rcv.name == "mem_free") {
+			string name;
+			network_device_memory mem(device);
+
+			rcv.read(mem, name);
 			lock.unlock();
 
 			device_ptr client_pointer = mem.device_pointer;
-			mem.device_pointer = device_ptr_from_client_pointer(client_pointer);
-
-			DataVector &data_v = data_vector_find(client_pointer);
-
-			mem.data_pointer = (device_ptr)&(data_v[0]);
-
-			device->mem_zero(mem);
-		}
-		else if(rcv.name == "mem_free") {
-			network_device_memory mem;
-			device_ptr client_pointer;
-
-			rcv.read(mem);
-			lock.unlock();
-
-			client_pointer = mem.device_pointer;
 
 			mem.device_pointer = device_ptr_from_client_pointer_erase(client_pointer);
 
@@ -585,49 +564,6 @@ protected:
 			lock.unlock();
 
 			device->const_copy_to(name_string.c_str(), &host_vector[0], size);
-		}
-		else if(rcv.name == "tex_alloc") {
-			network_device_memory mem;
-			string name;
-			InterpolationType interpolation;
-			ExtensionType extension_type;
-			device_ptr client_pointer;
-
-			rcv.read(name);
-			rcv.read(mem);
-			rcv.read(interpolation);
-			rcv.read(extension_type);
-			lock.unlock();
-
-			client_pointer = mem.device_pointer;
-
-			size_t data_size = mem.memory_size();
-
-			DataVector &data_v = data_vector_insert(client_pointer, data_size);
-
-			if(data_size)
-				mem.data_pointer = (device_ptr)&(data_v[0]);
-			else
-				mem.data_pointer = 0;
-
-			rcv.read_buffer((uint8_t*)mem.data_pointer, data_size);
-
-			device->tex_alloc(name.c_str(), mem, interpolation, extension_type);
-
-			pointer_mapping_insert(client_pointer, mem.device_pointer);
-		}
-		else if(rcv.name == "tex_free") {
-			network_device_memory mem;
-			device_ptr client_pointer;
-
-			rcv.read(mem);
-			lock.unlock();
-
-			client_pointer = mem.device_pointer;
-
-			mem.device_pointer = device_ptr_from_client_pointer_erase(client_pointer);
-
-			device->tex_free(mem);
 		}
 		else if(rcv.name == "load_kernels") {
 			DeviceRequestedFeatures requested_features;
@@ -713,7 +649,7 @@ protected:
 		}
 	}
 
-	bool task_acquire_tile(Device *device, RenderTile& tile)
+	bool task_acquire_tile(Device *, RenderTile& tile)
 	{
 		thread_scoped_lock acquire_lock(acquire_mutex);
 

@@ -340,7 +340,7 @@ public:
 	virtual bool load_kernels(const DeviceRequestedFeatures& requested_features,
 	                          vector<OpenCLProgram*> &programs) = 0;
 
-	void mem_alloc(const char *name, device_memory& mem, MemoryType type);
+	void mem_alloc(device_memory& mem);
 	void mem_copy_to(device_memory& mem);
 	void mem_copy_from(device_memory& mem, int y, int w, int h, int elem);
 	void mem_zero(device_memory& mem);
@@ -349,10 +349,7 @@ public:
 	int mem_address_alignment();
 
 	void const_copy_to(const char *name, void *host, size_t size);
-	void tex_alloc(const char *name,
-	               device_memory& mem,
-	               InterpolationType /*interpolation*/,
-	               ExtensionType /*extension*/);
+	void tex_alloc(device_memory& mem);
 	void tex_free(device_memory& mem);
 
 	size_t global_size_round_up(int group_size, int global_size);
@@ -440,7 +437,7 @@ protected:
 	bool denoising_set_tiles(device_ptr *buffers,
 	                         DenoisingTask *task);
 
-	device_ptr mem_alloc_sub_ptr(device_memory& mem, int offset, int size, MemoryType type);
+	device_ptr mem_alloc_sub_ptr(device_memory& mem, int offset, int size);
 	void mem_free_sub_ptr(device_ptr ptr);
 
 	class ArgumentWrapper {
@@ -460,6 +457,11 @@ protected:
 		{
 		}
 
+		template<typename T>
+		ArgumentWrapper(device_only_memory<T>& argument) : size(sizeof(void*)),
+		                                                   pointer((void*)(&argument.device_pointer))
+		{
+		}
 		template<typename T>
 		ArgumentWrapper(T& argument) : size(sizeof(argument)),
 		                               pointer(&argument)
@@ -546,25 +548,9 @@ private:
 	friend class MemoryManager;
 
 	static_assert_align(TextureInfo, 16);
+	device_vector<TextureInfo> texture_info;
 
-	vector<TextureInfo> texture_info;
-	device_memory texture_info_buffer;
-
-	struct Texture {
-		Texture() {}
-		Texture(device_memory* mem,
-		         InterpolationType interpolation,
-		         ExtensionType extension)
-		    : mem(mem),
-			  interpolation(interpolation),
-			  extension(extension) {
-		}
-		device_memory* mem;
-		InterpolationType interpolation;
-		ExtensionType extension;
-	};
-
-	typedef map<string, Texture> TexturesMap;
+	typedef map<string, device_memory*> TexturesMap;
 	TexturesMap textures;
 
 	bool textures_need_update;

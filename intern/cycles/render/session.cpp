@@ -106,11 +106,11 @@ Session::~Session()
 		delete display;
 
 		display = new DisplayBuffer(device, false);
-		display->reset(device, buffers->params);
+		display->reset(buffers->params);
 		tonemap(params.samples);
 
 		progress.set_status("Writing Image", params.output_path);
-		display->write(device, params.output_path);
+		display->write(params.output_path);
 	}
 
 	/* clean up */
@@ -399,7 +399,7 @@ bool Session::acquire_tile(Device *tile_device, RenderTile& rtile)
 
 		/* allocate buffers */
 		tile->buffers = new RenderBuffers(tile_device);
-		tile->buffers->reset(tile_device, buffer_params);
+		tile->buffers->reset(buffer_params);
 	}
 
 	tile->buffers->params.get_offset_stride(rtile.offset, rtile.stride);
@@ -756,9 +756,9 @@ void Session::reset_(BufferParams& buffer_params, int samples)
 {
 	if(buffers && buffer_params.modified(tile_manager.params)) {
 		gpu_draw_ready = false;
-		buffers->reset(device, buffer_params);
+		buffers->reset(buffer_params);
 		if(display) {
-			display->reset(device, buffer_params);
+			display->reset(buffer_params);
 		}
 	}
 
@@ -923,7 +923,7 @@ void Session::render()
 {
 	/* Clear buffers. */
 	if(buffers && tile_manager.state.sample == tile_manager.range_start_sample) {
-		buffers->zero(device);
+		buffers->zero();
 	}
 
 	/* Add path trace task. */

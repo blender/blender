@@ -56,15 +56,17 @@ private:
 	};
 
 	struct DeviceBuffer {
-		device_memory *buffer;
+		device_only_memory<uchar> *buffer;
 		vector<Allocation*> allocations;
 		size_t size; /* Size of all allocations. */
 
-		DeviceBuffer() : buffer(new device_memory), size(0)
+		DeviceBuffer()
+		: buffer(NULL), size(0)
 		{
 		}
 
-		~DeviceBuffer() {
+		~DeviceBuffer()
+		{
 			delete buffer;
 			buffer = NULL;
 		}

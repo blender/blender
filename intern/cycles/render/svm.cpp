@@ -130,7 +130,7 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 	}
 
 	dscene->svm_nodes.steal_data(svm_nodes);
-	device->tex_alloc("__svm_nodes", dscene->svm_nodes);
+	dscene->svm_nodes.copy_to_device();
 
 	for(i = 0; i < scene->shaders.size(); i++) {
 		Shader *shader = scene->shaders[i];
@@ -150,8 +150,7 @@ void SVMShaderManager::device_free(Device *device, DeviceScene *dscene, Scene *s
 {
 	device_free_common(device, dscene, scene);
 
-	device->tex_free(dscene->svm_nodes);
-	dscene->svm_nodes.clear();
+	dscene->svm_nodes.free();
 }
 
 /* Graph Compiler */

@@ -36,10 +36,10 @@ static void shade_background_pixels(Device *device, DeviceScene *dscene, int res
 	int width = res;
 	int height = res;
 
-	device_vector<uint4> d_input;
-	device_vector<float4> d_output;
+	device_vector<uint4> d_input(device, "background_input", MEM_READ_ONLY);
+	device_vector<float4> d_output(device, "background_output", MEM_WRITE_ONLY);
 
-	uint4 *d_input_data = d_input.resize(width*height);
+	uint4 *d_input_data = d_input.alloc(width*height);
 
 	for(int y = 0; y < height; y++) {
 		for(int x = 0; x < width; x++) {
@@ -52,15 +52,11 @@ static void shade_background_pixels(Device *device, DeviceScene *dscene, int res
 	}
 
 	/* compute on device */
-	d_output.resize(width*height);
-	memset((void*)d_output.data_pointer, 0, d_output.memory_size());
+	d_output.alloc(width*height);
+	d_output.zero_to_device();
+	d_input.copy_to_device();
 
 	device->const_copy_to("__data", &dscene->data, sizeof(dscene->data));
-
-	device->mem_alloc("shade_background_pixels_input", d_input, MEM_READ_ONLY);
-	device->mem_copy_to(d_input);
-	device->mem_alloc("shade_background_pixels_output", d_output, MEM_WRITE_ONLY);
-	device->mem_zero(d_output);
 
 	DeviceTask main_task(DeviceTask::SHADER);
 	main_task.shader_input = d_input.device_pointer;
@@ -78,13 +74,10 @@ static void shade_background_pixels(Device *device, DeviceScene *dscene, int res
 	foreach(DeviceTask& task, split_tasks) {
 		device->task_add(task);
 		device->task_wait();
-		device->mem_copy_from(d_output, task.shader_x, 1, task.shader_w, sizeof(float4));
+		d_output.copy_from_device(task.shader_x, 1, task.shader_w);
 	}
 
-	device->mem_free(d_input);
-	device->mem_free(d_output);
-
-	d_input.clear();
+	d_input.free();
 
 	float4 *d_output_data = reinterpret_cast<float4*>(d_output.data_pointer);
 
@@ -97,6 +90,8 @@ static void shade_background_pixels(Device *device, DeviceScene *dscene, int res
 			pixels[y*width + x].z = d_output_data[y*width + x].z;
 		}
 	}
+
+	d_output.free();
 }
 
 /* Light */
@@ -246,7 +241,7 @@ bool LightManager::object_usable_as_light(Object *object) {
 	return false;
 }
 
-void LightManager::device_update_distribution(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
+void LightManager::device_update_distribution(Device *, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
 	progress.set_status("Updating Lights", "Computing distribution");
 
@@ -292,7 +287,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 	VLOG(1) << "Total " << num_distribution << " of light distribution primitives.";
 
 	/* emission area */
-	float4 *distribution = dscene->light_distribution.resize(num_distribution + 1);
+	float4 *distribution = dscene->light_distribution.alloc(num_distribution + 1);
 	float totarea = 0.0f;
 
 	/* triangles */
@@ -451,7 +446,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 			kfilm->pass_shadow_scale *= (float)(num_lights - num_background_lights)/(float)num_lights;
 
 		/* CDF */
-		device->tex_alloc("__light_distribution", dscene->light_distribution);
+		dscene->light_distribution.copy_to_device();
 
 		/* Portals */
 		if(num_portals > 0) {
@@ -466,7 +461,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 		}
 	}
 	else {
-		dscene->light_distribution.clear();
+		dscene->light_distribution.free();
 
 		kintegrator->num_distribution = 0;
 		kintegrator->num_all_lights = 0;
@@ -561,8 +556,8 @@ void LightManager::device_update_background(Device *device,
 
 	/* build row distributions and column distribution for the infinite area environment light */
 	int cdf_count = res + 1;
-	float2 *marg_cdf = dscene->light_background_marginal_cdf.resize(cdf_count);
-	float2 *cond_cdf = dscene->light_background_conditional_cdf.resize(cdf_count * cdf_count);
+	float2 *marg_cdf = dscene->light_background_marginal_cdf.alloc(cdf_count);
+	float2 *cond_cdf = dscene->light_background_conditional_cdf.alloc(cdf_count * cdf_count);
 
 	double time_start = time_dt();
 	if(res < 512) {
@@ -611,11 +606,11 @@ void LightManager::device_update_background(Device *device,
 	VLOG(2) << "Background MIS build time " << time_dt() - time_start << "\n";
 
 	/* update device */
-	device->tex_alloc("__light_background_marginal_cdf", dscene->light_background_marginal_cdf);
-	device->tex_alloc("__light_background_conditional_cdf", dscene->light_background_conditional_cdf);
+	dscene->light_background_marginal_cdf.copy_to_device();
+	dscene->light_background_conditional_cdf.copy_to_device();
 }
 
-void LightManager::device_update_points(Device *device,
+void LightManager::device_update_points(Device *,
                                         DeviceScene *dscene,
                                         Scene *scene)
 {
@@ -628,7 +623,7 @@ void LightManager::device_update_points(Device *device,
 		}
 	}
 
-	float4 *light_data = dscene->light_data.resize(num_lights*LIGHT_SIZE);
+	float4 *light_data = dscene->light_data.alloc(num_lights*LIGHT_SIZE);
 
 	if(num_lights == 0) {
 		VLOG(1) << "No effective light, ignoring points update.";
@@ -813,7 +808,7 @@ void LightManager::device_update_points(Device *device,
 	VLOG(1) << "Number of lights without contribution: "
 	        << num_scene_lights - light_index;
 
-	device->tex_alloc("__light_data", dscene->light_data);
+	dscene->light_data.copy_to_device();
 }
 
 void LightManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
@@ -846,17 +841,12 @@ void LightManager::device_update(Device *device, DeviceScene *dscene, Scene *sce
 	need_update = false;
 }
 
-void LightManager::device_free(Device *device, DeviceScene *dscene)
+void LightManager::device_free(Device *, DeviceScene *dscene)
 {
-	device->tex_free(dscene->light_distribution);
-	device->tex_free(dscene->light_data);
-	device->tex_free(dscene->light_background_marginal_cdf);
-	device->tex_free(dscene->light_background_conditional_cdf);
-
-	dscene->light_distribution.clear();
-	dscene->light_data.clear();
-	dscene->light_background_marginal_cdf.clear();
-	dscene->light_background_conditional_cdf.clear();
+	dscene->light_distribution.free();
+	dscene->light_data.free();
+	dscene->light_background_marginal_cdf.free();
+	dscene->light_background_conditional_cdf.free();
 }
 
 void LightManager::tag_update(Scene * /*scene*/)

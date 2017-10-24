@@ -72,7 +72,9 @@ void OpenCLDeviceBase::opencl_assert_err(cl_int err, const char* where)
 }
 
 OpenCLDeviceBase::OpenCLDeviceBase(DeviceInfo& info, Stats &stats, bool background_)
-: Device(info, stats, background_), memory_manager(this)
+: Device(info, stats, background_),
+  memory_manager(this),
+  texture_info(this, "__texture_info", MEM_TEXTURE)
 {
 	cpPlatform = NULL;
 	cdDevice = NULL;
@@ -136,11 +138,9 @@ OpenCLDeviceBase::OpenCLDeviceBase(DeviceInfo& info, Stats &stats, bool backgrou
 		return;
 	}
 
-	/* Allocate this right away so that texture_info_buffer is placed at offset 0 in the device memory buffers */
+	/* Allocate this right away so that texture_info is placed at offset 0 in the device memory buffers */
 	texture_info.resize(1);
-	texture_info_buffer.resize(1);
-	texture_info_buffer.data_pointer = (device_ptr)&texture_info[0];
-	memory_manager.alloc("texture_info", texture_info_buffer);
+	memory_manager.alloc("texture_info", texture_info);
 
 	fprintf(stderr, "Device init success\n");
 	device_initialized = true;
@@ -157,7 +157,6 @@ OpenCLDeviceBase::~OpenCLDeviceBase()
 
 	ConstMemMap::iterator mt;
 	for(mt = const_mem_map.begin(); mt != const_mem_map.end(); mt++) {
-		mem_free(*(mt->second));
 		delete mt->second;
 	}
 
@@ -286,10 +285,10 @@ bool OpenCLDeviceBase::load_kernels(const DeviceRequestedFeatures& requested_fea
 	return true;
 }
 
-void OpenCLDeviceBase::mem_alloc(const char *name, device_memory& mem, MemoryType type)
+void OpenCLDeviceBase::mem_alloc(device_memory& mem)
 {
-	if(name) {
-		VLOG(1) << "Buffer allocate: " << name << ", "
+	if(mem.name) {
+		VLOG(1) << "Buffer allocate: " << mem.name << ", "
 			    << string_human_readable_number(mem.memory_size()) << " bytes. ("
 			    << string_human_readable_size(mem.memory_size()) << ")";
 	}
@@ -307,8 +306,8 @@ void OpenCLDeviceBase::mem_alloc(const char *name, device_memory& mem, MemoryTyp
 
 	if(size > max_alloc_size) {
 		string error = "Scene too complex to fit in available memory.";
-		if(name != NULL) {
-			error += string_printf(" (allocating buffer %s failed.)", name);
+		if(mem.name != NULL) {
+			error += string_printf(" (allocating buffer %s failed.)", mem.name);
 		}
 		set_error(error);
 
@@ -318,9 +317,9 @@ void OpenCLDeviceBase::mem_alloc(const char *name, device_memory& mem, MemoryTyp
 	cl_mem_flags mem_flag;
 	void *mem_ptr = NULL;
 
-	if(type == MEM_READ_ONLY)
+	if(mem.type == MEM_READ_ONLY || mem.type == MEM_TEXTURE)
 		mem_flag = CL_MEM_READ_ONLY;
-	else if(type == MEM_WRITE_ONLY)
+	else if(mem.type == MEM_WRITE_ONLY || mem.type == MEM_PIXELS)
 		mem_flag = CL_MEM_WRITE_ONLY;
 	else
 		mem_flag = CL_MEM_READ_WRITE;
@@ -348,17 +347,27 @@ void OpenCLDeviceBase::mem_alloc(const char *name, device_memory& mem, MemoryTyp
 
 void OpenCLDeviceBase::mem_copy_to(device_memory& mem)
 {
-	/* this is blocking */
-	size_t size = mem.memory_size();
-	if(size != 0) {
-		opencl_assert(clEnqueueWriteBuffer(cqCommandQueue,
-		                                   CL_MEM_PTR(mem.device_pointer),
-		                                   CL_TRUE,
-		                                   0,
-		                                   size,
-		                                   (void*)mem.data_pointer,
-		                                   0,
-		                                   NULL, NULL));
+	if(mem.type == MEM_TEXTURE) {
+		tex_free(mem);
+		tex_alloc(mem);
+	}
+	else {
+		if(!mem.device_pointer) {
+			mem_alloc(mem);
+		}
+
+		/* this is blocking */
+		size_t size = mem.memory_size();
+		if(size != 0) {
+			opencl_assert(clEnqueueWriteBuffer(cqCommandQueue,
+			                                   CL_MEM_PTR(mem.device_pointer),
+			                                   CL_TRUE,
+			                                   0,
+			                                   size,
+			                                   (void*)mem.data_pointer,
+			                                   0,
+			                                   NULL, NULL));
+		}
 	}
 }
 
@@ -410,6 +419,10 @@ void OpenCLDeviceBase::mem_zero_kernel(device_ptr mem, size_t size)
 
 void OpenCLDeviceBase::mem_zero(device_memory& mem)
 {
+	if(!mem.device_pointer) {
+		mem_alloc(mem);
+	}
+
 	if(mem.device_pointer) {
 		if(base_program.is_loaded()) {
 			mem_zero_kernel(mem.device_pointer, mem.memory_size());
@@ -445,14 +458,19 @@ void OpenCLDeviceBase::mem_zero(device_memory& mem)
 
 void OpenCLDeviceBase::mem_free(device_memory& mem)
 {
-	if(mem.device_pointer) {
-		if(mem.device_pointer != null_mem) {
-			opencl_assert(clReleaseMemObject(CL_MEM_PTR(mem.device_pointer)));
-		}
-		mem.device_pointer = 0;
+	if(mem.type == MEM_TEXTURE) {
+		tex_free(mem);
+	}
+	else {
+		if(mem.device_pointer) {
+			if(mem.device_pointer != null_mem) {
+				opencl_assert(clReleaseMemObject(CL_MEM_PTR(mem.device_pointer)));
+			}
+			mem.device_pointer = 0;
 
-		stats.mem_free(mem.device_size);
-		mem.device_size = 0;
+			stats.mem_free(mem.device_size);
+			mem.device_size = 0;
+		}
 	}
 }
 
@@ -461,12 +479,12 @@ int OpenCLDeviceBase::mem_address_alignment()
 	return OpenCLInfo::mem_address_alignment(cdDevice);
 }
 
-device_ptr OpenCLDeviceBase::mem_alloc_sub_ptr(device_memory& mem, int offset, int size, MemoryType type)
+device_ptr OpenCLDeviceBase::mem_alloc_sub_ptr(device_memory& mem, int offset, int size)
 {
 	cl_mem_flags mem_flag;
-	if(type == MEM_READ_ONLY)
+	if(mem.type == MEM_READ_ONLY || mem.type == MEM_TEXTURE)
 		mem_flag = CL_MEM_READ_ONLY;
-	else if(type == MEM_WRITE_ONLY)
+	else if(mem.type == MEM_WRITE_ONLY || mem.type == MEM_PIXELS)
 		mem_flag = CL_MEM_WRITE_ONLY;
 	else
 		mem_flag = CL_MEM_READ_WRITE;
@@ -497,10 +515,8 @@ void OpenCLDeviceBase::const_copy_to(const char *name, void *host, size_t size)
 	device_vector<uchar> *data;
 
 	if(i == const_mem_map.end()) {
-		data = new device_vector<uchar>();
-		data->resize(size);
-
-		mem_alloc(name, *data, MEM_READ_ONLY);
+		data = new device_vector<uchar>(this, name, MEM_READ_ONLY);
+		data->alloc(size);
 		const_mem_map.insert(ConstMemMap::value_type(name, data));
 	}
 	else {
@@ -508,22 +524,19 @@ void OpenCLDeviceBase::const_copy_to(const char *name, void *host, size_t size)
 	}
 
 	memcpy(data->get_data(), host, size);
-	mem_copy_to(*data);
+	data->copy_to_device();
 }
 
-void OpenCLDeviceBase::tex_alloc(const char *name,
-               device_memory& mem,
-               InterpolationType interpolation,
-               ExtensionType extension)
+void OpenCLDeviceBase::tex_alloc(device_memory& mem)
 {
-	VLOG(1) << "Texture allocate: " << name << ", "
+	VLOG(1) << "Texture allocate: " << mem.name << ", "
 	        << string_human_readable_number(mem.memory_size()) << " bytes. ("
 	        << string_human_readable_size(mem.memory_size()) << ")";
 
-	memory_manager.alloc(name, mem);
+	memory_manager.alloc(mem.name, mem);
 	/* Set the pointer to non-null to keep code that inspects its value from thinking its unallocated. */
 	mem.device_pointer = 1;
-	textures[name] = Texture(&mem, interpolation, extension);
+	textures[mem.name] = &mem;
 	textures_need_update = true;
 }
 
@@ -537,7 +550,7 @@ void OpenCLDeviceBase::tex_free(device_memory& mem)
 		}
 
 		foreach(TexturesMap::value_type& value, textures) {
-			if(value.second.mem == &mem) {
+			if(value.second == &mem) {
 				textures.erase(value.first);
 				break;
 			}
@@ -648,38 +661,33 @@ void OpenCLDeviceBase::flush_texture_buffers()
 	}
 
 	/* Realloc texture descriptors buffer. */
-	memory_manager.free(texture_info_buffer);
-
+	memory_manager.free(texture_info);
 	texture_info.resize(num_slots);
-	texture_info_buffer.resize(num_slots * sizeof(TextureInfo));
-	texture_info_buffer.data_pointer = (device_ptr)&texture_info[0];
-
-	memory_manager.alloc("texture_info", texture_info_buffer);
+	memory_manager.alloc("texture_info", texture_info);
 
 	/* Fill in descriptors */
 	foreach(texture_slot_t& slot, texture_slots) {
-		Texture& tex = textures[slot.name];
-
 		TextureInfo& info = texture_info[slot.slot];
 
 		MemoryManager::BufferDescriptor desc = memory_manager.get_descriptor(slot.name);
-
 		info.data = desc.offset;
 		info.cl_buffer = desc.device_buffer;
 
 		if(string_startswith(slot.name, "__tex_image")) {
-			info.width = tex.mem->data_width;
-			info.height = tex.mem->data_height;
-			info.depth = tex.mem->data_depth;
+			device_memory *mem = textures[slot.name];
 
-			info.interpolation = tex.interpolation;
-			info.extension = tex.extension;
+			info.width = mem->data_width;
+			info.height = mem->data_height;
+			info.depth = mem->data_depth;
+
+			info.interpolation = mem->interpolation;
+			info.extension = mem->extension;
 		}
 	}
 
 	/* Force write of descriptors. */
-	memory_manager.free(texture_info_buffer);
-	memory_manager.alloc("texture_info", texture_info_buffer);
+	memory_manager.free(texture_info);
+	memory_manager.alloc("texture_info", texture_info);
 }
 
 void OpenCLDeviceBase::film_convert(DeviceTask& task, device_ptr buffer, device_ptr rgba_byte, device_ptr rgba_half)
@@ -1045,8 +1053,7 @@ bool OpenCLDeviceBase::denoising_detect_outliers(device_ptr image_ptr,
 bool OpenCLDeviceBase::denoising_set_tiles(device_ptr *buffers,
                                            DenoisingTask *task)
 {
-	mem_alloc("Denoising Tile Info", task->tiles_mem, MEM_READ_WRITE);
-	mem_copy_to(task->tiles_mem);
+	task->tiles_mem.copy_to_device();
 
 	cl_mem tiles_mem = CL_MEM_PTR(task->tiles_mem.device_pointer);
 

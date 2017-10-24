@@ -1469,7 +1469,7 @@ static PyObject *bpy_bmvert_calc_edge_angle(BPy_BMVert *self, PyObject *args)
 		else {
 			PyErr_SetString(PyExc_ValueError,
 			                "BMVert.calc_edge_angle(): "
-			                "vert doesn't use 2 edges");
+			                "vert must connect to exactly 2 edges");
 			return NULL;
 		}
 	}

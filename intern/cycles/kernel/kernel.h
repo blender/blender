@@ -41,11 +41,7 @@ void kernel_const_copy(KernelGlobals *kg, const char *name, void *host, size_t s
 void kernel_tex_copy(KernelGlobals *kg,
                      const char *name,
                      device_ptr mem,
-                     size_t width,
-                     size_t height,
-                     size_t depth,
-                     InterpolationType interpolation=INTERPOLATION_LINEAR,
-                     ExtensionType extension = EXTENSION_REPEAT);
+                     size_t size);
 
 #define KERNEL_ARCH cpu
 #include "kernel/kernels/cpu/kernel_cpu.h"

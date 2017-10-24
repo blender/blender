@@ -191,11 +191,11 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	int dimensions = PRNG_BASE_NUM + max_samples*PRNG_BOUNCE_NUM;
 	dimensions = min(dimensions, SOBOL_MAX_DIMENSIONS);
 
-	uint *directions = dscene->sobol_directions.resize(SOBOL_BITS*dimensions);
+	uint *directions = dscene->sobol_directions.alloc(SOBOL_BITS*dimensions);
 
 	sobol_generate_direction_vectors((uint(*)[SOBOL_BITS])directions, dimensions);
 
-	device->tex_alloc("__sobol_directions", dscene->sobol_directions);
+	dscene->sobol_directions.copy_to_device();
 
 	/* Clamping. */
 	bool use_sample_clamp = (sample_clamp_direct != 0.0f ||
@@ -208,10 +208,9 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	need_update = false;
 }
 
-void Integrator::device_free(Device *device, DeviceScene *dscene)
+void Integrator::device_free(Device *, DeviceScene *dscene)
 {
-	device->tex_free(dscene->sobol_directions);
-	dscene->sobol_directions.clear();
+	dscene->sobol_directions.free();
 }
 
 bool Integrator::modified(const Integrator& integrator)

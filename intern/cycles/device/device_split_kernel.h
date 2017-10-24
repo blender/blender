@@ -79,7 +79,7 @@ private:
 	 * kernel will be available to another kernel via this global
 	 * memory.
 	 */
-	device_memory split_data;
+	device_only_memory<uchar> split_data;
 	device_vector<uchar> ray_state;
 	device_only_memory<int> queue_index; /* Array of size num_queues that tracks the size of each queue. */
 

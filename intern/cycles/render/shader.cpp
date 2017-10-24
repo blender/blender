@@ -416,14 +416,13 @@ void ShaderManager::device_update_common(Device *device,
                                          Scene *scene,
                                          Progress& /*progress*/)
 {
-	device->tex_free(dscene->shader_flag);
-	dscene->shader_flag.clear();
+	dscene->shader_flag.free();
 
 	if(scene->shaders.size() == 0)
 		return;
 
 	uint shader_flag_size = scene->shaders.size()*SHADER_SIZE;
-	uint *shader_flag = dscene->shader_flag.resize(shader_flag_size);
+	uint *shader_flag = dscene->shader_flag.alloc(shader_flag_size);
 	uint i = 0;
 	bool has_volumes = false;
 	bool has_transparent_shadow = false;
@@ -479,7 +478,7 @@ void ShaderManager::device_update_common(Device *device,
 		has_transparent_shadow |= (flag & SD_HAS_TRANSPARENT_SHADOW) != 0;
 	}
 
-	device->tex_alloc("__shader_flag", dscene->shader_flag);
+	dscene->shader_flag.copy_to_device();
 
 	/* lookup tables */
 	KernelTables *ktables = &dscene->data.tables;
@@ -504,12 +503,11 @@ void ShaderManager::device_update_common(Device *device,
 	kintegrator->transparent_shadows = has_transparent_shadow;
 }
 
-void ShaderManager::device_free_common(Device *device, DeviceScene *dscene, Scene *scene)
+void ShaderManager::device_free_common(Device *, DeviceScene *dscene, Scene *scene)
 {
 	scene->lookup_tables->remove_table(&beckmann_table_offset);
 
-	device->tex_free(dscene->shader_flag);
-	dscene->shader_flag.clear();
+	dscene->shader_flag.free();
 }
 
 void ShaderManager::add_default(Scene *scene)

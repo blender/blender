@@ -26,7 +26,13 @@ CCL_NAMESPACE_BEGIN
 
 static const double alpha = 0.1; /* alpha for rolling average */
 
-DeviceSplitKernel::DeviceSplitKernel(Device *device) : device(device)
+DeviceSplitKernel::DeviceSplitKernel(Device *device)
+: device(device),
+  split_data(device, "split_data"),
+  ray_state(device, "ray_state", MEM_READ_WRITE),
+  queue_index(device, "queue_index"),
+  use_queues_flag(device, "use_queues_flag"),
+  work_pool_wgs(device, "work_pool_wgs")
 {
 	current_max_closure = -1;
 	first_tile = true;
@@ -55,11 +61,11 @@ DeviceSplitKernel::DeviceSplitKernel(Device *device) : device(device)
 
 DeviceSplitKernel::~DeviceSplitKernel()
 {
-	device->mem_free(split_data);
-	device->mem_free(ray_state);
-	device->mem_free(use_queues_flag);
-	device->mem_free(queue_index);
-	device->mem_free(work_pool_wgs);
+	split_data.free();
+	ray_state.free();
+	use_queues_flag.free();
+	queue_index.free();
+	work_pool_wgs.free();
 
 	delete kernel_path_init;
 	delete kernel_scene_intersect;
@@ -169,20 +175,11 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 		unsigned int max_work_groups = num_global_elements / work_pool_size + 1;
 
 		/* Allocate work_pool_wgs memory. */
-		work_pool_wgs.resize(max_work_groups);
-		device->mem_alloc("work_pool_wgs", work_pool_wgs, MEM_READ_WRITE);
-
-		queue_index.resize(NUM_QUEUES);
-		device->mem_alloc("queue_index", queue_index, MEM_READ_WRITE);
-
-		use_queues_flag.resize(1);
-		device->mem_alloc("use_queues_flag", use_queues_flag, MEM_READ_WRITE);
-
-		ray_state.resize(num_global_elements);
-		device->mem_alloc("ray_state", ray_state, MEM_READ_WRITE);
-
-		split_data.resize(state_buffer_size(kgbuffer, kernel_data, num_global_elements));
-		device->mem_alloc("split_data", split_data, MEM_READ_WRITE);
+		work_pool_wgs.alloc_to_device(max_work_groups);
+		queue_index.alloc_to_device(NUM_QUEUES);
+		use_queues_flag.alloc_to_device(1);
+		split_data.alloc_to_device(state_buffer_size(kgbuffer, kernel_data, num_global_elements));
+		ray_state.alloc(num_global_elements);
 	}
 
 #define ENQUEUE_SPLIT_KERNEL(name, global_size, local_size) \
@@ -219,9 +216,9 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 		/* reset state memory here as global size for data_init
 		 * kernel might not be large enough to do in kernel
 		 */
-		device->mem_zero(work_pool_wgs);
-		device->mem_zero(split_data);
-		device->mem_zero(ray_state);
+		work_pool_wgs.zero_to_device();
+		split_data.zero_to_device();
+		ray_state.zero_to_device();
 
 		if(!enqueue_split_kernel_data_init(KernelDimensions(global_size, local_size),
 		                                   subtile,
@@ -278,7 +275,7 @@ bool DeviceSplitKernel::path_trace(DeviceTask *task,
 			}
 
 			/* Decide if we should exit path-iteration in host. */
-			device->mem_copy_from(ray_state, 0, global_size[0] * global_size[1] * sizeof(char), 1, 1);
+			ray_state.copy_from_device(0, global_size[0] * global_size[1], 1);
 
 			activeRaysAvailable = false;
 

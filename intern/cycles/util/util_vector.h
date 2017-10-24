@@ -177,6 +177,14 @@ public:
 		}
 	}
 
+	T *steal_pointer()
+	{
+		T *ptr = data_;
+		data_ = NULL;
+		clear();
+		return ptr;
+	}
+
 	T* resize(size_t newsize)
 	{
 		if(newsize == 0) {

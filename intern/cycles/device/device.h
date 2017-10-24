@@ -57,6 +57,7 @@ public:
 	bool has_bindless_textures; /* flag for GPU and Multi device */
 	bool has_volume_decoupled;
 	bool has_qbvh;
+	bool has_osl;
 	bool use_split_kernel; /* Denotes if the device is going to run cycles using split-kernel */
 	int cpu_threads;
 	vector<DeviceInfo> multi_devices;
@@ -72,6 +73,7 @@ public:
 		has_bindless_textures = false;
 		has_volume_decoupled = false;
 		has_qbvh = false;
+		has_osl = false;
 		use_split_kernel = false;
 	}
 
@@ -264,7 +266,7 @@ protected:
 
 	bool bind_fallback_display_space_shader(const float width, const float height);
 
-	virtual device_ptr mem_alloc_sub_ptr(device_memory& /*mem*/, int /*offset*/, int /*size*/, MemoryType /*type*/)
+	virtual device_ptr mem_alloc_sub_ptr(device_memory& /*mem*/, int /*offset*/, int /*size*/)
 	{
 		/* Only required for devices that implement denoising. */
 		assert(false);
@@ -292,35 +294,11 @@ public:
 	/* statistics */
 	Stats &stats;
 
-	/* regular memory */
-	virtual void mem_alloc(const char *name, device_memory& mem, MemoryType type) = 0;
-	virtual void mem_copy_to(device_memory& mem) = 0;
-	virtual void mem_copy_from(device_memory& mem,
-		int y, int w, int h, int elem) = 0;
-	virtual void mem_zero(device_memory& mem) = 0;
-	virtual void mem_free(device_memory& mem) = 0;
-
+	/* memory alignment */
 	virtual int mem_address_alignment() { return 16; }
 
 	/* constant memory */
 	virtual void const_copy_to(const char *name, void *host, size_t size) = 0;
-
-	/* texture memory */
-	virtual void tex_alloc(const char * /*name*/,
-	                       device_memory& /*mem*/,
-	                       InterpolationType interpolation = INTERPOLATION_NONE,
-	                       ExtensionType extension = EXTENSION_REPEAT)
-	{
-		(void)interpolation;  /* Ignored. */
-		(void)extension;  /* Ignored. */
-	};
-
-	virtual void tex_free(device_memory& /*mem*/) {};
-
-	/* pixel memory */
-	virtual void pixels_alloc(device_memory& mem);
-	virtual void pixels_copy_from(device_memory& mem, int y, int w, int h);
-	virtual void pixels_free(device_memory& mem);
 
 	/* open shading language, only for CPU device */
 	virtual void *osl_memory() { return NULL; }
@@ -369,6 +347,20 @@ public:
 	static void tag_update();
 
 	static void free_memory();
+
+protected:
+	/* Memory allocation, only accessed through device_memory. */
+	friend class MultiDevice;
+	friend class DeviceServer;
+	friend class device_memory;
+
+	virtual void mem_alloc(device_memory& mem) = 0;
+	virtual void mem_copy_to(device_memory& mem) = 0;
+	virtual void mem_copy_from(device_memory& mem,
+		int y, int w, int h, int elem) = 0;
+	virtual void mem_zero(device_memory& mem) = 0;
+	virtual void mem_free(device_memory& mem) = 0;
+
 private:
 	/* Indicted whether device types and devices lists were initialized. */
 	static bool need_types_update, need_devices_update;

@@ -150,8 +150,8 @@ bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progre
 		size_t shader_size = (size_t)fminf(num_pixels - shader_offset, m_shader_limit);
 
 		/* setup input for device task */
-		device_vector<uint4> d_input;
-		uint4 *d_input_data = d_input.resize(shader_size * 2);
+		device_vector<uint4> d_input(device, "bake_input", MEM_READ_ONLY);
+		uint4 *d_input_data = d_input.alloc(shader_size * 2);
 		size_t d_input_size = 0;
 
 		for(size_t i = shader_offset; i < (shader_offset + shader_size); i++) {
@@ -165,16 +165,13 @@ bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progre
 		}
 
 		/* run device task */
-		device_vector<float4> d_output;
-		d_output.resize(shader_size);
+		device_vector<float4> d_output(device, "bake_output", MEM_READ_WRITE);
+		d_output.alloc(shader_size);
+		d_output.zero_to_device();
+		d_input.copy_to_device();
 
 		/* needs to be up to data for attribute access */
 		device->const_copy_to("__data", &dscene->data, sizeof(dscene->data));
-
-		device->mem_alloc("bake_input", d_input, MEM_READ_ONLY);
-		device->mem_copy_to(d_input);
-		device->mem_alloc("bake_output", d_output, MEM_READ_WRITE);
-		device->mem_zero(d_output);
 
 		DeviceTask task(DeviceTask::SHADER);
 		task.shader_input = d_input.device_pointer;
@@ -192,15 +189,14 @@ bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progre
 		device->task_wait();
 
 		if(progress.get_cancel()) {
-			device->mem_free(d_input);
-			device->mem_free(d_output);
+			d_input.free();
+			d_output.free();
 			m_is_baking = false;
 			return false;
 		}
 
-		device->mem_copy_from(d_output, 0, 1, d_output.size(), sizeof(float4));
-		device->mem_free(d_input);
-		device->mem_free(d_output);
+		d_output.copy_from_device(0, 1, d_output.size());
+		d_input.free();
 
 		/* read result */
 		int k = 0;
@@ -218,6 +214,8 @@ bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progre
 				}
 			}
 		}
+
+		d_output.free();
 	}
 
 	m_is_baking = false;

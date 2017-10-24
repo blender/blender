@@ -114,54 +114,36 @@ RenderTile::RenderTile()
 
 /* Render Buffers */
 
-RenderBuffers::RenderBuffers(Device *device_)
+RenderBuffers::RenderBuffers(Device *device)
+: buffer(device, "RenderBuffers", MEM_READ_WRITE)
 {
-	device = device_;
 }
 
 RenderBuffers::~RenderBuffers()
 {
-	device_free();
+	buffer.free();
 }
 
-void RenderBuffers::device_free()
-{
-	if(buffer.device_pointer) {
-		device->mem_free(buffer);
-		buffer.clear();
-	}
-}
-
-void RenderBuffers::reset(Device *device, BufferParams& params_)
+void RenderBuffers::reset(BufferParams& params_)
 {
 	params = params_;
 
-	/* free existing buffers */
-	device_free();
-	
-	/* allocate buffer */
-	buffer.resize(params.width*params.height*params.get_passes_size());
-	device->mem_alloc("render_buffer", buffer, MEM_READ_WRITE);
-	device->mem_zero(buffer);
+	/* re-allocate buffer */
+	buffer.alloc(params.width*params.height*params.get_passes_size());
+	buffer.zero_to_device();
 }
 
-void RenderBuffers::zero(Device *device)
+void RenderBuffers::zero()
 {
-	if(buffer.device_pointer) {
-		device->mem_zero(buffer);
-	}
+	buffer.zero_to_device();
 }
 
-bool RenderBuffers::copy_from_device(Device *from_device)
+bool RenderBuffers::copy_from_device()
 {
 	if(!buffer.device_pointer)
 		return false;
 
-	if(!from_device) {
-		from_device = device;
-	}
-
-	from_device->mem_copy_from(buffer, 0, params.width, params.height, params.get_passes_size()*sizeof(float));
+	buffer.copy_from_device(0, params.width * params.get_passes_size(), params.height);
 
 	return true;
 }
@@ -396,50 +378,35 @@ bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int
 
 /* Display Buffer */
 
-DisplayBuffer::DisplayBuffer(Device *device_, bool linear)
+DisplayBuffer::DisplayBuffer(Device *device, bool linear)
+: draw_width(0),
+  draw_height(0),
+  transparent(true), /* todo: determine from background */
+  half_float(linear),
+  rgba_byte(device, "display buffer byte"),
+  rgba_half(device, "display buffer half")
 {
-	device = device_;
-	draw_width = 0;
-	draw_height = 0;
-	transparent = true; /* todo: determine from background */
-	half_float = linear;
 }
 
 DisplayBuffer::~DisplayBuffer()
 {
-	device_free();
+	rgba_byte.free();
+	rgba_half.free();
 }
 
-void DisplayBuffer::device_free()
-{
-	if(rgba_byte.device_pointer) {
-		device->pixels_free(rgba_byte);
-		rgba_byte.clear();
-	}
-	if(rgba_half.device_pointer) {
-		device->pixels_free(rgba_half);
-		rgba_half.clear();
-	}
-}
-
-void DisplayBuffer::reset(Device *device, BufferParams& params_)
+void DisplayBuffer::reset(BufferParams& params_)
 {
 	draw_width = 0;
 	draw_height = 0;
 
 	params = params_;
 
-	/* free existing buffers */
-	device_free();
-
 	/* allocate display pixels */
 	if(half_float) {
-		rgba_half.resize(params.width, params.height);
-		device->pixels_alloc(rgba_half);
+		rgba_half.alloc_to_device(params.width, params.height);
 	}
 	else {
-		rgba_byte.resize(params.width, params.height);
-		device->pixels_alloc(rgba_byte);
+		rgba_byte.alloc_to_device(params.width, params.height);
 	}
 }
 
@@ -454,7 +421,8 @@ void DisplayBuffer::draw_set(int width, int height)
 void DisplayBuffer::draw(Device *device, const DeviceDrawParams& draw_params)
 {
 	if(draw_width != 0 && draw_height != 0) {
-		device_memory& rgba = rgba_data();
+		device_memory& rgba = (half_float)? (device_memory&)rgba_half:
+		                                    (device_memory&)rgba_byte;
 
 		device->draw_pixels(
 		            rgba, 0,
@@ -469,7 +437,7 @@ bool DisplayBuffer::draw_ready()
 	return (draw_width != 0 && draw_height != 0);
 }
 
-void DisplayBuffer::write(Device *device, const string& filename)
+void DisplayBuffer::write(const string& filename)
 {
 	int w = draw_width;
 	int h = draw_height;
@@ -481,34 +449,24 @@ void DisplayBuffer::write(Device *device, const string& filename)
 		return;
 
 	/* read buffer from device */
-	device_memory& rgba = rgba_data();
-	device->pixels_copy_from(rgba, 0, w, h);
+	uchar4 *pixels = rgba_byte.copy_from_device(0, w, h);
 
 	/* write image */
 	ImageOutput *out = ImageOutput::create(filename);
 	ImageSpec spec(w, h, 4, TypeDesc::UINT8);
-	int scanlinesize = w*4*sizeof(uchar);
 
 	out->open(filename, spec);
 
 	/* conversion for different top/bottom convention */
 	out->write_image(TypeDesc::UINT8,
-		(uchar*)rgba.data_pointer + (h-1)*scanlinesize,
+		(uchar*)(pixels + (h-1)*w),
 		AutoStride,
-		-scanlinesize,
+		-w*sizeof(uchar4),
 		AutoStride);
 
 	out->close();
 
 	delete out;
-}
-
-device_memory& DisplayBuffer::rgba_data()
-{
-	if(half_float)
-		return rgba_half;
-	else
-		return rgba_byte;
 }
 
 CCL_NAMESPACE_END

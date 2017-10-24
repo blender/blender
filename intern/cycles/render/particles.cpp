@@ -52,7 +52,7 @@ ParticleSystemManager::~ParticleSystemManager()
 {
 }
 
-void ParticleSystemManager::device_update_particles(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
+void ParticleSystemManager::device_update_particles(Device *, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
 	/* count particles.
 	 * adds one dummy particle at the beginning to avoid invalid lookups,
@@ -61,7 +61,7 @@ void ParticleSystemManager::device_update_particles(Device *device, DeviceScene 
 	for(size_t j = 0; j < scene->particle_systems.size(); j++)
 		num_particles += scene->particle_systems[j]->particles.size();
 	
-	float4 *particles = dscene->particles.resize(PARTICLE_SIZE*num_particles);
+	float4 *particles = dscene->particles.alloc(PARTICLE_SIZE*num_particles);
 	
 	/* dummy particle */
 	particles[0] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -91,7 +91,7 @@ void ParticleSystemManager::device_update_particles(Device *device, DeviceScene 
 		}
 	}
 	
-	device->tex_alloc("__particles", dscene->particles);
+	dscene->particles.copy_to_device();
 }
 
 void ParticleSystemManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
@@ -112,10 +112,9 @@ void ParticleSystemManager::device_update(Device *device, DeviceScene *dscene, S
 	need_update = false;
 }
 
-void ParticleSystemManager::device_free(Device *device, DeviceScene *dscene)
+void ParticleSystemManager::device_free(Device *, DeviceScene *dscene)
 {
-	device->tex_free(dscene->particles);
-	dscene->particles.clear();
+	dscene->particles.free();
 }
 
 void ParticleSystemManager::tag_update(Scene * /*scene*/)

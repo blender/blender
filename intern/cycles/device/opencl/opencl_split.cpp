@@ -127,9 +127,8 @@ public:
 			} KernelGlobals;
 
 			/* Allocate buffer for kernel globals */
-			device_memory kgbuffer;
-			kgbuffer.resize(sizeof(KernelGlobals));
-			mem_alloc("kernel_globals", kgbuffer, MEM_READ_WRITE);
+			device_only_memory<KernelGlobals> kgbuffer(this, "kernel_globals");
+			kgbuffer.alloc_to_device(1);
 
 			/* Keep rendering tiles until done. */
 			while(task->acquire_tile(this, tile)) {
@@ -160,7 +159,7 @@ public:
 				task->release_tile(tile);
 			}
 
-			mem_free(kgbuffer);
+			kgbuffer.free();
 		}
 	}
 
@@ -288,9 +287,9 @@ public:
 
 	virtual uint64_t state_buffer_size(device_memory& kg, device_memory& data, size_t num_threads)
 	{
-		device_vector<uint64_t> size_buffer;
-		size_buffer.resize(1);
-		device->mem_alloc(NULL, size_buffer, MEM_READ_WRITE);
+		device_vector<uint64_t> size_buffer(device, "size_buffer", MEM_READ_WRITE);
+		size_buffer.alloc(1);
+		size_buffer.zero_to_device();
 
 		uint threads = num_threads;
 		device->kernel_set_args(device->program_state_buffer_size(), 0, kg, data, threads, size_buffer);
@@ -308,9 +307,9 @@ public:
 
 		device->opencl_assert_err(device->ciErr, "clEnqueueNDRangeKernel");
 
-		device->mem_copy_from(size_buffer, 0, 1, 1, sizeof(uint64_t));
+		size_buffer.copy_from_device(0, 1, 1);
 		size_t size = size_buffer[0];
-		device->mem_free(size_buffer);
+		size_buffer.free();
 
 		if(device->ciErr != CL_SUCCESS) {
 			string message = string_printf("OpenCL error: %s in clEnqueueNDRangeKernel()",

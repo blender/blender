@@ -1439,9 +1439,9 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 }
 
 /* Draw a constant grid in given 2d-region */
-void UI_view2d_constant_grid_draw(View2D *v2d)
+void UI_view2d_constant_grid_draw(View2D *v2d, float step)
 {
-	float start_x, start_y, step = 25.0f;
+	float start_x, start_y;
 	int count_x, count_y;
 	
 	start_x = v2d->cur.xmin;
