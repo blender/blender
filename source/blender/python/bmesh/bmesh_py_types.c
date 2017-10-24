@@ -3885,7 +3885,7 @@ void *BPy_BMElem_PySeq_As_Array_FAST(
 	BMesh *bm = (r_bm && *r_bm) ? *r_bm : NULL;
 	PyObject **seq_fast_items = PySequence_Fast_ITEMS(seq_fast);
 	const Py_ssize_t seq_len = PySequence_Fast_GET_SIZE(seq_fast);
-	Py_ssize_t i;
+	Py_ssize_t i, i_last_dirty = PY_SSIZE_T_MAX;
 
 	BPy_BMElem *item;
 	BMElem **alloc;
@@ -3934,6 +3934,7 @@ void *BPy_BMElem_PySeq_As_Array_FAST(
 
 		if (do_unique_check) {
 			BM_elem_flag_enable(item->ele, BM_ELEM_INTERNAL_TAG);
+			i_last_dirty = i;
 		}
 	}
 
@@ -3950,6 +3951,8 @@ void *BPy_BMElem_PySeq_As_Array_FAST(
 		}
 
 		if (ok == false) {
+			/* Cleared above. */
+			i_last_dirty = PY_SSIZE_T_MAX;
 			PyErr_Format(PyExc_ValueError,
 			             "%s: found the same %.200s used multiple times",
 			             error_prefix, BPy_BMElem_StringFromHType(htype));
@@ -3962,6 +3965,11 @@ void *BPy_BMElem_PySeq_As_Array_FAST(
 	return alloc;
 
 err_cleanup:
+	if (do_unique_check && (i_last_dirty != PY_SSIZE_T_MAX)) {
+		for (i = 0; i <= i_last_dirty; i++) {
+			BM_elem_flag_disable(alloc[i], BM_ELEM_INTERNAL_TAG);
+		}
+	}
 	PyMem_FREE(alloc);
 	return NULL;
 
