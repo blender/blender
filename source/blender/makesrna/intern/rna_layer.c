@@ -56,53 +56,18 @@ const EnumPropertyItem rna_enum_layer_collection_mode_settings_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#include "DNA_anim_types.h"
-#include "DNA_color_types.h"
-#include "DNA_node_types.h"
 #include "DNA_object_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_text_types.h"
-#include "DNA_workspace_types.h"
 
 #include "RNA_access.h"
 
-#include "MEM_guardedalloc.h"
-
-#include "BKE_brush.h"
-#include "BKE_collection.h"
-#include "BKE_colortools.h"
-#include "BKE_context.h"
-#include "BKE_global.h"
 #include "BKE_idprop.h"
-#include "BKE_image.h"
 #include "BKE_layer.h"
-#include "BKE_main.h"
 #include "BKE_node.h"
-#include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_mesh.h"
-#include "BKE_sound.h"
-#include "BKE_screen.h"
-#include "BKE_sequencer.h"
-#include "BKE_animsys.h"
-#include "BKE_freestyle.h"
-#include "BKE_gpencil.h"
 
-#include "ED_info.h"
-#include "ED_node.h"
-#include "ED_view3d.h"
-#include "ED_mesh.h"
-#include "ED_keyframing.h"
-#include "ED_image.h"
-#include "ED_scene.h"
-
-#include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
-
-#ifdef WITH_FREESTYLE
-#include "FRS_freestyle.h"
-#endif
 
 static void rna_SceneCollection_name_set(PointerRNA *ptr, const char *value)
 {
