@@ -463,7 +463,6 @@ void OUTLINER_OT_id_delete(wmOperatorType *ot)
 static int outliner_id_remap_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 
 	const short id_type = (short)RNA_enum_get(op->ptr, "id_type");
