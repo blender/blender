@@ -398,6 +398,7 @@ typedef struct EEVEE_EffectsInfo {
 
 	/* Volumetrics */
 	bool use_volumetrics;
+	int volume_current_sample;
 
 	/* SSR */
 	bool use_ssr;
