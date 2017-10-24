@@ -431,12 +431,12 @@ void DEG_id_type_tag(Main *bmain, short id_type)
 	bmain->id_tag_update[BKE_idcode_to_index(id_type)] = 1;
 }
 
-void DEG_scene_flush_update(Main *bmain, Scene *scene)
+void DEG_graph_flush_update(Main *bmain, Depsgraph *depsgraph)
 {
-	if (scene->depsgraph_legacy == NULL) {
+	if (depsgraph == NULL) {
 		return;
 	}
-	DEG::deg_graph_flush_updates(bmain, (DEG::Depsgraph *)scene->depsgraph_legacy);
+	DEG::deg_graph_flush_updates(bmain, (DEG::Depsgraph *)depsgraph);
 }
 
 /* Update dependency graph when visible scenes/layers changes. */

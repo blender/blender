@@ -1608,7 +1608,7 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 	prepare_mesh_for_viewport_render(bmain, scene);
 
 	/* flush recalc flags to dependencies */
-	DEG_scene_flush_update(bmain, scene);
+	DEG_graph_flush_update(bmain, scene->depsgraph_legacy);
 
 	/* removed calls to quick_cache, see pointcache.c */
 	
