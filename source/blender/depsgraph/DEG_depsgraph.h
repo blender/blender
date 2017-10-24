@@ -133,9 +133,6 @@ void DEG_free_node_types(void);
 
 /* Update Tagging -------------------------------- */
 
-/* Tag node(s) associated with states such as time and visibility */
-void DEG_scene_update_flags(Depsgraph *graph, const bool do_time);
-
 /* Update dependency graph when visible scenes/layers changes. */
 void DEG_graph_on_visible_update(struct Main *bmain, struct Scene *scene);
 
