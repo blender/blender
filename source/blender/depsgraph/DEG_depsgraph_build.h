@@ -77,9 +77,6 @@ void DEG_scene_relations_update(struct Main *bmain, struct Scene *scene);
 void DEG_scene_relations_rebuild(struct Main *bmain,
                                  struct Scene *scene);
 
-/* Delete scene graph. */
-void DEG_scene_graph_free(struct Scene *scene);
-
 /* Add Dependencies  ----------------------------- */
 
 /* Handle for components to define their dependencies from callbacks.

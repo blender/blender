@@ -2457,7 +2457,7 @@ void BKE_scene_ensure_depsgraph_hash(Scene *scene)
 void BKE_scene_free_depsgraph_hash(Scene *scene)
 {
 	/* TODO(sergey): Keep this for until we get rid of depsgraph_legacy. */
-	DEG_scene_graph_free(scene);
+	DEG_graph_free(scene->depsgraph_legacy);
 	if (scene->depsgraph_hash == NULL) {
 		return;
 	}

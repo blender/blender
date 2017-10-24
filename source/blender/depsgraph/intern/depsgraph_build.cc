@@ -304,14 +304,6 @@ void DEG_scene_relations_rebuild(Main *bmain, Scene *scene)
 	DEG_scene_relations_update(bmain, scene);
 }
 
-void DEG_scene_graph_free(Scene *scene)
-{
-	if (scene->depsgraph_legacy) {
-		DEG_graph_free(scene->depsgraph_legacy);
-		scene->depsgraph_legacy = NULL;
-	}
-}
-
 void DEG_add_collision_relations(DepsNodeHandle *handle,
                                  Scene *scene,
                                  Object *ob,
