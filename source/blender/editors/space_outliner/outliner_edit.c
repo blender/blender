@@ -493,7 +493,7 @@ static int outliner_id_remap_exec(bContext *C, wmOperator *op)
 	BKE_main_lib_objects_recalc_all(bmain);
 
 	/* recreate dependency graph to include new objects */
-	DEG_scene_relations_rebuild(bmain, scene);
+	DEG_relations_tag_update(bmain);
 
 	/* free gpu materials, some materials depend on existing objects, such as lamps so freeing correctly refreshes */
 	GPU_materials_free();

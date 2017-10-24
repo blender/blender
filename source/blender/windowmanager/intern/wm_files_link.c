@@ -503,7 +503,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	DEG_id_tag_update(&scene->id, 0);
 
 	/* recreate dependency graph to include new objects */
-	DEG_scene_relations_rebuild(bmain, scene);
+	DEG_relations_tag_update(bmain);
 
 	/* XXX TODO: align G.lib with other directory storage (like last opened image etc...) */
 	BLI_strncpy(G.lib, root, FILE_MAX);
@@ -606,7 +606,7 @@ static int wm_lib_relocate_invoke(bContext *C, wmOperator *op, const wmEvent *UN
 }
 
 static void lib_relocate_do(
-        Main *bmain, Scene *scene,
+        Main *bmain,
         Library *library, WMLinkAppendData *lapp_data, ReportList *reports, const bool do_reload)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
@@ -798,7 +798,7 @@ static void lib_relocate_do(
 	BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
 
 	/* recreate dependency graph to include new objects */
-	DEG_scene_relations_rebuild(bmain, scene);
+	DEG_relations_tag_update(bmain);
 }
 
 void WM_lib_reload(Library *lib, bContext *C, ReportList *reports)
@@ -818,7 +818,7 @@ void WM_lib_reload(Library *lib, bContext *C, ReportList *reports)
 
 	wm_link_append_data_library_add(lapp_data, lib->filepath);
 
-	lib_relocate_do(CTX_data_main(C), CTX_data_scene(C), lib, lapp_data, reports, true);
+	lib_relocate_do(CTX_data_main(C), lib, lapp_data, reports, true);
 
 	wm_link_append_data_free(lapp_data);
 
@@ -835,7 +835,6 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
 
 	if (lib) {
 		Main *bmain = CTX_data_main(C);
-		Scene *scene = CTX_data_scene(C);
 		PropertyRNA *prop;
 		WMLinkAppendData *lapp_data;
 
@@ -925,7 +924,7 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
 			}
 		}
 
-		lib_relocate_do(bmain, scene, lib, lapp_data, op->reports, do_reload);
+		lib_relocate_do(bmain, lib, lapp_data, op->reports, do_reload);
 
 		wm_link_append_data_free(lapp_data);
 
