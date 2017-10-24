@@ -182,9 +182,6 @@ void DEG_ids_clear_recalc(struct Main *bmain);
 
 /* Update Flushing ------------------------------- */
 
-/* Flush updates for all IDs */
-void DEG_ids_flush_tagged(struct Main *bmain);
-
 /* Flush updates for IDs in a single scene. */
 void DEG_scene_flush_update(struct Main *bmain, struct Scene *scene);
 

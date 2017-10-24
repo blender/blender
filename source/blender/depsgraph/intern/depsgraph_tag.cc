@@ -431,19 +431,6 @@ void DEG_id_type_tag(Main *bmain, short id_type)
 	bmain->id_tag_update[BKE_idcode_to_index(id_type)] = 1;
 }
 
-/* Recursively push updates out to all nodes dependent on this,
- * until all affected are tagged and/or scheduled up for eval
- */
-void DEG_ids_flush_tagged(Main *bmain)
-{
-	for (Scene *scene = (Scene *)bmain->scene.first;
-	     scene != NULL;
-	     scene = (Scene *)scene->id.next)
-	{
-		DEG_scene_flush_update(bmain, scene);
-	}
-}
-
 void DEG_scene_flush_update(Main *bmain, Scene *scene)
 {
 	if (scene->depsgraph_legacy == NULL) {
