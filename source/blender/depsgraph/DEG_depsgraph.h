@@ -228,8 +228,7 @@ void DEG_evaluate_on_framechange(struct EvaluationContext *eval_ctx,
  * < context_type: context to perform evaluation for
  */
 void DEG_evaluate_on_refresh(struct EvaluationContext *eval_ctx,
-                             Depsgraph *graph,
-                             struct Scene *scene);
+                             Depsgraph *graph);
 
 bool DEG_needs_eval(Depsgraph *graph);
 

@@ -1623,7 +1623,7 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 	 *
 	 * in the future this should handle updates for all datablocks, not
 	 * only objects and scenes. - brecht */
-	DEG_evaluate_on_refresh(eval_ctx, scene->depsgraph_legacy, scene);
+	DEG_evaluate_on_refresh(eval_ctx, scene->depsgraph_legacy);
 
 	/* update sound system animation (TODO, move to depsgraph) */
 	BKE_sound_update_scene(bmain, scene);

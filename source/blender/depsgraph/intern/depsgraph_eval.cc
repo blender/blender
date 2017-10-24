@@ -100,13 +100,12 @@ void DEG_evaluation_context_free(EvaluationContext *eval_ctx)
 
 /* Evaluate all nodes tagged for updating. */
 void DEG_evaluate_on_refresh(EvaluationContext *eval_ctx,
-                             Depsgraph *graph,
-                             Scene *scene)
+                             Depsgraph *graph)
 {
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
 	/* Update time on primary timesource. */
 	DEG::TimeSourceDepsNode *tsrc = deg_graph->find_time_source();
-	tsrc->cfra = BKE_scene_frame_get(scene);
+	tsrc->cfra = BKE_scene_frame_get(deg_graph->scene);
 	DEG::deg_evaluate_on_refresh(eval_ctx, deg_graph);
 }
 
