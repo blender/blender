@@ -248,26 +248,36 @@ public:
 			if(!tiles[i].buffers) {
 				continue;
 			}
+
 			/* If the tile was rendered on another device, copy its memory to
 			 * to the current device now, for the duration of the denoising task.
 			 * Note that this temporarily modifies the RenderBuffers and calls
 			 * the device, so this function is not thread safe. */
 			device_vector<float> &mem = tiles[i].buffers->buffer;
 			if(mem.device != sub_device) {
-				tiles[i].buffers->copy_from_device();
+				/* Only copy from device to host once. This is faster, but
+				 * also required for the case where a CPU thread is denoising
+				 * a tile rendered on the GPU. In that case we have to avoid
+				 * overwriting the buffer being denoised by the CPU thread. */
+				if(!tiles[i].buffers->map_neighbor_copied) {
+					tiles[i].buffers->map_neighbor_copied = true;
+					mem.copy_from_device(0, mem.data_size, 1);
+				}
 
 				Device *original_device = mem.device;
 				device_ptr original_ptr = mem.device_pointer;
+				size_t original_size = mem.device_size;
 
 				mem.device = sub_device;
 				mem.device_pointer = 0;
+				mem.device_size = 0;
 
-				sub_device->mem_alloc(mem);
-				sub_device->mem_copy_to(mem);
+				mem.copy_to_device();
 				tiles[i].buffer = mem.device_pointer;
 
 				mem.device = original_device;
 				mem.device_pointer = original_ptr;
+				mem.device_size = original_size;
 			}
 		}
 	}
@@ -290,7 +300,7 @@ public:
 
 				/* Copy denoised tile to the host. */
 				if(i == 4) {
-					tiles[i].buffers->copy_from_device();
+					mem.copy_from_device(0, mem.data_size, 1);
 				}
 
 				sub_device->mem_free(mem);
