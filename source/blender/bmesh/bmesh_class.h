@@ -341,9 +341,9 @@ enum {
 	/* spare tag, assumed dirty, use define in each function to name based on use */
 	// _BM_ELEM_TAG_ALT = (1 << 6),  // UNUSED
 	/**
-	 * for low level internal API tagging,
-	 * since tools may want to tag verts and
-	 * not have functions clobber them */
+	 * For low level internal API tagging,
+	 * since tools may want to tag verts and not have functions clobber them.
+	 * Leave cleared! */
 	BM_ELEM_INTERNAL_TAG = (1 << 7),
 };
 
