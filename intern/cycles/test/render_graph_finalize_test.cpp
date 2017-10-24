@@ -160,8 +160,10 @@ protected:
 	util_logging_verbosity_set(1); \
 	ScopedMockLog mock_log_name; \
 	DeviceInfo device_info; \
+	Stats stats; \
+	Device *device_cpu = Device::create(device_info, stats, true); \
 	SceneParams scene_params; \
-	Scene scene(scene_params, device_info); \
+	Scene scene(scene_params, device_cpu); \
 	ShaderGraph graph; \
 	ShaderGraphBuilder builder(&graph); \
 
