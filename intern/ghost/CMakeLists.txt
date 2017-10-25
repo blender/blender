@@ -219,6 +219,13 @@ elseif(WITH_X11)
 		)
 	endif()
 
+	if(WITH_X11_XFIXES)
+		add_definitions(-DWITH_X11_XFIXES)
+		list(APPEND INC_SYS
+			${X11_Xfixes_INCLUDE_PATH}
+		)
+	endif()
+
 	if(WITH_X11_ALPHA)
 		add_definitions(-DWITH_X11_ALPHA)
 	endif()
