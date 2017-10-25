@@ -74,14 +74,9 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	/* set shader index and transparent option */
 	KernelBackground *kbackground = &dscene->data.background;
 
-	if(use_ao) {
-		kbackground->ao_factor = ao_factor;
-		kbackground->ao_distance = ao_distance;
-	}
-	else {
-		kbackground->ao_factor = 0.0f;
-		kbackground->ao_distance = FLT_MAX;
-	}
+	kbackground->ao_factor = (use_ao)? ao_factor: 0.0f;
+	kbackground->ao_bounces_factor = ao_factor;
+	kbackground->ao_distance = ao_distance;
 
 	kbackground->transparent = transparent;
 	kbackground->surface_shader = scene->shader_manager->get_shader_id(bg_shader);

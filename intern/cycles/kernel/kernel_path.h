@@ -145,6 +145,12 @@ ccl_device_forceinline void kernel_path_background(
 			return;
 	}
 
+	/* When using the ao bounces approximation, adjust background
+	 * shader intensity with ao factor. */
+	if(path_state_ao_bounce(kg, state)) {
+		throughput *= kernel_data.background.ao_bounces_factor;
+	}
+
 #ifdef __BACKGROUND__
 	/* sample background shader */
 	float3 L_background = indirect_background(kg, emission_sd, state, ray);
