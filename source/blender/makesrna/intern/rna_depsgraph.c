@@ -42,8 +42,7 @@
 
 #ifdef RNA_RUNTIME
 
-#include "BKE_report.h"
-
+#include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_debug.h"
 
 static void rna_Depsgraph_debug_graphviz(Depsgraph *graph, const char *filename)
@@ -56,14 +55,9 @@ static void rna_Depsgraph_debug_graphviz(Depsgraph *graph, const char *filename)
 	fclose(f);
 }
 
-static void rna_Depsgraph_debug_rebuild(Depsgraph *UNUSED(graph), Main *bmain)
+static void rna_Depsgraph_debug_tag_update(Depsgraph *graph)
 {
-	Scene *sce;
-	DAG_relations_tag_update(bmain);
-	for (sce = bmain->scene.first; sce; sce = sce->id.next) {
-		DAG_scene_relations_rebuild(bmain, sce);
-		DEG_graph_on_visible_update(bmain, sce);
-	}
+	DEG_graph_tag_relations_update(graph);
 }
 
 static void rna_Depsgraph_debug_stats(Depsgraph *graph, char *result)
@@ -91,8 +85,7 @@ static void rna_def_depsgraph(BlenderRNA *brna)
 	                                "File in which to store graphviz debug output");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
-	func = RNA_def_function(srna, "debug_rebuild", "rna_Depsgraph_debug_rebuild");
-	RNA_def_function_flag(func, FUNC_USE_MAIN);
+	func = RNA_def_function(srna, "debug_tag_update", "rna_Depsgraph_debug_tag_update");
 
 	func = RNA_def_function(srna, "debug_stats", "rna_Depsgraph_debug_stats");
 	RNA_def_function_ui_description(func, "Report the number of elements in the Dependency Graph");
