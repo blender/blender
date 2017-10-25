@@ -1614,10 +1614,8 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 	BKE_main_id_tag_idcode(bmain, ID_LA, LIB_TAG_DOIT, false);
 
 	/* update all objects: drivers, matrices, displists, etc. flags set
-	 * by depgraph or manual, no layer check here, gets correct flushed
-	 *
-	 * in the future this should handle updates for all datablocks, not
-	 * only objects and scenes. - brecht */
+	 * by depgraph or manual, no layer check here, gets correct flushed.
+	 */
 	DEG_evaluate_on_refresh(eval_ctx, scene->depsgraph_legacy);
 
 	/* update sound system animation (TODO, move to depsgraph) */
