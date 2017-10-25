@@ -30,10 +30,12 @@
 
 #pragma once
 
+struct Main;
+
 namespace DEG {
 
 struct Depsgraph;
 
-void deg_graph_build_finalize(struct Depsgraph *graph);
+void deg_graph_build_finalize(struct Main *bmain, struct Depsgraph *graph);
 
 }  // namespace DEG

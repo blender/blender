@@ -233,7 +233,7 @@ void DEG_graph_build_from_scene(Depsgraph *graph, Main *bmain, Scene *scene)
 	}
 
 	/* 4) Flush visibility layer and re-schedule nodes for update. */
-	DEG::deg_graph_build_finalize(deg_graph);
+	DEG::deg_graph_build_finalize(bmain, deg_graph);
 
 #if 0
 	if (!DEG_debug_consistency_check(deg_graph)) {

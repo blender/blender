@@ -45,7 +45,7 @@
 
 namespace DEG {
 
-void deg_graph_build_finalize(Depsgraph *graph)
+void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
 {
 	const bool use_copy_on_write = DEG_depsgraph_use_copy_on_write();
 	/* Re-tag IDs for update if it was tagged before the relations
@@ -68,7 +68,7 @@ void deg_graph_build_finalize(Depsgraph *graph)
 		 * re-evaluaiton of the whole tree.
 		 */
 		if (use_copy_on_write) {
-			DEG_id_tag_update_ex(graph->bmain, id_node->id_orig, DEG_TAG_COPY_ON_WRITE);
+			DEG_id_tag_update_ex(bmain, id_node->id_orig, DEG_TAG_COPY_ON_WRITE);
 		}
 	}
 	GHASH_FOREACH_END();
