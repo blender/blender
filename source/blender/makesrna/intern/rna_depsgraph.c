@@ -38,6 +38,8 @@
 
 #include "BKE_depsgraph.h"
 
+#define STATS_MAX_SIZE 16384
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_report.h"
@@ -65,17 +67,12 @@ static void rna_Depsgraph_debug_rebuild(Depsgraph *UNUSED(graph), Main *bmain)
 	}
 }
 
-static void rna_Depsgraph_debug_stats(Depsgraph *graph, ReportList *reports)
+static void rna_Depsgraph_debug_stats(Depsgraph *graph, char *result)
 {
 	size_t outer, ops, rels;
-	
 	DEG_stats_simple(graph, &outer, &ops, &rels);
-	
-	// XXX: report doesn't seem to work
-	printf("Approx %lu Operations, %lu Relations, %lu Outer Nodes\n",
-	       ops, rels, outer);
-		   
-	BKE_reportf(reports, RPT_WARNING, "Approx. %lu Operations, %lu Relations, %lu Outer Nodes",
+	BLI_snprintf(result, STATS_MAX_SIZE,
+	            "Approx %lu Operations, %lu Relations, %lu Outer Nodes",
 	            ops, rels, outer);
 }
 
@@ -100,7 +97,10 @@ static void rna_def_depsgraph(BlenderRNA *brna)
 
 	func = RNA_def_function(srna, "debug_stats", "rna_Depsgraph_debug_stats");
 	RNA_def_function_ui_description(func, "Report the number of elements in the Dependency Graph");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	/* weak!, no way to return dynamic string type */
+	parm = RNA_def_string(func, "result", NULL, STATS_MAX_SIZE, "result", "");
+	RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0); /* needed for string return value */
+	RNA_def_function_output(func, parm);
 }
 
 void RNA_def_depsgraph(BlenderRNA *brna)
