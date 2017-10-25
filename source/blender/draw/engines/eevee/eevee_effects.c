@@ -218,6 +218,7 @@ static struct GPUShader *eevee_effects_ssr_shader_get(int options)
 		}
 		else {
 			BLI_dynstr_appendf(ds_defines, "#define STEP_RAYTRACE\n");
+			BLI_dynstr_appendf(ds_defines, "#define PLANAR_PROBE_RAYTRACE\n");
 		}
 		if (options & SSR_FULL_TRACE) {
 			BLI_dynstr_appendf(ds_defines, "#define FULLRES\n");

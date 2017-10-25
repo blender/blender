@@ -10,19 +10,24 @@ uniform float borderFadeFactor;
 
 float sample_depth(vec2 uv, int index, float lod)
 {
+#ifdef PLANAR_PROBE_RAYTRACE
 	if (index > -1) {
 		return textureLod(planarDepth, vec3(uv, index), 0.0).r;
 	}
 	else {
+#endif
 		/* Correct UVs for mipmaping mis-alignment */
 		uv *= mipRatio[int(lod + 1.0)];
 		return textureLod(maxzBuffer, uv, lod).r;
+#ifdef PLANAR_PROBE_RAYTRACE
 	}
+#endif
 }
 
 vec4 sample_depth_grouped(vec4 uv1, vec4 uv2, int index, float lod)
 {
 	vec4 depths;
+#ifdef PLANAR_PROBE_RAYTRACE
 	if (index > -1) {
 		depths.x = textureLod(planarDepth, vec3(uv1.xy, index), 0.0).r;
 		depths.y = textureLod(planarDepth, vec3(uv1.zw, index), 0.0).r;
@@ -30,11 +35,14 @@ vec4 sample_depth_grouped(vec4 uv1, vec4 uv2, int index, float lod)
 		depths.w = textureLod(planarDepth, vec3(uv2.zw, index), 0.0).r;
 	}
 	else {
+#endif
 		depths.x = textureLod(maxzBuffer, uv1.xy, lod).r;
 		depths.y = textureLod(maxzBuffer, uv1.zw, lod).r;
 		depths.z = textureLod(maxzBuffer, uv2.xy, lod).r;
 		depths.w = textureLod(maxzBuffer, uv2.zw, lod).r;
+#ifdef PLANAR_PROBE_RAYTRACE
 	}
+#endif
 	return depths;
 }
 
