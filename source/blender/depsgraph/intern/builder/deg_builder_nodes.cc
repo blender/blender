@@ -994,9 +994,6 @@ void DepsgraphNodeBuilder::build_material(Material *ma)
 		return;
 	}
 
-	/* material itself */
-	add_id_node(ma_id);
-
 	add_operation_node(ma_id, DEG_NODE_TYPE_SHADING, NULL,
 	                   DEG_OPCODE_PLACEHOLDER, "Material Update");
 
@@ -1049,8 +1046,6 @@ void DepsgraphNodeBuilder::build_image(Image *image) {
 		return;
 	}
 	image_id->tag |= LIB_TAG_DOIT;
-	/* Image ID node itself. */
-	add_id_node(image_id);
 	/* Placeholder so we can add relations and tag ID node for update. */
 	add_operation_node(image_id,
 	                   DEG_NODE_TYPE_PARAMETERS,
@@ -1075,12 +1070,12 @@ void DepsgraphNodeBuilder::build_gpencil(bGPdata *gpd)
 {
 	ID *gpd_id = &gpd->id;
 
-	/* gpencil itself */
-	// XXX: what about multiple users of same datablock? This should only get added once
-	add_id_node(gpd_id);
+	/* TODO(sergey): what about multiple users of same datablock? This should
+	 * only get added once.
+	 */
 
-	/* The main reason Grease Pencil is included here is because the animation (and drivers)
-	 * need to be hosted somewhere...
+	/* The main reason Grease Pencil is included here is because the animation
+	 * (and drivers) need to be hosted somewhere.
 	 */
 	build_animdata(gpd_id);
 }
@@ -1088,20 +1083,18 @@ void DepsgraphNodeBuilder::build_gpencil(bGPdata *gpd)
 void DepsgraphNodeBuilder::build_cachefile(CacheFile *cache_file)
 {
 	ID *cache_file_id = &cache_file->id;
-
+	/* Animation, */
+	build_animdata(cache_file_id);
+	/* Cache evaluation itself. */
 	add_component_node(cache_file_id, DEG_NODE_TYPE_CACHE);
 	add_operation_node(cache_file_id, DEG_NODE_TYPE_CACHE, NULL,
 	                   DEG_OPCODE_PLACEHOLDER, "Cache File Update");
-
-	add_id_node(cache_file_id);
-	build_animdata(cache_file_id);
 }
 
 void DepsgraphNodeBuilder::build_mask(Mask *mask)
 {
 	ID *mask_id = &mask->id;
-	add_id_node(mask_id);
-	/* F-Curve based animation/ */
+	/* F-Curve based animation. */
 	build_animdata(mask_id);
 	/* Animation based on mask's shapes. */
 	add_operation_node(mask_id,
@@ -1117,7 +1110,7 @@ void DepsgraphNodeBuilder::build_mask(Mask *mask)
 
 void DepsgraphNodeBuilder::build_movieclip(MovieClip *clip) {
 	ID *clip_id = &clip->id;
-	add_id_node(clip_id);
+	/* Animation. */
 	build_animdata(clip_id);
 }
 
