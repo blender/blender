@@ -380,11 +380,13 @@ void DepsgraphRelationBuilder::begin_build(Main *bmain)
 	/* XXX nested node trees are notr included in tag-clearing above,
 	 * so we need to do this manually.
 	 */
-	FOREACH_NODETREE(bmain, nodetree, id) {
+	FOREACH_NODETREE(bmain, nodetree, id)
+	{
 		if (id != (ID *)nodetree) {
 			nodetree->id.tag &= ~LIB_TAG_DOIT;
 		}
-	} FOREACH_NODETREE_END
+	}
+	FOREACH_NODETREE_END;
 }
 
 void DepsgraphRelationBuilder::build_group(Main *bmain,
