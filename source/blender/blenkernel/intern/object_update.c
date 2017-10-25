@@ -38,7 +38,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
-#include "BLI_threads.h"
 
 #include "BKE_global.h"
 #include "BKE_armature.h"
@@ -66,8 +65,6 @@
 #include "DEG_depsgraph.h"
 
 #define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH) printf
-
-static ThreadMutex material_lock = BLI_MUTEX_INITIALIZER;
 
 void BKE_object_eval_local_transform(const EvaluationContext *UNUSED(eval_ctx),
                                      Scene *UNUSED(scene),
@@ -224,28 +221,6 @@ void BKE_object_handle_data_update(
 					BKE_image_user_check_frame_calc(ob->iuser, (int)ctime, 0);
 			break;
 	}
-
-	/* related materials */
-	/* XXX: without depsgraph tagging, this will always need to be run, which will be slow!
-	 * However, not doing anything (or trying to hack around this lack) is not an option
-	 * anymore, especially due to Cycles [#31834]
-	 */
-	if (ob->totcol) {
-		int a;
-		if (ob->totcol != 0) {
-			BLI_mutex_lock(&material_lock);
-			for (a = 1; a <= ob->totcol; a++) {
-				Material *ma = give_current_material(ob, a);
-				if (ma) {
-					/* recursively update drivers for this material */
-					material_drivers_update(scene, ma, ctime);
-				}
-			}
-			BLI_mutex_unlock(&material_lock);
-		}
-	}
-	else if (ob->type == OB_LAMP)
-		lamp_drivers_update(scene, ob->data, ctime);
 
 	/* particles */
 	if (ob != scene->obedit && ob->particlesystem.first) {
