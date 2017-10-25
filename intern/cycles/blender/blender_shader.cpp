@@ -1289,11 +1289,8 @@ void BlenderSync::sync_world(bool update_all)
 			/* AO */
 			BL::WorldLighting b_light = b_world.light_settings();
 
-			if(b_light.use_ambient_occlusion())
-				background->ao_factor = b_light.ao_factor();
-			else
-				background->ao_factor = 0.0f;
-
+			background->use_ao = b_light.use_ambient_occlusion();
+			background->ao_factor = b_light.ao_factor();
 			background->ao_distance = b_light.distance();
 
 			/* visibility */
@@ -1309,6 +1306,7 @@ void BlenderSync::sync_world(bool update_all)
 			background->visibility = visibility;
 		}
 		else {
+			background->use_ao = false;
 			background->ao_factor = 0.0f;
 			background->ao_distance = FLT_MAX;
 		}
@@ -1330,7 +1328,7 @@ void BlenderSync::sync_world(bool update_all)
 		background->transparent = b_scene.render().alpha_mode() == BL::RenderSettings::alpha_mode_TRANSPARENT;
 
 	background->use_shader = render_layer.use_background_shader;
-	background->use_ao = render_layer.use_background_ao;
+	background->use_ao = background->use_ao && render_layer.use_background_ao;
 
 	if(background->modified(prevbackground))
 		background->tag_update(scene);

@@ -1214,7 +1214,8 @@ typedef struct KernelBackground {
 	/* ambient occlusion */
 	float ao_factor;
 	float ao_distance;
-	float ao_pad1, ao_pad2;
+	float ao_bounces_factor;
+	float ao_pad;
 } KernelBackground;
 static_assert_align(KernelBackground, 16);
 

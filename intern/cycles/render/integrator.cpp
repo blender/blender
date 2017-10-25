@@ -15,6 +15,7 @@
  */
 
 #include "device/device.h"
+#include "render/background.h"
 #include "render/integrator.h"
 #include "render/film.h"
 #include "render/light.h"
