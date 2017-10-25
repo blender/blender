@@ -301,15 +301,6 @@ void DEG_scene_relations_update(Main *bmain, Scene *scene)
 	DEG_graph_relations_update(scene->depsgraph_legacy, bmain, scene);
 }
 
-/* Rebuild dependency graph only for a given scene. */
-void DEG_scene_relations_rebuild(Main *bmain, Scene *scene)
-{
-	if (scene->depsgraph_legacy != NULL) {
-		DEG_graph_tag_relations_update(scene->depsgraph_legacy);
-	}
-	DEG_scene_relations_update(bmain, scene);
-}
-
 void DEG_add_collision_relations(DepsNodeHandle *handle,
                                  Scene *scene,
                                  Object *ob,
