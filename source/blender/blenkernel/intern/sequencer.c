@@ -90,6 +90,8 @@
 #include "BKE_context.h"
 #include "BKE_sound.h"
 
+#include "RE_engine.h"
+
 #ifdef WITH_AUDASPACE
 #  include <AUD_Special.h>
 #endif
@@ -3308,6 +3310,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 			context->scene->r.seq_prev_type = 3 /* == OB_SOLID */;
 
 		/* opengl offscreen render */
+		context->eval_ctx->engine = RE_engines_find(scene->view_render.engine_id);
 		BKE_scene_update_for_newframe(context->eval_ctx, context->bmain, scene);
 		ibuf = sequencer_view3d_cb(
 		        /* set for OpenGL render (NULL when scrubbing) */
