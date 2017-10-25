@@ -44,6 +44,8 @@ struct Main;
 struct Scene;
 struct Group;
 struct EffectorWeights;
+struct ModifierData;
+struct Object;
 
 #ifdef __cplusplus
 extern "C" {
@@ -162,7 +164,7 @@ typedef bool (*DEG_CollobjFilterFunction)(struct Object *obj, struct ModifierDat
 
 void DEG_add_collision_relations(struct DepsNodeHandle *handle,
                                  struct Scene *scene,
-                                 Object *ob,
+                                 struct Object *ob,
                                  struct Group *group,
                                  int layer,
                                  unsigned int modifier_type,
@@ -171,7 +173,7 @@ void DEG_add_collision_relations(struct DepsNodeHandle *handle,
                                  const char *name);
 void DEG_add_forcefield_relations(struct DepsNodeHandle *handle,
                                   struct Scene *scene,
-                                  Object *ob,
+                                  struct Object *ob,
                                   struct EffectorWeights *eff,
                                   bool add_absorption,
                                   int skip_forcefield,
