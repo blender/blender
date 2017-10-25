@@ -578,7 +578,6 @@ void DepsgraphNodeBuilder::build_world(World *world)
 	build_animdata(world_id);
 
 	/* world itself */
-	add_component_node(world_id, DEG_NODE_TYPE_PARAMETERS);
 	add_operation_node(world_id,
 	                   DEG_NODE_TYPE_PARAMETERS,
 	                   NULL,
@@ -701,9 +700,8 @@ void DepsgraphNodeBuilder::build_particles(Scene *scene, Object *ob)
 
 void DepsgraphNodeBuilder::build_cloth(Scene *scene, Object *object)
 {
-	ComponentDepsNode *cache_comp = add_component_node(&object->id,
-	                                                   DEG_NODE_TYPE_CACHE);
-	add_operation_node(cache_comp,
+	add_operation_node(&object->id,
+	                   DEG_NODE_TYPE_CACHE,
 	                   function_bind(BKE_object_eval_cloth,
 	                                 _1,
 	                                 scene,
@@ -925,9 +923,6 @@ void DepsgraphNodeBuilder::build_lamp(Object *ob)
 
 	build_animdata(&la->id);
 
-	/* node for obdata */
-	add_component_node(lamp_id, DEG_NODE_TYPE_PARAMETERS);
-
 	/* TODO(sergey): Is it really how we're supposed to work with drivers? */
 	add_operation_node(lamp_id,
 	                   DEG_NODE_TYPE_PARAMETERS,
@@ -1087,7 +1082,6 @@ void DepsgraphNodeBuilder::build_cachefile(CacheFile *cache_file)
 	/* Animation, */
 	build_animdata(cache_file_id);
 	/* Cache evaluation itself. */
-	add_component_node(cache_file_id, DEG_NODE_TYPE_CACHE);
 	add_operation_node(cache_file_id, DEG_NODE_TYPE_CACHE, NULL,
 	                   DEG_OPCODE_PLACEHOLDER, "Cache File Update");
 }
