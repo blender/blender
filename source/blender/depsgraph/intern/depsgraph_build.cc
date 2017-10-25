@@ -257,6 +257,17 @@ void DEG_graph_tag_relations_update(Depsgraph *graph)
 	deg_graph->need_update = true;
 }
 
+/* Create or update relations in the specified graph. */
+void DEG_graph_relations_update(Depsgraph *graph, Main *bmain, Scene *scene)
+{
+	DEG::Depsgraph *deg_graph = (DEG::Depsgraph *)graph;
+	if (!deg_graph->need_update) {
+		/* Graph is up to date, nothing to do. */
+		return;
+	}
+	DEG_graph_build_from_scene(graph, bmain, scene);
+}
+
 /* Tag all relations for update. */
 void DEG_relations_tag_update(Main *bmain)
 {
@@ -282,17 +293,7 @@ void DEG_scene_relations_update(Main *bmain, Scene *scene)
 		DEG_graph_build_from_scene(scene->depsgraph_legacy, bmain, scene);
 		return;
 	}
-
-	DEG::Depsgraph *graph = reinterpret_cast<DEG::Depsgraph *>(scene->depsgraph_legacy);
-	if (!graph->need_update) {
-		/* Graph is up to date, nothing to do. */
-		return;
-	}
-
-	/* Build new nodes and relations. */
-	DEG_graph_build_from_scene(reinterpret_cast< ::Depsgraph * >(graph),
-	                           bmain,
-	                           scene);
+	DEG_graph_relations_update(scene->depsgraph_legacy, bmain, scene);
 }
 
 /* Rebuild dependency graph only for a given scene. */
