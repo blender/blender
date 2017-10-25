@@ -82,6 +82,8 @@
 
 #include "PIL_time.h"
 
+#include "DEG_depsgraph_build.h"
+
 #include "clip_intern.h"	// own include
 
 /******************** view navigation utilities *********************/
@@ -247,6 +249,7 @@ static int open_exec(bContext *C, wmOperator *op)
 
 	WM_event_add_notifier(C, NC_MOVIECLIP | NA_ADDED, clip);
 
+	DEG_relations_tag_update(bmain);
 	MEM_freeN(op->customdata);
 
 	return OPERATOR_FINISHED;

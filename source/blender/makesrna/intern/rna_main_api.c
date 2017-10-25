@@ -86,6 +86,7 @@
 #include "BKE_linestyle.h"
 #include "BKE_workspace.h"
 
+#include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
 #include "DNA_armature_types.h"
@@ -556,9 +557,13 @@ static MovieClip *rna_Main_movieclip_load(Main *bmain, ReportList *reports, cons
 		clip = BKE_movieclip_file_add(bmain, filepath);
 	}
 
-	if (!clip)
+	if (clip != NULL) {
+		DEG_relations_tag_update(bmain);
+	}
+	else {
 		BKE_reportf(reports, RPT_ERROR, "Cannot read '%s': %s", filepath,
 		            errno ? strerror(errno) : TIP_("unable to load movie clip"));
+	}
 
 	id_us_min((ID *)clip);
 	return clip;
