@@ -166,7 +166,6 @@ struct Depsgraph {
 	SpinLock lock;
 
 	// XXX: additional stuff like eval contexts, mempools for allocating nodes from, etc.
-	Main *bmain;  /* XXX: For until depsgraph has proper ownership. */
 	Scene *scene; /* XXX: We really shouldn't do that, but it's required for shader preview. */
 };
 
