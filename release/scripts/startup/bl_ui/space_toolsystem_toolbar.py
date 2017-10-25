@@ -109,6 +109,19 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                 ("mesh.rip_edge_move", dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
                  dict(type='ACTIONMOUSE', value='PRESS')),
             )),
+
+            ("Poly Build", None, (
+                ("mesh.polybuild_face_at_cursor_move",
+                 dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
+                 dict(type='ACTIONMOUSE', value='PRESS')),
+                ("mesh.polybuild_split_at_cursor_move",
+                 dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
+                 dict(type='ACTIONMOUSE', value='PRESS', ctrl=True)),
+                ("mesh.polybuild_dissolve_at_cursor", dict(), dict(type='ACTIONMOUSE', value='CLICK', alt=True)),
+                ("mesh.polybuild_hover", dict(use_boundary=False), dict(type='MOUSEMOVE', value='ANY', alt=True)),
+                ("mesh.polybuild_hover", dict(use_boundary=True), dict(type='MOUSEMOVE', value='ANY', any=True)),
+            )),
+
             ("Knife", None, (("mesh.knife_tool", dict(wait_for_input=False), dict(type='ACTIONMOUSE', value='PRESS')),)),
             ("Bisect", None, (("mesh.bisect", dict(), dict(type='EVT_TWEAK_A', value='ANY')),)),
             ("Extrude Cursor", None,
