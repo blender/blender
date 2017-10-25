@@ -60,7 +60,8 @@ bool DEG_debug_compare(const struct Depsgraph *graph1,
                        const struct Depsgraph *graph2);
 
 /* Check that dependnecies in the graph are really up to date. */
-bool DEG_debug_scene_relations_validate(struct Main *bmain,
+bool DEG_debug_graph_relations_validate(struct Depsgraph *graph,
+                                        struct Main *bmain,
                                         struct Scene *scene);
 
 

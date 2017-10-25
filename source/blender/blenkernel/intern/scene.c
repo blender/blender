@@ -99,6 +99,7 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_debug.h"
 #include "DEG_depsgraph_query.h"
 
 #include "RE_engine.h"
@@ -1590,10 +1591,9 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 {
 	/* (re-)build dependency graph if needed */
 	DEG_scene_relations_update(bmain, scene);
+
 	/* Uncomment this to check if graph was properly tagged for update. */
-#if 0
-	DEG_scene_relations_validate(bmain, scene);
-#endif
+	// DEG_debug_graph_relations_validate(scene->depsgraph_legacy, bmain, scene);
 
 	/* flush editing data if needed */
 	prepare_mesh_for_viewport_render(bmain, scene);
