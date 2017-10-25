@@ -110,9 +110,6 @@ bool material_in_material(struct Material *parmat, struct Material *mat);
 
 void ramp_blend(int type, float r_col[3], const float fac, const float col[3]);
 
-/* driver update hacks */
-void material_drivers_update(struct Scene *scene, struct Material *mat, float ctime);
-
 /* copy/paste */
 void clear_matcopybuf(void);
 void free_matcopybuf(void);
