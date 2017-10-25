@@ -1621,15 +1621,6 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 	/* update sound system animation (TODO, move to depsgraph) */
 	BKE_sound_update_scene(bmain, scene);
 
-	/* extra call here to recalc scene animation (for sequencer) */
-	{
-		AnimData *adt = BKE_animdata_from_id(&scene->id);
-		float ctime = BKE_scene_frame_get(scene);
-		
-		if (adt && (adt->recalc & ADT_RECALC_ANIM))
-			BKE_animsys_evaluate_animdata(scene, &scene->id, adt, ctime, 0);
-	}
-
 	/* Inform editors about possible changes. */
 	DEG_ids_check_recalc(bmain, scene, false);
 
