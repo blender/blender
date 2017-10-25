@@ -1603,11 +1603,6 @@ void BKE_scene_graph_update_tagged(EvaluationContext *eval_ctx,
 	prepare_mesh_for_viewport_render(bmain, scene);
 	/* Flush recalc flags to dependencies. */
 	DEG_graph_flush_update(bmain, depsgraph);
-	/* Clear "LIB_TAG_DOIT" flag from all materials, to prevent infinite recursion problems later
-	 * when trying to find materials with drivers that need evaluating [#32017].
-	 */
-	BKE_main_id_tag_idcode(bmain, ID_MA, LIB_TAG_DOIT, false);
-	BKE_main_id_tag_idcode(bmain, ID_LA, LIB_TAG_DOIT, false);
 	/* Update all objects: drivers, matrices, displists, etc. flags set
 	 * by depgraph or manual, no layer check here, gets correct flushed.
 	 */
@@ -1651,11 +1646,6 @@ void BKE_scene_graph_update_for_newframe(EvaluationContext *eval_ctx,
 #ifdef POSE_ANIMATION_WORKAROUND
 	scene_armature_depsgraph_workaround(bmain);
 #endif
-	/* Clear "LIB_TAG_DOIT" flag from all materials, to prevent infinite recursion problems later
-	 * when trying to find materials with drivers that need evaluating [#32017].
-	 */
-	BKE_main_id_tag_idcode(bmain, ID_MA, LIB_TAG_DOIT, false);
-	BKE_main_id_tag_idcode(bmain, ID_LA, LIB_TAG_DOIT, false);
 	/* Update all objects: drivers, matrices, displists, etc. flags set
 	 * by depgraph or manual, no layer check here, gets correct flushed.
 	 */
