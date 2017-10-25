@@ -834,10 +834,8 @@ void DepsgraphNodeBuilder::build_cloth(Scene *scene, Object *object)
 {
 	Scene *scene_cow = get_cow_datablock(scene);
 	Object *object_cow = get_cow_datablock(object);
-
-	ComponentDepsNode *cache_comp = add_component_node(&object->id,
-	                                                   DEG_NODE_TYPE_CACHE);
-	add_operation_node(cache_comp,
+	add_operation_node(&object->id,
+	                   DEG_NODE_TYPE_CACHE,
 	                   function_bind(BKE_object_eval_cloth,
 	                                 _1,
 	                                 scene_cow,
@@ -1087,7 +1085,6 @@ void DepsgraphNodeBuilder::build_lamp(Object *ob)
 
 	build_animdata(&la->id);
 
-	/* node for obdata */
 	add_operation_node(lamp_id,
 	                   DEG_NODE_TYPE_PARAMETERS,
 	                   NULL,
@@ -1252,7 +1249,6 @@ void DepsgraphNodeBuilder::build_cachefile(CacheFile *cache_file)
 	/* Animation, */
 	build_animdata(cache_file_id);
 	/* Cache evaluation itself. */
-	add_component_node(cache_file_id, DEG_NODE_TYPE_CACHE);
 	add_operation_node(cache_file_id, DEG_NODE_TYPE_CACHE, NULL,
 	                   DEG_OPCODE_PLACEHOLDER, "Cache File Update");
 }
