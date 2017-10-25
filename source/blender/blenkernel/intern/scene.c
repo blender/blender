@@ -1106,7 +1106,6 @@ BaseLegacy *BKE_scene_base_find(Scene *scene, Object *ob)
  */
 void BKE_scene_set_background(Main *bmain, Scene *scene)
 {
-	Scene *sce;
 	BaseLegacy *base;
 	Object *ob;
 	Group *group;
@@ -1131,10 +1130,6 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
 			}
 		}
 	}
-
-	/* sort baselist for scene and sets */
-	for (sce = scene; sce; sce = sce->set)
-		DEG_scene_relations_rebuild(bmain, sce);
 
 	/* copy layers and flags from bases to objects */
 	for (base = scene->base.first; base; base = base->next) {

@@ -291,6 +291,11 @@ void DEG_scene_relations_update(Main *bmain, Scene *scene)
 		/* Rebuild graph from scratch and exit. */
 		scene->depsgraph_legacy = DEG_graph_new();
 		DEG_graph_build_from_scene(scene->depsgraph_legacy, bmain, scene);
+		/* TODO(sergey): When we first create dependency graph we consider
+		 * it is first time became visible. This is true for viewports, but
+		 * will fail when render engines will start having their own graphs.
+		 */
+		DEG_graph_on_visible_update(bmain, scene->depsgraph_legacy);
 		return;
 	}
 	DEG_graph_relations_update(scene->depsgraph_legacy, bmain, scene);
