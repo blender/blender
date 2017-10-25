@@ -47,6 +47,7 @@
 #include "BKE_texture.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "ED_node.h"
 
@@ -115,12 +116,15 @@ static void rna_World_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Poi
 static void rna_World_use_nodes_update(bContext *C, PointerRNA *ptr)
 {
 	World *wrld = (World *)ptr->data;
+	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
 
 	if (wrld->use_nodes && wrld->nodetree == NULL)
 		ED_node_shader_default(C, &wrld->id);
-	
-	rna_World_update(CTX_data_main(C), CTX_data_scene(C), ptr);
-	rna_World_draw_update(CTX_data_main(C), CTX_data_scene(C), ptr);
+
+	DEG_relations_tag_update(bmain);
+	rna_World_update(bmain, scene, ptr);
+	rna_World_draw_update(bmain, scene, ptr);
 }
 
 #else

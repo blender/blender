@@ -93,6 +93,7 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
 #include "BKE_paint.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "ED_node.h"
 #include "ED_image.h"
@@ -339,11 +340,13 @@ static void rna_Material_use_specular_ramp_set(PointerRNA *ptr, int value)
 static void rna_Material_use_nodes_update(bContext *C, PointerRNA *ptr)
 {
 	Material *ma = (Material *)ptr->data;
+	Main *bmain = CTX_data_main(C);
 
 	if (ma->use_nodes && ma->nodetree == NULL)
 		ED_node_shader_default(C, &ma->id);
-	
-	rna_Material_draw_update(CTX_data_main(C), CTX_data_scene(C), ptr);
+
+	DEG_relations_tag_update(bmain);
+	rna_Material_draw_update(bmain, CTX_data_scene(C), ptr);
 }
 
 static const EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *UNUSED(C), PointerRNA *ptr,
