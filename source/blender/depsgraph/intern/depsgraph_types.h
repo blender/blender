@@ -168,6 +168,7 @@ typedef enum eDepsOperation_Code {
 	/* Evaluate the whole geometry, including modifiers. */
 	DEG_OPCODE_GEOMETRY_UBEREVAL,
 	DEG_OPCODE_GEOMETRY_CLOTH_MODIFIER,
+	DEG_OPCODE_GEOMETRY_SHAPEKEY,
 
 	/* Pose. -------------------------------------------- */
 	/* Init pose, clear flags, etc. */

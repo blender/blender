@@ -714,9 +714,10 @@ void DepsgraphNodeBuilder::build_cloth(Scene *scene, Object *object)
 void DepsgraphNodeBuilder::build_shapekeys(Key *key)
 {
 	build_animdata(&key->id);
-
-	add_operation_node(&key->id, DEG_NODE_TYPE_GEOMETRY, NULL,
-	                   DEG_OPCODE_PLACEHOLDER, "Shapekey Eval");
+	add_operation_node(&key->id,
+	                   DEG_NODE_TYPE_GEOMETRY,
+	                   NULL,
+	                   DEG_OPCODE_GEOMETRY_SHAPEKEY);
 }
 
 /* ObData Geometry Evaluation */
