@@ -113,6 +113,7 @@ public:
 		foreach(SubDevice& sub, devices) {
 			mem.device = sub.device;
 			mem.device_pointer = 0;
+			mem.device_size = 0;
 
 			sub.device->mem_alloc(mem);
 			sub.ptr_map[key] = mem.device_pointer;
@@ -120,16 +121,19 @@ public:
 
 		mem.device = this;
 		mem.device_pointer = key;
+		stats.mem_alloc(mem.device_size);
 	}
 
 	void mem_copy_to(device_memory& mem)
 	{
 		device_ptr existing_key = mem.device_pointer;
 		device_ptr key = (existing_key)? existing_key: unique_key++;
+		size_t existing_size = mem.device_size;
 
 		foreach(SubDevice& sub, devices) {
 			mem.device = sub.device;
 			mem.device_pointer = (existing_key)? sub.ptr_map[existing_key]: 0;
+			mem.device_size = existing_size;
 
 			sub.device->mem_copy_to(mem);
 			sub.ptr_map[key] = mem.device_pointer;
@@ -137,6 +141,7 @@ public:
 
 		mem.device = this;
 		mem.device_pointer = key;
+		stats.mem_alloc(mem.device_size - existing_size);
 	}
 
 	void mem_copy_from(device_memory& mem, int y, int w, int h, int elem)
@@ -163,10 +168,12 @@ public:
 	{
 		device_ptr existing_key = mem.device_pointer;
 		device_ptr key = (existing_key)? existing_key: unique_key++;
+		size_t existing_size = mem.device_size;
 
 		foreach(SubDevice& sub, devices) {
 			mem.device = sub.device;
 			mem.device_pointer = (existing_key)? sub.ptr_map[existing_key]: 0;
+			mem.device_size = existing_size;
 
 			sub.device->mem_zero(mem);
 			sub.ptr_map[key] = mem.device_pointer;
@@ -174,15 +181,18 @@ public:
 
 		mem.device = this;
 		mem.device_pointer = key;
+		stats.mem_alloc(mem.device_size - existing_size);
 	}
 
 	void mem_free(device_memory& mem)
 	{
 		device_ptr key = mem.device_pointer;
+		size_t existing_size = mem.device_size;
 
 		foreach(SubDevice& sub, devices) {
 			mem.device = sub.device;
 			mem.device_pointer = sub.ptr_map[key];
+			mem.device_size = existing_size;
 
 			sub.device->mem_free(mem);
 			sub.ptr_map.erase(sub.ptr_map.find(key));
@@ -190,6 +200,8 @@ public:
 
 		mem.device = this;
 		mem.device_pointer = 0;
+		mem.device_size = 0;
+		stats.mem_free(existing_size);
 	}
 
 	void const_copy_to(const char *name, void *host, size_t size)

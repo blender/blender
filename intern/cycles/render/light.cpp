@@ -37,7 +37,7 @@ static void shade_background_pixels(Device *device, DeviceScene *dscene, int res
 	int height = res;
 
 	device_vector<uint4> d_input(device, "background_input", MEM_READ_ONLY);
-	device_vector<float4> d_output(device, "background_output", MEM_WRITE_ONLY);
+	device_vector<float4> d_output(device, "background_output", MEM_READ_WRITE);
 
 	uint4 *d_input_data = d_input.alloc(width*height);
 
