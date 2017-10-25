@@ -1419,8 +1419,7 @@ void DepsgraphRelationBuilder::build_cloth(Scene * /*scene*/,
 {
 	OperationKey cache_key(&object->id,
 	                       DEG_NODE_TYPE_CACHE,
-	                       DEG_OPCODE_PLACEHOLDER,
-	                       "Cloth Modifier");
+	                       DEG_OPCODE_GEOMETRY_CLOTH_MODIFIER);
 	/* Cache component affects on modifier. */
 	OperationKey modifier_key(&object->id,
 	                          DEG_NODE_TYPE_GEOMETRY,

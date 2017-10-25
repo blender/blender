@@ -707,8 +707,7 @@ void DepsgraphNodeBuilder::build_cloth(Scene *scene, Object *object)
 	                                 _1,
 	                                 scene,
 	                                 object),
-	                   DEG_OPCODE_PLACEHOLDER,
-	                   "Cloth Modifier");
+	                   DEG_OPCODE_GEOMETRY_CLOTH_MODIFIER);
 }
 
 /* Shapekeys */
