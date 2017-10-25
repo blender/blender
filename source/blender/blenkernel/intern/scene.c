@@ -1588,16 +1588,12 @@ static void prepare_mesh_for_viewport_render(Main *bmain, Scene *scene)
 
 void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *scene)
 {
-	Scene *sce_iter;
-
 	/* (re-)build dependency graph if needed */
-	for (sce_iter = scene; sce_iter; sce_iter = sce_iter->set) {
-		DEG_scene_relations_update(bmain, sce_iter);
-		/* Uncomment this to check if graph was properly tagged for update. */
+	DEG_scene_relations_update(bmain, scene);
+	/* Uncomment this to check if graph was properly tagged for update. */
 #if 0
-		DEG_scene_relations_validate(bmain, sce_iter);
+	DEG_scene_relations_validate(bmain, scene);
 #endif
-	}
 
 	/* flush editing data if needed */
 	prepare_mesh_for_viewport_render(bmain, scene);
@@ -1606,9 +1602,9 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 	DEG_graph_flush_update(bmain, scene->depsgraph_legacy);
 
 	/* removed calls to quick_cache, see pointcache.c */
-	
+
 	/* clear "LIB_TAG_DOIT" flag from all materials, to prevent infinite recursion problems later
-	 * when trying to find materials with drivers that need evaluating [#32017] 
+	 * when trying to find materials with drivers that need evaluating [#32017]
 	 */
 	BKE_main_id_tag_idcode(bmain, ID_MA, LIB_TAG_DOIT, false);
 	BKE_main_id_tag_idcode(bmain, ID_LA, LIB_TAG_DOIT, false);
@@ -1632,7 +1628,6 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 void BKE_scene_update_for_newframe(EvaluationContext *eval_ctx, Main *bmain, Scene *sce)
 {
 	float ctime = BKE_scene_frame_get(sce);
-	Scene *sce_iter;
 
 	DEG_editors_update_pre(bmain, sce, true);
 
@@ -1644,12 +1639,11 @@ void BKE_scene_update_for_newframe(EvaluationContext *eval_ctx, Main *bmain, Sce
 	BKE_image_update_frame(bmain, sce->r.cfra);
 
 	BKE_sound_set_cfra(sce->r.cfra);
-	
+
 	/* clear animation overrides */
 	/* XXX TODO... */
 
-	for (sce_iter = sce; sce_iter; sce_iter = sce_iter->set)
-		DEG_scene_relations_update(bmain, sce_iter);
+	DEG_scene_relations_update(bmain, sce);
 
 	/* Update animated cache files for modifiers. */
 	BKE_cachefile_update_frame(bmain, sce, ctime, (((double)sce->r.frs_sec) / (double)sce->r.frs_sec_base));
@@ -1659,7 +1653,7 @@ void BKE_scene_update_for_newframe(EvaluationContext *eval_ctx, Main *bmain, Sce
 #endif
 
 	/* clear "LIB_TAG_DOIT" flag from all materials, to prevent infinite recursion problems later
-	 * when trying to find materials with drivers that need evaluating [#32017] 
+	 * when trying to find materials with drivers that need evaluating [#32017]
 	 */
 	BKE_main_id_tag_idcode(bmain, ID_MA, LIB_TAG_DOIT, false);
 	BKE_main_id_tag_idcode(bmain, ID_LA, LIB_TAG_DOIT, false);
