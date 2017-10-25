@@ -139,6 +139,8 @@ static const char *stringify_opcode(eDepsOperation_Code opcode)
 		STRINGIFY_OPCODE(MASK_EVAL);
 		/* Shading. */
 		STRINGIFY_OPCODE(SHADING);
+		/* Movie clip. */
+		STRINGIFY_OPCODE(MOVIECLIP_EVAL);
 
 		case DEG_NUM_OPCODES: return "SpecialCase";
 #undef STRINGIFY_OPCODE

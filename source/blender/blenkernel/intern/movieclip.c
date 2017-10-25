@@ -77,6 +77,8 @@
 #  include "intern/openexr/openexr_multi.h"
 #endif
 
+#define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH) printf
+
 /*********************** movieclip buffer loaders *************************/
 
 static int sequence_guess_offset(const char *full_name, int head_len, unsigned short numlen)
@@ -1588,4 +1590,10 @@ bool BKE_movieclip_put_frame_if_possible(MovieClip *clip,
 	BLI_unlock_thread(LOCK_MOVIECLIP);
 
 	return result;
+}
+
+void BKE_movieclip_eval_update(struct EvaluationContext *UNUSED(eval_ctx), MovieClip *clip)
+{
+	DEBUG_PRINT("%s on %s (%p)\n", __func__, clip->id.name, clip);
+	BKE_tracking_dopesheet_tag_update(&clip->tracking);
 }

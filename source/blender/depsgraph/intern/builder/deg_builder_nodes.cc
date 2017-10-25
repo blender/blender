@@ -86,6 +86,7 @@ extern "C" {
 #include "BKE_mesh.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
+#include "BKE_movieclip.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -1112,6 +1113,11 @@ void DepsgraphNodeBuilder::build_movieclip(MovieClip *clip) {
 	ID *clip_id = &clip->id;
 	/* Animation. */
 	build_animdata(clip_id);
+	/* Movie clip evaluation. */
+	add_operation_node(clip_id,
+	                   DEG_NODE_TYPE_PARAMETERS,
+	                   function_bind(BKE_movieclip_eval_update, _1, clip),
+	                   DEG_OPCODE_MOVIECLIP_EVAL);
 }
 
 }  // namespace DEG

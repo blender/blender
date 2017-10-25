@@ -210,9 +210,12 @@ typedef enum eDepsOperation_Code {
 	/* Shading. ------------------------------------------- */
 	DEG_OPCODE_SHADING,
 
-	/* Masks ------------------------------------------- */
+	/* Masks. ------------------------------------------ */
 	DEG_OPCODE_MASK_ANIMATION,
 	DEG_OPCODE_MASK_EVAL,
+
+	/* Movie clips. ------------------------------------ */
+	DEG_OPCODE_MOVIECLIP_EVAL,
 
 	DEG_NUM_OPCODES,
 } eDepsOperation_Code;
