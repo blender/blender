@@ -176,6 +176,8 @@ typedef enum eDepsOperation_Code {
 	/* Geometry. ---------------------------------------- */
 	/* Evaluate the whole geometry, including modifiers. */
 	DEG_OPCODE_GEOMETRY_UBEREVAL,
+	DEG_OPCODE_GEOMETRY_CLOTH_MODIFIER,
+	DEG_OPCODE_GEOMETRY_SHAPEKEY,
 
 	/* Pose. -------------------------------------------- */
 	/* Init pose, clear flags, etc. */
@@ -229,9 +231,12 @@ typedef enum eDepsOperation_Code {
 	DEG_OPCODE_MATERIAL_UPDATE,
 	DEG_OPCODE_WORLD_UPDATE,
 
-	/* Masks ------------------------------------------- */
+	/* Masks. ------------------------------------------ */
 	DEG_OPCODE_MASK_ANIMATION,
 	DEG_OPCODE_MASK_EVAL,
+
+	/* Movie clips. ------------------------------------ */
+	DEG_OPCODE_MOVIECLIP_EVAL,
 
 	DEG_NUM_OPCODES,
 } eDepsOperation_Code;
