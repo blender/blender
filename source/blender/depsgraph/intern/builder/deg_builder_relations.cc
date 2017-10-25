@@ -342,7 +342,7 @@ void DepsgraphRelationBuilder::add_forcefield_relations(const OperationKey &key,
 					add_relation(mod_key, key, name);
 				}
 				else if (eff->psys != psys) {
-					OperationKey eff_key(&eff->ob->id, DEG_NODE_TYPE_EVAL_PARTICLES, DEG_OPCODE_PSYS_EVAL, eff->psys->name);
+					OperationKey eff_key(&eff->ob->id, DEG_NODE_TYPE_EVAL_PARTICLES, DEG_OPCODE_PARTICLE_SYSTEM_EVAL, eff->psys->name);
 					add_relation(eff_key, key, name);
 				}
 			}
@@ -422,7 +422,7 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 	OperationKey parent_transform_key(&ob->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_PARENT);
 	OperationKey final_transform_key(&ob->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_FINAL);
 
-	OperationKey ob_ubereval_key(&ob->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_OBJECT_UBEREVAL);
+	OperationKey ob_ubereval_key(&ob->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_OBJECT_UBEREVAL);
 
 	/* parenting */
 	if (ob->parent != NULL) {
@@ -1262,7 +1262,7 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 			 *    XXX: there's probably a difference between passive and active
 			 *         - passive don't change, so may need to know full transform...
 			 */
-			OperationKey rbo_key(&ob->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_RIGIDBODY);
+			OperationKey rbo_key(&ob->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_RIGIDBODY_TRANSFORM_COPY);
 
 			eDepsOperation_Code trans_opcode = ob->parent ? DEG_OPCODE_TRANSFORM_PARENT : DEG_OPCODE_TRANSFORM_LOCAL;
 			OperationKey trans_op(&ob->id, DEG_NODE_TYPE_TRANSFORM, trans_opcode);
@@ -1291,7 +1291,7 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 				 */
 				OperationKey uber_key(&ob->id,
 				                      DEG_NODE_TYPE_TRANSFORM,
-				                      DEG_OPCODE_OBJECT_UBEREVAL);
+				                      DEG_OPCODE_TRANSFORM_OBJECT_UBEREVAL);
 				add_relation(rbo_key, uber_key, "RBO Sync -> Uber (Temp)");
 			}
 
@@ -1314,8 +1314,8 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 			 * constraint affects the physics sim for these objects
 			 */
 			ComponentKey trans_key(&ob->id, DEG_NODE_TYPE_TRANSFORM);
-			OperationKey ob1_key(&rbc->ob1->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_RIGIDBODY);
-			OperationKey ob2_key(&rbc->ob2->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_RIGIDBODY);
+			OperationKey ob1_key(&rbc->ob1->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_RIGIDBODY_TRANSFORM_COPY);
+			OperationKey ob2_key(&rbc->ob2->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_RIGIDBODY_TRANSFORM_COPY);
 
 			/* - constrained-objects sync depends on the constraint-holder */
 			add_relation(trans_key, ob1_key, "RigidBodyConstraint -> RBC.Object_1");
@@ -1335,7 +1335,7 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 	                                 DEG_OPCODE_GEOMETRY_UBEREVAL);
 	OperationKey eval_init_key(&ob->id,
 	                           DEG_NODE_TYPE_EVAL_PARTICLES,
-	                           DEG_OPCODE_PSYS_EVAL_INIT);
+	                           DEG_OPCODE_PARTICLE_SYSTEM_EVAL_INIT);
 	/* TODO(sergey): Are all particle systems depends on time?
 	 * Hair without dynamics i.e.
 	 */
@@ -1349,7 +1349,7 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 		build_animdata(&part->id);
 
 		/* this particle system */
-		OperationKey psys_key(&ob->id, DEG_NODE_TYPE_EVAL_PARTICLES, DEG_OPCODE_PSYS_EVAL, psys->name);
+		OperationKey psys_key(&ob->id, DEG_NODE_TYPE_EVAL_PARTICLES, DEG_OPCODE_PARTICLE_SYSTEM_EVAL, psys->name);
 
 		/* XXX: if particle system is later re-enabled, we must do full rebuild? */
 		if (!psys_check_enabled(ob, psys, G.is_rendering))

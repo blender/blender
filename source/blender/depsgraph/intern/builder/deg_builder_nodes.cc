@@ -465,7 +465,7 @@ void DepsgraphNodeBuilder::build_object_transform(Scene *scene, Object *ob)
 	 */
 	add_operation_node(&ob->id, DEG_NODE_TYPE_TRANSFORM,
 	                   function_bind(BKE_object_eval_uber_transform, _1, scene, ob),
-	                   DEG_OPCODE_OBJECT_UBEREVAL);
+	                   DEG_OPCODE_TRANSFORM_OBJECT_UBEREVAL);
 
 	/* object transform is done */
 	op_node = add_operation_node(&ob->id, DEG_NODE_TYPE_TRANSFORM,
@@ -649,7 +649,7 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
 			/* object's transform component - where the rigidbody operation lives */
 			add_operation_node(&ob->id, DEG_NODE_TYPE_TRANSFORM,
 			                   function_bind(BKE_rigidbody_object_sync_transforms, _1, scene, ob),
-			                   DEG_OPCODE_TRANSFORM_RIGIDBODY);
+			                   DEG_OPCODE_RIGIDBODY_TRANSFORM_COPY);
 		}
 	}
 }
@@ -680,7 +680,7 @@ void DepsgraphNodeBuilder::build_particles(Scene *scene, Object *ob)
 	                                 _1,
 	                                 scene,
 	                                 ob),
-	                   DEG_OPCODE_PSYS_EVAL_INIT);
+	                   DEG_OPCODE_PARTICLE_SYSTEM_EVAL_INIT);
 
 	/* particle systems */
 	LINKLIST_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
@@ -694,7 +694,7 @@ void DepsgraphNodeBuilder::build_particles(Scene *scene, Object *ob)
 		// TODO: for now, this will just be a placeholder "ubereval" node
 		add_operation_node(psys_comp,
 		                   NULL,
-		                   DEG_OPCODE_PSYS_EVAL,
+		                   DEG_OPCODE_PARTICLE_SYSTEM_EVAL,
 		                   psys->name);
 	}
 

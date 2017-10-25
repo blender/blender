@@ -66,7 +66,9 @@ static GHash *_depsnode_typeinfo_registry = NULL;
 void deg_register_node_typeinfo(DepsNodeFactory *factory)
 {
 	BLI_assert(factory != NULL);
-	BLI_ghash_insert(_depsnode_typeinfo_registry, SET_INT_IN_POINTER(factory->type()), factory);
+	BLI_ghash_insert(_depsnode_typeinfo_registry,
+	                 SET_INT_IN_POINTER(factory->type()),
+	                 factory);
 }
 
 /* Getters ------------------------------------------------- */
@@ -75,7 +77,8 @@ void deg_register_node_typeinfo(DepsNodeFactory *factory)
 DepsNodeFactory *deg_get_node_factory(const eDepsNode_Type type)
 {
 	/* look up type - at worst, it doesn't exist in table yet, and we fail */
-	return (DepsNodeFactory *)BLI_ghash_lookup(_depsnode_typeinfo_registry, SET_INT_IN_POINTER(type));
+	return (DepsNodeFactory *)BLI_ghash_lookup(_depsnode_typeinfo_registry,
+	                                           SET_INT_IN_POINTER(type));
 }
 
 /* Get typeinfo for provided node */
@@ -95,33 +98,45 @@ static const char *stringify_opcode(eDepsOperation_Code opcode)
 {
 	switch (opcode) {
 #define STRINGIFY_OPCODE(name) case DEG_OPCODE_##name: return #name
+		/* Generic Operations. */
 		STRINGIFY_OPCODE(OPERATION);
+		STRINGIFY_OPCODE(PARAMETERS_EVAL);
 		STRINGIFY_OPCODE(PLACEHOLDER);
+		/* Animation, Drivers, etc. */
 		STRINGIFY_OPCODE(ANIMATION);
 		STRINGIFY_OPCODE(DRIVER);
+		/* Transform. */
 		STRINGIFY_OPCODE(TRANSFORM_LOCAL);
 		STRINGIFY_OPCODE(TRANSFORM_PARENT);
 		STRINGIFY_OPCODE(TRANSFORM_CONSTRAINTS);
+		STRINGIFY_OPCODE(TRANSFORM_FINAL);
+		STRINGIFY_OPCODE(TRANSFORM_OBJECT_UBEREVAL);
+		/* Rigid body. */
 		STRINGIFY_OPCODE(RIGIDBODY_REBUILD);
 		STRINGIFY_OPCODE(RIGIDBODY_SIM);
-		STRINGIFY_OPCODE(TRANSFORM_RIGIDBODY);
-		STRINGIFY_OPCODE(TRANSFORM_FINAL);
-		STRINGIFY_OPCODE(OBJECT_UBEREVAL);
+		STRINGIFY_OPCODE(RIGIDBODY_TRANSFORM_COPY);
+		/* Geometry. */
 		STRINGIFY_OPCODE(GEOMETRY_UBEREVAL);
+		/* Pose. */
 		STRINGIFY_OPCODE(POSE_INIT);
 		STRINGIFY_OPCODE(POSE_INIT_IK);
 		STRINGIFY_OPCODE(POSE_DONE);
 		STRINGIFY_OPCODE(POSE_IK_SOLVER);
 		STRINGIFY_OPCODE(POSE_SPLINE_IK_SOLVER);
+		/* Bone. */
 		STRINGIFY_OPCODE(BONE_LOCAL);
 		STRINGIFY_OPCODE(BONE_POSE_PARENT);
 		STRINGIFY_OPCODE(BONE_CONSTRAINTS);
 		STRINGIFY_OPCODE(BONE_READY);
 		STRINGIFY_OPCODE(BONE_DONE);
-		STRINGIFY_OPCODE(PSYS_EVAL);
-		STRINGIFY_OPCODE(PSYS_EVAL_INIT);
+		/* Particles. */
+		STRINGIFY_OPCODE(PARTICLE_SYSTEM_EVAL_INIT);
+		STRINGIFY_OPCODE(PARTICLE_SYSTEM_EVAL);
+		/* Masks. */
 		STRINGIFY_OPCODE(MASK_ANIMATION);
 		STRINGIFY_OPCODE(MASK_EVAL);
+		/* Shading. */
+		STRINGIFY_OPCODE(SHADING);
 
 		case DEG_NUM_OPCODES: return "SpecialCase";
 #undef STRINGIFY_OPCODE

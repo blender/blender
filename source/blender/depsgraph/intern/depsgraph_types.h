@@ -103,10 +103,7 @@ typedef enum eDepsNode_Type {
 	DEG_NODE_TYPE_PARAMETERS,
 	/* Generic "Proxy-Inherit" Component. */
 	DEG_NODE_TYPE_PROXY,
-	/* Animation Component
-	 *
-	 * XXX: merge in with parameters?
-	 */
+	/* Animation Component */
 	DEG_NODE_TYPE_ANIMATION,
 	/* Transform Component (Parenting/Constraints) */
 	DEG_NODE_TYPE_TRANSFORM,
@@ -131,77 +128,64 @@ typedef enum eDepsNode_Type {
 
 /* Identifiers for common operations (as an enum). */
 typedef enum eDepsOperation_Code {
-	/* Generic Operations ------------------------------ */
+	/* Generic Operations. ------------------------------ */
 
 	/* Placeholder for operations which don't need special mention */
 	DEG_OPCODE_OPERATION = 0,
+
+	/* Generic parameters evaluation. */
+	DEG_OPCODE_PARAMETERS_EVAL,
 
 	// XXX: Placeholder while porting depsgraph code
 	DEG_OPCODE_PLACEHOLDER,
 
 	/* Animation, Drivers, etc. ------------------------ */
-
 	/* NLA + Action */
 	DEG_OPCODE_ANIMATION,
-
 	/* Driver */
 	DEG_OPCODE_DRIVER,
 
-	/* Transform --------------------------------------- */
-
+	/* Transform. -------------------------------------- */
 	/* Transform entry point - local transforms only */
 	DEG_OPCODE_TRANSFORM_LOCAL,
-
 	/* Parenting */
 	DEG_OPCODE_TRANSFORM_PARENT,
-
 	/* Constraints */
 	DEG_OPCODE_TRANSFORM_CONSTRAINTS,
+	/* Transform exit point */
+	DEG_OPCODE_TRANSFORM_FINAL,
+	/* Handle object-level updates, mainly proxies hacks and recalc flags.  */
+	DEG_OPCODE_TRANSFORM_OBJECT_UBEREVAL,
 
-	/* Rigidbody Sim - Perform Sim */
+	/* Rigid body. -------------------------------------- */
+	/* Perform Simulation */
 	DEG_OPCODE_RIGIDBODY_REBUILD,
 	DEG_OPCODE_RIGIDBODY_SIM,
+	/* Copy results to object */
+	DEG_OPCODE_RIGIDBODY_TRANSFORM_COPY,
 
-	/* Rigidbody Sim - Copy Results to Object */
-	DEG_OPCODE_TRANSFORM_RIGIDBODY,
-
-	/* Transform exitpoint */
-	DEG_OPCODE_TRANSFORM_FINAL,
-
-	/* XXX: ubereval is for temporary porting purposes only */
-	DEG_OPCODE_OBJECT_UBEREVAL,
-
-	/* Geometry ---------------------------------------- */
-
-	/* XXX: Placeholder - UberEval */
+	/* Geometry. ---------------------------------------- */
+	/* Evaluate the whole geometry, including modifiers. */
 	DEG_OPCODE_GEOMETRY_UBEREVAL,
 
-	/* Pose -------------------------------------------- */
-
+	/* Pose. -------------------------------------------- */
 	/* Init pose, clear flags, etc. */
 	DEG_OPCODE_POSE_INIT,
-
 	/* Initialize IK solver related pose stuff. */
 	DEG_OPCODE_POSE_INIT_IK,
-
 	/* Free IK Trees + Compute Deform Matrices */
 	DEG_OPCODE_POSE_DONE,
-
 	/* IK/Spline Solvers */
 	DEG_OPCODE_POSE_IK_SOLVER,
 	DEG_OPCODE_POSE_SPLINE_IK_SOLVER,
 
-	/* Bone -------------------------------------------- */
-
-	/* Bone local transforms - Entrypoint */
+	/* Bone. -------------------------------------------- */
+	/* Bone local transforms - entry point */
 	DEG_OPCODE_BONE_LOCAL,
-
 	/* Pose-space conversion (includes parent + restpose, */
 	DEG_OPCODE_BONE_POSE_PARENT,
-
 	/* Constraints */
 	DEG_OPCODE_BONE_CONSTRAINTS,
-
 	/* Bone transforms are ready
 	 *
 	 * - "READY"  This (internal, noop is used to signal that all pre-IK
@@ -216,11 +200,13 @@ typedef enum eDepsOperation_Code {
 	DEG_OPCODE_BONE_READY,
 	DEG_OPCODE_BONE_DONE,
 
-	/* Particles --------------------------------------- */
+	/* Particles. --------------------------------------- */
+	/* Particle System evaluation. */
+	DEG_OPCODE_PARTICLE_SYSTEM_EVAL_INIT,
+	DEG_OPCODE_PARTICLE_SYSTEM_EVAL,
 
-	/* XXX: placeholder - Particle System eval */
-	DEG_OPCODE_PSYS_EVAL_INIT,
-	DEG_OPCODE_PSYS_EVAL,
+	/* Shading. ------------------------------------------- */
+	DEG_OPCODE_SHADING,
 
 	/* Masks ------------------------------------------- */
 	DEG_OPCODE_MASK_ANIMATION,
