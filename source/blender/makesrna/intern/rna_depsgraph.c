@@ -38,10 +38,11 @@
 
 #include "DNA_object_types.h"
 
+#define STATS_MAX_SIZE 16384
+
 #ifdef RNA_RUNTIME
 
 #include "BLI_iterator.h"
-#include "BKE_report.h"
 
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_debug.h"
@@ -122,41 +123,25 @@ static int rna_DepsgraphIter_is_instance_get(PointerRNA *ptr)
 static void rna_Depsgraph_debug_graphviz(Depsgraph *graph, const char *filename)
 {
 	FILE *f = fopen(filename, "w");
-	if (f == NULL)
+	if (f == NULL) {
 		return;
-
+	}
 	DEG_debug_graphviz(graph, f, "Depsgraph", false);
-
 	fclose(f);
 }
 
-static void rna_Depsgraph_debug_rebuild(Depsgraph *UNUSED(graph), bContext *C)
+static void rna_Depsgraph_debug_tag_update(Depsgraph *graph)
 {
-	Main *bmain = CTX_data_main(C);
-	EvaluationContext eval_ctx;
-	Scene *sce;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
-
-	DEG_relations_tag_update(bmain);
-	for (sce = bmain->scene.first; sce; sce = sce->id.next) {
-		DEG_scene_relations_rebuild(bmain, sce);
-		DEG_graph_on_visible_update(bmain, sce->depsgraph_legacy);
-	}
+	DEG_graph_tag_relations_update(graph);
 }
 
-static void rna_Depsgraph_debug_stats(Depsgraph *graph, ReportList *reports)
+static void rna_Depsgraph_debug_stats(Depsgraph *graph, char *result)
 {
 	size_t outer, ops, rels;
-
 	DEG_stats_simple(graph, &outer, &ops, &rels);
-
-	// XXX: report doesn't seem to work
-	printf("Approx %lu Operations, %lu Relations, %lu Outer Nodes\n",
-	       ops, rels, outer);
-
-	BKE_reportf(reports, RPT_WARNING, "Approx. %lu Operations, %lu Relations, %lu Outer Nodes",
-	            ops, rels, outer);
+	BLI_snprintf(result, STATS_MAX_SIZE,
+	            "Approx %lu Operations, %lu Relations, %lu Outer Nodes",
+	             ops, rels, outer);
 }
 
 /* Iteration over objects, simple version */
@@ -310,12 +295,14 @@ static void rna_def_depsgraph(BlenderRNA *brna)
 	                                "File in which to store graphviz debug output");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
-	func = RNA_def_function(srna, "debug_rebuild", "rna_Depsgraph_debug_rebuild");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	func = RNA_def_function(srna, "debug_tag_update", "rna_Depsgraph_debug_tag_update");
 
 	func = RNA_def_function(srna, "debug_stats", "rna_Depsgraph_debug_stats");
 	RNA_def_function_ui_description(func, "Report the number of elements in the Dependency Graph");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	/* weak!, no way to return dynamic string type */
+	parm = RNA_def_string(func, "result", NULL, STATS_MAX_SIZE, "result", "");
+	RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0); /* needed for string return value */
+	RNA_def_function_output(func, parm);
 
 	prop = RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
