@@ -399,7 +399,7 @@ void wm_event_do_notifiers(bContext *C)
 			if (G.is_rendering == false) {
 
 				/* depsgraph gets called, might send more notifiers */
-				ED_update_for_newframe(CTX_data_main(C), scene, 1);
+				ED_update_for_newframe(CTX_data_main(C), scene);
 			}
 		}
 	}
@@ -2619,7 +2619,7 @@ void wm_event_do_handlers(bContext *C)
 							int ncfra = time * (float)FPS + 0.5f;
 							if (ncfra != scene->r.cfra) {
 								scene->r.cfra = ncfra;
-								ED_update_for_newframe(CTX_data_main(C), scene, 1);
+								ED_update_for_newframe(CTX_data_main(C), scene);
 								WM_event_add_notifier(C, NC_WINDOW, NULL);
 							}
 						}

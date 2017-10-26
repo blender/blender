@@ -163,7 +163,7 @@ bool ED_workspace_layout_cycle(
         struct bContext *C) ATTR_NONNULL();
 
 /* anim */
-void    ED_update_for_newframe(struct Main *bmain, struct Scene *scene, int mute);
+void    ED_update_for_newframe(struct Main *bmain, struct Scene *scene);
 
 void    ED_refresh_viewport_fps(struct bContext *C);
 int		ED_screen_animation_play(struct bContext *C, int sync, int mode);

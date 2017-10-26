@@ -1725,9 +1725,8 @@ void ED_screen_animation_timer_update(bScreen *screen, int redraws, int refresh)
 	}
 }
 
-/* results in fully updated anim system
- * screen can be NULL */
-void ED_update_for_newframe(Main *bmain, Scene *scene, int UNUSED(mute))
+/* results in fully updated anim system */
+void ED_update_for_newframe(Main *bmain, Scene *scene)
 {
 #ifdef DURIAN_CAMERA_SWITCH
 	void *camera = BKE_scene_camera_switch_find(scene);

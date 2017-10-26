@@ -132,7 +132,7 @@ void ED_scene_changed_update(Main *bmain, bContext *C, Scene *scene_new, const b
 
 	ED_screen_update_after_scene_change(active_screen, scene_new);
 	ED_render_engine_changed(bmain);
-	ED_update_for_newframe(bmain, scene_new, 1);
+	ED_update_for_newframe(bmain, scene_new);
 
 	/* complete redraw */
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
