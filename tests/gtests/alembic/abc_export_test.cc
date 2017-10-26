@@ -30,24 +30,47 @@ public:
 
 };
 
-
-TEST(abc_export, TimeSamplesFullShutter) {
+class AlembicExportTest : public testing::Test
+{
+protected:
 	ExportSettings settings;
-	settings.frame_start = 31.0;
-	settings.frame_end = 223.0;
+	Scene scene;
+	TestableAbcExporter *exporter;
+
+	virtual void SetUp()
+	{
+		settings.frame_start = 31.0;
+		settings.frame_end = 223.0;
+
+		/* Fake a 25 FPS scene with a nonzero base (because that's sometimes forgotten) */
+		scene.r.frs_sec = 50;
+		scene.r.frs_sec_base = 2;
+
+		exporter = NULL;
+	}
+
+	virtual void TearDown()
+	{
+		delete exporter;
+	}
+
+	// Call after setting up the settings.
+	void createExporter()
+	{
+		exporter = new TestableAbcExporter(&scene, "somefile.abc", settings);
+	}
+};
+
+
+TEST_F(AlembicExportTest, TimeSamplesFullShutter) {
 	settings.shutter_open = 0.0;
 	settings.shutter_close = 1.0;
 
-	/* Fake a 25 FPS scene with a nonzero base (because that's sometimes forgotten) */
-	Scene scene;
-	scene.r.frs_sec = 50;
-	scene.r.frs_sec_base = 2;
-
-	TestableAbcExporter exporter(&scene, "somefile.abc", settings);
+	createExporter();
 	std::vector<double> samples;
 
 	/* test 5 samples per frame */
-	exporter.getShutterSamples(5, true, samples);
+	exporter->getShutterSamples(5, true, samples);
 	EXPECT_EQ(5, samples.size());
 	EXPECT_NEAR(1.240, samples[0], 1e-5f);
 	EXPECT_NEAR(1.248, samples[1], 1e-5f);
@@ -56,7 +79,7 @@ TEST(abc_export, TimeSamplesFullShutter) {
 	EXPECT_NEAR(1.272, samples[4], 1e-5f);
 
 	/* test same, but using frame number offset instead of time */
-	exporter.getShutterSamples(5, false, samples);
+	exporter->getShutterSamples(5, false, samples);
 	EXPECT_EQ(5, samples.size());
 	EXPECT_NEAR(0.0, samples[0], 1e-5f);
 	EXPECT_NEAR(0.2, samples[1], 1e-5f);
@@ -66,7 +89,7 @@ TEST(abc_export, TimeSamplesFullShutter) {
 
 	/* use the same setup to test getFrameSet() */
 	std::set<double> frames;
-	exporter.getFrameSet(5, frames);
+	exporter->getFrameSet(5, frames);
 	EXPECT_EQ(965, frames.size());
 	EXPECT_EQ(1, frames.count(31.0));
 	EXPECT_EQ(1, frames.count(31.2));
@@ -76,23 +99,15 @@ TEST(abc_export, TimeSamplesFullShutter) {
 }
 
 
-TEST(abc_export, TimeSamples180degShutter) {
-	ExportSettings settings;
-	settings.frame_start = 31.0;
-	settings.frame_end = 223.0;
+TEST_F(AlembicExportTest, TimeSamples180degShutter) {
 	settings.shutter_open = -0.25;
 	settings.shutter_close = 0.25;
 
-	/* Fake a 25 FPS scene with a nonzero base (because that's sometimes forgotten) */
-	Scene scene;
-	scene.r.frs_sec = 50;
-	scene.r.frs_sec_base = 2;
-
-	TestableAbcExporter exporter(&scene, "somefile.abc", settings);
+	createExporter();
 	std::vector<double> samples;
 
 	/* test 5 samples per frame */
-	exporter.getShutterSamples(5, true, samples);
+	exporter->getShutterSamples(5, true, samples);
 	EXPECT_EQ(5, samples.size());
 	EXPECT_NEAR(1.230, samples[0], 1e-5f);
 	EXPECT_NEAR(1.234, samples[1], 1e-5f);
@@ -101,7 +116,7 @@ TEST(abc_export, TimeSamples180degShutter) {
 	EXPECT_NEAR(1.246, samples[4], 1e-5f);
 
 	/* test same, but using frame number offset instead of time */
-	exporter.getShutterSamples(5, false, samples);
+	exporter->getShutterSamples(5, false, samples);
 	EXPECT_EQ(5, samples.size());
 	EXPECT_NEAR(-0.25, samples[0], 1e-5f);
 	EXPECT_NEAR(-0.15, samples[1], 1e-5f);
@@ -112,7 +127,7 @@ TEST(abc_export, TimeSamples180degShutter) {
 	/* Use the same setup to test getFrameSet().
 	 * Here only a few numbers are tested, due to rounding issues. */
 	std::set<double> frames;
-	exporter.getFrameSet(5, frames);
+	exporter->getFrameSet(5, frames);
 	EXPECT_EQ(965, frames.size());
 	EXPECT_EQ(1, frames.count(30.75));
 	EXPECT_EQ(1, frames.count(30.95));
