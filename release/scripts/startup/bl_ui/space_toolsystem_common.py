@@ -81,6 +81,10 @@ class ToolSelectPanelHelper:
         # {tool_name: (keymap, keymap_idname, manipulator_group_idname), ...}
         cls._tool_keymap = {}
 
+        # ignore in background mode
+        if kc is None:
+            return
+
         for t in cls.tools_all():
             text, mp_idname, actions = t
             if actions is not None:
