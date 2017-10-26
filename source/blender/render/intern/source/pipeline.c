@@ -4024,7 +4024,7 @@ bool RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env,
 	}
 }
 
-/* used in the interface to decide whether to show layers */
+/* Used in the interface to decide whether to show layers or passes. */
 bool RE_layers_have_name(struct RenderResult *rr)
 {
 	switch (BLI_listbase_count_ex(&rr->layers, 2)) {
@@ -4035,6 +4035,17 @@ bool RE_layers_have_name(struct RenderResult *rr)
 		default:
 			return true;
 	}
+	return false;
+}
+
+bool RE_passes_have_name(struct RenderLayer *rl)
+{
+	for (RenderPass *rp = rl->passes.first; rp; rp = rp->next) {
+		if (!STREQ(rp->name, "Combined")) {
+			return true;
+		}
+	}
+
 	return false;
 }
 

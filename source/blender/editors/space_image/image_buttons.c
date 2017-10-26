@@ -403,16 +403,6 @@ final:
 	BKE_image_release_renderresult(scene, image);
 }
 
-static const char *ui_imageuser_pass_fake_name(RenderLayer *rl)
-{
-	if (rl == NULL) {
-		return IFACE_("Combined");
-	}
-	else {
-		return NULL;
-	}
-}
-
 static void ui_imageuser_pass_menu(bContext *UNUSED(C), uiLayout *layout, void *rnd_pt)
 {
 	struct ImageUI_Data *rnd_data = rnd_pt;
@@ -424,9 +414,7 @@ static void ui_imageuser_pass_menu(bContext *UNUSED(C), uiLayout *layout, void *
 	Scene *scene = iuser->scene;
 	RenderResult *rr;
 	RenderLayer *rl;
-	RenderPass rpass_fake = {NULL};
 	RenderPass *rpass;
-	const char *fake_name;
 	int nr;
 
 	/* may have been freed since drawing */
@@ -445,13 +433,7 @@ static void ui_imageuser_pass_menu(bContext *UNUSED(C), uiLayout *layout, void *
 
 	uiItemS(layout);
 
-	nr = 0;
-	fake_name = ui_imageuser_pass_fake_name(rl);
-
-	if (fake_name) {
-		BLI_strncpy(rpass_fake.name, fake_name, sizeof(rpass_fake.name));
-		nr += 1;
-	}
+	nr = (rl == NULL)? 1: 0;
 
 	ListBase added_passes;
 	BLI_listbase_clear(&added_passes);
@@ -470,11 +452,6 @@ static void ui_imageuser_pass_menu(bContext *UNUSED(C), uiLayout *layout, void *
 	}
 
 	BLI_freelistN(&added_passes);
-
-	if (fake_name) {
-		uiDefButS(block, UI_BTYPE_BUT_MENU, B_NOP, IFACE_(rpass_fake.name), 0, 0,
-		          UI_UNIT_X * 5, UI_UNIT_X, &iuser->pass, 0.0f, 0.0, 0, -1, "");
-	}
 
 	BKE_image_release_renderresult(scene, image);
 }
@@ -770,18 +747,19 @@ static void uiblock_layer_pass_buttons(
 		}
 
 		/* pass */
-		fake_name = ui_imageuser_pass_fake_name(rl);
-		rpass = (rl ? BLI_findlink(&rl->passes, iuser->pass  - (fake_name ? 1 : 0)) : NULL);
+		rpass = (rl ? BLI_findlink(&rl->passes, iuser->pass) : NULL);
 
-		display_name = rpass ? rpass->name : (fake_name ? fake_name : "");
-		rnd_pt = ui_imageuser_data_copy(&rnd_pt_local);
-		but = uiDefMenuBut(
-		        block, ui_imageuser_pass_menu, rnd_pt, IFACE_(display_name),
-		        0, 0, wmenu3, UI_UNIT_Y, TIP_("Select Pass"));
-		UI_but_func_menu_step_set(but, ui_imageuser_pass_menu_step);
-		UI_but_funcN_set(but, image_multi_cb, rnd_pt, rr);
-		UI_but_type_set_menu_from_pulldown(but);
-		rnd_pt = NULL;
+		if (rpass && RE_passes_have_name(rl)) {
+			display_name = rpass->name;
+			rnd_pt = ui_imageuser_data_copy(&rnd_pt_local);
+			but = uiDefMenuBut(
+			        block, ui_imageuser_pass_menu, rnd_pt, IFACE_(display_name),
+			        0, 0, wmenu3, UI_UNIT_Y, TIP_("Select Pass"));
+			UI_but_func_menu_step_set(but, ui_imageuser_pass_menu_step);
+			UI_but_funcN_set(but, image_multi_cb, rnd_pt, rr);
+			UI_but_type_set_menu_from_pulldown(but);
+			rnd_pt = NULL;
+		}
 
 		/* view */
 		if (BLI_listbase_count_ex(&rr->views, 2) > 1 &&
