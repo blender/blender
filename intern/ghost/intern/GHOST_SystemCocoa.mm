@@ -1515,7 +1515,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 				GHOST_TInt32 x, y;
 				window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
 				pushEvent(new GHOST_EventTrackpad([event timestamp] * 1000, window, GHOST_kTrackpadEventRotate, x, y,
-				                                  [event rotation] * 5.0, 0));
+				                                  [event rotation] * -5.0, 0));
 			}
 		default:
 			return GHOST_kFailure;
