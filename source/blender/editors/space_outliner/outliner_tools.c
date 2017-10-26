@@ -1802,7 +1802,7 @@ static EnumPropertyItem prop_collection_op_types[] = {
     {OL_COLLECTION_OP_OBJECTS_REMOVE, "OBJECTS_REMOVE", ICON_X, "Remove Selected", "Remove selected objects from collection"},
     {OL_COLLECTION_OP_COLLECTION_NEW, "COLLECTION_NEW", ICON_NEW, "New Collection", "Add a new nested collection"},
     {OL_COLLECTION_OP_COLLECTION_UNLINK, "COLLECTION_UNLINK", ICON_UNLINKED, "Unlink", "Unlink collection"},
-    {OL_COLLECTION_OP_COLLECTION_DEL, "COLLECTION_NEW", ICON_X, "Delete Collection", "Delete the collection"},
+    {OL_COLLECTION_OP_COLLECTION_DEL, "COLLECTION_DEL", ICON_X, "Delete Collection", "Delete the collection"},
     {0, NULL, 0, NULL, NULL}
 };
 
