@@ -3184,6 +3184,7 @@ static void SCREEN_OT_region_flip(wmOperatorType *ot)
 }
 
 /* ************** header operator ***************************** */
+
 static int header_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ARegion *ar = screen_find_region_type(C, RGN_TYPE_HEADER);
@@ -3211,50 +3212,6 @@ static void SCREEN_OT_header(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = header_exec;
 }
-
-/* ************** header flip operator ***************************** */
-
-/* flip a header region alignment */
-static int header_flip_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	ARegion *ar = screen_find_region_type(C, RGN_TYPE_HEADER);
-
-	if (ar == NULL) {
-		return OPERATOR_CANCELLED;
-	}
-	
-	/* copied from SCREEN_OT_region_flip */
-	if (ar->alignment == RGN_ALIGN_TOP)
-		ar->alignment = RGN_ALIGN_BOTTOM;
-	else if (ar->alignment == RGN_ALIGN_BOTTOM)
-		ar->alignment = RGN_ALIGN_TOP;
-	else if (ar->alignment == RGN_ALIGN_LEFT)
-		ar->alignment = RGN_ALIGN_RIGHT;
-	else if (ar->alignment == RGN_ALIGN_RIGHT)
-		ar->alignment = RGN_ALIGN_LEFT;
-
-	ED_area_tag_redraw(CTX_wm_area(C));
-
-	WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
-	
-	return OPERATOR_FINISHED;
-}
-
-
-static void SCREEN_OT_header_flip(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Flip Header Region";
-	ot->idname = "SCREEN_OT_header_flip";
-	ot->description = "Toggle the header over/below the main window area";
-	
-	/* api callbacks */
-	ot->exec = header_flip_exec;
-	
-	ot->poll = ED_operator_areaactive;
-	ot->flag = 0;
-}
-
 
 
 /* ************** show menus operator ***************************** */
@@ -3288,17 +3245,17 @@ static void SCREEN_OT_header_toggle_menus(wmOperatorType *ot)
 
 
 /* ************** header tools operator ***************************** */
+
 void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
+	const char *but_flip_str = (ar->alignment == RGN_ALIGN_TOP) ? IFACE_("Flip to Bottom") : IFACE_("Flip to Top");
 
-	/* XXX SCREEN_OT_region_flip doesn't work - gets wrong context for active region, so added custom operator. */
-	if (ar->alignment == RGN_ALIGN_TOP)
-		uiItemO(layout, IFACE_("Flip to Bottom"), ICON_NONE, "SCREEN_OT_header_flip");
-	else
-		uiItemO(layout, IFACE_("Flip to Top"), ICON_NONE, "SCREEN_OT_header_flip");
+	/* default is WM_OP_INVOKE_REGION_WIN, which we don't want here. */
+	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 
+	uiItemO(layout, but_flip_str, ICON_NONE, "SCREEN_OT_region_flip");
 	uiItemO(layout, IFACE_("Collapse Menus"),
 	        (sa->flag & HEADER_NO_PULLDOWN) ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT,
 	        "SCREEN_OT_header_toggle_menus");
@@ -4185,7 +4142,6 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_region_quadview);
 	WM_operatortype_append(SCREEN_OT_region_scale);
 	WM_operatortype_append(SCREEN_OT_region_flip);
-	WM_operatortype_append(SCREEN_OT_header_flip);
 	WM_operatortype_append(SCREEN_OT_header);
 	WM_operatortype_append(SCREEN_OT_header_toggle_menus);
 	WM_operatortype_append(SCREEN_OT_header_toolbox);
