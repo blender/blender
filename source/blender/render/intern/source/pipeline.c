@@ -374,6 +374,7 @@ void RE_AcquireResultImageViews(Render *re, RenderResult *rr)
 			render_result_views_shallowcopy(rr, re->result);
 
 			rv = rr->views.first;
+			rr->have_combined = (rv->rectf != NULL);
 
 			/* active layer */
 			rl = render_get_active_layer(re, re->result);
@@ -392,7 +393,6 @@ void RE_AcquireResultImageViews(Render *re, RenderResult *rr)
 				}
 			}
 
-			rr->have_combined = (rv->rectf != NULL);
 			rr->layers = re->result->layers;
 			rr->xof = re->disprect.xmin;
 			rr->yof = re->disprect.ymin;
@@ -431,6 +431,7 @@ void RE_AcquireResultImage(Render *re, RenderResult *rr, const int view_id)
 			
 			/* actview view */
 			rv = RE_RenderViewGetById(re->result, view_id);
+			rr->have_combined = (rv->rectf != NULL);
 
 			rr->rectf = rv->rectf;
 			rr->rectz = rv->rectz;
@@ -447,7 +448,6 @@ void RE_AcquireResultImage(Render *re, RenderResult *rr, const int view_id)
 					rr->rectz = RE_RenderLayerGetPass(rl, RE_PASSNAME_Z, rv->name);
 			}
 
-			rr->have_combined = (rv->rectf != NULL);
 			rr->layers = re->result->layers;
 			rr->views = re->result->views;
 

@@ -548,7 +548,7 @@ static bool ui_imageuser_layer_menu_step(bContext *C, int direction, void *rnd_p
 	else if (direction == 1) {
 		int tot = BLI_listbase_count(&rr->layers);
 
-		if (RE_HasFakeLayer(rr))
+		if (RE_HasCombinedLayer(rr))
 			tot++;  /* fake compo/sequencer layer */
 
 		if (iuser->layer < tot - 1) {
@@ -588,7 +588,7 @@ static bool ui_imageuser_pass_menu_step(bContext *C, int direction, void *rnd_pt
 		return false;
 	}
 
-	if (RE_HasFakeLayer(rr)) {
+	if (RE_HasCombinedLayer(rr)) {
 		layer -= 1;
 	}
 

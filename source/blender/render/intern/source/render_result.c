@@ -883,7 +883,7 @@ bool RE_WriteRenderResult(ReportList *reports, RenderResult *rr, const char *fil
 				char passname[EXR_PASS_MAXNAME];
 				for (a = 0; a < 4; a++) {
 					set_pass_name(passname, RE_PASSNAME_COMBINED, a, "RGBA");
-					IMB_exr_add_channel(exrhandle, RE_PASSNAME_COMBINED, passname,
+					IMB_exr_add_channel(exrhandle, "Composite", passname,
 					                    chan_view, 4, 4 * width, rview->rectf + a,
 					                    use_half_float);
 				}
@@ -1370,7 +1370,7 @@ void render_result_rect_get_pixels(RenderResult *rr, unsigned int *rect, int rec
 
 /*************************** multiview functions *****************************/
 
-bool RE_HasFakeLayer(RenderResult *res)
+bool RE_HasCombinedLayer(RenderResult *res)
 {
 	RenderView *rv;
 
