@@ -3359,9 +3359,6 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 					BKE_image_path_ensure_ext_from_imformat(name, &imf);
 					ibuf->planes = 24;
 
-					IMB_colormanagement_imbuf_for_write(ibuf, true, false, &scene->view_settings,
-					                                    &scene->display_settings, &imf);
-
 					ok = render_imbuf_write_stamp_test(reports, scene, rr, ibuf, name, &imf, stamp);
 				}
 
@@ -3374,7 +3371,7 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 		BLI_assert(scene->r.im_format.views_format == R_IMF_VIEWS_STEREO_3D);
 
 		if (rd->im_format.imtype == R_IMF_IMTYPE_MULTILAYER) {
-			printf("Stereo 3D not support for MultiLayer image: %s\n", name);
+			printf("Stereo 3D not supported for MultiLayer image: %s\n", name);
 		}
 		else {
 			ImBuf *ibuf_arr[3] = {NULL};
@@ -3405,9 +3402,6 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 
 				BKE_image_path_ensure_ext_from_imformat(name, &imf);
 				ibuf_arr[2]->planes = 24;
-
-				IMB_colormanagement_imbuf_for_write(ibuf_arr[2], true, false, &scene->view_settings,
-				                                    &scene->display_settings, &imf);
 
 				ok = render_imbuf_write_stamp_test(reports, scene, rr, ibuf_arr[2], name, &rd->im_format, stamp);
 			}
