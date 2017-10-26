@@ -389,9 +389,11 @@ void deg_graph_on_visible_update(Main *bmain, Depsgraph *graph)
 	}
 	GHASH_FOREACH_END();
 	/* Make sure collection properties are up to date. */
-	IDDepsNode *scene_id_node = graph->find_id_node(&graph->scene->id);
-	BLI_assert(scene_id_node != NULL);
-	scene_id_node->tag_update(graph);
+	for (Scene *scene_iter = graph->scene; scene_iter != NULL; scene_iter = scene_iter->set) {
+		IDDepsNode *scene_id_node = graph->find_id_node(&scene_iter->id);
+		BLI_assert(scene_id_node != NULL);
+		scene_id_node->tag_update(graph);
+	}
 }
 
 }  /* namespace */
