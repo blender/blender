@@ -2456,13 +2456,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 				for (sa = sc->areabase.first; sa; sa = sa->next) {
 					SpaceLink *sl;
 					for (sl = sa->spacedata.first; sl; sl = sl->next) {
-						if (sl->spacetype == SPACE_IMAGE)
+						if (sl->spacetype == SPACE_IMAGE) {
 							((SpaceImage *)sl)->iuser.fie_ima = 2;
-						else if (sl->spacetype == SPACE_VIEW3D) {
-							View3D *v3d = (View3D *)sl;
-							BGpic *bgpic;
-							for (bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next)
-								bgpic->iuser.fie_ima = 2;
 						}
 					}
 				}

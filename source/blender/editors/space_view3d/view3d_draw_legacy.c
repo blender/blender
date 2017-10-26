@@ -534,17 +534,18 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
                               const bool do_foreground, const bool do_camera_frame)
 {
 	RegionView3D *rv3d = ar->regiondata;
-	int fg_flag = do_foreground ? V3D_BGPIC_FOREGROUND : 0;
+	int fg_flag = do_foreground ? CAM_BGIMG_FLAG_FOREGROUND : 0;
+	if (v3d->camera == NULL || v3d->camera->type != OB_CAMERA) {
+		return;
+	}
+	Camera *cam = v3d->camera->data;
 
-	for (BGpic *bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next) {
+	for (CameraBGImage *bgpic = cam->bg_images.first; bgpic; bgpic = bgpic->next) {
 		bgpic->iuser.scene = scene;  /* Needed for render results. */
 
-		if ((bgpic->flag & V3D_BGPIC_FOREGROUND) != fg_flag)
+		if ((bgpic->flag & CAM_BGIMG_FLAG_FOREGROUND) != fg_flag)
 			continue;
 
-		if ((bgpic->view == 0) || /* zero for any */
-		    (bgpic->view & (1 << rv3d->view)) || /* check agaist flags */
-		    (rv3d->persp == RV3D_CAMOB && bgpic->view == (1 << RV3D_VIEW_CAMERA)))
 		{
 			float image_aspect[2];
 			float x1, y1, x2, y2, centx, centy;
@@ -554,13 +555,13 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			Image *ima = NULL;
 
 			/* disable individual images */
-			if ((bgpic->flag & V3D_BGPIC_DISABLED))
+			if ((bgpic->flag & CAM_BGIMG_FLAG_DISABLED))
 				continue;
 
 			ImBuf *ibuf = NULL;
 			ImBuf *freeibuf = NULL;
 			ImBuf *releaseibuf = NULL;
-			if (bgpic->source == V3D_BGPIC_IMAGE) {
+			if (bgpic->source == CAM_BGIMG_SOURCE_IMAGE) {
 				ima = bgpic->ima;
 				if (ima == NULL)
 					continue;
@@ -577,11 +578,11 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 				image_aspect[0] = ima->aspx;
 				image_aspect[1] = ima->aspy;
 			}
-			else if (bgpic->source == V3D_BGPIC_MOVIE) {
+			else if (bgpic->source == CAM_BGIMG_SOURCE_MOVIE) {
 				/* TODO: skip drawing when out of frame range (as image sequences do above) */
 				MovieClip *clip = NULL;
 
-				if (bgpic->flag & V3D_BGPIC_CAMERACLIP) {
+				if (bgpic->flag & CAM_BGIMG_FLAG_CAMERACLIP) {
 					if (scene->camera)
 						clip = BKE_object_movieclip_get(scene, scene->camera, true);
 				}
@@ -624,8 +625,8 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			if (ibuf->rect == NULL)
 				IMB_rect_from_float(ibuf);
 
-			if (rv3d->persp == RV3D_CAMOB) {
-
+			BLI_assert(rv3d->persp == RV3D_CAMOB);
+			{
 				if (do_camera_frame) {
 					rctf vb;
 					ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &vb, false);
@@ -645,8 +646,8 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 				/* so this has some sane way of working - this matches camera's shift _exactly_ */
 				{
 					const float max_dim = max_ff(x2 - x1, y2 - y1);
-					const float xof_scale = bgpic->xof * max_dim;
-					const float yof_scale = bgpic->yof * max_dim;
+					const float xof_scale = bgpic->offset[0] * max_dim;
+					const float yof_scale = bgpic->offset[1] * max_dim;
 
 					x1 += xof_scale;
 					y1 += yof_scale;
@@ -658,7 +659,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 				centy = (y1 + y2) * 0.5f;
 
 				/* aspect correction */
-				if (bgpic->flag & V3D_BGPIC_CAMERA_ASPECT) {
+				if (bgpic->flag & CAM_BGIMG_FLAG_CAMERA_ASPECT) {
 					/* apply aspect from clip */
 					const float w_src = ibuf->x * image_aspect[0];
 					const float h_src = ibuf->y * image_aspect[1];
@@ -671,7 +672,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 					const float asp_dst = w_dst / h_dst;
 
 					if (fabsf(asp_src - asp_dst) >= FLT_EPSILON) {
-						if ((asp_src > asp_dst) == ((bgpic->flag & V3D_BGPIC_CAMERA_CROP) != 0)) {
+						if ((asp_src > asp_dst) == ((bgpic->flag & CAM_BGIMG_FLAG_CAMERA_CROP) != 0)) {
 							/* fit X */
 							const float div = asp_src / asp_dst;
 							x1 = ((x1 - centx) * div) + centx;
@@ -685,29 +686,6 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 						}
 					}
 				}
-			}
-			else {
-				float tvec[3];
-				float sco[2];
-				const float mval_f[2] = {1.0f, 0.0f};
-				const float co_zero[3] = {0};
-
-				/* calc window coord */
-				float zfac = ED_view3d_calc_zfac(rv3d, co_zero, NULL);
-				ED_view3d_win_to_delta(ar, mval_f, tvec, zfac);
-				float fac = 1.0f / max_ff(fabsf(tvec[0]), max_ff(fabsf(tvec[1]), fabsf(tvec[2]))); /* largest abs axis */
-				float asp = (float)ibuf->y / (float)ibuf->x;
-
-				zero_v3(tvec);
-				ED_view3d_project_float_v2_m4(ar, tvec, sco, rv3d->persmat);
-
-				x1 =  sco[0] + fac * (bgpic->xof - bgpic->size);
-				y1 =  sco[1] + asp * fac * (bgpic->yof - bgpic->size);
-				x2 =  sco[0] + fac * (bgpic->xof + bgpic->size);
-				y2 =  sco[1] + asp * fac * (bgpic->yof + bgpic->size);
-
-				centx = (x1 + x2) / 2.0f;
-				centy = (y1 + y2) / 2.0f;
 			}
 
 			/* complete clip? */
@@ -762,18 +740,19 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			ED_region_pixelspace(ar);
 
 			gpuTranslate2f(centx, centy);
+			gpuScaleUniform(bgpic->scale);
 			gpuRotate2D(RAD2DEGF(-bgpic->rotation));
 
-			if (bgpic->flag & V3D_BGPIC_FLIP_X) {
+			if (bgpic->flag & CAM_BGIMG_FLAG_FLIP_X) {
 				zoomx *= -1.0f;
 				x1 = x2;
 			}
-			if (bgpic->flag & V3D_BGPIC_FLIP_Y) {
+			if (bgpic->flag & CAM_BGIMG_FLAG_FLIP_Y) {
 				zoomy *= -1.0f;
 				y1 = y2;
 			}
 
-			float col[4] = {1.0f, 1.0f, 1.0f, 1.0f - bgpic->blend};
+			float col[4] = {1.0f, 1.0f, 1.0f, bgpic->alpha};
 			IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
 			immDrawPixelsTex(&state, x1 - centx, y1 - centy, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, ibuf->rect,
 			                 zoomx, zoomy, col);
@@ -794,13 +773,20 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 	}
 }
 
-static void view3d_draw_bgpic_test(Scene *scene, ARegion *ar, View3D *v3d,
-                                   const bool do_foreground, const bool do_camera_frame)
+void view3d_draw_bgpic_test(Scene *scene, ARegion *ar, View3D *v3d,
+                            const bool do_foreground, const bool do_camera_frame)
 {
 	RegionView3D *rv3d = ar->regiondata;
 
-	if ((v3d->flag & V3D_DISPBGPICS) == 0)
+	if ((rv3d->persp == RV3D_CAMOB) && v3d->camera && (v3d->camera->type == OB_CAMERA)) {
+		Camera *cam = v3d->camera->data;
+		if ((cam->flag & CAM_SHOW_BG_IMAGE) == 0) {
+			return;
+		}
+	}
+	else {
 		return;
+	}
 
 	/* disabled - mango request, since footage /w only render is quite useful
 	 * and this option is easy to disable all background images at once */
@@ -1884,17 +1870,32 @@ static bool view3d_main_region_draw_engine(
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (v3d->flag & V3D_DISPBGPICS)
+	bool show_image = false;
+	{
+		Camera *cam = ED_view3d_camera_data_get(v3d, rv3d);
+		if (cam->flag & CAM_SHOW_BG_IMAGE) {
+			show_image = true;
+			view3d_draw_bgpic_test(scene, ar, v3d, false, true);
+		}
+		else {
+			imm_draw_box_checker_2d(0, 0, ar->winx, ar->winy);
+		}
+	}
+
+	if (show_image) {
 		view3d_draw_bgpic_test(scene, ar, v3d, false, true);
-	else
+	}
+	else {
 		imm_draw_box_checker_2d(0, 0, ar->winx, ar->winy);
+	}
 
 	/* render result draw */
 	type = rv3d->render_engine->type;
 	type->render_to_view(rv3d->render_engine, C);
 
-	if (v3d->flag & V3D_DISPBGPICS)
+	if (show_image) {
 		view3d_draw_bgpic_test(scene, ar, v3d, true, true);
+	}
 
 	if (clip_border) {
 		/* restore scissor as it was before */

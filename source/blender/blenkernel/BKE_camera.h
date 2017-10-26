@@ -148,6 +148,11 @@ float          BKE_camera_multiview_shift_x(struct RenderData *rd, struct Object
 void           BKE_camera_multiview_params(struct RenderData *rd, struct CameraParams *params, struct Object *camera, const char *viewname);
 bool           BKE_camera_multiview_spherical_stereo(struct RenderData *rd, struct Object *camera);
 
+/* Camera background image API */
+struct CameraBGImage *BKE_camera_background_image_new(struct Camera *cam);
+void BKE_camera_background_image_remove(struct Camera *cam, struct CameraBGImage *bgpic);
+void BKE_camera_background_image_clear(struct Camera *cam);
+
 #ifdef __cplusplus
 }
 #endif

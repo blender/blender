@@ -230,6 +230,7 @@ int     ED_operator_posemode_context(struct bContext *C);
 int     ED_operator_posemode(struct bContext *C);
 int     ED_operator_posemode_local(struct bContext *C);
 int     ED_operator_mask(struct bContext *C);
+int     ED_operator_camera(struct bContext *C);
 
 
 /* Cache display helpers */

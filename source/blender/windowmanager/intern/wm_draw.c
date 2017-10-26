@@ -34,6 +34,8 @@
 #include <string.h>
 
 #include "DNA_listBase.h"
+#include "DNA_object_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_userdef_types.h"
@@ -708,9 +710,12 @@ static void wm_method_draw_triple_multiview(bContext *C, wmWindow *win, eStereoV
 			case SPACE_VIEW3D:
 			{
 				View3D *v3d = sa->spacedata.first;
-				BGpic *bgpic = v3d->bgpicbase.first;
-				v3d->multiview_eye = sview;
-				if (bgpic) bgpic->iuser.multiview_eye = sview;
+				if (v3d->camera && v3d->camera->type == OB_CAMERA) {
+					Camera *cam = v3d->camera->data;
+					CameraBGImage *bgpic = cam->bg_images.first;
+					v3d->multiview_eye = sview;
+					if (bgpic) bgpic->iuser.multiview_eye = sview;
+				}
 				break;
 			}
 			case SPACE_NODE:

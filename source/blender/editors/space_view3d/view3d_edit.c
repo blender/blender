@@ -34,6 +34,7 @@
 #include <float.h>
 
 #include "DNA_armature_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -4515,11 +4516,11 @@ void VIEW3D_OT_navigate(wmOperatorType *ot)
 
 /* ******************** add background image operator **************** */
 
-static BGpic *background_image_add(bContext *C)
+static CameraBGImage *background_image_add(bContext *C)
 {
-	View3D *v3d = CTX_wm_view3d(C);
+	Camera *cam = CTX_data_pointer_get_type(C, "camera", &RNA_Camera).data;
 
-	return ED_view3D_background_image_new(v3d);
+	return BKE_camera_background_image_new(cam);
 }
 
 static int background_image_add_exec(bContext *C, wmOperator *UNUSED(op))
@@ -4531,9 +4532,9 @@ static int background_image_add_exec(bContext *C, wmOperator *UNUSED(op))
 
 static int background_image_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-	View3D *v3d = CTX_wm_view3d(C);
+	Camera *cam = CTX_data_pointer_get_type(C, "camera", &RNA_Camera).data;
 	Image *ima;
-	BGpic *bgpic;
+	CameraBGImage *bgpic;
 	
 	ima = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
 	/* may be NULL, continue anyway */
@@ -4541,10 +4542,10 @@ static int background_image_add_invoke(bContext *C, wmOperator *op, const wmEven
 	bgpic = background_image_add(C);
 	bgpic->ima = ima;
 
-	v3d->flag |= V3D_DISPBGPICS;
-	
-	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
-	
+	cam->flag |= CAM_SHOW_BG_IMAGE;
+
+	WM_event_add_notifier(C, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, cam);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -4560,7 +4561,7 @@ void VIEW3D_OT_background_image_add(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = background_image_add_invoke;
 	ot->exec   = background_image_add_exec;
-	ot->poll   = ED_operator_view3d_active;
+	ot->poll   = ED_operator_camera;
 
 	/* flags */
 	ot->flag   = OPTYPE_UNDO;
@@ -4576,21 +4577,22 @@ void VIEW3D_OT_background_image_add(wmOperatorType *ot)
 /* ***** remove image operator ******* */
 static int background_image_remove_exec(bContext *C, wmOperator *op)
 {
-	View3D *v3d = CTX_wm_view3d(C);
+	Camera *cam = CTX_data_pointer_get_type(C, "camera", &RNA_Camera).data;
 	const int index = RNA_int_get(op->ptr, "index");
-	BGpic *bgpic_rem = BLI_findlink(&v3d->bgpicbase, index);
+	CameraBGImage *bgpic_rem = BLI_findlink(&cam->bg_images, index);
 
 	if (bgpic_rem) {
-		if (bgpic_rem->source == V3D_BGPIC_IMAGE) {
+		if (bgpic_rem->source == CAM_BGIMG_SOURCE_IMAGE) {
 			id_us_min((ID *)bgpic_rem->ima);
 		}
-		else if (bgpic_rem->source == V3D_BGPIC_MOVIE) {
+		else if (bgpic_rem->source == CAM_BGIMG_SOURCE_MOVIE) {
 			id_us_min((ID *)bgpic_rem->clip);
 		}
 
-		ED_view3D_background_image_remove(v3d, bgpic_rem);
+		BKE_camera_background_image_remove(cam, bgpic_rem);
 
-		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
+		WM_event_add_notifier(C, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, cam);
+
 		return OPERATOR_FINISHED;
 	}
 	else {
@@ -4608,7 +4610,7 @@ void VIEW3D_OT_background_image_remove(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec   = background_image_remove_exec;
-	ot->poll   = ED_operator_view3d_active;
+	ot->poll   = ED_operator_camera;
 
 	/* flags */
 	ot->flag   = 0;
@@ -5183,43 +5185,6 @@ void ED_view3d_lastview_store(RegionView3D *rv3d)
 	rv3d->lview = rv3d->view;
 	if (rv3d->persp != RV3D_CAMOB) {
 		rv3d->lpersp = rv3d->persp;
-	}
-}
-
-BGpic *ED_view3D_background_image_new(View3D *v3d)
-{
-	BGpic *bgpic = MEM_callocN(sizeof(BGpic), "Background Image");
-
-	bgpic->rotation = 0.0f;
-	bgpic->size = 5.0f;
-	bgpic->blend = 0.5f;
-	bgpic->iuser.fie_ima = 2;
-	bgpic->iuser.ok = 1;
-	bgpic->view = 0; /* 0 for all */
-	bgpic->flag |= V3D_BGPIC_EXPANDED;
-
-	BLI_addtail(&v3d->bgpicbase, bgpic);
-
-	return bgpic;
-}
-
-void ED_view3D_background_image_remove(View3D *v3d, BGpic *bgpic)
-{
-	BLI_remlink(&v3d->bgpicbase, bgpic);
-
-	MEM_freeN(bgpic);
-}
-
-void ED_view3D_background_image_clear(View3D *v3d)
-{
-	BGpic *bgpic = v3d->bgpicbase.first;
-
-	while (bgpic) {
-		BGpic *next_bgpic = bgpic->next;
-
-		ED_view3D_background_image_remove(v3d, bgpic);
-
-		bgpic = next_bgpic;
 	}
 }
 

@@ -72,21 +72,6 @@ typedef struct View3DDebug {
 	char background;
 	char pad[7];
 } View3DDebug;
- 
-/* Background Picture in 3D-View */
-typedef struct BGpic {
-	struct BGpic *next, *prev;
-
-	struct Image *ima;
-	struct ImageUser iuser;
-	struct MovieClip *clip;
-	struct MovieClipUser cuser;
-	float xof, yof, size, blend, rotation;
-	short view;
-	short flag;
-	short source;
-	char pad[6];
-} BGpic;
 
 /* ********************************* */
 
@@ -185,9 +170,6 @@ typedef struct View3D {
 	struct Object *camera, *ob_centre;
 	rctf render_border;
 
-	struct ListBase bgpicbase;
-	struct BGpic *bgpic  DNA_DEPRECATED; /* deprecated, use bgpicbase, only kept for do_versions(...) */
-
 	struct View3D *localvd; /* allocated backup of its self while in localview */
 	
 	char ob_centre_bone[64];		/* optional string for armature bone to define center, MAXBONENAME */
@@ -269,7 +251,7 @@ typedef struct View3D {
 
 /* View3D->flag (short) */
 /*#define V3D_DISPIMAGE		1*/ /*UNUSED*/
-#define V3D_DISPBGPICS		2
+/*#define V3D_DISPBGPICS		2*/ /* UNUSED */
 #define V3D_HIDE_HELPLINES	4
 #define V3D_INVALID_BACKBUF	8
 
@@ -389,30 +371,6 @@ enum {
 enum {
 	V3D_MANIPULATOR_DRAW        = (1 << 0),
 };
-
-/* BGPic->flag */
-/* may want to use 1 for select ? */
-enum {
-	V3D_BGPIC_EXPANDED      = (1 << 1),
-	V3D_BGPIC_CAMERACLIP    = (1 << 2),
-	V3D_BGPIC_DISABLED      = (1 << 3),
-	V3D_BGPIC_FOREGROUND    = (1 << 4),
-
-	/* Camera framing options */
-	V3D_BGPIC_CAMERA_ASPECT = (1 << 5),  /* don't stretch to fit the camera view  */
-	V3D_BGPIC_CAMERA_CROP   = (1 << 6),  /* crop out the image */
-
-	/* Axis flip options */
-	V3D_BGPIC_FLIP_X        = (1 << 7),
-	V3D_BGPIC_FLIP_Y        = (1 << 8),
-};
-
-#define V3D_BGPIC_EXPANDED (V3D_BGPIC_EXPANDED | V3D_BGPIC_CAMERACLIP)
-
-/* BGPic->source */
-/* may want to use 1 for select ?*/
-#define V3D_BGPIC_IMAGE		0
-#define V3D_BGPIC_MOVIE		1
 
 #define RV3D_CAMZOOM_MIN -30
 #define RV3D_CAMZOOM_MAX 600

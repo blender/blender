@@ -48,6 +48,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_camera_types.h"
 #include "DNA_object_types.h"
 #include "DNA_node_types.h"
 #include "DNA_packedFile_types.h"
@@ -1309,20 +1310,22 @@ static int image_open_exec(bContext *C, wmOperator *op)
 		ED_space_image_set(sima, scene, obedit, ima);
 		iuser = &sima->iuser;
 	}
-	else if (sa->spacetype == SPACE_VIEW3D) {
-		View3D *v3d = sa->spacedata.first;
-
-		for (BGpic *bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next) {
-			if (bgpic->ima == ima) {
-				iuser = &bgpic->iuser;
-				break;
-			}
-		}
-	}
 	else {
 		Tex *tex = CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
 		if (tex && tex->type == TEX_IMAGE) {
 			iuser = &tex->iuser;
+		}
+
+		if (iuser == NULL) {
+			Camera *cam = CTX_data_pointer_get_type(C, "camera", &RNA_Camera).data;
+			if (cam) {
+				for (CameraBGImage *bgpic = cam->bg_images.first; bgpic; bgpic = bgpic->next) {
+					if (bgpic->ima == ima) {
+						iuser = &bgpic->iuser;
+						break;
+					}
+				}
+			}
 		}
 	}
 

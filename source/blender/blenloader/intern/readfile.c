@@ -3505,6 +3505,11 @@ static void lib_link_camera(FileData *fd, Main *main)
 
 			ca->dof_ob = newlibadr(fd, ca->id.lib, ca->dof_ob);
 			
+			for (CameraBGImage *bgpic = ca->bg_images.first; bgpic; bgpic = bgpic->next) {
+				bgpic->ima = newlibadr_us(fd, ca->id.lib, bgpic->ima);
+				bgpic->clip = newlibadr_us(fd, ca->id.lib, bgpic->clip);
+			}
+
 			ca->id.tag &= ~LIB_TAG_NEED_LINK;
 		}
 	}
@@ -3514,6 +3519,12 @@ static void direct_link_camera(FileData *fd, Camera *ca)
 {
 	ca->adt = newdataadr(fd, ca->adt);
 	direct_link_animdata(fd, ca->adt);
+
+	link_list(fd, &ca->bg_images);
+
+	for (CameraBGImage *bgpic = ca->bg_images.first; bgpic; bgpic = bgpic->next) {
+		bgpic->iuser.ok = 1;
+	}
 }
 
 
@@ -6560,22 +6571,10 @@ static void lib_link_screen(FileData *fd, Main *main)
 						case SPACE_VIEW3D:
 						{
 							View3D *v3d = (View3D*) sl;
-							BGpic *bgpic = NULL;
 
 							v3d->camera= newlibadr(fd, sc->id.lib, v3d->camera);
 							v3d->ob_centre= newlibadr(fd, sc->id.lib, v3d->ob_centre);
 
-							/* should be do_versions but not easy adding into the listbase */
-							if (v3d->bgpic) {
-								v3d->bgpic = newlibadr(fd, sc->id.lib, v3d->bgpic);
-								BLI_addtail(&v3d->bgpicbase, bgpic);
-								v3d->bgpic = NULL;
-							}
-
-							for (bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next) {
-								bgpic->ima = newlibadr_us(fd, sc->id.lib, bgpic->ima);
-								bgpic->clip = newlibadr_us(fd, sc->id.lib, bgpic->clip);
-							}
 							if (v3d->localvd) {
 								v3d->localvd->camera = newlibadr(fd, sc->id.lib, v3d->localvd->camera);
 							}
@@ -6905,21 +6904,11 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map, Main
 			for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 				if (sl->spacetype == SPACE_VIEW3D) {
 					View3D *v3d = (View3D *)sl;
-					BGpic *bgpic;
 					ARegion *ar;
 					
 					v3d->camera = restore_pointer_by_name(id_map, (ID *)v3d->camera, USER_REAL);
 					v3d->ob_centre = restore_pointer_by_name(id_map, (ID *)v3d->ob_centre, USER_REAL);
-					
-					for (bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next) {
-						if ((bgpic->ima = restore_pointer_by_name(id_map, (ID *)bgpic->ima, USER_IGNORE))) {
-							id_us_plus((ID *)bgpic->ima);
-						}
-						if ((bgpic->clip = restore_pointer_by_name(id_map, (ID *)bgpic->clip, USER_IGNORE))) {
-							id_us_plus((ID *)bgpic->clip);
-						}
-					}
-					
+
 					/* not very nice, but could help */
 					if ((v3d->layact & v3d->lay) == 0) v3d->layact = v3d->lay;
 
@@ -7342,21 +7331,7 @@ static bool direct_link_screen(FileData *fd, bScreen *sc)
 			
 			if (sl->spacetype == SPACE_VIEW3D) {
 				View3D *v3d= (View3D*) sl;
-				BGpic *bgpic;
-				
 				v3d->flag |= V3D_INVALID_BACKBUF;
-				
-				link_list(fd, &v3d->bgpicbase);
-				
-				/* should be do_versions except this doesnt fit well there */
-				if (v3d->bgpic) {
-					bgpic = newdataadr(fd, v3d->bgpic);
-					BLI_addtail(&v3d->bgpicbase, bgpic);
-					v3d->bgpic = NULL;
-				}
-			
-				for (bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next)
-					bgpic->iuser.ok = 1;
 				
 				if (v3d->gpd) {
 					v3d->gpd = newdataadr(fd, v3d->gpd);

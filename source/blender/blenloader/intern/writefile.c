@@ -1992,6 +1992,10 @@ static void write_camera(WriteData *wd, Camera *cam)
 		if (cam->adt) {
 			write_animdata(wd, cam->adt);
 		}
+
+		for (CameraBGImage *bgpic = cam->bg_images.first; bgpic; bgpic = bgpic->next) {
+			writestruct(wd, DATA, CameraBGImage, 1, bgpic);
+		}
 	}
 }
 
@@ -2992,12 +2996,8 @@ static void write_screen(WriteData *wd, bScreen *sc)
 
 			if (sl->spacetype == SPACE_VIEW3D) {
 				View3D *v3d = (View3D *)sl;
-				BGpic *bgpic;
 				writestruct(wd, DATA, View3D, 1, v3d);
 
-				for (bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next) {
-					writestruct(wd, DATA, BGpic, 1, bgpic);
-				}
 				if (v3d->localvd) {
 					writestruct(wd, DATA, View3D, 1, v3d->localvd);
 				}

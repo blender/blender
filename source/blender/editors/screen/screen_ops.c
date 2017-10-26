@@ -583,6 +583,12 @@ int ED_operator_mask(bContext *C)
 	return false;
 }
 
+int ED_operator_camera(bContext *C)
+{
+	struct Camera *cam = CTX_data_pointer_get_type(C, "camera", &RNA_Camera).data;
+	return (cam != NULL);
+}
+
 /* *************************** action zone operator ************************** */
 
 /* operator state vars used:  

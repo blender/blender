@@ -40,6 +40,7 @@
 #include "DNA_ID.h"
 
 #include "BLI_math.h"
+#include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -54,6 +55,8 @@
 #include "BKE_main.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+
+#include "MEM_guardedalloc.h"
 
 #include "GPU_compositing.h"
 
@@ -101,9 +104,19 @@ void *BKE_camera_add(Main *bmain, const char *name)
  *
  * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
  */
-void BKE_camera_copy_data(Main *UNUSED(bmain), Camera *UNUSED(cam_dst), const Camera *UNUSED(cam_src), const int UNUSED(flag))
+void BKE_camera_copy_data(Main *UNUSED(bmain), Camera *cam_dst, const Camera *cam_src, const int flag)
 {
-	/* Nothing to do! */
+	BLI_duplicatelist(&cam_dst->bg_images, &cam_src->bg_images);
+	if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+		for (CameraBGImage *bgpic = cam_dst->bg_images.first; bgpic; bgpic = bgpic->next) {
+			if (bgpic->source == CAM_BGIMG_SOURCE_IMAGE) {
+				id_us_plus((ID *)bgpic->ima);
+			}
+			else if (bgpic->source == CAM_BGIMG_SOURCE_MOVIE) {
+				id_us_plus((ID *)bgpic->clip);
+			}
+		}
+	}
 }
 
 Camera *BKE_camera_copy(Main *bmain, const Camera *cam)
@@ -121,6 +134,16 @@ void BKE_camera_make_local(Main *bmain, Camera *cam, const bool lib_local)
 /** Free (or release) any data used by this camera (does not free the camera itself). */
 void BKE_camera_free(Camera *ca)
 {
+	for (CameraBGImage *bgpic = ca->bg_images.first; bgpic; bgpic = bgpic->next) {
+		if (bgpic->source == CAM_BGIMG_SOURCE_IMAGE) {
+			id_us_min((ID *)bgpic->ima);
+		}
+		else if (bgpic->source == CAM_BGIMG_SOURCE_MOVIE) {
+			id_us_min((ID *)bgpic->clip);
+		}
+	}
+	BLI_freelistN(&ca->bg_images);
+
 	BKE_animdata_free((ID *)ca, false);
 }
 
@@ -959,5 +982,40 @@ void BKE_camera_to_gpu_dof(struct Object *camera, struct GPUFXSettings *r_fx_set
 		r_fx_settings->dof->focal_length = cam->lens;
 		r_fx_settings->dof->sensor = BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
 		r_fx_settings->dof->focus_distance = BKE_camera_object_dof_distance(camera);
+	}
+}
+
+CameraBGImage *BKE_camera_background_image_new(Camera *cam)
+{
+	CameraBGImage *bgpic = MEM_callocN(sizeof(CameraBGImage), "Background Image");
+
+	bgpic->scale = 1.0f;
+	bgpic->alpha = 0.5f;
+	bgpic->iuser.fie_ima = 2;
+	bgpic->iuser.ok = 1;
+	bgpic->flag |= CAM_BGIMG_FLAG_EXPANDED;
+
+	BLI_addtail(&cam->bg_images, bgpic);
+
+	return bgpic;
+}
+
+void BKE_camera_background_image_remove(Camera *cam, CameraBGImage *bgpic)
+{
+	BLI_remlink(&cam->bg_images, bgpic);
+
+	MEM_freeN(bgpic);
+}
+
+void BKE_camera_background_image_clear(Camera *cam)
+{
+	CameraBGImage *bgpic = cam->bg_images.first;
+
+	while (bgpic) {
+		CameraBGImage *next_bgpic = bgpic->next;
+
+		BKE_camera_background_image_remove(cam, bgpic);
+
+		bgpic = next_bgpic;
 	}
 }

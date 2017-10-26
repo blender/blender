@@ -34,6 +34,8 @@
 
 #include "DNA_defs.h"
 #include "DNA_gpu_types.h"
+#include "DNA_movieclip_types.h"
+#include "DNA_image_types.h"
 #include "DNA_ID.h"
 
 #ifdef __cplusplus
@@ -59,6 +61,20 @@ typedef struct CameraStereoSettings {
 	float pole_merge_angle_to;
 } CameraStereoSettings;
 
+/* Background Picture */
+typedef struct CameraBGImage {
+	struct CameraBGImage *next, *prev;
+
+	struct Image *ima;
+	struct ImageUser iuser;
+	struct MovieClip *clip;
+	struct MovieClipUser cuser;
+	float offset[2], scale, rotation;
+	float alpha;
+	short flag;
+	short source;
+} CameraBGImage;
+
 typedef struct Camera {
 	ID id;
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
@@ -81,6 +97,9 @@ typedef struct Camera {
 	
 	struct Object *dof_ob;
 	struct GPUDOFSettings gpu_dof;
+
+	/* CameraBGImage reference images */
+	struct ListBase bg_images;
 
 	char sensor_fit;
 	char pad[7];
@@ -131,6 +150,7 @@ enum {
 #endif
 	CAM_SHOWSENSOR          = (1 << 8),
 	CAM_SHOW_SAFE_CENTER    = (1 << 9),
+	CAM_SHOW_BG_IMAGE       = (1 << 10),
 };
 
 /* yafray: dof sampling switch */
@@ -164,6 +184,32 @@ enum {
 enum {
 	CAM_S3D_SPHERICAL       = (1 << 0),
 	CAM_S3D_POLE_MERGE      = (1 << 1),
+};
+
+/* CameraBGImage->flag */
+/* may want to use 1 for select ? */
+enum {
+	CAM_BGIMG_FLAG_EXPANDED      = (1 << 1),
+	CAM_BGIMG_FLAG_CAMERACLIP    = (1 << 2),
+	CAM_BGIMG_FLAG_DISABLED      = (1 << 3),
+	CAM_BGIMG_FLAG_FOREGROUND    = (1 << 4),
+
+	/* Camera framing options */
+	CAM_BGIMG_FLAG_CAMERA_ASPECT = (1 << 5),  /* don't stretch to fit the camera view  */
+	CAM_BGIMG_FLAG_CAMERA_CROP   = (1 << 6),  /* crop out the image */
+
+	/* Axis flip options */
+	CAM_BGIMG_FLAG_FLIP_X        = (1 << 7),
+	CAM_BGIMG_FLAG_FLIP_Y        = (1 << 8),
+};
+
+#define CAM_BGIMG_FLAG_EXPANDED (CAM_BGIMG_FLAG_EXPANDED | CAM_BGIMG_FLAG_CAMERACLIP)
+
+/* CameraBGImage->source */
+/* may want to use 1 for select ?*/
+enum {
+	CAM_BGIMG_SOURCE_IMAGE		= 0,
+	CAM_BGIMG_SOURCE_MOVIE		= 1,
 };
 
 #ifdef __cplusplus

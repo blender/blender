@@ -2563,20 +2563,19 @@ void BKE_image_walk_all_users(const Main *mainp, void *customdata,
 		}
 	}
 
+	for (Camera *cam = mainp->camera.first; cam; cam = cam->id.next) {
+		for (CameraBGImage *bgpic = cam->bg_images.first; bgpic; bgpic = bgpic->next) {
+			callback(bgpic->ima, &bgpic->iuser, customdata);
+		}
+	}
+
 	/* image window, compo node users */
 	for (wm = mainp->wm.first; wm; wm = wm->id.next) { /* only 1 wm */
 		for (win = wm->windows.first; win; win = win->next) {
 			const bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
 
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-				if (sa->spacetype == SPACE_VIEW3D) {
-					View3D *v3d = sa->spacedata.first;
-					BGpic *bgpic;
-					for (bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next) {
-						callback(bgpic->ima, &bgpic->iuser, customdata);
-					}
-				}
-				else if (sa->spacetype == SPACE_IMAGE) {
+				if (sa->spacetype == SPACE_IMAGE) {
 					SpaceImage *sima = sa->spacedata.first;
 					callback(sima->image, &sima->iuser, customdata);
 				}

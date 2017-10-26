@@ -255,6 +255,107 @@ class DATA_PT_camera_dof(CameraButtonsPanel, Panel):
                 col.prop(dof_options, "blades")
 
 
+class DATA_PT_camera_background_image(CameraButtonsPanel, Panel):
+    bl_label = "Background Images"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    def draw_header(self, context):
+        cam = context.camera
+
+        self.layout.prop(cam, "show_background_images", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        cam = context.camera
+        use_multiview = context.scene.render.use_multiview
+
+        col = layout.column()
+        col.operator("view3d.background_image_add", text="Add Image")
+
+        for i, bg in enumerate(cam.background_images):
+            layout.active = cam.show_background_images
+            box = layout.box()
+            row = box.row(align=True)
+            row.prop(bg, "show_expanded", text="", emboss=False)
+            if bg.source == 'IMAGE' and bg.image:
+                row.prop(bg.image, "name", text="", emboss=False)
+            elif bg.source == 'MOVIE_CLIP' and bg.clip:
+                row.prop(bg.clip, "name", text="", emboss=False)
+            else:
+                row.label(text="Not Set")
+
+            if bg.show_background_image:
+                row.prop(bg, "show_background_image", text="", emboss=False, icon='RESTRICT_VIEW_OFF')
+            else:
+                row.prop(bg, "show_background_image", text="", emboss=False, icon='RESTRICT_VIEW_ON')
+
+            row.operator("view3d.background_image_remove", text="", emboss=False, icon='X').index = i
+
+            if bg.show_expanded:
+                row = box.row()
+                row.prop(bg, "source", expand=True)
+
+                has_bg = False
+                if bg.source == 'IMAGE':
+                    row = box.row()
+                    row.template_ID(bg, "image", open="image.open")
+                    if bg.image is not None:
+                        box.template_image(bg, "image", bg.image_user, compact=True)
+                        has_bg = True
+
+                        if use_multiview and bg.view_axis in {'CAMERA', 'ALL'}:
+                            box.prop(bg.image, "use_multiview")
+
+                            column = box.column()
+                            column.active = bg.image.use_multiview
+
+                            column.label(text="Views Format:")
+                            column.row().prop(bg.image, "views_format", expand=True)
+
+                            sub = column.box()
+                            sub.active = bg.image.views_format == 'STEREO_3D'
+                            sub.template_image_stereo_3d(bg.image.stereo_3d_format)
+
+                elif bg.source == 'MOVIE_CLIP':
+                    box.prop(bg, "use_camera_clip")
+
+                    column = box.column()
+                    column.active = not bg.use_camera_clip
+                    column.template_ID(bg, "clip", open="clip.open")
+
+                    if bg.clip:
+                        column.template_movieclip(bg, "clip", compact=True)
+
+                    if bg.use_camera_clip or bg.clip:
+                        has_bg = True
+
+                    column = box.column()
+                    column.active = has_bg
+                    column.prop(bg.clip_user, "proxy_render_size", text="")
+                    column.prop(bg.clip_user, "use_render_undistorted")
+
+                if has_bg:
+                    col = box.column()
+                    col.prop(bg, "alpha", slider=True)
+                    col.row().prop(bg, "draw_depth", expand=True)
+
+                    col.row().prop(bg, "frame_method", expand=True)
+
+                    box = col.box()
+                    row = box.row()
+                    row.prop(bg, "offset")
+
+                    row = box.row()
+                    row.prop(bg, "use_flip_x")
+                    row.prop(bg, "use_flip_y")
+
+                    row = box.row()
+                    row.prop(bg, "rotation")
+                    row.prop(bg, "scale")
+
+
 class DATA_PT_camera_display(CameraButtonsPanel, Panel):
     bl_label = "Display"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
@@ -344,6 +445,7 @@ classes = (
     DATA_PT_camera_stereoscopy,
     DATA_PT_camera_dof,
     DATA_PT_camera_display,
+    DATA_PT_camera_background_image,
     DATA_PT_camera_safe_areas,
     DATA_PT_custom_props_camera,
 )

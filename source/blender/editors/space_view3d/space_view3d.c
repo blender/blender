@@ -409,17 +409,6 @@ static SpaceLink *view3d_new(const bContext *C)
 static void view3d_free(SpaceLink *sl)
 {
 	View3D *vd = (View3D *) sl;
-	BGpic *bgpic;
-
-	for (bgpic = vd->bgpicbase.first; bgpic; bgpic = bgpic->next) {
-		if (bgpic->source == V3D_BGPIC_IMAGE) {
-			id_us_min((ID *)bgpic->ima);
-		}
-		else if (bgpic->source == V3D_BGPIC_MOVIE) {
-			id_us_min((ID *)bgpic->clip);
-		}
-	}
-	BLI_freelistN(&vd->bgpicbase);
 
 	if (vd->localvd) MEM_freeN(vd->localvd);
 	
@@ -450,7 +439,6 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 {
 	View3D *v3do = (View3D *)sl;
 	View3D *v3dn = MEM_dupallocN(sl);
-	BGpic *bgpic;
 	
 	/* clear or remove stuff from old */
 
@@ -466,16 +454,6 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 	/* copy or clear inside new stuff */
 
 	v3dn->defmaterial = NULL;
-
-	BLI_duplicatelist(&v3dn->bgpicbase, &v3do->bgpicbase);
-	for (bgpic = v3dn->bgpicbase.first; bgpic; bgpic = bgpic->next) {
-		if (bgpic->source == V3D_BGPIC_IMAGE) {
-			id_us_plus((ID *)bgpic->ima);
-		}
-		else if (bgpic->source == V3D_BGPIC_MOVIE) {
-			id_us_plus((ID *)bgpic->clip);
-		}
-	}
 
 	v3dn->properties_storage = NULL;
 	if (v3dn->fx_settings.dof)
@@ -1418,21 +1396,6 @@ static void view3d_id_remap(ScrArea *sa, SpaceLink *slink, ID *old_id, ID *new_i
 				/* Otherwise, bonename may remain valid... We could be smart and check this, too? */
 				if (new_id == NULL) {
 					v3d->ob_centre_bone[0] = '\0';
-				}
-			}
-
-			if (ELEM(GS(old_id->name), ID_IM, ID_MC)) {
-				for (BGpic *bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next) {
-					if ((ID *)bgpic->ima == old_id) {
-						bgpic->ima = (Image *)new_id;
-						id_us_min(old_id);
-						id_us_plus(new_id);
-					}
-					if ((ID *)bgpic->clip == old_id) {
-						bgpic->clip = (MovieClip *)new_id;
-						id_us_min(old_id);
-						id_us_plus(new_id);
-					}
 				}
 			}
 		}
