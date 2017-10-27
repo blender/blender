@@ -126,20 +126,22 @@ static int edbm_polybuild_face_at_cursor_invoke(
 		BMVert *v_act = (BMVert *)ele_act;
 		BMEdge *e_pair[2] = {NULL};
 
-		for (uint allow_wire = 0; allow_wire < 2 && (e_pair[1] == NULL); allow_wire++) {
-			int i = 0;
-			BMEdge *e_iter = v_act->e;
-			do {
-				if ((BM_elem_flag_test(e_iter, BM_ELEM_HIDDEN) == false) &&
-				    (allow_wire ? BM_edge_is_wire(e_iter) : BM_edge_is_boundary(e_iter)))
-				{
-					if (i == 2) {
-						e_pair[0] = e_pair[1] = NULL;
-						break;
+		if (v_act->e != NULL) {
+			for (uint allow_wire = 0; allow_wire < 2 && (e_pair[1] == NULL); allow_wire++) {
+				int i = 0;
+				BMEdge *e_iter = v_act->e;
+				do {
+					if ((BM_elem_flag_test(e_iter, BM_ELEM_HIDDEN) == false) &&
+						(allow_wire ? BM_edge_is_wire(e_iter) : BM_edge_is_boundary(e_iter)))
+					{
+						if (i == 2) {
+							e_pair[0] = e_pair[1] = NULL;
+							break;
+						}
+						e_pair[i++] = e_iter;
 					}
-					e_pair[i++] = e_iter;
-				}
-			} while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, v_act)) != v_act->e);
+				} while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, v_act)) != v_act->e);
+			}
 		}
 
 		if (e_pair[1] != NULL) {
