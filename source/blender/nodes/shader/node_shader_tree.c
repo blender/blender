@@ -527,6 +527,35 @@ static void ntree_shader_tag_ssr_node(bNodeTree *ntree, short compatibility)
 	nodeChainIter(ntree, output_node, ntree_tag_ssr_bsdf_cb, &lobe_count, true);
 }
 
+/* EEVEE: Find which material domain are used (volume, surface ...).
+ */
+void ntreeGPUMaterialDomain(bNodeTree *ntree, bool *has_surface_output, bool *has_volume_output)
+{
+	/* localize tree to create links for reroute and mute */
+	bNodeTree *localtree = ntreeLocalize(ntree);
+
+	struct bNode *output = ntree_shader_output_node(localtree);
+
+	*has_surface_output = false;
+	*has_volume_output = false;
+
+	if (output != NULL) {
+		bNodeSocket *surface_sock = ntree_shader_node_find_input(output, "Surface");
+		bNodeSocket *volume_sock = ntree_shader_node_find_input(output, "Volume");
+
+		if (surface_sock != NULL) {
+			*has_surface_output = (nodeCountSocketLinks(localtree, surface_sock) > 0);
+		}
+
+		if (volume_sock != NULL) {
+			*has_volume_output = (nodeCountSocketLinks(localtree, volume_sock) > 0);
+		}
+	}
+
+	ntreeFreeTree(localtree);
+	MEM_freeN(localtree);
+}
+
 void ntreeGPUMaterialNodes(bNodeTree *ntree, GPUMaterial *mat, short compatibility)
 {
 	/* localize tree to create links for reroute and mute */

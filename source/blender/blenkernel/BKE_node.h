@@ -816,6 +816,7 @@ extern void (*node_shader_lamp_loop)(struct ShadeInput *, struct ShadeResult *);
 void            set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, struct ShadeResult *));
 
 void            ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat, short compatibility);
+void            ntreeGPUMaterialDomain(struct bNodeTree *ntree, bool *has_surface_output, bool *has_volume_output);
 
 /** \} */
 
