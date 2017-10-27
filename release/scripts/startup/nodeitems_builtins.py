@@ -169,13 +169,6 @@ def object_eevee_cycles_shader_nodes_poll(context):
             eevee_cycles_shader_nodes_poll(context))
 
 
-# Until volume shader on objects are supported in eevee.
-def volume_shader_nodes_poll(context):
-    return (cycles_shader_nodes_poll(context) or
-           (eevee_shader_nodes_poll(context) and
-            world_shader_nodes_poll(context)))
-
-
 # All standard node categories currently used in nodes.
 
 shader_node_categories = [
@@ -276,8 +269,8 @@ shader_node_categories = [
         NodeItem("ShaderNodeBackground", poll=world_shader_nodes_poll),
         NodeItem("ShaderNodeAmbientOcclusion", poll=object_cycles_shader_nodes_poll),
         NodeItem("ShaderNodeHoldout", poll=object_cycles_shader_nodes_poll),
-        NodeItem("ShaderNodeVolumeAbsorption", poll=volume_shader_nodes_poll),
-        NodeItem("ShaderNodeVolumeScatter", poll=volume_shader_nodes_poll),
+        NodeItem("ShaderNodeVolumeAbsorption", poll=eevee_cycles_shader_nodes_poll),
+        NodeItem("ShaderNodeVolumeScatter", poll=eevee_cycles_shader_nodes_poll),
         NodeItem("ShaderNodeEeveeSpecular", poll=object_eevee_shader_nodes_poll),
         ]),
     ShaderNewNodeCategory("SH_NEW_TEXTURE", "Texture", items=[
