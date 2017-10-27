@@ -40,7 +40,7 @@ class PhysicButtonsPanel:
 
 class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
     bl_label = "Smoke"
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
@@ -136,7 +136,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_smoke_flow_advanced(PhysicButtonsPanel, Panel):
     bl_label = "Smoke Flow Advanced"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -171,7 +171,7 @@ class PHYSICS_PT_smoke_flow_advanced(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_smoke_fire(PhysicButtonsPanel, Panel):
     bl_label = "Smoke Flames"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -201,7 +201,7 @@ class PHYSICS_PT_smoke_fire(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_smoke_adaptive_domain(PhysicButtonsPanel, Panel):
     bl_label = "Smoke Adaptive Domain"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -235,7 +235,7 @@ class PHYSICS_PT_smoke_adaptive_domain(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, Panel):
     bl_label = "Smoke High Resolution"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -275,7 +275,7 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, Panel):
     bl_label = "Smoke Groups"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -304,7 +304,7 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, Panel):
     bl_label = "Smoke Cache"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -341,7 +341,7 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel, Panel):
     bl_label = "Smoke Field Weights"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):

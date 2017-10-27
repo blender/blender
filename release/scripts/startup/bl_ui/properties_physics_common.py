@@ -57,7 +57,7 @@ def physics_add_special(self, layout, data, name, addop, removeop, typeicon):
 class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw(self, context):
         obj = context.object
