@@ -1259,6 +1259,16 @@ void GPU_create_smoke(SmokeModifierData *smd, int highres)
 			else {
 				sds->tex = GPU_texture_create_3D_custom(sds->res[0], sds->res[1], sds->res[2], 1,
 				                                 GPU_R8, smoke_get_density(sds->fluid), NULL);
+
+				/* Swizzle the RGBA components to read the Red channel so
+				 * that the shader stay the same for colored and non color
+				 * density textures. */
+				GPU_texture_bind(sds->tex, 0);
+				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_R, GL_RED);
+				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_G, GL_RED);
+				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_B, GL_RED);
+				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_A, GL_RED);
+				GPU_texture_unbind(sds->tex);
 			}
 			sds->tex_flame = (smoke_has_fuel(sds->fluid)) ?
 			                  GPU_texture_create_3D_custom(sds->res[0], sds->res[1], sds->res[2], 1,
@@ -1277,6 +1287,16 @@ void GPU_create_smoke(SmokeModifierData *smd, int highres)
 			else {
 				sds->tex = GPU_texture_create_3D_custom(sds->res_wt[0], sds->res_wt[1], sds->res_wt[2], 1,
 				                                        GPU_R8, smoke_turbulence_get_density(sds->wt), NULL);
+
+				/* Swizzle the RGBA components to read the Red channel so
+				 * that the shader stay the same for colored and non color
+				 * density textures. */
+				GPU_texture_bind(sds->tex, 0);
+				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_R, GL_RED);
+				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_G, GL_RED);
+				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_B, GL_RED);
+				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_A, GL_RED);
+				GPU_texture_unbind(sds->tex);
 			}
 			sds->tex_flame = (smoke_turbulence_has_fuel(sds->wt)) ?
 			                  GPU_texture_create_3D_custom(sds->res_wt[0], sds->res_wt[1], sds->res_wt[2], 1,

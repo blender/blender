@@ -190,6 +190,9 @@ static void gpu_parse_functions_string(GHash *hash, char *code)
 			if (!type && gpu_str_prefix(code, "sampler2D")) {
 				type = GPU_TEX2D;
 			}
+			if (!type && gpu_str_prefix(code, "sampler3D")) {
+				type = GPU_TEX3D;
+			}
 
 			if (!type && gpu_str_prefix(code, "Closure")) {
 				type = GPU_CLOSURE;
@@ -420,6 +423,10 @@ const char *GPU_builtin_name(GPUBuiltin builtin)
 		return "unfparticleangvel";
 	else if (builtin == GPU_OBJECT_INFO)
 		return "unfobjectinfo";
+	else if (builtin == GPU_VOLUME_DENSITY)
+		return "sampdensity";
+	else if (builtin == GPU_VOLUME_FLAME)
+		return "sampflame";
 	else
 		return "";
 }
@@ -537,7 +544,14 @@ static int codegen_process_uniforms_functions(GPUMaterial *material, DynStr *ds,
 					builtins |= input->builtin;
 					name = GPU_builtin_name(input->builtin);
 
-					if (gpu_str_prefix(name, "unf")) {
+					if (gpu_str_prefix(name, "samp")) {
+						if ((input->builtin == GPU_VOLUME_DENSITY) ||
+						    (input->builtin == GPU_VOLUME_FLAME))
+						{
+							BLI_dynstr_appendf(ds, "uniform sampler3D %s;\n", name);
+						}
+					}
+					else if (gpu_str_prefix(name, "unf")) {
 						BLI_dynstr_appendf(ds, "uniform %s %s;\n",
 							GPU_DATATYPE_STR[input->type], name);
 					}

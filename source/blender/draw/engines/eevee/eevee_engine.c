@@ -277,6 +277,8 @@ static void EEVEE_draw_scene(void *vedata)
 		}
 	}
 
+	EEVEE_effects_free_smoke_texture();
+
 	stl->g_data->view_updated = false;
 }
 

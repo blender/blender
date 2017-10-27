@@ -2401,6 +2401,7 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 						break;
 
 					case GPU_NONE:
+					case GPU_TEX3D:
 					case GPU_TEXCUBE:
 					case GPU_FLOAT:
 					case GPU_VEC2:
@@ -2439,6 +2440,7 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 					case GPU_NONE:
 					case GPU_CLOSURE:
 					case GPU_TEX2D:
+					case GPU_TEX3D:
 					case GPU_TEXCUBE:
 					case GPU_SHADOW2D:
 					case GPU_ATTRIB:

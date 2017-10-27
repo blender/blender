@@ -82,11 +82,12 @@ typedef enum GPUType {
 
 	/* Values not in GPU_DATATYPE_STR */
 	GPU_TEX2D = 1002,
-	GPU_SHADOW2D = 1003,
-	GPU_TEXCUBE = 1004,
+	GPU_TEX3D = 1003,
+	GPU_SHADOW2D = 1004,
+	GPU_TEXCUBE = 1005,
 
 	/* GLSL Struct types */
-	GPU_CLOSURE = 1005,
+	GPU_CLOSURE = 1006,
 
 	/* Opengl Attributes */
 	GPU_ATTRIB = 3001
@@ -108,7 +109,9 @@ typedef enum GPUBuiltin {
 	GPU_PARTICLE_ANG_VELOCITY = (1 << 12),
 	GPU_LOC_TO_VIEW_MATRIX =    (1 << 13),
 	GPU_INVERSE_LOC_TO_VIEW_MATRIX = (1 << 14),
-	GPU_OBJECT_INFO =           (1 << 15)
+	GPU_OBJECT_INFO =           (1 << 15),
+	GPU_VOLUME_DENSITY =        (1 << 16),
+	GPU_VOLUME_FLAME =          (1 << 17)
 } GPUBuiltin;
 
 typedef enum GPUOpenGLBuiltin {

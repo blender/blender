@@ -45,9 +45,24 @@ static void node_shader_init_attribute(bNodeTree *UNUSED(ntree), bNode *node)
 static int node_shader_gpu_attribute(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	NodeShaderAttribute *attr = node->storage;
-	GPUNodeLink *cd_attr = GPU_attribute(CD_AUTO_FROM_NAME, attr->name);
 
-	return GPU_stack_link(mat, node, "node_attribute", in, out, cd_attr);
+	/* FIXME : if an attribute layer (like vertex color) has one of theses name, it will not work as expected. */
+	if (strcmp(attr->name, "density") == 0) {
+		return GPU_stack_link(mat, node, "node_attribute_volume_density", in, out,
+		                      GPU_builtin(GPU_VOLUME_DENSITY));
+	}
+	else if (strcmp(attr->name, "color") == 0) {
+		return GPU_stack_link(mat, node, "node_attribute_volume_color", in, out,
+		                      GPU_builtin(GPU_VOLUME_DENSITY));
+	}
+	else if (strcmp(attr->name, "flame") == 0) {
+		return GPU_stack_link(mat, node, "node_attribute_volume_flame", in, out,
+		                      GPU_builtin(GPU_VOLUME_FLAME));
+	}
+	else {
+		GPUNodeLink *cd_attr = GPU_attribute(CD_AUTO_FROM_NAME, attr->name);
+		return GPU_stack_link(mat, node, "node_attribute", in, out, cd_attr);
+	}
 }
 
 /* node type definition */

@@ -643,6 +643,7 @@ void EEVEE_effects_do_ssr(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_effects_do_refraction(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_effects_do_gtao(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_draw_effects(EEVEE_Data *vedata);
+void EEVEE_effects_free_smoke_texture(void);
 void EEVEE_effects_free(void);
 
 /* Shadow Matrix */

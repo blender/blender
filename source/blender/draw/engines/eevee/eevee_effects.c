@@ -30,12 +30,15 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_object_force.h"
 #include "DNA_screen_types.h"
+#include "DNA_smoke_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
 #include "BKE_global.h" /* for G.debug_value */
 #include "BKE_camera.h"
+#include "BKE_modifier.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_animsys.h"
@@ -49,6 +52,7 @@
 #include "BLI_rand.h"
 
 #include "eevee_private.h"
+#include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_framebuffer.h"
 #include "GPU_texture.h"
@@ -116,6 +120,9 @@ static struct {
 	/* Theses are just references, not actually allocated */
 	struct GPUTexture *depth_src;
 	struct GPUTexture *color_src;
+
+	/* List of all smoke domains rendered within this frame. */
+	ListBase smoke_domains;
 
 	int depth_src_layer;
 	float cube_texel_size;
@@ -264,6 +271,8 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 	IDProperty *props = BKE_scene_layer_engine_evaluated_get(scene_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
 
 	const float *viewport_size = DRW_viewport_size_get();
+
+	BLI_listbase_clear(&e_data.smoke_domains);
 
 	/* Shaders */
 	if (!e_data.motion_blur_sh) {
@@ -721,11 +730,17 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		double ht_point[3];
 		double ht_offset[3] = {0.0, 0.0};
 		unsigned int ht_primes[3] = {3, 7, 2};
-		struct wmWindowManager *wm = CTX_wm_manager(draw_ctx->evil_C);
 		unsigned int current_sample = 0;
 
-		if (((effects->enabled_effects & EFFECT_TAA) != 0) && (ED_screen_animation_no_scrub(wm) == NULL)) {
-			/* If TAA is in use do not use the history buffer. */
+		/* If TAA is in use do not use the history buffer. */
+		bool do_taa = ((effects->enabled_effects & EFFECT_TAA) != 0);
+
+		if (draw_ctx->evil_C != NULL) {
+			struct wmWindowManager *wm = CTX_wm_manager(draw_ctx->evil_C);
+			do_taa = do_taa && (ED_screen_animation_no_scrub(wm) == NULL);
+		}
+
+		if (do_taa) {
 			volumetrics->history_alpha = 0.0f;
 			current_sample = effects->taa_current_sample - 1;
 			effects->volume_current_sample = -1;
@@ -1043,6 +1058,7 @@ void EEVEE_effects_cache_volume_object_add(EEVEE_SceneLayerData *sldata, EEVEE_D
 {
 	float *texcoloc = NULL;
 	float *texcosize = NULL;
+	struct ModifierData *md = NULL;
 	EEVEE_VolumetricsInfo *volumetrics = sldata->volumetrics;
 	Material *ma = give_current_material(ob, 1);
 
@@ -1068,6 +1084,34 @@ void EEVEE_effects_cache_volume_object_add(EEVEE_SceneLayerData *sldata, EEVEE_D
 		DRW_shgroup_uniform_vec2(grp, "volume_uv_ratio", (float *)volumetrics->volume_coord_scale, 1);
 		DRW_shgroup_uniform_vec3(grp, "volume_param", (float *)volumetrics->depth_param, 1);
 		DRW_shgroup_uniform_vec3(grp, "volume_jitter", (float *)volumetrics->jitter, 1);
+	}
+
+	/* Smoke Simulation */
+	if (((ob->base_flag & BASE_FROMDUPLI) == 0) &&
+	    (md = modifiers_findByType(ob, eModifierType_Smoke)) &&
+	    (modifier_isEnabled(scene, md, eModifierMode_Realtime)))
+	{
+		SmokeModifierData *smd = (SmokeModifierData *)md;
+		SmokeDomainSettings *sds = smd->domain;
+		/* Don't show smoke before simulation starts, this could be made an option in the future. */
+		const bool show_smoke = (CFRA >= sds->point_cache[0]->startframe);
+
+		if (sds->fluid && show_smoke) {
+			if (!sds->wt || !(sds->viewsettings & MOD_SMOKE_VIEW_SHOWBIG)) {
+				GPU_create_smoke(smd, 0);
+			}
+			else if (sds->wt && (sds->viewsettings & MOD_SMOKE_VIEW_SHOWBIG)) {
+				GPU_create_smoke(smd, 1);
+			}
+			BLI_addtail(&e_data.smoke_domains, BLI_genericNodeN(smd));
+		}
+
+		if (sds->tex != NULL) {
+			DRW_shgroup_uniform_buffer(grp, "sampdensity", &sds->tex);
+		}
+		if (sds->tex_flame != NULL) {
+			DRW_shgroup_uniform_buffer(grp, "sampflame", &sds->tex_flame);
+		}
 	}
 }
 
@@ -1885,6 +1929,16 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 	if (DRW_state_is_image_render()) {
 		stl->g_data->valid_double_buffer = (txl->color_double_buffer != NULL);
 	}
+}
+
+void EEVEE_effects_free_smoke_texture(void)
+{
+	/* Free Smoke Textures after rendering */
+	for (LinkData *link = e_data.smoke_domains.first; link; link = link->next) {
+		SmokeModifierData *smd = (SmokeModifierData *)link->data;
+		GPU_free_smoke(smd);
+	}
+	BLI_freelistN(&e_data.smoke_domains);
 }
 
 void EEVEE_effects_free(void)

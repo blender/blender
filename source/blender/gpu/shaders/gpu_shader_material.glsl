@@ -3093,11 +3093,47 @@ void node_gamma(vec4 col, float gamma, out vec4 outcol)
 
 /* geometry */
 
+void node_attribute_volume_density(sampler3D tex, out vec4 outcol, out vec3 outvec, out float outf)
+{
+#if defined(EEVEE_ENGINE) && defined(MESH_SHADER) && defined(VOLUMETRICS)
+	vec3 cos = volumeObjectLocalCoord;
+#else
+	vec3 cos = vec3(0.0);
+#endif
+	outvec = texture(tex, cos).aaa;
+	outcol = vec4(outvec, 1.0);
+	outf = dot(vec3(1.0 / 3.0), outvec);
+}
+
+void node_attribute_volume_color(sampler3D tex, out vec4 outcol, out vec3 outvec, out float outf)
+{
+#if defined(EEVEE_ENGINE) && defined(MESH_SHADER) && defined(VOLUMETRICS)
+	vec3 cos = volumeObjectLocalCoord;
+#else
+	vec3 cos = vec3(0.0);
+#endif
+	outvec = texture(tex, cos).rgb;
+	outcol = vec4(outvec, 1.0);
+	outf = dot(vec3(1.0 / 3.0), outvec);
+}
+
+void node_attribute_volume_flame(sampler3D tex, out vec4 outcol, out vec3 outvec, out float outf)
+{
+#if defined(EEVEE_ENGINE) && defined(MESH_SHADER) && defined(VOLUMETRICS)
+	vec3 cos = volumeObjectLocalCoord;
+#else
+	vec3 cos = vec3(0.0);
+#endif
+	outvec = texture(tex, cos).rrr;
+	outcol = vec4(outvec, 1.0);
+	outf = dot(vec3(1.0 / 3.0), outvec);
+}
+
 void node_attribute(vec3 attr, out vec4 outcol, out vec3 outvec, out float outf)
 {
 	outcol = vec4(attr, 1.0);
 	outvec = attr;
-	outf = (attr.x + attr.y + attr.z) / 3.0;
+	outf =  dot(vec3(1.0 / 3.0), attr);
 }
 
 void node_uvmap(vec3 attr_uv, out vec3 outvec)
