@@ -68,12 +68,14 @@ float phase_function(vec3 v, vec3 l, float g)
 vec3 light_volume(LightData ld, vec4 l_vector)
 {
 	float power;
-	float dist = max(1e-4, abs(l_vector.w - ld.l_radius));
 	/* TODO : Area lighting ? */
 	/* XXX : Removing Area Power. */
 	/* TODO : put this out of the shader. */
 	if (ld.l_type == AREA) {
-		power = 0.0962 * (ld.l_sizex * ld.l_sizey * 4.0f * M_PI);
+		power = 0.0962 * (ld.l_sizex * ld.l_sizey * 4.0 * M_PI);
+	}
+	else if (ld.l_type == SUN) {
+		power = 1.0;
 	}
 	else {
 		power = 0.0248 * (4.0 * ld.l_radius * ld.l_radius * M_PI * M_PI);
@@ -83,7 +85,9 @@ vec3 light_volume(LightData ld, vec4 l_vector)
 	float lum = dot(ld.l_color, vec3(0.3, 0.6, 0.1)); /* luminance approx. */
 	vec3 tint = (lum > 0.0) ? ld.l_color / lum : vec3(1.0); /* normalize lum. to isolate hue+sat */
 
-	lum = min(lum * power / (l_vector.w * l_vector.w), volume_light_clamp);
+	power /= (l_vector.w * l_vector.w);
+
+	lum = min(lum * power, volume_light_clamp);
 
 	return tint * lum;
 }

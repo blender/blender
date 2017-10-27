@@ -50,7 +50,7 @@ void main()
 		LightData ld = lights_data[i];
 
 		vec4 l_vector;
-		l_vector.xyz = ld.l_position - worldPosition;
+		l_vector.xyz = (ld.l_type == SUN) ? -ld.l_forward : ld.l_position - worldPosition;
 		l_vector.w = length(l_vector.xyz);
 
 		float Vis = light_visibility(ld, worldPosition, l_vector);
