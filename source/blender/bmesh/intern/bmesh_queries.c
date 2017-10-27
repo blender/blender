@@ -1744,6 +1744,7 @@ float BM_vert_calc_edge_angle_ex(const BMVert *v, const float fallback)
 
 	if ((e1 = v->e) &&
 	    (e2 =  bmesh_disk_edge_next(e1, v)) &&
+	    (e1 != e2) &&
 	    /* make sure we come full circle and only have 2 connected edges */
 	    (e1 == bmesh_disk_edge_next(e2, v)))
 	{
