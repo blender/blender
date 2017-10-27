@@ -1286,7 +1286,8 @@ static void rna_def_scene_layer_engine_settings_eevee(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, "rna_LayerEngineSettings_Eevee_volumetric_tile_size_get",
 	                                  "rna_LayerEngineSettings_Eevee_volumetric_tile_size_set", NULL);
 	RNA_def_property_enum_items(prop, eevee_volumetric_tile_size_items);
-	RNA_def_property_ui_text(prop, "Tile Size", "Number of samples to compute volumetric effects");
+	RNA_def_property_ui_text(prop, "Tile Size", "Control the quality of the volumetric effects "
+	                                            "(lower size increase vram usage and quality)");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
 
