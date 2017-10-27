@@ -170,11 +170,6 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmManipulatorGroup *mg
 	/* TODO - make focal length/ortho scale widget optional */
 	if (true) {
 		const bool is_ortho = (ca->type == CAM_ORTHO);
-		const float scale[3] = {1.0f / len_v3(ob->obmat[0]), 1.0f / len_v3(ob->obmat[1]), 1.0f / len_v3(ob->obmat[2])};
-		const float scale_fac = ca->drawsize;
-		const float drawsize = is_ortho ?
-		        (0.5f * ca->ortho_scale) :
-		        (scale_fac / ((scale[0] + scale[1] + scale[2]) / 3.0f));
 		float offset[3];
 		float aspect[2];
 
@@ -196,13 +191,30 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmManipulatorGroup *mg
 		aspect[0] = (sensor_fit == CAMERA_SENSOR_FIT_HOR) ? 1.0f : aspx / aspy;
 		aspect[1] = (sensor_fit == CAMERA_SENSOR_FIT_HOR) ? aspy / aspx : 1.0f;
 
+		unit_m4(widget->matrix_basis);
 		WM_manipulator_set_matrix_location(widget, ob->obmat[3]);
 		WM_manipulator_set_matrix_rotation_from_yz_axis(widget, ob->obmat[1], dir);
+
+		{
+			float scale_matrix;
+			if (is_ortho) {
+				scale_matrix = ca->ortho_scale * 0.5f;
+			}
+			else {
+				const float scale[3] = {
+					1.0f / len_v3(ob->obmat[0]),
+					1.0f / len_v3(ob->obmat[1]),
+					1.0f / len_v3(ob->obmat[2]),
+				};
+				scale_matrix = ca->drawsize / ((scale[0] + scale[1] + scale[2]) / 3.0f);
+			}
+			mul_v3_fl(widget->matrix_basis[0], scale_matrix);
+			mul_v3_fl(widget->matrix_basis[1], scale_matrix);
+		}
 
 		RNA_float_set_array(widget->ptr, "aspect", aspect);
 
 		WM_manipulator_set_matrix_offset_location(widget, offset);
-		WM_manipulator_set_scale(widget, drawsize);
 
 		/* need to set property here for undo. TODO would prefer to do this in _init */
 		WM_manipulator_target_property_def_rna(camgroup->focal_len, "offset", &camera_ptr, "lens", -1);
@@ -217,7 +229,6 @@ void VIEW3D_WGT_camera(wmManipulatorGroupType *wgt)
 
 	wgt->flag = (WM_MANIPULATORGROUPTYPE_PERSISTENT |
 	             WM_MANIPULATORGROUPTYPE_3D |
-	             WM_MANIPULATORGROUPTYPE_SCALE |
 	             WM_MANIPULATORGROUPTYPE_DEPTH_3D);
 
 	wgt->poll = WIDGETGROUP_camera_poll;
