@@ -47,6 +47,8 @@ static int node_shader_gpu_tex_coord(GPUMaterial *mat, bNode *node, bNodeExecDat
 	GPUNodeLink *orco = GPU_attribute(CD_ORCO, "");
 	GPUNodeLink *mtface = GPU_attribute(CD_MTFACE, "");
 	GPUMatType type = GPU_Material_get_type(mat);
+
+	GPU_link(mat, "generated_from_orco", orco, &orco);
 	
 	if (type == GPU_MATERIAL_TYPE_WORLD) {
 		return GPU_stack_link(mat, node, "node_tex_coord_background", in, out,

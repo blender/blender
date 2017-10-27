@@ -574,7 +574,8 @@ Closure closure_add(Closure cl1, Closure cl2)
 	cl.anisotropy = (cl1.anisotropy + cl2.anisotropy) / 2.0; /* Average phase (no multi lobe) */
 	return cl;
 }
-#else
+
+#else /* VOLUMETRICS */
 
 struct Closure {
 	vec3 radiance;

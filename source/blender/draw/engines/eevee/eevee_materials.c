@@ -318,13 +318,17 @@ static char *eevee_get_defines(int options)
 	return str;
 }
 
-static char *eevee_get_volume_defines(int UNUSED(options))
+static char *eevee_get_volume_defines(int options)
 {
 	char *str = NULL;
 
 	DynStr *ds = BLI_dynstr_new();
 	BLI_dynstr_appendf(ds, SHADER_DEFINES);
 	BLI_dynstr_appendf(ds, "#define VOLUMETRICS\n");
+
+	if ((options & VAR_MAT_VOLUME) != 0) {
+		BLI_dynstr_appendf(ds, "#define MESH_SHADER\n");
+	}
 
 	str = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
@@ -649,6 +653,28 @@ struct GPUMaterial *EEVEE_material_mesh_get(
 	mat = GPU_material_from_nodetree(
 	        scene, ma->nodetree, &ma->gpumaterial, engine, options,
 	        datatoc_lit_surface_vert_glsl, NULL, e_data.frag_shader_lib,
+	        defines);
+
+	MEM_freeN(defines);
+
+	return mat;
+}
+
+struct GPUMaterial *EEVEE_material_mesh_volume_get(struct Scene *scene, Material *ma)
+{
+	const void *engine = &DRW_engine_viewport_eevee_type;
+	int options = VAR_MAT_VOLUME;
+
+	GPUMaterial *mat = GPU_material_from_nodetree_find(&ma->gpumaterial, engine, options);
+	if (mat != NULL) {
+		return mat;
+	}
+
+	char *defines = eevee_get_volume_defines(options);
+
+	mat = GPU_material_from_nodetree(
+	        scene, ma->nodetree, &ma->gpumaterial, engine, options,
+	        datatoc_volumetric_vert_glsl, datatoc_volumetric_geom_glsl, e_data.volume_shader_lib,
 	        defines);
 
 	MEM_freeN(defines);
@@ -1200,6 +1226,12 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 			DRW_cache_mesh_sculpt_coords_ensure(ob);
 		}
 
+		/* Only support single volume material for now. */
+		/* XXX We rely on the previously compiled surface shader
+		 * to know if the material has a "volume nodetree".
+		 */
+		bool use_volume_material = (gpumat_array[0] && GPU_material_use_domain_volume(gpumat_array[0]));
+
 		/* Get per-material split surface */
 		struct Gwn_Batch **mat_geom = DRW_cache_object_surface_material_get(ob, gpumat_array, materials_len);
 		if (mat_geom) {
@@ -1208,6 +1240,14 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 
 				if (ma == NULL)
 					ma = &defmaterial;
+
+				/* Do not render surface if we are rendering a volume object
+				 * and do not have a surface closure. */
+				if (use_volume_material &&
+					(gpumat_array[i] && !GPU_material_use_domain_surface(gpumat_array[i])))
+				{
+					continue;
+				}
 
 				/* Shading pass */
 				ADD_SHGROUP_CALL(shgrp_array[i], ob, mat_geom[i]);
@@ -1240,6 +1280,11 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_SceneLayerData *sl
 					EEVEE_lights_cache_shcaster_add(sldata, psl, mat_geom[i], ob->obmat);
 				}
 			}
+		}
+
+		/* Volumetrics */
+		if (vedata->stl->effects->use_volumetrics && use_volume_material) {
+			EEVEE_effects_cache_volume_object_add(sldata, vedata, scene, ob);
 		}
 	}
 

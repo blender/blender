@@ -36,6 +36,7 @@
 
 #include "BKE_global.h" /* for G.debug_value */
 #include "BKE_camera.h"
+#include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_animsys.h"
 #include "BKE_screen.h"
@@ -93,6 +94,7 @@ static struct {
 	struct GPUShader *dof_resolve_sh;
 
 	/* Volumetric */
+	struct GPUShader *volumetric_clear_sh;
 	struct GPUShader *volumetric_scatter_sh;
 	struct GPUShader *volumetric_integration_sh;
 	struct GPUShader *volumetric_resolve_sh;
@@ -300,6 +302,12 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 		e_data.volumetric_common_lamps_lib = BLI_dynstr_get_cstring(ds_frag);
 		BLI_dynstr_free(ds_frag);
 
+		e_data.volumetric_clear_sh = DRW_shader_create_with_lib(datatoc_volumetric_vert_glsl,
+		                                                        datatoc_volumetric_geom_glsl,
+		                                                        datatoc_volumetric_frag_glsl,
+		                                                        e_data.volumetric_common_lib,
+		                                                        "#define VOLUMETRICS\n"
+		                                                        "#define CLEAR\n");
 		e_data.volumetric_scatter_sh = DRW_shader_create_with_lib(datatoc_volumetric_vert_glsl,
 		                                                          datatoc_volumetric_geom_glsl,
 		                                                          datatoc_volumetric_scatter_frag_glsl,
@@ -1031,6 +1039,38 @@ static DRWShadingGroup *eevee_create_bloom_pass(const char *name, EEVEE_EffectsI
 	return grp;
 }
 
+void EEVEE_effects_cache_volume_object_add(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata, Scene *scene, Object *ob)
+{
+	float *texcoloc = NULL;
+	float *texcosize = NULL;
+	EEVEE_VolumetricsInfo *volumetrics = sldata->volumetrics;
+	Material *ma = give_current_material(ob, 1);
+
+	if (ma == NULL) {
+		return;
+	}
+
+	struct GPUMaterial *mat = EEVEE_material_mesh_volume_get(scene, ma);
+
+	DRWShadingGroup *grp = DRW_shgroup_material_empty_tri_batch_create(mat, vedata->psl->volumetric_objects_ps, volumetrics->froxel_tex_size[2]);
+
+	/* Making sure it's updated. */
+	invert_m4_m4(ob->imat, ob->obmat);
+
+	BKE_mesh_texspace_get_reference((struct Mesh *)ob->data, NULL, &texcoloc, NULL, &texcosize);
+
+	if (grp) {
+		DRW_shgroup_uniform_mat4(grp, "volumeObjectMatrix", (float *)ob->imat);
+		DRW_shgroup_uniform_vec3(grp, "volumeOrcoLoc", texcoloc, 1);
+		DRW_shgroup_uniform_vec3(grp, "volumeOrcoSize", texcosize, 1);
+		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)vedata->stl->g_data->viewvecs, 2);
+		DRW_shgroup_uniform_ivec3(grp, "volumeTextureSize", (int *)volumetrics->froxel_tex_size, 1);
+		DRW_shgroup_uniform_vec2(grp, "volume_uv_ratio", (float *)volumetrics->volume_coord_scale, 1);
+		DRW_shgroup_uniform_vec3(grp, "volume_param", (float *)volumetrics->depth_param, 1);
+		DRW_shgroup_uniform_vec3(grp, "volume_jitter", (float *)volumetrics->jitter, 1);
+	}
+}
+
 void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_PassList *psl = vedata->psl;
@@ -1054,26 +1094,36 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 	if ((effects->enabled_effects & EFFECT_VOLUMETRIC) != 0) {
 		const DRWContextState *draw_ctx = DRW_context_state_get();
 		Scene *scene = draw_ctx->scene;
-		struct World *wo = scene->world; /* Already checked non NULL */
 		EEVEE_VolumetricsInfo *volumetrics = sldata->volumetrics;
 		static int zero = 0;
 		DRWShadingGroup *grp;
 
 		/* World pass is not additive as it also clear the buffer. */
-		psl->volumetric_ps = DRW_pass_create("Volumetric Properties", DRW_STATE_WRITE_COLOR);
+		psl->volumetric_world_ps = DRW_pass_create("Volumetric World", DRW_STATE_WRITE_COLOR);
 
 		/* World Volumetric */
-		struct GPUMaterial *mat = EEVEE_material_world_volume_get(scene, wo);
+		struct World *wo = scene->world;
+		if (wo != NULL && wo->use_nodes && wo->nodetree) {
+			struct GPUMaterial *mat = EEVEE_material_world_volume_get(scene, wo);
 
-		grp = DRW_shgroup_material_empty_tri_batch_create(mat, psl->volumetric_ps, volumetrics->froxel_tex_size[2]);
+			grp = DRW_shgroup_material_empty_tri_batch_create(mat, psl->volumetric_world_ps, volumetrics->froxel_tex_size[2]);
 
-		if (grp) {
-			DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
-			DRW_shgroup_uniform_ivec3(grp, "volumeTextureSize", (int *)volumetrics->froxel_tex_size, 1);
-			DRW_shgroup_uniform_vec2(grp, "volume_uv_ratio", (float *)volumetrics->volume_coord_scale, 1);
-			DRW_shgroup_uniform_vec3(grp, "volume_param", (float *)volumetrics->depth_param, 1);
-			DRW_shgroup_uniform_vec3(grp, "volume_jitter", (float *)volumetrics->jitter, 1);
+			if (grp) {
+				DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
+				DRW_shgroup_uniform_ivec3(grp, "volumeTextureSize", (int *)volumetrics->froxel_tex_size, 1);
+				DRW_shgroup_uniform_vec2(grp, "volume_uv_ratio", (float *)volumetrics->volume_coord_scale, 1);
+				DRW_shgroup_uniform_vec3(grp, "volume_param", (float *)volumetrics->depth_param, 1);
+				DRW_shgroup_uniform_vec3(grp, "volume_jitter", (float *)volumetrics->jitter, 1);
+			}
 		}
+		else {
+			grp = DRW_shgroup_empty_tri_batch_create(e_data.volumetric_clear_sh, psl->volumetric_world_ps, volumetrics->froxel_tex_size[2]);
+
+			DRW_shgroup_uniform_ivec3(grp, "volumeTextureSize", (int *)volumetrics->froxel_tex_size, 1);
+		}
+
+		/* Volumetric Objects */
+		psl->volumetric_objects_ps = DRW_pass_create("Volumetric Properties", DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE);
 
 		psl->volumetric_scatter_ps = DRW_pass_create("Volumetric Scattering", DRW_STATE_WRITE_COLOR);
 		grp = DRW_shgroup_empty_tri_batch_create(e_data.volumetric_scatter_sh, psl->volumetric_scatter_ps, volumetrics->froxel_tex_size[2]);
@@ -1490,7 +1540,8 @@ void EEVEE_effects_do_volumetrics(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Da
 
 		/* Step 1: Participating Media Properties */
 		DRW_framebuffer_bind(fbl->volumetric_fb);
-		DRW_draw_pass(psl->volumetric_ps);
+		DRW_draw_pass(psl->volumetric_world_ps);
+		DRW_draw_pass(psl->volumetric_objects_ps);
 
 		/* Step 2: Scatter Light */
 		DRW_framebuffer_bind(fbl->volumetric_scat_fb);
@@ -1852,6 +1903,7 @@ void EEVEE_effects_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.gtao_sh);
 	DRW_SHADER_FREE_SAFE(e_data.gtao_debug_sh);
 
+	DRW_SHADER_FREE_SAFE(e_data.volumetric_clear_sh);
 	DRW_SHADER_FREE_SAFE(e_data.volumetric_scatter_sh);
 	DRW_SHADER_FREE_SAFE(e_data.volumetric_integration_sh);
 	DRW_SHADER_FREE_SAFE(e_data.volumetric_resolve_sh);

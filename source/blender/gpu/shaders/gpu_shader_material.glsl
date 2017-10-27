@@ -2470,7 +2470,11 @@ float hypot(float x, float y)
 void generated_from_orco(vec3 orco, out vec3 generated)
 {
 #ifdef VOLUMETRICS
+#ifdef MESH_SHADER
+	generated = volumeObjectLocalCoord;
+#else
 	generated = worldPosition;
+#endif
 #else
 	generated = orco;
 #endif
@@ -4053,7 +4057,11 @@ void node_bump(float strength, float dist, float height, vec3 N, vec3 surf_pos, 
 
 void node_output_material(Closure surface, Closure volume, float displacement, out Closure result)
 {
+#ifdef VOLUMETRICS
+	result = volume;
+#else
 	result = surface;
+#endif
 }
 
 uniform float backgroundAlpha;
