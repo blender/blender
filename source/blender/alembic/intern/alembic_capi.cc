@@ -259,7 +259,7 @@ static void export_startjob(void *customdata, short *stop, short *do_update, flo
 
 	try {
 		Scene *scene = data->scene;
-		AbcExporter exporter(scene, data->filename, data->settings);
+		AbcExporter exporter(data->bmain, scene, data->filename, data->settings);
 
 		const int orig_frame = CFRA;
 

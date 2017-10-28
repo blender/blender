@@ -81,6 +81,7 @@ struct ExportSettings {
 };
 
 class AbcExporter {
+	Main *m_bmain;
 	ExportSettings &m_settings;
 
 	const char *m_filename;
@@ -98,7 +99,7 @@ class AbcExporter {
 	std::vector<AbcObjectWriter *> m_shapes;
 
 public:
-	AbcExporter(Scene *scene, const char *filename, ExportSettings &settings);
+	AbcExporter(Main *bmain, Scene *scene, const char *filename, ExportSettings &settings);
 	~AbcExporter();
 
 	void operator()(Main *bmain, float &progress, bool &was_canceled);

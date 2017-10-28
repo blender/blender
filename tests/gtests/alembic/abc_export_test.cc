@@ -5,6 +5,7 @@
 #include "intern/abc_exporter.h"
 
 extern "C" {
+#include "BKE_global.h"
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "DNA_scene_types.h"
@@ -12,8 +13,8 @@ extern "C" {
 
 class TestableAbcExporter : public AbcExporter {
 public:
-	TestableAbcExporter(Scene *scene, const char *filename, ExportSettings &settings)
-	    : AbcExporter(scene, filename, settings)
+	TestableAbcExporter(Main *bmain, Scene *scene, const char *filename, ExportSettings &settings)
+	    : AbcExporter(bmain, scene, filename, settings)
 	{}
 
 	void getShutterSamples(unsigned int nr_of_samples,
@@ -57,7 +58,7 @@ protected:
 	// Call after setting up the settings.
 	void createExporter()
 	{
-		exporter = new TestableAbcExporter(&scene, "somefile.abc", settings);
+		exporter = new TestableAbcExporter(G.main, &scene, "somefile.abc", settings);
 	}
 };
 

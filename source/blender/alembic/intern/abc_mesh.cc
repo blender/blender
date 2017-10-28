@@ -358,6 +358,11 @@ bool AbcMeshWriter::isAnimated() const
 	return me->adt != NULL;
 }
 
+void AbcMeshWriter::setIsAnimated(bool is_animated)
+{
+	m_is_animated = is_animated;
+}
+
 void AbcMeshWriter::do_write()
 {
 	/* We have already stored a sample for this object. */

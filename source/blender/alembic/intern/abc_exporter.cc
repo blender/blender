@@ -28,6 +28,7 @@
 #include "abc_camera.h"
 #include "abc_curves.h"
 #include "abc_hair.h"
+#include "abc_mball.h"
 #include "abc_mesh.h"
 #include "abc_nurbs.h"
 #include "abc_points.h"
@@ -37,6 +38,7 @@
 extern "C" {
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
@@ -54,6 +56,7 @@ extern "C" {
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_main.h"
+#include "BKE_mball.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
@@ -108,7 +111,7 @@ static bool object_is_smoke_sim(Object *ob)
 	return false;
 }
 
-static bool object_type_is_exportable(Object *ob)
+static bool object_type_is_exportable(Scene *scene, Object *ob)
 {
 	switch (ob->type) {
 		case OB_MESH:
@@ -122,6 +125,8 @@ static bool object_type_is_exportable(Object *ob)
 		case OB_SURF:
 		case OB_CAMERA:
 			return true;
+		case OB_MBALL:
+			return AbcMBallWriter::isBasisBall(scene, ob);
 		default:
 			return false;
 	}
@@ -163,8 +168,9 @@ static bool export_object(const ExportSettings * const settings, Object *ob,
 
 /* ************************************************************************** */
 
-AbcExporter::AbcExporter(Scene *scene, const char *filename, ExportSettings &settings)
-    : m_settings(settings)
+AbcExporter::AbcExporter(Main *bmain, Scene *scene, const char *filename, ExportSettings &settings)
+    : m_bmain(bmain)
+    , m_settings(settings)
     , m_filename(filename)
     , m_trans_sampling_index(0)
     , m_shape_sampling_index(0)
@@ -361,11 +367,9 @@ void AbcExporter::createTransformWritersHierarchy(EvaluationContext *eval_ctx)
 		switch (ob->type) {
 			case OB_LAMP:
 			case OB_LATTICE:
-			case OB_MBALL:
 			case OB_SPEAKER:
 				/* We do not export transforms for objects of these classes. */
 				break;
-
 			default:
 				exploreTransform(eval_ctx, ob, ob->parent);
 		}
@@ -382,7 +386,7 @@ void AbcExporter::exploreTransform(EvaluationContext *eval_ctx, Object *ob, Obje
 		return;
 	}
 
-	if (object_type_is_exportable(ob)) {
+	if (object_type_is_exportable(m_scene, ob)) {
 		createTransformWriter(ob, parent, dupliObParent);
 	}
 
@@ -547,7 +551,7 @@ void AbcExporter::createParticleSystemsWriters(Object *ob, AbcTransformWriter *x
 
 void AbcExporter::createShapeWriter(Object *ob, Object *dupliObParent)
 {
-	if (!object_type_is_exportable(ob)) {
+	if (!object_type_is_exportable(m_scene, ob)) {
 		return;
 	}
 
@@ -611,6 +615,18 @@ void AbcExporter::createShapeWriter(Object *ob, Object *dupliObParent)
 				m_shapes.push_back(new AbcCameraWriter(m_scene, ob, xform, m_shape_sampling_index, m_settings));
 			}
 
+			break;
+		}
+		case OB_MBALL:
+		{
+			MetaBall *mball = static_cast<MetaBall *>(ob->data);
+			if (!mball) {
+				return;
+			}
+
+			m_shapes.push_back(new AbcMBallWriter(
+			                       m_bmain, m_scene, ob, xform,
+			                       m_shape_sampling_index, m_settings));
 			break;
 		}
 	}
