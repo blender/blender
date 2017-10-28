@@ -350,7 +350,7 @@ void EEVEE_lights_cache_shcaster_material_add(
 void EEVEE_lights_cache_finish(EEVEE_SceneLayerData *sldata)
 {
 	EEVEE_LampsInfo *linfo = sldata->lamps;
-	DRWTextureFormat shadow_pool_format;
+	DRWTextureFormat shadow_pool_format = DRW_TEX_R_32;
 
 	/* Setup enough layers. */
 	/* Free textures if number mismatch. */
