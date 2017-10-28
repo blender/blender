@@ -306,6 +306,16 @@ void *BLI_heap_popmin(Heap *heap)
 	return ptr;
 }
 
+void BLI_heap_reinsert(Heap *heap, HeapNode *node, float value)
+{
+	if (value == node->value) {
+		return;
+	}
+	node->value = value;
+	heap_up(heap, node->index);
+	heap_down(heap, node->index);
+}
+
 void BLI_heap_remove(Heap *heap, HeapNode *node)
 {
 	uint i = node->index;
