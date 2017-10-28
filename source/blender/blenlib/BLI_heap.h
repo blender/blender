@@ -47,6 +47,9 @@ HeapNode       *BLI_heap_insert(Heap *heap, float value, void *ptr) ATTR_NONNULL
 /* Remove a heap node. */
 void            BLI_heap_remove(Heap *heap, HeapNode *node) ATTR_NONNULL(1, 2);
 
+/* Set new value for existing node. */
+void            BLI_heap_reinsert(Heap *heap, HeapNode *node, float value);
+
 /* Return 0 if the heap is empty, 1 otherwise. */
 bool            BLI_heap_is_empty(Heap *heap) ATTR_NONNULL(1);
 
