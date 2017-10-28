@@ -42,7 +42,7 @@
 #include "BLI_strict_flags.h"
 
 /**************inlined code************/
-static const unsigned int _ehash_hashsizes[] = {
+static const uint _ehash_hashsizes[] = {
 	1, 3, 5, 11, 17, 37, 67, 131, 257, 521, 1031, 2053, 4099, 8209,
 	16411, 32771, 65537, 131101, 262147, 524309, 1048583, 2097169,
 	4194319, 8388617, 16777259, 33554467, 67108879, 134217757,
@@ -62,22 +62,22 @@ static const unsigned int _ehash_hashsizes[] = {
 /* ensure v0 is smaller */
 #define EDGE_ORD(v0, v1)            \
 	if (v0 > v1) {                  \
-		SWAP(unsigned int, v0, v1); \
+		SWAP(uint, v0, v1); \
 	} (void)0
 
 /***/
 
 typedef struct EdgeEntry {
 	struct EdgeEntry *next;
-	unsigned int v0, v1;
+	uint v0, v1;
 	void *val;
 } EdgeEntry;
 
 struct EdgeHash {
 	EdgeEntry **buckets;
 	BLI_mempool *epool;
-	unsigned int nbuckets, nentries;
-	unsigned int cursize, flag;
+	uint nbuckets, nentries;
+	uint cursize, flag;
 };
 
 
@@ -90,7 +90,7 @@ struct EdgeHash {
 /**
  * Compute the hash and get the bucket-index.
  */
-BLI_INLINE unsigned int edgehash_bucket_index(EdgeHash *eh, unsigned int v0, unsigned int v1)
+BLI_INLINE uint edgehash_bucket_index(EdgeHash *eh, uint v0, uint v1)
 {
 	BLI_assert(v0 < v1);
 
@@ -100,7 +100,7 @@ BLI_INLINE unsigned int edgehash_bucket_index(EdgeHash *eh, unsigned int v0, uns
 /**
  * Check if the number of items in the GHash is large enough to require more buckets.
  */
-BLI_INLINE bool edgehash_test_expand_buckets(const unsigned int nentries, const unsigned int nbuckets)
+BLI_INLINE bool edgehash_test_expand_buckets(const uint nentries, const uint nbuckets)
 {
 	return (nentries > nbuckets * 3);
 }
@@ -108,12 +108,12 @@ BLI_INLINE bool edgehash_test_expand_buckets(const unsigned int nentries, const 
 /**
  * Expand buckets to the next size up.
  */
-BLI_INLINE void edgehash_resize_buckets(EdgeHash *eh, const unsigned int nbuckets)
+BLI_INLINE void edgehash_resize_buckets(EdgeHash *eh, const uint nbuckets)
 {
 	EdgeEntry **buckets_old = eh->buckets;
 	EdgeEntry **buckets_new;
-	const unsigned int nbuckets_old = eh->nbuckets;
-	unsigned int i;
+	const uint nbuckets_old = eh->nbuckets;
+	uint i;
 
 	BLI_assert(eh->nbuckets != nbuckets);
 
@@ -136,7 +136,7 @@ BLI_INLINE void edgehash_resize_buckets(EdgeHash *eh, const unsigned int nbucket
 /**
  * Increase initial bucket size to match a reserved amount.
  */
-BLI_INLINE void edgehash_buckets_reserve(EdgeHash *eh, const unsigned int nentries_reserve)
+BLI_INLINE void edgehash_buckets_reserve(EdgeHash *eh, const uint nentries_reserve)
 {
 	while (edgehash_test_expand_buckets(nentries_reserve, eh->nbuckets)) {
 		eh->nbuckets = _ehash_hashsizes[++eh->cursize];
@@ -148,8 +148,8 @@ BLI_INLINE void edgehash_buckets_reserve(EdgeHash *eh, const unsigned int nentri
  * Takes a \a bucket_index argument to avoid calling #edgehash_bucket_index multiple times.
  */
 BLI_INLINE EdgeEntry *edgehash_lookup_entry_ex(
-        EdgeHash *eh, unsigned int v0, unsigned int v1,
-        const unsigned int bucket_index)
+        EdgeHash *eh, uint v0, uint v1,
+        const uint bucket_index)
 {
 	EdgeEntry *e;
 	BLI_assert(v0 < v1);
@@ -167,8 +167,8 @@ BLI_INLINE EdgeEntry *edgehash_lookup_entry_ex(
  * Useful when modifying buckets somehow (like removing an entry...).
  */
 BLI_INLINE EdgeEntry *edgehash_lookup_entry_prev_ex(
-        EdgeHash *eh, unsigned int v0, unsigned int v1,
-        EdgeEntry **r_e_prev, const unsigned int bucket_index)
+        EdgeHash *eh, uint v0, uint v1,
+        EdgeEntry **r_e_prev, const uint bucket_index)
 {
 	BLI_assert(v0 < v1);
 	for (EdgeEntry *e_prev = NULL, *e = eh->buckets[bucket_index]; e; e_prev = e, e = e->next) {
@@ -185,17 +185,17 @@ BLI_INLINE EdgeEntry *edgehash_lookup_entry_prev_ex(
 /**
  * Internal lookup function. Only wraps #edgehash_lookup_entry_ex
  */
-BLI_INLINE EdgeEntry *edgehash_lookup_entry(EdgeHash *eh, unsigned int v0, unsigned int v1)
+BLI_INLINE EdgeEntry *edgehash_lookup_entry(EdgeHash *eh, uint v0, uint v1)
 {
 	EDGE_ORD(v0, v1);
-	const unsigned int bucket_index = edgehash_bucket_index(eh, v0, v1);
+	const uint bucket_index = edgehash_bucket_index(eh, v0, v1);
 	return edgehash_lookup_entry_ex(eh, v0, v1, bucket_index);
 }
 
 
 static EdgeHash *edgehash_new(const char *info,
-                              const unsigned int nentries_reserve,
-                              const unsigned int entry_size)
+                              const uint nentries_reserve,
+                              const uint entry_size)
 {
 	EdgeHash *eh = MEM_mallocN(sizeof(*eh), info);
 
@@ -220,8 +220,8 @@ static EdgeHash *edgehash_new(const char *info,
  * Takes a \a bucket_index argument to avoid calling #edgehash_bucket_index multiple times.
  */
 BLI_INLINE void edgehash_insert_ex(
-        EdgeHash *eh, unsigned int v0, unsigned int v1, void *val,
-        const unsigned int bucket_index)
+        EdgeHash *eh, uint v0, uint v1, void *val,
+        const uint bucket_index)
 {
 	EdgeEntry *e = BLI_mempool_alloc(eh->epool);
 
@@ -247,8 +247,8 @@ BLI_INLINE void edgehash_insert_ex(
  * Insert function that doesn't set the value (use for EdgeSet)
  */
 BLI_INLINE void edgehash_insert_ex_keyonly(
-        EdgeHash *eh, unsigned int v0, unsigned int v1,
-        const unsigned int bucket_index)
+        EdgeHash *eh, uint v0, uint v1,
+        const uint bucket_index)
 {
 	EdgeEntry *e = BLI_mempool_alloc(eh->epool);
 
@@ -272,8 +272,8 @@ BLI_INLINE void edgehash_insert_ex_keyonly(
  * Insert function that doesn't set the value (use for EdgeSet)
  */
 BLI_INLINE void edgehash_insert_ex_keyonly_entry(
-        EdgeHash *eh, unsigned int v0, unsigned int v1,
-        const unsigned int bucket_index,
+        EdgeHash *eh, uint v0, uint v1,
+        const uint bucket_index,
         EdgeEntry *e)
 {
 	BLI_assert((eh->flag & EDGEHASH_FLAG_ALLOW_DUPES) || (BLI_edgehash_haskey(eh, v0, v1) == 0));
@@ -293,10 +293,10 @@ BLI_INLINE void edgehash_insert_ex_keyonly_entry(
 	}
 }
 
-BLI_INLINE void edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *val)
+BLI_INLINE void edgehash_insert(EdgeHash *eh, uint v0, uint v1, void *val)
 {
 	EDGE_ORD(v0, v1);
-	const unsigned int bucket_index = edgehash_bucket_index(eh, v0, v1);
+	const uint bucket_index = edgehash_bucket_index(eh, v0, v1);
 	edgehash_insert_ex(eh, v0, v1, val, bucket_index);
 }
 
@@ -304,9 +304,9 @@ BLI_INLINE void edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, 
  * Remove the entry and return it, caller must free from eh->epool.
  */
 BLI_INLINE EdgeEntry *edgehash_remove_ex(
-        EdgeHash *eh, unsigned int v0, unsigned int v1,
+        EdgeHash *eh, uint v0, uint v1,
         EdgeHashFreeFP valfreefp,
-        const unsigned int bucket_index)
+        const uint bucket_index)
 {
 	EdgeEntry *e_prev;
 	EdgeEntry *e = edgehash_lookup_entry_prev_ex(eh, v0, v1, &e_prev, bucket_index);
@@ -339,7 +339,7 @@ BLI_INLINE EdgeEntry *edgehash_remove_ex(
  */
 static void edgehash_free_cb(EdgeHash *eh, EdgeHashFreeFP valfreefp)
 {
-	unsigned int i;
+	uint i;
 
 	BLI_assert(valfreefp);
 
@@ -365,7 +365,7 @@ static void edgehash_free_cb(EdgeHash *eh, EdgeHashFreeFP valfreefp)
 /* Public API */
 
 EdgeHash *BLI_edgehash_new_ex(const char *info,
-                              const unsigned int nentries_reserve)
+                              const uint nentries_reserve)
 {
 	return edgehash_new(info,
 	                    nentries_reserve,
@@ -381,7 +381,7 @@ EdgeHash *BLI_edgehash_new(const char *info)
  * Insert edge (\a v0, \a v1) into hash with given value, does
  * not check for duplicates.
  */
-void BLI_edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *val)
+void BLI_edgehash_insert(EdgeHash *eh, uint v0, uint v1, void *val)
 {
 	edgehash_insert(eh, v0, v1, val);
 }
@@ -389,12 +389,12 @@ void BLI_edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *v
 /**
  * Assign a new value to a key that may already be in edgehash.
  */
-bool BLI_edgehash_reinsert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *val)
+bool BLI_edgehash_reinsert(EdgeHash *eh, uint v0, uint v1, void *val)
 {
 	IS_EDGEHASH_ASSERT(eh);
 
 	EDGE_ORD(v0, v1);
-	const unsigned int bucket_index = edgehash_bucket_index(eh, v0, v1);
+	const uint bucket_index = edgehash_bucket_index(eh, v0, v1);
 
 	EdgeEntry *e = edgehash_lookup_entry_ex(eh, v0, v1, bucket_index);
 	if (e) {
@@ -411,7 +411,7 @@ bool BLI_edgehash_reinsert(EdgeHash *eh, unsigned int v0, unsigned int v1, void 
  * Return pointer to value for given edge (\a v0, \a v1),
  * or NULL if key does not exist in hash.
  */
-void **BLI_edgehash_lookup_p(EdgeHash *eh, unsigned int v0, unsigned int v1)
+void **BLI_edgehash_lookup_p(EdgeHash *eh, uint v0, uint v1)
 {
 	EdgeEntry *e = edgehash_lookup_entry(eh, v0, v1);
 	IS_EDGEHASH_ASSERT(eh);
@@ -432,10 +432,10 @@ void **BLI_edgehash_lookup_p(EdgeHash *eh, unsigned int v0, unsigned int v1)
  * \returns true when the value didn't need to be added.
  * (when false, the caller _must_ initialize the value).
  */
-bool BLI_edgehash_ensure_p(EdgeHash *eh, unsigned int v0, unsigned int v1, void ***r_val)
+bool BLI_edgehash_ensure_p(EdgeHash *eh, uint v0, uint v1, void ***r_val)
 {
 	EDGE_ORD(v0, v1);
-	const unsigned int bucket_index = edgehash_bucket_index(eh, v0, v1);
+	const uint bucket_index = edgehash_bucket_index(eh, v0, v1);
 	EdgeEntry *e = edgehash_lookup_entry_ex(eh, v0, v1, bucket_index);
 	const bool haskey = (e != NULL);
 
@@ -454,7 +454,7 @@ bool BLI_edgehash_ensure_p(EdgeHash *eh, unsigned int v0, unsigned int v1, void 
  * to differentiate between key-value being NULL and
  * lack of key then see BLI_edgehash_lookup_p().
  */
-void *BLI_edgehash_lookup(EdgeHash *eh, unsigned int v0, unsigned int v1)
+void *BLI_edgehash_lookup(EdgeHash *eh, uint v0, uint v1)
 {
 	EdgeEntry *e = edgehash_lookup_entry(eh, v0, v1);
 	IS_EDGEHASH_ASSERT(eh);
@@ -464,7 +464,7 @@ void *BLI_edgehash_lookup(EdgeHash *eh, unsigned int v0, unsigned int v1)
 /**
  * A version of #BLI_edgehash_lookup which accepts a fallback argument.
  */
-void *BLI_edgehash_lookup_default(EdgeHash *eh, unsigned int v0, unsigned int v1, void *val_default)
+void *BLI_edgehash_lookup_default(EdgeHash *eh, uint v0, uint v1, void *val_default)
 {
 	EdgeEntry *e = edgehash_lookup_entry(eh, v0, v1);
 	IS_EDGEHASH_ASSERT(eh);
@@ -478,10 +478,10 @@ void *BLI_edgehash_lookup_default(EdgeHash *eh, unsigned int v0, unsigned int v1
  * \param valfreefp  Optional callback to free the value.
  * \return true if \a key was removed from \a eh.
  */
-bool BLI_edgehash_remove(EdgeHash *eh, unsigned int v0, unsigned int v1, EdgeHashFreeFP valfreefp)
+bool BLI_edgehash_remove(EdgeHash *eh, uint v0, uint v1, EdgeHashFreeFP valfreefp)
 {
 	EDGE_ORD(v0, v1);
-	const unsigned int bucket_index = edgehash_bucket_index(eh, v0, v1);
+	const uint bucket_index = edgehash_bucket_index(eh, v0, v1);
 	EdgeEntry *e = edgehash_remove_ex(eh, v0, v1, valfreefp, bucket_index);
 	if (e) {
 		BLI_mempool_free(eh->epool, e);
@@ -500,10 +500,10 @@ bool BLI_edgehash_remove(EdgeHash *eh, unsigned int v0, unsigned int v1, EdgeHas
  * \param v0, v1: The key to remove.
  * \return the value of \a key int \a eh or NULL.
  */
-void *BLI_edgehash_popkey(EdgeHash *eh, unsigned int v0, unsigned int v1)
+void *BLI_edgehash_popkey(EdgeHash *eh, uint v0, uint v1)
 {
 	EDGE_ORD(v0, v1);
-	const unsigned int bucket_index = edgehash_bucket_index(eh, v0, v1);
+	const uint bucket_index = edgehash_bucket_index(eh, v0, v1);
 	EdgeEntry *e = edgehash_remove_ex(eh, v0, v1, NULL, bucket_index);
 	IS_EDGEHASH_ASSERT(eh);
 	if (e) {
@@ -519,7 +519,7 @@ void *BLI_edgehash_popkey(EdgeHash *eh, unsigned int v0, unsigned int v1)
 /**
  * Return boolean true/false if edge (v0,v1) in hash.
  */
-bool BLI_edgehash_haskey(EdgeHash *eh, unsigned int v0, unsigned int v1)
+bool BLI_edgehash_haskey(EdgeHash *eh, uint v0, uint v1)
 {
 	return (edgehash_lookup_entry(eh, v0, v1) != NULL);
 }
@@ -536,7 +536,7 @@ int BLI_edgehash_size(EdgeHash *eh)
  * Remove all edges from hash.
  */
 void BLI_edgehash_clear_ex(EdgeHash *eh, EdgeHashFreeFP valfreefp,
-                           const unsigned int nentries_reserve)
+                           const uint nentries_reserve)
 {
 	if (valfreefp)
 		edgehash_free_cb(eh, valfreefp);
@@ -577,12 +577,12 @@ void BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP valfreefp)
 }
 
 
-void BLI_edgehash_flag_set(EdgeHash *eh, unsigned int flag)
+void BLI_edgehash_flag_set(EdgeHash *eh, uint flag)
 {
 	eh->flag |= flag;
 }
 
-void BLI_edgehash_flag_clear(EdgeHash *eh, unsigned int flag)
+void BLI_edgehash_flag_clear(EdgeHash *eh, uint flag)
 {
 	eh->flag &= ~flag;
 }
@@ -664,7 +664,7 @@ void BLI_edgehashIterator_free(EdgeHashIterator *ehi)
 /**
  * Retrieve the key from an iterator.
  */
-void BLI_edgehashIterator_getKey(EdgeHashIterator *ehi, unsigned int *r_v0, unsigned int *r_v1)
+void BLI_edgehashIterator_getKey(EdgeHashIterator *ehi, uint *r_v0, uint *r_v1)
 {
 	*r_v0 = ehi->curEntry->v0;
 	*r_v1 = ehi->curEntry->v1;
@@ -713,7 +713,7 @@ bool BLI_edgehashIterator_isDone(EdgeHashIterator *ehi)
 /** \name EdgeSet Functions
  * \{ */
 EdgeSet *BLI_edgeset_new_ex(const char *info,
-                                  const unsigned int nentries_reserve)
+                                  const uint nentries_reserve)
 {
 	EdgeSet *es = (EdgeSet *)edgehash_new(info,
 	                                      nentries_reserve,
@@ -738,10 +738,10 @@ int BLI_edgeset_size(EdgeSet *es)
  * Adds the key to the set (no checks for unique keys!).
  * Matching #BLI_edgehash_insert
  */
-void BLI_edgeset_insert(EdgeSet *es, unsigned int v0, unsigned int v1)
+void BLI_edgeset_insert(EdgeSet *es, uint v0, uint v1)
 {
 	EDGE_ORD(v0, v1);
-	const unsigned int bucket_index = edgehash_bucket_index((EdgeHash *)es, v0, v1);
+	const uint bucket_index = edgehash_bucket_index((EdgeHash *)es, v0, v1);
 	edgehash_insert_ex_keyonly((EdgeHash *)es, v0, v1, bucket_index);
 }
 
@@ -751,10 +751,10 @@ void BLI_edgeset_insert(EdgeSet *es, unsigned int v0, unsigned int v1)
  *
  * \note EdgeHash has no equivalent to this because typically the value would be different.
  */
-bool BLI_edgeset_add(EdgeSet *es, unsigned int v0, unsigned int v1)
+bool BLI_edgeset_add(EdgeSet *es, uint v0, uint v1)
 {
 	EDGE_ORD(v0, v1);
-	const unsigned int bucket_index = edgehash_bucket_index((EdgeHash *)es, v0, v1);
+	const uint bucket_index = edgehash_bucket_index((EdgeHash *)es, v0, v1);
 
 	EdgeEntry *e = edgehash_lookup_entry_ex((EdgeHash *)es, v0, v1, bucket_index);
 	if (e) {
@@ -766,7 +766,7 @@ bool BLI_edgeset_add(EdgeSet *es, unsigned int v0, unsigned int v1)
 	}
 }
 
-bool BLI_edgeset_haskey(EdgeSet *es, unsigned int v0, unsigned int v1)
+bool BLI_edgeset_haskey(EdgeSet *es, uint v0, uint v1)
 {
 	return (edgehash_lookup_entry((EdgeHash *)es, v0, v1) != NULL);
 }
@@ -777,12 +777,12 @@ void BLI_edgeset_free(EdgeSet *es)
 	BLI_edgehash_free((EdgeHash *)es, NULL);
 }
 
-void BLI_edgeset_flag_set(EdgeSet *es, unsigned int flag)
+void BLI_edgeset_flag_set(EdgeSet *es, uint flag)
 {
 	((EdgeHash *)es)->flag |= flag;
 }
 
-void BLI_edgeset_flag_clear(EdgeSet *es, unsigned int flag)
+void BLI_edgeset_flag_clear(EdgeSet *es, uint flag)
 {
 	((EdgeHash *)es)->flag &= ~flag;
 }
@@ -800,7 +800,7 @@ void BLI_edgeset_flag_clear(EdgeSet *es, unsigned int flag)
 double BLI_edgehash_calc_quality(EdgeHash *eh)
 {
 	uint64_t sum = 0;
-	unsigned int i;
+	uint i;
 
 	if (eh->nentries == 0)
 		return -1.0;

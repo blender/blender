@@ -69,8 +69,8 @@
 
 /* typically this re-assigns 'h' */
 #define SMHASH_NEXT(h, hoff)  ( \
-	CHECK_TYPE_INLINE(&(h),    unsigned int *), \
-	CHECK_TYPE_INLINE(&(hoff), unsigned int *), \
+	CHECK_TYPE_INLINE(&(h),    uint *), \
+	CHECK_TYPE_INLINE(&(hoff), uint *), \
 	((h) + (((hoff) = ((hoff) * 2) + 1), (hoff))) \
 	)
 
@@ -87,17 +87,17 @@ BLI_INLINE bool smallhash_val_is_used(const void *val)
 #endif
 }
 
-extern const unsigned int hashsizes[];
+extern const uint hashsizes[];
 
-BLI_INLINE unsigned int smallhash_key(const uintptr_t key)
+BLI_INLINE uint smallhash_key(const uintptr_t key)
 {
-	return (unsigned int)key;
+	return (uint)key;
 }
 
 /**
  * Check if the number of items in the smallhash is large enough to require more buckets.
  */
-BLI_INLINE bool smallhash_test_expand_buckets(const unsigned int nentries, const unsigned int nbuckets)
+BLI_INLINE bool smallhash_test_expand_buckets(const uint nentries, const uint nbuckets)
 {
 	/* (approx * 1.5) */
 	return (nentries + (nentries >> 1)) > nbuckets;
@@ -105,7 +105,7 @@ BLI_INLINE bool smallhash_test_expand_buckets(const unsigned int nentries, const
 
 BLI_INLINE void smallhash_init_empty(SmallHash *sh)
 {
-	unsigned int i;
+	uint i;
 
 	for (i = 0; i < sh->nbuckets; i++) {
 		sh->buckets[i].key = SMHASH_KEY_UNUSED;
@@ -116,7 +116,7 @@ BLI_INLINE void smallhash_init_empty(SmallHash *sh)
 /**
  * Increase initial bucket size to match a reserved amount.
  */
-BLI_INLINE void smallhash_buckets_reserve(SmallHash *sh, const unsigned int nentries_reserve)
+BLI_INLINE void smallhash_buckets_reserve(SmallHash *sh, const uint nentries_reserve)
 {
 	while (smallhash_test_expand_buckets(nentries_reserve, sh->nbuckets)) {
 		sh->nbuckets = hashsizes[++sh->cursize];
@@ -126,8 +126,8 @@ BLI_INLINE void smallhash_buckets_reserve(SmallHash *sh, const unsigned int nent
 BLI_INLINE SmallHashEntry *smallhash_lookup(const SmallHash *sh, const uintptr_t key)
 {
 	SmallHashEntry *e;
-	unsigned int h = smallhash_key(key);
-	unsigned int hoff = 1;
+	uint h = smallhash_key(key);
+	uint hoff = 1;
 
 	BLI_assert(key != SMHASH_KEY_UNUSED);
 
@@ -150,8 +150,8 @@ BLI_INLINE SmallHashEntry *smallhash_lookup(const SmallHash *sh, const uintptr_t
 BLI_INLINE SmallHashEntry *smallhash_lookup_first_free(SmallHash *sh, const uintptr_t key)
 {
 	SmallHashEntry *e;
-	unsigned int h = smallhash_key(key);
-	unsigned int hoff = 1;
+	uint h = smallhash_key(key);
+	uint hoff = 1;
 
 	for (e = &sh->buckets[h % sh->nbuckets];
 	     smallhash_val_is_used(e->val);
@@ -163,12 +163,12 @@ BLI_INLINE SmallHashEntry *smallhash_lookup_first_free(SmallHash *sh, const uint
 	return e;
 }
 
-BLI_INLINE void smallhash_resize_buckets(SmallHash *sh, const unsigned int nbuckets)
+BLI_INLINE void smallhash_resize_buckets(SmallHash *sh, const uint nbuckets)
 {
 	SmallHashEntry *buckets_old = sh->buckets;
-	const unsigned int nbuckets_old = sh->nbuckets;
+	const uint nbuckets_old = sh->nbuckets;
 	const bool was_alloc = (buckets_old != sh->buckets_stack);
-	unsigned int i = 0;
+	uint i = 0;
 
 	BLI_assert(sh->nbuckets != nbuckets);
 	if (nbuckets <= SMSTACKSIZE) {
@@ -200,7 +200,7 @@ BLI_INLINE void smallhash_resize_buckets(SmallHash *sh, const unsigned int nbuck
 }
 
 void BLI_smallhash_init_ex(SmallHash *sh,
-                           const unsigned int nentries_reserve)
+                           const uint nentries_reserve)
 {
 	/* assume 'sh' is uninitialized */
 
@@ -371,7 +371,7 @@ void **BLI_smallhash_iternew_p(const SmallHash *sh, SmallHashIter *iter, uintptr
 #if 0
 void BLI_smallhash_print(SmallHash *sh)
 {
-	unsigned int i, linecol = 79, c = 0;
+	uint i, linecol = 79, c = 0;
 
 	printf("{");
 	for (i = 0; i < sh->nbuckets; i++) {
@@ -382,7 +382,7 @@ void BLI_smallhash_print(SmallHash *sh)
 			printf("--f-");
 		}
 		else {
-			printf("%2x", (unsigned int)sh->buckets[i].key);
+			printf("%2x", (uint)sh->buckets[i].key);
 		}
 
 		if (i != sh->nbuckets - 1)
@@ -410,7 +410,7 @@ void BLI_smallhash_print(SmallHash *sh)
 double BLI_smallhash_calc_quality(SmallHash *sh)
 {
 	uint64_t sum = 0;
-	unsigned int i;
+	uint i;
 
 	if (sh->nentries == 0)
 		return -1.0;
@@ -419,8 +419,8 @@ double BLI_smallhash_calc_quality(SmallHash *sh)
 		if (sh->buckets[i].key != SMHASH_KEY_UNUSED) {
 			uint64_t count = 0;
 			SmallHashEntry *e, *e_final = &sh->buckets[i];
-			unsigned int h = smallhash_key(e_final->key);
-			unsigned int hoff = 1;
+			uint h = smallhash_key(e_final->key);
+			uint hoff = 1;
 
 			for (e = &sh->buckets[h % sh->nbuckets];
 			     e != e_final;

@@ -1294,7 +1294,7 @@ static void bvhtree_overlap_task_cb(void *userdata, const int j)
 }
 
 BVHTreeOverlap *BLI_bvhtree_overlap(
-        const BVHTree *tree1, const BVHTree *tree2, unsigned int *r_overlap_tot,
+        const BVHTree *tree1, const BVHTree *tree2, uint *r_overlap_tot,
         /* optional callback to test the overlap before adding (must be thread-safe!) */
         BVHTree_OverlapCallback callback, void *userdata)
 {
@@ -1351,13 +1351,13 @@ BVHTreeOverlap *BLI_bvhtree_overlap(
 	to = overlap = MEM_mallocN(sizeof(BVHTreeOverlap) * total, "BVHTreeOverlap");
 	
 	for (j = 0; j < thread_num; j++) {
-		unsigned int count = (unsigned int)BLI_stack_count(data[j].overlap);
+		uint count = (uint)BLI_stack_count(data[j].overlap);
 		BLI_stack_pop_n(data[j].overlap, to, count);
 		BLI_stack_free(data[j].overlap);
 		to += count;
 	}
 
-	*r_overlap_tot = (unsigned int)total;
+	*r_overlap_tot = (uint)total;
 	return overlap;
 }
 

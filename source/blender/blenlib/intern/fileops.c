@@ -317,7 +317,7 @@ static bool delete_recursive(const char *dir)
 {
 	struct direntry *filelist, *fl;
 	bool err = false;
-	unsigned int nbr, i;
+	uint nbr, i;
 
 	i = nbr = BLI_filelist_dir_contents(dir, &filelist);
 	fl = filelist;

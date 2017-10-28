@@ -38,15 +38,15 @@
 /***/
 
 struct HeapNode {
-	void        *ptr;
-	float        value;
-	unsigned int index;
+	void *ptr;
+	float value;
+	uint  index;
 };
 
 struct HeapNode_Chunk {
 	struct HeapNode_Chunk *prev;
-	unsigned int    size;
-	unsigned int    bufsize;
+	uint size;
+	uint bufsize;
 	struct HeapNode buf[0];
 };
 
@@ -58,11 +58,11 @@ struct HeapNode_Chunk {
  * \note keep type in sync with tot_nodes in heap_node_alloc_chunk.
  */
 #define HEAP_CHUNK_DEFAULT_NUM \
-	((unsigned int)((MEM_SIZE_OPTIMAL((1 << 16) - sizeof(struct HeapNode_Chunk))) / sizeof(HeapNode)))
+	((uint)((MEM_SIZE_OPTIMAL((1 << 16) - sizeof(struct HeapNode_Chunk))) / sizeof(HeapNode)))
 
 struct Heap {
-	unsigned int size;
-	unsigned int bufsize;
+	uint size;
+	uint bufsize;
 	HeapNode **tree;
 
 	struct {
@@ -85,16 +85,16 @@ struct Heap {
 #define HEAP_EQUALS(a, b) ((a)->value == (b)->value)
 #endif
 
-BLI_INLINE void heap_swap(Heap *heap, const unsigned int i, const unsigned int j)
+BLI_INLINE void heap_swap(Heap *heap, const uint i, const uint j)
 {
 
 #if 0
-	SWAP(unsigned int,  heap->tree[i]->index, heap->tree[j]->index);
+	SWAP(uint,  heap->tree[i]->index, heap->tree[j]->index);
 	SWAP(HeapNode *,    heap->tree[i],        heap->tree[j]);
 #else
 	HeapNode **tree = heap->tree;
 	union {
-		unsigned int  index;
+		uint  index;
 		HeapNode     *node;
 	} tmp;
 	SWAP_TVAL(tmp.index, tree[i]->index, tree[j]->index);
@@ -102,15 +102,15 @@ BLI_INLINE void heap_swap(Heap *heap, const unsigned int i, const unsigned int j
 #endif
 }
 
-static void heap_down(Heap *heap, unsigned int i)
+static void heap_down(Heap *heap, uint i)
 {
 	/* size won't change in the loop */
-	const unsigned int size = heap->size;
+	const uint size = heap->size;
 
 	while (1) {
-		const unsigned int l = HEAP_LEFT(i);
-		const unsigned int r = HEAP_RIGHT(i);
-		unsigned int smallest;
+		const uint l = HEAP_LEFT(i);
+		const uint r = HEAP_RIGHT(i);
+		uint smallest;
 
 		smallest = ((l < size) && HEAP_COMPARE(heap->tree[l], heap->tree[i])) ? l : i;
 
@@ -127,10 +127,10 @@ static void heap_down(Heap *heap, unsigned int i)
 	}
 }
 
-static void heap_up(Heap *heap, unsigned int i)
+static void heap_up(Heap *heap, uint i)
 {
 	while (i > 0) {
-		const unsigned int p = HEAP_PARENT(i);
+		const uint p = HEAP_PARENT(i);
 
 		if (HEAP_COMPARE(heap->tree[p], heap->tree[i])) {
 			break;
@@ -147,7 +147,7 @@ static void heap_up(Heap *heap, unsigned int i)
  * \{ */
 
 static struct HeapNode_Chunk *heap_node_alloc_chunk(
-        unsigned int tot_nodes, struct HeapNode_Chunk *chunk_prev)
+        uint tot_nodes, struct HeapNode_Chunk *chunk_prev)
 {
 	struct HeapNode_Chunk *chunk = MEM_mallocN(
 	        sizeof(struct HeapNode_Chunk) + (sizeof(HeapNode) * tot_nodes), __func__);
@@ -189,7 +189,7 @@ static void heap_node_free(Heap *heap, HeapNode *node)
  * \{ */
 
 /* use when the size of the heap is known in advance */
-Heap *BLI_heap_new_ex(unsigned int tot_reserve)
+Heap *BLI_heap_new_ex(uint tot_reserve)
 {
 	Heap *heap = MEM_mallocN(sizeof(Heap), __func__);
 	/* ensure we have at least one so we can keep doubling it */
@@ -211,7 +211,7 @@ Heap *BLI_heap_new(void)
 void BLI_heap_free(Heap *heap, HeapFreeFP ptrfreefp)
 {
 	if (ptrfreefp) {
-		unsigned int i;
+		uint i;
 
 		for (i = 0; i < heap->size; i++) {
 			ptrfreefp(heap->tree[i]->ptr);
@@ -233,7 +233,7 @@ void BLI_heap_free(Heap *heap, HeapFreeFP ptrfreefp)
 void BLI_heap_clear(Heap *heap, HeapFreeFP ptrfreefp)
 {
 	if (ptrfreefp) {
-		unsigned int i;
+		uint i;
 
 		for (i = 0; i < heap->size; i++) {
 			ptrfreefp(heap->tree[i]->ptr);
@@ -280,7 +280,7 @@ bool BLI_heap_is_empty(Heap *heap)
 	return (heap->size == 0);
 }
 
-unsigned int BLI_heap_size(Heap *heap)
+uint BLI_heap_size(Heap *heap)
 {
 	return heap->size;
 }
@@ -308,12 +308,12 @@ void *BLI_heap_popmin(Heap *heap)
 
 void BLI_heap_remove(Heap *heap, HeapNode *node)
 {
-	unsigned int i = node->index;
+	uint i = node->index;
 
 	BLI_assert(heap->size != 0);
 
 	while (i > 0) {
-		unsigned int p = HEAP_PARENT(i);
+		uint p = HEAP_PARENT(i);
 
 		heap_swap(heap, p, i);
 		i = p;

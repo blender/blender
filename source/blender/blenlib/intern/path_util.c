@@ -85,13 +85,13 @@ static bool BLI_path_is_abs(const char *name);
  */
 int BLI_stringdec(const char *string, char *head, char *tail, unsigned short *numlen)
 {
-	unsigned int nums = 0, nume = 0;
+	uint nums = 0, nume = 0;
 	int i;
 	bool found_digit = false;
 	const char * const lslash = BLI_last_slash(string);
-	const unsigned int string_len = strlen(string);
-	const unsigned int lslash_len = lslash != NULL ? (int)(lslash - string) : 0;
-	unsigned int name_end = string_len;
+	const uint string_len = strlen(string);
+	const uint lslash_len = lslash != NULL ? (int)(lslash - string) : 0;
+	uint name_end = string_len;
 
 	while (name_end > lslash_len && string[--name_end] != '.') {} /* name ends at dot if present */
 	if (name_end == lslash_len && string[name_end] != '.') name_end = string_len;
@@ -700,7 +700,7 @@ bool BLI_parent_dir(char *path)
  */
 static bool stringframe_chars(const char *path, int *char_start, int *char_end)
 {
-	unsigned int ch_sta, ch_end, i;
+	uint ch_sta, ch_end, i;
 	/* Insert current frame: file### -> file001 */
 	ch_sta = ch_end = 0;
 	for (i = 0; path[i] != '\0'; i++) {

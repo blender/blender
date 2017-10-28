@@ -73,10 +73,10 @@ struct bArgs {
 	int *passes;
 };
 
-static unsigned int case_strhash(const void *ptr)
+static uint case_strhash(const void *ptr)
 {
 	const char *s = ptr;
-	unsigned int i = 0;
+	uint i = 0;
 	unsigned char c;
 
 	while ( (c = tolower(*s++)) )
@@ -85,7 +85,7 @@ static unsigned int case_strhash(const void *ptr)
 	return i;
 }
 
-static unsigned int keyhash(const void *ptr)
+static uint keyhash(const void *ptr)
 {
 	const bAKey *k = ptr;
 	return case_strhash(k->arg);  /* ^ BLI_ghashutil_inthash((void *)k->pass); */
