@@ -327,13 +327,14 @@ static void manipulatormap_prepare_drawing(
 		}
 
 		/* needs to be initialized on first draw */
-		wm_manipulatorgroup_ensure_initialized(mgroup, C);
-		/* update data if needed */
 		/* XXX weak: Manipulator-group may skip refreshing if it's invisible (map gets untagged nevertheless) */
-		if ((mmap->update_flag[drawstep] & MANIPULATORMAP_IS_REFRESH_CALLBACK) && mgroup->type->refresh) {
-			mgroup->type->refresh(C, mgroup);
-			/* cleared below */
+		if (mmap->update_flag[drawstep] & MANIPULATORMAP_IS_REFRESH_CALLBACK) {
+			/* force refresh again. */
+			mgroup->init_flag &= ~WM_MANIPULATORGROUP_INIT_REFRESH;
 		}
+		/* Calls `setup`, `setup_keymap` and `refresh` if they're defined. */
+		wm_manipulatorgroup_ensure_initialized(mgroup, C);
+
 		/* prepare drawing */
 		if (mgroup->type->draw_prepare) {
 			mgroup->type->draw_prepare(C, mgroup);

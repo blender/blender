@@ -184,8 +184,15 @@ void wm_manipulatorgroup_ensure_initialized(wmManipulatorGroup *mgroup, const bC
 			wm_manipulatorgrouptype_setup_keymap(wgt, wm->defaultconf);
 			BLI_assert(wgt->keymap != NULL);
 		}
-
 		mgroup->init_flag |= WM_MANIPULATORGROUP_INIT_SETUP;
+	}
+
+	/* refresh may be called multiple times, this just ensures its called at least once before we draw. */
+	if (UNLIKELY((mgroup->init_flag & WM_MANIPULATORGROUP_INIT_REFRESH) == 0)) {
+		if (mgroup->type->refresh) {
+			mgroup->type->refresh(C, mgroup);
+		}
+		mgroup->init_flag |= WM_MANIPULATORGROUP_INIT_REFRESH;
 	}
 }
 

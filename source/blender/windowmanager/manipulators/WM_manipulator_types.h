@@ -109,6 +109,7 @@ typedef enum eWM_ManipulatorGroupTypeFlag {
 typedef enum eWM_ManipulatorGroupInitFlag {
 	/* mgroup has been initialized */
 	WM_MANIPULATORGROUP_INIT_SETUP = (1 << 0),
+	WM_MANIPULATORGROUP_INIT_REFRESH = (1 << 1),
 } eWM_ManipulatorGroupInitFlag;
 
 /**
