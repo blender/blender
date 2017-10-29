@@ -75,9 +75,12 @@ typedef struct CacheFile {
 
 	float scale;
 	float frame;  /* The frame/time to lookup in the cache file. */
+	float frame_offset; /* The frame offset to subtract. */
 
 	short flag;  /* Animation flag. */
 	short draw_flag;
+
+	char padding[4];
 } CacheFile;
 
 #ifdef __cplusplus

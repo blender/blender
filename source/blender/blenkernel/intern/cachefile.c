@@ -211,8 +211,9 @@ bool BKE_cachefile_filepath_get(
 
 float BKE_cachefile_time_offset(CacheFile *cache_file, const float time, const float fps)
 {
+	const float time_offset = cache_file->frame_offset / fps;
 	const float frame = (cache_file->override_frame ? cache_file->frame : time);
-	return cache_file->is_sequence ? frame : frame / fps;
+	return cache_file->is_sequence ? frame : frame / fps - time_offset;
 }
 
 /* TODO(kevin): replace this with some depsgraph mechanism, or something similar. */

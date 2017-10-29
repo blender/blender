@@ -4362,6 +4362,9 @@ void uiTemplateCacheFile(uiLayout *layout, bContext *C, PointerRNA *ptr, const c
 	uiItemR(row, &fileptr, "frame", 0, "Frame", ICON_NONE);
 
 	row = uiLayoutRow(layout, false);
+	uiItemR(row, &fileptr, "frame_offset", 0, "Frame Offset", ICON_NONE);
+
+	row = uiLayoutRow(layout, false);
 	uiItemL(row, IFACE_("Manual Transform:"), ICON_NONE);
 
 	row = uiLayoutRow(layout, false);
