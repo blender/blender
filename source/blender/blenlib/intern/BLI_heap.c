@@ -289,17 +289,17 @@ void BLI_heap_insert_or_update(Heap *heap, HeapNode **node_p, float value, void 
 }
 
 
-bool BLI_heap_is_empty(Heap *heap)
+bool BLI_heap_is_empty(const Heap *heap)
 {
 	return (heap->size == 0);
 }
 
-uint BLI_heap_size(Heap *heap)
+uint BLI_heap_size(const Heap *heap)
 {
 	return heap->size;
 }
 
-HeapNode *BLI_heap_top(Heap *heap)
+HeapNode *BLI_heap_top(const Heap *heap)
 {
 	return heap->tree[0];
 }
@@ -358,12 +358,12 @@ void BLI_heap_node_value_update_ptr(Heap *heap, HeapNode *node, float value, voi
 	BLI_heap_node_value_update(heap, node, value);
 }
 
-float BLI_heap_node_value(HeapNode *node)
+float BLI_heap_node_value(const HeapNode *node)
 {
 	return node->value;
 }
 
-void *BLI_heap_node_ptr(HeapNode *node)
+void *BLI_heap_node_ptr(const HeapNode *node)
 {
 	return node->ptr;
 }

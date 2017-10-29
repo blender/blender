@@ -51,13 +51,13 @@ void            BLI_heap_insert_or_update(Heap *heap, HeapNode **node_p, float v
 void            BLI_heap_remove(Heap *heap, HeapNode *node) ATTR_NONNULL(1, 2);
 
 /* Return 0 if the heap is empty, 1 otherwise. */
-bool            BLI_heap_is_empty(Heap *heap) ATTR_NONNULL(1);
+bool            BLI_heap_is_empty(const Heap *heap) ATTR_NONNULL(1);
 
 /* Return the size of the heap. */
-unsigned int    BLI_heap_size(Heap *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+unsigned int    BLI_heap_size(const Heap *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 /* Return the top node of the heap. This is the node with the lowest value. */
-HeapNode       *BLI_heap_top(Heap *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+HeapNode       *BLI_heap_top(const Heap *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 /* Pop the top node off the heap and return it's pointer. */
 void           *BLI_heap_popmin(Heap *heap) ATTR_NONNULL(1);
@@ -67,7 +67,7 @@ void            BLI_heap_node_value_update(Heap *heap, HeapNode *node, float val
 void            BLI_heap_node_value_update_ptr(Heap *heap, HeapNode *node, float value, void *ptr) ATTR_NONNULL(1, 2);
 
 /* Return the value or pointer of a heap node. */
-float           BLI_heap_node_value(HeapNode *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
-void           *BLI_heap_node_ptr(HeapNode *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+float           BLI_heap_node_value(const HeapNode *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+void           *BLI_heap_node_ptr(const HeapNode *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 #endif  /* __BLI_HEAP_H__ */
