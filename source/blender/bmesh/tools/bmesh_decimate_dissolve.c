@@ -342,8 +342,7 @@ void BM_mesh_decimate_dissolve_ex(
 						const int j = BM_elem_index_get(l_iter->e);
 						if (j != -1 && eheap_table[j]) {
 							const float cost = bm_edge_calc_dissolve_error(l_iter->e, delimit, &delimit_data);
-							BLI_heap_remove(eheap, eheap_table[j]);
-							eheap_table[j] = BLI_heap_insert(eheap, cost, l_iter->e);
+							BLI_heap_node_value_update(eheap, eheap_table[j], cost);
 						}
 					} while ((l_iter = l_iter->next) != l_first);
 				}
@@ -353,8 +352,7 @@ void BM_mesh_decimate_dissolve_ex(
 			}
 
 			if (UNLIKELY(f_new == NULL)) {
-				BLI_heap_remove(eheap, enode_top);
-				eheap_table[i] = BLI_heap_insert(eheap, COST_INVALID, e);
+				BLI_heap_node_value_update(eheap, enode_top, COST_INVALID);
 			}
 		}
 
@@ -475,8 +473,7 @@ void BM_mesh_decimate_dissolve_ex(
 						const int j = BM_elem_index_get(v_iter);
 						if (j != -1 && vheap_table[j]) {
 							const float cost = bm_vert_edge_face_angle(v_iter);
-							BLI_heap_remove(vheap, vheap_table[j]);
-							vheap_table[j] = BLI_heap_insert(vheap, cost, v_iter);
+							BLI_heap_node_value_update(vheap, vheap_table[j], cost);
 						}
 					}
 
@@ -497,8 +494,7 @@ void BM_mesh_decimate_dissolve_ex(
 								    (BLI_heap_node_value(vheap_table[j]) == COST_INVALID))
 								{
 									const float cost = bm_vert_edge_face_angle(l_cycle_iter->v);
-									BLI_heap_remove(vheap, vheap_table[j]);
-									vheap_table[j] = BLI_heap_insert(vheap, cost, l_cycle_iter->v);
+									BLI_heap_node_value_update(vheap, vheap_table[j], cost);
 								}
 							} while ((l_cycle_iter = l_cycle_iter->next) != l_cycle_first);
 
@@ -510,8 +506,7 @@ void BM_mesh_decimate_dissolve_ex(
 			}
 
 			if (UNLIKELY(e_new == NULL)) {
-				BLI_heap_remove(vheap, vnode_top);
-				vheap_table[i] = BLI_heap_insert(vheap, COST_INVALID, v);
+				BLI_heap_node_value_update(vheap, vnode_top, COST_INVALID);
 			}
 		}
 
