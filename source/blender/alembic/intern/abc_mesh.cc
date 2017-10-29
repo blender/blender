@@ -1082,7 +1082,10 @@ DerivedMesh *AbcMeshReader::read_derivedmesh(DerivedMesh *dm,
 	ImportSettings settings;
 	settings.read_flag |= read_flag;
 
-	if (dm->getNumVerts(dm) != positions->size()) {
+	bool topology_changed =  positions->size() != dm->getNumVerts(dm) ||
+	                         face_counts->size() != dm->getNumPolys(dm) ||
+	                         face_indices->size() != dm->getNumLoops(dm);
+	if (topology_changed) {
 		new_dm = CDDM_from_template(dm,
 		                            positions->size(),
 		                            0,
