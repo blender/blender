@@ -23,7 +23,7 @@
 /** \file blender/blenlib/intern/BLI_heap.c
  *  \ingroup bli
  *
- * A heap / priority queue ADT.
+ * A min-heap / priority queue ADT.
  */
 
 #include <stdlib.h>
@@ -188,7 +188,11 @@ static void heap_node_free(Heap *heap, HeapNode *node)
 /** \name Public Heap API
  * \{ */
 
-/* use when the size of the heap is known in advance */
+/**
+ * Creates a new heap. Removed nodes are recycled, so memory usage will not shrink.
+ *
+ * \note Use when the size of the heap is known in advance.
+ */
 Heap *BLI_heap_new_ex(uint tot_reserve)
 {
 	Heap *heap = MEM_mallocN(sizeof(Heap), __func__);
@@ -251,6 +255,10 @@ void BLI_heap_clear(Heap *heap, HeapFreeFP ptrfreefp)
 	heap->nodes.free = NULL;
 }
 
+/**
+ * Insert heap node with a value (often a 'cost') and pointer into the heap,
+ * duplicate values are allowed.
+ */
 HeapNode *BLI_heap_insert(Heap *heap, float value, void *ptr)
 {
 	HeapNode *node;
@@ -299,11 +307,18 @@ uint BLI_heap_size(const Heap *heap)
 	return heap->size;
 }
 
+/**
+ * Return the top node of the heap.
+ * This is the node with the lowest value.
+ */
 HeapNode *BLI_heap_top(const Heap *heap)
 {
 	return heap->tree[0];
 }
 
+/**
+ * Pop the top node off the heap and return it's pointer.
+ */
 void *BLI_heap_popmin(Heap *heap)
 {
 	void *ptr = heap->tree[0]->ptr;
