@@ -226,12 +226,7 @@ static void polyedge_beauty_cost_update_single(
 	 * Actually, FLT_EPSILON is too small in some cases, 1e-6f seems to work OK hopefully?
 	 * See T43578, T49478. */
 	if (cost < -1e-6f) {
-		if (eheap_table[i]) {
-			BLI_heap_reinsert(eheap, eheap_table[i], cost);
-		}
-		else {
-			eheap_table[i] = BLI_heap_insert(eheap, cost, e);
-		}
+		BLI_heap_insert_or_update(eheap, &eheap_table[i], cost, e);
 	}
 	else {
 		if (eheap_table[i]) {

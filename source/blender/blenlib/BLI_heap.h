@@ -44,11 +44,11 @@ void            BLI_heap_free(Heap *heap, HeapFreeFP ptrfreefp) ATTR_NONNULL(1);
  * duplicate values are allowed. */
 HeapNode       *BLI_heap_insert(Heap *heap, float value, void *ptr) ATTR_NONNULL(1);
 
+/* Insert or update */
+void            BLI_heap_insert_or_update(Heap *heap, HeapNode **node_p, float value, void *ptr) ATTR_NONNULL(1, 2);
+
 /* Remove a heap node. */
 void            BLI_heap_remove(Heap *heap, HeapNode *node) ATTR_NONNULL(1, 2);
-
-/* Set new value for existing node. */
-void            BLI_heap_reinsert(Heap *heap, HeapNode *node, float value);
 
 /* Return 0 if the heap is empty, 1 otherwise. */
 bool            BLI_heap_is_empty(Heap *heap) ATTR_NONNULL(1);
@@ -61,6 +61,10 @@ HeapNode       *BLI_heap_top(Heap *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1)
 
 /* Pop the top node off the heap and return it's pointer. */
 void           *BLI_heap_popmin(Heap *heap) ATTR_NONNULL(1);
+
+/* Update the priority in the heap (may be slow but generally faster than remove/insert). */
+void            BLI_heap_node_value_update(Heap *heap, HeapNode *node, float value) ATTR_NONNULL(1, 2);
+void            BLI_heap_node_value_update_ptr(Heap *heap, HeapNode *node, float value, void *ptr) ATTR_NONNULL(1, 2);
 
 /* Return the value or pointer of a heap node. */
 float           BLI_heap_node_value(HeapNode *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);

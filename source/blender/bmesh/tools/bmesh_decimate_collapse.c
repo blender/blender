@@ -337,12 +337,7 @@ static void bm_decim_build_edge_cost_single(
 		}
 	}
 
-	if (eheap_table[BM_elem_index_get(e)]) {
-		BLI_heap_reinsert(eheap, eheap_table[BM_elem_index_get(e)], cost);
-	}
-	else {
-		eheap_table[BM_elem_index_get(e)] = BLI_heap_insert(eheap, cost, e);
-	}
+	BLI_heap_insert_or_update(eheap, &eheap_table[BM_elem_index_get(e)], cost, e);
 	return;
 
 clear:

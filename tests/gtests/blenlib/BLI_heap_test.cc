@@ -146,7 +146,7 @@ TEST(heap, ReInsertSimple)
 		nodes[in] = BLI_heap_insert(heap, (float)in, SET_INT_IN_POINTER(in));
 	}
 	for (int i = 0; i < items_total; i++) {
-		BLI_heap_reinsert(heap, nodes[i], (float)(items_total + i));
+		BLI_heap_node_value_update(heap, nodes[i], (float)(items_total + i));
 	}
 
 	for (int out_test = 0; out_test < items_total; out_test++) {
@@ -168,7 +168,7 @@ TEST(heap, ReInsertRandom)
 	}
 	BLI_array_randomize(nodes, sizeof(HeapNode *), items_total, 1234);
 	for (int i = 0; i < items_total; i++) {
-		BLI_heap_reinsert(heap, nodes[i], (float)i);
+		BLI_heap_node_value_update(heap, nodes[i], (float)i);
 	}
 	for (int out_test = 0; out_test < items_total; out_test++) {
 		HeapNode *node_top = BLI_heap_top(heap);
