@@ -50,5 +50,7 @@ void            BLI_heap_node_value_update_ptr(Heap *heap, HeapNode *node, float
 /* Return the value or pointer of a heap node. */
 float           BLI_heap_node_value(const HeapNode *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 void           *BLI_heap_node_ptr(const HeapNode *heap) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+/* only for gtest */
+bool            BLI_heap_is_valid(const Heap *heap);
 
 #endif  /* __BLI_HEAP_H__ */

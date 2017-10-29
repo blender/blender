@@ -158,18 +158,21 @@ TEST(heap, ReInsertSimple)
 	MEM_freeN(nodes);
 }
 
-TEST(heap, ReInsertRandom)
+static void random_heap_reinsert_helper(
+        const int items_total,
+        const int random_seed)
 {
-	const int items_total = SIZE;
 	Heap *heap = BLI_heap_new();
 	HeapNode **nodes = (HeapNode **)MEM_mallocN(sizeof(HeapNode *) * items_total, __func__);
 	for (int in = 0; in < items_total; in++) {
 		nodes[in] = BLI_heap_insert(heap, (float)in, SET_INT_IN_POINTER(in));
 	}
-	BLI_array_randomize(nodes, sizeof(HeapNode *), items_total, 1234);
+	BLI_array_randomize(nodes, sizeof(HeapNode *), items_total, random_seed);
 	for (int i = 0; i < items_total; i++) {
 		BLI_heap_node_value_update(heap, nodes[i], (float)i);
 	}
+	EXPECT_TRUE(BLI_heap_is_valid(heap));
+
 	for (int out_test = 0; out_test < items_total; out_test++) {
 		HeapNode *node_top = BLI_heap_top(heap);
 		float out = BLI_heap_node_value(node_top);
@@ -180,3 +183,9 @@ TEST(heap, ReInsertRandom)
 	BLI_heap_free(heap, NULL);
 	MEM_freeN(nodes);
 }
+
+TEST(heap, ReInsertRandom1)       { random_heap_reinsert_helper(1, 1234); }
+TEST(heap, ReInsertRandom2)       { random_heap_reinsert_helper(2, 1234); }
+TEST(heap, ReInsertRandom100)     { random_heap_reinsert_helper(100, 4321); }
+TEST(heap, ReInsertRandom1024)     { random_heap_reinsert_helper(1024, 9876); }
+TEST(heap, ReInsertRandom2048)     { random_heap_reinsert_helper(2048, 5321); }

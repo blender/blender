@@ -110,10 +110,11 @@ static void heap_down(Heap *heap, uint i)
 	while (1) {
 		const uint l = HEAP_LEFT(i);
 		const uint r = HEAP_RIGHT(i);
-		uint smallest;
+		uint smallest = i;
 
-		smallest = ((l < size) && HEAP_COMPARE(heap->tree[l], heap->tree[i])) ? l : i;
-
+		if ((l < size) && HEAP_COMPARE(heap->tree[l], heap->tree[smallest])) {
+			smallest = l;
+		}
 		if ((r < size) && HEAP_COMPARE(heap->tree[r], heap->tree[smallest])) {
 			smallest = r;
 		}
@@ -321,9 +322,9 @@ HeapNode *BLI_heap_top(const Heap *heap)
  */
 void *BLI_heap_popmin(Heap *heap)
 {
-	void *ptr = heap->tree[0]->ptr;
-
 	BLI_assert(heap->size != 0);
+
+	void *ptr = heap->tree[0]->ptr;
 
 	heap_node_free(heap, heap->tree[0]);
 
@@ -337,13 +338,12 @@ void *BLI_heap_popmin(Heap *heap)
 
 void BLI_heap_remove(Heap *heap, HeapNode *node)
 {
-	uint i = node->index;
-
 	BLI_assert(heap->size != 0);
+
+	uint i = node->index;
 
 	while (i > 0) {
 		uint p = HEAP_PARENT(i);
-
 		heap_swap(heap, p, i);
 		i = p;
 	}
@@ -358,19 +358,27 @@ void BLI_heap_remove(Heap *heap, HeapNode *node)
  */
 void BLI_heap_node_value_update(Heap *heap, HeapNode *node, float value)
 {
-	if (value == node->value) {
-		return;
+	if (value < node->value) {
+		node->value = value;
+		heap_up(heap, node->index);
 	}
-	node->value = value;
-	/* Can be called in either order, makes no difference. */
-	heap_up(heap, node->index);
-	heap_down(heap, node->index);
+	else if (value > node->value) {
+		node->value = value;
+		heap_down(heap, node->index);
+	}
 }
 
 void BLI_heap_node_value_update_ptr(Heap *heap, HeapNode *node, float value, void *ptr)
 {
-	node->ptr = ptr;
-	BLI_heap_node_value_update(heap, node, value);
+	node->ptr = ptr; /* only difference */
+	if (value < node->value) {
+		node->value = value;
+		heap_up(heap, node->index);
+	}
+	else if (value > node->value) {
+		node->value = value;
+		heap_down(heap, node->index);
+	}
 }
 
 float BLI_heap_node_value(const HeapNode *node)
@@ -383,4 +391,31 @@ void *BLI_heap_node_ptr(const HeapNode *node)
 	return node->ptr;
 }
 
+static bool heap_is_minheap(const Heap *heap, uint root)
+{
+	if (root < heap->size) {
+		const uint l = HEAP_LEFT(root);
+		if (l < heap->size) {
+			if (HEAP_COMPARE(heap->tree[l], heap->tree[root]) || !heap_is_minheap(heap, l)) {
+				return false;
+			}
+		}
+		const uint r = HEAP_RIGHT(root);
+		if (r < heap->size) {
+			if (HEAP_COMPARE(heap->tree[r], heap->tree[root]) || !heap_is_minheap(heap, r)) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+/**
+ * Only for checking internal errors (gtest).
+ */
+bool BLI_heap_is_valid(const Heap *heap)
+{
+	return heap_is_minheap(heap, 0);
+}
+
 /** \} */
+
