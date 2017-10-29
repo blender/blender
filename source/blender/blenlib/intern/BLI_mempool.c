@@ -127,17 +127,17 @@ struct BLI_mempool {
 	 * this is needed for iteration so we can loop over chunks in the order added */
 	BLI_mempool_chunk *chunk_tail;
 
-	unsigned int esize;         /* element size in bytes */
-	unsigned int csize;         /* chunk size in bytes */
-	unsigned int pchunk;        /* number of elements per chunk */
-	unsigned int flag;
+	uint esize;         /* element size in bytes */
+	uint csize;         /* chunk size in bytes */
+	uint pchunk;        /* number of elements per chunk */
+	uint flag;
 	/* keeps aligned to 16 bits */
 
 	BLI_freenode *free;         /* free element list. Interleaved into chunk datas. */
-	unsigned int maxchunks;     /* use to know how many chunks to keep for BLI_mempool_clear */
-	unsigned int totused;       /* number of elements currently in use */
+	uint maxchunks;     /* use to know how many chunks to keep for BLI_mempool_clear */
+	uint totused;       /* number of elements currently in use */
 #ifdef USE_TOTALLOC
-	unsigned int totalloc;          /* number of elements allocated in total */
+	uint totalloc;          /* number of elements allocated in total */
 #endif
 };
 
@@ -154,13 +154,13 @@ struct BLI_mempool {
 
 /* extra bytes implicitly used for every chunk alloc */
 #ifdef USE_DATA_PTR
-#  define CHUNK_OVERHEAD (unsigned int)(MEM_SIZE_OVERHEAD + sizeof(BLI_mempool_chunk))
+#  define CHUNK_OVERHEAD (uint)(MEM_SIZE_OVERHEAD + sizeof(BLI_mempool_chunk))
 #else
-#  define CHUNK_OVERHEAD (unsigned int)(MEM_SIZE_OVERHEAD)
+#  define CHUNK_OVERHEAD (uint)(MEM_SIZE_OVERHEAD)
 #endif
 
 #ifdef USE_CHUNK_POW2
-static unsigned int power_of_2_max_u(unsigned int x)
+static uint power_of_2_max_u(uint x)
 {
 	x -= 1;
 	x = x | (x >> 1);
@@ -172,7 +172,7 @@ static unsigned int power_of_2_max_u(unsigned int x)
 }
 #endif
 
-BLI_INLINE BLI_mempool_chunk *mempool_chunk_find(BLI_mempool_chunk *head, unsigned int index)
+BLI_INLINE BLI_mempool_chunk *mempool_chunk_find(BLI_mempool_chunk *head, uint index)
 {
 	while (index-- && head) {
 		head = head->next;
@@ -187,7 +187,7 @@ BLI_INLINE BLI_mempool_chunk *mempool_chunk_find(BLI_mempool_chunk *head, unsign
  * adding overhead on creation which is redundant if they aren't used.
  *
  */
-BLI_INLINE unsigned int mempool_maxchunks(const unsigned int totelem, const unsigned int pchunk)
+BLI_INLINE uint mempool_maxchunks(const uint totelem, const uint pchunk)
 {
 	return (totelem <= pchunk) ? 1 : ((totelem / pchunk) + 1);
 }
@@ -217,9 +217,9 @@ static BLI_mempool_chunk *mempool_chunk_alloc(BLI_mempool *pool)
 static BLI_freenode *mempool_chunk_add(BLI_mempool *pool, BLI_mempool_chunk *mpchunk,
                                        BLI_freenode *lasttail)
 {
-	const unsigned int esize = pool->esize;
+	const uint esize = pool->esize;
 	BLI_freenode *curnode = CHUNK_DATA(mpchunk);
-	unsigned int j;
+	uint j;
 
 	/* append */
 	if (pool->chunk_tail) {
@@ -289,12 +289,12 @@ static void mempool_chunk_free_all(BLI_mempool_chunk *mpchunk)
 	}
 }
 
-BLI_mempool *BLI_mempool_create(unsigned int esize, unsigned int totelem,
-                                unsigned int pchunk, unsigned int flag)
+BLI_mempool *BLI_mempool_create(uint esize, uint totelem,
+                                uint pchunk, uint flag)
 {
 	BLI_mempool *pool;
 	BLI_freenode *lasttail = NULL;
-	unsigned int i, maxchunks;
+	uint i, maxchunks;
 
 	/* allocate the pool structure */
 	pool = MEM_mallocN(sizeof(BLI_mempool), "memory pool");
@@ -305,7 +305,7 @@ BLI_mempool *BLI_mempool_create(unsigned int esize, unsigned int totelem,
 	}
 
 	if (flag & BLI_MEMPOOL_ALLOW_ITER) {
-		esize = MAX2(esize, (unsigned int)sizeof(BLI_freenode));
+		esize = MAX2(esize, (uint)sizeof(BLI_freenode));
 	}
 
 	maxchunks = mempool_maxchunks(totelem, pchunk);
@@ -436,9 +436,9 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 	if (UNLIKELY(pool->totused == 0) &&
 	    (pool->chunks->next))
 	{
-		const unsigned int esize = pool->esize;
+		const uint esize = pool->esize;
 		BLI_freenode *curnode;
-		unsigned int j;
+		uint j;
 		BLI_mempool_chunk *first;
 
 		first = pool->chunks;
@@ -477,7 +477,7 @@ int BLI_mempool_count(BLI_mempool *pool)
 	return (int)pool->totused;
 }
 
-void *BLI_mempool_findelem(BLI_mempool *pool, unsigned int index)
+void *BLI_mempool_findelem(BLI_mempool *pool, uint index)
 {
 	BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
 
@@ -512,7 +512,7 @@ void BLI_mempool_as_table(BLI_mempool *pool, void **data)
 	while ((elem = BLI_mempool_iterstep(&iter))) {
 		*p++ = elem;
 	}
-	BLI_assert((unsigned int)(p - data) == pool->totused);
+	BLI_assert((uint)(p - data) == pool->totused);
 }
 
 /**
@@ -530,7 +530,7 @@ void **BLI_mempool_as_tableN(BLI_mempool *pool, const char *allocstr)
  */
 void BLI_mempool_as_array(BLI_mempool *pool, void *data)
 {
-	const unsigned int esize = pool->esize;
+	const uint esize = pool->esize;
 	BLI_mempool_iter iter;
 	char *elem, *p = data;
 	BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
@@ -539,7 +539,7 @@ void BLI_mempool_as_array(BLI_mempool *pool, void *data)
 		memcpy(p, elem, (size_t)esize);
 		p = NODE_STEP_NEXT(p);
 	}
-	BLI_assert((unsigned int)(p - (char *)data) == pool->totused * esize);
+	BLI_assert((uint)(p - (char *)data) == pool->totused * esize);
 }
 
 /**
@@ -609,7 +609,7 @@ void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
 		return NULL;
 	}
 
-	const unsigned int esize = iter->pool->esize;
+	const uint esize = iter->pool->esize;
 	BLI_freenode *curnode = POINTER_OFFSET(CHUNK_DATA(iter->curchunk), (esize * iter->curindex));
 	BLI_freenode *ret;
 	do {
@@ -643,7 +643,7 @@ void BLI_mempool_clear_ex(BLI_mempool *pool, const int totelem_reserve)
 {
 	BLI_mempool_chunk *mpchunk;
 	BLI_mempool_chunk *mpchunk_next;
-	unsigned int maxchunks;
+	uint maxchunks;
 
 	BLI_mempool_chunk *chunks_temp;
 	BLI_freenode *lasttail = NULL;
@@ -657,7 +657,7 @@ void BLI_mempool_clear_ex(BLI_mempool *pool, const int totelem_reserve)
 		maxchunks = pool->maxchunks;
 	}
 	else {
-		maxchunks = mempool_maxchunks((unsigned int)totelem_reserve, pool->pchunk);
+		maxchunks = mempool_maxchunks((uint)totelem_reserve, pool->pchunk);
 	}
 
 	/* free all after pool->maxchunks  */

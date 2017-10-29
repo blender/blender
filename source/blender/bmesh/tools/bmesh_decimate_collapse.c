@@ -256,10 +256,6 @@ static void bm_decim_build_edge_cost_single(
 {
 	float cost;
 
-	if (eheap_table[BM_elem_index_get(e)]) {
-		BLI_heap_remove(eheap, eheap_table[BM_elem_index_get(e)]);
-	}
-
 	if (UNLIKELY(vweights &&
 	             ((vweights[BM_elem_index_get(e->v1)] == 0.0f) ||
 	              (vweights[BM_elem_index_get(e->v2)] == 0.0f))))
@@ -341,10 +337,13 @@ static void bm_decim_build_edge_cost_single(
 		}
 	}
 
-	eheap_table[BM_elem_index_get(e)] = BLI_heap_insert(eheap, cost, e);
+	BLI_heap_insert_or_update(eheap, &eheap_table[BM_elem_index_get(e)], cost, e);
 	return;
 
 clear:
+	if (eheap_table[BM_elem_index_get(e)]) {
+		BLI_heap_remove(eheap, eheap_table[BM_elem_index_get(e)]);
+	}
 	eheap_table[BM_elem_index_get(e)] = NULL;
 }
 

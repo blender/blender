@@ -282,14 +282,14 @@ size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst, const wchar_t *__restrict
 #endif
 
 	while (*src && len <= maxlen_secured) {
-		len += BLI_str_utf8_from_unicode((unsigned int)*src++, dst + len);
+		len += BLI_str_utf8_from_unicode((uint)*src++, dst + len);
 	}
 
 	/* We have to be more careful for the last six bytes, to avoid buffer overflow in case utf8-encoded char
 	 * would be too long for our dst buffer. */
 	while (*src) {
 		char t[6];
-		size_t l = BLI_str_utf8_from_unicode((unsigned int)*src++, t);
+		size_t l = BLI_str_utf8_from_unicode((uint)*src++, t);
 		BLI_assert(l <= 6);
 		if (len + l > maxlen) {
 			break;
@@ -309,7 +309,7 @@ size_t BLI_wstrlen_utf8(const wchar_t *src)
 	size_t len = 0;
 
 	while (*src) {
-		len += BLI_str_utf8_from_unicode((unsigned int)*src++, NULL);
+		len += BLI_str_utf8_from_unicode((uint)*src++, NULL);
 	}
 
 	return len;
@@ -381,7 +381,7 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w, const char *__rest
 
 	while (*src_c && len != maxlen) {
 		size_t step = 0;
-		unsigned int unicode = BLI_str_utf8_as_unicode_and_size(src_c, &step);
+		uint unicode = BLI_str_utf8_as_unicode_and_size(src_c, &step);
 		if (unicode != BLI_UTF8_ERR) {
 			*dst_w = (wchar_t)unicode;
 			src_c += step;
@@ -416,7 +416,7 @@ int BLI_wcswidth(const wchar_t *pwcs, size_t n)
 
 int BLI_str_utf8_char_width(const char *p)
 {
-	unsigned int unicode = BLI_str_utf8_as_unicode(p);
+	uint unicode = BLI_str_utf8_as_unicode(p);
 	if (unicode == BLI_UTF8_ERR)
 		return -1;
 
@@ -427,7 +427,7 @@ int BLI_str_utf8_char_width_safe(const char *p)
 {
 	int columns;
 
-	unsigned int unicode = BLI_str_utf8_as_unicode(p);
+	uint unicode = BLI_str_utf8_as_unicode(p);
 	if (unicode == BLI_UTF8_ERR)
 		return 1;
 
@@ -440,7 +440,7 @@ int BLI_str_utf8_char_width_safe(const char *p)
 
 /* copied from glib's gutf8.c, added 'Err' arg */
 
-/* note, glib uses unsigned int for unicode, best we do the same,
+/* note, glib uses uint for unicode, best we do the same,
  * though we don't typedef it - campbell */
 
 #define UTF8_COMPUTE(Char, Mask, Len, Err)                                    \
@@ -525,11 +525,11 @@ int BLI_str_utf8_size_safe(const char *p)
  *
  * Return value: the resulting character
  **/
-unsigned int BLI_str_utf8_as_unicode(const char *p)
+uint BLI_str_utf8_as_unicode(const char *p)
 {
 	int i, len;
-	unsigned int mask = 0;
-	unsigned int result;
+	uint mask = 0;
+	uint result;
 	const unsigned char c = (unsigned char) *p;
 
 	UTF8_COMPUTE(c, mask, len, -1);
@@ -541,11 +541,11 @@ unsigned int BLI_str_utf8_as_unicode(const char *p)
 }
 
 /* variant that increments the length */
-unsigned int BLI_str_utf8_as_unicode_and_size(const char *__restrict p, size_t *__restrict index)
+uint BLI_str_utf8_as_unicode_and_size(const char *__restrict p, size_t *__restrict index)
 {
 	int i, len;
 	unsigned mask = 0;
-	unsigned int result;
+	uint result;
 	const unsigned char c = (unsigned char) *p;
 
 	UTF8_COMPUTE(c, mask, len, -1);
@@ -556,11 +556,11 @@ unsigned int BLI_str_utf8_as_unicode_and_size(const char *__restrict p, size_t *
 	return result;
 }
 
-unsigned int BLI_str_utf8_as_unicode_and_size_safe(const char *__restrict p, size_t *__restrict index)
+uint BLI_str_utf8_as_unicode_and_size_safe(const char *__restrict p, size_t *__restrict index)
 {
 	int i, len;
-	unsigned int mask = 0;
-	unsigned int result;
+	uint mask = 0;
+	uint result;
 	const unsigned char c = (unsigned char) *p;
 
 	UTF8_COMPUTE(c, mask, len, -1);
@@ -575,11 +575,11 @@ unsigned int BLI_str_utf8_as_unicode_and_size_safe(const char *__restrict p, siz
 
 /* another variant that steps over the index,
  * note, currently this also falls back to latin1 for text drawing. */
-unsigned int BLI_str_utf8_as_unicode_step(const char *__restrict p, size_t *__restrict index)
+uint BLI_str_utf8_as_unicode_step(const char *__restrict p, size_t *__restrict index)
 {
 	int i, len;
-	unsigned int mask = 0;
-	unsigned int result;
+	uint mask = 0;
+	uint result;
 	unsigned char c;
 
 	p += *index;
@@ -631,12 +631,12 @@ unsigned int BLI_str_utf8_as_unicode_step(const char *__restrict p, size_t *__re
  *
  * \return number of bytes written
  **/
-size_t BLI_str_utf8_from_unicode(unsigned int c, char *outbuf)
+size_t BLI_str_utf8_from_unicode(uint c, char *outbuf)
 {
 	/* If this gets modified, also update the copy in g_string_insert_unichar() */
-	unsigned int len = 0;
-	unsigned int first;
-	unsigned int i;
+	uint len = 0;
+	uint first;
+	uint i;
 
 	if (c < 0x80) {
 		first = 0;
@@ -757,20 +757,20 @@ char *BLI_str_prev_char_utf8(const char *p)
 }
 /* end glib copy */
 
-size_t BLI_str_partition_utf8(const char *str, const unsigned int delim[], const char **sep, const char **suf)
+size_t BLI_str_partition_utf8(const char *str, const uint delim[], const char **sep, const char **suf)
 {
 	return BLI_str_partition_ex_utf8(str, NULL, delim, sep, suf, false);
 }
 
-size_t BLI_str_rpartition_utf8(const char *str, const unsigned int delim[], const char **sep, const char **suf)
+size_t BLI_str_rpartition_utf8(const char *str, const uint delim[], const char **sep, const char **suf)
 {
 	return BLI_str_partition_ex_utf8(str, NULL, delim, sep, suf, true);
 }
 
 size_t BLI_str_partition_ex_utf8(
-        const char *str, const char *end, const unsigned int delim[], const char **sep, const char **suf, const bool from_right)
+        const char *str, const char *end, const uint delim[], const char **sep, const char **suf, const bool from_right)
 {
-	const unsigned int *d;
+	const uint *d;
 	const size_t str_len = end ? (size_t)(end - str) : strlen(str);
 	size_t index;
 
@@ -783,7 +783,7 @@ size_t BLI_str_partition_ex_utf8(
 	     *sep >= str && (!end || *sep < end) && **sep != '\0';
 	     *sep = (char *)(from_right ? BLI_str_find_prev_char_utf8(str, *sep) : str + index))
 	{
-		const unsigned int c = BLI_str_utf8_as_unicode_and_size(*sep, &index);
+		const uint c = BLI_str_utf8_as_unicode_and_size(*sep, &index);
 
 		if (c == BLI_UTF8_ERR) {
 			*suf = *sep = NULL;

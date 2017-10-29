@@ -48,13 +48,14 @@
 #  define UNLIKELY(x)     (x)
 #endif
 
+typedef unsigned int uint;
 
 /***/
 
 struct HeapNode {
-	void        *ptr;
-	double       value;
-	unsigned int index;
+	void   *ptr;
+	double  value;
+	uint    index;
 };
 
 /* heap_* pool allocator */
@@ -67,8 +68,8 @@ struct HeapNode {
 #undef TPOOL_STRUCT
 
 struct Heap {
-	unsigned int size;
-	unsigned int bufsize;
+	uint size;
+	uint bufsize;
 	HeapNode **tree;
 
 	struct HeapMemPool pool;
@@ -86,32 +87,32 @@ struct Heap {
 #define HEAP_EQUALS(a, b) ((a)->value == (b)->value)
 #endif
 
-static void heap_swap(Heap *heap, const unsigned int i, const unsigned int j)
+static void heap_swap(Heap *heap, const uint i, const uint j)
 {
 
 #if 0
-	SWAP(unsigned int,  heap->tree[i]->index, heap->tree[j]->index);
-	SWAP(HeapNode *,    heap->tree[i],        heap->tree[j]);
+	SWAP(uint,       heap->tree[i]->index, heap->tree[j]->index);
+	SWAP(HeapNode *, heap->tree[i],        heap->tree[j]);
 #else
 	HeapNode **tree = heap->tree;
 	union {
-		unsigned int  index;
-		HeapNode     *node;
+		uint      index;
+		HeapNode *node;
 	} tmp;
 	SWAP_TVAL(tmp.index, tree[i]->index, tree[j]->index);
 	SWAP_TVAL(tmp.node,  tree[i],        tree[j]);
 #endif
 }
 
-static void heap_down(Heap *heap, unsigned int i)
+static void heap_down(Heap *heap, uint i)
 {
 	/* size won't change in the loop */
-	const unsigned int size = heap->size;
+	const uint size = heap->size;
 
 	while (1) {
-		const unsigned int l = HEAP_LEFT(i);
-		const unsigned int r = HEAP_RIGHT(i);
-		unsigned int smallest;
+		const uint l = HEAP_LEFT(i);
+		const uint r = HEAP_RIGHT(i);
+		uint smallest;
 
 		smallest = ((l < size) && HEAP_COMPARE(heap->tree[l], heap->tree[i])) ? l : i;
 
@@ -128,10 +129,10 @@ static void heap_down(Heap *heap, unsigned int i)
 	}
 }
 
-static void heap_up(Heap *heap, unsigned int i)
+static void heap_up(Heap *heap, uint i)
 {
 	while (i > 0) {
-		const unsigned int p = HEAP_PARENT(i);
+		const uint p = HEAP_PARENT(i);
 
 		if (HEAP_COMPARE(heap->tree[p], heap->tree[i])) {
 			break;
@@ -148,7 +149,7 @@ static void heap_up(Heap *heap, unsigned int i)
  * \{ */
 
 /* use when the size of the heap is known in advance */
-Heap *HEAP_new(unsigned int tot_reserve)
+Heap *HEAP_new(uint tot_reserve)
 {
 	Heap *heap = malloc(sizeof(Heap));
 	/* ensure we have at least one so we can keep doubling it */
@@ -164,7 +165,7 @@ Heap *HEAP_new(unsigned int tot_reserve)
 void HEAP_free(Heap *heap, HeapFreeFP ptrfreefp)
 {
 	if (ptrfreefp) {
-		unsigned int i;
+		uint i;
 
 		for (i = 0; i < heap->size; i++) {
 			ptrfreefp(heap->tree[i]->ptr);
@@ -180,7 +181,7 @@ void HEAP_free(Heap *heap, HeapFreeFP ptrfreefp)
 void HEAP_clear(Heap *heap, HeapFreeFP ptrfreefp)
 {
 	if (ptrfreefp) {
-		unsigned int i;
+		uint i;
 
 		for (i = 0; i < heap->size; i++) {
 			ptrfreefp(heap->tree[i]->ptr);
@@ -215,12 +216,22 @@ HeapNode *HEAP_insert(Heap *heap, double value, void *ptr)
 	return node;
 }
 
-bool HEAP_is_empty(Heap *heap)
+void HEAP_insert_or_update(Heap *heap, HeapNode **node_p, double value, void *ptr)
+{
+	if (*node_p == NULL) {
+		*node_p = HEAP_insert(heap, value, ptr);
+	}
+	else {
+		HEAP_node_value_update_ptr(heap, *node_p, value, ptr);
+	}
+}
+
+bool HEAP_is_empty(const Heap *heap)
 {
 	return (heap->size == 0);
 }
 
-unsigned int HEAP_size(Heap *heap)
+uint HEAP_size(const Heap *heap)
 {
 	return heap->size;
 }
@@ -230,7 +241,7 @@ HeapNode *HEAP_top(Heap *heap)
 	return heap->tree[0];
 }
 
-double HEAP_top_value(Heap *heap)
+double HEAP_top_value(const Heap *heap)
 {
 	return heap->tree[0]->value;
 }
@@ -253,12 +264,12 @@ void *HEAP_popmin(Heap *heap)
 
 void HEAP_remove(Heap *heap, HeapNode *node)
 {
-	unsigned int i = node->index;
+	uint i = node->index;
 
 	assert(heap->size != 0);
 
 	while (i > 0) {
-		unsigned int p = HEAP_PARENT(i);
+		uint p = HEAP_PARENT(i);
 
 		heap_swap(heap, p, i);
 		i = p;
@@ -267,7 +278,25 @@ void HEAP_remove(Heap *heap, HeapNode *node)
 	HEAP_popmin(heap);
 }
 
-double HEAP_node_value(HeapNode *node)
+void HEAP_node_value_update(Heap *heap, HeapNode *node, double value)
+{
+	assert(heap->size != 0);
+	if (node->value == value) {
+		return;
+	}
+	node->value = value;
+	/* Can be called in either order, makes no difference. */
+	heap_up(heap, node->index);
+	heap_down(heap, node->index);
+}
+
+void HEAP_node_value_update_ptr(Heap *heap, HeapNode *node, double value, void *ptr)
+{
+	node->ptr = ptr;
+	HEAP_node_value_update(heap, node, value);
+}
+
+double HEAP_node_value(const HeapNode *node)
 {
 	return node->value;
 }

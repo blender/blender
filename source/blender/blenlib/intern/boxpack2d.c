@@ -56,10 +56,10 @@ typedef struct BoxVert {
 	float x;
 	float y;
 
-	int          free : 8;  /* vert status */
-	unsigned int used : 1;
-	unsigned int _pad : 23;
-	unsigned int index;
+	int  free : 8;  /* vert status */
+	uint used : 1;
+	uint _pad : 23;
+	uint index;
 
 	struct BoxPack *trb; /* top right box */
 	struct BoxPack *blb; /* bottom left box */
@@ -92,7 +92,7 @@ typedef struct BoxVert {
 #define BRF 8
 #define CORNERFLAGS (BLF | TRF | TLF | BRF)
 
-BLI_INLINE int quad_flag(unsigned int q)
+BLI_INLINE int quad_flag(uint q)
 {
 	BLI_assert(q < 4);
 	return (1 << q);
@@ -241,8 +241,8 @@ static int vertex_sort(const void *p1, const void *p2, void *vs_ctx_p)
 	const BoxVert *v1, *v2;
 	float a1, a2;
 
-	v1 = &vs_ctx->vertarray[*((const unsigned int *)p1)];
-	v2 = &vs_ctx->vertarray[*((const unsigned int *)p2)];
+	v1 = &vs_ctx->vertarray[*((const uint *)p1)];
+	v2 = &vs_ctx->vertarray[*((const uint *)p2)];
 
 #ifdef USE_FREE_STRIP
 	/* push free verts to the end so we can strip */
@@ -280,10 +280,10 @@ static int vertex_sort(const void *p1, const void *p2, void *vs_ctx_p)
  * \param len: the number of boxes in the array.
  * \param r_tot_x, r_tot_y: set so you can normalize the data.
  *  */
-void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *r_tot_x, float *r_tot_y)
+void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r_tot_y)
 {
-	unsigned int box_index, verts_pack_len, i, j, k;
-	unsigned int *vertex_pack_indices;  /* an array of indices used for sorting verts */
+	uint box_index, verts_pack_len, i, j, k;
+	uint *vertex_pack_indices;  /* an array of indices used for sorting verts */
 	bool isect;
 	float tot_x = 0.0f, tot_y = 0.0f;
 

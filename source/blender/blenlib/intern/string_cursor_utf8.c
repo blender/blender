@@ -51,7 +51,7 @@ typedef enum eStrCursorDelimType {
 	STRCUR_DELIM_OTHER
 } eStrCursorDelimType;
 
-static eStrCursorDelimType cursor_delim_type_unicode(const unsigned int uch)
+static eStrCursorDelimType cursor_delim_type_unicode(const uint uch)
 {
 	switch (uch) {
 		case ',':
@@ -112,7 +112,7 @@ static eStrCursorDelimType cursor_delim_type_utf8(const char *ch_utf8)
 {
 	/* for full unicode support we really need to have large lookup tables to figure
 	 * out whats what in every possible char set - and python, glib both have these. */
-	unsigned int uch = BLI_str_utf8_as_unicode(ch_utf8);
+	uint uch = BLI_str_utf8_as_unicode(ch_utf8);
 	return cursor_delim_type_unicode(uch);
 }
 
@@ -259,14 +259,14 @@ void BLI_str_cursor_step_wchar(
 
 		if (jump != STRCUR_JUMP_NONE) {
 			const eStrCursorDelimType delim_type =
-			        (*pos) < maxlen ? cursor_delim_type_unicode((unsigned int)str[*pos]) : STRCUR_DELIM_NONE;
+			        (*pos) < maxlen ? cursor_delim_type_unicode((uint)str[*pos]) : STRCUR_DELIM_NONE;
 			/* jump between special characters (/,\,_,-, etc.),
 			 * look at function cursor_delim_type_unicode() for complete
 			 * list of special character, ctr -> */
 			while ((*pos) < maxlen) {
 				if (wchar_t_step_next(str, maxlen, pos)) {
 					if ((jump != STRCUR_JUMP_ALL) &&
-					    (delim_type != cursor_delim_type_unicode((unsigned int)str[*pos])))
+					    (delim_type != cursor_delim_type_unicode((uint)str[*pos])))
 					{
 						break;
 					}
@@ -287,7 +287,7 @@ void BLI_str_cursor_step_wchar(
 
 		if (jump != STRCUR_JUMP_NONE) {
 			const eStrCursorDelimType delim_type =
-			        (*pos) > 0 ? cursor_delim_type_unicode((unsigned int)str[(*pos) - 1]) : STRCUR_DELIM_NONE;
+			        (*pos) > 0 ? cursor_delim_type_unicode((uint)str[(*pos) - 1]) : STRCUR_DELIM_NONE;
 			/* jump between special characters (/,\,_,-, etc.),
 			 * look at function cursor_delim_type() for complete
 			 * list of special character, ctr -> */
@@ -295,7 +295,7 @@ void BLI_str_cursor_step_wchar(
 				const int pos_prev = *pos;
 				if (wchar_t_step_prev(str, maxlen, pos)) {
 					if ((jump != STRCUR_JUMP_ALL) &&
-					    (delim_type != cursor_delim_type_unicode((unsigned int)str[*pos])))
+					    (delim_type != cursor_delim_type_unicode((uint)str[*pos])))
 					{
 						/* left only: compensate for index/change in direction */
 						if ((pos_orig - (*pos)) >= 1) {
@@ -314,4 +314,3 @@ void BLI_str_cursor_step_wchar(
 		BLI_assert(0);
 	}
 }
-
