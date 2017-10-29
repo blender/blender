@@ -25,6 +25,7 @@ set(INC
 	.
 	..
 	../../../source/blender/blenlib
+	../../../source/blender/blenkernel
 	../../../source/blender/alembic
 	../../../source/blender/makesdna
 	../../../source/blender/depsgraph

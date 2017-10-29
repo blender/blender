@@ -5,6 +5,7 @@
 #include "intern/abc_exporter.h"
 
 extern "C" {
+#include "BKE_global.h"
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "DNA_scene_types.h"
@@ -14,8 +15,8 @@ extern "C" {
 
 class TestableAbcExporter : public AbcExporter {
 public:
-	TestableAbcExporter(Scene *scene, const char *filename, ExportSettings &settings)
-	    : AbcExporter(&eval_ctx, scene, filename, settings)
+	TestableAbcExporter(Main *bmain, Scene *scene, const char *filename, ExportSettings &settings)
+	    : AbcExporter(bmain, &eval_ctx, scene, filename, settings)
 	{
 		/* TODO(sergey): Pass scene layer somehow? */
 		DEG_evaluation_context_init(&eval_ctx, DAG_EVAL_VIEWPORT);
@@ -42,6 +43,7 @@ protected:
 	ExportSettings settings;
 	Scene scene;
 	TestableAbcExporter *exporter;
+	EvaluationContext eval_ctx;
 
 	virtual void SetUp()
 	{
@@ -63,7 +65,7 @@ protected:
 	// Call after setting up the settings.
 	void createExporter()
 	{
-		exporter = new TestableAbcExporter(&scene, "somefile.abc", settings);
+		exporter = new TestableAbcExporter(G.main, &scene, "somefile.abc", settings);
 	}
 };
 

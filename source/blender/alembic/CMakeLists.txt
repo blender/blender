@@ -52,6 +52,7 @@ set(SRC
 	intern/abc_curves.cc
 	intern/abc_exporter.cc
 	intern/abc_hair.cc
+	intern/abc_mball.cc
 	intern/abc_mesh.cc
 	intern/abc_nurbs.cc
 	intern/abc_object.cc
@@ -67,6 +68,7 @@ set(SRC
 	intern/abc_curves.h
 	intern/abc_exporter.h
 	intern/abc_hair.h
+	intern/abc_mball.h
 	intern/abc_mesh.h
 	intern/abc_nurbs.h
 	intern/abc_object.h

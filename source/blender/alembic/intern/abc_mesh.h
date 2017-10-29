@@ -58,6 +58,7 @@ public:
 	              ExportSettings &settings);
 
 	~AbcMeshWriter();
+	void setIsAnimated(bool is_animated);
 
 private:
 	virtual void do_write();
