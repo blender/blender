@@ -35,14 +35,14 @@ macro(warn_hardcoded_paths package_name
 	)
 	if(WITH_WINDOWS_FIND_MODULES)
 		message(WARNING "Using HARDCODED ${package_name} locations")
-	endif(WITH_WINDOWS_FIND_MODULES)
+	endif()
 endmacro()
 
 macro(windows_find_package package_name
 	)
 	if(WITH_WINDOWS_FIND_MODULES)
 		find_package(${package_name})
-	endif(WITH_WINDOWS_FIND_MODULES)
+	endif()
 endmacro()
 
 macro(find_package_wrapper)
@@ -338,9 +338,9 @@ if(WITH_BOOST)
 	set(Boost_USE_STATIC_RUNTIME ON) # prefix lib
 	set(Boost_USE_MULTITHREADED ON) # suffix -mt
 	set(Boost_USE_STATIC_LIBS ON) # suffix -s
-	if (WITH_WINDOWS_FIND_MODULES)
+	if(WITH_WINDOWS_FIND_MODULES)
 		find_package(Boost COMPONENTS date_time filesystem thread regex system ${boost_extra_libs})
-	endif (WITH_WINDOWS_FIND_MODULES)
+	endif()
 	if(NOT Boost_FOUND)
 		warn_hardcoded_paths(BOOST)
 		set(BOOST ${LIBDIR}/boost)

@@ -99,7 +99,7 @@ if(WITH_LIBMV)
 endif()
 
 if(WITH_LIBMV OR WITH_GTESTS OR (WITH_CYCLES AND WITH_CYCLES_LOGGING))
-	if (NOT WITH_SYSTEM_GFLAGS)
+	if(NOT WITH_SYSTEM_GFLAGS)
 		add_subdirectory(gflags)
 	endif()
 	add_subdirectory(glog)

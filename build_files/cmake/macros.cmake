@@ -282,7 +282,7 @@ function(SETUP_LIBDIRS)
 	# NOTE: For all new libraries, use absolute library paths.
 	# This should eventually be phased out.
 
-	if (NOT MSVC)
+	if(NOT MSVC)
 		link_directories(${JPEG_LIBPATH} ${PNG_LIBPATH} ${ZLIB_LIBPATH} ${FREETYPE_LIBPATH})
 
 		if(WITH_PYTHON)  #  AND NOT WITH_PYTHON_MODULE  # WIN32 needs
@@ -342,7 +342,7 @@ function(SETUP_LIBDIRS)
 		if(WIN32 AND NOT UNIX)
 			link_directories(${PTHREADS_LIBPATH})
 		endif()
-	endif(NOT MSVC)
+	endif()
 endfunction()
 
 function(setup_liblinks
@@ -1546,8 +1546,8 @@ macro(openmp_delayload
 				SET_TARGET_PROPERTIES(${projectname} PROPERTIES LINK_FLAGS_DEBUG "/DELAYLOAD:${OPENMP_DLL_NAME}d.dll delayimp.lib")
 				SET_TARGET_PROPERTIES(${projectname} PROPERTIES LINK_FLAGS_RELWITHDEBINFO "/DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib")
 				SET_TARGET_PROPERTIES(${projectname} PROPERTIES LINK_FLAGS_MINSIZEREL "/DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib")
-			endif(WITH_OPENMP)
-		endif(MSVC)
+			endif()
+		endif()
 endmacro()
 
 MACRO(WINDOWS_SIGN_TARGET target)
