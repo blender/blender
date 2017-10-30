@@ -47,7 +47,7 @@ bool kernel_path_subsurface_scatter(
 
 		uint lcg_state = lcg_state_init_addrspace(state, 0x68bc21eb);
 
-		SubsurfaceIntersection ss_isect;
+		LocalIntersection ss_isect;
 		int num_hits = subsurface_scatter_multi_intersect(kg,
 		                                                  &ss_isect,
 		                                                  sd,

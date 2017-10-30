@@ -70,23 +70,32 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 	return false;
 }
 
-/* Special ray intersection routines for subsurface scattering. In that case we
+/* Special ray intersection routines for local intersection. In that case we
  * only want to intersect with primitives in the same object, and if case of
  * multiple hits we pick a single random primitive as the intersection point.
  */
 
-#ifdef __SUBSURFACE__
-ccl_device_inline void triangle_intersect_subsurface(
+#ifdef __BVH_LOCAL__
+ccl_device_inline void triangle_intersect_local(
         KernelGlobals *kg,
-        SubsurfaceIntersection *ss_isect,
+        LocalIntersection *local_isect,
         float3 P,
         float3 dir,
         int object,
+		int local_object,
         int prim_addr,
         float tmax,
         uint *lcg_state,
         int max_hits)
 {
+	/* Only intersect with matching object, for instanced objects we
+	 * already know we are only intersecting the right object. */
+	if(object == OBJECT_NONE) {
+		if(kernel_tex_fetch(__prim_object, prim_addr) != local_object) {
+			return;
+		}
+	}
+
 	const uint tri_vindex = kernel_tex_fetch(__prim_tri_index, prim_addr);
 #if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
 	const ssef *ssef_verts = (ssef*)&kg->__prim_tri_verts.data[tri_vindex];
@@ -109,29 +118,29 @@ ccl_device_inline void triangle_intersect_subsurface(
 		return;
 	}
 
-	for(int i = min(max_hits, ss_isect->num_hits) - 1; i >= 0; --i) {
-		if(ss_isect->hits[i].t == t) {
+	for(int i = min(max_hits, local_isect->num_hits) - 1; i >= 0; --i) {
+		if(local_isect->hits[i].t == t) {
 			return;
 		}
 	}
 
-	ss_isect->num_hits++;
+	local_isect->num_hits++;
 	int hit;
 
-	if(ss_isect->num_hits <= max_hits) {
-		hit = ss_isect->num_hits - 1;
+	if(local_isect->num_hits <= max_hits) {
+		hit = local_isect->num_hits - 1;
 	}
 	else {
 		/* reservoir sampling: if we are at the maximum number of
 		 * hits, randomly replace element or skip it */
-		hit = lcg_step_uint(lcg_state) % ss_isect->num_hits;
+		hit = lcg_step_uint(lcg_state) % local_isect->num_hits;
 
 		if(hit >= max_hits)
 			return;
 	}
 
 	/* record intersection */
-	Intersection *isect = &ss_isect->hits[hit];
+	Intersection *isect = &local_isect->hits[hit];
 	isect->prim = prim_addr;
 	isect->object = object;
 	isect->type = PRIMITIVE_TRIANGLE;
@@ -145,9 +154,9 @@ ccl_device_inline void triangle_intersect_subsurface(
 	             tri_b = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex+1)),
 	             tri_c = float4_to_float3(kernel_tex_fetch(__prim_tri_verts, tri_vindex+2));
 #endif
-	ss_isect->Ng[hit] = normalize(cross(tri_b - tri_a, tri_c - tri_a));
+	local_isect->Ng[hit] = normalize(cross(tri_b - tri_a, tri_c - tri_a));
 }
-#endif  /* __SUBSURFACE__ */
+#endif  /* __BVH_LOCAL__ */
 
 /* Refine triangle intersection to more precise hit point. For rays that travel
  * far the precision is often not so good, this reintersects the primitive from
@@ -226,10 +235,10 @@ ccl_device_inline float3 triangle_refine(KernelGlobals *kg,
 /* Same as above, except that isect->t is assumed to be in object space for
  * instancing.
  */
-ccl_device_inline float3 triangle_refine_subsurface(KernelGlobals *kg,
-                                                    ShaderData *sd,
-                                                    const Intersection *isect,
-                                                    const Ray *ray)
+ccl_device_inline float3 triangle_refine_local(KernelGlobals *kg,
+                                               ShaderData *sd,
+                                               const Intersection *isect,
+                                               const Ray *ray)
 {
 	float3 P = ray->P;
 	float3 D = ray->D;

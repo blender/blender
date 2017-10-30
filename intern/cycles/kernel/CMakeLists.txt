@@ -65,14 +65,14 @@ set(SRC_BVH_HEADERS
 	bvh/bvh.h
 	bvh/bvh_nodes.h
 	bvh/bvh_shadow_all.h
-	bvh/bvh_subsurface.h
+	bvh/bvh_local.h
 	bvh/bvh_traversal.h
 	bvh/bvh_types.h
 	bvh/bvh_volume.h
 	bvh/bvh_volume_all.h
 	bvh/qbvh_nodes.h
 	bvh/qbvh_shadow_all.h
-	bvh/qbvh_subsurface.h
+	bvh/qbvh_local.h
 	bvh/qbvh_traversal.h
 	bvh/qbvh_volume.h
 	bvh/qbvh_volume_all.h

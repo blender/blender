@@ -61,7 +61,7 @@ ccl_device_noinline bool kernel_split_branched_path_subsurface_indirect_light_it
 		/* do subsurface scatter step with copy of shader data, this will
 		 * replace the BSSRDF with a diffuse BSDF closure */
 		for(int j = branched_state->ss_next_sample; j < num_samples; j++) {
-			ccl_global SubsurfaceIntersection *ss_isect = &branched_state->ss_isect;
+			ccl_global LocalIntersection *ss_isect = &branched_state->ss_isect;
 			float bssrdf_u, bssrdf_v;
 			path_branched_rng_2D(kg,
 			                     bssrdf_rng_hash,
@@ -75,7 +75,7 @@ ccl_device_noinline bool kernel_split_branched_path_subsurface_indirect_light_it
 			/* intersection is expensive so avoid doing multiple times for the same input */
 			if(branched_state->next_hit == 0 && branched_state->next_closure == 0 && branched_state->next_sample == 0) {
 				uint lcg_state = branched_state->lcg_state;
-				SubsurfaceIntersection ss_isect_private;
+				LocalIntersection ss_isect_private;
 
 				branched_state->num_hits = subsurface_scatter_multi_intersect(kg,
 				                                                              &ss_isect_private,
@@ -102,7 +102,7 @@ ccl_device_noinline bool kernel_split_branched_path_subsurface_indirect_light_it
 				*bssrdf_sd = *sd; /* note: copy happens each iteration of inner loop, this is
 				                   * important as the indirect path will write into bssrdf_sd */
 
-				SubsurfaceIntersection ss_isect_private = *ss_isect;
+				LocalIntersection ss_isect_private = *ss_isect;
 				subsurface_scatter_multi_setup(kg,
 				                               &ss_isect_private,
 				                               hit,

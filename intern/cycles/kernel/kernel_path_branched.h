@@ -340,7 +340,7 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
 		/* do subsurface scatter step with copy of shader data, this will
 		 * replace the BSSRDF with a diffuse BSDF closure */
 		for(int j = 0; j < num_samples; j++) {
-			SubsurfaceIntersection ss_isect;
+			LocalIntersection ss_isect;
 			float bssrdf_u, bssrdf_v;
 			path_branched_rng_2D(kg, bssrdf_rng_hash, state, j, num_samples, PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
 			int num_hits = subsurface_scatter_multi_intersect(kg,

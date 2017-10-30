@@ -175,7 +175,7 @@ ccl_device void subsurface_color_bump_blur(KernelGlobals *kg,
  */
 ccl_device_inline int subsurface_scatter_multi_intersect(
         KernelGlobals *kg,
-        SubsurfaceIntersection *ss_isect,
+        LocalIntersection *ss_isect,
         ShaderData *sd,
         const ShaderClosure *sc,
         uint *lcg_state,
@@ -240,22 +240,22 @@ ccl_device_inline int subsurface_scatter_multi_intersect(
 
 	/* intersect with the same object. if multiple intersections are found it
 	 * will use at most BSSRDF_MAX_HITS hits, a random subset of all hits */
-	scene_intersect_subsurface(kg,
-	                           *ray,
-	                           ss_isect,
-	                           sd->object,
-	                           lcg_state,
-	                           BSSRDF_MAX_HITS);
+	scene_intersect_local(kg,
+	                      *ray,
+	                      ss_isect,
+	                      sd->object,
+	                      lcg_state,
+	                      BSSRDF_MAX_HITS);
 	int num_eval_hits = min(ss_isect->num_hits, BSSRDF_MAX_HITS);
 
 	for(int hit = 0; hit < num_eval_hits; hit++) {
 		/* Quickly retrieve P and Ng without setting up ShaderData. */
 		float3 hit_P;
 		if(sd->type & PRIMITIVE_TRIANGLE) {
-			hit_P = triangle_refine_subsurface(kg,
-			                                   sd,
-			                                   &ss_isect->hits[hit],
-			                                   ray);
+			hit_P = triangle_refine_local(kg,
+			                              sd,
+			                              &ss_isect->hits[hit],
+			                              ray);
 		}
 #ifdef __OBJECT_MOTION__
 		else  if(sd->type & PRIMITIVE_MOTION_TRIANGLE) {
@@ -266,11 +266,11 @@ ccl_device_inline int subsurface_scatter_multi_intersect(
 			        kernel_tex_fetch(__prim_index, ss_isect->hits[hit].prim),
 			        sd->time,
 			        verts);
-			hit_P = motion_triangle_refine_subsurface(kg,
-			                                          sd,
-			                                          &ss_isect->hits[hit],
-			                                          ray,
-			                                          verts);
+			hit_P = motion_triangle_refine_local(kg,
+			                                     sd,
+			                                     &ss_isect->hits[hit],
+			                                     ray,
+			                                     verts);
 		}
 #endif  /* __OBJECT_MOTION__ */
 		else {
@@ -313,7 +313,7 @@ ccl_device_inline int subsurface_scatter_multi_intersect(
 
 ccl_device_noinline void subsurface_scatter_multi_setup(
         KernelGlobals *kg,
-        SubsurfaceIntersection* ss_isect,
+        LocalIntersection* ss_isect,
         int hit,
         ShaderData *sd,
         ccl_addr_space PathState *state,
@@ -403,8 +403,8 @@ ccl_device void subsurface_scatter_step(KernelGlobals *kg, ShaderData *sd, ccl_a
 
 	/* intersect with the same object. if multiple intersections are
 	 * found it will randomly pick one of them */
-	SubsurfaceIntersection ss_isect;
-	scene_intersect_subsurface(kg, ray, &ss_isect, sd->object, lcg_state, 1);
+	LocalIntersection ss_isect;
+	scene_intersect_local(kg, ray, &ss_isect, sd->object, lcg_state, 1);
 
 	/* evaluate bssrdf */
 	if(ss_isect.num_hits > 0) {

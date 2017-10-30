@@ -67,7 +67,7 @@ typedef ccl_global struct SplitBranchedState {
 	int num_hits;
 
 	uint lcg_state;
-	SubsurfaceIntersection ss_isect;
+	LocalIntersection ss_isect;
 
 #  ifdef __VOLUME__
 	VolumeStack volume_stack[VOLUME_STACK_SIZE];
