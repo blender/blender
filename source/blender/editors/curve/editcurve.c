@@ -5905,6 +5905,86 @@ void CURVE_OT_dissolve_verts(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+static bool nurb_bezt_flag_any(const Nurb *nu, const char flag_test)
+{
+	BezTriple *bezt = nu->bezt;
+	int i;
+
+	for (i = nu->pntsu, bezt = nu->bezt; i--; bezt++) {
+		if (bezt->f2 & flag_test) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static int curve_decimate_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	Curve *cu = (Curve *)obedit->data;
+	bool all_supported = true;
+	bool changed = false;
+
+	{
+		const float error_sq_max = FLT_MAX;
+		float ratio = RNA_float_get(op->ptr, "ratio");
+
+		ListBase *editnurb = object_editcurve_get(obedit);
+		Nurb *nu;
+
+		for (nu = editnurb->first; nu; nu = nu->next) {
+			if (nu->type == CU_BEZIER) {
+				if ((nu->pntsu > 2) && nurb_bezt_flag_any(nu, SELECT)) {
+					const int error_target_len = max_ii(2, nu->pntsu * ratio);
+					if (error_target_len != nu->pntsu) {
+						BKE_curve_decimate_nurb(nu, cu->resolu, error_sq_max, error_target_len);
+						changed = true;
+					}
+				}
+			}
+			else {
+				all_supported = false;
+			}
+		}
+	}
+
+	if (all_supported == false) {
+		BKE_report(op->reports, RPT_WARNING, "Only bezier curves are supported");
+	}
+
+	if (changed) {
+		cu->actnu = cu->actvert = CU_ACT_NONE;
+		if (ED_curve_updateAnimPaths(obedit->data)) {
+			WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
+		}
+
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+		DAG_id_tag_update(obedit->data, 0);
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void CURVE_OT_decimate(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Decimate Curve";
+	ot->description = "Simplify selected curves";
+	ot->idname = "CURVE_OT_decimate";
+
+	/* api callbacks */
+	ot->exec = curve_decimate_exec;
+	ot->poll = ED_operator_editcurve;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_float_factor(ot->srna, "ratio", 1.0f, 0.0f, 1.0f, "Ratio", "", 0.0f, 1.0f);
+}
+
+
 /********************** shade smooth/flat operator *********************/
 
 static int shade_smooth_exec(bContext *C, wmOperator *op)

@@ -2789,7 +2789,7 @@ class VIEW3D_MT_edit_mesh_normals(Menu):
 
 
 class VIEW3D_MT_edit_mesh_clean(Menu):
-    bl_label = "Clean up"
+    bl_label = "Clean Up"
 
     def draw(self, context):
         layout = self.layout
@@ -2895,6 +2895,10 @@ def draw_curve(self, context):
 
     layout.separator()
 
+    layout.menu("VIEW3D_MT_edit_curve_clean")
+
+    layout.separator()
+
     layout.menu("VIEW3D_MT_edit_proportional")
 
     layout.separator()
@@ -2942,6 +2946,14 @@ class VIEW3D_MT_edit_curve_segments(Menu):
 
         layout.operator("curve.subdivide")
         layout.operator("curve.switch_direction")
+
+class VIEW3D_MT_edit_curve_clean(Menu):
+    bl_label = "Clean Up"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("curve.decimate")
 
 
 class VIEW3D_MT_edit_curve_specials(Menu):
@@ -4105,6 +4117,7 @@ classes = (
     VIEW3D_MT_edit_curve,
     VIEW3D_MT_edit_curve_ctrlpoints,
     VIEW3D_MT_edit_curve_segments,
+    VIEW3D_MT_edit_curve_clean,
     VIEW3D_MT_edit_curve_specials,
     VIEW3D_MT_edit_curve_delete,
     VIEW3D_MT_edit_curve_showhide,

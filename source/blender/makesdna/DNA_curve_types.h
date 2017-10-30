@@ -379,6 +379,12 @@ enum {
 
 /* *************** BEZTRIPLE **************** */
 
+/* BezTriple.f1,2,3 */
+typedef enum eBezTriple_Flag {
+	/* SELECT */
+	BEZT_FLAG_TEMP_TAG = (1 << 1),  /* always clear. */
+} eBezTriple_Flag;
+
 /* h1 h2 (beztriple) */
 typedef enum eBezTriple_Handle {
 	HD_FREE = 0,

@@ -218,4 +218,14 @@ struct EvaluationContext;
 void BKE_curve_eval_geometry(struct EvaluationContext *eval_ctx,
                              struct Curve *curve);
 
+/* curve_decimate.c */
+unsigned int BKE_curve_decimate_bezt_array(
+        struct BezTriple *bezt_array, const unsigned int bezt_array_len, const unsigned int resolu, const bool is_cyclic,
+        const char flag_test, const char flag_set,
+        const float error_sq_max, const unsigned int error_target_len);
+
+void BKE_curve_decimate_nurb(
+        struct Nurb *nu, const unsigned int resolu,
+        const float error_sq_max, const unsigned int error_target_len);
+
 #endif  /* __BKE_CURVE_H__ */
