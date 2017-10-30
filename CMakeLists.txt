@@ -1608,10 +1608,10 @@ include(build_files/cmake/packaging.cmake)
 # Use dynamic loading for OpenMP
 if(WITH_BLENDER)
 	openmp_delayload(blender)
-endif(WITH_BLENDER)
+endif()
 if(WITH_PLAYER)
 	openmp_delayload(blenderplayer)
-endif(WITH_PLAYER)
+endif()
 
 #-----------------------------------------------------------------------------
 # Print Final Configuration
