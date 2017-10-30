@@ -2573,6 +2573,10 @@ static void DRW_viewport_var_init(void)
 	DST.backface = GL_CW;
 	glFrontFace(DST.frontface);
 
+	if (DST.draw_ctx.scene->obedit) {
+		ED_view3d_init_mats_rv3d(DST.draw_ctx.scene->obedit, rv3d);
+	}
+
 	/* Alloc array of texture reference. */
 	if (RST.bound_texs == NULL) {
 		RST.bound_texs = MEM_callocN(sizeof(GPUTexture *) * GPU_max_textures(), "Bound GPUTexture refs");

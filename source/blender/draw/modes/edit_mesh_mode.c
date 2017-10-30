@@ -27,11 +27,15 @@
 #include "DRW_render.h"
 
 #include "GPU_shader.h"
+
+#include "DNA_mesh_types.h"
 #include "DNA_view3d_types.h"
 
 #include "draw_common.h"
 
 #include "draw_mode_engines.h"
+
+#include "edit_mesh_mode_intern.h" /* own include */
 
 extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
 extern struct GlobalsUboStorage ts; /* draw_common.c */
@@ -444,6 +448,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 
 	if (ob->type == OB_MESH) {
 		if (ob == obedit) {
+			const Mesh *me = ob->data;
 			IDProperty *ces_mode_ed = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_EDIT, "");
 			bool do_occlude_wire = BKE_collection_engine_property_value_get_bool(ces_mode_ed, "show_occlude_wire");
 			bool do_show_weight = BKE_collection_engine_property_value_get_bool(ces_mode_ed, "show_weight");
@@ -499,6 +504,16 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 				edit_mesh_add_ob_to_pass(
 				        scene, ob, stl->g_data->face_overlay_shgrp, stl->g_data->ledges_overlay_shgrp,
 				        stl->g_data->lverts_overlay_shgrp, stl->g_data->facedot_overlay_shgrp, NULL);
+			}
+
+			/* 3D text overlay */
+			if (me->drawflag & (ME_DRAWEXTRA_EDGELEN |
+			                    ME_DRAWEXTRA_FACEAREA |
+			                    ME_DRAWEXTRA_FACEANG |
+			                    ME_DRAWEXTRA_EDGEANG))
+			{
+				DRW_edit_mesh_mode_text_measure_stats(
+				       draw_ctx->ar, v3d, ob, &scene->unit);
 			}
 		}
 	}

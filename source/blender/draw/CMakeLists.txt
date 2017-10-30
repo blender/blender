@@ -69,6 +69,7 @@ set(SRC
 	modes/edit_curve_mode.c
 	modes/edit_lattice_mode.c
 	modes/edit_mesh_mode.c
+	modes/edit_mesh_mode_text.c
 	modes/edit_metaball_mode.c
 	modes/edit_surface_mode.c
 	modes/edit_text_mode.c
@@ -98,6 +99,7 @@ set(SRC
 	intern/draw_manager_profiling.h
 	intern/draw_view.h
 	modes/draw_mode_engines.h
+	modes/edit_mesh_mode_intern.h
 	engines/basic/basic_engine.h
 	engines/clay/clay_engine.h
 	engines/eevee/eevee_engine.h
