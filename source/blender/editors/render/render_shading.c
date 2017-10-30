@@ -656,9 +656,9 @@ static int render_layer_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	SceneLayer *scene_layer = BKE_scene_layer_from_scene_get(scene);
 
-	if (!ED_scene_render_layer_delete(bmain, scene, sl, NULL)) {
+	if (!ED_scene_render_layer_delete(bmain, scene, scene_layer, NULL)) {
 		return OPERATOR_CANCELLED;
 	}
 
