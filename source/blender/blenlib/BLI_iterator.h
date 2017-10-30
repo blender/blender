@@ -30,6 +30,7 @@
 typedef struct BLI_Iterator {
 	void *current; /* current pointer we iterate over */
 	void *data;    /* stored data required for this iterator */
+	bool skip;
 	bool valid;
 } BLI_Iterator;
 
@@ -40,12 +41,18 @@ typedef void (*IteratorBeginCb)(BLI_Iterator *iter, void *data_in);
 {                                                                                    \
 	_type _instance;                                                                 \
 	IteratorCb callback_end_func = callback_end;                                     \
-	BLI_Iterator iter_macro;                                                             \
+	BLI_Iterator iter_macro = {                                                      \
+		.skip = false,                                                               \
+	};                                                                               \
 	for (callback_begin(&iter_macro, (_data_in));                                    \
 	     iter_macro.valid;                                                           \
 	     callback_next(&iter_macro))                                                 \
-    {                                                                                \
-	    _instance = (_type ) iter_macro.current;
+	{                                                                                \
+		if (iter_macro.skip) {                                                       \
+			iter_macro.skip = false;                                                 \
+			continue;                                                                \
+		}                                                                            \
+		_instance = (_type ) iter_macro.current;
 
 #define ITER_END                                                                     \
 	}                                                                                \
