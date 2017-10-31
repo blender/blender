@@ -94,8 +94,6 @@ typedef struct WorkSpace {
 	bToolDef tool;
 
 	struct SceneLayer *render_layer DNA_PRIVATE_WORKSPACE;
-
-	char engine_id[32]; /* Render Engine. */
 	struct ViewRender view_render;
 } WorkSpace;
 
