@@ -1406,6 +1406,8 @@ static int pass_shgroup_dist_sort(void *thunk, const void *a, const void *b)
 	call_b = shgrp_b->calls.first;
 #endif
 
+	if (call_a == NULL) return -1;
+	if (call_b == NULL) return -1;
 
 	float tmp[3];
 	sub_v3_v3v3(tmp, zsortdata->origin, call_a->obmat[3]);
