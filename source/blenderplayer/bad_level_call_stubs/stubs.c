@@ -570,8 +570,8 @@ void ED_curve_editnurb_make(struct Object *obedit) RET_NONE
 
 void uiItemR(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int flag, const char *name, int icon) RET_NONE
 
-struct PointerRNA uiItemFullO(uiLayout *layout, const char *idname, const char *name, int icon, struct IDProperty *properties, int context, int flag) RET_STRUCT(PointerRNA)
-PointerRNA uiItemFullO_ptr(struct uiLayout *layout, struct wmOperatorType *ot, const char *name, int icon, struct IDProperty *properties, int context, int flag) RET_STRUCT(PointerRNA)
+void uiItemFullO(uiLayout *layout, const char *idname, const char *name, int icon, struct IDProperty *properties, int context, int flag, struct PointerRNA *r_opptr) RET_NONE
+void uiItemFullO_ptr(struct uiLayout *layout, struct wmOperatorType *ot, const char *name, int icon, struct IDProperty *properties, int context, int flag, struct PointerRNA *r_opptr) RET_NONE
 struct uiLayout *uiLayoutRow(uiLayout *layout, int align) RET_NULL
 struct uiLayout *uiLayoutColumn(uiLayout *layout, int align) RET_NULL
 struct uiLayout *uiLayoutColumnFlow(uiLayout *layout, int number, int align) RET_NULL
@@ -587,6 +587,7 @@ void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const char *propna
 void uiItemsEnumO(uiLayout *layout, const char *opname, const char *propname) RET_NONE
 void uiItemEnumO_string(uiLayout *layout, const char *name, int icon, const char *opname, const char *propname, const char *value) RET_NONE
 void uiItemMenuEnumO(uiLayout *layout, struct bContext *C, const char *opname, const char *propname, const char *name, int icon) RET_NONE
+void uiItemMenuEnumO_ptr(uiLayout *layout, struct bContext *C, struct wmOperatorType *ot, const char *propname, const char *name, int icon) RET_NONE
 void uiItemBooleanO(uiLayout *layout, const char *name, int icon, const char *opname, const char *propname, int value) RET_NONE
 void uiItemIntO(uiLayout *layout, const char *name, int icon, const char *opname, const char *propname, int value) RET_NONE
 void uiItemFloatO(uiLayout *layout, const char *name, int icon, const char *opname, const char *propname, float value) RET_NONE
