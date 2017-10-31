@@ -36,6 +36,7 @@
 #include "DEG_depsgraph.h"
 
 #include "BKE_scene.h"
+#include "BKE_image.h"
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -432,6 +433,12 @@ static void rna_RenderResult_layers_begin(CollectionPropertyIterator *iter, Poin
 	rna_iterator_listbase_begin(iter, &rr->layers, NULL);
 }
 
+static void rna_RenderResult_stamp_data_add_field(RenderResult *rr, const char *field, const char *value)
+{
+	BKE_render_result_stamp_data(rr, field, value);
+}
+
+
 static void rna_RenderLayer_passes_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	RenderLayer *rl = (RenderLayer *)ptr->data;
@@ -613,6 +620,10 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_string(func, "layer", NULL, 0, "Layer", "Single layer to add render pass to");  /* NULL ok here */
 
+	func = RNA_def_function(srna, "get_result", "RE_engine_get_result");
+	RNA_def_function_ui_description(func, "Get final result for non-pixel operations");
+	parm = RNA_def_pointer(func, "result", "RenderResult", "Result", "");
+	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "test_break", "RE_engine_test_break");
 	RNA_def_function_ui_description(func, "Test if the render operation should been canceled, this is a fast call that should be used regularly for responsiveness");
@@ -826,6 +837,13 @@ static void rna_def_render_result(BlenderRNA *brna)
 	parm = RNA_def_string_file_name(func, "filename", NULL, FILE_MAX, "File Name",
 	                                "Filename to load into this render tile, must be no smaller than "
 	                                "the render result");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+
+	func = RNA_def_function(srna, "stamp_data_add_field", "rna_RenderResult_stamp_data_add_field");
+	RNA_def_function_ui_description(func, "Add engine-specific stamp data to the result");
+	parm = RNA_def_string(func, "field", NULL, 1024, "Field", "Name of the stamp field to add");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	parm = RNA_def_string(func, "value", NULL, 1024, "Value", "Value of the stamp data");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 	RNA_define_verify_sdna(0);

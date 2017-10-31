@@ -1608,6 +1608,14 @@ void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const ImBuf *i
 #define STAMP_NAME_SIZE ((MAX_ID_NAME - 2) + 16)
 /* could allow access externally - 512 is for long names,
  * STAMP_NAME_SIZE is for id names, allowing them some room for description */
+typedef struct StampDataCustomField {
+	struct StampDataCustomField *next, *prev;
+	/* TODO(sergey): Think of better size here, maybe dynamically allocated even. */
+	char key[512];
+	char value[512];
+	/* TODO(sergey): Support non-string values. */
+} StampDataCustomField;
+
 typedef struct StampData {
 	char file[512];
 	char note[512];
@@ -1621,6 +1629,13 @@ typedef struct StampData {
 	char strip[STAMP_NAME_SIZE];
 	char rendertime[STAMP_NAME_SIZE];
 	char memory[STAMP_NAME_SIZE];
+
+	/* Custom fields are used to put extra meta information header from render
+	 * engine to the result image.
+	 *
+	 * NOTE: This fields are not stamped onto the image. At least for now.
+	 */
+	ListBase custom_fields;
 } StampData;
 #undef STAMP_NAME_SIZE
 
@@ -2122,7 +2137,39 @@ void BKE_stamp_info_callback(void *data, struct StampData *stamp_data, StampCall
 	CALL(rendertime, "RenderTime");
 	CALL(memory, "Memory");
 
+	for (StampDataCustomField *custom_field = stamp_data->custom_fields.first;
+	     custom_field != NULL;
+	     custom_field = custom_field->next)
+	{
+		if (noskip || custom_field->value[0]) {
+			callback(data, custom_field->key, custom_field->value, sizeof(custom_field->value));
+		}
+	}
+
 #undef CALL
+}
+
+void BKE_render_result_stamp_data(RenderResult *rr, const char *key, const char *value)
+{
+	StampData *stamp_data;
+	if (rr->stamp_data == NULL) {
+		rr->stamp_data = MEM_callocN(sizeof(StampData), "RenderResult.stamp_data");
+	}
+	stamp_data = rr->stamp_data;
+	StampDataCustomField *field = MEM_mallocN(sizeof(StampDataCustomField),
+	                                          "StampData Custom Field");
+	BLI_strncpy(field->key, key, sizeof(field->key));
+	BLI_strncpy(field->value, value, sizeof(field->value));
+	BLI_addtail(&stamp_data->custom_fields, field);
+}
+
+void BKE_stamp_data_free(struct StampData *stamp_data)
+{
+	if (stamp_data == NULL) {
+		return;
+	}
+	BLI_freelistN(&stamp_data->custom_fields);
+	MEM_freeN(stamp_data);
 }
 
 /* wrap for callback only */
