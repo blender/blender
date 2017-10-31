@@ -303,7 +303,7 @@ class CLIP_OT_bundles_to_mesh(Operator):
 
         mesh = bpy.data.meshes.new(name="Tracks")
         for track in tracking_object.tracks:
-            if track.has_bundle:
+            if track.has_bundle and track.select == True:
                 new_verts.append(track.bundle)
 
         if new_verts:
