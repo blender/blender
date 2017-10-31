@@ -949,14 +949,8 @@ ViewRender *CTX_data_view_render(const bContext *C)
 
 RenderEngineType *CTX_data_engine(const bContext *C)
 {
-	const char *engine_id;
-
-	if (!ctx_data_pointer_verify(C, "engine", (void *)&engine_id)) {
-		ViewRender *view_render = CTX_data_view_render(C);
-		engine_id = view_render->engine_id;
-	}
-
-	return RE_engines_find(engine_id);
+	ViewRender *view_render = CTX_data_view_render(C);
+	return RE_engines_find(view_render->engine_id);
 }
 
 /**
