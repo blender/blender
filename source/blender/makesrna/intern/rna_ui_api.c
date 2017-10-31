@@ -213,8 +213,7 @@ static void rna_uiItemMenuEnumO(uiLayout *layout, bContext *C, const char *opnam
 	/* Get translated name (label). */
 	name = rna_translate_ui_text(name, text_ctxt, ot->srna, NULL, translate);
 
-	/* XXX This will search operator again :( */
-	uiItemMenuEnumO(layout, C, opname, propname, name, icon);
+	uiItemMenuEnumO_ptr(layout, C, ot, propname, name, icon);
 }
 
 static void rna_uiItemL(uiLayout *layout, const char *name, const char *text_ctxt, int translate,

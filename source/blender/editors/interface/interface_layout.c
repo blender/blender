@@ -2016,19 +2016,15 @@ static void menu_item_enum_opname_menu(bContext *UNUSED(C), uiLayout *layout, vo
 	UI_block_direction_set(layout->root->block, UI_DIR_DOWN);
 }
 
-void uiItemMenuEnumO(uiLayout *layout, bContext *C, const char *opname, const char *propname, const char *name, int icon)
+void uiItemMenuEnumO_ptr(
+        uiLayout *layout, bContext *C, wmOperatorType *ot, const char *propname,
+        const char *name, int icon)
 {
-	wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
 	MenuItemLevel *lvl;
 	uiBut *but;
 
-	UI_OPERATOR_ERROR_RET(ot, opname, return);
-
-	if (!ot->srna) {
-		ui_item_disabled(layout, opname);
-		RNA_warning("operator missing srna '%s'", opname);
-		return;
-	}
+	/* Caller must check */
+	BLI_assert(ot->srna != NULL);
 
 	if (name == NULL) {
 		name = RNA_struct_ui_name(ot->srna);
@@ -2038,7 +2034,7 @@ void uiItemMenuEnumO(uiLayout *layout, bContext *C, const char *opname, const ch
 		icon = ICON_BLANK1;
 
 	lvl = MEM_callocN(sizeof(MenuItemLevel), "MenuItemLevel");
-	BLI_strncpy(lvl->opname, opname, sizeof(lvl->opname));
+	BLI_strncpy(lvl->opname, ot->idname, sizeof(lvl->opname));
 	BLI_strncpy(lvl->propname, propname, sizeof(lvl->propname));
 	lvl->opcontext = layout->root->opcontext;
 
@@ -2056,6 +2052,23 @@ void uiItemMenuEnumO(uiLayout *layout, bContext *C, const char *opname, const ch
 			ui_but_add_shortcut(but, keybuf, false);
 		}
 	}
+}
+
+void uiItemMenuEnumO(
+        uiLayout *layout, bContext *C, const char *opname, const char *propname,
+        const char *name, int icon)
+{
+	wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
+
+	UI_OPERATOR_ERROR_RET(ot, opname, return);
+
+	if (!ot->srna) {
+		ui_item_disabled(layout, opname);
+		RNA_warning("operator missing srna '%s'", opname);
+		return;
+	}
+
+	uiItemMenuEnumO_ptr(layout, C, ot, propname, name, icon);
 }
 
 static void menu_item_enum_rna_menu(bContext *UNUSED(C), uiLayout *layout, void *arg)
