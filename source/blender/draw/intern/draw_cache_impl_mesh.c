@@ -136,6 +136,7 @@ typedef struct MeshRenderData {
 	MDeformVert *dvert;
 	MLoopUV *mloopuv;
 	MLoopCol *mloopcol;
+	float (*loop_normals)[3];
 
 	/* CustomData 'cd' cache for efficient access. */
 	struct {
@@ -446,6 +447,10 @@ static MeshRenderData *mesh_render_data_create_ex(
 			BKE_mesh_recalc_looptri(me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, rdata->mlooptri);
 		}
 		if (types & MR_DATATYPE_LOOP) {
+			if (me->flag & ME_AUTOSMOOTH) {
+				BKE_mesh_calc_normals_split(me);
+				rdata->loop_normals = CustomData_get_layer(&me->ldata, CD_NORMAL);
+			}
 			rdata->loop_len = me->totloop;
 			rdata->mloop = CustomData_get_layer(&me->ldata, CD_MLOOP);
 		}
@@ -659,18 +664,17 @@ static MeshRenderData *mesh_render_data_create_ex(
 				BMEditMesh *em = rdata->edit_bmesh;
 				BMesh *bm = em->bm;
 
-				if (is_auto_smooth) {
+				if (is_auto_smooth && rdata->loop_normals == NULL) {
 					/* TODO: split normals, see below */
+					rdata->loop_normals = CustomData_get_layer(cd_ldata, CD_NORMAL);
 				}
 
 				bool calc_active_tangent = false;
-				float (*poly_normals)[3] = rdata->poly_normals;
-				float (*loop_normals)[3] = CustomData_get_layer(cd_ldata, CD_NORMAL);
 
 				BKE_editmesh_loop_tangent_calc(
 				        em, calc_active_tangent,
 				        tangent_names, actual_tangent_len,
-				        poly_normals, loop_normals,
+				        rdata->poly_normals, rdata->loop_normals,
 				        rdata->orco,
 				        &rdata->cd.output.ldata, bm->totloop,
 				        &rdata->cd.output.tangent_mask);
@@ -678,15 +682,14 @@ static MeshRenderData *mesh_render_data_create_ex(
 			else {
 #undef me
 
-				if (is_auto_smooth) {
+				if (is_auto_smooth && rdata->loop_normals == NULL) {
 					if (!CustomData_has_layer(cd_ldata, CD_NORMAL)) {
 						BKE_mesh_calc_normals_split(me);
 					}
+					rdata->loop_normals = CustomData_get_layer(cd_ldata, CD_NORMAL);
 				}
 
 				bool calc_active_tangent = false;
-				const float (*poly_normals)[3] = rdata->poly_normals;
-				const float (*loop_normals)[3] = CustomData_get_layer(cd_ldata, CD_NORMAL);
 
 				BKE_mesh_calc_loop_tangent_ex(
 				        me->mvert,
@@ -696,7 +699,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 				        cd_ldata,
 				        calc_active_tangent,
 				        tangent_names, actual_tangent_len,
-				        poly_normals, loop_normals,
+				        rdata->poly_normals, rdata->loop_normals,
 				        rdata->orco,
 				        &rdata->cd.output.ldata, me->totloop,
 				        &rdata->cd.output.tangent_mask);
@@ -2018,9 +2021,11 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_pos_and_normals_ex(
 			}
 		}
 		else {
-
-			/* Use normals from vertex */
-			mesh_render_data_ensure_poly_normals_pack(rdata);
+			float (*lnors)[3] = rdata->loop_normals;
+			if (lnors == NULL) {
+				/* Use normals from vertex. */
+				mesh_render_data_ensure_poly_normals_pack(rdata);
+			}
 
 			for (int i = 0; i < tri_len; i++) {
 				const MLoopTri *mlt = &rdata->mlooptri[i];
@@ -2036,7 +2041,13 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_pos_and_normals_ex(
 					rdata->mloop[mlt->tri[2]].v,
 				};
 
-				if (mp->flag & ME_SMOOTH) {
+				if (lnors) {
+					for (uint t = 0; t < 3; t++) {
+						const float *nor = lnors[mlt->tri[t]];
+						*((Gwn_PackedNormal *)GWN_vertbuf_raw_step(&nor_step)) = GWN_normal_convert_i10_v3(nor);
+					}
+				}
+				else if (mp->flag & ME_SMOOTH) {
 					for (uint t = 0; t < 3; t++) {
 						const MVert *mv = &rdata->mvert[vtri[t]];
 						*((Gwn_PackedNormal *)GWN_vertbuf_raw_step(&nor_step)) = GWN_normal_convert_i10_s3(mv->no);
