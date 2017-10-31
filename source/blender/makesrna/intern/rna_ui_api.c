@@ -194,10 +194,12 @@ static PointerRNA rna_uiItemO(uiLayout *layout, const char *opname, const char *
 		icon = icon_value;
 	}
 
-	flag = UI_ITEM_O_RETURN_PROPS;
+	flag = 0;
 	flag |= (emboss) ? 0 : UI_ITEM_R_NO_BG;
 
-	return uiItemFullO_ptr(layout, ot, name, icon, NULL, uiLayoutGetOperatorContext(layout), flag);
+	PointerRNA opptr;
+	uiItemFullO_ptr(layout, ot, name, icon, NULL, uiLayoutGetOperatorContext(layout), flag, &opptr);
+	return opptr;
 }
 
 static void rna_uiItemMenuEnumO(uiLayout *layout, bContext *C, const char *opname, const char *propname, const char *name,
@@ -213,8 +215,7 @@ static void rna_uiItemMenuEnumO(uiLayout *layout, bContext *C, const char *opnam
 	/* Get translated name (label). */
 	name = rna_translate_ui_text(name, text_ctxt, ot->srna, NULL, translate);
 
-	/* XXX This will search operator again :( */
-	uiItemMenuEnumO(layout, C, opname, propname, name, icon);
+	uiItemMenuEnumO_ptr(layout, C, ot, propname, name, icon);
 }
 
 static void rna_uiItemL(uiLayout *layout, const char *name, const char *text_ctxt, int translate,

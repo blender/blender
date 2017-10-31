@@ -130,11 +130,11 @@ static void session_init()
 		options.session->progress.set_update_callback(function_bind(&view_redraw));
 #endif
 
-	options.session->start();
-
 	/* load scene */
 	scene_init();
 	options.session->scene = options.scene;
+
+	options.session->start();
 }
 
 static void session_exit()
@@ -142,10 +142,6 @@ static void session_exit()
 	if(options.session) {
 		delete options.session;
 		options.session = NULL;
-	}
-	if(options.scene) {
-		delete options.scene;
-		options.scene = NULL;
 	}
 
 	if(options.session_params.background && !options.quiet) {

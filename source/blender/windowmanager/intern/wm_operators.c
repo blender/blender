@@ -1251,7 +1251,7 @@ int WM_operator_confirm_message_ex(bContext *C, wmOperator *op,
 
 	pup = UI_popup_menu_begin(C, title, icon);
 	layout = UI_popup_menu_layout(pup);
-	uiItemFullO_ptr(layout, op->type, message, ICON_NONE, properties, WM_OP_EXEC_REGION_WIN, 0);
+	uiItemFullO_ptr(layout, op->type, message, ICON_NONE, properties, WM_OP_EXEC_REGION_WIN, 0, NULL);
 	UI_popup_menu_end(C, pup);
 	
 	return OPERATOR_INTERFACE;
@@ -2019,13 +2019,11 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	              "https://docs.blender.org/manual/en/dev/");
 	uiItemStringO(col, IFACE_("Blender Website"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org");
 	if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "release")) {
-		BLI_snprintf(url, sizeof(url), "http://www.blender.org/documentation/blender_python_api_%d_%d"
-		                               STRINGIFY(BLENDER_VERSION_CHAR) "_release",
+		BLI_snprintf(url, sizeof(url), "https://docs.blender.org/api/%d.%d"STRINGIFY(BLENDER_VERSION_CHAR),
 		             BLENDER_VERSION / 100, BLENDER_VERSION % 100);
 	}
 	else {
-		BLI_snprintf(url, sizeof(url), "http://www.blender.org/documentation/blender_python_api_%d_%d_%d",
-		             BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION);
+		BLI_snprintf(url, sizeof(url), "https://docs.blender.org/api/master");
 	}
 	uiItemStringO(col, IFACE_("Python API Reference"), ICON_URL, "WM_OT_url_open", "url", url);
 	uiItemL(col, "", ICON_NONE);

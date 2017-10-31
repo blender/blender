@@ -5237,7 +5237,7 @@ static int dyntopo_warning_popup(bContext *C, wmOperatorType *ot, enum eDynTopoW
 		uiItemS(layout);
 	}
 
-	uiItemFullO_ptr(layout, ot, IFACE_("OK"), ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, 0);
+	uiItemFullO_ptr(layout, ot, IFACE_("OK"), ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, 0, NULL);
 
 	UI_popup_menu_end(C, pup);
 

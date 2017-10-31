@@ -381,9 +381,9 @@ static void workspace_append_button(
 	        lib_path, sizeof(lib_path), from_main->name, BKE_idcode_to_name(GS(id->name)), NULL);
 
 	BLI_assert(STREQ(ot_append->idname, "WM_OT_append"));
-	opptr = uiItemFullO_ptr(
-	            layout, ot_append, workspace->id.name + 2, ICON_NONE, NULL,
-	            WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	uiItemFullO_ptr(
+	        layout, ot_append, workspace->id.name + 2, ICON_NONE, NULL,
+	        WM_OP_EXEC_DEFAULT, 0, &opptr);
 	RNA_string_set(&opptr, "directory", lib_path);
 	RNA_string_set(&opptr, "filename", id->name + 2);
 }
