@@ -50,12 +50,12 @@ def get_layer_collection(layer_collection):
     return name, data
 
 
-def get_layer(layer):
+def get_layer(scene, layer):
     data = {}
     name = layer.get(b'name')
 
     data['name'] = name
-    data['engine'] = layer.get(b'engine')
+    data['engine'] = scene.get((b'view_render', b'engine_id'))
 
     active_base = layer.get_pointer(b'basact')
     if active_base:
@@ -83,7 +83,7 @@ def get_layers(scene):
     """Return all the render layers and their data"""
     layers = {}
     for layer in linkdata_iter(scene, b'render_layers'):
-        name, data = get_layer(layer)
+        name, data = get_layer(scene, layer)
         layers[name] = data
     return layers
 
