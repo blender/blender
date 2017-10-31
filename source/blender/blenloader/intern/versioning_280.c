@@ -386,7 +386,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 	if (!MAIN_VERSION_ATLEAST(main, 280, 1)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "bleedexp")) {
 			for (Lamp *la = main->lamp.first; la; la = la->id.next) {
-				la->bleedexp = 120.0f;
+				la->bleedexp = 2.5f;
 			}
 		}
 
