@@ -790,9 +790,17 @@ static void ui_item_disabled(uiLayout *layout, const char *name)
 	but->disabled_info = "";
 }
 
-/* operator items */
-PointerRNA uiItemFullO_ptr(uiLayout *layout, wmOperatorType *ot, const char *name, int icon, IDProperty *properties, int context, int flag)
+/**
+ * Operator Item
+ * \param r_opptr: Optional, initialize with operator properties when not NULL.
+ * Will always be written to even in the case of errors.
+ */
+void uiItemFullO_ptr(
+        uiLayout *layout, wmOperatorType *ot,
+        const char *name, int icon, IDProperty *properties, int context, int flag,
+        PointerRNA *r_opptr)
 {
+	/* Take care to fill 'r_opptr' whatever happens. */
 	uiBlock *block = layout->root->block;
 	uiBut *but;
 	int w;
@@ -841,9 +849,8 @@ PointerRNA uiItemFullO_ptr(uiLayout *layout, wmOperatorType *ot, const char *nam
 		UI_but_flag_enable(but, UI_BUT_REDALERT);
 
 	/* assign properties */
-	if (properties || (flag & UI_ITEM_O_RETURN_PROPS)) {
+	if (properties || r_opptr) {
 		PointerRNA *opptr = UI_but_operator_ptr_get(but);
-
 		if (properties) {
 			opptr->data = properties;
 		}
@@ -851,20 +858,28 @@ PointerRNA uiItemFullO_ptr(uiLayout *layout, wmOperatorType *ot, const char *nam
 			IDPropertyTemplate val = {0};
 			opptr->data = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
 		}
-
-		return *opptr;
+		if (r_opptr) {
+			*r_opptr = *opptr;
+		}
 	}
-
-	return PointerRNA_NULL;
 }
 
-PointerRNA uiItemFullO(uiLayout *layout, const char *opname, const char *name, int icon, IDProperty *properties, int context, int flag)
+void uiItemFullO(
+        uiLayout *layout, const char *opname,
+        const char *name, int icon, IDProperty *properties, int context, int flag,
+        PointerRNA *r_opptr)
 {
 	wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
 
-	UI_OPERATOR_ERROR_RET(ot, opname, return PointerRNA_NULL);
+	UI_OPERATOR_ERROR_RET(
+	        ot, opname, {
+	            if (r_opptr) {
+	                *r_opptr = PointerRNA_NULL;
+	            };
+	            return;
+	        });
 
-	return uiItemFullO_ptr(layout, ot, name, icon, properties, context, flag);
+	uiItemFullO_ptr(layout, ot, name, icon, properties, context, flag, r_opptr);
 }
 
 static const char *ui_menu_enumpropname(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int retval)
@@ -908,7 +923,7 @@ void uiItemEnumO_ptr(uiLayout *layout, wmOperatorType *ot, const char *name, int
 	if (!name)
 		name = ui_menu_enumpropname(layout, &ptr, prop, value);
 
-	uiItemFullO_ptr(layout, ot, name, icon, ptr.data, layout->root->opcontext, 0);
+	uiItemFullO_ptr(layout, ot, name, icon, ptr.data, layout->root->opcontext, 0, NULL);
 }
 void uiItemEnumO(uiLayout *layout, const char *opname, const char *name, int icon, const char *propname, int value)
 {
@@ -1002,7 +1017,7 @@ void uiItemsFullEnumO_items(
 			}
 			RNA_property_enum_set(&tptr, prop, item->value);
 
-			uiItemFullO_ptr(target, ot, item->name, item->icon, tptr.data, context, flag);
+			uiItemFullO_ptr(target, ot, item->name, item->icon, tptr.data, context, flag, NULL);
 
 			ui_but_tip_from_enum_item(block->buttons.last, item);
 		}
@@ -1132,7 +1147,7 @@ void uiItemEnumO_value(uiLayout *layout, const char *name, int icon, const char 
 	if (!name)
 		name = ui_menu_enumpropname(layout, &ptr, prop, value);
 
-	uiItemFullO_ptr(layout, ot, name, icon, ptr.data, layout->root->opcontext, 0);
+	uiItemFullO_ptr(layout, ot, name, icon, ptr.data, layout->root->opcontext, 0, NULL);
 }
 
 void uiItemEnumO_string(uiLayout *layout, const char *name, int icon, const char *opname, const char *propname, const char *value_str)
@@ -1176,7 +1191,7 @@ void uiItemEnumO_string(uiLayout *layout, const char *name, int icon, const char
 	if (!name)
 		name = ui_menu_enumpropname(layout, &ptr, prop, value);
 
-	uiItemFullO_ptr(layout, ot, name, icon, ptr.data, layout->root->opcontext, 0);
+	uiItemFullO_ptr(layout, ot, name, icon, ptr.data, layout->root->opcontext, 0, NULL);
 }
 
 void uiItemBooleanO(uiLayout *layout, const char *name, int icon, const char *opname, const char *propname, int value)
@@ -1189,7 +1204,7 @@ void uiItemBooleanO(uiLayout *layout, const char *name, int icon, const char *op
 	WM_operator_properties_create_ptr(&ptr, ot);
 	RNA_boolean_set(&ptr, propname, value);
 
-	uiItemFullO_ptr(layout, ot, name, icon, ptr.data, layout->root->opcontext, 0);
+	uiItemFullO_ptr(layout, ot, name, icon, ptr.data, layout->root->opcontext, 0, NULL);
 }
 
 void uiItemIntO(uiLayout *layout, const char *name, int icon, const char *opname, const char *propname, int value)
@@ -1202,7 +1217,7 @@ void uiItemIntO(uiLayout *layout, const char *name, int icon, const char *opname
 	WM_operator_properties_create_ptr(&ptr, ot);
 	RNA_int_set(&ptr, propname, value);
 
-	uiItemFullO_ptr(layout, ot, name, icon, ptr.data, layout->root->opcontext, 0);
+	uiItemFullO_ptr(layout, ot, name, icon, ptr.data, layout->root->opcontext, 0, NULL);
 }
 
 void uiItemFloatO(uiLayout *layout, const char *name, int icon, const char *opname, const char *propname, float value)
@@ -1215,7 +1230,7 @@ void uiItemFloatO(uiLayout *layout, const char *name, int icon, const char *opna
 	WM_operator_properties_create_ptr(&ptr, ot);
 	RNA_float_set(&ptr, propname, value);
 
-	uiItemFullO_ptr(layout, ot, name, icon, ptr.data, layout->root->opcontext, 0);
+	uiItemFullO_ptr(layout, ot, name, icon, ptr.data, layout->root->opcontext, 0, NULL);
 }
 
 void uiItemStringO(uiLayout *layout, const char *name, int icon, const char *opname, const char *propname, const char *value)
@@ -1228,12 +1243,12 @@ void uiItemStringO(uiLayout *layout, const char *name, int icon, const char *opn
 	WM_operator_properties_create_ptr(&ptr, ot);
 	RNA_string_set(&ptr, propname, value);
 
-	uiItemFullO_ptr(layout, ot, name, icon, ptr.data, layout->root->opcontext, 0);
+	uiItemFullO_ptr(layout, ot, name, icon, ptr.data, layout->root->opcontext, 0, NULL);
 }
 
 void uiItemO(uiLayout *layout, const char *name, int icon, const char *opname)
 {
-	uiItemFullO(layout, opname, name, icon, NULL, layout->root->opcontext, 0);
+	uiItemFullO(layout, opname, name, icon, NULL, layout->root->opcontext, 0, NULL);
 }
 
 /* RNA property items */

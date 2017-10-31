@@ -819,7 +819,6 @@ void UI_exit(void);
 #define UI_LAYOUT_ALIGN_CENTER  2
 #define UI_LAYOUT_ALIGN_RIGHT   3
 
-#define UI_ITEM_O_RETURN_PROPS  (1 << 0)
 #define UI_ITEM_R_EXPAND        (1 << 1)
 #define UI_ITEM_R_SLIDER        (1 << 2)
 #define UI_ITEM_R_TOGGLE        (1 << 3)
@@ -981,8 +980,14 @@ void uiItemIntO(uiLayout *layout, const char *name, int icon, const char *opname
 void uiItemFloatO(uiLayout *layout, const char *name, int icon, const char *opname, const char *propname, float value);
 void uiItemStringO(uiLayout *layout, const char *name, int icon, const char *opname, const char *propname, const char *value);
 
-PointerRNA uiItemFullO_ptr(uiLayout *layout, struct wmOperatorType *ot, const char *name, int icon, struct IDProperty *properties, int context, int flag);
-PointerRNA uiItemFullO(uiLayout *layout, const char *idname, const char *name, int icon, struct IDProperty *properties, int context, int flag);
+void uiItemFullO_ptr(
+        uiLayout *layout, struct wmOperatorType *ot, const char *name, int icon,
+        struct IDProperty *properties, int context, int flag,
+        PointerRNA *r_opptr);
+void uiItemFullO(
+        uiLayout *layout, const char *idname, const char *name, int icon,
+        struct IDProperty *properties, int context, int flag,
+        PointerRNA *r_opptr);
 
 void uiItemR(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int flag, const char *name, int icon);
 void uiItemFullR(uiLayout *layout, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int flag, const char *name, int icon);

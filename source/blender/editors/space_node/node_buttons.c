@@ -151,21 +151,21 @@ static void node_tree_interface_panel(const bContext *C, Panel *pa)
 	uiItemL(col, IFACE_("Inputs:"), ICON_NONE);
 	uiTemplateList(col, (bContext *)C, "NODE_UL_interface_sockets", "inputs", &ptr, "inputs", &ptr, "active_input",
 	               NULL, 0, 0, 0, 0);
-	opptr = uiItemFullO_ptr(col, ot, "", ICON_PLUS, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	uiItemFullO_ptr(col, ot, "", ICON_PLUS, NULL, WM_OP_EXEC_DEFAULT, 0, &opptr);
 	RNA_enum_set(&opptr, "in_out", SOCK_IN);
 	
 	col = uiLayoutColumn(split, true);
 	uiItemL(col, IFACE_("Outputs:"), ICON_NONE);
 	uiTemplateList(col, (bContext *)C, "NODE_UL_interface_sockets", "outputs", &ptr, "outputs", &ptr, "active_output",
 	               NULL, 0, 0, 0, 0);
-	opptr = uiItemFullO_ptr(col, ot, "", ICON_PLUS, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	uiItemFullO_ptr(col, ot, "", ICON_PLUS, NULL, WM_OP_EXEC_DEFAULT, 0, &opptr);
 	RNA_enum_set(&opptr, "in_out", SOCK_OUT);
 	
 	ot = WM_operatortype_find("NODE_OT_tree_socket_move", false);
 	col = uiLayoutColumn(row, true);
-	opptr = uiItemFullO_ptr(col, ot, "", ICON_TRIA_UP, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	uiItemFullO_ptr(col, ot, "", ICON_TRIA_UP, NULL, WM_OP_EXEC_DEFAULT, 0, &opptr);
 	RNA_enum_set(&opptr, "direction", 1);
-	opptr = uiItemFullO_ptr(col, ot, "", ICON_TRIA_DOWN, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	uiItemFullO_ptr(col, ot, "", ICON_TRIA_DOWN, NULL, WM_OP_EXEC_DEFAULT, 0, &opptr);
 	RNA_enum_set(&opptr, "direction", 2);
 	
 	if (sock) {

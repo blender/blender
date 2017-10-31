@@ -410,11 +410,10 @@ static void poselib_add_menu_invoke__replacemenu(bContext *C, uiLayout *layout, 
 	/* add each marker to this menu */
 	for (marker = act->markers.first; marker; marker = marker->next) {
 		PointerRNA props_ptr;
-		
-		props_ptr = uiItemFullO_ptr(layout, ot,
-		                            marker->name, ICON_ARMATURE_DATA, NULL,
-		                            WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
-		
+		uiItemFullO_ptr(
+		        layout, ot,
+		        marker->name, ICON_ARMATURE_DATA, NULL,
+		        WM_OP_EXEC_DEFAULT, 0, &props_ptr);
 		RNA_int_set(&props_ptr, "frame", marker->frame);
 		RNA_string_set(&props_ptr, "name", marker->name);
 	}

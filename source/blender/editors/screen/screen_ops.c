@@ -2823,12 +2823,12 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, const wmEvent
 	pup = UI_popup_menu_begin(C, RNA_struct_ui_name(op->type->srna), ICON_NONE);
 	layout = UI_popup_menu_layout(pup);
 	
-	ptr = uiItemFullO(layout, "SCREEN_OT_area_split", NULL, ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	uiItemFullO(layout, "SCREEN_OT_area_split", NULL, ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0, &ptr);
 	/* store initial mouse cursor position */
 	RNA_int_set(&ptr, "mouse_x", event->x);
 	RNA_int_set(&ptr, "mouse_y", event->y);
 
-	ptr = uiItemFullO(layout, "SCREEN_OT_area_join", NULL, ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	uiItemFullO(layout, "SCREEN_OT_area_join", NULL, ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0, &ptr);
 	/* mouse cursor on edge, '4' can fail on wide edges... */
 	RNA_int_set(&ptr, "min_x", event->x + 4);
 	RNA_int_set(&ptr, "min_y", event->y + 4);

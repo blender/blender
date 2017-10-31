@@ -310,8 +310,9 @@ static int make_proxy_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		uiLayout *layout = UI_popup_menu_layout(pup);
 
 		/* create operator menu item with relevant properties filled in */
+		PointerRNA opptr_dummy;
 		uiItemFullO_ptr(layout, op->type, op->type->name, ICON_NONE, NULL,
-		                WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
+		                WM_OP_EXEC_REGION_WIN, 0, &opptr_dummy);
 
 		/* present the menu and be done... */
 		UI_popup_menu_end(C, pup);
@@ -898,12 +899,13 @@ static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent 
 #if 0
 	uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_OBJECT);
 #else
-	opptr = uiItemFullO_ptr(layout, ot, IFACE_("Object"), ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	uiItemFullO_ptr(layout, ot, IFACE_("Object"), ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, 0, &opptr);
 	RNA_enum_set(&opptr, "type", PAR_OBJECT);
 	RNA_boolean_set(&opptr, "keep_transform", false);
 
-	opptr = uiItemFullO_ptr(layout, ot, IFACE_("Object (Keep Transform)"), ICON_NONE, NULL, WM_OP_EXEC_DEFAULT,
-	                        UI_ITEM_O_RETURN_PROPS);
+	uiItemFullO_ptr(
+	        layout, ot, IFACE_("Object (Keep Transform)"), ICON_NONE,
+	        NULL, WM_OP_EXEC_DEFAULT, 0, &opptr);
 	RNA_enum_set(&opptr, "type", PAR_OBJECT);
 	RNA_boolean_set(&opptr, "keep_transform", true);
 #endif
