@@ -348,7 +348,9 @@ float occlusion_compute(vec3 N, vec3 vpos, float user_occlusion, vec2 randuv, ou
 		vec3 vnor = mat3(ViewMatrix) * N;
 
 #ifdef ENABLE_DEFERED_AO
+#ifndef USE_REFRACTION
 		gtao_deferred(vnor, vpos, gl_FragCoord.z, visibility, bent_normal);
+#endif
 #else
 		gtao(vnor, vpos, randuv, visibility, bent_normal);
 #endif
