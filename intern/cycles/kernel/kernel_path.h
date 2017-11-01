@@ -132,7 +132,7 @@ ccl_device_forceinline void kernel_path_background(
 	ccl_addr_space PathState *state,
 	ccl_addr_space Ray *ray,
 	float3 throughput,
-	ShaderData *emission_sd,
+	ShaderData *sd,
 	PathRadiance *L)
 {
 	/* eval background shader if nothing hit */
@@ -153,7 +153,7 @@ ccl_device_forceinline void kernel_path_background(
 
 #ifdef __BACKGROUND__
 	/* sample background shader */
-	float3 L_background = indirect_background(kg, emission_sd, state, ray);
+	float3 L_background = indirect_background(kg, sd, state, ray);
 	path_radiance_accum_background(L, state, throughput, L_background);
 #endif  /* __BACKGROUND__ */
 }
@@ -407,7 +407,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 		bool hit = kernel_path_scene_intersect(kg, state, ray, &isect, L);
 
 		/* Find intersection with lamps and compute emission for MIS. */
-		kernel_path_lamp_emission(kg, state, ray, throughput, &isect, emission_sd, L);
+		kernel_path_lamp_emission(kg, state, ray, throughput, &isect, sd, L);
 
 #ifdef __VOLUME__
 		/* Volume integration. */
@@ -431,7 +431,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 
 		/* Shade background. */
 		if(!hit) {
-			kernel_path_background(kg, state, ray, throughput, emission_sd, L);
+			kernel_path_background(kg, state, ray, throughput, sd, L);
 			break;
 		}
 		else if(path_state_ao_bounce(kg, state)) {

@@ -76,15 +76,14 @@ ccl_device_inline bool volume_shader_sample(KernelGlobals *kg,
 	
 	coeff->sigma_a = make_float3(0.0f, 0.0f, 0.0f);
 	coeff->sigma_s = make_float3(0.0f, 0.0f, 0.0f);
-	coeff->emission = make_float3(0.0f, 0.0f, 0.0f);
+	coeff->emission = (sd->flag & SD_EMISSION)? sd->closure_emission_background:
+	                                            make_float3(0.0f, 0.0f, 0.0f);
 
 	for(int i = 0; i < sd->num_closure; i++) {
 		const ShaderClosure *sc = &sd->closure[i];
 
 		if(sc->type == CLOSURE_VOLUME_ABSORPTION_ID)
 			coeff->sigma_a += sc->weight;
-		else if(sc->type == CLOSURE_EMISSION_ID)
-			coeff->emission += sc->weight;
 		else if(CLOSURE_IS_VOLUME(sc->type))
 			coeff->sigma_s += sc->weight;
 	}

@@ -926,24 +926,14 @@ ccl_device float3 shader_bssrdf_sum(ShaderData *sd, float3 *N_, float *texture_b
 
 /* Emission */
 
-ccl_device float3 emissive_eval(KernelGlobals *kg, ShaderData *sd, ShaderClosure *sc)
-{
-	return emissive_simple_eval(sd->Ng, sd->I);
-}
-
 ccl_device float3 shader_emissive_eval(KernelGlobals *kg, ShaderData *sd)
 {
-	float3 eval;
-	eval = make_float3(0.0f, 0.0f, 0.0f);
-
-	for(int i = 0; i < sd->num_closure; i++) {
-		ShaderClosure *sc = &sd->closure[i];
-
-		if(CLOSURE_IS_EMISSION(sc->type))
-			eval += emissive_eval(kg, sd, sc)*sc->weight;
+	if(sd->flag & SD_EMISSION) {
+		return emissive_simple_eval(sd->Ng, sd->I) * sd->closure_emission_background;
 	}
-
-	return eval;
+	else {
+		return make_float3(0.0f, 0.0f, 0.0f);
+	}
 }
 
 /* Holdout */
@@ -1011,16 +1001,12 @@ ccl_device float3 shader_eval_background(KernelGlobals *kg, ShaderData *sd,
 		svm_eval_nodes(kg, sd, state, SHADER_TYPE_SURFACE, path_flag);
 	}
 
-	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
-
-	for(int i = 0; i < sd->num_closure; i++) {
-		const ShaderClosure *sc = &sd->closure[i];
-
-		if(CLOSURE_IS_BACKGROUND(sc->type))
-			eval += sc->weight;
+	if(sd->flag & SD_EMISSION) {
+		return sd->closure_emission_background;
 	}
-
-	return eval;
+	else {
+		return make_float3(0.0f, 0.0f, 0.0f);
+	}
 #else  /* __SVM__ */
 	return make_float3(0.8f, 0.8f, 0.8f);
 #endif  /* __SVM__ */

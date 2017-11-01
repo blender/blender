@@ -466,7 +466,7 @@ ccl_device void kernel_branched_path_integrate(KernelGlobals *kg,
 
 		/* Shade background. */
 		if(!hit) {
-			kernel_path_background(kg, &state, &ray, throughput, &emission_sd, L);
+			kernel_path_background(kg, &state, &ray, throughput, &sd, L);
 			break;
 		}
 

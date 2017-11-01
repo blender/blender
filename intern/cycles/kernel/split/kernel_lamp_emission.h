@@ -58,9 +58,9 @@ ccl_device void kernel_lamp_emission(KernelGlobals *kg)
 		float3 throughput = kernel_split_state.throughput[ray_index];
 		Ray ray = kernel_split_state.ray[ray_index];
 		ccl_global Intersection *isect = &kernel_split_state.isect[ray_index];
-		ShaderData *emission_sd = &kernel_split_state.sd_DL_shadow[ray_index];
+		ShaderData *sd = &kernel_split_state.sd[ray_index];
 
-		kernel_path_lamp_emission(kg, state, &ray, throughput, isect, emission_sd, L);
+		kernel_path_lamp_emission(kg, state, &ray, throughput, isect, sd, L);
 	}
 }
 

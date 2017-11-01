@@ -863,6 +863,7 @@ ccl_device void svm_node_closure_volume(KernelGlobals *kg, ShaderData *sd, float
 ccl_device void svm_node_closure_emission(ShaderData *sd, float *stack, uint4 node)
 {
 	uint mix_weight_offset = node.y;
+	float3 weight = sd->svm_closure_weight;
 
 	if(stack_valid(mix_weight_offset)) {
 		float mix_weight = stack_load_float(stack, mix_weight_offset);
@@ -870,17 +871,16 @@ ccl_device void svm_node_closure_emission(ShaderData *sd, float *stack, uint4 no
 		if(mix_weight == 0.0f)
 			return;
 
-		closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_EMISSION_ID, sd->svm_closure_weight * mix_weight);
+		weight *= mix_weight;
 	}
-	else
-		closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_EMISSION_ID, sd->svm_closure_weight);
 
-	sd->flag |= SD_EMISSION;
+	emission_setup(sd, weight);
 }
 
 ccl_device void svm_node_closure_background(ShaderData *sd, float *stack, uint4 node)
 {
 	uint mix_weight_offset = node.y;
+	float3 weight = sd->svm_closure_weight;
 
 	if(stack_valid(mix_weight_offset)) {
 		float mix_weight = stack_load_float(stack, mix_weight_offset);
@@ -888,10 +888,10 @@ ccl_device void svm_node_closure_background(ShaderData *sd, float *stack, uint4 
 		if(mix_weight == 0.0f)
 			return;
 
-		closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_BACKGROUND_ID, sd->svm_closure_weight * mix_weight);
+		weight *= mix_weight;
 	}
-	else
-		closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_BACKGROUND_ID, sd->svm_closure_weight);
+
+	background_setup(sd, weight);
 }
 
 ccl_device void svm_node_closure_holdout(ShaderData *sd, float *stack, uint4 node)
