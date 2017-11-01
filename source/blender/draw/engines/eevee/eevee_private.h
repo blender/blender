@@ -66,6 +66,27 @@ extern struct DrawEngineType draw_engine_eevee_type;
 	"#define MAX_CASCADE_NUM " STRINGIFY(MAX_CASCADE_NUM) "\n" \
 	SHADER_IRRADIANCE
 
+#define SWAP_DOUBLE_BUFFERS() {                                       \
+	if (effects->swap_double_buffer) {                                \
+		SWAP(struct GPUFrameBuffer *, fbl->main, fbl->double_buffer); \
+		SWAP(GPUTexture *, txl->color, txl->color_double_buffer);     \
+		effects->swap_double_buffer = false;                          \
+	}                                                                 \
+} ((void)0)
+
+#define SWAP_BUFFERS() {                           \
+	if (effects->target_buffer != fbl->main) {     \
+		SWAP_DOUBLE_BUFFERS();                     \
+		effects->source_buffer = txl->color_post;  \
+		effects->target_buffer = fbl->main;        \
+	}                                              \
+	else {                                         \
+		SWAP_DOUBLE_BUFFERS();                     \
+		effects->source_buffer = txl->color;       \
+		effects->target_buffer = fbl->effect_fb;   \
+	}                                              \
+} ((void)0)
+
 /* World shader variations */
 enum {
 	VAR_WORLD_BACKGROUND    = 0,
@@ -396,6 +417,7 @@ enum {
 /* ************ EFFECTS DATA ************* */
 typedef struct EEVEE_EffectsInfo {
 	int enabled_effects;
+	bool swap_double_buffer;
 
 	/* Volumetrics */
 	bool use_volumetrics;
@@ -472,6 +494,8 @@ enum {
 	EFFECT_REFRACT             = (1 << 6),
 	EFFECT_GTAO                = (1 << 7),
 	EFFECT_TAA                 = (1 << 8),
+	EFFECT_POST_BUFFER         = (1 << 9), /* Not really an effect but a feature */
+	EFFECT_NORMAL_BUFFER       = (1 << 10), /* Not really an effect but a feature */
 };
 
 /* ************** SCENE LAYER DATA ************** */
@@ -631,19 +655,61 @@ void EEVEE_lightprobes_cache_finish(EEVEE_SceneLayerData *sldata, EEVEE_Data *ve
 void EEVEE_lightprobes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_lightprobes_free(void);
 
+/* eevee_depth_of_field.c */
+int EEVEE_depth_of_field_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_depth_of_field_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_depth_of_field_draw(EEVEE_Data *vedata);
+void EEVEE_depth_of_field_free(void);
+
+/* eevee_bloom.c */
+int EEVEE_bloom_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_bloom_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_bloom_draw(EEVEE_Data *vedata);
+void EEVEE_bloom_free(void);
+
+/* eevee_occlusion.c */
+int EEVEE_occlusion_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_occlusion_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_occlusion_compute(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_occlusion_draw_debug(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_occlusion_free(void);
+
+/* eevee_screen_raytrace.c */
+int EEVEE_screen_raytrace_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_screen_raytrace_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_refraction_compute(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_reflection_compute(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_screen_raytrace_free(void);
+
+/* eevee_motion_blur.c */
+int EEVEE_motion_blur_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_motion_blur_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_motion_blur_draw(EEVEE_Data *vedata);
+void EEVEE_motion_blur_free(void);
+
+/* eevee_temporal_sampling.c */
+int EEVEE_temporal_sampling_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_temporal_sampling_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_temporal_sampling_draw(EEVEE_Data *vedata);
+void EEVEE_temporal_sampling_free(void);
+
+/* eevee_volumes.c */
+int EEVEE_volumes_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_volumes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_volumes_cache_object_add(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata, struct Scene *scene, Object *ob);
+void EEVEE_volumes_compute(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_volumes_resolve(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_volumes_free_smoke_textures(void);
+void EEVEE_volumes_free(void);
+
 /* eevee_effects.c */
 void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_effects_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
-void EEVEE_effects_cache_volume_object_add(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata, struct Scene *scene, Object *ob);
 void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, struct GPUTexture *depth_src, int layer);
 void EEVEE_downsample_buffer(EEVEE_Data *vedata, struct GPUFrameBuffer *fb_src, struct GPUTexture *texture_src, int level);
 void EEVEE_downsample_cube_buffer(EEVEE_Data *vedata, struct GPUFrameBuffer *fb_src, struct GPUTexture *texture_src, int level);
-void EEVEE_effects_do_volumetrics(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
-void EEVEE_effects_do_ssr(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
-void EEVEE_effects_do_refraction(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_effects_do_gtao(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_draw_effects(EEVEE_Data *vedata);
-void EEVEE_effects_free_smoke_texture(void);
 void EEVEE_effects_free(void);
 
 /* Shadow Matrix */

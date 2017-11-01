@@ -82,12 +82,19 @@ set(SRC
 	modes/sculpt_mode.c
 	engines/basic/basic_engine.c
 	engines/clay/clay_engine.c
+	engines/eevee/eevee_bloom.c
 	engines/eevee/eevee_data.c
-	engines/eevee/eevee_engine.c
-	engines/eevee/eevee_lights.c
-	engines/eevee/eevee_lightprobes.c
-	engines/eevee/eevee_materials.c
+	engines/eevee/eevee_depth_of_field.c
 	engines/eevee/eevee_effects.c
+	engines/eevee/eevee_engine.c
+	engines/eevee/eevee_lightprobes.c
+	engines/eevee/eevee_lights.c
+	engines/eevee/eevee_materials.c
+	engines/eevee/eevee_motion_blur.c
+	engines/eevee/eevee_occlusion.c
+	engines/eevee/eevee_screen_raytrace.c
+	engines/eevee/eevee_temporal_sampling.c
+	engines/eevee/eevee_volumes.c
 	engines/external/external_engine.c
 
 	DRW_engine.h
