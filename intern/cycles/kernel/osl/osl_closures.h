@@ -48,11 +48,13 @@ OSL::ClosureParam *closure_holdout_params();
 OSL::ClosureParam *closure_ambient_occlusion_params();
 OSL::ClosureParam *closure_bsdf_diffuse_ramp_params();
 OSL::ClosureParam *closure_bsdf_phong_ramp_params();
+OSL::ClosureParam *closure_bsdf_transparent_params();
 OSL::ClosureParam *closure_bssrdf_cubic_params();
 OSL::ClosureParam *closure_bssrdf_gaussian_params();
 OSL::ClosureParam *closure_bssrdf_burley_params();
 OSL::ClosureParam *closure_bssrdf_principled_params();
-OSL::ClosureParam *closure_henyey_greenstein_volume_params();
+OSL::ClosureParam *closure_absorption_params();
+OSL::ClosureParam *closure_henyey_greenstein_params();
 OSL::ClosureParam *closure_bsdf_microfacet_multi_ggx_params();
 OSL::ClosureParam *closure_bsdf_microfacet_multi_ggx_glass_params();
 OSL::ClosureParam *closure_bsdf_microfacet_multi_ggx_aniso_params();
@@ -69,11 +71,13 @@ void closure_holdout_prepare(OSL::RendererServices *, int id, void *data);
 void closure_ambient_occlusion_prepare(OSL::RendererServices *, int id, void *data);
 void closure_bsdf_diffuse_ramp_prepare(OSL::RendererServices *, int id, void *data);
 void closure_bsdf_phong_ramp_prepare(OSL::RendererServices *, int id, void *data);
+void closure_bsdf_transparent_prepare(OSL::RendererServices *, int id, void *data);
 void closure_bssrdf_cubic_prepare(OSL::RendererServices *, int id, void *data);
 void closure_bssrdf_gaussian_prepare(OSL::RendererServices *, int id, void *data);
 void closure_bssrdf_burley_prepare(OSL::RendererServices *, int id, void *data);
 void closure_bssrdf_principled_prepare(OSL::RendererServices *, int id, void *data);
-void closure_henyey_greenstein_volume_prepare(OSL::RendererServices *, int id, void *data);
+void closure_absorption_prepare(OSL::RendererServices *, int id, void *data);
+void closure_henyey_greenstein_prepare(OSL::RendererServices *, int id, void *data);
 void closure_bsdf_microfacet_multi_ggx_prepare(OSL::RendererServices *, int id, void *data);
 void closure_bsdf_microfacet_multi_ggx_glass_prepare(OSL::RendererServices *, int id, void *data);
 void closure_bsdf_microfacet_multi_ggx_aniso_prepare(OSL::RendererServices *, int id, void *data);
@@ -146,36 +150,6 @@ static ClosureParam *bsdf_##lower##_params() \
 } \
 \
 CCLOSURE_PREPARE_STATIC(bsdf_##lower##_prepare, Upper##Closure)
-
-/* Volume */
-
-#define VOLUME_CLOSURE_CLASS_BEGIN(Upper, lower, structname, TYPE) \
-\
-class Upper##Closure : public CBSDFClosure { \
-public: \
-	structname params; \
-\
-	void setup(ShaderData *sd, int path_flag, float3 weight) \
-	{ \
-	    structname *volume = (structname*)bsdf_alloc_osl(sd, sizeof(structname), weight, &params); \
-		sd->flag |= (volume) ? volume_##lower##_setup(volume) : 0; \
-	} \
-}; \
-\
-static ClosureParam *volume_##lower##_params() \
-{ \
-	static ClosureParam params[] = {
-
-/* parameters */
-
-#define VOLUME_CLOSURE_CLASS_END(Upper, lower) \
-		CLOSURE_STRING_KEYPARAM(Upper##Closure, label, "label"), \
-		CLOSURE_FINISH_PARAM(Upper##Closure) \
-	}; \
-	return params; \
-} \
-\
-CCLOSURE_PREPARE_STATIC(volume_##lower##_prepare, Upper##Closure)
 
 CCL_NAMESPACE_END
 

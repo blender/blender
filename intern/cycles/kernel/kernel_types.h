@@ -822,8 +822,8 @@ enum ShaderDataFlag {
 	SD_BSSRDF          = (1 << 4),
 	/* Shader has holdout closure. */
 	SD_HOLDOUT         = (1 << 5),
-	/* Shader has volume absorption closure. */
-	SD_ABSORPTION      = (1 << 6),
+	/* Shader has non-zero volume extinction. */
+	SD_EXTINCTION      = (1 << 6),
 	/* Shader has have volume phase (scatter) closure. */
 	SD_SCATTER         = (1 << 7),
 	/* Shader has AO closure. */
@@ -838,7 +838,7 @@ enum ShaderDataFlag {
 	                    SD_BSDF_HAS_EVAL |
 	                    SD_BSSRDF |
 	                    SD_HOLDOUT |
-	                    SD_ABSORPTION |
+	                    SD_EXTINCTION |
 	                    SD_SCATTER |
 	                    SD_AO |
 	                    SD_BSDF_NEEDS_LCG),
@@ -991,6 +991,7 @@ typedef ccl_addr_space struct ShaderData {
 	/* Closure weights summed directly, so we can evaluate
 	 * emission and shadow transparency with MAX_CLOSURE 0. */
 	float3 closure_emission_background;
+	float3 closure_transparent_extinction;
 
 	/* At the end so we can adjust size in ShaderDataTinyStorage. */
 	struct ShaderClosure closure[MAX_CLOSURE];

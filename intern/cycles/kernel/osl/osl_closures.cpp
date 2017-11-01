@@ -92,9 +92,6 @@ BSDF_CLOSURE_CLASS_BEGIN(Refraction, refraction, MicrofacetBsdf, LABEL_SINGULAR)
 	CLOSURE_FLOAT_PARAM(RefractionClosure, params.ior),
 BSDF_CLOSURE_CLASS_END(Refraction, refraction)
 
-BSDF_CLOSURE_CLASS_BEGIN(Transparent, transparent, ShaderClosure, LABEL_SINGULAR)
-BSDF_CLOSURE_CLASS_END(Transparent, transparent)
-
 BSDF_CLOSURE_CLASS_BEGIN(AshikhminVelvet, ashikhmin_velvet, VelvetBsdf, LABEL_DIFFUSE)
 	CLOSURE_FLOAT3_PARAM(AshikhminVelvetClosure, params.N),
 	CLOSURE_FLOAT_PARAM(AshikhminVelvetClosure, params.sigma),
@@ -170,13 +167,6 @@ BSDF_CLOSURE_CLASS_BEGIN(HairTransmission, hair_transmission, HairBsdf, LABEL_GL
 	CLOSURE_FLOAT3_PARAM(HairReflectionClosure, params.T),
 	CLOSURE_FLOAT_PARAM(HairReflectionClosure, params.offset),
 BSDF_CLOSURE_CLASS_END(HairTransmission, hair_transmission)
-
-VOLUME_CLOSURE_CLASS_BEGIN(VolumeHenyeyGreenstein, henyey_greenstein, HenyeyGreensteinVolume, LABEL_VOLUME_SCATTER)
-	CLOSURE_FLOAT_PARAM(VolumeHenyeyGreensteinClosure, params.g),
-VOLUME_CLOSURE_CLASS_END(VolumeHenyeyGreenstein, henyey_greenstein)
-
-VOLUME_CLOSURE_CLASS_BEGIN(VolumeAbsorption, absorption, ShaderClosure, LABEL_SINGULAR)
-VOLUME_CLOSURE_CLASS_END(VolumeAbsorption, absorption)
 
 BSDF_CLOSURE_CLASS_BEGIN(PrincipledDiffuse, principled_diffuse, PrincipledDiffuseBsdf, LABEL_DIFFUSE)
 	CLOSURE_FLOAT3_PARAM(PrincipledDiffuseClosure, params.N),
@@ -261,7 +251,7 @@ void OSLShader::register_closures(OSLShadingSystem *ss_)
 	register_closure(ss, "refraction", id++,
 		bsdf_refraction_params(), bsdf_refraction_prepare);
 	register_closure(ss, "transparent", id++,
-		bsdf_transparent_params(), bsdf_transparent_prepare);
+		closure_bsdf_transparent_params(), closure_bsdf_transparent_prepare);
 	register_closure(ss, "microfacet_ggx", id++,
 		bsdf_microfacet_ggx_params(), bsdf_microfacet_ggx_prepare);
 	register_closure(ss, "microfacet_ggx_aniso", id++,
@@ -332,9 +322,9 @@ void OSLShader::register_closures(OSLShadingSystem *ss_)
 		bsdf_hair_transmission_params(), bsdf_hair_transmission_prepare);
 
 	register_closure(ss, "henyey_greenstein", id++,
-		volume_henyey_greenstein_params(), volume_henyey_greenstein_prepare);
+		closure_henyey_greenstein_params(), closure_henyey_greenstein_prepare);
 	register_closure(ss, "absorption", id++,
-		volume_absorption_params(), volume_absorption_prepare);
+		closure_absorption_params(), closure_absorption_prepare);
 }
 
 /* BSDF Closure */
@@ -636,6 +626,77 @@ ClosureParam *closure_bsdf_microfacet_multi_ggx_glass_fresnel_params()
 	return params;
 }
 CCLOSURE_PREPARE(closure_bsdf_microfacet_multi_ggx_glass_fresnel_prepare, MicrofacetMultiGGXGlassFresnelClosure);
+
+/* Transparent */
+
+class TransparentClosure : public CBSDFClosure {
+public:
+	ShaderClosure params;
+	float3 unused;
+
+	void setup(ShaderData *sd, int path_flag, float3 weight)
+	{
+		bsdf_transparent_setup(sd, weight);
+	}
+};
+
+ClosureParam *closure_bsdf_transparent_params()
+{
+	static ClosureParam params[] = {
+		CLOSURE_STRING_KEYPARAM(TransparentClosure, label, "label"),
+		CLOSURE_FINISH_PARAM(TransparentClosure)
+	};
+	return params;
+}
+
+CCLOSURE_PREPARE(closure_bsdf_transparent_prepare, TransparentClosure)
+
+/* Volume */
+
+class VolumeAbsorptionClosure : public CBSDFClosure {
+public:
+	void setup(ShaderData *sd, int path_flag, float3 weight)
+	{
+		volume_extinction_setup(sd, weight);
+	}
+};
+
+ClosureParam *closure_absorption_params()
+{
+	static ClosureParam params[] = {
+		CLOSURE_STRING_KEYPARAM(VolumeAbsorptionClosure, label, "label"),
+		CLOSURE_FINISH_PARAM(VolumeAbsorptionClosure)
+	};
+	return params;
+}
+
+CCLOSURE_PREPARE(closure_absorption_prepare, VolumeAbsorptionClosure)
+
+class VolumeHenyeyGreensteinClosure : public CBSDFClosure {
+public:
+	HenyeyGreensteinVolume params;
+
+	void setup(ShaderData *sd, int path_flag, float3 weight)
+	{
+		volume_extinction_setup(sd, weight);
+
+	    HenyeyGreensteinVolume *volume = (HenyeyGreensteinVolume*)bsdf_alloc_osl(sd, sizeof(HenyeyGreensteinVolume), weight, &params);
+		sd->flag |= (volume) ? volume_henyey_greenstein_setup(volume) : 0;
+	}
+};
+
+ClosureParam *closure_henyey_greenstein_params()
+{
+	static ClosureParam params[] = {
+		CLOSURE_FLOAT_PARAM(VolumeHenyeyGreensteinClosure, params.g),
+		CLOSURE_STRING_KEYPARAM(VolumeHenyeyGreensteinClosure, label, "label"),
+		CLOSURE_FINISH_PARAM(VolumeHenyeyGreensteinClosure)
+	};
+	return params;
+}
+
+CCLOSURE_PREPARE(closure_henyey_greenstein_prepare, VolumeHenyeyGreensteinClosure)
+
 
 CCL_NAMESPACE_END
 

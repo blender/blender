@@ -19,13 +19,26 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* VOLUME EXTINCTION */
+
+ccl_device void volume_extinction_setup(ShaderData *sd, float3 weight)
+{
+	if(sd->flag & SD_EXTINCTION) {
+		sd->closure_transparent_extinction += weight;
+	}
+	else {
+		sd->flag |= SD_EXTINCTION;
+		sd->closure_transparent_extinction = weight;
+	}
+}
+
+/* HENYEY-GREENSTEIN CLOSURE */
+
 typedef ccl_addr_space struct HenyeyGreensteinVolume {
 	SHADER_CLOSURE_BASE;
 
 	float g;
 } HenyeyGreensteinVolume;
-
-/* HENYEY-GREENSTEIN CLOSURE */
 
 /* Given cosine between rays, return probability density that a photon bounces
  * to that direction. The g parameter controls how different it is from the
@@ -108,15 +121,6 @@ ccl_device int volume_henyey_greenstein_sample(const ShaderClosure *sc, float3 I
 #endif
 
 	return LABEL_VOLUME_SCATTER;
-}
-
-/* ABSORPTION VOLUME CLOSURE */
-
-ccl_device int volume_absorption_setup(ShaderClosure *sc)
-{
-	sc->type = CLOSURE_VOLUME_ABSORPTION_ID;
-
-	return SD_ABSORPTION;
 }
 
 /* VOLUME CLOSURE */
