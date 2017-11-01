@@ -66,6 +66,15 @@
 /* icons are 80% of height of button (16 pixels inside 20 height) */
 #define ICON_SIZE_FROM_BUTRECT(rect) (0.8f * BLI_rcti_size_y(rect))
 
+#define UI_BUT_FLAGS_PUBLIC \
+	(UI_SELECT | UI_SCROLLED | UI_ACTIVE | UI_HAS_ICON | UI_TEXTINPUT | UI_HIDDEN)
+
+/* Bits 0..5 are from UI_SELECT .. etc */
+enum {
+	/* Show that holding the button opens a menu. */
+	UI_STATE_HOLD_ACTION = (1 << 6),
+};
+
 /* ************** widget base functions ************** */
 /**
  * - in: roundbox codes for corner types and radius
@@ -183,6 +192,15 @@ static const float check_tria_vert[6][2] = {
 static const unsigned int check_tria_face[4][3] = {
 	{3, 2, 4}, {3, 4, 5}, {1, 0, 3}, {0, 2, 3}
 };
+
+#define OY -0.2 
+#define SC 0.35
+static const unsigned int hold_action_tri_face[2][3] = {{2, 0, 1}, {3, 5, 4}};
+static const float hold_action_tri_vert[6][2] = {
+	{-0.5 + SC, 1.0 + OY},  {0.5, 1.0 + OY},  {0.5, 0.0 + OY + SC},
+};
+#undef OY
+#undef SC
 
 /* ************************************************* */
 
@@ -527,6 +545,14 @@ static void widget_num_tria(uiWidgetTrias *tria, const rcti *rect, float triasiz
 	        tria, rect, triasize, where,
 	        num_tria_vert, ARRAY_SIZE(num_tria_vert),
 	        num_tria_face, ARRAY_SIZE(num_tria_face));
+}
+
+static void widget_hold_action_tria(uiWidgetTrias *tria, const rcti *rect, float triasize, char where)
+{
+	widget_draw_tria_ex(
+	        tria, rect, triasize, where,
+	        hold_action_tri_vert, ARRAY_SIZE(hold_action_tri_vert),
+	        hold_action_tri_face, ARRAY_SIZE(hold_action_tri_face));
 }
 
 static void widget_scroll_circle(uiWidgetTrias *tria, const rcti *rect, float triasize, char where)
@@ -3347,6 +3373,7 @@ static void widget_but(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int 
 	widgetbase_draw(&wtb, wcol);
 }
 
+#if 0
 static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)
 {
 	uiWidgetBase wtb;
@@ -3354,6 +3381,25 @@ static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state),
 	
 	widget_init(&wtb);
 	
+	/* half rounded */
+	round_box_edges(&wtb, roundboxalign, rect, rad);
+
+	widgetbase_draw(&wtb, wcol);
+}
+#endif
+
+static void widget_roundbut_exec(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+{
+	uiWidgetBase wtb;
+	const float rad = 0.25f * U.widget_unit;
+
+	widget_init(&wtb);
+
+	if (state & UI_STATE_HOLD_ACTION) {
+		/* Show that keeping pressed performs another action (typically a menu). */
+		widget_hold_action_tria(&wtb.tria1, rect, 0.75f, 'r');
+	}
+
 	/* half rounded */
 	round_box_edges(&wtb, roundboxalign, rect, rad);
 
@@ -3439,7 +3485,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			
 		case UI_WTYPE_EXEC:
 			wt.wcol_theme = &btheme->tui.wcol_tool;
-			wt.draw = widget_roundbut;
+			wt.draw = widget_roundbut_exec;
 			break;
 
 		case UI_WTYPE_TOOLTIP:
@@ -3849,12 +3895,16 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 		
 		roundboxalign = widget_roundbox_set(but, rect);
 
-		state = but->flag;
+		state = but->flag & UI_BUT_FLAGS_PUBLIC;
 
 		if ((but->editstr) ||
 		    (UNLIKELY(but->flag & UI_BUT_DRAG_MULTI) && ui_but_drag_multi_edit_get(but)))
 		{
 			state |= UI_TEXTINPUT;
+		}
+
+		if (but->hold_func) {
+			state |= UI_STATE_HOLD_ACTION;
 		}
 
 		if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE))

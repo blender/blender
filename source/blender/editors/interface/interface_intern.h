@@ -264,6 +264,10 @@ struct uiBut {
 	void *rename_arg1;
 	void *rename_orig;
 
+	/* Run an action when holding the button down. */
+	uiButHandleHoldFunc hold_func;
+	void *hold_argN;
+
 	uiLink *link;
 	short linkto[2];  /* region relative coords */
 	

@@ -795,7 +795,7 @@ static void ui_item_disabled(uiLayout *layout, const char *name)
  * \param r_opptr: Optional, initialize with operator properties when not NULL.
  * Will always be written to even in the case of errors.
  */
-void uiItemFullO_ptr(
+static uiBut *uiItemFullO_ptr_ex(
         uiLayout *layout, wmOperatorType *ot,
         const char *name, int icon, IDProperty *properties, int context, int flag,
         PointerRNA *r_opptr)
@@ -862,6 +862,50 @@ void uiItemFullO_ptr(
 			*r_opptr = *opptr;
 		}
 	}
+
+	return but;
+}
+
+static void ui_item_hold_menu(struct bContext *C, ARegion *butregion, uiBut *but)
+{
+	uiPopupMenu *pup = UI_popup_menu_begin(C, "", ICON_NONE);
+	uiLayout *layout = UI_popup_menu_layout(pup);
+	uiBlock *block = layout->root->block;
+	UI_popup_menu_but_set(pup, butregion, but);
+
+	block->flag |= UI_BLOCK_POPUP_HOLD;
+
+	const char *menu_id = but->hold_argN;
+	MenuType *mt = WM_menutype_find(menu_id, true);
+	if (mt) {
+		Menu menu = {NULL};
+		menu.layout = layout;
+		menu.type = mt;
+		mt->draw(C, &menu);
+	}
+	else {
+		uiItemL(layout, "Menu Missing:", ICON_NONE);
+		uiItemL(layout, menu_id, ICON_NONE);
+	}
+	UI_popup_menu_end(C, pup);
+}
+
+void uiItemFullO_ptr(
+        uiLayout *layout, wmOperatorType *ot,
+        const char *name, int icon, IDProperty *properties, int context, int flag,
+        PointerRNA *r_opptr)
+{
+	uiItemFullO_ptr_ex(layout, ot, name, icon, properties, context, flag, r_opptr);
+}
+
+void uiItemFullOMenuHold_ptr(
+        uiLayout *layout, wmOperatorType *ot,
+        const char *name, int icon, IDProperty *properties, int context, int flag,
+        const char *menu_id,
+        PointerRNA *r_opptr)
+{
+	uiBut *but = uiItemFullO_ptr_ex(layout, ot, name, icon, properties, context, flag, r_opptr);
+	UI_but_func_hold_set(but, ui_item_hold_menu, BLI_strdup(menu_id));
 }
 
 void uiItemFullO(

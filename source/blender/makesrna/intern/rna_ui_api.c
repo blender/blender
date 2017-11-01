@@ -202,6 +202,30 @@ static PointerRNA rna_uiItemO(uiLayout *layout, const char *opname, const char *
 	return opptr;
 }
 
+static PointerRNA rna_uiItemOMenuHold(
+        uiLayout *layout, const char *opname, const char *name, const char *text_ctxt,
+        int translate, int icon, int emboss, int icon_value,
+        const char *menu)
+{
+	wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
+	if (!ot || !ot->srna) {
+		RNA_warning("%s '%s'", ot ? "unknown operator" : "operator missing srna", opname);
+		return PointerRNA_NULL;
+	}
+
+	/* Get translated name (label). */
+	name = rna_translate_ui_text(name, text_ctxt, ot->srna, NULL, translate);
+	if (icon_value && !icon) {
+		icon = icon_value;
+	}
+	int flag = (emboss) ? 0 : UI_ITEM_R_NO_BG;
+
+	PointerRNA opptr;
+	uiItemFullOMenuHold_ptr(layout, ot, name, icon, NULL, uiLayoutGetOperatorContext(layout), flag, menu, &opptr);
+	return opptr;
+}
+
+
 static void rna_uiItemMenuEnumO(uiLayout *layout, bContext *C, const char *opname, const char *propname, const char *name,
                                 const char *text_ctxt, int translate, int icon)
 {
@@ -553,15 +577,23 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	api_ui_item_common(func);
 
-	func = RNA_def_function(srna, "operator", "rna_uiItemO");
-	api_ui_item_op_common(func);
-	RNA_def_boolean(func, "emboss", true, "", "Draw the button itself, just the icon/text");
-	parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_ui_text(parm, "Icon Value", "Override automatic icon of the item");
-	parm = RNA_def_pointer(func, "properties", "OperatorProperties", "", "Operator properties to fill in");
-	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED | PARM_RNAPTR);
-	RNA_def_function_return(func, parm);
-	RNA_def_function_ui_description(func, "Item. Places a button into the layout to call an Operator");
+	for (int is_menu_hold = 0; is_menu_hold < 2; is_menu_hold++) {
+		func = (is_menu_hold) ?
+		        RNA_def_function(srna, "operator_menu_hold", "rna_uiItemOMenuHold") :
+		        RNA_def_function(srna, "operator", "rna_uiItemO");
+		api_ui_item_op_common(func);
+		RNA_def_boolean(func, "emboss", true, "", "Draw the button itself, just the icon/text");
+		parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
+		RNA_def_property_ui_text(parm, "Icon Value", "Override automatic icon of the item");
+		if (is_menu_hold) {
+			parm = RNA_def_string(func, "menu", NULL, 0, "", "Identifier of the menu");
+			RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+		}
+		parm = RNA_def_pointer(func, "properties", "OperatorProperties", "", "Operator properties to fill in");
+		RNA_def_parameter_flags(parm, 0, PARM_REQUIRED | PARM_RNAPTR);
+		RNA_def_function_return(func, parm);
+		RNA_def_function_ui_description(func, "Item. Places a button into the layout to call an Operator");
+	}
 
 	func = RNA_def_function(srna, "operator_enum", "uiItemsEnumO");
 	parm = RNA_def_string(func, "operator", NULL, 0, "", "Identifier of the operator");
