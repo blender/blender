@@ -955,10 +955,10 @@ ccl_device float3 shader_holdout_eval(KernelGlobals *kg, ShaderData *sd)
 /* Surface Evaluation */
 
 ccl_device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd,
-	ccl_addr_space PathState *state, int path_flag)
+	ccl_addr_space PathState *state, int path_flag, int max_closure)
 {
 	sd->num_closure = 0;
-	sd->num_closure_extra = 0;
+	sd->num_closure_left = max_closure;
 
 #ifdef __OSL__
 	if(kg->osl)
@@ -988,7 +988,7 @@ ccl_device float3 shader_eval_background(KernelGlobals *kg, ShaderData *sd,
 	ccl_addr_space PathState *state, int path_flag)
 {
 	sd->num_closure = 0;
-	sd->num_closure_extra = 0;
+	sd->num_closure_left = 0;
 
 #ifdef __SVM__
 #  ifdef __OSL__
@@ -1129,12 +1129,13 @@ ccl_device_inline void shader_eval_volume(KernelGlobals *kg,
                                           ShaderData *sd,
                                           ccl_addr_space PathState *state,
                                           ccl_addr_space VolumeStack *stack,
-                                          int path_flag)
+                                          int path_flag,
+                                          int max_closure)
 {
 	/* reset closures once at the start, we will be accumulating the closures
 	 * for all volumes in the stack into a single array of closures */
 	sd->num_closure = 0;
-	sd->num_closure_extra = 0;
+	sd->num_closure_left = max_closure;
 	sd->flag = 0;
 	sd->object_flag = 0;
 
@@ -1184,7 +1185,7 @@ ccl_device_inline void shader_eval_volume(KernelGlobals *kg,
 ccl_device void shader_eval_displacement(KernelGlobals *kg, ShaderData *sd, ccl_addr_space PathState *state)
 {
 	sd->num_closure = 0;
-	sd->num_closure_extra = 0;
+	sd->num_closure_left = 0;
 
 	/* this will modify sd->P */
 #ifdef __SVM__

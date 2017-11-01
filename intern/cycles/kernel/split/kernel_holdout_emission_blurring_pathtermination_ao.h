@@ -101,7 +101,7 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
 		ccl_global float *buffer = kernel_split_params.tile.buffer + buffer_offset;
 
 		ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
-		ShaderData *emission_sd = &kernel_split_state.sd_DL_shadow[ray_index];
+		ShaderData *emission_sd = AS_SHADER_DATA(&kernel_split_state.sd_DL_shadow[ray_index]);
 		PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
 
 		throughput = kernel_split_state.throughput[ray_index];

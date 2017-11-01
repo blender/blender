@@ -31,7 +31,7 @@ ccl_device_noinline bool kernel_split_branched_path_volume_indirect_light_iter(K
 
 	ShaderData *sd = &kernel_split_state.sd[ray_index];
 	PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
-	ShaderData *emission_sd = &kernel_split_state.sd_DL_shadow[ray_index];
+	ShaderData *emission_sd = AS_SHADER_DATA(&kernel_split_state.sd_DL_shadow[ray_index]);
 
 	/* GPU: no decoupled ray marching, scatter probalistically */
 	int num_samples = kernel_data.integrator.volume_samples;
@@ -141,7 +141,7 @@ ccl_device void kernel_do_volume(KernelGlobals *kg)
 		ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
 		ccl_global Intersection *isect = &kernel_split_state.isect[ray_index];
 		ShaderData *sd = &kernel_split_state.sd[ray_index];
-		ShaderData *emission_sd = &kernel_split_state.sd_DL_shadow[ray_index];
+		ShaderData *emission_sd = AS_SHADER_DATA(&kernel_split_state.sd_DL_shadow[ray_index]);
 
 		bool hit = ! IS_STATE(ray_state, ray_index, RAY_HIT_BACKGROUND);
 

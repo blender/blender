@@ -98,7 +98,16 @@ ccl_device void kernel_direct_lighting(KernelGlobals *kg,
 
 				BsdfEval L_light;
 				bool is_lamp;
-				if(direct_emission(kg, sd, &kernel_split_state.sd_DL_shadow[ray_index], &ls, state, &light_ray, &L_light, &is_lamp, terminate)) {
+				if(direct_emission(kg,
+				                   sd,
+				                   AS_SHADER_DATA(&kernel_split_state.sd_DL_shadow[ray_index]),
+				                   &ls,
+				                   state,
+				                   &light_ray,
+				                   &L_light,
+				                   &is_lamp,
+				                   terminate))
+				{
 					/* Write intermediate data to global memory to access from
 					 * the next kernel.
 					 */

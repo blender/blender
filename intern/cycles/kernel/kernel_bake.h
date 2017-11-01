@@ -51,7 +51,7 @@ ccl_device_inline void compute_light_pass(KernelGlobals *kg,
 	path_state_init(kg, &emission_sd, &state, rng_hash, sample, NULL);
 
 	/* evaluate surface shader */
-	shader_eval_surface(kg, sd, &state, state.flag);
+	shader_eval_surface(kg, sd, &state, state.flag, MAX_CLOSURE);
 
 	/* TODO, disable more closures we don't need besides transparent */
 	shader_bsdf_disable_transparency(kg, sd);
@@ -239,12 +239,12 @@ ccl_device float3 kernel_bake_evaluate_direct_indirect(KernelGlobals *kg,
 		}
 		else {
 			/* surface color of the pass only */
-			shader_eval_surface(kg, sd, state, 0);
+			shader_eval_surface(kg, sd, state, 0, MAX_CLOSURE);
 			return kernel_bake_shader_bsdf(kg, sd, type);
 		}
 	}
 	else {
-		shader_eval_surface(kg, sd, state, 0);
+		shader_eval_surface(kg, sd, state, 0, MAX_CLOSURE);
 		color = kernel_bake_shader_bsdf(kg, sd, type);
 	}
 
@@ -337,7 +337,7 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 		{
 			float3 N = sd.N;
 			if((sd.flag & SD_HAS_BUMP)) {
-				shader_eval_surface(kg, &sd, &state, 0);
+				shader_eval_surface(kg, &sd, &state, 0, MAX_CLOSURE);
 				N = shader_bsdf_average_normal(kg, &sd);
 			}
 
@@ -352,7 +352,7 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 		}
 		case SHADER_EVAL_EMISSION:
 		{
-			shader_eval_surface(kg, &sd, &state, 0);
+			shader_eval_surface(kg, &sd, &state, 0, 0);
 			out = shader_emissive_eval(kg, &sd);
 			break;
 		}

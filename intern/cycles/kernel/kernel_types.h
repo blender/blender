@@ -984,7 +984,7 @@ typedef ccl_addr_space struct ShaderData {
 
 	/* Closure data, we store a fixed array of closures */
 	int num_closure;
-	int num_closure_extra;
+	int num_closure_left;
 	float randb_closure;
 	float3 svm_closure_weight;
 
@@ -996,6 +996,11 @@ typedef ccl_addr_space struct ShaderData {
 	/* At the end so we can adjust size in ShaderDataTinyStorage. */
 	struct ShaderClosure closure[MAX_CLOSURE];
 } ShaderData;
+
+typedef ccl_addr_space struct ShaderDataTinyStorage {
+	char pad[sizeof(ShaderData) - sizeof(ShaderClosure) * MAX_CLOSURE];
+} ShaderDataTinyStorage;
+#define AS_SHADER_DATA(shader_data_tiny_storage) ((ShaderData*)shader_data_tiny_storage)
 
 /* Path State */
 

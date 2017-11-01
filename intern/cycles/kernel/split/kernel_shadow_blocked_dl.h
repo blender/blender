@@ -47,7 +47,7 @@ ccl_device void kernel_shadow_blocked_dl(KernelGlobals *kg)
 	float3 throughput = kernel_split_state.throughput[ray_index];
 
 	BsdfEval L_light = kernel_split_state.bsdf_eval[ray_index];
-	ShaderData *emission_sd = &kernel_split_state.sd_DL_shadow[ray_index];
+	ShaderData *emission_sd = AS_SHADER_DATA(&kernel_split_state.sd_DL_shadow[ray_index]);
 	bool is_lamp = kernel_split_state.is_lamp[ray_index];
 
 #  if defined(__BRANCHED_PATH__) || defined(__SHADOW_TRICKS__)

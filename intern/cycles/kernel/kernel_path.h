@@ -443,7 +443,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 		                      sd,
 		                      &isect,
 		                      ray);
-		shader_eval_surface(kg, sd, state, state->flag);
+		shader_eval_surface(kg, sd, state, state->flag, MAX_CLOSURE);
 		shader_prepare_closures(sd, state);
 
 		/* Apply shadow catcher, holdout, emission. */
@@ -561,7 +561,7 @@ ccl_device_forceinline void kernel_path_integrate(
 		bool hit = kernel_path_scene_intersect(kg, state, ray, &isect, L);
 
 		/* Find intersection with lamps and compute emission for MIS. */
-		kernel_path_lamp_emission(kg, state, ray, throughput, &isect, emission_sd, L);
+		kernel_path_lamp_emission(kg, state, ray, throughput, &isect, &sd, L);
 
 #ifdef __VOLUME__
 		/* Volume integration. */
@@ -585,7 +585,7 @@ ccl_device_forceinline void kernel_path_integrate(
 
 		/* Shade background. */
 		if(!hit) {
-			kernel_path_background(kg, state, ray, throughput, emission_sd, L);
+			kernel_path_background(kg, state, ray, throughput, &sd, L);
 			break;
 		}
 		else if(path_state_ao_bounce(kg, state)) {
@@ -594,7 +594,7 @@ ccl_device_forceinline void kernel_path_integrate(
 
 		/* Setup and evaluate shader. */
 		shader_setup_from_ray(kg, &sd, &isect, ray);
-		shader_eval_surface(kg, &sd, state, state->flag);
+		shader_eval_surface(kg, &sd, state, state->flag, MAX_CLOSURE);
 		shader_prepare_closures(&sd, state);
 
 		/* Apply shadow catcher, holdout, emission. */
@@ -706,9 +706,11 @@ ccl_device void kernel_path_trace(KernelGlobals *kg,
 	PathRadiance L;
 	path_radiance_init(&L, kernel_data.film.use_light_pass);
 
-	ShaderData emission_sd;
+	ShaderDataTinyStorage emission_sd_storage;
+	ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
+
 	PathState state;
-	path_state_init(kg, &emission_sd, &state, rng_hash, sample, &ray);
+	path_state_init(kg, emission_sd, &state, rng_hash, sample, &ray);
 
 	/* Integrate. */
 	kernel_path_integrate(kg,
@@ -717,7 +719,7 @@ ccl_device void kernel_path_trace(KernelGlobals *kg,
 	                      &ray,
 	                      &L,
 	                      buffer,
-	                      &emission_sd);
+	                      emission_sd);
 
 	kernel_write_result(kg, buffer, sample, &L);
 }
