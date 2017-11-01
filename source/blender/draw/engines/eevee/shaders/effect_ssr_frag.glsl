@@ -310,7 +310,7 @@ vec4 get_ssr_sample(
 
 	vec3 sample;
 	if (is_planar) {
-		sample = textureLod(probePlanars, vec3(ref_uvs, planar_index), mip).rgb;
+		sample = textureLod(probePlanars, vec3(ref_uvs, planar_index), min(mip, lodPlanarMax)).rgb;
 	}
 	else {
 		sample = textureLod(prevColorBuffer, ref_uvs, mip).rgb;
