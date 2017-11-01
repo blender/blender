@@ -173,6 +173,7 @@ typedef struct tPChanFCurveLink {
 	float roll1, roll2;             /* old bbone values (to be restored along with the transform properties) */
 	float curveInX, curveInY;       /* (NOTE: we haven't renamed these this time, as their names are already long enough) */
 	float curveOutX, curveOutY;
+	float ease1, ease2;
 	float scaleIn, scaleOut;
 	
 	struct IDProperty *oldprops;    /* copy of custom properties at start of operator (to be restored before each modal step) */
