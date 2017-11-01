@@ -956,7 +956,7 @@ void calchandles_fcurve(FCurve *fcu)
 		if (bezt->vec[2][0] < bezt->vec[1][0]) bezt->vec[2][0] = bezt->vec[1][0];
 		
 		/* calculate auto-handles */
-		BKE_nurb_handle_calc(bezt, prev, next, true);
+		BKE_nurb_handle_calc(bezt, prev, next, true, fcu->auto_smoothing);
 		
 		/* for automatic ease in and out */
 		if (BEZT_IS_AUTOH(bezt) && !cycle) {
@@ -965,8 +965,15 @@ void calchandles_fcurve(FCurve *fcu)
 				/* set both handles to have same horizontal value as keyframe */
 				if (fcu->extend == FCURVE_EXTRAPOLATE_CONSTANT) {
 					bezt->vec[0][1] = bezt->vec[2][1] = bezt->vec[1][1];
+					/* remember that these keyframes are special, they don't need to be adjusted */
+					bezt->f5 = HD_AUTOTYPE_SPECIAL;
 				}
 			}
+		}
+
+		/* avoid total smoothing failure on duplicate keyframes (can happen during grab) */
+		if (prev && prev->vec[1][0] >= bezt->vec[1][0])	{
+			prev->f5 = bezt->f5 = HD_AUTOTYPE_SPECIAL;
 		}
 		
 		/* advance pointers for next iteration */
@@ -980,6 +987,18 @@ void calchandles_fcurve(FCurve *fcu)
 		}
 
 		bezt++;
+	}
+
+	/* if cyclic extrapolation and Auto Clamp has triggered, ensure it is symmetric */
+	if (cycle && (first->f5 != HD_AUTOTYPE_NORMAL || last->f5 != HD_AUTOTYPE_NORMAL)) {
+		first->vec[0][1] = first->vec[2][1] = first->vec[1][1];
+		last->vec[0][1] = last->vec[2][1] = last->vec[1][1];
+		first->f5 = last->f5 = HD_AUTOTYPE_SPECIAL;
+	}
+
+	/* do a second pass for auto handle: compute the handle to have 0 accelaration step */
+	if (fcu->auto_smoothing != FCURVE_SMOOTH_NONE) {
+		BKE_nurb_handle_smooth_fcurve(fcu->bezt, fcu->totvert, cycle);
 	}
 }
 
