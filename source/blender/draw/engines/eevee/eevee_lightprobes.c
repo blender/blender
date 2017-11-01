@@ -58,7 +58,6 @@ static struct {
 	struct GPUShader *probe_cube_display_sh;
 
 	struct GPUTexture *hammersley;
-	struct GPUTexture *planar_minmaxz;
 	struct GPUTexture *planar_pool_placeholder;
 	struct GPUTexture *depth_placeholder;
 	struct GPUTexture *depth_array_placeholder;
@@ -153,9 +152,7 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
 		 * To overcome this, we bind the planar pool ourselves later */
 
 		/* XXX Do this one first so it gets it's mipmap done. */
-		DRWFboTexture tex_minmaxz = {&e_data.planar_minmaxz, DRW_TEX_RG_32, DRW_TEX_MIPMAP | DRW_TEX_TEMP};
-		DRW_framebuffer_init(&fbl->planarref_fb, &draw_engine_eevee_type,
-		                     width / 2, height / 2, &tex_minmaxz, 1);
+		DRW_framebuffer_init(&fbl->planarref_fb, &draw_engine_eevee_type, 1, 1, NULL, 0);
 	}
 }
 

@@ -2329,7 +2329,7 @@ void DRW_framebuffer_init(
 		}
 	}
 
-	if (create_fb) {
+	if (create_fb && (textures_len > 0)) {
 		if (!GPU_framebuffer_check_valid(*fb, NULL)) {
 			printf("Error invalid framebuffer\n");
 		}
