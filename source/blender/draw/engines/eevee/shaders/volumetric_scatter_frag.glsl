@@ -39,7 +39,7 @@ void main()
 	vec3 wdir = cameraVec;
 
 	vec2 phase = texelFetch(volumePhase, volume_cell, 0).rg;
-	float s_anisotropy = phase.x / phase.y;
+	float s_anisotropy = phase.x / max(1.0, phase.y);
 
 	/* Environment : Average color. */
 	outScattering.rgb += irradiance_volumetric(worldPosition) * s_scattering * phase_function_isotropic();
@@ -78,6 +78,6 @@ void main()
 	/* Catch NaNs */
 	if (any(isnan(outScattering)) || any(isnan(outTransmittance))) {
 		outScattering = vec4(0.0);
-		outTransmittance = vec4(0.0);
+		outTransmittance = vec4(1.0);
 	}
 }

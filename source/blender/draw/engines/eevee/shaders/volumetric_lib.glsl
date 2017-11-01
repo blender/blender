@@ -61,7 +61,7 @@ float phase_function(vec3 v, vec3 l, float g)
 	float cos_theta = dot(v, l);
 	g = clamp(g, -1.0 + 1e-3, 1.0 - 1e-3);
 	float sqr_g = g * g;
-	return (1- sqr_g) / (4.0 * M_PI * pow(1 + sqr_g - 2 * g * cos_theta, 3.0 / 2.0));
+	return (1- sqr_g) / max(1e-8, 4.0 * M_PI * pow(1 + sqr_g - 2 * g * cos_theta, 3.0 / 2.0));
 }
 
 #ifdef LAMPS_LIB
