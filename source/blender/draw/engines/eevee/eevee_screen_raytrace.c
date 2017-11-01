@@ -281,6 +281,9 @@ void EEVEE_refraction_compute(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *
 		DRW_framebuffer_texture_attach(fbl->refract_fb, txl->refract_color, 0, 0);
 		DRW_framebuffer_blit(fbl->main, fbl->refract_fb, false);
 		EEVEE_downsample_buffer(vedata, fbl->downsample_fb, txl->refract_color, 9);
+
+		/* Restore */
+		DRW_framebuffer_bind(fbl->main);
 	}
 }
 
