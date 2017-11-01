@@ -175,11 +175,11 @@ static void rna_uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const c
 	uiItemPointerR(layout, ptr, propname, searchptr, searchpropname, name, icon);
 }
 
-static PointerRNA rna_uiItemO(uiLayout *layout, const char *opname, const char *name, const char *text_ctxt,
-                              int translate, int icon, int emboss, int icon_value)
+static PointerRNA rna_uiItemO(
+        uiLayout *layout, const char *opname, const char *name, const char *text_ctxt,
+        int translate, int icon, int emboss, int depress, int icon_value)
 {
 	wmOperatorType *ot;
-	int flag;
 
 	ot = WM_operatortype_find(opname, 0); /* print error next */
 	if (!ot || !ot->srna) {
@@ -193,9 +193,8 @@ static PointerRNA rna_uiItemO(uiLayout *layout, const char *opname, const char *
 	if (icon_value && !icon) {
 		icon = icon_value;
 	}
-
-	flag = 0;
-	flag |= (emboss) ? 0 : UI_ITEM_R_NO_BG;
+	int flag = (emboss) ? 0 : UI_ITEM_R_NO_BG;
+	flag |= (depress) ? UI_ITEM_O_DEPRESS : 0;
 
 	PointerRNA opptr;
 	uiItemFullO_ptr(layout, ot, name, icon, NULL, uiLayoutGetOperatorContext(layout), flag, &opptr);
@@ -204,7 +203,7 @@ static PointerRNA rna_uiItemO(uiLayout *layout, const char *opname, const char *
 
 static PointerRNA rna_uiItemOMenuHold(
         uiLayout *layout, const char *opname, const char *name, const char *text_ctxt,
-        int translate, int icon, int emboss, int icon_value,
+        int translate, int icon, int emboss, int depress, int icon_value,
         const char *menu)
 {
 	wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
@@ -219,6 +218,7 @@ static PointerRNA rna_uiItemOMenuHold(
 		icon = icon_value;
 	}
 	int flag = (emboss) ? 0 : UI_ITEM_R_NO_BG;
+	flag |= (depress) ? UI_ITEM_O_DEPRESS : 0;
 
 	PointerRNA opptr;
 	uiItemFullOMenuHold_ptr(layout, ot, name, icon, NULL, uiLayoutGetOperatorContext(layout), flag, menu, &opptr);
@@ -583,6 +583,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 		        RNA_def_function(srna, "operator", "rna_uiItemO");
 		api_ui_item_op_common(func);
 		RNA_def_boolean(func, "emboss", true, "", "Draw the button itself, just the icon/text");
+		RNA_def_boolean(func, "depress", false, "", "Draw pressed in");
 		parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
 		RNA_def_property_ui_text(parm, "Icon Value", "Override automatic icon of the item");
 		if (is_menu_hold) {

@@ -832,6 +832,7 @@ void UI_exit(void);
 #define UI_ITEM_R_FULL_EVENT    (1 << 6)
 #define UI_ITEM_R_NO_BG         (1 << 7)
 #define UI_ITEM_R_IMMEDIATE     (1 << 8)
+#define UI_ITEM_O_DEPRESS       (1 << 9)
 
 /* uiTemplateOperatorPropertyButs flags */
 #define UI_TEMPLATE_OP_PROPS_SHOW_TITLE 1

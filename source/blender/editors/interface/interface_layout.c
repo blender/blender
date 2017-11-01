@@ -845,6 +845,10 @@ static uiBut *uiItemFullO_ptr_ex(
 	if (flag & UI_ITEM_R_NO_BG)
 		UI_block_emboss_set(block, UI_EMBOSS);
 
+	if (flag & UI_ITEM_O_DEPRESS) {
+		but->flag |= UI_SELECT;
+	}
+
 	if (layout->redalert)
 		UI_but_flag_enable(but, UI_BUT_REDALERT);
 
