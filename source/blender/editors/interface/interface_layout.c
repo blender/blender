@@ -875,7 +875,7 @@ void uiItemFullO(
 	        ot, opname, {
 	            if (r_opptr) {
 	                *r_opptr = PointerRNA_NULL;
-	            };
+	            }
 	            return;
 	        });
 

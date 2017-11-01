@@ -896,7 +896,7 @@ bool BKE_fcurve_is_cyclic(FCurve *fcu)
 	if (fcm->flag & (FMODIFIER_FLAG_RANGERESTRICT | FMODIFIER_FLAG_USEINFLUENCE))
 		return false;
 
-	FMod_Cycles *data = (FMod_Cycles*)fcm->data;
+	FMod_Cycles *data = (FMod_Cycles *)fcm->data;
 
 	return data && data->after_cycles == 0 && data->before_cycles == 0 &&
 	    ELEM(data->before_mode, FCM_EXTRAPOLATE_CYCLIC, FCM_EXTRAPOLATE_CYCLIC_OFFSET) &&
@@ -939,14 +939,14 @@ void calchandles_fcurve(FCurve *fcu)
 		return;
 
 	/* if the first modifier is Cycles, smooth the curve through the cycle */
-	BezTriple *first = &fcu->bezt[0], *last = &fcu->bezt[fcu->totvert-1];
+	BezTriple *first = &fcu->bezt[0], *last = &fcu->bezt[fcu->totvert - 1];
 	BezTriple tmp;
 
 	bool cycle = BKE_fcurve_is_cyclic(fcu) && BEZT_IS_AUTOH(first) && BEZT_IS_AUTOH(last);
 
 	/* get initial pointers */
 	bezt = fcu->bezt;
-	prev = cycle_offset_triple(cycle, &tmp, &fcu->bezt[fcu->totvert-2], last, first);
+	prev = cycle_offset_triple(cycle, &tmp, &fcu->bezt[fcu->totvert - 2], last, first);
 	next = (bezt + 1);
 	
 	/* loop over all beztriples, adjusting handles */
