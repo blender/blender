@@ -136,15 +136,10 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 	/**
 	 * MinMax Pyramid
 	 */
-	DRWFboTexture texmin = {&stl->g_data->minzbuffer, DRW_TEX_DEPTH_24, DRW_TEX_MIPMAP | DRW_TEX_TEMP};
+	DRWFboTexture texmax = {&txl->maxzbuffer, DRW_TEX_DEPTH_24, DRW_TEX_MIPMAP};
 	DRW_framebuffer_init(&fbl->downsample_fb, &draw_engine_eevee_type,
 	                    (int)viewport_size[0] / 2, (int)viewport_size[1] / 2,
-	                    &texmin, 1);
-
-	/* Cannot define 2 depth texture for one framebuffer. So allocate ourself. */
-	if (txl->maxzbuffer == NULL) {
-		txl->maxzbuffer = DRW_texture_create_2D((int)viewport_size[0] / 2, (int)viewport_size[1] / 2, DRW_TEX_DEPTH_24, DRW_TEX_MIPMAP, NULL);
-	}
+	                    &texmax, 1);
 
 	/**
 	 * Compute Mipmap texel alignement.
