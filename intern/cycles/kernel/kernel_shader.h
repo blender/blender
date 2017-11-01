@@ -96,7 +96,7 @@ ccl_device_noinline void shader_setup_from_ray(KernelGlobals *kg,
 		sd->P = triangle_refine(kg, sd, isect, ray);
 		sd->Ng = Ng;
 		sd->N = Ng;
-		
+
 		/* smooth normal */
 		if(sd->shader & SHADER_SMOOTH_NORMAL)
 			sd->N = triangle_smooth_normal(kg, Ng, sd->prim, sd->u, sd->v);
@@ -419,7 +419,7 @@ ccl_device_inline void shader_setup_from_volume(KernelGlobals *kg, ShaderData *s
 {
 	/* vectors */
 	sd->P = ray->P;
-	sd->N = -ray->D;  
+	sd->N = -ray->D;
 	sd->Ng = -ray->D;
 	sd->I = -ray->D;
 	sd->shader = SHADER_NONE;
@@ -797,7 +797,7 @@ ccl_device float3 shader_bsdf_alpha(KernelGlobals *kg, ShaderData *sd)
 
 	alpha = max(alpha, make_float3(0.0f, 0.0f, 0.0f));
 	alpha = min(alpha, make_float3(1.0f, 1.0f, 1.0f));
-	
+
 	return alpha;
 }
 
@@ -919,7 +919,7 @@ ccl_device float3 shader_bssrdf_sum(ShaderData *sd, float3 *N_, float *texture_b
 
 	if(texture_blur_)
 		*texture_blur_ = safe_divide(texture_blur, weight_sum);
-	
+
 	return eval;
 }
 #endif
@@ -1075,7 +1075,7 @@ ccl_device int shader_volume_phase_sample(KernelGlobals *kg, const ShaderData *s
 
 		for(sampled = 0; sampled < sd->num_closure; sampled++) {
 			const ShaderClosure *sc = &sd->closure[sampled];
-			
+
 			if(CLOSURE_IS_PHASE(sc->type))
 				sum += sc->sample_weight;
 		}
@@ -1085,7 +1085,7 @@ ccl_device int shader_volume_phase_sample(KernelGlobals *kg, const ShaderData *s
 
 		for(sampled = 0; sampled < sd->num_closure; sampled++) {
 			const ShaderClosure *sc = &sd->closure[sampled];
-			
+
 			if(CLOSURE_IS_PHASE(sc->type)) {
 				float next_sum = partial_sum + sc->sample_weight;
 
@@ -1239,4 +1239,3 @@ ccl_device bool shader_transparent_shadow(KernelGlobals *kg, Intersection *isect
 #endif
 
 CCL_NAMESPACE_END
-
