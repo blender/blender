@@ -304,7 +304,7 @@ int EEVEE_volumes_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 
 		volumetrics->use_lights = BKE_collection_engine_property_value_get_bool(props, "volumetric_lights");
 
-		return EFFECT_VOLUMETRIC;
+		return EFFECT_VOLUMETRIC | EFFECT_POST_BUFFER;
 	}
 
 	/* Cleanup to release memory */
