@@ -97,6 +97,9 @@ class ToolSelectPanelHelper:
         # {tool_name: (keymap, keymap_idname, manipulator_group_idname), ...}
         cls._tool_keymap = {}
 
+        # {tool_name_first: index_in_group, ...}
+        cls._tool_group_active = {}
+
         # ignore in background mode
         if kc is None:
             return
@@ -129,9 +132,11 @@ class ToolSelectPanelHelper:
                         continue
 
                     if self._tool_is_group(item):
-                        index = 0
                         is_active = False
-                        for i, sub_item in enumerate(item):
+                        i = 0
+                        for sub_item in item:
+                            if item is None:
+                                continue
                             text, mp_idname, actions = sub_item
                             km, km_idname = (None, None) if actions is None else self._tool_keymap[text]
                             is_active = (
@@ -141,7 +146,15 @@ class ToolSelectPanelHelper:
                             if is_active:
                                 index = i
                                 break
+                            i += 1
                         del i, sub_item
+
+                        if is_active:
+                            # not ideal, write this every time :S
+                            self._tool_group_active[item[0][0]] = index
+                        else:
+                            index = self._tool_group_active.get(item[0][0], 0)
+
                         item = item[index]
                         use_menu = True
                     else:
