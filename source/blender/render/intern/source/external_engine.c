@@ -273,7 +273,7 @@ void RE_engine_end_result(RenderEngine *engine, RenderResult *result, int cancel
 		RenderPart *pa = get_part_from_result(re, result);
 
 		if (pa) {
-			pa->status = PART_STATUS_READY;
+			pa->status = (merge_results)? PART_STATUS_MERGED: PART_STATUS_RENDERED;
 		}
 		else if (re->result->do_exr_tile) {
 			/* if written result does not match any tile and we are using save
@@ -284,7 +284,7 @@ void RE_engine_end_result(RenderEngine *engine, RenderResult *result, int cancel
 
 	if (!cancel || merge_results) {
 		if (re->result->do_exr_tile) {
-			if (!cancel) {
+			if (!cancel && merge_results) {
 				render_result_exr_file_merge(re->result, result, re->viewname);
 			}
 		}

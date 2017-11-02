@@ -340,7 +340,7 @@ void BlenderSession::do_write_update_render_tile(RenderTile& rtile, bool do_upda
 			update_render_result(b_rr, b_rlay, rtile);
 		}
 
-		end_render_result(b_engine, b_rr, true, highlight, true);
+		end_render_result(b_engine, b_rr, true, highlight, false);
 	}
 	else {
 		/* write result */
