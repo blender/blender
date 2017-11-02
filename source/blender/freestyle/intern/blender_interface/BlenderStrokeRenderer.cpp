@@ -194,6 +194,15 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 		}
 	}
 
+	// Make sure we don't have any bases which might reference freed objects.
+	FOREACH_SCENE_COLLECTION(freestyle_scene, sc)
+	{
+		BLI_freelistN(&sc->objects);
+	}
+	FOREACH_SCENE_COLLECTION_END
+	BLI_freelistN(&scene_layer->object_bases);
+	BLI_freelistN(&freestyle_scene->base);
+
 	// release materials
 	Link *lnk = (Link *)freestyle_bmain->mat.first;
 
