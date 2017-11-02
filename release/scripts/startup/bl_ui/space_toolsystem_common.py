@@ -105,10 +105,10 @@ class ToolSelectPanelHelper:
 
         for tool_items in self.tools_from_context(context):
             if tool_items:
-                col = layout.box().column()
+                col = layout.column(align=True)
                 for item in tool_items:
                     if item is None:
-                        col = layout.box().column()
+                        col = layout.column(align=True)
                         continue
                     text, mp_idname, actions = item
 
@@ -121,7 +121,7 @@ class ToolSelectPanelHelper:
                     props = col.operator(
                         "wm.tool_set",
                         text=text,
-                        emboss=(
+                        depress=(
                             km_idname_active == km_idname and
                             mp_idname_active == mp_idname
                         ),
