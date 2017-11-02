@@ -58,7 +58,8 @@ typedef struct bToolDef {
 	char keymap[64];
 	char manipulator_group[64];
 	int  spacetype;
-	int  _pad;
+	/* index when a tool is a member of a group */
+	int  index;
 } bToolDef;
 
 /**

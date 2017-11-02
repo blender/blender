@@ -1760,6 +1760,9 @@ static int wm_operator_tool_set_exec(bContext *C, wmOperator *op)
 	char id_manipulator_group[sizeof(workspace->tool.manipulator_group)];
 	RNA_string_get(op->ptr, "keymap", id_keymap);
 	RNA_string_get(op->ptr, "manipulator_group", id_manipulator_group);
+	int index = RNA_int_get(op->ptr, "index");
+
+	workspace->tool.index = index;
 
 	if (workspace->tool.manipulator_group[0]) {
 		wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find(workspace->tool.manipulator_group, false);
@@ -1780,6 +1783,8 @@ static int wm_operator_tool_set_exec(bContext *C, wmOperator *op)
 		WM_manipulator_group_type_ensure(workspace->tool.manipulator_group);
 	}
 
+	ED_region_tag_redraw(CTX_wm_region(C));
+
 	return OPERATOR_FINISHED;
 }
 
@@ -1795,6 +1800,7 @@ static void WM_OT_tool_set(wmOperatorType *ot)
 
 	RNA_def_string(ot->srna, "keymap", NULL, KMAP_MAX_NAME, "Key Map", "");
 	RNA_def_string(ot->srna, "manipulator_group", NULL, MAX_NAME, "Manipulator Group", "");
+	RNA_def_int(ot->srna, "index", 0, INT_MIN, INT_MAX, "Index", "", INT_MIN, INT_MAX);
 }
 #endif /* USE_WORKSPACE_TOOL */
 

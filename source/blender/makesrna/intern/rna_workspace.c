@@ -156,6 +156,11 @@ static void rna_def_workspace(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Active Tool", "Currently active tool manipulator");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
+	prop = RNA_def_property(srna, "tool_index", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "tool.index");
+	RNA_def_property_ui_text(prop, "Active Tool Index", "Tool group index");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
 	prop = RNA_def_property(srna, "orientations", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "transform_orientations", NULL);
 	RNA_def_property_struct_type(prop, "TransformOrientation");

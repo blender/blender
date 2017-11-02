@@ -66,20 +66,25 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         None: [
             ("Cursor", None,
              (("view3d.cursor3d", dict(), dict(type='ACTIONMOUSE', value='CLICK')),)),
-            ("Select Border", None, (
-                ("view3d.select_border", dict(deselect=False), dict(type='EVT_TWEAK_A', value='ANY')),
-                ("view3d.select_border", dict(deselect=True), dict(type='EVT_TWEAK_A', value='ANY', ctrl=True)),
-            )),
-            ("Select Circle", None, (
-                ("view3d.select_circle", dict(deselect=False), dict(type='ACTIONMOUSE', value='PRESS')),
-                ("view3d.select_circle", dict(deselect=True), dict(type='ACTIONMOUSE', value='PRESS', ctrl=True)),
-            )),
-            ("Select Lasso", None, (
-                ("view3d.select_lasso",
-                 dict(deselect=False), dict(type='EVT_TWEAK_A', value='ANY')),
-                ("view3d.select_lasso",
-                 dict(deselect=True), dict(type='EVT_TWEAK_A', value='ANY', ctrl=True)),
-            )),
+
+            # 'Select' Group
+            (
+                ("Select Border", None, (
+                    ("view3d.select_border", dict(deselect=False), dict(type='EVT_TWEAK_A', value='ANY')),
+                    ("view3d.select_border", dict(deselect=True), dict(type='EVT_TWEAK_A', value='ANY', ctrl=True)),
+                )),
+                ("Select Circle", None, (
+                    ("view3d.select_circle", dict(deselect=False), dict(type='ACTIONMOUSE', value='PRESS')),
+                    ("view3d.select_circle", dict(deselect=True), dict(type='ACTIONMOUSE', value='PRESS', ctrl=True)),
+                )),
+                ("Select Lasso", None, (
+                    ("view3d.select_lasso",
+                     dict(deselect=False), dict(type='EVT_TWEAK_A', value='ANY')),
+                    ("view3d.select_lasso",
+                     dict(deselect=True), dict(type='EVT_TWEAK_A', value='ANY', ctrl=True)),
+                )),
+            ),
+            # End group.
         ],
         'OBJECT': [
             *_tools_transform,
@@ -122,8 +127,22 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                 ("mesh.polybuild_hover", dict(use_boundary=True), dict(type='MOUSEMOVE', value='ANY', any=True)),
             )),
 
-            ("Knife", None, (("mesh.knife_tool", dict(wait_for_input=False), dict(type='ACTIONMOUSE', value='PRESS')),)),
-            ("Bisect", None, (("mesh.bisect", dict(), dict(type='EVT_TWEAK_A', value='ANY')),)),
+            # Knife Group
+            (
+                ("Knife", None, (
+                    ("mesh.knife_tool",
+                     dict(wait_for_input=False, use_occlude_geometry=True, only_selected=False),
+                     dict(type='ACTIONMOUSE', value='PRESS')),)),
+                ("Knife (Selected)", None, (
+                    ("mesh.knife_tool",
+                     dict(wait_for_input=False, use_occlude_geometry=False, only_selected=True),
+                     dict(type='ACTIONMOUSE', value='PRESS')),)),
+                ("Bisect", None, (
+                    ("mesh.bisect",
+                     dict(),
+                     dict(type='EVT_TWEAK_A', value='ANY')),)),
+            ),
+            # End group.
             ("Extrude Cursor", None,
              (("mesh.dupli_extrude_cursor", dict(), dict(type='ACTIONMOUSE', value='PRESS')),)),
         ],

@@ -68,6 +68,7 @@ _modules = [
     # Generic Space Modules
     #
     # Depends on DNA_WORKSPACE_TOOL (C define).
+    "space_toolsystem_common",
     "space_toolsystem_toolbar",
 
     "space_clip",
