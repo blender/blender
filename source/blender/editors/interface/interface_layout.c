@@ -870,7 +870,7 @@ static uiBut *uiItemFullO_ptr_ex(
 	return but;
 }
 
-static void ui_item_hold_menu(struct bContext *C, ARegion *butregion, uiBut *but)
+static void ui_item_menu_hold(struct bContext *C, ARegion *butregion, uiBut *but)
 {
 	uiPopupMenu *pup = UI_popup_menu_begin(C, "", ICON_NONE);
 	uiLayout *layout = UI_popup_menu_layout(pup);
@@ -878,6 +878,8 @@ static void ui_item_hold_menu(struct bContext *C, ARegion *butregion, uiBut *but
 	UI_popup_menu_but_set(pup, butregion, but);
 
 	block->flag |= UI_BLOCK_POPUP_HOLD;
+	block->flag |= UI_BLOCK_IS_FLIP;
+	UI_block_direction_set(block, UI_DIR_DOWN);
 
 	const char *menu_id = but->hold_argN;
 	MenuType *mt = WM_menutype_find(menu_id, true);
@@ -907,7 +909,7 @@ void uiItemFullOMenuHold_ptr(
         PointerRNA *r_opptr)
 {
 	uiBut *but = uiItemFullO_ptr_ex(layout, ot, name, icon, properties, context, flag, r_opptr);
-	UI_but_func_hold_set(but, ui_item_hold_menu, BLI_strdup(menu_id));
+	UI_but_func_hold_set(but, ui_item_menu_hold, BLI_strdup(menu_id));
 }
 
 void uiItemFullO(
