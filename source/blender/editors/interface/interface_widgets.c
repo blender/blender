@@ -67,7 +67,7 @@
 #define ICON_SIZE_FROM_BUTRECT(rect) (0.8f * BLI_rcti_size_y(rect))
 
 #define UI_BUT_FLAGS_PUBLIC \
-	(UI_SELECT | UI_SCROLLED | UI_ACTIVE | UI_HAS_ICON | UI_HIDDEN)
+	(UI_SELECT | UI_SCROLLED | UI_ACTIVE | UI_HAS_ICON | UI_HIDDEN | UI_SELECT_DRAW)
 
 /* Don't overlap w/ UI_BUT_FLAGS_PUBLIC buts. */
 enum {
@@ -3908,6 +3908,10 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 		roundboxalign = widget_roundbox_set(but, rect);
 
 		state = but->flag & UI_BUT_FLAGS_PUBLIC;
+
+		if (state & UI_SELECT_DRAW) {
+			state |= UI_SELECT;
+		}
 
 		if ((but->editstr) ||
 		    (UNLIKELY(but->flag & UI_BUT_DRAG_MULTI) && ui_but_drag_multi_edit_get(but)))

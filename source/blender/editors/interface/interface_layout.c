@@ -846,7 +846,7 @@ static uiBut *uiItemFullO_ptr_ex(
 		UI_block_emboss_set(block, UI_EMBOSS);
 
 	if (flag & UI_ITEM_O_DEPRESS) {
-		but->flag |= UI_SELECT;
+		but->flag |= UI_SELECT_DRAW;
 	}
 
 	if (layout->redalert)
