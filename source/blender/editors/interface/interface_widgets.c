@@ -67,13 +67,15 @@
 #define ICON_SIZE_FROM_BUTRECT(rect) (0.8f * BLI_rcti_size_y(rect))
 
 #define UI_BUT_FLAGS_PUBLIC \
-	(UI_SELECT | UI_SCROLLED | UI_ACTIVE | UI_HAS_ICON | UI_TEXTINPUT | UI_HIDDEN)
+	(UI_SELECT | UI_SCROLLED | UI_ACTIVE | UI_HAS_ICON | UI_HIDDEN)
 
-/* Bits 0..5 are from UI_SELECT .. etc */
+/* Don't overlap w/ UI_BUT_FLAGS_PUBLIC buts. */
 enum {
 	/* Show that holding the button opens a menu. */
 	UI_STATE_HOLD_ACTION = (1 << 6),
+	UI_STATE_TEXT_INPUT   = (1 << 7),
 };
+
 
 /* ************** widget base functions ************** */
 /**
@@ -1984,7 +1986,7 @@ static void widget_state(uiWidgetType *wt, int state)
 {
 	uiWidgetStateColors *wcol_state = wt->wcol_state;
 
-	if ((state & UI_BUT_LIST_ITEM) && !(state & UI_TEXTINPUT)) {
+	if ((state & UI_BUT_LIST_ITEM) && !(state & UI_STATE_TEXT_INPUT)) {
 		/* Override default widget's colors. */
 		bTheme *btheme = UI_GetTheme();
 		wt->wcol_theme = &btheme->tui.wcol_list_item;
@@ -2678,14 +2680,14 @@ static void widget_numbut_draw(uiWidgetColors *wcol, rcti *rect, int state, int 
 	}
 
 	/* decoration */
-	if (!(state & UI_TEXTINPUT)) {
+	if (!(state & UI_STATE_TEXT_INPUT)) {
 		shape_preset_init_number_arrows(&wtb.tria1, rect, 0.6f, 'l');
 		shape_preset_init_number_arrows(&wtb.tria2, rect, 0.6f, 'r');
 	}
 
 	widgetbase_draw(&wtb, wcol);
 	
-	if (!(state & UI_TEXTINPUT)) {
+	if (!(state & UI_STATE_TEXT_INPUT)) {
 		/* text space */
 		rect->xmin += textofs;
 		rect->xmax -= textofs;
@@ -2964,7 +2966,7 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	widgetbase_draw(&wtb, wcol);
 	
 	/* draw left/right parts only when not in text editing */
-	if (!(state & UI_TEXTINPUT)) {
+	if (!(state & UI_STATE_TEXT_INPUT)) {
 		int roundboxalign_slider;
 		
 		/* slider part */
@@ -3015,7 +3017,7 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	widgetbase_draw(&wtb, wcol);
 
 	/* add space at either side of the button so text aligns with numbuttons (which have arrow icons) */
-	if (!(state & UI_TEXTINPUT)) {
+	if (!(state & UI_STATE_TEXT_INPUT)) {
 		rect->xmax -= toffs;
 		rect->xmin += toffs;
 	}
@@ -3910,7 +3912,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 		if ((but->editstr) ||
 		    (UNLIKELY(but->flag & UI_BUT_DRAG_MULTI) && ui_but_drag_multi_edit_get(but)))
 		{
-			state |= UI_TEXTINPUT;
+			state |= UI_STATE_TEXT_INPUT;
 		}
 
 		if (but->hold_func) {
