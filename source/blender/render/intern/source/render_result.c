@@ -1063,7 +1063,7 @@ void render_result_save_empty_result_tiles(Render *re)
 			IMB_exr_clear_channels(rl->exrhandle);
 		
 			for (pa = re->parts.first; pa; pa = pa->next) {
-				if (pa->status != PART_STATUS_READY) {
+				if (pa->status != PART_STATUS_MERGED) {
 					int party = pa->disprect.ymin - re->disprect.ymin + pa->crop;
 					int partx = pa->disprect.xmin - re->disprect.xmin + pa->crop;
 					IMB_exrtile_write_channels(rl->exrhandle, partx, party, 0, re->viewname);

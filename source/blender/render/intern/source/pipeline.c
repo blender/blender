@@ -1152,7 +1152,7 @@ static void *do_part_thread(void *pa_v)
 		BLI_rw_mutex_unlock(&R.resultmutex);
 	}
 	
-	pa->status = PART_STATUS_READY;
+	pa->status = PART_STATUS_MERGED;
 	
 	return NULL;
 }
@@ -1258,7 +1258,7 @@ static int sort_and_queue_parts(Render *re, int minx, ThreadQueue *workqueue)
 	
 	/* find center of rendered parts, image center counts for 1 too */
 	for (pa = re->parts.first; pa; pa = pa->next) {
-		if (pa->status == PART_STATUS_READY) {
+		if (pa->status >= PART_STATUS_RENDERED) {
 			centx += BLI_rcti_cent_x(&pa->disprect);
 			centy += BLI_rcti_cent_y(&pa->disprect);
 			tot++;
