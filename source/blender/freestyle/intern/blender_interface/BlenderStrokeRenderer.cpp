@@ -169,7 +169,8 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 	// compositor has finished.
 
 	// release objects and data blocks
-	for (Base *b = (Base *)((SceneLayer *)(freestyle_scene->render_layers.first))->object_bases.first; b; b = b->next) {
+	SceneLayer *scene_layer = (SceneLayer *)freestyle_scene->render_layers.first;
+	for (Base *b = (Base *)scene_layer->object_bases.first; b; b = b->next) {
 		Object *ob = b->object;
 		void *data = ob->data;
 		char *name = ob->id.name;
