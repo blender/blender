@@ -6787,11 +6787,8 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 		/*bool is_idprop = RNA_property_is_idprop(prop);*/ /* XXX does not work as expected, not strictly needed */
 		bool is_set = RNA_property_is_set(ptr, prop);
 
-		/* set the prop and pointer data for python access to the hovered ui element; TODO, index could be supported as well*/
-		PointerRNA temp_ptr;
-		RNA_pointer_create(NULL, &RNA_Property, but->rnaprop, &temp_ptr);
-		uiLayoutSetContextPointer(layout, "button_prop", &temp_ptr);
-		uiLayoutSetContextPointer(layout, "button_pointer", ptr);
+		/* Set the (button_pointer, button_prop) and pointer data for Python access to the hovered ui element. */
+		uiLayoutSetContextFromBut(layout, but);
 
 		/* second slower test, saved people finding keyframe items in menus when its not possible */
 		if (is_anim)
@@ -7010,9 +7007,7 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 		}
 
 		/* Set the operator pointer for python access */
-		if (but->opptr) {
-			uiLayoutSetContextPointer(layout, "button_operator", but->opptr);
-		}
+		uiLayoutSetContextFromBut(layout, but);
 
 		uiItemS(layout);
 	}
@@ -7064,10 +7059,7 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 
 	mt = WM_menutype_find("WM_MT_button_context", true);
 	if (mt) {
-		Menu menu = {NULL};
-		menu.layout = uiLayoutColumn(layout, false);
-		menu.type = mt;
-		mt->draw(C, &menu);
+		UI_menutype_draw(C, mt, uiLayoutColumn(layout, false));
 	}
 
 	UI_popup_menu_end(C, pup);
