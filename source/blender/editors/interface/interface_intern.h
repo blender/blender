@@ -120,6 +120,7 @@ enum {
 	UI_ACTIVE       = (1 << 2),
 	UI_HAS_ICON     = (1 << 3),
 	UI_HIDDEN       = (1 << 4),
+	UI_SELECT_DRAW  = (1 << 5),  /* Display selected, doesn't impact interaction. */
 	/* warn: rest of uiBut->flag in UI_interface.h */
 };
 

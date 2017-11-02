@@ -155,7 +155,7 @@ enum {
 
 /* but->flag - general state flags. */
 enum {
-	/* warning, the first 5 flags are internal */
+	/* warning, the first 6 flags are internal */
 	UI_BUT_ICON_SUBMENU    = (1 << 6),
 	UI_BUT_ICON_PREVIEW    = (1 << 7),
 
@@ -201,12 +201,15 @@ enum {
 	UI_BUT_TEXT_RIGHT        = (1 << 3),
 	/* Prevent the button to show any tooltip. */
 	UI_BUT_NO_TOOLTIP        = (1 << 4),
-	/* button align flag, for drawing groups together (also used in uiBlock->flag!) */
+
+	/* Button align flag, for drawing groups together.
+	 * Used in 'uiBlock.flag', take care! */
 	UI_BUT_ALIGN_TOP         = (1 << 14),
 	UI_BUT_ALIGN_LEFT        = (1 << 15),
 	UI_BUT_ALIGN_RIGHT       = (1 << 16),
 	UI_BUT_ALIGN_DOWN        = (1 << 17),
 	UI_BUT_ALIGN             = (UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_LEFT | UI_BUT_ALIGN_RIGHT | UI_BUT_ALIGN_DOWN),
+	/* end bits shared with 'uiBlock.flag' */
 
 	/* Warning - HACK! Needed for buttons which are not TOP/LEFT aligned, but have some top/left corner stitched to some
 	 *                 other TOP/LEFT-aligned button, because of 'corrective' hack in widget_roundbox_set()... */
