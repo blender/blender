@@ -362,6 +362,8 @@ static bPoseChannel *pose_bone_do_paste(Object *ob, bPoseChannel *chan, const bo
 		
 		pchan->roll1 = chan->roll1;
 		pchan->roll2 = chan->roll2;
+		pchan->ease1 = chan->ease1;
+		pchan->ease2 = chan->ease2;
 		pchan->scaleIn = chan->scaleIn;
 		pchan->scaleOut = chan->scaleOut;
 		
@@ -584,6 +586,8 @@ static void pchan_clear_scale(bPoseChannel *pchan)
 	if ((pchan->protectflag & OB_LOCK_SCALEZ) == 0)
 		pchan->size[2] = 1.0f;
 	
+	pchan->ease1 = 0.0f;
+	pchan->ease2 = 0.0f; 
 	pchan->scaleIn = 1.0f;
 	pchan->scaleOut = 1.0f;
 }
@@ -742,7 +746,7 @@ static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op,
 			/* clear any unkeyed tags */
 			if (pchan->bone)
 				pchan->bone->flag &= ~BONE_UNKEYED;
-				
+
 			/* tag for autokeying later */
 			autokey = 1;
 		}

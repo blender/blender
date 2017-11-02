@@ -96,7 +96,7 @@ ccl_device_noinline void shader_setup_from_ray(KernelGlobals *kg,
 		sd->P = triangle_refine(kg, sd, isect, ray);
 		sd->Ng = Ng;
 		sd->N = Ng;
-		
+
 		/* smooth normal */
 		if(sd->shader & SHADER_SMOOTH_NORMAL)
 			sd->N = triangle_smooth_normal(kg, Ng, sd->prim, sd->u, sd->v);
@@ -419,7 +419,7 @@ ccl_device_inline void shader_setup_from_volume(KernelGlobals *kg, ShaderData *s
 {
 	/* vectors */
 	sd->P = ray->P;
-	sd->N = -ray->D;  
+	sd->N = -ray->D;
 	sd->Ng = -ray->D;
 	sd->I = -ray->D;
 	sd->shader = SHADER_NONE;
@@ -428,36 +428,36 @@ ccl_device_inline void shader_setup_from_volume(KernelGlobals *kg, ShaderData *s
 	sd->time = ray->time;
 	sd->ray_length = 0.0f; /* todo: can we set this to some useful value? */
 
-#ifdef __INSTANCING__
+#  ifdef __INSTANCING__
 	sd->object = PRIM_NONE; /* todo: fill this for texture coordinates */
-#endif
+#  endif
 	sd->prim = PRIM_NONE;
 	sd->type = PRIMITIVE_NONE;
 
-#ifdef __UV__
+#  ifdef __UV__
 	sd->u = 0.0f;
 	sd->v = 0.0f;
-#endif
+#  endif
 
-#ifdef __DPDU__
+#  ifdef __DPDU__
 	/* dPdu/dPdv */
 	sd->dPdu = make_float3(0.0f, 0.0f, 0.0f);
 	sd->dPdv = make_float3(0.0f, 0.0f, 0.0f);
-#endif
+#  endif
 
-#ifdef __RAY_DIFFERENTIALS__
+#  ifdef __RAY_DIFFERENTIALS__
 	/* differentials */
 	sd->dP = ray->dD;
 	differential_incoming(&sd->dI, sd->dP);
 	sd->du = differential_zero();
 	sd->dv = differential_zero();
-#endif
+#  endif
 
 	/* for NDC coordinates */
 	sd->ray_P = ray->P;
 	sd->ray_dP = ray->dP;
 }
-#endif
+#endif  /* __VOLUME__ */
 
 /* Merging */
 
@@ -492,7 +492,7 @@ ccl_device_inline void shader_merge_closures(ShaderData *sd)
 		}
 	}
 }
-#endif
+#endif  /* __BRANCHED_PATH__ || __VOLUME__ */
 
 /* Defensive sampling. */
 
@@ -571,7 +571,7 @@ ccl_device_inline void _shader_bsdf_multi_eval_branched(KernelGlobals *kg,
 		}
 	}
 }
-#endif
+#endif  /* __BRANCHED_PATH__ */
 
 
 #ifndef __KERNEL_CUDA__
@@ -797,7 +797,7 @@ ccl_device float3 shader_bsdf_alpha(KernelGlobals *kg, ShaderData *sd)
 
 	alpha = max(alpha, make_float3(0.0f, 0.0f, 0.0f));
 	alpha = min(alpha, make_float3(1.0f, 1.0f, 1.0f));
-	
+
 	return alpha;
 }
 
@@ -919,10 +919,10 @@ ccl_device float3 shader_bssrdf_sum(ShaderData *sd, float3 *N_, float *texture_b
 
 	if(texture_blur_)
 		*texture_blur_ = safe_divide(texture_blur, weight_sum);
-	
+
 	return eval;
 }
-#endif
+#endif  /* __SUBSURFACE__ */
 
 /* Emission */
 
@@ -1001,12 +1001,12 @@ ccl_device float3 shader_eval_background(KernelGlobals *kg, ShaderData *sd,
 	sd->num_closure_extra = 0;
 
 #ifdef __SVM__
-#ifdef __OSL__
+#  ifdef __OSL__
 	if(kg->osl) {
 		OSLShader::eval_background(kg, sd, state, path_flag);
 	}
 	else
-#endif
+#  endif  /* __OSL__ */
 	{
 		svm_eval_nodes(kg, sd, state, SHADER_TYPE_SURFACE, path_flag);
 	}
@@ -1021,9 +1021,9 @@ ccl_device float3 shader_eval_background(KernelGlobals *kg, ShaderData *sd,
 	}
 
 	return eval;
-#else
+#else  /* __SVM__ */
 	return make_float3(0.8f, 0.8f, 0.8f);
-#endif
+#endif  /* __SVM__ */
 }
 
 /* Volume */
@@ -1075,7 +1075,7 @@ ccl_device int shader_volume_phase_sample(KernelGlobals *kg, const ShaderData *s
 
 		for(sampled = 0; sampled < sd->num_closure; sampled++) {
 			const ShaderClosure *sc = &sd->closure[sampled];
-			
+
 			if(CLOSURE_IS_PHASE(sc->type))
 				sum += sc->sample_weight;
 		}
@@ -1085,7 +1085,7 @@ ccl_device int shader_volume_phase_sample(KernelGlobals *kg, const ShaderData *s
 
 		for(sampled = 0; sampled < sd->num_closure; sampled++) {
 			const ShaderClosure *sc = &sd->closure[sampled];
-			
+
 			if(CLOSURE_IS_PHASE(sc->type)) {
 				float next_sum = partial_sum + sc->sample_weight;
 
@@ -1191,7 +1191,7 @@ ccl_device_inline void shader_eval_volume(KernelGlobals *kg,
 	}
 }
 
-#endif
+#endif  /* __VOLUME__ */
 
 /* Displacement Evaluation */
 
@@ -1236,7 +1236,6 @@ ccl_device bool shader_transparent_shadow(KernelGlobals *kg, Intersection *isect
 
 	return (flag & SD_HAS_TRANSPARENT_SHADOW) != 0;
 }
-#endif
+#endif  /* __TRANSPARENT_SHADOWS__ */
 
 CCL_NAMESPACE_END
-

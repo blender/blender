@@ -1444,19 +1444,20 @@ static EditBone *add_editbonetolist(char *name, ListBase *list)
 	bone->dist = 0.25F;
 	bone->xwidth = 0.1;
 	bone->zwidth = 0.1;
-	bone->ease1 = 1.0;
-	bone->ease2 = 1.0;
 	bone->rad_head = 0.10;
 	bone->rad_tail = 0.05;
 	bone->segments = 1;
 	bone->layer =  1; //arm->layer;
 	
+	/* Bendy-Bone parameters */
 	bone->roll1 = 0.0f;
 	bone->roll2 = 0.0f;
 	bone->curveInX = 0.0f;
 	bone->curveInY = 0.0f;
 	bone->curveOutX = 0.0f;
 	bone->curveOutY = 0.0f;
+	bone->ease1 = 1.0f;
+	bone->ease2 = 1.0f;
 	bone->scaleIn = 1.0f;
 	bone->scaleOut = 1.0f;
 

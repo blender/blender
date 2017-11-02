@@ -1197,14 +1197,14 @@ static void mask_calc_point_handle(MaskSplinePoint *point, MaskSplinePoint *poin
 
 #if 1
 	if (bezt_prev || bezt_next) {
-		BKE_nurb_handle_calc(bezt, bezt_prev, bezt_next, 0);
+		BKE_nurb_handle_calc(bezt, bezt_prev, bezt_next, 0, 0);
 	}
 #else
 	if (handle_type == HD_VECT) {
-		BKE_nurb_handle_calc(bezt, bezt_prev, bezt_next, 0);
+		BKE_nurb_handle_calc(bezt, bezt_prev, bezt_next, 0, 0);
 	}
 	else if (handle_type == HD_AUTO) {
-		BKE_nurb_handle_calc(bezt, bezt_prev, bezt_next, 0);
+		BKE_nurb_handle_calc(bezt, bezt_prev, bezt_next, 0, 0);
 	}
 	else if (handle_type == HD_ALIGN || handle_type == HD_ALIGN_DOUBLESIDE) {
 		float v1[3], v2[3];

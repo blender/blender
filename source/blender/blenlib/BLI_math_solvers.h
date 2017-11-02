@@ -48,6 +48,11 @@ bool BLI_eigen_solve_selfadjoint_m3(const float m3[3][3], float r_eigen_values[3
 
 void BLI_svd_m3(const float m3[3][3], float r_U[3][3], float r_S[], float r_V[3][3]);
 
+/***************************** Simple Solvers ************************************/
+
+bool BLI_tridiagonal_solve(const float *a, const float *b, const float *c, const float *d, float *r_x, const int count);
+bool BLI_tridiagonal_solve_cyclic(const float *a, const float *b, const float *c, const float *d, float *r_x, const int count);
+
 /**************************** Inline Definitions ******************************/
 #if 0  /* None so far. */
 #  if BLI_MATH_DO_INLINE

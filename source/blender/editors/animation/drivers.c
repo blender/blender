@@ -104,6 +104,7 @@ FCurve *verify_driver_fcurve(ID *id, const char rna_path[], const int array_inde
 		fcu = MEM_callocN(sizeof(FCurve), "FCurve");
 		
 		fcu->flag = (FCURVE_VISIBLE | FCURVE_SELECTED);
+		fcu->auto_smoothing = FCURVE_SMOOTH_CONT_ACCEL;
 		
 		/* store path - make copy, and store that */
 		fcu->rna_path = BLI_strdup(rna_path);

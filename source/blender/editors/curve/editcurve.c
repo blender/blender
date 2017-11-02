@@ -595,7 +595,7 @@ static void calc_keyHandles(ListBase *nurb, float *key)
 				if (nextp) key_to_bezt(nextfp, nextp, &next);
 				if (prevp) key_to_bezt(prevfp, prevp, &prev);
 
-				BKE_nurb_handle_calc(&cur, prevp ? &prev : NULL, nextp ? &next : NULL, 0);
+				BKE_nurb_handle_calc(&cur, prevp ? &prev : NULL, nextp ? &next : NULL, 0, 0);
 				bezt_to_key(&cur, fp);
 
 				prevp = bezt;

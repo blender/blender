@@ -268,6 +268,7 @@ typedef struct bPoseChannel {
 	float roll1, roll2;
 	float curveInX, curveInY;
 	float curveOutX, curveOutY;
+	float ease1, ease2;
 	float scaleIn, scaleOut;
 	
 	struct bPoseChannel *bbone_prev; /* next/prev bones to use as handle references when calculating bbones (optional) */

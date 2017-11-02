@@ -1387,6 +1387,7 @@ void BKE_nlastrip_validate_fcurves(NlaStrip *strip)
 			
 			/* set default flags */
 			fcu->flag = (FCURVE_VISIBLE | FCURVE_SELECTED);
+			fcu->auto_smoothing = FCURVE_SMOOTH_CONT_ACCEL;
 			
 			/* store path - make copy, and store that */
 			fcu->rna_path = BLI_strdupn("influence", 9);
@@ -1408,6 +1409,7 @@ void BKE_nlastrip_validate_fcurves(NlaStrip *strip)
 			
 			/* set default flags */
 			fcu->flag = (FCURVE_VISIBLE | FCURVE_SELECTED);
+			fcu->auto_smoothing = FCURVE_SMOOTH_CONT_ACCEL;
 			
 			/* store path - make copy, and store that */
 			fcu->rna_path = BLI_strdupn("strip_time", 10);

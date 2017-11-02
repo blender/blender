@@ -2678,6 +2678,10 @@ static void ui_but_free(const bContext *C, uiBut *but)
 		MEM_freeN(but->tip_argN);
 	}
 
+	if (but->hold_argN) {
+		MEM_freeN(but->hold_argN);
+	}
+
 	if (!but->editstr && but->free_search_arg) {
 		MEM_SAFE_FREE(but->search_arg);
 	}
@@ -4530,6 +4534,12 @@ void UI_but_focus_on_enter_event(wmWindow *win, uiBut *but)
 	event.customdatafree = false;
 	
 	wm_event_add(win, &event);
+}
+
+void UI_but_func_hold_set(uiBut *but, uiButHandleHoldFunc func, void *argN)
+{
+	but->hold_func = func;
+	but->hold_argN = argN;
 }
 
 void UI_but_string_info_get(bContext *C, uiBut *but, ...)

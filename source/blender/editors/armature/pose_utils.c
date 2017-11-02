@@ -115,6 +115,8 @@ static void fcurves_to_pchan_links_get(ListBase *pfLinks, Object *ob, bAction *a
 		pfl->curveInY = pchan->curveInY;
 		pfl->curveOutX = pchan->curveOutX;
 		pfl->curveOutY = pchan->curveOutY;
+		pfl->ease1 = pchan->ease1;
+		pfl->ease2 = pchan->ease2;
 		pfl->scaleIn = pchan->scaleIn;
 		pfl->scaleOut = pchan->scaleOut;
 		
@@ -223,6 +225,8 @@ void poseAnim_mapping_reset(ListBase *pfLinks)
 		pchan->curveInY = pfl->curveInY;
 		pchan->curveOutX = pfl->curveOutX;
 		pchan->curveOutY = pfl->curveOutY;
+		pchan->ease1 = pfl->ease1;
+		pchan->ease2 = pfl->ease2;
 		pchan->scaleIn = pfl->scaleIn;
 		pchan->scaleOut = pfl->scaleOut;
 		

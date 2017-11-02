@@ -613,8 +613,10 @@ void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BB
 	{
 		const float circle_factor = length * (cubic_tangent_factor_circle_v3(h1, h2) / 0.75f);
 
-		const float hlength1 = bone->ease1 * circle_factor;
-		const float hlength2 = bone->ease2 * circle_factor;
+		const float combined_ease1 = bone->ease1 + (!rest ? pchan->ease1 : 0.0f);
+		const float combined_ease2 = bone->ease2 + (!rest ? pchan->ease2 : 0.0f);
+		const float hlength1 = combined_ease1 * circle_factor;
+		const float hlength2 = combined_ease2 * circle_factor;
 
 		/* and only now negate h2 */
 		mul_v3_fl(h1,  hlength1);

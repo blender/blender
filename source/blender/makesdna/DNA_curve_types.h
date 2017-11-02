@@ -124,7 +124,8 @@ typedef struct BezTriple {
 	float back;					/* BEZT_IPO_BACK */
 	float amplitude, period;	/* BEZT_IPO_ELASTIC */
 
-	char  pad[4];
+	char f5;					/* f5: used for auto handle to distinguish between normal handle and exception (extrema) */
+	char  pad[3];
 } BezTriple;
 
 /* note; alfa location in struct is abused by Key system */
@@ -395,6 +396,12 @@ typedef enum eBezTriple_Handle {
 	HD_AUTO_ANIM = 4,         /* auto-clamped handles for animation */
 	HD_ALIGN_DOUBLESIDE = 5,  /* align handles, displayed both of them. used for masks */
 } eBezTriple_Handle;
+
+/* f5 (beztriple) */
+typedef enum eBezTriple_Auto_Type {
+	HD_AUTOTYPE_NORMAL = 0,
+	HD_AUTOTYPE_SPECIAL = 1
+} eBezTriple_Auto_Type;
 
 /* interpolation modes (used only for BezTriple->ipo) */
 typedef enum eBezTriple_Interpolation {

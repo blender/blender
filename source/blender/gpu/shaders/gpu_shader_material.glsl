@@ -2578,7 +2578,11 @@ float schlick_fresnel(float u)
 
 float GTR1(float NdotH, float a)
 {
-	if (a >= 1.0) return M_1_PI;
+	if (a >= 1.0) {
+		return M_1_PI;
+	}
+
+	a = max(a, 0.001);
 	float a2 = a*a;
 	float t = 1.0 + (a2 - 1.0) * NdotH*NdotH;
 	return (a2 - 1.0) / (M_PI * log(a2) * t);

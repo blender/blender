@@ -75,12 +75,15 @@ typedef struct EditBone {
 	
 	float dist, weight;
 	float xwidth, length, zwidth;  /* put them in order! transform uses this as scale */
-	float ease1, ease2;
 	float rad_head, rad_tail;
+
+	/* Bendy-Bone parameters */
 	float roll1, roll2;
 	float curveOutX, curveOutY;
 	float curveInX, curveInY;
+	float ease1, ease2;
 	float scaleIn, scaleOut;
+
 	float oldlength;        /* for envelope scaling */
 	
 	short segments;

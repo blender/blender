@@ -543,7 +543,22 @@ void rna_def_bone_curved_common(StructRNA *srna, bool is_posebone)
 	RNA_def_property_range(prop, -5.0f, 5.0f);
 	RNA_def_property_ui_text(prop, "Out Y", "Y-axis handle offset for end of the B-Bone's curve, adjusts curvature");
 	RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone);
+
+	/* Ease In/Out */
+	prop = RNA_def_property(srna, "bbone_easein", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "ease1");
+	RNA_def_property_range(prop, -5.0f, 5.0f);
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_ui_text(prop, "B-Bone Ease In", "Length of first Bezier Handle (for B-Bones only)");
+	RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone);
 	
+	prop = RNA_def_property(srna, "bbone_easeout", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "ease2");
+	RNA_def_property_range(prop, -5.0f, 5.0f);
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_ui_text(prop, "B-Bone Ease Out", "Length of second Bezier Handle (for B-Bones only)");
+	RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone);
+
 	/* Scale In/Out */
 	prop = RNA_def_property(srna, "bbone_scalein", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "scaleIn");
@@ -681,18 +696,6 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	RNA_def_property_ui_text(prop, "B-Bone Segments", "Number of subdivisions of bone (for B-Bones only)");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	
-	prop = RNA_def_property(srna, "bbone_in", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "ease1");
-	RNA_def_property_range(prop, 0.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "B-Bone Ease In", "Length of first Bezier Handle (for B-Bones only)");
-	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
-	
-	prop = RNA_def_property(srna, "bbone_out", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "ease2");
-	RNA_def_property_range(prop, 0.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "B-Bone Ease Out", "Length of second Bezier Handle (for B-Bones only)");
-	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
-
 	prop = RNA_def_property(srna, "bbone_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "xwidth");
 	RNA_def_property_range(prop, 0.0f, 1000.0f);

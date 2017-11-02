@@ -188,6 +188,7 @@ FCurve *verify_fcurve(bAction *act, const char group[], PointerRNA *ptr,
 		fcu = MEM_callocN(sizeof(FCurve), "FCurve");
 		
 		fcu->flag = (FCURVE_VISIBLE | FCURVE_SELECTED);
+		fcu->auto_smoothing = FCURVE_SMOOTH_CONT_ACCEL;
 		if (BLI_listbase_is_empty(&act->curves))
 			fcu->flag |= FCURVE_ACTIVE;  /* first one added active */
 			

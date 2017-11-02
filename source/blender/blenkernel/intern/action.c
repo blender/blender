@@ -876,6 +876,8 @@ static void copy_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *chan
 	pchan->curveInY = chan->curveInY;
 	pchan->curveOutX = chan->curveOutX;
 	pchan->curveOutY = chan->curveOutY;
+	pchan->ease1 = chan->ease1;
+	pchan->ease2 = chan->ease2;
 	pchan->scaleIn = chan->scaleIn;
 	pchan->scaleOut = chan->scaleOut;
 	
@@ -1367,6 +1369,7 @@ void BKE_pose_rest(bPose *pose)
 		pchan->roll1 = pchan->roll2 = 0.0f;
 		pchan->curveInX = pchan->curveInY = 0.0f;
 		pchan->curveOutX = pchan->curveOutY = 0.0f;
+		pchan->ease1 = pchan->ease2 = 0.0f;
 		pchan->scaleIn = pchan->scaleOut = 1.0f;
 		
 		pchan->flag &= ~(POSE_LOC | POSE_ROT | POSE_SIZE | POSE_BBONE_SHAPE);
@@ -1410,6 +1413,8 @@ bool BKE_pose_copy_result(bPose *to, bPose *from)
 			pchanto->curveInY = pchanfrom->curveInY;
 			pchanto->curveOutX = pchanfrom->curveOutX;
 			pchanto->curveOutY = pchanfrom->curveOutY;
+			pchanto->ease1 = pchanfrom->ease1;
+			pchanto->ease2 = pchanfrom->ease2;
 			pchanto->scaleIn = pchanfrom->scaleIn;
 			pchanto->scaleOut = pchanfrom->scaleOut;
 			

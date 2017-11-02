@@ -463,19 +463,20 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone 
 		eBone->weight = curBone->weight;
 		eBone->xwidth = curBone->xwidth;
 		eBone->zwidth = curBone->zwidth;
-		eBone->ease1 = curBone->ease1;
-		eBone->ease2 = curBone->ease2;
 		eBone->rad_head = curBone->rad_head;
 		eBone->rad_tail = curBone->rad_tail;
 		eBone->segments = curBone->segments;
 		eBone->layer = curBone->layer;
 
+		/* Bendy-Bone parameters */
 		eBone->roll1 = curBone->roll1;
 		eBone->roll2 = curBone->roll2;
 		eBone->curveInX = curBone->curveInX;
 		eBone->curveInY = curBone->curveInY;
 		eBone->curveOutX = curBone->curveOutX;
 		eBone->curveOutY = curBone->curveOutY;
+		eBone->ease1 = curBone->ease1;
+		eBone->ease2 = curBone->ease2;
 		eBone->scaleIn = curBone->scaleIn;
 		eBone->scaleOut = curBone->scaleOut;
 
@@ -627,19 +628,20 @@ void ED_armature_from_edit(bArmature *arm)
 		
 		newBone->xwidth = eBone->xwidth;
 		newBone->zwidth = eBone->zwidth;
-		newBone->ease1 = eBone->ease1;
-		newBone->ease2 = eBone->ease2;
 		newBone->rad_head = eBone->rad_head;
 		newBone->rad_tail = eBone->rad_tail;
 		newBone->segments = eBone->segments;
 		newBone->layer = eBone->layer;
 
+		/* Bendy-Bone parameters */
 		newBone->roll1 = eBone->roll1;
 		newBone->roll2 = eBone->roll2;
 		newBone->curveInX = eBone->curveInX;
 		newBone->curveInY = eBone->curveInY;
 		newBone->curveOutX = eBone->curveOutX;
 		newBone->curveOutY = eBone->curveOutY;
+		newBone->ease1 = eBone->ease1;
+		newBone->ease2 = eBone->ease2;
 		newBone->scaleIn = eBone->scaleIn;
 		newBone->scaleOut = eBone->scaleOut;
 
