@@ -3050,7 +3050,6 @@ int UI_pie_menu_invoke(struct bContext *C, const char *idname, const wmEvent *ev
 {
 	uiPieMenu *pie;
 	uiLayout *layout;
-	Menu menu;
 	MenuType *mt = WM_menutype_find(idname, true);
 
 	if (mt == NULL) {
@@ -3065,14 +3064,7 @@ int UI_pie_menu_invoke(struct bContext *C, const char *idname, const wmEvent *ev
 	pie = UI_pie_menu_begin(C, IFACE_(mt->label), ICON_NONE, event);
 	layout = UI_pie_menu_layout(pie);
 
-	menu.layout = layout;
-	menu.type = mt;
-
-	if (G.debug & G_DEBUG_WM) {
-		printf("%s: opening menu \"%s\"\n", __func__, idname);
-	}
-
-	mt->draw(C, &menu);
+	UI_menutype_draw(C, mt, layout);
 
 	UI_pie_menu_end(C, pie);
 
@@ -3283,7 +3275,6 @@ int UI_popup_menu_invoke(bContext *C, const char *idname, ReportList *reports)
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;
-	Menu menu;
 	MenuType *mt = WM_menutype_find(idname, true);
 
 	if (mt == NULL) {
@@ -3298,14 +3289,7 @@ int UI_popup_menu_invoke(bContext *C, const char *idname, ReportList *reports)
 	pup = UI_popup_menu_begin(C, IFACE_(mt->label), ICON_NONE);
 	layout = UI_popup_menu_layout(pup);
 
-	menu.layout = layout;
-	menu.type = mt;
-
-	if (G.debug & G_DEBUG_WM) {
-		printf("%s: opening menu \"%s\"\n", __func__, idname);
-	}
-
-	mt->draw(C, &menu);
+	UI_menutype_draw(C, mt, layout);
 
 	UI_popup_menu_end(C, pup);
 

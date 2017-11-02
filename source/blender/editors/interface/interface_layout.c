@@ -882,10 +882,8 @@ static void ui_item_hold_menu(struct bContext *C, ARegion *butregion, uiBut *but
 	const char *menu_id = but->hold_argN;
 	MenuType *mt = WM_menutype_find(menu_id, true);
 	if (mt) {
-		Menu menu = {NULL};
-		menu.layout = layout;
-		menu.type = mt;
-		mt->draw(C, &menu);
+		uiLayoutSetContextFromBut(layout, but);
+		UI_menutype_draw(C, mt, layout);
 	}
 	else {
 		uiItemL(layout, "Menu Missing:", ICON_NONE);
@@ -1860,22 +1858,8 @@ void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const char *propna
 static void ui_item_menutype_func(bContext *C, uiLayout *layout, void *arg_mt)
 {
 	MenuType *mt = (MenuType *)arg_mt;
-	Menu menu = {NULL};
 
-	menu.type = mt;
-	menu.layout = layout;
-
-	if (G.debug & G_DEBUG_WM) {
-		printf("%s: opening menu \"%s\"\n", __func__, mt->idname);
-	}
-
-	if (layout->context)
-		CTX_store_set(C, layout->context);
-
-	mt->draw(C, &menu);
-
-	if (layout->context)
-		CTX_store_set(C, NULL);
+	UI_menutype_draw(C, mt, layout);
 
 	/* menus are created flipped (from event handling pov) */
 	layout->root->block->flag ^= UI_BLOCK_IS_FLIP;
@@ -3547,6 +3531,20 @@ void uiLayoutContextCopy(uiLayout *layout, bContextStore *context)
 	layout->context = CTX_store_add_all(&block->contexts, context);
 }
 
+void uiLayoutSetContextFromBut(uiLayout *layout, uiBut *but)
+{
+	if (but->opptr) {
+		uiLayoutSetContextPointer(layout, "button_operator", but->opptr);
+	}
+
+	if (but->rnapoin.data && but->rnaprop) {
+		/* TODO: index could be supported as well */
+		PointerRNA ptr_prop;
+		RNA_pointer_create(NULL, &RNA_Property, but->rnaprop, &ptr_prop);
+		uiLayoutSetContextPointer(layout, "button_prop", &ptr_prop);
+		uiLayoutSetContextPointer(layout, "button_pointer", &but->rnapoin);
+	}
+}
 
 /* introspect funcs */
 #include "BLI_dynstr.h"
@@ -3643,5 +3641,27 @@ MenuType *UI_but_menutype_get(uiBut *but)
 	}
 	else {
 		return NULL;
+	}
+}
+
+void UI_menutype_draw(bContext *C, MenuType *mt, struct uiLayout *layout)
+{
+	Menu menu = {
+		.layout = layout,
+		.type = mt,
+	};
+
+	if (G.debug & G_DEBUG_WM) {
+		printf("%s: opening menu \"%s\"\n", __func__, mt->idname);
+	}
+
+	if (layout->context) {
+		CTX_store_set(C, layout->context);
+	}
+
+	mt->draw(C, &menu);
+
+	if (layout->context) {
+		CTX_store_set(C, NULL);
 	}
 }
