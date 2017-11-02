@@ -430,7 +430,10 @@ public:
 		        << string_human_readable_number(max_buffer_size) << " bytes. ("
 		        << string_human_readable_size(max_buffer_size) << ").";
 
-		size_t num_elements = max_elements_for_max_buffer_size(kg, data, max_buffer_size / 2);
+		/* Limit to 2gb, as we shouldn't need more than that and some devices may support much more. */
+		max_buffer_size = min(max_buffer_size / 2, (cl_ulong)2l*1024*1024*1024);
+
+		size_t num_elements = max_elements_for_max_buffer_size(kg, data, max_buffer_size);
 		int2 global_size = make_int2(max(round_down((int)sqrt(num_elements), 64), 64), (int)sqrt(num_elements));
 		VLOG(1) << "Global size: " << global_size << ".";
 		return global_size;

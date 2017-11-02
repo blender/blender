@@ -155,7 +155,7 @@ enum {
 
 /* but->flag - general state flags. */
 enum {
-	/* warning, the first 6 flags are internal */
+	/* warning, the first 5 flags are internal */
 	UI_BUT_ICON_SUBMENU    = (1 << 6),
 	UI_BUT_ICON_PREVIEW    = (1 << 7),
 

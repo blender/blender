@@ -119,8 +119,7 @@ enum {
 	UI_SCROLLED     = (1 << 1),  /* temp hidden, scrolled away */
 	UI_ACTIVE       = (1 << 2),
 	UI_HAS_ICON     = (1 << 3),
-	UI_TEXTINPUT    = (1 << 4),
-	UI_HIDDEN       = (1 << 5),
+	UI_HIDDEN       = (1 << 4),
 	/* warn: rest of uiBut->flag in UI_interface.h */
 };
 
