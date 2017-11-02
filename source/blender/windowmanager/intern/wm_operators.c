@@ -1783,7 +1783,8 @@ static int wm_operator_tool_set_exec(bContext *C, wmOperator *op)
 		WM_manipulator_group_type_ensure(workspace->tool.manipulator_group);
 	}
 
-	ED_region_tag_redraw(CTX_wm_region(C));
+	/* For some reason redraw fails with menus (even though 'ar' isn't the menu's region). */
+	ED_area_tag_redraw(sa);
 
 	return OPERATOR_FINISHED;
 }
