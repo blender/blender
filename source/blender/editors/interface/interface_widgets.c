@@ -69,11 +69,11 @@
 #define UI_BUT_FLAGS_PUBLIC \
 	(UI_SELECT | UI_SCROLLED | UI_ACTIVE | UI_HAS_ICON | UI_HIDDEN | UI_SELECT_DRAW)
 
-/* Don't overlap w/ UI_BUT_FLAGS_PUBLIC buts. */
+/* Don't overlap w/ UI_BUT_FLAGS_PUBLIC bits. */
 enum {
 	/* Show that holding the button opens a menu. */
 	UI_STATE_HOLD_ACTION = (1 << 6),
-	UI_STATE_TEXT_INPUT   = (1 << 7),
+	UI_STATE_TEXT_INPUT  = (1 << 7),
 };
 
 
