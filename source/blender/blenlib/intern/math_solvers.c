@@ -90,8 +90,8 @@ bool BLI_tridiagonal_solve(const float *a, const float *b, const float *c, const
 	if (count < 1)
 		return false;
 
-	size_t bytes = sizeof(double)*(unsigned)count;
-	double *c1 = (double *)MEM_mallocN(bytes*2, "tridiagonal_c1d1");
+	size_t bytes = sizeof(double) * (unsigned)count;
+	double *c1 = (double *)MEM_mallocN(bytes * 2, "tridiagonal_c1d1");
 	double *d1 = c1 + count;
 
 	if (!c1)
@@ -106,10 +106,10 @@ bool BLI_tridiagonal_solve(const float *a, const float *b, const float *c, const
 	d1[0] = d_prev = ((double)d[0]) / b[0];
 
 	for (i = 1; i < count; i++) {
-		double denum = b[i] - a[i]*c_prev;
+		double denum = b[i] - a[i] * c_prev;
 
 		c1[i] = c_prev = c[i] / denum;
-		d1[i] = d_prev = (d[i] - a[i]*d_prev) / denum;
+		d1[i] = d_prev = (d[i] - a[i] * d_prev) / denum;
 	}
 
 	/* back pass */
@@ -138,15 +138,15 @@ bool BLI_tridiagonal_solve_cyclic(const float *a, const float *b, const float *c
 	if (count < 1)
 		return false;
 
-	float a0 = a[0], cN = c[count-1];
+	float a0 = a[0], cN = c[count - 1];
 
 	/* if not really cyclic, fall back to the simple solver */
 	if (a0 == 0.0f && cN == 0.0f) {
 		return BLI_tridiagonal_solve(a, b, c, d, r_x, count);
 	}
 
-	size_t bytes = sizeof(float)*(unsigned)count;
-	float *tmp = (float*)MEM_mallocN(bytes*2, "tridiagonal_ex");
+	size_t bytes = sizeof(float) * (unsigned)count;
+	float *tmp = (float *)MEM_mallocN(bytes * 2, "tridiagonal_ex");
 	float *b2 = tmp + count;
 
 	if (!tmp)
@@ -155,11 +155,11 @@ bool BLI_tridiagonal_solve_cyclic(const float *a, const float *b, const float *c
 	/* prepare the noncyclic system; relies on tridiagonal_solve ignoring values */
 	memcpy(b2, b, bytes);
 	b2[0] -= a0;
-	b2[count-1] -= cN;
+	b2[count - 1] -= cN;
 
 	memset(tmp, 0, bytes);
 	tmp[0] = a0;
-	tmp[count-1] = cN;
+	tmp[count - 1] = cN;
 
 	/* solve for partial solution and adjustment vector */
 	bool success =
@@ -168,7 +168,7 @@ bool BLI_tridiagonal_solve_cyclic(const float *a, const float *b, const float *c
 
 	/* apply adjustment */
 	if (success) {
-		float coeff = (r_x[0] + r_x[count-1]) / (1.0f + tmp[0] + tmp[count-1]);
+		float coeff = (r_x[0] + r_x[count - 1]) / (1.0f + tmp[0] + tmp[count - 1]);
 
 		for (int i = 0; i < count; i++) {
 			r_x[i] -= coeff * tmp[i];
