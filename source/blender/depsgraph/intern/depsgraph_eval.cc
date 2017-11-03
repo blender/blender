@@ -85,8 +85,7 @@ void DEG_evaluation_context_init_from_scene(EvaluationContext *eval_ctx,
                                             eEvaluationMode mode)
 {
 	DEG_evaluation_context_init(eval_ctx, mode);
-	/* TODO(sergey): Use proper depsgraph here. */
-	eval_ctx->depsgraph = scene->depsgraph_legacy;
+	eval_ctx->depsgraph = BKE_scene_get_depsgraph(scene, scene_layer);
 	eval_ctx->scene_layer = scene_layer;
 	eval_ctx->engine = engine;
 	eval_ctx->ctime = BKE_scene_frame_get(scene);
