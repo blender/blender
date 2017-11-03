@@ -274,7 +274,7 @@ static void export_startjob(void *customdata, short *stop, short *do_update, flo
 		if (CFRA != orig_frame) {
 			CFRA = orig_frame;
 
-			BKE_scene_update_for_newframe(data->bmain->eval_ctx, data->bmain, scene);
+			BKE_scene_graph_update_for_newframe(data->bmain->eval_ctx, data->depsgraph, data->bmain, scene);
 		}
 
 		data->export_ok = !data->was_canceled;
