@@ -583,25 +583,24 @@ struct uiPopupBlockHandle {
 /* #endif */
 };
 
-uiBlock *ui_block_func_COLOR(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);
+/* -------------------------------------------------------------------- */
+/* interface_region_*.c */
 
+/* interface_region_tooltip.c */
 struct ARegion *ui_tooltip_create(struct bContext *C, struct ARegion *butregion, uiBut *but);
 void ui_tooltip_free(struct bContext *C, struct ARegion *ar);
 
-uiBut *ui_popup_menu_memory_get(struct uiBlock *block);
-void   ui_popup_menu_memory_set(uiBlock *block, struct uiBut *but);
-
-void   ui_popup_translate(struct bContext *C, struct ARegion *ar, const int mdiff[2]);
-
-ColorPicker *ui_block_colorpicker_create(struct uiBlock *block);
-void ui_popup_block_scrolltest(struct uiBlock *block);
-
+/* interface_region_color_picker.c */
 void ui_rgb_to_color_picker_compat_v(const float rgb[3], float r_cp[3]);
 void ui_rgb_to_color_picker_v(const float rgb[3], float r_cp[3]);
 void ui_color_picker_to_rgb_v(const float r_cp[3], float rgb[3]);
 void ui_color_picker_to_rgb(float r_cp0, float r_cp1, float r_cp2, float *r, float *g, float *b);
 
-/* searchbox for string button */
+uiBlock *ui_block_func_COLOR(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);
+ColorPicker *ui_block_colorpicker_create(struct uiBlock *block);
+
+/* interface_region_search.c */
+/* Searchbox for string button */
 ARegion *ui_searchbox_create_generic(struct bContext *C, struct ARegion *butregion, uiBut *but);
 ARegion *ui_searchbox_create_operator(struct bContext *C, struct ARegion *butregion, uiBut *but);
 bool ui_searchbox_inside(struct ARegion *ar, int x, int y);
@@ -612,6 +611,12 @@ void ui_searchbox_event(struct bContext *C, struct ARegion *ar, uiBut *but, cons
 bool ui_searchbox_apply(uiBut *but, struct ARegion *ar);
 void ui_searchbox_free(struct bContext *C, struct ARegion *ar);
 void ui_but_search_refresh(uiBut *but);
+
+/* interface_region_menu_popup.c */
+int    ui_but_menu_step(uiBut *but, int step);
+bool   ui_but_menu_step_poll(const uiBut *but);
+uiBut *ui_popup_menu_memory_get(struct uiBlock *block);
+void   ui_popup_menu_memory_set(uiBlock *block, struct uiBut *but);
 
 uiBlock *ui_popup_block_refresh(
         struct bContext *C, uiPopupBlockHandle *handle,
@@ -625,14 +630,17 @@ uiPopupBlockHandle *ui_popup_menu_create(
         struct bContext *C, struct ARegion *butregion, uiBut *but,
         uiMenuCreateFunc create_func, void *arg);
 
+/* interface_region_menu_pie.c */
 void ui_pie_menu_level_create(
         uiBlock *block, struct wmOperatorType *ot, const char *propname, IDProperty *properties,
         const EnumPropertyItem *items, int totitem, int context, int flag);
 
+/* interface_region_popup.c */
+void ui_popup_translate(struct bContext *C, struct ARegion *ar, const int mdiff[2]);
 void ui_popup_block_free(struct bContext *C, uiPopupBlockHandle *handle);
+void ui_popup_block_scrolltest(struct uiBlock *block);
 
-int  ui_but_menu_step(uiBut *but, int step);
-bool ui_but_menu_step_poll(const uiBut *but);
+/* end interface_region_*.c */
 
 
 /* interface_panel.c */
