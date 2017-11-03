@@ -159,7 +159,6 @@ void BKE_scene_graph_update_for_newframe(struct EvaluationContext *eval_ctx,
 
 /* NOTE: DO NOT USE THOSE IN NEW CODE! */
 void BKE_scene_update_tagged(struct EvaluationContext *eval_ctx, struct Main *bmain, struct Scene *sce);
-void BKE_scene_update_for_newframe(struct EvaluationContext *eval_ctx, struct Main *bmain, struct Scene *sce);
 
 struct SceneRenderLayer *BKE_scene_add_render_layer(struct Scene *sce, const char *name);
 bool BKE_scene_remove_render_layer(struct Main *main, struct Scene *scene, struct SceneRenderLayer *srl);

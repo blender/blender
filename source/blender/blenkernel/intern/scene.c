@@ -1681,14 +1681,6 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 	BKE_scene_graph_update_tagged(eval_ctx, scene->depsgraph_legacy, bmain, scene);
 }
 
-void BKE_scene_update_for_newframe(EvaluationContext *eval_ctx, Main *bmain, Scene *scene)
-{
-	/* Make sure graph is allocated. This is not always guaranteed now. */
-	scene_ensure_legacy_depsgraph(bmain, scene);
-	/* Do actual graph evaluation. */
-	BKE_scene_graph_update_for_newframe(eval_ctx, scene->depsgraph_legacy, bmain, scene);
-}
-
 /* return default layer, also used to patch old files */
 SceneRenderLayer *BKE_scene_add_render_layer(Scene *sce, const char *name)
 {
