@@ -336,20 +336,20 @@ void BlenderSession::do_write_update_render_tile(RenderTile& rtile, bool do_upda
 	BL::RenderLayer b_rlay = *b_single_rlay;
 
 	if(do_update_only) {
-		/* update only needed */
+		/* Sample would be zero at initial tile update, which is only needed
+		 * to tag tile form blender side as IN PROGRESS for proper highlight
+		 * no buffers should be sent to blender yet. For denoise we also
+		 * keep showing the noisy buffers until denoise is done. */
+		bool merge = (rtile.sample != 0) && (rtile.task != RenderTile::DENOISE);
 
-		if(rtile.sample != 0) {
-			/* sample would be zero at initial tile update, which is only needed
-			 * to tag tile form blender side as IN PROGRESS for proper highlight
-			 * no buffers should be sent to blender yet
-			 */
+		if(merge) {
 			update_render_result(b_rr, b_rlay, rtile);
 		}
 
-		end_render_result(b_engine, b_rr, true, highlight, false);
+		end_render_result(b_engine, b_rr, true, highlight, merge);
 	}
 	else {
-		/* write result */
+		/* Write final render result. */
 		write_render_result(b_rr, b_rlay, rtile);
 		end_render_result(b_engine, b_rr, false, false, true);
 	}
