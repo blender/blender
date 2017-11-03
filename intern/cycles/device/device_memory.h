@@ -197,10 +197,13 @@ public:
 	Device *device;
 	device_ptr device_pointer;
 	void *host_pointer;
+	void *shared_pointer;
 
 	virtual ~device_memory();
 
 protected:
+	friend class CUDADevice;
+
 	/* Only create through subclasses. */
 	device_memory(Device *device, const char *name, MemoryType type);
 

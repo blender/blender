@@ -42,6 +42,8 @@ bool system_cpu_support_sse41();
 bool system_cpu_support_avx();
 bool system_cpu_support_avx2();
 
+size_t system_physical_ram();
+
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_SYSTEM_H__ */

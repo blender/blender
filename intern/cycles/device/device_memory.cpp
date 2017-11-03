@@ -35,7 +35,8 @@ device_memory::device_memory(Device *device, const char *name, MemoryType type)
   extension(EXTENSION_REPEAT),
   device(device),
   device_pointer(0),
-  host_pointer(0)
+  host_pointer(0),
+  shared_pointer(0)
 {
 }
 
