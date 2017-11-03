@@ -2175,6 +2175,7 @@ static void rna_SceneLayer_remove(
 		RNA_POINTER_INVALIDATE(sl_ptr);
 	}
 }
+
 #else
 
 /* Grease Pencil Interpolation tool settings */
@@ -7323,12 +7324,6 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "sequencer_colorspace_settings");
 	RNA_def_property_struct_type(prop, "ColorManagedSequencerColorspaceSettings");
 	RNA_def_property_ui_text(prop, "Sequencer Color Space Settings", "Settings of color space sequencer is working in");
-
-	/* Dependency Graph */
-	prop = RNA_def_property(srna, "depsgraph", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "depsgraph_legacy");
-	RNA_def_property_struct_type(prop, "Depsgraph");
-	RNA_def_property_ui_text(prop, "Dependency Graph", "Dependencies in the scene data");
 
 	/* Layer and Collections */
 	prop = RNA_def_property(srna, "render_layers", PROP_COLLECTION, PROP_NONE);

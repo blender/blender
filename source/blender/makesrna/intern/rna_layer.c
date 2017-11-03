@@ -846,6 +846,14 @@ static int rna_SceneLayer_objects_selected_skip(CollectionPropertyIterator *iter
 	return 1;
 };
 
+static PointerRNA rna_SceneLayer_depsgraph_get(PointerRNA *ptr)
+{
+	Scene *scene = (Scene *)ptr->id.data;
+	SceneLayer *scene_layer = (SceneLayer *)ptr->data;
+	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, scene_layer);
+	return rna_pointer_inherit_refine(ptr, &RNA_Depsgraph, depsgraph);
+}
+
 static void rna_LayerObjects_selected_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	SceneLayer *sl = (SceneLayer *)ptr->data;
@@ -954,6 +962,7 @@ static int rna_ViewRenderSettings_use_game_engine_get(PointerRNA *ptr)
 
 	return 0;
 }
+
 #else
 
 static void rna_def_scene_collections(BlenderRNA *brna, PropertyRNA *cprop)
@@ -2161,6 +2170,12 @@ void RNA_def_scene_layer(BlenderRNA *brna)
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func,
 	                                "Update data tagged to be updated from previous access to data or operators");
+
+	/* Dependency Graph */
+	prop = RNA_def_property(srna, "depsgraph", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Depsgraph");
+	RNA_def_property_ui_text(prop, "Dependency Graph", "Dependencies in the scene data");
+	RNA_def_property_pointer_funcs(prop, "rna_SceneLayer_depsgraph_get", NULL, NULL, NULL);
 
 	/* Nested Data  */
 	/* *** Non-Animated *** */
