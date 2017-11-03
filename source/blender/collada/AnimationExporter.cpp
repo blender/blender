@@ -939,7 +939,7 @@ std::string AnimationExporter::create_4x4_source(std::vector<float> &frames, Obj
 
 		float ctime = BKE_scene_frame_get_from_ctime(scene, *it);
 		CFRA = BKE_scene_frame_get_from_ctime(scene, *it);
-		//BKE_scene_update_for_newframe(G.main->eval_ctx, G.main,scene);
+		//BKE_scene_graph_update_for_newframe(G.main->eval_ctx, depsgraph, G.main,scene);
 		BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, ctime, ADT_RECALC_ALL);
 				
 		if (bone) {

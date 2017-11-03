@@ -29,6 +29,7 @@
 #include "../system/FreestyleConfig.h"
 
 extern "C" {
+struct Depsgraph;
 struct GHash;
 struct Main;
 struct Material;
@@ -76,6 +77,7 @@ protected:
 	Main *freestyle_bmain;
 	Scene *old_scene;
 	Scene *freestyle_scene;
+	Depsgraph *freestyle_depsgraph;
 	bContext *_context;
 	float _width, _height;
 	float _z, _z_delta;

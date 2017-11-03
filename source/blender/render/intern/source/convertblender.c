@@ -5220,14 +5220,14 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 	
 	/* applies changes fully */
 	if ((re->r.scemode & (R_NO_FRAME_UPDATE|R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW))==0) {
-		BKE_scene_update_for_newframe(re->eval_ctx, re->main, re->scene);
+		BKE_scene_graph_update_for_newframe(re->eval_ctx, re->depsgraph, re->main, re->scene);
 		render_update_anim_renderdata(re, &re->scene->r);
 	}
 	
 	/* if no camera, viewmat should have been set! */
 	if (use_camera_view && camera) {
 		/* called before but need to call again in case of lens animation from the
-		 * above call to BKE_scene_update_for_newframe, fixes bug. [#22702].
+		 * above call to BKE_scene_graph_update_for_newframe, fixes bug. [#22702].
 		 * following calls don't depend on 'RE_SetCamera' */
 		RE_SetCamera(re, camera);
 		RE_GetCameraModelMatrix(re, camera, mat);
@@ -5392,7 +5392,7 @@ static void database_fromscene_vectors(Render *re, Scene *scene, unsigned int la
 	
 	/* applies changes fully */
 	scene->r.cfra += timeoffset;
-	BKE_scene_update_for_newframe(re->eval_ctx, re->main, re->scene);
+	BKE_scene_graph_update_for_newframe(re->eval_ctx, re->depsgraph, re->main, re->scene);
 	
 	/* if no camera, viewmat should have been set! */
 	if (camera) {

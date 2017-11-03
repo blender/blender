@@ -2464,5 +2464,8 @@ void BKE_scene_free_depsgraph_hash(Scene *scene)
 Depsgraph *BKE_scene_get_depsgraph(Scene *scene, SceneLayer *scene_layer)
 {
 	(void) scene_layer;
+	if (scene->depsgraph_legacy == NULL) {
+		scene->depsgraph_legacy = DEG_graph_new();
+	}
 	return scene->depsgraph_legacy;
 }

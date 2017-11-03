@@ -289,6 +289,7 @@ typedef struct DynamicPaintBakeJob {
 	struct Main *bmain;
 	Scene *scene;
 	SceneLayer *scene_layer;
+	Depsgraph *depsgraph;
 	Object *ob;
 
 	DynamicPaintSurface *surface;
@@ -364,7 +365,7 @@ static void dynamicPaint_bakeImageSequence(DynamicPaintBakeJob *job)
 	frame = surface->start_frame;
 	orig_frame = scene->r.cfra;
 	scene->r.cfra = (int)frame;
-	ED_update_for_newframe(job->bmain, scene);
+	ED_update_for_newframe(job->bmain, scene, job->depsgraph);
 
 	/* Init surface	*/
 	if (!dynamicPaint_createUVSurface(scene, surface, job->progress, job->do_update)) {
@@ -390,7 +391,7 @@ static void dynamicPaint_bakeImageSequence(DynamicPaintBakeJob *job)
 
 		/* calculate a frame */
 		scene->r.cfra = (int)frame;
-		ED_update_for_newframe(job->bmain, scene);
+		ED_update_for_newframe(job->bmain, scene, job->depsgraph);
 		if (!dynamicPaint_calculateFrame(surface, job->eval_ctx, scene, cObject, frame)) {
 			job->success = 0;
 			return;
@@ -491,6 +492,7 @@ static int dynamicpaint_bake_exec(struct bContext *C, struct wmOperator *op)
 	job->bmain = CTX_data_main(C);
 	job->scene = scene;
 	job->scene_layer = sl;
+	job->depsgraph = CTX_data_depsgraph(C);
 	job->ob = ob;
 	job->canvas = canvas;
 	job->surface = surface;

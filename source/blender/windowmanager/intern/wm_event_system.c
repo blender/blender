@@ -394,12 +394,12 @@ void wm_event_do_notifiers(bContext *C)
 		if (do_anim) {
 
 			/* XXX, quick frame changes can cause a crash if framechange and rendering
-			 * collide (happens on slow scenes), BKE_scene_update_for_newframe can be called
+			 * collide (happens on slow scenes), BKE_scene_graph_update_for_newframe can be called
 			 * twice which can depgraph update the same object at once */
 			if (G.is_rendering == false) {
 
 				/* depsgraph gets called, might send more notifiers */
-				ED_update_for_newframe(CTX_data_main(C), scene);
+				ED_update_for_newframe(CTX_data_main(C), scene, CTX_data_depsgraph(C));
 			}
 		}
 	}
@@ -2619,7 +2619,7 @@ void wm_event_do_handlers(bContext *C)
 							int ncfra = time * (float)FPS + 0.5f;
 							if (ncfra != scene->r.cfra) {
 								scene->r.cfra = ncfra;
-								ED_update_for_newframe(CTX_data_main(C), scene);
+								ED_update_for_newframe(CTX_data_main(C), scene, CTX_data_depsgraph(C));
 								WM_event_add_notifier(C, NC_WINDOW, NULL);
 							}
 						}

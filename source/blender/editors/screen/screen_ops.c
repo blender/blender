@@ -3518,7 +3518,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
 		}
 		
 		/* since we follow drawflags, we can't send notifier but tag regions ourselves */
-		ED_update_for_newframe(bmain, scene);
+		ED_update_for_newframe(bmain, scene, CTX_data_depsgraph(C));
 
 		for (window = wm->windows.first; window; window = window->next) {
 			const bScreen *win_screen = WM_window_get_active_screen(window);

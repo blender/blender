@@ -3240,7 +3240,7 @@ static const EnumPropertyItem redraw_timer_type_items[] = {
 
 
 static void redraw_timer_step(
-        bContext *C, Main *bmain, Scene *scene,
+        bContext *C, Main *bmain, Scene *scene, struct Depsgraph *depsgraph,
         wmWindow *win, ScrArea *sa, ARegion *ar,
         const int type, const int cfra)
 {
@@ -3287,7 +3287,7 @@ static void redraw_timer_step(
 	}
 	else if (type == eRTAnimationStep) {
 		scene->r.cfra += (cfra == scene->r.cfra) ? 1 : -1;
-		BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, scene);
+		BKE_scene_graph_update_for_newframe(bmain->eval_ctx, depsgraph, bmain, scene);
 	}
 	else if (type == eRTAnimationPlay) {
 		/* play anim, return on same frame as started with */
@@ -3299,7 +3299,7 @@ static void redraw_timer_step(
 			if (scene->r.cfra > scene->r.efra)
 				scene->r.cfra = scene->r.sfra;
 
-			BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, scene);
+			BKE_scene_graph_update_for_newframe(bmain->eval_ctx, depsgraph, bmain, scene);
 			redraw_timer_window_swap(C);
 		}
 	}
@@ -3323,13 +3323,14 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 	const int cfra = scene->r.cfra;
 	int a, iter_steps = 0;
 	const char *infostr = "";
+	struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
 
 	WM_cursor_wait(1);
 
 	time_start = PIL_check_seconds_timer();
 
 	for (a = 0; a < iter; a++) {
-		redraw_timer_step(C, bmain, scene, win, sa, ar, type, cfra);
+		redraw_timer_step(C, bmain, scene, depsgraph, win, sa, ar, type, cfra);
 		iter_steps += 1;
 
 		if (time_limit != 0.0) {

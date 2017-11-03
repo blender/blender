@@ -102,6 +102,10 @@ typedef struct RenderJob {
 	Main *main;
 	Scene *scene;
 	Scene *current_scene;
+	/* TODO(sergey): Should not be needed once engine will have own
+	 * depsgraph and copy-on-write will be implemented.
+	 */
+	Depsgraph *depsgraph;
 	Render *re;
 	SceneRenderLayer *srl;
 	struct Object *camera_override;
@@ -338,7 +342,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	RE_SetReports(re, NULL);
 
 	// no redraw needed, we leave state as we entered it
-	ED_update_for_newframe(mainp, scene);
+	ED_update_for_newframe(mainp, scene, CTX_data_depsgraph(C));
 
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_RESULT, scene);
 
@@ -652,7 +656,7 @@ static void render_endjob(void *rjv)
 	if (rj->anim && !(rj->scene->r.scemode & R_NO_FRAME_UPDATE)) {
 		/* possible this fails of loading new file while rendering */
 		if (G.main->wm.first) {
-			ED_update_for_newframe(G.main, rj->scene);
+			ED_update_for_newframe(G.main, rj->scene, rj->depsgraph);
 		}
 	}
 	
@@ -915,6 +919,8 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	rj->main = mainp;
 	rj->scene = scene;
 	rj->current_scene = rj->scene;
+	/* TODO(sergey): Render engine should be using own depsgraph. */
+	rj->depsgraph = CTX_data_depsgraph(C);
 	rj->srl = srl;
 	rj->camera_override = camera_override;
 	rj->lay_override = 0;

@@ -1726,7 +1726,7 @@ void ED_screen_animation_timer_update(bScreen *screen, int redraws, int refresh)
 }
 
 /* results in fully updated anim system */
-void ED_update_for_newframe(Main *bmain, Scene *scene)
+void ED_update_for_newframe(Main *bmain, Scene *scene, struct Depsgraph *depsgraph)
 {
 #ifdef DURIAN_CAMERA_SWITCH
 	void *camera = BKE_scene_camera_switch_find(scene);
@@ -1743,7 +1743,7 @@ void ED_update_for_newframe(Main *bmain, Scene *scene)
 	ED_clip_update_frame(bmain, scene->r.cfra);
 
 	/* this function applies the changes too */
-	BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, scene);
+	BKE_scene_graph_update_for_newframe(bmain->eval_ctx, depsgraph, bmain, scene);
 
 	/* composite */
 	if (scene->use_nodes && scene->nodetree)

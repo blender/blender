@@ -297,7 +297,8 @@ static void track_markers_endjob(void *tmv)
 	tmj->scene->r.cfra = BKE_movieclip_remap_clip_to_scene_frame(tmj->clip,
 	                                                             tmj->lastfra);
 	if (wm != NULL) {
-		ED_update_for_newframe(tmj->main, tmj->scene);
+		// XXX: ...
+		// ED_update_for_newframe(tmj->main, tmj->scene);
 	}
 
 	BKE_autotrack_context_sync(tmj->context);
