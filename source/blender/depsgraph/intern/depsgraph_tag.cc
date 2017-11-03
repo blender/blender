@@ -49,6 +49,7 @@ extern "C" {
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_scene.h"
 #include "BKE_workspace.h"
 
 #define new new_
@@ -350,13 +351,12 @@ void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag)
 void deg_id_tag_update(Main *bmain, ID *id, int flag)
 {
 	lib_id_recalc_tag_flag(bmain, id, flag);
-	for (Scene *scene = (Scene *)bmain->scene.first;
-	     scene != NULL;
-	     scene = (Scene *)scene->id.next)
-	{
-		if (scene->depsgraph_legacy != NULL) {
-			Depsgraph *graph = (Depsgraph *)scene->depsgraph_legacy;
-			deg_graph_id_tag_update(bmain, graph, id, flag);
+	LINKLIST_FOREACH(Scene *, scene, &bmain->scene) {
+		LINKLIST_FOREACH(SceneLayer *, scene_layer, &scene->render_layers) {
+			Depsgraph *depsgraph = (Depsgraph *)BKE_scene_get_depsgraph(scene, scene_layer);
+			if (depsgraph != NULL) {
+				deg_graph_id_tag_update(bmain, depsgraph, id, flag);
+			}
 		}
 	}
 }
@@ -459,12 +459,12 @@ void DEG_graph_on_visible_update(Main *bmain, Depsgraph *depsgraph)
 
 void DEG_on_visible_update(Main *bmain, const bool UNUSED(do_time))
 {
-	for (Scene *scene = (Scene *)bmain->scene.first;
-	     scene != NULL;
-	     scene = (Scene *)scene->id.next)
-	{
-		if (scene->depsgraph_legacy != NULL) {
-			DEG_graph_on_visible_update(bmain, scene->depsgraph_legacy);
+	LINKLIST_FOREACH(Scene *, scene, &bmain->scene) {
+		LINKLIST_FOREACH(SceneLayer *, scene_layer, &scene->render_layers) {
+			Depsgraph *depsgraph = (Depsgraph *)BKE_scene_get_depsgraph(scene, scene_layer);
+			if (depsgraph != NULL) {
+				DEG_graph_on_visible_update(bmain, depsgraph);
+			}
 		}
 	}
 }
