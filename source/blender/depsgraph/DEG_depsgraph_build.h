@@ -73,11 +73,6 @@ void DEG_graph_relations_update(struct Depsgraph *graph,
 /* Tag all relations in the database for update.*/
 void DEG_relations_tag_update(struct Main *bmain);
 
-/* Create new graph if didn't exist yet,
- * or update relations if graph was tagged for update.
- */
-void DEG_scene_relations_update(struct Main *bmain, struct Scene *scene);
-
 /* Add Dependencies  ----------------------------- */
 
 /* Handle for components to define their dependencies from callbacks.

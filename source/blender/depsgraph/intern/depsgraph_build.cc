@@ -282,25 +282,6 @@ void DEG_relations_tag_update(Main *bmain)
 	}
 }
 
-/* Create new graph if didn't exist yet,
- * or update relations if graph was tagged for update.
- */
-void DEG_scene_relations_update(Main *bmain, Scene *scene)
-{
-	if (scene->depsgraph_legacy == NULL) {
-		/* Rebuild graph from scratch and exit. */
-		scene->depsgraph_legacy = DEG_graph_new();
-		DEG_graph_build_from_scene(scene->depsgraph_legacy, bmain, scene);
-		/* TODO(sergey): When we first create dependency graph we consider
-		 * it is first time became visible. This is true for viewports, but
-		 * will fail when render engines will start having their own graphs.
-		 */
-		DEG_graph_on_visible_update(bmain, scene->depsgraph_legacy);
-		return;
-	}
-	DEG_graph_relations_update(scene->depsgraph_legacy, bmain, scene);
-}
-
 void DEG_add_collision_relations(DepsNodeHandle *handle,
                                  Scene *scene,
                                  Object *ob,
