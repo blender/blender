@@ -361,39 +361,48 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo>& subdevices, int th
 	info.description = "Multi Device";
 	info.num = 0;
 
-	info.has_bindless_textures = true;
+	info.has_fermi_limits = false;
+	info.has_half_images = true;
 	info.has_volume_decoupled = true;
 	info.has_qbvh = true;
 	info.has_osl = true;
 
 	foreach(const DeviceInfo &device, subdevices) {
-		info.has_bindless_textures &= device.has_bindless_textures;
-		info.has_volume_decoupled &= device.has_volume_decoupled;
-		info.has_qbvh &= device.has_qbvh;
-		info.has_osl &= device.has_osl;
-
+		/* Ensure CPU device does not slow down GPU. */
 		if(device.type == DEVICE_CPU && subdevices.size() > 1) {
 			if(background) {
 				int orig_cpu_threads = (threads)? threads: system_cpu_thread_count();
 				int cpu_threads = max(orig_cpu_threads - (subdevices.size() - 1), 0);
+
+				VLOG(1) << "CPU render threads reduced from "
+						<< orig_cpu_threads << " to " << cpu_threads
+						<< ", to dedicate to GPU.";
 
 				if(cpu_threads >= 1) {
 					DeviceInfo cpu_device = device;
 					cpu_device.cpu_threads = cpu_threads;
 					info.multi_devices.push_back(cpu_device);
 				}
-
-				VLOG(1) << "CPU render threads reduced from "
-						<< orig_cpu_threads << " to " << cpu_threads
-						<< ", to dedicate to GPU.";
+				else {
+					continue;
+				}
 			}
 			else {
 				VLOG(1) << "CPU render threads disabled for interactive render.";
+				continue;
 			}
 		}
 		else {
 			info.multi_devices.push_back(device);
 		}
+
+		/* Accumulate device info. */
+		info.has_fermi_limits = info.has_fermi_limits ||
+		                        device.has_fermi_limits;
+		info.has_half_images &= device.has_half_images;
+		info.has_volume_decoupled &= device.has_volume_decoupled;
+		info.has_qbvh &= device.has_qbvh;
+		info.has_osl &= device.has_osl;
 	}
 
 	return info;

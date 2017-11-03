@@ -274,7 +274,7 @@ public:
 
 		delete split_kernel;
 
-		if(info.has_bindless_textures) {
+		if(!info.has_fermi_limits) {
 			texture_info.free();
 		}
 
@@ -547,7 +547,7 @@ public:
 
 	void load_texture_info()
 	{
-		if(info.has_bindless_textures && need_texture_info) {
+		if(!info.has_fermi_limits && need_texture_info) {
 			texture_info.copy_to_device();
 			need_texture_info = false;
 		}
@@ -701,7 +701,7 @@ public:
 		        << string_human_readable_size(mem.memory_size()) << ")";
 
 		/* Check if we are on sm_30 or above, for bindless textures. */
-		bool has_bindless_textures = info.has_bindless_textures;
+		bool has_fermi_limits = info.has_fermi_limits;
 
 		/* General variables for both architectures */
 		string bind_name = mem.name;
@@ -735,7 +735,7 @@ public:
 		/* General variables for Fermi */
 		CUtexref texref = NULL;
 
-		if(!has_bindless_textures && mem.interpolation != INTERPOLATION_NONE) {
+		if(has_fermi_limits && mem.interpolation != INTERPOLATION_NONE) {
 			if(mem.data_depth > 1) {
 				/* Kernel uses different bind names for 2d and 3d float textures,
 				 * so we have to adjust couple of things here.
@@ -853,7 +853,7 @@ public:
 
 			stats.mem_alloc(size);
 
-			if(has_bindless_textures) {
+			if(!has_fermi_limits) {
 				/* Bindless Textures - Kepler */
 				int flat_slot = 0;
 				if(string_startswith(mem.name, "__tex_image")) {
@@ -934,7 +934,7 @@ public:
 				cuArrayDestroy((CUarray)mem.device_pointer);
 
 				/* Free CUtexObject (Bindless Textures) */
-				if(info.has_bindless_textures && tex_bindless_map[mem.device_pointer]) {
+				if(!info.has_fermi_limits && tex_bindless_map[mem.device_pointer]) {
 					CUtexObject tex = tex_bindless_map[mem.device_pointer];
 					cuTexObjectDestroy(tex);
 				}
@@ -2174,7 +2174,8 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 		info.num = num;
 
 		info.advanced_shading = (major >= 2);
-		info.has_bindless_textures = (major >= 3);
+		info.has_fermi_limits = (major < 3);
+		info.has_half_images = true;
 		info.has_volume_decoupled = false;
 		info.has_qbvh = false;
 
