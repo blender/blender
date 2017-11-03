@@ -188,6 +188,7 @@ typedef struct PTCacheBaker {
 	struct Main *main;
 	struct Scene *scene;
 	struct SceneLayer *scene_layer;
+	struct Depsgraph *depsgraph;
 	int bake;
 	int render;
 	int anim_init;

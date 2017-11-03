@@ -167,6 +167,7 @@ static PTCacheBaker *ptcache_baker_create(bContext *C, wmOperator *op, bool all)
 	baker->main = CTX_data_main(C);
 	baker->scene = CTX_data_scene(C);
 	baker->scene_layer = CTX_data_scene_layer(C);
+	baker->depsgraph = CTX_data_depsgraph(C);
 	baker->bake = RNA_boolean_get(op->ptr, "bake");
 	baker->render = 0;
 	baker->anim_init = 0;

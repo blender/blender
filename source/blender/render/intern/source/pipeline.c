@@ -3144,6 +3144,7 @@ static void update_physics_cache(Render *re, Scene *scene, SceneLayer *scene_lay
 	baker.main = re->main;
 	baker.scene = scene;
 	baker.scene_layer = scene_layer;
+	baker.depsgraph = BKE_scene_get_depsgraph(scene, scene_layer);
 	baker.bake = 0;
 	baker.render = 1;
 	baker.anim_init = 1;
