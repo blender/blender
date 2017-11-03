@@ -2963,7 +2963,7 @@ uiPieMenu *UI_pie_menu_begin(struct bContext *C, const char *title, int icon, co
 	wmWindow *win = CTX_wm_window(C);
 
 	style = UI_style_get_dpi();
-	pie = MEM_callocN(sizeof(uiPopupMenu), "pie menu");
+	pie = MEM_callocN(sizeof(*pie), "pie menu");
 
 	pie->block_radial = UI_block_begin(C, NULL, __func__, UI_EMBOSS);
 	/* may be useful later to allow spawning pies
