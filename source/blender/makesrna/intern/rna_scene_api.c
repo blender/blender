@@ -85,7 +85,13 @@ static void rna_Scene_frame_set(Scene *scene, Main *bmain, int frame, float subf
 	BPy_BEGIN_ALLOW_THREADS;
 #endif
 
-	BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, scene);
+	for (SceneLayer *scene_layer = scene->render_layers.first;
+	     scene_layer != NULL;
+	     scene_layer = scene_layer->next)
+	{
+		Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, scene_layer);
+		BKE_scene_graph_update_for_newframe(bmain->eval_ctx, depsgraph, bmain, scene);
+	}
 
 #ifdef WITH_PYTHON
 	BPy_END_ALLOW_THREADS;
@@ -125,7 +131,13 @@ static void rna_Scene_update_tagged(Scene *scene, Main *bmain)
 	BPy_BEGIN_ALLOW_THREADS;
 #endif
 
-	BKE_scene_update_tagged(bmain->eval_ctx, bmain, scene);
+	for (SceneLayer *scene_layer = scene->render_layers.first;
+	     scene_layer != NULL;
+	     scene_layer = scene_layer->next)
+	{
+		Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, scene_layer);
+		BKE_scene_graph_update_tagged(bmain->eval_ctx, depsgraph, bmain, scene);
+	}
 
 #ifdef WITH_PYTHON
 	BPy_END_ALLOW_THREADS;
