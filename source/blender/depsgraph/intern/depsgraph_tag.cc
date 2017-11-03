@@ -416,6 +416,15 @@ void DEG_id_tag_update_ex(Main *bmain, ID *id, int flag)
 	DEG::deg_id_tag_update(bmain, id, flag);
 }
 
+void DEG_graph_id_tag_update(struct Main *bmain,
+                             struct Depsgraph *depsgraph,
+                             struct ID *id,
+                             int flag)
+{
+	DEG::Depsgraph *graph = (DEG::Depsgraph *)depsgraph;
+	DEG::deg_graph_id_tag_update(bmain, graph, id, flag);
+}
+
 /* Tag given ID type for update. */
 void DEG_id_type_tag(Main *bmain, short id_type)
 {
