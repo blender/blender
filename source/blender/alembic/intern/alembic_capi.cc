@@ -232,6 +232,7 @@ static void find_iobject(const IObject &object, IObject &ret,
 struct ExportJobData {
 	EvaluationContext eval_ctx;
 	Scene *scene;
+	Depsgraph *depsgraph;
 	Main *bmain;
 
 	char filename[1024];
@@ -263,7 +264,7 @@ static void export_startjob(void *customdata, short *stop, short *do_update, flo
 
 	try {
 		Scene *scene = data->scene;
-		AbcExporter exporter(data->bmain, &data->eval_ctx, scene, data->filename, data->settings);
+		AbcExporter exporter(data->bmain, &data->eval_ctx, scene, data->depsgraph, data->filename, data->settings);
 
 		const int orig_frame = CFRA;
 
@@ -315,6 +316,7 @@ bool ABC_export(
 	CTX_data_eval_ctx(C, &job->eval_ctx);
 
 	job->scene = scene;
+	job->depsgraph = CTX_data_depsgraph(C);
 	job->bmain = CTX_data_main(C);
 	job->export_ok = false;
 	BLI_strncpy(job->filename, filepath, 1024);
@@ -336,6 +338,7 @@ bool ABC_export(
 	 * hardcore refactoring. */
 	new (&job->settings) ExportSettings();
 	job->settings.scene = job->scene;
+	job->settings.depsgraph = job->depsgraph;
 
 	/* Sybren: for now we only export the active scene layer.
 	 * Later in the 2.8 development process this may be replaced by using

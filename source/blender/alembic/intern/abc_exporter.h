@@ -35,6 +35,7 @@ class AbcTransformWriter;
 class ArchiveWriter;
 
 struct EvaluationContext;
+struct Depsgraph;
 struct Main;
 struct Object;
 struct Scene;
@@ -46,6 +47,7 @@ struct ExportSettings {
 
 	Scene *scene;
 	SceneLayer *sl;  // Scene layer to export; all its objects will be exported, unless selected_only=true
+	Depsgraph *depsgraph;
 	SimpleLogger logger;
 
 	bool selected_only;
@@ -93,6 +95,7 @@ class AbcExporter {
 
 	EvaluationContext *m_eval_ctx;
 	Scene *m_scene;
+	Depsgraph *m_depsgraph;
 
 	ArchiveWriter *m_writer;
 
@@ -103,7 +106,8 @@ class AbcExporter {
 	std::vector<AbcObjectWriter *> m_shapes;
 
 public:
-	AbcExporter(Main *bmain, EvaluationContext *eval_ctx, Scene *scene, const char *filename, ExportSettings &settings);
+	AbcExporter(Main *bmain, EvaluationContext *eval_ctx, Scene *scene, Depsgraph *depsgraph,
+	            const char *filename, ExportSettings &settings);
 	~AbcExporter();
 
 	void operator()(Main *bmain, float &progress, bool &was_canceled);
