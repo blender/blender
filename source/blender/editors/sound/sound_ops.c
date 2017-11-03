@@ -311,6 +311,7 @@ static int sound_bake_animation_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
+	struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	int oldfra = scene->r.cfra;
 	int cfra;
 
@@ -318,11 +319,11 @@ static int sound_bake_animation_exec(bContext *C, wmOperator *UNUSED(op))
 
 	for (cfra = (scene->r.sfra > 0) ? (scene->r.sfra - 1) : 0; cfra <= scene->r.efra + 1; cfra++) {
 		scene->r.cfra = cfra;
-		BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, scene);
+		BKE_scene_graph_update_for_newframe(bmain->eval_ctx, depsgraph, bmain, scene);
 	}
 
 	scene->r.cfra = oldfra;
-	BKE_scene_update_for_newframe(bmain->eval_ctx, bmain, scene);
+	BKE_scene_graph_update_for_newframe(bmain->eval_ctx, depsgraph, bmain, scene);
 
 	return OPERATOR_FINISHED;
 }
