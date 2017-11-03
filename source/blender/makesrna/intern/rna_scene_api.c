@@ -75,7 +75,7 @@ const EnumPropertyItem rna_enum_abc_compression_items[] = {
 #  include "BPY_extern.h"
 #endif
 
-static void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
+static void rna_Scene_frame_set(Scene *scene, Main *bmain, int frame, float subframe)
 {
 	double cfra = (double)frame + (double)subframe;
 
@@ -87,7 +87,7 @@ static void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
 #endif
 
 	/* It's possible that here we're including layers which were never visible before. */
-	BKE_scene_update_for_newframe_ex(G.main->eval_ctx, G.main, scene, (1 << 20) - 1, true);
+	BKE_scene_update_for_newframe_ex(bmain->eval_ctx, bmain, scene, (1 << 20) - 1, true);
 
 #ifdef WITH_PYTHON
 	BPy_END_ALLOW_THREADS;
@@ -331,6 +331,7 @@ void RNA_api_scene(StructRNA *srna)
 	parm = RNA_def_int(func, "frame", 0, MINAFRAME, MAXFRAME, "", "Frame number to set", MINAFRAME, MAXFRAME);
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_float(func, "subframe", 0.0, 0.0, 1.0, "", "Sub-frame time, between 0.0 and 1.0", 0.0, 1.0);
+	RNA_def_function_flag(func, FUNC_USE_MAIN);
 
 	func = RNA_def_function(srna, "update", "rna_Scene_update_tagged");
 	RNA_def_function_ui_description(func,
