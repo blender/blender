@@ -121,13 +121,13 @@ static void rna_Scene_uvedit_aspect(Scene *scene, Object *ob, float *aspect)
 	aspect[0] = aspect[1] = 1.0f;
 }
 
-static void rna_Scene_update_tagged(Scene *scene)
+static void rna_Scene_update_tagged(Scene *scene, Main *bmain)
 {
 #ifdef WITH_PYTHON
 	BPy_BEGIN_ALLOW_THREADS;
 #endif
 
-	BKE_scene_update_tagged(G.main->eval_ctx, G.main, scene);
+	BKE_scene_update_tagged(bmain->eval_ctx, bmain, scene);
 
 #ifdef WITH_PYTHON
 	BPy_END_ALLOW_THREADS;
@@ -335,6 +335,7 @@ void RNA_api_scene(StructRNA *srna)
 	func = RNA_def_function(srna, "update", "rna_Scene_update_tagged");
 	RNA_def_function_ui_description(func,
 	                                "Update data tagged to be updated from previous access to data or operators");
+	RNA_def_function_flag(func, FUNC_USE_MAIN);
 
 	func = RNA_def_function(srna, "uvedit_aspect", "rna_Scene_uvedit_aspect");
 	RNA_def_function_ui_description(func, "Get uv aspect for current object");
