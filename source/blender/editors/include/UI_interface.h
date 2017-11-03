@@ -384,6 +384,7 @@ typedef void (*uiMenuHandleFunc)(struct bContext *C, void *arg, int event);
  */
 typedef bool (*uiMenuStepFunc)(struct bContext *C, int direction, void *arg1);
 
+/* interface_region_menu_popup.c */
 /* Popup Menus
  *
  * Functions used to create popup menus. For more extended menus the
@@ -407,6 +408,7 @@ int UI_popup_menu_invoke(struct bContext *C, const char *idname, struct ReportLi
 void UI_popup_menu_retval_set(const uiBlock *block, const int retval, const bool enable);
 void UI_popup_menu_but_set(uiPopupMenu *pup, struct ARegion *butregion, uiBut *but);
 
+/* interface_region_menu_pie.c */
 /* Pie menus */
 typedef struct uiPieMenu uiPieMenu;
 
@@ -423,11 +425,13 @@ struct uiPieMenu *UI_pie_menu_begin(
         const struct wmEvent *event) ATTR_NONNULL();
 void UI_pie_menu_end(struct bContext *C, uiPieMenu *pie);
 struct uiLayout *UI_pie_menu_layout(struct uiPieMenu *pie);
+
+/* interface_region_menu_popup.c */
+
 /* Popup Blocks
  *
  * Functions used to create popup blocks. These are like popup menus
  * but allow using all button types and creating an own layout. */
-
 typedef uiBlock * (*uiBlockCreateFunc)(struct bContext *C, struct ARegion *ar, void *arg1);
 typedef void (*uiBlockCancelFunc)(struct bContext *C, void *arg1);
 
