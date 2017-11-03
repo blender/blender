@@ -604,10 +604,15 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 			}
 		}
 
+		Depsgraph *depsgraph = BKE_scene_get_depsgraph(sce, scene_layer);
+		/* TODO(sergey): This is a temporary solution. */
+		if (depsgraph == NULL) {
+			sce->depsgraph_legacy = depsgraph = DEG_graph_new();
+		}
 		/* TODO(sergey): Use proper flag for tagging here. */
-		DEG_id_tag_update(&sce->id, 0);
+		DEG_graph_id_tag_update(pr_main, depsgraph, &sce->id, 0);
 		DEG_relations_tag_update(pr_main);
-		BKE_scene_update_tagged(pr_main->eval_ctx, pr_main, sce);
+		BKE_scene_graph_update_tagged(pr_main->eval_ctx, depsgraph, pr_main, sce);
 
 		return sce;
 	}
