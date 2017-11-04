@@ -66,16 +66,18 @@
 /* icons are 80% of height of button (16 pixels inside 20 height) */
 #define ICON_SIZE_FROM_BUTRECT(rect) (0.8f * BLI_rcti_size_y(rect))
 
-#define UI_BUT_FLAGS_PUBLIC \
-	(UI_SELECT | UI_SCROLLED | UI_ACTIVE | UI_HAS_ICON | UI_HIDDEN | UI_SELECT_DRAW)
-
-/* Don't overlap w/ UI_BUT_FLAGS_PUBLIC bits. */
+/* Button state argument shares bits with 'uiBut.flag'.
+ * reuse flags that aren't needed for drawing to avoid collision. */
 enum {
 	/* Show that holding the button opens a menu. */
-	UI_STATE_HOLD_ACTION = (1 << 6),
-	UI_STATE_TEXT_INPUT  = (1 << 7),
-};
+	UI_STATE_HOLD_ACTION = UI_BUT_UPDATE_DELAY,
+	UI_STATE_TEXT_INPUT  = UI_BUT_UNDO,
 
+	UI_STATE_FLAGS_ALL = (UI_STATE_HOLD_ACTION | UI_STATE_TEXT_INPUT),
+};
+/* Prevent accidental use. */
+#define UI_BUT_UPDATE_DELAY ((void)0)
+#define UI_BUT_UNDO ((void)0)
 
 /* ************** widget base functions ************** */
 /**
@@ -3907,7 +3909,8 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 		
 		roundboxalign = widget_roundbox_set(but, rect);
 
-		state = but->flag & UI_BUT_FLAGS_PUBLIC;
+		/* Mask out flags re-used for local state. */
+		state = but->flag & ~UI_STATE_FLAGS_ALL;
 
 		if (state & UI_SELECT_DRAW) {
 			state |= UI_SELECT;
