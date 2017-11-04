@@ -307,6 +307,65 @@ static void ui_tooltip_region_free_cb(ARegion *ar)
 /** \name ToolTip Creation
  * \{ */
 
+static uiTooltipData *ui_tooltip_data_from_keymap(bContext *C, wmKeyMap *keymap)
+{
+	char buf[512];
+
+	/* create tooltip data */
+	uiTooltipData *data = MEM_callocN(sizeof(uiTooltipData), "uiTooltipData");
+
+	BLI_assert(data->fields_len < MAX_TOOLTIP_LINES);
+
+	for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
+		wmOperatorType *ot = WM_operatortype_find(kmi->idname, true);
+		if (ot != NULL) {
+			/* Tip */
+			{
+				uiTooltipField *field = text_field_add(
+				        data, &(uiTooltipFormat){
+				            .style = UI_TIP_STYLE_NORMAL,
+				            .color_id = UI_TIP_LC_MAIN,
+				            .is_pad = true,
+				        });
+				field->text = BLI_strdup(ot->description[0] ? ot->description : ot->name);
+			}
+			/* Shortcut */
+			{
+				uiTooltipField *field = text_field_add(
+				        data, &(uiTooltipFormat){
+				            .style = UI_TIP_STYLE_NORMAL,
+				            .color_id = UI_TIP_LC_NORMAL,
+				        });
+				bool found = false;
+				if (WM_keymap_item_to_string(kmi, false, sizeof(buf), buf)) {
+					found = true;
+				}
+				field->text = BLI_sprintfN(TIP_("Shortcut: %s"), found ? buf : "None");
+			}
+
+			/* Python */
+			{
+				uiTooltipField *field = text_field_add(
+				        data, &(uiTooltipFormat){
+				            .style = UI_TIP_STYLE_NORMAL,
+				            .color_id = UI_TIP_LC_PYTHON,
+				        });
+				char *str = WM_operator_pystring_ex(C, NULL, false, false, ot, kmi->ptr);
+				WM_operator_pystring_abbreviate(str, 32);
+				field->text = BLI_sprintfN(TIP_("Python: %s"), str);
+				MEM_freeN(str);
+			}
+		}
+	}
+	if (data->fields_len == 0) {
+		MEM_freeN(data);
+		return NULL;
+	}
+	else {
+		return data;
+	}
+}
+
 static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 {
 	uiStringInfo but_tip = {BUT_GET_TIP, NULL};
@@ -587,8 +646,27 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	if (but->drawflag & UI_BUT_NO_TOOLTIP) {
 		return NULL;
 	}
+	uiTooltipData *data = NULL;
 
-	uiTooltipData *data = ui_tooltip_data_from_button(C, but);
+	/* custom tips for pre-defined operators */
+	if (but->optype) {
+		if (STREQ(but->optype->idname, "WM_OT_tool_set")) {
+			char keymap[64] = "";
+			RNA_string_get(but->opptr, "keymap", keymap);
+			if (keymap[0]) {
+				ScrArea *sa = CTX_wm_area(C);
+				wmKeyMap *km = WM_keymap_find_all(C, keymap, sa->spacetype, RGN_TYPE_WINDOW);
+				if (km != NULL) {
+					data = ui_tooltip_data_from_keymap(C, km);
+				}
+			}
+		}
+	}
+	/* toolsystem exception */
+
+	if (data == NULL) {
+		data = ui_tooltip_data_from_button(C, but);
+	}
 	if (data == NULL) {
 		return NULL;
 	}
