@@ -234,24 +234,29 @@ public:
 
 		need_texture_info = false;
 
-		/* intialize */
+		/* Intialize CUDA. */
 		if(cuda_error(cuInit(0)))
 			return;
 
-		/* setup device and context */
+		/* Setup device and context. */
 		if(cuda_error(cuDeviceGet(&cuDevice, cuDevId)))
 			return;
 
+		/* CU_CTX_LMEM_RESIZE_TO_MAX for reserving local memory ahead of render,
+		 * so we can predict which memory to map to host. */
+		unsigned int ctx_flags = CU_CTX_LMEM_RESIZE_TO_MAX;
+
+		/* Create context. */
 		CUresult result;
 
 		if(background) {
-			result = cuCtxCreate(&cuContext, 0, cuDevice);
+			result = cuCtxCreate(&cuContext, ctx_flags, cuDevice);
 		}
 		else {
-			result = cuGLCtxCreate(&cuContext, 0, cuDevice);
+			result = cuGLCtxCreate(&cuContext, ctx_flags, cuDevice);
 
 			if(result != CUDA_SUCCESS) {
-				result = cuCtxCreate(&cuContext, 0, cuDevice);
+				result = cuCtxCreate(&cuContext, ctx_flags, cuDevice);
 				background = true;
 			}
 		}
@@ -542,7 +547,64 @@ public:
 		if(cuda_error_(result, "cuModuleLoad"))
 			cuda_error_message(string_printf("Failed loading CUDA kernel %s.", filter_cubin.c_str()));
 
+		if(result == CUDA_SUCCESS) {
+			reserve_local_memory(requested_features);
+		}
+
 		return (result == CUDA_SUCCESS);
+	}
+
+	void reserve_local_memory(const DeviceRequestedFeatures& requested_features)
+	{
+		if(use_split_kernel()) {
+			/* Split kernel mostly uses global memory and adaptive compilation,
+			 * difficult to predict how much is needed currently. */
+			return;
+		}
+
+		/* Together with CU_CTX_LMEM_RESIZE_TO_MAX, this reserves local memory
+		 * needed for kernel launches, so that we can reliably figure out when
+		 * to allocate scene data in mapped host memory. */
+		CUDAContextScope scope(this);
+
+		size_t total = 0, free_before = 0, free_after = 0;
+		cuMemGetInfo(&free_before, &total);
+
+		/* Get kernel function. */
+		CUfunction cuPathTrace;
+
+		if(requested_features.use_integrator_branched) {
+			cuda_assert(cuModuleGetFunction(&cuPathTrace, cuModule, "kernel_cuda_branched_path_trace"));
+		}
+		else {
+			cuda_assert(cuModuleGetFunction(&cuPathTrace, cuModule, "kernel_cuda_path_trace"));
+		}
+
+		cuda_assert(cuFuncSetCacheConfig(cuPathTrace, CU_FUNC_CACHE_PREFER_L1));
+
+		int min_blocks, num_threads_per_block;
+		cuda_assert(cuOccupancyMaxPotentialBlockSize(&min_blocks, &num_threads_per_block, cuPathTrace, NULL, 0, 0));
+
+		/* Launch kernel, using just 1 block appears sufficient to reserve
+		 * memory for all multiprocessors. It would be good to do this in
+		 * parallel for the multi GPU case still to make it faster. */
+		CUdeviceptr d_work_tiles = 0;
+		uint total_work_size = 0;
+
+		void *args[] = {&d_work_tiles,
+		                &total_work_size};
+
+		cuda_assert(cuLaunchKernel(cuPathTrace,
+		                           1, 1, 1,
+		                           num_threads_per_block, 1, 1,
+		                           0, 0, args, 0));
+
+		cuda_assert(cuCtxSynchronize());
+
+		cuMemGetInfo(&free_after, &total);
+		VLOG(1) << "Local memory reserved "
+		        << string_human_readable_number(free_before - free_after) << " bytes. ("
+		        << string_human_readable_size(free_before - free_after) << ")";
 	}
 
 	void load_texture_info()
