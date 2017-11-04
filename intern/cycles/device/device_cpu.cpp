@@ -1047,6 +1047,7 @@ void device_cpu_info(vector<DeviceInfo>& devices)
 	info.has_qbvh = system_cpu_support_sse2();
 	info.has_volume_decoupled = true;
 	info.has_osl = true;
+	info.has_half_images = true;
 
 	devices.insert(devices.begin(), info);
 }

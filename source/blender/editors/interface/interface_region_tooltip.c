@@ -68,44 +68,66 @@
 #define UI_TIP_PADDING      (int)(UI_TIP_PAD_FAC * UI_UNIT_Y)
 #define UI_TIP_MAXWIDTH     600
 
-#define MAX_TOOLTIP_LINES 8
-typedef struct uiTooltipData {
-	rcti bbox;
-	uiFontStyle fstyle;
-	char lines[MAX_TOOLTIP_LINES][2048];
-	char header[2048], active_info[2048];
-	struct {
-		enum {
-			UI_TIP_STYLE_NORMAL = 0,
-			UI_TIP_STYLE_HEADER,
-			UI_TIP_STYLE_MONO,
-		} style : 3;
-		enum {
-			UI_TIP_LC_MAIN = 0,     /* primary text */
-			UI_TIP_LC_VALUE,        /* the value of buttons (also shortcuts) */
-			UI_TIP_LC_ACTIVE,       /* titles of active enum values */
-			UI_TIP_LC_NORMAL,       /* regular text */
-			UI_TIP_LC_PYTHON,       /* Python snippet */
-			UI_TIP_LC_ALERT,        /* description of why operator can't run */
-		} color_id : 4;
-		int is_pad : 1;
-	} format[MAX_TOOLTIP_LINES];
 
+typedef struct uiTooltipFormat {
+	enum {
+		UI_TIP_STYLE_NORMAL = 0,
+		UI_TIP_STYLE_HEADER,
+		UI_TIP_STYLE_MONO,
+	} style : 3;
+	enum {
+		UI_TIP_LC_MAIN = 0,     /* primary text */
+		UI_TIP_LC_VALUE,        /* the value of buttons (also shortcuts) */
+		UI_TIP_LC_ACTIVE,       /* titles of active enum values */
+		UI_TIP_LC_NORMAL,       /* regular text */
+		UI_TIP_LC_PYTHON,       /* Python snippet */
+		UI_TIP_LC_ALERT,        /* description of why operator can't run */
+	} color_id : 4;
+	int is_pad : 1;
+} uiTooltipFormat;
+
+typedef struct uiTooltipField {
+	char *text;
+	char *text_suffix;
 	struct {
 		uint x_pos;     /* x cursor position at the end of the last line */
 		uint lines;     /* number of lines, 1 or more with word-wrap */
-	} line_geom[MAX_TOOLTIP_LINES];
+	} geom;
+	uiTooltipFormat format;
 
+} uiTooltipField;
+
+#define MAX_TOOLTIP_LINES 8
+typedef struct uiTooltipData {
+	rcti bbox;
+	uiTooltipField *fields;
+	uint            fields_len;
+	uiFontStyle fstyle;
 	int wrap_width;
-
-	int totline;
 	int toth, lineh;
 } uiTooltipData;
 
 #define UI_TIP_LC_MAX 6
 
 BLI_STATIC_ASSERT(UI_TIP_LC_MAX == UI_TIP_LC_ALERT + 1, "invalid lc-max");
-BLI_STATIC_ASSERT(sizeof(((uiTooltipData *)NULL)->format[0]) <= sizeof(int), "oversize");
+BLI_STATIC_ASSERT(sizeof(uiTooltipFormat) <= sizeof(int), "oversize");
+
+static uiTooltipField *text_field_add_only(
+        uiTooltipData *data)
+{
+	data->fields_len += 1;
+	data->fields = MEM_recallocN(data->fields, sizeof(*data->fields) * data->fields_len);
+	return &data->fields[data->fields_len - 1];
+}
+
+static uiTooltipField *text_field_add(
+        uiTooltipData *data,
+        const uiTooltipFormat *format)
+{
+	uiTooltipField *field = text_field_add_only(data);
+	field->format = *format;
+	return field;
+}
 
 /* -------------------------------------------------------------------- */
 /** \name ToolTip Callbacks (Draw & Free)
@@ -188,12 +210,14 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 	bbox.xmin += 0.5f * pad_px;  /* add padding to the text */
 	bbox.ymax -= 0.25f * pad_px;
 
-	for (i = 0; i < data->totline; i++) {
-		bbox.ymin = bbox.ymax - (data->lineh * data->line_geom[i].lines);
-		if (data->format[i].style == UI_TIP_STYLE_HEADER) {
+	for (i = 0; i < data->fields_len; i++) {
+		const uiTooltipField *field = &data->fields[i];
+		const uiTooltipField *field_next = (i + 1) != data->fields_len ? &data->fields[i + 1] : NULL;
+
+		bbox.ymin = bbox.ymax - (data->lineh * field->geom.lines);
+		if (field->format.style == UI_TIP_STYLE_HEADER) {
 			/* draw header and active data (is done here to be able to change color) */
 			uiFontStyle fstyle_header = data->fstyle;
-			float xofs, yofs;
 
 			/* override text-style */
 			fstyle_header.shadow = 1;
@@ -204,23 +228,26 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 
 			rgb_float_to_uchar(drawcol, tip_colors[UI_TIP_LC_MAIN]);
 			UI_fontstyle_set(&fstyle_header);
-			UI_fontstyle_draw(&fstyle_header, &bbox, data->header, drawcol);
-
-			/* offset to the end of the last line */
-			xofs = data->line_geom[i].x_pos;
-			yofs = data->lineh * (data->line_geom[i].lines - 1);
-			bbox.xmin += xofs;
-			bbox.ymax -= yofs;
+			UI_fontstyle_draw(&fstyle_header, &bbox, field->text, drawcol);
 
 			fstyle_header.shadow = 0;
-			rgb_float_to_uchar(drawcol, tip_colors[UI_TIP_LC_ACTIVE]);
-			UI_fontstyle_draw(&fstyle_header, &bbox, data->active_info, drawcol);
 
-			/* undo offset */
-			bbox.xmin -= xofs;
-			bbox.ymax += yofs;
+			/* offset to the end of the last line */
+			if (field->text_suffix) {
+				float xofs = field->geom.x_pos;
+				float yofs = data->lineh * (field->geom.lines - 1);
+				bbox.xmin += xofs;
+				bbox.ymax -= yofs;
+
+				rgb_float_to_uchar(drawcol, tip_colors[UI_TIP_LC_ACTIVE]);
+				UI_fontstyle_draw(&fstyle_header, &bbox, field->text_suffix, drawcol);
+
+				/* undo offset */
+				bbox.xmin -= xofs;
+				bbox.ymax += yofs;
+			}
 		}
-		else if (data->format[i].style == UI_TIP_STYLE_MONO) {
+		else if (field->format.style == UI_TIP_STYLE_MONO) {
 			uiFontStyle fstyle_mono = data->fstyle;
 			fstyle_mono.uifont_id = blf_mono_font;
 			fstyle_mono.word_wrap = true;
@@ -228,23 +255,23 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
 			UI_fontstyle_set(&fstyle_mono);
 			/* XXX, needed because we dont have mono in 'U.uifonts' */
 			BLF_size(fstyle_mono.uifont_id, fstyle_mono.points * U.pixelsize, U.dpi);
-			rgb_float_to_uchar(drawcol, tip_colors[data->format[i].color_id]);
-			UI_fontstyle_draw(&fstyle_mono, &bbox, data->lines[i], drawcol);
+			rgb_float_to_uchar(drawcol, tip_colors[field->format.color_id]);
+			UI_fontstyle_draw(&fstyle_mono, &bbox, field->text, drawcol);
 		}
 		else {
 			uiFontStyle fstyle_normal = data->fstyle;
-			BLI_assert(data->format[i].style == UI_TIP_STYLE_NORMAL);
+			BLI_assert(field->format.style == UI_TIP_STYLE_NORMAL);
 			fstyle_normal.word_wrap = true;
 
 			/* draw remaining data */
-			rgb_float_to_uchar(drawcol, tip_colors[data->format[i].color_id]);
+			rgb_float_to_uchar(drawcol, tip_colors[field->format.color_id]);
 			UI_fontstyle_set(&fstyle_normal);
-			UI_fontstyle_draw(&fstyle_normal, &bbox, data->lines[i], drawcol);
+			UI_fontstyle_draw(&fstyle_normal, &bbox, field->text, drawcol);
 		}
 
-		bbox.ymax -= data->lineh * data->line_geom[i].lines;
+		bbox.ymax -= data->lineh * field->geom.lines;
 
-		if ((i + 1 != data->totline) && data->format[i + 1].is_pad) {
+		if (field_next && field_next->format.is_pad) {
 			bbox.ymax -= data->lineh * (UI_TIP_PAD_FAC - 1);
 		}
 	}
@@ -261,6 +288,15 @@ static void ui_tooltip_region_free_cb(ARegion *ar)
 	uiTooltipData *data;
 
 	data = ar->regiondata;
+
+	for (int  i = 0; i < data->fields_len; i++) {
+		const uiTooltipField *field = &data->fields[i];
+		MEM_freeN(field->text);
+		if (field->text_suffix) {
+			MEM_freeN(field->text_suffix);
+		}
+	}
+	MEM_freeN(data->fields);
 	MEM_freeN(data);
 	ar->regiondata = NULL;
 }
@@ -290,48 +326,63 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 
 	/* Tip */
 	if (but_tip.strinfo) {
-		if (enum_label.strinfo) {
-			BLI_snprintf(data->header, sizeof(data->header), "%s:  ", but_tip.strinfo);
-			BLI_strncpy(data->active_info, enum_label.strinfo, sizeof(data->lines[0]));
+		{
+			uiTooltipField *field = text_field_add(
+			        data, &(uiTooltipFormat){
+			            .style = UI_TIP_STYLE_HEADER,
+			            .color_id = UI_TIP_LC_NORMAL,
+			        });
+			if (enum_label.strinfo) {
+				field->text = BLI_sprintfN("%s:  ", but_tip.strinfo);
+				field->text_suffix = BLI_strdup(enum_label.strinfo);
+			}
+			else {
+				field->text = BLI_sprintfN("%s.", but_tip.strinfo);
+			}
 		}
-		else {
-			BLI_snprintf(data->header, sizeof(data->header), "%s.", but_tip.strinfo);
-		}
-		data->format[data->totline].style = UI_TIP_STYLE_HEADER;
-		data->totline++;
 
 		/* special case enum rna buttons */
 		if ((but->type & UI_BTYPE_ROW) && but->rnaprop && RNA_property_flag(but->rnaprop) & PROP_ENUM_FLAG) {
-			BLI_strncpy(data->lines[data->totline], IFACE_("(Shift-Click/Drag to select multiple)"),
-			            sizeof(data->lines[0]));
-
-			data->format[data->totline].color_id = UI_TIP_LC_NORMAL;
-			data->totline++;
+			uiTooltipField *field = text_field_add(
+			        data, &(uiTooltipFormat){
+			            .style = UI_TIP_STYLE_NORMAL,
+			            .color_id = UI_TIP_LC_NORMAL,
+			        });
+			field->text = BLI_strdup(IFACE_("(Shift-Click/Drag to select multiple)"));
 		}
 
 	}
-	/* Enum item label & tip */
+	/* Enum field label & tip */
 	if (enum_tip.strinfo) {
-		BLI_strncpy(data->lines[data->totline], enum_tip.strinfo, sizeof(data->lines[0]));
-		data->format[data->totline].is_pad = true;
-		data->format[data->totline].color_id = UI_TIP_LC_VALUE;
-		data->totline++;
+		uiTooltipField *field = text_field_add(
+		        data, &(uiTooltipFormat){
+		            .style = UI_TIP_STYLE_NORMAL,
+		            .color_id = UI_TIP_LC_VALUE,
+		            .is_pad = true,
+		        });
+		field->text = BLI_strdup(enum_tip.strinfo);
 	}
 
 	/* Op shortcut */
 	if (op_keymap.strinfo) {
-		BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Shortcut: %s"), op_keymap.strinfo);
-		data->format[data->totline].is_pad = true;
-		data->format[data->totline].color_id = UI_TIP_LC_VALUE;
-		data->totline++;
+		uiTooltipField *field = text_field_add(
+		        data, &(uiTooltipFormat){
+		            .style = UI_TIP_STYLE_NORMAL,
+		            .color_id = UI_TIP_LC_VALUE,
+		            .is_pad = true,
+		        });
+		field->text = BLI_sprintfN(TIP_("Shortcut: %s"), op_keymap.strinfo);
 	}
 
 	/* Property context-toggle shortcut */
 	if (prop_keymap.strinfo) {
-		BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Shortcut: %s"), prop_keymap.strinfo);
-		data->format[data->totline].is_pad = true;
-		data->format[data->totline].color_id = UI_TIP_LC_VALUE;
-		data->totline++;
+		uiTooltipField *field = text_field_add(
+		        data, &(uiTooltipFormat){
+		            .style = UI_TIP_STYLE_NORMAL,
+		            .color_id = UI_TIP_LC_VALUE,
+		            .is_pad = true,
+		        });
+		field->text = BLI_sprintfN(TIP_("Shortcut: %s"), prop_keymap.strinfo);
 	}
 
 	if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
@@ -340,10 +391,13 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 			/* full string */
 			ui_but_string_get(but, buf, sizeof(buf));
 			if (buf[0]) {
-				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Value: %s"), buf);
-				data->format[data->totline].is_pad = true;
-				data->format[data->totline].color_id = UI_TIP_LC_VALUE;
-				data->totline++;
+				uiTooltipField *field = text_field_add(
+				        data, &(uiTooltipFormat){
+				            .style = UI_TIP_STYLE_NORMAL,
+				            .color_id = UI_TIP_LC_VALUE,
+				            .is_pad = true,
+				        });
+				field->text = BLI_sprintfN(TIP_("Value: %s"), buf);
 			}
 		}
 	}
@@ -356,27 +410,36 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 				float value = RNA_property_array_check(but->rnaprop) ?
 				                  RNA_property_float_get_index(&but->rnapoin, but->rnaprop, but->rnaindex) :
 				                  RNA_property_float_get(&but->rnapoin, but->rnaprop);
-				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Radians: %f"), value);
-				data->format[data->totline].color_id = UI_TIP_LC_NORMAL;
-				data->totline++;
+
+				uiTooltipField *field = text_field_add(
+				        data, &(uiTooltipFormat){
+				            .style = UI_TIP_STYLE_NORMAL,
+				            .color_id = UI_TIP_LC_VALUE,
+				        });
+				field->text = BLI_sprintfN(TIP_("Radians: %f"), value);
 			}
 		}
 
 		if (but->flag & UI_BUT_DRIVEN) {
 			if (ui_but_anim_expression_get(but, buf, sizeof(buf))) {
-				/* expression */
-				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Expression: %s"), buf);
-				data->format[data->totline].color_id = UI_TIP_LC_NORMAL;
-				data->totline++;
+				uiTooltipField *field = text_field_add(
+				        data, &(uiTooltipFormat){
+				            .style = UI_TIP_STYLE_NORMAL,
+				            .color_id = UI_TIP_LC_NORMAL,
+				        });
+				field->text = BLI_sprintfN(TIP_("Expression: %s"), buf);
 			}
 		}
 
 		if (but->rnapoin.id.data) {
-			ID *id = but->rnapoin.id.data;
+			const ID *id = but->rnapoin.id.data;
 			if (ID_IS_LINKED_DATABLOCK(id)) {
-				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Library: %s"), id->lib->name);
-				data->format[data->totline].color_id = UI_TIP_LC_NORMAL;
-				data->totline++;
+				uiTooltipField *field = text_field_add(
+				        data, &(uiTooltipFormat){
+				            .style = UI_TIP_STYLE_NORMAL,
+				            .color_id = UI_TIP_LC_NORMAL,
+				        });
+				field->text = BLI_sprintfN(TIP_("Library: %s"), id->lib->name);
 			}
 		}
 	}
@@ -385,7 +448,7 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 		char *str;
 		opptr = UI_but_operator_ptr_get(but); /* allocated when needed, the button owns it */
 
-		/* so the context is passed to itemf functions (some py itemf functions use it) */
+		/* so the context is passed to fieldf functions (some py fieldf functions use it) */
 		WM_operator_properties_sanitize(opptr, false);
 
 		str = WM_operator_pystring_ex(C, NULL, false, false, but->optype, opptr);
@@ -395,11 +458,13 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 
 		/* operator info */
 		if ((U.flag & USER_TOOLTIPS_PYTHON) == 0) {
-			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Python: %s"), str);
-			data->format[data->totline].style = UI_TIP_STYLE_MONO;
-			data->format[data->totline].is_pad = true;
-			data->format[data->totline].color_id = UI_TIP_LC_PYTHON;
-			data->totline++;
+			uiTooltipField *field = text_field_add(
+			        data, &(uiTooltipFormat){
+			            .style = UI_TIP_STYLE_MONO,
+			            .color_id = UI_TIP_LC_PYTHON,
+			            .is_pad = true,
+			        });
+			field->text = BLI_sprintfN(TIP_("Python: %s"), str);
 		}
 
 		MEM_freeN(str);
@@ -421,48 +486,51 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 		}
 
 		if (disabled_msg && disabled_msg[0]) {
-			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Disabled: %s"), disabled_msg);
-			data->format[data->totline].color_id = UI_TIP_LC_ALERT;
-			data->totline++;
+			uiTooltipField *field = text_field_add(
+			        data, &(uiTooltipFormat){
+			            .style = UI_TIP_STYLE_NORMAL,
+			            .color_id = UI_TIP_LC_ALERT,
+			        });
+			field->text = BLI_sprintfN(TIP_("Disabled: %s"), disabled_msg);
 		}
 	}
 
 	if ((U.flag & USER_TOOLTIPS_PYTHON) == 0 && !but->optype && rna_struct.strinfo) {
-		if (rna_prop.strinfo) {
-			/* Struct and prop */
-			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]),
-			             TIP_("Python: %s.%s"),
-			             rna_struct.strinfo, rna_prop.strinfo);
+		{
+			uiTooltipField *field = text_field_add(
+			        data, &(uiTooltipFormat){
+			            .style = UI_TIP_STYLE_MONO,
+			            .color_id = UI_TIP_LC_PYTHON,
+			            .is_pad = true,
+			        });
+			if (rna_prop.strinfo) {
+				/* Struct and prop */
+				field->text = BLI_sprintfN(TIP_("Python: %s.%s"), rna_struct.strinfo, rna_prop.strinfo);
+			}
+			else {
+				/* Only struct (e.g. menus) */
+				field->text = BLI_sprintfN(TIP_("Python: %s"), rna_struct.strinfo);
+			}
 		}
-		else {
-			/* Only struct (e.g. menus) */
-			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]),
-			             TIP_("Python: %s"), rna_struct.strinfo);
-		}
-		data->format[data->totline].style = UI_TIP_STYLE_MONO;
-		data->format[data->totline].is_pad = true;
-		data->format[data->totline].color_id = UI_TIP_LC_PYTHON;
-		data->totline++;
 
 		if (but->rnapoin.id.data) {
+			uiTooltipField *field = text_field_add(
+			        data, &(uiTooltipFormat){
+			            .style = UI_TIP_STYLE_MONO,
+			            .color_id = UI_TIP_LC_PYTHON,
+			        });
+
 			/* this could get its own 'BUT_GET_...' type */
 
 			/* never fails */
-			char *id_path;
-
+			/* move ownership (no need for re-alloc) */
 			if (but->rnaprop) {
-				id_path = RNA_path_full_property_py_ex(&but->rnapoin, but->rnaprop, but->rnaindex, true);
+				field->text = RNA_path_full_property_py_ex(&but->rnapoin, but->rnaprop, but->rnaindex, true);
 			}
 			else {
-				id_path = RNA_path_full_struct_py(&but->rnapoin);
+				field->text = RNA_path_full_struct_py(&but->rnapoin);
 			}
 
-			BLI_strncat_utf8(data->lines[data->totline], id_path, sizeof(data->lines[0]));
-			MEM_freeN(id_path);
-
-			data->format[data->totline].style = UI_TIP_STYLE_MONO;
-			data->format[data->totline].color_id = UI_TIP_LC_PYTHON;
-			data->totline++;
 		}
 	}
 
@@ -482,9 +550,9 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 	if (rna_prop.strinfo)
 		MEM_freeN(rna_prop.strinfo);
 
-	BLI_assert(data->totline < MAX_TOOLTIP_LINES);
+	BLI_assert(data->fields_len < MAX_TOOLTIP_LINES);
 
-	if (data->totline == 0) {
+	if (data->fields_len == 0) {
 		MEM_freeN(data);
 		return NULL;
 	}
@@ -557,38 +625,38 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 	h = BLF_height_max(data->fstyle.uifont_id);
 
-	for (i = 0, fontw = 0, fonth = 0; i < data->totline; i++) {
+	for (i = 0, fontw = 0, fonth = 0; i < data->fields_len; i++) {
+		uiTooltipField *field = &data->fields[i];
+		uiTooltipField *field_next = (i + 1) != data->fields_len ? &data->fields[i + 1] : NULL;
+
 		struct ResultBLF info;
 		int w, x_pos = 0;
+		int font_id;
 
-		if (data->format[i].style == UI_TIP_STYLE_HEADER) {
-			w = BLF_width_ex(data->fstyle.uifont_id, data->header, sizeof(data->header), &info);
-			/* check for enum label */
-			if (data->active_info[0]) {
-				x_pos = info.width;
-				w = max_ii(w, x_pos + BLF_width(data->fstyle.uifont_id, data->active_info, sizeof(data->active_info)));
-			}
-		}
-		else if (data->format[i].style == UI_TIP_STYLE_MONO) {
+		if (field->format.style == UI_TIP_STYLE_MONO) {
 			BLF_size(blf_mono_font, data->fstyle.points * U.pixelsize, U.dpi);
-
-			w = BLF_width_ex(blf_mono_font, data->lines[i], sizeof(data->lines[i]), &info);
+			font_id = blf_mono_font;
 		}
 		else {
-			BLI_assert(data->format[i].style == UI_TIP_STYLE_NORMAL);
-
-			w = BLF_width_ex(data->fstyle.uifont_id, data->lines[i], sizeof(data->lines[i]), &info);
+			BLI_assert(ELEM(field->format.style, UI_TIP_STYLE_NORMAL, UI_TIP_STYLE_HEADER));
+			font_id = data->fstyle.uifont_id;
 		}
+		w = BLF_width_ex(font_id, field->text, BLF_DRAW_STR_DUMMY_MAX, &info);
 
+		/* check for suffix (enum label) */
+		if (field->text_suffix && field->text_suffix[0]) {
+			x_pos = info.width;
+			w = max_ii(w, x_pos + BLF_width(font_id, field->text_suffix, BLF_DRAW_STR_DUMMY_MAX));
+		}
 		fontw = max_ii(fontw, w);
 
 		fonth += h * info.lines;
-		if ((i + 1 != data->totline) && data->format[i + 1].is_pad) {
+		if (field_next && field_next->format.is_pad) {
 			fonth += h * (UI_TIP_PAD_FAC - 1);
 		}
 
-		data->line_geom[i].lines = info.lines;
-		data->line_geom[i].x_pos = x_pos;
+		field->geom.lines = info.lines;
+		field->geom.x_pos = x_pos;
 	}
 
 	//fontw *= aspect;

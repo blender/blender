@@ -46,32 +46,10 @@ ImageManager::ImageManager(const DeviceInfo& info)
 	osl_texture_system = NULL;
 	animation_frame = 0;
 
-	/* In case of multiple devices used we need to know type of an actual
-	 * compute device.
-	 *
-	 * NOTE: We assume that all the devices are same type, otherwise we'll
-	 * be screwed on so many levels..
-	 */
-	DeviceType device_type = info.type;
-	if(device_type == DEVICE_MULTI) {
-		device_type = info.multi_devices[0].type;
-	}
-
 	/* Set image limits */
 	max_num_images = TEX_NUM_MAX;
-	has_half_images = true;
-	cuda_fermi_limits = false;
-
-	if(device_type == DEVICE_CUDA) {
-		if(!info.has_bindless_textures) {
-			/* CUDA Fermi hardware (SM 2.x) has a hard limit on the number of textures */
-			cuda_fermi_limits = true;
-			has_half_images = false;
-		}
-	}
-	else if(device_type == DEVICE_OPENCL) {
-		has_half_images = false;
-	}
+	has_half_images = info.has_half_images;
+	cuda_fermi_limits = info.has_fermi_limits;
 
 	for(size_t type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
 		tex_num_images[type] = 0;

@@ -52,13 +52,14 @@ public:
 	string description;
 	string id; /* used for user preferences, should stay fixed with changing hardware config */
 	int num;
-	bool display_device;
-	bool advanced_shading;
-	bool has_bindless_textures; /* flag for GPU and Multi device */
-	bool has_volume_decoupled;
-	bool has_qbvh;
-	bool has_osl;
-	bool use_split_kernel; /* Denotes if the device is going to run cycles using split-kernel */
+	bool display_device;         /* GPU is used as a display device. */
+	bool advanced_shading;       /* Supports full shading system. */
+	bool has_fermi_limits;       /* Fixed number of textures limit. */
+	bool has_half_images;        /* Support half-float textures. */
+	bool has_volume_decoupled;   /* Decoupled volume shading. */
+	bool has_qbvh;               /* Supports both BVH2 and BVH4 raytracing. */
+	bool has_osl;                /* Support Open Shading Language. */
+	bool use_split_kernel;       /* Use split or mega kernel. */
 	int cpu_threads;
 	vector<DeviceInfo> multi_devices;
 
@@ -70,7 +71,8 @@ public:
 		cpu_threads = 0;
 		display_device = false;
 		advanced_shading = true;
-		has_bindless_textures = false;
+		has_fermi_limits = false;
+		has_half_images = false;
 		has_volume_decoupled = false;
 		has_qbvh = false;
 		has_osl = false;
