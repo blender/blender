@@ -589,7 +589,7 @@ void ObjectManager::device_update_flags(Device *,
 		return;
 
 	/* object info flag */
-	uint *object_flag = dscene->object_flag.get_data();
+	uint *object_flag = dscene->object_flag.data();
 
 	vector<Object *> volume_objects;
 	bool has_volume_objects = false;
@@ -647,7 +647,7 @@ void ObjectManager::device_update_patch_map_offsets(Device *, DeviceScene *dscen
 		return;
 	}
 
-	uint4* objects = (uint4*)dscene->objects.get_data();
+	uint4* objects = (uint4*)dscene->objects.data();
 
 	bool update = false;
 

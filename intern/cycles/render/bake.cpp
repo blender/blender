@@ -201,7 +201,7 @@ bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progre
 		/* read result */
 		int k = 0;
 
-		float4 *offset = (float4*)d_output.data_pointer;
+		float4 *offset = d_output.data();
 
 		size_t depth = 4;
 		for(size_t i=shader_offset; i < (shader_offset + shader_size); i++) {

@@ -102,17 +102,17 @@ void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int dx, int d
 	if(rgba.data_type == TYPE_HALF) {
 		/* for multi devices, this assumes the inefficient method that we allocate
 		 * all pixels on the device even though we only render to a subset */
-		GLhalf *data_pointer = (GLhalf*)rgba.data_pointer;
+		GLhalf *host_pointer = (GLhalf*)rgba.host_pointer;
 		float vbuffer[16], *basep;
 		float *vp = NULL;
 
-		data_pointer += 4*y*w;
+		host_pointer += 4*y*w;
 
 		/* draw half float texture, GLSL shader for display transform assumed to be bound */
 		GLuint texid;
 		glGenTextures(1, &texid);
 		glBindTexture(GL_TEXTURE_2D, texid);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F_ARB, w, h, 0, GL_RGBA, GL_HALF_FLOAT, data_pointer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F_ARB, w, h, 0, GL_RGBA, GL_HALF_FLOAT, host_pointer);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
@@ -194,7 +194,7 @@ void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int dx, int d
 		glPixelZoom((float)width/(float)w, (float)height/(float)h);
 		glRasterPos2f(dx, dy);
 
-		uint8_t *pixels = (uint8_t*)rgba.data_pointer;
+		uint8_t *pixels = (uint8_t*)rgba.host_pointer;
 
 		pixels += 4*y*w;
 

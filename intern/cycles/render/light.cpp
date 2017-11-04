@@ -79,7 +79,7 @@ static void shade_background_pixels(Device *device, DeviceScene *dscene, int res
 
 	d_input.free();
 
-	float4 *d_output_data = reinterpret_cast<float4*>(d_output.data_pointer);
+	float4 *d_output_data = d_output.data();
 
 	pixels.resize(width*height);
 

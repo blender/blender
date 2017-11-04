@@ -88,7 +88,7 @@ void MemoryManager::DeviceBuffer::update_device_memory(OpenCLDeviceBase *device)
 					CL_FALSE,
 					offset,
 					allocation->mem->memory_size(),
-					(void*)allocation->mem->data_pointer,
+					allocation->mem->host_pointer,
 					0, NULL, NULL
 				));
 
@@ -127,7 +127,7 @@ void MemoryManager::DeviceBuffer::update_device_memory(OpenCLDeviceBase *device)
 					CL_FALSE,
 					offset,
 					allocation->mem->memory_size(),
-					(void*)allocation->mem->data_pointer,
+					allocation->mem->host_pointer,
 					0, NULL, NULL
 				));
 

@@ -112,7 +112,7 @@ public:
 
 		snd.add(mem);
 		snd.write();
-		snd.write_buffer((void*)mem.data_pointer, mem.memory_size());
+		snd.write_buffer(mem.host_pointer, mem.memory_size());
 	}
 
 	void mem_copy_from(device_memory& mem, int y, int w, int h, int elem)
@@ -131,7 +131,7 @@ public:
 		snd.write();
 
 		RPCReceive rcv(socket, &error_func);
-		rcv.read_buffer((void*)mem.data_pointer, data_size);
+		rcv.read_buffer(mem.host_pointer, data_size);
 	}
 
 	void mem_zero(device_memory& mem)
@@ -439,7 +439,7 @@ protected:
 			device_ptr client_pointer = mem.device_pointer;
 
 			DataVector &data_v = data_vector_insert(client_pointer, data_size);
-			mem.data_pointer = (data_size)? (device_ptr)&(data_v[0]): 0;
+			mem.host_pointer = (data_size)? (void*)&(data_v[0]): 0;
 
 			/* Perform the allocation on the actual device. */
 			device->mem_alloc(mem);
@@ -459,7 +459,7 @@ protected:
 			if(client_pointer) {
 				/* Lookup existing host side data buffer. */
 				DataVector &data_v = data_vector_find(client_pointer);
-				mem.data_pointer = (device_ptr)&data_v[0];
+				mem.host_pointer = (void*)&data_v[0];
 
 				/* Translate the client pointer to a real device pointer. */
 				mem.device_pointer = device_ptr_from_client_pointer(client_pointer);
@@ -467,11 +467,11 @@ protected:
 			else {
 				/* Allocate host side data buffer. */
 				DataVector &data_v = data_vector_insert(client_pointer, data_size);
-				mem.data_pointer = (data_size)? (device_ptr)&(data_v[0]): 0;
+				mem.host_pointer = (data_size)? (void*)&(data_v[0]): 0;
 			}
 
 			/* Copy data from network into memory buffer. */
-			rcv.read_buffer((uint8_t*)mem.data_pointer, data_size);
+			rcv.read_buffer((uint8_t*)mem.host_pointer, data_size);
 
 			/* Copy the data from the memory buffer to the device buffer. */
 			device->mem_copy_to(mem);
@@ -497,7 +497,7 @@ protected:
 
 			DataVector &data_v = data_vector_find(client_pointer);
 
-			mem.data_pointer = (device_ptr)&(data_v[0]);
+			mem.host_pointer = (device_ptr)&(data_v[0]);
 
 			device->mem_copy_from(mem, y, w, h, elem);
 
@@ -505,7 +505,7 @@ protected:
 
 			RPCSend snd(socket, &error_func, "mem_copy_from");
 			snd.write();
-			snd.write_buffer((uint8_t*)mem.data_pointer, data_size);
+			snd.write_buffer((uint8_t*)mem.host_pointer, data_size);
 			lock.unlock();
 		}
 		else if(rcv.name == "mem_zero") {
@@ -520,7 +520,7 @@ protected:
 			if(client_pointer) {
 				/* Lookup existing host side data buffer. */
 				DataVector &data_v = data_vector_find(client_pointer);
-				mem.data_pointer = (device_ptr)&data_v[0];
+				mem.host_pointer = (void*)&data_v[0];
 
 				/* Translate the client pointer to a real device pointer. */
 				mem.device_pointer = device_ptr_from_client_pointer(client_pointer);
@@ -528,7 +528,7 @@ protected:
 			else {
 				/* Allocate host side data buffer. */
 				DataVector &data_v = data_vector_insert(client_pointer, data_size);
-				mem.data_pointer = (data_size)? (device_ptr)&(data_v[0]): 0;
+				mem.host_pointer = (void*)? (device_ptr)&(data_v[0]): 0;
 			}
 
 			/* Zero memory. */

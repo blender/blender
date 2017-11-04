@@ -87,7 +87,7 @@ size_t LookupTables::add_table(DeviceScene *dscene, vector<float>& data)
 	}
 
 	/* copy table data and return offset */
-	float *dtable = dscene->lookup_table.get_data();
+	float *dtable = dscene->lookup_table.data();
 	memcpy(dtable + new_table.offset, &data[0], sizeof(float) * data.size());
 
 	return new_table.offset;
