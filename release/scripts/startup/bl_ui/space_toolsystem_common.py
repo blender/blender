@@ -100,6 +100,9 @@ class ToolSelectPanelHelper:
                     setattr(rna_props, prop_id, value)
 
         km_idname = cls.keymap_prefix + text
+        km = kc.keymaps.get(km_idname)
+        if km is not None:
+            return km, km_idname
         km = kc.keymaps.new(km_idname, space_type=cls.bl_space_type, region_type='WINDOW')
         for op_idname, op_props_dict, kmi_kwargs in actions:
             kmi = km.keymap_items.new(op_idname, **kmi_kwargs)
