@@ -34,7 +34,10 @@ ExternalProject_Add(external_tiff
 	INSTALL_DIR ${LIBDIR}/tiff
 )
 
-add_dependencies(external_tiff external_zlib)
+add_dependencies(
+	external_tiff
+	external_zlib
+)
 
 if(BUILD_MODE STREQUAL Debug)
 	ExternalProject_Add_Step(external_tiff after_install

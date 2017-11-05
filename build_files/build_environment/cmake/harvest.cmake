@@ -26,7 +26,6 @@ endif()
 message("HARVEST_TARGET = ${HARVEST_TARGET}")
 
 if(WIN32)
-
 if(BUILD_MODE STREQUAL Release)
 	add_custom_target(Harvest_Release_Results
 				# Zlib Rename the lib file and copy the include/bin folders
@@ -117,8 +116,8 @@ if(BUILD_MODE STREQUAL Release)
 				# webp, straight up copy
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/webp ${HARVEST_TARGET}/webp
 		DEPENDS
-)
-endif(BUILD_MODE STREQUAL Release)
+	)
+endif()
 
 if(BUILD_MODE STREQUAL Debug)
 	add_custom_target(Harvest_Debug_Results
@@ -169,8 +168,8 @@ if(BUILD_MODE STREQUAL Debug)
 				# python
 				${CMAKE_COMMAND} -E copy ${LIBDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}_d.tar.gz ${HARVEST_TARGET}/Release/python${PYTHON_SHORT_VERSION_NO_DOTS}_d.tar.gz
 		DEPENDS Package_Python
-)
-endif(BUILD_MODE STREQUAL Debug)
+	)
+endif()
 
 else(WIN32)
 
@@ -276,4 +275,4 @@ harvest(x264/lib ffmpeg/lib "*.a")
 harvest(xml2/lib opencollada/lib "*.a")
 harvest(xvidcore/lib ffmpeg/lib "*.a")
 
-endif(WIN32)
+endif()

@@ -1325,7 +1325,7 @@ void ntreeUserDecrefID(bNodeTree *ntree)
 /* *************** Node Preview *********** */
 
 /* XXX this should be removed eventually ...
- * Currently BKE functions are modelled closely on previous code,
+ * Currently BKE functions are modeled closely on previous code,
  * using BKE_node_preview_init_tree to set up previews for a whole node tree in advance.
  * This should be left more to the individual node tree implementations.
  */

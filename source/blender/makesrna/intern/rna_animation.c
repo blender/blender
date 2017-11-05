@@ -676,7 +676,7 @@ static void rna_def_keyingset_info(BlenderRNA *brna)
 	
 	/* Regarding why we don't use rna_def_common_keying_flags() here:
 	 * - Using it would keep this case in sync with the other places 
-	 *   where these options are exposed (which are optimised for being
+	 *   where these options are exposed (which are optimized for being
 	 *   used in the UI).
 	 * - Unlike all the other places, this case is used for defining
 	 *   new "built in" Keying Sets via the Python API. In that case,

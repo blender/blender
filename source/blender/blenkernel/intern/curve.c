@@ -3591,8 +3591,8 @@ static bool tridiagonal_solve_with_limits(float *a, float *b, float *c, float *d
  * This function computes the handles of a series of auto bezier points
  * on the basis of 'no acceleration discontinuities' at the points.
  * The first and last bezier points are considered 'fixed' (their handles are not touched)
- * The result is the smoothest possible trajectory going through intemediate points.
- * The difficulty is that the handles depends on their neighbours.
+ * The result is the smoothest possible trajectory going through intermediate points.
+ * The difficulty is that the handles depends on their neighbors.
  *
  * The exact solution is found by solving a tridiagonal matrix equation formed
  * by the continuity and boundary conditions. Although theoretically handle position

@@ -103,5 +103,8 @@ ExternalProject_Add(external_boost
 )
 
 if(WIN32)
-	add_dependencies(external_boost Make_Python_Environment)
+	add_dependencies(
+		external_boost
+		Make_Python_Environment
+	)
 endif()

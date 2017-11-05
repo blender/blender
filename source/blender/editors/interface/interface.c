@@ -985,7 +985,9 @@ void ui_but_add_shortcut(uiBut *but, const char *shortcut_str, const bool do_str
 	}
 }
 
-static bool ui_but_event_operator_string(const bContext *C, uiBut *but, char *buf, const size_t buf_len)
+static bool ui_but_event_operator_string(
+        const bContext *C, uiBut *but,
+        char *buf, const size_t buf_len)
 {
 	MenuType *mt;
 	bool found = false;
@@ -993,7 +995,10 @@ static bool ui_but_event_operator_string(const bContext *C, uiBut *but, char *bu
 	if (but->optype) {
 		IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
 
-		if (WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, true, buf_len, buf)) {
+		if (WM_key_event_operator_string(
+		        C, but->optype->idname, but->opcontext, prop, true,
+		        buf, buf_len))
+		{
 			found = true;
 		}
 	}
@@ -1008,8 +1013,9 @@ static bool ui_but_event_operator_string(const bContext *C, uiBut *but, char *bu
 
 		IDP_AssignString(prop_menu_name, mt->idname, sizeof(mt->idname));
 
-		if (WM_key_event_operator_string(C, "WM_OT_call_menu", WM_OP_INVOKE_REGION_WIN, prop_menu,
-		                                 true, buf_len, buf))
+		if (WM_key_event_operator_string(
+		        C, "WM_OT_call_menu", WM_OP_INVOKE_REGION_WIN, prop_menu, true,
+		        buf, buf_len))
 		{
 			found = true;
 		}
@@ -1021,8 +1027,10 @@ static bool ui_but_event_operator_string(const bContext *C, uiBut *but, char *bu
 	return found;
 }
 
-static bool ui_but_event_property_operator_string(const bContext *C, uiBut *but, char *buf, const size_t buf_len)
-{	
+static bool ui_but_event_property_operator_string(
+        const bContext *C, uiBut *but,
+        char *buf, const size_t buf_len)
+{
 	/* context toggle operator names to check... */
 	const char *ctx_toggle_opnames[] = {
 		"WM_OT_context_toggle",
@@ -1116,8 +1124,9 @@ static bool ui_but_event_property_operator_string(const bContext *C, uiBut *but,
 			
 			/* check each until one works... */
 			for (i = 0; (i < num_ops) && (ctx_toggle_opnames[i]); i++) {
-				if (WM_key_event_operator_string(C, ctx_toggle_opnames[i], WM_OP_INVOKE_REGION_WIN, prop_path, false,
-				                                 buf_len, buf))
+				if (WM_key_event_operator_string(
+				        C, ctx_toggle_opnames[i], WM_OP_INVOKE_REGION_WIN, prop_path, false,
+				        buf, buf_len))
 				{
 					found = true;
 					break;

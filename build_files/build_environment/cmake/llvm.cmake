@@ -43,15 +43,15 @@ ExternalProject_Add(ll
 	INSTALL_DIR ${LIBDIR}/llvm
 )
 
-if (MSVC)
-	if (BUILD_MODE STREQUAL Release)
+if(MSVC)
+	if(BUILD_MODE STREQUAL Release)
 		set(LLVM_HARVEST_COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/llvm/ ${HARVEST_TARGET}/llvm/ )
 	else()
 		set(LLVM_HARVEST_COMMAND
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/llvm/lib/ ${HARVEST_TARGET}/llvm/debug/lib/ &&
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/llvm/bin/ ${HARVEST_TARGET}/llvm/debug/bin/ &&
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/llvm/include/ ${HARVEST_TARGET}/llvm/debug/include/ 
-			)
+			${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/llvm/lib/ ${HARVEST_TARGET}/llvm/debug/lib/ &&
+			${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/llvm/bin/ ${HARVEST_TARGET}/llvm/debug/bin/ &&
+			${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/llvm/include/ ${HARVEST_TARGET}/llvm/debug/include/
+		)
 	endif()
 	ExternalProject_Add_Step(ll after_install
 		COMMAND ${LLVM_HARVEST_COMMAND}

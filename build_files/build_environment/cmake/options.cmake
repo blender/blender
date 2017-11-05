@@ -26,13 +26,13 @@ if(NOT BUILD_MODE)
 	set(BUILD_MODE "Release")
 	message(STATUS "Build type not specified: defaulting to a release build.")
 endif()
-Message("BuildMode = ${BUILD_MODE}")
+message("BuildMode = ${BUILD_MODE}")
 
 if(BUILD_MODE STREQUAL "Debug")
 	set(LIBDIR ${CMAKE_CURRENT_BINARY_DIR}/Debug)
-ELSE(BUILD_MODE STREQUAL "Debug")
+else(BUILD_MODE STREQUAL "Debug")
 	set(LIBDIR ${CMAKE_CURRENT_BINARY_DIR}/Release)
-ENDIF(BUILD_MODE STREQUAL "Debug")
+endif()
 
 option(DOWNLOAD_DIR "Path for downloaded files" ${CMAKE_CURRENT_SOURCE_DIR}/downloads)
 file(TO_CMAKE_PATH ${DOWNLOAD_DIR} DOWNLOAD_DIR)
@@ -116,10 +116,11 @@ else()
 	set(LIBPREFIX "lib")
 
 	if(APPLE)
-# Let's get the current Xcode dir, to support xcode-select
-  	    	execute_process(
+		# Let's get the current Xcode dir, to support xcode-select
+		execute_process(
 			COMMAND xcode-select --print-path
-			OUTPUT_VARIABLE XCODE_DEV_PATH OUTPUT_STRIP_TRAILING_WHITESPACE)
+			OUTPUT_VARIABLE XCODE_DEV_PATH OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
 		set(OSX_ARCHITECTURES x86_64)
 		set(OSX_DEPLOYMENT_TARGET 10.9)
 		set(OSX_SDK_VERSION 10.12)
@@ -130,9 +131,9 @@ else()
 		set(PLATFORM_LDFLAGS "-isysroot ${OSX_SYSROOT} -mmacosx-version-min=${OSX_DEPLOYMENT_TARGET}")
 		set(PLATFORM_BUILD_TARGET --build=x86_64-apple-darwin13.0.0) # OS X 10.9
 		set(PLATFORM_CMAKE_FLAGS
-			 -DCMAKE_OSX_ARCHITECTURES:STRING=${OSX_ARCHITECTURES}
-			 -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=${OSX_DEPLOYMENT_TARGET}
-			 -DCMAKE_OSX_SYSROOT:PATH=${OSX_SYSROOT}
+			-DCMAKE_OSX_ARCHITECTURES:STRING=${OSX_ARCHITECTURES}
+			-DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=${OSX_DEPLOYMENT_TARGET}
+			-DCMAKE_OSX_SYSROOT:PATH=${OSX_SYSROOT}
 		)
 	else()
 		set(PLATFORM_CFLAGS "-fPIC")

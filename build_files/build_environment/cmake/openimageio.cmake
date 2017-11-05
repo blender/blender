@@ -39,21 +39,25 @@ else()
 	set(OIIO_SIMD_FLAGS)
 endif()
 
-if (WITH_WEBP)
-	set(WEBP_ARGS	-DWEBP_INCLUDE_DIR=${LIBDIR}/webp/include
-					-DWEBP_LIBRARY=${LIBDIR}/webp/lib/${LIBPREFIX}webp${LIBEXT} )
+if(WITH_WEBP)
+	set(WEBP_ARGS
+		-DWEBP_INCLUDE_DIR=${LIBDIR}/webp/include
+		-DWEBP_LIBRARY=${LIBDIR}/webp/lib/${LIBPREFIX}webp${LIBEXT}
+	)
 	set(WEBP_DEP external_webp)
-endif() 
+endif()
 
-if (MSVC)
-set(OPENJPEG_FLAGS -DOPENJPEG_HOME=${LIBDIR}/openjpeg_msvc
-				   -DOPENJPEG_INCLUDE_DIR=${LIBDIR}/openjpeg_msvc/include/openjpeg-${OPENJPEG_SHORT_VERSION}
-				   -DOPENJPEG_LIBRARY=${LIBDIR}/openjpeg_msvc/lib/openjpeg${LIBEXT}
-				   -DOPENJPEG_LIBRARY_DEBUG=${LIBDIR}/openjpeg_msvc/lib/openjpeg${LIBEXT}
-   )
+if(MSVC)
+	set(OPENJPEG_FLAGS
+		-DOPENJPEG_HOME=${LIBDIR}/openjpeg_msvc
+		-DOPENJPEG_INCLUDE_DIR=${LIBDIR}/openjpeg_msvc/include/openjpeg-${OPENJPEG_SHORT_VERSION}
+		-DOPENJPEG_LIBRARY=${LIBDIR}/openjpeg_msvc/lib/openjpeg${LIBEXT}
+		-DOPENJPEG_LIBRARY_DEBUG=${LIBDIR}/openjpeg_msvc/lib/openjpeg${LIBEXT}
+	)
 else()
-set(OPENJPEG_FLAGS 	-DOPENJPEG_INCLUDE_DIR=${LIBDIR}/openjpeg/include/openjpeg-${OPENJPEG_SHORT_VERSION}
-					-DOPENJPEG_LIBRARY=${LIBDIR}/openjpeg/lib/${OPENJPEG_LIBRARY}
+	set(OPENJPEG_FLAGS
+		-DOPENJPEG_INCLUDE_DIR=${LIBDIR}/openjpeg/include/openjpeg-${OPENJPEG_SHORT_VERSION}
+		-DOPENJPEG_LIBRARY=${LIBDIR}/openjpeg/lib/${OPENJPEG_LIBRARY}
 	)
 endif()
 
@@ -120,13 +124,28 @@ ExternalProject_Add(external_openimageio
 	DOWNLOAD_DIR ${DOWNLOAD_DIR}
 	URL_HASH MD5=${OPENIMAGEIO_HASH}
 	PREFIX ${BUILD_DIR}/openimageio
-	PATCH_COMMAND ${PATCH_CMD} -p 0 -N -d ${BUILD_DIR}/openimageio/src/external_openimageio/src/include < ${PATCH_DIR}/openimageio_gdi.diff &&
-				${PATCH_CMD} -p 0 -N -d ${BUILD_DIR}/openimageio/src/external_openimageio/ < ${PATCH_DIR}/openimageio_staticexr.diff
+	PATCH_COMMAND
+		${PATCH_CMD} -p 0 -N -d ${BUILD_DIR}/openimageio/src/external_openimageio/src/include < ${PATCH_DIR}/openimageio_gdi.diff &&
+		${PATCH_CMD} -p 0 -N -d ${BUILD_DIR}/openimageio/src/external_openimageio/ < ${PATCH_DIR}/openimageio_staticexr.diff
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openimageio ${DEFAULT_CMAKE_FLAGS} ${OPENIMAGEIO_EXTRA_ARGS}
 	INSTALL_DIR ${LIBDIR}/openimageio
 )
 
-add_dependencies(external_openimageio external_png external_zlib external_ilmbase external_openexr external_jpeg external_boost external_tiff external_opencolorio external_openjpeg${OPENJPEG_POSTFIX} ${WEBP_DEP})
+add_dependencies(
+	external_openimageio
+	external_png external_zlib
+	external_ilmbase
+	external_openexr
+	external_jpeg
+	external_boost
+	external_tiff
+	external_opencolorio
+	external_openjpeg${OPENJPEG_POSTFIX}
+	${WEBP_DEP}
+)
 if(NOT WIN32)
-	add_dependencies(external_openimageio external_opencolorio_extra)
+	add_dependencies(
+		external_openimageio
+		external_opencolorio_extra
+	)
 endif()

@@ -31,7 +31,10 @@ ExternalProject_Add(external_png
 	INSTALL_DIR	${LIBDIR}/png
 )
 
-add_dependencies(external_png external_zlib)
+add_dependencies(
+	external_png
+	external_zlib
+)
 
 if(BUILD_MODE STREQUAL Debug)
 	ExternalProject_Add_Step(external_png after_install

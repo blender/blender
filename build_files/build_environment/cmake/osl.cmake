@@ -78,10 +78,21 @@ ExternalProject_Add(external_osl
 	LIST_SEPARATOR ^^
 	URL_HASH MD5=${OSL_HASH}
 	PREFIX ${BUILD_DIR}/osl
-	PATCH_COMMAND ${PATCH_CMD} -p 3 -d ${BUILD_DIR}/osl/src/external_osl < ${PATCH_DIR}/osl.diff &&
-				${PATCH_CMD} -p 0 -d ${BUILD_DIR}/osl/src/external_osl < ${PATCH_DIR}/osl_simd_oiio.diff
+	PATCH_COMMAND
+		${PATCH_CMD} -p 3 -d ${BUILD_DIR}/osl/src/external_osl < ${PATCH_DIR}/osl.diff &&
+		${PATCH_CMD} -p 0 -d ${BUILD_DIR}/osl/src/external_osl < ${PATCH_DIR}/osl_simd_oiio.diff
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/osl -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ${DEFAULT_CMAKE_FLAGS} ${OSL_EXTRA_ARGS}
 	INSTALL_DIR ${LIBDIR}/osl
 )
 
-add_dependencies(external_osl external_boost ll external_clang external_ilmbase external_openexr external_zlib external_flexbison external_openimageio)
+add_dependencies(
+	external_osl
+	external_boost
+	ll
+	external_clang
+	external_ilmbase
+	external_openexr
+	external_zlib
+	external_flexbison
+	external_openimageio
+)

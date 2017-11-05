@@ -47,7 +47,10 @@ if(BUILD_MODE STREQUAL Release)
 			CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/blendThumb32 ${DEFAULT_CMAKE_FLAGS} -DZLIB_INCLUDE=${LIBDIR}/zlib32/include -DZLIB_LIBS=${LIBDIR}/zlib32/lib/zlibstatic.lib
 			INSTALL_DIR ${LIBDIR}/blendthumb32
 		)
-		add_dependencies(external_blendthumb_32 external_zlib_32)
+		add_dependencies(
+			external_blendthumb_32
+			external_zlib_32
+		)
 
 		ExternalProject_Add(external_blendthumb_64
 			CMAKE_GENERATOR ${GENERATOR_64}
@@ -56,6 +59,9 @@ if(BUILD_MODE STREQUAL Release)
 			CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/blendThumb64 ${DEFAULT_CMAKE_FLAGS} -DZLIB_INCLUDE=${LIBDIR}/zlib64/include -DZLIB_LIBS=${LIBDIR}/zlib64/lib/zlibstatic.lib
 			INSTALL_DIR ${LIBDIR}/blendthumb64
 		)
-		add_dependencies(external_blendthumb_64 external_zlib_64)
+		add_dependencies(
+			external_blendthumb_64
+			external_zlib_64
+		)
 	endif()
 endif()

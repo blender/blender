@@ -72,7 +72,7 @@ typedef struct wmEventHandler {
 	struct wmManipulatorMap *manipulator_map;
 } wmEventHandler;
 
-/* custom types for handlers, for signalling, freeing */
+/* custom types for handlers, for signaling, freeing */
 enum {
 	WM_HANDLER_DEFAULT,
 	WM_HANDLER_FILESELECT
@@ -99,4 +99,3 @@ void        wm_drags_check_ops(bContext *C, const wmEvent *event);
 void        wm_drags_draw(bContext *C, wmWindow *win, rcti *rect);
 
 #endif /* __WM_EVENT_SYSTEM_H__ */
-

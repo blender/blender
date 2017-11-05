@@ -44,20 +44,22 @@ if(WIN32)
 		DOWNLOAD_DIR ${DOWNLOAD_DIR}
 		URL_HASH MD5=${PYTHON_HASH}
 		PREFIX ${BUILD_DIR}/python
-		PATCH_COMMAND echo mklink /D "${PYTHON_EXTERNALS_FOLDER_DOS}" "${DOWNLOADS_EXTERNALS_FOLDER_DOS}" &&
-						 mklink /D "${PYTHON_EXTERNALS_FOLDER_DOS}" "${DOWNLOADS_EXTERNALS_FOLDER_DOS}" &&
-						 ${PATCH_CMD} --verbose -p 0 -d ${BUILD_DIR}/python/src/external_python < ${PATCH_DIR}/python.diff &&
-						 ${PATCH_CMD} --verbose -p 0 -d ${BUILD_DIR}/python/src/external_python/pc < ${PATCH_DIR}/pyshell.diff
+		PATCH_COMMAND
+			echo mklink /D "${PYTHON_EXTERNALS_FOLDER_DOS}" "${DOWNLOADS_EXTERNALS_FOLDER_DOS}" &&
+			mklink /D "${PYTHON_EXTERNALS_FOLDER_DOS}" "${DOWNLOADS_EXTERNALS_FOLDER_DOS}" &&
+			${PATCH_CMD} --verbose -p 0 -d ${BUILD_DIR}/python/src/external_python < ${PATCH_DIR}/python.diff &&
+			${PATCH_CMD} --verbose -p 0 -d ${BUILD_DIR}/python/src/external_python/pc < ${PATCH_DIR}/pyshell.diff
 		CONFIGURE_COMMAND ""
 		BUILD_COMMAND cd ${BUILD_DIR}/python/src/external_python/pcbuild/ && set IncludeTkinter=false && call build.bat -e -p ${PYTHON_ARCH} -c ${BUILD_MODE} -k ${PYTHON_COMPILER_STRING}
-		INSTALL_COMMAND COMMAND ${CMAKE_COMMAND} -E copy ${PYTHON_OUTPUTDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.dll ${LIBDIR}/python/lib/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.dll &&
-								${CMAKE_COMMAND} -E copy ${PYTHON_OUTPUTDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.lib ${LIBDIR}/python/lib/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.lib &&
-								${CMAKE_COMMAND} -E copy ${PYTHON_OUTPUTDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.exp ${LIBDIR}/python/lib/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.exp &&
-								${CMAKE_COMMAND} -E copy_directory ${BUILD_DIR}/python/src/external_python/include ${LIBDIR}/python/include/Python${PYTHON_SHORT_VERSION} &&
-								${CMAKE_COMMAND} -E copy "${BUILD_DIR}/python/src/external_python/PC/pyconfig.h" ${LIBDIR}/python/include/Python${PYTHON_SHORT_VERSION}/pyconfig.h
+		INSTALL_COMMAND COMMAND
+			${CMAKE_COMMAND} -E copy ${PYTHON_OUTPUTDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.dll ${LIBDIR}/python/lib/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.dll &&
+			${CMAKE_COMMAND} -E copy ${PYTHON_OUTPUTDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.lib ${LIBDIR}/python/lib/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.lib &&
+			${CMAKE_COMMAND} -E copy ${PYTHON_OUTPUTDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.exp ${LIBDIR}/python/lib/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.exp &&
+			${CMAKE_COMMAND} -E copy_directory ${BUILD_DIR}/python/src/external_python/include ${LIBDIR}/python/include/Python${PYTHON_SHORT_VERSION} &&
+			${CMAKE_COMMAND} -E copy "${BUILD_DIR}/python/src/external_python/PC/pyconfig.h" ${LIBDIR}/python/include/Python${PYTHON_SHORT_VERSION}/pyconfig.h
 	)
-	Message("PythinRedist = ${BUILD_DIR}/python/src/external_python/redist")
-	Message("POutput = ${PYTHON_OUTPUTDIR}")
+	message("PythinRedist = ${BUILD_DIR}/python/src/external_python/redist")
+	message("POutput = ${PYTHON_OUTPUTDIR}")
 else()
 	if(APPLE)
 		# we need to manually add homebrew headers to get ssl module building
@@ -135,4 +137,4 @@ if(MSVC)
 		COMMAND	${PYTHON_DISTUTIL_PATCH}
 	)
 	add_custom_target(Make_Python_Environment ALL DEPENDS ${BUILD_DIR}/python/src/external_python/run/python${PYTHON_POSTFIX}.exe Package_Python)
-endif(MSVC)
+endif()

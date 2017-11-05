@@ -38,4 +38,8 @@ ExternalProject_Add(external_openexr
 	INSTALL_DIR ${LIBDIR}/openexr
 )
 
-add_dependencies(external_openexr external_zlib external_ilmbase)
+add_dependencies(
+	external_openexr
+	external_zlib
+	external_ilmbase
+)

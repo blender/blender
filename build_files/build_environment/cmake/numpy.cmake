@@ -25,7 +25,7 @@ if(MSVC)
 		set(NUMPY_DIR_POSTFIX)
 		set(NUMPY_ARCHIVE_POSTFIX)
 		set(NUMPY_BUILD_OPTION)
-	endif(BUILD_MODE STREQUAL Debug)
+	endif()
 endif()
 
 set(NUMPY_POSTFIX)
@@ -54,4 +54,7 @@ ExternalProject_Add(external_numpy
 	INSTALL_COMMAND ${NUMPY_INSTALL}
 )
 
-add_dependencies(external_numpy Make_Python_Environment)
+add_dependencies(
+	external_numpy
+	Make_Python_Environment
+)

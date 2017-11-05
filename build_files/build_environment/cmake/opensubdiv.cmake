@@ -68,4 +68,10 @@ ExternalProject_Add(external_opensubdiv
 	INSTALL_DIR ${LIBDIR}/opensubdiv
 )
 
-add_dependencies(external_opensubdiv external_glew external_glfw external_clew external_cuew)
+add_dependencies(
+	external_opensubdiv
+	external_glew
+	external_glfw
+	external_clew
+	external_cuew
+)

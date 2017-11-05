@@ -379,7 +379,7 @@ static void wm_jobs_test_suspend_stop(wmWindowManager *wm, wmJob *test)
 		}
 	}
 	
-	/* possible suspend ourselfs, waiting for other jobs, or de-suspend */
+	/* Possible suspend ourselves, waiting for other jobs, or de-suspend. */
 	test->suspended = suspend;
 	// if (suspend) printf("job suspended: %s\n", test->name);
 }

@@ -337,7 +337,7 @@ static uiTooltipData *ui_tooltip_data_from_keymap(bContext *C, wmKeyMap *keymap)
 				            .color_id = UI_TIP_LC_NORMAL,
 				        });
 				bool found = false;
-				if (WM_keymap_item_to_string(kmi, false, sizeof(buf), buf)) {
+				if (WM_keymap_item_to_string(kmi, false, buf, sizeof(buf))) {
 					found = true;
 				}
 				field->text = BLI_sprintfN(TIP_("Shortcut: %s"), found ? buf : "None");

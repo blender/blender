@@ -49,7 +49,14 @@ if(MSVC)
 	set_target_properties(external_sndfile PROPERTIES FOLDER Mingw)
 endif()
 
-add_dependencies(external_sndfile external_ogg external_vorbis)
+add_dependencies(
+	external_sndfile
+	external_ogg
+	external_vorbis
+)
 if(UNIX)
-	add_dependencies(external_sndfile external_flac)
+	add_dependencies(
+		external_sndfile
+		external_flac
+	)
 endif()

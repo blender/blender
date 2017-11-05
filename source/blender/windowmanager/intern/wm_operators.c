@@ -1461,7 +1461,7 @@ static void dialog_exec_cb(bContext *C, void *arg1, void *arg2)
 	wmOpPopUp *data = arg1;
 	uiBlock *block = arg2;
 
-	/* Explicitly set UI_RETURN_OK flag, otherwise the menu might be cancelled
+	/* Explicitly set UI_RETURN_OK flag, otherwise the menu might be canceled
 	 * in case WM_operator_call_ex exits/reloads the current file (T49199). */
 	UI_popup_menu_retval_set(block, UI_RETURN_OK, true);
 

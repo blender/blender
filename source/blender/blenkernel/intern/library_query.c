@@ -380,7 +380,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 		if (bmain != NULL && bmain->relations != NULL && (flag & IDWALK_READONLY)) {
 			/* Note that this is minor optimization, even in worst cases (like id being an object with lots of
 			 * drivers and constraints and modifiers, or material etc. with huge node tree),
-			 * but we might as well use it (Main->relations is always assumed valid, it's responsability of code
+			 * but we might as well use it (Main->relations is always assumed valid, it's responsibility of code
 			 * creating it to free it, especially if/when it starts modifying Main database). */
 			MainIDRelationsEntry *entry = BLI_ghash_lookup(bmain->relations->id_user_to_used, id);
 			for (; entry != NULL; entry = entry->next) {

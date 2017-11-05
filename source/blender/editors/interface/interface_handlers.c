@@ -1288,7 +1288,7 @@ static bool ui_drag_toggle_set_xy_xy(
 		}
 	}
 	if (changed) {
-		/* apply now, not on release (or if handlers are cancelled for whatever reason) */
+		/* apply now, not on release (or if handlers are canceled for whatever reason) */
 		ui_apply_but_funcs_after(C);
 	}
 
@@ -6542,8 +6542,9 @@ static void but_shortcut_name_func(bContext *C, void *arg1, int UNUSED(event))
 		IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
 		
 		/* complex code to change name of button */
-		if (WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, true,
-		                                 sizeof(shortcut_str), shortcut_str))
+		if (WM_key_event_operator_string(
+		        C, but->optype->idname, but->opcontext, prop, true,
+		        shortcut_str, sizeof(shortcut_str)))
 		{
 			ui_but_add_shortcut(but, shortcut_str, true);
 		}
@@ -8031,7 +8032,7 @@ static void button_activate_exit(
 		ui_but_update(but);
 
 	/* adds empty mousemove in queue for re-init handler, in case mouse is
-	 * still over a button. we cannot just check for this ourselfs because
+	 * still over a button. We cannot just check for this ourselves because
 	 * at this point the mouse may be over a button in another region */
 	if (mousemove)
 		WM_event_add_mousemove(C);

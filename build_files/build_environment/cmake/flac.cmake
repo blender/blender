@@ -29,4 +29,4 @@ ExternalProject_Add(external_flac
 
 if(MSVC)
 	set_target_properties(external_flac PROPERTIES FOLDER Mingw)
-endif(MSVC)
+endif()

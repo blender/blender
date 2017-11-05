@@ -33,7 +33,11 @@ ExternalProject_Add(external_theora
 	INSTALL_DIR ${LIBDIR}/theora
 )
 
-add_dependencies(external_theora external_vorbis external_ogg)
+add_dependencies(
+	external_theora
+	external_vorbis
+	external_ogg
+)
 
 if(MSVC)
 	set_target_properties(external_theora PROPERTIES FOLDER Mingw)
