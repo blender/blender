@@ -244,6 +244,17 @@ ccl_device_inline float object_pass_id(KernelGlobals *kg, int object)
 	return f.y;
 }
 
+/* Per lamp random number for shader variation */
+
+ccl_device_inline float lamp_random_number(KernelGlobals *kg, int lamp)
+{
+	if(lamp == LAMP_NONE)
+		return 0.0f;
+
+	float4 f = kernel_tex_fetch(__light_data, lamp*LIGHT_SIZE + 4);
+	return f.y;
+}
+
 /* Per object random number for shader variation */
 
 ccl_device_inline float object_random_number(KernelGlobals *kg, int object)

@@ -57,6 +57,7 @@ ccl_device_noinline void shader_setup_from_ray(KernelGlobals *kg,
 #ifdef __INSTANCING__
 	sd->object = (isect->object == PRIM_NONE)? kernel_tex_fetch(__prim_object, isect->prim): isect->object;
 #endif
+	sd->lamp = LAMP_NONE;
 
 	sd->type = isect->type;
 	sd->flag = 0;
@@ -265,6 +266,7 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals *kg,
 #ifdef __INSTANCING__
 	sd->object = object;
 #endif
+	sd->lamp = LAMP_NONE;
 	/* currently no access to bvh prim index for strand sd->prim*/
 	sd->prim = prim;
 #ifdef __UV__
@@ -286,6 +288,7 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals *kg,
 	else if(lamp != LAMP_NONE) {
 		sd->ob_tfm  = lamp_fetch_transform(kg, lamp, false);
 		sd->ob_itfm = lamp_fetch_transform(kg, lamp, true);
+		sd->lamp = lamp;
 #endif
 	}
 
@@ -391,6 +394,7 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderDat
 #ifdef __INSTANCING__
 	sd->object = PRIM_NONE;
 #endif
+	sd->lamp = LAMP_NONE;
 	sd->prim = PRIM_NONE;
 #ifdef __UV__
 	sd->u = 0.0f;
@@ -431,6 +435,7 @@ ccl_device_inline void shader_setup_from_volume(KernelGlobals *kg, ShaderData *s
 #  ifdef __INSTANCING__
 	sd->object = PRIM_NONE; /* todo: fill this for texture coordinates */
 #  endif
+	sd->lamp = LAMP_NONE;
 	sd->prim = PRIM_NONE;
 	sd->type = PRIMITIVE_NONE;
 
@@ -1143,6 +1148,7 @@ ccl_device_inline void shader_eval_volume(KernelGlobals *kg,
 		/* setup shaderdata from stack. it's mostly setup already in
 		 * shader_setup_from_volume, this switching should be quick */
 		sd->object = stack[i].object;
+		sd->lamp = LAMP_NONE;
 		sd->shader = stack[i].shader;
 
 		sd->flag &= ~SD_SHADER_FLAGS;
