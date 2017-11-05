@@ -35,11 +35,12 @@ if(WIN32)
 			CONFIGURE_COMMAND echo .
 			PATCH_COMMAND ${PATCH_CMD} --verbose -p 0 -N -d ${BUILD_DIR}/pthreads/src/external_pthreads < ${PATCH_DIR}/pthreads.diff
 			BUILD_COMMAND ${PTHREADS_BUILD}
-			INSTALL_COMMAND COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/pthreadVC2.dll ${LIBDIR}/pthreads/lib/pthreadVC2.dll &&
-															${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/pthreadVC2${LIBEXT} ${LIBDIR}/pthreads/lib/pthreadVC2${LIBEXT} &&
-															${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/pthread.h ${LIBDIR}/pthreads/inc/pthread.h &&
-															${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/sched.h ${LIBDIR}/pthreads/inc/sched.h &&
-															${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/semaphore.h ${LIBDIR}/pthreads/inc/semaphore.h
+			INSTALL_COMMAND COMMAND
+				${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/pthreadVC2.dll ${LIBDIR}/pthreads/lib/pthreadVC2.dll &&
+				${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/pthreadVC2${LIBEXT} ${LIBDIR}/pthreads/lib/pthreadVC2${LIBEXT} &&
+				${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/pthread.h ${LIBDIR}/pthreads/inc/pthread.h &&
+				${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/sched.h ${LIBDIR}/pthreads/inc/sched.h &&
+				${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/semaphore.h ${LIBDIR}/pthreads/inc/semaphore.h
 			INSTALL_DIR ${LIBDIR}/pthreads
 		)
 endif()

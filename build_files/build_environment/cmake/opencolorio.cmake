@@ -67,4 +67,7 @@ if(NOT WIN32)
 	add_custom_target(external_opencolorio_extra ALL DEPENDS external_opencolorio ${LIBDIR}/opencolorio/lib/libtinyxml.a)
 endif()
 
-add_dependencies(external_opencolorio external_boost)
+add_dependencies(
+	external_opencolorio
+	external_boost
+)

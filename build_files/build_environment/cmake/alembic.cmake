@@ -72,4 +72,9 @@ ExternalProject_Add(external_alembic
 	INSTALL_DIR ${LIBDIR}/alembic
 )
 
-add_dependencies(external_alembic external_boost external_zlib external_ilmbase)
+add_dependencies(
+	external_alembic
+	external_boost
+	external_zlib
+	external_ilmbase
+)

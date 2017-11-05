@@ -39,19 +39,19 @@ ExternalProject_Add(external_openjpeg
 )
 
 #on windows ffmpeg wants a mingw build, while oiio needs a msvc build
-if (MSVC)
+if(MSVC)
 	set(OPENJPEG_EXTRA_ARGS ${DEFAULT_CMAKE_FLAGS})
-ExternalProject_Add(external_openjpeg_msvc
-	URL ${OPENJPEG_URI}
-	DOWNLOAD_DIR ${DOWNLOAD_DIR}
-	URL_HASH SHA256=${OPENJPEG_HASH}
-	PREFIX ${BUILD_DIR}/openjpeg_msvc
-	CMAKE_ARGS ${OPENJPEG_EXTRA_ARGS} -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openjpeg_msvc -DBUILD_SHARED_LIBS=Off -DBUILD_THIRDPARTY=OFF 
-	INSTALL_DIR ${LIBDIR}/openjpeg_msvc
-)
+	ExternalProject_Add(external_openjpeg_msvc
+		URL ${OPENJPEG_URI}
+		DOWNLOAD_DIR ${DOWNLOAD_DIR}
+		URL_HASH SHA256=${OPENJPEG_HASH}
+		PREFIX ${BUILD_DIR}/openjpeg_msvc
+		CMAKE_ARGS ${OPENJPEG_EXTRA_ARGS} -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openjpeg_msvc -DBUILD_SHARED_LIBS=Off -DBUILD_THIRDPARTY=OFF 
+		INSTALL_DIR ${LIBDIR}/openjpeg_msvc
+	)
 endif()
 
-	set(OPENJPEG_LIBRARY libopenjpeg${LIBEXT})
+set(OPENJPEG_LIBRARY libopenjpeg${LIBEXT})
 if(MSVC)
 	set_target_properties(external_openjpeg PROPERTIES FOLDER Mingw)
-endif(MSVC)
+endif()

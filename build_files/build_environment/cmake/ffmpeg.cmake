@@ -30,13 +30,14 @@ if(WIN32)
 		--enable-w32threads
 		--disable-pthreads
 		--enable-libopenjpeg
-		)
+	)
 else()
 	set(FFMPEG_EXTRA_FLAGS
 		${FFMPEG_EXTRA_FLAGS}
 		--enable-static
 		--disable-shared
-		--enable-libopenjpeg)
+		--enable-libopenjpeg
+	)
 endif()
 
 if(APPLE)
@@ -102,18 +103,34 @@ ExternalProject_Add(external_ffmpeg
 		--disable-indev=jack
 		--disable-indev=alsa
 		--disable-outdev=alsa
-  PATCH_COMMAND ${PATCH_CMD} --verbose -p 0 -N -d ${BUILD_DIR}/ffmpeg/src/external_ffmpeg < ${PATCH_DIR}/ffmpeg.diff
-  BUILD_COMMAND ${CONFIGURE_ENV_NO_PERL} && cd ${BUILD_DIR}/ffmpeg/src/external_ffmpeg/ && make -j${MAKE_THREADS}
-  INSTALL_COMMAND ${CONFIGURE_ENV_NO_PERL} && cd ${BUILD_DIR}/ffmpeg/src/external_ffmpeg/ && make install
-  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/ffmpeg ${DEFAULT_CMAKE_FLAGS}
-  INSTALL_DIR ${LIBDIR}/ffmpeg
+	PATCH_COMMAND ${PATCH_CMD} --verbose -p 0 -N -d ${BUILD_DIR}/ffmpeg/src/external_ffmpeg < ${PATCH_DIR}/ffmpeg.diff
+	BUILD_COMMAND ${CONFIGURE_ENV_NO_PERL} && cd ${BUILD_DIR}/ffmpeg/src/external_ffmpeg/ && make -j${MAKE_THREADS}
+	INSTALL_COMMAND ${CONFIGURE_ENV_NO_PERL} && cd ${BUILD_DIR}/ffmpeg/src/external_ffmpeg/ && make install
+	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/ffmpeg ${DEFAULT_CMAKE_FLAGS}
+	INSTALL_DIR ${LIBDIR}/ffmpeg
 )
 
 if(MSVC)
 	set_target_properties(external_ffmpeg PROPERTIES FOLDER Mingw)
-endif(MSVC)
+endif()
 
-add_dependencies(external_ffmpeg external_zlib external_faad external_openjpeg external_xvidcore external_x264 external_schroedinger external_vpx external_theora external_vorbis external_ogg external_lame)
+add_dependencies(
+	external_ffmpeg
+	external_zlib
+	external_faad
+	external_openjpeg
+	external_xvidcore
+	external_x264
+	external_schroedinger
+	external_vpx
+	external_theora
+	external_vorbis
+	external_ogg
+	external_lame
+)
 if(WIN32)
-	add_dependencies(external_ffmpeg external_zlib_mingw)
+	add_dependencies(
+		external_ffmpeg
+		external_zlib_mingw
+	)
 endif()

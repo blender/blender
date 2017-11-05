@@ -37,4 +37,4 @@ ExternalProject_Add(external_fftw3
 
 if(MSVC)
 	set_target_properties(external_fftw3 PROPERTIES FOLDER Mingw)
-endif(MSVC)
+endif()

@@ -31,7 +31,10 @@ ExternalProject_Add(external_vorbis
 	INSTALL_DIR ${LIBDIR}/vorbis
 )
 
-add_dependencies(external_vorbis external_ogg)
+add_dependencies(
+	external_vorbis
+	external_ogg
+)
 
 if(MSVC)
 	set_target_properties(external_vorbis PROPERTIES FOLDER Mingw)

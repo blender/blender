@@ -37,7 +37,13 @@ ExternalProject_Add(external_blosc
 	INSTALL_DIR ${LIBDIR}/blosc
 )
 
-add_dependencies(external_blosc external_zlib)
+add_dependencies(
+	external_blosc
+	external_zlib
+)
 if(WIN32)
-	add_dependencies(external_blosc external_pthreads)
+	add_dependencies(
+		external_blosc
+		external_pthreads
+	)
 endif()

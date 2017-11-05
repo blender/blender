@@ -38,7 +38,10 @@ ExternalProject_Add(external_schroedinger
 	INSTALL_DIR ${LIBDIR}/schroedinger
 )
 
-add_dependencies(external_schroedinger external_orc)
+add_dependencies(
+	external_schroedinger
+	external_orc
+)
 
 if(MSVC)
 	set_target_properties(external_schroedinger PROPERTIES FOLDER Mingw)

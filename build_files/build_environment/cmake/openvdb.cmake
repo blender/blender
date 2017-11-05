@@ -61,11 +61,20 @@ ExternalProject_Add(openvdb
 	DOWNLOAD_DIR ${DOWNLOAD_DIR}
 	URL_HASH MD5=${OPENVDB_HASH}
 	PREFIX ${BUILD_DIR}/openvdb
-	PATCH_COMMAND COMMAND ${CMAKE_COMMAND} -E copy ${PATCH_DIR}/cmakelists_openvdb.txt  ${BUILD_DIR}/openvdb/src/openvdb/CMakeLists.txt &&
-						${CMAKE_COMMAND} -E copy_directory ${PATCH_DIR}/cmake/  ${BUILD_DIR}/openvdb/src/openvdb/cmake/ &&
-						${PATCH_CMD} --verbose -p 0 -N -d ${BUILD_DIR}/openvdb/src/openvdb < ${PATCH_DIR}/openvdb_vc2013.diff
+	PATCH_COMMAND COMMAND
+		${CMAKE_COMMAND} -E copy ${PATCH_DIR}/cmakelists_openvdb.txt  ${BUILD_DIR}/openvdb/src/openvdb/CMakeLists.txt &&
+		${CMAKE_COMMAND} -E copy_directory ${PATCH_DIR}/cmake/  ${BUILD_DIR}/openvdb/src/openvdb/cmake/ &&
+		${PATCH_CMD} --verbose -p 0 -N -d ${BUILD_DIR}/openvdb/src/openvdb < ${PATCH_DIR}/openvdb_vc2013.diff
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openvdb ${DEFAULT_CMAKE_FLAGS} ${OPENVDB_EXTRA_ARGS}
 	INSTALL_DIR ${LIBDIR}/openvdb
 )
 
-add_dependencies(openvdb external_tbb external_boost external_ilmbase external_openexr external_zlib external_blosc)
+add_dependencies(
+	openvdb
+	external_tbb
+	external_boost
+	external_ilmbase
+	external_openexr
+	external_zlib
+	external_blosc
+)

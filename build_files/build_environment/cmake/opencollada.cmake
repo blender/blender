@@ -33,5 +33,8 @@ ExternalProject_Add(external_opencollada
 )
 
 if(UNIX AND NOT APPLE)
-	add_dependencies(external_opencollada external_xml2)
+	add_dependencies(
+		external_opencollada
+		external_xml2
+	)
 endif()

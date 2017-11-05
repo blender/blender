@@ -32,15 +32,15 @@ ExternalProject_Add(external_clang
 	INSTALL_DIR ${LIBDIR}/clang
 )
 
-if (MSVC)
-	if (BUILD_MODE STREQUAL Release)
-		set(CLANG_HARVEST_COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/clang/ ${HARVEST_TARGET}/llvm/ )
+if(MSVC)
+	if(BUILD_MODE STREQUAL Release)
+		set(CLANG_HARVEST_COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/clang/ ${HARVEST_TARGET}/llvm/)
 	else()
 		set(CLANG_HARVEST_COMMAND
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/clang/lib/ ${HARVEST_TARGET}/llvm/debug/lib/ &&
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/clang/bin/ ${HARVEST_TARGET}/llvm/debug/bin/ &&
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/clang/include/ ${HARVEST_TARGET}/llvm/debug/include/ 
-			)
+			${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/clang/lib/ ${HARVEST_TARGET}/llvm/debug/lib/ &&
+			${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/clang/bin/ ${HARVEST_TARGET}/llvm/debug/bin/ &&
+			${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/clang/include/ ${HARVEST_TARGET}/llvm/debug/include/
+		)
 	endif()
 	ExternalProject_Add_Step(external_clang after_install
 		COMMAND ${CLANG_HARVEST_COMMAND}
@@ -48,4 +48,7 @@ if (MSVC)
 	)
 endif()
 
-add_dependencies(external_clang ll)
+add_dependencies(
+	external_clang
+	ll
+)
