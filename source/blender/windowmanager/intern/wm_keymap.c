@@ -940,7 +940,7 @@ const char *WM_key_event_string(const short type, const bool compact)
 int WM_keymap_item_raw_to_string(
         const short shift, const short ctrl, const short alt, const short oskey,
         const short keymodifier, const short val, const short type, const bool compact,
-        const int len, char *r_str)
+        char *result, const int result_len)
 {
 #define ADD_SEP if (p != buf) *p++ = ' '; (void)0
 
@@ -1000,20 +1000,23 @@ int WM_keymap_item_raw_to_string(
 	BLI_assert(p - buf < sizeof(buf));
 
 	/* We need utf8 here, otherwise we may 'cut' some unicode chars like arrows... */
-	return BLI_strncpy_utf8_rlen(r_str, buf, len);
+	return BLI_strncpy_utf8_rlen(result, buf, result_len);
 
 #undef ADD_SEP
 }
 
-int WM_keymap_item_to_string(wmKeyMapItem *kmi, const bool compact, const int len, char *r_str)
+int WM_keymap_item_to_string(
+        wmKeyMapItem *kmi, const bool compact,
+        char *result, const int result_len)
 {
 	return WM_keymap_item_raw_to_string(
-	            kmi->shift, kmi->ctrl, kmi->alt, kmi->oskey, kmi->keymodifier, kmi->val, kmi->type,
-	            compact, len, r_str);
+	        kmi->shift, kmi->ctrl, kmi->alt, kmi->oskey, kmi->keymodifier, kmi->val, kmi->type,
+	        compact, result, result_len);
 }
 
 int WM_modalkeymap_items_to_string(
-        wmKeyMap *km, const int propvalue, const bool compact, const int len, char *r_str)
+        wmKeyMap *km, const int propvalue, const bool compact,
+        char *result, const int result_len)
 {
 	int totlen = 0;
 	bool add_sep = false;
@@ -1023,17 +1026,17 @@ int WM_modalkeymap_items_to_string(
 
 		/* Find all shortcuts related to that propvalue! */
 		for (kmi = WM_modalkeymap_find_propvalue(km, propvalue);
-		     kmi && totlen < (len - 2);
+		     kmi && totlen < (result_len - 2);
 		     kmi = wm_modalkeymap_find_propvalue_iter(km, kmi, propvalue))
 		{
 			if (add_sep) {
-				r_str[totlen++] = '/';
-				r_str[totlen] = '\0';
+				result[totlen++] = '/';
+				result[totlen] = '\0';
 			}
 			else {
 				add_sep = true;
 			}
-			totlen += WM_keymap_item_to_string(kmi, compact, len - totlen, &r_str[totlen]);
+			totlen += WM_keymap_item_to_string(kmi, compact, &result[totlen], result_len - totlen);
 		}
 	}
 
@@ -1041,25 +1044,26 @@ int WM_modalkeymap_items_to_string(
 }
 
 int WM_modalkeymap_operator_items_to_string(
-        wmOperatorType *ot, const int propvalue, const bool compact, const int len, char *r_str)
+        wmOperatorType *ot, const int propvalue, const bool compact,
+        char *result, const int result_len)
 {
-	return WM_modalkeymap_items_to_string(ot->modalkeymap, propvalue, compact, len, r_str);
+	return WM_modalkeymap_items_to_string(ot->modalkeymap, propvalue, compact, result, result_len);
 }
 
 char *WM_modalkeymap_operator_items_to_string_buf(
         wmOperatorType *ot, const int propvalue, const bool compact,
-        const int max_len, int *r_available_len, char **r_str)
+        const int max_len, int *r_available_len, char **r_result)
 {
-	char *ret = *r_str;
+	char *ret = *r_result;
 
 	if (*r_available_len > 1) {
 		int used_len = WM_modalkeymap_operator_items_to_string(
-		                   ot, propvalue, compact, min_ii(*r_available_len, max_len), ret) + 1;
+		        ot, propvalue, compact, ret, min_ii(*r_available_len, max_len)) + 1;
 
 		*r_available_len -= used_len;
-		*r_str += used_len;
+		*r_result += used_len;
 		if (*r_available_len == 0) {
-			(*r_str)--;  /* So that *str keeps pointing on a valid char, we'll stay on it anyway. */
+			(*r_result)--;  /* So that *result keeps pointing on a valid char, we'll stay on it anyway. */
 		}
 	}
 	else {
@@ -1126,7 +1130,7 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(
 
 									if (IDP_EqualsProperties_ex(properties, properties_default, is_strict)) {
 										char kmi_str[128];
-										WM_keymap_item_to_string(kmi, false, sizeof(kmi_str), kmi_str);
+										WM_keymap_item_to_string(kmi, false, kmi_str, sizeof(kmi_str));
 										/* Note gievn properties could come from other things than menu entry... */
 										printf("%s: Some set values in menu entry match default op values, "
 										       "this might not be desired!\n", opname);
@@ -1276,7 +1280,7 @@ static wmKeyMapItem *wm_keymap_item_find(
 				kmi = wm_keymap_item_find_props(C, opname, opcontext, properties_default, is_strict, is_hotkey, &km);
 				if (kmi) {
 					char kmi_str[128];
-					WM_keymap_item_to_string(kmi, false, sizeof(kmi_str), kmi_str);
+					WM_keymap_item_to_string(kmi, false, kmi_str, sizeof(kmi_str));
 					printf("%s: Some set values in keymap entry match default op values, "
 					       "this might not be desired!\n", opname);
 					printf("\tkm: '%s', kmi: '%s'\n", km->idname, kmi_str);
@@ -1302,13 +1306,14 @@ static wmKeyMapItem *wm_keymap_item_find(
 
 char *WM_key_event_operator_string(
         const bContext *C, const char *opname, int opcontext,
-        IDProperty *properties, const bool is_strict, int len, char *r_str)
+        IDProperty *properties, const bool is_strict,
+        char *result, const int result_len)
 {
 	wmKeyMapItem *kmi = wm_keymap_item_find(C, opname, opcontext, properties, false, is_strict, NULL);
-	
+
 	if (kmi) {
-		WM_keymap_item_to_string(kmi, false, len, r_str);
-		return r_str;
+		WM_keymap_item_to_string(kmi, false, result, result_len);
+		return result;
 	}
 
 	return NULL;
