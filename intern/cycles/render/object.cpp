@@ -641,7 +641,7 @@ void ObjectManager::device_update_flags(Device *,
 	dscene->object_flag.copy_to_device();
 }
 
-void ObjectManager::device_update_patch_map_offsets(Device *, DeviceScene *dscene, Scene *scene)
+void ObjectManager::device_update_mesh_offsets(Device *, DeviceScene *dscene, Scene *scene)
 {
 	if(scene->objects.size() == 0) {
 		return;
@@ -650,12 +650,11 @@ void ObjectManager::device_update_patch_map_offsets(Device *, DeviceScene *dscen
 	uint4* objects = (uint4*)dscene->objects.data();
 
 	bool update = false;
-
 	int object_index = 0;
-	foreach(Object *object, scene->objects) {
-		int offset = object_index*OBJECT_SIZE + 11;
 
+	foreach(Object *object, scene->objects) {
 		Mesh* mesh = object->mesh;
+		int offset = object_index*OBJECT_SIZE + 11;
 
 		if(mesh->patch_table) {
 			uint patch_map_offset = 2*(mesh->patch_table_offset + mesh->patch_table->total_size() -
@@ -665,6 +664,11 @@ void ObjectManager::device_update_patch_map_offsets(Device *, DeviceScene *dscen
 				objects[offset].x = patch_map_offset;
 				update = true;
 			}
+		}
+
+		if(objects[offset].y != mesh->attr_map_offset) {
+			objects[offset].y = mesh->attr_map_offset;
+			update = true;
 		}
 
 		object_index++;

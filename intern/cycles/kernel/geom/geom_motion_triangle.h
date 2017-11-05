@@ -32,7 +32,7 @@ CCL_NAMESPACE_BEGIN
 ccl_device_inline int find_attribute_motion(KernelGlobals *kg, int object, uint id, AttributeElement *elem)
 {
 	/* todo: find a better (faster) solution for this, maybe store offset per object */
-	uint attr_offset = object*kernel_data.bvh.attributes_map_stride;
+	uint attr_offset = object_attribute_map_offset(kg, object);
 	uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
 	
 	while(attr_map.x != id) {

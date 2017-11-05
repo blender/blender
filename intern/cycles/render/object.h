@@ -104,7 +104,7 @@ public:
 	                         Scene *scene,
 	                         Progress& progress,
 	                         bool bounds_valid = true);
-	void device_update_patch_map_offsets(Device *device, DeviceScene *dscene, Scene *scene);
+	void device_update_mesh_offsets(Device *device, DeviceScene *dscene, Scene *scene);
 
 	void device_free(Device *device, DeviceScene *dscene);
 
