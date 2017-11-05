@@ -518,6 +518,11 @@ ccl_device float safe_modulo(float a, float b)
 	return (b != 0.0f)? fmodf(a, b): 0.0f;
 }
 
+ccl_device_inline float sqr(float a)
+{
+	return a * a;
+}
+
 ccl_device_inline float beta(float x, float y)
 {
 #ifndef __KERNEL_OPENCL__
