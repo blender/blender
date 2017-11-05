@@ -1290,7 +1290,7 @@ static bool ui_drag_toggle_set_xy_xy(
 		}
 	}
 	if (changed) {
-		/* apply now, not on release (or if handlers are cancelled for whatever reason) */
+		/* apply now, not on release (or if handlers are canceled for whatever reason) */
 		ui_apply_but_funcs_after(C);
 	}
 
@@ -8030,7 +8030,7 @@ static void button_activate_exit(
 		ui_but_update(but);
 
 	/* adds empty mousemove in queue for re-init handler, in case mouse is
-	 * still over a button. we cannot just check for this ourselfs because
+	 * still over a button. We cannot just check for this ourselves because
 	 * at this point the mouse may be over a button in another region */
 	if (mousemove)
 		WM_event_add_mousemove(C);

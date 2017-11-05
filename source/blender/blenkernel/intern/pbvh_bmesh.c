@@ -1172,7 +1172,7 @@ static void pbvh_bmesh_split_edge(
 		 *
 		 * - faces wind anticlockwise in this example.
 		 * - original edge is ``(v1, v2)``
-		 * - oroginal face is ``(v1, v2, v3)``
+		 * - original face is ``(v1, v2, v3)``
 		 *
 		 * <pre>
 		 *         + v3(v_opp)

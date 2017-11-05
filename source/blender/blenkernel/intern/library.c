@@ -1940,7 +1940,7 @@ static void library_make_local_copying_check(ID *id, GSet *loop_tags, MainIDRela
  *
  * Current version uses regular id_make_local callback, with advanced pre-processing step to detect all cases of
  * IDs currently indirectly used, but which will be used by local data only once this function is finished.
- * This allows to avoid any uneeded duplication of IDs, and hence all time lost afterwards to remove
+ * This allows to avoid any unneeded duplication of IDs, and hence all time lost afterwards to remove
  * orphaned linked data-blocks...
  */
 void BKE_library_make_local(

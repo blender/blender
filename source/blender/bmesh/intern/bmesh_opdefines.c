@@ -120,7 +120,7 @@ static BMOpDefine bmo_smooth_vert_def = {
 };
 
 /*
- * Vertext Smooth Laplacian.
+ * Vertex Smooth Laplacian.
  *
  * Smooths vertices by using Laplacian smoothing propose by.
  * Desbrun, et al. Implicit Fairing of Irregular Meshes using Diffusion and Curvature Flow.
