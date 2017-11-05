@@ -1782,10 +1782,6 @@ bool new_id(ListBase *lb, ID *id, const char *tname)
 	if (ID_IS_LINKED_DATABLOCK(id))
 		return false;
 
-	/* if no libdata given, look up based on ID */
-	if (lb == NULL)
-		lb = which_libbase(G.main, GS(id->name));
-
 	/* if no name given, use name of current ID
 	 * else make a copy (tname args can be const) */
 	if (tname == NULL)
@@ -2328,7 +2324,6 @@ void BLI_libblock_ensure_unique_name(Main *bmain, const char *name)
 {
 	ListBase *lb;
 	ID *idtest;
-
 
 	lb = which_libbase(bmain, GS(name));
 	if (lb == NULL) return;

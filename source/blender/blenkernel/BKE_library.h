@@ -151,7 +151,7 @@ void id_sort_by_name(struct ListBase *lb, struct ID *id);
 void BKE_id_expand_local(struct Main *bmain, struct ID *id);
 void BKE_id_copy_ensure_local(struct Main *bmain, const struct ID *old_id, struct ID *new_id);
 
-bool new_id(struct ListBase *lb, struct ID *id, const char *name);
+bool new_id(struct ListBase *lb, struct ID *id, const char *name) ATTR_NONNULL(1, 2);
 void id_clear_lib_data(struct Main *bmain, struct ID *id);
 void id_clear_lib_data_ex(struct Main *bmain, struct ID *id, const bool id_in_mainlist);
 
