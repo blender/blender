@@ -339,6 +339,33 @@ static void mesh_cd_calc_used_gpu_layers(
 	}
 }
 
+
+static void mesh_render_calc_normals_loop_and_poly(const Mesh *me, const float split_angle, MeshRenderData *rdata)
+{
+	BLI_assert((me->flag & ME_AUTOSMOOTH) != 0);
+
+	int totloop = me->totloop;
+	int totpoly = me->totpoly;
+	float (*loop_normals)[3] = MEM_mallocN(sizeof(*loop_normals) * totloop, __func__);
+	float (*poly_normals)[3] = MEM_mallocN(sizeof(*poly_normals) * totpoly, __func__);
+	short (*clnors)[2] = CustomData_get_layer(&me->ldata, CD_CUSTOMLOOPNORMAL);
+
+	BKE_mesh_calc_normals_poly(
+	        me->mvert, NULL, me->totvert,
+	        me->mloop, me->mpoly, totloop, totpoly, poly_normals, false);
+
+	BKE_mesh_normals_loop_split(
+	        me->mvert, me->totvert, me->medge, me->totedge,
+	        me->mloop, loop_normals, totloop, me->mpoly, poly_normals, totpoly,
+	        true, split_angle, NULL, clnors, NULL);
+
+	rdata->loop_len = totloop;
+	rdata->poly_len = totpoly;
+	rdata->loop_normals = loop_normals;
+	rdata->poly_normals = poly_normals;
+}
+
+
 /**
  * TODO(campbell): 'gpumat_array' may include materials linked to the object.
  * While not default, object materials should be supported.
@@ -353,6 +380,9 @@ static MeshRenderData *mesh_render_data_create_ex(
 	rdata->mat_len = mesh_render_mat_len_get(me);
 
 	CustomData_reset(&rdata->cd.output.ldata);
+
+	const bool is_auto_smooth = (me->flag & ME_AUTOSMOOTH) != 0;
+	const float split_angle = is_auto_smooth ? me->smoothresh : (float)M_PI;
 
 	if (me->edit_btmesh) {
 		BMEditMesh *embm = me->edit_btmesh;
@@ -374,7 +404,12 @@ static MeshRenderData *mesh_render_data_create_ex(
 			rdata->tri_len = embm->tottri;
 		}
 		if (types & MR_DATATYPE_LOOP) {
-			rdata->loop_len = bm->totloop;
+			int totloop = bm->totloop;
+			if (is_auto_smooth) {
+				rdata->loop_normals = MEM_mallocN(sizeof(*rdata->loop_normals) * totloop, __func__);
+				BM_loops_calc_normal_vcos(bm, NULL, NULL, NULL, true, split_angle, rdata->loop_normals, NULL, NULL, -1);
+			}
+			rdata->loop_len = totloop;
 			bm_ensure_types |= BM_LOOP;
 		}
 		if (types & MR_DATATYPE_POLY) {
@@ -447,12 +482,12 @@ static MeshRenderData *mesh_render_data_create_ex(
 			BKE_mesh_recalc_looptri(me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, rdata->mlooptri);
 		}
 		if (types & MR_DATATYPE_LOOP) {
-			if (me->flag & ME_AUTOSMOOTH) {
-				BKE_mesh_calc_normals_split(me);
-				rdata->loop_normals = CustomData_get_layer(&me->ldata, CD_NORMAL);
-			}
 			rdata->loop_len = me->totloop;
 			rdata->mloop = CustomData_get_layer(&me->ldata, CD_MLOOP);
+
+			if (is_auto_smooth) {
+				mesh_render_calc_normals_loop_and_poly(me, split_angle, rdata);
+			}
 		}
 		if (types & MR_DATATYPE_POLY) {
 			rdata->poly_len = me->totpoly;
@@ -537,8 +572,6 @@ static MeshRenderData *mesh_render_data_create_ex(
 		else {
 			rdata->orco = NULL;
 		}
-
-		const bool is_auto_smooth = (me->flag & ME_AUTOSMOOTH) != 0;
 
 		/* don't access mesh directly, instead use vars taken from BMesh or Mesh */
 #define me DONT_USE_THIS
@@ -665,8 +698,10 @@ static MeshRenderData *mesh_render_data_create_ex(
 				BMesh *bm = em->bm;
 
 				if (is_auto_smooth && rdata->loop_normals == NULL) {
-					/* TODO: split normals, see below */
-					rdata->loop_normals = CustomData_get_layer(cd_ldata, CD_NORMAL);
+					/* Should we store the previous array of `loop_normals` in somewhere? */
+					rdata->loop_len = bm->totloop;
+					rdata->loop_normals = MEM_mallocN(sizeof(*rdata->loop_normals) * rdata->loop_len, __func__);
+					BM_loops_calc_normal_vcos(bm, NULL, NULL, NULL, true, split_angle, rdata->loop_normals, NULL, NULL, -1);
 				}
 
 				bool calc_active_tangent = false;
@@ -683,10 +718,8 @@ static MeshRenderData *mesh_render_data_create_ex(
 #undef me
 
 				if (is_auto_smooth && rdata->loop_normals == NULL) {
-					if (!CustomData_has_layer(cd_ldata, CD_NORMAL)) {
-						BKE_mesh_calc_normals_split(me);
-					}
-					rdata->loop_normals = CustomData_get_layer(cd_ldata, CD_NORMAL);
+					/* Should we store the previous array of `loop_normals` in CustomData? */
+					mesh_render_calc_normals_loop_and_poly(me, split_angle, rdata);
 				}
 
 				bool calc_active_tangent = false;
@@ -777,6 +810,7 @@ static void mesh_render_data_free(MeshRenderData *rdata)
 	MEM_SAFE_FREE(rdata->loose_edges);
 	MEM_SAFE_FREE(rdata->edges_adjacent_polys);
 	MEM_SAFE_FREE(rdata->mlooptri);
+	MEM_SAFE_FREE(rdata->loop_normals);
 	MEM_SAFE_FREE(rdata->poly_normals);
 	MEM_SAFE_FREE(rdata->poly_normals_pack);
 	MEM_SAFE_FREE(rdata->vert_normals_pack);
@@ -1981,12 +2015,18 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_pos_and_normals_ex(
 		GWN_vertbuf_attr_get_raw_data(vbo, attr_id.pos, &pos_step);
 		GWN_vertbuf_attr_get_raw_data(vbo, attr_id.nor, &nor_step);
 
-		if (rdata->edit_bmesh) {
-			mesh_render_data_ensure_poly_normals_pack(rdata);
-			mesh_render_data_ensure_vert_normals_pack(rdata);
+		float (*lnors)[3] = rdata->loop_normals;
 
-			Gwn_PackedNormal *pnors_pack = rdata->poly_normals_pack;
-			Gwn_PackedNormal *vnors_pack = rdata->vert_normals_pack;
+		if (rdata->edit_bmesh) {
+			Gwn_PackedNormal *pnors_pack, *vnors_pack;
+
+			if (lnors == NULL) {
+				mesh_render_data_ensure_poly_normals_pack(rdata);
+				mesh_render_data_ensure_vert_normals_pack(rdata);
+
+				pnors_pack = rdata->poly_normals_pack;
+				vnors_pack = rdata->vert_normals_pack;
+			}
 
 			for (int i = 0; i < tri_len; i++) {
 				const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[i];
@@ -1997,15 +2037,15 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_pos_and_normals_ex(
 					continue;
 				}
 
-				const uint vtri[3] = {
-					BM_elem_index_get(bm_looptri[0]->v),
-					BM_elem_index_get(bm_looptri[1]->v),
-					BM_elem_index_get(bm_looptri[2]->v),
-				};
-
-				if (BM_elem_flag_test(bm_face, BM_ELEM_SMOOTH)) {
+				if (lnors) {
 					for (uint t = 0; t < 3; t++) {
-						*((Gwn_PackedNormal *)GWN_vertbuf_raw_step(&nor_step)) = vnors_pack[vtri[t]];
+						const float *nor = lnors[BM_elem_index_get(bm_looptri[t])];
+						*((Gwn_PackedNormal *)GWN_vertbuf_raw_step(&nor_step)) = GWN_normal_convert_i10_v3(nor);
+					}
+				}
+				else if (BM_elem_flag_test(bm_face, BM_ELEM_SMOOTH)) {
+					for (uint t = 0; t < 3; t++) {
+						*((Gwn_PackedNormal *)GWN_vertbuf_raw_step(&nor_step)) = vnors_pack[BM_elem_index_get(bm_looptri[t]->v)];
 					}
 				}
 				else {
@@ -2021,7 +2061,6 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_pos_and_normals_ex(
 			}
 		}
 		else {
-			float (*lnors)[3] = rdata->loop_normals;
 			if (lnors == NULL) {
 				/* Use normals from vertex. */
 				mesh_render_data_ensure_poly_normals_pack(rdata);
