@@ -410,7 +410,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *veda
 		// DRW_shgroup_uniform_texture(grp, "texJitter", e_data.jitter);
 		DRW_shgroup_uniform_texture(grp, "probeHdr", sldata->probe_rt);
 
-		DRW_shgroup_call_dynamic_add_empty(grp);
+		DRW_shgroup_set_instance_count(grp, 1);
 	}
 
 	{

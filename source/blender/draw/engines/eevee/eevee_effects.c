@@ -214,8 +214,7 @@ void EEVEE_effects_cache_init(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *
 		DRW_shgroup_uniform_buffer(grp, "source", &e_data.color_src);
 		DRW_shgroup_uniform_float(grp, "texelSize", &e_data.cube_texel_size, 1);
 		DRW_shgroup_uniform_int(grp, "Layer", &zero, 1);
-		for (int i = 0; i < 6; ++i)
-			DRW_shgroup_call_dynamic_add_empty(grp);
+		DRW_shgroup_set_instance_count(grp, 6);
 	}
 
 	{

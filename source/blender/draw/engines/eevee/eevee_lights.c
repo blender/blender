@@ -307,16 +307,12 @@ void EEVEE_lights_cache_shcaster_add(EEVEE_SceneLayerData *sldata, EEVEE_PassLis
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.shadow_sh, psl->shadow_cube_pass, geom);
 	DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
 	DRW_shgroup_uniform_mat4(grp, "ShadowModelMatrix", (float *)obmat);
-
-	for (int i = 0; i < 6; ++i)
-		DRW_shgroup_call_dynamic_add_empty(grp);
+	DRW_shgroup_set_instance_count(grp, 6);
 
 	grp = DRW_shgroup_instance_create(e_data.shadow_sh, psl->shadow_cascade_pass, geom);
 	DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
 	DRW_shgroup_uniform_mat4(grp, "ShadowModelMatrix", (float *)obmat);
-
-	for (int i = 0; i < MAX_CASCADE_NUM; ++i)
-		DRW_shgroup_call_dynamic_add_empty(grp);
+	DRW_shgroup_set_instance_count(grp, MAX_CASCADE_NUM);
 }
 
 void EEVEE_lights_cache_shcaster_material_add(
@@ -333,8 +329,7 @@ void EEVEE_lights_cache_shcaster_material_add(
 	if (alpha_threshold != NULL)
 		DRW_shgroup_uniform_float(grp, "alphaThreshold", alpha_threshold, 1);
 
-	for (int i = 0; i < 6; ++i)
-		DRW_shgroup_call_dynamic_add_empty(grp);
+	DRW_shgroup_set_instance_count(grp, 6);
 
 	grp = DRW_shgroup_material_instance_create(gpumat, psl->shadow_cascade_pass, geom, ob);
 	DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
@@ -343,8 +338,7 @@ void EEVEE_lights_cache_shcaster_material_add(
 	if (alpha_threshold != NULL)
 		DRW_shgroup_uniform_float(grp, "alphaThreshold", alpha_threshold, 1);
 
-	for (int i = 0; i < MAX_CASCADE_NUM; ++i)
-		DRW_shgroup_call_dynamic_add_empty(grp);
+	DRW_shgroup_set_instance_count(grp, MAX_CASCADE_NUM);
 }
 
 void EEVEE_lights_cache_finish(EEVEE_SceneLayerData *sldata)

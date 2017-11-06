@@ -326,9 +326,11 @@ void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *at
 	const void *array[] = {__VA_ARGS__}; \
 	DRW_shgroup_call_dynamic_add_array(shgroup, array, (sizeof(array) / sizeof(*array))); \
 } while (0)
+/* Use this only to make your instances selectable. */
 #define DRW_shgroup_call_dynamic_add_empty(shgroup) do { \
 	DRW_shgroup_call_dynamic_add_array(shgroup, NULL, 0); \
 } while (0)
+/* Use this to set a high number of instances. */
 void DRW_shgroup_set_instance_count(DRWShadingGroup *shgroup, int count);
 
 void DRW_shgroup_state_enable(DRWShadingGroup *shgroup, DRWState state);
