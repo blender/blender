@@ -971,7 +971,7 @@ void DRW_shgroup_instance_batch(DRWShadingGroup *shgroup, struct Gwn_Batch *inst
 		shgroup->calls_first = call; \
 	} \
 	else { \
-		((typeof(call))shgroup->calls)->head.prev = call; \
+		((DRWCall *)(shgroup->calls))->head.prev = call; \
 		shgroup->calls = call; \
 	} \
 	call->head.prev = NULL; \
