@@ -894,18 +894,6 @@ elseif(APPLE)
 		blender.app/Contents/
 	)
 
-	if(WITH_OPENMP AND CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT ${CMAKE_C_COMPILER_VERSION} VERSION_LESS '3.4')
-		install(
-			FILES ${LIBDIR}/openmp/lib/libiomp5.dylib
-			DESTINATION blender.app/Contents/Resources/lib/
-		)
-		install(
-			FILES ${LIBDIR}/openmp/LICENSE.txt
-			DESTINATION "."
-			RENAME LICENSE-libiomp5.txt
-		)
-	endif()
-
 	if(WITH_LLVM AND NOT LLVM_STATIC)
 		install(
 			FILES ${LIBDIR}/llvm/lib/libLLVM-3.4.dylib
