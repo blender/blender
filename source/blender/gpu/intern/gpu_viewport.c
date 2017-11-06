@@ -36,6 +36,7 @@
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_mempool.h"
 
 #include "DNA_vec_types.h"
 #include "DNA_userdef_types.h"
@@ -81,6 +82,8 @@ struct GPUViewport {
 
 	DefaultFramebufferList *fbl;
 	DefaultTextureList *txl;
+
+	ViewportMemoryPool vmempool; /* Used for rendering data structure. */
 
 	ListBase tex_pool;  /* ViewportTempTexture list : Temporary textures shared across draw engines */
 };
@@ -202,6 +205,11 @@ void *GPU_viewport_engine_data_get(GPUViewport *viewport, void *engine_type)
 	return NULL;
 }
 
+ViewportMemoryPool *GPU_viewport_mempool_get(GPUViewport *viewport)
+{
+	return &viewport->vmempool;
+}
+
 void *GPU_viewport_framebuffer_list_get(GPUViewport *viewport)
 {
 	return viewport->fbl;
@@ -296,20 +304,9 @@ static void gpu_viewport_texture_pool_free(GPUViewport *viewport)
 	BLI_freelistN(&viewport->tex_pool);
 }
 
-bool GPU_viewport_cache_validate(GPUViewport *viewport, unsigned int hash)
+bool GPU_viewport_engines_data_validate(GPUViewport *viewport, unsigned int hash)
 {
 	bool dirty = false;
-
-	/* TODO for testing only, we need proper cache invalidation */
-	if (ELEM(G.debug_value, 666, 667) == false) {
-		for (LinkData *link = viewport->data.first; link; link = link->next) {
-			ViewportEngineData *data = link->data;
-			int psl_len;
-			DRW_engine_viewport_data_size_get(data->engine_type, NULL, NULL, &psl_len, NULL);
-			gpu_viewport_passes_free(data->psl, psl_len);
-		}
-		dirty = true;
-	}
 
 	if (viewport->data_hash != hash) {
 		gpu_viewport_engines_data_free(viewport);
@@ -319,6 +316,16 @@ bool GPU_viewport_cache_validate(GPUViewport *viewport, unsigned int hash)
 	viewport->data_hash = hash;
 
 	return dirty;
+}
+
+void GPU_viewport_cache_release(GPUViewport *viewport)
+{
+	for (LinkData *link = viewport->data.first; link; link = link->next) {
+		ViewportEngineData *data = link->data;
+		int psl_len;
+		DRW_engine_viewport_data_size_get(data->engine_type, NULL, NULL, &psl_len, NULL);
+		gpu_viewport_passes_free(data->psl, psl_len);
+	}
 }
 
 void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect)
@@ -551,7 +558,6 @@ static void gpu_viewport_passes_free(PassList *psl, int psl_len)
 		struct DRWPass *pass = psl->passes[i];
 		if (pass) {
 			DRW_pass_free(pass);
-			MEM_freeN(pass);
 			psl->passes[i] = NULL;
 		}
 	}
@@ -569,6 +575,28 @@ void GPU_viewport_free(GPUViewport *viewport)
 
 	MEM_freeN(viewport->fbl);
 	MEM_freeN(viewport->txl);
+
+	if (viewport->vmempool.calls != NULL) {
+		BLI_mempool_destroy(viewport->vmempool.calls);
+	}
+	if (viewport->vmempool.calls_generate != NULL) {
+		BLI_mempool_destroy(viewport->vmempool.calls_generate);
+	}
+	if (viewport->vmempool.calls_dynamic != NULL) {
+		BLI_mempool_destroy(viewport->vmempool.calls_dynamic);
+	}
+	if (viewport->vmempool.shgroups != NULL) {
+		BLI_mempool_destroy(viewport->vmempool.shgroups);
+	}
+	if (viewport->vmempool.uniforms != NULL) {
+		BLI_mempool_destroy(viewport->vmempool.uniforms);
+	}
+	if (viewport->vmempool.attribs != NULL) {
+		BLI_mempool_destroy(viewport->vmempool.attribs);
+	}
+	if (viewport->vmempool.passes != NULL) {
+		BLI_mempool_destroy(viewport->vmempool.passes);
+	}
 
 	GPU_viewport_debug_depth_free(viewport);
 }

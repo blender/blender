@@ -43,6 +43,17 @@
 
 typedef struct GPUViewport GPUViewport;
 
+/* Contains memory pools informations */
+typedef struct ViewportMemoryPool {
+	struct BLI_mempool *calls;
+	struct BLI_mempool *calls_generate;
+	struct BLI_mempool *calls_dynamic;
+	struct BLI_mempool *shgroups;
+	struct BLI_mempool *uniforms;
+	struct BLI_mempool *attribs;
+	struct BLI_mempool *passes;
+} ViewportMemoryPool;
+
 /* All FramebufferLists are just the same pointers with different names */
 typedef struct FramebufferList {
 	struct GPUFrameBuffer *framebuffers[0];
@@ -94,6 +105,8 @@ void GPU_viewport_free(GPUViewport *viewport);
 GPUViewport *GPU_viewport_create_from_offscreen(struct GPUOffScreen *ofs);
 void GPU_viewport_clear_from_offscreen(GPUViewport *viewport);
 
+ViewportMemoryPool *GPU_viewport_mempool_get(GPUViewport *viewport);
+
 void *GPU_viewport_engine_data_create(GPUViewport *viewport, void *engine_type);
 void *GPU_viewport_engine_data_get(GPUViewport *viewport, void *engine_type);
 void *GPU_viewport_framebuffer_list_get(GPUViewport *viewport);
@@ -107,7 +120,8 @@ bool GPU_viewport_do_update(GPUViewport *viewport);
 /* Texture pool */
 GPUTexture *GPU_viewport_texture_pool_query(GPUViewport *viewport, void *engine, int width, int height, int channels, int format);
 
-bool GPU_viewport_cache_validate(GPUViewport *viewport, unsigned int hash);
+bool GPU_viewport_engines_data_validate(GPUViewport *viewport, unsigned int hash);
+void GPU_viewport_cache_release(GPUViewport *viewport);
 
 /* debug */
 bool GPU_viewport_debug_depth_create(GPUViewport *viewport, int width, int height, char err_out[256]);
