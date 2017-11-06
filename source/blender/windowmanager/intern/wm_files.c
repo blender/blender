@@ -502,16 +502,6 @@ static void wm_file_read_post(bContext *C, const bool is_startup_file, const boo
 	BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_VERSION_UPDATE);
 	BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
 
-	/* Would otherwise be handled by event loop.
-	 *
-	 * Disabled for startup file, since it causes problems when PyDrivers are used in the startup file.
-	 * While its possible state of startup file may be wrong,
-	 * in this case users nearly always load a file to replace the startup file. */
-	if (G.background && (is_startup_file == false)) {
-		Main *bmain = CTX_data_main(C);
-		BKE_scene_update_tagged(bmain->eval_ctx, bmain, CTX_data_scene(C));
-	}
-
 	WM_event_add_notifier(C, NC_WM | ND_FILEREAD, NULL);
 
 	/* report any errors.
