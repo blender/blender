@@ -79,6 +79,17 @@ typedef enum eDepsNode_Class {
 	DEG_NODE_CLASS_OPERATION       = 2,
 } eDepsNode_Class;
 
+/* Note: We use max comparison to mark an id node that is linked more than once
+ * So keep this enum ordered accordingly. */
+typedef enum eDepsNode_LinkedState_Type {
+	/* Generic indirectly linked id node. */
+	DEG_ID_LINKED_INDIRECTLY       = 0,
+	/* Id node present in the set (background) only. */
+	DEG_ID_LINKED_VIA_SET          = 1,
+	/* Id node directly linked via the ScenLayer. */
+	DEG_ID_LINKED_DIRECTLY         = 2,
+} eDepsNode_LinkedState_Type;
+
 /* Types of Nodes */
 typedef enum eDepsNode_Type {
 	/* Fallback type for invalid return value */

@@ -209,7 +209,7 @@ void DEG_graph_build_from_scene(Depsgraph *graph, Main *bmain, Scene *scene)
 	/* 1) Generate all the nodes in the graph first */
 	DEG::DepsgraphNodeBuilder node_builder(bmain, deg_graph);
 	node_builder.begin_build(bmain);
-	node_builder.build_scene(bmain, scene);
+	node_builder.build_scene(bmain, scene, DEG::DEG_ID_LINKED_DIRECTLY);
 
 	/* 2) Hook up relationships between operations - to determine evaluation
 	 *    order.

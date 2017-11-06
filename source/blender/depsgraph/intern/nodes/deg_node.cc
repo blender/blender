@@ -169,6 +169,7 @@ void IDDepsNode::init(const ID *id, const char *UNUSED(subdata))
 	/* Store ID-pointer. */
 	id_orig = (ID *)id;
 	eval_flags = 0;
+	linked_state = DEG_ID_LINKED_INDIRECTLY;
 
 	components = BLI_ghash_new(id_deps_node_hash_key,
 	                           id_deps_node_hash_key_cmp,

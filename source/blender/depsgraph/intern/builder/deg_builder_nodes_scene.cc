@@ -65,7 +65,7 @@ extern "C" {
 
 namespace DEG {
 
-void DepsgraphNodeBuilder::build_scene(Main *bmain, Scene *scene)
+void DepsgraphNodeBuilder::build_scene(Main *bmain, Scene *scene, eDepsNode_LinkedState_Type linked_state)
 {
 	/* scene ID block */
 	add_id_node(&scene->id);
@@ -77,7 +77,7 @@ void DepsgraphNodeBuilder::build_scene(Main *bmain, Scene *scene)
 	// XXX: depending on how this goes, that scene itself could probably store its
 	//      own little partial depsgraph?
 	if (scene->set) {
-		build_scene(bmain, scene->set);
+		build_scene(bmain, scene->set, DEG_ID_LINKED_VIA_SET);
 	}
 
 	/* scene objects */
@@ -85,12 +85,12 @@ void DepsgraphNodeBuilder::build_scene(Main *bmain, Scene *scene)
 	for (SceneLayer *sl = (SceneLayer *)scene->render_layers.first; sl; sl = sl->next) {
 		for (Base *base = (Base *)sl->object_bases.first; base; base = base->next) {
 			/* object itself */
-			build_object(scene, base->object);
+			build_object(scene, base->object, linked_state);
 			base->object->select_color = select_color++;
 		}
 	}
 	if (scene->camera != NULL) {
-		build_object(scene, scene->camera);
+		build_object(scene, scene->camera, linked_state);
 	}
 
 	/* rigidbody */

@@ -164,6 +164,8 @@ struct IDDepsNode : public DepsNode {
 	 */
 	int eval_flags;
 
+	eDepsNode_LinkedState_Type linked_state;
+
 	DEG_DEPSNODE_DECLARE;
 };
 

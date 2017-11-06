@@ -128,7 +128,7 @@ static void modifier_walk(void *user_data,
 {
 	BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
 	if (*obpoin) {
-		data->builder->build_object(data->scene, *obpoin);
+		data->builder->build_object(data->scene, *obpoin, DEG_ID_LINKED_INDIRECTLY);
 	}
 }
 
@@ -141,7 +141,7 @@ void constraint_walk(bConstraint * /*con*/,
 	if (*idpoin) {
 		ID *id = *idpoin;
 		if (GS(id->name) == ID_OB) {
-			data->builder->build_object(data->scene, (Object *)id);
+			data->builder->build_object(data->scene, (Object *)id, DEG_ID_LINKED_INDIRECTLY);
 		}
 	}
 }
@@ -201,6 +201,11 @@ IDDepsNode *DepsgraphNodeBuilder::add_id_node(ID *id, bool do_tag)
 		m_graph->operations.push_back(op_cow);
 	}
 	return id_node;
+}
+
+IDDepsNode *DepsgraphNodeBuilder::find_id_node(ID *id)
+{
+	return m_graph->find_id_node(id);
 }
 
 TimeSourceDepsNode *DepsgraphNodeBuilder::add_time_source()
@@ -392,27 +397,33 @@ void DepsgraphNodeBuilder::build_group(Scene *scene, Group *group)
 	group_id->tag |= LIB_TAG_DOIT;
 
 	LINKLIST_FOREACH (GroupObject *, go, &group->gobject) {
-		build_object(scene, go->ob);
+		build_object(scene, go->ob, DEG_ID_LINKED_INDIRECTLY);
 	}
 }
 
-void DepsgraphNodeBuilder::build_object(Scene *scene, Object *ob)
+void DepsgraphNodeBuilder::build_object(Scene *scene,
+                                        Object *ob,
+                                        eDepsNode_LinkedState_Type linked_state)
 {
 	/* Skip rest of components if the ID node was already there. */
 	if (ob->id.tag & LIB_TAG_DOIT) {
+		IDDepsNode *id_node = find_id_node(&ob->id);
+		id_node->linked_state = std::max(id_node->linked_state, linked_state);
 		return;
 	}
 	ob->id.tag |= LIB_TAG_DOIT;
 
-	/* Create ID node for obejct and begin init. */
+	/* Create ID node for object and begin init. */
 	IDDepsNode *id_node = add_id_node(&ob->id);
+	id_node->linked_state = linked_state;
+
 	ob->customdata_mask = 0;
 
 	/* Standard components. */
 	build_object_transform(scene, ob);
 
 	if (ob->parent != NULL) {
-		build_object(scene, ob->parent);
+		build_object(scene, ob->parent, linked_state);
 	}
 	if (ob->modifiers.first != NULL) {
 		BuilderWalkUserData data;
@@ -502,7 +513,7 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Object *ob)
 	/* Object that this is a proxy for. */
 	if (ob->proxy) {
 		ob->proxy->proxy_from = ob;
-		build_object(scene, ob->proxy);
+		build_object(scene, ob->proxy, DEG_ID_LINKED_INDIRECTLY);
 	}
 
 	/* Object dupligroup. */
@@ -1003,13 +1014,13 @@ void DepsgraphNodeBuilder::build_obdata_geom(Scene *scene, Object *ob)
 			 */
 			Curve *cu = (Curve *)obdata;
 			if (cu->bevobj != NULL) {
-				build_object(scene, cu->bevobj);
+				build_object(scene, cu->bevobj, DEG_ID_LINKED_INDIRECTLY);
 			}
 			if (cu->taperobj != NULL) {
-				build_object(scene, cu->taperobj);
+				build_object(scene, cu->taperobj, DEG_ID_LINKED_INDIRECTLY);
 			}
 			if (ob->type == OB_FONT && cu->textoncurve != NULL) {
-				build_object(scene, cu->textoncurve);
+				build_object(scene, cu->textoncurve, DEG_ID_LINKED_INDIRECTLY);
 			}
 			break;
 		}

@@ -33,6 +33,7 @@
 #include "MEM_guardedalloc.h"
 
 extern "C" {
+#include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BKE_anim.h"
 #include "BKE_idcode.h"
@@ -116,42 +117,57 @@ ID *DEG_get_evaluated_id(struct Depsgraph *depsgraph, ID *id)
 	return id_node->id_cow;
 }
 
-/* ************************ DAG ITERATORS ********************* */
-
-#define BASE_FLUSH_FLAGS (BASE_FROM_SET | BASE_FROMDUPLI)
-
-void DEG_objects_iterator_begin(BLI_Iterator *iter, DEGObjectsIteratorData *data)
-{
-	Depsgraph *graph = data->graph;
-	SceneLayer *scene_layer = DEG_get_evaluated_scene_layer(graph);
-
-	iter->data = data;
-	iter->valid = true;
-
-	data->scene = DEG_get_evaluated_scene(graph);
-	DEG_evaluation_context_init(&data->eval_ctx, DAG_EVAL_RENDER);
-
-	/* TODO(sergey): It's really confusing to store pointer to a local data. */
-	Base base = {(Base *)scene_layer->object_bases.first, NULL};
-	data->base = &base;
-
-	data->base_flag = ~(BASE_FLUSH_FLAGS);
-
-	data->dupli_parent = NULL;
-	data->dupli_list = NULL;
-	data->dupli_object_next = NULL;
-	data->dupli_object_current = NULL;
-
-	DEG_objects_iterator_next(iter);
-}
+/* ************************ DEG ITERATORS ********************* */
 
 /**
- * Temporary function to flush depsgraph until we get copy on write (CoW)
+ * XXX (dfelinto/sergey) big hack, waiting for:
+ * "Reshuffle collections base flags evaluation, make it so object is gathering its base flags from collections."
+ *
+ * Returns false if object shouldn't be found (which should never happen in the final implementation
+ * and instead we should have a tag to the objects that were not directly part of the depsgraph).
+ *
+ * That means that the object is not in a collection but it's part of depsgraph, or the object is simply
+ * not in the current SceneLayer - Depsgraph at the moment includes all the SceneLayer in the Scene.
  */
-static void deg_flush_base_flags_and_settings(Object *ob, Base *base, const int flag)
+static bool deg_flush_base_flags_and_settings(
+        DEGObjectsIteratorData *data, Object *ob_dst, Object *ob_src, const bool is_dupli)
 {
-	ob->base_flag = (base->flag | BASE_FLUSH_FLAGS) & flag;
-	ob->base_collection_properties = base->collection_properties;
+	Base *base;
+	Depsgraph *graph = data->graph;
+	SceneLayer *scene_layer = DEG_get_evaluated_scene_layer(graph);
+	int flag = is_dupli ? BASE_FROMDUPLI : 0;
+
+	/* First attempt, see if object is in the current SceneLayer. */
+	base = (Base *)BLI_findptr(&scene_layer->object_bases, ob_src, offsetof(Base, object));
+
+	/* Next attempt, see if object is in one of the sets. */
+	if (base == NULL) {
+		Scene *scene_iter, *scene = DEG_get_evaluated_scene(graph);
+		scene_iter = scene;
+
+		while ((scene_iter = (scene_iter)->set)) {
+			SceneLayer *scene_layer_set = BKE_scene_layer_from_scene_get(scene_iter);
+			base = (Base *)BLI_findptr(&scene_layer_set->object_bases, ob_src, offsetof(Base, object));
+			if (base != NULL) {
+				flag |= BASE_FROM_SET;
+				flag &= ~(BASE_SELECTED | BASE_SELECTABLED);
+				break;
+			}
+		}
+	}
+
+	if (base == NULL) {
+		return false;
+	}
+
+	/* Make sure we have the base collection settings is already populated.
+	 * This will fail when BKE_layer_eval_layer_collection_pre hasn't run yet
+	 * Which usually means a missing call to DEG_id_tag_update(). */
+	BLI_assert(!BLI_listbase_is_empty(&base->collection_properties->data.group));
+
+	ob_dst->base_flag = base->flag | flag;
+	ob_dst->base_collection_properties = base->collection_properties;
+	return true;
 }
 
 static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
@@ -181,9 +197,10 @@ static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 		data->temp_dupli_object.select_color = data->dupli_parent->select_color;
 		copy_m4_m4(data->temp_dupli_object.obmat, dob->mat);
 
-		deg_flush_base_flags_and_settings(&data->temp_dupli_object,
-		                                  data->base,
-		                                  data->base_flag | BASE_FROMDUPLI);
+		deg_flush_base_flags_and_settings(data,
+		                                  &data->temp_dupli_object,
+		                                  data->dupli_parent,
+		                                  true);
 		iter->current = &data->temp_dupli_object;
 		BLI_assert(DEG::deg_validate_copy_on_write_datablock(&data->temp_dupli_object.id));
 		return true;
@@ -192,10 +209,72 @@ static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 	return false;
 }
 
+static void def_objects_iterator_step(BLI_Iterator *iter, DEG::IDDepsNode *id_node)
+{
+	DEGObjectsIteratorData *data = (DEGObjectsIteratorData *)iter->data;
+	const ID_Type id_type = GS(id_node->id_orig->name);
+
+	if (id_type != ID_OB) {
+		iter->skip = true;
+		return;
+	}
+
+	switch (id_node->linked_state) {
+		case DEG::DEG_ID_LINKED_DIRECTLY:
+			break;
+		case DEG::DEG_ID_LINKED_VIA_SET:
+			if (data->flag & DEG_OBJECT_ITER_FLAG_SET) {
+				break;
+			}
+			else {
+				ATTR_FALLTHROUGH;
+			}
+		case DEG::DEG_ID_LINKED_INDIRECTLY:
+			iter->skip = true;
+			return;
+	}
+
+	Object *ob = (Object *)id_node->id_cow;
+	BLI_assert(DEG::deg_validate_copy_on_write_datablock(&ob->id));
+
+	if (deg_flush_base_flags_and_settings(data, ob, ob, false) == false) {
+		iter->skip = true;
+		return;
+	}
+
+	if ((data->flag & DEG_OBJECT_ITER_FLAG_DUPLI) && (ob->transflag & OB_DUPLI)) {
+		data->dupli_parent = ob;
+		data->dupli_list = object_duplilist(&data->eval_ctx, data->scene, ob);
+		data->dupli_object_next = (DupliObject *)data->dupli_list->first;
+	}
+
+	iter->current = ob;
+}
+
+void DEG_objects_iterator_begin(BLI_Iterator *iter, DEGObjectsIteratorData *data)
+{
+	Depsgraph *graph = data->graph;
+
+	iter->data = data;
+	iter->valid = true;
+
+	DEG_evaluation_context_init(&data->eval_ctx, DAG_EVAL_RENDER);
+
+	data->dupli_parent = NULL;
+	data->dupli_list = NULL;
+	data->dupli_object_next = NULL;
+	data->dupli_object_current = NULL;
+
+	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
+	BLI_ghashIterator_init(&data->gh_iter, deg_graph->id_hash);
+
+	DEG::IDDepsNode *id_node = (DEG::IDDepsNode *) BLI_ghashIterator_getValue(&data->gh_iter);
+	def_objects_iterator_step(iter, id_node);
+}
+
 void DEG_objects_iterator_next(BLI_Iterator *iter)
 {
 	DEGObjectsIteratorData *data = (DEGObjectsIteratorData *)iter->data;
-	Base *base;
 
 	if (data->dupli_list) {
 		if (deg_objects_dupli_iterator_next(iter)) {
@@ -210,50 +289,15 @@ void DEG_objects_iterator_next(BLI_Iterator *iter)
 		}
 	}
 
-	base = data->base->next;
-	if (base != NULL) {
-		// Object *ob = DEG_get_evaluated_object(data->graph, base->object);
-		Object *ob = base->object;
-		iter->current = ob;
-		data->base = base;
-
-		BLI_assert(DEG::deg_validate_copy_on_write_datablock(&ob->id));
-
-		/* Make sure we have the base collection settings is already populated.
-		 * This will fail when BKE_layer_eval_layer_collection_pre hasn't run yet
-		 * Which usually means a missing call to DEG_id_tag_update(). */
-		BLI_assert(!BLI_listbase_is_empty(&base->collection_properties->data.group));
-
-		/* Flushing depsgraph data. */
-		deg_flush_base_flags_and_settings(
-		        ob, base, data->base_flag);
-
-		if ((data->flag & DEG_OBJECT_ITER_FLAG_DUPLI) && (ob->transflag & OB_DUPLI)) {
-			data->dupli_parent = ob;
-			data->dupli_list = object_duplilist(&data->eval_ctx, data->scene, ob);
-			data->dupli_object_next = (DupliObject *)data->dupli_list->first;
-		}
+	BLI_ghashIterator_step(&data->gh_iter);
+	if (BLI_ghashIterator_done(&data->gh_iter)) {
+		iter->current = NULL;
+		iter->valid = false;
 		return;
 	}
 
-	/* Look for an object in the next set. */
-	if ((data->flag & DEG_OBJECT_ITER_FLAG_SET) && data->scene->set) {
-		SceneLayer *scene_layer;
-		data->scene = data->scene->set;
-		data->base_flag = ~(BASE_SELECTED | BASE_SELECTABLED);
-
-		/* For the sets we use the layer used for rendering. */
-		scene_layer = BKE_scene_layer_from_scene_get(data->scene);
-
-		/* TODO(sergey): It's really confusing to store pointer to a local data. */
-		Base base = {(Base *)scene_layer->object_bases.first, NULL};
-		data->base = &base;
-		DEG_objects_iterator_next(iter);
-		return;
-	}
-
-	iter->current = NULL;
-	iter->valid = false;
+	DEG::IDDepsNode *id_node = (DEG::IDDepsNode *) BLI_ghashIterator_getValue(&data->gh_iter);
+	def_objects_iterator_step(iter, id_node);
 }
 
 void DEG_objects_iterator_end(BLI_Iterator *iter)

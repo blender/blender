@@ -304,7 +304,7 @@ void DepsgraphNodeBuilder::build_rig(Scene *scene, Object *object)
 		/* Custom shape. */
 		/* NOTE: Custom shape datablock is already remapped to CoW version. */
 		if (pchan->custom != NULL) {
-			build_object(scene, get_orig_datablock(pchan->custom));
+			build_object(scene, get_orig_datablock(pchan->custom), DEG_ID_LINKED_INDIRECTLY);
 		}
 	}
 }
