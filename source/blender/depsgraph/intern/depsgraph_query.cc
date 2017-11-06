@@ -264,6 +264,7 @@ void DEG_objects_iterator_begin(BLI_Iterator *iter, DEGObjectsIteratorData *data
 	data->dupli_list = NULL;
 	data->dupli_object_next = NULL;
 	data->dupli_object_current = NULL;
+	data->scene = DEG_get_evaluated_scene(graph);
 
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
 	BLI_ghashIterator_init(&data->gh_iter, deg_graph->id_hash);
