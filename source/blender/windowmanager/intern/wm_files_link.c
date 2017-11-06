@@ -446,7 +446,9 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
 
 	/* recreate dependency graph to include new objects */
-	DAG_scene_relations_rebuild(bmain, scene);
+	if (scene) {
+		DAG_scene_relations_rebuild(bmain, scene);
+	}
 	
 	/* free gpu materials, some materials depend on existing objects, such as lamps so freeing correctly refreshes */
 	GPU_materials_free();
