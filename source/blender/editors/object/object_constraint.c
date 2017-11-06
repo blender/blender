@@ -593,7 +593,7 @@ static int edit_constraint_poll_generic(bContext *C, StructRNA *rna_type)
 		return 0;
 	}
 
-	if (ID_IS_LINKED_DATABLOCK(ob) || (ptr.id.data && ID_IS_LINKED_DATABLOCK(ptr.id.data))) {
+	if (ID_IS_LINKED(ob) || (ptr.id.data && ID_IS_LINKED(ptr.id.data))) {
 		CTX_wm_operator_poll_msg_set(C, "Cannot edit library data");
 		return 0;
 	}

@@ -476,7 +476,6 @@ class EmissionNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(EmissionNode)
 	void constant_fold(const ConstantFolder& folder);
-	virtual ClosureType get_closure_type() { return CLOSURE_EMISSION_ID; }
 
 	bool has_surface_emission() { return true; }
 	bool has_volume_support() { return true; }
@@ -490,7 +489,6 @@ class BackgroundNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(BackgroundNode)
 	void constant_fold(const ConstantFolder& folder);
-	virtual ClosureType get_closure_type() { return CLOSURE_BACKGROUND_ID; }
 
 	float3 color;
 	float strength;

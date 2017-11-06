@@ -446,12 +446,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 		}
 		case CLOSURE_BSDF_TRANSPARENT_ID: {
 			float3 weight = sd->svm_closure_weight * mix_weight;
-			ShaderClosure *bsdf = bsdf_alloc(sd, sizeof(ShaderClosure), weight);
-
-			if(bsdf) {
-				bsdf->N = N;
-				sd->flag |= bsdf_transparent_setup(bsdf);
-			}
+			bsdf_transparent_setup(sd, weight);
 			break;
 		}
 		case CLOSURE_BSDF_REFLECTION_ID:
@@ -708,18 +703,12 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 			float3 weight = sd->svm_closure_weight * mix_weight;
 			
 			if(sd->flag & SD_BACKFACING && sd->type & PRIMITIVE_ALL_CURVE) {
-				ShaderClosure *bsdf = bsdf_alloc(sd, sizeof(ShaderClosure), weight);
-
-				if(bsdf) {
-					bsdf->N = N;
-					/* todo: giving a fixed weight here will cause issues when
-					 * mixing multiple BSDFS. energy will not be conserved and
-					 * the throughput can blow up after multiple bounces. we
-					 * better figure out a way to skip backfaces from rays
-					 * spawned by transmission from the front */
-					bsdf->weight = make_float3(1.0f, 1.0f, 1.0f);
-					sd->flag |= bsdf_transparent_setup(bsdf);
-				}
+				/* todo: giving a fixed weight here will cause issues when
+				 * mixing multiple BSDFS. energy will not be conserved and
+				 * the throughput can blow up after multiple bounces. we
+				 * better figure out a way to skip backfaces from rays
+				 * spawned by transmission from the front */
+				bsdf_transparent_setup(sd, make_float3(1.0f, 1.0f, 1.0f));
 			}
 			else {
 				HairBsdf *bsdf = (HairBsdf*)bsdf_alloc(sd, sizeof(HairBsdf), weight);
@@ -831,38 +820,37 @@ ccl_device void svm_node_closure_volume(KernelGlobals *kg, ShaderData *sd, float
 		return;
 
 	float param1 = (stack_valid(param1_offset))? stack_load_float(stack, param1_offset): __uint_as_float(node.z);
-	float param2 = (stack_valid(param2_offset))? stack_load_float(stack, param2_offset): __uint_as_float(node.w);
-	float density = fmaxf(param1, 0.0f);
 
-	switch(type) {
-		case CLOSURE_VOLUME_ABSORPTION_ID: {
-			float3 weight = (make_float3(1.0f, 1.0f, 1.0f) - sd->svm_closure_weight) * mix_weight * density;
-			ShaderClosure *sc = closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_NONE_ID, weight);
+	/* Compute scattering coefficient. */
+	float density = mix_weight * fmaxf(param1, 0.0f);
+	float3 weight = sd->svm_closure_weight;
 
-			if(sc) {
-				sd->flag |= volume_absorption_setup(sc);
-			}
-			break;
-		}
-		case CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID: {
-			float3 weight = sd->svm_closure_weight * mix_weight * density;
-			HenyeyGreensteinVolume *volume = (HenyeyGreensteinVolume*)bsdf_alloc(sd, sizeof(HenyeyGreensteinVolume), weight);
-
-			if(volume) {
-				volume->g = param2; /* g */
-				sd->flag |= volume_henyey_greenstein_setup(volume);
-			}
-			break;
-		}
-		default:
-			break;
+	if(type == CLOSURE_VOLUME_ABSORPTION_ID) {
+		weight = make_float3(1.0f, 1.0f, 1.0f) - weight;
 	}
+
+	weight *= density;
+
+	/* Add closure for volume scattering. */
+	if(type == CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID) {
+		float param2 = (stack_valid(param2_offset))? stack_load_float(stack, param2_offset): __uint_as_float(node.w);
+		HenyeyGreensteinVolume *volume = (HenyeyGreensteinVolume*)bsdf_alloc(sd, sizeof(HenyeyGreensteinVolume), weight);
+
+		if(volume) {
+			volume->g = param2; /* g */
+			sd->flag |= volume_henyey_greenstein_setup(volume);
+		}
+	}
+
+	/* Sum total extinction weight. */
+	volume_extinction_setup(sd, weight);
 #endif
 }
 
 ccl_device void svm_node_closure_emission(ShaderData *sd, float *stack, uint4 node)
 {
 	uint mix_weight_offset = node.y;
+	float3 weight = sd->svm_closure_weight;
 
 	if(stack_valid(mix_weight_offset)) {
 		float mix_weight = stack_load_float(stack, mix_weight_offset);
@@ -870,17 +858,16 @@ ccl_device void svm_node_closure_emission(ShaderData *sd, float *stack, uint4 no
 		if(mix_weight == 0.0f)
 			return;
 
-		closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_EMISSION_ID, sd->svm_closure_weight * mix_weight);
+		weight *= mix_weight;
 	}
-	else
-		closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_EMISSION_ID, sd->svm_closure_weight);
 
-	sd->flag |= SD_EMISSION;
+	emission_setup(sd, weight);
 }
 
 ccl_device void svm_node_closure_background(ShaderData *sd, float *stack, uint4 node)
 {
 	uint mix_weight_offset = node.y;
+	float3 weight = sd->svm_closure_weight;
 
 	if(stack_valid(mix_weight_offset)) {
 		float mix_weight = stack_load_float(stack, mix_weight_offset);
@@ -888,10 +875,10 @@ ccl_device void svm_node_closure_background(ShaderData *sd, float *stack, uint4 
 		if(mix_weight == 0.0f)
 			return;
 
-		closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_BACKGROUND_ID, sd->svm_closure_weight * mix_weight);
+		weight *= mix_weight;
 	}
-	else
-		closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_BACKGROUND_ID, sd->svm_closure_weight);
+
+	background_setup(sd, weight);
 }
 
 ccl_device void svm_node_closure_holdout(ShaderData *sd, float *stack, uint4 node)

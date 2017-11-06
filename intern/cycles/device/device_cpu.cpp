@@ -297,10 +297,14 @@ public:
 						<< string_human_readable_size(mem.memory_size()) << ")";
 			}
 
-			mem.device_pointer = mem.data_pointer;
-
-			if(!mem.device_pointer) {
-				mem.device_pointer = (device_ptr)malloc(mem.memory_size());
+			if(mem.type == MEM_DEVICE_ONLY) {
+				assert(!mem.host_pointer);
+				size_t alignment = mem_address_alignment();
+				void *data = util_aligned_malloc(mem.memory_size(), alignment);
+				mem.device_pointer = (device_ptr)data;
+			}
+			else {
+				mem.device_pointer = (device_ptr)mem.host_pointer;
 			}
 
 			mem.device_size = mem.memory_size();
@@ -350,8 +354,8 @@ public:
 			tex_free(mem);
 		}
 		else if(mem.device_pointer) {
-			if(!mem.data_pointer) {
-				free((void*)mem.device_pointer);
+			if(mem.type == MEM_DEVICE_ONLY) {
+				util_aligned_free((void*)mem.device_pointer);
 			}
 			mem.device_pointer = 0;
 			stats.mem_free(mem.device_size);
@@ -379,7 +383,7 @@ public:
 			/* Data texture. */
 			kernel_tex_copy(&kernel_globals,
 							mem.name,
-							mem.data_pointer,
+							mem.host_pointer,
 							mem.data_size);
 		}
 		else {
@@ -400,7 +404,7 @@ public:
 			}
 
 			TextureInfo& info = texture_info[flat_slot];
-			info.data = (uint64_t)mem.data_pointer;
+			info.data = (uint64_t)mem.host_pointer;
 			info.cl_buffer = 0;
 			info.interpolation = mem.interpolation;
 			info.extension = mem.extension;
@@ -411,7 +415,7 @@ public:
 			need_texture_info = true;
 		}
 
-		mem.device_pointer = mem.data_pointer;
+		mem.device_pointer = (device_ptr)mem.host_pointer;
 		mem.device_size = mem.memory_size();
 		stats.mem_alloc(mem.device_size);
 	}
@@ -457,7 +461,7 @@ public:
 
 	bool denoising_set_tiles(device_ptr *buffers, DenoisingTask *task)
 	{
-		TilesInfo *tiles = (TilesInfo*) task->tiles_mem.data_pointer;
+		TilesInfo *tiles = (TilesInfo*) task->tiles_mem.host_pointer;
 		for(int i = 0; i < 9; i++) {
 			tiles->buffers[i] = buffers[i];
 		}

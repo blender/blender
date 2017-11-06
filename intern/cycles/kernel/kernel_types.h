@@ -812,7 +812,7 @@ enum ShaderDataFlag {
 
 	/* Set when ray hits backside of surface. */
 	SD_BACKFACING      = (1 << 0),
-	/* Shader has emissive closure. */
+	/* Shader has non-zero emission. */
 	SD_EMISSION        = (1 << 1),
 	/* Shader has BSDF closure. */
 	SD_BSDF            = (1 << 2),
@@ -822,8 +822,8 @@ enum ShaderDataFlag {
 	SD_BSSRDF          = (1 << 4),
 	/* Shader has holdout closure. */
 	SD_HOLDOUT         = (1 << 5),
-	/* Shader has volume absorption closure. */
-	SD_ABSORPTION      = (1 << 6),
+	/* Shader has non-zero volume extinction. */
+	SD_EXTINCTION      = (1 << 6),
 	/* Shader has have volume phase (scatter) closure. */
 	SD_SCATTER         = (1 << 7),
 	/* Shader has AO closure. */
@@ -838,7 +838,7 @@ enum ShaderDataFlag {
 	                    SD_BSDF_HAS_EVAL |
 	                    SD_BSSRDF |
 	                    SD_HOLDOUT |
-	                    SD_ABSORPTION |
+	                    SD_EXTINCTION |
 	                    SD_SCATTER |
 	                    SD_AO |
 	                    SD_BSDF_NEEDS_LCG),
@@ -970,16 +970,6 @@ typedef ccl_addr_space struct ShaderData {
 	Transform ob_itfm;
 #endif
 
-	/* Closure data, we store a fixed array of closures */
-	struct ShaderClosure closure[MAX_CLOSURE];
-	int num_closure;
-	int num_closure_extra;
-	float randb_closure;
-	float3 svm_closure_weight;
-
-	/* LCG state for closures that require additional random numbers. */
-	uint lcg_state;
-
 	/* ray start position, only set for backgrounds */
 	float3 ray_P;
 	differential3 ray_dP;
@@ -988,7 +978,29 @@ typedef ccl_addr_space struct ShaderData {
 	struct KernelGlobals *osl_globals;
 	struct PathState *osl_path_state;
 #endif
+
+	/* LCG state for closures that require additional random numbers. */
+	uint lcg_state;
+
+	/* Closure data, we store a fixed array of closures */
+	int num_closure;
+	int num_closure_left;
+	float randb_closure;
+	float3 svm_closure_weight;
+
+	/* Closure weights summed directly, so we can evaluate
+	 * emission and shadow transparency with MAX_CLOSURE 0. */
+	float3 closure_emission_background;
+	float3 closure_transparent_extinction;
+
+	/* At the end so we can adjust size in ShaderDataTinyStorage. */
+	struct ShaderClosure closure[MAX_CLOSURE];
 } ShaderData;
+
+typedef ccl_addr_space struct ShaderDataTinyStorage {
+	char pad[sizeof(ShaderData) - sizeof(ShaderClosure) * MAX_CLOSURE];
+} ShaderDataTinyStorage;
+#define AS_SHADER_DATA(shader_data_tiny_storage) ((ShaderData*)shader_data_tiny_storage)
 
 /* Path State */
 
@@ -1295,13 +1307,12 @@ static_assert_align(KernelIntegrator, 16);
 typedef struct KernelBVH {
 	/* root node */
 	int root;
-	int attributes_map_stride;
 	int have_motion;
 	int have_curves;
 	int have_instancing;
 	int use_qbvh;
 	int use_bvh_steps;
-	int pad1;
+	int pad1, pad2;
 } KernelBVH;
 static_assert_align(KernelBVH, 16);
 

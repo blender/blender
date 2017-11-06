@@ -35,10 +35,22 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device int bsdf_transparent_setup(ShaderClosure *sc)
+ccl_device void bsdf_transparent_setup(ShaderData *sd, const float3 weight)
 {
-	sc->type = CLOSURE_BSDF_TRANSPARENT_ID;
-	return SD_BSDF|SD_TRANSPARENT;
+	if(sd->flag & SD_TRANSPARENT) {
+		sd->closure_transparent_extinction += weight;
+	}
+	else {
+		sd->flag |= SD_BSDF|SD_TRANSPARENT;
+		sd->closure_transparent_extinction = weight;
+	}
+
+	ShaderClosure *bsdf = bsdf_alloc(sd, sizeof(ShaderClosure), weight);
+
+	if(bsdf) {
+		bsdf->N = sd->N;
+		bsdf->type = CLOSURE_BSDF_TRANSPARENT_ID;
+	}
 }
 
 ccl_device float3 bsdf_transparent_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)

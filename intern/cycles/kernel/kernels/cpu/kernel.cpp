@@ -74,7 +74,7 @@ void kernel_const_copy(KernelGlobals *kg, const char *name, void *host, size_t s
 
 void kernel_tex_copy(KernelGlobals *kg,
                      const char *name,
-                     device_ptr mem,
+                     void *mem,
                      size_t size)
 {
 	if(0) {

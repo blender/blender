@@ -826,10 +826,10 @@ static int rna_Object_active_material_editable(PointerRNA *ptr, const char **UNU
 	bool is_editable;
 
 	if ((ob->matbits == NULL) || (ob->actcol == 0) || ob->matbits[ob->actcol - 1]) {
-		is_editable = !ID_IS_LINKED_DATABLOCK(ob);
+		is_editable = !ID_IS_LINKED(ob);
 	}
 	else {
-		is_editable = ob->data ? !ID_IS_LINKED_DATABLOCK(ob->data) : false;
+		is_editable = ob->data ? !ID_IS_LINKED(ob->data) : false;
 	}
 
 	return is_editable ? PROP_EDITABLE : 0;

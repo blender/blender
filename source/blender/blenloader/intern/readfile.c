@@ -2807,7 +2807,7 @@ static void lib_link_workspaces(FileData *fd, Main *bmain)
 			if (screen) {
 				BKE_workspace_layout_screen_set(layout, screen);
 
-				if (ID_IS_LINKED_DATABLOCK(id)) {
+				if (ID_IS_LINKED(id)) {
 					screen->winid = 0;
 					if (screen->temp) {
 						/* delete temp layouts when appending */
@@ -2835,7 +2835,7 @@ static void direct_link_workspace(FileData *fd, WorkSpace *workspace, const Main
 		relation->value = newdataadr(fd, relation->value);
 	}
 
-	if (ID_IS_LINKED_DATABLOCK(&workspace->id)) {
+	if (ID_IS_LINKED(&workspace->id)) {
 		/* Appending workspace so render layer is likely from a different scene. Unset
 		 * now, when activating workspace later we set a valid one from current scene. */
 		BKE_workspace_render_layer_set(workspace, NULL);

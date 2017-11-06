@@ -725,8 +725,8 @@ void assign_material(Object *ob, Material *ma, short act, int assign_type)
 	if (act < 1) act = 1;
 	
 	/* prevent crashing when using accidentally */
-	BLI_assert(!ID_IS_LINKED_DATABLOCK(ob));
-	if (ID_IS_LINKED_DATABLOCK(ob)) return;
+	BLI_assert(!ID_IS_LINKED(ob));
+	if (ID_IS_LINKED(ob)) return;
 	
 	/* test arraylens */
 	
@@ -999,7 +999,7 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 		Group *group;
 
 		for (group = G.main->group.first; group; group = group->id.next) {
-			if (!ID_IS_LINKED_DATABLOCK(group) && STREQ(group->id.name, ma->group->id.name)) {
+			if (!ID_IS_LINKED(group) && STREQ(group->id.name, ma->group->id.name)) {
 				ma->group = group;
 			}
 		}

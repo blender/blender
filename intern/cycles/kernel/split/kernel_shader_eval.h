@@ -50,7 +50,7 @@ ccl_device void kernel_shader_eval(KernelGlobals *kg)
 	if(IS_STATE(ray_state, ray_index, RAY_ACTIVE)) {
 		ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
 
-		shader_eval_surface(kg, &kernel_split_state.sd[ray_index], state, state->flag);
+		shader_eval_surface(kg, &kernel_split_state.sd[ray_index], state, state->flag, MAX_CLOSURE);
 #ifdef __BRANCHED_PATH__
 		if(kernel_data.integrator.branched) {
 			shader_merge_closures(&kernel_split_state.sd[ray_index]);

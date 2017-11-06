@@ -444,7 +444,7 @@ static void id_local_cb(
         bContext *C, ReportList *UNUSED(reports), Scene *UNUSED(scene), TreeElement *UNUSED(te),
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
-	if (ID_IS_LINKED_DATABLOCK(tselem->id) && (tselem->id->tag & LIB_TAG_EXTERN)) {
+	if (ID_IS_LINKED(tselem->id) && (tselem->id->tag & LIB_TAG_EXTERN)) {
 		Main *bmain = CTX_data_main(C);
 		/* if the ID type has no special local function,
 		 * just clear the lib */

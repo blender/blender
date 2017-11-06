@@ -20,17 +20,16 @@ ccl_device ShaderClosure *closure_alloc(ShaderData *sd, int size, ClosureType ty
 {
 	kernel_assert(size <= sizeof(ShaderClosure));
 
-	int num_closure = sd->num_closure;
-	int num_closure_extra = sd->num_closure_extra;
-	if(num_closure + num_closure_extra >= MAX_CLOSURE)
+	if(sd->num_closure_left == 0)
 		return NULL;
 
-	ShaderClosure *sc = &sd->closure[num_closure];
+	ShaderClosure *sc = &sd->closure[sd->num_closure];
 
 	sc->type = type;
 	sc->weight = weight;
 
 	sd->num_closure++;
+	sd->num_closure_left--;
 
 	return sc;
 }
@@ -44,18 +43,16 @@ ccl_device ccl_addr_space void *closure_alloc_extra(ShaderData *sd, int size)
 	 * This lets us keep the same fast array iteration over closures, as we
 	 * found linked list iteration and iteration with skipping to be slower. */
 	int num_extra = ((size + sizeof(ShaderClosure) - 1) / sizeof(ShaderClosure));
-	int num_closure = sd->num_closure;
-	int num_closure_extra = sd->num_closure_extra + num_extra;
 
-	if(num_closure + num_closure_extra > MAX_CLOSURE) {
+	if(num_extra > sd->num_closure_left) {
 		/* Remove previous closure. */
 		sd->num_closure--;
-		sd->num_closure_extra++;
+		sd->num_closure_left++;
 		return NULL;
 	}
 
-	sd->num_closure_extra = num_closure_extra;
-	return (ccl_addr_space void*)(sd->closure + MAX_CLOSURE - num_closure_extra);
+	sd->num_closure_left -= num_extra;
+	return (ccl_addr_space void*)(sd->closure + sd->num_closure + sd->num_closure_left);
 }
 
 ccl_device_inline ShaderClosure *bsdf_alloc(ShaderData *sd, int size, float3 weight)

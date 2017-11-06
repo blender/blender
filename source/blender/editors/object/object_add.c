@@ -1278,7 +1278,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 		if (use_global) {
 			Scene *scene_iter;
 			for (scene_iter = bmain->scene.first; scene_iter; scene_iter = scene_iter->id.next) {
-				if (scene_iter != scene && !ID_IS_LINKED_DATABLOCK(scene_iter)) {
+				if (scene_iter != scene && !ID_IS_LINKED(scene_iter)) {
 					if (is_indirectly_used && ID_REAL_USERS(ob) <= 1 && ID_EXTRA_USERS(ob) == 0) {
 						BKE_reportf(op->reports, RPT_WARNING,
 						            "Cannot delete object '%s' from scene '%s', indirectly used objects need at least one user",
@@ -1668,8 +1668,8 @@ static int convert_poll(bContext *C)
 	Object *obact = CTX_data_active_object(C);
 	Scene *scene = CTX_data_scene(C);
 
-	return (!ID_IS_LINKED_DATABLOCK(scene) && obact && scene->obedit != obact &&
-	        (obact->flag & SELECT) && !ID_IS_LINKED_DATABLOCK(obact));
+	return (!ID_IS_LINKED(scene) && obact && scene->obedit != obact &&
+	        (obact->flag & SELECT) && !ID_IS_LINKED(obact));
 }
 
 /* Helper for convert_exec */
@@ -1753,7 +1753,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			 * However, changing this is more design than bugfix, not to mention convoluted code below,
 			 * so that will be for later.
 			 * But at the very least, do not do that with linked IDs! */
-			if ((ID_IS_LINKED_DATABLOCK(ob) || (ob->data && ID_IS_LINKED_DATABLOCK(ob->data))) && !keep_original) {
+			if ((ID_IS_LINKED(ob) || (ob->data && ID_IS_LINKED(ob->data))) && !keep_original) {
 				keep_original = true;
 				BKE_reportf(op->reports, RPT_INFO,
 				            "Converting some linked object/object data, enforcing 'Keep Original' option to True");
@@ -2500,7 +2500,7 @@ static int join_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 
-	if (!ob || ID_IS_LINKED_DATABLOCK(ob)) return 0;
+	if (!ob || ID_IS_LINKED(ob)) return 0;
 
 	if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_ARMATURE))
 		return ED_operator_screenactive(C);
@@ -2553,7 +2553,7 @@ static int join_shapes_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 
-	if (!ob || ID_IS_LINKED_DATABLOCK(ob)) return 0;
+	if (!ob || ID_IS_LINKED(ob)) return 0;
 
 	/* only meshes supported at the moment */
 	if (ob->type == OB_MESH)

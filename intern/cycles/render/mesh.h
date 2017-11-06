@@ -250,6 +250,8 @@ public:
 	size_t face_offset;
 	size_t corner_offset;
 
+	size_t attr_map_offset;
+
 	size_t num_subd_verts;
 
 	/* Functions */

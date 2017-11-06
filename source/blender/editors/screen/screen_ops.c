@@ -171,7 +171,7 @@ int ED_operator_screen_mainwinactive(bContext *C)
 int ED_operator_scene_editable(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
-	if (scene && !ID_IS_LINKED_DATABLOCK(scene))
+	if (scene && !ID_IS_LINKED(scene))
 		return 1;
 	return 0;
 }
@@ -181,7 +181,7 @@ int ED_operator_objectmode(bContext *C)
 	Scene *scene = CTX_data_scene(C);
 	Object *obact = CTX_data_active_object(C);
 
-	if (scene == NULL || ID_IS_LINKED_DATABLOCK(scene))
+	if (scene == NULL || ID_IS_LINKED(scene))
 		return 0;
 	if (CTX_data_edit_object(C))
 		return 0;
@@ -282,7 +282,7 @@ int ED_operator_node_editable(bContext *C)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	
-	if (snode && snode->edittree && !ID_IS_LINKED_DATABLOCK(snode->edittree))
+	if (snode && snode->edittree && !ID_IS_LINKED(snode->edittree))
 		return 1;
 	
 	return 0;
@@ -344,20 +344,20 @@ int ED_operator_object_active(bContext *C)
 int ED_operator_object_active_editable(bContext *C)
 {
 	Object *ob = ED_object_active_context(C);
-	return ((ob != NULL) && !ID_IS_LINKED_DATABLOCK(ob) && !ed_object_hidden(ob));
+	return ((ob != NULL) && !ID_IS_LINKED(ob) && !ed_object_hidden(ob));
 }
 
 int ED_operator_object_active_editable_mesh(bContext *C)
 {
 	Object *ob = ED_object_active_context(C);
-	return ((ob != NULL) && !ID_IS_LINKED_DATABLOCK(ob) && !ed_object_hidden(ob) &&
-	        (ob->type == OB_MESH) && !ID_IS_LINKED_DATABLOCK(ob->data));
+	return ((ob != NULL) && !ID_IS_LINKED(ob) && !ed_object_hidden(ob) &&
+	        (ob->type == OB_MESH) && !ID_IS_LINKED(ob->data));
 }
 
 int ED_operator_object_active_editable_font(bContext *C)
 {
 	Object *ob = ED_object_active_context(C);
-	return ((ob != NULL) && !ID_IS_LINKED_DATABLOCK(ob) && !ed_object_hidden(ob) &&
+	return ((ob != NULL) && !ID_IS_LINKED(ob) && !ed_object_hidden(ob) &&
 	        (ob->type == OB_FONT));
 }
 
@@ -450,8 +450,8 @@ int ED_operator_posemode_local(bContext *C)
 	if (ED_operator_posemode(C)) {
 		Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 		bArmature *arm = ob->data;
-		return !(ID_IS_LINKED_DATABLOCK(&ob->id) ||
-		         ID_IS_LINKED_DATABLOCK(&arm->id));
+		return !(ID_IS_LINKED(&ob->id) ||
+		         ID_IS_LINKED(&arm->id));
 	}
 	return false;
 }

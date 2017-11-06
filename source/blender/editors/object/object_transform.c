@@ -447,7 +447,7 @@ static int apply_objects_internal(
 				changed = false;
 			}
 
-			if (ID_IS_LINKED_DATABLOCK(obdata)) {
+			if (ID_IS_LINKED(obdata)) {
 				BKE_reportf(reports, RPT_ERROR,
 				            "Cannot apply to library data: Object \"%s\", %s \"%s\", aborting",
 				            ob->id.name + 2, BKE_idcode_to_name(GS(obdata->name)), obdata->name + 2);
@@ -860,7 +860,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 			if (ob->data == NULL) {
 				/* special support for dupligroups */
 				if ((ob->transflag & OB_DUPLIGROUP) && ob->dup_group && (ob->dup_group->id.tag & LIB_TAG_DOIT) == 0) {
-					if (ID_IS_LINKED_DATABLOCK(ob->dup_group)) {
+					if (ID_IS_LINKED(ob->dup_group)) {
 						tot_lib_error++;
 					}
 					else {
@@ -885,7 +885,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 					}
 				}
 			}
-			else if (ID_IS_LINKED_DATABLOCK(ob->data)) {
+			else if (ID_IS_LINKED(ob->data)) {
 				tot_lib_error++;
 			}
 

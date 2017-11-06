@@ -733,7 +733,7 @@ void test_object_modifiers(Object *ob)
  */
 const char *modifier_path_relbase(Object *ob)
 {
-	if (G.relbase_valid || ID_IS_LINKED_DATABLOCK(ob)) {
+	if (G.relbase_valid || ID_IS_LINKED(ob)) {
 		return ID_BLEND_PATH(G.main, &ob->id);
 	}
 	else {

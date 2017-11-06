@@ -207,7 +207,9 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ccl_a
 				break;
 			}
 			case NODE_CLOSURE_BSDF:
-				svm_node_closure_bsdf(kg, sd, stack, node, path_flag, &offset);
+				if(type == SHADER_TYPE_SURFACE) {
+					svm_node_closure_bsdf(kg, sd, stack, node, path_flag, &offset);
+				}
 				break;
 			case NODE_CLOSURE_EMISSION:
 				svm_node_closure_emission(sd, stack, node);
@@ -325,7 +327,9 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ccl_a
 				break;
 #  if NODES_FEATURE(NODE_FEATURE_VOLUME)
 			case NODE_CLOSURE_VOLUME:
-				svm_node_closure_volume(kg, sd, stack, node, path_flag);
+				if(type == SHADER_TYPE_VOLUME) {
+					svm_node_closure_volume(kg, sd, stack, node, path_flag);
+				}
 				break;
 #  endif  /* NODES_FEATURE(NODE_FEATURE_VOLUME) */
 #  ifdef __EXTRA_NODES__

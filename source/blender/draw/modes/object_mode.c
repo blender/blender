@@ -1630,7 +1630,7 @@ static void DRW_shgroup_relationship_lines(OBJECT_StorageList *stl, Object *ob)
 
 static void DRW_shgroup_object_center(OBJECT_StorageList *stl, Object *ob, SceneLayer *sl, View3D *v3d)
 {
-	const bool is_library = ob->id.us > 1 || ID_IS_LINKED_DATABLOCK(ob);
+	const bool is_library = ob->id.us > 1 || ID_IS_LINKED(ob);
 	DRWShadingGroup *shgroup;
 
 	if (ob == OBACT_NEW(sl)) {

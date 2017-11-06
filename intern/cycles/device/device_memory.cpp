@@ -24,7 +24,6 @@ CCL_NAMESPACE_BEGIN
 device_memory::device_memory(Device *device, const char *name, MemoryType type)
 : data_type(device_type_traits<uchar>::data_type),
   data_elements(device_type_traits<uchar>::num_elements),
-  data_pointer(0),
   data_size(0),
   device_size(0),
   data_width(0),
@@ -35,7 +34,8 @@ device_memory::device_memory(Device *device, const char *name, MemoryType type)
   interpolation(INTERPOLATION_NONE),
   extension(EXTENSION_REPEAT),
   device(device),
-  device_pointer(0)
+  device_pointer(0),
+  host_pointer(0)
 {
 }
 
@@ -43,14 +43,14 @@ device_memory::~device_memory()
 {
 }
 
-device_ptr device_memory::host_alloc(size_t size)
+void *device_memory::host_alloc(size_t size)
 {
 	if(!size) {
 		return 0;
 	}
 
 	size_t alignment = device->mem_address_alignment();
-	device_ptr ptr = (device_ptr)util_aligned_malloc(size, alignment);
+	void *ptr = util_aligned_malloc(size, alignment);
 
 	if(ptr) {
 		util_guarded_mem_alloc(size);
@@ -62,11 +62,12 @@ device_ptr device_memory::host_alloc(size_t size)
 	return ptr;
 }
 
-void device_memory::host_free(device_ptr ptr, size_t size)
+void device_memory::host_free()
 {
-	if(ptr) {
-		util_guarded_mem_free(size);
-		util_aligned_free((void*)ptr);
+	if(host_pointer) {
+		util_guarded_mem_free(memory_size());
+		util_aligned_free((void*)host_pointer);
+		host_pointer = 0;
 	}
 }
 

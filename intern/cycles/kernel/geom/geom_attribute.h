@@ -51,14 +51,21 @@ ccl_device_inline AttributeDescriptor attribute_not_found()
 
 /* Find attribute based on ID */
 
+ccl_device_inline uint object_attribute_map_offset(KernelGlobals *kg, int object)
+{
+	int offset = object*OBJECT_SIZE + 11;
+	float4 f = kernel_tex_fetch(__objects, offset);
+	return __float_as_uint(f.y);
+}
+
 ccl_device_inline AttributeDescriptor find_attribute(KernelGlobals *kg, const ShaderData *sd, uint id)
 {
-	if(sd->object == PRIM_NONE) {
+	if(sd->object == OBJECT_NONE) {
 		return attribute_not_found();
 	}
 
 	/* for SVM, find attribute by unique id */
-	uint attr_offset = sd->object*kernel_data.bvh.attributes_map_stride;
+	uint attr_offset = object_attribute_map_offset(kg, sd->object);
 	attr_offset += attribute_primitive_type(kg, sd);
 	uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
 	

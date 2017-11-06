@@ -1288,7 +1288,7 @@ void BKE_object_make_local_ex(Main *bmain, Object *ob, const bool lib_local, con
 	 * In case we make a whole lib's content local, we always want to localize, and we skip remapping (done later).
 	 */
 
-	if (!ID_IS_LINKED_DATABLOCK(ob)) {
+	if (!ID_IS_LINKED(ob)) {
 		return;
 	}
 
@@ -1330,15 +1330,15 @@ void BKE_object_make_local(Main *bmain, Object *ob, const bool lib_local)
 /* Returns true if the Object is from an external blend file (libdata) */
 bool BKE_object_is_libdata(Object *ob)
 {
-	return (ob && ID_IS_LINKED_DATABLOCK(ob));
+	return (ob && ID_IS_LINKED(ob));
 }
 
 /* Returns true if the Object data is from an external blend file (libdata) */
 bool BKE_object_obdata_is_libdata(Object *ob)
 {
 	/* Linked objects with local obdata are forbidden! */
-	BLI_assert(!ob || !ob->data || (ID_IS_LINKED_DATABLOCK(ob) ? ID_IS_LINKED_DATABLOCK(ob->data) : true));
-	return (ob && ob->data && ID_IS_LINKED_DATABLOCK(ob->data));
+	BLI_assert(!ob || !ob->data || (ID_IS_LINKED(ob) ? ID_IS_LINKED(ob->data) : true));
+	return (ob && ob->data && ID_IS_LINKED(ob->data));
 }
 
 /* *************** PROXY **************** */
@@ -1385,7 +1385,7 @@ void BKE_object_copy_proxy_drivers(Object *ob, Object *target)
 							/* only on local objects because this causes indirect links
 							 * 'a -> b -> c', blend to point directly to a.blend
 							 * when a.blend has a proxy thats linked into c.blend  */
-							if (!ID_IS_LINKED_DATABLOCK(ob))
+							if (!ID_IS_LINKED(ob))
 								id_lib_extern((ID *)dtar->id);
 						}
 					}
@@ -1403,7 +1403,7 @@ void BKE_object_copy_proxy_drivers(Object *ob, Object *target)
 void BKE_object_make_proxy(Object *ob, Object *target, Object *gob)
 {
 	/* paranoia checks */
-	if (ID_IS_LINKED_DATABLOCK(ob) || !ID_IS_LINKED_DATABLOCK(target)) {
+	if (ID_IS_LINKED(ob) || !ID_IS_LINKED(target)) {
 		printf("cannot make proxy\n");
 		return;
 	}
@@ -2715,7 +2715,7 @@ void BKE_object_handle_update_ex(const EvaluationContext *eval_ctx,
 				printf("recalcob %s\n", ob->id.name + 2);
 			
 			/* handle proxy copy for target */
-			if (ID_IS_LINKED_DATABLOCK(ob) && ob->proxy_from) {
+			if (ID_IS_LINKED(ob) && ob->proxy_from) {
 				// printf("ob proxy copy, lib ob %s proxy %s\n", ob->id.name, ob->proxy_from->id.name);
 				if (ob->proxy_from->proxy_group) { /* transform proxy into group space */
 					Object *obg = ob->proxy_from->proxy_group;

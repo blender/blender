@@ -66,7 +66,7 @@ static int edit_sensor_poll(bContext *C)
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "sensor", &RNA_Sensor);
 
-	if (ptr.data && ID_IS_LINKED_DATABLOCK(ptr.id.data)) return 0;
+	if (ptr.data && ID_IS_LINKED(ptr.id.data)) return 0;
 	return 1;
 }
 
@@ -74,7 +74,7 @@ static int edit_controller_poll(bContext *C)
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "controller", &RNA_Controller);
 
-	if (ptr.data && ID_IS_LINKED_DATABLOCK(ptr.id.data)) return 0;
+	if (ptr.data && ID_IS_LINKED(ptr.id.data)) return 0;
 	return 1;
 }
 
@@ -82,7 +82,7 @@ static int edit_actuator_poll(bContext *C)
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "actuator", &RNA_Actuator);
 
-	if (ptr.data && ID_IS_LINKED_DATABLOCK(ptr.id.data)) return 0;
+	if (ptr.data && ID_IS_LINKED(ptr.id.data)) return 0;
 	return 1;
 }
 

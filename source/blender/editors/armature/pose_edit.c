@@ -87,7 +87,7 @@ void ED_armature_enter_posemode(bContext *C, Base *base)
 	ReportList *reports = CTX_wm_reports(C);
 	Object *ob = base->object;
 	
-	if (ID_IS_LINKED_DATABLOCK(ob)) {
+	if (ID_IS_LINKED(ob)) {
 		BKE_report(reports, RPT_WARNING, "Cannot pose libdata");
 		return;
 	}

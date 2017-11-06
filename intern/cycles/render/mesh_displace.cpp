@@ -149,7 +149,7 @@ bool MeshManager::displace(Device *device, DeviceScene *dscene, Scene *scene, Me
 	done.resize(num_verts, false);
 	int k = 0;
 
-	float4 *offset = (float4*)d_output.data_pointer;
+	float4 *offset = d_output.data();
 
 	Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 	for(size_t i = 0; i < num_triangles; i++) {

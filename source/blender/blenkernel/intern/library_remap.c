@@ -760,7 +760,7 @@ static int id_relink_to_newid_looper(void *UNUSED(user_data), ID *UNUSED(self_id
  */
 void BKE_libblock_relink_to_newid(ID *id)
 {
-	if (ID_IS_LINKED_DATABLOCK(id))
+	if (ID_IS_LINKED(id))
 		return;
 
 	BKE_library_foreach_ID_link(NULL, id, id_relink_to_newid_looper, NULL, 0);

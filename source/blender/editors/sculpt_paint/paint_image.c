@@ -1364,7 +1364,7 @@ static int texture_paint_toggle_poll(bContext *C)
 	Object *ob = CTX_data_active_object(C);
 	if (ob == NULL || ob->type != OB_MESH)
 		return 0;
-	if (!ob->data || ID_IS_LINKED_DATABLOCK(ob->data))
+	if (!ob->data || ID_IS_LINKED(ob->data))
 		return 0;
 	if (CTX_data_edit_object(C))
 		return 0;

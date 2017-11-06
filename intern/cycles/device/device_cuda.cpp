@@ -128,12 +128,19 @@ public:
 	CUdevice cuDevice;
 	CUcontext cuContext;
 	CUmodule cuModule, cuFilterModule;
-	map<device_ptr, bool> tex_interp_map;
-	map<device_ptr, CUtexObject> tex_bindless_map;
 	int cuDevId;
 	int cuDevArchitecture;
 	bool first_error;
 	CUDASplitKernel *split_kernel;
+
+	struct CUDAMem {
+		CUDAMem()
+		: texobject(0), array(0) {}
+
+		CUtexObject texobject;
+		CUarray array;
+	};
+	map<device_memory*, CUDAMem> cuda_mem_map;
 
 	struct PixelMem {
 		GLuint cuPBO;
@@ -141,7 +148,6 @@ public:
 		GLuint cuTexId;
 		int w, h;
 	};
-
 	map<device_ptr, PixelMem> pixel_mem_map;
 
 	/* Bindless Textures */
@@ -234,24 +240,29 @@ public:
 
 		need_texture_info = false;
 
-		/* intialize */
+		/* Intialize CUDA. */
 		if(cuda_error(cuInit(0)))
 			return;
 
-		/* setup device and context */
+		/* Setup device and context. */
 		if(cuda_error(cuDeviceGet(&cuDevice, cuDevId)))
 			return;
 
+		/* CU_CTX_LMEM_RESIZE_TO_MAX for reserving local memory ahead of render,
+		 * so we can predict which memory to map to host. */
+		unsigned int ctx_flags = CU_CTX_LMEM_RESIZE_TO_MAX;
+
+		/* Create context. */
 		CUresult result;
 
 		if(background) {
-			result = cuCtxCreate(&cuContext, 0, cuDevice);
+			result = cuCtxCreate(&cuContext, ctx_flags, cuDevice);
 		}
 		else {
-			result = cuGLCtxCreate(&cuContext, 0, cuDevice);
+			result = cuGLCtxCreate(&cuContext, ctx_flags, cuDevice);
 
 			if(result != CUDA_SUCCESS) {
-				result = cuCtxCreate(&cuContext, 0, cuDevice);
+				result = cuCtxCreate(&cuContext, ctx_flags, cuDevice);
 				background = true;
 			}
 		}
@@ -542,7 +553,64 @@ public:
 		if(cuda_error_(result, "cuModuleLoad"))
 			cuda_error_message(string_printf("Failed loading CUDA kernel %s.", filter_cubin.c_str()));
 
+		if(result == CUDA_SUCCESS) {
+			reserve_local_memory(requested_features);
+		}
+
 		return (result == CUDA_SUCCESS);
+	}
+
+	void reserve_local_memory(const DeviceRequestedFeatures& requested_features)
+	{
+		if(use_split_kernel()) {
+			/* Split kernel mostly uses global memory and adaptive compilation,
+			 * difficult to predict how much is needed currently. */
+			return;
+		}
+
+		/* Together with CU_CTX_LMEM_RESIZE_TO_MAX, this reserves local memory
+		 * needed for kernel launches, so that we can reliably figure out when
+		 * to allocate scene data in mapped host memory. */
+		CUDAContextScope scope(this);
+
+		size_t total = 0, free_before = 0, free_after = 0;
+		cuMemGetInfo(&free_before, &total);
+
+		/* Get kernel function. */
+		CUfunction cuPathTrace;
+
+		if(requested_features.use_integrator_branched) {
+			cuda_assert(cuModuleGetFunction(&cuPathTrace, cuModule, "kernel_cuda_branched_path_trace"));
+		}
+		else {
+			cuda_assert(cuModuleGetFunction(&cuPathTrace, cuModule, "kernel_cuda_path_trace"));
+		}
+
+		cuda_assert(cuFuncSetCacheConfig(cuPathTrace, CU_FUNC_CACHE_PREFER_L1));
+
+		int min_blocks, num_threads_per_block;
+		cuda_assert(cuOccupancyMaxPotentialBlockSize(&min_blocks, &num_threads_per_block, cuPathTrace, NULL, 0, 0));
+
+		/* Launch kernel, using just 1 block appears sufficient to reserve
+		 * memory for all multiprocessors. It would be good to do this in
+		 * parallel for the multi GPU case still to make it faster. */
+		CUdeviceptr d_work_tiles = 0;
+		uint total_work_size = 0;
+
+		void *args[] = {&d_work_tiles,
+		                &total_work_size};
+
+		cuda_assert(cuLaunchKernel(cuPathTrace,
+		                           1, 1, 1,
+		                           num_threads_per_block, 1, 1,
+		                           0, 0, args, 0));
+
+		cuda_assert(cuCtxSynchronize());
+
+		cuMemGetInfo(&free_after, &total);
+		VLOG(1) << "Local memory reserved "
+		        << string_human_readable_number(free_before - free_after) << " bytes. ("
+		        << string_human_readable_size(free_before - free_after) << ")";
 	}
 
 	void load_texture_info()
@@ -553,7 +621,7 @@ public:
 		}
 	}
 
-	void generic_alloc(device_memory& mem, size_t padding = 0)
+	CUDAMem *generic_alloc(device_memory& mem, size_t padding = 0)
 	{
 		CUDAContextScope scope(this);
 
@@ -563,19 +631,28 @@ public:
 					<< string_human_readable_size(mem.memory_size()) << ")";
 		}
 
-		CUdeviceptr device_pointer;
+		/* Allocate memory on device. */
+		CUdeviceptr device_pointer = 0;
 		size_t size = mem.memory_size();
 		cuda_assert(cuMemAlloc(&device_pointer, size + padding));
 		mem.device_pointer = (device_ptr)device_pointer;
 		mem.device_size = size;
 		stats.mem_alloc(size);
+
+		if(!mem.device_pointer) {
+			return NULL;
+		}
+
+		/* Insert into map of allocations. */
+		CUDAMem *cmem = &cuda_mem_map[&mem];
+		return cmem;
 	}
 
 	void generic_copy_to(device_memory& mem)
 	{
 		if(mem.device_pointer) {
 			CUDAContextScope scope(this);
-			cuda_assert(cuMemcpyHtoD(cuda_device_ptr(mem.device_pointer), (void*)mem.data_pointer, mem.memory_size()));
+			cuda_assert(cuMemcpyHtoD(cuda_device_ptr(mem.device_pointer), mem.host_pointer, mem.memory_size()));
 		}
 	}
 
@@ -586,10 +663,11 @@ public:
 
 			cuda_assert(cuMemFree(cuda_device_ptr(mem.device_pointer)));
 
-			mem.device_pointer = 0;
-
 			stats.mem_free(mem.device_size);
+			mem.device_pointer = 0;
 			mem.device_size = 0;
+
+			cuda_mem_map.erase(cuda_mem_map.find(&mem));
 		}
 	}
 
@@ -638,11 +716,11 @@ public:
 			size_t size = elem*w*h;
 
 			if(mem.device_pointer) {
-				cuda_assert(cuMemcpyDtoH((uchar*)mem.data_pointer + offset,
+				cuda_assert(cuMemcpyDtoH((uchar*)mem.host_pointer + offset,
 										 (CUdeviceptr)(mem.device_pointer + offset), size));
 			}
 			else {
-				memset((char*)mem.data_pointer + offset, 0, size);
+				memset((char*)mem.host_pointer + offset, 0, size);
 			}
 		}
 	}
@@ -653,8 +731,8 @@ public:
 			mem_alloc(mem);
 		}
 
-		if(mem.data_pointer) {
-			memset((void*)mem.data_pointer, 0, mem.memory_size());
+		if(mem.host_pointer) {
+			memset(mem.host_pointer, 0, mem.memory_size());
 		}
 
 		if(mem.device_pointer) {
@@ -752,8 +830,6 @@ public:
 				uint32_t ptr = (uint32_t)mem.device_pointer;
 				cuda_assert(cuMemcpyHtoD(cumem, (void*)&ptr, cubytes));
 			}
-
-			tex_interp_map[mem.device_pointer] = false;
 			return;
 		}
 
@@ -789,7 +865,7 @@ public:
 			default: assert(0); return;
 		}
 
-
+		CUDAMem *cmem = NULL;
 		CUarray array_3d = NULL;
 		size_t src_pitch = mem.data_width * dsize * mem.data_elements;
 		size_t dst_pitch = src_pitch;
@@ -816,7 +892,7 @@ public:
 			param.dstMemoryType = CU_MEMORYTYPE_ARRAY;
 			param.dstArray = array_3d;
 			param.srcMemoryType = CU_MEMORYTYPE_HOST;
-			param.srcHost = (void*)mem.data_pointer;
+			param.srcHost = mem.host_pointer;
 			param.srcPitch = src_pitch;
 			param.WidthInBytes = param.srcPitch;
 			param.Height = mem.data_height;
@@ -827,6 +903,10 @@ public:
 			mem.device_pointer = (device_ptr)array_3d;
 			mem.device_size = size;
 			stats.mem_alloc(size);
+
+			cmem = &cuda_mem_map[&mem];
+			cmem->texobject = 0;
+			cmem->array = array_3d;
 		}
 		else if(mem.data_height > 1) {
 			/* 2D texture, using pitch aligned linear memory. */
@@ -835,7 +915,10 @@ public:
 			dst_pitch = align_up(src_pitch, alignment);
 			size_t dst_size = dst_pitch * mem.data_height;
 
-			generic_alloc(mem, dst_size - mem.memory_size());
+			cmem = generic_alloc(mem, dst_size - mem.memory_size());
+			if(!cmem) {
+				return;
+			}
 
 			CUDA_MEMCPY2D param;
 			memset(&param, 0, sizeof(param));
@@ -843,7 +926,7 @@ public:
 			param.dstDevice = mem.device_pointer;
 			param.dstPitch = dst_pitch;
 			param.srcMemoryType = CU_MEMORYTYPE_HOST;
-			param.srcHost = (void*)mem.data_pointer;
+			param.srcHost = mem.host_pointer;
 			param.srcPitch = src_pitch;
 			param.WidthInBytes = param.srcPitch;
 			param.Height = mem.data_height;
@@ -852,8 +935,12 @@ public:
 		}
 		else {
 			/* 1D texture, using linear memory. */
-			generic_alloc(mem);
-			cuda_assert(cuMemcpyHtoD(mem.device_pointer, (void*)mem.data_pointer, size));
+			cmem = generic_alloc(mem);
+			if(!cmem) {
+				return;
+			}
+
+			cuda_assert(cuMemcpyHtoD(mem.device_pointer, mem.host_pointer, size));
 		}
 
 		if(!has_fermi_limits) {
@@ -870,7 +957,7 @@ public:
 			CUDA_RESOURCE_DESC resDesc;
 			memset(&resDesc, 0, sizeof(resDesc));
 
-			if(mem.data_depth > 1) {
+			if(array_3d) {
 				resDesc.resType = CU_RESOURCE_TYPE_ARRAY;
 				resDesc.res.array.hArray = array_3d;
 				resDesc.flags = 0;
@@ -900,13 +987,7 @@ public:
 			texDesc.filterMode = filter_mode;
 			texDesc.flags = CU_TRSF_NORMALIZED_COORDINATES;
 
-			CUtexObject tex = 0;
-			cuda_assert(cuTexObjectCreate(&tex, &resDesc, &texDesc, NULL));
-
-			/* Safety check */
-			if((uint)tex > UINT_MAX) {
-				assert(0);
-			}
+			cuda_assert(cuTexObjectCreate(&cmem->texobject, &resDesc, &texDesc, NULL));
 
 			/* Resize once */
 			if(flat_slot >= texture_info.size()) {
@@ -917,20 +998,18 @@ public:
 
 			/* Set Mapping and tag that we need to (re-)upload to device */
 			TextureInfo& info = texture_info[flat_slot];
-			info.data = (uint64_t)tex;
+			info.data = (uint64_t)cmem->texobject;
 			info.cl_buffer = 0;
 			info.interpolation = mem.interpolation;
 			info.extension = mem.extension;
 			info.width = mem.data_width;
 			info.height = mem.data_height;
 			info.depth = mem.data_depth;
-
-			tex_bindless_map[mem.device_pointer] = tex;
 			need_texture_info = true;
 		}
 		else {
 			/* Fermi, fixed texture slots. */
-			if(mem.data_depth > 1) {
+			if(array_3d) {
 				cuda_assert(cuTexRefSetArray(texref, array_3d, CU_TRSA_OVERRIDE_FORMAT));
 			}
 			else if(mem.data_height > 1) {
@@ -955,38 +1034,27 @@ public:
 				cuda_assert(cuTexRefSetAddressMode(texref, 2, address_mode));
 			}
 		}
-
-		/* Fermi and Kepler */
-		tex_interp_map[mem.device_pointer] = true;
 	}
 
 	void tex_free(device_memory& mem)
 	{
 		if(mem.device_pointer) {
-			bool interp = tex_interp_map[mem.device_pointer];
-			tex_interp_map.erase(tex_interp_map.find(mem.device_pointer));
+			CUDAContextScope scope(this);
+			const CUDAMem& cmem = cuda_mem_map[&mem];
 
-			if(interp) {
-				CUDAContextScope scope(this);
+			if(cmem.texobject) {
+				/* Free bindless texture. */
+				cuTexObjectDestroy(cmem.texobject);
+			}
 
-				if(!info.has_fermi_limits) {
-					/* Free bindless texture. */
-					if(tex_bindless_map[mem.device_pointer]) {
-						CUtexObject tex = tex_bindless_map[mem.device_pointer];
-						cuTexObjectDestroy(tex);
-					}
-				}
+			if(cmem.array) {
+				/* Free array. */
+				cuArrayDestroy(cmem.array);
+				stats.mem_free(mem.device_size);
+				mem.device_pointer = 0;
+				mem.device_size = 0;
 
-				if(mem.data_depth > 1) {
-					/* Free array. */
-					cuArrayDestroy((CUarray)mem.device_pointer);
-					stats.mem_free(mem.device_size);
-					mem.device_pointer = 0;
-					mem.device_size = 0;
-				}
-				else {
-					generic_free(mem);
-				}
+				cuda_mem_map.erase(cuda_mem_map.find(&mem));
 			}
 			else {
 				generic_free(mem);
@@ -996,7 +1064,7 @@ public:
 
 	bool denoising_set_tiles(device_ptr *buffers, DenoisingTask *task)
 	{
-		TilesInfo *tiles = (TilesInfo*) task->tiles_mem.data_pointer;
+		TilesInfo *tiles = (TilesInfo*) task->tiles_mem.host_pointer;
 		for(int i = 0; i < 9; i++) {
 			tiles->buffers[i] = buffers[i];
 		}
@@ -1393,7 +1461,7 @@ public:
 		/* Allocate work tile. */
 		work_tiles.alloc(1);
 
-		WorkTile *wtile = work_tiles.get_data();
+		WorkTile *wtile = work_tiles.data();
 		wtile->x = rtile.x;
 		wtile->y = rtile.y;
 		wtile->w = rtile.w;
@@ -1654,7 +1722,7 @@ public:
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pmem.cuPBO);
 		uchar *pixels = (uchar*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_READ_ONLY);
 		size_t offset = sizeof(uchar)*4*y*w;
-		memcpy((uchar*)mem.data_pointer + offset, pixels + offset, sizeof(uchar)*4*w*h);
+		memcpy((uchar*)mem.host_pointer + offset, pixels + offset, sizeof(uchar)*4*w*h);
 		glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 	}

@@ -110,7 +110,7 @@ void ED_editors_init(bContext *C)
 		else {
 			data = ob->data;
 			ob->mode = OB_MODE_OBJECT;
-			if ((ob == obact) && !ID_IS_LINKED_DATABLOCK(ob) && !(data && ID_IS_LINKED_DATABLOCK(data))) {
+			if ((ob == obact) && !ID_IS_LINKED(ob) && !(data && ID_IS_LINKED(data))) {
 				ED_object_toggle_modes(C, mode);
 			}
 		}

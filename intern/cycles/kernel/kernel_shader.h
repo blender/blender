@@ -764,30 +764,30 @@ ccl_device void shader_bsdf_blur(KernelGlobals *kg, ShaderData *sd, float roughn
 
 ccl_device float3 shader_bsdf_transparency(KernelGlobals *kg, const ShaderData *sd)
 {
-	if(sd->flag & SD_HAS_ONLY_VOLUME)
+	if(sd->flag & SD_HAS_ONLY_VOLUME) {
 		return make_float3(1.0f, 1.0f, 1.0f);
-
-	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
-
-	for(int i = 0; i < sd->num_closure; i++) {
-		const ShaderClosure *sc = &sd->closure[i];
-
-		if(sc->type == CLOSURE_BSDF_TRANSPARENT_ID) // todo: make this work for osl
-			eval += sc->weight;
 	}
-
-	return eval;
+	else if(sd->flag & SD_TRANSPARENT) {
+		return sd->closure_transparent_extinction;
+	}
+	else {
+		return make_float3(0.0f, 0.0f, 0.0f);
+	}
 }
 
 ccl_device void shader_bsdf_disable_transparency(KernelGlobals *kg, ShaderData *sd)
 {
-	for(int i = 0; i < sd->num_closure; i++) {
-		ShaderClosure *sc = &sd->closure[i];
+	if(sd->flag & SD_TRANSPARENT) {
+		for(int i = 0; i < sd->num_closure; i++) {
+			ShaderClosure *sc = &sd->closure[i];
 
-		if(sc->type == CLOSURE_BSDF_TRANSPARENT_ID) {
-			sc->sample_weight = 0.0f;
-			sc->weight = make_float3(0.0f, 0.0f, 0.0f);
+			if(sc->type == CLOSURE_BSDF_TRANSPARENT_ID) {
+				sc->sample_weight = 0.0f;
+				sc->weight = make_float3(0.0f, 0.0f, 0.0f);
+			}
 		}
+
+		sd->flag &= ~SD_TRANSPARENT;
 	}
 }
 
@@ -926,24 +926,14 @@ ccl_device float3 shader_bssrdf_sum(ShaderData *sd, float3 *N_, float *texture_b
 
 /* Emission */
 
-ccl_device float3 emissive_eval(KernelGlobals *kg, ShaderData *sd, ShaderClosure *sc)
-{
-	return emissive_simple_eval(sd->Ng, sd->I);
-}
-
 ccl_device float3 shader_emissive_eval(KernelGlobals *kg, ShaderData *sd)
 {
-	float3 eval;
-	eval = make_float3(0.0f, 0.0f, 0.0f);
-
-	for(int i = 0; i < sd->num_closure; i++) {
-		ShaderClosure *sc = &sd->closure[i];
-
-		if(CLOSURE_IS_EMISSION(sc->type))
-			eval += emissive_eval(kg, sd, sc)*sc->weight;
+	if(sd->flag & SD_EMISSION) {
+		return emissive_simple_eval(sd->Ng, sd->I) * sd->closure_emission_background;
 	}
-
-	return eval;
+	else {
+		return make_float3(0.0f, 0.0f, 0.0f);
+	}
 }
 
 /* Holdout */
@@ -965,10 +955,10 @@ ccl_device float3 shader_holdout_eval(KernelGlobals *kg, ShaderData *sd)
 /* Surface Evaluation */
 
 ccl_device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd,
-	ccl_addr_space PathState *state, int path_flag)
+	ccl_addr_space PathState *state, int path_flag, int max_closure)
 {
 	sd->num_closure = 0;
-	sd->num_closure_extra = 0;
+	sd->num_closure_left = max_closure;
 
 #ifdef __OSL__
 	if(kg->osl)
@@ -998,7 +988,7 @@ ccl_device float3 shader_eval_background(KernelGlobals *kg, ShaderData *sd,
 	ccl_addr_space PathState *state, int path_flag)
 {
 	sd->num_closure = 0;
-	sd->num_closure_extra = 0;
+	sd->num_closure_left = 0;
 
 #ifdef __SVM__
 #  ifdef __OSL__
@@ -1011,16 +1001,12 @@ ccl_device float3 shader_eval_background(KernelGlobals *kg, ShaderData *sd,
 		svm_eval_nodes(kg, sd, state, SHADER_TYPE_SURFACE, path_flag);
 	}
 
-	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
-
-	for(int i = 0; i < sd->num_closure; i++) {
-		const ShaderClosure *sc = &sd->closure[i];
-
-		if(CLOSURE_IS_BACKGROUND(sc->type))
-			eval += sc->weight;
+	if(sd->flag & SD_EMISSION) {
+		return sd->closure_emission_background;
 	}
-
-	return eval;
+	else {
+		return make_float3(0.0f, 0.0f, 0.0f);
+	}
 #else  /* __SVM__ */
 	return make_float3(0.8f, 0.8f, 0.8f);
 #endif  /* __SVM__ */
@@ -1143,12 +1129,13 @@ ccl_device_inline void shader_eval_volume(KernelGlobals *kg,
                                           ShaderData *sd,
                                           ccl_addr_space PathState *state,
                                           ccl_addr_space VolumeStack *stack,
-                                          int path_flag)
+                                          int path_flag,
+                                          int max_closure)
 {
 	/* reset closures once at the start, we will be accumulating the closures
 	 * for all volumes in the stack into a single array of closures */
 	sd->num_closure = 0;
-	sd->num_closure_extra = 0;
+	sd->num_closure_left = max_closure;
 	sd->flag = 0;
 	sd->object_flag = 0;
 
@@ -1198,7 +1185,7 @@ ccl_device_inline void shader_eval_volume(KernelGlobals *kg,
 ccl_device void shader_eval_displacement(KernelGlobals *kg, ShaderData *sd, ccl_addr_space PathState *state)
 {
 	sd->num_closure = 0;
-	sd->num_closure_extra = 0;
+	sd->num_closure_left = 0;
 
 	/* this will modify sd->P */
 #ifdef __SVM__

@@ -248,12 +248,12 @@ void Device::draw_pixels(
 	glBindTexture(GL_TEXTURE_2D, texid);
 
 	if(rgba.data_type == TYPE_HALF) {
-		GLhalf *data_pointer = (GLhalf*)rgba.data_pointer;
+		GLhalf *data_pointer = (GLhalf*)rgba.host_pointer;
 		data_pointer += 4 * y * w;
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F_ARB, w, h, 0, GL_RGBA, GL_HALF_FLOAT, data_pointer);
 	}
 	else {
-		uint8_t *data_pointer = (uint8_t*)rgba.data_pointer;
+		uint8_t *data_pointer = (uint8_t*)rgba.host_pointer;
 		data_pointer += 4 * y * w;
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data_pointer);
 	}

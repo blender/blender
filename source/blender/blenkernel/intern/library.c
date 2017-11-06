@@ -164,7 +164,7 @@ void BKE_id_lib_local_paths(Main *bmain, Library *lib, ID *id)
 
 void id_lib_extern(ID *id)
 {
-	if (id && ID_IS_LINKED_DATABLOCK(id)) {
+	if (id && ID_IS_LINKED(id)) {
 		BLI_assert(BKE_idcode_is_linkable(GS(id->name)));
 		if (id->tag & LIB_TAG_INDIRECT) {
 			id->tag -= LIB_TAG_INDIRECT;
@@ -311,7 +311,7 @@ void BKE_id_expand_local(Main *bmain, ID *id)
  */
 void BKE_id_copy_ensure_local(Main *bmain, const ID *old_id, ID *new_id)
 {
-	if (ID_IS_LINKED_DATABLOCK(old_id)) {
+	if (ID_IS_LINKED(old_id)) {
 		BKE_id_expand_local(bmain, new_id);
 		BKE_id_lib_local_paths(bmain, old_id->lib, new_id);
 	}
@@ -330,7 +330,7 @@ void BKE_id_make_local_generic(Main *bmain, ID *id, const bool id_in_mainlist, c
 	 * In case we make a whole lib's content local, we always want to localize, and we skip remapping (done later).
 	 */
 
-	if (!ID_IS_LINKED_DATABLOCK(id)) {
+	if (!ID_IS_LINKED(id)) {
 		return;
 	}
 
@@ -972,7 +972,7 @@ void BKE_main_lib_objects_recalc_all(Main *bmain)
 
 	/* flag for full recalc */
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
-		if (ID_IS_LINKED_DATABLOCK(ob)) {
+		if (ID_IS_LINKED(ob)) {
 			DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 		}
 	}
@@ -1656,7 +1656,7 @@ static ID *is_dupid(ListBase *lb, ID *id, const char *name)
 	
 	for (idtest = lb->first; idtest; idtest = idtest->next) {
 		/* if idtest is not a lib */ 
-		if (id != idtest && !ID_IS_LINKED_DATABLOCK(idtest)) {
+		if (id != idtest && !ID_IS_LINKED(idtest)) {
 			/* do not test alphabetic! */
 			/* optimized */
 			if (idtest->name[2] == name[0]) {
@@ -1721,7 +1721,7 @@ static bool check_for_dupid(ListBase *lb, ID *id, char *name)
 		for (idtest = lb->first; idtest; idtest = idtest->next) {
 			int nrtest;
 			if ( (id != idtest) &&
-			     !ID_IS_LINKED_DATABLOCK(idtest) &&
+			     !ID_IS_LINKED(idtest) &&
 			     (*name == *(idtest->name + 2)) &&
 			     STREQLEN(name, idtest->name + 2, left_len) &&
 			     (BLI_split_name_num(leftest, &nrtest, idtest->name + 2, '.') == left_len)
@@ -1803,7 +1803,7 @@ bool new_id(ListBase *lb, ID *id, const char *tname)
 	char name[MAX_ID_NAME - 2];
 
 	/* if library, don't rename */
-	if (ID_IS_LINKED_DATABLOCK(id))
+	if (ID_IS_LINKED(id))
 		return false;
 
 	/* if no name given, use name of current ID

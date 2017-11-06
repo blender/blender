@@ -362,7 +362,7 @@ void OpenCLDeviceBase::mem_copy_to(device_memory& mem)
 			                                   CL_TRUE,
 			                                   0,
 			                                   size,
-			                                   (void*)mem.data_pointer,
+			                                   mem.host_pointer,
 			                                   0,
 			                                   NULL, NULL));
 		}
@@ -379,7 +379,7 @@ void OpenCLDeviceBase::mem_copy_from(device_memory& mem, int y, int w, int h, in
 	                                  CL_TRUE,
 	                                  offset,
 	                                  size,
-	                                  (uchar*)mem.data_pointer + offset,
+	                                  (uchar*)mem.host_pointer + offset,
 	                                  0,
 	                                  NULL, NULL));
 }
@@ -426,14 +426,14 @@ void OpenCLDeviceBase::mem_zero(device_memory& mem)
 			mem_zero_kernel(mem.device_pointer, mem.memory_size());
 		}
 
-		if(mem.data_pointer) {
-			memset((void*)mem.data_pointer, 0, mem.memory_size());
+		if(mem.host_pointer) {
+			memset(mem.host_pointer, 0, mem.memory_size());
 		}
 
 		if(!base_program.is_loaded()) {
-			void* zero = (void*)mem.data_pointer;
+			void* zero = mem.host_pointer;
 
-			if(!mem.data_pointer) {
+			if(!mem.host_pointer) {
 				zero = util_aligned_malloc(mem.memory_size(), 16);
 				memset(zero, 0, mem.memory_size());
 			}
@@ -447,7 +447,7 @@ void OpenCLDeviceBase::mem_zero(device_memory& mem)
 			                                   0,
 			                                   NULL, NULL));
 
-			if(!mem.data_pointer) {
+			if(!mem.host_pointer) {
 				util_aligned_free(zero);
 			}
 		}
@@ -519,7 +519,7 @@ void OpenCLDeviceBase::const_copy_to(const char *name, void *host, size_t size)
 		data = i->second;
 	}
 
-	memcpy(data->get_data(), host, size);
+	memcpy(data->data(), host, size);
 	data->copy_to_device();
 }
 

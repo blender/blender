@@ -278,7 +278,7 @@ public:
 		*archive & mem.device_pointer;
 
 		mem.name = name.c_str();
-		mem.data_pointer = 0;
+		mem.host_pointer = 0;
 
 		/* Can't transfer OpenGL texture over network. */
 		if(mem.type == MEM_PIXELS) {

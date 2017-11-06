@@ -4724,7 +4724,7 @@ void BKE_constraints_id_loop(ListBase *conlist, ConstraintIDFunc func, void *use
 /* helper for BKE_constraints_copy(), to be used for making sure that ID's are valid */
 static void con_extern_cb(bConstraint *UNUSED(con), ID **idpoin, bool UNUSED(is_reference), void *UNUSED(userData))
 {
-	if (*idpoin && ID_IS_LINKED_DATABLOCK(*idpoin))
+	if (*idpoin && ID_IS_LINKED(*idpoin))
 		id_lib_extern(*idpoin);
 }
 
