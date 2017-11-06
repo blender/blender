@@ -518,7 +518,7 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 			}
 
 			case OB_ARMATURE: /* Pose */
-				if (ID_IS_LINKED_DATABLOCK(ob) && ob->proxy_from != NULL) {
+				if (ID_IS_LINKED(ob) && ob->proxy_from != NULL) {
 					build_proxy_rig(ob);
 				}
 				else {

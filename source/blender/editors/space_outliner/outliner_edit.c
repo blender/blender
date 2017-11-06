@@ -230,7 +230,7 @@ static void do_item_rename(ARegion *ar, TreeElement *te, TreeStoreElem *tselem, 
 	else if (ELEM(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
 		BKE_report(reports, RPT_WARNING, "Cannot edit sequence name");
 	}
-	else if (ID_IS_LINKED_DATABLOCK(tselem->id)) {
+	else if (ID_IS_LINKED(tselem->id)) {
 		BKE_report(reports, RPT_WARNING, "Cannot edit external libdata");
 	}
 	else if (te->idcode == ID_LI && ((Library *)tselem->id)->parent) {
@@ -421,7 +421,7 @@ static int outliner_id_remap_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	if (ID_IS_LINKED_DATABLOCK(old_id)) {
+	if (ID_IS_LINKED(old_id)) {
 		BKE_reportf(op->reports, RPT_WARNING,
 		            "Old ID '%s' is linked from a library, indirect usages of this data-block will not be remapped",
 		            old_id->name);
@@ -793,7 +793,7 @@ void object_toggle_visibility_cb(
 	Base *base = (Base *)te->directdata;
 	Object *ob = (Object *)tselem->id;
 
-	if (ID_IS_LINKED_DATABLOCK(tselem->id)) {
+	if (ID_IS_LINKED(tselem->id)) {
 		BKE_report(reports, RPT_WARNING, "Cannot edit external libdata");
 		return;
 	}
@@ -854,7 +854,7 @@ void object_toggle_selectability_cb(
 {
 	Base *base = (Base *)te->directdata;
 
-	if (ID_IS_LINKED_DATABLOCK(tselem->id)) {
+	if (ID_IS_LINKED(tselem->id)) {
 		BKE_report(reports, RPT_WARNING, "Cannot edit external libdata");
 		return;
 	}
@@ -909,7 +909,7 @@ void object_toggle_renderability_cb(
 {
 	Base *base = (Base *)te->directdata;
 
-	if (ID_IS_LINKED_DATABLOCK(tselem->id)) {
+	if (ID_IS_LINKED(tselem->id)) {
 		BKE_report(reports, RPT_WARNING, "Cannot edit external libdata");
 		return;
 	}
@@ -1997,7 +1997,7 @@ static int parent_drop_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "child", childname);
 	ob = (Object *)BKE_libblock_find_name(ID_OB, childname);
 
-	if (ID_IS_LINKED_DATABLOCK(ob)) {
+	if (ID_IS_LINKED(ob)) {
 		BKE_report(op->reports, RPT_INFO, "Can't edit library linked object");
 		return OPERATOR_CANCELLED;
 	}
@@ -2045,7 +2045,7 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		if (ob == par) {
 			return OPERATOR_CANCELLED;
 		}
-		if (ID_IS_LINKED_DATABLOCK(ob)) {
+		if (ID_IS_LINKED(ob)) {
 			BKE_report(op->reports, RPT_INFO, "Can't edit library linked object");
 			return OPERATOR_CANCELLED;
 		}
@@ -2242,7 +2242,7 @@ static int scene_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		RNA_string_get(op->ptr, "object", obname);
 		ob = (Object *)BKE_libblock_find_name(ID_OB, obname);
 
-		if (ELEM(NULL, ob, scene) || ID_IS_LINKED_DATABLOCK(scene)) {
+		if (ELEM(NULL, ob, scene) || ID_IS_LINKED(scene)) {
 			return OPERATOR_CANCELLED;
 		}
 

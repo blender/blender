@@ -370,7 +370,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 
 	for (; id != NULL; id = (flag & IDWALK_RECURSE) ? BLI_LINKSTACK_POP(data.ids_todo) : NULL) {
 		data.self_id = id;
-		data.cb_flag = ID_IS_LINKED_DATABLOCK(id) ? IDWALK_CB_INDIRECT_USAGE : 0;
+		data.cb_flag = ID_IS_LINKED(id) ? IDWALK_CB_INDIRECT_USAGE : 0;
 
 		if (bmain != NULL && bmain->relations != NULL && (flag & IDWALK_READONLY)) {
 			/* Note that this is minor optimization, even in worst cases (like id being an object with lots of
@@ -539,7 +539,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				 * Since this field is set/owned by 'user' of this ID (and not ID itself), it is only indirect usage
 				 * if proxy object is linked... Twisted. */
 				if (object->proxy_from) {
-					data.cb_flag = ID_IS_LINKED_DATABLOCK(object->proxy_from) ? IDWALK_CB_INDIRECT_USAGE : 0;
+					data.cb_flag = ID_IS_LINKED(object->proxy_from) ? IDWALK_CB_INDIRECT_USAGE : 0;
 				}
 				CALLBACK_INVOKE(object->proxy_from, IDWALK_CB_LOOPBACK);
 				data.cb_flag = data_cb_flag;

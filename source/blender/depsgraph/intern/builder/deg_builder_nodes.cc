@@ -380,7 +380,7 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Base *base, Object *ob)
 				break;
 
 			case OB_ARMATURE: /* Pose */
-				if (ID_IS_LINKED_DATABLOCK(ob) && ob->proxy_from != NULL) {
+				if (ID_IS_LINKED(ob) && ob->proxy_from != NULL) {
 					build_proxy_rig(ob);
 				}
 				else {

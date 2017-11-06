@@ -520,7 +520,7 @@ static void scene_render_name_get(const Scene *scene,
                                   const size_t max_size,
                                   char *render_name)
 {
-	if (ID_IS_LINKED_DATABLOCK(scene)) {
+	if (ID_IS_LINKED(scene)) {
 		BLI_snprintf(render_name, max_size, "%s %s",
 		             scene->id.lib->id.name, scene->id.name);
 	}

@@ -7336,7 +7336,7 @@ static void draw_object_wire_color(Scene *scene, Base *base, unsigned char r_ob_
 	}
 	else {
 		/* Sets the 'colindex' */
-		if (ID_IS_LINKED_DATABLOCK(ob)) {
+		if (ID_IS_LINKED(ob)) {
 			colindex = (base->flag & (SELECT + BA_WAS_SEL)) ? 2 : 1;
 		}
 		/* Sets the 'theme_id' or fallback to wire */
@@ -8046,7 +8046,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				    !(G.f & G_RENDER_OGL))
 				{
 					/* check > 0 otherwise grease pencil can draw into the circle select which is annoying. */
-					drawcentercircle(v3d, rv3d, ob->obmat[3], do_draw_center, ID_IS_LINKED_DATABLOCK(ob) || ob->id.us > 1);
+					drawcentercircle(v3d, rv3d, ob->obmat[3], do_draw_center, ID_IS_LINKED(ob) || ob->id.us > 1);
 				}
 			}
 		}

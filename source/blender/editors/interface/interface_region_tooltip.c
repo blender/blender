@@ -432,7 +432,7 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 
 		if (but->rnapoin.id.data) {
 			const ID *id = but->rnapoin.id.data;
-			if (ID_IS_LINKED_DATABLOCK(id)) {
+			if (ID_IS_LINKED(id)) {
 				uiTooltipField *field = text_field_add(
 				        data, &(uiTooltipFormat){
 				            .style = UI_TIP_STYLE_NORMAL,

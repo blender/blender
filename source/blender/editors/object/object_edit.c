@@ -471,7 +471,7 @@ void ED_object_editmode_enter(bContext *C, int flag)
 	View3D *v3d = NULL;
 	bool ok = false;
 
-	if (ID_IS_LINKED_DATABLOCK(scene)) return;
+	if (ID_IS_LINKED(scene)) return;
 
 	if (sa && sa->spacetype == SPACE_VIEW3D)
 		v3d = sa->spacedata.first;
@@ -540,7 +540,7 @@ void ED_object_editmode_enter(bContext *C, int flag)
 		 * BKE_object_obdata_is_libdata that prevent the bugfix #6614, so
 		 * i add this little hack here.
 		 */
-		if (ID_IS_LINKED_DATABLOCK(arm)) {
+		if (ID_IS_LINKED(arm)) {
 			error_libdata();
 			return;
 		}
@@ -622,7 +622,7 @@ static int editmode_toggle_poll(bContext *C)
 	Object *ob = CTX_data_active_object(C);
 
 	/* covers proxies too */
-	if (ELEM(NULL, ob, ob->data) || ID_IS_LINKED_DATABLOCK(ob->data))
+	if (ELEM(NULL, ob, ob->data) || ID_IS_LINKED(ob->data))
 		return 0;
 
 	/* if hidden but in edit mode, we still display */
@@ -849,7 +849,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 	Nurb *nu;
 	bool do_depgraph_update = false;
 	
-	if (ID_IS_LINKED_DATABLOCK(scene)) return;
+	if (ID_IS_LINKED(scene)) return;
 
 	if (!(ob = OBACT)) return;
 	
@@ -1440,7 +1440,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 	{
 		data = ob->data;
 
-		if (data && ID_IS_LINKED_DATABLOCK(data)) {
+		if (data && ID_IS_LINKED(data)) {
 			linked_data = true;
 			continue;
 		}
@@ -1523,7 +1523,7 @@ static void UNUSED_FUNCTION(image_aspect) (Scene *scene, View3D *v3d)
 	int a, b, done;
 	
 	if (scene->obedit) return;  // XXX get from context
-	if (ID_IS_LINKED_DATABLOCK(scene)) return;
+	if (ID_IS_LINKED(scene)) return;
 	
 	for (base = FIRSTBASE; base; base = base->next) {
 		if (TESTBASELIB(v3d, base)) {

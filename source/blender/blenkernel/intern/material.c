@@ -718,8 +718,8 @@ void assign_material(Object *ob, Material *ma, short act, int assign_type)
 	if (act < 1) act = 1;
 	
 	/* prevent crashing when using accidentally */
-	BLI_assert(!ID_IS_LINKED_DATABLOCK(ob));
-	if (ID_IS_LINKED_DATABLOCK(ob)) return;
+	BLI_assert(!ID_IS_LINKED(ob));
+	if (ID_IS_LINKED(ob)) return;
 	
 	/* test arraylens */
 	
@@ -992,7 +992,7 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 		Group *group;
 
 		for (group = G.main->group.first; group; group = group->id.next) {
-			if (!ID_IS_LINKED_DATABLOCK(group) && STREQ(group->id.name, ma->group->id.name)) {
+			if (!ID_IS_LINKED(group) && STREQ(group->id.name, ma->group->id.name)) {
 				ma->group = group;
 			}
 		}
@@ -2101,7 +2101,7 @@ int do_version_tface(Main *main)
 	
 	/* 1st part: marking mesh materials to update */
 	for (me = main->mesh.first; me; me = me->id.next) {
-		if (ID_IS_LINKED_DATABLOCK(me)) continue;
+		if (ID_IS_LINKED(me)) continue;
 
 		/* get the active tface layer */
 		index = CustomData_get_active_layer_index(&me->fdata, CD_MTFACE);
@@ -2155,7 +2155,7 @@ int do_version_tface(Main *main)
 				 * at doversion time: direct_link might not have happened on it,
 				 * so ma->mtex is not pointing to valid memory yet.
 				 * later we could, but it's better not */
-				else if (ID_IS_LINKED_DATABLOCK(ma))
+				else if (ID_IS_LINKED(ma))
 					continue;
 				
 				/* material already marked as disputed */
@@ -2220,7 +2220,7 @@ int do_version_tface(Main *main)
 
 	/* we shouldn't loop through the materials created in the loop. make the loop stop at its original length) */
 	for (ma = main->mat.first, a = 0; ma; ma = ma->id.next, a++) {
-		if (ID_IS_LINKED_DATABLOCK(ma)) continue;
+		if (ID_IS_LINKED(ma)) continue;
 
 		/* disputed material */
 		if (ma->game.flag == MAT_BGE_DISPUTED) {

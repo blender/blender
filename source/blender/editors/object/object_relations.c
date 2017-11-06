@@ -295,17 +295,17 @@ static int make_proxy_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	Object *ob = ED_object_active_context(C);
 
 	/* sanity checks */
-	if (!scene || ID_IS_LINKED_DATABLOCK(scene) || !ob)
+	if (!scene || ID_IS_LINKED(scene) || !ob)
 		return OPERATOR_CANCELLED;
 
 	/* Get object to work on - use a menu if we need to... */
-	if (ob->dup_group && ID_IS_LINKED_DATABLOCK(ob->dup_group)) {
+	if (ob->dup_group && ID_IS_LINKED(ob->dup_group)) {
 		/* gives menu with list of objects in group */
 		/* proxy_group_objects_menu(C, op, ob, ob->dup_group); */
 		WM_enum_search_invoke(C, op, event);
 		return OPERATOR_CANCELLED;
 	}
-	else if (ID_IS_LINKED_DATABLOCK(ob)) {
+	else if (ID_IS_LINKED(ob)) {
 		uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("OK?"), ICON_QUESTION);
 		uiLayout *layout = UI_popup_menu_layout(pup);
 
@@ -1472,7 +1472,7 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	if (ID_IS_LINKED_DATABLOCK(scene_to)) {
+	if (ID_IS_LINKED(scene_to)) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot link objects into a linked scene");
 		return OPERATOR_CANCELLED;
 	}
@@ -1585,7 +1585,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 					case MAKE_LINKS_ANIMDATA:
 						BKE_animdata_copy_id(bmain, (ID *)ob_dst, (ID *)ob_src, false);
 						if (ob_dst->data && ob_src->data) {
-							if (ID_IS_LINKED_DATABLOCK(obdata_id)) {
+							if (ID_IS_LINKED(obdata_id)) {
 								is_lib = true;
 								break;
 							}
@@ -1627,7 +1627,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 						Curve *cu_src = ob_src->data;
 						Curve *cu_dst = ob_dst->data;
 
-						if (ID_IS_LINKED_DATABLOCK(obdata_id)) {
+						if (ID_IS_LINKED(obdata_id)) {
 							is_lib = true;
 							break;
 						}
@@ -1751,7 +1751,7 @@ static void single_object_users(Main *bmain, Scene *scene, View3D *v3d, const in
 		ob = base->object;
 
 		if ((base->flag & flag) == flag) {
-			if (!ID_IS_LINKED_DATABLOCK(ob) && ob->id.us > 1) {
+			if (!ID_IS_LINKED(ob) && ob->id.us > 1) {
 				/* base gets copy of object */
 				base->object = obn = ID_NEW_SET(ob, BKE_object_copy(bmain, ob));
 
@@ -1841,7 +1841,7 @@ static void new_id_matar(Main *bmain, Material **matar, const int totcol)
 
 	for (a = 0; a < totcol; a++) {
 		id = (ID *)matar[a];
-		if (id && !ID_IS_LINKED_DATABLOCK(id)) {
+		if (id && !ID_IS_LINKED(id)) {
 			if (id->newid) {
 				matar[a] = (Material *)id->newid;
 				id_us_plus(id->newid);
@@ -1869,10 +1869,10 @@ static void single_obdata_users(Main *bmain, Scene *scene, const int flag)
 
 	for (base = FIRSTBASE; base; base = base->next) {
 		ob = base->object;
-		if (!ID_IS_LINKED_DATABLOCK(ob) && (base->flag & flag) == flag) {
+		if (!ID_IS_LINKED(ob) && (base->flag & flag) == flag) {
 			id = ob->data;
 
-			if (id && id->us > 1 && !ID_IS_LINKED_DATABLOCK(id)) {
+			if (id && id->us > 1 && !ID_IS_LINKED(id)) {
 				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 				switch (ob->type) {
@@ -1950,7 +1950,7 @@ static void single_object_action_users(Scene *scene, const int flag)
 
 	for (base = FIRSTBASE; base; base = base->next) {
 		ob = base->object;
-		if (!ID_IS_LINKED_DATABLOCK(ob) && (flag == 0 || (base->flag & SELECT)) ) {
+		if (!ID_IS_LINKED(ob) && (flag == 0 || (base->flag & SELECT)) ) {
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			BKE_animdata_copy_id_action(&ob->id, false);
 		}
@@ -1967,7 +1967,7 @@ static void single_mat_users(Main *bmain, Scene *scene, const int flag, const bo
 
 	for (base = FIRSTBASE; base; base = base->next) {
 		ob = base->object;
-		if (!ID_IS_LINKED_DATABLOCK(ob) && (flag == 0 || (base->flag & SELECT)) ) {
+		if (!ID_IS_LINKED(ob) && (flag == 0 || (base->flag & SELECT)) ) {
 			for (a = 1; a <= ob->totcol; a++) {
 				ma = give_current_material(ob, a);
 				if (ma) {
@@ -2123,7 +2123,7 @@ void ED_object_single_users(Main *bmain, Scene *scene, const bool full, const bo
 
 		for (Base *base = scene->base.first; base; base = base->next) {
 			Object *ob = base->object;
-			if (!ID_IS_LINKED_DATABLOCK(ob)) {
+			if (!ID_IS_LINKED(ob)) {
 				IDP_RelinkProperty(ob->id.properties);
 			}
 		}
@@ -2221,7 +2221,7 @@ static bool make_local_all__instance_indirect_unused(Main *bmain, Scene *scene)
 	bool changed = false;
 
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
-		if (ID_IS_LINKED_DATABLOCK(ob) && (ob->id.us == 0)) {
+		if (ID_IS_LINKED(ob) && (ob->id.us == 0)) {
 			Base *base;
 
 			id_us_plus(&ob->id);
