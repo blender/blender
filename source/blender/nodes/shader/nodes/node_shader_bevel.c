@@ -48,7 +48,7 @@ static void node_shader_init_bevel(bNodeTree *UNUSED(ntree), bNode *node)
 static int gpu_shader_bevel(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	if (!in[1].link) {
-		in[1].link = GPU_builtin(GPU_VIEW_NORMAL);
+		GPU_link(mat, "direction_transform_m4v3", GPU_builtin(GPU_VIEW_NORMAL), GPU_builtin(GPU_INVERSE_VIEW_MATRIX), &in[1].link);
 	}
 
 	return GPU_stack_link(mat, "node_bevel", in, out);
