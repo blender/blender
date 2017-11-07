@@ -43,12 +43,11 @@ typedef void (*IteratorBeginCb)(BLI_Iterator *iter, void *data_in);
 	IteratorCb callback_end_func = callback_end;                                     \
 	BLI_Iterator iter_macro;                                                         \
 	iter_macro.skip = false;                                                         \
-	iter_macro.valid = false;                                                        \
+	iter_macro.valid = true;                                                         \
 	for (callback_begin(&iter_macro, (_data_in));                                    \
 	     iter_macro.valid;                                                           \
 	     callback_next(&iter_macro))                                                 \
 	{                                                                                \
-		BLI_assert(iter_macro.valid);                                                \
 		if (iter_macro.skip) {                                                       \
 			iter_macro.skip = false;                                                 \
 			continue;                                                                \

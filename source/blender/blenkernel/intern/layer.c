@@ -1674,7 +1674,6 @@ static void object_bases_iterator_begin(BLI_Iterator *iter, void *data_in, const
 		return;
 	}
 
-	iter->valid = true;
 	iter->data = base;
 
 	if ((base->flag & flag) == 0) {
@@ -1698,7 +1697,6 @@ static void object_bases_iterator_next(BLI_Iterator *iter, const int flag)
 		base = base->next;
 	}
 
-	iter->current = NULL;
 	iter->valid = false;
 }
 
@@ -1800,7 +1798,6 @@ void BKE_renderable_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
 
 	data->iter.set = NULL;
 
-	iter->valid = true;
 	iter->data = data_in;
 	BKE_renderable_objects_iterator_next(iter);
 }
@@ -1855,7 +1852,6 @@ void BKE_renderable_objects_iterator_next(BLI_Iterator *iter)
 		return;
 	}
 
-	iter->current = NULL;
 	iter->valid = false;
 }
 

@@ -535,7 +535,6 @@ void BKE_scene_collections_iterator_begin(BLI_Iterator *iter, void *data_in)
 
 	data->cur = 0;
 	iter->current = data->array[data->cur];
-	iter->valid = true;
 }
 
 void BKE_scene_collections_iterator_next(struct BLI_Iterator *iter)
@@ -585,10 +584,10 @@ void BKE_scene_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
 	BKE_scene_collections_iterator_begin(&data->scene_collection_iter, scene);
 
 	SceneCollection *sc = data->scene_collection_iter.current;
-	iter->current = sc->objects.first ? ((LinkData *)sc->objects.first)->data : NULL;
-	iter->valid = true;
-
-	if (iter->current == NULL) {
+	if (sc->objects.first != NULL) {
+		iter->current = ((LinkData *)sc->objects.first)->data;
+	}
+	else {
 		BKE_scene_objects_iterator_next(iter);
 	}
 }

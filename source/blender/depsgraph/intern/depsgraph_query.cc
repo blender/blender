@@ -259,7 +259,6 @@ void DEG_objects_iterator_begin(BLI_Iterator *iter, DEGObjectsIteratorData *data
 	Depsgraph *graph = data->graph;
 
 	iter->data = data;
-	iter->valid = true;
 
 	DEG_evaluation_context_init(&data->eval_ctx, DAG_EVAL_RENDER);
 
@@ -275,7 +274,7 @@ void DEG_objects_iterator_begin(BLI_Iterator *iter, DEGObjectsIteratorData *data
 	DEG::IDDepsNode *id_node = (DEG::IDDepsNode *) BLI_ghashIterator_getValue(&data->gh_iter);
 	deg_objects_iterator_step(iter, id_node);
 
-	if (iter->valid && iter->skip) {
+	if (iter->skip) {
 		DEG_objects_iterator_next(iter);
 	}
 }
@@ -299,7 +298,6 @@ void DEG_objects_iterator_next(BLI_Iterator *iter)
 
 		BLI_ghashIterator_step(&data->gh_iter);
 		if (BLI_ghashIterator_done(&data->gh_iter)) {
-			iter->current = NULL;
 			iter->valid = false;
 			return;
 		}
@@ -307,7 +305,7 @@ void DEG_objects_iterator_next(BLI_Iterator *iter)
 		DEG::IDDepsNode *id_node = (DEG::IDDepsNode *) BLI_ghashIterator_getValue(&data->gh_iter);
 
 		deg_objects_iterator_step(iter, id_node);
-	} while (iter->valid && iter->skip);
+	} while (iter->skip);
 }
 
 void DEG_objects_iterator_end(BLI_Iterator *iter)

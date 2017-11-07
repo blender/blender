@@ -154,6 +154,7 @@ static void rna_Depsgraph_objects_begin(CollectionPropertyIterator *iter, Pointe
 	data->graph = (Depsgraph *)ptr->data;
 	data->flag = DEG_OBJECT_ITER_FLAG_SET;
 
+	((BLI_Iterator *)iter->internal.custom)->valid = true;
 	DEG_objects_iterator_begin(iter->internal.custom, data);
 	iter->valid = ((BLI_Iterator *)iter->internal.custom)->valid;
 }
@@ -190,6 +191,7 @@ static void rna_Depsgraph_duplis_begin(CollectionPropertyIterator *iter, Pointer
 	data->graph = (Depsgraph *)ptr->data;
 	data->flag = DEG_OBJECT_ITER_FLAG_ALL;
 
+	((BLI_Iterator *)iter->internal.custom)->valid = true;
 	DEG_objects_iterator_begin(iter->internal.custom, data);
 	iter->valid = ((BLI_Iterator *)iter->internal.custom)->valid;
 }
