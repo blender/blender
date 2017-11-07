@@ -69,7 +69,7 @@ public:
 	void device_free(Device *device, DeviceScene *dscene);
 
 	static int shader_type_to_pass_filter(ShaderEvalType type, const int pass_filter);
-	static bool is_aa_pass(ShaderEvalType type);
+	static int aa_samples(Scene *scene, BakeData *bake_data, ShaderEvalType type);
 
 	bool need_update;
 

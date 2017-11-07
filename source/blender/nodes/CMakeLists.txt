@@ -193,6 +193,7 @@ set(SRC
 	shader/nodes/node_shader_script.c
 	shader/nodes/node_shader_subsurface_scattering.c
 	shader/nodes/node_shader_tangent.c
+	shader/nodes/node_shader_bevel.c
 	shader/nodes/node_shader_tex_brick.c
 	shader/nodes/node_shader_tex_checker.c
 	shader/nodes/node_shader_tex_coord.c

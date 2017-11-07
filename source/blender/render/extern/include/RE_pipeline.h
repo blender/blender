@@ -316,7 +316,7 @@ void RE_PreviewRender(struct Render *re, struct Main *bmain, struct Scene *scene
 bool RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
 bool RE_WriteRenderResult(
         struct ReportList *reports, RenderResult *rr, const char *filename,
-        struct ImageFormatData *imf, const bool multiview, const char *view);
+        struct ImageFormatData *imf, const char *view, const int layer);
 struct RenderResult *RE_MultilayerConvert(
         void *exrhandle, const char *colorspace, bool predivide, int rectx, int recty);
 
@@ -348,6 +348,7 @@ void RE_zbuf_accumulate_vecblur(
 int RE_seq_render_active(struct Scene *scene, struct RenderData *rd);
 
 bool RE_layers_have_name(struct RenderResult *result);
+bool RE_passes_have_name(struct RenderLayer *rl);
 
 struct RenderPass *RE_pass_find_by_name(volatile struct RenderLayer *rl, const char *name, const char *viewname);
 struct RenderPass *RE_pass_find_by_type(volatile struct RenderLayer *rl, int passtype, const char *viewname);
@@ -393,7 +394,7 @@ void RE_updateRenderInstances(Render *re, int flag);
 
 /******* defined in render_result.c *********/
 
-bool RE_HasFakeLayer(RenderResult *res);
+bool RE_HasCombinedLayer(RenderResult *res);
 bool RE_RenderResult_is_stereo(RenderResult *res);
 struct RenderView *RE_RenderViewGetById(struct RenderResult *res, const int view_id);
 struct RenderView *RE_RenderViewGetByName(struct RenderResult *res, const char *viewname);

@@ -15,7 +15,12 @@
  */
 
 #include "render/bake.h"
+#include "render/mesh.h"
+#include "render/object.h"
+#include "render/shader.h"
 #include "render/integrator.h"
+
+#include "util/util_foreach.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -135,7 +140,7 @@ bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progre
 {
 	size_t num_pixels = bake_data->size();
 
-	int num_samples = is_aa_pass(shader_type)? scene->integrator->aa_samples : 1;
+	int num_samples = aa_samples(scene, bake_data, shader_type);
 
 	/* calculate the total pixel samples for the progress bar */
 	total_pixel_samples = 0;
@@ -239,14 +244,27 @@ void BakeManager::device_free(Device * /*device*/, DeviceScene * /*dscene*/)
 {
 }
 
-bool BakeManager::is_aa_pass(ShaderEvalType type)
+int BakeManager::aa_samples(Scene *scene, BakeData *bake_data, ShaderEvalType type)
 {
-	switch(type) {
-		case SHADER_EVAL_UV:
-		case SHADER_EVAL_NORMAL:
-			return false;
-		default:
-			return true;
+	if(type == SHADER_EVAL_UV) {
+		return 1;
+	}
+	else if(type == SHADER_EVAL_NORMAL) {
+		/* Only antialias normal if mesh has bump mapping. */
+		Object *object = scene->objects[bake_data->object()];
+
+		if(object->mesh) {
+			foreach(Shader *shader, object->mesh->used_shaders) {
+				if(shader->has_bump) {
+					return scene->integrator->aa_samples;
+				}
+			}
+		}
+
+		return 1;
+	}
+	else {
+		return scene->integrator->aa_samples;
 	}
 }
 

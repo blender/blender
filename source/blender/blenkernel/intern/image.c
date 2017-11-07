@@ -2869,7 +2869,7 @@ RenderPass *BKE_image_multilayer_index(RenderResult *rr, ImageUser *iuser)
 		bool is_stereo = (iuser->flag & IMA_SHOW_STEREO) && RE_RenderResult_is_stereo(rr);
 
 		rv_index = is_stereo ? iuser->multiview_eye : iuser->view;
-		if (RE_HasFakeLayer(rr)) rl_index += 1;
+		if (RE_HasCombinedLayer(rr)) rl_index += 1;
 
 		for (rl = rr->layers.first; rl; rl = rl->next, rl_index++) {
 			if (iuser->layer == rl_index) {
@@ -2925,7 +2925,8 @@ bool BKE_image_is_multilayer(Image *ima)
 
 bool BKE_image_is_multiview(Image *ima)
 {
-	return (BLI_listbase_count_ex(&ima->views, 2) > 1);
+	ImageView *view = ima->views.first;
+	return (view && (view->next || view->name[0]));
 }
 
 bool BKE_image_is_stereo(Image *ima)
@@ -3031,51 +3032,6 @@ void BKE_image_backup_render(Scene *scene, Image *ima, bool free_current_slot)
 	ima->last_render_slot = slot;
 }
 
-/**************************** multiview save openexr *********************************/
-#ifdef WITH_OPENEXR
-static const char *image_get_view_cb(void *base, const int view_id)
-{
-	Image *ima = base;
-	ImageView *iv = BLI_findlink(&ima->views, view_id);
-	return iv ? iv->name : "";
-}
-#endif  /* WITH_OPENEXR */
-
-#ifdef WITH_OPENEXR
-static ImBuf *image_get_buffer_cb(void *base, const int view_id)
-{
-	Image *ima = base;
-	ImageUser iuser = {0};
-
-	iuser.view = view_id;
-	iuser.ok = 1;
-
-	BKE_image_multiview_index(ima, &iuser);
-
-	return image_acquire_ibuf(ima, &iuser, NULL);
-}
-#endif  /* WITH_OPENEXR */
-
-bool BKE_image_save_openexr_multiview(Image *ima, ImBuf *ibuf, const char *filepath, const int flags)
-{
-#ifdef WITH_OPENEXR
-	char name[FILE_MAX];
-	bool ok;
-
-	BLI_strncpy(name, filepath, sizeof(name));
-	BLI_path_abs(name, G.main->name);
-
-	ibuf->userdata = ima;
-	ok = IMB_exr_multiview_save(ibuf, name, flags, BLI_listbase_count(&ima->views), image_get_view_cb, image_get_buffer_cb);
-	ibuf->userdata = NULL;
-
-	return ok;
-#else
-	UNUSED_VARS(ima, ibuf, filepath, flags);
-	return false;
-#endif
-}
-
 /**************************** multiview load openexr *********************************/
 
 static void image_add_view(Image *ima, const char *viewname, const char *filepath)
@@ -3107,51 +3063,6 @@ static void image_add_view(Image *ima, const char *viewname, const char *filepat
 		BLI_addtail(&ima->views, iv);
 	}
 }
-
-#ifdef WITH_OPENEXR
-static void image_add_view_cb(void *base, const char *str)
-{
-	Image *ima = base;
-	image_add_view(ima, str, ima->name);
-}
-
-static void image_add_buffer_cb(void *base, const char *str, ImBuf *ibuf, const int frame)
-{
-	Image *ima = base;
-	int id;
-	bool predivide = (ima->alpha_mode == IMA_ALPHA_PREMUL);
-	const char *colorspace = ima->colorspace_settings.name;
-	const char *to_colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR);
-
-	if (ibuf == NULL)
-		return;
-
-	id = BLI_findstringindex(&ima->views, str, offsetof(ImageView, name));
-
-	if (id == -1)
-		return;
-
-	if (ibuf->channels >= 3)
-		IMB_colormanagement_transform(ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels,
-		                              colorspace, to_colorspace, predivide);
-
-	image_assign_ibuf(ima, ibuf, id, frame);
-	IMB_freeImBuf(ibuf);
-}
-#endif  /* WITH_OPENEXR */
-
-/* after imbuf load, openexr type can return with a exrhandle open */
-/* in that case we have to build a render-result */
-#ifdef WITH_OPENEXR
-static void image_create_multiview(Image *ima, ImBuf *ibuf, const int frame)
-{
-	BKE_image_free_views(ima);
-
-	IMB_exr_multiview_convert(ibuf->userdata, ima, image_add_view_cb, image_add_buffer_cb, frame);
-
-	IMB_exr_close(ibuf->userdata);
-}
-#endif  /* WITH_OPENEXR */
 
 /* after imbuf load, openexr type can return with a exrhandle open */
 /* in that case we have to build a render-result */
@@ -3264,16 +3175,10 @@ static ImBuf *load_sequence_single(Image *ima, ImageUser *iuser, int frame, cons
 
 	if (ibuf) {
 #ifdef WITH_OPENEXR
-		/* handle multilayer case, don't assign ibuf. will be handled in BKE_image_acquire_ibuf */
 		if (ibuf->ftype == IMB_FTYPE_OPENEXR && ibuf->userdata) {
-			/* handle singlelayer multiview case assign ibuf based on available views */
-			if (IMB_exr_has_singlelayer_multiview(ibuf->userdata)) {
-				image_create_multiview(ima, ibuf, frame);
-				IMB_freeImBuf(ibuf);
-				ibuf = NULL;
-			}
-			else if (IMB_exr_has_multilayer(ibuf->userdata)) {
-				/* handle multilayer case, don't assign ibuf. will be handled in BKE_image_acquire_ibuf */
+			/* Handle multilayer and multiview cases, don't assign ibuf here.
+			 * will be set layer in BKE_image_acquire_ibuf from ima->rr. */
+			if (IMB_exr_has_multilayer(ibuf->userdata)) {
 				image_create_multilayer(ima, ibuf, frame);
 				ima->type = IMA_TYPE_MULTILAYER;
 				IMB_freeImBuf(ibuf);
@@ -3562,14 +3467,9 @@ static ImBuf *load_image_single(
 	if (ibuf) {
 #ifdef WITH_OPENEXR
 		if (ibuf->ftype == IMB_FTYPE_OPENEXR && ibuf->userdata) {
-			if (IMB_exr_has_singlelayer_multiview(ibuf->userdata)) {
-				/* handle singlelayer multiview case assign ibuf based on available views */
-				image_create_multiview(ima, ibuf, cfra);
-				IMB_freeImBuf(ibuf);
-				ibuf = NULL;
-			}
-			else if (IMB_exr_has_multilayer(ibuf->userdata)) {
-				/* handle multilayer case, don't assign ibuf. will be handled in BKE_image_acquire_ibuf */
+			/* Handle multilayer and multiview cases, don't assign ibuf here.
+			 * will be set layer in BKE_image_acquire_ibuf from ima->rr. */
+			if (IMB_exr_has_multilayer(ibuf->userdata)) {
 				image_create_multilayer(ima, ibuf, cfra);
 				ima->type = IMA_TYPE_MULTILAYER;
 				IMB_freeImBuf(ibuf);
@@ -4409,7 +4309,7 @@ void BKE_image_update_frame(const Main *bmain, int cfra)
 
 void BKE_image_user_file_path(ImageUser *iuser, Image *ima, char *filepath)
 {
-	if (BKE_image_is_multiview(ima) && (ima->rr == NULL)) {
+	if (BKE_image_is_multiview(ima)) {
 		ImageView *iv = BLI_findlink(&ima->views, iuser->view);
 		if (iv->filepath[0])
 			BLI_strncpy(filepath, iv->filepath, FILE_MAX);

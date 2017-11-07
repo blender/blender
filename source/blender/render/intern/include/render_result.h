@@ -115,6 +115,7 @@ void render_result_rect_get_pixels(struct RenderResult *rr,
 
 void render_result_views_shallowcopy(struct RenderResult *dst, struct RenderResult *src);
 void render_result_views_shallowdelete(struct RenderResult *rr);
+bool render_result_has_views(struct RenderResult *rr);
 
 #endif /* __RENDER_RESULT_H__ */
 

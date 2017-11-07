@@ -4093,6 +4093,11 @@ void node_bump(float strength, float dist, float height, vec3 N, vec3 surf_pos, 
 	result = normalize(strength * result + (1.0 - strength) * N);
 }
 
+void node_bevel(float radius, vec3 N, out vec3 result)
+{
+	result = N;
+}
+
 /* output */
 
 void node_output_material(Closure surface, Closure volume, float displacement, out Closure result)

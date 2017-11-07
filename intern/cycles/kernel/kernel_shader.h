@@ -181,7 +181,7 @@ void shader_setup_from_subsurface(
 		sd->shader = kernel_tex_fetch(__tri_shader, sd->prim);
 
 		/* static triangle */
-		sd->P = triangle_refine_subsurface(kg, sd, isect, ray);
+		sd->P = triangle_refine_local(kg, sd, isect, ray);
 		sd->Ng = Ng;
 		sd->N = Ng;
 

@@ -34,7 +34,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* constants */
+/* Constants */
 #define OBJECT_SIZE 		12
 #define OBJECT_VECTOR_SIZE	6
 #define LIGHT_SIZE		11
@@ -46,6 +46,7 @@ CCL_NAMESPACE_BEGIN
 
 #define BSSRDF_MIN_RADIUS			1e-8f
 #define BSSRDF_MAX_HITS				4
+#define LOCAL_MAX_HITS				4
 
 #define BECKMANN_TABLE_SIZE		256
 
@@ -56,6 +57,7 @@ CCL_NAMESPACE_BEGIN
 
 #define VOLUME_STACK_SIZE		16
 
+/* Split kernel constants */
 #define WORK_POOL_SIZE_GPU 64
 #define WORK_POOL_SIZE_CPU 1
 #ifdef __KERNEL_GPU__
@@ -76,7 +78,7 @@ CCL_NAMESPACE_BEGIN
 #endif
 
 
-/* device capabilities */
+/* Device capabilities */
 #ifdef __KERNEL_CPU__
 #  ifdef __KERNEL_SSE2__
 #    define __QBVH__
@@ -161,7 +163,7 @@ CCL_NAMESPACE_BEGIN
 
 #endif  /* __KERNEL_OPENCL__ */
 
-/* kernel features */
+/* Kernel features */
 #define __SOBOL__
 #define __INSTANCING__
 #define __DPDU__
@@ -175,8 +177,8 @@ CCL_NAMESPACE_BEGIN
 #define __CLAMP_SAMPLE__
 #define __PATCH_EVAL__
 #define __SHADOW_TRICKS__
-
 #define __DENOISING_FEATURES__
+#define __SHADER_RAYTRACE__
 
 #ifdef __KERNEL_SHADING__
 #  define __SVM__
@@ -197,10 +199,6 @@ CCL_NAMESPACE_BEGIN
 #  define __OBJECT_MOTION__
 #  define __HAIR__
 #  define __BAKING__
-#endif
-
-#ifdef WITH_CYCLES_DEBUG
-#  define __KERNEL_DEBUG__
 #endif
 
 /* Scene-based selective features compilation. */
@@ -240,6 +238,18 @@ CCL_NAMESPACE_BEGIN
 #endif
 #ifdef __NO_DENOISING__
 #  undef __DENOISING_FEATURES__
+#endif
+#ifdef __NO_SHADER_RAYTRACE__
+#  undef __SHADER_RAYTRACE__
+#endif
+
+/* Features that enable others */
+#ifdef WITH_CYCLES_DEBUG
+#  define __KERNEL_DEBUG__
+#endif
+
+#if defined(__SUBSURFACE__) || defined(__SHADER_RAYTRACE__)
+#  define __BVH_LOCAL__
 #endif
 
 /* Shader Evaluation */
@@ -296,6 +306,9 @@ enum PathTraceDimension {
 	PRNG_PHASE_CHANNEL = 6,
 	PRNG_SCATTER_DISTANCE = 7,
 	PRNG_BOUNCE_NUM = 8,
+
+	PRNG_BEVEL_U = 6, /* reuse volume dimension, correlation won't harm */
+	PRNG_BEVEL_V = 7,
 };
 
 enum SamplingPattern {
@@ -1048,17 +1061,17 @@ typedef struct PathState {
 #endif
 } PathState;
 
-/* Subsurface */
-
-/* Struct to gather multiple SSS hits. */
-typedef struct SubsurfaceIntersection {
+/* Struct to gather multiple nearby intersections. */
+typedef struct LocalIntersection {
 	Ray ray;
-	float3 weight[BSSRDF_MAX_HITS];
+	float3 weight[LOCAL_MAX_HITS];
 
 	int num_hits;
-	struct Intersection hits[BSSRDF_MAX_HITS];
-	float3 Ng[BSSRDF_MAX_HITS];
-} SubsurfaceIntersection;
+	struct Intersection hits[LOCAL_MAX_HITS];
+	float3 Ng[LOCAL_MAX_HITS];
+} LocalIntersection;
+
+/* Subsurface */
 
 /* Struct to gather SSS indirect rays and delay tracing them. */
 typedef struct SubsurfaceIndirectRays {
@@ -1070,6 +1083,7 @@ typedef struct SubsurfaceIndirectRays {
 	float3 throughputs[BSSRDF_MAX_HITS];
 	struct PathRadianceState L_state[BSSRDF_MAX_HITS];
 } SubsurfaceIndirectRays;
+static_assert(BSSRDF_MAX_HITS <= LOCAL_MAX_HITS, "BSSRDF hits too high.");
 
 /* Constant Kernel Data
  *
@@ -1239,8 +1253,8 @@ typedef struct KernelIntegrator {
 	int num_all_lights;
 	float pdf_triangles;
 	float pdf_lights;
-	float inv_pdf_lights;
 	int pdf_background_res;
+	float light_inv_rr_threshold;
 
 	/* light portals */
 	float portal_pdf;
@@ -1298,9 +1312,8 @@ typedef struct KernelIntegrator {
 	float volume_step_size;
 	int volume_samples;
 
-	float light_inv_rr_threshold;
-
 	int start_sample;
+	int pad;
 } KernelIntegrator;
 static_assert_align(KernelIntegrator, 16);
 

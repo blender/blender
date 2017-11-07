@@ -18,7 +18,7 @@
  */
 
 #ifdef __QBVH__
-#  include "kernel/bvh/qbvh_subsurface.h"
+#  include "kernel/bvh/qbvh_local.h"
 #endif
 
 #if BVH_FEATURE(BVH_HAIR)
@@ -27,9 +27,10 @@
 #  define NODE_INTERSECT bvh_aligned_node_intersect
 #endif
 
-/* This is a template BVH traversal function for subsurface scattering, where
- * various features can be enabled/disabled. This way we can compile optimized
- * versions for each case without new features slowing things down.
+/* This is a template BVH traversal function for finding local intersections
+ * around the shading point, for subsurface scattering and bevel. We disable
+ * various features for performance, and for instanced objects avoid traversing
+ * other parts of the scene.
  *
  * BVH_MOTION: motion blur rendering
  *
@@ -42,8 +43,8 @@ ccl_device_inline
 #endif
 void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
                                  const Ray *ray,
-                                 SubsurfaceIntersection *ss_isect,
-                                 int subsurface_object,
+                                 LocalIntersection *local_isect,
+                                 int local_object,
                                  uint *lcg_state,
                                  int max_hits)
 {
@@ -60,7 +61,7 @@ void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 
 	/* traversal variables in registers */
 	int stack_ptr = 0;
-	int node_addr = kernel_tex_fetch(__object_node, subsurface_object);
+	int node_addr = kernel_tex_fetch(__object_node, local_object);
 
 	/* ray parameters in registers */
 	float3 P = ray->P;
@@ -69,14 +70,14 @@ void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 	int object = OBJECT_NONE;
 	float isect_t = ray->t;
 
-	ss_isect->num_hits = 0;
+	local_isect->num_hits = 0;
 
-	const int object_flag = kernel_tex_fetch(__object_flag, subsurface_object);
+	const int object_flag = kernel_tex_fetch(__object_flag, local_object);
 	if(!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
 #if BVH_FEATURE(BVH_MOTION)
 		Transform ob_itfm;
 		isect_t = bvh_instance_motion_push(kg,
-		                                   subsurface_object,
+		                                   local_object,
 		                                   ray,
 		                                   &P,
 		                                   &dir,
@@ -84,9 +85,9 @@ void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 		                                   isect_t,
 		                                   &ob_itfm);
 #else
-		isect_t = bvh_instance_push(kg, subsurface_object, ray, &P, &dir, &idir, isect_t);
+		isect_t = bvh_instance_push(kg, local_object, ray, &P, &dir, &idir, isect_t);
 #endif
-		object = subsurface_object;
+		object = local_object;
 	}
 
 #if defined(__KERNEL_SSE2__)
@@ -193,15 +194,16 @@ void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 						/* intersect ray against primitive */
 						for(; prim_addr < prim_addr2; prim_addr++) {
 							kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
-							triangle_intersect_subsurface(kg,
-							                              ss_isect,
-							                              P,
-							                              dir,
-							                              object,
-							                              prim_addr,
-							                              isect_t,
-							                              lcg_state,
-							                              max_hits);
+							triangle_intersect_local(kg,
+							                         local_isect,
+							                         P,
+							                         dir,
+							                         object,
+							                         local_object,
+							                         prim_addr,
+							                         isect_t,
+							                         lcg_state,
+							                         max_hits);
 						}
 						break;
 					}
@@ -210,16 +212,17 @@ void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 						/* intersect ray against primitive */
 						for(; prim_addr < prim_addr2; prim_addr++) {
 							kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
-							motion_triangle_intersect_subsurface(kg,
-							                                     ss_isect,
-							                                     P,
-							                                     dir,
-							                                     ray->time,
-							                                     object,
-							                                     prim_addr,
-							                                     isect_t,
-							                                     lcg_state,
-							                                     max_hits);
+							motion_triangle_intersect_local(kg,
+							                                local_isect,
+							                                P,
+							                                dir,
+							                                ray->time,
+							                                object,
+							                                local_object,
+							                                prim_addr,
+							                                isect_t,
+							                                lcg_state,
+							                                max_hits);
 						}
 						break;
 					}
@@ -235,8 +238,8 @@ void BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 
 ccl_device_inline void BVH_FUNCTION_NAME(KernelGlobals *kg,
                                          const Ray *ray,
-                                         SubsurfaceIntersection *ss_isect,
-                                         int subsurface_object,
+                                         LocalIntersection *local_isect,
+                                         int local_object,
                                          uint *lcg_state,
                                          int max_hits)
 {
@@ -244,8 +247,8 @@ ccl_device_inline void BVH_FUNCTION_NAME(KernelGlobals *kg,
 	if(kernel_data.bvh.use_qbvh) {
 		return BVH_FUNCTION_FULL_NAME(QBVH)(kg,
 		                                    ray,
-		                                    ss_isect,
-		                                    subsurface_object,
+		                                    local_isect,
+		                                    local_object,
 		                                    lcg_state,
 		                                    max_hits);
 	}
@@ -255,8 +258,8 @@ ccl_device_inline void BVH_FUNCTION_NAME(KernelGlobals *kg,
 		kernel_assert(kernel_data.bvh.use_qbvh == false);
 		return BVH_FUNCTION_FULL_NAME(BVH)(kg,
 		                                   ray,
-		                                   ss_isect,
-		                                   subsurface_object,
+		                                   local_isect,
+		                                   local_object,
 		                                   lcg_state,
 		                                   max_hits);
 	}

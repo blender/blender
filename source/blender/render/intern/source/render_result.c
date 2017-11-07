@@ -585,7 +585,7 @@ static void *ml_addlayer_cb(void *base, const char *str)
 	
 	rl = MEM_callocN(sizeof(RenderLayer), "new render layer");
 	BLI_addtail(&rr->layers, rl);
-	
+
 	BLI_strncpy(rl->name, str, EXR_LAY_MAXNAME);
 	return rl;
 }
@@ -756,6 +756,12 @@ void render_result_views_new(RenderResult *rr, RenderData *rd)
 	}
 }
 
+bool render_result_has_views(RenderResult *rr)
+{
+	RenderView *rv = rr->views.first;
+	return (rv && (rv->next || rv->name[0]));
+}
+
 /*********************************** Merge ***********************************/
 
 static void do_merge_tile(RenderResult *rr, RenderResult *rrpart, float *target, float *tile, int pixsize)
@@ -820,101 +826,124 @@ void render_result_merge(RenderResult *rr, RenderResult *rrpart)
 	}
 }
 
-/* called from within UI and render pipeline, saves both rendered result as a file-read result
- * if multiview is true saves all views in a multiview exr
- * else if view is not NULL saves single view
- * else saves stereo3d
- */
-bool RE_WriteRenderResult(ReportList *reports, RenderResult *rr, const char *filename, ImageFormatData *imf, const bool multiview, const char *view)
+/* Called from the UI and render pipeline, to save multilayer and multiview
+ * images, optionally isolating a specific, view, layer or RGBA/Z pass. */
+bool RE_WriteRenderResult(ReportList *reports, RenderResult *rr, const char *filename, ImageFormatData *imf, const char *view, int layer)
 {
-	RenderLayer *rl;
-	RenderPass *rpass;
-	RenderView *rview;
 	void *exrhandle = IMB_exr_get_handle();
-	bool success;
-	int a, nr;
-	const char *chan_view = NULL;
-	int compress = (imf ? imf->exr_codec : 0);
-	size_t width, height;
+	const bool half_float = (imf && imf->depth == R_IMF_CHAN_DEPTH_16);
+	const bool multi_layer = !(imf && imf->imtype == R_IMF_IMTYPE_OPENEXR);
+	const bool write_z = !multi_layer && (imf && (imf->flag & R_IMF_FLAG_ZBUF));
 
-	const bool is_mono = view && !multiview;
-	const bool use_half_float = (imf != NULL) ? (imf->depth == R_IMF_CHAN_DEPTH_16) : false;
+	/* Write first layer if not multilayer and no layer was specified. */
+	if (!multi_layer && layer == -1) {
+		layer = 0;
+	}
 
-	width = rr->rectx;
-	height = rr->recty;
-
-	if (imf && imf->imtype == R_IMF_IMTYPE_OPENEXR && multiview) {
-		/* single layer OpenEXR */
-		const char *RGBAZ[] = {"R", "G", "B", "A", "Z"};
-		for (nr = 0, rview = rr->views.first; rview; rview = rview->next, nr++) {
-			IMB_exr_add_view(exrhandle, rview->name);
-
-			if (rview->rectf) {
-				for (a = 0; a < 4; a++) {
-					IMB_exr_add_channel(exrhandle, "", RGBAZ[a],
-					                    rview->name, 4, 4 * width, rview->rectf + a,
-					                    use_half_float);
-				}
-				if (rview->rectz) {
-					/* Z pass is always stored as float. */
-					IMB_exr_add_channel(exrhandle, "", RGBAZ[4],
-					                    rview->name, 1, width, rview->rectz,
-					                    false);
-				}
+	/* First add views since IMB_exr_add_channel checks number of views. */
+	if (render_result_has_views(rr)) {
+		for (RenderView *rview = rr->views.first; rview; rview = rview->next) {
+			if (!view || STREQ(view, rview->name)) {
+				IMB_exr_add_view(exrhandle, rview->name);
 			}
 		}
 	}
-	else {
-		for (nr = 0, rview = rr->views.first; rview; rview = rview->next, nr++) {
-			if (is_mono) {
-				if (!STREQ(view, rview->name)) {
+
+	/* Compositing result. */
+	if (rr->have_combined) {
+		for (RenderView *rview = rr->views.first; rview; rview = rview->next) {
+			if (!rview->rectf) {
+				continue;
+			}
+
+			const char *viewname = rview->name;
+			if (view) {
+				if (!STREQ(view, viewname)) {
 					continue;
 				}
-				chan_view = "";
-			}
-			else {
-				/* if rendered only one view, we treat as a a non-view render */
-				chan_view = rview->name;
-			}
-
-			IMB_exr_add_view(exrhandle, rview->name);
-
-			if (rview->rectf) {
-				char passname[EXR_PASS_MAXNAME];
-				for (a = 0; a < 4; a++) {
-					set_pass_name(passname, RE_PASSNAME_COMBINED, a, "RGBA");
-					IMB_exr_add_channel(exrhandle, RE_PASSNAME_COMBINED, passname,
-					                    chan_view, 4, 4 * width, rview->rectf + a,
-					                    use_half_float);
+				else {
+					viewname = "";
 				}
 			}
-		}
 
-		/* add layers/passes and assign channels */
-		for (rl = rr->layers.first; rl; rl = rl->next) {
+			/* Skip compositing if only a single other layer is requested. */
+			if (!multi_layer && layer != 0) {
+				continue;
+			}
 
-			/* passes are allocated in sync */
-			for (rpass = rl->passes.first; rpass; rpass = rpass->next) {
-				const int xstride = rpass->channels;
+			for (int a = 0; a < 4; a++) {
 				char passname[EXR_PASS_MAXNAME];
+				char layname[EXR_PASS_MAXNAME];
+				const char *chan_id = "RGBA";
 
-				if (is_mono) {
-					if (!STREQ(view, rpass->view)) {
-						continue;
-					}
-					chan_view = "";
+				if (multi_layer) {
+					set_pass_name(passname, "Combined", a, chan_id);
+					BLI_strncpy(layname, "Composite", sizeof(layname));
 				}
 				else {
-					/* if rendered only one view, we treat as a a non-view render */
-					chan_view = (nr > 1 ? rpass->view :"");
+					passname[0] = chan_id[a];
+					passname[1] = '\0';
+					layname[0] = '\0';
 				}
 
-				for (a = 0; a < xstride; a++) {
-					set_pass_name(passname, rpass->name, a, rpass->chan_id);
-					IMB_exr_add_channel(exrhandle, rl->name, passname, chan_view,
-					                    xstride, xstride * width, rpass->rect + a,
-					                    STREQ(rpass->name, RE_PASSNAME_Z) ? false : use_half_float);
+				IMB_exr_add_channel(exrhandle, layname, passname, viewname,
+				                    4, 4 * rr->rectx, rview->rectf + a, half_float);
+			}
+
+			if (write_z && rview->rectz) {
+				const char *layname = (multi_layer)? "Composite": "";
+				IMB_exr_add_channel(exrhandle, layname, "Z", viewname,
+				                    1, rr->rectx, rview->rectz, false);
+			}
+		}
+	}
+
+	/* Other render layers. */
+	int nr = (rr->have_combined)? 1: 0;
+	for (RenderLayer *rl = rr->layers.first; rl; rl = rl->next, nr++) {
+		/* Skip other render layers if requested. */
+		if (!multi_layer && nr != layer) {
+			continue;
+		}
+
+		for (RenderPass *rp = rl->passes.first; rp; rp = rp->next) {
+			/* Skip non-RGBA and Z passes if not using multi layer. */
+			if (!multi_layer && !(STREQ(rp->name, RE_PASSNAME_COMBINED) ||
+			                      STREQ(rp->name, "") ||
+			                      (STREQ(rp->name, RE_PASSNAME_Z) && write_z))) {
+				continue;
+			}
+
+			/* Skip pass if it does not match the requested view(s). */
+			const char *viewname = rp->view;
+			if (view) {
+				if (!STREQ(view, viewname)) {
+					continue;
 				}
+				else {
+					viewname = "";
+				}
+			}
+
+			for (int a = 0; a < rp->channels; a++) {
+				/* Save Combined as RGBA if single layer save. */
+				char passname[EXR_PASS_MAXNAME];
+				char layname[EXR_PASS_MAXNAME];
+
+				if (multi_layer) {
+					set_pass_name(passname, rp->name, a, rp->chan_id);
+					BLI_strncpy(layname, rl->name, sizeof(layname));
+				}
+				else {
+					passname[0] = rp->chan_id[a];
+					passname[1] = '\0';
+					layname[0] = '\0';
+				}
+
+				/* Add channel. */
+				IMB_exr_add_channel(exrhandle, layname, passname, viewname,
+				                    rp->channels, rp->channels * rr->rectx, rp->rect + a,
+				                    STREQ(rp->name, RE_PASSNAME_Z) ? false : half_float);
 			}
 		}
 	}
@@ -923,14 +952,14 @@ bool RE_WriteRenderResult(ReportList *reports, RenderResult *rr, const char *fil
 
 	BLI_make_existing_file(filename);
 
-	if (IMB_exr_begin_write(exrhandle, filename, width, height, compress, rr->stamp_data)) {
+	int compress = (imf ? imf->exr_codec : 0);
+	bool success = IMB_exr_begin_write(exrhandle, filename, rr->rectx, rr->recty, compress, rr->stamp_data);
+	if (success) {
 		IMB_exr_write_channels(exrhandle);
-		success = true;
 	}
 	else {
 		/* TODO, get the error from openexr's exception */
 		BKE_reportf(reports, RPT_ERROR, "Error writing render result, %s (see console)", strerror(errno));
-		success = false;
 	}
 
 	IMB_exr_close(exrhandle);
@@ -1245,7 +1274,7 @@ void render_result_exr_file_cache_write(Render *re)
 	render_result_exr_file_cache_path(re->scene, root, str);
 	printf("Caching exr file, %dx%d, %s\n", rr->rectx, rr->recty, str);
 
-	RE_WriteRenderResult(NULL, rr, str, NULL, true, NULL);
+	RE_WriteRenderResult(NULL, rr, str, NULL, NULL, -1);
 }
 
 /* For cache, makes exact copy of render result */
@@ -1370,7 +1399,7 @@ void render_result_rect_get_pixels(RenderResult *rr, unsigned int *rect, int rec
 
 /*************************** multiview functions *****************************/
 
-bool RE_HasFakeLayer(RenderResult *res)
+bool RE_HasCombinedLayer(RenderResult *res)
 {
 	RenderView *rv;
 

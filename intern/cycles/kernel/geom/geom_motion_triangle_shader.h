@@ -36,7 +36,7 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals *kg,
                                                       ShaderData *sd, const
                                                       Intersection *isect,
                                                       const Ray *ray,
-                                                      bool subsurface)
+                                                      bool is_local)
 {
 	/* Get shader. */
 	sd->shader = kernel_tex_fetch(__tri_shader, sd->prim);
@@ -66,16 +66,16 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals *kg,
 	verts[1] = (1.0f - t)*verts[1] + t*next_verts[1];
 	verts[2] = (1.0f - t)*verts[2] + t*next_verts[2];
 	/* Compute refined position. */
-#ifdef __SUBSURFACE__
-	if(subsurface) {
-		sd->P = motion_triangle_refine_subsurface(kg,
-		                                                     sd,
-		                                                     isect,
-		                                                     ray,
-		                                                     verts);
+#ifdef __BVH_LOCAL__
+	if(is_local) {
+		sd->P = motion_triangle_refine_local(kg,
+		                                     sd,
+		                                     isect,
+		                                     ray,
+		                                     verts);
 	}
 	else
-#endif  /*  __SUBSURFACE__*/
+#endif  /*  __BVH_LOCAL__*/
 	{
 		sd->P = motion_triangle_refine(kg, sd, isect, ray, verts);
 	}

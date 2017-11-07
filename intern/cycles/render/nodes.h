@@ -1015,6 +1015,18 @@ public:
 	float3 normal_osl;
 };
 
+class BevelNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(BevelNode)
+	bool has_spatial_varying() { return true; }
+	virtual int get_group() { return NODE_GROUP_LEVEL_3; }
+	virtual bool has_raytrace() { return true; }
+
+	float radius;
+	float3 normal;
+	int samples;
+};
+
 CCL_NAMESPACE_END
 
 #endif /* __NODES_H__ */

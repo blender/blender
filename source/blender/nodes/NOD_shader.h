@@ -78,6 +78,7 @@ void register_node_type_sh_tex_brick(void);
 void register_node_type_sh_tex_pointdensity(void);
 
 void register_node_type_sh_attribute(void);
+void register_node_type_sh_bevel(void);
 void register_node_type_sh_geometry(void);
 void register_node_type_sh_light_path(void);
 void register_node_type_sh_light_falloff(void);

@@ -172,17 +172,6 @@ ccl_device_inline void compute_light_pass(KernelGlobals *kg,
 	path_radiance_accum_sample(L, &L_sample);
 }
 
-ccl_device bool is_aa_pass(ShaderEvalType type)
-{
-	switch(type) {
-		case SHADER_EVAL_UV:
-		case SHADER_EVAL_NORMAL:
-			return false;
-		default:
-			return true;
-	}
-}
-
 /* this helps with AA but it's not the real solution as it does not AA the geometry
  *  but it's better than nothing, thus committed */
 ccl_device_inline float bake_clamp_mirror_repeat(float u, float max)
@@ -326,6 +315,13 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 	sd.du.dy = dudy;
 	sd.dv.dx = dvdx;
 	sd.dv.dy = dvdy;
+
+	/* set RNG state for shaders that use sampling */
+	state.rng_hash = rng_hash;
+	state.rng_offset = 0;
+	state.sample = sample;
+	state.num_samples = num_samples;
+	state.min_ray_pdf = FLT_MAX;
 
 	/* light passes if we need more than color */
 	if(pass_filter & ~BAKE_FILTER_COLOR)
@@ -485,10 +481,10 @@ ccl_device void kernel_bake_evaluate(KernelGlobals *kg, ccl_global uint4 *input,
 	}
 
 	/* write output */
-	const float output_fac = is_aa_pass(type)? 1.0f/num_samples: 1.0f;
+	const float output_fac = 1.0f/num_samples;
 	const float4 scaled_result = make_float4(out.x, out.y, out.z, 1.0f) * output_fac;
 
-	output[i] = (sample == 0)?  scaled_result: output[i] + scaled_result;
+	output[i] = (sample == 0)? scaled_result: output[i] + scaled_result;
 }
 
 #endif  /* __BAKING__ */

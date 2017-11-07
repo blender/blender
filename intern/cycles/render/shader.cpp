@@ -592,6 +592,9 @@ void ShaderManager::get_requested_graph_features(ShaderGraph *graph,
 		if(node->has_surface_transparent()) {
 			requested_features->use_transparent = true;
 		}
+		if(node->has_raytrace()) {
+			requested_features->use_shader_raytrace = true;
+		}
 	}
 }
 
