@@ -547,7 +547,7 @@ ccl_device_inline bool lamp_light_sample(KernelGlobals *kg,
 
 		float costheta = dot(lightD, D);
 		ls->pdf = invarea/(costheta*costheta*costheta);
-		ls->eval_fac = ls->pdf*kernel_data.integrator.inv_pdf_lights;
+		ls->eval_fac = ls->pdf;
 	}
 #ifdef __BACKGROUND_MIS__
 	else if(type == LIGHT_BACKGROUND) {
@@ -559,7 +559,6 @@ ccl_device_inline bool lamp_light_sample(KernelGlobals *kg,
 		ls->D = -D;
 		ls->t = FLT_MAX;
 		ls->eval_fac = 1.0f;
-		ls->pdf *= kernel_data.integrator.pdf_lights;
 	}
 #endif
 	else {
@@ -622,9 +621,9 @@ ccl_device_inline bool lamp_light_sample(KernelGlobals *kg,
 			float invarea = data2.x;
 			ls->eval_fac = 0.25f*invarea;
 		}
-
-		ls->eval_fac *= kernel_data.integrator.inv_pdf_lights;
 	}
+
+	ls->pdf *= kernel_data.integrator.pdf_lights;
 
 	return (ls->pdf > 0.0f);
 }
@@ -757,8 +756,11 @@ ccl_device bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D,
 		ls->pdf = area_light_sample(P, &light_P, axisu, axisv, 0, 0, false);
 		ls->eval_fac = 0.25f*invarea;
 	}
-	else
+	else {
 		return false;
+	}
+
+	ls->pdf *= kernel_data.integrator.pdf_lights;
 
 	return true;
 }
