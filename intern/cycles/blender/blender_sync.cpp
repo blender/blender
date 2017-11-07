@@ -558,7 +558,8 @@ array<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
 
 	PointerRNA crp = RNA_pointer_get(&b_srlay.ptr, "cycles");
 	if(get_boolean(crp, "denoising_store_passes") &&
-	   get_boolean(crp, "use_denoising")) {
+	   get_boolean(crp, "use_denoising"))
+	{
 		b_engine.add_pass("Denoising Normal",          3, "XYZ", b_srlay.name().c_str());
 		b_engine.add_pass("Denoising Normal Variance", 3, "XYZ", b_srlay.name().c_str());
 		b_engine.add_pass("Denoising Albedo",          3, "RGB", b_srlay.name().c_str());
