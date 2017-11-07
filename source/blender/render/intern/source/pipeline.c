@@ -3144,7 +3144,7 @@ static void update_physics_cache(Render *re, Scene *scene, SceneLayer *scene_lay
 	baker.main = re->main;
 	baker.scene = scene;
 	baker.scene_layer = scene_layer;
-	baker.depsgraph = BKE_scene_get_depsgraph(scene, scene_layer);
+	baker.depsgraph = BKE_scene_get_depsgraph(scene, scene_layer, true);
 	baker.bake = 0;
 	baker.render = 1;
 	baker.anim_init = 1;
@@ -3862,7 +3862,7 @@ void RE_PreviewRender(Render *re, Main *bmain, Scene *sce, ViewRender *view_rend
 	re->scene = sce;
 	re->scene_color_manage = BKE_scene_check_color_management_enabled(sce);
 	re->lay = sce->lay;
-	re->depsgraph = BKE_scene_get_depsgraph(sce, scene_layer);
+	re->depsgraph = BKE_scene_get_depsgraph(sce, scene_layer, false);
 	re->eval_ctx->scene_layer = scene_layer;
 
 	camera = RE_GetCamera(re);

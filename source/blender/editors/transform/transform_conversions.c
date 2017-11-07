@@ -5540,7 +5540,10 @@ static void set_trans_object_base_flags(TransInfo *t)
 	Main *bmain = G.main;
 	SceneLayer *sl = t->scene_layer;
 	Scene *scene = t->scene;
-	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, sl);
+	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, sl, false);
+
+	/* Transform tool is expected to be executed from an evaluated scene. */
+	BLI_assert(depsgraph != NULL);
 
 	/*
 	 * if Base selected and has parent selected:
@@ -5641,8 +5644,11 @@ static int count_proportional_objects(TransInfo *t)
 	Main *bmain = G.main;
 	SceneLayer *sl = t->scene_layer;
 	Scene *scene = t->scene;
-	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, sl);
+	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, sl, false);
 	Base *base;
+
+	/* Transform tool is expected to be executed from an evaluated scene. */
+	BLI_assert(depsgraph != NULL);
 
 	/* rotations around local centers are allowed to propagate, so we take all objects */
 	if (!((t->around == V3D_AROUND_LOCAL_ORIGINS) &&

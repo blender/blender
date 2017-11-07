@@ -124,11 +124,7 @@ void ED_scene_changed_update(Main *bmain, bContext *C, Scene *scene_new, const b
 	 * but workspace should remember the last one set. Could store render-layer
 	 * per window-workspace combination (using WorkSpaceDataRelation) */
 	SceneLayer *layer_new = BLI_findlink(&scene_new->render_layers, scene_new->active_layer);
-	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene_new, layer_new);
-	/* TODO(sergey): This is a temporary solution. */
-	if (depsgraph == NULL) {
-		scene_new->depsgraph_legacy = depsgraph = DEG_graph_new();
-	}
+	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene_new, layer_new, true);
 
 	CTX_data_scene_set(C, scene_new);
 	BKE_workspace_render_layer_set(CTX_wm_workspace(C), layer_new);

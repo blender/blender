@@ -230,7 +230,7 @@ void BKE_scene_allocate_depsgraph_hash(struct Scene *scene);
 void BKE_scene_ensure_depsgraph_hash(struct Scene *scene);
 void BKE_scene_free_depsgraph_hash(struct Scene *scene);
 
-struct Depsgraph *BKE_scene_get_depsgraph(struct Scene *scene, struct SceneLayer *scene_layer);
+struct Depsgraph *BKE_scene_get_depsgraph(struct Scene *scene, struct SceneLayer *scene_layer, bool allocate);
 
 #ifdef __cplusplus
 }

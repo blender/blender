@@ -2453,8 +2453,14 @@ void BKE_scene_free_depsgraph_hash(Scene *scene)
 
 /* Query depsgraph for a specific contexts. */
 
-Depsgraph *BKE_scene_get_depsgraph(Scene *scene, SceneLayer *scene_layer)
+Depsgraph *BKE_scene_get_depsgraph(Scene *scene,
+                                   SceneLayer *scene_layer,
+                                   bool allocate)
 {
 	(void) scene_layer;
-	return scene->depsgraph_legacy;
+	Depsgraph *depsgraph = scene->depsgraph_legacy;
+	if (depsgraph == NULL && allocate) {
+		scene->depsgraph_legacy = depsgraph = DEG_graph_new();
+	}
+	return depsgraph;
 }

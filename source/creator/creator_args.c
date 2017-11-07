@@ -440,13 +440,10 @@ static void render_set_depgraph(bContext *C, Render *re)
 	 * is NULL for old files, and there is no workspace).
 	 */
 	SceneLayer *scene_layer = scene->render_layers.first;
-	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, scene_layer);
-	/* TODO(sergey): This is a temporary solution. */
-	if (depsgraph == NULL) {
-		scene->depsgraph_legacy = depsgraph = DEG_graph_new();
-		DEG_graph_build_from_scene(depsgraph, bmain, scene);
-		DEG_graph_on_visible_update(bmain, depsgraph);
-	}
+	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, scene_layer, true);
+	DEG_graph_relations_update(depsgraph, bmain, scene);
+	DEG_graph_on_visible_update(bmain, depsgraph);
+
 	RE_SetDepsgraph(re, depsgraph);
 }
 

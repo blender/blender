@@ -353,7 +353,10 @@ void deg_id_tag_update(Main *bmain, ID *id, int flag)
 	lib_id_recalc_tag_flag(bmain, id, flag);
 	LINKLIST_FOREACH(Scene *, scene, &bmain->scene) {
 		LINKLIST_FOREACH(SceneLayer *, scene_layer, &scene->render_layers) {
-			Depsgraph *depsgraph = (Depsgraph *)BKE_scene_get_depsgraph(scene, scene_layer);
+			Depsgraph *depsgraph =
+			        (Depsgraph *)BKE_scene_get_depsgraph(scene,
+			                                             scene_layer,
+			                                             false);
 			if (depsgraph != NULL) {
 				deg_graph_id_tag_update(bmain, depsgraph, id, flag);
 			}
@@ -461,7 +464,10 @@ void DEG_on_visible_update(Main *bmain, const bool UNUSED(do_time))
 {
 	LINKLIST_FOREACH(Scene *, scene, &bmain->scene) {
 		LINKLIST_FOREACH(SceneLayer *, scene_layer, &scene->render_layers) {
-			Depsgraph *depsgraph = (Depsgraph *)BKE_scene_get_depsgraph(scene, scene_layer);
+			Depsgraph *depsgraph =
+			        (Depsgraph *)BKE_scene_get_depsgraph(scene,
+			                                             scene_layer,
+			                                             false);
 			if (depsgraph != NULL) {
 				DEG_graph_on_visible_update(bmain, depsgraph);
 			}

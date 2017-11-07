@@ -850,7 +850,7 @@ static PointerRNA rna_SceneLayer_depsgraph_get(PointerRNA *ptr)
 {
 	Scene *scene = (Scene *)ptr->id.data;
 	SceneLayer *scene_layer = (SceneLayer *)ptr->data;
-	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, scene_layer);
+	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, scene_layer, false);
 	return rna_pointer_inherit_refine(ptr, &RNA_Depsgraph, depsgraph);
 }
 

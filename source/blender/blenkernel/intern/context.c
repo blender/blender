@@ -1260,7 +1260,7 @@ Depsgraph *CTX_data_depsgraph(const bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
 	SceneLayer *scene_layer = CTX_data_scene_layer(C);
-	return BKE_scene_get_depsgraph(scene, scene_layer);
+	return BKE_scene_get_depsgraph(scene, scene_layer, true);
 }
 
 void CTX_data_eval_ctx(const bContext *C, EvaluationContext *eval_ctx)

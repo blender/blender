@@ -1762,7 +1762,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			DEG_id_tag_update(&base->object->id, OB_RECALC_DATA);
 		}
 
-		Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, sl);
+		Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, sl, true);
 		uint64_t customdata_mask_prev = scene->customdata_mask;
 		scene->customdata_mask |= CD_MASK_MESH;
 		BKE_scene_graph_update_tagged(bmain->eval_ctx, depsgraph, bmain, scene);

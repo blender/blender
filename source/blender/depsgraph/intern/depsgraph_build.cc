@@ -275,7 +275,10 @@ void DEG_relations_tag_update(Main *bmain)
 	DEG_DEBUG_PRINTF("%s: Tagging relations for update.\n", __func__);
 	LINKLIST_FOREACH(Scene *, scene, &bmain->scene) {
 		LINKLIST_FOREACH(SceneLayer *, scene_layer, &scene->render_layers) {
-			Depsgraph *depsgraph = (Depsgraph *)BKE_scene_get_depsgraph(scene, scene_layer);
+			Depsgraph *depsgraph =
+			        (Depsgraph *)BKE_scene_get_depsgraph(scene,
+			                                             scene_layer,
+			                                             false);
 			if (depsgraph != NULL) {
 				DEG_graph_tag_relations_update(depsgraph);
 			}

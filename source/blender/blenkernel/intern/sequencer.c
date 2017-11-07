@@ -3264,11 +3264,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 
 	/* Get depsgraph and scene layer for the strip. */
 	SceneLayer *scene_layer = BKE_scene_layer_from_scene_get(scene);
-	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, scene_layer);
-	/* TODO(sergey): This is a temporary solution. */
-	if (depsgraph == NULL) {
-		scene->depsgraph_legacy = depsgraph = DEG_graph_new();
-	}
+	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, scene_layer, true);
 
 	orig_data.scemode = scene->r.scemode;
 	orig_data.cfra = scene->r.cfra;
