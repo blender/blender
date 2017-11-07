@@ -84,6 +84,8 @@
 
 #include "RNA_enum_types.h"
 
+#include "DEG_depsgraph.h"
+
 /* Motion in pixels allowed before we don't consider single/double click. */
 #define WM_EVENT_CLICK_WIGGLE_ROOM 2
 
@@ -309,7 +311,13 @@ void wm_event_do_refresh_wm_and_depsgraph(bContext *C)
 			/* XXX, hack so operators can enforce datamasks [#26482], gl render */
 			scene->customdata_mask |= scene->customdata_mask_modal;
 
-			BKE_scene_update_tagged(bmain->eval_ctx, bmain, scene);
+			for (SceneLayer *scene_layer = scene->render_layers.first;
+			     scene_layer != NULL;
+			     scene_layer = scene_layer->next)
+			{
+				Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, scene_layer, true);
+				BKE_scene_graph_update_tagged(bmain->eval_ctx, depsgraph, bmain, scene);
+			}
 		}
 	}
 
