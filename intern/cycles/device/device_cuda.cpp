@@ -1567,6 +1567,8 @@ public:
 		                           0, 0, args, 0));
 
 		unmap_pixels((rgba_byte)? rgba_byte: rgba_half);
+
+		cuda_assert(cuCtxSynchronize());
 	}
 
 	void shader(DeviceTask& task)
@@ -1928,10 +1930,12 @@ public:
 		/* Load texture info. */
 		load_texture_info();
 
+		/* Synchronize all memory copies before executing task. */
+		cuda_assert(cuCtxSynchronize());
+
 		if(task.type == DeviceTask::FILM_CONVERT) {
 			/* must be done in main thread due to opengl access */
 			film_convert(task, task.buffer, task.rgba_byte, task.rgba_half);
-			cuda_assert(cuCtxSynchronize());
 		}
 		else {
 			task_pool.push(new CUDADeviceTask(this, task));
