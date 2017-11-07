@@ -1369,10 +1369,6 @@ if(CMAKE_COMPILER_IS_GNUCC)
 
 elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
 
-	if(APPLE AND WITH_OPENMP) # we need the Intel omp lib linked here to not fail all tests due presence of -fopenmp !
-		set(CMAKE_REQUIRED_FLAGS "-L${LIBDIR}/openmp/lib -liomp5") # these are only used for the checks
-	endif()
-
 	# strange, clang complains these are not supported, but then uses them.
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ALL -Wall)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_IMPLICIT_FUNCTION_DECLARATION -Werror=implicit-function-declaration)

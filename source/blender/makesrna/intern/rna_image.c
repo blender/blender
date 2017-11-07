@@ -175,6 +175,11 @@ static void rna_ImageUser_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *
 	ImageUser *iuser = ptr->data;
 
 	BKE_image_user_frame_calc(iuser, scene->r.cfra, 0);
+
+	if(ptr->id.data) {
+		/* Update material or texture for render preview. */
+		DEG_id_tag_update(ptr->id.data, 0);
+	}
 }
 
 

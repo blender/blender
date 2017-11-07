@@ -390,22 +390,6 @@ if(WITH_OPENMP)
 		set(WITH_OPENMP OFF)
 	else() # vanilla gcc or clang_omp support OpenMP
 		message(STATUS "Using special OpenMP enabled compiler !") # letting find_package(OpenMP) module work for gcc
-		if(CMAKE_C_COMPILER_ID MATCHES "Clang") # clang-omp in darwin libs
-			set(OPENMP_FOUND ON)
-			set(OpenMP_C_FLAGS "-fopenmp" CACHE STRING "C compiler flags for OpenMP parallization" FORCE)
-			set(OpenMP_CXX_FLAGS "-fopenmp" CACHE STRING "C++ compiler flags for OpenMP parallization" FORCE)
-			include_directories(${LIBDIR}/openmp/include)
-			link_directories(${LIBDIR}/openmp/lib)
-			# This is a workaround for our helperbinaries ( datatoc, masgfmt, ... ),
-			# They are linked also to omp lib, so we need it in builddir for runtime exexcution,
-			# TODO: remove all unneeded dependencies from these
-
-			# for intermediate binaries, in respect to lib ID
-			execute_process(
-				COMMAND ditto -arch ${CMAKE_OSX_ARCHITECTURES}
-				${LIBDIR}/openmp/lib/libiomp5.dylib
-				${CMAKE_BINARY_DIR}/Resources/lib/libiomp5.dylib)
-		endif()
 	endif()
 endif()
 
