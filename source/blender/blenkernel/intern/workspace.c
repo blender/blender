@@ -469,3 +469,17 @@ void BKE_workspace_use_scene_settings_set(WorkSpace *workspace, bool value)
 		workspace->flags &= ~WORKSPACE_USE_SCENE_SETTINGS;
 	}
 }
+
+/* Update / evaluate */
+
+void BKE_workspace_update_tagged(struct EvaluationContext *eval_ctx,
+                                 Main *bmain,
+                                 WorkSpace *workspace,
+                                 Scene *scene)
+{
+	SceneLayer *scene_layer = BKE_workspace_render_layer_get(workspace);
+	struct Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene,
+	                                                      scene_layer,
+	                                                      true);
+	BKE_scene_graph_update_tagged(eval_ctx, depsgraph, bmain, scene);
+}

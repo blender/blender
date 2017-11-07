@@ -28,6 +28,9 @@
 #include "BLI_compiler_attrs.h"
 
 struct bScreen;
+struct EvaluationContext;
+struct Main;
+struct Scene;
 struct TransformOrientation;
 
 /**
@@ -120,6 +123,12 @@ struct ViewRender *BKE_workspace_view_render_get(struct WorkSpace *workspace) GE
 /* flags */
 bool BKE_workspace_use_scene_settings_get(const struct WorkSpace *workspace) GETTER_ATTRS;
 void BKE_workspace_use_scene_settings_set(struct WorkSpace *workspace, bool value) SETTER_ATTRS;
+
+/* Update / evaluate */
+void BKE_workspace_update_tagged(struct EvaluationContext *eval_ctx,
+                                 struct Main *bmain,
+                                 struct WorkSpace *workspace,
+                                 struct Scene *scene);
 
 #undef GETTER_ATTRS
 #undef SETTER_ATTRS

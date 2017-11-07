@@ -89,6 +89,7 @@ void DEG_evaluation_context_init_from_scene(EvaluationContext *eval_ctx,
 	eval_ctx->scene_layer = scene_layer;
 	eval_ctx->engine = engine;
 	eval_ctx->ctime = BKE_scene_frame_get(scene);
+	BLI_assert(eval_ctx->depsgraph != NULL);
 }
 
 /* Free evaluation context. */

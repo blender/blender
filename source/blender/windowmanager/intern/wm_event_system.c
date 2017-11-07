@@ -311,13 +311,8 @@ void wm_event_do_refresh_wm_and_depsgraph(bContext *C)
 			/* XXX, hack so operators can enforce datamasks [#26482], gl render */
 			scene->customdata_mask |= scene->customdata_mask_modal;
 
-			for (SceneLayer *scene_layer = scene->render_layers.first;
-			     scene_layer != NULL;
-			     scene_layer = scene_layer->next)
-			{
-				Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, scene_layer, true);
-				BKE_scene_graph_update_tagged(bmain->eval_ctx, depsgraph, bmain, scene);
-			}
+			WorkSpace *workspace = WM_window_get_active_workspace(win);
+			BKE_workspace_update_tagged(bmain->eval_ctx, bmain, workspace, scene);
 		}
 	}
 

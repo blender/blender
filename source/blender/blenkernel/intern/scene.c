@@ -1587,6 +1587,9 @@ static void prepare_mesh_for_viewport_render(Main *bmain, Scene *scene)
 	}
 }
 
+/* TODO(sergey): This actually should become scene_layer_graph or so.
+ * Same applies to update_for_newframe.
+ */
 void BKE_scene_graph_update_tagged(EvaluationContext *eval_ctx,
                                    Depsgraph *depsgraph,
                                    Main *bmain,
@@ -2436,10 +2439,37 @@ Depsgraph *BKE_scene_get_depsgraph(Scene *scene,
                                    SceneLayer *scene_layer,
                                    bool allocate)
 {
-	(void) scene_layer;
-	Depsgraph *depsgraph = scene->depsgraph_legacy;
-	if (depsgraph == NULL && allocate) {
-		scene->depsgraph_legacy = depsgraph = DEG_graph_new();
+	BLI_assert(scene != NULL);
+	BLI_assert(scene_layer != NULL);
+	/* Make sure hash itself exists. */
+	if (allocate) {
+		BKE_scene_ensure_depsgraph_hash(scene);
+	}
+	if (scene->depsgraph_hash == NULL) {
+		return NULL;
+	}
+	/* Either ensure item is in the hash or simply return NULL if it's not,
+	 * depending on whether caller wants us to create depsgraph or not.
+	 */
+	DepsgraphKey key;
+	key.scene_layer = scene_layer;
+	Depsgraph *depsgraph;
+	if (allocate) {
+		DepsgraphKey **key_ptr;
+		Depsgraph **depsgraph_ptr;
+		if (!BLI_ghash_ensure_p_ex(scene->depsgraph_hash,
+		                           &key,
+		                           (void***)&key_ptr,
+		                           (void***)&depsgraph_ptr))
+		{
+			*key_ptr = MEM_mallocN(sizeof(DepsgraphKey), __func__);
+			**key_ptr = key;
+			*depsgraph_ptr = DEG_graph_new();
+		}
+		depsgraph = *depsgraph_ptr;
+	}
+	else {
+		depsgraph = BLI_ghash_lookup(scene->depsgraph_hash, &key);
 	}
 	return depsgraph;
 }
