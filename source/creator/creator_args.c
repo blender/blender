@@ -90,6 +90,7 @@
 #endif
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "creator_intern.h"  /* own include */
 
@@ -426,6 +427,28 @@ static void arg_py_context_restore(
 
 /** \} */
 
+static void render_set_depgraph(bContext *C, Render *re)
+{
+	/* TODO(sergey): For until we make depsgraph to be created and
+	 * handled by render pipeline.
+	 */
+	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
+	/* NOTE: This is STUPID to use first layer, but is ok for now
+	 * (at least for until depsgraph becomes per-layer).
+	 * Apparently, CTX_data_layer is crashing here (context's layer
+	 * is NULL for old files, and there is no workspace).
+	 */
+	SceneLayer *scene_layer = scene->render_layers.first;
+	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, scene_layer);
+	/* TODO(sergey): This is a temporary solution. */
+	if (depsgraph == NULL) {
+		scene->depsgraph_legacy = depsgraph = DEG_graph_new();
+		DEG_graph_build_from_scene(depsgraph, bmain, scene);
+		DEG_graph_on_visible_update(bmain, depsgraph);
+	}
+	RE_SetDepsgraph(re, depsgraph);
+}
 
 /* -------------------------------------------------------------------- */
 
@@ -1354,8 +1377,8 @@ static int arg_handle_render_frame(int argc, const char **argv, void *data)
 			re = RE_NewSceneRender(scene);
 			BLI_begin_threaded_malloc();
 			BKE_reports_init(&reports, RPT_STORE);
-
 			RE_SetReports(re, &reports);
+			render_set_depgraph(C, re);
 			for (int i = 0; i < frames_range_len; i++) {
 				/* We could pass in frame ranges,
 				 * but prefer having exact behavior as passing in multiple frames */
@@ -1398,6 +1421,7 @@ static int arg_handle_render_animation(int UNUSED(argc), const char **UNUSED(arg
 		BLI_begin_threaded_malloc();
 		BKE_reports_init(&reports, RPT_STORE);
 		RE_SetReports(re, &reports);
+		render_set_depgraph(C, re);
 		RE_BlenderAnim(re, bmain, scene, NULL, scene->lay, scene->r.sfra, scene->r.efra, scene->r.frame_step);
 		RE_SetReports(re, NULL);
 		BKE_reports_clear(&reports);
