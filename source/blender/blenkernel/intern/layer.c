@@ -1800,6 +1800,7 @@ void BKE_renderable_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
 
 	data->iter.set = NULL;
 
+	iter->valid = true;
 	iter->data = data_in;
 	BKE_renderable_objects_iterator_next(iter);
 }
