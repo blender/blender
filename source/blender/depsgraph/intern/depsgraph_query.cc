@@ -209,8 +209,11 @@ static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 	return false;
 }
 
-static void def_objects_iterator_step(BLI_Iterator *iter, DEG::IDDepsNode *id_node)
+static void deg_objects_iterator_step(BLI_Iterator *iter, DEG::IDDepsNode *id_node)
 {
+	/* Reset the skip in case we are running from within a loop. */
+	iter->skip = false;
+
 	DEGObjectsIteratorData *data = (DEGObjectsIteratorData *)iter->data;
 	const ID_Type id_type = GS(id_node->id_orig->name);
 
@@ -270,35 +273,41 @@ void DEG_objects_iterator_begin(BLI_Iterator *iter, DEGObjectsIteratorData *data
 	BLI_ghashIterator_init(&data->gh_iter, deg_graph->id_hash);
 
 	DEG::IDDepsNode *id_node = (DEG::IDDepsNode *) BLI_ghashIterator_getValue(&data->gh_iter);
-	def_objects_iterator_step(iter, id_node);
+	deg_objects_iterator_step(iter, id_node);
+
+	if (iter->valid && iter->skip) {
+		DEG_objects_iterator_next(iter);
+	}
 }
 
 void DEG_objects_iterator_next(BLI_Iterator *iter)
 {
 	DEGObjectsIteratorData *data = (DEGObjectsIteratorData *)iter->data;
+	do {
+		if (data->dupli_list) {
+			if (deg_objects_dupli_iterator_next(iter)) {
+				return;
+			}
+			else {
+				free_object_duplilist(data->dupli_list);
+				data->dupli_parent = NULL;
+				data->dupli_list = NULL;
+				data->dupli_object_next = NULL;
+				data->dupli_object_current = NULL;
+			}
+		}
 
-	if (data->dupli_list) {
-		if (deg_objects_dupli_iterator_next(iter)) {
+		BLI_ghashIterator_step(&data->gh_iter);
+		if (BLI_ghashIterator_done(&data->gh_iter)) {
+			iter->current = NULL;
+			iter->valid = false;
 			return;
 		}
-		else {
-			free_object_duplilist(data->dupli_list);
-			data->dupli_parent = NULL;
-			data->dupli_list = NULL;
-			data->dupli_object_next = NULL;
-			data->dupli_object_current = NULL;
-		}
-	}
 
-	BLI_ghashIterator_step(&data->gh_iter);
-	if (BLI_ghashIterator_done(&data->gh_iter)) {
-		iter->current = NULL;
-		iter->valid = false;
-		return;
-	}
+		DEG::IDDepsNode *id_node = (DEG::IDDepsNode *) BLI_ghashIterator_getValue(&data->gh_iter);
 
-	DEG::IDDepsNode *id_node = (DEG::IDDepsNode *) BLI_ghashIterator_getValue(&data->gh_iter);
-	def_objects_iterator_step(iter, id_node);
+		deg_objects_iterator_step(iter, id_node);
+	} while (iter->valid && iter->skip);
 }
 
 void DEG_objects_iterator_end(BLI_Iterator *iter)
