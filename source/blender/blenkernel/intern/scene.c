@@ -1660,27 +1660,6 @@ void BKE_scene_graph_update_for_newframe(EvaluationContext *eval_ctx,
 	DEG_ids_clear_recalc(bmain);
 }
 
-static void scene_ensure_legacy_depsgraph(Main *bmain, Scene *scene)
-{
-	if (scene->depsgraph_legacy == NULL) {
-		scene->depsgraph_legacy = DEG_graph_new();
-		DEG_graph_build_from_scene(scene->depsgraph_legacy, bmain, scene);
-		/* TODO(sergey): When we first create dependency graph we consider
-		 * it is first time became visible. This is true for viewports, but
-		 * will fail when render engines will start having their own graphs.
-		 */
-		DEG_graph_on_visible_update(bmain, scene->depsgraph_legacy);
-	}
-}
-
-void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *scene)
-{
-	/* Make sure graph is allocated. This is not always guaranteed now. */
-	scene_ensure_legacy_depsgraph(bmain, scene);
-	/* Do actual graph evaluation. */
-	BKE_scene_graph_update_tagged(eval_ctx, scene->depsgraph_legacy, bmain, scene);
-}
-
 /* return default layer, also used to patch old files */
 SceneRenderLayer *BKE_scene_add_render_layer(Scene *sce, const char *name)
 {
