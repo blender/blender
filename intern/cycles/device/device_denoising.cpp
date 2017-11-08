@@ -20,6 +20,27 @@
 
 CCL_NAMESPACE_BEGIN
 
+DenoisingTask::DenoisingTask(Device *device)
+: tiles_mem(device, "denoising tiles_mem", MEM_READ_WRITE),
+  storage(device),
+  buffer(device),
+  device(device)
+{
+}
+
+DenoisingTask::~DenoisingTask()
+{
+	storage.XtWX.free();
+	storage.XtWY.free();
+	storage.transform.free();
+	storage.rank.free();
+	storage.temporary_1.free();
+	storage.temporary_2.free();
+	storage.temporary_color.free();
+	buffer.mem.free();
+	tiles_mem.free();
+}
+
 void DenoisingTask::init_from_devicetask(const DeviceTask &task)
 {
 	radius = task.denoising_radius;
@@ -75,7 +96,7 @@ bool DenoisingTask::run_denoising()
 	buffer.w = align_up(rect.z - rect.x, 4);
 	buffer.h = rect.w - rect.y;
 	buffer.pass_stride = align_up(buffer.w * buffer.h, divide_up(device->mem_address_alignment(), sizeof(float)));
-	buffer.mem.alloc_to_device(buffer.pass_stride * buffer.passes);
+	buffer.mem.alloc_to_device(buffer.pass_stride * buffer.passes, false);
 
 	device_ptr null_ptr = (device_ptr) 0;
 
@@ -159,11 +180,10 @@ bool DenoisingTask::run_denoising()
 		int variance_to[]   = {11, 12, 13};
 		int num_color_passes = 3;
 
-		device_only_memory<float> temp_color(device, "Denoising temporary color");
-		temp_color.alloc_to_device(3*buffer.pass_stride);
+		storage.temporary_color.alloc_to_device(3*buffer.pass_stride, false);
 
 		for(int pass = 0; pass < num_color_passes; pass++) {
-			device_sub_ptr color_pass(temp_color, pass*buffer.pass_stride, buffer.pass_stride);
+			device_sub_ptr color_pass(storage.temporary_color, pass*buffer.pass_stride, buffer.pass_stride);
 			device_sub_ptr color_var_pass(buffer.mem, variance_to[pass]*buffer.pass_stride, buffer.pass_stride);
 			functions.get_feature(mean_from[pass], variance_from[pass], *color_pass, *color_var_pass);
 		}
@@ -172,28 +192,24 @@ bool DenoisingTask::run_denoising()
 			device_sub_ptr depth_pass    (buffer.mem,                                 0,   buffer.pass_stride);
 			device_sub_ptr color_var_pass(buffer.mem, variance_to[0]*buffer.pass_stride, 3*buffer.pass_stride);
 			device_sub_ptr output_pass   (buffer.mem,     mean_to[0]*buffer.pass_stride, 3*buffer.pass_stride);
-			functions.detect_outliers(temp_color.device_pointer, *color_var_pass, *depth_pass, *output_pass);
+			functions.detect_outliers(storage.temporary_color.device_pointer, *color_var_pass, *depth_pass, *output_pass);
 		}
-
-		temp_color.free();
 	}
 
 	storage.w = filter_area.z;
 	storage.h = filter_area.w;
-	storage.transform.alloc_to_device(storage.w*storage.h*TRANSFORM_SIZE);
-	storage.rank.alloc_to_device(storage.w*storage.h);
+	storage.transform.alloc_to_device(storage.w*storage.h*TRANSFORM_SIZE, false);
+	storage.rank.alloc_to_device(storage.w*storage.h, false);
 
 	functions.construct_transform();
 
-	device_only_memory<float> temporary_1(device, "Denoising NLM temporary 1");
-	device_only_memory<float> temporary_2(device, "Denoising NLM temporary 2");
-	temporary_1.alloc_to_device(buffer.w*buffer.h);
-	temporary_2.alloc_to_device(buffer.w*buffer.h);
-	reconstruction_state.temporary_1_ptr = temporary_1.device_pointer;
-	reconstruction_state.temporary_2_ptr = temporary_2.device_pointer;
+	storage.temporary_1.alloc_to_device(buffer.w*buffer.h, false);
+	storage.temporary_2.alloc_to_device(buffer.w*buffer.h, false);
+	reconstruction_state.temporary_1_ptr = storage.temporary_1.device_pointer;
+	reconstruction_state.temporary_2_ptr = storage.temporary_2.device_pointer;
 
-	storage.XtWX.alloc_to_device(storage.w*storage.h*XTWX_SIZE);
-	storage.XtWY.alloc_to_device(storage.w*storage.h*XTWY_SIZE);
+	storage.XtWX.alloc_to_device(storage.w*storage.h*XTWX_SIZE, false);
+	storage.XtWY.alloc_to_device(storage.w*storage.h*XTWY_SIZE, false);
 
 	reconstruction_state.filter_rect = make_int4(filter_area.x-rect.x, filter_area.y-rect.y, storage.w, storage.h);
 	int tile_coordinate_offset = filter_area.y*render_buffer.stride + filter_area.x;
@@ -210,14 +226,6 @@ bool DenoisingTask::run_denoising()
 		functions.reconstruct(*color_ptr, *color_var_ptr, render_buffer.ptr);
 	}
 
-	storage.XtWX.free();
-	storage.XtWY.free();
-	storage.transform.free();
-	storage.rank.free();
-	temporary_1.free();
-	temporary_2.free();
-	buffer.mem.free();
-	tiles_mem.free();
 	return true;
 }
 

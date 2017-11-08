@@ -360,7 +360,7 @@ public:
 	void film_convert(DeviceTask& task, device_ptr buffer, device_ptr rgba_byte, device_ptr rgba_half);
 	void shader(DeviceTask& task);
 
-	void denoise(RenderTile& tile, const DeviceTask& task);
+	void denoise(RenderTile& tile, DenoisingTask& denoising, const DeviceTask& task);
 
 	class OpenCLDeviceTask : public DeviceTask {
 	public:

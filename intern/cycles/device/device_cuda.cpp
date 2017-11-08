@@ -1408,10 +1408,8 @@ public:
 		return !have_error();
 	}
 
-	void denoise(RenderTile &rtile, const DeviceTask &task)
+	void denoise(RenderTile &rtile, DenoisingTask& denoising, const DeviceTask &task)
 	{
-		DenoisingTask denoising(this);
-
 		denoising.functions.construct_transform = function_bind(&CUDADevice::denoising_construct_transform, this, &denoising);
 		denoising.functions.reconstruct = function_bind(&CUDADevice::denoising_reconstruct, this, _1, _2, _3, &denoising);
 		denoising.functions.divide_shadow = function_bind(&CUDADevice::denoising_divide_shadow, this, _1, _2, _3, _4, _5, &denoising);
@@ -1857,8 +1855,6 @@ public:
 		CUDAContextScope scope(this);
 
 		if(task->type == DeviceTask::RENDER) {
-			RenderTile tile;
-
 			DeviceRequestedFeatures requested_features;
 			if(use_split_kernel()) {
 				if(split_kernel == NULL) {
@@ -1870,6 +1866,9 @@ public:
 			device_vector<WorkTile> work_tiles(this, "work_tiles", MEM_READ_ONLY);
 
 			/* keep rendering tiles until done */
+			RenderTile tile;
+			DenoisingTask denoising(this);
+
 			while(task->acquire_tile(this, tile)) {
 				if(tile.task == RenderTile::PATH_TRACE) {
 					if(use_split_kernel()) {
@@ -1883,7 +1882,7 @@ public:
 				else if(tile.task == RenderTile::DENOISE) {
 					tile.sample = tile.start_sample + tile.num_samples;
 
-					denoise(tile, *task);
+					denoise(tile, denoising, *task);
 
 					task->update_progress(&tile, tile.w*tile.h);
 				}
