@@ -282,6 +282,7 @@ IDDepsNode *Depsgraph::add_id_node(ID *id, const char *name)
 		id->tag |= LIB_TAG_DOIT;
 		/* register */
 		BLI_ghash_insert(id_hash, id, id_node);
+		id_nodes.push_back(id_node);
 	}
 	return id_node;
 }
@@ -289,6 +290,7 @@ IDDepsNode *Depsgraph::add_id_node(ID *id, const char *name)
 void Depsgraph::clear_id_nodes()
 {
 	BLI_ghash_clear(id_hash, NULL, id_node_deleter);
+	id_nodes.clear();
 }
 
 /* Add new relationship between two nodes. */
@@ -410,7 +412,6 @@ void Depsgraph::add_entry_tag(OperationDepsNode *node)
 void Depsgraph::clear_all_nodes()
 {
 	clear_id_nodes();
-	BLI_ghash_clear(id_hash, NULL, NULL);
 	if (time_source != NULL) {
 		OBJECT_GUARDED_DELETE(time_source, TimeSourceDepsNode);
 		time_source = NULL;
