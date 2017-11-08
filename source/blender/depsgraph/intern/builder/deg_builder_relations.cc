@@ -1729,6 +1729,9 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 		else if (id_type == ID_TE) {
 			build_texture((Tex *)bnode->id);
 		}
+		else if (id_type == ID_IM) {
+			/* nothing for now. */
+		}
 		else if (bnode->type == NODE_GROUP) {
 			bNodeTree *group_ntree = (bNodeTree *)id;
 			if ((group_ntree->id.tag & LIB_TAG_DOIT) == 0) {
