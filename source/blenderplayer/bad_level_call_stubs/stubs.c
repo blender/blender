@@ -246,7 +246,7 @@ void RE_SetActiveRenderView(struct Render *re, const char *viewname) RET_NONE
 
 struct RenderPass *RE_pass_find_by_name(volatile struct RenderLayer *rl, const char *name, const char *viewname) RET_NULL
 struct RenderPass *RE_pass_find_by_type(volatile struct RenderLayer *rl, int passtype, const char *viewname) RET_NULL
-bool RE_HasFakeLayer(RenderResult *res) RET_ZERO
+bool RE_HasCombinedLayer(RenderResult *res) RET_ZERO
 
 /* zbuf.c stub */
 void antialias_tagbuf(int xsize, int ysize, char *rectmove) RET_NONE
