@@ -246,13 +246,18 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 		if (BLI_listbase_is_empty(&G.main->wm)) {
 			bScreen *screen = NULL;
 
-			/* when loading without UI, no matching needed */
-			if (!(G.fileflags & G_FILE_NO_UI) && (screen = CTX_wm_screen(C))) {
+			/* match oldwm to new dbase, only old files */
+			for (wm = oldwmlist->first; wm; wm = wm->id.next) {
+				wm->initialized &= ~WM_INIT_WINDOW;
 
-				/* match oldwm to new dbase, only old files */
-				for (wm = oldwmlist->first; wm; wm = wm->id.next) {
+				/* when loading without UI, no matching needed */
+				if (!(G.fileflags & G_FILE_NO_UI) && (screen = CTX_wm_screen(C))) {
 					for (win = wm->windows.first; win; win = win->next) {
-						WorkSpace *workspace = WM_window_get_active_workspace(win);
+						WorkSpace *workspace;
+
+						BKE_workspace_layout_find_global(G.main, screen, &workspace);
+						BKE_workspace_active_set(win->workspace_hook, workspace);
+						win->scene = CTX_data_scene(C);
 
 						/* all windows get active screen from file */
 						if (screen->winid == 0) {
@@ -271,11 +276,8 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 					}
 				}
 			}
-			
+
 			G.main->wm = *oldwmlist;
-			
-			/* screens were read from file! */
-			ED_screens_initialize(G.main->wm.first);
 		}
 		else {
 			bool has_match = false;
