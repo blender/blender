@@ -93,7 +93,9 @@ struct DepsRelation {
 
 /* Dependency Graph object */
 struct Depsgraph {
+	// TODO(sergey): Go away from C++ container and use some native BLI.
 	typedef vector<OperationDepsNode *> OperationNodes;
+	typedef vector<IDDepsNode *> IDDepsNodes;
 
 	Depsgraph();
 	~Depsgraph();
@@ -139,9 +141,16 @@ struct Depsgraph {
 
 	/* Core Graph Functionality ........... */
 
-	/* <ID : IDDepsNode> mapping from ID blocks to nodes representing these blocks
-	 * (for quick lookups). */
+	/* <ID : IDDepsNode> mapping from ID blocks to nodes representing these
+	 * blocks, used for quick lookups.
+	 */
 	GHash *id_hash;
+
+	/* Ordered list of ID nodes, order matches ID allocation order.
+	 * Used for faster iteration, especially for areas which are critical to
+	 * keep exact order of iteration.
+	 */
+	IDDepsNodes id_nodes;
 
 	/* Top-level time source node. */
 	TimeSourceDepsNode *time_source;
