@@ -1722,10 +1722,11 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 		if (id == NULL) {
 			continue;
 		}
-		if (GS(id->name) == ID_MA) {
+		ID_Type id_type = GS(id->name);
+		if (id_type == ID_MA) {
 			build_material((Material *)bnode->id);
 		}
-		else if (bnode->type == ID_TE) {
+		else if (id_type == ID_TE) {
 			build_texture((Tex *)bnode->id);
 		}
 		else if (bnode->type == NODE_GROUP) {
