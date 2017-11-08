@@ -252,7 +252,7 @@ protected:
 	bool needs_animdata_node(ID *id);
 
 private:
-	Depsgraph *m_graph;
+	Depsgraph *graph_;
 };
 
 struct DepsNodeHandle

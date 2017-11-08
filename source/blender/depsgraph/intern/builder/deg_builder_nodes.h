@@ -156,8 +156,8 @@ struct DepsgraphNodeBuilder {
 	void build_movieclip(MovieClip *clip);
 
 protected:
-	Main *m_bmain;
-	Depsgraph *m_graph;
+	Main *bmain_;
+	Depsgraph *graph_;
 };
 
 }  // namespace DEG

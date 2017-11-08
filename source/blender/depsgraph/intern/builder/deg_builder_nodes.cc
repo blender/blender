@@ -153,8 +153,8 @@ void constraint_walk(bConstraint * /*con*/,
 /* **** General purpose functions **** */
 
 DepsgraphNodeBuilder::DepsgraphNodeBuilder(Main *bmain, Depsgraph *graph) :
-    m_bmain(bmain),
-    m_graph(graph)
+    bmain_(bmain),
+    graph_(graph)
 {
 }
 
@@ -164,12 +164,12 @@ DepsgraphNodeBuilder::~DepsgraphNodeBuilder()
 
 IDDepsNode *DepsgraphNodeBuilder::add_id_node(ID *id)
 {
-	return m_graph->add_id_node(id, id->name);
+	return graph_->add_id_node(id, id->name);
 }
 
 TimeSourceDepsNode *DepsgraphNodeBuilder::add_time_source()
 {
-	return m_graph->add_time_source();
+	return graph_->add_time_source();
 }
 
 ComponentDepsNode *DepsgraphNodeBuilder::add_component_node(
@@ -195,7 +195,7 @@ OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
 	                                                      name_tag);
 	if (op_node == NULL) {
 		op_node = comp_node->add_operation(op, opcode, name, name_tag);
-		m_graph->operations.push_back(op_node);
+		graph_->operations.push_back(op_node);
 	}
 	else {
 		fprintf(stderr,
@@ -315,7 +315,7 @@ void DepsgraphNodeBuilder::build_object(Scene *scene, Base *base, Object *ob)
 {
 	const bool has_object = (ob->id.tag & LIB_TAG_DOIT);
 	IDDepsNode *id_node = (has_object)
-	        ? m_graph->find_id_node(&ob->id)
+	        ? graph_->find_id_node(&ob->id)
 	        : add_id_node(&ob->id);
 	/* Update node layers.
 	 * Do it for both new and existing ID nodes. This is so because several

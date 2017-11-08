@@ -194,7 +194,7 @@ RNAPathKey::RNAPathKey(ID *id, const char *path) :
 }
 
 DepsgraphRelationBuilder::DepsgraphRelationBuilder(Depsgraph *graph) :
-    m_graph(graph)
+    graph_(graph)
 {
 }
 
@@ -206,14 +206,14 @@ TimeSourceDepsNode *DepsgraphRelationBuilder::find_node(
 		return NULL;
 	}
 	else {
-		return m_graph->time_source;
+		return graph_->time_source;
 	}
 }
 
 ComponentDepsNode *DepsgraphRelationBuilder::find_node(
         const ComponentKey &key) const
 {
-	IDDepsNode *id_node = m_graph->find_id_node(key.id);
+	IDDepsNode *id_node = graph_->find_id_node(key.id);
 	if (!id_node) {
 		fprintf(stderr, "find_node component: Could not find ID %s\n",
 		        (key.id != NULL) ? key.id->name : "<null>");
@@ -227,7 +227,7 @@ ComponentDepsNode *DepsgraphRelationBuilder::find_node(
 OperationDepsNode *DepsgraphRelationBuilder::find_node(
         const OperationKey &key) const
 {
-	IDDepsNode *id_node = m_graph->find_id_node(key.id);
+	IDDepsNode *id_node = graph_->find_id_node(key.id);
 	if (!id_node) {
 		fprintf(stderr, "find_node operation: Could not find ID\n");
 		return NULL;
@@ -252,13 +252,13 @@ OperationDepsNode *DepsgraphRelationBuilder::find_node(
 
 DepsNode *DepsgraphRelationBuilder::find_node(const RNAPathKey &key) const
 {
-	return m_graph->find_node_from_pointer(&key.ptr, key.prop);
+	return graph_->find_node_from_pointer(&key.ptr, key.prop);
 }
 
 OperationDepsNode *DepsgraphRelationBuilder::has_node(
         const OperationKey &key) const
 {
-	IDDepsNode *id_node = m_graph->find_id_node(key.id);
+	IDDepsNode *id_node = graph_->find_id_node(key.id);
 	if (!id_node) {
 		return NULL;
 	}
@@ -275,7 +275,7 @@ void DepsgraphRelationBuilder::add_time_relation(TimeSourceDepsNode *timesrc,
                                                  const char *description)
 {
 	if (timesrc && node_to) {
-		m_graph->add_new_relation(timesrc, node_to, description);
+		graph_->add_new_relation(timesrc, node_to, description);
 	}
 	else {
 		DEG_DEBUG_PRINTF("add_time_relation(%p = %s, %p = %s, %s) Failed\n",
@@ -291,7 +291,7 @@ void DepsgraphRelationBuilder::add_operation_relation(
         const char *description)
 {
 	if (node_from && node_to) {
-		m_graph->add_new_relation(node_from, node_to, description);
+		graph_->add_new_relation(node_from, node_to, description);
 	}
 	else {
 		DEG_DEBUG_PRINTF("add_operation_relation(%p = %s, %p = %s, %s) Failed\n",
@@ -366,7 +366,7 @@ void DepsgraphRelationBuilder::add_forcefield_relations(const OperationKey &key,
 
 Depsgraph *DepsgraphRelationBuilder::getGraph()
 {
-	return m_graph;
+	return graph_;
 }
 
 /* **** Functions to build relations between entities  **** */
@@ -1019,7 +1019,7 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 		/* Drivers on armature-level bone settings (i.e. bbone stuff),
 		 * which will affect the evaluation of corresponding pose bones.
 		 */
-		IDDepsNode *arm_node = m_graph->find_id_node(id);
+		IDDepsNode *arm_node = graph_->find_id_node(id);
 		char *bone_name = BLI_str_quoted_substrN(rna_path, "bones[");
 
 		if (arm_node && bone_name) {
