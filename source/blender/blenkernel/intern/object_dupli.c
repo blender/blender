@@ -75,6 +75,7 @@ typedef struct DupliContext {
 	Group *group; /* XXX child objects are selected from this group if set, could be nicer */
 
 	Scene *scene;
+	SceneLayer *scene_layer;
 	Object *object;
 	float space_mat[4][4];
 
@@ -99,6 +100,7 @@ static void init_context(DupliContext *r_ctx, const EvaluationContext *eval_ctx,
 {
 	r_ctx->eval_ctx = eval_ctx;
 	r_ctx->scene = scene;
+	r_ctx->scene_layer = eval_ctx->scene_layer;
 	/* don't allow BKE_object_handle_update for viewport during render, can crash */
 	r_ctx->do_update = update && !(G.is_rendering && eval_ctx->mode != DAG_EVAL_RENDER);
 	r_ctx->animated = false;
@@ -255,13 +257,11 @@ static void make_child_duplis(const DupliContext *ctx, void *userdata, MakeChild
 		}
 	}
 	else {
-		unsigned int lay = ctx->scene->lay;
 		int baseid = 0;
-		BaseLegacy *base;
-		for (base = ctx->scene->base.first; base; base = base->next, baseid++) {
+		SceneLayer *scene_layer = ctx->scene_layer;
+		for (Base *base = scene_layer->object_bases.first; base; base = base->next, baseid++) {
 			Object *ob = base->object;
-
-			if ((base->lay & lay) && ob != obedit && is_child(ob, parent)) {
+			if ((base->flag & BASE_VISIBLED) && ob != obedit && is_child(ob, parent)) {
 				DupliContext pctx;
 				copy_dupli_context(&pctx, ctx, ctx->object, NULL, baseid, false);
 

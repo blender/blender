@@ -134,7 +134,7 @@ static bool deg_flush_base_flags_and_settings(
 {
 	Base *base;
 	Depsgraph *graph = data->graph;
-	SceneLayer *scene_layer = DEG_get_evaluated_scene_layer(graph);
+	SceneLayer *scene_layer = data->eval_ctx.scene_layer;
 	int flag = is_dupli ? BASE_FROMDUPLI : 0;
 
 	/* First attempt, see if object is in the current SceneLayer. */
@@ -261,6 +261,7 @@ void DEG_objects_iterator_begin(BLI_Iterator *iter, DEGObjectsIteratorData *data
 	iter->data = data;
 
 	DEG_evaluation_context_init(&data->eval_ctx, DAG_EVAL_RENDER);
+	data->eval_ctx.scene_layer = DEG_get_evaluated_scene_layer(graph);
 
 	data->dupli_parent = NULL;
 	data->dupli_list = NULL;
