@@ -238,7 +238,6 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 	const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
 
 	sce_dst->ed = NULL;
-	sce_dst->depsgraph_legacy = NULL;
 	sce_dst->depsgraph_hash = NULL;
 	sce_dst->obedit = NULL;
 	sce_dst->fps_info = NULL;
@@ -2423,8 +2422,6 @@ void BKE_scene_ensure_depsgraph_hash(Scene *scene)
 
 void BKE_scene_free_depsgraph_hash(Scene *scene)
 {
-	/* TODO(sergey): Keep this for until we get rid of depsgraph_legacy. */
-	DEG_graph_free(scene->depsgraph_legacy);
 	if (scene->depsgraph_hash == NULL) {
 		return;
 	}

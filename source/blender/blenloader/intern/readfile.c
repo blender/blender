@@ -6106,7 +6106,6 @@ static void direct_link_scene(FileData *fd, Scene *sce, Main *bmain)
 	SceneLayer *sl;
 	SceneRenderLayer *srl;
 	
-	sce->depsgraph_legacy = NULL;
 	sce->depsgraph_hash = NULL;
 	sce->obedit = NULL;
 	sce->fps_info = NULL;
