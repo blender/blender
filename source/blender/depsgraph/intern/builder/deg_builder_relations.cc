@@ -117,7 +117,6 @@ namespace {
 
 struct BuilderWalkUserData {
 	DepsgraphRelationBuilder *builder;
-	Main *bmain;
 	Scene *scene;
 };
 
@@ -128,7 +127,7 @@ static void modifier_walk(void *user_data,
 {
 	BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
 	if (*obpoin) {
-		data->builder->build_object(data->bmain, data->scene, *obpoin);
+		data->builder->build_object(data->scene, *obpoin);
 	}
 }
 
@@ -141,7 +140,7 @@ void constraint_walk(bConstraint * /*con*/,
 	if (*idpoin) {
 		ID *id = *idpoin;
 		if (GS(id->name) == ID_OB) {
-			data->builder->build_object(data->bmain, data->scene, (Object *)id);
+			data->builder->build_object(data->scene, (Object *)id);
 		}
 	}
 }
@@ -391,8 +390,7 @@ void DepsgraphRelationBuilder::begin_build()
 	FOREACH_NODETREE_END;
 }
 
-void DepsgraphRelationBuilder::build_group(Main *bmain,
-                                           Scene *scene,
+void DepsgraphRelationBuilder::build_group(Scene *scene,
                                            Object *object,
                                            Group *group)
 {
@@ -403,7 +401,7 @@ void DepsgraphRelationBuilder::build_group(Main *bmain,
 	                                        DEG_OPCODE_TRANSFORM_LOCAL);
 	LINKLIST_FOREACH (GroupObject *, go, &group->gobject) {
 		if (!group_done) {
-			build_object(bmain, scene, go->ob);
+			build_object(scene, go->ob);
 		}
 		ComponentKey dupli_transform_key(&go->ob->id, DEG_NODE_TYPE_TRANSFORM);
 		add_relation(dupli_transform_key, object_local_transform_key, "Dupligroup");
@@ -411,7 +409,7 @@ void DepsgraphRelationBuilder::build_group(Main *bmain,
 	group_id->tag |= LIB_TAG_DOIT;
 }
 
-void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *ob)
+void DepsgraphRelationBuilder::build_object(Scene *scene, Object *ob)
 {
 	if (ob->id.tag & LIB_TAG_DOIT) {
 		return;
@@ -440,14 +438,12 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 	if (ob->modifiers.first != NULL) {
 		BuilderWalkUserData data;
 		data.builder = this;
-		data.bmain = bmain;
 		data.scene = scene;
 		modifiers_foreachObjectLink(ob, modifier_walk, &data);
 	}
 	if (ob->constraints.first != NULL) {
 		BuilderWalkUserData data;
 		data.builder = this;
-		data.bmain = bmain;
 		data.scene = scene;
 		BKE_constraints_id_loop(&ob->constraints, constraint_walk, &data);
 	}
@@ -515,7 +511,7 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 			case OB_MBALL:
 			case OB_LATTICE:
 			{
-				build_obdata_geom(bmain, scene, ob);
+				build_obdata_geom(scene, ob);
 				break;
 			}
 
@@ -558,7 +554,7 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 	/* Object that this is a proxy for. */
 	if (ob->proxy != NULL) {
 		ob->proxy->proxy_from = ob;
-		build_object(bmain, scene, ob->proxy);
+		build_object(scene, ob->proxy);
 		/* TODO(sergey): This is an inverted relation, matches old depsgraph
 		 * behavior and need to be investigated if it still need to be inverted.
 		 */
@@ -569,7 +565,7 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 
 	/* Object dupligroup. */
 	if (ob->dup_group != NULL) {
-		build_group(bmain, scene, ob, ob->dup_group);
+		build_group(scene, ob, ob->dup_group);
 	}
 }
 
@@ -1473,7 +1469,7 @@ void DepsgraphRelationBuilder::build_shapekeys(ID *obdata, Key *key)
  *   re-evaluation of the individual instances of this geometry.
  */
 // TODO: Materials and lighting should probably get their own component, instead of being lumped under geometry?
-void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Object *ob)
+void DepsgraphRelationBuilder::build_obdata_geom(Scene *scene, Object *ob)
 {
 	ID *obdata = (ID *)ob->data;
 
@@ -1500,7 +1496,7 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 				DepsNodeHandle handle = create_node_handle(obdata_ubereval_key);
 				mti->updateDepsgraph(
 				        md,
-				        bmain,
+				        bmain_,
 				        scene,
 				        ob,
 				        reinterpret_cast< ::DepsNodeHandle* >(&handle));
@@ -1605,18 +1601,18 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 			// XXX: these needs geom data, but where is geom stored?
 			if (cu->bevobj) {
 				ComponentKey bevob_key(&cu->bevobj->id, DEG_NODE_TYPE_GEOMETRY);
-				build_object(bmain, scene, cu->bevobj);
+				build_object(scene, cu->bevobj);
 				add_relation(bevob_key, geom_key, "Curve Bevel");
 			}
 			if (cu->taperobj) {
 				ComponentKey taperob_key(&cu->taperobj->id, DEG_NODE_TYPE_GEOMETRY);
-				build_object(bmain, scene, cu->taperobj);
+				build_object(scene, cu->taperobj);
 				add_relation(taperob_key, geom_key, "Curve Taper");
 			}
 			if (ob->type == OB_FONT) {
 				if (cu->textoncurve) {
 					ComponentKey textoncurve_key(&cu->textoncurve->id, DEG_NODE_TYPE_GEOMETRY);
-					build_object(bmain, scene, cu->textoncurve);
+					build_object(scene, cu->textoncurve);
 					add_relation(textoncurve_key, geom_key, "Text on Curve");
 				}
 			}

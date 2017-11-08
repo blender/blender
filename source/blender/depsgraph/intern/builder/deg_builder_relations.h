@@ -185,8 +185,8 @@ struct DepsgraphRelationBuilder
 	                              const char *description);
 
 	void build_scene(Scene *scene);
-	void build_group(Main *bmain, Scene *scene, Object *object, Group *group);
-	void build_object(Main *bmain, Scene *scene, Object *ob);
+	void build_group(Scene *scene, Object *object, Group *group);
+	void build_object(Scene *scene, Object *ob);
 	void build_object_parent(Object *ob);
 	void build_constraints(Scene *scene, ID *id,
 	                       eDepsNode_Type component_type,
@@ -210,7 +210,7 @@ struct DepsgraphRelationBuilder
 	void build_rig(Scene *scene, Object *ob);
 	void build_proxy_rig(Object *ob);
 	void build_shapekeys(ID *obdata, Key *key);
-	void build_obdata_geom(Main *bmain, Scene *scene, Object *ob);
+	void build_obdata_geom(Scene *scene, Object *ob);
 	void build_camera(Object *ob);
 	void build_lamp(Object *ob);
 	void build_nodetree(bNodeTree *ntree);
