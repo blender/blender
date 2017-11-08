@@ -45,7 +45,7 @@ ccl_device ccl_addr_space void *closure_alloc_extra(ShaderData *sd, int size)
 	int num_extra = ((size + sizeof(ShaderClosure) - 1) / sizeof(ShaderClosure));
 
 	if(num_extra > sd->num_closure_left) {
-		/* Remove previous closure. */
+		/* Remove previous closure if it was allocated. */
 		sd->num_closure--;
 		sd->num_closure_left++;
 		return NULL;

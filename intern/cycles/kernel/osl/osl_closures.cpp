@@ -186,22 +186,22 @@ public:
 	MicrofacetBsdf *alloc(ShaderData *sd, int path_flag, float3 weight)
 	{
 		MicrofacetBsdf *bsdf = (MicrofacetBsdf*)bsdf_alloc_osl(sd, sizeof(MicrofacetBsdf), weight, &params);
-		MicrofacetExtra *extra = (MicrofacetExtra*)closure_alloc_extra(sd, sizeof(MicrofacetExtra));
-		if(bsdf && extra) {
-			bsdf->extra = extra;
-
-			bsdf->ior = 1.5f;
-
-			bsdf->alpha_x = clearcoat_roughness;
-			bsdf->alpha_y = clearcoat_roughness;
-
-			bsdf->extra->cspec0 = make_float3(0.04f, 0.04f, 0.04f);
-			bsdf->extra->clearcoat = clearcoat;
-
-			return bsdf;
+		if(!bsdf) {
+			return NULL;
 		}
 
-		return NULL;
+		MicrofacetExtra *extra = (MicrofacetExtra*)closure_alloc_extra(sd, sizeof(MicrofacetExtra));
+		if(!extra) {
+			return NULL;
+		}
+
+		bsdf->extra = extra;
+		bsdf->ior = 1.5f;
+		bsdf->alpha_x = clearcoat_roughness;
+		bsdf->alpha_y = clearcoat_roughness;
+		bsdf->extra->cspec0 = make_float3(0.04f, 0.04f, 0.04f);
+		bsdf->extra->clearcoat = clearcoat;
+		return bsdf;
 	}
 
 	void setup(ShaderData *sd, int path_flag, float3 weight)
@@ -359,18 +359,24 @@ public:
 		/* Technically, the MultiGGX Glass closure may also transmit. However,
 		* since this is set statically and only used for caustic flags, this
 		* is probably as good as it gets. */
-		if(!skip(sd, path_flag, LABEL_GLOSSY | LABEL_REFLECT)) {
-			MicrofacetBsdf *bsdf = (MicrofacetBsdf*)bsdf_alloc_osl(sd, sizeof(MicrofacetBsdf), weight, &params);
-			MicrofacetExtra *extra = (MicrofacetExtra*)closure_alloc_extra(sd, sizeof(MicrofacetExtra));
-			if(bsdf && extra) {
-				bsdf->extra = extra;
-				bsdf->extra->color = color;
-				bsdf->extra->cspec0 = cspec0;
-				return bsdf;
-			}
+		if(skip(sd, path_flag, LABEL_GLOSSY | LABEL_REFLECT)) {
+			return NULL;
 		}
 
-		return NULL;
+		MicrofacetBsdf *bsdf = (MicrofacetBsdf*)bsdf_alloc_osl(sd, sizeof(MicrofacetBsdf), weight, &params);
+		if(!bsdf) {
+			return NULL;
+		}
+
+		MicrofacetExtra *extra = (MicrofacetExtra*)closure_alloc_extra(sd, sizeof(MicrofacetExtra));
+		if(!extra) {
+			return NULL;
+		}
+
+		bsdf->extra = extra;
+		bsdf->extra->color = color;
+		bsdf->extra->cspec0 = cspec0;
+		return bsdf;
 	}
 };
 
@@ -437,17 +443,23 @@ public:
 		/* Technically, the MultiGGX closure may also transmit. However,
 		 * since this is set statically and only used for caustic flags, this
 		 * is probably as good as it gets. */
-	    if(!skip(sd, path_flag, LABEL_GLOSSY|LABEL_REFLECT)) {
-			MicrofacetBsdf *bsdf = (MicrofacetBsdf*)bsdf_alloc_osl(sd, sizeof(MicrofacetBsdf), weight, &params);
-			MicrofacetExtra *extra = (MicrofacetExtra*)closure_alloc_extra(sd, sizeof(MicrofacetExtra));
-			if(bsdf && extra) {
-				bsdf->extra = extra;
-				bsdf->extra->color = color;
-				return bsdf;
-			}
+	    if(skip(sd, path_flag, LABEL_GLOSSY|LABEL_REFLECT)) {
+			return NULL;
 		}
 
-		return NULL;
+		MicrofacetBsdf *bsdf = (MicrofacetBsdf*)bsdf_alloc_osl(sd, sizeof(MicrofacetBsdf), weight, &params);
+		if(!bsdf) {
+			return NULL;
+		}
+
+		MicrofacetExtra *extra = (MicrofacetExtra*)closure_alloc_extra(sd, sizeof(MicrofacetExtra));
+		if(!extra) {
+			return NULL;
+		}
+
+		bsdf->extra = extra;
+		bsdf->extra->color = color;
+		return bsdf;
 	}
 };
 
@@ -536,18 +548,24 @@ public:
 		/* Technically, the MultiGGX closure may also transmit. However,
 		* since this is set statically and only used for caustic flags, this
 		* is probably as good as it gets. */
-		if(!skip(sd, path_flag, LABEL_GLOSSY | LABEL_REFLECT)) {
-			MicrofacetBsdf *bsdf = (MicrofacetBsdf*)bsdf_alloc_osl(sd, sizeof(MicrofacetBsdf), weight, &params);
-			MicrofacetExtra *extra = (MicrofacetExtra*)closure_alloc_extra(sd, sizeof(MicrofacetExtra));
-			if(bsdf && extra) {
-				bsdf->extra = extra;
-				bsdf->extra->color = color;
-				bsdf->extra->cspec0 = cspec0;
-				return bsdf;
-			}
+		if(skip(sd, path_flag, LABEL_GLOSSY | LABEL_REFLECT)) {
+			return NULL;
 		}
 
-		return NULL;
+		MicrofacetBsdf *bsdf = (MicrofacetBsdf*)bsdf_alloc_osl(sd, sizeof(MicrofacetBsdf), weight, &params);
+		if(!bsdf) {
+			return NULL;
+		}
+
+		MicrofacetExtra *extra = (MicrofacetExtra*)closure_alloc_extra(sd, sizeof(MicrofacetExtra));
+		if(!extra) {
+			return NULL;
+		}
+
+		bsdf->extra = extra;
+		bsdf->extra->color = color;
+		bsdf->extra->cspec0 = cspec0;
+		return bsdf;
 	}
 };
 
