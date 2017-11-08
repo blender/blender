@@ -1990,11 +1990,9 @@ void DepsgraphRelationBuilder::build_lightprobe(Object *object)
 
 void DepsgraphRelationBuilder::build_copy_on_write_relations()
 {
-	GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, m_graph->id_hash)
-	{
+	foreach (IDDepsNode *id_node, m_graph->id_nodes) {
 		build_copy_on_write_relations(id_node);
 	}
-	GHASH_FOREACH_END();
 }
 
 void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node)

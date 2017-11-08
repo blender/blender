@@ -367,8 +367,7 @@ void DepsgraphNodeBuilder::begin_build(Main *bmain) {
 		 * them for new ID nodes.
 		 */
 		m_cow_id_hash = BLI_ghash_ptr_new("Depsgraph id hash");
-		GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, m_graph->id_hash)
-		{
+		foreach (IDDepsNode *id_node, m_graph->id_nodes) {
 			if (GS(id_node->id_orig->name) != ID_SCE) {
 				continue;
 			}
@@ -379,7 +378,6 @@ void DepsgraphNodeBuilder::begin_build(Main *bmain) {
 				id_node->id_cow = NULL;
 			}
 		}
-		GHASH_FOREACH_END();
 	}
 
 	/* Make sure graph has no nodes left from previous state. */

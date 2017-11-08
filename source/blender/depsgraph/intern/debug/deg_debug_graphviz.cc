@@ -493,11 +493,9 @@ static void deg_debug_graphviz_node_relations(const DebugContext &ctx,
 static void deg_debug_graphviz_graph_nodes(const DebugContext &ctx,
                                            const Depsgraph *graph)
 {
-	GHASH_FOREACH_BEGIN (DepsNode *, node, graph->id_hash)
-	{
+	foreach (DepsNode *node, graph->id_nodes) {
 		deg_debug_graphviz_node(ctx, node);
 	}
-	GHASH_FOREACH_END();
 	TimeSourceDepsNode *time_source = graph->find_time_source();
 	if (time_source != NULL) {
 		deg_debug_graphviz_node(ctx, time_source);
@@ -507,8 +505,7 @@ static void deg_debug_graphviz_graph_nodes(const DebugContext &ctx,
 static void deg_debug_graphviz_graph_relations(const DebugContext &ctx,
                                                const Depsgraph *graph)
 {
-	GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, graph->id_hash)
-	{
+	foreach (IDDepsNode *id_node, graph->id_nodes) {
 		GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, id_node->components)
 		{
 			foreach (OperationDepsNode *op_node, comp_node->operations) {
@@ -517,7 +514,6 @@ static void deg_debug_graphviz_graph_relations(const DebugContext &ctx,
 		}
 		GHASH_FOREACH_END();
 	}
-	GHASH_FOREACH_END();
 
 	TimeSourceDepsNode *time_source = graph->find_time_source();
 	if (time_source != NULL) {

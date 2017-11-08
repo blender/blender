@@ -367,8 +367,7 @@ void deg_id_tag_update(Main *bmain, ID *id, int flag)
 void deg_graph_on_visible_update(Main *bmain, Depsgraph *graph)
 {
 	/* Make sure objects are up to date. */
-	GHASH_FOREACH_BEGIN(DEG::IDDepsNode *, id_node, graph->id_hash)
-	{
+	foreach (DEG::IDDepsNode *id_node, graph->id_nodes) {
 		const ID_Type id_type = GS(id_node->id_orig->name);
 		/* TODO(sergey): Special exception for now. */
 		if (id_type == ID_MSK) {
@@ -390,7 +389,6 @@ void deg_graph_on_visible_update(Main *bmain, Depsgraph *graph)
 		}
 		deg_graph_id_tag_update(bmain, graph, id_node->id_orig, flag);
 	}
-	GHASH_FOREACH_END();
 	/* Make sure collection properties are up to date. */
 	for (Scene *scene_iter = graph->scene; scene_iter != NULL; scene_iter = scene_iter->set) {
 		IDDepsNode *scene_id_node = graph->find_id_node(&scene_iter->id);

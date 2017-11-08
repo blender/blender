@@ -314,8 +314,7 @@ void Depsgraph::clear_id_nodes()
 	/* Free memory used by ID nodes. */
 	if (use_copy_on_write) {
 		/* Stupid workaround to ensure we free IDs in a proper order. */
-		GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, id_hash)
-		{
+		foreach (IDDepsNode *id_node, id_nodes) {
 			if (id_node->id_cow == NULL) {
 				/* This means builder "stole" ownership of the copy-on-written
 				 * datablock for her own dirty needs.
@@ -330,13 +329,10 @@ void Depsgraph::clear_id_nodes()
 				id_node->destroy();
 			}
 		}
-		GHASH_FOREACH_END();
 	}
-	GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, id_hash)
-	{
+	foreach (IDDepsNode *id_node, id_nodes) {
 		OBJECT_GUARDED_DELETE(id_node, IDDepsNode);
 	}
-	GHASH_FOREACH_END();
 	/* Clear containers. */
 	BLI_ghash_clear(id_hash, NULL, NULL);
 	id_nodes.clear();
