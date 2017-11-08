@@ -290,10 +290,6 @@ int DocumentExporter::exportCurrentScene(Scene *sce)
 		ge.exportGeom(sce);
 	}
 
-	// <library_animations>
-	AnimationExporter ae(writer, this->export_settings);
-	bool has_animations = ae.exportAnimations(sce);
-
 	// <library_controllers>
 	ArmatureExporter arm_exporter(writer, this->export_settings);
 	ControllerExporter controller_exporter(writer, this->export_settings);
@@ -309,6 +305,11 @@ int DocumentExporter::exportCurrentScene(Scene *sce)
 	/* The following code seems to be an obsolete workaround
 	   Comment out until it proofs correct that we no longer need it.
 	*/
+
+	// <library_animations>
+	AnimationExporter ae(writer, this->export_settings);
+	bool has_animations = ae.exportAnimations(sce);
+
 	if (has_animations && this->export_settings->export_transformation_type == BC_TRANSFORMATION_TYPE_MATRIX) {
 		// channels adressing <matrix> objects is not (yet) supported
 		// So we force usage of <location>, <translation> and <scale>
