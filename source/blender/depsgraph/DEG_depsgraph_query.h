@@ -33,8 +33,6 @@
 #ifndef __DEG_DEPSGRAPH_QUERY_H__
 #define __DEG_DEPSGRAPH_QUERY_H__
 
-#include "BLI_ghash.h"
-
 #include "DEG_depsgraph.h"
 
 struct ID;
@@ -102,9 +100,9 @@ typedef struct DEGObjectsIteratorData {
 	 */
 	struct Object temp_dupli_object;
 
-	/* **** ghash **** */
-	struct GHashIterator gh_iter;
-
+	/* **** Iteration ober ID nodes **** */
+	size_t id_node_index;
+	size_t num_id_nodes;
 } DEGObjectsIteratorData;
 
 void DEG_objects_iterator_begin(struct BLI_Iterator *iter, DEGObjectsIteratorData *data);
