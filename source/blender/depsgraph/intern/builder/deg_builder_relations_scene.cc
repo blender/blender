@@ -67,16 +67,16 @@ extern "C" {
 
 namespace DEG {
 
-void DepsgraphRelationBuilder::build_scene(Main *bmain, Scene *scene)
+void DepsgraphRelationBuilder::build_scene(Scene *scene)
 {
 	if (scene->set) {
-		build_scene(bmain, scene->set);
+		build_scene(scene->set);
 	}
 
 	/* scene objects */
 	LINKLIST_FOREACH (Base *, base, &scene->base) {
 		Object *ob = base->object;
-		build_object(bmain, scene, ob);
+		build_object(bmain_, scene, ob);
 	}
 
 	/* rigidbody */
@@ -105,12 +105,12 @@ void DepsgraphRelationBuilder::build_scene(Main *bmain, Scene *scene)
 	}
 
 	/* Masks. */
-	LINKLIST_FOREACH (Mask *, mask, &bmain->mask) {
+	LINKLIST_FOREACH (Mask *, mask, &bmain_->mask) {
 		build_mask(mask);
 	}
 
 	/* Movie clips. */
-	LINKLIST_FOREACH (MovieClip *, clip, &bmain->movieclip) {
+	LINKLIST_FOREACH (MovieClip *, clip, &bmain_->movieclip) {
 		build_movieclip(clip);
 	}
 

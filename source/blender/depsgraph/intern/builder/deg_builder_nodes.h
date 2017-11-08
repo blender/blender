@@ -70,7 +70,7 @@ struct DepsgraphNodeBuilder {
 	DepsgraphNodeBuilder(Main *bmain, Depsgraph *graph);
 	~DepsgraphNodeBuilder();
 
-	void begin_build(Main *bmain);
+	void begin_build();
 
 	IDDepsNode *add_id_node(ID *id);
 	TimeSourceDepsNode *add_time_source();
@@ -118,7 +118,7 @@ struct DepsgraphNodeBuilder {
 	                                       const char *name = "",
 	                                       int name_tag = -1);
 
-	void build_scene(Main *bmain, Scene *scene);
+	void build_scene(Scene *scene);
 	void build_group(Scene *scene, Base *base, Group *group);
 	void build_object(Scene *scene, Base *base, Object *ob);
 	void build_object_transform(Scene *scene, Object *ob);

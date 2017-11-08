@@ -165,9 +165,9 @@ struct RNAPathKey
 
 struct DepsgraphRelationBuilder
 {
-	DepsgraphRelationBuilder(Depsgraph *graph);
+	DepsgraphRelationBuilder(Main *bmain, Depsgraph *graph);
 
-	void begin_build(Main *bmain);
+	void begin_build();
 
 	template <typename KeyFrom, typename KeyTo>
 	void add_relation(const KeyFrom& key_from,
@@ -184,7 +184,7 @@ struct DepsgraphRelationBuilder
 	                              const DepsNodeHandle *handle,
 	                              const char *description);
 
-	void build_scene(Main *bmain, Scene *scene);
+	void build_scene(Scene *scene);
 	void build_group(Main *bmain, Scene *scene, Object *object, Group *group);
 	void build_object(Main *bmain, Scene *scene, Object *ob);
 	void build_object_parent(Object *ob);
@@ -252,6 +252,7 @@ protected:
 	bool needs_animdata_node(ID *id);
 
 private:
+	Main *bmain_;
 	Depsgraph *graph_;
 };
 

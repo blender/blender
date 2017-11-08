@@ -152,9 +152,9 @@ void constraint_walk(bConstraint * /*con*/,
 
 /* **** General purpose functions **** */
 
-DepsgraphNodeBuilder::DepsgraphNodeBuilder(Main *bmain, Depsgraph *graph) :
-    bmain_(bmain),
-    graph_(graph)
+DepsgraphNodeBuilder::DepsgraphNodeBuilder(Main *bmain, Depsgraph *graph)
+    : bmain_(bmain),
+      graph_(graph)
 {
 }
 
@@ -277,17 +277,17 @@ OperationDepsNode *DepsgraphNodeBuilder::find_operation_node(
 
 /* **** Build functions for entity nodes **** */
 
-void DepsgraphNodeBuilder::begin_build(Main *bmain) {
+void DepsgraphNodeBuilder::begin_build() {
 	/* LIB_TAG_DOIT is used to indicate whether node for given ID was already
 	 * created or not. This flag is being set in add_id_node(), so functions
 	 * shouldn't bother with setting it, they only might query this flag when
 	 * needed.
 	 */
-	BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+	BKE_main_id_tag_all(bmain_, LIB_TAG_DOIT, false);
 	/* XXX nested node trees are not included in tag-clearing above,
 	 * so we need to do this manually.
 	 */
-	FOREACH_NODETREE(bmain, nodetree, id)
+	FOREACH_NODETREE(bmain_, nodetree, id)
 	{
 		if (id != (ID *)nodetree) {
 			nodetree->id.tag &= ~LIB_TAG_DOIT;

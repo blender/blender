@@ -193,8 +193,10 @@ RNAPathKey::RNAPathKey(ID *id, const char *path) :
 	}
 }
 
-DepsgraphRelationBuilder::DepsgraphRelationBuilder(Depsgraph *graph) :
-    graph_(graph)
+DepsgraphRelationBuilder::DepsgraphRelationBuilder(Main *bmain,
+                                                   Depsgraph *graph)
+    : bmain_(bmain),
+      graph_(graph)
 {
 }
 
@@ -371,16 +373,16 @@ Depsgraph *DepsgraphRelationBuilder::getGraph()
 
 /* **** Functions to build relations between entities  **** */
 
-void DepsgraphRelationBuilder::begin_build(Main *bmain)
+void DepsgraphRelationBuilder::begin_build()
 {
 	/* LIB_TAG_DOIT is used to indicate whether node for given ID was already
 	 * created or not.
 	 */
-	BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+	BKE_main_id_tag_all(bmain_, LIB_TAG_DOIT, false);
 	/* XXX nested node trees are notr included in tag-clearing above,
 	 * so we need to do this manually.
 	 */
-	FOREACH_NODETREE(bmain, nodetree, id)
+	FOREACH_NODETREE(bmain_, nodetree, id)
 	{
 		if (id != (ID *)nodetree) {
 			nodetree->id.tag &= ~LIB_TAG_DOIT;
