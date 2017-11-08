@@ -1736,6 +1736,9 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 				                                  DEG_OPCODE_PARAMETERS_EVAL);
 				add_relation(group_parameters_key, parameters_key, "Group Node");
 			}
+			else {
+				BLI_assert(!"Unknown ID type used for node");
+			}
 		}
 	}
 

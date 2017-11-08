@@ -976,6 +976,9 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
 					build_nodetree(group_ntree);
 				}
 			}
+			else {
+				BLI_assert(!"Unknown ID type used for node");
+			}
 		}
 	}
 
