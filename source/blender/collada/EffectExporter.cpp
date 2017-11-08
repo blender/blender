@@ -44,6 +44,7 @@ extern "C" {
 	#include "DNA_texture_types.h"
 	#include "DNA_world_types.h"
 
+	#include "BKE_collection.h"
 	#include "BKE_customdata.h"
 	#include "BKE_mesh.h"
 	#include "BKE_material.h"
@@ -66,10 +67,8 @@ EffectsExporter::EffectsExporter(COLLADASW::StreamWriter *sw, const ExportSettin
 
 bool EffectsExporter::hasEffects(Scene *sce)
 {
-	BaseLegacy *base = (BaseLegacy *)sce->base.first;
-	
-	while (base) {
-		Object *ob = base->object;
+	FOREACH_SCENE_OBJECT(scene, ob)
+	{
 		int a;
 		for (a = 0; a < ob->totcol; a++) {
 			Material *ma = give_current_material(ob, a + 1);
@@ -79,8 +78,8 @@ bool EffectsExporter::hasEffects(Scene *sce)
 
 			return true;
 		}
-		base = base->next;
 	}
+	FOREACH_SCENE_OBJECT_END
 	return false;
 }
 

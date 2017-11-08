@@ -52,6 +52,7 @@
 #include "BKE_camera.h"
 #include "BKE_context.h"
 #include "BKE_font.h"
+#include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -3914,7 +3915,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 	ARegion *ar;
 	RegionView3D *rv3d;
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	SceneLayer *scene_layer = CTX_data_scene_layer(C);
 	static int perspo = RV3D_PERSP;
 	int viewnum, nextperspo;
 	bool align_active;
@@ -3949,7 +3950,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 			/* lastview -  */
 
 			if (rv3d->persp != RV3D_CAMOB) {
-				Object *ob = OBACT_NEW(sl);
+				Object *ob = OBACT_NEW(scene_layer);
 
 				if (!rv3d->smooth_timer) {
 					/* store settings of current view before allowing overwriting with camera view
@@ -3984,7 +3985,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 					v3d->camera = ob;
 
 				if (v3d->camera == NULL)
-					v3d->camera = BKE_scene_camera_find(scene);
+					v3d->camera = BKE_scene_layer_camera_find(scene_layer);
 
 				/* couldnt find any useful camera, bail out */
 				if (v3d->camera == NULL)

@@ -51,7 +51,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
-#include "BKE_scene.h" /* BKE_scene_base_find */
+#include "BKE_scene.h"
 
 static void free_group_object(GroupObject *go)
 {

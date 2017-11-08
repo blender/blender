@@ -65,7 +65,6 @@ KX_LightObject::KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,
 	m_rasterizer->AddLight(m_lightobj);
 	m_lightobj->m_glsl = glsl;
 	m_blenderscene = ((KX_Scene*)sgReplicationInfo)->GetBlenderScene();
-	m_base = NULL;
 };
 
 
@@ -74,11 +73,6 @@ KX_LightObject::~KX_LightObject()
 	if (m_lightobj) {
 		m_rasterizer->RemoveLight(m_lightobj);
 		delete(m_lightobj);
-	}
-
-	if (m_base) {
-		BKE_scene_base_unlink(m_blenderscene, m_base);
-		MEM_freeN(m_base);
 	}
 }
 
@@ -103,7 +97,6 @@ void KX_LightObject::UpdateScene(KX_Scene *kxscene)
 {
 	m_lightobj->m_scene = (void*)kxscene;
 	m_blenderscene = kxscene->GetBlenderScene();
-	m_base = BKE_scene_base_add(m_blenderscene, GetBlenderObject());
 }
 
 void KX_LightObject::SetLayer(int layer)

@@ -57,6 +57,7 @@
 
 #include "BLI_sys_types.h" /* needed for intptr_t used in ED_mesh.h */
 #include "ED_mesh.h"
+#include "ED_object.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -309,61 +310,6 @@ static void rna_Object_dependency_update(Main *bmain, Scene *UNUSED(scene), Poin
 	DEG_id_tag_update(ptr->id.data, OB_RECALC_OB);
 	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_OBJECT | ND_PARENT, ptr->id.data);
-}
-
-/* when changing the selection flag the scene needs updating */
-static void rna_Base_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
-{
-	BaseLegacy *base = (BaseLegacy *)ptr->data;
-	short mode = (base->flag_legacy & BA_SELECT) ? BA_SELECT : BA_DESELECT;
-	ED_base_object_select(base, mode);
-}
-
-static void rna_Object_layer_update__internal(Main *bmain, Scene *scene, BaseLegacy *base, Object *ob)
-{
-	/* try to avoid scene sort */
-	if (scene == NULL) {
-		/* pass - unlikely but when running scripts on startup it happens */
-	}
-	else if ((ob->lay & scene->lay) && (base->lay & scene->lay)) {
-		/* pass */
-	}
-	else if ((ob->lay & scene->lay) == 0 && (base->lay & scene->lay) == 0) {
-		/* pass */
-	}
-	else {
-		DEG_relations_tag_update(bmain);
-	}
-
-	DEG_id_type_tag(bmain, ID_OB);
-}
-
-static void rna_Object_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	Object *ob = (Object *)ptr->id.data;
-	BaseLegacy *base;
-
-	base = scene ? BKE_scene_base_find(scene, ob) : NULL;
-	if (!base)
-		return;
-	
-	SWAP(unsigned int, base->lay, ob->lay);
-
-	rna_Object_layer_update__internal(bmain, scene, base, ob);
-	ob->lay = base->lay;
-
-	WM_main_add_notifier(NC_SCENE | ND_LAYER_CONTENT, scene);
-}
-
-static void rna_Base_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	BaseLegacy *base = (BaseLegacy *)ptr->data;
-	Object *ob = (Object *)base->object;
-
-	rna_Object_layer_update__internal(bmain, scene, base, ob);
-	ob->lay = base->lay;
-
-	WM_main_add_notifier(NC_SCENE | ND_LAYER_CONTENT, scene);
 }
 
 static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value)
@@ -1198,49 +1144,6 @@ static PointerRNA rna_Object_active_particle_system_get(PointerRNA *ptr)
 static PointerRNA rna_Object_game_settings_get(PointerRNA *ptr)
 {
 	return rna_pointer_inherit_refine(ptr, &RNA_GameObjectSettings, ptr->id.data);
-}
-
-
-static unsigned int rna_Object_layer_validate__internal(const int *values, unsigned int lay)
-{
-	int i, tot = 0;
-
-	/* ensure we always have some layer selected */
-	for (i = 0; i < 20; i++)
-		if (values[i])
-			tot++;
-
-	if (tot == 0)
-		return 0;
-
-	for (i = 0; i < 20; i++) {
-		if (values[i]) lay |=  (1 << i);
-		else           lay &= ~(1 << i);
-	}
-
-	return lay;
-}
-
-static void rna_Object_layer_set(PointerRNA *ptr, const int *values)
-{
-	Object *ob = (Object *)ptr->data;
-	unsigned int lay;
-
-	lay = rna_Object_layer_validate__internal(values, ob->lay);
-	if (lay)
-		ob->lay = lay;
-}
-
-static void rna_Base_layer_set(PointerRNA *ptr, const int *values)
-{
-	BaseLegacy *base = (BaseLegacy *)ptr->data;
-
-	unsigned int lay;
-	lay = rna_Object_layer_validate__internal(values, base->lay);
-	if (lay)
-		base->lay = lay;
-
-	/* rna_Base_layer_update updates the objects layer */
 }
 
 static void rna_GameObjectSettings_state_get(PointerRNA *ptr, int *values)
@@ -2502,15 +2405,6 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Mode", "Object interaction mode");
 
-	prop = RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
-	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
-	RNA_def_property_array(prop, 20);
-	RNA_def_property_ui_text(prop, "Layers", "Layers the object is on");
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_Object_layer_set");
-	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
-	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_layer_update");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-
 	prop = RNA_def_property(srna, "layers_local_view", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay", 0x01000000);
 	RNA_def_property_array(prop, 8);
@@ -3186,49 +3080,12 @@ static void rna_def_dupli_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Dupli random id", "Random id for this dupli object");
 }
 
-static void rna_def_object_base_legacy(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	srna = RNA_def_struct(brna, "ObjectBaseLegacy", NULL);
-	RNA_def_struct_sdna(srna, "Base");
-	RNA_def_struct_ui_text(srna, "Object Base Legacy", "An object instance in a scene (deprecated)");
-	RNA_def_struct_ui_icon(srna, ICON_OBJECT_DATA);
-
-	prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "object");
-	RNA_def_property_ui_text(prop, "Object", "Object this base links to");
-
-	/* same as object layer */
-	prop = RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
-	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
-	RNA_def_property_array(prop, 20);
-	RNA_def_property_ui_text(prop, "Layers", "Layers the object base is on");
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_Base_layer_set");
-	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Base_layer_update");
-
-	prop = RNA_def_property(srna, "layers_local_view", PROP_BOOLEAN, PROP_LAYER_MEMBER);
-	RNA_def_property_boolean_sdna(prop, NULL, "lay", 0x01000000);
-	RNA_def_property_array(prop, 8);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Local View Layers", "3D local view layers the object base is on");
-
-	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag_legacy", BA_SELECT);
-	RNA_def_property_ui_text(prop, "Select", "Object base selection state");
-	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Base_select_update");
-
-	RNA_api_object_base_legacy(srna);
-}
-
 void RNA_def_object(BlenderRNA *brna)
 {
 	rna_def_object(brna);
 
 	RNA_define_animate_sdna(false);
 	rna_def_object_game_settings(brna);
-	rna_def_object_base_legacy(brna);
 	rna_def_vertex_group(brna);
 	rna_def_face_map(brna);
 	rna_def_material_slot(brna);

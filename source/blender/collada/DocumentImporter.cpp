@@ -59,6 +59,7 @@ extern "C" {
 #include "BKE_camera.h"
 #include "BKE_collection.h"
 #include "BKE_main.h"
+#include "BKE_layer.h"
 #include "BKE_lamp.h"
 #include "BKE_library.h"
 #include "BKE_texture.h"
@@ -133,7 +134,7 @@ bool DocumentImporter::import()
 	loader.registerExtraDataCallbackHandler(ehandler);
 
 	// deselect all to select new objects
-	BKE_scene_base_deselect_all(CTX_data_scene(mContext));
+	BKE_scene_layer_base_deselect_all(CTX_data_scene_layer(mContext));
 
 	std::string mFilename = std::string(this->import_settings->filepath);
 	const std::string encodedFilename = bc_url_encode(mFilename);
@@ -266,15 +267,7 @@ void DocumentImporter::finish()
 		std::vector<Object *>::iterator it;
 		for (it = libnode_ob.begin(); it != libnode_ob.end(); it++) {
 			Object *ob = *it;
-
-			BaseLegacy *base = (BaseLegacy *)BKE_scene_base_find(sce, ob);
-			if (base) {
-				BLI_remlink(&sce->base, base);
-				BKE_libblock_free_us(G.main, base->object);
-				if (sce->basact == base)
-					sce->basact = NULL;
-				MEM_freeN(base);
-			}
+			BKE_collections_object_remove(G.main, sce, ob, true);
 		}
 		libnode_ob.clear();
 

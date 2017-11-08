@@ -242,16 +242,6 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 	sce_dst->obedit = NULL;
 	sce_dst->fps_info = NULL;
 
-	BLI_duplicatelist(&(sce_dst->base), &(sce_src->base));
-	for (BaseLegacy *base_dst = sce_dst->base.first, *base_src = sce_src->base.first;
-	     base_dst;
-	     base_dst = base_dst->next, base_src = base_src->next)
-	{
-		if (base_src == sce_src->basact) {
-			sce_dst->basact = base_dst;
-		}
-	}
-
 	/* layers and collections */
 	sce_dst->collection = MEM_dupallocN(sce_src->collection);
 	SceneCollection *mc_src = BKE_collection_master(sce_src);
@@ -590,7 +580,6 @@ void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
 	BKE_sequencer_clear_scene_in_allseqs(G.main, sce);
 
 	sce->basact = NULL;
-	BLI_freelistN(&sce->base);
 	BKE_sequencer_editing_free(sce);
 
 	BKE_keyingsets_free(&sce->keyingsets);
@@ -1081,22 +1070,29 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 	return sce;
 }
 
-BaseLegacy *BKE_scene_base_find_by_name(struct Scene *scene, const char *name)
+/**
+ * Check if there is any intance of the object in the scene
+ */
+bool BKE_scene_object_find(Scene *scene, Object *ob)
 {
-	BaseLegacy *base;
-
-	for (base = scene->base.first; base; base = base->next) {
-		if (STREQ(base->object->id.name + 2, name)) {
-			break;
+	for (SceneLayer *scene_layer = scene->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
+		if (BLI_findptr(&scene_layer->object_bases, ob, offsetof(Base, object))) {
+		    return true;
 		}
 	}
-
-	return base;
+	return false;
 }
 
-BaseLegacy *BKE_scene_base_find(Scene *scene, Object *ob)
+Object *BKE_scene_object_find_by_name(Scene *scene, const char *name)
 {
-	return BLI_findptr(&scene->base, ob, offsetof(BaseLegacy, object));
+	for (SceneLayer *scene_layer = scene->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
+		for (Base *base = scene_layer->object_bases.first; base; base = base->next) {
+			if (STREQ(base->object->id.name + 2, name)) {
+				return base->object;
+			}
+		}
+	}
+	return NULL;
 }
 
 /**
@@ -1106,7 +1102,6 @@ BaseLegacy *BKE_scene_base_find(Scene *scene, Object *ob)
  */
 void BKE_scene_set_background(Main *bmain, Scene *scene)
 {
-	BaseLegacy *base;
 	Object *ob;
 	Group *group;
 	GroupObject *go;
@@ -1132,12 +1127,12 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
 	}
 
 	/* copy layers and flags from bases to objects */
-	for (base = scene->base.first; base; base = base->next) {
-		ob = base->object;
-		ob->lay = base->lay;
-		
-		/* group patch... */
-		BKE_scene_base_flag_sync_from_base(base);
+	for (SceneLayer *scene_layer = scene->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
+		for (Base *base = scene_layer->object_bases.first; base; base = base->next) {
+			ob = base->object;
+			/* group patch... */
+			BKE_scene_object_base_flag_sync_from_base(base);
+		}
 	}
 	/* no full animation update, this to enable render code to work (render code calls own animation updates) */
 }
@@ -1177,17 +1172,19 @@ int BKE_scene_base_iter_next(
 
 			/* the first base */
 			if (iter->phase == F_START) {
-				*base = (*scene)->base.first;
+				SceneLayer *scene_layer = eval_ctx->scene_layer;
+				*base = scene_layer->object_bases.first;
 				if (*base) {
 					*ob = (*base)->object;
 					iter->phase = F_SCENE;
 				}
 				else {
-					/* exception: empty scene */
+					/* exception: empty scene layer */
 					while ((*scene)->set) {
 						(*scene) = (*scene)->set;
-						if ((*scene)->base.first) {
-							*base = (*scene)->base.first;
+						SceneLayer *scene_layer_set = BKE_scene_layer_from_scene_get((*scene));
+						if (scene_layer_set->object_bases.first) {
+							*base = scene_layer_set->object_bases.first;
 							*ob = (*base)->object;
 							iter->phase = F_SCENE;
 							break;
@@ -1206,8 +1203,9 @@ int BKE_scene_base_iter_next(
 							/* (*scene) is finished, now do the set */
 							while ((*scene)->set) {
 								(*scene) = (*scene)->set;
-								if ((*scene)->base.first) {
-									*base = (*scene)->base.first;
+								SceneLayer *scene_layer_set = BKE_scene_layer_from_scene_get((*scene));
+								if (scene_layer_set->object_bases.first) {
+									*base = scene_layer_set->object_bases.first;
 									*ob = (*base)->object;
 									break;
 								}
@@ -1294,17 +1292,6 @@ Scene *BKE_scene_find_from_collection(const Main *bmain, const SceneCollection *
 			}
 		}
 	}
-
-	return NULL;
-}
-
-Object *BKE_scene_camera_find(Scene *sc)
-{
-	BaseLegacy *base;
-	
-	for (base = sc->base.first; base; base = base->next)
-		if (base->object->type == OB_CAMERA)
-			return base->object;
 
 	return NULL;
 }
@@ -1410,48 +1397,6 @@ void BKE_scene_remove_rigidbody_object(Scene *scene, Object *ob)
 	/* remove rigid body object from world before removing object */
 	if (ob->rigidbody_object)
 		BKE_rigidbody_remove_object(scene, ob);
-}
-
-BaseLegacy *BKE_scene_base_add(Scene *sce, Object *ob)
-{
-	BaseLegacy *b = MEM_callocN(sizeof(*b), __func__);
-	BLI_addhead(&sce->base, b);
-
-	b->object = ob;
-	b->flag_legacy = ob->flag;
-	b->lay = ob->lay;
-
-	return b;
-}
-
-void BKE_scene_base_unlink(Scene *sce, BaseLegacy *base)
-{
-	BKE_scene_remove_rigidbody_object(sce, base->object);
-
-	BLI_remlink(&sce->base, base);
-	if (sce->basact == base)
-		sce->basact = NULL;
-}
-
-/* deprecated, use BKE_scene_layer_base_deselect_all */
-void BKE_scene_base_deselect_all(Scene *sce)
-{
-	BaseLegacy *b;
-
-	for (b = sce->base.first; b; b = b->next) {
-		b->flag_legacy &= ~SELECT;
-		int flag = b->object->flag & (OB_FROMGROUP);
-		b->object->flag = b->flag_legacy;
-		b->object->flag |= flag;
-	}
-}
-
-void BKE_scene_base_select(Scene *sce, BaseLegacy *selbase)
-{
-	selbase->flag_legacy |= SELECT;
-	selbase->object->flag = selbase->flag_legacy;
-
-	sce->basact = selbase;
 }
 
 /* checks for cycle, returns 1 if it's all OK */

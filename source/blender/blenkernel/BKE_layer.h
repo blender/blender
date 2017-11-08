@@ -67,8 +67,10 @@ void BKE_scene_layer_free(struct SceneLayer *sl);
 
 void BKE_scene_layer_selected_objects_tag(struct SceneLayer *sl, const int tag);
 
+struct Object *BKE_scene_layer_camera_find(struct SceneLayer *sl);
 struct SceneLayer *BKE_scene_layer_find_from_collection(const struct Scene *scene, struct LayerCollection *lc);
 struct Base *BKE_scene_layer_base_find(struct SceneLayer *sl, struct Object *ob);
+struct Base *BKE_scene_layer_base_find_by_name(struct SceneLayer *sl, struct Object *ob);
 void BKE_scene_layer_base_deselect_all(struct SceneLayer *sl);
 void BKE_scene_layer_base_select(struct SceneLayer *sl, struct Base *selbase);
 

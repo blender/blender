@@ -39,6 +39,7 @@
 #include "BLI_mempool.h"
 
 #include "BKE_context.h"
+#include "BKE_layer.h"
 #include "BKE_screen.h"
 #include "BKE_scene.h"
 #include "BKE_outliner_treehash.h"
@@ -122,8 +123,17 @@ static int outliner_parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *e
 				 * element for object it means that all displayed objects belong to
 				 * active scene and parenting them is allowed (sergey)
 				 */
-				if (!scene || BKE_scene_base_find(scene, (Object *)id)) {
+				if (!scene) {
 					return 1;
+				} else {
+					for (SceneLayer *scene_layer = scene->render_layers.first;
+					     scene_layer;
+					     scene_layer = scene_layer->next)
+					{
+						if (BKE_scene_layer_base_find(scene_layer, (Object *)id)) {
+							return 1;
+						}
+					}
 				}
 			}
 			else if (ELEM(tselem->type, TSE_LAYER_COLLECTION, TSE_SCENE_COLLECTION)) {

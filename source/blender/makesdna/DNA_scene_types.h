@@ -1614,7 +1614,7 @@ typedef struct Scene {
 	
 	struct Scene *set;
 	
-	ListBase base;
+	ListBase base DNA_DEPRECATED;
 	struct BaseLegacy *basact;		/* active base */
 	struct Object *obedit;		/* name replaces old G.obedit */
 	

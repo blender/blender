@@ -159,16 +159,6 @@ void BKE_object_workob_clear(Object *workob)
 	workob->rotmode = ROT_MODE_EUL;
 }
 
-void BKE_object_update_base_layer(struct Scene *scene, Object *ob)
-{
-	BaseLegacy *base = scene->base.first;
-
-	while (base) {
-		if (base->object == ob) base->lay = ob->lay;
-		base = base->next;
-	}
-}
-
 void BKE_object_free_particlesystems(Object *ob)
 {
 	ParticleSystem *psys;

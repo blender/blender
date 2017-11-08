@@ -83,6 +83,12 @@ typedef enum eParentType {
 	PAR_VERTEX_TRI,
 } eParentType;
 
+typedef enum eObjectSelect_Mode{
+	BA_DESELECT = 0,
+	BA_SELECT = 1,
+	BA_INVERT = 2,
+} eObjectSelect_Mode;
+
 #ifdef __RNA_TYPES_H__
 extern struct EnumPropertyItem prop_clear_parent_types[];
 extern struct EnumPropertyItem prop_make_parent_types[];
@@ -104,7 +110,7 @@ void ED_base_object_select(struct BaseLegacy *base, short mode);
 /* includes notifier */
 void ED_base_object_activate(struct bContext *C, struct BaseLegacy *base);
 
-void ED_object_base_select(struct Base *base, short mode);
+void ED_object_base_select(struct Base *base, eObjectSelect_Mode mode);
 void ED_object_base_activate(struct bContext *C, struct Base *base);
 
 void ED_base_object_free_and_unlink(struct Main *bmain, struct Scene *scene, struct Object *ob);

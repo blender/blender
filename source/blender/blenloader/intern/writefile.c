@@ -2604,10 +2604,6 @@ static void write_scene(WriteData *wd, Scene *sce)
 	write_keyingsets(wd, &sce->keyingsets);
 
 	/* direct data */
-	for (BaseLegacy *base = sce->base.first; base; base = base->next) {
-		writestruct(wd, DATA, BaseLegacy, 1, base);
-	}
-
 	ToolSettings *tos = sce->toolsettings;
 	writestruct(wd, DATA, ToolSettings, 1, tos);
 	if (tos->vpaint) {

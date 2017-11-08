@@ -45,6 +45,7 @@
 #include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_library_remap.h"
 #include "BKE_main.h"
@@ -1302,13 +1303,13 @@ bool ED_screen_change(bContext *C, bScreen *sc)
 	return false;
 }
 
-static void screen_set_3dview_camera(Scene *scene, ScrArea *sa, View3D *v3d)
+static void screen_set_3dview_camera(Scene *scene, SceneLayer *scene_layer, ScrArea *sa, View3D *v3d)
 {
 	/* fix any cameras that are used in the 3d view but not in the scene */
 	BKE_screen_view3d_sync(v3d, scene);
 
-	if (!v3d->camera || !BKE_scene_base_find(scene, v3d->camera)) {
-		v3d->camera = BKE_scene_camera_find(scene);
+	if (!v3d->camera || !BKE_scene_layer_base_find(scene_layer, v3d->camera)) {
+		v3d->camera = BKE_scene_layer_camera_find(scene_layer);
 		// XXX if (sc == curscreen) handle_view3d_lock();
 		if (!v3d->camera) {
 			ARegion *ar;
@@ -1332,13 +1333,13 @@ static void screen_set_3dview_camera(Scene *scene, ScrArea *sa, View3D *v3d)
 	}
 }
 
-void ED_screen_update_after_scene_change(const bScreen *screen, Scene *scene_new)
+void ED_screen_update_after_scene_change(const bScreen *screen, Scene *scene_new, SceneLayer *scene_layer)
 {
 	for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 		for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 			if (sl->spacetype == SPACE_VIEW3D) {
 				View3D *v3d = (View3D *)sl;
-				screen_set_3dview_camera(scene_new, sa, v3d);
+				screen_set_3dview_camera(scene_new, scene_layer, sa, v3d);
 			}
 		}
 	}

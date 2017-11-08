@@ -5831,7 +5831,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 			
 			sce->toolsettings->particle.shape_object = newlibadr(fd, sce->id.lib, sce->toolsettings->particle.shape_object);
 			
-			for (BaseLegacy *base_legacy_next, *base_legacy = sce->base.first; base_legacy; base_legacy = base_legacy_next) {
+			for (Base *base_legacy_next, *base_legacy = sce->base.first; base_legacy; base_legacy = base_legacy_next) {
 				base_legacy_next = base_legacy->next;
 				
 				base_legacy->object = newlibadr_us(fd, sce->id.lib, base_legacy->object);
@@ -9778,13 +9778,12 @@ static void expand_scene_collection(FileData *fd, Main *mainvar, SceneCollection
 
 static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 {
-	BaseLegacy *base;
 	SceneRenderLayer *srl;
 	FreestyleModuleConfig *module;
 	FreestyleLineSet *lineset;
 	
-	for (base = sce->base.first; base; base = base->next) {
-		expand_doit(fd, mainvar, base->object);
+	for (Base *base_legacy = sce->base.first; base_legacy; base_legacy = base_legacy->next) {
+		expand_doit(fd, mainvar, base_legacy->object);
 	}
 	expand_doit(fd, mainvar, sce->camera);
 	expand_doit(fd, mainvar, sce->world);
@@ -10108,7 +10107,7 @@ static bool object_in_any_scene(Main *mainvar, Object *ob)
 	Scene *sce;
 	
 	for (sce = mainvar->scene.first; sce; sce = sce->id.next) {
-		if (BKE_scene_base_find(sce, ob)) {
+		if (BKE_scene_object_find(sce, ob)) {
 			return true;
 		}
 	}

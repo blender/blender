@@ -476,13 +476,6 @@ finally:
 	free_bvhtree_from_mesh(&treeData);
 }
 
-/* ObjectBaseLegacy */
-
-static void rna_ObjectBaseLegacy_layers_from_view(BaseLegacy *base, View3D *v3d)
-{
-	base->lay = base->object->lay = v3d->lay;
-}
-
 static int rna_Object_is_modified(Object *ob, Scene *scene, int settings)
 {
 	return BKE_object_is_modified(scene, ob) & settings;

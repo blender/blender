@@ -45,6 +45,7 @@
 #include "BKE_blendfile.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
@@ -119,7 +120,7 @@ bool BKE_copybuffer_paste(bContext *C, const char *libname, const short flag, Re
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	SceneLayer *scene_layer = CTX_data_scene_layer(C);
 	Main *mainl = NULL;
 	Library *lib;
 	BlendHandle *bh;
@@ -131,7 +132,7 @@ bool BKE_copybuffer_paste(bContext *C, const char *libname, const short flag, Re
 		return false;
 	}
 
-	BKE_scene_base_deselect_all(scene);
+	BKE_scene_layer_base_deselect_all(scene_layer);
 
 	/* tag everything, all untagged data can be made local
 	 * its also generally useful to know what is new
@@ -144,7 +145,7 @@ bool BKE_copybuffer_paste(bContext *C, const char *libname, const short flag, Re
 
 	BLO_library_link_copypaste(mainl, bh);
 
-	BLO_library_link_end(mainl, &bh, flag, scene, sl);
+	BLO_library_link_end(mainl, &bh, flag, scene, scene_layer);
 
 	/* mark all library linked objects to be updated */
 	BKE_main_lib_objects_recalc_all(bmain);

@@ -736,7 +736,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 	if (main->versionfile < 250) {
 		bScreen *screen;
 		Scene *scene;
-		BaseLegacy *base;
+		Base *base;
 		Material *ma;
 		Camera *cam;
 		Mesh *me;

@@ -40,6 +40,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_linklist.h"
 
+#include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_context.h"
 #include "BKE_mesh.h"
@@ -337,7 +338,7 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 	int i, j, k;
 	unsigned short *v;
 	int face[3];
-	Scene *scene = CTX_data_scene(C);
+	SceneLayer *scene_layer = CTX_data_scene_layer(C);
 	Object *obedit;
 	int createob = base == NULL;
 	int nverts, nmeshes, nvp;
@@ -355,8 +356,8 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 	}
 	else {
 		obedit = base->object;
-		BKE_scene_base_deselect_all(scene);
-		BKE_scene_base_select(scene, base);
+		BKE_scene_layer_base_deselect_all(scene_layer);
+		BKE_scene_layer_base_select(scene_layer, base);
 		copy_v3_v3(obedit->loc, co);
 		copy_v3_v3(obedit->rot, rot);
 	}

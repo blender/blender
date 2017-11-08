@@ -1665,11 +1665,12 @@ static void curvetomesh(EvaluationContext *eval_ctx, Main *bmain, Scene *scene, 
 
 static int convert_poll(bContext *C)
 {
-	Object *obact = CTX_data_active_object(C);
 	Scene *scene = CTX_data_scene(C);
+	Base *base_act = CTX_data_active_base(C);
+	Object *obact = base_act ? base_act->object : NULL;
 
 	return (!ID_IS_LINKED(scene) && obact && scene->obedit != obact &&
-	        (obact->flag & SELECT) && !ID_IS_LINKED(obact));
+	        (base_act->flag & BASE_SELECTED) && !ID_IS_LINKED(obact));
 }
 
 /* Helper for convert_exec */
@@ -1699,7 +1700,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 	SceneLayer *sl = CTX_data_scene_layer(C);
 	EvaluationContext eval_ctx;
 	Base *basen = NULL, *basact = NULL;
-	Object *ob, *ob1, *newob, *obact = CTX_data_active_object(C);
+	Object *ob1, *newob, *obact = CTX_data_active_object(C);
 	DerivedMesh *dm;
 	Curve *cu;
 	Nurb *nu;
@@ -1714,10 +1715,8 @@ static int convert_exec(bContext *C, wmOperator *op)
 	/* don't forget multiple users! */
 
 	{
-		BaseLegacy *base;
-
-		for (base = scene->base.first; base; base = base->next) {
-			ob = base->object;
+		FOREACH_SCENE_OBJECT(scene, ob)
+		{
 			ob->flag &= ~OB_DONE;
 
 			/* flag data thats not been edited (only needed for !keep_original) */
@@ -1736,6 +1735,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				}
 			}
 		}
+		FOREACH_SCENE_OBJECT_END
 	}
 
 	ListBase selected_editable_bases = CTX_data_collection_get(C, "selected_editable_bases");
@@ -1745,8 +1745,8 @@ static int convert_exec(bContext *C, wmOperator *op)
 	 * on other objects data masks too, see: T50950. */
 	{
 		for (CollectionPointerLink *link = selected_editable_bases.first; link; link = link->next) {
-			BaseLegacy *base = link->ptr.data;
-			ob = base->object;
+			Base *base = link->ptr.data;
+			Object *ob = base->object;
 
 			/* The way object type conversion works currently (enforcing conversion of *all* objetcs using converted
 			 * obdata, even some un-selected/hidden/inother scene ones, sounds totally bad to me.
@@ -1770,8 +1770,8 @@ static int convert_exec(bContext *C, wmOperator *op)
 	}
 
 	for (CollectionPointerLink *link = selected_editable_bases.first; link; link = link->next) {
-		BaseLegacy *base = link->ptr.data;
-		ob = base->object;
+		Base *base = link->ptr.data;
+		Object *ob = base->object;
 
 		if (ob->flag & OB_DONE || !IS_TAGGED(ob->data)) {
 			if (ob->type != target) {
@@ -1941,8 +1941,8 @@ static int convert_exec(bContext *C, wmOperator *op)
 		else if (ob->type == OB_MBALL && target == OB_MESH) {
 			Object *baseob;
 
-			base->flag &= ~SELECT;
-			ob->flag &= ~SELECT;
+			base->flag &= ~BASE_SELECTED;
+			ob->base_flag &= ~BASE_SELECTED;
 
 			baseob = BKE_mball_basis_find(scene, ob);
 
@@ -2007,8 +2007,8 @@ static int convert_exec(bContext *C, wmOperator *op)
 		if (mballConverted) {
 			FOREACH_SCENE_OBJECT(scene, ob_mball)
 			{
-				if (ob->type == OB_MBALL) {
-					if (ob->flag & OB_DONE) {
+				if (ob_mball->type == OB_MBALL) {
+					if (ob_mball->flag & OB_DONE) {
 						Object *ob_basis = NULL;
 						if (BKE_mball_is_basis(ob_mball) ||
 						    ((ob_basis = BKE_mball_basis_find(scene, ob_mball)) && (ob_basis->flag & OB_DONE)))

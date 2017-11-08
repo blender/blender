@@ -543,12 +543,6 @@ enum {
 #define BA_TRANSFORM_CHILD  (1 << 8)  /* child of a transformed object */
 #define BA_TRANSFORM_PARENT (1 << 13)  /* parent of a transformed object */
 
-
-/* an initial attempt as making selection more specific! */
-#define BA_DESELECT     0
-#define BA_SELECT       1
-
-
 #define OB_FROMDUPLI        (1 << 9)
 #define OB_DONE             (1 << 10)  /* unknown state, clear before use */
 /* #define OB_RADIO            (1 << 11) */  /* deprecated */

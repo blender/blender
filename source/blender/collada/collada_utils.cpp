@@ -47,6 +47,7 @@ extern "C" {
 #include "BKE_customdata.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_mesh.h"
 #include "BKE_scene.h"
 #include "BKE_DerivedMesh.h"
@@ -142,7 +143,14 @@ Object *bc_add_object(Scene *scene, int type, const char *name)
 	ob->lay = scene->lay;
 	DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
-	BKE_scene_base_select(scene, BKE_scene_base_add(scene, ob));
+	/* XXX Collada should use the context scene layer, not the scene one. (dfelinto/gaia). */
+	SceneLayer *scene_layer = BKE_scene_layer_context_active_PLACEHOLDER(scene);
+
+	LayerCollection *layer_collection = BKE_layer_collection_get_active_ensure(scene, scene_layer);
+	BKE_collection_object_add(scene, layer_collection->scene_collection, ob);
+
+	Base *base = BKE_scene_layer_base_find(scene_layer, ob);
+	BKE_scene_layer_base_select(scene_layer, base);
 
 	return ob;
 }

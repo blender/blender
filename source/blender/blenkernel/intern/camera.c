@@ -49,6 +49,7 @@
 #include "BKE_camera.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_library_remap.h"
@@ -885,9 +886,9 @@ static Object *camera_multiview_advanced(Scene *scene, Object *camera, const cha
 	}
 
 	if (name[0] != '\0') {
-		BaseLegacy *base = BKE_scene_base_find_by_name(scene, name);
-		if (base) {
-			return base->object;
+		Object *ob = BKE_scene_object_find_by_name(scene, name);
+		if (ob != NULL) {
+			return ob;
 		}
 	}
 

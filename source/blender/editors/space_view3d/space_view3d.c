@@ -787,23 +787,12 @@ static void *view3d_main_region_duplicate(void *poin)
 	return NULL;
 }
 
-static void view3d_recalc_used_layers(ARegion *ar, wmNotifier *wmn, const Scene *scene)
+static void view3d_recalc_used_layers(ARegion *ar, wmNotifier *wmn, const Scene *UNUSED(scene))
 {
 	wmWindow *win = wmn->wm->winactive;
 	unsigned int lay_used = 0;
-	BaseLegacy *base;
 
 	if (!win) return;
-
-	base = scene->base.first;
-	while (base) {
-		lay_used |= base->lay & ((1 << 20) - 1); /* ignore localview */
-
-		if (lay_used == (1 << 20) - 1)
-			break;
-
-		base = base->next;
-	}
 
 	const bScreen *screen = WM_window_get_active_screen(win);
 	for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {

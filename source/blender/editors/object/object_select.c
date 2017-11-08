@@ -127,16 +127,25 @@ void ED_base_object_activate(bContext *C, BaseLegacy *base)
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, NULL);
 }
 
-void ED_object_base_select(Base *base, short mode)
+void ED_object_base_select(Base *base, eObjectSelect_Mode mode)
 {
+	if (mode == BA_INVERT) {
+		mode = (base->flag & BASE_SELECTED) != 0 ? BA_DESELECT : BA_SELECT;
+	}
+
 	if (base) {
-		if (mode == BA_SELECT) {
-			if ((base->flag & BASE_SELECTABLED) != 0) {
-				base->flag |= BASE_SELECTED;
-			}
-		}
-		else if (mode == BA_DESELECT) {
-			base->flag &= ~BASE_SELECTED;
+		switch (mode) {
+			case BA_SELECT:
+				if ((base->flag & BASE_SELECTABLED) != 0) {
+					base->flag |= BASE_SELECTED;
+				}
+				break;
+			case BA_DESELECT:
+				base->flag &= ~BASE_SELECTED;
+				break;
+			case BA_INVERT:
+				/* Never happens. */
+				break;
 		}
 	}
 }

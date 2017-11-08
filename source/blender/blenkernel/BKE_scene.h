@@ -88,13 +88,8 @@ struct Scene *BKE_scene_add(struct Main *bmain, const char *name);
 
 void BKE_scene_remove_rigidbody_object(struct Scene *scene, struct Object *ob);
 
-/* base functions */
-struct BaseLegacy *BKE_scene_base_find_by_name(struct Scene *scene, const char *name);
-struct BaseLegacy *BKE_scene_base_find(struct Scene *scene, struct Object *ob);
-struct BaseLegacy *BKE_scene_base_add(struct Scene *sce, struct Object *ob);
-void         BKE_scene_base_unlink(struct Scene *sce, struct BaseLegacy *base);
-void         BKE_scene_base_deselect_all(struct Scene *sce);
-void         BKE_scene_base_select(struct Scene *sce, struct BaseLegacy *selbase);
+bool BKE_scene_object_find(struct Scene *scene, struct Object *ob);
+struct Object *BKE_scene_object_find_by_name(struct Scene *scene, const char *name);
 
 /* Scene base iteration function.
  * Define struct here, so no need to bother with alloc/free it.
@@ -129,7 +124,6 @@ void BKE_scene_make_local(struct Main *bmain, struct Scene *sce, const bool lib_
 
 struct Scene *BKE_scene_find_from_collection(const struct Main *bmain, const struct SceneCollection *scene_collection);
 
-struct Object *BKE_scene_camera_find(struct Scene *sc);
 #ifdef DURIAN_CAMERA_SWITCH
 struct Object *BKE_scene_camera_switch_find(struct Scene *scene); // DURIAN_CAMERA_SWITCH
 #endif

@@ -355,7 +355,6 @@ static int make_proxy_exec(bContext *C, wmOperator *op)
 
 	if (ob) {
 		Object *newob;
-		Base *newbase, *oldbase = BASACT_NEW(scene_layer);
 		char name[MAX_ID_NAME + 4];
 
 		BLI_snprintf(name, sizeof(name), "%s_proxy", ((ID *)(gob ? gob : ob))->name + 2);
@@ -364,16 +363,6 @@ static int make_proxy_exec(bContext *C, wmOperator *op)
 		newob = BKE_object_add_from(bmain, scene, scene_layer, OB_EMPTY, name, gob ? gob : ob);
 
 		/* set layers OK */
-		newbase = BASACT_NEW(scene_layer);    /* BKE_object_add sets active... */
-		newbase->lay = oldbase->lay;
-		newob->lay = newbase->lay;
-
-		/* remove base, leave user count of object, it gets linked in BKE_object_make_proxy */
-		if (gob == NULL) {
-			BKE_scene_base_unlink(scene, oldbase);
-			MEM_freeN(oldbase);
-		}
-
 		BKE_object_make_proxy(newob, ob, gob);
 
 		/* Set back pointer immediately so dependency graph knows that this is
@@ -2048,12 +2037,13 @@ void ED_object_single_users(Main *bmain, Scene *scene, const bool full, const bo
 	{
 		IDP_RelinkProperty(scene->id.properties);
 
-		for (Base *base = scene->base.first; base; base = base->next) {
-			Object *ob = base->object;
+		FOREACH_SCENE_OBJECT(scene, ob)
+		{
 			if (!ID_IS_LINKED(ob)) {
 				IDP_RelinkProperty(ob->id.properties);
 			}
 		}
+		FOREACH_SCENE_OBJECT_END
 
 		if (scene->nodetree) {
 			IDP_RelinkProperty(scene->nodetree->id.properties);
@@ -2236,15 +2226,15 @@ static int make_local_exec(bContext *C, wmOperator *op)
 
 	/* Note: we (ab)use LIB_TAG_PRE_EXISTING to cherry pick which ID to make local... */
 	if (mode == MAKE_LOCAL_ALL) {
-		SceneLayer *sl = CTX_data_scene_layer(C);
-		SceneCollection *sc = CTX_data_scene_collection(C);
+		SceneLayer *scene_layer = CTX_data_scene_layer(C);
+		SceneCollection *scene_collection = CTX_data_scene_collection(C);
 
 		BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
 
-		/* de-select so the user can differentiate newly instanced from existing objects */
-		BKE_scene_base_deselect_all(scene);
+		/* De-select so the user can differentiate newly instanced from existing objects. */
+		BKE_scene_layer_base_deselect_all(scene_layer);
 
-		if (make_local_all__instance_indirect_unused(bmain, scene, sl, sc)) {
+		if (make_local_all__instance_indirect_unused(bmain, scene, scene_layer, scene_collection)) {
 			BKE_report(op->reports, RPT_INFO, "Orphan library objects added to the current scene to avoid loss");
 		}
 	}

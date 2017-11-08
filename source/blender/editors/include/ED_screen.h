@@ -49,6 +49,7 @@ struct WorkSpace;
 struct WorkSpaceInstanceHook;
 struct bContext;
 struct Scene;
+struct SceneLayer;
 struct bScreen;
 struct ARegion;
 struct uiBlock;
@@ -113,7 +114,10 @@ void    ED_screen_draw(struct wmWindow *win);
 void    ED_screen_refresh(struct wmWindowManager *wm, struct wmWindow *win);
 void    ED_screen_do_listen(struct bContext *C, struct wmNotifier *note);
 bool    ED_screen_change(struct bContext *C, struct bScreen *sc);
-void    ED_screen_update_after_scene_change(const struct bScreen *screen, struct Scene *scene_new);
+void    ED_screen_update_after_scene_change(
+        const struct bScreen *screen,
+        struct Scene *scene_new,
+        struct SceneLayer *scene_layer);
 void    ED_screen_set_subwinactive(struct bContext *C, const struct wmEvent *event);
 void    ED_screen_exit(struct bContext *C, struct wmWindow *window, struct bScreen *screen);
 void    ED_screen_animation_timer(struct bContext *C, int redraws, int refresh, int sync, int enable);

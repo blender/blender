@@ -204,6 +204,24 @@ static bool find_scene_collection_in_scene_collections(ListBase *lb, const Layer
 }
 
 /**
+ * Fallback for when a Scene has no camera to use
+ *
+ * \param scene_layer: in general you want to use the same SceneLayer that is used
+ * for depsgraph. If rendering you pass the scene active layer, when viewing in the viewport
+ * you want to get SceneLayer from context.
+ */
+Object *BKE_scene_layer_camera_find(SceneLayer *scene_layer)
+{
+	for (Base *base = scene_layer->object_bases.first; base; base = base->next) {
+		if (base->object->type == OB_CAMERA) {
+			return base->object;
+		}
+	}
+
+	return NULL;
+}
+
+/**
  * Find the SceneLayer a LayerCollection belongs to
  */
 SceneLayer *BKE_scene_layer_find_from_collection(const Scene *scene, LayerCollection *lc)

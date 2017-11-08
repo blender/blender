@@ -124,9 +124,8 @@ static int mouse_nla_channels(bContext *C, bAnimContext *ac, float x, int channe
 		}
 		case ANIMTYPE_OBJECT:
 		{
-			bDopeSheet *ads = (bDopeSheet *)ac->data;
-			Scene *sce = (Scene *)ads->source;
-			BaseLegacy *base = (BaseLegacy *)ale->data;
+			SceneLayer *scene_layer = ac->scene_layer;
+			Base *base = (Base *)ale->data;
 			Object *ob = base->object;
 			AnimData *adt = ob->adt;
 			
@@ -134,30 +133,28 @@ static int mouse_nla_channels(bContext *C, bAnimContext *ac, float x, int channe
 				/* set selection status */
 				if (selectmode == SELECT_INVERT) {
 					/* swap select */
-					base->flag_legacy ^= SELECT;
-					BKE_scene_base_flag_sync_from_base(base);
+					ED_object_base_select(base, BA_INVERT);
+					BKE_scene_object_base_flag_sync_from_base(base);
 					
 					if (adt) adt->flag ^= ADT_UI_SELECTED;
 				}
 				else {
-					BaseLegacy *b;
-					
 					/* deselect all */
 					/* TODO: should this deselect all other types of channels too? */
-					for (b = sce->base.first; b; b = b->next) {
-						b->flag_legacy &= ~SELECT;
-						BKE_scene_base_flag_sync_from_base(b);
+					for (Base *b = scene_layer->object_bases.first; b; b = b->next) {
+						ED_object_base_select(b, BA_DESELECT);
+						BKE_scene_object_base_flag_sync_from_base(b);
 						if (b->object->adt) b->object->adt->flag &= ~(ADT_UI_SELECTED | ADT_UI_ACTIVE);
 					}
 					
 					/* select object now */
-					base->flag_legacy |= SELECT;
-					ob->flag |= SELECT;
+					ED_object_base_select(base, BA_SELECT);
+					BKE_scene_object_base_flag_sync_from_base(base);
 					if (adt) adt->flag |= ADT_UI_SELECTED;
 				}
 				
 				/* change active object - regardless of whether it is now selected [T37883] */
-				ED_base_object_activate(C, base); /* adds notifier */
+				ED_object_base_activate(C, base); /* adds notifier */
 				
 				if ((adt) && (adt->flag & ADT_UI_SELECTED))
 					adt->flag |= ADT_UI_ACTIVE;
