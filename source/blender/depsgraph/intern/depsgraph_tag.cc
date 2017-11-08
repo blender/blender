@@ -292,8 +292,7 @@ void DEG_graph_on_visible_update(Main *bmain, Scene *scene)
 		 * This is mainly needed on file load only, after that updates of invisible objects
 		 * will be stored in the pending list.
 		 */
-		GHASH_FOREACH_BEGIN(DEG::IDDepsNode *, id_node, graph->id_hash)
-		{
+		foreach (DEG::IDDepsNode *id_node, graph->id_nodes) {
 			ID *id = id_node->id;
 			if ((id->recalc & ID_RECALC_ALL) != 0 ||
 			    (id_node->layers & scene->lay_updated) == 0)
@@ -319,7 +318,6 @@ void DEG_graph_on_visible_update(Main *bmain, Scene *scene)
 				}
 			}
 		}
-		GHASH_FOREACH_END();
 	}
 	scene->lay_updated |= graph->layers;
 	/* If graph is tagged for update, we don't need to bother with updates here,

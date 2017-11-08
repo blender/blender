@@ -125,8 +125,7 @@ void deg_graph_build_finalize(Depsgraph *graph)
 	 * to do it ahead of a time and don't spend time on flushing updates on
 	 * every frame change.
 	 */
-	GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, graph->id_hash)
-	{
+	foreach (IDDepsNode *id_node, graph->id_nodes) {
 		if (id_node->layers == 0) {
 			ID *id = id_node->id;
 			if (GS(id->name) == ID_OB) {
@@ -137,14 +136,12 @@ void deg_graph_build_finalize(Depsgraph *graph)
 			}
 		}
 	}
-	GHASH_FOREACH_END();
 	/* STEP 2: Flush visibility layers from children to parent. */
 	deg_graph_build_flush_layers(graph);
 	/* STEP 3: Re-tag IDs for update if it was tagged before the relations
 	 * update tag.
 	 */
-	GHASH_FOREACH_BEGIN(IDDepsNode *, id_node, graph->id_hash)
-	{
+	foreach (IDDepsNode *id_node, graph->id_nodes) {
 		GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp, id_node->components)
 		{
 			id_node->layers |= comp->layers;
@@ -169,7 +166,6 @@ void deg_graph_build_finalize(Depsgraph *graph)
 		}
 		id_node->finalize_build();
 	}
-	GHASH_FOREACH_END();
 }
 
 }  // namespace DEG

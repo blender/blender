@@ -197,8 +197,7 @@ void DEG_stats_simple(const Depsgraph *graph, size_t *r_outer,
 		size_t tot_outer = 0;
 		size_t tot_rels = 0;
 
-		GHASH_FOREACH_BEGIN(DEG::IDDepsNode *, id_node, deg_graph->id_hash)
-		{
+		foreach (DEG::IDDepsNode *id_node, deg_graph->id_nodes) {
 			tot_outer++;
 			GHASH_FOREACH_BEGIN(DEG::ComponentDepsNode *, comp_node, id_node->components)
 			{
@@ -209,7 +208,6 @@ void DEG_stats_simple(const Depsgraph *graph, size_t *r_outer,
 			}
 			GHASH_FOREACH_END();
 		}
-		GHASH_FOREACH_END();
 
 		DEG::TimeSourceDepsNode *time_source = deg_graph->find_time_source();
 		if (time_source != NULL) {
