@@ -959,26 +959,27 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
 	/* nodetree's nodes... */
 	LINKLIST_FOREACH (bNode *, bnode, &ntree->nodes) {
 		ID *id = bnode->id;
-		if (id != NULL) {
-			ID_Type id_type = GS(id->name);
-			if (id_type == ID_MA) {
-				build_material((Material *)id);
+		if (id == NULL) {
+			continue;
+		}
+		ID_Type id_type = GS(id->name);
+		if (id_type == ID_MA) {
+			build_material((Material *)id);
+		}
+		else if (id_type == ID_TE) {
+			build_texture((Tex *)id);
+		}
+		else if (id_type == ID_IM) {
+			build_image((Image *)id);
+		}
+		else if (bnode->type == NODE_GROUP) {
+			bNodeTree *group_ntree = (bNodeTree *)id;
+			if ((group_ntree->id.tag & LIB_TAG_DOIT) == 0) {
+				build_nodetree(group_ntree);
 			}
-			else if (id_type == ID_TE) {
-				build_texture((Tex *)id);
-			}
-			else if (id_type == ID_IM) {
-				build_image((Image *)id);
-			}
-			else if (bnode->type == NODE_GROUP) {
-				bNodeTree *group_ntree = (bNodeTree *)id;
-				if ((group_ntree->id.tag & LIB_TAG_DOIT) == 0) {
-					build_nodetree(group_ntree);
-				}
-			}
-			else {
-				BLI_assert(!"Unknown ID type used for node");
-			}
+		}
+		else {
+			BLI_assert(!"Unknown ID type used for node");
 		}
 	}
 

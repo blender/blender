@@ -1718,27 +1718,29 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 
 	/* nodetree's nodes... */
 	LINKLIST_FOREACH (bNode *, bnode, &ntree->nodes) {
-		if (bnode->id) {
-			if (GS(bnode->id->name) == ID_MA) {
-				build_material((Material *)bnode->id);
+		ID *id = bnode->id;
+		if (id == NULL) {
+			continue;
+		}
+		if (GS(id->name) == ID_MA) {
+			build_material((Material *)bnode->id);
+		}
+		else if (bnode->type == ID_TE) {
+			build_texture((Tex *)bnode->id);
+		}
+		else if (bnode->type == NODE_GROUP) {
+			bNodeTree *group_ntree = (bNodeTree *)id;
+			if ((group_ntree->id.tag & LIB_TAG_DOIT) == 0) {
+				build_nodetree(group_ntree);
+				group_ntree->id.tag |= LIB_TAG_DOIT;
 			}
-			else if (bnode->type == ID_TE) {
-				build_texture((Tex *)bnode->id);
-			}
-			else if (bnode->type == NODE_GROUP) {
-				bNodeTree *group_ntree = (bNodeTree *)bnode->id;
-				if ((group_ntree->id.tag & LIB_TAG_DOIT) == 0) {
-					build_nodetree(group_ntree);
-					group_ntree->id.tag |= LIB_TAG_DOIT;
-				}
-				OperationKey group_parameters_key(&group_ntree->id,
-				                                  DEG_NODE_TYPE_PARAMETERS,
-				                                  DEG_OPCODE_PARAMETERS_EVAL);
-				add_relation(group_parameters_key, parameters_key, "Group Node");
-			}
-			else {
-				BLI_assert(!"Unknown ID type used for node");
-			}
+			OperationKey group_parameters_key(&group_ntree->id,
+			                                  DEG_NODE_TYPE_PARAMETERS,
+			                                  DEG_OPCODE_PARAMETERS_EVAL);
+			add_relation(group_parameters_key, parameters_key, "Group Node");
+		}
+		else {
+			BLI_assert(!"Unknown ID type used for node");
 		}
 	}
 
