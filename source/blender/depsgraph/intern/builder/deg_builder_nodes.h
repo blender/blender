@@ -119,28 +119,26 @@ struct DepsgraphNodeBuilder {
 	                                       int name_tag = -1);
 
 	void build_scene(Scene *scene);
-	void build_group(Scene *scene, Base *base, Group *group);
-	void build_object(Scene *scene, Base *base, Object *ob);
-	void build_object_transform(Scene *scene, Object *ob);
-	void build_object_constraints(Scene *scene, Object *ob);
-	void build_pose_constraints(Scene *scene, Object *ob, bPoseChannel *pchan);
+	void build_group(Base *base, Group *group);
+	void build_object(Base *base, Object *ob);
+	void build_object_transform(Object *ob);
+	void build_object_constraints(Object *ob);
+	void build_pose_constraints(Object *ob, bPoseChannel *pchan);
 	void build_rigidbody(Scene *scene);
-	void build_particles(Scene *scene, Object *ob);
-	void build_cloth(Scene *scene, Object *object);
+	void build_particles(Object *ob);
+	void build_cloth(Object *object);
 	void build_animdata(ID *id);
 	OperationDepsNode *build_driver(ID *id, FCurve *fcurve);
-	void build_ik_pose(Scene *scene,
-	                   Object *ob,
+	void build_ik_pose(Object *ob,
 	                   bPoseChannel *pchan,
 	                   bConstraint *con);
-	void build_splineik_pose(Scene *scene,
-	                         Object *ob,
+	void build_splineik_pose(Object *ob,
 	                         bPoseChannel *pchan,
 	                         bConstraint *con);
-	void build_rig(Scene *scene, Object *ob);
+	void build_rig(Object *ob);
 	void build_proxy_rig(Object *ob);
 	void build_shapekeys(Key *key);
-	void build_obdata_geom(Scene *scene, Object *ob);
+	void build_obdata_geom(Object *ob);
 	void build_camera(Object *ob);
 	void build_lamp(Object *ob);
 	void build_nodetree(bNodeTree *ntree);
@@ -156,8 +154,12 @@ struct DepsgraphNodeBuilder {
 	void build_movieclip(MovieClip *clip);
 
 protected:
+	/* State which never changes, same for the whole builder time. */
 	Main *bmain_;
 	Depsgraph *graph_;
+
+	/* State which demotes currently built entities. */
+	Scene *scene_;
 };
 
 }  // namespace DEG

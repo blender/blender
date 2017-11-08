@@ -252,8 +252,12 @@ protected:
 	bool needs_animdata_node(ID *id);
 
 private:
+	/* State which never changes, same for the whole builder time. */
 	Main *bmain_;
 	Depsgraph *graph_;
+
+	/* State which demotes currently built entities. */
+	Scene *scene_;
 };
 
 struct DepsNodeHandle

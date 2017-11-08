@@ -64,16 +64,16 @@ extern "C" {
 
 namespace DEG {
 
-void DepsgraphNodeBuilder::build_pose_constraints(Scene *scene, Object *ob, bPoseChannel *pchan)
+void DepsgraphNodeBuilder::build_pose_constraints(Object *ob, bPoseChannel *pchan)
 {
 	/* create node for constraint stack */
 	add_operation_node(&ob->id, DEG_NODE_TYPE_BONE, pchan->name,
-	                   function_bind(BKE_pose_constraints_evaluate, _1, scene, ob, pchan),
+	                   function_bind(BKE_pose_constraints_evaluate, _1, scene_, ob, pchan),
 	                   DEG_OPCODE_BONE_CONSTRAINTS);
 }
 
 /* IK Solver Eval Steps */
-void DepsgraphNodeBuilder::build_ik_pose(Scene *scene, Object *ob, bPoseChannel *pchan, bConstraint *con)
+void DepsgraphNodeBuilder::build_ik_pose(Object *ob, bPoseChannel *pchan, bConstraint *con)
 {
 	bKinematicConstraint *data = (bKinematicConstraint *)con->data;
 
@@ -91,12 +91,12 @@ void DepsgraphNodeBuilder::build_ik_pose(Scene *scene, Object *ob, bPoseChannel 
 
 	/* Operation node for evaluating/running IK Solver. */
 	add_operation_node(&ob->id, DEG_NODE_TYPE_EVAL_POSE, rootchan->name,
-	                   function_bind(BKE_pose_iktree_evaluate, _1, scene, ob, rootchan),
+	                   function_bind(BKE_pose_iktree_evaluate, _1, scene_, ob, rootchan),
 	                   DEG_OPCODE_POSE_IK_SOLVER);
 }
 
 /* Spline IK Eval Steps */
-void DepsgraphNodeBuilder::build_splineik_pose(Scene *scene, Object *ob, bPoseChannel *pchan, bConstraint *con)
+void DepsgraphNodeBuilder::build_splineik_pose(Object *ob, bPoseChannel *pchan, bConstraint *con)
 {
 	bSplineIKConstraint *data = (bSplineIKConstraint *)con->data;
 
@@ -107,12 +107,12 @@ void DepsgraphNodeBuilder::build_splineik_pose(Scene *scene, Object *ob, bPoseCh
 	 * Store the "root bone" of this chain in the solver, so it knows where to start.
 	 */
 	add_operation_node(&ob->id, DEG_NODE_TYPE_EVAL_POSE, rootchan->name,
-	                   function_bind(BKE_pose_splineik_evaluate, _1, scene, ob, rootchan),
+	                   function_bind(BKE_pose_splineik_evaluate, _1, scene_, ob, rootchan),
 	                   DEG_OPCODE_POSE_SPLINE_IK_SOLVER);
 }
 
 /* Pose/Armature Bones Graph */
-void DepsgraphNodeBuilder::build_rig(Scene *scene, Object *ob)
+void DepsgraphNodeBuilder::build_rig(Object *ob)
 {
 	bArmature *arm = (bArmature *)ob->data;
 	OperationDepsNode *op_node;
@@ -179,18 +179,18 @@ void DepsgraphNodeBuilder::build_rig(Scene *scene, Object *ob)
 	/* pose eval context */
 	op_node = add_operation_node(&ob->id,
 	                             DEG_NODE_TYPE_EVAL_POSE,
-	                             function_bind(BKE_pose_eval_init, _1, scene, ob, ob->pose),
+	                             function_bind(BKE_pose_eval_init, _1, scene_, ob, ob->pose),
 	                             DEG_OPCODE_POSE_INIT);
 	op_node->set_as_entry();
 
 	op_node = add_operation_node(&ob->id,
 	                             DEG_NODE_TYPE_EVAL_POSE,
-	                             function_bind(BKE_pose_eval_init_ik, _1, scene, ob, ob->pose),
+	                             function_bind(BKE_pose_eval_init_ik, _1, scene_, ob, ob->pose),
 	                             DEG_OPCODE_POSE_INIT_IK);
 
 	op_node = add_operation_node(&ob->id,
 	                             DEG_NODE_TYPE_EVAL_POSE,
-	                             function_bind(BKE_pose_eval_flush, _1, scene, ob, ob->pose),
+	                             function_bind(BKE_pose_eval_flush, _1, scene_, ob, ob->pose),
 	                             DEG_OPCODE_POSE_DONE);
 	op_node->set_as_exit();
 
@@ -202,7 +202,7 @@ void DepsgraphNodeBuilder::build_rig(Scene *scene, Object *ob)
 		op_node->set_as_entry();
 
 		add_operation_node(&ob->id, DEG_NODE_TYPE_BONE, pchan->name,
-		                   function_bind(BKE_pose_eval_bone, _1, scene, ob, pchan),
+		                   function_bind(BKE_pose_eval_bone, _1, scene_, ob, pchan),
 		                   DEG_OPCODE_BONE_POSE_PARENT);
 
 		add_operation_node(&ob->id, DEG_NODE_TYPE_BONE, pchan->name,
@@ -216,7 +216,7 @@ void DepsgraphNodeBuilder::build_rig(Scene *scene, Object *ob)
 
 		/* constraints */
 		if (pchan->constraints.first != NULL) {
-			build_pose_constraints(scene, ob, pchan);
+			build_pose_constraints(ob, pchan);
 		}
 
 		/**
@@ -233,11 +233,11 @@ void DepsgraphNodeBuilder::build_rig(Scene *scene, Object *ob)
 		LINKLIST_FOREACH (bConstraint *, con, &pchan->constraints) {
 			switch (con->type) {
 				case CONSTRAINT_TYPE_KINEMATIC:
-					build_ik_pose(scene, ob, pchan, con);
+					build_ik_pose(ob, pchan, con);
 					break;
 
 				case CONSTRAINT_TYPE_SPLINEIK:
-					build_splineik_pose(scene, ob, pchan, con);
+					build_splineik_pose(ob, pchan, con);
 					break;
 
 				default:

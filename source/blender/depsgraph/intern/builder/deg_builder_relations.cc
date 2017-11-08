@@ -195,7 +195,8 @@ RNAPathKey::RNAPathKey(ID *id, const char *path) :
 DepsgraphRelationBuilder::DepsgraphRelationBuilder(Main *bmain,
                                                    Depsgraph *graph)
     : bmain_(bmain),
-      graph_(graph)
+      graph_(graph),
+      scene_(NULL)
 {
 }
 

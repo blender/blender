@@ -78,10 +78,12 @@ void DepsgraphNodeBuilder::build_scene(Scene *scene)
 		build_scene(scene->set);
 	}
 
+	scene_ = scene;
+
 	/* scene objects */
 	LINKLIST_FOREACH (Base *, base, &scene->base) {
 		Object *ob = base->object;
-		build_object(scene, base, ob);
+		build_object(base, ob);
 	}
 
 	/* rigidbody */
