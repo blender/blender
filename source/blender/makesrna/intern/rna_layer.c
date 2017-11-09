@@ -423,8 +423,8 @@ static void rna_LayerCollectionEngineSettings_update(bContext *C, PointerRNA *UN
 static void rna_LayerCollectionEngineSettings_wire_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
-	Object *ob = OBACT_NEW(sl);
+	SceneLayer *scene_layer = CTX_data_scene_layer(C);
+	Object *ob = OBACT_NEW(scene_layer);
 
 	if (ob != NULL && ob->type == OB_MESH) {
 		BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
@@ -720,45 +720,45 @@ static void rna_LayerCollection_enable_set(
 
 static int rna_LayerCollections_active_collection_index_get(PointerRNA *ptr)
 {
-	SceneLayer *sl = (SceneLayer *)ptr->data;
-	return sl->active_collection;
+	SceneLayer *scene_layer = (SceneLayer *)ptr->data;
+	return scene_layer->active_collection;
 }
 
 static void rna_LayerCollections_active_collection_index_set(PointerRNA *ptr, int value)
 {
-	SceneLayer *sl = (SceneLayer *)ptr->data;
-	int num_collections = BKE_layer_collection_count(sl);
-	sl->active_collection = min_ff(value, num_collections - 1);
+	SceneLayer *scene_layer = (SceneLayer *)ptr->data;
+	int num_collections = BKE_layer_collection_count(scene_layer);
+	scene_layer->active_collection = min_ff(value, num_collections - 1);
 }
 
 static void rna_LayerCollections_active_collection_index_range(
         PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax))
 {
-	SceneLayer *sl = (SceneLayer *)ptr->data;
+	SceneLayer *scene_layer = (SceneLayer *)ptr->data;
 	*min = 0;
-	*max = max_ii(0, BKE_layer_collection_count(sl) - 1);
+	*max = max_ii(0, BKE_layer_collection_count(scene_layer) - 1);
 }
 
 static PointerRNA rna_LayerCollections_active_collection_get(PointerRNA *ptr)
 {
-	SceneLayer *sl = (SceneLayer *)ptr->data;
-	LayerCollection *lc = BKE_layer_collection_get_active(sl);
+	SceneLayer *scene_layer = (SceneLayer *)ptr->data;
+	LayerCollection *lc = BKE_layer_collection_get_active(scene_layer);
 	return rna_pointer_inherit_refine(ptr, &RNA_LayerCollection, lc);
 }
 
 static void rna_LayerCollections_active_collection_set(PointerRNA *ptr, PointerRNA value)
 {
-	SceneLayer *sl = (SceneLayer *)ptr->data;
+	SceneLayer *scene_layer = (SceneLayer *)ptr->data;
 	LayerCollection *lc = (LayerCollection *)value.data;
-	const int index = BKE_layer_collection_findindex(sl, lc);
-	if (index != -1) sl->active_collection = index;
+	const int index = BKE_layer_collection_findindex(scene_layer, lc);
+	if (index != -1) scene_layer->active_collection = index;
 }
 
 LayerCollection * rna_SceneLayer_collection_link(
-        ID *id, SceneLayer *sl, Main *bmain, SceneCollection *sc)
+        ID *id, SceneLayer *scene_layer, Main *bmain, SceneCollection *sc)
 {
 	Scene *scene = (Scene *)id;
-	LayerCollection *lc = BKE_collection_link(sl, sc);
+	LayerCollection *lc = BKE_collection_link(scene_layer, sc);
 
 	DEG_relations_tag_update(bmain);
 	/* TODO(sergey): Use proper flag for tagging here. */
@@ -769,16 +769,17 @@ LayerCollection * rna_SceneLayer_collection_link(
 }
 
 static void rna_SceneLayer_collection_unlink(
-        ID *id, SceneLayer *sl, Main *bmain, ReportList *reports, LayerCollection *lc)
+        ID *id, SceneLayer *scene_layer, Main *bmain, ReportList *reports, LayerCollection *lc)
 {
 	Scene *scene = (Scene *)id;
 
-	if (BLI_findindex(&sl->layer_collections, lc) == -1) {
-		BKE_reportf(reports, RPT_ERROR, "Layer collection '%s' is not in '%s'", lc->scene_collection->name, sl->name);
+	if (BLI_findindex(&scene_layer->layer_collections, lc) == -1) {
+		BKE_reportf(reports, RPT_ERROR, "Layer collection '%s' is not in '%s'",
+		            lc->scene_collection->name, scene_layer->name);
 		return;
 	}
 
-	BKE_collection_unlink(sl, lc);
+	BKE_collection_unlink(scene_layer, lc);
 
 	DEG_relations_tag_update(bmain);
 	/* TODO(sergey): Use proper flag for tagging here. */
@@ -788,38 +789,38 @@ static void rna_SceneLayer_collection_unlink(
 
 static PointerRNA rna_LayerObjects_active_object_get(PointerRNA *ptr)
 {
-	SceneLayer *sl = (SceneLayer *)ptr->data;
-	return rna_pointer_inherit_refine(ptr, &RNA_Object, sl->basact ? sl->basact->object : NULL);
+	SceneLayer *scene_layer = (SceneLayer *)ptr->data;
+	return rna_pointer_inherit_refine(ptr, &RNA_Object, scene_layer->basact ? scene_layer->basact->object : NULL);
 }
 
 static void rna_LayerObjects_active_object_set(PointerRNA *ptr, PointerRNA value)
 {
-	SceneLayer *sl = (SceneLayer *)ptr->data;
+	SceneLayer *scene_layer = (SceneLayer *)ptr->data;
 	if (value.data)
-		sl->basact = BKE_scene_layer_base_find(sl, (Object *)value.data);
+		scene_layer->basact = BKE_scene_layer_base_find(scene_layer, (Object *)value.data);
 	else
-		sl->basact = NULL;
+		scene_layer->basact = NULL;
 }
 
 static void rna_SceneLayer_name_set(PointerRNA *ptr, const char *value)
 {
 	Scene *scene = (Scene *)ptr->id.data;
-	SceneLayer *sl = (SceneLayer *)ptr->data;
-	char oldname[sizeof(sl->name)];
+	SceneLayer *scene_layer = (SceneLayer *)ptr->data;
+	char oldname[sizeof(scene_layer->name)];
 
-	BLI_strncpy(oldname, sl->name, sizeof(sl->name));
+	BLI_strncpy(oldname, scene_layer->name, sizeof(scene_layer->name));
 
-	BLI_strncpy_utf8(sl->name, value, sizeof(sl->name));
-	BLI_uniquename(&scene->render_layers, sl, DATA_("SceneLayer"), '.', offsetof(SceneLayer, name), sizeof(sl->name));
+	BLI_strncpy_utf8(scene_layer->name, value, sizeof(scene_layer->name));
+	BLI_uniquename(&scene->render_layers, scene_layer, DATA_("SceneLayer"), '.', offsetof(SceneLayer, name), sizeof(scene_layer->name));
 
 	if (scene->nodetree) {
 		bNode *node;
-		int index = BLI_findindex(&scene->render_layers, sl);
+		int index = BLI_findindex(&scene->render_layers, scene_layer);
 
 		for (node = scene->nodetree->nodes.first; node; node = node->next) {
 			if (node->type == CMP_NODE_R_LAYERS && node->id == NULL) {
 				if (node->custom1 == index)
-					BLI_strncpy(node->name, sl->name, NODE_MAXSTR);
+					BLI_strncpy(node->name, scene_layer->name, NODE_MAXSTR);
 			}
 		}
 	}
@@ -856,11 +857,11 @@ static PointerRNA rna_SceneLayer_depsgraph_get(PointerRNA *ptr)
 
 static void rna_LayerObjects_selected_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-	SceneLayer *sl = (SceneLayer *)ptr->data;
-	rna_iterator_listbase_begin(iter, &sl->object_bases, rna_SceneLayer_objects_selected_skip);
+	SceneLayer *scene_layer = (SceneLayer *)ptr->data;
+	rna_iterator_listbase_begin(iter, &scene_layer->object_bases, rna_SceneLayer_objects_selected_skip);
 }
 
-static void rna_SceneLayer_update_tagged(SceneLayer *UNUSED(sl), bContext *C)
+static void rna_SceneLayer_update_tagged(SceneLayer *UNUSED(scene_layer), bContext *C)
 {
 	Depsgraph *graph = CTX_data_depsgraph(C);
 	DEG_OBJECT_ITER(graph, ob, DEG_OBJECT_ITER_FLAG_ALL)

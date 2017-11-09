@@ -614,13 +614,13 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem, R
 	}
 }
 
-static void rna_ParticleSystem_set_resolution(ParticleSystem *particlesystem, Scene *scene, SceneLayer *sl, Object *object, int resolution)
+static void rna_ParticleSystem_set_resolution(ParticleSystem *particlesystem, Scene *scene, SceneLayer *scene_layer, Object *object, int resolution)
 {
 	EvaluationContext eval_ctx;
 
 	DEG_evaluation_context_init(&eval_ctx, resolution);
 	eval_ctx.ctime = (float)scene->r.cfra + scene->r.subframe;
-	eval_ctx.scene_layer = sl;
+	eval_ctx.scene_layer = scene_layer;
 
 	if (resolution == eModifierMode_Render) {
 		ParticleSystemModifierData *psmd = psys_get_modifier(object, particlesystem);

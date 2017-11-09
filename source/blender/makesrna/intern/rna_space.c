@@ -862,9 +862,9 @@ static int rna_SpaceImageEditor_show_maskedit_get(PointerRNA *ptr)
 	SpaceImage *sima = (SpaceImage *)(ptr->data);
 	bScreen *sc = (bScreen *)ptr->id.data;
 	Scene *scene = ED_screen_scene_find(sc, G.main->wm.first);
-	SceneLayer *sl = BKE_scene_layer_context_active_PLACEHOLDER(scene);
+	SceneLayer *scene_layer = BKE_scene_layer_context_active_PLACEHOLDER(scene);
 
-	return ED_space_image_check_show_maskedit(sl, sima);
+	return ED_space_image_check_show_maskedit(scene_layer, sima);
 }
 
 static void rna_SpaceImageEditor_image_set(PointerRNA *ptr, PointerRNA value)
@@ -1323,9 +1323,9 @@ static void rna_SpaceDopeSheetEditor_action_set(PointerRNA *ptr, PointerRNA valu
 static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
 {
 	SpaceAction *saction = (SpaceAction *)(ptr->data);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	SceneLayer *scene_layer = CTX_data_scene_layer(C);
 	Main *bmain = CTX_data_main(C);
-	Object *obact = OBACT_NEW(sl);
+	Object *obact = OBACT_NEW(scene_layer);
 
 	/* we must set this action to be the one used by active object (if not pinned) */
 	if (obact /* && saction->pin == 0*/) {
@@ -1400,8 +1400,8 @@ static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
 static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
 {
 	SpaceAction *saction = (SpaceAction *)(ptr->data);
-	SceneLayer *sl = CTX_data_scene_layer(C);
-	Object *obact = OBACT_NEW(sl);
+	SceneLayer *scene_layer = CTX_data_scene_layer(C);
+	Object *obact = OBACT_NEW(scene_layer);
 
 	/* special exceptions for ShapeKey Editor mode */
 	if (saction->mode == SACTCONT_SHAPEKEY) {

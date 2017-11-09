@@ -412,7 +412,7 @@ PointerRNA rna_pointer_inherit_refine(struct PointerRNA *ptr, struct StructRNA *
 int rna_parameter_size(struct PropertyRNA *parm);
 
 struct Mesh *rna_Main_meshes_new_from_object(
-        struct Main *bmain, struct ReportList *reports, struct Scene *sce, struct SceneLayer *sl,
+        struct Main *bmain, struct ReportList *reports, struct Scene *sce, struct SceneLayer *scene_layer,
         struct Object *ob, int apply_modifiers, int settings, int calc_tessface, int calc_undeformed);
 
 /* XXX, these should not need to be defined here~! */

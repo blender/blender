@@ -375,9 +375,9 @@ static void rna_Brush_main_tex_update(bContext *C, PointerRNA *ptr)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	SceneLayer *scene_layer = CTX_data_scene_layer(C);
 	Brush *br = (Brush *)ptr->data;
-	BKE_paint_invalidate_overlay_tex(scene, sl, br->mtex.tex);
+	BKE_paint_invalidate_overlay_tex(scene, scene_layer, br->mtex.tex);
 	rna_Brush_update(bmain, scene, ptr);
 }
 
@@ -385,9 +385,9 @@ static void rna_Brush_secondary_tex_update(bContext *C, PointerRNA *ptr)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	SceneLayer *scene_layer = CTX_data_scene_layer(C);
 	Brush *br = (Brush *)ptr->data;
-	BKE_paint_invalidate_overlay_tex(scene, sl, br->mask_mtex.tex);
+	BKE_paint_invalidate_overlay_tex(scene, scene_layer, br->mask_mtex.tex);
 	rna_Brush_update(bmain, scene, ptr);
 }
 
@@ -449,8 +449,8 @@ static void rna_TextureSlot_brush_angle_update(bContext *C, PointerRNA *ptr)
 	MTex *mtex = ptr->data;
 	/* skip invalidation of overlay for stencil mode */
 	if (mtex->mapping != MTEX_MAP_MODE_STENCIL) {
-		SceneLayer *sl = CTX_data_scene_layer(C);
-		BKE_paint_invalidate_overlay_tex(scene, sl, mtex->tex);
+		SceneLayer *scene_layer = CTX_data_scene_layer(C);
+		BKE_paint_invalidate_overlay_tex(scene, scene_layer, mtex->tex);
 	}
 
 	rna_TextureSlot_update(C, ptr);

@@ -1561,15 +1561,15 @@ static void rna_Physics_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointe
 static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const int *value)
 {
 	Scene *scene = (Scene *)ptr->id.data;
-	SceneLayer *sl = BKE_scene_layer_context_active_PLACEHOLDER(scene);
+	SceneLayer *scene_layer = BKE_scene_layer_context_active_PLACEHOLDER(scene);
 	ToolSettings *ts = (ToolSettings *)ptr->data;
 	int flag = (value[0] ? SCE_SELECT_VERTEX : 0) | (value[1] ? SCE_SELECT_EDGE : 0) | (value[2] ? SCE_SELECT_FACE : 0);
 
 	if (flag) {
 		ts->selectmode = flag;
 
-		if (sl->basact) {
-			Mesh *me = BKE_mesh_from_object(sl->basact->object);
+		if (scene_layer->basact) {
+			Mesh *me = BKE_mesh_from_object(scene_layer->basact->object);
 			if (me && me->edit_btmesh && me->edit_btmesh->selectmode != flag) {
 				me->edit_btmesh->selectmode = flag;
 				EDBM_selectmode_set(me->edit_btmesh);
@@ -1580,11 +1580,11 @@ static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const int *value
 
 static void rna_Scene_editmesh_select_mode_update(Main *UNUSED(bmain), bContext *C, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	SceneLayer *scene_layer = CTX_data_scene_layer(C);
 	Mesh *me = NULL;
 
-	if (sl->basact) {
-		me = BKE_mesh_from_object(sl->basact->object);
+	if (scene_layer->basact) {
+		me = BKE_mesh_from_object(scene_layer->basact->object);
 		if (me && me->edit_btmesh == NULL)
 			me = NULL;
 	}
@@ -1786,8 +1786,8 @@ static KeyingSet *rna_Scene_keying_set_new(Scene *sce, ReportList *reports, cons
 static void rna_UnifiedPaintSettings_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
-	Brush *br = BKE_paint_brush(BKE_paint_get_active(scene, sl));
+	SceneLayer *scene_layer = CTX_data_scene_layer(C);
+	Brush *br = BKE_paint_brush(BKE_paint_get_active(scene, scene_layer));
 	WM_main_add_notifier(NC_BRUSH | NA_EDITED, br);
 }
 
@@ -1830,11 +1830,11 @@ static char *rna_CurvePaintSettings_path(PointerRNA *UNUSED(ptr))
 /* generic function to recalc geometry */
 static void rna_EditMesh_update(Main *UNUSED(bmain), bContext *C, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	SceneLayer *scene_layer = CTX_data_scene_layer(C);
 	Mesh *me = NULL;
 
-	if (sl->basact) {
-		me = BKE_mesh_from_object(sl->basact->object);
+	if (scene_layer->basact) {
+		me = BKE_mesh_from_object(scene_layer->basact->object);
 		if (me && me->edit_btmesh == NULL)
 			me = NULL;
 	}
@@ -1857,8 +1857,8 @@ static char *rna_MeshStatVis_path(PointerRNA *UNUSED(ptr))
  * given its own notifier. */
 static void rna_Scene_update_active_object_data(bContext *C, PointerRNA *UNUSED(ptr))
 {
-	SceneLayer *sl = CTX_data_scene_layer(C);
-	Object *ob = OBACT_NEW(sl);
+	SceneLayer *scene_layer = CTX_data_scene_layer(C);
+	Object *ob = OBACT_NEW(scene_layer);
 
 	if (ob) {
 		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -2076,16 +2076,16 @@ static void rna_SceneLayer_active_layer_index_range(
 static PointerRNA rna_SceneLayer_active_layer_get(PointerRNA *ptr)
 {
 	Scene *scene = (Scene *)ptr->data;
-	SceneLayer *sl = BLI_findlink(&scene->render_layers, scene->active_layer);
+	SceneLayer *scene_layer = BLI_findlink(&scene->render_layers, scene->active_layer);
 
-	return rna_pointer_inherit_refine(ptr, &RNA_SceneLayer, sl);
+	return rna_pointer_inherit_refine(ptr, &RNA_SceneLayer, scene_layer);
 }
 
 static void rna_SceneLayer_active_layer_set(PointerRNA *ptr, PointerRNA value)
 {
 	Scene *scene = (Scene *)ptr->data;
-	SceneLayer *sl = (SceneLayer *)value.data;
-	const int index = BLI_findindex(&scene->render_layers, sl);
+	SceneLayer *scene_layer = (SceneLayer *)value.data;
+	const int index = BLI_findindex(&scene->render_layers, scene_layer);
 	if (index != -1) scene->active_layer = index;
 }
 
@@ -2093,22 +2093,22 @@ static SceneLayer *rna_SceneLayer_new(
         ID *id, Scene *UNUSED(sce), Main *bmain, const char *name)
 {
 	Scene *scene = (Scene *)id;
-	SceneLayer *sl = BKE_scene_layer_add(scene, name);
+	SceneLayer *scene_layer = BKE_scene_layer_add(scene, name);
 
 	DEG_id_tag_update(&scene->id, 0);
 	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 
-	return sl;
+	return scene_layer;
 }
 
 static void rna_SceneLayer_remove(
         ID *id, Scene *UNUSED(sce), Main *bmain, ReportList *reports, PointerRNA *sl_ptr)
 {
 	Scene *scene = (Scene *)id;
-	SceneLayer *sl = sl_ptr->data;
+	SceneLayer *scene_layer = sl_ptr->data;
 
-	if (ED_scene_render_layer_delete(bmain, scene, sl, reports)) {
+	if (ED_scene_render_layer_delete(bmain, scene, scene_layer, reports)) {
 		RNA_POINTER_INVALIDATE(sl_ptr);
 	}
 }
