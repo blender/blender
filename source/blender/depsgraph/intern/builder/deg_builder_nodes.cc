@@ -970,6 +970,14 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
 		else if (id_type == ID_IM) {
 			build_image((Image *)id);
 		}
+		else if (id_type == ID_OB) {
+			build_object(NULL, (Object *)id);
+		}
+		else if (id_type == ID_SCE) {
+			/* Scenes are used by compositor trees, and handled by render
+			 * pipeline. No need to build dependencies for them here.
+			 */
+		}
 		else if (bnode->type == NODE_GROUP) {
 			bNodeTree *group_ntree = (bNodeTree *)id;
 			if ((group_ntree->id.tag & LIB_TAG_DOIT) == 0) {
