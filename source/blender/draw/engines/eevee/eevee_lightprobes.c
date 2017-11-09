@@ -125,7 +125,7 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
 
 	/* TODO get screen percentage from layer setting */
 	// const DRWContextState *draw_ctx = DRW_context_state_get();
-	// SceneLayer *sl = draw_ctx->sl;
+	// SceneLayer *scene_layer = draw_ctx->scene_layer;
 	float screen_percentage = 1.0f;
 
 	int width = (int)(viewport_size[0] * screen_percentage);

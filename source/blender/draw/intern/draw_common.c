@@ -360,10 +360,10 @@ DRWShadingGroup *shgroup_instance_bone_envelope_solid(DRWPass *pass, struct Gwn_
  * Get the wire color theme_id of an object based on it's state
  * \a r_color is a way to get a pointer to the static color var associated
  */
-int DRW_object_wire_theme_get(Object *ob, SceneLayer *sl, float **r_color)
+int DRW_object_wire_theme_get(Object *ob, SceneLayer *scene_layer, float **r_color)
 {
 	const bool is_edit = (ob->mode & OB_MODE_EDIT) != 0;
-	const bool active = (sl->basact && sl->basact->object == ob);
+	const bool active = (scene_layer->basact && scene_layer->basact->object == ob);
 	/* confusing logic here, there are 2 methods of setting the color
 	 * 'colortab[colindex]' and 'theme_id', colindex overrides theme_id.
 	 *

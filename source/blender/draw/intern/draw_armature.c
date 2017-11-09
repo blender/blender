@@ -1413,11 +1413,11 @@ static void DRW_shgroup_armature(
 }
 
 void DRW_shgroup_armature_object(
-        Object *ob, SceneLayer *sl, DRWPass *pass_bone_solid, DRWPass *pass_bone_wire, DRWPass *UNUSED(pass_bone_envelope),
+        Object *ob, SceneLayer *scene_layer, DRWPass *pass_bone_solid, DRWPass *pass_bone_wire, DRWPass *UNUSED(pass_bone_envelope),
         DRWShadingGroup *shgrp_relationship_lines)
 {
 	float *color;
-	DRW_object_wire_theme_get(ob, sl, &color);
+	DRW_object_wire_theme_get(ob, scene_layer, &color);
 
 	DRW_shgroup_armature(ob, pass_bone_solid, pass_bone_wire, NULL, shgrp_relationship_lines);
 	draw_armature_pose(ob, color);
