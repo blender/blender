@@ -129,7 +129,7 @@ static int mouse_nla_channels(bContext *C, bAnimContext *ac, float x, int channe
 			Object *ob = base->object;
 			AnimData *adt = ob->adt;
 			
-			if (nlaedit_is_tweakmode_on(ac) == 0) {
+			if (nlaedit_is_tweakmode_on(ac) == 0 && (ob->restrictflag & OB_RESTRICT_SELECT) == 0) {
 				/* set selection status */
 				if (selectmode == SELECT_INVERT) {
 					/* swap select */
