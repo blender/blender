@@ -52,6 +52,7 @@
 #include "BKE_screen.h"
 #include "BKE_report.h"
 #include "BKE_global.h"
+#include "BKE_workspace.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -433,12 +434,14 @@ void wm_add_default(Main *bmain, bContext *C)
 	wmWindowManager *wm = BKE_libblock_alloc(bmain, ID_WM, "WinMan", 0);
 	wmWindow *win;
 	bScreen *screen = CTX_wm_screen(C); /* XXX from file read hrmf */
-	struct WorkSpace *workspace = G.main->workspaces.last;
+	WorkSpace *workspace;
+	WorkSpaceLayout *layout = BKE_workspace_layout_find_global(bmain, screen, &workspace);
 
 	CTX_wm_manager_set(C, wm);
 	win = wm_window_new(C);
+	win->scene = CTX_data_scene(C);
 	WM_window_set_active_workspace(win, workspace);
-	WM_window_set_active_screen(win, workspace, screen);
+	WM_window_set_active_layout(win, workspace, layout);
 	screen->winid = win->winid;
 	BLI_strncpy(win->screenname, screen->id.name + 2, sizeof(win->screenname));
 	
