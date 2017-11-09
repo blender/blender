@@ -34,7 +34,6 @@ DeviceSplitKernel::DeviceSplitKernel(Device *device)
   use_queues_flag(device, "use_queues_flag"),
   work_pool_wgs(device, "work_pool_wgs")
 {
-	current_max_closure = -1;
 	first_tile = true;
 
 	avg_time_per_sample = 0.0;
@@ -115,8 +114,6 @@ bool DeviceSplitKernel::load_kernels(const DeviceRequestedFeatures& requested_fe
 	LOAD_KERNEL(buffer_update);
 
 #undef LOAD_KERNEL
-
-	current_max_closure = requested_features.max_closure;
 
 	return true;
 }

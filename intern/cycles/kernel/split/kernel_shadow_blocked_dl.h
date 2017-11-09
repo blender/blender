@@ -43,7 +43,7 @@ ccl_device void kernel_shadow_blocked_dl(KernelGlobals *kg)
 	ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
 	Ray ray = kernel_split_state.light_ray[ray_index];
 	PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
-	ShaderData *sd = &kernel_split_state.sd[ray_index];
+	ShaderData *sd = kernel_split_sd(sd, ray_index);
 	float3 throughput = kernel_split_state.throughput[ray_index];
 
 	BsdfEval L_light = kernel_split_state.bsdf_eval[ray_index];

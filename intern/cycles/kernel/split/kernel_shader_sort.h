@@ -47,7 +47,7 @@ ccl_device void kernel_shader_sort(KernelGlobals *kg,
 			int ray_index = kernel_split_state.queue_data[add];
 			bool valid = (ray_index != QUEUE_EMPTY_SLOT) && IS_STATE(kernel_split_state.ray_state, ray_index, RAY_ACTIVE);
 			if(valid) {
-				value = kernel_split_state.sd[ray_index].shader & SHADER_MASK;
+				value = kernel_split_sd(sd, ray_index)->shader & SHADER_MASK;
 			}
 		}
 		local_value[i + lid] = value;

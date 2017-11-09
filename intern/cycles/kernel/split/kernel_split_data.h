@@ -31,6 +31,14 @@ ccl_device_inline uint64_t split_data_buffer_size(KernelGlobals *kg, size_t num_
 	size = size SPLIT_DATA_ENTRIES;
 #undef SPLIT_DATA_ENTRY
 
+	uint64_t closure_size = sizeof(ShaderClosure) * (kernel_data.integrator.max_closures-1);
+
+#ifdef __BRANCHED_PATH__
+	size += align_up(closure_size * num_elements, 16);
+#endif
+
+	size += align_up(num_elements * (sizeof(ShaderData) + closure_size), 16);
+
 	return size;
 }
 
@@ -48,6 +56,15 @@ ccl_device_inline void split_data_init(KernelGlobals *kg,
 	split_data->name = (type*)p; p += align_up(num_elements * num * sizeof(type), 16);
 	SPLIT_DATA_ENTRIES;
 #undef SPLIT_DATA_ENTRY
+
+	uint64_t closure_size = sizeof(ShaderClosure) * (kernel_data.integrator.max_closures-1);
+
+#ifdef __BRANCHED_PATH__
+	p += align_up(closure_size * num_elements, 16);
+#endif
+
+	split_data->_sd = (ShaderData*)p;
+	p += align_up(num_elements * (sizeof(ShaderData) + closure_size), 16);
 
 	split_data->ray_state = ray_state;
 }

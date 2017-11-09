@@ -760,7 +760,6 @@ public:
 		CPUSplitKernel *split_kernel = NULL;
 		if(use_split_kernel) {
 			split_kernel = new CPUSplitKernel(this);
-			requested_features.max_closure = MAX_CLOSURE;
 			if(!split_kernel->load_kernels(requested_features)) {
 				thread_kernel_globals_free((KernelGlobals*)kgbuffer.device_pointer);
 				kgbuffer.free();

@@ -216,15 +216,15 @@ void DEG_graph_build_from_scene(Depsgraph *graph, Main *bmain, Scene *scene)
 
 	/* 1) Generate all the nodes in the graph first */
 	DEG::DepsgraphNodeBuilder node_builder(bmain, deg_graph);
-	node_builder.begin_build(bmain);
-	node_builder.build_scene(bmain, scene, DEG::DEG_ID_LINKED_DIRECTLY);
+	node_builder.begin_build();
+	node_builder.build_scene(scene, DEG::DEG_ID_LINKED_DIRECTLY);
 
 	/* 2) Hook up relationships between operations - to determine evaluation
 	 *    order.
 	 */
-	DEG::DepsgraphRelationBuilder relation_builder(deg_graph);
-	relation_builder.begin_build(bmain);
-	relation_builder.build_scene(bmain, scene);
+	DEG::DepsgraphRelationBuilder relation_builder(bmain, deg_graph);
+	relation_builder.begin_build();
+	relation_builder.build_scene(scene);
 	if (DEG_depsgraph_use_copy_on_write()) {
 		relation_builder.build_copy_on_write_relations();
 	}

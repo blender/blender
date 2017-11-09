@@ -47,7 +47,6 @@ std::ostream& operator <<(std::ostream &os,
 {
 	os << "Experimental features: "
 	   << (requested_features.experimental ? "On" : "Off") << std::endl;
-	os << "Max closure count: " << requested_features.max_closure << std::endl;
 	os << "Max nodes group: " << requested_features.max_nodes_group << std::endl;
 	/* TODO(sergey): Decode bitflag into list of names. */
 	os << "Nodes features: " << requested_features.nodes_features << std::endl;

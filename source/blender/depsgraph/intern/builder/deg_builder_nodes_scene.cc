@@ -65,7 +65,7 @@ extern "C" {
 
 namespace DEG {
 
-void DepsgraphNodeBuilder::build_scene(Main *bmain, Scene *scene, eDepsNode_LinkedState_Type linked_state)
+void DepsgraphNodeBuilder::build_scene(Scene *scene, eDepsNode_LinkedState_Type linked_state)
 {
 	/* scene ID block */
 	add_id_node(&scene->id);
@@ -77,20 +77,23 @@ void DepsgraphNodeBuilder::build_scene(Main *bmain, Scene *scene, eDepsNode_Link
 	// XXX: depending on how this goes, that scene itself could probably store its
 	//      own little partial depsgraph?
 	if (scene->set) {
-		build_scene(bmain, scene->set, DEG_ID_LINKED_VIA_SET);
+		build_scene(scene->set, DEG_ID_LINKED_VIA_SET);
 	}
+
+	/* Setup currently building context. */
+	scene_ = scene;
 
 	/* scene objects */
 	int select_color = 1;
 	for (SceneLayer *sl = (SceneLayer *)scene->render_layers.first; sl; sl = sl->next) {
 		for (Base *base = (Base *)sl->object_bases.first; base; base = base->next) {
 			/* object itself */
-			build_object(scene, base->object, linked_state);
+			build_object(base->object, linked_state);
 			base->object->select_color = select_color++;
 		}
 	}
 	if (scene->camera != NULL) {
-		build_object(scene, scene->camera, linked_state);
+		build_object(scene->camera, linked_state);
 	}
 
 	/* rigidbody */
@@ -122,17 +125,17 @@ void DepsgraphNodeBuilder::build_scene(Main *bmain, Scene *scene, eDepsNode_Link
 	}
 
 	/* Cache file. */
-	LINKLIST_FOREACH (CacheFile *, cachefile, &bmain->cachefiles) {
+	LINKLIST_FOREACH (CacheFile *, cachefile, &bmain_->cachefiles) {
 		build_cachefile(cachefile);
 	}
 
 	/* Masks. */
-	LINKLIST_FOREACH (Mask *, mask, &bmain->mask) {
+	LINKLIST_FOREACH (Mask *, mask, &bmain_->mask) {
 		build_mask(mask);
 	}
 
 	/* Movie clips. */
-	LINKLIST_FOREACH (MovieClip *, clip, &bmain->movieclip) {
+	LINKLIST_FOREACH (MovieClip *, clip, &bmain_->movieclip) {
 		build_movieclip(clip);
 	}
 

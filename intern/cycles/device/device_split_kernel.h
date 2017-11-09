@@ -92,9 +92,6 @@ private:
 	/* Work pool with respect to each work group. */
 	device_only_memory<unsigned int> work_pool_wgs;
 
-	/* clos_max value for which the kernels have been loaded currently. */
-	int current_max_closure;
-
 	/* Marked True in constructor and marked false at the end of path_trace(). */
 	bool first_tile;
 

@@ -167,9 +167,9 @@ struct RNAPathKey
 
 struct DepsgraphRelationBuilder
 {
-	DepsgraphRelationBuilder(Depsgraph *graph);
+	DepsgraphRelationBuilder(Main *bmain, Depsgraph *graph);
 
-	void begin_build(Main *bmain);
+	void begin_build();
 
 	template <typename KeyFrom, typename KeyTo>
 	void add_relation(const KeyFrom& key_from,
@@ -186,11 +186,11 @@ struct DepsgraphRelationBuilder
 	                              const DepsNodeHandle *handle,
 	                              const char *description);
 
-	void build_scene(Main *bmain, Scene *scene);
-	void build_group(Main *bmain, Scene *scene, Object *object, Group *group);
-	void build_object(Main *bmain, Scene *scene, Object *ob);
+	void build_scene(Scene *scene);
+	void build_group(Object *object, Group *group);
+	void build_object(Object *ob);
 	void build_object_parent(Object *ob);
-	void build_constraints(Scene *scene, ID *id,
+	void build_constraints(ID *id,
 	                       eDepsNode_Type component_type,
 	                       const char *component_subdata,
 	                       ListBase *constraints,
@@ -199,9 +199,9 @@ struct DepsgraphRelationBuilder
 	void build_driver(ID *id, FCurve *fcurve);
 	void build_world(World *world);
 	void build_rigidbody(Scene *scene);
-	void build_particles(Scene *scene, Object *ob);
+	void build_particles(Object *ob);
 	void build_particle_settings(ParticleSettings *part);
-	void build_cloth(Scene *scene, Object *object, ModifierData *md);
+	void build_cloth(Object *object, ModifierData *md);
 	void build_ik_pose(Object *ob,
 	                   bPoseChannel *pchan,
 	                   bConstraint *con,
@@ -210,10 +210,10 @@ struct DepsgraphRelationBuilder
 	                         bPoseChannel *pchan,
 	                         bConstraint *con,
 	                         RootPChanMap *root_map);
-	void build_rig(Main *bmain, Scene *scene, Object *ob);
+	void build_rig(Object *ob);
 	void build_proxy_rig(Object *ob);
 	void build_shapekeys(ID *obdata, Key *key);
-	void build_obdata_geom(Main *bmain, Scene *scene, Object *ob);
+	void build_obdata_geom(Object *ob);
 	void build_camera(Object *ob);
 	void build_lamp(Object *ob);
 	void build_nodetree(bNodeTree *ntree);
@@ -228,10 +228,15 @@ struct DepsgraphRelationBuilder
 	void build_lightprobe(Object *object);
 
 	void add_collision_relations(const OperationKey &key,
-	                             Scene *scene, Object *ob, Group *group,
-	                             bool dupli, const char *name);
+	                             Scene *scene,
+	                             Object *ob,
+	                             Group *group,
+	                             bool dupli,
+	                             const char *name);
 	void add_forcefield_relations(const OperationKey &key,
-	                              Scene *scene, Object *ob, ParticleSystem *psys,
+	                              Scene *scene,
+	                              Object *ob,
+	                              ParticleSystem *psys,
 	                              EffectorWeights *eff,
 	                              bool add_absorption, const char *name);
 
@@ -278,7 +283,12 @@ protected:
 	bool needs_animdata_node(ID *id);
 
 private:
-	Depsgraph *m_graph;
+	/* State which never changes, same for the whole builder time. */
+	Main *bmain_;
+	Depsgraph *graph_;
+
+	/* State which demotes currently built entities. */
+	Scene *scene_;
 };
 
 struct DepsNodeHandle

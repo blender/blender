@@ -76,11 +76,11 @@ ccl_device_inline float3 subsurface_scatter_eval(ShaderData *sd,
 }
 
 /* replace closures with a single diffuse bsdf closure after scatter step */
-ccl_device void subsurface_scatter_setup_diffuse_bsdf(ShaderData *sd, const ShaderClosure *sc, float3 weight, bool hit, float3 N)
+ccl_device void subsurface_scatter_setup_diffuse_bsdf(KernelGlobals *kg, ShaderData *sd, const ShaderClosure *sc, float3 weight, bool hit, float3 N)
 {
 	sd->flag &= ~SD_CLOSURE_FLAGS;
 	sd->num_closure = 0;
-	sd->num_closure_left = MAX_CLOSURE;
+	sd->num_closure_left = kernel_data.integrator.max_closures;
 
 	if(hit) {
 		Bssrdf *bssrdf = (Bssrdf *)sc;
@@ -154,7 +154,7 @@ ccl_device void subsurface_color_bump_blur(KernelGlobals *kg,
 
 	if(bump || texture_blur > 0.0f) {
 		/* average color and normal at incoming point */
-		shader_eval_surface(kg, sd, state, state_flag, MAX_CLOSURE);
+		shader_eval_surface(kg, sd, state, state_flag, kernel_data.integrator.max_closures);
 		float3 in_color = shader_bssrdf_sum(sd, (bump)? N: NULL, NULL);
 
 		/* we simply divide out the average color and multiply with the average
@@ -342,7 +342,7 @@ ccl_device_noinline void subsurface_scatter_multi_setup(
 	subsurface_color_bump_blur(kg, sd, state, state_flag, &weight, &N);
 
 	/* Setup diffuse BSDF. */
-	subsurface_scatter_setup_diffuse_bsdf(sd, sc, weight, true, N);
+	subsurface_scatter_setup_diffuse_bsdf(kg, sd, sc, weight, true, N);
 }
 
 /* subsurface scattering step, from a point on the surface to another nearby point on the same object */
@@ -439,7 +439,7 @@ ccl_device void subsurface_scatter_step(KernelGlobals *kg, ShaderData *sd, ccl_a
 	subsurface_color_bump_blur(kg, sd, state, state_flag, &eval, &N);
 
 	/* setup diffuse bsdf */
-	subsurface_scatter_setup_diffuse_bsdf(sd, sc, eval, (ss_isect.num_hits > 0), N);
+	subsurface_scatter_setup_diffuse_bsdf(kg, sd, sc, eval, (ss_isect.num_hits > 0), N);
 }
 
 CCL_NAMESPACE_END

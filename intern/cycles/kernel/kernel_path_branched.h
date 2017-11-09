@@ -474,7 +474,7 @@ ccl_device void kernel_branched_path_integrate(KernelGlobals *kg,
 
 		/* Setup and evaluate shader. */
 		shader_setup_from_ray(kg, &sd, &isect, &ray);
-		shader_eval_surface(kg, &sd, &state, state.flag, MAX_CLOSURE);
+		shader_eval_surface(kg, &sd, &state, state.flag, kernel_data.integrator.max_closures);
 		shader_merge_closures(&sd);
 
 		/* Apply shadow catcher, holdout, emission. */
