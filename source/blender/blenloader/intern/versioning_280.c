@@ -199,10 +199,10 @@ void do_versions_after_linking_280(Main *main)
 				if (!BKE_scene_uses_blender_game(scene)) {
 					for (SceneRenderLayer *srl = scene->r.layers.first; srl; srl = srl->next) {
 
-						SceneLayer *sl = BKE_scene_layer_add(scene, srl->name);
+						SceneLayer *scene_layer = BKE_scene_layer_add(scene, srl->name);
 
 						if (srl->mat_override) {
-							BKE_collection_override_datablock_add((LayerCollection *)sl->layer_collections.first, "material", (ID *)srl->mat_override);
+							BKE_collection_override_datablock_add((LayerCollection *)scene_layer->layer_collections.first, "material", (ID *)srl->mat_override);
 						}
 
 						if (srl->light_override && BKE_scene_uses_blender_internal(scene)) {
@@ -212,22 +212,22 @@ void do_versions_after_linking_280(Main *main)
 
 						if (srl->lay != scene->lay) {
 							/* unlink master collection  */
-							BKE_collection_unlink(sl, sl->layer_collections.first);
+							BKE_collection_unlink(scene_layer, scene_layer->layer_collections.first);
 
 							/* add new collection bases */
 							for (int i = 0; i < 20; i++) {
 								if ((srl->lay & (1 << i)) != 0) {
-									BKE_collection_link(sl, collections[i]);
+									BKE_collection_link(scene_layer, collections[i]);
 								}
 							}
 						}
 
 						/* for convenience set the same active object in all the layers */
 						if (scene->basact) {
-							sl->basact = BKE_scene_layer_base_find(sl, scene->basact->object);
+							scene_layer->basact = BKE_scene_layer_base_find(scene_layer, scene->basact->object);
 						}
 
-						for (Base *base = sl->object_bases.first; base; base = base->next) {
+						for (Base *base = scene_layer->object_bases.first; base; base = base->next) {
 							if ((base->flag & BASE_SELECTABLED) && (base->object->flag & SELECT)) {
 								base->flag |= BASE_SELECTED;
 							}
@@ -241,10 +241,10 @@ void do_versions_after_linking_280(Main *main)
 					}
 				}
 
-				SceneLayer *sl = BKE_scene_layer_add(scene, "Viewport");
+				SceneLayer *scene_layer = BKE_scene_layer_add(scene, "Viewport");
 
 				/* In this particular case we can safely assume the data struct */
-				LayerCollection *lc = ((LayerCollection *)sl->layer_collections.first)->layer_collections.first;
+				LayerCollection *lc = ((LayerCollection *)scene_layer->layer_collections.first)->layer_collections.first;
 				for (int i = 0; i < 20; i++) {
 					if (!is_visible[i]) {
 						lc->flag &= ~COLLECTION_VISIBLE;
@@ -254,7 +254,7 @@ void do_versions_after_linking_280(Main *main)
 
 				/* convert active base */
 				if (scene->basact) {
-					sl->basact = BKE_scene_layer_base_find(sl, scene->basact->object);
+					scene_layer->basact = BKE_scene_layer_base_find(scene_layer, scene->basact->object);
 				}
 
 				/* convert selected bases */
@@ -298,9 +298,9 @@ void do_versions_after_linking_280(Main *main)
 			SceneLayer *layer = screen->scene->render_layers.first;
 
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
-					if (sl->spacetype == SPACE_OUTLINER) {
-						SpaceOops *soutliner = (SpaceOops *)sl;
+				for (SpaceLink *scene_layer = sa->spacedata.first; scene_layer; scene_layer = scene_layer->next) {
+					if (scene_layer->spacetype == SPACE_OUTLINER) {
+						SpaceOops *soutliner = (SpaceOops *)scene_layer;
 
 						soutliner->outlinevis = SO_ACT_LAYER;
 
@@ -376,8 +376,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		    !DNA_struct_elem_find(fd->filesdna, "LayerCollection", "IDProperty", "properties"))
 		{
 			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
-				for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
-					do_version_layer_collections_idproperties(&sl->layer_collections);
+				for (SceneLayer *scene_layer = scene->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
+					do_version_layer_collections_idproperties(&scene_layer->layer_collections);
 				}
 			}
 		}
@@ -398,10 +398,10 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 
 		if (!DNA_struct_elem_find(fd->filesdna, "SceneLayer", "IDProperty", "*properties")) {
 			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
-				for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
+				for (SceneLayer *scene_layer = scene->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
 					IDPropertyTemplate val = {0};
-					sl->properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-					BKE_scene_layer_engine_settings_create(sl->properties);
+					scene_layer->properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+					BKE_scene_layer_engine_settings_create(scene_layer->properties);
 				}
 			}
 		}

@@ -2784,13 +2784,13 @@ static void write_scene(WriteData *wd, Scene *sce)
 	write_curvemapping_curves(wd, &sce->r.mblur_shutter_curve);
 	write_scene_collection(wd, sce->collection);
 
-	for (SceneLayer *sl = sce->render_layers.first; sl; sl = sl->next) {
-		writestruct(wd, DATA, SceneLayer, 1, sl);
-		writelist(wd, DATA, Base, &sl->object_bases);
-		if (sl->properties) {
-			IDP_WriteProperty(sl->properties, wd);
+	for (SceneLayer *scene_layer = sce->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
+		writestruct(wd, DATA, SceneLayer, 1, scene_layer);
+		writelist(wd, DATA, Base, &scene_layer->object_bases);
+		if (scene_layer->properties) {
+			IDP_WriteProperty(scene_layer->properties, wd);
 		}
-		write_layer_collections(wd, &sl->layer_collections);
+		write_layer_collections(wd, &scene_layer->layer_collections);
 	}
 
 	if (sce->layer_properties) {

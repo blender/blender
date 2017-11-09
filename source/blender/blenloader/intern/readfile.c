@@ -252,7 +252,7 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname);
 static void direct_link_modifiers(FileData *fd, ListBase *lb);
 static BHead *find_bhead_from_code_name(FileData *fd, const short idcode, const char *name);
 static BHead *find_bhead_from_idname(FileData *fd, const char *idname);
-static SceneCollection *get_scene_collection_active_or_create(struct Scene *scene, struct SceneLayer *sl, const short flag);
+static SceneCollection *get_scene_collection_active_or_create(struct Scene *scene, struct SceneLayer *scene_layer, const short flag);
 
 /* this function ensures that reports are printed,
  * in the case of libraray linking errors this is important!
@@ -5932,10 +5932,10 @@ static void lib_link_scene(FileData *fd, Main *main)
 
 			lib_link_scene_collection(fd, sce->id.lib, sce->collection);
 
-			for (SceneLayer *sl = sce->render_layers.first; sl; sl = sl->next) {
+			for (SceneLayer *scene_layer = sce->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
 				/* tag scene layer to update for collection tree evaluation */
-				sl->flag |= SCENE_LAYER_ENGINE_DIRTY;
-				for (Base *base = sl->object_bases.first; base; base = base->next) {
+				scene_layer->flag |= SCENE_LAYER_ENGINE_DIRTY;
+				for (Base *base = scene_layer->object_bases.first; base; base = base->next) {
 					/* we only bump the use count for the collection objects */
 					base->object = newlibadr(fd, sce->id.lib, base->object);
 					base->flag |= BASE_DIRTY_ENGINE_SETTINGS;
@@ -6103,7 +6103,7 @@ static void direct_link_scene(FileData *fd, Scene *sce, Main *bmain)
 	Sequence *seq;
 	MetaStack *ms;
 	RigidBodyWorld *rbw;
-	SceneLayer *sl;
+	SceneLayer *scene_layer;
 	SceneRenderLayer *srl;
 	
 	sce->depsgraph_hash = NULL;
@@ -6356,22 +6356,22 @@ static void direct_link_scene(FileData *fd, Scene *sce, Main *bmain)
 
 	/* insert into global old-new map for reading without UI (link_global accesses it again) */
 	link_glob_list(fd, &sce->render_layers);
-	for (sl = sce->render_layers.first; sl; sl = sl->next) {
-		sl->stats = NULL;
-		link_list(fd, &sl->object_bases);
-		sl->basact = newdataadr(fd, sl->basact);
-		direct_link_layer_collections(fd, &sl->layer_collections);
+	for (scene_layer = sce->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
+		scene_layer->stats = NULL;
+		link_list(fd, &scene_layer->object_bases);
+		scene_layer->basact = newdataadr(fd, scene_layer->basact);
+		direct_link_layer_collections(fd, &scene_layer->layer_collections);
 
-		if (sl->properties != NULL) {
-			sl->properties = newdataadr(fd, sl->properties);
-			BLI_assert(sl->properties != NULL);
-			IDP_DirectLinkGroup_OrFree(&sl->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
-			BKE_scene_layer_engine_settings_validate_layer(sl);
+		if (scene_layer->properties != NULL) {
+			scene_layer->properties = newdataadr(fd, scene_layer->properties);
+			BLI_assert(scene_layer->properties != NULL);
+			IDP_DirectLinkGroup_OrFree(&scene_layer->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+			BKE_scene_layer_engine_settings_validate_layer(scene_layer);
 		}
 
-		sl->properties_evaluated = NULL;
+		scene_layer->properties_evaluated = NULL;
 
-		BLI_listbase_clear(&sl->drawdata);
+		BLI_listbase_clear(&scene_layer->drawdata);
 	}
 
 	sce->collection_properties = newdataadr(fd, sce->collection_properties);
@@ -10274,22 +10274,22 @@ static ID *link_named_part(
 	return id;
 }
 
-static SceneCollection *get_scene_collection_active_or_create(struct Scene *scene, struct SceneLayer *sl, const short flag)
+static SceneCollection *get_scene_collection_active_or_create(struct Scene *scene, struct SceneLayer *scene_layer, const short flag)
 {
 	LayerCollection *lc = NULL;
 
 	if (flag & FILE_ACTIVE_COLLECTION) {
-		lc = BKE_layer_collection_get_active_ensure(scene, sl);
+		lc = BKE_layer_collection_get_active_ensure(scene, scene_layer);
 	}
 	else {
 		SceneCollection *sc = BKE_collection_add(scene, NULL, NULL);
-		lc = BKE_collection_link(sl, sc);
+		lc = BKE_collection_link(scene_layer, sc);
 	}
 
 	return lc->scene_collection;
 }
 
-static void link_object_postprocess(ID *id, Scene *scene, SceneLayer *sl, const short flag)
+static void link_object_postprocess(ID *id, Scene *scene, SceneLayer *scene_layer, const short flag)
 {
 	if (scene) {
 		/* link to scene */
@@ -10300,9 +10300,9 @@ static void link_object_postprocess(ID *id, Scene *scene, SceneLayer *sl, const 
 		ob = (Object *)id;
 		ob->mode = OB_MODE_OBJECT;
 
-		sc =  get_scene_collection_active_or_create(scene, sl, flag);
+		sc =  get_scene_collection_active_or_create(scene, scene_layer, flag);
 		BKE_collection_object_add(scene, sc, ob);
-		base = BKE_scene_layer_base_find(sl, ob);
+		base = BKE_scene_layer_base_find(scene_layer, ob);
 		BKE_scene_object_base_flag_sync_from_base(base);
 
 		if (flag & FILE_AUTOSELECT) {
@@ -10352,12 +10352,12 @@ void BLO_library_link_copypaste(Main *mainl, BlendHandle *bh)
 
 static ID *link_named_part_ex(
         Main *mainl, FileData *fd, const short idcode, const char *name, const short flag,
-        Scene *scene, SceneLayer *sl, const bool use_placeholders, const bool force_indirect)
+        Scene *scene, SceneLayer *scene_layer, const bool use_placeholders, const bool force_indirect)
 {
 	ID *id = link_named_part(mainl, fd, idcode, name, use_placeholders, force_indirect);
 
 	if (id && (GS(id->name) == ID_OB)) {	/* loose object: give a base */
-		link_object_postprocess(id, scene, sl, flag);
+		link_object_postprocess(id, scene, scene_layer, flag);
 	}
 	else if (id && (GS(id->name) == ID_GR)) {
 		/* tag as needing to be instantiated */
@@ -10401,11 +10401,11 @@ ID *BLO_library_link_named_part(Main *mainl, BlendHandle **bh, const short idcod
 ID *BLO_library_link_named_part_ex(
         Main *mainl, BlendHandle **bh,
         const short idcode, const char *name, const short flag,
-        Scene *scene, SceneLayer *sl,
+        Scene *scene, SceneLayer *scene_layer,
         const bool use_placeholders, const bool force_indirect)
 {
 	FileData *fd = (FileData*)(*bh);
-	return link_named_part_ex(mainl, fd, idcode, name, flag, scene, sl, use_placeholders, force_indirect);
+	return link_named_part_ex(mainl, fd, idcode, name, flag, scene, scene_layer, use_placeholders, force_indirect);
 }
 
 static void link_id_part(ReportList *reports, FileData *fd, Main *mainvar, ID *id, ID **r_id)
@@ -10518,7 +10518,7 @@ static void split_main_newid(Main *mainptr, Main *main_newid)
 }
 
 /* scene and v3d may be NULL. */
-static void library_link_end(Main *mainl, FileData **fd, const short flag, Scene *scene, SceneLayer *sl)
+static void library_link_end(Main *mainl, FileData **fd, const short flag, Scene *scene, SceneLayer *scene_layer)
 {
 	Main *mainvar;
 	Library *curlib;
@@ -10574,10 +10574,10 @@ static void library_link_end(Main *mainl, FileData **fd, const short flag, Scene
 	 * Only directly linked objects & groups are instantiated by `BLO_library_link_named_part_ex()` & co,
 	 * here we handle indirect ones and other possible edge-cases. */
 	if (scene) {
-		give_base_to_objects(mainvar, scene, sl, curlib, flag);
+		give_base_to_objects(mainvar, scene, scene_layer, curlib, flag);
 
 		if (flag & FILE_GROUP_INSTANCE) {
-			give_base_to_groups(mainvar, scene, sl, curlib, flag);
+			give_base_to_groups(mainvar, scene, scene_layer, curlib, flag);
 		}
 	}
 	else {
@@ -10603,12 +10603,12 @@ static void library_link_end(Main *mainl, FileData **fd, const short flag, Scene
  * \param bh The blender file handle (WARNING! may be freed by this function!).
  * \param flag Options for linking, used for instantiating.
  * \param scene The scene in which to instantiate objects/groups (if NULL, no instantiation is done).
- * \param sl The scene layer in which to instantiate objects/groups (if NULL, no instantiation is done).
+ * \param scene_layer The scene layer in which to instantiate objects/groups (if NULL, no instantiation is done).
  */
-void BLO_library_link_end(Main *mainl, BlendHandle **bh, short flag, Scene *scene, SceneLayer *sl)
+void BLO_library_link_end(Main *mainl, BlendHandle **bh, short flag, Scene *scene, SceneLayer *scene_layer)
 {
 	FileData *fd = (FileData*)(*bh);
-	library_link_end(mainl, &fd, flag, scene, sl);
+	library_link_end(mainl, &fd, flag, scene, scene_layer);
 	*bh = (BlendHandle*)fd;
 }
 

@@ -124,9 +124,9 @@ struct ID *BLO_library_link_named_part(struct Main *mainl, BlendHandle **bh, con
 struct ID *BLO_library_link_named_part_ex(
         struct Main *mainl, BlendHandle **bh,
         const short idcode, const char *name, const short flag,
-        struct Scene *scene, struct SceneLayer *sl,
+        struct Scene *scene, struct SceneLayer *scene_layer,
         const bool use_placeholders, const bool force_indirect);
-void BLO_library_link_end(struct Main *mainl, BlendHandle **bh, short flag, struct Scene *scene, struct SceneLayer *sl);
+void BLO_library_link_end(struct Main *mainl, BlendHandle **bh, short flag, struct Scene *scene, struct SceneLayer *scene_layer);
 
 void BLO_library_link_copypaste(struct Main *mainl, BlendHandle *bh);
 
