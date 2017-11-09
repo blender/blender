@@ -66,7 +66,8 @@ extern "C" {
 
 namespace DEG {
 
-void DepsgraphNodeBuilder::build_pose_constraints(Object *ob, bPoseChannel *pchan)
+void DepsgraphNodeBuilder::build_pose_constraints(Object *ob,
+                                                  bPoseChannel *pchan)
 {
 	/* create node for constraint stack */
 	add_operation_node(&ob->id, DEG_NODE_TYPE_BONE, pchan->name,
@@ -301,7 +302,8 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
 		/* Custom shape. */
 		/* NOTE: Custom shape datablock is already remapped to CoW version. */
 		if (pchan->custom != NULL) {
-			build_object(get_orig_datablock(pchan->custom), DEG_ID_LINKED_INDIRECTLY);
+			build_object(get_orig_datablock(pchan->custom),
+			             DEG_ID_LINKED_INDIRECTLY);
 		}
 	}
 }
@@ -310,38 +312,49 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *ob)
 {
 	ID *obdata = (ID *)ob->data;
 	OperationDepsNode *op_node;
-
-	build_animdata(obdata);
-
+	Object *object_cow = get_cow_datablock(ob);
+	/* Sanity check. */
 	BLI_assert(ob->pose != NULL);
-
+	/* Animation. */
+	build_animdata(obdata);
 	/* speed optimization for animation lookups */
 	BKE_pose_channels_hash_make(ob->pose);
 	if (ob->pose->flag & POSE_CONSTRAINTS_NEED_UPDATE_FLAGS) {
 		BKE_pose_update_constraint_flags(ob->pose);
 	}
-
 	op_node = add_operation_node(&ob->id,
 	                             DEG_NODE_TYPE_EVAL_POSE,
-	                             function_bind(BKE_pose_eval_proxy_copy, _1, ob),
+	                             function_bind(BKE_pose_eval_proxy_copy,
+	                                           _1,
+	                                           object_cow),
 	                             DEG_OPCODE_POSE_INIT);
 	op_node->set_as_entry();
-
 	LINKLIST_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-		op_node = add_operation_node(&ob->id, DEG_NODE_TYPE_BONE, pchan->name,
-		                             NULL, DEG_OPCODE_BONE_LOCAL);
+		/* Local bone transform. */
+		op_node = add_operation_node(&ob->id,
+		                             DEG_NODE_TYPE_BONE,
+		                             pchan->name,
+		                             NULL,
+		                             DEG_OPCODE_BONE_LOCAL);
 		op_node->set_as_entry();
-
-		add_operation_node(&ob->id, DEG_NODE_TYPE_BONE, pchan->name,
-		                   NULL, DEG_OPCODE_BONE_READY);
-
-		op_node = add_operation_node(&ob->id, DEG_NODE_TYPE_BONE, pchan->name,
-		                             NULL, DEG_OPCODE_BONE_DONE);
+		/* Bone is ready for solvers. */
+		add_operation_node(&ob->id,
+		                   DEG_NODE_TYPE_BONE,
+		                   pchan->name,
+		                   NULL,
+		                   DEG_OPCODE_BONE_READY);
+		/* Bone is fully evaluated. */
+		op_node = add_operation_node(&ob->id,
+		                             DEG_NODE_TYPE_BONE,
+		                             pchan->name,
+		                             NULL,
+		                             DEG_OPCODE_BONE_DONE);
 		op_node->set_as_exit();
 	}
-
-	op_node = add_operation_node(&ob->id, DEG_NODE_TYPE_EVAL_POSE,
-	                             NULL, DEG_OPCODE_POSE_DONE);
+	op_node = add_operation_node(&ob->id,
+	                             DEG_NODE_TYPE_EVAL_POSE,
+	                             NULL,
+	                             DEG_OPCODE_POSE_DONE);
 	op_node->set_as_exit();
 }
 
