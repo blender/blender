@@ -235,7 +235,6 @@ static void wm_window_match_keep_current_wm(
 			}
 
 			bScreen *win_screen = WM_window_get_active_screen(win);
-			BLI_strncpy(win->screenname, win_screen->id.name + 2, sizeof(win->screenname));
 			win_screen->winid = win->winid;
 		}
 	}

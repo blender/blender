@@ -284,7 +284,6 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *win_src, const bool duplicate_la
 	WorkSpaceLayout *layout_old = WM_window_get_active_layout(win_src);
 	Scene *scene = WM_window_get_active_scene(win_src);
 	WorkSpaceLayout *layout_new;
-	bScreen *new_screen;
 
 	win_dst->posx = win_src->posx + 10;
 	win_dst->posy = win_src->posy;
@@ -295,8 +294,6 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *win_src, const bool duplicate_la
 	WM_window_set_active_workspace(win_dst, workspace);
 	layout_new = duplicate_layout ? ED_workspace_layout_duplicate(workspace, layout_old, win_dst) : layout_old;
 	WM_window_set_active_layout(win_dst, workspace, layout_new);
-	new_screen = WM_window_get_active_screen(win_dst);
-	BLI_strncpy(win_dst->screenname, new_screen->id.name + 2, sizeof(win_dst->screenname));
 
 	win_dst->drawmethod = U.wmdrawmethod;
 

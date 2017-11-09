@@ -2844,9 +2844,6 @@ static void write_windowmanager(WriteData *wd, wmWindowManager *wm)
 
 		/* update deprecated screen member (for so loading in 2.7x uses the correct screen) */
 		win->screen = BKE_workspace_active_screen_get(win->workspace_hook);
-		if (win->screen) {
-			BLI_strncpy(win->screenname, win->screen->id.name + 2, sizeof(win->screenname));
-		}
 
 		writestruct(wd, DATA, wmWindow, 1, win);
 		writestruct(wd, DATA, WorkSpaceInstanceHook, 1, win->workspace_hook);

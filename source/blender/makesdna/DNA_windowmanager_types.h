@@ -183,7 +183,6 @@ typedef struct wmWindow {
 	struct WorkSpaceInstanceHook *workspace_hook;
 
 	struct bScreen *screen DNA_DEPRECATED;
-	char screenname[64];         /* MAX_ID_NAME for matching window with active screen after file read */
 
 	short posx, posy, sizex, sizey;  /* window coords */
 	short windowstate;  /* borderless, full */

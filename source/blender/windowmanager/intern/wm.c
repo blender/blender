@@ -443,7 +443,6 @@ void wm_add_default(Main *bmain, bContext *C)
 	WM_window_set_active_workspace(win, workspace);
 	WM_window_set_active_layout(win, workspace, layout);
 	screen->winid = win->winid;
-	BLI_strncpy(win->screenname, screen->id.name + 2, sizeof(win->screenname));
 	
 	wm->winactive = win;
 	wm->file_saved = 1;
