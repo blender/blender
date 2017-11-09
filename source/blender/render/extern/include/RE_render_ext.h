@@ -72,20 +72,20 @@ struct PointDensity;
 
 void RE_point_density_cache(
         struct Scene *scene,
-        struct SceneLayer *sl,
+        struct SceneLayer *scene_layer,
         struct PointDensity *pd,
         const bool use_render_params);
 
 void RE_point_density_minmax(
         struct Scene *scene,
-        struct SceneLayer *sl,
+        struct SceneLayer *scene_layer,
         struct PointDensity *pd,
         const bool use_render_params,
         float r_min[3], float r_max[3]);
 
 void RE_point_density_sample(
         struct Scene *scene,
-        struct SceneLayer *sl,
+        struct SceneLayer *scene_layer,
         struct PointDensity *pd,
         const int resolution,
         const bool use_render_params,

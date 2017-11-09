@@ -966,7 +966,7 @@ void RE_point_density_cache(
 
 void RE_point_density_minmax(
         struct Scene *scene,
-        SceneLayer *sl,
+        SceneLayer *scene_layer,
         struct PointDensity *pd,
         const bool use_render_params,
         float r_min[3], float r_max[3])
@@ -997,7 +997,7 @@ void RE_point_density_minmax(
 		                                                           DAG_EVAL_VIEWPORT);
 
 		eval_ctx.ctime = (float)scene->r.cfra + scene->r.subframe;
-		eval_ctx.scene_layer = sl;
+		eval_ctx.scene_layer = scene_layer;
 
 		particle_system_minmax(&eval_ctx,
 		                       scene,
@@ -1070,7 +1070,7 @@ static void point_density_sample_func(void *data_v, const int iter)
  */
 void RE_point_density_sample(
         Scene *scene,
-        SceneLayer *sl,
+        SceneLayer *scene_layer,
         PointDensity *pd,
         const int resolution,
         const bool use_render_params,
@@ -1090,7 +1090,7 @@ void RE_point_density_sample(
 
 	BLI_mutex_lock(&sample_mutex);
 	RE_point_density_minmax(scene,
-	                        sl,
+	                        scene_layer,
 	                        pd,
 	                        use_render_params,
 	                        min,
