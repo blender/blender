@@ -476,31 +476,31 @@ void update_copy_on_write_scene(const Depsgraph *depsgraph,
 	scene_cow->r.cfra = scene_orig->r.cfra;
 	scene_cow->r.subframe = scene_orig->r.subframe;
 	// Update bases.
-	const SceneLayer *sl_orig = (SceneLayer *)scene_orig->render_layers.first;
-	SceneLayer *sl_cow = (SceneLayer *)scene_cow->render_layers.first;
-	while (sl_orig != NULL) {
+	const SceneLayer *scene_layer_orig = (SceneLayer *)scene_orig->render_layers.first;
+	SceneLayer *scene_layer_cow = (SceneLayer *)scene_cow->render_layers.first;
+	while (scene_layer_orig != NULL) {
 		// Update pointers to active base.
-		if (sl_orig->basact == NULL) {
-			sl_cow->basact = NULL;
+		if (scene_layer_orig->basact == NULL) {
+			scene_layer_cow->basact = NULL;
 		}
 		else {
-			const Object *obact_orig = sl_orig->basact->object;
+			const Object *obact_orig = scene_layer_orig->basact->object;
 			Object *obact_cow = (Object *)depsgraph->get_cow_id(&obact_orig->id);
-			sl_cow->basact = BKE_scene_layer_base_find(sl_cow, obact_cow);
+			scene_layer_cow->basact = BKE_scene_layer_base_find(scene_layer_cow, obact_cow);
 		}
 		// Update base flags.
 		//
 		// TODO(sergey): We should probably check visibled/selectabled
 		// flag here?
-		const Base *base_orig = (Base *)sl_orig->object_bases.first;
-		Base *base_cow = (Base *)sl_cow->object_bases.first;;
+		const Base *base_orig = (Base *)scene_layer_orig->object_bases.first;
+		Base *base_cow = (Base *)scene_layer_cow->object_bases.first;;
 		while (base_orig != NULL) {
 			base_cow->flag = base_orig->flag;
 			base_orig = base_orig->next;
 			base_cow = base_cow->next;
 		}
-		sl_orig = sl_orig->next;
-		sl_cow = sl_cow->next;
+		scene_layer_orig = scene_layer_orig->next;
+		scene_layer_cow = scene_layer_cow->next;
 	}
 	// Update edit object pointer.
 	if (scene_orig->obedit != NULL) {
