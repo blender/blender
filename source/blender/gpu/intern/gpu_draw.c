@@ -1554,7 +1554,7 @@ void GPU_end_dupli_object(void)
 }
 
 void GPU_begin_object_materials(
-        View3D *v3d, RegionView3D *rv3d, Scene *scene, SceneLayer *sl, Object *ob,
+        View3D *v3d, RegionView3D *rv3d, Scene *scene, SceneLayer *scene_layer, Object *ob,
         bool glsl, bool *do_alpha_after)
 {
 	Material *ma;
@@ -1593,10 +1593,10 @@ void GPU_begin_object_materials(
 
 #ifdef WITH_GAMEENGINE
 	if (rv3d->rflag & RV3D_IS_GAME_ENGINE) {
-		ob = BKE_object_lod_matob_get(ob, sl);
+		ob = BKE_object_lod_matob_get(ob, scene_layer);
 	}
 #else
-	UNUSED_VARS(sl);
+	UNUSED_VARS(scene_layer);
 #endif
 
 	/* initialize state */
@@ -2031,7 +2031,7 @@ int GPU_default_lights(void)
 	return count;
 }
 
-int GPU_scene_object_lights(SceneLayer *sl, float viewmat[4][4], int ortho)
+int GPU_scene_object_lights(SceneLayer *scene_layer, float viewmat[4][4], int ortho)
 {
 	/* disable all lights */
 	for (int count = 0; count < 8; count++)
@@ -2043,7 +2043,7 @@ int GPU_scene_object_lights(SceneLayer *sl, float viewmat[4][4], int ortho)
 
 	int count = 0;
 
-	for (Base *base = FIRSTBASE_NEW(sl); base; base = base->next) {
+	for (Base *base = FIRSTBASE_NEW(scene_layer); base; base = base->next) {
 		if (base->object->type != OB_LAMP)
 			continue;
 

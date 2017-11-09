@@ -74,7 +74,7 @@ void GPU_disable_program_point_size(void);
  * - after drawing, the material must be disabled again */
 
 void GPU_begin_object_materials(struct View3D *v3d, struct RegionView3D *rv3d,
-                                struct Scene *scene, struct SceneLayer *sl,
+                                struct Scene *scene, struct SceneLayer *scene_layer,
                                 struct Object *ob, bool glsl, bool *do_alpha_after);
 void GPU_end_object_materials(void);
 bool GPU_object_materials_check(void);
@@ -98,7 +98,7 @@ int GPU_get_material_alpha_blend(void);
 
 int GPU_default_lights(void);
 int GPU_scene_object_lights(
-        struct SceneLayer *sl, float viewmat[4][4], int ortho);
+        struct SceneLayer *scene_layer, float viewmat[4][4], int ortho);
 
 /* Text render
  * - based on moving uv coordinates */
