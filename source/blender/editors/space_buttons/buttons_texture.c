@@ -350,7 +350,7 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 	if (!scene)
 		scene = CTX_data_scene(C);
 
-	if (!(pinid || pinid == &scene->id)) {
+	if (!pinid || GS(pinid->name) == ID_SCE) {
 		ob = (scene->basact) ? scene->basact->object : NULL;
 		wrld = scene->world;
 		brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
