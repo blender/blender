@@ -347,7 +347,7 @@ bool ABC_export(
 	 * Later in the 2.8 development process this may be replaced by using
 	 * a specific collection for Alembic I/O, which can then be toggled
 	 * between "real" objects and cached Alembic files. */
-	job->settings.sl = CTX_data_scene_layer(C);
+	job->settings.scene_layer = CTX_data_scene_layer(C);
 
 	job->settings.frame_start = params->frame_start;
 	job->settings.frame_end = params->frame_end;
@@ -837,16 +837,16 @@ static void import_endjob(void *user_data)
 		/* Add object to scene. */
 		Base *base;
 		LayerCollection *lc;
-		SceneLayer *sl = data->scene_layer;
+		SceneLayer *scene_layer = data->scene_layer;
 
-		BKE_scene_layer_base_deselect_all(sl);
+		BKE_scene_layer_base_deselect_all(scene_layer);
 
-		lc = BKE_layer_collection_get_active(sl);
+		lc = BKE_layer_collection_get_active(scene_layer);
 		if (lc == NULL) {
-			BLI_assert(BLI_listbase_count_ex(&sl->layer_collections, 1) == 0);
+			BLI_assert(BLI_listbase_count_ex(&scene_layer->layer_collections, 1) == 0);
 			/* when there is no collection linked to this SceneLayer, create one */
 			SceneCollection *sc = BKE_collection_add(data->scene, NULL, NULL);
-			lc = BKE_collection_link(sl, sc);
+			lc = BKE_collection_link(scene_layer, sc);
 		}
 
 		for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
@@ -855,8 +855,8 @@ static void import_endjob(void *user_data)
 
 			BKE_collection_object_add(data->scene, lc->scene_collection, ob);
 
-			base = BKE_scene_layer_base_find(sl, ob);
-			BKE_scene_layer_base_select(sl, base);
+			base = BKE_scene_layer_base_find(scene_layer, ob);
+			BKE_scene_layer_base_select(scene_layer, base);
 
 			DEG_id_tag_update_ex(data->bmain, &ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 		}
