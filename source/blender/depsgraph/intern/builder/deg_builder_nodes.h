@@ -201,13 +201,11 @@ struct DepsgraphNodeBuilder {
 		int index;
 		LayerCollection *parent;
 	};
-	void build_layer_collection(Scene *scene,
-	                            LayerCollection *layer_collection,
+	void build_layer_collection(LayerCollection *layer_collection,
 	                            LayerCollectionState *state);
-	void build_layer_collections(Scene *scene,
-	                             ListBase *layer_collections,
+	void build_layer_collections(ListBase *layer_collections,
 	                             LayerCollectionState *state);
-	void build_scene_layer_collections(Scene *scene);
+	void build_scene_layer_collections(SceneLayer *scene_layer);
 protected:
 	/* State which never changes, same for the whole builder time. */
 	Main *bmain_;

@@ -59,14 +59,16 @@ extern "C" {
 
 namespace DEG {
 
-void DepsgraphNodeBuilder::build_layer_collection(Scene *scene,
-                                                  LayerCollection *layer_collection,
-                                                  LayerCollectionState *state)
+void DepsgraphNodeBuilder::build_layer_collection(
+        LayerCollection *layer_collection,
+        LayerCollectionState *state)
 {
 	/* TODO(sergey): This will attempt to create component for each collection.
 	 * Harmless but could be optimized.
 	 */
-	ComponentDepsNode *comp = add_component_node(&scene->id, DEG_NODE_TYPE_LAYER_COLLECTIONS);
+	ComponentDepsNode *comp = add_component_node(
+	        &scene_->id,
+	        DEG_NODE_TYPE_LAYER_COLLECTIONS);
 
 	add_operation_node(comp,
 	                   function_bind(BKE_layer_eval_layer_collection,
@@ -81,47 +83,51 @@ void DepsgraphNodeBuilder::build_layer_collection(Scene *scene,
 	/* Recurs into nested layer collections. */
 	LayerCollection *parent = state->parent;
 	state->parent = layer_collection;
-	build_layer_collections(scene, &layer_collection->layer_collections, state);
+	build_layer_collections(&layer_collection->layer_collections, state);
 	state->parent = parent;
 }
 
-void DepsgraphNodeBuilder::build_layer_collections(Scene *scene,
-                                                   ListBase *layer_collections,
+void DepsgraphNodeBuilder::build_layer_collections(ListBase *layer_collections,
                                                    LayerCollectionState *state)
 {
 	LINKLIST_FOREACH (LayerCollection *, layer_collection, layer_collections) {
-		build_layer_collection(scene, layer_collection, state);
+		build_layer_collection(layer_collection, state);
 	}
 }
 
-void DepsgraphNodeBuilder::build_scene_layer_collections(Scene *scene)
+void DepsgraphNodeBuilder::build_scene_layer_collections(
+        SceneLayer *scene_layer)
 {
 	Scene *scene_cow;
 	if (DEG_depsgraph_use_copy_on_write()) {
-		/* Make sure we've got ID node, so we can get pointer to CoW datablock. */
-		scene_cow = expand_cow_datablock(scene);
+		/* Make sure we've got ID node, so we can get pointer to CoW datablock.
+		 */
+		scene_cow = expand_cow_datablock(scene_);
 	}
 	else {
-		scene_cow = scene;
+		scene_cow = scene_;
 	}
 
 	LayerCollectionState state;
 	state.index = 0;
-	LINKLIST_FOREACH (SceneLayer *, scene_layer, &scene_cow->render_layers) {
-		ComponentDepsNode *comp = add_component_node(&scene->id, DEG_NODE_TYPE_LAYER_COLLECTIONS);
-
-		add_operation_node(comp,
-		                   function_bind(BKE_layer_eval_layer_collection_pre, _1, scene_cow, scene_layer),
-		                   DEG_OPCODE_SCENE_LAYER_INIT,
-		                   scene_layer->name);
-		add_operation_node(comp,
-		                   function_bind(BKE_layer_eval_layer_collection_post, _1, scene_layer),
-		                   DEG_OPCODE_SCENE_LAYER_DONE,
-		                   scene_layer->name);
-
-		state.parent = NULL;
-		build_layer_collections(scene, &scene_layer->layer_collections, &state);
-	}
+	ComponentDepsNode *comp = add_component_node(
+	        &scene_->id,
+	        DEG_NODE_TYPE_LAYER_COLLECTIONS);
+	add_operation_node(comp,
+	                   function_bind(BKE_layer_eval_layer_collection_pre,
+	                                 _1,
+	                                 scene_cow,
+	                                 scene_layer),
+	                   DEG_OPCODE_SCENE_LAYER_INIT,
+	                   scene_layer->name);
+	add_operation_node(comp,
+	                   function_bind(BKE_layer_eval_layer_collection_post,
+	                                 _1,
+	                                 scene_layer),
+	                   DEG_OPCODE_SCENE_LAYER_DONE,
+	                   scene_layer->name);
+	state.parent = NULL;
+	build_layer_collections(&scene_layer->layer_collections, &state);
 }
 
 }  // namespace DEG

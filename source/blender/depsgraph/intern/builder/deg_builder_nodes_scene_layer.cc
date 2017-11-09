@@ -141,7 +141,7 @@ void DepsgraphNodeBuilder::build_scene_layer(Scene *scene,
 	}
 
 	/* Collections. */
-	build_scene_layer_collections(scene);
+	build_scene_layer_collections(scene_layer);
 
 	/* Parameters evaluation for scene relations mainly. */
 	add_operation_node(&scene->id,

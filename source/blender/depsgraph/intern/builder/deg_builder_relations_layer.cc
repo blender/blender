@@ -68,11 +68,11 @@ extern "C" {
 
 namespace DEG {
 
-void DepsgraphRelationBuilder::build_layer_collection(Scene *scene,
-                                                      LayerCollection *layer_collection,
-                                                      LayerCollectionState *state)
+void DepsgraphRelationBuilder::build_layer_collection(
+        LayerCollection *layer_collection,
+        LayerCollectionState *state)
 {
-	OperationKey layer_key(&scene->id,
+	OperationKey layer_key(&scene_->id,
 	                       DEG_NODE_TYPE_LAYER_COLLECTIONS,
 	                       DEG_OPCODE_SCENE_LAYER_EVAL,
 	                       layer_collection->scene_collection->name,
@@ -83,45 +83,41 @@ void DepsgraphRelationBuilder::build_layer_collection(Scene *scene,
 	state->prev_key = layer_key;
 
 	/* Recurs into nested layer collections. */
-	build_layer_collections(scene,
-	                        &layer_collection->layer_collections,
-	                        state);
+	build_layer_collections(&layer_collection->layer_collections, state);
 }
 
-void DepsgraphRelationBuilder::build_layer_collections(Scene *scene,
-                                                       ListBase *layer_collections,
-                                                       LayerCollectionState *state)
+void DepsgraphRelationBuilder::build_layer_collections(
+        ListBase *layer_collections,
+        LayerCollectionState *state)
 {
 	LINKLIST_FOREACH (LayerCollection *, layer_collection, layer_collections) {
 		/* Recurs into the layer. */
-		build_layer_collection(scene, layer_collection, state);
+		build_layer_collection(layer_collection, state);
 	}
 }
 
-void DepsgraphRelationBuilder::build_scene_layer_collections(Scene *scene)
+void DepsgraphRelationBuilder::build_scene_layer_collections(
+        SceneLayer *scene_layer)
 {
 	LayerCollectionState state;
 	state.index = 0;
-	LINKLIST_FOREACH (SceneLayer *, scene_layer, &scene->render_layers) {
-		OperationKey init_key(&scene->id,
-		                      DEG_NODE_TYPE_LAYER_COLLECTIONS,
-		                      DEG_OPCODE_SCENE_LAYER_INIT,
-		                      scene_layer->name);
-		OperationKey done_key(&scene->id,
-		                      DEG_NODE_TYPE_LAYER_COLLECTIONS,
-		                      DEG_OPCODE_SCENE_LAYER_DONE,
-		                      scene_layer->name);
 
-		state.init_key = init_key;
-		state.done_key = done_key;
-		state.prev_key = init_key;
+	OperationKey init_key(&scene_->id,
+	                      DEG_NODE_TYPE_LAYER_COLLECTIONS,
+	                      DEG_OPCODE_SCENE_LAYER_INIT,
+	                      scene_layer->name);
+	OperationKey done_key(&scene_->id,
+	                      DEG_NODE_TYPE_LAYER_COLLECTIONS,
+	                      DEG_OPCODE_SCENE_LAYER_DONE,
+	                      scene_layer->name);
 
-		build_layer_collections(scene,
-		                        &scene_layer->layer_collections,
-		                        &state);
+	state.init_key = init_key;
+	state.done_key = done_key;
+	state.prev_key = init_key;
 
-		add_relation(state.prev_key, done_key, "Layer collection order");
-	}
+	build_layer_collections(&scene_layer->layer_collections, &state);
+
+	add_relation(state.prev_key, done_key, "Layer collection order");
 }
 
 }  // namespace DEG

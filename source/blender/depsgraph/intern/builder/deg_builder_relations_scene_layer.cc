@@ -125,7 +125,7 @@ void DepsgraphRelationBuilder::build_scene_layer(Scene *scene, SceneLayer *scene
 	}
 
 	/* Collections. */
-	build_scene_layer_collections(scene);
+	build_scene_layer_collections(scene_layer);
 
 	/* TODO(sergey): Do this flush on CoW object? */
 	for (Depsgraph::OperationNodes::const_iterator it_op = graph_->operations.begin();
