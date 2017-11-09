@@ -53,8 +53,10 @@ struct FCurve;
 
 namespace DEG {
 
+/* TODO(sergey): Find a better place for this. */
 using std::string;
 using std::vector;
+using std::max;
 
 /* Evaluation Operation for atomic operation */
 // XXX: move this to another header that can be exposed?
@@ -80,7 +82,8 @@ typedef enum eDepsNode_Class {
 } eDepsNode_Class;
 
 /* Note: We use max comparison to mark an id node that is linked more than once
- * So keep this enum ordered accordingly. */
+ * So keep this enum ordered accordingly.
+ */
 typedef enum eDepsNode_LinkedState_Type {
 	/* Generic indirectly linked id node. */
 	DEG_ID_LINKED_INDIRECTLY       = 0,

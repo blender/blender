@@ -405,7 +405,7 @@ void DepsgraphNodeBuilder::build_object(Object *ob,
 	/* Skip rest of components if the ID node was already there. */
 	if (ob->id.tag & LIB_TAG_DOIT) {
 		IDDepsNode *id_node = find_id_node(&ob->id);
-		id_node->linked_state = std::max(id_node->linked_state, linked_state);
+		id_node->linked_state = max(id_node->linked_state, linked_state);
 		return;
 	}
 	ob->id.tag |= LIB_TAG_DOIT;
