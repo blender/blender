@@ -809,12 +809,12 @@ void view3d_draw_bgpic_test(Scene *scene, ARegion *ar, View3D *v3d,
 
 typedef struct View3DAfter {
 	struct View3DAfter *next, *prev;
-	struct BaseLegacy *base;
+	struct Base *base;
 	short dflag;
 } View3DAfter;
 
 /* temp storage of Objects that need to be drawn as last */
-void ED_view3d_after_add(ListBase *lb, BaseLegacy *base, const short dflag)
+void ED_view3d_after_add(ListBase *lb, Base *base, const short dflag)
 {
 	View3DAfter *v3da = MEM_callocN(sizeof(View3DAfter), "View 3d after");
 	BLI_assert((base->flag_legacy & OB_FROMDUPLI) == 0);
@@ -944,7 +944,7 @@ static DupliObject *dupli_step(DupliObject *dob)
 }
 
 static void draw_dupli_objects_color(
-        const EvaluationContext *eval_ctx, Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, BaseLegacy *base,
+        const EvaluationContext *eval_ctx, Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, Base *base,
         const short dflag, const int color)
 {
 	RegionView3D *rv3d = ar->regiondata;
@@ -1045,7 +1045,7 @@ static void draw_dupli_objects_color(
 	free_object_duplilist(lb);
 }
 
-void draw_dupli_objects(const EvaluationContext *eval_ctx, Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, BaseLegacy *base)
+void draw_dupli_objects(const EvaluationContext *eval_ctx, Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, Base *base)
 {
 	/* define the color here so draw_dupli_objects_color can be called
 	 * from the set loop */

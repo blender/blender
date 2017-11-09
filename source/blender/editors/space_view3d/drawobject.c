@@ -1677,7 +1677,7 @@ bool view3d_camera_border_hack_test = false;
 /* ****************** draw clip data *************** */
 
 static void draw_viewport_object_reconstruction(
-        Scene *scene, BaseLegacy *base, const View3D *v3d, const RegionView3D *rv3d,
+        Scene *scene, Base *base, const View3D *v3d, const RegionView3D *rv3d,
         MovieClip *clip, MovieTrackingObject *tracking_object,
         const short dflag, const unsigned char ob_wire_col[4],
         int *global_track_index, bool draw_selected)
@@ -1864,7 +1864,7 @@ static void draw_viewport_object_reconstruction(
 }
 
 static void draw_viewport_reconstruction(
-        Scene *scene, BaseLegacy *base, const View3D *v3d, const RegionView3D *rv3d, MovieClip *clip,
+        Scene *scene, Base *base, const View3D *v3d, const RegionView3D *rv3d, MovieClip *clip,
         const short dflag, const unsigned char ob_wire_col[4],
         const bool draw_selected)
 {
@@ -4565,7 +4565,7 @@ static void draw_mesh_fancy(
 
 /* returns true if nothing was drawn, for detecting to draw an object center */
 static bool draw_mesh_object(
-        const EvaluationContext *eval_ctx, Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, RegionView3D *rv3d, BaseLegacy *base,
+        const EvaluationContext *eval_ctx, Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
         const char dt, const unsigned char ob_wire_col[4], const short dflag)
 {
 	Object *ob = base->object;
@@ -5027,7 +5027,7 @@ static void draw_mesh_fancy_new(EvaluationContext *eval_ctx, Scene *scene, Scene
 	dm->release(dm);
 }
 
-static bool UNUSED_FUNCTION(draw_mesh_object_new)(const bContext *C, Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, RegionView3D *rv3d, BaseLegacy *base,
+static bool UNUSED_FUNCTION(draw_mesh_object_new)(const bContext *C, Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
                                  const char dt, const unsigned char ob_wire_col[4], const short dflag)
 {
 	EvaluationContext eval_ctx;
@@ -5427,7 +5427,7 @@ static void drawCurveDMWired(Object *ob)
 }
 
 /* return true when nothing was drawn */
-static bool drawCurveDerivedMesh(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3D *rv3d, BaseLegacy *base, const char dt)
+static bool drawCurveDerivedMesh(Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3D *rv3d, Base *base, const char dt)
 {
 	Object *ob = base->object;
 	DerivedMesh *dm = ob->derivedFinal;

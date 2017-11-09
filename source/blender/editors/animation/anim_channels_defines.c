@@ -628,7 +628,7 @@ static bAnimChannelType ACF_SCENE =
 
 static int acf_object_icon(bAnimListElem *ale)
 {
-	BaseLegacy *base = (BaseLegacy *)ale->data;
+	Base *base = (Base *)ale->data;
 	Object *ob = base->object;
 	
 	/* icon depends on object-type */
@@ -663,7 +663,7 @@ static int acf_object_icon(bAnimListElem *ale)
 /* name for object */
 static void acf_object_name(bAnimListElem *ale, char *name)
 {
-	BaseLegacy *base = (BaseLegacy *)ale->data;
+	Base *base = (Base *)ale->data;
 	Object *ob = base->object;
 	
 	/* just copy the name... */
@@ -683,7 +683,7 @@ static bool acf_object_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRN
 /* check if some setting exists for this channel */
 static bool acf_object_setting_valid(bAnimContext *ac, bAnimListElem *ale, eAnimChannel_Settings setting)
 {
-	BaseLegacy *base = (BaseLegacy *)ale->data;
+	Base *base = (Base *)ale->data;
 	Object *ob = base->object;
 	
 	switch (setting) {
@@ -740,7 +740,7 @@ static int acf_object_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settin
 /* get pointer to the setting */
 static void *acf_object_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
 {
-	BaseLegacy *base = (BaseLegacy *)ale->data;
+	Base *base = (Base *)ale->data;
 	Object *ob = base->object;
 	
 	/* clear extra return data first */

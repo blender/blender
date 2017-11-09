@@ -35,7 +35,7 @@ extern "C" {
 #endif
 
 struct bArmature;
-struct BaseLegacy;
+struct Base;
 struct bContext;
 struct Bone;
 struct bPoseChannel;
@@ -45,7 +45,6 @@ struct ListBase;
 struct MeshDeformModifierData;
 struct DerivedMesh;
 struct Object;
-struct Base;
 struct ReportList;
 struct Scene;
 struct SceneLayer;

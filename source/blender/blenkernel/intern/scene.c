@@ -1153,7 +1153,7 @@ Scene *BKE_scene_set_name(Main *bmain, const char *name)
 /* Used by metaballs, return *all* objects (including duplis) existing in the scene (including scene's sets) */
 int BKE_scene_base_iter_next(
         const EvaluationContext *eval_ctx, SceneBaseIter *iter,
-        Scene **scene, int val, BaseLegacy **base, Object **ob)
+        Scene **scene, int val, Base **base, Object **ob)
 {
 	bool run_again = true;
 	

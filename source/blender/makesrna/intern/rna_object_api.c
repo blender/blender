@@ -784,17 +784,4 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Release memory used by caches associated with this object. Intended to be used by render engines only");
 }
 
-
-void RNA_api_object_base_legacy(StructRNA *srna)
-{
-	FunctionRNA *func;
-	PropertyRNA *parm;
-
-	func = RNA_def_function(srna, "layers_from_view", "rna_ObjectBaseLegacy_layers_from_view");
-	RNA_def_function_ui_description(func,
-	                                "Sets the object layers from a 3D View (use when adding an object in local view)");
-	parm = RNA_def_pointer(func, "view", "SpaceView3D", "", "");
-	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-}
-
 #endif /* RNA_RUNTIME */

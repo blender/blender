@@ -36,13 +36,12 @@ extern "C" {
 #endif
 
 struct bFaceMap;
-struct BaseLegacy;
+struct Base;
 struct EnumPropertyItem;
 struct ID;
 struct Main;
 struct ModifierData;
 struct Object;
-struct Base;
 struct ReportList;
 struct Scene;
 struct SceneLayer;

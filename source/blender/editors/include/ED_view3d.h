@@ -37,7 +37,7 @@ struct BMEdge;
 struct BMFace;
 struct BMVert;
 struct BPoint;
-struct BaseLegacy;
+struct Base;
 struct BezTriple;
 struct BoundBox;
 struct Camera;
@@ -203,7 +203,7 @@ void pose_foreachScreenBone(
 void ED_view3d_project_float_v2_m4(const struct ARegion *ar, const float co[3], float r_co[2], float mat[4][4]);
 void ED_view3d_project_float_v3_m4(const struct ARegion *ar, const float co[3], float r_co[3], float mat[4][4]);
 
-eV3DProjStatus ED_view3d_project_base(const struct ARegion *ar, struct BaseLegacy *base);
+eV3DProjStatus ED_view3d_project_base(const struct ARegion *ar, struct Base *base);
 
 /* *** short *** */
 eV3DProjStatus ED_view3d_project_short_ex(const struct ARegion *ar, float perspmat[4][4], const bool is_local,
@@ -398,7 +398,7 @@ struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
         int alpha_mode, int samples, bool full_samples, const char *viewname,
         struct GPUFX *fx, struct GPUOffScreen *ofs, char err_out[256]);
 
-struct BaseLegacy *ED_view3d_give_base_under_cursor(struct bContext *C, const int mval[2]);
+struct Base *ED_view3d_give_base_under_cursor(struct bContext *C, const int mval[2]);
 void ED_view3d_quadview_update(struct ScrArea *sa, struct ARegion *ar, bool do_clip);
 void ED_view3d_update_viewmat(
         const struct EvaluationContext *eval_ctx, struct Scene *scene, struct View3D *v3d, struct ARegion *ar,

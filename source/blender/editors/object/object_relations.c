@@ -2413,7 +2413,7 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 
 static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	BaseLegacy *base = ED_view3d_give_base_under_cursor(C, event->mval);
+	Base *base = ED_view3d_give_base_under_cursor(C, event->mval);
 	Material *ma;
 	char name[MAX_ID_NAME - 2];
 

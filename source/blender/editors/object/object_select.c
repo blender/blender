@@ -1071,9 +1071,9 @@ void OBJECT_OT_select_mirror(wmOperatorType *ot)
 
 static bool object_select_more_less(bContext *C, const bool select)
 {
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	SceneLayer *scene_layer = CTX_data_scene_layer(C);
 
-	for (BaseLegacy *base = sl->object_bases.first; base; base = base->next) {
+	for (Base *base = scene_layer->object_bases.first; base; base = base->next) {
 		Object *ob = base->object;
 		ob->flag &= ~OB_DONE;
 		ob->id.tag &= ~LIB_TAG_DOIT;

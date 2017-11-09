@@ -72,9 +72,6 @@ struct SceneCollection;
 /* ************************************************************* */
 /* Scene Data */
 
-/* Base - Wrapper for referencing Objects in a Scene */
-#define BaseLegacy Base
-
 /* ************************************************************* */
 /* Output Format Data */
 

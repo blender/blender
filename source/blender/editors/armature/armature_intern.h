@@ -37,7 +37,7 @@ struct wmOperatorType;
 struct bContext;
 struct Scene;
 struct Object;
-struct BaseLegacy;
+struct Base;
 struct bAction;
 struct bPoseChannel;
 

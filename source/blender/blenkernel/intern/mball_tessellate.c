@@ -1082,7 +1082,7 @@ static void polygonize(PROCESS *process)
 static void init_meta(const EvaluationContext *eval_ctx, PROCESS *process, Scene *scene, Object *ob)
 {
 	Scene *sce_iter = scene;
-	BaseLegacy *base;
+	Base *base;
 	Object *bob;
 	MetaBall *mb;
 	const MetaElem *ml;

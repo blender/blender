@@ -38,7 +38,6 @@ extern "C" {
 #endif
 
 struct AviCodecData;
-struct BaseLegacy;
 struct Depsgraph;
 struct EvaluationContext;
 struct Main;
@@ -104,7 +103,7 @@ typedef struct SceneBaseIter {
 
 int BKE_scene_base_iter_next(
         const struct EvaluationContext *eval_ctx, struct SceneBaseIter *iter,
-        struct Scene **scene, int val, struct BaseLegacy **base, struct Object **ob);
+        struct Scene **scene, int val, struct Base **base, struct Object **ob);
 
 void BKE_scene_base_flag_to_objects(struct SceneLayer *scene_layer);
 void BKE_scene_base_flag_from_objects(struct Scene *scene);

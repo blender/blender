@@ -2736,7 +2736,7 @@ static void draw_ghost_poses_range(
  */
 static void draw_ghost_poses_keys(
         const struct EvaluationContext *eval_ctx, Scene *scene, SceneLayer *sl,
-        View3D *v3d, ARegion *ar, BaseLegacy *base)
+        View3D *v3d, ARegion *ar, Base *base)
 {
 	Object *ob = base->object;
 	AnimData *adt = BKE_animdata_from_id(&ob->id);

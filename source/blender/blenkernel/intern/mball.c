@@ -320,7 +320,7 @@ bool BKE_mball_is_basis_for(Object *ob1, Object *ob2)
 void BKE_mball_properties_copy(Scene *scene, Object *active_object)
 {
 	Scene *sce_iter = scene;
-	BaseLegacy *base;
+	Base *base;
 	Object *ob;
 	MetaBall *active_mball = (MetaBall *)active_object->data;
 	int basisnr, obnr;

@@ -925,7 +925,7 @@ static int empty_drop_named_image_invoke(bContext *C, wmOperator *op, const wmEv
 {
 	Scene *scene = CTX_data_scene(C);
 
-	BaseLegacy *base = NULL;
+	Base *base = NULL;
 	Image *ima = NULL;
 	Object *ob = NULL;
 

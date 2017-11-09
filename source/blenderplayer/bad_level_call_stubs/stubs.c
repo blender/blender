@@ -46,7 +46,6 @@ struct ARegionType;
 struct bFaceMap;
 struct BMEditMesh;
 struct Base;
-struct BaseLegacy;
 struct bContext;
 struct BoundBox;
 struct Brush;
