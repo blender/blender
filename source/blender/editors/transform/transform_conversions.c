@@ -5559,7 +5559,7 @@ static void set_trans_object_base_flags(TransInfo *t)
 	BKE_scene_base_flag_to_objects(t->scene_layer);
 
 	/* Make sure depsgraph is here. */
-	DEG_graph_relations_update(depsgraph, bmain, scene);
+	DEG_graph_relations_update(depsgraph, bmain, scene, sl);
 
 	/* handle pending update events, otherwise they got copied below */
 	EvaluationContext eval_ctx;
@@ -5696,7 +5696,7 @@ static int count_proportional_objects(TransInfo *t)
 	
 
 	/* all recalc flags get flushed to all layers, so a layer flip later on works fine */
-	DEG_graph_relations_update(depsgraph, bmain, scene);
+	DEG_graph_relations_update(depsgraph, bmain, scene, sl);
 	DEG_graph_flush_update(bmain, depsgraph);
 
 	/* and we store them temporal in base (only used for transform code) */

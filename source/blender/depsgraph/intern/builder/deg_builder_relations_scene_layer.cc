@@ -68,23 +68,22 @@ extern "C" {
 
 namespace DEG {
 
-void DepsgraphRelationBuilder::build_scene(Scene *scene)
+void DepsgraphRelationBuilder::build_scene_layer(Scene *scene, SceneLayer *scene_layer)
 {
-	if (scene->set) {
-		build_scene(scene->set);
+	if (scene->set != NULL) {
+		SceneLayer *set_scene_layer = BKE_scene_layer_from_scene_get(scene->set);
+		build_scene_layer(scene->set, set_scene_layer);
 	}
 
-	/* XXX store scene to access from DAG_get_scene */
 	graph_->scene = scene;
+	graph_->scene_layer = scene_layer;
 
 	/* Setup currently building context. */
 	scene_ = scene;
 
 	/* scene objects */
-	for (SceneLayer *sl = (SceneLayer *)scene->render_layers.first; sl; sl = sl->next) {
-		for (Base *base = (Base *)sl->object_bases.first; base; base = base->next) {
-			build_object(base->object);
-		}
+	LINKLIST_FOREACH(Base *, base, &scene_layer->object_bases) {
+		build_object(base->object);
 	}
 	if (scene->camera != NULL) {
 		build_object(scene->camera);

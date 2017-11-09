@@ -91,6 +91,7 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_debug.h"
 
 #include "creator_intern.h"  /* own include */
 
@@ -441,7 +442,12 @@ static void render_set_depgraph(bContext *C, Render *re)
 	 */
 	SceneLayer *scene_layer = scene->render_layers.first;
 	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, scene_layer, true);
-	DEG_graph_relations_update(depsgraph, bmain, scene);
+	DEG_graph_relations_update(depsgraph, bmain, scene, scene_layer);
+	{
+		FILE *stream = fopen("/home/sergey/deg.dot", "w");
+		DEG_debug_graphviz(depsgraph, stream, "", false);
+		fclose(stream);
+	}
 	DEG_graph_on_visible_update(bmain, depsgraph);
 
 	RE_SetDepsgraph(re, depsgraph);

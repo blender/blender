@@ -65,7 +65,9 @@ extern "C" {
 
 namespace DEG {
 
-void DepsgraphNodeBuilder::build_scene(Scene *scene, eDepsNode_LinkedState_Type linked_state)
+void DepsgraphNodeBuilder::build_scene_layer(Scene *scene,
+                                             SceneLayer *scene_layer,
+                                             eDepsNode_LinkedState_Type linked_state)
 {
 	/* scene ID block */
 	add_id_node(&scene->id);
@@ -76,8 +78,9 @@ void DepsgraphNodeBuilder::build_scene(Scene *scene, eDepsNode_LinkedState_Type 
 	/* build subgraph for set, and link this in... */
 	// XXX: depending on how this goes, that scene itself could probably store its
 	//      own little partial depsgraph?
-	if (scene->set) {
-		build_scene(scene->set, DEG_ID_LINKED_VIA_SET);
+	if (scene->set != NULL) {
+		SceneLayer *set_scene_layer = BKE_scene_layer_from_scene_get(scene->set);
+		build_scene_layer(scene->set, set_scene_layer, DEG_ID_LINKED_VIA_SET);
 	}
 
 	/* Setup currently building context. */
@@ -85,12 +88,10 @@ void DepsgraphNodeBuilder::build_scene(Scene *scene, eDepsNode_LinkedState_Type 
 
 	/* scene objects */
 	int select_color = 1;
-	for (SceneLayer *sl = (SceneLayer *)scene->render_layers.first; sl; sl = sl->next) {
-		for (Base *base = (Base *)sl->object_bases.first; base; base = base->next) {
-			/* object itself */
-			build_object(base->object, linked_state);
-			base->object->select_color = select_color++;
-		}
+	LINKLIST_FOREACH(Base *, base, &scene_layer->object_bases) {
+		/* object itself */
+		build_object(base->object, linked_state);
+		base->object->select_color = select_color++;
 	}
 	if (scene->camera != NULL) {
 		build_object(scene->camera, linked_state);

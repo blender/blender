@@ -232,6 +232,7 @@ static void find_iobject(const IObject &object, IObject &ret,
 struct ExportJobData {
 	EvaluationContext eval_ctx;
 	Scene *scene;
+	SceneLayer *scene_layer;
 	Depsgraph *depsgraph;
 	Main *bmain;
 
@@ -264,7 +265,8 @@ static void export_startjob(void *customdata, short *stop, short *do_update, flo
 
 	try {
 		Scene *scene = data->scene;
-		AbcExporter exporter(data->bmain, &data->eval_ctx, scene, data->depsgraph, data->filename, data->settings);
+		SceneLayer *scene_layer = data->scene_layer;
+		AbcExporter exporter(data->bmain, &data->eval_ctx, scene, scene_layer, data->depsgraph, data->filename, data->settings);
 
 		const int orig_frame = CFRA;
 
@@ -274,7 +276,7 @@ static void export_startjob(void *customdata, short *stop, short *do_update, flo
 		if (CFRA != orig_frame) {
 			CFRA = orig_frame;
 
-			BKE_scene_graph_update_for_newframe(data->bmain->eval_ctx, data->depsgraph, data->bmain, scene);
+			BKE_scene_graph_update_for_newframe(data->bmain->eval_ctx, data->depsgraph, data->bmain, scene, data->scene_layer);
 		}
 
 		data->export_ok = !data->was_canceled;
@@ -316,6 +318,7 @@ bool ABC_export(
 	CTX_data_eval_ctx(C, &job->eval_ctx);
 
 	job->scene = scene;
+	job->scene_layer = CTX_data_scene_layer(C);
 	job->depsgraph = CTX_data_depsgraph(C);
 	job->bmain = CTX_data_main(C);
 	job->export_ok = false;

@@ -972,7 +972,8 @@ Render *BlenderStrokeRenderer::RenderScene(Render * /*re*/, bool render)
 #endif
 
 	Render *freestyle_render = RE_NewSceneRender(freestyle_scene);
-	DEG_graph_relations_update(freestyle_depsgraph, freestyle_bmain, freestyle_scene);
+	SceneLayer *scene_layer = (SceneLayer *)freestyle_scene->render_layers.first;
+	DEG_graph_relations_update(freestyle_depsgraph, freestyle_bmain, freestyle_scene, scene_layer);
 	freestyle_render->depsgraph = freestyle_depsgraph;
 
 	RE_RenderFreestyleStrokes(freestyle_render, freestyle_bmain, freestyle_scene,

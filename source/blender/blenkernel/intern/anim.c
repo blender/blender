@@ -276,7 +276,10 @@ void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
 /* ........ */
 
 /* update scene for current frame */
-static void motionpaths_calc_update_scene(Main *bmain, Scene *scene, struct Depsgraph *depsgraph)
+static void motionpaths_calc_update_scene(Main *bmain,
+                                          Scene *scene,
+                                          SceneLayer *scene_layer,
+                                          struct Depsgraph *depsgraph)
 {
 	/* Do all updates
 	 *  - if this is too slow, resort to using a more efficient way
@@ -288,7 +291,7 @@ static void motionpaths_calc_update_scene(Main *bmain, Scene *scene, struct Deps
 	 *
 	 * TODO(sergey): Use evaluation context dedicated to motion paths.
 	 */
-	BKE_scene_graph_update_for_newframe(bmain->eval_ctx, depsgraph, bmain, scene);
+	BKE_scene_graph_update_for_newframe(bmain->eval_ctx, depsgraph, bmain, scene, scene_layer);
 }
 
 /* ........ */
@@ -344,6 +347,8 @@ void animviz_calc_motionpaths(bContext *C, Scene *scene, ListBase *targets)
 	int sfra, efra;
 	int cfra;
 	Main *bmain = CTX_data_main(C);
+	/* TODO(sergey): Should we mabe pass scene layer explicitly? */
+	SceneLayer *scene_layer = CTX_data_scene_layer(C);
 	struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	
 	/* sanity check */
@@ -367,7 +372,7 @@ void animviz_calc_motionpaths(bContext *C, Scene *scene, ListBase *targets)
 	/* calculate path over requested range */
 	for (CFRA = sfra; CFRA <= efra; CFRA++) {
 		/* update relevant data for new frame */
-		motionpaths_calc_update_scene(bmain, scene, depsgraph);
+		motionpaths_calc_update_scene(bmain, scene, scene_layer, depsgraph);
 		
 		/* perform baking for targets */
 		motionpaths_calc_bake_targets(scene, targets);
@@ -375,7 +380,7 @@ void animviz_calc_motionpaths(bContext *C, Scene *scene, ListBase *targets)
 	
 	/* reset original environment */
 	CFRA = cfra;
-	motionpaths_calc_update_scene(bmain, scene, depsgraph);
+	motionpaths_calc_update_scene(bmain, scene, scene_layer, depsgraph);
 	
 	/* clear recalc flags from targets */
 	for (mpt = targets->first; mpt; mpt = mpt->next) {

@@ -47,6 +47,7 @@ struct GSet;
 struct PointerRNA;
 struct PropertyRNA;
 struct Scene;
+struct SceneLayer;
 
 namespace DEG {
 
@@ -174,8 +175,9 @@ struct Depsgraph {
 	 */
 	SpinLock lock;
 
-	// XXX: additional stuff like eval contexts, mempools for allocating nodes from, etc.
-	Scene *scene; /* XXX: We really shouldn't do that, but it's required for shader preview. */
+	/* Scene and layer this dependency graph is built for. */
+	Scene *scene;
+	SceneLayer *scene_layer;
 };
 
 }  // namespace DEG

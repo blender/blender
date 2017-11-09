@@ -3662,7 +3662,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 	stime = ptime = PIL_check_seconds_timer();
 
 	for (int fr = CFRA; fr <= endframe; fr += baker->quick_step, CFRA = fr) {
-		BKE_scene_graph_update_for_newframe(G.main->eval_ctx, depsgraph, bmain, scene);
+		BKE_scene_graph_update_for_newframe(G.main->eval_ctx, depsgraph, bmain, scene, scene_layer);
 
 		if (baker->update_progress) {
 			float progress = ((float)(CFRA - startframe)/(float)(endframe - startframe));
@@ -3748,7 +3748,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 	CFRA = cfrao;
 	
 	if (bake) { /* already on cfra unless baking */
-		BKE_scene_graph_update_for_newframe(bmain->eval_ctx, depsgraph, bmain, scene);
+		BKE_scene_graph_update_for_newframe(bmain->eval_ctx, depsgraph, bmain, scene, scene_layer);
 	}
 
 	/* TODO: call redraw all windows somehow */

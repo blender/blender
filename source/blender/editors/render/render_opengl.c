@@ -812,8 +812,10 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 	}
 
 	if (oglrender->timer) { /* exec will not have a timer */
+		Depsgraph *depsgraph = oglrender->depsgraph;
+		SceneLayer *scene_layer = oglrender->scene_layer;
 		scene->r.cfra = oglrender->cfrao;
-		BKE_scene_graph_update_for_newframe(bmain->eval_ctx, oglrender->depsgraph, bmain, scene);
+		BKE_scene_graph_update_for_newframe(bmain->eval_ctx, depsgraph, bmain, scene, scene_layer);
 
 		WM_event_remove_timer(oglrender->wm, oglrender->win, oglrender->timer);
 	}
@@ -1013,6 +1015,8 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	OGLRender *oglrender = op->customdata;
 	Scene *scene = oglrender->scene;
+	SceneLayer *scene_layer = oglrender->scene_layer;
+	Depsgraph *depsgraph = oglrender->depsgraph;
 	char name[FILE_MAX];
 	bool ok = false;
 	const bool view_context = (oglrender->v3d != NULL);
@@ -1023,7 +1027,7 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	if (CFRA < oglrender->nfra)
 		CFRA++;
 	while (CFRA < oglrender->nfra) {
-		BKE_scene_graph_update_for_newframe(bmain->eval_ctx, oglrender->depsgraph, bmain, scene);
+		BKE_scene_graph_update_for_newframe(bmain->eval_ctx, depsgraph, bmain, scene, scene_layer);
 		CFRA++;
 	}
 
@@ -1045,7 +1049,7 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 
 	WM_cursor_time(oglrender->win, scene->r.cfra);
 
-	BKE_scene_graph_update_for_newframe(bmain->eval_ctx, oglrender->depsgraph, bmain, scene);
+	BKE_scene_graph_update_for_newframe(bmain->eval_ctx, depsgraph, bmain, scene, scene_layer);
 
 	if (view_context) {
 		if (oglrender->rv3d->persp == RV3D_CAMOB && oglrender->v3d->camera && oglrender->v3d->scenelock) {

@@ -481,5 +481,5 @@ void BKE_workspace_update_tagged(struct EvaluationContext *eval_ctx,
 	struct Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene,
 	                                                      scene_layer,
 	                                                      true);
-	BKE_scene_graph_update_tagged(eval_ctx, depsgraph, bmain, scene);
+	BKE_scene_graph_update_tagged(eval_ctx, depsgraph, bmain, scene, scene_layer);
 }

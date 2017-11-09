@@ -1537,13 +1537,19 @@ static void prepare_mesh_for_viewport_render(Main *bmain, Scene *scene)
 void BKE_scene_graph_update_tagged(EvaluationContext *eval_ctx,
                                    Depsgraph *depsgraph,
                                    Main *bmain,
-                                   Scene *scene)
+                                   Scene *scene,
+                                   SceneLayer *scene_layer)
 {
+	/* TODO(sergey): Temporary solution for until pipeline.c is ported. */
+	if (scene_layer == NULL) {
+		scene_layer = DEG_get_evaluated_scene_layer(depsgraph);
+		BLI_assert(scene_layer != NULL);
+	}
 	/* TODO(sergey): Some functions here are changing global state,
 	 * for example, clearing update tags from bmain.
 	 */
 	/* (Re-)build dependency graph if needed. */
-	DEG_graph_relations_update(depsgraph, bmain, scene);
+	DEG_graph_relations_update(depsgraph, bmain, scene, scene_layer);
 	/* Uncomment this to check if graph was properly tagged for update. */
 	// DEG_debug_graph_relations_validate(depsgraph, bmain, scene);
 	/* Flush editing data if needed. */
@@ -1566,8 +1572,14 @@ void BKE_scene_graph_update_tagged(EvaluationContext *eval_ctx,
 void BKE_scene_graph_update_for_newframe(EvaluationContext *eval_ctx,
                                          Depsgraph *depsgraph,
                                          Main *bmain,
-                                         Scene *scene)
+                                         Scene *scene,
+                                         SceneLayer *scene_layer)
 {
+	/* TODO(sergey): Temporary solution for until pipeline.c is ported. */
+	if (scene_layer == NULL) {
+		scene_layer = DEG_get_evaluated_scene_layer(depsgraph);
+		BLI_assert(scene_layer != NULL);
+	}
 	/* TODO(sergey): Some functions here are changing global state,
 	 * for example, clearing update tags from bmain.
 	 */
@@ -1583,7 +1595,7 @@ void BKE_scene_graph_update_for_newframe(EvaluationContext *eval_ctx,
 	 */
 	BKE_image_update_frame(bmain, scene->r.cfra);
 	BKE_sound_set_cfra(scene->r.cfra);
-	DEG_graph_relations_update(depsgraph, bmain, scene);
+	DEG_graph_relations_update(depsgraph, bmain, scene, scene_layer);
 	/* Update animated cache files for modifiers.
 	 *
 	 * TODO(sergey): Make this a depsgraph node?

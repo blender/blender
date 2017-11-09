@@ -1748,7 +1748,7 @@ static void do_render_blur_3d(Render *re)
 	
 	/* make sure motion blur changes get reset to current frame */
 	if ((re->r.scemode & (R_NO_FRAME_UPDATE|R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW))==0) {
-		BKE_scene_graph_update_for_newframe(re->eval_ctx, re->depsgraph, re->main, re->scene);
+		BKE_scene_graph_update_for_newframe(re->eval_ctx, re->depsgraph, re->main, re->scene, NULL);
 	}
 	
 	/* weak... the display callback wants an active renderlayer pointer... */
@@ -2635,7 +2635,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 				R.i.cfra = re->i.cfra;
 				
 				if (update_newframe)
-					BKE_scene_graph_update_for_newframe(re->eval_ctx, re->depsgraph, re->main, re->scene);
+					BKE_scene_graph_update_for_newframe(re->eval_ctx, re->depsgraph, re->main, re->scene, NULL);
 				
 				if (re->r.scemode & R_FULL_SAMPLE)
 					do_merge_fullsample(re, ntree);
@@ -3700,7 +3700,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 
 			if (nfra != scene->r.cfra) {
 				/* Skip this frame, but update for physics and particles system. */
-				BKE_scene_graph_update_for_newframe(re->eval_ctx, re->depsgraph, bmain, scene);
+				BKE_scene_graph_update_for_newframe(re->eval_ctx, re->depsgraph, bmain, scene, NULL);
 				continue;
 			}
 			else

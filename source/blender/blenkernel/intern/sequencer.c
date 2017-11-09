@@ -3315,7 +3315,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 
 		/* opengl offscreen render */
 		context->eval_ctx->engine = RE_engines_find(scene->view_render.engine_id);
-		BKE_scene_graph_update_for_newframe(context->eval_ctx, depsgraph, context->bmain, scene);
+		BKE_scene_graph_update_for_newframe(context->eval_ctx, depsgraph, context->bmain, scene, scene_layer);
 		ibuf = sequencer_view3d_cb(
 		        /* set for OpenGL render (NULL when scrubbing) */
 		        context->eval_ctx, scene, scene_layer, camera, width, height, IB_rect,
@@ -3355,7 +3355,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 			RE_SetDepsgraph(re, depsgraph);
 			DEG_graph_id_tag_update(context->bmain, depsgraph, &scene->id, 0);
 
-			BKE_scene_graph_update_for_newframe(context->eval_ctx, depsgraph, context->bmain, scene);
+			BKE_scene_graph_update_for_newframe(context->eval_ctx, depsgraph, context->bmain, scene, scene_layer);
 			RE_BlenderFrame(re, context->bmain, scene, NULL, camera, scene->lay, frame, false);
 
 			/* restore previous state after it was toggled on & off by RE_BlenderFrame */
@@ -3415,7 +3415,7 @@ finally:
 	scene->r.subframe = orig_data.subframe;
 
 	if (is_frame_update) {
-		BKE_scene_graph_update_for_newframe(context->eval_ctx, depsgraph, context->bmain, scene);
+		BKE_scene_graph_update_for_newframe(context->eval_ctx, depsgraph, context->bmain, scene, scene_layer);
 	}
 
 #ifdef DURIAN_CAMERA_SWITCH

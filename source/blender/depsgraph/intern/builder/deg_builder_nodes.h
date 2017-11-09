@@ -157,8 +157,9 @@ struct DepsgraphNodeBuilder {
 	                                       const char *name = "",
 	                                       int name_tag = -1);
 
-	void build_scene(Scene *scene,
-	                 eDepsNode_LinkedState_Type linked_state);
+	void build_scene_layer(Scene *scene,
+	                       SceneLayer *scene_layer,
+	                       eDepsNode_LinkedState_Type linked_state);
 	void build_group(Group *group);
 	void build_object(Object *ob,
 	                  eDepsNode_LinkedState_Type linked_state);

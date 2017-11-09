@@ -66,11 +66,12 @@ bool DEG_debug_compare(const struct Depsgraph *graph1,
 
 bool DEG_debug_graph_relations_validate(Depsgraph *graph,
                                         Main *bmain,
-                                        Scene *scene)
+                                        Scene *scene,
+                                        SceneLayer *scene_layer)
 {
 	Depsgraph *temp_depsgraph = DEG_graph_new();
 	bool valid = true;
-	DEG_graph_build_from_scene(temp_depsgraph, bmain, scene);
+	DEG_graph_build_from_scene_layer(temp_depsgraph, bmain, scene, scene_layer);
 	if (!DEG_debug_compare(temp_depsgraph, graph)) {
 		fprintf(stderr, "ERROR! Depsgraph wasn't tagged for update when it should have!\n");
 		BLI_assert(!"This should not happen!");
