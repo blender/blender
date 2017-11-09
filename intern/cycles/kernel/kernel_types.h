@@ -782,10 +782,14 @@ typedef struct AttributeDescriptor {
 /* Closure data */
 
 #ifdef __MULTI_CLOSURE__
-#  ifndef __MAX_CLOSURE__
-#     define MAX_CLOSURE 64
+#  ifdef __SPLIT_KERNEL__
+#    define MAX_CLOSURE 1
 #  else
-#    define MAX_CLOSURE __MAX_CLOSURE__
+#    ifndef __MAX_CLOSURE__
+#       define MAX_CLOSURE 64
+#    else
+#      define MAX_CLOSURE __MAX_CLOSURE__
+#    endif
 #  endif
 #else
 #  define MAX_CLOSURE 1
@@ -1313,7 +1317,8 @@ typedef struct KernelIntegrator {
 	int volume_samples;
 
 	int start_sample;
-	int pad;
+
+	int max_closures;
 } KernelIntegrator;
 static_assert_align(KernelIntegrator, 16);
 

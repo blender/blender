@@ -58,7 +58,7 @@ ccl_device void kernel_direct_lighting(KernelGlobals *kg,
 
 	if(IS_STATE(kernel_split_state.ray_state, ray_index, RAY_ACTIVE)) {
 		ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
-		ShaderData *sd = &kernel_split_state.sd[ray_index];
+		ShaderData *sd = kernel_split_sd(sd, ray_index);
 
 		/* direct lighting */
 #ifdef __EMISSION__

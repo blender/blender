@@ -91,9 +91,6 @@ public:
 	/* Use experimental feature set. */
 	bool experimental;
 
-	/* Maximum number of closures in shader trees. */
-	int max_closure;
-
 	/* Selective nodes compilation. */
 
 	/* Identifier of a node group up to which all the nodes needs to be
@@ -146,7 +143,6 @@ public:
 	{
 		/* TODO(sergey): Find more meaningful defaults. */
 		experimental = false;
-		max_closure = 0;
 		max_nodes_group = 0;
 		nodes_features = 0;
 		use_hair = false;
@@ -167,7 +163,6 @@ public:
 	bool modified(const DeviceRequestedFeatures& requested_features)
 	{
 		return !(experimental == requested_features.experimental &&
-		         max_closure == requested_features.max_closure &&
 		         max_nodes_group == requested_features.max_nodes_group &&
 		         nodes_features == requested_features.nodes_features &&
 		         use_hair == requested_features.use_hair &&
@@ -198,7 +193,6 @@ public:
 			string_printf("%d", max_nodes_group);
 		build_options += " -D__NODES_FEATURES__=" +
 			string_printf("%d", nodes_features);
-		build_options += string_printf(" -D__MAX_CLOSURE__=%d", max_closure);
 		if(!use_hair) {
 			build_options += " -D__NO_HAIR__";
 		}

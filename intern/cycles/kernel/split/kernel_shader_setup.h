@@ -61,7 +61,7 @@ ccl_device void kernel_shader_setup(KernelGlobals *kg,
 		Ray ray = kernel_split_state.ray[ray_index];
 
 		shader_setup_from_ray(kg,
-		                      &kernel_split_state.sd[ray_index],
+		                      kernel_split_sd(sd, ray_index),
 		                      &isect,
 		                      &ray);
 	}

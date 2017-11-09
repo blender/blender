@@ -443,7 +443,7 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 		                      sd,
 		                      &isect,
 		                      ray);
-		shader_eval_surface(kg, sd, state, state->flag, MAX_CLOSURE);
+		shader_eval_surface(kg, sd, state, state->flag, kernel_data.integrator.max_closures);
 		shader_prepare_closures(sd, state);
 
 		/* Apply shadow catcher, holdout, emission. */
@@ -594,7 +594,7 @@ ccl_device_forceinline void kernel_path_integrate(
 
 		/* Setup and evaluate shader. */
 		shader_setup_from_ray(kg, &sd, &isect, ray);
-		shader_eval_surface(kg, &sd, state, state->flag, MAX_CLOSURE);
+		shader_eval_surface(kg, &sd, state, state->flag, kernel_data.integrator.max_closures);
 		shader_prepare_closures(&sd, state);
 
 		/* Apply shadow catcher, holdout, emission. */

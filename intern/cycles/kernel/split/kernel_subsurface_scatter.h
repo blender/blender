@@ -98,7 +98,7 @@ ccl_device_noinline bool kernel_split_branched_path_subsurface_indirect_light_it
 
 			/* compute lighting with the BSDF closure */
 			for(int hit = branched_state->next_hit; hit < branched_state->num_hits; hit++) {
-				ShaderData *bssrdf_sd = &kernel_split_state.sd[ray_index];
+				ShaderData *bssrdf_sd = kernel_split_sd(sd, ray_index);
 				*bssrdf_sd = *sd; /* note: copy happens each iteration of inner loop, this is
 				                   * important as the indirect path will write into bssrdf_sd */
 
@@ -228,7 +228,7 @@ ccl_device void kernel_subsurface_scatter(KernelGlobals *kg)
 		ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
 		ccl_global float3 *throughput = &kernel_split_state.throughput[ray_index];
 		ccl_global SubsurfaceIndirectRays *ss_indirect = &kernel_split_state.ss_rays[ray_index];
-		ShaderData *sd = &kernel_split_state.sd[ray_index];
+		ShaderData *sd = kernel_split_sd(sd, ray_index);
 		ShaderData *emission_sd = AS_SHADER_DATA(&kernel_split_state.sd_DL_shadow[ray_index]);
 
 		if(sd->flag & SD_BSSRDF) {

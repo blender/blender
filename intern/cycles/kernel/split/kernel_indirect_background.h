@@ -55,7 +55,7 @@ ccl_device void kernel_indirect_background(KernelGlobals *kg)
 		PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
 		ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
 		float3 throughput = kernel_split_state.throughput[ray_index];
-		ShaderData *sd = &kernel_split_state.sd[ray_index];
+		ShaderData *sd = kernel_split_sd(sd, ray_index);
 
 		kernel_path_background(kg, state, ray, throughput, sd, L);
 		kernel_split_path_end(kg, ray_index);

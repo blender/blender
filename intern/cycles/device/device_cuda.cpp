@@ -1861,10 +1861,6 @@ public:
 
 			DeviceRequestedFeatures requested_features;
 			if(use_split_kernel()) {
-				if(!use_adaptive_compilation()) {
-					requested_features.max_closure = 64;
-				}
-
 				if(split_kernel == NULL) {
 					split_kernel = new CUDASplitKernel(this);
 					split_kernel->load_kernels(requested_features);

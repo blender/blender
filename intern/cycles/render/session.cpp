@@ -642,13 +642,11 @@ DeviceRequestedFeatures Session::get_requested_device_features()
 	DeviceRequestedFeatures requested_features;
 	requested_features.experimental = params.experimental;
 
-	requested_features.max_closure = get_max_closure_count();
 	scene->shader_manager->get_requested_features(
 	        scene,
 	        &requested_features);
 	if(!params.background) {
 		/* Avoid too much re-compilations for viewport render. */
-		requested_features.max_closure = 64;
 		requested_features.max_nodes_group = NODE_GROUP_LEVEL_MAX;
 		requested_features.nodes_features = NODE_FEATURE_ALL;
 	}
@@ -857,6 +855,16 @@ void Session::update_scene()
 	/* update scene */
 	if(scene->need_update()) {
 		load_kernels(false);
+
+		/* Update max_closures. */
+		KernelIntegrator *kintegrator = &scene->dscene.data.integrator;
+		if(params.background) {
+			kintegrator->max_closures = get_max_closure_count();
+		}
+		else {
+			/* Currently viewport render is faster with higher max_closures, needs investigating. */
+			kintegrator->max_closures = 64;
+		}
 
 		progress.set_status("Updating Scene");
 		MEM_GUARDED_CALL(&progress, scene->device_update, device, progress);

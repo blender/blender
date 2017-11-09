@@ -33,7 +33,7 @@ ccl_device void kernel_shadow_blocked_ao(KernelGlobals *kg)
 		return;
 	}
 
-	ShaderData *sd = &kernel_split_state.sd[ray_index];
+	ShaderData *sd = kernel_split_sd(sd, ray_index);
 	ShaderData *emission_sd = AS_SHADER_DATA(&kernel_split_state.sd_DL_shadow[ray_index]);
 	PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
 	ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
