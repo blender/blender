@@ -117,7 +117,6 @@ namespace {
 
 struct BuilderWalkUserData {
 	DepsgraphRelationBuilder *builder;
-	Scene *scene;
 };
 
 static void modifier_walk(void *user_data,
@@ -127,7 +126,7 @@ static void modifier_walk(void *user_data,
 {
 	BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
 	if (*obpoin) {
-		data->builder->build_object(data->scene, *obpoin);
+		data->builder->build_object(*obpoin);
 	}
 }
 
@@ -140,7 +139,7 @@ void constraint_walk(bConstraint * /*con*/,
 	if (*idpoin) {
 		ID *id = *idpoin;
 		if (GS(id->name) == ID_OB) {
-			data->builder->build_object(data->scene, (Object *)id);
+			data->builder->build_object((Object *)id);
 		}
 	}
 }
@@ -391,9 +390,7 @@ void DepsgraphRelationBuilder::begin_build()
 	FOREACH_NODETREE_END;
 }
 
-void DepsgraphRelationBuilder::build_group(Scene *scene,
-                                           Object *object,
-                                           Group *group)
+void DepsgraphRelationBuilder::build_group(Object *object, Group *group)
 {
 	ID *group_id = &group->id;
 	bool group_done = (group_id->tag & LIB_TAG_DOIT) != 0;
@@ -402,7 +399,7 @@ void DepsgraphRelationBuilder::build_group(Scene *scene,
 	                                        DEG_OPCODE_TRANSFORM_LOCAL);
 	LINKLIST_FOREACH (GroupObject *, go, &group->gobject) {
 		if (!group_done) {
-			build_object(scene, go->ob);
+			build_object(go->ob);
 		}
 		ComponentKey dupli_transform_key(&go->ob->id, DEG_NODE_TYPE_TRANSFORM);
 		add_relation(dupli_transform_key, object_local_transform_key, "Dupligroup");
@@ -410,7 +407,7 @@ void DepsgraphRelationBuilder::build_group(Scene *scene,
 	group_id->tag |= LIB_TAG_DOIT;
 }
 
-void DepsgraphRelationBuilder::build_object(Scene *scene, Object *ob)
+void DepsgraphRelationBuilder::build_object(Object *ob)
 {
 	if (ob->id.tag & LIB_TAG_DOIT) {
 		return;
@@ -439,13 +436,11 @@ void DepsgraphRelationBuilder::build_object(Scene *scene, Object *ob)
 	if (ob->modifiers.first != NULL) {
 		BuilderWalkUserData data;
 		data.builder = this;
-		data.scene = scene;
 		modifiers_foreachObjectLink(ob, modifier_walk, &data);
 	}
 	if (ob->constraints.first != NULL) {
 		BuilderWalkUserData data;
 		data.builder = this;
-		data.scene = scene;
 		BKE_constraints_id_loop(&ob->constraints, constraint_walk, &data);
 	}
 
@@ -456,10 +451,7 @@ void DepsgraphRelationBuilder::build_object(Scene *scene, Object *ob)
 		                            DEG_OPCODE_TRANSFORM_CONSTRAINTS);
 
 		/* constraint relations */
-		// TODO: provide base op
-		// XXX: this is broken
-		build_constraints(scene,
-		                  &ob->id,
+		build_constraints(&ob->id,
 		                  DEG_NODE_TYPE_TRANSFORM,
 		                  "",
 		                  &ob->constraints,
@@ -512,7 +504,7 @@ void DepsgraphRelationBuilder::build_object(Scene *scene, Object *ob)
 			case OB_MBALL:
 			case OB_LATTICE:
 			{
-				build_obdata_geom(scene, ob);
+				build_obdata_geom(ob);
 				break;
 			}
 
@@ -521,7 +513,7 @@ void DepsgraphRelationBuilder::build_object(Scene *scene, Object *ob)
 					build_proxy_rig(ob);
 				}
 				else {
-					build_rig(scene, ob);
+					build_rig(ob);
 				}
 				break;
 
@@ -544,7 +536,7 @@ void DepsgraphRelationBuilder::build_object(Scene *scene, Object *ob)
 
 	/* Particle systems. */
 	if (ob->particlesystem.first != NULL) {
-		build_particles(scene, ob);
+		build_particles(ob);
 	}
 
 	/* Grease pencil. */
@@ -555,7 +547,7 @@ void DepsgraphRelationBuilder::build_object(Scene *scene, Object *ob)
 	/* Object that this is a proxy for. */
 	if (ob->proxy != NULL) {
 		ob->proxy->proxy_from = ob;
-		build_object(scene, ob->proxy);
+		build_object(ob->proxy);
 		/* TODO(sergey): This is an inverted relation, matches old depsgraph
 		 * behavior and need to be investigated if it still need to be inverted.
 		 */
@@ -566,7 +558,7 @@ void DepsgraphRelationBuilder::build_object(Scene *scene, Object *ob)
 
 	/* Object dupligroup. */
 	if (ob->dup_group != NULL) {
-		build_group(scene, ob, ob->dup_group);
+		build_group(ob, ob->dup_group);
 	}
 }
 
@@ -662,7 +654,7 @@ void DepsgraphRelationBuilder::build_object_parent(Object *ob)
 	}
 }
 
-void DepsgraphRelationBuilder::build_constraints(Scene *scene, ID *id,
+void DepsgraphRelationBuilder::build_constraints(ID *id,
                                                  eDepsNode_Type component_type,
                                                  const char *component_subdata,
                                                  ListBase *constraints,
@@ -713,8 +705,8 @@ void DepsgraphRelationBuilder::build_constraints(Scene *scene, ID *id,
 			else if (cti->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
 				depends_on_camera = true;
 			}
-			if (depends_on_camera && scene->camera) {
-				ComponentKey camera_key(&scene->camera->id, DEG_NODE_TYPE_TRANSFORM);
+			if (depends_on_camera && scene_->camera != NULL) {
+				ComponentKey camera_key(&scene_->camera->id, DEG_NODE_TYPE_TRANSFORM);
 				add_relation(camera_key, constraint_op_key, cti->name);
 			}
 			/* TODO(sergey): This is more a TimeSource -> MovieClip ->
@@ -1328,7 +1320,7 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 	}
 }
 
-void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
+void DepsgraphRelationBuilder::build_particles(Object *ob)
 {
 	TimeSourceKey time_src_key;
 	OperationKey obdata_ubereval_key(&ob->id,
@@ -1366,14 +1358,14 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 
 		/* collisions */
 		if (part->type != PART_HAIR) {
-			add_collision_relations(psys_key, scene, ob, part->collision_group, ob->lay, true, "Particle Collision");
+			add_collision_relations(psys_key, scene_, ob, part->collision_group, ob->lay, true, "Particle Collision");
 		}
 		else if ((psys->flag & PSYS_HAIR_DYNAMICS) && psys->clmd && psys->clmd->coll_parms) {
-			add_collision_relations(psys_key, scene, ob, psys->clmd->coll_parms->group, ob->lay | scene->lay, true, "Hair Collision");
+			add_collision_relations(psys_key, scene_, ob, psys->clmd->coll_parms->group, ob->lay | scene_->lay, true, "Hair Collision");
 		}
 
 		/* effectors */
-		add_forcefield_relations(psys_key, scene, ob, psys, part->effector_weights, part->type == PART_HAIR, "Particle Field");
+		add_forcefield_relations(psys_key, scene_, ob, psys, part->effector_weights, part->type == PART_HAIR, "Particle Field");
 
 		/* boids */
 		if (part->boids) {
@@ -1412,8 +1404,7 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 	// TODO...
 }
 
-void DepsgraphRelationBuilder::build_cloth(Scene * /*scene*/,
-                                           Object *object,
+void DepsgraphRelationBuilder::build_cloth(Object *object,
                                            ModifierData * /*md*/)
 {
 	OperationKey cache_key(&object->id,
@@ -1470,7 +1461,7 @@ void DepsgraphRelationBuilder::build_shapekeys(ID *obdata, Key *key)
  *   re-evaluation of the individual instances of this geometry.
  */
 // TODO: Materials and lighting should probably get their own component, instead of being lumped under geometry?
-void DepsgraphRelationBuilder::build_obdata_geom(Scene *scene, Object *ob)
+void DepsgraphRelationBuilder::build_obdata_geom(Object *ob)
 {
 	ID *obdata = (ID *)ob->data;
 
@@ -1498,7 +1489,7 @@ void DepsgraphRelationBuilder::build_obdata_geom(Scene *scene, Object *ob)
 				mti->updateDepsgraph(
 				        md,
 				        bmain_,
-				        scene,
+				        scene_,
 				        ob,
 				        reinterpret_cast< ::DepsNodeHandle* >(&handle));
 			}
@@ -1520,7 +1511,7 @@ void DepsgraphRelationBuilder::build_obdata_geom(Scene *scene, Object *ob)
 			}
 
 			if (md->type == eModifierType_Cloth) {
-				build_cloth(scene, ob, md);
+				build_cloth(ob, md);
 			}
 		}
 	}
@@ -1580,8 +1571,7 @@ void DepsgraphRelationBuilder::build_obdata_geom(Scene *scene, Object *ob)
 
 		case OB_MBALL:
 		{
-			Object *mom = BKE_mball_basis_find(scene, ob);
-
+			Object *mom = BKE_mball_basis_find(scene_, ob);
 			/* motherball - mom depends on children! */
 			if (mom != ob) {
 				/* non-motherball -> cannot be directly evaluated! */
@@ -1602,18 +1592,18 @@ void DepsgraphRelationBuilder::build_obdata_geom(Scene *scene, Object *ob)
 			// XXX: these needs geom data, but where is geom stored?
 			if (cu->bevobj) {
 				ComponentKey bevob_key(&cu->bevobj->id, DEG_NODE_TYPE_GEOMETRY);
-				build_object(scene, cu->bevobj);
+				build_object(cu->bevobj);
 				add_relation(bevob_key, geom_key, "Curve Bevel");
 			}
 			if (cu->taperobj) {
 				ComponentKey taperob_key(&cu->taperobj->id, DEG_NODE_TYPE_GEOMETRY);
-				build_object(scene, cu->taperobj);
+				build_object(cu->taperobj);
 				add_relation(taperob_key, geom_key, "Curve Taper");
 			}
 			if (ob->type == OB_FONT) {
 				if (cu->textoncurve) {
 					ComponentKey textoncurve_key(&cu->textoncurve->id, DEG_NODE_TYPE_GEOMETRY);
-					build_object(scene, cu->textoncurve);
+					build_object(cu->textoncurve);
 					add_relation(textoncurve_key, geom_key, "Text on Curve");
 				}
 			}

@@ -73,10 +73,13 @@ void DepsgraphRelationBuilder::build_scene(Scene *scene)
 		build_scene(scene->set);
 	}
 
+	/* Setup currently building context. */
+	scene_ = scene;
+
 	/* scene objects */
 	LINKLIST_FOREACH (Base *, base, &scene->base) {
 		Object *ob = base->object;
-		build_object(scene, ob);
+		build_object(ob);
 	}
 
 	/* rigidbody */

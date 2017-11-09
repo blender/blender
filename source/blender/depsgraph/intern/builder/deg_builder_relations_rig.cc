@@ -302,7 +302,7 @@ void DepsgraphRelationBuilder::build_splineik_pose(Object *ob,
 }
 
 /* Pose/Armature Bones Graph */
-void DepsgraphRelationBuilder::build_rig(Scene *scene, Object *ob)
+void DepsgraphRelationBuilder::build_rig(Object *ob)
 {
 	/* Armature-Data */
 	bArmature *arm = (bArmature *)ob->data;
@@ -420,7 +420,7 @@ void DepsgraphRelationBuilder::build_rig(Scene *scene, Object *ob)
 		/* constraints */
 		if (pchan->constraints.first != NULL) {
 			/* constraints stack and constraint dependencies */
-			build_constraints(scene, &ob->id, DEG_NODE_TYPE_BONE, pchan->name, &pchan->constraints, &root_map);
+			build_constraints(&ob->id, DEG_NODE_TYPE_BONE, pchan->name, &pchan->constraints, &root_map);
 
 			/* pose -> constraints */
 			OperationKey constraints_key(&ob->id, DEG_NODE_TYPE_BONE, pchan->name, DEG_OPCODE_BONE_CONSTRAINTS);

@@ -78,6 +78,7 @@ void DepsgraphNodeBuilder::build_scene(Scene *scene)
 		build_scene(scene->set);
 	}
 
+	/* Setup currently building context. */
 	scene_ = scene;
 
 	/* scene objects */

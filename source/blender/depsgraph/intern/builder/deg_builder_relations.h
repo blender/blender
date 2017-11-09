@@ -185,10 +185,10 @@ struct DepsgraphRelationBuilder
 	                              const char *description);
 
 	void build_scene(Scene *scene);
-	void build_group(Scene *scene, Object *object, Group *group);
-	void build_object(Scene *scene, Object *ob);
+	void build_group(Object *object, Group *group);
+	void build_object(Object *ob);
 	void build_object_parent(Object *ob);
-	void build_constraints(Scene *scene, ID *id,
+	void build_constraints(ID *id,
 	                       eDepsNode_Type component_type,
 	                       const char *component_subdata,
 	                       ListBase *constraints,
@@ -197,8 +197,8 @@ struct DepsgraphRelationBuilder
 	void build_driver(ID *id, FCurve *fcurve);
 	void build_world(World *world);
 	void build_rigidbody(Scene *scene);
-	void build_particles(Scene *scene, Object *ob);
-	void build_cloth(Scene *scene, Object *object, ModifierData *md);
+	void build_particles(Object *ob);
+	void build_cloth(Object *object, ModifierData *md);
 	void build_ik_pose(Object *ob,
 	                   bPoseChannel *pchan,
 	                   bConstraint *con,
@@ -207,10 +207,10 @@ struct DepsgraphRelationBuilder
 	                         bPoseChannel *pchan,
 	                         bConstraint *con,
 	                         RootPChanMap *root_map);
-	void build_rig(Scene *scene, Object *ob);
+	void build_rig(Object *ob);
 	void build_proxy_rig(Object *ob);
 	void build_shapekeys(ID *obdata, Key *key);
-	void build_obdata_geom(Scene *scene, Object *ob);
+	void build_obdata_geom(Object *ob);
 	void build_camera(Object *ob);
 	void build_lamp(Object *ob);
 	void build_nodetree(bNodeTree *ntree);
@@ -223,8 +223,20 @@ struct DepsgraphRelationBuilder
 	void build_mask(Mask *mask);
 	void build_movieclip(MovieClip *clip);
 
-	void add_collision_relations(const OperationKey &key, Scene *scene, Object *ob, Group *group, int layer, bool dupli, const char *name);
-	void add_forcefield_relations(const OperationKey &key, Scene *scene, Object *ob, ParticleSystem *psys, EffectorWeights *eff, bool add_absorption, const char *name);
+	void add_collision_relations(const OperationKey &key,
+	                             Scene *scene,
+	                             Object *ob,
+	                             Group *group,
+	                             int layer,
+	                             bool dupli,
+	                             const char *name);
+	void add_forcefield_relations(const OperationKey &key,
+	                              Scene *scene,
+	                              Object *ob,
+	                              ParticleSystem *psys,
+	                              EffectorWeights *eff,
+	                              bool add_absorption,
+	                              const char *name);
 
 	template <typename KeyType>
 	OperationDepsNode *find_operation_node(const KeyType &key);
