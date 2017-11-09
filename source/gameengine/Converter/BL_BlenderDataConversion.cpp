@@ -1740,7 +1740,7 @@ static void blenderSceneSetBackground(Scene *blenderscene)
 
 	for (SETLOOPER(blenderscene, it, base)) {
 		base->object->lay = base->lay;
-		BKE_scene_base_flag_sync_from_base(base);
+		BKE_scene_object_base_flag_sync_from_base(base);
 	}
 }
 

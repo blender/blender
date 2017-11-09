@@ -1669,14 +1669,19 @@ void ED_gpencil_draw_view2d(const bContext *C, bool onlyv2d)
 /* draw grease-pencil sketches to specified 3d-view assuming that matrices are already set correctly
  * Note: this gets called twice - first time with only3d=true to draw 3d-strokes,
  * second time with only3d=false for screen-aligned strokes */
-void ED_gpencil_draw_view3d(wmWindowManager *wm, Scene *scene, View3D *v3d, ARegion *ar, bool only3d)
+void ED_gpencil_draw_view3d(wmWindowManager *wm,
+                            Scene *scene,
+                            SceneLayer *scene_layer,
+                            View3D *v3d,
+                            ARegion *ar,
+                            bool only3d)
 {
 	int dflag = 0;
 	RegionView3D *rv3d = ar->regiondata;
 	int offsx,  offsy,  winx,  winy;
 
 	/* check that we have grease-pencil stuff to draw */
-	bGPdata *gpd = ED_gpencil_data_get_active_v3d(scene, v3d);
+	bGPdata *gpd = ED_gpencil_data_get_active_v3d(scene, scene_layer);
 	if (gpd == NULL) return;
 
 	/* when rendering to the offscreen buffer we don't want to

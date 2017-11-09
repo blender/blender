@@ -2048,7 +2048,7 @@ void ED_view3d_draw_offscreen(
 
 			if (v3d->flag2 & V3D_SHOW_GPENCIL) {
 				/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
-				ED_gpencil_draw_view3d(NULL, scene, v3d, ar, false);
+				ED_gpencil_draw_view3d(NULL, scene, scene_layer, v3d, ar, false);
 			}
 
 			/* freeing the images again here could be done after the operator runs, leaving for now */

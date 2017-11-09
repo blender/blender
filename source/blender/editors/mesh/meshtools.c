@@ -526,7 +526,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 
 			/* free base, now that data is merged */
 			if (base->object != ob) {
-				ED_base_object_free_and_unlink(bmain, scene, base->object);
+				ED_object_base_free_and_unlink(bmain, scene, base->object);
 			}
 		}
 	}

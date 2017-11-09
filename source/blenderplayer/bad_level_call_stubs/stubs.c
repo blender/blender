@@ -550,7 +550,6 @@ void ED_screen_animation_timer_update(struct bScreen *screen, int redraws, int r
 struct bScreen *ED_screen_animation_playing(const struct wmWindowManager *wm) RET_NULL
 struct Scene *ED_screen_scene_find(const struct bScreen *screen, const struct wmWindowManager *wm) RET_NULL
 bool ED_scene_render_layer_delete(struct Main *bmain, Scene *scene, SceneLayer *layer, ReportList *reports) RET_ZERO
-void ED_base_object_select(struct BaseLegacy *base, short mode) RET_NONE
 void ED_object_base_select(struct Base *base, eObjectSelect_Mode mode) RET_NONE
 bool ED_object_modifier_remove(struct ReportList *reports, struct Main *bmain, struct Object *ob, struct ModifierData *md) RET_ZERO
 struct ModifierData *ED_object_modifier_add(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob, const char *name, int type) RET_ZERO
@@ -572,7 +571,7 @@ void uiLayoutSetAlignment(uiLayout *layout, char alignment) RET_NONE
 void uiLayoutSetScaleX(struct uiLayout *layout, float scale) RET_NONE
 void uiLayoutSetScaleY(struct uiLayout *layout, float scale) RET_NONE
 void uiTemplateIconView(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, int show_labels, float icon_scale) RET_NONE
-void ED_base_object_free_and_unlink(struct Main *bmain, struct Scene *scene, struct Object *base) RET_NONE
+void ED_object_base_free_and_unlink(struct Main *bmain, struct Scene *scene, struct Object *base) RET_NONE
 void ED_mesh_update(struct Mesh *mesh, struct bContext *C, int calc_edges, int calc_tessface) RET_NONE
 void ED_mesh_vertices_add(struct Mesh *mesh, struct ReportList *reports, int count) RET_NONE
 void ED_mesh_edges_add(struct Mesh *mesh, struct ReportList *reports, int count) RET_NONE

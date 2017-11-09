@@ -403,7 +403,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
 			}
 			
 			/* Free the old object data */
-			ED_base_object_free_and_unlink(bmain, scene, base->object);
+			ED_object_base_free_and_unlink(bmain, scene, base->object);
 		}
 	}
 	CTX_DATA_END;

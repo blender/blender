@@ -424,7 +424,7 @@ static void object_delete_cb(
 		if (scene->obedit == ob)
 			ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);
 		
-		ED_base_object_free_and_unlink(CTX_data_main(C), scene, ob);
+		ED_object_base_free_and_unlink(CTX_data_main(C), scene, ob);
 		/* leave for ED_outliner_id_unref to handle */
 #if 0
 		te->directdata = NULL;
@@ -928,7 +928,7 @@ static Base *outline_delete_hierarchy(bContext *C, ReportList *reports, Scene *s
 		            base->object->id.name + 2, scene->id.name + 2);
 		return base_next;
 	}
-	ED_base_object_free_and_unlink(CTX_data_main(C), scene, base->object);
+	ED_object_base_free_and_unlink(CTX_data_main(C), scene, base->object);
 	return base_next;
 }
 

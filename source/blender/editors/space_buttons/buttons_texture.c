@@ -54,6 +54,7 @@
 #include "DNA_linestyle_types.h"
 
 #include "BKE_context.h"
+#include "BKE_layer.h"
 #include "BKE_linestyle.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
@@ -324,6 +325,7 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 	Material *ma = NULL;
 	Lamp *la = NULL;
 	World *wrld = NULL;
+	WorkSpace *workspace = NULL;
 	FreestyleLineStyle *linestyle = NULL;
 	Brush *brush = NULL;
 	ID *pinid = sbuts->pinid;
@@ -345,16 +347,24 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 			brush = (Brush *)pinid;
 		else if (GS(pinid->name) == ID_LS)
 			linestyle = (FreestyleLineStyle *)pinid;
+		else if (GS(pinid->name) == ID_WS)
+			workspace = (WorkSpace *)workspace;
 	}
 
 	if (!scene)
 		scene = CTX_data_scene(C);
 
 	if (!pinid || GS(pinid->name) == ID_SCE) {
-		ob = (scene->basact) ? scene->basact->object : NULL;
 		wrld = scene->world;
 		brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
 		linestyle = BKE_linestyle_active_from_scene(scene);
+	}
+	else if (!pinid || GS(pinid->name) == ID_WS) {
+		if (!workspace) {
+			workspace = CTX_wm_workspace(C);
+		}
+		SceneLayer *scene_layer = BKE_scene_layer_from_workspace_get(scene, workspace);
+		ob = OBACT_NEW(scene_layer);
 	}
 
 	if (ob && ob->type == OB_LAMP && !la)

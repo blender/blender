@@ -6123,7 +6123,7 @@ int join_curve_exec(bContext *C, wmOperator *op)
 					}
 				}
 			
-				ED_base_object_free_and_unlink(bmain, scene, base->object);
+				ED_object_base_free_and_unlink(bmain, scene, base->object);
 			}
 		}
 	}

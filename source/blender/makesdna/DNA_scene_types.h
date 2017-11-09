@@ -1615,7 +1615,7 @@ typedef struct Scene {
 	struct Scene *set;
 	
 	ListBase base DNA_DEPRECATED;
-	struct BaseLegacy *basact;		/* active base */
+	struct Base  *basact DNA_DEPRECATED; /* active base */
 	struct Object *obedit;		/* name replaces old G.obedit */
 	
 	float cursor[3];			/* 3d cursor location */
@@ -1911,12 +1911,7 @@ extern const char *RE_engine_id_CYCLES;
 #define MINAFRAME	-1048574
 #define MINAFRAMEF	-1048574.0f
 
-/* depricate this! */
-#define TESTBASE(v3d, base)  (                                                \
-	((base)->flag_legacy & SELECT) &&                                         \
-	((base)->lay & v3d->lay) &&                                               \
-	(((base)->object->restrictflag & OB_RESTRICT_VIEW) == 0))
-
+/* deprecate this! */
 #define TESTBASE_NEW(base)  (                                                 \
 	(((base)->flag & BASE_SELECTED) != 0) &&                                  \
 	(((base)->flag & BASE_VISIBLED) != 0))
@@ -1935,11 +1930,6 @@ extern const char *RE_engine_id_CYCLES;
 	(((base)->flag & BASE_SELECTABLED) != 0)
 #define BASE_VISIBLE_NEW(base)  (                                             \
 	((base)->flag & BASE_VISIBLED) != 0)
-
-#define FIRSTBASE		scene->base.first
-#define LASTBASE		scene->base.last
-#define BASACT			(scene->basact)
-#define OBACT			(BASACT ? BASACT->object: NULL)
 
 #define FIRSTBASE_NEW(_sl)  ((_sl)->object_bases.first)
 #define LASTBASE_NEW(_sl)   ((_sl)->object_bases.last)

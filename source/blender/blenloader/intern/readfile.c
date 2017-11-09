@@ -10155,7 +10155,7 @@ static void give_base_to_objects(
 					 * but it will miss objects from non-instanciated groups... */
 					if (base->flag & BASE_SELECTABLED) {
 						base->flag |= BASE_SELECTED;
-						BKE_scene_base_flag_sync_from_base(base);
+						BKE_scene_object_base_flag_sync_from_base(base);
 					}
 					/* Do NOT make base active here! screws up GUI stuff, if you want it do it on src/ level. */
 				}
@@ -10308,7 +10308,7 @@ static void link_object_postprocess(ID *id, Scene *scene, SceneLayer *scene_laye
 		if (flag & FILE_AUTOSELECT) {
 			if (base->flag & BASE_SELECTABLED) {
 				base->flag |= BASE_SELECTED;
-				BKE_scene_base_flag_sync_from_base(base);
+				BKE_scene_object_base_flag_sync_from_base(base);
 			}
 			/* do NOT make base active here! screws up GUI stuff, if you want it do it on src/ level */
 		}

@@ -579,7 +579,6 @@ void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
 	/* check all sequences */
 	BKE_sequencer_clear_scene_in_allseqs(G.main, sce);
 
-	sce->basact = NULL;
 	BKE_sequencer_editing_free(sce);
 
 	BKE_keyingsets_free(&sce->keyingsets);
@@ -1832,24 +1831,14 @@ bool BKE_scene_uses_blender_eevee(const Scene *scene)
 	return BKE_viewrender_uses_blender_eevee(&scene->view_render);
 }
 
-void BKE_scene_base_flag_to_objects(SceneLayer *sl)
+void BKE_scene_base_flag_to_objects(SceneLayer *scene_layer)
 {
-	Base *base = sl->object_bases.first;
+	Base *base = scene_layer->object_bases.first;
 
 	while (base) {
 		BKE_scene_object_base_flag_sync_from_base(base);
 		base = base->next;
 	}
-}
-
-void BKE_scene_base_flag_sync_from_base(BaseLegacy *base)
-{
-	BKE_scene_object_base_flag_sync_from_base(base);
-}
-
-void BKE_scene_base_flag_sync_from_object(BaseLegacy *base)
-{
-	BKE_scene_object_base_flag_sync_from_object(base);
 }
 
 void BKE_scene_object_base_flag_sync_from_base(Base *base)

@@ -1204,7 +1204,7 @@ static void object_delete_check_glsl_update(Object *ob)
 
 /* remove base from a specific scene */
 /* note: now unlinks constraints as well */
-void ED_base_object_free_and_unlink(Main *bmain, Scene *scene, Object *ob)
+void ED_object_base_free_and_unlink(Main *bmain, Scene *scene, Object *ob)
 {
 	if (BKE_library_ID_is_indirectly_used(bmain, ob) &&
 	    ID_REAL_USERS(ob) <= 1 && ID_EXTRA_USERS(ob) == 0)
@@ -1272,7 +1272,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 		}
 
 		/* remove from current scene only */
-		ED_base_object_free_and_unlink(bmain, scene, ob);
+		ED_object_base_free_and_unlink(bmain, scene, ob);
 		changed = true;
 
 		if (use_global) {
@@ -1285,7 +1285,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 						            ob->id.name + 2, scene_iter->id.name + 2);
 						break;
 					}
-					ED_base_object_free_and_unlink(bmain, scene_iter, ob);
+					ED_object_base_free_and_unlink(bmain, scene_iter, ob);
 				}
 			}
 		}
@@ -2013,7 +2013,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 						if (BKE_mball_is_basis(ob_mball) ||
 						    ((ob_basis = BKE_mball_basis_find(scene, ob_mball)) && (ob_basis->flag & OB_DONE)))
 						{
-							ED_base_object_free_and_unlink(bmain, scene, ob_mball);
+							ED_object_base_free_and_unlink(bmain, scene, ob_mball);
 						}
 					}
 				}
