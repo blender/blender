@@ -1051,7 +1051,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 		
 		/* Ghost now can call this function for life resizes, but it should return if WM didn't initialize yet.
 		 * Can happen on file read (especially full size window)  */
-		if ((wm->initialized & WM_INIT_WINDOW) == 0) {
+		if ((wm->initialized & WM_WINDOW_IS_INITIALIZED) == 0) {
 			return 1;
 		}
 		if (!ghostwin) {

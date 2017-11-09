@@ -160,8 +160,8 @@ typedef struct wmWindowManager {
 
 /* wmWindowManager.initialized */
 enum {
-	WM_INIT_WINDOW = (1<<0),
-	WM_INIT_KEYMAP = (1<<1),
+	WM_WINDOW_IS_INITIALIZED = (1<<0),
+	WM_KEYMAP_IS_INITIALIZED = (1<<1),
 };
 
 /* IME is win32 only! */

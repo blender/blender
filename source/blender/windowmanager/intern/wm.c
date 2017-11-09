@@ -353,7 +353,7 @@ void WM_keymap_init(bContext *C)
 	
 	/* initialize only after python init is done, for keymaps that
 	 * use python operators */
-	if (CTX_py_init_get(C) && (wm->initialized & WM_INIT_KEYMAP) == 0) {
+	if (CTX_py_init_get(C) && (wm->initialized & WM_KEYMAP_IS_INITIALIZED) == 0) {
 		/* create default key config, only initialize once,
 		 * it's persistent across sessions */
 		if (!(wm->defaultconf->flag & KEYCONF_INIT_DEFAULT)) {
@@ -366,7 +366,7 @@ void WM_keymap_init(bContext *C)
 		WM_keyconfig_update_tag(NULL, NULL);
 		WM_keyconfig_update(wm);
 
-		wm->initialized |= WM_INIT_KEYMAP;
+		wm->initialized |= WM_KEYMAP_IS_INITIALIZED;
 	}
 }
 
@@ -386,7 +386,7 @@ void WM_check(bContext *C)
 
 	if (!G.background) {
 		/* case: fileread */
-		if ((wm->initialized & WM_INIT_WINDOW) == 0) {
+		if ((wm->initialized & WM_WINDOW_IS_INITIALIZED) == 0) {
 			WM_keymap_init(C);
 			WM_autosave_init(wm);
 		}
@@ -397,9 +397,9 @@ void WM_check(bContext *C)
 
 	/* case: fileread */
 	/* note: this runs in bg mode to set the screen context cb */
-	if ((wm->initialized & WM_INIT_WINDOW) == 0) {
+	if ((wm->initialized & WM_WINDOW_IS_INITIALIZED) == 0) {
 		ED_screens_initialize(wm);
-		wm->initialized |= WM_INIT_WINDOW;
+		wm->initialized |= WM_WINDOW_IS_INITIALIZED;
 	}
 }
 
@@ -428,9 +428,9 @@ void wm_clear_default_size(bContext *C)
 }
 
 /* on startup, it adds all data, for matching */
-void wm_add_default(bContext *C)
+void wm_add_default(Main *bmain, bContext *C)
 {
-	wmWindowManager *wm = BKE_libblock_alloc(CTX_data_main(C), ID_WM, "WinMan", 0);
+	wmWindowManager *wm = BKE_libblock_alloc(bmain, ID_WM, "WinMan", 0);
 	wmWindow *win;
 	bScreen *screen = CTX_wm_screen(C); /* XXX from file read hrmf */
 	struct WorkSpace *workspace = G.main->workspaces.last;
@@ -444,7 +444,7 @@ void wm_add_default(bContext *C)
 	
 	wm->winactive = win;
 	wm->file_saved = 1;
-	wm_window_make_drawable(wm, win); 
+	wm_window_make_drawable(wm, win);
 }
 
 
