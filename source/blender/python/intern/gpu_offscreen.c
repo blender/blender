@@ -170,7 +170,7 @@ static PyObject *pygpu_offscreen_draw_view3d(BPy_GPUOffScreen *self, PyObject *a
 	PyObject *py_scene, *py_scene_layer, *py_region, *py_view3d;
 
 	Scene *scene;
-	SceneLayer *sl;
+	SceneLayer *scene_layer;
 	View3D *v3d;
 	ARegion *ar;
 	GPUFX *fx;
@@ -184,10 +184,10 @@ static PyObject *pygpu_offscreen_draw_view3d(BPy_GPUOffScreen *self, PyObject *a
 	        &py_scene, &py_scene_layer, &py_view3d, &py_region,
 	        Matrix_Parse4x4, &py_mat_projection,
 	        Matrix_Parse4x4, &py_mat_modelview) ||
-	    (!(scene    = PyC_RNA_AsPointer(py_scene, "Scene")) ||
-	     !(sl       = PyC_RNA_AsPointer(py_scene_layer, "SceneLayer")) ||
-	     !(v3d      = PyC_RNA_AsPointer(py_view3d, "SpaceView3D")) ||
-	     !(ar       = PyC_RNA_AsPointer(py_region, "Region"))))
+	    (!(scene       = PyC_RNA_AsPointer(py_scene, "Scene")) ||
+	     !(scene_layer = PyC_RNA_AsPointer(py_scene_layer, "SceneLayer")) ||
+	     !(v3d         = PyC_RNA_AsPointer(py_view3d, "SpaceView3D")) ||
+	     !(ar          = PyC_RNA_AsPointer(py_region, "Region"))))
 	{
 		return NULL;
 	}
@@ -196,14 +196,14 @@ static PyObject *pygpu_offscreen_draw_view3d(BPy_GPUOffScreen *self, PyObject *a
 
 	fx_settings = v3d->fx_settings;  /* full copy */
 
-	ED_view3d_draw_offscreen_init(scene, sl, v3d);
+	ED_view3d_draw_offscreen_init(scene, scene_layer, v3d);
 
 	rv3d_mats = ED_view3d_mats_rv3d_backup(ar->regiondata);
 
 	GPU_offscreen_bind(self->ofs, true); /* bind */
 
 	ED_view3d_draw_offscreen(
-	        scene, sl, v3d, ar, GPU_offscreen_width(self->ofs), GPU_offscreen_height(self->ofs),
+	        scene, scene_layer, v3d, ar, GPU_offscreen_width(self->ofs), GPU_offscreen_height(self->ofs),
 	        (float(*)[4])py_mat_modelview->matrix, (float(*)[4])py_mat_projection->matrix,
 	        false, true, true, "",
 	        fx, &fx_settings,
