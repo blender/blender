@@ -704,7 +704,7 @@ static int get_lamp(SceneLayer *sl, float *light)
 	int found_lamp = 0;
 
 	// try to find a lamp, preferably local
-	for (base_tmp = FIRSTBASE_NEW(sl); base_tmp; base_tmp = base_tmp->next) {
+	for (base_tmp = FIRSTBASE(sl); base_tmp; base_tmp = base_tmp->next) {
 		if (base_tmp->object->type == OB_LAMP) {
 			Lamp *la = base_tmp->object->data;
 

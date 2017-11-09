@@ -364,7 +364,7 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 			workspace = CTX_wm_workspace(C);
 		}
 		SceneLayer *scene_layer = BKE_scene_layer_from_workspace_get(scene, workspace);
-		ob = OBACT_NEW(scene_layer);
+		ob = OBACT(scene_layer);
 	}
 
 	if (ob && ob->type == OB_LAMP && !la)

@@ -103,7 +103,7 @@ static void do_outliner_object_select_recursive(SceneLayer *sl, Object *ob_paren
 {
 	Base *base;
 
-	for (base = FIRSTBASE_NEW(sl); base; base = base->next) {
+	for (base = FIRSTBASE(sl); base; base = base->next) {
 		Object *ob = base->object;
 		if ((((base->flag & BASE_VISIBLED) == 0) && BKE_object_is_child_recursive(ob_parent, ob))) {
 			ED_object_base_select(base, select ? BA_SELECT : BA_DESELECT);
@@ -151,7 +151,7 @@ static eOLDrawState tree_element_set_active_object(
 	}
 	else {
 		ob = (Object *)outliner_search_back(soops, te, ID_OB);
-		if (ob == OBACT_NEW(sl)) {
+		if (ob == OBACT(sl)) {
 			return OL_DRAWSEL_NONE;
 		}
 	}
@@ -209,7 +209,7 @@ static eOLDrawState tree_element_active_material(
 	/* we search for the object parent */
 	ob = (Object *)outliner_search_back(soops, te, ID_OB);
 	// note: ob->matbits can be NULL when a local object points to a library mesh.
-	if (ob == NULL || ob != OBACT_NEW(sl) || ob->matbits == NULL) {
+	if (ob == NULL || ob != OBACT(sl) || ob->matbits == NULL) {
 		return OL_DRAWSEL_NONE;  /* just paranoia */
 	}
 	
@@ -258,7 +258,7 @@ static eOLDrawState tree_element_active_texture(
 {
 	TreeElement *tep;
 	TreeStoreElem /* *tselem,*/ *tselemp;
-	Object *ob = OBACT_NEW(sl);
+	Object *ob = OBACT(sl);
 	SpaceButs *sbuts = NULL;
 	
 	if (ob == NULL) {
@@ -347,7 +347,7 @@ static eOLDrawState tree_element_active_lamp(
 	
 	/* we search for the object parent */
 	ob = (Object *)outliner_search_back(soops, te, ID_OB);
-	if (ob == NULL || ob != OBACT_NEW(sl)) {
+	if (ob == NULL || ob != OBACT(sl)) {
 		/* just paranoia */
 		return OL_DRAWSEL_NONE;
 	}
@@ -423,7 +423,7 @@ static eOLDrawState tree_element_active_defgroup(
 		WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob);
 	}
 	else {
-		if (ob == OBACT_NEW(sl))
+		if (ob == OBACT(sl))
 			if (ob->actdef == te->index + 1) {
 				return OL_DRAWSEL_NORMAL;
 			}
@@ -443,7 +443,7 @@ static eOLDrawState tree_element_active_posegroup(
 		}
 	}
 	else {
-		if (ob == OBACT_NEW(sl) && ob->pose) {
+		if (ob == OBACT(sl) && ob->pose) {
 			if (ob->pose->active_group == te->index + 1) {
 				return OL_DRAWSEL_NORMAL;
 			}
@@ -487,7 +487,7 @@ static eOLDrawState tree_element_active_posechannel(
 		}
 	}
 	else {
-		if (ob == OBACT_NEW(sl) && ob->pose) {
+		if (ob == OBACT(sl) && ob->pose) {
 			if (pchan->bone->flag & BONE_SELECTED) {
 				return OL_DRAWSEL_NORMAL;
 			}
@@ -504,7 +504,7 @@ static eOLDrawState tree_element_active_bone(
 	
 	if (set != OL_SETSEL_NONE) {
 		if (!(bone->flag & BONE_HIDDEN_P)) {
-			Object *ob = OBACT_NEW(sl);
+			Object *ob = OBACT(sl);
 			if (ob) {
 				if (set != OL_SETSEL_EXTEND) {
 					/* single select forces all other bones to get unselected */
@@ -533,7 +533,7 @@ static eOLDrawState tree_element_active_bone(
 		}
 	}
 	else {
-		Object *ob = OBACT_NEW(sl);
+		Object *ob = OBACT(sl);
 		
 		if (ob && ob->data == arm) {
 			if (bone->flag & BONE_SELECTED) {
@@ -842,7 +842,7 @@ eOLDrawState tree_element_type_active(
 			if (set != OL_SETSEL_NONE) {
 				tree_element_set_active_object(C, scene, sl, soops, te, set, false);
 			}
-			else if (tselem->id == (ID *)OBACT_NEW(sl)) {
+			else if (tselem->id == (ID *)OBACT(sl)) {
 				return OL_DRAWSEL_NORMAL;
 			}
 			break;

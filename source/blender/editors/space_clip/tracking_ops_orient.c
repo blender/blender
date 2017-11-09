@@ -99,7 +99,7 @@ static Object *get_orientation_object(bContext *C)
 		object = get_camera_with_movieclip(scene, clip);
 	}
 	else {
-		object = OBACT_NEW(sl);
+		object = OBACT(sl);
 	}
 
 	if (object != NULL && object->parent != NULL) {
@@ -122,7 +122,7 @@ static int set_orientation_poll(bContext *C)
 				return true;
 			}
 			else {
-				return OBACT_NEW(sl) != NULL;
+				return OBACT(sl) != NULL;
 			}
 		}
 	}

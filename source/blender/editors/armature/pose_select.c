@@ -146,7 +146,7 @@ bool ED_do_pose_selectbuffer(
 	
 	/* if the bone cannot be affected, don't do anything */
 	if ((nearBone) && !(nearBone->flag & BONE_UNSELECTABLE)) {
-		Object *ob_act = OBACT_NEW(sl);
+		Object *ob_act = OBACT(sl);
 		bArmature *arm = ob->data;
 		
 		/* since we do unified select, we don't shift+select a bone if the

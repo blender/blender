@@ -500,7 +500,7 @@ static int surface_getBrushFlags(DynamicPaintSurface *surface, const SceneLayer 
 	if (surface->brush_group)
 		go = surface->brush_group->gobject.first;
 	else
-		base = FIRSTBASE_NEW(sl);
+		base = FIRSTBASE(sl);
 
 	while (base || go) {
 		brushObj = NULL;
@@ -5793,7 +5793,7 @@ static int dynamicPaint_doStep(const struct EvaluationContext *eval_ctx, Scene *
 		if (surface->brush_group)
 			go = surface->brush_group->gobject.first;
 		else
-			base = FIRSTBASE_NEW(sl);
+			base = FIRSTBASE(sl);
 
 		while (base || go) {
 			brushObj = NULL;

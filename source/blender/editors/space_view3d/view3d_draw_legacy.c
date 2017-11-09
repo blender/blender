@@ -1285,12 +1285,12 @@ void ED_view3d_draw_select_loop(
 	UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
 
 	if (vc->obedit && vc->obedit->type == OB_MBALL) {
-		draw_object(eval_ctx, scene, sl, ar, v3d, BASACT_NEW(sl), dflag);
+		draw_object(eval_ctx, scene, sl, ar, v3d, BASACT(sl), dflag);
 	}
 	else if ((vc->obedit && vc->obedit->type == OB_ARMATURE)) {
 		/* if not drawing sketch, draw bones */
 		if (!BDR_drawSketchNames(vc)) {
-			draw_object(eval_ctx, scene, sl, ar, v3d, BASACT_NEW(sl), dflag);
+			draw_object(eval_ctx, scene, sl, ar, v3d, BASACT(sl), dflag);
 		}
 	}
 	else {
@@ -2070,7 +2070,7 @@ static void view3d_main_region_draw_info(const bContext *C, Scene *scene,
 			draw_view_icon(rv3d, &rect);
 
 		if (U.uiflag & USER_DRAWVIEWINFO) {
-			Object *ob = OBACT_NEW(scene_layer);
+			Object *ob = OBACT(scene_layer);
 			VP_legacy_draw_selected_name(scene, ob, &rect);
 		}
 	}

@@ -453,7 +453,7 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 	if (CTX_wm_view3d(C) && texpaint_proj) {
 		/* first try getting a colour directly from the mesh faces if possible */
 		SceneLayer *sl = CTX_data_scene_layer(C);
-		Object *ob = OBACT_NEW(sl);
+		Object *ob = OBACT(sl);
 		bool sample_success = false;
 		ImagePaintSettings *imapaint = &scene->toolsettings->imapaint;
 		bool use_material = (imapaint->mode == IMAGEPAINT_MODE_MATERIAL);

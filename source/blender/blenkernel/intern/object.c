@@ -866,7 +866,7 @@ static LodLevel *lod_level_select(Object *ob, const float camera_position[3])
 
 bool BKE_object_lod_is_usable(Object *ob, SceneLayer *sl)
 {
-	bool active = (sl) ? ob == OBACT_NEW(sl) : false;
+	bool active = (sl) ? ob == OBACT(sl) : false;
 	return (ob->mode == OB_MODE_OBJECT || !active);
 }
 
@@ -2572,7 +2572,7 @@ void BKE_scene_foreach_display_point(
 	Base *base;
 	Object *ob;
 
-	for (base = FIRSTBASE_NEW(sl); base; base = base->next) {
+	for (base = FIRSTBASE(sl); base; base = base->next) {
 		if (((base->flag & BASE_VISIBLED) != 0) && ((base->flag & BASE_SELECTED) != 0)) {
 			ob = base->object;
 
@@ -3389,8 +3389,8 @@ LinkNode *BKE_object_relational_superset(struct SceneLayer *scene_layer, eObject
 			obrel_list_add(&links, ob);
 		}
 		else {
-			if ((objectSet == OB_SET_SELECTED && TESTBASELIB_BGMODE_NEW(base)) ||
-			    (objectSet == OB_SET_VISIBLE  && BASE_EDITABLE_BGMODE_NEW(base)))
+			if ((objectSet == OB_SET_SELECTED && TESTBASELIB_BGMODE(base)) ||
+			    (objectSet == OB_SET_VISIBLE  && BASE_EDITABLE_BGMODE(base)))
 			{
 				Object *ob = base->object;
 
@@ -3420,7 +3420,7 @@ LinkNode *BKE_object_relational_superset(struct SceneLayer *scene_layer, eObject
 				if (includeFilter & (OB_REL_CHILDREN | OB_REL_CHILDREN_RECURSIVE)) {
 					Base *local_base;
 					for (local_base = scene_layer->object_bases.first; local_base; local_base = local_base->next) {
-						if (BASE_EDITABLE_BGMODE_NEW(local_base)) {
+						if (BASE_EDITABLE_BGMODE(local_base)) {
 
 							Object *child = local_base->object;
 							if (obrel_list_test(child)) {

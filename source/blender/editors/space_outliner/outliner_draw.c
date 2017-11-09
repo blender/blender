@@ -362,7 +362,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 						BLI_strncpy(newname, ebone->name, sizeof(ebone->name));
 						BLI_strncpy(ebone->name, oldname, sizeof(ebone->name));
 						ED_armature_bone_rename(obedit->data, oldname, newname);
-						WM_event_add_notifier(C, NC_OBJECT | ND_POSE, OBACT_NEW(sl));
+						WM_event_add_notifier(C, NC_OBJECT | ND_POSE, OBACT(sl));
 					}
 					break;
 				}
@@ -375,7 +375,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 					
 					/* always make current object active */
 					tree_element_active(C, scene, sl, soops, te, OL_SETSEL_NORMAL, true);
-					ob = OBACT_NEW(sl);
+					ob = OBACT(sl);
 					
 					/* restore bone name */
 					BLI_strncpy(newname, bone->name, sizeof(bone->name));
@@ -392,7 +392,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 					
 					/* always make current pose-bone active */
 					tree_element_active(C, scene, sl, soops, te, OL_SETSEL_NORMAL, true);
-					ob = OBACT_NEW(sl);
+					ob = OBACT(sl);
 
 					BLI_assert(ob->type == OB_ARMATURE);
 					
@@ -1257,7 +1257,7 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Sce
 			/* active blocks get white circle */
 			if (tselem->type == 0) {
 				if (te->idcode == ID_OB) {
-					active = (OBACT_NEW(sl) == (Object *)tselem->id) ? OL_DRAWSEL_NORMAL : OL_DRAWSEL_NONE;
+					active = (OBACT(sl) == (Object *)tselem->id) ? OL_DRAWSEL_NORMAL : OL_DRAWSEL_NONE;
 				}
 				else if (scene->obedit && scene->obedit->data == tselem->id) {
 					active = OL_DRAWSEL_NORMAL;
@@ -1363,13 +1363,13 @@ static void outliner_draw_tree_element(
 			else if (te->idcode == ID_OB) {
 				Object *ob = (Object *)tselem->id;
 				
-				if (ob == OBACT_NEW(sl) || (ob->flag & SELECT)) {
+				if (ob == OBACT(sl) || (ob->flag & SELECT)) {
 					char col[4] = {0, 0, 0, 0};
 					
 					/* outliner active ob: always white text, circle color now similar to view3d */
 					
 					active = OL_DRAWSEL_ACTIVE;
-					if (ob == OBACT_NEW(sl)) {
+					if (ob == OBACT(sl)) {
 						if (ob->flag & SELECT) {
 							UI_GetThemeColorType4ubv(TH_ACTIVE, SPACE_VIEW3D, col);
 							col[3] = alpha;

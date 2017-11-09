@@ -1858,7 +1858,7 @@ static char *rna_MeshStatVis_path(PointerRNA *UNUSED(ptr))
 static void rna_Scene_update_active_object_data(bContext *C, PointerRNA *UNUSED(ptr))
 {
 	SceneLayer *scene_layer = CTX_data_scene_layer(C);
-	Object *ob = OBACT_NEW(scene_layer);
+	Object *ob = OBACT(scene_layer);
 
 	if (ob) {
 		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);

@@ -424,7 +424,7 @@ static void rna_LayerCollectionEngineSettings_wire_update(bContext *C, PointerRN
 {
 	Scene *scene = CTX_data_scene(C);
 	SceneLayer *scene_layer = CTX_data_scene_layer(C);
-	Object *ob = OBACT_NEW(scene_layer);
+	Object *ob = OBACT(scene_layer);
 
 	if (ob != NULL && ob->type == OB_MESH) {
 		BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_ALL);

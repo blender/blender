@@ -283,7 +283,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	SceneLayer *sl = CTX_data_scene_layer(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	PointerRNA v3dptr, toolsptr, sceneptr;
-	Object *ob = OBACT_NEW(sl);
+	Object *ob = OBACT(sl);
 	Object *obedit = CTX_data_edit_object(C);
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	uiBlock *block;

@@ -1316,7 +1316,7 @@ float ED_view3d_grid_scale(Scene *scene, View3D *v3d, const char **grid_unit)
 
 static bool is_cursor_visible(Scene *scene, SceneLayer *sl)
 {
-	Object *ob = OBACT_NEW(sl);
+	Object *ob = OBACT(sl);
 
 	/* don't draw cursor in paint modes, but with a few exceptions */
 	if (ob && ob->mode & OB_MODE_ALL_PAINT) {
@@ -1847,7 +1847,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar, const int offset)
 
 	if (U.uiflag & USER_DRAWVIEWINFO) {
 		SceneLayer *sl = CTX_data_scene_layer(C);
-		Object *ob = OBACT_NEW(sl);
+		Object *ob = OBACT(sl);
 		draw_selected_name(scene, ob, &rect);
 	}
 #if 0 /* TODO */

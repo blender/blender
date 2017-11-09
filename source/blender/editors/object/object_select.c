@@ -404,7 +404,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 	
-	ob = OBACT_NEW(sl);
+	ob = OBACT(sl);
 	if (ob == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No active object");
 		return OPERATOR_CANCELLED;
@@ -559,7 +559,7 @@ static bool select_grouped_parent(bContext *C) /* Makes parent active and de-sel
 	baspar = BKE_scene_layer_base_find(sl, basact->object->parent);
 
 	/* can be NULL if parent in other scene */
-	if (baspar && BASE_SELECTABLE_NEW(baspar)) {
+	if (baspar && BASE_SELECTABLE(baspar)) {
 		ED_object_base_select(baspar, BA_SELECT);
 		ED_object_base_activate(C, baspar);
 		changed = true;
@@ -628,7 +628,7 @@ static bool select_grouped_object_hooks(bContext *C, Object *ob)
 			hmd = (HookModifierData *) md;
 			if (hmd->object && !(hmd->object->flag & SELECT)) {
 				base = BKE_scene_layer_base_find(sl, hmd->object);
-				if (base && (BASE_SELECTABLE_NEW(base))) {
+				if (base && (BASE_SELECTABLE(base))) {
 					ED_object_base_select(base, BA_SELECT);
 					changed = true;
 				}
@@ -815,7 +815,7 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 
-	ob = OBACT_NEW(sl);
+	ob = OBACT(sl);
 	if (ob == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No active object");
 		return OPERATOR_CANCELLED;

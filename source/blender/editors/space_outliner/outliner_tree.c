@@ -1873,7 +1873,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SceneLayer *sl, SpaceOops 
 		}
 	}
 	else if (soops->outlinevis == SO_SAME_TYPE) {
-		Object *ob_active = OBACT_NEW(sl);
+		Object *ob_active = OBACT(sl);
 		if (ob_active) {
 			FOREACH_SCENE_OBJECT(scene, ob)
 			{
@@ -1952,8 +1952,8 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SceneLayer *sl, SpaceOops 
 		outliner_add_collections_master(soops, scene);
 	}
 	else {
-		ten = outliner_add_element(soops, &soops->tree, OBACT_NEW(sl), NULL, 0, 0);
-		ten->directdata = BASACT_NEW(sl);
+		ten = outliner_add_element(soops, &soops->tree, OBACT(sl), NULL, 0, 0);
+		ten->directdata = BASACT(sl);
 	}
 
 	if ((soops->flag & SO_SKIP_SORT_ALPHA) == 0) {

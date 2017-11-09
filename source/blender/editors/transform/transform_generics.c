@@ -331,7 +331,7 @@ static void recalcData_actedit(TransInfo *t)
 	/* NOTE: sync this with the code in ANIM_animdata_get_context() */
 	ac.scene = t->scene;
 	ac.scene_layer = t->scene_layer;
-	ac.obact = OBACT_NEW(sl);
+	ac.obact = OBACT(sl);
 	ac.sa = t->sa;
 	ac.ar = t->ar;
 	ac.sl = (t->sa) ? t->sa->spacedata.first : NULL;
@@ -381,7 +381,7 @@ static void recalcData_graphedit(TransInfo *t)
 	/* NOTE: sync this with the code in ANIM_animdata_get_context() */
 	ac.scene = t->scene;
 	ac.scene_layer = t->scene_layer;
-	ac.obact = OBACT_NEW(sl);
+	ac.obact = OBACT(sl);
 	ac.sa = t->sa;
 	ac.ar = t->ar;
 	ac.sl = (t->sa) ? t->sa->spacedata.first : NULL;
@@ -1804,7 +1804,7 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
 	}
 	else if (t->flag & T_POSE) {
 		SceneLayer *sl = t->scene_layer;
-		Object *ob = OBACT_NEW(sl);
+		Object *ob = OBACT(sl);
 		if (ob) {
 			bPoseChannel *pchan = BKE_pose_channel_active(ob);
 			if (pchan && (!select_only || (pchan->bone->flag & BONE_SELECTED))) {
@@ -1824,8 +1824,8 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
 	else {
 		/* object mode */
 		SceneLayer *sl = t->scene_layer;
-		Object *ob = OBACT_NEW(sl);
-		Base *base = BASACT_NEW(sl);
+		Object *ob = OBACT(sl);
+		Base *base = BASACT(sl);
 		if (ob && ((!select_only) || ((base->flag & BASE_SELECTED) != 0))) {
 			copy_v3_v3(r_center, ob->obmat[3]);
 			ok = true;

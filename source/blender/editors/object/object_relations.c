@@ -247,7 +247,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 			else {
 				Object workob;
 
-				ob->parent = BASACT_NEW(sl)->object;
+				ob->parent = BASACT(sl)->object;
 				if (v3) {
 					ob->partype = PARVERT3;
 					ob->par1 = v1 - 1;

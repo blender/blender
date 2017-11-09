@@ -532,7 +532,7 @@ static void ccd_build_deflector_hash(SceneLayer *sl, Group *group, Object *verte
 		}
 	}
 	else {
-		for (Base *base = FIRSTBASE_NEW(sl); base; base = base->next) {
+		for (Base *base = FIRSTBASE(sl); base; base = base->next) {
 			/*Only proceed for mesh object in same layer */
 			if (base->object->type == OB_MESH) {
 				ob = base->object;
@@ -578,7 +578,7 @@ static void ccd_update_deflector_hash(SceneLayer *sl, Group *group, Object *vert
 		}
 	}
 	else {
-		for (Base *base = FIRSTBASE_NEW(sl); base; base = base->next) {
+		for (Base *base = FIRSTBASE(sl); base; base = base->next) {
 			/*Only proceed for mesh object in same layer */
 			if (base->object->type == OB_MESH) {
 				ob = base->object;
@@ -988,7 +988,7 @@ static bool are_there_deflectors(SceneLayer *sl, Group *group)
 		}
 	}
 	else {
-		for (Base *base = FIRSTBASE_NEW(sl); base; base = base->next) {
+		for (Base *base = FIRSTBASE(sl); base; base = base->next) {
 			if (base->object->pd) {
 				if (base->object->pd->deflect)
 					return 1;

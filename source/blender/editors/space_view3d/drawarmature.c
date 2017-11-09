@@ -2986,10 +2986,10 @@ bool draw_armature(
 							draw_ghost_poses(eval_ctx, scene, sl, v3d, ar, base);
 					}
 					if ((dflag & DRAW_SCENESET) == 0) {
-						if (ob == OBACT_NEW(sl))
+						if (ob == OBACT(sl))
 							arm->flag |= ARM_POSEMODE;
-						else if (OBACT_NEW(sl) && (OBACT_NEW(sl)->mode & OB_MODE_WEIGHT_PAINT)) {
-							if (ob == modifiers_isDeformedByArmature(OBACT_NEW(sl)))
+						else if (OBACT(sl) && (OBACT(sl)->mode & OB_MODE_WEIGHT_PAINT)) {
+							if (ob == modifiers_isDeformedByArmature(OBACT(sl)))
 								arm->flag |= ARM_POSEMODE;
 						}
 						draw_pose_paths(scene, v3d, ar, ob);

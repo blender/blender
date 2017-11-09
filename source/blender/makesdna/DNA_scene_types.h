@@ -1912,29 +1912,29 @@ extern const char *RE_engine_id_CYCLES;
 #define MINAFRAMEF	-1048574.0f
 
 /* deprecate this! */
-#define TESTBASE_NEW(base)  (                                                 \
+#define TESTBASE(base)  (                                                     \
 	(((base)->flag & BASE_SELECTED) != 0) &&                                  \
 	(((base)->flag & BASE_VISIBLED) != 0))
-#define TESTBASELIB_NEW(base)  (                                              \
-	(((base)->flag & BASE_SELECTED) != 0) &&                                  \
-	((base)->object->id.lib == NULL) &&                                       \
-	(((base)->flag & BASE_VISIBLED) != 0))
-#define TESTBASELIB_BGMODE_NEW(base)  (                                       \
+#define TESTBASELIB(base)  (                                                  \
 	(((base)->flag & BASE_SELECTED) != 0) &&                                  \
 	((base)->object->id.lib == NULL) &&                                       \
 	(((base)->flag & BASE_VISIBLED) != 0))
-#define BASE_EDITABLE_BGMODE_NEW(base)  (                                     \
+#define TESTBASELIB_BGMODE(base)  (                                           \
+	(((base)->flag & BASE_SELECTED) != 0) &&                                  \
 	((base)->object->id.lib == NULL) &&                                       \
 	(((base)->flag & BASE_VISIBLED) != 0))
-#define BASE_SELECTABLE_NEW(base)                                             \
+#define BASE_EDITABLE_BGMODE(base)  (                                         \
+	((base)->object->id.lib == NULL) &&                                       \
+	(((base)->flag & BASE_VISIBLED) != 0))
+#define BASE_SELECTABLE(base)                                                 \
 	(((base)->flag & BASE_SELECTABLED) != 0)
-#define BASE_VISIBLE_NEW(base)  (                                             \
+#define BASE_VISIBLE(base)  (                                                 \
 	((base)->flag & BASE_VISIBLED) != 0)
 
-#define FIRSTBASE_NEW(_sl)  ((_sl)->object_bases.first)
-#define LASTBASE_NEW(_sl)   ((_sl)->object_bases.last)
-#define BASACT_NEW(_sl)     ((_sl)->basact)
-#define OBACT_NEW(_sl)      (BASACT_NEW(_sl) ? BASACT_NEW(_sl)->object: NULL)
+#define FIRSTBASE(_sl)  ((_sl)->object_bases.first)
+#define LASTBASE(_sl)   ((_sl)->object_bases.last)
+#define BASACT(_sl)     ((_sl)->basact)
+#define OBACT(_sl)      (BASACT(_sl) ? BASACT(_sl)->object: NULL)
 
 #define V3D_CAMERA_LOCAL(v3d) ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : NULL)
 #define V3D_CAMERA_SCENE(scene, v3d) ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : (scene)->camera)

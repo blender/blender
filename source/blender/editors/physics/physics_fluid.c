@@ -350,7 +350,7 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 	channels->DomainTime = MEM_callocN(length * (CHANNEL_FLOAT+1) * sizeof(float), "channel DomainTime");
 	
 	/* allocate fluid objects */
-	for (base = FIRSTBASE_NEW(sl); base; base = base->next) {
+	for (base = FIRSTBASE(sl); base; base = base->next) {
 		Object *ob = base->object;
 		FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
 		
@@ -587,7 +587,7 @@ static int fluid_validate_scene(ReportList *reports, SceneLayer *sl, Object *fsD
 	int channelObjCount = 0;
 	int fluidInputCount = 0;
 
-	for (base = FIRSTBASE_NEW(sl); base; base = base->next) {
+	for (base = FIRSTBASE(sl); base; base = base->next) {
 		Object *ob = base->object;
 		FluidsimModifierData *fluidmdtmp = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
 

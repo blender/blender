@@ -86,7 +86,7 @@ static void shader_get_from_context(const bContext *C, bNodeTreeType *UNUSED(tre
 	Scene *scene = CTX_data_scene(C);
 	WorkSpace *workspace = CTX_wm_workspace(C);
 	SceneLayer *scene_layer = CTX_data_scene_layer(C);
-	Object *ob = OBACT_NEW(scene_layer);
+	Object *ob = OBACT(scene_layer);
 	ViewRender *view_render = BKE_viewrender_get(scene, workspace);
 	
 	if ((snode->shaderfrom == SNODE_SHADER_OBJECT) ||

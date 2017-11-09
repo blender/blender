@@ -441,7 +441,7 @@ typedef struct DRWContextState {
 	struct SceneLayer *scene_layer;  /* 'CTX_data_scene_layer(C)' */
 
 	/* Use 'scene->obedit' for edit-mode */
-	struct Object *obact;   /* 'OBACT_NEW' */
+	struct Object *obact;   /* 'OBACT' */
 
 	struct RenderEngineType *engine;
 

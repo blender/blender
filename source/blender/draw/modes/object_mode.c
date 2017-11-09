@@ -1633,7 +1633,7 @@ static void DRW_shgroup_object_center(OBJECT_StorageList *stl, Object *ob, Scene
 	const bool is_library = ob->id.us > 1 || ID_IS_LINKED(ob);
 	DRWShadingGroup *shgroup;
 
-	if (ob == OBACT_NEW(scene_layer)) {
+	if (ob == OBACT(scene_layer)) {
 		shgroup = stl->g_data->center_active;
 	}
 	else if (ob->base_flag & BASE_SELECTED) {

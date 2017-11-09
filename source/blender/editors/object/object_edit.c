@@ -545,8 +545,8 @@ static void copymenu_properties(SceneLayer *sl, Object *ob)
 	nr = pupmenu(str);
 	
 	if (nr == 1 || nr == 2) {
-		for (base = FIRSTBASE_NEW(sl); base; base = base->next) {
-			if ((base != BASACT_NEW(sl)) && (TESTBASELIB_NEW(base))) {
+		for (base = FIRSTBASE(sl); base; base = base->next) {
+			if ((base != BASACT(sl)) && (TESTBASELIB(base))) {
 				if (nr == 1) { /* replace */
 					BKE_bproperty_copy_list(&base->object->prop, &ob->prop);
 				}
@@ -562,8 +562,8 @@ static void copymenu_properties(SceneLayer *sl, Object *ob)
 		prop = BLI_findlink(&ob->prop, nr - 4); /* account for first 3 menu items & menu index starting at 1*/
 		
 		if (prop) {
-			for (base = FIRSTBASE_NEW(sl); base; base = base->next) {
-				if ((base != BASACT_NEW(sl)) && (TESTBASELIB_NEW(base))) {
+			for (base = FIRSTBASE(sl); base; base = base->next) {
+				if ((base != BASACT(sl)) && (TESTBASELIB(base))) {
 					BKE_bproperty_object_set(base->object, prop);
 				}
 			}
@@ -578,9 +578,9 @@ static void copymenu_logicbricks(SceneLayer *sl, Object *ob)
 //XXX no longer used - to be removed - replaced by logicbricks_copy_exec
 	Base *base;
 	
-	for (base = FIRSTBASE_NEW(sl); base; base = base->next) {
+	for (base = FIRSTBASE(sl); base; base = base->next) {
 		if (base->object != ob) {
-			if (TESTBASELIB_NEW(base)) {
+			if (TESTBASELIB(base)) {
 				
 				/* first: free all logic */
 				free_sensors(&base->object->sensors);
@@ -669,7 +669,7 @@ static void copy_attr(Main *bmain, Scene *scene, SceneLayer *sl, short event)
 	
 	if (ID_IS_LINKED(scene)) return;
 
-	if (!(ob = OBACT_NEW(sl))) return;
+	if (!(ob = OBACT(sl))) return;
 	
 	if (scene->obedit) { // XXX get from context
 		/* obedit_copymenu(); */
@@ -689,9 +689,9 @@ static void copy_attr(Main *bmain, Scene *scene, SceneLayer *sl, short event)
 		return;
 	}
 
-	for (base = FIRSTBASE_NEW(sl); base; base = base->next) {
-		if (base != BASACT_NEW(sl)) {
-			if (TESTBASELIB_NEW(base)) {
+	for (base = FIRSTBASE(sl); base; base = base->next) {
+		if (base != BASACT(sl)) {
+			if (TESTBASELIB(base)) {
 				DEG_id_tag_update(&base->object->id, OB_RECALC_DATA);
 				
 				if (event == 1) {  /* loc */
@@ -916,7 +916,7 @@ static void UNUSED_FUNCTION(copy_attr_menu) (Main *bmain, Scene *scene, SceneLay
 	short event;
 	char str[512];
 	
-	if (!(ob = OBACT_NEW(sl))) return;
+	if (!(ob = OBACT(sl))) return;
 	
 	if (scene->obedit) { /* XXX get from context */
 /*		if (ob->type == OB_MESH) */
@@ -1344,8 +1344,8 @@ static void UNUSED_FUNCTION(image_aspect) (Scene *scene, SceneLayer *sl)
 	if (scene->obedit) return;  // XXX get from context
 	if (ID_IS_LINKED(scene)) return;
 	
-	for (base = FIRSTBASE_NEW(sl); base; base = base->next) {
-		if (TESTBASELIB_NEW(base)) {
+	for (base = FIRSTBASE(sl); base; base = base->next) {
+		if (TESTBASELIB(base)) {
 			ob = base->object;
 			done = false;
 			

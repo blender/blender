@@ -272,7 +272,7 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 		/* Now we handle the syncing for visibility, selectability, ... */
 		layer_collections_sync_flags(&sl_dst->layer_collections, &sl_src->layer_collections);
 
-		Object *active_ob = OBACT_NEW(sl_src);
+		Object *active_ob = OBACT(sl_src);
 		for (Base *base_src = sl_src->object_bases.first, *base_dst = sl_dst->object_bases.first;
 		     base_src;
 		     base_src = base_src->next, base_dst = base_dst->next)

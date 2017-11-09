@@ -212,7 +212,7 @@ bGPdata *ED_gpencil_data_get_active_v3d(Scene *scene, SceneLayer *scene_layer)
 	 * to be consistent with ED_gpencil_data_get_active's behavior.
 	 */
 	
-	if (base && TESTBASE_NEW(base)) {
+	if (base && TESTBASE(base)) {
 		gpd = base->object->gpd;
 	}
 	return gpd ? gpd : scene->gpd;

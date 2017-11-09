@@ -613,7 +613,7 @@ void DRW_draw_background(void)
 
 static bool is_cursor_visible(Scene *scene, SceneLayer *scene_layer)
 {
-	Object *ob = OBACT_NEW(scene_layer);
+	Object *ob = OBACT(scene_layer);
 
 	/* don't draw cursor in paint modes, but with a few exceptions */
 	if (ob && ob->mode & OB_MODE_ALL_PAINT) {

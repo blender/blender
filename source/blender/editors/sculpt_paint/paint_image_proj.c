@@ -5326,7 +5326,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	int orig_brush_size;
 	IDProperty *idgroup;
 	IDProperty *view_data = NULL;
-	Object *ob = OBACT_NEW(sl);
+	Object *ob = OBACT(sl);
 	bool uvs, mat, tex;
 
 	if (ob == NULL || ob->type != OB_MESH) {

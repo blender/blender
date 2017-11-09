@@ -382,7 +382,7 @@ static void object_deselect_all_visible(SceneLayer *sl)
 	Base *base;
 
 	for (base = sl->object_bases.first; base; base = base->next) {
-		if (BASE_SELECTABLE_NEW(base)) {
+		if (BASE_SELECTABLE(base)) {
 			ED_object_base_select(base, BA_DESELECT);
 		}
 	}
@@ -397,7 +397,7 @@ static void do_lasso_select_objects(ViewContext *vc, const int mcords[][2], cons
 		object_deselect_all_visible(vc->scene_layer);
 
 	for (base = vc->scene_layer->object_bases.first; base; base = base->next) {
-		if (BASE_SELECTABLE_NEW(base)) { /* use this to avoid un-needed lasso lookups */
+		if (BASE_SELECTABLE(base)) { /* use this to avoid un-needed lasso lookups */
 			if (ED_view3d_project_base(vc->ar, base) == V3D_PROJ_RET_OK) {
 				if (BLI_lasso_is_point_inside(mcords, moves, base->sx, base->sy, IS_CLIPPED)) {
 
@@ -1295,8 +1295,8 @@ static Base *mouse_select_eval_buffer(ViewContext *vc, unsigned int *buffer, int
 		}
 		else {
 			/* only exclude active object when it is selected... */
-			if (BASACT_NEW(sl) && (BASACT_NEW(sl)->flag & BASE_SELECTED) && hits > 1) {
-				notcol = BASACT_NEW(sl)->object->select_color;
+			if (BASACT(sl) && (BASACT(sl)->flag & BASE_SELECTED) && hits > 1) {
+				notcol = BASACT(sl)->object->select_color;
 			}
 			
 			for (a = 0; a < hits; a++) {
@@ -1307,9 +1307,9 @@ static Base *mouse_select_eval_buffer(ViewContext *vc, unsigned int *buffer, int
 			}
 		}
 		
-		base = FIRSTBASE_NEW(sl);
+		base = FIRSTBASE(sl);
 		while (base) {
-			if (BASE_SELECTABLE_NEW(base)) {
+			if (BASE_SELECTABLE(base)) {
 				if (base->object->select_color == selcol) break;
 			}
 			base = base->next;
@@ -1324,11 +1324,11 @@ static Base *mouse_select_eval_buffer(ViewContext *vc, unsigned int *buffer, int
 			 * with an un-selectable choice */
 			if ((base->flag & BASE_SELECTABLED) == 0) {
 				base = base->next;
-				if (base == NULL) base = FIRSTBASE_NEW(sl);
+				if (base == NULL) base = FIRSTBASE(sl);
 				if (base == startbase) break;
 			}
 			
-			if (BASE_SELECTABLE_NEW(base)) {
+			if (BASE_SELECTABLE(base)) {
 				for (a = 0; a < hits; a++) {
 					if (has_bones) {
 						/* skip non-bone objects */
@@ -1347,7 +1347,7 @@ static Base *mouse_select_eval_buffer(ViewContext *vc, unsigned int *buffer, int
 			if (basact) break;
 			
 			base = base->next;
-			if (base == NULL) base = FIRSTBASE_NEW(sl);
+			if (base == NULL) base = FIRSTBASE(sl);
 			if (base == startbase) break;
 		}
 	}
@@ -1429,8 +1429,8 @@ static bool ed_object_select_pick(
 	}
 	
 	/* always start list from basact in wire mode */
-	startbase =  FIRSTBASE_NEW(sl);
-	if (BASACT_NEW(sl) && BASACT_NEW(sl)->next) startbase = BASACT_NEW(sl)->next;
+	startbase =  FIRSTBASE(sl);
+	if (BASACT(sl) && BASACT(sl)->next) startbase = BASACT(sl)->next;
 	
 	/* This block uses the control key to make the object selected by its center point rather than its contents */
 	/* in editmode do not activate */
@@ -1443,13 +1443,13 @@ static bool ed_object_select_pick(
 		else {
 			base = startbase;
 			while (base) {
-				if (BASE_SELECTABLE_NEW(base)) {
+				if (BASE_SELECTABLE(base)) {
 					float screen_co[2];
 					if (ED_view3d_project_float_global(ar, base->object->obmat[3], screen_co,
 					                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
 					{
 						float dist_temp = len_manhattan_v2v2(mval_fl, screen_co);
-						if (base == BASACT_NEW(sl)) dist_temp += 10.0f;
+						if (base == BASACT(sl)) dist_temp += 10.0f;
 						if (dist_temp < dist) {
 							dist = dist_temp;
 							basact = base;
@@ -1458,7 +1458,7 @@ static bool ed_object_select_pick(
 				}
 				base = base->next;
 				
-				if (base == NULL) base = FIRSTBASE_NEW(sl);
+				if (base == NULL) base = FIRSTBASE(sl);
 				if (base == startbase) break;
 			}
 		}
@@ -1488,7 +1488,7 @@ static bool ed_object_select_pick(
 			
 			if (has_bones && basact) {
 				if (basact->object->type == OB_CAMERA) {
-					if (BASACT_NEW(sl) == basact) {
+					if (BASACT(sl) == basact) {
 						int i, hitresult;
 						bool changed = false;
 
@@ -1558,14 +1558,14 @@ static bool ed_object_select_pick(
 					WM_event_add_notifier(C, NC_OBJECT | ND_BONE_ACTIVE, basact->object);
 					
 					/* in weightpaint, we use selected bone to select vertexgroup, so no switch to new active object */
-					if (BASACT_NEW(sl) && (BASACT_NEW(sl)->object->mode & OB_MODE_WEIGHT_PAINT)) {
+					if (BASACT(sl) && (BASACT(sl)->object->mode & OB_MODE_WEIGHT_PAINT)) {
 						/* prevent activating */
 						basact = NULL;
 					}
 
 				}
 				/* prevent bone selecting to pass on to object selecting */
-				if (basact == BASACT_NEW(sl))
+				if (basact == BASACT(sl))
 					basact = NULL;
 			}
 		}
@@ -1581,9 +1581,9 @@ static bool ed_object_select_pick(
 			ED_object_base_select(basact, BA_SELECT);
 		}
 		/* also prevent making it active on mouse selection */
-		else if (BASE_SELECTABLE_NEW(basact)) {
+		else if (BASE_SELECTABLE(basact)) {
 
-			oldbasact = BASACT_NEW(sl);
+			oldbasact = BASACT(sl);
 			
 			if (extend) {
 				ED_object_base_select(basact, BA_SELECT);
@@ -2095,7 +2095,7 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, b
 		 * we can be sure the order remains the same between both.
 		 */
 		for (base = vc->scene_layer->object_bases.first; base && hits; base = base->next) {
-			if (BASE_SELECTABLE_NEW(base)) {
+			if (BASE_SELECTABLE(base)) {
 				while (base->object->select_color == (*col & 0xFFFF)) {   /* we got an object */
 					if (*col & 0xFFFF0000) {                    /* we got a bone */
 						bone = get_indexed_bone(base->object, *col & ~(BONESEL_ANY));
@@ -2837,8 +2837,8 @@ static bool object_circle_select(ViewContext *vc, const bool select, const int m
 
 
 	Base *base;
-	for (base = FIRSTBASE_NEW(sl); base; base = base->next) {
-		if (BASE_SELECTABLE_NEW(base) && ((base->flag & BASE_SELECTED) != select_flag)) {
+	for (base = FIRSTBASE(sl); base; base = base->next) {
+		if (BASE_SELECTABLE(base) && ((base->flag & BASE_SELECTED) != select_flag)) {
 			float screen_co[2];
 			if (ED_view3d_project_float_global(vc->ar, base->object->obmat[3], screen_co,
 			                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)

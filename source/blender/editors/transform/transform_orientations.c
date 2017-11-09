@@ -581,7 +581,7 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 	SceneLayer *sl = CTX_data_scene_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Base *base;
-	Object *ob = OBACT_NEW(sl);
+	Object *ob = OBACT(sl);
 	int result = ORIENTATION_NONE;
 	const bool activeOnly = (around == V3D_AROUND_ACTIVE);
 
@@ -1044,8 +1044,8 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 	}
 	else {
 		/* we need the one selected object, if its not active */
-		base = BASACT_NEW(sl);
-		ob = OBACT_NEW(sl);
+		base = BASACT(sl);
+		ob = OBACT(sl);
 		if (base && ((base->flag & BASE_SELECTED) != 0)) {
 			/* pass */
 		}
@@ -1053,7 +1053,7 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 			/* first selected */
 			ob = NULL;
 			for (base = sl->object_bases.first; base; base = base->next) {
-				if (TESTBASELIB_NEW(base)) {
+				if (TESTBASELIB(base)) {
 					ob = base->object;
 					break;
 				}
