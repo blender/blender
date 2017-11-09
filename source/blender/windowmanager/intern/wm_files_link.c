@@ -214,7 +214,7 @@ static WMLinkAppendDataItem *wm_link_append_data_item_add(
 }
 
 static void wm_link_do(
-        WMLinkAppendData *lapp_data, ReportList *reports, Main *bmain, Scene *scene, SceneLayer *sl,
+        WMLinkAppendData *lapp_data, ReportList *reports, Main *bmain, Scene *scene, SceneLayer *scene_layer,
         const bool use_placeholders, const bool force_indirect)
 {
 	Main *mainl;
@@ -263,7 +263,7 @@ static void wm_link_do(
 			}
 
 			new_id = BLO_library_link_named_part_ex(
-			             mainl, &bh, item->idcode, item->name, flag, scene, sl, use_placeholders, force_indirect);
+			             mainl, &bh, item->idcode, item->name, flag, scene, scene_layer, use_placeholders, force_indirect);
 
 			if (new_id) {
 				/* If the link is successful, clear item's libs 'todo' flags.
@@ -273,7 +273,7 @@ static void wm_link_do(
 			}
 		}
 
-		BLO_library_link_end(mainl, &bh, flag, scene, sl);
+		BLO_library_link_end(mainl, &bh, flag, scene, scene_layer);
 		BLO_blendhandle_close(bh);
 	}
 }
@@ -316,7 +316,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	SceneLayer *scene_layer = CTX_data_scene_layer(C);
 	PropertyRNA *prop;
 	WMLinkAppendData *lapp_data;
 	char path[FILE_MAX_LIBEXTRA], root[FILE_MAXDIR], libname[FILE_MAX_LIBEXTRA], relname[FILE_MAX];
@@ -374,8 +374,8 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 
 	/* from here down, no error returns */
 
-	if (sl && RNA_boolean_get(op->ptr, "autoselect")) {
-		BKE_scene_layer_base_deselect_all(sl);
+	if (scene_layer && RNA_boolean_get(op->ptr, "autoselect")) {
+		BKE_scene_layer_base_deselect_all(scene_layer);
 	}
 	
 	/* tag everything, all untagged data can be made local
@@ -453,7 +453,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	/* XXX We'd need re-entrant locking on Main for this to work... */
 	/* BKE_main_lock(bmain); */
 
-	wm_link_do(lapp_data, op->reports, bmain, scene, sl, false, false);
+	wm_link_do(lapp_data, op->reports, bmain, scene, scene_layer, false, false);
 
 	/* BKE_main_unlock(bmain); */
 
