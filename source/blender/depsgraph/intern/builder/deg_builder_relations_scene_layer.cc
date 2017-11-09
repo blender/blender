@@ -128,11 +128,7 @@ void DepsgraphRelationBuilder::build_scene_layer(Scene *scene, SceneLayer *scene
 	build_scene_layer_collections(scene_layer);
 
 	/* TODO(sergey): Do this flush on CoW object? */
-	for (Depsgraph::OperationNodes::const_iterator it_op = graph_->operations.begin();
-	     it_op != graph_->operations.end();
-	     ++it_op)
-	{
-		OperationDepsNode *node = *it_op;
+	foreach (OperationDepsNode *node, graph_->operations) {
 		IDDepsNode *id_node = node->owner->owner;
 		ID *id = id_node->id_orig;
 		if (GS(id->name) == ID_OB) {
