@@ -2170,6 +2170,8 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 		og->attribute_map.clear();
 		og->object_names.clear();
 	}
+#else
+	(void)device;
 #endif
 }
 

@@ -1066,10 +1066,8 @@ bool OpenCLDeviceBase::denoising_set_tiles(device_ptr *buffers,
 	return true;
 }
 
-void OpenCLDeviceBase::denoise(RenderTile &rtile, const DeviceTask &task)
+void OpenCLDeviceBase::denoise(RenderTile &rtile, DenoisingTask& denoising, const DeviceTask &task)
 {
-	DenoisingTask denoising(this);
-
 	denoising.functions.set_tiles = function_bind(&OpenCLDeviceBase::denoising_set_tiles, this, _1, &denoising);
 	denoising.functions.construct_transform = function_bind(&OpenCLDeviceBase::denoising_construct_transform, this, &denoising);
 	denoising.functions.reconstruct = function_bind(&OpenCLDeviceBase::denoising_reconstruct, this, _1, _2, _3, &denoising);

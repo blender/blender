@@ -243,15 +243,29 @@ public:
 		free();
 	}
 
-	void alloc_to_device(size_t num)
+	void alloc_to_device(size_t num, bool shrink_to_fit = true)
 	{
-		data_size = num*sizeof(T);
-		device_alloc();
+		size_t new_size = num*sizeof(T);
+		bool reallocate;
+
+		if(shrink_to_fit) {
+			reallocate = (data_size != new_size);
+		}
+		else {
+			reallocate = (data_size < new_size);
+		}
+
+		if(reallocate) {
+			device_free();
+			data_size = new_size;
+			device_alloc();
+		}
 	}
 
 	void free()
 	{
 		device_free();
+		data_size = 0;
 	}
 
 	void zero_to_device()

@@ -84,7 +84,7 @@ void GaussianYBlurOperation::updateGauss()
 
 void GaussianYBlurOperation::executePixel(float output[4], int x, int y, void *data)
 {
-	float color_accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+	float ATTR_ALIGN(16) color_accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 	float multiplier_accum = 0.0f;
 	MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
 	float *buffer = inputBuffer->getBuffer();
