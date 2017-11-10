@@ -155,6 +155,13 @@ static void do_version_workspaces_after_lib_link(Main *bmain)
 	}
 }
 
+enum {
+	DO_VERSION_COLLECTION_VISIBLE     = 0,
+	DO_VERSION_COLLECTION_HIDE        = 1,
+	DO_VERSION_COLLECTION_HIDE_RENDER = 2,
+	DO_VERSION_COLLECTION_HIDE_ALL    = 3,
+};
+
 void do_versions_after_linking_280(Main *main)
 {
 	if (!MAIN_VERSION_ATLEAST(main, 280, 0)) {
@@ -164,38 +171,135 @@ void do_versions_after_linking_280(Main *main)
 				SceneCollection *sc_master = BKE_collection_master(scene);
 				BLI_strncpy(sc_master->name, "Master Collection", sizeof(sc_master->name));
 
-				SceneCollection *collections[20] = {NULL};
-				bool is_visible[20];
+				struct DoVersionSceneCollections {
+					SceneCollection *collections[20];
+					int created;
+					const char *suffix;
+					int flag_viewport;
+					int flag_render;
+				} collections[] =
+				{
+					{
+						.collections = {NULL},
+						.created = 0,
+						.suffix = "",
+						.flag_viewport = COLLECTION_VISIBLE | COLLECTION_SELECTABLE,
+						.flag_render = COLLECTION_VISIBLE | COLLECTION_SELECTABLE
+					},
+					{
+						.collections = {NULL},
+						.created = 0,
+						.suffix = " - Hide Viewport",
+						.flag_viewport = COLLECTION_SELECTABLE,
+						.flag_render = COLLECTION_VISIBLE | COLLECTION_SELECTABLE
+					},
+					{
+						.collections = {NULL},
+						.created = 0,
+						.suffix = " - Hide Render",
+						.flag_viewport = COLLECTION_VISIBLE | COLLECTION_SELECTABLE,
+						.flag_render = COLLECTION_SELECTABLE | COLLECTION_DISABLED
+					},
+					{
+						.collections = {NULL},
+						.created = 0,
+						.suffix = " - Hide Render All",
+						.flag_viewport = COLLECTION_SELECTABLE | COLLECTION_DISABLED,
+						.flag_render = COLLECTION_SELECTABLE | COLLECTION_DISABLED
+					}
+				};
 
-				int lay_used = 0;
-				for (int i = 0; i < 20; i++) {
-					char name[MAX_NAME];
+				for (int layer = 0; layer < 20; layer++) {
+					for (Base *base = scene->base.first; base; base = base->next) {
+						if (base->lay & (1 << layer)) {
+							int collection_index = -1;
+							if ((base->object->restrictflag & OB_RESTRICT_VIEW) &&
+								(base->object->restrictflag & OB_RESTRICT_RENDER))
+							{
+								collection_index = DO_VERSION_COLLECTION_HIDE_ALL;
+							}
+							else if (base->object->restrictflag & OB_RESTRICT_VIEW) {
+								collection_index = DO_VERSION_COLLECTION_HIDE;
+							}
+							else if (base->object->restrictflag & OB_RESTRICT_RENDER) {
+								collection_index = DO_VERSION_COLLECTION_HIDE_RENDER;
+							}
+							else {
+								collection_index = DO_VERSION_COLLECTION_VISIBLE;
+							}
 
-					BLI_snprintf(name, sizeof(collections[i]->name), "Collection %d", i + 1);
-					collections[i] = BKE_collection_add(scene, sc_master, name);
+							/* Create collections when needed only. */
+							if ((collections[collection_index].created & (1 << layer)) == 0) {
+								char name[MAX_NAME];
 
-					is_visible[i] = (scene->lay & (1 << i));
-				}
+								if ((collections[DO_VERSION_COLLECTION_VISIBLE].created & (1 << layer)) == 0) {
+									BLI_snprintf(name,
+									             sizeof(sc_master->name),
+									             "Collection %d%s",
+									             layer + 1,
+									             collections[DO_VERSION_COLLECTION_VISIBLE].suffix);
+									collections[DO_VERSION_COLLECTION_VISIBLE].collections[layer] =
+									        BKE_collection_add(scene, sc_master, name);
+									collections[DO_VERSION_COLLECTION_VISIBLE].created |= (1 << layer);
+								}
 
-				for (Base *base = scene->base.first; base; base = base->next) {
-					lay_used |= base->lay & ((1 << 20) - 1); /* ignore localview */
+								if (collection_index != DO_VERSION_COLLECTION_VISIBLE) {
+									SceneCollection *sc_parent;
+									sc_parent = collections[DO_VERSION_COLLECTION_VISIBLE].collections[layer];
+									BLI_snprintf(name,
+									             sizeof(sc_master->name),
+									             "Collection %d%s",
+									             layer + 1,
+									             collections[collection_index].suffix);
+									collections[collection_index].collections[layer] = BKE_collection_add(scene, sc_parent, name);
+									collections[collection_index].created |= (1 << layer);
+								}
+							}
 
-					for (int i = 0; i < 20; i++) {
-						if ((base->lay & (1 << i)) != 0) {
-							BKE_collection_object_add(scene, collections[i], base->object);
+							BKE_collection_object_add(scene, collections[collection_index].collections[layer], base->object);
+						}
+
+						if (base->flag & SELECT) {
+							base->object->flag |= SELECT;
+						}
+						else {
+							base->object->flag &= ~SELECT;
 						}
 					}
+				}
 
-					if (base->flag & SELECT) {
-						base->object->flag |= SELECT;
-					}
-					else {
-						base->object->flag &= ~SELECT;
+				/* Re-order the nested hidden collections. */
+				SceneCollection *scene_collection_parent = sc_master->scene_collections.first;
+
+				for (int layer = 0; layer < 20; layer++) {
+					if (collections[DO_VERSION_COLLECTION_VISIBLE].created & (1 << layer)) {
+
+						if ((collections[DO_VERSION_COLLECTION_HIDE].created & (1 << layer)) &&
+						    (collections[DO_VERSION_COLLECTION_HIDE].collections[layer] !=
+						     scene_collection_parent->scene_collections.first))
+						{
+							BLI_listbase_swaplinks(&scene_collection_parent->scene_collections,
+							                       collections[DO_VERSION_COLLECTION_HIDE].collections[layer],
+												   scene_collection_parent->scene_collections.first);
+						}
+
+						if ((collections[DO_VERSION_COLLECTION_HIDE_ALL].created & (1 << layer)) &&
+						    (collections[DO_VERSION_COLLECTION_HIDE_ALL].collections[layer] !=
+						     scene_collection_parent->scene_collections.last))
+						{
+							BLI_listbase_swaplinks(&scene_collection_parent->scene_collections,
+							                       collections[DO_VERSION_COLLECTION_HIDE_ALL].collections[layer],
+												   scene_collection_parent->scene_collections.last);
+						}
+
+						scene_collection_parent = scene_collection_parent->next;
 					}
 				}
+				BLI_assert(scene_collection_parent == NULL);
 
 				scene->active_layer = 0;
 
+				/* Handle legacy render layers. */
 				if (!BKE_scene_uses_blender_game(scene)) {
 					for (SceneRenderLayer *srl = scene->r.layers.first; srl; srl = srl->next) {
 
@@ -214,10 +318,30 @@ void do_versions_after_linking_280(Main *main)
 							/* unlink master collection  */
 							BKE_collection_unlink(scene_layer, scene_layer->layer_collections.first);
 
-							/* add new collection bases */
-							for (int i = 0; i < 20; i++) {
-								if ((srl->lay & (1 << i)) != 0) {
-									BKE_collection_link(scene_layer, collections[i]);
+							/* Add new collection bases. */
+							for (int layer = 0; layer < 20; layer++) {
+								if ((srl->lay & (1 << layer)) != 0) {
+									if (collections[DO_VERSION_COLLECTION_VISIBLE].created & (1 << layer)) {
+
+										LayerCollection *layer_collection_parent;
+										layer_collection_parent = BKE_collection_link(scene_layer,
+										        collections[DO_VERSION_COLLECTION_VISIBLE].collections[layer]);
+
+										LayerCollection *layer_collection_child;
+										layer_collection_child = layer_collection_parent->layer_collections.first;
+
+										for (int j = 1; j < 4; j++) {
+											if (collections[j].created & (1 << layer)) {
+												layer_collection_child->flag = collections[j].flag_render & (~COLLECTION_DISABLED);
+
+												if (collections[j].flag_render & COLLECTION_DISABLED) {
+													BKE_collection_disable(scene_layer, layer_collection_child);
+												}
+												layer_collection_child = layer_collection_child->next;
+											}
+										}
+										BLI_assert(layer_collection_child == NULL);
+									}
 								}
 							}
 						}
@@ -243,14 +367,37 @@ void do_versions_after_linking_280(Main *main)
 
 				SceneLayer *scene_layer = BKE_scene_layer_add(scene, "Viewport");
 
-				/* In this particular case we can safely assume the data struct */
-				LayerCollection *lc = ((LayerCollection *)scene_layer->layer_collections.first)->layer_collections.first;
-				for (int i = 0; i < 20; i++) {
-					if (!is_visible[i]) {
-						lc->flag &= ~COLLECTION_VISIBLE;
+				/* If layer was not set, disable it. */
+				LayerCollection *layer_collection_parent;
+				layer_collection_parent = ((LayerCollection *)scene_layer->layer_collections.first)->layer_collections.first;
+
+				for (int layer = 0; layer < 20; layer++) {
+					if (collections[DO_VERSION_COLLECTION_VISIBLE].created & (1 << layer)) {
+						const bool is_disabled = (scene->lay & (1 << layer)) == 0;
+
+						/* We only need to disable the parent collection. */
+						if (is_disabled) {
+							BKE_collection_disable(scene_layer, layer_collection_parent);
+						}
+
+						LayerCollection *layer_collection_child;
+						layer_collection_child = layer_collection_parent->layer_collections.first;
+
+						for (int j = 1; j < 4; j++) {
+							if (collections[j].created & (1 << layer)) {
+								layer_collection_child->flag = collections[j].flag_viewport & (~COLLECTION_DISABLED);
+
+								if (collections[j].flag_viewport & COLLECTION_DISABLED) {
+									BKE_collection_disable(scene_layer, layer_collection_child);
+								}
+								layer_collection_child = layer_collection_child->next;
+							}
+						}
+						BLI_assert(layer_collection_child == NULL);
+						layer_collection_parent = layer_collection_parent->next;
 					}
-					lc = lc->next;
 				}
+				BLI_assert(layer_collection_parent == NULL);
 
 				/* convert active base */
 				if (scene->basact) {
@@ -268,13 +415,6 @@ void do_versions_after_linking_280(Main *main)
 				}
 
 				/* TODO: copy scene render data to layer */
-
-				/* Cleanup */
-				for (int i = 0; i < 20; i++) {
-					if ((lay_used & (1 << i)) == 0) {
-						BKE_collection_remove(scene, collections[i]);
-					}
-				}
 
 				/* Fallback name if only one layer was found in the original file */
 				if (BLI_listbase_count_ex(&sc_master->scene_collections, 2) == 1) {
