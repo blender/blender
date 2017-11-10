@@ -850,7 +850,7 @@ static void CLAY_draw_scene(void *vedata)
 		/* attach temp textures */
 		DRW_framebuffer_texture_attach(fbl->dupli_depth, e_data.depth_dup, 0, 0);
 
-		DRW_framebuffer_blit(dfbl->default_fb, fbl->dupli_depth, true);
+		DRW_framebuffer_blit(dfbl->default_fb, fbl->dupli_depth, true, false);
 
 		/* detach temp textures */
 		DRW_framebuffer_texture_detach(e_data.depth_dup);

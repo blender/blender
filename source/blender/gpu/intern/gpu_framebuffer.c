@@ -507,18 +507,35 @@ void GPU_framebuffer_blur(
 	GWN_batch_draw(&batch);
 }
 
-void GPU_framebuffer_blit(GPUFrameBuffer *fb_read, int read_slot, GPUFrameBuffer *fb_write, int write_slot, bool use_depth)
+void GPU_framebuffer_blit(
+        GPUFrameBuffer *fb_read, int read_slot, GPUFrameBuffer *fb_write,
+        int write_slot, bool use_depth, bool use_stencil)
 {
-	GPUTexture *read_tex = (use_depth) ? fb_read->depthtex : fb_read->colortex[read_slot];
-	GPUTexture *write_tex = (use_depth) ? fb_write->depthtex : fb_write->colortex[write_slot];
-	int read_attach = (use_depth) ? GL_DEPTH_ATTACHMENT : GL_COLOR_ATTACHMENT0 + GPU_texture_framebuffer_attachment(read_tex);
-	int write_attach = (use_depth) ? GL_DEPTH_ATTACHMENT : GL_COLOR_ATTACHMENT0 + GPU_texture_framebuffer_attachment(write_tex);
+	GPUTexture *read_tex = (use_depth || use_stencil) ? fb_read->depthtex : fb_read->colortex[read_slot];
+	GPUTexture *write_tex = (use_depth || use_stencil) ? fb_write->depthtex : fb_write->colortex[write_slot];
+	int read_attach = (use_depth) ? GL_DEPTH_ATTACHMENT :
+	                  (use_stencil) ? GL_DEPTH_STENCIL_ATTACHMENT :
+	                  GL_COLOR_ATTACHMENT0 + GPU_texture_framebuffer_attachment(read_tex);
+	int write_attach = (use_depth) ? GL_DEPTH_ATTACHMENT :
+	                   (use_stencil) ? GL_DEPTH_STENCIL_ATTACHMENT :
+	                   GL_COLOR_ATTACHMENT0 + GPU_texture_framebuffer_attachment(write_tex);
 	int read_bind = GPU_texture_opengl_bindcode(read_tex);
 	int write_bind = GPU_texture_opengl_bindcode(write_tex);
 	const int read_w = GPU_texture_width(read_tex);
 	const int read_h = GPU_texture_height(read_tex);
 	const int write_w = GPU_texture_width(write_tex);
 	const int write_h = GPU_texture_height(write_tex);
+
+
+	/* Never both! */
+	BLI_assert(!(use_depth && use_stencil));
+
+	if (use_depth) {
+		BLI_assert(GPU_texture_depth(read_tex) && GPU_texture_depth(write_tex));
+	}
+	else if (use_stencil) {
+		BLI_assert(GPU_texture_stencil(read_tex) && GPU_texture_stencil(write_tex));
+	}
 
 	/* read from multi-sample buffer */
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, fb_read->object);
@@ -534,8 +551,11 @@ void GPU_framebuffer_blit(GPUFrameBuffer *fb_read, int read_slot, GPUFrameBuffer
 	        GPU_texture_target(write_tex), write_bind, 0);
 	BLI_assert(glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
 
-	glDrawBuffer((use_depth) ? GL_COLOR_ATTACHMENT0 : read_attach);
-	glBlitFramebuffer(0, 0, read_w, read_h, 0, 0, write_w, write_h, (use_depth) ? GL_DEPTH_BUFFER_BIT : GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	glDrawBuffer((use_depth || use_stencil) ? GL_COLOR_ATTACHMENT0 : read_attach);
+	glBlitFramebuffer(0, 0, read_w, read_h, 0, 0, write_w, write_h,
+	                  (use_depth) ? GL_DEPTH_BUFFER_BIT :
+	                  (use_stencil) ? GL_STENCIL_BUFFER_BIT :
+	                  GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
 	/* Restore previous framebuffer */
 	glBindFramebuffer(GL_FRAMEBUFFER, GG.currentfb);

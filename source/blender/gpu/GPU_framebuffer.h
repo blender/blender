@@ -73,7 +73,7 @@ void GPU_framebuffer_blur(
 
 void GPU_framebuffer_blit(
         GPUFrameBuffer *fb_read, int read_slot,
-        GPUFrameBuffer *fb_write, int write_slot, bool use_depth);
+        GPUFrameBuffer *fb_write, int write_slot, bool use_depth, bool use_stencil);
 
 void GPU_framebuffer_recursive_downsample(
         GPUFrameBuffer *fb, struct GPUTexture *tex, int num_iter,

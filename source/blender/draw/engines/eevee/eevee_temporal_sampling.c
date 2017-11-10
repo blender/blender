@@ -167,7 +167,7 @@ void EEVEE_temporal_sampling_draw(EEVEE_Data *vedata)
 			DRW_draw_pass(psl->taa_resolve);
 
 			/* Restore the depth from sample 1. */
-			DRW_framebuffer_blit(fbl->depth_double_buffer_fb, fbl->main, true);
+			DRW_framebuffer_blit(fbl->depth_double_buffer_fb, fbl->main, true, false);
 
 			/* Special Swap */
 			SWAP(struct GPUFrameBuffer *, fbl->effect_fb, fbl->double_buffer);
@@ -180,7 +180,7 @@ void EEVEE_temporal_sampling_draw(EEVEE_Data *vedata)
 			/* Save the depth buffer for the next frame.
 			 * This saves us from doing anything special
 			 * in the other mode engines. */
-			DRW_framebuffer_blit(fbl->main, fbl->depth_double_buffer_fb, true);
+			DRW_framebuffer_blit(fbl->main, fbl->depth_double_buffer_fb, true, false);
 		}
 
 		if ((effects->taa_total_sample == 0) ||

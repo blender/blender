@@ -94,8 +94,8 @@ typedef char DRWViewportEmptyList;
 #define MULTISAMPLE_SYNC_ENABLE(dfbl) { \
 	if (dfbl->multisample_fb != NULL) { \
 		DRW_stats_query_start("Multisample Blit"); \
-		DRW_framebuffer_blit(dfbl->default_fb, dfbl->multisample_fb, false); \
-		DRW_framebuffer_blit(dfbl->default_fb, dfbl->multisample_fb, true); \
+		DRW_framebuffer_blit(dfbl->default_fb, dfbl->multisample_fb, false, false); \
+		DRW_framebuffer_blit(dfbl->default_fb, dfbl->multisample_fb, true, false); \
 		DRW_framebuffer_bind(dfbl->multisample_fb); \
 		DRW_stats_query_end(); \
 	} \
@@ -104,8 +104,8 @@ typedef char DRWViewportEmptyList;
 #define MULTISAMPLE_SYNC_DISABLE(dfbl) { \
 	if (dfbl->multisample_fb != NULL) { \
 		DRW_stats_query_start("Multisample Resolve"); \
-		DRW_framebuffer_blit(dfbl->multisample_fb, dfbl->default_fb, false); \
-		DRW_framebuffer_blit(dfbl->multisample_fb, dfbl->default_fb, true); \
+		DRW_framebuffer_blit(dfbl->multisample_fb, dfbl->default_fb, false, false); \
+		DRW_framebuffer_blit(dfbl->multisample_fb, dfbl->default_fb, true, false); \
 		DRW_framebuffer_bind(dfbl->default_fb); \
 		DRW_stats_query_end(); \
 	} \
@@ -234,7 +234,7 @@ void DRW_framebuffer_texture_attach(struct GPUFrameBuffer *fb, struct GPUTexture
 void DRW_framebuffer_texture_layer_attach(struct GPUFrameBuffer *fb, struct GPUTexture *tex, int slot, int layer, int mip);
 void DRW_framebuffer_cubeface_attach(struct GPUFrameBuffer *fb, struct GPUTexture *tex, int slot, int face, int mip);
 void DRW_framebuffer_texture_detach(struct GPUTexture *tex);
-void DRW_framebuffer_blit(struct GPUFrameBuffer *fb_read, struct GPUFrameBuffer *fb_write, bool depth);
+void DRW_framebuffer_blit(struct GPUFrameBuffer *fb_read, struct GPUFrameBuffer *fb_write, bool depth, bool stencil);
 void DRW_framebuffer_recursive_downsample(
         struct GPUFrameBuffer *fb, struct GPUTexture *tex, int num_iter,
         void (*callback)(void *userData, int level), void *userData);

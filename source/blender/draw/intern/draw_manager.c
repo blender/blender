@@ -2393,9 +2393,9 @@ void DRW_framebuffer_texture_detach(GPUTexture *tex)
 	GPU_framebuffer_texture_detach(tex);
 }
 
-void DRW_framebuffer_blit(struct GPUFrameBuffer *fb_read, struct GPUFrameBuffer *fb_write, bool depth)
+void DRW_framebuffer_blit(struct GPUFrameBuffer *fb_read, struct GPUFrameBuffer *fb_write, bool depth, bool stencil)
 {
-	GPU_framebuffer_blit(fb_read, 0, fb_write, 0, depth);
+	GPU_framebuffer_blit(fb_read, 0, fb_write, 0, depth, stencil);
 }
 
 void DRW_framebuffer_recursive_downsample(

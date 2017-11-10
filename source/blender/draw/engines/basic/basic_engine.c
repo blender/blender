@@ -233,7 +233,7 @@ static void BASIC_draw_scene(void *vedata)
 	if (use_depth || use_depth_cull) {
 		/* Unless we go for deferred shading we need this to avoid manual depth test and artifacts */
 		if (DRW_state_is_fbo()) {
-			DRW_framebuffer_blit(dfbl->default_fb, fbl->dupli_depth, true);
+			DRW_framebuffer_blit(dfbl->default_fb, fbl->dupli_depth, true, false);
 		}
 	}
 #endif
