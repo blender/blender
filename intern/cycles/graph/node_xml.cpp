@@ -33,7 +33,7 @@ static const char *xml_write_boolean(bool value)
 }
 
 template<int VECTOR_SIZE, typename T>
-static void xml_read_float_array(T& value, pugi::xml_attribute attr)
+static void xml_read_float_array(T& value, xml_attribute attr)
 {
 	vector<string> tokens;
 	string_split(tokens, attr.value());
@@ -51,9 +51,9 @@ static void xml_read_float_array(T& value, pugi::xml_attribute attr)
 	}
 }
 
-void xml_read_node(XMLReader& reader, Node *node, pugi::xml_node xml_node)
+void xml_read_node(XMLReader& reader, Node *node, xml_node xml_node)
 {
-	pugi::xml_attribute name_attr = xml_node.attribute("name");
+	xml_attribute name_attr = xml_node.attribute("name");
 	if(name_attr) {
 		node->name = ustring(name_attr.value());
 	}
@@ -66,7 +66,7 @@ void xml_read_node(XMLReader& reader, Node *node, pugi::xml_node xml_node)
 			continue;
 		}
 
-		pugi::xml_attribute attr = xml_node.attribute(socket.name.c_str());
+		xml_attribute attr = xml_node.attribute(socket.name.c_str());
 
 		if(!attr) {
 			continue;
@@ -254,9 +254,9 @@ void xml_read_node(XMLReader& reader, Node *node, pugi::xml_node xml_node)
 		reader.node_map[node->name] = node;
 }
 
-pugi::xml_node xml_write_node(Node *node, pugi::xml_node xml_root)
+xml_node xml_write_node(Node *node, xml_node xml_root)
 {
-	pugi::xml_node xml_node = xml_root.append_child(node->type->name.c_str());
+	xml_node xml_node = xml_root.append_child(node->type->name.c_str());
 
 	xml_node.append_attribute("name") = node->name.c_str();
 
@@ -271,7 +271,7 @@ pugi::xml_node xml_write_node(Node *node, pugi::xml_node xml_root)
 			continue;
 		}
 
-		pugi::xml_attribute attr = xml_node.append_attribute(socket.name.c_str());
+		xml_attribute attr = xml_node.append_attribute(socket.name.c_str());
 
 		switch(socket.type)
 		{

@@ -70,9 +70,9 @@ struct XMLReadState : public XMLReader {
 
 /* Attribute Reading */
 
-static bool xml_read_int(int *value, pugi::xml_node node, const char *name)
+static bool xml_read_int(int *value, xml_node node, const char *name)
 {
-	pugi::xml_attribute attr = node.attribute(name);
+	xml_attribute attr = node.attribute(name);
 
 	if(attr) {
 		*value = atoi(attr.value());
@@ -82,9 +82,9 @@ static bool xml_read_int(int *value, pugi::xml_node node, const char *name)
 	return false;
 }
 
-static bool xml_read_int_array(vector<int>& value, pugi::xml_node node, const char *name)
+static bool xml_read_int_array(vector<int>& value, xml_node node, const char *name)
 {
-	pugi::xml_attribute attr = node.attribute(name);
+	xml_attribute attr = node.attribute(name);
 
 	if(attr) {
 		vector<string> tokens;
@@ -99,9 +99,9 @@ static bool xml_read_int_array(vector<int>& value, pugi::xml_node node, const ch
 	return false;
 }
 
-static bool xml_read_float(float *value, pugi::xml_node node, const char *name)
+static bool xml_read_float(float *value, xml_node node, const char *name)
 {
-	pugi::xml_attribute attr = node.attribute(name);
+	xml_attribute attr = node.attribute(name);
 
 	if(attr) {
 		*value = (float)atof(attr.value());
@@ -111,9 +111,9 @@ static bool xml_read_float(float *value, pugi::xml_node node, const char *name)
 	return false;
 }
 
-static bool xml_read_float_array(vector<float>& value, pugi::xml_node node, const char *name)
+static bool xml_read_float_array(vector<float>& value, xml_node node, const char *name)
 {
-	pugi::xml_attribute attr = node.attribute(name);
+	xml_attribute attr = node.attribute(name);
 
 	if(attr) {
 		vector<string> tokens;
@@ -128,7 +128,7 @@ static bool xml_read_float_array(vector<float>& value, pugi::xml_node node, cons
 	return false;
 }
 
-static bool xml_read_float3(float3 *value, pugi::xml_node node, const char *name)
+static bool xml_read_float3(float3 *value, xml_node node, const char *name)
 {
 	vector<float> array;
 
@@ -140,7 +140,7 @@ static bool xml_read_float3(float3 *value, pugi::xml_node node, const char *name
 	return false;
 }
 
-static bool xml_read_float3_array(vector<float3>& value, pugi::xml_node node, const char *name)
+static bool xml_read_float3_array(vector<float3>& value, xml_node node, const char *name)
 {
 	vector<float> array;
 
@@ -154,7 +154,7 @@ static bool xml_read_float3_array(vector<float3>& value, pugi::xml_node node, co
 	return false;
 }
 
-static bool xml_read_float4(float4 *value, pugi::xml_node node, const char *name)
+static bool xml_read_float4(float4 *value, xml_node node, const char *name)
 {
 	vector<float> array;
 
@@ -166,9 +166,9 @@ static bool xml_read_float4(float4 *value, pugi::xml_node node, const char *name
 	return false;
 }
 
-static bool xml_read_string(string *str, pugi::xml_node node, const char *name)
+static bool xml_read_string(string *str, xml_node node, const char *name)
 {
-	pugi::xml_attribute attr = node.attribute(name);
+	xml_attribute attr = node.attribute(name);
 
 	if(attr) {
 		*str = attr.value();
@@ -178,9 +178,9 @@ static bool xml_read_string(string *str, pugi::xml_node node, const char *name)
 	return false;
 }
 
-static bool xml_equal_string(pugi::xml_node node, const char *name, const char *value)
+static bool xml_equal_string(xml_node node, const char *name, const char *value)
 {
-	pugi::xml_attribute attr = node.attribute(name);
+	xml_attribute attr = node.attribute(name);
 
 	if(attr)
 		return string_iequals(attr.value(), value);
@@ -190,7 +190,7 @@ static bool xml_equal_string(pugi::xml_node node, const char *name, const char *
 
 /* Camera */
 
-static void xml_read_camera(XMLReadState& state, pugi::xml_node node)
+static void xml_read_camera(XMLReadState& state, xml_node node)
 {
 	Camera *cam = state.scene->camera;
 
@@ -210,7 +210,7 @@ static void xml_read_camera(XMLReadState& state, pugi::xml_node node)
 
 /* Shader */
 
-static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml_node graph_node)
+static void xml_read_shader_graph(XMLReadState& state, Shader *shader, xml_node graph_node)
 {
 	xml_read_node(state, shader, graph_node);
 
@@ -220,7 +220,7 @@ static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml
 	XMLReader graph_reader;
 	graph_reader.node_map[ustring("output")] = graph->output();
 
-	for(pugi::xml_node node = graph_node.first_child(); node; node = node.next_sibling()) {
+	for(xml_node node = graph_node.first_child(); node; node = node.next_sibling()) {
 		ustring node_name(node.name());
 
 		if(node_name == "connect") {
@@ -349,7 +349,7 @@ static void xml_read_shader_graph(XMLReadState& state, Shader *shader, pugi::xml
 	shader->tag_update(state.scene);
 }
 
-static void xml_read_shader(XMLReadState& state, pugi::xml_node node)
+static void xml_read_shader(XMLReadState& state, xml_node node)
 {
 	Shader *shader = new Shader();
 	xml_read_shader_graph(state, shader, node);
@@ -385,7 +385,7 @@ static Mesh *xml_add_mesh(Scene *scene, const Transform& tfm)
 	return mesh;
 }
 
-static void xml_read_mesh(const XMLReadState& state, pugi::xml_node node)
+static void xml_read_mesh(const XMLReadState& state, xml_node node)
 {
 	/* add mesh */
 	Mesh *mesh = xml_add_mesh(state.scene, state.tfm);
@@ -531,7 +531,7 @@ static void xml_read_mesh(const XMLReadState& state, pugi::xml_node node)
 
 /* Light */
 
-static void xml_read_light(XMLReadState& state, pugi::xml_node node)
+static void xml_read_light(XMLReadState& state, xml_node node)
 {
 	Light *light = new Light();
 
@@ -543,7 +543,7 @@ static void xml_read_light(XMLReadState& state, pugi::xml_node node)
 
 /* Transform */
 
-static void xml_read_transform(pugi::xml_node node, Transform& tfm)
+static void xml_read_transform(xml_node node, Transform& tfm)
 {
 	if(node.attribute("matrix")) {
 		vector<float> matrix;
@@ -572,7 +572,7 @@ static void xml_read_transform(pugi::xml_node node, Transform& tfm)
 
 /* State */
 
-static void xml_read_state(XMLReadState& state, pugi::xml_node node)
+static void xml_read_state(XMLReadState& state, xml_node node)
 {
 	/* read shader */
 	string shadername;
@@ -605,9 +605,9 @@ static void xml_read_state(XMLReadState& state, pugi::xml_node node)
 
 static void xml_read_include(XMLReadState& state, const string& src);
 
-static void xml_read_scene(XMLReadState& state, pugi::xml_node scene_node)
+static void xml_read_scene(XMLReadState& state, xml_node scene_node)
 {
-	for(pugi::xml_node node = scene_node.first_child(); node; node = node.next_sibling()) {
+	for(xml_node node = scene_node.first_child(); node; node = node.next_sibling()) {
 		if(string_iequals(node.name(), "film")) {
 			xml_read_node(state, state.scene->film, node);
 		}
@@ -657,8 +657,8 @@ static void xml_read_scene(XMLReadState& state, pugi::xml_node scene_node)
 static void xml_read_include(XMLReadState& state, const string& src)
 {
 	/* open XML document */
-	pugi::xml_document doc;
-	pugi::xml_parse_result parse_result;
+	xml_document doc;
+	xml_parse_result parse_result;
 
 	string path = path_join(state.base, src);
 	parse_result = doc.load_file(path.c_str());
@@ -667,7 +667,7 @@ static void xml_read_include(XMLReadState& state, const string& src)
 		XMLReadState substate = state;
 		substate.base = path_dirname(path);
 
-		pugi::xml_node cycles = doc.child("cycles");
+		xml_node cycles = doc.child("cycles");
 		xml_read_scene(substate, cycles);
 	}
 	else {
