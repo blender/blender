@@ -23,7 +23,8 @@
 
 CCL_NAMESPACE_BEGIN
 
-OIIO_NAMESPACE_USING
+using OIIO_NAMESPACE::pugi::xml_node;
+using OIIO_NAMESPACE::pugi::xml_attribute;
 
 CCL_NAMESPACE_END
 
