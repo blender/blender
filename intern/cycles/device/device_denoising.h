@@ -94,7 +94,7 @@ public:
 		device_ptr temporary_1_ptr; /* There two images are used as temporary storage. */
 		device_ptr temporary_2_ptr;
 
-		int4 filter_rect;
+		int4 filter_window;
 		int4 buffer_params;
 
 		int source_w;
@@ -148,8 +148,9 @@ public:
 	struct DenoiseBuffers {
 		int pass_stride;
 		int passes;
-		int w;
+		int stride;
 		int h;
+		int width;
 		device_only_memory<float> mem;
 
 		DenoiseBuffers(Device *device)

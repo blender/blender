@@ -98,7 +98,10 @@ ccl_device_inline void math_vec3_add(float3 *v, int n, float *x, float3 w)
 ccl_device_inline void math_vec3_add_strided(ccl_global float3 *v, int n, float *x, float3 w, int stride)
 {
 	for(int i = 0; i < n; i++) {
-		v[i*stride] += w*x[i];
+		ccl_global float *elem = (ccl_global float*) (v + i*stride);
+		atomic_add_and_fetch_float(elem+0, w.x*x[i]);
+		atomic_add_and_fetch_float(elem+1, w.y*x[i]);
+		atomic_add_and_fetch_float(elem+2, w.z*x[i]);
 	}
 }
 
@@ -136,7 +139,7 @@ ccl_device_inline void math_trimatrix_add_gramian_strided(ccl_global float *A,
 {
 	for(int row = 0; row < n; row++) {
 		for(int col = 0; col <= row; col++) {
-			MATHS(A, row, col, stride) += v[row]*v[col]*weight;
+			atomic_add_and_fetch_float(&MATHS(A, row, col, stride), v[row]*v[col]*weight);
 		}
 	}
 }
