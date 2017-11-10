@@ -445,6 +445,11 @@ bool WM_manipulator_select_set(wmManipulatorMap *mmap, wmManipulator *mpr, bool 
 	return wm_manipulator_select_set_ex(mmap, mpr, select, true, true);
 }
 
+void WM_manipulator_highlight_set(wmManipulatorMap *mmap, wmManipulator *mpr)
+{
+	wm_manipulatormap_highlight_set(mmap, NULL, mpr, mpr ? mpr->highlight_part : 0);
+}
+
 bool wm_manipulator_select_and_highlight(bContext *C, wmManipulatorMap *mmap, wmManipulator *mpr)
 {
 	if (WM_manipulator_select_set(mmap, mpr, true)) {

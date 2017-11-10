@@ -195,6 +195,30 @@ void wm_manipulatormap_remove(wmManipulatorMap *mmap)
 	MEM_freeN(mmap);
 }
 
+
+wmManipulatorGroup *WM_manipulatormap_group_find(
+        struct wmManipulatorMap *mmap,
+        const char *idname)
+{
+	wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find(idname, false);
+	if (wgt) {
+		return WM_manipulatormap_group_find_ptr(mmap, wgt);
+	}
+	return NULL;
+}
+
+wmManipulatorGroup *WM_manipulatormap_group_find_ptr(
+        struct wmManipulatorMap *mmap,
+        const struct wmManipulatorGroupType *wgt)
+{
+	for (wmManipulatorGroup *mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
+		if (mgroup->type == wgt) {
+			return mgroup;
+		}
+	}
+	return NULL;
+}
+
 const ListBase *WM_manipulatormap_group_list(wmManipulatorMap *mmap)
 {
 	return &mmap->groups;

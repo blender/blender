@@ -72,6 +72,7 @@ void WM_manipulator_name_set(struct wmManipulatorGroup *mgroup, struct wmManipul
 
 bool WM_manipulator_select_unlink(struct wmManipulatorMap *mmap, struct wmManipulator *mpr);
 bool WM_manipulator_select_set(struct wmManipulatorMap *mmap, struct wmManipulator *mpr, bool select);
+void WM_manipulator_highlight_set(struct wmManipulatorMap *mmap, struct wmManipulator *mpr);
 
 struct wmManipulatorOpElem *WM_manipulator_operator_get(
         struct wmManipulator *mpr, int part_index);
@@ -227,6 +228,12 @@ struct wmKeyMap *WM_manipulatorgroup_keymap_common_select(
 struct wmManipulatorMap *WM_manipulatormap_new_from_type(
         const struct wmManipulatorMapType_Params *mmap_params);
 const struct ListBase *WM_manipulatormap_group_list(struct wmManipulatorMap *mmap);
+struct wmManipulatorGroup *WM_manipulatormap_group_find(
+        struct wmManipulatorMap *mmap,
+        const char *idname);
+struct wmManipulatorGroup *WM_manipulatormap_group_find_ptr(
+        struct wmManipulatorMap *mmap,
+        const struct wmManipulatorGroupType *wgt);
 void WM_manipulatormap_tag_refresh(struct wmManipulatorMap *mmap);
 void WM_manipulatormap_draw(
         struct wmManipulatorMap *mmap, const struct bContext *C, const eWM_ManipulatorMapDrawStep drawstep);
