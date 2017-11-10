@@ -202,6 +202,11 @@ static void blf_font_draw_ex(
 	size_t i = 0;
 	GlyphBLF **glyph_ascii_table = font->glyph_cache->glyph_ascii_table;
 
+	if (len == 0) {
+		/* early output, don't do any IMM OpenGL. */
+		return;
+	}
+
 	BLF_KERNING_VARS(font, has_kerning, kern_mode);
 
 	blf_font_ensure_ascii_table(font);
