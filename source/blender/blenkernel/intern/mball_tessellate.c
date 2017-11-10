@@ -412,16 +412,10 @@ static void make_face(PROCESS *process, int i1, int i2, int i3, int i4)
 	cur[0] = i1;
 	cur[1] = i2;
 	cur[2] = i3;
-
-	if (i4 == 0) {
-		cur[3] = i3;
-	}
-	else {
-		cur[3] = i4;
-	}
+	cur[3] = i4;
 
 #ifdef USE_ACCUM_NORMAL
-	if (i4 == 0) {
+	if (i4 == i3) {
 		normal_tri_v3(n, process->co[i1], process->co[i2], process->co[i3]);
 		accumulate_vertex_normals_v3(
 		        process->no[i1], process->no[i2], process->no[i3], NULL, n,
@@ -526,40 +520,23 @@ static void docube(PROCESS *process, CUBE *cube)
 		if (count > 2) {
 			switch (count) {
 				case 3:
-					make_face(process, indexar[2], indexar[1], indexar[0], 0);
+					make_face(process, indexar[2], indexar[1], indexar[0], indexar[0]); /* triangle */
 					break;
 				case 4:
-					if (indexar[0] == 0) make_face(process, indexar[0], indexar[3], indexar[2], indexar[1]);
-					else make_face(process, indexar[3], indexar[2], indexar[1], indexar[0]);
+					make_face(process, indexar[3], indexar[2], indexar[1], indexar[0]);
 					break;
 				case 5:
-					if (indexar[0] == 0) make_face(process, indexar[0], indexar[3], indexar[2], indexar[1]);
-					else make_face(process, indexar[3], indexar[2], indexar[1], indexar[0]);
-
-					make_face(process, indexar[4], indexar[3], indexar[0], 0);
+					make_face(process, indexar[3], indexar[2], indexar[1], indexar[0]);
+					make_face(process, indexar[4], indexar[3], indexar[0], indexar[0]); /* triangle */
 					break;
 				case 6:
-					if (indexar[0] == 0) {
-						make_face(process, indexar[0], indexar[3], indexar[2], indexar[1]);
-						make_face(process, indexar[0], indexar[5], indexar[4], indexar[3]);
-					}
-					else {
-						make_face(process, indexar[3], indexar[2], indexar[1], indexar[0]);
-						make_face(process, indexar[5], indexar[4], indexar[3], indexar[0]);
-					}
+					make_face(process, indexar[3], indexar[2], indexar[1], indexar[0]);
+					make_face(process, indexar[5], indexar[4], indexar[3], indexar[0]);
 					break;
 				case 7:
-					if (indexar[0] == 0) {
-						make_face(process, indexar[0], indexar[3], indexar[2], indexar[1]);
-						make_face(process, indexar[0], indexar[5], indexar[4], indexar[3]);
-					}
-					else {
-						make_face(process, indexar[3], indexar[2], indexar[1], indexar[0]);
-						make_face(process, indexar[5], indexar[4], indexar[3], indexar[0]);
-					}
-
-					make_face(process, indexar[6], indexar[5], indexar[0], 0);
-
+					make_face(process, indexar[3], indexar[2], indexar[1], indexar[0]);
+					make_face(process, indexar[5], indexar[4], indexar[3], indexar[0]);
+					make_face(process, indexar[6], indexar[5], indexar[0], indexar[0]); /* triangle */
 					break;
 			}
 		}
