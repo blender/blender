@@ -222,6 +222,8 @@ void view3d_operatortypes(void)
 
 	WM_operatortype_append(VIEW3D_OT_toggle_render);
 
+	WM_operatortype_append(VIEW3D_OT_ruler_add);
+
 	transform_operatortypes();
 }
 

@@ -60,6 +60,9 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         ("Scale", None,
          (("transform.resize", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),)),
         ("Scale Cage", "VIEW3D_WGT_xform_cage", None),
+        None,
+        ("Ruler/Protractor", "VIEW3D_WGT_ruler",
+         (("view3d.ruler_add", dict(), dict(type='EVT_TWEAK_A', value='ANY')),)),
     )
 
     _tools = {

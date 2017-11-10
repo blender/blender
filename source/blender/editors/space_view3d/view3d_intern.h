@@ -50,9 +50,10 @@ struct bPoseChannel;
 struct Mesh;
 struct SceneLayer;
 struct wmOperatorType;
-struct wmWindowManager;
 struct wmKeyConfig;
 struct wmManipulatorGroupType;
+struct wmManipulatorType;
+struct wmWindowManager;
 
 /* drawing flags: */
 enum {
@@ -337,6 +338,10 @@ void VIEW3D_WGT_camera_view(struct wmManipulatorGroupType *wgt);
 void VIEW3D_WGT_force_field(struct wmManipulatorGroupType *wgt);
 void VIEW3D_WGT_empty_image(struct wmManipulatorGroupType *wgt);
 void VIEW3D_WGT_armature_spline(struct wmManipulatorGroupType *wgt);
+
+void VIEW3D_WGT_ruler(struct wmManipulatorGroupType *wgt);
+void VIEW3D_WT_ruler_item(struct wmManipulatorType *wt);
+void VIEW3D_OT_ruler_add(struct wmOperatorType *ot);
 
 /* draw_volume.c */
 void draw_smoke_volume(struct SmokeDomainSettings *sds, struct Object *ob,
