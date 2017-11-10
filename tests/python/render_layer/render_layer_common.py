@@ -159,6 +159,7 @@ def dump(data):
 
 PDB = False
 DUMP_DIFF = True
+UPDATE_DIFF = False # HACK used to update tests when something change
 
 
 def compare_files(file_a, file_b):
@@ -171,6 +172,11 @@ def compare_files(file_a, file_b):
         if DUMP_DIFF:
             import subprocess
             subprocess.call(["diff", "-u", file_a, file_b])
+
+        if UPDATE_DIFF:
+            import subprocess
+            subprocess.call(["cp", "-u", file_a, file_b])
+
 
         if PDB:
             import pdb
