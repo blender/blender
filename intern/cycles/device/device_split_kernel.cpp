@@ -91,6 +91,7 @@ bool DeviceSplitKernel::load_kernels(const DeviceRequestedFeatures& requested_fe
 #define LOAD_KERNEL(name) \
 		kernel_##name = get_split_kernel_function(#name, requested_features); \
 		if(!kernel_##name) { \
+			device->set_error(string("Split kernel error: failed to load kernel_") + #name); \
 			return false; \
 		}
 
