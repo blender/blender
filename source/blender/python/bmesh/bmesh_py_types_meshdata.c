@@ -370,12 +370,12 @@ PyObject *BPy_BMVertSkin_CreatePyObject(struct MVertSkin *mvertskin)
 
 static void mloopcol_to_float(const MLoopCol *mloopcol, float r_col[3])
 {
-	rgb_uchar_to_float(r_col, (const unsigned char *)&mloopcol->r);
+	rgba_uchar_to_float(r_col, (const unsigned char *)&mloopcol->r);
 }
 
 static void mloopcol_from_float(MLoopCol *mloopcol, const float col[3])
 {
-	rgb_float_to_uchar((unsigned char *)&mloopcol->r, col);
+	rgba_float_to_uchar((unsigned char *)&mloopcol->r, col);
 }
 
 static unsigned char mathutils_bmloopcol_cb_index = -1;
@@ -436,8 +436,8 @@ static void bm_init_types_bmloopcol(void)
 
 int BPy_BMLoopColor_AssignPyObject(struct MLoopCol *mloopcol, PyObject *value)
 {
-	float tvec[3];
-	if (mathutils_array_parse(tvec, 3, 3, value, "BMLoopCol") != -1) {
+	float tvec[4];
+	if (mathutils_array_parse(tvec, 4, 4, value, "BMLoopCol") != -1) {
 		mloopcol_from_float(mloopcol, tvec);
 		return 0;
 	}
@@ -450,7 +450,7 @@ PyObject *BPy_BMLoopColor_CreatePyObject(struct MLoopCol *data)
 {
 	PyObject *color_capsule;
 	color_capsule = PyCapsule_New(data, NULL, NULL);
-	return Color_CreatePyObject_cb(color_capsule, mathutils_bmloopcol_cb_index, 0);
+	return Vector_CreatePyObject_cb(color_capsule, 4, mathutils_bmloopcol_cb_index, 0);
 }
 
 #undef MLOOPCOL_FROM_CAPSULE
