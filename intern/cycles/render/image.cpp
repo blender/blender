@@ -723,6 +723,7 @@ void ImageManager::device_load_image(Device *device,
 		                                            *tex_img))
 		{
 			/* on failure to load, we set a 1x1 pixels pink image */
+			thread_scoped_lock device_lock(device_mutex);
 			float *pixels = (float*)tex_img->alloc(1, 1);
 
 			pixels[0] = TEX_IMAGE_MISSING_R;
@@ -748,6 +749,7 @@ void ImageManager::device_load_image(Device *device,
 		                                            *tex_img))
 		{
 			/* on failure to load, we set a 1x1 pixels pink image */
+			thread_scoped_lock device_lock(device_mutex);
 			float *pixels = (float*)tex_img->alloc(1, 1);
 
 			pixels[0] = TEX_IMAGE_MISSING_R;
@@ -770,6 +772,7 @@ void ImageManager::device_load_image(Device *device,
 		                                            *tex_img))
 		{
 			/* on failure to load, we set a 1x1 pixels pink image */
+			thread_scoped_lock device_lock(device_mutex);
 			uchar *pixels = (uchar*)tex_img->alloc(1, 1);
 
 			pixels[0] = (TEX_IMAGE_MISSING_R * 255);
@@ -794,6 +797,7 @@ void ImageManager::device_load_image(Device *device,
 		                                            texture_limit,
 		                                            *tex_img)) {
 			/* on failure to load, we set a 1x1 pixels pink image */
+			thread_scoped_lock device_lock(device_mutex);
 			uchar *pixels = (uchar*)tex_img->alloc(1, 1);
 
 			pixels[0] = (TEX_IMAGE_MISSING_R * 255);
@@ -815,6 +819,7 @@ void ImageManager::device_load_image(Device *device,
 		                                          texture_limit,
 		                                          *tex_img)) {
 			/* on failure to load, we set a 1x1 pixels pink image */
+			thread_scoped_lock device_lock(device_mutex);
 			half *pixels = (half*)tex_img->alloc(1, 1);
 
 			pixels[0] = TEX_IMAGE_MISSING_R;
@@ -839,6 +844,7 @@ void ImageManager::device_load_image(Device *device,
 		                                          texture_limit,
 		                                          *tex_img)) {
 			/* on failure to load, we set a 1x1 pixels pink image */
+			thread_scoped_lock device_lock(device_mutex);
 			half *pixels = (half*)tex_img->alloc(1, 1);
 
 			pixels[0] = TEX_IMAGE_MISSING_R;

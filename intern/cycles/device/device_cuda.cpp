@@ -908,7 +908,7 @@ public:
 			cmem->texobject = 0;
 			cmem->array = array_3d;
 		}
-		else if(mem.data_height > 1) {
+		else if(mem.data_height > 0) {
 			/* 2D texture, using pitch aligned linear memory. */
 			int alignment = 0;
 			cuda_assert(cuDeviceGetAttribute(&alignment, CU_DEVICE_ATTRIBUTE_TEXTURE_PITCH_ALIGNMENT, cuDevice));
@@ -962,7 +962,7 @@ public:
 				resDesc.res.array.hArray = array_3d;
 				resDesc.flags = 0;
 			}
-			else if(mem.data_height > 1) {
+			else if(mem.data_height > 0) {
 				resDesc.resType = CU_RESOURCE_TYPE_PITCH2D;
 				resDesc.res.pitch2D.devPtr = mem.device_pointer;
 				resDesc.res.pitch2D.format = format;
@@ -1012,7 +1012,7 @@ public:
 			if(array_3d) {
 				cuda_assert(cuTexRefSetArray(texref, array_3d, CU_TRSA_OVERRIDE_FORMAT));
 			}
-			else if(mem.data_height > 1) {
+			else if(mem.data_height > 0) {
 				CUDA_ARRAY_DESCRIPTOR array_desc;
 				array_desc.Format = format;
 				array_desc.Height = mem.data_height;
