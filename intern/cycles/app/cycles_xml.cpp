@@ -358,7 +358,7 @@ static void xml_read_shader(XMLReadState& state, xml_node node)
 
 /* Background */
 
-static void xml_read_background(XMLReadState& state, pugi::xml_node node)
+static void xml_read_background(XMLReadState& state, xml_node node)
 {
 	/* Background Settings */
 	xml_read_node(state, state.scene->background, node);

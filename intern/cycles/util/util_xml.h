@@ -31,8 +31,10 @@ OIIO_NAMESPACE_USING
 #  define PUGIXML_NAMESPACE OIIO_NAMESPACE::pugi
 #endif
 
-using PUGIXML_NAMESPACE::xml_node;
 using PUGIXML_NAMESPACE::xml_attribute;
+using PUGIXML_NAMESPACE::xml_document;
+using PUGIXML_NAMESPACE::xml_node;
+using PUGIXML_NAMESPACE::xml_parse_result;
 
 CCL_NAMESPACE_END
 
