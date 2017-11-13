@@ -95,6 +95,7 @@ static void EEVEE_cache_init(void *vedata)
 	EEVEE_motion_blur_cache_init(sldata, vedata);
 	EEVEE_occlusion_cache_init(sldata, vedata);
 	EEVEE_screen_raytrace_cache_init(sldata, vedata);
+	EEVEE_subsurface_cache_init(sldata, vedata);
 	EEVEE_temporal_sampling_cache_init(sldata, vedata);
 	EEVEE_volumes_cache_init(sldata, vedata);
 }
@@ -207,7 +208,7 @@ static void EEVEE_draw_scene(void *vedata)
 		DRW_framebuffer_texture_detach(dtxl->depth);
 		DRW_framebuffer_texture_attach(fbl->main, dtxl->depth, 0, 0);
 		DRW_framebuffer_bind(fbl->main);
-		DRW_framebuffer_clear(false, true, false, NULL, 1.0f);
+		DRW_framebuffer_clear(false, true, true, NULL, 1.0f);
 
 		if (((stl->effects->enabled_effects & EFFECT_TAA) != 0) && stl->effects->taa_current_sample > 1) {
 			DRW_viewport_matrix_override_set(stl->effects->overide_persmat, DRW_MAT_PERS);
@@ -235,9 +236,11 @@ static void EEVEE_draw_scene(void *vedata)
 		DRW_draw_pass(psl->background_pass);
 		EEVEE_draw_default_passes(psl);
 		DRW_draw_pass(psl->material_pass);
+		EEVEE_subsurface_data_render(sldata, vedata);
 		DRW_stats_group_end();
 
 		/* Effects pre-transparency */
+		EEVEE_subsurface_compute(sldata, vedata);
 		EEVEE_reflection_compute(sldata, vedata);
 		EEVEE_occlusion_draw_debug(sldata, vedata);
 		DRW_draw_pass(psl->probe_display);
@@ -294,6 +297,7 @@ static void EEVEE_engine_free(void)
 	EEVEE_motion_blur_free();
 	EEVEE_occlusion_free();
 	EEVEE_screen_raytrace_free();
+	EEVEE_subsurface_free();
 	EEVEE_temporal_sampling_free();
 	EEVEE_volumes_free();
 }
@@ -317,6 +321,8 @@ static void EEVEE_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDPr
 	BKE_collection_engine_property_add_int(props, "gi_cubemap_resolution", 512);
 
 	BKE_collection_engine_property_add_int(props, "taa_samples", 8);
+
+	BKE_collection_engine_property_add_bool(props, "sss_enable", false);
 
 	BKE_collection_engine_property_add_bool(props, "ssr_enable", false);
 	BKE_collection_engine_property_add_bool(props, "ssr_refraction", false);

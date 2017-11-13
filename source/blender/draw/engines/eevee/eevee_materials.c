@@ -58,6 +58,8 @@ static struct {
 	 * Packing enables us to same precious textures slots. */
 	struct GPUTexture *util_tex;
 
+	unsigned int sss_count;
+
 	float viewvecs[2][4];
 } e_data = {NULL}; /* Engine data */
 
@@ -301,6 +303,9 @@ static char *eevee_get_defines(int options)
 	}
 	if ((options & VAR_MAT_REFRACT) != 0) {
 		BLI_dynstr_appendf(ds, "#define USE_REFRACTION\n");
+	}
+	if ((options & VAR_MAT_SSS) != 0) {
+		BLI_dynstr_appendf(ds, "#define USE_SSS\n");
 	}
 	if ((options & VAR_MAT_VSM) != 0) {
 		BLI_dynstr_appendf(ds, "#define SHADOW_VSM\n");
@@ -630,7 +635,7 @@ struct GPUMaterial *EEVEE_material_world_volume_get(struct Scene *scene, World *
 
 struct GPUMaterial *EEVEE_material_mesh_get(
         struct Scene *scene, Material *ma, EEVEE_Data *vedata,
-        bool use_blend, bool use_multiply, bool use_refract, int shadow_method)
+        bool use_blend, bool use_multiply, bool use_refract, bool use_sss, int shadow_method)
 {
 	const void *engine = &DRW_engine_viewport_eevee_type;
 	int options = VAR_MAT_MESH;
@@ -638,6 +643,7 @@ struct GPUMaterial *EEVEE_material_mesh_get(
 	if (use_blend) options |= VAR_MAT_BLEND;
 	if (use_multiply) options |= VAR_MAT_MULT;
 	if (use_refract) options |= VAR_MAT_REFRACT;
+	if (use_sss) options |= VAR_MAT_SSS;
 	if (vedata->stl->effects->use_volumetrics && use_blend) options |= VAR_MAT_VOLUME;
 
 	options |= eevee_material_shadow_option(shadow_method);
@@ -919,6 +925,12 @@ void EEVEE_materials_cache_init(EEVEE_Data *vedata)
 	}
 
 	{
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_CLIP_PLANES | DRW_STATE_WIRE | DRW_STATE_WRITE_STENCIL;
+		psl->sss_pass = DRW_pass_create("Subsurface Pass", state);
+		e_data.sss_count = 0;
+	}
+
+	{
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS | DRW_STATE_CLIP_PLANES | DRW_STATE_WIRE;
 		psl->transparent_pass = DRW_pass_create("Material Transparent Pass", state);
 	}
@@ -963,6 +975,7 @@ static void material_opaque(
 
 	const bool use_gpumat = (ma->use_nodes && ma->nodetree);
 	const bool use_refract = ((ma->blend_flag & MA_BL_SS_REFRACTION) != 0) && ((stl->effects->enabled_effects & EFFECT_REFRACT) != 0);
+	const bool use_sss = ((ma->blend_flag & MA_BL_SS_SUBSURFACE) != 0) && ((stl->effects->enabled_effects & EFFECT_SSS) != 0);
 
 	EeveeMaterialShadingGroups *emsg = BLI_ghash_lookup(material_hash, (const void *)ma);
 
@@ -973,7 +986,7 @@ static void material_opaque(
 
 		/* This will have been created already, just perform a lookup. */
 		*gpumat = (use_gpumat) ? EEVEE_material_mesh_get(
-		        scene, ma, vedata, false, false, use_refract, linfo->shadow_method) : NULL;
+		        scene, ma, vedata, false, false, use_refract, use_sss, linfo->shadow_method) : NULL;
 		*gpumat_depth = (use_gpumat) ? EEVEE_material_mesh_depth_get(
 		        scene, ma, (ma->blend_method == MA_BM_HASHED), false) : NULL;
 		return;
@@ -981,14 +994,25 @@ static void material_opaque(
 
 	if (use_gpumat) {
 		/* Shading */
-		*gpumat = EEVEE_material_mesh_get(scene, ma, vedata, false, false, use_refract, linfo->shadow_method);
+		*gpumat = EEVEE_material_mesh_get(scene, ma, vedata, false, false, use_refract, use_sss, linfo->shadow_method);
 
-		*shgrp = DRW_shgroup_material_create(*gpumat, use_refract ? psl->refract_pass : psl->material_pass);
+		*shgrp = DRW_shgroup_material_create(*gpumat,
+		                                     (use_refract) ? psl->refract_pass :
+		                                     (use_sss) ? psl->sss_pass : psl->material_pass);
 		if (*shgrp) {
 			static int no_ssr = -1;
 			static int first_ssr = 0;
 			int *ssr_id = (stl->effects->use_ssr && !use_refract) ? &first_ssr : &no_ssr;
 			add_standard_uniforms(*shgrp, sldata, vedata, ssr_id, &ma->refract_depth, use_refract, false);
+
+			if (use_sss) {
+				struct GPUUniformBuffer *sss_profile = GPU_material_sss_profile_get(*gpumat);
+				if (sss_profile) {
+					DRW_shgroup_stencil_mask(*shgrp, e_data.sss_count + 1);
+					EEVEE_subsurface_add_pass(vedata, e_data.sss_count + 1, sss_profile);
+					e_data.sss_count++;
+				}
+			}
 		}
 		else {
 			/* Shader failed : pink color */
@@ -1072,7 +1096,8 @@ static void material_transparent(
 
 	if (ma->use_nodes && ma->nodetree) {
 		/* Shading */
-		*gpumat = EEVEE_material_mesh_get(scene, ma, vedata, true, (ma->blend_method == MA_BM_MULTIPLY), use_refract, linfo->shadow_method);
+		*gpumat = EEVEE_material_mesh_get(scene, ma, vedata, true, (ma->blend_method == MA_BM_MULTIPLY), use_refract,
+		                                  false, linfo->shadow_method);
 
 		*shgrp = DRW_shgroup_material_create(*gpumat, psl->transparent_pass);
 		if (*shgrp) {

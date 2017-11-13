@@ -1186,6 +1186,8 @@ class EEVEE_MATERIAL_PT_options(MaterialButtonsPanel, Panel):
         layout.prop(mat, "use_screen_refraction")
         layout.prop(mat, "refraction_depth")
 
+        layout.prop(mat, "use_screen_subsurface")
+
 
 classes = (
     MATERIAL_MT_sss_presets,

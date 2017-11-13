@@ -115,6 +115,7 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 	effects->enabled_effects |= EEVEE_depth_of_field_init(sldata, vedata);
 	effects->enabled_effects |= EEVEE_temporal_sampling_init(sldata, vedata);
 	effects->enabled_effects |= EEVEE_occlusion_init(sldata, vedata);
+	effects->enabled_effects |= EEVEE_subsurface_init(sldata, vedata);
 	effects->enabled_effects |= EEVEE_screen_raytrace_init(sldata, vedata);
 	effects->enabled_effects |= EEVEE_volumes_init(sldata, vedata);
 
@@ -410,29 +411,30 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 	DRW_transform_to_display(effects->source_buffer);
 
 	/* Debug : Ouput buffer to view. */
-	if ((G.debug_value > 0) && (G.debug_value <= 6)) {
-		switch (G.debug_value) {
-			case 1:
-				if (txl->maxzbuffer) DRW_transform_to_display(txl->maxzbuffer);
-				break;
-			case 2:
-				if (stl->g_data->ssr_hit_output[0]) DRW_transform_to_display(stl->g_data->ssr_hit_output[0]);
-				break;
-			case 3:
-				if (txl->ssr_normal_input) DRW_transform_to_display(txl->ssr_normal_input);
-				break;
-			case 4:
-				if (txl->ssr_specrough_input) DRW_transform_to_display(txl->ssr_specrough_input);
-				break;
-			case 5:
-				if (txl->color_double_buffer) DRW_transform_to_display(txl->color_double_buffer);
-				break;
-			case 6:
-				if (stl->g_data->gtao_horizons_debug) DRW_transform_to_display(stl->g_data->gtao_horizons_debug);
-				break;
-			default:
-				break;
-		}
+	switch (G.debug_value) {
+		case 1:
+			if (txl->maxzbuffer) DRW_transform_to_display(txl->maxzbuffer);
+			break;
+		case 2:
+			if (stl->g_data->ssr_hit_output[0]) DRW_transform_to_display(stl->g_data->ssr_hit_output[0]);
+			break;
+		case 3:
+			if (txl->ssr_normal_input) DRW_transform_to_display(txl->ssr_normal_input);
+			break;
+		case 4:
+			if (txl->ssr_specrough_input) DRW_transform_to_display(txl->ssr_specrough_input);
+			break;
+		case 5:
+			if (txl->color_double_buffer) DRW_transform_to_display(txl->color_double_buffer);
+			break;
+		case 6:
+			if (stl->g_data->gtao_horizons_debug) DRW_transform_to_display(stl->g_data->gtao_horizons_debug);
+			break;
+		case 7:
+			if (txl->sss_data) DRW_transform_to_display(txl->sss_data);
+			break;
+		default:
+			break;
 	}
 
 	/* If no post processes is enabled, buffers are still not swapped, do it now. */

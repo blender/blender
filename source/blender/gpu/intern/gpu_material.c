@@ -142,11 +142,15 @@ struct GPUMaterial {
 	int domain;
 
 	GPUUniformBuffer *ubo; /* UBOs for shader uniforms. */
+	GPUUniformBuffer *sss_profile; /* UBO containing SSS profile. */
+	float *sss_radii; /* UBO containing SSS profile. */
+	bool sss_dirty;
 };
 
 enum {
 	GPU_DOMAIN_SURFACE    = (1 << 0),
-	GPU_DOMAIN_VOLUME     = (1 << 1)
+	GPU_DOMAIN_VOLUME     = (1 << 1),
+	GPU_DOMAIN_SSS        = (1 << 2)
 };
 
 /* Forward declaration so shade_light_textures() can use this, while still keeping the code somewhat organized */
@@ -266,6 +270,10 @@ void GPU_material_free(ListBase *gpumaterial)
 
 		if (material->ubo != NULL) {
 			GPU_uniformbuffer_free(material->ubo);
+		}
+
+		if (material->sss_profile != NULL) {
+			GPU_uniformbuffer_free(material->sss_profile);
 		}
 
 		BLI_freelistN(&material->lamps);
@@ -468,7 +476,166 @@ void GPU_material_uniform_buffer_tag_dirty(ListBase *gpumaterials)
 		if (material->ubo != NULL) {
 			GPU_uniformbuffer_tag_dirty(material->ubo);
 		}
+		if (material->sss_profile != NULL) {
+			material->sss_dirty = true;
+		}
 	}
+}
+
+/* Eevee Subsurface scattering. */
+/* Based on Separable SSS. by Jorge Jimenez and Diego Gutierrez */
+
+#define SSS_SAMPLES 25
+#define SSS_EXPONENT 2.0f /* Importance sampling exponent */
+
+typedef struct GPUSssKernelData {
+	float kernel[SSS_SAMPLES][4];
+	float radii_n[3], max_radius;
+} GPUSssKernelData;
+
+static void sss_calculate_offsets(GPUSssKernelData *kd)
+{
+	float step = 2.0f / (float)(SSS_SAMPLES - 1);
+	for (int i = 0; i < SSS_SAMPLES; i++) {
+		float o = ((float)i) * step - 1.0f;
+		float sign = (o < 0.0f) ? -1.0f : 1.0f;
+		float ofs = sign * fabsf(powf(o, SSS_EXPONENT));
+		kd->kernel[i][3] = ofs;
+	}
+}
+
+#if 0 /* Maybe used for other distributions */
+static void sss_calculate_areas(GPUSssKernelData *kd, float areas[SSS_SAMPLES])
+{
+	for (int i = 0; i < SSS_SAMPLES; i++) {
+		float w0 = (i > 0) ? fabsf(kd->kernel[i][3] - kd->kernel[i-1][3]) : 0.0f;
+		float w1 = (i < SSS_SAMPLES - 1) ? fabsf(kd->kernel[i][3] - kd->kernel[i+1][3]) : 0.0f;
+		areas[i] = (w0 + w1) / 2.0f;
+	}
+}
+#endif
+
+static float error_function(float x) {
+	/* Approximation of the error function by Abramowitz and Stegun
+	 * https://en.wikipedia.org/wiki/Error_function#Approximation_with_elementary_functions */
+	const float a1 = 0.254829592f;
+	const float a2 = -0.284496736f;
+	const float a3 = 1.421413741f;
+	const float a4 = -1.453152027f;
+	const float a5 = 1.061405429f;
+	const float p = 0.3275911f;
+
+	float sign = (x < 0.0f) ? -1.0f : 1.0f;
+	x = fabsf(x);
+
+	float t = 1.0f / (1.0f + p * x);
+	float y = 1.0f - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * expf(-(x * x));
+
+	return sign * y;
+}
+
+static float gaussian_primitive(float x) {
+	const float sigma = 0.3f; /* Contained mostly between -1..1 */
+	return 0.5f * error_function(x / ((float)M_SQRT2 * sigma));
+}
+
+static float gaussian_integral(float x0, float x1) {
+	return gaussian_primitive(x0) - gaussian_primitive(x1);
+}
+
+static void compute_sss_kernel(GPUSssKernelData *kd, float *radii)
+{
+	/* Normalize size */
+	copy_v3_v3(kd->radii_n, radii);
+	kd->max_radius = MAX3(kd->radii_n[0], kd->radii_n[1], kd->radii_n[2]);
+	mul_v3_fl(kd->radii_n, 1.0f / kd->max_radius);
+
+	/* Compute samples locations on the 1d kernel */
+	sss_calculate_offsets(kd);
+
+#if 0 /* Maybe used for other distributions */
+	/* Calculate areas (using importance-sampling) */
+	float areas[SSS_SAMPLES];
+	sss_calculate_areas(&kd, areas);
+#endif
+
+	/* Weights sum for normalization */
+	float sum[3] = {0.0f, 0.0f, 0.0f};
+
+	/* Compute interpolated weights */
+	for (int i = 0; i < SSS_SAMPLES; i++) {
+		float x0, x1;
+
+		if (i == 0) {
+			x0 = kd->kernel[0][3] - abs(kd->kernel[0][3] - kd->kernel[1][3]) / 2.0f;
+		}
+		else {
+			x0 = (kd->kernel[i - 1][3] + kd->kernel[i][3]) / 2.0f;
+		}
+
+		if (i == SSS_SAMPLES - 1) {
+			x1 = kd->kernel[SSS_SAMPLES - 1][3] + abs(kd->kernel[SSS_SAMPLES - 2][3] - kd->kernel[SSS_SAMPLES - 1][3]) / 2.0f;
+		}
+		else {
+			x1 = (kd->kernel[i][3] + kd->kernel[i + 1][3]) / 2.0f;
+		}
+
+		kd->kernel[i][0] = gaussian_integral(x0 / kd->radii_n[0], x1 / kd->radii_n[0]);
+		kd->kernel[i][1] = gaussian_integral(x0 / kd->radii_n[1], x1 / kd->radii_n[1]);
+		kd->kernel[i][2] = gaussian_integral(x0 / kd->radii_n[2], x1 / kd->radii_n[2]);
+
+		sum[0] += kd->kernel[i][0];
+		sum[1] += kd->kernel[i][1];
+		sum[2] += kd->kernel[i][2];
+	}
+
+	/* Normalize */
+	for (int i = 0; i < SSS_SAMPLES; i++) {
+		 kd->kernel[i][0] /= sum[0];
+		 kd->kernel[i][1] /= sum[1];
+		 kd->kernel[i][2] /= sum[2];
+	}
+
+	/* Put center sample at the start of the array (to sample first) */
+	float tmpv[4];
+	copy_v4_v4(tmpv, kd->kernel[SSS_SAMPLES / 2]);
+	for (int i = SSS_SAMPLES / 2; i > 0; i--) {
+		copy_v4_v4(kd->kernel[i], kd->kernel[i - 1]);
+	}
+	copy_v4_v4(kd->kernel[0], tmpv);
+}
+
+void GPU_material_sss_profile_create(GPUMaterial *material, float *radii)
+{
+	material->sss_radii = radii;
+	material->sss_dirty = true;
+
+	/* Update / Create UBO */
+	if (material->sss_profile == NULL) {
+		material->sss_profile = GPU_uniformbuffer_create(sizeof(GPUSssKernelData), NULL, NULL);
+	}
+}
+
+static void GPU_material_sss_profile_update(GPUMaterial *material)
+{
+	GPUSssKernelData kd;
+
+	compute_sss_kernel(&kd, material->sss_radii);
+
+	/* Update / Create UBO */
+	GPU_uniformbuffer_update(material->sss_profile, &kd);
+
+	material->sss_dirty = false;
+}
+#undef SSS_EXPONENT
+#undef SSS_SAMPLES
+
+struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material)
+{
+	if (material->sss_dirty) {
+		GPU_material_sss_profile_update(material);
+	}
+	return material->sss_profile;
 }
 
 void GPU_material_vertex_attributes(GPUMaterial *material, GPUVertexAttribs *attribs)

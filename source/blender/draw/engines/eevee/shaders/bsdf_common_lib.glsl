@@ -605,7 +605,8 @@ Closure closure_mix(Closure cl1, Closure cl2, float fac)
 	Closure cl;
 
 #ifdef USE_SSS
-	cl.sss_data = mix(cl1.sss_data, cl2.sss_data, fac);
+	cl.sss_data.rgb = mix(cl1.sss_data.rgb, cl2.sss_data.rgb, fac);
+	cl.sss_data.a = (cl1.sss_data.a > 0.0) ? cl1.sss_data.a : cl2.sss_data.a;
 #endif
 
 	if (cl1.ssr_id == outputSsrId) {
@@ -640,8 +641,14 @@ Closure closure_add(Closure cl1, Closure cl2)
 
 #if defined(MESH_SHADER) && !defined(USE_ALPHA_HASH) && !defined(USE_ALPHA_CLIP) && !defined(SHADOW_SHADER) && !defined(USE_MULTIPLY)
 layout(location = 0) out vec4 fragColor;
+#ifdef USE_SSS
+layout(location = 1) out vec4 sssData;
+layout(location = 2) out vec4 ssrNormals;
+layout(location = 3) out vec4 ssrData;
+#else
 layout(location = 1) out vec4 ssrNormals;
 layout(location = 2) out vec4 ssrData;
+#endif
 
 Closure nodetree_exec(void); /* Prototype */
 
@@ -665,6 +672,9 @@ void main()
 
 	ssrNormals = cl.ssr_normal.xyyy;
 	ssrData = cl.ssr_data;
+#ifdef USE_SSS
+	sssData = cl.sss_data;
+#endif
 }
 
 #endif /* MESH_SHADER && !SHADOW_SHADER */

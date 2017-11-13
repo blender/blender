@@ -367,6 +367,7 @@ RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(volumetric_light_clamp)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(volumetric_shadows)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(volumetric_shadow_samples)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(volumetric_colored_transmittance)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(sss_enable)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(ssr_refraction)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(ssr_enable)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(ssr_halfres)
@@ -1192,6 +1193,14 @@ static void rna_def_scene_layer_engine_settings_eevee(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Viewport Samples", "Number of temporal samples, unlimited if 0, "
 	                                                   "disabled if 1");
 	RNA_def_property_range(prop, 0, INT_MAX);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
+
+	/* Screen Space Subsurface Scattering */
+	prop = RNA_def_property(srna, "sss_enable", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_Eevee_sss_enable_get",
+	                               "rna_LayerEngineSettings_Eevee_sss_enable_set");
+	RNA_def_property_ui_text(prop, "Subsurface Scattering", "Enable screen space subsurface scattering");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_SceneLayerEngineSettings_update");
 

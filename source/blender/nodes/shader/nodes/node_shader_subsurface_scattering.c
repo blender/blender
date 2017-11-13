@@ -54,6 +54,13 @@ static int node_shader_gpu_subsurface_scattering(GPUMaterial *mat, bNode *node, 
 	if (!in[5].link)
 		GPU_link(mat, "world_normals_get", &in[5].link);
 
+	if (node->sss_id == 0) {
+		bNodeSocket *socket = BLI_findlink(&node->original->inputs, 2);
+		bNodeSocketValueRGBA *socket_data = socket->default_value;
+		/* For some reason it seems that the socket value is in ARGB format. */
+		GPU_material_sss_profile_create(mat, &socket_data->value[1]);
+	}
+
 	return GPU_stack_link(mat, node, "node_subsurface_scattering", in, out, GPU_uniform(&node->sss_id));
 }
 

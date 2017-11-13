@@ -757,6 +757,29 @@ class RENDER_PT_eevee_volumetric(RenderButtonsPanel, Panel):
         col.prop(props, "volumetric_colored_transmittance")
 
 
+class RENDER_PT_eevee_subsurface_scattering(RenderButtonsPanel, Panel):
+    bl_label = "Subsurface Scattering"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        return scene and (scene.view_render.engine in cls.COMPAT_ENGINES)
+
+    def draw_header(self, context):
+        scene = context.scene
+        props = scene.layer_properties['BLENDER_EEVEE']
+        self.layout.prop(props, "sss_enable", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        props = scene.layer_properties['BLENDER_EEVEE']
+
+        col = layout.column()
+
+
 class RENDER_PT_eevee_screen_space_reflections(RenderButtonsPanel, Panel):
     bl_label = "Screen Space Reflections"
     bl_options = {'DEFAULT_CLOSED'}
@@ -870,6 +893,7 @@ classes = (
     RENDER_PT_eevee_sampling,
     RENDER_PT_eevee_shadows,
     RENDER_PT_eevee_indirect_lighting,
+    RENDER_PT_eevee_subsurface_scattering,
     RENDER_PT_eevee_screen_space_reflections,
     RENDER_PT_eevee_ambient_occlusion,
     RENDER_PT_eevee_volumetric,
