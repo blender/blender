@@ -209,6 +209,10 @@ if(WITH_CYCLES_DEBUG)
 	add_definitions(-DWITH_CYCLES_DEBUG)
 endif()
 
+if(NOT OPENIMAGEIO_PUGIXML_FOUND)
+	add_definitions(-DWITH_SYSTEM_PUGIXML)
+endif()
+
 include_directories(
 	SYSTEM
 	${BOOST_INCLUDE_DIR}
