@@ -1581,7 +1581,7 @@ void DepsgraphRelationBuilder::build_obdata_geom(Object *ob)
 				             mom_geom_key,
 				             "Metaball Motherball Transform -> Geometry");
 			}
-			else if (mom != ob) {
+			else {
 				ComponentKey transform_key(&ob->id, DEG_NODE_TYPE_TRANSFORM);
 				add_relation(geom_key, mom_geom_key, "Metaball Motherball");
 				add_relation(transform_key, mom_geom_key, "Metaball Motherball");
