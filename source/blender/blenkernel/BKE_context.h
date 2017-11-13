@@ -156,6 +156,7 @@ struct ARegion *CTX_wm_region(const bContext *C);
 void *CTX_wm_region_data(const bContext *C);
 struct ARegion *CTX_wm_menu(const bContext *C);
 struct wmManipulatorGroup *CTX_wm_manipulator_group(const bContext *C);
+struct wmMsgBus *CTX_wm_message_bus(const bContext *C);
 struct ReportList *CTX_wm_reports(const bContext *C);
 
 struct View3D *CTX_wm_view3d(const bContext *C);

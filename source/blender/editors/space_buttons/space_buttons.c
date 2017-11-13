@@ -44,6 +44,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_message.h"
 
 #include "RNA_access.h"
 

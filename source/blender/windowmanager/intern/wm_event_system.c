@@ -39,7 +39,6 @@
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
-#include "DNA_workspace_types.h"
 #include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -77,6 +76,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_message.h"
 #include "wm.h"
 #include "wm_window.h"
 #include "wm_event_system.h"
@@ -242,6 +242,14 @@ void WM_main_remove_notifier_reference(const void *reference)
 				wm_notifier_clear(note);
 			}
 		}
+
+		/* Remap instead. */
+#if 0
+		if (wm->message_bus) {
+			WM_msg_id_remove(wm->message_bus, reference);
+		}
+#endif
+
 	}
 }
 
@@ -259,6 +267,17 @@ void WM_main_remap_editor_id_reference(ID *old_id, ID *new_id)
 			for (sl = sa->spacedata.first; sl; sl = sl->next) {
 				ED_spacedata_id_remap(sa, sl, old_id, new_id);
 			}
+		}
+	}
+
+	wmWindowManager *wm = bmain->wm.first;
+	if (wm && wm->message_bus) {
+		struct wmMsgBus *mbus = wm->message_bus;
+		if (new_id != NULL) {
+			WM_msg_id_update(mbus, old_id, new_id);
+		}
+		else {
+			WM_msg_id_remove(mbus, old_id);
 		}
 	}
 }
@@ -328,7 +347,9 @@ void wm_event_do_notifiers(bContext *C)
 	
 	if (wm == NULL)
 		return;
-	
+
+	/* disable? - keep for now since its used for window level notifiers. */
+#if 1
 	/* cache & catch WM level notifiers, such as frame change, scene/screen set */
 	for (win = wm->windows.first; win; win = win->next) {
 		Scene *scene = WM_window_get_active_scene(win);
@@ -451,6 +472,16 @@ void wm_event_do_notifiers(bContext *C)
 		}
 		
 		MEM_freeN(note);
+	}
+#endif /* if 1 (postpone disabling for in favor of message-bus), eventually. */
+
+	/* Handle message bus. */
+	{
+		for (win = wm->windows.first; win; win = win->next) {
+			CTX_wm_window_set(C, win);
+			WM_msgbus_handle(wm->message_bus, C);
+		}
+		CTX_wm_window_set(C, NULL);
 	}
 
 	wm_event_do_refresh_wm_and_depsgraph(C);

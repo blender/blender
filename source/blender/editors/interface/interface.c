@@ -41,6 +41,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
@@ -69,10 +70,13 @@
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm_subwindow.h"
+#include "WM_message.h"
 
 #include "RNA_access.h"
 
 #include "BPY_extern.h"
+
+#include "ED_screen.h"
 
 #include "IMB_colormanagement.h"
 
@@ -1451,6 +1455,40 @@ void UI_block_draw(const bContext *C, uiBlock *block)
 		glEnable(GL_MULTISAMPLE);
 	
 	ui_draw_links(block);
+}
+
+static void ui_block_message_subscribe(ARegion *ar, struct wmMsgBus *mbus, uiBlock *block)
+{
+	uiBut *but_prev = NULL;
+	/* possibly we should keep the region this block is contained in? */
+	for (uiBut *but = block->buttons.first; but; but = but->next) {
+		if (but->rnapoin.type && but->rnaprop) {
+			/* quick check to avoid adding buttons representing a vector, multiple times. */
+			if ((but_prev &&
+			    (but_prev->rnaprop == but->rnaprop) &&
+			    (but_prev->rnapoin.type == but->rnapoin.type) &&
+			    (but_prev->rnapoin.data == but->rnapoin.data) &&
+			    (but_prev->rnapoin.id.data == but->rnapoin.id.data)) == false)
+			{
+				/* TODO: could make this into utility function. */
+				WM_msg_subscribe_rna(
+				        mbus, &but->rnapoin, but->rnaprop,
+				        &(const wmMsgSubscribeValue){
+				            .owner = ar,
+				            .user_data = ar,
+				            .notify = ED_region_do_msg_notify_tag_redraw,
+				        }, __func__);
+				but_prev = but;
+			}
+		}
+	}
+}
+
+void UI_region_message_subscribe(ARegion *ar, struct wmMsgBus *mbus)
+{
+	for (uiBlock *block = ar->uiblocks.first; block; block = block->next) {
+		ui_block_message_subscribe(ar, mbus, block);
+	}
 }
 
 /* ************* EVENTS ************* */

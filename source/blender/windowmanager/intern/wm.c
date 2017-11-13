@@ -56,6 +56,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_message.h"
 #include "wm_window.h"
 #include "wm_event_system.h"
 #include "wm_draw.h"
@@ -396,6 +397,10 @@ void WM_check(bContext *C)
 		wm_window_ghostwindows_ensure(wm);
 	}
 
+	if (wm->message_bus == NULL) {
+		wm->message_bus = WM_msgbus_create();
+	}
+
 	/* case: fileread */
 	/* note: this runs in bg mode to set the screen context cb */
 	if ((wm->initialized & WM_WINDOW_IS_INITIALIZED) == 0) {
@@ -475,7 +480,11 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 	}
 
 	BLI_freelistN(&wm->queue);
-	
+
+	if (wm->message_bus != NULL) {
+		WM_msgbus_destroy(wm->message_bus);
+	}
+
 	BLI_freelistN(&wm->paintcursors);
 
 	WM_drag_free_list(&wm->drags);

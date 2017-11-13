@@ -90,6 +90,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "RNA_access.h"
+
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 

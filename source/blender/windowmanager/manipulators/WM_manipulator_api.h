@@ -51,6 +51,8 @@ struct wmManipulatorGroupType;
 struct wmManipulatorMap;
 struct wmManipulatorMapType;
 struct wmManipulatorMapType_Params;
+struct wmMsgSubscribeKey;
+struct wmMsgSubscribeValue;
 
 #include "wm_manipulator_fn.h"
 
@@ -216,6 +218,11 @@ const struct wmManipulatorPropertyType *WM_manipulatortype_target_property_find(
 void WM_manipulatortype_target_property_def(
         struct wmManipulatorType *wt, const char *idname, int data_type, int array_length);
 
+/* utilities */
+void WM_manipulator_do_msg_notify_tag_refresh(
+        struct bContext *C, struct wmMsgSubscribeKey *msg_key, struct wmMsgSubscribeValue *msg_val);
+void WM_manipulator_target_property_subscribe_all(
+        struct wmManipulator *mpr, struct wmMsgBus *mbus, struct ARegion *ar);
 
 /* -------------------------------------------------------------------- */
 /* wmManipulatorGroup */
@@ -245,6 +252,8 @@ void WM_manipulatormap_draw(
 void WM_manipulatormap_add_handlers(struct ARegion *ar, struct wmManipulatorMap *mmap);
 bool WM_manipulatormap_select_all(struct bContext *C, struct wmManipulatorMap *mmap, const int action);
 bool WM_manipulatormap_cursor_set(const struct wmManipulatorMap *mmap, struct wmWindow *win);
+void WM_manipulatormap_message_subscribe(
+        struct bContext *C, struct wmManipulatorMap *mmap, struct ARegion *ar, struct wmMsgBus *mbus);
 bool WM_manipulatormap_is_any_selected(const struct wmManipulatorMap *mmap);
 bool WM_manipulatormap_minmax(
         const struct wmManipulatorMap *mmap, bool use_hidden, bool use_select,

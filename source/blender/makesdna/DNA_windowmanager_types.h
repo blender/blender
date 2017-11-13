@@ -41,6 +41,7 @@
 struct wmWindowManager;
 struct wmWindow;
 
+struct wmMsgBus;
 struct wmEvent;
 struct wmGesture;
 struct wmOperatorType;
@@ -156,6 +157,9 @@ typedef struct wmWindowManager {
 
 	char is_interface_locked;		/* indicates whether interface is locked for user interaction */
 	char par[7];
+
+	struct wmMsgBus *message_bus;
+
 } wmWindowManager;
 
 /* wmWindowManager.initialized */

@@ -56,6 +56,7 @@ struct wmWindow;
 struct wmWindowManager;
 struct WorkSpace;
 struct GPUFXSettings;
+struct wmMsgBus;
 
 #include "BLI_compiler_attrs.h"
 
@@ -139,6 +140,12 @@ typedef struct ARegionType {
 	/* contextual changes should be handled here */
 	void (*listener)(struct bScreen *, struct ScrArea *, struct ARegion *,
 	                 struct wmNotifier *, const struct Scene *scene);
+	/* Optional callback to generate subscriptions. */
+	void (*message_subscribe)(
+	        const struct bContext *C,
+	        struct WorkSpace *workspace, struct Scene *scene,
+	        struct bScreen *sc, struct ScrArea *sa, struct ARegion *ar,
+	        struct wmMsgBus *mbus);
 
 	void (*free)(struct ARegion *);
 

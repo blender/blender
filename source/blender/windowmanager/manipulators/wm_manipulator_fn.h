@@ -42,6 +42,8 @@ typedef void (*wmManipulatorGroupFnDrawPrepare)(
 typedef struct wmKeyMap *(*wmManipulatorGroupFnSetupKeymap)(
         const struct wmManipulatorGroupType *, struct wmKeyConfig *)
         ATTR_WARN_UNUSED_RESULT;
+typedef void (*wmManipulatorGroupFnMsgBusSubscribe)(
+        const struct bContext *, struct wmManipulatorGroup *, struct wmMsgBus *);
 
 /* wmManipulator */
 /* See: wmManipulatorType for docs on each type. */

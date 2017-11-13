@@ -65,6 +65,7 @@ set(SRC
 	bpy_library_load.c
 	bpy_library_write.c
 	bpy_manipulator_wrap.c
+	bpy_msgbus.c
 	bpy_operator.c
 	bpy_operator_wrap.c
 	bpy_path.c
@@ -102,6 +103,7 @@ set(SRC
 	bpy_intern_string.h
 	bpy_library.h
 	bpy_manipulator_wrap.h
+	bpy_msgbus.h
 	bpy_operator.h
 	bpy_operator_wrap.h
 	bpy_path.h

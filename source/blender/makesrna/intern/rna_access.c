@@ -62,6 +62,7 @@
 #include "RNA_enum_types.h"
 
 #include "WM_api.h"
+#include "WM_message.h"
 
 /* flush updates */
 #include "DNA_object_types.h"
@@ -1976,8 +1977,16 @@ static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerR
 			else
 				prop->update(bmain, scene, ptr);
 		}
+#if 0
 		if (prop->noteflag)
 			WM_main_add_notifier(prop->noteflag, ptr->id.data);
+#else
+		{
+			struct wmMsgBus *mbus = CTX_wm_message_bus(C);
+			/* we could add NULL check, for now don't */
+			WM_msg_publish_rna(mbus, ptr, prop);
+		}
+#endif
 	}
 	
 	if (!is_rna || (prop->flag & PROP_IDPROPERTY)) {

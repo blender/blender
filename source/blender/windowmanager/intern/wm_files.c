@@ -123,6 +123,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_message.h"
 #include "wm.h"
 #include "wm_files.h"
 #include "wm_window.h"
@@ -504,7 +505,11 @@ static void wm_file_read_post(bContext *C, const bool is_startup_file, const boo
 	BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_VERSION_UPDATE);
 	BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
 
+#if 1
 	WM_event_add_notifier(C, NC_WM | ND_FILEREAD, NULL);
+#else
+	WM_msg_publish_static(CTX_wm_message_bus(C), WM_MSG_STATICTYPE_FILE_READ);
+#endif
 
 	/* report any errors.
 	 * currently disabled if addons aren't yet loaded */

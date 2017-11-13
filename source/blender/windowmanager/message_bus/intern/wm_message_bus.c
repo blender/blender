@@ -1,0 +1,245 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/windowmanager/message_bus/intern/wm_message_bus.c
+ *  \ingroup wm
+ */
+
+#include <string.h>
+
+#include "BLI_utildefines.h"
+#include "BLI_listbase.h"
+
+#include "BLI_ghash.h"
+
+#include "WM_types.h"
+
+#include "MEM_guardedalloc.h"
+
+#include "message_bus/wm_message_bus.h"
+#include "message_bus/intern/wm_message_bus_intern.h"
+
+/* -------------------------------------------------------------------------- */
+/** \name Public API
+ * \{ */
+
+static wmMsgTypeInfo wm_msg_types[WM_MSG_TYPE_NUM] = {NULL};
+
+typedef void (*wmMsgTypeInitFn)(wmMsgTypeInfo *);
+
+static wmMsgTypeInitFn wm_msg_init_fn[WM_MSG_TYPE_NUM] = {
+	WM_msgtypeinfo_init_rna,
+	WM_msgtypeinfo_init_static,
+};
+
+void WM_msgbus_types_init(void)
+{
+	for (uint i = 0; i < WM_MSG_TYPE_NUM; i++) {
+		wm_msg_init_fn[i](&wm_msg_types[i]);
+	}
+}
+
+struct wmMsgBus *WM_msgbus_create(void)
+{
+	struct wmMsgBus *mbus = MEM_callocN(sizeof(*mbus), __func__);
+	const uint gset_reserve = 512;
+	for (uint i = 0; i < WM_MSG_TYPE_NUM; i++) {
+		wmMsgTypeInfo *info = &wm_msg_types[i];
+		mbus->messages_gset[i] = BLI_gset_new_ex(info->gset.hash_fn, info->gset.cmp_fn, __func__, gset_reserve);
+	}
+	return mbus;
+}
+
+void WM_msgbus_destroy(struct wmMsgBus *mbus)
+{
+	for (uint i = 0; i < WM_MSG_TYPE_NUM; i++) {
+		wmMsgTypeInfo *info = &wm_msg_types[i];
+		BLI_gset_free(mbus->messages_gset[i], info->gset.key_free_fn);
+	}
+	MEM_freeN(mbus);
+}
+
+void WM_msgbus_clear_by_owner(struct wmMsgBus *mbus, void *owner)
+{
+	wmMsgSubscribeKey *msg_key, *msg_key_next;
+	for (msg_key = mbus->messages.first; msg_key; msg_key = msg_key_next) {
+		msg_key_next = msg_key->next;
+
+		wmMsgSubscribeValueLink *msg_lnk_next;
+		for (wmMsgSubscribeValueLink *msg_lnk = msg_key->values.first; msg_lnk; msg_lnk = msg_lnk_next) {
+			msg_lnk_next = msg_lnk->next;
+			if (msg_lnk->params.owner == owner) {
+				if (msg_lnk->params.free_data) {
+					msg_lnk->params.free_data(msg_key, &msg_lnk->params);
+				}
+				BLI_remlink(&msg_key->values, msg_lnk);
+				MEM_freeN(msg_lnk);
+			}
+		}
+
+		if (BLI_listbase_is_empty(&msg_key->values)) {
+			wmMsgTypeInfo *info = &wm_msg_types[msg_key->msg->type];
+			BLI_remlink(&mbus->messages, msg_key);
+			bool ok = BLI_gset_remove(mbus->messages_gset[msg_key->msg->type], msg_key, info->gset.key_free_fn);
+			BLI_assert(ok);
+			UNUSED_VARS_NDEBUG(ok);
+		}
+	}
+}
+
+void WM_msg_dump(struct wmMsgBus *mbus, const char *info_str)
+{
+	printf(">>>> %s\n", info_str);
+	for (wmMsgSubscribeKey *key = mbus->messages.first; key; key = key->next) {
+		const wmMsgTypeInfo *info = &wm_msg_types[key->msg->type];
+		info->repr(stdout, key);
+	}
+	printf("<<<< %s\n", info_str);
+}
+
+void WM_msgbus_handle(struct wmMsgBus *mbus, struct bContext *C)
+{
+	if (mbus->messages_tag_count == 0) {
+		// printf("msgbus: skipping\n");
+		return;
+	}
+
+	if (false) {
+		WM_msg_dump(mbus, __func__);
+	}
+
+	// uint a = 0, b = 0;
+	for (wmMsgSubscribeKey *key = mbus->messages.first; key; key = key->next) {
+		for (wmMsgSubscribeValueLink *msg_lnk = key->values.first; msg_lnk; msg_lnk = msg_lnk->next) {
+			if (msg_lnk->params.tag) {
+				msg_lnk->params.notify(C, key, &msg_lnk->params);
+				msg_lnk->params.tag = false;
+				mbus->messages_tag_count -= 1;
+			}
+			// b++;
+		}
+		// a++;
+	}
+	BLI_assert(mbus->messages_tag_count == 0);
+	mbus->messages_tag_count = 0;
+	// printf("msgbus: keys=%u values=%u\n", a, b);
+}
+
+/**
+ * \param msg_key_test: Needs following #wmMsgSubscribeKey fields filled in:
+ * - msg.params
+ * - msg.head.type
+ * - msg.head.id
+ * .. other values should be zeroed.
+ *
+ * \return The key for this subscription.
+ * note that this is only needed in rare cases when the key needs further manipulation.
+ */
+wmMsgSubscribeKey *WM_msg_subscribe_with_key(
+        struct wmMsgBus *mbus,
+        const wmMsgSubscribeKey *msg_key_test,
+        const wmMsgSubscribeValue *msg_val_params)
+{
+	const uint type = msg_key_test->msg->type;
+	const wmMsgTypeInfo *info = &wm_msg_types[type];
+	wmMsgSubscribeKey *key;
+
+	BLI_assert(msg_key_test->msg->id != NULL);
+
+	void **r_key;
+	if (!BLI_gset_ensure_p_ex(mbus->messages_gset[type], msg_key_test, &r_key)) {
+		key = *r_key = MEM_mallocN(info->msg_key_size, __func__);
+		memcpy(key, msg_key_test, info->msg_key_size);
+		BLI_addtail(&mbus->messages, key);
+	}
+	else {
+		key = *r_key;
+		for (wmMsgSubscribeValueLink *msg_lnk = key->values.first; msg_lnk; msg_lnk = msg_lnk->next) {
+			if ((msg_lnk->params.notify == msg_val_params->notify) &&
+			    (msg_lnk->params.owner == msg_val_params->owner) &&
+			    (msg_lnk->params.user_data == msg_val_params->user_data))
+			{
+				return key;
+			}
+		}
+	}
+
+	wmMsgSubscribeValueLink *msg_lnk = MEM_mallocN(sizeof(wmMsgSubscribeValueLink), __func__);
+	msg_lnk->params = *msg_val_params;
+	BLI_addtail(&key->values, msg_lnk);
+	return key;
+}
+
+void WM_msg_publish_with_key(struct wmMsgBus *mbus, wmMsgSubscribeKey *msg_key)
+{
+	for (wmMsgSubscribeValueLink *msg_lnk = msg_key->values.first; msg_lnk; msg_lnk = msg_lnk->next) {
+		if (false) {  /* make an option? */
+			msg_lnk->params.notify(NULL, msg_key, &msg_lnk->params);
+		}
+		else {
+			if (msg_lnk->params.tag == false) {
+				msg_lnk->params.tag = true;
+				mbus->messages_tag_count += 1;
+			}
+		}
+	}
+}
+
+void WM_msg_id_update(
+        struct wmMsgBus *mbus,
+        struct ID *id_src, struct ID *id_dst)
+{
+	for (uint i = 0; i < WM_MSG_TYPE_NUM; i++) {
+		wmMsgTypeInfo *info = &wm_msg_types[i];
+		if (info->update_by_id != NULL) {
+			info->update_by_id(mbus, id_src, id_dst);
+		}
+	}
+}
+
+void WM_msg_id_remove(struct wmMsgBus *mbus, const struct ID *id)
+{
+	for (uint i = 0; i < WM_MSG_TYPE_NUM; i++) {
+		wmMsgTypeInfo *info = &wm_msg_types[i];
+		if (info->remove_by_id != NULL) {
+			info->remove_by_id(mbus, id);
+		}
+	}
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------------- */
+/** \name Internal API
+ *
+ * \note While we could have a separate type for ID's, use RNA since there is enough overlap.
+ * \{ */
+
+void wm_msg_subscribe_value_free(
+        wmMsgSubscribeKey *msg_key, wmMsgSubscribeValueLink *msg_lnk)
+{
+	if (msg_lnk->params.free_data) {
+		msg_lnk->params.free_data(msg_key, &msg_lnk->params);
+	}
+	BLI_remlink(&msg_key->values, msg_lnk);
+	MEM_freeN(msg_lnk);
+}
+
+/** \} */

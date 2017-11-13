@@ -679,6 +679,11 @@ struct wmManipulatorGroup *CTX_wm_manipulator_group(const bContext *C)
 	return C->wm.manipulator_group;
 }
 
+struct wmMsgBus *CTX_wm_message_bus(const bContext *C)
+{
+	return C->wm.manager ? C->wm.manager->message_bus : NULL;
+}
+
 struct ReportList *CTX_wm_reports(const bContext *C)
 {
 	if (C->wm.manager)

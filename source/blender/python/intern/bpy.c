@@ -58,6 +58,7 @@
 
 /* external util modules */
 #include "../generic/idprop_py_api.h"
+#include "bpy_msgbus.h"
 
 #ifdef WITH_FREESTYLE
 #  include "BPy_Freestyle.h"
@@ -350,6 +351,7 @@ void BPy_init_modules(void)
 	PyModule_AddObject(mod, "app", BPY_app_struct());
 	PyModule_AddObject(mod, "_utils_units", BPY_utils_units());
 	PyModule_AddObject(mod, "_utils_previews", BPY_utils_previews_module());
+	PyModule_AddObject(mod, "msgbus", BPY_msgbus_module());
 
 	/* bpy context */
 	RNA_pointer_create(NULL, &RNA_Context, (void *)BPy_GetContext(), &ctx_ptr);

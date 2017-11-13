@@ -73,6 +73,7 @@ struct bNodeSocket;
 struct wmDropBox;
 struct wmDrag;
 struct wmEvent;
+struct wmMsgBus;
 
 typedef struct uiBut uiBut;
 typedef struct uiBlock uiBlock;
@@ -874,6 +875,8 @@ enum {
 uiLayout *UI_block_layout(uiBlock *block, int dir, int type, int x, int y, int size, int em, int padding, struct uiStyle *style);
 void UI_block_layout_set_current(uiBlock *block, uiLayout *layout);
 void UI_block_layout_resolve(uiBlock *block, int *x, int *y);
+
+void UI_region_message_subscribe(struct ARegion *ar, struct wmMsgBus *mbus);
 
 uiBlock *uiLayoutGetBlock(uiLayout *layout);
 

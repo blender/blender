@@ -305,6 +305,7 @@ static bool manipulator_prepare_drawing(
 		/* skip */
 	}
 	else {
+		/* Ensure we get RNA updates */
 		if (do_draw & WM_MANIPULATOR_IS_VISIBLE_UPDATE) {
 			/* hover manipulators need updating, even if we don't draw them */
 			wm_manipulator_update(mpr, C, (mmap->update_flag[drawstep] & MANIPULATORMAP_IS_PREPARE_DRAW) != 0);
@@ -951,6 +952,25 @@ wmManipulator **wm_manipulatormap_selected_get(wmManipulatorMap *mmap, int *r_se
 ListBase *wm_manipulatormap_groups_get(wmManipulatorMap *mmap)
 {
 	return &mmap->groups;
+}
+
+void WM_manipulatormap_message_subscribe(
+        bContext *C, wmManipulatorMap *mmap, ARegion *ar, struct wmMsgBus *mbus)
+{
+	for (wmManipulatorGroup *mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
+		if (!wm_manipulatorgroup_is_visible(mgroup, C)) {
+			continue;
+		}
+		for (wmManipulator *mpr = mgroup->manipulators.first; mpr; mpr = mpr->next) {
+			if (mpr->flag & WM_MANIPULATOR_HIDDEN) {
+				continue;
+			}
+			WM_manipulator_target_property_subscribe_all(mpr, mbus, ar);
+		}
+		if (mgroup->type->message_subscribe != NULL) {
+			mgroup->type->message_subscribe(C, mgroup, mbus);
+		}
+	}
 }
 
 /** \} */ /* wmManipulatorMap */

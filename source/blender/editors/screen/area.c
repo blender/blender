@@ -51,6 +51,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_message.h"
 #include "wm_subwindow.h"
 
 #include "ED_screen.h"
@@ -511,6 +512,33 @@ void ED_region_set(const bContext *C, ARegion *ar)
 	ED_region_pixelspace(ar);
 }
 
+/* Follow wmMsgNotifyFn spec */
+void ED_region_do_msg_notify_tag_redraw(
+        bContext *UNUSED(C), wmMsgSubscribeKey *UNUSED(msg_key), wmMsgSubscribeValue *msg_val)
+{
+	ARegion *ar = msg_val->owner;
+	ED_region_tag_redraw(ar);
+
+	/* This avoids _many_ situations where header/properties control display settings.
+	 * the common case is space properties in the header */
+	if (ELEM(ar->regiontype, RGN_TYPE_HEADER, RGN_TYPE_UI)) {
+		while (ar && ar->prev) {
+			ar = ar->prev;
+		}
+		for (; ar; ar = ar->next) {
+			if (ELEM(ar->regiontype, RGN_TYPE_WINDOW, RGN_TYPE_CHANNELS)) {
+				ED_region_tag_redraw(ar);
+			}
+		}
+	}
+}
+/* Follow wmMsgNotifyFn spec */
+void ED_area_do_msg_notify_tag_refresh(
+        bContext *UNUSED(C), wmMsgSubscribeKey *UNUSED(msg_key), wmMsgSubscribeValue *msg_val)
+{
+	ScrArea *sa = msg_val->user_data;
+	ED_area_tag_refresh(sa);
+}
 
 /* only exported for WM */
 void ED_region_do_draw(bContext *C, ARegion *ar)
@@ -588,6 +616,37 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 		if (((screen->state == SCREENFULL) && (ar->alignment == RGN_ALIGN_NONE)) == 0) {
 			region_draw_emboss(ar, &ar->winrct);
 		}
+	}
+
+	/* We may want to detach message-subscriptions from drawing. */
+	{
+		WorkSpace *workspace = CTX_wm_workspace(C);
+		wmWindowManager *wm = CTX_wm_manager(C);
+		bScreen *screen = WM_window_get_active_screen(win);
+		Scene *scene = CTX_data_scene(C);
+		struct wmMsgBus *mbus = wm->message_bus;
+		WM_msgbus_clear_by_owner(mbus, ar);
+
+		/* Cheat, always subscribe to this space type properties.
+		 *
+		 * This covers most cases and avoids copy-paste similar code for each space type.
+		 */
+		if (ELEM(ar->regiontype, RGN_TYPE_WINDOW, RGN_TYPE_CHANNELS, RGN_TYPE_UI, RGN_TYPE_TOOLS)) {
+			SpaceLink *sl = sa->spacedata.first;
+
+			PointerRNA ptr;
+			RNA_pointer_create(&screen->id, &RNA_Space, sl, &ptr);
+
+			wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
+				.owner = ar,
+				.user_data = ar,
+				.notify = ED_region_do_msg_notify_tag_redraw,
+			};
+			/* All properties for this space type. */
+			WM_msg_subscribe_rna(mbus, &ptr, NULL, &msg_sub_value_region_tag_redraw, __func__);
+		}
+
+		ED_region_message_subscribe(C, workspace, scene, screen, sa, ar, mbus);
 	}
 }
 
@@ -2593,5 +2652,27 @@ void ED_region_cache_draw_cached_segments(const ARegion *ar, const int num_segme
 		}
 
 		immUnbindProgram();
+	}
+}
+
+/**
+ * Generate subscriptions for this region.
+ */
+void ED_region_message_subscribe(
+        bContext *C,
+        struct WorkSpace *workspace, struct Scene *scene,
+        struct bScreen *screen, struct ScrArea *sa, struct ARegion *ar,
+        struct wmMsgBus *mbus)
+{
+	if (ar->manipulator_map != NULL) {
+		WM_manipulatormap_message_subscribe(C, ar->manipulator_map, ar, mbus);
+	}
+
+	if (BLI_listbase_is_empty(&ar->uiblocks)) {
+		UI_region_message_subscribe(ar, mbus);
+	}
+
+	if (ar->type->message_subscribe != NULL) {
+		ar->type->message_subscribe(C, workspace, scene, screen, sa, ar, mbus);
 	}
 }

@@ -6531,6 +6531,8 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 	wm->addonconf = NULL;
 	wm->userconf = NULL;
 	
+	wm->message_bus = NULL;
+
 	BLI_listbase_clear(&wm->jobs);
 	BLI_listbase_clear(&wm->drags);
 	

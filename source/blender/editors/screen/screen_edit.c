@@ -66,6 +66,8 @@
 
 #include "UI_interface.h"
 
+#include "WM_message.h"
+
 /* XXX actually should be not here... solve later */
 #include "wm_subwindow.h"
 
@@ -1003,6 +1005,8 @@ void ED_region_exit(bContext *C, ARegion *ar)
 		WM_event_remove_timer(wm, win, ar->regiontimer);
 		ar->regiontimer = NULL;
 	}
+
+	WM_msgbus_clear_by_owner(wm->message_bus, ar);
 
 	CTX_wm_region_set(C, prevar);
 }

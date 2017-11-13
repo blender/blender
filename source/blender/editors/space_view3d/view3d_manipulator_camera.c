@@ -45,6 +45,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_message.h"
 
 #include "view3d_intern.h"  /* own include */
 
@@ -217,6 +218,55 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmManipulatorGroup *mg
 
 }
 
+static void WIDGETGROUP_camera_message_subscribe(
+        const bContext *C, wmManipulatorGroup *mgroup, struct wmMsgBus *mbus)
+{
+	ARegion *ar = CTX_wm_region(C);
+	Object *ob = CTX_data_active_object(C);
+	Camera *ca = ob->data;
+
+	wmMsgSubscribeValue msg_sub_value_mpr_tag_refresh = {
+		.owner = ar,
+		.user_data = mgroup->parent_mmap,
+		.notify = WM_manipulator_do_msg_notify_tag_refresh,
+	};
+
+	{
+		extern PropertyRNA rna_Camera_dof_distance;
+		extern PropertyRNA rna_Camera_draw_size;
+		extern PropertyRNA rna_Camera_ortho_scale;
+		extern PropertyRNA rna_Camera_sensor_fit;
+		extern PropertyRNA rna_Camera_sensor_width;
+		extern PropertyRNA rna_Camera_shift_x;
+		extern PropertyRNA rna_Camera_shift_y;
+		extern PropertyRNA rna_Camera_type;
+		const PropertyRNA *props[] = {
+			&rna_Camera_dof_distance,
+			&rna_Camera_draw_size,
+			&rna_Camera_ortho_scale,
+			&rna_Camera_sensor_fit,
+			&rna_Camera_sensor_width,
+			&rna_Camera_shift_x,
+			&rna_Camera_shift_y,
+			&rna_Camera_type,
+		};
+
+		PointerRNA idptr;
+		RNA_id_pointer_create(&ca->id, &idptr);
+
+		for (int i = 0; i < ARRAY_SIZE(props); i++) {
+			WM_msg_subscribe_rna(mbus, &idptr, props[i], &msg_sub_value_mpr_tag_refresh, __func__);
+		}
+	}
+
+	/* Subscribe to render settings */
+	{
+		WM_msg_subscribe_rna_anon_prop(mbus, RenderSettings, resolution_x, &msg_sub_value_mpr_tag_refresh);
+		WM_msg_subscribe_rna_anon_prop(mbus, RenderSettings, resolution_y, &msg_sub_value_mpr_tag_refresh);
+		WM_msg_subscribe_rna_anon_prop(mbus, RenderSettings, pixel_aspect_x, &msg_sub_value_mpr_tag_refresh);
+		WM_msg_subscribe_rna_anon_prop(mbus, RenderSettings, pixel_aspect_y, &msg_sub_value_mpr_tag_refresh);
+	}
+}
 
 void VIEW3D_WGT_camera(wmManipulatorGroupType *wgt)
 {
@@ -230,6 +280,7 @@ void VIEW3D_WGT_camera(wmManipulatorGroupType *wgt)
 	wgt->poll = WIDGETGROUP_camera_poll;
 	wgt->setup = WIDGETGROUP_camera_setup;
 	wgt->refresh = WIDGETGROUP_camera_refresh;
+	wgt->message_subscribe = WIDGETGROUP_camera_message_subscribe;
 }
 
 /** \} */

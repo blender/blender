@@ -346,6 +346,11 @@ typedef struct wmManipulatorGroupType {
 	 * will fall back to default tweak keymap when left NULL. */
 	wmManipulatorGroupFnSetupKeymap setup_keymap;
 
+	/* Optionally subscribe to wmMsgBus events,
+	 * these are calculated automatically from RNA properties,
+	 * only needed if manipulators depend indirectly on properties. */
+	wmManipulatorGroupFnMsgBusSubscribe message_subscribe;
+
 	/* keymap created with callback from above */
 	struct wmKeyMap *keymap;
 	/* Only for convenient removal. */

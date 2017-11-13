@@ -35,6 +35,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_message.h"
 
 #include "wm.h"
 
@@ -308,6 +309,56 @@ void WM_manipulatortype_target_property_def(
 	mpt->index_in_type = wt->target_property_defs_len;
 	wt->target_property_defs_len += 1;
 	BLI_addtail(&wt->target_property_defs, mpt);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+
+/** \name Property Utilities
+ * \{ */
+
+void WM_manipulator_do_msg_notify_tag_refresh(
+        bContext *UNUSED(C), wmMsgSubscribeKey *UNUSED(msg_key), wmMsgSubscribeValue *msg_val)
+{
+	ARegion *ar = msg_val->owner;
+	wmManipulatorMap *mmap = msg_val->user_data;
+
+	ED_region_tag_redraw(ar);
+	WM_manipulatormap_tag_refresh(mmap);
+}
+
+/**
+ * Runs on the "prepare draw" pass,
+ * drawing the region clears.
+ */
+void WM_manipulator_target_property_subscribe_all(
+        wmManipulator *mpr, struct wmMsgBus *mbus, ARegion *ar)
+{
+	if (mpr->type->target_property_defs_len) {
+		wmManipulatorProperty *mpr_prop_array = WM_manipulator_target_property_array(mpr);
+		for (int i = 0; i < mpr->type->target_property_defs_len; i++) {
+			wmManipulatorProperty *mpr_prop = &mpr_prop_array[i];
+			if (WM_manipulator_target_property_is_valid(mpr_prop)) {
+				if (mpr_prop->prop) {
+					WM_msg_subscribe_rna(
+					        mbus, &mpr_prop->ptr, mpr_prop->prop,
+					        &(const wmMsgSubscribeValue){
+					            .owner = ar,
+					            .user_data = ar,
+					            .notify = ED_region_do_msg_notify_tag_redraw,
+					        }, __func__);
+					WM_msg_subscribe_rna(
+					        mbus, &mpr_prop->ptr, mpr_prop->prop,
+					        &(const wmMsgSubscribeValue){
+					            .owner = ar,
+					            .user_data = mpr->parent_mgroup->parent_mmap,
+					            .notify = WM_manipulator_do_msg_notify_tag_refresh,
+					        }, __func__);
+				}
+			}
+		}
+	}
 }
 
 /** \} */

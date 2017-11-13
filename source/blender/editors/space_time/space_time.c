@@ -58,6 +58,9 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_message.h"
+
+#include "RNA_access.h"
 
 #include "BIF_gl.h"
 
@@ -649,6 +652,47 @@ static void time_main_region_listener(
 	}
 }
 
+static void time_main_region_message_subscribe(
+        const struct bContext *UNUSED(C),
+        struct WorkSpace *UNUSED(workspace), struct Scene *scene,
+        struct bScreen *screen, struct ScrArea *sa, struct ARegion *ar,
+        struct wmMsgBus *mbus)
+{
+	PointerRNA ptr;
+	RNA_pointer_create(&screen->id, &RNA_SpaceTimeline, sa->spacedata.first, &ptr);
+
+	wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
+		.owner = ar,
+		.user_data = ar,
+		.notify = ED_region_do_msg_notify_tag_redraw,
+	};
+
+	/* Timeline depends on scene properties. */
+	{
+		bool use_preview = (scene->r.flag & SCER_PRV_RANGE);
+		extern PropertyRNA rna_Scene_frame_start;
+		extern PropertyRNA rna_Scene_frame_end;
+		extern PropertyRNA rna_Scene_frame_preview_start;
+		extern PropertyRNA rna_Scene_frame_preview_end;
+		extern PropertyRNA rna_Scene_use_preview_range;
+		extern PropertyRNA rna_Scene_frame_current;
+		const PropertyRNA *props[] = {
+			use_preview ? &rna_Scene_frame_preview_start : &rna_Scene_frame_start,
+			use_preview ? &rna_Scene_frame_preview_end   : &rna_Scene_frame_end,
+			&rna_Scene_use_preview_range,
+			&rna_Scene_frame_current,
+		};
+
+		PointerRNA idptr;
+		RNA_id_pointer_create(&scene->id, &idptr);
+
+		for (int i = 0; i < ARRAY_SIZE(props); i++) {
+			WM_msg_subscribe_rna(mbus, &idptr, props[i], &msg_sub_value_region_tag_redraw, __func__);
+		}
+	}
+}
+
+
 /* ************************ header time area region *********************** */
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -797,6 +841,7 @@ void ED_spacetype_time(void)
 	art->init = time_main_region_init;
 	art->draw = time_main_region_draw;
 	art->listener = time_main_region_listener;
+	art->message_subscribe = time_main_region_message_subscribe;
 	art->keymap = time_keymap;
 	art->lock = 1;   /* Due to pointcache, see T4960. */
 	BLI_addhead(&st->regiontypes, art);

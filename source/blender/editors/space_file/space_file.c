@@ -49,6 +49,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_message.h"
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -351,6 +352,33 @@ static void file_main_region_listener(
 					break;
 			}
 			break;
+	}
+}
+
+static void file_main_region_message_subscribe(
+        const struct bContext *UNUSED(C),
+        struct WorkSpace *UNUSED(workspace), struct Scene *UNUSED(scene),
+        struct bScreen *screen, struct ScrArea *sa, struct ARegion *ar,
+        struct wmMsgBus *mbus)
+{
+	SpaceFile *sfile = sa->spacedata.first;
+	FileSelectParams *params = ED_fileselect_get_params(sfile);
+	/* This is a bit odd that a region owns the subscriber for an area,
+	 * keep for now since all subscribers for WM are regions.
+	 * May be worth re-visiting later. */
+	wmMsgSubscribeValue msg_sub_value_area_tag_refresh = {
+		.owner = ar,
+		.user_data = sa,
+		.notify = ED_area_do_msg_notify_tag_refresh,
+	};
+
+	/* FileSelectParams */
+	{
+		PointerRNA ptr;
+		RNA_pointer_create(&screen->id, &RNA_FileSelectParams, params, &ptr);
+
+		/* All properties for this space type. */
+		WM_msg_subscribe_rna(mbus, &ptr, NULL, &msg_sub_value_area_tag_refresh, __func__);
 	}
 }
 
@@ -731,6 +759,7 @@ void ED_spacetype_file(void)
 	art->init = file_main_region_init;
 	art->draw = file_main_region_draw;
 	art->listener = file_main_region_listener;
+	art->message_subscribe = file_main_region_message_subscribe;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D;
 	BLI_addhead(&st->regiontypes, art);
 	
