@@ -162,6 +162,7 @@ GPUTexture *GPU_texture_create_cube_custom(
 GPUTexture *GPU_texture_create_depth(int w, int h, char err_out[256]);
 GPUTexture *GPU_texture_create_depth_with_stencil(int w, int h, char err_out[256]);
 GPUTexture *GPU_texture_create_depth_multisample(int w, int h, int samples, char err_out[256]);
+GPUTexture *GPU_texture_create_depth_with_stencil_multisample(int w, int h, int samples, char err_out[256]);
 
 GPUTexture *GPU_texture_from_blender(
         struct Image *ima, struct ImageUser *iuser, int textarget, bool is_data, double time, int mipmap);

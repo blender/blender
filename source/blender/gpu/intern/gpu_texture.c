@@ -711,6 +711,11 @@ GPUTexture *GPU_texture_create_depth_multisample(int w, int h, int samples, char
 	return GPU_texture_create_nD(w, h, 0, 2, NULL, GPU_DEPTH_COMPONENT24, 1, samples, false, err_out);
 }
 
+GPUTexture *GPU_texture_create_depth_with_stencil_multisample(int w, int h, int samples, char err_out[256])
+{
+	return GPU_texture_create_nD(w, h, 0, 2, NULL, GPU_DEPTH24_STENCIL8, 1, samples, false, err_out);
+}
+
 void GPU_texture_update(GPUTexture *tex, const float *pixels)
 {
 	BLI_assert(tex->format > -1);

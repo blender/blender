@@ -381,7 +381,8 @@ void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect)
 			}
 
 			/* Depth */
-			dtxl->multisample_depth = GPU_texture_create_depth_multisample(rect_w, rect_h, U.ogl_multisamples, NULL);
+			dtxl->multisample_depth = GPU_texture_create_depth_with_stencil_multisample(rect_w, rect_h,
+				                                                                        U.ogl_multisamples, NULL);
 
 			if (!dtxl->multisample_depth) {
 				ok = false;
@@ -430,7 +431,7 @@ cleanup_multisample:
 		}
 
 		/* Depth */
-		dtxl->depth = GPU_texture_create_depth(rect_w, rect_h, NULL);
+		dtxl->depth = GPU_texture_create_depth_with_stencil(rect_w, rect_h, NULL);
 
 		if (dtxl->depth) {
 			/* Define texture parameters */
