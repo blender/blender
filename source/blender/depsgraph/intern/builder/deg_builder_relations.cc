@@ -1667,13 +1667,19 @@ void DepsgraphRelationBuilder::build_obdata_geom(Object *ob)
 		case OB_MBALL:
 		{
 			Object *mom = BKE_mball_basis_find(scene_, ob);
+			ComponentKey mom_geom_key(&mom->id, DEG_NODE_TYPE_GEOMETRY);
 			/* motherball - mom depends on children! */
-			if (mom != ob) {
-				/* non-motherball -> cannot be directly evaluated! */
-				ComponentKey mom_key(&mom->id, DEG_NODE_TYPE_GEOMETRY);
+			if (mom == ob) {
+				ComponentKey mom_transform_key(&mom->id,
+				                               DEG_NODE_TYPE_TRANSFORM);
+				add_relation(mom_transform_key,
+				             mom_geom_key,
+				             "Metaball Motherball Transform -> Geometry");
+			}
+			else if (mom != ob) {
 				ComponentKey transform_key(&ob->id, DEG_NODE_TYPE_TRANSFORM);
-				add_relation(geom_key, mom_key, "Metaball Motherball");
-				add_relation(transform_key, mom_key, "Metaball Motherball");
+				add_relation(geom_key, mom_geom_key, "Metaball Motherball");
+				add_relation(transform_key, mom_geom_key, "Metaball Motherball");
 			}
 			break;
 		}

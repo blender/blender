@@ -1305,7 +1305,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
 	if (iod->iuser) {
 		iuser = iod->iuser;
 	}
-	else if (sa->spacetype == SPACE_IMAGE) {
+	else if (sa && sa->spacetype == SPACE_IMAGE) {
 		SpaceImage *sima = sa->spacedata.first;
 		ED_space_image_set(sima, scene, obedit, ima);
 		iuser = &sima->iuser;
