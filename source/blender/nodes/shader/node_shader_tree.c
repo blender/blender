@@ -527,6 +527,41 @@ static void ntree_shader_tag_ssr_node(bNodeTree *ntree, short compatibility)
 	nodeChainIter(ntree, output_node, ntree_tag_ssr_bsdf_cb, &lobe_count, true);
 }
 
+static bool ntree_tag_sss_bsdf_cb(bNode *fromnode, bNode *UNUSED(tonode), void *userdata, const bool UNUSED(reversed))
+{
+	switch (fromnode->type) {
+		case SH_NODE_BSDF_PRINCIPLED:
+		case SH_NODE_SUBSURFACE_SCATTERING:
+			fromnode->sss_id = (*(float *)userdata);
+			(*(float *)userdata) += 1;
+			break;
+		default:
+			break;
+	}
+
+	return true;
+}
+
+/* EEVEE: Scan the ntree to set the Subsurface Scattering id of every SSS node.
+ */
+static void ntree_shader_tag_sss_node(bNodeTree *ntree, short compatibility)
+{
+	if (compatibility & NODE_NEWER_SHADING) {
+		/* We can only deal with new shading system here. */
+		return;
+	}
+
+	bNode *output_node = ntree_shader_output_node(ntree);
+	if (output_node == NULL) {
+		return;
+	}
+	/* Make sure sockets links pointers are correct. */
+	ntreeUpdateTree(G.main, ntree);
+
+	int sss_count = 0;
+	nodeChainIter(ntree, output_node, ntree_tag_sss_bsdf_cb, &sss_count, true);
+}
+
 /* EEVEE: Find which material domain are used (volume, surface ...).
  */
 void ntreeGPUMaterialDomain(bNodeTree *ntree, bool *has_surface_output, bool *has_volume_output)
@@ -568,6 +603,7 @@ void ntreeGPUMaterialNodes(bNodeTree *ntree, GPUMaterial *mat, short compatibili
 	ntree_shader_relink_displacement(localtree, compatibility);
 
 	ntree_shader_tag_ssr_node(localtree, compatibility);
+	ntree_shader_tag_sss_node(localtree, compatibility);
 
 	exec = ntreeShaderBeginExecTree(localtree);
 	ntreeExecGPUNodes(exec, mat, 1, compatibility);

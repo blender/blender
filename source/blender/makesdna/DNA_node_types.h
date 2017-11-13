@@ -225,7 +225,7 @@ typedef struct bNode {
 	struct uiBlock *block;	/* runtime during drawing */
 
 	float ssr_id; /* XXX: eevee only, id of screen space reflection layer, needs to be a float to feed GPU_uniform. */
-	float pad3;
+	float sss_id; /* XXX: eevee only, id of screen subsurface scatter layer, needs to be a float to feed GPU_uniform. */
 } bNode;
 
 /* node->flag */
