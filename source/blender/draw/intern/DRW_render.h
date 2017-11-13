@@ -173,6 +173,7 @@ typedef enum {
 	DRW_TEX_R_32,
 	DRW_TEX_DEPTH_16,
 	DRW_TEX_DEPTH_24,
+	DRW_TEX_DEPTH_24_STENCIL_8,
 	DRW_TEX_DEPTH_32,
 } DRWTextureFormat;
 
@@ -289,10 +290,8 @@ typedef enum {
 	DRW_STATE_TRANSMISSION  = (1 << 17),
 	DRW_STATE_CLIP_PLANES   = (1 << 18),
 
-	DRW_STATE_WRITE_STENCIL_SELECT = (1 << 27),
-	DRW_STATE_WRITE_STENCIL_ACTIVE = (1 << 28),
-	DRW_STATE_TEST_STENCIL_SELECT  = (1 << 29),
-	DRW_STATE_TEST_STENCIL_ACTIVE  = (1 << 30),
+	DRW_STATE_WRITE_STENCIL    = (1 << 27),
+	DRW_STATE_STENCIL_EQUAL    = (1 << 28),
 } DRWState;
 
 #define DRW_STATE_DEFAULT (DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS)
@@ -335,6 +334,7 @@ void DRW_shgroup_set_instance_count(DRWShadingGroup *shgroup, int count);
 
 void DRW_shgroup_state_enable(DRWShadingGroup *shgroup, DRWState state);
 void DRW_shgroup_state_disable(DRWShadingGroup *shgroup, DRWState state);
+void DRW_shgroup_stencil_mask(DRWShadingGroup *shgroup, unsigned int mask);
 void DRW_shgroup_attrib_float(DRWShadingGroup *shgroup, const char *name, int size);
 
 void DRW_shgroup_uniform_texture(DRWShadingGroup *shgroup, const char *name, const struct GPUTexture *tex);

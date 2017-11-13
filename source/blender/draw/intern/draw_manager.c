@@ -277,6 +277,7 @@ struct DRWShadingGroup {
 
 	DRWState state_extra;            /* State changes for this batch only (or'd with the pass's state) */
 	DRWState state_extra_disable;    /* State changes for this batch only (and'd with the pass's state) */
+	unsigned int stencil_mask;       /* Stencil mask to use for stencil test / write operations */
 	int type;
 
 	ID *instance_data;         /* Object->data to instance */
@@ -330,6 +331,7 @@ static struct DRWGlobalState {
 
 	/* Managed by `DRW_state_set`, `DRW_state_reset` */
 	DRWState state;
+	unsigned int stencil_mask;
 
 	/* Per viewport */
 	GPUViewport *viewport;
@@ -418,6 +420,7 @@ static void drw_texture_get_format(
 #endif
 		case DRW_TEX_DEPTH_16: *r_data_type = GPU_DEPTH_COMPONENT16; break;
 		case DRW_TEX_DEPTH_24: *r_data_type = GPU_DEPTH_COMPONENT24; break;
+		case DRW_TEX_DEPTH_24_STENCIL_8: *r_data_type = GPU_DEPTH24_STENCIL8; break;
 		case DRW_TEX_DEPTH_32: *r_data_type = GPU_DEPTH_COMPONENT32F; break;
 		default :
 			/* file type not supported you must uncomment it from above */
@@ -791,6 +794,7 @@ DRWShadingGroup *DRW_shgroup_create(struct GPUShader *shader, DRWPass *pass)
 	shgroup->shader = shader;
 	shgroup->state_extra = 0;
 	shgroup->state_extra_disable = ~0x0;
+	shgroup->stencil_mask = 0;
 	shgroup->batch_geom = NULL;
 	shgroup->instance_geom = NULL;
 	shgroup->instance_data = NULL;
@@ -1130,6 +1134,11 @@ void DRW_shgroup_state_enable(DRWShadingGroup *shgroup, DRWState state)
 void DRW_shgroup_state_disable(DRWShadingGroup *shgroup, DRWState state)
 {
 	shgroup->state_extra_disable &= ~state;
+}
+
+void DRW_shgroup_stencil_mask(DRWShadingGroup *shgroup, unsigned int mask)
+{
+	shgroup->stencil_mask = mask;
 }
 
 void DRW_shgroup_attrib_float(DRWShadingGroup *shgroup, const char *name, int size)
@@ -1664,34 +1673,22 @@ static void DRW_state_set(DRWState state)
 	{
 		DRWState test;
 		if (CHANGED_ANY_STORE_VAR(
-		        DRW_STATE_WRITE_STENCIL_SELECT |
-		        DRW_STATE_WRITE_STENCIL_ACTIVE |
-		        DRW_STATE_TEST_STENCIL_SELECT |
-		        DRW_STATE_TEST_STENCIL_ACTIVE,
+		        DRW_STATE_WRITE_STENCIL |
+		        DRW_STATE_STENCIL_EQUAL,
 		        test))
 		{
 			if (test) {
 				glEnable(GL_STENCIL_TEST);
 
 				/* Stencil Write */
-				if ((state & DRW_STATE_WRITE_STENCIL_SELECT) != 0) {
-					glStencilMask(STENCIL_SELECT);
-					glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
-					glStencilFunc(GL_ALWAYS, 0xFF, STENCIL_SELECT);
-				}
-				else if ((state & DRW_STATE_WRITE_STENCIL_ACTIVE) != 0) {
-					glStencilMask(STENCIL_ACTIVE);
-					glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
-					glStencilFunc(GL_ALWAYS, 0xFF, STENCIL_ACTIVE);
+				if ((state & DRW_STATE_WRITE_STENCIL) != 0) {
+					glStencilMask(0xFF);
+					glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 				}
 				/* Stencil Test */
-				else if ((state & DRW_STATE_TEST_STENCIL_SELECT) != 0) {
+				else if ((state & DRW_STATE_STENCIL_EQUAL) != 0) {
 					glStencilMask(0x00); /* disable write */
-					glStencilFunc(GL_NOTEQUAL, 0xFF, STENCIL_SELECT);
-				}
-				else if ((state & DRW_STATE_TEST_STENCIL_ACTIVE) != 0) {
-					glStencilMask(0x00); /* disable write */
-					glStencilFunc(GL_NOTEQUAL, 0xFF, STENCIL_ACTIVE);
+					DST.stencil_mask = 0;
 				}
 				else {
 					BLI_assert(0);
@@ -1699,6 +1696,7 @@ static void DRW_state_set(DRWState state)
 			}
 			else {
 				/* disable write & test */
+				DST.stencil_mask = 0;
 				glStencilMask(0x00);
 				glStencilFunc(GL_ALWAYS, 1, 0xFF);
 				glDisable(GL_STENCIL_TEST);
@@ -1711,6 +1709,22 @@ static void DRW_state_set(DRWState state)
 #undef CHANGED_ANY_STORE_VAR
 
 	DST.state = state;
+}
+
+static void DRW_stencil_set(unsigned int mask)
+{
+	if (DST.stencil_mask != mask) {
+		/* Stencil Write */
+		if ((DST.state & DRW_STATE_WRITE_STENCIL) != 0) {
+			glStencilFunc(GL_ALWAYS, mask, 0xFF);
+			DST.stencil_mask = mask;
+		}
+		/* Stencil Test */
+		else if ((DST.state & DRW_STATE_STENCIL_EQUAL) != 0) {
+			glStencilFunc(GL_EQUAL, mask, 0xFF);
+			DST.stencil_mask = mask;
+		}
+	}
 }
 
 typedef struct DRWBoundTexture {
@@ -1941,7 +1955,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 	release_ubo_slots();
 
 	DRW_state_set((pass_state & shgroup->state_extra_disable) | shgroup->state_extra);
-
+	DRW_stencil_set(shgroup->stencil_mask);
 
 	/* Binding Uniform */
 	/* Don't check anything, Interface should already contain the least uniform as possible */
@@ -2246,7 +2260,7 @@ static GPUTextureFormat convert_tex_format(
         int fbo_format,
         int *r_channels, bool *r_is_depth)
 {
-	*r_is_depth = ELEM(fbo_format, DRW_TEX_DEPTH_16, DRW_TEX_DEPTH_24);
+	*r_is_depth = ELEM(fbo_format, DRW_TEX_DEPTH_16, DRW_TEX_DEPTH_24, DRW_TEX_DEPTH_24_STENCIL_8);
 
 	switch (fbo_format) {
 		case DRW_TEX_R_16:     *r_channels = 1; return GPU_R16F;
@@ -2259,6 +2273,7 @@ static GPUTextureFormat convert_tex_format(
 		case DRW_TEX_RGBA_32:  *r_channels = 4; return GPU_RGBA32F;
 		case DRW_TEX_DEPTH_16: *r_channels = 1; return GPU_DEPTH_COMPONENT16;
 		case DRW_TEX_DEPTH_24: *r_channels = 1; return GPU_DEPTH_COMPONENT24;
+		case DRW_TEX_DEPTH_24_STENCIL_8: *r_channels = 1; return GPU_DEPTH24_STENCIL8;
 		case DRW_TEX_DEPTH_32: *r_channels = 1; return GPU_DEPTH_COMPONENT32F;
 		case DRW_TEX_RGB_11_11_10: *r_channels = 3; return GPU_R11F_G11F_B10F;
 		default:
