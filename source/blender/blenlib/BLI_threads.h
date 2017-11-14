@@ -111,8 +111,10 @@ void BLI_mutex_unlock(ThreadMutex *mutex);
 
 /* Spin Lock */
 
-#ifdef __APPLE__
-typedef OSSpinLock SpinLock;
+#if defined(__APPLE__)
+typedef OSSpinLock ;
+#elif defined(_MSC_VER)
+typedef volatile int SpinLock;
 #else
 typedef pthread_spinlock_t SpinLock;
 #endif
