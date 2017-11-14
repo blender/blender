@@ -34,11 +34,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_depsgraph.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_listbase.h"
-#include "BKE_library.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
@@ -52,11 +50,13 @@
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
+#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_gpencil.h"
 #include "BKE_context.h"
 #include "BKE_mask.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 
 #include "UI_view2d.h"
 

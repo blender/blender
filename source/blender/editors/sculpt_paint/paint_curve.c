@@ -33,12 +33,12 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BLI_math_vector.h"
+#include "BLI_string.h"
+
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_paint.h"
-
-#include "BLI_math_vector.h"
-#include "BLI_string.h"
 
 #include "ED_paint.h"
 #include "ED_view3d.h"

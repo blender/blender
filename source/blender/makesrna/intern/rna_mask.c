@@ -52,12 +52,12 @@
 
 #ifdef RNA_RUNTIME
 
+#include "BLI_math.h"
+
 #include "DNA_movieclip_types.h"
 
 #include "BKE_depsgraph.h"
 #include "BKE_mask.h"
-
-#include "BLI_math.h"
 
 #include "RNA_access.h"
 

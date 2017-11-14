@@ -34,10 +34,10 @@
 
 #ifdef RNA_RUNTIME
 
+#include "BLI_string.h"
+
 #include "BKE_cachefile.h"
 #include "BKE_depsgraph.h"
-
-#include "BLI_string.h"
 
 #include "DEG_depsgraph.h"
 

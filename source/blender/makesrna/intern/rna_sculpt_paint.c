@@ -27,6 +27,8 @@
 
 #include <stdlib.h>
 
+#include "BLI_utildefines.h"
+
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
@@ -46,7 +48,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "BLI_utildefines.h"
 #include "bmesh.h"
 
 static const EnumPropertyItem particle_edit_hair_brush_items[] = {
