@@ -236,7 +236,7 @@ GPUBuiltin GPU_get_material_builtins(GPUMaterial *material);
 GPUBlendMode GPU_material_alpha_blend(GPUMaterial *material, float obcol[4]);
 
 void GPU_material_sss_profile_create(GPUMaterial *material, float *radii);
-struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material);
+struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material, int sample_ct);
 
 /* High level functions to create and use GPU materials */
 GPUMaterial *GPU_material_world(struct Scene *scene, struct World *wo);

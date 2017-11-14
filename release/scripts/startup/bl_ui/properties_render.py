@@ -778,6 +778,8 @@ class RENDER_PT_eevee_subsurface_scattering(RenderButtonsPanel, Panel):
         props = scene.layer_properties['BLENDER_EEVEE']
 
         col = layout.column()
+        col.prop(props, "sss_samples")
+        col.prop(props, "sss_jitter_threshold")
 
 
 class RENDER_PT_eevee_screen_space_reflections(RenderButtonsPanel, Panel):

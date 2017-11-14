@@ -323,6 +323,8 @@ static void EEVEE_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDPr
 	BKE_collection_engine_property_add_int(props, "taa_samples", 8);
 
 	BKE_collection_engine_property_add_bool(props, "sss_enable", false);
+	BKE_collection_engine_property_add_int(props, "sss_samples", 7);
+	BKE_collection_engine_property_add_float(props, "sss_jitter_threshold", 0.3f);
 
 	BKE_collection_engine_property_add_bool(props, "ssr_enable", false);
 	BKE_collection_engine_property_add_bool(props, "ssr_refraction", false);

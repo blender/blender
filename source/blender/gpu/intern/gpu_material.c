@@ -144,6 +144,7 @@ struct GPUMaterial {
 	GPUUniformBuffer *ubo; /* UBOs for shader uniforms. */
 	GPUUniformBuffer *sss_profile; /* UBO containing SSS profile. */
 	float *sss_radii; /* UBO containing SSS profile. */
+	int sss_samples;
 	bool sss_dirty;
 };
 
@@ -485,7 +486,7 @@ void GPU_material_uniform_buffer_tag_dirty(ListBase *gpumaterials)
 /* Eevee Subsurface scattering. */
 /* Based on Separable SSS. by Jorge Jimenez and Diego Gutierrez */
 
-#define SSS_SAMPLES 25
+#define SSS_SAMPLES 65
 #define SSS_EXPONENT 2.0f /* Importance sampling exponent */
 
 typedef struct GPUSssKernelData {
@@ -493,10 +494,10 @@ typedef struct GPUSssKernelData {
 	float radii_n[3], max_radius;
 } GPUSssKernelData;
 
-static void sss_calculate_offsets(GPUSssKernelData *kd)
+static void sss_calculate_offsets(GPUSssKernelData *kd, int count)
 {
-	float step = 2.0f / (float)(SSS_SAMPLES - 1);
-	for (int i = 0; i < SSS_SAMPLES; i++) {
+	float step = 2.0f / (float)(count - 1);
+	for (int i = 0; i < count; i++) {
 		float o = ((float)i) * step - 1.0f;
 		float sign = (o < 0.0f) ? -1.0f : 1.0f;
 		float ofs = sign * fabsf(powf(o, SSS_EXPONENT));
@@ -543,7 +544,7 @@ static float gaussian_integral(float x0, float x1) {
 	return gaussian_primitive(x0) - gaussian_primitive(x1);
 }
 
-static void compute_sss_kernel(GPUSssKernelData *kd, float *radii)
+static void compute_sss_kernel(GPUSssKernelData *kd, float *radii, int sample_ct)
 {
 	/* Normalize size */
 	copy_v3_v3(kd->radii_n, radii);
@@ -551,7 +552,7 @@ static void compute_sss_kernel(GPUSssKernelData *kd, float *radii)
 	mul_v3_fl(kd->radii_n, 1.0f / kd->max_radius);
 
 	/* Compute samples locations on the 1d kernel */
-	sss_calculate_offsets(kd);
+	sss_calculate_offsets(kd, sample_ct);
 
 #if 0 /* Maybe used for other distributions */
 	/* Calculate areas (using importance-sampling) */
@@ -563,7 +564,7 @@ static void compute_sss_kernel(GPUSssKernelData *kd, float *radii)
 	float sum[3] = {0.0f, 0.0f, 0.0f};
 
 	/* Compute interpolated weights */
-	for (int i = 0; i < SSS_SAMPLES; i++) {
+	for (int i = 0; i < sample_ct; i++) {
 		float x0, x1;
 
 		if (i == 0) {
@@ -573,8 +574,8 @@ static void compute_sss_kernel(GPUSssKernelData *kd, float *radii)
 			x0 = (kd->kernel[i - 1][3] + kd->kernel[i][3]) / 2.0f;
 		}
 
-		if (i == SSS_SAMPLES - 1) {
-			x1 = kd->kernel[SSS_SAMPLES - 1][3] + abs(kd->kernel[SSS_SAMPLES - 2][3] - kd->kernel[SSS_SAMPLES - 1][3]) / 2.0f;
+		if (i == sample_ct - 1) {
+			x1 = kd->kernel[sample_ct - 1][3] + abs(kd->kernel[sample_ct - 2][3] - kd->kernel[sample_ct - 1][3]) / 2.0f;
 		}
 		else {
 			x1 = (kd->kernel[i][3] + kd->kernel[i + 1][3]) / 2.0f;
@@ -590,7 +591,7 @@ static void compute_sss_kernel(GPUSssKernelData *kd, float *radii)
 	}
 
 	/* Normalize */
-	for (int i = 0; i < SSS_SAMPLES; i++) {
+	for (int i = 0; i < sample_ct; i++) {
 		 kd->kernel[i][0] /= sum[0];
 		 kd->kernel[i][1] /= sum[1];
 		 kd->kernel[i][2] /= sum[2];
@@ -598,8 +599,8 @@ static void compute_sss_kernel(GPUSssKernelData *kd, float *radii)
 
 	/* Put center sample at the start of the array (to sample first) */
 	float tmpv[4];
-	copy_v4_v4(tmpv, kd->kernel[SSS_SAMPLES / 2]);
-	for (int i = SSS_SAMPLES / 2; i > 0; i--) {
+	copy_v4_v4(tmpv, kd->kernel[sample_ct / 2]);
+	for (int i = sample_ct / 2; i > 0; i--) {
 		copy_v4_v4(kd->kernel[i], kd->kernel[i - 1]);
 	}
 	copy_v4_v4(kd->kernel[0], tmpv);
@@ -616,24 +617,24 @@ void GPU_material_sss_profile_create(GPUMaterial *material, float *radii)
 	}
 }
 
-static void GPU_material_sss_profile_update(GPUMaterial *material)
-{
-	GPUSssKernelData kd;
-
-	compute_sss_kernel(&kd, material->sss_radii);
-
-	/* Update / Create UBO */
-	GPU_uniformbuffer_update(material->sss_profile, &kd);
-
-	material->sss_dirty = false;
-}
 #undef SSS_EXPONENT
 #undef SSS_SAMPLES
 
-struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material)
+struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material, int sample_ct)
 {
-	if (material->sss_dirty) {
-		GPU_material_sss_profile_update(material);
+	if (material->sss_radii == NULL)
+		return NULL;
+
+	if (material->sss_dirty || (material->sss_samples != sample_ct)) {
+		GPUSssKernelData kd;
+
+		compute_sss_kernel(&kd, material->sss_radii, sample_ct);
+
+		/* Update / Create UBO */
+		GPU_uniformbuffer_update(material->sss_profile, &kd);
+
+		material->sss_samples = sample_ct;
+		material->sss_dirty = false;
 	}
 	return material->sss_profile;
 }

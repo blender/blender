@@ -344,6 +344,8 @@ class RENDERLAYER_PT_eevee_subsurface_scattering(RenderLayerButtonsPanel, Panel)
         layer_props = layer.engine_overrides['BLENDER_EEVEE']
 
         col = layout.column()
+        col.template_override_property(layer_props, scene_props, "sss_samples")
+        col.template_override_property(layer_props, scene_props, "sss_jitter_threshold")
 
 
 class RENDERLAYER_PT_eevee_screen_space_reflections(RenderLayerButtonsPanel, Panel):

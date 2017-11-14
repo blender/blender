@@ -1006,7 +1006,8 @@ static void material_opaque(
 			add_standard_uniforms(*shgrp, sldata, vedata, ssr_id, &ma->refract_depth, use_refract, false);
 
 			if (use_sss) {
-				struct GPUUniformBuffer *sss_profile = GPU_material_sss_profile_get(*gpumat);
+				struct GPUUniformBuffer *sss_profile = GPU_material_sss_profile_get(*gpumat,
+				                                                                    stl->effects->sss_sample_count);
 				if (sss_profile) {
 					DRW_shgroup_stencil_mask(*shgrp, e_data.sss_count + 1);
 					EEVEE_subsurface_add_pass(vedata, e_data.sss_count + 1, sss_profile);

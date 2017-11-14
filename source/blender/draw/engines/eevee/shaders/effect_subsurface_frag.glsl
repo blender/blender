@@ -1,12 +1,14 @@
 
 /* Based on Separable SSS. by Jorge Jimenez and Diego Gutierrez */
 
-#define SSS_SAMPLES 25
+#define MAX_SSS_SAMPLES 65
 layout(std140) uniform sssProfile {
-	vec4 kernel[SSS_SAMPLES];
+	vec4 kernel[MAX_SSS_SAMPLES];
 	vec4 radii_max_radius;
 };
 
+uniform int sampleCount;
+uniform float jitterThreshold;
 uniform sampler2D depthBuffer;
 uniform sampler2D sssData;
 uniform sampler2DArray utilTex;
@@ -24,16 +26,6 @@ float get_view_z_from_depth(float depth)
 	}
 	else {
 		return viewvecs[0].z + depth * viewvecs[1].z;
-	}
-}
-
-vec3 get_view_space_from_depth(vec2 uvcoords, float depth)
-{
-	if (ProjectionMatrix[3][3] == 0.0) {
-		return (viewvecs[0].xyz + vec3(uvcoords, 0.0) * viewvecs[1].xyz) * get_view_z_from_depth(depth);
-	}
-	else {
-		return viewvecs[0].xyz + vec3(uvcoords, depth) * viewvecs[1].xyz;
 	}
 }
 
@@ -67,9 +59,8 @@ void main(void)
 	/* Center sample */
 	vec3 accum = sss_data.rgb * kernel[0].rgb;
 
-	for (int i = 1; i < SSS_SAMPLES; i++) {
-		/* Rotate samples that are near the kernel center. */
-		vec2 sample_uv = uvs + kernel[i].a * finalStep * ((abs(kernel[i].a) > 0.3) ? dir : dir_rand);
+	for (int i = 1; i < sampleCount && i < MAX_SSS_SAMPLES; i++) {
+		vec2 sample_uv = uvs + kernel[i].a * finalStep * ((abs(kernel[i].a) > jitterThreshold) ? dir : dir_rand);
 		vec3 color = texture(sssData, sample_uv).rgb;
 		float sample_depth = texture(depthBuffer, sample_uv).r;
 		sample_depth = get_view_z_from_depth(sample_depth);

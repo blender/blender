@@ -429,6 +429,10 @@ typedef struct EEVEE_EffectsInfo {
 	int enabled_effects;
 	bool swap_double_buffer;
 
+	/* SSSS */
+	int sss_sample_count;
+	float sss_jitter_threshold;
+
 	/* Volumetrics */
 	bool use_volumetrics;
 	int volume_current_sample;
