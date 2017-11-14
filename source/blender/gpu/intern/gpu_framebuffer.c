@@ -532,9 +532,11 @@ void GPU_framebuffer_blit(
 
 	if (use_depth) {
 		BLI_assert(GPU_texture_depth(read_tex) && GPU_texture_depth(write_tex));
+		BLI_assert(GPU_texture_format(read_tex) == GPU_texture_format(write_tex));
 	}
 	else if (use_stencil) {
 		BLI_assert(GPU_texture_stencil(read_tex) && GPU_texture_stencil(write_tex));
+		BLI_assert(GPU_texture_format(read_tex) == GPU_texture_format(write_tex));
 	}
 
 	/* read from multi-sample buffer */

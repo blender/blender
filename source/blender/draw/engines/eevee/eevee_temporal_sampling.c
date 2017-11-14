@@ -119,7 +119,7 @@ int EEVEE_temporal_sampling_init(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Dat
 			effects->taa_current_sample = 1;
 		}
 
-		DRWFboTexture tex_double_buffer = {&txl->depth_double_buffer, DRW_TEX_DEPTH_24};
+		DRWFboTexture tex_double_buffer = {&txl->depth_double_buffer, DRW_TEX_DEPTH_24_STENCIL_8, 0};
 
 		DRW_framebuffer_init(&fbl->depth_double_buffer_fb, &draw_engine_eevee_type,
 		                    (int)viewport_size[0], (int)viewport_size[1],
