@@ -634,6 +634,9 @@ Closure closure_mix(Closure cl1, Closure cl2, float fac)
 Closure closure_add(Closure cl1, Closure cl2)
 {
 	Closure cl = (cl1.ssr_id == outputSsrId) ? cl1 : cl2;
+#ifdef USE_SSS
+	cl.sss_data = (cl1.sss_data.a > 0.0) ? cl1.sss_data : cl2.sss_data;
+#endif
 	cl.radiance = cl1.radiance + cl2.radiance;
 	cl.opacity = cl1.opacity + cl2.opacity;
 	return cl;
