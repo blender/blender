@@ -321,7 +321,10 @@ void do_versions_after_linking_280(Main *main)
 
 							/* Add new collection bases. */
 							for (int layer = 0; layer < 20; layer++) {
-								if ((srl->lay & (1 << layer)) && (scene->lay & (1 << layer))) {
+								if ((scene->lay & (1 << layer)) &&
+								    (srl->lay & (1 << layer)) &&
+								    ((srl->lay_exclude & (1 << layer)) == 0))
+								{
 									if (collections[DO_VERSION_COLLECTION_VISIBLE].created & (1 << layer)) {
 
 										LayerCollection *layer_collection_parent;

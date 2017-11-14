@@ -201,7 +201,7 @@ private:
 		uint scene_layer;
 		uint layer;
 		uint holdout_layer;
-		uint exclude_layer;
+		uint exclude_layer; /* This can be safely removed from Cycles. */
 		BL::Material material_override;
 		bool use_background_shader;
 		bool use_background_ao;

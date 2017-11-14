@@ -401,7 +401,7 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D& b_v3d, const char *layer)
 			render_layer.name = b_rlay->name();
 
 			render_layer.holdout_layer = get_layer(b_rlay->layers_zmask());
-			render_layer.exclude_layer = get_layer(b_rlay->layers_exclude());
+			render_layer.exclude_layer = 0;
 
 			render_layer.scene_layer = scene_layers & ~render_layer.exclude_layer;
 			render_layer.scene_layer |= render_layer.exclude_layer & render_layer.holdout_layer;

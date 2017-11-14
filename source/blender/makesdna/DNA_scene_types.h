@@ -179,7 +179,7 @@ typedef struct SceneRenderLayer {
 	
 	unsigned int lay;		  /* scene->lay itself has priority over this */
 	unsigned int lay_zmask;	  /* has to be after lay, this is for Z-masking */
-	unsigned int lay_exclude; /* not used by internal, exclude */
+	unsigned int lay_exclude DNA_DEPRECATED;
 	int layflag;
 	
 	int passflag;			/* pass_xor has to be after passflag */
