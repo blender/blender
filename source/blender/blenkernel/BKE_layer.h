@@ -40,14 +40,14 @@ extern "C" {
 
 #define ROOT_PROP "root"
 
+struct Base;
 struct EvaluationContext;
-struct LayerCollection;
 struct ID;
 struct IDProperty;
+struct LayerCollection;
 struct ListBase;
 struct Main;
 struct Object;
-struct Base;
 struct RenderEngine;
 struct Scene;
 struct SceneCollection;

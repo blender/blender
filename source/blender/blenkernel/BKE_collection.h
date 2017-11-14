@@ -35,12 +35,12 @@
 extern "C" {
 #endif
 
-struct BLI_Iterator;
-struct SceneCollection;
-struct Object;
 struct Base;
+struct BLI_Iterator;
 struct Main;
+struct Object;
 struct Scene;
+struct SceneCollection;
 
 struct SceneCollection *BKE_collection_add(struct Scene *scene, struct SceneCollection *sc_parent, const char *name);
 bool BKE_collection_remove(struct Scene *scene, struct SceneCollection *sc);
