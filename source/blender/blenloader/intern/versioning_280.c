@@ -310,11 +310,6 @@ void do_versions_after_linking_280(Main *main)
 							BKE_collection_override_datablock_add((LayerCollection *)scene_layer->layer_collections.first, "material", (ID *)srl->mat_override);
 						}
 
-						if (srl->light_override && BKE_scene_uses_blender_internal(scene)) {
-							/* not sure how we handle this, pending until we design the override system */
-							TODO_LAYER_OVERRIDE;
-						}
-
 						if (srl->lay != scene->lay) {
 							/* unlink master collection  */
 							BKE_collection_unlink(scene_layer, scene_layer->layer_collections.first);

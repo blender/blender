@@ -5916,7 +5916,6 @@ static void lib_link_scene(FileData *fd, Main *main)
 			
 			for (SceneRenderLayer *srl = sce->r.layers.first; srl; srl = srl->next) {
 				srl->mat_override = newlibadr_us(fd, sce->id.lib, srl->mat_override);
-				srl->light_override = newlibadr_us(fd, sce->id.lib, srl->light_override);
 				for (FreestyleModuleConfig *fmc = srl->freestyleConfig.modules.first; fmc; fmc = fmc->next) {
 					fmc->script = newlibadr(fd, sce->id.lib, fmc->script);
 				}
@@ -9801,7 +9800,6 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 	
 	for (srl = sce->r.layers.first; srl; srl = srl->next) {
 		expand_doit(fd, mainvar, srl->mat_override);
-		expand_doit(fd, mainvar, srl->light_override);
 		for (module = srl->freestyleConfig.modules.first; module; module = module->next) {
 			if (module->script)
 				expand_doit(fd, mainvar, module->script);

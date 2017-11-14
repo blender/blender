@@ -1305,7 +1305,6 @@ void shade_input_initialize(ShadeInput *shi, RenderPart *pa, RenderLayer *rl, in
 	shi->passflag = rl->passflag;
 	shi->combinedflag = ~rl->pass_xor;
 	shi->mat_override = rl->mat_override;
-	shi->light_override = rl->light_override;
 //	shi->rl= rl;
 	/* note shi.depth==0  means first hit, not raytracing */
 	

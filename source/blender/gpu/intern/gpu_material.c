@@ -310,7 +310,7 @@ void GPU_material_bind(
 				GPULamp *lamp = nlink->data;
 				
 				if ((lamp->lay & viewlay) && (!(lamp->mode & LA_LAYER) || (lamp->lay & oblay)) &&
-				    GPU_lamp_visible(lamp, srl, material->ma))
+				    GPU_lamp_visible(lamp, material->ma))
 				{
 					lamp->dynenergy = lamp->energy;
 					copy_v3_v3(lamp->dyncol, lamp->col);

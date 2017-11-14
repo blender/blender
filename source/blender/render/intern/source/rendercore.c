@@ -1661,7 +1661,6 @@ void zbufshade_sss_tile(RenderPart *pa)
 	ssamp.shi[0].passflag |= SCE_PASS_RGBA|SCE_PASS_COMBINED;
 	ssamp.shi[0].combinedflag &= ~(SCE_PASS_SPEC);
 	ssamp.shi[0].mat_override= NULL;
-	ssamp.shi[0].light_override= NULL;
 	lay= ssamp.shi[0].lay;
 
 	/* create the pixelstrs to be used later */

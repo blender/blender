@@ -73,8 +73,6 @@ ListBase *get_lights(ShadeInput *shi)
 	
 	if (R.r.scemode & R_BUTS_PREVIEW)
 		return &R.lights;
-	if (shi->light_override)
-		return &shi->light_override->gobject;
 	if (shi->mat && shi->mat->group)
 		return &shi->mat->group->gobject;
 	
@@ -2088,13 +2086,6 @@ float RE_lamp_get_data(ShadeInput *shi, Object *lamp_obj, float col[4], float lv
 					return lamp_get_data_internal(shi, go, col, lv, dist, shadow);
 			}
 			return 0.0f;
-		}
-
-		if (shi->light_override) {
-			for (go = shi->light_override->gobject.first; go; go = go->next) {
-				if (go->ob == lamp_obj)
-					return lamp_get_data_internal(shi, go, col, lv, dist, shadow);
-			}
 		}
 
 		if (shi->mat && shi->mat->group) {

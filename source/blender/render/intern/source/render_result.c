@@ -318,7 +318,6 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 		rl->layflag = srl->layflag;
 		rl->passflag = srl->passflag; /* for debugging: srl->passflag | SCE_PASS_RAYHITS; */
 		rl->pass_xor = srl->pass_xor;
-		rl->light_override = srl->light_override;
 		rl->mat_override = srl->mat_override;
 		rl->rectx = rectx;
 		rl->recty = recty;

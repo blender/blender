@@ -3290,14 +3290,6 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
-	prop = RNA_def_property(srna, "light_override", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "light_override");
-	RNA_def_property_struct_type(prop, "Group");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Light Override", "Group to override all other lights in this render layer");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
-	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-
 	/* layers */
 	prop = RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);

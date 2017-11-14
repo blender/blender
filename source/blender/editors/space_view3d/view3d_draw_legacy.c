@@ -1355,7 +1355,7 @@ static void gpu_render_lamp_update(Scene *scene, View3D *v3d,
 		if (layers &&
 		    GPU_lamp_has_shadow_buffer(lamp) &&
 		    /* keep last, may do string lookup */
-		    GPU_lamp_visible(lamp, srl, NULL))
+		    GPU_lamp_visible(lamp, NULL))
 		{
 			View3DShadow *shadow = MEM_callocN(sizeof(View3DShadow), "View3DShadow");
 			shadow->lamp = lamp;

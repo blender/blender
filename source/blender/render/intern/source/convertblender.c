@@ -4030,16 +4030,6 @@ static void set_material_lightgroups(Render *re)
 	}
 }
 
-static void set_renderlayer_lightgroups(Render *re, Scene *sce)
-{
-	SceneRenderLayer *srl;
-	
-	for (srl= sce->r.layers.first; srl; srl= srl->next) {
-		if (srl->light_override)
-			add_lightgroup(re, srl->light_override, 0);
-	}
-}
-
 /* ------------------------------------------------------------------------- */
 /* World																	 */
 /* ------------------------------------------------------------------------- */
@@ -5184,7 +5174,6 @@ static void database_init_objects(Render *re, unsigned int UNUSED(renderlay), in
 /* used to be 'rotate scene' */
 void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int lay, int use_camera_view)
 {
-	Scene *sce;
 	Object *camera;
 	float mat[4][4];
 	float amb[3];
@@ -5261,8 +5250,6 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 	
 	if (!re->test_break(re->tbh)) {
 		set_material_lightgroups(re);
-		for (sce= re->scene; sce; sce= sce->set)
-			set_renderlayer_lightgroups(re, sce);
 		
 		/* for now some clumsy copying still */
 		re->i.totvert= re->totvert;

@@ -54,7 +54,7 @@ GPULamp *GPU_lamp_from_blender(struct Scene *scene, struct Object *ob, struct Ob
 void GPU_lamp_free(struct Object *ob);
 void GPU_lamp_engine_data_free(LampEngineData *led);
 
-bool GPU_lamp_visible(GPULamp *lamp, struct SceneRenderLayer *srl, struct Material *ma);
+bool GPU_lamp_visible(GPULamp *lamp, struct Material *ma);
 bool GPU_lamp_has_shadow_buffer(GPULamp *lamp);
 void GPU_lamp_update_buffer_mats(GPULamp *lamp);
 void GPU_lamp_shadow_buffer_bind(GPULamp *lamp, float viewmat[4][4], int *winsize, float winmat[4][4]);

@@ -52,12 +52,10 @@
 
 #include "gpu_lamp_private.h"
 
-bool GPU_lamp_visible(GPULamp *lamp, SceneRenderLayer *srl, Material *ma)
+bool GPU_lamp_visible(GPULamp *lamp, Material *ma)
 {
 	if (lamp->hide)
 		return false;
-	else if (srl && srl->light_override)
-		return BKE_group_object_exists(srl->light_override, lamp->ob);
 	else if (ma && ma->group)
 		return BKE_group_object_exists(ma->group, lamp->ob);
 	else

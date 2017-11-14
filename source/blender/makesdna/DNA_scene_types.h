@@ -175,7 +175,6 @@ typedef struct SceneRenderLayer {
 	char name[64];	/* MAX_NAME */
 	
 	struct Material *mat_override;
-	struct Group *light_override;
 	
 	unsigned int lay;		  /* scene->lay itself has priority over this */
 	unsigned int lay_zmask;	  /* has to be after lay, this is for Z-masking */
