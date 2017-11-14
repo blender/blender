@@ -48,27 +48,27 @@ template < class T > inline void CLAMP( T &a, T b=0., T c=1.) {
 	if(a>c) { a=c; return; }
 }
 
-template < class T > inline T MIN( T a, T b) {
+template < class T > inline T MIN( const T& a, const T& b) {
 	return (a < b) ? a : b;
 }
 
-template < class T > inline T MAX( T a, T b) {
+template < class T > inline T MAX( const T& a, const T& b) {
 	return (a > b) ? a : b;
 }
 
-template < class T > inline T MAX3( T a, T b, T c) {
+template < class T > inline T MAX3( const T& a, const T& b, const T& c) {
 	T max = (a > b) ? a : b;
 	max = (max > c) ? max : c;
 	return max;
 }
 
-template < class T > inline float MAX3V( T vec) {
+template < class T > inline float MAX3V( const T& vec) {
 	float max = (vec[0] > vec[1]) ? vec[0] : vec[1];
 	max = (max > vec[2]) ? max : vec[2];
 	return max;
 }
 
-template < class T > inline float MIN3V( T vec) {
+template < class T > inline float MIN3V( const T& vec) {
 	float min = (vec[0] < vec[1]) ? vec[0] : vec[1];
 	min = (min < vec[2]) ? min : vec[2];
 	return min;
