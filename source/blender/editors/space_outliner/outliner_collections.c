@@ -24,6 +24,9 @@
  *  \ingroup spoutliner
  */
 
+#include "BLI_utildefines.h"
+#include "BLI_listbase.h"
+
 #include "BKE_context.h"
 #include "BKE_collection.h"
 #include "BKE_layer.h"
@@ -32,8 +35,6 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
-
-#include "BLI_listbase.h"
 
 #include "ED_screen.h"
 

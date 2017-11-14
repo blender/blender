@@ -33,6 +33,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
 #include "BLI_ghash.h"
 
 #include "DNA_modifier_types.h"

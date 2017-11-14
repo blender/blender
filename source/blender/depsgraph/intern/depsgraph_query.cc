@@ -33,12 +33,14 @@
 #include "MEM_guardedalloc.h"
 
 extern "C" {
+#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BKE_anim.h"
 #include "BKE_idcode.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
+#include "BLI_listbase.h"
 } /* extern "C" */
 
 #include "DNA_object_types.h"

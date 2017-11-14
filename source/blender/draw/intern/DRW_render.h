@@ -28,15 +28,15 @@
 #ifndef __DRW_RENDER_H__
 #define __DRW_RENDER_H__
 
-#include "BKE_context.h"
-#include "BKE_layer.h"
-#include "BKE_material.h"
-#include "BKE_scene.h"
-
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
+
+#include "BKE_context.h"
+#include "BKE_layer.h"
+#include "BKE_material.h"
+#include "BKE_scene.h"
 
 #include "BLT_translation.h"
 

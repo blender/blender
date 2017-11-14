@@ -24,6 +24,7 @@
  */
 
 #include "BLI_math.h"
+#include "BLI_string.h"
 
 #include "BKE_editmesh.h"
 #include "BKE_global.h"

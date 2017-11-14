@@ -30,6 +30,12 @@
 
 #include <string.h>
 
+#include "BLI_listbase.h"
+#include "BLI_mempool.h"
+#include "BLI_string.h"
+#include "BLI_string_utf8.h"
+#include "BLI_utildefines.h"
+
 #include "DNA_object_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_gpu_types.h"
@@ -53,11 +59,6 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_workspace.h"
-
-#include "BLI_listbase.h"
-#include "BLI_mempool.h"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
 
 #include "BLO_readfile.h"
 #include "readfile.h"

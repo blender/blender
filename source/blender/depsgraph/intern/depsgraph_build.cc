@@ -36,6 +36,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
+#include "BLI_listbase.h"
 
 #ifdef DEBUG_TIME
 #  include "PIL_time.h"

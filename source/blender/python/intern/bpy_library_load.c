@@ -38,8 +38,6 @@
 #include "BLI_linklist.h"
 #include "BLI_path_util.h"
 
-#include "BLO_readfile.h"
-
 #include "BKE_main.h"
 #include "BKE_library.h"
 #include "BKE_idcode.h"
@@ -47,6 +45,8 @@
 #include "BKE_context.h"
 
 #include "DNA_space_types.h" /* FILE_LINK, FILE_RELPATH */
+
+#include "BLO_readfile.h"
 
 #include "bpy_util.h"
 #include "bpy_library.h"

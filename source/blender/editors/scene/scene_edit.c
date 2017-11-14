@@ -24,6 +24,9 @@
 
 #include <stdio.h>
 
+#include "BLI_compiler_attrs.h"
+#include "BLI_listbase.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_layer.h"
@@ -36,9 +39,6 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
-
-#include "BLI_compiler_attrs.h"
-#include "BLI_listbase.h"
 
 #include "BLT_translation.h"
 

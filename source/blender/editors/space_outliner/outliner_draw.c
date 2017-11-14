@@ -446,6 +446,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 	TreeStoreElem *tselem;
 	Object *ob = NULL;
 
+#if 0
 	PropertyRNA *object_prop_hide, *object_prop_hide_select, *object_prop_hide_render;
 
 	/* get RNA properties (once) */
@@ -453,6 +454,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 	object_prop_hide_select = RNA_struct_type_find_property(&RNA_Object, "hide_select");
 	object_prop_hide_render = RNA_struct_type_find_property(&RNA_Object, "hide_render");
 	BLI_assert(object_prop_hide && object_prop_hide_select  && object_prop_hide_render);
+#endif
 
 
 	for (te = lb->first; te; te = te->next) {

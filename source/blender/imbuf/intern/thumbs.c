@@ -44,9 +44,9 @@
 #include "BLI_threads.h"
 #include BLI_SYSTEM_PID_H
 
-#include "BLO_readfile.h"
-
 #include "DNA_space_types.h"  /* For FILE_MAX_LIBEXTRA */
+
+#include "BLO_readfile.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"

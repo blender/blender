@@ -43,6 +43,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_threads.h"
+#include "BLI_string.h"
 
 #include "BKE_global.h"
 #include "BKE_layer.h"
@@ -510,9 +511,9 @@ void update_copy_on_write_scene(const Depsgraph *depsgraph,
 		scene_cow->obedit = NULL;
 	}
 	/* Synchronize active render engine. */
-	BLI_strncpy_utf8(scene_cow->view_render.engine_id,
-	                 scene_orig->view_render.engine_id,
-	                 sizeof(scene_cow->view_render.engine_id));
+	BLI_strncpy(scene_cow->view_render.engine_id,
+	            scene_orig->view_render.engine_id,
+	            sizeof(scene_cow->view_render.engine_id));
 	/* TODO(sergey): What else do we need here? */
 }
 

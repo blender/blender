@@ -39,6 +39,8 @@
 
 extern "C" {
 #include "BLI_utildefines.h"
+#include "BLI_listbase.h"
+#include "BLI_string.h"
 
 #include "BKE_layer.h"
 
