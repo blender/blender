@@ -147,6 +147,11 @@ void Pass::add(PassType type, array<Pass>& passes)
 			pass.exposure = true;
 			pass.divide_type = PASS_SUBSURFACE_COLOR;
 			break;
+		case PASS_VOLUME_DIRECT:
+		case PASS_VOLUME_INDIRECT:
+			pass.components = 4;
+			pass.exposure = true;
+			break;
 
 		default:
 			assert(false);
@@ -390,6 +395,9 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 			case PASS_SUBSURFACE_INDIRECT:
 				kfilm->pass_subsurface_indirect = kfilm->pass_stride;
 				break;
+			case PASS_VOLUME_INDIRECT:
+				kfilm->pass_volume_indirect = kfilm->pass_stride;
+				break;
 			case PASS_DIFFUSE_DIRECT:
 				kfilm->pass_diffuse_direct = kfilm->pass_stride;
 				break;
@@ -401,6 +409,9 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 				break;
 			case PASS_SUBSURFACE_DIRECT:
 				kfilm->pass_subsurface_direct = kfilm->pass_stride;
+				break;
+			case PASS_VOLUME_DIRECT:
+				kfilm->pass_volume_direct = kfilm->pass_stride;
 				break;
 
 #ifdef WITH_CYCLES_DEBUG

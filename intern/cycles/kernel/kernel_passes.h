@@ -294,6 +294,8 @@ ccl_device_inline void kernel_write_light_passes(KernelGlobals *kg, ccl_global f
 		kernel_write_pass_float3(buffer + kernel_data.film.pass_transmission_indirect, L->indirect_transmission);
 	if(light_flag & PASSMASK(SUBSURFACE_INDIRECT))
 		kernel_write_pass_float3(buffer + kernel_data.film.pass_subsurface_indirect, L->indirect_subsurface);
+	if(light_flag & PASSMASK(VOLUME_INDIRECT))
+		kernel_write_pass_float3(buffer + kernel_data.film.pass_volume_indirect, L->indirect_scatter);
 	if(light_flag & PASSMASK(DIFFUSE_DIRECT))
 		kernel_write_pass_float3(buffer + kernel_data.film.pass_diffuse_direct, L->direct_diffuse);
 	if(light_flag & PASSMASK(GLOSSY_DIRECT))
@@ -302,6 +304,8 @@ ccl_device_inline void kernel_write_light_passes(KernelGlobals *kg, ccl_global f
 		kernel_write_pass_float3(buffer + kernel_data.film.pass_transmission_direct, L->direct_transmission);
 	if(light_flag & PASSMASK(SUBSURFACE_DIRECT))
 		kernel_write_pass_float3(buffer + kernel_data.film.pass_subsurface_direct, L->direct_subsurface);
+	if(light_flag & PASSMASK(VOLUME_DIRECT))
+		kernel_write_pass_float3(buffer + kernel_data.film.pass_volume_direct, L->direct_scatter);
 
 	if(light_flag & PASSMASK(EMISSION))
 		kernel_write_pass_float3(buffer + kernel_data.film.pass_emission, L->emission);

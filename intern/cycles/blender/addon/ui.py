@@ -526,6 +526,10 @@ class CYCLES_RENDER_PT_layer_passes(CyclesButtonsPanel, Panel):
         row.prop(rl, "use_pass_subsurface_direct", text="Direct", toggle=True)
         row.prop(rl, "use_pass_subsurface_indirect", text="Indirect", toggle=True)
         row.prop(rl, "use_pass_subsurface_color", text="Color", toggle=True)
+        col.label(text="Volume:")
+        row = col.row(align=True)
+        row.prop(crl, "use_pass_volume_direct", text="Direct", toggle=True)
+        row.prop(crl, "use_pass_volume_indirect", text="Indirect", toggle=True)
 
         col.separator()
         col.prop(rl, "use_pass_emit", text="Emission")
