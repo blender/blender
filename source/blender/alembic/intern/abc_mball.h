@@ -25,7 +25,7 @@
 
 #include "abc_object.h"
 
-struct AbcMeshWriter;
+class AbcMeshWriter;
 struct Main;
 struct MetaBall;
 struct Object;
