@@ -170,6 +170,34 @@ void BLI_listbase_swaplinks(ListBase *listbase, void *vlinka, void *vlinkb)
 }
 
 /**
+ * Swaps \a vlinka and \a vlinkb from their respective lists. Assumes they are both already in their lista!
+ */
+void BLI_listbases_swaplinks(ListBase *listbasea, ListBase *listbaseb, void *vlinka, void *vlinkb)
+{
+	Link *linka = vlinka;
+	Link *linkb = vlinkb;
+	Link linkc = {NULL};
+
+	if (!linka || !linkb) {
+		return;
+	}
+
+	/* Temporary link to use as placeholder of the links positions */
+	BLI_insertlinkafter(listbasea, linka, &linkc);
+
+	/* Bring linka into linkb position */
+	BLI_remlink(listbasea, linka);
+	BLI_insertlinkafter(listbaseb, linkb, linka);
+
+	/* Bring linkb into linka position */
+	BLI_remlink(listbaseb, linkb);
+	BLI_insertlinkafter(listbasea, &linkc, linkb);
+
+	/* Remove temporary link */
+	BLI_remlink(listbasea, &linkc);
+}
+
+/**
  * Removes the head from \a listbase and returns it.
  */
 void *BLI_pophead(ListBase *listbase)

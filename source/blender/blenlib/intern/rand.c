@@ -41,6 +41,9 @@
 #include "BLI_rand.h"
 #include "BLI_math.h"
 
+/* defines BLI_INLINE */
+#include "BLI_utildefines.h"
+
 #include "BLI_sys_types.h"
 #include "BLI_strict_flags.h"
 
@@ -353,3 +356,101 @@ int BLI_rng_thread_rand(RNG_THREAD_ARRAY *rngarr, int thread)
 	return BLI_rng_get_int(&rngarr->rng_tab[thread]);
 }
 
+/* ********* Low-discrepancy sequences ************** */
+
+/* incremental halton sequence generator, from:
+ * "Instant Radiosity", Keller A. */
+BLI_INLINE double halton_ex(double invprimes, double *offset)
+{
+	double e = fabs((1.0 - *offset) - 1e-10);
+
+	if (invprimes >= e) {
+		double lasth;
+		double h = invprimes;
+
+		do {
+			lasth = h;
+			h *= invprimes;
+		} while (h >= e);
+
+		*offset += ((lasth + h) - 1.0);
+	}
+	else {
+		*offset += invprimes;
+	}
+
+	return *offset;
+}
+
+void BLI_halton_1D(unsigned int prime, double offset, int n, double *r)
+{
+	const double invprime = 1.0 / (double)prime;
+
+	for (int s = 0; s < n; s++) {
+		*r = halton_ex(invprime, &offset);
+	}
+}
+
+void BLI_halton_2D(unsigned int prime[2], double offset[2], int n, double *r)
+{
+	const double invprimes[2] = {1.0 / (double)prime[0], 1.0 / (double)prime[1]};
+
+	for (int s = 0; s < n; s++) {
+		for (int i = 0; i < 2; i++) {
+			r[i] = halton_ex(invprimes[i], &offset[i]);
+		}
+	}
+}
+
+void BLI_halton_3D(unsigned int prime[3], double offset[3], int n, double *r)
+{
+	const double invprimes[3] = {1.0 / (double)prime[0], 1.0 / (double)prime[1], 1.0 / (double)prime[2]};
+
+	for (int s = 0; s < n; s++) {
+		for (int i = 0; i < 3; i++) {
+			r[i] = halton_ex(invprimes[i], &offset[i]);
+		}
+	}
+}
+
+void BLI_halton_2D_sequence(unsigned int prime[2], double offset[2], int n, double *r)
+{
+	const double invprimes[2] = {1.0 / (double)prime[0], 1.0 / (double)prime[1]};
+
+	for (int s = 0; s < n; s++) {
+		for (int i = 0; i < 2; i++) {
+			r[s * 2 + i] = halton_ex(invprimes[i], &offset[i]);
+		}
+	}
+}
+
+
+/* From "Sampling with Hammersley and Halton Points" TT Wong
+ * Appendix: Source Code 1 */
+BLI_INLINE double radical_inverse(unsigned int n)
+{
+	double u = 0;
+
+	/* This reverse the bitwise representation
+	 * around the decimal point. */
+	for (double p = 0.5; n; p *= 0.5, n >>= 1) {
+		if (n & 1) {
+			u += p;
+		}
+	}
+
+	return u;
+}
+
+void BLI_hammersley_1D(unsigned int n, double *r)
+{
+	*r = radical_inverse(n);
+}
+
+void BLI_hammersley_2D_sequence(unsigned int n, double *r)
+{
+	for (unsigned int s = 0; s < n; s++) {
+		r[s * 2 + 0] = (double)(s + 0.5) / (double)n;
+		r[s * 2 + 1] = radical_inverse(s);
+	}
+}
