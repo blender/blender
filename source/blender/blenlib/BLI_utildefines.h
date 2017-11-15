@@ -609,6 +609,9 @@ extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
 /* BLI_assert(), default only to print
  * for aborting need to define WITH_ASSERT_ABORT
  */
+/* For 'abort' only. */
+#include <stdlib.h>
+
 #ifndef NDEBUG
 #  include "BLI_system.h"
 #  ifdef WITH_ASSERT_ABORT
