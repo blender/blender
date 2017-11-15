@@ -295,7 +295,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph::duplis_iterator& b_dupli_iter,
 			           persistent_id,
 			           b_ob,
 			           b_ob_instance,
-			           b_dupli_iter->random_id(),
+			           is_instance ? b_dupli_iter->random_id() : 0,
 			           tfm,
 			           use_portal);
 		}
