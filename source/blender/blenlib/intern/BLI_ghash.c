@@ -1533,6 +1533,41 @@ void BLI_gset_flag_clear(GSet *gs, unsigned int flag)
 
 /** \} */
 
+/** \name GSet Combined Key/Value Usage
+ *
+ * \note Not typical ``set`` use, only use when the pointer identity matters.
+ * This can be useful when the key references data stored outside the GSet.
+ * \{ */
+
+/**
+ * Returns the pointer to the key if it's found.
+ */
+void *BLI_gset_lookup(GSet *gs, const void *key)
+{
+	Entry *e = ghash_lookup_entry((GHash *)gs, key);
+	return e ? e->key : NULL;
+}
+
+/**
+ * Returns the pointer to the key if it's found, removing it from the GSet.
+ * \node Caller must handle freeing.
+ */
+void *BLI_gset_pop_key(GSet *gs, const void *key)
+{
+	const unsigned int hash = ghash_keyhash((GHash *)gs, key);
+	const unsigned int bucket_index = ghash_bucket_index((GHash *)gs, hash);
+	Entry *e = ghash_remove_ex((GHash *)gs, key, NULL, NULL, bucket_index);
+	if (e) {
+		void *key_ret = e->key;
+		BLI_mempool_free(((GHash *)gs)->entrypool, e);
+		return key_ret;
+	}
+	else {
+		return NULL;
+	}
+}
+
+/** \} */
 
 /** \name Convenience GSet Creation Functions
  * \{ */
