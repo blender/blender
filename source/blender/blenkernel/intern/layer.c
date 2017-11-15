@@ -1066,6 +1066,15 @@ void BKE_override_scene_layer_datablock_add(SceneLayer *scene_layer, int id_type
 	TODO_LAYER_OVERRIDE;
 }
 
+/**
+ * Add a new int override
+ */
+void BKE_override_scene_layer_int_add(SceneLayer *scene_layer, int id_type, const char *data_path, const int value)
+{
+	UNUSED_VARS(scene_layer, id_type, data_path, value);
+	TODO_LAYER_OVERRIDE;
+}
+
 /* ---------------------------------------------------------------------- */
 /* Engine Settings */
 

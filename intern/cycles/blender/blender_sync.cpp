@@ -378,7 +378,6 @@ void BlenderSync::sync_film()
 
 void BlenderSync::sync_render_layers(BL::SpaceView3D& b_v3d, const char *layer)
 {
-	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 	string layername;
 
 	/* 3d view */
@@ -391,7 +390,6 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D& b_v3d, const char *layer)
 	/* render layer */
 	BL::RenderSettings r = b_scene.render();
 	BL::RenderSettings::layers_iterator b_rlay;
-	int use_layer_samples = get_enum(cscene, "use_layer_samples");
 	bool first_layer = true;
 	uint layer_override = get_layer(b_engine.layer_override());
 	uint scene_layers = layer_override ? layer_override : get_layer(b_scene.layers());
@@ -415,14 +413,8 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D& b_v3d, const char *layer)
 			render_layer.use_surfaces = b_rlay->use_solid();
 			render_layer.use_hair = b_rlay->use_strand();
 
-			render_layer.bound_samples = (use_layer_samples == 1);
-			if(use_layer_samples != 2) {
-				int samples = b_rlay->samples();
-				if(get_boolean(cscene, "use_square_samples"))
-					render_layer.samples = samples * samples;
-				else
-					render_layer.samples = samples;
-			}
+			render_layer.bound_samples = false;
+			render_layer.samples = 0;
 		}
 
 		first_layer = false;

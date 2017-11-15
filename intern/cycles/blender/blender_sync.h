@@ -207,8 +207,8 @@ private:
 		bool use_background_ao;
 		bool use_surfaces;
 		bool use_hair;
-		int samples;
-		bool bound_samples;
+		int samples; /* This can be safely removed from Cycles. */
+		bool bound_samples; /* This can be safely removed from Cycles. */
 	} render_layer;
 
 	Progress &progress;

@@ -204,13 +204,6 @@ class CYCLES_RENDER_PT_sampling(CyclesButtonsPanel, Panel):
             col.prop(cscene, "sample_all_lights_indirect")
 
         layout.row().prop(cscene, "sampling_pattern", text="Pattern")
-
-        for rl in scene.render.layers:
-            if rl.samples > 0:
-                layout.separator()
-                layout.row().prop(cscene, "use_layer_samples")
-                break
-
         draw_samples_info(layout, context)
 
 

@@ -306,6 +306,16 @@ void do_versions_after_linking_280(Main *main)
 
 						SceneLayer *scene_layer = BKE_scene_layer_add(scene, srl->name);
 
+						if (srl->samples != 0) {
+							/* It is up to the external engine to handle
+							 * its own doversion in this case. */
+							BKE_override_scene_layer_int_add(
+										scene_layer,
+										ID_SCE,
+										"samples",
+										srl->samples);
+						}
+
 						if (srl->mat_override) {
 							BKE_override_scene_layer_datablock_add(
 							            scene_layer,
