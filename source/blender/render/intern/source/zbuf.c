@@ -2066,7 +2066,7 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart *
 	ObjectRen *obr;
 	float obwinmat[4][4], winmat[4][4], bounds[4];
 	float ho1[4], ho2[4], ho3[4], ho4[4]={0};
-	unsigned int lay= rl->lay, lay_zmask= rl->lay_zmask;
+	unsigned int lay= rl->lay, lay_zmask= 0;
 	int i, v, zvlnr, zsample, samples, c1, c2, c3, c4=0;
 	short nofill=0, env=0, wire=0, zmaskpass=0;
 	const bool all_z = (rl->layflag & SCE_LAY_ALL_Z) && !(rl->layflag & SCE_LAY_ZMASK);

@@ -1075,6 +1075,15 @@ void BKE_override_scene_layer_int_add(SceneLayer *scene_layer, int id_type, cons
 	TODO_LAYER_OVERRIDE;
 }
 
+/**
+ * Add a new boolean override
+ */
+void BKE_override_layer_collection_boolean_add(struct LayerCollection *layer_collection, int id_type, const char *data_path, const bool value)
+{
+	UNUSED_VARS(layer_collection, id_type, data_path, value);
+	TODO_LAYER_OVERRIDE;
+}
+
 /* ---------------------------------------------------------------------- */
 /* Engine Settings */
 

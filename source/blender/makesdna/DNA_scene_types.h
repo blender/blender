@@ -177,7 +177,7 @@ typedef struct SceneRenderLayer {
 	struct Material *mat_override DNA_DEPRECATED; /* Converted to SceneLayer override. */
 	
 	unsigned int lay;		  /* scene->lay itself has priority over this */
-	unsigned int lay_zmask;	  /* has to be after lay, this is for Z-masking */
+	unsigned int lay_zmask DNA_DEPRECATED; /* Converted to LayerCollection cycles holdout override. */
 	unsigned int lay_exclude DNA_DEPRECATED;
 	int layflag;
 	

@@ -200,7 +200,7 @@ private:
 		string name;
 		uint scene_layer;
 		uint layer;
-		uint holdout_layer;
+		uint holdout_layer; /* This can be safely removed from Cycles. */
 		uint exclude_layer; /* This can be safely removed from Cycles. */
 		BL::Material material_override; /* This can be safely removed from Cycles. */
 		bool use_background_shader;

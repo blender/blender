@@ -330,15 +330,28 @@ void do_versions_after_linking_280(Main *main)
 
 							/* Add new collection bases. */
 							for (int layer = 0; layer < 20; layer++) {
-								if ((scene->lay & (1 << layer)) &&
-								    (srl->lay & (1 << layer)) &&
-								    ((srl->lay_exclude & (1 << layer)) == 0))
+								if ((
+								        (scene->lay & (1 << layer)) &&
+								        (srl->lay & (1 << layer)) &&
+								        ((srl->lay_exclude & (1 << layer)) == 0)) ||
+								    (
+								        (srl->lay_zmask & (1 << layer)) &&
+								        ((scene->lay | srl->lay_exclude) & (1 << layer)))
+								    )
 								{
 									if (collections[DO_VERSION_COLLECTION_VISIBLE].created & (1 << layer)) {
 
 										LayerCollection *layer_collection_parent;
 										layer_collection_parent = BKE_collection_link(scene_layer,
 										        collections[DO_VERSION_COLLECTION_VISIBLE].collections[layer]);
+
+										if (srl->lay_zmask & (1 << layer)) {
+											BKE_override_layer_collection_boolean_add(
+											            layer_collection_parent,
+											            ID_OB,
+											            "cycles.is_holdout",
+											            true);
+										}
 
 										LayerCollection *layer_collection_child;
 										layer_collection_child = layer_collection_parent->layer_collections.first;
@@ -350,6 +363,7 @@ void do_versions_after_linking_280(Main *main)
 												if (collections[j].flag_render & COLLECTION_DISABLED) {
 													BKE_collection_disable(scene_layer, layer_collection_child);
 												}
+
 												layer_collection_child = layer_collection_child->next;
 											}
 										}
