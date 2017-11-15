@@ -346,6 +346,14 @@ void do_versions_after_linking_280(Main *main)
 													true);
 									}
 
+									if ((srl->lay & (1 << layer)) == 0) {
+										BKE_override_layer_collection_boolean_add(
+													layer_collection_parent,
+													ID_OB,
+													"cycles_visibility.camera",
+													false);
+									}
+
 									LayerCollection *layer_collection_child;
 									layer_collection_child = layer_collection_parent->layer_collections.first;
 

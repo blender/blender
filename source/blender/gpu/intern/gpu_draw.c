@@ -1463,7 +1463,6 @@ static struct GPUMaterialState {
 	DupliObject *dob;
 	Scene *gscene;
 	int glay;
-	bool gscenelock;
 	float (*gviewmat)[4];
 	float (*gviewinv)[4];
 	float (*gviewcamtexcofac);
@@ -1621,7 +1620,6 @@ void GPU_begin_object_materials(
 	GMS.is_opensubdiv = use_opensubdiv;
 	GMS.totmat = use_matcap ? 1 : ob->totcol + 1;  /* materials start from 1, default material is 0 */
 	GMS.glay = (v3d->localvd) ? v3d->localvd->lay : v3d->lay; /* keep lamps visible in local view */
-	GMS.gscenelock = (v3d->scenelock != 0);
 	GMS.gviewmat = rv3d->viewmat;
 	GMS.gviewinv = rv3d->viewinv;
 	GMS.gviewcamtexcofac = rv3d->viewcamtexcofac;
@@ -1837,7 +1835,7 @@ int GPU_object_material_bind(int nr, void *attribs)
 
 			GPU_material_bind(
 			        gpumat, GMS.gob->lay, GMS.glay, 1.0, !(GMS.gob->mode & OB_MODE_TEXTURE_PAINT),
-			        GMS.gviewmat, GMS.gviewinv, GMS.gviewcamtexcofac, GMS.gscenelock);
+			        GMS.gviewmat, GMS.gviewinv, GMS.gviewcamtexcofac);
 
 			auto_bump_scale = GMS.gob->derivedFinal != NULL ? GMS.gob->derivedFinal->auto_bump_scale : 1.0f;
 			GPU_material_bind_uniforms(gpumat, GMS.gob->obmat, GMS.gviewmat, GMS.gob->col, auto_bump_scale, &partile_info, object_info);

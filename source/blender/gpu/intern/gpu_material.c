@@ -295,14 +295,10 @@ void GPU_material_free(ListBase *gpumaterial)
 
 void GPU_material_bind(
         GPUMaterial *material, int oblay, int viewlay, double time, int mipmap,
-        float viewmat[4][4], float viewinv[4][4], float camerafactors[4], bool scenelock)
+        float viewmat[4][4], float viewinv[4][4], float camerafactors[4])
 {
 	if (material->pass) {
 		GPUShader *shader = GPU_pass_shader(material->pass);
-		SceneRenderLayer *srl = scenelock ? BLI_findlink(&material->scene->r.layers, material->scene->r.actlay) : NULL;
-
-		if (srl)
-			viewlay &= srl->lay;
 
 		/* handle layer lamps */
 		if (material->type == GPU_MATERIAL_TYPE_MESH) {

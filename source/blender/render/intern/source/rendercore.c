@@ -246,7 +246,7 @@ static void halo_tile(RenderPart *pa, RenderLayer *rl)
 	intptr_t *rd= NULL;
 	int a, *rz, zz, y, sample, totsample, od;
 	short minx, maxx, miny, maxy, x;
-	unsigned int lay= rl->lay;
+	unsigned int lay= (1 << 20) - 1;
 
 	/* we don't render halos in the cropped area, gives errors in flare counter */
 	if (pa->crop) {
@@ -1651,7 +1651,7 @@ void zbufshade_sss_tile(RenderPart *pa)
 	ssamp.tot= 1;
 	
 	for (rl=rr->layers.first; rl; rl=rl->next) {
-		ssamp.shi[0].lay |= rl->lay;
+		ssamp.shi[0].lay |= (1 << 20) - 1;
 		ssamp.shi[0].layflag |= rl->layflag;
 		ssamp.shi[0].passflag |= rl->passflag;
 		ssamp.shi[0].combinedflag |= ~rl->pass_xor;
@@ -1976,7 +1976,7 @@ void add_halo_flare(Render *re)
 		for (a=0; a<R.tothalo; a++) {
 			har= R.sortedhalos[a];
 			
-			if (har->flarec && (har->lay & rl->lay)) {
+			if (har->flarec && (har->lay & ((1 << 20) - 1))) {
 				do_draw = true;
 				renderflare(rr, rect, har);
 			}

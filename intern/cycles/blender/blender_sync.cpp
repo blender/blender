@@ -404,7 +404,7 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D& b_v3d, const char *layer)
 			render_layer.scene_layer = scene_layers & ~render_layer.exclude_layer;
 			render_layer.scene_layer |= render_layer.exclude_layer & render_layer.holdout_layer;
 
-			render_layer.layer = get_layer(b_rlay->layers());
+			render_layer.layer = (1 << 20) - 1;
 			render_layer.layer |= render_layer.holdout_layer;
 
 			render_layer.material_override = PointerRNA_NULL;

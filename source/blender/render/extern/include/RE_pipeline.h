@@ -108,7 +108,6 @@ typedef struct RenderLayer {
 	
 	/* copy of RenderData */
 	char name[RE_MAXNAME];
-	unsigned int lay;
 	int layflag, passflag, pass_xor;
 	
 	/* MULTIVIEW_TODO: acolrect and scolrect are not supported by multiview at the moment.

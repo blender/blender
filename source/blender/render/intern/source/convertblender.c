@@ -4939,16 +4939,9 @@ static void dupli_render_particle_set(Render *re, Object *ob, int timeoffset, in
 		dupli_render_particle_set(re, go->ob, timeoffset, level+1, enable);
 }
 
-static int get_vector_renderlayers(Scene *sce)
+static int get_vector_renderlayers(Scene *UNUSED(sce))
 {
-	SceneRenderLayer *srl;
-	unsigned int lay= 0;
-
-	for (srl= sce->r.layers.first; srl; srl= srl->next)
-		if (srl->passflag & SCE_PASS_VECTOR)
-			lay |= srl->lay;
-
-	return lay;
+	return 0;
 }
 
 static void add_group_render_dupli_obs(Render *re, Group *group, int nolamps, int onlyselected, Object *actob, int timeoffset, int level)

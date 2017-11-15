@@ -793,13 +793,13 @@ static void view3d_draw_background_none(void)
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
-static void view3d_draw_background_world(Scene *scene, View3D *v3d, RegionView3D *rv3d)
+static void view3d_draw_background_world(Scene *scene, RegionView3D *rv3d)
 {
 	if (scene->world) {
 		GPUMaterial *gpumat = GPU_material_world(scene, scene->world);
 
 		/* calculate full shader for background */
-		GPU_material_bind(gpumat, 1, 1, 1.0f, false, rv3d->viewmat, rv3d->viewinv, rv3d->viewcamtexcofac, (v3d->scenelock != 0));
+		GPU_material_bind(gpumat, 1, 1, 1.0f, false, rv3d->viewmat, rv3d->viewinv, rv3d->viewcamtexcofac);
 
 		if (GPU_material_bound(gpumat)) {
 			/* TODO viewport (dfelinto): GPU_material_bind relies on immediate mode,
@@ -1949,7 +1949,7 @@ static void view3d_main_region_clear(Scene *scene, View3D *v3d, ARegion *ar)
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	if (scene->world && (v3d->flag3 & V3D_SHOW_WORLD)) {
-		VP_view3d_draw_background_world(scene, v3d, ar->regiondata);
+		VP_view3d_draw_background_world(scene, ar->regiondata);
 	}
 	else {
 		VP_view3d_draw_background_none();
@@ -2394,9 +2394,9 @@ void VP_view3d_draw_background_none(void)
 	}
 }
 
-void VP_view3d_draw_background_world(Scene *scene, View3D *v3d, RegionView3D *rv3d)
+void VP_view3d_draw_background_world(Scene *scene, RegionView3D *rv3d)
 {
-	view3d_draw_background_world(scene, v3d, rv3d);
+	view3d_draw_background_world(scene, rv3d);
 }
 
 void VP_view3d_main_region_clear(Scene *scene, View3D *v3d, ARegion *ar)

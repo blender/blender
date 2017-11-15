@@ -376,7 +376,7 @@ bool VP_legacy_use_depth(Scene *scene, View3D *v3d);
 void VP_drawviewborder(Scene *scene, ARegion *ar, View3D *v3d);
 void VP_drawrenderborder(ARegion *ar, View3D *v3d);
 void VP_view3d_draw_background_none(void);
-void VP_view3d_draw_background_world(Scene *scene, View3D *v3d, RegionView3D *rv3d);
+void VP_view3d_draw_background_world(Scene *scene, RegionView3D *rv3d);
 void VP_view3d_main_region_clear(Scene *scene, View3D *v3d, ARegion *ar);
 
 /* temporary legacy calls, only when there is a switch between new/old draw calls */

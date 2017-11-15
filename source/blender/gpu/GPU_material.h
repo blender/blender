@@ -254,7 +254,7 @@ void GPU_materials_free(void);
 
 void GPU_material_bind(
         GPUMaterial *material, int oblay, int viewlay, double time, int mipmap,
-        float viewmat[4][4], float viewinv[4][4], float cameraborder[4], bool scenelock);
+        float viewmat[4][4], float viewinv[4][4], float cameraborder[4]);
 void GPU_material_bind_uniforms(
         GPUMaterial *material, float obmat[4][4], float viewmat[4][4], float obcol[4],
         float autobumpscale, GPUParticleInfo *pi, float object_info[3]);

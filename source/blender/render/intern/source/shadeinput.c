@@ -1300,7 +1300,7 @@ void shade_input_initialize(ShadeInput *shi, RenderPart *pa, RenderLayer *rl, in
 	shi->do_manage = BKE_scene_check_color_management_enabled(R.scene);
 	shi->use_world_space_shading = BKE_scene_use_world_space_shading(R.scene);
 
-	shi->lay = rl->lay;
+	shi->lay = (1 << 20) - 1;
 	shi->layflag = rl->layflag;
 	shi->passflag = rl->passflag;
 	shi->combinedflag = ~rl->pass_xor;

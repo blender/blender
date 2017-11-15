@@ -199,7 +199,7 @@ private:
 
 		string name;
 		uint scene_layer;
-		uint layer;
+		uint layer; /* This can be safely removed from Cycles. */
 		uint holdout_layer; /* This can be safely removed from Cycles. */
 		uint exclude_layer; /* This can be safely removed from Cycles. */
 		BL::Material material_override; /* This can be safely removed from Cycles. */

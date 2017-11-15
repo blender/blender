@@ -1338,7 +1338,7 @@ typedef struct View3DShadow {
 static void gpu_render_lamp_update(Scene *scene, View3D *v3d,
                                    Object *ob, Object *par,
                                    float obmat[4][4], unsigned int lay,
-                                   ListBase *shadows, SceneRenderLayer *srl)
+                                   ListBase *shadows)
 {
 	GPULamp *lamp = GPU_lamp_from_blender(scene, ob, par);
 	
@@ -1349,8 +1349,6 @@ static void gpu_render_lamp_update(Scene *scene, View3D *v3d,
 		GPU_lamp_update_colors(lamp, la->r, la->g, la->b, la->energy);
 		
 		unsigned int layers = lay & v3d->lay;
-		if (srl)
-			layers &= srl->lay;
 
 		if (layers &&
 		    GPU_lamp_has_shadow_buffer(lamp) &&
@@ -1370,7 +1368,6 @@ static void gpu_update_lamps_shadows_world(const EvaluationContext *eval_ctx, Sc
 	Scene *sce_iter;
 	Base *base;
 	World *world = scene->world;
-	SceneRenderLayer *srl = v3d->scenelock ? BLI_findlink(&scene->r.layers, scene->r.actlay) : NULL;
 	
 	BLI_listbase_clear(&shadows);
 	
@@ -1379,7 +1376,7 @@ static void gpu_update_lamps_shadows_world(const EvaluationContext *eval_ctx, Sc
 		Object *ob = base->object;
 		
 		if (ob->type == OB_LAMP)
-			gpu_render_lamp_update(scene, v3d, ob, NULL, ob->obmat, ob->lay, &shadows, srl);
+			gpu_render_lamp_update(scene, v3d, ob, NULL, ob->obmat, ob->lay, &shadows);
 		
 		if (ob->transflag & OB_DUPLI) {
 			DupliObject *dob;
@@ -1387,7 +1384,7 @@ static void gpu_update_lamps_shadows_world(const EvaluationContext *eval_ctx, Sc
 			
 			for (dob = lb->first; dob; dob = dob->next)
 				if (dob->ob->type == OB_LAMP)
-					gpu_render_lamp_update(scene, v3d, dob->ob, ob, dob->mat, ob->lay, &shadows, srl);
+					gpu_render_lamp_update(scene, v3d, dob->ob, ob, dob->mat, ob->lay, &shadows);
 			
 			free_object_duplilist(lb);
 		}

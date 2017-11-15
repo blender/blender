@@ -313,8 +313,6 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 		BLI_addtail(&rr->layers, rl);
 		
 		BLI_strncpy(rl->name, srl->name, sizeof(rl->name));
-		rl->lay = srl->lay;
-		rl->layflag = srl->layflag;
 		rl->passflag = srl->passflag; /* for debugging: srl->passflag | SCE_PASS_RAYHITS; */
 		rl->pass_xor = srl->pass_xor;
 		rl->rectx = rectx;
@@ -443,7 +441,6 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 		}
 
 		/* note, this has to be in sync with scene.c */
-		rl->lay = (1 << 20) - 1;
 		rl->layflag = 0x7FFF;    /* solid ztra halo strand */
 		rl->passflag = SCE_PASS_COMBINED;
 		

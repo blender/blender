@@ -2066,7 +2066,7 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart *
 	ObjectRen *obr;
 	float obwinmat[4][4], winmat[4][4], bounds[4];
 	float ho1[4], ho2[4], ho3[4], ho4[4]={0};
-	unsigned int lay= rl->lay, lay_zmask= 0;
+	unsigned int lay= (1 << 20) - 1, lay_zmask= 0;
 	int i, v, zvlnr, zsample, samples, c1, c2, c3, c4=0;
 	short nofill=0, env=0, wire=0, zmaskpass=0;
 	const bool all_z = (rl->layflag & SCE_LAY_ALL_Z) && !(rl->layflag & SCE_LAY_ZMASK);
@@ -3450,9 +3450,9 @@ static int zbuffer_abuf_render(RenderPart *pa, APixstr *APixbuf, APixstrand *APi
 	zbuf_make_winmat(&R, winmat);
 
 	if (rl->layflag & SCE_LAY_ZTRA)
-		doztra+= zbuffer_abuf(&R, pa, APixbuf, apsmbase, rl->lay, negzmask, winmat, R.winx, R.winy, samples, jit, R.clipcrop, 0);
+		doztra+= zbuffer_abuf(&R, pa, APixbuf, apsmbase, (1 << 20) - 1, negzmask, winmat, R.winx, R.winy, samples, jit, R.clipcrop, 0);
 	if ((rl->layflag & SCE_LAY_STRAND) && APixbufstrand)
-		doztra+= zbuffer_strands_abuf(&R, pa, APixbufstrand, apsmbase, rl->lay, negzmask, winmat, R.winx, R.winy, samples, jit, R.clipcrop, 0, sscache);
+		doztra+= zbuffer_strands_abuf(&R, pa, APixbufstrand, apsmbase, (1 << 20) - 1, negzmask, winmat, R.winx, R.winy, samples, jit, R.clipcrop, 0, sscache);
 
 	return doztra;
 }

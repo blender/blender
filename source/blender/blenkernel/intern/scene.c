@@ -1632,7 +1632,6 @@ SceneRenderLayer *BKE_scene_add_render_layer(Scene *sce, const char *name)
 	BLI_addtail(&sce->r.layers, srl);
 
 	/* note, this is also in render, pipeline.c, to make layer when scenedata doesnt have it */
-	srl->lay = (1 << 20) - 1;
 	srl->layflag = 0x7FFF;   /* solid ztra halo edge strand */
 	srl->passflag = SCE_PASS_COMBINED | SCE_PASS_Z;
 	srl->pass_alpha_threshold = 0.5f;
