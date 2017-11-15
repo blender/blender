@@ -70,6 +70,7 @@ public:
 	Shader *shader;
 	int samples;
 	int max_bounces;
+	uint random_id;
 
 	void tag_update(Scene *scene);
 

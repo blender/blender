@@ -134,6 +134,7 @@ private:
 	                int persistent_id[OBJECT_PERSISTENT_ID_SIZE],
 	                BL::Object& b_ob,
 	                BL::Object& b_ob_instance,
+	                int random_id,
 	                Transform& tfm,
 	                bool *use_portal);
 	void sync_background_light(bool use_portal);

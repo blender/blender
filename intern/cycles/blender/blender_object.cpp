@@ -113,6 +113,7 @@ void BlenderSync::sync_light(BL::Object& b_parent,
                              int persistent_id[OBJECT_PERSISTENT_ID_SIZE],
                              BL::Object& b_ob,
                              BL::Object& b_ob_instance,
+                             int random_id,
                              Transform& tfm,
                              bool *use_portal)
 {
@@ -193,6 +194,13 @@ void BlenderSync::sync_light(BL::Object& b_parent,
 		light->samples = samples;
 
 	light->max_bounces = get_int(clamp, "max_bounces");
+
+	if(b_ob != b_ob_instance) {
+		light->random_id = random_id;
+	}
+	else {
+		light->random_id = hash_int_2d(hash_string(b_ob.name().c_str()), 0);
+	}
 
 	if(light->type == LIGHT_AREA)
 		light->is_portal = get_boolean(clamp, "is_portal");
@@ -287,6 +295,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph::duplis_iterator& b_dupli_iter,
 			           persistent_id,
 			           b_ob,
 			           b_ob_instance,
+			           b_dupli_iter->random_id(),
 			           tfm,
 			           use_portal);
 		}
