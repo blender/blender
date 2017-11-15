@@ -36,6 +36,22 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Returns the square of the roughness of the closure if it has roughness,
+ * 0 for singular closures and 1 otherwise. */
+ccl_device_inline float bsdf_get_roughness_sqr(const ShaderClosure *sc)
+{
+	if(CLOSURE_IS_BSDF_SINGULAR(sc->type)) {
+		return 0.0f;
+	}
+
+	if(CLOSURE_IS_BSDF_MICROFACET(sc->type)) {
+		MicrofacetBsdf *bsdf = (MicrofacetBsdf*) sc;
+		return bsdf->alpha_x*bsdf->alpha_y;
+	}
+
+	return 1.0f;
+}
+
 ccl_device_forceinline int bsdf_sample(KernelGlobals *kg,
                                        ShaderData *sd,
                                        const ShaderClosure *sc,
@@ -436,24 +452,6 @@ ccl_device bool bsdf_merge(ShaderClosure *a, ShaderClosure *b)
 #else
 	return false;
 #endif
-}
-
-/* Classifies a closure as diffuse-like or specular-like.
- * This is needed for the denoising feature pass generation,
- * which are written on the first bounce where more than 25%
- * of the sampling weight belongs to diffuse-line closures. */
-ccl_device_inline bool bsdf_is_specular_like(ShaderClosure *sc)
-{
-	if(CLOSURE_IS_BSDF_TRANSPARENT(sc->type)) {
-		return true;
-	}
-
-	if(CLOSURE_IS_BSDF_MICROFACET(sc->type)) {
-		MicrofacetBsdf *bsdf = (MicrofacetBsdf*) sc;
-		return (bsdf->alpha_x*bsdf->alpha_y <= 0.075f*0.075f);
-	}
-
-	return false;
 }
 
 CCL_NAMESPACE_END
