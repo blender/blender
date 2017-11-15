@@ -172,7 +172,6 @@ static void shade_intersection(ShadeInput *shi, float col_r[4], Isect *is)
 	shi_new.lay = shi->lay;
 	shi_new.passflag = SCE_PASS_COMBINED; /* result of tracing needs no pass info */
 	shi_new.combinedflag = 0xFFFFFF;      /* ray trace does all options */
-	shi_new.mat_override = shi->mat_override;
 	
 	copy_v3_v3(shi_new.camera_co, is->start);
 	

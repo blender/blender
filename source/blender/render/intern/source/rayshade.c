@@ -742,7 +742,6 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, con
 		shi.passflag= SCE_PASS_COMBINED; /* result of tracing needs no pass info */
 		shi.combinedflag= 0xFFFFFF;		 /* ray trace does all options */
 		//shi.do_preview = false; // memset above, so don't need this
-		shi.mat_override= origshi->mat_override;
 		
 		shade_ray(&isec, &shi, &shr);
 		/* ray has traveled inside the material, so shade by transmission */

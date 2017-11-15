@@ -268,7 +268,7 @@ void shade_input_set_triangle_i(ShadeInput *shi, ObjectInstanceRen *obi, VlakRen
 	shi->i3 = i3;
 	
 	/* note, shi->mat is set in node shaders */
-	shi->mat = shi->mat_override ? shi->mat_override : vlr->mat;
+	shi->mat = vlr->mat;
 	
 	shi->osatex = (shi->mat->texco & TEXCO_OSA);
 	shi->mode = shi->mat->mode_l;        /* or-ed result for all nodes */
@@ -325,7 +325,7 @@ void shade_input_copy_triangle(ShadeInput *shi, ShadeInput *from)
 void shade_input_set_strand(ShadeInput *shi, StrandRen *strand, StrandPoint *spoint)
 {
 	/* note, shi->mat is set in node shaders */
-	shi->mat = shi->mat_override ? shi->mat_override : strand->buffer->ma;
+	shi->mat = strand->buffer->ma;
 	
 	shi->osatex = (shi->mat->texco & TEXCO_OSA);
 	shi->mode = shi->mat->mode_l;        /* or-ed result for all nodes */
@@ -1304,7 +1304,6 @@ void shade_input_initialize(ShadeInput *shi, RenderPart *pa, RenderLayer *rl, in
 	shi->layflag = rl->layflag;
 	shi->passflag = rl->passflag;
 	shi->combinedflag = ~rl->pass_xor;
-	shi->mat_override = rl->mat_override;
 //	shi->rl= rl;
 	/* note shi.depth==0  means first hit, not raytracing */
 	

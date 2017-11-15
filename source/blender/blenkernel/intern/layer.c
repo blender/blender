@@ -1060,8 +1060,9 @@ void BKE_layer_sync_object_unlink(const Scene *scene, SceneCollection *sc, Objec
 /**
  * Add a new datablock override
  */
-void BKE_collection_override_datablock_add(LayerCollection *UNUSED(lc), const char *UNUSED(data_path), ID *UNUSED(id))
+void BKE_override_scene_layer_datablock_add(SceneLayer *scene_layer, int id_type, const char *data_path, const ID *id)
 {
+	UNUSED_VARS(scene_layer, id_type, data_path, id);
 	TODO_LAYER_OVERRIDE;
 }
 

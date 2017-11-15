@@ -179,7 +179,6 @@ typedef struct ShadeInput {
 	unsigned int lay;
 	int layflag, passflag, combinedflag;
 	short object_pass_index;
-	struct Material *mat_override;
 
 #ifdef RE_RAYCOUNTER
 	RayCounter raycounter;

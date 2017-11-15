@@ -409,7 +409,7 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D& b_v3d, const char *layer)
 			render_layer.layer = get_layer(b_rlay->layers());
 			render_layer.layer |= render_layer.holdout_layer;
 
-			render_layer.material_override = b_rlay->material_override();
+			render_layer.material_override = PointerRNA_NULL;
 			render_layer.use_background_shader = b_rlay->use_sky();
 			render_layer.use_background_ao = b_rlay->use_ao();
 			render_layer.use_surfaces = b_rlay->use_solid();

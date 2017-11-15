@@ -111,8 +111,6 @@ typedef struct RenderLayer {
 	unsigned int lay, lay_zmask;
 	int layflag, passflag, pass_xor;
 	
-	struct Material *mat_override;
-
 	/* MULTIVIEW_TODO: acolrect and scolrect are not supported by multiview at the moment.
 	 * If they are really required they should be in RenderView instead */
 

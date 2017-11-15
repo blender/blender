@@ -108,7 +108,7 @@ void BKE_layer_sync_object_unlink(const struct Scene *scene, struct SceneCollect
 
 /* override */
 
-void BKE_collection_override_datablock_add(struct LayerCollection *lc, const char *data_path, struct ID *id);
+void BKE_override_scene_layer_datablock_add(struct SceneLayer *scene_layer, int id_type, const char *data_path, const struct ID *id);
 
 /* engine settings */
 typedef void (*EngineSettingsCB)(struct RenderEngine *engine, struct IDProperty *props);

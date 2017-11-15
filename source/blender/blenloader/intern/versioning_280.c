@@ -307,7 +307,11 @@ void do_versions_after_linking_280(Main *main)
 						SceneLayer *scene_layer = BKE_scene_layer_add(scene, srl->name);
 
 						if (srl->mat_override) {
-							BKE_collection_override_datablock_add((LayerCollection *)scene_layer->layer_collections.first, "material", (ID *)srl->mat_override);
+							BKE_override_scene_layer_datablock_add(
+							            scene_layer,
+							            ID_MA,
+							            "self",
+							            (ID *)srl->mat_override);
 						}
 
 						if (srl->lay != scene->lay) {
