@@ -36,7 +36,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_appdir.h"
 #include "BLI_utildefines.h"
 #include "BLI_listbase.h"
 #include "BLI_hash_md5.h"
@@ -45,6 +44,7 @@
 #include "BLI_string.h"
 #include "BLI_threads.h"
 
+#include "BKE_appdir.h"
 #include "BKE_image.h"
 #include "BKE_global.h"
 #include "BKE_main.h"

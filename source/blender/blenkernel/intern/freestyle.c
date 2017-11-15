@@ -34,13 +34,13 @@
 #include "DNA_freestyle_types.h"
 #include "DNA_group_types.h"
 
-#include "BKE_freestyle.h"
-#include "BKE_library.h"
-#include "BKE_linestyle.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_string_utils.h"
+
+#include "BKE_freestyle.h"
+#include "BKE_library.h"
+#include "BKE_linestyle.h"
 
 // function declarations
 static FreestyleLineSet *alloc_lineset(void);

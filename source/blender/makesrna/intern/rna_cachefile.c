@@ -34,9 +34,9 @@
 
 #ifdef RNA_RUNTIME
 
-#include "BKE_cachefile.h"
-
 #include "BLI_string.h"
+
+#include "BKE_cachefile.h"
 
 #include "DEG_depsgraph.h"
 

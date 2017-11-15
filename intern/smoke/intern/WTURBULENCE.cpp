@@ -245,7 +245,7 @@ void WTURBULENCE::initBlenderRNA(float *strength)
 // Takes the one-sided finite difference in both directions and
 // selects the smaller of the two
 //////////////////////////////////////////////////////////////////////
-static float minDx(int x, int y, int z, float* input, Vec3Int res)
+static float minDx(int x, int y, int z, float* input, const Vec3Int& res)
 {
   const int index = x + y * res[0] + z * res[0] * res[1];
   const int maxx = res[0]-2;
@@ -280,7 +280,7 @@ static float minDx(int x, int y, int z, float* input, Vec3Int res)
 // Takes the one-sided finite difference in both directions and
 // selects the smaller of the two
 //////////////////////////////////////////////////////////////////////
-static float minDy(int x, int y, int z, float* input, Vec3Int res)
+static float minDy(int x, int y, int z, float* input, const Vec3Int& res)
 {
   const int index = x + y * res[0] + z * res[0] * res[1];
   const int maxy = res[1]-2;
@@ -314,7 +314,7 @@ static float minDy(int x, int y, int z, float* input, Vec3Int res)
 // Takes the one-sided finite difference in both directions and
 // selects the smaller of the two
 //////////////////////////////////////////////////////////////////////
-static float minDz(int x, int y, int z, float* input, Vec3Int res)
+static float minDz(int x, int y, int z, float* input, const Vec3Int& res)
 {
   const int slab = res[0]*res[1];
   const int index = x + y * res[0] + z * slab;
@@ -605,7 +605,7 @@ Vec3 WTURBULENCE::WVelocity(Vec3 orgPos)
 //////////////////////////////////////////////////////////////////////////////////////////
 // Evaluate derivatives with Jacobian
 //////////////////////////////////////////////////////////////////////////////////////////
-Vec3 WTURBULENCE::WVelocityWithJacobian(Vec3 orgPos, float* xUnwarped, float* yUnwarped, float* zUnwarped)
+Vec3 WTURBULENCE::WVelocityWithJacobian(const Vec3& orgPos, float* xUnwarped, float* yUnwarped, float* zUnwarped)
 {
   // arbitrarily offset evaluation points
   const Vec3 p1 = orgPos + Vec3(NOISE_TILE_SIZE/2.0,0,0);

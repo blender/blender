@@ -62,7 +62,7 @@ struct WTURBULENCE
 
 		// evaluate wavelet noise function
 		Vec3 WVelocity(Vec3 p);
-		Vec3 WVelocityWithJacobian(Vec3 p, float* xUnwarped, float* yUnwarped, float* zUnwarped);
+		Vec3 WVelocityWithJacobian(const Vec3& p, float* xUnwarped, float* yUnwarped, float* zUnwarped);
 
 		// access functions
 		inline float* getDensityBig() { return _densityBig; }

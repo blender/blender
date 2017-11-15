@@ -29,13 +29,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "BKE_outliner_treehash.h"
-
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_mempool.h"
 
 #include "DNA_outliner_types.h"
+
+#include "BKE_outliner_treehash.h"
 
 #include "MEM_guardedalloc.h"
 

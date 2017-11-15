@@ -29,6 +29,9 @@
 #include <stdlib.h>
 #include <limits.h>
 
+#include "BLI_sys_types.h"
+#include "BLI_threads.h"
+
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
@@ -37,8 +40,6 @@
 #include "BKE_modifier.h"
 #include "BKE_smoke.h"
 #include "BKE_pointcache.h"
-
-#include "BLI_threads.h"
 
 #include "DNA_modifier_types.h"
 #include "DNA_object_force.h"
