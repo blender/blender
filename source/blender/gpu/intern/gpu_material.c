@@ -145,6 +145,7 @@ struct GPUMaterial {
 	GPUUniformBuffer *sss_profile; /* UBO containing SSS profile. */
 	float *sss_radii; /* UBO containing SSS profile. */
 	int sss_samples;
+	int *sss_falloff;
 	bool sss_dirty;
 };
 
@@ -505,17 +506,6 @@ static void sss_calculate_offsets(GPUSssKernelData *kd, int count)
 	}
 }
 
-#if 0 /* Maybe used for other distributions */
-static void sss_calculate_areas(GPUSssKernelData *kd, float areas[SSS_SAMPLES])
-{
-	for (int i = 0; i < SSS_SAMPLES; i++) {
-		float w0 = (i > 0) ? fabsf(kd->kernel[i][3] - kd->kernel[i-1][3]) : 0.0f;
-		float w1 = (i < SSS_SAMPLES - 1) ? fabsf(kd->kernel[i][3] - kd->kernel[i+1][3]) : 0.0f;
-		areas[i] = (w0 + w1) / 2.0f;
-	}
-}
-#endif
-
 static float error_function(float x) {
 	/* Approximation of the error function by Abramowitz and Stegun
 	 * https://en.wikipedia.org/wiki/Error_function#Approximation_with_elementary_functions */
@@ -541,29 +531,67 @@ static float gaussian_primitive(float x) {
 }
 
 static float gaussian_integral(float x0, float x1) {
-	return gaussian_primitive(x0) - gaussian_primitive(x1);
+	return gaussian_primitive(x1) - gaussian_primitive(x0);
 }
 
-static void compute_sss_kernel(GPUSssKernelData *kd, float *radii, int sample_ct)
+/* Resolution for each sample of the precomputed kernel profile */
+#define INTEGRAL_RESOLUTION 32
+#define BURLEY_TRUNCATE     16.0f
+
+static float burley_profile(float r, float d)
 {
+	float exp_r_3_d = expf(-r / (3.0f * d));
+	float exp_r_d = exp_r_3_d * exp_r_3_d * exp_r_3_d;
+	return (exp_r_d + exp_r_3_d) / (4.0f * d);
+}
+
+static float burley_integral(float x0, float x1, float d)
+{
+	const float range = x1 - x0;
+	const float step = range / INTEGRAL_RESOLUTION;
+	float integral = 0.0f;
+
+	for(int i = 0; i < INTEGRAL_RESOLUTION; ++i) {
+		float x = x0 + range * ((float)i + 0.5f) / (float)INTEGRAL_RESOLUTION;
+		float y = burley_profile(fabsf(x), d);
+		integral += y * step;
+	}
+
+	return integral;
+}
+
+static void compute_sss_kernel(GPUSssKernelData *kd, float *radii, int sample_ct, int falloff_type)
+{
+	for (int i = 0; i < 3; ++i) {
+		/* Minimum radius */
+		kd->radii_n[i] = MAX2(radii[i], 1e-15f);
+	}
+
+	/* Christensen-Burley fitting */
+	float l[3], d[3];
+
+	if (falloff_type == SHD_SUBSURFACE_BURLEY) {
+		mul_v3_v3fl(l, kd->radii_n, 0.25f * M_1_PI);
+		const float A = 1.0f;
+		const float s = 1.9f - A + 3.5f * (A - 0.8f) * (A - 0.8f);
+		/* XXX 0.6f Out of nowhere to match cycles! Empirical! Can be tweak better. */
+		mul_v3_v3fl(d, l, 0.6f / s);
+		mul_v3_v3fl(kd->radii_n, d, BURLEY_TRUNCATE);
+	}
+
 	/* Normalize size */
-	copy_v3_v3(kd->radii_n, radii);
 	kd->max_radius = MAX3(kd->radii_n[0], kd->radii_n[1], kd->radii_n[2]);
-	mul_v3_fl(kd->radii_n, 1.0f / kd->max_radius);
+	kd->radii_n[0] /= kd->max_radius;
+	kd->radii_n[1] /= kd->max_radius;
+	kd->radii_n[2] /= kd->max_radius;
 
-	/* Compute samples locations on the 1d kernel */
+	/* Compute samples locations on the 1d kernel [-1..1] */
 	sss_calculate_offsets(kd, sample_ct);
-
-#if 0 /* Maybe used for other distributions */
-	/* Calculate areas (using importance-sampling) */
-	float areas[SSS_SAMPLES];
-	sss_calculate_areas(&kd, areas);
-#endif
 
 	/* Weights sum for normalization */
 	float sum[3] = {0.0f, 0.0f, 0.0f};
 
-	/* Compute interpolated weights */
+	/* Compute integral of each sample footprint */
 	for (int i = 0; i < sample_ct; i++) {
 		float x0, x1;
 
@@ -581,20 +609,35 @@ static void compute_sss_kernel(GPUSssKernelData *kd, float *radii, int sample_ct
 			x1 = (kd->kernel[i][3] + kd->kernel[i + 1][3]) / 2.0f;
 		}
 
-		kd->kernel[i][0] = gaussian_integral(x0 / kd->radii_n[0], x1 / kd->radii_n[0]);
-		kd->kernel[i][1] = gaussian_integral(x0 / kd->radii_n[1], x1 / kd->radii_n[1]);
-		kd->kernel[i][2] = gaussian_integral(x0 / kd->radii_n[2], x1 / kd->radii_n[2]);
+		if (falloff_type == SHD_SUBSURFACE_BURLEY) {
+			x0 *= kd->max_radius;
+			x1 *= kd->max_radius;
+			kd->kernel[i][0] = burley_integral(x0, x1, d[0]);
+			kd->kernel[i][1] = burley_integral(x0, x1, d[1]);
+			kd->kernel[i][2] = burley_integral(x0, x1, d[2]);
+		}
+		else {
+			kd->kernel[i][0] = gaussian_integral(x0 / kd->radii_n[0], x1 / kd->radii_n[0]);
+			kd->kernel[i][1] = gaussian_integral(x0 / kd->radii_n[1], x1 / kd->radii_n[1]);
+			kd->kernel[i][2] = gaussian_integral(x0 / kd->radii_n[2], x1 / kd->radii_n[2]);
+		}
 
 		sum[0] += kd->kernel[i][0];
 		sum[1] += kd->kernel[i][1];
 		sum[2] += kd->kernel[i][2];
 	}
 
-	/* Normalize */
-	for (int i = 0; i < sample_ct; i++) {
-		 kd->kernel[i][0] /= sum[0];
-		 kd->kernel[i][1] /= sum[1];
-		 kd->kernel[i][2] /= sum[2];
+	for (int i = 0; i < 3; ++i) {
+		if (sum[i] > 0.0f) {
+			/* Normalize */
+			for (int j = 0; j < sample_ct; j++) {
+				 kd->kernel[j][i] /= sum[i];
+			}
+		}
+		else {
+			/* Avoid 0 kernel sum. */
+			kd->kernel[sample_ct / 2][i] = 1.0f;
+		}
 	}
 
 	/* Put center sample at the start of the array (to sample first) */
@@ -606,9 +649,10 @@ static void compute_sss_kernel(GPUSssKernelData *kd, float *radii, int sample_ct
 	copy_v4_v4(kd->kernel[0], tmpv);
 }
 
-void GPU_material_sss_profile_create(GPUMaterial *material, float *radii)
+void GPU_material_sss_profile_create(GPUMaterial *material, float *radii, int *falloff_type)
 {
 	material->sss_radii = radii;
+	material->sss_falloff = falloff_type;
 	material->sss_dirty = true;
 
 	/* Update / Create UBO */
@@ -628,7 +672,7 @@ struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material, int
 	if (material->sss_dirty || (material->sss_samples != sample_ct)) {
 		GPUSssKernelData kd;
 
-		compute_sss_kernel(&kd, material->sss_radii, sample_ct);
+		compute_sss_kernel(&kd, material->sss_radii, sample_ct, *material->sss_falloff);
 
 		/* Update / Create UBO */
 		GPU_uniformbuffer_update(material->sss_profile, &kd);
