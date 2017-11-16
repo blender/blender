@@ -692,6 +692,46 @@ void *BLI_rfindptr(const ListBase *listbase, const void *ptr, const int offset)
 }
 
 /**
+ * Finds the first element of listbase which contains the specified bytes
+ * at the specified offset, returning NULL if not found.
+ */
+void *BLI_listbase_bytes_find(const ListBase *listbase, const void *bytes, const size_t bytes_size, const int offset)
+{
+	Link *link = NULL;
+	const void *ptr_iter;
+
+	for (link = listbase->first; link; link = link->next) {
+		ptr_iter = (const void *)(((const char *)link) + offset);
+
+		if (memcmp(bytes, ptr_iter, bytes_size) == 0) {
+			return link;
+		}
+	}
+
+	return NULL;
+}
+/* same as above but find reverse */
+/**
+ * Finds the last element of listbase which contains the specified bytes
+ * at the specified offset, returning NULL if not found.
+ */
+void *BLI_listbase_bytes_rfind(const ListBase *listbase, const void *bytes, const size_t bytes_size, const int offset)
+{
+	Link *link = NULL;
+	const void *ptr_iter;
+
+	for (link = listbase->last; link; link = link->prev) {
+		ptr_iter = (const void *)(((const char *)link) + offset);
+
+		if (memcmp(bytes, ptr_iter, bytes_size) == 0) {
+			return link;
+		}
+	}
+
+	return NULL;
+}
+
+/**
  * Returns the 0-based index of the first element of listbase which contains the specified
  * null-terminated string at the specified offset, or -1 if not found.
  */

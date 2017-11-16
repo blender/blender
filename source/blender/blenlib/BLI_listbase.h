@@ -50,12 +50,14 @@ void *BLI_findlink(const struct ListBase *listbase, int number) ATTR_WARN_UNUSED
 void *BLI_findstring(const struct ListBase *listbase, const char *id, const int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 void *BLI_findstring_ptr(const struct ListBase *listbase, const char *id, const int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 void *BLI_findptr(const struct ListBase *listbase, const void *ptr, const int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+void *BLI_listbase_bytes_find(const ListBase *listbase, const void *bytes, const size_t bytes_size, const int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
 
 /* find backwards */
 void *BLI_rfindlink(const struct ListBase *listbase, int number) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 void *BLI_rfindstring(const struct ListBase *listbase, const char *id, const int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 void *BLI_rfindstring_ptr(const struct ListBase *listbase, const char *id, const int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 void *BLI_rfindptr(const struct ListBase *listbase, const void *ptr, const int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+void *BLI_listbase_bytes_rfind(const ListBase *listbase, const void *bytes, const size_t bytes_size, const int offset) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
 
 void BLI_freelistN(struct ListBase *listbase) ATTR_NONNULL(1);
 void BLI_addtail(struct ListBase *listbase, void *vlink) ATTR_NONNULL(1);
