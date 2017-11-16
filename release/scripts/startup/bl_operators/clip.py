@@ -613,22 +613,22 @@ class CLIP_OT_setup_tracking_scene(Operator):
     @staticmethod
     def _setupRenderLayers(context):
         scene = context.scene
-        rlayers = scene.render.layers
+        rlayers = scene.render_layers
 
-        if not scene.render.layers.get("Foreground"):
+        if not scene.render_layers.get("Foreground"):
             if len(rlayers) == 1:
                 fg = rlayers[0]
                 fg.name = 'Foreground'
             else:
-                fg = scene.render.layers.new("Foreground")
+                fg = scene.render_layers.new("Foreground")
 
             fg.use_sky = True
             fg.layers = [True] + [False] * 19
             fg.layers_zmask = [False] * 10 + [True] + [False] * 9
             fg.use_pass_vector = True
 
-        if not scene.render.layers.get("Background"):
-            bg = scene.render.layers.new("Background")
+        if not scene.render_layers.get("Background"):
+            bg = scene.render_layers.new("Background")
             bg.use_pass_shadow = True
             bg.use_pass_ambient_occlusion = True
             bg.layers = [False] * 10 + [True] + [False] * 9
@@ -940,8 +940,8 @@ class CLIP_OT_setup_tracking_scene(Operator):
     def _setupObjects(self, context):
         scene = context.scene
 
-        fg = scene.render.layers.get("Foreground")
-        bg = scene.render.layers.get("Background")
+        fg = scene.render_layers.get("Foreground")
+        bg = scene.render_layers.get("Background")
 
         all_layers = self._mergeLayers(fg.layers, bg.layers)
 

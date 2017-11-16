@@ -1286,73 +1286,6 @@ static void rna_FFmpegSettings_codec_settings_update(Main *UNUSED(bmain), Scene 
 }
 #endif
 
-static int rna_RenderSettings_active_layer_index_get(PointerRNA *ptr)
-{
-	RenderData *rd = (RenderData *)ptr->data;
-	return rd->actlay;
-}
-
-static void rna_RenderSettings_active_layer_index_set(PointerRNA *ptr, int value)
-{
-	RenderData *rd = (RenderData *)ptr->data;
-	int num_layers = BLI_listbase_count(&rd->layers);
-	rd->actlay = min_ff(value, num_layers - 1);
-}
-
-static void rna_RenderSettings_active_layer_index_range(
-        PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax))
-{
-	RenderData *rd = (RenderData *)ptr->data;
-
-	*min = 0;
-	*max = max_ii(0, BLI_listbase_count(&rd->layers) - 1);
-}
-
-static PointerRNA rna_RenderSettings_active_layer_get(PointerRNA *ptr)
-{
-	RenderData *rd = (RenderData *)ptr->data;
-	SceneRenderLayer *srl = BLI_findlink(&rd->layers, rd->actlay);
-	
-	return rna_pointer_inherit_refine(ptr, &RNA_SceneRenderLayer, srl);
-}
-
-static void rna_RenderSettings_active_layer_set(PointerRNA *ptr, PointerRNA value)
-{
-	RenderData *rd = (RenderData *)ptr->data;
-	SceneRenderLayer *srl = (SceneRenderLayer *)value.data;
-	const int index = BLI_findindex(&rd->layers, srl);
-	if (index != -1) rd->actlay = index;
-}
-
-static SceneRenderLayer *rna_RenderLayer_new(ID *id, RenderData *UNUSED(rd), const char *name)
-{
-	Scene *scene = (Scene *)id;
-	SceneRenderLayer *srl = BKE_scene_add_render_layer(scene, name);
-
-	DEG_id_tag_update(&scene->id, 0);
-	WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, NULL);
-
-	return srl;
-}
-
-static void rna_RenderLayer_remove(
-        ID *id, RenderData *UNUSED(rd), Main *bmain, ReportList *reports, PointerRNA *srl_ptr)
-{
-	SceneRenderLayer *srl = srl_ptr->data;
-	Scene *scene = (Scene *)id;
-
-	if (!BKE_scene_remove_render_layer(bmain, scene, srl)) {
-		BKE_reportf(reports, RPT_ERROR, "Render layer '%s' could not be removed from scene '%s'",
-		            srl->name, scene->id.name + 2);
-		return;
-	}
-
-	RNA_POINTER_INVALIDATE(srl_ptr);
-
-	DEG_id_tag_update(&scene->id, 0);
-	WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, NULL);
-}
-
 static int rna_RenderSettings_active_view_index_get(PointerRNA *ptr)
 {
 	RenderData *rd = (RenderData *)ptr->data;
@@ -1431,7 +1364,7 @@ static void rna_RenderSettings_views_format_set(PointerRNA *ptr, int value)
 	rd->views_format = value;
 }
 
-static void rna_Scene_glsl_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+void rna_Scene_glsl_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *scene = (Scene *)ptr->id.data;
 
@@ -1446,66 +1379,45 @@ static void rna_Scene_world_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	WM_main_add_notifier(NC_WORLD | ND_WORLD, &sc->id);
 }
 
-static void rna_Scene_freestyle_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+void rna_Scene_freestyle_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *scene = (Scene *)ptr->id.data;
 
 	DEG_id_tag_update(&scene->id, 0);
 }
 
-static void rna_Scene_use_view_map_cache_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+void rna_Scene_use_view_map_cache_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 #ifdef WITH_FREESTYLE
 	FRS_free_view_map_cache();
 #endif
 }
 
-static IDProperty *rna_SceneRenderLayer_idprops(PointerRNA *ptr, bool create)
-{
-	SceneRenderLayer *srl = (SceneRenderLayer *)ptr->data;
-
-	if (create && !srl->prop) {
-		IDPropertyTemplate val = {0};
-		srl->prop = IDP_New(IDP_GROUP, &val, "SceneRenderLayer ID properties");
-	}
-
-	return srl->prop;
-}
-
-static void rna_SceneRenderLayer_name_set(PointerRNA *ptr, const char *value)
+void rna_SceneLayer_name_set(PointerRNA *ptr, const char *value)
 {
 	Scene *scene = (Scene *)ptr->id.data;
-	SceneRenderLayer *rl = (SceneRenderLayer *)ptr->data;
-	char oldname[sizeof(rl->name)];
+	SceneLayer *scene_layer = (SceneLayer *)ptr->data;
+	char oldname[sizeof(scene_layer->name)];
 
-	BLI_strncpy(oldname, rl->name, sizeof(rl->name));
+	BLI_strncpy(oldname, scene_layer->name, sizeof(scene_layer->name));
 
-	BLI_strncpy_utf8(rl->name, value, sizeof(rl->name));
-	BLI_uniquename(&scene->r.layers, rl, DATA_("RenderLayer"), '.', offsetof(SceneRenderLayer, name), sizeof(rl->name));
+	BLI_strncpy_utf8(scene_layer->name, value, sizeof(scene_layer->name));
+	BLI_uniquename(&scene->render_layers, scene_layer, DATA_("RenderLayer"), '.', offsetof(SceneLayer, name), sizeof(scene_layer->name));
 
 	if (scene->nodetree) {
 		bNode *node;
-		int index = BLI_findindex(&scene->r.layers, rl);
+		int index = BLI_findindex(&scene->render_layers, scene_layer);
 
 		for (node = scene->nodetree->nodes.first; node; node = node->next) {
 			if (node->type == CMP_NODE_R_LAYERS && node->id == NULL) {
 				if (node->custom1 == index)
-					BLI_strncpy(node->name, rl->name, NODE_MAXSTR);
+					BLI_strncpy(node->name, scene_layer->name, NODE_MAXSTR);
 			}
 		}
 	}
 
 	/* fix all the animation data which may link to this */
-	BKE_animdata_fix_paths_rename_all(NULL, "render.layers", oldname, rl->name);
-}
-
-static char *rna_SceneRenderLayer_path(PointerRNA *ptr)
-{
-	SceneRenderLayer *srl = (SceneRenderLayer *)ptr->data;
-	char name_esc[sizeof(srl->name) * 2];
-
-	BLI_strescape(name_esc, srl->name, sizeof(name_esc));
-	return BLI_sprintfN("render.layers[\"%s\"]", name_esc);
+	BKE_animdata_fix_paths_rename_all(NULL, "render.layers", oldname, scene_layer->name);
 }
 
 static void rna_SceneRenderView_name_set(PointerRNA *ptr, const char *value)
@@ -1516,13 +1428,7 @@ static void rna_SceneRenderView_name_set(PointerRNA *ptr, const char *value)
 	BLI_uniquename(&scene->r.views, rv, DATA_("RenderView"), '.', offsetof(SceneRenderView, name), sizeof(rv->name));
 }
 
-static char *rna_SceneRenderView_path(PointerRNA *ptr)
-{
-	SceneRenderView *srv = (SceneRenderView *)ptr->data;
-	return BLI_sprintfN("render.views[\"%s\"]", srv->name);
-}
-
-static void rna_SceneRenderLayer_pass_update(Main *bmain, Scene *activescene, PointerRNA *ptr)
+void rna_SceneLayer_pass_update(Main *bmain, Scene *activescene, PointerRNA *ptr)
 {
 	Scene *scene = (Scene *)ptr->id.data;
 
@@ -1532,11 +1438,10 @@ static void rna_SceneRenderLayer_pass_update(Main *bmain, Scene *activescene, Po
 	rna_Scene_glsl_update(bmain, activescene, ptr);
 }
 
-static void rna_SceneRenderLayer_update_render_passes(ID *id)
+static char *rna_SceneRenderView_path(PointerRNA *ptr)
 {
-	Scene *scene = (Scene *)id;
-	if (scene->nodetree)
-		ntreeCompositUpdateRLayers(scene->nodetree);
+	SceneRenderView *srv = (SceneRenderView *)ptr->data;
+	return BLI_sprintfN("render.views[\"%s\"]", srv->name);
 }
 
 static void rna_Scene_use_nodes_update(bContext *C, PointerRNA *ptr)
@@ -1885,14 +1790,14 @@ static char *rna_ToolSettings_path(PointerRNA *UNUSED(ptr))
 	return BLI_strdup("tool_settings");
 }
 
-static PointerRNA rna_FreestyleLineSet_linestyle_get(PointerRNA *ptr)
+PointerRNA rna_FreestyleLineSet_linestyle_get(PointerRNA *ptr)
 {
 	FreestyleLineSet *lineset = (FreestyleLineSet *)ptr->data;
 
 	return rna_pointer_inherit_refine(ptr, &RNA_FreestyleLineStyle, lineset->linestyle);
 }
 
-static void rna_FreestyleLineSet_linestyle_set(PointerRNA *ptr, PointerRNA value)
+void rna_FreestyleLineSet_linestyle_set(PointerRNA *ptr, PointerRNA value)
 {
 	FreestyleLineSet *lineset = (FreestyleLineSet *)ptr->data;
 
@@ -1902,7 +1807,7 @@ static void rna_FreestyleLineSet_linestyle_set(PointerRNA *ptr, PointerRNA value
 	id_us_plus(&lineset->linestyle->id);
 }
 
-static FreestyleLineSet *rna_FreestyleSettings_lineset_add(
+FreestyleLineSet *rna_FreestyleSettings_lineset_add(
         ID *id, FreestyleSettings *config, Main *bmain, const char *name)
 {
 	Scene *scene = (Scene *)id;
@@ -1914,7 +1819,7 @@ static FreestyleLineSet *rna_FreestyleSettings_lineset_add(
 	return lineset;
 }
 
-static void rna_FreestyleSettings_lineset_remove(
+void rna_FreestyleSettings_lineset_remove(
         ID *id, FreestyleSettings *config, ReportList *reports, PointerRNA *lineset_ptr)
 {
 	FreestyleLineSet *lineset = lineset_ptr->data;
@@ -1931,14 +1836,14 @@ static void rna_FreestyleSettings_lineset_remove(
 	WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, NULL);
 }
 
-static PointerRNA rna_FreestyleSettings_active_lineset_get(PointerRNA *ptr)
+PointerRNA rna_FreestyleSettings_active_lineset_get(PointerRNA *ptr)
 {
 	FreestyleConfig *config = (FreestyleConfig *)ptr->data;
 	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(config);
 	return rna_pointer_inherit_refine(ptr, &RNA_FreestyleLineSet, lineset);
 }
 
-static void rna_FreestyleSettings_active_lineset_index_range(
+void rna_FreestyleSettings_active_lineset_index_range(
         PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax))
 {
 	FreestyleConfig *config = (FreestyleConfig *)ptr->data;
@@ -1947,19 +1852,19 @@ static void rna_FreestyleSettings_active_lineset_index_range(
 	*max = max_ii(0, BLI_listbase_count(&config->linesets) - 1);
 }
 
-static int rna_FreestyleSettings_active_lineset_index_get(PointerRNA *ptr)
+int rna_FreestyleSettings_active_lineset_index_get(PointerRNA *ptr)
 {
 	FreestyleConfig *config = (FreestyleConfig *)ptr->data;
 	return BKE_freestyle_lineset_get_active_index(config);
 }
 
-static void rna_FreestyleSettings_active_lineset_index_set(PointerRNA *ptr, int value)
+void rna_FreestyleSettings_active_lineset_index_set(PointerRNA *ptr, int value)
 {
 	FreestyleConfig *config = (FreestyleConfig *)ptr->data;
 	BKE_freestyle_lineset_set_active_index(config, value);
 }
 
-static FreestyleModuleConfig *rna_FreestyleSettings_module_add(ID *id, FreestyleSettings *config)
+FreestyleModuleConfig *rna_FreestyleSettings_module_add(ID *id, FreestyleSettings *config)
 {
 	Scene *scene = (Scene *)id;
 	FreestyleModuleConfig *module = BKE_freestyle_module_add((FreestyleConfig *)config);
@@ -1970,7 +1875,7 @@ static FreestyleModuleConfig *rna_FreestyleSettings_module_add(ID *id, Freestyle
 	return module;
 }
 
-static void rna_FreestyleSettings_module_remove(
+void rna_FreestyleSettings_module_remove(
         ID *id, FreestyleSettings *config, ReportList *reports, PointerRNA *module_ptr)
 {
 	Scene *scene = (Scene *)id;
@@ -3268,7 +3173,7 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	PropertyRNA *prop;
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	if (scene) RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SceneRenderLayer_name_set");
+	if (scene) RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SceneLayer_name_set");
 	else RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "Name", "Render layer name");
 	RNA_def_struct_name_property(srna, prop);
@@ -3284,12 +3189,6 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	}
 
 	/* layer options */
-	prop = RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "layflag", SCE_LAY_DISABLE);
-	RNA_def_property_ui_text(prop, "Enabled", "Disable or enable the render layer");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
-	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-
 	prop = RNA_def_property(srna, "use_zmask", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_ZMASK);
 	RNA_def_property_ui_text(prop, "Zmask", "Only render what's in front of the solid z values");
@@ -3351,247 +3250,241 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
-	prop = RNA_def_property(srna, "use_freestyle", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_FRS);
-	RNA_def_property_ui_text(prop, "Freestyle", "Render stylized strokes in this Layer");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_freestyle_update");
-	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-
 	/* passes */
 	prop = RNA_def_property(srna, "use_pass_combined", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_COMBINED);
 	RNA_def_property_ui_text(prop, "Combined", "Deliver full combined RGBA buffer");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_Z);
 	RNA_def_property_ui_text(prop, "Z", "Deliver Z values pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	
 	prop = RNA_def_property(srna, "use_pass_vector", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_VECTOR);
 	RNA_def_property_ui_text(prop, "Vector", "Deliver speed vector pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_normal", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_NORMAL);
 	RNA_def_property_ui_text(prop, "Normal", "Deliver normal pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_uv", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_UV);
 	RNA_def_property_ui_text(prop, "UV", "Deliver texture UV pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_mist", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_MIST);
 	RNA_def_property_ui_text(prop, "Mist", "Deliver mist factor pass (0.0-1.0)");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_object_index", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_INDEXOB);
 	RNA_def_property_ui_text(prop, "Object Index", "Deliver object index pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_material_index", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_INDEXMA);
 	RNA_def_property_ui_text(prop, "Material Index", "Deliver material index pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_color", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_RGBA);
 	RNA_def_property_ui_text(prop, "Color", "Deliver shade-less color pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_diffuse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_DIFFUSE);
 	RNA_def_property_ui_text(prop, "Diffuse", "Deliver diffuse pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_specular", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_SPEC);
 	RNA_def_property_ui_text(prop, "Specular", "Deliver specular pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_shadow", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_SHADOW);
 	RNA_def_property_ui_text(prop, "Shadow", "Deliver shadow pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_ambient_occlusion", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_AO);
 	RNA_def_property_ui_text(prop, "AO", "Deliver AO pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	
 	prop = RNA_def_property(srna, "use_pass_reflection", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_REFLECT);
 	RNA_def_property_ui_text(prop, "Reflection", "Deliver raytraced reflection pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_refraction", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_REFRACT);
 	RNA_def_property_ui_text(prop, "Refraction", "Deliver raytraced refraction pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_emit", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_EMIT);
 	RNA_def_property_ui_text(prop, "Emit", "Deliver emission pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_environment", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_ENVIRONMENT);
 	RNA_def_property_ui_text(prop, "Environment", "Deliver environment lighting pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_indirect", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_INDIRECT);
 	RNA_def_property_ui_text(prop, "Indirect", "Deliver indirect lighting pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "exclude_specular", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "pass_xor", SCE_PASS_SPEC);
 	RNA_def_property_ui_text(prop, "Specular Exclude", "Exclude specular pass from combined");
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, 1);
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "exclude_shadow", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "pass_xor", SCE_PASS_SHADOW);
 	RNA_def_property_ui_text(prop, "Shadow Exclude", "Exclude shadow pass from combined");
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, 1);
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "exclude_ambient_occlusion", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "pass_xor", SCE_PASS_AO);
 	RNA_def_property_ui_text(prop, "AO Exclude", "Exclude AO pass from combined");
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, 1);
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	
 	prop = RNA_def_property(srna, "exclude_reflection", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "pass_xor", SCE_PASS_REFLECT);
 	RNA_def_property_ui_text(prop, "Reflection Exclude", "Exclude raytraced reflection pass from combined");
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, 1);
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "exclude_refraction", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "pass_xor", SCE_PASS_REFRACT);
 	RNA_def_property_ui_text(prop, "Refraction Exclude", "Exclude raytraced refraction pass from combined");
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, 1);
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "exclude_emit", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "pass_xor", SCE_PASS_EMIT);
 	RNA_def_property_ui_text(prop, "Emit Exclude", "Exclude emission pass from combined");
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, 1);
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "exclude_environment", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "pass_xor", SCE_PASS_ENVIRONMENT);
 	RNA_def_property_ui_text(prop, "Environment Exclude", "Exclude environment pass from combined");
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, 1);
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "exclude_indirect", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "pass_xor", SCE_PASS_INDIRECT);
 	RNA_def_property_ui_text(prop, "Indirect Exclude", "Exclude indirect pass from combined");
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, 1);
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_diffuse_direct", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_DIFFUSE_DIRECT);
 	RNA_def_property_ui_text(prop, "Diffuse Direct", "Deliver diffuse direct pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_diffuse_indirect", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_DIFFUSE_INDIRECT);
 	RNA_def_property_ui_text(prop, "Diffuse Indirect", "Deliver diffuse indirect pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_diffuse_color", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_DIFFUSE_COLOR);
 	RNA_def_property_ui_text(prop, "Diffuse Color", "Deliver diffuse color pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_glossy_direct", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_GLOSSY_DIRECT);
 	RNA_def_property_ui_text(prop, "Glossy Direct", "Deliver glossy direct pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_glossy_indirect", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_GLOSSY_INDIRECT);
 	RNA_def_property_ui_text(prop, "Glossy Indirect", "Deliver glossy indirect pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_glossy_color", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_GLOSSY_COLOR);
 	RNA_def_property_ui_text(prop, "Glossy Color", "Deliver glossy color pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_transmission_direct", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_TRANSM_DIRECT);
 	RNA_def_property_ui_text(prop, "Transmission Direct", "Deliver transmission direct pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_transmission_indirect", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_TRANSM_INDIRECT);
 	RNA_def_property_ui_text(prop, "Transmission Indirect", "Deliver transmission indirect pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_transmission_color", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_TRANSM_COLOR);
 	RNA_def_property_ui_text(prop, "Transmission Color", "Deliver transmission color pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	
 	prop = RNA_def_property(srna, "use_pass_subsurface_direct", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_SUBSURFACE_DIRECT);
 	RNA_def_property_ui_text(prop, "Subsurface Direct", "Deliver subsurface direct pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_subsurface_indirect", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_SUBSURFACE_INDIRECT);
 	RNA_def_property_ui_text(prop, "Subsurface Indirect", "Deliver subsurface indirect pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "use_pass_subsurface_color", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_SUBSURFACE_COLOR);
 	RNA_def_property_ui_text(prop, "Subsurface Color", "Deliver subsurface color pass");
-	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
 
@@ -3661,7 +3554,7 @@ static void rna_def_freestyle_linesets(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 }
 
-static void rna_def_freestyle_settings(BlenderRNA *brna)
+void rna_def_freestyle_settings(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -3954,8 +3847,8 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "FreestyleSettings", NULL);
 	RNA_def_struct_sdna(srna, "FreestyleConfig");
-	RNA_def_struct_nested(brna, srna, "SceneRenderLayer");
-	RNA_def_struct_ui_text(srna, "Freestyle Settings", "Freestyle settings for a SceneRenderLayer data-block");
+	RNA_def_struct_nested(brna, srna, "SceneLayer");
+	RNA_def_struct_ui_text(srna, "Freestyle Settings", "Freestyle settings for a SceneLayer data-block");
 
 	prop = RNA_def_property(srna, "modules", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "modules", NULL);
@@ -4977,82 +4870,6 @@ static void rna_def_scene_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a render layer");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "layer", "SceneLayer", "", "Render layer to remove");
-	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
-	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
-}
-
-/* TODO LAYERS: legacy SceneRenderLayers, to be removed */
-
-static void rna_def_scene_render_layer(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-	FunctionRNA *func;
-
-	srna = RNA_def_struct(brna, "SceneRenderLayer", NULL);
-	RNA_def_struct_ui_text(srna, "Scene Render Layer", "Render layer");
-	RNA_def_struct_ui_icon(srna, ICON_RENDERLAYERS);
-	RNA_def_struct_path_func(srna, "rna_SceneRenderLayer_path");
-	RNA_def_struct_idprops_func(srna, "rna_SceneRenderLayer_idprops");
-
-	rna_def_render_layer_common(srna, 1);
-
-	func = RNA_def_function(srna, "update_render_passes", "rna_SceneRenderLayer_update_render_passes");
-	RNA_def_function_ui_description(func, "Requery the enabled render passes from the render engine");
-	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_NO_SELF);
-
-	/* Freestyle */
-	rna_def_freestyle_settings(brna);
-
-	prop = RNA_def_property(srna, "freestyle_settings", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "freestyleConfig");
-	RNA_def_property_struct_type(prop, "FreestyleSettings");
-	RNA_def_property_ui_text(prop, "Freestyle Settings", "");
-}
-
-/* Render Layers */
-static void rna_def_render_layers(BlenderRNA *brna, PropertyRNA *cprop)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	FunctionRNA *func;
-	PropertyRNA *parm;
-
-	RNA_def_property_srna(cprop, "RenderLayers");
-	srna = RNA_def_struct(brna, "RenderLayers", NULL);
-	RNA_def_struct_sdna(srna, "RenderData");
-	RNA_def_struct_ui_text(srna, "Render Layers", "Collection of render layers");
-
-	prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_int_sdna(prop, NULL, "actlay");
-	RNA_def_property_int_funcs(prop, "rna_RenderSettings_active_layer_index_get",
-	                           "rna_RenderSettings_active_layer_index_set",
-	                           "rna_RenderSettings_active_layer_index_range");
-	RNA_def_property_ui_text(prop, "Active Layer Index", "Active index in render layer array");
-	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
-	
-	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "SceneRenderLayer");
-	RNA_def_property_pointer_funcs(prop, "rna_RenderSettings_active_layer_get",
-	                               "rna_RenderSettings_active_layer_set", NULL, NULL);
-	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_NULL);
-	RNA_def_property_ui_text(prop, "Active Render Layer", "Active Render Layer");
-	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
-
-	func = RNA_def_function(srna, "new", "rna_RenderLayer_new");
-	RNA_def_function_ui_description(func, "Add a render layer to scene");
-	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
-	parm = RNA_def_string(func, "name", "RenderLayer", 0, "", "New name for the render layer (not unique)");
-	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-	parm = RNA_def_pointer(func, "result", "SceneRenderLayer", "", "Newly created render layer");
-	RNA_def_function_return(func, parm);
-
-	func = RNA_def_function(srna, "remove", "rna_RenderLayer_remove");
-	RNA_def_function_ui_description(func, "Remove a render layer");
-	RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
-	parm = RNA_def_pointer(func, "layer", "SceneRenderLayer", "", "Render layer to remove");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
 	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 }
@@ -6422,13 +6239,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Textured Solid", "Draw face-assigned textures in solid draw method");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SceneSequencer_update");
 
-	/* layers */
-	prop = RNA_def_property(srna, "layers", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "layers", NULL);
-	RNA_def_property_struct_type(prop, "SceneRenderLayer");
-	RNA_def_property_ui_text(prop, "Render Layers", "");
-	rna_def_render_layers(brna, prop);
-
 	prop = RNA_def_property(srna, "use_single_layer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_SINGLE_LAYER);
 	RNA_def_property_ui_text(prop, "Single Layer", "Only render the active layer");
@@ -7189,7 +6999,6 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_define_animate_sdna(true);
 	/* *** Animated *** */
 	rna_def_scene_render_data(brna);
-	rna_def_scene_render_layer(brna);
 	rna_def_gpu_fx(brna);
 	rna_def_scene_render_view(brna);
 

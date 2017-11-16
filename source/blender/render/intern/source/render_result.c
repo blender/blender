@@ -264,7 +264,7 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 	RenderResult *rr;
 	RenderLayer *rl;
 	RenderView *rv;
-	SceneRenderLayer *srl;
+	SceneLayer *scene_layer;
 	int rectx, recty;
 	int nr;
 	
@@ -294,27 +294,30 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 	render_result_views_new(rr, &re->r);
 
 	/* check renderdata for amount of layers */
-	for (nr = 0, srl = re->r.layers.first; srl; srl = srl->next, nr++) {
+	for (nr = 0, scene_layer = re->render_layers.first; scene_layer; scene_layer = scene_layer->next, nr++) {
 
 		if (layername && layername[0])
-			if (!STREQ(srl->name, layername))
+			if (!STREQ(scene_layer->name, layername))
 				continue;
 
 		if (re->r.scemode & R_SINGLE_LAYER) {
-			if (nr != re->r.actlay)
+			if (nr != re->active_layer) {
 				continue;
+			}
 		}
 		else {
-			if (srl->layflag & SCE_LAY_DISABLE)
+			if ((scene_layer->flag & SCENE_LAYER_RENDER) == 0) {
 				continue;
+			}
 		}
 		
 		rl = MEM_callocN(sizeof(RenderLayer), "new render layer");
 		BLI_addtail(&rr->layers, rl);
 		
-		BLI_strncpy(rl->name, srl->name, sizeof(rl->name));
-		rl->passflag = srl->passflag; /* for debugging: srl->passflag | SCE_PASS_RAYHITS; */
-		rl->pass_xor = srl->pass_xor;
+		BLI_strncpy(rl->name, scene_layer->name, sizeof(rl->name));
+		rl->layflag = scene_layer->layflag;
+		rl->passflag = scene_layer->passflag; /* for debugging: scene_layer->passflag | SCE_PASS_RAYHITS; */
+		rl->pass_xor = scene_layer->pass_xor;
 		rl->rectx = rectx;
 		rl->recty = recty;
 		
@@ -349,65 +352,65 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 			/* a renderlayer should always have a Combined pass*/
 			render_layer_add_pass(rr, rl, 4, "Combined", view, "RGBA");
 
-			if (srl->passflag  & SCE_PASS_Z)
+			if (scene_layer->passflag  & SCE_PASS_Z)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 1, RE_PASSNAME_Z, view, "Z");
-			if (srl->passflag  & SCE_PASS_VECTOR)
+			if (scene_layer->passflag  & SCE_PASS_VECTOR)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 4, RE_PASSNAME_VECTOR, view, "XYZW");
-			if (srl->passflag  & SCE_PASS_NORMAL)
+			if (scene_layer->passflag  & SCE_PASS_NORMAL)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_NORMAL, view, "XYZ");
-			if (srl->passflag  & SCE_PASS_UV)
+			if (scene_layer->passflag  & SCE_PASS_UV)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_UV, view, "UVA");
-			if (srl->passflag  & SCE_PASS_RGBA)
+			if (scene_layer->passflag  & SCE_PASS_RGBA)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 4, RE_PASSNAME_RGBA, view, "RGBA");
-			if (srl->passflag  & SCE_PASS_EMIT)
+			if (scene_layer->passflag  & SCE_PASS_EMIT)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_EMIT, view, "RGB");
-			if (srl->passflag  & SCE_PASS_DIFFUSE)
+			if (scene_layer->passflag  & SCE_PASS_DIFFUSE)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_DIFFUSE, view, "RGB");
-			if (srl->passflag  & SCE_PASS_SPEC)
+			if (scene_layer->passflag  & SCE_PASS_SPEC)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_SPEC, view, "RGB");
-			if (srl->passflag  & SCE_PASS_AO)
+			if (scene_layer->passflag  & SCE_PASS_AO)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_AO, view, "RGB");
-			if (srl->passflag  & SCE_PASS_ENVIRONMENT)
+			if (scene_layer->passflag  & SCE_PASS_ENVIRONMENT)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_ENVIRONMENT, view, "RGB");
-			if (srl->passflag  & SCE_PASS_INDIRECT)
+			if (scene_layer->passflag  & SCE_PASS_INDIRECT)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_INDIRECT, view, "RGB");
-			if (srl->passflag  & SCE_PASS_SHADOW)
+			if (scene_layer->passflag  & SCE_PASS_SHADOW)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_SHADOW, view, "RGB");
-			if (srl->passflag  & SCE_PASS_REFLECT)
+			if (scene_layer->passflag  & SCE_PASS_REFLECT)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_REFLECT, view, "RGB");
-			if (srl->passflag  & SCE_PASS_REFRACT)
+			if (scene_layer->passflag  & SCE_PASS_REFRACT)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_REFRACT, view, "RGB");
-			if (srl->passflag  & SCE_PASS_INDEXOB)
+			if (scene_layer->passflag  & SCE_PASS_INDEXOB)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 1, RE_PASSNAME_INDEXOB, view, "X");
-			if (srl->passflag  & SCE_PASS_INDEXMA)
+			if (scene_layer->passflag  & SCE_PASS_INDEXMA)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 1, RE_PASSNAME_INDEXMA, view, "X");
-			if (srl->passflag  & SCE_PASS_MIST)
+			if (scene_layer->passflag  & SCE_PASS_MIST)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 1, RE_PASSNAME_MIST, view, "Z");
 			if (rl->passflag & SCE_PASS_RAYHITS)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 4, RE_PASSNAME_RAYHITS, view, "RGB");
-			if (srl->passflag  & SCE_PASS_DIFFUSE_DIRECT)
+			if (scene_layer->passflag  & SCE_PASS_DIFFUSE_DIRECT)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_DIFFUSE_DIRECT, view, "RGB");
-			if (srl->passflag  & SCE_PASS_DIFFUSE_INDIRECT)
+			if (scene_layer->passflag  & SCE_PASS_DIFFUSE_INDIRECT)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_DIFFUSE_INDIRECT, view, "RGB");
-			if (srl->passflag  & SCE_PASS_DIFFUSE_COLOR)
+			if (scene_layer->passflag  & SCE_PASS_DIFFUSE_COLOR)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_DIFFUSE_COLOR, view, "RGB");
-			if (srl->passflag  & SCE_PASS_GLOSSY_DIRECT)
+			if (scene_layer->passflag  & SCE_PASS_GLOSSY_DIRECT)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_GLOSSY_DIRECT, view, "RGB");
-			if (srl->passflag  & SCE_PASS_GLOSSY_INDIRECT)
+			if (scene_layer->passflag  & SCE_PASS_GLOSSY_INDIRECT)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_GLOSSY_INDIRECT, view, "RGB");
-			if (srl->passflag  & SCE_PASS_GLOSSY_COLOR)
+			if (scene_layer->passflag  & SCE_PASS_GLOSSY_COLOR)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_GLOSSY_COLOR, view, "RGB");
-			if (srl->passflag  & SCE_PASS_TRANSM_DIRECT)
+			if (scene_layer->passflag  & SCE_PASS_TRANSM_DIRECT)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_TRANSM_DIRECT, view, "RGB");
-			if (srl->passflag  & SCE_PASS_TRANSM_INDIRECT)
+			if (scene_layer->passflag  & SCE_PASS_TRANSM_INDIRECT)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_TRANSM_INDIRECT, view, "RGB");
-			if (srl->passflag  & SCE_PASS_TRANSM_COLOR)
+			if (scene_layer->passflag  & SCE_PASS_TRANSM_COLOR)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_TRANSM_COLOR, view, "RGB");
-			if (srl->passflag  & SCE_PASS_SUBSURFACE_DIRECT)
+			if (scene_layer->passflag  & SCE_PASS_SUBSURFACE_DIRECT)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_SUBSURFACE_DIRECT, view, "RGB");
-			if (srl->passflag  & SCE_PASS_SUBSURFACE_INDIRECT)
+			if (scene_layer->passflag  & SCE_PASS_SUBSURFACE_INDIRECT)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_SUBSURFACE_INDIRECT, view, "RGB");
-			if (srl->passflag  & SCE_PASS_SUBSURFACE_COLOR)
+			if (scene_layer->passflag  & SCE_PASS_SUBSURFACE_COLOR)
 				RENDER_LAYER_ADD_PASS_SAFE(rr, rl, 3, RE_PASSNAME_SUBSURFACE_COLOR, view, "RGB");
 #undef RENDER_LAYER_ADD_PASS_SAFE
 		}
@@ -444,7 +447,7 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 		rl->layflag = 0x7FFF;    /* solid ztra halo strand */
 		rl->passflag = SCE_PASS_COMBINED;
 		
-		re->r.actlay = 0;
+		re->active_layer = 0;
 	}
 	
 	/* border render; calculate offset for use in compositor. compo is centralized coords */
@@ -975,7 +978,7 @@ void render_result_single_layer_begin(Render *re)
 /* if scemode is R_SINGLE_LAYER, at end of rendering, merge the both render results */
 void render_result_single_layer_end(Render *re)
 {
-	SceneRenderLayer *srl;
+	SceneLayer *scene_layer;
 	RenderLayer *rlpush;
 	RenderLayer *rl;
 	int nr;
@@ -996,12 +999,12 @@ void render_result_single_layer_end(Render *re)
 		BLI_remlink(&re->result->layers, rl);
 		
 		/* reconstruct render result layers */
-		for (nr = 0, srl = re->r.layers.first; srl; srl = srl->next, nr++) {
-			if (nr == re->r.actlay) {
+		for (nr = 0, scene_layer = re->render_layers.first; scene_layer; scene_layer = scene_layer->next, nr++) {
+			if (nr == re->active_layer) {
 				BLI_addtail(&re->result->layers, rl);
 			}
 			else {
-				rlpush = RE_GetRenderLayer(re->pushedresult, srl->name);
+				rlpush = RE_GetRenderLayer(re->pushedresult, scene_layer->name);
 				if (rlpush) {
 					BLI_remlink(&re->pushedresult->layers, rlpush);
 					BLI_addtail(&re->result->layers, rlpush);

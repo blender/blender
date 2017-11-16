@@ -69,7 +69,7 @@ public:
 	               const char *layer = 0);
 	void sync_render_layers(BL::SpaceView3D& b_v3d, const char *layer);
 	array<Pass> sync_render_passes(BL::RenderLayer& b_rlay,
-	                               BL::SceneRenderLayer& b_srlay,
+	                               BL::SceneLayer& b_slay,
 	                               const SessionParams &session_params);
 	void sync_integrator();
 	void sync_camera(BL::RenderSettings& b_render,

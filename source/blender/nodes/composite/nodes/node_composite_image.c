@@ -191,16 +191,16 @@ typedef struct RLayerUpdateData {
 	int prev_index;
 } RLayerUpdateData;
 
-void node_cmp_rlayers_register_pass(bNodeTree *ntree, bNode *node, Scene *scene, SceneRenderLayer *srl, const char *name, int type)
+void node_cmp_rlayers_register_pass(bNodeTree *ntree, bNode *node, Scene *scene, SceneLayer *scene_layer, const char *name, int type)
 {
 	RLayerUpdateData *data = node->storage;
 
-	if (scene == NULL || srl == NULL || data == NULL || node->id != (ID *)scene) {
+	if (scene == NULL || scene_layer == NULL || data == NULL || node->id != (ID *)scene) {
 		return;
 	}
 
-	SceneRenderLayer *node_srl = BLI_findlink(&scene->r.layers, node->custom1);
-	if (node_srl != srl) {
+	SceneLayer *node_scene_layer = BLI_findlink(&scene->render_layers, node->custom1);
+	if (node_scene_layer != scene_layer) {
 		return;
 	}
 
@@ -221,15 +221,15 @@ static void cmp_node_rlayer_create_outputs(bNodeTree *ntree, bNode *node, LinkNo
 	if (scene) {
 		RenderEngineType *engine_type = RE_engines_find(scene->view_render.engine_id);
 		if (engine_type && engine_type->update_render_passes) {
-			SceneRenderLayer *srl = BLI_findlink(&scene->r.layers, node->custom1);
-			if (srl) {
+			SceneLayer *scene_layer = BLI_findlink(&scene->render_layers, node->custom1);
+			if (scene_layer) {
 				RLayerUpdateData *data = MEM_mallocN(sizeof(RLayerUpdateData), "render layer update data");
 				data->available_sockets = available_sockets;
 				data->prev_index = -1;
 				node->storage = data;
 
 				RenderEngine *engine = RE_engine_create(engine_type);
-				engine_type->update_render_passes(engine, scene, srl);
+				engine_type->update_render_passes(engine, scene, scene_layer);
 				RE_engine_free(engine);
 
 				MEM_freeN(data);

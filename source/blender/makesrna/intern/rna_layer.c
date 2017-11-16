@@ -805,28 +805,23 @@ static void rna_LayerObjects_active_object_set(PointerRNA *ptr, PointerRNA value
 		scene_layer->basact = NULL;
 }
 
-static void rna_SceneLayer_name_set(PointerRNA *ptr, const char *value)
+static IDProperty *rna_SceneLayer_idprops(PointerRNA *ptr, bool create)
 {
-	Scene *scene = (Scene *)ptr->id.data;
 	SceneLayer *scene_layer = (SceneLayer *)ptr->data;
-	char oldname[sizeof(scene_layer->name)];
 
-	BLI_strncpy(oldname, scene_layer->name, sizeof(scene_layer->name));
-
-	BLI_strncpy_utf8(scene_layer->name, value, sizeof(scene_layer->name));
-	BLI_uniquename(&scene->render_layers, scene_layer, DATA_("SceneLayer"), '.', offsetof(SceneLayer, name), sizeof(scene_layer->name));
-
-	if (scene->nodetree) {
-		bNode *node;
-		int index = BLI_findindex(&scene->render_layers, scene_layer);
-
-		for (node = scene->nodetree->nodes.first; node; node = node->next) {
-			if (node->type == CMP_NODE_R_LAYERS && node->id == NULL) {
-				if (node->custom1 == index)
-					BLI_strncpy(node->name, scene_layer->name, NODE_MAXSTR);
-			}
-		}
+	if (create && !scene_layer->id_properties) {
+		IDPropertyTemplate val = {0};
+		scene_layer->id_properties = IDP_New(IDP_GROUP, &val, "SceneLayer ID properties");
 	}
+
+	return scene_layer->id_properties;
+}
+
+static void rna_SceneLayer_update_render_passes(ID *id)
+{
+	Scene *scene = (Scene *)id;
+	if (scene->nodetree)
+		ntreeCompositUpdateRLayers(scene->nodetree);
 }
 
 static PointerRNA rna_SceneLayer_objects_get(CollectionPropertyIterator *iter)
@@ -2161,12 +2156,13 @@ void RNA_def_scene_layer(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "SceneLayer", NULL);
 	RNA_def_struct_ui_text(srna, "Render Layer", "Render layer");
 	RNA_def_struct_ui_icon(srna, ICON_RENDERLAYERS);
+	RNA_def_struct_idprops_func(srna, "rna_SceneLayer_idprops");
 
-	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SceneLayer_name_set");
-	RNA_def_property_ui_text(prop, "Name", "Render layer name");
-	RNA_def_struct_name_property(srna, prop);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, NULL);
+	rna_def_render_layer_common(srna, 1);
+
+	func = RNA_def_function(srna, "update_render_passes", "rna_SceneLayer_update_render_passes");
+	RNA_def_function_ui_description(func, "Requery the enabled render passes from the render engine");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_NO_SELF);
 
 	prop = RNA_def_property(srna, "collections", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "layer_collections", NULL);
@@ -2186,6 +2182,20 @@ void RNA_def_scene_layer(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCENE_LAYER_RENDER);
 	RNA_def_property_ui_text(prop, "Enabled", "Disable or enable the render layer");
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER, NULL);
+
+	prop = RNA_def_property(srna, "use_freestyle", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCENE_LAYER_FREESTYLE);
+	RNA_def_property_ui_text(prop, "Freestyle", "Render stylized strokes in this Layer");
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER, NULL);
+
+	/* Freestyle */
+	rna_def_freestyle_settings(brna);
+
+	prop = RNA_def_property(srna, "freestyle_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "freestyle_config");
+	RNA_def_property_struct_type(prop, "FreestyleSettings");
+	RNA_def_property_ui_text(prop, "Freestyle Settings", "");
 
 	/* Override settings */
 	prop = RNA_def_property(srna, "engine_overrides", PROP_COLLECTION, PROP_NONE);

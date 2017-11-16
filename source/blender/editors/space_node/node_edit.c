@@ -700,12 +700,12 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 				for (scene = bmain->scene.first; scene; scene = scene->id.next) {
 					if (scene->nodetree && scene->use_nodes && ntreeHasTree(scene->nodetree, ntree)) {
 						if (node->id == NULL || node->id == (ID *)scene) {
-							int num_layers = BLI_listbase_count(&scene->r.layers);
-							scene->r.actlay = node->custom1;
+							int num_layers = BLI_listbase_count(&scene->render_layers);
+							scene->active_layer = node->custom1;
 							/* Clamp the value, because it might have come from a different
 							 * scene which could have more render layers than new one.
 							 */
-							scene->r.actlay = min_ff(scene->r.actlay, num_layers - 1);
+							scene->active_layer = min_ff(scene->active_layer, num_layers - 1);
 						}
 					}
 				}
@@ -1366,13 +1366,13 @@ int node_render_changed_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 	if (node) {
-		SceneRenderLayer *srl = BLI_findlink(&sce->r.layers, node->custom1);
+		SceneLayer *scene_layer = BLI_findlink(&sce->render_layers, node->custom1);
 		
-		if (srl) {
+		if (scene_layer) {
 			PointerRNA op_ptr;
 			
 			WM_operator_properties_create(&op_ptr, "RENDER_OT_render");
-			RNA_string_set(&op_ptr, "layer", srl->name);
+			RNA_string_set(&op_ptr, "layer", scene_layer->name);
 			RNA_string_set(&op_ptr, "scene", sce->id.name + 2);
 			
 			/* to keep keypositions */

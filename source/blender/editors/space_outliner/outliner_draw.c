@@ -464,7 +464,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 			if (tselem->type == TSE_R_LAYER) {
 				UI_block_emboss_set(block, UI_EMBOSS_NONE);
 				
-				bt = uiDefIconButBitI(block, UI_BTYPE_ICON_TOGGLE_N, SCE_LAY_DISABLE, 0, ICON_CHECKBOX_HLT - 1,
+				bt = uiDefIconButBitI(block, UI_BTYPE_ICON_TOGGLE, SCENE_LAYER_RENDER, 0, ICON_CHECKBOX_HLT - 1,
 				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X,
 				                      UI_UNIT_Y, te->directdata, 0, 0, 0, 0, TIP_("Render this RenderLayer"));
 				UI_but_func_set(bt, restrictbutton_r_lay_cb, tselem->id, NULL);

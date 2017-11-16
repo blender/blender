@@ -18,18 +18,49 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/freestyle/intern/scene_graph/NodeSceneRenderLayer.cpp
+#ifndef __FREESTYLE_NODE_SCENE_LAYER_H__
+#define __FREESTYLE_NODE_SCENE_LAYER_H__
+
+/** \file blender/freestyle/intern/scene_graph/NodeSceneLayer.h
  *  \ingroup freestyle
  *  \brief Class to represent a scene render layer in Blender.
  */
 
-#include "NodeSceneRenderLayer.h"
+#include "Node.h"
+
+extern "C" {
+#include "DNA_scene_types.h" /* for Scene and SceneRenderLayer */
+}
+
+using namespace std;
 
 namespace Freestyle {
 
-void NodeSceneRenderLayer::accept(SceneVisitor& v)
+class NodeSceneLayer : public Node
 {
-	v.visitNodeSceneRenderLayer(*this);
-}
+public:
+	inline NodeSceneLayer(Scene& scene, SceneLayer& scene_layer) : Node(), _Scene(scene), _SceneLayer(scene_layer) {}
+	virtual ~NodeSceneLayer() {}
+
+	inline struct Scene& scene() const
+	{
+		return _Scene;
+	}
+
+	inline struct SceneLayer& sceneLayer() const
+	{
+		return _SceneLayer;
+	}
+
+	/*! Accept the corresponding visitor */
+	virtual void accept(SceneVisitor& v);
+
+protected:
+
+	Scene& _Scene;
+	SceneLayer& _SceneLayer;
+};
 
 } /* namespace Freestyle */
+
+#endif // __FREESTYLE_NODE_SCENE_LAYER_H__

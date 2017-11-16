@@ -127,12 +127,9 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 	BKE_scene_set_background(freestyle_bmain, freestyle_scene);
 	DEG_graph_id_tag_update(freestyle_bmain, freestyle_depsgraph, &freestyle_scene->id, 0);
 
-	// Render layer
-	SceneRenderLayer *srl = (SceneRenderLayer *)freestyle_scene->r.layers.first;
-	srl->layflag = SCE_LAY_SOLID | SCE_LAY_ZTRA;
-
 	// Scene layer.
 	SceneLayer *scene_layer = (SceneLayer *)freestyle_scene->render_layers.first;
+	scene_layer->layflag = SCE_LAY_SOLID | SCE_LAY_ZTRA;
 
 	// Camera
 	Object *object_camera = BKE_object_add(freestyle_bmain, freestyle_scene, scene_layer, OB_CAMERA, NULL);

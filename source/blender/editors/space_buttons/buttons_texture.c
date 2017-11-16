@@ -109,14 +109,14 @@ bool ED_texture_context_check_linestyle(const bContext *C)
 {
 #ifdef WITH_FREESTYLE
 	Scene *scene = CTX_data_scene(C);
-	SceneRenderLayer *actsrl;
+	SceneLayer *active_render_layer;
 	FreestyleConfig *config;
 	FreestyleLineSet *lineset;
 	FreestyleLineStyle *linestyle;
 
 	if (scene && (scene->r.mode & R_EDGE_FRS)) {
-		actsrl = BLI_findlink(&scene->r.layers, scene->r.actlay);
-		config = &actsrl->freestyleConfig;
+		active_render_layer = BLI_findlink(&scene->render_layers, scene->active_layer);
+		config = &active_render_layer->freestyle_config;
 		if (config->mode == FREESTYLE_CONTROL_EDITOR_MODE) {
 			lineset = BKE_freestyle_lineset_get_active(config);
 			if (lineset) {

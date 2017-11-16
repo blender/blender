@@ -561,7 +561,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 static bool buttons_context_linestyle_pinnable(const bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
-	SceneRenderLayer *actsrl;
+	SceneLayer *active_scene_layer;
 	FreestyleConfig *config;
 	SpaceButs *sbuts;
 
@@ -570,8 +570,8 @@ static bool buttons_context_linestyle_pinnable(const bContext *C)
 		return false;
 	}
 	/* if Freestyle is not in the Parameter Editor mode */
-	actsrl = BLI_findlink(&scene->r.layers, scene->r.actlay);
-	config = &actsrl->freestyleConfig;
+	active_scene_layer = BLI_findlink(&scene->render_layers, scene->active_layer);
+	config = &active_scene_layer->freestyle_config;
 	if (config->mode != FREESTYLE_CONTROL_EDITOR_MODE) {
 		return false;
 	}

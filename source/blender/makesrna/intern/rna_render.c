@@ -280,7 +280,7 @@ static void engine_collection_settings_create(RenderEngine *engine, struct IDPro
 	RNA_parameter_list_free(&list);
 }
 
-static void engine_update_render_passes(RenderEngine *engine, struct Scene *scene, struct SceneRenderLayer *srl)
+static void engine_update_render_passes(RenderEngine *engine, struct Scene *scene, struct SceneLayer *scene_layer)
 {
 	extern FunctionRNA rna_RenderEngine_update_render_passes_func;
 	PointerRNA ptr;
@@ -292,7 +292,7 @@ static void engine_update_render_passes(RenderEngine *engine, struct Scene *scen
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	RNA_parameter_set_lookup(&list, "scene", &scene);
-	RNA_parameter_set_lookup(&list, "renderlayer", &srl);
+	RNA_parameter_set_lookup(&list, "renderlayer", &scene_layer);
 	engine->type->ext.call(NULL, &ptr, func, &list);
 
 	RNA_parameter_list_free(&list);
@@ -565,7 +565,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Update the render passes that will be generated");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	parm = RNA_def_pointer(func, "scene", "Scene", "", "");
-	parm = RNA_def_pointer(func, "renderlayer", "SceneRenderLayer", "", "");
+	parm = RNA_def_pointer(func, "renderlayer", "SceneLayer", "", "");
 
 	/* per-collection engine settings initialization */
 	func = RNA_def_function(srna, "collection_settings_create", NULL);
@@ -758,7 +758,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Register a render pass that will be part of the render with the current settings");
 	prop = RNA_def_pointer(func, "scene", "Scene", "", "");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-	prop = RNA_def_pointer(func, "srl", "SceneRenderLayer", "", "");
+	prop = RNA_def_pointer(func, "scene_layer", "SceneLayer", "", "");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	prop = RNA_def_string(func, "name", NULL, MAX_NAME, "Name", "");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);

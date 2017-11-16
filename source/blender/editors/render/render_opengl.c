@@ -715,7 +715,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 	oglrender->iuser.ok = 1;
 
 	/* create render result */
-	RE_InitState(oglrender->re, NULL, &scene->r, view_render, NULL, sizex, sizey, NULL);
+	RE_InitState(oglrender->re, NULL, &scene->r, &scene->render_layers, scene->active_layer, view_render, NULL, sizex, sizey, NULL);
 
 	/* create render views */
 	screen_opengl_views_setup(oglrender);

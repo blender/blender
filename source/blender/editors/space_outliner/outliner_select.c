@@ -85,11 +85,11 @@ static eOLDrawState tree_element_active_renderlayer(
 	sce = (Scene *)tselem->id;
 	
 	if (set != OL_SETSEL_NONE) {
-		sce->r.actlay = tselem->nr;
+		sce->active_layer = tselem->nr;
 		WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, sce);
 	}
 	else {
-		return sce->r.actlay == tselem->nr;
+		return sce->active_layer == tselem->nr;
 	}
 	return OL_DRAWSEL_NONE;
 }

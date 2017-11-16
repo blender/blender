@@ -314,7 +314,7 @@ double elbeemEstimateMemreq(int res, float sx, float sy, float sz, int refine, c
 struct Render *RE_NewRender(const char *name) RET_NULL
 struct Render *RE_NewSceneRender(const struct Scene *scene) RET_NULL
 void RE_SwapResult(struct Render *re, struct RenderResult **rr) RET_NONE
-void RE_BlenderFrame(struct Render *re, struct Main *bmain, struct Scene *scene, struct SceneRenderLayer *srl, struct Object *camera_override, unsigned int lay_override, int frame, const bool write_still) RET_NONE
+void RE_BlenderFrame(struct Render *re, struct Main *bmain, struct Scene *scene, struct SceneLayer *scene_layer, struct Object *camera_override, unsigned int lay_override, int frame, const bool write_still) RET_NONE
 bool RE_WriteEnvmapResult(struct ReportList *reports, struct Scene *scene, struct EnvMap *env, const char *relpath, const char imtype, float layout[12]) RET_ZERO
 
 /* rna */
@@ -765,7 +765,7 @@ void RE_point_density_free(struct PointDensity *pd) RET_NONE
 void RE_instance_get_particle_info(struct ObjectInstanceRen *obi, float *index, float *age, float *lifetime, float co[3], float *size, float vel[3], float angvel[3]) RET_NONE
 void RE_FreeAllPersistentData(void) RET_NONE
 float RE_fresnel_dielectric(float incoming[3], float normal[3], float eta) RET_ZERO
-void RE_engine_register_pass(struct RenderEngine *engine, struct Scene *scene, struct SceneRenderLayer *srl, const char *name, int channels, const char *chanid, int type) RET_NONE
+void RE_engine_register_pass(struct RenderEngine *engine, struct Scene *scene, struct SceneLayer *scene_layer, const char *name, int channels, const char *chanid, int type) RET_NONE
 struct SceneLayer *RE_engine_get_scene_layer(struct Render *re) RET_NULL
 void RE_SetDepsgraph(struct Render *re, struct Depsgraph *graph) RET_NONE
 

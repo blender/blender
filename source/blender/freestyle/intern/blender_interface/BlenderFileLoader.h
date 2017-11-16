@@ -78,7 +78,7 @@ class BlenderFileLoader
 {
 public:
 	/*! Builds a MaxFileLoader */
-	BlenderFileLoader(Render *re, SceneRenderLayer *srl);
+	BlenderFileLoader(Render *re, SceneLayer *scene_layer);
 	virtual ~BlenderFileLoader();
 
 	/*! Loads the 3D scene and returns a pointer to the scene root node */
@@ -114,7 +114,7 @@ protected:
 		unsigned n;
 	};
 	Render *_re;
-	SceneRenderLayer *_srl;
+	SceneLayer *_scene_layer;
 	NodeGroup *_Scene;
 	unsigned _numFacesRead;
 #if 0

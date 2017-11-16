@@ -75,7 +75,7 @@ class RenderLayerFreestyleButtonsPanel:
         with_freestyle = bpy.app.build_options.freestyle
 
         return (scene and with_freestyle and rd.use_freestyle and
-                rd.layers.active and(scene.view_render.engine in cls.COMPAT_ENGINES))
+                scene.render_layers.active and(scene.view_render.engine in cls.COMPAT_ENGINES))
 
 
 class RenderLayerFreestyleEditorButtonsPanel(RenderLayerFreestyleButtonsPanel):
@@ -85,7 +85,7 @@ class RenderLayerFreestyleEditorButtonsPanel(RenderLayerFreestyleButtonsPanel):
     def poll(cls, context):
         if not super().poll(context):
             return False
-        rl = context.scene.render.layers.active
+        rl = context.scene.render_layers.active
         return rl and rl.freestyle_settings.mode == 'EDITOR'
 
 
@@ -116,8 +116,8 @@ class RENDERLAYER_PT_freestyle(RenderLayerFreestyleButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render
-        rl = rd.layers.active
+        scene = context.scene
+        rl = scene.render_layers.active
         freestyle = rl.freestyle_settings
 
         layout.active = rl.use_freestyle
@@ -187,7 +187,7 @@ class RENDERLAYER_PT_freestyle_lineset(RenderLayerFreestyleEditorButtonsPanel, P
         rd = scene.render
         view_render = scene.view_render
 
-        rl = rd.layers.active
+        rl = scene.render_layers.active
         freestyle = rl.freestyle_settings
         lineset = freestyle.linesets.active
 
@@ -379,7 +379,7 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
                 row = box.row(align=True)
                 row.prop(modifier, "curvature_min")
                 row.prop(modifier, "curvature_max")
-                freestyle = context.scene.render.layers.active.freestyle_settings
+                freestyle = context.scene.render_layers.active.freestyle_settings
                 if not freestyle.use_smoothness:
                     message = "Enable Face Smoothness to use this modifier"
                     self.draw_modifier_box_error(col.box(), modifier, message)
@@ -434,7 +434,7 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
                 row = box.row(align=True)
                 row.prop(modifier, "curvature_min")
                 row.prop(modifier, "curvature_max")
-                freestyle = context.scene.render.layers.active.freestyle_settings
+                freestyle = context.scene.render_layers.active.freestyle_settings
                 if not freestyle.use_smoothness:
                     message = "Enable Face Smoothness to use this modifier"
                     self.draw_modifier_box_error(col.box(), modifier, message)
@@ -506,7 +506,7 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
                 row = box.row(align=True)
                 row.prop(modifier, "curvature_min")
                 row.prop(modifier, "curvature_max")
-                freestyle = context.scene.render.layers.active.freestyle_settings
+                freestyle = context.scene.render_layers.active.freestyle_settings
                 if not freestyle.use_smoothness:
                     message = "Enable Face Smoothness to use this modifier"
                     self.draw_modifier_box_error(col.box(), modifier, message)
@@ -614,8 +614,8 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel,
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render
-        rl = rd.layers.active
+        scene = context.scene
+        rl = scene.render_layers.active
         lineset = rl.freestyle_settings.linesets.active
 
         layout.active = rl.use_freestyle

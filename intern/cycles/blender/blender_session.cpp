@@ -383,14 +383,13 @@ void BlenderSession::render()
 	BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_v3d, b_rv3d, scene->camera, width, height);
 
 	/* render each layer */
-	BL::RenderSettings r = b_scene.render();
-	BL::RenderSettings::layers_iterator b_layer_iter;
+	BL::Scene::render_layers_iterator b_layer_iter;
 	BL::RenderResult::views_iterator b_view_iter;
 
 	/* We do some special meta attributes when we only have single layer. */
-	const bool is_single_layer = (r.layers.length() == 1);
+	const bool is_single_layer = (b_scene.render_layers.length() == 1);
 
-	for(r.layers.begin(b_layer_iter); b_layer_iter != r.layers.end(); ++b_layer_iter) {
+	for(b_scene.render_layers.begin(b_layer_iter); b_layer_iter != b_scene.render_layers.end(); ++b_layer_iter) {
 		b_rlay_name = b_layer_iter->name();
 
 		/* temporary render result to find needed passes and views */

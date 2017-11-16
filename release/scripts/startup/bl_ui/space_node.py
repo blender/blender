@@ -81,7 +81,7 @@ class NODE_HT_header(Header):
                     row.prop(snode_id, "use_nodes")
 
             if use_shading_nodes and snode.shader_type == 'LINESTYLE':
-                rl = context.scene.render.layers.active
+                rl = context.scene.render_layers.active
                 lineset = rl.freestyle_settings.linesets.active
                 if lineset is not None:
                     row = layout.row()

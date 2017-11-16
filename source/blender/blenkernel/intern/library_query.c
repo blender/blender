@@ -407,7 +407,6 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 			{
 				Scene *scene = (Scene *) id;
 				ToolSettings *toolsett = scene->toolsettings;
-				SceneRenderLayer *srl;
 
 				CALLBACK_INVOKE(scene->camera, IDWALK_CB_NOP);
 				CALLBACK_INVOKE(scene->world, IDWALK_CB_USER);
@@ -420,25 +419,6 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				/* DO NOT handle scene->basact here, it's doubling with the loop over whole scene->base later,
 				 * since basact is just a pointer to one of those items. */
 				CALLBACK_INVOKE(scene->obedit, IDWALK_CB_NOP);
-
-				for (srl = scene->r.layers.first; srl; srl = srl->next) {
-					FreestyleModuleConfig *fmc;
-					FreestyleLineSet *fls;
-
-					for (fmc = srl->freestyleConfig.modules.first; fmc; fmc = fmc->next) {
-						if (fmc->script) {
-							CALLBACK_INVOKE(fmc->script, IDWALK_CB_NOP);
-						}
-					}
-					for (fls = srl->freestyleConfig.linesets.first; fls; fls = fls->next) {
-						if (fls->group) {
-							CALLBACK_INVOKE(fls->group, IDWALK_CB_USER);
-						}
-						if (fls->linestyle) {
-							CALLBACK_INVOKE(fls->linestyle, IDWALK_CB_USER);
-						}
-					}
-				}
 
 				if (scene->ed) {
 					Sequence *seq;
@@ -471,10 +451,26 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				}
 				FOREACH_SCENE_COLLECTION_END
 
-				SceneLayer *sl;
-				for (sl = scene->render_layers.first; sl; sl = sl->next) {
-					for (Base *base = sl->object_bases.first; base; base = base->next) {
+				SceneLayer *scene_layer;
+				for (scene_layer = scene->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
+					for (Base *base = scene_layer->object_bases.first; base; base = base->next) {
 						CALLBACK_INVOKE(base->object, IDWALK_NOP);
+					}
+
+					for (FreestyleModuleConfig  *fmc = scene_layer->freestyle_config.modules.first; fmc; fmc = fmc->next) {
+						if (fmc->script) {
+							CALLBACK_INVOKE(fmc->script, IDWALK_CB_NOP);
+						}
+					}
+
+					for (FreestyleLineSet *fls = scene_layer->freestyle_config.linesets.first; fls; fls = fls->next) {
+						if (fls->group) {
+							CALLBACK_INVOKE(fls->group, IDWALK_CB_USER);
+						}
+
+						if (fls->linestyle) {
+							CALLBACK_INVOKE(fls->linestyle, IDWALK_CB_USER);
+						}
 					}
 				}
 

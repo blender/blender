@@ -51,6 +51,7 @@
 
 #include "BKE_collection.h"
 #include "BKE_customdata.h"
+#include "BKE_freestyle.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
@@ -324,6 +325,25 @@ void do_versions_after_linking_280(Main *main)
 							            (ID *)srl->mat_override);
 						}
 
+						if (srl->layflag & SCE_LAY_DISABLE) {
+							scene_layer->flag &= ~SCENE_LAYER_RENDER;
+						}
+
+						if ((srl->layflag & SCE_LAY_FRS) == 0) {
+							scene_layer->flag &= ~SCENE_LAYER_FREESTYLE;
+						}
+
+						/* XXX If we are to keep layflag it should be merged with flag (dfelinto). */
+						scene_layer->layflag = srl->layflag;
+						/* XXX Not sure if we should keep the passes (dfelinto). */
+						scene_layer->passflag = srl->passflag;
+						scene_layer->pass_xor = srl->pass_xor;
+						scene_layer->pass_alpha_threshold = srl->pass_alpha_threshold;
+
+						BKE_freestyle_config_free(&scene_layer->freestyle_config);
+						scene_layer->freestyle_config = srl->freestyleConfig;
+						scene_layer->id_properties = srl->prop;
+
 						/* unlink master collection  */
 						BKE_collection_unlink(scene_layer, scene_layer->layer_collections.first);
 
@@ -383,14 +403,22 @@ void do_versions_after_linking_280(Main *main)
 								base->flag |= BASE_SELECTED;
 							}
 						}
-
-						/* TODO: passes, samples, mask_layesr, exclude, ... */
 					}
 
 					if (BLI_findlink(&scene->render_layers, scene->r.actlay)) {
 						scene->active_layer = scene->r.actlay;
 					}
 				}
+				else {
+					for (SceneRenderLayer *srl = scene->r.layers.first; srl; srl = srl->next) {
+						if (srl->prop) {
+							IDP_FreeProperty(srl->prop);
+							MEM_freeN(srl->prop);
+						}
+						BKE_freestyle_config_free(&srl->freestyleConfig);
+					}
+				}
+				BLI_freelistN(&scene->r.layers);
 
 				SceneLayer *scene_layer = BKE_scene_layer_add(scene, "Viewport");
 
@@ -440,8 +468,6 @@ void do_versions_after_linking_280(Main *main)
 					/* keep lay around for forward compatibility (open those files in 2.79) */
 					base->lay = base->object->lay;
 				}
-
-				/* TODO: copy scene render data to layer */
 
 				/* Fallback name if only one layer was found in the original file */
 				if (BLI_listbase_count_ex(&sc_master->scene_collections, 2) == 1) {
@@ -694,6 +720,21 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 
 			for (WorkSpace *workspace = main->workspaces.first; workspace; workspace = workspace->id.next) {
 				BKE_viewrender_init(&workspace->view_render);
+			}
+		}
+	}
+
+	{
+		if (!DNA_struct_elem_find(fd->filesdna, "SceneLayer", "FreestyleConfig", "freestyle_config")) {
+			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+				SceneLayer *scene_layer;
+				for (scene_layer = scene->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
+					scene_layer->flag |= SCENE_LAYER_FREESTYLE;
+					scene_layer->layflag = 0x7FFF;   /* solid ztra halo edge strand */
+					scene_layer->passflag = SCE_PASS_COMBINED | SCE_PASS_Z;
+					scene_layer->pass_alpha_threshold = 0.5f;
+					BKE_freestyle_config_init(&scene_layer->freestyle_config);
+				}
 			}
 		}
 	}

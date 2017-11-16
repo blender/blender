@@ -56,7 +56,7 @@ class NodeLight;
 class NodeCamera;
 class NodeDrawingStyle;
 class NodeTransform;
-class NodeSceneRenderLayer;
+class NodeSceneLayer;
 
 class Rep;
 class LineRep;
@@ -88,7 +88,7 @@ public:
 	VISIT_COMPLETE_DEF(NodeCamera)
 	VISIT_COMPLETE_DEF(NodeDrawingStyle)
 	VISIT_COMPLETE_DEF(NodeTransform)
-	VISIT_COMPLETE_DEF(NodeSceneRenderLayer)
+	VISIT_COMPLETE_DEF(NodeSceneLayer)
 
 	VISIT_COMPLETE_DEF(Rep)
 	VISIT_COMPLETE_DEF(LineRep)

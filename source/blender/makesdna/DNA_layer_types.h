@@ -31,6 +31,7 @@
 extern "C" {
 #endif
 
+#include "DNA_freestyle_types.h"
 #include "DNA_listBase.h"
 
 typedef struct Base {
@@ -84,6 +85,16 @@ typedef struct SceneLayer {
 	struct IDProperty *properties;  /* overrides */
 	struct IDProperty *properties_evaluated;
 
+	/* Old SceneRenderLayer data. */
+	int layflag;
+	int passflag;			/* pass_xor has to be after passflag */
+	int pass_xor;
+	float pass_alpha_threshold;
+
+	struct IDProperty *id_properties; /* Equivalent to datablocks ID properties. */
+
+	struct FreestyleConfig freestyle_config;
+
 	/* Runtime data */
 	ListBase drawdata;    /* SceneLayerEngineData */
 } SceneLayer;
@@ -120,6 +131,7 @@ enum {
 enum {
 	SCENE_LAYER_RENDER = (1 << 0),
 	SCENE_LAYER_ENGINE_DIRTY  = (1 << 1),
+	SCENE_LAYER_FREESTYLE = (1 << 2),
 };
 
 

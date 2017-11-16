@@ -234,7 +234,7 @@ static void outliner_add_bone(SpaceOops *soops, ListBase *lb, ID *id, Bone *curB
 
 #define LOG2I(x) (int)(log(x) / M_LN2)
 
-static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, SceneRenderLayer *srl)
+static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, SceneLayer *scene_layer)
 {
 	TreeStoreElem *tselem = NULL;
 	TreeElement *te = NULL;
@@ -244,7 +244,7 @@ static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, Sc
 	
 	te = outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_COMBINED));
 	te->name = IFACE_("Combined");
-	te->directdata = &srl->passflag;
+	te->directdata = &scene_layer->passflag;
 	
 	/* save cpu cycles, but we add the first to invoke an open/close triangle */
 	tselem = TREESTORE(tenla);
@@ -253,71 +253,71 @@ static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, Sc
 	
 	te = outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_Z));
 	te->name = IFACE_("Z");
-	te->directdata = &srl->passflag;
+	te->directdata = &scene_layer->passflag;
 
 	te = outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_VECTOR));
 	te->name = IFACE_("Vector");
-	te->directdata = &srl->passflag;
+	te->directdata = &scene_layer->passflag;
 
 	te = outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_NORMAL));
 	te->name = IFACE_("Normal");
-	te->directdata = &srl->passflag;
+	te->directdata = &scene_layer->passflag;
 
 	te = outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_UV));
 	te->name = IFACE_("UV");
-	te->directdata = &srl->passflag;
+	te->directdata = &scene_layer->passflag;
 
 	te = outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_MIST));
 	te->name = IFACE_("Mist");
-	te->directdata = &srl->passflag;
+	te->directdata = &scene_layer->passflag;
 
 	te = outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_INDEXOB));
 	te->name = IFACE_("Index Object");
-	te->directdata = &srl->passflag;
+	te->directdata = &scene_layer->passflag;
 
 	te = outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_INDEXMA));
 	te->name = IFACE_("Index Material");
-	te->directdata = &srl->passflag;
+	te->directdata = &scene_layer->passflag;
 
 	te = outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_RGBA));
 	te->name = IFACE_("Color");
-	te->directdata = &srl->passflag;
+	te->directdata = &scene_layer->passflag;
 
 	te = outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_DIFFUSE));
 	te->name = IFACE_("Diffuse");
-	te->directdata = &srl->passflag;
+	te->directdata = &scene_layer->passflag;
 
 	te = outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_SPEC));
 	te->name = IFACE_("Specular");
-	te->directdata = &srl->passflag;
+	te->directdata = &scene_layer->passflag;
 
 	te = outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_SHADOW));
 	te->name = IFACE_("Shadow");
-	te->directdata = &srl->passflag;
+	te->directdata = &scene_layer->passflag;
 
 	te = outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_AO));
 	te->name = IFACE_("AO");
-	te->directdata = &srl->passflag;
+	te->directdata = &scene_layer->passflag;
 
 	te = outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_REFLECT));
 	te->name = IFACE_("Reflection");
-	te->directdata = &srl->passflag;
+	te->directdata = &scene_layer->passflag;
 
 	te = outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_REFRACT));
 	te->name = IFACE_("Refraction");
-	te->directdata = &srl->passflag;
+	te->directdata = &scene_layer->passflag;
 
 	te = outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_INDIRECT));
 	te->name = IFACE_("Indirect");
-	te->directdata = &srl->passflag;
+	te->directdata = &scene_layer->passflag;
 
 	te = outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_ENVIRONMENT));
 	te->name = IFACE_("Environment");
-	te->directdata = &srl->passflag;
+	te->directdata = &scene_layer->passflag;
 
 	te = outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_EMIT));
 	te->name = IFACE_("Emit");
-	te->directdata = &srl->passflag;
+	te->directdata = &scene_layer->passflag;
 }
 
 #undef LOG2I
@@ -332,19 +332,19 @@ static bool outliner_animdata_test(AnimData *adt)
 #ifdef WITH_FREESTYLE
 static void outliner_add_line_styles(SpaceOops *soops, ListBase *lb, Scene *sce, TreeElement *te)
 {
-	SceneRenderLayer *srl;
+	SceneLayer *scene_layer;
 	FreestyleLineSet *lineset;
 
-	for (srl = sce->r.layers.first; srl; srl = srl->next) {
-		for (lineset = srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
+	for (scene_layer = sce->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
+		for (lineset = scene_layer->freestyle_config.linesets.first; lineset; lineset = lineset->next) {
 			FreestyleLineStyle *linestyle = lineset->linestyle;
 			if (linestyle) {
 				linestyle->id.tag |= LIB_TAG_DOIT;
 			}
 		}
 	}
-	for (srl = sce->r.layers.first; srl; srl = srl->next) {
-		for (lineset = srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
+	for (scene_layer = sce->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
+		for (lineset = scene_layer->freestyle_config.linesets.first; lineset; lineset = lineset->next) {
 			FreestyleLineStyle *linestyle = lineset->linestyle;
 			if (linestyle) {
 				if (!(linestyle->id.tag & LIB_TAG_DOIT))
@@ -359,16 +359,16 @@ static void outliner_add_line_styles(SpaceOops *soops, ListBase *lb, Scene *sce,
 
 static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *sce, TreeElement *te)
 {
-	SceneRenderLayer *srl;
+	SceneLayer *scene_layer;
 	TreeElement *tenla = outliner_add_element(soops, lb, sce, te, TSE_R_LAYER_BASE, 0);
 	int a;
 	
 	tenla->name = IFACE_("RenderLayers");
-	for (a = 0, srl = sce->r.layers.first; srl; srl = srl->next, a++) {
+	for (a = 0, scene_layer = sce->render_layers.first; scene_layer; scene_layer = scene_layer->next, a++) {
 		TreeElement *tenlay = outliner_add_element(soops, &tenla->subtree, sce, te, TSE_R_LAYER, a);
-		tenlay->name = srl->name;
-		tenlay->directdata = &srl->layflag;
-		outliner_add_passes(soops, tenlay, &sce->id, srl);
+		tenlay->name = scene_layer->name;
+		tenlay->directdata = &scene_layer->flag;
+		outliner_add_passes(soops, tenlay, &sce->id, scene_layer);
 	}
 	
 	// TODO: move this to the front?

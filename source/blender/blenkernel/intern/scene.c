@@ -252,28 +252,33 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 
 	IDPropertyTemplate val = {0};
 	BLI_duplicatelist(&sce_dst->render_layers, &sce_src->render_layers);
-	for (SceneLayer *sl_src = sce_src->render_layers.first, *sl_dst = sce_dst->render_layers.first;
-	     sl_src;
-	     sl_src = sl_src->next, sl_dst = sl_dst->next)
+	for (SceneLayer *scene_layer_src = sce_src->render_layers.first, *scene_layer_dst = sce_dst->render_layers.first;
+	     scene_layer_src;
+	     scene_layer_src = scene_layer_src->next, scene_layer_dst = scene_layer_dst->next)
 	{
-		sl_dst->stats = NULL;
-		sl_dst->properties_evaluated = NULL;
-		sl_dst->properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-		IDP_MergeGroup_ex(sl_dst->properties, sl_src->properties, true, flag_subdata);
+		if (scene_layer_dst->id_properties != NULL) {
+			scene_layer_dst->id_properties = IDP_CopyProperty_ex(scene_layer_dst->id_properties, flag_subdata);
+		}
+		BKE_freestyle_config_copy(&scene_layer_dst->freestyle_config, &scene_layer_src->freestyle_config, flag_subdata);
+
+		scene_layer_dst->stats = NULL;
+		scene_layer_dst->properties_evaluated = NULL;
+		scene_layer_dst->properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+		IDP_MergeGroup_ex(scene_layer_dst->properties, scene_layer_src->properties, true, flag_subdata);
 
 		/* we start fresh with no overrides and no visibility flags set
 		 * instead of syncing both trees we simply unlink and relink the scene collection */
-		BLI_listbase_clear(&sl_dst->layer_collections);
-		BLI_listbase_clear(&sl_dst->object_bases);
-		BLI_listbase_clear(&sl_dst->drawdata);
+		BLI_listbase_clear(&scene_layer_dst->layer_collections);
+		BLI_listbase_clear(&scene_layer_dst->object_bases);
+		BLI_listbase_clear(&scene_layer_dst->drawdata);
 
-		layer_collections_recreate(sl_dst, &sl_src->layer_collections, mc_dst, mc_src);
+		layer_collections_recreate(scene_layer_dst, &scene_layer_src->layer_collections, mc_dst, mc_src);
 
 		/* Now we handle the syncing for visibility, selectability, ... */
-		layer_collections_sync_flags(&sl_dst->layer_collections, &sl_src->layer_collections);
+		layer_collections_sync_flags(&scene_layer_dst->layer_collections, &scene_layer_src->layer_collections);
 
-		Object *active_ob = OBACT(sl_src);
-		for (Base *base_src = sl_src->object_bases.first, *base_dst = sl_dst->object_bases.first;
+		Object *active_ob = OBACT(scene_layer_src);
+		for (Base *base_src = scene_layer_src->object_bases.first, *base_dst = scene_layer_dst->object_bases.first;
 		     base_src;
 		     base_src = base_src->next, base_dst = base_dst->next)
 		{
@@ -281,7 +286,7 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 			base_dst->flag_legacy = base_src->flag_legacy;
 
 			if (base_dst->object == active_ob) {
-				sl_dst->basact = base_dst;
+				scene_layer_dst->basact = base_dst;
 			}
 		}
 	}
@@ -296,7 +301,6 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 	}
 
 	BLI_duplicatelist(&(sce_dst->markers), &(sce_src->markers));
-	BLI_duplicatelist(&(sce_dst->r.layers), &(sce_src->r.layers));
 	BLI_duplicatelist(&(sce_dst->r.views), &(sce_src->r.views));
 	BKE_keyingsets_copy(&(sce_dst->keyingsets), &(sce_src->keyingsets));
 
@@ -309,17 +313,6 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 
 	if (sce_src->rigidbody_world) {
 		sce_dst->rigidbody_world = BKE_rigidbody_world_copy(sce_src->rigidbody_world, flag_subdata);
-	}
-
-	/* copy Freestyle settings */
-	for (SceneRenderLayer *srl_dst = sce_dst->r.layers.first, *srl_src = sce_src->r.layers.first;
-	     srl_src;
-	     srl_dst = srl_dst->next, srl_src = srl_src->next)
-	{
-		if (srl_dst->prop != NULL) {
-			srl_dst->prop = IDP_CopyProperty_ex(srl_dst->prop, flag_subdata);
-		}
-		BKE_freestyle_config_copy(&srl_dst->freestyleConfig, &srl_src->freestyleConfig, flag_subdata);
 	}
 
 	/* copy color management settings */
@@ -410,16 +403,14 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 	 * But for now, let's keep it well isolated here. */
 	if (type == SCE_COPY_EMPTY) {
 		ToolSettings *ts;
-		ListBase rl, rv;
+		ListBase rv;
 
 		sce_copy = BKE_scene_add(bmain, sce->id.name + 2);
 
-		rl = sce_copy->r.layers;
 		rv = sce_copy->r.views;
 		curvemapping_free_data(&sce_copy->r.mblur_shutter_curve);
 		sce_copy->r = sce->r;
-		sce_copy->r.layers = rl;
-		sce_copy->r.actlay = 0;
+		sce_copy->active_layer = 0;
 		sce_copy->r.views = rv;
 		sce_copy->unit = sce->unit;
 		sce_copy->physics_settings = sce->physics_settings;
@@ -517,8 +508,8 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 
 		if (type == SCE_COPY_FULL) {
 			/* Copy Freestyle LineStyle datablocks. */
-			for (SceneRenderLayer *srl_dst = sce_copy->r.layers.first; srl_dst; srl_dst = srl_dst->next) {
-				for (FreestyleLineSet *lineset = srl_dst->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
+			for (SceneLayer *scene_layer_dst = sce_copy->render_layers.first; scene_layer_dst; scene_layer_dst = scene_layer_dst->next) {
+				for (FreestyleLineSet *lineset = scene_layer_dst->freestyle_config.linesets.first; lineset; lineset = lineset->next) {
 					if (lineset->linestyle) {
 						/* XXX Not copying anim/actions here? */
 						BKE_id_copy_ex(bmain, (ID *)lineset->linestyle, (ID **)&lineset->linestyle, 0, false);
@@ -572,8 +563,6 @@ void BKE_scene_make_local(Main *bmain, Scene *sce, const bool lib_local)
 /** Free (or release) any data used by this scene (does not free the scene itself). */
 void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
 {
-	SceneRenderLayer *srl;
-
 	BKE_animdata_free((ID *)sce, false);
 
 	/* check all sequences */
@@ -606,16 +595,7 @@ void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
 		sce->r.ffcodecdata.properties = NULL;
 	}
 
-	for (srl = sce->r.layers.first; srl; srl = srl->next) {
-		if (srl->prop != NULL) {
-			IDP_FreeProperty(srl->prop);
-			MEM_freeN(srl->prop);
-		}
-		BKE_freestyle_config_free(&srl->freestyleConfig);
-	}
-
 	BLI_freelistN(&sce->markers);
-	BLI_freelistN(&sce->r.layers);
 	BLI_freelistN(&sce->r.views);
 	
 	if (sce->toolsettings) {
@@ -907,7 +887,6 @@ void BKE_scene_init(Scene *sce)
 	sce->r.osa = 8;
 
 	/* note; in header_info.c the scene copy happens..., if you add more to renderdata it has to be checked there */
-	BKE_scene_add_render_layer(sce, NULL);
 
 	/* multiview - stereo */
 	BKE_scene_add_render_view(sce, STEREO_LEFT_NAME);
@@ -1616,64 +1595,6 @@ void BKE_scene_graph_update_for_newframe(EvaluationContext *eval_ctx,
 	DEG_ids_check_recalc(bmain, scene, true);
 	/* clear recalc flags */
 	DEG_ids_clear_recalc(bmain);
-}
-
-/* return default layer, also used to patch old files */
-SceneRenderLayer *BKE_scene_add_render_layer(Scene *sce, const char *name)
-{
-	SceneRenderLayer *srl;
-
-	if (!name)
-		name = DATA_("RenderLayer");
-
-	srl = MEM_callocN(sizeof(SceneRenderLayer), "new render layer");
-	BLI_strncpy(srl->name, name, sizeof(srl->name));
-	BLI_uniquename(&sce->r.layers, srl, DATA_("RenderLayer"), '.', offsetof(SceneRenderLayer, name), sizeof(srl->name));
-	BLI_addtail(&sce->r.layers, srl);
-
-	/* note, this is also in render, pipeline.c, to make layer when scenedata doesnt have it */
-	srl->layflag = 0x7FFF;   /* solid ztra halo edge strand */
-	srl->passflag = SCE_PASS_COMBINED | SCE_PASS_Z;
-	srl->pass_alpha_threshold = 0.5f;
-	BKE_freestyle_config_init(&srl->freestyleConfig);
-
-	return srl;
-}
-
-bool BKE_scene_remove_render_layer(Main *bmain, Scene *scene, SceneRenderLayer *srl)
-{
-	const int act = BLI_findindex(&scene->r.layers, srl);
-	Scene *sce;
-
-	if (act == -1) {
-		return false;
-	}
-	else if ( (scene->r.layers.first == scene->r.layers.last) &&
-	          (scene->r.layers.first == srl))
-	{
-		/* ensure 1 layer is kept */
-		return false;
-	}
-
-	BKE_freestyle_config_free(&srl->freestyleConfig);
-
-	if (srl->prop) {
-		IDP_FreeProperty(srl->prop);
-		MEM_freeN(srl->prop);
-	}
-
-	BLI_remlink(&scene->r.layers, srl);
-	MEM_freeN(srl);
-
-	scene->r.actlay = 0;
-
-	for (sce = bmain->scene.first; sce; sce = sce->id.next) {
-		if (sce->nodetree) {
-			BKE_nodetree_remove_layer_n(sce->nodetree, scene, act);
-		}
-	}
-
-	return true;
 }
 
 /* return default view */

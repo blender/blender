@@ -68,7 +68,7 @@ public:
 	//soc
 	void init_options();
 
-	int  LoadMesh(Render *re, SceneRenderLayer *srl);
+	int  LoadMesh(Render *re, SceneLayer *scene_layer);
 	int  Load3DSFile(const char *iFileName);
 	void CloseFile();
 	void ComputeViewMap();

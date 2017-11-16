@@ -102,7 +102,7 @@ typedef struct RenderEngineType {
 	void (*render_to_view)(struct RenderEngine *engine, const struct bContext *context);
 
 	void (*update_script_node)(struct RenderEngine *engine, struct bNodeTree *ntree, struct bNode *node);
-	void (*update_render_passes)(struct RenderEngine *engine, struct Scene *scene, struct SceneRenderLayer *srl);
+	void (*update_render_passes)(struct RenderEngine *engine, struct Scene *scene, struct SceneLayer *scene_layer);
 
 	void (*collection_settings_create)(struct RenderEngine *engine, struct IDProperty *props);
 	void (*render_settings_create)(struct RenderEngine *engine, struct IDProperty *props);
@@ -174,7 +174,7 @@ bool RE_engine_is_external(struct Render *re);
 
 void RE_engine_frame_set(struct RenderEngine *engine, int frame, float subframe);
 
-void RE_engine_register_pass(struct RenderEngine *engine, struct Scene *scene, struct SceneRenderLayer *srl,
+void RE_engine_register_pass(struct RenderEngine *engine, struct Scene *scene, struct SceneLayer *scene_layer,
                              const char *name, int channels, const char *chanid, int type);
 
 /* Engine Types */

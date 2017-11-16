@@ -658,7 +658,7 @@ int RE_engine_render(Render *re, int do_all)
 	 * creating the render result */
 	if ((re->r.scemode & (R_NO_FRAME_UPDATE | R_BUTS_PREVIEW)) == 0) {
 		BKE_scene_graph_update_for_newframe(re->eval_ctx, re->depsgraph, re->main, re->scene, NULL);
-		render_update_anim_renderdata(re, &re->scene->r);
+		render_update_anim_renderdata(re, &re->scene->r, &re->scene->render_layers);
 	}
 
 	/* create render result */
@@ -777,12 +777,12 @@ int RE_engine_render(Render *re, int do_all)
 	return 1;
 }
 
-void RE_engine_register_pass(struct RenderEngine *engine, struct Scene *scene, struct SceneRenderLayer *srl,
+void RE_engine_register_pass(struct RenderEngine *engine, struct Scene *scene, struct SceneLayer *scene_layer,
                              const char *name, int UNUSED(channels), const char *UNUSED(chanid), int type)
 {
 	/* The channel information is currently not used, but is part of the API in case it's needed in the future. */
 
-	if (!(scene && srl && engine)) {
+	if (!(scene && scene_layer && engine)) {
 		return;
 	}
 
@@ -792,7 +792,7 @@ void RE_engine_register_pass(struct RenderEngine *engine, struct Scene *scene, s
 	Scene *sce;
 	for (sce = G.main->scene.first; sce; sce = sce->id.next) {
 		if (sce->nodetree) {
-			ntreeCompositRegisterPass(sce->nodetree, scene, srl, name, type);
+			ntreeCompositRegisterPass(sce->nodetree, scene, scene_layer, name, type);
 		}
 	}
 }

@@ -2780,7 +2780,7 @@ static const EnumPropertyItem *rna_Node_scene_layer_itemf(bContext *UNUSED(C), P
 		return DummyRNA_NULL_items;
 	}
 
-	rl = sce->r.layers.first;
+	rl = sce->render_layers.first;
 	item = renderresult_layers_add_enum(rl);
 
 	*r_free = true;

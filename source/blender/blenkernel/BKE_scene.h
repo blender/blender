@@ -43,8 +43,6 @@ struct EvaluationContext;
 struct Main;
 struct Object;
 struct RenderData;
-struct SceneLayer;
-struct SceneRenderLayer;
 struct Scene;
 struct SceneCollection;
 struct SceneLayer;
@@ -149,9 +147,6 @@ void BKE_scene_graph_update_for_newframe(struct EvaluationContext *eval_ctx,
                                          struct Main *bmain,
                                          struct Scene *scene,
                                          struct SceneLayer *scene_layer);
-
-struct SceneRenderLayer *BKE_scene_add_render_layer(struct Scene *sce, const char *name);
-bool BKE_scene_remove_render_layer(struct Main *main, struct Scene *scene, struct SceneRenderLayer *srl);
 
 struct SceneRenderView *BKE_scene_add_render_view(struct Scene *sce, const char *name);
 bool BKE_scene_remove_render_view(struct Scene *scene, struct SceneRenderView *srv);

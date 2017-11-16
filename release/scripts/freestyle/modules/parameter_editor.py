@@ -1206,7 +1206,7 @@ integration_types = {
 # main function for parameter processing
 def process(layer_name, lineset_name):
     scene = getCurrentScene()
-    layer = scene.render.layers[layer_name]
+    layer = scene.render_layers[layer_name]
     lineset = layer.freestyle_settings.linesets[lineset_name]
     linestyle = lineset.linestyle
 

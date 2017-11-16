@@ -172,24 +172,24 @@ typedef struct AudioData {
 typedef struct SceneRenderLayer {
 	struct SceneRenderLayer *next, *prev;
 	
-	char name[64];	/* MAX_NAME */
+	char name[64] DNA_DEPRECATED;	/* MAX_NAME */
 	
 	struct Material *mat_override DNA_DEPRECATED; /* Converted to SceneLayer override. */
 	
 	unsigned int lay DNA_DEPRECATED; /* Converted to LayerCollection cycles camera visibility override. */
 	unsigned int lay_zmask DNA_DEPRECATED; /* Converted to LayerCollection cycles holdout override. */
 	unsigned int lay_exclude DNA_DEPRECATED;
-	int layflag;
+	int layflag DNA_DEPRECATED; /* Converted to SceneLayer layflag and flag. */
 	
-	int passflag;			/* pass_xor has to be after passflag */
-	int pass_xor;
+	int passflag DNA_DEPRECATED; /* pass_xor has to be after passflag */
+	int pass_xor DNA_DEPRECATED; /* Converted to SceneLayer passflag and flag. */
 
 	int samples DNA_DEPRECATED; /* Converted to SceneLayer override. */
-	float pass_alpha_threshold;
+	float pass_alpha_threshold DNA_DEPRECATED; /* Converted to SceneLayer pass_alpha_threshold. */
 
-	IDProperty *prop;
+	IDProperty *prop DNA_DEPRECATED; /* Converted to SceneLayer id_properties. */
 
-	struct FreestyleConfig freestyleConfig;
+	struct FreestyleConfig freestyleConfig DNA_DEPRECATED; /* Converted to SceneLayer freestyleConfig. */
 } SceneRenderLayer;
 
 /* srl->layflag */
@@ -662,8 +662,8 @@ typedef struct RenderData {
 	rcti disprect;
 	
 	/* information on different layers to be rendered */
-	ListBase layers;
-	short actlay;
+	ListBase layers DNA_DEPRECATED; /* Converted to Scene->render_layers. */
+	short actlay DNA_DEPRECATED; /* Converted to Scene->active_layer. */
 	
 	/* number of mblur samples */
 	short mblur_samples;

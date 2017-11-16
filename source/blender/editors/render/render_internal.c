@@ -108,7 +108,6 @@ typedef struct RenderJob {
 	 */
 	Depsgraph *depsgraph;
 	Render *re;
-	SceneRenderLayer *srl;
 	struct Object *camera_override;
 	int lay_override;
 	bool v3d_override;
@@ -261,7 +260,7 @@ static void image_buffer_rect_update(RenderJob *rj, RenderResult *rr, ImBuf *ibu
 /* set callbacks, exported to sequence render too.
  * Only call in foreground (UI) renders. */
 
-static void screen_render_scene_layer_set(wmOperator *op, Main *mainp, Scene **scene, SceneRenderLayer **srl)
+static void screen_render_scene_layer_set(wmOperator *op, Main *mainp, Scene **scene, SceneLayer **scene_layer)
 {
 	/* single layer re-render */
 	if (RNA_struct_property_is_set(op->ptr, "scene")) {
@@ -281,14 +280,14 @@ static void screen_render_scene_layer_set(wmOperator *op, Main *mainp, Scene **s
 	}
 
 	if (RNA_struct_property_is_set(op->ptr, "layer")) {
-		SceneRenderLayer *rl;
+		SceneLayer *rl;
 		char rl_name[RE_MAXNAME];
 
 		RNA_string_get(op->ptr, "layer", rl_name);
-		rl = (SceneRenderLayer *)BLI_findstring(&(*scene)->r.layers, rl_name, offsetof(SceneRenderLayer, name));
+		rl = (SceneLayer *)BLI_findstring(&(*scene)->render_layers, rl_name, offsetof(SceneLayer, name));
 		
 		if (rl)
-			*srl = rl;
+			*scene_layer = rl;
 	}
 }
 
@@ -296,9 +295,8 @@ static void screen_render_scene_layer_set(wmOperator *op, Main *mainp, Scene **s
 static int screen_render_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *scene_layer = CTX_data_scene_layer(C);
+	SceneLayer *scene_layer = NULL;
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
-	SceneRenderLayer *srl = NULL;
 	Render *re;
 	Image *ima;
 	View3D *v3d = CTX_wm_view3d(C);
@@ -309,7 +307,10 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	struct Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : NULL;
 
 	/* custom scene and single layer re-render */
-	screen_render_scene_layer_set(op, mainp, &scene, &srl);
+	screen_render_scene_layer_set(op, mainp, &scene, &scene_layer);
+	if (scene_layer == NULL) {
+		scene_layer = CTX_data_scene_layer(C);
+	}
 
 	if (!is_animation && is_write_still && BKE_imtype_is_movie(scene->r.im_format.imtype)) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot write a single file with an animation format selected");
@@ -339,7 +340,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	if (is_animation)
 		RE_BlenderAnim(re, mainp, scene, camera_override, lay_override, scene->r.sfra, scene->r.efra, scene->r.frame_step);
 	else
-		RE_BlenderFrame(re, mainp, scene, srl, camera_override, lay_override, scene->r.cfra, is_write_still);
+		RE_BlenderFrame(re, mainp, scene, scene_layer, camera_override, lay_override, scene->r.cfra, is_write_still);
 	BLI_end_threaded_malloc();
 
 	RE_SetReports(re, NULL);
@@ -616,7 +617,7 @@ static void render_startjob(void *rjv, short *stop, short *do_update, float *pro
 	if (rj->anim)
 		RE_BlenderAnim(rj->re, rj->main, rj->scene, rj->camera_override, rj->lay_override, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step);
 	else
-		RE_BlenderFrame(rj->re, rj->main, rj->scene, rj->srl, rj->camera_override, rj->lay_override, rj->scene->r.cfra, rj->write_still);
+		RE_BlenderFrame(rj->re, rj->main, rj->scene, rj->scene_layer, rj->camera_override, rj->lay_override, rj->scene->r.cfra, rj->write_still);
 
 	RE_SetReports(rj->re, NULL);
 }
@@ -669,7 +670,7 @@ static void render_endjob(void *rjv)
 	/* potentially set by caller */
 	rj->scene->r.scemode &= ~R_NO_FRAME_UPDATE;
 	
-	if (rj->srl) {
+	if (rj->scene_layer) {
 		nodeUpdateID(rj->scene->nodetree, &rj->scene->id);
 		WM_main_add_notifier(NC_NODE | NA_EDITED, rj->scene);
 	}
@@ -699,7 +700,7 @@ static void render_endjob(void *rjv)
 	 * engine API, so lets use simple and robust way for now
 	 *                                          - sergey -
 	 */
-	if (rj->scene->r.layers.first != rj->scene->r.layers.last ||
+	if (rj->scene->render_layers.first != rj->scene->render_layers.last ||
 	    rj->image_outdated)
 	{
 		void *lock;
@@ -844,8 +845,8 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 {
 	/* new render clears all callbacks */
 	Main *mainp;
+	SceneLayer *scene_layer = NULL;
 	Scene *scene = CTX_data_scene(C);
-	SceneRenderLayer *srl = NULL;
 	Render *re;
 	wmJob *wm_job;
 	RenderJob *rj;
@@ -912,7 +913,10 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	jobflag = WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS;
 	
 	/* custom scene and single layer re-render */
-	screen_render_scene_layer_set(op, mainp, &scene, &srl);
+	screen_render_scene_layer_set(op, mainp, &scene, &scene_layer);
+	if (scene_layer == NULL) {
+		scene_layer = CTX_data_scene_layer(C);
+	}
 
 	if (RNA_struct_property_is_set(op->ptr, "layer"))
 		jobflag |= WM_JOB_SUSPEND;
@@ -922,10 +926,9 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	rj->main = mainp;
 	rj->scene = scene;
 	rj->current_scene = rj->scene;
-	rj->scene_layer = CTX_data_scene_layer(C);
+	rj->scene_layer = scene_layer;
 	/* TODO(sergey): Render engine should be using own depsgraph. */
 	rj->depsgraph = CTX_data_depsgraph(C);
-	rj->srl = srl;
 	rj->camera_override = camera_override;
 	rj->lay_override = 0;
 	rj->anim = is_animation;
@@ -1283,10 +1286,10 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 		/* initalize always */
 		if (use_border) {
 			rdata.mode |= R_BORDER;
-			RE_InitState(re, NULL, &rdata, &rp->scene->view_render, NULL, rp->ar->winx, rp->ar->winy, &cliprct);
+			RE_InitState(re, NULL, &rdata, &rp->scene->render_layers, rp->scene->active_layer, &rp->scene->view_render, NULL, rp->ar->winx, rp->ar->winy, &cliprct);
 		}
 		else
-			RE_InitState(re, NULL, &rdata, &rp->scene->view_render, NULL, rp->ar->winx, rp->ar->winy, NULL);
+			RE_InitState(re, NULL, &rdata, &rp->scene->render_layers, rp->scene->active_layer, &rp->scene->view_render, NULL, rp->ar->winx, rp->ar->winy, NULL);
 	}
 
 	if (orth)

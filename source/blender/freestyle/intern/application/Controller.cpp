@@ -40,7 +40,7 @@ extern "C" {
 #include "../scene_graph/NodeDrawingStyle.h"
 #include "../scene_graph/NodeShape.h"
 #include "../scene_graph/NodeTransform.h"
-#include "../scene_graph/NodeSceneRenderLayer.h"
+#include "../scene_graph/NodeSceneLayer.h"
 #include "../scene_graph/ScenePrettyPrinter.h"
 #include "../scene_graph/VertexRep.h"
 
@@ -232,9 +232,9 @@ bool Controller::hitViewMapCache()
 	return false;
 }
 
-int Controller::LoadMesh(Render *re, SceneRenderLayer *srl)
+int Controller::LoadMesh(Render *re, SceneLayer *scene_layer)
 {
-	BlenderFileLoader loader(re, srl);
+	BlenderFileLoader loader(re, scene_layer);
 
 	loader.setRenderMonitor(_pRenderMonitor);
 
@@ -301,7 +301,7 @@ int Controller::LoadMesh(Render *re, SceneRenderLayer *srl)
 		}
 		cam->setProjectionMatrix(proj);
 		_RootNode->AddChild(cam);
-		_RootNode->AddChild(new NodeSceneRenderLayer(*re->scene, *srl));
+		_RootNode->AddChild(new NodeSceneLayer(*re->scene, *scene_layer));
 
 		sceneHashFunc.reset();
 		//blenderScene->accept(sceneHashFunc);

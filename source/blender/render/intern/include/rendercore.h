@@ -83,7 +83,7 @@ void zbufshade_sss_tile(struct RenderPart *pa);
 
 int get_sample_layers(struct RenderPart *pa, struct RenderLayer *rl, struct RenderLayer **rlpp);
 
-void render_internal_update_passes(struct RenderEngine *engine, struct Scene *scene, struct SceneRenderLayer *srl);
+void render_internal_update_passes(struct RenderEngine *engine, struct Scene *scene, struct SceneLayer *scene_layer);
 
 
 /* -------- ray.c ------- */

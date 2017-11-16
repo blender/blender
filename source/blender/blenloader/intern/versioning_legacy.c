@@ -2145,18 +2145,16 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 			if (sce->r.yparts < 2)
 				sce->r.yparts = 4;
 
-			/* adds default layer */
-			if (BLI_listbase_is_empty(&sce->r.layers)) {
-				BKE_scene_add_render_layer(sce, NULL);
-			}
-			else {
-				SceneRenderLayer *srl;
-				/* new layer flag for sky, was default for solid */
-				for (srl = sce->r.layers.first; srl; srl = srl->next) {
-					if (srl->layflag & SCE_LAY_SOLID)
-						srl->layflag |= SCE_LAY_SKY;
-					srl->passflag &= (SCE_PASS_COMBINED|SCE_PASS_Z|SCE_PASS_NORMAL|SCE_PASS_VECTOR);
-				}
+			/* We don't add default layer since blender2.8 because the layers
+			 * are now in Scene->render_layers and a default layer is created in
+			 * the doversion later on.
+			 */
+			SceneRenderLayer *srl;
+			/* new layer flag for sky, was default for solid */
+			for (srl = sce->r.layers.first; srl; srl = srl->next) {
+				if (srl->layflag & SCE_LAY_SOLID)
+					srl->layflag |= SCE_LAY_SKY;
+				srl->passflag &= (SCE_PASS_COMBINED|SCE_PASS_Z|SCE_PASS_NORMAL|SCE_PASS_VECTOR);
 			}
 
 			/* node version changes */

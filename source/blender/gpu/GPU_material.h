@@ -47,7 +47,6 @@ struct ListBase;
 struct Material;
 struct Object;
 struct Scene;
-struct SceneRenderLayer;
 struct GPUVertexAttribs;
 struct GPUNode;
 struct GPUNodeLink;

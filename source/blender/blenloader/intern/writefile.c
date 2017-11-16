@@ -2748,19 +2748,6 @@ static void write_scene(WriteData *wd, Scene *sce)
 		writestruct(wd, DATA, TimeMarker, 1, marker);
 	}
 
-	for (SceneRenderLayer *srl = sce->r.layers.first; srl; srl = srl->next) {
-		writestruct(wd, DATA, SceneRenderLayer, 1, srl);
-		if (srl->prop) {
-			IDP_WriteProperty(srl->prop, wd);
-		}
-		for (FreestyleModuleConfig *fmc = srl->freestyleConfig.modules.first; fmc; fmc = fmc->next) {
-			writestruct(wd, DATA, FreestyleModuleConfig, 1, fmc);
-		}
-		for (FreestyleLineSet *fls = srl->freestyleConfig.linesets.first; fls; fls = fls->next) {
-			writestruct(wd, DATA, FreestyleLineSet, 1, fls);
-		}
-	}
-
 	/* writing MultiView to the blend file */
 	for (SceneRenderView *srv = sce->r.views.first; srv; srv = srv->next) {
 		writestruct(wd, DATA, SceneRenderView, 1, srv);
@@ -2787,9 +2774,23 @@ static void write_scene(WriteData *wd, Scene *sce)
 	for (SceneLayer *scene_layer = sce->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
 		writestruct(wd, DATA, SceneLayer, 1, scene_layer);
 		writelist(wd, DATA, Base, &scene_layer->object_bases);
+
 		if (scene_layer->properties) {
 			IDP_WriteProperty(scene_layer->properties, wd);
 		}
+
+		if (scene_layer->id_properties) {
+			IDP_WriteProperty(scene_layer->id_properties, wd);
+		}
+
+		for (FreestyleModuleConfig *fmc = scene_layer->freestyle_config.modules.first; fmc; fmc = fmc->next) {
+			writestruct(wd, DATA, FreestyleModuleConfig, 1, fmc);
+		}
+
+		for (FreestyleLineSet *fls = scene_layer->freestyle_config.linesets.first; fls; fls = fls->next) {
+			writestruct(wd, DATA, FreestyleLineSet, 1, fls);
+		}
+
 		write_layer_collections(wd, &scene_layer->layer_collections);
 	}
 

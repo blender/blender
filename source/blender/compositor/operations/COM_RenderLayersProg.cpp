@@ -55,10 +55,10 @@ void RenderLayersProg::initExecution()
 		rr = RE_AcquireResultRead(re);
 	
 	if (rr) {
-		SceneRenderLayer *srl = (SceneRenderLayer *)BLI_findlink(&scene->r.layers, getLayerId());
-		if (srl) {
+		SceneLayer *scene_layer = (SceneLayer *)BLI_findlink(&scene->render_layers, getLayerId());
+		if (scene_layer) {
 
-			RenderLayer *rl = RE_GetRenderLayer(rr, srl->name);
+			RenderLayer *rl = RE_GetRenderLayer(rr, scene_layer->name);
 			if (rl) {
 				this->m_inputBuffer = RE_RenderLayerGetPass(rl, this->m_passName.c_str(), this->m_viewName);
 			}
@@ -189,9 +189,9 @@ void RenderLayersProg::determineResolution(unsigned int resolution[2], unsigned 
 		rr = RE_AcquireResultRead(re);
 	
 	if (rr) {
-		SceneRenderLayer *srl   = (SceneRenderLayer *)BLI_findlink(&sce->r.layers, getLayerId());
-		if (srl) {
-			RenderLayer *rl = RE_GetRenderLayer(rr, srl->name);
+		SceneLayer *scene_layer   = (SceneLayer *)BLI_findlink(&sce->render_layers, getLayerId());
+		if (scene_layer) {
+			RenderLayer *rl = RE_GetRenderLayer(rr, scene_layer->name);
 			if (rl) {
 				resolution[0] = rl->rectx;
 				resolution[1] = rl->recty;

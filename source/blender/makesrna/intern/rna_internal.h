@@ -35,6 +35,7 @@
 
 #define RNA_MAGIC ((int)~0)
 
+struct FreestyleSettings;
 struct ID;
 struct IDProperty;
 struct Main;
@@ -238,6 +239,29 @@ void rna_object_uvlayer_name_set(struct PointerRNA *ptr, const char *value, char
 void rna_object_vcollayer_name_set(struct PointerRNA *ptr, const char *value, char *result, int maxlen);
 PointerRNA rna_object_shapekey_index_get(struct ID *id, int value);
 int rna_object_shapekey_index_set(struct ID *id, PointerRNA value, int current);
+
+/* SceneLayer related functions defined in rna_scene.c but required in rna_layer.c */
+void rna_def_freestyle_settings(struct BlenderRNA *brna);
+struct PointerRNA rna_FreestyleLineSet_linestyle_get(struct PointerRNA *ptr);
+void rna_FreestyleLineSet_linestyle_set(struct PointerRNA *ptr, struct PointerRNA value);
+struct FreestyleLineSet *rna_FreestyleSettings_lineset_add(
+        struct ID *id, struct FreestyleSettings *config, struct Main *bmain, const char *name);
+void rna_FreestyleSettings_lineset_remove(
+        struct ID *id, struct FreestyleSettings *config, struct ReportList *reports, struct PointerRNA *lineset_ptr);
+struct PointerRNA rna_FreestyleSettings_active_lineset_get(struct PointerRNA *ptr);
+void rna_FreestyleSettings_active_lineset_index_range(
+        struct PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax);
+int rna_FreestyleSettings_active_lineset_index_get(struct PointerRNA *ptr);
+void rna_FreestyleSettings_active_lineset_index_set(struct PointerRNA *ptr, int value);
+struct FreestyleModuleConfig *rna_FreestyleSettings_module_add(struct ID *id, struct FreestyleSettings *config);
+void rna_FreestyleSettings_module_remove(
+        struct ID *id, struct FreestyleSettings *config, struct ReportList *reports, struct PointerRNA *module_ptr);
+
+void rna_Scene_use_view_map_cache_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
+void rna_Scene_glsl_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
+void rna_Scene_freestyle_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
+void rna_SceneLayer_name_set(struct PointerRNA *ptr, const char *value);
+void rna_SceneLayer_pass_update(struct Main *bmain, struct Scene *activescene, struct PointerRNA *ptr);
 
 /* named internal so as not to conflict with obj.update() rna func */
 void rna_Object_internal_update_data(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);

@@ -1958,25 +1958,26 @@ static size_t animdata_filter_ds_nodetree(bAnimContext *ac, ListBase *anim_data,
 
 static size_t animdata_filter_ds_linestyle(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Scene *sce, int filter_mode)
 {
-	SceneRenderLayer *srl;
+	SceneLayer *scene_layer;
 	FreestyleLineSet *lineset;
 	size_t items = 0;
 	
-	for (srl = sce->r.layers.first; srl; srl = srl->next) {
-		for (lineset = srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
+	for (scene_layer = sce->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
+		for (lineset = scene_layer->freestyle_config.linesets.first; lineset; lineset = lineset->next) {
 			if (lineset->linestyle) {
 				lineset->linestyle->id.tag |= LIB_TAG_DOIT;
 			}
 		}
 	}
 	
-	for (srl = sce->r.layers.first; srl; srl = srl->next) {
+	for (scene_layer = sce->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
 		/* skip render layers without Freestyle enabled */
-		if (!(srl->layflag & SCE_LAY_FRS))
+		if ((scene_layer->flag & SCENE_LAYER_FREESTYLE) == 0) {
 			continue;
-		
+		}
+
 		/* loop over linesets defined in the render layer */
-		for (lineset = srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
+		for (lineset = scene_layer->freestyle_config.linesets.first; lineset; lineset = lineset->next) {
 			FreestyleLineStyle *linestyle = lineset->linestyle;
 			ListBase tmp_data = {NULL, NULL};
 			size_t tmp_items = 0;

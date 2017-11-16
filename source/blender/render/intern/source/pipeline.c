@@ -264,7 +264,7 @@ RenderResult *RE_MultilayerConvert(void *exrhandle, const char *colorspace, bool
 
 RenderLayer *render_get_active_layer(Render *re, RenderResult *rr)
 {
-	RenderLayer *rl = BLI_findlink(&rr->layers, re->r.actlay);
+	RenderLayer *rl = BLI_findlink(&rr->layers, re->active_layer);
 	
 	if (rl)
 		return rl;
@@ -274,21 +274,21 @@ RenderLayer *render_get_active_layer(Render *re, RenderResult *rr)
 
 static int render_scene_needs_vector(Render *re)
 {
-	SceneRenderLayer *srl;
-	
-	for (srl = re->r.layers.first; srl; srl = srl->next)
-		if (!(srl->layflag & SCE_LAY_DISABLE))
-			if (srl->passflag & SCE_PASS_VECTOR)
+	SceneLayer *scene_layer;
+	for (scene_layer = re->render_layers.first; scene_layer; scene_layer = scene_layer->next)
+		if (scene_layer->flag & SCENE_LAYER_RENDER) {
+			if (scene_layer->passflag & SCE_PASS_VECTOR) {
 				return 1;
-
+			}
+		}
 	return 0;
 }
 
 static bool render_scene_has_layers_to_render(Scene *scene)
 {
-	SceneRenderLayer *srl;
-	for (srl = scene->r.layers.first; srl; srl = srl->next) {
-		if (!(srl->layflag & SCE_LAY_DISABLE)) {
+	SceneLayer *scene_layer;
+	for (scene_layer = scene->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
+		if (scene_layer->flag & SCENE_LAYER_RENDER) {
 			return true;
 		}
 	}
@@ -584,7 +584,7 @@ void RE_FreeRender(Render *re)
 	BLI_rw_mutex_end(&re->resultmutex);
 	BLI_rw_mutex_end(&re->partsmutex);
 
-	BLI_freelistN(&re->r.layers);
+	BLI_freelistN(&re->render_layers);
 	BLI_freelistN(&re->r.views);
 
 	curvemapping_free_data(&re->r.mblur_shutter_curve);
@@ -730,13 +730,11 @@ static void re_init_resolution(Render *re, Render *source,
 
 void render_copy_renderdata(RenderData *to, RenderData *from)
 {
-	BLI_freelistN(&to->layers);
 	BLI_freelistN(&to->views);
 	curvemapping_free_data(&to->mblur_shutter_curve);
 
 	*to = *from;
 
-	BLI_duplicatelist(&to->layers, &from->layers);
 	BLI_duplicatelist(&to->views, &from->views);
 	curvemapping_copy_data(&to->mblur_shutter_curve, &from->mblur_shutter_curve);
 }
@@ -749,7 +747,8 @@ void render_copy_viewrender(ViewRender *to, ViewRender *from)
 /* what doesn't change during entire render sequence */
 /* disprect is optional, if NULL it assumes full window render */
 void RE_InitState(Render *re, Render *source, RenderData *rd,
-                  ViewRender *view_render, SceneRenderLayer *srl,
+                  ListBase *render_layers, const int active_layer,
+                  ViewRender *view_render, SceneLayer *scene_layer,
                   int winx, int winy, rcti *disprect)
 {
 	bool had_freestyle = (re->r.mode & R_EDGE_FRS) != 0;
@@ -761,6 +760,9 @@ void RE_InitState(Render *re, Render *source, RenderData *rd,
 	/* copy render data and render layers for thread safety */
 	render_copy_renderdata(&re->r, rd);
 	render_copy_viewrender(&re->view_render, view_render);
+	BLI_freelistN(&re->render_layers);
+	BLI_duplicatelist(&re->render_layers, render_layers);
+	re->active_layer = active_layer;
 
 	if (source) {
 		/* reuse border flags from source renderer */
@@ -809,10 +811,10 @@ void RE_InitState(Render *re, Render *source, RenderData *rd,
 		else re->osa = 0;
 	}
 	
-	if (srl) {
-		int index = BLI_findindex(&rd->layers, srl);
+	if (scene_layer) {
+		int index = BLI_findindex(render_layers, scene_layer);
 		if (index != -1) {
-			re->r.actlay = index;
+			re->active_layer = index;
 			re->r.scemode |= R_SINGLE_LAYER;
 		}
 	}
@@ -830,12 +832,12 @@ void RE_InitState(Render *re, Render *source, RenderData *rd,
 			re->result = NULL;
 		}
 		else if (re->result) {
-			SceneRenderLayer *actsrl = BLI_findlink(&re->r.layers, re->r.actlay);
+			SceneLayer *active_render_layer = BLI_findlink(&re->render_layers, re->active_layer);
 			RenderLayer *rl;
 			bool have_layer = false;
 
 			for (rl = re->result->layers.first; rl; rl = rl->next)
-				if (STREQ(rl->name, actsrl->name))
+				if (STREQ(rl->name, active_render_layer->name))
 					have_layer = true;
 
 			if (re->result->rectx == re->rectx && re->result->recty == re->recty &&
@@ -960,7 +962,7 @@ void RE_ChangeModeFlag(Render *re, int flag, bool clear)
 
 /* update some variables that can be animated, and otherwise wouldn't be due to
  * RenderData getting copied once at the start of animation render */
-void render_update_anim_renderdata(Render *re, RenderData *rd)
+void render_update_anim_renderdata(Render *re, RenderData *rd, ListBase *render_layers)
 {
 	/* filter */
 	re->r.gauss = rd->gauss;
@@ -974,8 +976,8 @@ void render_update_anim_renderdata(Render *re, RenderData *rd)
 	re->r.unit_line_thickness = rd->unit_line_thickness;
 
 	/* render layers */
-	BLI_freelistN(&re->r.layers);
-	BLI_duplicatelist(&re->r.layers, &rd->layers);
+	BLI_freelistN(&re->render_layers);
+	BLI_duplicatelist(&re->render_layers, render_layers);
 
 	/* render views */
 	BLI_freelistN(&re->r.views);
@@ -1977,7 +1979,7 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	}
 	
 	/* initial setup */
-	RE_InitState(resc, re, &sce->r, &sce->view_render, NULL, winx, winy, &re->disprect);
+	RE_InitState(resc, re, &sce->r, &sce->render_layers, sce->active_layer, &sce->view_render, NULL, winx, winy, &re->disprect);
 
 	/* We still want to use 'rendercache' setting from org (main) scene... */
 	resc->r.scemode = (resc->r.scemode & ~R_EXR_CACHE_FILE) | (re->r.scemode & R_EXR_CACHE_FILE);
@@ -2248,24 +2250,24 @@ static void init_freestyle(Render *re)
 /* invokes Freestyle stroke rendering */
 static void add_freestyle(Render *re, int render)
 {
-	SceneRenderLayer *srl, *actsrl;
+	SceneLayer *scene_layer, *active_render_layer;
 	LinkData *link;
 	Render *r;
 	const bool do_link = (re->r.mode & R_MBLUR) == 0 || re->i.curblur == re->r.mblur_samples;
 
-	actsrl = BLI_findlink(&re->r.layers, re->r.actlay);
+	active_render_layer = BLI_findlink(&re->render_layers, re->active_layer);
 
 	FRS_begin_stroke_rendering(re);
 
-	for (srl = (SceneRenderLayer *)re->r.layers.first; srl; srl = srl->next) {
+	for (scene_layer = (SceneLayer *)re->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
 		if (do_link) {
 			link = (LinkData *)MEM_callocN(sizeof(LinkData), "LinkData to Freestyle render");
 			BLI_addtail(&re->freestyle_renders, link);
 		}
-		if ((re->r.scemode & R_SINGLE_LAYER) && srl != actsrl)
+		if ((re->r.scemode & R_SINGLE_LAYER) && scene_layer != active_render_layer)
 			continue;
-		if (FRS_is_freestyle_enabled(srl)) {
-			r = FRS_do_stroke_rendering(re, srl, render);
+		if (FRS_is_freestyle_enabled(scene_layer)) {
+			r = FRS_do_stroke_rendering(re, scene_layer, render);
 			if (do_link)
 				link->data = (void *)r;
 		}
@@ -2282,25 +2284,25 @@ static void composite_freestyle_renders(Render *re, int sample)
 {
 	Render *freestyle_render;
 	RenderView *rv;
-	SceneRenderLayer *srl, *actsrl;
+	SceneLayer *scene_layer, *active_scene_layer;
 	LinkData *link;
 
-	actsrl = BLI_findlink(&re->r.layers, re->r.actlay);
+	active_scene_layer = BLI_findlink(&re->render_layers, re->active_layer);
 
 	link = (LinkData *)re->freestyle_renders.first;
 
 	for (rv = re->result->views.first; rv; rv = rv->next) {
-		for (srl = (SceneRenderLayer *)re->r.layers.first; srl; srl = srl->next) {
-			if ((re->r.scemode & R_SINGLE_LAYER) && srl != actsrl)
+		for (scene_layer = (SceneLayer *)re->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
+			if ((re->r.scemode & R_SINGLE_LAYER) && scene_layer != active_scene_layer)
 				continue;
 
-			if (FRS_is_freestyle_enabled(srl)) {
+			if (FRS_is_freestyle_enabled(scene_layer)) {
 				freestyle_render = (Render *)link->data;
 
 				/* may be NULL in case of empty render layer */
 				if (freestyle_render) {
 					render_result_exr_file_read_sample(freestyle_render, sample);
-					FRS_composite_result(re, srl, freestyle_render);
+					FRS_composite_result(re, scene_layer, freestyle_render);
 					RE_FreeRenderResult(freestyle_render->result);
 					freestyle_render->result = NULL;
 				}
@@ -2880,10 +2882,10 @@ bool RE_force_single_renderlayer(Scene *scene)
 {
 	int scemode = check_mode_full_sample(&scene->r, &scene->view_render);
 	if (scemode & R_SINGLE_LAYER) {
-		SceneRenderLayer *srl = BLI_findlink(&scene->r.layers, scene->r.actlay);
+		SceneLayer *scene_layer = BLI_findlink(&scene->render_layers, scene->active_layer);
 		/* force layer to be enabled */
-		if (srl->layflag & SCE_LAY_DISABLE) {
-			srl->layflag &= ~SCE_LAY_DISABLE;
+		if ((scene_layer->flag & SCENE_LAYER_RENDER) == 0) {
+			scene_layer->flag |= SCENE_LAYER_RENDER;
 			return true;
 		}
 	}
@@ -3174,7 +3176,7 @@ void RE_SetEngineByID(Render *re, const char *engine_id)
 
 /* evaluating scene options for general Blender render */
 static int render_initialize_from_main(Render *re, RenderData *rd, Main *bmain, Scene *scene, ViewRender *view_render,
-                                       SceneRenderLayer *srl, Object *camera_override, unsigned int lay_override,
+                                       SceneLayer *scene_layer, Object *camera_override, unsigned int lay_override,
                                        int anim, int anim_init)
 {
 	int winx, winy;
@@ -3213,7 +3215,7 @@ static int render_initialize_from_main(Render *re, RenderData *rd, Main *bmain, 
 
 	/* not too nice, but it survives anim-border render */
 	if (anim) {
-		render_update_anim_renderdata(re, &scene->r);
+		render_update_anim_renderdata(re, &scene->r, &scene->render_layers);
 		re->disprect = disprect;
 		return 1;
 	}
@@ -3228,17 +3230,17 @@ static int render_initialize_from_main(Render *re, RenderData *rd, Main *bmain, 
 	 */
 	if (0) {
 		/* make sure dynamics are up to date */
-		SceneLayer *scene_layer = BKE_scene_layer_from_scene_get(scene);
+		scene_layer = BKE_scene_layer_from_scene_get(scene);
 		update_physics_cache(re, scene, scene_layer, anim_init);
 	}
 	
-	if (srl || scene->r.scemode & R_SINGLE_LAYER) {
+	if (scene_layer || scene->r.scemode & R_SINGLE_LAYER) {
 		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 		render_result_single_layer_begin(re);
 		BLI_rw_mutex_unlock(&re->resultmutex);
 	}
 	
-	RE_InitState(re, NULL, &scene->r, &scene->view_render, srl, winx, winy, &disprect);
+	RE_InitState(re, NULL, &scene->r, &scene->render_layers, scene->active_layer, &scene->view_render, scene_layer, winx, winy, &disprect);
 	if (!re->ok)  /* if an error was printed, abort */
 		return 0;
 	
@@ -3259,7 +3261,7 @@ void RE_SetReports(Render *re, ReportList *reports)
 }
 
 /* general Blender frame render call */
-void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *srl, Object *camera_override,
+void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneLayer *scene_layer, Object *camera_override,
                      unsigned int lay_override, int frame, const bool write_still)
 {
 	BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_INIT);
@@ -3269,7 +3271,7 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 	
 	scene->r.cfra = frame;
 	
-	if (render_initialize_from_main(re, &scene->r, bmain, scene, &scene->view_render, srl,
+	if (render_initialize_from_main(re, &scene->r, bmain, scene, &scene->view_render, scene_layer,
 	                                camera_override, lay_override, 0, 0))
 	{
 		MEM_reset_peak_memory();
@@ -3855,7 +3857,7 @@ void RE_PreviewRender(Render *re, Main *bmain, Scene *sce, ViewRender *view_rend
 	winx = (sce->r.size * sce->r.xsch) / 100;
 	winy = (sce->r.size * sce->r.ysch) / 100;
 
-	RE_InitState(re, NULL, &sce->r, view_render, NULL, winx, winy, NULL);
+	RE_InitState(re, NULL, &sce->r, &sce->render_layers, sce->active_layer, view_render, NULL, winx, winy, NULL);
 
 	re->pool = BKE_image_pool_new();
 
@@ -3910,7 +3912,7 @@ bool RE_ReadRenderResult(Scene *scene, Scene *scenode)
 	re = RE_GetSceneRender(scene);
 	if (re == NULL)
 		re = RE_NewSceneRender(scene);
-	RE_InitState(re, NULL, &scene->r, &scene->view_render, NULL, winx, winy, &disprect);
+	RE_InitState(re, NULL, &scene->r, &scene->render_layers, scene->active_layer, &scene->view_render, NULL, winx, winy, &disprect);
 	re->scene = scene;
 	re->scene_color_manage = BKE_scene_check_color_management_enabled(scene);
 	
