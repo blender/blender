@@ -59,7 +59,11 @@ typedef struct MetaElem {
 	float len;              /* old, only used for backwards compat. use dimensions now */
 	
 	float *mat, *imat;      /* matrix and inverted matrix */
-	
+
+	/* Draw_Data: stores pointers used for shader attributes */
+	float draw_scale_xform[3][4]; /* Matrix of Scale and Translation */
+	float draw_stiffness_radius; /* stiffness circle radius (only in edit mode) */
+	float pad;
 } MetaElem;
 
 typedef struct MetaBall {
@@ -93,6 +97,8 @@ typedef struct MetaBall {
 	/* used in editmode */
 	/*ListBase edit_elems;*/
 	MetaElem *lastelem;
+
+	void *batch_cache;
 } MetaBall;
 
 /* **************** METABALL ********************* */

@@ -507,6 +507,8 @@ Gwn_Batch *DRW_cache_object_surface_get(Object *ob)
 			return DRW_cache_surf_surface_get(ob);
 		case OB_FONT:
 			return DRW_cache_text_surface_get(ob);
+		case OB_MBALL:
+			return DRW_cache_mball_surface_get(ob);
 		default:
 			return NULL;
 	}
@@ -2330,6 +2332,19 @@ Gwn_Batch *DRW_cache_curve_surface_get(Object *ob)
 
 	struct Curve *cu = ob->data;
 	return DRW_curve_batch_cache_get_triangles_with_normals(cu, ob->curve_cache);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+
+/** \name MetaBall
+ * \{ */
+
+Gwn_Batch *DRW_cache_mball_surface_get(Object *ob)
+{
+	BLI_assert(ob->type == OB_MBALL);
+	return DRW_metaball_batch_cache_get_triangles_with_normals(ob);
 }
 
 /** \} */

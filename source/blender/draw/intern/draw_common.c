@@ -352,6 +352,19 @@ DRWShadingGroup *shgroup_instance_bone_envelope_solid(DRWPass *pass, struct Gwn_
 	return grp;
 }
 
+DRWShadingGroup *shgroup_instance_mball_helpers(DRWPass *pass, struct Gwn_Batch *geom)
+{
+	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_INSTANCE_MBALL_HELPERS);
+
+	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh, pass, geom);
+	DRW_shgroup_attrib_float(grp, "ScaleTranslationMatrix", 12);
+	DRW_shgroup_attrib_float(grp, "radius", 1);
+	DRW_shgroup_attrib_float(grp, "color", 3);
+	DRW_shgroup_uniform_vec3(grp, "screen_vecs[0]", DRW_viewport_screenvecs_get(), 2);
+
+	return grp;
+}
+
 
 /* ******************************************** COLOR UTILS *********************************************** */
 

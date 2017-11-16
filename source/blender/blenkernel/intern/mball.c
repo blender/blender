@@ -75,6 +75,8 @@ void BKE_mball_free(MetaBall *mb)
 {
 	BKE_animdata_free((ID *)mb, false);
 
+	BKE_mball_batch_cache_free(mb);
+
 	MEM_SAFE_FREE(mb->mat);
 
 	BLI_freelistN(&mb->elems);
@@ -120,6 +122,7 @@ void BKE_mball_copy_data(Main *UNUSED(bmain), MetaBall *mb_dst, const MetaBall *
 
 	mb_dst->editelems = NULL;
 	mb_dst->lastelem = NULL;
+	mb_dst->batch_cache = NULL;
 }
 
 MetaBall *BKE_mball_copy(Main *bmain, const MetaBall *mb)
@@ -541,4 +544,48 @@ void BKE_mball_select_swap(struct MetaBall *mb)
 void BKE_mball_eval_geometry(const struct EvaluationContext *UNUSED(eval_ctx),
                              MetaBall *UNUSED(mball))
 {
+}
+
+/* Draw Engine */
+
+/* use for draw-manager only. */
+void BKE_mball_element_calc_display_m3x4(float r_scale_xform[3][4],
+                                         const float obmat[4][4],
+                                         const float local_pos[3])
+{
+	float world_pos[3], scamat[3][3];
+	mul_v3_m4v3(world_pos, obmat, local_pos);
+	copy_m3_m4(scamat, obmat);
+	{
+		/* Get the normalized inverse matrix to extract only
+		 * the scale of Scamat */
+		float iscamat[3][3];
+		invert_m3_m3(iscamat, scamat);
+		normalize_m3(iscamat);
+		mul_m3_m3_post(scamat, iscamat);
+	}
+
+	copy_v3_v3(r_scale_xform[0], scamat[0]);
+	copy_v3_v3(r_scale_xform[1], scamat[1]);
+	copy_v3_v3(r_scale_xform[2], scamat[2]);
+
+	r_scale_xform[0][3] = world_pos[0];
+	r_scale_xform[1][3] = world_pos[1];
+	r_scale_xform[2][3] = world_pos[2];
+}
+
+void (*BKE_mball_batch_cache_dirty_cb)(MetaBall *mb, int mode) = NULL;
+void (*BKE_mball_batch_cache_free_cb)(MetaBall *mb) = NULL;
+
+void BKE_mball_batch_cache_dirty(MetaBall *mb, int mode)
+{
+	if (mb->batch_cache) {
+		BKE_mball_batch_cache_dirty_cb(mb, mode);
+	}
+}
+void BKE_mball_batch_cache_free(MetaBall *mb)
+{
+	if (mb->batch_cache) {
+		BKE_mball_batch_cache_free_cb(mb);
+	}
 }

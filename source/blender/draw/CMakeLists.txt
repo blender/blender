@@ -59,6 +59,7 @@ set(SRC
 	intern/draw_cache_impl_displist.c
 	intern/draw_cache_impl_lattice.c
 	intern/draw_cache_impl_mesh.c
+	intern/draw_cache_impl_metaball.c
 	intern/draw_cache_impl_particles.c
 	intern/draw_common.c
 	intern/draw_manager.c

@@ -3483,7 +3483,6 @@ void DRW_draw_select_loop(
 	int obedit_mode = 0;
 	if (scene->obedit && scene->obedit->type == OB_MBALL) {
 		use_obedit = true;
-		DRW_engines_cache_populate(scene->obedit);
 		obedit_mode = CTX_MODE_EDIT_METABALL;
 	}
 	else if ((scene->obedit && scene->obedit->type == OB_ARMATURE)) {
@@ -3790,6 +3789,9 @@ void DRW_engines_register(void)
 
 	/* setup callbacks */
 	{
+		/* BKE: mball.c */
+		extern void *BKE_mball_batch_cache_dirty_cb;
+		extern void *BKE_mball_batch_cache_free_cb;
 		/* BKE: curve.c */
 		extern void *BKE_curve_batch_cache_dirty_cb;
 		extern void *BKE_curve_batch_cache_free_cb;
@@ -3802,6 +3804,9 @@ void DRW_engines_register(void)
 		/* BKE: particle.c */
 		extern void *BKE_particle_batch_cache_dirty_cb;
 		extern void *BKE_particle_batch_cache_free_cb;
+
+		BKE_mball_batch_cache_dirty_cb = DRW_mball_batch_cache_dirty;
+		BKE_mball_batch_cache_free_cb = DRW_mball_batch_cache_free;
 
 		BKE_curve_batch_cache_dirty_cb = DRW_curve_batch_cache_dirty;
 		BKE_curve_batch_cache_free_cb = DRW_curve_batch_cache_free;

@@ -38,6 +38,9 @@ struct Lattice;
 struct Mesh;
 
 /* Expose via BKE callbacks */
+void DRW_mball_batch_cache_dirty(struct MetaBall *mb, int mode);
+void DRW_mball_batch_cache_free(struct MetaBall *mb);
+
 void DRW_curve_batch_cache_dirty(struct Curve *cu, int mode);
 void DRW_curve_batch_cache_free(struct Curve *cu);
 
@@ -58,6 +61,9 @@ struct Gwn_Batch *DRW_curve_batch_cache_get_overlay_edges(struct Curve *cu);
 struct Gwn_Batch *DRW_curve_batch_cache_get_overlay_verts(struct Curve *cu);
 
 struct Gwn_Batch *DRW_curve_batch_cache_get_triangles_with_normals(struct Curve *cu, struct CurveCache *ob_curve_cache);
+
+/* Metaball */
+struct Gwn_Batch *DRW_metaball_batch_cache_get_triangles_with_normals(struct Object *ob);
 
 /* Curve (Font) */
 struct Gwn_Batch *DRW_curve_batch_cache_get_overlay_cursor(struct Curve *cu);

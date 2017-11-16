@@ -26,8 +26,13 @@
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
+#include "DNA_meta_types.h"
+
+#include "BKE_mball.h"
+
 /* If builtin shaders are needed */
 #include "GPU_shader.h"
+#include "GPU_select.h"
 
 #include "draw_common.h"
 
@@ -71,7 +76,7 @@ typedef struct EDIT_METABALL_StorageList {
 	 * Only directly MEM_(m/c)allocN'ed blocks because they are
 	 * free with MEM_freeN() when viewport is freed.
 	 * (not per object) */
-	struct CustomStruct *block;
+	// struct CustomStruct *block;
 	struct EDIT_METABALL_PrivateData *g_data;
 } EDIT_METABALL_StorageList;
 
@@ -88,14 +93,6 @@ typedef struct EDIT_METABALL_Data {
 
 /* *********** STATIC *********** */
 
-static struct {
-	/* Custom shaders :
-	 * Add sources to source/blender/draw/modes/shaders
-	 * init in EDIT_METABALL_engine_init();
-	 * free in EDIT_METABALL_engine_free(); */
-	struct GPUShader *custom_shader;
-} e_data = {NULL}; /* Engine data */
-
 typedef struct EDIT_METABALL_PrivateData {
 	/* This keeps the references of the shading groups for
 	 * easy access in EDIT_METABALL_cache_populate() */
@@ -103,37 +100,6 @@ typedef struct EDIT_METABALL_PrivateData {
 } EDIT_METABALL_PrivateData; /* Transient data */
 
 /* *********** FUNCTIONS *********** */
-
-/* Init Textures, Framebuffers, Storage and Shaders.
- * It is called for every frames.
- * (Optional) */
-static void EDIT_METABALL_engine_init(void *vedata)
-{
-	EDIT_METABALL_TextureList *txl = ((EDIT_METABALL_Data *)vedata)->txl;
-	EDIT_METABALL_FramebufferList *fbl = ((EDIT_METABALL_Data *)vedata)->fbl;
-	EDIT_METABALL_StorageList *stl = ((EDIT_METABALL_Data *)vedata)->stl;
-
-	UNUSED_VARS(txl, fbl, stl);
-
-	/* Init Framebuffers like this: order is attachment order (for color texs) */
-	/*
-	 * DRWFboTexture tex[2] = {{&txl->depth, DRW_TEX_DEPTH_24, 0},
-	 *                         {&txl->color, DRW_TEX_RGBA_8, DRW_TEX_FILTER}};
-	 */
-
-	/* DRW_framebuffer_init takes care of checking if
-	 * the framebuffer is valid and has the right size*/
-	/*
-	 * float *viewport_size = DRW_viewport_size_get();
-	 * DRW_framebuffer_init(&fbl->occlude_wire_fb,
-	 *                     (int)viewport_size[0], (int)viewport_size[1],
-	 *                     tex, 2);
-	 */
-
-	if (!e_data.custom_shader) {
-		e_data.custom_shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
-	}
-}
 
 /* Here init all passes and shading groups
  * Assume that all Passes are NULL */
@@ -153,70 +119,86 @@ static void EDIT_METABALL_cache_init(void *vedata)
 		psl->pass = DRW_pass_create("My Pass", state);
 
 		/* Create a shadingGroup using a function in draw_common.c or custom one */
-		/*
-		 * stl->g_data->group = shgroup_dynlines_uniform_color(psl->pass, ts.colorWire);
-		 * -- or --
-		 * stl->g_data->group = DRW_shgroup_create(e_data.custom_shader, psl->pass);
-		 */
-		stl->g_data->group = DRW_shgroup_create(e_data.custom_shader, psl->pass);
+		stl->g_data->group = shgroup_instance_mball_helpers(psl->pass, DRW_cache_screenspace_circle_get());
+	}
+}
 
-		/* Uniforms need a pointer to it's value so be sure it's accessible at
-		 * any given time (i.e. use static vars) */
-		static float color[4] = {0.0f, 1.0f, 0.0f, 1.0};
-		DRW_shgroup_uniform_vec4(stl->g_data->group, "color", color, 1);
+static void EDIT_METABALL_cache_populate_radius_visualization(
+        DRWShadingGroup *group, MetaElem *ml, const float scale_xform[3][4],
+        const float *radius, const int selection_id)
+{
+	const float *color;
+	static const float col_radius[3] =        {0.63, 0.19, 0.19}; /* 0x3030A0 */
+	static const float col_radius_select[3] = {0.94, 0.63, 0.63}; /* 0xA0A0F0 */
+
+	if ((ml->flag & SELECT) && (ml->flag & MB_SCALE_RAD)) color = col_radius_select;
+	else color = col_radius;
+
+	if (selection_id != -1) {
+		ml->selcol1 = selection_id;
+		DRW_select_load_id(selection_id);
 	}
 
+	DRW_shgroup_call_dynamic_add(group, scale_xform, radius, color);
+}
+
+static void EDIT_METABALL_cache_populate_stiffness_visualization(
+        DRWShadingGroup *group, MetaElem *ml, const float scale_xform[3][4],
+        const float *radius, const int selection_id)
+{
+	const float *color;
+	static const float col_stiffness[3] =        {0.19, 0.63, 0.19}; /* 0x30A030 */
+	static const float col_stiffness_select[3] = {0.63, 0.94, 0.63}; /* 0xA0F0A0 */
+
+	if ((ml->flag & SELECT) && !(ml->flag & MB_SCALE_RAD)) color = col_stiffness_select;
+	else color = col_stiffness;
+
+	if (selection_id != -1) {
+		ml->selcol2 = selection_id;
+		DRW_select_load_id(selection_id);
+	}
+
+	DRW_shgroup_call_dynamic_add(group, scale_xform, radius, color);
 }
 
 /* Add geometry to shadingGroups. Execute for each objects */
 static void EDIT_METABALL_cache_populate(void *vedata, Object *ob)
 {
-	EDIT_METABALL_PassList *psl = ((EDIT_METABALL_Data *)vedata)->psl;
+	//EDIT_METABALL_PassList *psl = ((EDIT_METABALL_Data *)vedata)->psl;
 	EDIT_METABALL_StorageList *stl = ((EDIT_METABALL_Data *)vedata)->stl;
 
-	UNUSED_VARS(psl, stl);
+	if (ob->type == OB_MBALL) {
+		const DRWContextState *draw_ctx = DRW_context_state_get();
+		Scene *scene = draw_ctx->scene;
+		Object *obedit = scene->obedit;
+		DRWShadingGroup *group = stl->g_data->group;
 
-	if (ob->type == OB_MESH) {
-		/* Get geometry cache */
-		struct Gwn_Batch *geom = DRW_cache_mesh_surface_get(ob);
+		if (ob == obedit) {
+			MetaBall *mb = ob->data;
 
-		/* Add geom to a shading group */
-		DRW_shgroup_call_add(stl->g_data->group, geom, ob->obmat);
+			const bool is_select = DRW_state_is_select();
+
+			int selection_id = 0;
+
+			for (MetaElem *ml = mb->editelems->first; ml != NULL; ml = ml->next) {
+				BKE_mball_element_calc_display_m3x4(ml->draw_scale_xform, ob->obmat, &ml->x);
+				ml->draw_stiffness_radius = ml->rad * atanf(ml->s) / (float)M_PI_2;
+
+				EDIT_METABALL_cache_populate_radius_visualization(
+				        group, ml, ml->draw_scale_xform, &ml->rad, is_select ? ++selection_id : -1);
+
+				EDIT_METABALL_cache_populate_stiffness_visualization(
+				        group, ml, ml->draw_scale_xform, &ml->draw_stiffness_radius, is_select ? ++selection_id : -1);
+			}
+		}
 	}
-}
-
-/* Optional: Post-cache_populate callback */
-static void EDIT_METABALL_cache_finish(void *vedata)
-{
-	EDIT_METABALL_PassList *psl = ((EDIT_METABALL_Data *)vedata)->psl;
-	EDIT_METABALL_StorageList *stl = ((EDIT_METABALL_Data *)vedata)->stl;
-
-	/* Do something here! dependant on the objects gathered */
-	UNUSED_VARS(psl, stl);
 }
 
 /* Draw time ! Control rendering pipeline from here */
 static void EDIT_METABALL_draw_scene(void *vedata)
 {
 	EDIT_METABALL_PassList *psl = ((EDIT_METABALL_Data *)vedata)->psl;
-	EDIT_METABALL_FramebufferList *fbl = ((EDIT_METABALL_Data *)vedata)->fbl;
-
-	/* Default framebuffer and texture */
-	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-
-	UNUSED_VARS(fbl, dfbl, dtxl);
-
-	/* Show / hide entire passes, swap framebuffers ... whatever you fancy */
-	/*
-	 * DRW_framebuffer_texture_detach(dtxl->depth);
-	 * DRW_framebuffer_bind(fbl->custom_fb);
-	 * DRW_draw_pass(psl->pass);
-	 * DRW_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0, 0);
-	 * DRW_framebuffer_bind(dfbl->default_fb);
-	 */
-
-	/* ... or just render passes on default framebuffer. */
+	/* render passes on default framebuffer. */
 	DRW_draw_pass(psl->pass);
 
 	/* If you changed framebuffer, double check you rebind
@@ -258,11 +240,11 @@ DrawEngineType draw_engine_edit_metaball_type = {
 	NULL, NULL,
 	N_("EditMetaballMode"),
 	&EDIT_METABALL_data_size,
-	&EDIT_METABALL_engine_init,
+	NULL,
 	&EDIT_METABALL_engine_free,
 	&EDIT_METABALL_cache_init,
 	&EDIT_METABALL_cache_populate,
-	&EDIT_METABALL_cache_finish,
+	NULL,
 	NULL, /* draw_background but not needed by mode engines */
 	&EDIT_METABALL_draw_scene,
 	NULL,

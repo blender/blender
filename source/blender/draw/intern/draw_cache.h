@@ -157,4 +157,7 @@ struct Gwn_Batch *DRW_cache_particles_get_hair(struct ParticleSystem *psys, stru
 struct Gwn_Batch *DRW_cache_particles_get_dots(struct ParticleSystem *psys);
 struct Gwn_Batch *DRW_cache_particles_get_prim(int type);
 
+/* Metaball */
+struct Gwn_Batch *DRW_cache_mball_surface_get(struct Object *ob);
+
 #endif /* __DRAW_CACHE_H__ */

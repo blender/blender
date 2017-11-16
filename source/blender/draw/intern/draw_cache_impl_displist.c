@@ -136,27 +136,31 @@ Gwn_Batch *BLI_displist_batch_calc_surface(ListBase *lb)
 		GWN_indexbuf_init(&elb, GWN_PRIM_TRIS, tri_len, vert_len);
 
 		int ofs = 0;
-		int tri_len_used = 0;
 		for (const DispList *dl = lb->first; dl; dl = dl->next) {
 			if (ELEM(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)) {
+				const int *idx = dl->index;
 				if (dl->type == DL_INDEX3) {
-					const int *idx = dl->index;
 					const int i_end = dl->parts;
-					for (int i = 0; i < i_end; i++) {
+					for (int i = 0; i < i_end; i++, idx += 3) {
 						GWN_indexbuf_add_tri_verts(&elb, idx[0] + ofs, idx[1] + ofs, idx[2] + ofs);
-						tri_len_used += 1;
-						idx += 3;
 					}
 				}
-				else if (ELEM(dl->type, DL_INDEX4, DL_SURF)) {
-					const int *idx = dl->index;
+				else if (dl->type == DL_SURF) {
 					const int i_end = dl->totindex;
-					for (int i = 0; i < i_end; i++) {
+					for (int i = 0; i < i_end; i++, idx += 4) {
 						GWN_indexbuf_add_tri_verts(&elb, idx[0] + ofs, idx[1] + ofs, idx[2] + ofs);
-						tri_len_used += 1;
 						GWN_indexbuf_add_tri_verts(&elb, idx[0] + ofs, idx[2] + ofs, idx[3] + ofs);
-						tri_len_used += 1;
-						idx += 4;
+					}
+				}
+				else {
+					BLI_assert(dl->type == DL_INDEX4);
+					const int i_end = dl->parts;
+					for (int i = 0; i < i_end; i++, idx += 4) {
+						GWN_indexbuf_add_tri_verts(&elb, idx[0] + ofs, idx[1] + ofs, idx[2] + ofs);
+
+						if (idx[2] != idx[3]) {
+							GWN_indexbuf_add_tri_verts(&elb, idx[0] + ofs, idx[2] + ofs, idx[3] + ofs);
+						}
 					}
 				}
 				ofs += dl_vert_len(dl);

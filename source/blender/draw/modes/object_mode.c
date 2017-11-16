@@ -31,6 +31,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_object_force.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_particle_types.h"
@@ -43,6 +44,7 @@
 #include "BKE_camera.h"
 #include "BKE_curve.h"
 #include "BKE_global.h"
+#include "BKE_mball.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_image.h"
@@ -148,6 +150,9 @@ typedef struct OBJECT_PrivateData {
 	DRWShadingGroup *probe_cube;
 	DRWShadingGroup *probe_planar;
 	DRWShadingGroup *probe_grid;
+
+	/* MetaBalls */
+	DRWShadingGroup *mball_circle;
 
 	/* Lamps */
 	DRWShadingGroup *lamp_center;
@@ -950,6 +955,13 @@ static void OBJECT_cache_init(void *vedata)
 	}
 
 	{
+		/* Metaballs Helpers */
+		struct Gwn_Batch *geom;
+		geom = DRW_cache_screenspace_circle_get();
+		stl->g_data->mball_circle = shgroup_instance_mball_helpers(psl->non_meshes, geom);
+	}
+
+	{
 		/* Lamps */
 		/* TODO
 		 * for now we create multiple times the same VBO with only lamp center coordinates
@@ -1074,6 +1086,20 @@ static void OBJECT_cache_init(void *vedata)
 		psl->reference_image = DRW_pass_create(
 		        "Refrence Image Pass",
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND);
+	}
+}
+
+static void DRW_shgroup_mball_helpers(OBJECT_StorageList *stl, Object *ob, SceneLayer *scene_layer)
+{
+	MetaBall *mb = ob->data;
+
+	float *color;
+	DRW_object_wire_theme_get(ob, scene_layer, &color);
+
+	for (MetaElem *ml = mb->elems.first; ml != NULL; ml = ml->next) {
+		/* draw radius */
+		BKE_mball_element_calc_display_m3x4(ml->draw_scale_xform, ob->obmat, &ml->x);
+		DRW_shgroup_call_dynamic_add(stl->g_data->mball_circle, ml->draw_scale_xform, &ml->rad, color);
 	}
 }
 
@@ -1809,6 +1835,14 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 				}
 				DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(stl, theme_id, stl->g_data->wire);
 				DRW_shgroup_call_add(shgroup, geom, ob->obmat);
+			}
+			break;
+		}
+		case OB_MBALL:
+		{
+			Object *obedit = scene->obedit;
+			if (ob != obedit) {
+				DRW_shgroup_mball_helpers(stl, ob, scene_layer);
 			}
 			break;
 		}
