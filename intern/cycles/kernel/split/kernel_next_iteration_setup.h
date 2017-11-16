@@ -145,7 +145,7 @@ ccl_device void kernel_next_iteration_setup(KernelGlobals *kg,
 			if(kernel_split_branched_path_surface_indirect_light_iter(kg,
 			                                                          ray_index,
 			                                                          1.0f,
-			                                                          &kernel_split_state.branched_state[ray_index].sd,
+			                                                          kernel_split_sd(branched_state_sd, ray_index),
 			                                                          true,
 			                                                          true))
 			{
@@ -190,7 +190,7 @@ ccl_device void kernel_next_iteration_setup(KernelGlobals *kg,
 		if(kernel_split_branched_path_surface_indirect_light_iter(kg,
 		                                                          ray_index,
 		                                                          1.0f,
-		                                                          &kernel_split_state.branched_state[ray_index].sd,
+		                                                          kernel_split_sd(branched_state_sd, ray_index),
 		                                                          true,
 		                                                          true))
 		{

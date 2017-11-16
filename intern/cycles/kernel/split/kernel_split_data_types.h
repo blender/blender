@@ -76,13 +76,11 @@ typedef ccl_global struct SplitBranchedState {
 	int shared_sample_count; /* number of branched samples shared with other threads */
 	int original_ray; /* index of original ray when sharing branched samples */
 	bool waiting_on_shared_samples;
-
-	/* Must be last in to allow for dynamic size of closures */
-	struct ShaderData sd;
 } SplitBranchedState;
 
 #define SPLIT_DATA_BRANCHED_ENTRIES \
-	SPLIT_DATA_ENTRY( SplitBranchedState, branched_state, 1)
+	SPLIT_DATA_ENTRY( SplitBranchedState, branched_state, 1) \
+	SPLIT_DATA_ENTRY(ShaderData, _branched_state_sd, 0)
 #else
 #define SPLIT_DATA_BRANCHED_ENTRIES
 #endif  /* __BRANCHED_PATH__ */

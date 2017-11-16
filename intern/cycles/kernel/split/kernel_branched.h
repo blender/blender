@@ -33,9 +33,9 @@ ccl_device_inline void kernel_split_branched_path_indirect_loop_init(KernelGloba
 	BRANCHED_STORE(isect);
 	BRANCHED_STORE(ray_state);
 
-	branched_state->sd = *kernel_split_sd(sd, ray_index);
-	for(int i = 0; i < branched_state->sd.num_closure; i++) {
-		branched_state->sd.closure[i] = kernel_split_sd(sd, ray_index)->closure[i];
+	*kernel_split_sd(branched_state_sd, ray_index) = *kernel_split_sd(sd, ray_index);
+	for(int i = 0; i < kernel_split_sd(branched_state_sd, ray_index)->num_closure; i++) {
+		kernel_split_sd(branched_state_sd, ray_index)->closure[i] = kernel_split_sd(sd, ray_index)->closure[i];
 	}
 
 #undef BRANCHED_STORE
@@ -60,9 +60,9 @@ ccl_device_inline void kernel_split_branched_path_indirect_loop_end(KernelGlobal
 	BRANCHED_RESTORE(isect);
 	BRANCHED_RESTORE(ray_state);
 
-	*kernel_split_sd(sd, ray_index) = branched_state->sd;
-	for(int i = 0; i < branched_state->sd.num_closure; i++) {
-		kernel_split_sd(sd, ray_index)->closure[i] = branched_state->sd.closure[i];
+	*kernel_split_sd(sd, ray_index) = *kernel_split_sd(branched_state_sd, ray_index);
+	for(int i = 0; i < kernel_split_sd(branched_state_sd, ray_index)->num_closure; i++) {
+		kernel_split_sd(sd, ray_index)->closure[i] = kernel_split_sd(branched_state_sd, ray_index)->closure[i];
 	}
 
 #undef BRANCHED_RESTORE
@@ -83,9 +83,16 @@ ccl_device_inline bool kernel_split_branched_indirect_start_shared(KernelGlobals
 	}
 
 #define SPLIT_DATA_ENTRY(type, name, num) \
-		kernel_split_state.name[inactive_ray] = kernel_split_state.name[ray_index];
+		if(num) { \
+			kernel_split_state.name[inactive_ray] = kernel_split_state.name[ray_index]; \
+		}
 	SPLIT_DATA_ENTRIES_BRANCHED_SHARED
 #undef SPLIT_DATA_ENTRY
+
+	*kernel_split_sd(sd, inactive_ray) = *kernel_split_sd(sd, ray_index);
+	for(int i = 0; i < kernel_split_sd(sd, ray_index)->num_closure; i++) {
+		kernel_split_sd(sd, inactive_ray)->closure[i] = kernel_split_sd(sd, ray_index)->closure[i];
+	}
 
 	kernel_split_state.branched_state[inactive_ray].shared_sample_count = 0;
 	kernel_split_state.branched_state[inactive_ray].original_ray = ray_index;

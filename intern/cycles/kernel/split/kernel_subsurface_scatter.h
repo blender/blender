@@ -37,7 +37,7 @@ ccl_device_noinline bool kernel_split_branched_path_subsurface_indirect_light_it
 {
 	SplitBranchedState *branched_state = &kernel_split_state.branched_state[ray_index];
 
-	ShaderData *sd = &branched_state->sd;
+	ShaderData *sd = kernel_split_sd(branched_state_sd, ray_index);
 	PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
 	ShaderData *emission_sd = AS_SHADER_DATA(&kernel_split_state.sd_DL_shadow[ray_index]);
 
