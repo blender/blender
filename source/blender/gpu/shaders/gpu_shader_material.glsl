@@ -2864,6 +2864,12 @@ void node_bsdf_principled_simple(vec4 base_color, float subsurface, vec3 subsurf
 	vec3 diffuse, f0, ssr_spec;
 	convert_metallic_to_specular_tinted(base_color.rgb, metallic, specular, specular_tint, diffuse, f0);
 
+#ifdef USE_SSS
+	diffuse = mix(diffuse, vec3(0.0), subsurface);
+#else
+	diffuse = mix(diffuse, subsurface_color.rgb, subsurface);
+#endif
+
 	vec3 L = eevee_surface_lit(N, diffuse, f0, roughness, 1.0, int(ssr_id), ssr_spec);
 	vec3 vN = normalize(mat3(ViewMatrix) * N);
 	result = CLOSURE_DEFAULT;
@@ -2871,6 +2877,12 @@ void node_bsdf_principled_simple(vec4 base_color, float subsurface, vec3 subsurf
 	result.ssr_data = vec4(ssr_spec, roughness);
 	result.ssr_normal = normal_encode(vN, viewCameraVec);
 	result.ssr_id = int(ssr_id);
+
+#ifdef USE_SSS
+	/* OPTI : Make irradiance computation shared with the diffuse. */
+	result.sss_data.rgb = eevee_surface_diffuse_lit(N, vec3(1.0), 1.0) * mix(vec3(0.0), subsurface_color.rgb, subsurface);
+	result.sss_data.a = 1.0; /* TODO Find a parametrization */
+#endif
 #else
 	node_bsdf_principled(base_color, subsurface, subsurface_radius, subsurface_color, metallic, specular,
 		specular_tint, roughness, anisotropic, anisotropic_rotation, sheen, sheen_tint, clearcoat,
@@ -2880,7 +2892,8 @@ void node_bsdf_principled_simple(vec4 base_color, float subsurface, vec3 subsurf
 
 void node_bsdf_principled_clearcoat(vec4 base_color, float subsurface, vec3 subsurface_radius, vec4 subsurface_color, float metallic, float specular,
 	float specular_tint, float roughness, float anisotropic, float anisotropic_rotation, float sheen, float sheen_tint, float clearcoat,
-	float clearcoat_roughness, float ior, float transmission, float transmission_roughness, vec3 N, vec3 CN, vec3 T, vec3 I, float ssr_id, out Closure result)
+	float clearcoat_roughness, float ior, float transmission, float transmission_roughness, vec3 N, vec3 CN, vec3 T, vec3 I, float ssr_id,
+	float sss_id, out Closure result)
 {
 #ifdef EEVEE_ENGINE
 	if (clearcoat == 0.0) {
@@ -2919,6 +2932,13 @@ void node_bsdf_principled_clearcoat(vec4 base_color, float subsurface, vec3 subs
 	}
 	result = Closure(surface_color.rgb / surface_color.a, 1.0);
 #else
+
+#ifdef USE_SSS
+	diffuse = mix(diffuse, vec3(0.0), subsurface);
+#else
+	diffuse = mix(diffuse, subsurface_color.rgb, subsurface);
+#endif
+
 	vec3 L_trans = (transmission <= 0.0) ? vec3(0.0) : eevee_surface_glass(N, base_color.rgb * ((refractionDepth > 0.0) ? base_color.rgb : vec3(1.0)), roughness, ior, REFRACT_CLOSURE_FLAG, ssr_spec);
 	vec3 L = eevee_surface_clearcoat_lit(N, diffuse, f0, roughness, CN, clearcoat, clearcoat_roughness, 1.0, int(ssr_id), ssr_spec);
 	L = mix(L, L_trans, transmission);
@@ -2928,6 +2948,13 @@ void node_bsdf_principled_clearcoat(vec4 base_color, float subsurface, vec3 subs
 	result.ssr_data = vec4(ssr_spec, roughness);
 	result.ssr_normal = normal_encode(vN, viewCameraVec);
 	result.ssr_id = int(ssr_id);
+
+#ifdef USE_SSS
+	/* OPTI : Make irradiance computation shared with the diffuse. */
+	result.sss_data.rgb = eevee_surface_diffuse_lit(N, vec3(1.0), 1.0) * mix(vec3(0.0), subsurface_color.rgb, subsurface);
+	result.sss_data.a = 1.0; /* TODO Find a parametrization */
+#endif
+
 #endif
 
 #else
