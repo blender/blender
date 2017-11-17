@@ -176,6 +176,31 @@ static bool python_driver_depends_on_time(ChannelDriver *driver)
 	return false;
 }
 
+static bool particle_system_depends_on_time(ParticleSystem *psys)
+{
+	ParticleSettings *part = psys->part;
+	/* Non-hair particles we always consider dependent on time. */
+	if (part->type != PART_HAIR) {
+		return true;
+	}
+	/* Dynamics always depends on time. */
+	if (psys->flag & PSYS_HAIR_DYNAMICS) {
+		return true;
+	}
+	/* TODO(sergey): Check what else makes hair dependent on time. */
+	return false;
+}
+
+static bool object_particles_depends_oin_time(Object *object)
+{
+	LINKLIST_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
+		if (particle_system_depends_on_time(psys)) {
+			return true;
+		}
+	}
+	return false;
+}
+
 /* **** General purpose functions ****  */
 
 RNAPathKey::RNAPathKey(ID *id, const char *path) :
@@ -1653,13 +1678,15 @@ void DepsgraphRelationBuilder::build_obdata_geom(Object *ob)
 			 *
 			 * for viewport being properly rendered in final render mode.
 			 * This relation is similar to what dag_object_time_update_flags()
-			 * was doing for mesh objects with particle system/
+			 * was doing for mesh objects with particle system.
 			 *
 			 * Ideally we need to get rid of this relation.
 			 */
-			if (ob->particlesystem.first != NULL) {
+			if (object_particles_depends_oin_time(ob)) {
 				TimeSourceKey time_key;
-				OperationKey obdata_ubereval_key(&ob->id, DEG_NODE_TYPE_GEOMETRY, DEG_OPCODE_GEOMETRY_UBEREVAL);
+				OperationKey obdata_ubereval_key(&ob->id,
+				                                 DEG_NODE_TYPE_GEOMETRY,
+				                                 DEG_OPCODE_GEOMETRY_UBEREVAL);
 				add_relation(time_key, obdata_ubereval_key, "Legacy particle time");
 			}
 			break;

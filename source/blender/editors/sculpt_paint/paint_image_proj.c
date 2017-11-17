@@ -5918,7 +5918,7 @@ static int add_simple_uvs_exec(bContext *C, wmOperator *UNUSED(op))
 	        }));
 	/* select all uv loops first - pack parameters needs this to make sure charts are registered */
 	ED_uvedit_select_all(bm);
-	ED_uvedit_unwrap_cube_project(ob, bm, 1.0, false);
+	ED_uvedit_unwrap_cube_project(bm, 1.0, false, NULL);
 	/* set the margin really quickly before the packing operation*/
 	scene->toolsettings->uvcalc_margin = 0.001f;
 	ED_uvedit_pack_islands(scene, ob, bm, false, false, true);

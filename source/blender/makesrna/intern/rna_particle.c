@@ -683,6 +683,7 @@ static void rna_Particle_reset_dependency(Main *bmain, Scene *scene, PointerRNA 
 static void rna_Particle_change_type(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	particle_recalc(bmain, scene, ptr, PSYS_RECALC_RESET | PSYS_RECALC_TYPE);
+	DEG_relations_tag_update(bmain);
 }
 
 static void rna_Particle_change_physics(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -765,7 +766,7 @@ static void rna_Particle_target_redo(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 	}
 }
 
-static void rna_Particle_hair_dynamics(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Particle_hair_dynamics_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
 	ParticleSystem *psys = (ParticleSystem *)ptr->data;
@@ -777,11 +778,14 @@ static void rna_Particle_hair_dynamics(Main *bmain, Scene *scene, PointerRNA *pt
 		psys->clmd->coll_parms->flags &= ~CLOTH_COLLSETTINGS_FLAG_SELF;
 		rna_Particle_redo(bmain, scene, ptr);
 	}
-	else
+	else {
 		WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);
+	}
 
 	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_relations_tag_update(bmain);
 }
+
 static PointerRNA rna_particle_settings_get(PointerRNA *ptr)
 {
 	ParticleSystem *psys = (ParticleSystem *)ptr->data;
@@ -3300,7 +3304,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_hair_dynamics", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PSYS_HAIR_DYNAMICS);
 	RNA_def_property_ui_text(prop, "Hair Dynamics", "Enable hair dynamics using cloth simulation");
-	RNA_def_property_update(prop, 0, "rna_Particle_hair_dynamics");
+	RNA_def_property_update(prop, 0, "rna_Particle_hair_dynamics_update");
 
 	prop = RNA_def_property(srna, "cloth", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "clmd");
