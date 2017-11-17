@@ -26,12 +26,13 @@
 #ifndef __DRAW_CACHE_IMPL_H__
 #define __DRAW_CACHE_IMPL_H__
 
-struct Gwn_Batch;
-struct GPUMaterial;
-struct ListBase;
 struct CurveCache;
-struct ParticleSystem;
+struct GPUMaterial;
+struct Gwn_Batch;
+struct ListBase;
+struct MetaBall;
 struct ModifierData;
+struct ParticleSystem;
 
 struct Curve;
 struct Lattice;

@@ -61,7 +61,8 @@ enum {
 //	MBALL_DATATYPE_SHADING = 1 << 2,
 };
 
-static MetaBallRenderData *metaball_render_data_create(MetaBall *mb, CurveCache *ob_curve_cache, const int types)
+static MetaBallRenderData *metaball_render_data_create(
+        MetaBall *UNUSED(mb), CurveCache *ob_curve_cache, const int types)
 {
 	MetaBallRenderData *rdata = MEM_callocN(sizeof(*rdata), __func__);
 	rdata->types = types;
