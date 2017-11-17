@@ -235,7 +235,7 @@ void GPU_material_enable_alpha(GPUMaterial *material);
 GPUBuiltin GPU_get_material_builtins(GPUMaterial *material);
 GPUBlendMode GPU_material_alpha_blend(GPUMaterial *material, float obcol[4]);
 
-void GPU_material_sss_profile_create(GPUMaterial *material, float *radii, int *falloff_type);
+void GPU_material_sss_profile_create(GPUMaterial *material, float *radii, short int *falloff_type, float *sharpness);
 struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material, int sample_ct);
 
 /* High level functions to create and use GPU materials */

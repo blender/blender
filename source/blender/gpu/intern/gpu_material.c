@@ -145,7 +145,8 @@ struct GPUMaterial {
 	GPUUniformBuffer *sss_profile; /* UBO containing SSS profile. */
 	float *sss_radii; /* UBO containing SSS profile. */
 	int sss_samples;
-	int *sss_falloff;
+	short int *sss_falloff;
+	float *sss_sharpness;
 	bool sss_dirty;
 };
 
@@ -560,7 +561,44 @@ static float burley_integral(float x0, float x1, float d)
 	return integral;
 }
 
-static void compute_sss_kernel(GPUSssKernelData *kd, float *radii, int sample_ct, int falloff_type)
+static float cubic_profile(float r, float radius, float sharpness)
+{
+	float Rm = radius * (1.0f + sharpness);
+
+	if(r >= Rm)
+		return 0.0f;
+
+	/* custom variation with extra sharpness, to match the previous code */
+	const float y = 1.0f/(1.0f + sharpness);
+	float Rmy, ry, ryinv;
+
+	Rmy = powf(Rm, y);
+	ry = powf(r, y);
+	ryinv = (r > 0.0f)? powf(r, y - 1.0f): 0.0f;
+
+	const float Rmy5 = (Rmy*Rmy) * (Rmy*Rmy) * Rmy;
+	const float f = Rmy - ry;
+	const float num = f*(f*f)*(y*ryinv);
+
+	return (10.0f * num) / (Rmy5 * M_PI);
+}
+
+static float cubic_integral(float x0, float x1, float radius, float sharpness)
+{
+	const float range = x1 - x0;
+	const float step = range / INTEGRAL_RESOLUTION;
+	float integral = 0.0f;
+
+	for(int i = 0; i < INTEGRAL_RESOLUTION; ++i) {
+		float x = x0 + range * ((float)i + 0.5f) / (float)INTEGRAL_RESOLUTION;
+		float y = cubic_profile(fabsf(x), radius, sharpness);
+		integral += y * step;
+	}
+
+	return integral;
+}
+
+static void compute_sss_kernel(GPUSssKernelData *kd, float *radii, int sample_ct, int falloff_type, float sharpness)
 {
 	for (int i = 0; i < 3; ++i) {
 		/* Minimum radius */
@@ -577,6 +615,12 @@ static void compute_sss_kernel(GPUSssKernelData *kd, float *radii, int sample_ct
 		/* XXX 0.6f Out of nowhere to match cycles! Empirical! Can be tweak better. */
 		mul_v3_v3fl(d, l, 0.6f / s);
 		mul_v3_v3fl(kd->radii_n, d, BURLEY_TRUNCATE);
+	}
+	else if (falloff_type == SHD_SUBSURFACE_CUBIC) {
+		/* XXX Black magic but it seems to fit. Maybe because we integrate -1..1 */
+		sharpness *= 0.5f;
+
+		mul_v3_fl(kd->radii_n, 1.0f + sharpness);
 	}
 
 	/* Normalize size */
@@ -616,6 +660,13 @@ static void compute_sss_kernel(GPUSssKernelData *kd, float *radii, int sample_ct
 			kd->kernel[i][1] = burley_integral(x0, x1, d[1]);
 			kd->kernel[i][2] = burley_integral(x0, x1, d[2]);
 		}
+		else if (falloff_type == SHD_SUBSURFACE_CUBIC) {
+			x0 *= kd->max_radius;
+			x1 *= kd->max_radius;
+			kd->kernel[i][0] = cubic_integral(x0, x1, radii[0], sharpness);
+			kd->kernel[i][1] = cubic_integral(x0, x1, radii[1], sharpness);
+			kd->kernel[i][2] = cubic_integral(x0, x1, radii[2], sharpness);
+		}
 		else {
 			kd->kernel[i][0] = gaussian_integral(x0 / kd->radii_n[0], x1 / kd->radii_n[0]);
 			kd->kernel[i][1] = gaussian_integral(x0 / kd->radii_n[1], x1 / kd->radii_n[1]);
@@ -649,10 +700,11 @@ static void compute_sss_kernel(GPUSssKernelData *kd, float *radii, int sample_ct
 	copy_v4_v4(kd->kernel[0], tmpv);
 }
 
-void GPU_material_sss_profile_create(GPUMaterial *material, float *radii, int *falloff_type)
+void GPU_material_sss_profile_create(GPUMaterial *material, float *radii, short int *falloff_type, float *sharpness)
 {
 	material->sss_radii = radii;
 	material->sss_falloff = falloff_type;
+	material->sss_sharpness = sharpness;
 	material->sss_dirty = true;
 
 	/* Update / Create UBO */
@@ -672,7 +724,9 @@ struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material, int
 	if (material->sss_dirty || (material->sss_samples != sample_ct)) {
 		GPUSssKernelData kd;
 
-		compute_sss_kernel(&kd, material->sss_radii, sample_ct, *material->sss_falloff);
+		float sharpness = (material->sss_sharpness != NULL) ? *material->sss_sharpness : 0.0f;
+
+		compute_sss_kernel(&kd, material->sss_radii, sample_ct, *material->sss_falloff, sharpness);
 
 		/* Update / Create UBO */
 		GPU_uniformbuffer_update(material->sss_profile, &kd);
