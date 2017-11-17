@@ -541,8 +541,9 @@ class CYCLES_RENDER_PT_layer_passes(CyclesButtonsPanel, Panel):
             sub.active = crl.use_denoising
             sub.prop(crl, "denoising_store_passes", text="Denoising")
 
+        col = layout.column()
+        col.prop(crl, "pass_debug_render_time")
         if _cycles.with_cycles_debug:
-            col = layout.column()
             col.prop(crl, "pass_debug_bvh_traversed_nodes")
             col.prop(crl, "pass_debug_bvh_traversed_instances")
             col.prop(crl, "pass_debug_bvh_intersections")

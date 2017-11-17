@@ -116,6 +116,10 @@ void Pass::add(PassType type, array<Pass>& passes)
 			pass.exposure = false;
 			break;
 #endif
+		case PASS_RENDER_TIME:
+			/* This pass is handled entirely on the host side. */
+			pass.components = 0;
+			break;
 
 		case PASS_DIFFUSE_COLOR:
 		case PASS_GLOSSY_COLOR:
@@ -428,6 +432,8 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 				kfilm->pass_ray_bounces = kfilm->pass_stride;
 				break;
 #endif
+			case PASS_RENDER_TIME:
+				break;
 
 			default:
 				assert(false);

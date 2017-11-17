@@ -1436,6 +1436,8 @@ public:
 
 	void path_trace(DeviceTask& task, RenderTile& rtile, device_vector<WorkTile>& work_tiles)
 	{
+		scoped_timer timer(&rtile.buffers->render_time);
+
 		if(have_error())
 			return;
 

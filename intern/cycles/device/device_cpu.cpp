@@ -689,6 +689,8 @@ public:
 
 	void path_trace(DeviceTask &task, RenderTile &tile, KernelGlobals *kg)
 	{
+		scoped_timer timer(&tile.buffers->render_time);
+
 		float *render_buffer = (float*)tile.buffer;
 		int start_sample = tile.start_sample;
 		int end_sample = tile.start_sample + tile.num_samples;

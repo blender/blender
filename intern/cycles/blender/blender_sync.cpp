@@ -520,6 +520,7 @@ PassType BlenderSync::get_pass_type(BL::RenderPass& b_pass)
 	MAP_PASS("Debug BVH Intersections", PASS_BVH_INTERSECTIONS);
 	MAP_PASS("Debug Ray Bounces", PASS_RAY_BOUNCES);
 #endif
+	MAP_PASS("Debug Render Time", PASS_RENDER_TIME);
 #undef MAP_PASS
 
 	return PASS_NONE;
@@ -606,6 +607,10 @@ array<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
 		Pass::add(PASS_RAY_BOUNCES, passes);
 	}
 #endif
+	if(get_boolean(crp, "pass_debug_render_time")) {
+		b_engine.add_pass("Debug Render Time", 1, "X", b_srlay.name().c_str());
+		Pass::add(PASS_RENDER_TIME, passes);
+	}
 	if(get_boolean(crp, "use_pass_volume_direct")) {
 		b_engine.add_pass("VolumeDir", 3, "RGB", b_srlay.name().c_str());
 		Pass::add(PASS_VOLUME_DIRECT, passes);
