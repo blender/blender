@@ -192,7 +192,7 @@ static bool particle_system_depends_on_time(ParticleSystem *psys)
 	return false;
 }
 
-static bool object_particles_depends_oin_time(Object *object)
+static bool object_particles_depends_on_time(Object *object)
 {
 	LINKLIST_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
 		if (particle_system_depends_on_time(psys)) {
@@ -1281,10 +1281,9 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 	OperationKey eval_init_key(&ob->id,
 	                           DEG_NODE_TYPE_EVAL_PARTICLES,
 	                           DEG_OPCODE_PSYS_EVAL_INIT);
-	/* TODO(sergey): Are all particle systems depends on time?
-	 * Hair without dynamics i.e.
-	 */
-	add_relation(time_src_key, eval_init_key, "TimeSrc -> PSys");
+	if (object_particles_depends_on_time(ob)) {
+		add_relation(time_src_key, eval_init_key, "TimeSrc -> PSys");
+	}
 
 	/* particle systems */
 	LINKLIST_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
@@ -1523,7 +1522,7 @@ void DepsgraphRelationBuilder::build_obdata_geom(Main *bmain, Scene *scene, Obje
 			 *
 			 * Ideally we need to get rid of this relation.
 			 */
-			if (object_particles_depends_oin_time(ob)) {
+			if (object_particles_depends_on_time(ob)) {
 				TimeSourceKey time_key;
 				OperationKey obdata_ubereval_key(&ob->id,
 				                                 DEG_NODE_TYPE_GEOMETRY,
