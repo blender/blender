@@ -314,7 +314,9 @@ Object *BlenderSync::sync_object(BL::Depsgraph::duplis_iterator& b_dupli_iter,
 	}
 
 	/* Visibility flags for both parent and child. */
-	bool use_holdout = (layer_flag & view_layer.holdout_layer) != 0;
+	PointerRNA cobject = RNA_pointer_get(&b_ob.ptr, "cycles");
+	bool use_holdout = (layer_flag & view_layer.holdout_layer) != 0 ||
+	                   get_boolean(cobject, "is_holdout");
 	uint visibility = object_ray_visibility(b_ob) & PATH_RAY_ALL_VISIBILITY;
 
 	if(b_parent.ptr.data != b_ob.ptr.data) {
@@ -393,7 +395,6 @@ Object *BlenderSync::sync_object(BL::Depsgraph::duplis_iterator& b_dupli_iter,
 		object_updated = true;
 	}
 
-	PointerRNA cobject = RNA_pointer_get(&b_ob.ptr, "cycles");
 	bool is_shadow_catcher = get_boolean(cobject, "is_shadow_catcher");
 	if(is_shadow_catcher != object->is_shadow_catcher) {
 		object->is_shadow_catcher = is_shadow_catcher;

@@ -1081,6 +1081,15 @@ class CyclesObjectSettings(bpy.types.PropertyGroup):
                 default=False,
                 )
 
+        cls.is_holdout = BoolProperty(
+                name="Holdout",
+                description="Render objects as a holdout or matte, creating a "
+                            "hole in the image with zero alpha, to fill out in "
+                            "compositing with real footange or another render",
+                default=False,
+                )
+
+
     @classmethod
     def unregister(cls):
         del bpy.types.Object.cycles
