@@ -868,7 +868,9 @@ class CYCLES_OBJECT_PT_cycles_settings(CyclesButtonsPanel, Panel):
         if ob.type != 'LAMP':
             flow.prop(visibility, "shadow")
 
-        layout.prop(cob, "is_shadow_catcher")
+        row = layout.row()
+        row.prop(cob, "is_shadow_catcher")
+        row.prop(cob, "is_holdout")
 
         col = layout.column()
         col.label(text="Performance:")
