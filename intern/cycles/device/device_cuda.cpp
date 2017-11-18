@@ -1782,8 +1782,6 @@ public:
 			}
 			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
-			glEnable(GL_TEXTURE_2D);
-
 			if(transparent) {
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -1865,7 +1863,6 @@ public:
 			}
 
 			glBindTexture(GL_TEXTURE_2D, 0);
-			glDisable(GL_TEXTURE_2D);
 
 			return;
 		}

@@ -260,8 +260,6 @@ void Device::draw_pixels(
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-	glEnable(GL_TEXTURE_2D);
-
 	if(transparent) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -345,7 +343,6 @@ void Device::draw_pixels(
 	}
 
 	glBindTexture(GL_TEXTURE_2D, 0);
-	glDisable(GL_TEXTURE_2D);
 	glDeleteTextures(1, &texid);
 
 	if(transparent) {
