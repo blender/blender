@@ -433,7 +433,7 @@ static void ui_imageuser_pass_menu(bContext *UNUSED(C), uiLayout *layout, void *
 
 	uiItemS(layout);
 
-	nr = (rl == NULL)? 1: 0;
+	nr = (rl == NULL) ? 1 : 0;
 
 	ListBase added_passes;
 	BLI_listbase_clear(&added_passes);

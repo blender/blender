@@ -936,7 +936,7 @@ static void select_similar_data_pchan(
 	}
 }
 
-static void is_ancestor(EditBone * bone, EditBone * ancestor)
+static void is_ancestor(EditBone *bone, EditBone *ancestor)
 {
 	if (bone->temp.ebone == ancestor || bone->temp.ebone == NULL)
 		return;

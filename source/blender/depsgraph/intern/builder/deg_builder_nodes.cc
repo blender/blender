@@ -825,7 +825,8 @@ void DepsgraphNodeBuilder::build_obdata_geom(Object *ob)
 				                                           (MetaBall *)obdata),
 				                             DEG_OPCODE_PLACEHOLDER,
 				                             "Geometry Eval");
-			} else {
+			}
+			else {
 				op_node = add_operation_node(obdata,
 				                             DEG_NODE_TYPE_GEOMETRY,
 				                             NULL,

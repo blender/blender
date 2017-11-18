@@ -66,7 +66,7 @@ static void node_shader_free_tex_pointdensity(bNode *node)
 	MEM_freeN(point_density);
 }
 
-static void node_shader_copy_tex_pointdensity(bNodeTree * UNUSED(dest_ntree),
+static void node_shader_copy_tex_pointdensity(bNodeTree *UNUSED(dest_ntree),
                                               bNode *dest_node,
                                               bNode *src_node)
 {

@@ -1147,9 +1147,10 @@ static CollPair *cloth_point_collision(
 	return collpair;
 }
 
-static void cloth_points_objcollisions_nearcheck(ClothModifierData * clmd, CollisionModifierData *collmd,
-                                                     CollPair **collisions, CollPair **collisions_index,
-                                                     int numresult, BVHTreeOverlap *overlap, float epsilon, double dt)
+static void cloth_points_objcollisions_nearcheck(
+        ClothModifierData *clmd, CollisionModifierData *collmd,
+        CollPair **collisions, CollPair **collisions_index,
+        int numresult, BVHTreeOverlap *overlap, float epsilon, double dt)
 {
 	int i;
 	
@@ -1163,8 +1164,9 @@ static void cloth_points_objcollisions_nearcheck(ClothModifierData * clmd, Colli
 	}
 }
 
-static int cloth_points_objcollisions_resolve(ClothModifierData * clmd, CollisionModifierData *collmd, PartDeflect *pd,
-                                              CollPair *collisions, CollPair *collisions_index, float dt)
+static int cloth_points_objcollisions_resolve(
+        ClothModifierData *clmd, CollisionModifierData *collmd, PartDeflect *pd,
+        CollPair *collisions, CollPair *collisions_index, float dt)
 {
 	Cloth *cloth = clmd->clothObject;
 	int i = 0, mvert_num = clmd->clothObject->mvert_num;

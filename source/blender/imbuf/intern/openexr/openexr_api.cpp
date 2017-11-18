@@ -414,11 +414,13 @@ static bool imb_save_openexr_half(
 		frameBuffer.insert("R", Slice(HALF,  (char *) &to->r, xstride, ystride));
 		frameBuffer.insert("G", Slice(HALF,  (char *) &to->g, xstride, ystride));
 		frameBuffer.insert("B", Slice(HALF,  (char *) &to->b, xstride, ystride));
-		if (is_alpha)
+		if (is_alpha) {
 			frameBuffer.insert("A", Slice(HALF, (char *) &to->a, xstride, ystride));
-		if (is_zbuf)
+		}
+		if (is_zbuf) {
 			frameBuffer.insert("Z", Slice(Imf::FLOAT, (char *)(ibuf->zbuf_float + (height - 1) * width),
-							   sizeof(float), sizeof(float) * -width));
+			                              sizeof(float), sizeof(float) * -width));
+		}
 		if (ibuf->rect_float) {
 			float *from;
 
@@ -509,11 +511,13 @@ static bool imb_save_openexr_float(
 		frameBuffer.insert("R", Slice(Imf::FLOAT,  (char *)rect[0], xstride, ystride));
 		frameBuffer.insert("G", Slice(Imf::FLOAT,  (char *)rect[1], xstride, ystride));
 		frameBuffer.insert("B", Slice(Imf::FLOAT,  (char *)rect[2], xstride, ystride));
-		if (is_alpha)
+		if (is_alpha) {
 			frameBuffer.insert("A", Slice(Imf::FLOAT,  (char *)rect[3], xstride, ystride));
-		if (is_zbuf)
+		}
+		if (is_zbuf) {
 			frameBuffer.insert("Z", Slice(Imf::FLOAT, (char *) (ibuf->zbuf_float + (height - 1) * width),
-											  sizeof(float), sizeof(float) * -width));
+			                              sizeof(float), sizeof(float) * -width));
+		}
 
 		file.setFrameBuffer(frameBuffer);
 		file.writePixels(height);
@@ -1125,7 +1129,7 @@ void IMB_exr_read_channels(void *handle)
 		ExrChannel *echan;
 
 		for (echan = (ExrChannel *)data->channels.first; echan; echan = echan->next) {
-			if(echan->m->part_number != i) {
+			if (echan->m->part_number != i) {
 				continue;
 			}
 
