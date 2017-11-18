@@ -34,7 +34,6 @@ SET(_openimageio_SEARCH_DIRS
   /usr/local
   /sw # Fink
   /opt/local # DarwinPorts
-  /opt/csw # Blastwave
   /opt/lib/oiio
 )
 

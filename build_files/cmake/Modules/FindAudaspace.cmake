@@ -20,7 +20,6 @@ SET(_audaspace_SEARCH_DIRS
   /usr/local
   /sw # Fink
   /opt/local # DarwinPorts
-  /opt/csw # Blastwave
 )
 
 # Use pkg-config to get hints about paths

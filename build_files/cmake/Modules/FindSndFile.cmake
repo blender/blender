@@ -32,7 +32,6 @@ SET(_sndfile_SEARCH_DIRS
   /usr/local
   /sw # Fink
   /opt/local # DarwinPorts
-  /opt/csw # Blastwave
 )
 
 FIND_PATH(SNDFILE_INCLUDE_DIR sndfile.h

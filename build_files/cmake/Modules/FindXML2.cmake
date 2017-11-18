@@ -32,7 +32,6 @@ SET(_xml2_SEARCH_DIRS
   /usr/local
   /sw # Fink
   /opt/local # DarwinPorts
-  /opt/csw # Blastwave
 )
 
 FIND_PATH(XML2_INCLUDE_DIR libxml2/libxml/xpath.h

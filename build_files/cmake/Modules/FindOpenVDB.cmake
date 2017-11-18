@@ -32,7 +32,6 @@ SET(_openvdb_SEARCH_DIRS
   /usr/local
   /sw # Fink
   /opt/local # DarwinPorts
-  /opt/csw # Blastwave
   /opt/openvdb
   /opt/lib/openvdb
 )

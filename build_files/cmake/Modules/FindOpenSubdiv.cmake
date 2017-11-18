@@ -37,7 +37,6 @@ SET(_opensubdiv_SEARCH_DIRS
   /usr/local
   /sw # Fink
   /opt/local # DarwinPorts
-  /opt/csw # Blastwave
   /opt/lib/opensubdiv
   /opt/lib/osd # install_deps.sh
 )
