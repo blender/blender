@@ -763,7 +763,7 @@ static struct DRWShadingGroup *EEVEE_default_shading_group_create(
         bool is_hair, bool is_flat_normal, bool use_blend, bool use_ssr, int shadow_method)
 {
 	static int ssr_id;
-	ssr_id = (use_ssr) ? 0 : -1;
+	ssr_id = (use_ssr) ? 1 : -1;
 	int options = VAR_MAT_MESH;
 
 	if (is_hair) options |= VAR_MAT_HAIR;
@@ -791,7 +791,7 @@ static struct DRWShadingGroup *EEVEE_default_shading_group_get(
         bool is_hair, bool is_flat_normal, bool use_ssr, int shadow_method)
 {
 	static int ssr_id;
-	ssr_id = (use_ssr) ? 0 : -1;
+	ssr_id = (use_ssr) ? 1 : -1;
 	int options = VAR_MAT_MESH;
 
 	if (is_hair) options |= VAR_MAT_HAIR;

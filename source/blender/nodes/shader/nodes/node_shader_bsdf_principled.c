@@ -99,7 +99,7 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat, bNode *node, bNodeE
 	}
 
 	/* SSS Profile */
-	if (node->sss_id == 0) {
+	if (node->sss_id == 1) {
 		static short profile = SHD_SUBSURFACE_BURLEY;
 		bNodeSocket *socket = BLI_findlink(&node->original->inputs, 2);
 		bNodeSocketValueRGBA *socket_data = socket->default_value;
