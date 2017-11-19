@@ -292,7 +292,6 @@ set(SRC
 	BKE_texture.h
 	BKE_tracking.h
 	BKE_unit.h
-	BKE_utildefines.h
 	BKE_world.h
 	BKE_writeavi.h
 	BKE_writeframeserver.h

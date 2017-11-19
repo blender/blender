@@ -42,7 +42,6 @@
 #include "BKE_mesh.h"
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
-#include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
 
@@ -231,7 +230,7 @@ static void select_linked_tfaces_with_seams(Mesh *me, const unsigned int index, 
 
 	for (a = 0, mp = me->mpoly; a < me->totpoly; a++, mp++) {
 		if (BLI_BITMAP_TEST(poly_tag, a)) {
-			BKE_BIT_TEST_SET(mp->flag, select, ME_FACE_SEL);
+			SET_FLAG_FROM_TEST(mp->flag, select, ME_FACE_SEL);
 		}
 	}
 

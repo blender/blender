@@ -35,7 +35,6 @@
 #include <vector>
 
 extern "C" {
-#include "BKE_utildefines.h"
 #include "BLI_string.h"
 #include "BLI_path_util.h"
 }
