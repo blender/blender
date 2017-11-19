@@ -4031,10 +4031,12 @@ static void ccgDM_release(DerivedMesh *dm)
 		if (ccgdm->gridOffset) MEM_freeN(ccgdm->gridOffset);
 		if (ccgdm->gridFlagMats) MEM_freeN(ccgdm->gridFlagMats);
 		if (ccgdm->gridHidden) {
-			int i, numGrids = dm->getNumGrids(dm);
-			for (i = 0; i < numGrids; i++) {
-				if (ccgdm->gridHidden[i])
+			/* Using dm->getNumGrids(dm) accesses freed memory */
+			uint numGrids = ccgdm->numGrid;
+			for (uint i = 0; i < numGrids; i++) {
+				if (ccgdm->gridHidden[i]) {
 					MEM_freeN(ccgdm->gridHidden[i]);
+				}
 			}
 			MEM_freeN(ccgdm->gridHidden);
 		}
@@ -4338,6 +4340,7 @@ static void ccgdm_create_grids(DerivedMesh *dm)
 	ccgdm->gridFaces = gridFaces;
 	ccgdm->gridOffset = gridOffset;
 	ccgdm->gridFlagMats = gridFlagMats;
+	ccgdm->numGrid = numGrids;
 }
 
 static CCGElem **ccgDM_getGridData(DerivedMesh *dm)
