@@ -943,6 +943,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 	}
 	/* if only one bone, make this one active */
 	if (totbone == 1 && first) arm->act_edbone = first;
+	else arm->act_edbone = newbone;
 
 	if (totbone == 0) return OPERATOR_CANCELLED;
 
