@@ -1810,12 +1810,6 @@ class VIEW3D_PT_tools_vertexpaint(Panel, View3DPaintPanel):
         vpaint = toolsettings.vertex_paint
 
         col = layout.column()
-        col.label("Falloff:")
-        row = col.row()
-        row.prop(vpaint, "use_normal_falloff")
-        sub = row.row()
-        sub.active = (vpaint.use_normal_falloff)
-        sub.prop(vpaint, "normal_angle", text="")
 
         self.unified_paint_settings(col, context)
 
