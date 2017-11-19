@@ -138,7 +138,7 @@ void paintface_hide(Object *ob, const bool unselected)
 }
 
 
-void paintface_reveal(Object *ob)
+void paintface_reveal(Object *ob, const bool select)
 {
 	Mesh *me;
 	MPoly *mpoly;
@@ -151,8 +151,8 @@ void paintface_reveal(Object *ob)
 	a = me->totpoly;
 	while (a--) {
 		if (mpoly->flag & ME_HIDE) {
-			mpoly->flag |= ME_FACE_SEL;
-			mpoly->flag -= ME_HIDE;
+			SET_FLAG_FROM_TEST(mpoly->flag, select, ME_FACE_SEL);
+			mpoly->flag &= ~ME_HIDE;
 		}
 		mpoly++;
 	}

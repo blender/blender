@@ -133,7 +133,7 @@ Object *ED_object_active_context(bContext *C)
 
 
 /* ********* clear/set restrict view *********/
-static int object_hide_view_clear_exec(bContext *C, wmOperator *UNUSED(op))
+static int object_hide_view_clear_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	ScrArea *sa = CTX_wm_area(C);
@@ -141,12 +141,13 @@ static int object_hide_view_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene = CTX_data_scene(C);
 	Base *base;
 	bool changed = false;
+	const bool select = RNA_boolean_get(op->ptr, "select");
 	
 	/* XXX need a context loop to handle such cases */
 	for (base = FIRSTBASE; base; base = base->next) {
 		if ((base->lay & v3d->lay) && base->object->restrictflag & OB_RESTRICT_VIEW) {
 			if (!(base->object->restrictflag & OB_RESTRICT_SELECT)) {
-				base->flag |= SELECT;
+				SET_FLAG_FROM_TEST(base->flag, select, SELECT);
 			}
 			base->object->flag = base->flag;
 			base->object->restrictflag &= ~OB_RESTRICT_VIEW; 
@@ -176,6 +177,8 @@ void OBJECT_OT_hide_view_clear(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "select", true, "Select", "");
 }
 
 static int object_hide_view_set_exec(bContext *C, wmOperator *op)

@@ -333,13 +333,14 @@ static void GRAPH_OT_hide(wmOperatorType *ot)
 
 /* ........ */
 
-static int graphview_curves_reveal_exec(bContext *C, wmOperator *UNUSED(op))
+static int graphview_curves_reveal_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
 	ListBase anim_data = {NULL, NULL};
 	ListBase all_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
+	const bool select = RNA_boolean_get(op->ptr, "select");
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -364,8 +365,11 @@ static int graphview_curves_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 			continue;
 		
 		/* select if it is not visible */
-		if (ANIM_channel_setting_get(&ac, ale, ACHANNEL_SETTING_VISIBLE) == 0)
-			ANIM_channel_setting_set(&ac, ale, ACHANNEL_SETTING_SELECT, ACHANNEL_SETFLAG_ADD);
+		if (ANIM_channel_setting_get(&ac, ale, ACHANNEL_SETTING_VISIBLE) == 0) {
+			ANIM_channel_setting_set(
+			        &ac, ale, ACHANNEL_SETTING_SELECT,
+			        select ? ACHANNEL_SETFLAG_ADD : ACHANNEL_SETFLAG_CLEAR);
+		}
 		
 		/* change the visibility setting */
 		ANIM_channel_setting_set(&ac, ale, ACHANNEL_SETTING_VISIBLE, ACHANNEL_SETFLAG_ADD);
@@ -397,6 +401,8 @@ static void GRAPH_OT_reveal(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "select", true, "Select", "");
 }
 
 /* ************************** registration - operator types **********************************/

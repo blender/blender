@@ -1950,11 +1950,12 @@ void PARTICLE_OT_hide(wmOperatorType *ot)
 
 /*************************** reveal operator **************************/
 
-static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
+static int reveal_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
 	Scene *scene= CTX_data_scene(C);
-	PTCacheEdit *edit= PE_get_current(scene, ob);
+	PTCacheEdit *edit = PE_get_current(scene, ob);
+	const bool select = RNA_boolean_get(op->ptr, "select");
 	POINT_P; KEY_K;
 
 	LOOP_POINTS {
@@ -1962,8 +1963,9 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 			point->flag &= ~PEP_HIDE;
 			point->flag |= PEP_EDIT_RECALC;
 
-			LOOP_KEYS
-				key->flag |= PEK_SELECT;
+			LOOP_KEYS {
+				SET_FLAG_FROM_TEST(key->flag, select, PEK_SELECT);
+			}
 		}
 	}
 
@@ -1986,6 +1988,9 @@ void PARTICLE_OT_reveal(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_boolean(ot->srna, "select", true, "Select", "");
 }
 
 /************************ select less operator ************************/
