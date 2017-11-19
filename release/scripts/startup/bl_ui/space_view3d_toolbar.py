@@ -852,12 +852,12 @@ class VIEW3D_PT_tools_posemode(View3DPanel, Panel):
 
         draw_keyframing_tools(context, layout)
 
-        pchan = context.active_pose_bone
-        mpath = pchan.motion_path if pchan else None
+        ob = context.object
+        avs = ob.pose.animation_visualization
 
         col = layout.column(align=True)
         col.label(text="Motion Paths:")
-        if mpath:
+        if avs.motion_path.has_motion_paths:
             row = col.row(align=True)
             row.operator("pose.paths_update", text="Update")
             row.operator("pose.paths_clear", text="", icon='X')

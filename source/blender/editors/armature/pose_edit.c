@@ -265,8 +265,8 @@ void POSE_OT_paths_calculate(wmOperatorType *ot)
 static int pose_update_paths_poll(bContext *C)
 {
 	if (ED_operator_posemode_exclusive(C)) {
-		bPoseChannel *pchan = CTX_data_active_pose_bone(C);
-		return (pchan && pchan->mpath);
+		Object *ob = CTX_data_active_object(C);
+		return (ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) != 0;
 	}
 	
 	return false;
