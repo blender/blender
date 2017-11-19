@@ -138,6 +138,8 @@ public:
 			while(task->acquire_tile(this, tile)) {
 				if(tile.task == RenderTile::PATH_TRACE) {
 					assert(tile.task == RenderTile::PATH_TRACE);
+					scoped_timer timer(&tile.buffers->render_time);
+
 					split_kernel->path_trace(task,
 					                         tile,
 					                         kgbuffer,

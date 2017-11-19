@@ -75,6 +75,7 @@ public:
 	/* float buffer */
 	device_vector<float> buffer;
 	bool map_neighbor_copied;
+	double render_time;
 
 	explicit RenderBuffers(Device *device);
 	~RenderBuffers();

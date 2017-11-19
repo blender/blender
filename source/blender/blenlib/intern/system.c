@@ -50,8 +50,8 @@ int BLI_cpu_support_sse2(void)
 	    "pushl %%ebx\n\t"
 	    "cpuid\n\t"
 	    "popl %%ebx\n\t"
-		: "=d" (d)
-		: "a" (1));
+	    : "=d" (d)
+	    : "a" (1));
 	return (d & 0x04000000) != 0;
 #elif (defined(_MSC_VER) && defined(_M_IX86))
 	/* also check cpuid for MSVC x86 */

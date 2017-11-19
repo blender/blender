@@ -85,52 +85,6 @@ void Pass::add(PassType type, array<Pass>& passes)
 			pass.components = 1;
 			pass.filter = false;
 			break;
-		case PASS_DIFFUSE_COLOR:
-		case PASS_GLOSSY_COLOR:
-		case PASS_TRANSMISSION_COLOR:
-		case PASS_SUBSURFACE_COLOR:
-			pass.components = 4;
-			break;
-		case PASS_DIFFUSE_INDIRECT:
-			pass.components = 4;
-			pass.exposure = true;
-			pass.divide_type = PASS_DIFFUSE_COLOR;
-			break;
-		case PASS_GLOSSY_INDIRECT:
-			pass.components = 4;
-			pass.exposure = true;
-			pass.divide_type = PASS_GLOSSY_COLOR;
-			break;
-		case PASS_TRANSMISSION_INDIRECT:
-			pass.components = 4;
-			pass.exposure = true;
-			pass.divide_type = PASS_TRANSMISSION_COLOR;
-			break;
-		case PASS_SUBSURFACE_INDIRECT:
-			pass.components = 4;
-			pass.exposure = true;
-			pass.divide_type = PASS_SUBSURFACE_COLOR;
-			break;
-		case PASS_DIFFUSE_DIRECT:
-			pass.components = 4;
-			pass.exposure = true;
-			pass.divide_type = PASS_DIFFUSE_COLOR;
-			break;
-		case PASS_GLOSSY_DIRECT:
-			pass.components = 4;
-			pass.exposure = true;
-			pass.divide_type = PASS_GLOSSY_COLOR;
-			break;
-		case PASS_TRANSMISSION_DIRECT:
-			pass.components = 4;
-			pass.exposure = true;
-			pass.divide_type = PASS_TRANSMISSION_COLOR;
-			break;
-		case PASS_SUBSURFACE_DIRECT:
-			pass.components = 4;
-			pass.exposure = true;
-			pass.divide_type = PASS_SUBSURFACE_COLOR;
-			break;
 
 		case PASS_EMISSION:
 		case PASS_BACKGROUND:
@@ -162,6 +116,50 @@ void Pass::add(PassType type, array<Pass>& passes)
 			pass.exposure = false;
 			break;
 #endif
+		case PASS_RENDER_TIME:
+			/* This pass is handled entirely on the host side. */
+			pass.components = 0;
+			break;
+
+		case PASS_DIFFUSE_COLOR:
+		case PASS_GLOSSY_COLOR:
+		case PASS_TRANSMISSION_COLOR:
+		case PASS_SUBSURFACE_COLOR:
+			pass.components = 4;
+			break;
+		case PASS_DIFFUSE_DIRECT:
+		case PASS_DIFFUSE_INDIRECT:
+			pass.components = 4;
+			pass.exposure = true;
+			pass.divide_type = PASS_DIFFUSE_COLOR;
+			break;
+		case PASS_GLOSSY_DIRECT:
+		case PASS_GLOSSY_INDIRECT:
+			pass.components = 4;
+			pass.exposure = true;
+			pass.divide_type = PASS_GLOSSY_COLOR;
+			break;
+		case PASS_TRANSMISSION_DIRECT:
+		case PASS_TRANSMISSION_INDIRECT:
+			pass.components = 4;
+			pass.exposure = true;
+			pass.divide_type = PASS_TRANSMISSION_COLOR;
+			break;
+		case PASS_SUBSURFACE_DIRECT:
+		case PASS_SUBSURFACE_INDIRECT:
+			pass.components = 4;
+			pass.exposure = true;
+			pass.divide_type = PASS_SUBSURFACE_COLOR;
+			break;
+		case PASS_VOLUME_DIRECT:
+		case PASS_VOLUME_INDIRECT:
+			pass.components = 4;
+			pass.exposure = true;
+			break;
+
+		default:
+			assert(false);
+			break;
 	}
 
 	passes.push_back_slow(pass);
@@ -318,7 +316,19 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 
 	for(size_t i = 0; i < passes.size(); i++) {
 		Pass& pass = passes[i];
-		kfilm->pass_flag |= pass.type;
+
+		if(pass.type == PASS_NONE)
+			continue;
+
+		int pass_flag = (1 << (pass.type % 32));
+		if(pass.type <= PASS_CATEGORY_MAIN_END) {
+			kfilm->pass_flag |= pass_flag;
+		}
+		else {
+			assert(pass.type <= PASS_CATEGORY_LIGHT_END);
+			kfilm->use_light_pass = 1;
+			kfilm->light_pass_flag |= pass_flag;
+		}
 
 		switch(pass.type) {
 			case PASS_COMBINED:
@@ -326,10 +336,6 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 				break;
 			case PASS_DEPTH:
 				kfilm->pass_depth = kfilm->pass_stride;
-				break;
-			case PASS_MIST:
-				kfilm->pass_mist = kfilm->pass_stride;
-				kfilm->use_light_pass = 1;
 				break;
 			case PASS_NORMAL:
 				kfilm->pass_normal = kfilm->pass_stride;
@@ -349,74 +355,67 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 			case PASS_MATERIAL_ID:
 				kfilm->pass_material_id = kfilm->pass_stride;
 				break;
-			case PASS_DIFFUSE_COLOR:
-				kfilm->pass_diffuse_color = kfilm->pass_stride;
-				kfilm->use_light_pass = 1;
-				break;
-			case PASS_GLOSSY_COLOR:
-				kfilm->pass_glossy_color = kfilm->pass_stride;
-				kfilm->use_light_pass = 1;
-				break;
-			case PASS_TRANSMISSION_COLOR:
-				kfilm->pass_transmission_color = kfilm->pass_stride;
-				kfilm->use_light_pass = 1;
-				break;
-			case PASS_SUBSURFACE_COLOR:
-				kfilm->pass_subsurface_color = kfilm->pass_stride;
-				kfilm->use_light_pass = 1;
-				break;
-			case PASS_DIFFUSE_INDIRECT:
-				kfilm->pass_diffuse_indirect = kfilm->pass_stride;
-				kfilm->use_light_pass = 1;
-				break;
-			case PASS_GLOSSY_INDIRECT:
-				kfilm->pass_glossy_indirect = kfilm->pass_stride;
-				kfilm->use_light_pass = 1;
-				break;
-			case PASS_TRANSMISSION_INDIRECT:
-				kfilm->pass_transmission_indirect = kfilm->pass_stride;
-				kfilm->use_light_pass = 1;
-				break;
-			case PASS_SUBSURFACE_INDIRECT:
-				kfilm->pass_subsurface_indirect = kfilm->pass_stride;
-				kfilm->use_light_pass = 1;
-				break;
-			case PASS_DIFFUSE_DIRECT:
-				kfilm->pass_diffuse_direct = kfilm->pass_stride;
-				kfilm->use_light_pass = 1;
-				break;
-			case PASS_GLOSSY_DIRECT:
-				kfilm->pass_glossy_direct = kfilm->pass_stride;
-				kfilm->use_light_pass = 1;
-				break;
-			case PASS_TRANSMISSION_DIRECT:
-				kfilm->pass_transmission_direct = kfilm->pass_stride;
-				kfilm->use_light_pass = 1;
-				break;
-			case PASS_SUBSURFACE_DIRECT:
-				kfilm->pass_subsurface_direct = kfilm->pass_stride;
-				kfilm->use_light_pass = 1;
-				break;
 
+			case PASS_MIST:
+				kfilm->pass_mist = kfilm->pass_stride;
+				break;
 			case PASS_EMISSION:
 				kfilm->pass_emission = kfilm->pass_stride;
-				kfilm->use_light_pass = 1;
 				break;
 			case PASS_BACKGROUND:
 				kfilm->pass_background = kfilm->pass_stride;
-				kfilm->use_light_pass = 1;
 				break;
 			case PASS_AO:
 				kfilm->pass_ao = kfilm->pass_stride;
-				kfilm->use_light_pass = 1;
 				break;
 			case PASS_SHADOW:
 				kfilm->pass_shadow = kfilm->pass_stride;
-				kfilm->use_light_pass = 1;
 				break;
 
 			case PASS_LIGHT:
-				kfilm->use_light_pass = 1;
+				break;
+
+			case PASS_DIFFUSE_COLOR:
+				kfilm->pass_diffuse_color = kfilm->pass_stride;
+				break;
+			case PASS_GLOSSY_COLOR:
+				kfilm->pass_glossy_color = kfilm->pass_stride;
+				break;
+			case PASS_TRANSMISSION_COLOR:
+				kfilm->pass_transmission_color = kfilm->pass_stride;
+				break;
+			case PASS_SUBSURFACE_COLOR:
+				kfilm->pass_subsurface_color = kfilm->pass_stride;
+				break;
+			case PASS_DIFFUSE_INDIRECT:
+				kfilm->pass_diffuse_indirect = kfilm->pass_stride;
+				break;
+			case PASS_GLOSSY_INDIRECT:
+				kfilm->pass_glossy_indirect = kfilm->pass_stride;
+				break;
+			case PASS_TRANSMISSION_INDIRECT:
+				kfilm->pass_transmission_indirect = kfilm->pass_stride;
+				break;
+			case PASS_SUBSURFACE_INDIRECT:
+				kfilm->pass_subsurface_indirect = kfilm->pass_stride;
+				break;
+			case PASS_VOLUME_INDIRECT:
+				kfilm->pass_volume_indirect = kfilm->pass_stride;
+				break;
+			case PASS_DIFFUSE_DIRECT:
+				kfilm->pass_diffuse_direct = kfilm->pass_stride;
+				break;
+			case PASS_GLOSSY_DIRECT:
+				kfilm->pass_glossy_direct = kfilm->pass_stride;
+				break;
+			case PASS_TRANSMISSION_DIRECT:
+				kfilm->pass_transmission_direct = kfilm->pass_stride;
+				break;
+			case PASS_SUBSURFACE_DIRECT:
+				kfilm->pass_subsurface_direct = kfilm->pass_stride;
+				break;
+			case PASS_VOLUME_DIRECT:
+				kfilm->pass_volume_direct = kfilm->pass_stride;
 				break;
 
 #ifdef WITH_CYCLES_DEBUG
@@ -433,8 +432,11 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 				kfilm->pass_ray_bounces = kfilm->pass_stride;
 				break;
 #endif
+			case PASS_RENDER_TIME:
+				break;
 
-			case PASS_NONE:
+			default:
+				assert(false);
 				break;
 		}
 

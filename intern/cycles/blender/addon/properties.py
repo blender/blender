@@ -1183,6 +1183,24 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
                 default=False,
                 update=update_render_passes,
                 )
+        cls.pass_debug_render_time = BoolProperty(
+                name="Debug Render Time",
+                description="Render time in milliseconds per sample and pixel",
+                default=False,
+                update=update_render_passes,
+                )
+        cls.use_pass_volume_direct = BoolProperty(
+                name="Volume Direct",
+                description="Deliver direct volumetric scattering pass",
+                default=False,
+                update=update_render_passes,
+                )
+        cls.use_pass_volume_indirect = BoolProperty(
+                name="Volume Indirect",
+                description="Deliver indirect volumetric scattering pass",
+                default=False,
+                update=update_render_passes,
+                )
 
         cls.use_denoising = BoolProperty(
                 name="Use Denoising",

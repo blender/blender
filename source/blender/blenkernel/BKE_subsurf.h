@@ -125,6 +125,8 @@ typedef struct CCGDerivedMesh {
 	struct CCGFace **gridFaces;
 	struct DMFlagMat *gridFlagMats;
 	unsigned int **gridHidden;
+	/* Elements in arrays above. */
+	unsigned int numGrid;
 
 	struct {
 		struct MultiresModifierData *mmd;

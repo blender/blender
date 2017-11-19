@@ -34,7 +34,6 @@ SET(_sdl2_SEARCH_DIRS
   /usr
   /sw # Fink
   /opt/local # DarwinPorts
-  /opt/csw # Blastwave
 )
 
 FIND_PATH(SDL2_INCLUDE_DIR

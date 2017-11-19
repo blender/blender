@@ -368,43 +368,59 @@ typedef enum ClosureLabel {
 
 /* Render Passes */
 
+#define PASS_NAME_JOIN(a, b) a ## _ ## b
+#define PASSMASK(pass) (1 << ((PASS_NAME_JOIN(PASS, pass)) % 32))
+
+#define PASSMASK_COMPONENT(comp) (PASSMASK(PASS_NAME_JOIN(comp, DIRECT)) |   \
+                                  PASSMASK(PASS_NAME_JOIN(comp, INDIRECT)) | \
+                                  PASSMASK(PASS_NAME_JOIN(comp, COLOR)))
+
 typedef enum PassType {
 	PASS_NONE = 0,
-	PASS_COMBINED = (1 << 0),
-	PASS_DEPTH = (1 << 1),
-	PASS_NORMAL = (1 << 2),
-	PASS_UV = (1 << 3),
-	PASS_OBJECT_ID = (1 << 4),
-	PASS_MATERIAL_ID = (1 << 5),
-	PASS_DIFFUSE_COLOR = (1 << 6),
-	PASS_GLOSSY_COLOR = (1 << 7),
-	PASS_TRANSMISSION_COLOR = (1 << 8),
-	PASS_DIFFUSE_INDIRECT = (1 << 9),
-	PASS_GLOSSY_INDIRECT = (1 << 10),
-	PASS_TRANSMISSION_INDIRECT = (1 << 11),
-	PASS_DIFFUSE_DIRECT = (1 << 12),
-	PASS_GLOSSY_DIRECT = (1 << 13),
-	PASS_TRANSMISSION_DIRECT = (1 << 14),
-	PASS_EMISSION = (1 << 15),
-	PASS_BACKGROUND = (1 << 16),
-	PASS_AO = (1 << 17),
-	PASS_SHADOW = (1 << 18),
-	PASS_MOTION = (1 << 19),
-	PASS_MOTION_WEIGHT = (1 << 20),
-	PASS_MIST = (1 << 21),
-	PASS_SUBSURFACE_DIRECT = (1 << 22),
-	PASS_SUBSURFACE_INDIRECT = (1 << 23),
-	PASS_SUBSURFACE_COLOR = (1 << 24),
-	PASS_LIGHT = (1 << 25), /* no real pass, used to force use_light_pass */
+
+	/* Main passes */
+	PASS_COMBINED = 1,
+	PASS_DEPTH,
+	PASS_NORMAL,
+	PASS_UV,
+	PASS_OBJECT_ID,
+	PASS_MATERIAL_ID,
+	PASS_MOTION,
+	PASS_MOTION_WEIGHT,
 #ifdef __KERNEL_DEBUG__
-	PASS_BVH_TRAVERSED_NODES = (1 << 26),
-	PASS_BVH_TRAVERSED_INSTANCES = (1 << 27),
-	PASS_BVH_INTERSECTIONS = (1 << 28),
-	PASS_RAY_BOUNCES = (1 << 29),
+	PASS_BVH_TRAVERSED_NODES,
+	PASS_BVH_TRAVERSED_INSTANCES,
+	PASS_BVH_INTERSECTIONS,
+	PASS_RAY_BOUNCES,
 #endif
+	PASS_RENDER_TIME,
+	PASS_CATEGORY_MAIN_END = 31,
+
+	PASS_MIST = 32,
+	PASS_EMISSION,
+	PASS_BACKGROUND,
+	PASS_AO,
+	PASS_SHADOW,
+	PASS_LIGHT, /* no real pass, used to force use_light_pass */
+	PASS_DIFFUSE_DIRECT,
+	PASS_DIFFUSE_INDIRECT,
+	PASS_DIFFUSE_COLOR,
+	PASS_GLOSSY_DIRECT,
+	PASS_GLOSSY_INDIRECT,
+	PASS_GLOSSY_COLOR,
+	PASS_TRANSMISSION_DIRECT,
+	PASS_TRANSMISSION_INDIRECT,
+	PASS_TRANSMISSION_COLOR,
+	PASS_SUBSURFACE_DIRECT,
+	PASS_SUBSURFACE_INDIRECT,
+	PASS_SUBSURFACE_COLOR,
+	PASS_VOLUME_DIRECT,
+	PASS_VOLUME_INDIRECT,
+	/* No Scatter color since it's tricky to define what it would even mean. */
+	PASS_CATEGORY_LIGHT_END = 63,
 } PassType;
 
-#define PASS_ALL (~0)
+#define PASS_ANY (~0)
 
 typedef enum DenoisingPassOffsets {
 	DENOISING_PASS_NORMAL             = 0,
@@ -509,7 +525,6 @@ typedef ccl_addr_space struct PathRadiance {
 	float3 color_glossy;
 	float3 color_transmission;
 	float3 color_subsurface;
-	float3 color_scatter;
 
 	float3 direct_diffuse;
 	float3 direct_glossy;
@@ -1179,6 +1194,7 @@ static_assert_align(KernelCamera, 16);
 typedef struct KernelFilm {
 	float exposure;
 	int pass_flag;
+	int light_pass_flag;
 	int pass_stride;
 	int use_light_pass;
 
@@ -1201,11 +1217,13 @@ typedef struct KernelFilm {
 	int pass_glossy_indirect;
 	int pass_transmission_indirect;
 	int pass_subsurface_indirect;
+	int pass_volume_indirect;
 	
 	int pass_diffuse_direct;
 	int pass_glossy_direct;
 	int pass_transmission_direct;
 	int pass_subsurface_direct;
+	int pass_volume_direct;
 	
 	int pass_emission;
 	int pass_background;
@@ -1215,7 +1233,6 @@ typedef struct KernelFilm {
 	int pass_shadow;
 	float pass_shadow_scale;
 	int filter_table_offset;
-	int pass_pad2;
 
 	int pass_mist;
 	float mist_start;
@@ -1225,7 +1242,8 @@ typedef struct KernelFilm {
 	int pass_denoising_data;
 	int pass_denoising_clean;
 	int denoising_flags;
-	int pad;
+
+	int pad1, pad2, pad3;
 
 #ifdef __KERNEL_DEBUG__
 	int pass_bvh_traversed_nodes;

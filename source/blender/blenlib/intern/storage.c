@@ -389,11 +389,7 @@ LinkNode *BLI_file_read_as_lines(const char *name)
 		for (i = 0; i <= size; i++) {
 			if (i == size || buf[i] == '\n') {
 				char *line = BLI_strdupn(&buf[last], i - last);
-
 				BLI_linklist_append(&lines, line);
-				/* faster to build singly-linked list in reverse order */
-				/* alternatively, could process buffer in reverse order so
-				 * list ends up right way round to start with */
 				last = i + 1;
 			}
 		}

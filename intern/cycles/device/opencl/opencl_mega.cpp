@@ -59,6 +59,8 @@ public:
 
 	void path_trace(RenderTile& rtile, int sample)
 	{
+		scoped_timer timer(&rtile.buffers->render_time);
+
 		/* Cast arguments to cl types. */
 		cl_mem d_data = CL_MEM_PTR(const_mem_map["__data"]->device_pointer);
 		cl_mem d_buffer = CL_MEM_PTR(rtile.buffer);

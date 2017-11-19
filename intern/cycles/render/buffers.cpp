@@ -116,7 +116,7 @@ RenderTile::RenderTile()
 
 RenderBuffers::RenderBuffers(Device *device)
 : buffer(device, "RenderBuffers", MEM_READ_WRITE),
-  map_neighbor_copied(false)
+  map_neighbor_copied(false), render_time(0.0f)
 {
 }
 
@@ -264,6 +264,12 @@ bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int
 				}
 			}
 #endif
+			else if(type == PASS_RENDER_TIME) {
+				float val = (float) (1000.0 * render_time/(params.width * params.height * sample));
+				for(int i = 0; i < size; i++, pixels++) {
+					pixels[0] = val;
+				}
+			}
 			else {
 				for(int i = 0; i < size; i++, in += pass_stride, pixels++) {
 					float f = *in;

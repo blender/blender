@@ -32,7 +32,6 @@ SET(_jack_SEARCH_DIRS
   /usr/local
   /sw # Fink
   /opt/local # DarwinPorts
-  /opt/csw # Blastwave
 )
 
 FIND_PATH(JACK_INCLUDE_DIR

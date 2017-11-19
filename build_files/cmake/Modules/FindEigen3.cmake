@@ -28,7 +28,6 @@ SET(_eigen3_SEARCH_DIRS
   /usr/local
   /sw # Fink
   /opt/local # DarwinPorts
-  /opt/csw # Blastwave
 )
 
 FIND_PATH(EIGEN3_INCLUDE_DIR

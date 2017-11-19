@@ -32,7 +32,6 @@ SET(_lzo_SEARCH_DIRS
   /usr/local
   /sw # Fink
   /opt/local # DarwinPorts
-  /opt/csw # Blastwave
 )
 
 FIND_PATH(LZO_INCLUDE_DIR lzo/lzo1x.h

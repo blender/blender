@@ -526,6 +526,10 @@ class CYCLES_RENDER_PT_layer_passes(CyclesButtonsPanel, Panel):
         row.prop(rl, "use_pass_subsurface_direct", text="Direct", toggle=True)
         row.prop(rl, "use_pass_subsurface_indirect", text="Indirect", toggle=True)
         row.prop(rl, "use_pass_subsurface_color", text="Color", toggle=True)
+        col.label(text="Volume:")
+        row = col.row(align=True)
+        row.prop(crl, "use_pass_volume_direct", text="Direct", toggle=True)
+        row.prop(crl, "use_pass_volume_indirect", text="Indirect", toggle=True)
 
         col.separator()
         col.prop(rl, "use_pass_emit", text="Emission")
@@ -537,8 +541,9 @@ class CYCLES_RENDER_PT_layer_passes(CyclesButtonsPanel, Panel):
             sub.active = crl.use_denoising
             sub.prop(crl, "denoising_store_passes", text="Denoising")
 
+        col = layout.column()
+        col.prop(crl, "pass_debug_render_time")
         if _cycles.with_cycles_debug:
-            col = layout.column()
             col.prop(crl, "pass_debug_bvh_traversed_nodes")
             col.prop(crl, "pass_debug_bvh_traversed_instances")
             col.prop(crl, "pass_debug_bvh_intersections")

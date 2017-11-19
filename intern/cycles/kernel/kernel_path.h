@@ -140,7 +140,7 @@ ccl_device_forceinline void kernel_path_background(
 		L->transparent += average(throughput);
 
 #ifdef __PASSES__
-		if(!(kernel_data.film.pass_flag & PASS_BACKGROUND))
+		if(!(kernel_data.film.light_pass_flag & PASSMASK(BACKGROUND)))
 #endif  /* __PASSES__ */
 			return;
 	}

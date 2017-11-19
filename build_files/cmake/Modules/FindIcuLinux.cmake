@@ -35,7 +35,6 @@ SET(_icu_SEARCH_DIRS
   /usr/local
   /sw # Fink
   /opt/local # DarwinPorts
-  /opt/csw # Blastwave
 )
 
 # We don't need includes, only libs to link against...

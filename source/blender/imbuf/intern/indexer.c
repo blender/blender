@@ -843,9 +843,9 @@ static void index_rebuild_ffmpeg_finish(FFmpegIndexBuilderContext *context, int 
 }
 
 static void index_rebuild_ffmpeg_proc_decoded_frame(
-	FFmpegIndexBuilderContext *context, 
-	AVPacket * curr_packet,
-	AVFrame *in_frame)
+        FFmpegIndexBuilderContext *context,
+        AVPacket *curr_packet,
+        AVFrame *in_frame)
 {
 	int i;
 	unsigned long long s_pos = context->seek_pos;

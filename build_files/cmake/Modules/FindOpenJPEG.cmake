@@ -32,7 +32,6 @@ SET(_openjpeg_SEARCH_DIRS
   /usr/local
   /sw # Fink
   /opt/local # DarwinPorts
-  /opt/csw # Blastwave
 )
 
 FIND_PATH(OPENJPEG_INCLUDE_DIR
