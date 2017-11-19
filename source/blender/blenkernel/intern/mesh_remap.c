@@ -1482,6 +1482,7 @@ void BKE_mesh_remap_calc_loops_from_dm(
 
 							for (i = vert_to_refelem_map_src[nearest.index].count; i--;) {
 								const int index_src = vert_to_refelem_map_src[nearest.index].indices[i];
+								BLI_assert(index_src != -1);
 								const float dot = dot_v3v3(nors_src[index_src], *nor_dst);
 
 								pidx_src = (mode == MREMAP_MODE_LOOP_NEAREST_LOOPNOR) ?
@@ -1522,7 +1523,12 @@ void BKE_mesh_remap_calc_loops_from_dm(
 									}
 								}
 							}
-							if (mode == MREMAP_MODE_LOOP_NEAREST_POLYNOR) {
+							if (best_index_src == -1) {
+								/* We found no item to map back from closest vertex... */
+								best_nor_dot = -1.0f;
+								hit_dist = FLT_MAX;
+							}
+							else if (mode == MREMAP_MODE_LOOP_NEAREST_POLYNOR) {
 								/* Our best_index_src is a poly one for now!
 								 * Have to find its loop matching our closest vertex. */
 								mp_src = &polys_src[best_index_src];
