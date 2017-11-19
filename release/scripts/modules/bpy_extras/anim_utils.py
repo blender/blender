@@ -153,15 +153,29 @@ def bake_action_iter(
     # -------------------------------------------------------------------------
     # Helper Functions and vars
 
+    # Note: BBONE_PROPS is a list so we can preserve the ordering
+    BBONE_PROPS = [
+        'bbone_curveinx', 'bbone_curveoutx',
+        'bbone_curveiny', 'bbone_curveouty',
+        'bbone_rollin', 'bbone_rollout',
+        'bbone_scalein', 'bbone_scaleout',
+        'bbone_easein', 'bbone_easeout'
+    ]
+
     def pose_frame_info(obj):
         matrix = {}
+        bbones = {}
         for name, pbone in obj.pose.bones.items():
             if do_visual_keying:
                 # Get the final transform of the bone in its own local space...
                 matrix[name] = obj.convert_space(pbone, pbone.matrix, 'POSE', 'LOCAL')
             else:
                 matrix[name] = pbone.matrix_basis.copy()
-        return matrix
+
+            # Bendy Bones
+            if pbone.bone.bbone_segments > 1:
+                bbones[name] = {bb_prop : getattr(pbone, bb_prop) for bb_prop in BBONE_PROPS}
+        return matrix, bbones
 
     if do_parents_clear:
         if do_visual_keying:
@@ -214,7 +228,7 @@ def bake_action_iter(
             break
 
         if do_pose:
-            pose_info.append((frame, pose_frame_info(obj)))
+            pose_info.append((frame, *pose_frame_info(obj)))
         if do_object:
             obj_info.append((frame, obj_frame_info(obj)))
 
@@ -255,7 +269,7 @@ def bake_action_iter(
             # create compatible eulers
             euler_prev = None
 
-            for (f, matrix) in pose_info:
+            for (f, matrix, bbones) in pose_info:
                 pbone.matrix_basis = matrix[name].copy()
 
                 pbone.keyframe_insert("location", -1, f, name, options)
@@ -277,6 +291,14 @@ def bake_action_iter(
                     pbone.keyframe_insert("rotation_euler", -1, f, name, options)
 
                 pbone.keyframe_insert("scale", -1, f, name, options)
+
+                # Bendy Bones
+                if pbone.bone.bbone_segments > 1:
+                    bbone_shape = bbones[name]
+                    for bb_prop in BBONE_PROPS:
+                        # update this property with value from bbone_shape, then key it
+                        setattr(pbone, bb_prop, bbone_shape[bb_prop])
+                        pbone.keyframe_insert(bb_prop, -1, f, name, options)
 
     # object. TODO. multiple objects
     if do_object:
