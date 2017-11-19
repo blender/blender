@@ -64,6 +64,7 @@
 #include "ED_anim_api.h"
 #include "ED_keyframing.h"
 #include "ED_screen.h"
+#include "ED_util.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -503,25 +504,28 @@ static void driver_remove_cb(bContext *C, void *ale_v, void *UNUSED(arg))
 	
 	/* call API method to remove this driver  */
 	ANIM_remove_driver(reports, id, fcu->rna_path, fcu->array_index, 0);
+	ED_undo_push(C, "Remove Driver");
 }
 
 /* callback to add a target variable to the active driver */
-static void driver_add_var_cb(bContext *UNUSED(C), void *driver_v, void *UNUSED(arg))
+static void driver_add_var_cb(bContext *C, void *driver_v, void *UNUSED(arg))
 {
 	ChannelDriver *driver = (ChannelDriver *)driver_v;
 	
 	/* add a new variable */
 	driver_add_new_variable(driver);
+	ED_undo_push(C, "Add Driver Variable");
 }
 
 /* callback to remove target variable from active driver */
-static void driver_delete_var_cb(bContext *UNUSED(C), void *driver_v, void *dvar_v)
+static void driver_delete_var_cb(bContext *C, void *driver_v, void *dvar_v)
 {
 	ChannelDriver *driver = (ChannelDriver *)driver_v;
 	DriverVar *dvar = (DriverVar *)dvar_v;
 	
 	/* remove the active variable */
 	driver_free_variable_ex(driver, dvar);
+	ED_undo_push(C, "Delete Driver Variable");
 }
 
 /* callback to report why a driver variable is invalid */
