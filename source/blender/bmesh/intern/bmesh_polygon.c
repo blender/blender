@@ -510,6 +510,18 @@ void BM_face_calc_tangent_auto(const BMFace *f, float r_tangent[3])
 }
 
 /**
+ * expands bounds (min/max must be initialized).
+ */
+void BM_face_calc_bounds_expand(const BMFace *f, float min[3], float max[3])
+{
+	const BMLoop *l_iter, *l_first;
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		minmax_v3v3_v3(min, max, l_iter->v->co);
+	} while ((l_iter = l_iter->next) != l_first);
+}
+
+/**
  * computes center of face in 3d.  uses center of bounding box.
  */
 void BM_face_calc_center_bounds(const BMFace *f, float r_cent[3])

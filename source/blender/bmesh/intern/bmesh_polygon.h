@@ -57,6 +57,8 @@ void  BM_face_calc_center_mean_vcos(
         float const (*vertexCos)[3]) ATTR_NONNULL();
 void  BM_face_calc_center_mean_weighted(const BMFace *f, float center[3]) ATTR_NONNULL();
 
+void BM_face_calc_bounds_expand(const BMFace *f, float min[3], float max[3]);
+
 void  BM_face_normal_update(BMFace *f) ATTR_NONNULL();
 
 void  BM_edge_normals_update(BMEdge *e) ATTR_NONNULL();
