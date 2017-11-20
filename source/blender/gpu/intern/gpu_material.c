@@ -640,14 +640,14 @@ static void compute_sss_kernel(GPUSssKernelData *kd, float *radii, int sample_ct
 		float x0, x1;
 
 		if (i == 0) {
-			x0 = kd->kernel[0][3] - abs(kd->kernel[0][3] - kd->kernel[1][3]) / 2.0f;
+			x0 = kd->kernel[0][3] - fabsf(kd->kernel[0][3] - kd->kernel[1][3]) / 2.0f;
 		}
 		else {
 			x0 = (kd->kernel[i - 1][3] + kd->kernel[i][3]) / 2.0f;
 		}
 
 		if (i == sample_ct - 1) {
-			x1 = kd->kernel[sample_ct - 1][3] + abs(kd->kernel[sample_ct - 2][3] - kd->kernel[sample_ct - 1][3]) / 2.0f;
+			x1 = kd->kernel[sample_ct - 1][3] + fabsf(kd->kernel[sample_ct - 2][3] - kd->kernel[sample_ct - 1][3]) / 2.0f;
 		}
 		else {
 			x1 = (kd->kernel[i][3] + kd->kernel[i + 1][3]) / 2.0f;
