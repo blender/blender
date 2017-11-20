@@ -217,10 +217,11 @@ FreestyleLineStyle *BKE_linestyle_active_from_scene(Scene *scene)
 {
 	SceneRenderLayer *actsrl = BLI_findlink(&scene->r.layers, scene->r.actlay);
 	FreestyleConfig *config = &actsrl->freestyleConfig;
-	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(config);
-
-	if (lineset) {
-		return lineset->linestyle;
+	if (config) {
+		FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(config);
+		if (lineset) {
+			return lineset->linestyle;
+		}
 	}
 	return NULL;
 }
