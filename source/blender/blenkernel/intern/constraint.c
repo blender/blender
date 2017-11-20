@@ -98,11 +98,6 @@
 /* Constraint Target Macros */
 #define VALID_CONS_TARGET(ct) ((ct) && (ct->tar))
 
-/* Workaround for cyclic depenndnecy with curves.
- * In such case curve_cache might not be ready yet,
- */
-#define CYCLIC_DEPENDENCY_WORKAROUND
-
 /* ************************ Constraints - General Utilities *************************** */
 /* These functions here don't act on any specific constraints, and are therefore should/will
  * not require any of the special function-pointers afforded by the relevant constraint 
@@ -1242,7 +1237,9 @@ static void followpath_flush_tars(bConstraint *con, ListBase *list, bool no_copy
 	}
 }
 
-static void followpath_get_tarmat(const struct EvaluationContext *eval_ctx, bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
+static void followpath_get_tarmat(const struct EvaluationContext *UNUSED(eval_ctx),
+                                  bConstraint *con, bConstraintOb *UNUSED(cob),
+                                  bConstraintTarget *ct, float UNUSED(ctime))
 {
 	bFollowPathConstraint *data = con->data;
 	
@@ -1257,13 +1254,7 @@ static void followpath_get_tarmat(const struct EvaluationContext *eval_ctx, bCon
 		 *		currently for paths to work it needs to go through the bevlist/displist system (ton) 
 		 */
 
-#ifdef CYCLIC_DEPENDENCY_WORKAROUND
-		if (ct->tar->curve_cache == NULL) {
-			BKE_displist_make_curveTypes(eval_ctx, cob->scene, ct->tar, false);
-		}
-#endif
-
-		if (ct->tar->curve_cache->path && ct->tar->curve_cache->path->data) {
+		if (ct->tar->curve_cache && ct->tar->curve_cache->path && ct->tar->curve_cache->path->data) {
 			float quat[4];
 			if ((data->followflag & FOLLOWPATH_STATIC) == 0) {
 				/* animated position along curve depending on time */
@@ -2024,21 +2015,19 @@ static void pycon_id_looper(bConstraint *con, ConstraintIDFunc func, void *userd
 }
 
 /* Whether this approach is maintained remains to be seen (aligorith) */
-static void pycon_get_tarmat(const struct EvaluationContext *eval_ctx, bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
+static void pycon_get_tarmat(const struct EvaluationContext *UNUSED(eval_ctx),
+                             bConstraint *con, bConstraintOb *UNUSED(cob),
+                             bConstraintTarget *ct, float UNUSED(ctime))
 {
 #ifdef WITH_PYTHON
 	bPythonConstraint *data = con->data;
 #endif
 
 	if (VALID_CONS_TARGET(ct)) {
-#ifdef CYCLIC_DEPENDENCY_WORKAROUND
-		/* special exception for curves - depsgraph issues */
-		if (ct->tar->type == OB_CURVE) {
-			if (ct->tar->curve_cache == NULL) {
-				BKE_displist_make_curveTypes(eval_ctx, cob->scene, ct->tar, false);
-			}
+		if (ct->tar->type == OB_CURVE && ct->tar->curve_cache == NULL) {
+			unit_m4(ct->matrix);
+			return;
 		}
-#endif
 
 		/* firstly calculate the matrix the normal way, then let the py-function override
 		 * this matrix if it needs to do so
@@ -3131,16 +3120,10 @@ static void clampto_flush_tars(bConstraint *con, ListBase *list, bool no_copy)
 	}
 }
 
-static void clampto_get_tarmat(const struct EvaluationContext *eval_ctx, bConstraint *UNUSED(con), bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
+static void clampto_get_tarmat(const struct EvaluationContext *UNUSED(eval_ctx),
+                               bConstraint *UNUSED(con), bConstraintOb *UNUSED(cob),
+                               bConstraintTarget *ct, float UNUSED(ctime))
 {
-#ifdef CYCLIC_DEPENDENCY_WORKAROUND
-	if (VALID_CONS_TARGET(ct)) {
-		if (ct->tar->curve_cache == NULL) {
-			BKE_displist_make_curveTypes(eval_ctx, cob->scene, ct->tar, false);
-		}
-	}
-#endif
-
 	/* technically, this isn't really needed for evaluation, but we don't know what else
 	 * might end up calling this...
 	 */
@@ -3806,16 +3789,10 @@ static void splineik_flush_tars(bConstraint *con, ListBase *list, bool no_copy)
 	}
 }
 
-static void splineik_get_tarmat(const struct EvaluationContext *eval_ctx, bConstraint *UNUSED(con), bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
+static void splineik_get_tarmat(const struct EvaluationContext *UNUSED(eval_ctx),
+                                bConstraint *UNUSED(con), bConstraintOb *UNUSED(cob),
+                                bConstraintTarget *ct, float UNUSED(ctime))
 {
-#ifdef CYCLIC_DEPENDENCY_WORKAROUND
-	if (VALID_CONS_TARGET(ct)) {
-		if (ct->tar->curve_cache == NULL) {
-			BKE_displist_make_curveTypes(eval_ctx, cob->scene, ct->tar, false);
-		}
-	}
-#endif
-
 	/* technically, this isn't really needed for evaluation, but we don't know what else
 	 * might end up calling this...
 	 */

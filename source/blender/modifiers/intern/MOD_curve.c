@@ -115,7 +115,7 @@ static void updateDepsgraph(ModifierData *md,
 	DEG_add_object_relation(node, object, DEG_OB_COMP_TRANSFORM, "Curve Modifier");
 }
 
-static void deformVerts(ModifierData *md, const struct EvaluationContext *eval_ctx,
+static void deformVerts(ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx),
                         Object *ob, DerivedMesh *derivedData,
                         float (*vertexCos)[3],
                         int numVerts,
@@ -125,7 +125,7 @@ static void deformVerts(ModifierData *md, const struct EvaluationContext *eval_c
 
 	/* silly that defaxis and curve_deform_verts are off by 1
 	 * but leave for now to save having to call do_versions */
-	curve_deform_verts(eval_ctx, md->scene, cmd->object, ob, derivedData, vertexCos, numVerts,
+	curve_deform_verts(cmd->object, ob, derivedData, vertexCos, numVerts,
 	                   cmd->name, cmd->defaxis - 1);
 }
 

@@ -56,12 +56,6 @@
 
 #include "DEG_depsgraph.h"
 
-/* Due to cyclic dependencies it's possible that curve used for
- * deformation here is not evaluated at the time of evaluating
- * this modifier.
- */
-#define CYCLIC_DEPENDENCY_WORKAROUND
-
 static void initData(ModifierData *md)
 {
 	ArrayModifierData *amd = (ArrayModifierData *) md;
@@ -356,8 +350,7 @@ static void dm_merge_transform(
 }
 
 static DerivedMesh *arrayModifier_doArray(
-        ArrayModifierData *amd, const EvaluationContext *eval_ctx,
-        Scene *scene, Object *ob, DerivedMesh *dm,
+        ArrayModifierData *amd, Object *ob, DerivedMesh *dm,
         ModifierApplyFlag flag)
 {
 	const float eps = 1e-6f;
@@ -460,12 +453,6 @@ static DerivedMesh *arrayModifier_doArray(
 	if (amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob) {
 		Curve *cu = amd->curve_ob->data;
 		if (cu) {
-#ifdef CYCLIC_DEPENDENCY_WORKAROUND
-			if (amd->curve_ob->curve_cache == NULL) {
-				BKE_displist_make_curveTypes(eval_ctx, scene, amd->curve_ob, false);
-			}
-#endif
-
 			if (amd->curve_ob->curve_cache && amd->curve_ob->curve_cache->path) {
 				float scale_fac = mat4_to_scale(amd->curve_ob->obmat);
 				length = scale_fac * amd->curve_ob->curve_cache->path->totdist;
@@ -725,12 +712,12 @@ static DerivedMesh *arrayModifier_doArray(
 }
 
 
-static DerivedMesh *applyModifier(ModifierData *md, const EvaluationContext *eval_ctx,
+static DerivedMesh *applyModifier(ModifierData *md, const EvaluationContext *UNUSED(eval_ctx),
                                   Object *ob, DerivedMesh *dm,
                                   ModifierApplyFlag flag)
 {
 	ArrayModifierData *amd = (ArrayModifierData *) md;
-	return arrayModifier_doArray(amd, eval_ctx, md->scene, ob, dm, flag);
+	return arrayModifier_doArray(amd, ob, dm, flag);
 }
 
 
