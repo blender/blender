@@ -19,11 +19,10 @@
  *
  */
 
-/* Temporal super sampling technique
- */
-
 /** \file eevee_temporal_sampling.c
  *  \ingroup draw_engine
+ *
+ * Temporal super sampling technique
  */
 
 #include "DRW_render.h"

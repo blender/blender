@@ -28,15 +28,13 @@
  *  \ingroup spoutliner
  */
 
-#include "BKE_context.h"
-#include "BKE_main.h"
+#include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
-#include "ED_screen.h"
-
-#include "MEM_guardedalloc.h"
+#include "BKE_context.h"
+#include "BKE_main.h"
 
 #include "RNA_access.h"
 
@@ -46,8 +44,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "outliner_intern.h"
+#include "ED_screen.h"
 
+#include "outliner_intern.h"
 
 enum {
 	OUTLINER_ITEM_DRAG_CANCEL,

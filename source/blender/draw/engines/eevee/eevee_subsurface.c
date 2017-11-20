@@ -19,11 +19,10 @@
  *
  */
 
-/* Screen space subsurface scattering technique.
- */
-
 /** \file eevee_subsurface.c
  *  \ingroup draw_engine
+ *
+ * Screen space subsurface scattering technique.
  */
 
 #include "DRW_render.h"

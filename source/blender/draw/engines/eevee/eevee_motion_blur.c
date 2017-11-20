@@ -19,24 +19,23 @@
  *
  */
 
-/* Gather all screen space effects technique such as Bloom, Motion Blur, DoF, SSAO, SSR, ...
- */
-
 /** \file eevee_effects.c
  *  \ingroup draw_engine
+ *
+ * Gather all screen space effects technique such as Bloom, Motion Blur, DoF, SSAO, SSR, ...
  */
 
 #include "DRW_render.h"
-
-#include "DNA_anim_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_screen_types.h"
 
 #include "BKE_global.h" /* for G.debug_value */
 #include "BKE_camera.h"
 #include "BKE_object.h"
 #include "BKE_animsys.h"
 #include "BKE_screen.h"
+
+#include "DNA_anim_types.h"
+#include "DNA_camera_types.h"
+#include "DNA_screen_types.h"
 
 #include "ED_screen.h"
 

@@ -31,20 +31,20 @@
  * \brief This file contains functions for common behaviors of manipulators.
  */
 
-#include "BKE_context.h"
-
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 
 #include "DNA_view3d_types.h"
 #include "DNA_screen_types.h"
 
-#include "ED_view3d.h"
+#include "BKE_context.h"
 
 #include "RNA_access.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+#include "ED_view3d.h"
 
 /* own includes */
 #include "manipulator_library_intern.h"

@@ -19,7 +19,9 @@
  *
  */
 
-#include "DRW_render.h"
+#include "BLI_utildefines.h"
+#include "BLI_dynstr.h"
+#include "BLI_rand.h"
 
 #include "DNA_particle_types.h"
 
@@ -28,9 +30,6 @@
 #include "BKE_main.h"
 #include "BKE_particle.h"
 
-#include "BLI_dynstr.h"
-#include "BLI_rand.h"
-
 #include "GPU_shader.h"
 
 #include "IMB_imbuf.h"
@@ -38,6 +37,8 @@
 
 #include "UI_resources.h"
 #include "UI_interface_icons.h"
+
+#include "DRW_render.h"
 
 #include "clay_engine.h"
 

@@ -27,21 +27,18 @@
  *  \ingroup wm
  */
 
-#include "BKE_context.h"
+#include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
 
-#include "ED_screen.h"
-#include "ED_view3d.h"
+#include "BKE_context.h"
 
 #include "GPU_batch.h"
 #include "GPU_glew.h"
 #include "GPU_immediate.h"
-
-#include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -52,6 +49,9 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+#include "ED_screen.h"
+#include "ED_view3d.h"
 
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"

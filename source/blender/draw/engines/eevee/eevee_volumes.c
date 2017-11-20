@@ -19,14 +19,16 @@
  *
  */
 
-/* Volumetric effects rendering using frostbite approach.
- */
-
 /** \file eevee_volume.c
  *  \ingroup draw_engine
+ *
+ * Volumetric effects rendering using frostbite approach.
  */
 
 #include "DRW_render.h"
+
+#include "BLI_dynstr.h"
+#include "BLI_rand.h"
 
 #include "DNA_object_force.h"
 #include "DNA_smoke_types.h"
@@ -38,9 +40,6 @@
 #include "BKE_object.h"
 
 #include "ED_screen.h"
-
-#include "BLI_dynstr.h"
-#include "BLI_rand.h"
 
 #include "eevee_private.h"
 #include "GPU_draw.h"

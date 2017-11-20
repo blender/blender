@@ -19,11 +19,10 @@
  *
  */
 
-/* Gather all screen space effects technique such as Bloom, Motion Blur, DoF, SSAO, SSR, ...
- */
-
 /** \file eevee_effects.c
  *  \ingroup draw_engine
+ *
+ * Gather all screen space effects technique such as Bloom, Motion Blur, DoF, SSAO, SSR, ...
  */
 
 #include "DRW_render.h"

@@ -19,20 +19,19 @@
  *
  */
 
-/* Implementation of the screen space Ground Truth Ambient Occlusion.
- */
-
 /** \file eevee_occlusion.c
  *  \ingroup draw_engine
+ *
+ * Implementation of the screen space Ground Truth Ambient Occlusion.
  */
 
 #include "DRW_render.h"
 
+#include "BLI_dynstr.h"
+
 #include "DNA_anim_types.h"
 
 #include "BKE_global.h" /* for G.debug_value */
-
-#include "BLI_dynstr.h"
 
 #include "eevee_private.h"
 

@@ -23,6 +23,12 @@
  *  \ingroup DNA
  */
 
+#include "DRW_render.h"
+
+#include "BLI_utildefines.h"
+#include "BLI_dynstr.h"
+#include "BLI_rand.h"
+
 #include "DNA_world_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_image_types.h"
@@ -31,19 +37,14 @@
 
 #include "BKE_object.h"
 
-#include "BLI_dynstr.h"
-#include "BLI_rand.h"
-
-#include "ED_screen.h"
-
 #include "GPU_material.h"
 #include "GPU_texture.h"
 #include "GPU_glew.h"
 
-#include "DRW_render.h"
-
 #include "eevee_engine.h"
 #include "eevee_private.h"
+
+#include "ED_screen.h"
 
 #define IRRADIANCE_POOL_SIZE 1024
 

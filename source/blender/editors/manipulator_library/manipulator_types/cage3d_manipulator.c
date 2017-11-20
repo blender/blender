@@ -34,17 +34,15 @@
  * Interacting scales or translates the manipulator.
  */
 
-#include "BIF_gl.h"
-
-#include "BKE_context.h"
+#include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
 #include "BLI_dial.h"
 #include "BLI_rect.h"
 
-#include "ED_screen.h"
-#include "ED_view3d.h"
-#include "ED_manipulator_library.h"
+#include "BKE_context.h"
+
+#include "BIF_gl.h"
 
 #include "GPU_matrix.h"
 #include "GPU_shader.h"
@@ -52,13 +50,15 @@
 #include "GPU_immediate_util.h"
 #include "GPU_select.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "RNA_access.h"
 #include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+#include "ED_screen.h"
+#include "ED_view3d.h"
+#include "ED_manipulator_library.h"
 
 /* own includes */
 #include "../manipulator_library_intern.h"

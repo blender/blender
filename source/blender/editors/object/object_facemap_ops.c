@@ -24,12 +24,17 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <string.h>
+
+#include "MEM_guardedalloc.h"
+
+#include "BLI_utildefines.h"
+#include "BLI_path_util.h"
+#include "BLI_string.h"
+#include "BLI_listbase.h"
 
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
-
-#include "WM_types.h"
-#include "WM_api.h"
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
@@ -40,20 +45,14 @@
 
 #include "DEG_depsgraph.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_path_util.h"
-#include "BLI_string.h"
-#include "BLI_listbase.h"
-
-#include "MEM_guardedalloc.h"
-
-#include "ED_mesh.h"
-#include "ED_object.h"
-
 #include "RNA_define.h"
 #include "RNA_access.h"
 
-#include <string.h>
+#include "WM_types.h"
+#include "WM_api.h"
+
+#include "ED_mesh.h"
+#include "ED_object.h"
 
 #include "object_intern.h"
 

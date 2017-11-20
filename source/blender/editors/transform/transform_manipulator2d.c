@@ -31,8 +31,7 @@
  * Used for UV/Image Editor
  */
 
-#include "BKE_context.h"
-#include "BKE_editmesh.h"
+#include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -43,12 +42,8 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
-#include "ED_image.h"
-#include "ED_screen.h"
-#include "ED_uvedit.h"
-#include "ED_manipulator_library.h"
-
-#include "MEM_guardedalloc.h"
+#include "BKE_context.h"
+#include "BKE_editmesh.h"
 
 #include "RNA_access.h"
 
@@ -58,6 +53,11 @@
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm.h" /* XXX */
+
+#include "ED_image.h"
+#include "ED_screen.h"
+#include "ED_uvedit.h"
+#include "ED_manipulator_library.h"
 
 #include "transform.h" /* own include */
 

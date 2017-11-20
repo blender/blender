@@ -40,15 +40,11 @@
 
 #include "BIF_gl.h"
 
-#include "BKE_context.h"
-
 #include "BLI_math.h"
 
 #include "DNA_view3d_types.h"
 
-#include "ED_view3d.h"
-#include "ED_screen.h"
-#include "ED_manipulator_library.h"
+#include "BKE_context.h"
 
 #include "GPU_draw.h"
 #include "GPU_immediate.h"
@@ -63,6 +59,10 @@
 
 #include "WM_types.h"
 #include "WM_api.h"
+
+#include "ED_view3d.h"
+#include "ED_screen.h"
+#include "ED_manipulator_library.h"
 
 /* own includes */
 #include "../manipulator_geometry.h"

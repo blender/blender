@@ -27,13 +27,13 @@
  *  \ingroup wm
  */
 
-#include "BKE_context.h"
-
 #include "BLI_listbase.h"
 #include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
+
+#include "BKE_context.h"
 
 #include "ED_screen.h"
 #include "ED_view3d.h"

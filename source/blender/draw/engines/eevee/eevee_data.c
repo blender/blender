@@ -19,11 +19,10 @@
  *
  */
 
-/* All specific data handler for Objects, Lights, SceneLayers, ...
- */
-
 /** \file eevee_data.c
  *  \ingroup draw_engine
+ *
+ * All specific data handler for Objects, Lights, SceneLayers, ...
  */
 
 #include "DRW_render.h"

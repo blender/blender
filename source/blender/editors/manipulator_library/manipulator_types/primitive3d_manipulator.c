@@ -29,19 +29,19 @@
  * Currently only plane primitive supported without own handling, use with operator only.
  */
 
-#include "BIF_gl.h"
-
-#include "BKE_context.h"
+#include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
 
 #include "DNA_view3d_types.h"
 
+#include "BKE_context.h"
+
+#include "BIF_gl.h"
+
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 #include "GPU_select.h"
-
-#include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

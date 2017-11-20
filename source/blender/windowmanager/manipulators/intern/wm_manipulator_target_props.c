@@ -22,15 +22,12 @@
  *  \ingroup wm
  */
 
-#include "BKE_context.h"
-
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
 
-#include "ED_screen.h"
-#include "ED_view3d.h"
+#include "BKE_context.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -40,6 +37,9 @@
 #include "WM_types.h"
 
 #include "wm.h"
+
+#include "ED_screen.h"
+#include "ED_view3d.h"
 
 /* own includes */
 #include "wm_manipulator_wmapi.h"

@@ -19,11 +19,10 @@
  *
  */
 
-/* Screen space reflections and refractions techniques.
- */
-
 /** \file eevee_screen_raytrace.c
  *  \ingroup draw_engine
+ *
+ * Screen space reflections and refractions techniques.
  */
 
 #include "DRW_render.h"

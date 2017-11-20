@@ -23,13 +23,14 @@
  *  \ingroup draw_engine
  */
 
-#include "DNA_world_types.h"
 #include "DRW_render.h"
 
 #include "BLI_dynstr.h"
 #include "BLI_rand.h"
 
 #include "BKE_object.h"
+
+#include "DNA_world_types.h"
 
 #include "GPU_material.h"
 #include "GPU_glew.h"

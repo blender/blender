@@ -27,19 +27,18 @@
  *  \ingroup spoutliner
  */
 
-#include "BKE_outliner_treehash.h"
-
 #include "BLI_utildefines.h"
 
 #include "DNA_action_types.h"
 #include "DNA_space_types.h"
+
+#include "BKE_outliner_treehash.h"
 
 #include "ED_armature.h"
 
 #include "UI_interface.h"
 
 #include "outliner_intern.h"
-
 
 /**
  * Try to find an item under y-coordinate \a view_co_y (view-space).

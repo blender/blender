@@ -25,10 +25,6 @@
 
 #include "DRW_render.h"
 
-#include "DNA_world_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_view3d_types.h"
-
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
 #include "BLI_alloca.h"
@@ -36,6 +32,10 @@
 #include "BKE_particle.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+
+#include "DNA_world_types.h"
+#include "DNA_modifier_types.h"
+#include "DNA_view3d_types.h"
 
 #include "GPU_material.h"
 

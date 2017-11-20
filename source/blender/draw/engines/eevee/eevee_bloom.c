@@ -19,18 +19,17 @@
  *
  */
 
-/* Eevee's bloom shader
- */
-
 /** \file eevee_bloom.c
  *  \ingroup draw_engine
+ *
+ * Eevee's bloom shader.
  */
 
 #include "DRW_render.h"
 
-#include "BKE_global.h" /* for G.debug_value */
-
 #include "BLI_dynstr.h"
+
+#include "BKE_global.h" /* for G.debug_value */
 
 #include "eevee_private.h"
 #include "GPU_extensions.h"

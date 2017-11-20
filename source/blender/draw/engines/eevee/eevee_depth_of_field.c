@@ -19,14 +19,16 @@
  *
  */
 
-/* Depth of field post process effect
- */
-
 /** \file eevee_depth_of_field.c
  *  \ingroup draw_engine
+ *
+ * Depth of field post process effect.
  */
 
 #include "DRW_render.h"
+
+#include "BLI_dynstr.h"
+#include "BLI_rand.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_camera_types.h"
@@ -42,17 +44,14 @@
 #include "BKE_animsys.h"
 #include "BKE_screen.h"
 
-#include "ED_screen.h"
-
 #include "DEG_depsgraph.h"
-
-#include "BLI_dynstr.h"
-#include "BLI_rand.h"
 
 #include "eevee_private.h"
 #include "GPU_extensions.h"
 #include "GPU_framebuffer.h"
 #include "GPU_texture.h"
+
+#include "ED_screen.h"
 
 static struct {
 	/* Depth Of Field */

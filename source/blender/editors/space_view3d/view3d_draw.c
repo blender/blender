@@ -30,6 +30,13 @@
 
 #include <math.h>
 
+#include "BLI_listbase.h"
+#include "BLI_math.h"
+#include "BLI_rect.h"
+#include "BLI_string.h"
+#include "BLI_threads.h"
+#include "BLI_jitter.h"
+
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
@@ -43,13 +50,6 @@
 #include "BKE_unit.h"
 
 #include "BLF_api.h"
-
-#include "BLI_listbase.h"
-#include "BLI_math.h"
-#include "BLI_rect.h"
-#include "BLI_string.h"
-#include "BLI_threads.h"
-#include "BLI_jitter.h"
 
 #include "BLT_translation.h"
 

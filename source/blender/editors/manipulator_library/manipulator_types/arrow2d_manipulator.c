@@ -31,18 +31,15 @@
  * \brief Simple arrow manipulator which is dragged into a certain direction.
  */
 
-#include "BIF_gl.h"
-
-#include "BKE_context.h"
-
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
 
 #include "DNA_windowmanager_types.h"
 
-#include "ED_screen.h"
-#include "ED_manipulator_library.h"
+#include "BKE_context.h"
+
+#include "BIF_gl.h"
 
 #include "GPU_draw.h"
 #include "GPU_immediate.h"
@@ -54,6 +51,9 @@
 #include "RNA_define.h"
 
 #include "WM_types.h"
+
+#include "ED_screen.h"
+#include "ED_manipulator_library.h"
 
 /* own includes */
 #include "WM_api.h"

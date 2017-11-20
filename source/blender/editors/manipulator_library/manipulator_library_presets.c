@@ -26,25 +26,22 @@
  * \brief Preset shapes that can be drawn from any manipulator type.
  */
 
-#include "BIF_gl.h"
-
-#include "BKE_context.h"
+#include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
 
 #include "DNA_view3d_types.h"
 #include "DNA_object_types.h"
 
-#include "ED_view3d.h"
-#include "ED_screen.h"
+#include "BKE_context.h"
+
+#include "BIF_gl.h"
 
 #include "GPU_draw.h"
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 #include "GPU_select.h"
-
-#include "MEM_guardedalloc.h"
 
 #include "DEG_depsgraph.h"
 
@@ -53,6 +50,8 @@
 #include "WM_types.h"
 #include "WM_api.h"
 
+#include "ED_view3d.h"
+#include "ED_screen.h"
 
 /* own includes */
 #include "ED_manipulator_library.h"  /* own include */
