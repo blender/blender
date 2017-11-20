@@ -3619,7 +3619,7 @@ static void UV_OT_hide(wmOperatorType *ot)
 
 /****************** reveal operator ******************/
 
-static int uv_reveal_exec(bContext *C, wmOperator *UNUSED(op))
+static int uv_reveal_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Object *obedit = CTX_data_edit_object(C);
@@ -3635,12 +3635,14 @@ static int uv_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 
 	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
+	const bool select = RNA_boolean_get(op->ptr, "select");
+
 	/* note on tagging, selecting faces needs to be delayed so it doesn't select the verts and
 	 * confuse our checks on selected verts. */
 
 	/* call the mesh function if we are in mesh sync sel */
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
-		EDBM_mesh_reveal(em);
+		EDBM_mesh_reveal(em, select);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 		return OPERATOR_FINISHED;
@@ -3652,7 +3654,7 @@ static int uv_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 				if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 					BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 						luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-						luv->flag |= MLOOPUV_VERTSEL;
+						SET_FLAG_FROM_TEST(luv->flag, select, MLOOPUV_VERTSEL);
 					}
 					/* BM_face_select_set(em->bm, efa, true); */
 					BM_elem_flag_enable(efa, BM_ELEM_TAG);
@@ -3673,7 +3675,7 @@ static int uv_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 						if (!totsel) {
 							BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 								luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-								luv->flag |= MLOOPUV_VERTSEL;
+								SET_FLAG_FROM_TEST(luv->flag, select, MLOOPUV_VERTSEL);
 							}
 							/* BM_face_select_set(em->bm, efa, true); */
 							BM_elem_flag_enable(efa, BM_ELEM_TAG);
@@ -3688,7 +3690,7 @@ static int uv_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 							if (BM_elem_flag_test(l->v, BM_ELEM_SELECT) == 0) {
 								luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-								luv->flag |= MLOOPUV_VERTSEL;
+								SET_FLAG_FROM_TEST(luv->flag, select, MLOOPUV_VERTSEL);
 							}
 						}
 						/* BM_face_select_set(em->bm, efa, true); */
@@ -3704,7 +3706,7 @@ static int uv_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 			if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 					luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-					luv->flag |= MLOOPUV_VERTSEL;
+					SET_FLAG_FROM_TEST(luv->flag, select, MLOOPUV_VERTSEL);
 				}
 				/* BM_face_select_set(em->bm, efa, true); */
 				BM_elem_flag_enable(efa, BM_ELEM_TAG);
@@ -3718,7 +3720,7 @@ static int uv_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 					if (BM_elem_flag_test(l->v, BM_ELEM_SELECT) == 0) {
 						luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-						luv->flag |= MLOOPUV_VERTSEL;
+						SET_FLAG_FROM_TEST(luv->flag, select, MLOOPUV_VERTSEL);
 					}
 				}
 				/* BM_face_select_set(em->bm, efa, true); */
@@ -3746,6 +3748,8 @@ static void UV_OT_reveal(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = uv_reveal_exec;
 	ot->poll = ED_operator_uvedit;
+
+	RNA_def_boolean(ot->srna, "select", true, "Select", "");
 }
 
 /******************** set 3d cursor operator ********************/

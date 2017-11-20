@@ -62,7 +62,6 @@
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_workspace.h"
-#include "BKE_utildefines.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -354,7 +353,7 @@ static int rna_Manipulator_##func_id##_get(PointerRNA *ptr) \
 static void rna_Manipulator_##func_id##_set(PointerRNA *ptr, int value) \
 { \
 	wmManipulator *mpr = ptr->data; \
-	BKE_BIT_TEST_SET(mpr->member_id, value, flag_value); \
+	SET_FLAG_FROM_TEST(mpr->member_id, value, flag_value); \
 }
 
 /* wmManipulator.flag (negative) */
@@ -367,7 +366,7 @@ static int rna_Manipulator_##func_id##_get(PointerRNA *ptr) \
 static void rna_Manipulator_##func_id##_set(PointerRNA *ptr, int value) \
 { \
 	wmManipulator *mpr = ptr->data; \
-	BKE_BIT_TEST_SET(mpr->member_id, !value, flag_value); \
+	SET_FLAG_FROM_TEST(mpr->member_id, !value, flag_value); \
 }
 
 #define RNA_MANIPULATOR_FLAG_RO_DEF(func_id, member_id, flag_value) \

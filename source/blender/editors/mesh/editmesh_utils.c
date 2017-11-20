@@ -1221,7 +1221,7 @@ void EDBM_mesh_hide(BMEditMesh *em, bool swap)
 }
 
 
-void EDBM_mesh_reveal(BMEditMesh *em)
+void EDBM_mesh_reveal(BMEditMesh *em, bool select)
 {
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,
@@ -1260,7 +1260,7 @@ void EDBM_mesh_reveal(BMEditMesh *em)
 
 		BM_ITER_MESH (ele, &iter, em->bm, iter_types[i]) {
 			if (BM_elem_flag_test(ele, BM_ELEM_TAG)) {
-				BM_elem_select_set(em->bm, ele, true);
+				BM_elem_select_set(em->bm, ele, select);
 			}
 		}
 	}

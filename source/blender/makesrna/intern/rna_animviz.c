@@ -174,6 +174,7 @@ static void rna_def_animviz_motion_path(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Use Bone Heads",
 	                         "For PoseBone paths, use the bone head location when calculating this path");
 	
+	/* FIXME: Motion Paths are not currently editable... */
 	prop = RNA_def_property(srna, "is_modified", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOTIONPATH_FLAG_EDIT);
 	RNA_def_property_ui_text(prop, "Edit Path", "Path is being edited");
@@ -364,6 +365,12 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
 	                         "(only for 'Around Current Frame' Onion-skinning method)");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
 
+	
+	/* Readonly Property - Do any motion paths exist/need updating? (Mainly for bone paths) */
+	prop = RNA_def_property(srna, "has_motion_paths", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "path_bakeflag", MOTIONPATH_BAKE_HAS_PATHS);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* NOTE: This is really an internal state var for convenience, so don't allow edits! */
+	RNA_def_property_ui_text(prop, "Has Motion Paths", "Are there any bone paths that will need updating (read-only)");
 }
 
 /* --- */

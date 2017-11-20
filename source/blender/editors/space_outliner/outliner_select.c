@@ -876,21 +876,25 @@ eOLDrawState tree_element_type_active(
 
 /* ================================================ */
 
-static void outliner_item_activate(
-        bContext *C, SpaceOops *soops, TreeElement *te,
+/**
+ * Action when clicking to activate an item (typically under the mouse cursor),
+ * but don't do any cursor intersection checks.
+ *
+ * Needed to run from operators accessed from a menu.
+ */
+static void do_outliner_item_activate_tree_element(
+        bContext *C, Scene *scene, SceneLayer *sl, SpaceOops *soops,
+        TreeElement *te, TreeStoreElem *tselem,
         const bool extend, const bool recursive)
 {
-	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
-	TreeStoreElem *tselem = TREESTORE(te);
-
 	/* always makes active object, except for some specific types.
 	 * Note about TSE_EBONE: In case of a same ID_AR datablock shared among several objects, we do not want
 	 * to switch out of edit mode (see T48328 for details). */
 	if (!ELEM(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP, TSE_EBONE, TSE_LAYER_COLLECTION)) {
-		tree_element_set_active_object(C, scene, sl, soops, te,
-		                               (extend && tselem->type == 0) ? OL_SETSEL_EXTEND : OL_SETSEL_NORMAL,
-		                               recursive && tselem->type == 0);
+		tree_element_set_active_object(
+		        C, scene, sl, soops, te,
+		        (extend && tselem->type == 0) ? OL_SETSEL_EXTEND : OL_SETSEL_NORMAL,
+		        recursive && tselem->type == 0);
 	}
 
 	if (tselem->type == 0) { // the lib blocks
@@ -903,7 +907,7 @@ static void outliner_item_activate(
 		else if (te->idcode == ID_GR) {
 			Group *gr = (Group *)tselem->id;
 			GroupObject *gob;
-			
+
 			if (extend) {
 				int sel = BA_SELECT;
 				for (gob = gr->gobject.first; gob; gob = gob->next) {
@@ -989,7 +993,34 @@ static bool outliner_is_co_within_restrict_columns(const SpaceOops *soops, const
 	        (view_co_x > ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX));
 }
 
-int outliner_item_activate_or_toggle_closed(bContext *C, int x, int y, bool extend, bool recursive)
+/**
+ * A version of #outliner_item_do_acticate_from_cursor that takes the tree element directly.
+ * and doesn't depend on the pointer position.
+ *
+ * This allows us to simulate clicking on an item without dealing with the mouse cursor.
+ */
+void outliner_item_do_activate_from_tree_element(
+        bContext *C, TreeElement *te, TreeStoreElem *tselem,
+        bool extend, bool recursive)
+{
+	Scene *scene = CTX_data_scene(C);
+	SceneLayer *sl = CTX_data_scene_layer(C);
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+
+	do_outliner_item_activate_tree_element(
+	        C, scene, sl, soops,
+	        te, tselem,
+	        extend, recursive);
+}
+
+/**
+ * Action to run when clicking in the outliner,
+ *
+ * May expend/collapse branches or activate items.
+ * */
+int outliner_item_do_activate_from_cursor(
+        bContext *C, const int mval[2],
+        bool extend, bool recursive)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
@@ -997,7 +1028,7 @@ int outliner_item_activate_or_toggle_closed(bContext *C, int x, int y, bool exte
 	float view_mval[2];
 	bool changed = false, rebuild_tree = false;
 
-	UI_view2d_region_to_view(&ar->v2d, x, y, &view_mval[0], &view_mval[1]);
+	UI_view2d_region_to_view(&ar->v2d, mval[0], mval[1], &view_mval[0], &view_mval[1]);
 
 	if (outliner_is_co_within_restrict_columns(soops, ar, view_mval[0])) {
 		return OPERATOR_CANCELLED;
@@ -1012,11 +1043,14 @@ int outliner_item_activate_or_toggle_closed(bContext *C, int x, int y, bool exte
 		rebuild_tree = true;
 	}
 	else {
+		Scene *scene = CTX_data_scene(C);
+		SceneLayer *sl = CTX_data_scene_layer(C);
 		/* the row may also contain children, if one is hovered we want this instead of current te */
 		TreeElement *activate_te = outliner_find_item_at_x_in_row(soops, te, view_mval[0]);
+		TreeStoreElem *activate_tselem = TREESTORE(activate_te);
 
 		outliner_item_select(soops, activate_te, extend, extend);
-		outliner_item_activate(C, soops, activate_te, extend, recursive);
+		do_outliner_item_activate_tree_element(C, scene, sl, soops, activate_te, activate_tselem, extend, recursive);
 		changed = true;
 	}
 
@@ -1037,9 +1071,7 @@ static int outliner_item_activate_invoke(bContext *C, wmOperator *op, const wmEv
 {
 	bool extend    = RNA_boolean_get(op->ptr, "extend");
 	bool recursive = RNA_boolean_get(op->ptr, "recursive");
-	int x = event->mval[0];
-	int y = event->mval[1];
-	return outliner_item_activate_or_toggle_closed(C, x, y, extend, recursive);
+	return outliner_item_do_activate_from_cursor(C, event->mval, extend, recursive);
 }
 
 void OUTLINER_OT_item_activate(wmOperatorType *ot)

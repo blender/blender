@@ -753,10 +753,11 @@ void PAINT_OT_face_select_hide(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects");
 }
 
-static int face_select_reveal_exec(bContext *C, wmOperator *UNUSED(op))
+static int face_select_reveal_exec(bContext *C, wmOperator *op)
 {
+	const bool select = RNA_boolean_get(op->ptr, "select");
 	Object *ob = CTX_data_active_object(C);
-	paintface_reveal(ob);
+	paintface_reveal(ob, select);
 	ED_region_tag_redraw(CTX_wm_region(C));
 	return OPERATOR_FINISHED;
 }
@@ -772,5 +773,5 @@ void PAINT_OT_face_select_reveal(wmOperatorType *ot)
 
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects");
+	RNA_def_boolean(ot->srna, "select", true, "Select", "");
 }

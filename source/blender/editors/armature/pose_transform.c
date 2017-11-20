@@ -491,12 +491,15 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
 	bPoseChannel *chan;
 	const bool flip = RNA_boolean_get(op->ptr, "flipped");
 	bool selOnly = RNA_boolean_get(op->ptr, "selected_mask");
+	
 	/* Get KeyingSet to use. */
 	KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_WHOLE_CHARACTER_ID);
+	
 	/* Sanity checks. */
 	if (ELEM(NULL, ob, ob->pose)) {
 		return OPERATOR_CANCELLED;
 	}
+	
 	/* Read copy buffer .blend file. */
 	char str[FILE_MAX];
 	Main *tmp_bmain = BKE_main_new();
@@ -512,6 +515,7 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
 		BKE_main_free(tmp_bmain);
 		return OPERATOR_CANCELLED;
 	}
+	
 	Object *object_from = tmp_bmain->object.first;
 	bPose *pose_from = object_from->pose;
 	if (pose_from == NULL) {
@@ -519,6 +523,7 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
 		BKE_main_free(tmp_bmain);
 		return OPERATOR_CANCELLED;
 	}
+	
 	/* If selOnly option is enabled, if user hasn't selected any bones,
 	 * just go back to default behavior to be more in line with other
 	 * pose tools.
@@ -528,6 +533,7 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
 			selOnly = false;
 		}
 	}
+	
 	/* Safely merge all of the channels in the buffer pose into any
 	 * existing pose.
 	 */
@@ -542,8 +548,15 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
 		}
 	}
 	BKE_main_free(tmp_bmain);
+	
 	/* Update event for pose and deformation children. */
 	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	
+	/* Recalculate paths if any of the bones have paths... */
+	if ((ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS)) {
+		ED_pose_recalculate_paths(C, scene, ob);
+	}
+	
 	/* Notifiers for updates, */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
 

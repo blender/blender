@@ -509,6 +509,16 @@ extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
 #define SET_UINT_IN_POINTER(i)    ((void *)(uintptr_t)(i))
 #define GET_UINT_FROM_POINTER(i)  ((void)0, ((unsigned int)(uintptr_t)(i)))
 
+/* Set flag from a single test */
+#define SET_FLAG_FROM_TEST(value, test, flag) \
+{ \
+	if (test) { \
+		(value) |=  (flag); \
+	} \
+	else { \
+		(value) &= ~(flag); \
+	} \
+} ((void)0)
 
 /* Macro to convert a value to string in the preprocessor
  * STRINGIFY_ARG: gives the argument as a string

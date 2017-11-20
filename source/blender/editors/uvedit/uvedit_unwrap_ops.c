@@ -869,69 +869,88 @@ void ED_uvedit_live_unwrap(Scene *scene, Object *obedit)
 #define POLAR_ZX    0
 #define POLAR_ZY    1
 
-static void uv_map_transform_center(Scene *scene, View3D *v3d, float *result, Object *ob, BMEditMesh *em)
+static void uv_map_transform_calc_bounds(BMEditMesh *em, float r_min[3], float r_max[3])
+{
+	BMFace *efa;
+	BMIter iter;
+	INIT_MINMAX(r_min, r_max);
+	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+		if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+			BM_face_calc_bounds_expand(efa, r_min, r_max);
+		}
+	}
+}
+
+static void uv_map_transform_calc_center_median(BMEditMesh *em, float r_center[3])
+{
+	BMFace *efa;
+	BMIter iter;
+	uint center_accum_num = 0;
+	zero_v3(r_center);
+	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+		if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+			float center[3];
+			BM_face_calc_center_mean(efa, center);
+			add_v3_v3(r_center, center);
+			center_accum_num += 1;
+		}
+	}
+	mul_v3_fl(r_center, 1.0f / (float)center_accum_num);
+}
+
+static void uv_map_transform_center(
+        Scene *scene, View3D *v3d, Object *ob, BMEditMesh *em,
+        float r_center[3],
+        float r_bounds[2][3])
 {
 	/* only operates on the edit object - this is all that's needed now */
 	const int around = (v3d) ? v3d->around : V3D_AROUND_CENTER_BOUNDS;
 
+	float bounds[2][3];
+	INIT_MINMAX(bounds[0], bounds[1]);
+	bool is_minmax_set = false;
+
 	switch (around) {
 		case V3D_AROUND_CENTER_BOUNDS: /* bounding box center */
 		{
-			BMFace *efa;
-			BMLoop *l;
-			BMIter iter, liter;
-			float min[3], max[3];
-
-			INIT_MINMAX(min, max);
-
-			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-				if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-					BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-						minmax_v3v3_v3(min, max, l->v->co);
-					}
-				}
-			}
-			mid_v3_v3v3(result, min, max);
+			uv_map_transform_calc_bounds(em, bounds[0], bounds[1]);
+			is_minmax_set = true;
+			mid_v3_v3v3(r_center, bounds[0], bounds[1]);
 			break;
 		}
 		case V3D_AROUND_CENTER_MEAN:
 		{
-			BMFace *efa;
-			BMLoop *l;
-			BMIter iter, liter;
-			int result_accum = 0;
-
-			zero_v3(result);
-			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-				if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-					BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-						add_v3_v3(result, l->v->co);
-						result_accum += 1;
-					}
-				}
-			}
-			mul_v3_fl(result, 1.0f / (float)result_accum);
+			uv_map_transform_calc_center_median(em, r_center);
 			break;
 		}
 		case V3D_AROUND_CURSOR:  /* cursor center */
 		{
 			invert_m4_m4(ob->imat, ob->obmat);
-			mul_v3_m4v3(result, ob->imat, ED_view3d_cursor3d_get(scene, v3d));
+			mul_v3_m4v3(r_center, ob->imat, ED_view3d_cursor3d_get(scene, v3d));
 			break;
 		}
 		case V3D_AROUND_ACTIVE:
 		{
 			BMEditSelection ese;
 			if (BM_select_history_active_get(em->bm, &ese)) {
-				BM_editselection_center(&ese, result);
+				BM_editselection_center(&ese, r_center);
 				break;
 			}
 			ATTR_FALLTHROUGH;
 		}
 		case V3D_AROUND_LOCAL_ORIGINS:  /* object center */
 		default:
-			zero_v3(result);
+			zero_v3(r_center);
 			break;
+	}
+
+	/* if this is passed, always set! */
+	if (r_bounds) {
+		if (!is_minmax_set) {
+			uv_map_transform_calc_bounds(em, bounds[0], bounds[1]);
+		}
+		copy_v3_v3(r_bounds[0], bounds[0]);
+		copy_v3_v3(r_bounds[1], bounds[1]);
 	}
 }
 
@@ -1514,7 +1533,7 @@ static int sphere_project_exec(bContext *C, wmOperator *op)
 	cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
 	uv_map_transform(C, op, rotmat);
-	uv_map_transform_center(scene, v3d, center, obedit, em);
+	uv_map_transform_center(scene, v3d, obedit, em, center, NULL);
 
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
@@ -1593,7 +1612,7 @@ static int cylinder_project_exec(bContext *C, wmOperator *op)
 	cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
 	uv_map_transform(C, op, rotmat);
-	uv_map_transform_center(scene, v3d, center, obedit, em);
+	uv_map_transform_center(scene, v3d, obedit, em, center, NULL);
 
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
@@ -1666,26 +1685,10 @@ void ED_uvedit_unwrap_cube_project(BMesh *bm, float cube_size, bool use_select, 
 
 		axis_dominant_v3(&cox, &coy, efa->no);
 
-		float uv_delta[2] = {0.0f};
-
 		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 			luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 			luv->uv[0] = 0.5f + 0.5f * cube_size * (l->v->co[cox] - loc[cox]);
 			luv->uv[1] = 0.5f + 0.5f * cube_size * (l->v->co[coy] - loc[coy]);
-
-			add_v2_v2(uv_delta, luv->uv);
-		}
-
-		mul_v2_fl(uv_delta, 1.0f / (float)efa->len);
-		uv_delta[0] = floor(uv_delta[0]);
-		uv_delta[1] = floor(uv_delta[1]);
-
-		if (uv_delta[0] != 0.0f || uv_delta[1] != 0.0f) {
-			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-				luv->uv[0] -= uv_delta[0];
-				luv->uv[1] -= uv_delta[1];
-			}
 		}
 	}
 }
@@ -1696,15 +1699,31 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 	View3D *v3d = CTX_wm_view3d(C);
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	float cube_size = RNA_float_get(op->ptr, "cube_size");
+	PropertyRNA *prop_cube_size = RNA_struct_find_property(op->ptr, "cube_size");
+	float cube_size = RNA_property_float_get(op->ptr, prop_cube_size);
 	float center[3];
+	float bounds[2][3];
+	float (*bounds_buf)[3] = NULL;
 
 	/* add uvs if they don't exist yet */
 	if (!ED_uvedit_ensure_uvs(C, scene, obedit)) {
 		return OPERATOR_CANCELLED;
 	}
 
-	uv_map_transform_center(scene, v3d, center, obedit, em);
+	if (!RNA_property_is_set(op->ptr, prop_cube_size)) {
+		bounds_buf = bounds;
+	}
+
+	uv_map_transform_center(scene, v3d, obedit, em, center, bounds_buf);
+
+	/* calculate based on bounds */
+	if (bounds_buf) {
+		float dims[3];
+		sub_v3_v3v3(dims, bounds[1], bounds[0]);
+		cube_size = max_fff(UNPACK3(dims));
+		cube_size = cube_size ? 2.0f / cube_size : 1.0f;
+		RNA_property_float_set(op->ptr, prop_cube_size, cube_size);
+	}
 
 	ED_uvedit_unwrap_cube_project(em->bm, cube_size, true, center);
 

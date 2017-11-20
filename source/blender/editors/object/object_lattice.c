@@ -56,7 +56,6 @@
 #include "BKE_lattice.h"
 #include "BKE_deform.h"
 #include "BKE_report.h"
-#include "BKE_utildefines.h"
 
 #include "DEG_depsgraph.h"
 
@@ -370,7 +369,7 @@ static int lattice_select_more_less(bContext *C, const bool select)
 					    lattice_test_bitmap_uvw(lt, selpoints, u, v, w + 1, select) ||
 					    lattice_test_bitmap_uvw(lt, selpoints, u, v, w - 1, select))
 					{
-						BKE_BIT_TEST_SET(bp->f1, select, SELECT);
+						SET_FLAG_FROM_TEST(bp->f1, select, SELECT);
 					}
 				}
 				bp++;

@@ -72,7 +72,6 @@
 #include "DNA_workspace_types.h"
 
 #include "BKE_appdir.h"
-#include "BKE_utildefines.h"
 #include "BKE_autoexec.h"
 #include "BKE_blender.h"
 #include "BKE_blendfile.h"
@@ -338,12 +337,12 @@ static void wm_init_userdef(Main *bmain, const bool read_userdef_from_memory)
 	BKE_sound_init(bmain);
 
 	/* needed so loading a file from the command line respects user-pref [#26156] */
-	BKE_BIT_TEST_SET(G.fileflags, U.flag & USER_FILENOUI, G_FILE_NO_UI);
+	SET_FLAG_FROM_TEST(G.fileflags, U.flag & USER_FILENOUI, G_FILE_NO_UI);
 
 	/* set the python auto-execute setting from user prefs */
 	/* enabled by default, unless explicitly enabled in the command line which overrides */
 	if ((G.f & G_SCRIPT_OVERRIDE_PREF) == 0) {
-		BKE_BIT_TEST_SET(G.f, (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0, G_SCRIPT_AUTOEXEC);
+		SET_FLAG_FROM_TEST(G.f, (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0, G_SCRIPT_AUTOEXEC);
 	}
 
 	/* avoid re-saving for every small change to our prefs, allow overrides */
@@ -677,7 +676,7 @@ int wm_homefile_read(
 	BLI_assert((use_factory_settings && filepath_startup_override) == 0);
 
 	if ((G.f & G_SCRIPT_OVERRIDE_PREF) == 0) {
-		BKE_BIT_TEST_SET(G.f, (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0, G_SCRIPT_AUTOEXEC);
+		SET_FLAG_FROM_TEST(G.f, (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0, G_SCRIPT_AUTOEXEC);
 	}
 
 	BLI_callback_exec(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_PRE);
@@ -1173,8 +1172,8 @@ static int wm_file_write(bContext *C, const char *filepath, int fileflags, Repor
 			G.save_over = 1; /* disable untitled.blend convention */
 		}
 
-		BKE_BIT_TEST_SET(G.fileflags, fileflags & G_FILE_COMPRESS, G_FILE_COMPRESS);
-		BKE_BIT_TEST_SET(G.fileflags, fileflags & G_FILE_AUTOPLAY, G_FILE_AUTOPLAY);
+		SET_FLAG_FROM_TEST(G.fileflags, fileflags & G_FILE_COMPRESS, G_FILE_COMPRESS);
+		SET_FLAG_FROM_TEST(G.fileflags, fileflags & G_FILE_AUTOPLAY, G_FILE_AUTOPLAY);
 
 		/* prevent background mode scripts from clobbering history */
 		if (do_history) {
@@ -1597,7 +1596,7 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
 		/* This can be used when loading of a start-up file should only change
 		 * the scene content but keep the blender UI as it is. */
 		wm_open_init_load_ui(op, true);
-		BKE_BIT_TEST_SET(G.fileflags, !RNA_boolean_get(op->ptr, "load_ui"), G_FILE_NO_UI);
+		SET_FLAG_FROM_TEST(G.fileflags, !RNA_boolean_get(op->ptr, "load_ui"), G_FILE_NO_UI);
 
 		if (RNA_property_is_set(op->ptr, prop)) {
 			RNA_property_string_get(op->ptr, prop, filepath_buf);
@@ -2080,20 +2079,24 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 	fileflags = G.fileflags & ~G_FILE_USERPREFS;
 
 	/* set compression flag */
-	BKE_BIT_TEST_SET(fileflags, RNA_boolean_get(op->ptr, "compress"),
-	                 G_FILE_COMPRESS);
-	BKE_BIT_TEST_SET(fileflags, RNA_boolean_get(op->ptr, "relative_remap"),
-	                 G_FILE_RELATIVE_REMAP);
-	BKE_BIT_TEST_SET(fileflags,
-	                 (RNA_struct_property_is_set(op->ptr, "copy") &&
-	                  RNA_boolean_get(op->ptr, "copy")),
-	                 G_FILE_SAVE_COPY);
+	SET_FLAG_FROM_TEST(
+	        fileflags, RNA_boolean_get(op->ptr, "compress"),
+	        G_FILE_COMPRESS);
+	SET_FLAG_FROM_TEST(
+	        fileflags, RNA_boolean_get(op->ptr, "relative_remap"),
+	        G_FILE_RELATIVE_REMAP);
+	SET_FLAG_FROM_TEST(
+	        fileflags,
+	        (RNA_struct_property_is_set(op->ptr, "copy") &&
+	         RNA_boolean_get(op->ptr, "copy")),
+	        G_FILE_SAVE_COPY);
 
 #ifdef USE_BMESH_SAVE_AS_COMPAT
-	BKE_BIT_TEST_SET(fileflags,
-	                 (RNA_struct_find_property(op->ptr, "use_mesh_compat") &&
-	                  RNA_boolean_get(op->ptr, "use_mesh_compat")),
-	                 G_FILE_MESH_COMPAT);
+	SET_FLAG_FROM_TEST(
+	        fileflags,
+	        (RNA_struct_find_property(op->ptr, "use_mesh_compat") &&
+	         RNA_boolean_get(op->ptr, "use_mesh_compat")),
+	        G_FILE_MESH_COMPAT);
 #else
 #  error "don't remove by accident"
 #endif

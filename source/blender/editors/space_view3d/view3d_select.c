@@ -71,7 +71,6 @@
 #include "BKE_editmesh.h"
 #include "BKE_scene.h"
 #include "BKE_tracking.h"
-#include "BKE_utildefines.h"
 
 #include "DEG_depsgraph.h"
 
@@ -703,7 +702,7 @@ static void do_lasso_select_meshobject__doSelectVert(void *userData, MVert *mv, 
 	if (BLI_rctf_isect_pt_v(data->rect_fl, screen_co) &&
 	    BLI_lasso_is_point_inside(data->mcords, data->moves, screen_co[0], screen_co[1], IS_CLIPPED))
 	{
-		BKE_BIT_TEST_SET(mv->flag, data->select, SELECT);
+		SET_FLAG_FROM_TEST(mv->flag, data->select, SELECT);
 	}
 }
 static void do_lasso_select_paintvert(const struct EvaluationContext *eval_ctx, ViewContext *vc, const int mcords[][2], short moves, bool extend, bool select)
@@ -1660,7 +1659,7 @@ static void do_paintvert_box_select__doSelectVert(void *userData, MVert *mv, con
 	BoxSelectUserData *data = userData;
 
 	if (BLI_rctf_isect_pt_v(data->rect_fl, screen_co)) {
-		BKE_BIT_TEST_SET(mv->flag, data->select, SELECT);
+		SET_FLAG_FROM_TEST(mv->flag, data->select, SELECT);
 	}
 }
 static int do_paintvert_box_select(
@@ -2522,7 +2521,7 @@ static void paint_vertsel_circle_select_doSelectVert(void *userData, MVert *mv, 
 	CircleSelectUserData *data = userData;
 
 	if (len_squared_v2v2(data->mval_fl, screen_co) <= data->radius_squared) {
-		BKE_BIT_TEST_SET(mv->flag, data->select, SELECT);
+		SET_FLAG_FROM_TEST(mv->flag, data->select, SELECT);
 	}
 }
 static void paint_vertsel_circle_select(const struct EvaluationContext *eval_ctx, ViewContext *vc, const bool select, const int mval[2], float rad)

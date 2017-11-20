@@ -448,6 +448,18 @@ void sample_fcurve(FCurve *fcu)
 		/* check if selected, and which end this is */
 		if (BEZT_ISSEL_ANY(bezt)) {
 			if (start) {
+				/* If next bezt is also selected, don't start sampling yet,
+				 * but instead wait for that one to reconsider, to avoid
+				 * changing the curve when sampling consecutive segments
+				 * (T53229)
+				 */
+				if (i < fcu->totvert - 1) {
+					BezTriple *next = &fcu->bezt[i + 1];
+					if (BEZT_ISSEL_ANY(next)) {
+						continue;
+					}
+				}
+				
 				/* set end */
 				end = bezt;
 				
@@ -480,8 +492,8 @@ void sample_fcurve(FCurve *fcu)
 					i += (range - 1);
 				}
 				
-				/* bezt was selected, so it now marks the start of a whole new chain to search */
-				start = bezt;
+				/* the current selection island has ended, so start again from scratch */
+				start = NULL;
 				end = NULL;
 			}
 			else {

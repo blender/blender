@@ -423,18 +423,59 @@ static int gp_reveal_poll(bContext *C)
 	return ED_gpencil_data_get_active(C) != NULL;
 }
 
-static int gp_reveal_exec(bContext *C, wmOperator *UNUSED(op))
+static void gp_reveal_select_frame(bContext *C, bGPDframe *frame, bool select)
+{
+	bGPDstroke *gps;
+	for (gps = frame->strokes.first; gps; gps = gps->next) {
+
+		/* only deselect strokes that are valid in this view */
+		if (ED_gpencil_stroke_can_use(C, gps)) {
+
+			/* (de)select points */
+			int i;
+			bGPDspoint *pt;
+			for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+				SET_FLAG_FROM_TEST(pt->flag, select, GP_SPOINT_SELECT);
+			}
+
+			/* (de)select stroke */
+			SET_FLAG_FROM_TEST(gps->flag, select, GP_STROKE_SELECT);
+		}
+	}
+}
+
+static int gp_reveal_exec(bContext *C, wmOperator *op)
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	bGPDlayer *gpl;
-	
+	const bool select = RNA_boolean_get(op->ptr, "select");
+
 	/* sanity checks */
 	if (gpd == NULL)
 		return OPERATOR_CANCELLED;
 	
-	/* make all layers visible */
 	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-		gpl->flag &= ~GP_LAYER_HIDE;
+
+		if (gpl->flag & GP_LAYER_HIDE) {
+			gpl->flag &= ~GP_LAYER_HIDE;
+
+			/* select or deselect if requested, only on hidden layers */
+			if (gpd->flag & GP_DATA_STROKE_EDITMODE) {
+				if (select) {
+					/* select all strokes on active frame only (same as select all operator) */
+					if (gpl->actframe) {
+						gp_reveal_select_frame(C, gpl->actframe, true);
+					}
+				}
+				else {
+					/* deselect strokes on all frames (same as deselect all operator) */
+					bGPDframe *gpf;
+					for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+						gp_reveal_select_frame(C, gpf, false);
+					}
+				}
+			}
+		}
 	}
 	
 	/* notifiers */
@@ -456,6 +497,9 @@ void GPENCIL_OT_reveal(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_boolean(ot->srna, "select", true, "Select", "");
 }
 
 /* ***************** Lock/Unlock All Layers ************************ */

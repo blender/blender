@@ -1938,16 +1938,17 @@ void MASK_OT_handle_type_set(wmOperatorType *ot)
 
 
 /* ********* clear/set restrict view *********/
-static int mask_hide_view_clear_exec(bContext *C, wmOperator *UNUSED(op))
+static int mask_hide_view_clear_exec(bContext *C, wmOperator *op)
 {
 	Mask *mask = CTX_data_edit_mask(C);
 	MaskLayer *masklay;
 	bool changed = false;
+	const bool select = RNA_boolean_get(op->ptr, "select");
 
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 
 		if (masklay->restrictflag & OB_RESTRICT_VIEW) {
-			ED_mask_layer_select_set(masklay, true);
+			ED_mask_layer_select_set(masklay, select);
 			masklay->restrictflag &= ~OB_RESTRICT_VIEW;
 			changed = true;
 		}
@@ -1978,6 +1979,8 @@ void MASK_OT_hide_view_clear(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "select", true, "Select", "");
 }
 
 static int mask_hide_view_set_exec(bContext *C, wmOperator *op)

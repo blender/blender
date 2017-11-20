@@ -136,10 +136,13 @@ int ED_markers_post_apply_transform(ListBase *markers, Scene *scene, int mode, f
 	float cfra = (float)CFRA;
 	int changed_tot = 0;
 	
-	/* sanity check */
-	if (markers == NULL)
+	/* sanity check - no markers, or locked markers */
+	if ((scene->toolsettings->lock_markers) ||
+	    (markers == NULL))
+	{
 		return changed_tot;
-	
+	}
+
 	/* affect selected markers - it's unlikely that we will want to affect all in this way? */
 	for (marker = markers->first; marker; marker = marker->next) {
 		if (marker->flag & SELECT) {

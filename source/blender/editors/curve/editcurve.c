@@ -2930,7 +2930,7 @@ void CURVE_OT_hide(wmOperatorType *ot)
 
 /********************** reveal operator *********************/
 
-static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
+static int reveal_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	ListBase *editnurb = object_editcurve_get(obedit);
@@ -2938,6 +2938,7 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 	BPoint *bp;
 	BezTriple *bezt;
 	int a;
+	const bool select = RNA_boolean_get(op->ptr, "select");
 
 	for (nu = editnurb->first; nu; nu = nu->next) {
 		nu->hide = 0;
@@ -2946,7 +2947,7 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 			a = nu->pntsu;
 			while (a--) {
 				if (bezt->hide) {
-					select_beztriple(bezt, SELECT, SELECT, HIDDEN);
+					select_beztriple(bezt, select, SELECT, HIDDEN);
 					bezt->hide = 0;
 				}
 				bezt++;
@@ -2957,7 +2958,7 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 			a = nu->pntsu * nu->pntsv;
 			while (a--) {
 				if (bp->hide) {
-					select_bpoint(bp, SELECT, SELECT, HIDDEN);
+					select_bpoint(bp, select, SELECT, HIDDEN);
 					bp->hide = 0;
 				}
 				bp++;
@@ -2976,7 +2977,7 @@ void CURVE_OT_reveal(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Reveal Hidden";
 	ot->idname = "CURVE_OT_reveal";
-	ot->description = "Show again hidden control points";
+	ot->description = "Reveal hidden control points";
 	
 	/* api callbacks */
 	ot->exec = reveal_exec;
@@ -2984,6 +2985,8 @@ void CURVE_OT_reveal(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "select", true, "Select", "");
 }
 
 /********************** subdivide operator *********************/

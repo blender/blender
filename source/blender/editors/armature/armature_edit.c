@@ -1564,17 +1564,18 @@ void ARMATURE_OT_hide(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected");
 }
 
-static int armature_reveal_exec(bContext *C, wmOperator *UNUSED(op))
+static int armature_reveal_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	bArmature *arm = obedit->data;
 	EditBone *ebone;
+	const bool select = RNA_boolean_get(op->ptr, "select");
 	
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 		if (arm->layer & ebone->layer) {
 			if (ebone->flag & BONE_HIDDEN_A) {
 				if (!(ebone->flag & BONE_UNSELECTABLE)) {
-					ebone->flag |= (BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
+					SET_FLAG_FROM_TEST(ebone->flag, select, (BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL));
 				}
 				ebone->flag &= ~BONE_HIDDEN_A;
 			}
@@ -1593,7 +1594,7 @@ void ARMATURE_OT_reveal(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Reveal Bones";
 	ot->idname = "ARMATURE_OT_reveal";
-	ot->description = "Unhide all bones that have been tagged to be hidden in Edit Mode";
+	ot->description = "Reveal all bones hidden in Edit Mode";
 	
 	/* api callbacks */
 	ot->exec = armature_reveal_exec;
@@ -1602,4 +1603,5 @@ void ARMATURE_OT_reveal(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+	RNA_def_boolean(ot->srna, "select", true, "Select", "");
 }

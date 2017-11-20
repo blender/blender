@@ -376,16 +376,13 @@ static void object_select_cb(
 }
 
 static void object_select_hierarchy_cb(
-        bContext *C, ReportList *UNUSED(reports), Scene *UNUSED(scene), TreeElement *UNUSED(te),
-        TreeStoreElem *UNUSED(tsep), TreeStoreElem *UNUSED(tselem), void *UNUSED(user_data))
+        bContext *C, ReportList *UNUSED(reports), Scene *UNUSED(scene), TreeElement *te,
+        TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
-	/* From where do i get the x,y coordinate of the mouse event ? */
-	wmWindow *win = CTX_wm_window(C);
-	int x = win->eventstate->mval[0];
-	int y = win->eventstate->mval[1];
-	outliner_item_activate_or_toggle_closed(C, x, y, true, true);
+	/* Don't extend because this toggles, which is nice for Ctrl-Click but not for a menu item.
+	 * it's especially confusing when multiple items are selected since some toggle on/off. */
+	outliner_item_do_activate_from_tree_element(C, te, tselem, false, true);
 }
-
 
 static void object_deselect_cb(
         bContext *C, ReportList *UNUSED(reports), Scene *UNUSED(scene), TreeElement *UNUSED(te),

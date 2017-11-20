@@ -543,19 +543,21 @@ void MBALL_OT_hide_metaelems(wmOperatorType *ot)
 /***************************** Unhide operator *****************************/
 
 /* Unhide all edited MetaElems */
-static int reveal_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
+static int reveal_metaelems_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	MetaBall *mb = (MetaBall *)obedit->data;
-	MetaElem *ml;
+	const bool select = RNA_boolean_get(op->ptr, "select");
+	bool changed = false;
 
-	ml = mb->editelems->first;
-
-	if (ml) {
-		while (ml) {
+	for (MetaElem *ml = mb->editelems->first; ml; ml = ml->next) {
+		if (ml->flag & MB_HIDE) {
+			SET_FLAG_FROM_TEST(ml->flag, select, SELECT);
 			ml->flag &= ~MB_HIDE;
-			ml = ml->next;
+			changed = true;
 		}
+	}
+	if (changed) {
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, mb);
 		DEG_id_tag_update(obedit->data, 0);
 	}
@@ -576,6 +578,9 @@ void MBALL_OT_reveal_metaelems(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_boolean(ot->srna, "select", true, "Select", "");
 }
 
 /* Select MetaElement with mouse click (user can select radius circle or
