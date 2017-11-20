@@ -80,7 +80,8 @@ static void eevee_lightprobe_data_free(void *storage)
 
 EEVEE_SceneLayerData *EEVEE_scene_layer_data_get(void)
 {
-	EEVEE_SceneLayerData **sldata = (EEVEE_SceneLayerData **)DRW_scene_layer_engine_data_get(&draw_engine_eevee_type, &eevee_scene_layer_data_free);
+	EEVEE_SceneLayerData **sldata = (EEVEE_SceneLayerData **)DRW_scene_layer_engine_data_get(
+	        &draw_engine_eevee_type, &eevee_scene_layer_data_free);
 
 	if (*sldata == NULL) {
 		*sldata = MEM_callocN(sizeof(**sldata), "EEVEE_SceneLayerData");
@@ -91,7 +92,8 @@ EEVEE_SceneLayerData *EEVEE_scene_layer_data_get(void)
 
 EEVEE_ObjectEngineData *EEVEE_object_data_get(Object *ob)
 {
-	EEVEE_ObjectEngineData **oedata = (EEVEE_ObjectEngineData **)DRW_object_engine_data_get(ob, &draw_engine_eevee_type, NULL);
+	EEVEE_ObjectEngineData **oedata = (EEVEE_ObjectEngineData **)DRW_object_engine_data_get(
+	        ob, &draw_engine_eevee_type, NULL);
 
 	if (*oedata == NULL) {
 		*oedata = MEM_callocN(sizeof(**oedata), "EEVEE_ObjectEngineData");
@@ -102,7 +104,8 @@ EEVEE_ObjectEngineData *EEVEE_object_data_get(Object *ob)
 
 EEVEE_LightProbeEngineData *EEVEE_lightprobe_data_get(Object *ob)
 {
-	EEVEE_LightProbeEngineData **pedata = (EEVEE_LightProbeEngineData **)DRW_object_engine_data_get(ob, &draw_engine_eevee_type, &eevee_lightprobe_data_free);
+	EEVEE_LightProbeEngineData **pedata = (EEVEE_LightProbeEngineData **)DRW_object_engine_data_get(
+	        ob, &draw_engine_eevee_type, &eevee_lightprobe_data_free);
 
 	if (*pedata == NULL) {
 		*pedata = MEM_callocN(sizeof(**pedata), "EEVEE_LightProbeEngineData");
@@ -114,7 +117,8 @@ EEVEE_LightProbeEngineData *EEVEE_lightprobe_data_get(Object *ob)
 
 EEVEE_LampEngineData *EEVEE_lamp_data_get(Object *ob)
 {
-	EEVEE_LampEngineData **ledata = (EEVEE_LampEngineData **)DRW_object_engine_data_get(ob, &draw_engine_eevee_type, &eevee_lamp_data_free);
+	EEVEE_LampEngineData **ledata = (EEVEE_LampEngineData **)DRW_object_engine_data_get(
+	        ob, &draw_engine_eevee_type, &eevee_lamp_data_free);
 
 	if (*ledata == NULL) {
 		*ledata = MEM_callocN(sizeof(**ledata), "EEVEE_LampEngineData");

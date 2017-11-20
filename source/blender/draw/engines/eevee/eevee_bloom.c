@@ -47,21 +47,37 @@ extern char datatoc_effect_bloom_frag_glsl[];
 
 static void eevee_create_shader_bloom(void)
 {
-	e_data.bloom_blit_sh[0] = DRW_shader_create_fullscreen(datatoc_effect_bloom_frag_glsl, "#define STEP_BLIT\n");
-	e_data.bloom_blit_sh[1] = DRW_shader_create_fullscreen(datatoc_effect_bloom_frag_glsl, "#define STEP_BLIT\n"
-	                                                                                       "#define HIGH_QUALITY\n");
+	e_data.bloom_blit_sh[0] = DRW_shader_create_fullscreen(
+	        datatoc_effect_bloom_frag_glsl,
+	        "#define STEP_BLIT\n");
+	e_data.bloom_blit_sh[1] = DRW_shader_create_fullscreen(
+	        datatoc_effect_bloom_frag_glsl,
+	        "#define STEP_BLIT\n"
+	        "#define HIGH_QUALITY\n");
 
-	e_data.bloom_downsample_sh[0] = DRW_shader_create_fullscreen(datatoc_effect_bloom_frag_glsl, "#define STEP_DOWNSAMPLE\n");
-	e_data.bloom_downsample_sh[1] = DRW_shader_create_fullscreen(datatoc_effect_bloom_frag_glsl, "#define STEP_DOWNSAMPLE\n"
-	                                                                                             "#define HIGH_QUALITY\n");
+	e_data.bloom_downsample_sh[0] = DRW_shader_create_fullscreen(
+	        datatoc_effect_bloom_frag_glsl,
+	        "#define STEP_DOWNSAMPLE\n");
+	e_data.bloom_downsample_sh[1] = DRW_shader_create_fullscreen(
+	        datatoc_effect_bloom_frag_glsl,
+	        "#define STEP_DOWNSAMPLE\n"
+	        "#define HIGH_QUALITY\n");
 
-	e_data.bloom_upsample_sh[0] = DRW_shader_create_fullscreen(datatoc_effect_bloom_frag_glsl, "#define STEP_UPSAMPLE\n");
-	e_data.bloom_upsample_sh[1] = DRW_shader_create_fullscreen(datatoc_effect_bloom_frag_glsl, "#define STEP_UPSAMPLE\n"
-	                                                                                           "#define HIGH_QUALITY\n");
+	e_data.bloom_upsample_sh[0] = DRW_shader_create_fullscreen(
+	        datatoc_effect_bloom_frag_glsl,
+	        "#define STEP_UPSAMPLE\n");
+	e_data.bloom_upsample_sh[1] = DRW_shader_create_fullscreen(
+	        datatoc_effect_bloom_frag_glsl,
+	        "#define STEP_UPSAMPLE\n"
+	        "#define HIGH_QUALITY\n");
 
-	e_data.bloom_resolve_sh[0] = DRW_shader_create_fullscreen(datatoc_effect_bloom_frag_glsl, "#define STEP_RESOLVE\n");
-	e_data.bloom_resolve_sh[1] = DRW_shader_create_fullscreen(datatoc_effect_bloom_frag_glsl, "#define STEP_RESOLVE\n"
-	                                                                                          "#define HIGH_QUALITY\n");
+	e_data.bloom_resolve_sh[0] = DRW_shader_create_fullscreen(
+	        datatoc_effect_bloom_frag_glsl,
+	        "#define STEP_RESOLVE\n");
+	e_data.bloom_resolve_sh[1] = DRW_shader_create_fullscreen(
+	        datatoc_effect_bloom_frag_glsl,
+	        "#define STEP_RESOLVE\n"
+	        "#define HIGH_QUALITY\n");
 }
 
 int EEVEE_bloom_init(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *vedata)
@@ -190,7 +206,8 @@ int EEVEE_bloom_init(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 	return 0;
 }
 
-static DRWShadingGroup *eevee_create_bloom_pass(const char *name, EEVEE_EffectsInfo *effects, struct GPUShader *sh, DRWPass **pass, bool upsample)
+static DRWShadingGroup *eevee_create_bloom_pass(
+        const char *name, EEVEE_EffectsInfo *effects, struct GPUShader *sh, DRWPass **pass, bool upsample)
 {
 	struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
 

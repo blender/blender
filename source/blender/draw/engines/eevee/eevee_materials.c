@@ -468,7 +468,8 @@ void EEVEE_update_util_texture(float offset)
 	}
 
 	if (e_data.util_tex == NULL) {
-		e_data.util_tex = DRW_texture_create_2D_array(64, 64, layers, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_WRAP, (float *)texels);
+		e_data.util_tex = DRW_texture_create_2D_array(
+		        64, 64, layers, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_WRAP, (float *)texels);
 	}
 	else {
 		DRW_texture_update(e_data.util_tex, (float *)texels);

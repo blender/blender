@@ -116,16 +116,24 @@ int EEVEE_depth_of_field_init(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *
 			}
 
 			/* Setup buffers */
-			DRWFboTexture tex_down[3] = {{dof_down_near, DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER}, /* filter to not interfeer with bloom */
-			                             {&txl->dof_down_far, DRW_TEX_RGB_11_11_10, 0},
-			                             {&txl->dof_coc, DRW_TEX_RG_16, 0}};
-			DRW_framebuffer_init(&fbl->dof_down_fb, &draw_engine_eevee_type, buffer_size[0], buffer_size[1], tex_down, 3);
+			DRWFboTexture tex_down[3] = {
+				{dof_down_near, DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER}, /* filter to not interfeer with bloom */
+				{&txl->dof_down_far, DRW_TEX_RGB_11_11_10, 0},
+				{&txl->dof_coc, DRW_TEX_RG_16, 0},
+			};
+			DRW_framebuffer_init(
+			        &fbl->dof_down_fb, &draw_engine_eevee_type,
+			        buffer_size[0], buffer_size[1], tex_down, 3);
 
 			DRWFboTexture tex_scatter_far = {&txl->dof_far_blur, DRW_TEX_RGBA_16, DRW_TEX_FILTER};
-			DRW_framebuffer_init(&fbl->dof_scatter_far_fb, &draw_engine_eevee_type, buffer_size[0], buffer_size[1], &tex_scatter_far, 1);
+			DRW_framebuffer_init(
+			        &fbl->dof_scatter_far_fb, &draw_engine_eevee_type,
+			        buffer_size[0], buffer_size[1], &tex_scatter_far, 1);
 
 			DRWFboTexture tex_scatter_near = {&txl->dof_near_blur, DRW_TEX_RGBA_16, DRW_TEX_FILTER};
-			DRW_framebuffer_init(&fbl->dof_scatter_near_fb, &draw_engine_eevee_type, buffer_size[0], buffer_size[1], &tex_scatter_near, 1);
+			DRW_framebuffer_init(
+			        &fbl->dof_scatter_near_fb, &draw_engine_eevee_type,
+			        buffer_size[0], buffer_size[1], &tex_scatter_near, 1);
 
 			/* Parameters */
 			/* TODO UI Options */
