@@ -51,6 +51,7 @@ struct SceneLayer;
 struct ViewContext;
 struct wmKeyConfig;
 struct wmOperator;
+struct Main;
 
 typedef struct EditBone {
 	struct EditBone *next, *prev;

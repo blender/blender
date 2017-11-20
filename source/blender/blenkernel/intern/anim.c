@@ -54,6 +54,7 @@
 #include "BKE_anim.h"
 #include "BKE_report.h"
 
+#include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
 // XXX bad level call...
@@ -341,15 +342,11 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
  *	- recalc: whether we need to
  */
 /* TODO: include reports pointer? */
-void animviz_calc_motionpaths(bContext *C, Scene *scene, ListBase *targets)
+ void animviz_calc_motionpaths(EvaluationContext *eval_ctx, Main *bmain, Scene *scene, ListBase *targets)
 {
 	MPathTarget *mpt;
 	int sfra, efra;
 	int cfra;
-	Main *bmain = CTX_data_main(C);
-	/* TODO(sergey): Should we mabe pass scene layer explicitly? */
-	SceneLayer *scene_layer = CTX_data_scene_layer(C);
-	struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	
 	/* sanity check */
 	if (ELEM(NULL, targets, targets->first))
@@ -372,7 +369,7 @@ void animviz_calc_motionpaths(bContext *C, Scene *scene, ListBase *targets)
 	/* calculate path over requested range */
 	for (CFRA = sfra; CFRA <= efra; CFRA++) {
 		/* update relevant data for new frame */
-		motionpaths_calc_update_scene(bmain, scene, scene_layer, depsgraph);
+		motionpaths_calc_update_scene(bmain, scene, eval_ctx->scene_layer, eval_ctx->depsgraph);
 		
 		/* perform baking for targets */
 		motionpaths_calc_bake_targets(scene, targets);
@@ -380,7 +377,7 @@ void animviz_calc_motionpaths(bContext *C, Scene *scene, ListBase *targets)
 	
 	/* reset original environment */
 	CFRA = cfra;
-	motionpaths_calc_update_scene(bmain, scene, scene_layer, depsgraph);
+	motionpaths_calc_update_scene(bmain, scene, eval_ctx->scene_layer, eval_ctx->depsgraph);
 	
 	/* clear recalc flags from targets */
 	for (mpt = targets->first; mpt; mpt = mpt->next) {
