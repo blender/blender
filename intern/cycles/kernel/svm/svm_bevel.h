@@ -198,7 +198,7 @@ ccl_device_noinline float3 svm_bevel(
 
 	/* Normalize. */
 	float3 N = safe_normalize(sum_N);
-	return is_zero(N) ? sd->N : N;
+	return is_zero(N) ? sd->N : (sd->flag & SD_BACKFACING) ? -N : N;
 }
 
 ccl_device void svm_node_bevel(
