@@ -3852,14 +3852,29 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	gesture_straightline_modal_keymap(keyconf);
 }
 
+/**
+ * Filter functions that can be used with rna_id_itemf() below.
+ * Should return false if 'id' should be excluded.
+ */
+static bool rna_id_enum_filter_single(ID *id, void *user_data)
+{
+	return (id != user_data);
+}
+
 /* Generic itemf's for operators that take library args */
-static const EnumPropertyItem *rna_id_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr), bool *r_free, ID *id, bool local)
+static const EnumPropertyItem *rna_id_itemf(
+        bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
+        bool *r_free, ID *id, bool local,
+        bool (*filter_ids)(ID *id, void *user_data), void *user_data)
 {
 	EnumPropertyItem item_tmp = {0}, *item = NULL;
 	int totitem = 0;
 	int i = 0;
 
 	for (; id; id = id->next) {
+		if ((filter_ids != NULL) && filter_ids(user_data, id) == false) {
+			continue;
+		}
 		if (local == false || !ID_IS_LINKED(id)) {
 			item_tmp.identifier = item_tmp.name = id->name + 2;
 			item_tmp.value = i++;
@@ -3876,7 +3891,7 @@ static const EnumPropertyItem *rna_id_itemf(bContext *UNUSED(C), PointerRNA *UNU
 /* can add more as needed */
 const EnumPropertyItem *RNA_action_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->action.first : NULL, false);
+	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->action.first : NULL, false, NULL, NULL);
 }
 #if 0 /* UNUSED */
 const EnumPropertyItem *RNA_action_local_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
@@ -3887,45 +3902,51 @@ const EnumPropertyItem *RNA_action_local_itemf(bContext *C, PointerRNA *ptr, Pro
 
 const EnumPropertyItem *RNA_group_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->group.first : NULL, false);
+	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->group.first : NULL, false, NULL, NULL);
 }
 const EnumPropertyItem *RNA_group_local_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->group.first : NULL, true);
+	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->group.first : NULL, true, NULL, NULL);
 }
 
 const EnumPropertyItem *RNA_image_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->image.first : NULL, false);
+	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->image.first : NULL, false, NULL, NULL);
 }
 const EnumPropertyItem *RNA_image_local_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->image.first : NULL, true);
+	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->image.first : NULL, true, NULL, NULL);
 }
 
 const EnumPropertyItem *RNA_scene_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->scene.first : NULL, false);
+	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->scene.first : NULL, false, NULL, NULL);
 }
 const EnumPropertyItem *RNA_scene_local_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->scene.first : NULL, true);
+	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->scene.first : NULL, true, NULL, NULL);
 }
-
+const EnumPropertyItem *RNA_scene_without_active_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
+{
+	Scene *scene_active = C ? CTX_data_scene(C) : NULL;
+	return rna_id_itemf(
+	        C, ptr, r_free, C ? (ID *)CTX_data_main(C)->scene.first : NULL, true,
+	        rna_id_enum_filter_single, scene_active);
+}
 const EnumPropertyItem *RNA_movieclip_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->movieclip.first : NULL, false);
+	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->movieclip.first : NULL, false, NULL, NULL);
 }
 const EnumPropertyItem *RNA_movieclip_local_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->movieclip.first : NULL, true);
+	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->movieclip.first : NULL, true, NULL, NULL);
 }
 
 const EnumPropertyItem *RNA_mask_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->mask.first : NULL, false);
+	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->mask.first : NULL, false, NULL, NULL);
 }
 const EnumPropertyItem *RNA_mask_local_itemf(bContext *C, PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->mask.first : NULL, true);
+	return rna_id_itemf(C, ptr, r_free, C ? (ID *)CTX_data_main(C)->mask.first : NULL, true, NULL, NULL);
 }
