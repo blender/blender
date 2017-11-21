@@ -2092,10 +2092,15 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node
 	if (GS(id_orig->name) == ID_OB) {
 		Object *object = (Object *)id_orig;
 		ID *object_data_id = (ID *)object->data;
-		OperationKey data_copy_on_write_key(object_data_id,
-		                                    DEG_NODE_TYPE_COPY_ON_WRITE,
-		                                    DEG_OPCODE_COPY_ON_WRITE);
-		add_relation(data_copy_on_write_key, copy_on_write_key, "Eval Order");
+		if (object_data_id != NULL) {
+			OperationKey data_copy_on_write_key(object_data_id,
+			                                    DEG_NODE_TYPE_COPY_ON_WRITE,
+			                                    DEG_OPCODE_COPY_ON_WRITE);
+			add_relation(data_copy_on_write_key, copy_on_write_key, "Eval Order");
+		}
+		else {
+			BLI_assert(object->type == OB_EMPTY);
+		}
 	}
 }
 
