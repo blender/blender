@@ -76,6 +76,11 @@
 #  define CUDA_KERNEL_MAX_REGISTERS 48
 #  define CUDA_KERNEL_BRANCHED_MAX_REGISTERS 63
 
+/* CUDA 9.0 seems to cause slowdowns on high-end Pascal cards unless we increase the number of registers */
+#  if __CUDACC_VER_MAJOR__ == 9 && __CUDA_ARCH__ >= 600
+#    #define CUDA_KERNEL_MAX_REGISTERS 64
+#  endif
+
 /* unknown architecture */
 #else
 #  error "Unknown or unsupported CUDA architecture, can't determine launch bounds"
