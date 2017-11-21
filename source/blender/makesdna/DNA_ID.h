@@ -366,13 +366,14 @@ enum {
 
 	/* The datablock is a copy-on-write version. */
 	LIB_TAG_COPY_ON_WRITE   = 1 << 15,
+	LIB_TAG_COPY_ON_WRITE_EVAL = 1 << 16,
 
 	/* RESET_NEVER tag datablock for freeing etc. behavior (usually set when copying real one into temp/runtime one). */
-	LIB_TAG_NO_MAIN          = 1 << 16,  /* Datablock is not listed in Main database. */
-	LIB_TAG_NO_USER_REFCOUNT = 1 << 17,  /* Datablock does not refcount usages of other IDs. */
+	LIB_TAG_NO_MAIN          = 1 << 17,  /* Datablock is not listed in Main database. */
+	LIB_TAG_NO_USER_REFCOUNT = 1 << 18,  /* Datablock does not refcount usages of other IDs. */
 	/* Datablock was not allocated by standard system (BKE_libblock_alloc), do not free its memory
 	 * (usual type-specific freeing is called though). */
-	LIB_TAG_NOT_ALLOCATED     = 1 << 18,
+	LIB_TAG_NOT_ALLOCATED     = 1 << 19,
 };
 
 /* To filter ID types (filter_id) */

@@ -353,6 +353,8 @@ void BKE_object_eval_uber_data(const EvaluationContext *eval_ctx,
 				 * something what we might want to change in the future.
 				 */
 				ob->data = new_mesh;
+				/* Special flags to help debugging. */
+				new_mesh->id.tag |= LIB_TAG_COPY_ON_WRITE_EVAL;
 				/* Save some memory by throwing DerivedMesh away. */
 				/* NOTE: Watch out, some tools might need it!
 				 * So keep around for now..
