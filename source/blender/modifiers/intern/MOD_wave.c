@@ -55,6 +55,8 @@
 #include "MOD_modifiertypes.h"
 #include "MOD_util.h"
 
+#include "DEG_depsgraph.h"
+
 static void initData(ModifierData *md)
 {
 	WaveModifierData *wmd = (WaveModifierData *) md; // whadya know, moved here from Iraq
@@ -157,15 +159,16 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static void waveModifier_do(WaveModifierData *md, 
-                            Scene *scene, Object *ob, DerivedMesh *dm,
+static void waveModifier_do(WaveModifierData *md,
+                            const EvaluationContext *eval_ctx,
+                            Object *ob, DerivedMesh *dm,
                             float (*vertexCos)[3], int numVerts)
 {
 	WaveModifierData *wmd = (WaveModifierData *) md;
 	MVert *mvert = NULL;
 	MDeformVert *dvert;
 	int defgrp_index;
-	float ctime = BKE_scene_frame_get(scene);
+	float ctime = eval_ctx->ctime;
 	float minfac = (float)(1.0 / exp(wmd->width * wmd->narrow * wmd->width * wmd->narrow));
 	float lifefac = wmd->height;
 	float (*tex_co)[3] = NULL;
@@ -310,7 +313,7 @@ static void waveModifier_do(WaveModifierData *md,
 	if (wmd->texture) MEM_freeN(tex_co);
 }
 
-static void deformVerts(ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx),
+static void deformVerts(ModifierData *md, const struct EvaluationContext *eval_ctx,
                         Object *ob, DerivedMesh *derivedData,
                         float (*vertexCos)[3],
                         int numVerts,
@@ -324,14 +327,15 @@ static void deformVerts(ModifierData *md, const struct EvaluationContext *UNUSED
 	else if (wmd->texture || wmd->defgrp_name[0])
 		dm = get_dm(ob, NULL, dm, NULL, false, false);
 
-	waveModifier_do(wmd, md->scene, ob, dm, vertexCos, numVerts);
+	waveModifier_do(wmd, eval_ctx, ob, dm, vertexCos, numVerts);
 
 	if (dm != derivedData)
 		dm->release(dm);
 }
 
 static void deformVertsEM(
-        ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx), Object *ob, struct BMEditMesh *editData,
+        ModifierData *md, const struct EvaluationContext *eval_ctx,
+        Object *ob, struct BMEditMesh *editData,
         DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;
@@ -342,7 +346,7 @@ static void deformVertsEM(
 	else if (wmd->texture || wmd->defgrp_name[0])
 		dm = get_dm(ob, editData, dm, NULL, false, false);
 
-	waveModifier_do(wmd, md->scene, ob, dm, vertexCos, numVerts);
+	waveModifier_do(wmd, eval_ctx, ob, dm, vertexCos, numVerts);
 
 	if (dm != derivedData)
 		dm->release(dm);
