@@ -67,14 +67,14 @@ void KeyingOperation::deinitExecution()
 
 void KeyingOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
 {
-	float pixelColor[4];
-	float screenColor[4];
+	float pixel_color[4];
+	float screen_color[4];
 
-	this->m_pixelReader->readSampled(pixelColor, x, y, sampler);
-	this->m_screenReader->readSampled(screenColor, x, y, sampler);
+	this->m_pixelReader->readSampled(pixel_color, x, y, sampler);
+	this->m_screenReader->readSampled(screen_color, x, y, sampler);
 
-	const int primary_channel = max_axis_v3(screenColor);
-	const float min_pixel_color = min_fff(pixelColor[0], pixelColor[1], pixelColor[2]);
+	const int primary_channel = max_axis_v3(screen_color);
+	const float min_pixel_color = min_fff(pixel_color[0], pixel_color[1], pixel_color[2]);
 
 	if (min_pixel_color > 1.0f) {
 		/* overexposure doesn't happen on screen itself and usually happens
@@ -85,8 +85,8 @@ void KeyingOperation::executePixelSampled(float output[4], float x, float y, Pix
 		output[0] = 1.0f;
 	}
 	else {
-		float saturation = get_pixel_saturation(pixelColor, this->m_screenBalance, primary_channel);
-		float screen_saturation = get_pixel_saturation(screenColor, this->m_screenBalance, primary_channel);
+		float saturation = get_pixel_saturation(pixel_color, this->m_screenBalance, primary_channel);
+		float screen_saturation = get_pixel_saturation(screen_color, this->m_screenBalance, primary_channel);
 
 		if (saturation < 0) {
 			/* means main channel of pixel is different from screen,
