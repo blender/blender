@@ -550,37 +550,30 @@ static int bmo_mesh_flag_count(
 {
 	int count_vert = 0, count_edge = 0, count_face = 0;
 
-#pragma omp parallel sections if ((bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT) && \
-	                              (ELEM(htype, BM_VERT, BM_EDGE, BM_FACE) == 0))
-	{
-#pragma omp section
-		if (htype & BM_VERT) {
-			BMIter iter;
-			BMVert *ele;
-			BM_ITER_MESH (ele, &iter, bm, BM_VERTS_OF_MESH) {
-				if (BMO_vert_flag_test_bool(bm, ele, oflag) == test_for_enabled) {
-					count_vert++;
-				}
+	if (htype & BM_VERT) {
+		BMIter iter;
+		BMVert *ele;
+		BM_ITER_MESH (ele, &iter, bm, BM_VERTS_OF_MESH) {
+			if (BMO_vert_flag_test_bool(bm, ele, oflag) == test_for_enabled) {
+				count_vert++;
 			}
 		}
-#pragma omp section
-		if (htype & BM_EDGE) {
-			BMIter iter;
-			BMEdge *ele;
-			BM_ITER_MESH (ele, &iter, bm, BM_EDGES_OF_MESH) {
-				if (BMO_edge_flag_test_bool(bm, ele, oflag) == test_for_enabled) {
-					count_edge++;
-				}
+	}
+	if (htype & BM_EDGE) {
+		BMIter iter;
+		BMEdge *ele;
+		BM_ITER_MESH (ele, &iter, bm, BM_EDGES_OF_MESH) {
+			if (BMO_edge_flag_test_bool(bm, ele, oflag) == test_for_enabled) {
+				count_edge++;
 			}
 		}
-#pragma omp section
-		if (htype & BM_FACE) {
-			BMIter iter;
-			BMFace *ele;
-			BM_ITER_MESH (ele, &iter, bm, BM_FACES_OF_MESH) {
-				if (BMO_face_flag_test_bool(bm, ele, oflag) == test_for_enabled) {
-					count_face++;
-				}
+	}
+	if (htype & BM_FACE) {
+		BMIter iter;
+		BMFace *ele;
+		BM_ITER_MESH (ele, &iter, bm, BM_FACES_OF_MESH) {
+			if (BMO_face_flag_test_bool(bm, ele, oflag) == test_for_enabled) {
+				count_face++;
 			}
 		}
 	}
@@ -601,33 +594,25 @@ int BMO_mesh_disabled_flag_count(BMesh *bm, const char htype, const short oflag)
 
 void BMO_mesh_flag_disable_all(BMesh *bm, BMOperator *UNUSED(op), const char htype, const short oflag)
 {
-
-#pragma omp parallel sections if ((bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT) && \
-	                              (ELEM(htype, BM_VERT, BM_EDGE, BM_FACE) == 0))
-	{
-#pragma omp section
-		if (htype & BM_VERT) {
-			BMIter iter;
-			BMVert *ele;
-			BM_ITER_MESH (ele, &iter, bm, BM_VERTS_OF_MESH) {
-				BMO_vert_flag_disable(bm, ele, oflag);
-			}
+	if (htype & BM_VERT) {
+		BMIter iter;
+		BMVert *ele;
+		BM_ITER_MESH (ele, &iter, bm, BM_VERTS_OF_MESH) {
+			BMO_vert_flag_disable(bm, ele, oflag);
 		}
-#pragma omp section
-		if (htype & BM_EDGE) {
-			BMIter iter;
-			BMEdge *ele;
-			BM_ITER_MESH (ele, &iter, bm, BM_EDGES_OF_MESH) {
-				BMO_edge_flag_disable(bm, ele, oflag);
-			}
+	}
+	if (htype & BM_EDGE) {
+		BMIter iter;
+		BMEdge *ele;
+		BM_ITER_MESH (ele, &iter, bm, BM_EDGES_OF_MESH) {
+			BMO_edge_flag_disable(bm, ele, oflag);
 		}
-#pragma omp section
-		if (htype & BM_FACE) {
-			BMIter iter;
-			BMFace *ele;
-			BM_ITER_MESH (ele, &iter, bm, BM_FACES_OF_MESH) {
-				BMO_face_flag_disable(bm, ele, oflag);
-			}
+	}
+	if (htype & BM_FACE) {
+		BMIter iter;
+		BMFace *ele;
+		BM_ITER_MESH (ele, &iter, bm, BM_FACES_OF_MESH) {
+			BMO_face_flag_disable(bm, ele, oflag);
 		}
 	}
 }
@@ -1383,38 +1368,32 @@ static void bmo_flag_layer_clear(BMesh *bm)
 
 	const int totflags_offset = bm->totflags - 1;
 
-#pragma omp parallel sections if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
+	/* now go through and memcpy all the flag */
 	{
-		/* now go through and memcpy all the flag */
-#pragma omp section
-		{
-			BMIter iter;
-			BMVert_OFlag *ele;
-			int i;
-			BM_ITER_MESH_INDEX (ele, &iter, bm, BM_VERTS_OF_MESH, i) {
-				ele->oflags[totflags_offset] = zero_flag;
-				BM_elem_index_set(&ele->base, i); /* set_inline */
-			}
+		BMIter iter;
+		BMVert_OFlag *ele;
+		int i;
+		BM_ITER_MESH_INDEX (ele, &iter, bm, BM_VERTS_OF_MESH, i) {
+			ele->oflags[totflags_offset] = zero_flag;
+			BM_elem_index_set(&ele->base, i); /* set_inline */
 		}
-#pragma omp section
-		{
-			BMIter iter;
-			BMEdge_OFlag *ele;
-			int i;
-			BM_ITER_MESH_INDEX (ele, &iter, bm, BM_EDGES_OF_MESH, i) {
-				ele->oflags[totflags_offset] = zero_flag;
-				BM_elem_index_set(&ele->base, i); /* set_inline */
-			}
+	}
+	{
+		BMIter iter;
+		BMEdge_OFlag *ele;
+		int i;
+		BM_ITER_MESH_INDEX (ele, &iter, bm, BM_EDGES_OF_MESH, i) {
+			ele->oflags[totflags_offset] = zero_flag;
+			BM_elem_index_set(&ele->base, i); /* set_inline */
 		}
-#pragma omp section
-		{
-			BMIter iter;
-			BMFace_OFlag *ele;
-			int i;
-			BM_ITER_MESH_INDEX (ele, &iter, bm, BM_FACES_OF_MESH, i) {
-				ele->oflags[totflags_offset] = zero_flag;
-				BM_elem_index_set(&ele->base, i); /* set_inline */
-			}
+	}
+	{
+		BMIter iter;
+		BMFace_OFlag *ele;
+		int i;
+		BM_ITER_MESH_INDEX (ele, &iter, bm, BM_FACES_OF_MESH, i) {
+			ele->oflags[totflags_offset] = zero_flag;
+			BM_elem_index_set(&ele->base, i); /* set_inline */
 		}
 	}
 
