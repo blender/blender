@@ -226,11 +226,9 @@ static void setup_app_data(
 	CTX_data_main_set(C, G.main);
 
 	if (bfd->user) {
-
 		/* only here free userdef themes... */
-		BKE_blender_userdef_free_data(&U);
-
-		U = *bfd->user;
+		BKE_blender_userdef_data_set_and_free(bfd->user);
+		bfd->user = NULL;
 
 		/* Security issue: any blend file could include a USER block.
 		 *
@@ -241,8 +239,6 @@ static void setup_app_data(
 		 * enable scripts auto-execution by loading a '.blend' file.
 		 */
 		U.flag |= USER_SCRIPT_AUTOEXEC_DISABLE;
-
-		MEM_freeN(bfd->user);
 	}
 
 	/* case G_FILE_NO_UI or no screens in file */
@@ -514,6 +510,30 @@ bool BKE_blendfile_userdef_write(const char *filepath, ReportList *reports)
 
 	return ok;
 }
+
+/**
+ * Only write the userdef in a .blend, merging with the existing blend file.
+ * \return success
+ *
+ * \note In the future we should re-evaluate user preferences,
+ * possibly splitting out system/hardware specific prefs.
+ */
+bool BKE_blendfile_userdef_write_app_template(const char *filepath, ReportList *reports)
+{
+	/* if it fails, overwrite is OK. */
+	UserDef *userdef_default = BKE_blendfile_userdef_read(filepath, NULL);
+	if (userdef_default == NULL) {
+		return BKE_blendfile_userdef_write(filepath, reports);
+	}
+
+	BKE_blender_userdef_app_template_data_swap(&U, userdef_default);
+	bool ok = BKE_blendfile_userdef_write(filepath, reports);
+	BKE_blender_userdef_app_template_data_swap(&U, userdef_default);
+	BKE_blender_userdef_data_free(userdef_default, false);
+	MEM_freeN(userdef_default);
+	return ok;
+}
+
 
 /** \} */
 
