@@ -422,7 +422,7 @@ void do_versions_after_linking_280(Main *main)
 
 				SceneLayer *scene_layer = BKE_scene_layer_add(scene, "Viewport");
 				/* If we ported all the original render layers, we don't need to make the viewport layer renderable. */
-				if (BLI_listbase_is_single(&scene->render_layers)) {
+				if (!BLI_listbase_is_single(&scene->render_layers)) {
 					scene_layer->flag &= ~SCENE_LAYER_RENDER;
 				}
 
