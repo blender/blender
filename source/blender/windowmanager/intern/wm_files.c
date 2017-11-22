@@ -1472,7 +1472,7 @@ static int wm_userpref_write_exec(bContext *C, wmOperator *op)
 	wmWindowManager *wm = CTX_wm_manager(C);
 	char filepath[FILE_MAX];
 	const char *cfgdir;
-	bool ok = false;
+	bool ok = true;
 
 	/* update keymaps in user preferences */
 	WM_keyconfig_update(wm);
@@ -1482,30 +1482,33 @@ static int wm_userpref_write_exec(bContext *C, wmOperator *op)
 		printf("trying to save userpref at %s ", filepath);
 		if (BKE_blendfile_userdef_write(filepath, op->reports) != 0) {
 			printf("ok\n");
-			ok = true;
 		}
 		else {
 			printf("fail\n");
+			ok = false;
 		}
 	}
 	else {
 		BKE_report(op->reports, RPT_ERROR, "Unable to create userpref path");
 	}
 
-	if (U.app_template[0] && (cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, U.app_template))) {
-		/* Also save app-template prefs */
-		BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE, NULL);
-		printf("trying to save app-template userpref at %s ", filepath);
-		if (BKE_blendfile_userdef_write(filepath, op->reports) == 0) {
-			printf("fail\n");
-			ok = true;
+	if (U.app_template[0]) {
+		if ((cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, U.app_template))) {
+			/* Also save app-template prefs */
+			BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE, NULL);
+			printf("trying to save app-template userpref at %s ", filepath);
+			if (BKE_blendfile_userdef_write(filepath, op->reports) != 0) {
+				printf("ok\n");
+			}
+			else {
+				printf("fail\n");
+				ok = false;
+			}
 		}
 		else {
-			printf("ok\n");
+			BKE_report(op->reports, RPT_ERROR, "Unable to create app-template userpref path");
+			ok = false;
 		}
-	}
-	else if (U.app_template[0]) {
-		BKE_report(op->reports, RPT_ERROR, "Unable to create app-template userpref path");
 	}
 
 	return ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
