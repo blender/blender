@@ -725,7 +725,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 	}
 
 	{
-		if (!DNA_struct_elem_find(fd->filesdna, "SceneLayer", "FreestyleConfig", "freestyle_config")) {
+		if ((DNA_struct_elem_find(fd->filesdna, "SceneLayer", "FreestyleConfig", "freestyle_config") == false) &&
+		    DNA_struct_elem_find(fd->filesdna, "Scene", "ListBase", "render_layers")) {
 			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
 				SceneLayer *scene_layer;
 				for (scene_layer = scene->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
@@ -735,6 +736,15 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 					scene_layer->pass_alpha_threshold = 0.5f;
 					BKE_freestyle_config_init(&scene_layer->freestyle_config);
 				}
+
+				for (SceneRenderLayer *srl = scene->r.layers.first; srl; srl = srl->next) {
+					if (srl->prop) {
+						IDP_FreeProperty(srl->prop);
+						MEM_freeN(srl->prop);
+					}
+					BKE_freestyle_config_free(&srl->freestyleConfig);
+				}
+				BLI_freelistN(&scene->r.layers);
 			}
 		}
 	}
