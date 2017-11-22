@@ -57,7 +57,6 @@ static void recount_totsels(BMesh *bm)
 	tots[1] = &bm->totedgesel;
 	tots[2] = &bm->totfacesel;
 
-#pragma omp parallel for schedule(static) if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
 	for (i = 0; i < 3; i++) {
 		BMIter iter;
 		BMElem *ele;
@@ -253,44 +252,34 @@ void BM_mesh_select_mode_flush_ex(BMesh *bm, const short selectmode)
 
 	if (selectmode & SCE_SELECT_VERTEX) {
 		/* both loops only set edge/face flags and read off verts */
-#pragma omp parallel sections if (bm->totedge + bm->totface >= BM_OMP_LIMIT)
-		{
-#pragma omp section
+		BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
+			if (BM_elem_flag_test(e->v1, BM_ELEM_SELECT) &&
+				BM_elem_flag_test(e->v2, BM_ELEM_SELECT) &&
+				!BM_elem_flag_test(e, BM_ELEM_HIDDEN))
 			{
-				BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
-					if (BM_elem_flag_test(e->v1, BM_ELEM_SELECT) &&
-					    BM_elem_flag_test(e->v2, BM_ELEM_SELECT) &&
-					    !BM_elem_flag_test(e, BM_ELEM_HIDDEN))
-					{
-						BM_elem_flag_enable(e, BM_ELEM_SELECT);
-					}
-					else {
-						BM_elem_flag_disable(e, BM_ELEM_SELECT);
-					}
-				}
+				BM_elem_flag_enable(e, BM_ELEM_SELECT);
 			}
-#pragma omp section
-			{
-				BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
-					bool ok = true;
-					if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-						l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-						do {
-							if (!BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT)) {
-								ok = false;
-								break;
-							}
-						} while ((l_iter = l_iter->next) != l_first);
-					}
-					else {
-						ok = false;
-					}
-
-					BM_elem_flag_set(f, BM_ELEM_SELECT, ok);
-				}
+			else {
+				BM_elem_flag_disable(e, BM_ELEM_SELECT);
 			}
 		}
-		/* end sections */
+		BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+			bool ok = true;
+			if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+				l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+				do {
+					if (!BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT)) {
+						ok = false;
+						break;
+					}
+				} while ((l_iter = l_iter->next) != l_first);
+			}
+			else {
+				ok = false;
+			}
+
+			BM_elem_flag_set(f, BM_ELEM_SELECT, ok);
+		}
 	}
 	else if (selectmode & SCE_SELECT_EDGE) {
 		BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
@@ -375,42 +364,31 @@ void BM_mesh_select_flush(BMesh *bm)
 
 	bool ok;
 
-	/* we can use 2 sections here because the second loop isnt checking edge selection */
-#pragma omp parallel sections if (bm->totedge + bm->totface >= BM_OMP_LIMIT)
-	{
-#pragma omp section
+	BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
+		if (BM_elem_flag_test(e->v1, BM_ELEM_SELECT) &&
+			BM_elem_flag_test(e->v2, BM_ELEM_SELECT) &&
+			!BM_elem_flag_test(e, BM_ELEM_HIDDEN))
 		{
-			BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
-				if (BM_elem_flag_test(e->v1, BM_ELEM_SELECT) &&
-				    BM_elem_flag_test(e->v2, BM_ELEM_SELECT) &&
-				    !BM_elem_flag_test(e, BM_ELEM_HIDDEN))
-				{
-					BM_elem_flag_enable(e, BM_ELEM_SELECT);
+			BM_elem_flag_enable(e, BM_ELEM_SELECT);
+		}
+	}
+	BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+		ok = true;
+		if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+			l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+			do {
+				if (!BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT)) {
+					ok = false;
+					break;
 				}
-			}
+			} while ((l_iter = l_iter->next) != l_first);
+		}
+		else {
+			ok = false;
 		}
 
-#pragma omp section
-		{
-			BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
-				ok = true;
-				if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-					l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-					do {
-						if (!BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT)) {
-							ok = false;
-							break;
-						}
-					} while ((l_iter = l_iter->next) != l_first);
-				}
-				else {
-					ok = false;
-				}
-
-				if (ok) {
-					BM_elem_flag_enable(f, BM_ELEM_SELECT);
-				}
-			}
+		if (ok) {
+			BM_elem_flag_enable(f, BM_ELEM_SELECT);
 		}
 	}
 
@@ -1107,8 +1085,6 @@ void BM_mesh_elem_hflag_disable_test(
 	{
 		/* fast path for deselect all, avoid topology loops
 		 * since we know all will be de-selected anyway. */
-
-#pragma omp parallel for schedule(static) if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
 		for (i = 0; i < 3; i++) {
 			BMIter iter;
 			BMElem *ele;

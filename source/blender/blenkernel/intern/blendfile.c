@@ -521,19 +521,22 @@ UserDef *BKE_blendfile_userdef_read_from_memory(
 }
 
 
-/* only write the userdef in a .blend */
-int BKE_blendfile_userdef_write(const char *filepath, ReportList *reports)
+/**
+ * Only write the userdef in a .blend
+ * \return success
+ */
+bool BKE_blendfile_userdef_write(const char *filepath, ReportList *reports)
 {
 	Main *mainb = MEM_callocN(sizeof(Main), "empty main");
-	int retval = 0;
+	bool ok = false;
 
 	if (BLO_write_file(mainb, filepath, G_FILE_USERPREFS, reports, NULL)) {
-		retval = 1;
+		ok = true;
 	}
 
 	MEM_freeN(mainb);
 
-	return retval;
+	return ok;
 }
 
 WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepath, ReportList *reports)

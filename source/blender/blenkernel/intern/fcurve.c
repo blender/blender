@@ -1775,7 +1775,7 @@ void driver_variable_name_validate(DriverVar *dvar)
 	
 	/* 1) Must start with a letter */
 	/* XXX: We assume that valid unicode letters in other languages are ok too, hence the blacklisting */
-	if (ELEM(dvar->name[0], '0', '1', '2', '3', '4', '5', '6', '7', '8', '9')) {
+	if (IN_RANGE_INCL(dvar->name[0], '0', '9')) {
 		dvar->flag |= DVAR_FLAG_INVALID_START_NUM;
 	}
 	else if (dvar->name[0] == '_') {

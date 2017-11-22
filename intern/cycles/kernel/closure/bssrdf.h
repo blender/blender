@@ -119,7 +119,7 @@ ccl_device float bssrdf_cubic_eval(const float radius, const float sharpness, fl
 		else {
 			Rmy = powf(Rm, y);
 			ry = powf(r, y);
-			ryinv = (r > 0.0f)? powf(r, 2.0f*y - 2.0f): 0.0f;
+			ryinv = (r > 0.0f)? powf(r, y - 1.0f): 0.0f;
 		}
 
 		const float Rmy5 = (Rmy*Rmy) * (Rmy*Rmy) * Rmy;

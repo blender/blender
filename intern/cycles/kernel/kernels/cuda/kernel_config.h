@@ -73,8 +73,14 @@
 
 /* tunable parameters */
 #  define CUDA_THREADS_BLOCK_WIDTH 16
-#  define CUDA_KERNEL_MAX_REGISTERS 48
+/* CUDA 9.0 seems to cause slowdowns on high-end Pascal cards unless we increase the number of registers */
+#  if __CUDACC_VER_MAJOR__ == 9 && __CUDA_ARCH__ >= 600
+#    define CUDA_KERNEL_MAX_REGISTERS 64
+#  else
+#    define CUDA_KERNEL_MAX_REGISTERS 48
+#  endif
 #  define CUDA_KERNEL_BRANCHED_MAX_REGISTERS 63
+
 
 /* unknown architecture */
 #else

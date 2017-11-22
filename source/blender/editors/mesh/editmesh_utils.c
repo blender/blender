@@ -1236,7 +1236,6 @@ void EDBM_mesh_reveal(BMEditMesh *em, bool select)
 
 	/* Use tag flag to remember what was hidden before all is revealed.
 	 * BM_ELEM_HIDDEN --> BM_ELEM_TAG */
-#pragma omp parallel for schedule(static) if (em->bm->totvert + em->bm->totedge + em->bm->totface >= BM_OMP_LIMIT)
 	for (i = 0; i < 3; i++) {
 		BMIter iter;
 		BMElem *ele;

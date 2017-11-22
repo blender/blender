@@ -596,99 +596,100 @@ static void rna_MeshColor_color1_get(PointerRNA *ptr, float *values)
 {
 	MCol *mcol = (MCol *)ptr->data;
 
-	values[2] = (&mcol[0].r)[0] / 255.0f;
-	values[1] = (&mcol[0].r)[1] / 255.0f;
-	values[0] = (&mcol[0].r)[2] / 255.0f;
+	values[3] = mcol[0].a / 255.0f;
+	values[2] = mcol[0].r / 255.0f;
+	values[1] = mcol[0].g / 255.0f;
+	values[0] = mcol[0].b / 255.0f;
 }
 
 static void rna_MeshColor_color1_set(PointerRNA *ptr, const float *values)
 {
 	MCol *mcol = (MCol *)ptr->data;
 
-	(&mcol[0].r)[2] = round_fl_to_uchar_clamp(values[0] * 255.0f);
-	(&mcol[0].r)[1] = round_fl_to_uchar_clamp(values[1] * 255.0f);
-	(&mcol[0].r)[0] = round_fl_to_uchar_clamp(values[2] * 255.0f);
-	(&mcol[0].r)[3] = round_fl_to_uchar_clamp(values[3] * 255.0f);
+	mcol[0].a = round_fl_to_uchar_clamp(values[3] * 255.0f);
+	mcol[0].r = round_fl_to_uchar_clamp(values[2] * 255.0f);
+	mcol[0].g = round_fl_to_uchar_clamp(values[1] * 255.0f);
+	mcol[0].b = round_fl_to_uchar_clamp(values[0] * 255.0f);
 }
 
 static void rna_MeshColor_color2_get(PointerRNA *ptr, float *values)
 {
 	MCol *mcol = (MCol *)ptr->data;
 
-	values[3] = (&mcol[1].r)[3] / 255.0f;
-	values[2] = (&mcol[1].r)[0] / 255.0f;
-	values[1] = (&mcol[1].r)[1] / 255.0f;
-	values[0] = (&mcol[1].r)[2] / 255.0f;
+	values[3] = mcol[1].a / 255.0f;
+	values[2] = mcol[1].r / 255.0f;
+	values[1] = mcol[1].g / 255.0f;
+	values[0] = mcol[1].b / 255.0f;
 }
 
 static void rna_MeshColor_color2_set(PointerRNA *ptr, const float *values)
 {
 	MCol *mcol = (MCol *)ptr->data;
 
-	(&mcol[1].r)[2] = round_fl_to_uchar_clamp(values[0] * 255.0f);
-	(&mcol[1].r)[1] = round_fl_to_uchar_clamp(values[1] * 255.0f);
-	(&mcol[1].r)[0] = round_fl_to_uchar_clamp(values[2] * 255.0f);
-	(&mcol[1].r)[3] = round_fl_to_uchar_clamp(values[3] * 255.0f);
+	mcol[1].a = round_fl_to_uchar_clamp(values[3] * 255.0f);
+	mcol[1].r = round_fl_to_uchar_clamp(values[2] * 255.0f);
+	mcol[1].g = round_fl_to_uchar_clamp(values[1] * 255.0f);
+	mcol[1].b = round_fl_to_uchar_clamp(values[0] * 255.0f);
 }
 
 static void rna_MeshColor_color3_get(PointerRNA *ptr, float *values)
 {
 	MCol *mcol = (MCol *)ptr->data;
 
-	values[3] = (&mcol[2].r)[3] / 255.0f;
-	values[2] = (&mcol[2].r)[0] / 255.0f;
-	values[1] = (&mcol[2].r)[1] / 255.0f;
-	values[0] = (&mcol[2].r)[2] / 255.0f;
+	values[3] = mcol[2].a / 255.0f;
+	values[2] = mcol[2].r / 255.0f;
+	values[1] = mcol[2].g / 255.0f;
+	values[0] = mcol[2].b / 255.0f;
 }
 
 static void rna_MeshColor_color3_set(PointerRNA *ptr, const float *values)
 {
 	MCol *mcol = (MCol *)ptr->data;
 
-	(&mcol[2].r)[2] = round_fl_to_uchar_clamp(values[0] * 255.0f);
-	(&mcol[2].r)[1] = round_fl_to_uchar_clamp(values[1] * 255.0f);
-	(&mcol[2].r)[0] = round_fl_to_uchar_clamp(values[2] * 255.0f);
-	(&mcol[2].r)[3] = round_fl_to_uchar_clamp(values[3] * 255.0f);
+	mcol[2].a = round_fl_to_uchar_clamp(values[3] * 255.0f);
+	mcol[2].r = round_fl_to_uchar_clamp(values[2] * 255.0f);
+	mcol[2].g = round_fl_to_uchar_clamp(values[1] * 255.0f);
+	mcol[2].b = round_fl_to_uchar_clamp(values[0] * 255.0f);
 }
 
 static void rna_MeshColor_color4_get(PointerRNA *ptr, float *values)
 {
 	MCol *mcol = (MCol *)ptr->data;
 
-	values[2] = (&mcol[3].r)[0] / 255.0f;
-	values[1] = (&mcol[3].r)[1] / 255.0f;
-	values[0] = (&mcol[3].r)[2] / 255.0f;
-	values[3] = (&mcol[3].r)[3] / 255.0f;
+	values[3] = mcol[3].a / 255.0f;
+	values[2] = mcol[3].r / 255.0f;
+	values[1] = mcol[3].g / 255.0f;
+	values[0] = mcol[3].b / 255.0f;
 }
 
 static void rna_MeshColor_color4_set(PointerRNA *ptr, const float *values)
 {
 	MCol *mcol = (MCol *)ptr->data;
 
-	(&mcol[3].r)[2] = round_fl_to_uchar_clamp(values[0] * 255.0f);
-	(&mcol[3].r)[1] = round_fl_to_uchar_clamp(values[1] * 255.0f);
-	(&mcol[3].r)[0] = round_fl_to_uchar_clamp(values[2] * 255.0f);
-	(&mcol[3].r)[3] = round_fl_to_uchar_clamp(values[3] * 255.0f);
+	mcol[3].a = round_fl_to_uchar_clamp(values[3] * 255.0f);
+	mcol[3].r = round_fl_to_uchar_clamp(values[2] * 255.0f);
+	mcol[3].g = round_fl_to_uchar_clamp(values[1] * 255.0f);
+	mcol[3].b = round_fl_to_uchar_clamp(values[0] * 255.0f);
 }
 
 static void rna_MeshLoopColor_color_get(PointerRNA *ptr, float *values)
 {
-	MLoopCol *mcol = (MLoopCol *)ptr->data;
+	MLoopCol *mlcol = (MLoopCol *)ptr->data;
 
-	values[0] = (&mcol->r)[0] / 255.0f;
-	values[1] = (&mcol->r)[1] / 255.0f;
-	values[2] = (&mcol->r)[2] / 255.0f;
-	values[3] = (&mcol->r)[3] / 255.0f;
+	values[0] = mlcol->r / 255.0f;
+	values[1] = mlcol->g / 255.0f;
+	values[2] = mlcol->b / 255.0f;
+	values[3] = mlcol->a / 255.0f;
 }
 
 static void rna_MeshLoopColor_color_set(PointerRNA *ptr, const float *values)
 {
-	MLoopCol *mcol = (MLoopCol *)ptr->data;
+	MLoopCol *mlcol = (MLoopCol *)ptr->data;
 
-	(&mcol->r)[0] = round_fl_to_uchar_clamp(values[0] * 255.0f);
-	(&mcol->r)[1] = round_fl_to_uchar_clamp(values[1] * 255.0f);
-	(&mcol->r)[2] = round_fl_to_uchar_clamp(values[2] * 255.0f);
-	(&mcol->r)[3] = round_fl_to_uchar_clamp(values[3] * 255.0f);
+	mlcol->r = round_fl_to_uchar_clamp(values[0] * 255.0f);
+	mlcol->g = round_fl_to_uchar_clamp(values[1] * 255.0f);
+	mlcol->b = round_fl_to_uchar_clamp(values[2] * 255.0f);
+	mlcol->a = round_fl_to_uchar_clamp(values[3] * 255.0f);
 }
 
 static int rna_Mesh_texspace_editable(PointerRNA *ptr, const char **UNUSED(r_info))

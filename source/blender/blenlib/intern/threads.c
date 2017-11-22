@@ -508,14 +508,16 @@ void BLI_spin_unlock(SpinLock *spin)
 #endif
 }
 
+#if defined(__APPLE__) || defined(_MSC_VER)
+void BLI_spin_end(SpinLock *UNUSED(spin))
+{
+}
+#else
 void BLI_spin_end(SpinLock *spin)
 {
-#if defined(__APPLE__)
-#elif defined(_MSC_VER)
-#else
 	pthread_spin_destroy(spin);
-#endif
 }
+#endif
 
 /* Read/Write Mutex Lock */
 
