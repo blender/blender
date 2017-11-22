@@ -530,6 +530,7 @@ static void eevee_shadow_cube_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE_La
 	ubo_data->shadow_start = (float)(sh_data->layer_id);
 	ubo_data->data_start = (float)(sh_data->cube_id);
 	ubo_data->multi_shadow_count = (float)(sh_nbr);
+	ubo_data->shadow_blur = la->soft * 0.02f; /* Used by translucence shadowmap blur */
 
 	ubo_data->contact_dist = (la->mode & LA_SHAD_CONTACT) ? la->contact_dist : 0.0f;
 	ubo_data->contact_bias = 0.05f * la->contact_bias;
@@ -777,6 +778,7 @@ static void eevee_shadow_cascade_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE
 	ubo_data->shadow_start = (float)(sh_data->layer_id);
 	ubo_data->data_start = (float)(sh_data->cascade_id);
 	ubo_data->multi_shadow_count = (float)(sh_nbr);
+	ubo_data->shadow_blur = la->soft * 0.02f; /* Used by translucence shadowmap blur */
 
 	ubo_data->contact_dist = (la->mode & LA_SHAD_CONTACT) ? la->contact_dist : 0.0f;
 	ubo_data->contact_bias = 0.05f * la->contact_bias;

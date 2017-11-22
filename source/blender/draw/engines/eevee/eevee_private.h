@@ -116,6 +116,7 @@ enum {
 	VAR_MAT_REFRACT  = (1 << 12),
 	VAR_MAT_VOLUME   = (1 << 13),
 	VAR_MAT_SSS      = (1 << 14),
+	VAR_MAT_TRANSLUC = (1 << 15),
 };
 
 /* Shadow Technique */
@@ -280,7 +281,7 @@ typedef struct EEVEE_Light {
 
 typedef struct EEVEE_Shadow {
 	float near, far, bias, exp;
-	float shadow_start, data_start, multi_shadow_count, pad;
+	float shadow_start, data_start, multi_shadow_count, shadow_blur;
 	float contact_dist, contact_bias, contact_spread, contact_thickness;
 } EEVEE_Shadow;
 
@@ -639,7 +640,7 @@ struct GPUMaterial *EEVEE_material_world_background_get(struct Scene *scene, str
 struct GPUMaterial *EEVEE_material_world_volume_get(struct Scene *scene, struct World *wo);
 struct GPUMaterial *EEVEE_material_mesh_get(
         struct Scene *scene, Material *ma, EEVEE_Data *vedata,
-        bool use_blend, bool use_multiply, bool use_refract, bool use_sss, int shadow_method);
+        bool use_blend, bool use_multiply, bool use_refract, bool use_sss, bool use_translucency, int shadow_method);
 struct GPUMaterial *EEVEE_material_mesh_volume_get(struct Scene *scene, Material *ma);
 struct GPUMaterial *EEVEE_material_mesh_depth_get(struct Scene *scene, Material *ma, bool use_hashed_alpha, bool is_shadow);
 struct GPUMaterial *EEVEE_material_hair_get(struct Scene *scene, Material *ma, int shadow_method);

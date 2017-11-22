@@ -277,6 +277,142 @@ vec3 light_specular(LightData ld, vec3 N, vec3 V, vec4 l_vector, float roughness
 #endif
 }
 
+#define MAX_SSS_SAMPLES 65
+#define SSS_LUT_SIZE 64.0
+#define SSS_LUT_SCALE ((SSS_LUT_SIZE - 1.0) / float(SSS_LUT_SIZE))
+#define SSS_LUT_BIAS (0.5 / float(SSS_LUT_SIZE))
+layout(std140) uniform sssProfile {
+	vec4 kernel[MAX_SSS_SAMPLES];
+	vec4 radii_max_radius;
+	int sss_samples;
+};
+
+uniform sampler1D sssTexProfile;
+
+vec3 sss_profile(float s) {
+	s /= radii_max_radius.w;
+	return texture(sssTexProfile, saturate(s) * SSS_LUT_SCALE + SSS_LUT_BIAS).rgb;
+}
+
+vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, float scale)
+{
+	vec3 vis = vec3(1.0);
+
+	/* Only shadowed light can produce translucency */
+	if (ld.l_shadowid >= 0.0) {
+		ShadowData data = shadows_data[int(ld.l_shadowid)];
+		float delta;
+
+		vec4 L = (ld.l_type != SUN) ? l_vector : vec4(-ld.l_forward, 1.0);
+
+		vec3 T, B;
+		make_orthonormal_basis(L.xyz / L.w, T, B);
+
+		vec3 rand = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0)).xzw;
+		/* XXX This is a hack to not have noise correlation artifacts.
+		 * A better solution to have better noise is welcome. */
+		rand.yz *= fast_sqrt(fract(rand.x * 7919.0)) * data.sh_blur;
+
+		/* We use the full l_vector.xyz so that the spread is minimize
+		 * if the shading point is further away from the light source */
+		W = W + T * rand.y + B * rand.z;
+
+		if (ld.l_type == SUN) {
+			ShadowCascadeData scd = shadows_cascade_data[int(data.sh_data_start)];
+			vec4 view_z = vec4(dot(W - cameraPos, cameraForward));
+
+			vec4 weights = step(scd.split_end_distances, view_z);
+			float id = abs(4.0 - dot(weights, weights));
+
+			if (id > 3.0) {
+				return vec3(0.0);
+			}
+
+			float range = abs(data.sh_far - data.sh_near); /* Same factor as in get_cascade_world_distance(). */
+
+			vec4 shpos = scd.shadowmat[int(id)] * vec4(W, 1.0);
+			float dist = shpos.z * range;
+
+			if (shpos.z > 1.0 || shpos.z < 0.0) {
+				return vec3(0.0);
+			}
+
+#if defined(SHADOW_VSM)
+			vec2 moments = texture(shadowTexture, vec3(shpos.xy, data.sh_tex_start + id)).rg;
+			delta = dist - moments.x;
+#else
+			float z = texture(shadowTexture, vec3(shpos.xy, data.sh_tex_start + id)).r;
+			delta = dist - z;
+#endif
+		}
+		else {
+			vec3 cubevec = W - shadows_cube_data[int(data.sh_data_start)].position.xyz;
+			float dist = length(cubevec);
+
+			/* If fragment is out of shadowmap range, do not occlude */
+			/* XXX : we check radial distance against a cubeface distance.
+			 * We loose quite a bit of valid area. */
+			if (dist < data.sh_far) {
+				cubevec /= dist;
+
+#if defined(SHADOW_VSM)
+				vec2 moments = texture_octahedron(shadowTexture, vec4(cubevec, data.sh_tex_start)).rg;
+				delta = dist - moments.x;
+#else
+				float z = texture_octahedron(shadowTexture, vec4(cubevec, data.sh_tex_start)).r;
+				delta = dist - z;
+#endif
+			}
+		}
+
+		/* XXX : Removing Area Power. */
+		/* TODO : put this out of the shader. */
+		float falloff;
+		if (ld.l_type == AREA) {
+			vis *= 0.0962 * (ld.l_sizex * ld.l_sizey * 4.0 * M_PI);
+			vis /= (l_vector.w * l_vector.w);
+			falloff = dot(N, l_vector.xyz / l_vector.w);
+		}
+		else if (ld.l_type == SUN) {
+			falloff = dot(N, -ld.l_forward);
+		}
+		else {
+			vis *= 0.0248 * (4.0 * ld.l_radius * ld.l_radius * M_PI * M_PI);
+			vis /= (l_vector.w * l_vector.w);
+			falloff = dot(N, l_vector.xyz / l_vector.w);
+		}
+		vis *= M_1_PI; /* Normalize */
+
+		/* Applying profile */
+		vis *= sss_profile(abs(delta) / scale);
+
+		/* No transmittance at grazing angle (hide artifacts) */
+		vis *= saturate(falloff * 2.0);
+
+		if (ld.l_type == SPOT) {
+			float z = dot(ld.l_forward, l_vector.xyz);
+			vec3 lL = l_vector.xyz / z;
+			float x = dot(ld.l_right, lL) / ld.l_sizex;
+			float y = dot(ld.l_up, lL) / ld.l_sizey;
+
+			float ellipse = 1.0 / sqrt(1.0 + x * x + y * y);
+
+			float spotmask = smoothstep(0.0, 1.0, (ellipse - ld.l_spot_size) / ld.l_spot_blend);
+
+			vis *= spotmask;
+			vis *= step(0.0, -dot(l_vector.xyz, ld.l_forward));
+		}
+		else if (ld.l_type == AREA) {
+			vis *= step(0.0, -dot(l_vector.xyz, ld.l_forward));
+		}
+	}
+	else {
+		vis = vec3(0.0);
+	}
+
+	return vis;
+}
+
 #ifdef HAIR_SHADER
 void light_hair_common(
         LightData ld, vec3 N, vec3 V, vec4 l_vector, vec3 norm_view,

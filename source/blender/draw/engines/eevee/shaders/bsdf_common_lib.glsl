@@ -103,6 +103,7 @@ struct ShadowCascadeData {
 #define sh_tex_start    shadow_data_start_end.x
 #define sh_data_start   shadow_data_start_end.y
 #define sh_multi_nbr    shadow_data_start_end.z
+#define sh_blur         shadow_data_start_end.w
 #define sh_contact_dist            contact_shadow_data.x
 #define sh_contact_offset          contact_shadow_data.y
 #define sh_contact_spread          contact_shadow_data.z

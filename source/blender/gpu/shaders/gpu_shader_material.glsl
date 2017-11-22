@@ -2880,7 +2880,9 @@ void node_bsdf_principled_simple(vec4 base_color, float subsurface, vec3 subsurf
 
 #ifdef USE_SSS
 	/* OPTI : Make irradiance computation shared with the diffuse. */
-	result.sss_data.rgb = eevee_surface_diffuse_lit(N, vec3(1.0), 1.0) * mix(vec3(0.0), subsurface_color.rgb, subsurface);
+	result.sss_data.rgb = eevee_surface_diffuse_lit(N, vec3(1.0), 1.0);
+	result.sss_data.rgb += eevee_surface_translucent_lit(N, vec3(1.0), 1.0);
+	result.sss_data.rgb *= mix(vec3(0.0), subsurface_color.rgb, subsurface);
 	result.sss_data.a = 1.0; /* TODO Find a parametrization */
 #endif
 #else
@@ -2951,7 +2953,9 @@ void node_bsdf_principled_clearcoat(vec4 base_color, float subsurface, vec3 subs
 
 #ifdef USE_SSS
 	/* OPTI : Make irradiance computation shared with the diffuse. */
-	result.sss_data.rgb = eevee_surface_diffuse_lit(N, vec3(1.0), 1.0) * mix(vec3(0.0), subsurface_color.rgb, subsurface);
+	result.sss_data.rgb = eevee_surface_translucent_lit(N, subsurface_color.rgb, 1.0);
+	result.sss_data.rgb += eevee_surface_diffuse_lit(N, vec3(1.0), 1.0);
+	result.sss_data.rgb *= mix(vec3(0.0), subsurface_color.rgb, subsurface);
 	result.sss_data.a = 1.0; /* TODO Find a parametrization */
 #endif
 
@@ -2995,7 +2999,8 @@ void node_subsurface_scattering(
 	result.ssr_data = vec4(0.0);
 	result.ssr_normal = normal_encode(vN, viewCameraVec);
 	result.ssr_id = -1;
-	result.sss_data.rgb = eevee_surface_diffuse_lit(N, vec3(1.0), 1.0) * color.rgb;
+	result.sss_data.rgb = eevee_surface_translucent_lit(N, color.rgb, scale);
+	result.sss_data.rgb += eevee_surface_diffuse_lit(N, color.rgb, 1.0);
 	result.sss_data.a = scale;
 #else
 	node_bsdf_diffuse(color, 0.0, N, result);

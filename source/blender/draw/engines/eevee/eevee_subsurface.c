@@ -123,7 +123,6 @@ void EEVEE_subsurface_add_pass(EEVEE_Data *vedata, unsigned int sss_id, struct G
 	DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth);
 	DRW_shgroup_uniform_buffer(grp, "sssData", &txl->sss_data);
 	DRW_shgroup_uniform_block(grp, "sssProfile", sss_profile);
-	DRW_shgroup_uniform_int(grp, "sampleCount", &effects->sss_sample_count, 1);
 	DRW_shgroup_uniform_float(grp, "jitterThreshold", &effects->sss_jitter_threshold, 1);
 	DRW_shgroup_stencil_mask(grp, sss_id);
 	DRW_shgroup_call_add(grp, quad, NULL);
@@ -134,7 +133,6 @@ void EEVEE_subsurface_add_pass(EEVEE_Data *vedata, unsigned int sss_id, struct G
 	DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth);
 	DRW_shgroup_uniform_buffer(grp, "sssData", &txl->sss_blur);
 	DRW_shgroup_uniform_block(grp, "sssProfile", sss_profile);
-	DRW_shgroup_uniform_int(grp, "sampleCount", &effects->sss_sample_count, 1);
 	DRW_shgroup_uniform_float(grp, "jitterThreshold", &effects->sss_jitter_threshold, 1);
 	DRW_shgroup_stencil_mask(grp, sss_id);
 	DRW_shgroup_call_add(grp, quad, NULL);

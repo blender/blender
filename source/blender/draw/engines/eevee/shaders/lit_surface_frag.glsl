@@ -810,3 +810,61 @@ vec3 eevee_surface_glass(vec3 N, vec3 transmission_col, float roughness, float i
 
 	return out_light;
 }
+
+/* ----------- Translucency -----------  */
+
+vec3 eevee_surface_translucent_lit(vec3 N, vec3 albedo, float sss_scale)
+{
+#ifndef USE_TRANSLUCENCY
+	return vec3(0.0);
+#endif
+
+	vec3 V = cameraVec;
+
+	/* Zero length vectors cause issues, see: T51979. */
+#if 0
+	N = normalize(N);
+#else
+	{
+		float len = length(N);
+		if (isnan(len)) {
+			return vec3(0.0);
+		}
+		N /= len;
+	}
+#endif
+
+	/* We only enlit the backfaces */
+	N = -N;
+
+	/* ---------------- SCENE LAMPS LIGHTING ----------------- */
+
+#ifdef HAIR_SHADER
+	vec3 norm_view = cross(V, N);
+	norm_view = normalize(cross(norm_view, N)); /* Normal facing view */
+#endif
+
+	vec3 diff = vec3(0.0);
+	for (int i = 0; i < MAX_LIGHT && i < light_count; ++i) {
+		LightData ld = lights_data[i];
+
+		vec4 l_vector; /* Non-Normalized Light Vector with length in last component. */
+		l_vector.xyz = ld.l_position - worldPosition;
+		l_vector.w = length(l_vector.xyz);
+
+#ifdef HAIR_SHADER
+		vec3 norm_lamp, view_vec;
+		float occlu_trans, occlu;
+		light_hair_common(ld, N, V, l_vector, norm_view, occlu_trans, occlu, norm_lamp, view_vec);
+
+		diff += ld.l_color * light_translucent(ld, worldPosition, norm_lamp, l_vector, sss_scale) * occlu_trans;
+#else
+		diff += ld.l_color * light_translucent(ld, worldPosition, N, l_vector, sss_scale);
+#endif
+	}
+
+	/* Accumulate outgoing radiance */
+	vec3 out_light = diff * albedo;
+
+	return out_light;
+}

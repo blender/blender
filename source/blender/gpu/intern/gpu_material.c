@@ -45,6 +45,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_rand.h"
 
 #include "BKE_anim.h"
 #include "BKE_colortools.h"
@@ -143,6 +144,7 @@ struct GPUMaterial {
 
 	GPUUniformBuffer *ubo; /* UBOs for shader uniforms. */
 	GPUUniformBuffer *sss_profile; /* UBO containing SSS profile. */
+	GPUTexture *sss_tex_profile; /* Texture containing SSS profile. */
 	float *sss_radii; /* UBO containing SSS profile. */
 	int sss_samples;
 	short int *sss_falloff;
@@ -273,6 +275,10 @@ void GPU_material_free(ListBase *gpumaterial)
 
 		if (material->ubo != NULL) {
 			GPU_uniformbuffer_free(material->ubo);
+		}
+
+		if (material->sss_tex_profile != NULL) {
+			GPU_texture_free(material->sss_tex_profile);
 		}
 
 		if (material->sss_profile != NULL) {
@@ -493,72 +499,40 @@ void GPU_material_uniform_buffer_tag_dirty(ListBase *gpumaterials)
 
 typedef struct GPUSssKernelData {
 	float kernel[SSS_SAMPLES][4];
-	float radii_n[3], max_radius;
+	float param[3], max_radius;
+	int samples;
 } GPUSssKernelData;
 
-static void sss_calculate_offsets(GPUSssKernelData *kd, int count)
+static void sss_calculate_offsets(GPUSssKernelData *kd, int count, float exponent)
 {
 	float step = 2.0f / (float)(count - 1);
 	for (int i = 0; i < count; i++) {
 		float o = ((float)i) * step - 1.0f;
 		float sign = (o < 0.0f) ? -1.0f : 1.0f;
-		float ofs = sign * fabsf(powf(o, SSS_EXPONENT));
+		float ofs = sign * fabsf(powf(o, exponent));
 		kd->kernel[i][3] = ofs;
 	}
 }
 
-static float error_function(float x) {
-	/* Approximation of the error function by Abramowitz and Stegun
-	 * https://en.wikipedia.org/wiki/Error_function#Approximation_with_elementary_functions */
-	const float a1 = 0.254829592f;
-	const float a2 = -0.284496736f;
-	const float a3 = 1.421413741f;
-	const float a4 = -1.453152027f;
-	const float a5 = 1.061405429f;
-	const float p = 0.3275911f;
+#define GAUSS_TRUNCATE 12.46f
+static float gaussian_profile(float r, float radius)
+{
+	const float v = radius * radius * (0.25f * 0.25f);
+	const float Rm = sqrtf(v * GAUSS_TRUNCATE);
 
-	float sign = (x < 0.0f) ? -1.0f : 1.0f;
-	x = fabsf(x);
+	if(r >= Rm)
+		return 0.0f;
 
-	float t = 1.0f / (1.0f + p * x);
-	float y = 1.0f - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * expf(-(x * x));
-
-	return sign * y;
+	return expf(-r * r / (2.0f * v)) / (2.0f * M_PI * v);
 }
 
-static float gaussian_primitive(float x) {
-	const float sigma = 0.3f; /* Contained mostly between -1..1 */
-	return 0.5f * error_function(x / ((float)M_SQRT2 * sigma));
-}
-
-static float gaussian_integral(float x0, float x1) {
-	return gaussian_primitive(x1) - gaussian_primitive(x0);
-}
-
-/* Resolution for each sample of the precomputed kernel profile */
-#define INTEGRAL_RESOLUTION 32
 #define BURLEY_TRUNCATE     16.0f
-
+#define BURLEY_TRUNCATE_CDF 0.9963790093708328f // cdf(BURLEY_TRUNCATE)
 static float burley_profile(float r, float d)
 {
 	float exp_r_3_d = expf(-r / (3.0f * d));
 	float exp_r_d = exp_r_3_d * exp_r_3_d * exp_r_3_d;
 	return (exp_r_d + exp_r_3_d) / (4.0f * d);
-}
-
-static float burley_integral(float x0, float x1, float d)
-{
-	const float range = x1 - x0;
-	const float step = range / INTEGRAL_RESOLUTION;
-	float integral = 0.0f;
-
-	for(int i = 0; i < INTEGRAL_RESOLUTION; ++i) {
-		float x = x0 + range * ((float)i + 0.5f) / (float)INTEGRAL_RESOLUTION;
-		float y = burley_profile(fabsf(x), d);
-		integral += y * step;
-	}
-
-	return integral;
 }
 
 static float cubic_profile(float r, float radius, float sharpness)
@@ -583,7 +557,24 @@ static float cubic_profile(float r, float radius, float sharpness)
 	return (10.0f * num) / (Rmy5 * M_PI);
 }
 
-static float cubic_integral(float x0, float x1, float radius, float sharpness)
+static float eval_profile(float r, short falloff_type, float sharpness, float param)
+{
+	r = fabsf(r);
+
+	if (falloff_type == SHD_SUBSURFACE_BURLEY) {
+		return burley_profile(r, param) / BURLEY_TRUNCATE_CDF;
+	}
+	else if (falloff_type == SHD_SUBSURFACE_CUBIC) {
+		return cubic_profile(r, param, sharpness);
+	}
+	else {
+		return gaussian_profile(r, param);
+	}
+}
+
+/* Resolution for each sample of the precomputed kernel profile */
+#define INTEGRAL_RESOLUTION 32
+static float eval_integral(float x0, float x1, short falloff_type, float sharpness, float param)
 {
 	const float range = x1 - x0;
 	const float step = range / INTEGRAL_RESOLUTION;
@@ -591,46 +582,50 @@ static float cubic_integral(float x0, float x1, float radius, float sharpness)
 
 	for(int i = 0; i < INTEGRAL_RESOLUTION; ++i) {
 		float x = x0 + range * ((float)i + 0.5f) / (float)INTEGRAL_RESOLUTION;
-		float y = cubic_profile(fabsf(x), radius, sharpness);
+		float y = eval_profile(x, falloff_type, sharpness, param);
 		integral += y * step;
 	}
 
 	return integral;
 }
+#undef INTEGRAL_RESOLUTION
 
-static void compute_sss_kernel(GPUSssKernelData *kd, float *radii, int sample_ct, int falloff_type, float sharpness)
+static void compute_sss_kernel(
+        GPUSssKernelData *kd, float *radii, int sample_ct, int falloff_type, float sharpness)
 {
-	for (int i = 0; i < 3; ++i) {
-		/* Minimum radius */
-		kd->radii_n[i] = MAX2(radii[i], 1e-15f);
-	}
+	float rad[3];
+	/* Minimum radius */
+	rad[0] = MAX2(radii[0], 1e-15f);
+	rad[1] = MAX2(radii[1], 1e-15f);
+	rad[2] = MAX2(radii[2], 1e-15f);
 
 	/* Christensen-Burley fitting */
 	float l[3], d[3];
 
 	if (falloff_type == SHD_SUBSURFACE_BURLEY) {
-		mul_v3_v3fl(l, kd->radii_n, 0.25f * M_1_PI);
+		mul_v3_v3fl(l, rad, 0.25f * M_1_PI);
 		const float A = 1.0f;
 		const float s = 1.9f - A + 3.5f * (A - 0.8f) * (A - 0.8f);
 		/* XXX 0.6f Out of nowhere to match cycles! Empirical! Can be tweak better. */
 		mul_v3_v3fl(d, l, 0.6f / s);
-		mul_v3_v3fl(kd->radii_n, d, BURLEY_TRUNCATE);
+		mul_v3_v3fl(rad, d, BURLEY_TRUNCATE);
+		kd->max_radius = MAX3(rad[0], rad[1], rad[2]);
+
+		copy_v3_v3(kd->param, d);
 	}
 	else if (falloff_type == SHD_SUBSURFACE_CUBIC) {
-		/* XXX Black magic but it seems to fit. Maybe because we integrate -1..1 */
-		sharpness *= 0.5f;
+		copy_v3_v3(kd->param, rad);
+		mul_v3_fl(rad, 1.0f + sharpness);
+		kd->max_radius = MAX3(rad[0], rad[1], rad[2]);
+	}
+	else {
+		kd->max_radius = MAX3(rad[0], rad[1], rad[2]);
 
-		mul_v3_fl(kd->radii_n, 1.0f + sharpness);
+		copy_v3_v3(kd->param, rad);
 	}
 
-	/* Normalize size */
-	kd->max_radius = MAX3(kd->radii_n[0], kd->radii_n[1], kd->radii_n[2]);
-	kd->radii_n[0] /= kd->max_radius;
-	kd->radii_n[1] /= kd->max_radius;
-	kd->radii_n[2] /= kd->max_radius;
-
 	/* Compute samples locations on the 1d kernel [-1..1] */
-	sss_calculate_offsets(kd, sample_ct);
+	sss_calculate_offsets(kd, sample_ct, SSS_EXPONENT);
 
 	/* Weights sum for normalization */
 	float sum[3] = {0.0f, 0.0f, 0.0f};
@@ -653,25 +648,12 @@ static void compute_sss_kernel(GPUSssKernelData *kd, float *radii, int sample_ct
 			x1 = (kd->kernel[i][3] + kd->kernel[i + 1][3]) / 2.0f;
 		}
 
-		if (falloff_type == SHD_SUBSURFACE_BURLEY) {
-			x0 *= kd->max_radius;
-			x1 *= kd->max_radius;
-			kd->kernel[i][0] = burley_integral(x0, x1, d[0]);
-			kd->kernel[i][1] = burley_integral(x0, x1, d[1]);
-			kd->kernel[i][2] = burley_integral(x0, x1, d[2]);
-		}
-		else if (falloff_type == SHD_SUBSURFACE_CUBIC) {
-			x0 *= kd->max_radius;
-			x1 *= kd->max_radius;
-			kd->kernel[i][0] = cubic_integral(x0, x1, radii[0], sharpness);
-			kd->kernel[i][1] = cubic_integral(x0, x1, radii[1], sharpness);
-			kd->kernel[i][2] = cubic_integral(x0, x1, radii[2], sharpness);
-		}
-		else {
-			kd->kernel[i][0] = gaussian_integral(x0 / kd->radii_n[0], x1 / kd->radii_n[0]);
-			kd->kernel[i][1] = gaussian_integral(x0 / kd->radii_n[1], x1 / kd->radii_n[1]);
-			kd->kernel[i][2] = gaussian_integral(x0 / kd->radii_n[2], x1 / kd->radii_n[2]);
-		}
+		x0 *= kd->max_radius;
+		x1 *= kd->max_radius;
+
+		kd->kernel[i][0] = eval_integral(x0, x1, falloff_type, sharpness, kd->param[0]);
+		kd->kernel[i][1] = eval_integral(x0, x1, falloff_type, sharpness, kd->param[1]);
+		kd->kernel[i][2] = eval_integral(x0, x1, falloff_type, sharpness, kd->param[2]);
 
 		sum[0] += kd->kernel[i][0];
 		sum[1] += kd->kernel[i][1];
@@ -682,7 +664,7 @@ static void compute_sss_kernel(GPUSssKernelData *kd, float *radii, int sample_ct
 		if (sum[i] > 0.0f) {
 			/* Normalize */
 			for (int j = 0; j < sample_ct; j++) {
-				 kd->kernel[j][i] /= sum[i];
+				kd->kernel[j][i] /= sum[i];
 			}
 		}
 		else {
@@ -698,9 +680,71 @@ static void compute_sss_kernel(GPUSssKernelData *kd, float *radii, int sample_ct
 		copy_v4_v4(kd->kernel[i], kd->kernel[i - 1]);
 	}
 	copy_v4_v4(kd->kernel[0], tmpv);
+
+	kd->samples = sample_ct;
 }
 
-void GPU_material_sss_profile_create(GPUMaterial *material, float *radii, short int *falloff_type, float *sharpness)
+#define INTEGRAL_RESOLUTION 512
+static void compute_sss_translucence_kernel(
+        const GPUSssKernelData *kd, int resolution, short falloff_type, float sharpness, float **output)
+{
+	float (*texels)[4];
+	texels = MEM_callocN(sizeof(float) * 4 * resolution, "compute_sss_translucence_kernel");
+	*output = (float *)texels;
+
+	/* Last texel should be black, hence the - 1. */
+	for (int i = 0; i < resolution - 1; ++i) {
+		/* Distance from surface. */
+		float d = kd->max_radius * ((float)i + 0.00001f) / ((float)resolution);
+
+		/* For each distance d we compute the radiance incomming from an hypothetic parallel plane. */
+		/* Compute radius of the footprint on the hypothetic plane */
+		float r_fp = sqrtf(kd->max_radius * kd->max_radius - d * d);
+		float r_step = r_fp / INTEGRAL_RESOLUTION;
+		float area_accum = 0.0f;
+		for (float r = 0.0f; r < r_fp; r += r_step) {
+			/* Compute distance to the "shading" point through the medium. */
+			/* r_step * 0.5f to put sample between the area borders */
+			float dist = hypotf(r + r_step * 0.5f, d);
+
+			float profile[3];
+			profile[0] = eval_profile(dist, falloff_type, sharpness, kd->param[0]);
+			profile[1] = eval_profile(dist, falloff_type, sharpness, kd->param[1]);
+			profile[2] = eval_profile(dist, falloff_type, sharpness, kd->param[2]);
+
+			/* Since the profile and configuration are radially symetrical we
+			 * can just evaluate it once and weight it accordingly */
+			float r_next = r + r_step;
+			float disk_area = (M_PI * r_next * r_next) - (M_PI * r * r);
+
+			mul_v3_fl(profile, disk_area);
+			add_v3_v3(texels[i], profile);
+			area_accum += disk_area;
+		}
+		/* Normalize over the disk. */
+		mul_v3_fl(texels[i], 1.0f / (area_accum));
+	}
+
+	/* Normalize */
+	for (int j = resolution - 2; j > 0; j--) {
+		texels[j][0] /= (texels[0][0] > 0.0f) ? texels[0][0] : 1.0f;
+		texels[j][1] /= (texels[0][1] > 0.0f) ? texels[0][1] : 1.0f;
+		texels[j][2] /= (texels[0][2] > 0.0f) ? texels[0][2] : 1.0f;
+	}
+
+	/* First texel should be white */
+	texels[0][0] = (texels[0][0] > 0.0f) ? 1.0f : 0.0f;
+	texels[0][1] = (texels[0][1] > 0.0f) ? 1.0f : 0.0f;
+	texels[0][2] = (texels[0][2] > 0.0f) ? 1.0f : 0.0f;
+
+	/* dim the last few texels for smoother transition */
+	mul_v3_fl(texels[resolution - 2], 0.25f);
+	mul_v3_fl(texels[resolution - 3], 0.5f);
+	mul_v3_fl(texels[resolution - 4], 0.75f);
+}
+#undef INTEGRAL_RESOLUTION
+
+void GPU_material_sss_profile_create(GPUMaterial *material, float *radii, short *falloff_type, float *sharpness)
 {
 	material->sss_radii = radii;
 	material->sss_falloff = falloff_type;
@@ -713,10 +757,7 @@ void GPU_material_sss_profile_create(GPUMaterial *material, float *radii, short 
 	}
 }
 
-#undef SSS_EXPONENT
-#undef SSS_SAMPLES
-
-struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material, int sample_ct)
+struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material, int sample_ct, GPUTexture **tex_profile)
 {
 	if (material->sss_radii == NULL)
 		return NULL;
@@ -726,16 +767,38 @@ struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material, int
 
 		float sharpness = (material->sss_sharpness != NULL) ? *material->sss_sharpness : 0.0f;
 
+		/* XXX Black magic but it seems to fit. Maybe because we integrate -1..1 */
+		sharpness *= 0.5f;
+
 		compute_sss_kernel(&kd, material->sss_radii, sample_ct, *material->sss_falloff, sharpness);
 
 		/* Update / Create UBO */
 		GPU_uniformbuffer_update(material->sss_profile, &kd);
 
+		/* Update / Create Tex */
+		float *translucence_profile;
+		compute_sss_translucence_kernel(&kd, 64, *material->sss_falloff, sharpness, &translucence_profile);
+
+		if (material->sss_tex_profile != NULL) {
+			GPU_texture_free(material->sss_tex_profile);
+		}
+
+		material->sss_tex_profile = GPU_texture_create_1D_custom(64, 4, GPU_RGBA16F, translucence_profile, NULL);
+
+		MEM_freeN(translucence_profile);
+
 		material->sss_samples = sample_ct;
 		material->sss_dirty = false;
 	}
+
+	if (tex_profile != NULL) {
+		*tex_profile = material->sss_tex_profile;
+	}
 	return material->sss_profile;
 }
+
+#undef SSS_EXPONENT
+#undef SSS_SAMPLES
 
 void GPU_material_vertex_attributes(GPUMaterial *material, GPUVertexAttribs *attribs)
 {
