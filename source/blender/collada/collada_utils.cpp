@@ -144,13 +144,13 @@ Object *bc_add_object(Scene *scene, int type, const char *name)
 	DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
 	/* XXX Collada should use the context scene layer, not the scene one. (dfelinto/gaia). */
-	SceneLayer *scene_layer = BKE_scene_layer_context_active_PLACEHOLDER(scene);
+	ViewLayer *view_layer = BKE_view_layer_context_active_PLACEHOLDER(scene);
 
-	LayerCollection *layer_collection = BKE_layer_collection_get_active_ensure(scene, scene_layer);
+	LayerCollection *layer_collection = BKE_layer_collection_get_active_ensure(scene, view_layer);
 	BKE_collection_object_add(scene, layer_collection->scene_collection, ob);
 
-	Base *base = BKE_scene_layer_base_find(scene_layer, ob);
-	BKE_scene_layer_base_select(scene_layer, base);
+	Base *base = BKE_view_layer_base_find(view_layer, ob);
+	BKE_view_layer_base_select(view_layer, base);
 
 	return ob;
 }

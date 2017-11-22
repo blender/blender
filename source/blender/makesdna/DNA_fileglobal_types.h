@@ -43,7 +43,7 @@ typedef struct FileGlobal {
 	char pad[6];
 	struct bScreen *curscreen;
 	struct Scene *curscene;
-	struct SceneLayer *cur_render_layer;
+	struct ViewLayer *cur_view_layer;
 	void *pad1;
 
 	int fileflags;

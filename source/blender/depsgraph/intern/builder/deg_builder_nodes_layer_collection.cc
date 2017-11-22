@@ -77,7 +77,7 @@ void DepsgraphNodeBuilder::build_layer_collection(
 	                                 _1,
 	                                 layer_collection,
 	                                 state->parent),
-	                   DEG_OPCODE_SCENE_LAYER_EVAL,
+	                   DEG_OPCODE_VIEW_LAYER_EVAL,
 	                   layer_collection->scene_collection->name,
 	                   state->index);
 	++state->index;
@@ -97,23 +97,23 @@ void DepsgraphNodeBuilder::build_layer_collections(ListBase *layer_collections,
 	}
 }
 
-void DepsgraphNodeBuilder::build_scene_layer_collections(
-        SceneLayer *scene_layer)
+void DepsgraphNodeBuilder::build_view_layer_collections(
+        ViewLayer *view_layer)
 {
 	Scene *scene_cow;
-	SceneLayer *scene_layer_cow;
+	ViewLayer *view_layer_cow;
 	if (DEG_depsgraph_use_copy_on_write()) {
 		/* Make sure we've got ID node, so we can get pointer to CoW datablock.
 		 */
 		scene_cow = expand_cow_datablock(scene_);
-		scene_layer_cow = (SceneLayer *)BLI_findstring(
-		        &scene_cow->render_layers,
-		        scene_layer->name,
-		        offsetof(SceneLayer, name));
+		view_layer_cow = (ViewLayer *)BLI_findstring(
+		        &scene_cow->view_layers,
+		        view_layer->name,
+		        offsetof(ViewLayer, name));
 	}
 	else {
 		scene_cow = scene_;
-		scene_layer_cow = scene_layer;
+		view_layer_cow = view_layer;
 	}
 
 	LayerCollectionState state;
@@ -125,17 +125,17 @@ void DepsgraphNodeBuilder::build_scene_layer_collections(
 	                   function_bind(BKE_layer_eval_layer_collection_pre,
 	                                 _1,
 	                                 scene_cow,
-	                                 scene_layer_cow),
-	                   DEG_OPCODE_SCENE_LAYER_INIT,
-	                   scene_layer->name);
+	                                 view_layer_cow),
+	                   DEG_OPCODE_VIEW_LAYER_INIT,
+	                   view_layer->name);
 	add_operation_node(comp,
 	                   function_bind(BKE_layer_eval_layer_collection_post,
 	                                 _1,
-	                                 scene_layer_cow),
-	                   DEG_OPCODE_SCENE_LAYER_DONE,
-	                   scene_layer->name);
+	                                 view_layer_cow),
+	                   DEG_OPCODE_VIEW_LAYER_DONE,
+	                   view_layer->name);
 	state.parent = NULL;
-	build_layer_collections(&scene_layer_cow->layer_collections, &state);
+	build_layer_collections(&view_layer_cow->layer_collections, &state);
 }
 
 }  // namespace DEG

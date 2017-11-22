@@ -118,15 +118,15 @@ void ED_object_base_select(Base *base, eObjectSelect_Mode mode)
  */
 void ED_object_base_activate(bContext *C, Base *base)
 {
-	SceneLayer *scene_layer = CTX_data_scene_layer(C);
-	scene_layer->basact = base;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	view_layer->basact = base;
 
 	if (base) {
 #ifdef USE_WORKSPACE_MODE
 		WorkSpace *workspace = CTX_wm_workspace(C);
 		BKE_workspace_object_mode_set(workspace, base->object->mode);
 #endif
-		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene_layer);
+		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, view_layer);
 	}
 	else {
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, NULL);
@@ -389,7 +389,7 @@ void ED_object_select_linked_by_id(bContext *C, ID *id)
 static int object_select_linked_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob;
 	int nr = RNA_enum_get(op->ptr, "type");
 	bool changed = false, extend;
@@ -404,7 +404,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 	
-	ob = OBACT(sl);
+	ob = OBACT(view_layer);
 	if (ob == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No active object");
 		return OPERATOR_CANCELLED;
@@ -548,7 +548,7 @@ static bool select_grouped_children(bContext *C, Object *ob, const bool recursiv
 
 static bool select_grouped_parent(bContext *C) /* Makes parent active and de-selected OBACT */
 {
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Base *baspar, *basact = CTX_data_active_base(C);
 	bool changed = false;
 
@@ -556,7 +556,7 @@ static bool select_grouped_parent(bContext *C) /* Makes parent active and de-sel
 		return 0;  /* we know OBACT is valid */
 	}
 
-	baspar = BKE_scene_layer_base_find(sl, basact->object->parent);
+	baspar = BKE_view_layer_base_find(sl, basact->object->parent);
 
 	/* can be NULL if parent in other scene */
 	if (baspar && BASE_SELECTABLE(baspar)) {
@@ -616,7 +616,7 @@ static bool select_grouped_group(bContext *C, Object *ob)  /* Select objects in 
 
 static bool select_grouped_object_hooks(bContext *C, Object *ob)
 {
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 
 	bool changed = false;
 	Base *base;
@@ -627,7 +627,7 @@ static bool select_grouped_object_hooks(bContext *C, Object *ob)
 		if (md->type == eModifierType_Hook) {
 			hmd = (HookModifierData *) md;
 			if (hmd->object && !(hmd->object->flag & SELECT)) {
-				base = BKE_scene_layer_base_find(sl, hmd->object);
+				base = BKE_view_layer_base_find(sl, hmd->object);
 				if (base && (BASE_SELECTABLE(base))) {
 					ED_object_base_select(base, BA_SELECT);
 					changed = true;
@@ -799,7 +799,7 @@ static bool select_grouped_keyingset(bContext *C, Object *UNUSED(ob), ReportList
 static int object_select_grouped_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob;
 	const int type = RNA_enum_get(op->ptr, "type");
 	bool changed = false, extend;
@@ -815,7 +815,7 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 
-	ob = OBACT(sl);
+	ob = OBACT(view_layer);
 	if (ob == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No active object");
 		return OPERATOR_CANCELLED;
@@ -1014,7 +1014,7 @@ void OBJECT_OT_select_same_group(wmOperatorType *ot)
 static int object_select_mirror_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	bool extend;
 	
 	extend = RNA_boolean_get(op->ptr, "extend");
@@ -1028,7 +1028,7 @@ static int object_select_mirror_exec(bContext *C, wmOperator *op)
 		if (!STREQ(name_flip, primbase->object->id.name + 2)) {
 			Object *ob = (Object *)BKE_libblock_find_name(ID_OB, name_flip);
 			if (ob) {
-				Base *secbase = BKE_scene_layer_base_find(sl, ob);
+				Base *secbase = BKE_view_layer_base_find(sl, ob);
 
 				if (secbase) {
 					ED_object_base_select(secbase, BA_SELECT);
@@ -1071,9 +1071,9 @@ void OBJECT_OT_select_mirror(wmOperatorType *ot)
 
 static bool object_select_more_less(bContext *C, const bool select)
 {
-	SceneLayer *scene_layer = CTX_data_scene_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
-	for (Base *base = scene_layer->object_bases.first; base; base = base->next) {
+	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 		Object *ob = base->object;
 		ob->flag &= ~OB_DONE;
 		ob->id.tag &= ~LIB_TAG_DOIT;

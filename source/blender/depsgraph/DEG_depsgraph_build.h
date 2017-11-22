@@ -48,7 +48,7 @@ struct Main;
 struct ModifierData;
 struct Object;
 struct Scene;
-struct SceneLayer;
+struct ViewLayer;
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,10 +59,10 @@ extern "C" {
 /* Build depsgraph for the given scene, and dump results in given
  * graph container.
  */
-void DEG_graph_build_from_scene_layer(struct Depsgraph *graph,
+void DEG_graph_build_from_view_layer(struct Depsgraph *graph,
                                       struct Main *bmain,
                                       struct Scene *scene,
-                                      struct SceneLayer *scene_layer);
+                                      struct ViewLayer *view_layer);
 
 /* Tag relations from the given graph for update. */
 void DEG_graph_tag_relations_update(struct Depsgraph *graph);
@@ -71,7 +71,7 @@ void DEG_graph_tag_relations_update(struct Depsgraph *graph);
 void DEG_graph_relations_update(struct Depsgraph *graph,
                                 struct Main *bmain,
                                 struct Scene *scene,
-                                struct SceneLayer *scene_layer);
+                                struct ViewLayer *view_layer);
 
 /* Tag all relations in the database for update.*/
 void DEG_relations_tag_update(struct Main *bmain);

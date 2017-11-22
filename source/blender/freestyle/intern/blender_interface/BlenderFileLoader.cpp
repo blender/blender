@@ -32,16 +32,16 @@
 
 namespace Freestyle {
 
-BlenderFileLoader::BlenderFileLoader(Render *re, SceneLayer *scene_layer)
+BlenderFileLoader::BlenderFileLoader(Render *re, ViewLayer *view_layer)
 {
 	_re = re;
-	_scene_layer = scene_layer;
+	_view_layer = view_layer;
 	_Scene = NULL;
 	_numFacesRead = 0;
 #if 0
 	_minEdgeSize = DBL_MAX;
 #endif
-	_smooth = (scene_layer->freestyle_config.flags & FREESTYLE_FACE_SMOOTHNESS_FLAG) != 0;
+	_smooth = (view_layer->freestyle_config.flags & FREESTYLE_FACE_SMOOTHNESS_FLAG) != 0;
 	_pRenderMonitor = NULL;
 }
 

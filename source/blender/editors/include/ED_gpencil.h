@@ -49,7 +49,7 @@ struct bAnimContext;
 struct KeyframeEditData;
 struct PointerRNA;
 struct Scene;
-struct SceneLayer;
+struct ViewLayer;
 struct wmWindowManager;
 struct wmKeyConfig;
 
@@ -115,7 +115,7 @@ struct bGPdata *ED_gpencil_data_get_active_direct(struct ID *screen_id, struct S
                                                   struct ScrArea *sa, struct Object *ob);
 
 /* 3D View */
-struct bGPdata  *ED_gpencil_data_get_active_v3d(struct Scene *scene, struct SceneLayer *scene_layer);
+struct bGPdata  *ED_gpencil_data_get_active_v3d(struct Scene *scene, struct ViewLayer *view_layer);
 
 bool ED_gpencil_has_keyframe_v3d(struct Scene *scene, struct Object *ob, int cfra);
 
@@ -151,7 +151,7 @@ void ED_gpencil_draw_2dimage(const struct bContext *C);
 void ED_gpencil_draw_view2d(const struct bContext *C, bool onlyv2d);
 void ED_gpencil_draw_view3d(struct wmWindowManager *wm,
                             struct Scene *scene,
-                            struct SceneLayer *scene_layer,
+                            struct ViewLayer *view_layer,
                             struct View3D *v3d,
                             struct ARegion *ar,
                             bool only3d);

@@ -93,11 +93,11 @@ static const EnumPropertyItem space_items[] = {
 
 static void rna_Object_select_set(Object *ob, bContext *C, ReportList *reports, int action)
 {
-	SceneLayer *scene_layer = CTX_data_scene_layer(C);
-	Base *base = BKE_scene_layer_base_find(scene_layer, ob);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Base *base = BKE_view_layer_base_find(view_layer, ob);
 
 	if (!base) {
-		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in Render Layer '%s'!", ob->id.name + 2, scene_layer->name);
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in Render Layer '%s'!", ob->id.name + 2, view_layer->name);
 		return;
 	}
 
@@ -116,18 +116,18 @@ static void rna_Object_select_set(Object *ob, bContext *C, ReportList *reports, 
 			break;
 		case 0: /* SELECT */
 		default:
-			BKE_scene_layer_base_select(scene_layer, base);
+			BKE_view_layer_base_select(view_layer, base);
 			break;
 	}
 }
 
 static int rna_Object_select_get(Object *ob, bContext *C, ReportList *reports)
 {
-	SceneLayer *scene_layer = CTX_data_scene_layer(C);
-	Base *base = BKE_scene_layer_base_find(scene_layer, ob);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Base *base = BKE_view_layer_base_find(view_layer, ob);
 
 	if (!base) {
-		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in Render Layer '%s'!", ob->id.name + 2, scene_layer->name);
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in Render Layer '%s'!", ob->id.name + 2, view_layer->name);
 		return -1;
 	}
 
@@ -136,11 +136,11 @@ static int rna_Object_select_get(Object *ob, bContext *C, ReportList *reports)
 
 static int rna_Object_visible_get(Object *ob, bContext *C, ReportList *reports)
 {
-	SceneLayer *scene_layer = CTX_data_scene_layer(C);
-	Base *base = BKE_scene_layer_base_find(scene_layer, ob);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Base *base = BKE_view_layer_base_find(view_layer, ob);
 
 	if (!base) {
-		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in Render Layer '%s'!", ob->id.name + 2, scene_layer->name);
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in Render Layer '%s'!", ob->id.name + 2, view_layer->name);
 		return -1;
 	}
 
@@ -197,12 +197,12 @@ static void rna_Object_camera_fit_coords(
 /* copied from Mesh_getFromObject and adapted to RNA interface */
 /* settings: 0 - preview, 1 - render */
 static Mesh *rna_Object_to_mesh(
-        Object *ob, bContext *C, ReportList *reports, Scene *sce, SceneLayer *scene_layer,
+        Object *ob, bContext *C, ReportList *reports, Scene *sce, ViewLayer *view_layer,
         int apply_modifiers, int settings, int calc_tessface, int calc_undeformed)
 {
 	Main *bmain = CTX_data_main(C);
 
-	return rna_Main_meshes_new_from_object(bmain, reports, sce, scene_layer, ob, apply_modifiers, settings, calc_tessface, calc_undeformed);
+	return rna_Main_meshes_new_from_object(bmain, reports, sce, view_layer, ob, apply_modifiers, settings, calc_tessface, calc_undeformed);
 }
 
 /* mostly a copy from convertblender.c */
@@ -640,7 +640,7 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_CONTEXT);
 	parm = RNA_def_pointer(func, "scene", "Scene", "", "Scene within which to evaluate modifiers");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-	parm = RNA_def_pointer(func, "scene_layer", "SceneLayer", "", "Scene layer within which to evaluate modifiers");
+	parm = RNA_def_pointer(func, "view_layer", "ViewLayer", "", "Scene layer within which to evaluate modifiers");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_boolean(func, "apply_modifiers", 0, "", "Apply modifiers");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);

@@ -624,7 +624,7 @@ static bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 	bool is_set = false;
 
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Object *ob_act = OBACT(sl);
 
 	if (ob_act && (ob_act->mode & OB_MODE_ALL_PAINT) &&
@@ -2990,7 +2990,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Base *base;
 	float *curs;
 	const bool use_all_regions = RNA_boolean_get(op->ptr, "use_all_regions");
@@ -3075,12 +3075,12 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	const bool is_gp_edit = ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE));
 	const bool is_face_map = ((is_gp_edit == false) && ar->manipulator_map &&
 	                          WM_manipulatormap_is_any_selected(ar->manipulator_map));
-	Object *ob = OBACT(sl);
+	Object *ob = OBACT(view_layer);
 	Object *obedit = CTX_data_edit_object(C);
 	float min[3], max[3];
 	bool ok = false, ok_dist = true;
@@ -3099,7 +3099,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 		/* hard-coded exception, we look for the one selected armature */
 		/* this is weak code this way, we should make a generic active/selection callback interface once... */
 		Base *base;
-		for (base = sl->object_bases.first; base; base = base->next) {
+		for (base = view_layer->object_bases.first; base; base = base->next) {
 			if (TESTBASELIB(base)) {
 				if (base->object->type == OB_ARMATURE)
 					if (base->object->mode & OB_MODE_POSE)
@@ -3136,7 +3136,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 		ok = paintface_minmax(ob, min, max);
 	}
 	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
-		ok = PE_minmax(scene, sl, min, max);
+		ok = PE_minmax(scene, view_layer, min, max);
 	}
 	else if (ob &&
 	         (ob->mode & (OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)))
@@ -3148,7 +3148,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		Base *base;
-		for (base = FIRSTBASE(sl); base; base = base->next) {
+		for (base = FIRSTBASE(view_layer); base; base = base->next) {
 			if (TESTBASE(base)) {
 
 				if (skip_camera && base->object == v3d->camera) {
@@ -3915,7 +3915,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 	ARegion *ar;
 	RegionView3D *rv3d;
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *scene_layer = CTX_data_scene_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	static int perspo = RV3D_PERSP;
 	int viewnum, nextperspo;
 	bool align_active;
@@ -3950,7 +3950,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 			/* lastview -  */
 
 			if (rv3d->persp != RV3D_CAMOB) {
-				Object *ob = OBACT(scene_layer);
+				Object *ob = OBACT(view_layer);
 
 				if (!rv3d->smooth_timer) {
 					/* store settings of current view before allowing overwriting with camera view
@@ -3985,7 +3985,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 					v3d->camera = ob;
 
 				if (v3d->camera == NULL)
-					v3d->camera = BKE_scene_layer_camera_find(scene_layer);
+					v3d->camera = BKE_view_layer_camera_find(view_layer);
 
 				/* couldnt find any useful camera, bail out */
 				if (v3d->camera == NULL)

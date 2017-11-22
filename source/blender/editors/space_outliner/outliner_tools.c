@@ -366,9 +366,9 @@ static void object_select_cb(
         bContext *C, ReportList *UNUSED(reports), Scene *UNUSED(scene), TreeElement *UNUSED(te),
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Object *ob = (Object *)tselem->id;
-	Base *base = BKE_scene_layer_base_find(sl, ob);
+	Base *base = BKE_view_layer_base_find(sl, ob);
 
 	if (base && ((base->flag & BASE_VISIBLED) != 0)) {
 		base->flag |= BASE_SELECTED;
@@ -388,9 +388,9 @@ static void object_deselect_cb(
         bContext *C, ReportList *UNUSED(reports), Scene *UNUSED(scene), TreeElement *UNUSED(te),
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Object *ob = (Object *)tselem->id;
-	Base *base = BKE_scene_layer_base_find(sl, ob);
+	Base *base = BKE_view_layer_base_find(sl, ob);
 
 	if (base) {
 		base->flag &= ~BASE_SELECTED;
@@ -522,18 +522,18 @@ static void group_linkobs2scene_cb(
         bContext *C, ReportList *UNUSED(reports), Scene *scene, TreeElement *UNUSED(te),
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	SceneCollection *sc = CTX_data_scene_collection(C);
 	Group *group = (Group *)tselem->id;
 	GroupObject *gob;
 	Base *base;
 
 	for (gob = group->gobject.first; gob; gob = gob->next) {
-		base = BKE_scene_layer_base_find(sl, gob->ob);
+		base = BKE_view_layer_base_find(sl, gob->ob);
 		if (!base) {
 			/* link to scene */
 			BKE_collection_object_add(scene, sc, gob->ob);
-			base = BKE_scene_layer_base_find(sl, gob->ob);
+			base = BKE_view_layer_base_find(sl, gob->ob);
 			id_us_plus(&gob->ob->id);
 		}
 
@@ -848,14 +848,14 @@ static void collection_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tsel
 		WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
 	}
 	else if (event == OL_COLLECTION_OP_COLLECTION_UNLINK) {
-		SceneLayer *sl = CTX_data_scene_layer(C);
+		ViewLayer *view_layer = CTX_data_view_layer(C);
 
-		if (BLI_findindex(&sl->layer_collections, lc) == -1) {
+		if (BLI_findindex(&view_layer->layer_collections, lc) == -1) {
 			/* we can't unlink if the layer collection wasn't directly linked */
 			TODO_LAYER_OPERATORS; /* this shouldn't be in the menu in those cases */
 		}
 		else {
-			BKE_collection_unlink(sl, lc);
+			BKE_collection_unlink(view_layer, lc);
 			DEG_relations_tag_update(CTX_data_main(C));
 			WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
 		}
@@ -896,13 +896,13 @@ static Base *outline_delete_hierarchy(bContext *C, ReportList *reports, Scene *s
 {
 	Base *child_base, *base_next;
 	Object *parent;
-	SceneLayer *scene_layer = CTX_data_scene_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
 	if (!base) {
 		return NULL;
 	}
 
-	for (child_base = scene_layer->object_bases.first; child_base; child_base = base_next) {
+	for (child_base = view_layer->object_bases.first; child_base; child_base = base_next) {
 		base_next = child_base->next;
 		for (parent = child_base->object->parent; parent && (parent != base->object); parent = parent->parent);
 		if (parent) {
@@ -933,12 +933,12 @@ static void object_delete_hierarchy_cb(
         bContext *C, ReportList *reports, Scene *scene,
         TreeElement *te, TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Base *base = (Base *)te->directdata;
 	Object *obedit = scene->obedit;
 
 	if (!base) {
-		base = BKE_scene_layer_base_find(sl, (Object *)tselem->id);
+		base = BKE_view_layer_base_find(sl, (Object *)tselem->id);
 	}
 	if (base) {
 		/* Check also library later. */

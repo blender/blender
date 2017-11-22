@@ -168,7 +168,7 @@ static void setup_app_data(
 		 */
 		wmWindow *win;
 		bScreen *curscreen = NULL;
-		SceneLayer *cur_render_layer;
+		ViewLayer *cur_view_layer;
 		bool track_undo_scene;
 
 		/* comes from readfile.c */
@@ -181,7 +181,7 @@ static void setup_app_data(
 		curscreen = CTX_wm_screen(C);
 		/* but use Scene pointer from new file */
 		curscene = bfd->curscene;
-		cur_render_layer = bfd->cur_render_layer;
+		cur_view_layer = bfd->cur_view_layer;
 
 		track_undo_scene = (mode == LOAD_UNDO && curscreen && curscene && bfd->main->wm.first);
 
@@ -192,9 +192,9 @@ static void setup_app_data(
 		if (curscene == NULL) {
 			curscene = BKE_scene_add(bfd->main, "Empty");
 		}
-		if (cur_render_layer == NULL) {
+		if (cur_view_layer == NULL) {
 			/* fallback to scene layer */
-			cur_render_layer = BKE_scene_layer_from_scene_get(curscene);
+			cur_view_layer = BKE_view_layer_from_scene_get(curscene);
 		}
 
 		if (track_undo_scene) {
@@ -207,7 +207,7 @@ static void setup_app_data(
 		}
 
 		/* BKE_blender_globals_clear will free G.main, here we can still restore pointers */
-		blo_lib_link_restore(bfd->main, CTX_wm_manager(C), curscene, cur_render_layer);
+		blo_lib_link_restore(bfd->main, CTX_wm_manager(C), curscene, cur_view_layer);
 		if (win) {
 			curscene = win->scene;
 		}

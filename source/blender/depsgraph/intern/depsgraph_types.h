@@ -233,9 +233,9 @@ typedef enum eDepsOperation_Code {
 	DEG_OPCODE_PARTICLE_SETTINGS_RECALC_CLEAR,
 
 	/* Collections. ------------------------------------- */
-	DEG_OPCODE_SCENE_LAYER_INIT,
-	DEG_OPCODE_SCENE_LAYER_EVAL,
-	DEG_OPCODE_SCENE_LAYER_DONE,
+	DEG_OPCODE_VIEW_LAYER_INIT,
+	DEG_OPCODE_VIEW_LAYER_EVAL,
+	DEG_OPCODE_VIEW_LAYER_DONE,
 
 	/* Copy on Write. ------------------------------------ */
 	DEG_OPCODE_COPY_ON_WRITE,

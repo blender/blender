@@ -463,7 +463,7 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 	Base *base;
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Object *ob, *obt, *obact = CTX_data_active_object(C);
 	ID **idar;
 	bSensor *sens;

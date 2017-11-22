@@ -215,7 +215,7 @@ void BKE_linestyle_make_local(struct Main *bmain, FreestyleLineStyle *linestyle,
 
 FreestyleLineStyle *BKE_linestyle_active_from_scene(Scene *scene)
 {
-	SceneLayer *active_render_layer = BLI_findlink(&scene->render_layers, scene->active_layer);
+	ViewLayer *active_render_layer = BLI_findlink(&scene->view_layers, scene->active_view_layer);
 	if (active_render_layer) {
 		FreestyleConfig *config = &active_render_layer->freestyle_config;
 		FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(config);

@@ -65,7 +65,7 @@ struct Object;
 struct bPoseChannel;
 struct bConstraint;
 struct Scene;
-struct SceneLayer;
+struct ViewLayer;
 struct Tex;
 struct World;
 struct EffectorWeights;
@@ -186,7 +186,7 @@ struct DepsgraphRelationBuilder
 	                              const DepsNodeHandle *handle,
 	                              const char *description);
 
-	void build_scene_layer(Scene *scene, SceneLayer *scene_layer);
+	void build_view_layer(Scene *scene, ViewLayer *view_layer);
 	void build_group(Object *object, Group *group);
 	void build_object(Object *ob);
 	void build_object_parent(Object *ob);
@@ -250,7 +250,7 @@ struct DepsgraphRelationBuilder
 	                            LayerCollectionState *state);
 	void build_layer_collections(ListBase *layer_collections,
 	                             LayerCollectionState *state);
-	void build_scene_layer_collections(SceneLayer *scene_layer);
+	void build_view_layer_collections(ViewLayer *view_layer);
 
 	void build_copy_on_write_relations();
 	void build_copy_on_write_relations(IDDepsNode *id_node);

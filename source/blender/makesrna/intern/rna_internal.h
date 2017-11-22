@@ -43,7 +43,7 @@ struct Mesh;
 struct Object;
 struct ReportList;
 struct SDNA;
-struct SceneLayer;
+struct ViewLayer;
 
 /* Data structures used during define */
 
@@ -173,7 +173,7 @@ void RNA_def_render(struct BlenderRNA *brna);
 void RNA_def_rigidbody(struct BlenderRNA *brna);
 void RNA_def_rna(struct BlenderRNA *brna);
 void RNA_def_scene(struct BlenderRNA *brna);
-void RNA_def_scene_layer(struct BlenderRNA *brna);
+void RNA_def_view_layer(struct BlenderRNA *brna);
 void RNA_def_screen(struct BlenderRNA *brna);
 void RNA_def_sculpt_paint(struct BlenderRNA *brna);
 void RNA_def_sensor(struct BlenderRNA *brna);
@@ -211,7 +211,7 @@ void rna_def_mtex_common(struct BlenderRNA *brna, struct StructRNA *srna, const 
                          const char *activeset, const char *activeeditable, const char *structname,
                          const char *structname_slots, const char *update, const char *update_index);
 void rna_def_texpaint_slots(struct BlenderRNA *brna, struct StructRNA *srna);
-void rna_def_render_layer_common(struct StructRNA *srna, int scene);
+void rna_def_view_layer_common(struct StructRNA *srna, int scene);
 
 void rna_def_actionbone_group_common(struct StructRNA *srna, int update_flag, const char *update_cb);
 void rna_ActionGroup_colorset_set(struct PointerRNA *ptr, int value);
@@ -240,7 +240,7 @@ void rna_object_vcollayer_name_set(struct PointerRNA *ptr, const char *value, ch
 PointerRNA rna_object_shapekey_index_get(struct ID *id, int value);
 int rna_object_shapekey_index_set(struct ID *id, PointerRNA value, int current);
 
-/* SceneLayer related functions defined in rna_scene.c but required in rna_layer.c */
+/* ViewLayer related functions defined in rna_scene.c but required in rna_layer.c */
 void rna_def_freestyle_settings(struct BlenderRNA *brna);
 struct PointerRNA rna_FreestyleLineSet_linestyle_get(struct PointerRNA *ptr);
 void rna_FreestyleLineSet_linestyle_set(struct PointerRNA *ptr, struct PointerRNA value);
@@ -260,8 +260,8 @@ void rna_FreestyleSettings_module_remove(
 void rna_Scene_use_view_map_cache_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
 void rna_Scene_glsl_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
 void rna_Scene_freestyle_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
-void rna_SceneLayer_name_set(struct PointerRNA *ptr, const char *value);
-void rna_SceneLayer_pass_update(struct Main *bmain, struct Scene *activescene, struct PointerRNA *ptr);
+void rna_ViewLayer_name_set(struct PointerRNA *ptr, const char *value);
+void rna_ViewLayer_pass_update(struct Main *bmain, struct Scene *activescene, struct PointerRNA *ptr);
 
 /* named internal so as not to conflict with obj.update() rna func */
 void rna_Object_internal_update_data(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
@@ -436,7 +436,7 @@ PointerRNA rna_pointer_inherit_refine(struct PointerRNA *ptr, struct StructRNA *
 int rna_parameter_size(struct PropertyRNA *parm);
 
 struct Mesh *rna_Main_meshes_new_from_object(
-        struct Main *bmain, struct ReportList *reports, struct Scene *sce, struct SceneLayer *scene_layer,
+        struct Main *bmain, struct ReportList *reports, struct Scene *sce, struct ViewLayer *view_layer,
         struct Object *ob, int apply_modifiers, int settings, int calc_tessface, int calc_undeformed);
 
 /* XXX, these should not need to be defined here~! */

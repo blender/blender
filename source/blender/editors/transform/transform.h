@@ -52,7 +52,7 @@ struct Object;
 struct View3D;
 struct ScrArea;
 struct Scene;
-struct SceneLayer;
+struct ViewLayer;
 struct bConstraint;
 struct wmKeyMap;
 struct wmKeyConfig;
@@ -469,7 +469,7 @@ typedef struct TransInfo {
 	struct ScrArea	*sa;
 	struct ARegion	*ar;
 	struct Scene	*scene;
-	struct SceneLayer *scene_layer;
+	struct ViewLayer *view_layer;
 	struct RenderEngineType *engine;
 	struct ToolSettings *settings;
 	struct wmTimer *animtimer;
@@ -661,7 +661,7 @@ bool transdata_check_local_islands(TransInfo *t, short around);
 int count_set_pose_transflags(int *out_mode, short around, struct Object *ob);
 
 /* auto-keying stuff used by special_aftertrans_update */
-void autokeyframe_ob_cb_func(struct bContext *C, struct Scene *scene, struct SceneLayer *sl, struct View3D *v3d, struct Object *ob, int tmode);
+void autokeyframe_ob_cb_func(struct bContext *C, struct Scene *scene, struct ViewLayer *sl, struct View3D *v3d, struct Object *ob, int tmode);
 void autokeyframe_pose_cb_func(struct bContext *C, struct Scene *scene, struct View3D *v3d, struct Object *ob, int tmode, short targetless_ik);
 
 /*********************** Constraints *****************************/

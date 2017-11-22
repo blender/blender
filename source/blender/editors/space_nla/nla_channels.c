@@ -124,7 +124,7 @@ static int mouse_nla_channels(bContext *C, bAnimContext *ac, float x, int channe
 		}
 		case ANIMTYPE_OBJECT:
 		{
-			SceneLayer *scene_layer = ac->scene_layer;
+			ViewLayer *view_layer = ac->view_layer;
 			Base *base = (Base *)ale->data;
 			Object *ob = base->object;
 			AnimData *adt = ob->adt;
@@ -141,7 +141,7 @@ static int mouse_nla_channels(bContext *C, bAnimContext *ac, float x, int channe
 				else {
 					/* deselect all */
 					/* TODO: should this deselect all other types of channels too? */
-					for (Base *b = scene_layer->object_bases.first; b; b = b->next) {
+					for (Base *b = view_layer->object_bases.first; b; b = b->next) {
 						ED_object_base_select(b, BA_DESELECT);
 						BKE_scene_object_base_flag_sync_from_base(b);
 						if (b->object->adt) b->object->adt->flag &= ~(ADT_UI_SELECTED | ADT_UI_ACTIVE);

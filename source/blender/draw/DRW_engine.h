@@ -36,7 +36,7 @@ struct DrawEngineType;
 struct IDProperty;
 struct bContext;
 struct Object;
-struct SceneLayer;
+struct ViewLayer;
 struct ViewContext;
 struct ViewportEngineData;
 struct View3D;

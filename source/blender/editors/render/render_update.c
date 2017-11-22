@@ -396,7 +396,7 @@ static void texture_changed(Main *bmain, Tex *tex)
 	Lamp *la;
 	World *wo;
 	Scene *scene;
-	SceneLayer *sl;
+	ViewLayer *sl;
 	Object *ob;
 	bNode *node;
 	bool texture_draw = false;
@@ -406,7 +406,7 @@ static void texture_changed(Main *bmain, Tex *tex)
 
 	/* paint overlays */
 	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
-		for (sl = scene->render_layers.first; sl; sl = sl->next) {
+		for (sl = scene->view_layers.first; sl; sl = sl->next) {
 			BKE_paint_invalidate_overlay_tex(scene, sl, tex);
 		}
 	}

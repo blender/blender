@@ -389,8 +389,8 @@ void wm_event_do_notifiers(bContext *C)
 				}
 			}
 			if (ELEM(note->category, NC_SCENE, NC_OBJECT, NC_GEOM, NC_WM)) {
-				SceneLayer *scene_layer = CTX_data_scene_layer(C);
-				ED_info_stats_clear(scene_layer);
+				ViewLayer *view_layer = CTX_data_view_layer(C);
+				ED_info_stats_clear(view_layer);
 				WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, NULL);
 			}
 		}
@@ -401,9 +401,9 @@ void wm_event_do_notifiers(bContext *C)
 			 * twice which can depgraph update the same object at once */
 			if (G.is_rendering == false) {
 				/* depsgraph gets called, might send more notifiers */
-				SceneLayer *scene_layer = CTX_data_scene_layer(C);
+				ViewLayer *view_layer = CTX_data_view_layer(C);
 				Depsgraph *depsgraph = CTX_data_depsgraph(C);
-				ED_update_for_newframe(CTX_data_main(C), scene, scene_layer, depsgraph);
+				ED_update_for_newframe(CTX_data_main(C), scene, view_layer, depsgraph);
 			}
 		}
 	}
@@ -2623,9 +2623,9 @@ void wm_event_do_handlers(bContext *C)
 							int ncfra = time * (float)FPS + 0.5f;
 							if (ncfra != scene->r.cfra) {
 								scene->r.cfra = ncfra;
-								SceneLayer *scene_layer = CTX_data_scene_layer(C);
+								ViewLayer *view_layer = CTX_data_view_layer(C);
 								Depsgraph *depsgraph = CTX_data_depsgraph(C);
-								ED_update_for_newframe(CTX_data_main(C), scene, scene_layer, depsgraph);
+								ED_update_for_newframe(CTX_data_main(C), scene, view_layer, depsgraph);
 								WM_event_add_notifier(C, NC_WINDOW, NULL);
 							}
 						}

@@ -132,7 +132,7 @@ static void animedit_get_yscale_factor(bAnimContext *ac)
 /* Note: there's a similar function in key.c (BKE_key_from_object) */
 static Key *actedit_get_shapekeys(bAnimContext *ac)
 {
-	SceneLayer *sl = ac->scene_layer;
+	ViewLayer *sl = ac->view_layer;
 	Object *ob;
 	Key *key;
 	
@@ -381,8 +381,8 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 	if (scene) {
 		ac->markers = ED_context_get_markers(C);
 	}
-	ac->scene_layer = CTX_data_scene_layer(C);
-	ac->obact = (ac->scene_layer->basact) ? ac->scene_layer->basact->object : NULL;
+	ac->view_layer = CTX_data_view_layer(C);
+	ac->obact = (ac->view_layer->basact) ? ac->view_layer->basact->object : NULL;
 	ac->sa = sa;
 	ac->ar = ar;
 	ac->sl = sl;
@@ -1686,7 +1686,7 @@ static size_t animdata_filter_gpencil(bAnimContext *ac, ListBase *anim_data, voi
 	
 	if (ads->filterflag & ADS_FILTER_GP_3DONLY) {
 		Scene *scene = (Scene *)ads->source;
-		SceneLayer *sl = (SceneLayer *)ac->scene_layer;
+		ViewLayer *sl = (ViewLayer *)ac->view_layer;
 		Base *base;
 
 		/* Active scene's GPencil block first - No parent item needed... */
@@ -1958,26 +1958,26 @@ static size_t animdata_filter_ds_nodetree(bAnimContext *ac, ListBase *anim_data,
 
 static size_t animdata_filter_ds_linestyle(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Scene *sce, int filter_mode)
 {
-	SceneLayer *scene_layer;
+	ViewLayer *view_layer;
 	FreestyleLineSet *lineset;
 	size_t items = 0;
 	
-	for (scene_layer = sce->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
-		for (lineset = scene_layer->freestyle_config.linesets.first; lineset; lineset = lineset->next) {
+	for (view_layer = sce->view_layers.first; view_layer; view_layer = view_layer->next) {
+		for (lineset = view_layer->freestyle_config.linesets.first; lineset; lineset = lineset->next) {
 			if (lineset->linestyle) {
 				lineset->linestyle->id.tag |= LIB_TAG_DOIT;
 			}
 		}
 	}
 	
-	for (scene_layer = sce->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
+	for (view_layer = sce->view_layers.first; view_layer; view_layer = view_layer->next) {
 		/* skip render layers without Freestyle enabled */
-		if ((scene_layer->flag & SCENE_LAYER_FREESTYLE) == 0) {
+		if ((view_layer->flag & VIEW_LAYER_FREESTYLE) == 0) {
 			continue;
 		}
 
 		/* loop over linesets defined in the render layer */
-		for (lineset = scene_layer->freestyle_config.linesets.first; lineset; lineset = lineset->next) {
+		for (lineset = view_layer->freestyle_config.linesets.first; lineset; lineset = lineset->next) {
 			FreestyleLineStyle *linestyle = lineset->linestyle;
 			ListBase tmp_data = {NULL, NULL};
 			size_t tmp_items = 0;
@@ -2941,7 +2941,7 @@ static int ds_base_sorting_cmp(const void *base1_ptr, const void *base2_ptr)
 }
 
 /* Get a sorted list of all the bases - for inclusion in dopesheet (when drawing channels) */
-static Base **animdata_filter_ds_sorted_bases(bDopeSheet *ads, SceneLayer *sl, int filter_mode, size_t *r_usable_bases)
+static Base **animdata_filter_ds_sorted_bases(bDopeSheet *ads, ViewLayer *sl, int filter_mode, size_t *r_usable_bases)
 {
 	/* Create an array with space for all the bases, but only containing the usable ones */
 	size_t tot_bases = BLI_listbase_count(&sl->object_bases);
@@ -2967,7 +2967,7 @@ static Base **animdata_filter_ds_sorted_bases(bDopeSheet *ads, SceneLayer *sl, i
 static size_t animdata_filter_dopesheet(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, int filter_mode)
 {
 	Scene *scene = (Scene *)ads->source;
-	SceneLayer *sl = (SceneLayer *)ac->scene_layer;
+	ViewLayer *sl = (ViewLayer *)ac->view_layer;
 	size_t items = 0;
 
 	/* check that we do indeed have a scene */

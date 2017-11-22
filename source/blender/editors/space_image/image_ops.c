@@ -794,7 +794,7 @@ static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceImage *sima;
 	ARegion *ar;
 	Scene *scene;
-	SceneLayer *sl;
+	ViewLayer *sl;
 	Object *obedit;
 	Image *ima;
 
@@ -802,7 +802,7 @@ static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	sima = CTX_wm_space_image(C);
 	ar = CTX_wm_region(C);
 	scene = CTX_data_scene(C);
-	sl = CTX_data_scene_layer(C);
+	sl = CTX_data_view_layer(C);
 	obedit = CTX_data_edit_object(C);
 
 	ima = ED_space_image(sima);
@@ -3599,7 +3599,7 @@ void IMAGE_OT_change_frame(wmOperatorType *ot)
 
 /* Reload cached render results... */
 /* goes over all scenes, reads render layers */
-static int image_read_renderlayers_exec(bContext *C, wmOperator *UNUSED(op))
+static int image_read_viewlayers_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	SpaceImage *sima = CTX_wm_space_image(C);
@@ -3616,14 +3616,14 @@ static int image_read_renderlayers_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void IMAGE_OT_read_renderlayers(wmOperatorType *ot)
+void IMAGE_OT_read_viewlayers(wmOperatorType *ot)
 {
-	ot->name = "Read Render Layers";
-	ot->idname = "IMAGE_OT_read_renderlayers";
-	ot->description = "Read all the current scene's render layers from cache, as needed";
+	ot->name = "Read View Layers";
+	ot->idname = "IMAGE_OT_read_viewlayers";
+	ot->description = "Read all the current scene's view layers from cache, as needed";
 
 	ot->poll = space_image_main_region_poll;
-	ot->exec = image_read_renderlayers_exec;
+	ot->exec = image_read_viewlayers_exec;
 
 	/* flags */
 	ot->flag = 0;

@@ -74,7 +74,7 @@ void DepsgraphRelationBuilder::build_layer_collection(
 {
 	OperationKey layer_key(&scene_->id,
 	                       DEG_NODE_TYPE_LAYER_COLLECTIONS,
-	                       DEG_OPCODE_SCENE_LAYER_EVAL,
+	                       DEG_OPCODE_VIEW_LAYER_EVAL,
 	                       layer_collection->scene_collection->name,
 	                       state->index);
 	add_relation(state->prev_key, layer_key, "Layer collection order");
@@ -96,26 +96,26 @@ void DepsgraphRelationBuilder::build_layer_collections(
 	}
 }
 
-void DepsgraphRelationBuilder::build_scene_layer_collections(
-        SceneLayer *scene_layer)
+void DepsgraphRelationBuilder::build_view_layer_collections(
+        ViewLayer *view_layer)
 {
 	LayerCollectionState state;
 	state.index = 0;
 
 	OperationKey init_key(&scene_->id,
 	                      DEG_NODE_TYPE_LAYER_COLLECTIONS,
-	                      DEG_OPCODE_SCENE_LAYER_INIT,
-	                      scene_layer->name);
+	                      DEG_OPCODE_VIEW_LAYER_INIT,
+	                      view_layer->name);
 	OperationKey done_key(&scene_->id,
 	                      DEG_NODE_TYPE_LAYER_COLLECTIONS,
-	                      DEG_OPCODE_SCENE_LAYER_DONE,
-	                      scene_layer->name);
+	                      DEG_OPCODE_VIEW_LAYER_DONE,
+	                      view_layer->name);
 
 	state.init_key = init_key;
 	state.done_key = done_key;
 	state.prev_key = init_key;
 
-	build_layer_collections(&scene_layer->layer_collections, &state);
+	build_layer_collections(&view_layer->layer_collections, &state);
 
 	add_relation(state.prev_key, done_key, "Layer collection order");
 }

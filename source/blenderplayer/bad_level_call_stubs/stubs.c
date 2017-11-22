@@ -314,7 +314,7 @@ double elbeemEstimateMemreq(int res, float sx, float sy, float sz, int refine, c
 struct Render *RE_NewRender(const char *name) RET_NULL
 struct Render *RE_NewSceneRender(const struct Scene *scene) RET_NULL
 void RE_SwapResult(struct Render *re, struct RenderResult **rr) RET_NONE
-void RE_BlenderFrame(struct Render *re, struct Main *bmain, struct Scene *scene, struct SceneLayer *scene_layer, struct Object *camera_override, unsigned int lay_override, int frame, const bool write_still) RET_NONE
+void RE_BlenderFrame(struct Render *re, struct Main *bmain, struct Scene *scene, struct ViewLayer *view_layer, struct Object *camera_override, unsigned int lay_override, int frame, const bool write_still) RET_NONE
 bool RE_WriteEnvmapResult(struct ReportList *reports, struct Scene *scene, struct EnvMap *env, const char *relpath, const char imtype, float layout[12]) RET_ZERO
 
 /* rna */
@@ -476,7 +476,7 @@ void ED_fsmenu_entry_set_path(struct FSMenuEntry *fsentry, const char *name) RET
 char *ED_fsmenu_entry_get_name(struct FSMenuEntry *fsentry) RET_NULL
 void ED_fsmenu_entry_set_name(struct FSMenuEntry *fsentry, const char *name) RET_NONE
 
-struct PTCacheEdit *PE_get_current(struct Scene *scene, struct SceneLayer *sl, struct Object *ob) RET_NULL
+struct PTCacheEdit *PE_get_current(struct Scene *scene, struct ViewLayer *sl, struct Object *ob) RET_NULL
 void PE_current_changed(const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob) RET_NONE
 
 /* rna keymap */
@@ -516,7 +516,7 @@ bool ANIM_remove_driver(struct ReportList *reports, struct ID *id, const char rn
 void ED_space_image_release_buffer(struct SpaceImage *sima, struct ImBuf *ibuf, void *lock) RET_NONE
 struct ImBuf *ED_space_image_acquire_buffer(struct SpaceImage *sima, void **r_lock) RET_NULL
 void ED_space_image_get_zoom(struct SpaceImage *sima, struct ARegion *ar, float *zoomx, float *zoomy) RET_NONE
-const char *ED_info_stats_string(struct Scene *scene, struct SceneLayer *sl) RET_NULL
+const char *ED_info_stats_string(struct Scene *scene, struct ViewLayer *sl) RET_NULL
 void ED_area_tag_redraw(struct ScrArea *sa) RET_NONE
 void ED_area_tag_refresh(struct ScrArea *sa) RET_NONE
 void ED_area_newspace(struct bContext *C, struct ScrArea *sa, int type, const bool skip_ar_exit) RET_NONE
@@ -538,7 +538,7 @@ void ED_node_tree_path_get_fixedbuf(struct SpaceNode *snode, char *value, int ma
 void ED_node_tree_start(struct SpaceNode *snode, struct bNodeTree *ntree, struct ID *id, struct ID *from) RET_NONE
 void ED_node_tree_push(struct SpaceNode *snode, struct bNodeTree *ntree, struct bNode *gnode) RET_NONE
 void ED_node_tree_pop(struct SpaceNode *snode) RET_NONE
-int ED_view3d_scene_layer_set(int lay, const int *values, int *active) RET_ZERO
+int ED_view3d_view_layer_set(int lay, const int *values, int *active) RET_ZERO
 void ED_view3d_quadview_update(struct ScrArea *sa, struct ARegion *ar, bool do_clip) RET_NONE
 void ED_view3d_from_m4(float mat[4][4], float ofs[3], float quat[4], float *dist) RET_NONE
 void ED_view3d_update_viewmat(const struct EvaluationContext *eval_ctx, struct Scene *scene, struct View3D *v3d, struct ARegion *ar, float viewmat[4][4], float winmat[4][4], const struct rcti *rect) RET_NONE
@@ -548,7 +548,7 @@ void ED_node_shader_default(const struct bContext *C, struct ID *id) RET_NONE
 void ED_screen_animation_timer_update(struct bScreen *screen, int redraws, int refresh) RET_NONE
 struct bScreen *ED_screen_animation_playing(const struct wmWindowManager *wm) RET_NULL
 struct Scene *ED_screen_scene_find(const struct bScreen *screen, const struct wmWindowManager *wm) RET_NULL
-bool ED_scene_render_layer_delete(struct Main *bmain, Scene *scene, SceneLayer *layer, ReportList *reports) RET_ZERO
+bool ED_scene_view_layer_delete(struct Main *bmain, Scene *scene, ViewLayer *layer, ReportList *reports) RET_ZERO
 void ED_object_base_select(struct Base *base, eObjectSelect_Mode mode) RET_NONE
 bool ED_object_modifier_remove(struct ReportList *reports, struct Main *bmain, struct Object *ob, struct ModifierData *md) RET_ZERO
 struct ModifierData *ED_object_modifier_add(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob, const char *name, int type) RET_ZERO
@@ -596,7 +596,7 @@ int ED_mesh_mirror_spatial_table(struct Object *ob, struct BMEditMesh *em, struc
 
 float ED_rollBoneToVector(EditBone *bone, const float new_up_axis[3], const bool axis_only) RET_ZERO
 void ED_space_image_get_size(struct SpaceImage *sima, int *width, int *height) RET_NONE
-bool ED_space_image_check_show_maskedit(struct SceneLayer *sl, struct SpaceImage *sima) RET_ZERO
+bool ED_space_image_check_show_maskedit(struct ViewLayer *sl, struct SpaceImage *sima) RET_ZERO
 
 bool ED_texture_context_check_world(const struct bContext *C) RET_ZERO
 bool ED_texture_context_check_material(const struct bContext *C) RET_ZERO
@@ -607,9 +607,9 @@ bool ED_texture_context_check_others(const struct bContext *C) RET_ZERO
 bool ED_text_region_location_from_cursor(SpaceText *st, ARegion *ar, const int cursor_co[2], int r_pixel_co[2]) RET_ZERO
 
 SnapObjectContext *ED_transform_snap_object_context_create(
-        struct Main *bmain, struct Scene *scene, struct SceneLayer *sl, struct RenderEngineType *engine, int flag) RET_NULL
+        struct Main *bmain, struct Scene *scene, struct ViewLayer *sl, struct RenderEngineType *engine, int flag) RET_NULL
 SnapObjectContext *ED_transform_snap_object_context_create_view3d(
-        struct Main *bmain, struct Scene *scene, struct SceneLayer *sl, struct RenderEngineType *engine, int flag,
+        struct Main *bmain, struct Scene *scene, struct ViewLayer *sl, struct RenderEngineType *engine, int flag,
         const struct ARegion *ar, const struct View3D *v3d) RET_NULL
 void ED_transform_snap_object_context_destroy(SnapObjectContext *sctx) RET_NONE
 bool ED_transform_snap_object_project_ray_ex(
@@ -758,15 +758,15 @@ void RE_engine_update_memory_stats(struct RenderEngine *engine, float mem_used, 
 struct RenderEngine *RE_engine_create(struct RenderEngineType *type) RET_NULL
 void RE_engine_frame_set(struct RenderEngine *engine, int frame, float subframe) RET_NONE
 void RE_FreePersistentData(void) RET_NONE
-void RE_point_density_cache(struct Scene *scene, struct SceneLayer *sl, struct PointDensity *pd, const bool use_render_params) RET_NONE
-void RE_point_density_minmax(struct Scene *scene, struct SceneLayer *sl, struct PointDensity *pd, const bool use_render_params, float r_min[3], float r_max[3]) RET_NONE
-void RE_point_density_sample(struct Scene *scene, struct SceneLayer *sl, struct PointDensity *pd, const int resolution, const bool use_render_params, float *values) RET_NONE
+void RE_point_density_cache(struct Scene *scene, struct ViewLayer *sl, struct PointDensity *pd, const bool use_render_params) RET_NONE
+void RE_point_density_minmax(struct Scene *scene, struct ViewLayer *sl, struct PointDensity *pd, const bool use_render_params, float r_min[3], float r_max[3]) RET_NONE
+void RE_point_density_sample(struct Scene *scene, struct ViewLayer *sl, struct PointDensity *pd, const int resolution, const bool use_render_params, float *values) RET_NONE
 void RE_point_density_free(struct PointDensity *pd) RET_NONE
 void RE_instance_get_particle_info(struct ObjectInstanceRen *obi, float *index, float *age, float *lifetime, float co[3], float *size, float vel[3], float angvel[3]) RET_NONE
 void RE_FreeAllPersistentData(void) RET_NONE
 float RE_fresnel_dielectric(float incoming[3], float normal[3], float eta) RET_ZERO
-void RE_engine_register_pass(struct RenderEngine *engine, struct Scene *scene, struct SceneLayer *scene_layer, const char *name, int channels, const char *chanid, int type) RET_NONE
-struct SceneLayer *RE_engine_get_scene_layer(struct Render *re) RET_NULL
+void RE_engine_register_pass(struct RenderEngine *engine, struct Scene *scene, struct ViewLayer *view_layer, const char *name, int channels, const char *chanid, int type) RET_NONE
+struct ViewLayer *RE_engine_get_view_layer(struct Render *re) RET_NULL
 void RE_SetDepsgraph(struct Render *re, struct Depsgraph *graph) RET_NONE
 
 /* Draw */
@@ -819,7 +819,7 @@ int UI_pie_menu_invoke_from_operator_enum(struct bContext *C, const char *title,
 /* RNA COLLADA dependency */
 int collada_export(const struct EvaluationContext *eval_ctx,
                    struct Scene *sce,
-                   struct SceneLayer *scene_layer,
+                   struct ViewLayer *view_layer,
                    const char *filepath,
                    int apply_modifiers,
                    BC_export_mesh_type export_mesh_type,

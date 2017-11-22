@@ -988,7 +988,7 @@ void ntreeCompositTagRender(struct Scene *sce);
 int ntreeCompositTagAnimated(struct bNodeTree *ntree);
 void ntreeCompositTagGenerators(struct bNodeTree *ntree);
 void ntreeCompositUpdateRLayers(struct bNodeTree *ntree);
-void ntreeCompositRegisterPass(struct bNodeTree *ntree, struct Scene *scene, struct SceneLayer *scene_layer, const char *name, int type);
+void ntreeCompositRegisterPass(struct bNodeTree *ntree, struct Scene *scene, struct ViewLayer *view_layer, const char *name, int type);
 void ntreeCompositClearTags(struct bNodeTree *ntree);
 
 struct bNodeSocket *ntreeCompositOutputFileAddSocket(struct bNodeTree *ntree, struct bNode *node,

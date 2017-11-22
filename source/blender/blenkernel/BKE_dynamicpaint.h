@@ -28,7 +28,7 @@
  */
 
 struct Scene;
-struct SceneLayer;
+struct ViewLayer;
 struct EvaluationContext;
 
 /* Actual surface point	*/

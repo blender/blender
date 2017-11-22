@@ -374,7 +374,7 @@ bool ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
 }
 
 /* matches clip function */
-bool ED_space_image_check_show_maskedit(SceneLayer *sl, SpaceImage *sima)
+bool ED_space_image_check_show_maskedit(ViewLayer *sl, SpaceImage *sima)
 {
 	/* check editmode - this is reserved for UV editing */
 	Object *ob = OBACT(sl);
@@ -390,7 +390,7 @@ int ED_space_image_maskedit_poll(bContext *C)
 	SpaceImage *sima = CTX_wm_space_image(C);
 
 	if (sima) {
-		SceneLayer *sl = CTX_data_scene_layer(C);
+		ViewLayer *sl = CTX_data_view_layer(C);
 		return ED_space_image_check_show_maskedit(sl, sima);
 	}
 

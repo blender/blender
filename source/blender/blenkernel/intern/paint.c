@@ -75,7 +75,7 @@ const char PAINT_CURSOR_TEXTURE_PAINT[3] = {255, 255, 255};
 
 static eOverlayControlFlags overlay_flags = 0;
 
-void BKE_paint_invalidate_overlay_tex(Scene *scene, SceneLayer *sl, const Tex *tex)
+void BKE_paint_invalidate_overlay_tex(Scene *scene, ViewLayer *sl, const Tex *tex)
 {
 	Paint *p = BKE_paint_get_active(scene, sl);
 	Brush *br = p->brush;
@@ -89,7 +89,7 @@ void BKE_paint_invalidate_overlay_tex(Scene *scene, SceneLayer *sl, const Tex *t
 		overlay_flags |= PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY;
 }
 
-void BKE_paint_invalidate_cursor_overlay(Scene *scene, SceneLayer *sl, CurveMapping *curve)
+void BKE_paint_invalidate_cursor_overlay(Scene *scene, ViewLayer *sl, CurveMapping *curve)
 {
 	Paint *p = BKE_paint_get_active(scene, sl);
 	Brush *br = p->brush;
@@ -157,7 +157,7 @@ Paint *BKE_paint_get_active_from_paintmode(Scene *sce, ePaintMode mode)
 	return NULL;
 }
 
-Paint *BKE_paint_get_active(Scene *sce, SceneLayer *sl)
+Paint *BKE_paint_get_active(Scene *sce, ViewLayer *sl)
 {
 	if (sce && sl) {
 		ToolSettings *ts = sce->toolsettings;
@@ -189,7 +189,7 @@ Paint *BKE_paint_get_active(Scene *sce, SceneLayer *sl)
 Paint *BKE_paint_get_active_from_context(const bContext *C)
 {
 	Scene *sce = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	SpaceImage *sima;
 
 	if (sce && sl) {
@@ -240,7 +240,7 @@ Paint *BKE_paint_get_active_from_context(const bContext *C)
 ePaintMode BKE_paintmode_get_active_from_context(const bContext *C)
 {
 	Scene *sce = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	SpaceImage *sima;
 
 	if (sce && sl) {

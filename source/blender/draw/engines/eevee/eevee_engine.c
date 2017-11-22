@@ -50,7 +50,7 @@ static void EEVEE_engine_init(void *ved)
 	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
-	EEVEE_SceneLayerData *sldata = EEVEE_scene_layer_data_get();
+	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_get();
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
@@ -85,7 +85,7 @@ static void EEVEE_engine_init(void *ved)
 static void EEVEE_cache_init(void *vedata)
 {
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
-	EEVEE_SceneLayerData *sldata = EEVEE_scene_layer_data_get();
+	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_get();
 
 	EEVEE_bloom_cache_init(sldata, vedata);
 	EEVEE_depth_of_field_cache_init(sldata, vedata);
@@ -103,7 +103,7 @@ static void EEVEE_cache_init(void *vedata)
 
 static void EEVEE_cache_populate(void *vedata, Object *ob)
 {
-	EEVEE_SceneLayerData *sldata = EEVEE_scene_layer_data_get();
+	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_get();
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const bool is_active = (ob == draw_ctx->obact);
@@ -153,7 +153,7 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 
 static void EEVEE_cache_finish(void *vedata)
 {
-	EEVEE_SceneLayerData *sldata = EEVEE_scene_layer_data_get();
+	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_get();
 
 	EEVEE_materials_cache_finish(vedata);
 	EEVEE_lights_cache_finish(sldata);
@@ -165,7 +165,7 @@ static void EEVEE_draw_scene(void *vedata)
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 	EEVEE_FramebufferList *fbl = ((EEVEE_Data *)vedata)->fbl;
-	EEVEE_SceneLayerData *sldata = EEVEE_scene_layer_data_get();
+	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_get();
 
 	/* Default framebuffer and texture */
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
@@ -312,7 +312,7 @@ static void EEVEE_layer_collection_settings_create(RenderEngine *UNUSED(engine),
 	UNUSED_VARS_NDEBUG(props);
 }
 
-static void EEVEE_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
+static void EEVEE_view_layer_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
 {
 	BLI_assert(props &&
 	           props->type == IDP_GROUP &&
@@ -400,7 +400,7 @@ RenderEngineType DRW_engine_viewport_eevee_type = {
 	NULL, NULL,
 	EEVEE_ENGINE, N_("Eevee"), RE_INTERNAL | RE_USE_SHADING_NODES,
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	&EEVEE_layer_collection_settings_create, &EEVEE_scene_layer_settings_create,
+	&EEVEE_layer_collection_settings_create, &EEVEE_view_layer_settings_create,
 	&draw_engine_eevee_type,
 	{NULL, NULL, NULL}
 };

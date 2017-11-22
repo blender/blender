@@ -69,7 +69,7 @@ int collada_import(bContext *C,
 
 int collada_export(const EvaluationContext *eval_ctx,
                    Scene *sce,
-                   SceneLayer *scene_layer,
+                   ViewLayer *view_layer,
                    const char *filepath,
 
                    int apply_modifiers,
@@ -124,7 +124,7 @@ int collada_export(const EvaluationContext *eval_ctx,
 	if (export_settings.include_children) includeFilter |= OB_REL_CHILDREN_RECURSIVE;
 
 	eObjectSet objectSet = (export_settings.selected) ? OB_SET_SELECTED : OB_SET_ALL;
-	export_settings.export_set = BKE_object_relational_superset(scene_layer, objectSet, (eObRelationTypes)includeFilter);
+	export_settings.export_set = BKE_object_relational_superset(view_layer, objectSet, (eObRelationTypes)includeFilter);
 	int export_count = BLI_linklist_count(export_settings.export_set);
 
 	if (export_count == 0) {

@@ -715,13 +715,13 @@ Object *BKE_object_add_only_object(Main *bmain, int type, const char *name)
 }
 
 
-static Object *object_add_common(Main *bmain, SceneLayer *scene_layer, int type, const char *name)
+static Object *object_add_common(Main *bmain, ViewLayer *view_layer, int type, const char *name)
 {
 	Object *ob;
 
 	ob = BKE_object_add_only_object(bmain, type, name);
 	ob->data = BKE_object_obdata_add_from_type(bmain, type, name);
-	BKE_scene_layer_base_deselect_all(scene_layer);
+	BKE_view_layer_base_deselect_all(view_layer);
 
 	DEG_id_tag_update_ex(bmain, &ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 	return ob;
@@ -731,24 +731,24 @@ static Object *object_add_common(Main *bmain, SceneLayer *scene_layer, int type,
  * General add: to scene, with layer from area and default name
  *
  * Object is added to the active SceneCollection.
- * If there is no linked collection to the active SceneLayer we create a new one.
+ * If there is no linked collection to the active ViewLayer we create a new one.
  */
 /* creates minimum required data, but without vertices etc. */
 Object *BKE_object_add(
-        Main *bmain, Scene *scene, SceneLayer *scene_layer,
+        Main *bmain, Scene *scene, ViewLayer *view_layer,
         int type, const char *name)
 {
 	Object *ob;
 	Base *base;
 	LayerCollection *layer_collection;
 
-	ob = object_add_common(bmain, scene_layer, type, name);
+	ob = object_add_common(bmain, view_layer, type, name);
 
-	layer_collection = BKE_layer_collection_get_active_ensure(scene, scene_layer);
+	layer_collection = BKE_layer_collection_get_active_ensure(scene, view_layer);
 	BKE_collection_object_add(scene, layer_collection->scene_collection, ob);
 
-	base = BKE_scene_layer_base_find(scene_layer, ob);
-	BKE_scene_layer_base_select(scene_layer, base);
+	base = BKE_view_layer_base_find(view_layer, ob);
+	BKE_view_layer_base_select(view_layer, base);
 
 	return ob;
 }
@@ -759,17 +759,17 @@ Object *BKE_object_add(
  * /param ob_src object to use to determine the collections of the new object.
  */
 Object *BKE_object_add_from(
-        Main *bmain, Scene *scene, SceneLayer *scene_layer,
+        Main *bmain, Scene *scene, ViewLayer *view_layer,
         int type, const char *name, Object *ob_src)
 {
 	Object *ob;
 	Base *base;
 
-	ob = object_add_common(bmain, scene_layer, type, name);
+	ob = object_add_common(bmain, view_layer, type, name);
 	BKE_collection_object_add_from(scene, ob_src, ob);
 
-	base = BKE_scene_layer_base_find(scene_layer, ob);
-	BKE_scene_layer_base_select(scene_layer, base);
+	base = BKE_view_layer_base_find(view_layer, ob);
+	BKE_view_layer_base_select(view_layer, base);
 
 	return ob;
 }
@@ -864,7 +864,7 @@ static LodLevel *lod_level_select(Object *ob, const float camera_position[3])
 	return current;
 }
 
-bool BKE_object_lod_is_usable(Object *ob, SceneLayer *sl)
+bool BKE_object_lod_is_usable(Object *ob, ViewLayer *sl)
 {
 	bool active = (sl) ? ob == OBACT(sl) : false;
 	return (ob->mode == OB_MODE_OBJECT || !active);
@@ -880,7 +880,7 @@ void BKE_object_lod_update(Object *ob, const float camera_position[3])
 	}
 }
 
-static Object *lod_ob_get(Object *ob, SceneLayer *sl, int flag)
+static Object *lod_ob_get(Object *ob, ViewLayer *sl, int flag)
 {
 	LodLevel *current = ob->currentlod;
 
@@ -894,12 +894,12 @@ static Object *lod_ob_get(Object *ob, SceneLayer *sl, int flag)
 	return current->source;
 }
 
-struct Object *BKE_object_lod_meshob_get(Object *ob, SceneLayer *sl)
+struct Object *BKE_object_lod_meshob_get(Object *ob, ViewLayer *sl)
 {
 	return lod_ob_get(ob, sl, OB_LOD_USE_MESH);
 }
 
-struct Object *BKE_object_lod_matob_get(Object *ob, SceneLayer *sl)
+struct Object *BKE_object_lod_matob_get(Object *ob, ViewLayer *sl)
 {
 	return lod_ob_get(ob, sl, OB_LOD_USE_MAT);
 }
@@ -2566,7 +2566,7 @@ void BKE_object_foreach_display_point(
 }
 
 void BKE_scene_foreach_display_point(
-        Scene *scene, SceneLayer *sl,
+        Scene *scene, ViewLayer *sl,
         void (*func_cb)(const float[3], void *), void *user_data)
 {
 	Base *base;
@@ -3370,19 +3370,19 @@ static void obrel_list_add(LinkNode **links, Object *ob)
  * If OB_SET_VISIBLE or OB_SET_SELECTED are collected, 
  * then also add related objects according to the given includeFilters.
  */
-LinkNode *BKE_object_relational_superset(struct SceneLayer *scene_layer, eObjectSet objectSet, eObRelationTypes includeFilter)
+LinkNode *BKE_object_relational_superset(struct ViewLayer *view_layer, eObjectSet objectSet, eObRelationTypes includeFilter)
 {
 	LinkNode *links = NULL;
 
 	Base *base;
 
 	/* Remove markers from all objects */
-	for (base = scene_layer->object_bases.first; base; base = base->next) {
+	for (base = view_layer->object_bases.first; base; base = base->next) {
 		base->object->id.tag &= ~LIB_TAG_DOIT;
 	}
 
 	/* iterate over all selected and visible objects */
-	for (base = scene_layer->object_bases.first; base; base = base->next) {
+	for (base = view_layer->object_bases.first; base; base = base->next) {
 		if (objectSet == OB_SET_ALL) {
 			/* as we get all anyways just add it */
 			Object *ob = base->object;
@@ -3419,7 +3419,7 @@ LinkNode *BKE_object_relational_superset(struct SceneLayer *scene_layer, eObject
 				/* child relationship */
 				if (includeFilter & (OB_REL_CHILDREN | OB_REL_CHILDREN_RECURSIVE)) {
 					Base *local_base;
-					for (local_base = scene_layer->object_bases.first; local_base; local_base = local_base->next) {
+					for (local_base = view_layer->object_bases.first; local_base; local_base = local_base->next) {
 						if (BASE_EDITABLE_BGMODE(local_base)) {
 
 							Object *child = local_base->object;

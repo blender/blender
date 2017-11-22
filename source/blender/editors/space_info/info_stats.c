@@ -345,7 +345,7 @@ static bool stats_is_object_dynamic_topology_sculpt(Object *ob)
 }
 
 /* Statistics displayed in info header. Called regularly on scene changes. */
-static void stats_update(Scene *scene, SceneLayer *sl)
+static void stats_update(Scene *scene, ViewLayer *sl)
 {
 	SceneStats stats = {0};
 	Object *ob = (sl->basact) ? sl->basact->object : NULL;
@@ -378,7 +378,7 @@ static void stats_update(Scene *scene, SceneLayer *sl)
 	*(sl->stats) = stats;
 }
 
-static void stats_string(Scene *scene, SceneLayer *sl)
+static void stats_string(Scene *scene, ViewLayer *sl)
 {
 #define MAX_INFO_MEM_LEN  64
 	SceneStats *stats = sl->stats;
@@ -490,7 +490,7 @@ static void stats_string(Scene *scene, SceneLayer *sl)
 
 #undef MAX_INFO_LEN
 
-void ED_info_stats_clear(SceneLayer *sl)
+void ED_info_stats_clear(ViewLayer *sl)
 {
 	if (sl->stats) {
 		MEM_freeN(sl->stats);
@@ -498,7 +498,7 @@ void ED_info_stats_clear(SceneLayer *sl)
 	}
 }
 
-const char *ED_info_stats_string(Scene *scene, SceneLayer *sl)
+const char *ED_info_stats_string(Scene *scene, ViewLayer *sl)
 {
 	if (!sl->stats) {
 		stats_update(scene, sl);

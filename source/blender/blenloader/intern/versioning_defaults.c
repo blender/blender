@@ -127,9 +127,9 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 		scene->r.im_format.planes = R_IMF_PLANES_RGBA;
 		scene->r.im_format.compress = 15;
 
-		for (SceneLayer *scene_layer = scene->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
-			scene_layer->freestyle_config.sphere_radius = 0.1f;
-			scene_layer->pass_alpha_threshold = 0.5f;
+		for (ViewLayer *view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
+			view_layer->freestyle_config.sphere_radius = 0.1f;
+			view_layer->pass_alpha_threshold = 0.5f;
 		}
 
 		if (scene->toolsettings) {

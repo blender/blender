@@ -35,7 +35,7 @@ string SceneHash::toString()
 	return ss.str();
 }
 
-void SceneHash::visitNodeSceneLayer(NodeSceneLayer& node)
+void SceneHash::visitNodeViewLayer(NodeViewLayer& node)
 {
 	struct RenderData *r = &node.scene().r;
 	adler32((unsigned char *)&r->xsch, sizeof(r->xsch));  // resolution_x

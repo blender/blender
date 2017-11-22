@@ -31,7 +31,7 @@ class INFO_HT_header(Header):
         workspace = context.workspace
         screen = context.screen
         scene = context.scene
-        layer = context.render_layer
+        layer = context.view_layer
         view_render = workspace.view_render
 
         row = layout.row(align=True)
@@ -56,7 +56,7 @@ class INFO_HT_header(Header):
 
         row = layout.row()
         row.active = not workspace.use_scene_settings
-        row.template_search(workspace, "render_layer", scene, "render_layers")
+        row.template_search(workspace, "view_layer", scene, "view_layers")
 
         if view_render.has_multiple_engines:
             row.prop(view_render, "engine", text="")
@@ -86,7 +86,7 @@ class INFO_HT_header(Header):
             return
 
         row.operator("wm.splash", text="", icon='BLENDER', emboss=False)
-        row.label(text=scene.statistics(context.render_layer), translate=False)
+        row.label(text=scene.statistics(context.view_layer), translate=False)
 
 
 class INFO_MT_editor_menus(Menu):

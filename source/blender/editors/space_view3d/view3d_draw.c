@@ -1314,7 +1314,7 @@ float ED_view3d_grid_scale(Scene *scene, View3D *v3d, const char **grid_unit)
 	return v3d->grid * ED_scene_grid_scale(scene, grid_unit);
 }
 
-static bool is_cursor_visible(Scene *scene, SceneLayer *sl)
+static bool is_cursor_visible(Scene *scene, ViewLayer *sl)
 {
 	Object *ob = OBACT(sl);
 
@@ -1846,7 +1846,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar, const int offset)
 	}
 
 	if (U.uiflag & USER_DRAWVIEWINFO) {
-		SceneLayer *sl = CTX_data_scene_layer(C);
+		ViewLayer *sl = CTX_data_view_layer(C);
 		Object *ob = OBACT(sl);
 		draw_selected_name(scene, ob, &rect);
 	}
@@ -1930,7 +1930,7 @@ static void view3d_stereo3d_setup_offscreen(
 	}
 }
 
-void ED_view3d_draw_offscreen_init(const EvaluationContext *eval_ctx, Scene *scene, SceneLayer *sl, View3D *v3d)
+void ED_view3d_draw_offscreen_init(const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *sl, View3D *v3d)
 {
 	RenderEngineType *type = eval_ctx->engine;
 	if (type->flag & RE_USE_LEGACY_PIPELINE) {
@@ -1960,7 +1960,7 @@ static void view3d_main_region_clear(Scene *scene, View3D *v3d, ARegion *ar)
  * stuff like shadow buffers
  */
 void ED_view3d_draw_offscreen(
-        const EvaluationContext *eval_ctx, Scene *scene, SceneLayer *scene_layer,
+        const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer,
         View3D *v3d, ARegion *ar, int winx, int winy,
         float viewmat[4][4], float winmat[4][4],
         bool do_bgpic, bool do_sky, bool is_persp, const char *viewname,
@@ -2048,7 +2048,7 @@ void ED_view3d_draw_offscreen(
 
 			if (v3d->flag2 & V3D_SHOW_GPENCIL) {
 				/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
-				ED_gpencil_draw_view3d(NULL, scene, scene_layer, v3d, ar, false);
+				ED_gpencil_draw_view3d(NULL, scene, view_layer, v3d, ar, false);
 			}
 
 			/* freeing the images again here could be done after the operator runs, leaving for now */
@@ -2057,7 +2057,7 @@ void ED_view3d_draw_offscreen(
 	}
 	else {
 		/* XXX, should take depsgraph as arg */
-		Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, scene_layer, false);
+		Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, false);
 		BLI_assert(depsgraph != NULL);
 		DRW_draw_render_loop_offscreen(depsgraph, eval_ctx->engine, ar, v3d, ofs);
 	}
@@ -2082,7 +2082,7 @@ void ED_view3d_draw_offscreen(
  * (avoids re-creating when doing multiple GL renders).
  */
 ImBuf *ED_view3d_draw_offscreen_imbuf(
-        const EvaluationContext *eval_ctx, Scene *scene, SceneLayer *scene_layer,
+        const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer,
         View3D *v3d, ARegion *ar, int sizex, int sizey,
         unsigned int flag, bool draw_background,
         int alpha_mode, int samples, bool full_samples, const char *viewname,
@@ -2112,7 +2112,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 		}
 	}
 
-	ED_view3d_draw_offscreen_init(eval_ctx, scene, scene_layer, v3d);
+	ED_view3d_draw_offscreen_init(eval_ctx, scene, view_layer, v3d);
 
 	GPU_offscreen_bind(ofs, true);
 
@@ -2154,7 +2154,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 	if ((samples && full_samples) == 0) {
 		/* Single-pass render, common case */
 		ED_view3d_draw_offscreen(
-		        eval_ctx, scene, scene_layer, v3d, ar, sizex, sizey, NULL, winmat,
+		        eval_ctx, scene, view_layer, v3d, ar, sizex, sizey, NULL, winmat,
 		        draw_background, draw_sky, !is_ortho, viewname,
 		        fx, &fx_settings, ofs);
 
@@ -2178,7 +2178,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 
 		/* first sample buffer, also initializes 'rv3d->persmat' */
 		ED_view3d_draw_offscreen(
-		        eval_ctx, scene, scene_layer, v3d, ar, sizex, sizey, NULL, winmat,
+		        eval_ctx, scene, view_layer, v3d, ar, sizex, sizey, NULL, winmat,
 		        draw_background, draw_sky, !is_ortho, viewname,
 		        fx, &fx_settings, ofs);
 		GPU_offscreen_read_pixels(ofs, GL_UNSIGNED_BYTE, rect_temp);
@@ -2197,7 +2197,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 			        (jit_ofs[j][1] * 2.0f) / sizey);
 
 			ED_view3d_draw_offscreen(
-			        eval_ctx, scene, scene_layer, v3d, ar, sizex, sizey, NULL, winmat_jitter,
+			        eval_ctx, scene, view_layer, v3d, ar, sizex, sizey, NULL, winmat_jitter,
 			        draw_background, draw_sky, !is_ortho, viewname,
 			        fx, &fx_settings, ofs);
 			GPU_offscreen_read_pixels(ofs, GL_UNSIGNED_BYTE, rect_temp);
@@ -2248,7 +2248,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
  * \note used by the sequencer
  */
 ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
-        const EvaluationContext *eval_ctx, Scene *scene, SceneLayer *scene_layer,
+        const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer,
         Object *camera, int width, int height,
         unsigned int flag, int drawtype, bool use_solid_tex, bool use_gpencil, bool draw_background,
         int alpha_mode, int samples, bool full_samples, const char *viewname,
@@ -2303,7 +2303,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
 	invert_m4_m4(rv3d.persinv, rv3d.viewinv);
 
 	return ED_view3d_draw_offscreen_imbuf(
-	        eval_ctx, scene, scene_layer, &v3d, &ar, width, height, flag,
+	        eval_ctx, scene, view_layer, &v3d, &ar, width, height, flag,
 	        draw_background, alpha_mode, samples, full_samples, viewname,
 	        fx, ofs, err_out);
 }
@@ -2320,7 +2320,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
  *
  * \{ */
 
-void VP_legacy_drawcursor(Scene *scene, SceneLayer *sl, ARegion *ar, View3D *v3d)
+void VP_legacy_drawcursor(Scene *scene, ViewLayer *sl, ARegion *ar, View3D *v3d)
 {
 	if (is_cursor_visible(scene, sl)) {
 		drawcursor(scene, ar, v3d);

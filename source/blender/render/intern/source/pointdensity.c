@@ -945,7 +945,7 @@ static void particle_system_minmax(EvaluationContext *eval_ctx,
 
 void RE_point_density_cache(
         Scene *scene,
-        SceneLayer *scene_layer,
+        ViewLayer *view_layer,
         PointDensity *pd,
         const bool use_render_params)
 {
@@ -955,7 +955,7 @@ void RE_point_density_cache(
 	DEG_evaluation_context_init(&eval_ctx, use_render_params ? DAG_EVAL_RENDER
 	                                                         : DAG_EVAL_VIEWPORT);
 
-	eval_ctx.scene_layer = scene_layer;
+	eval_ctx.view_layer = view_layer;
 
 	/* Same matricies/resolution as dupli_render_particle_set(). */
 	unit_m4(mat);
@@ -966,7 +966,7 @@ void RE_point_density_cache(
 
 void RE_point_density_minmax(
         struct Scene *scene,
-        SceneLayer *scene_layer,
+        ViewLayer *view_layer,
         struct PointDensity *pd,
         const bool use_render_params,
         float r_min[3], float r_max[3])
@@ -997,7 +997,7 @@ void RE_point_density_minmax(
 		                                                           DAG_EVAL_VIEWPORT);
 
 		eval_ctx.ctime = (float)scene->r.cfra + scene->r.subframe;
-		eval_ctx.scene_layer = scene_layer;
+		eval_ctx.view_layer = view_layer;
 
 		particle_system_minmax(&eval_ctx,
 		                       scene,
@@ -1070,7 +1070,7 @@ static void point_density_sample_func(void *data_v, const int iter)
  */
 void RE_point_density_sample(
         Scene *scene,
-        SceneLayer *scene_layer,
+        ViewLayer *view_layer,
         PointDensity *pd,
         const int resolution,
         const bool use_render_params,
@@ -1090,7 +1090,7 @@ void RE_point_density_sample(
 
 	BLI_mutex_lock(&sample_mutex);
 	RE_point_density_minmax(scene,
-	                        scene_layer,
+	                        view_layer,
 	                        pd,
 	                        use_render_params,
 	                        min,

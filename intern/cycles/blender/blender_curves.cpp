@@ -325,7 +325,7 @@ static bool ObtainCacheParticleVcol(Mesh *mesh,
 	return true;
 }
 
-static void set_resolution(BL::Object *b_ob, BL::Scene *scene, BL::SceneLayer *sl, bool render)
+static void set_resolution(BL::Object *b_ob, BL::Scene *scene, BL::ViewLayer *sl, bool render)
 {
 	BL::Object::modifiers_iterator b_mod;
 	for(b_ob->modifiers.begin(b_mod); b_mod != b_ob->modifiers.end(); ++b_mod) {
@@ -912,7 +912,7 @@ void BlenderSync::sync_curves(Mesh *mesh,
 	ParticleCurveData CData;
 
 	if(!preview)
-		set_resolution(&b_ob, &b_scene, &b_scene_layer, true);
+		set_resolution(&b_ob, &b_scene, &b_view_layer, true);
 
 	ObtainCacheParticleData(mesh, &b_mesh, &b_ob, &CData, !preview);
 
@@ -1057,7 +1057,7 @@ void BlenderSync::sync_curves(Mesh *mesh,
 	}
 
 	if(!preview)
-		set_resolution(&b_ob, &b_scene, &b_scene_layer, false);
+		set_resolution(&b_ob, &b_scene, &b_view_layer, false);
 
 	mesh->compute_bounds();
 }

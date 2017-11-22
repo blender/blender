@@ -95,7 +95,7 @@ typedef struct OGLRender {
 	Render *re;
 	Scene *scene;
 	WorkSpace *workspace;
-	SceneLayer *scene_layer;
+	ViewLayer *view_layer;
 	Depsgraph *depsgraph;
 
 	View3D *v3d;
@@ -269,7 +269,7 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, RenderResult *rr)
 {
 	Scene *scene = oglrender->scene;
-	SceneLayer *scene_layer = oglrender->scene_layer;
+	ViewLayer *view_layer = oglrender->view_layer;
 	ARegion *ar = oglrender->ar;
 	View3D *v3d = oglrender->v3d;
 	RegionView3D *rv3d = oglrender->rv3d;
@@ -354,7 +354,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 
 		if (view_context) {
 			ibuf_view = ED_view3d_draw_offscreen_imbuf(
-			       &eval_ctx, scene, scene_layer, v3d, ar, sizex, sizey,
+			       &eval_ctx, scene, view_layer, v3d, ar, sizex, sizey,
 			       IB_rect, draw_bgpic,
 			       alpha_mode, oglrender->ofs_samples, oglrender->ofs_full_samples, viewname,
 			       oglrender->fx, oglrender->ofs, err_out);
@@ -366,7 +366,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 		}
 		else {
 			ibuf_view = ED_view3d_draw_offscreen_imbuf_simple(
-			        &eval_ctx, scene, scene_layer, scene->camera, oglrender->sizex, oglrender->sizey,
+			        &eval_ctx, scene, view_layer, scene->camera, oglrender->sizex, oglrender->sizey,
 			        IB_rect, OB_SOLID, false, true, true,
 			        alpha_mode, oglrender->ofs_samples, oglrender->ofs_full_samples, viewname,
 			        oglrender->fx, oglrender->ofs, err_out);
@@ -666,7 +666,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 	oglrender->bmain = CTX_data_main(C);
 	oglrender->scene = scene;
 	oglrender->workspace = workspace;
-	oglrender->scene_layer = CTX_data_scene_layer(C);
+	oglrender->view_layer = CTX_data_view_layer(C);
 	oglrender->depsgraph = CTX_data_depsgraph(C);
 	oglrender->cfrao = scene->r.cfra;
 
@@ -715,7 +715,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 	oglrender->iuser.ok = 1;
 
 	/* create render result */
-	RE_InitState(oglrender->re, NULL, &scene->r, &scene->render_layers, scene->active_layer, view_render, NULL, sizex, sizey, NULL);
+	RE_InitState(oglrender->re, NULL, &scene->r, &scene->view_layers, scene->active_view_layer, view_render, NULL, sizex, sizey, NULL);
 
 	/* create render views */
 	screen_opengl_views_setup(oglrender);
@@ -813,9 +813,9 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 
 	if (oglrender->timer) { /* exec will not have a timer */
 		Depsgraph *depsgraph = oglrender->depsgraph;
-		SceneLayer *scene_layer = oglrender->scene_layer;
+		ViewLayer *view_layer = oglrender->view_layer;
 		scene->r.cfra = oglrender->cfrao;
-		BKE_scene_graph_update_for_newframe(bmain->eval_ctx, depsgraph, bmain, scene, scene_layer);
+		BKE_scene_graph_update_for_newframe(bmain->eval_ctx, depsgraph, bmain, scene, view_layer);
 
 		WM_event_remove_timer(oglrender->wm, oglrender->win, oglrender->timer);
 	}
@@ -1015,7 +1015,7 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	OGLRender *oglrender = op->customdata;
 	Scene *scene = oglrender->scene;
-	SceneLayer *scene_layer = oglrender->scene_layer;
+	ViewLayer *view_layer = oglrender->view_layer;
 	Depsgraph *depsgraph = oglrender->depsgraph;
 	char name[FILE_MAX];
 	bool ok = false;
@@ -1027,7 +1027,7 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	if (CFRA < oglrender->nfra)
 		CFRA++;
 	while (CFRA < oglrender->nfra) {
-		BKE_scene_graph_update_for_newframe(bmain->eval_ctx, depsgraph, bmain, scene, scene_layer);
+		BKE_scene_graph_update_for_newframe(bmain->eval_ctx, depsgraph, bmain, scene, view_layer);
 		CFRA++;
 	}
 
@@ -1049,7 +1049,7 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 
 	WM_cursor_time(oglrender->win, scene->r.cfra);
 
-	BKE_scene_graph_update_for_newframe(bmain->eval_ctx, depsgraph, bmain, scene, scene_layer);
+	BKE_scene_graph_update_for_newframe(bmain->eval_ctx, depsgraph, bmain, scene, view_layer);
 
 	if (view_context) {
 		if (oglrender->rv3d->persp == RV3D_CAMOB && oglrender->v3d->camera && oglrender->v3d->scenelock) {

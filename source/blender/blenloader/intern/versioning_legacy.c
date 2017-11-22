@@ -2146,7 +2146,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 				sce->r.yparts = 4;
 
 			/* We don't add default layer since blender2.8 because the layers
-			 * are now in Scene->render_layers and a default layer is created in
+			 * are now in Scene->view_layers and a default layer is created in
 			 * the doversion later on.
 			 */
 			SceneRenderLayer *srl;

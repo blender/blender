@@ -95,28 +95,28 @@ static PointerRNA rna_workspace_transform_orientations_item_get(CollectionProper
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_TransformOrientation, transform_orientation);
 }
 
-static PointerRNA rna_workspace_render_layer_get(PointerRNA *ptr)
+static PointerRNA rna_workspace_view_layer_get(PointerRNA *ptr)
 {
 	WorkSpace *workspace = ptr->data;
-	SceneLayer *render_layer = BKE_workspace_render_layer_get(workspace);
+	ViewLayer *view_layer = BKE_workspace_view_layer_get(workspace);
 
 	/* XXX hmrf... lookup in getter... but how could we avoid it? */
 	for (Scene *scene = G.main->scene.first; scene; scene = scene->id.next) {
-		if (BLI_findindex(&scene->render_layers, render_layer) != -1) {
+		if (BLI_findindex(&scene->view_layers, view_layer) != -1) {
 			PointerRNA scene_ptr;
 
 			RNA_id_pointer_create(&scene->id, &scene_ptr);
-			return rna_pointer_inherit_refine(&scene_ptr, &RNA_SceneLayer, render_layer);
+			return rna_pointer_inherit_refine(&scene_ptr, &RNA_ViewLayer, view_layer);
 		}
 	}
 
 	return PointerRNA_NULL;
 }
 
-static void rna_workspace_render_layer_set(PointerRNA *ptr, PointerRNA value)
+static void rna_workspace_view_layer_set(PointerRNA *ptr, PointerRNA value)
 {
 	WorkSpace *workspace = ptr->data;
-	BKE_workspace_render_layer_set(workspace, value.data);
+	BKE_workspace_view_layer_set(workspace, value.data);
 }
 
 #else /* RNA_RUNTIME */
@@ -168,11 +168,11 @@ static void rna_def_workspace(BlenderRNA *brna)
 	                                  "rna_workspace_transform_orientations_item_get", NULL, NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Transform Orientations", "");
 
-	prop = RNA_def_property(srna, "render_layer", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "SceneLayer");
-	RNA_def_property_pointer_funcs(prop, "rna_workspace_render_layer_get", "rna_workspace_render_layer_set",
+	prop = RNA_def_property(srna, "view_layer", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ViewLayer");
+	RNA_def_property_pointer_funcs(prop, "rna_workspace_view_layer_get", "rna_workspace_view_layer_set",
 	                               NULL, NULL);
-	RNA_def_property_ui_text(prop, "Active Render Layer", "The active render layer used in this workspace");
+	RNA_def_property_ui_text(prop, "Active View Layer", "The active view layer used in this workspace");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_NULL);
 	RNA_def_property_update(prop, NC_SCREEN | ND_LAYER, NULL);
 

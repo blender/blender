@@ -280,7 +280,7 @@ static void engine_collection_settings_create(RenderEngine *engine, struct IDPro
 	RNA_parameter_list_free(&list);
 }
 
-static void engine_update_render_passes(RenderEngine *engine, struct Scene *scene, struct SceneLayer *scene_layer)
+static void engine_update_render_passes(RenderEngine *engine, struct Scene *scene, struct ViewLayer *view_layer)
 {
 	extern FunctionRNA rna_RenderEngine_update_render_passes_func;
 	PointerRNA ptr;
@@ -292,7 +292,7 @@ static void engine_update_render_passes(RenderEngine *engine, struct Scene *scen
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	RNA_parameter_set_lookup(&list, "scene", &scene);
-	RNA_parameter_set_lookup(&list, "renderlayer", &scene_layer);
+	RNA_parameter_set_lookup(&list, "renderlayer", &view_layer);
 	engine->type->ext.call(NULL, &ptr, func, &list);
 
 	RNA_parameter_list_free(&list);
@@ -398,14 +398,14 @@ static PointerRNA rna_RenderEngine_render_get(PointerRNA *ptr)
 	}
 }
 
-static PointerRNA rna_RenderEngine_scene_layer_get(PointerRNA *ptr)
+static PointerRNA rna_RenderEngine_view_layer_get(PointerRNA *ptr)
 {
 	RenderEngine *engine = (RenderEngine *)ptr->data;
 	if (engine->re != NULL) {
-		SceneLayer *scene_layer = RE_engine_get_scene_layer(engine->re);
-		return rna_pointer_inherit_refine(ptr, &RNA_SceneLayer, scene_layer);
+		ViewLayer *view_layer = RE_engine_get_view_layer(engine->re);
+		return rna_pointer_inherit_refine(ptr, &RNA_ViewLayer, view_layer);
 	}
-	return rna_pointer_inherit_refine(ptr, &RNA_SceneLayer, NULL);
+	return rna_pointer_inherit_refine(ptr, &RNA_ViewLayer, NULL);
 }
 
 static PointerRNA rna_RenderEngine_camera_override_get(PointerRNA *ptr)
@@ -565,7 +565,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Update the render passes that will be generated");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	parm = RNA_def_pointer(func, "scene", "Scene", "", "");
-	parm = RNA_def_pointer(func, "renderlayer", "SceneLayer", "", "");
+	parm = RNA_def_pointer(func, "renderlayer", "ViewLayer", "", "");
 
 	/* per-collection engine settings initialization */
 	func = RNA_def_function(srna, "collection_settings_create", NULL);
@@ -758,7 +758,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Register a render pass that will be part of the render with the current settings");
 	prop = RNA_def_pointer(func, "scene", "Scene", "", "");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-	prop = RNA_def_pointer(func, "scene_layer", "SceneLayer", "", "");
+	prop = RNA_def_pointer(func, "view_layer", "ViewLayer", "", "");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	prop = RNA_def_string(func, "name", NULL, MAX_NAME, "Name", "");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
@@ -769,9 +769,9 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	prop = RNA_def_enum(func, "type", render_pass_type_items, SOCK_FLOAT, "Type", "");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
-	prop = RNA_def_property(srna, "scene_layer", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "SceneLayer");
-	RNA_def_property_pointer_funcs(prop, "rna_RenderEngine_scene_layer_get", NULL, NULL, NULL);
+	prop = RNA_def_property(srna, "view_layer", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ViewLayer");
+	RNA_def_property_pointer_funcs(prop, "rna_RenderEngine_view_layer_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Scene layer", "");
 
 	/* registration */
@@ -944,7 +944,7 @@ static void rna_def_render_layer(BlenderRNA *brna)
 
 	RNA_define_verify_sdna(0);
 
-	rna_def_render_layer_common(srna, 0);
+	rna_def_view_layer_common(srna, 0);
 
 	prop = RNA_def_property(srna, "passes", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "RenderPass");

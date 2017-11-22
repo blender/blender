@@ -616,7 +616,7 @@ static int test_bake_internal(bContext *C, ReportList *reports)
 static void init_bake_internal(BakeRender *bkr, bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	bScreen *sc = CTX_wm_screen(C);
 
 	/* get editmode results */
@@ -838,7 +838,7 @@ static int bake_image_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	int result = OPERATOR_CANCELLED;
 
 	if (is_multires_bake(scene)) {

@@ -43,7 +43,7 @@ struct Depsgraph;
 struct DupliObject;
 struct ListBase;
 struct Scene;
-struct SceneLayer;
+struct ViewLayer;
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,7 +59,7 @@ short DEG_get_eval_flags_for_id(struct Depsgraph *graph, struct ID *id);
 struct Scene *DEG_get_evaluated_scene(struct Depsgraph *graph);
 
 /* Get scene layer the despgraph is created for. */
-struct SceneLayer *DEG_get_evaluated_scene_layer(struct Depsgraph *graph);
+struct ViewLayer *DEG_get_evaluated_view_layer(struct Depsgraph *graph);
 
 /* Get evaluated version of object for given original one. */
 struct Object *DEG_get_evaluated_object(struct Depsgraph *depsgraph, struct Object *object);

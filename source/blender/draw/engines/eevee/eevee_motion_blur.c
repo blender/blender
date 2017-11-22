@@ -110,18 +110,18 @@ static void eevee_create_shader_motion_blur(void)
 	e_data.motion_blur_sh = DRW_shader_create_fullscreen(datatoc_effect_motion_blur_frag_glsl, NULL);
 }
 
-int EEVEE_motion_blur_init(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+int EEVEE_motion_blur_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 {
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_EffectsInfo *effects = stl->effects;
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	SceneLayer *scene_layer = draw_ctx->scene_layer;
+	ViewLayer *view_layer = draw_ctx->view_layer;
 	Scene *scene = draw_ctx->scene;
 	View3D *v3d = draw_ctx->v3d;
 	RegionView3D *rv3d = draw_ctx->rv3d;
 	ARegion *ar = draw_ctx->ar;
-	IDProperty *props = BKE_scene_layer_engine_evaluated_get(scene_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
+	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
 
 	if (BKE_collection_engine_property_value_get_bool(props, "motion_blur_enable") && (draw_ctx->evil_C != NULL)) {
 		/* Update Motion Blur Matrices */
@@ -162,7 +162,7 @@ int EEVEE_motion_blur_init(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *ved
 	return 0;
 }
 
-void EEVEE_motion_blur_cache_init(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+void EEVEE_motion_blur_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 {
 	EEVEE_PassList *psl = vedata->psl;
 	EEVEE_StorageList *stl = vedata->stl;

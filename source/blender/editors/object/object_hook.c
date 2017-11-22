@@ -448,14 +448,14 @@ static int hook_op_edit_poll(bContext *C)
 	return 0;
 }
 
-static Object *add_hook_object_new(Main *bmain, Scene *scene, SceneLayer *sl, Object *obedit)
+static Object *add_hook_object_new(Main *bmain, Scene *scene, ViewLayer *sl, Object *obedit)
 {
 	Base *base, *basedit;
 	Object *ob;
 
 	ob = BKE_object_add(bmain, scene, sl, OB_EMPTY, NULL);
 	
-	basedit = BKE_scene_layer_base_find(sl, obedit);
+	basedit = BKE_view_layer_base_find(sl, obedit);
 	base = sl->basact;
 	base->lay = ob->lay = obedit->lay;
 	BLI_assert(sl->basact->object == ob);
@@ -467,7 +467,7 @@ static Object *add_hook_object_new(Main *bmain, Scene *scene, SceneLayer *sl, Ob
 	return ob;
 }
 
-static int add_hook_object(const bContext *C, Main *bmain, Scene *scene, SceneLayer *sl, Object *obedit, Object *ob, int mode, ReportList *reports)
+static int add_hook_object(const bContext *C, Main *bmain, Scene *scene, ViewLayer *sl, Object *obedit, Object *ob, int mode, ReportList *reports)
 {
 	ModifierData *md = NULL;
 	HookModifierData *hmd = NULL;
@@ -562,7 +562,7 @@ static int object_add_hook_selob_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Object *obsel = NULL;
 	const bool use_bone = RNA_boolean_get(op->ptr, "use_bone");
@@ -618,7 +618,7 @@ static int object_add_hook_newob_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 
 	if (add_hook_object(C, bmain, scene, sl, obedit, NULL, OBJECT_ADDHOOK_NEWOB, op->reports)) {

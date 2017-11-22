@@ -60,7 +60,7 @@ BlenderSession::BlenderSession(BL::RenderEngine& b_engine,
   b_render(b_engine.render()),
   b_depsgraph(b_depsgraph),
   b_scene(b_scene),
-  b_scene_layer(b_engine.scene_layer()),
+  b_view_layer(b_engine.view_layer()),
   b_v3d(PointerRNA_NULL),
   b_rv3d(PointerRNA_NULL),
   python_thread_state(NULL)
@@ -90,7 +90,7 @@ BlenderSession::BlenderSession(BL::RenderEngine& b_engine,
   b_render(b_scene.render()),
   b_depsgraph(b_depsgraph),
   b_scene(b_scene),
-  b_scene_layer(b_engine.scene_layer()),
+  b_view_layer(b_engine.view_layer()),
   b_v3d(b_v3d),
   b_rv3d(b_rv3d),
   width(width),
@@ -165,7 +165,7 @@ void BlenderSession::create_session()
 	else {
 		/* for final render we will do full data sync per render layer, only
 		 * do some basic syncing here, no objects or materials for speed */
-		sync->sync_render_layers(b_v3d, NULL);
+		sync->sync_view_layers(b_v3d, NULL);
 		sync->sync_integrator();
 		sync->sync_camera(b_render, b_camera_override, width, height, "");
 	}
@@ -222,7 +222,7 @@ void BlenderSession::reset_session(BL::BlendData& b_data_, BL::Scene& b_scene_)
 	/* for final render we will do full data sync per render layer, only
 	 * do some basic syncing here, no objects or materials for speed */
 	BL::Object b_camera_override(b_engine.camera_override());
-	sync->sync_render_layers(b_v3d, NULL);
+	sync->sync_view_layers(b_v3d, NULL);
 	sync->sync_integrator();
 	sync->sync_camera(b_render, b_camera_override, width, height, "");
 
@@ -383,13 +383,13 @@ void BlenderSession::render()
 	BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_v3d, b_rv3d, scene->camera, width, height);
 
 	/* render each layer */
-	BL::Scene::render_layers_iterator b_layer_iter;
+	BL::Scene::view_layers_iterator b_layer_iter;
 	BL::RenderResult::views_iterator b_view_iter;
 
 	/* We do some special meta attributes when we only have single layer. */
-	const bool is_single_layer = (b_scene.render_layers.length() == 1);
+	const bool is_single_layer = (b_scene.view_layers.length() == 1);
 
-	for(b_scene.render_layers.begin(b_layer_iter); b_layer_iter != b_scene.render_layers.end(); ++b_layer_iter) {
+	for(b_scene.view_layers.begin(b_layer_iter); b_layer_iter != b_scene.view_layers.end(); ++b_layer_iter) {
 		b_rlay_name = b_layer_iter->name();
 
 		/* temporary render result to find needed passes and views */
@@ -1311,7 +1311,7 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name,
 			BL::ShaderNodeTexPointDensity b_point_density_node(b_node);
 			int length;
 			int settings = background ? 1 : 0;  /* 1 - render settings, 0 - vewport settings. */
-			b_point_density_node.calc_point_density(b_scene, b_scene_layer, settings, &length, &pixels);
+			b_point_density_node.calc_point_density(b_scene, b_view_layer, settings, &length, &pixels);
 		}
 	}
 

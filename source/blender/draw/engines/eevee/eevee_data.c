@@ -22,16 +22,16 @@
 /** \file eevee_data.c
  *  \ingroup draw_engine
  *
- * All specific data handler for Objects, Lights, SceneLayers, ...
+ * All specific data handler for Objects, Lights, ViewLayers, ...
  */
 
 #include "DRW_render.h"
 
 #include "eevee_private.h"
 
-static void eevee_scene_layer_data_free(void *storage)
+static void eevee_view_layer_data_free(void *storage)
 {
-	EEVEE_SceneLayerData *sldata = (EEVEE_SceneLayerData *)storage;
+	EEVEE_ViewLayerData *sldata = (EEVEE_ViewLayerData *)storage;
 
 	/* Lights */
 	MEM_SAFE_FREE(sldata->lamps);
@@ -78,13 +78,13 @@ static void eevee_lightprobe_data_free(void *storage)
 	BLI_freelistN(&ped->captured_object_list);
 }
 
-EEVEE_SceneLayerData *EEVEE_scene_layer_data_get(void)
+EEVEE_ViewLayerData *EEVEE_view_layer_data_get(void)
 {
-	EEVEE_SceneLayerData **sldata = (EEVEE_SceneLayerData **)DRW_scene_layer_engine_data_get(
-	        &draw_engine_eevee_type, &eevee_scene_layer_data_free);
+	EEVEE_ViewLayerData **sldata = (EEVEE_ViewLayerData **)DRW_view_layer_engine_data_get(
+	        &draw_engine_eevee_type, &eevee_view_layer_data_free);
 
 	if (*sldata == NULL) {
-		*sldata = MEM_callocN(sizeof(**sldata), "EEVEE_SceneLayerData");
+		*sldata = MEM_callocN(sizeof(**sldata), "EEVEE_ViewLayerData");
 	}
 
 	return *sldata;

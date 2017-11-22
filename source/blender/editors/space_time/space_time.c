@@ -346,7 +346,7 @@ static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel, cons
 	BLI_dlrbTree_free(&keys);
 }
 
-static void time_draw_caches_keyframes(Main *bmain, SceneLayer *sl, View2D *v2d, bool onlysel, const unsigned char color[3])
+static void time_draw_caches_keyframes(Main *bmain, ViewLayer *sl, View2D *v2d, bool onlysel, const unsigned char color[3])
 {
 	CacheFile *cache_file;
 
@@ -400,7 +400,7 @@ static void time_draw_caches_keyframes(Main *bmain, SceneLayer *sl, View2D *v2d,
 static void time_draw_keyframes(const bContext *C, ARegion *ar)
 {
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Object *ob = CTX_data_active_object(C);
 	View2D *v2d = &ar->v2d;
 	bool onlysel = ((scene->flag & SCE_KEYS_NO_SELONLY) == 0);

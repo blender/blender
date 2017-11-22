@@ -62,8 +62,8 @@ static void texture_get_from_context(const bContext *C, bNodeTreeType *UNUSED(tr
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *scene_layer = CTX_data_scene_layer(C);
-	Object *ob = OBACT(scene_layer);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob = OBACT(view_layer);
 	Tex *tx = NULL;
 
 	if (snode->texfrom == SNODE_TEX_OBJECT) {

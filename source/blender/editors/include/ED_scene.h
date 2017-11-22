@@ -34,8 +34,8 @@ bool ED_scene_delete(struct bContext *C, struct Main *bmain, struct wmWindow *wi
 void ED_scene_exit(struct bContext *C) ATTR_NONNULL();
 void ED_scene_changed_update(struct Main *bmain, struct bContext *C, struct Scene *scene_new,
                              const struct bScreen *active_screen) ATTR_NONNULL();
-bool ED_scene_render_layer_delete(
-        struct Main *bmain, struct Scene *scene, struct SceneLayer *layer,
+bool ED_scene_view_layer_delete(
+        struct Main *bmain, struct Scene *scene, struct ViewLayer *layer,
         struct ReportList *reports) ATTR_NONNULL(1, 2, 3);
 
 void ED_operatortypes_scene(void);

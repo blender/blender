@@ -451,19 +451,19 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				}
 				FOREACH_SCENE_COLLECTION_END
 
-				SceneLayer *scene_layer;
-				for (scene_layer = scene->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
-					for (Base *base = scene_layer->object_bases.first; base; base = base->next) {
+				ViewLayer *view_layer;
+				for (view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
+					for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 						CALLBACK_INVOKE(base->object, IDWALK_NOP);
 					}
 
-					for (FreestyleModuleConfig  *fmc = scene_layer->freestyle_config.modules.first; fmc; fmc = fmc->next) {
+					for (FreestyleModuleConfig  *fmc = view_layer->freestyle_config.modules.first; fmc; fmc = fmc->next) {
 						if (fmc->script) {
 							CALLBACK_INVOKE(fmc->script, IDWALK_CB_NOP);
 						}
 					}
 
-					for (FreestyleLineSet *fls = scene_layer->freestyle_config.linesets.first; fls; fls = fls->next) {
+					for (FreestyleLineSet *fls = view_layer->freestyle_config.linesets.first; fls; fls = fls->next) {
 						if (fls->group) {
 							CALLBACK_INVOKE(fls->group, IDWALK_CB_USER);
 						}

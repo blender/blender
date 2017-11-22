@@ -44,7 +44,7 @@ struct Object;
 struct RegionView3D;
 struct RenderData;
 struct Scene;
-struct SceneLayer;
+struct ViewLayer;
 struct rctf;
 struct View3D;
 struct GPUFXSettings;
@@ -129,7 +129,7 @@ void BKE_camera_view_frame(
         float r_vec[4][3]);
 
 bool BKE_camera_view_frame_fit_to_scene(
-        struct Scene *scene, struct SceneLayer *sl, struct Object *camera_ob,
+        struct Scene *scene, struct ViewLayer *sl, struct Object *camera_ob,
         float r_co[3], float *r_scale);
 bool BKE_camera_view_frame_fit_to_coords(
         const struct Scene *scene,

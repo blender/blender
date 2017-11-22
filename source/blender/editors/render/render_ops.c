@@ -56,8 +56,8 @@ void ED_operatortypes_render(void)
 	WM_operatortype_append(MATERIAL_OT_copy);
 	WM_operatortype_append(MATERIAL_OT_paste);
 
-	WM_operatortype_append(SCENE_OT_render_layer_add);
-	WM_operatortype_append(SCENE_OT_render_layer_remove);
+	WM_operatortype_append(SCENE_OT_view_layer_add);
+	WM_operatortype_append(SCENE_OT_view_layer_remove);
 
 	WM_operatortype_append(SCENE_OT_render_view_add);
 	WM_operatortype_append(SCENE_OT_render_view_remove);

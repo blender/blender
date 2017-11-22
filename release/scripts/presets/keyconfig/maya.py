@@ -1499,7 +1499,7 @@ kmi.properties.prev = False
 kmi = km.keymap_items.new('node.group_make', 'G', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('node.group_ungroup', 'G', 'PRESS', alt=True)
 kmi = km.keymap_items.new('node.group_edit', 'TAB', 'PRESS')
-kmi = km.keymap_items.new('node.read_renderlayers', 'R', 'PRESS', ctrl=True)
+kmi = km.keymap_items.new('node.read_viewlayers', 'R', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('node.read_fullsamplelayers', 'R', 'PRESS', shift=True)
 kmi = km.keymap_items.new('node.render_changed', 'Z', 'PRESS')
 kmi = km.keymap_items.new('node.translate_attach', 'W', 'PRESS')

@@ -51,13 +51,13 @@ extern struct FreestyleGlobals g_freestyle;
 void FRS_initialize(void);
 void FRS_set_context(struct bContext *C);
 void FRS_read_file(struct bContext *C);
-int FRS_is_freestyle_enabled(struct SceneLayer *scene_layer);
+int FRS_is_freestyle_enabled(struct ViewLayer *view_layer);
 void FRS_init_stroke_renderer(struct Render *re);
 void FRS_begin_stroke_rendering(struct Render *re);
-struct Render *FRS_do_stroke_rendering(struct Render *re, struct SceneLayer *scene_layer, int render);
+struct Render *FRS_do_stroke_rendering(struct Render *re, struct ViewLayer *view_layer, int render);
 void FRS_end_stroke_rendering(struct Render *re);
 void FRS_free_view_map_cache(void);
-void FRS_composite_result(struct Render *re, struct SceneLayer *scene_layer, struct Render *freestyle_render);
+void FRS_composite_result(struct Render *re, struct ViewLayer *view_layer, struct Render *freestyle_render);
 void FRS_exit(void);
 
 /* FreestyleConfig.linesets */

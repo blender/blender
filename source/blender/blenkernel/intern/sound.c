@@ -886,8 +886,8 @@ void BKE_sound_update_scene(Main *bmain, Scene *scene)
 	if (!BLI_listbase_is_empty(&bmain->speaker)) {
 		BKE_main_id_tag_listbase(&bmain->object, LIB_TAG_DOIT, true);
 
-		for (SceneLayer *scene_layer = scene->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
-			for (base = scene_layer->object_bases.first; base; base = base->next) {
+		for (ViewLayer *view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
+			for (base = view_layer->object_bases.first; base; base = base->next) {
 				sound_update_base(scene, base, new_set);
 			}
 		}

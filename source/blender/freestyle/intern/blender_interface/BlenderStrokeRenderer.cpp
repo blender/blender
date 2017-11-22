@@ -128,11 +128,11 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 	DEG_graph_id_tag_update(freestyle_bmain, freestyle_depsgraph, &freestyle_scene->id, 0);
 
 	// Scene layer.
-	SceneLayer *scene_layer = (SceneLayer *)freestyle_scene->render_layers.first;
-	scene_layer->layflag = SCE_LAY_SOLID | SCE_LAY_ZTRA;
+	ViewLayer *view_layer = (ViewLayer *)freestyle_scene->view_layers.first;
+	view_layer->layflag = SCE_LAY_SOLID | SCE_LAY_ZTRA;
 
 	// Camera
-	Object *object_camera = BKE_object_add(freestyle_bmain, freestyle_scene, scene_layer, OB_CAMERA, NULL);
+	Object *object_camera = BKE_object_add(freestyle_bmain, freestyle_scene, view_layer, OB_CAMERA, NULL);
 	DEG_graph_id_tag_update(freestyle_bmain, freestyle_depsgraph, &object_camera->id, 0);
 
 	Camera *camera = (Camera *)object_camera->data;
@@ -174,8 +174,8 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 	// compositor has finished.
 
 	// release objects and data blocks
-	SceneLayer *scene_layer = (SceneLayer *)freestyle_scene->render_layers.first;
-	for (Base *b = (Base *)scene_layer->object_bases.first; b; b = b->next) {
+	ViewLayer *view_layer = (ViewLayer *)freestyle_scene->view_layers.first;
+	for (Base *b = (Base *)view_layer->object_bases.first; b; b = b->next) {
 		Object *ob = b->object;
 		void *data = ob->data;
 		char *name = ob->id.name;
@@ -205,7 +205,7 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 		BLI_freelistN(&sc->objects);
 	}
 	FOREACH_SCENE_COLLECTION_END
-	BLI_freelistN(&scene_layer->object_bases);
+	BLI_freelistN(&view_layer->object_bases);
 
 	// release materials
 	Link *lnk = (Link *)freestyle_bmain->mat.first;
@@ -692,7 +692,7 @@ int BlenderStrokeRenderer::get_stroke_count() const
 void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
 {
 #if 0
-	Object *object_mesh = BKE_object_add(freestyle_bmain, freestyle_scene, (SceneLayer *)freestyle_scene->render_layers.first, OB_MESH);
+	Object *object_mesh = BKE_object_add(freestyle_bmain, freestyle_scene, (ViewLayer *)freestyle_scene->view_layers.first, OB_MESH);
 	DEG_relations_tag_update(freestyle_bmain);
 #else
 	Object *object_mesh = NewMesh();
@@ -969,8 +969,8 @@ Render *BlenderStrokeRenderer::RenderScene(Render * /*re*/, bool render)
 #endif
 
 	Render *freestyle_render = RE_NewSceneRender(freestyle_scene);
-	SceneLayer *scene_layer = (SceneLayer *)freestyle_scene->render_layers.first;
-	DEG_graph_relations_update(freestyle_depsgraph, freestyle_bmain, freestyle_scene, scene_layer);
+	ViewLayer *view_layer = (ViewLayer *)freestyle_scene->view_layers.first;
+	DEG_graph_relations_update(freestyle_depsgraph, freestyle_bmain, freestyle_scene, view_layer);
 	freestyle_render->depsgraph = freestyle_depsgraph;
 
 	RE_RenderFreestyleStrokes(freestyle_render, freestyle_bmain, freestyle_scene,

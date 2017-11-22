@@ -65,7 +65,7 @@
 #include "screen_intern.h"
 
 const char *screen_context_dir[] = {
-	"scene", "render_layer", "visible_objects", "visible_bases", "selectable_objects", "selectable_bases",
+	"scene", "view_layer", "visible_objects", "visible_bases", "selectable_objects", "selectable_bases",
 	"selected_objects", "selected_bases",
 	"editable_objects", "editable_bases",
 	"selected_editable_objects", "selected_editable_bases",
@@ -89,7 +89,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	ScrArea *sa = CTX_wm_area(C);
 	Scene *scene = WM_window_get_active_scene(win);
 	WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);
-	SceneLayer *sl = BKE_scene_layer_from_workspace_get(scene, workspace);
+	ViewLayer *sl = BKE_view_layer_from_workspace_get(scene, workspace);
 	Object *obedit = scene->obedit;
 	Object *obact = sl->basact ? sl->basact->object : NULL;
 

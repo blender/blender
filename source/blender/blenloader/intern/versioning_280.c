@@ -87,7 +87,7 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 	for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 		const bScreen *screen_parent = screen_parent_find(screen);
 		WorkSpace *workspace;
-		SceneLayer *layer = BKE_scene_layer_from_scene_get(screen->scene);
+		ViewLayer *layer = BKE_view_layer_from_scene_get(screen->scene);
 		ListBase *transform_orientations;
 
 		if (screen_parent) {
@@ -100,7 +100,7 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 			workspace = BKE_workspace_add(bmain, screen->id.name + 2);
 		}
 		BKE_workspace_layout_add(workspace, screen, screen->id.name + 2);
-		BKE_workspace_render_layer_set(workspace, layer);
+		BKE_workspace_view_layer_set(workspace, layer);
 
 #ifdef WITH_CLAY_ENGINE
 		BLI_strncpy(workspace->view_render.engine_id, RE_engine_id_BLENDER_CLAY,
@@ -169,7 +169,7 @@ void do_versions_after_linking_280(Main *main)
 	if (!MAIN_VERSION_ATLEAST(main, 280, 0)) {
 		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
 			/* since we don't have access to FileData we check the (always valid) first render layer instead */
-			if (scene->render_layers.first == NULL) {
+			if (scene->view_layers.first == NULL) {
 				SceneCollection *sc_master = BKE_collection_master(scene);
 				BLI_strncpy(sc_master->name, "Master Collection", sizeof(sc_master->name));
 
@@ -299,53 +299,53 @@ void do_versions_after_linking_280(Main *main)
 				}
 				BLI_assert(scene_collection_parent == NULL);
 
-				scene->active_layer = 0;
+				scene->active_view_layer = 0;
 
 				/* Handle legacy render layers. */
 				if (!BKE_scene_uses_blender_game(scene)) {
 					for (SceneRenderLayer *srl = scene->r.layers.first; srl; srl = srl->next) {
 
-						SceneLayer *scene_layer = BKE_scene_layer_add(scene, srl->name);
+						ViewLayer *view_layer = BKE_view_layer_add(scene, srl->name);
 
 						if (srl->samples != 0) {
 							/* It is up to the external engine to handle
 							 * its own doversion in this case. */
-							BKE_override_scene_layer_int_add(
-										scene_layer,
+							BKE_override_view_layer_int_add(
+										view_layer,
 										ID_SCE,
 										"samples",
 										srl->samples);
 						}
 
 						if (srl->mat_override) {
-							BKE_override_scene_layer_datablock_add(
-							            scene_layer,
+							BKE_override_view_layer_datablock_add(
+							            view_layer,
 							            ID_MA,
 							            "self",
 							            (ID *)srl->mat_override);
 						}
 
 						if (srl->layflag & SCE_LAY_DISABLE) {
-							scene_layer->flag &= ~SCENE_LAYER_RENDER;
+							view_layer->flag &= ~VIEW_LAYER_RENDER;
 						}
 
 						if ((srl->layflag & SCE_LAY_FRS) == 0) {
-							scene_layer->flag &= ~SCENE_LAYER_FREESTYLE;
+							view_layer->flag &= ~VIEW_LAYER_FREESTYLE;
 						}
 
 						/* XXX If we are to keep layflag it should be merged with flag (dfelinto). */
-						scene_layer->layflag = srl->layflag;
+						view_layer->layflag = srl->layflag;
 						/* XXX Not sure if we should keep the passes (dfelinto). */
-						scene_layer->passflag = srl->passflag;
-						scene_layer->pass_xor = srl->pass_xor;
-						scene_layer->pass_alpha_threshold = srl->pass_alpha_threshold;
+						view_layer->passflag = srl->passflag;
+						view_layer->pass_xor = srl->pass_xor;
+						view_layer->pass_alpha_threshold = srl->pass_alpha_threshold;
 
-						BKE_freestyle_config_free(&scene_layer->freestyle_config);
-						scene_layer->freestyle_config = srl->freestyleConfig;
-						scene_layer->id_properties = srl->prop;
+						BKE_freestyle_config_free(&view_layer->freestyle_config);
+						view_layer->freestyle_config = srl->freestyleConfig;
+						view_layer->id_properties = srl->prop;
 
 						/* unlink master collection  */
-						BKE_collection_unlink(scene_layer, scene_layer->layer_collections.first);
+						BKE_collection_unlink(view_layer, view_layer->layer_collections.first);
 
 						/* Add new collection bases. */
 						for (int layer = 0; layer < 20; layer++) {
@@ -355,7 +355,7 @@ void do_versions_after_linking_280(Main *main)
 								if (collections[DO_VERSION_COLLECTION_VISIBLE].created & (1 << layer)) {
 
 									LayerCollection *layer_collection_parent;
-									layer_collection_parent = BKE_collection_link(scene_layer,
+									layer_collection_parent = BKE_collection_link(view_layer,
 											collections[DO_VERSION_COLLECTION_VISIBLE].collections[layer]);
 
 									if (srl->lay_zmask & (1 << layer)) {
@@ -382,7 +382,7 @@ void do_versions_after_linking_280(Main *main)
 											layer_collection_child->flag = collections[j].flag_render & (~COLLECTION_DISABLED);
 
 											if (collections[j].flag_render & COLLECTION_DISABLED) {
-												BKE_collection_disable(scene_layer, layer_collection_child);
+												BKE_collection_disable(view_layer, layer_collection_child);
 											}
 
 											layer_collection_child = layer_collection_child->next;
@@ -395,18 +395,18 @@ void do_versions_after_linking_280(Main *main)
 
 						/* for convenience set the same active object in all the layers */
 						if (scene->basact) {
-							scene_layer->basact = BKE_scene_layer_base_find(scene_layer, scene->basact->object);
+							view_layer->basact = BKE_view_layer_base_find(view_layer, scene->basact->object);
 						}
 
-						for (Base *base = scene_layer->object_bases.first; base; base = base->next) {
+						for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 							if ((base->flag & BASE_SELECTABLED) && (base->object->flag & SELECT)) {
 								base->flag |= BASE_SELECTED;
 							}
 						}
 					}
 
-					if (BLI_findlink(&scene->render_layers, scene->r.actlay)) {
-						scene->active_layer = scene->r.actlay;
+					if (BLI_findlink(&scene->view_layers, scene->r.actlay)) {
+						scene->active_view_layer = scene->r.actlay;
 					}
 				}
 				else {
@@ -420,15 +420,15 @@ void do_versions_after_linking_280(Main *main)
 				}
 				BLI_freelistN(&scene->r.layers);
 
-				SceneLayer *scene_layer = BKE_scene_layer_add(scene, "Viewport");
+				ViewLayer *view_layer = BKE_view_layer_add(scene, "Viewport");
 				/* If we ported all the original render layers, we don't need to make the viewport layer renderable. */
-				if (!BLI_listbase_is_single(&scene->render_layers)) {
-					scene_layer->flag &= ~SCENE_LAYER_RENDER;
+				if (!BLI_listbase_is_single(&scene->view_layers)) {
+					view_layer->flag &= ~VIEW_LAYER_RENDER;
 				}
 
 				/* If layer was not set, disable it. */
 				LayerCollection *layer_collection_parent;
-				layer_collection_parent = ((LayerCollection *)scene_layer->layer_collections.first)->layer_collections.first;
+				layer_collection_parent = ((LayerCollection *)view_layer->layer_collections.first)->layer_collections.first;
 
 				for (int layer = 0; layer < 20; layer++) {
 					if (collections[DO_VERSION_COLLECTION_VISIBLE].created & (1 << layer)) {
@@ -436,7 +436,7 @@ void do_versions_after_linking_280(Main *main)
 
 						/* We only need to disable the parent collection. */
 						if (is_disabled) {
-							BKE_collection_disable(scene_layer, layer_collection_parent);
+							BKE_collection_disable(view_layer, layer_collection_parent);
 						}
 
 						LayerCollection *layer_collection_child;
@@ -447,7 +447,7 @@ void do_versions_after_linking_280(Main *main)
 								layer_collection_child->flag = collections[j].flag_viewport & (~COLLECTION_DISABLED);
 
 								if (collections[j].flag_viewport & COLLECTION_DISABLED) {
-									BKE_collection_disable(scene_layer, layer_collection_child);
+									BKE_collection_disable(view_layer, layer_collection_child);
 								}
 								layer_collection_child = layer_collection_child->next;
 							}
@@ -460,7 +460,7 @@ void do_versions_after_linking_280(Main *main)
 
 				/* convert active base */
 				if (scene->basact) {
-					scene_layer->basact = BKE_scene_layer_base_find(scene_layer, scene->basact->object);
+					view_layer->basact = BKE_view_layer_base_find(view_layer, scene->basact->object);
 				}
 
 				/* convert selected bases */
@@ -491,13 +491,13 @@ void do_versions_after_linking_280(Main *main)
 	if (!MAIN_VERSION_ATLEAST(main, 280, 0)) {
 		for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
 			/* same render-layer as do_version_workspaces_after_lib_link will activate,
-			 * so same layer as BKE_scene_layer_from_workspace_get would return */
-			SceneLayer *layer = screen->scene->render_layers.first;
+			 * so same layer as BKE_view_layer_from_workspace_get would return */
+			ViewLayer *layer = screen->scene->view_layers.first;
 
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-				for (SpaceLink *scene_layer = sa->spacedata.first; scene_layer; scene_layer = scene_layer->next) {
-					if (scene_layer->spacetype == SPACE_OUTLINER) {
-						SpaceOops *soutliner = (SpaceOops *)scene_layer;
+				for (SpaceLink *view_layer = sa->spacedata.first; view_layer; view_layer = view_layer->next) {
+					if (view_layer->spacetype == SPACE_OUTLINER) {
+						SpaceOops *soutliner = (SpaceOops *)view_layer;
 
 						soutliner->outlinevis = SO_ACT_LAYER;
 
@@ -527,7 +527,7 @@ void do_versions_after_linking_280(Main *main)
 		do_version_workspaces_after_lib_link(main);
 	}
 
-	{
+	if (!MAIN_VERSION_ATLEAST(main, 280, 2)) {
 		/* Cleanup any remaining SceneRenderLayer data for files that were created
 		 * with Blender 2.8 before the SceneRenderLayer > RenderLayer refactor. */
 		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
@@ -576,7 +576,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 
-		if (!DNA_struct_elem_find(fd->filesdna, "Scene", "ListBase", "render_layers")) {
+		if (!DNA_struct_elem_find(fd->filesdna, "Scene", "ListBase", "view_layers")) {
 			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
 				/* Master Collection */
 				scene->collection = MEM_callocN(sizeof(SceneCollection), "Master Collection");
@@ -588,8 +588,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		    !DNA_struct_elem_find(fd->filesdna, "LayerCollection", "IDProperty", "properties"))
 		{
 			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
-				for (SceneLayer *scene_layer = scene->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
-					do_version_layer_collections_idproperties(&scene_layer->layer_collections);
+				for (ViewLayer *view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
+					do_version_layer_collections_idproperties(&view_layer->layer_collections);
 				}
 			}
 		}
@@ -608,12 +608,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 
-		if (!DNA_struct_elem_find(fd->filesdna, "SceneLayer", "IDProperty", "*properties")) {
+		if (!DNA_struct_elem_find(fd->filesdna, "ViewLayer", "IDProperty", "*properties")) {
 			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
-				for (SceneLayer *scene_layer = scene->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
+				for (ViewLayer *view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
 					IDPropertyTemplate val = {0};
-					scene_layer->properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-					BKE_scene_layer_engine_settings_create(scene_layer->properties);
+					view_layer->properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+					BKE_view_layer_engine_settings_create(view_layer->properties);
 				}
 			}
 		}
@@ -632,7 +632,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-	{
+	if (!MAIN_VERSION_ATLEAST(main, 280, 2)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "View3D", "short", "custom_orientation_index")) {
 			for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
 				for (ScrArea *area = screen->areabase.first; area; area = area->next) {
@@ -669,9 +669,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 				la->contact_thickness = 0.5f;
 			}
 		}
-	}
 
-	{
 		typedef enum eNTreeDoVersionErrors {
 			NTREE_DOVERSION_NO_ERROR = 0,
 			NTREE_DOVERSION_NEED_OUTPUT = (1 << 0),
@@ -728,9 +726,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 			BKE_report(fd->reports, RPT_ERROR, "Eevee material conversion problem. Error in console");
 			printf("You need to combine transparency and emission shaders to the converted Principled shader nodes.\n");
 		}
-	}
 
-	{
 		if (!DNA_struct_elem_find(fd->filesdna, "Scene", "ViewRender", "view_render")) {
 			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
 				BLI_strncpy_utf8(scene->view_render.engine_id, scene->r.engine,
@@ -741,20 +737,18 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 				BKE_viewrender_init(&workspace->view_render);
 			}
 		}
-	}
 
-	{
-		if ((DNA_struct_elem_find(fd->filesdna, "SceneLayer", "FreestyleConfig", "freestyle_config") == false) &&
-		    DNA_struct_elem_find(fd->filesdna, "Scene", "ListBase", "render_layers"))
+		if ((DNA_struct_elem_find(fd->filesdna, "ViewLayer", "FreestyleConfig", "freestyle_config") == false) &&
+		    DNA_struct_elem_find(fd->filesdna, "Scene", "ListBase", "view_layers"))
 		{
 			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
-				SceneLayer *scene_layer;
-				for (scene_layer = scene->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
-					scene_layer->flag |= SCENE_LAYER_FREESTYLE;
-					scene_layer->layflag = 0x7FFF;   /* solid ztra halo edge strand */
-					scene_layer->passflag = SCE_PASS_COMBINED | SCE_PASS_Z;
-					scene_layer->pass_alpha_threshold = 0.5f;
-					BKE_freestyle_config_init(&scene_layer->freestyle_config);
+				ViewLayer *view_layer;
+				for (view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
+					view_layer->flag |= VIEW_LAYER_FREESTYLE;
+					view_layer->layflag = 0x7FFF;   /* solid ztra halo edge strand */
+					view_layer->passflag = SCE_PASS_COMBINED | SCE_PASS_Z;
+					view_layer->pass_alpha_threshold = 0.5f;
+					BKE_freestyle_config_init(&view_layer->freestyle_config);
 				}
 			}
 		}

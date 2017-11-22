@@ -331,7 +331,7 @@ static void free_all_fluidobject_channels(ListBase *fobjects)
 static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), FluidsimSettings *domainSettings, FluidAnimChannels *channels, ListBase *fobjects)
 {
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	EvaluationContext eval_ctx;
 	Base *base;
@@ -580,7 +580,7 @@ static void export_fluid_objects(const bContext *C, ListBase *fobjects, Scene *s
 	}
 }
 
-static int fluid_validate_scene(ReportList *reports, SceneLayer *sl, Object *fsDomain)
+static int fluid_validate_scene(ReportList *reports, ViewLayer *sl, Object *fsDomain)
 {
 	Base *base;
 	Object *newdomain = NULL;
@@ -846,7 +846,7 @@ static void fluidsim_delete_until_lastframe(FluidsimSettings *fss, const char *r
 static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, short do_job)
 {
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	int i;
 	FluidsimSettings *domainSettings;

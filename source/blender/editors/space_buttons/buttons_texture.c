@@ -109,14 +109,14 @@ bool ED_texture_context_check_linestyle(const bContext *C)
 {
 #ifdef WITH_FREESTYLE
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *active_render_layer;
+	ViewLayer *active_view_layer;
 	FreestyleConfig *config;
 	FreestyleLineSet *lineset;
 	FreestyleLineStyle *linestyle;
 
 	if (scene && (scene->r.mode & R_EDGE_FRS)) {
-		active_render_layer = BLI_findlink(&scene->render_layers, scene->active_layer);
-		config = &active_render_layer->freestyle_config;
+		active_view_layer = BLI_findlink(&scene->view_layers, scene->active_view_layer);
+		config = &active_view_layer->freestyle_config;
 		if (config->mode == FREESTYLE_CONTROL_EDITOR_MODE) {
 			lineset = BKE_freestyle_lineset_get_active(config);
 			if (lineset) {
@@ -196,7 +196,7 @@ static void set_texture_context(const bContext *C, SpaceButs *sbuts)
 		else if ((sbuts->mainb == BCONTEXT_PARTICLE) && valid_particles) {
 			sbuts->texture_context = sbuts->texture_context_prev = SB_TEXC_PARTICLES;
 		}
-		else if ((sbuts->mainb == BCONTEXT_RENDER_LAYER) && valid_linestyle) {
+		else if ((sbuts->mainb == BCONTEXT_VIEW_LAYER) && valid_linestyle) {
 			sbuts->texture_context = sbuts->texture_context_prev = SB_TEXC_LINESTYLE;
 		}
 		else if ((ELEM(sbuts->mainb, BCONTEXT_MODIFIER, BCONTEXT_PHYSICS)) && valid_others) {
@@ -363,8 +363,8 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 		if (!workspace) {
 			workspace = CTX_wm_workspace(C);
 		}
-		SceneLayer *scene_layer = BKE_scene_layer_from_workspace_get(scene, workspace);
-		ob = OBACT(scene_layer);
+		ViewLayer *view_layer = BKE_view_layer_from_workspace_get(scene, workspace);
+		ob = OBACT(view_layer);
 	}
 
 	if (ob && ob->type == OB_LAMP && !la)

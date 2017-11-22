@@ -53,7 +53,7 @@ BlenderSync::BlenderSync(BL::RenderEngine& b_engine,
   b_data(b_data),
   b_depsgraph(b_depsgraph),
   b_scene(b_scene),
-  b_scene_layer(b_engine.scene_layer()),
+  b_view_layer(b_engine.view_layer()),
   shader_map(&scene->shaders),
   object_map(&scene->objects),
   mesh_map(&scene->meshes),
@@ -198,7 +198,7 @@ void BlenderSync::sync_data(BL::RenderSettings& b_render,
                             void **python_thread_state,
                             const char *layer)
 {
-	sync_render_layers(b_v3d, layer);
+	sync_view_layers(b_v3d, layer);
 	sync_integrator();
 	sync_film();
 	sync_shaders();
@@ -376,43 +376,43 @@ void BlenderSync::sync_film()
 
 /* Render Layer */
 
-void BlenderSync::sync_render_layers(BL::SpaceView3D& b_v3d, const char *layer)
+void BlenderSync::sync_view_layers(BL::SpaceView3D& b_v3d, const char *layer)
 {
 	string layername;
 
 	/* 3d view */
 	if(b_v3d) {
-		layername = b_scene.render_layers.active().name();
+		layername = b_scene.view_layers.active().name();
 		layer = layername.c_str();
 	}
 
 	/* render layer */
-	BL::Scene::render_layers_iterator b_rlay;
+	BL::Scene::view_layers_iterator b_rlay;
 	bool first_layer = true;
 	uint layer_override = get_layer(b_engine.layer_override());
-	uint scene_layers = layer_override ? layer_override : get_layer(b_scene.layers());
+	uint view_layers = layer_override ? layer_override : get_layer(b_scene.layers());
 
-	for(b_scene.render_layers.begin(b_rlay); b_rlay != b_scene.render_layers.end(); ++b_rlay) {
+	for(b_scene.view_layers.begin(b_rlay); b_rlay != b_scene.view_layers.end(); ++b_rlay) {
 		if((!layer && first_layer) || (layer && b_rlay->name() == layer)) {
-			render_layer.name = b_rlay->name();
+			view_layer.name = b_rlay->name();
 
-			render_layer.holdout_layer = 0;
-			render_layer.exclude_layer = 0;
+			view_layer.holdout_layer = 0;
+			view_layer.exclude_layer = 0;
 
-			render_layer.scene_layer = scene_layers & ~render_layer.exclude_layer;
-			render_layer.scene_layer |= render_layer.exclude_layer & render_layer.holdout_layer;
+			view_layer.view_layer = view_layers & ~view_layer.exclude_layer;
+			view_layer.view_layer |= view_layer.exclude_layer & view_layer.holdout_layer;
 
-			render_layer.layer = (1 << 20) - 1;
-			render_layer.layer |= render_layer.holdout_layer;
+			view_layer.layer = (1 << 20) - 1;
+			view_layer.layer |= view_layer.holdout_layer;
 
-			render_layer.material_override = PointerRNA_NULL;
-			render_layer.use_background_shader = b_rlay->use_sky();
-			render_layer.use_background_ao = b_rlay->use_ao();
-			render_layer.use_surfaces = b_rlay->use_solid();
-			render_layer.use_hair = b_rlay->use_strand();
+			view_layer.material_override = PointerRNA_NULL;
+			view_layer.use_background_shader = b_rlay->use_sky();
+			view_layer.use_background_ao = b_rlay->use_ao();
+			view_layer.use_surfaces = b_rlay->use_solid();
+			view_layer.use_hair = b_rlay->use_strand();
 
-			render_layer.bound_samples = false;
-			render_layer.samples = 0;
+			view_layer.bound_samples = false;
+			view_layer.samples = 0;
 		}
 
 		first_layer = false;
@@ -526,7 +526,7 @@ int BlenderSync::get_denoising_pass(BL::RenderPass& b_pass)
 }
 
 array<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
-                                            BL::SceneLayer& b_slay,
+                                            BL::ViewLayer& b_slay,
                                             const SessionParams &session_params)
 {
 	array<Pass> passes;
@@ -820,8 +820,8 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 	                            !b_r.use_save_buffers();
 
 	if(params.progressive_refine) {
-		BL::Scene::render_layers_iterator b_rlay;
-		for(b_scene.render_layers.begin(b_rlay); b_rlay != b_scene.render_layers.end(); ++b_rlay) {
+		BL::Scene::view_layers_iterator b_rlay;
+		for(b_scene.view_layers.begin(b_rlay); b_rlay != b_scene.view_layers.end(); ++b_rlay) {
 			PointerRNA crl = RNA_pointer_get(&b_rlay->ptr, "cycles");
 			if(get_boolean(crl, "use_denoising")) {
 				params.progressive_refine = false;

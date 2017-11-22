@@ -1323,7 +1323,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 	}
 	else if (CTX_data_equals(member, "active_base")) {
 		Scene *scene = CTX_data_scene(C);
-		SceneLayer *sl = CTX_data_scene_layer(C);
+		ViewLayer *sl = CTX_data_view_layer(C);
 		if (sl->basact) {
 			Object *ob = sl->basact->object;
 			/* if hidden but in edit mode, we still display, can happen with animation */
@@ -1335,7 +1335,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 		return 1;
 	}
 	else if (CTX_data_equals(member, "active_object")) {
-		SceneLayer *sl = CTX_data_scene_layer(C);
+		ViewLayer *sl = CTX_data_view_layer(C);
 		if (sl->basact) {
 			Object *ob = sl->basact->object;
 			/* if hidden but in edit mode, we still display, can happen with animation */

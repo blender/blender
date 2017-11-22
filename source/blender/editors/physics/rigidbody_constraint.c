@@ -119,7 +119,7 @@ static int rigidbody_con_add_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	RigidBodyWorld *rbw = BKE_rigidbody_get_world(scene);
 	Object *ob = OBACT(sl);
 	int type = RNA_enum_get(op->ptr, "type");
@@ -169,7 +169,7 @@ static int rigidbody_con_remove_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Object *ob = OBACT(sl);
 
 	/* apply to active object */

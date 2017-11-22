@@ -174,22 +174,22 @@ typedef struct SceneRenderLayer {
 	
 	char name[64] DNA_DEPRECATED;	/* MAX_NAME */
 	
-	struct Material *mat_override DNA_DEPRECATED; /* Converted to SceneLayer override. */
+	struct Material *mat_override DNA_DEPRECATED; /* Converted to ViewLayer override. */
 	
 	unsigned int lay DNA_DEPRECATED; /* Converted to LayerCollection cycles camera visibility override. */
 	unsigned int lay_zmask DNA_DEPRECATED; /* Converted to LayerCollection cycles holdout override. */
 	unsigned int lay_exclude DNA_DEPRECATED;
-	int layflag DNA_DEPRECATED; /* Converted to SceneLayer layflag and flag. */
+	int layflag DNA_DEPRECATED; /* Converted to ViewLayer layflag and flag. */
 	
 	int passflag DNA_DEPRECATED; /* pass_xor has to be after passflag */
-	int pass_xor DNA_DEPRECATED; /* Converted to SceneLayer passflag and flag. */
+	int pass_xor DNA_DEPRECATED; /* Converted to ViewLayer passflag and flag. */
 
-	int samples DNA_DEPRECATED; /* Converted to SceneLayer override. */
-	float pass_alpha_threshold DNA_DEPRECATED; /* Converted to SceneLayer pass_alpha_threshold. */
+	int samples DNA_DEPRECATED; /* Converted to ViewLayer override. */
+	float pass_alpha_threshold DNA_DEPRECATED; /* Converted to ViewLayer pass_alpha_threshold. */
 
-	IDProperty *prop DNA_DEPRECATED; /* Converted to SceneLayer id_properties. */
+	IDProperty *prop DNA_DEPRECATED; /* Converted to ViewLayer id_properties. */
 
-	struct FreestyleConfig freestyleConfig DNA_DEPRECATED; /* Converted to SceneLayer freestyleConfig. */
+	struct FreestyleConfig freestyleConfig DNA_DEPRECATED; /* Converted to ViewLayer freestyleConfig. */
 } SceneRenderLayer;
 
 /* srl->layflag */
@@ -662,7 +662,7 @@ typedef struct RenderData {
 	rcti disprect;
 	
 	/* information on different layers to be rendered */
-	ListBase layers DNA_DEPRECATED; /* Converted to Scene->render_layers. */
+	ListBase layers DNA_DEPRECATED; /* Converted to Scene->view_layers. */
 	short actlay DNA_DEPRECATED; /* Converted to Scene->active_layer. */
 	
 	/* number of mblur samples */
@@ -1075,7 +1075,7 @@ typedef struct ParticleEditSettings {
 	int draw_step, fade_frames;
 
 	struct Scene *scene;
-	struct SceneLayer *scene_layer;
+	struct ViewLayer *view_layer;
 	struct Object *object;
 	struct Object *shape_object;
 } ParticleEditSettings;
@@ -1688,9 +1688,9 @@ typedef struct Scene {
 
 	struct PreviewImage *preview;
 
-	ListBase render_layers;
+	ListBase view_layers;
 	struct SceneCollection *collection;
-	int active_layer;
+	int active_view_layer;
 	int pad4;
 
 	IDProperty *collection_properties;  /* settings to be overriden by layer collections */

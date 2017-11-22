@@ -301,25 +301,25 @@ static Mesh *rna_Main_meshes_new(Main *bmain, const char *name)
 /* copied from Mesh_getFromObject and adapted to RNA interface */
 /* settings: 1 - preview, 2 - render */
 Mesh *rna_Main_meshes_new_from_object(
-        Main *bmain, ReportList *reports, Scene *sce, SceneLayer *scene_layer,
+        Main *bmain, ReportList *reports, Scene *sce, ViewLayer *view_layer,
         Object *ob, int apply_modifiers, int settings, int calc_tessface, int calc_undeformed)
 {
 	EvaluationContext eval_ctx;
 
 	/* XXX: This should never happen, but render pipeline is not ready to give
-	 * proper scene_layer, and will always pass NULL here. For until we port
-	 * pipeline form SceneRenderLayer to SceneLayer we have this stub to prevent
+	 * proper view_layer, and will always pass NULL here. For until we port
+	 * pipeline form SceneRenderLayer to ViewLayer we have this stub to prevent
 	 * some obvious crashes.
 	 *                                                         - sergey -
 	 */
-	if (scene_layer == NULL) {
-		scene_layer = sce->render_layers.first;
+	if (view_layer == NULL) {
+		view_layer = sce->view_layers.first;
 	}
 
 	DEG_evaluation_context_init(&eval_ctx, settings);
 	eval_ctx.ctime = (float)sce->r.cfra + sce->r.subframe;
-	eval_ctx.scene_layer = scene_layer;
-	eval_ctx.depsgraph = BKE_scene_get_depsgraph(sce, scene_layer, false);
+	eval_ctx.view_layer = view_layer;
+	eval_ctx.depsgraph = BKE_scene_get_depsgraph(sce, view_layer, false);
 
 	switch (ob->type) {
 		case OB_FONT:
@@ -918,7 +918,7 @@ void RNA_def_main_meshes(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "scene", "Scene", "", "Scene within which to evaluate modifiers");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-	parm = RNA_def_pointer(func, "scene_layer", "SceneLayer", "", "Scene layer within which to evaluate modifiers");
+	parm = RNA_def_pointer(func, "view_layer", "ViewLayer", "", "Scene layer within which to evaluate modifiers");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "object", "Object", "", "Object to create mesh from");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);

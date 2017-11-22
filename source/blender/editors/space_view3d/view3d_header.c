@@ -93,7 +93,7 @@ static void handle_view3d_lock(bContext *C)
  * layer code is on three levels actually:
  * - here for operator
  * - uiTemplateLayers in interface/ code for buttons
- * - ED_view3d_scene_layer_set for RNA
+ * - ED_view3d_view_layer_set for RNA
  */
 static void view3d_layers_editmode_ensure(Scene *scene, View3D *v3d)
 {
@@ -280,7 +280,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	ScrArea *sa = CTX_wm_area(C);
 	View3D *v3d = sa->spacedata.first;
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	PointerRNA v3dptr, toolsptr, sceneptr;
 	Object *ob = OBACT(sl);

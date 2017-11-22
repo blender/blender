@@ -102,7 +102,7 @@ typedef struct RenderEngineType {
 	void (*render_to_view)(struct RenderEngine *engine, const struct bContext *context);
 
 	void (*update_script_node)(struct RenderEngine *engine, struct bNodeTree *ntree, struct bNode *node);
-	void (*update_render_passes)(struct RenderEngine *engine, struct Scene *scene, struct SceneLayer *scene_layer);
+	void (*update_render_passes)(struct RenderEngine *engine, struct Scene *scene, struct ViewLayer *view_layer);
 
 	void (*collection_settings_create)(struct RenderEngine *engine, struct IDProperty *props);
 	void (*render_settings_create)(struct RenderEngine *engine, struct IDProperty *props);
@@ -174,7 +174,7 @@ bool RE_engine_is_external(struct Render *re);
 
 void RE_engine_frame_set(struct RenderEngine *engine, int frame, float subframe);
 
-void RE_engine_register_pass(struct RenderEngine *engine, struct Scene *scene, struct SceneLayer *scene_layer,
+void RE_engine_register_pass(struct RenderEngine *engine, struct Scene *scene, struct ViewLayer *view_layer,
                              const char *name, int channels, const char *chanid, int type);
 
 /* Engine Types */
@@ -190,7 +190,7 @@ struct RenderData *RE_engine_get_render_data(struct Render *re);
 void RE_bake_engine_set_engine_parameters(
         struct Render *re, struct Main *bmain, struct Depsgraph *graph, struct Scene *scene);
 
-struct SceneLayer *RE_engine_get_scene_layer(struct Render *re);
+struct ViewLayer *RE_engine_get_view_layer(struct Render *re);
 
 #endif /* __RE_ENGINE_H__ */
 

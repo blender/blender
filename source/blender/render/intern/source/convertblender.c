@@ -4939,7 +4939,7 @@ static void dupli_render_particle_set(Render *re, Object *ob, int timeoffset, in
 		dupli_render_particle_set(re, go->ob, timeoffset, level+1, enable);
 }
 
-static int get_vector_renderlayers(Scene *UNUSED(sce))
+static int get_vector_viewlayers(Scene *UNUSED(sce))
 {
 	return 0;
 }
@@ -5010,7 +5010,7 @@ static void database_init_objects(Render *re, unsigned int UNUSED(renderlay), in
 		/* in the prev/next pass for making speed vectors, avoid creating
 		 * objects that are not on a renderlayer with a vector pass, can
 		 * save a lot of time in complex scenes */
-		vectorlay= get_vector_renderlayers(re->scene);
+		vectorlay= get_vector_viewlayers(re->scene);
 #endif
 
 		/* if the object is not visible, ignore it */
@@ -5203,7 +5203,7 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 	/* applies changes fully */
 	if ((re->r.scemode & (R_NO_FRAME_UPDATE|R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW))==0) {
 		BKE_scene_graph_update_for_newframe(re->eval_ctx, re->depsgraph, re->main, re->scene, NULL);
-		render_update_anim_renderdata(re, &re->scene->r, &re->scene->render_layers);
+		render_update_anim_renderdata(re, &re->scene->r, &re->scene->view_layers);
 	}
 	
 	/* if no camera, viewmat should have been set! */
@@ -5789,7 +5789,7 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 	}
 	
 	if (!re->test_break(re->tbh)) {
-		int vectorlay= get_vector_renderlayers(re->scene);
+		int vectorlay= get_vector_viewlayers(re->scene);
 
 		for (step= 0; step<2; step++) {
 			

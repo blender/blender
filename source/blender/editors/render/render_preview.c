@@ -306,18 +306,18 @@ static const char *preview_layer_name(const char pr_type)
 	}
 }
 
-static void set_preview_layer(SceneLayer *scene_layer, char pr_type)
+static void set_preview_layer(ViewLayer *view_layer, char pr_type)
 {
 	LayerCollection *lc;
 	const char *collection_name = preview_layer_name(pr_type);
 
-	for (lc = scene_layer->layer_collections.first; lc; lc = lc->next) {
+	for (lc = view_layer->layer_collections.first; lc; lc = lc->next) {
 		if (STREQ(lc->scene_collection->name, collection_name)) {
 			lc->flag = COLLECTION_VISIBLE | COLLECTION_DISABLED;
-			BKE_collection_enable(scene_layer, lc);
+			BKE_collection_enable(view_layer, lc);
 		}
 		else {
-			BKE_collection_disable(scene_layer, lc);
+			BKE_collection_disable(view_layer, lc);
 		}
 	}
 }
@@ -346,7 +346,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 
 	sce = preview_get_scene(pr_main);
 	if (sce) {
-		SceneLayer *scene_layer = BKE_scene_layer_from_scene_get(sce);
+		ViewLayer *view_layer = BKE_view_layer_from_scene_get(sce);
 
 		/* this flag tells render to not execute depsgraph or ipos etc */
 		sce->r.scemode |= R_BUTS_PREVIEW;
@@ -422,7 +422,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 					/* this only works in a specific case where the preview.blend contains
 					 * an object starting with 'c' which has a material linked to it (not the obdata)
 					 * and that material has a fake shadow texture in the active texture slot */
-					for (Base *base = scene_layer->object_bases.first; base; base = base->next) {
+					for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 						Object *ob = base->object;
 						if (ob->id.name[2] == 'c') {
 							Material *shadmat = give_current_material(ob, ob->actcol);
@@ -439,7 +439,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 					
 					/* turn off bounce lights for volume, 
 					 * doesn't make much visual difference and slows it down too */
-					for (Base *base = scene_layer->object_bases.first; base; base = base->next) {
+					for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 						Object *ob = base->object;
 						if (ob->type == OB_LAMP) {
 							/* if doesn't match 'Lamp.002' --> main key light */
@@ -463,10 +463,10 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 				
 				if (sp->pr_method == PR_ICON_RENDER) {
 					if (mat->material_type == MA_TYPE_HALO) {
-						set_preview_layer(scene_layer, MA_FLAT);
+						set_preview_layer(view_layer, MA_FLAT);
 					}
 					else {
-						set_preview_layer(scene_layer, MA_SPHERE_A);
+						set_preview_layer(view_layer, MA_SPHERE_A);
 
 						/* same as above, use current scene world to light sphere */
 						if (BKE_scene_use_new_shading_nodes(scene))
@@ -474,7 +474,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 					}
 				}
 				else {
-					set_preview_layer(scene_layer, mat->pr_type);
+					set_preview_layer(view_layer, mat->pr_type);
 
 					if (mat->nodetree && sp->pr_method == PR_NODE_RENDER) {
 						/* two previews, they get copied by wmJob */
@@ -488,7 +488,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 				
 			}
 			
-			for (Base *base = scene_layer->object_bases.first; base; base = base->next) {
+			for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 				if (base->object->id.name[2] == 'p') {
 					/* copy over object color, in case material uses it */
 					copy_v4_v4(base->object->col, sp->col);
@@ -515,9 +515,9 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 				sp->texcopy = tex;
 				BLI_addtail(&pr_main->tex, tex);
 			}
-			set_preview_layer(scene_layer, MA_TEXTURE);
+			set_preview_layer(view_layer, MA_TEXTURE);
 			
-			for (Base *base = scene_layer->object_bases.first; base; base = base->next) {
+			for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 				if (base->object->id.name[2] == 't') {
 					Material *mat = give_current_material(base->object, base->object->actcol);
 					if (mat && mat->mtex[0]) {
@@ -558,21 +558,21 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 
 			if (!BKE_scene_use_new_shading_nodes(scene)) {
 				if (la && la->type == LA_SUN && (la->sun_effect_type & LA_SUN_EFFECT_SKY)) {
-					set_preview_layer(scene_layer, MA_ATMOS);
+					set_preview_layer(view_layer, MA_ATMOS);
 					sce->world = preview_get_localized_world(sp, scene->world);
 					sce->camera = (Object *)BLI_findstring(&pr_main->object, "CameraAtmo", offsetof(ID, name) + 2);
 				}
 				else {
 					sce->world = NULL;
 					sce->camera = (Object *)BLI_findstring(&pr_main->object, "Camera", offsetof(ID, name) + 2);
-					set_preview_layer(scene_layer, MA_LAMP);
+					set_preview_layer(view_layer, MA_LAMP);
 				}
 			}
 			else {
-				set_preview_layer(scene_layer, MA_LAMP);
+				set_preview_layer(view_layer, MA_LAMP);
 			}
 				
-			for (Base *base = scene_layer->object_bases.first; base; base = base->next) {
+			for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 				if (base->object->id.name[2] == 'p') {
 					if (base->object->type == OB_LAMP)
 						base->object->data = la;
@@ -594,7 +594,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 				BLI_addtail(&pr_main->world, wrld);
 			}
 
-			set_preview_layer(scene_layer, MA_SKY);
+			set_preview_layer(view_layer, MA_SKY);
 			sce->world = wrld;
 
 			if (wrld && wrld->nodetree && sp->pr_method == PR_NODE_RENDER) {
@@ -604,11 +604,11 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 			}
 		}
 
-		Depsgraph *depsgraph = BKE_scene_get_depsgraph(sce, scene_layer, true);
+		Depsgraph *depsgraph = BKE_scene_get_depsgraph(sce, view_layer, true);
 		/* TODO(sergey): Use proper flag for tagging here. */
 		DEG_graph_id_tag_update(pr_main, depsgraph, &sce->id, 0);
 		DEG_relations_tag_update(pr_main);
-		BKE_scene_graph_update_tagged(pr_main->eval_ctx, depsgraph, pr_main, sce, scene_layer);
+		BKE_scene_graph_update_tagged(pr_main->eval_ctx, depsgraph, pr_main, sce, view_layer);
 
 		return sce;
 	}

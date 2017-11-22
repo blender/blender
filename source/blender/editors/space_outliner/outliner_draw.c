@@ -252,16 +252,16 @@ static void enablebutton_collection_flag_cb(bContext *C, void *poin, void *poin2
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = poin;
 	LayerCollection *layer_collection = poin2;
-	SceneLayer *scene_layer = BKE_scene_layer_find_from_collection(scene, layer_collection);
+	ViewLayer *view_layer = BKE_view_layer_find_from_collection(scene, layer_collection);
 
 	/* We need to toggle the flag since this is called after the flag is already set. */
 	layer_collection->flag ^= COLLECTION_DISABLED;
 
 	if (layer_collection->flag & COLLECTION_DISABLED) {
-		BKE_collection_enable(scene_layer, layer_collection);
+		BKE_collection_enable(view_layer, layer_collection);
 	}
 	else {
-		BKE_collection_disable(scene_layer, layer_collection);
+		BKE_collection_disable(view_layer, layer_collection);
 	}
 
 	DEG_relations_tag_update(bmain);
@@ -300,7 +300,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 {
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 	BLI_mempool *ts = soops->treestore;
 	TreeStoreElem *tselem = tsep;
@@ -464,7 +464,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 			if (tselem->type == TSE_R_LAYER) {
 				UI_block_emboss_set(block, UI_EMBOSS_NONE);
 				
-				bt = uiDefIconButBitI(block, UI_BTYPE_ICON_TOGGLE, SCENE_LAYER_RENDER, 0, ICON_CHECKBOX_HLT - 1,
+				bt = uiDefIconButBitI(block, UI_BTYPE_ICON_TOGGLE, VIEW_LAYER_RENDER, 0, ICON_CHECKBOX_HLT - 1,
 				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X,
 				                      UI_UNIT_Y, te->directdata, 0, 0, 0, 0, TIP_("Render this RenderLayer"));
 				UI_but_func_set(bt, restrictbutton_r_lay_cb, tselem->id, NULL);
@@ -1239,7 +1239,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 #undef ICON_DRAW
 }
 
-static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, SceneLayer *sl, SpaceOops *soops,
+static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, ViewLayer *sl, SpaceOops *soops,
                                   ListBase *lb, int level, int xmax, int *offsx, int ys, float alpha_fac)
 {
 	TreeElement *te;
@@ -1325,7 +1325,7 @@ static void outliner_set_coord_tree_element(TreeElement *te, int startx, int sta
 
 
 static void outliner_draw_tree_element(
-        bContext *C, uiBlock *block, const uiFontStyle *fstyle, Scene *scene, SceneLayer *sl,
+        bContext *C, uiBlock *block, const uiFontStyle *fstyle, Scene *scene, ViewLayer *sl,
         ARegion *ar, SpaceOops *soops, TreeElement *te, bool draw_grayed_out,
         int startx, int *starty, TreeElement **te_edit, TreeElement **te_floating)
 {
@@ -1766,7 +1766,7 @@ static void outliner_draw_highlights(ARegion *ar, SpaceOops *soops, int startx, 
 }
 
 static void outliner_draw_tree(
-        bContext *C, uiBlock *block, Scene *scene, SceneLayer *sl, ARegion *ar,
+        bContext *C, uiBlock *block, Scene *scene, ViewLayer *sl, ARegion *ar,
         SpaceOops *soops, const bool has_restrict_icons,
         TreeElement **te_edit)
 {
@@ -1888,7 +1888,7 @@ void draw_outliner(const bContext *C)
 {
 	Main *mainvar = CTX_data_main(C); 
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	ARegion *ar = CTX_wm_region(C);
 	View2D *v2d = &ar->v2d;
 	SpaceOops *soops = CTX_wm_space_outliner(C);

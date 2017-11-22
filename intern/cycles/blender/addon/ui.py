@@ -400,8 +400,8 @@ class CYCLES_RENDER_PT_performance(CyclesButtonsPanel, Panel):
 
         subsub = sub.column()
         subsub.active = not rd.use_save_buffers
-        for rl in scene.render_layers:
-            if rl.cycles.use_denoising:
+        for view_layer in scene.view_layers:
+            if view_layer.cycles.use_denoising:
                 subsub.active = False
         subsub.prop(cscene, "use_progressive_refine")
 
@@ -430,24 +430,24 @@ class CYCLES_RENDER_PT_performance(CyclesButtonsPanel, Panel):
 
 class CYCLES_RENDER_PT_layer_options(CyclesButtonsPanel, Panel):
     bl_label = "Layer"
-    bl_context = "render_layer"
+    bl_context = "view_layer"
 
     def draw(self, context):
         layout = self.layout
 
         scene = context.scene
-        rl = scene.render_layers.active
+        view_layer = scene.view_layers.active
 
         col = layout.column()
-        col.prop(rl, "use_sky", "Use Environment")
-        col.prop(rl, "use_ao", "Use AO")
-        col.prop(rl, "use_solid", "Use Surfaces")
-        col.prop(rl, "use_strand", "Use Hair")
+        col.prop(view_layer, "use_sky", "Use Environment")
+        col.prop(view_layer, "use_ao", "Use AO")
+        col.prop(view_layer, "use_solid", "Use Surfaces")
+        col.prop(view_layer, "use_strand", "Use Hair")
 
 
 class CYCLES_RENDER_PT_layer_passes(CyclesButtonsPanel, Panel):
     bl_label = "Passes"
-    bl_context = "render_layer"
+    bl_context = "view_layer"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -457,76 +457,76 @@ class CYCLES_RENDER_PT_layer_passes(CyclesButtonsPanel, Panel):
 
         scene = context.scene
         rd = scene.render
-        rl = scene.render_layers.active
-        crl = rl.cycles
+        view_layer = scene.view_layers.active
+        cycles_view_layer = view_layer.cycles
 
         split = layout.split()
 
         col = split.column()
-        col.prop(rl, "use_pass_combined")
-        col.prop(rl, "use_pass_z")
-        col.prop(rl, "use_pass_mist")
-        col.prop(rl, "use_pass_normal")
+        col.prop(view_layer, "use_pass_combined")
+        col.prop(view_layer, "use_pass_z")
+        col.prop(view_layer, "use_pass_mist")
+        col.prop(view_layer, "use_pass_normal")
         row = col.row()
-        row.prop(rl, "use_pass_vector")
+        row.prop(view_layer, "use_pass_vector")
         row.active = not rd.use_motion_blur
-        col.prop(rl, "use_pass_uv")
-        col.prop(rl, "use_pass_object_index")
-        col.prop(rl, "use_pass_material_index")
+        col.prop(view_layer, "use_pass_uv")
+        col.prop(view_layer, "use_pass_object_index")
+        col.prop(view_layer, "use_pass_material_index")
         col.separator()
-        col.prop(rl, "use_pass_shadow")
-        col.prop(rl, "use_pass_ambient_occlusion")
+        col.prop(view_layer, "use_pass_shadow")
+        col.prop(view_layer, "use_pass_ambient_occlusion")
         col.separator()
-        col.prop(rl, "pass_alpha_threshold")
+        col.prop(view_layer, "pass_alpha_threshold")
 
         col = split.column()
         col.label(text="Diffuse:")
         row = col.row(align=True)
-        row.prop(rl, "use_pass_diffuse_direct", text="Direct", toggle=True)
-        row.prop(rl, "use_pass_diffuse_indirect", text="Indirect", toggle=True)
-        row.prop(rl, "use_pass_diffuse_color", text="Color", toggle=True)
+        row.prop(view_layer, "use_pass_diffuse_direct", text="Direct", toggle=True)
+        row.prop(view_layer, "use_pass_diffuse_indirect", text="Indirect", toggle=True)
+        row.prop(view_layer, "use_pass_diffuse_color", text="Color", toggle=True)
         col.label(text="Glossy:")
         row = col.row(align=True)
-        row.prop(rl, "use_pass_glossy_direct", text="Direct", toggle=True)
-        row.prop(rl, "use_pass_glossy_indirect", text="Indirect", toggle=True)
-        row.prop(rl, "use_pass_glossy_color", text="Color", toggle=True)
+        row.prop(view_layer, "use_pass_glossy_direct", text="Direct", toggle=True)
+        row.prop(view_layer, "use_pass_glossy_indirect", text="Indirect", toggle=True)
+        row.prop(view_layer, "use_pass_glossy_color", text="Color", toggle=True)
         col.label(text="Transmission:")
         row = col.row(align=True)
-        row.prop(rl, "use_pass_transmission_direct", text="Direct", toggle=True)
-        row.prop(rl, "use_pass_transmission_indirect", text="Indirect", toggle=True)
-        row.prop(rl, "use_pass_transmission_color", text="Color", toggle=True)
+        row.prop(view_layer, "use_pass_transmission_direct", text="Direct", toggle=True)
+        row.prop(view_layer, "use_pass_transmission_indirect", text="Indirect", toggle=True)
+        row.prop(view_layer, "use_pass_transmission_color", text="Color", toggle=True)
         col.label(text="Subsurface:")
         row = col.row(align=True)
-        row.prop(rl, "use_pass_subsurface_direct", text="Direct", toggle=True)
-        row.prop(rl, "use_pass_subsurface_indirect", text="Indirect", toggle=True)
-        row.prop(rl, "use_pass_subsurface_color", text="Color", toggle=True)
+        row.prop(view_layer, "use_pass_subsurface_direct", text="Direct", toggle=True)
+        row.prop(view_layer, "use_pass_subsurface_indirect", text="Indirect", toggle=True)
+        row.prop(view_layer, "use_pass_subsurface_color", text="Color", toggle=True)
         col.label(text="Volume:")
         row = col.row(align=True)
-        row.prop(crl, "use_pass_volume_direct", text="Direct", toggle=True)
-        row.prop(crl, "use_pass_volume_indirect", text="Indirect", toggle=True)
+        row.prop(cycles_view_layer, "use_pass_volume_direct", text="Direct", toggle=True)
+        row.prop(cycles_view_layer, "use_pass_volume_indirect", text="Indirect", toggle=True)
 
         col.separator()
-        col.prop(rl, "use_pass_emit", text="Emission")
-        col.prop(rl, "use_pass_environment")
+        col.prop(view_layer, "use_pass_emit", text="Emission")
+        col.prop(view_layer, "use_pass_environment")
 
         if context.scene.cycles.feature_set == 'EXPERIMENTAL':
             col.separator()
             sub = col.column()
-            sub.active = crl.use_denoising
-            sub.prop(crl, "denoising_store_passes", text="Denoising")
+            sub.active = cycles_view_layer.use_denoising
+            sub.prop(cycles_view_layer, "denoising_store_passes", text="Denoising")
 
         col = layout.column()
-        col.prop(crl, "pass_debug_render_time")
+        col.prop(cycles_view_layer, "pass_debug_render_time")
         if _cycles.with_cycles_debug:
-            col.prop(crl, "pass_debug_bvh_traversed_nodes")
-            col.prop(crl, "pass_debug_bvh_traversed_instances")
-            col.prop(crl, "pass_debug_bvh_intersections")
-            col.prop(crl, "pass_debug_ray_bounces")
+            col.prop(cycles_view_layer, "pass_debug_bvh_traversed_nodes")
+            col.prop(cycles_view_layer, "pass_debug_bvh_traversed_instances")
+            col.prop(cycles_view_layer, "pass_debug_bvh_intersections")
+            col.prop(cycles_view_layer, "pass_debug_ray_bounces")
 
 
 class CYCLES_RENDER_PT_views(CyclesButtonsPanel, Panel):
     bl_label = "Views"
-    bl_context = "render_layer"
+    bl_context = "view_layer"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header(self, context):
@@ -548,7 +548,7 @@ class CYCLES_RENDER_PT_views(CyclesButtonsPanel, Panel):
 
         if basic_stereo:
             row = layout.row()
-            row.template_list("RENDERLAYER_UL_renderviews", "name", rd, "stereo_views", rd.views, "active_index", rows=2)
+            row.template_list("VIEWLAYER_UL_renderviews", "name", rd, "stereo_views", rd.views, "active_index", rows=2)
 
             row = layout.row()
             row.label(text="File Suffix:")
@@ -556,7 +556,7 @@ class CYCLES_RENDER_PT_views(CyclesButtonsPanel, Panel):
 
         else:
             row = layout.row()
-            row.template_list("RENDERLAYER_UL_renderviews", "name", rd, "views", rd.views, "active_index", rows=2)
+            row.template_list("VIEWLAYER_UL_renderviews", "name", rd, "views", rd.views, "active_index", rows=2)
 
             col = row.column(align=True)
             col.operator("scene.render_view_add", icon='ZOOMIN', text="")
@@ -569,65 +569,65 @@ class CYCLES_RENDER_PT_views(CyclesButtonsPanel, Panel):
 
 class CYCLES_RENDER_PT_denoising(CyclesButtonsPanel, Panel):
     bl_label = "Denoising"
-    bl_context = "render_layer"
+    bl_context = "view_layer"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header(self, context):
         scene = context.scene
-        rl = scene.render_layers.active
-        crl = rl.cycles
+        view_layer = scene.view_layers.active
+        cycles_view_layer = view_layer.cycles
         cscene = scene.cycles
         layout = self.layout
 
-        layout.prop(crl, "use_denoising", text="")
+        layout.prop(cycles_view_layer, "use_denoising", text="")
 
     def draw(self, context):
         layout = self.layout
 
         scene = context.scene
         cscene = scene.cycles
-        rl = scene.render_layers.active
-        crl = rl.cycles
+        view_layer = scene.view_layers.active
+        cycles_view_layer = view_layer.cycles
 
-        layout.active = crl.use_denoising
+        layout.active = cycles_view_layer.use_denoising
 
         split = layout.split()
 
         col = split.column()
         sub = col.column(align=True)
-        sub.prop(crl, "denoising_radius", text="Radius")
-        sub.prop(crl, "denoising_strength", slider=True, text="Strength")
+        sub.prop(cycles_view_layer, "denoising_radius", text="Radius")
+        sub.prop(cycles_view_layer, "denoising_strength", slider=True, text="Strength")
 
         col = split.column()
         sub = col.column(align=True)
-        sub.prop(crl, "denoising_feature_strength", slider=True, text="Feature Strength")
-        sub.prop(crl, "denoising_relative_pca")
+        sub.prop(cycles_view_layer, "denoising_feature_strength", slider=True, text="Feature Strength")
+        sub.prop(cycles_view_layer, "denoising_relative_pca")
 
         layout.separator()
 
         row = layout.row()
         row.label(text="Diffuse:")
         sub = row.row(align=True)
-        sub.prop(crl, "denoising_diffuse_direct", text="Direct", toggle=True)
-        sub.prop(crl, "denoising_diffuse_indirect", text="Indirect", toggle=True)
+        sub.prop(cycles_view_layer, "denoising_diffuse_direct", text="Direct", toggle=True)
+        sub.prop(cycles_view_layer, "denoising_diffuse_indirect", text="Indirect", toggle=True)
 
         row = layout.row()
         row.label(text="Glossy:")
         sub = row.row(align=True)
-        sub.prop(crl, "denoising_glossy_direct", text="Direct", toggle=True)
-        sub.prop(crl, "denoising_glossy_indirect", text="Indirect", toggle=True)
+        sub.prop(cycles_view_layer, "denoising_glossy_direct", text="Direct", toggle=True)
+        sub.prop(cycles_view_layer, "denoising_glossy_indirect", text="Indirect", toggle=True)
 
         row = layout.row()
         row.label(text="Transmission:")
         sub = row.row(align=True)
-        sub.prop(crl, "denoising_transmission_direct", text="Direct", toggle=True)
-        sub.prop(crl, "denoising_transmission_indirect", text="Indirect", toggle=True)
+        sub.prop(cycles_view_layer, "denoising_transmission_direct", text="Direct", toggle=True)
+        sub.prop(cycles_view_layer, "denoising_transmission_indirect", text="Indirect", toggle=True)
 
         row = layout.row()
         row.label(text="Subsurface:")
         sub = row.row(align=True)
-        sub.prop(crl, "denoising_subsurface_direct", text="Direct", toggle=True)
-        sub.prop(crl, "denoising_subsurface_indirect", text="Indirect", toggle=True)
+        sub.prop(cycles_view_layer, "denoising_subsurface_direct", text="Direct", toggle=True)
+        sub.prop(cycles_view_layer, "denoising_subsurface_indirect", text="Indirect", toggle=True)
 
 
 class CYCLES_PT_post_processing(CyclesButtonsPanel, Panel):
@@ -1090,8 +1090,8 @@ class CYCLES_WORLD_PT_mist(CyclesButtonsPanel, Panel):
     def poll(cls, context):
         if CyclesButtonsPanel.poll(context):
             if context.world:
-                for rl in context.scene.render_layers:
-                    if rl.use_pass_mist:
+                for view_layer in context.scene.view_layers:
+                    if view_layer.use_pass_mist:
                         return True
 
         return False
@@ -1729,9 +1729,9 @@ def get_panels():
         'MATERIAL_PT_volume_options',
         'MATERIAL_PT_volume_shading',
         'MATERIAL_PT_volume_transp',
-        'RENDERLAYER_PT_layer_options',
-        'RENDERLAYER_PT_layer_passes',
-        'RENDERLAYER_PT_views',
+        'VIEWLAYER_PT_layer_options',
+        'VIEWLAYER_PT_layer_passes',
+        'VIEWLAYER_PT_views',
         'RENDER_PT_antialiasing',
         'RENDER_PT_bake',
         'RENDER_PT_motion_blur',

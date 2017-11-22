@@ -578,7 +578,7 @@ static unsigned int bm_mesh_faces_select_get_n(BMesh *bm, BMVert **elems, const 
 
 int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3], const short around)
 {
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Base *base;
 	Object *ob = OBACT(sl);

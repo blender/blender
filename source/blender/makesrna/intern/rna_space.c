@@ -197,7 +197,7 @@ const EnumPropertyItem rna_enum_clip_editor_mode_items[] = {
 static const EnumPropertyItem buttons_context_items[] = {
 	{BCONTEXT_SCENE, "SCENE", ICON_SCENE_DATA, "Scene", "Scene"},
 	{BCONTEXT_RENDER, "RENDER", ICON_SCENE, "Render", "Render"},
-	{BCONTEXT_RENDER_LAYER, "RENDER_LAYER", ICON_RENDERLAYERS, "Render Layers", "Render layers"},
+	{BCONTEXT_VIEW_LAYER, "VIEW_LAYER", ICON_RENDERLAYERS, "View Layers", "View layers"},
 	{BCONTEXT_WORLD, "WORLD", ICON_WORLD, "World", "World"},
 	{BCONTEXT_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Object"},
 	{BCONTEXT_CONSTRAINT, "CONSTRAINT", ICON_CONSTRAINT, "Constraints", "Object constraints"},
@@ -553,7 +553,7 @@ static void rna_SpaceView3D_layer_set(PointerRNA *ptr, const int *values)
 {
 	View3D *v3d = (View3D *)(ptr->data);
 
-	v3d->lay = ED_view3d_scene_layer_set(v3d->lay, values, &v3d->layact);
+	v3d->lay = ED_view3d_view_layer_set(v3d->lay, values, &v3d->layact);
 }
 
 static int rna_SpaceView3D_active_layer_get(PointerRNA *ptr)
@@ -862,9 +862,9 @@ static int rna_SpaceImageEditor_show_maskedit_get(PointerRNA *ptr)
 	SpaceImage *sima = (SpaceImage *)(ptr->data);
 	bScreen *sc = (bScreen *)ptr->id.data;
 	Scene *scene = ED_screen_scene_find(sc, G.main->wm.first);
-	SceneLayer *scene_layer = BKE_scene_layer_context_active_PLACEHOLDER(scene);
+	ViewLayer *view_layer = BKE_view_layer_context_active_PLACEHOLDER(scene);
 
-	return ED_space_image_check_show_maskedit(scene_layer, sima);
+	return ED_space_image_check_show_maskedit(view_layer, sima);
 }
 
 static void rna_SpaceImageEditor_image_set(PointerRNA *ptr, PointerRNA value)
@@ -1119,8 +1119,8 @@ static const EnumPropertyItem *rna_SpaceProperties_context_itemf(bContext *UNUSE
 		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_RENDER);
 	}
 
-	if (sbuts->pathflag & (1 << BCONTEXT_RENDER_LAYER)) {
-		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_RENDER_LAYER);
+	if (sbuts->pathflag & (1 << BCONTEXT_VIEW_LAYER)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_VIEW_LAYER);
 	}
 
 	if (sbuts->pathflag & (1 << BCONTEXT_SCENE)) {
@@ -1323,9 +1323,9 @@ static void rna_SpaceDopeSheetEditor_action_set(PointerRNA *ptr, PointerRNA valu
 static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
 {
 	SpaceAction *saction = (SpaceAction *)(ptr->data);
-	SceneLayer *scene_layer = CTX_data_scene_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Main *bmain = CTX_data_main(C);
-	Object *obact = OBACT(scene_layer);
+	Object *obact = OBACT(view_layer);
 
 	/* we must set this action to be the one used by active object (if not pinned) */
 	if (obact /* && saction->pin == 0*/) {
@@ -1400,8 +1400,8 @@ static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
 static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
 {
 	SpaceAction *saction = (SpaceAction *)(ptr->data);
-	SceneLayer *scene_layer = CTX_data_scene_layer(C);
-	Object *obact = OBACT(scene_layer);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *obact = OBACT(view_layer);
 
 	/* special exceptions for ShapeKey Editor mode */
 	if (saction->mode == SACTCONT_SHAPEKEY) {
@@ -2110,7 +2110,7 @@ static void rna_def_space_outliner(BlenderRNA *brna)
 		{SO_USERDEF, "USER_PREFERENCES", 0, "User Preferences", "Display user preference data"},
 		{SO_ID_ORPHANS, "ORPHAN_DATA", 0, "Orphan Data",
 		                "Display data-blocks which are unused and/or will be lost when the file is reloaded"},
-		{SO_ACT_LAYER, "ACT_LAYER", 0, "Active Render Layer", "Display the collections of the active render layer"},
+		{SO_ACT_LAYER, "ACT_LAYER", 0, "Active View Layer", "Display the collections of the active view layer"},
 		{SO_COLLECTIONS, "MASTER_COLLECTION", 0, "Master Collection Tree", "Display all collections based on the "
 		                 "master collection hierarchy"},
 		{0, NULL, 0, NULL, NULL}

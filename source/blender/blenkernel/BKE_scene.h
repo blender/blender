@@ -45,7 +45,7 @@ struct Object;
 struct RenderData;
 struct Scene;
 struct SceneCollection;
-struct SceneLayer;
+struct ViewLayer;
 struct UnitSettings;
 struct ViewRender;
 struct WorkSpace;
@@ -60,12 +60,12 @@ typedef enum eSceneCopyMethod {
 
 /* Use as the contents of a 'for' loop: for (SETLOOPER(...)) { ... */
 #define SETLOOPER(_sce_basis, _sce_iter, _base)                               \
-	_sce_iter = _sce_basis, _base = _setlooper_base_step(&_sce_iter, BKE_scene_layer_from_scene_get(_sce_basis), NULL); \
+	_sce_iter = _sce_basis, _base = _setlooper_base_step(&_sce_iter, BKE_view_layer_from_scene_get(_sce_basis), NULL); \
 	_base;                                                                    \
 	_base = _setlooper_base_step(&_sce_iter, NULL, _base)
 
-#define SETLOOPER_SCENE_LAYER(_sce_basis, _scene_layer, _sce_iter, _base)     \
-	_sce_iter = _sce_basis, _base = _setlooper_base_step(&_sce_iter, _scene_layer, NULL);   \
+#define SETLOOPER_VIEW_LAYER(_sce_basis, _view_layer, _sce_iter, _base)     \
+	_sce_iter = _sce_basis, _base = _setlooper_base_step(&_sce_iter, _view_layer, NULL);   \
 	_base;                                                                    \
 	_base = _setlooper_base_step(&_sce_iter, NULL, _base)
 
@@ -74,7 +74,7 @@ typedef enum eSceneCopyMethod {
 	_base;                                                                    \
 	_base = _setlooper_base_step(&_sce_iter, NULL, _base)
 
-struct Base *_setlooper_base_step(struct Scene **sce_iter, struct SceneLayer *scene_layer, struct Base *base);
+struct Base *_setlooper_base_step(struct Scene **sce_iter, struct ViewLayer *view_layer, struct Base *base);
 
 void free_avicodecdata(struct AviCodecData *acd);
 
@@ -103,7 +103,7 @@ int BKE_scene_base_iter_next(
         const struct EvaluationContext *eval_ctx, struct SceneBaseIter *iter,
         struct Scene **scene, int val, struct Base **base, struct Object **ob);
 
-void BKE_scene_base_flag_to_objects(struct SceneLayer *scene_layer);
+void BKE_scene_base_flag_to_objects(struct ViewLayer *view_layer);
 void BKE_scene_base_flag_from_objects(struct Scene *scene);
 void BKE_scene_object_base_flag_sync_from_base(struct Base *base);
 void BKE_scene_object_base_flag_sync_from_object(struct Base *base);
@@ -140,13 +140,13 @@ void BKE_scene_graph_update_tagged(struct EvaluationContext *eval_ctx,
                                    struct Depsgraph *depsgraph,
                                    struct Main *bmain,
                                    struct Scene *scene,
-                                   struct SceneLayer *scene_layer);
+                                   struct ViewLayer *view_layer);
 
 void BKE_scene_graph_update_for_newframe(struct EvaluationContext *eval_ctx,
                                          struct Depsgraph *depsgraph,
                                          struct Main *bmain,
                                          struct Scene *scene,
-                                         struct SceneLayer *scene_layer);
+                                         struct ViewLayer *view_layer);
 
 struct SceneRenderView *BKE_scene_add_render_view(struct Scene *sce, const char *name);
 bool BKE_scene_remove_render_view(struct Scene *scene, struct SceneRenderView *srv);
@@ -215,7 +215,7 @@ void BKE_scene_allocate_depsgraph_hash(struct Scene *scene);
 void BKE_scene_ensure_depsgraph_hash(struct Scene *scene);
 void BKE_scene_free_depsgraph_hash(struct Scene *scene);
 
-struct Depsgraph *BKE_scene_get_depsgraph(struct Scene *scene, struct SceneLayer *scene_layer, bool allocate);
+struct Depsgraph *BKE_scene_get_depsgraph(struct Scene *scene, struct ViewLayer *view_layer, bool allocate);
 
 #ifdef __cplusplus
 }

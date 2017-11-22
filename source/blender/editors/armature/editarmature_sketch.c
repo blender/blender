@@ -147,7 +147,7 @@ static RigGraph *TEMPLATE_RIGG = NULL;
 void BIF_makeListTemplates(const bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	int index = 0;
 
@@ -998,7 +998,7 @@ static int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, S
 	 * the ideal would be to call this function only at the beginning of the snap operation,
 	 * or at the beginning of the operator itself */
 	struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create_view3d(
-	        CTX_data_main(C), CTX_data_scene(C), CTX_data_scene_layer(C), CTX_data_engine(C), 0,
+	        CTX_data_main(C), CTX_data_scene(C), CTX_data_view_layer(C), CTX_data_engine(C), 0,
 	        CTX_wm_region(C), CTX_wm_view3d(C));
 
 	float mvalf[2] = {UNPACK2(dd->mval)};

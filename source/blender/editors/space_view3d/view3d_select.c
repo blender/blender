@@ -112,7 +112,7 @@ void view3d_set_viewcontext(bContext *C, ViewContext *vc)
 	vc->ar = CTX_wm_region(C);
 	vc->depsgraph = CTX_data_depsgraph(C);
 	vc->scene = CTX_data_scene(C);
-	vc->scene_layer = CTX_data_scene_layer(C);
+	vc->view_layer = CTX_data_view_layer(C);
 	vc->engine = CTX_data_engine(C);
 	vc->v3d = CTX_wm_view3d(C);
 	vc->win = CTX_wm_window(C);
@@ -376,7 +376,7 @@ static void do_lasso_select_pose(ViewContext *vc, Object *ob, const int mcords[]
 	}
 }
 
-static void object_deselect_all_visible(SceneLayer *sl)
+static void object_deselect_all_visible(ViewLayer *sl)
 {
 	Base *base;
 
@@ -393,9 +393,9 @@ static void do_lasso_select_objects(ViewContext *vc, const int mcords[][2], cons
 	Base *base;
 	
 	if (extend == false && select)
-		object_deselect_all_visible(vc->scene_layer);
+		object_deselect_all_visible(vc->view_layer);
 
-	for (base = vc->scene_layer->object_bases.first; base; base = base->next) {
+	for (base = vc->view_layer->object_bases.first; base; base = base->next) {
 		if (BASE_SELECTABLE(base)) { /* use this to avoid un-needed lasso lookups */
 			if (ED_view3d_project_base(vc->ar, base) == V3D_PROJ_RET_OK) {
 				if (BLI_lasso_is_point_inside(mcords, moves, base->sx, base->sy, IS_CLIPPED)) {
@@ -1057,7 +1057,7 @@ void VIEW3D_OT_select_menu(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "Toggle selection instead of deselecting everything first");
 }
 
-static void deselectall_except(SceneLayer *sl, Base *b)   /* deselect all except b */
+static void deselectall_except(ViewLayer *sl, Base *b)   /* deselect all except b */
 {
 	for (Base *base = sl->object_bases.first; base; base = base->next) {
 		if (base->flag & BASE_SELECTED) {
@@ -1274,7 +1274,7 @@ finally:
 static Base *mouse_select_eval_buffer(ViewContext *vc, unsigned int *buffer, int hits,
                                       Base *startbase, bool has_bones, bool do_nearest)
 {
-	SceneLayer *sl = vc->scene_layer;
+	ViewLayer *sl = vc->view_layer;
 	Base *base, *basact = NULL;
 	int a;
 	
@@ -1374,7 +1374,7 @@ Base *ED_view3d_give_base_under_cursor(bContext *C, const int mval[2])
 	
 	if (hits > 0) {
 		const bool has_bones = selectbuffer_has_bones(buffer, hits);
-		basact = mouse_select_eval_buffer(&vc, buffer, hits, vc.scene_layer->object_bases.first, has_bones, do_nearest);
+		basact = mouse_select_eval_buffer(&vc, buffer, hits, vc.view_layer->object_bases.first, has_bones, do_nearest);
 	}
 	
 	return basact;
@@ -1408,7 +1408,7 @@ static bool ed_object_select_pick(
 	ViewContext vc;
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Base *base, *startbase = NULL, *basact = NULL, *oldbasact = NULL;
 	bool is_obedit;
 	float dist = ED_view3d_select_dist_px() * 1.3333f;
@@ -2066,7 +2066,7 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, b
 			CTX_DATA_END;
 		}
 		else {
-			object_deselect_all_visible(vc->scene_layer);
+			object_deselect_all_visible(vc->view_layer);
 		}
 	}
 
@@ -2093,7 +2093,7 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, b
 		 * Even though 'DRW_draw_select_loop' uses 'DEG_OBJECT_ITER',
 		 * we can be sure the order remains the same between both.
 		 */
-		for (base = vc->scene_layer->object_bases.first; base && hits; base = base->next) {
+		for (base = vc->view_layer->object_bases.first; base && hits; base = base->next) {
 			if (BASE_SELECTABLE(base)) {
 				while (base->object->select_color == (*col & 0xFFFF)) {   /* we got an object */
 					if (*col & 0xFFFF0000) {                    /* we got a bone */
@@ -2828,7 +2828,7 @@ static void obedit_circle_select(
 
 static bool object_circle_select(ViewContext *vc, const bool select, const int mval[2], float rad)
 {
-	SceneLayer *sl = vc->scene_layer;
+	ViewLayer *sl = vc->view_layer;
 	const float radius_squared = rad * rad;
 	const float mval_fl[2] = {mval[0], mval[1]};
 	bool changed = false;

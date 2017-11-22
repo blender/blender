@@ -279,7 +279,7 @@ void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
 /* update scene for current frame */
 static void motionpaths_calc_update_scene(Main *bmain,
                                           Scene *scene,
-                                          SceneLayer *scene_layer,
+                                          ViewLayer *view_layer,
                                           struct Depsgraph *depsgraph)
 {
 	/* Do all updates
@@ -292,7 +292,7 @@ static void motionpaths_calc_update_scene(Main *bmain,
 	 *
 	 * TODO(sergey): Use evaluation context dedicated to motion paths.
 	 */
-	BKE_scene_graph_update_for_newframe(bmain->eval_ctx, depsgraph, bmain, scene, scene_layer);
+	BKE_scene_graph_update_for_newframe(bmain->eval_ctx, depsgraph, bmain, scene, view_layer);
 }
 
 /* ........ */
@@ -369,7 +369,7 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 	/* calculate path over requested range */
 	for (CFRA = sfra; CFRA <= efra; CFRA++) {
 		/* update relevant data for new frame */
-		motionpaths_calc_update_scene(bmain, scene, eval_ctx->scene_layer, eval_ctx->depsgraph);
+		motionpaths_calc_update_scene(bmain, scene, eval_ctx->view_layer, eval_ctx->depsgraph);
 		
 		/* perform baking for targets */
 		motionpaths_calc_bake_targets(scene, targets);
@@ -377,7 +377,7 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 	
 	/* reset original environment */
 	CFRA = cfra;
-	motionpaths_calc_update_scene(bmain, scene, eval_ctx->scene_layer, eval_ctx->depsgraph);
+	motionpaths_calc_update_scene(bmain, scene, eval_ctx->view_layer, eval_ctx->depsgraph);
 	
 	/* clear recalc flags from targets */
 	for (mpt = targets->first; mpt; mpt = mpt->next) {

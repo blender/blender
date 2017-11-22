@@ -1086,7 +1086,7 @@ static void write_nodetree_nolib(WriteData *wd, bNodeTree *ntree)
  */
 static void current_screen_compat(
         Main *mainvar, bool use_active_win,
-        bScreen **r_screen, Scene **r_scene, SceneLayer **r_render_layer)
+        bScreen **r_screen, Scene **r_scene, ViewLayer **r_render_layer)
 {
 	wmWindowManager *wm;
 	wmWindow *window = NULL;
@@ -1118,7 +1118,7 @@ static void current_screen_compat(
 
 	*r_screen = (window) ? BKE_workspace_active_screen_get(window->workspace_hook) : NULL;
 	*r_scene = (window) ? window->scene : NULL;
-	*r_render_layer = (window) ? BKE_workspace_render_layer_get(workspace) : NULL;
+	*r_render_layer = (window) ? BKE_workspace_view_layer_get(workspace) : NULL;
 }
 
 typedef struct RenderInfo {
@@ -1134,7 +1134,7 @@ static void write_renderinfo(WriteData *wd, Main *mainvar)
 {
 	bScreen *curscreen;
 	Scene *sce, *curscene = NULL;
-	SceneLayer *render_layer;
+	ViewLayer *render_layer;
 	RenderInfo data;
 
 	/* XXX in future, handle multiple windows with multiple screens? */
@@ -2771,27 +2771,27 @@ static void write_scene(WriteData *wd, Scene *sce)
 	write_curvemapping_curves(wd, &sce->r.mblur_shutter_curve);
 	write_scene_collection(wd, sce->collection);
 
-	for (SceneLayer *scene_layer = sce->render_layers.first; scene_layer; scene_layer = scene_layer->next) {
-		writestruct(wd, DATA, SceneLayer, 1, scene_layer);
-		writelist(wd, DATA, Base, &scene_layer->object_bases);
+	for (ViewLayer *view_layer = sce->view_layers.first; view_layer; view_layer = view_layer->next) {
+		writestruct(wd, DATA, ViewLayer, 1, view_layer);
+		writelist(wd, DATA, Base, &view_layer->object_bases);
 
-		if (scene_layer->properties) {
-			IDP_WriteProperty(scene_layer->properties, wd);
+		if (view_layer->properties) {
+			IDP_WriteProperty(view_layer->properties, wd);
 		}
 
-		if (scene_layer->id_properties) {
-			IDP_WriteProperty(scene_layer->id_properties, wd);
+		if (view_layer->id_properties) {
+			IDP_WriteProperty(view_layer->id_properties, wd);
 		}
 
-		for (FreestyleModuleConfig *fmc = scene_layer->freestyle_config.modules.first; fmc; fmc = fmc->next) {
+		for (FreestyleModuleConfig *fmc = view_layer->freestyle_config.modules.first; fmc; fmc = fmc->next) {
 			writestruct(wd, DATA, FreestyleModuleConfig, 1, fmc);
 		}
 
-		for (FreestyleLineSet *fls = scene_layer->freestyle_config.linesets.first; fls; fls = fls->next) {
+		for (FreestyleLineSet *fls = view_layer->freestyle_config.linesets.first; fls; fls = fls->next) {
 			writestruct(wd, DATA, FreestyleLineSet, 1, fls);
 		}
 
-		write_layer_collections(wd, &scene_layer->layer_collections);
+		write_layer_collections(wd, &view_layer->layer_collections);
 	}
 
 	if (sce->layer_properties) {
@@ -3828,7 +3828,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 	FileGlobal fg;
 	bScreen *screen;
 	Scene *scene;
-	SceneLayer *render_layer;
+	ViewLayer *render_layer;
 	char subvstr[8];
 
 	/* prevent mem checkers from complaining */
@@ -3841,7 +3841,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 	/* XXX still remap G */
 	fg.curscreen = screen;
 	fg.curscene = scene;
-	fg.cur_render_layer = render_layer;
+	fg.cur_view_layer = render_layer;
 
 	/* prevent to save this, is not good convention, and feature with concerns... */
 	fg.fileflags = (fileflags & ~G_FILE_FLAGS_RUNTIME);

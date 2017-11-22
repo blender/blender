@@ -51,12 +51,12 @@ typedef struct CollectionOverride {
 	/* TODO proper data */
 } CollectionOverride;
 
-typedef struct SceneLayerEngineData {
-	struct SceneLayerEngineData *next, *prev;
+typedef struct ViewLayerEngineData {
+	struct ViewLayerEngineData *next, *prev;
 	struct DrawEngineType *engine_type;
 	void *storage;
 	void (*free)(void *storage);
-} SceneLayerEngineData;
+} ViewLayerEngineData;
 
 typedef struct LayerCollection {
 	struct LayerCollection *next, *prev;
@@ -72,8 +72,8 @@ typedef struct LayerCollection {
 	struct IDProperty *properties_evaluated;
 } LayerCollection;
 
-typedef struct SceneLayer {
-	struct SceneLayer *next, *prev;
+typedef struct ViewLayer {
+	struct ViewLayer *next, *prev;
 	char name[64]; /* MAX_NAME */
 	short active_collection;
 	short flag;
@@ -96,8 +96,8 @@ typedef struct SceneLayer {
 	struct FreestyleConfig freestyle_config;
 
 	/* Runtime data */
-	ListBase drawdata;    /* SceneLayerEngineData */
-} SceneLayer;
+	ListBase drawdata;    /* ViewLayerEngineData */
+} ViewLayer;
 
 typedef struct SceneCollection {
 	struct SceneCollection *next, *prev;
@@ -127,11 +127,11 @@ enum {
 	COLLECTION_DISABLED   = (1 << 2),
 };
 
-/* SceneLayer->flag */
+/* ViewLayer->flag */
 enum {
-	SCENE_LAYER_RENDER = (1 << 0),
-	SCENE_LAYER_ENGINE_DIRTY  = (1 << 1),
-	SCENE_LAYER_FREESTYLE = (1 << 2),
+	VIEW_LAYER_RENDER = (1 << 0),
+	VIEW_LAYER_ENGINE_DIRTY  = (1 << 1),
+	VIEW_LAYER_FREESTYLE = (1 << 2),
 };
 
 

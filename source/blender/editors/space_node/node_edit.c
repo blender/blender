@@ -700,12 +700,12 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 				for (scene = bmain->scene.first; scene; scene = scene->id.next) {
 					if (scene->nodetree && scene->use_nodes && ntreeHasTree(scene->nodetree, ntree)) {
 						if (node->id == NULL || node->id == (ID *)scene) {
-							int num_layers = BLI_listbase_count(&scene->render_layers);
-							scene->active_layer = node->custom1;
+							int num_layers = BLI_listbase_count(&scene->view_layers);
+							scene->active_view_layer = node->custom1;
 							/* Clamp the value, because it might have come from a different
 							 * scene which could have more render layers than new one.
 							 */
-							scene->active_layer = min_ff(scene->active_layer, num_layers - 1);
+							scene->active_view_layer = min_ff(scene->active_view_layer, num_layers - 1);
 						}
 					}
 				}
@@ -1276,7 +1276,7 @@ bool ED_node_select_check(ListBase *lb)
 
 
 /* goes over all scenes, reads render layers */
-static int node_read_renderlayers_exec(bContext *C, wmOperator *UNUSED(op))
+static int node_read_viewlayers_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
@@ -1306,14 +1306,14 @@ static int node_read_renderlayers_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void NODE_OT_read_renderlayers(wmOperatorType *ot)
+void NODE_OT_read_viewlayers(wmOperatorType *ot)
 {
 	
-	ot->name = "Read Render Layers";
-	ot->idname = "NODE_OT_read_renderlayers";
+	ot->name = "Read View Layers";
+	ot->idname = "NODE_OT_read_viewlayers";
 	ot->description = "Read all render layers of all used scenes";
 	
-	ot->exec = node_read_renderlayers_exec;
+	ot->exec = node_read_viewlayers_exec;
 	
 	ot->poll = composite_node_active;
 	
@@ -1366,13 +1366,13 @@ int node_render_changed_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 	if (node) {
-		SceneLayer *scene_layer = BLI_findlink(&sce->render_layers, node->custom1);
+		ViewLayer *view_layer = BLI_findlink(&sce->view_layers, node->custom1);
 		
-		if (scene_layer) {
+		if (view_layer) {
 			PointerRNA op_ptr;
 			
 			WM_operator_properties_create(&op_ptr, "RENDER_OT_render");
-			RNA_string_set(&op_ptr, "layer", scene_layer->name);
+			RNA_string_set(&op_ptr, "layer", view_layer->name);
 			RNA_string_set(&op_ptr, "scene", sce->id.name + 2);
 			
 			/* to keep keypositions */

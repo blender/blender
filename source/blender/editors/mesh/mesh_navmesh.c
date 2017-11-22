@@ -338,7 +338,7 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 	int i, j, k;
 	unsigned short *v;
 	int face[3];
-	SceneLayer *scene_layer = CTX_data_scene_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *obedit;
 	int createob = base == NULL;
 	int nverts, nmeshes, nvp;
@@ -356,8 +356,8 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 	}
 	else {
 		obedit = base->object;
-		BKE_scene_layer_base_deselect_all(scene_layer);
-		BKE_scene_layer_base_select(scene_layer, base);
+		BKE_view_layer_base_deselect_all(view_layer);
+		BKE_view_layer_base_select(view_layer, base);
 		copy_v3_v3(obedit->loc, co);
 		copy_v3_v3(obedit->rot, rot);
 	}
@@ -466,7 +466,7 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 static int navmesh_create_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *scene_layer = CTX_data_scene_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	LinkNode *obs = NULL;
 	Base *navmeshBase = NULL;
 
@@ -474,7 +474,7 @@ static int navmesh_create_exec(bContext *C, wmOperator *op)
 	{
 		if (base->object->type == OB_MESH) {
 			if (base->object->body_type == OB_BODY_TYPE_NAVMESH) {
-				if (!navmeshBase || base == scene_layer->basact) {
+				if (!navmeshBase || base == view_layer->basact) {
 					navmeshBase = base;
 				}
 			}

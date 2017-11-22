@@ -90,7 +90,7 @@ void IMAGE_OT_curves_point_set(struct wmOperatorType *ot);
 
 void IMAGE_OT_change_frame(struct wmOperatorType *ot);
 
-void IMAGE_OT_read_renderlayers(struct wmOperatorType *ot);
+void IMAGE_OT_read_viewlayers(struct wmOperatorType *ot);
 void IMAGE_OT_render_border(struct wmOperatorType *ot);
 void IMAGE_OT_clear_render_border(struct wmOperatorType *ot);
 

@@ -42,7 +42,7 @@ struct TreeStoreElem;
 struct Main;
 struct bContext;
 struct Scene;
-struct SceneLayer;
+struct ViewLayer;
 struct ID;
 struct Object;
 struct bPoseChannel;
@@ -183,7 +183,7 @@ void outliner_free_tree(ListBase *lb);
 void outliner_cleanup_tree(struct SpaceOops *soops);
 void outliner_remove_treestore_element(struct SpaceOops *soops, TreeStoreElem *tselem);
 
-void outliner_build_tree(struct Main *mainvar, struct Scene *scene, struct SceneLayer *sl, struct SpaceOops *soops);
+void outliner_build_tree(struct Main *mainvar, struct Scene *scene, struct ViewLayer *sl, struct SpaceOops *soops);
 
 /* outliner_draw.c ---------------------------------------------- */
 
@@ -192,9 +192,9 @@ void restrictbutton_gr_restrict_flag(void *poin, void *poin2, int flag);
 
 /* outliner_select.c -------------------------------------------- */
 eOLDrawState tree_element_type_active(
-        struct bContext *C, struct Scene *scene, struct SceneLayer *sl, struct SpaceOops *soops,
+        struct bContext *C, struct Scene *scene, struct ViewLayer *sl, struct SpaceOops *soops,
         TreeElement *te, TreeStoreElem *tselem, const eOLSetState set, bool recursive);
-eOLDrawState tree_element_active(struct bContext *C, struct Scene *scene, struct SceneLayer *sl, SpaceOops *soops,
+eOLDrawState tree_element_active(struct bContext *C, struct Scene *scene, struct ViewLayer *sl, SpaceOops *soops,
                                  TreeElement *te, const eOLSetState set, const bool handle_all_types);
 
 void outliner_item_do_activate_from_tree_element(

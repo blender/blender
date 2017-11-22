@@ -123,11 +123,11 @@ void ED_scene_changed_update(Main *bmain, bContext *C, Scene *scene_new, const b
 	/* XXX Just using active scene render-layer for workspace when switching,
 	 * but workspace should remember the last one set. Could store render-layer
 	 * per window-workspace combination (using WorkSpaceDataRelation) */
-	SceneLayer *layer_new = BLI_findlink(&scene_new->render_layers, scene_new->active_layer);
+	ViewLayer *layer_new = BLI_findlink(&scene_new->view_layers, scene_new->active_view_layer);
 	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene_new, layer_new, true);
 
 	CTX_data_scene_set(C, scene_new);
-	BKE_workspace_render_layer_set(CTX_wm_workspace(C), layer_new);
+	BKE_workspace_view_layer_set(CTX_wm_workspace(C), layer_new);
 	BKE_scene_set_background(bmain, scene_new);
 	DEG_graph_relations_update(depsgraph, bmain, scene_new, layer_new);
 	DEG_on_visible_update(bmain, false);
@@ -140,16 +140,16 @@ void ED_scene_changed_update(Main *bmain, bContext *C, Scene *scene_new, const b
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 }
 
-static bool scene_render_layer_remove_poll(
-        const Scene *scene, const SceneLayer *layer)
+static bool view_layer_remove_poll(
+        const Scene *scene, const ViewLayer *layer)
 {
-	const int act = BLI_findindex(&scene->render_layers, layer);
+	const int act = BLI_findindex(&scene->view_layers, layer);
 
 	if (act == -1) {
 		return false;
 	}
-	else if ((scene->render_layers.first == scene->render_layers.last) &&
-	         (scene->render_layers.first == layer))
+	else if ((scene->view_layers.first == scene->view_layers.last) &&
+	         (scene->view_layers.first == layer))
 	{
 		/* ensure 1 layer is kept */
 		return false;
@@ -158,9 +158,9 @@ static bool scene_render_layer_remove_poll(
 	return true;
 }
 
-static void scene_render_layer_remove_unset_nodetrees(const Main *bmain, Scene *scene, SceneLayer *layer)
+static void view_layer_remove_unset_nodetrees(const Main *bmain, Scene *scene, ViewLayer *layer)
 {
-	int act_layer_index = BLI_findindex(&scene->render_layers, layer);
+	int act_layer_index = BLI_findindex(&scene->view_layers, layer);
 
 	for (Scene *sce = bmain->scene.first; sce; sce = sce->id.next) {
 		if (sce->nodetree) {
@@ -169,27 +169,27 @@ static void scene_render_layer_remove_unset_nodetrees(const Main *bmain, Scene *
 	}
 }
 
-bool ED_scene_render_layer_delete(
-        Main *bmain, Scene *scene, SceneLayer *layer,
+bool ED_scene_view_layer_delete(
+        Main *bmain, Scene *scene, ViewLayer *layer,
         ReportList *reports)
 {
-	if (scene_render_layer_remove_poll(scene, layer) == false) {
+	if (view_layer_remove_poll(scene, layer) == false) {
 		if (reports) {
-			BKE_reportf(reports, RPT_ERROR, "Render layer '%s' could not be removed from scene '%s'",
+			BKE_reportf(reports, RPT_ERROR, "View layer '%s' could not be removed from scene '%s'",
 			            layer->name, scene->id.name + 2);
 		}
 
 		return false;
 	}
 
-	BLI_remlink(&scene->render_layers, layer);
-	BLI_assert(BLI_listbase_is_empty(&scene->render_layers) == false);
-	scene->active_layer = 0;
+	BLI_remlink(&scene->view_layers, layer);
+	BLI_assert(BLI_listbase_is_empty(&scene->view_layers) == false);
+	scene->active_view_layer = 0;
 
-	ED_workspace_render_layer_unset(bmain, layer, scene->render_layers.first);
-	scene_render_layer_remove_unset_nodetrees(bmain, scene, layer);
+	ED_workspace_view_layer_unset(bmain, layer, scene->view_layers.first);
+	view_layer_remove_unset_nodetrees(bmain, scene, layer);
 
-	BKE_scene_layer_free(layer);
+	BKE_view_layer_free(layer);
 
 	DEG_id_tag_update(&scene->id, 0);
 	DEG_relations_tag_update(bmain);

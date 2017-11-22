@@ -160,7 +160,7 @@ static void iter_snap_objects(
         IterSnapObjsCallback sob_callback,
         void *data)
 {
-	Base *base_act = sctx->eval_ctx.scene_layer->basact;
+	Base *base_act = sctx->eval_ctx.view_layer->basact;
 	/* Need an exception for particle edit because the base is flagged with BA_HAS_RECALC_DATA
 	 * which makes the loop skip it, even the derived mesh will never change
 	 *
@@ -170,7 +170,7 @@ static void iter_snap_objects(
 		sob_callback(sctx, false, base_act->object, base_act->object->obmat, data);
 	}
 
-	for (Base *base = sctx->eval_ctx.scene_layer->object_bases.first; base != NULL; base = base->next) {
+	for (Base *base = sctx->eval_ctx.view_layer->object_bases.first; base != NULL; base = base->next) {
 		if ((BASE_VISIBLE(base)) && (base->flag_legacy & (BA_HAS_RECALC_OB | BA_HAS_RECALC_DATA)) == 0 &&
 		    !((snap_select == SNAP_NOT_SELECTED && ((base->flag & BASE_SELECTED) || (base->flag_legacy & BA_WAS_SEL))) ||
 		      (snap_select == SNAP_NOT_ACTIVE && base == base_act)))
@@ -2096,7 +2096,7 @@ static bool snapObjectsRay(
  * \{ */
 
 SnapObjectContext *ED_transform_snap_object_context_create(
-        Main *bmain, Scene *scene, SceneLayer *sl, RenderEngineType *engine, int flag)
+        Main *bmain, Scene *scene, ViewLayer *sl, RenderEngineType *engine, int flag)
 {
 	SnapObjectContext *sctx = MEM_callocN(sizeof(*sctx), __func__);
 
@@ -2114,7 +2114,7 @@ SnapObjectContext *ED_transform_snap_object_context_create(
 }
 
 SnapObjectContext *ED_transform_snap_object_context_create_view3d(
-        Main *bmain, Scene *scene, SceneLayer *sl, RenderEngineType *engine, int flag,
+        Main *bmain, Scene *scene, ViewLayer *sl, RenderEngineType *engine, int flag,
         /* extra args for view3d */
         const ARegion *ar, const View3D *v3d)
 {

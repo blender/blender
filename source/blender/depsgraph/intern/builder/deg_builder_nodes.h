@@ -157,8 +157,8 @@ struct DepsgraphNodeBuilder {
 	                                       const char *name = "",
 	                                       int name_tag = -1);
 
-	void build_scene_layer(Scene *scene,
-	                       SceneLayer *scene_layer,
+	void build_view_layer(Scene *scene,
+	                       ViewLayer *view_layer,
 	                       eDepsNode_LinkedState_Type linked_state);
 	void build_group(Group *group);
 	void build_object(Object *ob,
@@ -205,7 +205,7 @@ struct DepsgraphNodeBuilder {
 	                            LayerCollectionState *state);
 	void build_layer_collections(ListBase *layer_collections,
 	                             LayerCollectionState *state);
-	void build_scene_layer_collections(SceneLayer *scene_layer);
+	void build_view_layer_collections(ViewLayer *view_layer);
 protected:
 	/* State which never changes, same for the whole builder time. */
 	Main *bmain_;

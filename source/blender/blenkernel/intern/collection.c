@@ -117,12 +117,12 @@ static bool collection_remlink(SceneCollection *sc_parent, SceneCollection *sc_g
 /**
  * Recursively remove any instance of this SceneCollection
  */
-static void layer_collection_remove(SceneLayer *sl, ListBase *lb, const SceneCollection *sc)
+static void layer_collection_remove(ViewLayer *view_layer, ListBase *lb, const SceneCollection *sc)
 {
 	LayerCollection *lc = lb->first;
 	while (lc) {
 		if (lc->scene_collection == sc) {
-			BKE_layer_collection_free(sl, lc);
+			BKE_layer_collection_free(view_layer, lc);
 			BLI_remlink(lb, lc);
 
 			LayerCollection *lc_next = lc->next;
@@ -132,13 +132,13 @@ static void layer_collection_remove(SceneLayer *sl, ListBase *lb, const SceneCol
 			/* only the "top-level" layer collections may have the
 			 * same SceneCollection in a sibling tree.
 			 */
-			if (lb != &sl->layer_collections) {
+			if (lb != &view_layer->layer_collections) {
 				return;
 			}
 		}
 
 		else {
-			layer_collection_remove(sl, &lc->layer_collections, sc);
+			layer_collection_remove(view_layer, &lc->layer_collections, sc);
 			lc = lc->next;
 		}
 	}
@@ -165,9 +165,9 @@ bool BKE_collection_remove(Scene *scene, SceneCollection *sc)
 	collection_free(sc, true);
 
 	/* check all layers that use this collection and clear them */
-	for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
-		layer_collection_remove(sl, &sl->layer_collections, sc);
-		sl->active_collection = 0;
+	for (ViewLayer *view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
+		layer_collection_remove(view_layer, &view_layer->layer_collections, sc);
+		view_layer->active_collection = 0;
 	}
 
 	MEM_freeN(sc);
@@ -258,13 +258,13 @@ void BKE_collection_object_add_from(Scene *scene, Object *ob_src, Object *ob_dst
 	}
 	FOREACH_SCENE_COLLECTION_END
 
-	for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
-		Base *base_src = BKE_scene_layer_base_find(sl, ob_src);
+	for (ViewLayer *view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
+		Base *base_src = BKE_view_layer_base_find(view_layer, ob_src);
 		if (base_src != NULL) {
 			if (base_src->collection_properties == NULL) {
 				continue;
 			}
-			Base *base_dst = BKE_scene_layer_base_find(sl, ob_dst);
+			Base *base_dst = BKE_view_layer_base_find(view_layer, ob_dst);
 			IDP_MergeGroup(base_dst->collection_properties, base_src->collection_properties, true);
 		}
 	}

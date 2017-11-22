@@ -119,7 +119,7 @@ static void eevee_create_shader_volumes(void)
 	        e_data.volumetric_common_lib, NULL);
 }
 
-int EEVEE_volumes_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
+int EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
@@ -127,8 +127,8 @@ int EEVEE_volumes_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 	EEVEE_EffectsInfo *effects = stl->effects;
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	SceneLayer *scene_layer = draw_ctx->scene_layer;
-	IDProperty *props = BKE_scene_layer_engine_evaluated_get(scene_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
+	ViewLayer *view_layer = draw_ctx->view_layer;
+	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
 
 	const float *viewport_size = DRW_viewport_size_get();
 
@@ -326,7 +326,7 @@ int EEVEE_volumes_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 	return 0;
 }
 
-void EEVEE_volumes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
+void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_PassList *psl = vedata->psl;
 	EEVEE_StorageList *stl = vedata->stl;
@@ -437,7 +437,7 @@ void EEVEE_volumes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 	}
 }
 
-void EEVEE_volumes_cache_object_add(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata, Scene *scene, Object *ob)
+void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Scene *scene, Object *ob)
 {
 	float *texcoloc = NULL;
 	float *texcosize = NULL;
@@ -498,7 +498,7 @@ void EEVEE_volumes_cache_object_add(EEVEE_SceneLayerData *sldata, EEVEE_Data *ve
 	}
 }
 
-void EEVEE_volumes_compute(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+void EEVEE_volumes_compute(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 {
 	EEVEE_PassList *psl = vedata->psl;
 	EEVEE_TextureList *txl = vedata->txl;
@@ -533,7 +533,7 @@ void EEVEE_volumes_compute(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *ved
 	}
 }
 
-void EEVEE_volumes_resolve(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+void EEVEE_volumes_resolve(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 {
 	EEVEE_PassList *psl = vedata->psl;
 	EEVEE_TextureList *txl = vedata->txl;

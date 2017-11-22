@@ -980,7 +980,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 	/* test if we can instance or if the object is modified */
 	BL::ID b_ob_data = b_ob.data();
 	BL::ID key = (BKE_object_is_modified(b_ob))? b_ob_instance: b_ob_data;
-	BL::Material material_override = render_layer.material_override;
+	BL::Material material_override = view_layer.material_override;
 
 	/* find shader indices */
 	vector<Shader*> used_shaders;
@@ -1005,10 +1005,10 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 
 	/* test if we need to sync */
 	int requested_geometry_flags = Mesh::GEOMETRY_NONE;
-	if(render_layer.use_surfaces) {
+	if(view_layer.use_surfaces) {
 		requested_geometry_flags |= Mesh::GEOMETRY_TRIANGLES;
 	}
-	if(render_layer.use_hair) {
+	if(view_layer.use_hair) {
 		requested_geometry_flags |= Mesh::GEOMETRY_CURVES;
 	}
 	Mesh *mesh;
@@ -1076,14 +1076,14 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 		BL::Mesh b_mesh = object_to_mesh(b_data,
 		                                 b_ob,
 		                                 b_scene,
-		                                 b_scene_layer,
+		                                 b_view_layer,
 		                                 true,
 		                                 !preview,
 		                                 need_undeformed,
 		                                 mesh->subdivision_type);
 
 		if(b_mesh) {
-			if(render_layer.use_surfaces && !hide_tris) {
+			if(view_layer.use_surfaces && !hide_tris) {
 				if(mesh->subdivision_type != Mesh::SUBDIVISION_NONE)
 					create_subd_mesh(scene, mesh, b_ob, b_mesh, used_shaders,
 					                 dicing_rate, max_subdivisions);
@@ -1093,7 +1093,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 				create_mesh_volume_attributes(scene, b_ob, mesh, b_scene.frame_current());
 			}
 
-			if(render_layer.use_hair && mesh->subdivision_type == Mesh::SUBDIVISION_NONE)
+			if(view_layer.use_hair && mesh->subdivision_type == Mesh::SUBDIVISION_NONE)
 				sync_curves(mesh, b_mesh, b_ob, false);
 
 			if(can_free_caches) {
@@ -1208,7 +1208,7 @@ void BlenderSync::sync_mesh_motion(BL::Object& b_ob,
 		b_mesh = object_to_mesh(b_data,
 		                        b_ob,
 		                        b_scene,
-		                        b_scene_layer,
+		                        b_view_layer,
 		                        true,
 		                        !preview,
 		                        false,

@@ -57,9 +57,9 @@
 
 /* prototype */
 struct EngineSettingsCB_Type;
-static void layer_collection_free(SceneLayer *sl, LayerCollection *lc);
-static void layer_collection_objects_populate(SceneLayer *sl, LayerCollection *lc, ListBase *objects);
-static LayerCollection *layer_collection_add(SceneLayer *sl, LayerCollection *parent, SceneCollection *sc);
+static void layer_collection_free(ViewLayer *sl, LayerCollection *lc);
+static void layer_collection_objects_populate(ViewLayer *sl, LayerCollection *lc, ListBase *objects);
+static LayerCollection *layer_collection_add(ViewLayer *sl, LayerCollection *parent, SceneCollection *sc);
 static LayerCollection *find_layer_collection_by_scene_collection(LayerCollection *lc, const SceneCollection *sc);
 static IDProperty *collection_engine_settings_create(struct EngineSettingsCB_Type *ces_type, const bool populate);
 static IDProperty *collection_engine_get(IDProperty *root, const int type, const char *engine_name);
@@ -70,60 +70,60 @@ static void object_bases_iterator_next(BLI_Iterator *iter, const int flag);
 /* RenderLayer */
 
 /**
- * Returns the SceneLayer to be used for rendering
- * Most of the time BKE_scene_layer_from_workspace_get should be used instead
+ * Returns the ViewLayer to be used for rendering
+ * Most of the time BKE_view_layer_from_workspace_get should be used instead
  */
-SceneLayer *BKE_scene_layer_from_scene_get(const Scene *scene)
+ViewLayer *BKE_view_layer_from_scene_get(const Scene *scene)
 {
-	SceneLayer *sl = BLI_findlink(&scene->render_layers, scene->active_layer);
+	ViewLayer *sl = BLI_findlink(&scene->view_layers, scene->active_view_layer);
 	BLI_assert(sl);
 	return sl;
 }
 
 /**
- * Returns the SceneLayer to be used for drawing, outliner, and other context related areas.
+ * Returns the ViewLayer to be used for drawing, outliner, and other context related areas.
  */
-SceneLayer *BKE_scene_layer_from_workspace_get(const struct Scene *scene, const struct WorkSpace *workspace)
+ViewLayer *BKE_view_layer_from_workspace_get(const struct Scene *scene, const struct WorkSpace *workspace)
 {
 	if (BKE_workspace_use_scene_settings_get(workspace)) {
-		return BKE_scene_layer_from_scene_get(scene);
+		return BKE_view_layer_from_scene_get(scene);
 	}
 	else {
-		return BKE_workspace_render_layer_get(workspace);
+		return BKE_workspace_view_layer_get(workspace);
 	}
 }
 
 /**
  * This is a placeholder to know which areas of the code need to be addressed for the Workspace changes.
- * Never use this, you should either use BKE_scene_layer_workspace_active or get SceneLayer explicitly.
+ * Never use this, you should either use BKE_view_layer_workspace_active or get ViewLayer explicitly.
  */
-SceneLayer *BKE_scene_layer_context_active_PLACEHOLDER(const Scene *scene)
+ViewLayer *BKE_view_layer_context_active_PLACEHOLDER(const Scene *scene)
 {
-	return BKE_scene_layer_from_scene_get(scene);
+	return BKE_view_layer_from_scene_get(scene);
 }
 
 /**
  * Add a new renderlayer
  * by default, a renderlayer has the master collection
  */
-SceneLayer *BKE_scene_layer_add(Scene *scene, const char *name)
+ViewLayer *BKE_view_layer_add(Scene *scene, const char *name)
 {
 	if (!name) {
 		name = DATA_("Render Layer");
 	}
 
 	IDPropertyTemplate val = {0};
-	SceneLayer *sl = MEM_callocN(sizeof(SceneLayer), "Scene Layer");
-	sl->flag = SCENE_LAYER_RENDER | SCENE_LAYER_FREESTYLE;
+	ViewLayer *sl = MEM_callocN(sizeof(ViewLayer), "Scene Layer");
+	sl->flag = VIEW_LAYER_RENDER | VIEW_LAYER_FREESTYLE;
 
 	sl->properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
 	layer_engine_settings_init(sl->properties, false);
 
-	BLI_addtail(&scene->render_layers, sl);
+	BLI_addtail(&scene->view_layers, sl);
 
 	/* unique name */
 	BLI_strncpy_utf8(sl->name, name, sizeof(sl->name));
-	BLI_uniquename(&scene->render_layers, sl, DATA_("SceneLayer"), '.', offsetof(SceneLayer, name), sizeof(sl->name));
+	BLI_uniquename(&scene->view_layers, sl, DATA_("ViewLayer"), '.', offsetof(ViewLayer, name), sizeof(sl->name));
 
 	SceneCollection *sc = BKE_collection_master(scene);
 	layer_collection_add(sl, NULL, sc);
@@ -138,9 +138,9 @@ SceneLayer *BKE_scene_layer_add(Scene *scene, const char *name)
 }
 
 /**
- * Free (or release) any data used by this SceneLayer.
+ * Free (or release) any data used by this ViewLayer.
  */
-void BKE_scene_layer_free(SceneLayer *sl)
+void BKE_view_layer_free(ViewLayer *sl)
 {
 	sl->basact = NULL;
 
@@ -167,7 +167,7 @@ void BKE_scene_layer_free(SceneLayer *sl)
 		MEM_freeN(sl->properties_evaluated);
 	}
 
-	for (SceneLayerEngineData *sled = sl->drawdata.first; sled; sled = sled->next) {
+	for (ViewLayerEngineData *sled = sl->drawdata.first; sled; sled = sled->next) {
 		if (sled->storage) {
 			if (sled->free) {
 				sled->free(sled->storage);
@@ -192,7 +192,7 @@ void BKE_scene_layer_free(SceneLayer *sl)
 /**
  * Tag all the selected objects of a renderlayer
  */
-void BKE_scene_layer_selected_objects_tag(SceneLayer *sl, const int tag)
+void BKE_view_layer_selected_objects_tag(ViewLayer *sl, const int tag)
 {
 	for (Base *base = sl->object_bases.first; base; base = base->next) {
 		if ((base->flag & BASE_SELECTED) != 0) {
@@ -220,13 +220,13 @@ static bool find_scene_collection_in_scene_collections(ListBase *lb, const Layer
 /**
  * Fallback for when a Scene has no camera to use
  *
- * \param scene_layer: in general you want to use the same SceneLayer that is used
+ * \param view_layer: in general you want to use the same ViewLayer that is used
  * for depsgraph. If rendering you pass the scene active layer, when viewing in the viewport
- * you want to get SceneLayer from context.
+ * you want to get ViewLayer from context.
  */
-Object *BKE_scene_layer_camera_find(SceneLayer *scene_layer)
+Object *BKE_view_layer_camera_find(ViewLayer *view_layer)
 {
-	for (Base *base = scene_layer->object_bases.first; base; base = base->next) {
+	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 		if (base->object->type == OB_CAMERA) {
 			return base->object;
 		}
@@ -236,11 +236,11 @@ Object *BKE_scene_layer_camera_find(SceneLayer *scene_layer)
 }
 
 /**
- * Find the SceneLayer a LayerCollection belongs to
+ * Find the ViewLayer a LayerCollection belongs to
  */
-SceneLayer *BKE_scene_layer_find_from_collection(const Scene *scene, LayerCollection *lc)
+ViewLayer *BKE_view_layer_find_from_collection(const Scene *scene, LayerCollection *lc)
 {
-	for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
+	for (ViewLayer *sl = scene->view_layers.first; sl; sl = sl->next) {
 		if (find_scene_collection_in_scene_collections(&sl->layer_collections, lc)) {
 			return sl;
 		}
@@ -250,12 +250,12 @@ SceneLayer *BKE_scene_layer_find_from_collection(const Scene *scene, LayerCollec
 
 /* Base */
 
-Base *BKE_scene_layer_base_find(SceneLayer *sl, Object *ob)
+Base *BKE_view_layer_base_find(ViewLayer *sl, Object *ob)
 {
 	return BLI_findptr(&sl->object_bases, ob, offsetof(Base, object));
 }
 
-void BKE_scene_layer_base_deselect_all(SceneLayer *sl)
+void BKE_view_layer_base_deselect_all(ViewLayer *sl)
 {
 	Base *base;
 
@@ -264,7 +264,7 @@ void BKE_scene_layer_base_deselect_all(SceneLayer *sl)
 	}
 }
 
-void BKE_scene_layer_base_select(struct SceneLayer *sl, Base *selbase)
+void BKE_view_layer_base_select(struct ViewLayer *sl, Base *selbase)
 {
 	sl->basact = selbase;
 	if ((selbase->flag & BASE_SELECTABLED) != 0) {
@@ -272,7 +272,7 @@ void BKE_scene_layer_base_select(struct SceneLayer *sl, Base *selbase)
 	}
 }
 
-static void scene_layer_object_base_unref(SceneLayer *sl, Base *base)
+static void view_layer_object_base_unref(ViewLayer *sl, Base *base)
 {
 	base->refcount--;
 
@@ -296,10 +296,10 @@ static void scene_layer_object_base_unref(SceneLayer *sl, Base *base)
  * Return the base if existent, or create it if necessary
  * Always bump the refcount
  */
-static Base *object_base_add(SceneLayer *sl, Object *ob)
+static Base *object_base_add(ViewLayer *sl, Object *ob)
 {
 	Base *base;
-	base = BKE_scene_layer_base_find(sl, ob);
+	base = BKE_view_layer_base_find(sl, ob);
 
 	if (base == NULL) {
 		base = MEM_callocN(sizeof(Base), "Object Base");
@@ -318,11 +318,11 @@ static Base *object_base_add(SceneLayer *sl, Object *ob)
 
 /* LayerCollection */
 
-static void layer_collection_objects_unpopulate(SceneLayer *sl, LayerCollection *lc)
+static void layer_collection_objects_unpopulate(ViewLayer *sl, LayerCollection *lc)
 {
 	if (sl) {
 		for (LinkData *link = lc->object_bases.first; link; link = link->next) {
-			scene_layer_object_base_unref(sl, link->data);
+			view_layer_object_base_unref(sl, link->data);
 		}
 	}
 
@@ -330,10 +330,10 @@ static void layer_collection_objects_unpopulate(SceneLayer *sl, LayerCollection 
 }
 
 /**
- * When freeing the entire SceneLayer at once we don't bother with unref
- * otherwise SceneLayer is passed to keep the syncing of the LayerCollection tree
+ * When freeing the entire ViewLayer at once we don't bother with unref
+ * otherwise ViewLayer is passed to keep the syncing of the LayerCollection tree
  */
-static void layer_collection_free(SceneLayer *sl, LayerCollection *lc)
+static void layer_collection_free(ViewLayer *sl, LayerCollection *lc)
 {
 	layer_collection_objects_unpopulate(sl, lc);
 	BLI_freelistN(&lc->overrides);
@@ -356,10 +356,10 @@ static void layer_collection_free(SceneLayer *sl, LayerCollection *lc)
 }
 
 /**
- * Free (or release) LayerCollection from SceneLayer
+ * Free (or release) LayerCollection from ViewLayer
  * (does not free the LayerCollection itself).
  */
-void BKE_layer_collection_free(SceneLayer *sl, LayerCollection *lc)
+void BKE_layer_collection_free(ViewLayer *sl, LayerCollection *lc)
 {
 	layer_collection_free(sl, lc);
 }
@@ -389,7 +389,7 @@ static LayerCollection *collection_from_index(ListBase *lb, const int number, in
 /**
  * Get the collection for a given index
  */
-LayerCollection *BKE_layer_collection_from_index(SceneLayer *sl, const int index)
+LayerCollection *BKE_layer_collection_from_index(ViewLayer *sl, const int index)
 {
 	int i = 0;
 	return collection_from_index(&sl->layer_collections, index, &i);
@@ -398,7 +398,7 @@ LayerCollection *BKE_layer_collection_from_index(SceneLayer *sl, const int index
 /**
  * Get the active collection
  */
-LayerCollection *BKE_layer_collection_get_active(SceneLayer *sl)
+LayerCollection *BKE_layer_collection_get_active(ViewLayer *sl)
 {
 	int i = 0;
 	return collection_from_index(&sl->layer_collections, sl->active_collection, &i);
@@ -409,13 +409,13 @@ LayerCollection *BKE_layer_collection_get_active(SceneLayer *sl)
  * Return layer collection to add new object(s).
  * Create one if none exists.
  */
-LayerCollection *BKE_layer_collection_get_active_ensure(Scene *scene, SceneLayer *sl)
+LayerCollection *BKE_layer_collection_get_active_ensure(Scene *scene, ViewLayer *sl)
 {
 	LayerCollection *lc = BKE_layer_collection_get_active(sl);
 
 	if (lc == NULL) {
 		BLI_assert(BLI_listbase_is_empty(&sl->layer_collections));
-		/* When there is no collection linked to this SceneLayer, create one. */
+		/* When there is no collection linked to this ViewLayer, create one. */
 		SceneCollection *sc = BKE_collection_add(scene, NULL, NULL);
 		lc = BKE_collection_link(sl, sc);
 		/* New collection has to be the active one. */
@@ -441,7 +441,7 @@ static int collection_count(ListBase *lb)
  * Get the total number of collections
  * (including all the nested collections)
  */
-int BKE_layer_collection_count(SceneLayer *sl)
+int BKE_layer_collection_count(ViewLayer *sl)
 {
 	return collection_count(&sl->layer_collections);
 }
@@ -469,7 +469,7 @@ static int index_from_collection(ListBase *lb, const LayerCollection *lc, int *i
 /**
  * Return -1 if not found
  */
-int BKE_layer_collection_findindex(SceneLayer *sl, const LayerCollection *lc)
+int BKE_layer_collection_findindex(ViewLayer *sl, const LayerCollection *lc)
 {
 	int i = 0;
 	return index_from_collection(&sl->layer_collections, lc, &i);
@@ -520,13 +520,13 @@ static ListBase *scene_collection_listbase_find(ListBase *lb, SceneCollection *s
 
 /**
  * Nest a LayerCollection into another one
- * Both collections must be from the same SceneLayer, return true if succeded.
+ * Both collections must be from the same ViewLayer, return true if succeded.
  *
  * The LayerCollection will effectively be moved into the
  * new (nested) position. So all the settings, overrides, ... go with it, and
- * if the collection was directly linked to the SceneLayer it's then unlinked.
+ * if the collection was directly linked to the ViewLayer it's then unlinked.
  *
- * For the other SceneLayers we simply resync the tree, without changing directly
+ * For the other ViewLayers we simply resync the tree, without changing directly
  * linked collections (even if they link to the same SceneCollection)
  *
  * \param lc_src LayerCollection to nest into \a lc_dst
@@ -534,7 +534,7 @@ static ListBase *scene_collection_listbase_find(ListBase *lb, SceneCollection *s
  */
 
 static void layer_collection_swap(
-        SceneLayer *sl, ListBase *lb_a, ListBase *lb_b,
+        ViewLayer *sl, ListBase *lb_a, ListBase *lb_b,
         LayerCollection *lc_a, LayerCollection *lc_b)
 {
 	if (lb_a == NULL) {
@@ -553,14 +553,14 @@ static void layer_collection_swap(
 
 /**
  * Move \a lc_src into \a lc_dst. Both have to be stored in \a sl.
- * If \a lc_src is directly linked to the SceneLayer it's unlinked
+ * If \a lc_src is directly linked to the ViewLayer it's unlinked
  */
 bool BKE_layer_collection_move_into(const Scene *scene, LayerCollection *lc_dst, LayerCollection *lc_src)
 {
-	SceneLayer *sl = BKE_scene_layer_find_from_collection(scene, lc_src);
+	ViewLayer *sl = BKE_view_layer_find_from_collection(scene, lc_src);
 	bool is_directly_linked = false;
 
-	if ((!sl) || (sl != BKE_scene_layer_find_from_collection(scene, lc_dst))) {
+	if ((!sl) || (sl != BKE_view_layer_find_from_collection(scene, lc_dst))) {
 		return false;
 	}
 
@@ -620,15 +620,15 @@ bool BKE_layer_collection_move_into(const Scene *scene, LayerCollection *lc_dst,
 
 /**
  * Move \a lc_src above \a lc_dst. Both have to be stored in \a sl.
- * If \a lc_src is directly linked to the SceneLayer it's unlinked
+ * If \a lc_src is directly linked to the ViewLayer it's unlinked
  */
 bool BKE_layer_collection_move_above(const Scene *scene, LayerCollection *lc_dst, LayerCollection *lc_src)
 {
-	SceneLayer *sl = BKE_scene_layer_find_from_collection(scene, lc_src);
+	ViewLayer *sl = BKE_view_layer_find_from_collection(scene, lc_src);
 	const bool is_directly_linked_src = BLI_findindex(&sl->layer_collections, lc_src) != -1;
 	const bool is_directly_linked_dst = BLI_findindex(&sl->layer_collections, lc_dst) != -1;
 
-	if ((!sl) || (sl != BKE_scene_layer_find_from_collection(scene, lc_dst))) {
+	if ((!sl) || (sl != BKE_view_layer_find_from_collection(scene, lc_dst))) {
 		return false;
 	}
 
@@ -651,7 +651,7 @@ bool BKE_layer_collection_move_above(const Scene *scene, LayerCollection *lc_dst
 	/* We don't allow to move above/below a directly linked collection
 	 * unless the source collection is also directly linked */
 	else if (is_directly_linked_dst) {
-		/* Both directly linked to the SceneLayer, just need to swap */
+		/* Both directly linked to the ViewLayer, just need to swap */
 		if (is_directly_linked_src) {
 			BLI_remlink(&sl->layer_collections, lc_src);
 			BLI_insertlinkbefore(&sl->layer_collections, lc_dst, lc_src);
@@ -695,15 +695,15 @@ bool BKE_layer_collection_move_above(const Scene *scene, LayerCollection *lc_dst
 
 /**
  * Move \a lc_src below \a lc_dst. Both have to be stored in \a sl.
- * If \a lc_src is directly linked to the SceneLayer it's unlinked
+ * If \a lc_src is directly linked to the ViewLayer it's unlinked
  */
 bool BKE_layer_collection_move_below(const Scene *scene, LayerCollection *lc_dst, LayerCollection *lc_src)
 {
-	SceneLayer *sl = BKE_scene_layer_find_from_collection(scene, lc_src);
+	ViewLayer *sl = BKE_view_layer_find_from_collection(scene, lc_src);
 	const bool is_directly_linked_src = BLI_findindex(&sl->layer_collections, lc_src) != -1;
 	const bool is_directly_linked_dst = BLI_findindex(&sl->layer_collections, lc_dst) != -1;
 
-	if ((!sl) || (sl != BKE_scene_layer_find_from_collection(scene, lc_dst))) {
+	if ((!sl) || (sl != BKE_view_layer_find_from_collection(scene, lc_dst))) {
 		return false;
 	}
 
@@ -726,7 +726,7 @@ bool BKE_layer_collection_move_below(const Scene *scene, LayerCollection *lc_dst
 	/* We don't allow to move above/below a directly linked collection
 	 * unless the source collection is also directly linked */
 	else if (is_directly_linked_dst) {
-		/* Both directly linked to the SceneLayer, just need to swap */
+		/* Both directly linked to the ViewLayer, just need to swap */
 		if (is_directly_linked_src) {
 			BLI_remlink(&sl->layer_collections, lc_src);
 			BLI_insertlinkafter(&sl->layer_collections, lc_dst, lc_src);
@@ -768,7 +768,7 @@ bool BKE_layer_collection_move_below(const Scene *scene, LayerCollection *lc_dst
 	return true;
 }
 
-static bool layer_collection_resync(SceneLayer *sl, LayerCollection *lc, const SceneCollection *sc)
+static bool layer_collection_resync(ViewLayer *sl, LayerCollection *lc, const SceneCollection *sc)
 {
 	if (lc->scene_collection == sc) {
 		ListBase collections = {NULL};
@@ -811,7 +811,7 @@ static bool layer_collection_resync(SceneLayer *sl, LayerCollection *lc, const S
  */
 void BKE_layer_collection_resync(const Scene *scene, const SceneCollection *sc)
 {
-	for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
+	for (ViewLayer *sl = scene->view_layers.first; sl; sl = sl->next) {
 		for (LayerCollection *lc = sl->layer_collections.first; lc; lc = lc->next) {
 			layer_collection_resync(sl, lc, sc);
 		}
@@ -824,7 +824,7 @@ void BKE_layer_collection_resync(const Scene *scene, const SceneCollection *sc)
  * Link a collection to a renderlayer
  * The collection needs to be created separately
  */
-LayerCollection *BKE_collection_link(SceneLayer *sl, SceneCollection *sc)
+LayerCollection *BKE_collection_link(ViewLayer *sl, SceneCollection *sc)
 {
 	LayerCollection *lc = layer_collection_add(sl, NULL, sc);
 	sl->active_collection = BKE_layer_collection_findindex(sl, lc);
@@ -835,7 +835,7 @@ LayerCollection *BKE_collection_link(SceneLayer *sl, SceneCollection *sc)
  * Unlink a collection base from a renderlayer
  * The corresponding collection is not removed from the master collection
  */
-void BKE_collection_unlink(SceneLayer *sl, LayerCollection *lc)
+void BKE_collection_unlink(ViewLayer *sl, LayerCollection *lc)
 {
 	BKE_layer_collection_free(sl, lc);
 	BLI_remlink(&sl->layer_collections, lc);
@@ -846,7 +846,7 @@ void BKE_collection_unlink(SceneLayer *sl, LayerCollection *lc)
 /**
  * Recursively enable nested collections
  */
-static void layer_collection_enable(SceneLayer *sl, LayerCollection *lc)
+static void layer_collection_enable(ViewLayer *sl, LayerCollection *lc)
 {
 	layer_collection_objects_populate(sl, lc, &lc->scene_collection->objects);
 
@@ -857,10 +857,10 @@ static void layer_collection_enable(SceneLayer *sl, LayerCollection *lc)
 
 /**
  * Enable collection
- * Add its objects bases to SceneLayer
+ * Add its objects bases to ViewLayer
  * Depsgraph needs to be rebuilt afterwards
  */
-void BKE_collection_enable(SceneLayer *sl, LayerCollection *lc)
+void BKE_collection_enable(ViewLayer *sl, LayerCollection *lc)
 {
 	if ((lc->flag & COLLECTION_DISABLED) == 0) {
 		return;
@@ -873,7 +873,7 @@ void BKE_collection_enable(SceneLayer *sl, LayerCollection *lc)
 /**
  * Recursively disable nested collections
  */
-static void layer_collection_disable(SceneLayer *sl, LayerCollection *lc)
+static void layer_collection_disable(ViewLayer *sl, LayerCollection *lc)
 {
 	layer_collection_objects_unpopulate(sl, lc);
 
@@ -884,10 +884,10 @@ static void layer_collection_disable(SceneLayer *sl, LayerCollection *lc)
 
 /**
  * Disable collection
- * Remove all its object bases from SceneLayer
+ * Remove all its object bases from ViewLayer
  * Depsgraph needs to be rebuilt afterwards
  */
-void BKE_collection_disable(SceneLayer *sl, LayerCollection *lc)
+void BKE_collection_disable(ViewLayer *sl, LayerCollection *lc)
 {
 	if ((lc->flag & COLLECTION_DISABLED) != 0) {
 		return;
@@ -897,7 +897,7 @@ void BKE_collection_disable(SceneLayer *sl, LayerCollection *lc)
 	layer_collection_disable(sl, lc);
 }
 
-static void layer_collection_object_add(SceneLayer *sl, LayerCollection *lc, Object *ob)
+static void layer_collection_object_add(ViewLayer *sl, LayerCollection *lc, Object *ob)
 {
 	Base *base = object_base_add(sl, ob);
 
@@ -922,26 +922,26 @@ static void layer_collection_object_add(SceneLayer *sl, LayerCollection *lc, Obj
 	BLI_addtail(&lc->object_bases, BLI_genericNodeN(base));
 }
 
-static void layer_collection_object_remove(SceneLayer *sl, LayerCollection *lc, Object *ob)
+static void layer_collection_object_remove(ViewLayer *sl, LayerCollection *lc, Object *ob)
 {
 	Base *base;
-	base = BKE_scene_layer_base_find(sl, ob);
+	base = BKE_view_layer_base_find(sl, ob);
 
 	LinkData *link = BLI_findptr(&lc->object_bases, base, offsetof(LinkData, data));
 	BLI_remlink(&lc->object_bases, link);
 	MEM_freeN(link);
 
-	scene_layer_object_base_unref(sl, base);
+	view_layer_object_base_unref(sl, base);
 }
 
-static void layer_collection_objects_populate(SceneLayer *sl, LayerCollection *lc, ListBase *objects)
+static void layer_collection_objects_populate(ViewLayer *sl, LayerCollection *lc, ListBase *objects)
 {
 	for (LinkData *link = objects->first; link; link = link->next) {
 		layer_collection_object_add(sl, lc, link->data);
 	}
 }
 
-static void layer_collection_populate(SceneLayer *sl, LayerCollection *lc, SceneCollection *sc)
+static void layer_collection_populate(ViewLayer *sl, LayerCollection *lc, SceneCollection *sc)
 {
 	layer_collection_objects_populate(sl, lc, &sc->objects);
 	layer_collection_objects_populate(sl, lc, &sc->filter_objects);
@@ -951,7 +951,7 @@ static void layer_collection_populate(SceneLayer *sl, LayerCollection *lc, Scene
 	}
 }
 
-static LayerCollection *layer_collection_add(SceneLayer *sl, LayerCollection *parent, SceneCollection *sc)
+static LayerCollection *layer_collection_add(ViewLayer *sl, LayerCollection *parent, SceneCollection *sc)
 {
 	IDPropertyTemplate val = {0};
 	LayerCollection *lc = MEM_callocN(sizeof(LayerCollection), "Collection Base");
@@ -979,7 +979,7 @@ static LayerCollection *layer_collection_add(SceneLayer *sl, LayerCollection *pa
 /**
  * See if render layer has the scene collection linked directly, or indirectly (nested)
  */
-bool BKE_scene_layer_has_collection(SceneLayer *sl, const SceneCollection *sc)
+bool BKE_view_layer_has_collection(ViewLayer *sl, const SceneCollection *sc)
 {
 	for (LayerCollection *lc = sl->layer_collections.first; lc; lc = lc->next) {
 		if (find_layer_collection_by_scene_collection(lc, sc) != NULL) {
@@ -994,8 +994,8 @@ bool BKE_scene_layer_has_collection(SceneLayer *sl, const SceneCollection *sc)
  */
 bool BKE_scene_has_object(Scene *scene, Object *ob)
 {
-	for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
-		Base *base = BKE_scene_layer_base_find(sl, ob);
+	for (ViewLayer *sl = scene->view_layers.first; sl; sl = sl->next) {
+		Base *base = BKE_view_layer_base_find(sl, ob);
 		if (base) {
 			return true;
 		}
@@ -1023,11 +1023,11 @@ static LayerCollection *find_layer_collection_by_scene_collection(LayerCollectio
 }
 
 /**
- * Add a new LayerCollection for all the SceneLayers that have sc_parent
+ * Add a new LayerCollection for all the ViewLayers that have sc_parent
  */
 void BKE_layer_sync_new_scene_collection(Scene *scene, const SceneCollection *sc_parent, SceneCollection *sc)
 {
-	for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
+	for (ViewLayer *sl = scene->view_layers.first; sl; sl = sl->next) {
 		for (LayerCollection *lc = sl->layer_collections.first; lc; lc = lc->next) {
 			LayerCollection *lc_parent = find_layer_collection_by_scene_collection(lc, sc_parent);
 			if (lc_parent) {
@@ -1042,7 +1042,7 @@ void BKE_layer_sync_new_scene_collection(Scene *scene, const SceneCollection *sc
  */
 void BKE_layer_sync_object_link(const Scene *scene, SceneCollection *sc, Object *ob)
 {
-	for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
+	for (ViewLayer *sl = scene->view_layers.first; sl; sl = sl->next) {
 		for (LayerCollection *lc = sl->layer_collections.first; lc; lc = lc->next) {
 			LayerCollection *found = find_layer_collection_by_scene_collection(lc, sc);
 			if (found) {
@@ -1058,7 +1058,7 @@ void BKE_layer_sync_object_link(const Scene *scene, SceneCollection *sc, Object 
  */
 void BKE_layer_sync_object_unlink(const Scene *scene, SceneCollection *sc, Object *ob)
 {
-	for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
+	for (ViewLayer *sl = scene->view_layers.first; sl; sl = sl->next) {
 		for (LayerCollection *lc = sl->layer_collections.first; lc; lc = lc->next) {
 			LayerCollection *found = find_layer_collection_by_scene_collection(lc, sc);
 			if (found) {
@@ -1074,18 +1074,18 @@ void BKE_layer_sync_object_unlink(const Scene *scene, SceneCollection *sc, Objec
 /**
  * Add a new datablock override
  */
-void BKE_override_scene_layer_datablock_add(SceneLayer *scene_layer, int id_type, const char *data_path, const ID *id)
+void BKE_override_view_layer_datablock_add(ViewLayer *view_layer, int id_type, const char *data_path, const ID *id)
 {
-	UNUSED_VARS(scene_layer, id_type, data_path, id);
+	UNUSED_VARS(view_layer, id_type, data_path, id);
 	TODO_LAYER_OVERRIDE;
 }
 
 /**
  * Add a new int override
  */
-void BKE_override_scene_layer_int_add(SceneLayer *scene_layer, int id_type, const char *data_path, const int value)
+void BKE_override_view_layer_int_add(ViewLayer *view_layer, int id_type, const char *data_path, const int value)
 {
-	UNUSED_VARS(scene_layer, id_type, data_path, value);
+	UNUSED_VARS(view_layer, id_type, data_path, value);
 	TODO_LAYER_OVERRIDE;
 }
 
@@ -1102,7 +1102,7 @@ void BKE_override_layer_collection_boolean_add(struct LayerCollection *layer_col
 /* Engine Settings */
 
 ListBase R_layer_collection_engines_settings_callbacks = {NULL, NULL};
-ListBase R_scene_layer_engines_settings_callbacks = {NULL, NULL};
+ListBase R_view_layer_engines_settings_callbacks = {NULL, NULL};
 
 typedef struct EngineSettingsCB_Type {
 	struct EngineSettingsCB_Type *next, *prev;
@@ -1128,7 +1128,7 @@ static void create_layer_collection_engine_settings_scene(Scene *scene, EngineSe
 	create_engine_settings_scene(scene->collection_properties, es_type);
 }
 
-static void create_scene_layer_engine_settings_scene(Scene *scene, EngineSettingsCB_Type *es_type)
+static void create_view_layer_engine_settings_scene(Scene *scene, EngineSettingsCB_Type *es_type)
 {
 	create_engine_settings_scene(scene->layer_properties, es_type);
 }
@@ -1152,22 +1152,22 @@ static void create_layer_collection_engines_settings_scene(Scene *scene, EngineS
 	/* Populate the scene with the new settings. */
 	create_layer_collection_engine_settings_scene(scene, es_type);
 
-	for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
+	for (ViewLayer *sl = scene->view_layers.first; sl; sl = sl->next) {
 		for (LayerCollection *lc = sl->layer_collections.first; lc; lc = lc->next) {
 			create_layer_collection_engine_settings_collection(lc, es_type);
 		}
 	}
 }
 
-static void create_scene_layer_engines_settings_scene(Scene *scene, EngineSettingsCB_Type *es_type)
+static void create_view_layer_engines_settings_scene(Scene *scene, EngineSettingsCB_Type *es_type)
 {
 	/* Populate the scene with the new settings. */
-	create_scene_layer_engine_settings_scene(scene, es_type);
+	create_view_layer_engine_settings_scene(scene, es_type);
 }
 
-static void create_scene_layer_engines_settings_layer(SceneLayer *sl, EngineSettingsCB_Type *es_type)
+static void create_view_layer_engines_settings_layer(ViewLayer *sl, EngineSettingsCB_Type *es_type)
 {
-	if (BKE_scene_layer_engine_layer_get(sl, COLLECTION_MODE_NONE, es_type->name)) {
+	if (BKE_view_layer_engine_layer_get(sl, COLLECTION_MODE_NONE, es_type->name)) {
 		return;
 	}
 
@@ -1209,19 +1209,19 @@ void BKE_layer_collection_engine_settings_callback_register(
 	}
 }
 
-void BKE_scene_layer_engine_settings_callback_register(
+void BKE_view_layer_engine_settings_callback_register(
         Main *bmain, const char *engine_name, EngineSettingsCB func)
 {
 	EngineSettingsCB_Type *es_type =
-	        engine_settings_callback_register(engine_name, func, &R_scene_layer_engines_settings_callbacks);
+	        engine_settings_callback_register(engine_name, func, &R_view_layer_engines_settings_callbacks);
 
 	if (bmain) {
 		/* Populate all of the collections of the scene with those settings. */
 		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
-			create_scene_layer_engines_settings_scene(scene, es_type);
+			create_view_layer_engines_settings_scene(scene, es_type);
 
-			for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
-				create_scene_layer_engines_settings_layer(sl, es_type);
+			for (ViewLayer *sl = scene->view_layers.first; sl; sl = sl->next) {
+				create_view_layer_engines_settings_layer(sl, es_type);
 			}
 		}
 	}
@@ -1232,9 +1232,9 @@ void BKE_layer_collection_engine_settings_callback_free(void)
 	BLI_freelistN(&R_layer_collection_engines_settings_callbacks);
 }
 
-void BKE_scene_layer_engine_settings_callback_free(void)
+void BKE_view_layer_engine_settings_callback_free(void)
 {
-	BLI_freelistN(&R_scene_layer_engines_settings_callbacks);
+	BLI_freelistN(&R_view_layer_engines_settings_callbacks);
 }
 
 /**
@@ -1331,10 +1331,10 @@ static void layer_collection_create_render_settings(IDProperty *root, const bool
 	}
 }
 
-static void scene_layer_create_render_settings(IDProperty *root, const bool populate)
+static void view_layer_create_render_settings(IDProperty *root, const bool populate)
 {
 	EngineSettingsCB_Type *es_type;
-	for (es_type = R_scene_layer_engines_settings_callbacks.first; es_type; es_type = es_type->next) {
+	for (es_type = R_view_layer_engines_settings_callbacks.first; es_type; es_type = es_type->next) {
 		IDProperty *props = collection_engine_settings_create(es_type, populate);
 		IDP_AddToGroup(root, props);
 	}
@@ -1432,7 +1432,7 @@ IDProperty *BKE_layer_collection_engine_scene_get(Scene *scene, const int type, 
 /**
  * Return scene layer engine settings for specified engine in the scene
  */
-IDProperty *BKE_scene_layer_engine_scene_get(Scene *scene, const int type, const char *engine_name)
+IDProperty *BKE_view_layer_engine_scene_get(Scene *scene, const int type, const char *engine_name)
 {
 	return collection_engine_get(scene->layer_properties, type, engine_name);
 }
@@ -1440,7 +1440,7 @@ IDProperty *BKE_scene_layer_engine_scene_get(Scene *scene, const int type, const
 /**
  * Return scene layer engine settings for specified engine
  */
-IDProperty *BKE_scene_layer_engine_layer_get(SceneLayer *sl, const int type, const char *engine_name)
+IDProperty *BKE_view_layer_engine_layer_get(ViewLayer *sl, const int type, const char *engine_name)
 {
 	return collection_engine_get(sl->properties, type, engine_name);
 }
@@ -1448,7 +1448,7 @@ IDProperty *BKE_scene_layer_engine_layer_get(SceneLayer *sl, const int type, con
 /**
  * Return scene layer evaluated engine settings for specified engine
  */
-IDProperty *BKE_scene_layer_engine_evaluated_get(SceneLayer *sl, const int type, const char *engine_name)
+IDProperty *BKE_view_layer_engine_evaluated_get(ViewLayer *sl, const int type, const char *engine_name)
 {
 	return collection_engine_get(sl->properties_evaluated, type, engine_name);
 }
@@ -1553,7 +1553,7 @@ static void collection_engine_settings_init(IDProperty *root, const bool populat
 static void layer_engine_settings_init(IDProperty *root, const bool populate)
 {
 	/* render engines */
-	scene_layer_create_render_settings(root, populate);
+	view_layer_create_render_settings(root, populate);
 
 	/* mode engines */
 	layer_create_mode_settings(root, populate);
@@ -1572,7 +1572,7 @@ void BKE_layer_collection_engine_settings_create(IDProperty *root)
  * Initialize the render setings
  * It's used mainly for scenes
  */
-void BKE_scene_layer_engine_settings_create(IDProperty *root)
+void BKE_view_layer_engine_settings_create(IDProperty *root)
 {
 	layer_engine_settings_init(root, true);
 }
@@ -1586,11 +1586,11 @@ static struct {
 		IDProperty *collection_properties;
 		IDProperty *render_settings;
 	} scene;
-	IDProperty *scene_layer;
+	IDProperty *view_layer;
 	IDProperty *layer_collection;
 } root_reference = {
 	.scene = {NULL, NULL},
-	.scene_layer = NULL,
+	.view_layer = NULL,
 	.layer_collection = NULL,
 };
 
@@ -1618,9 +1618,9 @@ static void engine_settings_validate_init(void)
 		layer_engine_settings_init(root_reference.scene.render_settings, true);
 	}
 
-	if (root_reference.scene_layer == NULL) {
-		root_reference.scene_layer = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-		layer_engine_settings_init(root_reference.scene_layer, false);
+	if (root_reference.view_layer == NULL) {
+		root_reference.view_layer = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+		layer_engine_settings_init(root_reference.view_layer, false);
 	}
 }
 
@@ -1632,7 +1632,7 @@ static void layer_collection_engine_settings_validate_free(void)
 	IDProperty *idprops[] = {
 	    root_reference.scene.render_settings,
 	    root_reference.scene.collection_properties,
-	    root_reference.scene_layer,
+	    root_reference.view_layer,
 	    root_reference.layer_collection,
 	    NULL,
 	};
@@ -1683,7 +1683,7 @@ void BKE_layer_collection_engine_settings_validate_collection(LayerCollection *l
 /**
  * Make sure Scene has all required collection settings.
  */
-void BKE_scene_layer_engine_settings_validate_scene(Scene *scene)
+void BKE_view_layer_engine_settings_validate_scene(Scene *scene)
 {
 	if (root_reference.scene.render_settings == NULL) {
 		engine_settings_validate_init();
@@ -1692,7 +1692,7 @@ void BKE_scene_layer_engine_settings_validate_scene(Scene *scene)
 	if (scene->layer_properties == NULL) {
 		IDPropertyTemplate val = {0};
 		scene->layer_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-		BKE_scene_layer_engine_settings_create(scene->layer_properties);
+		BKE_view_layer_engine_settings_create(scene->layer_properties);
 	}
 	else {
 		IDP_MergeGroup(scene->layer_properties, root_reference.scene.render_settings, false);
@@ -1702,13 +1702,13 @@ void BKE_scene_layer_engine_settings_validate_scene(Scene *scene)
 /**
  * Make sure Scene has all required collection settings.
  */
-void BKE_scene_layer_engine_settings_validate_layer(SceneLayer *sl)
+void BKE_view_layer_engine_settings_validate_layer(ViewLayer *sl)
 {
-	if (root_reference.scene_layer == NULL) {
+	if (root_reference.view_layer == NULL) {
 		engine_settings_validate_init();
 	}
 
-	IDP_MergeGroup(sl->properties, root_reference.scene_layer, false);
+	IDP_MergeGroup(sl->properties, root_reference.view_layer, false);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1716,7 +1716,7 @@ void BKE_scene_layer_engine_settings_validate_layer(SceneLayer *sl)
 
 static void object_bases_iterator_begin(BLI_Iterator *iter, void *data_in, const int flag)
 {
-	SceneLayer *sl = data_in;
+	ViewLayer *sl = data_in;
 	Base *base = sl->object_bases.first;
 
 	/* when there are no objects */
@@ -1834,17 +1834,17 @@ void BKE_renderable_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
 	ObjectsRenderableIteratorData *data = data_in;
 
 	for (Scene *scene = data->scene; scene; scene = scene->set) {
-		for (SceneLayer *sl = scene->render_layers.first; sl; sl = sl->next) {
+		for (ViewLayer *sl = scene->view_layers.first; sl; sl = sl->next) {
 			for (Base *base = sl->object_bases.first; base; base = base->next) {
 				 base->object->id.flag |=  LIB_TAG_DOIT;
 			}
 		}
 	}
 
-	SceneLayer *scene_layer = data->scene->render_layers.first;
-	data->iter.scene_layer = scene_layer;
+	ViewLayer *view_layer = data->scene->view_layers.first;
+	data->iter.view_layer = view_layer;
 
-	Base base = {(Base *)scene_layer->object_bases.first, NULL};
+	Base base = {(Base *)view_layer->object_bases.first, NULL};
 	data->iter.base = &base;
 
 	data->iter.set = NULL;
@@ -1873,11 +1873,11 @@ void BKE_renderable_objects_iterator_next(BLI_Iterator *iter)
 
 	/* Time to go to the next scene layer. */
 	if (data->iter.set == NULL) {
-		while ((data->iter.scene_layer = data->iter.scene_layer->next)) {
-			SceneLayer *scene_layer = data->iter.scene_layer;
-			if (scene_layer->flag & SCENE_LAYER_RENDER) {
+		while ((data->iter.view_layer = data->iter.view_layer->next)) {
+			ViewLayer *view_layer = data->iter.view_layer;
+			if (view_layer->flag & VIEW_LAYER_RENDER) {
 
-				Base base_iter = {(Base *)scene_layer->object_bases.first, NULL};
+				Base base_iter = {(Base *)view_layer->object_bases.first, NULL};
 				data->iter.base = &base_iter;
 
 				BKE_renderable_objects_iterator_next(iter);
@@ -1894,9 +1894,9 @@ void BKE_renderable_objects_iterator_next(BLI_Iterator *iter)
 
 	/* Look for an object in the next set. */
 	while ((data->iter.set = data->iter.set->set)) {
-		SceneLayer *scene_layer = BKE_scene_layer_from_scene_get(data->iter.set);
+		ViewLayer *view_layer = BKE_view_layer_from_scene_get(data->iter.set);
 
-		Base base_iter = {(Base *)scene_layer->object_bases.first, NULL};
+		Base base_iter = {(Base *)view_layer->object_bases.first, NULL};
 		data->iter.base = &base_iter;
 
 		BKE_renderable_objects_iterator_next(iter);
@@ -1934,20 +1934,20 @@ static void idproperty_reset(IDProperty **props, IDProperty *props_ref)
 }
 
 void BKE_layer_eval_layer_collection_pre(const struct EvaluationContext *UNUSED(eval_ctx),
-                                         Scene *scene, SceneLayer *scene_layer)
+                                         Scene *scene, ViewLayer *view_layer)
 {
-	DEBUG_PRINT("%s on %s (%p)\n", __func__, scene_layer->name, scene_layer);
-	for (Base *base = scene_layer->object_bases.first; base != NULL; base = base->next) {
+	DEBUG_PRINT("%s on %s (%p)\n", __func__, view_layer->name, view_layer);
+	for (Base *base = view_layer->object_bases.first; base != NULL; base = base->next) {
 		base->flag &= ~(BASE_VISIBLED | BASE_SELECTABLED);
 		idproperty_reset(&base->collection_properties, scene->collection_properties);
 	}
 
 	/* Sync properties from scene to scene layer. */
-	idproperty_reset(&scene_layer->properties_evaluated, scene->layer_properties);
-	IDP_MergeGroup(scene_layer->properties_evaluated, scene_layer->properties, true);
+	idproperty_reset(&view_layer->properties_evaluated, scene->layer_properties);
+	IDP_MergeGroup(view_layer->properties_evaluated, view_layer->properties, true);
 
 	/* TODO(sergey): Is it always required? */
-	scene_layer->flag |= SCENE_LAYER_ENGINE_DIRTY;
+	view_layer->flag |= VIEW_LAYER_ENGINE_DIRTY;
 }
 
 void BKE_layer_eval_layer_collection(const struct EvaluationContext *UNUSED(eval_ctx),
@@ -1998,11 +1998,11 @@ void BKE_layer_eval_layer_collection(const struct EvaluationContext *UNUSED(eval
 }
 
 void BKE_layer_eval_layer_collection_post(const struct EvaluationContext *UNUSED(eval_ctx),
-                                          SceneLayer *scene_layer)
+                                          ViewLayer *view_layer)
 {
-	DEBUG_PRINT("%s on %s (%p)\n", __func__, scene_layer->name, scene_layer);
+	DEBUG_PRINT("%s on %s (%p)\n", __func__, view_layer->name, view_layer);
 	/* if base is not selectabled, clear select */
-	for (Base *base = scene_layer->object_bases.first; base; base = base->next) {
+	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 		if ((base->flag & BASE_SELECTABLED) == 0) {
 			base->flag &= ~BASE_SELECTED;
 		}

@@ -1612,7 +1612,7 @@ static void draw_bone(const short dt, int armflag, int boneflag, short constflag
 
 static void draw_custom_bone(
         const struct EvaluationContext *eval_ctx,
-        Scene *scene, SceneLayer *sl, View3D *v3d, RegionView3D *rv3d, Object *ob,
+        Scene *scene, ViewLayer *sl, View3D *v3d, RegionView3D *rv3d, Object *ob,
         const short dt, int armflag, int boneflag, unsigned int id, float length)
 {
 	if (ob == NULL) return;
@@ -1933,7 +1933,7 @@ static void bone_matrix_translate_y(float mat[4][4], float y)
 
 /* assumes object is Armature with pose */
 static void draw_pose_bones(
-        const struct EvaluationContext *eval_ctx, Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *ar, Base *base,
+        const struct EvaluationContext *eval_ctx, Scene *scene, ViewLayer *sl, View3D *v3d, ARegion *ar, Base *base,
         const short dt, const unsigned char ob_wire_col[4],
         const bool do_const_color, const bool is_outline)
 {
@@ -2667,7 +2667,7 @@ static void ghost_poses_tag_unselected(Object *ob, short unset)
  *  note: object should be in posemode
  */
 static void draw_ghost_poses_range(
-        const EvaluationContext *eval_ctx, Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *ar, Base *base)
+        const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *sl, View3D *v3d, ARegion *ar, Base *base)
 {
 	Object *ob = base->object;
 	AnimData *adt = BKE_animdata_from_id(&ob->id);
@@ -2735,7 +2735,7 @@ static void draw_ghost_poses_range(
  *	- object should be in posemode 
  */
 static void draw_ghost_poses_keys(
-        const struct EvaluationContext *eval_ctx, Scene *scene, SceneLayer *sl,
+        const struct EvaluationContext *eval_ctx, Scene *scene, ViewLayer *sl,
         View3D *v3d, ARegion *ar, Base *base)
 {
 	Object *ob = base->object;
@@ -2819,7 +2819,7 @@ static void draw_ghost_poses_keys(
  *  - object is supposed to be armature in posemode
  */
 static void draw_ghost_poses(
-        const struct EvaluationContext *eval_ctx, Scene *scene, SceneLayer *sl,
+        const struct EvaluationContext *eval_ctx, Scene *scene, ViewLayer *sl,
         View3D *v3d, ARegion *ar, Base *base)
 {
 	Object *ob = base->object;
@@ -2916,7 +2916,7 @@ static void draw_ghost_poses(
 /* called from drawobject.c, return true if nothing was drawn
  * (ob_wire_col == NULL) when drawing ghost */
 bool draw_armature(
-        const EvaluationContext *eval_ctx, Scene *scene, SceneLayer *sl, View3D *v3d, ARegion *ar, Base *base,
+        const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *sl, View3D *v3d, ARegion *ar, Base *base,
         const short dt, const short dflag, const unsigned char ob_wire_col[4],
         const bool is_outline)
 {

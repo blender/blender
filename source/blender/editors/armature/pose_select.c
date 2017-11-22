@@ -134,7 +134,7 @@ void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select)
 /* called from editview.c, for mode-less pose selection */
 /* assumes scene obact and basact is still on old situation */
 bool ED_do_pose_selectbuffer(
-        Scene *scene, SceneLayer *sl, Base *base, const unsigned int *buffer, short hits,
+        Scene *scene, ViewLayer *sl, Base *base, const unsigned int *buffer, short hits,
         bool extend, bool deselect, bool toggle, bool do_nearest)
 {
 	Object *ob = base->object;

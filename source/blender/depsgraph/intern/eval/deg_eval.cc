@@ -278,7 +278,7 @@ void deg_evaluate_on_refresh(EvaluationContext *eval_ctx,
 	/* Set time for the current graph evaluation context. */
 	TimeSourceDepsNode *time_src = graph->find_time_source();
 	eval_ctx->depsgraph = (::Depsgraph *)graph;
-	eval_ctx->scene_layer = DEG_get_evaluated_scene_layer((::Depsgraph *)graph);
+	eval_ctx->view_layer = DEG_get_evaluated_view_layer((::Depsgraph *)graph);
 	eval_ctx->ctime = time_src->cfra;
 
 	/* XXX could use a separate pool for each eval context */

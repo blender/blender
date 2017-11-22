@@ -2684,7 +2684,7 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 		{
 			bDopeSheet *ads = (bDopeSheet *)ac->data;
 			Scene *sce = (Scene *)ads->source;
-			SceneLayer *scene_layer = ac->scene_layer;
+			ViewLayer *view_layer = ac->view_layer;
 			Base *base = (Base *)ale->data;
 			Object *ob = base->object;
 			AnimData *adt = ob->adt;
@@ -2703,7 +2703,7 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 
 					/* deselect all */
 					/* TODO: should this deselect all other types of channels too? */
-					for (b = scene_layer->object_bases.first; b; b = b->next) {
+					for (b = view_layer->object_bases.first; b; b = b->next) {
 						ED_object_base_select(b, BA_DESELECT);
 						BKE_scene_object_base_flag_sync_from_base(b);
 						if (b->object->adt) b->object->adt->flag &= ~(ADT_UI_SELECTED | ADT_UI_ACTIVE);

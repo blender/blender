@@ -109,7 +109,7 @@ static SceneCollection *scene_collection_from_index(ListBase *lb, const int numb
 static int collection_link_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	SceneCollection *sc_master = BKE_collection_master(scene);
 	SceneCollection *sc;
 
@@ -202,7 +202,7 @@ void OUTLINER_OT_collection_link(wmOperatorType *ot)
 
 /**
  * Returns true if selected element is a collection directly
- * linked to the active SceneLayer (not a nested collection)
+ * linked to the active ViewLayer (not a nested collection)
  */
 static int collection_unlink_poll(bContext *C)
 {
@@ -212,7 +212,7 @@ static int collection_unlink_poll(bContext *C)
 		return 0;
 	}
 
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	return BLI_findindex(&sl->layer_collections, lc) != -1 ? 1 : 0;
 }
 
@@ -226,7 +226,7 @@ static int collection_unlink_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	BKE_collection_unlink(sl, lc);
 
 	if (soops) {
@@ -260,7 +260,7 @@ void OUTLINER_OT_collection_unlink(wmOperatorType *ot)
 static int collection_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 
 	SceneCollection *sc = BKE_collection_add(scene, NULL, NULL);
 	BKE_collection_link(sl, sc);
@@ -382,7 +382,7 @@ void OUTLINER_OT_collections_delete(wmOperatorType *ot)
 
 static int collection_select_exec(bContext *C, wmOperator *op)
 {
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	const int collection_index = RNA_int_get(op->ptr, "collection_index");
 	sl->active_collection = collection_index;
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
@@ -414,13 +414,13 @@ static int collection_toggle_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *scene_layer = CTX_data_scene_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	int action = RNA_enum_get(op->ptr, "action");
 	LayerCollection *layer_collection = CTX_data_layer_collection(C);
 
 	if (layer_collection->flag & COLLECTION_DISABLED) {
 		if (ELEM(action, ACTION_TOGGLE, ACTION_ENABLE)) {
-			BKE_collection_enable(scene_layer, layer_collection);
+			BKE_collection_enable(view_layer, layer_collection);
 		}
 		else { /* ACTION_DISABLE */
 			BKE_reportf(op->reports, RPT_ERROR, "Layer collection %s already disabled",
@@ -430,7 +430,7 @@ static int collection_toggle_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		if (ELEM(action, ACTION_TOGGLE, ACTION_DISABLE)) {
-			BKE_collection_disable(scene_layer, layer_collection);
+			BKE_collection_disable(view_layer, layer_collection);
 		}
 		else { /* ACTION_ENABLE */
 			BKE_reportf(op->reports, RPT_ERROR, "Layer collection %s already enabled",

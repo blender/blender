@@ -1686,7 +1686,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "spring_length", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "springpreload");
 	RNA_def_property_range(prop, 0.0f, 200.0f);
-	RNA_def_property_ui_text(prop, "scene_layer", "Alter spring length to shrink/blow up (unit %) 0 to disable");
+	RNA_def_property_ui_text(prop, "view_layer", "Alter spring length to shrink/blow up (unit %) 0 to disable");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
 	prop = RNA_def_property(srna, "aero", PROP_INT, PROP_NONE);

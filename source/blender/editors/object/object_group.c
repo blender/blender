@@ -200,7 +200,7 @@ void GROUP_OT_objects_add_active(wmOperatorType *ot)
 static int objects_remove_active_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Object *ob = OBACT(sl);
 	int single_group_index = RNA_enum_get(op->ptr, "group");
 	Group *single_group = group_object_active_find_index(ob, single_group_index);

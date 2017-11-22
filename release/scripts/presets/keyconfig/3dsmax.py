@@ -1109,7 +1109,7 @@ kmi = km.keymap_items.new('node.group_edit', 'TAB', 'PRESS')
 kmi.properties.exit = False
 kmi = km.keymap_items.new('node.group_edit', 'TAB', 'PRESS', shift=True)
 kmi.properties.exit = True
-kmi = km.keymap_items.new('node.read_renderlayers', 'R', 'PRESS', ctrl=True)
+kmi = km.keymap_items.new('node.read_viewlayers', 'R', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('node.read_fullsamplelayers', 'R', 'PRESS', shift=True)
 kmi = km.keymap_items.new('node.render_changed', 'Z', 'PRESS')
 kmi = km.keymap_items.new('node.clipboard_copy', 'C', 'PRESS', ctrl=True)

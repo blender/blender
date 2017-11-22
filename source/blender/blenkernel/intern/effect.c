@@ -213,17 +213,17 @@ ListBase *pdInitEffectors(
         const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob_src, ParticleSystem *psys_src,
         EffectorWeights *weights, bool for_simulation)
 {
-	SceneLayer *sl;
+	ViewLayer *sl;
 	Base *base;
 	unsigned int layer= ob_src->lay;
 	ListBase *effectors = NULL;
 
 	/* eval_ctx is NULL during deg build */
 	if (eval_ctx) {
-		sl = eval_ctx->scene_layer;
+		sl = eval_ctx->view_layer;
 	}
 	else {
-		sl = BKE_scene_layer_context_active_PLACEHOLDER(scene);
+		sl = BKE_view_layer_context_active_PLACEHOLDER(scene);
 	}
 	
 	if (weights->group) {

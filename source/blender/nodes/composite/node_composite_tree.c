@@ -261,7 +261,7 @@ void ntreeCompositUpdateRLayers(bNodeTree *ntree)
 
 }
 
-void ntreeCompositRegisterPass(bNodeTree *ntree, Scene *scene, SceneLayer *scene_layer, const char *name, int type)
+void ntreeCompositRegisterPass(bNodeTree *ntree, Scene *scene, ViewLayer *view_layer, const char *name, int type)
 {
 	bNode *node;
 
@@ -269,7 +269,7 @@ void ntreeCompositRegisterPass(bNodeTree *ntree, Scene *scene, SceneLayer *scene
 
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->type == CMP_NODE_R_LAYERS)
-			node_cmp_rlayers_register_pass(ntree, node, scene, scene_layer, name, type);
+			node_cmp_rlayers_register_pass(ntree, node, scene, view_layer, name, type);
 	}
 
 }

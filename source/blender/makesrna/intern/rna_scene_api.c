@@ -85,16 +85,16 @@ static void rna_Scene_frame_set(Scene *scene, Main *bmain, int frame, float subf
 	BPy_BEGIN_ALLOW_THREADS;
 #endif
 
-	for (SceneLayer *scene_layer = scene->render_layers.first;
-	     scene_layer != NULL;
-	     scene_layer = scene_layer->next)
+	for (ViewLayer *view_layer = scene->view_layers.first;
+	     view_layer != NULL;
+	     view_layer = view_layer->next)
 	{
-		Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, scene_layer, true);
+		Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
 		BKE_scene_graph_update_for_newframe(bmain->eval_ctx,
 		                                    depsgraph,
 		                                    bmain,
 		                                    scene,
-		                                    scene_layer);
+		                                    view_layer);
 	}
 
 #ifdef WITH_PYTHON
@@ -135,16 +135,16 @@ static void rna_Scene_update_tagged(Scene *scene, Main *bmain)
 	BPy_BEGIN_ALLOW_THREADS;
 #endif
 
-	for (SceneLayer *scene_layer = scene->render_layers.first;
-	     scene_layer != NULL;
-	     scene_layer = scene_layer->next)
+	for (ViewLayer *view_layer = scene->view_layers.first;
+	     view_layer != NULL;
+	     view_layer = view_layer->next)
 	{
-		Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, scene_layer, true);
+		Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
 		BKE_scene_graph_update_tagged(bmain->eval_ctx,
 		                              depsgraph,
 		                              bmain,
 		                              scene,
-		                              scene_layer);
+		                              view_layer);
 	}
 
 #ifdef WITH_PYTHON
@@ -171,7 +171,7 @@ static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, int previe
 }
 
 static void rna_Scene_ray_cast(
-        Scene *scene, SceneLayer *scene_layer, const char *engine_id,
+        Scene *scene, ViewLayer *view_layer, const char *engine_id,
         float origin[3], float direction[3], float ray_dist,
         int *r_success, float r_location[3], float r_normal[3], int *r_index,
         Object **r_ob, float r_obmat[16])
@@ -188,7 +188,7 @@ static void rna_Scene_ray_cast(
 	normalize_v3(direction);
 
 	SnapObjectContext *sctx = ED_transform_snap_object_context_create(
-	        G.main, scene, scene_layer, engine, 0);
+	        G.main, scene, view_layer, engine, 0);
 
 	bool ret = ED_transform_snap_object_project_ray_ex(
 	        sctx,
@@ -325,7 +325,7 @@ static void rna_Scene_collada_export(
 
 	collada_export(&eval_ctx,
 		scene,
-		CTX_data_scene_layer(C),
+		CTX_data_view_layer(C),
 		filepath,
 
 		apply_modifiers,
@@ -384,7 +384,7 @@ void RNA_api_scene(StructRNA *srna)
 	/* Ray Cast */
 	func = RNA_def_function(srna, "ray_cast", "rna_Scene_ray_cast");
 	RNA_def_function_ui_description(func, "Cast a ray onto in object space");
-	parm = RNA_def_pointer(func, "scene_layer", "SceneLayer", "", "Scene Layer");
+	parm = RNA_def_pointer(func, "view_layer", "ViewLayer", "", "Scene Layer");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_string(func, "engine", NULL, MAX_NAME, "Engine", "Render engine, use scene one by default");
 	/* ray start and end */

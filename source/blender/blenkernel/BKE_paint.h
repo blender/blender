@@ -52,7 +52,7 @@ struct PaletteColor;
 struct PBVH;
 struct ReportList;
 struct Scene;
-struct SceneLayer;
+struct ViewLayer;
 struct Sculpt;
 struct StrokeCache;
 struct Tex;
@@ -91,8 +91,8 @@ typedef enum eOverlayControlFlags {
 						     PAINT_OVERLAY_OVERRIDE_PRIMARY | \
 						     PAINT_OVERLAY_OVERRIDE_CURSOR)
 
-void BKE_paint_invalidate_overlay_tex(struct Scene *scene, struct SceneLayer *sl, const struct Tex *tex);
-void BKE_paint_invalidate_cursor_overlay(struct Scene *scene, struct SceneLayer *sl, struct CurveMapping *curve);
+void BKE_paint_invalidate_overlay_tex(struct Scene *scene, struct ViewLayer *sl, const struct Tex *tex);
+void BKE_paint_invalidate_cursor_overlay(struct Scene *scene, struct ViewLayer *sl, struct CurveMapping *curve);
 void BKE_paint_invalidate_overlay_all(void);
 eOverlayControlFlags BKE_paint_get_overlay_flags(void);
 void BKE_paint_reset_overlay_invalid(eOverlayControlFlags flag);
@@ -126,7 +126,7 @@ void BKE_paint_cavity_curve_preset(struct Paint *p, int preset);
 
 short BKE_paint_object_mode_from_paint_mode(ePaintMode mode);
 struct Paint *BKE_paint_get_active_from_paintmode(struct Scene *sce, ePaintMode mode);
-struct Paint *BKE_paint_get_active(struct Scene *sce, struct SceneLayer *sl);
+struct Paint *BKE_paint_get_active(struct Scene *sce, struct ViewLayer *sl);
 struct Paint *BKE_paint_get_active_from_context(const struct bContext *C);
 ePaintMode BKE_paintmode_get_active_from_context(const struct bContext *C);
 struct Brush *BKE_paint_brush(struct Paint *paint);

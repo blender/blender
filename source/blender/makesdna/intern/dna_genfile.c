@@ -311,10 +311,39 @@ BLI_INLINE const char *pad_up_4(const char *ptr)
 }
 
 /**
+ * Temporary DNA doversion for files that were created with Blender 2.80
+ * between October 2016, and November 2017 (>=280.0 and < 280.2).
+ *
+ * /note This would be way more efficient if we can get the version from SDNA
+ * So we could return true if version == 280 && subversion < 2.
+ *
+ * Returns true if we need to do the DNA renaming.
+ */
+static bool need_doversion_280(SDNA *sdna, int *data, const bool data_alloc)
+{
+	if (data_alloc == false) {
+		return false;
+	}
+
+	const char *cp = (char *)data;
+	for (int nr = 0; nr < sdna->nr_names; nr++) {
+		if (strcmp(cp, "*cur_render_layer") == 0) {
+			return true;
+		}
+
+		while (*cp) cp++;
+		cp++;
+	}
+
+	return false;
+}
+
+/**
  * In sdna->data the data, now we convert that to something understandable
  */
 static bool init_structDNA(
         SDNA *sdna, bool do_endian_swap,
+        bool data_alloc,
         const char **r_error_message)
 {
 	int *data, *verg, gravity_fix = -1;
@@ -359,6 +388,10 @@ static bool init_structDNA(
 			*r_error_message = "NAME error in SDNA file";
 			return false;
 		}
+
+		/* Temporary DNA doversion for files that were created with Blender 2.80
+		 * between 280.0 and 280.2. */
+		const bool doversion_280 = need_doversion_280(sdna, data, data_alloc);
 		
 		cp = (char *)data;
 		for (int nr = 0; nr < sdna->nr_names; nr++) {
@@ -371,6 +404,28 @@ static bool init_structDNA(
 				if (nr && strcmp(sdna->names[nr - 1], "Cvi") == 0) {
 					sdna->names[nr] = "gravity[3]";
 					gravity_fix = nr;
+				}
+			}
+			else if (doversion_280) {
+				if (strcmp(cp, "*render_layer") == 0) {
+					/* WorkSpace. */
+					sdna->names[nr] = "*view_layer";
+				}
+				else if (strcmp(cp, "*scene_layer") == 0) {
+					/* ParticleEditSettings. */
+					sdna->names[nr] = "*view_layer";
+				}
+				else if (strcmp(cp, "render_layers") == 0) {
+					/* Scene. */
+					sdna->names[nr] = "view_layers";
+				}
+				else if (strcmp(cp, "active_layer") == 0) {
+					/* Scene. */
+					sdna->names[nr] = "active_view_layer";
+				}
+				else if (strcmp(cp, "*cur_render_layer") == 0) {
+					/* FileGlobal. */
+					sdna->names[nr] = "*cur_view_layer";
 				}
 			}
 
@@ -409,6 +464,14 @@ static bool init_structDNA(
 			if (*cp == 'b') {
 				/* struct Screen was already used by X, 'bScreen' replaces the old IrisGL 'Screen' struct */
 				if (strcmp("bScreen", cp) == 0) sdna->types[nr] = cp + 1;
+			}
+			else if (doversion_280) {
+				if (strcmp(cp, "SceneLayer") == 0) {
+					sdna->types[nr] = "ViewLayer";
+				}
+				else if (strcmp(cp, "SceneLayerEngineData") == 0) {
+					sdna->types[nr] = "ViewLayerEngineData";
+				}
 			}
 			
 			while (*cp) cp++;
@@ -552,7 +615,7 @@ SDNA *DNA_sdna_from_data(
 	sdna->data_alloc = data_alloc;
 	
 
-	if (init_structDNA(sdna, do_endian_swap, &error_message)) {
+	if (init_structDNA(sdna, do_endian_swap, data_alloc, &error_message)) {
 		return sdna;
 	}
 	else {

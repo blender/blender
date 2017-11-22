@@ -126,7 +126,7 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
 
 	/* TODO get screen percentage from layer setting */
 	// const DRWContextState *draw_ctx = DRW_context_state_get();
-	// SceneLayer *scene_layer = draw_ctx->scene_layer;
+	// ViewLayer *view_layer = draw_ctx->view_layer;
 	float screen_percentage = 1.0f;
 
 	int width = (int)(viewport_size[0] * screen_percentage);
@@ -157,11 +157,11 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
 	}
 }
 
-void EEVEE_lightprobes_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *UNUSED(vedata))
+void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *UNUSED(vedata))
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	SceneLayer *scene_layer = draw_ctx->scene_layer;
-	IDProperty *props = BKE_scene_layer_engine_evaluated_get(scene_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
+	ViewLayer *view_layer = draw_ctx->view_layer;
+	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
 
 	/* Shaders */
 	if (!e_data.probe_filter_glossy_sh) {
@@ -333,7 +333,7 @@ void EEVEE_lightprobes_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *UNUSED(ved
 	}
 }
 
-void EEVEE_lightprobes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
+void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_PassList *psl = vedata->psl;
@@ -472,7 +472,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *veda
 	}
 }
 
-void EEVEE_lightprobes_cache_add(EEVEE_SceneLayerData *sldata, Object *ob)
+void EEVEE_lightprobes_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
 {
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 	LightProbe *probe = (LightProbe *)ob->data;
@@ -529,7 +529,7 @@ static void scale_m4_v3(float R[4][4], float v[3])
 		mul_v3_v3(R[i], v);
 }
 
-static void EEVEE_planar_reflections_updates(EEVEE_SceneLayerData *sldata, EEVEE_StorageList *stl)
+static void EEVEE_planar_reflections_updates(EEVEE_ViewLayerData *sldata, EEVEE_StorageList *stl)
 {
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 	Object *ob;
@@ -634,7 +634,7 @@ static void EEVEE_planar_reflections_updates(EEVEE_SceneLayerData *sldata, EEVEE
 	}
 }
 
-static void EEVEE_lightprobes_updates(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl, EEVEE_StorageList *stl)
+static void EEVEE_lightprobes_updates(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl, EEVEE_StorageList *stl)
 {
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 	Object *ob;
@@ -761,7 +761,7 @@ static void EEVEE_lightprobes_updates(EEVEE_SceneLayerData *sldata, EEVEE_PassLi
 	}
 }
 
-void EEVEE_lightprobes_cache_finish(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
+void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
@@ -870,7 +870,7 @@ static void downsample_planar(void *vedata, int level)
 }
 
 /* Glossy filter probe_rt to probe_pool at index probe_idx */
-static void glossy_filter_probe(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata, EEVEE_PassList *psl, int probe_idx)
+static void glossy_filter_probe(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, EEVEE_PassList *psl, int probe_idx)
 {
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 
@@ -943,7 +943,7 @@ static void glossy_filter_probe(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata
 }
 
 /* Diffuse filter probe_rt to irradiance_pool at index probe_idx */
-static void diffuse_filter_probe(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata, EEVEE_PassList *psl, int offset)
+static void diffuse_filter_probe(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, EEVEE_PassList *psl, int offset)
 {
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 
@@ -991,7 +991,7 @@ static void diffuse_filter_probe(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedat
 
 /* Render the scene to the probe_rt texture. */
 static void render_scene_to_probe(
-        EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata,
+        EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata,
         const float pos[3], float clipsta, float clipend)
 {
 	EEVEE_TextureList *txl = vedata->txl;
@@ -1101,7 +1101,7 @@ static void render_scene_to_probe(
 }
 
 static void render_scene_to_planar(
-        EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata, int layer,
+        EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, int layer,
         float (*viewmat)[4], float (*persmat)[4],
         float clip_plane[4])
 {
@@ -1183,7 +1183,7 @@ static void render_scene_to_planar(
 	DRW_framebuffer_texture_detach(txl->planar_depth);
 }
 
-static void render_world_to_probe(EEVEE_SceneLayerData *sldata, EEVEE_PassList *psl)
+static void render_world_to_probe(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
 {
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 	float winmat[4][4], wininv[4][4];
@@ -1253,7 +1253,7 @@ static void lightprobe_cell_world_location_get(EEVEE_LightGrid *egrid, float loc
 	add_v3_v3(r_pos, tmp);
 }
 
-void EEVEE_lightprobes_refresh(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
+void EEVEE_lightprobes_refresh(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_PassList *psl = vedata->psl;

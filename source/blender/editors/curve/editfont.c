@@ -423,7 +423,7 @@ static void txt_add_object(bContext *C, TextLine *firstline, int totline, const 
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	EvaluationContext eval_ctx;
 	Curve *cu;
 	Object *obedit;

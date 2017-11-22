@@ -1270,7 +1270,7 @@ static void node_composit_buts_image_ex(uiLayout *layout, bContext *C, PointerRN
 	uiTemplateImage(layout, C, ptr, "image", &iuserptr, 0, 1);
 }
 
-static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_composit_buts_viewlayers(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	bNode *node = ptr->data;
 	uiLayout *col, *row;
@@ -2471,7 +2471,7 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			ntype->draw_buttons_ex = node_composit_buts_image_ex;
 			break;
 		case CMP_NODE_R_LAYERS:
-			ntype->draw_buttons = node_composit_buts_renderlayers;
+			ntype->draw_buttons = node_composit_buts_viewlayers;
 			break;
 		case CMP_NODE_NORMAL:
 			ntype->draw_buttons = node_buts_normal;

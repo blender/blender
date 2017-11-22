@@ -591,7 +591,7 @@ static int calc_manipulator_stats(
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 	View3D *v3d = sa->spacedata.first;
 	RegionView3D *rv3d = ar->regiondata;
@@ -1055,7 +1055,7 @@ static void manipulator_prepare_mat(
         const bContext *C, View3D *v3d, RegionView3D *rv3d, const struct TransformBounds *tbounds)
 {
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 
 	switch (v3d->around) {
 		case V3D_AROUND_CENTER_BOUNDS:
@@ -1590,7 +1590,7 @@ static void WIDGETGROUP_xform_cage_draw_prepare(const bContext *C, wmManipulator
 	struct XFormCageWidgetGroup *xmgroup = mgroup->customdata;
 	wmManipulator *mpr = xmgroup->manipulator;
 
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Object *ob = OBACT(sl);
 	if (ob && ob->mode & OB_MODE_EDIT) {
 		copy_m4_m4(mpr->matrix_space, ob->obmat);

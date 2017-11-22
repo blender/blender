@@ -54,7 +54,7 @@ class WORKSPACE_PT_workspace(WorkSpaceButtonsPanel, Panel):
 
         layout.enabled = not workspace.use_scene_settings
 
-        layout.template_search(workspace, "render_layer", scene, "render_layers")
+        layout.template_search(workspace, "view_layer", scene, "view_layers")
 
         if view_render.has_multiple_engines:
             layout.prop(view_render, "engine", text="")

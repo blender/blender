@@ -666,7 +666,7 @@ static bool camera_frame_fit_calc_from_data(
 /* don't move the camera, just yield the fit location */
 /* r_scale only valid/useful for ortho cameras */
 bool BKE_camera_view_frame_fit_to_scene(
-        Scene *scene, SceneLayer *sl, Object *camera_ob, float r_co[3], float *r_scale)
+        Scene *scene, ViewLayer *sl, Object *camera_ob, float r_co[3], float *r_scale)
 {
 	CameraParams params;
 	CameraViewFrameData data_cb;

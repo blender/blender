@@ -81,8 +81,8 @@ class NODE_HT_header(Header):
                     row.prop(snode_id, "use_nodes")
 
             if use_shading_nodes and snode.shader_type == 'LINESTYLE':
-                rl = context.scene.render_layers.active
-                lineset = rl.freestyle_settings.linesets.active
+                view_layer = context.scene.view_layers.active
+                lineset = view_layer.freestyle_settings.linesets.active
                 if lineset is not None:
                     row = layout.row()
                     row.enabled = not snode.pin
@@ -272,7 +272,7 @@ class NODE_MT_node(Menu):
 
         layout.separator()
 
-        layout.operator("node.read_renderlayers")
+        layout.operator("node.read_viewlayers")
         layout.operator("node.read_fullsamplelayers")
 
 

@@ -1992,18 +1992,18 @@ void add_halo_flare(Render *re)
 	}
 }
 
-void render_internal_update_passes(RenderEngine *engine, Scene *scene, SceneLayer *scene_layer)
+void render_internal_update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view_layer)
 {
 	int type;
 
-	RE_engine_register_pass(engine, scene, scene_layer, RE_PASSNAME_COMBINED, 4, "RGBA", SOCK_RGBA);
+	RE_engine_register_pass(engine, scene, view_layer, RE_PASSNAME_COMBINED, 4, "RGBA", SOCK_RGBA);
 
 #define CHECK_PASS(name, channels, chanid) \
-	if (scene_layer->passflag & (SCE_PASS_ ## name)) { \
+	if (view_layer->passflag & (SCE_PASS_ ## name)) { \
 		if (channels == 4) type = SOCK_RGBA; \
 		else if (channels == 3) type = SOCK_VECTOR; \
 		else type = SOCK_FLOAT; \
-		RE_engine_register_pass(engine, scene, scene_layer, RE_PASSNAME_ ## name, channels, chanid, type); \
+		RE_engine_register_pass(engine, scene, view_layer, RE_PASSNAME_ ## name, channels, chanid, type); \
 	}
 
 	CHECK_PASS(Z,           1, "Z");

@@ -88,7 +88,7 @@ static Object *get_camera_with_movieclip(Scene *scene, MovieClip *clip)
 static Object *get_orientation_object(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
@@ -113,7 +113,7 @@ static int set_orientation_poll(bContext *C)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	if (sc != NULL) {
-		SceneLayer *sl = CTX_data_scene_layer(C);
+		ViewLayer *sl = CTX_data_view_layer(C);
 		MovieClip *clip = ED_space_clip_get_clip(sc);
 		if (clip != NULL) {
 			MovieTracking *tracking = &clip->tracking;

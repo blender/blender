@@ -120,14 +120,14 @@ def object_data_add(context, obdata, operator=None, name=None):
     :rtype: :class:`bpy.types.Object`
     """
     scene = context.scene
-    layer = context.render_layer
+    layer = context.view_layer
     layer_collection = context.layer_collection
 
     for ob in layer.objects:
         ob.select_set(action='DESELECT')
 
     if not layer_collection:
-        # when there is no collection linked to this render_layer create one
+        # when there is no collection linked to this view_layer create one
         scene_collection = scene.master_collection.collections.new("")
         layer_collection = layer.collections.link(scene_collection)
     else:

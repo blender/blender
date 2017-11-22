@@ -1671,7 +1671,7 @@ void ED_gpencil_draw_view2d(const bContext *C, bool onlyv2d)
  * second time with only3d=false for screen-aligned strokes */
 void ED_gpencil_draw_view3d(wmWindowManager *wm,
                             Scene *scene,
-                            SceneLayer *scene_layer,
+                            ViewLayer *view_layer,
                             View3D *v3d,
                             ARegion *ar,
                             bool only3d)
@@ -1681,7 +1681,7 @@ void ED_gpencil_draw_view3d(wmWindowManager *wm,
 	int offsx,  offsy,  winx,  winy;
 
 	/* check that we have grease-pencil stuff to draw */
-	bGPdata *gpd = ED_gpencil_data_get_active_v3d(scene, scene_layer);
+	bGPdata *gpd = ED_gpencil_data_get_active_v3d(scene, view_layer);
 	if (gpd == NULL) return;
 
 	/* when rendering to the offscreen buffer we don't want to

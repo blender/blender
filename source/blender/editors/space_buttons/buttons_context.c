@@ -186,7 +186,7 @@ static int buttons_context_path_collection(ButsContextPath *path)
 		return 1;
 	}
 
-	SceneLayer *sl = ptr->data;
+	ViewLayer *sl = ptr->data;
 	LayerCollection *sc = BKE_layer_collection_get_active(sl);
 
 	if (sc) {
@@ -208,7 +208,7 @@ static int buttons_context_path_object(ButsContextPath *path)
 		return 1;
 	}
 
-	SceneLayer *sl = ptr->data;
+	ViewLayer *sl = ptr->data;
 	Object *ob = (sl->basact) ? sl->basact->object : NULL;
 
 	if (ob) {
@@ -411,7 +411,7 @@ static int buttons_context_path_brush(const bContext *C, ButsContextPath *path)
 		scene = path->ptr[path->len - 1].data;
 
 		if (scene) {
-			SceneLayer *sl = CTX_data_scene_layer(C);
+			ViewLayer *sl = CTX_data_view_layer(C);
 			br = BKE_paint_brush(BKE_paint_get_active(scene, sl));
 		}
 
@@ -561,7 +561,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 static bool buttons_context_linestyle_pinnable(const bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *active_scene_layer;
+	ViewLayer *active_view_layer;
 	FreestyleConfig *config;
 	SpaceButs *sbuts;
 
@@ -570,8 +570,8 @@ static bool buttons_context_linestyle_pinnable(const bContext *C)
 		return false;
 	}
 	/* if Freestyle is not in the Parameter Editor mode */
-	active_scene_layer = BLI_findlink(&scene->render_layers, scene->active_layer);
-	config = &active_scene_layer->freestyle_config;
+	active_view_layer = BLI_findlink(&scene->view_layers, scene->active_view_layer);
+	config = &active_view_layer->freestyle_config;
 	if (config->mode != FREESTYLE_CONTROL_EDITOR_MODE) {
 		return false;
 	}
@@ -608,7 +608,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 	/* No pinned root, use scene or workspace as initial root. */
 	else {
 		if ((mainb != BCONTEXT_WORKSPACE) && (use_scene_settings ||
-		    ELEM(mainb, BCONTEXT_SCENE, BCONTEXT_RENDER, BCONTEXT_RENDER_LAYER, BCONTEXT_WORLD)))
+		    ELEM(mainb, BCONTEXT_SCENE, BCONTEXT_RENDER, BCONTEXT_VIEW_LAYER, BCONTEXT_WORLD)))
 		{
 			RNA_id_pointer_create(&scene->id, &path->ptr[0]);
 			path->len++;
@@ -619,9 +619,9 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 		}
 	}
 
-	if (!ELEM(mainb, BCONTEXT_WORKSPACE, BCONTEXT_SCENE, BCONTEXT_RENDER, BCONTEXT_RENDER_LAYER, BCONTEXT_WORLD)) {
-		SceneLayer *scene_layer = BKE_scene_layer_from_workspace_get(scene, workspace);
-		RNA_pointer_create(NULL, &RNA_SceneLayer, scene_layer, &path->ptr[path->len]);
+	if (!ELEM(mainb, BCONTEXT_WORKSPACE, BCONTEXT_SCENE, BCONTEXT_RENDER, BCONTEXT_VIEW_LAYER, BCONTEXT_WORLD)) {
+		ViewLayer *view_layer = BKE_view_layer_from_workspace_get(scene, workspace);
+		RNA_pointer_create(NULL, &RNA_ViewLayer, view_layer, &path->ptr[path->len]);
 		path->len++;
 	}
 
@@ -632,7 +632,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 		case BCONTEXT_RENDER:
 			found = buttons_context_path_scene(path);
 			break;
-		case BCONTEXT_RENDER_LAYER:
+		case BCONTEXT_VIEW_LAYER:
 #ifdef WITH_FREESTYLE
 			if (buttons_context_linestyle_pinnable(C)) {
 				found = buttons_context_path_linestyle(path);
@@ -1186,7 +1186,7 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 			name = RNA_struct_name_get_alloc(ptr, namebuf, sizeof(namebuf), NULL);
 
 			if (name) {
-				if ((!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_SCENE, BCONTEXT_RENDER_LAYER) && ptr->type == &RNA_Scene) ||
+				if ((!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_SCENE, BCONTEXT_VIEW_LAYER) && ptr->type == &RNA_Scene) ||
 				    (!ELEM(sbuts->mainb, BCONTEXT_WORKSPACE) && ptr->type == &RNA_WorkSpace))
 				{
 					uiItemLDrag(row, ptr, "", icon);  /* save some space */

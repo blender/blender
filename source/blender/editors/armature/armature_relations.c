@@ -582,7 +582,7 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Object *oldob, *newob;
 	Base *oldbase, *newbase;

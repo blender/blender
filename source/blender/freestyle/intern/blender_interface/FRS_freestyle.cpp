@@ -283,19 +283,19 @@ static bool test_edge_type_conditions(struct edge_type_condition *conditions,
 	return true;
 }
 
-static void prepare(Render *re, SceneLayer *scene_layer)
+static void prepare(Render *re, ViewLayer *view_layer)
 {
 	// load mesh
 	re->i.infostr = IFACE_("Freestyle: Mesh loading");
 	re->stats_draw(re->sdh, &re->i);
 	re->i.infostr = NULL;
-	if (controller->LoadMesh(re, scene_layer)) // returns if scene cannot be loaded or if empty
+	if (controller->LoadMesh(re, view_layer)) // returns if scene cannot be loaded or if empty
 		return;
 	if (re->test_break(re->tbh))
 		return;
 
 	// add style modules
-	FreestyleConfig *config = &scene_layer->freestyle_config;
+	FreestyleConfig *config = &view_layer->freestyle_config;
 
 	if (G.debug & G_DEBUG_FREESTYLE) {
 		cout << "\n===  Rendering options  ===" << endl;
@@ -359,7 +359,7 @@ static void prepare(Render *re, SceneLayer *scene_layer)
 					cout << "  " << layer_count+1 << ": " << lineset->name << " - " <<
 					        (lineset->linestyle ? (lineset->linestyle->id.name + 2) : "<NULL>") << endl;
 				}
-				char *buffer = create_lineset_handler(scene_layer->name, lineset->name);
+				char *buffer = create_lineset_handler(view_layer->name, lineset->name);
 				controller->InsertStyleModule(layer_count, lineset->name, buffer);
 				controller->toggleLayer(layer_count, true);
 				MEM_freeN(buffer);
@@ -445,7 +445,7 @@ static void prepare(Render *re, SceneLayer *scene_layer)
 	}
 
 	// set diffuse and z depth passes
-	RenderLayer *rl = RE_GetRenderLayer(re->result, scene_layer->name);
+	RenderLayer *rl = RE_GetRenderLayer(re->result, view_layer->name);
 	bool diffuse = false, z = false;
 	for (RenderPass *rpass = (RenderPass *)rl->passes.first; rpass; rpass = rpass->next) {
 		if (STREQ(rpass->name, RE_PASSNAME_DIFFUSE)) {
@@ -473,7 +473,7 @@ static void prepare(Render *re, SceneLayer *scene_layer)
 	controller->ComputeViewMap();
 }
 
-void FRS_composite_result(Render *re, SceneLayer *scene_layer, Render *freestyle_render)
+void FRS_composite_result(Render *re, ViewLayer *view_layer, Render *freestyle_render)
 {
 	RenderLayer *rl;
 	float *src, *dest, *pixSrc, *pixDest;
@@ -503,7 +503,7 @@ void FRS_composite_result(Render *re, SceneLayer *scene_layer, Render *freestyle
 	}
 #endif
 
-	rl = RE_GetRenderLayer(re->result, scene_layer->name);
+	rl = RE_GetRenderLayer(re->result, view_layer->name);
 	if (!rl) {
 		if (G.debug & G_DEBUG_FREESTYLE) {
 			cout << "No destination render layer to composite to" << endl;
@@ -536,13 +536,13 @@ void FRS_composite_result(Render *re, SceneLayer *scene_layer, Render *freestyle
 	}
 }
 
-static int displayed_layer_count(SceneLayer *scene_layer)
+static int displayed_layer_count(ViewLayer *view_layer)
 {
 	int count = 0;
 
-	switch (scene_layer->freestyle_config.mode) {
+	switch (view_layer->freestyle_config.mode) {
 	case FREESTYLE_CONTROL_SCRIPT_MODE:
-		for (FreestyleModuleConfig *module = (FreestyleModuleConfig *)scene_layer->freestyle_config.modules.first;
+		for (FreestyleModuleConfig *module = (FreestyleModuleConfig *)view_layer->freestyle_config.modules.first;
 		     module;
 		     module = module->next)
 		{
@@ -551,7 +551,7 @@ static int displayed_layer_count(SceneLayer *scene_layer)
 		}
 		break;
 	case FREESTYLE_CONTROL_EDITOR_MODE:
-		for (FreestyleLineSet *lineset = (FreestyleLineSet *)scene_layer->freestyle_config.linesets.first;
+		for (FreestyleLineSet *lineset = (FreestyleLineSet *)view_layer->freestyle_config.linesets.first;
 		     lineset;
 		     lineset = lineset->next)
 		{
@@ -563,11 +563,11 @@ static int displayed_layer_count(SceneLayer *scene_layer)
 	return count;
 }
 
-int FRS_is_freestyle_enabled(SceneLayer *scene_layer)
+int FRS_is_freestyle_enabled(ViewLayer *view_layer)
 {
-	return ((scene_layer->flag & SCENE_LAYER_RENDER) &&
-	        (scene_layer->flag & SCENE_LAYER_FREESTYLE) &&
-	        displayed_layer_count(scene_layer) > 0);
+	return ((view_layer->flag & VIEW_LAYER_RENDER) &&
+	        (view_layer->flag & VIEW_LAYER_FREESTYLE) &&
+	        displayed_layer_count(view_layer) > 0);
 }
 
 void FRS_init_stroke_renderer(Render *re)
@@ -589,7 +589,7 @@ void FRS_begin_stroke_rendering(Render *re)
 	init_camera(re);
 }
 
-Render *FRS_do_stroke_rendering(Render *re, SceneLayer *scene_layer, int render)
+Render *FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer, int render)
 {
 	Render *freestyle_render = NULL;
 
@@ -598,12 +598,12 @@ Render *FRS_do_stroke_rendering(Render *re, SceneLayer *scene_layer, int render)
 
 	RenderMonitor monitor(re);
 	controller->setRenderMonitor(&monitor);
-	controller->setViewMapCache((scene_layer->freestyle_config.flags & FREESTYLE_VIEW_MAP_CACHE) ? true : false);
+	controller->setViewMapCache((view_layer->freestyle_config.flags & FREESTYLE_VIEW_MAP_CACHE) ? true : false);
 
 	if (G.debug & G_DEBUG_FREESTYLE) {
 		cout << endl;
 		cout << "----------------------------------------------------------" << endl;
-		cout << "|  " << (re->scene->id.name + 2) << "|" << scene_layer->name << endl;
+		cout << "|  " << (re->scene->id.name + 2) << "|" << view_layer->name << endl;
 		cout << "----------------------------------------------------------" << endl;
 	}
 
@@ -612,7 +612,7 @@ Render *FRS_do_stroke_rendering(Render *re, SceneLayer *scene_layer, int render)
 	//   - add style modules
 	//   - set parameters
 	//   - compute view map
-	prepare(re, scene_layer);
+	prepare(re, view_layer);
 
 	if (re->test_break(re->tbh)) {
 		controller->CloseFile();
@@ -637,7 +637,7 @@ Render *FRS_do_stroke_rendering(Render *re, SceneLayer *scene_layer, int render)
 
 			// composite result
 			if (freestyle_render) {
-				FRS_composite_result(re, scene_layer, freestyle_render);
+				FRS_composite_result(re, view_layer, freestyle_render);
 				RE_FreeRenderResult(freestyle_render->result);
 				freestyle_render->result = NULL;
 			}

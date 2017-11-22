@@ -26,7 +26,7 @@
  */
 
 #include "IndexedFaceSet.h"
-#include "NodeSceneLayer.h"
+#include "NodeViewLayer.h"
 #include "NodeCamera.h"
 #include "SceneVisitor.h"
 
@@ -49,7 +49,7 @@ public:
 	virtual ~SceneHash() {}
 
 	VISIT_DECL(NodeCamera)
-	VISIT_DECL(NodeSceneLayer)
+	VISIT_DECL(NodeViewLayer)
 	VISIT_DECL(IndexedFaceSet)
 
 	string toString();

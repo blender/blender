@@ -47,7 +47,7 @@ struct GSet;
 struct PointerRNA;
 struct PropertyRNA;
 struct Scene;
-struct SceneLayer;
+struct ViewLayer;
 
 namespace DEG {
 
@@ -177,7 +177,7 @@ struct Depsgraph {
 
 	/* Scene and layer this dependency graph is built for. */
 	Scene *scene;
-	SceneLayer *scene_layer;
+	ViewLayer *view_layer;
 };
 
 }  // namespace DEG

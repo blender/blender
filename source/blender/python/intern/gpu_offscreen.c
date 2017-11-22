@@ -164,13 +164,13 @@ static PyObject *pygpu_offscreen_draw_view3d(BPy_GPUOffScreen *self, PyObject *a
 {
 	/* TODO: This doesn't work currently because of eval_ctx. */
 #if 0
-	static const char *kwlist[] = {"scene", "render_layer", "view3d", "region", "projection_matrix", "modelview_matrix", NULL};
+	static const char *kwlist[] = {"scene", "view_layer", "view3d", "region", "projection_matrix", "modelview_matrix", NULL};
 
 	MatrixObject *py_mat_modelview, *py_mat_projection;
-	PyObject *py_scene, *py_scene_layer, *py_region, *py_view3d;
+	PyObject *py_scene, *py_view_layer, *py_region, *py_view3d;
 
 	Scene *scene;
-	SceneLayer *scene_layer;
+	ViewLayer *view_layer;
 	View3D *v3d;
 	ARegion *ar;
 	GPUFX *fx;
@@ -181,11 +181,11 @@ static PyObject *pygpu_offscreen_draw_view3d(BPy_GPUOffScreen *self, PyObject *a
 
 	if (!PyArg_ParseTupleAndKeywords(
 	        args, kwds, "OOOOO&O&:draw_view3d", (char **)(kwlist),
-	        &py_scene, &py_scene_layer, &py_view3d, &py_region,
+	        &py_scene, &py_view_layer, &py_view3d, &py_region,
 	        Matrix_Parse4x4, &py_mat_projection,
 	        Matrix_Parse4x4, &py_mat_modelview) ||
 	    (!(scene       = PyC_RNA_AsPointer(py_scene, "Scene")) ||
-	     !(scene_layer = PyC_RNA_AsPointer(py_scene_layer, "SceneLayer")) ||
+	     !(view_layer = PyC_RNA_AsPointer(py_view_layer, "ViewLayer")) ||
 	     !(v3d         = PyC_RNA_AsPointer(py_view3d, "SpaceView3D")) ||
 	     !(ar          = PyC_RNA_AsPointer(py_region, "Region"))))
 	{
@@ -196,14 +196,14 @@ static PyObject *pygpu_offscreen_draw_view3d(BPy_GPUOffScreen *self, PyObject *a
 
 	fx_settings = v3d->fx_settings;  /* full copy */
 
-	ED_view3d_draw_offscreen_init(scene, scene_layer, v3d);
+	ED_view3d_draw_offscreen_init(scene, view_layer, v3d);
 
 	rv3d_mats = ED_view3d_mats_rv3d_backup(ar->regiondata);
 
 	GPU_offscreen_bind(self->ofs, true); /* bind */
 
 	ED_view3d_draw_offscreen(
-	        scene, scene_layer, v3d, ar, GPU_offscreen_width(self->ofs), GPU_offscreen_height(self->ofs),
+	        scene, view_layer, v3d, ar, GPU_offscreen_width(self->ofs), GPU_offscreen_height(self->ofs),
 	        (float(*)[4])py_mat_modelview->matrix, (float(*)[4])py_mat_projection->matrix,
 	        false, true, true, "",
 	        fx, &fx_settings,

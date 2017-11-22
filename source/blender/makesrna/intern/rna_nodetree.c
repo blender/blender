@@ -2767,7 +2767,7 @@ static const EnumPropertyItem *rna_Node_image_view_itemf(bContext *UNUSED(C), Po
 	return item;
 }
 
-static const EnumPropertyItem *rna_Node_scene_layer_itemf(bContext *UNUSED(C), PointerRNA *ptr,
+static const EnumPropertyItem *rna_Node_view_layer_itemf(bContext *UNUSED(C), PointerRNA *ptr,
                                                     PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	bNode *node = (bNode *)ptr->data;
@@ -2780,7 +2780,7 @@ static const EnumPropertyItem *rna_Node_scene_layer_itemf(bContext *UNUSED(C), P
 		return DummyRNA_NULL_items;
 	}
 
-	rl = sce->render_layers.first;
+	rl = sce->view_layers.first;
 	item = renderresult_layers_add_enum(rl);
 
 	*r_free = true;
@@ -2788,7 +2788,7 @@ static const EnumPropertyItem *rna_Node_scene_layer_itemf(bContext *UNUSED(C), P
 	return item;
 }
 
-static void rna_Node_scene_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Node_view_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	rna_Node_update(bmain, scene, ptr);
 	if (scene->nodetree != NULL) {
@@ -3129,7 +3129,7 @@ static int point_density_vertex_color_source_from_shader(NodeShaderTexPointDensi
 
 void rna_ShaderNodePointDensity_density_cache(bNode *self,
                                               Scene *scene,
-                                              SceneLayer *scene_layer,
+                                              ViewLayer *view_layer,
                                               int settings)
 {
 	NodeShaderTexPointDensity *shader_point_density = self->storage;
@@ -3167,13 +3167,13 @@ void rna_ShaderNodePointDensity_density_cache(bNode *self,
 
 	/* Single-threaded sampling of the voxel domain. */
 	RE_point_density_cache(scene,
-	                       scene_layer, pd,
+	                       view_layer, pd,
 	                       settings == 1);
 }
 
 void rna_ShaderNodePointDensity_density_calc(bNode *self,
                                              Scene *scene,
-                                             SceneLayer *scene_layer,
+                                             ViewLayer *view_layer,
                                              int settings,
                                              int *length,
                                              float **values)
@@ -3195,7 +3195,7 @@ void rna_ShaderNodePointDensity_density_calc(bNode *self,
 	}
 
 	/* Single-threaded sampling of the voxel domain. */
-	RE_point_density_sample(scene, scene_layer, pd,
+	RE_point_density_sample(scene, view_layer, pd,
 	                        resolution,
 	                        settings == 1,
 	                        *values);
@@ -3208,7 +3208,7 @@ void rna_ShaderNodePointDensity_density_calc(bNode *self,
 
 void rna_ShaderNodePointDensity_density_minmax(bNode *self,
                                                Scene *scene,
-                                               SceneLayer *scene_layer,
+                                               ViewLayer *view_layer,
                                                int settings,
                                                float r_min[3],
                                                float r_max[3])
@@ -3220,7 +3220,7 @@ void rna_ShaderNodePointDensity_density_minmax(bNode *self,
 		zero_v3(r_max);
 		return;
 	}
-	RE_point_density_minmax(scene, scene_layer, pd, settings == 1, r_min, r_max);
+	RE_point_density_minmax(scene, view_layer, pd, settings == 1, r_min, r_max);
 }
 
 #else
@@ -3235,7 +3235,7 @@ static const EnumPropertyItem prop_image_view_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static const EnumPropertyItem prop_scene_layer_items[] = {
+static const EnumPropertyItem prop_view_layer_items[] = {
 	{ 0, "PLACEHOLDER",          0, "Placeholder",          ""},
 	{0, NULL, 0, NULL, NULL}
 };
@@ -4204,13 +4204,13 @@ static void def_sh_tex_pointdensity(StructRNA *srna)
 	func = RNA_def_function(srna, "cache_point_density", "rna_ShaderNodePointDensity_density_cache");
 	RNA_def_function_ui_description(func, "Cache point density data for later calculation");
 	RNA_def_pointer(func, "scene", "Scene", "", "");
-	RNA_def_pointer(func, "scene_layer", "SceneLayer", "", "");
+	RNA_def_pointer(func, "view_layer", "ViewLayer", "", "");
 	RNA_def_enum(func, "settings", calc_mode_items, 1, "", "Calculate density for rendering");
 
 	func = RNA_def_function(srna, "calc_point_density", "rna_ShaderNodePointDensity_density_calc");
 	RNA_def_function_ui_description(func, "Calculate point density");
 	RNA_def_pointer(func, "scene", "Scene", "", "");
-	RNA_def_pointer(func, "scene_layer", "SceneLayer", "", "");
+	RNA_def_pointer(func, "view_layer", "ViewLayer", "", "");
 	RNA_def_enum(func, "settings", calc_mode_items, 1, "", "Calculate density for rendering");
 	/* TODO, See how array size of 0 works, this shouldnt be used. */
 	parm = RNA_def_float_array(func, "rgba_values", 1, NULL, 0, 0, "", "RGBA Values", 0, 0);
@@ -4220,7 +4220,7 @@ static void def_sh_tex_pointdensity(StructRNA *srna)
 	func = RNA_def_function(srna, "calc_point_density_minmax", "rna_ShaderNodePointDensity_density_minmax");
 	RNA_def_function_ui_description(func, "Calculate point density");
 	RNA_def_pointer(func, "scene", "Scene", "", "");
-	RNA_def_pointer(func, "scene_layer", "SceneLayer", "", "");
+	RNA_def_pointer(func, "view_layer", "ViewLayer", "", "");
 	RNA_def_enum(func, "settings", calc_mode_items, 1, "", "Calculate density for rendering");
 	parm = RNA_def_property(func, "min", PROP_FLOAT, PROP_COORDS);
 	RNA_def_property_array(parm, 3);
@@ -4857,15 +4857,15 @@ static void def_cmp_render_layers(StructRNA *srna)
 	RNA_def_property_struct_type(prop, "Scene");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
 	RNA_def_property_ui_text(prop, "Scene", "");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_scene_layer_update");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_view_layer_update");
 	
 	prop = RNA_def_property(srna, "layer", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
-	RNA_def_property_enum_items(prop, prop_scene_layer_items);
-	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Node_scene_layer_itemf");
+	RNA_def_property_enum_items(prop, prop_view_layer_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Node_view_layer_itemf");
 	RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
 	RNA_def_property_ui_text(prop, "Layer", "");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_scene_layer_update");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_view_layer_update");
 }
 
 static void rna_def_cmp_output_file_slot_file(BlenderRNA *brna)

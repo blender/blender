@@ -235,7 +235,7 @@ void ED_object_editmode_exit(bContext *C, int flag)
 	/* Note! only in exceptional cases should 'EM_DO_UNDO' NOT be in the flag */
 	/* Note! if 'EM_FREEDATA' isn't in the flag, use ED_object_editmode_load directly */
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 	const bool freedata = (flag & EM_FREEDATA) != 0;
 
@@ -290,7 +290,7 @@ void ED_object_editmode_exit(bContext *C, int flag)
 void ED_object_editmode_enter(bContext *C, int flag)
 {
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Object *ob;
 	bool ok = false;
 
@@ -512,7 +512,7 @@ void OBJECT_OT_posemode_toggle(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static void copymenu_properties(SceneLayer *sl, Object *ob)
+static void copymenu_properties(ViewLayer *sl, Object *ob)
 {	
 //XXX no longer used - to be removed - replaced by game_properties_copy_exec
 	bProperty *prop;
@@ -573,7 +573,7 @@ static void copymenu_properties(SceneLayer *sl, Object *ob)
 	
 }
 
-static void copymenu_logicbricks(SceneLayer *sl, Object *ob)
+static void copymenu_logicbricks(ViewLayer *sl, Object *ob)
 {
 //XXX no longer used - to be removed - replaced by logicbricks_copy_exec
 	Base *base;
@@ -659,7 +659,7 @@ static void copy_texture_space(Object *to, Object *ob)
 }
 
 /* UNUSED, keep in case we want to copy functionality for use elsewhere */
-static void copy_attr(Main *bmain, Scene *scene, SceneLayer *sl, short event)
+static void copy_attr(Main *bmain, Scene *scene, ViewLayer *sl, short event)
 {
 	Object *ob;
 	Base *base;
@@ -910,7 +910,7 @@ static void copy_attr(Main *bmain, Scene *scene, SceneLayer *sl, short event)
 		DEG_relations_tag_update(bmain);
 }
 
-static void UNUSED_FUNCTION(copy_attr_menu) (Main *bmain, Scene *scene, SceneLayer *sl)
+static void UNUSED_FUNCTION(copy_attr_menu) (Main *bmain, Scene *scene, ViewLayer *sl)
 {
 	Object *ob;
 	short event;
@@ -1334,7 +1334,7 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 
 /* ********************** */
 
-static void UNUSED_FUNCTION(image_aspect) (Scene *scene, SceneLayer *sl)
+static void UNUSED_FUNCTION(image_aspect) (Scene *scene, ViewLayer *sl)
 {
 	/* all selected objects with an image map: scale in image aspect */
 	Base *base;

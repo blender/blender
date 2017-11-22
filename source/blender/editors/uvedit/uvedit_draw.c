@@ -517,7 +517,7 @@ static void draw_uvs_other_mesh(Object *ob, const Image *curimage, const bool ne
 	}
 }
 
-static void draw_uvs_other(SceneLayer *sl, Object *obedit, const Image *curimage, const bool new_shading_nodes,
+static void draw_uvs_other(ViewLayer *sl, Object *obedit, const Image *curimage, const bool new_shading_nodes,
                            const int other_uv_filter)
 {
 	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -539,7 +539,7 @@ static void draw_uvs_other(SceneLayer *sl, Object *obedit, const Image *curimage
 	immUnbindProgram();
 }
 
-static void draw_uvs_texpaint(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *ob)
+static void draw_uvs_texpaint(SpaceImage *sima, Scene *scene, ViewLayer *sl, Object *ob)
 {
 	const bool new_shading_nodes = BKE_scene_use_new_shading_nodes(scene);
 	Image *curimage = ED_space_image(sima);
@@ -604,7 +604,7 @@ static void draw_uvs_looptri(BMEditMesh *em, unsigned int *r_loop_index, const i
 }
 
 /* draws uv's in the image space */
-static void draw_uvs(SpaceImage *sima, Scene *scene, SceneLayer *sl, Object *obedit, Depsgraph *depsgraph)
+static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *sl, Object *obedit, Depsgraph *depsgraph)
 {
 	const bool new_shading_nodes = BKE_scene_use_new_shading_nodes(scene);
 	ToolSettings *ts;
@@ -1045,7 +1045,7 @@ static void draw_uv_shadows_get(SpaceImage *sima, Object *ob, Object *obedit, bo
 	*show_texpaint = (ob && ob->type == OB_MESH && ob->mode == OB_MODE_TEXTURE_PAINT);
 }
 
-void ED_uvedit_draw_main(SpaceImage *sima, ARegion *ar, Scene *scene, SceneLayer *sl, Object *obedit, Object *obact, Depsgraph *depsgraph)
+void ED_uvedit_draw_main(SpaceImage *sima, ARegion *ar, Scene *scene, ViewLayer *sl, Object *obedit, Object *obact, Depsgraph *depsgraph)
 {
 	ToolSettings *toolsettings = scene->toolsettings;
 	bool show_uvedit, show_uvshadow, show_texpaint_uvshadow;

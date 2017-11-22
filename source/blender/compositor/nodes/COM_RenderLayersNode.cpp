@@ -65,12 +65,12 @@ void RenderLayersNode::testRenderLink(NodeConverter &converter,
 		missingRenderLink(converter);
 		return;
 	}
-	SceneLayer *scene_layer = (SceneLayer *)BLI_findlink(&scene->render_layers, layerId);
-	if (scene_layer == NULL) {
+	ViewLayer *view_layer = (ViewLayer *)BLI_findlink(&scene->view_layers, layerId);
+	if (view_layer == NULL) {
 		missingRenderLink(converter);
 		return;
 	}
-	RenderLayer *rl = RE_GetRenderLayer(rr, scene_layer->name);
+	RenderLayer *rl = RE_GetRenderLayer(rr, view_layer->name);
 	if (rl == NULL) {
 		missingRenderLink(converter);
 		return;

@@ -48,7 +48,7 @@ struct RenderData;
 struct RenderResult;
 struct ReportList;
 struct Scene;
-struct SceneLayer;
+struct ViewLayer;
 struct EnvMap;
 struct StampData;
 struct ViewRender;
@@ -241,7 +241,7 @@ struct RenderPass *RE_create_gp_pass(struct RenderResult *rr, const char *layern
 /* obligatory initialize call, disprect is optional */
 void RE_InitState(struct Render *re, struct Render *source, struct RenderData *rd,
                   struct ListBase *render_layers, const int active_layer,
-                  struct ViewRender *view_render, struct SceneLayer *scene_layer,
+                  struct ViewRender *view_render, struct ViewLayer *view_layer,
                   int winx, int winy, rcti *disprect);
 void RE_ChangeResolution(struct Render *re, int winx, int winy, rcti *disprect);
 void RE_ChangeModeFlag(struct Render *re, int flag, bool clear);
@@ -290,7 +290,7 @@ bool RE_WriteRenderViewsMovie(
 
 /* only RE_NewRender() needed, main Blender render calls */
 void RE_BlenderFrame(struct Render *re, struct Main *bmain, struct Scene *scene,
-                     struct SceneLayer *scene_layer, struct Object *camera_override,
+                     struct ViewLayer *view_layer, struct Object *camera_override,
                      unsigned int lay_override, int frame, const bool write_still);
 void RE_BlenderAnim(struct Render *re, struct Main *bmain, struct Scene *scene, struct Object *camera_override,
                     unsigned int lay_override, int sfra, int efra, int tfra);

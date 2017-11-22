@@ -47,15 +47,15 @@ class SCENE_OT_freestyle_fill_range_by_selection(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        rl = context.scene.render_layers.active
-        return rl and rl.freestyle_settings.linesets.active
+        view_layer = context.scene.view_layers.active
+        return view_layer and view_layer.freestyle_settings.linesets.active
 
     def execute(self, context):
         import sys
 
         scene = context.scene
-        rl = scene.render_layers.active
-        lineset = rl.freestyle_settings.linesets.active
+        view_layer = scene.view_layers.active
+        lineset = view_layer.freestyle_settings.linesets.active
         linestyle = lineset.linestyle
         # Find the modifier to work on
         if self.type == 'COLOR':
@@ -207,8 +207,8 @@ class SCENE_OT_freestyle_module_open(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        rl = context.scene.render_layers.active
-        return rl and rl.freestyle_settings.mode == 'SCRIPT'
+        view_layer = context.scene.view_layers.active
+        return view_layer and view_layer.freestyle_settings.mode == 'SCRIPT'
 
     def invoke(self, context, event):
         self.freestyle_module = context.freestyle_module

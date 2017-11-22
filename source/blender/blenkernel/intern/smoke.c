@@ -695,10 +695,10 @@ void smokeModifier_copy(struct SmokeModifierData *smd, struct SmokeModifierData 
 #ifdef WITH_SMOKE
 
 // forward decleration
-static void smoke_calc_transparency(SmokeDomainSettings *sds, SceneLayer *sl);
+static void smoke_calc_transparency(SmokeDomainSettings *sds, ViewLayer *sl);
 static float calc_voxel_transp(float *result, float *input, int res[3], int *pixel, float *tRay, float correct);
 
-static int get_lamp(SceneLayer *sl, float *light)
+static int get_lamp(ViewLayer *sl, float *light)
 {
 	Base *base_tmp = NULL;
 	int found_lamp = 0;
@@ -2811,7 +2811,7 @@ static void smokeModifier_process(
 		}
 
 		// create shadows before writing cache so they get stored
-		smoke_calc_transparency(sds, eval_ctx->scene_layer);
+		smoke_calc_transparency(sds, eval_ctx->view_layer);
 
 		if (sds->wt && sds->total_cells > 1) {
 			smoke_turbulence_step(sds->wt, sds->fluid);
@@ -2950,7 +2950,7 @@ static void bresenham_linie_3D(int x1, int y1, int z1, int x2, int y2, int z2, f
 	cb(result, input, res, pixel, tRay, correct);
 }
 
-static void smoke_calc_transparency(SmokeDomainSettings *sds, SceneLayer *sl)
+static void smoke_calc_transparency(SmokeDomainSettings *sds, ViewLayer *sl)
 {
 	float bv[6] = {0};
 	float light[3];

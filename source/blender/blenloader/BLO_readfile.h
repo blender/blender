@@ -44,7 +44,7 @@ struct Main;
 struct MemFile;
 struct ReportList;
 struct Scene;
-struct SceneLayer;
+struct ViewLayer;
 struct UserDef;
 struct View3D;
 struct bContext;
@@ -70,7 +70,7 @@ typedef struct BlendFileData {
 
 	struct bScreen *curscreen; /* TODO think this isn't needed anymore? */
 	struct Scene *curscene;
-	struct SceneLayer *cur_render_layer; /* layer to activate in workspaces when reading without UI */
+	struct ViewLayer *cur_view_layer; /* layer to activate in workspaces when reading without UI */
 
 	eBlenFileType type;
 } BlendFileData;
@@ -124,9 +124,9 @@ struct ID *BLO_library_link_named_part(struct Main *mainl, BlendHandle **bh, con
 struct ID *BLO_library_link_named_part_ex(
         struct Main *mainl, BlendHandle **bh,
         const short idcode, const char *name, const short flag,
-        struct Scene *scene, struct SceneLayer *scene_layer,
+        struct Scene *scene, struct ViewLayer *view_layer,
         const bool use_placeholders, const bool force_indirect);
-void BLO_library_link_end(struct Main *mainl, BlendHandle **bh, short flag, struct Scene *scene, struct SceneLayer *scene_layer);
+void BLO_library_link_end(struct Main *mainl, BlendHandle **bh, short flag, struct Scene *scene, struct ViewLayer *view_layer);
 
 void BLO_library_link_copypaste(struct Main *mainl, BlendHandle *bh);
 
@@ -137,7 +137,7 @@ BlendFileData *blo_read_blendafterruntime(int file, const char *name, int actual
 /* internal function but we need to expose it */
 void blo_lib_link_restore(
         struct Main *newmain, struct wmWindowManager *curwm,
-        struct Scene *curscene, struct SceneLayer *cur_render_layer);
+        struct Scene *curscene, struct ViewLayer *cur_render_layer);
 
 typedef void (*BLOExpandDoitCallback) (void *fdhandle, struct Main *mainvar, void *idv);
 

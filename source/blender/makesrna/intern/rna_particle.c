@@ -614,13 +614,13 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem, R
 	}
 }
 
-static void rna_ParticleSystem_set_resolution(ParticleSystem *particlesystem, Scene *scene, SceneLayer *scene_layer, Object *object, int resolution)
+static void rna_ParticleSystem_set_resolution(ParticleSystem *particlesystem, Scene *scene, ViewLayer *view_layer, Object *object, int resolution)
 {
 	EvaluationContext eval_ctx;
 
 	DEG_evaluation_context_init(&eval_ctx, resolution);
 	eval_ctx.ctime = (float)scene->r.cfra + scene->r.subframe;
-	eval_ctx.scene_layer = scene_layer;
+	eval_ctx.view_layer = view_layer;
 
 	if (resolution == eModifierMode_Render) {
 		ParticleSystemModifierData *psmd = psys_get_modifier(object, particlesystem);
@@ -3557,7 +3557,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	func = RNA_def_function(srna, "set_resolution", "rna_ParticleSystem_set_resolution");
 	RNA_def_function_ui_description(func, "Set the resolution to use for the number of particles");
 	RNA_def_pointer(func, "scene", "Scene", "", "Scene");
-	RNA_def_pointer(func, "scene_layer", "SceneLayer", "", "SceneLayer");
+	RNA_def_pointer(func, "view_layer", "ViewLayer", "", "ViewLayer");
 	RNA_def_pointer(func, "object", "Object", "", "Object");
 	RNA_def_enum(func, "resolution", resolution_items, 0, "", "Resolution settings to apply");
 

@@ -921,15 +921,15 @@ Scene *CTX_data_scene(const bContext *C)
 		return C->data.scene;
 }
 
-SceneLayer *CTX_data_scene_layer(const bContext *C)
+ViewLayer *CTX_data_view_layer(const bContext *C)
 {
-	SceneLayer *sl;
+	ViewLayer *sl;
 
-	if (ctx_data_pointer_verify(C, "render_layer", (void *)&sl)) {
+	if (ctx_data_pointer_verify(C, "view_layer", (void *)&sl)) {
 		return sl;
 	}
 	else {
-		return BKE_scene_layer_from_workspace_get(CTX_data_scene(C), CTX_wm_workspace(C));
+		return BKE_view_layer_from_workspace_get(CTX_data_scene(C), CTX_wm_workspace(C));
 	}
 }
 
@@ -957,16 +957,16 @@ RenderEngineType *CTX_data_engine(const bContext *C)
  * This is tricky. Sometimes the user overrides the render_layer
  * but not the scene_collection. In this case what to do?
  *
- * If the scene_collection is linked to the SceneLayer we use it.
- * Otherwise we fallback to the active one of the SceneLayer.
+ * If the scene_collection is linked to the ViewLayer we use it.
+ * Otherwise we fallback to the active one of the ViewLayer.
  */
 LayerCollection *CTX_data_layer_collection(const bContext *C)
 {
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	LayerCollection *lc;
 
 	if (ctx_data_pointer_verify(C, "layer_collection", (void *)&lc)) {
-		if (BKE_scene_layer_has_collection(sl, lc->scene_collection)) {
+		if (BKE_view_layer_has_collection(sl, lc->scene_collection)) {
 			return lc;
 		}
 	}
@@ -979,7 +979,7 @@ SceneCollection *CTX_data_scene_collection(const bContext *C)
 {
 	SceneCollection *sc;
 	if (ctx_data_pointer_verify(C, "scene_collection", (void *)&sc)) {
-		if (BKE_scene_layer_has_collection(CTX_data_scene_layer(C), sc)) {
+		if (BKE_view_layer_has_collection(CTX_data_view_layer(C), sc)) {
 			return sc;
 		}
 	}
@@ -1259,8 +1259,8 @@ int CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list)
 Depsgraph *CTX_data_depsgraph(const bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *scene_layer = CTX_data_scene_layer(C);
-	return BKE_scene_get_depsgraph(scene, scene_layer, true);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	return BKE_scene_get_depsgraph(scene, view_layer, true);
 }
 
 void CTX_data_eval_ctx(const bContext *C, EvaluationContext *eval_ctx)
@@ -1268,9 +1268,9 @@ void CTX_data_eval_ctx(const bContext *C, EvaluationContext *eval_ctx)
 	BLI_assert(C != NULL);
 
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *scene_layer = CTX_data_scene_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	RenderEngineType *engine = CTX_data_engine(C);
 	DEG_evaluation_context_init_from_scene(eval_ctx,
-	                                       scene, scene_layer, engine,
+	                                       scene, view_layer, engine,
 	                                       DAG_EVAL_VIEWPORT);
 }

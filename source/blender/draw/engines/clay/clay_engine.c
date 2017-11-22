@@ -144,11 +144,11 @@ typedef struct CLAY_Data {
 	CLAY_StorageList *stl;
 } CLAY_Data;
 
-typedef struct CLAY_SceneLayerData {
+typedef struct CLAY_ViewLayerData {
 	struct GPUTexture *jitter_tx;
 	struct GPUUniformBuffer *sampling_ubo;
 	int cached_sample_num;
-} CLAY_SceneLayerData;
+} CLAY_ViewLayerData;
 
 /* *********** STATIC *********** */
 
@@ -187,20 +187,20 @@ typedef struct CLAY_PrivateData {
 
 /* Functions */
 
-static void clay_scene_layer_data_free(void *storage)
+static void clay_view_layer_data_free(void *storage)
 {
-	CLAY_SceneLayerData *sldata = (CLAY_SceneLayerData *)storage;
+	CLAY_ViewLayerData *sldata = (CLAY_ViewLayerData *)storage;
 
 	DRW_UBO_FREE_SAFE(sldata->sampling_ubo);
 	DRW_TEXTURE_FREE_SAFE(sldata->jitter_tx);
 }
 
-static CLAY_SceneLayerData *CLAY_scene_layer_data_get(void)
+static CLAY_ViewLayerData *CLAY_view_layer_data_get(void)
 {
-	CLAY_SceneLayerData **sldata = (CLAY_SceneLayerData **)DRW_scene_layer_engine_data_get(&draw_engine_clay_type, &clay_scene_layer_data_free);
+	CLAY_ViewLayerData **sldata = (CLAY_ViewLayerData **)DRW_view_layer_engine_data_get(&draw_engine_clay_type, &clay_view_layer_data_free);
 
 	if (*sldata == NULL) {
-		*sldata = MEM_callocN(sizeof(**sldata), "CLAY_SceneLayerData");
+		*sldata = MEM_callocN(sizeof(**sldata), "CLAY_ViewLayerData");
 	}
 
 	return *sldata;
@@ -326,7 +326,7 @@ static void CLAY_engine_init(void *vedata)
 {
 	CLAY_StorageList *stl = ((CLAY_Data *)vedata)->stl;
 	CLAY_FramebufferList *fbl = ((CLAY_Data *)vedata)->fbl;
-	CLAY_SceneLayerData *sldata = CLAY_scene_layer_data_get();
+	CLAY_ViewLayerData *sldata = CLAY_view_layer_data_get();
 
 	/* Create Texture Array */
 	if (!e_data.matcap_array) {
@@ -424,9 +424,9 @@ static void CLAY_engine_init(void *vedata)
 	/* SSAO setup */
 	{
 		const DRWContextState *draw_ctx = DRW_context_state_get();
-		SceneLayer *scene_layer = draw_ctx->scene_layer;
-		IDProperty *props = BKE_scene_layer_engine_evaluated_get(
-		        scene_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_CLAY);
+		ViewLayer *view_layer = draw_ctx->view_layer;
+		IDProperty *props = BKE_view_layer_engine_evaluated_get(
+		        view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_CLAY);
 		int ssao_samples = BKE_collection_engine_property_value_get_int(props, "ssao_samples");
 
 		float invproj[4][4];
@@ -497,7 +497,7 @@ static void CLAY_engine_init(void *vedata)
 static DRWShadingGroup *CLAY_shgroup_create(CLAY_Data *vedata, DRWPass *pass, int *material_id, bool use_flat)
 {
 	CLAY_StorageList *stl = vedata->stl;
-	CLAY_SceneLayerData *sldata = CLAY_scene_layer_data_get();
+	CLAY_ViewLayerData *sldata = CLAY_view_layer_data_get();
 	DRWShadingGroup *grp = DRW_shgroup_create(use_flat ? e_data.clay_flat_sh : e_data.clay_sh, pass);
 
 	DRW_shgroup_uniform_vec2(grp, "screenres", DRW_viewport_size_get(), 1);
@@ -885,7 +885,7 @@ static void CLAY_layer_collection_settings_create(RenderEngine *UNUSED(engine), 
 	BKE_collection_engine_property_add_float(props, "hair_brightness_randomness", 0.0f);
 }
 
-static void CLAY_scene_layer_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
+static void CLAY_view_layer_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
 {
 	BLI_assert(props &&
 	           props->type == IDP_GROUP &&
@@ -923,7 +923,7 @@ RenderEngineType DRW_engine_viewport_clay_type = {
 	CLAY_ENGINE, N_("Clay"), RE_INTERNAL,
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 	&CLAY_layer_collection_settings_create,
-	&CLAY_scene_layer_settings_create,
+	&CLAY_view_layer_settings_create,
 	&draw_engine_clay_type,
 	{NULL, NULL, NULL}
 };

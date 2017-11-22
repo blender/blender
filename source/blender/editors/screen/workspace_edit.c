@@ -71,7 +71,7 @@
  * \{ */
 
 WorkSpace *ED_workspace_add(
-        Main *bmain, const char *name, SceneLayer *act_render_layer, ViewRender *view_render)
+        Main *bmain, const char *name, ViewLayer *act_view_layer, ViewRender *view_render)
 {
 	WorkSpace *workspace = BKE_workspace_add(bmain, name);
 
@@ -79,7 +79,7 @@ WorkSpace *ED_workspace_add(
 	BKE_workspace_object_mode_set(workspace, OB_MODE_OBJECT);
 #endif
 
-	BKE_workspace_render_layer_set(workspace, act_render_layer);
+	BKE_workspace_view_layer_set(workspace, act_view_layer);
 	BKE_viewrender_copy(&workspace->view_render, view_render);
 
 	return workspace;
@@ -104,11 +104,11 @@ static void workspace_change_update_mode(
 }
 #endif
 
-static void workspace_change_update_render_layer(
+static void workspace_change_update_view_layer(
         WorkSpace *workspace_new, const WorkSpace *workspace_old)
 {
-	if (!BKE_workspace_render_layer_get(workspace_new)) {
-		BKE_workspace_render_layer_set(workspace_new, BKE_workspace_render_layer_get(workspace_old));
+	if (!BKE_workspace_view_layer_get(workspace_new)) {
+		BKE_workspace_view_layer_set(workspace_new, BKE_workspace_view_layer_get(workspace_old));
 	}
 }
 
@@ -117,7 +117,7 @@ static void workspace_change_update(
         bContext *C, wmWindowManager *wm)
 {
 	/* needs to be done before changing mode! (to ensure right context) */
-	workspace_change_update_render_layer(workspace_new, workspace_old);
+	workspace_change_update_view_layer(workspace_new, workspace_old);
 #ifdef USE_WORKSPACE_MODE
 	workspace_change_update_mode(workspace_old, workspace_new, C, CTX_data_active_object(C), &wm->reports);
 #else
@@ -199,7 +199,7 @@ bool ED_workspace_change(
 		screen_changed_update(C, win, screen_new);
 		workspace_change_update(workspace_new, workspace_old, C, wm);
 
-		BLI_assert(BKE_workspace_render_layer_get(workspace_new) != NULL);
+		BLI_assert(BKE_workspace_view_layer_get(workspace_new) != NULL);
 		BLI_assert(CTX_wm_workspace(C) == workspace_new);
 
 		return true;
@@ -219,7 +219,7 @@ WorkSpace *ED_workspace_duplicate(
 	ListBase *layouts_old = BKE_workspace_layouts_get(workspace_old);
 	WorkSpace *workspace_new = ED_workspace_add(
 	        bmain, workspace_old->id.name + 2,
-	        BKE_workspace_render_layer_get(workspace_old),
+	        BKE_workspace_view_layer_get(workspace_old),
 	        &workspace_old->view_render);
 	ListBase *transform_orientations_old = BKE_workspace_transform_orientations_get(workspace_old);
 	ListBase *transform_orientations_new = BKE_workspace_transform_orientations_get(workspace_new);
@@ -273,12 +273,12 @@ void ED_workspace_scene_data_sync(
 	BKE_screen_view3d_scene_sync(screen, scene);
 }
 
-void ED_workspace_render_layer_unset(
-        const Main *bmain, const SceneLayer *layer_unset, SceneLayer *layer_new)
+void ED_workspace_view_layer_unset(
+        const Main *bmain, const ViewLayer *layer_unset, ViewLayer *layer_new)
 {
 	for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
-		if (BKE_workspace_render_layer_get(workspace) == layer_unset) {
-			BKE_workspace_render_layer_set(workspace, layer_new);
+		if (BKE_workspace_view_layer_get(workspace) == layer_unset) {
+			BKE_workspace_view_layer_set(workspace, layer_new);
 		}
 	}
 }

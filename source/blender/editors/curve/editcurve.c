@@ -1288,7 +1288,7 @@ static int separate_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Object *oldob, *newob;
 	Base *oldbase, *newbase;
 	Curve *oldcu, *newcu;
@@ -5020,7 +5020,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 			const float mval[2] = {UNPACK2(event->mval)};
 
 			struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create_view3d(
-			        CTX_data_main(C), vc.scene, vc.scene_layer, vc.engine, 0,
+			        CTX_data_main(C), vc.scene, vc.view_layer, vc.engine, 0,
 			        vc.ar, vc.v3d);
 
 			ED_transform_snap_object_project_view3d_mixed(

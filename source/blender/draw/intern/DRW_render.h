@@ -382,8 +382,8 @@ struct DefaultTextureList     *DRW_viewport_texture_list_get(void);
 
 void DRW_viewport_request_redraw(void);
 
-/* SceneLayers */
-void **DRW_scene_layer_engine_data_get(DrawEngineType *engine_type, void (*callback)(void *storage));
+/* ViewLayers */
+void **DRW_view_layer_engine_data_get(DrawEngineType *engine_type, void (*callback)(void *storage));
 
 /* Objects */
 void **DRW_object_engine_data_get(
@@ -438,7 +438,7 @@ typedef struct DRWContextState {
 	struct View3D *v3d;     /* 'CTX_wm_view3d(C)' */
 
 	struct Scene *scene;    /* 'CTX_data_scene(C)' */
-	struct SceneLayer *scene_layer;  /* 'CTX_data_scene_layer(C)' */
+	struct ViewLayer *view_layer;  /* 'CTX_data_view_layer(C)' */
 
 	/* Use 'scene->obedit' for edit-mode */
 	struct Object *obact;   /* 'OBACT' */

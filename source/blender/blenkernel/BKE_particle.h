@@ -63,7 +63,7 @@ struct BVHTreeRay;
 struct BVHTreeRayHit; 
 struct EdgeHash;
 struct EvaluationContext;
-struct SceneLayer;
+struct ViewLayer;
 
 #define PARTICLE_COLLISION_MAX_COLLISIONS 10
 
@@ -297,7 +297,7 @@ void psys_set_current_num(Object *ob, int index);
 
 struct LatticeDeformData *psys_create_lattice_deform_data(struct ParticleSimulationData *sim);
 
-bool psys_in_edit_mode(struct SceneLayer *scene_layer, struct ParticleSystem *psys);
+bool psys_in_edit_mode(struct ViewLayer *view_layer, struct ParticleSystem *psys);
 bool psys_check_enabled(struct Object *ob, struct ParticleSystem *psys, const bool use_render_params);
 bool psys_check_edited(struct ParticleSystem *psys);
 

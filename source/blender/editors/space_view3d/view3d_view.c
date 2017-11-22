@@ -546,7 +546,7 @@ void VIEW3D_OT_camera_to_view(wmOperatorType *ot)
 static int view3d_camera_to_view_selected_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);  /* can be NULL */
 	Object *camera_ob = v3d ? v3d->camera : scene->camera;
 
@@ -1326,7 +1326,7 @@ finally:
 	return hits;
 }
 
-int ED_view3d_scene_layer_set(int lay, const int *values, int *active)
+int ED_view3d_view_layer_set(int lay, const int *values, int *active)
 {
 	int i, tot = 0;
 	

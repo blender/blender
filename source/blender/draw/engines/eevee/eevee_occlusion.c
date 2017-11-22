@@ -60,7 +60,7 @@ static void eevee_create_shader_occlusion(void)
 	MEM_freeN(frag_str);
 }
 
-int EEVEE_occlusion_init(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+int EEVEE_occlusion_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 {
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
@@ -68,8 +68,8 @@ int EEVEE_occlusion_init(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *vedat
 	EEVEE_EffectsInfo *effects = stl->effects;
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	SceneLayer *scene_layer = draw_ctx->scene_layer;
-	IDProperty *props = BKE_scene_layer_engine_evaluated_get(scene_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
+	ViewLayer *view_layer = draw_ctx->view_layer;
+	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
 
 	if (BKE_collection_engine_property_value_get_bool(props, "gtao_enable")) {
 		const float *viewport_size = DRW_viewport_size_get();
@@ -142,7 +142,7 @@ int EEVEE_occlusion_init(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *vedat
 	return 0;
 }
 
-void EEVEE_occlusion_cache_init(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 {
 	EEVEE_PassList *psl = vedata->psl;
 	EEVEE_StorageList *stl = vedata->stl;
@@ -193,7 +193,7 @@ void EEVEE_occlusion_cache_init(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data
 	}
 }
 
-void EEVEE_occlusion_compute(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+void EEVEE_occlusion_compute(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 {
 	EEVEE_PassList *psl = vedata->psl;
 	EEVEE_TextureList *txl = vedata->txl;
@@ -221,7 +221,7 @@ void EEVEE_occlusion_compute(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *v
 	}
 }
 
-void EEVEE_occlusion_draw_debug(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+void EEVEE_occlusion_draw_debug(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 {
 	EEVEE_PassList *psl = vedata->psl;
 	EEVEE_FramebufferList *fbl = vedata->fbl;

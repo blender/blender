@@ -88,7 +88,7 @@ void ED_editors_init(bContext *C)
 	wmWindowManager *wm = CTX_wm_manager(C);
 	Main *bmain = CTX_data_main(C);
 	Scene *sce = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Object *ob, *obact = (sl && sl->basact) ? sl->basact->object : NULL;
 	ID *data;
 

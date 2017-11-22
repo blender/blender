@@ -288,7 +288,7 @@ typedef struct DynamicPaintBakeJob {
 
 	struct Main *bmain;
 	Scene *scene;
-	SceneLayer *scene_layer;
+	ViewLayer *view_layer;
 	Depsgraph *depsgraph;
 	Object *ob;
 
@@ -365,7 +365,7 @@ static void dynamicPaint_bakeImageSequence(DynamicPaintBakeJob *job)
 	frame = surface->start_frame;
 	orig_frame = scene->r.cfra;
 	scene->r.cfra = (int)frame;
-	ED_update_for_newframe(job->bmain, scene, job->scene_layer, job->depsgraph);
+	ED_update_for_newframe(job->bmain, scene, job->view_layer, job->depsgraph);
 
 	/* Init surface	*/
 	if (!dynamicPaint_createUVSurface(scene, surface, job->progress, job->do_update)) {
@@ -391,7 +391,7 @@ static void dynamicPaint_bakeImageSequence(DynamicPaintBakeJob *job)
 
 		/* calculate a frame */
 		scene->r.cfra = (int)frame;
-		ED_update_for_newframe(job->bmain, scene, job->scene_layer, job->depsgraph);
+		ED_update_for_newframe(job->bmain, scene, job->view_layer, job->depsgraph);
 		if (!dynamicPaint_calculateFrame(surface, job->eval_ctx, scene, cObject, frame)) {
 			job->success = 0;
 			return;
@@ -460,7 +460,7 @@ static int dynamicpaint_bake_exec(struct bContext *C, struct wmOperator *op)
 	DynamicPaintCanvasSettings *canvas;
 	Object *ob = ED_object_context(C);
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	EvaluationContext *eval_ctx = MEM_mallocN(sizeof(*eval_ctx), "EvaluationContext");
 
 	CTX_data_eval_ctx(C, eval_ctx);
@@ -491,7 +491,7 @@ static int dynamicpaint_bake_exec(struct bContext *C, struct wmOperator *op)
 	DynamicPaintBakeJob *job = MEM_mallocN(sizeof(DynamicPaintBakeJob), "DynamicPaintBakeJob");
 	job->bmain = CTX_data_main(C);
 	job->scene = scene;
-	job->scene_layer = sl;
+	job->view_layer = sl;
 	job->depsgraph = CTX_data_depsgraph(C);
 	job->ob = ob;
 	job->canvas = canvas;

@@ -67,7 +67,7 @@ struct PointerRNA;
 struct PropertyRNA;
 struct RenderEngineType;
 struct Scene;
-struct SceneLayer;
+struct ViewLayer;
 
 typedef enum eEvaluationMode {
 	DAG_EVAL_VIEWPORT       = 0,    /* evaluate for OpenGL viewport */
@@ -85,7 +85,7 @@ typedef struct EvaluationContext {
 	float ctime;
 
 	struct Depsgraph *depsgraph;
-	struct SceneLayer *scene_layer;
+	struct ViewLayer *view_layer;
 	struct RenderEngineType *engine;
 } EvaluationContext;
 
@@ -211,7 +211,7 @@ void DEG_evaluation_context_init(struct EvaluationContext *eval_ctx,
                                  eEvaluationMode mode);
 void DEG_evaluation_context_init_from_scene(struct EvaluationContext *eval_ctx,
                                             struct Scene *scene,
-                                            struct SceneLayer *scene_layer,
+                                            struct ViewLayer *view_layer,
                                             struct RenderEngineType *engine,
                                             eEvaluationMode mode);
 

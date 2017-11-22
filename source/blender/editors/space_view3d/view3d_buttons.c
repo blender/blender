@@ -777,7 +777,7 @@ static void do_view3d_vgroup_buttons(bContext *C, void *UNUSED(arg), int event)
 		return;
 	}
 	else {
-		SceneLayer *sl = CTX_data_scene_layer(C);
+		ViewLayer *sl = CTX_data_view_layer(C);
 		Object *ob = sl->basact->object;
 		ED_vgroup_vert_active_mirror(ob, event - B_VGRP_PNL_EDIT_SINGLE);
 		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -787,7 +787,7 @@ static void do_view3d_vgroup_buttons(bContext *C, void *UNUSED(arg), int event)
 
 static int view3d_panel_vgroup_poll(const bContext *C, PanelType *UNUSED(pt))
 {
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Object *ob = OBACT(sl);
 	if (ob && (BKE_object_is_in_editmode_vgroup(ob) ||
 	           BKE_object_is_in_wpaint_select_vert(ob)))
@@ -806,7 +806,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *pa)
 {
 	uiBlock *block = uiLayoutAbsoluteBlock(pa->layout);
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Object *ob = sl->basact->object;
 
 	MDeformVert *dv;
@@ -1097,7 +1097,7 @@ static void v3d_editmetaball_buts(uiLayout *layout, Object *ob)
 
 static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event)
 {
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	Object *ob = OBACT(sl);
 
@@ -1121,7 +1121,7 @@ static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event
 
 static int view3d_panel_transform_poll(const bContext *C, PanelType *UNUSED(pt))
 {
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	return (sl->basact != NULL);
 }
 
@@ -1129,7 +1129,7 @@ static void view3d_panel_transform(const bContext *C, Panel *pa)
 {
 	uiBlock *block;
 	Scene *scene = CTX_data_scene(C);
-	SceneLayer *sl = CTX_data_scene_layer(C);
+	ViewLayer *sl = CTX_data_view_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Object *ob = sl->basact->object;
 	uiLayout *col;

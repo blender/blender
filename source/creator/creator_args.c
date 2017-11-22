@@ -440,9 +440,9 @@ static void render_set_depgraph(bContext *C, Render *re)
 	 * Apparently, CTX_data_layer is crashing here (context's layer
 	 * is NULL for old files, and there is no workspace).
 	 */
-	SceneLayer *scene_layer = scene->render_layers.first;
-	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, scene_layer, true);
-	DEG_graph_relations_update(depsgraph, bmain, scene, scene_layer);
+	ViewLayer *view_layer = scene->view_layers.first;
+	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
+	DEG_graph_relations_update(depsgraph, bmain, scene, view_layer);
 	DEG_graph_on_visible_update(bmain, depsgraph);
 
 	RE_SetDepsgraph(re, depsgraph);

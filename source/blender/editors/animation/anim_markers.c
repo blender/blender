@@ -1146,13 +1146,13 @@ static int ed_marker_select(bContext *C, const wmEvent *event, bool extend, bool
 
 	if (camera) {
 		Scene *scene = CTX_data_scene(C);
-		SceneLayer *scene_layer = CTX_data_scene_layer(C);
+		ViewLayer *view_layer = CTX_data_view_layer(C);
 		Base *base;
 		TimeMarker *marker;
 		int sel = 0;
 		
 		if (!extend)
-			BKE_scene_layer_base_deselect_all(scene_layer);
+			BKE_view_layer_base_deselect_all(view_layer);
 		
 		for (marker = markers->first; marker; marker = marker->next) {
 			if (marker->frame == cfra) {
@@ -1164,7 +1164,7 @@ static int ed_marker_select(bContext *C, const wmEvent *event, bool extend, bool
 		for (marker = markers->first; marker; marker = marker->next) {
 			if (marker->camera) {
 				if (marker->frame == cfra) {
-					base = BKE_scene_layer_base_find(scene_layer, marker->camera);
+					base = BKE_view_layer_base_find(view_layer, marker->camera);
 					if (base) {
 						ED_object_base_select(base, sel);
 						if (sel)

@@ -288,8 +288,8 @@ Object *BlenderSync::sync_object(BL::Depsgraph::duplis_iterator& b_dupli_iter,
 	/* light is handled separately */
 	if(object_is_light(b_ob)) {
 		/* don't use lamps for excluded layers used as mask layer */
-		if(!motion && !((layer_flag & render_layer.holdout_layer) &&
-		                (layer_flag & render_layer.exclude_layer)))
+		if(!motion && !((layer_flag & view_layer.holdout_layer) &&
+		                (layer_flag & view_layer.exclude_layer)))
 		{
 			sync_light(b_parent,
 			           persistent_id,
@@ -314,7 +314,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph::duplis_iterator& b_dupli_iter,
 	}
 
 	/* Visibility flags for both parent and child. */
-	bool use_holdout = (layer_flag & render_layer.holdout_layer) != 0;
+	bool use_holdout = (layer_flag & view_layer.holdout_layer) != 0;
 	uint visibility = object_ray_visibility(b_ob) & PATH_RAY_ALL_VISIBILITY;
 
 	if(b_parent.ptr.data != b_ob.ptr.data) {
@@ -322,12 +322,12 @@ Object *BlenderSync::sync_object(BL::Depsgraph::duplis_iterator& b_dupli_iter,
 	}
 
 	/* Make holdout objects on excluded layer invisible for non-camera rays. */
-	if(use_holdout && (layer_flag & render_layer.exclude_layer)) {
+	if(use_holdout && (layer_flag & view_layer.exclude_layer)) {
 		visibility &= ~(PATH_RAY_ALL_VISIBILITY - PATH_RAY_CAMERA);
 	}
 
 	/* Hide objects not on render layer from camera rays. */
-	if(!(layer_flag & render_layer.layer)) {
+	if(!(layer_flag & view_layer.layer)) {
 		visibility &= ~PATH_RAY_CAMERA;
 	}
 

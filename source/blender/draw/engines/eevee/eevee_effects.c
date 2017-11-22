@@ -105,7 +105,7 @@ static void eevee_create_shader_downsample(void)
 	        "#define COPY_DEPTH\n");
 }
 
-void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
+void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
@@ -207,7 +207,7 @@ void EEVEE_effects_init(EEVEE_SceneLayerData *sldata, EEVEE_Data *vedata)
 	}
 }
 
-void EEVEE_effects_cache_init(EEVEE_SceneLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+void EEVEE_effects_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 {
 	EEVEE_PassList *psl = vedata->psl;
 	EEVEE_StorageList *stl = vedata->stl;

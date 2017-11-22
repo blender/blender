@@ -44,7 +44,7 @@ struct ModifierData;
 struct Object;
 struct ReportList;
 struct Scene;
-struct SceneLayer;
+struct ViewLayer;
 struct bConstraint;
 struct bContext;
 struct bPoseChannel;
@@ -109,7 +109,7 @@ void ED_object_base_activate(struct bContext *C, struct Base *base);
 void ED_object_base_free_and_unlink(struct Main *bmain, struct Scene *scene, struct Object *ob);
 
 /* single object duplicate, if (dupflag == 0), fully linked, else it uses the flags given */
-struct Base *ED_object_add_duplicate(struct Main *bmain, struct Scene *scene, struct SceneLayer *sl, struct Base *base, int dupflag);
+struct Base *ED_object_add_duplicate(struct Main *bmain, struct Scene *scene, struct ViewLayer *sl, struct Base *base, int dupflag);
 
 void ED_object_parent(struct Object *ob, struct Object *parent, const int type, const char *substr);
 
@@ -195,7 +195,7 @@ void ED_object_modifier_clear(struct Main *bmain, struct Object *ob);
 int ED_object_modifier_move_down(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_move_up(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_convert(struct ReportList *reports, struct Main *bmain, struct Scene *scene,
-                               struct SceneLayer *sl, struct Object *ob, struct ModifierData *md);
+                               struct ViewLayer *sl, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_apply(struct ReportList *reports, const struct bContext *C, struct Scene *scene,
                              struct Object *ob, struct ModifierData *md, int mode);
 int ED_object_modifier_copy(struct ReportList *reports, struct Object *ob, struct ModifierData *md);

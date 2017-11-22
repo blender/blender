@@ -611,9 +611,9 @@ void DRW_draw_background(void)
 
 /* **************************** 3D Cursor ******************************** */
 
-static bool is_cursor_visible(Scene *scene, SceneLayer *scene_layer)
+static bool is_cursor_visible(Scene *scene, ViewLayer *view_layer)
 {
-	Object *ob = OBACT(scene_layer);
+	Object *ob = OBACT(view_layer);
 
 	/* don't draw cursor in paint modes, but with a few exceptions */
 	if (ob && ob->mode & OB_MODE_ALL_PAINT) {
@@ -625,7 +625,7 @@ static bool is_cursor_visible(Scene *scene, SceneLayer *scene_layer)
 		}
 		/* exception: object in texture paint mode, clone brush, use_clone_layer disabled */
 		else if (ob->mode & OB_MODE_TEXTURE_PAINT) {
-			const Paint *p = BKE_paint_get_active(scene, scene_layer);
+			const Paint *p = BKE_paint_get_active(scene, view_layer);
 
 			if (p && p->brush && p->brush->imagepaint_tool == PAINT_TOOL_CLONE) {
 				if ((scene->toolsettings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE) == 0) {
@@ -647,14 +647,14 @@ void DRW_draw_cursor(void)
 	View3D *v3d = draw_ctx->v3d;
 	RegionView3D *rv3d = draw_ctx->rv3d;
 	Scene *scene = draw_ctx->scene;
-	SceneLayer *scene_layer = draw_ctx->scene_layer;
+	ViewLayer *view_layer = draw_ctx->view_layer;
 
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
 	glLineWidth(1.0f);
 
-	if (is_cursor_visible(scene, scene_layer)) {
+	if (is_cursor_visible(scene, view_layer)) {
 		float *co = ED_view3d_cursor3d_get(scene, v3d);
 		unsigned char crosshair_color[3];
 

@@ -30,7 +30,7 @@ struct DRWPass;
 struct DRWShadingGroup;
 struct Gwn_Batch;
 struct Object;
-struct SceneLayer;
+struct ViewLayer;
 
 /* Used as ubo but colors can be directly referenced as well */
 /* Keep in sync with: common_globals_lib.glsl (globalsBlock) */
@@ -106,12 +106,12 @@ struct DRWShadingGroup *shgroup_instance_bone_envelope_wire(struct DRWPass *pass
 struct DRWShadingGroup *shgroup_instance_bone_envelope_solid(struct DRWPass *pass, struct Gwn_Batch *geom, float (*obmat)[4]);
 struct DRWShadingGroup *shgroup_instance_mball_helpers(struct DRWPass *pass, struct Gwn_Batch *geom);
 
-int DRW_object_wire_theme_get(struct Object *ob, struct SceneLayer *scene_layer, float **r_color);
+int DRW_object_wire_theme_get(struct Object *ob, struct ViewLayer *view_layer, float **r_color);
 float *DRW_color_background_blend_get(int theme_id);
 
 /* draw_armature.c */
 void DRW_shgroup_armature_object(
-        struct Object *ob, struct SceneLayer *scene_layer,
+        struct Object *ob, struct ViewLayer *view_layer,
         struct DRWPass *pass_bone_solid, struct DRWPass *pass_bone_wire, struct DRWPass *pass_bone_envelope,
         struct DRWShadingGroup *shgrp_relationship_lines);
 
