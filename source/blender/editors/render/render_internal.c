@@ -308,9 +308,6 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 
 	/* custom scene and single layer re-render */
 	screen_render_scene_layer_set(op, mainp, &scene, &scene_layer);
-	if (scene_layer == NULL) {
-		scene_layer = CTX_data_scene_layer(C);
-	}
 
 	if (!is_animation && is_write_still && BKE_imtype_is_movie(scene->r.im_format.imtype)) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot write a single file with an animation format selected");
@@ -914,9 +911,6 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	
 	/* custom scene and single layer re-render */
 	screen_render_scene_layer_set(op, mainp, &scene, &scene_layer);
-	if (scene_layer == NULL) {
-		scene_layer = CTX_data_scene_layer(C);
-	}
 
 	if (RNA_struct_property_is_set(op->ptr, "layer"))
 		jobflag |= WM_JOB_SUSPEND;
