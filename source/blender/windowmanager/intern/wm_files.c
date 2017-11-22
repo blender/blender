@@ -715,8 +715,8 @@ int wm_homefile_read(
 		if (!use_factory_settings && BLI_exists(filepath_userdef)) {
 			UserDef *userdef = BKE_blendfile_userdef_read(filepath_userdef, NULL);
 			if (userdef != NULL) {
-				BKE_blender_userdef_set_data(userdef);
-				MEM_freeN(userdef);
+				BKE_blender_userdef_data_set_and_free(userdef);
+				userdef = NULL;
 
 				skip_flags |= BLO_READ_SKIP_USERDEF;
 				printf("Read prefs: %s\n", filepath_userdef);
@@ -826,9 +826,8 @@ int wm_homefile_read(
 				read_userdef_from_memory = true;
 			}
 			if (userdef_template) {
-				BKE_blender_userdef_set_app_template(userdef_template);
-				BKE_blender_userdef_free_data(userdef_template);
-				MEM_freeN(userdef_template);
+				BKE_blender_userdef_app_template_data_set_and_free(userdef_template);
+				userdef_template = NULL;
 			}
 		}
 	}
@@ -1484,9 +1483,18 @@ static int wm_userpref_write_exec(bContext *C, wmOperator *op)
 	WM_keyconfig_update(wm);
 
 	if ((cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL))) {
+		bool ok_write;
 		BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE, NULL);
 		printf("trying to save userpref at %s ", filepath);
-		if (BKE_blendfile_userdef_write(filepath, op->reports) != 0) {
+
+		if (U.app_template[0]) {
+			ok_write = BKE_blendfile_userdef_write_app_template(filepath, op->reports);
+		}
+		else {
+			ok_write = BKE_blendfile_userdef_write(filepath, op->reports);
+		}
+
+		if (ok_write) {
 			printf("ok\n");
 		}
 		else {

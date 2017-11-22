@@ -154,11 +154,21 @@ static void keymap_item_free(wmKeyMapItem *kmi)
 		MEM_freeN(kmi->ptr);
 }
 
-void BKE_blender_userdef_set_data(UserDef *userdef)
+void BKE_blender_userdef_data_swap(UserDef *userdef_a, UserDef *userdef_b)
 {
-	/* only here free userdef themes... */
-	BKE_blender_userdef_free_data(&U);
-	U = *userdef;
+	SWAP(UserDef, *userdef_a, *userdef_b);
+}
+
+void BKE_blender_userdef_data_set(UserDef *userdef)
+{
+	BKE_blender_userdef_data_swap(&U, userdef);
+	BKE_blender_userdef_data_free(userdef, true);
+}
+
+void BKE_blender_userdef_data_set_and_free(UserDef *userdef)
+{
+	BKE_blender_userdef_data_set(userdef);
+	MEM_freeN(userdef);
 }
 
 static void userdef_free_keymaps(UserDef *userdef)
@@ -205,7 +215,7 @@ static void userdef_free_addons(UserDef *userdef)
  * When loading a new userdef from file,
  * or when exiting Blender.
  */
-void BKE_blender_userdef_free_data(UserDef *userdef)
+void BKE_blender_userdef_data_free(UserDef *userdef, bool clear_fonts)
 {
 #define U _invalid_access_ /* ensure no accidental global access */
 #ifdef U  /* quiet warning */
@@ -214,11 +224,12 @@ void BKE_blender_userdef_free_data(UserDef *userdef)
 	userdef_free_keymaps(userdef);
 	userdef_free_addons(userdef);
 
-	for (uiFont *font = userdef->uifonts.first; font; font = font->next) {
-		BLF_unload_id(font->blf_id);
+	if (clear_fonts) {
+		for (uiFont *font = userdef->uifonts.first; font; font = font->next) {
+			BLF_unload_id(font->blf_id);
+		}
+		BLF_default_set(-1);
 	}
-
-	BLF_default_set(-1);
 
 	BLI_freelistN(&userdef->autoexec_paths);
 
@@ -233,38 +244,50 @@ void BKE_blender_userdef_free_data(UserDef *userdef)
  * Write U from userdef.
  * This function defines which settings a template will override for the user preferences.
  */
-void BKE_blender_userdef_set_app_template(UserDef *userdef)
+void BKE_blender_userdef_app_template_data_swap(UserDef *userdef_a, UserDef *userdef_b)
 {
 	/* TODO:
 	 * - keymaps
 	 * - various minor settings (add as needed).
 	 */
 
-#define LIST_OVERRIDE(id) { \
-	BLI_freelistN(&U.id); \
-	BLI_movelisttolist(&U.id, &userdef->id); \
+#define DATA_SWAP(id) \
+	SWAP(userdef_a->id, userdef_b->id);
+
+#define LIST_SWAP(id) { \
+	SWAP(ListBase, userdef_a->id, userdef_b->id); \
 } ((void)0)
 
-#define MEMCPY_OVERRIDE(id) \
-	memcpy(U.id, userdef->id, sizeof(U.id));
-
 	/* for some types we need custom free functions */
-	userdef_free_addons(&U);
-	userdef_free_keymaps(&U);
+	LIST_SWAP(addons);
+	LIST_SWAP(user_keymaps);
 
-	LIST_OVERRIDE(uistyles);
-	LIST_OVERRIDE(uifonts);
-	LIST_OVERRIDE(themes);
-	LIST_OVERRIDE(addons);
-	LIST_OVERRIDE(user_keymaps);
+	LIST_SWAP(uistyles);
+	LIST_SWAP(uifonts);
+	LIST_SWAP(themes);
+	LIST_SWAP(addons);
+	LIST_SWAP(user_keymaps);
 
-	MEMCPY_OVERRIDE(light);
+	DATA_SWAP(light);
 
-	MEMCPY_OVERRIDE(font_path_ui);
-	MEMCPY_OVERRIDE(font_path_ui_mono);
+	DATA_SWAP(font_path_ui);
+	DATA_SWAP(font_path_ui_mono);
 
-#undef LIST_OVERRIDE
-#undef MEMCPY_OVERRIDE
+#undef SWAP_TYPELESS
+#undef LIST_SWAP
+#undef DATA_SWAP
+}
+
+void BKE_blender_userdef_app_template_data_set(UserDef *userdef)
+{
+	BKE_blender_userdef_app_template_data_swap(&U, userdef);
+	BKE_blender_userdef_data_free(userdef, true);
+}
+
+void BKE_blender_userdef_app_template_data_set_and_free(UserDef *userdef)
+{
+	BKE_blender_userdef_app_template_data_set(userdef);
+	MEM_freeN(userdef);
 }
 
 /* *****************  testing for break ************* */
