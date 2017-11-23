@@ -1008,9 +1008,7 @@ static void pbvh_update_normals_store_task_cb(void *userdata, const int n)
 			MVert *mvert = &bvh->verts[v];
 
 			/* mvert is shared between nodes, hence between threads. */
-			if (atomic_fetch_and_and_uint8(
-			        (uint8_t *)&mvert->flag, (uint8_t)~ME_VERT_PBVH_UPDATE) & ME_VERT_PBVH_UPDATE)
-			{
+			if (atomic_fetch_and_and_char(&mvert->flag, (char)~ME_VERT_PBVH_UPDATE) & ME_VERT_PBVH_UPDATE) {
 				normalize_v3(vnors[v]);
 				normal_float_to_short_v3(mvert->no, vnors[v]);
 			}

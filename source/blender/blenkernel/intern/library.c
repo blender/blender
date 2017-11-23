@@ -2407,10 +2407,10 @@ void BKE_library_filepath_set(Library *lib, const char *filepath)
 
 void BKE_id_tag_set_atomic(ID *id, int tag)
 {
-	atomic_fetch_and_or_uint32((uint32_t *)&id->tag, tag);
+	atomic_fetch_and_or_int32(&id->tag, tag);
 }
 
 void BKE_id_tag_clear_atomic(ID *id, int tag)
 {
-	atomic_fetch_and_and_uint32((uint32_t *)&id->tag, ~tag);
+	atomic_fetch_and_and_int32(&id->tag, ~tag);
 }
