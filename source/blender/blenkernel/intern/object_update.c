@@ -396,3 +396,25 @@ void BKE_object_eval_update_shading(const EvaluationContext *UNUSED(eval_ctx), O
 		BKE_mesh_batch_cache_dirty(object->data, BKE_MESH_BATCH_DIRTY_SHADING);
 	}
 }
+
+void BKE_object_data_select_update(const EvaluationContext *UNUSED(eval_ctx),
+                                   struct ID *object_data)
+{
+	DEBUG_PRINT("%s on %s (%p)\n", __func__, object_data->name, object_data);
+	switch (GS(object_data->name)) {
+		case ID_ME:
+			BKE_mesh_batch_cache_dirty((Mesh *)object_data,
+			                           BKE_CURVE_BATCH_DIRTY_SELECT);
+			break;
+		case ID_CU:
+			BKE_curve_batch_cache_dirty((Curve *)object_data,
+			                            BKE_CURVE_BATCH_DIRTY_SELECT);
+			break;
+		case ID_LT:
+			BKE_lattice_batch_cache_dirty((struct Lattice *)object_data,
+			                              BKE_CURVE_BATCH_DIRTY_SELECT);
+			break;
+		default:
+			break;
+	}
+}

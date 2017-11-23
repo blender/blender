@@ -206,6 +206,8 @@ void BKE_object_eval_cloth(const struct EvaluationContext *eval_ctx,
 
 void BKE_object_eval_update_shading(const struct EvaluationContext *eval_ctx,
                                     struct Object *object);
+void BKE_object_data_select_update(const struct EvaluationContext *eval_ctx,
+                                   struct ID *object_data);
 
 void BKE_object_handle_data_update(
         const struct EvaluationContext *eval_ctx,

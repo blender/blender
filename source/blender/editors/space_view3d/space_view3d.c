@@ -915,22 +915,10 @@ static void view3d_main_region_listener(
 				case ND_SELECT:
 				{
 					WM_manipulatormap_tag_refresh(mmap);
-
 					if (scene->obedit) {
 						Object *ob = scene->obedit;
-						switch (ob->type) {
-							case OB_MESH:
-								BKE_mesh_batch_cache_dirty(ob->data, BKE_CURVE_BATCH_DIRTY_SELECT);
-								break;
-							// case OB_FONT:  /* handled by text_update_edited */
-							case OB_CURVE:
-							case OB_SURF:
-								BKE_curve_batch_cache_dirty(ob->data, BKE_CURVE_BATCH_DIRTY_SELECT);
-								break;
-							case OB_LATTICE:
-								BKE_lattice_batch_cache_dirty(ob->data, BKE_CURVE_BATCH_DIRTY_SELECT);
-								break;
-						}
+						/* TODO(sergey): Notifiers shouldn't really be doing DEG tags. */
+						DEG_id_tag_update((ID *)ob->data, DEG_TAG_SELECT_UPDATE);
 					}
 					ATTR_FALLTHROUGH;
 				}

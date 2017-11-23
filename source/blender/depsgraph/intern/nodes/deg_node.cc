@@ -291,6 +291,9 @@ void IDDepsNode::tag_update(Depsgraph *graph)
 			/* Only do explicit particle settings tagging. */
 			do_component_tag = false;
 		}
+		else if (comp_node->type == DEG_NODE_TYPE_BATCH_CACHE) {
+			do_component_tag = false;
+		}
 		if (do_component_tag) {
 			comp_node->tag_update(graph);
 		}

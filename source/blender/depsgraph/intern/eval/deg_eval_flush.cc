@@ -209,6 +209,7 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 						case DEG_NODE_TYPE_PROXY:
 							object->recalc |= OB_RECALC_DATA;
 							break;
+						case DEG_NODE_TYPE_BATCH_CACHE:
 						case DEG_NODE_TYPE_SHADING_PARAMETERS:
 							break;
 					}

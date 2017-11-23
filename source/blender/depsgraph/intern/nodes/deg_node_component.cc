@@ -161,7 +161,22 @@ string ComponentDepsNode::identifier() const
 
 OperationDepsNode *ComponentDepsNode::find_operation(OperationIDKey key) const
 {
-	OperationDepsNode *node = reinterpret_cast<OperationDepsNode *>(BLI_ghash_lookup(operations_map, &key));
+	OperationDepsNode *node = NULL;
+	if (operations_map != NULL) {
+		node = (OperationDepsNode *)BLI_ghash_lookup(operations_map, &key);
+	}
+	else {
+		BLI_assert(key.name_tag == -1);
+		foreach (OperationDepsNode *op_node, operations) {
+			if (op_node->opcode == key.opcode &&
+			    STREQ(op_node->name, key.name))
+			{
+				node = op_node;
+				break;
+			}
+		}
+	}
+
 	if (node != NULL) {
 		return node;
 	}
@@ -339,6 +354,7 @@ static DepsNodeFactoryImpl<name ## ComponentDepsNode> DNTI_ ## NAME
 
 
 DEG_COMPONENT_DEFINE(Animation, ANIMATION);
+DEG_COMPONENT_DEFINE(BatchCache, BATCH_CACHE);
 DEG_COMPONENT_DEFINE(Cache, CACHE);
 DEG_COMPONENT_DEFINE(CopyOnWrite, COPY_ON_WRITE);
 DEG_COMPONENT_DEFINE(Geometry, GEOMETRY);
@@ -377,26 +393,21 @@ DEG_COMPONENT_DEFINE(Bone, BONE);
 
 void deg_register_component_depsnodes()
 {
-	deg_register_node_typeinfo(&DNTI_PARAMETERS);
-	deg_register_node_typeinfo(&DNTI_PROXY);
 	deg_register_node_typeinfo(&DNTI_ANIMATION);
-	deg_register_node_typeinfo(&DNTI_TRANSFORM);
-	deg_register_node_typeinfo(&DNTI_GEOMETRY);
-	deg_register_node_typeinfo(&DNTI_SEQUENCER);
-
-	deg_register_node_typeinfo(&DNTI_EVAL_POSE);
 	deg_register_node_typeinfo(&DNTI_BONE);
-
+	deg_register_node_typeinfo(&DNTI_CACHE);
+	deg_register_node_typeinfo(&DNTI_BATCH_CACHE);
+	deg_register_node_typeinfo(&DNTI_COPY_ON_WRITE);
+	deg_register_node_typeinfo(&DNTI_GEOMETRY);
+	deg_register_node_typeinfo(&DNTI_LAYER_COLLECTIONS);
+	deg_register_node_typeinfo(&DNTI_PARAMETERS);
 	deg_register_node_typeinfo(&DNTI_EVAL_PARTICLES);
-
+	deg_register_node_typeinfo(&DNTI_PROXY);
+	deg_register_node_typeinfo(&DNTI_EVAL_POSE);
+	deg_register_node_typeinfo(&DNTI_SEQUENCER);
 	deg_register_node_typeinfo(&DNTI_SHADING);
 	deg_register_node_typeinfo(&DNTI_SHADING_PARAMETERS);
-
-	deg_register_node_typeinfo(&DNTI_CACHE);
-
-	deg_register_node_typeinfo(&DNTI_LAYER_COLLECTIONS);
-
-	deg_register_node_typeinfo(&DNTI_COPY_ON_WRITE);
+	deg_register_node_typeinfo(&DNTI_TRANSFORM);
 }
 
 }  // namespace DEG

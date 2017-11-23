@@ -1060,6 +1060,14 @@ void DepsgraphNodeBuilder::build_obdata_geom(Object *object)
 	                   DEG_NODE_TYPE_PARAMETERS,
 	                   NULL,
 	                   DEG_OPCODE_PARAMETERS_EVAL);
+
+	/* Batch cache. */
+	add_operation_node(obdata,
+	                   DEG_NODE_TYPE_BATCH_CACHE,
+	                   function_bind(BKE_object_data_select_update,
+	                                 _1,
+	                                 obdata_cow),
+	                   DEG_OPCODE_GEOMETRY_SELECT_UPDATE);
 }
 
 /* Cameras */

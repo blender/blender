@@ -282,6 +282,18 @@ void id_tag_update_copy_on_write(Depsgraph *graph, IDDepsNode *id_node)
 	cow_node->tag_update(graph);
 }
 
+void id_tag_update_select_update(Depsgraph *graph, IDDepsNode *id_node)
+{
+	ComponentDepsNode *batch_cache_comp =
+	        id_node->find_component(DEG_NODE_TYPE_BATCH_CACHE);
+	OperationDepsNode *select_update_node =
+	    batch_cache_comp->find_operation(DEG_OPCODE_GEOMETRY_SELECT_UPDATE,
+	                                     "", -1);
+	if (select_update_node != NULL) {
+		select_update_node->tag_update(graph);
+	}
+}
+
 void id_tag_update_ntree_special(Main *bmain, Depsgraph *graph, ID *id, int flag)
 {
 	bNodeTree *ntree = NULL;
@@ -344,6 +356,9 @@ void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag)
 	}
 	if (flag & DEG_TAG_COPY_ON_WRITE) {
 		id_tag_update_copy_on_write(graph, id_node);
+	}
+	if (flag & DEG_TAG_SELECT_UPDATE) {
+		id_tag_update_select_update(graph, id_node);
 	}
 	id_tag_update_ntree_special(bmain, graph, id, flag);
 }

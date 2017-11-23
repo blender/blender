@@ -383,6 +383,7 @@ static void deg_debug_graphviz_node(const DebugContext &ctx,
 		case DEG_NODE_TYPE_LAYER_COLLECTIONS:
 		case DEG_NODE_TYPE_EVAL_PARTICLES:
 		case DEG_NODE_TYPE_COPY_ON_WRITE:
+		case DEG_NODE_TYPE_BATCH_CACHE:
 		{
 			ComponentDepsNode *comp_node = (ComponentDepsNode *)node;
 			if (!comp_node->operations.empty()) {
