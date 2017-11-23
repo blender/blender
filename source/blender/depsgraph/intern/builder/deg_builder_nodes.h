@@ -121,6 +121,7 @@ struct DepsgraphNodeBuilder {
 	void build_scene(Scene *scene);
 	void build_group(Base *base, Group *group);
 	void build_object(Base *base, Object *object);
+	void build_object_data(Object *object);
 	void build_object_transform(Object *object);
 	void build_object_constraints(Object *object);
 	void build_pose_constraints(Object *object, bPoseChannel *pchan);
