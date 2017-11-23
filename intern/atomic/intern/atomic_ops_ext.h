@@ -191,6 +191,12 @@ ATOMIC_INLINE void *atomic_cas_ptr(void **v, void *old, void *_new)
 /* float operations. */
 ATOMIC_STATIC_ASSERT(sizeof(float) == sizeof(uint32_t), "sizeof(float) != sizeof(uint32_t)");
 
+ATOMIC_INLINE float atomic_cas_float(float *v, float old, float _new)
+{
+	uint32_t ret = atomic_cas_uint32((uint32_t *)v, *(uint32_t *)&old, *(uint32_t *)&_new);
+	return *(float *)&ret;
+}
+
 ATOMIC_INLINE float atomic_add_and_fetch_fl(float *p, const float x)
 {
 	float oldval, newval;
