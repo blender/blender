@@ -1554,18 +1554,21 @@ class VIEW3D_MT_object_specials(Menu):
             use_shading_nodes = context.view_render.use_shading_nodes
 
             if use_shading_nodes:
-                try:
-                    value = lamp.node_tree.nodes["Emission"].inputs["Strength"].default_value
-                except AttributeError:
-                    value = None
+                emission_node = None
+                if lamp.node_tree:
+                    for node in lamp.node_tree.nodes:
+                        if getattr(node, "type", None) == 'EMISSION':
+                            emission_node = node
+                            break
 
-                if value is not None:
+                if emission_node is not None:
                     props = layout.operator("wm.context_modal_mouse", text="Strength")
                     props.data_path_iter = "selected_editable_objects"
-                    props.data_path_item = "data.node_tree.nodes[\"Emission\"].inputs[\"Strength\"].default_value"
+                    props.data_path_item = "data.node_tree" \
+                                           ".nodes[\"" + emission_node.name + "\"]" \
+                                           ".inputs[\"Strength\"].default_value"
                     props.header_text = "Lamp Strength: %.3f"
                     props.input_scale = 0.1
-                del value
 
                 if lamp.type == 'AREA':
                     props = layout.operator("wm.context_modal_mouse", text="Size X")

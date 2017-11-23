@@ -3348,7 +3348,10 @@ float calc_gradient(vec3 p, int gradient_type)
 		return atan(y, x) / (M_PI * 2) + 0.5;
 	}
 	else {
-		float r = max(1.0 - sqrt(x * x + y * y + z * z), 0.0);
+		/* Bias a little bit for the case where p is a unit length vector,
+		 * to get exactly zero instead of a small random value depending
+		 * on float precision. */
+		float r = max(0.999999 - sqrt(x * x + y * y + z * z), 0.0);
 		if (gradient_type == 5) {  /* quadratic sphere */
 			return r * r;
 		}
