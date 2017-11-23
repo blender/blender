@@ -30,6 +30,7 @@ set(INC
 	../blentranslation
 	../makesdna
 	../../../intern/guardedalloc
+	../../../intern/atomic
 	../../../intern/eigen
 	../../../extern/rangetree
 )
