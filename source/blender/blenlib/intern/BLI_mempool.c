@@ -41,6 +41,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "atomic_ops.h"
+
 #include "BLI_utildefines.h"
 
 #include "BLI_mempool.h" /* own include */
@@ -553,7 +555,7 @@ void *BLI_mempool_as_arrayN(BLI_mempool *pool, const char *allocstr)
 }
 
 /**
- * Create a new mempool iterator, \a BLI_MEMPOOL_ALLOW_ITER flag must be set.
+ * Initialize a new mempool iterator, \a BLI_MEMPOOL_ALLOW_ITER flag must be set.
  */
 void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter)
 {
@@ -562,6 +564,47 @@ void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter)
 	iter->pool = pool;
 	iter->curchunk = pool->chunks;
 	iter->curindex = 0;
+
+	iter->curchunk_threaded_shared = NULL;
+}
+
+/**
+ * Initialize an array of mempool iterators, \a BLI_MEMPOOL_ALLOW_ITER flag must be set.
+ *
+ * This is used in threaded code, to generate as much iterators as needed (each task should have its own),
+ * such that each iterator goes over its own single chunk, and only getting the next chunk to iterate over has to be
+ * protected against concurrency (which can be done in a lockless way).
+ *
+ * To be used when creating a task for each single item in the pool is totally overkill.
+ *
+ * See BLI_task_parallel_mempool implementation for detailed usage example.
+ */
+BLI_mempool_iter *BLI_mempool_iter_threadsafe_create(BLI_mempool *pool, const size_t num_iter)
+{
+	BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
+
+	BLI_mempool_iter *iter_arr = MEM_mallocN(sizeof(*iter_arr) * num_iter, __func__);
+	BLI_mempool_chunk **curchunk_threaded_shared = MEM_mallocN(sizeof(void *), __func__);
+
+	BLI_mempool_iternew(pool, iter_arr);
+
+	*curchunk_threaded_shared = iter_arr->curchunk;
+	iter_arr->curchunk_threaded_shared = curchunk_threaded_shared;
+
+	for (size_t i = 1; i < num_iter; i++) {
+		iter_arr[i] = iter_arr[0];
+		*curchunk_threaded_shared = iter_arr[i].curchunk = (*curchunk_threaded_shared) ? (*curchunk_threaded_shared)->next : NULL;
+	}
+
+	return iter_arr;
+}
+
+void  BLI_mempool_iter_threadsafe_free(BLI_mempool_iter *iter_arr)
+{
+	BLI_assert(iter_arr->curchunk_threaded_shared != NULL);
+
+	MEM_freeN(iter_arr->curchunk_threaded_shared);
+	MEM_freeN(iter_arr);
 }
 
 #if 0
@@ -571,15 +614,28 @@ static void *bli_mempool_iternext(BLI_mempool_iter *iter)
 {
 	void *ret = NULL;
 
-	if (!iter->curchunk || !iter->pool->totused) return NULL;
+	if (iter->curchunk == NULL || !iter->pool->totused) {
+		return ret;
+	}
 
 	ret = ((char *)CHUNK_DATA(iter->curchunk)) + (iter->pool->esize * iter->curindex);
 
 	iter->curindex++;
 
 	if (iter->curindex == iter->pool->pchunk) {
-		iter->curchunk = iter->curchunk->next;
 		iter->curindex = 0;
+		if (iter->curchunk_threaded_shared) {
+			while (1) {
+				iter->curchunk = *iter->curchunk_threaded_shared;
+				if (iter->curchunk == NULL) {
+					break;
+				}
+				if (atomic_cas_ptr((void **)iter->curchunk_threaded_shared, iter->curchunk, iter->curchunk->next) == iter->curchunk) {
+					break;
+				}
+			}
+		}
+		iter->curchunk = iter->curchunk->next;
 	}
 
 	return ret;
@@ -620,8 +676,18 @@ void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
 		}
 		else {
 			iter->curindex = 0;
+			if (iter->curchunk_threaded_shared) {
+				for (iter->curchunk = *iter->curchunk_threaded_shared;
+				     (iter->curchunk != NULL) &&
+				     (atomic_cas_ptr((void **)iter->curchunk_threaded_shared, iter->curchunk, iter->curchunk->next) != iter->curchunk);
+				     iter->curchunk = *iter->curchunk_threaded_shared);
+
+				if (UNLIKELY(iter->curchunk == NULL)) {
+					return (ret->freeword == FREEWORD) ? NULL : ret;
+				}
+			}
 			iter->curchunk = iter->curchunk->next;
-			if (iter->curchunk == NULL) {
+			if (UNLIKELY(iter->curchunk == NULL)) {
 				return (ret->freeword == FREEWORD) ? NULL : ret;
 			}
 			curnode = CHUNK_DATA(iter->curchunk);
