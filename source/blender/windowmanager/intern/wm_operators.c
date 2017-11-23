@@ -119,6 +119,8 @@
 #include "wm_window.h"
 
 static GHash *global_ops_hash = NULL;
+/** Counter for operator-properties that should not be tagged with #OP_PROP_TAG_ADVANCED. */
+static int ot_prop_basic_count = -1;
 
 #define UNDOCUMENTED_OPERATOR_TIP N_("(undocumented operator)")
 
@@ -164,10 +166,15 @@ void WM_operatortype_iter(GHashIterator *ghi)
 static wmOperatorType *wm_operatortype_append__begin(void)
 {
 	wmOperatorType *ot = MEM_callocN(sizeof(wmOperatorType), "operatortype");
+
+	BLI_assert(ot_prop_basic_count == -1);
+
 	ot->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_OperatorProperties);
+	RNA_def_struct_property_tags(ot->srna, rna_enum_operator_property_tags);
 	/* Set the default i18n context now, so that opfunc can redefine it if needed! */
 	RNA_def_struct_translation_context(ot->srna, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
 	ot->translation_context = BLT_I18NCONTEXT_OPERATOR_DEFAULT;
+
 	return ot;
 }
 static void wm_operatortype_append__end(wmOperatorType *ot)
@@ -176,6 +183,9 @@ static void wm_operatortype_append__end(wmOperatorType *ot)
 		fprintf(stderr, "ERROR: Operator %s has no name property!\n", ot->idname);
 		ot->name = N_("Dummy Name");
 	}
+
+	/* Allow calling _begin without _end in operatortype creation. */
+	WM_operatortype_props_advanced_end(ot);
 
 	/* XXX All ops should have a description but for now allow them not to. */
 	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description : UNDOCUMENTED_OPERATOR_TIP);
@@ -529,6 +539,55 @@ void WM_operatortype_last_properties_clear_all(void)
 			ot->last_properties = NULL;
 		}
 	}
+}
+
+/**
+ * Tag all operator-properties of \a ot defined after calling this, until
+ * the next #WM_operatortype_props_advanced_end call (if available), with
+ * #OP_PROP_TAG_ADVANCED. Previously defined ones properties not touched.
+ *
+ * Calling this multiple times without a call to #WM_operatortype_props_advanced_end,
+ * all calls after the first one are ignored. Meaning all propereties defined after the
+ * first call are tagged as advanced.
+ *
+ * This doesn't do the actual tagging, #WM_operatortype_props_advanced_end does which is
+ * called for all operators during registration (see #wm_operatortype_append__end).
+ */
+void WM_operatortype_props_advanced_begin(wmOperatorType *ot)
+{
+	if (ot_prop_basic_count == -1) { /* Don't do anything if _begin was called before, but not _end  */
+		ot_prop_basic_count = RNA_struct_count_properties(ot->srna);
+	}
+}
+
+/**
+ * Tags all operator-properties of \ot defined since the first #WM_operatortype_props_advanced_begin
+ * call, or the last #WM_operatortype_props_advanced_end call, with #OP_PROP_TAG_ADVANCED.
+ * Note that this is called for all operators during registration (see #wm_operatortype_append__end).
+ * So it does not need to be explicitly called in operator-type definition.
+ */
+void WM_operatortype_props_advanced_end(wmOperatorType *ot)
+{
+	PointerRNA struct_ptr;
+	int counter = 0;
+
+	if (ot_prop_basic_count == -1) {
+		/* WM_operatortype_props_advanced_begin was not called. Don't do anything. */
+		return;
+	}
+
+	RNA_pointer_create(NULL, ot->srna, NULL, &struct_ptr);
+
+	RNA_STRUCT_BEGIN (&struct_ptr, prop)
+	{
+		counter++;
+		if (counter > ot_prop_basic_count) {
+			WM_operatortype_prop_tag(prop, OP_PROP_TAG_ADVANCED);
+		}
+	}
+	RNA_STRUCT_END;
+
+	ot_prop_basic_count = -1;
 }
 
 /* SOME_OT_op -> some.op */

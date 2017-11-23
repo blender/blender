@@ -727,6 +727,23 @@ bool RNA_struct_contains_property(PointerRNA *ptr, PropertyRNA *prop_test)
 	return found;
 }
 
+unsigned int RNA_struct_count_properties(StructRNA *srna)
+{
+	PointerRNA struct_ptr;
+	unsigned int counter = 0;
+
+	RNA_pointer_create(NULL, srna, NULL, &struct_ptr);
+
+	RNA_STRUCT_BEGIN (&struct_ptr, prop)
+	{
+		counter++;
+		UNUSED_VARS(prop);
+	}
+	RNA_STRUCT_END;
+
+	return counter;
+}
+
 /* low level direct access to type->properties, note this ignores parent classes so should be used with care */
 const struct ListBase *RNA_struct_type_properties(StructRNA *srna)
 {

@@ -293,6 +293,14 @@ void		WM_operatortype_append_macro_ptr(void (*opfunc)(struct wmOperatorType *, v
 void        WM_operatortype_remove_ptr(struct wmOperatorType *ot);
 bool        WM_operatortype_remove(const char *idname);
 void        WM_operatortype_last_properties_clear_all(void);
+void        WM_operatortype_props_advanced_begin(struct wmOperatorType *ot);
+void        WM_operatortype_props_advanced_end(struct wmOperatorType *ot);
+
+#define WM_operatortype_prop_tag(property, tags) \
+	{ \
+		CHECK_TYPE(tags, eOperatorPropTags); \
+		RNA_def_property_tags(prop, tags); \
+	} (void)0
 
 struct wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *name, const char *description, int flag);
 struct wmOperatorTypeMacro *WM_operatortype_macro_define(struct wmOperatorType *ot, const char *idname);

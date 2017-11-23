@@ -442,6 +442,11 @@ const EnumPropertyItem rna_enum_operator_return_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+const EnumPropertyItem rna_enum_operator_property_tags[] = {
+	{OP_PROP_TAG_ADVANCED, "ADVANCED", 0, "Advanced", "The property is advanced so UI is suggested to hide it"},
+	{0, NULL, 0, NULL, NULL}
+};
+
 /* flag/enum */
 const EnumPropertyItem rna_enum_wm_report_items[] = {
 	{RPT_DEBUG, "DEBUG", 0, "Debug", ""},
@@ -1285,6 +1290,7 @@ static StructRNA *rna_Operator_register(
 	/* create a new operator type */
 	dummyot.ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, dummyot.idname, &RNA_Operator);
 	RNA_def_struct_flag(dummyot.ext.srna, STRUCT_NO_IDPROPERTIES); /* operator properties are registered separately */
+	RNA_def_struct_property_tags(dummyot.ext.srna, rna_enum_operator_property_tags);
 	RNA_def_struct_translation_context(dummyot.ext.srna, dummyot.translation_context);
 	dummyot.ext.data = data;
 	dummyot.ext.call = call;
@@ -1639,6 +1645,7 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Operator Properties", "Input properties of an Operator");
 	RNA_def_struct_refine_func(srna, "rna_OperatorProperties_refine");
 	RNA_def_struct_idprops_func(srna, "rna_OperatorProperties_idprops");
+	RNA_def_struct_property_tags(srna, rna_enum_operator_property_tags);
 	RNA_def_struct_flag(srna, STRUCT_NO_DATABLOCK_IDPROPERTIES);
 }
 
