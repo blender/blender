@@ -330,6 +330,16 @@ static PointerRNA rna_Struct_functions_get(CollectionPropertyIterator *iter)
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Function, internal->link);
 }
 
+static void rna_Struct_property_tags_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	/* here ptr->data should always be the same as iter->parent.type */
+	StructRNA *srna = (StructRNA *)ptr->data;
+	const EnumPropertyItem *tag_defines = RNA_struct_property_tag_defines(srna);
+	unsigned int tag_count = RNA_enum_items_count(tag_defines);
+
+	rna_iterator_array_begin(iter, (void *)tag_defines, sizeof(EnumPropertyItem), tag_count, 0, NULL);
+}
+
 /* Builtin properties iterator re-uses the Struct properties iterator, only
  * difference is that we need to set the ptr data to the type of the struct
  * whose properties we want to iterate over. */
@@ -601,6 +611,34 @@ static int rna_Property_is_library_editable_flag_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 	return (prop->flag & PROP_LIB_EXCEPTION) != 0;
+}
+
+static int rna_Property_tags_get(PointerRNA *ptr)
+{
+	return RNA_property_tags(ptr->data);
+}
+
+static const EnumPropertyItem *rna_Property_tags_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr,
+        PropertyRNA *UNUSED(prop), bool *r_free)
+{
+	PropertyRNA *this_prop = (PropertyRNA *)ptr->data;
+	const StructRNA *srna = RNA_property_pointer_type(ptr, this_prop);
+	EnumPropertyItem *prop_tags;
+	EnumPropertyItem tmp = {0, "", 0, "", ""};
+	int totitem = 0;
+
+	for (const EnumPropertyItem *struct_tags = RNA_struct_property_tag_defines(srna);
+	     struct_tags->identifier;
+	     struct_tags++)
+	{
+		memcpy(&tmp, struct_tags, sizeof(tmp));
+		RNA_enum_item_add(&prop_tags, &totitem, &tmp);
+	}
+	RNA_enum_item_end(&prop_tags, &totitem);
+	*r_free = true;
+
+	return prop_tags;
 }
 
 static int rna_Property_array_length_get(PointerRNA *ptr)
@@ -1112,6 +1150,14 @@ static void rna_def_struct(BlenderRNA *brna)
 	                                  "rna_iterator_listbase_end", "rna_Struct_functions_get",
 	                                  NULL, NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Functions", "");
+
+	prop = RNA_def_property(srna, "property_tags", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_struct_type(prop, "EnumPropertyItem");
+	RNA_def_property_collection_funcs(prop, "rna_Struct_property_tags_begin", "rna_iterator_array_next",
+	                                  "rna_iterator_array_end", "rna_iterator_array_get",
+	                                  NULL, NULL, NULL, NULL);
+	RNA_def_property_ui_text(prop, "Property Tags", "Tags that properties can use to influence behavior");
 }
 
 static void rna_def_property(BlenderRNA *brna)
@@ -1140,6 +1186,9 @@ static void rna_def_property(BlenderRNA *brna)
 		{PROP_COORDS, "COORDINATES", 0, "Vector Coordinates", ""},
 		{PROP_LAYER, "LAYER", 0, "Layer", ""},
 		{PROP_LAYER_MEMBER, "LAYER_MEMBERSHIP", 0, "Layer Membership", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+	EnumPropertyItem dummy_prop_tags[] = {
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -1266,6 +1315,13 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_is_library_editable_flag_get", NULL);
 	RNA_def_property_ui_text(prop, "Library Editable", "Property is editable from linked instances (changes not saved)");
+
+	prop = RNA_def_property(srna, "tags", PROP_ENUM, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_enum_items(prop, dummy_prop_tags);
+	RNA_def_property_enum_funcs(prop, "rna_Property_tags_get", NULL, "rna_Property_tags_itemf");
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
+	RNA_def_property_ui_text(prop, "Tags", "Subset of tags (defined in parent struct) that are set for this property");
 }
 
 static void rna_def_function(BlenderRNA *brna)

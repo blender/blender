@@ -966,6 +966,11 @@ void RNA_def_struct_clear_flag(StructRNA *srna, int flag)
 	srna->flag &= ~flag;
 }
 
+void RNA_def_struct_property_tags(StructRNA *srna, const EnumPropertyItem *prop_tag_defines)
+{
+	srna->prop_tag_defines = prop_tag_defines;
+}
+
 void RNA_def_struct_refine_func(StructRNA *srna, const char *refine)
 {
 	if (!DefRNA.preprocess) {
@@ -1278,6 +1283,18 @@ void RNA_def_property_flag(PropertyRNA *prop, PropertyFlag flag)
 void RNA_def_property_clear_flag(PropertyRNA *prop, PropertyFlag flag)
 {
 	prop->flag &= ~flag;
+}
+
+/**
+ * Add the property-tags passed as \a tags to \a prop (if valid).
+ *
+ * \note Multiple tags can be set by passing them within \a tags (using bitflags).
+ * \note Doesn't do any type-checking with the tags defined in the parent StructRNA
+ *       of \a prop. This should be done before (e.g. see #WM_operatortype_prop_tag).
+ */
+void RNA_def_property_tags(PropertyRNA *prop, int tags)
+{
+	prop->tags |= tags;
 }
 
 void RNA_def_parameter_flags(PropertyRNA *prop, PropertyFlag flag_property, ParameterFlag flag_parameter)
