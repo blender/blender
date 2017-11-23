@@ -252,7 +252,12 @@ void BKE_blender_userdef_app_template_data_swap(UserDef *userdef_a, UserDef *use
 	 */
 
 #define DATA_SWAP(id) \
-	SWAP(userdef_a->id, userdef_b->id);
+	{ \
+		UserDef userdef_tmp; \
+		memcpy(&(userdef_tmp.id), &(userdef_a->id), sizeof(userdef_tmp.id)); \
+		memcpy(&(userdef_a->id), &(userdef_b->id), sizeof(userdef_tmp.id)); \
+		memcpy(&(userdef_b->id), &(userdef_tmp.id), sizeof(userdef_tmp.id)); \
+	}
 
 #define LIST_SWAP(id) { \
 	SWAP(ListBase, userdef_a->id, userdef_b->id); \
