@@ -978,14 +978,14 @@ static int outliner_open_back(TreeElement *te)
 static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceOops *so = CTX_wm_space_outliner(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	ARegion *ar = CTX_wm_region(C);
 	View2D *v2d = &ar->v2d;
 	
 	TreeElement *te;
 	int xdelta, ytop;
 
-	Object *obact = OBACT(sl);
+	Object *obact = OBACT(view_layer);
 
 	if (!obact)
 		return OPERATOR_CANCELLED;
@@ -2174,8 +2174,8 @@ static int scene_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 		BKE_collection_object_add(scene, sc, ob);
 
-		for (ViewLayer *sl = scene->view_layers.first; sl; sl = sl->next) {
-			Base *base = BKE_view_layer_base_find(sl, ob);
+		for (ViewLayer *view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
+			Base *base = BKE_view_layer_base_find(view_layer, ob);
 			if (base) {
 				ED_object_base_select(base, BA_SELECT);
 			}

@@ -294,8 +294,8 @@ static bool WIDGETGROUP_camera_view_poll(const bContext *C, wmManipulatorGroupTy
 	 * stealing mouse clicks from regular usage.
 	 * We could change the rules for when to show. */
 	{
-		ViewLayer *sl = CTX_data_view_layer(C);
-		if (scene->camera != OBACT(sl)) {
+		ViewLayer *view_layer = CTX_data_view_layer(C);
+		if (scene->camera != OBACT(view_layer)) {
 			return false;
 		}
 	}

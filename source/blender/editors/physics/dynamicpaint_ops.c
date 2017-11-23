@@ -460,7 +460,7 @@ static int dynamicpaint_bake_exec(struct bContext *C, struct wmOperator *op)
 	DynamicPaintCanvasSettings *canvas;
 	Object *ob = ED_object_context(C);
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	EvaluationContext *eval_ctx = MEM_mallocN(sizeof(*eval_ctx), "EvaluationContext");
 
 	CTX_data_eval_ctx(C, eval_ctx);
@@ -491,7 +491,7 @@ static int dynamicpaint_bake_exec(struct bContext *C, struct wmOperator *op)
 	DynamicPaintBakeJob *job = MEM_mallocN(sizeof(DynamicPaintBakeJob), "DynamicPaintBakeJob");
 	job->bmain = CTX_data_main(C);
 	job->scene = scene;
-	job->view_layer = sl;
+	job->view_layer = view_layer;
 	job->depsgraph = CTX_data_depsgraph(C);
 	job->ob = ob;
 	job->canvas = canvas;

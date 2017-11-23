@@ -2096,7 +2096,7 @@ static bool snapObjectsRay(
  * \{ */
 
 SnapObjectContext *ED_transform_snap_object_context_create(
-        Main *bmain, Scene *scene, ViewLayer *sl, RenderEngineType *engine, int flag)
+        Main *bmain, Scene *scene, ViewLayer *view_layer, RenderEngineType *engine, int flag)
 {
 	SnapObjectContext *sctx = MEM_callocN(sizeof(*sctx), __func__);
 
@@ -2105,7 +2105,7 @@ SnapObjectContext *ED_transform_snap_object_context_create(
 	sctx->bmain = bmain;
 	sctx->scene = scene;
 
-	DEG_evaluation_context_init_from_scene(&sctx->eval_ctx, scene, sl, engine, DAG_EVAL_VIEWPORT);
+	DEG_evaluation_context_init_from_scene(&sctx->eval_ctx, scene, view_layer, engine, DAG_EVAL_VIEWPORT);
 
 	sctx->cache.object_map = BLI_ghash_ptr_new(__func__);
 	sctx->cache.mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
@@ -2114,11 +2114,11 @@ SnapObjectContext *ED_transform_snap_object_context_create(
 }
 
 SnapObjectContext *ED_transform_snap_object_context_create_view3d(
-        Main *bmain, Scene *scene, ViewLayer *sl, RenderEngineType *engine, int flag,
+        Main *bmain, Scene *scene, ViewLayer *view_layer, RenderEngineType *engine, int flag,
         /* extra args for view3d */
         const ARegion *ar, const View3D *v3d)
 {
-	SnapObjectContext *sctx = ED_transform_snap_object_context_create(bmain, scene, sl, engine, flag);
+	SnapObjectContext *sctx = ED_transform_snap_object_context_create(bmain, scene, view_layer, engine, flag);
 
 	sctx->use_v3d = true;
 	sctx->v3d_data.ar = ar;

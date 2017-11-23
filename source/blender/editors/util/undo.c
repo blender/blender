@@ -120,7 +120,7 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 	wmWindow *win = CTX_wm_window(C);
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Object *obact = CTX_data_active_object(C);
 	ScrArea *sa = CTX_wm_area(C);
@@ -181,9 +181,9 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 		}
 		else if (obact && obact->mode & OB_MODE_PARTICLE_EDIT) {
 			if (step == 1)
-				PE_undo(scene, sl);
+				PE_undo(scene, view_layer);
 			else
-				PE_redo(scene, sl);
+				PE_redo(scene, view_layer);
 		}
 		else if (U.uiflag & USER_GLOBALUNDO) {
 			// note python defines not valid here anymore.

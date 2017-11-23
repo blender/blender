@@ -374,10 +374,10 @@ bool ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
 }
 
 /* matches clip function */
-bool ED_space_image_check_show_maskedit(ViewLayer *sl, SpaceImage *sima)
+bool ED_space_image_check_show_maskedit(ViewLayer *view_layer, SpaceImage *sima)
 {
 	/* check editmode - this is reserved for UV editing */
-	Object *ob = OBACT(sl);
+	Object *ob = OBACT(view_layer);
 	if (ob && ob->mode & OB_MODE_EDIT && ED_space_image_show_uvedit(sima, ob)) {
 		return false;
 	}
@@ -390,8 +390,8 @@ int ED_space_image_maskedit_poll(bContext *C)
 	SpaceImage *sima = CTX_wm_space_image(C);
 
 	if (sima) {
-		ViewLayer *sl = CTX_data_view_layer(C);
-		return ED_space_image_check_show_maskedit(sl, sima);
+		ViewLayer *view_layer = CTX_data_view_layer(C);
+		return ED_space_image_check_show_maskedit(view_layer, sima);
 	}
 
 	return false;

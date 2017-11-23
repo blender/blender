@@ -452,8 +452,8 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 
 	if (CTX_wm_view3d(C) && texpaint_proj) {
 		/* first try getting a colour directly from the mesh faces if possible */
-		ViewLayer *sl = CTX_data_view_layer(C);
-		Object *ob = OBACT(sl);
+		ViewLayer *view_layer = CTX_data_view_layer(C);
+		Object *ob = OBACT(view_layer);
 		bool sample_success = false;
 		ImagePaintSettings *imapaint = &scene->toolsettings->imapaint;
 		bool use_material = (imapaint->mode == IMAGEPAINT_MODE_MATERIAL);
@@ -567,9 +567,9 @@ static int brush_curve_preset_exec(bContext *C, wmOperator *op)
 
 	if (br) {
 		Scene *scene = CTX_data_scene(C);
-		ViewLayer *sl = CTX_data_view_layer(C);
+		ViewLayer *view_layer = CTX_data_view_layer(C);
 		BKE_brush_curve_preset(br, RNA_enum_get(op->ptr, "shape"));
-		BKE_paint_invalidate_cursor_overlay(scene, sl, br->curve);
+		BKE_paint_invalidate_cursor_overlay(scene, view_layer, br->curve);
 	}
 
 	return OPERATOR_FINISHED;

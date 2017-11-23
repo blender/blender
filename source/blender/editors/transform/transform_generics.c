@@ -318,7 +318,7 @@ static bool fcu_test_selected(FCurve *fcu)
 /* helper for recalcData() - for Action Editor transforms */
 static void recalcData_actedit(TransInfo *t)
 {
-	ViewLayer *sl = t->view_layer;
+	ViewLayer *view_layer = t->view_layer;
 	SpaceAction *saction = (SpaceAction *)t->sa->spacedata.first;
 	
 	bAnimContext ac = {NULL};
@@ -330,7 +330,7 @@ static void recalcData_actedit(TransInfo *t)
 	/* NOTE: sync this with the code in ANIM_animdata_get_context() */
 	ac.scene = t->scene;
 	ac.view_layer = t->view_layer;
-	ac.obact = OBACT(sl);
+	ac.obact = OBACT(view_layer);
 	ac.sa = t->sa;
 	ac.ar = t->ar;
 	ac.sl = (t->sa) ? t->sa->spacedata.first : NULL;
@@ -367,7 +367,7 @@ static void recalcData_actedit(TransInfo *t)
 static void recalcData_graphedit(TransInfo *t)
 {
 	SpaceIpo *sipo = (SpaceIpo *)t->sa->spacedata.first;
-	ViewLayer *sl = t->view_layer;
+	ViewLayer *view_layer = t->view_layer;
 	
 	ListBase anim_data = {NULL, NULL};
 	bAnimContext ac = {NULL};
@@ -380,7 +380,7 @@ static void recalcData_graphedit(TransInfo *t)
 	/* NOTE: sync this with the code in ANIM_animdata_get_context() */
 	ac.scene = t->scene;
 	ac.view_layer = t->view_layer;
-	ac.obact = OBACT(sl);
+	ac.obact = OBACT(view_layer);
 	ac.sa = t->sa;
 	ac.ar = t->ar;
 	ac.sl = (t->sa) ? t->sa->spacedata.first : NULL;
@@ -1116,7 +1116,7 @@ static int initTransInfo_edit_pet_to_flag(const int proportional)
 void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *event)
 {
 	Scene *sce = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	ARegion *ar = CTX_wm_region(C);
 	ScrArea *sa = CTX_wm_area(C);
@@ -1127,7 +1127,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 	PropertyRNA *prop;
 	
 	t->scene = sce;
-	t->view_layer = sl;
+	t->view_layer = view_layer;
 	t->engine = engine;
 	t->sa = sa;
 	t->ar = ar;
@@ -1802,8 +1802,8 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
 		}
 	}
 	else if (t->flag & T_POSE) {
-		ViewLayer *sl = t->view_layer;
-		Object *ob = OBACT(sl);
+		ViewLayer *view_layer = t->view_layer;
+		Object *ob = OBACT(view_layer);
 		if (ob) {
 			bPoseChannel *pchan = BKE_pose_channel_active(ob);
 			if (pchan && (!select_only || (pchan->bone->flag & BONE_SELECTED))) {
@@ -1822,9 +1822,9 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
 	}
 	else {
 		/* object mode */
-		ViewLayer *sl = t->view_layer;
-		Object *ob = OBACT(sl);
-		Base *base = BASACT(sl);
+		ViewLayer *view_layer = t->view_layer;
+		Object *ob = OBACT(view_layer);
+		Base *base = BASACT(view_layer);
 		if (ob && ((!select_only) || ((base->flag & BASE_SELECTED) != 0))) {
 			copy_v3_v3(r_center, ob->obmat[3]);
 			ok = true;

@@ -503,8 +503,8 @@ static void initSnappingMode(TransInfo *t)
 {
 	ToolSettings *ts = t->settings;
 	Object *obedit = t->obedit;
-	ViewLayer *sl = t->view_layer;
-	Base *base_act = sl->basact;
+	ViewLayer *view_layer = t->view_layer;
+	Base *base_act = view_layer->basact;
 
 	if (t->spacetype == SPACE_NODE) {
 		/* force project off when not supported */

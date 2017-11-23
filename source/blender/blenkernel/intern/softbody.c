@@ -514,7 +514,7 @@ static void ccd_build_deflector_hash_single(GHash *hash, Object *ob)
 /**
  * \note group overrides scene when not NULL.
  */
-static void ccd_build_deflector_hash(ViewLayer *sl, Group *group, Object *vertexowner, GHash *hash)
+static void ccd_build_deflector_hash(ViewLayer *view_layer, Group *group, Object *vertexowner, GHash *hash)
 {
 	Object *ob;
 
@@ -532,7 +532,7 @@ static void ccd_build_deflector_hash(ViewLayer *sl, Group *group, Object *vertex
 		}
 	}
 	else {
-		for (Base *base = FIRSTBASE(sl); base; base = base->next) {
+		for (Base *base = FIRSTBASE(view_layer); base; base = base->next) {
 			/*Only proceed for mesh object in same layer */
 			if (base->object->type == OB_MESH) {
 				ob = base->object;
@@ -560,7 +560,7 @@ static void ccd_update_deflector_hash_single(GHash *hash, Object *ob)
 /**
  * \note group overrides scene when not NULL.
  */
-static void ccd_update_deflector_hash(ViewLayer *sl, Group *group, Object *vertexowner, GHash *hash)
+static void ccd_update_deflector_hash(ViewLayer *view_layer, Group *group, Object *vertexowner, GHash *hash)
 {
 	Object *ob;
 
@@ -578,7 +578,7 @@ static void ccd_update_deflector_hash(ViewLayer *sl, Group *group, Object *verte
 		}
 	}
 	else {
-		for (Base *base = FIRSTBASE(sl); base; base = base->next) {
+		for (Base *base = FIRSTBASE(view_layer); base; base = base->next) {
 			/*Only proceed for mesh object in same layer */
 			if (base->object->type == OB_MESH) {
 				ob = base->object;
@@ -979,7 +979,7 @@ static void free_softbody_intern(SoftBody *sb)
 /**
  * \note group overrides scene when not NULL.
  */
-static bool are_there_deflectors(ViewLayer *sl, Group *group)
+static bool are_there_deflectors(ViewLayer *view_layer, Group *group)
 {
 	if (group) {
 		for (GroupObject *go = group->gobject.first; go; go = go->next) {
@@ -988,7 +988,7 @@ static bool are_there_deflectors(ViewLayer *sl, Group *group)
 		}
 	}
 	else {
-		for (Base *base = FIRSTBASE(sl); base; base = base->next) {
+		for (Base *base = FIRSTBASE(view_layer); base; base = base->next) {
 			if (base->object->pd) {
 				if (base->object->pd->deflect)
 					return 1;
@@ -999,9 +999,9 @@ static bool are_there_deflectors(ViewLayer *sl, Group *group)
 	return 0;
 }
 
-static int query_external_colliders(ViewLayer *sl, Group *group)
+static int query_external_colliders(ViewLayer *view_layer, Group *group)
 {
-	return(are_there_deflectors(sl, group));
+	return(are_there_deflectors(view_layer, group));
 }
 /* --- dependency information functions*/
 

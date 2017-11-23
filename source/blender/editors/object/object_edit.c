@@ -235,7 +235,7 @@ void ED_object_editmode_exit(bContext *C, int flag)
 	/* Note! only in exceptional cases should 'EM_DO_UNDO' NOT be in the flag */
 	/* Note! if 'EM_FREEDATA' isn't in the flag, use ED_object_editmode_load directly */
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 	const bool freedata = (flag & EM_FREEDATA) != 0;
 
@@ -244,8 +244,8 @@ void ED_object_editmode_exit(bContext *C, int flag)
 	if (ED_object_editmode_load_ex(CTX_data_main(C), obedit, freedata) == false) {
 		/* in rare cases (background mode) its possible active object
 		 * is flagged for editmode, without 'obedit' being set [#35489] */
-		if (UNLIKELY(sl->basact && (sl->basact->object->mode & OB_MODE_EDIT))) {
-			sl->basact->object->mode &= ~OB_MODE_EDIT;
+		if (UNLIKELY(view_layer->basact && (view_layer->basact->object->mode & OB_MODE_EDIT))) {
+			view_layer->basact->object->mode &= ~OB_MODE_EDIT;
 		}
 		if (flag & EM_WAITCURSOR) waitcursor(0);
 		return;
@@ -290,7 +290,7 @@ void ED_object_editmode_exit(bContext *C, int flag)
 void ED_object_editmode_enter(bContext *C, int flag)
 {
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob;
 	bool ok = false;
 
@@ -302,7 +302,7 @@ void ED_object_editmode_enter(bContext *C, int flag)
 		if (ob == NULL) return;
 	}
 	else {
-		ob = sl->basact->object;
+		ob = view_layer->basact->object;
 	}
 
 	if (ELEM(NULL, ob, ob->data)) return;
@@ -512,7 +512,7 @@ void OBJECT_OT_posemode_toggle(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static void copymenu_properties(ViewLayer *sl, Object *ob)
+static void copymenu_properties(ViewLayer *view_layer, Object *ob)
 {	
 //XXX no longer used - to be removed - replaced by game_properties_copy_exec
 	bProperty *prop;
@@ -545,8 +545,8 @@ static void copymenu_properties(ViewLayer *sl, Object *ob)
 	nr = pupmenu(str);
 	
 	if (nr == 1 || nr == 2) {
-		for (base = FIRSTBASE(sl); base; base = base->next) {
-			if ((base != BASACT(sl)) && (TESTBASELIB(base))) {
+		for (base = FIRSTBASE(view_layer); base; base = base->next) {
+			if ((base != BASACT(view_layer)) && (TESTBASELIB(base))) {
 				if (nr == 1) { /* replace */
 					BKE_bproperty_copy_list(&base->object->prop, &ob->prop);
 				}
@@ -562,8 +562,8 @@ static void copymenu_properties(ViewLayer *sl, Object *ob)
 		prop = BLI_findlink(&ob->prop, nr - 4); /* account for first 3 menu items & menu index starting at 1*/
 		
 		if (prop) {
-			for (base = FIRSTBASE(sl); base; base = base->next) {
-				if ((base != BASACT(sl)) && (TESTBASELIB(base))) {
+			for (base = FIRSTBASE(view_layer); base; base = base->next) {
+				if ((base != BASACT(view_layer)) && (TESTBASELIB(base))) {
 					BKE_bproperty_object_set(base->object, prop);
 				}
 			}
@@ -573,12 +573,12 @@ static void copymenu_properties(ViewLayer *sl, Object *ob)
 	
 }
 
-static void copymenu_logicbricks(ViewLayer *sl, Object *ob)
+static void copymenu_logicbricks(ViewLayer *view_layer, Object *ob)
 {
 //XXX no longer used - to be removed - replaced by logicbricks_copy_exec
 	Base *base;
 	
-	for (base = FIRSTBASE(sl); base; base = base->next) {
+	for (base = FIRSTBASE(view_layer); base; base = base->next) {
 		if (base->object != ob) {
 			if (TESTBASELIB(base)) {
 				
@@ -659,7 +659,7 @@ static void copy_texture_space(Object *to, Object *ob)
 }
 
 /* UNUSED, keep in case we want to copy functionality for use elsewhere */
-static void copy_attr(Main *bmain, Scene *scene, ViewLayer *sl, short event)
+static void copy_attr(Main *bmain, Scene *scene, ViewLayer *view_layer, short event)
 {
 	Object *ob;
 	Base *base;
@@ -669,18 +669,18 @@ static void copy_attr(Main *bmain, Scene *scene, ViewLayer *sl, short event)
 	
 	if (ID_IS_LINKED(scene)) return;
 
-	if (!(ob = OBACT(sl))) return;
+	if (!(ob = OBACT(view_layer))) return;
 	
 	if (scene->obedit) { // XXX get from context
 		/* obedit_copymenu(); */
 		return;
 	}
 	if (event == 9) {
-		copymenu_properties(sl, ob);
+		copymenu_properties(view_layer, ob);
 		return;
 	}
 	else if (event == 10) {
-		copymenu_logicbricks(sl, ob);
+		copymenu_logicbricks(view_layer, ob);
 		return;
 	}
 	else if (event == 24) {
@@ -689,8 +689,8 @@ static void copy_attr(Main *bmain, Scene *scene, ViewLayer *sl, short event)
 		return;
 	}
 
-	for (base = FIRSTBASE(sl); base; base = base->next) {
-		if (base != BASACT(sl)) {
+	for (base = FIRSTBASE(view_layer); base; base = base->next) {
+		if (base != BASACT(view_layer)) {
 			if (TESTBASELIB(base)) {
 				DEG_id_tag_update(&base->object->id, OB_RECALC_DATA);
 				
@@ -910,13 +910,13 @@ static void copy_attr(Main *bmain, Scene *scene, ViewLayer *sl, short event)
 		DEG_relations_tag_update(bmain);
 }
 
-static void UNUSED_FUNCTION(copy_attr_menu) (Main *bmain, Scene *scene, ViewLayer *sl)
+static void UNUSED_FUNCTION(copy_attr_menu) (Main *bmain, Scene *scene, ViewLayer *view_layer)
 {
 	Object *ob;
 	short event;
 	char str[512];
 	
-	if (!(ob = OBACT(sl))) return;
+	if (!(ob = OBACT(view_layer))) return;
 	
 	if (scene->obedit) { /* XXX get from context */
 /*		if (ob->type == OB_MESH) */
@@ -964,7 +964,7 @@ static void UNUSED_FUNCTION(copy_attr_menu) (Main *bmain, Scene *scene, ViewLaye
 	event = pupmenu(str);
 	if (event <= 0) return;
 	
-	copy_attr(bmain, scene, sl, event);
+	copy_attr(bmain, scene, view_layer, event);
 }
 
 /* ******************* force field toggle operator ***************** */
@@ -1334,7 +1334,7 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 
 /* ********************** */
 
-static void UNUSED_FUNCTION(image_aspect) (Scene *scene, ViewLayer *sl)
+static void UNUSED_FUNCTION(image_aspect) (Scene *scene, ViewLayer *view_layer)
 {
 	/* all selected objects with an image map: scale in image aspect */
 	Base *base;
@@ -1347,7 +1347,7 @@ static void UNUSED_FUNCTION(image_aspect) (Scene *scene, ViewLayer *sl)
 	if (scene->obedit) return;  // XXX get from context
 	if (ID_IS_LINKED(scene)) return;
 	
-	for (base = FIRSTBASE(sl); base; base = base->next) {
+	for (base = FIRSTBASE(view_layer); base; base = base->next) {
 		if (TESTBASELIB(base)) {
 			ob = base->object;
 			done = false;

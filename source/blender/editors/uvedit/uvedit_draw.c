@@ -517,7 +517,7 @@ static void draw_uvs_other_mesh(Object *ob, const Image *curimage, const bool ne
 	}
 }
 
-static void draw_uvs_other(ViewLayer *sl, Object *obedit, const Image *curimage, const bool new_shading_nodes,
+static void draw_uvs_other(ViewLayer *view_layer, Object *obedit, const Image *curimage, const bool new_shading_nodes,
                            const int other_uv_filter)
 {
 	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -526,7 +526,7 @@ static void draw_uvs_other(ViewLayer *sl, Object *obedit, const Image *curimage,
 
 	immUniformThemeColor(TH_UV_OTHERS);
 
-	for (Base *base = sl->object_bases.first; base; base = base->next) {
+	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 		if (((base->flag & BASE_SELECTED) != 0) &&
 		    ((base->flag & BASE_VISIBLED) != 0))
 		{
@@ -539,7 +539,7 @@ static void draw_uvs_other(ViewLayer *sl, Object *obedit, const Image *curimage,
 	immUnbindProgram();
 }
 
-static void draw_uvs_texpaint(SpaceImage *sima, Scene *scene, ViewLayer *sl, Object *ob)
+static void draw_uvs_texpaint(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Object *ob)
 {
 	const bool new_shading_nodes = BKE_scene_use_new_shading_nodes(scene);
 	Image *curimage = ED_space_image(sima);
@@ -547,7 +547,7 @@ static void draw_uvs_texpaint(SpaceImage *sima, Scene *scene, ViewLayer *sl, Obj
 	Material *ma;
 
 	if (sima->flag & SI_DRAW_OTHER) {
-		draw_uvs_other(sl, ob, curimage, new_shading_nodes, sima->other_uv_filter);
+		draw_uvs_other(view_layer, ob, curimage, new_shading_nodes, sima->other_uv_filter);
 	}
 
 	ma = give_current_material(ob, ob->actcol);
@@ -604,7 +604,7 @@ static void draw_uvs_looptri(BMEditMesh *em, unsigned int *r_loop_index, const i
 }
 
 /* draws uv's in the image space */
-static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *sl, Object *obedit, Depsgraph *depsgraph)
+static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Object *obedit, Depsgraph *depsgraph)
 {
 	const bool new_shading_nodes = BKE_scene_use_new_shading_nodes(scene);
 	ToolSettings *ts;
@@ -649,7 +649,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *sl, Object *obed
 			curimage = (efa_act) ? BKE_object_material_edit_image_get(obedit, efa_act->mat_nr) : ima;
 		}
 
-		draw_uvs_other(sl, obedit, curimage, new_shading_nodes, sima->other_uv_filter);
+		draw_uvs_other(view_layer, obedit, curimage, new_shading_nodes, sima->other_uv_filter);
 	}
 
 	/* 1. draw shadow mesh */
@@ -1045,7 +1045,7 @@ static void draw_uv_shadows_get(SpaceImage *sima, Object *ob, Object *obedit, bo
 	*show_texpaint = (ob && ob->type == OB_MESH && ob->mode == OB_MODE_TEXTURE_PAINT);
 }
 
-void ED_uvedit_draw_main(SpaceImage *sima, ARegion *ar, Scene *scene, ViewLayer *sl, Object *obedit, Object *obact, Depsgraph *depsgraph)
+void ED_uvedit_draw_main(SpaceImage *sima, ARegion *ar, Scene *scene, ViewLayer *view_layer, Object *obedit, Object *obact, Depsgraph *depsgraph)
 {
 	ToolSettings *toolsettings = scene->toolsettings;
 	bool show_uvedit, show_uvshadow, show_texpaint_uvshadow;
@@ -1057,9 +1057,9 @@ void ED_uvedit_draw_main(SpaceImage *sima, ARegion *ar, Scene *scene, ViewLayer 
 		if (show_uvshadow)
 			draw_uvs_shadow(obedit);
 		else if (show_uvedit)
-			draw_uvs(sima, scene, sl, obedit, depsgraph);
+			draw_uvs(sima, scene, view_layer, obedit, depsgraph);
 		else
-			draw_uvs_texpaint(sima, scene, sl, obact);
+			draw_uvs_texpaint(sima, scene, view_layer, obact);
 
 		if (show_uvedit && !(toolsettings->use_uv_sculpt))
 			ED_image_draw_cursor(ar, sima->cursor);

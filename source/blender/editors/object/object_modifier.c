@@ -413,7 +413,7 @@ int ED_object_modifier_move_down(ReportList *reports, Object *ob, ModifierData *
 	return 1;
 }
 
-int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *scene, ViewLayer *sl, Object *ob, ModifierData *md)
+int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *scene, ViewLayer *view_layer, Object *ob, ModifierData *md)
 {
 	Object *obn;
 	ParticleSystem *psys;
@@ -465,7 +465,7 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 	if (totvert == 0) return 0;
 
 	/* add new mesh */
-	obn = BKE_object_add(bmain, scene, sl, OB_MESH, NULL);
+	obn = BKE_object_add(bmain, scene, view_layer, OB_MESH, NULL);
 	me = obn->data;
 	
 	me->totvert = totvert;
@@ -882,7 +882,7 @@ ModifierData *edit_modifier_property_get(wmOperator *op, Object *ob, int type)
 static int modifier_remove_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = ED_object_active_context(C);
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
 	int mode_orig = ob->mode;
@@ -895,7 +895,7 @@ static int modifier_remove_exec(bContext *C, wmOperator *op)
 	/* if cloth/softbody was removed, particle mode could be cleared */
 	if (mode_orig & OB_MODE_PARTICLE_EDIT)
 		if ((ob->mode & OB_MODE_PARTICLE_EDIT) == 0)
-			if (sl->basact && sl->basact->object == ob)
+			if (view_layer->basact && view_layer->basact->object == ob)
 				WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -1058,11 +1058,11 @@ static int modifier_convert_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = ED_object_active_context(C);
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
 	
-	if (!md || !ED_object_modifier_convert(op->reports, bmain, scene, sl, ob, md))
+	if (!md || !ED_object_modifier_convert(op->reports, bmain, scene, view_layer, ob, md))
 		return OPERATOR_CANCELLED;
 
 	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -1698,7 +1698,7 @@ static void skin_armature_bone_create(Object *skin_ob,
 	}
 }
 
-static Object *modifier_skin_armature_create(const bContext *C, Scene *scene, ViewLayer *sl, Object *skin_ob)
+static Object *modifier_skin_armature_create(const bContext *C, Scene *scene, ViewLayer *view_layer, Object *skin_ob)
 {
 	Main *bmain = CTX_data_main(C);
 	EvaluationContext eval_ctx;
@@ -1725,7 +1725,7 @@ static Object *modifier_skin_armature_create(const bContext *C, Scene *scene, Vi
 	                     NULL,
 	                     me->totvert);
 	
-	arm_ob = BKE_object_add(bmain, scene, sl, OB_ARMATURE, NULL);
+	arm_ob = BKE_object_add(bmain, scene, view_layer, OB_ARMATURE, NULL);
 	BKE_object_transform_copy(arm_ob, skin_ob);
 	arm = arm_ob->data;
 	arm->layer = 1;
@@ -1784,7 +1784,7 @@ static int skin_armature_create_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = CTX_data_active_object(C), *arm_ob;
 	Mesh *me = ob->data;
 	ModifierData *skin_md;
@@ -1796,7 +1796,7 @@ static int skin_armature_create_exec(bContext *C, wmOperator *op)
 	}
 
 	/* create new armature */
-	arm_ob = modifier_skin_armature_create(C, scene, sl, ob);
+	arm_ob = modifier_skin_armature_create(C, scene, view_layer, ob);
 
 	/* add a modifier to connect the new armature to the mesh */
 	arm_md = (ArmatureModifierData *)modifier_new(eModifierType_Armature);

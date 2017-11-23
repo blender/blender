@@ -127,7 +127,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 	EvaluationContext eval_ctx;
 	BMVert *eve;
@@ -247,7 +247,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 			else {
 				Object workob;
 
-				ob->parent = BASACT(sl)->object;
+				ob->parent = BASACT(view_layer)->object;
 				if (v3) {
 					ob->partype = PARVERT3;
 					ob->par1 = v1 - 1;
@@ -1698,8 +1698,8 @@ static void single_object_users(Main *bmain, Scene *scene, View3D *v3d, const in
 	single_object_users_scene_collection(bmain, scene, msc, flag, copy_groups);
 
 	/* loop over ViewLayers and assign the pointers accordingly */
-	for (ViewLayer *sl = scene->view_layers.first; sl; sl = sl->next) {
-		for (Base *base = sl->object_bases.first; base; base = base->next) {
+	for (ViewLayer *view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
+		for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 			ID_NEW_REMAP(base->object);
 		}
 	}
@@ -1779,7 +1779,7 @@ static void new_id_matar(Main *bmain, Material **matar, const int totcol)
 	}
 }
 
-static void single_obdata_users(Main *bmain, Scene *scene, ViewLayer *sl, const int flag)
+static void single_obdata_users(Main *bmain, Scene *scene, ViewLayer *view_layer, const int flag)
 {
 	Lamp *la;
 	Curve *cu;
@@ -1789,7 +1789,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, ViewLayer *sl, const 
 	ID *id;
 	int a;
 
-	FOREACH_OBJECT_FLAG(scene, sl, flag, ob)
+	FOREACH_OBJECT_FLAG(scene, view_layer, flag, ob)
 	{
 		if (!ID_IS_LINKED(ob)) {
 			id = ob->data;
@@ -1866,9 +1866,9 @@ static void single_obdata_users(Main *bmain, Scene *scene, ViewLayer *sl, const 
 	}
 }
 
-static void single_object_action_users(Scene *scene, ViewLayer *sl, const int flag)
+static void single_object_action_users(Scene *scene, ViewLayer *view_layer, const int flag)
 {
-	FOREACH_OBJECT_FLAG(scene, sl, flag, ob)
+	FOREACH_OBJECT_FLAG(scene, view_layer, flag, ob)
 		if (!ID_IS_LINKED(ob)) {
 			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			BKE_animdata_copy_id_action(&ob->id, false);
@@ -1876,13 +1876,13 @@ static void single_object_action_users(Scene *scene, ViewLayer *sl, const int fl
 	FOREACH_OBJECT_FLAG_END
 }
 
-static void single_mat_users(Main *bmain, Scene *scene, ViewLayer *sl, const int flag, const bool do_textures)
+static void single_mat_users(Main *bmain, Scene *scene, ViewLayer *view_layer, const int flag, const bool do_textures)
 {
 	Material *ma, *man;
 	Tex *tex;
 	int a, b;
 
-	FOREACH_OBJECT_FLAG(scene, sl, flag, ob)
+	FOREACH_OBJECT_FLAG(scene, view_layer, flag, ob)
 		if (!ID_IS_LINKED(ob)) {
 			for (a = 1; a <= ob->totcol; a++) {
 				ma = give_current_material(ob, a);
@@ -2132,7 +2132,7 @@ static void tag_localizable_objects(bContext *C, const int mode)
  * Instance indirectly referenced zero user objects,
  * otherwise they're lost on reload, see T40595.
  */
-static bool make_local_all__instance_indirect_unused(Main *bmain, Scene *scene, ViewLayer *sl, SceneCollection *sc)
+static bool make_local_all__instance_indirect_unused(Main *bmain, Scene *scene, ViewLayer *view_layer, SceneCollection *sc)
 {
 	Object *ob;
 	bool changed = false;
@@ -2144,7 +2144,7 @@ static bool make_local_all__instance_indirect_unused(Main *bmain, Scene *scene, 
 			id_us_plus(&ob->id);
 
 			BKE_collection_object_add(scene, sc, ob);
-			base = BKE_view_layer_base_find(sl, ob);
+			base = BKE_view_layer_base_find(view_layer, ob);
 			base->flag |= BASE_SELECTED;
 			BKE_scene_object_base_flag_sync_from_base(base);
 			DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
@@ -2334,7 +2334,7 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C); /* ok if this is NULL */
 	const int flag = (RNA_enum_get(op->ptr, "type") == MAKE_SINGLE_USER_SELECTED) ? SELECT : 0;
 	const bool copy_groups = false;
@@ -2342,7 +2342,7 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
 
 	if (RNA_boolean_get(op->ptr, "object")) {
 		if (flag == SELECT) {
-			BKE_view_layer_selected_objects_tag(sl, OB_DONE);
+			BKE_view_layer_selected_objects_tag(view_layer, OB_DONE);
 			single_object_users(bmain, scene, v3d, OB_DONE, copy_groups);
 		}
 		else {
@@ -2354,11 +2354,11 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
 	}
 
 	if (RNA_boolean_get(op->ptr, "obdata")) {
-		single_obdata_users(bmain, scene, sl, flag);
+		single_obdata_users(bmain, scene, view_layer, flag);
 	}
 
 	if (RNA_boolean_get(op->ptr, "material")) {
-		single_mat_users(bmain, scene, sl, flag, RNA_boolean_get(op->ptr, "texture"));
+		single_mat_users(bmain, scene, view_layer, flag, RNA_boolean_get(op->ptr, "texture"));
 	}
 
 #if 0 /* can't do this separate from materials */
@@ -2366,7 +2366,7 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
 		single_mat_users(scene, flag, true);
 #endif
 	if (RNA_boolean_get(op->ptr, "animation")) {
-		single_object_action_users(scene, sl, flag);
+		single_object_action_users(scene, view_layer, flag);
 	}
 
 	BKE_main_id_clear_newpoins(bmain);

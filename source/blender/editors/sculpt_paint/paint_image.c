@@ -765,8 +765,8 @@ static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const flo
 
 	/* initialize from context */
 	if (CTX_wm_region_view3d(C)) {
-		ViewLayer *sl = CTX_data_view_layer(C);
-		Object *ob = OBACT(sl);
+		ViewLayer *view_layer = CTX_data_view_layer(C);
+		Object *ob = OBACT(view_layer);
 		bool uvs, mat, tex, stencil;
 		if (!BKE_paint_proj_mesh_data_check(scene, ob, &uvs, &mat, &tex, &stencil)) {
 			BKE_paint_data_warning(op->reports, uvs, mat, tex, stencil);

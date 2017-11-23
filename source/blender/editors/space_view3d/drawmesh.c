@@ -220,10 +220,10 @@ typedef struct TexMatCallback {
 	bool two_sided_lighting;
 } TexMatCallback;
 
-void draw_mesh_textured(Scene *scene, ViewLayer *sl, View3D *v3d, RegionView3D *rv3d,
+void draw_mesh_textured(Scene *scene, ViewLayer *view_layer, View3D *v3d, RegionView3D *rv3d,
                         Object *ob, DerivedMesh *dm, const int draw_flags)
 {
-	UNUSED_VARS(scene, sl, v3d, rv3d, ob, dm, draw_flags);
+	UNUSED_VARS(scene, view_layer, v3d, rv3d, ob, dm, draw_flags);
 	return;
 }
 

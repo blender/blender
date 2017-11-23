@@ -2707,8 +2707,8 @@ static void editbmesh_build_data(
 static CustomDataMask object_get_datamask(const Scene *scene, Object *ob, bool *r_need_mapping)
 {
 	/* TODO(sergey): Avoid this linear list lookup. */
-	ViewLayer *sl = BKE_view_layer_context_active_PLACEHOLDER(scene);
-	Object *actob = sl->basact ? sl->basact->object : NULL;
+	ViewLayer *view_layer = BKE_view_layer_context_active_PLACEHOLDER(scene);
+	Object *actob = view_layer->basact ? view_layer->basact->object : NULL;
 	CustomDataMask mask = ob->customdata_mask;
 
 	if (r_need_mapping) {

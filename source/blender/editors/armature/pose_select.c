@@ -134,7 +134,7 @@ void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select)
 /* called from editview.c, for mode-less pose selection */
 /* assumes scene obact and basact is still on old situation */
 bool ED_do_pose_selectbuffer(
-        Scene *scene, ViewLayer *sl, Base *base, const unsigned int *buffer, short hits,
+        Scene *scene, ViewLayer *view_layer, Base *base, const unsigned int *buffer, short hits,
         bool extend, bool deselect, bool toggle, bool do_nearest)
 {
 	Object *ob = base->object;
@@ -146,7 +146,7 @@ bool ED_do_pose_selectbuffer(
 	
 	/* if the bone cannot be affected, don't do anything */
 	if ((nearBone) && !(nearBone->flag & BONE_UNSELECTABLE)) {
-		Object *ob_act = OBACT(sl);
+		Object *ob_act = OBACT(view_layer);
 		bArmature *arm = ob->data;
 		
 		/* since we do unified select, we don't shift+select a bone if the

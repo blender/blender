@@ -280,10 +280,10 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	ScrArea *sa = CTX_wm_area(C);
 	View3D *v3d = sa->spacedata.first;
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	PointerRNA v3dptr, toolsptr, sceneptr;
-	Object *ob = OBACT(sl);
+	Object *ob = OBACT(view_layer);
 	Object *obedit = CTX_data_edit_object(C);
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	uiBlock *block;

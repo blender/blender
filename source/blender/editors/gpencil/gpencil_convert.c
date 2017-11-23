@@ -1125,7 +1125,7 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
 {
 	struct Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	SceneCollection *sc = CTX_data_scene_collection(C);
 	bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, CFRA, 0);
 	bGPDstroke *gps, *prev_gps = NULL;
@@ -1157,7 +1157,7 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
 	ob = BKE_object_add_only_object(bmain, OB_CURVE, gpl->info);
 	cu = ob->data = BKE_curve_add(bmain, gpl->info, OB_CURVE);
 	BKE_collection_object_add(scene, sc, ob);
-	base_new = BKE_view_layer_base_find(sl, ob);
+	base_new = BKE_view_layer_base_find(view_layer, ob);
 	
 	cu->flag |= CU_3D;
 	

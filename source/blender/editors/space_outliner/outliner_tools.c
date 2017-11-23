@@ -366,9 +366,9 @@ static void object_select_cb(
         bContext *C, ReportList *UNUSED(reports), Scene *UNUSED(scene), TreeElement *UNUSED(te),
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = (Object *)tselem->id;
-	Base *base = BKE_view_layer_base_find(sl, ob);
+	Base *base = BKE_view_layer_base_find(view_layer, ob);
 
 	if (base && ((base->flag & BASE_VISIBLED) != 0)) {
 		base->flag |= BASE_SELECTED;
@@ -388,9 +388,9 @@ static void object_deselect_cb(
         bContext *C, ReportList *UNUSED(reports), Scene *UNUSED(scene), TreeElement *UNUSED(te),
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = (Object *)tselem->id;
-	Base *base = BKE_view_layer_base_find(sl, ob);
+	Base *base = BKE_view_layer_base_find(view_layer, ob);
 
 	if (base) {
 		base->flag &= ~BASE_SELECTED;
@@ -522,18 +522,18 @@ static void group_linkobs2scene_cb(
         bContext *C, ReportList *UNUSED(reports), Scene *scene, TreeElement *UNUSED(te),
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	SceneCollection *sc = CTX_data_scene_collection(C);
 	Group *group = (Group *)tselem->id;
 	GroupObject *gob;
 	Base *base;
 
 	for (gob = group->gobject.first; gob; gob = gob->next) {
-		base = BKE_view_layer_base_find(sl, gob->ob);
+		base = BKE_view_layer_base_find(view_layer, gob->ob);
 		if (!base) {
 			/* link to scene */
 			BKE_collection_object_add(scene, sc, gob->ob);
-			base = BKE_view_layer_base_find(sl, gob->ob);
+			base = BKE_view_layer_base_find(view_layer, gob->ob);
 			id_us_plus(&gob->ob->id);
 		}
 
@@ -933,12 +933,12 @@ static void object_delete_hierarchy_cb(
         bContext *C, ReportList *reports, Scene *scene,
         TreeElement *te, TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Base *base = (Base *)te->directdata;
 	Object *obedit = scene->obedit;
 
 	if (!base) {
-		base = BKE_view_layer_base_find(sl, (Object *)tselem->id);
+		base = BKE_view_layer_base_find(view_layer, (Object *)tselem->id);
 	}
 	if (base) {
 		/* Check also library later. */

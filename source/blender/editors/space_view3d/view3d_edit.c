@@ -624,8 +624,8 @@ static bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 	bool is_set = false;
 
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
-	Object *ob_act = OBACT(sl);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob_act = OBACT(view_layer);
 
 	if (ob_act && (ob_act->mode & OB_MODE_ALL_PAINT) &&
 	    /* with weight-paint + pose-mode, fall through to using calculateTransformCenter */
@@ -667,7 +667,7 @@ static bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 		float select_center[3];
 
 		zero_v3(select_center);
-		for (base = FIRSTBASE(sl); base; base = base->next) {
+		for (base = FIRSTBASE(view_layer); base; base = base->next) {
 			if (TESTBASE(base)) {
 				/* use the boundbox if we can */
 				Object *ob = base->object;
@@ -2990,7 +2990,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Base *base;
 	float *curs;
 	const bool use_all_regions = RNA_boolean_get(op->ptr, "use_all_regions");
@@ -3014,7 +3014,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 		INIT_MINMAX(min, max);
 	}
 
-	for (base = sl->object_bases.first; base; base = base->next) {
+	for (base = view_layer->object_bases.first; base; base = base->next) {
 		if (BASE_VISIBLE(base)) {
 			changed = true;
 

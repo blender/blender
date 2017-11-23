@@ -423,7 +423,7 @@ static void txt_add_object(bContext *C, TextLine *firstline, int totline, const 
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	EvaluationContext eval_ctx;
 	Curve *cu;
 	Object *obedit;
@@ -436,8 +436,8 @@ static void txt_add_object(bContext *C, TextLine *firstline, int totline, const 
 	
 	CTX_data_eval_ctx(C, &eval_ctx);
 
-	obedit = BKE_object_add(bmain, scene, sl, OB_FONT, NULL);
-	base = sl->basact;
+	obedit = BKE_object_add(bmain, scene, view_layer, OB_FONT, NULL);
+	base = view_layer->basact;
 
 	/* seems to assume view align ? TODO - look into this, could be an operator option */
 	ED_object_base_init_transform(C, base, NULL, rot);

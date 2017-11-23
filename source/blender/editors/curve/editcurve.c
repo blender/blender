@@ -1288,7 +1288,7 @@ static int separate_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *oldob, *newob;
 	Base *oldbase, *newbase;
 	Curve *oldcu, *newcu;
@@ -1316,7 +1316,7 @@ static int separate_exec(bContext *C, wmOperator *op)
 	}
 
 	/* 2. duplicate the object and data */
-	newbase = ED_object_add_duplicate(bmain, scene, sl, oldbase, 0); /* 0 = fully linked */
+	newbase = ED_object_add_duplicate(bmain, scene, view_layer, oldbase, 0); /* 0 = fully linked */
 	DEG_relations_tag_update(bmain);
 
 	newob = newbase->object;

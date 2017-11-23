@@ -345,10 +345,10 @@ static bool stats_is_object_dynamic_topology_sculpt(Object *ob)
 }
 
 /* Statistics displayed in info header. Called regularly on scene changes. */
-static void stats_update(Scene *scene, ViewLayer *sl)
+static void stats_update(Scene *scene, ViewLayer *view_layer)
 {
 	SceneStats stats = {0};
-	Object *ob = (sl->basact) ? sl->basact->object : NULL;
+	Object *ob = (view_layer->basact) ? view_layer->basact->object : NULL;
 	Base *base;
 	
 	if (scene->obedit) {
@@ -365,25 +365,25 @@ static void stats_update(Scene *scene, ViewLayer *sl)
 	}
 	else {
 		/* Objects */
-		for (base = sl->object_bases.first; base; base = base->next)
+		for (base = view_layer->object_bases.first; base; base = base->next)
 			if (base->flag & BASE_VISIBLED) {
 				stats_dupli_object(base, base->object, &stats);
 			}
 	}
 
-	if (!sl->stats) {
-		sl->stats = MEM_callocN(sizeof(SceneStats), "SceneStats");
+	if (!view_layer->stats) {
+		view_layer->stats = MEM_callocN(sizeof(SceneStats), "SceneStats");
 	}
 
-	*(sl->stats) = stats;
+	*(view_layer->stats) = stats;
 }
 
-static void stats_string(Scene *scene, ViewLayer *sl)
+static void stats_string(Scene *scene, ViewLayer *view_layer)
 {
 #define MAX_INFO_MEM_LEN  64
-	SceneStats *stats = sl->stats;
+	SceneStats *stats = view_layer->stats;
 	SceneStatsFmt stats_fmt;
-	Object *ob = (sl->basact) ? sl->basact->object : NULL;
+	Object *ob = (view_layer->basact) ? view_layer->basact->object : NULL;
 	uintptr_t mem_in_use, mmap_in_use;
 	char memstr[MAX_INFO_MEM_LEN];
 	char gpumemstr[MAX_INFO_MEM_LEN] = "";
@@ -490,20 +490,20 @@ static void stats_string(Scene *scene, ViewLayer *sl)
 
 #undef MAX_INFO_LEN
 
-void ED_info_stats_clear(ViewLayer *sl)
+void ED_info_stats_clear(ViewLayer *view_layer)
 {
-	if (sl->stats) {
-		MEM_freeN(sl->stats);
-		sl->stats = NULL;
+	if (view_layer->stats) {
+		MEM_freeN(view_layer->stats);
+		view_layer->stats = NULL;
 	}
 }
 
-const char *ED_info_stats_string(Scene *scene, ViewLayer *sl)
+const char *ED_info_stats_string(Scene *scene, ViewLayer *view_layer)
 {
-	if (!sl->stats) {
-		stats_update(scene, sl);
+	if (!view_layer->stats) {
+		stats_update(scene, view_layer);
 	}
-	stats_string(scene, sl);
+	stats_string(scene, view_layer);
 
-	return sl->stats->infostr;
+	return view_layer->stats->infostr;
 }

@@ -695,16 +695,16 @@ void smokeModifier_copy(struct SmokeModifierData *smd, struct SmokeModifierData 
 #ifdef WITH_SMOKE
 
 // forward decleration
-static void smoke_calc_transparency(SmokeDomainSettings *sds, ViewLayer *sl);
+static void smoke_calc_transparency(SmokeDomainSettings *sds, ViewLayer *view_layer);
 static float calc_voxel_transp(float *result, float *input, int res[3], int *pixel, float *tRay, float correct);
 
-static int get_lamp(ViewLayer *sl, float *light)
+static int get_lamp(ViewLayer *view_layer, float *light)
 {
 	Base *base_tmp = NULL;
 	int found_lamp = 0;
 
 	// try to find a lamp, preferably local
-	for (base_tmp = FIRSTBASE(sl); base_tmp; base_tmp = base_tmp->next) {
+	for (base_tmp = FIRSTBASE(view_layer); base_tmp; base_tmp = base_tmp->next) {
 		if (base_tmp->object->type == OB_LAMP) {
 			Lamp *la = base_tmp->object->data;
 
@@ -2950,7 +2950,7 @@ static void bresenham_linie_3D(int x1, int y1, int z1, int x2, int y2, int z2, f
 	cb(result, input, res, pixel, tRay, correct);
 }
 
-static void smoke_calc_transparency(SmokeDomainSettings *sds, ViewLayer *sl)
+static void smoke_calc_transparency(SmokeDomainSettings *sds, ViewLayer *view_layer)
 {
 	float bv[6] = {0};
 	float light[3];
@@ -2958,7 +2958,7 @@ static void smoke_calc_transparency(SmokeDomainSettings *sds, ViewLayer *sl)
 	float *density = smoke_get_density(sds->fluid);
 	float correct = -7.0f * sds->dx;
 
-	if (!get_lamp(sl, light)) return;
+	if (!get_lamp(view_layer, light)) return;
 
 	/* convert light pos to sim cell space */
 	mul_m4_v3(sds->imat, light);

@@ -582,7 +582,7 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Object *oldob, *newob;
 	Base *oldbase, *newbase;
@@ -617,7 +617,7 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 	
 	/* 1) store starting settings and exit editmode */
 	oldob = obedit;
-	oldbase = sl->basact;
+	oldbase = view_layer->basact;
 	oldob->mode &= ~OB_MODE_POSE;
 	//oldbase->flag &= ~OB_POSEMODE;
 	
@@ -625,7 +625,7 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 	ED_armature_edit_free(obedit->data);
 	
 	/* 2) duplicate base */
-	newbase = ED_object_add_duplicate(bmain, scene, sl, oldbase, USER_DUP_ARM); /* only duplicate linked armature */
+	newbase = ED_object_add_duplicate(bmain, scene, view_layer, oldbase, USER_DUP_ARM); /* only duplicate linked armature */
 	DEG_relations_tag_update(bmain);
 
 	newob = newbase->object;

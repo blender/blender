@@ -325,14 +325,14 @@ static bool ObtainCacheParticleVcol(Mesh *mesh,
 	return true;
 }
 
-static void set_resolution(BL::Object *b_ob, BL::Scene *scene, BL::ViewLayer *sl, bool render)
+static void set_resolution(BL::Object *b_ob, BL::Scene *scene, BL::ViewLayer *view_layer, bool render)
 {
 	BL::Object::modifiers_iterator b_mod;
 	for(b_ob->modifiers.begin(b_mod); b_mod != b_ob->modifiers.end(); ++b_mod) {
 		if((b_mod->type() == b_mod->type_PARTICLE_SYSTEM) && ((b_mod->show_viewport()) || (b_mod->show_render()))) {
 			BL::ParticleSystemModifier psmd((const PointerRNA)b_mod->ptr);
 			BL::ParticleSystem b_psys((const PointerRNA)psmd.particle_system().ptr);
-			b_psys.set_resolution(*scene, *sl, *b_ob, (render)? 2: 1);
+			b_psys.set_resolution(*scene, *view_layer, *b_ob, (render)? 2: 1);
 		}
 	}
 }

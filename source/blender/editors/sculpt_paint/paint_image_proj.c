@@ -5321,12 +5321,12 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 {
 	Image *image = BLI_findlink(&CTX_data_main(C)->image, RNA_enum_get(op->ptr, "image"));
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	ProjPaintState ps = {NULL};
 	int orig_brush_size;
 	IDProperty *idgroup;
 	IDProperty *view_data = NULL;
-	Object *ob = OBACT(sl);
+	Object *ob = OBACT(view_layer);
 	bool uvs, mat, tex;
 
 	if (ob == NULL || ob->type != OB_MESH) {

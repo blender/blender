@@ -68,8 +68,8 @@ public:
 	               void **python_thread_state,
 	               const char *layer = 0);
 	void sync_view_layers(BL::SpaceView3D& b_v3d, const char *layer);
-	array<Pass> sync_render_passes(BL::RenderLayer& b_rlay,
-	                               BL::ViewLayer& b_slay,
+	array<Pass> sync_render_passes(BL::RenderLayer& b_render_layer,
+	                               BL::ViewLayer& b_view_layer,
 	                               const SessionParams &session_params);
 	void sync_integrator();
 	void sync_camera(BL::RenderSettings& b_render,

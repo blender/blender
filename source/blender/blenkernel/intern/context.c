@@ -923,10 +923,10 @@ Scene *CTX_data_scene(const bContext *C)
 
 ViewLayer *CTX_data_view_layer(const bContext *C)
 {
-	ViewLayer *sl;
+	ViewLayer *view_layer;
 
-	if (ctx_data_pointer_verify(C, "view_layer", (void *)&sl)) {
-		return sl;
+	if (ctx_data_pointer_verify(C, "view_layer", (void *)&view_layer)) {
+		return view_layer;
 	}
 	else {
 		return BKE_view_layer_from_workspace_get(CTX_data_scene(C), CTX_wm_workspace(C));
@@ -962,17 +962,17 @@ RenderEngineType *CTX_data_engine(const bContext *C)
  */
 LayerCollection *CTX_data_layer_collection(const bContext *C)
 {
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	LayerCollection *lc;
 
 	if (ctx_data_pointer_verify(C, "layer_collection", (void *)&lc)) {
-		if (BKE_view_layer_has_collection(sl, lc->scene_collection)) {
+		if (BKE_view_layer_has_collection(view_layer, lc->scene_collection)) {
 			return lc;
 		}
 	}
 
 	/* fallback */
-	return BKE_layer_collection_get_active(sl);
+	return BKE_layer_collection_get_active(view_layer);
 }
 
 SceneCollection *CTX_data_scene_collection(const bContext *C)

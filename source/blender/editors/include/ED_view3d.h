@@ -374,7 +374,7 @@ void  ED_draw_object_facemap(const struct EvaluationContext *eval_ctx, struct Sc
 bool ED_view3d_context_activate(struct bContext *C);
 void ED_view3d_draw_offscreen_init(
         const struct EvaluationContext *eval_ctx, struct Scene *scene,
-        struct ViewLayer *sl, struct View3D *v3d);
+        struct ViewLayer *view_layer, struct View3D *v3d);
 void ED_view3d_draw_offscreen(
         const struct EvaluationContext *eval_ctx, struct Scene *scene,
         struct ViewLayer *view_layer, struct View3D *v3d, struct ARegion *ar, int winx, int winy, float viewmat[4][4],

@@ -616,7 +616,7 @@ static int test_bake_internal(bContext *C, ReportList *reports)
 static void init_bake_internal(BakeRender *bkr, bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	bScreen *sc = CTX_wm_screen(C);
 
 	/* get editmode results */
@@ -625,7 +625,7 @@ static void init_bake_internal(BakeRender *bkr, bContext *C)
 	bkr->sa = sc ? BKE_screen_find_big_area(sc, SPACE_IMAGE, 10) : NULL; /* can be NULL */
 	bkr->main = CTX_data_main(C);
 	bkr->scene = scene;
-	bkr->actob = (scene->r.bake_flag & R_BAKE_TO_ACTIVE) ? OBACT(sl) : NULL;
+	bkr->actob = (scene->r.bake_flag & R_BAKE_TO_ACTIVE) ? OBACT(view_layer) : NULL;
 	bkr->re = RE_NewRender("_Bake View_");
 
 	if (scene->r.bake_mode == RE_BAKE_AO) {
@@ -838,7 +838,7 @@ static int bake_image_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	int result = OPERATOR_CANCELLED;
 
 	if (is_multires_bake(scene)) {
@@ -858,7 +858,7 @@ static int bake_image_exec(bContext *C, wmOperator *op)
 			RE_test_break_cb(bkr.re, NULL, thread_break);
 			G.is_break = false;   /* BKE_blender_test_break uses this global */
 
-			RE_Database_Baking(bkr.re, bmain, scene, scene->lay, scene->r.bake_mode, (scene->r.bake_flag & R_BAKE_TO_ACTIVE) ? OBACT(sl) : NULL);
+			RE_Database_Baking(bkr.re, bmain, scene, scene->lay, scene->r.bake_mode, (scene->r.bake_flag & R_BAKE_TO_ACTIVE) ? OBACT(view_layer) : NULL);
 
 			/* baking itself is threaded, cannot use test_break in threads  */
 			BLI_init_threads(&threads, do_bake_render, 1);

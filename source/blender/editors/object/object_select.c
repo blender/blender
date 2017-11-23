@@ -548,7 +548,7 @@ static bool select_grouped_children(bContext *C, Object *ob, const bool recursiv
 
 static bool select_grouped_parent(bContext *C) /* Makes parent active and de-selected OBACT */
 {
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Base *baspar, *basact = CTX_data_active_base(C);
 	bool changed = false;
 
@@ -556,7 +556,7 @@ static bool select_grouped_parent(bContext *C) /* Makes parent active and de-sel
 		return 0;  /* we know OBACT is valid */
 	}
 
-	baspar = BKE_view_layer_base_find(sl, basact->object->parent);
+	baspar = BKE_view_layer_base_find(view_layer, basact->object->parent);
 
 	/* can be NULL if parent in other scene */
 	if (baspar && BASE_SELECTABLE(baspar)) {
@@ -616,7 +616,7 @@ static bool select_grouped_group(bContext *C, Object *ob)  /* Select objects in 
 
 static bool select_grouped_object_hooks(bContext *C, Object *ob)
 {
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
 	bool changed = false;
 	Base *base;
@@ -627,7 +627,7 @@ static bool select_grouped_object_hooks(bContext *C, Object *ob)
 		if (md->type == eModifierType_Hook) {
 			hmd = (HookModifierData *) md;
 			if (hmd->object && !(hmd->object->flag & SELECT)) {
-				base = BKE_view_layer_base_find(sl, hmd->object);
+				base = BKE_view_layer_base_find(view_layer, hmd->object);
 				if (base && (BASE_SELECTABLE(base))) {
 					ED_object_base_select(base, BA_SELECT);
 					changed = true;
@@ -1014,7 +1014,7 @@ void OBJECT_OT_select_same_group(wmOperatorType *ot)
 static int object_select_mirror_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	bool extend;
 	
 	extend = RNA_boolean_get(op->ptr, "extend");
@@ -1028,7 +1028,7 @@ static int object_select_mirror_exec(bContext *C, wmOperator *op)
 		if (!STREQ(name_flip, primbase->object->id.name + 2)) {
 			Object *ob = (Object *)BKE_libblock_find_name(ID_OB, name_flip);
 			if (ob) {
-				Base *secbase = BKE_view_layer_base_find(sl, ob);
+				Base *secbase = BKE_view_layer_base_find(view_layer, ob);
 
 				if (secbase) {
 					ED_object_base_select(secbase, BA_SELECT);

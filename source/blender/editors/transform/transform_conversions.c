@@ -286,13 +286,13 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
 
 static void createTransTexspace(TransInfo *t)
 {
-	ViewLayer *sl = t->view_layer;
+	ViewLayer *view_layer = t->view_layer;
 	TransData *td;
 	Object *ob;
 	ID *id;
 	short *texflag;
 
-	ob = OBACT(sl);
+	ob = OBACT(view_layer);
 
 	if (ob == NULL) { // Shouldn't logically happen, but still...
 		t->total = 0;
@@ -2010,9 +2010,9 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 void flushTransParticles(TransInfo *t)
 {
 	Scene *scene = t->scene;
-	ViewLayer *sl = t->view_layer;
-	Object *ob = OBACT(sl);
-	PTCacheEdit *edit = PE_get_current(scene, sl, ob);
+	ViewLayer *view_layer = t->view_layer;
+	Object *ob = OBACT(view_layer);
+	PTCacheEdit *edit = PE_get_current(scene, view_layer, ob);
 	ParticleSystem *psys = edit->psys;
 	ParticleSystemModifierData *psmd = NULL;
 	PTCacheEditPoint *point;
@@ -2053,7 +2053,7 @@ void flushTransParticles(TransInfo *t)
 
 	EvaluationContext eval_ctx;
 	CTX_data_eval_ctx(t->context, &eval_ctx);
-	PE_update_object(&eval_ctx, scene, sl, OBACT(sl), 1);
+	PE_update_object(&eval_ctx, scene, view_layer, OBACT(view_layer), 1);
 }
 
 /* ********************* mesh ****************** */
@@ -5538,9 +5538,9 @@ static void set_trans_object_base_flags(TransInfo *t)
 {
 	/* TODO(sergey): Get rid of global, use explicit main. */
 	Main *bmain = G.main;
-	ViewLayer *sl = t->view_layer;
+	ViewLayer *view_layer = t->view_layer;
 	Scene *scene = t->scene;
-	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, sl, true);
+	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
 
 	/*
 	 * if Base selected and has parent selected:
@@ -5556,21 +5556,21 @@ static void set_trans_object_base_flags(TransInfo *t)
 	BKE_scene_base_flag_to_objects(t->view_layer);
 
 	/* Make sure depsgraph is here. */
-	DEG_graph_relations_update(depsgraph, bmain, scene, sl);
+	DEG_graph_relations_update(depsgraph, bmain, scene, view_layer);
 
 	/* handle pending update events, otherwise they got copied below */
 	EvaluationContext eval_ctx;
 	DEG_evaluation_context_init_from_scene(&eval_ctx,
 	                                       t->scene, t->view_layer, t->engine,
 	                                       DAG_EVAL_VIEWPORT);
-	for (base = sl->object_bases.first; base; base = base->next) {
+	for (base = view_layer->object_bases.first; base; base = base->next) {
 		if (base->object->recalc & OB_RECALC_ALL) {
 			/* TODO(sergey): Ideally, it's not needed. */
 			BKE_object_handle_update(&eval_ctx, t->scene, base->object);
 		}
 	}
 
-	for (base = sl->object_bases.first; base; base = base->next) {
+	for (base = view_layer->object_bases.first; base; base = base->next) {
 		base->flag_legacy &= ~BA_WAS_SEL;
 
 		if (TESTBASELIB_BGMODE(base)) {
@@ -5580,7 +5580,7 @@ static void set_trans_object_base_flags(TransInfo *t)
 			/* if parent selected, deselect */
 			while (parsel) {
 				if (parsel->base_flag & BASE_SELECTED) {
-					Base *parbase = BKE_view_layer_base_find(sl, parsel);
+					Base *parbase = BKE_view_layer_base_find(view_layer, parsel);
 					if (parbase) { /* in rare cases this can fail */
 						if (TESTBASELIB_BGMODE(parbase)) {
 							break;
@@ -5611,7 +5611,7 @@ static void set_trans_object_base_flags(TransInfo *t)
 
 	/* and we store them temporal in base (only used for transform code) */
 	/* this because after doing updates, the object->recalc is cleared */
-	for (base = sl->object_bases.first; base; base = base->next) {
+	for (base = view_layer->object_bases.first; base; base = base->next) {
 		if (base->object->recalc & OB_RECALC_OB)
 			base->flag_legacy |= BA_HAS_RECALC_OB;
 		if (base->object->recalc & OB_RECALC_DATA)
@@ -5639,9 +5639,9 @@ static int count_proportional_objects(TransInfo *t)
 	int total = 0;
 	/* TODO(sergey): Get rid of global, use explicit main. */
 	Main *bmain = G.main;
-	ViewLayer *sl = t->view_layer;
+	ViewLayer *view_layer = t->view_layer;
 	Scene *scene = t->scene;
-	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, sl, true);
+	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
 	Base *base;
 
 	/* rotations around local centers are allowed to propagate, so we take all objects */
@@ -5649,7 +5649,7 @@ static int count_proportional_objects(TransInfo *t)
 	      (t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL)))
 	{
 		/* mark all parents */
-		for (base = sl->object_bases.first; base; base = base->next) {
+		for (base = view_layer->object_bases.first; base; base = base->next) {
 			if (TESTBASELIB_BGMODE(base)) {
 				Object *parent = base->object->parent;
 	
@@ -5662,7 +5662,7 @@ static int count_proportional_objects(TransInfo *t)
 		}
 
 		/* mark all children */
-		for (base = sl->object_bases.first; base; base = base->next) {
+		for (base = view_layer->object_bases.first; base; base = base->next) {
 			/* all base not already selected or marked that is editable */
 			if ((base->object->flag & (BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
 			    (base->flag & BASE_SELECTED) == 0 &&
@@ -5673,7 +5673,7 @@ static int count_proportional_objects(TransInfo *t)
 		}
 	}
 	
-	for (base = sl->object_bases.first; base; base = base->next) {
+	for (base = view_layer->object_bases.first; base; base = base->next) {
 		Object *ob = base->object;
 
 		/* if base is not selected, not a parent of selection or not a child of selection and it is editable */
@@ -5690,12 +5690,12 @@ static int count_proportional_objects(TransInfo *t)
 	
 
 	/* all recalc flags get flushed to all layers, so a layer flip later on works fine */
-	DEG_graph_relations_update(depsgraph, bmain, scene, sl);
+	DEG_graph_relations_update(depsgraph, bmain, scene, view_layer);
 	DEG_graph_flush_update(bmain, depsgraph);
 
 	/* and we store them temporal in base (only used for transform code) */
 	/* this because after doing updates, the object->recalc is cleared */
-	for (base = sl->object_bases.first; base; base = base->next) {
+	for (base = view_layer->object_bases.first; base; base = base->next) {
 		if (base->object->recalc & OB_RECALC_OB)
 			base->flag_legacy |= BA_HAS_RECALC_OB;
 		if (base->object->recalc & OB_RECALC_DATA)
@@ -5707,10 +5707,10 @@ static int count_proportional_objects(TransInfo *t)
 
 static void clear_trans_object_base_flags(TransInfo *t)
 {
-	ViewLayer *sl = t->view_layer;
+	ViewLayer *view_layer = t->view_layer;
 	Base *base;
 
-	for (base = sl->object_bases.first; base; base = base->next) {
+	for (base = view_layer->object_bases.first; base; base = base->next) {
 		if (base->flag_legacy & BA_WAS_SEL) {
 			base->flag |= BASE_SELECTED;
 		}
@@ -5723,7 +5723,7 @@ static void clear_trans_object_base_flags(TransInfo *t)
  *  tmode: should be a transform mode
  */
 // NOTE: context may not always be available, so must check before using it as it's a luxury for a few cases
-void autokeyframe_ob_cb_func(bContext *C, Scene *scene, ViewLayer *sl, View3D *v3d, Object *ob, int tmode)
+void autokeyframe_ob_cb_func(bContext *C, Scene *scene, ViewLayer *view_layer, View3D *v3d, Object *ob, int tmode)
 {
 	ID *id = &ob->id;
 	FCurve *fcu;
@@ -5772,7 +5772,7 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, ViewLayer *sl, View3D *v
 			}
 			else if (ELEM(tmode, TFM_ROTATION, TFM_TRACKBALL)) {
 				if (v3d->around == V3D_AROUND_ACTIVE) {
-					if (ob != OBACT(sl))
+					if (ob != OBACT(view_layer))
 						do_loc = true;
 				}
 				else if (v3d->around == V3D_AROUND_CURSOR)
@@ -5783,7 +5783,7 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, ViewLayer *sl, View3D *v
 			}
 			else if (tmode == TFM_RESIZE) {
 				if (v3d->around == V3D_AROUND_ACTIVE) {
-					if (ob != OBACT(sl))
+					if (ob != OBACT(view_layer))
 						do_loc = true;
 				}
 				else if (v3d->around == V3D_AROUND_CURSOR)
@@ -8084,8 +8084,8 @@ static void createTransGPencil(bContext *C, TransInfo *t)
 void createTransData(bContext *C, TransInfo *t)
 {
 	Scene *scene = t->scene;
-	ViewLayer *sl = t->view_layer;
-	Object *ob = OBACT(sl);
+	ViewLayer *view_layer = t->view_layer;
+	Object *ob = OBACT(view_layer);
 
 	/* if tests must match recalcData for correct updates */
 	if (t->options & CTX_TEXTURE) {
@@ -8259,7 +8259,7 @@ void createTransData(bContext *C, TransInfo *t)
 			
 		}
 	}
-	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT) && PE_start_edit(PE_get_current(scene, sl, ob))) {
+	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT) && PE_start_edit(PE_get_current(scene, view_layer, ob))) {
 		createTransParticleVerts(C, t);
 		t->flag |= T_POINTS;
 

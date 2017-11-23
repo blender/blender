@@ -591,12 +591,12 @@ static int calc_manipulator_stats(
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 	View3D *v3d = sa->spacedata.first;
 	RegionView3D *rv3d = ar->regiondata;
 	Base *base;
-	Object *ob = OBACT(sl);
+	Object *ob = OBACT(view_layer);
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	const bool is_gp_edit = ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE));
 	int a, totsel = 0;
@@ -972,7 +972,7 @@ static int calc_manipulator_stats(
 		/* pass */
 	}
 	else if (ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
-		PTCacheEdit *edit = PE_get_current(scene, sl, ob);
+		PTCacheEdit *edit = PE_get_current(scene, view_layer, ob);
 		PTCacheEditPoint *point;
 		PTCacheEditKey *ek;
 		int k;
@@ -998,11 +998,11 @@ static int calc_manipulator_stats(
 	else {
 
 		/* we need the one selected object, if its not active */
-		base = BASACT(sl);
-		ob = OBACT(sl);
+		base = BASACT(view_layer);
+		ob = OBACT(view_layer);
 		if (base && ((base->flag & BASE_SELECTED) == 0)) ob = NULL;
 
-		for (base = sl->object_bases.first; base; base = base->next) {
+		for (base = view_layer->object_bases.first; base; base = base->next) {
 			if (TESTBASELIB(base)) {
 				if (ob == NULL)
 					ob = base->object;
@@ -1055,14 +1055,14 @@ static void manipulator_prepare_mat(
         const bContext *C, View3D *v3d, RegionView3D *rv3d, const struct TransformBounds *tbounds)
 {
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
 	switch (v3d->around) {
 		case V3D_AROUND_CENTER_BOUNDS:
 		case V3D_AROUND_ACTIVE:
 		{
 			bGPdata *gpd = CTX_data_gpencil_data(C);
-			Object *ob = OBACT(sl);
+			Object *ob = OBACT(view_layer);
 
 			if (((v3d->around == V3D_AROUND_ACTIVE) && (scene->obedit == NULL)) &&
 			    ((gpd == NULL) || !(gpd->flag & GP_DATA_STROKE_EDITMODE)) &&
@@ -1590,8 +1590,8 @@ static void WIDGETGROUP_xform_cage_draw_prepare(const bContext *C, wmManipulator
 	struct XFormCageWidgetGroup *xmgroup = mgroup->customdata;
 	wmManipulator *mpr = xmgroup->manipulator;
 
-	ViewLayer *sl = CTX_data_view_layer(C);
-	Object *ob = OBACT(sl);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob = OBACT(view_layer);
 	if (ob && ob->mode & OB_MODE_EDIT) {
 		copy_m4_m4(mpr->matrix_space, ob->obmat);
 	}

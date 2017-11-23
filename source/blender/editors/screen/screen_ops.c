@@ -574,8 +574,8 @@ int ED_operator_mask(bContext *C)
 			case SPACE_IMAGE:
 			{
 				SpaceImage *sima = sa->spacedata.first;
-				ViewLayer *sl = CTX_data_view_layer(C);
-				return ED_space_image_check_show_maskedit(sl, sima);
+				ViewLayer *view_layer = CTX_data_view_layer(C);
+				return ED_space_image_check_show_maskedit(view_layer, sima);
 			}
 		}
 	}

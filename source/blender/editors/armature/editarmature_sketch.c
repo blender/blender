@@ -147,7 +147,7 @@ static RigGraph *TEMPLATE_RIGG = NULL;
 void BIF_makeListTemplates(const bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	int index = 0;
 
@@ -158,7 +158,7 @@ void BIF_makeListTemplates(const bContext *C)
 	TEMPLATES_HASH = BLI_ghash_int_new("makeListTemplates gh");
 	TEMPLATES_CURRENT = 0;
 
-	FOREACH_OBJECT(sl, ob)
+	FOREACH_OBJECT(view_layer, ob)
 	{
 		if (ob != obedit && ob->type == OB_ARMATURE) {
 			index++;

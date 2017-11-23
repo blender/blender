@@ -109,7 +109,7 @@ static SceneCollection *scene_collection_from_index(ListBase *lb, const int numb
 static int collection_link_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	SceneCollection *sc_master = BKE_collection_master(scene);
 	SceneCollection *sc;
 
@@ -123,7 +123,7 @@ static int collection_link_exec(bContext *C, wmOperator *op)
 		BLI_assert(sc);
 	}
 
-	BKE_collection_link(sl, sc);
+	BKE_collection_link(view_layer, sc);
 
 	DEG_relations_tag_update(CTX_data_main(C));
 
@@ -212,8 +212,8 @@ static int collection_unlink_poll(bContext *C)
 		return 0;
 	}
 
-	ViewLayer *sl = CTX_data_view_layer(C);
-	return BLI_findindex(&sl->layer_collections, lc) != -1 ? 1 : 0;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	return BLI_findindex(&view_layer->layer_collections, lc) != -1 ? 1 : 0;
 }
 
 static int collection_unlink_exec(bContext *C, wmOperator *op)
@@ -226,8 +226,8 @@ static int collection_unlink_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	ViewLayer *sl = CTX_data_view_layer(C);
-	BKE_collection_unlink(sl, lc);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	BKE_collection_unlink(view_layer, lc);
 
 	if (soops) {
 		outliner_cleanup_tree(soops);
@@ -260,10 +260,10 @@ void OUTLINER_OT_collection_unlink(wmOperatorType *ot)
 static int collection_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
 	SceneCollection *sc = BKE_collection_add(scene, NULL, NULL);
-	BKE_collection_link(sl, sc);
+	BKE_collection_link(view_layer, sc);
 
 	DEG_relations_tag_update(CTX_data_main(C));
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
@@ -382,9 +382,9 @@ void OUTLINER_OT_collections_delete(wmOperatorType *ot)
 
 static int collection_select_exec(bContext *C, wmOperator *op)
 {
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	const int collection_index = RNA_int_get(op->ptr, "collection_index");
-	sl->active_collection = collection_index;
+	view_layer->active_collection = collection_index;
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 	return OPERATOR_FINISHED;
 }

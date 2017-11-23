@@ -1323,23 +1323,23 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 	}
 	else if (CTX_data_equals(member, "active_base")) {
 		Scene *scene = CTX_data_scene(C);
-		ViewLayer *sl = CTX_data_view_layer(C);
-		if (sl->basact) {
-			Object *ob = sl->basact->object;
+		ViewLayer *view_layer = CTX_data_view_layer(C);
+		if (view_layer->basact) {
+			Object *ob = view_layer->basact->object;
 			/* if hidden but in edit mode, we still display, can happen with animation */
-			if ((sl->basact->flag & BASE_VISIBLED) != 0 || (ob->mode & OB_MODE_EDIT)) {
-				CTX_data_pointer_set(result, &scene->id, &RNA_ObjectBase, sl->basact);
+			if ((view_layer->basact->flag & BASE_VISIBLED) != 0 || (ob->mode & OB_MODE_EDIT)) {
+				CTX_data_pointer_set(result, &scene->id, &RNA_ObjectBase, view_layer->basact);
 			}
 		}
 		
 		return 1;
 	}
 	else if (CTX_data_equals(member, "active_object")) {
-		ViewLayer *sl = CTX_data_view_layer(C);
-		if (sl->basact) {
-			Object *ob = sl->basact->object;
+		ViewLayer *view_layer = CTX_data_view_layer(C);
+		if (view_layer->basact) {
+			Object *ob = view_layer->basact->object;
 			/* if hidden but in edit mode, we still display, can happen with animation */
-			if ((sl->basact->flag & BASE_VISIBLED) != 0 || (ob->mode & OB_MODE_EDIT) != 0) {
+			if ((view_layer->basact->flag & BASE_VISIBLED) != 0 || (ob->mode & OB_MODE_EDIT) != 0) {
 				CTX_data_id_pointer_set(result, &ob->id);
 			}
 		}

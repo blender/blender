@@ -1927,10 +1927,10 @@ extern const char *RE_engine_id_CYCLES;
 #define BASE_VISIBLE(base)  (                                                 \
 	((base)->flag & BASE_VISIBLED) != 0)
 
-#define FIRSTBASE(_sl)  ((_sl)->object_bases.first)
-#define LASTBASE(_sl)   ((_sl)->object_bases.last)
-#define BASACT(_sl)     ((_sl)->basact)
-#define OBACT(_sl)      (BASACT(_sl) ? BASACT(_sl)->object: NULL)
+#define FIRSTBASE(_view_layer)  ((_view_layer)->object_bases.first)
+#define LASTBASE(_view_layer)   ((_view_layer)->object_bases.last)
+#define BASACT(_view_layer)     ((_view_layer)->basact)
+#define OBACT(_view_layer)      (BASACT(_view_layer) ? BASACT(_view_layer)->object: NULL)
 
 #define V3D_CAMERA_LOCAL(v3d) ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : NULL)
 #define V3D_CAMERA_SCENE(scene, v3d) ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : (scene)->camera)

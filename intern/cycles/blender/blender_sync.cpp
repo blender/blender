@@ -387,14 +387,14 @@ void BlenderSync::sync_view_layers(BL::SpaceView3D& b_v3d, const char *layer)
 	}
 
 	/* render layer */
-	BL::Scene::view_layers_iterator b_rlay;
+	BL::Scene::view_layers_iterator b_view_layer;
 	bool first_layer = true;
 	uint layer_override = get_layer(b_engine.layer_override());
 	uint view_layers = layer_override ? layer_override : get_layer(b_scene.layers());
 
-	for(b_scene.view_layers.begin(b_rlay); b_rlay != b_scene.view_layers.end(); ++b_rlay) {
-		if((!layer && first_layer) || (layer && b_rlay->name() == layer)) {
-			view_layer.name = b_rlay->name();
+	for(b_scene.view_layers.begin(b_view_layer); b_view_layer != b_scene.view_layers.end(); ++b_view_layer) {
+		if((!layer && first_layer) || (layer && b_view_layer->name() == layer)) {
+			view_layer.name = b_view_layer->name();
 
 			view_layer.holdout_layer = 0;
 			view_layer.exclude_layer = 0;
@@ -406,10 +406,10 @@ void BlenderSync::sync_view_layers(BL::SpaceView3D& b_v3d, const char *layer)
 			view_layer.layer |= view_layer.holdout_layer;
 
 			view_layer.material_override = PointerRNA_NULL;
-			view_layer.use_background_shader = b_rlay->use_sky();
-			view_layer.use_background_ao = b_rlay->use_ao();
-			view_layer.use_surfaces = b_rlay->use_solid();
-			view_layer.use_hair = b_rlay->use_strand();
+			view_layer.use_background_shader = b_view_layer->use_sky();
+			view_layer.use_background_ao = b_view_layer->use_ao();
+			view_layer.use_surfaces = b_view_layer->use_solid();
+			view_layer.use_hair = b_view_layer->use_strand();
 
 			view_layer.bound_samples = false;
 			view_layer.samples = 0;
@@ -526,7 +526,7 @@ int BlenderSync::get_denoising_pass(BL::RenderPass& b_pass)
 }
 
 array<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
-                                            BL::ViewLayer& b_slay,
+                                            BL::ViewLayer& b_view_layer,
                                             const SessionParams &session_params)
 {
 	array<Pass> passes;
@@ -549,49 +549,49 @@ array<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
 			Pass::add(pass_type, passes);
 	}
 
-	PointerRNA crp = RNA_pointer_get(&b_slay.ptr, "cycles");
+	PointerRNA crp = RNA_pointer_get(&b_view_layer.ptr, "cycles");
 	if(get_boolean(crp, "denoising_store_passes") &&
 	   get_boolean(crp, "use_denoising"))
 	{
-		b_engine.add_pass("Denoising Normal",          3, "XYZ", b_slay.name().c_str());
-		b_engine.add_pass("Denoising Normal Variance", 3, "XYZ", b_slay.name().c_str());
-		b_engine.add_pass("Denoising Albedo",          3, "RGB", b_slay.name().c_str());
-		b_engine.add_pass("Denoising Albedo Variance", 3, "RGB", b_slay.name().c_str());
-		b_engine.add_pass("Denoising Depth",           1, "Z",   b_slay.name().c_str());
-		b_engine.add_pass("Denoising Depth Variance",  1, "Z",   b_slay.name().c_str());
-		b_engine.add_pass("Denoising Shadow A",        3, "XYV", b_slay.name().c_str());
-		b_engine.add_pass("Denoising Shadow B",        3, "XYV", b_slay.name().c_str());
-		b_engine.add_pass("Denoising Image",           3, "RGB", b_slay.name().c_str());
-		b_engine.add_pass("Denoising Image Variance",  3, "RGB", b_slay.name().c_str());
+		b_engine.add_pass("Denoising Normal",          3, "XYZ", b_view_layer.name().c_str());
+		b_engine.add_pass("Denoising Normal Variance", 3, "XYZ", b_view_layer.name().c_str());
+		b_engine.add_pass("Denoising Albedo",          3, "RGB", b_view_layer.name().c_str());
+		b_engine.add_pass("Denoising Albedo Variance", 3, "RGB", b_view_layer.name().c_str());
+		b_engine.add_pass("Denoising Depth",           1, "Z",   b_view_layer.name().c_str());
+		b_engine.add_pass("Denoising Depth Variance",  1, "Z",   b_view_layer.name().c_str());
+		b_engine.add_pass("Denoising Shadow A",        3, "XYV", b_view_layer.name().c_str());
+		b_engine.add_pass("Denoising Shadow B",        3, "XYV", b_view_layer.name().c_str());
+		b_engine.add_pass("Denoising Image",           3, "RGB", b_view_layer.name().c_str());
+		b_engine.add_pass("Denoising Image Variance",  3, "RGB", b_view_layer.name().c_str());
 	}
 #ifdef __KERNEL_DEBUG__
 	if(get_boolean(crp, "pass_debug_bvh_traversed_nodes")) {
-		b_engine.add_pass("Debug BVH Traversed Nodes", 1, "X", b_slay.name().c_str());
+		b_engine.add_pass("Debug BVH Traversed Nodes", 1, "X", b_view_layer.name().c_str());
 		Pass::add(PASS_BVH_TRAVERSED_NODES, passes);
 	}
 	if(get_boolean(crp, "pass_debug_bvh_traversed_instances")) {
-		b_engine.add_pass("Debug BVH Traversed Instances", 1, "X", b_slay.name().c_str());
+		b_engine.add_pass("Debug BVH Traversed Instances", 1, "X", b_view_layer.name().c_str());
 		Pass::add(PASS_BVH_TRAVERSED_INSTANCES, passes);
 	}
 	if(get_boolean(crp, "pass_debug_bvh_intersections")) {
-		b_engine.add_pass("Debug BVH Intersections", 1, "X", b_slay.name().c_str());
+		b_engine.add_pass("Debug BVH Intersections", 1, "X", b_view_layer.name().c_str());
 		Pass::add(PASS_BVH_INTERSECTIONS, passes);
 	}
 	if(get_boolean(crp, "pass_debug_ray_bounces")) {
-		b_engine.add_pass("Debug Ray Bounces", 1, "X", b_slay.name().c_str());
+		b_engine.add_pass("Debug Ray Bounces", 1, "X", b_view_layer.name().c_str());
 		Pass::add(PASS_RAY_BOUNCES, passes);
 	}
 #endif
 	if(get_boolean(crp, "pass_debug_render_time")) {
-		b_engine.add_pass("Debug Render Time", 1, "X", b_slay.name().c_str());
+		b_engine.add_pass("Debug Render Time", 1, "X", b_view_layer.name().c_str());
 		Pass::add(PASS_RENDER_TIME, passes);
 	}
 	if(get_boolean(crp, "use_pass_volume_direct")) {
-		b_engine.add_pass("VolumeDir", 3, "RGB", b_slay.name().c_str());
+		b_engine.add_pass("VolumeDir", 3, "RGB", b_view_layer.name().c_str());
 		Pass::add(PASS_VOLUME_DIRECT, passes);
 	}
 	if(get_boolean(crp, "use_pass_volume_indirect")) {
-		b_engine.add_pass("VolumeInd", 3, "RGB", b_slay.name().c_str());
+		b_engine.add_pass("VolumeInd", 3, "RGB", b_view_layer.name().c_str());
 		Pass::add(PASS_VOLUME_INDIRECT, passes);
 	}
 
@@ -820,9 +820,9 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 	                            !b_r.use_save_buffers();
 
 	if(params.progressive_refine) {
-		BL::Scene::view_layers_iterator b_rlay;
-		for(b_scene.view_layers.begin(b_rlay); b_rlay != b_scene.view_layers.end(); ++b_rlay) {
-			PointerRNA crl = RNA_pointer_get(&b_rlay->ptr, "cycles");
+		BL::Scene::view_layers_iterator b_view_layer;
+		for(b_scene.view_layers.begin(b_view_layer); b_view_layer != b_scene.view_layers.end(); ++b_view_layer) {
+			PointerRNA crl = RNA_pointer_get(&b_view_layer->ptr, "cycles");
 			if(get_boolean(crl, "use_denoising")) {
 				params.progressive_refine = false;
 			}

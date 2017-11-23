@@ -213,14 +213,14 @@ static void layer_collections_sync_flags(ListBase *layer_collections_dst, const 
 
 /* recreate the LayerCollection tree */
 static void layer_collections_recreate(
-        ViewLayer *sl_dst, ListBase *lb_src, SceneCollection *mc_dst, SceneCollection *mc_src)
+        ViewLayer *view_layer_dst, ListBase *lb_src, SceneCollection *mc_dst, SceneCollection *mc_src)
 {
 	for (LayerCollection *lc_src = lb_src->first; lc_src; lc_src = lc_src->next) {
 		SceneCollection *sc_dst = scene_collection_from_new_tree(lc_src->scene_collection, mc_dst, mc_src);
 		BLI_assert(sc_dst);
 
 		/* instead of synchronizing both trees we simply re-create it */
-		BKE_collection_link(sl_dst, sc_dst);
+		BKE_collection_link(view_layer_dst, sc_dst);
 	}
 }
 
@@ -641,11 +641,11 @@ void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
 	BKE_previewimg_free(&sce->preview);
 	curvemapping_free_data(&sce->r.mblur_shutter_curve);
 
-	for (ViewLayer *sl = sce->view_layers.first, *sl_next; sl; sl = sl_next) {
-		sl_next = sl->next;
+	for (ViewLayer *view_layer = sce->view_layers.first, *view_layer_next; view_layer; view_layer = view_layer_next) {
+		view_layer_next = view_layer->next;
 
-		BLI_remlink(&sce->view_layers, sl);
-		BKE_view_layer_free(sl);
+		BLI_remlink(&sce->view_layers, view_layer);
+		BKE_view_layer_free(view_layer);
 	}
 
 	/* Master Collection */

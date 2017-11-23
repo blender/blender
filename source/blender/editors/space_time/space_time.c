@@ -346,7 +346,7 @@ static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel, cons
 	BLI_dlrbTree_free(&keys);
 }
 
-static void time_draw_caches_keyframes(Main *bmain, ViewLayer *sl, View2D *v2d, bool onlysel, const unsigned char color[3])
+static void time_draw_caches_keyframes(Main *bmain, ViewLayer *view_layer, View2D *v2d, bool onlysel, const unsigned char color[3])
 {
 	CacheFile *cache_file;
 
@@ -357,7 +357,7 @@ static void time_draw_caches_keyframes(Main *bmain, ViewLayer *sl, View2D *v2d, 
 		cache_file->draw_flag &= ~CACHEFILE_KEYFRAME_DRAWN;
 	}
 
-	for (Base *base = sl->object_bases.first; base; base = base->next) {
+	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 		Object *ob = base->object;
 
 		ModifierData *md = modifiers_findByType(ob, eModifierType_MeshSequenceCache);
@@ -400,7 +400,7 @@ static void time_draw_caches_keyframes(Main *bmain, ViewLayer *sl, View2D *v2d, 
 static void time_draw_keyframes(const bContext *C, ARegion *ar)
 {
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = CTX_data_active_object(C);
 	View2D *v2d = &ar->v2d;
 	bool onlysel = ((scene->flag & SCE_KEYS_NO_SELONLY) == 0);
@@ -411,7 +411,7 @@ static void time_draw_keyframes(const bContext *C, ARegion *ar)
 
 	/* draw cache files keyframes (if available) */
 	UI_GetThemeColor3ubv(TH_TIME_KEYFRAME, color);
-	time_draw_caches_keyframes(CTX_data_main(C), sl, v2d, onlysel, color);
+	time_draw_caches_keyframes(CTX_data_main(C), view_layer, v2d, onlysel, color);
 
 	/* draw grease pencil keyframes (if available) */	
 	UI_GetThemeColor3ubv(TH_TIME_GP_KEYFRAME, color);

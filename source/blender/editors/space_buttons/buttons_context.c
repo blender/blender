@@ -186,8 +186,8 @@ static int buttons_context_path_collection(ButsContextPath *path)
 		return 1;
 	}
 
-	ViewLayer *sl = ptr->data;
-	LayerCollection *sc = BKE_layer_collection_get_active(sl);
+	ViewLayer *view_layer = ptr->data;
+	LayerCollection *sc = BKE_layer_collection_get_active(view_layer);
 
 	if (sc) {
 		RNA_pointer_create(NULL, &RNA_LayerCollection, sc, &path->ptr[path->len]);
@@ -208,8 +208,8 @@ static int buttons_context_path_object(ButsContextPath *path)
 		return 1;
 	}
 
-	ViewLayer *sl = ptr->data;
-	Object *ob = (sl->basact) ? sl->basact->object : NULL;
+	ViewLayer *view_layer = ptr->data;
+	Object *ob = (view_layer->basact) ? view_layer->basact->object : NULL;
 
 	if (ob) {
 		RNA_id_pointer_create(&ob->id, &path->ptr[path->len]);
@@ -411,8 +411,8 @@ static int buttons_context_path_brush(const bContext *C, ButsContextPath *path)
 		scene = path->ptr[path->len - 1].data;
 
 		if (scene) {
-			ViewLayer *sl = CTX_data_view_layer(C);
-			br = BKE_paint_brush(BKE_paint_get_active(scene, sl));
+			ViewLayer *view_layer = CTX_data_view_layer(C);
+			br = BKE_paint_brush(BKE_paint_get_active(scene, view_layer));
 		}
 
 		if (br) {

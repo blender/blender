@@ -1314,9 +1314,9 @@ float ED_view3d_grid_scale(Scene *scene, View3D *v3d, const char **grid_unit)
 	return v3d->grid * ED_scene_grid_scale(scene, grid_unit);
 }
 
-static bool is_cursor_visible(Scene *scene, ViewLayer *sl)
+static bool is_cursor_visible(Scene *scene, ViewLayer *view_layer)
 {
-	Object *ob = OBACT(sl);
+	Object *ob = OBACT(view_layer);
 
 	/* don't draw cursor in paint modes, but with a few exceptions */
 	if (ob && ob->mode & OB_MODE_ALL_PAINT) {
@@ -1328,7 +1328,7 @@ static bool is_cursor_visible(Scene *scene, ViewLayer *sl)
 		}
 		/* exception: object in texture paint mode, clone brush, use_clone_layer disabled */
 		else if (ob->mode & OB_MODE_TEXTURE_PAINT) {
-			const Paint *p = BKE_paint_get_active(scene, sl);
+			const Paint *p = BKE_paint_get_active(scene, view_layer);
 
 			if (p && p->brush && p->brush->imagepaint_tool == PAINT_TOOL_CLONE) {
 				if ((scene->toolsettings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE) == 0) {
@@ -1846,8 +1846,8 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar, const int offset)
 	}
 
 	if (U.uiflag & USER_DRAWVIEWINFO) {
-		ViewLayer *sl = CTX_data_view_layer(C);
-		Object *ob = OBACT(sl);
+		ViewLayer *view_layer = CTX_data_view_layer(C);
+		Object *ob = OBACT(view_layer);
 		draw_selected_name(scene, ob, &rect);
 	}
 #if 0 /* TODO */
@@ -1930,12 +1930,12 @@ static void view3d_stereo3d_setup_offscreen(
 	}
 }
 
-void ED_view3d_draw_offscreen_init(const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *sl, View3D *v3d)
+void ED_view3d_draw_offscreen_init(const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer, View3D *v3d)
 {
 	RenderEngineType *type = eval_ctx->engine;
 	if (type->flag & RE_USE_LEGACY_PIPELINE) {
 		/* shadow buffers, before we setup matrices */
-		if (draw_glsl_material(scene, sl, NULL, v3d, v3d->drawtype)) {
+		if (draw_glsl_material(scene, view_layer, NULL, v3d, v3d->drawtype)) {
 			VP_deprecated_gpu_update_lamps_shadows_world(eval_ctx, scene, v3d);
 		}
 	}
@@ -2320,9 +2320,9 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
  *
  * \{ */
 
-void VP_legacy_drawcursor(Scene *scene, ViewLayer *sl, ARegion *ar, View3D *v3d)
+void VP_legacy_drawcursor(Scene *scene, ViewLayer *view_layer, ARegion *ar, View3D *v3d)
 {
-	if (is_cursor_visible(scene, sl)) {
+	if (is_cursor_visible(scene, view_layer)) {
 		drawcursor(scene, ar, v3d);
 	}
 }

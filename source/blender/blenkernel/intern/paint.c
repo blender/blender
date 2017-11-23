@@ -75,9 +75,9 @@ const char PAINT_CURSOR_TEXTURE_PAINT[3] = {255, 255, 255};
 
 static eOverlayControlFlags overlay_flags = 0;
 
-void BKE_paint_invalidate_overlay_tex(Scene *scene, ViewLayer *sl, const Tex *tex)
+void BKE_paint_invalidate_overlay_tex(Scene *scene, ViewLayer *view_layer, const Tex *tex)
 {
-	Paint *p = BKE_paint_get_active(scene, sl);
+	Paint *p = BKE_paint_get_active(scene, view_layer);
 	Brush *br = p->brush;
 
 	if (!br)
@@ -89,9 +89,9 @@ void BKE_paint_invalidate_overlay_tex(Scene *scene, ViewLayer *sl, const Tex *te
 		overlay_flags |= PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY;
 }
 
-void BKE_paint_invalidate_cursor_overlay(Scene *scene, ViewLayer *sl, CurveMapping *curve)
+void BKE_paint_invalidate_cursor_overlay(Scene *scene, ViewLayer *view_layer, CurveMapping *curve)
 {
-	Paint *p = BKE_paint_get_active(scene, sl);
+	Paint *p = BKE_paint_get_active(scene, view_layer);
 	Brush *br = p->brush;
 
 	if (br && br->curve == curve)
@@ -157,13 +157,13 @@ Paint *BKE_paint_get_active_from_paintmode(Scene *sce, ePaintMode mode)
 	return NULL;
 }
 
-Paint *BKE_paint_get_active(Scene *sce, ViewLayer *sl)
+Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer)
 {
-	if (sce && sl) {
+	if (sce && view_layer) {
 		ToolSettings *ts = sce->toolsettings;
 		
-		if (sl->basact && sl->basact->object) {
-			switch (sl->basact->object->mode) {
+		if (view_layer->basact && view_layer->basact->object) {
+			switch (view_layer->basact->object->mode) {
 				case OB_MODE_SCULPT:
 					return &ts->sculpt->paint;
 				case OB_MODE_VERTEX_PAINT:
@@ -189,15 +189,15 @@ Paint *BKE_paint_get_active(Scene *sce, ViewLayer *sl)
 Paint *BKE_paint_get_active_from_context(const bContext *C)
 {
 	Scene *sce = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	SpaceImage *sima;
 
-	if (sce && sl) {
+	if (sce && view_layer) {
 		ToolSettings *ts = sce->toolsettings;
 		Object *obact = NULL;
 
-		if (sl->basact && sl->basact->object)
-			obact = sl->basact->object;
+		if (view_layer->basact && view_layer->basact->object)
+			obact = view_layer->basact->object;
 
 		if ((sima = CTX_wm_space_image(C)) != NULL) {
 			if (obact && obact->mode == OB_MODE_EDIT) {
@@ -240,15 +240,15 @@ Paint *BKE_paint_get_active_from_context(const bContext *C)
 ePaintMode BKE_paintmode_get_active_from_context(const bContext *C)
 {
 	Scene *sce = CTX_data_scene(C);
-	ViewLayer *sl = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	SpaceImage *sima;
 
-	if (sce && sl) {
+	if (sce && view_layer) {
 		ToolSettings *ts = sce->toolsettings;
 		Object *obact = NULL;
 
-		if (sl->basact && sl->basact->object)
-			obact = sl->basact->object;
+		if (view_layer->basact && view_layer->basact->object)
+			obact = view_layer->basact->object;
 
 		if ((sima = CTX_wm_space_image(C)) != NULL) {
 			if (obact && obact->mode == OB_MODE_EDIT) {
