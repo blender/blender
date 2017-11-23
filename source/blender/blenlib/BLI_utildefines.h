@@ -140,24 +140,15 @@ extern "C" {
 
 /* some math and copy defines */
 
-#define _VA_SWAP3(type, a, b) { \
-	CHECK_TYPE(a, type); \
-	CHECK_TYPE(b, type); \
-	type SWAP = (a); \
-	(a) = (b); \
-	(b) = SWAP; \
+
+#define SWAP(type, a, b)  {    \
+	type sw_ap;                \
+	CHECK_TYPE(a, type);       \
+	CHECK_TYPE(b, type);       \
+	sw_ap = (a);               \
+	(a) = (b);                 \
+	(b) = sw_ap;               \
 } (void)0
-
-#define _VA_SWAP2(a, b) { \
-	CHECK_TYPE_PAIR(a, b); \
-	struct { char a_[sizeof(a)]; } SWAP, *a_ = (void *)&(a), *b_ = (void *)&(b); \
-	SWAP = *a_; \
-	*a_ = *b_; \
-	*b_ = SWAP; \
-} ((void)0)
-
-/* SWAP with two or three args (initial type argument is optional) */
-#define SWAP(...) VA_NARGS_CALL_OVERLOAD(_VA_SWAP, __VA_ARGS__)
 
 /* swap with a temp value */
 #define SWAP_TVAL(tval, a, b)  {  \
