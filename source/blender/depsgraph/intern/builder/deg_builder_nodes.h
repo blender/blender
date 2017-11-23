@@ -161,29 +161,29 @@ struct DepsgraphNodeBuilder {
 	                       ViewLayer *view_layer,
 	                       eDepsNode_LinkedState_Type linked_state);
 	void build_group(Group *group);
-	void build_object(Object *ob,
+	void build_object(Object *object,
 	                  eDepsNode_LinkedState_Type linked_state);
-	void build_object_transform(Object *ob);
-	void build_object_constraints(Object *ob);
-	void build_pose_constraints(Object *ob, bPoseChannel *pchan);
+	void build_object_transform(Object *object);
+	void build_object_constraints(Object *object);
+	void build_pose_constraints(Object *object, bPoseChannel *pchan);
 	void build_rigidbody(Scene *scene);
-	void build_particles(Object *ob);
+	void build_particles(Object *object);
 	void build_particle_settings(ParticleSettings *part);
 	void build_cloth(Object *object);
 	void build_animdata(ID *id);
 	OperationDepsNode *build_driver(ID *id, FCurve *fcurve);
-	void build_ik_pose(Object *ob,
+	void build_ik_pose(Object *object,
 	                   bPoseChannel *pchan,
 	                   bConstraint *con);
-	void build_splineik_pose(Object *ob,
+	void build_splineik_pose(Object *object,
 	                         bPoseChannel *pchan,
 	                         bConstraint *con);
-	void build_rig(Object *ob);
-	void build_proxy_rig(Object *ob);
+	void build_rig(Object *object);
+	void build_proxy_rig(Object *object);
 	void build_shapekeys(Key *key);
-	void build_obdata_geom(Object *ob);
-	void build_camera(Object *ob);
-	void build_lamp(Object *ob);
+	void build_obdata_geom(Object *object);
+	void build_camera(Object *object);
+	void build_lamp(Object *object);
 	void build_nodetree(bNodeTree *ntree);
 	void build_material(Material *ma);
 	void build_texture(Tex *tex);

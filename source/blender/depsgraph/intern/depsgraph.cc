@@ -157,19 +157,19 @@ static bool pointer_to_component_node_criteria(const PointerRNA *ptr,
 		return true;
 	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_Constraint)) {
-		Object *ob = (Object *)ptr->id.data;
+		Object *object = (Object *)ptr->id.data;
 		bConstraint *con = (bConstraint *)ptr->data;
 
 		/* object or bone? */
-		if (BLI_findindex(&ob->constraints, con) != -1) {
+		if (BLI_findindex(&object->constraints, con) != -1) {
 			/* object transform */
 			// XXX: for now, we can't address the specific constraint or the constraint stack...
 			*type = DEG_NODE_TYPE_TRANSFORM;
 			return true;
 		}
-		else if (ob->pose) {
+		else if (object->pose) {
 			bPoseChannel *pchan;
-			for (pchan = (bPoseChannel *)ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+			for (pchan = (bPoseChannel *)object->pose->chanbase.first; pchan; pchan = pchan->next) {
 				if (BLI_findindex(&pchan->constraints, con) != -1) {
 					/* bone transforms */
 					*type = DEG_NODE_TYPE_BONE;
@@ -193,7 +193,7 @@ static bool pointer_to_component_node_criteria(const PointerRNA *ptr,
 		return true;
 	}
 	else if (ptr->type == &RNA_Object) {
-		//Object *ob = (Object *)ptr->data;
+		//Object *object = (Object *)ptr->data;
 
 		/* Transforms props? */
 		if (prop) {

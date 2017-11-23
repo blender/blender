@@ -147,7 +147,7 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 			}
 
 			if (comp_node->done != COMPONENT_STATE_DONE) {
-				/* Currently this is needed to get ob->mesh to be replaced with
+				/* Currently this is needed to get object->mesh to be replaced with
 				 * original mesh (rather than being evaluated_mesh).
 				 *
 				 * TODO(sergey): This is something we need to avoid.

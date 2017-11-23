@@ -242,21 +242,21 @@ static void deg_objects_iterator_step(BLI_Iterator *iter, DEG::IDDepsNode *id_no
 			return;
 	}
 
-	Object *ob = (Object *)id_node->id_cow;
-	BLI_assert(DEG::deg_validate_copy_on_write_datablock(&ob->id));
+	Object *object = (Object *)id_node->id_cow;
+	BLI_assert(DEG::deg_validate_copy_on_write_datablock(&object->id));
 
-	if (deg_flush_base_flags_and_settings(data, ob, ob, false) == false) {
+	if (deg_flush_base_flags_and_settings(data, object, object, false) == false) {
 		iter->skip = true;
 		return;
 	}
 
-	if ((data->flag & DEG_OBJECT_ITER_FLAG_DUPLI) && (ob->transflag & OB_DUPLI)) {
-		data->dupli_parent = ob;
-		data->dupli_list = object_duplilist(&data->eval_ctx, data->scene, ob);
+	if ((data->flag & DEG_OBJECT_ITER_FLAG_DUPLI) && (object->transflag & OB_DUPLI)) {
+		data->dupli_parent = object;
+		data->dupli_list = object_duplilist(&data->eval_ctx, data->scene, object);
 		data->dupli_object_next = (DupliObject *)data->dupli_list->first;
 	}
 
-	iter->current = ob;
+	iter->current = object;
 }
 
 void DEG_objects_iterator_begin(BLI_Iterator *iter, DEGObjectsIteratorData *data)
