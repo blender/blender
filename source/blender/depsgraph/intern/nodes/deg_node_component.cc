@@ -329,40 +329,28 @@ void ComponentDepsNode::finalize_build(Depsgraph * /*graph*/)
 	operations_map = NULL;
 }
 
-/* Parameter Component Defines ============================ */
+/* Register all components. =============================== */
 
-DEG_DEPSNODE_DEFINE(ParametersComponentDepsNode, DEG_NODE_TYPE_PARAMETERS, "Parameters Component");
-static DepsNodeFactoryImpl<ParametersComponentDepsNode> DNTI_PARAMETERS;
+#define DEG_COMPONENT_DEFINE(name, NAME)                             \
+  DEG_DEPSNODE_DEFINE(name ## ComponentDepsNode,                     \
+                      DEG_NODE_TYPE_ ## NAME,                        \
+                      #name  " Component");                          \
+static DepsNodeFactoryImpl<name ## ComponentDepsNode> DNTI_ ## NAME
 
-/* Animation Component Defines ============================ */
 
-DEG_DEPSNODE_DEFINE(AnimationComponentDepsNode, DEG_NODE_TYPE_ANIMATION, "Animation Component");
-static DepsNodeFactoryImpl<AnimationComponentDepsNode> DNTI_ANIMATION;
-
-/* Transform Component Defines ============================ */
-
-DEG_DEPSNODE_DEFINE(TransformComponentDepsNode, DEG_NODE_TYPE_TRANSFORM, "Transform Component");
-static DepsNodeFactoryImpl<TransformComponentDepsNode> DNTI_TRANSFORM;
-
-/* Proxy Component Defines ================================ */
-
-DEG_DEPSNODE_DEFINE(ProxyComponentDepsNode, DEG_NODE_TYPE_PROXY, "Proxy Component");
-static DepsNodeFactoryImpl<ProxyComponentDepsNode> DNTI_PROXY;
-
-/* Geometry Component Defines ============================= */
-
-DEG_DEPSNODE_DEFINE(GeometryComponentDepsNode, DEG_NODE_TYPE_GEOMETRY, "Geometry Component");
-static DepsNodeFactoryImpl<GeometryComponentDepsNode> DNTI_GEOMETRY;
-
-/* Sequencer Component Defines ============================ */
-
-DEG_DEPSNODE_DEFINE(SequencerComponentDepsNode, DEG_NODE_TYPE_SEQUENCER, "Sequencer Component");
-static DepsNodeFactoryImpl<SequencerComponentDepsNode> DNTI_SEQUENCER;
-
-/* Pose Component ========================================= */
-
-DEG_DEPSNODE_DEFINE(PoseComponentDepsNode, DEG_NODE_TYPE_EVAL_POSE, "Pose Eval Component");
-static DepsNodeFactoryImpl<PoseComponentDepsNode> DNTI_EVAL_POSE;
+DEG_COMPONENT_DEFINE(Animation, ANIMATION);
+DEG_COMPONENT_DEFINE(Cache, CACHE);
+DEG_COMPONENT_DEFINE(CopyOnWrite, COPY_ON_WRITE);
+DEG_COMPONENT_DEFINE(Geometry, GEOMETRY);
+DEG_COMPONENT_DEFINE(LayerCollections, LAYER_COLLECTIONS);
+DEG_COMPONENT_DEFINE(Parameters, PARAMETERS);
+DEG_COMPONENT_DEFINE(Particles, EVAL_PARTICLES);
+DEG_COMPONENT_DEFINE(Proxy, PROXY);
+DEG_COMPONENT_DEFINE(Pose, EVAL_POSE);
+DEG_COMPONENT_DEFINE(Sequencer, SEQUENCER);
+DEG_COMPONENT_DEFINE(Shading, SHADING);
+DEG_COMPONENT_DEFINE(ShadingParameters, SHADING_PARAMETERS);
+DEG_COMPONENT_DEFINE(Transform, TRANSFORM);
 
 /* Bone Component ========================================= */
 
@@ -383,38 +371,7 @@ void BoneComponentDepsNode::init(const ID *id, const char *subdata)
 	this->pchan = BKE_pose_channel_find_name(object->pose, subdata);
 }
 
-DEG_DEPSNODE_DEFINE(BoneComponentDepsNode, DEG_NODE_TYPE_BONE, "Bone Component");
-static DepsNodeFactoryImpl<BoneComponentDepsNode> DNTI_BONE;
-
-/* Particles Component Defines ============================ */
-
-DEG_DEPSNODE_DEFINE(ParticlesComponentDepsNode, DEG_NODE_TYPE_EVAL_PARTICLES, "Particles Component");
-static DepsNodeFactoryImpl<ParticlesComponentDepsNode> DNTI_EVAL_PARTICLES;
-
-/* Shading Component Defines ============================ */
-
-DEG_DEPSNODE_DEFINE(ShadingComponentDepsNode, DEG_NODE_TYPE_SHADING, "Shading Component");
-static DepsNodeFactoryImpl<ShadingComponentDepsNode> DNTI_SHADING;
-
-/* Shading Parameters Component Defines ============================ */
-
-DEG_DEPSNODE_DEFINE(ShadingParametersComponentDepsNode, DEG_NODE_TYPE_SHADING_PARAMETERS, "Shading Parameters Component");
-static DepsNodeFactoryImpl<ShadingParametersComponentDepsNode> DNTI_SHADING_PARAMETERS;
-
-/* Cache Component Defines ============================ */
-
-DEG_DEPSNODE_DEFINE(CacheComponentDepsNode, DEG_NODE_TYPE_CACHE, "Cache Component");
-static DepsNodeFactoryImpl<CacheComponentDepsNode> DNTI_CACHE;
-
-/* Layer Collections Defines ============================ */
-
-DEG_DEPSNODE_DEFINE(LayerCollectionsDepsNode, DEG_NODE_TYPE_LAYER_COLLECTIONS, "Layer Collections Component");
-static DepsNodeFactoryImpl<LayerCollectionsDepsNode> DNTI_LAYER_COLLECTIONS;
-
-/* Copy-on-write Defines ============================ */
-
-DEG_DEPSNODE_DEFINE(CopyOnWriteDepsNode, DEG_NODE_TYPE_COPY_ON_WRITE, "Copy-on-Write Component");
-static DepsNodeFactoryImpl<CopyOnWriteDepsNode> DNTI_COPY_ON_WRITE;
+DEG_COMPONENT_DEFINE(Bone, BONE);
 
 /* Node Types Register =================================== */
 
