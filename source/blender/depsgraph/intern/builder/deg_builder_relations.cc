@@ -439,54 +439,57 @@ void DepsgraphRelationBuilder::build_object(Object *object)
 		return;
 	}
 	object->id.tag |= LIB_TAG_DOIT;
-
 	/* Object Transforms */
-	eDepsOperation_Code base_op = (object->parent) ? DEG_OPCODE_TRANSFORM_PARENT : DEG_OPCODE_TRANSFORM_LOCAL;
+	eDepsOperation_Code base_op = (object->parent) ? DEG_OPCODE_TRANSFORM_PARENT
+	                                               : DEG_OPCODE_TRANSFORM_LOCAL;
 	OperationKey base_op_key(&object->id, DEG_NODE_TYPE_TRANSFORM, base_op);
-
-	OperationKey local_transform_key(&object->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_LOCAL);
-	OperationKey parent_transform_key(&object->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_PARENT);
-	OperationKey final_transform_key(&object->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_FINAL);
-
-	OperationKey ob_ubereval_key(&object->id, DEG_NODE_TYPE_TRANSFORM, DEG_OPCODE_TRANSFORM_OBJECT_UBEREVAL);
-
-	/* parenting */
+	OperationKey local_transform_key(&object->id,
+	                                 DEG_NODE_TYPE_TRANSFORM,
+	                                 DEG_OPCODE_TRANSFORM_LOCAL);
+	OperationKey parent_transform_key(&object->id,
+	                                  DEG_NODE_TYPE_TRANSFORM,
+	                                  DEG_OPCODE_TRANSFORM_PARENT);
+	OperationKey final_transform_key(&object->id,
+	                                 DEG_NODE_TYPE_TRANSFORM,
+	                                 DEG_OPCODE_TRANSFORM_FINAL);
+	OperationKey ob_ubereval_key(&object->id,
+	                             DEG_NODE_TYPE_TRANSFORM,
+	                             DEG_OPCODE_TRANSFORM_OBJECT_UBEREVAL);
+	/* Parenting. */
 	if (object->parent != NULL) {
-		/* parent relationship */
+		/* Parent relationship. */
 		build_object_parent(object);
-
-		/* local -> parent */
-		add_relation(local_transform_key, parent_transform_key, "[ObLocal -> ObParent]");
+		/* Local -> parent. */
+		add_relation(local_transform_key,
+		             parent_transform_key,
+		             "[ObLocal -> ObParent]");
 	}
-
+	/* Modifiers. */
 	if (object->modifiers.first != NULL) {
 		BuilderWalkUserData data;
 		data.builder = this;
 		modifiers_foreachObjectLink(object, modifier_walk, &data);
 	}
+	/* Constraints. */
 	if (object->constraints.first != NULL) {
 		BuilderWalkUserData data;
 		data.builder = this;
 		BKE_constraints_id_loop(&object->constraints, constraint_walk, &data);
 	}
-
-	/* object constraints */
+	/* Object constraints. */
 	if (object->constraints.first != NULL) {
 		OperationKey constraint_key(&object->id,
 		                            DEG_NODE_TYPE_TRANSFORM,
 		                            DEG_OPCODE_TRANSFORM_CONSTRAINTS);
-
-		/* constraint relations */
+		/* Constraint relations. */
 		build_constraints(&object->id,
 		                  DEG_NODE_TYPE_TRANSFORM,
 		                  "",
 		                  &object->constraints,
 		                  NULL);
-
 		/* operation order */
 		add_relation(base_op_key, constraint_key, "[ObBase-> Constraint Stack]");
 		add_relation(constraint_key, final_transform_key, "[ObConstraints -> Done]");
-
 		// XXX
 		add_relation(constraint_key, ob_ubereval_key, "Temp Ubereval");
 		add_relation(ob_ubereval_key, final_transform_key, "Temp Ubereval");
@@ -504,76 +507,23 @@ void DepsgraphRelationBuilder::build_object(Object *object)
 		}
 		add_relation(ob_ubereval_key, final_transform_key, "Temp Ubereval");
 	}
-
-	/* AnimData */
+	/* Animation data */
 	build_animdata(&object->id);
-
 	// XXX: This should be hooked up by the build_animdata code
 	if (needs_animdata_node(&object->id)) {
 		ComponentKey adt_key(&object->id, DEG_NODE_TYPE_ANIMATION);
 		add_relation(adt_key, local_transform_key, "Object Animation");
 	}
-
-	/* object data */
-	if (object->data) {
-		ID *obdata_id = (ID *)object->data;
-
-		/* object data animation */
-		build_animdata(obdata_id);
-
-		/* type-specific data... */
-		switch (object->type) {
-			case OB_MESH:     /* Geometry */
-			case OB_CURVE:
-			case OB_FONT:
-			case OB_SURF:
-			case OB_MBALL:
-			case OB_LATTICE:
-			{
-				build_obdata_geom(object);
-				break;
-			}
-
-			case OB_ARMATURE: /* Pose */
-				if (ID_IS_LINKED(object) && object->proxy_from != NULL) {
-					build_proxy_rig(object);
-				}
-				else {
-					build_rig(object);
-				}
-				break;
-
-			case OB_LAMP:   /* Lamp */
-				build_lamp(object);
-				break;
-
-			case OB_CAMERA: /* Camera */
-				build_camera(object);
-				break;
-
-			case OB_LIGHTPROBE:
-				build_lightprobe(object);
-				break;
-		}
-
-		Key *key = BKE_key_from_object(object);
-		if (key != NULL) {
-			ComponentKey geometry_key((ID *)object->data, DEG_NODE_TYPE_GEOMETRY);
-			ComponentKey key_key(&key->id, DEG_NODE_TYPE_GEOMETRY);
-			add_relation(key_key, geometry_key, "Shapekeys");
-		}
-	}
-
+	/* Object data. */
+	build_object_data(object);
 	/* Particle systems. */
 	if (object->particlesystem.first != NULL) {
 		build_particles(object);
 	}
-
 	/* Grease pencil. */
 	if (object->gpd != NULL) {
 		build_gpencil(object->gpd);
 	}
-
 	/* Object that this is a proxy for. */
 	if (object->proxy != NULL) {
 		object->proxy->proxy_from = object;
@@ -585,10 +535,55 @@ void DepsgraphRelationBuilder::build_object(Object *object)
 		ComponentKey proxy_pose_key(&object->proxy->id, DEG_NODE_TYPE_EVAL_POSE);
 		add_relation(ob_pose_key, proxy_pose_key, "Proxy");
 	}
-
 	/* Object dupligroup. */
 	if (object->dup_group != NULL) {
 		build_group(object, object->dup_group);
+	}
+}
+
+void DepsgraphRelationBuilder::build_object_data(Object *object)
+{
+	if (object->data == NULL) {
+		return;
+	}
+	ID *obdata_id = (ID *)object->data;
+	/* Object data animation. */
+	build_animdata(obdata_id);
+	/* type-specific data. */
+	switch (object->type) {
+		case OB_MESH:
+		case OB_CURVE:
+		case OB_FONT:
+		case OB_SURF:
+		case OB_MBALL:
+		case OB_LATTICE:
+		{
+			build_obdata_geom(object);
+			break;
+		}
+		case OB_ARMATURE:
+			if (ID_IS_LINKED(object) && object->proxy_from != NULL) {
+				build_proxy_rig(object);
+			}
+			else {
+				build_rig(object);
+			}
+			break;
+		case OB_LAMP:
+			build_lamp(object);
+			break;
+		case OB_CAMERA:
+			build_camera(object);
+			break;
+		case OB_LIGHTPROBE:
+			build_lightprobe(object);
+			break;
+	}
+	Key *key = BKE_key_from_object(object);
+	if (key != NULL) {
+		ComponentKey geometry_key((ID *)object->data, DEG_NODE_TYPE_GEOMETRY);
+		ComponentKey key_key(&key->id, DEG_NODE_TYPE_GEOMETRY);
+		add_relation(key_key, geometry_key, "Shapekeys");
 	}
 }
 

@@ -163,6 +163,7 @@ struct DepsgraphNodeBuilder {
 	void build_group(Group *group);
 	void build_object(Object *object,
 	                  eDepsNode_LinkedState_Type linked_state);
+	void build_object_data(Object *object);
 	void build_object_transform(Object *object);
 	void build_object_constraints(Object *object);
 	void build_pose_constraints(Object *object, bPoseChannel *pchan);

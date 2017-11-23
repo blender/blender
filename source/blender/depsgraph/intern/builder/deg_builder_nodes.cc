@@ -412,78 +412,26 @@ void DepsgraphNodeBuilder::build_object(Object *object,
 	id_node->linked_state = linked_state;
 
 	object->customdata_mask = 0;
-
-	/* Standard components. */
+	/* Transform. */
 	build_object_transform(object);
-
+	/* Parent. */
 	if (object->parent != NULL) {
 		build_object(object->parent, linked_state);
 	}
+	/* Modifiers. */
 	if (object->modifiers.first != NULL) {
 		BuilderWalkUserData data;
 		data.builder = this;
 		modifiers_foreachObjectLink(object, modifier_walk, &data);
 	}
+	/* Constraints. */
 	if (object->constraints.first != NULL) {
 		BuilderWalkUserData data;
 		data.builder = this;
 		BKE_constraints_id_loop(&object->constraints, constraint_walk, &data);
 	}
-
 	/* Object data. */
-	if (object->data != NULL) {
-		/* type-specific data... */
-		switch (object->type) {
-			case OB_MESH:     /* Geometry */
-			case OB_CURVE:
-			case OB_FONT:
-			case OB_SURF:
-			case OB_MBALL:
-			case OB_LATTICE:
-				build_obdata_geom(object);
-				/* TODO(sergey): Only for until we support granular
-				 * update of curves.
-				 */
-				if (object->type == OB_FONT) {
-					Curve *curve = (Curve *)object->data;
-					if (curve->textoncurve) {
-						id_node->eval_flags |= DAG_EVAL_NEED_CURVE_PATH;
-					}
-				}
-				break;
-
-			case OB_ARMATURE: /* Pose */
-				if (ID_IS_LINKED(object) && object->proxy_from != NULL) {
-					build_proxy_rig(object);
-				}
-				else {
-					build_rig(object);
-				}
-				break;
-
-			case OB_LAMP:   /* Lamp */
-				build_lamp(object);
-				break;
-
-			case OB_CAMERA: /* Camera */
-				build_camera(object);
-				break;
-
-			case OB_LIGHTPROBE:
-				build_lightprobe(object);
-				break;
-
-			default:
-			{
-				ID *obdata = (ID *)object->data;
-				if ((obdata->tag & LIB_TAG_DOIT) == 0) {
-					build_animdata(obdata);
-				}
-				break;
-			}
-		}
-	}
-
+	build_object_data(object);
 	/* Build animation data,
 	 *
 	 * Do it now because it's possible object data will affect
@@ -491,26 +439,75 @@ void DepsgraphNodeBuilder::build_object(Object *object,
 	 * pose for proxy.
 	 */
 	build_animdata(&object->id);
-
-	/* particle systems */
+	/* Particle systems. */
 	if (object->particlesystem.first != NULL) {
 		build_particles(object);
 	}
-
 	/* Grease pencil. */
 	if (object->gpd != NULL) {
 		build_gpencil(object->gpd);
 	}
-
 	/* Object that this is a proxy for. */
 	if (object->proxy) {
 		object->proxy->proxy_from = object;
 		build_object(object->proxy, DEG_ID_LINKED_INDIRECTLY);
 	}
-
 	/* Object dupligroup. */
 	if (object->dup_group != NULL) {
 		build_group(object->dup_group);
+	}
+}
+
+void DepsgraphNodeBuilder::build_object_data(Object *object)
+{
+	if (object->data == NULL) {
+		return;
+	}
+	IDDepsNode *id_node = graph_->find_id_node(&object->id);
+	/* type-specific data. */
+	switch (object->type) {
+		case OB_MESH:
+		case OB_CURVE:
+		case OB_FONT:
+		case OB_SURF:
+		case OB_MBALL:
+		case OB_LATTICE:
+			build_obdata_geom(object);
+			/* TODO(sergey): Only for until we support granular
+			 * update of curves.
+			 */
+			if (object->type == OB_FONT) {
+				Curve *curve = (Curve *)object->data;
+				if (curve->textoncurve) {
+					id_node->eval_flags |= DAG_EVAL_NEED_CURVE_PATH;
+				}
+			}
+			break;
+		case OB_ARMATURE:
+			if (ID_IS_LINKED(object) && object->proxy_from != NULL) {
+				build_proxy_rig(object);
+			}
+			else {
+				build_rig(object);
+			}
+			break;
+		case OB_LAMP:
+			build_lamp(object);
+			break;
+		case OB_CAMERA:
+			build_camera(object);
+			break;
+		case OB_LIGHTPROBE:
+			build_lightprobe(object);
+			break;
+		default:
+		{
+			ID *obdata = (ID *)object->data;
+			if ((obdata->tag & LIB_TAG_DOIT) == 0) {
+				build_animdata(obdata);
+			}
+			break;
+		}
 	}
 }
 
