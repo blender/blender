@@ -124,12 +124,12 @@ void DEG_add_scene_relation(DepsNodeHandle *handle,
 }
 
 void DEG_add_object_relation(DepsNodeHandle *handle,
-                             Object *ob,
+                             Object *object,
                              eDepsObjectComponentType component,
                              const char *description)
 {
 	DEG::eDepsNode_Type type = deg_build_object_component_type(component);
-	DEG::ComponentKey comp_key(&ob->id, type);
+	DEG::ComponentKey comp_key(&object->id, type);
 	DEG::DepsNodeHandle *deg_handle = get_handle(handle);
 	deg_handle->builder->add_node_handle_relation(comp_key,
 	                                              deg_handle,
@@ -150,13 +150,13 @@ void DEG_add_object_cache_relation(DepsNodeHandle *handle,
 }
 
 void DEG_add_bone_relation(DepsNodeHandle *handle,
-                           Object *ob,
+                           Object *object,
                            const char *bone_name,
                            eDepsObjectComponentType component,
                            const char *description)
 {
 	DEG::eDepsNode_Type type = deg_build_object_component_type(component);
-	DEG::ComponentKey comp_key(&ob->id, type, bone_name);
+	DEG::ComponentKey comp_key(&object->id, type, bone_name);
 	DEG::DepsNodeHandle *deg_handle = get_handle(handle);
 	/* XXX: "Geometry Eval" might not always be true, but this only gets called
 	 * from modifier building now.
@@ -314,7 +314,7 @@ void DEG_scene_graph_free(Scene *scene)
 
 void DEG_add_collision_relations(DepsNodeHandle *handle,
                                  Scene *scene,
-                                 Object *ob,
+                                 Object *object,
                                  Group *group,
                                  int layer,
                                  unsigned int modifier_type,
@@ -323,7 +323,7 @@ void DEG_add_collision_relations(DepsNodeHandle *handle,
                                  const char *name)
 {
 	unsigned int numcollobj;
-	Object **collobjs = get_collisionobjects_ext(scene, ob, group, layer, &numcollobj, modifier_type, dupli);
+	Object **collobjs = get_collisionobjects_ext(scene, object, group, layer, &numcollobj, modifier_type, dupli);
 
 	for (unsigned int i = 0; i < numcollobj; i++) {
 		Object *ob1 = collobjs[i];
@@ -340,17 +340,17 @@ void DEG_add_collision_relations(DepsNodeHandle *handle,
 
 void DEG_add_forcefield_relations(DepsNodeHandle *handle,
                                   Scene *scene,
-                                  Object *ob,
+                                  Object *object,
                                   EffectorWeights *effector_weights,
                                   bool add_absorption,
                                   int skip_forcefield,
                                   const char *name)
 {
-	ListBase *effectors = pdInitEffectors(scene, ob, NULL, effector_weights, false);
+	ListBase *effectors = pdInitEffectors(scene, object, NULL, effector_weights, false);
 
 	if (effectors) {
 		for (EffectorCache *eff = (EffectorCache*)effectors->first; eff; eff = eff->next) {
-			if (eff->ob != ob && eff->pd->forcefield != skip_forcefield) {
+			if (eff->ob != object && eff->pd->forcefield != skip_forcefield) {
 				DEG_add_object_relation(handle, eff->ob, DEG_OB_COMP_TRANSFORM, name);
 
 				if (eff->psys) {
@@ -376,7 +376,7 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
 				if (add_absorption && (eff->pd->flag & PFIELD_VISIBILITY)) {
 					DEG_add_collision_relations(handle,
 					                            scene,
-					                            ob,
+					                            object,
 					                            NULL,
 					                            eff->ob->lay,
 					                            eModifierType_Collision,

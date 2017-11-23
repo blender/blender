@@ -141,12 +141,12 @@ void DEG_add_scene_relation(struct DepsNodeHandle *node,
                             struct Scene *scene,
                             eDepsSceneComponentType component,
                             const char *description);
-void DEG_add_object_relation(struct DepsNodeHandle *node, struct
-                             Object *ob,
+void DEG_add_object_relation(struct DepsNodeHandle *node,
+                             struct Object *object,
                              eDepsObjectComponentType component,
                              const char *description);
 void DEG_add_bone_relation(struct DepsNodeHandle *handle,
-                           struct Object *ob,
+                           struct Object *object,
                            const char *bone_name,
                            eDepsObjectComponentType component,
                            const char *description);
@@ -164,7 +164,7 @@ typedef bool (*DEG_CollobjFilterFunction)(struct Object *obj, struct ModifierDat
 
 void DEG_add_collision_relations(struct DepsNodeHandle *handle,
                                  struct Scene *scene,
-                                 struct Object *ob,
+                                 struct Object *object,
                                  struct Group *group,
                                  int layer,
                                  unsigned int modifier_type,
@@ -173,7 +173,7 @@ void DEG_add_collision_relations(struct DepsNodeHandle *handle,
                                  const char *name);
 void DEG_add_forcefield_relations(struct DepsNodeHandle *handle,
                                   struct Scene *scene,
-                                  struct Object *ob,
+                                  struct Object *object,
                                   struct EffectorWeights *eff,
                                   bool add_absorption,
                                   int skip_forcefield,

@@ -383,8 +383,8 @@ void BoneComponentDepsNode::init(const ID *id, const char *subdata)
 	//this->name = subdata;
 
 	/* bone-specific node data */
-	Object *ob = (Object *)id;
-	this->pchan = BKE_pose_channel_find_name(ob->pose, subdata);
+	Object *object = (Object *)id;
+	this->pchan = BKE_pose_channel_find_name(object->pose, subdata);
 }
 
 DEG_DEPSNODE_DEFINE(BoneComponentDepsNode, DEG_NODE_TYPE_BONE, "Bone Component");
