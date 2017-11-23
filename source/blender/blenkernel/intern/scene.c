@@ -1032,7 +1032,7 @@ void BKE_scene_init(Scene *sce)
 	sce->layer_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
 	BKE_view_layer_engine_settings_create(sce->layer_properties);
 
-	BKE_view_layer_add(sce, "Render Layer");
+	BKE_view_layer_add(sce, "View Layer");
 }
 
 Scene *BKE_scene_add(Main *bmain, const char *name)

@@ -109,32 +109,32 @@ ViewLayer *BKE_view_layer_context_active_PLACEHOLDER(const Scene *scene)
 ViewLayer *BKE_view_layer_add(Scene *scene, const char *name)
 {
 	if (!name) {
-		name = DATA_("Render Layer");
+		name = DATA_("View Layer");
 	}
 
 	IDPropertyTemplate val = {0};
-	ViewLayer *sl = MEM_callocN(sizeof(ViewLayer), "Scene Layer");
-	sl->flag = VIEW_LAYER_RENDER | VIEW_LAYER_FREESTYLE;
+	ViewLayer *view_layer = MEM_callocN(sizeof(ViewLayer), "View Layer");
+	view_layer->flag = VIEW_LAYER_RENDER | VIEW_LAYER_FREESTYLE;
 
-	sl->properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-	layer_engine_settings_init(sl->properties, false);
+	view_layer->properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
+	layer_engine_settings_init(view_layer->properties, false);
 
-	BLI_addtail(&scene->view_layers, sl);
+	BLI_addtail(&scene->view_layers, view_layer);
 
 	/* unique name */
-	BLI_strncpy_utf8(sl->name, name, sizeof(sl->name));
-	BLI_uniquename(&scene->view_layers, sl, DATA_("ViewLayer"), '.', offsetof(ViewLayer, name), sizeof(sl->name));
+	BLI_strncpy_utf8(view_layer->name, name, sizeof(view_layer->name));
+	BLI_uniquename(&scene->view_layers, view_layer, DATA_("ViewLayer"), '.', offsetof(ViewLayer, name), sizeof(view_layer->name));
 
 	SceneCollection *sc = BKE_collection_master(scene);
-	layer_collection_add(sl, NULL, sc);
+	layer_collection_add(view_layer, NULL, sc);
 
 	/* Pure rendering pipeline settings. */
-	sl->layflag = 0x7FFF;   /* solid ztra halo edge strand */
-	sl->passflag = SCE_PASS_COMBINED | SCE_PASS_Z;
-	sl->pass_alpha_threshold = 0.5f;
-	BKE_freestyle_config_init(&sl->freestyle_config);
+	view_layer->layflag = 0x7FFF;   /* solid ztra halo edge strand */
+	view_layer->passflag = SCE_PASS_COMBINED | SCE_PASS_Z;
+	view_layer->pass_alpha_threshold = 0.5f;
+	BKE_freestyle_config_init(&view_layer->freestyle_config);
 
-	return sl;
+	return view_layer;
 }
 
 /**
