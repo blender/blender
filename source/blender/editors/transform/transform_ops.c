@@ -283,6 +283,9 @@ static void TRANSFORM_OT_create_orientation(struct wmOperatorType *ot)
 	RNA_def_string(ot->srna, "name", NULL, MAX_NAME, "Name", "Name of the new custom orientation");
 	RNA_def_boolean(ot->srna, "use_view", false, "Use View",
 	                "Use the current view instead of the active object to create the new orientation");
+
+	WM_operatortype_props_advanced_begin(ot);
+
 	RNA_def_boolean(ot->srna, "use", false, "Use after creation", "Select orientation after its creation");
 	RNA_def_boolean(ot->srna, "overwrite", false, "Overwrite previous",
 	                "Overwrite previously created orientation with same name");
@@ -593,6 +596,8 @@ static void TRANSFORM_OT_translate(struct wmOperatorType *ot)
 
 	RNA_def_float_vector_xyz(ot->srna, "value", 3, NULL, -FLT_MAX, FLT_MAX, "Vector", "", -FLT_MAX, FLT_MAX);
 
+	WM_operatortype_props_advanced_begin(ot);
+
 	Transform_Properties(ot, P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_ALIGN_SNAP | P_OPTIONS | P_GPENCIL_EDIT);
 }
 
@@ -612,6 +617,8 @@ static void TRANSFORM_OT_resize(struct wmOperatorType *ot)
 	ot->poll   = ED_operator_screenactive;
 
 	RNA_def_float_vector(ot->srna, "value", 3, VecOne, -FLT_MAX, FLT_MAX, "Vector", "", -FLT_MAX, FLT_MAX);
+
+	WM_operatortype_props_advanced_begin(ot);
 
 	Transform_Properties(
 	        ot, P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_GEO_SNAP | P_OPTIONS | P_GPENCIL_EDIT | P_CENTER);
@@ -644,6 +651,8 @@ static void TRANSFORM_OT_skin_resize(struct wmOperatorType *ot)
 
 	RNA_def_float_vector(ot->srna, "value", 3, VecOne, -FLT_MAX, FLT_MAX, "Vector", "", -FLT_MAX, FLT_MAX);
 
+	WM_operatortype_props_advanced_begin(ot);
+
 	Transform_Properties(ot, P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_GEO_SNAP | P_OPTIONS | P_NO_TEXSPACE);
 }
 
@@ -665,6 +674,8 @@ static void TRANSFORM_OT_trackball(struct wmOperatorType *ot)
 	/* Maybe we could use float_vector_xyz here too? */
 	RNA_def_float_rotation(ot->srna, "value", 2, NULL, -FLT_MAX, FLT_MAX, "Angle", "", -FLT_MAX, FLT_MAX);
 
+	WM_operatortype_props_advanced_begin(ot);
+
 	Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_GPENCIL_EDIT | P_CENTER);
 }
 
@@ -684,6 +695,8 @@ static void TRANSFORM_OT_rotate(struct wmOperatorType *ot)
 	ot->poll   = ED_operator_screenactive;
 
 	RNA_def_float_rotation(ot->srna, "value", 0, NULL, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI * 2, M_PI * 2);
+
+	WM_operatortype_props_advanced_begin(ot);
 
 	Transform_Properties(
 	        ot, P_AXIS | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_GEO_SNAP | P_GPENCIL_EDIT | P_CENTER);
@@ -709,6 +722,8 @@ static void TRANSFORM_OT_tilt(struct wmOperatorType *ot)
 
 	RNA_def_float_rotation(ot->srna, "value", 0, NULL, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI * 2, M_PI * 2);
 
+	WM_operatortype_props_advanced_begin(ot);
+
 	Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP);
 }
 
@@ -728,6 +743,8 @@ static void TRANSFORM_OT_bend(struct wmOperatorType *ot)
 	ot->poll   = ED_operator_region_view3d_active;
 
 	RNA_def_float_rotation(ot->srna, "value", 1, NULL, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI * 2, M_PI * 2);
+
+	WM_operatortype_props_advanced_begin(ot);
 
 	Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_GPENCIL_EDIT | P_CENTER);
 }
@@ -749,6 +766,8 @@ static void TRANSFORM_OT_shear(struct wmOperatorType *ot)
 
 	RNA_def_float(ot->srna, "value", 0, -FLT_MAX, FLT_MAX, "Offset", "", -FLT_MAX, FLT_MAX);
 
+	WM_operatortype_props_advanced_begin(ot);
+
 	Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_GPENCIL_EDIT);
 	// XXX Shear axis?
 }
@@ -769,6 +788,8 @@ static void TRANSFORM_OT_push_pull(struct wmOperatorType *ot)
 	ot->poll   = ED_operator_screenactive;
 
 	RNA_def_float(ot->srna, "value", 0, -FLT_MAX, FLT_MAX, "Distance", "", -FLT_MAX, FLT_MAX);
+
+	WM_operatortype_props_advanced_begin(ot);
 
 	Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_CENTER);
 }
@@ -792,6 +813,8 @@ static void TRANSFORM_OT_shrink_fatten(struct wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "use_even_offset", true, "Offset Even", "Scale the offset to give more even thickness");
 
+	WM_operatortype_props_advanced_begin(ot);
+
 	Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP);
 }
 
@@ -812,6 +835,8 @@ static void TRANSFORM_OT_tosphere(struct wmOperatorType *ot)
 	ot->poll   = ED_operator_screenactive;
 
 	RNA_def_float_factor(ot->srna, "value", 0, 0, 1, "Factor", "", 0, 1);
+
+	WM_operatortype_props_advanced_begin(ot);
 
 	Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_GPENCIL_EDIT | P_CENTER);
 }
@@ -857,6 +882,9 @@ static void TRANSFORM_OT_edge_slide(struct wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	RNA_def_boolean(ot->srna, "use_even", false, "Even",
 	                "Make the edge loop match the shape of the adjacent edge loop");
+
+	WM_operatortype_props_advanced_begin(ot);
+
 	RNA_def_boolean(ot->srna, "flipped", false, "Flipped",
 	                "When Even mode is active, flips between the two adjacent edge loops");
 	RNA_def_boolean(ot->srna, "use_clamp", true, "Clamp",
@@ -883,6 +911,9 @@ static void TRANSFORM_OT_vert_slide(struct wmOperatorType *ot)
 	RNA_def_float_factor(ot->srna, "value", 0, -10.0f, 10.0f, "Factor", "", -1.0f, 1.0f);
 	RNA_def_boolean(ot->srna, "use_even", false, "Even",
 	                "Make the edge loop match the shape of the adjacent edge loop");
+
+	WM_operatortype_props_advanced_begin(ot);
+
 	RNA_def_boolean(ot->srna, "flipped", false, "Flipped",
 	                "When Even mode is active, flips between the two adjacent edge loops");
 	RNA_def_boolean(ot->srna, "use_clamp", true, "Clamp",
@@ -907,6 +938,8 @@ static void TRANSFORM_OT_edge_crease(struct wmOperatorType *ot)
 	ot->poll   = ED_operator_editmesh;
 
 	RNA_def_float_factor(ot->srna, "value", 0, -1.0f, 1.0f, "Factor", "", -1.0f, 1.0f);
+
+	WM_operatortype_props_advanced_begin(ot);
 
 	Transform_Properties(ot, P_SNAP);
 }
@@ -949,6 +982,8 @@ static void TRANSFORM_OT_edge_bevelweight(struct wmOperatorType *ot)
 
 	RNA_def_float_factor(ot->srna, "value", 0, -1.0f, 1.0f, "Factor", "", -1.0f, 1.0f);
 
+	WM_operatortype_props_advanced_begin(ot);
+
 	Transform_Properties(ot, P_SNAP);
 }
 
@@ -968,6 +1003,8 @@ static void TRANSFORM_OT_seq_slide(struct wmOperatorType *ot)
 	ot->poll   = ED_operator_sequencer_active;
 
 	RNA_def_float_vector_xyz(ot->srna, "value", 2, NULL, -FLT_MAX, FLT_MAX, "Vector", "", -FLT_MAX, FLT_MAX);
+
+	WM_operatortype_props_advanced_begin(ot);
 
 	Transform_Properties(ot, P_SNAP);
 }
@@ -993,6 +1030,8 @@ static void TRANSFORM_OT_transform(struct wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 
 	RNA_def_float_vector(ot->srna, "value", 4, NULL, -FLT_MAX, FLT_MAX, "Values", "", -FLT_MAX, FLT_MAX);
+
+	WM_operatortype_props_advanced_begin(ot);
 
 	Transform_Properties(
 	        ot, P_AXIS | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_ALIGN_SNAP | P_GPENCIL_EDIT | P_CENTER);
