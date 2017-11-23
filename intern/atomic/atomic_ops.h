@@ -112,6 +112,9 @@ ATOMIC_INLINE uint8_t atomic_fetch_and_and_uint8(uint8_t *p, uint8_t b);
 ATOMIC_INLINE int8_t atomic_fetch_and_or_int8(int8_t *p, int8_t b);
 ATOMIC_INLINE int8_t atomic_fetch_and_and_int8(int8_t *p, int8_t b);
 
+ATOMIC_INLINE char atomic_fetch_and_or_char(char *p, char b);
+ATOMIC_INLINE char atomic_fetch_and_and_char(char *p, char b);
+
 ATOMIC_INLINE size_t atomic_add_and_fetch_z(size_t *p, size_t x);
 ATOMIC_INLINE size_t atomic_sub_and_fetch_z(size_t *p, size_t x);
 ATOMIC_INLINE size_t atomic_fetch_and_add_z(size_t *p, size_t x);

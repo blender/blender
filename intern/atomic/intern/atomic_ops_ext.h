@@ -180,6 +180,18 @@ ATOMIC_INLINE unsigned int atomic_cas_u(unsigned int *v, unsigned int old, unsig
 }
 
 /******************************************************************************/
+/* Char operations. */
+ATOMIC_INLINE char atomic_fetch_and_or_char(char *p, char b)
+{
+	return (char)atomic_fetch_and_or_uint8((uint8_t *)p, (uint8_t)b);
+}
+
+ATOMIC_INLINE char atomic_fetch_and_and_char(char *p, char b)
+{
+	return (char)atomic_fetch_and_and_uint8((uint8_t *)p, (uint8_t)b);
+}
+
+/******************************************************************************/
 /* Pointer operations. */
 
 ATOMIC_INLINE void *atomic_cas_ptr(void **v, void *old, void *_new)
