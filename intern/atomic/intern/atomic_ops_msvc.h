@@ -142,7 +142,7 @@ ATOMIC_INLINE int32_t atomic_sub_and_fetch_int32(int32_t *p, int32_t x)
 
 ATOMIC_INLINE int32_t atomic_cas_int32(int32_t *v, int32_t old, int32_t _new)
 {
-	return InterlockedCompareExchange(v, _new, old);
+	return InterlockedCompareExchange((long *)v, _new, old);
 }
 
 ATOMIC_INLINE int32_t atomic_fetch_and_add_int32(int32_t *p, int32_t x)
@@ -152,12 +152,12 @@ ATOMIC_INLINE int32_t atomic_fetch_and_add_int32(int32_t *p, int32_t x)
 
 ATOMIC_INLINE int32_t atomic_fetch_and_or_int32(int32_t *p, int32_t x)
 {
-	return InterlockedOr(p, x);
+	return InterlockedOr((long *)p, x);
 }
 
 ATOMIC_INLINE int32_t atomic_fetch_and_and_int32(int32_t *p, int32_t x)
 {
-	return InterlockedAnd(p, x);
+	return InterlockedAnd((long *)p, x);
 }
 
 /******************************************************************************/
