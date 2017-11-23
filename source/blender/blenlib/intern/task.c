@@ -32,6 +32,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_mempool.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
 
@@ -1353,4 +1354,90 @@ void BLI_task_parallel_listbase(
 	BLI_task_pool_free(task_pool);
 
 	BLI_spin_end(&state.lock);
+}
+
+
+typedef struct ParallelMempoolState {
+	void *userdata;
+	TaskParallelMempoolFunc func;
+} ParallelMempoolState;
+
+static void parallel_mempool_func(
+        TaskPool * __restrict pool,
+        void *taskdata,
+        int UNUSED(threadid))
+{
+	ParallelMempoolState * __restrict state = BLI_task_pool_userdata(pool);
+	BLI_mempool_iter *iter = taskdata;
+	MempoolIterData *item;
+
+	while ((item = BLI_mempool_iterstep(iter)) != NULL) {
+		state->func(state->userdata, item);
+	}
+}
+
+/**
+ * This function allows to parallelize for loops over Mempool items.
+ *
+ * \param pool The iterable BLI_mempool to loop over.
+ * \param userdata Common userdata passed to all instances of \a func.
+ * \param func Callback function.
+ * \param use_threading If \a true, actually split-execute loop in threads, else just do a sequential forloop
+ *                      (allows caller to use any kind of test to switch on parallelization or not).
+ *
+ * \note There is no static scheduling here.
+ */
+void BLI_task_parallel_mempool(
+        BLI_mempool *mempool,
+        void *userdata,
+        TaskParallelMempoolFunc func,
+        const bool use_threading)
+{
+	TaskScheduler *task_scheduler;
+	TaskPool *task_pool;
+	ParallelMempoolState state;
+	int i, num_threads, num_tasks;
+
+	if (BLI_mempool_count(mempool) == 0) {
+		return;
+	}
+
+	if (!use_threading) {
+		BLI_mempool_iter iter;
+		BLI_mempool_iternew(mempool, &iter);
+
+		for (void *item = BLI_mempool_iterstep(&iter); item != NULL; item = BLI_mempool_iterstep(&iter)) {
+			func(userdata, item);
+		}
+		return;
+	}
+
+	task_scheduler = BLI_task_scheduler_get();
+	task_pool = BLI_task_pool_create(task_scheduler, &state);
+	num_threads = BLI_task_scheduler_num_threads(task_scheduler);
+
+	/* The idea here is to prevent creating task for each of the loop iterations
+	 * and instead have tasks which are evenly distributed across CPU cores and
+	 * pull next item to be crunched using the threaded-aware BLI_mempool_iter.
+	 */
+	num_tasks = num_threads * 2;
+
+	state.userdata = userdata;
+	state.func = func;
+
+	BLI_mempool_iter *mempool_iterators = BLI_mempool_iter_threadsafe_create(mempool, (size_t)num_tasks);
+
+	for (i = 0; i < num_tasks; i++) {
+		/* Use this pool's pre-allocated tasks. */
+		BLI_task_pool_push_from_thread(task_pool,
+		                               parallel_mempool_func,
+		                               &mempool_iterators[i], false,
+		                               TASK_PRIORITY_HIGH,
+		                               task_pool->thread_id);
+	}
+
+	BLI_task_pool_work_and_wait(task_pool);
+	BLI_task_pool_free(task_pool);
+
+	BLI_mempool_iter_threadsafe_free(mempool_iterators);
 }

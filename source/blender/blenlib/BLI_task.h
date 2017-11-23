@@ -35,6 +35,8 @@ extern "C" {
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+struct BLI_mempool;
+
 /* Task Scheduler
  * 
  * Central scheduler that holds running threads ready to execute tasks. A single
@@ -148,6 +150,15 @@ void BLI_task_parallel_listbase(
         struct ListBase *listbase,
         void *userdata,
         TaskParallelListbaseFunc func,
+        const bool use_threading);
+
+typedef struct MempoolIterData MempoolIterData;
+typedef void (*TaskParallelMempoolFunc)(void *userdata,
+                                        MempoolIterData *iter);
+void BLI_task_parallel_mempool(
+        struct BLI_mempool *mempool,
+        void *userdata,
+        TaskParallelMempoolFunc func,
         const bool use_threading);
 
 #ifdef __cplusplus
