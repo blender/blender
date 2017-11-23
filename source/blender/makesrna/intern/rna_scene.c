@@ -5467,7 +5467,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 	};
 
 	static const EnumPropertyItem ffmpeg_crf_items[] = {
-		{FFM_CRF_NONE, "NONE", 0, "None; use constant bit-rate",
+		{FFM_CRF_NONE, "NONE", 0, "None; use custom bitrate",
 		 "Use constant bit rate, rather than constant output quality"},
 		{FFM_CRF_LOSSLESS, "LOSSLESS", 0, "Lossless", ""},
 		{FFM_CRF_PERC_LOSSLESS, "PERC_LOSSLESS", 0, "Perceptually lossless", ""},
