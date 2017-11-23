@@ -35,12 +35,15 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_stack.h"
+#include "BLI_task.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
+
+#include "atomic_ops.h"
 
 #include "intern/bmesh_private.h"
 
@@ -318,146 +321,202 @@ void BM_mesh_free(BMesh *bm)
 	MEM_freeN(bm);
 }
 
+
 /**
  * Helpers for #BM_mesh_normals_update and #BM_verts_calc_normal_vcos
  */
+
+typedef struct BMEdgesCalcVectorsData {
+	/* Read-only data. */
+	const float (*vcos)[3];
+
+	/* Read-write data, but no need to protect it, no concurrency to fear here. */
+	float (*edgevec)[3];
+} BMEdgesCalcVectorsData;
+
+
+static void mesh_edges_calc_vectors_cb(void *userdata, MempoolIterData *mp_e)
+{
+	BMEdgesCalcVectorsData *data = userdata;
+	BMEdge *e = (BMEdge *)mp_e;
+
+	if (e->l) {
+		const float *v1_co = data->vcos ? data->vcos[BM_elem_index_get(e->v1)] : e->v1->co;
+		const float *v2_co = data->vcos ? data->vcos[BM_elem_index_get(e->v2)] : e->v2->co;
+		sub_v3_v3v3(data->edgevec[BM_elem_index_get(e)], v2_co, v1_co);
+		normalize_v3(data->edgevec[BM_elem_index_get(e)]);
+	}
+	else {
+		/* the edge vector will not be needed when the edge has no radial */
+	}
+}
+
 static void bm_mesh_edges_calc_vectors(BMesh *bm, float (*edgevec)[3], const float (*vcos)[3])
 {
-	BMIter eiter;
-	BMEdge *e;
-	int index;
+	BM_mesh_elem_index_ensure(bm, BM_EDGE | (vcos ?  BM_VERT : 0));
 
-	if (vcos) {
-		BM_mesh_elem_index_ensure(bm, BM_VERT);
-	}
+	BMEdgesCalcVectorsData data = {
+	    .vcos = vcos,
+	    .edgevec = edgevec
+	};
 
-	BM_ITER_MESH_INDEX (e, &eiter, bm, BM_EDGES_OF_MESH, index) {
-		BM_elem_index_set(e, index); /* set_inline */
+	BM_iter_parallel(bm, BM_EDGES_OF_MESH, mesh_edges_calc_vectors_cb, &data, bm->totedge >= BM_OMP_LIMIT);
+}
 
-		if (e->l) {
-			const float *v1_co = vcos ? vcos[BM_elem_index_get(e->v1)] : e->v1->co;
-			const float *v2_co = vcos ? vcos[BM_elem_index_get(e->v2)] : e->v2->co;
-			sub_v3_v3v3(edgevec[index], v2_co, v1_co);
-			normalize_v3(edgevec[index]);
+
+typedef struct BMVertsCalcNormalsData {
+	/* Read-only data. */
+	const float (*fnos)[3];
+	const float (*edgevec)[3];
+	const float (*vcos)[3];
+
+	/* Read-write data, protected by an atomic-based fake spinlock-like system... */
+	float (*vnos)[3];
+} BMVertsCalcNormalsData;
+
+static void mesh_verts_calc_normals_accum_cb(void *userdata, MempoolIterData *mp_f)
+{
+	BMVertsCalcNormalsData *data = userdata;
+	BMFace *f = (BMFace *)mp_f;
+
+	const float *f_no = data->fnos ? data->fnos[BM_elem_index_get(f)] : f->no;
+
+	BMLoop *l_first, *l_iter;
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		const float *e1diff, *e2diff;
+		float dotprod;
+		float fac;
+
+		/* calculate the dot product of the two edges that
+		 * meet at the loop's vertex */
+		e1diff = data->edgevec[BM_elem_index_get(l_iter->prev->e)];
+		e2diff = data->edgevec[BM_elem_index_get(l_iter->e)];
+		dotprod = dot_v3v3(e1diff, e2diff);
+
+		/* edge vectors are calculated from e->v1 to e->v2, so
+		 * adjust the dot product if one but not both loops
+		 * actually runs from from e->v2 to e->v1 */
+		if ((l_iter->prev->e->v1 == l_iter->prev->v) ^ (l_iter->e->v1 == l_iter->v)) {
+			dotprod = -dotprod;
 		}
-		else {
-			/* the edge vector will not be needed when the edge has no radial */
+
+		fac = saacos(-dotprod);
+
+		/* accumulate weighted face normal into the vertex's normal */
+		float *v_no = data->vnos ? data->vnos[BM_elem_index_get(l_iter->v)] : l_iter->v->no;
+
+		/* This block is a lockless threadsafe madd_v3_v3fl.
+		 * It uses the first float of the vector as a sort of cheap spinlock,
+		 * assuming FLT_MAX is a safe 'illegal' value that cannot be set here otherwise.
+		 * It also assumes that collisions between threads are highly unlikely,
+		 * else performances would be quite bad here. */
+		float virtual_lock = v_no[0];
+		while ((virtual_lock = atomic_cas_float(&v_no[0], virtual_lock, FLT_MAX)) == FLT_MAX) {
+			/* This loops until following conditions are met:
+			 *   - v_no[0] has same value as virtual_lock (i.e. it did not change since last try).
+			 *   - v_no_[0] was not FLT_MAX, i.e. it was not locked by another thread.
+			 */
 		}
+		/* Now we own that normal value, and can change it.
+		 * But first scalar of the vector must not be changed yet, it's our lock! */
+		virtual_lock += f_no[0] * fac;
+		v_no[1] += f_no[1] * fac;
+		v_no[2] += f_no[2] * fac;
+		/* Second atomic operation to 'release' our lock on that vector and set its first scalar value. */
+		virtual_lock = atomic_cas_float(&v_no[0], FLT_MAX, virtual_lock);
+		BLI_assert(virtual_lock == FLT_MAX);
+
+	} while ((l_iter = l_iter->next) != l_first);
+}
+
+static void mesh_verts_calc_normals_normalize_cb(void *userdata, MempoolIterData *mp_v)
+{
+	BMVertsCalcNormalsData *data = userdata;
+	BMVert *v = (BMVert *)mp_v;
+
+	float *v_no = data->vnos ? data->vnos[BM_elem_index_get(v)] : v->no;
+	if (UNLIKELY(normalize_v3(v_no) == 0.0f)) {
+		const float *v_co = data->vcos ? data->vcos[BM_elem_index_get(v)] : v->co;
+		normalize_v3_v3(v_no, v_co);
 	}
-	bm->elem_index_dirty &= ~BM_EDGE;
 }
 
 static void bm_mesh_verts_calc_normals(
         BMesh *bm, const float (*edgevec)[3], const float (*fnos)[3],
         const float (*vcos)[3], float (*vnos)[3])
 {
-	BM_mesh_elem_index_ensure(bm, (vnos) ? (BM_EDGE | BM_VERT) : BM_EDGE);
+	BM_mesh_elem_index_ensure(bm, (BM_EDGE | BM_FACE) | ((vnos || vcos) ?  BM_VERT : 0));
 
-	/* add weighted face normals to vertices */
-	{
-		BMIter fiter;
-		BMFace *f;
-		int i;
+	BMVertsCalcNormalsData data = {
+	    .fnos = fnos,
+	    .edgevec = edgevec,
+	    .vcos = vcos,
+	    .vnos = vnos
+	};
 
-		BM_ITER_MESH_INDEX (f, &fiter, bm, BM_FACES_OF_MESH, i) {
-			BMLoop *l_first, *l_iter;
-			const float *f_no = fnos ? fnos[i] : f->no;
-
-			l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-			do {
-				const float *e1diff, *e2diff;
-				float dotprod;
-				float fac;
-				float *v_no = vnos ? vnos[BM_elem_index_get(l_iter->v)] : l_iter->v->no;
-
-				/* calculate the dot product of the two edges that
-				 * meet at the loop's vertex */
-				e1diff = edgevec[BM_elem_index_get(l_iter->prev->e)];
-				e2diff = edgevec[BM_elem_index_get(l_iter->e)];
-				dotprod = dot_v3v3(e1diff, e2diff);
-
-				/* edge vectors are calculated from e->v1 to e->v2, so
-				 * adjust the dot product if one but not both loops
-				 * actually runs from from e->v2 to e->v1 */
-				if ((l_iter->prev->e->v1 == l_iter->prev->v) ^ (l_iter->e->v1 == l_iter->v)) {
-					dotprod = -dotprod;
-				}
-
-				fac = saacos(-dotprod);
-
-				/* accumulate weighted face normal into the vertex's normal */
-				madd_v3_v3fl(v_no, f_no, fac);
-			} while ((l_iter = l_iter->next) != l_first);
-		}
-	}
-
+	BM_iter_parallel(bm, BM_FACES_OF_MESH, mesh_verts_calc_normals_accum_cb, &data, bm->totface >= BM_OMP_LIMIT);
 
 	/* normalize the accumulated vertex normals */
-	{
-		BMIter viter;
-		BMVert *v;
-		int i;
-
-		BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, i) {
-			float *v_no = vnos ? vnos[i] : v->no;
-			if (UNLIKELY(normalize_v3(v_no) == 0.0f)) {
-				const float *v_co = vcos ? vcos[i] : v->co;
-				normalize_v3_v3(v_no, v_co);
-			}
-		}
-	}
+	BM_iter_parallel(bm, BM_VERTS_OF_MESH, mesh_verts_calc_normals_normalize_cb, &data, bm->totvert >= BM_OMP_LIMIT);
 }
+
+
+static void mesh_faces_calc_normals_cb(void *UNUSED(userdata), MempoolIterData *mp_f)
+{
+	BMFace *f = (BMFace *)mp_f;
+
+	BM_face_normal_update(f);
+}
+
 
 /**
  * \brief BMesh Compute Normals
  *
  * Updates the normals of a mesh.
  */
+#include "PIL_time_utildefines.h"
 void BM_mesh_normals_update(BMesh *bm)
 {
 	float (*edgevec)[3] = MEM_mallocN(sizeof(*edgevec) * bm->totedge, __func__);
 
-#pragma omp parallel sections if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
-	{
-#pragma omp section
-		{
-			/* calculate all face normals */
-			BMIter fiter;
-			BMFace *f;
-			int i;
+	TIMEIT_START_AVERAGED(bmesh_nors);
 
-			BM_ITER_MESH_INDEX (f, &fiter, bm, BM_FACES_OF_MESH, i) {
-				BM_elem_index_set(f, i); /* set_inline */
-				BM_face_normal_update(f);
-			}
-			bm->elem_index_dirty &= ~BM_FACE;
-		}
-#pragma omp section
-		{
-			/* Zero out vertex normals */
-			BMIter viter;
-			BMVert *v;
-			int i;
+	/* Parallel mempool iteration does not allow to generate indices inline anymore... */
+	BM_mesh_elem_index_ensure(bm, (BM_EDGE | BM_FACE));
 
-			BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, i) {
-				BM_elem_index_set(v, i); /* set_inline */
-				zero_v3(v->no);
-			}
-			bm->elem_index_dirty &= ~BM_VERT;
-		}
-#pragma omp section
-		{
-			/* Compute normalized direction vectors for each edge.
-			 * Directions will be used for calculating the weights of the face normals on the vertex normals.
-			 */
-			bm_mesh_edges_calc_vectors(bm, edgevec, NULL);
-		}
+	/* calculate all face normals */
+	TIMEIT_START_AVERAGED(faces_nors);
+	BM_iter_parallel(bm, BM_FACES_OF_MESH, mesh_faces_calc_normals_cb, NULL, bm->totface >= BM_OMP_LIMIT);
+	TIMEIT_END_AVERAGED(faces_nors);
+
+	/* Zero out vertex normals */
+	BMIter viter;
+	BMVert *v;
+	int i;
+
+	TIMEIT_START_AVERAGED(verts_zero_nors);
+	BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, i) {
+		BM_elem_index_set(v, i); /* set_inline */
+		zero_v3(v->no);
 	}
-	/* end omp */
+	bm->elem_index_dirty &= ~BM_VERT;
+	TIMEIT_END_AVERAGED(verts_zero_nors);
+
+	/* Compute normalized direction vectors for each edge.
+	 * Directions will be used for calculating the weights of the face normals on the vertex normals.
+	 */
+	TIMEIT_START_AVERAGED(edges_vecs);
+	bm_mesh_edges_calc_vectors(bm, edgevec, NULL);
+	TIMEIT_END_AVERAGED(edges_vecs);
 
 	/* Add weighted face normals to vertices, and normalize vert normals. */
+	TIMEIT_START_AVERAGED(verts_nors);
 	bm_mesh_verts_calc_normals(bm, (const float(*)[3])edgevec, NULL, NULL, NULL);
+	TIMEIT_END_AVERAGED(verts_nors);
 	MEM_freeN(edgevec);
+
+	TIMEIT_END_AVERAGED(bmesh_nors);
 }
 
 /**

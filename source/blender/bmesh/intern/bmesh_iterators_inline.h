@@ -182,4 +182,40 @@ BLI_INLINE void *BM_iter_new(BMIter *iter, BMesh *bm, const char itype, void *da
 	}
 }
 
+/**
+ * \brief Parallel (threaded) iterator, only available for most basic itertypes (verts/edges/faces of mesh).
+ *
+ * Uses BLI_task_parallel_mempool to iterate over all items of underlying matching mempool.
+ *
+ * \note You have to include BLI_task.h before BMesh includes to be able to use this function!
+ */
+
+#ifdef __BLI_TASK_H__
+
+ATTR_NONNULL(1)
+BLI_INLINE void BM_iter_parallel(
+        BMesh *bm, const char itype, TaskParallelMempoolFunc func, void *userdata, const bool use_threading)
+{
+	BLI_assert(bm != NULL);
+
+	/* inlining optimizes out this switch when called with the defined type */
+	switch ((BMIterType)itype) {
+		case BM_VERTS_OF_MESH:
+			BLI_task_parallel_mempool(bm->vpool, userdata, func, use_threading);
+			break;
+		case BM_EDGES_OF_MESH:
+			BLI_task_parallel_mempool(bm->epool, userdata, func, use_threading);
+			break;
+		case BM_FACES_OF_MESH:
+			BLI_task_parallel_mempool(bm->fpool, userdata, func, use_threading);
+			break;
+		default:
+			/* should never happen */
+			BLI_assert(0);
+			break;
+	}
+}
+
+#endif  /* __BLI_TASK_H__ */
+
 #endif /* __BMESH_ITERATORS_INLINE_H__ */

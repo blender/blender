@@ -27,6 +27,7 @@ set(INC
 	../../../source/blender/blenlib
 	../../../source/blender/makesdna
 	../../../intern/guardedalloc
+	../../../intern/atomic
 )
 
 include_directories(${INC})
@@ -56,6 +57,7 @@ BLENDER_TEST(BLI_polyfill2d "bf_blenlib")
 BLENDER_TEST(BLI_stack "bf_blenlib")
 BLENDER_TEST(BLI_string "bf_blenlib")
 BLENDER_TEST(BLI_string_utf8 "bf_blenlib")
+BLENDER_TEST(BLI_task "bf_blenlib")
 
 BLENDER_TEST_PERFORMANCE(BLI_ghash_performance "bf_blenlib")
 
