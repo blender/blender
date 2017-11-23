@@ -104,12 +104,10 @@ void DepsgraphRelationBuilder::build_view_layer_collections(
 
 	OperationKey init_key(&scene_->id,
 	                      DEG_NODE_TYPE_LAYER_COLLECTIONS,
-	                      DEG_OPCODE_VIEW_LAYER_INIT,
-	                      view_layer->name);
+	                      DEG_OPCODE_VIEW_LAYER_INIT);
 	OperationKey done_key(&scene_->id,
 	                      DEG_NODE_TYPE_LAYER_COLLECTIONS,
-	                      DEG_OPCODE_VIEW_LAYER_DONE,
-	                      view_layer->name);
+	                      DEG_OPCODE_VIEW_LAYER_DONE);
 
 	state.init_key = init_key;
 	state.done_key = done_key;

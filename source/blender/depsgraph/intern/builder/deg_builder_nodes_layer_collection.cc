@@ -126,14 +126,12 @@ void DepsgraphNodeBuilder::build_view_layer_collections(
 	                                 _1,
 	                                 scene_cow,
 	                                 view_layer_cow),
-	                   DEG_OPCODE_VIEW_LAYER_INIT,
-	                   view_layer->name);
+	                   DEG_OPCODE_VIEW_LAYER_INIT);
 	add_operation_node(comp,
 	                   function_bind(BKE_layer_eval_layer_collection_post,
 	                                 _1,
 	                                 view_layer_cow),
-	                   DEG_OPCODE_VIEW_LAYER_DONE,
-	                   view_layer->name);
+	                   DEG_OPCODE_VIEW_LAYER_DONE);
 	state.parent = NULL;
 	build_layer_collections(&view_layer_cow->layer_collections, &state);
 }
