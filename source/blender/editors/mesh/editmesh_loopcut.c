@@ -872,6 +872,8 @@ void MESH_OT_loopcut(wmOperatorType *ot)
 	                     "Smoothness", "Smoothness factor", -SUBD_SMOOTH_MAX, SUBD_SMOOTH_MAX);
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
+	WM_operatortype_props_advanced_begin(ot);
+
 	prop = RNA_def_property(ot->srna, "falloff", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, rna_enum_proportional_falloff_curve_only_items);
 	RNA_def_property_enum_default(prop, PROP_INVSQUARE);

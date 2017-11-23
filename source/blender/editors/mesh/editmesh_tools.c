@@ -147,6 +147,8 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 
 	RNA_def_float(ot->srna, "smoothness", 0.0f, 0.0f, 1e3f, "Smoothness", "Smoothness factor", 0.0f, 1.0f);
 
+	WM_operatortype_props_advanced_begin(ot);
+
 	RNA_def_boolean(ot->srna, "quadtri", 0, "Quad/Tri Mode", "Tries to prevent ngons");
 	RNA_def_enum(ot->srna, "quadcorner", prop_mesh_cornervert_types, SUBD_CORNER_STRAIGHT_CUT,
 	             "Quad Corner Type", "How to subdivide quad corners (anything other than Straight Cut will prevent ngons)");
@@ -863,9 +865,11 @@ void MESH_OT_mark_seam(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
+
 	prop = RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+	WM_operatortype_props_advanced_begin(ot);
 }
 
 static int edbm_mark_sharp_exec(bContext *C, wmOperator *op)
@@ -1805,6 +1809,9 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
 
 	RNA_def_float(ot->srna, "factor", 0.5f, -10.0f, 10.0f, "Smoothing", "Smoothing factor", 0.0f, 1.0f);
 	RNA_def_int(ot->srna, "repeat", 1, 1, 1000, "Repeat", "Number of times to smooth the mesh", 1, 100);
+
+	WM_operatortype_props_advanced_begin(ot);
+
 	RNA_def_boolean(ot->srna, "xaxis", true, "X-Axis", "Smooth along the X axis");
 	RNA_def_boolean(ot->srna, "yaxis", true, "Y-Axis", "Smooth along the Y axis");
 	RNA_def_boolean(ot->srna, "zaxis", true, "Z-Axis", "Smooth along the Z axis");
@@ -1888,6 +1895,9 @@ void MESH_OT_vertices_smooth_laplacian(wmOperatorType *ot)
 	              "Lambda factor", "", 1e-7f, 1000.0f);
 	RNA_def_float(ot->srna, "lambda_border", 5e-5f, 1e-7f, 1000.0f,
 	              "Lambda factor in border", "", 1e-7f, 1000.0f);
+
+	WM_operatortype_props_advanced_begin(ot);
+
 	RNA_def_boolean(ot->srna, "use_x", true, "Smooth X Axis", "Smooth object along X axis");
 	RNA_def_boolean(ot->srna, "use_y", true, "Smooth Y Axis", "Smooth object along Y axis");
 	RNA_def_boolean(ot->srna, "use_z", true, "Smooth Z Axis", "Smooth object along Z axis");
@@ -2343,6 +2353,9 @@ void MESH_OT_merge(wmOperatorType *ot)
 	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "type", merge_type_items, MESH_MERGE_CENTER, "Type", "Merge method to use");
 	RNA_def_enum_funcs(ot->prop, merge_type_itemf);
+
+	WM_operatortype_props_advanced_begin(ot);
+
 	RNA_def_boolean(ot->srna, "uvs", false, "UVs", "Move UVs according to merge");
 }
 
