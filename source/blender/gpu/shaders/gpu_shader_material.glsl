@@ -2895,7 +2895,7 @@ void node_bsdf_principled_simple(vec4 base_color, float subsurface, vec3 subsurf
 void node_bsdf_principled_clearcoat(vec4 base_color, float subsurface, vec3 subsurface_radius, vec4 subsurface_color, float metallic, float specular,
 	float specular_tint, float roughness, float anisotropic, float anisotropic_rotation, float sheen, float sheen_tint, float clearcoat,
 	float clearcoat_roughness, float ior, float transmission, float transmission_roughness, vec3 N, vec3 CN, vec3 T, vec3 I, float ssr_id,
-	float sss_id, out Closure result)
+	float sss_id, vec3 sss_scale, out Closure result)
 {
 #ifdef EEVEE_ENGINE
 	if (clearcoat == 0.0) {
@@ -2953,10 +2953,10 @@ void node_bsdf_principled_clearcoat(vec4 base_color, float subsurface, vec3 subs
 
 #ifdef USE_SSS
 	/* OPTI : Make irradiance computation shared with the diffuse. */
-	result.sss_data.rgb = eevee_surface_translucent_lit(N, subsurface_color.rgb, 1.0);
+	result.sss_data.a = dot(sss_scale, vec3(1.0 / 3.0));
+	result.sss_data.rgb = eevee_surface_translucent_lit(N, subsurface_color.rgb, result.sss_data.a);
 	result.sss_data.rgb += eevee_surface_diffuse_lit(N, vec3(1.0), 1.0);
 	result.sss_data.rgb *= mix(vec3(0.0), subsurface_color.rgb, subsurface);
-	result.sss_data.a = 1.0; /* TODO Find a parametrization */
 #endif
 
 #endif

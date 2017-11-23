@@ -65,6 +65,7 @@ static void node_shader_init_principled(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int node_shader_gpu_bsdf_principled(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
+	GPUNodeLink *sss_scale;
 #if 0 /* Old 2.7 glsl viewport */
 	// normal
 	if (!in[17].link)
@@ -107,8 +108,16 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat, bNode *node, bNodeE
 		GPU_material_sss_profile_create(mat, &socket_data->value[1], &profile, NULL);
 	}
 
+	if (in[2].link) {
+		sss_scale = in[2].link;
+	}
+	else {
+		float one[3] = {1.0f, 1.0f, 1.0f};
+		GPU_link(mat, "set_rgb", GPU_uniform((float *)one), &sss_scale);
+	}
+
 	return GPU_stack_link(mat, node, "node_bsdf_principled_clearcoat", in, out, GPU_builtin(GPU_VIEW_POSITION),
-	                      GPU_uniform(&node->ssr_id), GPU_uniform(&node->sss_id));
+	                      GPU_uniform(&node->ssr_id), GPU_uniform(&node->sss_id), sss_scale);
 }
 
 static void node_shader_update_principled(bNodeTree *UNUSED(ntree), bNode *node)
