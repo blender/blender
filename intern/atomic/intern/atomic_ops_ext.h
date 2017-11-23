@@ -56,10 +56,10 @@
 
 /******************************************************************************/
 /* size_t operations. */
+ATOMIC_STATIC_ASSERT(sizeof(size_t) == LG_SIZEOF_PTR, "sizeof(size_t) != LG_SIZEOF_PTR");
+
 ATOMIC_INLINE size_t atomic_add_and_fetch_z(size_t *p, size_t x)
 {
-	assert(sizeof(size_t) == LG_SIZEOF_PTR);
-
 #if (LG_SIZEOF_PTR == 8)
 	return (size_t)atomic_add_and_fetch_uint64((uint64_t *)p, (uint64_t)x);
 #elif (LG_SIZEOF_PTR == 4)
@@ -69,8 +69,6 @@ ATOMIC_INLINE size_t atomic_add_and_fetch_z(size_t *p, size_t x)
 
 ATOMIC_INLINE size_t atomic_sub_and_fetch_z(size_t *p, size_t x)
 {
-	assert(sizeof(size_t) == LG_SIZEOF_PTR);
-
 #if (LG_SIZEOF_PTR == 8)
 	return (size_t)atomic_add_and_fetch_uint64((uint64_t *)p, (uint64_t)-((int64_t)x));
 #elif (LG_SIZEOF_PTR == 4)
@@ -80,8 +78,6 @@ ATOMIC_INLINE size_t atomic_sub_and_fetch_z(size_t *p, size_t x)
 
 ATOMIC_INLINE size_t atomic_fetch_and_add_z(size_t *p, size_t x)
 {
-	assert(sizeof(size_t) == LG_SIZEOF_PTR);
-
 #if (LG_SIZEOF_PTR == 8)
 	return (size_t)atomic_fetch_and_add_uint64((uint64_t *)p, (uint64_t)x);
 #elif (LG_SIZEOF_PTR == 4)
@@ -91,8 +87,6 @@ ATOMIC_INLINE size_t atomic_fetch_and_add_z(size_t *p, size_t x)
 
 ATOMIC_INLINE size_t atomic_fetch_and_sub_z(size_t *p, size_t x)
 {
-	assert(sizeof(size_t) == LG_SIZEOF_PTR);
-
 #if (LG_SIZEOF_PTR == 8)
 	return (size_t)atomic_fetch_and_add_uint64((uint64_t *)p, (uint64_t)-((int64_t)x));
 #elif (LG_SIZEOF_PTR == 4)
@@ -102,8 +96,6 @@ ATOMIC_INLINE size_t atomic_fetch_and_sub_z(size_t *p, size_t x)
 
 ATOMIC_INLINE size_t atomic_cas_z(size_t *v, size_t old, size_t _new)
 {
-	assert(sizeof(size_t) == LG_SIZEOF_PTR);
-
 #if (LG_SIZEOF_PTR == 8)
 	return (size_t)atomic_cas_uint64((uint64_t *)v, (uint64_t)old, (uint64_t)_new);
 #elif (LG_SIZEOF_PTR == 4)
@@ -124,10 +116,10 @@ ATOMIC_INLINE size_t atomic_fetch_and_update_max_z(size_t *p, size_t x)
 
 /******************************************************************************/
 /* unsigned operations. */
+ATOMIC_STATIC_ASSERT(sizeof(unsigned int) == LG_SIZEOF_INT, "sizeof(unsigned int) != LG_SIZEOF_INT");
+
 ATOMIC_INLINE unsigned int atomic_add_and_fetch_u(unsigned int *p, unsigned int x)
 {
-	assert(sizeof(unsigned int) == LG_SIZEOF_INT);
-
 #if (LG_SIZEOF_INT == 8)
 	return (unsigned int)atomic_add_and_fetch_uint64((uint64_t *)p, (uint64_t)x);
 #elif (LG_SIZEOF_INT == 4)
@@ -137,8 +129,6 @@ ATOMIC_INLINE unsigned int atomic_add_and_fetch_u(unsigned int *p, unsigned int 
 
 ATOMIC_INLINE unsigned int atomic_sub_and_fetch_u(unsigned int *p, unsigned int x)
 {
-	assert(sizeof(unsigned int) == LG_SIZEOF_INT);
-
 #if (LG_SIZEOF_INT == 8)
 	return (unsigned int)atomic_add_and_fetch_uint64((uint64_t *)p, (uint64_t)-((int64_t)x));
 #elif (LG_SIZEOF_INT == 4)
@@ -148,8 +138,6 @@ ATOMIC_INLINE unsigned int atomic_sub_and_fetch_u(unsigned int *p, unsigned int 
 
 ATOMIC_INLINE unsigned int atomic_fetch_and_add_u(unsigned int *p, unsigned int x)
 {
-	assert(sizeof(unsigned int) == LG_SIZEOF_INT);
-
 #if (LG_SIZEOF_INT == 8)
 	return (unsigned int)atomic_fetch_and_add_uint64((uint64_t *)p, (uint64_t)x);
 #elif (LG_SIZEOF_INT == 4)
@@ -159,8 +147,6 @@ ATOMIC_INLINE unsigned int atomic_fetch_and_add_u(unsigned int *p, unsigned int 
 
 ATOMIC_INLINE unsigned int atomic_fetch_and_sub_u(unsigned int *p, unsigned int x)
 {
-	assert(sizeof(unsigned int) == LG_SIZEOF_INT);
-
 #if (LG_SIZEOF_INT == 8)
 	return (unsigned int)atomic_fetch_and_add_uint64((uint64_t *)p, (uint64_t)-((int64_t)x));
 #elif (LG_SIZEOF_INT == 4)
@@ -170,8 +156,6 @@ ATOMIC_INLINE unsigned int atomic_fetch_and_sub_u(unsigned int *p, unsigned int 
 
 ATOMIC_INLINE unsigned int atomic_cas_u(unsigned int *v, unsigned int old, unsigned int _new)
 {
-	assert(sizeof(unsigned int) == LG_SIZEOF_INT);
-
 #if (LG_SIZEOF_INT == 8)
 	return (unsigned int)atomic_cas_uint64((uint64_t *)v, (uint64_t)old, (uint64_t)_new);
 #elif (LG_SIZEOF_INT == 4)
@@ -205,11 +189,10 @@ ATOMIC_INLINE void *atomic_cas_ptr(void **v, void *old, void *_new)
 
 /******************************************************************************/
 /* float operations. */
+ATOMIC_STATIC_ASSERT(sizeof(float) == sizeof(uint32_t), "sizeof(float) != sizeof(uint32_t)");
 
 ATOMIC_INLINE float atomic_add_and_fetch_fl(float *p, const float x)
 {
-	assert(sizeof(float) == sizeof(uint32_t));
-
 	float oldval, newval;
 	uint32_t prevval;
 
