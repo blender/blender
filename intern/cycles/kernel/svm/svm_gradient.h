@@ -46,7 +46,10 @@ ccl_device float svm_gradient(float3 p, NodeGradientType type)
 		return atan2f(y, x) / M_2PI_F + 0.5f;
 	}
 	else {
-		float r = fmaxf(1.0f - sqrtf(x*x + y*y + z*z), 0.0f);
+		/* Bias a little bit for the case where p is a unit length vector,
+		 * to get exactly zero instead of a small random value depending
+		 * on float precision. */
+		float r = fmaxf(0.999999f - sqrtf(x*x + y*y + z*z), 0.0f);
 
 		if(type == NODE_BLEND_QUADRATIC_SPHERE)
 			return r*r;
