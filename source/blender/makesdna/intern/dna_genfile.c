@@ -325,16 +325,29 @@ static bool need_doversion_280(SDNA *sdna, int *data, const bool data_alloc)
 		return false;
 	}
 
+	bool active_layer = false, render_layers = false;
+
 	const char *cp = (char *)data;
 	for (int nr = 0; nr < sdna->nr_names; nr++) {
-		if (strcmp(cp, "*cur_render_layer") == 0) {
-			return true;
+		if (strcmp(cp, "active_layer") == 0) {
+			active_layer = true;
+			if (active_layer && render_layers) {
+				return true;
+			}
+		}
+		else if (strcmp(cp, "render_layers") == 0) {
+			render_layers = true;
+			if (active_layer && render_layers) {
+				return true;
+			}
 		}
 
 		while (*cp) cp++;
 		cp++;
 	}
 
+	/* If someone adds only one of them to the DNA, don't! */
+	BLI_assert(!(active_layer || render_layers));
 	return false;
 }
 
