@@ -660,9 +660,25 @@ extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
     (defined(__GNUC__) && ((__GNUC__ * 100 + __GNUC_MINOR__) >= 406))  /* gcc4.6+ only */
 #  define BLI_STATIC_ASSERT(a, msg) __extension__ _Static_assert(a, msg);
 #else
-   /* TODO msvc, clang */
-#  define BLI_STATIC_ASSERT(a, msg)
+/* Code adapted from http://www.pixelbeat.org/programming/gcc/static_assert.html */
+/* Note we need the two concats below because arguments to ## are not expanded, so we need to
+ * expand __LINE__ with one indirection before doing the actual concatenation. */
+#  define ASSERT_CONCAT_(a, b) a##b
+#  define ASSERT_CONCAT(a, b) ASSERT_CONCAT_(a, b)
+   /* These can't be used after statements in c89. */
+#  if defined(__COUNTER__)  /* MSVC */
+#    define BLI_STATIC_ASSERT(a, msg) \
+         ; enum { ASSERT_CONCAT(static_assert_, __COUNTER__) = 1 / (int)(!!(a)) };
+#  else  /* older gcc, clang... */
+    /* This can't be used twice on the same line so ensure if using in headers
+     * that the headers are not included twice (by wrapping in #ifndef...#endif)
+     * Note it doesn't cause an issue when used on same line of separate modules
+     * compiled with gcc -combine -fwhole-program. */
+#    define BLI_STATIC_ASSERT(a, msg) \
+         ; enum { ASSERT_CONCAT(assert_line_, __LINE__) = 1 / (int)(!!(a)) };
+#  endif
 #endif
+
 
 #define BLI_STATIC_ASSERT_ALIGN(st, align) \
   BLI_STATIC_ASSERT((sizeof(st) % (align) == 0), "Structure must be strictly aligned")
