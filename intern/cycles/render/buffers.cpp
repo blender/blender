@@ -236,10 +236,17 @@ bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int
 
 		int size = params.width*params.height;
 
-		if(components == 1) {
+		if(components == 1 && type == PASS_RENDER_TIME) {
+			/* Render time is not stored by kernel, but measured per tile. */
+			float val = (float) (1000.0 * render_time/(params.width * params.height * sample));
+			for(int i = 0; i < size; i++, pixels++) {
+				pixels[0] = val;
+			}
+		}
+		else if(components == 1) {
 			assert(pass.components == components);
 
-			/* scalar */
+			/* Scalar */
 			if(type == PASS_DEPTH) {
 				for(int i = 0; i < size; i++, in += pass_stride, pixels++) {
 					float f = *in;
@@ -264,12 +271,6 @@ bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int
 				}
 			}
 #endif
-			else if(type == PASS_RENDER_TIME) {
-				float val = (float) (1000.0 * render_time/(params.width * params.height * sample));
-				for(int i = 0; i < size; i++, pixels++) {
-					pixels[0] = val;
-				}
-			}
 			else {
 				for(int i = 0; i < size; i++, in += pass_stride, pixels++) {
 					float f = *in;
