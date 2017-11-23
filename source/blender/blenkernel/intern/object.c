@@ -330,14 +330,14 @@ void BKE_object_free_derived_caches(Object *ob)
 		Mesh *me = ob->data;
 
 		if (me && me->bb) {
-			atomic_fetch_and_or_uint32((uint *)&me->bb->flag, BOUNDBOX_DIRTY);
+			atomic_fetch_and_or_int32(&me->bb->flag, BOUNDBOX_DIRTY);
 		}
 	}
 	else if (ELEM(ob->type, OB_SURF, OB_CURVE, OB_FONT)) {
 		Curve *cu = ob->data;
 
 		if (cu && cu->bb) {
-			atomic_fetch_and_or_uint32((uint *)&cu->bb->flag, BOUNDBOX_DIRTY);
+			atomic_fetch_and_or_int32(&cu->bb->flag, BOUNDBOX_DIRTY);
 		}
 	}
 

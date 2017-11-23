@@ -1003,8 +1003,7 @@ BLI_INLINE bool parallel_range_next_iter_get(
         ParallelRangeState * __restrict state,
         int * __restrict iter, int * __restrict count)
 {
-	uint32_t uval = atomic_fetch_and_add_uint32((uint32_t *)(&state->iter), state->chunk_size);
-	int previter = *(int32_t *)&uval;
+	int previter = atomic_fetch_and_add_int32(&state->iter, state->chunk_size);
 
 	*iter = previter;
 	*count = max_ii(0, min_ii(state->chunk_size, state->stop - previter));
@@ -1124,7 +1123,7 @@ static void task_parallel_range_ex(
 	}
 
 	num_tasks = min_ii(num_tasks, (stop - start) / state.chunk_size);
-	atomic_fetch_and_add_uint32((uint32_t *)(&state.iter), 0);
+	atomic_fetch_and_add_int32(&state.iter, 0);
 
 	if (use_userdata_chunk) {
 		userdata_chunk_array = MALLOCA(userdata_chunk_size * num_tasks);
