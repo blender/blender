@@ -45,8 +45,8 @@ static struct GPUFrameBufferGlobal {
 } GG = {0};
 
 /* Number of maximum output slots.
- * We support 4 outputs for now (usually we wouldn't need more to preserve fill rate) */
-#define GPU_FB_MAX_SLOTS 4
+ * We support 5 outputs for now (usually we wouldn't need more to preserve fill rate) */
+#define GPU_FB_MAX_SLOTS 5
 
 struct GPUFrameBuffer {
 	GLuint object;
@@ -286,14 +286,14 @@ void GPU_texture_bind_as_framebuffer(GPUTexture *tex)
 void GPU_framebuffer_slots_bind(GPUFrameBuffer *fb, int slot)
 {
 	int numslots = 0, i;
-	GLenum attachments[4];
+	GLenum attachments[GPU_FB_MAX_SLOTS];
 	
 	if (!fb->colortex[slot]) {
 		fprintf(stderr, "Error, framebuffer slot empty!\n");
 		return;
 	}
 	
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < GPU_FB_MAX_SLOTS; i++) {
 		if (fb->colortex[i]) {
 			attachments[numslots] = GL_COLOR_ATTACHMENT0 + i;
 			numslots++;
@@ -319,11 +319,11 @@ void GPU_framebuffer_slots_bind(GPUFrameBuffer *fb, int slot)
 void GPU_framebuffer_bind(GPUFrameBuffer *fb)
 {
 	int numslots = 0, i;
-	GLenum attachments[4];
+	GLenum attachments[GPU_FB_MAX_SLOTS];
 	GLenum readattachement = 0;
 	GPUTexture *tex;
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < GPU_FB_MAX_SLOTS; i++) {
 		if (fb->colortex[i]) {
 			attachments[numslots] = GL_COLOR_ATTACHMENT0 + i;
 			tex = fb->colortex[i];
