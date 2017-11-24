@@ -209,8 +209,8 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmManipulatorGroup *mg
 		        widget, is_ortho ?
 		        (ca->drawsize * range) :
 		        (scale_matrix * range /
-		         /* half sensor */
-		         (0.5f * ((sensor_fit == CAMERA_SENSOR_FIT_VERT) ? ca->sensor_y : ca->sensor_x))));
+		         /* Half sensor, intentionally use sensor from camera and not calculated above. */
+		         (0.5f * ((ca->sensor_fit == CAMERA_SENSOR_FIT_HOR) ? ca->sensor_x : ca->sensor_x))));
 
 		WM_manipulator_target_property_def_rna_ptr(widget, mpr_prop_type, &camera_ptr, prop, -1);
 	}
