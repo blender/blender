@@ -61,6 +61,7 @@ macro(VIEW_LAYER_TEST test_name)
 endmacro()
 
 VIEW_LAYER_TEST(active_collection)
+VIEW_LAYER_TEST(background_set)
 VIEW_LAYER_TEST(collection_rename)
 VIEW_LAYER_TEST(evaluation_render_settings_a)
 VIEW_LAYER_TEST(evaluation_render_settings_b)
