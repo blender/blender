@@ -206,7 +206,7 @@ struct DepsgraphNodeBuilder {
 	                            LayerCollectionState *state);
 	void build_layer_collections(ListBase *layer_collections,
 	                             LayerCollectionState *state);
-	void build_view_layer_collections(ViewLayer *view_layer);
+	void build_view_layer_collections(Scene *scene, ViewLayer *view_layer);
 protected:
 	/* State which never changes, same for the whole builder time. */
 	Main *bmain_;
