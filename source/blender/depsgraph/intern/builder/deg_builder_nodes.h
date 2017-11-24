@@ -34,6 +34,7 @@
 
 #include "DEG_depsgraph.h"  /* used for DEG_depsgraph_use_copy_on_write() */
 
+struct Base;
 struct CacheFile;
 struct bGPdata;
 struct ListBase;
@@ -161,7 +162,8 @@ struct DepsgraphNodeBuilder {
 	                       ViewLayer *view_layer,
 	                       eDepsNode_LinkedState_Type linked_state);
 	void build_group(Group *group);
-	void build_object(Object *object,
+	void build_object(Base *base,
+	                  Object *object,
 	                  eDepsNode_LinkedState_Type linked_state);
 	void build_object_data(Object *object);
 	void build_object_transform(Object *object);

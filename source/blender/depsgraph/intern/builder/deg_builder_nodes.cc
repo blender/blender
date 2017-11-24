@@ -127,7 +127,9 @@ static void modifier_walk(void *user_data,
 {
 	BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
 	if (*obpoin) {
-		data->builder->build_object(*obpoin, DEG_ID_LINKED_INDIRECTLY);
+		data->builder->build_object(NULL,
+		                            *obpoin,
+		                            DEG_ID_LINKED_INDIRECTLY);
 	}
 }
 
@@ -140,7 +142,9 @@ void constraint_walk(bConstraint * /*con*/,
 	if (*idpoin) {
 		ID *id = *idpoin;
 		if (GS(id->name) == ID_OB) {
-			data->builder->build_object((Object *)id, DEG_ID_LINKED_INDIRECTLY);
+			data->builder->build_object(NULL,
+			                            (Object *)id,
+			                            DEG_ID_LINKED_INDIRECTLY);
 		}
 	}
 }
@@ -392,13 +396,15 @@ void DepsgraphNodeBuilder::build_group(Group *group)
 	group_id->tag |= LIB_TAG_DOIT;
 
 	LINKLIST_FOREACH (GroupObject *, go, &group->gobject) {
-		build_object(go->ob, DEG_ID_LINKED_INDIRECTLY);
+		build_object(NULL, go->ob, DEG_ID_LINKED_INDIRECTLY);
 	}
 }
 
-void DepsgraphNodeBuilder::build_object(Object *object,
+void DepsgraphNodeBuilder::build_object(Base *base,
+                                        Object *object,
                                         eDepsNode_LinkedState_Type linked_state)
 {
+	(void)base;
 	/* Skip rest of components if the ID node was already there. */
 	if (object->id.tag & LIB_TAG_DOIT) {
 		IDDepsNode *id_node = find_id_node(&object->id);
@@ -406,17 +412,15 @@ void DepsgraphNodeBuilder::build_object(Object *object,
 		return;
 	}
 	object->id.tag |= LIB_TAG_DOIT;
-
 	/* Create ID node for object and begin init. */
 	IDDepsNode *id_node = add_id_node(&object->id);
 	id_node->linked_state = linked_state;
-
 	object->customdata_mask = 0;
 	/* Transform. */
 	build_object_transform(object);
 	/* Parent. */
 	if (object->parent != NULL) {
-		build_object(object->parent, linked_state);
+		build_object(NULL, object->parent, linked_state);
 	}
 	/* Modifiers. */
 	if (object->modifiers.first != NULL) {
@@ -450,7 +454,7 @@ void DepsgraphNodeBuilder::build_object(Object *object,
 	/* Object that this is a proxy for. */
 	if (object->proxy) {
 		object->proxy->proxy_from = object;
-		build_object(object->proxy, DEG_ID_LINKED_INDIRECTLY);
+		build_object(NULL, object->proxy, DEG_ID_LINKED_INDIRECTLY);
 	}
 	/* Object dupligroup. */
 	if (object->dup_group != NULL) {
@@ -1025,13 +1029,13 @@ void DepsgraphNodeBuilder::build_obdata_geom(Object *object)
 			 */
 			Curve *cu = (Curve *)obdata;
 			if (cu->bevobj != NULL) {
-				build_object(cu->bevobj, DEG_ID_LINKED_INDIRECTLY);
+				build_object(NULL, cu->bevobj, DEG_ID_LINKED_INDIRECTLY);
 			}
 			if (cu->taperobj != NULL) {
-				build_object(cu->taperobj, DEG_ID_LINKED_INDIRECTLY);
+				build_object(NULL, cu->taperobj, DEG_ID_LINKED_INDIRECTLY);
 			}
 			if (object->type == OB_FONT && cu->textoncurve != NULL) {
-				build_object(cu->textoncurve, DEG_ID_LINKED_INDIRECTLY);
+				build_object(NULL, cu->textoncurve, DEG_ID_LINKED_INDIRECTLY);
 			}
 			break;
 		}
@@ -1172,7 +1176,7 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
 			build_image((Image *)id);
 		}
 		else if (id_type == ID_OB) {
-			build_object((Object *)id, DEG_ID_LINKED_INDIRECTLY);
+			build_object(NULL, (Object *)id, DEG_ID_LINKED_INDIRECTLY);
 		}
 		else if (id_type == ID_SCE) {
 			/* Scenes are used by compositor trees, and handled by render

@@ -104,13 +104,13 @@ void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
 
 	/* scene objects */
 	int select_color = 1;
-	LINKLIST_FOREACH(Base *, base, &view_layer->object_bases) {
+	LINKLIST_FOREACH(Base *, base, &view_layer_cow->object_bases) {
 		/* object itself */
-		build_object(base->object, linked_state);
+		build_object(base, base->object, linked_state);
 		base->object->select_color = select_color++;
 	}
 	if (scene->camera != NULL) {
-		build_object(scene->camera, linked_state);
+		build_object(NULL, scene->camera, linked_state);
 	}
 
 	/* rigidbody */
