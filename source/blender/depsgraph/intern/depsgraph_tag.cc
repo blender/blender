@@ -284,13 +284,34 @@ void id_tag_update_copy_on_write(Depsgraph *graph, IDDepsNode *id_node)
 
 void id_tag_update_select_update(Depsgraph *graph, IDDepsNode *id_node)
 {
-	ComponentDepsNode *batch_cache_comp =
-	        id_node->find_component(DEG_NODE_TYPE_BATCH_CACHE);
-	OperationDepsNode *select_update_node =
-	    batch_cache_comp->find_operation(DEG_OPCODE_GEOMETRY_SELECT_UPDATE,
-	                                     "", -1);
-	if (select_update_node != NULL) {
-		select_update_node->tag_update(graph);
+	ComponentDepsNode *component;
+	OperationDepsNode *node = NULL;
+	const ID_Type id_type = GS(id_node->id_orig->name);
+
+	if (id_type == ID_SCE) {
+		/* We need to flush base flags to all objects in a scene since we
+		 * don't know which ones changed. However, we don't want to update
+		 * the whole scene, so pick up some operation which will do as less
+		 * as possible.
+		 *
+		 * TODO(sergey): We can introduce explicit exit operation which
+		 * does nothing and which is only used to cascade flush down the
+		 * road.
+		 */
+		component = id_node->find_component(DEG_NODE_TYPE_LAYER_COLLECTIONS);
+		node = component->find_operation(DEG_OPCODE_VIEW_LAYER_DONE);
+	}
+	else if (id_type == ID_OB) {
+		component = id_node->find_component(DEG_NODE_TYPE_LAYER_COLLECTIONS);
+		node = component->find_operation(DEG_OPCODE_OBJECT_BASE_FLAGS);
+	}
+	else {
+		component = id_node->find_component(DEG_NODE_TYPE_BATCH_CACHE);
+		node = component->find_operation(DEG_OPCODE_GEOMETRY_SELECT_UPDATE,
+		                                     "", -1);
+	}
+	if (node != NULL) {
+		node->tag_update(graph);
 	}
 }
 
