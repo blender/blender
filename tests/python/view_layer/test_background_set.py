@@ -26,7 +26,6 @@ class UnitTesting(ViewLayerTesting):
 
         # Update depsgraph.
         main_scene.update()
-        background_scene.update()
 
         # Safety check, there should be no objects in thew newly created scene.
         self.assertEqual(0, len(bpy.context.depsgraph.objects))
@@ -37,7 +36,6 @@ class UnitTesting(ViewLayerTesting):
 
         # Update depsgraph.
         main_scene.update()
-        background_scene.update()
 
         # Test if objects were properly added to depsgraph.
         self.assertEqual(3, len(bpy.context.depsgraph.objects))
@@ -53,7 +51,6 @@ class UnitTesting(ViewLayerTesting):
 
         # Update depsgraph.
         main_scene.update()
-        background_scene.update()
 
         self.assertEqual(0, len(bpy.context.depsgraph.objects))
 
