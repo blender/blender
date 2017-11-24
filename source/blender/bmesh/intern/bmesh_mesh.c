@@ -475,48 +475,35 @@ static void mesh_faces_calc_normals_cb(void *UNUSED(userdata), MempoolIterData *
  *
  * Updates the normals of a mesh.
  */
-#include "PIL_time_utildefines.h"
 void BM_mesh_normals_update(BMesh *bm)
 {
 	float (*edgevec)[3] = MEM_mallocN(sizeof(*edgevec) * bm->totedge, __func__);
-
-	TIMEIT_START_AVERAGED(bmesh_nors);
 
 	/* Parallel mempool iteration does not allow to generate indices inline anymore... */
 	BM_mesh_elem_index_ensure(bm, (BM_EDGE | BM_FACE));
 
 	/* calculate all face normals */
-	TIMEIT_START_AVERAGED(faces_nors);
 	BM_iter_parallel(bm, BM_FACES_OF_MESH, mesh_faces_calc_normals_cb, NULL, bm->totface >= BM_OMP_LIMIT);
-	TIMEIT_END_AVERAGED(faces_nors);
 
 	/* Zero out vertex normals */
 	BMIter viter;
 	BMVert *v;
 	int i;
 
-	TIMEIT_START_AVERAGED(verts_zero_nors);
 	BM_ITER_MESH_INDEX (v, &viter, bm, BM_VERTS_OF_MESH, i) {
 		BM_elem_index_set(v, i); /* set_inline */
 		zero_v3(v->no);
 	}
 	bm->elem_index_dirty &= ~BM_VERT;
-	TIMEIT_END_AVERAGED(verts_zero_nors);
 
 	/* Compute normalized direction vectors for each edge.
 	 * Directions will be used for calculating the weights of the face normals on the vertex normals.
 	 */
-	TIMEIT_START_AVERAGED(edges_vecs);
 	bm_mesh_edges_calc_vectors(bm, edgevec, NULL);
-	TIMEIT_END_AVERAGED(edges_vecs);
 
 	/* Add weighted face normals to vertices, and normalize vert normals. */
-	TIMEIT_START_AVERAGED(verts_nors);
 	bm_mesh_verts_calc_normals(bm, (const float(*)[3])edgevec, NULL, NULL, NULL);
-	TIMEIT_END_AVERAGED(verts_nors);
 	MEM_freeN(edgevec);
-
-	TIMEIT_END_AVERAGED(bmesh_nors);
 }
 
 /**
