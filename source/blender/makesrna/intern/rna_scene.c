@@ -678,6 +678,14 @@ static void rna_Scene_set_set(PointerRNA *ptr, PointerRNA value)
 	scene->set = set;
 }
 
+void rna_Scene_set_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	Scene *scene = (Scene *)ptr->id.data;
+
+	DEG_relations_tag_update(bmain);
+	DEG_id_tag_update(&scene->id, 0);
+}
+
 static void rna_Scene_layer_set(PointerRNA *ptr, const int *values)
 {
 	Scene *scene = (Scene *)ptr->data;
@@ -6583,7 +6591,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_Scene_set_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Background Scene", "Background set scene");
-	RNA_def_property_update(prop, NC_SCENE | NA_EDITED, "rna_Scene_glsl_update");
+	RNA_def_property_update(prop, NC_SCENE | NA_EDITED, "rna_Scene_set_update");
 
 	prop = RNA_def_property(srna, "world", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
