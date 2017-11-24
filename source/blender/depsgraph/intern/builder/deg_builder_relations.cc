@@ -266,9 +266,9 @@ OperationDepsNode *DepsgraphRelationBuilder::find_node(
 		return NULL;
 	}
 
-	OperationDepsNode *op_node = comp_node->find_operation(key.opcode,
-	                                                       key.name,
-	                                                       key.name_tag);
+	OperationDepsNode *op_node = comp_node->get_operation(key.opcode,
+	                                                      key.name,
+	                                                      key.name_tag);
 	if (!op_node) {
 		fprintf(stderr, "find_node_operation: Failed for (%s, '%s')\n",
 		        DEG_OPNAMES[key.opcode], key.name);

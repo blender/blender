@@ -163,7 +163,7 @@ string ComponentDepsNode::identifier() const
 	return string(typebuf) + name + " : " + idname + " (Layers: " + layers + ")";
 }
 
-OperationDepsNode *ComponentDepsNode::find_operation(OperationIDKey key) const
+OperationDepsNode *ComponentDepsNode::get_operation(OperationIDKey key) const
 {
 	OperationDepsNode *node = reinterpret_cast<OperationDepsNode *>(BLI_ghash_lookup(operations_map, &key));
 	if (node != NULL) {
@@ -177,12 +177,12 @@ OperationDepsNode *ComponentDepsNode::find_operation(OperationIDKey key) const
 	}
 }
 
-OperationDepsNode *ComponentDepsNode::find_operation(eDepsOperation_Code opcode,
-                                                     const char *name,
-                                                     int name_tag) const
+OperationDepsNode *ComponentDepsNode::get_operation(eDepsOperation_Code opcode,
+                                                    const char *name,
+                                                    int name_tag) const
 {
 	OperationIDKey key(opcode, name, name_tag);
-	return find_operation(key);
+	return get_operation(key);
 }
 
 OperationDepsNode *ComponentDepsNode::has_operation(OperationIDKey key) const
