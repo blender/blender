@@ -287,7 +287,6 @@ void id_tag_update_select_update(Depsgraph *graph, IDDepsNode *id_node)
 	ComponentDepsNode *component;
 	OperationDepsNode *node = NULL;
 	const ID_Type id_type = GS(id_node->id_orig->name);
-
 	if (id_type == ID_SCE) {
 		/* We need to flush base flags to all objects in a scene since we
 		 * don't know which ones changed. However, we don't want to update
@@ -328,17 +327,29 @@ void id_tag_update_select_update(Depsgraph *graph, IDDepsNode *id_node)
 
 void id_tag_update_base_flags(Depsgraph *graph, IDDepsNode *id_node)
 {
-	ComponentDepsNode *component =
-	        id_node->find_component(DEG_NODE_TYPE_LAYER_COLLECTIONS);
-	if (component == NULL) {
-		return;
+	ComponentDepsNode *component;
+	OperationDepsNode *node = NULL;
+	const ID_Type id_type = GS(id_node->id_orig->name);
+	if (id_type == ID_SCE) {
+		component = id_node->find_component(DEG_NODE_TYPE_LAYER_COLLECTIONS);
+		if (component == NULL) {
+			return;
+		}
+		node = component->find_operation(DEG_OPCODE_VIEW_LAYER_INIT);
 	}
-	OperationDepsNode *node =
-	        component->find_operation(DEG_OPCODE_OBJECT_BASE_FLAGS);
-	if (node == NULL) {
-		return;
+	else if (id_type == ID_OB) {
+		component = id_node->find_component(DEG_NODE_TYPE_LAYER_COLLECTIONS);
+		if (component == NULL) {
+			return;
+		}
+		node = component->find_operation(DEG_OPCODE_OBJECT_BASE_FLAGS);
+		if (node == NULL) {
+			return;
+		}
 	}
-	node->tag_update(graph);
+	if (node != NULL) {
+		node->tag_update(graph);
+	}
 }
 
 void id_tag_update_ntree_special(Main *bmain, Depsgraph *graph, ID *id, int flag)
