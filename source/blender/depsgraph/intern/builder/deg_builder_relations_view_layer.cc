@@ -83,10 +83,10 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene, ViewLayer *view_la
 
 	/* scene objects */
 	LINKLIST_FOREACH(Base *, base, &view_layer->object_bases) {
-		build_object(base->object);
+		build_object(base, base->object);
 	}
 	if (scene->camera != NULL) {
-		build_object(scene->camera);
+		build_object(NULL, scene->camera);
 	}
 
 	/* rigidbody */

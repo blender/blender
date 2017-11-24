@@ -127,7 +127,7 @@ static void modifier_walk(void *user_data,
 {
 	BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
 	if (*obpoin) {
-		data->builder->build_object(*obpoin);
+		data->builder->build_object(NULL, *obpoin);
 	}
 }
 
@@ -140,7 +140,7 @@ void constraint_walk(bConstraint * /*con*/,
 	if (*idpoin) {
 		ID *id = *idpoin;
 		if (GS(id->name) == ID_OB) {
-			data->builder->build_object((Object *)id);
+			data->builder->build_object(NULL, (Object *)id);
 		}
 	}
 }
@@ -415,7 +415,7 @@ void DepsgraphRelationBuilder::build_group(Object *object, Group *group)
 	                                        DEG_OPCODE_TRANSFORM_LOCAL);
 	LINKLIST_FOREACH (GroupObject *, go, &group->gobject) {
 		if (!group_done) {
-			build_object(go->ob);
+			build_object(NULL, go->ob);
 		}
 		ComponentKey dupli_transform_key(&go->ob->id, DEG_NODE_TYPE_TRANSFORM);
 		add_relation(dupli_transform_key, object_local_transform_key, "Dupligroup");
@@ -423,7 +423,7 @@ void DepsgraphRelationBuilder::build_group(Object *object, Group *group)
 	group_id->tag |= LIB_TAG_DOIT;
 }
 
-void DepsgraphRelationBuilder::build_object(Object *object)
+void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
 {
 	if (object->id.tag & LIB_TAG_DOIT) {
 		return;
@@ -446,7 +446,7 @@ void DepsgraphRelationBuilder::build_object(Object *object)
 	                             DEG_NODE_TYPE_TRANSFORM,
 	                             DEG_OPCODE_TRANSFORM_OBJECT_UBEREVAL);
 	/* Various flags, flushing from bases/collections. */
-	build_object_flags(object);
+	build_object_flags(base, object);
 	/* Parenting. */
 	if (object->parent != NULL) {
 		/* Parent relationship. */
@@ -519,7 +519,7 @@ void DepsgraphRelationBuilder::build_object(Object *object)
 	/* Object that this is a proxy for. */
 	if (object->proxy != NULL) {
 		object->proxy->proxy_from = object;
-		build_object(object->proxy);
+		build_object(NULL, object->proxy);
 		/* TODO(sergey): This is an inverted relation, matches old depsgraph
 		 * behavior and need to be investigated if it still need to be inverted.
 		 */
@@ -533,8 +533,11 @@ void DepsgraphRelationBuilder::build_object(Object *object)
 	}
 }
 
-void DepsgraphRelationBuilder::build_object_flags(Object *object)
+void DepsgraphRelationBuilder::build_object_flags(Base *base, Object *object)
 {
+	if (base == NULL) {
+		return;
+	}
 	OperationKey view_layer_done_key(&scene_->id,
 	                                 DEG_NODE_TYPE_LAYER_COLLECTIONS,
 	                                 DEG_OPCODE_VIEW_LAYER_DONE);
@@ -1717,18 +1720,18 @@ void DepsgraphRelationBuilder::build_obdata_geom(Object *object)
 			// XXX: these needs geom data, but where is geom stored?
 			if (cu->bevobj) {
 				ComponentKey bevob_key(&cu->bevobj->id, DEG_NODE_TYPE_GEOMETRY);
-				build_object(cu->bevobj);
+				build_object(NULL, cu->bevobj);
 				add_relation(bevob_key, geom_key, "Curve Bevel");
 			}
 			if (cu->taperobj) {
 				ComponentKey taperob_key(&cu->taperobj->id, DEG_NODE_TYPE_GEOMETRY);
-				build_object(cu->taperobj);
+				build_object(NULL, cu->taperobj);
 				add_relation(taperob_key, geom_key, "Curve Taper");
 			}
 			if (object->type == OB_FONT) {
 				if (cu->textoncurve) {
 					ComponentKey textoncurve_key(&cu->textoncurve->id, DEG_NODE_TYPE_GEOMETRY);
-					build_object(cu->textoncurve);
+					build_object(NULL, cu->textoncurve);
 					add_relation(textoncurve_key, geom_key, "Text on Curve");
 				}
 			}
@@ -1862,7 +1865,7 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 			/* nothing for now. */
 		}
 		else if (id_type == ID_OB) {
-			build_object((Object *)id);
+			build_object(NULL, (Object *)id);
 		}
 		else if (id_type == ID_SCE) {
 			/* Scenes are used by compositor trees, and handled by render

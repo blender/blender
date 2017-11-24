@@ -441,7 +441,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 		add_relation(bone_done_key, flush_key, "PoseEval Result-Bone Link");
 		/* Custom shape. */
 		if (pchan->custom != NULL) {
-			build_object(pchan->custom);
+			build_object(NULL, pchan->custom);
 		}
 	}
 }
