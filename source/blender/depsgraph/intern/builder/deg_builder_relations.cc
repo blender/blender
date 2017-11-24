@@ -224,7 +224,7 @@ DepsgraphRelationBuilder::DepsgraphRelationBuilder(Main *bmain,
 {
 }
 
-TimeSourceDepsNode *DepsgraphRelationBuilder::find_node(
+TimeSourceDepsNode *DepsgraphRelationBuilder::get_node(
         const TimeSourceKey &key) const
 {
 	if (key.id) {
@@ -236,7 +236,7 @@ TimeSourceDepsNode *DepsgraphRelationBuilder::find_node(
 	}
 }
 
-ComponentDepsNode *DepsgraphRelationBuilder::find_node(
+ComponentDepsNode *DepsgraphRelationBuilder::get_node(
         const ComponentKey &key) const
 {
 	IDDepsNode *id_node = graph_->find_id_node(key.id);
@@ -250,7 +250,7 @@ ComponentDepsNode *DepsgraphRelationBuilder::find_node(
 	return node;
 }
 
-OperationDepsNode *DepsgraphRelationBuilder::find_node(
+OperationDepsNode *DepsgraphRelationBuilder::get_node(
         const OperationKey &key) const
 {
 	IDDepsNode *id_node = graph_->find_id_node(key.id);
@@ -276,7 +276,7 @@ OperationDepsNode *DepsgraphRelationBuilder::find_node(
 	return op_node;
 }
 
-DepsNode *DepsgraphRelationBuilder::find_node(const RNAPathKey &key) const
+DepsNode *DepsgraphRelationBuilder::get_node(const RNAPathKey &key) const
 {
 	return graph_->find_node_from_pointer(&key.ptr, key.prop);
 }
