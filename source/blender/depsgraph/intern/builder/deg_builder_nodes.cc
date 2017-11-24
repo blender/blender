@@ -235,9 +235,9 @@ OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
         const char *name,
         int name_tag)
 {
-	OperationDepsNode *op_node = comp_node->has_operation(opcode,
-	                                                      name,
-	                                                      name_tag);
+	OperationDepsNode *op_node = comp_node->find_operation(opcode,
+	                                                       name,
+	                                                       name_tag);
 	if (op_node == NULL) {
 		op_node = comp_node->add_operation(op, opcode, name, name_tag);
 		graph_->operations.push_back(op_node);
@@ -307,7 +307,7 @@ OperationDepsNode *DepsgraphNodeBuilder::find_operation_node(
         int name_tag)
 {
 	ComponentDepsNode *comp_node = add_component_node(id, comp_type, comp_name);
-	return comp_node->has_operation(opcode, name, name_tag);
+	return comp_node->find_operation(opcode, name, name_tag);
 }
 
 OperationDepsNode *DepsgraphNodeBuilder::find_operation_node(

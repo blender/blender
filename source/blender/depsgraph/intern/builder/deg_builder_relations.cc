@@ -225,7 +225,7 @@ DepsgraphRelationBuilder::DepsgraphRelationBuilder(Main *bmain,
 {
 }
 
-TimeSourceDepsNode *DepsgraphRelationBuilder::find_node(
+TimeSourceDepsNode *DepsgraphRelationBuilder::get_node(
         const TimeSourceKey &key) const
 {
 	if (key.id) {
@@ -237,7 +237,7 @@ TimeSourceDepsNode *DepsgraphRelationBuilder::find_node(
 	}
 }
 
-ComponentDepsNode *DepsgraphRelationBuilder::find_node(
+ComponentDepsNode *DepsgraphRelationBuilder::get_node(
         const ComponentKey &key) const
 {
 	IDDepsNode *id_node = graph_->find_id_node(key.id);
@@ -251,38 +251,23 @@ ComponentDepsNode *DepsgraphRelationBuilder::find_node(
 	return node;
 }
 
-OperationDepsNode *DepsgraphRelationBuilder::find_node(
+OperationDepsNode *DepsgraphRelationBuilder::get_node(
         const OperationKey &key) const
 {
-	IDDepsNode *id_node = graph_->find_id_node(key.id);
-	if (!id_node) {
-		fprintf(stderr, "find_node operation: Could not find ID\n");
-		return NULL;
-	}
-
-	ComponentDepsNode *comp_node = id_node->find_component(key.component_type,
-	                                                       key.component_name);
-	if (!comp_node) {
-		fprintf(stderr, "find_node operation: Could not find component\n");
-		return NULL;
-	}
-
-	OperationDepsNode *op_node = comp_node->find_operation(key.opcode,
-	                                                       key.name,
-	                                                       key.name_tag);
-	if (!op_node) {
+	OperationDepsNode *op_node = find_node(key);
+	if (op_node == NULL) {
 		fprintf(stderr, "find_node_operation: Failed for (%s, '%s')\n",
 		        DEG_OPNAMES[key.opcode], key.name);
 	}
 	return op_node;
 }
 
-DepsNode *DepsgraphRelationBuilder::find_node(const RNAPathKey &key) const
+DepsNode *DepsgraphRelationBuilder::get_node(const RNAPathKey &key) const
 {
 	return graph_->find_node_from_pointer(&key.ptr, key.prop);
 }
 
-OperationDepsNode *DepsgraphRelationBuilder::has_node(
+OperationDepsNode *DepsgraphRelationBuilder::find_node(
         const OperationKey &key) const
 {
 	IDDepsNode *id_node = graph_->find_id_node(key.id);
@@ -294,7 +279,12 @@ OperationDepsNode *DepsgraphRelationBuilder::has_node(
 	if (!comp_node) {
 		return NULL;
 	}
-	return comp_node->has_operation(key.opcode, key.name, key.name_tag);
+	return comp_node->find_operation(key.opcode, key.name, key.name_tag);
+}
+
+bool DepsgraphRelationBuilder::has_node(const OperationKey &key) const
+{
+	return find_node(key) != NULL;
 }
 
 void DepsgraphRelationBuilder::add_time_relation(TimeSourceDepsNode *timesrc,

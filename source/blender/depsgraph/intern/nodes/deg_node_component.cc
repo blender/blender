@@ -176,34 +176,45 @@ OperationDepsNode *ComponentDepsNode::find_operation(OperationIDKey key) const
 			}
 		}
 	}
-
-	if (node != NULL) {
-		return node;
-	}
-	else {
-		fprintf(stderr, "%s: find_operation(%s) failed\n",
-		        this->identifier().c_str(), key.identifier().c_str());
-		BLI_assert(!"Request for non-existing operation, should not happen");
-		return NULL;
-	}
+	return node;
 }
 
 OperationDepsNode *ComponentDepsNode::find_operation(eDepsOperation_Code opcode,
-                                                     const char *name,
-                                                     int name_tag) const
+                                                    const char *name,
+                                                    int name_tag) const
 {
 	OperationIDKey key(opcode, name, name_tag);
 	return find_operation(key);
 }
 
-OperationDepsNode *ComponentDepsNode::has_operation(OperationIDKey key) const
+OperationDepsNode *ComponentDepsNode::get_operation(OperationIDKey key) const
 {
-	return reinterpret_cast<OperationDepsNode *>(BLI_ghash_lookup(operations_map, &key));
+	OperationDepsNode *node = find_operation(key);
+	if (node == NULL) {
+		fprintf(stderr, "%s: find_operation(%s) failed\n",
+		        this->identifier().c_str(), key.identifier().c_str());
+		BLI_assert(!"Request for non-existing operation, should not happen");
+		return NULL;
+	}
+	return node;
 }
 
-OperationDepsNode *ComponentDepsNode::has_operation(eDepsOperation_Code opcode,
+OperationDepsNode *ComponentDepsNode::get_operation(eDepsOperation_Code opcode,
                                                     const char *name,
                                                     int name_tag) const
+{
+	OperationIDKey key(opcode, name, name_tag);
+	return get_operation(key);
+}
+
+bool ComponentDepsNode::has_operation(OperationIDKey key) const
+{
+	return find_operation(key) != NULL;
+}
+
+bool ComponentDepsNode::has_operation(eDepsOperation_Code opcode,
+                                      const char *name,
+                                      int name_tag) const
 {
 	OperationIDKey key(opcode, name, name_tag);
 	return has_operation(key);
@@ -214,7 +225,7 @@ OperationDepsNode *ComponentDepsNode::add_operation(const DepsEvalOperationCb& o
                                                     const char *name,
                                                     int name_tag)
 {
-	OperationDepsNode *op_node = has_operation(opcode, name, name_tag);
+	OperationDepsNode *op_node = find_operation(opcode, name, name_tag);
 	if (!op_node) {
 		DepsNodeFactory *factory = deg_get_node_factory(DEG_NODE_TYPE_OPERATION);
 		op_node = (OperationDepsNode *)factory->create_node(this->owner->id_orig, "", name);
