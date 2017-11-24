@@ -3019,6 +3019,17 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Level of Detail Levels", "A collection of detail levels to automatically switch between");
 	RNA_def_property_update(prop, NC_OBJECT | ND_LOD, NULL);
 
+	/* Base Settings */
+	prop = RNA_def_property(srna, "is_from_duplicator", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "base_flag", BASE_FROMDUPLI);
+	RNA_def_property_ui_text(prop, "Base from Duplicator", "Object comes from a duplicator");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "is_from_set", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "base_flag", BASE_FROM_SET);
+	RNA_def_property_ui_text(prop, "Base from Set", "Object comes from a background set");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
 	RNA_api_object(srna);
 }
 
