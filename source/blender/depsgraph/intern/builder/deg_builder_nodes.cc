@@ -427,7 +427,7 @@ void DepsgraphNodeBuilder::build_object(Base *base,
 	build_object_transform(object);
 	/* Parent. */
 	if (object->parent != NULL) {
-		build_object(NULL, object->parent, linked_state);
+		build_object(NULL, object->parent, DEG_ID_LINKED_INDIRECTLY);
 	}
 	/* Modifiers. */
 	if (object->modifiers.first != NULL) {
