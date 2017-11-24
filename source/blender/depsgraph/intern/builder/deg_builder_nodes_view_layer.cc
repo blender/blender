@@ -91,14 +91,6 @@ void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
 	/* timesource */
 	add_time_source();
 
-	/* build subgraph for set, and link this in... */
-	// XXX: depending on how this goes, that scene itself could probably store its
-	//      own little partial depsgraph?
-	if (scene->set != NULL) {
-		ViewLayer *set_view_layer = BKE_view_layer_from_scene_get(scene->set);
-		build_view_layer(scene->set, set_view_layer, DEG_ID_LINKED_VIA_SET);
-	}
-
 	/* Setup currently building context. */
 	scene_ = scene;
 
@@ -165,6 +157,12 @@ void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
 	                   NULL,
 	                   DEG_OPCODE_PLACEHOLDER,
 	                   "Scene Eval");
+
+	/* Build all set scenes. */
+	if (scene->set != NULL) {
+		ViewLayer *set_view_layer = BKE_view_layer_from_scene_get(scene->set);
+		build_view_layer(scene->set, set_view_layer, DEG_ID_LINKED_VIA_SET);
+	}
 }
 
 }  // namespace DEG
