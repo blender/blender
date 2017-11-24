@@ -299,16 +299,27 @@ void id_tag_update_select_update(Depsgraph *graph, IDDepsNode *id_node)
 		 * road.
 		 */
 		component = id_node->find_component(DEG_NODE_TYPE_LAYER_COLLECTIONS);
-		node = component->find_operation(DEG_OPCODE_VIEW_LAYER_DONE);
+		BLI_assert(component != NULL);
+		if (component != NULL) {
+			node = component->find_operation(DEG_OPCODE_VIEW_LAYER_DONE);
+		}
 	}
 	else if (id_type == ID_OB) {
 		component = id_node->find_component(DEG_NODE_TYPE_LAYER_COLLECTIONS);
-		node = component->find_operation(DEG_OPCODE_OBJECT_BASE_FLAGS);
+		/* NOTE: This component might be missing for indirectly linked
+		 * objects.
+		 */
+		if (component != NULL) {
+			node = component->find_operation(DEG_OPCODE_OBJECT_BASE_FLAGS);
+		}
 	}
 	else {
 		component = id_node->find_component(DEG_NODE_TYPE_BATCH_CACHE);
-		node = component->find_operation(DEG_OPCODE_GEOMETRY_SELECT_UPDATE,
-		                                     "", -1);
+		BLI_assert(component != NULL);
+		if (component != NULL) {
+			node = component->find_operation(DEG_OPCODE_GEOMETRY_SELECT_UPDATE,
+			                                 "", -1);
+		}
 	}
 	if (node != NULL) {
 		node->tag_update(graph);
