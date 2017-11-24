@@ -421,13 +421,14 @@ struct Sequence *BKE_sequencer_add_sound_strip(struct bContext *C, ListBase *seq
 struct Sequence *BKE_sequencer_add_movie_strip(struct bContext *C, ListBase *seqbasep, struct SeqLoadInfo *seq_load);
 
 /* view3d draw callback, run when not in background view */
-/* NOTE: Keep in sync with V3D_OFS_* flags. */
+/* NOTE: Keep in sync with V3D_OFSDRAW_* flags. */
 enum {
     SEQ_OFSDRAW_NONE             = (0),
     SEQ_OFSDRAW_USE_BACKGROUND   = (1 << 0),
     SEQ_OFSDRAW_USE_FULL_SAMPLE  = (1 << 1),
     SEQ_OFSDRAW_USE_GPENCIL      = (1 << 2),
     SEQ_OFSDRAW_USE_SOLID_TEX    = (1 << 2),
+    SEQ_OFSDRAW_USE_CAMERA_DOF   = (1 << 3),
 };
 
 typedef struct ImBuf *(*SequencerDrawView)(

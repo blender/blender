@@ -7298,7 +7298,7 @@ static bool direct_link_screen(FileData *fd, bScreen *sc)
 				sseq->scopes.sep_waveform_ibuf = NULL;
 				sseq->scopes.vector_ibuf = NULL;
 				sseq->scopes.histogram_ibuf = NULL;
-
+				sseq->compositor = NULL;
 			}
 			else if (sl->spacetype == SPACE_BUTS) {
 				SpaceButs *sbuts = (SpaceButs *)sl;

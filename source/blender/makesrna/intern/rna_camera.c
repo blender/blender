@@ -39,8 +39,11 @@
 #ifdef RNA_RUNTIME
 
 #include "BKE_camera.h"
-#include "BKE_object.h"
 #include "BKE_depsgraph.h"
+#include "BKE_object.h"
+#include "BKE_sequencer.h"
+
+#include "WM_api.h"
 
 static float rna_Camera_angle_get(PointerRNA *ptr)
 {
@@ -92,6 +95,14 @@ static void rna_Camera_dependency_update(Main *bmain, Scene *UNUSED(scene), Poin
 	Camera *camera = (Camera *)ptr->id.data;
 	DAG_relations_tag_update(bmain);
 	DAG_id_tag_update(&camera->id, 0);
+}
+
+static void rna_Camera_dof_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+{
+	/* TODO(sergey): Can be more selective here. */
+	BKE_sequencer_cache_cleanup();
+	BKE_sequencer_preprocessed_cache_cleanup();
+	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
 
 #else
@@ -323,7 +334,7 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 5000.0f, 1, 2);
 	RNA_def_property_ui_text(prop, "DOF Distance", "Distance to the focus point for depth of field");
-	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_dof_update");
 
 	/* Stereo Settings */
 	prop = RNA_def_property(srna, "stereo", PROP_POINTER, PROP_NONE);

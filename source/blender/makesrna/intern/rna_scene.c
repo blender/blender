@@ -2133,6 +2133,14 @@ static void rna_GPUDOFSettings_blades_set(PointerRNA *ptr, const int value)
 		dofsettings->num_blades = value;
 }
 
+static void rna_GPUDOFSettings_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+{
+	/* TODO(sergey): Can be more selective here. */
+	BKE_sequencer_cache_cleanup();
+	BKE_sequencer_preprocessed_cache_cleanup();
+	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
+}
+
 static void rna_Stereo3dFormat_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ID *id = ptr->id.data;
@@ -4909,37 +4917,37 @@ static void rna_def_gpu_dof_fx(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Focus distance", "Viewport depth of field focus distance");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 5000.0f, 1, 2);
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPUDOFSettings_update");
 
 	prop = RNA_def_property(srna, "focal_length", PROP_FLOAT, PROP_DISTANCE_CAMERA);
 	RNA_def_property_ui_text(prop, "Focal Length", "Focal length for dof effect");
 	RNA_def_property_range(prop, 1.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 1.0f, 5000.0f, 1, 2);
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPUDOFSettings_update");
 
 	prop = RNA_def_property(srna, "sensor", PROP_FLOAT, PROP_DISTANCE_CAMERA);
 	RNA_def_property_ui_text(prop, "Sensor", "Size of sensor");
 	RNA_def_property_range(prop, 1.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 1.0f, 5000.0f, 1, 2);
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPUDOFSettings_update");
 
 	prop = RNA_def_property(srna, "fstop", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "F-stop", "F-stop for dof effect");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.1f, 128.0f, 10, 1);
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPUDOFSettings_update");
 
 	prop = RNA_def_property(srna, "blades", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "num_blades");
 	RNA_def_property_ui_text(prop, "Blades", "Blades for dof effect");
 	RNA_def_property_range(prop, 0, 16);
 	RNA_def_property_int_funcs(prop, NULL, "rna_GPUDOFSettings_blades_set", NULL);
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPUDOFSettings_update");
 
 	prop = RNA_def_property(srna, "use_high_quality", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "high_quality", 1);
 	RNA_def_property_ui_text(prop, "High Quality", "Use high quality depth of field");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPUDOFSettings_update");
 
 	prop = RNA_def_property(srna, "is_hq_supported", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_gpu_is_hq_supported_get", NULL);
@@ -6464,6 +6472,11 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_sequencer_gl_textured_solid", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "seq_flag", R_SEQ_SOLID_TEX);
 	RNA_def_property_ui_text(prop, "Textured Solid", "Draw face-assigned textures in solid draw method");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SceneSequencer_update");
+
+	prop = RNA_def_property(srna, "use_sequencer_gl_dof", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "seq_flag", R_SEQ_CAMERA_DOF);
+	RNA_def_property_ui_text(prop, "Depth of Field", "Use depth of field using the values from scene strip active camera");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SceneSequencer_update");
 
 	/* layers */

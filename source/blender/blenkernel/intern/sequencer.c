@@ -3305,6 +3305,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 		draw_flags |= (use_background) ? SEQ_OFSDRAW_USE_BACKGROUND : 0;
 		draw_flags |= (context->gpu_full_samples) ? SEQ_OFSDRAW_USE_FULL_SAMPLE : 0;
 		draw_flags |= (context->scene->r.seq_flag & R_SEQ_SOLID_TEX) ? SEQ_OFSDRAW_USE_SOLID_TEX : 0;
+		draw_flags |= (context->scene->r.seq_flag & R_SEQ_CAMERA_DOF) ? SEQ_OFSDRAW_USE_CAMERA_DOF : 0;
 
 		/* for old scene this can be uninitialized,
 		 * should probably be added to do_versions at some point if the functionality stays */

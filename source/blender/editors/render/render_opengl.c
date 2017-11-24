@@ -684,6 +684,11 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 			oglrender->fx = GPU_fx_compositor_create();
 		}
 	}
+	else if (is_sequencer) {
+		if (scene->r.seq_flag & R_SEQ_CAMERA_DOF) {
+			oglrender->fx = GPU_fx_compositor_create();
+		}
+	}
 
 	/* create render */
 	oglrender->re = RE_NewSceneRender(scene);

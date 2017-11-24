@@ -60,6 +60,8 @@
 
 #include "IMB_imbuf.h"
 
+#include "GPU_compositing.h"
+
 #include "sequencer_intern.h"   // own include
 
 /**************************** common state *****************************/
@@ -218,6 +220,11 @@ static void sequencer_free(SpaceLink *sl)
 
 	if (scopes->histogram_ibuf)
 		IMB_freeImBuf(scopes->histogram_ibuf);
+
+	if (sseq->compositor != NULL) {
+		GPU_fx_compositor_destroy(sseq->compositor);
+		sseq->compositor = NULL;
+	}
 }
 
 

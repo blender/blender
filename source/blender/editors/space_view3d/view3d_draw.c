@@ -3473,15 +3473,22 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
 	v3d.lay = scene->lay;
 	v3d.drawtype = drawtype;
 	v3d.flag2 = V3D_RENDER_OVERRIDE;
-	
-	if (draw_flags & V3D_OFSDRAW_USE_GPENCIL)
-		v3d.flag2 |= V3D_SHOW_GPENCIL;
 
-	if (draw_flags & V3D_OFSDRAW_USE_SOLID_TEX)
+	if (draw_flags & V3D_OFSDRAW_USE_GPENCIL) {
+		v3d.flag2 |= V3D_SHOW_GPENCIL;
+	}
+	if (draw_flags & V3D_OFSDRAW_USE_SOLID_TEX) {
 		v3d.flag2 |= V3D_SOLID_TEX;
-		
-	if (draw_flags & V3D_OFSDRAW_USE_BACKGROUND)
+	}
+	if (draw_flags & V3D_OFSDRAW_USE_BACKGROUND) {
 		v3d.flag3 |= V3D_SHOW_WORLD;
+	}
+	if (draw_flags & V3D_OFSDRAW_USE_CAMERA_DOF) {
+		if (camera->type == OB_CAMERA) {
+			v3d.fx_settings.dof = &((Camera *)camera->data)->gpu_dof;
+			v3d.fx_settings.fx_flag |= GPU_FX_FLAG_DOF;
+		}
+	}
 
 	rv3d.persp = RV3D_CAMOB;
 

@@ -60,6 +60,7 @@
 #include "BIF_glutil.h"
 
 #include "GPU_basic_shader.h"
+#include "GPU_compositing.h"
 
 #include "ED_anim_api.h"
 #include "ED_gpencil.h"
@@ -908,7 +909,7 @@ void ED_sequencer_special_preview_clear(void)
 
 ImBuf *sequencer_ibuf_get(struct Main *bmain, Scene *scene, SpaceSeq *sseq, int cfra, int frame_ofs, const char *viewname)
 {
-	SeqRenderData context;
+	SeqRenderData context = {0};
 	ImBuf *ibuf;
 	int rectx, recty;
 	float render_size;
@@ -935,6 +936,12 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain, Scene *scene, SpaceSeq *sseq, int 
 	        rectx, recty, proxy_size,
 	        &context);
 	context.view_id = BKE_scene_multiview_view_id_get(&scene->r, viewname);
+	if (scene->r.seq_flag & R_SEQ_CAMERA_DOF) {
+		if (sseq->compositor == NULL) {
+			sseq->compositor = GPU_fx_compositor_create();
+		}
+		context.gpu_fx = sseq->compositor;
+	}
 
 	/* sequencer could start rendering, in this case we need to be sure it wouldn't be canceled
 	 * by Esc pressed somewhere in the past
