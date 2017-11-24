@@ -182,6 +182,11 @@ void WM_manipulator_target_property_def_func(
         struct wmManipulator *mpr, const char *idname,
         const struct wmManipulatorPropertyFnParams *params);
 
+void WM_manipulator_target_property_clear_rna_ptr(
+        struct wmManipulator *mpr, const struct wmManipulatorPropertyType *mpr_prop_type);
+void WM_manipulator_target_property_clear_rna(
+        struct wmManipulator *mpr, const char *idname);
+
 bool WM_manipulator_target_property_is_valid_any(struct wmManipulator *mpr);
 bool WM_manipulator_target_property_is_valid(
         const struct wmManipulatorProperty *mpr_prop);

@@ -139,6 +139,29 @@ void WM_manipulator_target_property_def_func(
 	WM_manipulator_target_property_def_func_ptr(mpr, mpr_prop_type, params);
 }
 
+void WM_manipulator_target_property_clear_rna_ptr(
+        wmManipulator *mpr, const wmManipulatorPropertyType *mpr_prop_type)
+{
+	wmManipulatorProperty *mpr_prop = WM_manipulator_target_property_at_index(mpr, mpr_prop_type->index_in_type);
+
+	/* if manipulator evokes an operator we cannot use it for property manipulation */
+	BLI_assert(mpr->op_data == NULL);
+
+	mpr_prop->type = NULL;
+
+	mpr_prop->ptr = PointerRNA_NULL;
+	mpr_prop->prop = NULL;
+	mpr_prop->index = -1;
+}
+
+void WM_manipulator_target_property_clear_rna(
+        wmManipulator *mpr, const char *idname)
+{
+	const wmManipulatorPropertyType *mpr_prop_type = WM_manipulatortype_target_property_find(mpr->type, idname);
+	WM_manipulator_target_property_clear_rna_ptr(mpr, mpr_prop_type);
+}
+
+
 /** \} */
 
 

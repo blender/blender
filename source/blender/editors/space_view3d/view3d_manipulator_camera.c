@@ -67,34 +67,9 @@ static bool WIDGETGROUP_camera_poll(const bContext *C, wmManipulatorGroupType *U
 	return (ob && ob->type == OB_CAMERA);
 }
 
-static void cameragroup_property_setup(wmManipulator *widget, Object *ob, Camera *ca, const bool is_ortho)
-{
-	const float scale[3] = {1.0f / len_v3(ob->obmat[0]), 1.0f / len_v3(ob->obmat[1]), 1.0f / len_v3(ob->obmat[2])};
-	const float scale_fac = ca->drawsize;
-	const float drawsize = is_ortho ?
-	        (0.5f * ca->ortho_scale) :
-	        (scale_fac / ((scale[0] + scale[1] + scale[2]) / 3.0f));
-	const float half_sensor = 0.5f * ((ca->sensor_fit == CAMERA_SENSOR_FIT_VERT) ? ca->sensor_y : ca->sensor_x);
-	const char *propname = is_ortho ? "ortho_scale" : "lens";
-
-	PointerRNA camera_ptr;
-	float min, max, range;
-	float step, precision;
-
-	RNA_pointer_create(&ca->id, &RNA_Camera, ca, &camera_ptr);
-
-	/* get property range */
-	PropertyRNA *prop = RNA_struct_find_property(&camera_ptr, propname);
-	RNA_property_float_ui_range(&camera_ptr, prop, &min, &max, &step, &precision);
-	range = max - min;
-
-	ED_manipulator_arrow3d_set_range_fac(widget, is_ortho ? (scale_fac * range) : (drawsize * range / half_sensor));
-}
-
 static void WIDGETGROUP_camera_setup(const bContext *C, wmManipulatorGroup *mgroup)
 {
 	Object *ob = CTX_data_active_object(C);
-	Camera *ca = ob->data;
 	float dir[3];
 
 	const wmManipulatorType *wt_arrow = WM_manipulatortype_find("MANIPULATOR_WT_arrow_3d", true);
@@ -126,7 +101,6 @@ static void WIDGETGROUP_camera_setup(const bContext *C, wmManipulatorGroup *mgro
 
 		UI_GetThemeColor3fv(TH_MANIPULATOR_PRIMARY, mpr->color);
 		UI_GetThemeColor3fv(TH_MANIPULATOR_HI, mpr->color_hi);
-		cameragroup_property_setup(mpr, ob, ca, false);
 
 		mpr = camgroup->ortho_scale = WM_manipulator_new_ptr(wt_arrow, mgroup, NULL);
 		mpr->flag |= WM_MANIPULATOR_DRAW_NO_SCALE;
@@ -135,7 +109,6 @@ static void WIDGETGROUP_camera_setup(const bContext *C, wmManipulatorGroup *mgro
 
 		UI_GetThemeColor3fv(TH_MANIPULATOR_PRIMARY, mpr->color);
 		UI_GetThemeColor3fv(TH_MANIPULATOR_HI, mpr->color_hi);
-		cameragroup_property_setup(mpr, ob, ca, true);
 	}
 }
 
@@ -149,6 +122,13 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmManipulatorGroup *mg
 	Camera *ca = ob->data;
 	PointerRNA camera_ptr;
 	float dir[3];
+
+	const float ob_scale_inv[3] = {
+		1.0f / len_v3(ob->obmat[0]),
+		1.0f / len_v3(ob->obmat[1]),
+		1.0f / len_v3(ob->obmat[2]),
+	};
+	const float ob_scale_uniform_inv = (ob_scale_inv[0] + ob_scale_inv[1] + ob_scale_inv[2]) / 3.0f;
 
 	RNA_pointer_create(&ca->id, &RNA_Camera, ca, &camera_ptr);
 
@@ -167,13 +147,18 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmManipulatorGroup *mg
 		WM_manipulator_set_flag(camgroup->dop_dist, WM_MANIPULATOR_HIDDEN, true);
 	}
 
-	/* TODO - make focal length/ortho scale widget optional */
+	/* TODO - make focal length/ortho ob_scale_inv widget optional */
+	const Scene *scene = CTX_data_scene(C);
+	const float aspx = (float)scene->r.xsch * scene->r.xasp;
+	const float aspy = (float)scene->r.ysch * scene->r.yasp;
+	const bool is_ortho = (ca->type == CAM_ORTHO);
+	const int sensor_fit = BKE_camera_sensor_fit(ca->sensor_fit, aspx, aspy);
+	wmManipulator *widget = is_ortho ? camgroup->ortho_scale : camgroup->focal_len;
+	float scale_matrix;
 	if (true) {
-		const bool is_ortho = (ca->type == CAM_ORTHO);
 		float offset[3];
 		float aspect[2];
 
-		wmManipulator *widget = is_ortho ? camgroup->ortho_scale : camgroup->focal_len;
 		WM_manipulator_set_flag(widget, WM_MANIPULATOR_HIDDEN, false);
 		WM_manipulator_set_flag(is_ortho ? camgroup->focal_len : camgroup->ortho_scale, WM_MANIPULATOR_HIDDEN, true);
 
@@ -184,10 +169,6 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmManipulatorGroup *mg
 		offset[2] = 0.0f;
 
 		/* get aspect */
-		const Scene *scene = CTX_data_scene(C);
-		const float aspx = (float)scene->r.xsch * scene->r.xasp;
-		const float aspy = (float)scene->r.ysch * scene->r.yasp;
-		const int sensor_fit = BKE_camera_sensor_fit(ca->sensor_fit, aspx, aspy);
 		aspect[0] = (sensor_fit == CAMERA_SENSOR_FIT_HOR) ? 1.0f : aspx / aspy;
 		aspect[1] = (sensor_fit == CAMERA_SENSOR_FIT_HOR) ? aspy / aspx : 1.0f;
 
@@ -195,32 +176,47 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmManipulatorGroup *mg
 		WM_manipulator_set_matrix_location(widget, ob->obmat[3]);
 		WM_manipulator_set_matrix_rotation_from_yz_axis(widget, ob->obmat[1], dir);
 
-		{
-			float scale_matrix;
-			if (is_ortho) {
-				scale_matrix = ca->ortho_scale * 0.5f;
-			}
-			else {
-				const float scale[3] = {
-					1.0f / len_v3(ob->obmat[0]),
-					1.0f / len_v3(ob->obmat[1]),
-					1.0f / len_v3(ob->obmat[2]),
-				};
-				scale_matrix = ca->drawsize / ((scale[0] + scale[1] + scale[2]) / 3.0f);
-			}
-			mul_v3_fl(widget->matrix_basis[0], scale_matrix);
-			mul_v3_fl(widget->matrix_basis[1], scale_matrix);
+		if (is_ortho) {
+			scale_matrix = ca->ortho_scale * 0.5f;
 		}
+		else {
+			scale_matrix = ca->drawsize / ob_scale_uniform_inv;
+		}
+		mul_v3_fl(widget->matrix_basis[0], scale_matrix);
+		mul_v3_fl(widget->matrix_basis[1], scale_matrix);
 
 		RNA_float_set_array(widget->ptr, "aspect", aspect);
 
 		WM_manipulator_set_matrix_offset_location(widget, offset);
-
-		/* need to set property here for undo. TODO would prefer to do this in _init */
-		WM_manipulator_target_property_def_rna(camgroup->focal_len, "offset", &camera_ptr, "lens", -1);
-		WM_manipulator_target_property_def_rna(camgroup->ortho_scale, "offset", &camera_ptr, "ortho_scale", -1);
 	}
+
+	/* define & update properties */
+	{
+		const char *propname = is_ortho ? "ortho_scale" : "lens";
+		PropertyRNA *prop = RNA_struct_find_property(&camera_ptr, propname);
+		const wmManipulatorPropertyType *mpr_prop_type = WM_manipulatortype_target_property_find(widget->type, "offset");
+
+		WM_manipulator_target_property_clear_rna_ptr(widget, mpr_prop_type);
+
+		float min, max, range;
+		float step, precision;
+
+		/* get property range */
+		RNA_property_float_ui_range(&camera_ptr, prop, &min, &max, &step, &precision);
+		range = max - min;
+
+		ED_manipulator_arrow3d_set_range_fac(
+		        widget, is_ortho ?
+		        (ca->drawsize * range) :
+		        (scale_matrix * range /
+		         /* half sensor */
+		         (0.5f * ((sensor_fit == CAMERA_SENSOR_FIT_VERT) ? ca->sensor_y : ca->sensor_x))));
+
+		WM_manipulator_target_property_def_rna_ptr(widget, mpr_prop_type, &camera_ptr, prop, -1);
+	}
+
 }
+
 
 void VIEW3D_WGT_camera(wmManipulatorGroupType *wgt)
 {
