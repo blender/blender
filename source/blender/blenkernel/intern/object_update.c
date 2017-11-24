@@ -383,13 +383,16 @@ void BKE_object_eval_uber_data(const EvaluationContext *eval_ctx,
 	ob->recalc &= ~(OB_RECALC_DATA | OB_RECALC_TIME);
 }
 
-void BKE_object_eval_cloth(const EvaluationContext *UNUSED(eval_ctx), Scene *scene, Object *object)
+void BKE_object_eval_cloth(const EvaluationContext *UNUSED(eval_ctx),
+                           Scene *scene,
+                           Object *object)
 {
 	DEBUG_PRINT("%s on %s (%p)\n", __func__, object->id.name, object);
 	BKE_ptcache_object_reset(scene, object, PTCACHE_RESET_DEPSGRAPH);
 }
 
-void BKE_object_eval_update_shading(const EvaluationContext *UNUSED(eval_ctx), Object *object)
+void BKE_object_eval_update_shading(const EvaluationContext *UNUSED(eval_ctx),
+                                    Object *object)
 {
 	DEBUG_PRINT("%s on %s (%p)\n", __func__, object->id.name, object);
 	if (object->type == OB_MESH) {
@@ -417,4 +420,16 @@ void BKE_object_data_select_update(const EvaluationContext *UNUSED(eval_ctx),
 		default:
 			break;
 	}
+}
+
+void BKE_object_eval_flush_base_flags(const EvaluationContext *UNUSED(eval_ctx),
+                                      Object *object, Base *base)
+{
+	/* Make sure we have the base collection settings is already populated.
+	 * This will fail when BKE_layer_eval_layer_collection_pre hasn't run yet
+	 * Which usually means a missing call to DEG_id_tag_update(). */
+	BLI_assert(!BLI_listbase_is_empty(&base->collection_properties->data.group));
+	/* Copy flags and settings from base. */
+	object->base_flag = base->flag;
+	object->base_collection_properties = base->collection_properties;
 }

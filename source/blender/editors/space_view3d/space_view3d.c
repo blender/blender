@@ -860,7 +860,7 @@ static void view3d_main_region_listener(
 					break;
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
-					DEG_id_tag_update((ID *)&scene->id, DEG_TAG_COPY_ON_WRITE);
+					DEG_id_tag_update((ID *)&scene->id, DEG_TAG_SELECT_UPDATE);
 					ATTR_FALLTHROUGH;
 				case ND_FRAME:
 				case ND_TRANSFORM:

@@ -165,6 +165,7 @@ struct DepsgraphNodeBuilder {
 	void build_object(Base *base,
 	                  Object *object,
 	                  eDepsNode_LinkedState_Type linked_state);
+	void build_object_flags(Base *base, Object *object);
 	void build_object_data(Object *object);
 	void build_object_transform(Object *object);
 	void build_object_constraints(Object *object);

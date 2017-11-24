@@ -455,6 +455,8 @@ void DepsgraphRelationBuilder::build_object(Object *object)
 	OperationKey ob_ubereval_key(&object->id,
 	                             DEG_NODE_TYPE_TRANSFORM,
 	                             DEG_OPCODE_TRANSFORM_OBJECT_UBEREVAL);
+	/* Various flags, flushing from bases/collections. */
+	build_object_flags(object);
 	/* Parenting. */
 	if (object->parent != NULL) {
 		/* Parent relationship. */
@@ -539,6 +541,17 @@ void DepsgraphRelationBuilder::build_object(Object *object)
 	if (object->dup_group != NULL) {
 		build_group(object, object->dup_group);
 	}
+}
+
+void DepsgraphRelationBuilder::build_object_flags(Object *object)
+{
+	OperationKey view_layer_done_key(&scene_->id,
+	                                 DEG_NODE_TYPE_LAYER_COLLECTIONS,
+	                                 DEG_OPCODE_VIEW_LAYER_DONE);
+	OperationKey object_flags_key(&object->id,
+	                              DEG_NODE_TYPE_LAYER_COLLECTIONS,
+	                              DEG_OPCODE_OBJECT_BASE_FLAGS);
+	add_relation(view_layer_done_key, object_flags_key, "Base flags flush");
 }
 
 void DepsgraphRelationBuilder::build_object_data(Object *object)

@@ -124,57 +124,6 @@ ID *DEG_get_evaluated_id(struct Depsgraph *depsgraph, ID *id)
 
 /* ************************ DEG ITERATORS ********************* */
 
-/**
- * XXX (dfelinto/sergey) big hack, waiting for:
- * "Reshuffle collections base flags evaluation, make it so object is gathering its base flags from collections."
- *
- * Returns false if object shouldn't be found (which should never happen in the final implementation
- * and instead we should have a tag to the objects that were not directly part of the depsgraph).
- *
- * That means that the object is not in a collection but it's part of depsgraph, or the object is simply
- * not in the current ViewLayer - Depsgraph at the moment includes all the ViewLayer in the Scene.
- */
-static bool deg_flush_base_flags_and_settings(
-        DEGObjectsIteratorData *data, Object *ob_dst, Object *ob_src, const bool is_dupli)
-{
-	Base *base;
-	Depsgraph *graph = data->graph;
-	ViewLayer *view_layer = data->eval_ctx.view_layer;
-	int flag = is_dupli ? BASE_FROMDUPLI : 0;
-
-	/* First attempt, see if object is in the current ViewLayer. */
-	base = (Base *)BLI_findptr(&view_layer->object_bases, ob_src, offsetof(Base, object));
-
-	/* Next attempt, see if object is in one of the sets. */
-	if (base == NULL) {
-		Scene *scene_iter, *scene = DEG_get_evaluated_scene(graph);
-		scene_iter = scene;
-
-		while ((scene_iter = (scene_iter)->set)) {
-			ViewLayer *view_layer_set = BKE_view_layer_from_scene_get(scene_iter);
-			base = (Base *)BLI_findptr(&view_layer_set->object_bases, ob_src, offsetof(Base, object));
-			if (base != NULL) {
-				flag |= BASE_FROM_SET;
-				flag &= ~(BASE_SELECTED | BASE_SELECTABLED);
-				break;
-			}
-		}
-	}
-
-	if (base == NULL) {
-		return false;
-	}
-
-	/* Make sure we have the base collection settings is already populated.
-	 * This will fail when BKE_layer_eval_layer_collection_pre hasn't run yet
-	 * Which usually means a missing call to DEG_id_tag_update(). */
-	BLI_assert(!BLI_listbase_is_empty(&base->collection_properties->data.group));
-
-	ob_dst->base_flag = base->flag | flag;
-	ob_dst->base_collection_properties = base->collection_properties;
-	return true;
-}
-
 static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 {
 	DEGObjectsIteratorData *data = (DEGObjectsIteratorData *)iter->data;
@@ -198,16 +147,19 @@ static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 		data->dupli_object_current = dob;
 
 		/* Temporary object to evaluate. */
-		data->temp_dupli_object = *dob->ob;
-		data->temp_dupli_object.select_color = data->dupli_parent->select_color;
+		Object *dupli_parent = data->dupli_parent;
+		Object *temp_dupli_object = &data->temp_dupli_object;
+		*temp_dupli_object = *dob->ob;
+		temp_dupli_object->select_color = dupli_parent->select_color;
+		temp_dupli_object->base_flag = dupli_parent->base_flag | BASE_FROMDUPLI;
+		temp_dupli_object->base_collection_properties =
+		        dupli_parent->base_collection_properties;
 		copy_m4_m4(data->temp_dupli_object.obmat, dob->mat);
 
-		deg_flush_base_flags_and_settings(data,
-		                                  &data->temp_dupli_object,
-		                                  data->dupli_parent,
-		                                  true);
 		iter->current = &data->temp_dupli_object;
-		BLI_assert(DEG::deg_validate_copy_on_write_datablock(&data->temp_dupli_object.id));
+		BLI_assert(
+		        DEG::deg_validate_copy_on_write_datablock(
+		                &data->temp_dupli_object.id));
 		return true;
 	}
 
@@ -244,11 +196,6 @@ static void deg_objects_iterator_step(BLI_Iterator *iter, DEG::IDDepsNode *id_no
 
 	Object *object = (Object *)id_node->id_cow;
 	BLI_assert(DEG::deg_validate_copy_on_write_datablock(&object->id));
-
-	if (deg_flush_base_flags_and_settings(data, object, object, false) == false) {
-		iter->skip = true;
-		return;
-	}
 
 	if ((data->flag & DEG_OBJECT_ITER_FLAG_DUPLI) && (object->transflag & OB_DUPLI)) {
 		data->dupli_parent = object;

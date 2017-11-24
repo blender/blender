@@ -35,6 +35,7 @@ extern "C" {
 
 #include "BLI_compiler_attrs.h"
 
+struct Base;
 struct EvaluationContext;
 struct Scene;
 struct ViewLayer;
@@ -208,6 +209,9 @@ void BKE_object_eval_update_shading(const struct EvaluationContext *eval_ctx,
                                     struct Object *object);
 void BKE_object_data_select_update(const struct EvaluationContext *eval_ctx,
                                    struct ID *object_data);
+
+void BKE_object_eval_flush_base_flags(const struct EvaluationContext *eval_ctx,
+                                      struct Object *object, struct Base *base);
 
 void BKE_object_handle_data_update(
         const struct EvaluationContext *eval_ctx,

@@ -190,6 +190,7 @@ struct DepsgraphRelationBuilder
 	void build_group(Object *object, Group *group);
 	void build_object(Object *object);
 	void build_object_data(Object *object);
+	void build_object_flags(Object *object);
 	void build_object_parent(Object *object);
 	void build_constraints(ID *id,
 	                       eDepsNode_Type component_type,
