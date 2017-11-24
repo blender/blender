@@ -499,7 +499,10 @@ void EEVEE_materials_init(EEVEE_StorageList *stl)
 		BLI_dynstr_append(ds_frag, datatoc_ltc_lib_glsl);
 		BLI_dynstr_append(ds_frag, datatoc_bsdf_direct_lib_glsl);
 		BLI_dynstr_append(ds_frag, datatoc_lamps_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_lit_surface_frag_glsl);
+		for (int i = 0; i < 7; ++i) {
+			/* Add one for each Closure */
+			BLI_dynstr_append(ds_frag, datatoc_lit_surface_frag_glsl);
+		}
 		BLI_dynstr_append(ds_frag, datatoc_volumetric_lib_glsl);
 		e_data.frag_shader_lib = BLI_dynstr_get_cstring(ds_frag);
 		BLI_dynstr_free(ds_frag);

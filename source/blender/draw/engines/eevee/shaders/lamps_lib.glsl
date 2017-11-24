@@ -296,9 +296,13 @@ vec3 sss_profile(float s) {
 
 vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, float scale)
 {
-	vec3 vis = vec3(1.0);
+#if !defined(USE_TRANSLUCENCY) || defined(VOLUMETRICS)
+	return vec3(0.0);
+#endif
 
 #ifndef VOLUMETRICS
+	vec3 vis = vec3(1.0);
+
 	/* Only shadowed light can produce translucency */
 	if (ld.l_shadowid >= 0.0) {
 		ShadowData data = shadows_data[int(ld.l_shadowid)];
@@ -410,9 +414,9 @@ vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, float scale)
 	else {
 		vis = vec3(0.0);
 	}
-#endif
 
 	return vis;
+#endif
 }
 
 #ifdef HAIR_SHADER
