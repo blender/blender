@@ -11,6 +11,7 @@ layout(std140) uniform sssProfile {
 uniform float jitterThreshold;
 uniform sampler2D depthBuffer;
 uniform sampler2D sssData;
+uniform sampler2D sssAlbedo;
 uniform sampler2DArray utilTex;
 
 out vec4 FragColor;
@@ -80,6 +81,10 @@ void main(void)
 #ifdef FIRST_PASS
 	FragColor = vec4(accum, sss_data.a);
 #else /* SECOND_PASS */
+	#ifdef USE_SEP_ALBEDO
+	FragColor = vec4(accum * texture(sssAlbedo, uvs).rgb, 1.0);
+	#else
 	FragColor = vec4(accum, 1.0);
+	#endif
 #endif
 }

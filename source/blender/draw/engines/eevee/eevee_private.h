@@ -117,6 +117,7 @@ enum {
 	VAR_MAT_VOLUME   = (1 << 13),
 	VAR_MAT_SSS      = (1 << 14),
 	VAR_MAT_TRANSLUC = (1 << 15),
+	VAR_MAT_SSSALBED = (1 << 16),
 };
 
 /* Shadow Technique */
@@ -252,6 +253,7 @@ typedef struct EEVEE_TextureList {
 	struct GPUTexture *gtao_horizons;
 
 	struct GPUTexture *sss_data;
+	struct GPUTexture *sss_albedo;
 	struct GPUTexture *sss_blur;
 	struct GPUTexture *sss_stencil;
 
@@ -433,6 +435,7 @@ typedef struct EEVEE_EffectsInfo {
 	/* SSSS */
 	int sss_sample_count;
 	float sss_jitter_threshold;
+	bool sss_separate_albedo;
 
 	/* Volumetrics */
 	bool use_volumetrics;

@@ -33,7 +33,7 @@
 #include "GPU_texture.h"
 
 static struct {
-	struct GPUShader *sss_sh[2];
+	struct GPUShader *sss_sh[3];
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_effect_subsurface_frag_glsl[];
@@ -42,6 +42,8 @@ static void eevee_create_shader_subsurface(void)
 {
 	e_data.sss_sh[0] = DRW_shader_create_fullscreen(datatoc_effect_subsurface_frag_glsl, "#define FIRST_PASS\n");
 	e_data.sss_sh[1] = DRW_shader_create_fullscreen(datatoc_effect_subsurface_frag_glsl, "#define SECOND_PASS\n");
+	e_data.sss_sh[2] = DRW_shader_create_fullscreen(datatoc_effect_subsurface_frag_glsl, "#define SECOND_PASS\n"
+	                                                                                     "#define USE_SEP_ALBEDO\n");
 }
 
 int EEVEE_subsurface_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
@@ -59,6 +61,7 @@ int EEVEE_subsurface_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedat
 	if (BKE_collection_engine_property_value_get_bool(props, "sss_enable")) {
 		effects->sss_sample_count = 1 + BKE_collection_engine_property_value_get_int(props, "sss_samples") * 2;
 		effects->sss_jitter_threshold = BKE_collection_engine_property_value_get_float(props, "sss_jitter_threshold");
+		effects->sss_separate_albedo = BKE_collection_engine_property_value_get_bool(props, "sss_separate_albedo");
 
 		/* Shaders */
 		if (!e_data.sss_sh[0]) {
@@ -79,10 +82,16 @@ int EEVEE_subsurface_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedat
 		DRW_framebuffer_init(&fbl->sss_clear_fb, &draw_engine_eevee_type, (int)viewport_size[0], (int)viewport_size[1],
 		                     &tex_data, 1);
 
+		if (effects->sss_separate_albedo && (txl->sss_albedo == NULL)) {
+			txl->sss_albedo = DRW_texture_create_2D((int)viewport_size[0], (int)viewport_size[1],
+			                                        DRW_TEX_RGB_11_11_10, 0, NULL);
+		}
+
 		return EFFECT_SSS;
 	}
 
 	/* Cleanup to release memory */
+	DRW_TEXTURE_FREE_SAFE(txl->sss_albedo);
 	DRW_TEXTURE_FREE_SAFE(txl->sss_data);
 	DRW_TEXTURE_FREE_SAFE(txl->sss_blur);
 	DRW_TEXTURE_FREE_SAFE(txl->sss_stencil);
@@ -127,7 +136,8 @@ void EEVEE_subsurface_add_pass(EEVEE_Data *vedata, unsigned int sss_id, struct G
 	DRW_shgroup_stencil_mask(grp, sss_id);
 	DRW_shgroup_call_add(grp, quad, NULL);
 
-	grp = DRW_shgroup_create(e_data.sss_sh[1], psl->sss_resolve_ps);
+	struct GPUShader *sh = (effects->sss_separate_albedo) ? e_data.sss_sh[2] : e_data.sss_sh[1];
+	grp = DRW_shgroup_create(sh, psl->sss_resolve_ps);
 	DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)vedata->stl->g_data->viewvecs, 2);
 	DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
 	DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth);
@@ -136,6 +146,10 @@ void EEVEE_subsurface_add_pass(EEVEE_Data *vedata, unsigned int sss_id, struct G
 	DRW_shgroup_uniform_float(grp, "jitterThreshold", &effects->sss_jitter_threshold, 1);
 	DRW_shgroup_stencil_mask(grp, sss_id);
 	DRW_shgroup_call_add(grp, quad, NULL);
+
+	if (effects->sss_separate_albedo) {
+		DRW_shgroup_uniform_buffer(grp, "sssAlbedo", &txl->sss_albedo);
+	}
 }
 
 void EEVEE_subsurface_data_render(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
@@ -152,38 +166,50 @@ void EEVEE_subsurface_data_render(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
 		DRW_framebuffer_bind(fbl->sss_clear_fb);
 		DRW_framebuffer_clear(true, false, false, clear, 0.0f);
 
+
+		DRW_framebuffer_texture_detach(txl->sss_data);
 		if ((effects->enabled_effects & EFFECT_NORMAL_BUFFER) != 0) {
 			DRW_framebuffer_texture_detach(txl->ssr_normal_input);
 		}
 		if ((effects->enabled_effects & EFFECT_SSR) != 0) {
 			DRW_framebuffer_texture_detach(txl->ssr_specrough_input);
 		}
+
+		/* Start at slot 1 because slot 0 is txl->color */
+		int tex_slot = 1;
+		DRW_framebuffer_texture_attach(fbl->main, txl->sss_data, tex_slot++, 0);
+		if (effects->sss_separate_albedo) {
+			DRW_framebuffer_texture_attach(fbl->main, txl->sss_albedo, tex_slot++, 0);
+		}
 		if ((effects->enabled_effects & EFFECT_NORMAL_BUFFER) != 0) {
-			DRW_framebuffer_texture_attach(fbl->main, txl->ssr_normal_input, 2, 0);
+			DRW_framebuffer_texture_attach(fbl->main, txl->ssr_normal_input, tex_slot++, 0);
 		}
 		if ((effects->enabled_effects & EFFECT_SSR) != 0) {
-			DRW_framebuffer_texture_attach(fbl->main, txl->ssr_specrough_input, 3, 0);
+			DRW_framebuffer_texture_attach(fbl->main, txl->ssr_specrough_input, tex_slot++, 0);
 		}
-		DRW_framebuffer_texture_detach(txl->sss_data);
-		DRW_framebuffer_texture_attach(fbl->main, txl->sss_data, 1, 0);
 		DRW_framebuffer_bind(fbl->main);
 
 		DRW_draw_pass(psl->sss_pass);
 
+		/* Restore */
+		DRW_framebuffer_texture_detach(txl->sss_data);
+		if (effects->sss_separate_albedo) {
+			DRW_framebuffer_texture_detach(txl->sss_albedo);
+		}
 		if ((effects->enabled_effects & EFFECT_NORMAL_BUFFER) != 0) {
 			DRW_framebuffer_texture_detach(txl->ssr_normal_input);
 		}
 		if ((effects->enabled_effects & EFFECT_SSR) != 0) {
 			DRW_framebuffer_texture_detach(txl->ssr_specrough_input);
 		}
-		DRW_framebuffer_texture_detach(txl->sss_data);
+
+		DRW_framebuffer_texture_attach(fbl->sss_clear_fb, txl->sss_data, 0, 0);
 		if ((effects->enabled_effects & EFFECT_NORMAL_BUFFER) != 0) {
 			DRW_framebuffer_texture_attach(fbl->main, txl->ssr_normal_input, 1, 0);
 		}
 		if ((effects->enabled_effects & EFFECT_SSR) != 0) {
 			DRW_framebuffer_texture_attach(fbl->main, txl->ssr_specrough_input, 2, 0);
 		}
-		DRW_framebuffer_texture_attach(fbl->sss_clear_fb, txl->sss_data, 0, 0);
 	}
 }
 
@@ -230,4 +256,5 @@ void EEVEE_subsurface_free(void)
 {
 	DRW_SHADER_FREE_SAFE(e_data.sss_sh[0]);
 	DRW_SHADER_FREE_SAFE(e_data.sss_sh[1]);
+	DRW_SHADER_FREE_SAFE(e_data.sss_sh[2]);
 }

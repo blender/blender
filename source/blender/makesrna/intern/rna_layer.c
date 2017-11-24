@@ -370,6 +370,7 @@ RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(volumetric_colored_transmittance)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(sss_enable)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(sss_samples)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(sss_jitter_threshold)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(sss_separate_albedo)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(ssr_refraction)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(ssr_enable)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(ssr_halfres)
@@ -1214,6 +1215,14 @@ static void rna_def_view_layer_engine_settings_eevee(BlenderRNA *brna)
 	                               "rna_LayerEngineSettings_Eevee_sss_jitter_threshold_set", NULL);
 	RNA_def_property_ui_text(prop, "Jitter Threshold", "Rotate samples that are below this threshold");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_ViewLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "sss_separate_albedo", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_Eevee_sss_separate_albedo_get",
+	                               "rna_LayerEngineSettings_Eevee_sss_separate_albedo_set");
+	RNA_def_property_ui_text(prop, "Separate Albedo", "Avoid albedo being blured by the subsurface scattering "
+	                                                  "but uses more video memory");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_ViewLayerEngineSettings_update");
 

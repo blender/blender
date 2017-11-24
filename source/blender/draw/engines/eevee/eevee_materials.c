@@ -307,6 +307,9 @@ static char *eevee_get_defines(int options)
 	if ((options & VAR_MAT_SSS) != 0) {
 		BLI_dynstr_appendf(ds, "#define USE_SSS\n");
 	}
+	if ((options & VAR_MAT_SSSALBED) != 0) {
+		BLI_dynstr_appendf(ds, "#define USE_SSS_ALBEDO\n");
+	}
 	if ((options & VAR_MAT_TRANSLUC) != 0) {
 		BLI_dynstr_appendf(ds, "#define USE_TRANSLUCENCY\n");
 	}
@@ -651,6 +654,7 @@ struct GPUMaterial *EEVEE_material_mesh_get(
 	if (use_multiply) options |= VAR_MAT_MULT;
 	if (use_refract) options |= VAR_MAT_REFRACT;
 	if (use_sss) options |= VAR_MAT_SSS;
+	if (use_sss && vedata->stl->effects->sss_separate_albedo) options |= VAR_MAT_SSSALBED;
 	if (use_translucency) options |= VAR_MAT_TRANSLUC;
 	if (vedata->stl->effects->use_volumetrics && use_blend) options |= VAR_MAT_VOLUME;
 

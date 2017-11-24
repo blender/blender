@@ -2909,7 +2909,12 @@ void node_bsdf_principled_clearcoat(vec4 base_color, float subsurface, vec3 subs
 	result.ssr_id = int(ssr_id);
 #ifdef USE_SSS
 	result.sss_data.a = sss_scalef;
-	result.sss_data.rgb = (out_diff + out_trans) * mix(vec3(0.0), subsurface_color.rgb, subsurface);
+	result.sss_data.rgb = out_diff + out_trans;
+#ifdef USE_SSS_ALBEDO
+	result.sss_albedo.rgb = mix(vec3(0.0), subsurface_color.rgb, subsurface);
+#else
+	result.sss_data.rgb *= mix(vec3(0.0), subsurface_color.rgb, subsurface);
+#endif
 	result.sss_data.rgb *= (1.0 - transmission);
 #endif
 
@@ -2954,7 +2959,14 @@ void node_subsurface_scattering(
 	result.ssr_id = -1;
 	result.sss_data.a = scale;
 	eevee_closure_subsurface(N, color.rgb, 1.0, scale, out_diff, out_trans);
-	result.sss_data.rgb = (out_diff + out_trans) * color.rgb;
+	result.sss_data.rgb = out_diff + out_trans;
+#ifdef USE_SSS_ALBEDO
+	/* Not perfect for texture_blur not exaclty equal to 0.0 or 1.0. */
+	result.sss_albedo.rgb = mix(color.rgb, vec3(1.0), texture_blur);
+	result.sss_data.rgb *= mix(vec3(1.0), color.rgb, texture_blur);
+#else
+	result.sss_data.rgb *= color.rgb;
+#endif
 #else
 	node_bsdf_diffuse(color, 0.0, N, result);
 #endif

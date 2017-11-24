@@ -346,6 +346,7 @@ class VIEWLAYER_PT_eevee_subsurface_scattering(ViewLayerButtonsPanel, Panel):
         col = layout.column()
         col.template_override_property(layer_props, scene_props, "sss_samples")
         col.template_override_property(layer_props, scene_props, "sss_jitter_threshold")
+        col.template_override_property(layer_props, scene_props, "sss_separate_albedo")
 
 
 class VIEWLAYER_PT_eevee_screen_space_reflections(ViewLayerButtonsPanel, Panel):
