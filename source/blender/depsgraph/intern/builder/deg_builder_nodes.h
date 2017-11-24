@@ -110,6 +110,7 @@ struct DepsgraphNodeBuilder {
 	}
 
 	void begin_build();
+	void end_build();
 
 	IDDepsNode *add_id_node(ID *id, bool do_tag = true);
 	IDDepsNode *find_id_node(ID *id);
@@ -213,6 +214,13 @@ struct DepsgraphNodeBuilder {
 	                             LayerCollectionState *state);
 	void build_view_layer_collections(Scene *scene, ViewLayer *view_layer);
 protected:
+	struct SavedEntryTag {
+		ID *id;
+		eDepsNode_Type component_type;
+		eDepsOperation_Code opcode;
+	};
+	vector<SavedEntryTag> saved_entry_tags_;
+
 	/* State which never changes, same for the whole builder time. */
 	Main *bmain_;
 	Depsgraph *graph_;

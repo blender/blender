@@ -221,6 +221,7 @@ void DEG_graph_build_from_view_layer(Depsgraph *graph,
 	node_builder.build_view_layer(scene,
 	                               view_layer,
 	                               DEG::DEG_ID_LINKED_DIRECTLY);
+	node_builder.end_build();
 
 	/* 2) Hook up relationships between operations - to determine evaluation
 	 *    order.
