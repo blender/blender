@@ -426,6 +426,9 @@ void DepsgraphRelationBuilder::build_group(Object *object, Group *group)
 void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
 {
 	if (object->id.tag & LIB_TAG_DOIT) {
+		if (base != NULL) {
+			build_object_flags(base, object);
+		}
 		return;
 	}
 	object->id.tag |= LIB_TAG_DOIT;
