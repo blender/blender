@@ -1936,7 +1936,7 @@ static void idproperty_reset(IDProperty **props, IDProperty *props_ref)
 void BKE_layer_eval_layer_collection_pre(const struct EvaluationContext *UNUSED(eval_ctx),
                                          Scene *scene, ViewLayer *view_layer)
 {
-	DEBUG_PRINT("%s on %s (%p)\n", __func__, view_layer->name, view_layer);
+	DEBUG_PRINT("%s on scene:%s %s (%p)\n", __func__, scene->id.name, view_layer->name, view_layer);
 	for (Base *base = view_layer->object_bases.first; base != NULL; base = base->next) {
 		base->flag &= ~(BASE_VISIBLED | BASE_SELECTABLED);
 		idproperty_reset(&base->collection_properties, scene->collection_properties);
