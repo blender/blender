@@ -628,7 +628,7 @@ static void *bli_mempool_iternext(BLI_mempool_iter *iter)
 			while (1) {
 				iter->curchunk = *iter->curchunk_threaded_shared;
 				if (iter->curchunk == NULL) {
-					break;
+					return ret;
 				}
 				if (atomic_cas_ptr((void **)iter->curchunk_threaded_shared, iter->curchunk, iter->curchunk->next) == iter->curchunk) {
 					break;
