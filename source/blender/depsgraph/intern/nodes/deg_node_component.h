@@ -89,10 +89,10 @@ struct ComponentDepsNode : public DepsNode {
 	                                 int name_tag) const;
 
 	/* Check operation exists and return it. */
-	OperationDepsNode *has_operation(OperationIDKey key) const;
-	OperationDepsNode *has_operation(eDepsOperation_Code opcode,
-	                                 const char *name,
-	                                 int name_tag) const;
+	bool has_operation(OperationIDKey key) const;
+	bool has_operation(eDepsOperation_Code opcode,
+	                   const char *name,
+	                   int name_tag) const;
 
 	/**
 	 * Create a new node for representing an operation and add this to graph

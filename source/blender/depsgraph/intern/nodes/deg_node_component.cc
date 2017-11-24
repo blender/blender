@@ -198,14 +198,14 @@ OperationDepsNode *ComponentDepsNode::get_operation(eDepsOperation_Code opcode,
 	return get_operation(key);
 }
 
-OperationDepsNode *ComponentDepsNode::has_operation(OperationIDKey key) const
+bool ComponentDepsNode::has_operation(OperationIDKey key) const
 {
-	return reinterpret_cast<OperationDepsNode *>(BLI_ghash_lookup(operations_map, &key));
+	return find_operation(key) != NULL;
 }
 
-OperationDepsNode *ComponentDepsNode::has_operation(eDepsOperation_Code opcode,
-                                                    const char *name,
-                                                    int name_tag) const
+bool ComponentDepsNode::has_operation(eDepsOperation_Code opcode,
+                                      const char *name,
+                                      int name_tag) const
 {
 	OperationIDKey key(opcode, name, name_tag);
 	return has_operation(key);
@@ -216,7 +216,7 @@ OperationDepsNode *ComponentDepsNode::add_operation(const DepsEvalOperationCb& o
                                                     const char *name,
                                                     int name_tag)
 {
-	OperationDepsNode *op_node = has_operation(opcode, name, name_tag);
+	OperationDepsNode *op_node = find_operation(opcode, name, name_tag);
 	if (!op_node) {
 		DepsNodeFactory *factory = deg_get_node_factory(DEG_NODE_TYPE_OPERATION);
 		op_node = (OperationDepsNode *)factory->create_node(this->owner->id, "", name);
