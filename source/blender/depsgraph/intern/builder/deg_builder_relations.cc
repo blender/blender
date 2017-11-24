@@ -253,23 +253,8 @@ ComponentDepsNode *DepsgraphRelationBuilder::get_node(
 OperationDepsNode *DepsgraphRelationBuilder::get_node(
         const OperationKey &key) const
 {
-	IDDepsNode *id_node = graph_->find_id_node(key.id);
-	if (!id_node) {
-		fprintf(stderr, "find_node operation: Could not find ID\n");
-		return NULL;
-	}
-
-	ComponentDepsNode *comp_node = id_node->find_component(key.component_type,
-	                                                       key.component_name);
-	if (!comp_node) {
-		fprintf(stderr, "find_node operation: Could not find component\n");
-		return NULL;
-	}
-
-	OperationDepsNode *op_node = comp_node->get_operation(key.opcode,
-	                                                      key.name,
-	                                                      key.name_tag);
-	if (!op_node) {
+	OperationDepsNode *op_node = find_node(key);
+	if (op_node == NULL) {
 		fprintf(stderr, "find_node_operation: Failed for (%s, '%s')\n",
 		        DEG_OPNAMES[key.opcode], key.name);
 	}
