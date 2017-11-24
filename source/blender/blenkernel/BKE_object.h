@@ -211,7 +211,8 @@ void BKE_object_data_select_update(const struct EvaluationContext *eval_ctx,
                                    struct ID *object_data);
 
 void BKE_object_eval_flush_base_flags(const struct EvaluationContext *eval_ctx,
-                                      struct Object *object, struct Base *base);
+                                      struct Object *object, struct Base *base,
+                                      const bool is_from_set);
 
 void BKE_object_handle_data_update(
         const struct EvaluationContext *eval_ctx,

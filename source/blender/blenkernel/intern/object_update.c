@@ -423,7 +423,7 @@ void BKE_object_data_select_update(const EvaluationContext *UNUSED(eval_ctx),
 }
 
 void BKE_object_eval_flush_base_flags(const EvaluationContext *UNUSED(eval_ctx),
-                                      Object *object, Base *base)
+                                      Object *object, Base *base, bool is_from_set)
 {
 	/* Make sure we have the base collection settings is already populated.
 	 * This will fail when BKE_layer_eval_layer_collection_pre hasn't run yet
@@ -431,5 +431,9 @@ void BKE_object_eval_flush_base_flags(const EvaluationContext *UNUSED(eval_ctx),
 	BLI_assert(!BLI_listbase_is_empty(&base->collection_properties->data.group));
 	/* Copy flags and settings from base. */
 	object->base_flag = base->flag;
+	if (is_from_set) {
+		object->base_flag |= BASE_FROM_SET;
+		object->base_flag &= ~(BASE_SELECTED | BASE_SELECTABLED);
+	}
 	object->base_collection_properties = base->collection_properties;
 }

@@ -411,7 +411,7 @@ void DepsgraphNodeBuilder::build_object(Base *base,
 		 * directly.
 		 */
 		if (id_node->linked_state == DEG_ID_LINKED_INDIRECTLY) {
-			build_object_flags(base, object);
+			build_object_flags(base, object, linked_state);
 		}
 		id_node->linked_state = max(id_node->linked_state, linked_state);
 		return;
@@ -422,7 +422,7 @@ void DepsgraphNodeBuilder::build_object(Base *base,
 	id_node->linked_state = linked_state;
 	object->customdata_mask = 0;
 	/* Various flags, flushing from bases/collections. */
-	build_object_flags(base, object);
+	build_object_flags(base, object, linked_state);
 	/* Transform. */
 	build_object_transform(object);
 	/* Parent. */
@@ -469,17 +469,21 @@ void DepsgraphNodeBuilder::build_object(Base *base,
 	}
 }
 
-void DepsgraphNodeBuilder::build_object_flags(Base *base, Object *object)
+void DepsgraphNodeBuilder::build_object_flags(
+        Base *base,
+        Object *object,
+        eDepsNode_LinkedState_Type linked_state)
 {
 	if (base == NULL) {
 		return;
 	}
 	/* TODO(sergey): Is this really best component to be used? */
 	Object *object_cow = get_cow_datablock(object);
+	const bool is_from_set = (linked_state == DEG_ID_LINKED_VIA_SET);
 	add_operation_node(&object->id,
 	                   DEG_NODE_TYPE_LAYER_COLLECTIONS,
 	                   function_bind(BKE_object_eval_flush_base_flags,
-	                                 _1, object_cow, base),
+	                                 _1, object_cow, base, is_from_set),
 	                   DEG_OPCODE_OBJECT_BASE_FLAGS);
 }
 
