@@ -87,8 +87,8 @@ bool ComponentDepsNode::OperationIDKey::operator==(
         const OperationIDKey &other) const
 {
 	return (opcode == other.opcode) &&
-		(STREQ(name, other.name)) &&
-		(name_tag == other.name_tag);
+	       (STREQ(name, other.name)) &&
+	       (name_tag == other.name_tag);
 }
 
 static unsigned int comp_node_hash_key(const void *key_v)
