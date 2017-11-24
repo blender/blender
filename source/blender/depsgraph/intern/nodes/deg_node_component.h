@@ -74,6 +74,14 @@ struct ComponentDepsNode : public DepsNode {
 
 	string identifier() const;
 
+	/* Find an existing operation, if requested operation does not exist
+	 * NULL will be returned.
+	 */
+	OperationDepsNode *find_operation(OperationIDKey key) const;
+	OperationDepsNode *find_operation(eDepsOperation_Code opcode,
+	                                 const char *name,
+	                                 int name_tag) const;
+
 	/* Find an existing operation, will throw an assert() if it does not exist. */
 	OperationDepsNode *get_operation(OperationIDKey key) const;
 	OperationDepsNode *get_operation(eDepsOperation_Code opcode,

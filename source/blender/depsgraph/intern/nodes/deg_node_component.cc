@@ -163,18 +163,31 @@ string ComponentDepsNode::identifier() const
 	return string(typebuf) + name + " : " + idname + " (Layers: " + layers + ")";
 }
 
+OperationDepsNode *ComponentDepsNode::find_operation(OperationIDKey key) const
+{
+	OperationDepsNode *node =
+	        (OperationDepsNode *)BLI_ghash_lookup(operations_map, &key);
+	return node;
+}
+
+OperationDepsNode *ComponentDepsNode::find_operation(eDepsOperation_Code opcode,
+                                                    const char *name,
+                                                    int name_tag) const
+{
+	OperationIDKey key(opcode, name, name_tag);
+	return find_operation(key);
+}
+
 OperationDepsNode *ComponentDepsNode::get_operation(OperationIDKey key) const
 {
-	OperationDepsNode *node = reinterpret_cast<OperationDepsNode *>(BLI_ghash_lookup(operations_map, &key));
-	if (node != NULL) {
-		return node;
-	}
-	else {
+	OperationDepsNode *node = find_operation(key);
+	if (node == NULL) {
 		fprintf(stderr, "%s: find_operation(%s) failed\n",
 		        this->identifier().c_str(), key.identifier().c_str());
 		BLI_assert(!"Request for non-existing operation, should not happen");
 		return NULL;
 	}
+	return node;
 }
 
 OperationDepsNode *ComponentDepsNode::get_operation(eDepsOperation_Code opcode,
