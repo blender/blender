@@ -425,6 +425,7 @@ void BKE_object_data_select_update(const EvaluationContext *UNUSED(eval_ctx),
 void BKE_object_eval_flush_base_flags(const EvaluationContext *UNUSED(eval_ctx),
                                       Object *object, Base *base, bool is_from_set)
 {
+	DEBUG_PRINT("%s on %s (%p)\n", __func__, object->id.name, object);
 	/* Make sure we have the base collection settings is already populated.
 	 * This will fail when BKE_layer_eval_layer_collection_pre hasn't run yet
 	 * Which usually means a missing call to DEG_id_tag_update(). */
