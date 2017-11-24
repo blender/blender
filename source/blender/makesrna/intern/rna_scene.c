@@ -683,7 +683,13 @@ void rna_Scene_set_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 	Scene *scene = (Scene *)ptr->id.data;
 
 	DEG_relations_tag_update(bmain);
-	DEG_id_tag_update(&scene->id, 0);
+	DEG_id_tag_update_ex(bmain, &scene->id, 0);
+	if (scene->set != NULL) {
+		/* Objects which are pulled into main scene's depsgraph needs to have
+		 * their base flags updated.
+		 */
+		DEG_id_tag_update_ex(bmain, &scene->set->id, 0);
+	}
 }
 
 static void rna_Scene_layer_set(PointerRNA *ptr, const int *values)
