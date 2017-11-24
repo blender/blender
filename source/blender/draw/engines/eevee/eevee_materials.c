@@ -1011,7 +1011,7 @@ static void material_opaque(
 		                                     (use_sss) ? psl->sss_pass : psl->material_pass);
 		if (*shgrp) {
 			static int no_ssr = -1;
-			static int first_ssr = 0;
+			static int first_ssr = 1;
 			int *ssr_id = (stl->effects->use_ssr && !use_refract) ? &first_ssr : &no_ssr;
 			add_standard_uniforms(*shgrp, sldata, vedata, ssr_id, &ma->refract_depth, use_refract, false);
 
