@@ -3286,14 +3286,16 @@ void ED_view3d_draw_setup_view(
  */
 ImBuf *ED_view3d_draw_offscreen_imbuf(
         Scene *scene, View3D *v3d, ARegion *ar, int sizex, int sizey,
-        unsigned int flag, bool draw_background,
-        int alpha_mode, int samples, bool full_samples, const char *viewname,
+        unsigned int flag, unsigned int draw_flags,
+        int alpha_mode, int samples, const char *viewname,
         /* output vars */
         GPUFX *fx, GPUOffScreen *ofs, char err_out[256])
 {
 	RegionView3D *rv3d = ar->regiondata;
 	ImBuf *ibuf;
 	const bool draw_sky = (alpha_mode == R_ADDSKY);
+	const bool draw_background = (draw_flags & V3D_OFSDRAW_USE_BACKGROUND);
+	const bool use_full_sample = (draw_flags & V3D_OFSDRAW_USE_FULL_SAMPLE);
 
 	/* view state */
 	GPUFXSettings fx_settings = v3d->fx_settings;
@@ -3309,7 +3311,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 
 	if (own_ofs) {
 		/* bind */
-		ofs = GPU_offscreen_create(sizex, sizey, full_samples ? 0 : samples, err_out);
+		ofs = GPU_offscreen_create(sizex, sizey, use_full_sample ? 0 : samples, err_out);
 		if (ofs == NULL) {
 			return NULL;
 		}
@@ -3354,7 +3356,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 		}
 	}
 
-	if ((samples && full_samples) == 0) {
+	if ((samples && use_full_sample) == 0) {
 		/* Single-pass render, common case */
 		ED_view3d_draw_offscreen(
 		        scene, v3d, ar, sizex, sizey, NULL, winmat,
@@ -3454,8 +3456,8 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
  */
 ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
         Scene *scene, Object *camera, int width, int height,
-        unsigned int flag, int drawtype, bool use_solid_tex, bool use_gpencil, bool draw_background,
-        int alpha_mode, int samples, bool full_samples, const char *viewname,
+        unsigned int flag, unsigned int draw_flags, int drawtype,
+        int alpha_mode, int samples, const char *viewname,
         GPUFX *fx, GPUOffScreen *ofs, char err_out[256])
 {
 	View3D v3d = {NULL};
@@ -3472,13 +3474,13 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
 	v3d.drawtype = drawtype;
 	v3d.flag2 = V3D_RENDER_OVERRIDE;
 	
-	if (use_gpencil)
+	if (draw_flags & V3D_OFSDRAW_USE_GPENCIL)
 		v3d.flag2 |= V3D_SHOW_GPENCIL;
 
-	if (use_solid_tex)
+	if (draw_flags & V3D_OFSDRAW_USE_SOLID_TEX)
 		v3d.flag2 |= V3D_SOLID_TEX;
 		
-	if (draw_background)
+	if (draw_flags & V3D_OFSDRAW_USE_BACKGROUND)
 		v3d.flag3 |= V3D_SHOW_WORLD;
 
 	rv3d.persp = RV3D_CAMOB;
@@ -3507,9 +3509,8 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
 	invert_m4_m4(rv3d.persinv, rv3d.viewinv);
 
 	return ED_view3d_draw_offscreen_imbuf(
-	        scene, &v3d, &ar, width, height, flag,
-	        draw_background, alpha_mode, samples, full_samples, viewname,
-	        fx, ofs, err_out);
+	        scene, &v3d, &ar, width, height, flag, draw_flags,
+	        alpha_mode, samples, viewname, fx, ofs, err_out);
 }
 
 
