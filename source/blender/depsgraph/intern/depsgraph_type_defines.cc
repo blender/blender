@@ -105,6 +105,8 @@ static const char *stringify_opcode(eDepsOperation_Code opcode)
 		/* Animation, Drivers, etc. */
 		STRINGIFY_OPCODE(ANIMATION);
 		STRINGIFY_OPCODE(DRIVER);
+		/* Object related. */
+		STRINGIFY_OPCODE(OBJECT_BASE_FLAGS);
 		/* Transform. */
 		STRINGIFY_OPCODE(TRANSFORM_LOCAL);
 		STRINGIFY_OPCODE(TRANSFORM_PARENT);

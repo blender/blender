@@ -170,6 +170,9 @@ typedef enum eDepsOperation_Code {
 	/* Driver */
 	DEG_OPCODE_DRIVER,
 
+	/* Object related. --------------------------------- */
+	DEG_OPCODE_OBJECT_BASE_FLAGS,
+
 	/* Transform. -------------------------------------- */
 	/* Transform entry point - local transforms only */
 	DEG_OPCODE_TRANSFORM_LOCAL,
