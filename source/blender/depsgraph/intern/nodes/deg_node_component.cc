@@ -165,8 +165,21 @@ string ComponentDepsNode::identifier() const
 
 OperationDepsNode *ComponentDepsNode::find_operation(OperationIDKey key) const
 {
-	OperationDepsNode *node =
-	        (OperationDepsNode *)BLI_ghash_lookup(operations_map, &key);
+	OperationDepsNode *node;
+	if (operations_map != NULL) {
+		node = (OperationDepsNode *)BLI_ghash_lookup(operations_map, &key);
+	}
+	else {
+		BLI_assert(key.name_tag == -1);
+		foreach (OperationDepsNode *op_node, operations) {
+			if (op_node->opcode == key.opcode &&
+			    STREQ(op_node->name, key.name))
+			{
+				node = op_node;
+				break;
+			}
+		}
+	}
 	return node;
 }
 
