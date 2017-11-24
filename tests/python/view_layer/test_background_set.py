@@ -42,13 +42,11 @@ class UnitTesting(ViewLayerTesting):
         # Test if objects were properly added to depsgraph.
         self.assertEqual(3, len(bpy.context.depsgraph.objects))
 
-        # At this point the ideal would be to be able to check if
-        # the objects are not selected and their relationship line
-        # and origin is not visible.
-        #
-        # However we can't check this from the current API
-        # so we either do image comparison, expand the API
-        # (won't work relationship lines) or leave as it is.
+        # We now check if the objects are properly flagged as from set
+        # These objects can't be possible nor show their origins or
+        # relationship lines
+        for ob in bpy.context.depsgraph.objects:
+            self.assertTrue(ob.is_from_set)
 
         # Test if removing is working fine.
         main_scene.background_set = None
