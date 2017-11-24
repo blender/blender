@@ -249,7 +249,9 @@ protected:
 	ComponentDepsNode *get_node(const ComponentKey &key) const;
 	OperationDepsNode *get_node(const OperationKey &key) const;
 	DepsNode *get_node(const RNAPathKey &key) const;
-	OperationDepsNode *has_node(const OperationKey &key) const;
+
+	OperationDepsNode *find_node(const OperationKey &key) const;
+	bool has_node(const OperationKey &key) const;
 
 	void add_time_relation(TimeSourceDepsNode *timesrc,
 	                       DepsNode *node_to,

@@ -281,7 +281,7 @@ DepsNode *DepsgraphRelationBuilder::get_node(const RNAPathKey &key) const
 	return graph_->find_node_from_pointer(&key.ptr, key.prop);
 }
 
-OperationDepsNode *DepsgraphRelationBuilder::has_node(
+OperationDepsNode *DepsgraphRelationBuilder::find_node(
         const OperationKey &key) const
 {
 	IDDepsNode *id_node = graph_->find_id_node(key.id);
@@ -294,6 +294,11 @@ OperationDepsNode *DepsgraphRelationBuilder::has_node(
 		return NULL;
 	}
 	return comp_node->find_operation(key.opcode, key.name, key.name_tag);
+}
+
+bool DepsgraphRelationBuilder::has_node(const OperationKey &key) const
+{
+	return find_node(key) != NULL;
 }
 
 void DepsgraphRelationBuilder::add_time_relation(TimeSourceDepsNode *timesrc,
