@@ -196,8 +196,6 @@ ATTR_NONNULL(1)
 BLI_INLINE void BM_iter_parallel(
         BMesh *bm, const char itype, TaskParallelMempoolFunc func, void *userdata, const bool use_threading)
 {
-	BLI_assert(bm != NULL);
-
 	/* inlining optimizes out this switch when called with the defined type */
 	switch ((BMIterType)itype) {
 		case BM_VERTS_OF_MESH:
