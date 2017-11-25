@@ -339,18 +339,13 @@ float gtao_multibounce(float visibility, vec3 albedo)
 /* Use the right occlusion  */
 float occlusion_compute(vec3 N, vec3 vpos, float user_occlusion, vec2 randuv, out vec3 bent_normal)
 {
-	if ((int(aoSettings) & USE_AO) == 0) {
-		bent_normal = N;
-		return user_occlusion;
-	}
-	else {
+#ifndef USE_REFRACTION
+	if ((int(aoSettings) & USE_AO) > 0) {
 		float visibility;
 		vec3 vnor = mat3(ViewMatrix) * N;
 
 #ifdef ENABLE_DEFERED_AO
-#ifndef USE_REFRACTION
 		gtao_deferred(vnor, vpos, gl_FragCoord.z, visibility, bent_normal);
-#endif
 #else
 		gtao(vnor, vpos, randuv, visibility, bent_normal);
 #endif
@@ -375,4 +370,8 @@ float occlusion_compute(vec3 N, vec3 vpos, float user_occlusion, vec2 randuv, ou
 
 		return min(visibility, user_occlusion);
 	}
+#endif
+
+	bent_normal = N;
+	return user_occlusion;
 }
