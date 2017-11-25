@@ -656,6 +656,8 @@ Closure closure_add(Closure cl1, Closure cl2)
 	return cl;
 }
 
+uniform bool sssToggle;
+
 #if defined(MESH_SHADER) && !defined(USE_ALPHA_HASH) && !defined(USE_ALPHA_CLIP) && !defined(SHADOW_SHADER) && !defined(USE_MULTIPLY)
 layout(location = 0) out vec4 fragColor;
 #ifdef USE_SSS
@@ -700,6 +702,15 @@ void main()
 	sssData = cl.sss_data;
 #ifdef USE_SSS_ALBEDO
 	sssAlbedo = cl.sss_albedo.rgbb;
+#endif
+#endif
+
+	/* For Probe capture */
+#ifdef USE_SSS
+#ifdef USE_SSS_ALBEDO
+	fragColor.rgb += cl.sss_data.rgb * cl.sss_albedo.rgb * float(!sssToggle);
+#else
+	fragColor.rgb += cl.sss_data.rgb * float(!sssToggle);
 #endif
 #endif
 }

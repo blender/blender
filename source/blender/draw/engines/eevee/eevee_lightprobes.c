@@ -267,6 +267,7 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *UNUSED(veda
 		sldata->probes = MEM_callocN(sizeof(EEVEE_LightProbesInfo), "EEVEE_LightProbesInfo");
 		sldata->probes->specular_toggle = true;
 		sldata->probes->ssr_toggle = true;
+		sldata->probes->sss_toggle = true;
 		sldata->probes->grid_initialized = false;
 		sldata->probe_ubo = DRW_uniformbuffer_create(sizeof(EEVEE_LightProbe) * MAX_PROBE, NULL);
 		sldata->grid_ubo = DRW_uniformbuffer_create(sizeof(EEVEE_LightGrid) * MAX_GRID, NULL);
@@ -1009,6 +1010,7 @@ static void render_scene_to_probe(
 	/* Disable specular lighting when rendering probes to avoid feedback loops (looks bad). */
 	sldata->probes->specular_toggle = false;
 	sldata->probes->ssr_toggle = false;
+	sldata->probes->sss_toggle = false;
 
 	/* Disable AO until we find a way to hide really bad discontinuities between cubefaces. */
 	tmp_ao_dist = stl->effects->ao_dist;
@@ -1092,6 +1094,7 @@ static void render_scene_to_probe(
 	/* Restore */
 	pinfo->specular_toggle = true;
 	pinfo->ssr_toggle = true;
+	pinfo->sss_toggle = true;
 	txl->planar_pool = tmp_planar_pool;
 	stl->g_data->minzbuffer = tmp_minz;
 	txl->maxzbuffer = tmp_maxz;
@@ -1139,6 +1142,7 @@ static void render_scene_to_planar(
 	/* Turn off ssr to avoid black specular */
 	/* TODO : Enable SSR in planar reflections? (Would be very heavy) */
 	sldata->probes->ssr_toggle = false;
+	sldata->probes->sss_toggle = false;
 
 	/* Avoid using the texture attached to framebuffer when rendering. */
 	/* XXX */
@@ -1172,6 +1176,7 @@ static void render_scene_to_planar(
 
 	/* Restore */
 	sldata->probes->ssr_toggle = true;
+	sldata->probes->sss_toggle = true;
 	txl->planar_pool = tmp_planar_pool;
 	txl->planar_depth = tmp_planar_depth;
 	DRW_viewport_matrix_override_unset(DRW_MAT_PERS);
