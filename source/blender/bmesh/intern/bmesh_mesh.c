@@ -412,14 +412,16 @@ static void mesh_verts_calc_normals_accum_cb(void *userdata, MempoolIterData *mp
 		 * It also assumes that collisions between threads are highly unlikely,
 		 * else performances would be quite bad here. */
 		float virtual_lock = v_no[0];
-		for (virtual_lock = v_no[0];
-		     (virtual_lock == FLT_MAX) || (atomic_cas_float(&v_no[0], virtual_lock, FLT_MAX) != virtual_lock);
-		     virtual_lock = v_no[0])
-		{
+		while (true) {
 			/* This loops until following conditions are met:
 			 *   - v_no[0] has same value as virtual_lock (i.e. it did not change since last try).
-			 *   - v_no_[0] was not FLT_MAX, i.e. it was not locked by another thread.
+			 *   - v_no[0] was not FLT_MAX, i.e. it was not locked by another thread.
 			 */
+			const float vl = atomic_cas_float(&v_no[0], virtual_lock, FLT_MAX);
+			if (vl == virtual_lock && vl != FLT_MAX) {
+				break;
+			}
+			virtual_lock = vl;
 		}
 		BLI_assert(v_no[0] == FLT_MAX);
 		/* Now we own that normal value, and can change it.
