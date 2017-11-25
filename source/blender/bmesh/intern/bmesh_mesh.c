@@ -412,18 +412,24 @@ static void mesh_verts_calc_normals_accum_cb(void *userdata, MempoolIterData *mp
 		 * It also assumes that collisions between threads are highly unlikely,
 		 * else performances would be quite bad here. */
 		float virtual_lock = v_no[0];
-		while ((virtual_lock = atomic_cas_float(&v_no[0], virtual_lock, FLT_MAX)) == FLT_MAX) {
+		for (virtual_lock = v_no[0];
+		     (virtual_lock == FLT_MAX) || (atomic_cas_float(&v_no[0], virtual_lock, FLT_MAX) != virtual_lock);
+		     virtual_lock = v_no[0])
+		{
 			/* This loops until following conditions are met:
 			 *   - v_no[0] has same value as virtual_lock (i.e. it did not change since last try).
 			 *   - v_no_[0] was not FLT_MAX, i.e. it was not locked by another thread.
 			 */
 		}
+		BLI_assert(v_no[0] == FLT_MAX);
 		/* Now we own that normal value, and can change it.
 		 * But first scalar of the vector must not be changed yet, it's our lock! */
 		virtual_lock += f_no[0] * fac;
 		v_no[1] += f_no[1] * fac;
 		v_no[2] += f_no[2] * fac;
 		/* Second atomic operation to 'release' our lock on that vector and set its first scalar value. */
+		/* Note that we do not need to loop here, since we 'locked' v_no[0],
+		 * nobody should have changed it in the mean time. */
 		virtual_lock = atomic_cas_float(&v_no[0], FLT_MAX, virtual_lock);
 		BLI_assert(virtual_lock == FLT_MAX);
 
