@@ -88,7 +88,7 @@ typedef struct WorkSpace {
 	/* Custom transform orientations */
 	ListBase transform_orientations DNA_PRIVATE_WORKSPACE;
 
-	int object_mode DNA_PRIVATE_WORKSPACE; /* enum eObjectMode */
+	int pad;
 	int flags DNA_PRIVATE_WORKSPACE; /* enum eWorkSpaceFlags */
 
 	/* should be: '#ifdef USE_WORKSPACE_TOOL'. */

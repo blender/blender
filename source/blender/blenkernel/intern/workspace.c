@@ -388,13 +388,22 @@ void BKE_workspace_active_screen_set(WorkSpaceInstanceHook *hook, WorkSpace *wor
 #ifdef USE_WORKSPACE_MODE
 eObjectMode BKE_workspace_object_mode_get(const WorkSpace *workspace)
 {
-	return workspace->object_mode;
+	Base *active_base = BKE_workspace_active_base_get(workspace);
+	return active_base ? active_base->object->mode : OB_MODE_OBJECT;
 }
 void BKE_workspace_object_mode_set(WorkSpace *workspace, const eObjectMode mode)
 {
-	workspace->object_mode = mode;
+	Base *active_base = BKE_workspace_active_base_get(workspace);
+	if (active_base) {
+		active_base->object->mode = mode;
+	}
 }
 #endif
+
+Base *BKE_workspace_active_base_get(const WorkSpace *workspace)
+{
+	return workspace->view_layer->basact;
+}
 
 ListBase *BKE_workspace_transform_orientations_get(WorkSpace *workspace)
 {
