@@ -156,6 +156,18 @@ static void bm_rotate_edges_shared(
 
 				if (ok) {
 					float cost = bm_edge_calc_rotate_cost(e);
+					if (pass_type == PASS_TYPE_BOUNDARY) {
+						/* Trick to ensure once started, non boundaries are handled before other boundary edges.
+						 * This means the first longest boundary defines the starting point which is rotated
+						 * until all its connected edges are exhausted and the next boundary is popped off the heap.
+						 *
+						 * Without this we may rotate from different starting points and meet in the middle
+						 * with obviously uneven topology.
+						 *
+						 * Move from negative to positive value, inverting so large values are still handled first.
+						 */
+						cost = cost != 0.0f ? -1.0f / cost : FLT_MAX;
+					}
 					eheap_table[i] = BLI_heap_insert(heap, cost, e);
 				}
 			}
