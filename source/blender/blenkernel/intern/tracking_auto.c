@@ -30,6 +30,7 @@
  */
 
 #include <stdlib.h>
+#include "atomic_ops.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -38,6 +39,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_listbase.h"
+#include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_math.h"
 
@@ -86,6 +88,8 @@ typedef struct AutoTrackContext {
 	int sync_frame;
 	bool first_sync;
 	SpinLock spin_lock;
+
+	bool step_ok;
 } AutoTrackContext;
 
 static void normalized_to_libmv_frame(const float normalized[2],
@@ -379,81 +383,89 @@ AutoTrackContext *BKE_autotrack_context_new(MovieClip *clip,
 	return context;
 }
 
+static void autotrack_context_step_cb(void *userdata, int track)
+{
+	AutoTrackContext *context = userdata;
+	const int frame_delta = context->backwards ? -1 : 1;
+
+	AutoTrackOptions *options = &context->options[track];
+	if (options->is_failed) {
+		return;
+	}
+	libmv_Marker libmv_current_marker,
+	             libmv_reference_marker,
+	             libmv_tracked_marker;
+	libmv_TrackRegionResult libmv_result;
+	const int frame = BKE_movieclip_remap_scene_to_clip_frame(
+	        context->clips[options->clip_index],
+	        context->user.framenr);
+	BLI_spin_lock(&context->spin_lock);
+	const bool has_marker = libmv_autoTrackGetMarker(context->autotrack,
+	                                                 options->clip_index,
+	                                                 frame,
+	                                                 options->track_index,
+	                                                 &libmv_current_marker);
+	BLI_spin_unlock(&context->spin_lock);
+	/* Check whether we've got marker to sync with. */
+	if (!has_marker) {
+		return;
+	}
+	/* Check whether marker is going outside of allowed frame margin. */
+	if (!tracking_check_marker_margin(&libmv_current_marker,
+	                                  options->track->margin,
+	                                  context->frame_width,
+	                                  context->frame_height))
+	{
+		return;
+	}
+	libmv_tracked_marker = libmv_current_marker;
+	libmv_tracked_marker.frame = frame + frame_delta;
+	/* Update reference frame. */
+	if (options->use_keyframe_match) {
+		libmv_tracked_marker.reference_frame =
+		        libmv_current_marker.reference_frame;
+		libmv_autoTrackGetMarker(context->autotrack,
+	                             options->clip_index,
+	                             libmv_tracked_marker.reference_frame,
+	                             options->track_index,
+	                             &libmv_reference_marker);
+	}
+	else {
+		libmv_tracked_marker.reference_frame = frame;
+		libmv_reference_marker = libmv_current_marker;
+	}
+	/* Perform actual tracking. */
+	if (libmv_autoTrackMarker(context->autotrack,
+	                          &options->track_region_options,
+	                          &libmv_tracked_marker,
+	                          &libmv_result))
+	{
+		BLI_spin_lock(&context->spin_lock);
+		libmv_autoTrackAddMarker(context->autotrack, &libmv_tracked_marker);
+		BLI_spin_unlock(&context->spin_lock);
+	}
+	else {
+		options->is_failed = true;
+		options->failed_frame = frame + frame_delta;
+	}
+
+	/* Note: Atomic is probably not actually needed here, I doubt we could get any other result than a true bool anyway.
+	 *       But for sake of consistency, and since it costs nothing... */
+	atomic_fetch_and_or_uint8((uint8_t *)&context->step_ok, true);
+}
+
 bool BKE_autotrack_context_step(AutoTrackContext *context)
 {
 	const int frame_delta = context->backwards ? -1 : 1;
-	bool ok = false;
-	int track;
+	context->step_ok = false;
 
-#pragma omp parallel for if (context->num_tracks > 1)
-	for (track = 0; track < context->num_tracks; ++track) {
-		AutoTrackOptions *options = &context->options[track];
-		if (options->is_failed) {
-			continue;
-		}
-		libmv_Marker libmv_current_marker,
-		             libmv_reference_marker,
-		             libmv_tracked_marker;
-		libmv_TrackRegionResult libmv_result;
-		const int frame = BKE_movieclip_remap_scene_to_clip_frame(
-		        context->clips[options->clip_index],
-		        context->user.framenr);
-		BLI_spin_lock(&context->spin_lock);
-		const bool has_marker = libmv_autoTrackGetMarker(context->autotrack,
-		                                                 options->clip_index,
-		                                                 frame,
-		                                                 options->track_index,
-		                                                 &libmv_current_marker);
-		BLI_spin_unlock(&context->spin_lock);
-		/* Check whether we've got marker to sync with. */
-		if (!has_marker) {
-			continue;
-		}
-		/* Check whether marker is going outside of allowed frame margin. */
-		if (!tracking_check_marker_margin(&libmv_current_marker,
-		                                  options->track->margin,
-		                                  context->frame_width,
-		                                  context->frame_height))
-		{
-			continue;
-		}
-		libmv_tracked_marker = libmv_current_marker;
-		libmv_tracked_marker.frame = frame + frame_delta;
-		/* Update reference frame. */
-		if (options->use_keyframe_match) {
-			libmv_tracked_marker.reference_frame =
-			        libmv_current_marker.reference_frame;
-			libmv_autoTrackGetMarker(context->autotrack,
-		                             options->clip_index,
-		                             libmv_tracked_marker.reference_frame,
-		                             options->track_index,
-		                             &libmv_reference_marker);
-		}
-		else {
-			libmv_tracked_marker.reference_frame = frame;
-			libmv_reference_marker = libmv_current_marker;
-		}
-		/* Perform actual tracking. */
-		if (libmv_autoTrackMarker(context->autotrack,
-		                          &options->track_region_options,
-		                          &libmv_tracked_marker,
-		                          &libmv_result))
-		{
-			BLI_spin_lock(&context->spin_lock);
-			libmv_autoTrackAddMarker(context->autotrack, &libmv_tracked_marker);
-			BLI_spin_unlock(&context->spin_lock);
-		}
-		else {
-			options->is_failed = true;
-			options->failed_frame = frame + frame_delta;
-		}
-		ok = true;
-	}
+	BLI_task_parallel_range(0, context->num_tracks, context, autotrack_context_step_cb, context->num_tracks > 1);
+
 	/* Advance the frame. */
 	BLI_spin_lock(&context->spin_lock);
 	context->user.framenr += frame_delta;
 	BLI_spin_unlock(&context->spin_lock);
-	return ok;
+	return context->step_ok;
 }
 
 void BKE_autotrack_context_sync(AutoTrackContext *context)

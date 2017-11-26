@@ -40,6 +40,7 @@ set(INC_SYS
 )
 
 set(SRC
+	# Naming convention for BMesh operators is: bmo_*action*_*details*.c
 	operators/bmo_beautify.c
 	operators/bmo_bevel.c
 	operators/bmo_bisect_plane.c
@@ -68,6 +69,7 @@ set(SRC
 	operators/bmo_poke.c
 	operators/bmo_primitive.c
 	operators/bmo_removedoubles.c
+	operators/bmo_rotate_edges.c
 	operators/bmo_similar.c
 	operators/bmo_smooth_laplacian.c
 	operators/bmo_split_edges.c

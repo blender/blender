@@ -115,37 +115,24 @@ void BM_mesh_elem_toolflags_ensure(BMesh *bm)
 	bm->etoolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), bm->totedge, 512, BLI_MEMPOOL_NOP);
 	bm->ftoolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), bm->totface, 512, BLI_MEMPOOL_NOP);
 
-#pragma omp parallel sections if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
-	{
-#pragma omp section
-		{
-			BLI_mempool *toolflagpool = bm->vtoolflagpool;
-			BMIter iter;
-			BMVert_OFlag *ele;
-			BM_ITER_MESH (ele, &iter, bm, BM_VERTS_OF_MESH) {
-				ele->oflags = BLI_mempool_calloc(toolflagpool);
-			}
-		}
-#pragma omp section
-		{
-			BLI_mempool *toolflagpool = bm->etoolflagpool;
-			BMIter iter;
-			BMEdge_OFlag *ele;
-			BM_ITER_MESH (ele, &iter, bm, BM_EDGES_OF_MESH) {
-				ele->oflags = BLI_mempool_calloc(toolflagpool);
-			}
-		}
-#pragma omp section
-		{
-			BLI_mempool *toolflagpool = bm->ftoolflagpool;
-			BMIter iter;
-			BMFace_OFlag *ele;
-			BM_ITER_MESH (ele, &iter, bm, BM_FACES_OF_MESH) {
-				ele->oflags = BLI_mempool_calloc(toolflagpool);
-			}
-		}
+	BMIter iter;
+	BMVert_OFlag *v_olfag;
+	BLI_mempool *toolflagpool = bm->vtoolflagpool;
+	BM_ITER_MESH (v_olfag, &iter, bm, BM_VERTS_OF_MESH) {
+		v_olfag->oflags = BLI_mempool_calloc(toolflagpool);
 	}
 
+	BMEdge_OFlag *e_olfag;
+	toolflagpool = bm->etoolflagpool;
+	BM_ITER_MESH (e_olfag, &iter, bm, BM_EDGES_OF_MESH) {
+		e_olfag->oflags = BLI_mempool_calloc(toolflagpool);
+	}
+
+	BMFace_OFlag *f_olfag;
+	toolflagpool = bm->ftoolflagpool;
+	BM_ITER_MESH (f_olfag, &iter, bm, BM_FACES_OF_MESH) {
+		f_olfag->oflags = BLI_mempool_calloc(toolflagpool);
+	}
 
 	bm->totflags = 1;
 }
@@ -412,18 +399,26 @@ static void mesh_verts_calc_normals_accum_cb(void *userdata, MempoolIterData *mp
 		 * It also assumes that collisions between threads are highly unlikely,
 		 * else performances would be quite bad here. */
 		float virtual_lock = v_no[0];
-		while ((virtual_lock = atomic_cas_float(&v_no[0], virtual_lock, FLT_MAX)) == FLT_MAX) {
+		while (true) {
 			/* This loops until following conditions are met:
 			 *   - v_no[0] has same value as virtual_lock (i.e. it did not change since last try).
-			 *   - v_no_[0] was not FLT_MAX, i.e. it was not locked by another thread.
+			 *   - v_no[0] was not FLT_MAX, i.e. it was not locked by another thread.
 			 */
+			const float vl = atomic_cas_float(&v_no[0], virtual_lock, FLT_MAX);
+			if (vl == virtual_lock && vl != FLT_MAX) {
+				break;
+			}
+			virtual_lock = vl;
 		}
+		BLI_assert(v_no[0] == FLT_MAX);
 		/* Now we own that normal value, and can change it.
 		 * But first scalar of the vector must not be changed yet, it's our lock! */
 		virtual_lock += f_no[0] * fac;
 		v_no[1] += f_no[1] * fac;
 		v_no[2] += f_no[2] * fac;
 		/* Second atomic operation to 'release' our lock on that vector and set its first scalar value. */
+		/* Note that we do not need to loop here, since we 'locked' v_no[0],
+		 * nobody should have changed it in the mean time. */
 		virtual_lock = atomic_cas_float(&v_no[0], FLT_MAX, virtual_lock);
 		BLI_assert(virtual_lock == FLT_MAX);
 
@@ -1150,93 +1145,77 @@ void BM_mesh_elem_index_ensure(BMesh *bm, const char htype)
 	BM_ELEM_INDEX_VALIDATE(bm, "Should Never Fail!", __func__);
 #endif
 
-	if (htype_needed == 0) {
+	if (0 && htype_needed == 0) {
 		goto finally;
 	}
 
-	/* skip if we only need to operate on one element */
-#pragma omp parallel sections if ((!ELEM(htype_needed, BM_VERT, BM_EDGE, BM_FACE, BM_LOOP, BM_FACE | BM_LOOP)) && \
-	                              (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT))
-	{
-#pragma omp section
+	if (htype & BM_VERT) {
+		if (bm->elem_index_dirty & BM_VERT) {
+			BMIter iter;
+			BMElem *ele;
 
-		{
-			if (htype & BM_VERT) {
-				if (bm->elem_index_dirty & BM_VERT) {
-					BMIter iter;
-					BMElem *ele;
-
-					int index;
-					BM_ITER_MESH_INDEX (ele, &iter, bm, BM_VERTS_OF_MESH, index) {
-						BM_elem_index_set(ele, index); /* set_ok */
-					}
-					BLI_assert(index == bm->totvert);
-				}
-				else {
-					// printf("%s: skipping vert index calc!\n", __func__);
-				}
+			int index;
+			BM_ITER_MESH_INDEX (ele, &iter, bm, BM_VERTS_OF_MESH, index) {
+				BM_elem_index_set(ele, index); /* set_ok */
 			}
+			BLI_assert(index == bm->totvert);
 		}
-
-#pragma omp section
-		{
-			if (htype & BM_EDGE) {
-				if (bm->elem_index_dirty & BM_EDGE) {
-					BMIter iter;
-					BMElem *ele;
-
-					int index;
-					BM_ITER_MESH_INDEX (ele, &iter, bm, BM_EDGES_OF_MESH, index) {
-						BM_elem_index_set(ele, index); /* set_ok */
-					}
-					BLI_assert(index == bm->totedge);
-				}
-				else {
-					// printf("%s: skipping edge index calc!\n", __func__);
-				}
-			}
-		}
-
-#pragma omp section
-		{
-			if (htype & (BM_FACE | BM_LOOP)) {
-				if (bm->elem_index_dirty & (BM_FACE | BM_LOOP)) {
-					BMIter iter;
-					BMElem *ele;
-
-					const bool update_face = (htype & BM_FACE) && (bm->elem_index_dirty & BM_FACE);
-					const bool update_loop = (htype & BM_LOOP) && (bm->elem_index_dirty & BM_LOOP);
-
-					int index;
-					int index_loop = 0;
-
-					BM_ITER_MESH_INDEX (ele, &iter, bm, BM_FACES_OF_MESH, index) {
-						if (update_face) {
-							BM_elem_index_set(ele, index); /* set_ok */
-						}
-
-						if (update_loop) {
-							BMLoop *l_iter, *l_first;
-
-							l_iter = l_first = BM_FACE_FIRST_LOOP((BMFace *)ele);
-							do {
-								BM_elem_index_set(l_iter, index_loop++); /* set_ok */
-							} while ((l_iter = l_iter->next) != l_first);
-						}
-					}
-
-					BLI_assert(index == bm->totface);
-					if (update_loop) {
-						BLI_assert(index_loop == bm->totloop);
-					}
-				}
-				else {
-					// printf("%s: skipping face/loop index calc!\n", __func__);
-				}
-			}
+		else {
+			// printf("%s: skipping vert index calc!\n", __func__);
 		}
 	}
 
+	if (htype & BM_EDGE) {
+		if (bm->elem_index_dirty & BM_EDGE) {
+			BMIter iter;
+			BMElem *ele;
+
+			int index;
+			BM_ITER_MESH_INDEX (ele, &iter, bm, BM_EDGES_OF_MESH, index) {
+				BM_elem_index_set(ele, index); /* set_ok */
+			}
+			BLI_assert(index == bm->totedge);
+		}
+		else {
+			// printf("%s: skipping edge index calc!\n", __func__);
+		}
+	}
+
+	if (htype & (BM_FACE | BM_LOOP)) {
+		if (bm->elem_index_dirty & (BM_FACE | BM_LOOP)) {
+			BMIter iter;
+			BMElem *ele;
+
+			const bool update_face = (htype & BM_FACE) && (bm->elem_index_dirty & BM_FACE);
+			const bool update_loop = (htype & BM_LOOP) && (bm->elem_index_dirty & BM_LOOP);
+
+			int index;
+			int index_loop = 0;
+
+			BM_ITER_MESH_INDEX (ele, &iter, bm, BM_FACES_OF_MESH, index) {
+				if (update_face) {
+					BM_elem_index_set(ele, index); /* set_ok */
+				}
+
+				if (update_loop) {
+					BMLoop *l_iter, *l_first;
+
+					l_iter = l_first = BM_FACE_FIRST_LOOP((BMFace *)ele);
+					do {
+						BM_elem_index_set(l_iter, index_loop++); /* set_ok */
+					} while ((l_iter = l_iter->next) != l_first);
+				}
+			}
+
+			BLI_assert(index == bm->totface);
+			if (update_loop) {
+				BLI_assert(index_loop == bm->totloop);
+			}
+		}
+		else {
+			// printf("%s: skipping face/loop index calc!\n", __func__);
+		}
+	}
 
 finally:
 	bm->elem_index_dirty &= ~htype;
@@ -1409,28 +1388,16 @@ void BM_mesh_elem_table_ensure(BMesh *bm, const char htype)
 		}
 	}
 
-	/* skip if we only need to operate on one element */
-#pragma omp parallel sections if ((!ELEM(htype_needed, BM_VERT, BM_EDGE, BM_FACE)) && \
-	                              (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT))
-	{
-#pragma omp section
-		{
-			if (htype_needed & BM_VERT) {
-				BM_iter_as_array(bm, BM_VERTS_OF_MESH, NULL, (void **)bm->vtable, bm->totvert);
-			}
-		}
-#pragma omp section
-		{
-			if (htype_needed & BM_EDGE) {
-				BM_iter_as_array(bm, BM_EDGES_OF_MESH, NULL, (void **)bm->etable, bm->totedge);
-			}
-		}
-#pragma omp section
-		{
-			if (htype_needed & BM_FACE) {
-				BM_iter_as_array(bm, BM_FACES_OF_MESH, NULL, (void **)bm->ftable, bm->totface);
-			}
-		}
+	if (htype_needed & BM_VERT) {
+		BM_iter_as_array(bm, BM_VERTS_OF_MESH, NULL, (void **)bm->vtable, bm->totvert);
+	}
+
+	if (htype_needed & BM_EDGE) {
+		BM_iter_as_array(bm, BM_EDGES_OF_MESH, NULL, (void **)bm->etable, bm->totedge);
+	}
+
+	if (htype_needed & BM_FACE) {
+		BM_iter_as_array(bm, BM_FACES_OF_MESH, NULL, (void **)bm->ftable, bm->totface);
 	}
 
 finally:

@@ -2768,6 +2768,8 @@ static const EnumPropertyItem prop_gpencil_drawmodes[] = {
 
 void GPENCIL_OT_draw(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Grease Pencil Draw";
 	ot->idname = "GPENCIL_OT_draw";
@@ -2784,11 +2786,12 @@ void GPENCIL_OT_draw(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING;
 	
 	/* settings for drawing */
-	PropertyRNA *prop;
 	ot->prop = RNA_def_enum(ot->srna, "mode", prop_gpencil_drawmodes, 0, "Mode", "Way to interpret mouse movements");
+
 	prop = RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	
 	/* NOTE: wait for input is enabled by default, so that all UI code can work properly without needing users to know about this */
-	RNA_def_boolean(ot->srna, "wait_for_input", true, "Wait for Input", "Wait for first click instead of painting immediately");
+	prop = RNA_def_boolean(ot->srna, "wait_for_input", true, "Wait for Input", "Wait for first click instead of painting immediately");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
