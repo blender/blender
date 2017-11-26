@@ -658,87 +658,18 @@ void ED_mask_draw(const bContext *C,
 	draw_masklays(C, mask, draw_flag, draw_type, width, height, xscale * aspx, yscale * aspy);
 }
 
-typedef struct ThreadedMaskRasterizeState {
-	MaskRasterHandle *handle;
-	float *buffer;
-	int width, height;
-} ThreadedMaskRasterizeState;
-
-typedef struct ThreadedMaskRasterizeData {
-	int start_scanline;
-	int num_scanlines;
-} ThreadedMaskRasterizeData;
-
-static void mask_rasterize_func(TaskPool * __restrict pool, void *taskdata, int UNUSED(threadid))
+static float *mask_rasterize(Mask *mask, const int width, const int height)
 {
-	ThreadedMaskRasterizeState *state = (ThreadedMaskRasterizeState *) BLI_task_pool_userdata(pool);
-	ThreadedMaskRasterizeData *data = (ThreadedMaskRasterizeData *) taskdata;
-	int scanline;
-	const float x_inv = 1.0f / (float)state->width;
-	const float y_inv = 1.0f / (float)state->height;
-	const float x_px_ofs = x_inv * 0.5f;
-	const float y_px_ofs = y_inv * 0.5f;
-
-	for (scanline = 0; scanline < data->num_scanlines; scanline++) {
-		float xy[2];
-		int x, y = data->start_scanline + scanline;
-
-		xy[1] = ((float)y * y_inv) + y_px_ofs;
-
-		for (x = 0; x < state->width; x++) {
-			int index = y * state->width + x;
-
-			xy[0] = ((float)x * x_inv) + x_px_ofs;
-
-			state->buffer[index] = BKE_maskrasterize_handle_sample(state->handle, xy);
-		}
-	}
-}
-
-static float *threaded_mask_rasterize(Mask *mask, const int width, const int height)
-{
-	TaskScheduler *task_scheduler = BLI_task_scheduler_get();
-	TaskPool *task_pool;
 	MaskRasterHandle *handle;
-	ThreadedMaskRasterizeState state;
-	float *buffer;
-	int i, num_threads = BLI_task_scheduler_num_threads(task_scheduler), scanlines_per_thread;
-
-	buffer = MEM_mallocN(sizeof(float) * height * width, "rasterized mask buffer");
+	float *buffer = MEM_mallocN(sizeof(float) * height * width, "rasterized mask buffer");
 
 	/* Initialize rasterization handle. */
 	handle = BKE_maskrasterize_handle_new();
 	BKE_maskrasterize_handle_init(handle, mask, width, height, true, true, true);
 
-	state.handle = handle;
-	state.buffer = buffer;
-	state.width = width;
-	state.height = height;
-
-	task_pool = BLI_task_pool_create(task_scheduler, &state);
-
-	scanlines_per_thread = height / num_threads;
-	for (i = 0; i < num_threads; i++) {
-		ThreadedMaskRasterizeData *data = MEM_mallocN(sizeof(ThreadedMaskRasterizeData),
-		                                                "threaded mask rasterize data");
-
-		data->start_scanline = i * scanlines_per_thread;
-
-		if (i < num_threads - 1) {
-			data->num_scanlines = scanlines_per_thread;
-		}
-		else {
-			data->num_scanlines = height - data->start_scanline;
-		}
-
-		BLI_task_pool_push(task_pool, mask_rasterize_func, data, true, TASK_PRIORITY_LOW);
-	}
-
-	/* work and wait until tasks are done */
-	BLI_task_pool_work_and_wait(task_pool);
+	BKE_maskrasterize_buffer(handle, width, height, buffer);
 
 	/* Free memory. */
-	BLI_task_pool_free(task_pool);
 	BKE_maskrasterize_handle_free(handle);
 
 	return buffer;
@@ -802,7 +733,7 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 	}
 
 	if (draw_flag & MASK_DRAWFLAG_OVERLAY) {
-		float *buffer = threaded_mask_rasterize(mask, width, height);
+		float *buffer = mask_rasterize(mask, width, height);
 		int format;
 
 		if (overlay_mode == MASK_OVERLAY_ALPHACHANNEL) {

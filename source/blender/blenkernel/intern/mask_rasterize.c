@@ -1456,14 +1456,7 @@ static void maskrasterize_buffer_cb(void *userdata, int y)
 }
 
 /**
- * \brief Rasterize a buffer from a single mask
- *
- * We could get some speedup by inlining #BKE_maskrasterize_handle_sample
- * and calculating each layer then blending buffers, but this function is only
- * used by the sequencer - so better have the caller thread.
- *
- * Since #BKE_maskrasterize_handle_sample is used threaded elsewhere,
- * we can simply use openmp here for some speedup.
+ * \brief Rasterize a buffer from a single mask (threaded execution).
  */
 void BKE_maskrasterize_buffer(MaskRasterHandle *mr_handle,
                               const unsigned int width, const unsigned int height,
