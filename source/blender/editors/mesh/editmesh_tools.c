@@ -1531,7 +1531,9 @@ void MESH_OT_flip_normals(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* only accepts 1 selected edge, or 2 selected faces */
+/**
+ * Rotate the edges between selected faces, otherwise rotate the selected edges.
+ */
 static int edbm_edge_rotate_selected_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
