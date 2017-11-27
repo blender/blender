@@ -156,6 +156,7 @@ void color3ubv_from_seq(Scene *curscene, Sequence *seq, unsigned char col[3])
 		case SEQ_TYPE_MULTICAM:
 		case SEQ_TYPE_ADJUSTMENT:
 		case SEQ_TYPE_GAUSSIAN_BLUR:
+		case SEQ_TYPE_COLORMIX:
 			UI_GetThemeColor3ubv(TH_SEQ_EFFECT, col);
 
 			/* slightly offset hue to distinguish different effects */
@@ -170,6 +171,7 @@ void color3ubv_from_seq(Scene *curscene, Sequence *seq, unsigned char col[3])
 			else if (seq->type == SEQ_TYPE_MULTICAM)      rgb_byte_set_hue_float_offset(col, 0.32);
 			else if (seq->type == SEQ_TYPE_ADJUSTMENT)    rgb_byte_set_hue_float_offset(col, 0.40);
 			else if (seq->type == SEQ_TYPE_GAUSSIAN_BLUR) rgb_byte_set_hue_float_offset(col, 0.42);
+			else if (seq->type == SEQ_TYPE_COLORMIX)      rgb_byte_set_hue_float_offset(col, 0.46);
 			break;
 
 		case SEQ_TYPE_COLOR:

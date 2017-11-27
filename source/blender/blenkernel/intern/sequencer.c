@@ -1160,6 +1160,7 @@ static const char *give_seqname_by_type(int type)
 		case SEQ_TYPE_ALPHAOVER:     return "Alpha Over";
 		case SEQ_TYPE_ALPHAUNDER:    return "Alpha Under";
 		case SEQ_TYPE_OVERDROP:      return "Over Drop";
+		case SEQ_TYPE_COLORMIX:      return "Color Mix";
 		case SEQ_TYPE_WIPE:          return "Wipe";
 		case SEQ_TYPE_GLOW:          return "Glow";
 		case SEQ_TYPE_TRANSFORM:     return "Transform";
