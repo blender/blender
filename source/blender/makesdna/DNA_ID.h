@@ -339,7 +339,7 @@ enum {
 	 * Also used internally in readfile.c to mark datablocks needing do_versions. */
 	LIB_TAG_NEW             = 1 << 8,
 	/* RESET_BEFORE_USE free test flag.
-     * TODO make it a RESET_AFTER_USE too. */
+	 * TODO make it a RESET_AFTER_USE too. */
 	LIB_TAG_DOIT            = 1 << 10,
 	/* RESET_AFTER_USE tag existing data before linking so we know what is new. */
 	LIB_TAG_PRE_EXISTING    = 1 << 11,
