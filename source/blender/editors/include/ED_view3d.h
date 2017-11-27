@@ -385,17 +385,29 @@ void ED_view3d_draw_setup_view(
         struct wmWindow *win, const struct EvaluationContext *eval_ctx, struct Scene *scene, struct ARegion *ar, struct View3D *v3d,
         float viewmat[4][4], float winmat[4][4], const struct rcti *rect);
 
+enum {
+	V3D_OFSDRAW_NONE             = (0),
+
+	V3D_OFSDRAW_USE_BACKGROUND   = (1 << 0),
+	V3D_OFSDRAW_USE_FULL_SAMPLE  = (1 << 1),
+
+	/* Only works with ED_view3d_draw_offscreen_imbuf_simple(). */
+	V3D_OFSDRAW_USE_GPENCIL      = (1 << 2),
+	V3D_OFSDRAW_USE_SOLID_TEX    = (1 << 2),
+	V3D_OFSDRAW_USE_CAMERA_DOF   = (1 << 3),
+};
+
 struct ImBuf *ED_view3d_draw_offscreen_imbuf(
         const struct EvaluationContext *eval_ctx, struct Scene *scene,
         struct ViewLayer *view_layer, struct View3D *v3d, struct ARegion *ar,
-        int sizex, int sizey, unsigned int flag, bool draw_background,
-        int alpha_mode, int samples, bool full_samples, const char *viewname,
+        int sizex, int sizey, unsigned int flag, unsigned int draw_flags,
+        int alpha_mode, int samples, const char *viewname,
         struct GPUFX *fx, struct GPUOffScreen *ofs, char err_out[256]);
 struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
         const struct EvaluationContext *eval_ctx, struct Scene *scene,
         struct ViewLayer *view_layer, struct Object *camera, int width, int height,
-        unsigned int flag, int drawtype, bool use_solid_tex, bool use_gpencil, bool draw_background,
-        int alpha_mode, int samples, bool full_samples, const char *viewname,
+        unsigned int flag, unsigned int draw_flags, int drawtype, int alpha_mode,
+        int samples, const char *viewname,
         struct GPUFX *fx, struct GPUOffScreen *ofs, char err_out[256]);
 
 struct Base *ED_view3d_give_base_under_cursor(struct bContext *C, const int mval[2]);

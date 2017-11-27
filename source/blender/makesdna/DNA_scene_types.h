@@ -1747,9 +1747,12 @@ typedef struct Scene {
 #define R_USE_WS_SHADING	0x8000000 /* use world space interpretation of lighting data */
 
 /* seq_flag */
-// #define R_SEQ_GL_PREV 1  // UNUSED, we just use setting from seq_prev_type now.
-// #define R_SEQ_GL_REND 2  // UNUSED, opengl render has its own operator now.
-#define R_SEQ_SOLID_TEX 4
+enum {
+	// R_SEQ_GL_PREV = (1 << 1),  // UNUSED, we just use setting from seq_prev_type now.
+	// R_SEQ_GL_REND = (1 << 2),  // UNUSED, opengl render has its own operator now.
+	R_SEQ_SOLID_TEX  = (1 << 3),
+	R_SEQ_CAMERA_DOF = (1 << 4),
+};
 
 /* displaymode */
 

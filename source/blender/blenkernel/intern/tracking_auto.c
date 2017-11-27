@@ -449,8 +449,10 @@ static void autotrack_context_step_cb(void *userdata, int track)
 		options->failed_frame = frame + frame_delta;
 	}
 
-	/* Note: Atomic is probably not actually needed here, I doubt we could get any other result than a true bool anyway.
-	 *       But for sake of consistency, and since it costs nothing... */
+	/* Note: Atomic is probably not actually needed here, I doubt we could get
+	 *       any other result than a true bool anyway.
+	 *       But for sake of consistency, and since it costs nothing...
+	 */
 	atomic_fetch_and_or_uint8((uint8_t *)&context->step_ok, true);
 }
 
@@ -459,7 +461,10 @@ bool BKE_autotrack_context_step(AutoTrackContext *context)
 	const int frame_delta = context->backwards ? -1 : 1;
 	context->step_ok = false;
 
-	BLI_task_parallel_range(0, context->num_tracks, context, autotrack_context_step_cb, context->num_tracks > 1);
+	BLI_task_parallel_range(0, context->num_tracks,
+	                        context,
+	                        autotrack_context_step_cb,
+	                        context->num_tracks > 1);
 
 	/* Advance the frame. */
 	BLI_spin_lock(&context->spin_lock);
@@ -567,8 +572,9 @@ void BKE_autotrack_context_finish(AutoTrackContext *context)
 			if ((plane_track->flag & PLANE_TRACK_AUTOKEY) == 0) {
 				int track;
 				for (track = 0; track < context->num_tracks; ++track) {
-					if (BKE_tracking_plane_track_has_point_track(plane_track,
-					                                             context->options[track].track))
+					if (BKE_tracking_plane_track_has_point_track(
+					            plane_track,
+					            context->options[track].track))
 					{
 						BKE_tracking_track_plane_from_existing_motion(
 						        plane_track,

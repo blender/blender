@@ -352,11 +352,15 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 		ImBuf *ibuf_view;
 		const int alpha_mode = (draw_sky) ? R_ADDSKY : R_ALPHAPREMUL;
 
+		unsigned int draw_flags = V3D_OFSDRAW_NONE;
+		draw_flags |= (oglrender->ofs_full_samples) ? V3D_OFSDRAW_USE_FULL_SAMPLE : 0;
+
 		if (view_context) {
+			draw_flags |= (draw_bgpic) ? V3D_OFSDRAW_USE_BACKGROUND : 0;
+
 			ibuf_view = ED_view3d_draw_offscreen_imbuf(
 			       &eval_ctx, scene, view_layer, v3d, ar, sizex, sizey,
-			       IB_rect, draw_bgpic,
-			       alpha_mode, oglrender->ofs_samples, oglrender->ofs_full_samples, viewname,
+			       IB_rect, draw_flags, alpha_mode, oglrender->ofs_samples, viewname,
 			       oglrender->fx, oglrender->ofs, err_out);
 
 			/* for stamp only */
@@ -365,10 +369,11 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 			}
 		}
 		else {
+			draw_flags |= (V3D_OFSDRAW_USE_GPENCIL | V3D_OFSDRAW_USE_BACKGROUND);
 			ibuf_view = ED_view3d_draw_offscreen_imbuf_simple(
 			        &eval_ctx, scene, view_layer, scene->camera, oglrender->sizex, oglrender->sizey,
-			        IB_rect, OB_SOLID, false, true, true,
-			        alpha_mode, oglrender->ofs_samples, oglrender->ofs_full_samples, viewname,
+			        IB_rect, draw_flags, OB_SOLID,
+			        alpha_mode, oglrender->ofs_samples, viewname,
 			        oglrender->fx, oglrender->ofs, err_out);
 			camera = scene->camera;
 		}
@@ -697,6 +702,11 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 		oglrender->scene->customdata_mask |= oglrender->scene->customdata_mask_modal;
 
 		if (oglrender->v3d->fx_settings.fx_flag & (GPU_FX_FLAG_DOF | GPU_FX_FLAG_SSAO)) {
+			oglrender->fx = GPU_fx_compositor_create();
+		}
+	}
+	else if (is_sequencer) {
+		if (scene->r.seq_flag & R_SEQ_CAMERA_DOF) {
 			oglrender->fx = GPU_fx_compositor_create();
 		}
 	}
