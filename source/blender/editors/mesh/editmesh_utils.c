@@ -52,7 +52,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_bvh.h"
 
-#include "BKE_object.h"  /* XXX. only for EDBM_mesh_ensure_valid_dm_hack() which will be removed */
+#include "BKE_object.h"  /* XXX. only for EDBM_mesh_load(). */
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -105,21 +105,6 @@ void EDBM_redo_state_free(BMBackup *backup, BMEditMesh *em, int recalctess)
 
 	if (recalctess && em)
 		BKE_editmesh_tessface_calc(em);
-}
-
-/* hack to workaround multiple operators being called within the same event loop without an update
- * see: [#31811] */
-void EDBM_mesh_ensure_valid_dm_hack(Scene *scene, BMEditMesh *em)
-{
-	if ((((ID *)em->ob->data)->tag & LIB_TAG_ID_RECALC) ||
-	    (em->ob->recalc & OB_RECALC_DATA))
-	{
-		/* since we may not have done selection flushing */
-		if ((em->ob->recalc & OB_RECALC_DATA) == 0) {
-			DAG_id_tag_update(&em->ob->id, OB_RECALC_DATA);
-		}
-		BKE_object_handle_update(G.main->eval_ctx, scene, em->ob);
-	}
 }
 
 void EDBM_mesh_normals_update(BMEditMesh *em)
@@ -412,6 +397,7 @@ void EDBM_mesh_load(Object *ob)
 	 * of freed data on scene update, especially in cases when there are dependency
 	 * cycles.
 	 */
+	/*
 	for (Object *other_object = G.main->object.first;
 	     other_object != NULL;
 	     other_object = other_object->id.next)
@@ -420,6 +406,7 @@ void EDBM_mesh_load(Object *ob)
 			BKE_object_free_derived_caches(other_object);
 		}
 	}
+	*/
 }
 
 /**
