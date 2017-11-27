@@ -75,12 +75,12 @@ WorkSpace *ED_workspace_add(
 {
 	WorkSpace *workspace = BKE_workspace_add(bmain, name);
 
+	BKE_workspace_view_layer_set(workspace, act_view_layer);
+	BKE_viewrender_copy(&workspace->view_render, view_render);
+
 #ifdef USE_WORKSPACE_MODE
 	BKE_workspace_object_mode_set(workspace, OB_MODE_OBJECT);
 #endif
-
-	BKE_workspace_view_layer_set(workspace, act_view_layer);
-	BKE_viewrender_copy(&workspace->view_render, view_render);
 
 	return workspace;
 }
