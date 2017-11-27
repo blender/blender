@@ -184,7 +184,7 @@ class SimpleImportTest(AbstractAlembicTest):
         # Check that the file loaded ok.
         bpy.context.scene.frame_set(6)
         scene = bpy.context.scene
-        layer = scene.render_layers[scene.active_layer]
+        layer = scene.view_layers[scene.active_layer]
         mesh = plane.to_mesh(scene, layer, True, 'RENDER')
         self.assertAlmostEqual(-1, mesh.vertices[0].co.x)
         self.assertAlmostEqual(-1, mesh.vertices[0].co.y)
