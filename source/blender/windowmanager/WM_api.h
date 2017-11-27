@@ -66,6 +66,7 @@ struct ImageFormatData;
 struct ARegion;
 struct ScrArea;
 struct Main;
+struct bToolDef;
 
 #ifdef WITH_INPUT_NDOF
 struct wmNDOFMotionData;
@@ -562,6 +563,13 @@ bool        WM_event_is_tablet(const struct wmEvent *event);
 #ifdef WITH_INPUT_IME
 bool        WM_event_is_ime_switch(const struct wmEvent *event);
 #endif
+
+/* wm_toolsystem.c  */
+void WM_toolsystem_unlink(struct bContext *C, struct WorkSpace *workspace);
+void WM_toolsystem_link(struct bContext *C, struct WorkSpace *workspace);
+
+void WM_toolsystem_set(struct bContext *C, const struct bToolDef *tool);
+void WM_toolsystem_init(struct bContext *C);
 
 #ifdef __cplusplus
 }

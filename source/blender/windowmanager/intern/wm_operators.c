@@ -1812,35 +1812,16 @@ static void WM_OT_operator_defaults(wmOperatorType *ot)
 
 static int wm_operator_tool_set_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain = CTX_data_main(C);
-	WorkSpace *workspace = CTX_wm_workspace(C);
 	ScrArea *sa = CTX_wm_area(C);
-	char id_keymap[sizeof(workspace->tool.keymap)];
-	char id_manipulator_group[sizeof(workspace->tool.manipulator_group)];
-	RNA_string_get(op->ptr, "keymap", id_keymap);
-	RNA_string_get(op->ptr, "manipulator_group", id_manipulator_group);
-	int index = RNA_int_get(op->ptr, "index");
 
-	workspace->tool.index = index;
+	bToolDef tool_def = {0};
 
-	if (workspace->tool.manipulator_group[0]) {
-		wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find(workspace->tool.manipulator_group, false);
-		if (wgt != NULL) {
-			wmManipulatorMapType *mmap_type = WM_manipulatormaptype_ensure(&wgt->mmap_params);
-			WM_manipulatormaptype_group_unlink(C, bmain, mmap_type, wgt);
-		}
-	}
+	tool_def.index = RNA_int_get(op->ptr, "index");
+	tool_def.spacetype = sa->spacetype;
+	RNA_string_get(op->ptr, "keymap", tool_def.keymap);
+	RNA_string_get(op->ptr, "manipulator_group", tool_def.manipulator_group);
 
-	/* NOTE: we may want to move this logic into a function. */
-	{
-		BLI_strncpy(workspace->tool.keymap, id_keymap, sizeof(workspace->tool.keymap));
-		BLI_strncpy(workspace->tool.manipulator_group, id_manipulator_group, sizeof(workspace->tool.manipulator_group));
-		workspace->tool.spacetype = sa->spacetype;
-	}
-
-	if (workspace->tool.manipulator_group[0]) {
-		WM_manipulator_group_type_ensure(workspace->tool.manipulator_group);
-	}
+	WM_toolsystem_set(C, &tool_def);
 
 	/* For some reason redraw fails with menus (even though 'ar' isn't the menu's region). */
 	ED_area_tag_redraw(sa);

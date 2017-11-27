@@ -202,6 +202,9 @@ bool ED_workspace_change(
 		BLI_assert(BKE_workspace_view_layer_get(workspace_new) != NULL);
 		BLI_assert(CTX_wm_workspace(C) == workspace_new);
 
+		WM_toolsystem_unlink(C, workspace_old);
+		WM_toolsystem_link(C, workspace_new);
+
 		return true;
 	}
 
@@ -228,6 +231,8 @@ WorkSpace *ED_workspace_duplicate(
 	BKE_workspace_object_mode_set(workspace_new, BKE_workspace_object_mode_get(workspace_old));
 #endif
 	BLI_duplicatelist(transform_orientations_new, transform_orientations_old);
+
+	workspace_new->tool = workspace_old->tool;
 
 	for (WorkSpaceLayout *layout_old = layouts_old->first; layout_old; layout_old = layout_old->next) {
 		WorkSpaceLayout *layout_new = ED_workspace_layout_duplicate(workspace_new, layout_old, win);
