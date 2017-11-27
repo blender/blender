@@ -193,6 +193,7 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 						case DEG_NODE_TYPE_LAYER_COLLECTIONS:
 						case DEG_NODE_TYPE_COPY_ON_WRITE:
 							/* Ignore, does not translate to object component. */
+							BLI_assert(!"This should never happen!");
 							break;
 						case DEG_NODE_TYPE_ANIMATION:
 							object->recalc |= OB_RECALC_TIME;
