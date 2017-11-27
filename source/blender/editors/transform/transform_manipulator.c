@@ -1605,8 +1605,7 @@ void VIEW3D_WGT_xform_cage(wmManipulatorGroupType *wgt)
 	wgt->name = "Transform Cage";
 	wgt->idname = "VIEW3D_WGT_xform_cage";
 
-	wgt->flag |= (WM_MANIPULATORGROUPTYPE_3D |
-	              WM_MANIPULATORGROUPTYPE_DEPTH_3D);
+	wgt->flag |= WM_MANIPULATORGROUPTYPE_3D;
 
 	wgt->mmap_params.spaceid = SPACE_VIEW3D;
 	wgt->mmap_params.regionid = RGN_TYPE_WINDOW;
