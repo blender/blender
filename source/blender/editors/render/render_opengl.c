@@ -685,9 +685,13 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 		}
 	}
 	else if (is_sequencer) {
-		if (scene->r.seq_flag & R_SEQ_CAMERA_DOF) {
-			oglrender->fx = GPU_fx_compositor_create();
-		}
+		/* NOTE: We allow animation of DoF setting for flexibility in edits, so
+		 * we can't check in advance whether we need FX compositor or not.
+		 * We just always allocated it and make sure it doesn't add extra
+		 * overhead rather than memory allocation here if it's not really
+		 * needed.
+		 */
+		oglrender->fx = GPU_fx_compositor_create();
 	}
 
 	/* create render */
