@@ -76,7 +76,6 @@ struct BMFace *EDBM_verts_mirror_get_face(struct BMEditMesh *em, struct BMFace *
 void           EDBM_verts_mirror_cache_clear(struct BMEditMesh *em, struct BMVert *v);
 void           EDBM_verts_mirror_cache_end(struct BMEditMesh *em);
 
-void EDBM_mesh_ensure_valid_dm_hack(struct Scene *scene, struct BMEditMesh *em);
 void EDBM_mesh_normals_update(struct BMEditMesh *em);
 void EDBM_mesh_clear(struct BMEditMesh *em);
 
