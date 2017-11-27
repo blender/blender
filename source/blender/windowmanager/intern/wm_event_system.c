@@ -2755,7 +2755,13 @@ void wm_event_do_handlers(bContext *C)
 											        C, workspace->tool.keymap, sa->spacetype, RGN_TYPE_WINDOW);
 											if (km != NULL) {
 												sneaky_handler.keymap = km;
-												BLI_addhead(&ar->handlers, &sneaky_handler);
+												/* Handle widgets first. */
+												wmEventHandler *handler_last = ar->handlers.last;
+												while (handler_last && handler_last->manipulator_map == NULL) {
+													handler_last = handler_last->prev;
+												}
+												/* Head of list or after last manipulator. */
+												BLI_insertlinkafter(&ar->handlers, handler_last, &sneaky_handler);
 											}
 										}
 									}
