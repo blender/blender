@@ -391,6 +391,7 @@ static void workspace_append_button(
 	        WM_OP_EXEC_DEFAULT, 0, &opptr);
 	RNA_string_set(&opptr, "directory", lib_path);
 	RNA_string_set(&opptr, "filename", id->name + 2);
+	RNA_boolean_set(&opptr, "autoselect", false);
 }
 
 ATTR_NONNULL(1, 2)
