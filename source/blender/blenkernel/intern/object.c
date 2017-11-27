@@ -706,6 +706,9 @@ Object *BKE_object_add_only_object(Main *bmain, int type, const char *name)
 
 	ob = BKE_libblock_alloc(bmain, ID_OB, name, 0);
 
+	/* We increase object user count when linking to SceneCollections. */
+	id_us_min(&ob->id);
+
 	/* default object vars */
 	ob->type = type;
 
