@@ -74,7 +74,7 @@ void DRW_draw_view(const struct bContext *C);
 
 void DRW_draw_render_loop_ex(
         struct Depsgraph *graph,
-        struct RenderEngineType *engine,
+        struct RenderEngineType *engine_type,
         struct ARegion *ar, struct View3D *v3d,
         const struct bContext *evil_C);
 void DRW_draw_render_loop(
@@ -82,7 +82,7 @@ void DRW_draw_render_loop(
         struct ARegion *ar, struct View3D *v3d);
 void DRW_draw_render_loop_offscreen(
         struct Depsgraph *graph,
-        struct RenderEngineType *engine,
+        struct RenderEngineType *engine_type,
         struct ARegion *ar, struct View3D *v3d,
         struct GPUOffScreen *ofs);
 void DRW_draw_select_loop(

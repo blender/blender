@@ -251,7 +251,7 @@ typedef struct WalkInfo {
 	ARegion *ar;
 	Scene *scene;
 	ViewLayer *view_layer;
-	RenderEngineType *engine;
+	RenderEngineType *engine_type;
 
 	wmTimer *timer; /* needed for redraws */
 
@@ -515,7 +515,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
 	walk->ar = CTX_wm_region(C);
 	walk->scene = CTX_data_scene(C);
 	walk->view_layer = CTX_data_view_layer(C);
-	walk->engine = CTX_data_engine(C);
+	walk->engine_type = CTX_data_engine(C);
 
 #ifdef NDOF_WALK_DEBUG
 	puts("\n-- walk begin --");
@@ -604,7 +604,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
 	walk->rv3d->rflag |= RV3D_NAVIGATING;
 
 	walk->snap_context = ED_transform_snap_object_context_create_view3d(
-	        CTX_data_main(C), walk->scene, walk->view_layer, walk->engine, 0,
+	        CTX_data_main(C), walk->scene, walk->view_layer, walk->engine_type, 0,
 	        walk->ar, walk->v3d);
 
 	walk->v3d_camera_control = ED_view3d_cameracontrol_acquire(

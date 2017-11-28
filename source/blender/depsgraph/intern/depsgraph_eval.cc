@@ -81,13 +81,13 @@ void DEG_evaluation_context_init(EvaluationContext *eval_ctx,
 void DEG_evaluation_context_init_from_scene(EvaluationContext *eval_ctx,
                                             Scene *scene,
                                             ViewLayer *view_layer,
-                                            RenderEngineType *engine,
+                                            RenderEngineType *engine_type,
                                             eEvaluationMode mode)
 {
 	DEG_evaluation_context_init(eval_ctx, mode);
 	eval_ctx->depsgraph = BKE_scene_get_depsgraph(scene, view_layer, false);
 	eval_ctx->view_layer = view_layer;
-	eval_ctx->engine = engine;
+	eval_ctx->engine_type = engine_type;
 	eval_ctx->ctime = BKE_scene_frame_get(scene);
 	BLI_assert(eval_ctx->depsgraph != NULL);
 }

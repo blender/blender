@@ -78,7 +78,7 @@ typedef struct ViewContext {
 	struct Depsgraph *depsgraph;
 	struct Scene *scene;
 	struct ViewLayer *view_layer;
-	struct RenderEngineType *engine;
+	struct RenderEngineType *engine_type;
 	struct Object *obact;
 	struct Object *obedit;
 	struct ARegion *ar;

@@ -1931,8 +1931,8 @@ static void view3d_stereo3d_setup_offscreen(
 
 void ED_view3d_draw_offscreen_init(const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer, View3D *v3d)
 {
-	RenderEngineType *type = eval_ctx->engine;
-	if (type->flag & RE_USE_LEGACY_PIPELINE) {
+	RenderEngineType *engine_type = eval_ctx->engine_type;
+	if (engine_type->flag & RE_USE_LEGACY_PIPELINE) {
 		/* shadow buffers, before we setup matrices */
 		if (draw_glsl_material(scene, view_layer, NULL, v3d, v3d->drawtype)) {
 			VP_deprecated_gpu_update_lamps_shadows_world(eval_ctx, scene, v3d);
@@ -2014,8 +2014,8 @@ void ED_view3d_draw_offscreen(
 		view3d_main_region_setup_view(eval_ctx, scene, v3d, ar, viewmat, winmat, NULL);
 
 	/* main drawing call */
-	RenderEngineType *type = eval_ctx->engine;
-	if (type->flag & RE_USE_LEGACY_PIPELINE) {
+	RenderEngineType *engine_type = eval_ctx->engine_type;
+	if (engine_type->flag & RE_USE_LEGACY_PIPELINE) {
 
 		/* framebuffer fx needed, we need to draw offscreen first */
 		if (v3d->fx_settings.fx_flag && fx) {
@@ -2058,7 +2058,7 @@ void ED_view3d_draw_offscreen(
 		/* XXX, should take depsgraph as arg */
 		Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, false);
 		BLI_assert(depsgraph != NULL);
-		DRW_draw_render_loop_offscreen(depsgraph, eval_ctx->engine, ar, v3d, ofs);
+		DRW_draw_render_loop_offscreen(depsgraph, eval_ctx->engine_type, ar, v3d, ofs);
 	}
 
 	/* restore size */

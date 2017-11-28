@@ -470,7 +470,7 @@ typedef struct TransInfo {
 	struct ARegion	*ar;
 	struct Scene	*scene;
 	struct ViewLayer *view_layer;
-	struct RenderEngineType *engine;
+	struct RenderEngineType *engine_type;
 	struct ToolSettings *settings;
 	struct wmTimer *animtimer;
 	struct wmKeyMap *keymap;  /* so we can do lookups for header text */

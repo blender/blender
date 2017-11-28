@@ -176,19 +176,19 @@ static void rna_Scene_ray_cast(
         int *r_success, float r_location[3], float r_normal[3], int *r_index,
         Object **r_ob, float r_obmat[16])
 {
-	RenderEngineType *engine;
+	RenderEngineType *engine_type;
 
 	if (engine_id == NULL || engine_id[0] == '\0') {
-		engine = RE_engines_find(scene->view_render.engine_id);
+		engine_type = RE_engines_find(scene->view_render.engine_id);
 	}
 	else {
-		engine = RE_engines_find(engine_id);
+		engine_type = RE_engines_find(engine_id);
 	}
 
 	normalize_v3(direction);
 
 	SnapObjectContext *sctx = ED_transform_snap_object_context_create(
-	        G.main, scene, view_layer, engine, 0);
+	        G.main, scene, view_layer, engine_type, 0);
 
 	bool ret = ED_transform_snap_object_project_ray_ex(
 	        sctx,

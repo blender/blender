@@ -443,7 +443,7 @@ typedef struct DRWContextState {
 	/* Use 'scene->obedit' for edit-mode */
 	struct Object *obact;   /* 'OBACT' */
 
-	struct RenderEngineType *engine;
+	struct RenderEngineType *engine_type;
 
 	/* Last resort (some functions take this as an arg so we can't easily avoid).
 	 * May be NULL when used for selection or depth buffer. */
