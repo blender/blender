@@ -978,7 +978,7 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 	char str[SDNA_MAX_FILENAME_LENGTH], *cp;
 	int firststruct;
 	
-	if (debugSDNA > -1) {
+	if (debugSDNA > 0) {
 		fflush(stdout);
 		printf("Running makesdna at debug level %d\n", debugSDNA);
 	}
@@ -1074,7 +1074,7 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 
 	/* file writing */
 
-	if (debugSDNA > -1) printf("Writing file ... ");
+	if (debugSDNA > 0) printf("Writing file ... ");
 		
 	if (nr_names == 0 || nr_structs == 0) {
 		/* pass */
@@ -1184,7 +1184,7 @@ static int make_structDNA(const char *baseDirectory, FILE *file, FILE *file_offs
 	MEM_freeN(typelens_64);
 	MEM_freeN(structs);
 
-	if (debugSDNA > -1) printf("done.\n");
+	if (debugSDNA > 0) printf("done.\n");
 	
 	return(0);
 }
