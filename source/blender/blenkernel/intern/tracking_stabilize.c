@@ -41,13 +41,14 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_sort_utils.h"
+#include "BLI_ghash.h"
 #include "BLI_math_vector.h"
 #include "BLI_math.h"
+#include "BLI_task.h"
 
 #include "BKE_tracking.h"
 #include "BKE_movieclip.h"
 #include "BKE_fcurve.h"
-#include "BLI_ghash.h"
 
 #include "MEM_guardedalloc.h"
 #include "IMB_imbuf_types.h"
@@ -1491,6 +1492,35 @@ void BKE_tracking_stabilization_data_get(MovieClip *clip,
 	discard_stabilization_working_context(ctx);
 }
 
+
+typedef void (*interpolation_func)(struct ImBuf *, struct ImBuf *, float, float, int, int);
+
+typedef struct TrackingStabilizeFrameInterpolationData {
+	ImBuf *ibuf;
+	ImBuf *tmpibuf;
+	float (*mat)[4];
+
+	interpolation_func interpolation;
+} TrackingStabilizeFrameInterpolationData;
+
+static void tracking_stabilize_frame_interpolation_cb(void *userdata, int j)
+{
+	TrackingStabilizeFrameInterpolationData *data = userdata;
+	ImBuf *ibuf = data->ibuf;
+	ImBuf *tmpibuf = data->tmpibuf;
+	float (*mat)[4] = data->mat;
+
+	interpolation_func interpolation = data->interpolation;
+
+	for (int i = 0; i < tmpibuf->x; i++) {
+		float vec[3] = {i, j, 0.0f};
+
+		mul_v3_m4v3(vec, mat, vec);
+
+		interpolation(ibuf, tmpibuf, vec[0], vec[1], i, j);
+	}
+}
+
 /* Stabilize given image buffer using stabilization data for a specified
  * frame number.
  *
@@ -1511,8 +1541,8 @@ ImBuf *BKE_tracking_stabilize_frame(MovieClip *clip,
 	int width = ibuf->x, height = ibuf->y;
 	float pixel_aspect = tracking->camera.pixel_aspect;
 	float mat[4][4];
-	int j, filter = tracking->stabilization.filter;
-	void (*interpolation)(struct ImBuf *, struct ImBuf *, float, float, int, int) = NULL;
+	int filter = tracking->stabilization.filter;
+	interpolation_func interpolation = NULL;
 	int ibuf_flags;
 
 	if (translation)
@@ -1563,24 +1593,14 @@ ImBuf *BKE_tracking_stabilize_frame(MovieClip *clip,
 		/* fallback to default interpolation method */
 		interpolation = nearest_interpolation;
 
-	/* This function is only used for display in clip editor and
-	 * sequencer only, which would only benefit of using threads
-	 * here.
-	 *
-	 * But need to keep an eye on this if the function will be
-	 * used in other cases.
-	 */
-#pragma omp parallel for if (tmpibuf->y > 128)
-	for (j = 0; j < tmpibuf->y; j++) {
-		int i;
-		for (i = 0; i < tmpibuf->x; i++) {
-			float vec[3] = {i, j, 0.0f};
-
-			mul_v3_m4v3(vec, mat, vec);
-
-			interpolation(ibuf, tmpibuf, vec[0], vec[1], i, j);
-		}
-	}
+	TrackingStabilizeFrameInterpolationData data = {
+		.ibuf = ibuf, .tmpibuf = tmpibuf, .mat = mat,
+		.interpolation = interpolation
+	};
+	BLI_task_parallel_range(0, tmpibuf->y,
+	                        &data,
+	                        tracking_stabilize_frame_interpolation_cb,
+	                        tmpibuf->y > 128);
 
 	if (tmpibuf->rect_float)
 		tmpibuf->userflags |= IB_RECT_INVALID;
