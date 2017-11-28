@@ -102,7 +102,7 @@ void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
 		base->object->select_color = select_color++;
 	}
 	if (scene->camera != NULL) {
-		build_object(NULL, scene->camera, linked_state);
+		build_object(NULL, scene->camera, DEG_ID_LINKED_INDIRECTLY);
 	}
 
 	/* rigidbody */
