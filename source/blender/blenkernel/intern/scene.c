@@ -1562,11 +1562,7 @@ void BKE_scene_graph_update_for_newframe(EvaluationContext *eval_ctx,
 	 * for example, clearing update tags from bmain.
 	 */
 	const float ctime = BKE_scene_frame_get(scene);
-	/* Inform editors we are starting scene update. */
-	DEG_editors_update_pre(bmain, scene, true);
-	/* Keep this first.
-	 * TODO(sergey): Should it be after the editors update?
-	 */
+	/* Keep this first. */
 	BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_FRAME_CHANGE_PRE);
 	/* Update animated image textures for particles, modifiers, gpu, etc,
 	 * call this at the start so modifiers with textures don't lag 1 frame.
