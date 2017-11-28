@@ -872,6 +872,8 @@ static void eevee_lights_shcaster_updated(EEVEE_ViewLayerData *sldata, Object *o
 	for (int i = 0; (lamp = linfo->shadow_cube_ref[i]) && (i < MAX_SHADOW_CUBE); i++) {
 		light_tag_shadow_update(lamp, ob);
 	}
+	EEVEE_ObjectEngineData *oedata = EEVEE_object_data_get(ob);
+	oedata->need_update = false;
 }
 
 void EEVEE_lights_update(EEVEE_ViewLayerData *sldata)
