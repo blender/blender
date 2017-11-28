@@ -490,7 +490,9 @@ void EEVEE_lightprobes_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
 
 	ped->num_cell = probe->grid_resolution_x * probe->grid_resolution_y * probe->grid_resolution_z;
 
-	if ((ob->deg_update_flag & DEG_RUNTIME_DATA_UPDATE) != 0) {
+	if (ped->need_full_update) {
+		ped->need_full_update = false;
+
 		ped->need_update = true;
 		ped->probe_id = 0;
 

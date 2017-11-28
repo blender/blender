@@ -257,10 +257,6 @@ void EEVEE_lights_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
 		Lamp *la = (Lamp *)ob->data;
 		EEVEE_LampEngineData *led = EEVEE_lamp_data_get(ob);
 
-		if ((ob->deg_update_flag & DEG_RUNTIME_DATA_UPDATE) != 0) {
-			led->need_update = true;
-		}
-
 		MEM_SAFE_FREE(led->storage);
 
 		if (la->mode & (LA_SHAD_BUF | LA_SHAD_RAY)) {

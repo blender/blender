@@ -3259,6 +3259,46 @@ void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
 
 /** \} */
 
+/** \name ID Update
+ * \{ */
+
+/* TODO(sergey): This code is run for each changed ID (including the ones which
+ * are changed indirectly via update flush. Need to find a way to make this to
+ * run really fast, hopefully without any memory allocations on a heap
+ * Idea here could be to run every known engine's id_update() and make them
+ * do nothing if there is no engine-specific data yet.
+ */
+void DRW_notify_id_update(const DRWUpdateContext *update_ctx, ID *id)
+{
+	RenderEngineType *engine_type = update_ctx->engine_type;
+	ARegion *ar = update_ctx->ar;
+	View3D *v3d = update_ctx->v3d;
+	RegionView3D *rv3d = ar->regiondata;
+	Scene *scene = update_ctx->scene;
+	ViewLayer *view_layer = update_ctx->view_layer;
+	if (rv3d->viewport == NULL) {
+		return;
+	}
+	/* Reset before using it. */
+	memset(&DST, 0x0, sizeof(DST));
+	DST.viewport = rv3d->viewport;
+	DST.draw_ctx = (DRWContextState){
+		ar, rv3d, v3d, scene, view_layer, OBACT(view_layer), engine_type, NULL,
+	};
+	DRW_engines_enable(scene, view_layer, engine_type);
+	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
+		DrawEngineType *draw_engine = link->data;
+		ViewportEngineData *data = DRW_viewport_engine_data_get(draw_engine);
+		if (draw_engine->id_update) {
+			draw_engine->id_update(data, id);
+		}
+	}
+	DST.viewport = NULL;
+	DRW_engines_disable();
+}
+
+/** \} */
+
 /* -------------------------------------------------------------------- */
 
 /** \name Main Draw Loops (DRW_draw)
@@ -3329,8 +3369,6 @@ void DRW_draw_render_loop_ex(
 		DEG_OBJECT_ITER(graph, ob, DEG_OBJECT_ITER_FLAG_ALL);
 		{
 			DRW_engines_cache_populate(ob);
-			/* XXX find a better place for this. maybe Depsgraph? */
-			ob->deg_update_flag = 0;
 		}
 		DEG_OBJECT_ITER_END
 

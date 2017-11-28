@@ -34,6 +34,7 @@ struct Main;
 struct Material;
 struct Scene;
 struct DrawEngineType;
+struct ID;
 struct IDProperty;
 struct bContext;
 struct Object;
@@ -78,6 +79,7 @@ typedef struct DRWUpdateContext {
 	struct RenderEngineType *engine_type;
 } DRWUpdateContext;
 void DRW_notify_view_update(const DRWUpdateContext *update_ctx);
+void DRW_notify_id_update(const DRWUpdateContext *update_ctx, struct ID *id);
 
 void DRW_draw_view(const struct bContext *C);
 

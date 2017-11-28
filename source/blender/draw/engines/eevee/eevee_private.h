@@ -568,7 +568,19 @@ typedef struct EEVEE_LampEngineData {
 } EEVEE_LampEngineData;
 
 typedef struct EEVEE_LightProbeEngineData {
+	/* NOTE: need_full_update is set by dependency graph when the probe or it's
+	 * object is updated. This triggers full probe update, including it's
+	 * "progressive" GI refresh.
+	 *
+	 * need_update is always set to truth when need_full_update is tagged, but
+	 * might also be forced to be kept truth during GI refresh stages.
+	 *
+	 * TODO(sergey): Is there a way to avoid two flags here, or at least make
+	 * it more clear what's going on here?
+	 */
+	bool need_full_update;
 	bool need_update;
+
 	bool ready_to_shade;
 	int updated_cells;
 	int updated_lvl;

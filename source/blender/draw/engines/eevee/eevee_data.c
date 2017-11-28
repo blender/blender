@@ -109,6 +109,7 @@ EEVEE_LightProbeEngineData *EEVEE_lightprobe_data_get(Object *ob)
 
 	if (*pedata == NULL) {
 		*pedata = MEM_callocN(sizeof(**pedata), "EEVEE_LightProbeEngineData");
+		(*pedata)->need_full_update = true;
 		(*pedata)->need_update = true;
 	}
 

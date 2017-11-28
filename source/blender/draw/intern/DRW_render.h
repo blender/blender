@@ -138,6 +138,7 @@ typedef struct DrawEngineType {
 	void (*draw_scene)(void *vedata);
 
 	void (*view_update)(void *vedata);
+	void (*id_update)(void *vedata, struct ID *id);
 } DrawEngineType;
 
 #ifndef __DRW_ENGINE_H__

@@ -128,8 +128,6 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 			}
 			else {
 				BLI_addtail(&sldata->shadow_casters, BLI_genericNodeN(ob));
-				EEVEE_ObjectEngineData *oedata = EEVEE_object_data_get(ob);
-				oedata->need_update = ((ob->deg_update_flag & DEG_RUNTIME_DATA_UPDATE) != 0);
 			}
 		}
 	}
@@ -287,6 +285,26 @@ static void EEVEE_view_update(void *vedata)
 	}
 }
 
+static void EEVEE_id_update(void *UNUSED(vedata), ID *id)
+{
+	const ID_Type id_type = GS(id->name);
+	if (id_type == ID_OB) {
+		Object *object = (Object *)id;
+		EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(object);
+		if (ped != NULL) {
+			ped->need_full_update = true;
+		}
+		EEVEE_LampEngineData *led = EEVEE_lamp_data_get(object);
+		if (led != NULL) {
+			led->need_update = true;
+		}
+		EEVEE_ObjectEngineData *oedata = EEVEE_object_data_get(object);
+		if (oedata != NULL) {
+			oedata->need_update = true;
+		}
+	}
+}
+
 static void EEVEE_engine_free(void)
 {
 	EEVEE_bloom_free();
@@ -395,6 +413,7 @@ DrawEngineType draw_engine_eevee_type = {
 	&EEVEE_draw_scene,
 	NULL, //&EEVEE_draw_scene
 	&EEVEE_view_update,
+	&EEVEE_id_update,
 };
 
 RenderEngineType DRW_engine_viewport_eevee_type = {
