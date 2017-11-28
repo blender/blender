@@ -515,7 +515,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
 	walk->ar = CTX_wm_region(C);
 	walk->scene = CTX_data_scene(C);
 	walk->view_layer = CTX_data_view_layer(C);
-	walk->engine_type = CTX_data_engine(C);
+	walk->engine_type = CTX_data_engine_type(C);
 
 #ifdef NDOF_WALK_DEBUG
 	puts("\n-- walk begin --");

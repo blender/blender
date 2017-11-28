@@ -1123,7 +1123,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 	Object *obedit = CTX_data_edit_object(C);
 	Object *ob = CTX_data_active_object(C);
 	bGPdata *gpd = CTX_data_gpencil_data(C);
-	RenderEngineType *engine_type = CTX_data_engine(C);
+	RenderEngineType *engine_type = CTX_data_engine_type(C);
 	PropertyRNA *prop;
 	
 	t->scene = sce;

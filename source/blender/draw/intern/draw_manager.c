@@ -3226,7 +3226,7 @@ void DRW_notify_view_update(const bContext *C)
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = ar->regiondata;
 	Scene *scene = DEG_get_evaluated_scene(graph);
-	RenderEngineType *engine_type = CTX_data_engine(C);
+	RenderEngineType *engine_type = CTX_data_engine_type(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 
 	if (rv3d->viewport == NULL) {
@@ -3271,7 +3271,7 @@ void DRW_notify_view_update(const bContext *C)
 void DRW_draw_view(const bContext *C)
 {
 	struct Depsgraph *graph = CTX_data_depsgraph(C);
-	RenderEngineType *engine_type = CTX_data_engine(C);
+	RenderEngineType *engine_type = CTX_data_engine_type(C);
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 

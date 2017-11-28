@@ -144,14 +144,14 @@ static PointerRNA rna_Context_view_render_get(PointerRNA *ptr)
 static void rna_Context_engine_get(PointerRNA *ptr, char *value)
  {
 	bContext *C = (bContext *)ptr->data;
-	RenderEngineType *engine_type = CTX_data_engine(C);
+	RenderEngineType *engine_type = CTX_data_engine_type(C);
 	strcpy(value, engine_type->idname);
 }
 
 static int rna_Context_engine_length(PointerRNA *ptr)
 {
 	bContext *C = (bContext *)ptr->data;
-	RenderEngineType *engine_type = CTX_data_engine(C);
+	RenderEngineType *engine_type = CTX_data_engine_type(C);
 	return strlen(engine_type->idname);
 }
 

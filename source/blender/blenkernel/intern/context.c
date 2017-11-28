@@ -947,7 +947,7 @@ ViewRender *CTX_data_view_render(const bContext *C)
 	}
 }
 
-RenderEngineType *CTX_data_engine(const bContext *C)
+RenderEngineType *CTX_data_engine_type(const bContext *C)
 {
 	ViewRender *view_render = CTX_data_view_render(C);
 	return RE_engines_find(view_render->engine_id);
@@ -1269,7 +1269,7 @@ void CTX_data_eval_ctx(const bContext *C, EvaluationContext *eval_ctx)
 
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
-	RenderEngineType *engine_type = CTX_data_engine(C);
+	RenderEngineType *engine_type = CTX_data_engine_type(C);
 	DEG_evaluation_context_init_from_scene(eval_ctx,
 	                                       scene, view_layer, engine_type,
 	                                       DAG_EVAL_VIEWPORT);
