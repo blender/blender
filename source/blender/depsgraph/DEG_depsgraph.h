@@ -151,9 +151,9 @@ enum {
 	DEG_TAG_TIME        = (1 << 2),
 
 	/* Particle system changed. */
-	DEG_TAG_PSYSC_REDO  =  (1 << 3),
-	DEG_TAG_PSYS_RESET  =  (1 << 4),
-	DEG_TAG_PSYS_TYPE   =  (1 << 5),
+	DEG_TAG_PSYSC_REDO  = (1 << 3),
+	DEG_TAG_PSYS_RESET  = (1 << 4),
+	DEG_TAG_PSYS_TYPE   = (1 << 5),
 	DEG_TAG_PSYS_CHILD  = (1 << 6),
 	DEG_TAG_PSYS_PHYS   = (1 << 7),
 	DEG_TAG_PSYS        = ((1 << 3) | (1 << 4) | (1 << 5) | (1 << 6) | (1 << 7)),
@@ -167,6 +167,9 @@ enum {
 	DEG_TAG_SHADING_UPDATE  = (1 << 9),
 	DEG_TAG_SELECT_UPDATE   = (1 << 10),
 	DEG_TAG_BASE_FLAGS_UPDATE = (1 << 11),
+
+	/* Only inform editors about the change. Don't modify datablock itself. */
+	DEG_TAG_EDITORS_UPDATE = (1 << 12),
 };
 void DEG_id_tag_update(struct ID *id, int flag);
 void DEG_id_tag_update_ex(struct Main *bmain, struct ID *id, int flag);

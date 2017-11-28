@@ -449,10 +449,13 @@ Object *ED_object_add_type(
 		ob->gameflag &= ~(OB_SENSOR | OB_RIGID_BODY | OB_SOFT_BODY | OB_COLLISION | OB_CHARACTER | OB_OCCLUDER | OB_DYNAMIC | OB_NAVMESH); /* copied from rna_object.c */
 	}
 
+	/* TODO(sergey): This is weird to manually tag objects for update, better to
+	 * use DEG_id_tag_update here perhaps.
+	 */
 	DEG_id_type_tag(bmain, ID_OB);
 	DEG_relations_tag_update(bmain);
-	if (ob->data) {
-		ED_render_id_flush_update(bmain, ob->data);
+	if (ob->data != NULL) {
+		DEG_id_tag_update_ex(bmain, (ID *)ob->data, DEG_TAG_EDITORS_UPDATE);
 	}
 
 	if (enter_editmode)
@@ -2340,8 +2343,8 @@ Base *ED_object_add_duplicate(Main *bmain, Scene *scene, ViewLayer *view_layer, 
 
 	/* DAG_relations_tag_update(bmain); */ /* caller must do */
 
-	if (ob->data) {
-		ED_render_id_flush_update(bmain, ob->data);
+	if (ob->data != NULL) {
+		DEG_id_tag_update_ex(bmain, (ID *)ob->data, DEG_TAG_EDITORS_UPDATE);
 	}
 
 	BKE_main_id_clear_newpoins(bmain);

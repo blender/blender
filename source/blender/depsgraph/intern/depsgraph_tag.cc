@@ -352,6 +352,15 @@ void id_tag_update_base_flags(Depsgraph *graph, IDDepsNode *id_node)
 	}
 }
 
+void id_tag_update_editors_update(Main *bmain, Depsgraph * /*graph*/, ID *id)
+{
+	/* NOTE: We handle this immediately, without delaying anything, to be
+	 * sure we don't cause threading issues with OpenGL.
+	 */
+	/* TODO(sergey): Make sure this works for CoW-ed datablocks as well. */
+	deg_editors_id_update(bmain, id);
+}
+
 void id_tag_update_ntree_special(Main *bmain, Depsgraph *graph, ID *id, int flag)
 {
 	bNodeTree *ntree = NULL;
@@ -420,6 +429,9 @@ void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag)
 	}
 	if (flag & DEG_TAG_BASE_FLAGS_UPDATE) {
 		id_tag_update_base_flags(graph, id_node);
+	}
+	if (flag & DEG_TAG_EDITORS_UPDATE) {
+		id_tag_update_editors_update(bmain, graph, id);
 	}
 	id_tag_update_ntree_special(bmain, graph, id, flag);
 }
