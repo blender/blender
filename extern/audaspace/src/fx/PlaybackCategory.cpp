@@ -25,7 +25,7 @@ struct HandleData {
 };
 
 PlaybackCategory::PlaybackCategory(std::shared_ptr<IDevice> device) :
-	m_device(device), m_volumeStorage(std::make_shared<VolumeStorage>(1.0f)), m_status(STATUS_PLAYING), m_currentID(0)
+	m_currentID(0), m_device(device), m_status(STATUS_PLAYING), m_volumeStorage(std::make_shared<VolumeStorage>(1.0f))
 {
 }
 

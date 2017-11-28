@@ -25,7 +25,7 @@
 AUD_NAMESPACE_BEGIN
 
 DynamicMusic::DynamicMusic(std::shared_ptr<IDevice> device) :
-m_device(device), m_fadeTime(1.0f)
+m_fadeTime(1.0f), m_device(device)
 {
 	m_id = 0;
 	m_transitioning = false;
