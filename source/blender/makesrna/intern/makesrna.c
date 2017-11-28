@@ -46,6 +46,14 @@
 #  endif
 #endif
 
+/**
+ * Variable to control debug output of makesrna.
+ * debugSRNA:
+ *  - 0 = no output, except errors
+ *  - 1 = detail actions
+ */
+static int debugSRNA = 0;
+
 /* stub for BLI_abort() */
 #ifndef NDEBUG
 void BLI_system_backtrace(FILE *fp)
@@ -62,7 +70,9 @@ void BLI_system_backtrace(FILE *fp)
 static int file_older(const char *file1, const char *file2)
 {
 	struct stat st1, st2;
-	/* printf("compare: %s %s\n", file1, file2); */
+	if (debugSRNA > 0) {
+		printf("compare: %s %s\n", file1, file2);
+	}
 
 	if (stat(file1, &st1)) return 0;
 	if (stat(file2, &st2)) return 0;
@@ -4134,7 +4144,9 @@ int main(int argc, char **argv)
 		return_status = 1;
 	}
 	else {
-		fprintf(stderr, "Running makesrna\n");
+		if (debugSRNA > 0) {
+			fprintf(stderr, "Running makesrna\n");
+		}
 		makesrna_path = argv[0];
 		return_status = rna_preprocess(argv[1]);
 	}
