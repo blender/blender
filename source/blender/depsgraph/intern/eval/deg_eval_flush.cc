@@ -220,9 +220,6 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 							/* Ignore, does not translate to recalc flags. */
 							break;
 					}
-
-					/* TODO : replace with more granular flags */
-					object->deg_update_flag |= DEG_RUNTIME_DATA_UPDATE;
 				}
 				/* When some target changes bone, we might need to re-run the
 				 * whole IK solver, otherwise result might be unpredictable.

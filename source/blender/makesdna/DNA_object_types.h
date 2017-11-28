@@ -326,7 +326,7 @@ typedef struct Object {
 	struct IDProperty *base_collection_properties; /* used by depsgraph, flushed from base */
 
 	ListBase drawdata;		/* runtime, ObjectEngineData */
-	int deg_update_flag; /* what has been updated in this object */
+	int pad1;
 	int select_color;
 
 	/* Mesh structure createrd during object evaluaiton.
