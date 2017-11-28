@@ -30,6 +30,7 @@ struct ARegion;
 struct CollectionEngineSettings;
 struct Depsgraph;
 struct DRWPass;
+struct Main;
 struct Material;
 struct Scene;
 struct DrawEngineType;
@@ -68,7 +69,15 @@ void DRW_engine_viewport_data_size_get(
         const void *engine_type,
         int *r_fbl_len, int *r_txl_len, int *r_psl_len, int *r_stl_len);
 
-void DRW_notify_view_update(const struct bContext *C);
+typedef struct DRWUpdateContext {
+	struct Main *bmain;
+	struct Scene *scene;
+	struct ViewLayer *view_layer;
+	struct ARegion *ar;
+	struct View3D *v3d;
+	struct RenderEngineType *engine_type;
+} DRWUpdateContext;
+void DRW_notify_view_update(const DRWUpdateContext *update_ctx);
 
 void DRW_draw_view(const struct bContext *C);
 

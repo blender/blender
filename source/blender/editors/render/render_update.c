@@ -86,6 +86,7 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, int update
 	 * updates if there was any change. context is set to the 3d view */
 	Main *bmain = update_ctx->bmain;
 	Scene *scene = update_ctx->scene;
+	ViewLayer *view_layer = update_ctx->view_layer;
 	bContext *C;
 	wmWindowManager *wm;
 	wmWindow *win;
@@ -127,15 +128,11 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, int update
 				continue;
 
 			for (ar = sa->regionbase.first; ar; ar = ar->next) {
-				RegionView3D *rv3d;
-				RenderEngine *engine;
-
-				if (ar->regiontype != RGN_TYPE_WINDOW)
+				if (ar->regiontype != RGN_TYPE_WINDOW) {
 					continue;
-
-				rv3d = ar->regiondata;
-				engine = rv3d->render_engine;
-
+				}
+				RegionView3D *rv3d = ar->regiondata;
+				RenderEngine *engine = rv3d->render_engine;
 				/* call update if the scene changed, or if the render engine
 				 * tagged itself for update (e.g. because it was busy at the
 				 * time of the last update) */
@@ -149,13 +146,20 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, int update
 					engine->type->view_update(engine, C);
 
 				}
-				else if ((RE_engines_find(view_render->engine_id)->flag & RE_USE_LEGACY_PIPELINE) == 0) {
-					if (updated) {
-						CTX_wm_screen_set(C, sc);
-						CTX_wm_area_set(C, sa);
-						CTX_wm_region_set(C, ar);
-
-						DRW_notify_view_update(C);
+				else {
+					RenderEngineType *engine_type = RE_engines_find(view_render->engine_id);
+					if ((engine_type->flag & RE_USE_LEGACY_PIPELINE) == 0) {
+						if (updated) {
+							DRW_notify_view_update(
+							        (&(DRWUpdateContext){
+							            .bmain = bmain,
+							            .scene = scene,
+							            .view_layer = view_layer,
+							            .ar = ar,
+							            .v3d = (View3D *)sa->spacedata.first,
+							            .engine_type = engine_type
+							        }));
+						}
 					}
 				}
 			}

@@ -3219,15 +3219,14 @@ static void DRW_debug_gpu_stats(void)
 /** \name View Update
  * \{ */
 
-void DRW_notify_view_update(const bContext *C)
+void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
 {
-	struct Depsgraph *graph = CTX_data_depsgraph(C);
-	ARegion *ar = CTX_wm_region(C);
-	View3D *v3d = CTX_wm_view3d(C);
+	RenderEngineType *engine_type = update_ctx->engine_type;
+	ARegion *ar = update_ctx->ar;
+	View3D *v3d = update_ctx->v3d;
 	RegionView3D *rv3d = ar->regiondata;
-	Scene *scene = DEG_get_evaluated_scene(graph);
-	RenderEngineType *engine_type = CTX_data_engine_type(C);
-	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Scene *scene = update_ctx->scene;
+	ViewLayer *view_layer = update_ctx->view_layer;
 
 	if (rv3d->viewport == NULL) {
 		return;
@@ -3239,7 +3238,7 @@ void DRW_notify_view_update(const bContext *C)
 
 	DST.viewport = rv3d->viewport;
 	DST.draw_ctx = (DRWContextState){
-		ar, rv3d, v3d, scene, view_layer, OBACT(view_layer), engine_type, C,
+		ar, rv3d, v3d, scene, view_layer, OBACT(view_layer), engine_type, NULL,
 	};
 
 	DRW_engines_enable(scene, view_layer, engine_type);
