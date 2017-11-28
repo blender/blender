@@ -46,8 +46,9 @@ extern "C" {
 #include "intern/nodes/deg_node_operation.h"
 #include "intern/depsgraph.h"
 
-struct Main;
+struct DEGEditorUpdateContext;
 struct Group;
+struct Main;
 struct Scene;
 
 namespace DEG {
@@ -109,9 +110,11 @@ DepsNodeFactory *deg_node_get_factory(const DepsNode *node);
 
 /* Editors Integration -------------------------------------------------- */
 
-void deg_editors_id_update(struct Main *bmain, struct ID *id);
+void deg_editors_id_update(const DEGEditorUpdateContext *update_ctx,
+                           struct ID *id);
 
-void deg_editors_scene_update(struct Main *bmain, struct Scene *scene, bool updated);
+void deg_editors_scene_update(const DEGEditorUpdateContext *update_ctx,
+                              bool updated);
 
 /* Tagging helpers ------------------------------------------------------ */
 

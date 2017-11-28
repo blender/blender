@@ -31,6 +31,7 @@
 #include "DNA_vec_types.h"
 
 struct bContext;
+struct DEGEditorUpdateContext;
 struct ID;
 struct Main;
 struct MTex;
@@ -43,12 +44,15 @@ struct wmWindowManager;
 
 void ED_operatortypes_render(void);
 
-/* render_shading.c */
+/* render_update.c */
 
-void ED_render_id_flush_update(struct Main *bmain, struct ID *id);
 void ED_render_engine_changed(struct Main *bmain);
 void ED_render_engine_area_exit(struct Main *bmain, struct ScrArea *sa);
-void ED_render_scene_update(struct Main *bmain, struct Scene *scene, int updated);
+
+/* Callbacks handling data update events coming from depsgraph. */
+
+void ED_render_id_flush_update(const struct DEGEditorUpdateContext *update_ctx, struct ID *id);
+void ED_render_scene_update(const struct DEGEditorUpdateContext *update_ctx, int updated);
 
 void ED_viewport_render_kill_jobs(struct wmWindowManager *wm, struct Main *bmain, bool free_database);
 struct Scene *ED_render_job_get_scene(const struct bContext *C);

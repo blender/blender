@@ -70,6 +70,8 @@
 #include "ED_render.h"
 #include "ED_view3d.h"
 
+#include "DEG_depsgraph.h"
+
 #include "WM_api.h"
 
 #include "render_intern.h"  // own include
@@ -78,10 +80,12 @@ extern Material defmaterial;
 
 /***************************** Render Engines ********************************/
 
-void ED_render_scene_update(Main *bmain, Scene *scene, int updated)
+void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, int updated)
 {
 	/* viewport rendering update on data changes, happens after depsgraph
 	 * updates if there was any change. context is set to the 3d view */
+	Main *bmain = update_ctx->bmain;
+	Scene *scene = update_ctx->scene;
 	bContext *C;
 	wmWindowManager *wm;
 	wmWindow *win;
@@ -182,18 +186,21 @@ void ED_render_engine_area_exit(Main *bmain, ScrArea *sa)
 void ED_render_engine_changed(Main *bmain)
 {
 	/* on changing the render engine type, clear all running render engines */
-	bScreen *sc;
-	ScrArea *sa;
-	Scene *scene;
-
-	for (sc = bmain->screen.first; sc; sc = sc->id.next)
-		for (sa = sc->areabase.first; sa; sa = sa->next)
+	for (bScreen *sc = bmain->screen.first; sc; sc = sc->id.next) {
+		for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
 			ED_render_engine_area_exit(bmain, sa);
-
+		}
+	}
 	RE_FreePersistentData();
-
-	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
-		ED_render_id_flush_update(bmain, &scene->id);
+	/* Inform all render engines and draw managers. */
+	DEGEditorUpdateContext update_ctx = {NULL};
+	update_ctx.bmain = bmain;
+	for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+		update_ctx.scene = scene;
+		LINKLIST_FOREACH(ViewLayer *, view_layer, &scene->view_layers) {
+			update_ctx.view_layer = view_layer;
+			ED_render_id_flush_update(&update_ctx, &scene->id);
+		}
 		if (scene->nodetree) {
 			ntreeCompositUpdateRLayers(scene->nodetree);
 		}
@@ -519,13 +526,15 @@ static void scene_changed(Main *bmain, Scene *scene)
 	}
 }
 
-void ED_render_id_flush_update(Main *bmain, ID *id)
+void ED_render_id_flush_update(const DEGEditorUpdateContext *update_ctx, ID *id)
 {
 	/* this can be called from render or baking thread when a python script makes
 	 * changes, in that case we don't want to do any editor updates, and making
 	 * GPU changes is not possible because OpenGL only works in the main thread */
-	if (!BLI_thread_is_main())
+	if (!BLI_thread_is_main()) {
 		return;
+	}
+	Main *bmain = update_ctx->bmain;
 
 	switch (GS(id->name)) {
 		case ID_MA:

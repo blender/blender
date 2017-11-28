@@ -198,6 +198,7 @@ void DEG_graph_flush_update(struct Main *bmain, Depsgraph *depsgraph);
  */
 void DEG_ids_check_recalc(struct Main *bmain,
                           struct Scene *scene,
+                          struct ViewLayer *view_layer,
                           bool time);
 
 /* ************************************************ */
@@ -248,10 +249,17 @@ bool DEG_needs_eval(Depsgraph *graph);
  * to do their own updates based on changes.
  */
 
-typedef void (*DEG_EditorUpdateIDCb)(struct Main *bmain, struct ID *id);
-typedef void (*DEG_EditorUpdateSceneCb)(struct Main *bmain,
-                                        struct Scene *scene,
-                                        int updated);
+typedef struct DEGEditorUpdateContext {
+	struct Main *bmain;
+	struct Scene *scene;
+	struct ViewLayer *view_layer;
+} DEGEditorUpdateContext;
+
+typedef void (*DEG_EditorUpdateIDCb)(
+        const DEGEditorUpdateContext *update_ctx,
+        struct ID *id);
+typedef void (*DEG_EditorUpdateSceneCb)(
+        const DEGEditorUpdateContext *update_ctx, int updated);
 
 /* Set callbacks which are being called when depsgraph changes. */
 void DEG_editors_set_update_cb(DEG_EditorUpdateIDCb id_func,

@@ -476,17 +476,18 @@ ID *Depsgraph::get_cow_id(const ID *id_orig) const
 	return id_node->id_cow;
 }
 
-void deg_editors_id_update(Main *bmain, ID *id)
+void deg_editors_id_update(const DEGEditorUpdateContext *update_ctx, ID *id)
 {
 	if (deg_editor_update_id_cb != NULL) {
-		deg_editor_update_id_cb(bmain, id);
+		deg_editor_update_id_cb(update_ctx, id);
 	}
 }
 
-void deg_editors_scene_update(Main *bmain, Scene *scene, bool updated)
+void deg_editors_scene_update(const DEGEditorUpdateContext *update_ctx,
+                              bool updated)
 {
 	if (deg_editor_update_scene_cb != NULL) {
-		deg_editor_update_scene_cb(bmain, scene, updated);
+		deg_editor_update_scene_cb(update_ctx, updated);
 	}
 }
 
