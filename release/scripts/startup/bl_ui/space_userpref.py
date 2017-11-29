@@ -860,6 +860,7 @@ class USERPREF_PT_theme(Panel):
             colsub.row().prop(ui_state, "inner_anim_sel")
             colsub.row().prop(ui_state, "inner_driven")
             colsub.row().prop(ui_state, "inner_driven_sel")
+            colsub.row().prop(ui_state, "blend")
 
             subsplit = row.split(percentage=0.85)
 
@@ -868,7 +869,8 @@ class USERPREF_PT_theme(Panel):
             colsub = padding.column()
             colsub.row().prop(ui_state, "inner_key")
             colsub.row().prop(ui_state, "inner_key_sel")
-            colsub.row().prop(ui_state, "blend")
+            colsub.row().prop(ui_state, "inner_overridden")
+            colsub.row().prop(ui_state, "inner_overridden_sel")
 
             col.separator()
             col.separator()

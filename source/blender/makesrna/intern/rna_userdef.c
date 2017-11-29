@@ -827,6 +827,16 @@ static void rna_def_userdef_theme_ui_wcol_state(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Driven Selected", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
+	prop = RNA_def_property(srna, "inner_overridden", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Overridden", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop = RNA_def_property(srna, "inner_overridden_sel", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Overridden Selected", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
 	prop = RNA_def_property(srna, "blend", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_ui_text(prop, "Blend", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
