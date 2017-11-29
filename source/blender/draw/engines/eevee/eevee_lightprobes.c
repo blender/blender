@@ -486,7 +486,7 @@ void EEVEE_lightprobes_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
 		return;
 	}
 
-	EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
+	EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
 
 	ped->num_cell = probe->grid_resolution_x * probe->grid_resolution_y * probe->grid_resolution_z;
 
@@ -551,7 +551,7 @@ static void EEVEE_planar_reflections_updates(EEVEE_ViewLayerData *sldata, EEVEE_
 	for (int i = 0; (ob = pinfo->probes_planar_ref[i]) && (i < MAX_PLANAR); i++) {
 		LightProbe *probe = (LightProbe *)ob->data;
 		EEVEE_PlanarReflection *eplanar = &pinfo->planar_data[i];
-		EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
+		EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
 
 		/* Computing mtx : matrix that mirror position around object's XY plane. */
 		normalize_m4_m4(normat, ob->obmat);  /* object > world */
@@ -646,7 +646,7 @@ static void EEVEE_lightprobes_updates(EEVEE_ViewLayerData *sldata, EEVEE_PassLis
 	for (int i = 1; (ob = pinfo->probes_cube_ref[i]) && (i < MAX_PROBE); i++) {
 		LightProbe *probe = (LightProbe *)ob->data;
 		EEVEE_LightProbe *eprobe = &pinfo->probe_data[i];
-		EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
+		EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
 
 		/* Update transforms */
 		copy_v3_v3(eprobe->position, ob->obmat[3]);
@@ -692,7 +692,7 @@ static void EEVEE_lightprobes_updates(EEVEE_ViewLayerData *sldata, EEVEE_PassLis
 	for (int i = 1; (ob = pinfo->probes_grid_ref[i]) && (i < MAX_GRID); i++) {
 		LightProbe *probe = (LightProbe *)ob->data;
 		EEVEE_LightGrid *egrid = &pinfo->grid_data[i];
-		EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
+		EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
 
 		/* Add one for level 0 */
 		ped->max_lvl = 1.0f + floorf(log2f((float)MAX3(probe->grid_resolution_x,
@@ -802,7 +802,7 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 		pinfo->cache_num_cube = pinfo->num_cube;
 
 		for (int i = 1; (ob = pinfo->probes_cube_ref[i]) && (i < MAX_PROBE); i++) {
-			EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
+			EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
 			ped->need_update = true;
 			ped->ready_to_shade = false;
 			ped->probe_id = 0;
@@ -835,7 +835,7 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 		e_data.update_world |= PROBE_UPDATE_GRID;
 
 		for (int i = 1; (ob = pinfo->probes_grid_ref[i]) && (i < MAX_PROBE); i++) {
-			EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
+			EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
 			ped->need_update = true;
 			ped->updated_cells = 0;
 		}
@@ -1340,7 +1340,7 @@ void EEVEE_lightprobes_refresh(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 			pinfo->num_render_grid = pinfo->num_grid;
 
 			for (int i = 1; (ob = pinfo->probes_grid_ref[i]) && (i < MAX_GRID); i++) {
-				EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
+				EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
 
 				if (ped->need_update) {
 					EEVEE_LightGrid *egrid = &pinfo->grid_data[i];
@@ -1440,7 +1440,7 @@ skip_rendering:
 			if (pinfo->updated_bounce < pinfo->num_bounce) {
 				/* Retag all grids to update for next bounce */
 				for (int i = 1; (ob = pinfo->probes_grid_ref[i]) && (i < MAX_GRID); i++) {
-					EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
+					EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
 					ped->need_update = true;
 					ped->updated_cells = 0;
 					ped->updated_lvl = 0;
@@ -1460,7 +1460,7 @@ skip_rendering:
 		}
 
 		for (int i = 1; (ob = pinfo->probes_cube_ref[i]) && (i < MAX_PROBE); i++) {
-			EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
+			EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
 
 			if (ped->need_update) {
 				LightProbe *prb = (LightProbe *)ob->data;
@@ -1491,7 +1491,7 @@ skip_rendering:
 update_planar:
 
 	for (int i = 0; (ob = pinfo->probes_planar_ref[i]) && (i < MAX_PLANAR); i++) {
-		EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(ob);
+		EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
 
 		if (ped->need_update) {
 			/* Temporary Remove all planar reflections (avoid lag effect). */

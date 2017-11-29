@@ -640,10 +640,10 @@ typedef struct EEVEE_PrivateData {
 } EEVEE_PrivateData; /* Transient data */
 
 /* eevee_data.c */
-EEVEE_ViewLayerData *EEVEE_view_layer_data_get(void);
-EEVEE_ObjectEngineData *EEVEE_object_data_get(Object *ob);
-EEVEE_LightProbeEngineData *EEVEE_lightprobe_data_get(Object *ob);
-EEVEE_LampEngineData *EEVEE_lamp_data_get(Object *ob);
+EEVEE_ViewLayerData *EEVEE_view_layer_data_ensure(void);
+EEVEE_ObjectEngineData *EEVEE_object_data_ensure(Object *ob);
+EEVEE_LightProbeEngineData *EEVEE_lightprobe_data_ensure(Object *ob);
+EEVEE_LampEngineData *EEVEE_lamp_data_ensure(Object *ob);
 
 /* eevee_materials.c */
 struct GPUTexture *EEVEE_materials_get_util_tex(void); /* XXX */

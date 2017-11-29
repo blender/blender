@@ -50,7 +50,7 @@ static void EEVEE_engine_init(void *ved)
 	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
-	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_get();
+	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
@@ -85,7 +85,7 @@ static void EEVEE_engine_init(void *ved)
 static void EEVEE_cache_init(void *vedata)
 {
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
-	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_get();
+	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
 
 	EEVEE_bloom_cache_init(sldata, vedata);
 	EEVEE_depth_of_field_cache_init(sldata, vedata);
@@ -103,7 +103,7 @@ static void EEVEE_cache_init(void *vedata)
 
 static void EEVEE_cache_populate(void *vedata, Object *ob)
 {
-	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_get();
+	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const bool is_active = (ob == draw_ctx->obact);
@@ -151,7 +151,7 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 
 static void EEVEE_cache_finish(void *vedata)
 {
-	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_get();
+	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
 
 	EEVEE_materials_cache_finish(vedata);
 	EEVEE_lights_cache_finish(sldata);
@@ -163,7 +163,7 @@ static void EEVEE_draw_scene(void *vedata)
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 	EEVEE_FramebufferList *fbl = ((EEVEE_Data *)vedata)->fbl;
-	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_get();
+	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
 
 	/* Default framebuffer and texture */
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
@@ -290,15 +290,15 @@ static void EEVEE_id_update(void *UNUSED(vedata), ID *id)
 	const ID_Type id_type = GS(id->name);
 	if (id_type == ID_OB) {
 		Object *object = (Object *)id;
-		EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(object);
+		EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(object);
 		if (ped != NULL) {
 			ped->need_full_update = true;
 		}
-		EEVEE_LampEngineData *led = EEVEE_lamp_data_get(object);
+		EEVEE_LampEngineData *led = EEVEE_lamp_data_ensure(object);
 		if (led != NULL) {
 			led->need_update = true;
 		}
-		EEVEE_ObjectEngineData *oedata = EEVEE_object_data_get(object);
+		EEVEE_ObjectEngineData *oedata = EEVEE_object_data_ensure(object);
 		if (oedata != NULL) {
 			oedata->need_update = true;
 		}
