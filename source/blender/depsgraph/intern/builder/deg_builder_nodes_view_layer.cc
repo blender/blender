@@ -84,17 +84,13 @@ void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
 		scene_cow = scene;
 		view_layer_cow = view_layer;
 	}
-
-	/* scene ID block */
+	/* Scene ID block. */
 	add_id_node(&scene->id);
-
-	/* timesource */
+	/* Rimesource. */
 	add_time_source();
-
 	/* Setup currently building context. */
 	scene_ = scene;
-
-	/* scene objects */
+	/* Scene objects. */
 	int select_color = 1;
 	LINKLIST_FOREACH(Base *, base, &view_layer_cow->object_bases) {
 		/* object itself */
@@ -104,60 +100,46 @@ void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
 	if (scene->camera != NULL) {
 		build_object(NULL, scene->camera, DEG_ID_LINKED_INDIRECTLY);
 	}
-
-	/* rigidbody */
-	if (scene->rigidbody_world) {
+	/* Rigidbody. */
+	if (scene->rigidbody_world != NULL) {
 		build_rigidbody(scene);
 	}
-
-	/* scene's animation and drivers */
-	if (scene->adt) {
+	/* Scene's animation and drivers. */
+	if (scene->adt != NULL) {
 		build_animdata(&scene->id);
 	}
-
-	/* world */
-	if (scene->world) {
+	/* World. */
+	if (scene->world != NULL) {
 		build_world(scene->world);
 	}
-
-	/* compo nodes */
-	if (scene->nodetree) {
+	/* Compositor nodes */
+	if (scene->nodetree != NULL) {
 		build_compositor(scene);
 	}
-
-	/* sequencer */
-	// XXX...
-
-	/* grease pencil */
-	if (scene->gpd) {
+	/* Grease pencil. */
+	if (scene->gpd != NULL) {
 		build_gpencil(scene->gpd);
 	}
-
 	/* Cache file. */
 	LINKLIST_FOREACH (CacheFile *, cachefile, &bmain_->cachefiles) {
 		build_cachefile(cachefile);
 	}
-
 	/* Masks. */
 	LINKLIST_FOREACH (Mask *, mask, &bmain_->mask) {
 		build_mask(mask);
 	}
-
 	/* Movie clips. */
 	LINKLIST_FOREACH (MovieClip *, clip, &bmain_->movieclip) {
 		build_movieclip(clip);
 	}
-
 	/* Collections. */
 	build_view_layer_collections(scene_cow, view_layer_cow);
-
 	/* Parameters evaluation for scene relations mainly. */
 	add_operation_node(&scene->id,
 	                   DEG_NODE_TYPE_PARAMETERS,
 	                   NULL,
 	                   DEG_OPCODE_PLACEHOLDER,
 	                   "Scene Eval");
-
 	/* Build all set scenes. */
 	if (scene->set != NULL) {
 		ViewLayer *set_view_layer = BKE_view_layer_from_scene_get(scene->set);

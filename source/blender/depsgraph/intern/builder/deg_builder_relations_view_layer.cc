@@ -72,53 +72,43 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene, ViewLayer *view_la
 {
 	/* Setup currently building context. */
 	scene_ = scene;
-
-	/* scene objects */
+	/* Scene objects. */
 	LINKLIST_FOREACH(Base *, base, &view_layer->object_bases) {
 		build_object(base, base->object);
 	}
 	if (scene->camera != NULL) {
 		build_object(NULL, scene->camera);
 	}
-
-	/* rigidbody */
-	if (scene->rigidbody_world) {
+	/* Rigidbody. */
+	if (scene->rigidbody_world != NULL) {
 		build_rigidbody(scene);
 	}
-
-	/* scene's animation and drivers */
-	if (scene->adt) {
+	/* Scene's animation and drivers. */
+	if (scene->adt != NULL) {
 		build_animdata(&scene->id);
 	}
-
-	/* world */
-	if (scene->world) {
+	/* World. */
+	if (scene->world != NULL) {
 		build_world(scene->world);
 	}
-
-	/* compo nodes */
-	if (scene->nodetree) {
+	/* Compositor nodes. */
+	if (scene->nodetree != NULL) {
 		build_compositor(scene);
 	}
-
-	/* grease pencil */
-	if (scene->gpd) {
+	/* Grease pencil. */
+	if (scene->gpd != NULL) {
 		build_gpencil(scene->gpd);
 	}
-
 	/* Masks. */
 	LINKLIST_FOREACH (Mask *, mask, &bmain_->mask) {
 		build_mask(mask);
 	}
-
 	/* Movie clips. */
 	LINKLIST_FOREACH (MovieClip *, clip, &bmain_->movieclip) {
 		build_movieclip(clip);
 	}
-
 	/* Collections. */
 	build_view_layer_collections(view_layer);
-
 	/* TODO(sergey): Do this flush on CoW object? */
 	foreach (OperationDepsNode *node, graph_->operations) {
 		IDDepsNode *id_node = node->owner->owner;
@@ -128,7 +118,6 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene, ViewLayer *view_la
 			object->customdata_mask |= node->customdata_mask;
 		}
 	}
-
 	/* Build all set scenes. */
 	if (scene->set != NULL) {
 		ViewLayer *set_view_layer = BKE_view_layer_from_scene_get(scene->set);
