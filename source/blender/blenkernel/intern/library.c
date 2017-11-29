@@ -104,6 +104,7 @@
 #include "BKE_lamp.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
+#include "BKE_library_override.h"
 #include "BKE_library_query.h"
 #include "BKE_library_remap.h"
 #include "BKE_linestyle.h"
@@ -1410,6 +1411,15 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int fla
 	if (id->properties) {
 		new_id->properties = IDP_CopyProperty_ex(id->properties, flag);
 	}
+
+	/* XXX Again... We need a way to control what we copy in a much more refined way.
+	 * We cannot always copy this, some internal copying will die on it! */
+	/* For now, upper level code will have to do that itself when required. */
+#if 0
+	if (id->override != NULL) {
+		BKE_override_copy(new_id, id);
+	}
+#endif
 
 	/* the duplicate should get a copy of the animdata */
 	id_copy_animdata(bmain, new_id, (flag & LIB_ID_COPY_ACTIONS) != 0 && (flag & LIB_ID_CREATE_NO_MAIN) == 0);

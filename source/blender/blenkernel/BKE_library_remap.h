@@ -51,6 +51,8 @@ enum {
 	 * This is needed e.g. in reload scenario, since we have to ensure remapping of Armature data of local proxy
 	 * is also performed. Usual nightmare... */
 	ID_REMAP_NO_INDIRECT_PROXY_DATA_USAGE = 1 << 4,
+	/* Do not remap static override pointers. */
+	ID_REMAP_SKIP_STATIC_OVERRIDE = 1 << 5,
 };
 
 /* Note: Requiring new_id to be non-null, this *may* not be the case ultimately, but makes things simpler for now. */

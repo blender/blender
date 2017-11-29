@@ -87,6 +87,7 @@
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
+#include "BKE_library_override.h"
 #include "BKE_library_query.h"
 #include "BKE_library_remap.h"
 #include "BKE_linestyle.h"
@@ -181,6 +182,7 @@ static int foreach_libblock_remap_callback(void *user_data, ID *id_self, ID **id
 	}
 
 	if (*id_p && (*id_p == old_id)) {
+		const bool is_reference = (cb_flag & IDWALK_CB_STATIC_OVERRIDE_REFERENCE) != 0;
 		const bool is_indirect = (cb_flag & IDWALK_CB_INDIRECT_USAGE) != 0;
 		const bool skip_indirect = (id_remap_data->flag & ID_REMAP_SKIP_INDIRECT_USAGE) != 0;
 		/* Note: proxy usage implies LIB_TAG_EXTERN, so on this aspect it is direct,
@@ -191,6 +193,7 @@ static int foreach_libblock_remap_callback(void *user_data, ID *id_self, ID **id
 		const bool is_obj_editmode = (is_obj && BKE_object_is_in_editmode((Object *)id));
 		const bool is_never_null = ((cb_flag & IDWALK_CB_NEVER_NULL) && (new_id == NULL) &&
 		                            (id_remap_data->flag & ID_REMAP_FORCE_NEVER_NULL_USAGE) == 0);
+		const bool skip_reference = (id_remap_data->flag & ID_REMAP_SKIP_STATIC_OVERRIDE) != 0;
 		const bool skip_never_null = (id_remap_data->flag & ID_REMAP_SKIP_NEVER_NULL_USAGE) != 0;
 
 #ifdef DEBUG_PRINT
@@ -205,7 +208,8 @@ static int foreach_libblock_remap_callback(void *user_data, ID *id_self, ID **id
 		/* Special hack in case it's Object->data and we are in edit mode (skipped_direct too). */
 		if ((is_never_null && skip_never_null) ||
 		    (is_obj_editmode && (((Object *)id)->data == *id_p)) ||
-		    (skip_indirect && is_indirect))
+		    (skip_indirect && is_indirect) ||
+		    (is_reference && skip_reference))
 		{
 			if (is_indirect) {
 				id_remap_data->skipped_indirect++;
@@ -218,7 +222,7 @@ static int foreach_libblock_remap_callback(void *user_data, ID *id_self, ID **id
 					}
 				}
 			}
-			else if (is_never_null || is_obj_editmode) {
+			else if (is_never_null || is_obj_editmode || is_reference) {
 				id_remap_data->skipped_direct++;
 			}
 			else {
@@ -740,6 +744,10 @@ void BKE_libblock_free_data(ID *id, const bool do_id_user)
 	if (id->properties) {
 		IDP_FreeProperty_ex(id->properties, do_id_user);
 		MEM_freeN(id->properties);
+	}
+
+	if (id->override_static) {
+		BKE_override_static_free(&id->override_static);
 	}
 
 	/* XXX TODO remove animdata handling from each type's freeing func, and do it here, like for copy! */

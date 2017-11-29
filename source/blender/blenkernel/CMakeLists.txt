@@ -124,6 +124,7 @@ set(SRC
 	intern/lattice.c
 	intern/library.c
 	intern/library_idmap.c
+	intern/library_override.c
 	intern/library_query.c
 	intern/library_remap.c
 	intern/linestyle.c
@@ -256,6 +257,7 @@ set(SRC
 	BKE_lattice.h
 	BKE_library.h
 	BKE_library_idmap.h
+	BKE_library_override.h
 	BKE_library_query.h
 	BKE_library_remap.h
 	BKE_linestyle.h

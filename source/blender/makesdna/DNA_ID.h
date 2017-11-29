@@ -115,6 +115,76 @@ enum {
 
 /* add any future new id property types here.*/
 
+
+/* Static ID override structs. */
+
+typedef struct IDOverrideStaticPropertyOperation {
+	struct IDOverrideStaticPropertyOperation *next, *prev;
+
+	/* Type of override. */
+	short operation;
+	short flag;
+	short pad_s1[2];
+
+	/* Sub-item references, if needed (for arrays or collections only).
+	 * We need both reference and local values to allow e.g. insertion into collections (constraints, modifiers...).
+	 * In collection case, if names are defined, they are used in priority.
+	 * Names are pointers (instead of char[64]) to save some space, NULL when unset.
+	 * Indices are -1 when unset. */
+	char *subitem_reference_name;
+	char *subitem_local_name;
+	int subitem_reference_index;
+	int subitem_local_index;
+} IDOverrideStaticPropertyOperation;
+
+/* IDOverridePropertyOperation->operation. */
+enum {
+	/* Basic operations. */
+	IDOVERRIDESTATIC_OP_NOOP          =   0,  /* Special value, forbids any overriding. */
+
+	IDOVERRIDESTATIC_OP_REPLACE       =   1,  /* Fully replace local value by reference one. */
+
+	/* Numeric-only operations. */
+	IDOVERRIDESTATIC_OP_ADD           = 101,  /* Add local value to reference one. */
+	/* Subtract local value from reference one (needed due to unsigned values etc.). */
+	IDOVERRIDESTATIC_OP_SUBTRACT      = 102,
+	/* Multiply reference value by local one (more useful than diff for scales and the like). */
+	IDOVERRIDESTATIC_OP_MULTIPLY      = 103,
+
+	/* Collection-only operations. */
+	IDOVERRIDESTATIC_OP_INSERT_AFTER  = 201,  /* Insert after given reference's subitem. */
+	IDOVERRIDESTATIC_OP_INSERT_BEFORE = 202,  /* Insert before given reference's subitem. */
+	/* We can add more if needed (move, delete, ...). */
+};
+
+/* IDOverridePropertyOperation->flag. */
+enum {
+	IDOVERRIDESTATIC_FLAG_MANDATORY     =   1 << 0,  /* User cannot remove that override operation. */
+	IDOVERRIDESTATIC_FLAG_LOCKED        =   1 << 1,  /* User cannot change that override operation. */
+};
+
+/* A single overriden property, contain all operations on this one. */
+typedef struct IDOverrideStaticProperty {
+	struct IDOverrideStaticProperty *next, *prev;
+
+	/* Path from ID to overridden property. *Does not* include indices/names for final arrays/collections items. */
+	char *rna_path;
+
+	ListBase operations;  /* List of overriding operations (IDOverridePropertyOperation) applied to this property. */
+} IDOverrideStaticProperty;
+
+/* Main container for all overriding data info of a data-block. */
+typedef struct IDOverrideStatic {
+	struct ID *reference;  /* Reference linked ID which this one overrides. */
+	ListBase properties;  /* List of IDOverrideProperty structs. */
+
+	/* Read/write data. */
+	/* Temp ID storing extra override data (used for differential operations only currently).
+	 * Always NULL outside of read/write context. */
+	struct ID *storage;
+} IDOverrideStatic;
+
+
 /* watch it: Sequence has identical beginning. */
 /**
  * ID is the first thing included in all serializable types. It
@@ -142,7 +212,12 @@ typedef struct ID {
 	int us;
 	int icon_id;
 	IDProperty *properties;
+
+	IDOverrideStatic *override_static;  /* Reference linked ID which this one overrides. */
+
 	void *py_instance;
+
+	void *pad1;
 } ID;
 
 /**
@@ -309,7 +384,8 @@ typedef enum ID_Type {
 
 /* id->flag (persitent). */
 enum {
-	LIB_FAKEUSER        = 1 << 9,
+	LIB_OVERRIDE_STATIC_AUTO    = 1 << 0,  /* Allow automatic generation of overriding rules. */
+	LIB_FAKEUSER                = 1 << 9,
 };
 
 /**
@@ -343,6 +419,9 @@ enum {
 
 	/* RESET_NEVER tag datablock as a place-holder (because the real one could not be linked from its library e.g.). */
 	LIB_TAG_MISSING         = 1 << 6,
+
+	/* RESET_NEVER tag datablock as being up-to-date regarding its reference. */
+	LIB_TAG_OVERRIDESTATIC_OK = 1 << 9,
 
 	/* tag datablock has having an extra user. */
 	LIB_TAG_EXTRAUSER       = 1 << 2,

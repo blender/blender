@@ -373,6 +373,10 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 #define CALLBACK_INVOKE(check_id_super, cb_flag) \
 	FOREACH_CALLBACK_INVOKE(&data, check_id_super, cb_flag)
 
+	if (id->override_static != NULL) {
+		CALLBACK_INVOKE_ID(id->override_static->reference, IDWALK_CB_USER | IDWALK_CB_STATIC_OVERRIDE_REFERENCE);
+	}
+
 	for (; id != NULL; id = (flag & IDWALK_RECURSE) ? BLI_LINKSTACK_POP(data.ids_todo) : NULL) {
 		data.self_id = id;
 		data.cb_flag = ID_IS_LINKED(id) ? IDWALK_CB_INDIRECT_USAGE : 0;
