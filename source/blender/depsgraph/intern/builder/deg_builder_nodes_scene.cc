@@ -65,71 +65,55 @@ namespace DEG {
 
 void DepsgraphNodeBuilder::build_scene(Scene *scene)
 {
-	/* scene ID block */
+	/* Scene ID block. */
 	add_id_node(&scene->id);
-
 	/* timesource */
 	add_time_source();
-
 	/* build subgraph for set, and link this in... */
 	// XXX: depending on how this goes, that scene itself could probably store its
 	//      own little partial depsgraph?
-	if (scene->set) {
+	if (scene->set != NULL) {
 		build_scene(scene->set);
 	}
-
 	/* Setup currently building context. */
 	scene_ = scene;
-
 	/* scene objects */
 	LINKLIST_FOREACH (Base *, base, &scene->base) {
 		Object *object = base->object;
 		build_object(base, object);
 	}
-
-	/* rigidbody */
-	if (scene->rigidbody_world) {
+	/* Rigidbody. */
+	if (scene->rigidbody_world != NULL) {
 		build_rigidbody(scene);
 	}
-
-	/* scene's animation and drivers */
-	if (scene->adt) {
+	/* Scene's animation and drivers. */
+	if (scene->adt != NULL) {
 		build_animdata(&scene->id);
 	}
-
-	/* world */
-	if (scene->world) {
+	/* World. */
+	if (scene->world != NULL) {
 		build_world(scene->world);
 	}
-
-	/* compo nodes */
-	if (scene->nodetree) {
+	/* Compositor nodes. */
+	if (scene->nodetree != NULL) {
 		build_compositor(scene);
 	}
-
-	/* sequencer */
-	// XXX...
-
-	/* grease pencil */
-	if (scene->gpd) {
+	/* Grease pencil. */
+	if (scene->gpd != NULL) {
 		build_gpencil(scene->gpd);
 	}
-
 	/* Cache file. */
 	LINKLIST_FOREACH (CacheFile *, cachefile, &bmain_->cachefiles) {
 		build_cachefile(cachefile);
 	}
-
 	/* Masks. */
 	LINKLIST_FOREACH (Mask *, mask, &bmain_->mask) {
 		build_mask(mask);
 	}
-
 	/* Movie clips. */
 	LINKLIST_FOREACH (MovieClip *, clip, &bmain_->movieclip) {
 		build_movieclip(clip);
 	}
-
 	/* Parameters evaluation for scene relations mainly. */
 	add_operation_node(&scene->id,
 	                   DEG_NODE_TYPE_PARAMETERS,
