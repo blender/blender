@@ -45,6 +45,7 @@
 #include "BKE_blender_undo.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_library_override.h"
 #include "BKE_main.h"
 #include "BKE_screen.h"
 
@@ -81,6 +82,9 @@ void ED_undo_push(bContext *C, const char *str)
 
 	if (G.debug & G_DEBUG)
 		printf("%s: %s\n", __func__, str);
+
+	/* Always do it for now, this might need to be refined... */
+	BKE_main_override_static_operations_create(CTX_data_main(C));
 
 	if (obedit) {
 		if (U.undosteps == 0) return;
