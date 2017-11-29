@@ -689,6 +689,75 @@ bool id_copy(Main *bmain, const ID *id, ID **newid, bool test)
 	return BKE_id_copy_ex(bmain, id, newid, 0, test);
 }
 
+/** Does a mere memory swap over the whole IDs data (including type-specific memory).
+ *  \note Most internal ID data itself is not swapped (only IDProperties are). */
+void BKE_id_swap(Main *bmain, ID *id_a, ID *id_b)
+{
+	BLI_assert(GS(id_a->name) == GS(id_b->name));
+
+	const ID id_a_back = *id_a;
+	const ID id_b_back = *id_b;
+
+#define CASE_SWAP(_gs, _type) \
+	case _gs: \
+		SWAP(_type, *(_type *)id_a, *(_type *)id_b); \
+		break
+
+	switch ((ID_Type)GS(id_a->name)) {
+		CASE_SWAP(ID_SCE, Scene);
+		CASE_SWAP(ID_LI, Library);
+		CASE_SWAP(ID_OB, Object);
+		CASE_SWAP(ID_ME, Mesh);
+		CASE_SWAP(ID_CU, Curve);
+		CASE_SWAP(ID_MB, MetaBall);
+		CASE_SWAP(ID_MA, Material);
+		CASE_SWAP(ID_TE, Tex);
+		CASE_SWAP(ID_IM, Image);
+		CASE_SWAP(ID_LT, Lattice);
+		CASE_SWAP(ID_LA, Lamp);
+		CASE_SWAP(ID_LP, LightProbe);
+		CASE_SWAP(ID_CA, Camera);
+		CASE_SWAP(ID_KE, Key);
+		CASE_SWAP(ID_WO, World);
+		CASE_SWAP(ID_SCR, bScreen);
+		CASE_SWAP(ID_VF, VFont);
+		CASE_SWAP(ID_TXT, Text);
+		CASE_SWAP(ID_SPK, Speaker);
+		CASE_SWAP(ID_SO, bSound);
+		CASE_SWAP(ID_GR, Group);
+		CASE_SWAP(ID_AR, bArmature);
+		CASE_SWAP(ID_AC, bAction);
+		CASE_SWAP(ID_NT, bNodeTree);
+		CASE_SWAP(ID_BR, Brush);
+		CASE_SWAP(ID_PA, ParticleSettings);
+		CASE_SWAP(ID_WM, wmWindowManager);
+		CASE_SWAP(ID_WS, WorkSpace);
+		CASE_SWAP(ID_GD, bGPdata);
+		CASE_SWAP(ID_MC, MovieClip);
+		CASE_SWAP(ID_MSK, Mask);
+		CASE_SWAP(ID_LS, FreestyleLineStyle);
+		CASE_SWAP(ID_PAL, Palette);
+		CASE_SWAP(ID_PC, PaintCurve);
+		CASE_SWAP(ID_CF, CacheFile);
+		case ID_IP:
+			break;  /* Deprecated. */
+	}
+
+#undef CASE_SWAP
+
+	/* Restore original ID's internal data. */
+	*id_a = id_a_back;
+	*id_b = id_b_back;
+
+	/* Exception: IDProperties. */
+	id_a->properties = id_b_back.properties;
+	id_b->properties = id_a_back.properties;
+
+	/* Swap will have broken internal references to itself, restore them. */
+	BKE_libblock_relink_ex(bmain, id_a, id_b, id_a, false);
+	BKE_libblock_relink_ex(bmain, id_b, id_a, id_b, false);
+}
+
 /** Does *not* set ID->newid pointer. */
 bool id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
 {
