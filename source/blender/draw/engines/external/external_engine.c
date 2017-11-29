@@ -96,7 +96,7 @@ typedef struct EXTERNAL_PrivateData {
 
 /* Functions */
 
-static void EXTERNAL_engine_init(void *UNUSED(vedata))
+static void external_engine_init(void *UNUSED(vedata))
 {
 	/* Depth prepass */
 	if (!e_data.depth_sh) {
@@ -104,7 +104,7 @@ static void EXTERNAL_engine_init(void *UNUSED(vedata))
 	}
 }
 
-static void EXTERNAL_cache_init(void *vedata)
+static void external_cache_init(void *vedata)
 {
 	EXTERNAL_PassList *psl = ((EXTERNAL_Data *)vedata)->psl;
 	EXTERNAL_StorageList *stl = ((EXTERNAL_Data *)vedata)->stl;
@@ -121,7 +121,7 @@ static void EXTERNAL_cache_init(void *vedata)
 	}
 }
 
-static void EXTERNAL_cache_populate(void *vedata, Object *ob)
+static void external_cache_populate(void *vedata, Object *ob)
 {
 	EXTERNAL_StorageList *stl = ((EXTERNAL_Data *)vedata)->stl;
 
@@ -135,11 +135,11 @@ static void EXTERNAL_cache_populate(void *vedata, Object *ob)
 	}
 }
 
-static void EXTERNAL_cache_finish(void *UNUSED(vedata))
+static void external_cache_finish(void *UNUSED(vedata))
 {
 }
 
-static void external_draw_scene(void *vedata)
+static void external_draw_scene_do(void *vedata)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	Scene *scene = draw_ctx->scene;
@@ -184,7 +184,7 @@ static void external_draw_scene(void *vedata)
 	}
 }
 
-static void EXTERNAL_draw_scene(void *vedata)
+static void external_draw_scene(void *vedata)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	EXTERNAL_PassList *psl = ((EXTERNAL_Data *)vedata)->psl;
@@ -193,29 +193,29 @@ static void EXTERNAL_draw_scene(void *vedata)
 	 * OpenGL render is used for quick preview (thumbnails or sequencer preview)
 	 * where using the rendering engine to preview doesn't make so much sense. */
 	if (draw_ctx->evil_C) {
-		external_draw_scene(vedata);
+		external_draw_scene_do(vedata);
 	}
 	DRW_draw_pass(psl->depth_pass);
 }
 
-static void EXTERNAL_engine_free(void)
+static void external_engine_free(void)
 {
 	/* All shaders are builtin. */
 }
 
-static const DrawEngineDataSize EXTERNAL_data_size = DRW_VIEWPORT_DATA_SIZE(EXTERNAL_Data);
+static const DrawEngineDataSize external_data_size = DRW_VIEWPORT_DATA_SIZE(EXTERNAL_Data);
 
 DrawEngineType draw_engine_external_type = {
 	NULL, NULL,
 	N_("External"),
-	&EXTERNAL_data_size,
-	&EXTERNAL_engine_init,
-	&EXTERNAL_engine_free,
-	&EXTERNAL_cache_init,
-	&EXTERNAL_cache_populate,
-	&EXTERNAL_cache_finish,
+	&external_data_size,
+	&external_engine_init,
+	&external_engine_free,
+	&external_cache_init,
+	&external_cache_populate,
+	&external_cache_finish,
 	NULL,
-	&EXTERNAL_draw_scene,
+	&external_draw_scene,
 	NULL,
 	NULL,
 };
