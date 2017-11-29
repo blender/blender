@@ -77,6 +77,7 @@
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
+#include "BKE_library_override.h"
 #include "BKE_library_query.h"
 #include "BKE_library_remap.h"
 #include "BKE_main.h"
@@ -2323,6 +2324,43 @@ void OBJECT_OT_make_local(wmOperatorType *ot)
 
 	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
+}
+
+static int make_override_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Main *bmain = CTX_data_main(C);
+	Object *locobj, *refobj = CTX_data_active_object(C);
+
+	locobj = (Object *)BKE_override_static_create_from(bmain, &refobj->id);
+
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+static int make_override_poll(bContext *C)
+{
+	Object *obact = CTX_data_active_object(C);
+
+	/* Object must be directly linked to be overridable. */
+	return (ED_operator_objectmode(C) && obact && obact->id.lib != NULL && obact->id.tag & LIB_TAG_EXTERN);
+}
+
+void OBJECT_OT_make_override(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Make Override";
+	ot->description = "Make local override of this library linked data-block";
+	ot->idname = "OBJECT_OT_make_override";
+
+	/* api callbacks */
+	ot->exec = make_override_exec;
+	ot->poll = make_override_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
 }
 
 enum {

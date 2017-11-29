@@ -84,6 +84,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_slow_parent_set);
 	WM_operatortype_append(OBJECT_OT_slow_parent_clear);
 	WM_operatortype_append(OBJECT_OT_make_local);
+	WM_operatortype_append(OBJECT_OT_make_override);
 	WM_operatortype_append(OBJECT_OT_make_single_user);
 	WM_operatortype_append(OBJECT_OT_make_links_scene);
 	WM_operatortype_append(OBJECT_OT_make_links_data);
