@@ -2702,6 +2702,16 @@ void DRW_viewport_request_redraw(void)
 /** \name ViewLayers (DRW_scenelayer)
  * \{ */
 
+void *DRW_view_layer_engine_data_get(DrawEngineType *engine_type)
+{
+	for (ViewLayerEngineData *sled = DST.draw_ctx.view_layer->drawdata.first; sled; sled = sled->next) {
+		if (sled->engine_type == engine_type) {
+			return sled->storage;
+		}
+	}
+	return NULL;
+}
+
 void **DRW_view_layer_engine_data_ensure(DrawEngineType *engine_type, void (*callback)(void *storage))
 {
 	ViewLayerEngineData *sled;
@@ -2727,6 +2737,16 @@ void **DRW_view_layer_engine_data_ensure(DrawEngineType *engine_type, void (*cal
 
 /** \name Objects (DRW_object)
  * \{ */
+
+void *DRW_object_engine_data_get(Object *ob, DrawEngineType *engine_type)
+{
+	for (ObjectEngineData *oed = ob->drawdata.first; oed; oed = oed->next) {
+		if (oed->engine_type == engine_type) {
+			return oed->storage;
+		}
+	}
+	return NULL;
+}
 
 void **DRW_object_engine_data_ensure(
         Object *ob, DrawEngineType *engine_type, void (*callback)(void *storage))

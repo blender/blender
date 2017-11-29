@@ -290,15 +290,15 @@ static void EEVEE_id_update(void *UNUSED(vedata), ID *id)
 	const ID_Type id_type = GS(id->name);
 	if (id_type == ID_OB) {
 		Object *object = (Object *)id;
-		EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(object);
+		EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(object);
 		if (ped != NULL) {
 			ped->need_full_update = true;
 		}
-		EEVEE_LampEngineData *led = EEVEE_lamp_data_ensure(object);
+		EEVEE_LampEngineData *led = EEVEE_lamp_data_get(object);
 		if (led != NULL) {
 			led->need_update = true;
 		}
-		EEVEE_ObjectEngineData *oedata = EEVEE_object_data_ensure(object);
+		EEVEE_ObjectEngineData *oedata = EEVEE_object_data_get(object);
 		if (oedata != NULL) {
 			oedata->need_update = true;
 		}

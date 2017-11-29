@@ -78,6 +78,12 @@ static void eevee_lightprobe_data_free(void *storage)
 	BLI_freelistN(&ped->captured_object_list);
 }
 
+EEVEE_ViewLayerData *EEVEE_view_layer_data_get(void)
+{
+	return (EEVEE_ViewLayerData *)DRW_view_layer_engine_data_get(
+	        &draw_engine_eevee_type);
+}
+
 EEVEE_ViewLayerData *EEVEE_view_layer_data_ensure(void)
 {
 	EEVEE_ViewLayerData **sldata = (EEVEE_ViewLayerData **)DRW_view_layer_engine_data_ensure(
@@ -88,6 +94,12 @@ EEVEE_ViewLayerData *EEVEE_view_layer_data_ensure(void)
 	}
 
 	return *sldata;
+}
+
+EEVEE_ObjectEngineData *EEVEE_object_data_get(Object *ob)
+{
+	return (EEVEE_ObjectEngineData *)DRW_object_engine_data_get(
+	        ob, &draw_engine_eevee_type);
 }
 
 EEVEE_ObjectEngineData *EEVEE_object_data_ensure(Object *ob)
@@ -102,6 +114,12 @@ EEVEE_ObjectEngineData *EEVEE_object_data_ensure(Object *ob)
 	return *oedata;
 }
 
+EEVEE_LightProbeEngineData *EEVEE_lightprobe_data_get(Object *ob)
+{
+	return (EEVEE_LightProbeEngineData *)DRW_object_engine_data_get(
+	        ob, &draw_engine_eevee_type);
+}
+
 EEVEE_LightProbeEngineData *EEVEE_lightprobe_data_ensure(Object *ob)
 {
 	EEVEE_LightProbeEngineData **pedata = (EEVEE_LightProbeEngineData **)DRW_object_engine_data_ensure(
@@ -114,6 +132,12 @@ EEVEE_LightProbeEngineData *EEVEE_lightprobe_data_ensure(Object *ob)
 	}
 
 	return *pedata;
+}
+
+EEVEE_LampEngineData *EEVEE_lamp_data_get(Object *ob)
+{
+	return (EEVEE_LampEngineData *)DRW_object_engine_data_get(
+	        ob, &draw_engine_eevee_type);
 }
 
 EEVEE_LampEngineData *EEVEE_lamp_data_ensure(Object *ob)

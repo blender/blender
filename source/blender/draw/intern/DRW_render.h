@@ -384,9 +384,11 @@ struct DefaultTextureList     *DRW_viewport_texture_list_get(void);
 void DRW_viewport_request_redraw(void);
 
 /* ViewLayers */
+void *DRW_view_layer_engine_data_get(DrawEngineType *engine_type);
 void **DRW_view_layer_engine_data_ensure(DrawEngineType *engine_type, void (*callback)(void *storage));
 
 /* Objects */
+void *DRW_object_engine_data_get(Object *ob, DrawEngineType *engine_type);
 void **DRW_object_engine_data_ensure(
         Object *ob, DrawEngineType *engine_type, void (*callback)(void *storage));
 struct LampEngineData *DRW_lamp_engine_data_ensure(Object *ob, struct RenderEngineType *engine_type);
