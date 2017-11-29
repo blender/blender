@@ -78,6 +78,10 @@ typedef struct {
 #include "mathutils_Euler.h"
 #include "mathutils_Color.h"
 
+/* avoid checking all types */
+#define BaseMathObject_CheckExact(v) \
+	(Py_TYPE(v)->tp_dealloc == (destructor)BaseMathObject_dealloc)
+
 PyObject *BaseMathObject_owner_get(BaseMathObject *self, void *);
 PyObject *BaseMathObject_is_wrapped_get(BaseMathObject *self, void *);
 PyObject *BaseMathObject_is_frozen_get(BaseMathObject *self, void *);

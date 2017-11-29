@@ -28,7 +28,9 @@
  */
 
 extern PyTypeObject quaternion_Type;
-#define QuaternionObject_Check(_v) PyObject_TypeCheck((_v), &quaternion_Type)
+
+#define QuaternionObject_Check(v) PyObject_TypeCheck((v), &quaternion_Type)
+#define QuaternionObject_CheckExact(v) (Py_TYPE(v) == &quaternion_Type)
 
 typedef struct {
 	BASE_MATH_MEMBERS(quat);

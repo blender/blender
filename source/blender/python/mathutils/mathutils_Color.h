@@ -30,7 +30,8 @@
 #define __MATHUTILS_COLOR_H__
 
 extern PyTypeObject color_Type;
-#define ColorObject_Check(_v) PyObject_TypeCheck((_v), &color_Type)
+#define ColorObject_Check(v) PyObject_TypeCheck((v), &color_Type)
+#define ColorObject_CheckExact(v) (Py_TYPE(v) == &color_Type)
 
 typedef struct {
 	BASE_MATH_MEMBERS(col);
