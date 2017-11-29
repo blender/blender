@@ -35,9 +35,9 @@ if __package__ is None:
     import utils
 else:
     from . import (
-            settings,
-            utils,
-            )
+        settings,
+        utils,
+    )
 
 
 # XXX This is a quick hack to make it work with new I18n... objects! To be reworked!

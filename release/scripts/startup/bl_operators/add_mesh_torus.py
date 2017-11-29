@@ -21,10 +21,10 @@ import bpy
 from bpy.types import Operator
 
 from bpy.props import (
-        FloatProperty,
-        IntProperty,
-        BoolProperty,
-        )
+    BoolProperty,
+    FloatProperty,
+    IntProperty,
+)
 from bpy.app.translations import pgettext_data as data_
 
 from bpy_extras import object_utils

@@ -21,9 +21,9 @@
 import bpy
 from bpy.types import Operator
 from bpy.props import (
-        BoolProperty,
-        StringProperty,
-        )
+    BoolProperty,
+    StringProperty,
+)
 
 
 def _lang_module_get(sc):
