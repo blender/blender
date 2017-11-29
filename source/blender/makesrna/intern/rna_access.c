@@ -2921,9 +2921,6 @@ char *RNA_property_string_get_alloc(PointerRNA *ptr, PropertyRNA *prop,
 	int length;
 
 	BLI_assert(RNA_property_type(prop) == PROP_STRING);
-	if (!ptr->data) {
-		return NULL;
-	}
 
 	length = RNA_property_string_length(ptr, prop);
 
