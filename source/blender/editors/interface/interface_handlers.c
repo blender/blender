@@ -6759,6 +6759,8 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 	MenuType *mt = WM_menutype_find("WM_MT_button_context", true);
 	bool is_array, is_array_component;
 	uiStringInfo label = {BUT_GET_LABEL, NULL};
+	wmOperatorType *ot;
+	PointerRNA op_ptr;
 
 /*	if ((but->rnapoin.data && but->rnaprop) == 0 && but->optype == NULL)*/
 /*		return 0;*/
@@ -6785,11 +6787,11 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 		const PropertySubType subtype = RNA_property_subtype(prop);
 		bool is_anim = RNA_property_animateable(ptr, prop);
 		bool is_editable = RNA_property_editable(ptr, prop);
+		bool is_overridable;
 		/*bool is_idprop = RNA_property_is_idprop(prop);*/ /* XXX does not work as expected, not strictly needed */
 		bool is_set = RNA_property_is_set(ptr, prop);
 
-		/* Set the (button_pointer, button_prop) and pointer data for Python access to the hovered ui element. */
-		uiLayoutSetContextFromBut(layout, but);
+		RNA_property_override_status(ptr, prop, -1, &is_overridable, NULL, NULL, NULL);
 
 		/* second slower test, saved people finding keyframe items in menus when its not possible */
 		if (is_anim)
@@ -6918,11 +6920,57 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 				        ICON_NONE, "ANIM_OT_keyingset_button_remove");
 			}
 		}
-		
+
+		if (is_overridable) {
+			/* Override Operators */
+			uiItemS(layout);
+
+			if (but->flag & UI_BUT_OVERRIDEN) {
+				if (is_array_component) {
+					ot = WM_operatortype_find("UI_OT_override_type_set_button", false);
+					uiItemFullO_ptr(layout, ot, "Overrides Type", ICON_NONE,
+					                NULL, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
+					RNA_boolean_set(&op_ptr, "all", true);
+					uiItemFullO_ptr(layout, ot, "Single Override Type", ICON_NONE,
+					                NULL, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
+					RNA_boolean_set(&op_ptr, "all", false);
+
+					uiItemBooleanO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove Overrides"),
+					               ICON_X, "UI_OT_override_remove_button", "all", true);
+					uiItemBooleanO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove Single Override"),
+					               ICON_X, "UI_OT_override_remove_button", "all", false);
+				}
+				else {
+					uiItemFullO(layout, "UI_OT_override_type_set_button", "Override Type", ICON_NONE,
+					            NULL, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
+					RNA_boolean_set(&op_ptr, "all", false);
+
+					uiItemBooleanO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove Override"),
+					               ICON_X, "UI_OT_override_remove_button", "all", true);
+				}
+			}
+			else {
+				if (is_array_component) {
+					ot = WM_operatortype_find("UI_OT_override_type_set_button", false);
+					uiItemFullO_ptr(layout, ot, "Define Overrides", ICON_NONE,
+					                NULL, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
+					RNA_boolean_set(&op_ptr, "all", true);
+					uiItemFullO_ptr(layout, ot, "Define Single Override", ICON_NONE,
+					                NULL, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
+					RNA_boolean_set(&op_ptr, "all", false);
+				}
+				else {
+					uiItemFullO(layout, "UI_OT_override_type_set_button", "Define Override", ICON_NONE,
+					            NULL, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
+					RNA_boolean_set(&op_ptr, "all", false);
+				}
+			}
+		}
+
 		uiItemS(layout);
-		
+
 		/* Property Operators */
-		
+
 		/* Copy Property Value
 		 * Paste Property Value */
 		
