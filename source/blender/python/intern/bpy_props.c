@@ -180,22 +180,6 @@ static PyObject *pyrna_struct_as_instance(PointerRNA *ptr)
 	return self;
 }
 
-/* could be moved into bpy_utils */
-static void printf_func_error(PyObject *py_func)
-{
-	/* since we return to C code we can't leave the error */
-	PyCodeObject *f_code = (PyCodeObject *)PyFunction_GET_CODE(py_func);
-	PyErr_Print();
-	PyErr_Clear();
-
-	/* use py style error */
-	fprintf(stderr, "File \"%s\", line %d, in %s\n",
-	        _PyUnicode_AsString(f_code->co_filename),
-	        f_code->co_firstlineno,
-	        _PyUnicode_AsString(((PyFunctionObject *)py_func)->func_name)
-	        );
-}
-
 static void bpy_prop_assign_flag(PropertyRNA *prop, const int flag)
 {
 	const int flag_mask = ((PROP_ANIMATABLE) & ~flag);
@@ -261,12 +245,12 @@ static void bpy_prop_update_cb(struct bContext *C, struct PointerRNA *ptr, struc
 	Py_DECREF(args);
 
 	if (ret == NULL) {
-		printf_func_error(py_func);
+		PyC_Err_PrintWithFunc(py_func);
 	}
 	else {
 		if (ret != Py_None) {
 			PyErr_SetString(PyExc_ValueError, "the return value must be None");
-			printf_func_error(py_func);
+			PyC_Err_PrintWithFunc(py_func);
 		}
 
 		Py_DECREF(ret);
@@ -313,14 +297,14 @@ static int bpy_prop_boolean_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
 	Py_DECREF(args);
 
 	if (ret == NULL) {
-		printf_func_error(py_func);
+		PyC_Err_PrintWithFunc(py_func);
 		value = false;
 	}
 	else {
 		value = PyC_Long_AsI32(ret);
 
 		if (value == -1 && PyErr_Occurred()) {
-			printf_func_error(py_func);
+			PyC_Err_PrintWithFunc(py_func);
 			value = false;
 		}
 
@@ -372,12 +356,12 @@ static void bpy_prop_boolean_set_cb(struct PointerRNA *ptr, struct PropertyRNA *
 	Py_DECREF(args);
 
 	if (ret == NULL) {
-		printf_func_error(py_func);
+		PyC_Err_PrintWithFunc(py_func);
 	}
 	else {
 		if (ret != Py_None) {
 			PyErr_SetString(PyExc_ValueError, "the return value must be None");
-			printf_func_error(py_func);
+			PyC_Err_PrintWithFunc(py_func);
 		}
 
 		Py_DECREF(ret);
@@ -421,7 +405,7 @@ static int bpy_prop_poll_cb(struct PointerRNA *self, PointerRNA candidate, struc
 	Py_DECREF(args);
 
 	if (ret == NULL) {
-		printf_func_error(py_func);
+		PyC_Err_PrintWithFunc(py_func);
 		result = false;
 	}
 	else {
@@ -470,14 +454,14 @@ static void bpy_prop_boolean_array_get_cb(struct PointerRNA *ptr, struct Propert
 	Py_DECREF(args);
 
 	if (ret == NULL) {
-		printf_func_error(py_func);
+		PyC_Err_PrintWithFunc(py_func);
 
 		for (i = 0; i < len; ++i)
 			values[i] = false;
 	}
 	else {
 		if (PyC_AsArray(values, ret, len, &PyBool_Type, false, "BoolVectorProperty get") == -1) {
-			printf_func_error(py_func);
+			PyC_Err_PrintWithFunc(py_func);
 
 			for (i = 0; i < len; ++i)
 				values[i] = false;
@@ -535,12 +519,12 @@ static void bpy_prop_boolean_array_set_cb(struct PointerRNA *ptr, struct Propert
 	Py_DECREF(args);
 
 	if (ret == NULL) {
-		printf_func_error(py_func);
+		PyC_Err_PrintWithFunc(py_func);
 	}
 	else {
 		if (ret != Py_None) {
 			PyErr_SetString(PyExc_ValueError, "the return value must be None");
-			printf_func_error(py_func);
+			PyC_Err_PrintWithFunc(py_func);
 		}
 
 		Py_DECREF(ret);
@@ -588,14 +572,14 @@ static int bpy_prop_int_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop)
 	Py_DECREF(args);
 
 	if (ret == NULL) {
-		printf_func_error(py_func);
+		PyC_Err_PrintWithFunc(py_func);
 		value = 0.0f;
 	}
 	else {
 		value = PyC_Long_AsI32(ret);
 
 		if (value == -1 && PyErr_Occurred()) {
-			printf_func_error(py_func);
+			PyC_Err_PrintWithFunc(py_func);
 			value = 0;
 		}
 
@@ -647,12 +631,12 @@ static void bpy_prop_int_set_cb(struct PointerRNA *ptr, struct PropertyRNA *prop
 	Py_DECREF(args);
 
 	if (ret == NULL) {
-		printf_func_error(py_func);
+		PyC_Err_PrintWithFunc(py_func);
 	}
 	else {
 		if (ret != Py_None) {
 			PyErr_SetString(PyExc_ValueError, "the return value must be None");
-			printf_func_error(py_func);
+			PyC_Err_PrintWithFunc(py_func);
 		}
 
 		Py_DECREF(ret);
@@ -700,14 +684,14 @@ static void bpy_prop_int_array_get_cb(struct PointerRNA *ptr, struct PropertyRNA
 	Py_DECREF(args);
 
 	if (ret == NULL) {
-		printf_func_error(py_func);
+		PyC_Err_PrintWithFunc(py_func);
 
 		for (i = 0; i < len; ++i)
 			values[i] = 0;
 	}
 	else {
 		if (PyC_AsArray(values, ret, len, &PyLong_Type, false, "IntVectorProperty get") == -1) {
-			printf_func_error(py_func);
+			PyC_Err_PrintWithFunc(py_func);
 
 			for (i = 0; i < len; ++i)
 				values[i] = 0;
@@ -765,12 +749,12 @@ static void bpy_prop_int_array_set_cb(struct PointerRNA *ptr, struct PropertyRNA
 	Py_DECREF(args);
 
 	if (ret == NULL) {
-		printf_func_error(py_func);
+		PyC_Err_PrintWithFunc(py_func);
 	}
 	else {
 		if (ret != Py_None) {
 			PyErr_SetString(PyExc_ValueError, "the return value must be None");
-			printf_func_error(py_func);
+			PyC_Err_PrintWithFunc(py_func);
 		}
 
 		Py_DECREF(ret);
@@ -818,14 +802,14 @@ static float bpy_prop_float_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
 	Py_DECREF(args);
 
 	if (ret == NULL) {
-		printf_func_error(py_func);
+		PyC_Err_PrintWithFunc(py_func);
 		value = 0.0f;
 	}
 	else {
 		value = PyFloat_AsDouble(ret);
 
 		if (value == -1.0f && PyErr_Occurred()) {
-			printf_func_error(py_func);
+			PyC_Err_PrintWithFunc(py_func);
 			value = 0.0f;
 		}
 
@@ -877,12 +861,12 @@ static void bpy_prop_float_set_cb(struct PointerRNA *ptr, struct PropertyRNA *pr
 	Py_DECREF(args);
 
 	if (ret == NULL) {
-		printf_func_error(py_func);
+		PyC_Err_PrintWithFunc(py_func);
 	}
 	else {
 		if (ret != Py_None) {
 			PyErr_SetString(PyExc_ValueError, "the return value must be None");
-			printf_func_error(py_func);
+			PyC_Err_PrintWithFunc(py_func);
 		}
 
 		Py_DECREF(ret);
@@ -930,14 +914,14 @@ static void bpy_prop_float_array_get_cb(struct PointerRNA *ptr, struct PropertyR
 	Py_DECREF(args);
 
 	if (ret == NULL) {
-		printf_func_error(py_func);
+		PyC_Err_PrintWithFunc(py_func);
 
 		for (i = 0; i < len; ++i)
 			values[i] = 0.0f;
 	}
 	else {
 		if (PyC_AsArray(values, ret, len, &PyFloat_Type, false, "FloatVectorProperty get") == -1) {
-			printf_func_error(py_func);
+			PyC_Err_PrintWithFunc(py_func);
 
 			for (i = 0; i < len; ++i)
 				values[i] = 0.0f;
@@ -995,12 +979,12 @@ static void bpy_prop_float_array_set_cb(struct PointerRNA *ptr, struct PropertyR
 	Py_DECREF(args);
 
 	if (ret == NULL) {
-		printf_func_error(py_func);
+		PyC_Err_PrintWithFunc(py_func);
 	}
 	else {
 		if (ret != Py_None) {
 			PyErr_SetString(PyExc_ValueError, "the return value must be None");
-			printf_func_error(py_func);
+			PyC_Err_PrintWithFunc(py_func);
 		}
 
 		Py_DECREF(ret);
@@ -1047,14 +1031,14 @@ static void bpy_prop_string_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
 	Py_DECREF(args);
 
 	if (ret == NULL) {
-		printf_func_error(py_func);
+		PyC_Err_PrintWithFunc(py_func);
 		value[0] = '\0';
 	}
 	else if (!PyUnicode_Check(ret)) {
 		PyErr_Format(PyExc_TypeError,
 		             "return value must be a string, not %.200s",
 		             Py_TYPE(ret)->tp_name);
-		printf_func_error(py_func);
+		PyC_Err_PrintWithFunc(py_func);
 		value[0] = '\0';
 		Py_DECREF(ret);
 	}
@@ -1107,14 +1091,14 @@ static int bpy_prop_string_length_cb(struct PointerRNA *ptr, struct PropertyRNA 
 	Py_DECREF(args);
 
 	if (ret == NULL) {
-		printf_func_error(py_func);
+		PyC_Err_PrintWithFunc(py_func);
 		length = 0;
 	}
 	else if (!PyUnicode_Check(ret)) {
 		PyErr_Format(PyExc_TypeError,
 		             "return value must be a string, not %.200s",
 		             Py_TYPE(ret)->tp_name);
-		printf_func_error(py_func);
+		PyC_Err_PrintWithFunc(py_func);
 		length = 0;
 		Py_DECREF(ret);
 	}
@@ -1167,7 +1151,7 @@ static void bpy_prop_string_set_cb(struct PointerRNA *ptr, struct PropertyRNA *p
 	py_value = PyUnicode_FromString(value);
 	if (!py_value) {
 		PyErr_SetString(PyExc_ValueError, "the return value must be a string");
-		printf_func_error(py_func);
+		PyC_Err_PrintWithFunc(py_func);
 	}
 	else
 		PyTuple_SET_ITEM(args, 1, py_value);
@@ -1177,12 +1161,12 @@ static void bpy_prop_string_set_cb(struct PointerRNA *ptr, struct PropertyRNA *p
 	Py_DECREF(args);
 
 	if (ret == NULL) {
-		printf_func_error(py_func);
+		PyC_Err_PrintWithFunc(py_func);
 	}
 	else {
 		if (ret != Py_None) {
 			PyErr_SetString(PyExc_ValueError, "the return value must be None");
-			printf_func_error(py_func);
+			PyC_Err_PrintWithFunc(py_func);
 		}
 
 		Py_DECREF(ret);
@@ -1230,14 +1214,14 @@ static int bpy_prop_enum_get_cb(struct PointerRNA *ptr, struct PropertyRNA *prop
 	Py_DECREF(args);
 
 	if (ret == NULL) {
-		printf_func_error(py_func);
+		PyC_Err_PrintWithFunc(py_func);
 		value = RNA_property_enum_get_default(ptr, prop);
 	}
 	else {
 		value = PyC_Long_AsI32(ret);
 
 		if (value == -1 && PyErr_Occurred()) {
-			printf_func_error(py_func);
+			PyC_Err_PrintWithFunc(py_func);
 			value = RNA_property_enum_get_default(ptr, prop);
 		}
 
@@ -1289,12 +1273,12 @@ static void bpy_prop_enum_set_cb(struct PointerRNA *ptr, struct PropertyRNA *pro
 	Py_DECREF(args);
 
 	if (ret == NULL) {
-		printf_func_error(py_func);
+		PyC_Err_PrintWithFunc(py_func);
 	}
 	else {
 		if (ret != Py_None) {
 			PyErr_SetString(PyExc_ValueError, "the return value must be None");
-			printf_func_error(py_func);
+			PyC_Err_PrintWithFunc(py_func);
 		}
 
 		Py_DECREF(ret);
@@ -1572,7 +1556,7 @@ static const EnumPropertyItem *bpy_prop_enum_itemf_cb(struct bContext *C, Pointe
 		*r_free = true;
 	}
 	else {
-		printf_func_error(py_func);
+		PyC_Err_PrintWithFunc(py_func);
 
 		eitems = DummyRNA_NULL_items;
 	}

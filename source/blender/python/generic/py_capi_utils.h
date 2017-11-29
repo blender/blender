@@ -38,6 +38,8 @@ PyObject *		PyC_ExceptionBuffer_Simple(void);
 PyObject *		PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...);
 PyObject *		PyC_FrozenSetFromStrings(const char **strings);
 PyObject *		PyC_Err_Format_Prefix(PyObject *exception_type_prefix, const char *format, ...);
+void			PyC_Err_PrintWithFunc(PyObject *py_func);
+
 void			PyC_FileAndNum(const char **filename, int *lineno);
 void			PyC_FileAndNum_Safe(const char **filename, int *lineno); /* checks python is running */
 int             PyC_AsArray_FAST(
