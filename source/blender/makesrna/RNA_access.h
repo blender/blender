@@ -131,6 +131,7 @@ extern StructRNA RNA_CompositorNodeCombRGBA;
 extern StructRNA RNA_CompositorNodeCombYCCA;
 extern StructRNA RNA_CompositorNodeCombYUVA;
 extern StructRNA RNA_CompositorNodeComposite;
+extern StructRNA RNA_CompositorNodeCornerPin;
 extern StructRNA RNA_CompositorNodeCrop;
 extern StructRNA RNA_CompositorNodeCurveRGB;
 extern StructRNA RNA_CompositorNodeCurveVec;
@@ -174,6 +175,7 @@ extern StructRNA RNA_CompositorNodeSepYCCA;
 extern StructRNA RNA_CompositorNodeSepYUVA;
 extern StructRNA RNA_CompositorNodeSetAlpha;
 extern StructRNA RNA_CompositorNodeSplitViewer;
+extern StructRNA RNA_CompositorNodeSunBeams;
 extern StructRNA RNA_CompositorNodeSwitchView;
 extern StructRNA RNA_CompositorNodeTexture;
 extern StructRNA RNA_CompositorNodeTime;
@@ -744,10 +746,11 @@ const char *RNA_struct_ui_description_raw(const StructRNA *type);
 const char *RNA_struct_translation_context(const StructRNA *type);
 int RNA_struct_ui_icon(const StructRNA *type);
 
-PropertyRNA *RNA_struct_name_property(StructRNA *type);
+PropertyRNA *RNA_struct_name_property(const StructRNA *type);
 const EnumPropertyItem *RNA_struct_property_tag_defines(const StructRNA *type);
 PropertyRNA *RNA_struct_iterator_property(StructRNA *type);
 StructRNA *RNA_struct_base(StructRNA *type);
+const StructRNA *RNA_struct_base_child_of(const StructRNA *type, const StructRNA *parent_type);
 
 bool RNA_struct_is_ID(const StructRNA *type);
 bool RNA_struct_is_a(const StructRNA *type, const StructRNA *srna);
@@ -773,6 +776,7 @@ bool RNA_struct_idprops_unset(PointerRNA *ptr, const char *identifier);
 
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier);
 bool RNA_struct_contains_property(PointerRNA *ptr, PropertyRNA *prop_test);
+unsigned int RNA_struct_count_properties(StructRNA *srna);
 
 /* lower level functions for access to type properties */
 const struct ListBase *RNA_struct_type_properties(StructRNA *srna);
@@ -1191,9 +1195,12 @@ int RNA_function_call_direct_va(struct bContext *C, struct ReportList *reports, 
 int RNA_function_call_direct_va_lookup(struct bContext *C, struct ReportList *reports, PointerRNA *ptr,
                                        const char *identifier, const char *format, va_list args);
 
+const char *RNA_translate_ui_text(
+        const char *text, const char *text_ctxt, struct StructRNA *type, struct PropertyRNA *prop, int translate);
+
 /* ID */
 
-short RNA_type_to_ID_code(StructRNA *type);
+short RNA_type_to_ID_code(const StructRNA *type);
 StructRNA *ID_code_to_RNA_type(short idcode);
 
 

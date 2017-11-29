@@ -136,48 +136,54 @@ static int rna_ID_name_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 	return PROP_EDITABLE;
 }
 
-short RNA_type_to_ID_code(StructRNA *type)
+short RNA_type_to_ID_code(const StructRNA *type)
 {
-	if (RNA_struct_is_a(type, &RNA_Action)) return ID_AC;
-	if (RNA_struct_is_a(type, &RNA_Armature)) return ID_AR;
-	if (RNA_struct_is_a(type, &RNA_Brush)) return ID_BR;
-	if (RNA_struct_is_a(type, &RNA_CacheFile)) return ID_CF;
-	if (RNA_struct_is_a(type, &RNA_Camera)) return ID_CA;
-	if (RNA_struct_is_a(type, &RNA_Curve)) return ID_CU;
-	if (RNA_struct_is_a(type, &RNA_GreasePencil)) return ID_GD;
-	if (RNA_struct_is_a(type, &RNA_Group)) return ID_GR;
-	if (RNA_struct_is_a(type, &RNA_Image)) return ID_IM;
-	if (RNA_struct_is_a(type, &RNA_Key)) return ID_KE;
-	if (RNA_struct_is_a(type, &RNA_Lamp)) return ID_LA;
-	if (RNA_struct_is_a(type, &RNA_Library)) return ID_LI;
-	if (RNA_struct_is_a(type, &RNA_FreestyleLineStyle)) return ID_LS;
-	if (RNA_struct_is_a(type, &RNA_Lattice)) return ID_LT;
-	if (RNA_struct_is_a(type, &RNA_Material)) return ID_MA;
-	if (RNA_struct_is_a(type, &RNA_MetaBall)) return ID_MB;
-	if (RNA_struct_is_a(type, &RNA_MovieClip)) return ID_MC;
-	if (RNA_struct_is_a(type, &RNA_Mesh)) return ID_ME;
-	if (RNA_struct_is_a(type, &RNA_Mask)) return ID_MSK;
-	if (RNA_struct_is_a(type, &RNA_NodeTree)) return ID_NT;
-	if (RNA_struct_is_a(type, &RNA_Object)) return ID_OB;
-	if (RNA_struct_is_a(type, &RNA_ParticleSettings)) return ID_PA;
-	if (RNA_struct_is_a(type, &RNA_Palette)) return ID_PAL;
-	if (RNA_struct_is_a(type, &RNA_PaintCurve)) return ID_PC;
-	if (RNA_struct_is_a(type, &RNA_Scene)) return ID_SCE;
-	if (RNA_struct_is_a(type, &RNA_Screen)) return ID_SCR;
-	if (RNA_struct_is_a(type, &RNA_Sound)) return ID_SO;
-	if (RNA_struct_is_a(type, &RNA_Speaker)) return ID_SPK;
-	if (RNA_struct_is_a(type, &RNA_Texture)) return ID_TE;
-	if (RNA_struct_is_a(type, &RNA_Text)) return ID_TXT;
-	if (RNA_struct_is_a(type, &RNA_VectorFont)) return ID_VF;
-	if (RNA_struct_is_a(type, &RNA_World)) return ID_WO;
-	if (RNA_struct_is_a(type, &RNA_WindowManager)) return ID_WM;
+	const StructRNA *base_type = RNA_struct_base_child_of(type, &RNA_ID);
+	if (UNLIKELY(base_type == NULL)) {
+		return 0;
+	}
+	if (base_type == &RNA_Action) return ID_AC;
+	if (base_type == &RNA_Armature) return ID_AR;
+	if (base_type == &RNA_Brush) return ID_BR;
+	if (base_type == &RNA_CacheFile) return ID_CF;
+	if (base_type == &RNA_Camera) return ID_CA;
+	if (base_type == &RNA_Curve) return ID_CU;
+	if (base_type == &RNA_GreasePencil) return ID_GD;
+	if (base_type == &RNA_Group) return ID_GR;
+	if (base_type == &RNA_Image) return ID_IM;
+	if (base_type == &RNA_Key) return ID_KE;
+	if (base_type == &RNA_Lamp) return ID_LA;
+	if (base_type == &RNA_Library) return ID_LI;
+	if (base_type == &RNA_FreestyleLineStyle) return ID_LS;
+	if (base_type == &RNA_Lattice) return ID_LT;
+	if (base_type == &RNA_Material) return ID_MA;
+	if (base_type == &RNA_MetaBall) return ID_MB;
+	if (base_type == &RNA_MovieClip) return ID_MC;
+	if (base_type == &RNA_Mesh) return ID_ME;
+	if (base_type == &RNA_Mask) return ID_MSK;
+	if (base_type == &RNA_NodeTree) return ID_NT;
+	if (base_type == &RNA_Object) return ID_OB;
+	if (base_type == &RNA_ParticleSettings) return ID_PA;
+	if (base_type == &RNA_Palette) return ID_PAL;
+	if (base_type == &RNA_PaintCurve) return ID_PC;
+	if (base_type == &RNA_Scene) return ID_SCE;
+	if (base_type == &RNA_Screen) return ID_SCR;
+	if (base_type == &RNA_Sound) return ID_SO;
+	if (base_type == &RNA_Speaker) return ID_SPK;
+	if (base_type == &RNA_Texture) return ID_TE;
+	if (base_type == &RNA_Text) return ID_TXT;
+	if (base_type == &RNA_VectorFont) return ID_VF;
+	if (base_type == &RNA_World) return ID_WO;
+	if (base_type == &RNA_WindowManager) return ID_WM;
 
 	return 0;
 }
 
 StructRNA *ID_code_to_RNA_type(short idcode)
 {
-	switch (idcode) {
+	/* Note, this switch doesn't use a 'default',
+	 * so adding new ID's causes a warning. */
+	switch ((ID_Type)idcode) {
 		case ID_AC: return &RNA_Action;
 		case ID_AR: return &RNA_Armature;
 		case ID_BR: return &RNA_Brush;
@@ -212,8 +218,11 @@ StructRNA *ID_code_to_RNA_type(short idcode)
 		case ID_WM: return &RNA_WindowManager;
 		case ID_WO: return &RNA_World;
 
-		default: return &RNA_ID;
+		/* deprecated */
+		case ID_IP: break;
 	}
+
+	return &RNA_ID;
 }
 
 StructRNA *rna_ID_refine(PointerRNA *ptr)

@@ -413,6 +413,8 @@ void rna_mtex_texture_slots_clear(struct ID *self, struct bContext *C, struct Re
 
 int rna_IDMaterials_assign_int(struct PointerRNA *ptr, int key, const struct PointerRNA *assign_ptr);
 
+const char *rna_translate_ui_text(
+        const char *text, const char *text_ctxt, struct StructRNA *type, struct PropertyRNA *prop, int translate);
 
 /* Internal functions that cycles uses so we need to declare (tsk tsk) */
 void rna_RenderLayer_rect_set(PointerRNA *ptr, const float *values);
