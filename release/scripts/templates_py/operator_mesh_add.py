@@ -34,11 +34,11 @@ def add_box(width, height, depth):
 
 
 from bpy.props import (
-        BoolProperty,
-        BoolVectorProperty,
-        FloatProperty,
-        FloatVectorProperty,
-        )
+    BoolProperty,
+    BoolVectorProperty,
+    FloatProperty,
+    FloatVectorProperty,
+)
 
 
 class AddBox(bpy.types.Operator):

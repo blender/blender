@@ -32,10 +32,10 @@ __all__ = (
 import bpy
 
 from bpy.props import (
-        BoolProperty,
-        BoolVectorProperty,
-        FloatVectorProperty,
-        )
+    BoolProperty,
+    BoolVectorProperty,
+    FloatVectorProperty,
+)
 
 
 def add_object_align_init(context, operator):

@@ -35,10 +35,19 @@ __all__ = (
 
 
 # internal blender C module
-from _bpy import types, props, app, data, context
+from _bpy import (
+    app,
+    context,
+    data,
+    props,
+    types,
+)
 
 # python modules
-from . import utils, path
+from . import (
+    path,
+    utils,
+)
 
 # fake operator module
 from .ops import ops_fake_module as ops

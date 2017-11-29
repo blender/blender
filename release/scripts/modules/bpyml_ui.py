@@ -21,7 +21,11 @@
 
 import bpy as _bpy
 import bpyml
-from bpyml import TAG, ARGS, CHILDREN
+from bpyml import (
+    TAG,
+    ARGS,
+    CHILDREN,
+)
 
 _uilayout_rna = _bpy.types.UILayout.bl_rna
 
@@ -29,7 +33,7 @@ _uilayout_tags = (
     ["ui"] +
     _uilayout_rna.properties.keys() +
     _uilayout_rna.functions.keys()
-    )
+)
 
 # these need to be imported directly
 # >>> from bpyml_ui.locals import *

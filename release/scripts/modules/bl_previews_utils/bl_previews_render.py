@@ -24,7 +24,11 @@
 import os
 
 import bpy
-from mathutils import Vector, Euler, Matrix
+from mathutils import (
+    Euler,
+    Matrix,
+    Vector,
+)
 
 
 INTERN_PREVIEW_TYPES = {'MATERIAL', 'LAMP', 'WORLD', 'TEXTURE', 'IMAGE'}
@@ -39,7 +43,7 @@ def rna_backup_gen(data, include_props=None, exclude_props=None, root=()):
     # only writable properties...
     for p in data.bl_rna.properties:
         pid = p.identifier
-        if pid in {'rna_type', }:
+        if pid == "rna_type":
             continue
         path = root + (pid,)
         if include_props is not None and path not in include_props:

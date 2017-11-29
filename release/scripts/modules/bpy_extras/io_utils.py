@@ -36,10 +36,10 @@ __all__ = (
 
 import bpy
 from bpy.props import (
-        StringProperty,
-        BoolProperty,
-        EnumProperty,
-        )
+    BoolProperty,
+    EnumProperty,
+    StringProperty,
+)
 
 
 def _check_axis_conversion(op):

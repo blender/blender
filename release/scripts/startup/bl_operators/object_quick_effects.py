@@ -24,9 +24,9 @@ from bpy.types import Operator
 from bpy.props import (
     BoolProperty,
     EnumProperty,
-    IntProperty,
     FloatProperty,
     FloatVectorProperty,
+    IntProperty,
 )
 
 
