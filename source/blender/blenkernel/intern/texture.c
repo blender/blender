@@ -1165,6 +1165,10 @@ void set_current_material_texture(Material *ma, Tex *newtex)
 				ma->mtex[act] = BKE_texture_mtex_add();
 				/* Reset this slot's ON/OFF toggle, for materials, when slot was empty. */
 				ma->septex &= ~(1 << act);
+				/* For volumes the default UV texture coordinates are not available. */
+				if (ma->material_type == MA_TYPE_VOLUME) {
+					ma->mtex[act]->texco = TEXCO_ORCO;
+				}
 			}
 			
 			ma->mtex[act]->tex = newtex;
