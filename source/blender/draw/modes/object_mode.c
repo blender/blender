@@ -1110,7 +1110,7 @@ static void DRW_shgroup_lamp(OBJECT_StorageList *stl, Object *ob, ViewLayer *vie
 	int theme_id = DRW_object_wire_theme_get(ob, view_layer, &color);
 	static float zero = 0.0f;
 
-	float **la_mats = (float **)DRW_object_engine_data_get(ob, &draw_engine_object_type, NULL);
+	float **la_mats = (float **)DRW_object_engine_data_ensure(ob, &draw_engine_object_type, NULL);
 	if (*la_mats == NULL) {
 		/* we need 2 matrices */
 		*la_mats = MEM_mallocN(sizeof(float) * 16 * 2, "Lamp Object Mode Matrices");
@@ -1456,7 +1456,7 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, OBJECT_PassList *psl
 	DRW_object_wire_theme_get(ob, view_layer, &color);
 
 	OBJECT_LightProbeEngineData *prb_data;
-	OBJECT_LightProbeEngineData **prb_data_pt = (OBJECT_LightProbeEngineData **)DRW_object_engine_data_get(ob, &draw_engine_object_type, NULL);
+	OBJECT_LightProbeEngineData **prb_data_pt = (OBJECT_LightProbeEngineData **)DRW_object_engine_data_ensure(ob, &draw_engine_object_type, NULL);
 	if (*prb_data_pt == NULL) {
 		*prb_data_pt = MEM_mallocN(sizeof(OBJECT_LightProbeEngineData), "Probe Clip distances Matrices");
 	}

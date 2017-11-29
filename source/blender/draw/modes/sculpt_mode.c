@@ -80,7 +80,7 @@ typedef struct SCULPT_StorageList {
 } SCULPT_StorageList;
 
 typedef struct SCULPT_Data {
-	/* Struct returned by DRW_viewport_engine_data_get.
+	/* Struct returned by DRW_viewport_engine_data_ensure.
 	 * If you don't use one of these, just make it a (void *) */
 	// void *fbl;
 	void *engine_type; /* Required */

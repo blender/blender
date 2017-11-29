@@ -70,7 +70,7 @@ typedef struct PARTICLE_StorageList {
 } PARTICLE_StorageList;
 
 typedef struct PARTICLE_Data {
-	/* Struct returned by DRW_viewport_engine_data_get.
+	/* Struct returned by DRW_viewport_engine_data_ensure.
 	 * If you don't use one of these, just make it a (void *) */
 	// void *fbl;
 	void *engine_type; /* Required */

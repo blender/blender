@@ -2489,7 +2489,7 @@ void DRW_transform_to_display(GPUTexture *tex)
 /** \name Viewport (DRW_viewport)
  * \{ */
 
-static void *DRW_viewport_engine_data_get(void *engine_type)
+static void *DRW_viewport_engine_data_ensure(void *engine_type)
 {
 	void *data = GPU_viewport_engine_data_get(DST.viewport, engine_type);
 
@@ -2702,7 +2702,7 @@ void DRW_viewport_request_redraw(void)
 /** \name ViewLayers (DRW_scenelayer)
  * \{ */
 
-void **DRW_view_layer_engine_data_get(DrawEngineType *engine_type, void (*callback)(void *storage))
+void **DRW_view_layer_engine_data_ensure(DrawEngineType *engine_type, void (*callback)(void *storage))
 {
 	ViewLayerEngineData *sled;
 
@@ -2728,7 +2728,7 @@ void **DRW_view_layer_engine_data_get(DrawEngineType *engine_type, void (*callba
 /** \name Objects (DRW_object)
  * \{ */
 
-void **DRW_object_engine_data_get(
+void **DRW_object_engine_data_ensure(
         Object *ob, DrawEngineType *engine_type, void (*callback)(void *storage))
 {
 	ObjectEngineData *oed;
@@ -2747,9 +2747,9 @@ void **DRW_object_engine_data_get(
 	return &oed->storage;
 }
 
-/* XXX There is definitly some overlap between this and DRW_object_engine_data_get.
+/* XXX There is definitly some overlap between this and DRW_object_engine_data_ensure.
  * We should get rid of one of the two. */
-LampEngineData *DRW_lamp_engine_data_get(Object *ob, RenderEngineType *engine_type)
+LampEngineData *DRW_lamp_engine_data_ensure(Object *ob, RenderEngineType *engine_type)
 {
 	BLI_assert(ob->type == OB_LAMP);
 
@@ -2777,7 +2777,7 @@ static void DRW_engines_init(void)
 {
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
-		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
+		ViewportEngineData *data = DRW_viewport_engine_data_ensure(engine);
 		PROFILE_START(stime);
 
 		if (engine->engine_init) {
@@ -2792,7 +2792,7 @@ static void DRW_engines_cache_init(void)
 {
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
-		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
+		ViewportEngineData *data = DRW_viewport_engine_data_ensure(engine);
 
 		if (data->text_draw_cache) {
 			DRW_text_cache_destroy(data->text_draw_cache);
@@ -2812,7 +2812,7 @@ static void DRW_engines_cache_populate(Object *ob)
 {
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
-		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
+		ViewportEngineData *data = DRW_viewport_engine_data_ensure(engine);
 
 		if (engine->cache_populate) {
 			engine->cache_populate(data, ob);
@@ -2824,7 +2824,7 @@ static void DRW_engines_cache_finish(void)
 {
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
-		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
+		ViewportEngineData *data = DRW_viewport_engine_data_ensure(engine);
 
 		if (engine->cache_finish) {
 			engine->cache_finish(data);
@@ -2836,7 +2836,7 @@ static void DRW_engines_draw_background(void)
 {
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
-		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
+		ViewportEngineData *data = DRW_viewport_engine_data_ensure(engine);
 
 		if (engine->draw_background) {
 			PROFILE_START(stime);
@@ -2858,7 +2858,7 @@ static void DRW_engines_draw_scene(void)
 {
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
-		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
+		ViewportEngineData *data = DRW_viewport_engine_data_ensure(engine);
 		PROFILE_START(stime);
 
 		if (engine->draw_scene) {
@@ -2875,7 +2875,7 @@ static void DRW_engines_draw_text(void)
 {
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
-		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
+		ViewportEngineData *data = DRW_viewport_engine_data_ensure(engine);
 		PROFILE_START(stime);
 
 		if (data->text_draw_cache) {
@@ -2896,7 +2896,7 @@ int DRW_draw_region_engine_info_offset(void)
 	int lines = 0;
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
-		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
+		ViewportEngineData *data = DRW_viewport_engine_data_ensure(engine);
 
 		/* Count the number of lines. */
 		if (data->info[0] != '\0') {
@@ -2931,7 +2931,7 @@ void DRW_draw_region_engine_info(void)
 
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
-		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
+		ViewportEngineData *data = DRW_viewport_engine_data_ensure(engine);
 
 		if (data->info[0] != '\0') {
 			char *chr_current = data->info;
@@ -3133,7 +3133,7 @@ static void DRW_debug_cpu_stats(void)
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		u = 0;
 		DrawEngineType *engine = link->data;
-		ViewportEngineData *data = DRW_viewport_engine_data_get(engine);
+		ViewportEngineData *data = DRW_viewport_engine_data_ensure(engine);
 
 		draw_stat(&rect, u++, v, engine->idname, sizeof(engine->idname));
 
@@ -3245,7 +3245,7 @@ void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
 
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *draw_engine = link->data;
-		ViewportEngineData *data = DRW_viewport_engine_data_get(draw_engine);
+		ViewportEngineData *data = DRW_viewport_engine_data_ensure(draw_engine);
 
 		if (draw_engine->view_update) {
 			draw_engine->view_update(data);
@@ -3288,7 +3288,7 @@ void DRW_notify_id_update(const DRWUpdateContext *update_ctx, ID *id)
 	DRW_engines_enable(scene, view_layer, engine_type);
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *draw_engine = link->data;
-		ViewportEngineData *data = DRW_viewport_engine_data_get(draw_engine);
+		ViewportEngineData *data = DRW_viewport_engine_data_ensure(draw_engine);
 		if (draw_engine->id_update) {
 			draw_engine->id_update(data, id);
 		}
