@@ -3010,7 +3010,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 	else fprintf(f, "NULL,\n");
 	fprintf(f, "\t%d, ", prop->magic);
 	rna_print_c_string(f, prop->identifier);
-	fprintf(f, ", %d, %d, %d, ", prop->flag, prop->flag_parameter, prop->flag_internal);
+	fprintf(f, ", %d, %d, %d, %d, ", prop->flag, prop->flag_parameter, prop->flag_internal, prop->tags);
 	rna_print_c_string(f, prop->name); fprintf(f, ",\n\t");
 	rna_print_c_string(f, prop->description); fprintf(f, ",\n\t");
 	fprintf(f, "%d, ", prop->icon);
@@ -3254,7 +3254,7 @@ static void rna_generate_struct(BlenderRNA *UNUSED(brna), StructRNA *srna, FILE 
 	fprintf(f, "\t");
 	rna_print_c_string(f, srna->identifier);
 	fprintf(f, ", NULL, NULL"); /* PyType - Cant initialize here */
-	fprintf(f, ", %d, ", srna->flag);
+	fprintf(f, ", %d, NULL, ", srna->flag);
 	rna_print_c_string(f, srna->name);
 	fprintf(f, ",\n\t");
 	rna_print_c_string(f, srna->description);

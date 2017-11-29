@@ -168,6 +168,8 @@ struct PropertyRNA {
 	short flag_parameter;
 	/* Internal ("private") flags. */
 	short flag_internal;
+	/* The subset of StructRNA.prop_tag_defines values that applies to this property. */
+	short tags;
 
 	/* user readable name */
 	const char *name;
@@ -365,6 +367,9 @@ struct StructRNA {
 
 	/* various options */
 	int flag;
+	/* Each StructRNA type can define own tags which properties can set
+	 * (PropertyRNA.tags) for changed behavior based on struct-type. */
+	const EnumPropertyItem *prop_tag_defines;
 
 	/* user readable name */
 	const char *name;
