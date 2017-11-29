@@ -583,7 +583,6 @@ void DepsgraphNodeBuilder::build_object_transform(Object *object)
 	op_node = add_operation_node(&object->id, DEG_NODE_TYPE_TRANSFORM,
 	                             function_bind(BKE_object_eval_local_transform,
 	                                           _1,
-	                                           scene_cow,
 	                                           ob_cow),
 	                             DEG_OPCODE_TRANSFORM_LOCAL);
 	op_node->set_as_entry();
@@ -607,7 +606,6 @@ void DepsgraphNodeBuilder::build_object_transform(Object *object)
 	add_operation_node(&object->id, DEG_NODE_TYPE_TRANSFORM,
 	                   function_bind(BKE_object_eval_uber_transform,
 	                                 _1,
-	                                 scene_cow,
 	                                 ob_cow),
 	                   DEG_OPCODE_TRANSFORM_OBJECT_UBEREVAL);
 
