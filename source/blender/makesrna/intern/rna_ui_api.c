@@ -60,8 +60,8 @@ const EnumPropertyItem rna_enum_icon_items[] = {
 
 #ifdef RNA_RUNTIME
 
-const char *rna_translate_ui_text(const char *text, const char *text_ctxt, StructRNA *type, PropertyRNA *prop,
-                                         int translate)
+const char *rna_translate_ui_text(
+        const char *text, const char *text_ctxt, StructRNA *type, PropertyRNA *prop, int translate)
 {
 	/* Also return text if UI labels translation is disabled. */
 	if (!text || !text[0] || !translate || !BLT_translate_iface()) {

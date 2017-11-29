@@ -6860,8 +6860,7 @@ int RNA_function_call_direct_va_lookup(bContext *C, ReportList *reports, Pointer
 }
 
 const char *RNA_translate_ui_text(
-        const char *text, const char *text_ctxt, StructRNA *type, PropertyRNA *prop,
-        int translate)
+        const char *text, const char *text_ctxt, StructRNA *type, PropertyRNA *prop, int translate)
 {
 	return rna_translate_ui_text(text, text_ctxt, type, prop, translate);
 }
