@@ -47,7 +47,7 @@
 #include "gpu.h"
 #include "bpy_rna.h"
 #include "bpy_path.h"
-#include "bpy_util.h"
+#include "bpy_capi_utils.h"
 #include "bpy_traceback.h"
 #include "bpy_intern_string.h"
 

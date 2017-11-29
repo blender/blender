@@ -43,7 +43,7 @@
 #include "bpy_operator.h"
 #include "bpy_operator_wrap.h"
 #include "bpy_rna.h" /* for setting arg props only - pyrna_py_to_prop() */
-#include "bpy_util.h"
+#include "bpy_capi_utils.h"
 #include "../generic/bpy_internal_import.h"
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"

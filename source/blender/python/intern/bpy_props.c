@@ -37,7 +37,7 @@
 
 #include "bpy_props.h"
 #include "bpy_rna.h"
-#include "bpy_util.h"
+#include "bpy_capi_utils.h"
 
 #include "BKE_idprop.h"
 

@@ -33,7 +33,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "bpy_util.h"
+#include "bpy_capi_utils.h"
 #include "bpy.h"  /* own include */
 
 #include "WM_api.h"

@@ -43,7 +43,7 @@
 #include "RNA_types.h"
 
 #include "bpy_rna.h"
-#include "bpy_util.h"
+#include "bpy_capi_utils.h"
 #include "bpy_library.h"
 
 #include "../generic/py_capi_utils.h"
