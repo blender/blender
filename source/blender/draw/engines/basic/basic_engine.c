@@ -111,7 +111,7 @@ typedef struct BASIC_PrivateData {
 
 /* Functions */
 
-static void BASIC_engine_init(void *vedata)
+static void basic_engine_init(void *vedata)
 {
 	BASIC_StorageList *stl = ((BASIC_Data *)vedata)->stl;
 	BASIC_TextureList *txl = ((BASIC_Data *)vedata)->txl;
@@ -144,7 +144,7 @@ static void BASIC_engine_init(void *vedata)
 #endif
 }
 
-static void BASIC_cache_init(void *vedata)
+static void basic_cache_init(void *vedata)
 {
 	BASIC_PassList *psl = ((BASIC_Data *)vedata)->psl;
 	BASIC_StorageList *stl = ((BASIC_Data *)vedata)->stl;
@@ -174,7 +174,7 @@ static void BASIC_cache_init(void *vedata)
 	}
 }
 
-static void BASIC_cache_populate(void *vedata, Object *ob)
+static void basic_cache_populate(void *vedata, Object *ob)
 {
 	BASIC_StorageList *stl = ((BASIC_Data *)vedata)->stl;
 
@@ -193,14 +193,14 @@ static void BASIC_cache_populate(void *vedata, Object *ob)
 	}
 }
 
-static void BASIC_cache_finish(void *vedata)
+static void basic_cache_finish(void *vedata)
 {
 	BASIC_StorageList *stl = ((BASIC_Data *)vedata)->stl;
 
 	UNUSED_VARS(stl);
 }
 
-static void BASIC_draw_scene(void *vedata)
+static void basic_draw_scene(void *vedata)
 {
 
 	BASIC_PassList *psl = ((BASIC_Data *)vedata)->psl;
@@ -244,24 +244,24 @@ static void BASIC_draw_scene(void *vedata)
 	}
 }
 
-static void BASIC_engine_free(void)
+static void basic_engine_free(void)
 {
 	/* all shaders are builtin */
 }
 
-static const DrawEngineDataSize BASIC_data_size = DRW_VIEWPORT_DATA_SIZE(BASIC_Data);
+static const DrawEngineDataSize basic_data_size = DRW_VIEWPORT_DATA_SIZE(BASIC_Data);
 
 DrawEngineType draw_engine_basic_type = {
 	NULL, NULL,
 	N_("Basic"),
-	&BASIC_data_size,
-	&BASIC_engine_init,
-	&BASIC_engine_free,
-	&BASIC_cache_init,
-	&BASIC_cache_populate,
-	&BASIC_cache_finish,
+	&basic_data_size,
+	&basic_engine_init,
+	&basic_engine_free,
+	&basic_cache_init,
+	&basic_cache_populate,
+	&basic_cache_finish,
 	NULL,
-	&BASIC_draw_scene,
+	&basic_draw_scene,
 	NULL,
 	NULL,
 };
