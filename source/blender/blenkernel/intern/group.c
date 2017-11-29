@@ -268,18 +268,6 @@ Group *BKE_group_object_find(Group *group, Object *ob)
 	return NULL;
 }
 
-void BKE_group_tag_recalc(Group *group)
-{
-	GroupObject *go;
-	
-	if (group == NULL) return;
-	
-	for (go = group->gobject.first; go; go = go->next) {
-		if (go->ob) 
-			go->ob->recalc = go->recalc;
-	}
-}
-
 bool BKE_group_is_animated(Group *group, Object *UNUSED(parent))
 {
 	GroupObject *go;

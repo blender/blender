@@ -52,7 +52,6 @@ bool          BKE_group_object_exists(struct Group *group, struct Object *ob);
 bool          BKE_group_object_cyclic_check(struct Main *bmain, struct Object *object, struct Group *group);
 bool          BKE_group_is_animated(struct Group *group, struct Object *parent);
 
-void          BKE_group_tag_recalc(struct Group *group);
 void          BKE_group_handle_recalc_and_update(struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *parent, struct Group *group);
 
 #endif  /* __BKE_GROUP_H__ */
