@@ -175,7 +175,6 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 						case DEG_NODE_TYPE_OPERATION:
 						case DEG_NODE_TYPE_TIMESOURCE:
 						case DEG_NODE_TYPE_ID_REF:
-						case DEG_NODE_TYPE_PARAMETERS:
 						case DEG_NODE_TYPE_SEQUENCER:
 							/* Ignore, does not translate to object component. */
 							BLI_assert(!"This should never happen!");
@@ -194,6 +193,8 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 						case DEG_NODE_TYPE_CACHE:
 						case DEG_NODE_TYPE_PROXY:
 							object->recalc |= OB_RECALC_DATA;
+							break;
+						case DEG_NODE_TYPE_PARAMETERS:
 							break;
 					}
 				}
