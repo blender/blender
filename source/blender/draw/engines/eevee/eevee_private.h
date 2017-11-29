@@ -47,11 +47,11 @@ extern struct DrawEngineType draw_engine_eevee_type;
 #define IRRADIANCE_HL2
 
 #if defined(IRRADIANCE_SH_L2)
-#define SHADER_IRRADIANCE "#define IRRADIANCE_SH_L2\n"
+#  define SHADER_IRRADIANCE "#define IRRADIANCE_SH_L2\n"
 #elif defined(IRRADIANCE_CUBEMAP)
-#define SHADER_IRRADIANCE "#define IRRADIANCE_CUBEMAP\n"
+#  define SHADER_IRRADIANCE "#define IRRADIANCE_CUBEMAP\n"
 #elif defined(IRRADIANCE_HL2)
-#define SHADER_IRRADIANCE "#define IRRADIANCE_HL2\n"
+#  define SHADER_IRRADIANCE "#define IRRADIANCE_HL2\n"
 #endif
 
 #define SHADER_DEFINES \

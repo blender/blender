@@ -932,4 +932,4 @@ RenderEngineType DRW_engine_viewport_clay_type = {
 
 #undef CLAY_ENGINE
 
-#endif
+#endif  /* WITH_CLAY_ENGINE */
