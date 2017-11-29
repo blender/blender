@@ -295,32 +295,36 @@ void BKE_object_handle_data_update(EvaluationContext *eval_ctx,
 	/* quick cache removed */
 }
 
-void BKE_object_eval_uber_transform(EvaluationContext *UNUSED(eval_ctx),
-                                    Object *ob)
+bool BKE_object_eval_proxy_copy(EvaluationContext *UNUSED(eval_ctx),
+                                Object *object)
 {
-	/* TODO(sergey): Currently it's a duplicate of logic in BKE_object_handle_update_ex(). */
-	// XXX: it's almost redundant now...
-
 	/* Handle proxy copy for target, */
-	if (ID_IS_LINKED(ob) && ob->proxy_from) {
-		if (ob->proxy_from->proxy_group) {
+	if (ID_IS_LINKED(object) && object->proxy_from) {
+		if (object->proxy_from->proxy_group) {
 			/* Transform proxy into group space. */
-			Object *obg = ob->proxy_from->proxy_group;
+			Object *obg = object->proxy_from->proxy_group;
 			float imat[4][4];
 			invert_m4_m4(imat, obg->obmat);
-			mul_m4_m4m4(ob->obmat, imat, ob->proxy_from->obmat);
+			mul_m4_m4m4(object->obmat, imat, object->proxy_from->obmat);
 			/* Should always be true. */
 			if (obg->dup_group) {
-				add_v3_v3(ob->obmat[3], obg->dup_group->dupli_ofs);
+				add_v3_v3(object->obmat[3], obg->dup_group->dupli_ofs);
 			}
 		}
-		else
-			copy_m4_m4(ob->obmat, ob->proxy_from->obmat);
+		else {
+			copy_m4_m4(object->obmat, object->proxy_from->obmat);
+		}
+		return true;
 	}
+	return false;
+}
 
-	ob->recalc &= ~(OB_RECALC_OB | OB_RECALC_TIME);
-	if (ob->data == NULL) {
-		ob->recalc &= ~OB_RECALC_DATA;
+void BKE_object_eval_uber_transform(EvaluationContext *eval_ctx, Object *object)
+{
+	BKE_object_eval_proxy_copy(eval_ctx, object);
+	object->recalc &= ~(OB_RECALC_OB | OB_RECALC_TIME);
+	if (object->data == NULL) {
+		object->recalc &= ~OB_RECALC_DATA;
 	}
 }
 

@@ -188,6 +188,8 @@ void BKE_object_eval_constraints(struct EvaluationContext *eval_ctx,
                                  struct Object *ob);
 void BKE_object_eval_done(struct EvaluationContext *eval_ctx, struct Object *ob);
 
+bool BKE_object_eval_proxy_copy(struct EvaluationContext *eval_ctx,
+                                struct Object *object);
 void BKE_object_eval_uber_transform(struct EvaluationContext *eval_ctx,
                                     struct Object *ob);
 void BKE_object_eval_uber_data(struct EvaluationContext *eval_ctx,
