@@ -44,7 +44,7 @@ extern GlobalsUboStorage ts;
 
 /* *********** FUNCTIONS *********** */
 
-static void EEVEE_engine_init(void *ved)
+static void eevee_engine_init(void *ved)
 {
 	EEVEE_Data *vedata = (EEVEE_Data *)ved;
 	EEVEE_TextureList *txl = vedata->txl;
@@ -82,7 +82,7 @@ static void EEVEE_engine_init(void *ved)
 	}
 }
 
-static void EEVEE_cache_init(void *vedata)
+static void eevee_cache_init(void *vedata)
 {
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
 	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
@@ -101,7 +101,7 @@ static void EEVEE_cache_init(void *vedata)
 	EEVEE_volumes_cache_init(sldata, vedata);
 }
 
-static void EEVEE_cache_populate(void *vedata, Object *ob)
+static void eevee_cache_populate(void *vedata, Object *ob)
 {
 	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
 
@@ -149,7 +149,7 @@ static void EEVEE_cache_populate(void *vedata, Object *ob)
 	}
 }
 
-static void EEVEE_cache_finish(void *vedata)
+static void eevee_cache_finish(void *vedata)
 {
 	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
 
@@ -158,7 +158,7 @@ static void EEVEE_cache_finish(void *vedata)
 	EEVEE_lightprobes_cache_finish(sldata, vedata);
 }
 
-static void EEVEE_draw_scene(void *vedata)
+static void eevee_draw_scene(void *vedata)
 {
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
@@ -277,7 +277,7 @@ static void EEVEE_draw_scene(void *vedata)
 	stl->g_data->view_updated = false;
 }
 
-static void EEVEE_view_update(void *vedata)
+static void eevee_view_update(void *vedata)
 {
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 	if (stl->g_data) {
@@ -285,7 +285,7 @@ static void EEVEE_view_update(void *vedata)
 	}
 }
 
-static void EEVEE_id_update(void *UNUSED(vedata), ID *id)
+static void eevee_id_update(void *UNUSED(vedata), ID *id)
 {
 	const ID_Type id_type = GS(id->name);
 	if (id_type == ID_OB) {
@@ -305,7 +305,7 @@ static void EEVEE_id_update(void *UNUSED(vedata), ID *id)
 	}
 }
 
-static void EEVEE_engine_free(void)
+static void eevee_engine_free(void)
 {
 	EEVEE_bloom_free();
 	EEVEE_depth_of_field_free();
@@ -321,7 +321,7 @@ static void EEVEE_engine_free(void)
 	EEVEE_volumes_free();
 }
 
-static void EEVEE_layer_collection_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
+static void eevee_layer_collection_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
 {
 	BLI_assert(props &&
 	           props->type == IDP_GROUP &&
@@ -330,7 +330,7 @@ static void EEVEE_layer_collection_settings_create(RenderEngine *UNUSED(engine),
 	UNUSED_VARS_NDEBUG(props);
 }
 
-static void EEVEE_view_layer_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
+static void eevee_view_layer_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
 {
 	BLI_assert(props &&
 	           props->type == IDP_GROUP &&
@@ -399,28 +399,29 @@ static void EEVEE_view_layer_settings_create(RenderEngine *UNUSED(engine), IDPro
 	BKE_collection_engine_property_add_bool(props, "shadow_high_bitdepth", false);
 }
 
-static const DrawEngineDataSize EEVEE_data_size = DRW_VIEWPORT_DATA_SIZE(EEVEE_Data);
+static const DrawEngineDataSize eevee_data_size = DRW_VIEWPORT_DATA_SIZE(EEVEE_Data);
 
 DrawEngineType draw_engine_eevee_type = {
 	NULL, NULL,
 	N_("Eevee"),
-	&EEVEE_data_size,
-	&EEVEE_engine_init,
-	&EEVEE_engine_free,
-	&EEVEE_cache_init,
-	&EEVEE_cache_populate,
-	&EEVEE_cache_finish,
-	&EEVEE_draw_scene,
+	&eevee_data_size,
+	&eevee_engine_init,
+	&eevee_engine_free,
+	&eevee_cache_init,
+	&eevee_cache_populate,
+	&eevee_cache_finish,
+	&eevee_draw_scene,
 	NULL, //&EEVEE_draw_scene
-	&EEVEE_view_update,
-	&EEVEE_id_update,
+	&eevee_view_update,
+	&eevee_id_update,
 };
 
 RenderEngineType DRW_engine_viewport_eevee_type = {
 	NULL, NULL,
 	EEVEE_ENGINE, N_("Eevee"), RE_INTERNAL | RE_USE_SHADING_NODES,
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	&EEVEE_layer_collection_settings_create, &EEVEE_view_layer_settings_create,
+	&eevee_layer_collection_settings_create,
+	&eevee_view_layer_settings_create,
 	&draw_engine_eevee_type,
 	{NULL, NULL, NULL}
 };
