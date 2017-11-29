@@ -322,7 +322,7 @@ static struct GPUTexture *create_jitter_texture(int num_samples)
 	return DRW_texture_create_2D(64, 64, DRW_TEX_RGB_16, DRW_TEX_FILTER | DRW_TEX_WRAP, &jitter[0][0]);
 }
 
-static void CLAY_engine_init(void *vedata)
+static void clay_engine_init(void *vedata)
 {
 	CLAY_StorageList *stl = ((CLAY_Data *)vedata)->stl;
 	CLAY_FramebufferList *fbl = ((CLAY_Data *)vedata)->fbl;
@@ -702,7 +702,7 @@ static DRWShadingGroup *CLAY_object_shgrp_default_mode_get(
 	return CLAY_object_shgrp_get(vedata, ob, stl, psl, use_flat);
 }
 
-static void CLAY_cache_init(void *vedata)
+static void clay_cache_init(void *vedata)
 {
 	CLAY_PassList *psl = ((CLAY_Data *)vedata)->psl;
 	CLAY_StorageList *stl = ((CLAY_Data *)vedata)->stl;
@@ -746,7 +746,7 @@ static void CLAY_cache_init(void *vedata)
 	}
 }
 
-static void CLAY_cache_populate(void *vedata, Object *ob)
+static void clay_cache_populate(void *vedata, Object *ob)
 {
 	CLAY_PassList *psl = ((CLAY_Data *)vedata)->psl;
 	CLAY_StorageList *stl = ((CLAY_Data *)vedata)->stl;
@@ -826,7 +826,7 @@ static void CLAY_cache_populate(void *vedata, Object *ob)
 	}
 }
 
-static void CLAY_cache_finish(void *vedata)
+static void clay_cache_finish(void *vedata)
 {
 	CLAY_StorageList *stl = ((CLAY_Data *)vedata)->stl;
 
@@ -834,7 +834,7 @@ static void CLAY_cache_finish(void *vedata)
 	DRW_uniformbuffer_update(stl->hair_mat_ubo, &stl->storage->hair_mat_storage);
 }
 
-static void CLAY_draw_scene(void *vedata)
+static void clay_draw_scene(void *vedata)
 {
 
 	CLAY_PassList *psl = ((CLAY_Data *)vedata)->psl;
@@ -866,7 +866,7 @@ static void CLAY_draw_scene(void *vedata)
 	DRW_draw_pass(psl->hair_pass);
 }
 
-static void CLAY_layer_collection_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
+static void clay_layer_collection_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
 {
 	BLI_assert(props &&
 	           props->type == IDP_GROUP &&
@@ -885,7 +885,7 @@ static void CLAY_layer_collection_settings_create(RenderEngine *UNUSED(engine), 
 	BKE_collection_engine_property_add_float(props, "hair_brightness_randomness", 0.0f);
 }
 
-static void CLAY_view_layer_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
+static void clay_view_layer_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
 {
 	BLI_assert(props &&
 	           props->type == IDP_GROUP &&
@@ -894,7 +894,7 @@ static void CLAY_view_layer_settings_create(RenderEngine *UNUSED(engine), IDProp
 	BKE_collection_engine_property_add_int(props, "ssao_samples", 16);
 }
 
-static void CLAY_engine_free(void)
+static void clay_engine_free(void)
 {
 	DRW_SHADER_FREE_SAFE(e_data.clay_sh);
 	DRW_SHADER_FREE_SAFE(e_data.clay_flat_sh);
@@ -902,19 +902,19 @@ static void CLAY_engine_free(void)
 	DRW_TEXTURE_FREE_SAFE(e_data.matcap_array);
 }
 
-static const DrawEngineDataSize CLAY_data_size = DRW_VIEWPORT_DATA_SIZE(CLAY_Data);
+static const DrawEngineDataSize clay_data_size = DRW_VIEWPORT_DATA_SIZE(CLAY_Data);
 
 DrawEngineType draw_engine_clay_type = {
 	NULL, NULL,
 	N_("Clay"),
-	&CLAY_data_size,
-	&CLAY_engine_init,
-	&CLAY_engine_free,
-	&CLAY_cache_init,
-	&CLAY_cache_populate,
-	&CLAY_cache_finish,
+	&clay_data_size,
+	&clay_engine_init,
+	&clay_engine_free,
+	&clay_cache_init,
+	&clay_cache_populate,
+	&clay_cache_finish,
 	NULL,
-	&CLAY_draw_scene,
+	&clay_draw_scene,
 	NULL,
 	NULL,
 };
@@ -923,8 +923,8 @@ RenderEngineType DRW_engine_viewport_clay_type = {
 	NULL, NULL,
 	CLAY_ENGINE, N_("Clay"), RE_INTERNAL,
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	&CLAY_layer_collection_settings_create,
-	&CLAY_view_layer_settings_create,
+	&clay_layer_collection_settings_create,
+	&clay_view_layer_settings_create,
 	&draw_engine_clay_type,
 	{NULL, NULL, NULL}
 };
