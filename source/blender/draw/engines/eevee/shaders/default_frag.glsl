@@ -13,7 +13,7 @@ Closure nodetree_exec(void)
 	vec3 out_diff, out_spec, ssr_spec;
 	eevee_closure_default(N, albedo, f0, 0, roughness, 1.0, out_diff, out_spec, ssr_spec);
 
-	Closure result = Closure(out_spec + out_diff, 1.0, vec4(ssr_spec, roughness), normal_encode(normalize(viewNormal), viewCameraVec), 0);
+	Closure result = Closure(out_spec + out_diff * albedo, 1.0, vec4(ssr_spec, roughness), normal_encode(normalize(viewNormal), viewCameraVec), 0);
 
 	return result;
 }
