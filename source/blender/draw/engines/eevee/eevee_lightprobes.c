@@ -1395,29 +1395,25 @@ static void lightprobes_refresh_all_no_world(EEVEE_ViewLayerData *sldata, EEVEE_
 	 * so update them first. */
 	while (pinfo->updated_bounce < pinfo->num_bounce) {
 		pinfo->num_render_grid = pinfo->num_grid;
-
+		/* TODO(sergey): This logic can be split into smaller functions. */
 		for (int i = 1; (ob = pinfo->probes_grid_ref[i]) && (i < MAX_GRID); i++) {
 			EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
-
 			if (!ped->need_update) {
 				continue;
 			}
 			EEVEE_LightGrid *egrid = &pinfo->grid_data[i];
 			LightProbe *prb = (LightProbe *)ob->data;
-
 			/* Find the next cell corresponding to the current level. */
 			bool valid_cell = false;
 			int cell_id = ped->updated_cells;
 			float pos[3], grid_loc[3];
-
 			/* Other levels */
 			int current_stride = 1 << max_ii(0, ped->max_lvl - ped->updated_lvl);
 			int prev_stride = current_stride << 1;
-
+			bool do_rendering = true;
 			while (!valid_cell) {
 				cell_id = ped->updated_cells;
 				lightprobe_cell_grid_location_get(egrid, cell_id, grid_loc);
-
 				if (ped->updated_lvl == 0 && cell_id == 0) {
 					valid_cell = true;
 					ped->updated_cells = ped->num_cell;
@@ -1432,50 +1428,40 @@ static void lightprobes_refresh_all_no_world(EEVEE_ViewLayerData *sldata, EEVEE_
 				{
 					valid_cell = true;
 				}
-
 				ped->updated_cells++;
-
 				if (ped->updated_cells > ped->num_cell) {
-					goto skip_rendering;
+					do_rendering = false;
+					break;
 				}
 			}
-
-			lightprobe_cell_world_location_get(egrid, grid_loc, pos);
-
-			SWAP(GPUTexture *, sldata->irradiance_pool, sldata->irradiance_rt);
-
-			/* Temporary Remove all probes. */
-			int tmp_num_render_grid = pinfo->num_render_grid;
-			int tmp_num_render_cube = pinfo->num_render_cube;
-			int tmp_num_planar = pinfo->num_planar;
-			pinfo->num_render_cube = 0;
-			pinfo->num_planar = 0;
-
-			/* Use light from previous bounce when capturing radiance. */
-			if (pinfo->updated_bounce == 0) {
-				pinfo->num_render_grid = 0;
+			if (do_rendering) {
+				lightprobe_cell_world_location_get(egrid, grid_loc, pos);
+				SWAP(GPUTexture *, sldata->irradiance_pool, sldata->irradiance_rt);
+				/* Temporary Remove all probes. */
+				int tmp_num_render_grid = pinfo->num_render_grid;
+				int tmp_num_render_cube = pinfo->num_render_cube;
+				int tmp_num_planar = pinfo->num_planar;
+				pinfo->num_render_cube = 0;
+				pinfo->num_planar = 0;
+				/* Use light from previous bounce when capturing radiance. */
+				if (pinfo->updated_bounce == 0) {
+					pinfo->num_render_grid = 0;
+				}
+				render_scene_to_probe(sldata, vedata, pos, prb->clipsta, prb->clipend);
+				diffuse_filter_probe(sldata, vedata, psl, egrid->offset + cell_id);
+				/* To see what is going on. */
+				SWAP(GPUTexture *, sldata->irradiance_pool, sldata->irradiance_rt);
+				/* Restore */
+				pinfo->num_render_grid = tmp_num_render_grid;
+				pinfo->num_render_cube = tmp_num_render_cube;
+				pinfo->num_planar = tmp_num_planar;
 			}
-
-			render_scene_to_probe(sldata, vedata, pos, prb->clipsta, prb->clipend);
-			diffuse_filter_probe(sldata, vedata, psl, egrid->offset + cell_id);
-
-			/* To see what is going on. */
-			SWAP(GPUTexture *, sldata->irradiance_pool, sldata->irradiance_rt);
-
-			/* Restore */
-			pinfo->num_render_grid = tmp_num_render_grid;
-			pinfo->num_render_cube = tmp_num_render_cube;
-			pinfo->num_planar = tmp_num_planar;
-
-skip_rendering:
 			if (ped->updated_cells >= ped->num_cell) {
 				ped->updated_lvl++;
 				ped->updated_cells = 0;
-
 				if (ped->updated_lvl > ped->max_lvl) {
 					ped->need_update = false;
 				}
-
 				egrid->level_bias = (float)(1 << max_ii(0, ped->max_lvl - ped->updated_lvl + 1));
 				DRW_uniformbuffer_update(sldata->grid_ubo, &sldata->probes->grid_data);
 			}
@@ -1487,7 +1473,6 @@ skip_rendering:
 			DRW_viewport_request_redraw();
 			/* Do not let this frame accumulate. */
 			stl->effects->taa_current_sample = 1;
-
 			lightprobes_refresh_planar(sldata, vedata);
 			return;
 		}
@@ -1503,16 +1488,12 @@ skip_rendering:
 				ped->updated_cells = 0;
 				ped->updated_lvl = 0;
 			}
-
 			SWAP(GPUTexture *, sldata->irradiance_pool, sldata->irradiance_rt);
-
 			/* Reset the next buffer so we can see the progress. */
 			DRW_framebuffer_texture_detach(sldata->probe_pool);
-
 			DRW_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->irradiance_rt, 0, 0);
 			DRW_draw_pass(psl->probe_grid_fill);
 			DRW_framebuffer_texture_detach(sldata->irradiance_rt);
-
 			DRW_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->probe_pool, 0, 0);
 		}
 	}
