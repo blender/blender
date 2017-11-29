@@ -108,6 +108,8 @@ typedef enum PropertyUnit {
 
 #define RNA_TRANSLATION_PREC_DEFAULT 5
 
+#define RNA_STACK_ARRAY 32
+
 /* also update enums in bpy_props.c when adding items here
  * watch it: these values are written to files as part of
  * node socket button subtypes!
