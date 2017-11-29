@@ -2650,22 +2650,7 @@ void BKE_object_handle_update_ex(EvaluationContext *eval_ctx,
 			printf("recalcob %s\n", ob->id.name + 2);
 		}
 		/* Handle proxy copy for target. */
-		if (ID_IS_LINKED(ob) && ob->proxy_from) {
-			// printf("ob proxy copy, lib ob %s proxy %s\n", ob->id.name, ob->proxy_from->id.name);
-			if (ob->proxy_from->proxy_group) { /* transform proxy into group space */
-				Object *obg = ob->proxy_from->proxy_group;
-				float imat[4][4];
-				invert_m4_m4(imat, obg->obmat);
-				mul_m4_m4m4(ob->obmat, imat, ob->proxy_from->obmat);
-				if (obg->dup_group) { /* should always be true */
-					add_v3_v3(ob->obmat[3], obg->dup_group->dupli_ofs);
-				}
-			}
-			else {
-				copy_m4_m4(ob->obmat, ob->proxy_from->obmat);
-			}
-		}
-		else {
+		if (!BKE_object_eval_proxy_copy(eval_ctx, ob)) {
 			BKE_object_where_is_calc_ex(scene, rbw, ob, NULL);
 		}
 	}
