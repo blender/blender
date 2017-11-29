@@ -301,6 +301,11 @@ enum {
 	SEQ_TEXT_ALIGN_Y_BOTTOM = 2,
 };
 
+typedef struct ColorMixVars {
+	int blend_effect;    /* value from SEQ_TYPE_XXX enumeration */
+	float factor;        /* blend factor [0.0f, 1.0f]           */
+} ColorMixVars;
+
 /* ***************** Sequence modifiers ****************** */
 
 typedef struct SequenceModifierData {
@@ -516,8 +521,29 @@ enum {
 	SEQ_TYPE_ADJUSTMENT  = 31,
 	SEQ_TYPE_GAUSSIAN_BLUR = 40,
 	SEQ_TYPE_TEXT = 41,
+	SEQ_TYPE_COLORMIX    = 42,
 
-	SEQ_TYPE_MAX  = 41
+	/* Blend modes */
+	SEQ_TYPE_SCREEN      = 43,
+	SEQ_TYPE_LIGHTEN     = 44,
+	SEQ_TYPE_DODGE       = 45,
+	SEQ_TYPE_DARKEN      = 46,
+	SEQ_TYPE_BURN        = 47,
+	SEQ_TYPE_LINEAR_BURN = 48,
+	SEQ_TYPE_OVERLAY     = 49,
+	SEQ_TYPE_HARD_LIGHT  = 50,
+	SEQ_TYPE_SOFT_LIGHT  = 51,
+	SEQ_TYPE_PIN_LIGHT   = 52,
+	SEQ_TYPE_LIN_LIGHT   = 53,
+	SEQ_TYPE_VIVID_LIGHT = 54,
+	SEQ_TYPE_HUE         = 55,
+	SEQ_TYPE_SATURATION  = 56,
+	SEQ_TYPE_VALUE       = 57,
+	SEQ_TYPE_BLEND_COLOR = 58,
+	SEQ_TYPE_DIFFERENCE  = 59,
+	SEQ_TYPE_EXCLUSION   = 60,
+
+	SEQ_TYPE_MAX         = 60
 };
 
 #define SEQ_MOVIECLIP_RENDER_UNDISTORTED (1 << 0)

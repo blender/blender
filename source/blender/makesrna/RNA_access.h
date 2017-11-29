@@ -121,6 +121,7 @@ extern StructRNA RNA_ColorManagedViewSettings;
 extern StructRNA RNA_ColorRamp;
 extern StructRNA RNA_ColorRampElement;
 extern StructRNA RNA_ColorSequence;
+extern StructRNA RNA_ColorMixSequence;
 extern StructRNA RNA_CompositorNode;
 extern StructRNA RNA_CompositorNodeAlphaOver;
 extern StructRNA RNA_CompositorNodeBilateralblur;
