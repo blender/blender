@@ -342,3 +342,19 @@ void BKE_object_eval_cloth(EvaluationContext *UNUSED(eval_ctx), Scene *scene, Ob
 	DEBUG_PRINT("%s on %s\n", __func__, object->id.name);
 	BKE_ptcache_object_reset(scene, object, PTCACHE_RESET_DEPSGRAPH);
 }
+
+void BKE_object_eval_transform_all(EvaluationContext *eval_ctx,
+                                   Scene *scene,
+                                   Object *object)
+{
+	/* This mimics full transform update chain from new depsgraph. */
+	BKE_object_eval_local_transform(eval_ctx, scene, object);
+	if (object->parent != NULL) {
+		BKE_object_eval_parent(eval_ctx, scene, object);
+	}
+	if (!BLI_listbase_is_empty(&object->constraints)) {
+		BKE_object_eval_constraints(eval_ctx, scene, object);
+	}
+	BKE_object_eval_uber_transform(eval_ctx, scene, object);
+	BKE_object_eval_done(eval_ctx, object);
+}

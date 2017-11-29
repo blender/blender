@@ -316,9 +316,7 @@ void applyProject(TransInfo *t)
 				mul_m4_v3(ob->obmat, iloc);
 			}
 			else if (t->flag & T_OBJECT) {
-				/* TODO(sergey): Ideally force update is not needed here. */
-				td->ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
-				BKE_object_handle_update(G.main->eval_ctx, t->scene, td->ob);
+				BKE_object_eval_transform_all(G.main->eval_ctx, t->scene, td->ob);
 				copy_v3_v3(iloc, td->ob->obmat[3]);
 			}
 			
@@ -407,8 +405,7 @@ void applyGridAbsolute(TransInfo *t)
 			mul_m4_v3(obmat, iloc);
 		}
 		else if (t->flag & T_OBJECT) {
-			td->ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
-			BKE_object_handle_update(G.main->eval_ctx, t->scene, td->ob);
+			BKE_object_eval_transform_all(G.main->eval_ctx, t->scene, td->ob);
 			copy_v3_v3(iloc, td->ob->obmat[3]);
 		}
 		

@@ -201,6 +201,10 @@ void BKE_object_eval_cloth(struct EvaluationContext *eval_ctx,
                            struct Object *object);
 
 
+void BKE_object_eval_transform_all(struct EvaluationContext *eval_ctx,
+                                   struct Scene *scene,
+                                   struct Object *object);
+
 void BKE_object_handle_data_update(struct EvaluationContext *eval_ctx,
                                    struct Scene *scene,
                                    struct Object *ob);
