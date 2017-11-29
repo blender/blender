@@ -412,6 +412,25 @@ PyObject *PyC_Err_Format_Prefix(PyObject *exception_type_prefix, const char *for
 	return NULL;
 }
 
+/**
+ * Use for Python callbacks run directly from C,
+ * when we can't use normal methods of raising exceptions.
+ */
+void PyC_Err_PrintWithFunc(PyObject *py_func)
+{
+	/* since we return to C code we can't leave the error */
+	PyCodeObject *f_code = (PyCodeObject *)PyFunction_GET_CODE(py_func);
+	PyErr_Print();
+	PyErr_Clear();
+
+	/* use py style error */
+	fprintf(stderr, "File \"%s\", line %d, in %s\n",
+	        _PyUnicode_AsString(f_code->co_filename),
+	        f_code->co_firstlineno,
+	        _PyUnicode_AsString(((PyFunctionObject *)py_func)->func_name)
+	        );
+}
+
 
 /* returns the exception string as a new PyUnicode object, depends on external traceback module */
 #if 0
