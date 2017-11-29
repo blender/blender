@@ -117,38 +117,44 @@ bool ray_triangle_intersect(
 	const float3 e2 = v1 - v2;
 
 	/* Perform edge tests. */
-#ifdef __KERNEL_SSE2__
+#if defined(__KERNEL_SSE2__)  && defined (__KERNEL_SSE__)
 	const float3 crossU = cross(v2 + v0, e0);
 	const float3 crossV = cross(v0 + v1, e1);
 	const float3 crossW = cross(v1 + v2, e2);
-#  ifndef __KERNEL_SSE__
-	const ssef crossX(crossU.x, crossV.x, crossW.x, crossW.x);
-	const ssef crossY(crossU.y, crossV.y, crossW.y, crossW.y);
-	const ssef crossZ(crossU.z, crossV.z, crossW.z, crossW.z);
-#  else
+
 	ssef crossX(crossU);
 	ssef crossY(crossV);
 	ssef crossZ(crossW);
 	ssef zero = _mm_setzero_ps();
 	_MM_TRANSPOSE4_PS(crossX, crossY, crossZ, zero);
-#  endif
+
 	const ssef dirX(ray_dir.x);
 	const ssef dirY(ray_dir.y);
 	const ssef dirZ(ray_dir.z);
-	/*const*/ ssef UVWW = crossX*dirX + crossY*dirY + crossZ*dirZ;
-	const float minUVW = reduce_min(UVWW);
-	const float maxUVW = reduce_max(UVWW);
+
+	ssef UVWW = madd(crossX, dirX, madd(crossY, dirY, crossZ * dirZ));
 #else  /* __KERNEL_SSE2__ */
 	const float U = dot(cross(v2 + v0, e0), ray_dir);
 	const float V = dot(cross(v0 + v1, e1), ray_dir);
 	const float W = dot(cross(v1 + v2, e2), ray_dir);
+#endif  /* __KERNEL_SSE2__ */
+
+#if defined(__KERNEL_SSE2__)  && defined (__KERNEL_SSE__)
+	int uvw_sign = movemask(UVWW) & 0x7;
+	if (uvw_sign != 0)
+	{
+		if (uvw_sign != 0x7)
+			return false;
+	}
+#else
 	const float minUVW = min(U, min(V, W));
 	const float maxUVW = max(U, max(V, W));
-#endif  /* __KERNEL_SSE2__ */
 
 	if(minUVW < 0.0f && maxUVW > 0.0f) {
 		return false;
 	}
+#endif
+
 
 	/* Calculate geometry normal and denominator. */
 	const float3 Ng1 = cross(e1, e0);
@@ -171,7 +177,7 @@ bool ray_triangle_intersect(
 	}
 
 	const float inv_den = 1.0f / den;
-#ifdef __KERNEL_SSE2__
+#if defined(__KERNEL_SSE2__)  && defined (__KERNEL_SSE__)
 	UVWW *= inv_den;
 	_mm_store_ss(isect_u, UVWW);
 	_mm_store_ss(isect_v, shuffle<1,1,3,3>(UVWW));
