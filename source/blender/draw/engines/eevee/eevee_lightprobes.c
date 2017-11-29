@@ -1342,96 +1342,97 @@ void EEVEE_lightprobes_refresh(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 			for (int i = 1; (ob = pinfo->probes_grid_ref[i]) && (i < MAX_GRID); i++) {
 				EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
 
-				if (ped->need_update) {
-					EEVEE_LightGrid *egrid = &pinfo->grid_data[i];
-					LightProbe *prb = (LightProbe *)ob->data;
+				if (!ped->need_update) {
+					continue;
+				}
+				EEVEE_LightGrid *egrid = &pinfo->grid_data[i];
+				LightProbe *prb = (LightProbe *)ob->data;
 
-					/* Find the next cell corresponding to the current level. */
-					bool valid_cell = false;
-					int cell_id = ped->updated_cells;
-					float pos[3], grid_loc[3];
+				/* Find the next cell corresponding to the current level. */
+				bool valid_cell = false;
+				int cell_id = ped->updated_cells;
+				float pos[3], grid_loc[3];
 
-					/* Other levels */
-					int current_stride = 1 << max_ii(0, ped->max_lvl - ped->updated_lvl);
-					int prev_stride = current_stride << 1;
+				/* Other levels */
+				int current_stride = 1 << max_ii(0, ped->max_lvl - ped->updated_lvl);
+				int prev_stride = current_stride << 1;
 
-					while (!valid_cell) {
-						cell_id = ped->updated_cells;
-						lightprobe_cell_grid_location_get(egrid, cell_id, grid_loc);
+				while (!valid_cell) {
+					cell_id = ped->updated_cells;
+					lightprobe_cell_grid_location_get(egrid, cell_id, grid_loc);
 
-						if (ped->updated_lvl == 0 && cell_id == 0) {
-							valid_cell = true;
-							ped->updated_cells = ped->num_cell;
-							continue;
-						}
-						else if (((((int)grid_loc[0] % current_stride) == 0) &&
-						          (((int)grid_loc[1] % current_stride) == 0) &&
-						          (((int)grid_loc[2] % current_stride) == 0)) &&
-						         !((((int)grid_loc[0] % prev_stride) == 0) &&
-						           (((int)grid_loc[1] % prev_stride) == 0) &&
-						           (((int)grid_loc[2] % prev_stride) == 0)))
-						{
-							valid_cell = true;
-						}
-
-						ped->updated_cells++;
-
-						if (ped->updated_cells > ped->num_cell) {
-							goto skip_rendering;
-						}
+					if (ped->updated_lvl == 0 && cell_id == 0) {
+						valid_cell = true;
+						ped->updated_cells = ped->num_cell;
+						continue;
+					}
+					else if (((((int)grid_loc[0] % current_stride) == 0) &&
+					          (((int)grid_loc[1] % current_stride) == 0) &&
+					          (((int)grid_loc[2] % current_stride) == 0)) &&
+					         !((((int)grid_loc[0] % prev_stride) == 0) &&
+					           (((int)grid_loc[1] % prev_stride) == 0) &&
+					           (((int)grid_loc[2] % prev_stride) == 0)))
+					{
+						valid_cell = true;
 					}
 
-					lightprobe_cell_world_location_get(egrid, grid_loc, pos);
+					ped->updated_cells++;
 
-					SWAP(GPUTexture *, sldata->irradiance_pool, sldata->irradiance_rt);
-
-					/* Temporary Remove all probes. */
-					int tmp_num_render_grid = pinfo->num_render_grid;
-					int tmp_num_render_cube = pinfo->num_render_cube;
-					int tmp_num_planar = pinfo->num_planar;
-					pinfo->num_render_cube = 0;
-					pinfo->num_planar = 0;
-
-					/* Use light from previous bounce when capturing radiance. */
-					if (pinfo->updated_bounce == 0) {
-						pinfo->num_render_grid = 0;
+					if (ped->updated_cells > ped->num_cell) {
+						goto skip_rendering;
 					}
+				}
 
-					render_scene_to_probe(sldata, vedata, pos, prb->clipsta, prb->clipend);
-					diffuse_filter_probe(sldata, vedata, psl, egrid->offset + cell_id);
+				lightprobe_cell_world_location_get(egrid, grid_loc, pos);
 
-					/* To see what is going on. */
-					SWAP(GPUTexture *, sldata->irradiance_pool, sldata->irradiance_rt);
+				SWAP(GPUTexture *, sldata->irradiance_pool, sldata->irradiance_rt);
 
-					/* Restore */
-					pinfo->num_render_grid = tmp_num_render_grid;
-					pinfo->num_render_cube = tmp_num_render_cube;
-					pinfo->num_planar = tmp_num_planar;
+				/* Temporary Remove all probes. */
+				int tmp_num_render_grid = pinfo->num_render_grid;
+				int tmp_num_render_cube = pinfo->num_render_cube;
+				int tmp_num_planar = pinfo->num_planar;
+				pinfo->num_render_cube = 0;
+				pinfo->num_planar = 0;
+
+				/* Use light from previous bounce when capturing radiance. */
+				if (pinfo->updated_bounce == 0) {
+					pinfo->num_render_grid = 0;
+				}
+
+				render_scene_to_probe(sldata, vedata, pos, prb->clipsta, prb->clipend);
+				diffuse_filter_probe(sldata, vedata, psl, egrid->offset + cell_id);
+
+				/* To see what is going on. */
+				SWAP(GPUTexture *, sldata->irradiance_pool, sldata->irradiance_rt);
+
+				/* Restore */
+				pinfo->num_render_grid = tmp_num_render_grid;
+				pinfo->num_render_cube = tmp_num_render_cube;
+				pinfo->num_planar = tmp_num_planar;
 
 skip_rendering:
 
-					if (ped->updated_cells >= ped->num_cell) {
-						ped->updated_lvl++;
-						ped->updated_cells = 0;
+				if (ped->updated_cells >= ped->num_cell) {
+					ped->updated_lvl++;
+					ped->updated_cells = 0;
 
-						if (ped->updated_lvl > ped->max_lvl) {
-							ped->need_update = false;
-						}
-
-						egrid->level_bias = (float)(1 << max_ii(0, ped->max_lvl - ped->updated_lvl + 1));
-						DRW_uniformbuffer_update(sldata->grid_ubo, &sldata->probes->grid_data);
+					if (ped->updated_lvl > ped->max_lvl) {
+						ped->need_update = false;
 					}
-#if 0
-					printf("Updated Grid %d : cell %d / %d, bounce %d / %d\n",
-						i, ped->updated_cells, ped->num_cell, pinfo->updated_bounce + 1, pinfo->num_bounce);
-#endif
-					/* Only do one probe per frame */
-					DRW_viewport_request_redraw();
-					/* Do not let this frame accumulate. */
-					stl->effects->taa_current_sample = 1;
 
-					goto update_planar;
+					egrid->level_bias = (float)(1 << max_ii(0, ped->max_lvl - ped->updated_lvl + 1));
+					DRW_uniformbuffer_update(sldata->grid_ubo, &sldata->probes->grid_data);
 				}
+#if 0
+				printf("Updated Grid %d : cell %d / %d, bounce %d / %d\n",
+				       i, ped->updated_cells, ped->num_cell, pinfo->updated_bounce + 1, pinfo->num_bounce);
+#endif
+				/* Only do one probe per frame */
+				DRW_viewport_request_redraw();
+				/* Do not let this frame accumulate. */
+				stl->effects->taa_current_sample = 1;
+
+				goto update_planar;
 			}
 
 			pinfo->updated_bounce++;
@@ -1462,29 +1463,30 @@ skip_rendering:
 		for (int i = 1; (ob = pinfo->probes_cube_ref[i]) && (i < MAX_PROBE); i++) {
 			EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
 
-			if (ped->need_update) {
-				LightProbe *prb = (LightProbe *)ob->data;
-
-				render_scene_to_probe(sldata, vedata, ob->obmat[3], prb->clipsta, prb->clipend);
-				glossy_filter_probe(sldata, vedata, psl, i);
-
-				ped->need_update = false;
-				ped->probe_id = i;
-
-				if (!ped->ready_to_shade) {
-					pinfo->num_render_cube++;
-					ped->ready_to_shade = true;
-				}
-#if 0
-				printf("Update Cubemap %d\n", i);
-#endif
-				DRW_viewport_request_redraw();
-				/* Do not let this frame accumulate. */
-				stl->effects->taa_current_sample = 1;
-
-				/* Only do one probe per frame */
-				goto update_planar;
+			if (!ped->need_update) {
+				continue;
 			}
+			LightProbe *prb = (LightProbe *)ob->data;
+
+			render_scene_to_probe(sldata, vedata, ob->obmat[3], prb->clipsta, prb->clipend);
+			glossy_filter_probe(sldata, vedata, psl, i);
+
+			ped->need_update = false;
+			ped->probe_id = i;
+
+			if (!ped->ready_to_shade) {
+				pinfo->num_render_cube++;
+				ped->ready_to_shade = true;
+			}
+#if 0
+			printf("Update Cubemap %d\n", i);
+#endif
+			DRW_viewport_request_redraw();
+			/* Do not let this frame accumulate. */
+			stl->effects->taa_current_sample = 1;
+
+			/* Only do one probe per frame */
+			goto update_planar;
 		}
 	}
 
@@ -1493,19 +1495,21 @@ update_planar:
 	for (int i = 0; (ob = pinfo->probes_planar_ref[i]) && (i < MAX_PLANAR); i++) {
 		EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
 
-		if (ped->need_update) {
-			/* Temporary Remove all planar reflections (avoid lag effect). */
-			int tmp_num_planar = pinfo->num_planar;
-			pinfo->num_planar = 0;
-
-			render_scene_to_planar(sldata, vedata, i, ped->viewmat, ped->persmat, ped->planer_eq_offset);
-
-			/* Restore */
-			pinfo->num_planar = tmp_num_planar;
-
-			ped->need_update = false;
-			ped->probe_id = i;
+		if (!ped->need_update) {
+			continue;
 		}
+
+		/* Temporary Remove all planar reflections (avoid lag effect). */
+		int tmp_num_planar = pinfo->num_planar;
+		pinfo->num_planar = 0;
+
+		render_scene_to_planar(sldata, vedata, i, ped->viewmat, ped->persmat, ped->planer_eq_offset);
+
+		/* Restore */
+		pinfo->num_planar = tmp_num_planar;
+
+		ped->need_update = false;
+		ped->probe_id = i;
 	}
 
 	/* If there is at least one planar probe */

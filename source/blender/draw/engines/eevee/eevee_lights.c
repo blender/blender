@@ -927,74 +927,76 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
 		float cube_projmat[4][4];
 		perspective_m4(cube_projmat, -la->clipsta, la->clipsta, -la->clipsta, la->clipsta, la->clipsta, la->clipend);
 
-		if (led->need_update) {
-			EEVEE_ShadowRender *srd = &linfo->shadow_render_data;
-			EEVEE_ShadowCubeData *evscd = (EEVEE_ShadowCubeData *)led->storage;
-
-			srd->clip_near = la->clipsta;
-			srd->clip_far = la->clipend;
-			copy_v3_v3(srd->position, ob->obmat[3]);
-			for (int j = 0; j < 6; j++) {
-				float tmp[4][4];
-
-				unit_m4(tmp);
-				negate_v3_v3(tmp[3], ob->obmat[3]);
-				mul_m4_m4m4(srd->viewmat[j], cubefacemat[j], tmp);
-
-				mul_m4_m4m4(srd->shadowmat[j], cube_projmat, srd->viewmat[j]);
-			}
-			DRW_uniformbuffer_update(sldata->shadow_render_ubo, srd);
-
-			DRW_framebuffer_bind(sldata->shadow_target_fb);
-			DRW_framebuffer_clear(true, true, false, clear_col, 1.0f);
-
-			/* Render shadow cube */
-			DRW_draw_pass(psl->shadow_cube_pass);
-
-			/* 0.001f is arbitrary, but it should be relatively small so that filter size is not too big. */
-			float filter_texture_size = la->soft * 0.001f;
-			float filter_pixel_size = ceil(filter_texture_size / linfo->shadow_render_data.cube_texel_size);
-			linfo->filter_size = linfo->shadow_render_data.cube_texel_size * ((filter_pixel_size > 1.0f) ? 1.5f : 0.0f);
-
-			/* TODO: OPTI: Filter all faces in one/two draw call */
-			for (linfo->current_shadow_face = 0;
-			     linfo->current_shadow_face < 6;
-			     linfo->current_shadow_face++)
-			{
-				/* Copy using a small 3x3 box filter */
-				DRW_framebuffer_cubeface_attach(sldata->shadow_store_fb, sldata->shadow_cube_blur, 0, linfo->current_shadow_face, 0);
-				DRW_framebuffer_bind(sldata->shadow_store_fb);
-				DRW_draw_pass(psl->shadow_cube_copy_pass);
-				DRW_framebuffer_texture_detach(sldata->shadow_cube_blur);
-			}
-
-			/* Push it to shadowmap array */
-
-			/* Adjust constants if concentric samples change. */
-			const float max_filter_size = 7.5f;
-			const float previous_box_filter_size = 9.0f; /* Dunno why but that works. */
-			const int max_sample = 256;
-
-			if (filter_pixel_size > 2.0f) {
-				linfo->filter_size = linfo->shadow_render_data.cube_texel_size * max_filter_size * previous_box_filter_size;
-				filter_pixel_size = max_ff(0.0f, filter_pixel_size - 3.0f);
-				/* Compute number of concentric samples. Depends directly on filter size. */
-				float pix_size_sqr = filter_pixel_size * filter_pixel_size;
-				srd->shadow_samples_ct = min_ii(max_sample, 4 + 8 * (int)filter_pixel_size + 4 * (int)(pix_size_sqr));
-			}
-			else {
-				linfo->filter_size = 0.0f;
-				srd->shadow_samples_ct = 4;
-			}
-			srd->shadow_inv_samples_ct = 1.0f / (float)srd->shadow_samples_ct;
-			DRW_uniformbuffer_update(sldata->shadow_render_ubo, srd);
-
-			DRW_framebuffer_texture_layer_attach(sldata->shadow_store_fb, sldata->shadow_pool, 0, evscd->layer_id, 0);
-			DRW_framebuffer_bind(sldata->shadow_store_fb);
-			DRW_draw_pass(psl->shadow_cube_store_pass);
-
-			led->need_update = false;
+		if (!led->need_update) {
+			continue;
 		}
+
+		EEVEE_ShadowRender *srd = &linfo->shadow_render_data;
+		EEVEE_ShadowCubeData *evscd = (EEVEE_ShadowCubeData *)led->storage;
+
+		srd->clip_near = la->clipsta;
+		srd->clip_far = la->clipend;
+		copy_v3_v3(srd->position, ob->obmat[3]);
+		for (int j = 0; j < 6; j++) {
+			float tmp[4][4];
+
+			unit_m4(tmp);
+			negate_v3_v3(tmp[3], ob->obmat[3]);
+			mul_m4_m4m4(srd->viewmat[j], cubefacemat[j], tmp);
+
+			mul_m4_m4m4(srd->shadowmat[j], cube_projmat, srd->viewmat[j]);
+		}
+		DRW_uniformbuffer_update(sldata->shadow_render_ubo, srd);
+
+		DRW_framebuffer_bind(sldata->shadow_target_fb);
+		DRW_framebuffer_clear(true, true, false, clear_col, 1.0f);
+
+		/* Render shadow cube */
+		DRW_draw_pass(psl->shadow_cube_pass);
+
+		/* 0.001f is arbitrary, but it should be relatively small so that filter size is not too big. */
+		float filter_texture_size = la->soft * 0.001f;
+		float filter_pixel_size = ceil(filter_texture_size / linfo->shadow_render_data.cube_texel_size);
+		linfo->filter_size = linfo->shadow_render_data.cube_texel_size * ((filter_pixel_size > 1.0f) ? 1.5f : 0.0f);
+
+		/* TODO: OPTI: Filter all faces in one/two draw call */
+		for (linfo->current_shadow_face = 0;
+		     linfo->current_shadow_face < 6;
+		     linfo->current_shadow_face++)
+		{
+			/* Copy using a small 3x3 box filter */
+			DRW_framebuffer_cubeface_attach(sldata->shadow_store_fb, sldata->shadow_cube_blur, 0, linfo->current_shadow_face, 0);
+			DRW_framebuffer_bind(sldata->shadow_store_fb);
+			DRW_draw_pass(psl->shadow_cube_copy_pass);
+			DRW_framebuffer_texture_detach(sldata->shadow_cube_blur);
+		}
+
+		/* Push it to shadowmap array */
+
+		/* Adjust constants if concentric samples change. */
+		const float max_filter_size = 7.5f;
+		const float previous_box_filter_size = 9.0f; /* Dunno why but that works. */
+		const int max_sample = 256;
+
+		if (filter_pixel_size > 2.0f) {
+			linfo->filter_size = linfo->shadow_render_data.cube_texel_size * max_filter_size * previous_box_filter_size;
+			filter_pixel_size = max_ff(0.0f, filter_pixel_size - 3.0f);
+			/* Compute number of concentric samples. Depends directly on filter size. */
+			float pix_size_sqr = filter_pixel_size * filter_pixel_size;
+			srd->shadow_samples_ct = min_ii(max_sample, 4 + 8 * (int)filter_pixel_size + 4 * (int)(pix_size_sqr));
+		}
+		else {
+			linfo->filter_size = 0.0f;
+			srd->shadow_samples_ct = 4;
+		}
+		srd->shadow_inv_samples_ct = 1.0f / (float)srd->shadow_samples_ct;
+		DRW_uniformbuffer_update(sldata->shadow_render_ubo, srd);
+
+		DRW_framebuffer_texture_layer_attach(sldata->shadow_store_fb, sldata->shadow_pool, 0, evscd->layer_id, 0);
+		DRW_framebuffer_bind(sldata->shadow_store_fb);
+		DRW_draw_pass(psl->shadow_cube_store_pass);
+
+		led->need_update = false;
 	}
 	linfo->update_flag &= ~LIGHT_UPDATE_SHADOW_CUBE;
 
