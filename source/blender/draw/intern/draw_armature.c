@@ -98,7 +98,7 @@ static struct {
  * \{ */
 
 /* Octahedral */
-static void DRW_shgroup_bone_octahedral_solid(const float (*bone_mat)[4], const float color[4])
+static void drw_shgroup_bone_octahedral_solid(const float (*bone_mat)[4], const float color[4])
 {
 	if (g_data.bone_octahedral_solid == NULL) {
 		struct Gwn_Batch *geom = DRW_cache_bone_octahedral_get();
@@ -108,7 +108,7 @@ static void DRW_shgroup_bone_octahedral_solid(const float (*bone_mat)[4], const 
 	DRW_shgroup_call_dynamic_add(g_data.bone_octahedral_solid, bone_mat, color);
 }
 
-static void DRW_shgroup_bone_octahedral_wire(const float (*bone_mat)[4], const float color[4])
+static void drw_shgroup_bone_octahedral_wire(const float (*bone_mat)[4], const float color[4])
 {
 	if (g_data.bone_octahedral_wire == NULL) {
 		struct Gwn_Batch *geom = DRW_cache_bone_octahedral_wire_outline_get();
@@ -119,7 +119,7 @@ static void DRW_shgroup_bone_octahedral_wire(const float (*bone_mat)[4], const f
 }
 
 /* Box / B-Bone */
-static void DRW_shgroup_bone_box_solid(const float (*bone_mat)[4], const float color[4])
+static void drw_shgroup_bone_box_solid(const float (*bone_mat)[4], const float color[4])
 {
 	if (g_data.bone_box_solid == NULL) {
 		struct Gwn_Batch *geom = DRW_cache_bone_box_get();
@@ -129,7 +129,7 @@ static void DRW_shgroup_bone_box_solid(const float (*bone_mat)[4], const float c
 	DRW_shgroup_call_dynamic_add(g_data.bone_box_solid, bone_mat, color);
 }
 
-static void DRW_shgroup_bone_box_wire(const float (*bone_mat)[4], const float color[4])
+static void drw_shgroup_bone_box_wire(const float (*bone_mat)[4], const float color[4])
 {
 	if (g_data.bone_box_wire == NULL) {
 		struct Gwn_Batch *geom = DRW_cache_bone_box_wire_outline_get();
@@ -140,7 +140,7 @@ static void DRW_shgroup_bone_box_wire(const float (*bone_mat)[4], const float co
 }
 
 /* Wire */
-static void DRW_shgroup_bone_wire_wire(const float (*bone_mat)[4], const float color[4])
+static void drw_shgroup_bone_wire_wire(const float (*bone_mat)[4], const float color[4])
 {
 	if (g_data.bone_wire_wire == NULL) {
 		struct Gwn_Batch *geom = DRW_cache_bone_wire_wire_outline_get();
@@ -151,7 +151,7 @@ static void DRW_shgroup_bone_wire_wire(const float (*bone_mat)[4], const float c
 }
 
 /* Envelope */
-static void DRW_shgroup_bone_envelope_distance(
+static void drw_shgroup_bone_envelope_distance(
         const float (*bone_mat)[4], const float color[4],
         const float *radius_head, const float *radius_tail, const float *distance)
 {
@@ -166,7 +166,7 @@ static void DRW_shgroup_bone_envelope_distance(
 	}
 }
 
-static void DRW_shgroup_bone_envelope_solid(
+static void drw_shgroup_bone_envelope_solid(
         const float (*bone_mat)[4], const float color[4],
         const float *radius_head, const float *radius_tail)
 {
@@ -178,7 +178,7 @@ static void DRW_shgroup_bone_envelope_solid(
 	DRW_shgroup_call_dynamic_add(g_data.bone_envelope_solid, bone_mat, color, radius_head, radius_tail);
 }
 
-static void DRW_shgroup_bone_envelope_wire(
+static void drw_shgroup_bone_envelope_wire(
         const float (*bone_mat)[4], const float color[4],
         const float *radius_head, const float *radius_tail, const float *distance)
 {
@@ -190,7 +190,7 @@ static void DRW_shgroup_bone_envelope_wire(
 	DRW_shgroup_call_dynamic_add(g_data.bone_envelope_wire, bone_mat, color, radius_head, radius_tail, distance);
 }
 
-static void DRW_shgroup_bone_envelope_head_wire(
+static void drw_shgroup_bone_envelope_head_wire(
         const float (*bone_mat)[4], const float color[4],
         const float *radius_head, const float *radius_tail, const float *distance)
 {
@@ -204,7 +204,7 @@ static void DRW_shgroup_bone_envelope_head_wire(
 
 /* Custom (geometry) */
 
-static void DRW_shgroup_bone_custom_solid(const float (*bone_mat)[4], const float color[4], Object *custom)
+static void drw_shgroup_bone_custom_solid(const float (*bone_mat)[4], const float color[4], Object *custom)
 {
 	/* grr, not re-using instances! */
 	struct Gwn_Batch *geom = DRW_cache_object_surface_get(custom);
@@ -214,7 +214,7 @@ static void DRW_shgroup_bone_custom_solid(const float (*bone_mat)[4], const floa
 	}
 }
 
-static void DRW_shgroup_bone_custom_wire(const float (*bone_mat)[4], const float color[4], Object *custom)
+static void drw_shgroup_bone_custom_wire(const float (*bone_mat)[4], const float color[4], Object *custom)
 {
 	/* grr, not re-using instances! */
 	struct Gwn_Batch *geom = DRW_cache_object_wire_outline_get(custom);
@@ -225,7 +225,7 @@ static void DRW_shgroup_bone_custom_wire(const float (*bone_mat)[4], const float
 }
 
 /* Head and tail sphere */
-static void DRW_shgroup_bone_point_solid(const float (*bone_mat)[4], const float color[4])
+static void drw_shgroup_bone_point_solid(const float (*bone_mat)[4], const float color[4])
 {
 	if (g_data.bone_point_solid == NULL) {
 		struct Gwn_Batch *geom = DRW_cache_bone_point_get();
@@ -235,7 +235,7 @@ static void DRW_shgroup_bone_point_solid(const float (*bone_mat)[4], const float
 	DRW_shgroup_call_dynamic_add(g_data.bone_point_solid, bone_mat, color);
 }
 
-static void DRW_shgroup_bone_point_wire(const float (*bone_mat)[4], const float color[4])
+static void drw_shgroup_bone_point_wire(const float (*bone_mat)[4], const float color[4])
 {
 	if (g_data.bone_point_wire == NULL) {
 		struct Gwn_Batch *geom = DRW_cache_bone_point_wire_outline_get();
@@ -246,7 +246,7 @@ static void DRW_shgroup_bone_point_wire(const float (*bone_mat)[4], const float 
 }
 
 /* Axes */
-static void DRW_shgroup_bone_axes(const float (*bone_mat)[4], const float color[4])
+static void drw_shgroup_bone_axes(const float (*bone_mat)[4], const float color[4])
 {
 	if (g_data.bone_axes == NULL) {
 		struct Gwn_Batch *geom = DRW_cache_bone_arrows_get();
@@ -257,7 +257,7 @@ static void DRW_shgroup_bone_axes(const float (*bone_mat)[4], const float color[
 }
 
 /* Relationship lines */
-static void UNUSED_FUNCTION(DRW_shgroup_bone_relationship_lines)(const float head[3], const float tail[3])
+static void UNUSED_FUNCTION(drw_shgroup_bone_relationship_lines)(const float head[3], const float tail[3])
 {
 	DRW_shgroup_call_dynamic_add(g_data.relationship_lines, head);
 	DRW_shgroup_call_dynamic_add(g_data.relationship_lines, tail);
@@ -918,7 +918,7 @@ static void draw_axes(EditBone *eBone, bPoseChannel *pchan)
 	const float *col = (g_theme.const_color) ? g_theme.const_color :
 	                   (BONE_FLAG(eBone, pchan) & BONE_SELECTED) ? g_theme.text_hi_color : g_theme.text_color;
 
-	DRW_shgroup_bone_axes(BONE_VAR(eBone, pchan, disp_mat), col);
+	drw_shgroup_bone_axes(BONE_VAR(eBone, pchan, disp_mat), col);
 }
 
 static void draw_points(
@@ -971,14 +971,14 @@ static void draw_points(
 		if (eBone) {
 			if (!((eBone->parent) && !EBONE_VISIBLE(arm, eBone->parent))) {
 				if (is_envelope_draw) {
-					DRW_shgroup_bone_envelope_solid(eBone->disp_mat, col_solid_root,
+					drw_shgroup_bone_envelope_solid(eBone->disp_mat, col_solid_root,
 					                                &eBone->rad_head, &envelope_ignore);
-					DRW_shgroup_bone_envelope_head_wire(eBone->disp_mat, col_wire_root,
+					drw_shgroup_bone_envelope_head_wire(eBone->disp_mat, col_wire_root,
 					                                    &eBone->rad_head, &envelope_ignore, &envelope_ignore);
 				}
 				else {
-					DRW_shgroup_bone_point_solid(eBone->disp_mat, col_solid_root);
-					DRW_shgroup_bone_point_wire(eBone->disp_mat, col_wire_root);
+					drw_shgroup_bone_point_solid(eBone->disp_mat, col_solid_root);
+					drw_shgroup_bone_point_wire(eBone->disp_mat, col_wire_root);
 				}
 			}
 		}
@@ -986,14 +986,14 @@ static void draw_points(
 			Bone *bone = pchan->bone;
 			if (!((bone->parent) && (bone->parent->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG)))) {
 				if (is_envelope_draw) {
-					DRW_shgroup_bone_envelope_solid(pchan->disp_mat, col_solid_root,
+					drw_shgroup_bone_envelope_solid(pchan->disp_mat, col_solid_root,
 					                                &bone->rad_head, &envelope_ignore);
-					DRW_shgroup_bone_envelope_head_wire(pchan->disp_mat, col_wire_root,
+					drw_shgroup_bone_envelope_head_wire(pchan->disp_mat, col_wire_root,
 					                                    &bone->rad_head, &envelope_ignore, &envelope_ignore);
 				}
 				else {
-					DRW_shgroup_bone_point_solid(pchan->disp_mat, col_solid_root);
-					DRW_shgroup_bone_point_wire(pchan->disp_mat, col_wire_root);
+					drw_shgroup_bone_point_solid(pchan->disp_mat, col_solid_root);
+					drw_shgroup_bone_point_wire(pchan->disp_mat, col_wire_root);
 				}
 			}
 		}
@@ -1006,14 +1006,14 @@ static void draw_points(
 
 	if (is_envelope_draw) {
 		const float *rad_tail = eBone ? &eBone->rad_tail : &pchan->bone->rad_tail;
-		DRW_shgroup_bone_envelope_solid(
+		drw_shgroup_bone_envelope_solid(
 		            BONE_VAR(eBone, pchan, disp_mat), col_solid_tail, &envelope_ignore, rad_tail);
-		DRW_shgroup_bone_envelope_head_wire(
+		drw_shgroup_bone_envelope_head_wire(
 		            BONE_VAR(eBone, pchan, disp_mat), col_wire_tail, &envelope_ignore, rad_tail, &envelope_ignore);
 	}
 	else {
-		DRW_shgroup_bone_point_solid(BONE_VAR(eBone, pchan, disp_tail_mat), col_solid_tail);
-		DRW_shgroup_bone_point_wire(BONE_VAR(eBone, pchan, disp_tail_mat), col_wire_tail);
+		drw_shgroup_bone_point_solid(BONE_VAR(eBone, pchan, disp_tail_mat), col_solid_tail);
+		drw_shgroup_bone_point_wire(BONE_VAR(eBone, pchan, disp_tail_mat), col_wire_tail);
 	}
 
 	if (select_id != -1) {
@@ -1042,8 +1042,8 @@ static void draw_bone_custom_shape(
 		DRW_select_load_id(select_id | BONESEL_BONE);
 	}
 
-	DRW_shgroup_bone_custom_solid(disp_mat, col_solid, pchan->custom);
-	DRW_shgroup_bone_custom_wire(disp_mat, col_wire, pchan->custom);
+	drw_shgroup_bone_custom_solid(disp_mat, col_solid, pchan->custom);
+	drw_shgroup_bone_custom_wire(disp_mat, col_wire, pchan->custom);
 
 	if (select_id != -1) {
 		DRW_select_load_id(-1);
@@ -1075,15 +1075,15 @@ static void draw_bone_envelope(
 	if ((boneflag & BONE_NO_DEFORM) == 0 &&
 	    ((boneflag & BONE_SELECTED) || (eBone && (boneflag & (BONE_ROOTSEL | BONE_TIPSEL)))))
 	{
-		DRW_shgroup_bone_envelope_distance(BONE_VAR(eBone, pchan, disp_mat), col_white, rad_head, rad_tail, distance);
+		drw_shgroup_bone_envelope_distance(BONE_VAR(eBone, pchan, disp_mat), col_white, rad_head, rad_tail, distance);
 	}
 
 	if (select_id != -1) {
 		DRW_select_load_id(select_id | BONESEL_BONE);
 	}
 
-	DRW_shgroup_bone_envelope_solid(BONE_VAR(eBone, pchan, disp_mat), col_solid, rad_head, rad_tail);
-	DRW_shgroup_bone_envelope_wire(BONE_VAR(eBone, pchan, disp_mat), col_wire, rad_head, rad_tail, distance);
+	drw_shgroup_bone_envelope_solid(BONE_VAR(eBone, pchan, disp_mat), col_solid, rad_head, rad_tail);
+	drw_shgroup_bone_envelope_wire(BONE_VAR(eBone, pchan, disp_mat), col_wire, rad_head, rad_tail, distance);
 
 	if (select_id != -1) {
 		DRW_select_load_id(-1);
@@ -1116,12 +1116,12 @@ static void draw_bone_wire(
 		BLI_assert(bbones_mat != NULL);
 
 		for (int i = pchan->bone->segments; i--; bbones_mat++) {
-			DRW_shgroup_bone_wire_wire(bbones_mat->mat, col_wire);
+			drw_shgroup_bone_wire_wire(bbones_mat->mat, col_wire);
 		}
 	}
 	else if (eBone) {
 		for (int i = 0; i < eBone->segments; i++) {
-			DRW_shgroup_bone_wire_wire(eBone->disp_bbone_mat[i], col_wire);
+			drw_shgroup_bone_wire_wire(eBone->disp_bbone_mat[i], col_wire);
 		}
 	}
 
@@ -1151,14 +1151,14 @@ static void draw_bone_box(
 		BLI_assert(bbones_mat != NULL);
 
 		for (int i = pchan->bone->segments; i--; bbones_mat++) {
-			DRW_shgroup_bone_box_solid(bbones_mat->mat, col_solid);
-			DRW_shgroup_bone_box_wire(bbones_mat->mat, col_wire);
+			drw_shgroup_bone_box_solid(bbones_mat->mat, col_solid);
+			drw_shgroup_bone_box_wire(bbones_mat->mat, col_wire);
 		}
 	}
 	else if (eBone) {
 		for (int i = 0; i < eBone->segments; i++) {
-			DRW_shgroup_bone_box_solid(eBone->disp_bbone_mat[i], col_solid);
-			DRW_shgroup_bone_box_wire(eBone->disp_bbone_mat[i], col_wire);
+			drw_shgroup_bone_box_solid(eBone->disp_bbone_mat[i], col_solid);
+			drw_shgroup_bone_box_wire(eBone->disp_bbone_mat[i], col_wire);
 		}
 	}
 
@@ -1183,8 +1183,8 @@ static void draw_bone_octahedral(
 		DRW_select_load_id(select_id | BONESEL_BONE);
 	}
 
-	DRW_shgroup_bone_octahedral_solid(BONE_VAR(eBone, pchan, disp_mat), col_solid);
-	DRW_shgroup_bone_octahedral_wire(BONE_VAR(eBone, pchan, disp_mat), col_wire);
+	drw_shgroup_bone_octahedral_solid(BONE_VAR(eBone, pchan, disp_mat), col_solid);
+	drw_shgroup_bone_octahedral_wire(BONE_VAR(eBone, pchan, disp_mat), col_wire);
 
 	if (select_id != -1) {
 		DRW_select_load_id(-1);
@@ -1397,7 +1397,7 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 /**
  * This function set the object space to use for all subsequent `DRW_shgroup_bone_*` calls.
  */
-static void DRW_shgroup_armature(
+static void drw_shgroup_armature(
         Object *ob, DRWPass *pass_bone_solid, DRWPass *pass_bone_wire, DRWPass *pass_bone_envelope,
         DRWShadingGroup *shgrp_relationship_lines)
 {
@@ -1419,7 +1419,7 @@ void DRW_shgroup_armature_object(
 	float *color;
 	DRW_object_wire_theme_get(ob, view_layer, &color);
 
-	DRW_shgroup_armature(ob, pass_bone_solid, pass_bone_wire, NULL, shgrp_relationship_lines);
+	drw_shgroup_armature(ob, pass_bone_solid, pass_bone_wire, NULL, shgrp_relationship_lines);
 	draw_armature_pose(ob, color);
 }
 
@@ -1427,7 +1427,7 @@ void DRW_shgroup_armature_pose(
         Object *ob, DRWPass *pass_bone_solid, DRWPass *pass_bone_wire, DRWPass *pass_bone_envelope,
         DRWShadingGroup *shgrp_relationship_lines)
 {
-	DRW_shgroup_armature(ob, pass_bone_solid, pass_bone_wire, pass_bone_envelope, shgrp_relationship_lines);
+	drw_shgroup_armature(ob, pass_bone_solid, pass_bone_wire, pass_bone_envelope, shgrp_relationship_lines);
 	draw_armature_pose(ob, NULL);
 }
 
@@ -1435,7 +1435,7 @@ void DRW_shgroup_armature_edit(
         Object *ob, DRWPass *pass_bone_solid, DRWPass *pass_bone_wire, DRWPass *pass_bone_envelope,
         DRWShadingGroup *shgrp_relationship_lines)
 {
-	DRW_shgroup_armature(ob, pass_bone_solid, pass_bone_wire, pass_bone_envelope, shgrp_relationship_lines);
+	drw_shgroup_armature(ob, pass_bone_solid, pass_bone_wire, pass_bone_envelope, shgrp_relationship_lines);
 	draw_armature_edit(ob);
 }
 
