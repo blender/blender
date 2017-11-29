@@ -97,6 +97,7 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
+#include "BKE_library_override.h"
 #include "BKE_library_remap.h"
 #include "BKE_animsys.h"
 #include "BKE_material.h"
@@ -309,6 +310,15 @@ static ID *rna_ID_copy(ID *id, Main *bmain)
 	}
 	
 	return NULL;
+}
+
+static ID *rna_ID_override_create(ID *id, Main *bmain)
+{
+	if (id->lib == NULL) {
+		return NULL;
+	}
+
+	return BKE_override_static_create_from(bmain, id);
 }
 
 static void rna_ID_update_tag(ID *id, ReportList *reports, int flag)
@@ -762,6 +772,14 @@ static PointerRNA rna_IDPreview_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_ImagePreview, prv_img);
 }
 
+static PointerRNA rna_ID_override_reference_get(PointerRNA *ptr)
+{
+	ID *id = (ID *)ptr->data;
+	ID *reference = (id && id->override_static) ? id->override_static->reference : NULL;
+
+	return reference ? rna_pointer_inherit_refine(ptr, ID_code_to_RNA_type(GS(reference->name)), reference) : PointerRNA_NULL;
+}
+
 #else
 
 static void rna_def_ID_properties(BlenderRNA *brna)
@@ -1024,6 +1042,12 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Library", "Library file the data-block is linked from");
 
+	prop = RNA_def_pointer(srna, "override_static_reference", "ID",
+	                       "Override Reference", "Reference linked data-block overridden by this one");
+	RNA_def_property_pointer_sdna(prop, NULL, "override_static->reference");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, "rna_ID_override_reference_get", NULL, NULL, NULL);
+
 	prop = RNA_def_pointer(srna, "preview", "ImagePreview", "Preview",
 	                       "Preview image and icon of this data-block (None if not supported for this type of data)");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -1034,6 +1058,12 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Create a copy of this data-block (not supported for all data-blocks)");
 	RNA_def_function_flag(func, FUNC_USE_MAIN);
 	parm = RNA_def_pointer(func, "id", "ID", "", "New copy of the ID");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "override_create", "rna_ID_override_create");
+	RNA_def_function_ui_description(func, "Create an overridden local copy of this linked data-block (not supported for all data-blocks)");
+	RNA_def_function_flag(func, FUNC_USE_MAIN);
+	parm = RNA_def_pointer(func, "id", "ID", "", "New overridden local copy of the ID");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "user_clear", "rna_ID_user_clear");

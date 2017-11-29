@@ -384,10 +384,10 @@ bool BKE_override_static_status_check_local(ID *local)
 	RNA_id_pointer_create(local, &rnaptr_local);
 	RNA_id_pointer_create(reference, &rnaptr_reference);
 
-//	if (!RNA_struct_override_matches(&rnaptr_local, &rnaptr_reference, local->override_static, true, true)) {
-//		local->tag &= ~LIB_TAG_OVERRIDESTATIC_OK;
-//		return false;
-//	}
+	if (!RNA_struct_override_matches(&rnaptr_local, &rnaptr_reference, local->override_static, true, true)) {
+		local->tag &= ~LIB_TAG_OVERRIDESTATIC_OK;
+		return false;
+	}
 
 	return true;
 }
@@ -428,10 +428,10 @@ bool BKE_override_static_status_check_reference(ID *local)
 	RNA_id_pointer_create(local, &rnaptr_local);
 	RNA_id_pointer_create(reference, &rnaptr_reference);
 
-//	if (!RNA_struct_override_matches(&rnaptr_local, &rnaptr_reference, local->override_static, false, true)) {
-//		local->tag &= ~LIB_TAG_OVERRIDESTATIC_OK;
-//		return false;
-//	}
+	if (!RNA_struct_override_matches(&rnaptr_local, &rnaptr_reference, local->override_static, false, true)) {
+		local->tag &= ~LIB_TAG_OVERRIDESTATIC_OK;
+		return false;
+	}
 
 	return true;
 }
@@ -459,7 +459,7 @@ bool BKE_override_static_operations_create(ID *local)
 		RNA_id_pointer_create(local, &rnaptr_local);
 		RNA_id_pointer_create(local->override_static->reference, &rnaptr_reference);
 
-//		ret = RNA_struct_auto_override(&rnaptr_local, &rnaptr_reference, local->override_static, NULL);
+		ret = RNA_struct_auto_override(&rnaptr_local, &rnaptr_reference, local->override_static, NULL);
 #ifndef NDEBUG
 		if (ret) {
 			printf("We did generate static override rules for %s\n", local->name);
@@ -534,7 +534,7 @@ void BKE_override_static_update(Main *bmain, ID *local)
 		RNA_id_pointer_create(local->override_static->storage, rnaptr_storage);
 	}
 
-//	RNA_struct_override_apply(&rnaptr_dst, &rnaptr_src, rnaptr_storage, local->override_static);
+	RNA_struct_override_apply(&rnaptr_dst, &rnaptr_src, rnaptr_storage, local->override_static);
 
 	/* This also transfers all pointers (memory) owned by local to tmp_id, and vice-versa. So when we'll free tmp_id,
 	 * we'll actually free old, outdated data from local. */
@@ -634,10 +634,10 @@ ID *BKE_override_static_operations_store_start(OverrideStaticStorage *override_s
 		RNA_id_pointer_create(local, &rnaptr_final);
 		RNA_id_pointer_create(storage_id, &rnaptr_storage);
 
-//		if (!RNA_struct_override_store(&rnaptr_final, &rnaptr_reference, &rnaptr_storage, local->override_static)) {
-//			BKE_libblock_free_ex(override_storage, storage_id, true, false);
-//			storage_id = NULL;
-//		}
+		if (!RNA_struct_override_store(&rnaptr_final, &rnaptr_reference, &rnaptr_storage, local->override_static)) {
+			BKE_libblock_free_ex(override_storage, storage_id, true, false);
+			storage_id = NULL;
+		}
 	}
 
 	local->override_static->storage = storage_id;

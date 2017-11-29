@@ -1270,6 +1270,14 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 #endif
 	}
 
+	/* Override handling. */
+	if (DefRNA.preprocess) {
+		prop->override_diff = (RNAPropOverrideDiff)"rna_property_override_diff_default";
+		prop->override_store = (RNAPropOverrideStore)"rna_property_override_store_default";
+		prop->override_apply = (RNAPropOverrideApply)"rna_property_override_apply_default";
+	}
+	/* TODO: do we want that for runtime-defined stuff too? I’d say no, but... maybe yes :/ */
+
 	rna_addtail(&cont->properties, prop);
 
 	return prop;
@@ -2220,6 +2228,29 @@ void RNA_def_property_editable_array_func(PropertyRNA *prop, const char *editabl
 	}
 
 	if (editable) prop->itemeditable = (ItemEditableFunc)editable;
+}
+
+/**
+ * Set custom callbacks for override operations handling.
+ *
+ * \note \a diff callback will also be used by RNA comparison/equality functions.
+ */
+void RNA_def_property_override_funcs(PropertyRNA *prop, const char *diff, const char *store, const char *apply)
+{
+	if (!DefRNA.preprocess) {
+		fprintf(stderr, "%s: only during preprocessing.\n", __func__);
+		return;
+	}
+
+	if (diff) {
+		prop->override_diff = (RNAPropOverrideDiff)diff;
+	}
+	if (store) {
+		prop->override_store = (RNAPropOverrideStore)store;
+	}
+	if (apply) {
+		prop->override_apply = (RNAPropOverrideApply)apply;
+	}
 }
 
 void RNA_def_property_update(PropertyRNA *prop, int noteflag, const char *func)
