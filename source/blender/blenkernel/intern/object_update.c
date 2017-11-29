@@ -70,7 +70,6 @@
 static ThreadMutex material_lock = BLI_MUTEX_INITIALIZER;
 
 void BKE_object_eval_local_transform(EvaluationContext *UNUSED(eval_ctx),
-                                     Scene *UNUSED(scene),
                                      Object *ob)
 {
 	DEBUG_PRINT("%s on %s\n", __func__, ob->id.name);
@@ -297,7 +296,6 @@ void BKE_object_handle_data_update(EvaluationContext *eval_ctx,
 }
 
 void BKE_object_eval_uber_transform(EvaluationContext *UNUSED(eval_ctx),
-                                    Scene *UNUSED(scene),
                                     Object *ob)
 {
 	/* TODO(sergey): Currently it's a duplicate of logic in BKE_object_handle_update_ex(). */
@@ -337,7 +335,9 @@ void BKE_object_eval_uber_data(EvaluationContext *eval_ctx,
 	ob->recalc &= ~(OB_RECALC_DATA | OB_RECALC_TIME);
 }
 
-void BKE_object_eval_cloth(EvaluationContext *UNUSED(eval_ctx), Scene *scene, Object *object)
+void BKE_object_eval_cloth(EvaluationContext *UNUSED(eval_ctx),
+                           Scene *scene,
+                           Object *object)
 {
 	DEBUG_PRINT("%s on %s\n", __func__, object->id.name);
 	BKE_ptcache_object_reset(scene, object, PTCACHE_RESET_DEPSGRAPH);
@@ -348,13 +348,13 @@ void BKE_object_eval_transform_all(EvaluationContext *eval_ctx,
                                    Object *object)
 {
 	/* This mimics full transform update chain from new depsgraph. */
-	BKE_object_eval_local_transform(eval_ctx, scene, object);
+	BKE_object_eval_local_transform(eval_ctx, object);
 	if (object->parent != NULL) {
 		BKE_object_eval_parent(eval_ctx, scene, object);
 	}
 	if (!BLI_listbase_is_empty(&object->constraints)) {
 		BKE_object_eval_constraints(eval_ctx, scene, object);
 	}
-	BKE_object_eval_uber_transform(eval_ctx, scene, object);
+	BKE_object_eval_uber_transform(eval_ctx, object);
 	BKE_object_eval_done(eval_ctx, object);
 }

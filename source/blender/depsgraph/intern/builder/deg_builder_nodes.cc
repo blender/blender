@@ -437,7 +437,7 @@ void DepsgraphNodeBuilder::build_object_transform(Object *object)
 
 	/* local transforms (from transform channels - loc/rot/scale + deltas) */
 	op_node = add_operation_node(&object->id, DEG_NODE_TYPE_TRANSFORM,
-	                             function_bind(BKE_object_eval_local_transform, _1, scene_, object),
+	                             function_bind(BKE_object_eval_local_transform, _1, object),
 	                             DEG_OPCODE_TRANSFORM_LOCAL);
 	op_node->set_as_entry();
 
@@ -461,7 +461,7 @@ void DepsgraphNodeBuilder::build_object_transform(Object *object)
 	 * TODO(sergey): Get rid of this node.
 	 */
 	add_operation_node(&object->id, DEG_NODE_TYPE_TRANSFORM,
-	                   function_bind(BKE_object_eval_uber_transform, _1, scene_, object),
+	                   function_bind(BKE_object_eval_uber_transform, _1, object),
 	                   DEG_OPCODE_TRANSFORM_OBJECT_UBEREVAL);
 
 	/* object transform is done */
