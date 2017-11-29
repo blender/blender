@@ -37,7 +37,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "bpy_util.h"
+#include "bpy_capi_utils.h"
 #include "bpy_rna_manipulator.h"
 
 #include "../generic/py_capi_utils.h"

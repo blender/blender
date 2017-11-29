@@ -42,7 +42,7 @@
 #include "RNA_access.h"
 
 #include "bpy.h"
-#include "bpy_util.h"
+#include "bpy_capi_utils.h"
 #include "bpy_rna.h"
 #include "bpy_app.h"
 #include "bpy_rna_id_collection.h"

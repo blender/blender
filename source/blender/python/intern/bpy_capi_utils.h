@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/intern/bpy_util.h
+/** \file blender/python/intern/bpy_capi_utils.h
  *  \ingroup pythonintern
  */
 

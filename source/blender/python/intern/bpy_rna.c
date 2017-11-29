@@ -49,7 +49,7 @@
 #include "bpy_rna.h"
 #include "bpy_rna_anim.h"
 #include "bpy_props.h"
-#include "bpy_util.h"
+#include "bpy_capi_utils.h"
 #include "bpy_rna_callback.h"
 #include "bpy_intern_string.h"
 

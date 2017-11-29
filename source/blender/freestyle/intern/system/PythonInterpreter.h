@@ -52,7 +52,7 @@ extern "C" {
 
 #include "BPY_extern.h"
 
-#include "bpy_util.h"
+#include "bpy_capi_utils.h"
 }
 
 namespace Freestyle {

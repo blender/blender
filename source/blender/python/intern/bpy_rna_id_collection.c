@@ -44,7 +44,7 @@
 #include "DNA_object_types.h"
 #include "DNA_key_types.h"
 
-#include "bpy_util.h"
+#include "bpy_capi_utils.h"
 #include "bpy_rna_id_collection.h"
 
 #include "../generic/py_capi_utils.h"
