@@ -30,7 +30,10 @@
 
 extern PyTypeObject matrix_Type;
 extern PyTypeObject matrix_access_Type;
-#define MatrixObject_Check(_v) PyObject_TypeCheck((_v), &matrix_Type)
+
+#define MatrixObject_Check(v) PyObject_TypeCheck((v), &matrix_Type)
+#define MatrixObject_CheckExact(v) (Py_TYPE(v) == &matrix_Type)
+
 #define MATRIX_MAX_DIM 4
 
 /* matrix[row][col] == MATRIX_ITEM_INDEX(matrix, row, col) */

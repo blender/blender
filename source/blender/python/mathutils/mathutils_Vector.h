@@ -29,7 +29,9 @@
 #define __MATHUTILS_VECTOR_H__
 
 extern PyTypeObject vector_Type;
-#define VectorObject_Check(_v) PyObject_TypeCheck((_v), &vector_Type)
+
+#define VectorObject_Check(v) PyObject_TypeCheck((v), &vector_Type)
+#define VectorObject_CheckExact(v) (Py_TYPE(v) == &vector_Type)
 
 typedef struct {
 	BASE_MATH_MEMBERS(vec);

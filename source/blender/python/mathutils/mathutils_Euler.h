@@ -29,7 +29,8 @@
  */
 
 extern PyTypeObject euler_Type;
-#define EulerObject_Check(_v) PyObject_TypeCheck((_v), &euler_Type)
+#define EulerObject_Check(v) PyObject_TypeCheck((v), &euler_Type)
+#define EulerObject_CheckExact(v) (Py_TYPE(v) == &euler_Type)
 
 typedef struct {
 	BASE_MATH_MEMBERS(eul);
