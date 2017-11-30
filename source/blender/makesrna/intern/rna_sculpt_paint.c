@@ -166,7 +166,7 @@ static void rna_ParticleEdit_redo(bContext *C, PointerRNA *UNUSED(ptr))
 	psys_free_path_cache(edit->psys, edit);
 }
 
-static void rna_ParticleEdit_update(Main *UNUSED(bmain), Scene *UNUSED(scene), bContext *C, PointerRNA *UNUSED(ptr))
+static void rna_ParticleEdit_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = OBACT(view_layer);
@@ -280,12 +280,13 @@ static void rna_Sculpt_update(bContext *C, PointerRNA *UNUSED(ptr))
 	}
 }
 
-static void rna_Sculpt_ShowDiffuseColor_update(bContext *C, Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_Sculpt_ShowDiffuseColor_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = OBACT(view_layer);
 
 	if (ob && ob->sculpt) {
+		Scene *scene = CTX_data_scene(C);
 		Sculpt *sd = scene->toolsettings->sculpt;
 		ob->sculpt->show_diffuse_color = ((sd->flags & SCULPT_SHOW_DIFFUSE) != 0);
 
