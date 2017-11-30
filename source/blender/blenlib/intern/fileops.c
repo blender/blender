@@ -621,7 +621,21 @@ static int recursive_operation(const char *startfrom, const char *startto,
 			if (to)
 				join_dirfile_alloc(&to_path, &to_alloc_len, to, dirent->d_name);
 
-			if (dirent->d_type == DT_DIR) {
+			bool is_dir;
+
+#ifdef __HAIKU__
+			{
+				struct stat st_dir;
+				char filename[FILE_MAX];
+				BLI_path_join(filename, sizeof(filename), startfrom, dirent->d_name, NULL);
+				lstat(filename, &st_dir);
+				is_dir = S_ISDIR(st_dir.st_mode);
+			}
+#else
+			is_dir = (dirent->d_type == DT_DIR);
+#endif
+
+			if (is_dir) {
 				/* recursively dig into a subfolder */
 				ret = recursive_operation(from_path, to_path, callback_dir_pre, callback_file, callback_dir_post);
 			}

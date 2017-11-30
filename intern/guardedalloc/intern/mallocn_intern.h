@@ -63,6 +63,9 @@
 #elif defined(WIN32)
 #  include <malloc.h>
 #  define malloc_usable_size _msize
+#elif defined(__HAIKU__)
+#  include <malloc.h>
+size_t malloc_usable_size(void *ptr);
 #else
 #  pragma message "We don't know how to use malloc_usable_size on your platform"
 #  undef USE_MALLOC_USABLE_SIZE

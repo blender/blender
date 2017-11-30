@@ -358,7 +358,11 @@ if(WITH_OPENSUBDIV OR WITH_CYCLES_OPENSUBDIV)
 endif()
 
 # OpenSuse needs lutil, ArchLinux not, for now keep, can avoid by using --as-needed
-list(APPEND PLATFORM_LINKLIBS -lutil -lc -lm)
+if(HAIKU)
+	list(APPEND PLATFORM_LINKLIBS -lnetwork)
+else()
+	list(APPEND PLATFORM_LINKLIBS -lutil -lc -lm)
+endif()
 
 find_package(Threads REQUIRED)
 list(APPEND PLATFORM_LINKLIBS ${CMAKE_THREAD_LIBS_INIT})

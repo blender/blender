@@ -1087,6 +1087,19 @@ public:
 			                           threads, threads, 1, \
 			                           0, 0, args, 0));
 
+/* Similar as above, but for 1-dimensional blocks. */
+#define CUDA_GET_BLOCKSIZE_1D(func, w, h)                                                                       \
+			int threads_per_block;                                                                              \
+			cuda_assert(cuFuncGetAttribute(&threads_per_block, CU_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK, func)); \
+			int xblocks = ((w) + threads_per_block - 1)/threads_per_block;                                      \
+			int yblocks = h;
+
+#define CUDA_LAUNCH_KERNEL_1D(func, args)                       \
+			cuda_assert(cuLaunchKernel(func,                    \
+			                           xblocks, yblocks, 1,     \
+			                           threads_per_block, 1, 1, \
+			                           0, 0, args, 0));
+
 	bool denoising_non_local_means(device_ptr image_ptr, device_ptr guide_ptr, device_ptr variance_ptr, device_ptr out_ptr,
 	                               DenoisingTask *task)
 	{
@@ -1095,60 +1108,65 @@ public:
 
 		CUDAContextScope scope(this);
 
-		int4 rect = task->rect;
-		int w = align_up(rect.z-rect.x, 4);
-		int h = rect.w-rect.y;
+		int stride = task->buffer.stride;
+		int w = task->buffer.width;
+		int h = task->buffer.h;
 		int r = task->nlm_state.r;
 		int f = task->nlm_state.f;
 		float a = task->nlm_state.a;
 		float k_2 = task->nlm_state.k_2;
 
-		CUdeviceptr difference     = task->nlm_state.temporary_1_ptr;
-		CUdeviceptr blurDifference = task->nlm_state.temporary_2_ptr;
-		CUdeviceptr weightAccum    = task->nlm_state.temporary_3_ptr;
-
-		cuda_assert(cuMemsetD8(weightAccum, 0, sizeof(float)*w*h));
-		cuda_assert(cuMemsetD8(out_ptr, 0, sizeof(float)*w*h));
-
-		CUfunction cuNLMCalcDifference, cuNLMBlur, cuNLMCalcWeight, cuNLMUpdateOutput, cuNLMNormalize;
-		cuda_assert(cuModuleGetFunction(&cuNLMCalcDifference, cuFilterModule, "kernel_cuda_filter_nlm_calc_difference"));
-		cuda_assert(cuModuleGetFunction(&cuNLMBlur,           cuFilterModule, "kernel_cuda_filter_nlm_blur"));
-		cuda_assert(cuModuleGetFunction(&cuNLMCalcWeight,     cuFilterModule, "kernel_cuda_filter_nlm_calc_weight"));
-		cuda_assert(cuModuleGetFunction(&cuNLMUpdateOutput,   cuFilterModule, "kernel_cuda_filter_nlm_update_output"));
-		cuda_assert(cuModuleGetFunction(&cuNLMNormalize,      cuFilterModule, "kernel_cuda_filter_nlm_normalize"));
-
-		cuda_assert(cuFuncSetCacheConfig(cuNLMCalcDifference, CU_FUNC_CACHE_PREFER_L1));
-		cuda_assert(cuFuncSetCacheConfig(cuNLMBlur,           CU_FUNC_CACHE_PREFER_L1));
-		cuda_assert(cuFuncSetCacheConfig(cuNLMCalcWeight,     CU_FUNC_CACHE_PREFER_L1));
-		cuda_assert(cuFuncSetCacheConfig(cuNLMUpdateOutput,   CU_FUNC_CACHE_PREFER_L1));
-		cuda_assert(cuFuncSetCacheConfig(cuNLMNormalize,      CU_FUNC_CACHE_PREFER_L1));
-
-		CUDA_GET_BLOCKSIZE(cuNLMCalcDifference, rect.z-rect.x, rect.w-rect.y);
-
-		int dx, dy;
-		int4 local_rect;
+		int shift_stride = stride*h;
+		int num_shifts = (2*r+1)*(2*r+1);
+		int mem_size = sizeof(float)*shift_stride*2*num_shifts;
 		int channel_offset = 0;
-		void *calc_difference_args[] = {&dx, &dy, &guide_ptr, &variance_ptr, &difference, &local_rect, &w, &channel_offset, &a, &k_2};
-		void *blur_args[]            = {&difference, &blurDifference, &local_rect, &w, &f};
-		void *calc_weight_args[]     = {&blurDifference, &difference, &local_rect, &w, &f};
-		void *update_output_args[]   = {&dx, &dy, &blurDifference, &image_ptr, &out_ptr, &weightAccum, &local_rect, &w, &f};
 
-		for(int i = 0; i < (2*r+1)*(2*r+1); i++) {
-			dy = i / (2*r+1) - r;
-			dx = i % (2*r+1) - r;
-			local_rect = make_int4(max(0, -dx), max(0, -dy), rect.z-rect.x - max(0, dx), rect.w-rect.y - max(0, dy));
+		CUdeviceptr temporary_mem;
+		cuda_assert(cuMemAlloc(&temporary_mem, mem_size));
+		CUdeviceptr difference     = temporary_mem;
+		CUdeviceptr blurDifference = temporary_mem + sizeof(float)*shift_stride * num_shifts;
 
-			CUDA_LAUNCH_KERNEL(cuNLMCalcDifference, calc_difference_args);
-			CUDA_LAUNCH_KERNEL(cuNLMBlur, blur_args);
-			CUDA_LAUNCH_KERNEL(cuNLMCalcWeight, calc_weight_args);
-			CUDA_LAUNCH_KERNEL(cuNLMBlur, blur_args);
-			CUDA_LAUNCH_KERNEL(cuNLMUpdateOutput, update_output_args);
+		CUdeviceptr weightAccum = task->nlm_state.temporary_3_ptr;
+		cuda_assert(cuMemsetD8(weightAccum, 0, sizeof(float)*shift_stride));
+		cuda_assert(cuMemsetD8(out_ptr, 0, sizeof(float)*shift_stride));
+
+		{
+			CUfunction cuNLMCalcDifference, cuNLMBlur, cuNLMCalcWeight, cuNLMUpdateOutput;
+			cuda_assert(cuModuleGetFunction(&cuNLMCalcDifference, cuFilterModule, "kernel_cuda_filter_nlm_calc_difference"));
+			cuda_assert(cuModuleGetFunction(&cuNLMBlur,           cuFilterModule, "kernel_cuda_filter_nlm_blur"));
+			cuda_assert(cuModuleGetFunction(&cuNLMCalcWeight,     cuFilterModule, "kernel_cuda_filter_nlm_calc_weight"));
+			cuda_assert(cuModuleGetFunction(&cuNLMUpdateOutput,   cuFilterModule, "kernel_cuda_filter_nlm_update_output"));
+
+			cuda_assert(cuFuncSetCacheConfig(cuNLMCalcDifference, CU_FUNC_CACHE_PREFER_L1));
+			cuda_assert(cuFuncSetCacheConfig(cuNLMBlur,           CU_FUNC_CACHE_PREFER_L1));
+			cuda_assert(cuFuncSetCacheConfig(cuNLMCalcWeight,     CU_FUNC_CACHE_PREFER_L1));
+			cuda_assert(cuFuncSetCacheConfig(cuNLMUpdateOutput,   CU_FUNC_CACHE_PREFER_L1));
+
+			CUDA_GET_BLOCKSIZE_1D(cuNLMCalcDifference, w*h, num_shifts);
+
+			void *calc_difference_args[] = {&guide_ptr, &variance_ptr, &difference, &w, &h, &stride, &shift_stride, &r, &channel_offset, &a, &k_2};
+			void *blur_args[]            = {&difference, &blurDifference, &w, &h, &stride, &shift_stride, &r, &f};
+			void *calc_weight_args[]     = {&blurDifference, &difference, &w, &h, &stride, &shift_stride, &r, &f};
+			void *update_output_args[]   = {&blurDifference, &image_ptr, &out_ptr, &weightAccum, &w, &h, &stride, &shift_stride, &r, &f};
+
+			CUDA_LAUNCH_KERNEL_1D(cuNLMCalcDifference, calc_difference_args);
+			CUDA_LAUNCH_KERNEL_1D(cuNLMBlur, blur_args);
+			CUDA_LAUNCH_KERNEL_1D(cuNLMCalcWeight, calc_weight_args);
+			CUDA_LAUNCH_KERNEL_1D(cuNLMBlur, blur_args);
+			CUDA_LAUNCH_KERNEL_1D(cuNLMUpdateOutput, update_output_args);
 		}
 
-		local_rect = make_int4(0, 0, rect.z-rect.x, rect.w-rect.y);
-		void *normalize_args[] = {&out_ptr, &weightAccum, &local_rect, &w};
-		CUDA_LAUNCH_KERNEL(cuNLMNormalize, normalize_args);
-		cuda_assert(cuCtxSynchronize());
+		cuMemFree(temporary_mem);
+
+		{
+			CUfunction cuNLMNormalize;
+			cuda_assert(cuModuleGetFunction(&cuNLMNormalize, cuFilterModule, "kernel_cuda_filter_nlm_normalize"));
+			cuda_assert(cuFuncSetCacheConfig(cuNLMNormalize, CU_FUNC_CACHE_PREFER_L1));
+			void *normalize_args[] = {&out_ptr, &weightAccum, &w, &h, &stride};
+			CUDA_GET_BLOCKSIZE(cuNLMNormalize, w, h);
+			CUDA_LAUNCH_KERNEL(cuNLMNormalize, normalize_args);
+			cuda_assert(cuCtxSynchronize());
+		}
 
 		return !have_error();
 	}
@@ -1194,91 +1212,81 @@ public:
 		mem_zero(task->storage.XtWX);
 		mem_zero(task->storage.XtWY);
 
-		CUfunction cuNLMCalcDifference, cuNLMBlur, cuNLMCalcWeight, cuNLMConstructGramian, cuFinalize;
-		cuda_assert(cuModuleGetFunction(&cuNLMCalcDifference,   cuFilterModule, "kernel_cuda_filter_nlm_calc_difference"));
-		cuda_assert(cuModuleGetFunction(&cuNLMBlur,             cuFilterModule, "kernel_cuda_filter_nlm_blur"));
-		cuda_assert(cuModuleGetFunction(&cuNLMCalcWeight,       cuFilterModule, "kernel_cuda_filter_nlm_calc_weight"));
-		cuda_assert(cuModuleGetFunction(&cuNLMConstructGramian, cuFilterModule, "kernel_cuda_filter_nlm_construct_gramian"));
-		cuda_assert(cuModuleGetFunction(&cuFinalize,            cuFilterModule, "kernel_cuda_filter_finalize"));
-
-		cuda_assert(cuFuncSetCacheConfig(cuNLMCalcDifference,   CU_FUNC_CACHE_PREFER_L1));
-		cuda_assert(cuFuncSetCacheConfig(cuNLMBlur,             CU_FUNC_CACHE_PREFER_L1));
-		cuda_assert(cuFuncSetCacheConfig(cuNLMCalcWeight,       CU_FUNC_CACHE_PREFER_L1));
-		cuda_assert(cuFuncSetCacheConfig(cuNLMConstructGramian, CU_FUNC_CACHE_PREFER_SHARED));
-		cuda_assert(cuFuncSetCacheConfig(cuFinalize,            CU_FUNC_CACHE_PREFER_L1));
-
-		CUDA_GET_BLOCKSIZE(cuNLMCalcDifference,
-		                   task->reconstruction_state.source_w,
-		                   task->reconstruction_state.source_h);
-
-		CUdeviceptr difference     = task->reconstruction_state.temporary_1_ptr;
-		CUdeviceptr blurDifference = task->reconstruction_state.temporary_2_ptr;
-
 		int r = task->radius;
 		int f = 4;
 		float a = 1.0f;
-		for(int i = 0; i < (2*r+1)*(2*r+1); i++) {
-			int dy = i / (2*r+1) - r;
-			int dx = i % (2*r+1) - r;
+		float k_2 = task->nlm_k_2;
 
-			int local_rect[4] = {max(0, -dx), max(0, -dy),
-			                     task->reconstruction_state.source_w - max(0, dx),
-			                     task->reconstruction_state.source_h - max(0, dy)};
+		int w = task->reconstruction_state.source_w;
+		int h = task->reconstruction_state.source_h;
+		int stride = task->buffer.stride;
 
-			void *calc_difference_args[] = {&dx, &dy,
-			                                &color_ptr,
-			                                &color_variance_ptr,
-			                                &difference,
-			                                &local_rect,
-			                                &task->buffer.w,
-			                                &task->buffer.pass_stride,
-			                                &a,
-			                                &task->nlm_k_2};
-			CUDA_LAUNCH_KERNEL(cuNLMCalcDifference, calc_difference_args);
+		int shift_stride = stride*h;
+		int num_shifts = (2*r+1)*(2*r+1);
+		int mem_size = sizeof(float)*shift_stride*num_shifts;
 
-			void *blur_args[] = {&difference,
-			                     &blurDifference,
-			                     &local_rect,
-			                     &task->buffer.w,
-			                     &f};
-			CUDA_LAUNCH_KERNEL(cuNLMBlur, blur_args);
+		CUdeviceptr temporary_mem;
+		cuda_assert(cuMemAlloc(&temporary_mem, 2*mem_size));
+		CUdeviceptr difference     = temporary_mem;
+		CUdeviceptr blurDifference = temporary_mem + mem_size;
 
-			void *calc_weight_args[] = {&blurDifference,
-			                            &difference,
-			                            &local_rect,
-			                            &task->buffer.w,
-			                            &f};
-			CUDA_LAUNCH_KERNEL(cuNLMCalcWeight, calc_weight_args);
+		{
+			CUfunction cuNLMCalcDifference, cuNLMBlur, cuNLMCalcWeight, cuNLMConstructGramian;
+			cuda_assert(cuModuleGetFunction(&cuNLMCalcDifference,   cuFilterModule, "kernel_cuda_filter_nlm_calc_difference"));
+			cuda_assert(cuModuleGetFunction(&cuNLMBlur,             cuFilterModule, "kernel_cuda_filter_nlm_blur"));
+			cuda_assert(cuModuleGetFunction(&cuNLMCalcWeight,       cuFilterModule, "kernel_cuda_filter_nlm_calc_weight"));
+			cuda_assert(cuModuleGetFunction(&cuNLMConstructGramian, cuFilterModule, "kernel_cuda_filter_nlm_construct_gramian"));
 
-			/* Reuse previous arguments. */
-			CUDA_LAUNCH_KERNEL(cuNLMBlur, blur_args);
+			cuda_assert(cuFuncSetCacheConfig(cuNLMCalcDifference,   CU_FUNC_CACHE_PREFER_L1));
+			cuda_assert(cuFuncSetCacheConfig(cuNLMBlur,             CU_FUNC_CACHE_PREFER_L1));
+			cuda_assert(cuFuncSetCacheConfig(cuNLMCalcWeight,       CU_FUNC_CACHE_PREFER_L1));
+			cuda_assert(cuFuncSetCacheConfig(cuNLMConstructGramian, CU_FUNC_CACHE_PREFER_SHARED));
 
-			void *construct_gramian_args[] = {&dx, &dy,
-			                                  &blurDifference,
+			CUDA_GET_BLOCKSIZE_1D(cuNLMCalcDifference,
+			                     task->reconstruction_state.source_w * task->reconstruction_state.source_h,
+			                     num_shifts);
+
+			void *calc_difference_args[] = {&color_ptr, &color_variance_ptr, &difference, &w, &h, &stride, &shift_stride, &r, &task->buffer.pass_stride, &a, &k_2};
+			void *blur_args[]            = {&difference, &blurDifference, &w, &h, &stride, &shift_stride, &r, &f};
+			void *calc_weight_args[]     = {&blurDifference, &difference, &w, &h, &stride, &shift_stride, &r, &f};
+			void *construct_gramian_args[] = {&blurDifference,
 			                                  &task->buffer.mem.device_pointer,
 			                                  &task->storage.transform.device_pointer,
 			                                  &task->storage.rank.device_pointer,
 			                                  &task->storage.XtWX.device_pointer,
 			                                  &task->storage.XtWY.device_pointer,
-			                                  &local_rect,
-			                                  &task->reconstruction_state.filter_rect,
-			                                  &task->buffer.w,
-			                                  &task->buffer.h,
+			                                  &task->reconstruction_state.filter_window,
+			                                  &w, &h, &stride,
+			                                  &shift_stride, &r,
 			                                  &f,
 		                                      &task->buffer.pass_stride};
-			CUDA_LAUNCH_KERNEL(cuNLMConstructGramian, construct_gramian_args);
+
+			CUDA_LAUNCH_KERNEL_1D(cuNLMCalcDifference, calc_difference_args);
+			CUDA_LAUNCH_KERNEL_1D(cuNLMBlur, blur_args);
+			CUDA_LAUNCH_KERNEL_1D(cuNLMCalcWeight, calc_weight_args);
+			CUDA_LAUNCH_KERNEL_1D(cuNLMBlur, blur_args);
+			CUDA_LAUNCH_KERNEL_1D(cuNLMConstructGramian, construct_gramian_args);
 		}
 
-		void *finalize_args[] = {&task->buffer.w,
-		                         &task->buffer.h,
-		                         &output_ptr,
-				                 &task->storage.rank.device_pointer,
-				                 &task->storage.XtWX.device_pointer,
-				                 &task->storage.XtWY.device_pointer,
-				                 &task->filter_area,
-				                 &task->reconstruction_state.buffer_params.x,
-				                 &task->render_buffer.samples};
-		CUDA_LAUNCH_KERNEL(cuFinalize, finalize_args);
+		cuMemFree(temporary_mem);
+
+		{
+			CUfunction cuFinalize;
+			cuda_assert(cuModuleGetFunction(&cuFinalize, cuFilterModule, "kernel_cuda_filter_finalize"));
+			cuda_assert(cuFuncSetCacheConfig(cuFinalize, CU_FUNC_CACHE_PREFER_L1));
+			void *finalize_args[] = {&output_ptr,
+					                 &task->storage.rank.device_pointer,
+					                 &task->storage.XtWX.device_pointer,
+					                 &task->storage.XtWY.device_pointer,
+					                 &task->filter_area,
+					                 &task->reconstruction_state.buffer_params.x,
+					                 &task->render_buffer.samples};
+			CUDA_GET_BLOCKSIZE(cuFinalize,
+			                   task->reconstruction_state.source_w,
+			                   task->reconstruction_state.source_h);
+			CUDA_LAUNCH_KERNEL(cuFinalize, finalize_args);
+		}
+
 		cuda_assert(cuCtxSynchronize());
 
 		return !have_error();

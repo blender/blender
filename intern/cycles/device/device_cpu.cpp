@@ -190,9 +190,9 @@ public:
 	KernelFunctions<void(*)(int, int, float*, float*, float*, float*, int*, int, int)>       filter_nlm_update_output_kernel;
 	KernelFunctions<void(*)(float*, float*, int*, int)>                                      filter_nlm_normalize_kernel;
 
-	KernelFunctions<void(*)(float*, int, int, int, float*, int*, int*, int, int, float)>                              filter_construct_transform_kernel;
-	KernelFunctions<void(*)(int, int, float*, float*, float*, int*, float*, float3*, int*, int*, int, int, int, int)> filter_nlm_construct_gramian_kernel;
-	KernelFunctions<void(*)(int, int, int, int, int, float*, int*, float*, float3*, int*, int)>                       filter_finalize_kernel;
+	KernelFunctions<void(*)(float*, int, int, int, float*, int*, int*, int, int, float)>                         filter_construct_transform_kernel;
+	KernelFunctions<void(*)(int, int, float*, float*, float*, int*, float*, float3*, int*, int*, int, int, int)> filter_nlm_construct_gramian_kernel;
+	KernelFunctions<void(*)(int, int, int, float*, int*, float*, float3*, int*, int)>                            filter_finalize_kernel;
 
 	KernelFunctions<void(*)(KernelGlobals *, ccl_constant KernelData*, ccl_global void*, int, ccl_global char*,
 	                       int, int, int, int, int, int, int, int, ccl_global int*, int,
@@ -565,13 +565,13 @@ public:
 			                                    (float*) color_variance_ptr,
 			                                    difference,
 			                                    local_rect,
-			                                    task->buffer.w,
+			                                    task->buffer.stride,
 			                                    task->buffer.pass_stride,
 			                                    1.0f,
 			                                    task->nlm_k_2);
-			filter_nlm_blur_kernel()(difference, blurDifference, local_rect, task->buffer.w, 4);
-			filter_nlm_calc_weight_kernel()(blurDifference, difference, local_rect, task->buffer.w, 4);
-			filter_nlm_blur_kernel()(difference, blurDifference, local_rect, task->buffer.w, 4);
+			filter_nlm_blur_kernel()(difference, blurDifference, local_rect, task->buffer.stride, 4);
+			filter_nlm_calc_weight_kernel()(blurDifference, difference, local_rect, task->buffer.stride, 4);
+			filter_nlm_blur_kernel()(difference, blurDifference, local_rect, task->buffer.stride, 4);
 			filter_nlm_construct_gramian_kernel()(dx, dy,
 			                                      blurDifference,
 			                                      (float*)  task->buffer.mem.device_pointer,
@@ -580,9 +580,8 @@ public:
 			                                      (float*)  task->storage.XtWX.device_pointer,
 			                                      (float3*) task->storage.XtWY.device_pointer,
 			                                      local_rect,
-			                                      &task->reconstruction_state.filter_rect.x,
-			                                      task->buffer.w,
-			                                      task->buffer.h,
+			                                      &task->reconstruction_state.filter_window.x,
+			                                      task->buffer.stride,
 			                                      4,
 			                                      task->buffer.pass_stride);
 		}
@@ -591,8 +590,6 @@ public:
 				filter_finalize_kernel()(x,
 				                         y,
 				                         y*task->filter_area.z + x,
-				                         task->buffer.w,
-				                         task->buffer.h,
 				                         (float*)  output_ptr,
 				                         (int*)    task->storage.rank.device_pointer,
 				                         (float*)  task->storage.XtWX.device_pointer,

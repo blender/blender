@@ -47,7 +47,9 @@
 extern "C" {
 #endif
 
-#if defined(__linux__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__FreeBSD_kernel__) || defined(__GNU__)
+#if defined(__linux__) || defined(__GNU__) || \
+	defined(__NetBSD__) || defined(__OpenBSD__) || defined(__FreeBSD_kernel__) || \
+	defined(__HAIKU__)
 
 /* Linux-i386, Linux-Alpha, Linux-ppc */
 #include <stdint.h>

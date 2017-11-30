@@ -353,7 +353,9 @@ public:
 	void tex_free(device_memory& mem);
 
 	size_t global_size_round_up(int group_size, int global_size);
-	void enqueue_kernel(cl_kernel kernel, size_t w, size_t h, size_t max_workgroup_size = -1);
+	void enqueue_kernel(cl_kernel kernel, size_t w, size_t h,
+	                    bool x_workgroups = false,
+	                    size_t max_workgroup_size = -1);
 	void set_kernel_arg_mem(cl_kernel kernel, cl_uint *narg, const char *name);
 	void set_kernel_arg_buffers(cl_kernel kernel, cl_uint *narg);
 

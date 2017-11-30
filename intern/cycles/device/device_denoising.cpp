@@ -57,10 +57,9 @@ void DenoisingTask::init_from_devicetask(const DeviceTask &task)
 	render_buffer.denoising_clean_offset = task.pass_denoising_clean;
 
 	/* Expand filter_area by radius pixels and clamp the result to the extent of the neighboring tiles */
-	rect = make_int4(max(tiles->x[0], filter_area.x - radius),
-	                 max(tiles->y[0], filter_area.y - radius),
-	                 min(tiles->x[3], filter_area.x + filter_area.z + radius),
-	                 min(tiles->y[3], filter_area.y + filter_area.w + radius));
+	rect = rect_from_shape(filter_area.x, filter_area.y, filter_area.z, filter_area.w);
+	rect = rect_expand(rect, radius);
+	rect = rect_clip(rect, make_int4(tiles->x[0], tiles->y[0], tiles->x[3], tiles->y[3]));
 }
 
 void DenoisingTask::tiles_from_rendertiles(RenderTile *rtiles)
@@ -93,9 +92,10 @@ bool DenoisingTask::run_denoising()
 {
 	/* Allocate denoising buffer. */
 	buffer.passes = 14;
-	buffer.w = align_up(rect.z - rect.x, 4);
+	buffer.width = rect.z - rect.x;
+	buffer.stride = align_up(buffer.width, 4);
 	buffer.h = rect.w - rect.y;
-	buffer.pass_stride = align_up(buffer.w * buffer.h, divide_up(device->mem_address_alignment(), sizeof(float)));
+	buffer.pass_stride = align_up(buffer.stride * buffer.h, divide_up(device->mem_address_alignment(), sizeof(float)));
 	buffer.mem.alloc_to_device(buffer.pass_stride * buffer.passes, false);
 
 	device_ptr null_ptr = (device_ptr) 0;
@@ -203,15 +203,17 @@ bool DenoisingTask::run_denoising()
 
 	functions.construct_transform();
 
-	storage.temporary_1.alloc_to_device(buffer.w*buffer.h, false);
-	storage.temporary_2.alloc_to_device(buffer.w*buffer.h, false);
-	reconstruction_state.temporary_1_ptr = storage.temporary_1.device_pointer;
-	reconstruction_state.temporary_2_ptr = storage.temporary_2.device_pointer;
+	device_only_memory<float> temporary_1(device, "Denoising NLM temporary 1");
+	device_only_memory<float> temporary_2(device, "Denoising NLM temporary 2");
+	temporary_1.alloc_to_device(buffer.pass_stride, false);
+	temporary_2.alloc_to_device(buffer.pass_stride, false);
+	reconstruction_state.temporary_1_ptr = temporary_1.device_pointer;
+	reconstruction_state.temporary_2_ptr = temporary_2.device_pointer;
 
 	storage.XtWX.alloc_to_device(storage.w*storage.h*XTWX_SIZE, false);
 	storage.XtWY.alloc_to_device(storage.w*storage.h*XTWY_SIZE, false);
 
-	reconstruction_state.filter_rect = make_int4(filter_area.x-rect.x, filter_area.y-rect.y, storage.w, storage.h);
+	reconstruction_state.filter_window = rect_from_shape(filter_area.x-rect.x, filter_area.y-rect.y, storage.w, storage.h);
 	int tile_coordinate_offset = filter_area.y*render_buffer.stride + filter_area.x;
 	reconstruction_state.buffer_params = make_int4(render_buffer.offset + tile_coordinate_offset,
 	                                               render_buffer.stride,

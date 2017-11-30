@@ -320,6 +320,8 @@ CCL_NAMESPACE_END
 #include "util/util_math_float3.h"
 #include "util/util_math_float4.h"
 
+#include "util/util_rect.h"
+
 CCL_NAMESPACE_BEGIN
 
 #ifndef __KERNEL_OPENCL__

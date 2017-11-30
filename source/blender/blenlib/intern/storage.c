@@ -37,7 +37,7 @@
 
 #include <sys/stat.h>
 
-#if defined(__NetBSD__) || defined(__DragonFly__)
+#if defined(__NetBSD__) || defined(__DragonFly__) || defined(__HAIKU__)
    /* Other modern unix os's should probably use this also */
 #  include <sys/statvfs.h>
 #  define USE_STATFS_STATVFS

@@ -217,7 +217,8 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
 
         col = row.column(align=True)
         col.operator("object.vertex_group_add", icon='ZOOMIN', text="")
-        col.operator("object.vertex_group_remove", icon='ZOOMOUT', text="").all = False
+        props = col.operator("object.vertex_group_remove", icon='ZOOMOUT', text="")
+        props.all_unlocked = props.all = False
         col.menu("MESH_MT_vertex_group_specials", icon='DOWNARROW_HLT', text="")
         if group:
             col.separator()

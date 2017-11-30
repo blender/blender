@@ -195,7 +195,7 @@ endif()
 # Options
 
 # First platform specific non-cached vars
-if(UNIX AND NOT APPLE)
+if(UNIX AND NOT (APPLE OR HAIKU))
 	set(WITH_X11 ON)
 endif()
 
