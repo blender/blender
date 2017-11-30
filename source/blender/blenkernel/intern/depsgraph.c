@@ -67,6 +67,7 @@
 #include "BKE_action.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_collision.h"
+#include "BKE_curve.h"
 #include "BKE_effect.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
@@ -2267,8 +2268,18 @@ static void dag_object_time_update_flags(Main *bmain, Scene *scene, Object *ob)
 				break;
 			case OB_FONT:
 				cu = ob->data;
-				if (BLI_listbase_is_empty(&cu->nurb) && cu->str && cu->vfont)
-					ob->recalc |= OB_RECALC_DATA;
+				if (cu->str && cu->vfont) {
+					/* Can be in the curve-cache or the curve. */
+					if (ob->curve_cache && !BLI_listbase_is_empty(&ob->curve_cache->disp)) {
+						/* pass */
+					}
+					else if (!BLI_listbase_is_empty(&cu->nurb)) {
+						/* pass */
+					}
+					else {
+						ob->recalc |= OB_RECALC_DATA;
+					}
+				}
 				break;
 			case OB_LATTICE:
 				lt = ob->data;
