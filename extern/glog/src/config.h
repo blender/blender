@@ -14,4 +14,6 @@
  #include "windows/config.h"
 #elif defined(__GNU__)
  #include "config_hurd.h"
+#elif defined(__HAIKU__)
+ #include "config_haiku.h"
 #endif

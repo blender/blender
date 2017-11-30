@@ -1503,6 +1503,7 @@ function(find_python_package
 		  PATH_SUFFIXES
 		    site-packages
 		    dist-packages
+		    vendor-packages
 		   NO_DEFAULT_PATH
 		)
 
@@ -1513,6 +1514,8 @@ function(find_python_package
 				"'${PYTHON_LIBPATH}/python${_PY_VER_MAJOR}/site-packages/${package}', "
 				"'${PYTHON_LIBPATH}/python${PYTHON_VERSION}/dist-packages/${package}', "
 				"'${PYTHON_LIBPATH}/python${_PY_VER_MAJOR}/dist-packages/${package}', "
+				"'${PYTHON_LIBPATH}/python${PYTHON_VERSION}/vendor-packages/${package}', "
+				"'${PYTHON_LIBPATH}/python${_PY_VER_MAJOR}/vendor-packages/${package}', "
 				"\n"
 				"The 'WITH_PYTHON_INSTALL_${_upper_package}' option will be ignored when installing Python.\n"
 				"The build will be usable, only add-ons that depend on this package won't be functional."
