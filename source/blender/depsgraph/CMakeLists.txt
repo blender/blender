@@ -65,6 +65,7 @@ set(SRC
 	intern/depsgraph_debug.cc
 	intern/depsgraph_eval.cc
 	intern/depsgraph_query.cc
+	intern/depsgraph_query_iter.cc
 	intern/depsgraph_tag.cc
 	intern/depsgraph_type_defines.cc
 
