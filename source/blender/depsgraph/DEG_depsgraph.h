@@ -120,10 +120,9 @@ void DEG_id_tag_update_ex(struct Main *bmain,
                           struct ID *id,
                           short flag);
 
-/* Tag given ID type for update.
- *
- * Used by all sort of render engines to quickly check if
- * IDs of a given type need to be checked for update.
+/* Mark a particular datablock type as having changing. This does
+ * not cause any updates but is used by external render engines to detect if for
+ * example a datablock was removed.
  */
 void DEG_id_type_tag(struct Main *bmain, short idtype);
 

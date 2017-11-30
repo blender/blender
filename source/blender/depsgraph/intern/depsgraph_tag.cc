@@ -251,7 +251,7 @@ void DEG_id_tag_update_ex(Main *bmain, ID *id, short flag)
 #endif
 }
 
-/* Tag given ID type as updated. */
+/* Mark a particular datablock type as having changing. */
 void DEG_id_type_tag(Main *bmain, short idtype)
 {
 	if (idtype == ID_NT) {
