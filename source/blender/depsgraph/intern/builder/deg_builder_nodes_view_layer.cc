@@ -70,6 +70,12 @@ void DepsgraphNodeBuilder::build_view_layer(
         ViewLayer *view_layer,
         eDepsNode_LinkedState_Type linked_state)
 {
+	/* Scene ID block. */
+	add_id_node(&scene->id);
+	/* Time source. */
+	add_time_source();
+	/* Setup currently building context. */
+	scene_ = scene;
 	/* Expand Scene Cow datablock to get proper pointers to bases. */
 	Scene *scene_cow;
 	ViewLayer *view_layer_cow;
@@ -81,6 +87,12 @@ void DepsgraphNodeBuilder::build_view_layer(
 		LINKLIST_FOREACH(Base *, base, &view_layer->object_bases) {
 			Object *object = base->object;
 			add_id_node(&object->id, false);
+		}
+		/* Create ID node for nested ID of nodetree as well, otherwise remapping
+		 * will not work correct either.
+		 */
+		if (scene->nodetree != NULL) {
+			add_id_node(&scene->nodetree->id, false);
 		}
 		/* Make sure we've got ID node, so we can get pointer to CoW datablock.
 		 */
@@ -94,12 +106,6 @@ void DepsgraphNodeBuilder::build_view_layer(
 		scene_cow = scene;
 		view_layer_cow = view_layer;
 	}
-	/* Scene ID block. */
-	add_id_node(&scene->id);
-	/* Time source. */
-	add_time_source();
-	/* Setup currently building context. */
-	scene_ = scene;
 	/* Scene objects. */
 	int select_color = 1;
 	/* NOTE: Base is used for function bindings as-is, so need to pass CoW base,
