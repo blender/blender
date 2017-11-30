@@ -80,6 +80,7 @@
 #include "BKE_library_override.h"
 #include "BKE_library_query.h"
 #include "BKE_library_remap.h"
+#include "BKE_lightprobe.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
@@ -1840,6 +1841,9 @@ static void single_obdata_users(Main *bmain, Scene *scene, ViewLayer *view_layer
 						break;
 					case OB_SPEAKER:
 						ob->data = ID_NEW_SET(ob->data, BKE_speaker_copy(bmain, ob->data));
+						break;
+					case OB_LIGHTPROBE:
+						ob->data = ID_NEW_SET(ob->data, BKE_lightprobe_copy(bmain, ob->data));
 						break;
 					default:
 						if (G.debug & G_DEBUG)
