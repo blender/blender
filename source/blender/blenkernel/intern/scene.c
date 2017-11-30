@@ -202,9 +202,19 @@ static void layer_collections_sync_flags(ListBase *layer_collections_dst, const 
 	const LayerCollection *layer_collection_src = (const LayerCollection *)layer_collections_src->first;
 	while (layer_collection_dst != NULL) {
 		layer_collection_dst->flag = layer_collection_src->flag;
+
+		if (layer_collection_dst->properties != NULL) {
+			IDP_FreeProperty(layer_collection_dst->properties);
+			MEM_SAFE_FREE(layer_collection_dst->properties);
+		}
+
+		if (layer_collection_src->properties != NULL) {
+			layer_collection_dst->properties = IDP_CopyProperty(layer_collection_src->properties);
+		}
+
 		layer_collections_sync_flags(&layer_collection_dst->layer_collections,
 		                             &layer_collection_src->layer_collections);
-		/* TODO(sergey/dfelinto): Overrides. */
+
 		layer_collection_dst = layer_collection_dst->next;
 		layer_collection_src = layer_collection_src->next;
 	}
