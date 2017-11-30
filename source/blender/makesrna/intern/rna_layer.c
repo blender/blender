@@ -863,7 +863,7 @@ static void rna_LayerObjects_selected_begin(CollectionPropertyIterator *iter, Po
 static void rna_ViewLayer_update_tagged(ViewLayer *UNUSED(view_layer), bContext *C)
 {
 	Depsgraph *graph = CTX_data_depsgraph(C);
-	DEG_OBJECT_ITER(graph, ob, DEG_OBJECT_ITER_FLAG_ALL)
+	DEG_OBJECT_ITER(graph, ob, DEG_ITER_OBJECT_FLAG_ALL)
 	{
 		/* Don't do anything, we just need to run the iterator to flush
 		 * the base info to the objects. */

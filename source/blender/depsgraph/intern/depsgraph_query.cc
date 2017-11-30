@@ -126,7 +126,7 @@ ID *DEG_get_evaluated_id(struct Depsgraph *depsgraph, ID *id)
 
 static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 {
-	DEGObjectsIteratorData *data = (DEGObjectsIteratorData *)iter->data;
+	DEGOIterObjectData *data = (DEGOIterObjectData *)iter->data;
 	while (data->dupli_object_next != NULL) {
 		DupliObject *dob = data->dupli_object_next;
 		Object *obd = dob->ob;
@@ -166,12 +166,12 @@ static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 	return false;
 }
 
-static void deg_objects_iterator_step(BLI_Iterator *iter, DEG::IDDepsNode *id_node)
+static void DEG_iterator_objects_step(BLI_Iterator *iter, DEG::IDDepsNode *id_node)
 {
 	/* Reset the skip in case we are running from within a loop. */
 	iter->skip = false;
 
-	DEGObjectsIteratorData *data = (DEGObjectsIteratorData *)iter->data;
+	DEGOIterObjectData *data = (DEGOIterObjectData *)iter->data;
 	const ID_Type id_type = GS(id_node->id_orig->name);
 
 	if (id_type != ID_OB) {
@@ -183,7 +183,7 @@ static void deg_objects_iterator_step(BLI_Iterator *iter, DEG::IDDepsNode *id_no
 		case DEG::DEG_ID_LINKED_DIRECTLY:
 			break;
 		case DEG::DEG_ID_LINKED_VIA_SET:
-			if (data->flag & DEG_OBJECT_ITER_FLAG_SET) {
+			if (data->flag & DEG_ITER_OBJECT_FLAG_SET) {
 				break;
 			}
 			else {
@@ -197,7 +197,7 @@ static void deg_objects_iterator_step(BLI_Iterator *iter, DEG::IDDepsNode *id_no
 	Object *object = (Object *)id_node->id_cow;
 	BLI_assert(DEG::deg_validate_copy_on_write_datablock(&object->id));
 
-	if ((data->flag & DEG_OBJECT_ITER_FLAG_DUPLI) && (object->transflag & OB_DUPLI)) {
+	if ((data->flag & DEG_ITER_OBJECT_FLAG_DUPLI) && (object->transflag & OB_DUPLI)) {
 		data->dupli_parent = object;
 		data->dupli_list = object_duplilist(&data->eval_ctx, data->scene, object);
 		data->dupli_object_next = (DupliObject *)data->dupli_list->first;
@@ -206,7 +206,7 @@ static void deg_objects_iterator_step(BLI_Iterator *iter, DEG::IDDepsNode *id_no
 	iter->current = object;
 }
 
-void DEG_objects_iterator_begin(BLI_Iterator *iter, DEGObjectsIteratorData *data)
+void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGOIterObjectData *data)
 {
 	Depsgraph *depsgraph = data->graph;
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
@@ -231,16 +231,16 @@ void DEG_objects_iterator_begin(BLI_Iterator *iter, DEGObjectsIteratorData *data
 	data->num_id_nodes = num_id_nodes;
 
 	DEG::IDDepsNode *id_node = deg_graph->id_nodes[data->id_node_index];
-	deg_objects_iterator_step(iter, id_node);
+	DEG_iterator_objects_step(iter, id_node);
 
 	if (iter->skip) {
-		DEG_objects_iterator_next(iter);
+		DEG_iterator_objects_next(iter);
 	}
 }
 
-void DEG_objects_iterator_next(BLI_Iterator *iter)
+void DEG_iterator_objects_next(BLI_Iterator *iter)
 {
-	DEGObjectsIteratorData *data = (DEGObjectsIteratorData *)iter->data;
+	DEGOIterObjectData *data = (DEGOIterObjectData *)iter->data;
 	Depsgraph *depsgraph = data->graph;
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
 	do {
@@ -264,14 +264,14 @@ void DEG_objects_iterator_next(BLI_Iterator *iter)
 		}
 
 		DEG::IDDepsNode *id_node = deg_graph->id_nodes[data->id_node_index];
-		deg_objects_iterator_step(iter, id_node);
+		DEG_iterator_objects_step(iter, id_node);
 	} while (iter->skip);
 }
 
-void DEG_objects_iterator_end(BLI_Iterator *iter)
+void DEG_iterator_objects_end(BLI_Iterator *iter)
 {
 #ifndef NDEBUG
-	DEGObjectsIteratorData *data = (DEGObjectsIteratorData *)iter->data;
+	DEGOIterObjectData *data = (DEGOIterObjectData *)iter->data;
 	/* Force crash in case the iterator data is referenced and accessed down the line. (T51718) */
 	memset(&data->temp_dupli_object, 0xff, sizeof(data->temp_dupli_object));
 #else

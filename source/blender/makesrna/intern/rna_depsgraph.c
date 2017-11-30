@@ -61,7 +61,7 @@ static PointerRNA rna_DepsgraphIter_object_get(PointerRNA *ptr)
 static PointerRNA rna_DepsgraphIter_instance_object_get(PointerRNA *ptr)
 {
 	BLI_Iterator *iterator = ptr->data;
-	DEGObjectsIteratorData *deg_iter = (DEGObjectsIteratorData *)iterator->data;
+	DEGOIterObjectData *deg_iter = (DEGOIterObjectData *)iterator->data;
 	Object *instance_object = NULL;
 	if (deg_iter->dupli_object_current != NULL) {
 		instance_object = deg_iter->dupli_object_current->ob;
@@ -72,7 +72,7 @@ static PointerRNA rna_DepsgraphIter_instance_object_get(PointerRNA *ptr)
 static PointerRNA rna_DepsgraphIter_parent_get(PointerRNA *ptr)
 {
 	BLI_Iterator *iterator = ptr->data;
-	DEGObjectsIteratorData *deg_iter = (DEGObjectsIteratorData *)iterator->data;
+	DEGOIterObjectData *deg_iter = (DEGOIterObjectData *)iterator->data;
 	Object *dupli_parent = NULL;
 	if (deg_iter->dupli_object_current != NULL) {
 		dupli_parent = deg_iter->dupli_parent;
@@ -83,7 +83,7 @@ static PointerRNA rna_DepsgraphIter_parent_get(PointerRNA *ptr)
 static void rna_DepsgraphIter_persistent_id_get(PointerRNA *ptr, int *persistent_id)
 {
 	BLI_Iterator *iterator = ptr->data;
-	DEGObjectsIteratorData *deg_iter = (DEGObjectsIteratorData *)iterator->data;
+	DEGOIterObjectData *deg_iter = (DEGOIterObjectData *)iterator->data;
 	memcpy(persistent_id, deg_iter->dupli_object_current->persistent_id,
 	       sizeof(deg_iter->dupli_object_current->persistent_id));
 }
@@ -91,7 +91,7 @@ static void rna_DepsgraphIter_persistent_id_get(PointerRNA *ptr, int *persistent
 static void rna_DepsgraphIter_orco_get(PointerRNA *ptr, float *orco)
 {
 	BLI_Iterator *iterator = ptr->data;
-	DEGObjectsIteratorData *deg_iter = (DEGObjectsIteratorData *)iterator->data;
+	DEGOIterObjectData *deg_iter = (DEGOIterObjectData *)iterator->data;
 	memcpy(orco, deg_iter->dupli_object_current->orco,
 	       sizeof(deg_iter->dupli_object_current->orco));
 }
@@ -99,14 +99,14 @@ static void rna_DepsgraphIter_orco_get(PointerRNA *ptr, float *orco)
 static unsigned int rna_DepsgraphIter_random_id_get(PointerRNA *ptr)
 {
 	BLI_Iterator *iterator = ptr->data;
-	DEGObjectsIteratorData *deg_iter = (DEGObjectsIteratorData *)iterator->data;
+	DEGOIterObjectData *deg_iter = (DEGOIterObjectData *)iterator->data;
 	return deg_iter->dupli_object_current->random_id;
 }
 
 static void rna_DepsgraphIter_uv_get(PointerRNA *ptr, float *uv)
 {
 	BLI_Iterator *iterator = ptr->data;
-	DEGObjectsIteratorData *deg_iter = (DEGObjectsIteratorData *)iterator->data;
+	DEGOIterObjectData *deg_iter = (DEGOIterObjectData *)iterator->data;
 	memcpy(uv, deg_iter->dupli_object_current->uv,
 	       sizeof(deg_iter->dupli_object_current->uv));
 }
@@ -114,7 +114,7 @@ static void rna_DepsgraphIter_uv_get(PointerRNA *ptr, float *uv)
 static int rna_DepsgraphIter_is_instance_get(PointerRNA *ptr)
 {
 	BLI_Iterator *iterator = ptr->data;
-	DEGObjectsIteratorData *deg_iter = (DEGObjectsIteratorData *)iterator->data;
+	DEGOIterObjectData *deg_iter = (DEGOIterObjectData *)iterator->data;
 	return (deg_iter->dupli_object_current != NULL);
 }
 
@@ -149,25 +149,25 @@ static void rna_Depsgraph_debug_stats(Depsgraph *graph, char *result)
 static void rna_Depsgraph_objects_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	iter->internal.custom = MEM_callocN(sizeof(BLI_Iterator), __func__);
-	DEGObjectsIteratorData *data = MEM_callocN(sizeof(DEGObjectsIteratorData), __func__);
+	DEGOIterObjectData *data = MEM_callocN(sizeof(DEGOIterObjectData), __func__);
 
 	data->graph = (Depsgraph *)ptr->data;
-	data->flag = DEG_OBJECT_ITER_FLAG_SET;
+	data->flag = DEG_ITER_OBJECT_FLAG_SET;
 
 	((BLI_Iterator *)iter->internal.custom)->valid = true;
-	DEG_objects_iterator_begin(iter->internal.custom, data);
+	DEG_iterator_objects_begin(iter->internal.custom, data);
 	iter->valid = ((BLI_Iterator *)iter->internal.custom)->valid;
 }
 
 static void rna_Depsgraph_objects_next(CollectionPropertyIterator *iter)
 {
-	DEG_objects_iterator_next(iter->internal.custom);
+	DEG_iterator_objects_next(iter->internal.custom);
 	iter->valid = ((BLI_Iterator *)iter->internal.custom)->valid;
 }
 
 static void rna_Depsgraph_objects_end(CollectionPropertyIterator *iter)
 {
-	DEG_objects_iterator_end(iter->internal.custom);
+	DEG_iterator_objects_end(iter->internal.custom);
 	MEM_freeN(((BLI_Iterator *)iter->internal.custom)->data);
 	MEM_freeN(iter->internal.custom);
 }
@@ -186,25 +186,25 @@ static PointerRNA rna_Depsgraph_objects_get(CollectionPropertyIterator *iter)
 static void rna_Depsgraph_duplis_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	iter->internal.custom = MEM_callocN(sizeof(BLI_Iterator), __func__);
-	DEGObjectsIteratorData *data = MEM_callocN(sizeof(DEGObjectsIteratorData), __func__);
+	DEGOIterObjectData *data = MEM_callocN(sizeof(DEGOIterObjectData), __func__);
 
 	data->graph = (Depsgraph *)ptr->data;
-	data->flag = DEG_OBJECT_ITER_FLAG_ALL;
+	data->flag = DEG_ITER_OBJECT_FLAG_ALL;
 
 	((BLI_Iterator *)iter->internal.custom)->valid = true;
-	DEG_objects_iterator_begin(iter->internal.custom, data);
+	DEG_iterator_objects_begin(iter->internal.custom, data);
 	iter->valid = ((BLI_Iterator *)iter->internal.custom)->valid;
 }
 
 static void rna_Depsgraph_duplis_next(CollectionPropertyIterator *iter)
 {
-	DEG_objects_iterator_next(iter->internal.custom);
+	DEG_iterator_objects_next(iter->internal.custom);
 	iter->valid = ((BLI_Iterator *)iter->internal.custom)->valid;
 }
 
 static void rna_Depsgraph_duplis_end(CollectionPropertyIterator *iter)
 {
-	DEG_objects_iterator_end(iter->internal.custom);
+	DEG_iterator_objects_end(iter->internal.custom);
 	MEM_freeN(((BLI_Iterator *)iter->internal.custom)->data);
 	MEM_freeN(iter->internal.custom);
 }
