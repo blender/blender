@@ -461,14 +461,6 @@ void deg_graph_on_visible_update(Main *bmain, Depsgraph *graph)
 	/* Make sure objects are up to date. */
 	foreach (DEG::IDDepsNode *id_node, graph->id_nodes) {
 		const ID_Type id_type = GS(id_node->id_orig->name);
-		/* TODO(sergey): Special exception for now. */
-		if (id_type == ID_MSK) {
-			deg_graph_id_tag_update(bmain, graph, id_node->id_orig, 0);
-		}
-		if (id_type != ID_OB) {
-			/* Ignore non-object nodes on visibility changes. */
-			continue;
-		}
 		int flag = 0;
 		/* We only tag components which needs an update. Tagging everything is
 		 * not a good idea because that might reset particles cache (or any
