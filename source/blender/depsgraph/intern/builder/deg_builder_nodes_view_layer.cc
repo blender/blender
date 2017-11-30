@@ -92,10 +92,18 @@ void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
 	scene_ = scene;
 	/* Scene objects. */
 	int select_color = 1;
-	LINKLIST_FOREACH(Base *, base, &view_layer_cow->object_bases) {
+	/* NOTE: Base is used for function bindings as-is, so need to pass CoW base,
+	 * but object is expected to be an original one. Hence we go into some
+	 * tricks here iterating over the view layer.
+	 */
+	for (Base *base_orig = (Base *)view_layer->object_bases.first,
+	          *base_cow = (Base *)view_layer_cow->object_bases.first;
+	     base_orig != NULL;
+	     base_orig = base_orig->next, base_cow = base_cow->next)
+	{
 		/* object itself */
-		build_object(base, base->object, linked_state);
-		base->object->select_color = select_color++;
+		build_object(base_cow, base_orig->object, linked_state);
+		base_orig->object->select_color = select_color++;
 	}
 	if (scene->camera != NULL) {
 		build_object(NULL, scene->camera, DEG_ID_LINKED_INDIRECTLY);
