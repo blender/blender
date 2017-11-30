@@ -5610,7 +5610,7 @@ static void set_trans_object_base_flags(TransInfo *t)
 	/* this because after doing updates, the object->recalc is cleared */
 	for (base = view_layer->object_bases.first; base; base = base->next) {
 		if (base->object->recalc & (OB_RECALC_OB | OB_RECALC_DATA)) {
-			base->flag |= BA_SNAP_FIX_DEPS_FIASCO;
+			base->flag_legacy |= BA_SNAP_FIX_DEPS_FIASCO;
 		}
 	}
 }
@@ -5693,7 +5693,7 @@ static int count_proportional_objects(TransInfo *t)
 	/* this because after doing updates, the object->recalc is cleared */
 	for (base = view_layer->object_bases.first; base; base = base->next) {
 		if (base->object->recalc & (OB_RECALC_OB | OB_RECALC_DATA)) {
-			base->flag |= BA_SNAP_FIX_DEPS_FIASCO;
+			base->flag_legacy |= BA_SNAP_FIX_DEPS_FIASCO;
 		}
 	}
 
