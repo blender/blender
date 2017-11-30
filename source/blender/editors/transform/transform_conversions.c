@@ -5608,10 +5608,9 @@ static void set_trans_object_base_flags(TransInfo *t)
 	/* and we store them temporal in base (only used for transform code) */
 	/* this because after doing updates, the object->recalc is cleared */
 	for (base = scene->base.first; base; base = base->next) {
-		if (base->object->recalc & OB_RECALC_OB)
-			base->flag |= BA_HAS_RECALC_OB;
-		if (base->object->recalc & OB_RECALC_DATA)
-			base->flag |= BA_HAS_RECALC_DATA;
+		if (base->object->recalc & (OB_RECALC_OB | OB_RECALC_DATA)) {
+			base->flag |= BA_SNAP_FIX_DEPS_FIASCO;
+		}
 	}
 }
 
@@ -5687,10 +5686,9 @@ static int count_proportional_objects(TransInfo *t)
 	/* and we store them temporal in base (only used for transform code) */
 	/* this because after doing updates, the object->recalc is cleared */
 	for (base = scene->base.first; base; base = base->next) {
-		if (base->object->recalc & OB_RECALC_OB)
-			base->flag |= BA_HAS_RECALC_OB;
-		if (base->object->recalc & OB_RECALC_DATA)
-			base->flag |= BA_HAS_RECALC_DATA;
+		if (base->object->recalc & (OB_RECALC_OB | OB_RECALC_DATA)) {
+			base->flag |= BA_SNAP_FIX_DEPS_FIASCO;
+		}
 	}
 
 	return total;
@@ -5705,7 +5703,7 @@ static void clear_trans_object_base_flags(TransInfo *t)
 		if (base->flag & BA_WAS_SEL)
 			base->flag |= SELECT;
 
-		base->flag &= ~(BA_WAS_SEL | BA_HAS_RECALC_OB | BA_HAS_RECALC_DATA | BA_TEMP_TAG | BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT);
+		base->flag &= ~(BA_WAS_SEL | BA_SNAP_FIX_DEPS_FIASCO | BA_TEMP_TAG | BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT);
 	}
 }
 
