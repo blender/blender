@@ -86,7 +86,7 @@ void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
 	}
 	/* Scene ID block. */
 	add_id_node(&scene->id);
-	/* Rimesource. */
+	/* Time source. */
 	add_time_source();
 	/* Setup currently building context. */
 	scene_ = scene;
