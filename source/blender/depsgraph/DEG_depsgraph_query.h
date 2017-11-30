@@ -72,9 +72,9 @@ struct ID *DEG_get_evaluated_id(struct Depsgraph *depsgraph, struct ID *id);
 enum {
 	DEG_ITER_OBJECT_FLAG_SET = (1 << 0),
 	DEG_ITER_OBJECT_FLAG_DUPLI = (1 << 1),
-};
 
-#define DEG_ITER_OBJECT_FLAG_ALL (DEG_ITER_OBJECT_FLAG_SET | DEG_ITER_OBJECT_FLAG_DUPLI)
+	DEG_ITER_OBJECT_FLAG_ALL = (DEG_ITER_OBJECT_FLAG_SET | DEG_ITER_OBJECT_FLAG_DUPLI),
+};
 
 typedef struct DEGOIterObjectData {
 	struct Depsgraph *graph;
