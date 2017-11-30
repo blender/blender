@@ -65,13 +65,23 @@ extern "C" {
 
 namespace DEG {
 
-void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
-                                            ViewLayer *view_layer,
-                                            eDepsNode_LinkedState_Type linked_state)
+void DepsgraphNodeBuilder::build_view_layer(
+        Scene *scene,
+        ViewLayer *view_layer,
+        eDepsNode_LinkedState_Type linked_state)
 {
+	/* Expand Scene Cow datablock to get proper pointers to bases. */
 	Scene *scene_cow;
 	ViewLayer *view_layer_cow;
 	if (DEG_depsgraph_use_copy_on_write()) {
+		/* NOTE: We need to create ID nodes for all objects coming from bases,
+		 * otherwise remapping will not replace objects with their CoW versions
+		 * for CoW bases.
+		 */
+		LINKLIST_FOREACH(Base *, base, &view_layer->object_bases) {
+			Object *object = base->object;
+			add_id_node(&object->id, false);
+		}
 		/* Make sure we've got ID node, so we can get pointer to CoW datablock.
 		 */
 		scene_cow = expand_cow_datablock(scene);
