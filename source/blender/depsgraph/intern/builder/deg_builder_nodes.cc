@@ -180,7 +180,7 @@ DepsgraphNodeBuilder::~DepsgraphNodeBuilder()
 IDDepsNode *DepsgraphNodeBuilder::add_id_node(ID *id, bool do_tag)
 {
 	if (!DEG_depsgraph_use_copy_on_write()) {
-		return graph_->add_id_node(id);
+		return graph_->add_id_node(id, do_tag);
 	}
 	IDDepsNode *id_node = NULL;
 	ID *id_cow = (ID *)BLI_ghash_lookup(cow_id_hash_, id);
