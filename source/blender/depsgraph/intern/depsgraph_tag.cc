@@ -518,7 +518,7 @@ void DEG_graph_id_tag_update(struct Main *bmain,
 	DEG::deg_graph_id_tag_update(bmain, graph, id, flag);
 }
 
-/* Tag given ID type for update. */
+/* Mark a particular datablock type as having changing. */
 void DEG_id_type_tag(Main *bmain, short id_type)
 {
 	if (id_type == ID_NT) {
