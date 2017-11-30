@@ -1905,7 +1905,6 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 {
 	TransData *td = NULL;
 	TransDataExtension *tx;
-	Base *base = CTX_data_active_base(C);
 	Object *ob = CTX_data_active_object(C);
 	ParticleEditSettings *pset = PE_settings(t->scene);
 	PTCacheEdit *edit = PE_get_current(t->scene, ob);
@@ -1924,8 +1923,6 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 
 	if (psys)
 		psmd = psys_get_modifier(ob, psys);
-
-	base->flag |= BA_HAS_RECALC_DATA;
 
 	for (i = 0, point = edit->points; i < edit->totpoint; i++, point++) {
 		point->flag &= ~PEP_TRANSFORM;
