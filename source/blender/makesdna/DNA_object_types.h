@@ -531,9 +531,13 @@ enum {
 
 /* also needed for base!!!!! or rather, they interfere....*/
 /* base->flag and ob->flag */
-#define BA_WAS_SEL          (1 << 1)
-#define BA_HAS_RECALC_OB    (1 << 2)
-#define BA_HAS_RECALC_DATA  (1 << 3)
+enum {
+	BA_WAS_SEL = (1 << 1),
+	/* NOTE: BA_HAS_RECALC_DATA can be re-used later if freed in readfile.c. */
+	// BA_HAS_RECALC_OB = (1 << 2),  /* DEPRECATED */
+	// BA_HAS_RECALC_DATA =  (1 << 3),  /* DEPRECATED */
+	BA_SNAP_FIX_DEPS_FIASCO = (1 << 2),  /* Yes, re-use deprecated bit, all fine since it's runtime only. */
+};
 
 	/* NOTE: this was used as a proper setting in past, so nullify before using */
 #define BA_TEMP_TAG         (1 << 5)
