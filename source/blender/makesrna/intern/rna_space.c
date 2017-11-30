@@ -225,6 +225,11 @@ static const EnumPropertyItem buttons_texture_context_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+static const EnumPropertyItem buttons_collection_context_items[] = {
+	{SB_COLLECTION_CTX_VIEW_LAYER, "VIEW_LAYER", ICON_RENDERLAYERS, "", "Show material textures"},
+	{SB_COLLECTION_CTX_GROUP, "GROUP", ICON_GROUP, "", "Show world textures"},
+	{0, NULL, 0, NULL, NULL}
+};
 
 static const EnumPropertyItem fileselectparams_recursion_level_items[] = {
 	{0, "NONE",  0, "None", "Only list current directory's content, with no recursion"},
@@ -2742,6 +2747,11 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SB_TEX_USER_LIMITED);
 	RNA_def_property_ui_text(prop, "Limited Texture Context",
 	                         "Use the limited version of texture user (for 'old shading' mode)");
+
+	prop = RNA_def_property(srna, "collection_context", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, buttons_collection_context_items);
+	RNA_def_property_ui_text(prop, "Collection Context", "Which collection we want to show");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_PROPERTIES, NULL);
 
 	/* pinned data */
 	prop = RNA_def_property(srna, "pin_id", PROP_POINTER, PROP_NONE);

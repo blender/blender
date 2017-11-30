@@ -132,10 +132,11 @@ void RNA_def_group(BlenderRNA *brna)
 	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, "rna_Group_objects_get", NULL, NULL, NULL, NULL);
 	rna_def_group_objects(brna, prop);
 
-	prop = RNA_def_property(srna, "collections", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "view_layer->layer_collections", NULL);
-	RNA_def_property_struct_type(prop, "LayerCollection");
-	RNA_def_property_ui_text(prop, "Layer Collections", "");
+	prop = RNA_def_property(srna, "view_layer", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ViewLayer");
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "View Layer", "Group internal view layer");
 }
 
 #endif

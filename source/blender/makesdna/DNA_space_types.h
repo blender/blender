@@ -126,7 +126,9 @@ typedef struct SpaceButs {
 	short preview;                  /* preview is signal to refresh */
 	/* texture context selector (material, lamp, particles, world, other) */
 	short texture_context, texture_context_prev;
-	char flag, pad[7];
+	char flag;
+	char collection_context;
+	char pad[6];
 	
 	void *path;                     /* runtime */
 	int pathflag, dataicon;         /* runtime */
@@ -207,6 +209,12 @@ typedef enum eSpaceButtons_Texture_Context {
 	SB_TEXC_OTHER = 4,
 	SB_TEXC_LINESTYLE = 5,
 } eSpaceButtons_Texture_Context;
+
+/* sbuts->collection_context */
+typedef enum eSpaceButtons_Collection_Context {
+	SB_COLLECTION_CTX_VIEW_LAYER = 0,
+	SB_COLLECTION_CTX_GROUP = 1,
+} eSpaceButtons_Collection_Context;
 
 /* sbuts->align */
 typedef enum eSpaceButtons_Align {

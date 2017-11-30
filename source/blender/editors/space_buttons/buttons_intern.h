@@ -65,6 +65,7 @@ typedef struct ButsContextPath {
 	int len;
 	int flag;
 	int tex_ctx;
+	int collection_ctx;
 } ButsContextPath;
 
 typedef struct ButsTextureUser {

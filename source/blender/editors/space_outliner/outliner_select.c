@@ -781,15 +781,24 @@ static eOLDrawState tree_element_active_collection(
 	/* don't allow selecting a scene collection, it can have multiple layer collection
 	 * instances (which one would the user want to be selected then?) */
 	else if (tselem->type == TSE_LAYER_COLLECTION) {
-		ViewLayer *view_layer = CTX_data_view_layer(C);
-		LayerCollection *lc = te->directdata;
-		const int collection_index = BKE_layer_collection_findindex(view_layer, lc);
+		LayerCollection *layer_collection = te->directdata;
 
-		/* If the collection is part of a group we don't change active collection. */
-		if (collection_index > -1) {
-			view_layer->active_collection = collection_index;
-			WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
+		switch (layer_collection->scene_collection->type) {
+			case COLLECTION_TYPE_NONE:
+			case COLLECTION_TYPE_GROUP_INTERNAL:
+			{
+				ViewLayer *view_layer = BKE_view_layer_find_from_collection(tselem->id, layer_collection);
+				const int collection_index = BKE_layer_collection_findindex(view_layer, layer_collection);
+
+				if (collection_index > -1) {
+					view_layer->active_collection = collection_index;
+				}
+				break;
+			}
+			default:
+				BLI_assert(!"Collection type not fully implemented");
 		}
+		WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 	}
 
 	return OL_DRAWSEL_NONE;

@@ -39,6 +39,7 @@
 #include "BLT_translation.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
@@ -177,7 +178,7 @@ static int buttons_context_path_workspace(ButsContextPath *path)
 	return RNA_struct_is_a(ptr->type, &RNA_WorkSpace);
 }
 
-static int buttons_context_path_collection(ButsContextPath *path)
+static int buttons_context_path_collection(ButsContextPath *path, eSpaceButtons_Collection_Context collection_context)
 {
 	PointerRNA *ptr = &path->ptr[path->len - 1];
 
@@ -187,10 +188,21 @@ static int buttons_context_path_collection(ButsContextPath *path)
 	}
 
 	ViewLayer *view_layer = ptr->data;
-	LayerCollection *sc = BKE_layer_collection_get_active(view_layer);
 
-	if (sc) {
-		RNA_pointer_create(NULL, &RNA_LayerCollection, sc, &path->ptr[path->len]);
+	if (collection_context == SB_COLLECTION_CTX_GROUP) {
+		Object *ob = OBACT(view_layer);
+		if (ob && ob->dup_group) {
+			view_layer = ob->dup_group->view_layer;
+
+			/* Replace the view layer by the group in the context path. */
+			RNA_pointer_create(NULL, &RNA_Group, ob->dup_group, &path->ptr[path->len - 1]);
+		}
+	}
+
+	LayerCollection *layer_collection = BKE_layer_collection_get_active(view_layer);
+
+	if (layer_collection) {
+		RNA_pointer_create(NULL, &RNA_LayerCollection, layer_collection, &path->ptr[path->len]);
 		path->len++;
 		return 1;
 	}
@@ -650,7 +662,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 			found = buttons_context_path_workspace(path);
 			break;
 		case BCONTEXT_COLLECTION:
-			found = buttons_context_path_collection(path);
+			found = buttons_context_path_collection(path, sbuts->collection_context);
 			break;
 		case BCONTEXT_OBJECT:
 		case BCONTEXT_PHYSICS:
