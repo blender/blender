@@ -694,6 +694,13 @@ static void EEVEE_lightprobes_updates(EEVEE_ViewLayerData *sldata, EEVEE_PassLis
 		EEVEE_LightGrid *egrid = &pinfo->grid_data[i];
 		EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
 
+		/* If one grid has move we need to recompute all the lighting. */
+		if (!pinfo->grid_initialized) {
+			ped->updated_cells = 0;
+			ped->updated_lvl = 0;
+			ped->need_update = true;
+		}
+
 		/* Add one for level 0 */
 		ped->max_lvl = 1.0f + floorf(log2f((float)MAX3(probe->grid_resolution_x,
 		                                               probe->grid_resolution_y,
