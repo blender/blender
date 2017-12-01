@@ -1291,17 +1291,20 @@ static void lightprobes_refresh_initialize_grid(EEVEE_ViewLayerData *sldata, EEV
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 	EEVEE_PassList *psl = vedata->psl;
 	if (pinfo->grid_initialized) {
-		/* Gris is already initialized, nothing to do. */
+		/* Grid is already initialized, nothing to do. */
 		return;
 	}
 	DRW_framebuffer_texture_detach(sldata->probe_pool);
 	/* Flood fill with world irradiance. */
 	DRW_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->irradiance_rt, 0, 0);
+	DRW_framebuffer_bind(sldata->probe_filter_fb);
 	DRW_draw_pass(psl->probe_grid_fill);
 	DRW_framebuffer_texture_detach(sldata->irradiance_rt);
+
 	SWAP(GPUTexture *, sldata->irradiance_pool, sldata->irradiance_rt);
 	DRW_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->irradiance_rt, 0, 0);
 	DRW_draw_pass(psl->probe_grid_fill);
+
 	DRW_framebuffer_texture_detach(sldata->irradiance_rt);
 	SWAP(GPUTexture *, sldata->irradiance_pool, sldata->irradiance_rt);
 	/* Reattach to have a valid framebuffer. */
@@ -1441,20 +1444,37 @@ static void lightprobes_refresh_all_no_world(EEVEE_ViewLayerData *sldata, EEVEE_
 				int tmp_num_render_grid = pinfo->num_render_grid;
 				int tmp_num_render_cube = pinfo->num_render_cube;
 				int tmp_num_planar = pinfo->num_planar;
+				float tmp_level_bias = egrid->level_bias;
 				pinfo->num_render_cube = 0;
 				pinfo->num_planar = 0;
 				/* Use light from previous bounce when capturing radiance. */
 				if (pinfo->updated_bounce == 0) {
+					/* But not on first bounce. */
 					pinfo->num_render_grid = 0;
+				}
+				else {
+					/* Remove bias */
+					egrid->level_bias = (float)(1 << 0);
+					DRW_uniformbuffer_update(sldata->grid_ubo, &sldata->probes->grid_data);
 				}
 				render_scene_to_probe(sldata, vedata, pos, prb->clipsta, prb->clipend);
 				diffuse_filter_probe(sldata, vedata, psl, egrid->offset + cell_id);
 				/* To see what is going on. */
 				SWAP(GPUTexture *, sldata->irradiance_pool, sldata->irradiance_rt);
 				/* Restore */
-				pinfo->num_render_grid = tmp_num_render_grid;
 				pinfo->num_render_cube = tmp_num_render_cube;
 				pinfo->num_planar = tmp_num_planar;
+				if (pinfo->updated_bounce == 0) {
+					pinfo->num_render_grid = tmp_num_render_grid;
+				}
+				else {
+					egrid->level_bias = tmp_level_bias;
+					DRW_uniformbuffer_update(sldata->grid_ubo, &sldata->probes->grid_data);
+				}
+#if 0
+				printf("Updated Grid %d : cell %d / %d, bounce %d / %d\n",
+				       i, cell_id + 1, ped->num_cell, pinfo->updated_bounce + 1, pinfo->num_bounce);
+#endif
 			}
 			if (ped->updated_cells >= ped->num_cell) {
 				ped->updated_lvl++;
@@ -1465,10 +1485,6 @@ static void lightprobes_refresh_all_no_world(EEVEE_ViewLayerData *sldata, EEVEE_
 				egrid->level_bias = (float)(1 << max_ii(0, ped->max_lvl - ped->updated_lvl + 1));
 				DRW_uniformbuffer_update(sldata->grid_ubo, &sldata->probes->grid_data);
 			}
-#if 0
-			printf("Updated Grid %d : cell %d / %d, bounce %d / %d\n",
-			       i, ped->updated_cells, ped->num_cell, pinfo->updated_bounce + 1, pinfo->num_bounce);
-#endif
 			/* Only do one probe per frame */
 			DRW_viewport_request_redraw();
 			/* Do not let this frame accumulate. */
@@ -1488,13 +1504,16 @@ static void lightprobes_refresh_all_no_world(EEVEE_ViewLayerData *sldata, EEVEE_
 				ped->updated_cells = 0;
 				ped->updated_lvl = 0;
 			}
-			SWAP(GPUTexture *, sldata->irradiance_pool, sldata->irradiance_rt);
 			/* Reset the next buffer so we can see the progress. */
+			/* irradiance_rt is already the next rt because of the previous SWAP */
 			DRW_framebuffer_texture_detach(sldata->probe_pool);
 			DRW_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->irradiance_rt, 0, 0);
+			DRW_framebuffer_bind(sldata->probe_filter_fb);
 			DRW_draw_pass(psl->probe_grid_fill);
 			DRW_framebuffer_texture_detach(sldata->irradiance_rt);
 			DRW_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->probe_pool, 0, 0);
+			/* Swap AFTER */
+			SWAP(GPUTexture *, sldata->irradiance_pool, sldata->irradiance_rt);
 		}
 	}
 	/* Refresh cube probe when needed. */
