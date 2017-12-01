@@ -20,7 +20,7 @@ class UnitTesting(ViewLayerTesting):
         """
         import bpy
         bpy.context.scene.view_layers.active_index = len(bpy.context.scene.view_layers) - 1
-        bpy.context.workspace.view_layer = bpy.context.scene.view_layers['Viewport']
+        bpy.context.window.view_layer = bpy.context.scene.view_layers['Viewport']
         master_collection = bpy.context.scene_collection
         self.do_object_link(master_collection)
 

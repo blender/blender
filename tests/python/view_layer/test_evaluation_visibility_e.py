@@ -21,13 +21,13 @@ class UnitTesting(ViewLayerTesting):
         import bpy
 
         scene = bpy.context.scene
-        workspace = bpy.context.workspace
+        window = bpy.context.window
         cube = bpy.data.objects.new('guinea pig', bpy.data.meshes.new('mesh'))
 
         layer = scene.view_layers.new('Visibility Test')
         layer.collections.unlink(layer.collections[0])
         scene.view_layers.active = layer
-        workspace.view_layer = layer
+        window.view_layer = layer
 
         scene_collection_mom = scene.master_collection.collections.new("Mom")
         scene_collection_kid = scene_collection_mom.collections.new("Kid")

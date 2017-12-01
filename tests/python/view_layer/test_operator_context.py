@@ -88,11 +88,11 @@ class UnitTesting(ViewLayerTesting):
         layer.collections.active_index = 3
         self.assertEqual(layer.collections.active.name, 'scorpion')
 
-        # Change active scene layer (do it for workspace too just to don't get mangled in workspace bugs)
+        # Change active scene layer (do it for window too just to don't get mangled in window bugs)
         scene = bpy.context.scene
         scene.view_layers.active_index = len(scene.view_layers) - 2
         self.assertEqual(scene.view_layers.active.name, "Viewport")
-        bpy.context.workspace.view_layer = bpy.context.scene.view_layers['Viewport']
+        bpy.context.window.view_layer = bpy.context.scene.view_layers['Viewport']
 
         # old layer
         self.assertEqual(bpy.ops.testing.sample(view_layer='Viewport', use_verbose=True), {'FINISHED'})
