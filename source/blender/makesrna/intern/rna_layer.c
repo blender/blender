@@ -435,6 +435,12 @@ static void rna_LayerCollectionEngineSettings_update(bContext *UNUSED(C), Pointe
 	ID *id = ptr->id.data;
 	/* TODO(sergey): Use proper flag for tagging here. */
 	DEG_id_tag_update(id, 0);
+
+	/* Instead of passing 'noteflag' to the rna update function, we handle the notifier ourselves.
+	 * We need to do this because the LayerCollection may be coming from different ID types (Scene or Group)
+	 * and when using NC_SCENE the id most match the active scene for the listener to receive the notification.*/
+
+	WM_main_add_notifier(NC_SCENE | ND_LAYER_CONTENT, NULL);
 }
 
 static void rna_LayerCollectionEngineSettings_wire_update(bContext *C, PointerRNA *UNUSED(ptr))
@@ -1468,14 +1474,14 @@ static void rna_def_view_layer_engine_settings_eevee(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1f, 2);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	prop = RNA_def_property(srna, "gtao_quality", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Eevee_gtao_quality_get", "rna_LayerEngineSettings_Eevee_gtao_quality_set", NULL);
 	RNA_def_property_ui_text(prop, "Trace Quality", "Quality of the horizon search");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	prop = RNA_def_property(srna, "gtao_distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Eevee_gtao_distance_get", "rna_LayerEngineSettings_Eevee_gtao_distance_set", NULL);
@@ -1483,7 +1489,7 @@ static void rna_def_view_layer_engine_settings_eevee(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 100000.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 3);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	prop = RNA_def_property(srna, "gtao_samples", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_funcs(prop, "rna_LayerEngineSettings_Eevee_gtao_samples_get",
@@ -1672,49 +1678,49 @@ static void rna_def_layer_collection_engine_settings_clay(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, clay_matcap_items);
 	RNA_def_property_ui_text(prop, "Matcap", "Image to use for Material Capture by this material");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	prop = RNA_def_property(srna, "matcap_rotation", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_matcap_rotation_get", "rna_LayerEngineSettings_Clay_matcap_rotation_set", NULL);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Matcap Rotation", "Orientation of the matcap on the model");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	prop = RNA_def_property(srna, "matcap_hue", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_matcap_hue_get", "rna_LayerEngineSettings_Clay_matcap_hue_set", NULL);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Matcap Hue Shift", "Hue correction of the matcap");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	prop = RNA_def_property(srna, "matcap_saturation", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_matcap_saturation_get", "rna_LayerEngineSettings_Clay_matcap_saturation_set", NULL);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Matcap Saturation", "Saturation correction of the matcap");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	prop = RNA_def_property(srna, "matcap_value", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_matcap_value_get", "rna_LayerEngineSettings_Clay_matcap_value_set", NULL);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Matcap Value", "Value correction of the matcap");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	prop = RNA_def_property(srna, "ssao_factor_cavity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_ssao_factor_cavity_get", "rna_LayerEngineSettings_Clay_ssao_factor_cavity_set", NULL);
 	RNA_def_property_ui_text(prop, "Cavity Strength", "Strength of the Cavity effect");
 	RNA_def_property_range(prop, 0.0f, 250.0f);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	prop = RNA_def_property(srna, "ssao_factor_edge", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_ssao_factor_edge_get", "rna_LayerEngineSettings_Clay_ssao_factor_edge_set", NULL);
 	RNA_def_property_ui_text(prop, "Edge Strength", "Strength of the Edge effect");
 	RNA_def_property_range(prop, 0.0f, 250.0f);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	prop = RNA_def_property(srna, "ssao_distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_ssao_distance_get", "rna_LayerEngineSettings_Clay_ssao_distance_set", NULL);
@@ -1722,7 +1728,7 @@ static void rna_def_layer_collection_engine_settings_clay(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 100000.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 3);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	prop = RNA_def_property(srna, "ssao_attenuation", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_ssao_attenuation_get", "rna_LayerEngineSettings_Clay_ssao_attenuation_set", NULL);
@@ -1730,14 +1736,14 @@ static void rna_def_layer_collection_engine_settings_clay(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1.0f, 100000.0f);
 	RNA_def_property_ui_range(prop, 1.0f, 100.0f, 1, 3);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	prop = RNA_def_property(srna, "hair_brightness_randomness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_hair_brightness_randomness_get", "rna_LayerEngineSettings_Clay_hair_brightness_randomness_set", NULL);
 	RNA_def_property_ui_text(prop, "Hair Brightness Randomness", "Brightness randomness for hair");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	RNA_define_verify_sdna(1); /* not in sdna */
 }
@@ -1758,13 +1764,13 @@ static void rna_def_layer_collection_mode_settings_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Wire", "Add the object's wireframe over solid drawing");
 	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_ObjectMode_show_wire_get", "rna_LayerEngineSettings_ObjectMode_show_wire_set");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	prop = RNA_def_property(srna, "show_backface_culling", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Backface Culling", "");
 	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_ObjectMode_show_backface_culling_get", "rna_LayerEngineSettings_ObjectMode_show_backface_culling_set");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	RNA_define_verify_sdna(1); /* not in sdna */
 }
@@ -1784,31 +1790,31 @@ static void rna_def_layer_collection_mode_settings_edit(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Hidden Wire", "Use hidden wireframe display");
 	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_EditMode_show_occlude_wire_get", "rna_LayerEngineSettings_EditMode_show_occlude_wire_set");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	prop = RNA_def_property(srna, "show_weight", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Show Weights", "Draw weights in editmode");
 	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_EditMode_show_weight_get", "rna_LayerEngineSettings_EditMode_show_weight_set");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	prop = RNA_def_property(srna, "face_normals_show", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Draw Normals", "Display face normals as lines");
 	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_EditMode_face_normals_show_get", "rna_LayerEngineSettings_EditMode_face_normals_show_set");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	prop = RNA_def_property(srna, "vert_normals_show", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Draw Vertex Normals", "Display vertex normals as lines");
 	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_EditMode_vert_normals_show_get", "rna_LayerEngineSettings_EditMode_vert_normals_show_set");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	prop = RNA_def_property(srna, "loop_normals_show", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Draw Split Normals", "Display vertex-per-face normals as lines");
 	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_EditMode_loop_normals_show_get", "rna_LayerEngineSettings_EditMode_loop_normals_show_set");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	prop = RNA_def_property(srna, "normals_length", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_ui_text(prop, "Normal Size", "Display size for normals in the 3D view");
@@ -1816,14 +1822,14 @@ static void rna_def_layer_collection_mode_settings_edit(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.00001, 1000.0);
 	RNA_def_property_ui_range(prop, 0.01, 10.0, 10.0, 2);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	prop = RNA_def_property(srna, "backwire_opacity", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_ui_text(prop, "Backwire Opacity", "Opacity when rendering transparent wires");
 	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_EditMode_backwire_opacity_get", "rna_LayerEngineSettings_EditMode_backwire_opacity_set", NULL);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	RNA_define_verify_sdna(1); /* not in sdna */
 }
@@ -1843,7 +1849,7 @@ static void rna_def_layer_collection_mode_settings_paint_weight(BlenderRNA *brna
 	RNA_def_property_ui_text(prop, "Use Shading", "Whether to use shaded or shadeless drawing");
 	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_PaintWeightMode_use_shading_get", "rna_LayerEngineSettings_PaintWeightMode_use_shading_set");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	prop = RNA_def_property(srna, "use_wire", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Show Wire", "Whether to overlay wireframe onto the mesh");
@@ -1869,7 +1875,7 @@ static void rna_def_layer_collection_mode_settings_paint_vertex(BlenderRNA *brna
 	RNA_def_property_ui_text(prop, "Use Shading", "Whether to use shaded or shadeless drawing");
 	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_PaintVertexMode_use_shading_get", "rna_LayerEngineSettings_PaintVertexMode_use_shading_set");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollectionEngineSettings_update");
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	prop = RNA_def_property(srna, "use_wire", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Show Wire", "Whether to overlay wireframe onto the mesh");
