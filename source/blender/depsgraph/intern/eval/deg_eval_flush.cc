@@ -65,32 +65,35 @@ typedef std::deque<OperationDepsNode *> FlushQueue;
 
 namespace {
 
-void flush_init_func(void *data_v, int i)
+void flush_init_operation_node_func(void *data_v, int i)
 {
-	/* ID node's done flag is used to avoid multiple editors update
-	 * for the same ID.
-	 */
 	Depsgraph *graph = (Depsgraph *)data_v;
 	OperationDepsNode *node = graph->operations[i];
-	ComponentDepsNode *comp_node = node->owner;
-	IDDepsNode *id_node = comp_node->owner;
-	id_node->done = 0;
-	comp_node->done = COMPONENT_STATE_NONE;
 	node->scheduled = false;
+}
+
+void flush_init_id_node_func(void *data_v, int i)
+{
+	Depsgraph *graph = (Depsgraph *)data_v;
+	IDDepsNode *id_node = graph->id_nodes[i];
+	id_node->done = 0;
+	GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, id_node->components)
+		comp_node->done = COMPONENT_STATE_NONE;
+	GHASH_FOREACH_END();
 }
 
 BLI_INLINE void flush_prepare(Depsgraph *graph)
 {
-	/* TODO(sergey): With a bit of flag magic we can get rid of this
-	 * extra loop.
-	 */
 	const int num_operations = graph->operations.size();
-	const bool do_threads = num_operations > 256;
-	BLI_task_parallel_range(0,
-	                        num_operations,
+	BLI_task_parallel_range(0, num_operations,
 	                        graph,
-	                        flush_init_func,
-	                        do_threads);
+	                        flush_init_operation_node_func,
+	                        (num_operations > 256));
+	const int num_id_nodes = graph->id_nodes.size();
+	BLI_task_parallel_range(0, num_id_nodes,
+	                        graph,
+	                        flush_init_id_node_func,
+	                        (num_id_nodes > 256));
 }
 
 BLI_INLINE void flush_schedule_entrypoints(Depsgraph *graph, FlushQueue *queue)
