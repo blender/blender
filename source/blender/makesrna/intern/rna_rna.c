@@ -570,7 +570,7 @@ static int rna_Property_overridable_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 
-	return (prop->flag & PROP_OVERRIDABLE) != 0;
+	return (prop->flag & PROP_OVERRIDABLE_STATIC) != 0;
 }
 
 static int rna_Property_use_output_get(PointerRNA *ptr)

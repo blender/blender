@@ -1819,7 +1819,7 @@ bool RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop)
 	return ((flag & PROP_EDITABLE) &&
 	        (flag & PROP_REGISTER) == 0 &&
 	        (!id || ((!ID_IS_LINKED(id) || (prop->flag & PROP_LIB_EXCEPTION)) &&
-	                 (!id->override_static || (prop->flag & PROP_OVERRIDABLE)))));
+	                 (!id->override_static || (prop->flag & PROP_OVERRIDABLE_STATIC)))));
 }
 
 /**
@@ -1852,7 +1852,7 @@ bool RNA_property_editable_info(PointerRNA *ptr, PropertyRNA *prop, const char *
 			}
 			return false;
 		}
-		if (id->override_static != NULL && (prop->flag & PROP_OVERRIDABLE) == 0) {
+		if (id->override_static != NULL && (prop->flag & PROP_OVERRIDABLE_STATIC) == 0) {
 			if (!(*r_info)[0]) {
 				*r_info = "Can't edit this property from an override data-block.";
 			}
@@ -7247,7 +7247,7 @@ bool RNA_struct_override_matches(
 	for (; iter.valid; RNA_property_collection_next(&iter)) {
 		PropertyRNA *prop = iter.ptr.data;
 
-		if (ignore_non_overridable && !(prop->flag & PROP_OVERRIDABLE)) {
+		if (ignore_non_overridable && !(prop->flag & PROP_OVERRIDABLE_STATIC)) {
 			continue;
 		}
 
@@ -7391,7 +7391,7 @@ bool RNA_struct_auto_override(PointerRNA *local, PointerRNA *reference, IDOverri
 	for (RNA_property_collection_begin(local, iterprop, &iter); iter.valid; RNA_property_collection_next(&iter)) {
 		PropertyRNA *prop = iter.ptr.data;
 
-		if (!(prop->flag & PROP_OVERRIDABLE)) {
+		if (!(prop->flag & PROP_OVERRIDABLE_STATIC)) {
 			continue;
 		}
 		if (RNA_property_animated(local, prop)) {
@@ -7506,7 +7506,7 @@ void RNA_property_override_status(
 		return;
 	}
 
-	SET_RET(r_overridable, (prop->flag & PROP_OVERRIDABLE) && (prop->flag & PROP_EDITABLE));
+	SET_RET(r_overridable, (prop->flag & PROP_OVERRIDABLE_STATIC) && (prop->flag & PROP_EDITABLE));
 
 	if (r_overridden || r_mandatory || r_locked) {
 		IDOverrideStaticPropertyOperation *opop = RNA_property_override_property_operation_find(ptr, prop, index, false, NULL);
