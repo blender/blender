@@ -1508,6 +1508,7 @@ bool rna_property_override_store_default(
         IDOverrideStaticPropertyOperation *opop)
 {
 	BLI_assert(len_local == len_reference && (!ptr_storage || len_local == len_storage));
+	UNUSED_VARS_NDEBUG(len_reference, len_storage);
 
 	bool changed = false;
 	const int index = opop->subitem_reference_index;
@@ -1818,6 +1819,7 @@ bool rna_property_override_apply_default(
         IDOverrideStaticPropertyOperation *opop)
 {
 	BLI_assert(len_dst == len_src && (!ptr_storage || len_dst == len_storage));
+	UNUSED_VARS_NDEBUG(len_src, len_storage);
 
 	const int index = opop->subitem_reference_index;
 	const short override_op = opop->operation;
