@@ -549,6 +549,22 @@ void do_versions_after_linking_280(Main *main)
 		}
 	}
 
+	if (!MAIN_VERSION_ATLEAST(main, 280, 3)) {
+		for (WorkSpace *workspace = main->workspaces.first; workspace; workspace = workspace->id.next) {
+			if (workspace->view_layer) {
+				/* During 2.8 work we temporarly stored view-layer in the
+				 * workspace directly, but should be stored there per-scene. */
+				for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+					if (BLI_findindex(&scene->view_layers, workspace->view_layer) > -1) {
+						BKE_workspace_view_layer_set(workspace, workspace->view_layer, scene);
+						workspace->view_layer = NULL;
+					}
+				}
+			}
+			BLI_assert(workspace->view_layer == NULL);
+		}
+	}
+
 	{
 		/* Since we don't have access to FileData we check the (always valid) master collection of the group. */
 		for (Group *group = main->group.first; group; group = group->id.next) {

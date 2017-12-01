@@ -445,7 +445,6 @@ ViewLayer *BKE_workspace_view_layer_get(const WorkSpace *workspace, const Scene 
 }
 void BKE_workspace_view_layer_set(WorkSpace *workspace, ViewLayer *layer, Scene *scene)
 {
-	workspace->view_layer = layer;
 	workspace_relation_ensure_updated(&workspace->scene_viewlayer_relations, scene, layer);
 }
 

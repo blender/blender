@@ -95,7 +95,7 @@ typedef struct WorkSpace {
 	/* should be: '#ifdef USE_WORKSPACE_TOOL'. */
 	bToolDef tool;
 
-	struct ViewLayer *view_layer DNA_PRIVATE_WORKSPACE;
+	struct ViewLayer *view_layer DNA_DEPRECATED;
 	struct ViewRender view_render;
 } WorkSpace;
 
