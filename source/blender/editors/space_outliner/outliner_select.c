@@ -44,6 +44,7 @@
 #include "BLI_listbase.h"
 
 #include "BKE_context.h"
+#include "BKE_group.h"
 #include "BKE_object.h"
 #include "BKE_layer.h"
 #include "BKE_scene.h"
@@ -784,9 +785,11 @@ static eOLDrawState tree_element_active_collection(
 		LayerCollection *lc = te->directdata;
 		const int collection_index = BKE_layer_collection_findindex(view_layer, lc);
 
-		BLI_assert(collection_index >= 0);
-		view_layer->active_collection = collection_index;
-		WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
+		/* If the collection is part of a group we don't change active collection. */
+		if (collection_index > -1) {
+			view_layer->active_collection = collection_index;
+			WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
+		}
 	}
 
 	return OL_DRAWSEL_NONE;
@@ -906,26 +909,30 @@ static void do_outliner_item_activate_tree_element(
 		}
 		else if (te->idcode == ID_GR) {
 			Group *gr = (Group *)tselem->id;
-			GroupObject *gob;
 
 			if (extend) {
 				int sel = BA_SELECT;
-				for (gob = gr->gobject.first; gob; gob = gob->next) {
-					if (gob->ob->flag & SELECT) {
+				FOREACH_GROUP_BASE(gr, base)
+				{
+					if (base->flag & BASE_SELECTED) {
 						sel = BA_DESELECT;
 						break;
 					}
 				}
+				FOREACH_GROUP_BASE_END
 
-				for (gob = gr->gobject.first; gob; gob = gob->next) {
-					ED_object_base_select(BKE_view_layer_base_find(view_layer, gob->ob), sel);
+				FOREACH_GROUP_OBJECT(gr, object)
+				{
+					ED_object_base_select(BKE_view_layer_base_find(view_layer, object), sel);
 				}
+				FOREACH_GROUP_OBJECT_END
 			}
 			else {
 				BKE_view_layer_base_deselect_all(view_layer);
 
-				for (gob = gr->gobject.first; gob; gob = gob->next) {
-					Base *base = BKE_view_layer_base_find(view_layer, gob->ob);
+				FOREACH_GROUP_OBJECT(gr, object)
+				{
+					Base *base = BKE_view_layer_base_find(view_layer, object);
 					/* Object may not be in this scene */
 					if (base != NULL) {
 						if ((base->flag & BASE_SELECTED) == 0) {
@@ -933,6 +940,7 @@ static void do_outliner_item_activate_tree_element(
 						}
 					}
 				}
+				FOREACH_GROUP_OBJECT_END
 			}
 			
 			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);

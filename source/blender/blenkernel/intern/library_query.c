@@ -75,6 +75,7 @@
 #include "BKE_collection.h"
 #include "BKE_constraint.h"
 #include "BKE_fcurve.h"
+#include "BKE_group.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
@@ -772,10 +773,11 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 			case ID_GR:
 			{
 				Group *group = (Group *) id;
-				GroupObject *gob;
-				for (gob = group->gobject.first; gob; gob = gob->next) {
-					CALLBACK_INVOKE(gob->ob, IDWALK_CB_USER_ONE);
+				FOREACH_GROUP_OBJECT(group, object)
+				{
+					CALLBACK_INVOKE(object, IDWALK_CB_USER_ONE);
 				}
+				FOREACH_GROUP_OBJECT_END
 				break;
 			}
 

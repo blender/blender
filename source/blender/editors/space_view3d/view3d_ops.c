@@ -46,6 +46,7 @@
 #include "BKE_appdir.h"
 #include "BKE_blender_copybuffer.h"
 #include "BKE_context.h"
+#include "BKE_group.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 
@@ -81,14 +82,16 @@ static int view3d_copybuffer_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	for (Group *group = bmain->group.first; group; group = group->id.next) {
-		for (GroupObject *go = group->gobject.first; go; go = go->next) {
-			if (go->ob && (go->ob->id.tag & LIB_TAG_DOIT)) {
+		FOREACH_GROUP_OBJECT(group, object)
+		{
+			if (object && (object->id.tag & LIB_TAG_DOIT)) {
 				BKE_copybuffer_tag_ID(&group->id);
 				/* don't expand out to all other objects */
 				group->id.tag &= ~LIB_TAG_NEED_EXPAND;
 				break;
 			}
 		}
+		FOREACH_GROUP_OBJECT_END
 	}
 	
 	BLI_make_file_string("/", str, BKE_tempdir_base(), "copybuffer.blend");

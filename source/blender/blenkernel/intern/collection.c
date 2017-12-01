@@ -40,6 +40,7 @@
 #include "BKE_main.h"
 #include "BKE_scene.h"
 
+#include "DNA_group_types.h"
 #include "DNA_ID.h"
 #include "DNA_layer_types.h"
 #include "DNA_object_types.h"
@@ -47,15 +48,28 @@
 
 #include "MEM_guardedalloc.h"
 
+static SceneCollection *collection_master_from_id(const ID *owner_id)
+{
+	switch (GS(owner_id->name)) {
+		case ID_SCE:
+			return ((Scene *)owner_id)->collection;
+		case ID_GR:
+			return ((Group *)owner_id)->collection;
+		default:
+			BLI_assert(!"ID doesn't support collections");
+			return NULL;
+	}
+}
 
 /**
  * Add a collection to a collection ListBase and syncronize all render layers
  * The ListBase is NULL when the collection is to be added to the master collection
  */
-SceneCollection *BKE_collection_add(Scene *scene, SceneCollection *sc_parent, const char *name)
+SceneCollection *BKE_collection_add(ID *owner_id, SceneCollection *sc_parent, const int type, const char *name)
 {
-	SceneCollection *sc_master = BKE_collection_master(scene);
+	SceneCollection *sc_master = collection_master_from_id(owner_id);
 	SceneCollection *sc = MEM_callocN(sizeof(SceneCollection), "New Collection");
+	sc->type = type;
 
 	if (!name) {
 		name = DATA_("New Collection");
@@ -65,10 +79,10 @@ SceneCollection *BKE_collection_add(Scene *scene, SceneCollection *sc_parent, co
 		sc_parent = sc_master;
 	}
 
-	BKE_collection_rename(scene, sc, name);
+	BKE_collection_rename((Scene *)owner_id, sc, name);
 	BLI_addtail(&sc_parent->scene_collections, sc);
 
-	BKE_layer_sync_new_scene_collection(scene, sc_parent, sc);
+	BKE_layer_sync_new_scene_collection(owner_id, sc_parent, sc);
 	return sc;
 }
 
@@ -147,25 +161,25 @@ static void layer_collection_remove(ViewLayer *view_layer, ListBase *lb, const S
 /**
  * Remove a collection from the scene, and syncronize all render layers
  */
-bool BKE_collection_remove(Scene *scene, SceneCollection *sc)
+bool BKE_collection_remove(ID *owner_id, SceneCollection *sc)
 {
-	SceneCollection *sc_master = BKE_collection_master(scene);
+	SceneCollection *sc_master = collection_master_from_id(owner_id);
 
-	/* the master collection cannot be removed */
+	/* The master collection cannot be removed. */
 	if (sc == sc_master) {
 		return false;
 	}
 
-	/* unlink from the respective collection tree */
+	/* Unlink from the respective collection tree. */
 	if (!collection_remlink(sc_master, sc)) {
 		BLI_assert(false);
 	}
 
-	/* clear the collection items */
+	/* Clear the collection items. */
 	collection_free(sc, true);
 
 	/* check all layers that use this collection and clear them */
-	for (ViewLayer *view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
+	for (ViewLayer *view_layer = BKE_view_layer_first_from_id(owner_id); view_layer; view_layer = view_layer->next) {
 		layer_collection_remove(view_layer, &view_layer->layer_collections, sc);
 		view_layer->active_collection = 0;
 	}
@@ -175,11 +189,54 @@ bool BKE_collection_remove(Scene *scene, SceneCollection *sc)
 }
 
 /**
- * Returns the master collection
+ * Copy SceneCollection tree but keep pointing to the same objects
+ *
+ * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
  */
-SceneCollection *BKE_collection_master(const Scene *scene)
+void BKE_collection_copy_data(SceneCollection *sc_dst, SceneCollection *sc_src, const int flag)
 {
-	return scene->collection;
+	BLI_duplicatelist(&sc_dst->objects, &sc_src->objects);
+	if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+		for (LinkData *link = sc_dst->objects.first; link; link = link->next) {
+			id_us_plus(link->data);
+		}
+	}
+
+	BLI_duplicatelist(&sc_dst->filter_objects, &sc_src->filter_objects);
+	if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+		for (LinkData *link = sc_dst->filter_objects.first; link; link = link->next) {
+			id_us_plus(link->data);
+		}
+	}
+
+	BLI_duplicatelist(&sc_dst->scene_collections, &sc_src->scene_collections);
+	for (SceneCollection *nsc_src = sc_src->scene_collections.first, *nsc_dst = sc_dst->scene_collections.first;
+	     nsc_src;
+	     nsc_src = nsc_src->next, nsc_dst = nsc_dst->next)
+	{
+		BKE_collection_copy_data(nsc_dst, nsc_src, flag);
+	}
+}
+
+static SceneCollection *master_collection_from_id(const ID *owner_id)
+{
+	switch (GS(owner_id->name)) {
+		case ID_SCE:
+			return ((const Scene *)owner_id)->collection;
+		case ID_GR:
+			return ((const Group *)owner_id)->collection;
+		default:
+			BLI_assert(!"ID doesn't support scene collection");
+			return NULL;
+	}
+}
+
+/**
+ * Returns the master collection of the scene or group
+ */
+SceneCollection *BKE_collection_master(const ID *owner_id)
+{
+	return master_collection_from_id(owner_id);
 }
 
 struct UniqueNameCheckData {
@@ -207,41 +264,58 @@ static bool collection_unique_name_check(void *arg, const char *name)
 	return false;
 }
 
-void BKE_collection_rename(const Scene *scene, SceneCollection *sc, const char *name)
+static void collection_rename(const ID *owner_id, SceneCollection *sc, const char *name)
 {
-	SceneCollection *sc_master = BKE_collection_master(scene);
+	SceneCollection *sc_master = collection_master_from_id(owner_id);
 	struct UniqueNameCheckData data = {.lb = &sc_master->scene_collections, .lookup_sc = sc};
 
 	BLI_strncpy(sc->name, name, sizeof(sc->name));
 	BLI_uniquename_cb(collection_unique_name_check, &data, DATA_("Collection"), '.', sc->name, sizeof(sc->name));
 }
 
-/**
- * Free (or release) any data used by the master collection (does not free the master collection itself).
- * Used only to clear the entire scene data since it's not doing re-syncing of the LayerCollection tree
- */
-void BKE_collection_master_free(Scene *scene, const bool do_id_user)
+void BKE_collection_rename(const Scene *scene, SceneCollection *sc, const char *name)
 {
-	collection_free(BKE_collection_master(scene), do_id_user);
+	collection_rename(&scene->id, sc, name);
 }
 
-static void collection_object_add(const Scene *scene, SceneCollection *sc, Object *ob)
+/**
+ * Free (or release) any data used by the master collection (does not free the master collection itself).
+ * Used only to clear the entire scene or group data since it's not doing re-syncing of the LayerCollection tree
+ */
+void BKE_collection_master_free(ID *owner_id, const bool do_id_user)
+{
+	collection_free(BKE_collection_master(owner_id), do_id_user);
+}
+
+static void collection_object_add(const ID *owner_id, SceneCollection *sc, Object *ob)
 {
 	BLI_addtail(&sc->objects, BLI_genericNodeN(ob));
-	id_us_plus((ID *)ob);
-	BKE_layer_sync_object_link(scene, sc, ob);
+
+	if (GS(owner_id->name) == ID_SCE) {
+		id_us_plus((ID *)ob);
+	}
+	else {
+		BLI_assert(GS(owner_id->name) == ID_GR);
+		if ((ob->flag & OB_FROMGROUP) == 0) {
+			ob->flag |= OB_FROMGROUP;
+		}
+	}
+
+	BKE_layer_sync_object_link(owner_id, sc, ob);
 }
 
 /**
  * Add object to collection
  */
-void BKE_collection_object_add(const Scene *scene, SceneCollection *sc, Object *ob)
+bool BKE_collection_object_add(const ID *owner_id, SceneCollection *sc, Object *ob)
 {
 	if (BLI_findptr(&sc->objects, ob, offsetof(LinkData, data))) {
 		/* don't add the same object twice */
-		return;
+		return false;
 	}
-	collection_object_add(scene, sc, ob);
+
+	collection_object_add(owner_id, sc, ob);
+	return true;
 }
 
 /**
@@ -253,7 +327,7 @@ void BKE_collection_object_add_from(Scene *scene, Object *ob_src, Object *ob_dst
 	FOREACH_SCENE_COLLECTION(scene, sc)
 	{
 		if (BLI_findptr(&sc->objects, ob_src, offsetof(LinkData, data))) {
-			collection_object_add(scene, sc, ob_dst);
+			collection_object_add(&scene->id, sc, ob_dst);
 		}
 	}
 	FOREACH_SCENE_COLLECTION_END
@@ -274,50 +348,63 @@ void BKE_collection_object_add_from(Scene *scene, Object *ob_src, Object *ob_dst
  * Remove object from collection.
  * \param bmain: Can be NULL if free_us is false.
  */
-void BKE_collection_object_remove(Main *bmain, const Scene *scene, SceneCollection *sc, Object *ob, const bool free_us)
+bool BKE_collection_object_remove(Main *bmain, ID *owner_id, SceneCollection *sc, Object *ob, const bool free_us)
 {
-
 	LinkData *link = BLI_findptr(&sc->objects, ob, offsetof(LinkData, data));
 
 	if (link == NULL) {
-		return;
+		return false;
 	}
 
 	BLI_remlink(&sc->objects, link);
 	MEM_freeN(link);
 
 	TODO_LAYER_SYNC_FILTER; /* need to remove all instances of ob in scene collections -> filter_objects */
-	BKE_layer_sync_object_unlink(scene, sc, ob);
+	BKE_layer_sync_object_unlink(owner_id, sc, ob);
 
-	if (free_us) {
-		BKE_libblock_free_us(bmain, ob);
+	if (GS(owner_id->name) == ID_SCE) {
+		if (free_us) {
+			BKE_libblock_free_us(bmain, ob);
+		}
+		else {
+			id_us_min(&ob->id);
+		}
 	}
 	else {
-		id_us_min(&ob->id);
+		BLI_assert(GS(owner_id->name) == ID_GR);
 	}
+
+	return true;
 }
 
 /**
  * Move object from a collection into another
  */
-void BKE_collection_object_move(const Scene *scene, SceneCollection *sc_dst, SceneCollection *sc_src, Object *ob)
+void BKE_collection_object_move(ID *owner_id, SceneCollection *sc_dst, SceneCollection *sc_src, Object *ob)
 {
-	BKE_collection_object_add(scene, sc_dst, ob);
-	BKE_collection_object_remove(NULL, scene, sc_src, ob, false);
+	BKE_collection_object_add(owner_id, sc_dst, ob);
+	BKE_collection_object_remove(NULL, owner_id, sc_src, ob, false);
 }
 
 /**
  * Remove object from all collections of scene
  */
-void BKE_collections_object_remove(Main *bmain, Scene *scene, Object *ob, const bool free_us)
+bool BKE_collections_object_remove(Main *bmain, ID *owner_id, Object *ob, const bool free_us)
 {
-	BKE_scene_remove_rigidbody_object(scene, ob);
+	bool removed = false;
+	if (GS(owner_id->name) == ID_SCE) {
+		BKE_scene_remove_rigidbody_object((Scene *)owner_id, ob);
+	}
+	else {
+		BLI_assert(GS(owner_id->name) == ID_GR);
+	}
 
-	FOREACH_SCENE_COLLECTION(scene, sc)
+	FOREACH_SCENE_COLLECTION(owner_id, sc)
 	{
-		BKE_collection_object_remove(bmain, scene, sc, ob, free_us);
+		removed |= BKE_collection_object_remove(bmain, owner_id, sc, ob, free_us);
 	}
 	FOREACH_SCENE_COLLECTION_END
+	return removed;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -353,10 +440,10 @@ static bool is_collection_in_tree(const SceneCollection *sc_reference, SceneColl
 	return find_collection_parent(sc_reference, sc_parent) != NULL;
 }
 
-bool BKE_collection_move_above(const Scene *scene, SceneCollection *sc_dst, SceneCollection *sc_src)
+bool BKE_collection_move_above(const ID *owner_id, SceneCollection *sc_dst, SceneCollection *sc_src)
 {
 	/* Find the SceneCollection the sc_src belongs to */
-	SceneCollection *sc_master = BKE_collection_master(scene);
+	SceneCollection *sc_master = master_collection_from_id(owner_id);
 
 	/* Master Layer can't be moved around*/
 	if (ELEM(sc_master, sc_src, sc_dst)) {
@@ -386,16 +473,16 @@ bool BKE_collection_move_above(const Scene *scene, SceneCollection *sc_dst, Scen
 	BLI_insertlinkbefore(&sc_dst_parent->scene_collections, sc_dst, sc_src);
 
 	/* Update the tree */
-	BKE_layer_collection_resync(scene, sc_src_parent);
-	BKE_layer_collection_resync(scene, sc_dst_parent);
+	BKE_layer_collection_resync(owner_id, sc_src_parent);
+	BKE_layer_collection_resync(owner_id, sc_dst_parent);
 
 	return true;
 }
 
-bool BKE_collection_move_below(const Scene *scene, SceneCollection *sc_dst, SceneCollection *sc_src)
+bool BKE_collection_move_below(const ID *owner_id, SceneCollection *sc_dst, SceneCollection *sc_src)
 {
 	/* Find the SceneCollection the sc_src belongs to */
-	SceneCollection *sc_master = BKE_collection_master(scene);
+	SceneCollection *sc_master = master_collection_from_id(owner_id);
 
 	/* Master Layer can't be moved around*/
 	if (ELEM(sc_master, sc_src, sc_dst)) {
@@ -425,16 +512,16 @@ bool BKE_collection_move_below(const Scene *scene, SceneCollection *sc_dst, Scen
 	BLI_insertlinkafter(&sc_dst_parent->scene_collections, sc_dst, sc_src);
 
 	/* Update the tree */
-	BKE_layer_collection_resync(scene, sc_src_parent);
-	BKE_layer_collection_resync(scene, sc_dst_parent);
+	BKE_layer_collection_resync(owner_id, sc_src_parent);
+	BKE_layer_collection_resync(owner_id, sc_dst_parent);
 
 	return true;
 }
 
-bool BKE_collection_move_into(const Scene *scene, SceneCollection *sc_dst, SceneCollection *sc_src)
+bool BKE_collection_move_into(const ID *owner_id, SceneCollection *sc_dst, SceneCollection *sc_src)
 {
 	/* Find the SceneCollection the sc_src belongs to */
-	SceneCollection *sc_master = BKE_collection_master(scene);
+	SceneCollection *sc_master = master_collection_from_id(owner_id);
 	if (sc_src == sc_master) {
 		return false;
 	}
@@ -460,8 +547,8 @@ bool BKE_collection_move_into(const Scene *scene, SceneCollection *sc_dst, Scene
 	BLI_addtail(&sc_dst->scene_collections, sc_src);
 
 	/* Update the tree */
-	BKE_layer_collection_resync(scene, sc_src_parent);
-	BKE_layer_collection_resync(scene, sc_dst);
+	BKE_layer_collection_resync(owner_id, sc_src_parent);
+	BKE_layer_collection_resync(owner_id, sc_dst);
 
 	return true;
 }
@@ -471,7 +558,7 @@ bool BKE_collection_move_into(const Scene *scene, SceneCollection *sc_dst, Scene
 /* scene collection iteractor */
 
 typedef struct SceneCollectionsIteratorData {
-	Scene *scene;
+	ID *owner_id;
 	void **array;
 	int tot, cur;
 } SceneCollectionsIteratorData;
@@ -498,17 +585,20 @@ static void scene_collections_build_array(SceneCollection *sc, void *data)
 	(*array)++;
 }
 
-static void scene_collections_array(Scene *scene, SceneCollection ***collections_array, int *tot)
+static void scene_collections_array(ID *owner_id, SceneCollection ***collections_array, int *tot)
 {
-	SceneCollection *sc = BKE_collection_master(scene);
+	SceneCollection *sc;
 	SceneCollection **array;
 
 	*collections_array = NULL;
 	*tot = 0;
 
-	if (scene == NULL)
+	if (owner_id == NULL) {
 		return;
+	}
 
+	sc = master_collection_from_id(owner_id);
+	BLI_assert(sc != NULL);
 	scene_collection_callback(sc, scene_collections_count, tot);
 
 	if (*tot == 0)
@@ -524,13 +614,13 @@ static void scene_collections_array(Scene *scene, SceneCollection ***collections
  */
 void BKE_scene_collections_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
-	Scene *scene = data_in;
+	ID *owner_id = data_in;
 	SceneCollectionsIteratorData *data = MEM_callocN(sizeof(SceneCollectionsIteratorData), __func__);
 
-	data->scene = scene;
+	data->owner_id = owner_id;
 	iter->data = data;
 
-	scene_collections_array(scene, (SceneCollection ***)&data->array, &data->tot);
+	scene_collections_array(owner_id, (SceneCollection ***)&data->array, &data->tot);
 	BLI_assert(data->tot != 0);
 
 	data->cur = 0;

@@ -57,6 +57,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_group.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_mesh.h"
@@ -90,26 +91,30 @@ void BKE_rigidbody_free_world(RigidBodyWorld *rbw)
 
 	if (rbw->physics_world) {
 		/* free physics references, we assume that all physics objects in will have been added to the world */
-		GroupObject *go;
 		if (rbw->constraints) {
-			for (go = rbw->constraints->gobject.first; go; go = go->next) {
-				if (go->ob && go->ob->rigidbody_constraint) {
-					RigidBodyCon *rbc = go->ob->rigidbody_constraint;
-
-					if (rbc->physics_constraint)
+			FOREACH_GROUP_OBJECT(rbw->constraints, object)
+			{
+				if (object->rigidbody_constraint) {
+					RigidBodyCon *rbc = object->rigidbody_constraint;
+					if (rbc->physics_constraint) {
 						RB_dworld_remove_constraint(rbw->physics_world, rbc->physics_constraint);
+					}
 				}
 			}
+			FOREACH_GROUP_OBJECT_END
 		}
-		if (rbw->group) {
-			for (go = rbw->group->gobject.first; go; go = go->next) {
-				if (go->ob && go->ob->rigidbody_object) {
-					RigidBodyOb *rbo = go->ob->rigidbody_object;
 
-					if (rbo->physics_object)
+		if (rbw->group) {
+			FOREACH_GROUP_OBJECT(rbw->group, object)
+			{
+				if (object->rigidbody_object) {
+					RigidBodyOb *rbo = object->rigidbody_object;
+					if (rbo->physics_object) {
 						RB_dworld_remove_body(rbw->physics_world, rbo->physics_object);
+					}
 				}
 			}
+			FOREACH_GROUP_OBJECT_END
 		}
 		/* free dynamics world */
 		RB_dworld_delete(rbw->physics_world);
@@ -1124,7 +1129,6 @@ void BKE_rigidbody_remove_object(Scene *scene, Object *ob)
 	RigidBodyWorld *rbw = scene->rigidbody_world;
 	RigidBodyOb *rbo = ob->rigidbody_object;
 	RigidBodyCon *rbc;
-	GroupObject *go;
 	int i;
 
 	if (rbw) {
@@ -1144,8 +1148,8 @@ void BKE_rigidbody_remove_object(Scene *scene, Object *ob)
 
 		/* remove object from rigid body constraints */
 		if (rbw->constraints) {
-			for (go = rbw->constraints->gobject.first; go; go = go->next) {
-				Object *obt = go->ob;
+			FOREACH_GROUP_OBJECT(rbw->constraints, obt)
+			{
 				if (obt && obt->rigidbody_constraint) {
 					rbc = obt->rigidbody_constraint;
 					if (ELEM(ob, rbc->ob1, rbc->ob2)) {
@@ -1153,6 +1157,7 @@ void BKE_rigidbody_remove_object(Scene *scene, Object *ob)
 					}
 				}
 			}
+			FOREACH_GROUP_OBJECT_END
 		}
 	}
 
@@ -1186,20 +1191,22 @@ void BKE_rigidbody_remove_constraint(Scene *scene, Object *ob)
 /* Update object array and rigid body count so they're in sync with the rigid body group */
 static void rigidbody_update_ob_array(RigidBodyWorld *rbw)
 {
-	GroupObject *go;
 	int i, n;
 
-	n = BLI_listbase_count(&rbw->group->gobject);
+	n = BLI_listbase_count(&rbw->group->view_layer->object_bases);
 
 	if (rbw->numbodies != n) {
 		rbw->numbodies = n;
 		rbw->objects = realloc(rbw->objects, sizeof(Object *) * rbw->numbodies);
 	}
 
-	for (go = rbw->group->gobject.first, i = 0; go; go = go->next, i++) {
-		Object *ob = go->ob;
-		rbw->objects[i] = ob;
+	i = 0;
+	FOREACH_GROUP_OBJECT(rbw->group, object)
+	{
+		rbw->objects[i] = object;
+		i++;
 	}
+	FOREACH_GROUP_OBJECT_END
 }
 
 static void rigidbody_update_sim_world(Scene *scene, RigidBodyWorld *rbw)
@@ -1313,8 +1320,6 @@ static void rigidbody_update_sim_ob(const struct EvaluationContext *eval_ctx, Sc
  */
 static void rigidbody_update_simulation(const struct EvaluationContext *eval_ctx, Scene *scene, RigidBodyWorld *rbw, bool rebuild)
 {
-	GroupObject *go;
-
 	/* update world */
 	if (rebuild)
 		BKE_rigidbody_validate_sim_world(scene, rbw, true);
@@ -1327,24 +1332,22 @@ static void rigidbody_update_simulation(const struct EvaluationContext *eval_ctx
 	 * Memory management needs redesign here, this is just a dirty workaround.
 	 */
 	if (rebuild && rbw->constraints) {
-		for (go = rbw->constraints->gobject.first; go; go = go->next) {
-			Object *ob = go->ob;
-			if (ob) {
-				RigidBodyCon *rbc = ob->rigidbody_constraint;
-				if (rbc && rbc->physics_constraint) {
-					RB_dworld_remove_constraint(rbw->physics_world, rbc->physics_constraint);
-					RB_constraint_delete(rbc->physics_constraint);
-					rbc->physics_constraint = NULL;
-				}
+		FOREACH_GROUP_OBJECT(rbw->constraints, ob)
+		{
+			RigidBodyCon *rbc = ob->rigidbody_constraint;
+			if (rbc && rbc->physics_constraint) {
+				RB_dworld_remove_constraint(rbw->physics_world, rbc->physics_constraint);
+				RB_constraint_delete(rbc->physics_constraint);
+				rbc->physics_constraint = NULL;
 			}
 		}
+		FOREACH_GROUP_OBJECT_END
 	}
 
 	/* update objects */
-	for (go = rbw->group->gobject.first; go; go = go->next) {
-		Object *ob = go->ob;
-
-		if (ob && ob->type == OB_MESH) {
+	FOREACH_GROUP_OBJECT(rbw->group, ob)
+	{
+		if (ob->type == OB_MESH) {
 			/* validate that we've got valid object set up here... */
 			RigidBodyOb *rbo = ob->rigidbody_object;
 			/* update transformation matrix of the object so we don't get a frame of lag for simple animations */
@@ -1385,62 +1388,59 @@ static void rigidbody_update_simulation(const struct EvaluationContext *eval_ctx
 			rigidbody_update_sim_ob(eval_ctx, scene, rbw, ob, rbo);
 		}
 	}
+	FOREACH_GROUP_OBJECT_END
 	
 	/* update constraints */
 	if (rbw->constraints == NULL) /* no constraints, move on */
 		return;
-	for (go = rbw->constraints->gobject.first; go; go = go->next) {
-		Object *ob = go->ob;
 
-		if (ob) {
-			/* validate that we've got valid object set up here... */
-			RigidBodyCon *rbc = ob->rigidbody_constraint;
-			/* update transformation matrix of the object so we don't get a frame of lag for simple animations */
-			BKE_object_where_is_calc(eval_ctx, scene, ob);
+	FOREACH_GROUP_OBJECT(rbw->constraints, ob)
+	{
+		/* validate that we've got valid object set up here... */
+		RigidBodyCon *rbc = ob->rigidbody_constraint;
+		/* update transformation matrix of the object so we don't get a frame of lag for simple animations */
+		BKE_object_where_is_calc(eval_ctx, scene, ob);
 
-			if (rbc == NULL) {
-				/* Since this object is included in the group but doesn't have
-				 * constraint settings (perhaps it was added manually), add!
-				 */
-				ob->rigidbody_constraint = BKE_rigidbody_create_constraint(scene, ob, RBC_TYPE_FIXED);
+		if (rbc == NULL) {
+			/* Since this object is included in the group but doesn't have
+			 * constraint settings (perhaps it was added manually), add!
+			 */
+			ob->rigidbody_constraint = BKE_rigidbody_create_constraint(scene, ob, RBC_TYPE_FIXED);
+			rigidbody_validate_sim_constraint(rbw, ob, true);
+
+			rbc = ob->rigidbody_constraint;
+		}
+		else {
+			/* perform simulation data updates as tagged */
+			if (rebuild) {
+				/* World has been rebuilt so rebuild constraint */
 				rigidbody_validate_sim_constraint(rbw, ob, true);
-
-				rbc = ob->rigidbody_constraint;
 			}
-			else {
-				/* perform simulation data updates as tagged */
-				if (rebuild) {
-					/* World has been rebuilt so rebuild constraint */
-					rigidbody_validate_sim_constraint(rbw, ob, true);
-				}
-				else if (rbc->flag & RBC_FLAG_NEEDS_VALIDATE) {
-					rigidbody_validate_sim_constraint(rbw, ob, false);
-				}
-				rbc->flag &= ~RBC_FLAG_NEEDS_VALIDATE;
+			else if (rbc->flag & RBC_FLAG_NEEDS_VALIDATE) {
+				rigidbody_validate_sim_constraint(rbw, ob, false);
 			}
+			rbc->flag &= ~RBC_FLAG_NEEDS_VALIDATE;
 		}
 	}
+	FOREACH_GROUP_OBJECT_END
 }
 
 static void rigidbody_update_simulation_post_step(RigidBodyWorld *rbw)
 {
-	GroupObject *go;
-
-	for (go = rbw->group->gobject.first; go; go = go->next) {
-		Object *ob = go->ob;
-
-		if (ob) {
-			RigidBodyOb *rbo = ob->rigidbody_object;
-			/* reset kinematic state for transformed objects */
-			if (rbo && (ob->flag & SELECT) && (G.moving & G_TRANSFORM_OBJ)) {
-				RB_body_set_kinematic_state(rbo->physics_object, rbo->flag & RBO_FLAG_KINEMATIC || rbo->flag & RBO_FLAG_DISABLED);
-				RB_body_set_mass(rbo->physics_object, RBO_GET_MASS(rbo));
-				/* deactivate passive objects so they don't interfere with deactivation of active objects */
-				if (rbo->type == RBO_TYPE_PASSIVE)
-					RB_body_deactivate(rbo->physics_object);
-			}
+	FOREACH_GROUP_BASE(rbw->group, base)
+	{
+		Object *ob = base->object;
+		RigidBodyOb *rbo = ob->rigidbody_object;
+		/* Reset kinematic state for transformed objects. */
+		if (rbo && (base->flag & BASE_SELECTED) && (G.moving & G_TRANSFORM_OBJ)) {
+			RB_body_set_kinematic_state(rbo->physics_object, rbo->flag & RBO_FLAG_KINEMATIC || rbo->flag & RBO_FLAG_DISABLED);
+			RB_body_set_mass(rbo->physics_object, RBO_GET_MASS(rbo));
+			/* Deactivate passive objects so they don't interfere with deactivation of active objects. */
+			if (rbo->type == RBO_TYPE_PASSIVE)
+				RB_body_deactivate(rbo->physics_object);
 		}
 	}
+	FOREACH_GROUP_BASE_END
 }
 
 bool BKE_rigidbody_check_sim_running(RigidBodyWorld *rbw, float ctime)
@@ -1567,7 +1567,7 @@ void BKE_rigidbody_rebuild_world(const struct EvaluationContext *eval_ctx, Scene
 	cache = rbw->pointcache;
 
 	/* flag cache as outdated if we don't have a world or number of objects in the simulation has changed */
-	if (rbw->physics_world == NULL || rbw->numbodies != BLI_listbase_count(&rbw->group->gobject)) {
+	if (rbw->physics_world == NULL || rbw->numbodies != BLI_listbase_count(&rbw->group->view_layer->object_bases)) {
 		cache->flag |= PTCACHE_OUTDATED;
 	}
 

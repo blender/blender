@@ -41,6 +41,7 @@ struct Object;
 struct Scene;
 
 void          BKE_group_free(struct Group *group);
+void          BKE_group_init(struct Group *group);
 struct Group *BKE_group_add(struct Main *bmain, const char *name);
 void          BKE_group_copy_data(struct Main *bmain, struct Group *group_dst, const struct Group *group_src, const int flag);
 struct Group *BKE_group_copy(struct Main *bmain, const struct Group *group);
@@ -53,5 +54,25 @@ bool          BKE_group_object_cyclic_check(struct Main *bmain, struct Object *o
 bool          BKE_group_is_animated(struct Group *group, struct Object *parent);
 
 void          BKE_group_handle_recalc_and_update(const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *parent, struct Group *group);
+
+#define FOREACH_GROUP_BASE(_group, _base)                         \
+	for (Base *_base = (Base *)(_group)->view_layer->object_bases.first; \
+	     _base;                                                   \
+		 _base = _base->next)                                     \
+	{
+
+#define FOREACH_GROUP_BASE_END                                    \
+	}
+
+#define FOREACH_GROUP_OBJECT(_group, _object)                     \
+	for (Base *_base = (Base *)(_group)->view_layer->object_bases.first; \
+	     _base;                                                   \
+		 _base = _base->next)                                     \
+	{                                                             \
+		Object *_object = _base->object;                          \
+		BLI_assert(_object != NULL);
+
+#define FOREACH_GROUP_OBJECT_END                                  \
+	}
 
 #endif  /* __BKE_GROUP_H__ */

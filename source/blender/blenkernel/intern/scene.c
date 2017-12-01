@@ -151,89 +151,6 @@ static void remove_sequencer_fcurves(Scene *sce)
 	}
 }
 
-/* copy SceneCollection tree but keep pointing to the same objects */
-static void scene_collection_copy(SceneCollection *sc_dst, SceneCollection *sc_src, const int flag)
-{
-	BLI_duplicatelist(&sc_dst->objects, &sc_src->objects);
-	if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-		for (LinkData *link = sc_dst->objects.first; link; link = link->next) {
-			id_us_plus(link->data);
-		}
-	}
-
-	BLI_duplicatelist(&sc_dst->filter_objects, &sc_src->filter_objects);
-	if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-		for (LinkData *link = sc_dst->filter_objects.first; link; link = link->next) {
-			id_us_plus(link->data);
-		}
-	}
-
-	BLI_duplicatelist(&sc_dst->scene_collections, &sc_src->scene_collections);
-	for (SceneCollection *nsc_src = sc_src->scene_collections.first, *nsc_dst = sc_dst->scene_collections.first;
-	     nsc_src;
-	     nsc_src = nsc_src->next, nsc_dst = nsc_dst->next)
-	{
-		scene_collection_copy(nsc_dst, nsc_src, flag);
-	}
-}
-
-/* Find the equivalent SceneCollection in the new tree */
-static SceneCollection *scene_collection_from_new_tree(SceneCollection *sc_reference, SceneCollection *sc_dst, SceneCollection *sc_src)
-{
-	if (sc_src == sc_reference) {
-		return sc_dst;
-	}
-
-	for (SceneCollection *nsc_src = sc_src->scene_collections.first, *nsc_dst = sc_dst->scene_collections.first;
-	     nsc_src;
-	     nsc_src = nsc_src->next, nsc_dst = nsc_dst->next)
-	{
-		SceneCollection *found = scene_collection_from_new_tree(sc_reference, nsc_dst, nsc_src);
-		if (found != NULL) {
-			return found;
-		}
-	}
-	return NULL;
-}
-
-static void layer_collections_sync_flags(ListBase *layer_collections_dst, const ListBase *layer_collections_src)
-{
-	LayerCollection *layer_collection_dst = (LayerCollection *)layer_collections_dst->first;
-	const LayerCollection *layer_collection_src = (const LayerCollection *)layer_collections_src->first;
-	while (layer_collection_dst != NULL) {
-		layer_collection_dst->flag = layer_collection_src->flag;
-
-		if (layer_collection_dst->properties != NULL) {
-			IDP_FreeProperty(layer_collection_dst->properties);
-			MEM_SAFE_FREE(layer_collection_dst->properties);
-		}
-
-		if (layer_collection_src->properties != NULL) {
-			layer_collection_dst->properties = IDP_CopyProperty(layer_collection_src->properties);
-		}
-
-		layer_collections_sync_flags(&layer_collection_dst->layer_collections,
-		                             &layer_collection_src->layer_collections);
-
-		layer_collection_dst = layer_collection_dst->next;
-		layer_collection_src = layer_collection_src->next;
-	}
-}
-
-
-/* recreate the LayerCollection tree */
-static void layer_collections_recreate(
-        ViewLayer *view_layer_dst, ListBase *lb_src, SceneCollection *mc_dst, SceneCollection *mc_src)
-{
-	for (LayerCollection *lc_src = lb_src->first; lc_src; lc_src = lc_src->next) {
-		SceneCollection *sc_dst = scene_collection_from_new_tree(lc_src->scene_collection, mc_dst, mc_src);
-		BLI_assert(sc_dst);
-
-		/* instead of synchronizing both trees we simply re-create it */
-		BKE_collection_link(view_layer_dst, sc_dst);
-	}
-}
-
 /**
  * Only copy internal data of Scene ID from source to already allocated/initialized destination.
  * You probably nerver want to use that directly, use id_copy or BKE_id_copy_ex for typical needs.
@@ -254,11 +171,11 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 
 	/* layers and collections */
 	sce_dst->collection = MEM_dupallocN(sce_src->collection);
-	SceneCollection *mc_src = BKE_collection_master(sce_src);
-	SceneCollection *mc_dst = BKE_collection_master(sce_dst);
+	SceneCollection *mc_src = BKE_collection_master(&sce_src->id);
+	SceneCollection *mc_dst = BKE_collection_master(&sce_dst->id);
 
-	/* recursively creates a new SceneCollection tree */
-	scene_collection_copy(mc_dst, mc_src, flag_subdata);
+	/* Recursively creates a new SceneCollection tree. */
+	BKE_collection_copy_data(mc_dst, mc_src, flag_subdata);
 
 	IDPropertyTemplate val = {0};
 	BLI_duplicatelist(&sce_dst->view_layers, &sce_src->view_layers);
@@ -266,39 +183,7 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 	     view_layer_src;
 	     view_layer_src = view_layer_src->next, view_layer_dst = view_layer_dst->next)
 	{
-		if (view_layer_dst->id_properties != NULL) {
-			view_layer_dst->id_properties = IDP_CopyProperty_ex(view_layer_dst->id_properties, flag_subdata);
-		}
-		BKE_freestyle_config_copy(&view_layer_dst->freestyle_config, &view_layer_src->freestyle_config, flag_subdata);
-
-		view_layer_dst->stats = NULL;
-		view_layer_dst->properties_evaluated = NULL;
-		view_layer_dst->properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-		IDP_MergeGroup_ex(view_layer_dst->properties, view_layer_src->properties, true, flag_subdata);
-
-		/* we start fresh with no overrides and no visibility flags set
-		 * instead of syncing both trees we simply unlink and relink the scene collection */
-		BLI_listbase_clear(&view_layer_dst->layer_collections);
-		BLI_listbase_clear(&view_layer_dst->object_bases);
-		BLI_listbase_clear(&view_layer_dst->drawdata);
-
-		layer_collections_recreate(view_layer_dst, &view_layer_src->layer_collections, mc_dst, mc_src);
-
-		/* Now we handle the syncing for visibility, selectability, ... */
-		layer_collections_sync_flags(&view_layer_dst->layer_collections, &view_layer_src->layer_collections);
-
-		Object *active_ob = OBACT(view_layer_src);
-		for (Base *base_src = view_layer_src->object_bases.first, *base_dst = view_layer_dst->object_bases.first;
-		     base_src;
-		     base_src = base_src->next, base_dst = base_dst->next)
-		{
-			base_dst->flag = base_src->flag;
-			base_dst->flag_legacy = base_src->flag_legacy;
-
-			if (base_dst->object == active_ob) {
-				view_layer_dst->basact = base_dst;
-			}
-		}
+		BKE_view_layer_copy_data(view_layer_dst, view_layer_src, mc_dst, mc_src, flag_subdata);
 	}
 
 	sce_dst->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
@@ -659,7 +544,7 @@ void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
 	}
 
 	/* Master Collection */
-	BKE_collection_master_free(sce, do_id_user);
+	BKE_collection_master_free(&sce->id, do_id_user);
 	MEM_freeN(sce->collection);
 	sce->collection = NULL;
 
@@ -1092,7 +977,6 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
 {
 	Object *ob;
 	Group *group;
-	GroupObject *go;
 	
 	/* check for cyclic sets, for reading old files but also for definite security (py?) */
 	BKE_scene_validate_setscene(bmain, scene);
@@ -1107,11 +991,11 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
 
 	/* group flags again */
 	for (group = bmain->group.first; group; group = group->id.next) {
-		for (go = group->gobject.first; go; go = go->next) {
-			if (go->ob) {
-				go->ob->flag |= OB_FROMGROUP;
-			}
+		FOREACH_GROUP_OBJECT(group, object)
+		{
+			object->flag |= OB_FROMGROUP;
 		}
+		FOREACH_GROUP_OBJECT_END
 	}
 
 	/* copy layers and flags from bases to objects */

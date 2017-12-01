@@ -270,6 +270,39 @@ static void stats_object_sculpt_dynamic_topology(Object *ob, SceneStats *stats)
 	stats->tottri = ob->sculpt->bm->totface;
 }
 
+static void stats_dupli_object_group_count(SceneCollection *scene_collection, int *count)
+{
+	for (LinkData *link = scene_collection->objects.first; link; link = link->next) {
+		(*count)++;
+	}
+
+	SceneCollection *scene_collection_nested;
+	for (scene_collection_nested = scene_collection->scene_collections.first;
+	     scene_collection_nested;
+	     scene_collection_nested = scene_collection_nested->next)
+	{
+		stats_dupli_object_group_count(scene_collection_nested, count);
+	}
+}
+
+static void stats_dupli_object_group_doit(SceneCollection *scene_collection, SceneStats *stats, ParticleSystem *psys,
+                                          const int totgroup, int *cur)
+{
+	for (LinkData *link = scene_collection->objects.first; link; link = link->next) {
+		int tot = count_particles_mod(psys, totgroup, *cur);
+		stats_object(link->data, 0, tot, stats);
+		(*cur)++;
+	}
+
+	SceneCollection *scene_collection_nested;
+	for (scene_collection_nested = scene_collection->scene_collections.first;
+	     scene_collection_nested;
+	     scene_collection_nested = scene_collection_nested->next)
+	{
+		stats_dupli_object_group_doit(scene_collection_nested, stats, psys, totgroup, cur);
+	}
+}
+
 static void stats_dupli_object(Base *base, Object *ob, SceneStats *stats)
 {
 	if (base->flag & BASE_SELECTED) stats->totobjsel++;
@@ -287,17 +320,11 @@ static void stats_dupli_object(Base *base, Object *ob, SceneStats *stats)
 				stats_object(part->dup_ob, 0, tot, stats);
 			}
 			else if (part->draw_as == PART_DRAW_GR && part->dup_group) {
-				GroupObject *go;
-				int tot, totgroup = 0, cur = 0;
-				
-				for (go = part->dup_group->gobject.first; go; go = go->next)
-					totgroup++;
+				int totgroup = 0, cur = 0;
 
-				for (go = part->dup_group->gobject.first; go; go = go->next) {
-					tot = count_particles_mod(psys, totgroup, cur);
-					stats_object(go->ob, 0, tot, stats);
-					cur++;
-				}
+				SceneCollection *scene_collection = part->dup_group->collection;
+				stats_dupli_object_group_count(scene_collection, &totgroup);
+				stats_dupli_object_group_doit(scene_collection, stats, psys, totgroup, &cur);
 			}
 		}
 		

@@ -250,9 +250,16 @@ static void restrictbutton_gp_layer_flag_cb(bContext *C, void *UNUSED(poin), voi
 static void enablebutton_collection_flag_cb(bContext *C, void *poin, void *poin2)
 {
 	Main *bmain = CTX_data_main(C);
-	Scene *scene = poin;
+	Scene *scene = CTX_data_scene(C);
+	ID *id = poin;
 	LayerCollection *layer_collection = poin2;
-	ViewLayer *view_layer = BKE_view_layer_find_from_collection(scene, layer_collection);
+	ViewLayer *view_layer = BKE_view_layer_find_from_collection(id, layer_collection);
+
+	/* TODO: This breaks when you see the collections of a group. (dfelinto) */
+	if (view_layer == NULL) {
+		WM_reportf(RPT_INFO, "Enable/disable of group collections disabled for now");
+		return;
+	}
 
 	/* We need to toggle the flag since this is called after the flag is already set. */
 	layer_collection->flag ^= COLLECTION_DISABLED;
@@ -273,11 +280,16 @@ static void enablebutton_collection_flag_cb(bContext *C, void *poin, void *poin2
 
 static void restrictbutton_collection_flag_cb(bContext *C, void *poin, void *UNUSED(poin2))
 {
-	Scene *scene = poin;
+	ID *id = (ID *)poin;
+
 	/* hide and deselect bases that are directly influenced by this LayerCollection */
 	/* TODO(sergey): Use proper flag for tagging here. */
-	DEG_id_tag_update(&scene->id, 0);
-	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+	DEG_id_tag_update(id, 0);
+
+	if (GS(id->name) == ID_SCE) {
+		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, id);
+	}
+
 	WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, NULL);
 }
 
@@ -595,22 +607,24 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_ENABLEX), te->ys, UI_UNIT_X,
 				                      UI_UNIT_Y, &collection->flag, 0, 0, 0, 0,
 				                      TIP_("Enable/Disable collection from depsgraph"));
-				UI_but_func_set(bt, enablebutton_collection_flag_cb, scene, collection);
+				UI_but_func_set(bt, enablebutton_collection_flag_cb, tselem->id, collection);
 				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
 
 				bt = uiDefIconButBitS(block, UI_BTYPE_ICON_TOGGLE_N, COLLECTION_VISIBLE, 0, ICON_RESTRICT_VIEW_OFF,
 				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X,
 				                      UI_UNIT_Y, &collection->flag, 0, 0, 0, 0,
 				                      TIP_("Restrict/Allow 3D View visibility of objects in the collection"));
-				UI_but_func_set(bt, restrictbutton_collection_flag_cb, scene, collection);
+				UI_but_func_set(bt, restrictbutton_collection_flag_cb, tselem->id, collection);
 				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
 
-				bt = uiDefIconButBitS(block, UI_BTYPE_ICON_TOGGLE_N, COLLECTION_SELECTABLE, 0, ICON_RESTRICT_SELECT_OFF,
-				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), te->ys, UI_UNIT_X,
-				                      UI_UNIT_Y, &collection->flag, 0, 0, 0, 0,
-				                      TIP_("Restrict/Allow 3D View selection of objects in the collection"));
-				UI_but_func_set(bt, restrictbutton_collection_flag_cb, scene, collection);
-				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+				if (collection->scene_collection->type == COLLECTION_TYPE_NONE) {
+					bt = uiDefIconButBitS(block, UI_BTYPE_ICON_TOGGLE_N, COLLECTION_SELECTABLE, 0, ICON_RESTRICT_SELECT_OFF,
+										  (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), te->ys, UI_UNIT_X,
+										  UI_UNIT_Y, &collection->flag, 0, 0, 0, 0,
+										  TIP_("Restrict/Allow 3D View selection of objects in the collection"));
+					UI_but_func_set(bt, restrictbutton_collection_flag_cb, scene, collection);
+					UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+				}
 
 				UI_block_emboss_set(block, UI_EMBOSS);
 			}

@@ -54,8 +54,15 @@ const EnumPropertyItem rna_enum_layer_collection_mode_settings_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+const EnumPropertyItem rna_enum_collection_type_items[] = {
+	{COLLECTION_TYPE_NONE, "NONE", 0, "Normal", ""},
+	{COLLECTION_TYPE_GROUP_INTERNAL, "GROUP_INTERNAL", 0, "Group Internal", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 #ifdef RNA_RUNTIME
 
+#include "DNA_group_types.h"
 #include "DNA_object_types.h"
 
 #include "RNA_access.h"
@@ -68,6 +75,20 @@ const EnumPropertyItem rna_enum_layer_collection_mode_settings_type_items[] = {
 
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
+
+static StructRNA *rna_SceneCollection_refine(PointerRNA *ptr)
+{
+	SceneCollection *scene_collection = (SceneCollection *)ptr->data;
+	switch (scene_collection->type) {
+		case COLLECTION_TYPE_GROUP_INTERNAL:
+		case COLLECTION_TYPE_NONE:
+			return &RNA_SceneCollection;
+		default:
+			BLI_assert(!"Collection type not fully implemented");
+			break;
+	}
+	return &RNA_SceneCollection;
+}
 
 static void rna_SceneCollection_name_set(PointerRNA *ptr, const char *value)
 {
@@ -96,9 +117,7 @@ static PointerRNA rna_SceneCollection_objects_get(CollectionPropertyIterator *it
 
 static int rna_SceneCollection_move_above(ID *id, SceneCollection *sc_src, Main *bmain, SceneCollection *sc_dst)
 {
-	Scene *scene = (Scene *)id;
-
-	if (!BKE_collection_move_above(scene, sc_dst, sc_src)) {
+	if (!BKE_collection_move_above(id, sc_dst, sc_src)) {
 		return 0;
 	}
 
@@ -110,9 +129,7 @@ static int rna_SceneCollection_move_above(ID *id, SceneCollection *sc_src, Main 
 
 static int rna_SceneCollection_move_below(ID *id, SceneCollection *sc_src, Main *bmain, SceneCollection *sc_dst)
 {
-	Scene *scene = (Scene *)id;
-
-	if (!BKE_collection_move_below(scene, sc_dst, sc_src)) {
+	if (!BKE_collection_move_below(id, sc_dst, sc_src)) {
 		return 0;
 	}
 
@@ -124,9 +141,7 @@ static int rna_SceneCollection_move_below(ID *id, SceneCollection *sc_src, Main 
 
 static int rna_SceneCollection_move_into(ID *id, SceneCollection *sc_src, Main *bmain, SceneCollection *sc_dst)
 {
-	Scene *scene = (Scene *)id;
-
-	if (!BKE_collection_move_into(scene, sc_dst, sc_src)) {
+	if (!BKE_collection_move_into(id, sc_dst, sc_src)) {
 		return 0;
 	}
 
@@ -139,8 +154,7 @@ static int rna_SceneCollection_move_into(ID *id, SceneCollection *sc_src, Main *
 static SceneCollection *rna_SceneCollection_new(
         ID *id, SceneCollection *sc_parent, Main *bmain, const char *name)
 {
-	Scene *scene = (Scene *)id;
-	SceneCollection *sc = BKE_collection_add(scene, sc_parent, name);
+	SceneCollection *sc = BKE_collection_add(id, sc_parent, COLLECTION_TYPE_NONE, name);
 
 	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
@@ -151,7 +165,6 @@ static SceneCollection *rna_SceneCollection_new(
 static void rna_SceneCollection_remove(
         ID *id, SceneCollection *sc_parent, Main *bmain, ReportList *reports, PointerRNA *sc_ptr)
 {
-	Scene *scene = (Scene *)id;
 	SceneCollection *sc = sc_ptr->data;
 
 	const int index = BLI_findindex(&sc_parent->scene_collections, sc);
@@ -161,7 +174,7 @@ static void rna_SceneCollection_remove(
 		return;
 	}
 
-	if (!BKE_collection_remove(scene, sc)) {
+	if (!BKE_collection_remove(id, sc)) {
 		BKE_reportf(reports, RPT_ERROR, "Collection '%s' could not be removed from collection '%s'",
 		            sc->name, sc_parent->name);
 		return;
@@ -203,7 +216,7 @@ void rna_SceneCollection_object_link(
 		return;
 	}
 
-	BKE_collection_object_add(scene, sc, ob);
+	BKE_collection_object_add(&scene->id, sc, ob);
 
 	/* TODO(sergey): Only update relations for the current scene. */
 	DEG_relations_tag_update(bmain);
@@ -226,7 +239,7 @@ static void rna_SceneCollection_object_unlink(
 		return;
 	}
 
-	BKE_collection_object_remove(bmain, scene, sc, ob, false);
+	BKE_collection_object_remove(bmain, &scene->id, sc, ob, false);
 
 	/* needed otherwise the depgraph will contain freed objects which can crash, see [#20958] */
 	DEG_relations_tag_update(bmain);
@@ -417,11 +430,11 @@ static void rna_ViewLayerEngineSettings_update(bContext *C, PointerRNA *UNUSED(p
 	DEG_id_tag_update(&scene->id, 0);
 }
 
-static void rna_LayerCollectionEngineSettings_update(bContext *C, PointerRNA *UNUSED(ptr))
+static void rna_LayerCollectionEngineSettings_update(bContext *UNUSED(C), PointerRNA *ptr)
 {
-	Scene *scene = CTX_data_scene(C);
+	ID *id = ptr->id.data;
 	/* TODO(sergey): Use proper flag for tagging here. */
-	DEG_id_tag_update(&scene->id, 0);
+	DEG_id_tag_update(id, 0);
 }
 
 static void rna_LayerCollectionEngineSettings_wire_update(bContext *C, PointerRNA *UNUSED(ptr))
@@ -641,9 +654,7 @@ static PointerRNA rna_LayerCollection_objects_get(CollectionPropertyIterator *it
 
 static int rna_LayerCollection_move_above(ID *id, LayerCollection *lc_src, Main *bmain, LayerCollection *lc_dst)
 {
-	Scene *scene = (Scene *)id;
-
-	if (!BKE_layer_collection_move_above(scene, lc_dst, lc_src)) {
+	if (!BKE_layer_collection_move_above(id, lc_dst, lc_src)) {
 		return 0;
 	}
 
@@ -655,9 +666,7 @@ static int rna_LayerCollection_move_above(ID *id, LayerCollection *lc_src, Main 
 
 static int rna_LayerCollection_move_below(ID *id, LayerCollection *lc_src, Main *bmain, LayerCollection *lc_dst)
 {
-	Scene *scene = (Scene *)id;
-
-	if (!BKE_layer_collection_move_below(scene, lc_dst, lc_src)) {
+	if (!BKE_layer_collection_move_below(id, lc_dst, lc_src)) {
 		return 0;
 	}
 
@@ -669,9 +678,7 @@ static int rna_LayerCollection_move_below(ID *id, LayerCollection *lc_src, Main 
 
 static int rna_LayerCollection_move_into(ID *id, LayerCollection *lc_src, Main *bmain, LayerCollection *lc_dst)
 {
-	Scene *scene = (Scene *)id;
-
-	if (!BKE_layer_collection_move_into(scene, lc_dst, lc_src)) {
+	if (!BKE_layer_collection_move_into(id, lc_dst, lc_src)) {
 		return 0;
 	}
 
@@ -681,19 +688,27 @@ static int rna_LayerCollection_move_into(ID *id, LayerCollection *lc_src, Main *
 	return 1;
 }
 
-static void rna_LayerCollection_flag_update(bContext *C, PointerRNA *UNUSED(ptr))
+static void rna_LayerCollection_flag_update(bContext *C, PointerRNA *ptr)
 {
-	Scene *scene = CTX_data_scene(C);
+	ID *id = ptr->id.data;
 	/* TODO(sergey): Use proper flag for tagging here. */
-	DEG_id_tag_update(&scene->id, 0);
-	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+	DEG_id_tag_update(id, 0);
+	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, CTX_data_scene(C));
 }
 
 static void rna_LayerCollection_enable_set(
         ID *id, LayerCollection *layer_collection, Main *bmain, bContext *C, ReportList *reports, int value)
 {
-	Scene *scene = (Scene *)id;
-	ViewLayer *view_layer = BKE_view_layer_find_from_collection(scene, layer_collection);
+	ViewLayer *view_layer;
+	if (GS(id->name) == ID_SCE) {
+		Scene *scene = (Scene *)id;
+		view_layer = BKE_view_layer_find_from_collection(&scene->id, layer_collection);
+	}
+	else {
+		BLI_assert(GS(id->name) == ID_GR);
+		Group *group = (Group *)id;
+		view_layer = group->view_layer;
+	}
 
 	if (layer_collection->flag & COLLECTION_DISABLED) {
 		if (value == 1) {
@@ -715,6 +730,7 @@ static void rna_LayerCollection_enable_set(
 		}
 	}
 
+	Scene *scene = CTX_data_scene(C);
 	DEG_relations_tag_update(bmain);
 	/* TODO(sergey): Use proper flag for tagging here. */
 	DEG_id_tag_update(&scene->id, 0);
@@ -1034,12 +1050,18 @@ static void rna_def_scene_collection(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "SceneCollection", NULL);
 	RNA_def_struct_ui_text(srna, "Scene Collection", "Collection");
+	RNA_def_struct_refine_func(srna, "rna_SceneCollection_refine");
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SceneCollection_name_set");
 	RNA_def_property_ui_text(prop, "Name", "Collection name");
 	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, NULL);
+
+	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, rna_enum_collection_type_items);
+	RNA_def_property_ui_text(prop, "Type", "Type of collection");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "filter", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SceneCollection_filter_set");

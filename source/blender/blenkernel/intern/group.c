@@ -45,32 +45,53 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_collection.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_icons.h"
+#include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
-static void free_group_object(GroupObject *go)
-{
-	MEM_freeN(go);
-}
-
 /** Free (or release) any data used by this group (does not free the group itself). */
 void BKE_group_free(Group *group)
 {
-	/* don't free group itself */
-	GroupObject *go;
-
 	/* No animdata here. */
+	BKE_previewimg_free(&group->preview);
 
-	while ((go = BLI_pophead(&group->gobject))) {
-		free_group_object(go);
+	if (group->view_layer != NULL) {
+		BKE_view_layer_free(group->view_layer);
+		group->view_layer = NULL;
 	}
 
-	BKE_previewimg_free(&group->preview);
+	if (group->collection != NULL) {
+		BKE_collection_master_free(&group->id, false);
+		MEM_freeN(group->collection);
+		group->collection = NULL;
+	}
+}
+
+/**
+ * Run when adding new groups or during doversion.
+ */
+void BKE_group_init(Group *group)
+{
+	group->collection = MEM_callocN(sizeof(SceneCollection), __func__);
+	BLI_strncpy(group->collection->name, "Master Collection", sizeof(group->collection->name));
+	group->view_layer = NULL; /* groups are not calloced. */
+	group->view_layer = BKE_view_layer_group_add(group);
+
+	/* Unlink the master collection. */
+	BKE_collection_unlink(group->view_layer, group->view_layer->layer_collections.first);
+
+	/* Create and link a new default collection. */
+	SceneCollection *defaut_collection = BKE_collection_add(&group->id,
+	                                                        NULL,
+	                                                        COLLECTION_TYPE_GROUP_INTERNAL,
+	                                                        "Default Collection");
+	BKE_collection_link(group->view_layer, defaut_collection);
 }
 
 Group *BKE_group_add(Main *bmain, const char *name)
@@ -83,7 +104,7 @@ Group *BKE_group_add(Main *bmain, const char *name)
 	group->layer = (1 << 20) - 1;
 
 	group->preview = NULL;
-
+	BKE_group_init(group);
 	return group;
 }
 
@@ -97,7 +118,8 @@ Group *BKE_group_add(Main *bmain, const char *name)
  */
 void BKE_group_copy_data(Main *UNUSED(bmain), Group *group_dst, const Group *group_src, const int flag)
 {
-	BLI_duplicatelist(&group_dst->gobject, &group_src->gobject);
+	/* We never handle usercount here for own data. */
+	const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
 
 	/* Do not copy group's preview (same behavior as for objects). */
 	if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0 && false) {  /* XXX TODO temp hack */
@@ -106,6 +128,18 @@ void BKE_group_copy_data(Main *UNUSED(bmain), Group *group_dst, const Group *gro
 	else {
 		group_dst->preview = NULL;
 	}
+
+	group_dst->collection = MEM_dupallocN(group_src->collection);
+	SceneCollection *master_collection_src = BKE_collection_master(&group_src->id);
+	SceneCollection *master_collection_dst = BKE_collection_master(&group_dst->id);
+
+	/* Recursively creates a new SceneCollection tree. */
+	BKE_collection_copy_data(master_collection_dst, master_collection_src,
+	                         flag_subdata);
+
+	BKE_view_layer_copy_data(group_dst->view_layer, group_src->view_layer,
+	                          master_collection_dst, master_collection_src,
+	                          flag_subdata);
 }
 
 Group *BKE_group_copy(Main *bmain, const Group *group)
@@ -123,23 +157,19 @@ void BKE_group_make_local(Main *bmain, Group *group, const bool lib_local)
 /* external */
 static bool group_object_add_internal(Group *group, Object *ob)
 {
-	GroupObject *go;
-	
 	if (group == NULL || ob == NULL) {
 		return false;
 	}
-	
-	/* check if the object has been added already */
-	if (BLI_findptr(&group->gobject, ob, offsetof(GroupObject, ob))) {
+
+	/* For now always add to master collection of the group. */
+	SceneCollection *scene_collection = GROUP_MASTER_COLLECTION(group);
+
+	/* If the object has been added already it returns false. */
+	if (BKE_collection_object_add(&group->id, scene_collection, ob) == false) {
 		return false;
 	}
-	
-	go = MEM_callocN(sizeof(GroupObject), "groupobject");
-	BLI_addtail(&group->gobject, go);
-	
-	go->ob = ob;
-	id_us_ensure_real(&go->ob->id);
-	
+
+	id_us_ensure_real(&ob->id);
 	return true;
 }
 
@@ -157,24 +187,17 @@ bool BKE_group_object_add(Group *group, Object *object)
 }
 
 /* also used for (ob == NULL) */
-static int group_object_unlink_internal(Group *group, Object *ob)
+static bool group_object_unlink_internal(Group *group, Object *ob)
 {
-	GroupObject *go, *gon;
-	int removed = 0;
-	if (group == NULL) return 0;
-	
-	go = group->gobject.first;
-	while (go) {
-		gon = go->next;
-		if (go->ob == ob) {
-			BLI_remlink(&group->gobject, go);
-			free_group_object(go);
-			removed = 1;
-			/* should break here since an object being in a group twice cant happen? */
-		}
-		go = gon;
+	if (group == NULL) {
+		return false;
 	}
-	return removed;
+
+	if (BKE_collections_object_remove(NULL, &group->id, ob, false)) {
+		return true;
+	}
+
+	return false;
 }
 
 static bool group_object_cyclic_check_internal(Object *object, Group *group)
@@ -191,12 +214,13 @@ static bool group_object_cyclic_check_internal(Object *object, Group *group)
 		if (dup_group == group)
 			return true;
 		else {
-			GroupObject *gob;
-			for (gob = dup_group->gobject.first; gob; gob = gob->next) {
-				if (group_object_cyclic_check_internal(gob->ob, group)) {
+			FOREACH_GROUP_OBJECT(dup_group, group_object)
+			{
+				if (group_object_cyclic_check_internal(group_object, dup_group)) {
 					return true;
 				}
 			}
+			FOREACH_GROUP_OBJECT_END
 		}
 
 		/* un-flag the object, it's allowed to have the same group multiple times in parallel */
@@ -234,7 +258,7 @@ bool BKE_group_object_exists(Group *group, Object *ob)
 		return false;
 	}
 	else {
-		return (BLI_findptr(&group->gobject, ob, offsetof(GroupObject, ob)) != NULL);
+		return (BLI_findptr(&group->view_layer->object_bases, ob, offsetof(Base, object)));
 	}
 }
 
@@ -255,17 +279,13 @@ Group *BKE_group_object_find(Group *group, Object *ob)
 
 bool BKE_group_is_animated(Group *group, Object *UNUSED(parent))
 {
-	GroupObject *go;
-
-#if 0 /* XXX OLD ANIMSYS, NLASTRIPS ARE NO LONGER USED */
-	if (parent->nlastrips.first)
-		return 1;
-#endif
-
-	for (go = group->gobject.first; go; go = go->next)
-		if (go->ob && go->ob->proxy)
+	FOREACH_GROUP_OBJECT(group, object)
+	{
+		if (object->proxy) {
 			return true;
-
+		}
+	}
+	FOREACH_GROUP_OBJECT_END
 	return false;
 }
 
@@ -317,8 +337,6 @@ static void group_replaces_nla(Object *parent, Object *target, char mode)
 /* note: does not work for derivedmesh and render... it recreates all again in convertblender.c */
 void BKE_group_handle_recalc_and_update(const struct EvaluationContext *eval_ctx, Scene *scene, Object *UNUSED(parent), Group *group)
 {
-	GroupObject *go;
-	
 #if 0 /* warning, isn't clearing the recalc flag on the object which causes it to run all the time,
 	   * not just on frame change.
 	   * This isn't working because the animation data is only re-evaluated on frame change so commenting for now
@@ -352,12 +370,12 @@ void BKE_group_handle_recalc_and_update(const struct EvaluationContext *eval_ctx
 #endif
 	{
 		/* only do existing tags, as set by regular depsgraph */
-		for (go = group->gobject.first; go; go = go->next) {
-			if (go->ob) {
-				if (go->ob->id.tag & LIB_TAG_ID_RECALC_ALL) {
-					BKE_object_handle_update(eval_ctx, scene, go->ob);
-				}
+		FOREACH_GROUP_OBJECT(group, object)
+		{
+			if (object->id.tag & LIB_TAG_ID_RECALC_ALL) {
+				BKE_object_handle_update(eval_ctx, scene, object);
 			}
 		}
+		FOREACH_GROUP_OBJECT_END
 	}
 }

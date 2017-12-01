@@ -428,9 +428,11 @@ void DepsgraphNodeBuilder::build_group(Group *group)
 	}
 	group_id->tag |= LIB_TAG_DOIT;
 
-	LINKLIST_FOREACH (GroupObject *, go, &group->gobject) {
-		build_object(NULL, go->ob, DEG_ID_LINKED_INDIRECTLY);
+	LINKLIST_FOREACH(Base *, base, &group->view_layer->object_bases) {
+		build_object(NULL, base->object, DEG_ID_LINKED_INDIRECTLY);
 	}
+
+	build_view_layer_collections(&group->id, group->view_layer);
 }
 
 void DepsgraphNodeBuilder::build_object(Base *base,
@@ -802,8 +804,8 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
 
 	/* objects - simulation participants */
 	if (rbw->group) {
-		LINKLIST_FOREACH (GroupObject *, go, &rbw->group->gobject) {
-			Object *object = go->ob;
+		LINKLIST_FOREACH (Base *, base, &rbw->group->view_layer->object_bases) {
+			Object *object = base->object;
 
 			if (!object || (object->type != OB_MESH))
 				continue;

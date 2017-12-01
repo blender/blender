@@ -67,9 +67,8 @@ typedef enum TreeTraversalAction {
 
 /**
  * Callback type for reinserting elements at a different position, used to allow user customizable element order.
- * Passing scene right now, may be better to allow some custom data.
  */
-typedef void (*TreeElementReinsertFunc)(struct Main *bmain, const struct Scene *scene,
+typedef void (*TreeElementReinsertFunc)(struct Main *bmain,
                                         struct TreeElement *insert_element,
                                         struct TreeElement *insert_handle, TreeElementInsertType action);
 /**
@@ -77,7 +76,7 @@ typedef void (*TreeElementReinsertFunc)(struct Main *bmain, const struct Scene *
  * if reinserting insert_element before/after/into insert_handle would be allowed.
  * It's allowed to change the reinsert info here for non const pointers.
  */
-typedef bool (*TreeElementReinsertPollFunc)(const struct Scene *scene, const struct TreeElement *insert_element,
+typedef bool (*TreeElementReinsertPollFunc)(const struct TreeElement *insert_element,
                                             struct TreeElement **io_insert_handle, TreeElementInsertType *io_action);
 typedef TreeTraversalAction (*TreeTraversalFunc)(struct TreeElement *te, void *customdata);
 

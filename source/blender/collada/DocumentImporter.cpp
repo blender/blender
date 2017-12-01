@@ -267,7 +267,7 @@ void DocumentImporter::finish()
 		std::vector<Object *>::iterator it;
 		for (it = libnode_ob.begin(); it != libnode_ob.end(); it++) {
 			Object *ob = *it;
-			BKE_collections_object_remove(G.main, sce, ob, true);
+			BKE_collections_object_remove(G.main, &sce->id, ob, true);
 		}
 		libnode_ob.clear();
 

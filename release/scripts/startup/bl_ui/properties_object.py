@@ -219,13 +219,8 @@ class OBJECT_PT_groups(ObjectButtonsPanel, Panel):
                 row.operator("object.group_remove", text="", icon='X', emboss=False)
                 row.menu("GROUP_MT_specials", icon='DOWNARROW_HLT', text="")
 
-                split = col.box().split()
-
-                col = split.column()
-                col.prop(group, "layers", text="Dupli Visibility")
-
-                col = split.column()
-                col.prop(group, "dupli_offset", text="")
+                row = col.box().row()
+                row.prop(group, "dupli_offset", text="")
 
 
 class OBJECT_PT_display(ObjectButtonsPanel, Panel):

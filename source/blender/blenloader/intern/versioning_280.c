@@ -39,6 +39,7 @@
 #include "DNA_object_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_gpu_types.h"
+#include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_material_types.h"
@@ -52,6 +53,7 @@
 #include "BKE_collection.h"
 #include "BKE_customdata.h"
 #include "BKE_freestyle.h"
+#include "BKE_group.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
@@ -171,7 +173,7 @@ void do_versions_after_linking_280(Main *main)
 		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
 			/* since we don't have access to FileData we check the (always valid) first render layer instead */
 			if (scene->view_layers.first == NULL) {
-				SceneCollection *sc_master = BKE_collection_master(scene);
+				SceneCollection *sc_master = BKE_collection_master(&scene->id);
 				BLI_strncpy(sc_master->name, "Master Collection", sizeof(sc_master->name));
 
 				struct DoVersionSceneCollections {
@@ -242,7 +244,7 @@ void do_versions_after_linking_280(Main *main)
 									             layer + 1,
 									             collections[DO_VERSION_COLLECTION_VISIBLE].suffix);
 									collections[DO_VERSION_COLLECTION_VISIBLE].collections[layer] =
-									        BKE_collection_add(scene, sc_master, name);
+									        BKE_collection_add(&scene->id, sc_master, COLLECTION_TYPE_NONE, name);
 									collections[DO_VERSION_COLLECTION_VISIBLE].created |= (1 << layer);
 								}
 
@@ -254,12 +256,16 @@ void do_versions_after_linking_280(Main *main)
 									             "Collection %d%s",
 									             layer + 1,
 									             collections[collection_index].suffix);
-									collections[collection_index].collections[layer] = BKE_collection_add(scene, sc_parent, name);
+									collections[collection_index].collections[layer] = BKE_collection_add(
+									                                                       &scene->id,
+									                                                       sc_parent,
+									                                                       COLLECTION_TYPE_NONE,
+									                                                       name);
 									collections[collection_index].created |= (1 << layer);
 								}
 							}
 
-							BKE_collection_object_add(scene, collections[collection_index].collections[layer], base->object);
+							BKE_collection_object_add(&scene->id, collections[collection_index].collections[layer], base->object);
 						}
 
 						if (base->flag & SELECT) {
@@ -540,6 +546,43 @@ void do_versions_after_linking_280(Main *main)
 				BKE_freestyle_config_free(&srl->freestyleConfig);
 			}
 			BLI_freelistN(&scene->r.layers);
+		}
+	}
+
+	{
+		/* Since we don't have access to FileData we check the (always valid) master collection of the group. */
+		for (Group *group = main->group.first; group; group = group->id.next) {
+			if (group->collection == NULL) {
+				BKE_group_init(group);
+				SceneCollection *sc = GROUP_MASTER_COLLECTION(group);
+				SceneCollection *sc_hidden = NULL;
+
+				for (GroupObject *go = group->gobject.first; go; go = go->next) {
+					if (go->ob->lay & group->layer){
+						BKE_collection_object_add(&group->id, sc, go->ob);
+					}
+					else {
+						if (sc_hidden == NULL) {
+							sc_hidden = BKE_collection_add(&group->id, sc, COLLECTION_TYPE_GROUP_INTERNAL, "Hidden");
+						}
+				        BKE_collection_object_add(&group->id, sc_hidden, go->ob);
+					}
+				}
+
+				if (sc_hidden != NULL) {
+					LayerCollection *layer_collection_master, *layer_collection_hidden;
+
+					layer_collection_master = group->view_layer->layer_collections.first;
+					layer_collection_hidden = layer_collection_master->layer_collections.first;
+
+					layer_collection_hidden->flag &= ~COLLECTION_VISIBLE;
+				}
+			}
+
+			GroupObject *go;
+			while ((go = BLI_pophead(&group->gobject))) {
+				MEM_freeN(go);
+			}
 		}
 	}
 }

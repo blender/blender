@@ -58,7 +58,7 @@ static int outliner_item_drag_drop_poll(bContext *C)
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	return ED_operator_outliner_active(C) &&
 	       /* Only collection display modes supported for now. Others need more design work */
-	       ELEM(soops->outlinevis, SO_ACT_LAYER, SO_COLLECTIONS);
+	       ELEM(soops->outlinevis, SO_ACT_LAYER, SO_COLLECTIONS, SO_GROUPS);
 }
 
 static TreeElement *outliner_item_drag_element_find(SpaceOops *soops, ARegion *ar, const wmEvent *event)
@@ -138,7 +138,7 @@ static void outliner_item_drag_get_insert_data(
 }
 
 static void outliner_item_drag_handle(
-        const Scene *scene, SpaceOops *soops, ARegion *ar, const wmEvent *event, TreeElement *te_dragged)
+        SpaceOops *soops, ARegion *ar, const wmEvent *event, TreeElement *te_dragged)
 {
 	TreeElement *te_insert_handle;
 	TreeElementInsertType insert_type;
@@ -156,7 +156,7 @@ static void outliner_item_drag_handle(
 		/* nothing will happen anyway, no need to do poll check */
 	}
 	else if (!te_dragged->reinsert_poll ||
-	         !te_dragged->reinsert_poll(scene, te_dragged, &te_insert_handle, &insert_type))
+	         !te_dragged->reinsert_poll(te_dragged, &te_insert_handle, &insert_type))
 	{
 		te_insert_handle = NULL;
 	}
@@ -164,7 +164,7 @@ static void outliner_item_drag_handle(
 	te_dragged->drag_data->insert_handle = te_insert_handle;
 }
 
-static bool outliner_item_drag_drop_apply(Main *bmain, const Scene *scene, TreeElement *dragged_te)
+static bool outliner_item_drag_drop_apply(Main *bmain, TreeElement *dragged_te)
 {
 	TreeElement *insert_handle = dragged_te->drag_data->insert_handle;
 	TreeElementInsertType insert_type = dragged_te->drag_data->insert_type;
@@ -173,12 +173,12 @@ static bool outliner_item_drag_drop_apply(Main *bmain, const Scene *scene, TreeE
 		/* No need to do anything */
 	}
 	else if (dragged_te->reinsert) {
-		BLI_assert(!dragged_te->reinsert_poll || dragged_te->reinsert_poll(scene, dragged_te, &insert_handle,
+		BLI_assert(!dragged_te->reinsert_poll || dragged_te->reinsert_poll(dragged_te, &insert_handle,
 		                                                                   &insert_type));
 		/* call of assert above should not have changed insert_handle and insert_type at this point */
 		BLI_assert(dragged_te->drag_data->insert_handle == insert_handle &&
 		           dragged_te->drag_data->insert_type == insert_type);
-		dragged_te->reinsert(bmain, scene, dragged_te, insert_handle, insert_type);
+		dragged_te->reinsert(bmain, dragged_te, insert_handle, insert_type);
 		return true;
 	}
 
@@ -188,7 +188,6 @@ static bool outliner_item_drag_drop_apply(Main *bmain, const Scene *scene, TreeE
 static int outliner_item_drag_drop_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	TreeElement *te_dragged = op->customdata;
@@ -199,7 +198,7 @@ static int outliner_item_drag_drop_modal(bContext *C, wmOperator *op, const wmEv
 	switch (event->type) {
 		case EVT_MODAL_MAP:
 			if (event->val == OUTLINER_ITEM_DRAG_CONFIRM) {
-				if (outliner_item_drag_drop_apply(bmain, scene, te_dragged)) {
+				if (outliner_item_drag_drop_apply(bmain, te_dragged)) {
 					skip_rebuild = false;
 				}
 				retval = OPERATOR_FINISHED;
@@ -215,7 +214,7 @@ static int outliner_item_drag_drop_modal(bContext *C, wmOperator *op, const wmEv
 			redraw = true;
 			break;
 		case MOUSEMOVE:
-			outliner_item_drag_handle(scene, soops, ar, event, te_dragged);
+			outliner_item_drag_handle(soops, ar, event, te_dragged);
 			redraw = true;
 			break;
 	}

@@ -105,6 +105,7 @@
 
 #include "KX_Light.h"
 
+#include "BKE_group.h"
 #include "BLI_task.h"
 
 static void *KX_SceneReplicationFunc(SG_IObject* node,void* gameobj,void* scene)
@@ -720,7 +721,6 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 	KX_GameObject* gameobj;
 	Object* blgroupobj = groupobj->GetBlenderObject();
 	Group* group;
-	GroupObject *go;
 	vector<KX_GameObject*> duplilist;
 
 	if (!groupobj->GetSGNode() ||
@@ -738,9 +738,9 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 	m_groupGameObjects.clear();
 
 	group = blgroupobj->dup_group;
-	for (go=(GroupObject*)group->gobject.first; go; go=(GroupObject*)go->next) 
+	FOREACH_GROUP_BASE(group, base)
 	{
-		Object* blenderobj = go->ob;
+		Object *blenderobj = base->object;
 		if (blgroupobj == blenderobj)
 			// this check is also in group_duplilist()
 			continue;
@@ -755,13 +755,13 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 
 		gameobj->SetBlenderGroupObject(blgroupobj);
 
-		if ((blenderobj->lay & group->layer)==0)
-		{
+		if ((base->flag & BASE_VISIBLED) == 0) {
 			// object is not visible in the 3D view, will not be instantiated
 			continue;
 		}
 		m_groupGameObjects.insert(gameobj);
 	}
+	FOREACH_GROUP_BASE_END
 
 	set<CValue*>::iterator oit;
 	for (oit=m_groupGameObjects.begin(); oit != m_groupGameObjects.end(); oit++)

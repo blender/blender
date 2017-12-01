@@ -36,6 +36,7 @@ extern "C" {
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BKE_anim.h"
+#include "BKE_idprop.h"
 #include "BKE_layer.h"
 } /* extern "C" */
 
@@ -82,10 +83,10 @@ static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 		*temp_dupli_object = *dob->ob;
 		temp_dupli_object->select_color = dupli_parent->select_color;
 		temp_dupli_object->base_flag = dupli_parent->base_flag | BASE_FROMDUPLI;
-		temp_dupli_object->base_collection_properties =
-		        dupli_parent->base_collection_properties;
+		BLI_assert(dob->collection_properties != NULL);
+		temp_dupli_object->base_collection_properties = dob->collection_properties;
+		IDP_MergeGroup(temp_dupli_object->base_collection_properties, dupli_parent->base_collection_properties, false);
 		copy_m4_m4(data->temp_dupli_object.obmat, dob->mat);
-
 		iter->current = &data->temp_dupli_object;
 		BLI_assert(
 		        DEG::deg_validate_copy_on_write_datablock(

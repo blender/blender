@@ -37,28 +37,33 @@ extern "C" {
 
 struct Base;
 struct BLI_Iterator;
+struct Group;
+struct ID;
+struct LayerCollection;
 struct Main;
 struct Object;
 struct Scene;
 struct SceneCollection;
 
-struct SceneCollection *BKE_collection_add(struct Scene *scene, struct SceneCollection *sc_parent, const char *name);
-bool BKE_collection_remove(struct Scene *scene, struct SceneCollection *sc);
-struct SceneCollection *BKE_collection_master(const struct Scene *scene);
+struct SceneCollection *BKE_collection_add(
+        struct ID *owner_id, struct SceneCollection *sc_parent, const int type, const char *name);
+bool BKE_collection_remove(struct ID *owner_id, struct SceneCollection *sc);
+void BKE_collection_copy_data(struct SceneCollection *sc_dst, struct SceneCollection *sc_src, const int flag);
+struct SceneCollection *BKE_collection_master(const struct ID *owner_id);
 void BKE_collection_rename(const struct Scene *scene, struct SceneCollection *sc, const char *name);
-void BKE_collection_master_free(struct Scene *scene, const bool do_id_user);
-void BKE_collection_object_add(const struct Scene *scene, struct SceneCollection *sc, struct Object *object);
+void BKE_collection_master_free(struct ID *owner_id, const bool do_id_user);
+bool BKE_collection_object_add(const struct ID *owner_id, struct SceneCollection *sc, struct Object *object);
 void BKE_collection_object_add_from(struct Scene *scene, struct Object *ob_src, struct Object *ob_dst);
-void BKE_collection_object_remove(struct Main *bmain, const struct Scene *scene, struct SceneCollection *sc, struct Object *object, const bool free_us);
-void BKE_collections_object_remove(struct Main *bmain, struct Scene *scene, struct Object *object, const bool free_us);
-void BKE_collection_object_move(const struct Scene *scene, struct SceneCollection *sc_dst, struct SceneCollection *sc_src, struct Object *ob);
+bool BKE_collection_object_remove(struct Main *bmain, struct ID *owner_id, struct SceneCollection *sc, struct Object *object, const bool free_us);
+bool BKE_collections_object_remove(struct Main *bmain, struct ID *owner_id, struct Object *object, const bool free_us);
+void BKE_collection_object_move(struct ID *owner_id, struct SceneCollection *sc_dst, struct SceneCollection *sc_src, struct Object *ob);
 
 void BKE_collection_reinsert_after(const struct Scene *scene, struct SceneCollection *sc_reinsert, struct SceneCollection *sc_after);
 void BKE_collection_reinsert_into(struct SceneCollection *sc_reinsert, struct SceneCollection *sc_into);
 
-bool BKE_collection_move_above(const struct Scene *scene, struct SceneCollection *sc_dst, struct SceneCollection *sc_src);
-bool BKE_collection_move_below(const struct Scene *scene, struct SceneCollection *sc_dst, struct SceneCollection *sc_src);
-bool BKE_collection_move_into(const struct Scene *scene, struct SceneCollection *sc_dst, struct SceneCollection *sc_src);
+bool BKE_collection_move_above(const struct ID *owner_id, struct SceneCollection *sc_dst, struct SceneCollection *sc_src);
+bool BKE_collection_move_below(const struct ID *owner_id, struct SceneCollection *sc_dst, struct SceneCollection *sc_src);
+bool BKE_collection_move_into(const struct ID *owner_id, struct SceneCollection *sc_dst, struct SceneCollection *sc_src);
 
 typedef void (*BKE_scene_objects_Cb)(struct Object *ob, void *data);
 typedef void (*BKE_scene_collections_Cb)(struct SceneCollection *ob, void *data);
@@ -75,11 +80,11 @@ void BKE_scene_objects_iterator_begin(struct BLI_Iterator *iter, void *data_in);
 void BKE_scene_objects_iterator_next(struct BLI_Iterator *iter);
 void BKE_scene_objects_iterator_end(struct BLI_Iterator *iter);
 
-#define FOREACH_SCENE_COLLECTION(scene, _instance)                            \
+#define FOREACH_SCENE_COLLECTION(_id, _instance)                              \
 	ITER_BEGIN(BKE_scene_collections_iterator_begin,                          \
 	           BKE_scene_collections_iterator_next,                           \
 	           BKE_scene_collections_iterator_end,                            \
-	           scene, SceneCollection *, _instance)
+	           _id, SceneCollection *, _instance)
 
 #define FOREACH_SCENE_COLLECTION_END                                          \
 	ITER_END

@@ -1221,7 +1221,7 @@ void ED_object_base_free_and_unlink(Main *bmain, Scene *scene, Object *ob)
 	DEG_id_tag_update_ex(bmain, &ob->id, DEG_TAG_BASE_FLAGS_UPDATE);
 
 	object_delete_check_glsl_update(ob);
-	BKE_collections_object_remove(bmain, scene, ob, true);
+	BKE_collections_object_remove(bmain, &scene->id, ob, true);
 }
 
 static int object_delete_exec(bContext *C, wmOperator *op)

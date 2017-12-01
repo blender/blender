@@ -371,6 +371,7 @@ typedef struct DupliObject {
 	struct ParticleSystem *particle_system;
 	unsigned int random_id;
 	unsigned int pad;
+	struct IDProperty *collection_properties;
 } DupliObject;
 
 /* **************** OBJECT ********************* */

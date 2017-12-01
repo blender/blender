@@ -36,6 +36,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
+#include "DNA_group_types.h"
+
 #include "ED_screen.h"
 
 #include "WM_api.h"
@@ -110,7 +112,7 @@ static int collection_link_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
-	SceneCollection *sc_master = BKE_collection_master(scene);
+	SceneCollection *sc_master = BKE_collection_master(&scene->id);
 	SceneCollection *sc;
 
 	int scene_collection_index = RNA_enum_get(op->ptr, "scene_collection");
@@ -136,7 +138,9 @@ static int collection_link_exec(bContext *C, wmOperator *op)
 
 static int collection_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	if (BKE_collection_master(CTX_data_scene(C))->scene_collections.first == NULL) {
+	Scene *scene = CTX_data_scene(C);
+	SceneCollection *master_collection = BKE_collection_master(&scene->id);
+	if (master_collection->scene_collections.first == NULL) {
 		RNA_enum_set(op->ptr, "scene_collection", 0);
 		return collection_link_exec(C, op);
 	}
@@ -169,7 +173,7 @@ static const EnumPropertyItem *collection_scene_collection_itemf(
 	int value = 0, totitem = 0;
 
 	Scene *scene = CTX_data_scene(C);
-	SceneCollection *sc = BKE_collection_master(scene);
+	SceneCollection *sc = BKE_collection_master(&scene->id);
 
 	collection_scene_collection_itemf_recursive(&tmp, &item, &totitem, &value, sc);
 	RNA_enum_item_end(&item, &totitem);
@@ -257,15 +261,18 @@ void OUTLINER_OT_collection_unlink(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/**********************************************************************************/
+/* Add new collection. */
+
 static int collection_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
+	SceneCollection *scene_collection = BKE_collection_add(&scene->id, NULL, COLLECTION_TYPE_NONE, NULL);
+	BKE_collection_link(view_layer, scene_collection);
 
-	SceneCollection *sc = BKE_collection_add(scene, NULL, NULL);
-	BKE_collection_link(view_layer, sc);
-
-	DEG_relations_tag_update(CTX_data_main(C));
+	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 	return OPERATOR_FINISHED;
 }
@@ -275,7 +282,7 @@ void OUTLINER_OT_collection_new(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "New Collection";
 	ot->idname = "OUTLINER_OT_collection_new";
-	ot->description = "Add a new collection to the scene, and link it to the active layer";
+	ot->description = "Add a new collection to the scene";
 
 	/* api callbacks */
 	ot->exec = collection_new_exec;
@@ -283,6 +290,8 @@ void OUTLINER_OT_collection_new(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/**********************************************************************************/
 
 /**
  * Returns true is selected element is a collection
@@ -336,12 +345,12 @@ static TreeTraversalAction collection_delete_cb(TreeElement *te, void *customdat
 		return TRAVERSE_SKIP_CHILDS;
 	}
 
-	if (scene_collection == BKE_collection_master(data->scene)) {
+	if (scene_collection == BKE_collection_master(&data->scene->id)) {
 		/* skip - showing warning/error message might be missleading
 		 * when deleting multiple collections, so just do nothing */
 	}
 	else {
-		BKE_collection_remove(data->scene, scene_collection);
+		BKE_collection_remove(&data->scene->id, scene_collection);
 	}
 
 	return TRAVERSE_CONTINUE;

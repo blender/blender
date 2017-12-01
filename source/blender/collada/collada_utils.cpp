@@ -147,7 +147,7 @@ Object *bc_add_object(Scene *scene, int type, const char *name)
 	ViewLayer *view_layer = BKE_view_layer_context_active_PLACEHOLDER(scene);
 
 	LayerCollection *layer_collection = BKE_layer_collection_get_active_ensure(scene, view_layer);
-	BKE_collection_object_add(scene, layer_collection->scene_collection, ob);
+	BKE_collection_object_add(&scene->id, layer_collection->scene_collection, ob);
 
 	Base *base = BKE_view_layer_base_find(view_layer, ob);
 	BKE_view_layer_base_select(view_layer, base);

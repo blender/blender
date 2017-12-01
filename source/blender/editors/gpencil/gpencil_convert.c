@@ -1156,7 +1156,7 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
 	 */
 	ob = BKE_object_add_only_object(bmain, OB_CURVE, gpl->info);
 	cu = ob->data = BKE_curve_add(bmain, gpl->info, OB_CURVE);
-	BKE_collection_object_add(scene, sc, ob);
+	BKE_collection_object_add(&scene->id, sc, ob);
 	base_new = BKE_view_layer_base_find(view_layer, ob);
 	
 	cu->flag |= CU_3D;

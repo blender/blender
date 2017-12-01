@@ -64,6 +64,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_group.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_modifier.h"
@@ -215,51 +216,41 @@ ListBase *pdInitEffectors(
 {
 	ViewLayer *view_layer;
 	Base *base;
-	unsigned int layer= ob_src->lay;
 	ListBase *effectors = NULL;
 
-	/* eval_ctx is NULL during deg build */
-	if (eval_ctx) {
+	if (weights->group) {
+		view_layer = weights->group->view_layer;
+	}
+	else if (eval_ctx) {
 		view_layer = eval_ctx->view_layer;
 	}
 	else {
+		/* eval_ctx is NULL during deg build */
 		view_layer = BKE_view_layer_context_active_PLACEHOLDER(scene);
 	}
-	
-	if (weights->group) {
-		GroupObject *go;
-		
-		for (go= weights->group->gobject.first; go; go= go->next) {
-			if ( (go->ob->lay & layer) ) {
-				if ( go->ob->pd && go->ob->pd->forcefield )
-					add_object_to_effectors(&effectors, eval_ctx, scene, weights, go->ob, ob_src, for_simulation);
 
-				if ( go->ob->particlesystem.first ) {
-					ParticleSystem *psys= go->ob->particlesystem.first;
+	for (base = FIRSTBASE(view_layer); base; base = base->next) {
+		if ((base->flag & BASE_VISIBLED) == 0) {
+			continue;
+		}
 
-					for ( ; psys; psys=psys->next )
-						add_particles_to_effectors(&effectors, eval_ctx, scene, weights, go->ob, psys, psys_src, for_simulation);
-				}
+		if (base->object->pd && base->object->pd->forcefield) {
+			add_object_to_effectors(&effectors, eval_ctx, scene, weights, base->object, ob_src, for_simulation);
+		}
+
+		if (base->object->particlesystem.first) {
+			ParticleSystem *psys= base->object->particlesystem.first;
+
+			for (; psys; psys=psys->next) {
+				add_particles_to_effectors(&effectors, eval_ctx, scene, weights, base->object, psys, psys_src, for_simulation);
 			}
 		}
 	}
-	else {
-		for (base = FIRSTBASE(view_layer); base; base = base->next) {
-			if ( base->object->pd && base->object->pd->forcefield )
-				add_object_to_effectors(&effectors, eval_ctx, scene, weights, base->object, ob_src, for_simulation);
 
-			if ( base->object->particlesystem.first ) {
-				ParticleSystem *psys= base->object->particlesystem.first;
-
-				for ( ; psys; psys=psys->next )
-					add_particles_to_effectors(&effectors, eval_ctx, scene, weights, base->object, psys, psys_src, for_simulation);
-			}
-		}
-	}
-	
-	if (for_simulation)
+	if (for_simulation) {
 		pdPrecalculateEffectors(eval_ctx, effectors);
-	
+	}
+
 	return effectors;
 }
 

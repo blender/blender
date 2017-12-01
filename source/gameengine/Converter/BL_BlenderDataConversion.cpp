@@ -147,6 +147,7 @@ extern "C" {
 #include "BKE_customdata.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_group.h"
 #include "BKE_layer.h"
 #include "BKE_material.h" /* give_current_material */
 #include "BKE_image.h"
@@ -2052,10 +2053,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			for (git=tempglist.begin(); git!=tempglist.end(); git++)
 			{
 				Group* group = *git;
-				GroupObject* go;
-				for (go=(GroupObject*)group->gobject.first; go; go=(GroupObject*)go->next)
+				FOREACH_GROUP_OBJECT(group, blenderobject)
 				{
-					Object* blenderobject = go->ob;
 					if (converter->FindGameObject(blenderobject) == NULL)
 					{
 						allblobj.insert(blenderobject);
@@ -2090,6 +2089,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 						}
 					}
 				}
+				FOREACH_GROUP_OBJECT_END
 			}
 		}
 	}

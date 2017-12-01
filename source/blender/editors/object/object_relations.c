@@ -342,17 +342,15 @@ static int make_proxy_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Object *ob, *gob = ED_object_active_context(C);
-	GroupObject *go;
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 
 	if (gob->dup_group != NULL) {
-		go = BLI_findlink(&gob->dup_group->gobject, RNA_enum_get(op->ptr, "object"));
-		ob = go->ob;
+		Base *base = BLI_findlink(&gob->dup_group->view_layer->object_bases, RNA_enum_get(op->ptr, "object"));
+		ob = base->object;
 	}
 	else {
 		ob = gob;
-		gob = NULL;
 	}
 
 	if (ob) {
@@ -397,17 +395,18 @@ static const EnumPropertyItem *proxy_group_object_itemf(bContext *C, PointerRNA 
 	int totitem = 0;
 	int i = 0;
 	Object *ob = ED_object_active_context(C);
-	GroupObject *go;
 
 	if (!ob || !ob->dup_group)
 		return DummyRNA_DEFAULT_items;
 
 	/* find the object to affect */
-	for (go = ob->dup_group->gobject.first; go; go = go->next) {
-		item_tmp.identifier = item_tmp.name = go->ob->id.name + 2;
+	FOREACH_GROUP_OBJECT(ob->dup_group, object)
+	{
+		item_tmp.identifier = item_tmp.name = object->id.name + 2;
 		item_tmp.value = i++;
 		RNA_enum_item_add(&item, &totitem, &item_tmp);
 	}
+	FOREACH_GROUP_OBJECT_END
 
 	RNA_enum_item_end(&item, &totitem);
 	*r_free = true;
@@ -1368,10 +1367,10 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	SceneCollection *sc_to = BKE_collection_master(scene_to);
+	SceneCollection *sc_to = BKE_collection_master(&scene_to->id);
 	CTX_DATA_BEGIN (C, Base *, base, selected_bases)
 	{
-		BKE_collection_object_add(scene_to, sc_to, base->object);
+		BKE_collection_object_add(&scene_to->id, sc_to, base->object);
 	}
 	CTX_DATA_END;
 
@@ -1691,12 +1690,11 @@ static void single_object_users_scene_collection(Main *bmain, Scene *scene, Scen
 static void single_object_users(Main *bmain, Scene *scene, View3D *v3d, const int flag, const bool copy_groups)
 {
 	Group *group, *groupn;
-	GroupObject *go;
 
 	clear_sca_new_poins();  /* BGE logic */
 
 	/* duplicate all the objects of the scene */
-	SceneCollection *msc = BKE_collection_master(scene);
+	SceneCollection *msc = BKE_collection_master(&scene->id);
 	single_object_users_scene_collection(bmain, scene, msc, flag, copy_groups);
 
 	/* loop over ViewLayers and assign the pointers accordingly */
@@ -1708,22 +1706,26 @@ static void single_object_users(Main *bmain, Scene *scene, View3D *v3d, const in
 
 	/* duplicate groups that consist entirely of duplicated objects */
 	for (group = bmain->group.first; group; group = group->id.next) {
-		if (copy_groups && group->gobject.first) {
+		if (copy_groups && group->view_layer->object_bases.first) {
 			bool all_duplicated = true;
 
-			for (go = group->gobject.first; go; go = go->next) {
-				if (!(go->ob && (go->ob->id.newid))) {
+			FOREACH_GROUP_OBJECT(group, object)
+			{
+				if (object->id.newid == NULL) {
 					all_duplicated = false;
 					break;
 				}
 			}
+			FOREACH_GROUP_OBJECT_END
 
 			if (all_duplicated) {
 				groupn = ID_NEW_SET(group, BKE_group_copy(bmain, group));
 
-				for (go = groupn->gobject.first; go; go = go->next) {
-					go->ob = (Object *)go->ob->id.newid;
+				FOREACH_GROUP_BASE(groupn, base)
+				{
+					base->object = (Object *)base->object->id.newid;
 				}
+				FOREACH_GROUP_BASE_END
 			}
 		}
 	}
@@ -2151,7 +2153,7 @@ static bool make_local_all__instance_indirect_unused(Main *bmain, Scene *scene, 
 
 			id_us_plus(&ob->id);
 
-			BKE_collection_object_add(scene, sc, ob);
+			BKE_collection_object_add(&scene->id, sc, ob);
 			base = BKE_view_layer_base_find(view_layer, ob);
 			base->flag |= BASE_SELECTED;
 			BKE_scene_object_base_flag_sync_from_base(base);

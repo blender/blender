@@ -104,7 +104,8 @@ typedef struct SceneCollection {
 	char name[64]; /* MAX_NAME */
 	char filter[64]; /* MAX_NAME */
 	int active_object_index; /* for UI */
-	int pad;
+	char type;
+	char pad[3];
 	ListBase objects;           /* (Object *)LinkData->data */
 	ListBase filter_objects;    /* (Object *)LinkData->data */
 	ListBase scene_collections; /* nested collections */
@@ -134,6 +135,11 @@ enum {
 	VIEW_LAYER_FREESTYLE = (1 << 2),
 };
 
+/* SceneCollection->type */
+enum {
+	COLLECTION_TYPE_NONE =  0,
+	COLLECTION_TYPE_GROUP_INTERNAL = 1,
+};
 
 /* *************************************************************** */
 /* Engine Settings */

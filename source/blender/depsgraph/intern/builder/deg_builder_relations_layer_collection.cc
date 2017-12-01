@@ -69,10 +69,11 @@ extern "C" {
 namespace DEG {
 
 void DepsgraphRelationBuilder::build_layer_collection(
+        ID *owner_id,
         LayerCollection *layer_collection,
         LayerCollectionState *state)
 {
-	OperationKey layer_key(&scene_->id,
+	OperationKey layer_key(owner_id,
 	                       DEG_NODE_TYPE_LAYER_COLLECTIONS,
 	                       DEG_OPCODE_VIEW_LAYER_EVAL,
 	                       layer_collection->scene_collection->name,
@@ -83,29 +84,31 @@ void DepsgraphRelationBuilder::build_layer_collection(
 	state->prev_key = layer_key;
 
 	/* Recurs into nested layer collections. */
-	build_layer_collections(&layer_collection->layer_collections, state);
+	build_layer_collections(owner_id, &layer_collection->layer_collections, state);
 }
 
 void DepsgraphRelationBuilder::build_layer_collections(
+        ID *owner_id,
         ListBase *layer_collections,
         LayerCollectionState *state)
 {
 	LINKLIST_FOREACH (LayerCollection *, layer_collection, layer_collections) {
 		/* Recurs into the layer. */
-		build_layer_collection(layer_collection, state);
+		build_layer_collection(owner_id, layer_collection, state);
 	}
 }
 
 void DepsgraphRelationBuilder::build_view_layer_collections(
+        ID *owner_id,
         ViewLayer *view_layer)
 {
 	LayerCollectionState state;
 	state.index = 0;
 
-	OperationKey init_key(&scene_->id,
+	OperationKey init_key(owner_id,
 	                      DEG_NODE_TYPE_LAYER_COLLECTIONS,
 	                      DEG_OPCODE_VIEW_LAYER_INIT);
-	OperationKey done_key(&scene_->id,
+	OperationKey done_key(owner_id,
 	                      DEG_NODE_TYPE_LAYER_COLLECTIONS,
 	                      DEG_OPCODE_VIEW_LAYER_DONE);
 
@@ -113,7 +116,7 @@ void DepsgraphRelationBuilder::build_view_layer_collections(
 	state.done_key = done_key;
 	state.prev_key = init_key;
 
-	build_layer_collections(&view_layer->layer_collections, &state);
+	build_layer_collections(owner_id, &view_layer->layer_collections, &state);
 
 	add_relation(state.prev_key, done_key, "Layer collection order");
 }

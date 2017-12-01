@@ -327,18 +327,17 @@ bool psys_check_edited(ParticleSystem *psys)
 void psys_check_group_weights(ParticleSettings *part)
 {
 	ParticleDupliWeight *dw, *tdw;
-	GroupObject *go;
 	int current = 0;
 
-	if (part->ren_as == PART_DRAW_GR && part->dup_group && part->dup_group->gobject.first) {
+	if (part->ren_as == PART_DRAW_GR && part->dup_group && part->dup_group->view_layer->object_bases.first) {
 		/* First try to find NULL objects from their index,
 		 * and remove all weights that don't have an object in the group. */
 		dw = part->dupliweights.first;
 		while (dw) {
 			if (dw->ob == NULL || !BKE_group_object_exists(part->dup_group, dw->ob)) {
-				go = (GroupObject *)BLI_findlink(&part->dup_group->gobject, dw->index);
-				if (go) {
-					dw->ob = go->ob;
+				Base *base = BLI_findlink(&part->dup_group->view_layer->object_bases, dw->index);
+				if (base != NULL) {
+					dw->ob = base->object;
 				}
 				else {
 					tdw = dw->next;
@@ -352,21 +351,21 @@ void psys_check_group_weights(ParticleSettings *part)
 		}
 
 		/* then add objects in the group to new list */
-		go = part->dup_group->gobject.first;
-		while (go) {
+		FOREACH_GROUP_OBJECT(part->dup_group, object)
+		{
 			dw = part->dupliweights.first;
-			while (dw && dw->ob != go->ob)
+			while (dw && dw->ob != object) {
 				dw = dw->next;
-			
+			}
+
 			if (!dw) {
 				dw = MEM_callocN(sizeof(ParticleDupliWeight), "ParticleDupliWeight");
-				dw->ob = go->ob;
+				dw->ob = object;
 				dw->count = 1;
 				BLI_addtail(&part->dupliweights, dw);
 			}
-
-			go = go->next;
 		}
+		FOREACH_GROUP_OBJECT_END
 
 		dw = part->dupliweights.first;
 		for (; dw; dw = dw->next) {

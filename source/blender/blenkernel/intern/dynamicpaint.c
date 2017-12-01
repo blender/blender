@@ -491,33 +491,24 @@ static void scene_setSubframe(Scene *scene, float subframe)
 static int surface_getBrushFlags(DynamicPaintSurface *surface, const ViewLayer *view_layer)
 {
 	Base *base = NULL;
-	GroupObject *go = NULL;
 	Object *brushObj = NULL;
 	ModifierData *md = NULL;
 
 	int flags = 0;
 
 	if (surface->brush_group)
-		go = surface->brush_group->gobject.first;
+		base = FIRSTBASE(surface->brush_group->view_layer);
 	else
 		base = FIRSTBASE(view_layer);
 
-	while (base || go) {
+	while (base) {
 		brushObj = NULL;
 
 		/* select object */
-		if (surface->brush_group) {
-			if (go->ob)
-				brushObj = go->ob;
-		}
-		else {
-			brushObj = base->object;
-		}
+		brushObj = base->object;
 
-		if (surface->brush_group)
-			go = go->next;
-		else
-			base = base->next;
+		/* next item */
+		base = base->next;
 
 		if (!brushObj) {
 			continue;
@@ -5780,7 +5771,6 @@ static int dynamicPaint_doStep(const struct EvaluationContext *eval_ctx, Scene *
 	 */
 	{
 		Base *base = NULL;
-		GroupObject *go = NULL;
 		Object *brushObj = NULL;
 		ModifierData *md = NULL;
 		ViewLayer *view_layer = eval_ctx->view_layer;
@@ -5791,25 +5781,17 @@ static int dynamicPaint_doStep(const struct EvaluationContext *eval_ctx, Scene *
 
 		/* either from group or from all objects */
 		if (surface->brush_group)
-			go = surface->brush_group->gobject.first;
+			base = FIRSTBASE(surface->brush_group->view_layer);
 		else
 			base = FIRSTBASE(view_layer);
 
-		while (base || go) {
+		while (base) {
 			brushObj = NULL;
 			/* select object */
-			if (surface->brush_group) {
-				if (go->ob)
-					brushObj = go->ob;
-			}
-			else
-				brushObj = base->object;
+			brushObj = base->object;
 
 			/* next item */
-			if (surface->brush_group)
-				go = go->next;
-			else
-				base = base->next;
+			base = base->next;
 
 			if (!brushObj) {
 				/* skip item */

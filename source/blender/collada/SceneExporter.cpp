@@ -26,6 +26,7 @@
 
 extern "C" {
 	#include "BLI_utildefines.h"
+	#include "BKE_group.h"
 	#include "BKE_object.h"
 	#include "BLI_listbase.h"
 }
@@ -177,12 +178,13 @@ void SceneExporter::writeNodes(const EvaluationContext *eval_ctx, Object *ob, Sc
 	// empty object
 	else if (ob->type == OB_EMPTY) { // TODO: handle groups (OB_DUPLIGROUP
 		if ((ob->transflag & OB_DUPLIGROUP) == OB_DUPLIGROUP && ob->dup_group) {
-			GroupObject *go = NULL;
-			Group *gr = ob->dup_group;
-			/* printf("group detected '%s'\n", gr->id.name + 2); */
-			for (go = (GroupObject *)(gr->gobject.first); go; go = go->next) {
-				printf("\t%s\n", go->ob->id.name);
+			Group *group = ob->dup_group;
+			/* printf("group detected '%s'\n", group->id.name + 2); */
+			FOREACH_GROUP_OBJECT(group, object)
+			{
+				printf("\t%s\n", object->id.name);
 			}
+			FOREACH_GROUP_OBJECT_END
 		}
 	}
 

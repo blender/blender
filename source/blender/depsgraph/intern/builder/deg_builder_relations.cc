@@ -413,14 +413,20 @@ void DepsgraphRelationBuilder::build_group(Object *object, Group *group)
 	OperationKey object_local_transform_key(&object->id,
 	                                        DEG_NODE_TYPE_TRANSFORM,
 	                                        DEG_OPCODE_TRANSFORM_LOCAL);
-	LINKLIST_FOREACH (GroupObject *, go, &group->gobject) {
-		if (!group_done) {
-			build_object(NULL, go->ob);
+
+	if (!group_done) {
+		LINKLIST_FOREACH(Base *, base, &group->view_layer->object_bases) {
+			build_object(NULL, base->object);
 		}
-		ComponentKey dupli_transform_key(&go->ob->id, DEG_NODE_TYPE_TRANSFORM);
+
+		build_view_layer_collections(&group->id, group->view_layer);
+		group_id->tag |= LIB_TAG_DOIT;
+	}
+
+	LINKLIST_FOREACH (Base *, base, &group->view_layer->object_bases) {
+		ComponentKey dupli_transform_key(&base->object->id, DEG_NODE_TYPE_TRANSFORM);
 		add_relation(dupli_transform_key, object_local_transform_key, "Dupligroup");
 	}
-	group_id->tag |= LIB_TAG_DOIT;
 }
 
 void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
@@ -1285,8 +1291,8 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 
 	/* objects - simulation participants */
 	if (rbw->group) {
-		LINKLIST_FOREACH (GroupObject *, go, &rbw->group->gobject) {
-			Object *object = go->ob;
+		LINKLIST_FOREACH (Base *, base, &rbw->group->view_layer->object_bases) {
+			Object *object = base->object;
 			if (object == NULL || object->type != OB_MESH) {
 				continue;
 			}
@@ -1339,8 +1345,8 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 
 	/* constraints */
 	if (rbw->constraints) {
-		LINKLIST_FOREACH (GroupObject *, go, &rbw->constraints->gobject) {
-			Object *object = go->ob;
+		LINKLIST_FOREACH (Base *, base, &rbw->constraints->view_layer->object_bases) {
+			Object *object = base->object;
 			if (object == NULL || !object->rigidbody_constraint) {
 				continue;
 			}
