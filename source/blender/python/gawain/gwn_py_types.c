@@ -671,6 +671,26 @@ static PyObject *bpygwn_VertBatch_draw(BPyGwn_Batch *self)
 	Py_RETURN_NONE;
 }
 
+static PyObject *bpygwn_VertBatch_program_use_begin(BPyGwn_Batch *self)
+{
+	if (!glIsProgram(self->batch->program)) {
+		PyErr_SetString(PyExc_ValueError,
+		                "batch program has not not set");
+	}
+	GWN_batch_program_use_begin(self->batch);
+	Py_RETURN_NONE;
+}
+
+static PyObject *bpygwn_VertBatch_program_use_end(BPyGwn_Batch *self)
+{
+	if (!glIsProgram(self->batch->program)) {
+		PyErr_SetString(PyExc_ValueError,
+		                "batch program has not not set");
+	}
+	GWN_batch_program_use_end(self->batch);
+	Py_RETURN_NONE;
+}
+
 static struct PyMethodDef bpygwn_VertBatch_methods[] = {
 	{"vertbuf_add", (PyCFunction)bpygwn_VertBatch_vertbuf_add,
 	 METH_O, bpygwn_VertBatch_vertbuf_add_doc},
@@ -684,6 +704,10 @@ static struct PyMethodDef bpygwn_VertBatch_methods[] = {
 	  METH_VARARGS, NULL},
 	{"draw", (PyCFunction) bpygwn_VertBatch_draw,
 	 METH_NOARGS, bpygwn_VertBatch_draw_doc},
+	{"program_use_begin", (PyCFunction)bpygwn_VertBatch_program_use_begin,
+	 METH_NOARGS, ""},
+	{"program_use_end", (PyCFunction)bpygwn_VertBatch_program_use_end,
+	 METH_NOARGS, ""},
 	{NULL, NULL, 0, NULL}
 };
 
