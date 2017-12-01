@@ -55,12 +55,6 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
 		if ((id->tag & LIB_TAG_ID_RECALC_ALL)) {
 			id_node->tag_update(graph);
 		}
-		else if (GS(id->name) == ID_OB) {
-			Object *object = (Object *)id;
-			if (object->recalc & OB_RECALC_ALL) {
-				id_node->tag_update(graph);
-			}
-		}
 		/* TODO(sergey): This is not ideal at all, since this forces
 		 * re-evaluaiton of the whole tree.
 		 */

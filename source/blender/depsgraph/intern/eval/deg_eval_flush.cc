@@ -163,9 +163,7 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 					cow_comp->tag_update(graph);
 				}
 
-				Object *object = NULL;
 				if (GS(id_orig->name) == ID_OB) {
-					object = (Object *)id_orig;
 					if (id_node->done == 0) {
 						++num_flushed_objects;
 					}
@@ -180,46 +178,6 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 						continue;
 					}
 					op->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
-				}
-				if (object != NULL) {
-					/* This code is used to preserve those areas which does
-					 * direct object update,
-					 *
-					 * Plus it ensures visibility changes and relations and
-					 * layers visibility update has proper flags to work with.
-					 */
-					switch (comp_node->type) {
-						case DEG_NODE_TYPE_UNDEFINED:
-						case DEG_NODE_TYPE_OPERATION:
-						case DEG_NODE_TYPE_TIMESOURCE:
-						case DEG_NODE_TYPE_ID_REF:
-						case DEG_NODE_TYPE_SEQUENCER:
-							/* Ignore, does not translate to object component. */
-							BLI_assert(!"This should never happen!");
-							break;
-						case DEG_NODE_TYPE_ANIMATION:
-							object->recalc |= OB_RECALC_TIME;
-							break;
-						case DEG_NODE_TYPE_TRANSFORM:
-							object->recalc |= OB_RECALC_OB;
-							break;
-						case DEG_NODE_TYPE_GEOMETRY:
-						case DEG_NODE_TYPE_EVAL_POSE:
-						case DEG_NODE_TYPE_BONE:
-						case DEG_NODE_TYPE_EVAL_PARTICLES:
-						case DEG_NODE_TYPE_SHADING:
-						case DEG_NODE_TYPE_CACHE:
-						case DEG_NODE_TYPE_PROXY:
-							object->recalc |= OB_RECALC_DATA;
-							break;
-						case DEG_NODE_TYPE_BATCH_CACHE:
-						case DEG_NODE_TYPE_COPY_ON_WRITE:
-						case DEG_NODE_TYPE_LAYER_COLLECTIONS:
-						case DEG_NODE_TYPE_PARAMETERS:
-						case DEG_NODE_TYPE_SHADING_PARAMETERS:
-							/* Ignore, does not translate to recalc flags. */
-							break;
-					}
 				}
 				/* When some target changes bone, we might need to re-run the
 				 * whole IK solver, otherwise result might be unpredictable.
