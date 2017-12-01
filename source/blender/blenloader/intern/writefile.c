@@ -1138,7 +1138,7 @@ static void current_screen_compat(
 
 	*r_screen = (window) ? BKE_workspace_active_screen_get(window->workspace_hook) : NULL;
 	*r_scene = (window) ? window->scene : NULL;
-	*r_render_layer = (window) ? BKE_workspace_view_layer_get(workspace) : NULL;
+	*r_render_layer = (window) ? BKE_workspace_view_layer_get(workspace, *r_scene) : NULL;
 }
 
 typedef struct RenderInfo {
@@ -3778,6 +3778,7 @@ static void write_workspace(WriteData *wd, WorkSpace *workspace)
 	writestruct(wd, ID_WS, WorkSpace, 1, workspace);
 	writelist(wd, DATA, WorkSpaceLayout, layouts);
 	writelist(wd, DATA, WorkSpaceDataRelation, &workspace->hook_layout_relations);
+	writelist(wd, DATA, WorkSpaceDataRelation, &workspace->scene_viewlayer_relations);
 	writelist(wd, DATA, TransformOrientation, transform_orientations);
 }
 

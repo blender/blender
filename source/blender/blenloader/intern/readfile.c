@@ -2843,6 +2843,14 @@ static void lib_link_workspaces(FileData *fd, Main *bmain)
 		IDP_LibLinkProperty(id->properties, fd);
 		id_us_ensure_real(id);
 
+		for (WorkSpaceDataRelation *relation = workspace->scene_viewlayer_relations.first;
+		     relation != NULL;
+		     relation = relation->next)
+		{
+			relation->parent = newlibadr(fd, id->lib, relation->parent);
+			/* relation->value is set in direct_link_workspace_link_scene_data */
+		}
+
 		for (WorkSpaceLayout *layout = layouts->first, *layout_next; layout; layout = layout_next) {
 			bScreen *screen = newlibadr(fd, id->lib, BKE_workspace_layout_screen_get(layout));
 
@@ -2868,6 +2876,7 @@ static void direct_link_workspace(FileData *fd, WorkSpace *workspace, const Main
 {
 	link_list(fd, BKE_workspace_layouts_get(workspace));
 	link_list(fd, &workspace->hook_layout_relations);
+	link_list(fd, &workspace->scene_viewlayer_relations);
 	link_list(fd, BKE_workspace_transform_orientations_get(workspace));
 
 	for (WorkSpaceDataRelation *relation = workspace->hook_layout_relations.first;
@@ -2881,7 +2890,7 @@ static void direct_link_workspace(FileData *fd, WorkSpace *workspace, const Main
 	if (ID_IS_LINKED(&workspace->id)) {
 		/* Appending workspace so render layer is likely from a different scene. Unset
 		 * now, when activating workspace later we set a valid one from current scene. */
-		BKE_workspace_view_layer_set(workspace, NULL);
+		BKE_workspace_relations_free(&workspace->scene_viewlayer_relations);
 	}
 
 	/* Same issue/fix as in direct_link_workspace_link_scene_data: Can't read workspace data
@@ -6134,13 +6143,19 @@ static void direct_link_layer_collections(FileData *fd, ListBase *lb)
  * Workspaces store a render layer pointer which can only be read after scene is read.
  */
 static void direct_link_workspace_link_scene_data(
-        FileData *fd, const Scene *scene, const ListBase *workspaces)
+        FileData *fd, Scene *scene, const ListBase *workspaces)
 {
 	for (WorkSpace *workspace = workspaces->first; workspace; workspace = workspace->id.next) {
-		ViewLayer *layer = newdataadr(fd, BKE_workspace_view_layer_get(workspace));
-		/* only set when layer is from the scene we read */
-		if (layer && (BLI_findindex(&scene->view_layers, layer) != -1)) {
-			BKE_workspace_view_layer_set(workspace, layer);
+		for (WorkSpaceDataRelation *relation = workspace->scene_viewlayer_relations.first;
+		     relation != NULL;
+		     relation = relation->next)
+		{
+			ViewLayer *layer = newdataadr(fd, relation->value);
+			if (layer) {
+				BLI_assert(BLI_findindex(&scene->view_layers, layer) != -1);
+				/* relation->parent is set in lib_link_workspaces */
+				relation->value = layer;
+			}
 		}
 	}
 }
@@ -7175,7 +7190,7 @@ void blo_lib_link_restore(Main *newmain, wmWindowManager *curwm, Scene *curscene
 		for (WorkSpaceLayout *layout = layouts->first; layout; layout = layout->next) {
 			lib_link_workspace_layout_restore(id_map, newmain, layout);
 		}
-		BKE_workspace_view_layer_set(workspace, cur_view_layer);
+		BKE_workspace_view_layer_set(workspace, cur_view_layer, curscene);
 	}
 
 	for (wmWindow *win = curwm->windows.first; win; win = win->next) {

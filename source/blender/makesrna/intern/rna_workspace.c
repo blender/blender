@@ -67,22 +67,6 @@ static PointerRNA rna_workspace_screens_item_get(CollectionPropertyIterator *ite
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Screen, screen);
 }
 
-#ifdef USE_WORKSPACE_MODE
-
-static int rna_workspace_object_mode_get(PointerRNA *ptr)
-{
-	WorkSpace *workspace = ptr->data;
-	return (int)BKE_workspace_object_mode_get(workspace);
-}
-
-static void rna_workspace_object_mode_set(PointerRNA *ptr, int value)
-{
-	WorkSpace *workspace = ptr->data;
-	BKE_workspace_object_mode_set(workspace, value);
-}
-
-#endif /* USE_WORKSPACE_MODE */
-
 void rna_workspace_transform_orientations_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	WorkSpace *workspace = ptr->id.data;
@@ -93,30 +77,6 @@ static PointerRNA rna_workspace_transform_orientations_item_get(CollectionProper
 {
 	TransformOrientation *transform_orientation = rna_iterator_listbase_get(iter);
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_TransformOrientation, transform_orientation);
-}
-
-static PointerRNA rna_workspace_view_layer_get(PointerRNA *ptr)
-{
-	WorkSpace *workspace = ptr->data;
-	ViewLayer *view_layer = BKE_workspace_view_layer_get(workspace);
-
-	/* XXX hmrf... lookup in getter... but how could we avoid it? */
-	for (Scene *scene = G.main->scene.first; scene; scene = scene->id.next) {
-		if (BLI_findindex(&scene->view_layers, view_layer) != -1) {
-			PointerRNA scene_ptr;
-
-			RNA_id_pointer_create(&scene->id, &scene_ptr);
-			return rna_pointer_inherit_refine(&scene_ptr, &RNA_ViewLayer, view_layer);
-		}
-	}
-
-	return PointerRNA_NULL;
-}
-
-static void rna_workspace_view_layer_set(PointerRNA *ptr, PointerRNA value)
-{
-	WorkSpace *workspace = ptr->data;
-	BKE_workspace_view_layer_set(workspace, value.data);
 }
 
 #else /* RNA_RUNTIME */
@@ -139,13 +99,6 @@ static void rna_def_workspace(BlenderRNA *brna)
 	                                  "rna_workspace_screens_item_get", NULL, NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Screens", "Screen layouts of a workspace");
 
-#ifdef USE_WORKSPACE_MODE
-	prop = RNA_def_property(srna, "object_mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, rna_enum_object_mode_items);
-	RNA_def_property_enum_funcs(prop, "rna_workspace_object_mode_get", "rna_workspace_object_mode_set", NULL);
-	RNA_def_property_ui_text(prop, "Mode", "Object interaction mode");
-#endif
-
 	prop = RNA_def_property(srna, "tool_keymap", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "tool.keymap");
 	RNA_def_property_ui_text(prop, "Active Tool", "Currently active tool keymap");
@@ -167,14 +120,6 @@ static void rna_def_workspace(BlenderRNA *brna)
 	RNA_def_property_collection_funcs(prop, "rna_workspace_transform_orientations_begin", NULL, NULL,
 	                                  "rna_workspace_transform_orientations_item_get", NULL, NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Transform Orientations", "");
-
-	prop = RNA_def_property(srna, "view_layer", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "ViewLayer");
-	RNA_def_property_pointer_funcs(prop, "rna_workspace_view_layer_get", "rna_workspace_view_layer_set",
-	                               NULL, NULL);
-	RNA_def_property_ui_text(prop, "Active View Layer", "The active view layer used in this workspace");
-	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_NULL);
-	RNA_def_property_update(prop, NC_SCREEN | ND_LAYER, NULL);
 
 	/* View Render */
 	prop = RNA_def_property(srna, "view_render", PROP_POINTER, PROP_NONE);

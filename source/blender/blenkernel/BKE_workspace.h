@@ -32,6 +32,7 @@ struct EvaluationContext;
 struct Main;
 struct Scene;
 struct TransformOrientation;
+struct ViewLayer;
 
 /**
  * Plan is to store the object-mode per workspace, not per object anymore.
@@ -62,9 +63,16 @@ void BKE_workspace_layout_remove(
         struct Main *bmain,
         struct WorkSpace *workspace, struct WorkSpaceLayout *layout) ATTR_NONNULL();
 
+void BKE_workspace_relations_free(
+        ListBase *relation_list);
+
 
 /* -------------------------------------------------------------------- */
 /* General Utils */
+
+void BKE_workspace_view_layer_remove_references(
+        const struct Main *bmain,
+        const struct ViewLayer *view_layer) ATTR_NONNULL();
 
 void BKE_workspace_transform_orientation_remove(
         struct WorkSpace *workspace, struct TransformOrientation *orientation) ATTR_NONNULL();
@@ -98,14 +106,24 @@ void             BKE_workspace_active_layout_set(struct WorkSpaceInstanceHook *h
 struct bScreen *BKE_workspace_active_screen_get(const struct WorkSpaceInstanceHook *hook) GETTER_ATTRS;
 void            BKE_workspace_active_screen_set(
         struct WorkSpaceInstanceHook *hook, struct WorkSpace *workspace, struct bScreen *screen) SETTER_ATTRS;
-enum eObjectMode BKE_workspace_object_mode_get(const struct WorkSpace *workspace) GETTER_ATTRS;
 #ifdef USE_WORKSPACE_MODE
-void            BKE_workspace_object_mode_set(struct WorkSpace *workspace, const enum eObjectMode mode) SETTER_ATTRS;
+enum eObjectMode BKE_workspace_object_mode_get(
+        const struct WorkSpace *workspace,
+        const struct Scene *scene) GETTER_ATTRS;
+void BKE_workspace_object_mode_set(
+        struct WorkSpace *workspace,
+        struct Scene *scene,
+        const enum eObjectMode mode) SETTER_ATTRS;
 #endif
-struct Base *BKE_workspace_active_base_get(const struct WorkSpace *workspace);
+struct Base *BKE_workspace_active_base_get(const struct WorkSpace *workspace, const struct Scene *scene);
 struct ListBase *BKE_workspace_transform_orientations_get(struct WorkSpace *workspace) GETTER_ATTRS;
-struct ViewLayer *BKE_workspace_view_layer_get(const struct WorkSpace *workspace) GETTER_ATTRS;
-void               BKE_workspace_view_layer_set(struct WorkSpace *workspace, struct ViewLayer *layer) SETTER_ATTRS;
+struct ViewLayer *BKE_workspace_view_layer_get(
+        const struct WorkSpace *workspace,
+        const struct Scene *scene) GETTER_ATTRS;
+void BKE_workspace_view_layer_set(
+        struct WorkSpace *workspace,
+        struct ViewLayer *layer,
+        struct Scene *scene) SETTER_ATTRS;
 struct ListBase *BKE_workspace_layouts_get(struct WorkSpace *workspace) GETTER_ATTRS;
 
 const char *BKE_workspace_layout_name_get(const struct WorkSpaceLayout *layout) GETTER_ATTRS;

@@ -113,6 +113,18 @@ static void *workspace_relation_get_data_matching_parent(
 	}
 }
 
+static void workspace_relation_remove_from_value(
+        ListBase *relation_list, const void *value)
+{
+	for (WorkSpaceDataRelation *relation = relation_list->first, *relation_next; relation; relation = relation_next) {
+		relation_next = relation->next;
+
+		if (relation->value == value) {
+			workspace_relation_remove(relation_list, relation);
+		}
+	}
+}
+
 /**
  * Checks if \a screen is already used within any workspace. A screen should never be assigned to multiple
  * WorkSpaceLayouts, but that should be ensured outside of the BKE_workspace module and without such checks.
@@ -151,15 +163,12 @@ WorkSpace *BKE_workspace_add(Main *bmain, const char *name)
  */
 void BKE_workspace_free(WorkSpace *workspace)
 {
-	for (WorkSpaceDataRelation *relation = workspace->hook_layout_relations.first, *relation_next;
-	     relation;
-	     relation = relation_next)
-	{
-		relation_next = relation->next;
-		workspace_relation_remove(&workspace->hook_layout_relations, relation);
-	}
+	BKE_workspace_relations_free(&workspace->hook_layout_relations);
+	BKE_workspace_relations_free(&workspace->scene_viewlayer_relations);
+
 	BLI_freelistN(&workspace->layouts);
 	BLI_freelistN(&workspace->transform_orientations);
+
 	BKE_viewrender_free(&workspace->view_render);
 }
 
@@ -237,8 +246,27 @@ void BKE_workspace_layout_remove(
 	BLI_freelinkN(&workspace->layouts, layout);
 }
 
+void BKE_workspace_relations_free(
+        ListBase *relation_list)
+{
+	for (WorkSpaceDataRelation *relation = relation_list->first, *relation_next; relation; relation = relation_next) {
+		relation_next = relation->next;
+		workspace_relation_remove(relation_list, relation);
+	}
+}
+
+
 /* -------------------------------------------------------------------- */
 /* General Utils */
+
+void BKE_workspace_view_layer_remove_references(
+        const Main *bmain,
+        const ViewLayer *view_layer)
+{
+	for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
+		workspace_relation_remove_from_value(&workspace->scene_viewlayer_relations, view_layer);
+	}
+}
 
 void BKE_workspace_transform_orientation_remove(
         WorkSpace *workspace, TransformOrientation *orientation)
@@ -386,23 +414,24 @@ void BKE_workspace_active_screen_set(WorkSpaceInstanceHook *hook, WorkSpace *wor
 }
 
 #ifdef USE_WORKSPACE_MODE
-eObjectMode BKE_workspace_object_mode_get(const WorkSpace *workspace)
+eObjectMode BKE_workspace_object_mode_get(const WorkSpace *workspace, const Scene *scene)
 {
-	Base *active_base = BKE_workspace_active_base_get(workspace);
+	Base *active_base = BKE_workspace_active_base_get(workspace, scene);
 	return active_base ? active_base->object->mode : OB_MODE_OBJECT;
 }
-void BKE_workspace_object_mode_set(WorkSpace *workspace, const eObjectMode mode)
+void BKE_workspace_object_mode_set(WorkSpace *workspace, Scene *scene, const eObjectMode mode)
 {
-	Base *active_base = BKE_workspace_active_base_get(workspace);
+	Base *active_base = BKE_workspace_active_base_get(workspace, scene);
 	if (active_base) {
 		active_base->object->mode = mode;
 	}
 }
 #endif
 
-Base *BKE_workspace_active_base_get(const WorkSpace *workspace)
+Base *BKE_workspace_active_base_get(const WorkSpace *workspace, const Scene *scene)
 {
-	return workspace->view_layer->basact;
+	ViewLayer *view_layer = BKE_workspace_view_layer_get(workspace, scene);
+	return view_layer->basact;
 }
 
 ListBase *BKE_workspace_transform_orientations_get(WorkSpace *workspace)
@@ -410,13 +439,14 @@ ListBase *BKE_workspace_transform_orientations_get(WorkSpace *workspace)
 	return &workspace->transform_orientations;
 }
 
-ViewLayer *BKE_workspace_view_layer_get(const WorkSpace *workspace)
+ViewLayer *BKE_workspace_view_layer_get(const WorkSpace *workspace, const Scene *scene)
 {
-	return workspace->view_layer;
+	return workspace_relation_get_data_matching_parent(&workspace->scene_viewlayer_relations, scene);
 }
-void BKE_workspace_view_layer_set(WorkSpace *workspace, ViewLayer *layer)
+void BKE_workspace_view_layer_set(WorkSpace *workspace, ViewLayer *layer, Scene *scene)
 {
 	workspace->view_layer = layer;
+	workspace_relation_ensure_updated(&workspace->scene_viewlayer_relations, scene, layer);
 }
 
 ListBase *BKE_workspace_layouts_get(WorkSpace *workspace)
@@ -486,7 +516,7 @@ void BKE_workspace_update_tagged(struct EvaluationContext *eval_ctx,
                                  WorkSpace *workspace,
                                  Scene *scene)
 {
-	ViewLayer *view_layer = BKE_workspace_view_layer_get(workspace);
+	ViewLayer *view_layer = BKE_workspace_view_layer_get(workspace, scene);
 	struct Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene,
 	                                                      view_layer,
 	                                                      true);

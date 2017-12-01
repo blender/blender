@@ -71,15 +71,16 @@
  * \{ */
 
 WorkSpace *ED_workspace_add(
-        Main *bmain, const char *name, ViewLayer *act_view_layer, ViewRender *view_render)
+        Main *bmain, const char *name, Scene *scene,
+        ViewLayer *act_view_layer, ViewRender *view_render)
 {
 	WorkSpace *workspace = BKE_workspace_add(bmain, name);
 
-	BKE_workspace_view_layer_set(workspace, act_view_layer);
+	BKE_workspace_view_layer_set(workspace, act_view_layer, scene);
 	BKE_viewrender_copy(&workspace->view_render, view_render);
 
 #ifdef USE_WORKSPACE_MODE
-	BKE_workspace_object_mode_set(workspace, OB_MODE_OBJECT);
+	BKE_workspace_object_mode_set(workspace, scene, OB_MODE_OBJECT);
 #endif
 
 	return workspace;
@@ -94,8 +95,9 @@ static void workspace_change_update_mode(
         const WorkSpace *workspace_old, const WorkSpace *workspace_new,
         bContext *C, Object *ob_act, ReportList *reports)
 {
-	eObjectMode mode_old = BKE_workspace_object_mode_get(workspace_old);
-	eObjectMode mode_new = BKE_workspace_object_mode_get(workspace_new);
+	const Scene *scene = CTX_data_scene(C);
+	eObjectMode mode_old = BKE_workspace_object_mode_get(workspace_old, scene);
+	eObjectMode mode_new = BKE_workspace_object_mode_get(workspace_new, scene);
 
 	if (mode_old != mode_new) {
 		ED_object_mode_compat_set(C, ob_act, mode_new, reports);
@@ -105,10 +107,11 @@ static void workspace_change_update_mode(
 #endif
 
 static void workspace_change_update_view_layer(
-        WorkSpace *workspace_new, const WorkSpace *workspace_old)
+        WorkSpace *workspace_new, const WorkSpace *workspace_old,
+        Scene *scene)
 {
-	if (!BKE_workspace_view_layer_get(workspace_new)) {
-		BKE_workspace_view_layer_set(workspace_new, BKE_workspace_view_layer_get(workspace_old));
+	if (!BKE_workspace_view_layer_get(workspace_new, scene)) {
+		BKE_workspace_view_layer_set(workspace_new, BKE_workspace_view_layer_get(workspace_old, scene), scene);
 	}
 }
 
@@ -117,7 +120,7 @@ static void workspace_change_update(
         bContext *C, wmWindowManager *wm)
 {
 	/* needs to be done before changing mode! (to ensure right context) */
-	workspace_change_update_view_layer(workspace_new, workspace_old);
+	workspace_change_update_view_layer(workspace_new, workspace_old, CTX_data_scene(C));
 #ifdef USE_WORKSPACE_MODE
 	workspace_change_update_mode(workspace_old, workspace_new, C, CTX_data_active_object(C), &wm->reports);
 #else
@@ -199,7 +202,7 @@ bool ED_workspace_change(
 		screen_changed_update(C, win, screen_new);
 		workspace_change_update(workspace_new, workspace_old, C, wm);
 
-		BLI_assert(BKE_workspace_view_layer_get(workspace_new) != NULL);
+		BLI_assert(BKE_workspace_view_layer_get(workspace_new, CTX_data_scene(C)) != NULL);
 		BLI_assert(CTX_wm_workspace(C) == workspace_new);
 
 		WM_toolsystem_unlink(C, workspace_old);
@@ -220,15 +223,16 @@ WorkSpace *ED_workspace_duplicate(
 {
 	WorkSpaceLayout *layout_active_old = BKE_workspace_active_layout_get(win->workspace_hook);
 	ListBase *layouts_old = BKE_workspace_layouts_get(workspace_old);
+	Scene *scene = WM_window_get_active_scene(win);
 	WorkSpace *workspace_new = ED_workspace_add(
-	        bmain, workspace_old->id.name + 2,
-	        BKE_workspace_view_layer_get(workspace_old),
+	        bmain, workspace_old->id.name + 2, scene,
+	        BKE_workspace_view_layer_get(workspace_old, scene),
 	        &workspace_old->view_render);
 	ListBase *transform_orientations_old = BKE_workspace_transform_orientations_get(workspace_old);
 	ListBase *transform_orientations_new = BKE_workspace_transform_orientations_get(workspace_new);
 
 #ifdef USE_WORKSPACE_MODE
-	BKE_workspace_object_mode_set(workspace_new, BKE_workspace_object_mode_get(workspace_old));
+	BKE_workspace_object_mode_set(workspace_new, scene, BKE_workspace_object_mode_get(workspace_old, scene));
 #endif
 	BLI_duplicatelist(transform_orientations_new, transform_orientations_old);
 
@@ -279,11 +283,12 @@ void ED_workspace_scene_data_sync(
 }
 
 void ED_workspace_view_layer_unset(
-        const Main *bmain, const ViewLayer *layer_unset, ViewLayer *layer_new)
+        const Main *bmain, Scene *scene,
+        const ViewLayer *layer_unset, ViewLayer *layer_new)
 {
 	for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
-		if (BKE_workspace_view_layer_get(workspace) == layer_unset) {
-			BKE_workspace_view_layer_set(workspace, layer_new);
+		if (BKE_workspace_view_layer_get(workspace, scene) == layer_unset) {
+			BKE_workspace_view_layer_set(workspace, layer_new, scene);
 		}
 	}
 }

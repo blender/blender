@@ -118,16 +118,20 @@ void ED_scene_exit(bContext *C)
 	ED_object_editmode_exit(C, EM_FREEDATA | EM_DO_UNDO);
 }
 
+static ViewLayer *scene_change_get_new_view_layer(const WorkSpace *workspace, const Scene *scene_new)
+{
+	ViewLayer *layer_new = BKE_workspace_view_layer_get(workspace, scene_new);
+	return layer_new ? layer_new : BKE_view_layer_from_scene_get(scene_new);
+}
+
 void ED_scene_changed_update(Main *bmain, bContext *C, Scene *scene_new, const bScreen *active_screen)
 {
-	/* XXX Just using active scene render-layer for workspace when switching,
-	 * but workspace should remember the last one set. Could store render-layer
-	 * per window-workspace combination (using WorkSpaceDataRelation) */
-	ViewLayer *layer_new = BLI_findlink(&scene_new->view_layers, scene_new->active_view_layer);
+	WorkSpace *workspace = CTX_wm_workspace(C);
+	ViewLayer *layer_new = scene_change_get_new_view_layer(workspace, scene_new);
 	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene_new, layer_new, true);
 
 	CTX_data_scene_set(C, scene_new);
-	BKE_workspace_view_layer_set(CTX_wm_workspace(C), layer_new);
+	BKE_workspace_view_layer_set(workspace, layer_new, scene_new);
 	BKE_scene_set_background(bmain, scene_new);
 	DEG_graph_relations_update(depsgraph, bmain, scene_new, layer_new);
 	DEG_on_visible_update(bmain, false);
@@ -186,7 +190,8 @@ bool ED_scene_view_layer_delete(
 	BLI_assert(BLI_listbase_is_empty(&scene->view_layers) == false);
 	scene->active_view_layer = 0;
 
-	ED_workspace_view_layer_unset(bmain, layer, scene->view_layers.first);
+	ED_workspace_view_layer_unset(bmain, scene, layer, scene->view_layers.first);
+	BKE_workspace_view_layer_remove_references(bmain, layer);
 	view_layer_remove_unset_nodetrees(bmain, scene, layer);
 
 	BKE_view_layer_free(layer);

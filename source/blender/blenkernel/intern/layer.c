@@ -89,7 +89,7 @@ ViewLayer *BKE_view_layer_from_workspace_get(const struct Scene *scene, const st
 		return BKE_view_layer_from_scene_get(scene);
 	}
 	else {
-		return BKE_workspace_view_layer_get(workspace);
+		return BKE_workspace_view_layer_get(workspace, scene);
 	}
 }
 

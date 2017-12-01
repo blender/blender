@@ -48,15 +48,16 @@ class INFO_HT_header(Header):
             layout.template_ID(window, "workspace", new="workspace.workspace_add_menu", unlink="workspace.workspace_delete")
             layout.template_search_preview(window, "screen", workspace, "screens", new="screen.new", unlink="screen.delete", rows=2, cols=6)
 
-        if hasattr(workspace, 'object_mode'):
-            act_mode_item = bpy.types.Object.bl_rna.properties['mode'].enum_items[workspace.object_mode]
+        if hasattr(window, 'object_mode'):
+            act_mode_item = bpy.types.Object.bl_rna.properties['mode'].enum_items[window.object_mode]
         else:
             act_mode_item = bpy.types.Object.bl_rna.properties['mode'].enum_items[layer.objects.active.mode]
         layout.operator_menu_enum("object.mode_set", "mode", text=act_mode_item.name, icon=act_mode_item.icon)
 
         row = layout.row()
         row.active = not workspace.use_scene_settings
-        row.template_search(workspace, "view_layer", scene, "view_layers")
+        # Active workspace view-layer is retrieved through window, not through workspace.
+        row.template_search(window, "view_layer", scene, "view_layers")
 
         if view_render.has_multiple_engines:
             row.prop(view_render, "engine", text="")

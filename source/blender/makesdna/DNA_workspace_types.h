@@ -84,6 +84,7 @@ typedef struct WorkSpace {
 	/* Store for each hook (so for each window) which layout has
 	 * been activated the last time this workspace was visible. */
 	ListBase hook_layout_relations DNA_PRIVATE_WORKSPACE_READ_WRITE; /* WorkSpaceDataRelation */
+	ListBase scene_viewlayer_relations DNA_PRIVATE_WORKSPACE_READ_WRITE; /* WorkSpaceDataRelation */
 
 	/* Custom transform orientations */
 	ListBase transform_orientations DNA_PRIVATE_WORKSPACE;

@@ -86,8 +86,9 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 {
 	for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 		const bScreen *screen_parent = screen_parent_find(screen);
+		Scene *scene = screen->scene;
 		WorkSpace *workspace;
-		ViewLayer *layer = BKE_view_layer_from_scene_get(screen->scene);
+		ViewLayer *layer = BKE_view_layer_from_scene_get(scene);
 		ListBase *transform_orientations;
 
 		if (screen_parent) {
@@ -100,7 +101,7 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 			workspace = BKE_workspace_add(bmain, screen->id.name + 2);
 		}
 		BKE_workspace_layout_add(workspace, screen, screen->id.name + 2);
-		BKE_workspace_view_layer_set(workspace, layer);
+		BKE_workspace_view_layer_set(workspace, layer, scene);
 
 #ifdef WITH_CLAY_ENGINE
 		BLI_strncpy(workspace->view_render.engine_id, RE_engine_id_BLENDER_CLAY,
@@ -111,7 +112,7 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 #endif
 
 		transform_orientations = BKE_workspace_transform_orientations_get(workspace);
-		BLI_duplicatelist(transform_orientations, &screen->scene->transform_spaces);
+		BLI_duplicatelist(transform_orientations, &scene->transform_spaces);
 	}
 }
 

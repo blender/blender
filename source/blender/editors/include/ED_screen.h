@@ -136,6 +136,7 @@ void    ED_screen_preview_render(const struct bScreen *screen, int size_x, int s
 struct WorkSpace *ED_workspace_add(
         struct Main *bmain,
         const char *name,
+        Scene *scene,
         ViewLayer *act_render_layer,
         struct ViewRender *view_render) ATTR_NONNULL();
 bool ED_workspace_change(
@@ -152,7 +153,8 @@ bool ED_workspace_delete(
 void ED_workspace_scene_data_sync(
         struct WorkSpaceInstanceHook *hook, Scene *scene) ATTR_NONNULL();
 void ED_workspace_view_layer_unset(
-        const struct Main *bmain, const ViewLayer *layer_unset, ViewLayer *layer_new) ATTR_NONNULL(1, 2);
+        const struct Main *bmain, struct Scene *scene,
+        const ViewLayer *layer_unset, ViewLayer *layer_new) ATTR_NONNULL(1, 2);
 struct WorkSpaceLayout *ED_workspace_layout_add(
         struct WorkSpace *workspace,
         struct wmWindow *win,
