@@ -119,6 +119,7 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "transform.h"
 #include "bmesh.h"
@@ -5528,6 +5529,37 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	}
 }
 
+static void trans_object_base_deps_flag_prepare(ViewLayer *view_layer)
+{
+	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+		base->object->id.tag &= ~LIB_TAG_DOIT;
+	}
+}
+
+static void set_trans_object_base_deps_flag_cb(ID *id, void *UNUSED(user_data))
+{
+	/* Here we only handle object IDs. */
+	if (GS(id->name) != ID_OB) {
+		return;
+	}
+	id->tag |= LIB_TAG_DOIT;
+}
+
+static void flush_trans_object_base_deps_flag(Depsgraph *depsgraph, Object *object)
+{
+	object->id.tag |= LIB_TAG_DOIT;
+	DEG_foreach_dependent_ID(depsgraph, &object->id,
+	                         set_trans_object_base_deps_flag_cb, NULL);
+}
+
+static void trans_object_base_deps_flag_finish(ViewLayer *view_layer)
+{
+	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+		if (base->object->id.tag & LIB_TAG_DOIT) {
+			base->flag_legacy |= BA_SNAP_FIX_DEPS_FIASCO;
+		}
+	}
+}
 
 /* sets flags in Bases to define whether they take part in transform */
 /* it deselects Bases, so we have to call the clear function always after */
@@ -5538,47 +5570,30 @@ static void set_trans_object_base_flags(TransInfo *t)
 	ViewLayer *view_layer = t->view_layer;
 	Scene *scene = t->scene;
 	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
-
-	/*
-	 * if Base selected and has parent selected:
-	 * base->flag_legacy = BA_WAS_SEL
+	/* NOTE: if Base selected and has parent selected:
+	 *   base->flag_legacy = BA_WAS_SEL
 	 */
-	Base *base;
-
-	/* don't do it if we're not actually going to recalculate anything */
-	if (t->mode == TFM_DUMMY)
+	/* Don't do it if we're not actually going to recalculate anything. */
+	if (t->mode == TFM_DUMMY) {
 		return;
-
-	/* makes sure base flags and object flags are identical */
+	}
+	/* Makes sure base flags and object flags are identical. */
 	BKE_scene_base_flag_to_objects(t->view_layer);
-
 	/* Make sure depsgraph is here. */
 	DEG_graph_relations_update(depsgraph, bmain, scene, view_layer);
-
-	/* handle pending update events, otherwise they got copied below */
-	EvaluationContext eval_ctx;
-	DEG_evaluation_context_init_from_scene(&eval_ctx,
-	                                       t->scene, t->view_layer, t->engine_type,
-	                                       DAG_EVAL_VIEWPORT);
-	for (base = view_layer->object_bases.first; base; base = base->next) {
-		if (base->object->recalc & OB_RECALC_ALL) {
-			/* TODO(sergey): Ideally, it's not needed. */
-			BKE_object_handle_update(&eval_ctx, t->scene, base->object);
-		}
-	}
-
-	for (base = view_layer->object_bases.first; base; base = base->next) {
+	/* Clear all flags we need. It will be used to detect dependencies. */
+	trans_object_base_deps_flag_prepare(view_layer);
+	/* Traverse all bases and set all possible flags. */
+	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 		base->flag_legacy &= ~BA_WAS_SEL;
-
 		if (TESTBASELIB_BGMODE(base)) {
 			Object *ob = base->object;
 			Object *parsel = ob->parent;
-
-			/* if parent selected, deselect */
-			while (parsel) {
+			/* If parent selected, deselect. */
+			while (parsel != NULL) {
 				if (parsel->base_flag & BASE_SELECTED) {
 					Base *parbase = BKE_view_layer_base_find(view_layer, parsel);
-					if (parbase) { /* in rare cases this can fail */
+					if (parbase != NULL) { /* in rare cases this can fail */
 						if (TESTBASELIB_BGMODE(parbase)) {
 							break;
 						}
@@ -5586,9 +5601,8 @@ static void set_trans_object_base_flags(TransInfo *t)
 				}
 				parsel = parsel->parent;
 			}
-
-			if (parsel) {
-				/* rotation around local centers are allowed to propagate */
+			if (parsel != NULL) {
+				/* Rotation around local centers are allowed to propagate. */
 				if ((t->around == V3D_AROUND_LOCAL_ORIGINS) &&
 				    (t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL))
 				{
@@ -5599,20 +5613,13 @@ static void set_trans_object_base_flags(TransInfo *t)
 					base->flag_legacy |= BA_WAS_SEL;
 				}
 			}
-			DEG_id_tag_update(&ob->id, OB_RECALC_OB);
+			flush_trans_object_base_deps_flag(depsgraph, ob);
 		}
 	}
-
-	/* all recalc flags get flushed to all layers, so a layer flip later on works fine */
-	DEG_graph_flush_update(bmain, depsgraph);
-
-	/* and we store them temporal in base (only used for transform code) */
-	/* this because after doing updates, the object->recalc is cleared */
-	for (base = view_layer->object_bases.first; base; base = base->next) {
-		if (base->object->recalc & (OB_RECALC_OB | OB_RECALC_DATA)) {
-			base->flag_legacy |= BA_SNAP_FIX_DEPS_FIASCO;
-		}
-	}
+	/* Store temporary bits in base indicating that base is being modified
+	 * (directly or indirectly) by transforming objects.
+	 */
+	trans_object_base_deps_flag_finish(view_layer);
 }
 
 static bool mark_children(Object *ob)
@@ -5633,32 +5640,28 @@ static bool mark_children(Object *ob)
 static int count_proportional_objects(TransInfo *t)
 {
 	int total = 0;
-	/* TODO(sergey): Get rid of global, use explicit main. */
-	Main *bmain = G.main;
 	ViewLayer *view_layer = t->view_layer;
 	Scene *scene = t->scene;
 	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
-	Base *base;
-
-	/* rotations around local centers are allowed to propagate, so we take all objects */
+	/* Clear all flags we need. It will be used to detect dependencies. */
+	trans_object_base_deps_flag_prepare(view_layer);
+	/* Rotations around local centers are allowed to propagate, so we take all objects. */
 	if (!((t->around == V3D_AROUND_LOCAL_ORIGINS) &&
 	      (t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL)))
 	{
-		/* mark all parents */
-		for (base = view_layer->object_bases.first; base; base = base->next) {
+		/* Mark all parents. */
+		for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 			if (TESTBASELIB_BGMODE(base)) {
 				Object *parent = base->object->parent;
-	
 				/* flag all parents */
-				while (parent) {
+				while (parent != NULL) {
 					parent->flag |= BA_TRANSFORM_PARENT;
 					parent = parent->parent;
 				}
 			}
 		}
-
-		/* mark all children */
-		for (base = view_layer->object_bases.first; base; base = base->next) {
+		/* Mark all children. */
+		for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 			/* all base not already selected or marked that is editable */
 			if ((base->object->flag & (BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
 			    (base->flag & BASE_SELECTED) == 0 &&
@@ -5668,35 +5671,24 @@ static int count_proportional_objects(TransInfo *t)
 			}
 		}
 	}
-	
-	for (base = view_layer->object_bases.first; base; base = base->next) {
+	/* Flush changed flags to all dependencies. */
+	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 		Object *ob = base->object;
-
-		/* if base is not selected, not a parent of selection or not a child of selection and it is editable */
+		/* If base is not selected, not a parent of selection or not a child of
+		 * selection and it is editable.
+		 */
 		if ((ob->flag & (BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
 		    (base->flag & BASE_SELECTED) == 0 &&
 		    (BASE_EDITABLE_BGMODE(base)))
 		{
-
-			DEG_id_tag_update(&ob->id, OB_RECALC_OB);
-
+			flush_trans_object_base_deps_flag(depsgraph, ob);
 			total += 1;
 		}
 	}
-	
-
-	/* all recalc flags get flushed to all layers, so a layer flip later on works fine */
-	DEG_graph_relations_update(depsgraph, bmain, scene, view_layer);
-	DEG_graph_flush_update(bmain, depsgraph);
-
-	/* and we store them temporal in base (only used for transform code) */
-	/* this because after doing updates, the object->recalc is cleared */
-	for (base = view_layer->object_bases.first; base; base = base->next) {
-		if (base->object->recalc & (OB_RECALC_OB | OB_RECALC_DATA)) {
-			base->flag_legacy |= BA_SNAP_FIX_DEPS_FIASCO;
-		}
-	}
-
+	/* Store temporary bits in base indicating that base is being modified
+	 * (directly or indirectly) by transforming objects.
+	 */
+	trans_object_base_deps_flag_finish(view_layer);
 	return total;
 }
 
@@ -8286,7 +8278,7 @@ void createTransData(bContext *C, TransInfo *t)
 			RegionView3D *rv3d = t->ar->regiondata;
 			if ((rv3d->persp == RV3D_CAMOB) && v3d->camera) {
 				/* we could have a flag to easily check an object is being transformed */
-				if (v3d->camera->recalc) {
+				if (v3d->camera->id.tag & LIB_TAG_DOIT) {
 					t->flag |= T_CAMERA;
 				}
 			}
