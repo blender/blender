@@ -45,44 +45,6 @@
 static void metaball_batch_cache_clear(MetaBall *mb);
 
 /* ---------------------------------------------------------------------- */
-/* MetaBall Interface, indirect, partially cached access to complex data. */
-
-typedef struct MetaBallRenderData {
-	int types;
-
-	/* borrow from 'Object' */
-	CurveCache *ob_curve_cache;
-} MetaBallRenderData;
-
-enum {
-	/* Geometry */
-	MBALL_DATATYPE_SURFACE = 1 << 0,
-//	MBALL_DATATYPE_WIRE    = 1 << 1,
-//	MBALL_DATATYPE_SHADING = 1 << 2,
-};
-
-static MetaBallRenderData *metaball_render_data_create(
-        MetaBall *UNUSED(mb), CurveCache *ob_curve_cache, const int types)
-{
-	MetaBallRenderData *rdata = MEM_callocN(sizeof(*rdata), __func__);
-	rdata->types = types;
-	rdata->ob_curve_cache = ob_curve_cache;
-
-/*
-	**TODO**
-	if (types & MBALL_DATATYPE_WIRE) {}
-	if (types & MBALL_DATATYPE_SHADING) {}
-*/
-
-	return rdata;
-}
-
-static void metaball_render_data_free(MetaBallRenderData *rdata)
-{
-	MEM_freeN(rdata);
-}
-
-/* ---------------------------------------------------------------------- */
 /* MetaBall Gwn_Batch Cache */
 
 typedef struct MetaBallBatchCache {
@@ -158,24 +120,6 @@ void DRW_mball_batch_cache_free(MetaBall *mb)
 
 /* -------------------------------------------------------------------- */
 
-/** \name Private MetaBall Cache API
- * \{ */
-
-/* Gwn_Batch cache usage. */
-
-static Gwn_Batch *metaball_batch_cache_get_pos_and_normals(MetaBallRenderData *rdata, MetaBallBatchCache *cache)
-{
-	BLI_assert(rdata->types & MBALL_DATATYPE_SURFACE);
-	if (cache->batch == NULL) {
-		cache->batch = BLI_displist_batch_calc_surface(&rdata->ob_curve_cache->disp);
-	}
-	return cache->batch;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-
 /** \name Public Object/MetaBall API
  * \{ */
 
@@ -188,9 +132,7 @@ Gwn_Batch *DRW_metaball_batch_cache_get_triangles_with_normals(Object *ob)
 	MetaBallBatchCache *cache = metaball_batch_cache_get(mb);
 
 	if (cache->batch == NULL) {
-		MetaBallRenderData *rdata = metaball_render_data_create(mb, ob->curve_cache, MBALL_DATATYPE_SURFACE);
-		metaball_batch_cache_get_pos_and_normals(rdata, cache);
-		metaball_render_data_free(rdata);
+		cache->batch = BLI_displist_batch_calc_surface(&ob->curve_cache->disp);
 	}
 
 	return cache->batch;
