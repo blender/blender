@@ -549,7 +549,7 @@ void do_versions_after_linking_280(Main *main)
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 280, 3)) {
+	{
 		for (WorkSpace *workspace = main->workspaces.first; workspace; workspace = workspace->id.next) {
 			if (workspace->view_layer) {
 				/* During 2.8 work we temporarly stored view-layer in the
