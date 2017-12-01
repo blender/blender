@@ -279,7 +279,7 @@ typedef struct Object {
 	struct BulletSoftBody *bsoft;	/* settings for game engine bullet soft body */
 
 	char restrictflag;		/* for restricting view, select, render etc. accessible in outliner */
-	char recalc;			/* dependency flag */
+	char pad3;
 	short softflag;			/* softbody settings */
 	float anisotropicFriction[3];
 
