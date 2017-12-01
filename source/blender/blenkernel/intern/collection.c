@@ -34,6 +34,7 @@
 #include "BLI_string_utils.h"
 
 #include "BKE_collection.h"
+#include "BKE_group.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
@@ -47,6 +48,9 @@
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
+
+/* Prototypes. */
+static bool is_collection_in_tree(const struct SceneCollection *sc_reference, struct SceneCollection *sc_parent);
 
 static SceneCollection *collection_master_from_id(const ID *owner_id)
 {
@@ -405,6 +409,82 @@ bool BKE_collections_object_remove(Main *bmain, ID *owner_id, Object *ob, const 
 	}
 	FOREACH_SCENE_COLLECTION_END
 	return removed;
+}
+
+static void layer_collection_sync(LayerCollection *lc_dst, LayerCollection *lc_src)
+{
+	lc_dst->flag = lc_src->flag;
+
+	/* Pending: sync overrides. */
+	IDP_MergeGroup(lc_dst->properties, lc_src->properties, true);
+
+	/* Continue recursively. */
+	LayerCollection *lc_dst_nested, *lc_src_nested;
+	lc_src_nested = lc_src->layer_collections.first;
+	for (lc_dst_nested = lc_dst->layer_collections.first;
+	     lc_dst_nested && lc_src_nested;
+	     lc_dst_nested = lc_dst_nested->next, lc_src_nested = lc_src_nested->next)
+	{
+		layer_collection_sync(lc_dst_nested, lc_src_nested);
+	}
+}
+
+/**
+ * Leave only the master collection in, remove everything else.
+ * @param group
+ */
+static void collection_group_cleanup(Group *group)
+{
+	/* Unlink all the LayerCollections. */
+	while (group->view_layer->layer_collections.last != NULL) {
+		BKE_collection_unlink(group->view_layer, group->view_layer->layer_collections.last);
+	}
+
+	/* Remove all the SceneCollections but the master. */
+	collection_free(group->collection, false);
+}
+
+/**
+ * Create a group from a collection
+ *
+ * Any ViewLayer that may have this the related SceneCollection linked is converted
+ * to a Group Collection.
+ */
+Group *BKE_collection_group_create(Main *bmain, Scene *scene, LayerCollection *lc_src)
+{
+	SceneCollection *sc_dst, *sc_src = lc_src->scene_collection;
+	LayerCollection *lc_dst;
+
+	/* The master collection can't be converted. */
+	if (sc_src == BKE_collection_master(&scene->id)) {
+		return NULL;
+	}
+
+	/* If a sub-collection of sc_dst is directly linked into a ViewLayer we can't convert. */
+	for (ViewLayer *view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
+		for (LayerCollection *lc_child = view_layer->layer_collections.first; lc_child; lc_child = lc_child->next) {
+			if (is_collection_in_tree(lc_child->scene_collection, sc_src)) {
+				return NULL;
+			}
+		}
+	}
+
+	/* Create new group with the same data as the original collection. */
+	Group *group = BKE_group_add(bmain, sc_src->name);
+	collection_group_cleanup(group);
+
+	sc_dst = BKE_collection_add(&group->id, NULL, COLLECTION_TYPE_GROUP_INTERNAL, sc_src->name);
+	BKE_collection_copy_data(sc_dst, sc_src, 0);
+	FOREACH_SCENE_COLLECTION(&group->id, sc_group)
+	{
+		sc_group->type = COLLECTION_TYPE_GROUP_INTERNAL;
+	}
+	FOREACH_SCENE_COLLECTION_END
+
+	lc_dst = BKE_collection_link(group->view_layer, sc_dst);
+	layer_collection_sync(lc_dst, lc_src);
+
+	return group;
 }
 
 /* ---------------------------------------------------------------------- */

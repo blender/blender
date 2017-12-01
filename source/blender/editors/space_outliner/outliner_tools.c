@@ -664,6 +664,7 @@ typedef enum eOutliner_PropCollectionOps {
 	OL_COLLECTION_OP_COLLECTION_NEW,
 	OL_COLLECTION_OP_COLLECTION_DEL,
 	OL_COLLECTION_OP_COLLECTION_UNLINK,
+	OL_COLLECTION_OP_GROUP_CREATE,
 } eOutliner_PropCollectionOps;
 
 static void pchan_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *UNUSED(arg))
@@ -877,6 +878,17 @@ static void collection_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tsel
 			/* we can't remove the master collection */
 			TODO_LAYER_OPERATORS; /* this shouldn't be in the menu in those cases */
 		}
+	}
+	else if (event == OL_COLLECTION_OP_GROUP_CREATE) {
+		Main *bmain = CTX_data_main(C);
+		BKE_collection_group_create(bmain, scene, lc);
+		DEG_relations_tag_update(bmain);
+		/* TODO(sergey): Use proper flag for tagging here. */
+		DEG_id_tag_update(&scene->id, 0);
+		WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
+	}
+	else {
+		BLI_assert(!"Collection operation not fully implemented!");
 	}
 }
 
@@ -1808,6 +1820,7 @@ static EnumPropertyItem prop_collection_op_none_types[] = {
 	{OL_COLLECTION_OP_COLLECTION_NEW, "COLLECTION_NEW", ICON_NEW, "New Collection", "Add a new nested collection"},
 	{OL_COLLECTION_OP_COLLECTION_UNLINK, "COLLECTION_UNLINK", ICON_UNLINKED, "Unlink", "Unlink collection"},
 	{OL_COLLECTION_OP_COLLECTION_DEL, "COLLECTION_DEL", ICON_X, "Delete Collection", "Delete the collection"},
+	{OL_COLLECTION_OP_GROUP_CREATE, "GROUP_CREATE", ICON_GROUP, "Create Group", "Turn the collection into a group collection"},
 	{0, NULL, 0, NULL, NULL}
 };
 

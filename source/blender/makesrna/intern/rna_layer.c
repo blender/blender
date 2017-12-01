@@ -738,6 +738,32 @@ static void rna_LayerCollection_enable_set(
 	WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 }
 
+static Group *rna_LayerCollection_create_group(
+        ID *id, LayerCollection *layer_collection, Main *bmain, bContext *C, ReportList *reports)
+{
+	Group *group;
+	Scene *scene = (Scene *)id;
+	SceneCollection *scene_collection = layer_collection->scene_collection;
+
+	/* The master collection can't be converted. */
+	if (scene_collection == BKE_collection_master(&scene->id)) {
+		BKE_report(reports, RPT_ERROR, "The master collection can't be converted to group");
+		return NULL;
+	}
+
+	group = BKE_collection_group_create(bmain, scene, layer_collection);
+	if (group == NULL) {
+		BKE_reportf(reports, RPT_ERROR, "Failed to convert collection %s", scene_collection->name);
+		return NULL;
+	}
+
+	DEG_relations_tag_update(bmain);
+	/* TODO(sergey): Use proper flag for tagging here. */
+	DEG_id_tag_update(&scene->id, 0);
+	WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
+	return group;
+}
+
 static int rna_LayerCollections_active_collection_index_get(PointerRNA *ptr)
 {
 	ViewLayer *view_layer = (ViewLayer *)ptr->data;
@@ -2018,6 +2044,12 @@ static void rna_def_layer_collection(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Enable or disable a collection");
 	parm = RNA_def_boolean(func, "value", 1, "Enable", "");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+
+	func = RNA_def_function(srna, "create_group", "rna_LayerCollection_create_group");
+	RNA_def_function_ui_description(func, "Enable or disable a collection");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+	parm = RNA_def_pointer(func, "result", "Group", "", "Newly created Group");
+	RNA_def_function_return(func, parm);
 
 	/* Flags */
 	prop = RNA_def_property(srna, "is_enabled", PROP_BOOLEAN, PROP_NONE);
