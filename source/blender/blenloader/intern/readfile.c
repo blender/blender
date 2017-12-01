@@ -5509,11 +5509,6 @@ static void direct_link_object(FileData *fd, Object *ob)
 	/* weak weak... this was only meant as draw flag, now is used in give_base_to_objects too */
 	ob->flag &= ~OB_FROMGROUP;
 
-	/* This is a transient flag; clear in order to avoid unneeded object update pending from
-	 * time when file was saved.
-	 */
-	ob->recalc = 0;
-
 	/* XXX This should not be needed - but seems like it can happen in some cases, so for now play safe... */
 	ob->proxy_from = NULL;
 

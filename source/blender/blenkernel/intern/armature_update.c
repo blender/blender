@@ -700,8 +700,6 @@ void BKE_pose_eval_flush(const struct EvaluationContext *UNUSED(eval_ctx),
 
 	/* 6. release the IK tree */
 	BIK_release_tree(scene, ob, ctime);
-
-	ob->recalc &= ~OB_RECALC_ALL;
 }
 
 void BKE_pose_eval_proxy_copy(const struct EvaluationContext *UNUSED(eval_ctx), Object *ob)
@@ -712,8 +710,4 @@ void BKE_pose_eval_proxy_copy(const struct EvaluationContext *UNUSED(eval_ctx), 
 		printf("Proxy copy error, lib Object: %s proxy Object: %s\n",
 		       ob->id.name + 2, ob->proxy_from->id.name + 2);
 	}
-	/* Rest of operations are NO-OP in depsgraph, so can clear
-	 * flag now.
-	 */
-	ob->recalc &= ~OB_RECALC_ALL;
 }
