@@ -6476,12 +6476,16 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 		else if (arm->flag & ARM_DELAYDEFORM) {
-			/* old optimize trick... this enforces to bypass the depgraph */
+			/* TODO(sergey): Armature is already updated by recalcData(), so we
+			 * might save some time by skipping re-evaluating it. But this isn't
+			 * possible yet within new dependency graph, and also other contexts
+			 * might need to update their CoW copies.
+			 */
 			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-			ob->recalc = 0;  // is set on OK position already by recalcData()
 		}
-		else
+		else {
 			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		}
 
 	}
 	else if (t->options & CTX_PAINT_CURVE) {
