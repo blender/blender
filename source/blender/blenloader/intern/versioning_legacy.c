@@ -1871,7 +1871,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 					BKE_pose_tag_recalc(main, ob->pose);
 
 				/* cannot call stuff now (pointers!), done in setup_app_data */
-				ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
+				ob->id.tag |= LIB_TAG_ID_RECALC_ALL;
 
 				/* new generic xray option */
 				arm = blo_do_versions_newlibadr(fd, lib, ob->data);
