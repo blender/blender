@@ -56,6 +56,11 @@ extern "C" {
 namespace DEG {
 
 enum {
+	ID_STATE_NONE     = 0,
+	ID_STATE_MODIFIED = 1,
+};
+
+enum {
 	COMPONENT_STATE_NONE      = 0,
 	COMPONENT_STATE_SCHEDULED = 1,
 	COMPONENT_STATE_DONE      = 2,
@@ -76,7 +81,7 @@ void flush_init_id_node_func(void *data_v, int i)
 {
 	Depsgraph *graph = (Depsgraph *)data_v;
 	IDDepsNode *id_node = graph->id_nodes[i];
-	id_node->done = 0;
+	id_node->done = ID_STATE_NONE;
 	GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, id_node->components)
 		comp_node->done = COMPONENT_STATE_NONE;
 	GHASH_FOREACH_END();
@@ -106,29 +111,9 @@ BLI_INLINE void flush_schedule_entrypoints(Depsgraph *graph, FlushQueue *queue)
 	GSET_FOREACH_END();
 }
 
-BLI_INLINE void flush_handle_id_node(Main *bmain,
-                                     IDDepsNode *id_node,
-                                     const DEGEditorUpdateContext *update_ctx)
+BLI_INLINE void flush_handle_id_node(IDDepsNode *id_node)
 {
-	/* We only inform ID node once. */
-	if (id_node->done != 0) {
-		return;
-	}
-	id_node->done = 1;
-	/* TODO(sergey): Do we need to pass original or evaluated ID here? */
-	ID *id_orig = id_node->id_orig;
-	ID *id_cow = id_node->id_cow;
-	/* Copy tag from original data to CoW storage.
-	 * This is because DEG_id_tag_update() sets tags on original
-	 * data.
-	 */
-	id_cow->tag |= (id_orig->tag & LIB_TAG_ID_RECALC_ALL);
-	if (deg_copy_on_write_is_expanded(id_cow)) {
-		deg_editors_id_update(update_ctx, id_cow);
-	}
-	lib_id_recalc_tag(bmain, id_orig);
-	/* TODO(sergey): For until we've got proper data nodes in the graph. */
-	lib_id_recalc_data_tag(bmain, id_orig);
+	id_node->done = ID_STATE_MODIFIED;
 }
 
 /* TODO(sergey): We can reduce number of arguments here. */
@@ -205,6 +190,31 @@ BLI_INLINE OperationDepsNode *flush_schedule_children(
 	return result;
 }
 
+BLI_INLINE void flush_editors_id_update(Main *bmain,
+                                        Depsgraph *graph,
+                                        const DEGEditorUpdateContext *update_ctx)
+{
+	foreach (IDDepsNode *id_node, graph->id_nodes) {
+		if (id_node->done != ID_STATE_MODIFIED) {
+			continue;
+		}
+		/* TODO(sergey): Do we need to pass original or evaluated ID here? */
+		ID *id_orig = id_node->id_orig;
+		ID *id_cow = id_node->id_cow;
+		/* Copy tag from original data to CoW storage.
+		 * This is because DEG_id_tag_update() sets tags on original
+		 * data.
+		 */
+		id_cow->tag |= (id_orig->tag & LIB_TAG_ID_RECALC_ALL);
+		if (deg_copy_on_write_is_expanded(id_cow)) {
+			deg_editors_id_update(update_ctx, id_cow);
+		}
+		lib_id_recalc_tag(bmain, id_orig);
+		/* TODO(sergey): For until we've got proper data nodes in the graph. */
+		lib_id_recalc_data_tag(bmain, id_orig);
+	}
+}
+
 }  // namespace
 
 /* Flush updates from tagged nodes outwards until all affected nodes
@@ -241,7 +251,7 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 			/* Inform corresponding ID and component nodes about the change. */
 			ComponentDepsNode *comp_node = op_node->owner;
 			IDDepsNode *id_node = comp_node->owner;
-			flush_handle_id_node(bmain, id_node, &update_ctx);
+			flush_handle_id_node(id_node);
 			flush_handle_component_node(graph,
 			                            id_node,
 			                            comp_node,
@@ -251,6 +261,8 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 			op_node = flush_schedule_children(op_node, &queue);
 		}
 	}
+	/* Inform editors about all changes. */
+	flush_editors_id_update(bmain, graph, &update_ctx);
 }
 
 static void graph_clear_func(void *data_v, int i)
