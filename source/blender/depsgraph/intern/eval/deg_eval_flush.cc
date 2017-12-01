@@ -63,7 +63,9 @@ enum {
 
 typedef std::deque<OperationDepsNode *> FlushQueue;
 
-static void flush_init_func(void *data_v, int i)
+namespace {
+
+void flush_init_func(void *data_v, int i)
 {
 	/* ID node's done flag is used to avoid multiple editors update
 	 * for the same ID.
@@ -77,22 +79,8 @@ static void flush_init_func(void *data_v, int i)
 	node->scheduled = false;
 }
 
-/* Flush updates from tagged nodes outwards until all affected nodes
- * are tagged.
- */
-void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
+BLI_INLINE void flush_prepare(Depsgraph *graph)
 {
-	const bool use_copy_on_write = DEG_depsgraph_use_copy_on_write();
-	/* Sanity check. */
-	if (graph == NULL) {
-		return;
-	}
-
-	/* Nothing to update, early out. */
-	if (BLI_gset_size(graph->entry_tags) == 0) {
-		return;
-	}
-
 	/* TODO(sergey): With a bit of flag magic we can get rid of this
 	 * extra loop.
 	 */
@@ -103,128 +91,163 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 	                        graph,
 	                        flush_init_func,
 	                        do_threads);
+}
 
-	FlushQueue queue;
-	/* Starting from the tagged "entry" nodes, flush outwards... */
-	/* NOTE: Also need to ensure that for each of these, there is a path back to
-	 *       root, or else they won't be done.
-	 * NOTE: Count how many nodes we need to handle - entry nodes may be
-	 *       component nodes which don't count for this purpose!
-	 */
+BLI_INLINE void flush_schedule_entrypoints(Depsgraph *graph, FlushQueue *queue)
+{
 	GSET_FOREACH_BEGIN(OperationDepsNode *, op_node, graph->entry_tags)
 	{
-		queue.push_back(op_node);
+		queue->push_back(op_node);
 		op_node->scheduled = true;
 	}
 	GSET_FOREACH_END();
+}
 
-	DEGEditorUpdateContext update_ctx = {NULL};
-	update_ctx.bmain = bmain;
-	update_ctx.scene = graph->scene;
-	update_ctx.view_layer = graph->view_layer;
+BLI_INLINE void flush_handle_id_node(Main *bmain,
+                                     IDDepsNode *id_node,
+                                     const DEGEditorUpdateContext *update_ctx)
+{
+	/* We only inform ID node once. */
+	if (id_node->done != 0) {
+		return;
+	}
+	id_node->done = 1;
+	/* TODO(sergey): Do we need to pass original or evaluated ID here? */
+	ID *id_orig = id_node->id_orig;
+	ID *id_cow = id_node->id_cow;
+	/* Copy tag from original data to CoW storage.
+	 * This is because DEG_id_tag_update() sets tags on original
+	 * data.
+	 */
+	id_cow->tag |= (id_orig->tag & LIB_TAG_ID_RECALC_ALL);
+	if (deg_copy_on_write_is_expanded(id_cow)) {
+		deg_editors_id_update(update_ctx, id_cow);
+	}
+	lib_id_recalc_tag(bmain, id_orig);
+	/* TODO(sergey): For until we've got proper data nodes in the graph. */
+	lib_id_recalc_data_tag(bmain, id_orig);
+}
 
-	int num_flushed_objects = 0;
-	while (!queue.empty()) {
-		OperationDepsNode *node = queue.front();
-		queue.pop_front();
-
-		for (;;) {
-			node->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
-
-			ComponentDepsNode *comp_node = node->owner;
-			IDDepsNode *id_node = comp_node->owner;
-
-			/* TODO(sergey): Do we need to pass original or evaluated ID here? */
-			ID *id_orig = id_node->id_orig;
-			ID *id_cow = id_node->id_cow;
-			if (id_node->done == 0) {
-				/* Copy tag from original data to CoW storage.
-				 * This is because DEG_id_tag_update() sets tags on original
-				 * data.
-				 */
-				id_cow->tag |= (id_orig->tag & LIB_TAG_ID_RECALC_ALL);
-				if (deg_copy_on_write_is_expanded(id_cow)) {
-					deg_editors_id_update(&update_ctx, id_cow);
-				}
-				lib_id_recalc_tag(bmain, id_orig);
-				/* TODO(sergey): For until we've got proper data nodes in the graph. */
-				lib_id_recalc_data_tag(bmain, id_orig);
-			}
-
-			if (comp_node->done != COMPONENT_STATE_DONE) {
-				/* Currently this is needed to get object->mesh to be replaced with
-				 * original mesh (rather than being evaluated_mesh).
-				 *
-				 * TODO(sergey): This is something we need to avoid.
-				 */
-				if (use_copy_on_write && comp_node->depends_on_cow()) {
-					ComponentDepsNode *cow_comp =
-					        id_node->find_component(DEG_NODE_TYPE_COPY_ON_WRITE);
-					cow_comp->tag_update(graph);
-				}
-
-				if (GS(id_orig->name) == ID_OB) {
-					if (id_node->done == 0) {
-						++num_flushed_objects;
-					}
-				}
-				foreach (OperationDepsNode *op, comp_node->operations) {
-					/* We don't want to flush tags in "upstream" direction for
-					 * certain types of operations.
-					 *
-					 * TODO(sergey): Need a more generic solution for this.
-					 */
-					if (op->opcode == DEG_OPCODE_PARTICLE_SETTINGS_EVAL) {
-						continue;
-					}
-					op->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
-				}
-				/* When some target changes bone, we might need to re-run the
-				 * whole IK solver, otherwise result might be unpredictable.
-				 */
-				if (comp_node->type == DEG_NODE_TYPE_BONE) {
-					ComponentDepsNode *pose_comp =
-					        id_node->find_component(DEG_NODE_TYPE_EVAL_POSE);
-					BLI_assert(pose_comp != NULL);
-					if (pose_comp->done == COMPONENT_STATE_NONE) {
-						queue.push_front(pose_comp->get_entry_operation());
-						pose_comp->done = COMPONENT_STATE_SCHEDULED;
-					}
-				}
-			}
-
-			id_node->done = 1;
-			comp_node->done = COMPONENT_STATE_DONE;
-
-			/* Flush to nodes along links... */
-			/* TODO(sergey): This is mainly giving speedup due ot less queue pushes, which
-			 * reduces number of memory allocations.
-			 *
-			 * We should try solve the allocation issue instead of doing crazy things here.
-			 */
-			if (node->outlinks.size() == 1) {
-				OperationDepsNode *to_node = (OperationDepsNode *)node->outlinks[0]->to;
-				if (to_node->scheduled == false) {
-					to_node->scheduled = true;
-					node = to_node;
-				}
-				else {
-					break;
-				}
-			}
-			else {
-				foreach (DepsRelation *rel, node->outlinks) {
-					OperationDepsNode *to_node = (OperationDepsNode *)rel->to;
-					if (to_node->scheduled == false) {
-						queue.push_front(to_node);
-						to_node->scheduled = true;
-					}
-				}
-				break;
-			}
+/* TODO(sergey): We can reduce number of arguments here. */
+BLI_INLINE void flush_handle_component_node(Depsgraph *graph,
+                                            IDDepsNode *id_node,
+                                            ComponentDepsNode *comp_node,
+                                            bool use_copy_on_write,
+                                            FlushQueue *queue)
+{
+	/* We only handle component once. */
+	if (comp_node->done == COMPONENT_STATE_DONE) {
+		return;
+	}
+	comp_node->done = COMPONENT_STATE_DONE;
+	/* Currently this is needed to get object->mesh to be replaced with
+	 * original mesh (rather than being evaluated_mesh).
+	 *
+	 * TODO(sergey): This is something we need to avoid.
+	 */
+	if (use_copy_on_write && comp_node->depends_on_cow()) {
+		ComponentDepsNode *cow_comp =
+		        id_node->find_component(DEG_NODE_TYPE_COPY_ON_WRITE);
+		cow_comp->tag_update(graph);
+	}
+	/* Tag all required operations in component for update.  */
+	foreach (OperationDepsNode *op, comp_node->operations) {
+		/* We don't want to flush tags in "upstream" direction for
+		 * certain types of operations.
+		 *
+		 * TODO(sergey): Need a more generic solution for this.
+		 */
+		if (op->opcode == DEG_OPCODE_PARTICLE_SETTINGS_EVAL) {
+			continue;
+		}
+		op->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
+	}
+	/* When some target changes bone, we might need to re-run the
+	 * whole IK solver, otherwise result might be unpredictable.
+	 */
+	if (comp_node->type == DEG_NODE_TYPE_BONE) {
+		ComponentDepsNode *pose_comp =
+		        id_node->find_component(DEG_NODE_TYPE_EVAL_POSE);
+		BLI_assert(pose_comp != NULL);
+		if (pose_comp->done == COMPONENT_STATE_NONE) {
+			queue->push_front(pose_comp->get_entry_operation());
+			pose_comp->done = COMPONENT_STATE_SCHEDULED;
 		}
 	}
-	DEG_DEBUG_PRINTF("Update flushed to %d objects\n", num_flushed_objects);
+}
+
+/* Schedule children of the given operation node for traversal.
+ *
+ * One of the children will by-pass the queue and will be returned as a function
+ * return value, so it can start being handled right away, without building too
+ * much of a queue.
+ */
+BLI_INLINE OperationDepsNode *flush_schedule_children(
+        OperationDepsNode *op_node,
+        FlushQueue *queue)
+{
+	OperationDepsNode *result = NULL;
+	foreach (DepsRelation *rel, op_node->outlinks) {
+		OperationDepsNode *to_node = (OperationDepsNode *)rel->to;
+		if (to_node->scheduled == false) {
+			if (result != NULL) {
+				queue->push_front(to_node);
+			}
+			else {
+				result = to_node;
+			}
+			to_node->scheduled = true;
+		}
+	}
+	return result;
+}
+
+}  // namespace
+
+/* Flush updates from tagged nodes outwards until all affected nodes
+ * are tagged.
+ */
+void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
+{
+	const bool use_copy_on_write = DEG_depsgraph_use_copy_on_write();
+	/* Sanity checks. */
+	BLI_assert(bmain != NULL);
+	BLI_assert(graph != NULL);
+	/* Nothing to update, early out. */
+	if (BLI_gset_size(graph->entry_tags) == 0) {
+		return;
+	}
+	/* Reset all flags, get ready for the flush. */
+	flush_prepare(graph);
+	/* Starting from the tagged "entry" nodes, flush outwards. */
+	FlushQueue queue;
+	flush_schedule_entrypoints(graph, &queue);
+	/* Prepare update context for editors. */
+	DEGEditorUpdateContext update_ctx = {
+		.bmain = bmain,
+		.scene = graph->scene,
+		.view_layer = graph->view_layer,
+	};
+	/* Do actual flush. */
+	while (!queue.empty()) {
+		OperationDepsNode *op_node = queue.front();
+		queue.pop_front();
+		while (op_node != NULL) {
+			/* Tag operation as required for update. */
+			op_node->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
+			/* Inform corresponding ID and component nodes about the change. */
+			ComponentDepsNode *comp_node = op_node->owner;
+			IDDepsNode *id_node = comp_node->owner;
+			flush_handle_id_node(bmain, id_node, &update_ctx);
+			flush_handle_component_node(graph,
+			                            id_node,
+			                            comp_node,
+			                            use_copy_on_write,
+			                            &queue);
+			/* Flush to nodes along links. */
+			op_node = flush_schedule_children(op_node, &queue);
+		}
+	}
 }
 
 static void graph_clear_func(void *data_v, int i)
