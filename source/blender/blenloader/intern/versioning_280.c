@@ -440,7 +440,8 @@ void do_versions_after_linking_280(Main *main)
 
 				/* If layer was not set, disable it. */
 				LayerCollection *layer_collection_parent;
-				layer_collection_parent = ((LayerCollection *)view_layer->layer_collections.first)->layer_collections.first;
+				layer_collection_parent =
+					((LayerCollection *)view_layer->layer_collections.first)->layer_collections.first;
 
 				for (int layer = 0; layer < 20; layer++) {
 					if (collections[DO_VERSION_COLLECTION_VISIBLE].created & (1 << layer)) {
@@ -486,7 +487,7 @@ void do_versions_after_linking_280(Main *main)
 				}
 
 				/* Fallback name if only one layer was found in the original file */
-				if (BLI_listbase_count_ex(&sc_master->scene_collections, 2) == 1) {
+				if (BLI_listbase_is_single(&sc_master->scene_collections)) {
 					BKE_collection_rename(scene, sc_master->scene_collections.first, "Default Collection");
 				}
 
@@ -560,7 +561,7 @@ void do_versions_after_linking_280(Main *main)
 				/* During 2.8 work we temporarly stored view-layer in the
 				 * workspace directly, but should be stored there per-scene. */
 				for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
-					if (BLI_findindex(&scene->view_layers, workspace->view_layer) > -1) {
+					if (BLI_findindex(&scene->view_layers, workspace->view_layer) != -1) {
 						BKE_workspace_view_layer_set(workspace, workspace->view_layer, scene);
 						workspace->view_layer = NULL;
 					}
