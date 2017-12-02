@@ -55,6 +55,7 @@ static void eevee_view_layer_data_free(void *storage)
 	DRW_FRAMEBUFFER_FREE_SAFE(sldata->probe_fb);
 	DRW_FRAMEBUFFER_FREE_SAFE(sldata->probe_filter_fb);
 	DRW_TEXTURE_FREE_SAFE(sldata->probe_rt);
+	DRW_TEXTURE_FREE_SAFE(sldata->probe_depth_rt);
 	DRW_TEXTURE_FREE_SAFE(sldata->probe_pool);
 	DRW_TEXTURE_FREE_SAFE(sldata->irradiance_pool);
 	DRW_TEXTURE_FREE_SAFE(sldata->irradiance_rt);

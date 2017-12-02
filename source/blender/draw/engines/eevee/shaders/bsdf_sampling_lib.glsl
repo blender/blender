@@ -90,4 +90,18 @@ vec3 sample_hemisphere(float nsample, vec3 N, vec3 T, vec3 B)
 
 	return tangent_to_world(Ht, N, T, B);
 }
+
+vec3 sample_cone(float nsample, float angle, vec3 N, vec3 T, vec3 B)
+{
+	vec3 Xi = hammersley_3d(nsample);
+
+	float z = cos(angle * Xi.x); /* cos theta */
+	float r = sqrt( 1.0f - z*z ); /* sin theta */
+	float x = r * Xi.y;
+	float y = r * Xi.z;
+
+	vec3 Ht = vec3(x, y, z);
+
+	return tangent_to_world(Ht, N, T, B);
+}
 #endif

@@ -49,6 +49,7 @@ struct GridData {
 	vec4 ws_increment_x_atten_bias; /* world space vector between 2 opposite cells */
 	vec4 ws_increment_y_lvl_bias;
 	vec4 ws_increment_z;
+	vec4 vis_bias_bleed_range;
 };
 
 #define g_corner        ws_corner_atten_scale.xyz
@@ -60,6 +61,9 @@ struct GridData {
 #define g_increment_z   ws_increment_z.xyz
 #define g_resolution    resolution_offset.xyz
 #define g_offset        resolution_offset.w
+#define g_vis_bias      vis_bias_bleed_range.x
+#define g_vis_bleed     vis_bias_bleed_range.y
+#define g_vis_range     vis_bias_bleed_range.z
 
 #ifndef MAX_PROBE
 #define MAX_PROBE 1
@@ -227,14 +231,18 @@ vec3 probe_evaluate_grid(GridData gd, vec3 W, vec3 N, vec3 localpos)
 			 gd.g_increment_y * cell_cos.y +
 			 gd.g_increment_z * cell_cos.z);
 
-		// vec3 ws_point_to_cell = ws_cell_location - W;
-		// vec3 ws_light = normalize(ws_point_to_cell);
+		vec3 ws_point_to_cell = ws_cell_location - W;
+		float ws_dist_point_to_cell = length(ws_point_to_cell);
+		vec3 ws_light = ws_point_to_cell / ws_dist_point_to_cell;
 
 		vec3 trilinear = mix(1 - trilinear_weight, trilinear_weight, offset);
 		float weight = trilinear.x * trilinear.y * trilinear.z;
 
+		/* Precomputed visibility */
+		weight *= load_visibility_cell(cell, ws_light, ws_dist_point_to_cell, gd.g_vis_bias, gd.g_vis_bleed, gd.g_vis_range);
+
 		/* Smooth backface test */
-		// weight *= sqrt(max(0.002, dot(ws_light, N)));
+		weight *= sqrt(max(0.002, dot(ws_light, N)));
 
 		/* Avoid zero weight */
 		weight = max(0.00001, weight);

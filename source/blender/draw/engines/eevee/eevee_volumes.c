@@ -86,8 +86,8 @@ static void eevee_create_shader_volumes(void)
 	ds_frag = BLI_dynstr_new();
 	BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
 	BLI_dynstr_append(ds_frag, datatoc_bsdf_direct_lib_glsl);
-	BLI_dynstr_append(ds_frag, datatoc_irradiance_lib_glsl);
 	BLI_dynstr_append(ds_frag, datatoc_octahedron_lib_glsl);
+	BLI_dynstr_append(ds_frag, datatoc_irradiance_lib_glsl);
 	BLI_dynstr_append(ds_frag, datatoc_lamps_lib_glsl);
 	BLI_dynstr_append(ds_frag, datatoc_volumetric_lib_glsl);
 	e_data.volumetric_common_lamps_lib = BLI_dynstr_get_cstring(ds_frag);

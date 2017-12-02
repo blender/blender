@@ -128,12 +128,16 @@ vec3 light_volume_shadow(LightData ld, vec3 ray_wpos, vec4 l_vector, sampler3D v
 #ifdef IRRADIANCE_LIB
 vec3 irradiance_volumetric(vec3 wpos)
 {
+#ifdef IRRADIANCE_HL2
 	IrradianceData ir_data = load_irradiance_cell(0, vec3(1.0));
 	vec3 irradiance = ir_data.cubesides[0] + ir_data.cubesides[1] + ir_data.cubesides[2];
 	ir_data = load_irradiance_cell(0, vec3(-1.0));
 	irradiance += ir_data.cubesides[0] + ir_data.cubesides[1] + ir_data.cubesides[2];
 	irradiance *= 0.16666666; /* 1/6 */
 	return irradiance;
+#else
+	return vec3(0.0);
+#endif
 }
 #endif
 

@@ -432,6 +432,78 @@ vec3 normal_decode(vec2 enc, vec3 view)
     return n;
 }
 
+/* ---- RGBM (shared multiplier) encoding ---- */
+/* From http://iwasbeingirony.blogspot.fr/2010/06/difference-between-rgbm-and-rgbd.html */
+
+/* Higher RGBM_MAX_RANGE gives imprecision issues in low intensity. */
+#define RGBM_MAX_RANGE 512.0
+
+vec4 rgbm_encode(vec3 rgb)
+{
+	float maxRGB = max_v3(rgb);
+	float M = maxRGB / RGBM_MAX_RANGE;
+	M = ceil(M * 255.0) / 255.0;
+	return vec4(rgb / (M * RGBM_MAX_RANGE), M);
+}
+
+vec3 rgbm_decode(vec4 data)
+{
+	return data.rgb * (data.a * RGBM_MAX_RANGE);
+}
+
+/* ---- RGBE (shared exponent) encoding ---- */
+vec4 rgbe_encode(vec3 rgb)
+{
+	float maxRGB = max_v3(rgb);
+	float fexp = ceil(log2(maxRGB));
+	return vec4(rgb / exp2(fexp), (fexp + 128.0) / 255.0);
+}
+
+vec3 rgbe_decode(vec4 data)
+{
+	float fexp = data.a * 255.0 - 128.0;
+	return data.rgb * exp2(fexp);
+}
+
+#if 1
+#define irradiance_encode rgbe_encode
+#define irradiance_decode rgbe_decode
+#else /* No ecoding (when using floating point format) */
+#define irradiance_encode(X) (X).rgbb
+#define irradiance_decode(X) (X).rgb
+#endif
+
+/* Irradiance Visibility Encoding */
+#if 1
+vec4 visibility_encode(vec2 accum, float range)
+{
+	accum /= range;
+
+	vec4 data;
+	data.x = fract(accum.x);
+	data.y = floor(accum.x) / 255.0;
+	data.z = fract(accum.y);
+	data.w = floor(accum.y) / 255.0;
+
+	return data;
+}
+
+vec2 visibility_decode(vec4 data, float range)
+{
+	return (data.xz + data.yw * 255.0) * range;
+}
+#else /* No ecoding (when using floating point format) */
+vec4 visibility_encode(vec2 accum, float range)
+{
+	return accum.xyxy;
+}
+
+vec2 visibility_decode(vec4 data, float range)
+{
+	return data.xy;
+}
+#endif
+
 /* Fresnel monochromatic, perfect mirror */
 float F_eta(float eta, float cos_theta)
 {

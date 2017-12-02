@@ -141,6 +141,7 @@ typedef struct EEVEE_PassList {
 	struct DRWPass *probe_background;
 	struct DRWPass *probe_glossy_compute;
 	struct DRWPass *probe_diffuse_compute;
+	struct DRWPass *probe_visibility_compute;
 	struct DRWPass *probe_grid_fill;
 	struct DRWPass *probe_display;
 	struct DRWPass *probe_planar_downsample_ps;
@@ -369,6 +370,7 @@ typedef struct EEVEE_LightGrid {
 	float increment_x[3], attenuation_bias; /* world space vector between 2 opposite cells */
 	float increment_y[3], level_bias;
 	float increment_z[3], pad4;
+	float visibility_bias, visibility_bleed, visibility_range, pad5;
 } EEVEE_LightGrid;
 
 typedef struct EEVEE_PlanarReflection {
@@ -391,6 +393,7 @@ typedef struct EEVEE_LightProbesInfo {
 	int num_bounce;
 	int cubemap_res;
 	int target_size;
+	int irradiance_vis_size;
 	int grid_initialized;
 	/* Actual number of probes that have datas. */
 	int num_render_cube;
@@ -402,9 +405,13 @@ typedef struct EEVEE_LightProbesInfo {
 	float padding_size;
 	float samples_ct;
 	float invsamples_ct;
+	float near_clip;
+	float far_clip;
 	float roughness;
 	float lodfactor;
 	float lod_rt_max, lod_cube_max, lod_planar_max;
+	float visibility_range;
+	float visibility_blur;
 	int shres;
 	int shnbr;
 	bool specular_toggle;
@@ -550,6 +557,7 @@ typedef struct EEVEE_ViewLayerData {
 	struct GPUFrameBuffer *probe_filter_fb;
 
 	struct GPUTexture *probe_rt;
+	struct GPUTexture *probe_depth_rt;
 	struct GPUTexture *probe_pool;
 	struct GPUTexture *irradiance_pool;
 	struct GPUTexture *irradiance_rt;

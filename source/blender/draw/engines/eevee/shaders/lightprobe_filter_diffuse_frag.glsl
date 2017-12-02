@@ -192,6 +192,6 @@ void main()
 		}
 	}
 
-	FragColor = vec4(out_radiance / weight, 1.0);
+	FragColor = irradiance_encode(out_radiance / weight);
 #endif
 }

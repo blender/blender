@@ -1,5 +1,6 @@
 
-uniform sampler2D irradianceGrid;
+uniform sampler2DArray irradianceGrid;
+uniform int irradianceVisibilitySize;
 
 #define IRRADIANCE_LIB
 
@@ -36,7 +37,7 @@ IrradianceData load_irradiance_cell(int cell, vec3 N)
 	uvs += vec2(cell_co) / vec2(textureSize(irradianceGrid, 0));
 
 	IrradianceData ir;
-	ir.color = texture(irradianceGrid, uvs).rgb;
+	ir.color = texture(irradianceGrid, vec3(uvs, 0.0)).rgb;
 
 #elif defined(IRRADIANCE_SH_L2)
 
@@ -48,15 +49,15 @@ IrradianceData load_irradiance_cell(int cell, vec3 N)
 	ivec3 ofs = ivec3(0, 1, 2);
 
 	IrradianceData ir;
-	ir.shcoefs[0] = texelFetch(irradianceGrid, cell_co + ofs.xx, 0).rgb;
-	ir.shcoefs[1] = texelFetch(irradianceGrid, cell_co + ofs.yx, 0).rgb;
-	ir.shcoefs[2] = texelFetch(irradianceGrid, cell_co + ofs.zx, 0).rgb;
-	ir.shcoefs[3] = texelFetch(irradianceGrid, cell_co + ofs.xy, 0).rgb;
-	ir.shcoefs[4] = texelFetch(irradianceGrid, cell_co + ofs.yy, 0).rgb;
-	ir.shcoefs[5] = texelFetch(irradianceGrid, cell_co + ofs.zy, 0).rgb;
-	ir.shcoefs[6] = texelFetch(irradianceGrid, cell_co + ofs.xz, 0).rgb;
-	ir.shcoefs[7] = texelFetch(irradianceGrid, cell_co + ofs.yz, 0).rgb;
-	ir.shcoefs[8] = texelFetch(irradianceGrid, cell_co + ofs.zz, 0).rgb;
+	ir.shcoefs[0] = texelFetch(irradianceGrid, ivec3(cell_co + ofs.xx, 0), 0).rgb;
+	ir.shcoefs[1] = texelFetch(irradianceGrid, ivec3(cell_co + ofs.yx, 0), 0).rgb;
+	ir.shcoefs[2] = texelFetch(irradianceGrid, ivec3(cell_co + ofs.zx, 0), 0).rgb;
+	ir.shcoefs[3] = texelFetch(irradianceGrid, ivec3(cell_co + ofs.xy, 0), 0).rgb;
+	ir.shcoefs[4] = texelFetch(irradianceGrid, ivec3(cell_co + ofs.yy, 0), 0).rgb;
+	ir.shcoefs[5] = texelFetch(irradianceGrid, ivec3(cell_co + ofs.zy, 0), 0).rgb;
+	ir.shcoefs[6] = texelFetch(irradianceGrid, ivec3(cell_co + ofs.xz, 0), 0).rgb;
+	ir.shcoefs[7] = texelFetch(irradianceGrid, ivec3(cell_co + ofs.yz, 0), 0).rgb;
+	ir.shcoefs[8] = texelFetch(irradianceGrid, ivec3(cell_co + ofs.zz, 0), 0).rgb;
 
 #else /* defined(IRRADIANCE_HL2) */
 
@@ -68,13 +69,48 @@ IrradianceData load_irradiance_cell(int cell, vec3 N)
 	ivec3 is_negative = ivec3(step(0.0, -N));
 
 	IrradianceData ir;
-	ir.cubesides[0] = texelFetch(irradianceGrid, cell_co + ivec2(0, is_negative.x), 0).rgb;
-	ir.cubesides[1] = texelFetch(irradianceGrid, cell_co + ivec2(1, is_negative.y), 0).rgb;
-	ir.cubesides[2] = texelFetch(irradianceGrid, cell_co + ivec2(2, is_negative.z), 0).rgb;
+	ir.cubesides[0] = irradiance_decode(texelFetch(irradianceGrid, ivec3(cell_co + ivec2(0, is_negative.x), 0), 0));
+	ir.cubesides[1] = irradiance_decode(texelFetch(irradianceGrid, ivec3(cell_co + ivec2(1, is_negative.y), 0), 0));
+	ir.cubesides[2] = irradiance_decode(texelFetch(irradianceGrid, ivec3(cell_co + ivec2(2, is_negative.z), 0), 0));
 
 #endif
 
 	return ir;
+}
+
+float load_visibility_cell(int cell, vec3 L, float dist, float bias, float bleed_bias, float range)
+{
+	/* Keep in sync with diffuse_filter_probe() */
+	ivec2 cell_co = ivec2(irradianceVisibilitySize);
+	int cell_per_row = textureSize(irradianceGrid, 0).x / irradianceVisibilitySize;
+	cell_co.x *= (cell) % cell_per_row;
+	cell_co.y *= (cell) / cell_per_row;
+
+	vec2 texel_size = 1.0 / vec2(textureSize(irradianceGrid, 0).xy);
+	vec2 co = vec2(cell_co) * texel_size;
+
+	vec2 uv = mapping_octahedron(-L, vec2(1.0 / float(irradianceVisibilitySize)));
+	uv *= vec2(irradianceVisibilitySize) * texel_size;
+
+	vec4 data = texture(irradianceGrid, vec3(co + uv, 1.0));
+
+	/* Decoding compressed data */
+	vec2 moments = visibility_decode(data, range);
+
+	/* Doing chebishev test */
+	float variance = abs(moments.x * moments.x - moments.y);
+	variance = max(variance, bias / 10.0);
+
+	float d = dist - moments.x;
+	float p_max = variance / (variance + d * d);
+
+	/* Increase contrast in the weight by squaring it */
+	p_max *= p_max;
+
+	/* Now reduce light-bleeding by removing the [0, x] tail and linearly rescaling (x, 1] */
+	p_max = clamp((p_max - bleed_bias) / (1.0 - bleed_bias), 0.0, 1.0);
+
+	return (dist <= moments.x) ? 1.0 : p_max;
 }
 
 /* http://seblagarde.wordpress.com/2012/01/08/pi-or-not-to-pi-in-game-lighting-equation/ */
