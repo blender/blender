@@ -448,6 +448,8 @@ class VIEWLAYER_PT_eevee_indirect_lighting(ViewLayerButtonsPanel, Panel):
 
         col = layout.column()
         col.template_override_property(layer_props, scene_props, "gi_diffuse_bounces")
+        col.template_override_property(layer_props, scene_props, "gi_cubemap_resolution")
+        col.template_override_property(layer_props, scene_props, "gi_visibility_resolution")
 
 
 classes = (

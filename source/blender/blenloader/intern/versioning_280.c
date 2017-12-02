@@ -42,6 +42,7 @@
 #include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_layer_types.h"
+#include "DNA_lightprobe_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
@@ -733,6 +734,13 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 				la->contact_bias = 0.03f;
 				la->contact_spread = 0.2f;
 				la->contact_thickness = 0.5f;
+			}
+		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "LightProbe", "float", "vis_bias")) {
+			for (LightProbe *probe = main->lightprobe.first; probe; probe = probe->id.next) {
+				probe->vis_bias = 1.0f;
+				probe->vis_blur = 0.2f;
 			}
 		}
 

@@ -54,6 +54,9 @@ typedef struct LightProbe {
 
 	float clipsta, clipend;
 
+	float vis_bias, vis_bleedbias; /* VSM visibility biases */
+	float vis_blur, pad2;
+
 	int grid_resolution_x;  /* Irradiance grid resolution */
 	int grid_resolution_y;
 	int grid_resolution_z;

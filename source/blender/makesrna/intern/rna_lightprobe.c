@@ -160,6 +160,25 @@ static void rna_def_lightprobe(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Resolution Z", "Number of sample along the z axis of the volume");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
+	prop = RNA_def_property(srna, "visibility_buffer_bias", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "vis_bias");
+	RNA_def_property_range(prop, 0.001f, 9999.0f);
+	RNA_def_property_ui_range(prop, 0.001f, 5.0f, 1.0, 3);
+	RNA_def_property_ui_text(prop, "Visibility Bias", "Bias for reducing self shadowing");
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
+
+	prop = RNA_def_property(srna, "visibility_bleed_bias", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "vis_bleedbias");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Visibility Bleed Bias", "Bias for reducing light-bleed on variance shadow maps");
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
+
+	prop = RNA_def_property(srna, "visibility_blur", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "vis_blur");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Visibility Blur", "Filter size of the visibilty blur");
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
+
 	/* Data preview */
 	prop = RNA_def_property(srna, "show_data", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIGHTPROBE_FLAG_SHOW_DATA);

@@ -399,6 +399,7 @@ RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(shadow_high_bitdepth)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(taa_samples)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(gi_diffuse_bounces)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(gi_cubemap_resolution)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(gi_visibility_resolution)
 
 /* object engine */
 RNA_LAYER_MODE_OBJECT_GET_SET_BOOL(show_wire)
@@ -1206,6 +1207,14 @@ static void rna_def_view_layer_engine_settings_eevee(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static const EnumPropertyItem eevee_gi_visibility_size_items[] = {
+		{8, "8", 0, "8px", ""},
+		{16, "16", 0, "16px", ""},
+		{32, "32", 0, "32px", ""},
+		{64, "64", 0, "64px", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	static const EnumPropertyItem eevee_volumetric_tile_size_items[] = {
 		{2, "2", 0, "2px", ""},
 		{4, "4", 0, "4px", ""},
@@ -1232,9 +1241,19 @@ static void rna_def_view_layer_engine_settings_eevee(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_ViewLayerEngineSettings_update");
 
 	prop = RNA_def_property(srna, "gi_cubemap_resolution", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_funcs(prop, "rna_LayerEngineSettings_Eevee_gi_cubemap_resolution_get", "rna_LayerEngineSettings_Eevee_gi_cubemap_resolution_set", NULL);
+	RNA_def_property_enum_funcs(prop, "rna_LayerEngineSettings_Eevee_gi_cubemap_resolution_get",
+	                                  "rna_LayerEngineSettings_Eevee_gi_cubemap_resolution_set", NULL);
 	RNA_def_property_enum_items(prop, eevee_shadow_size_items);
 	RNA_def_property_ui_text(prop, "Cubemap Size", "Size of every cubemaps");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_ViewLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "gi_visibility_resolution", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_funcs(prop, "rna_LayerEngineSettings_Eevee_gi_visibility_resolution_get",
+	                                  "rna_LayerEngineSettings_Eevee_gi_visibility_resolution_set", NULL);
+	RNA_def_property_enum_items(prop, eevee_gi_visibility_size_items);
+	RNA_def_property_ui_text(prop, "Irradiance Visibility Size",
+	                               "Size of the shadow map applied to each irradiance sample");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_ViewLayerEngineSettings_update");
 

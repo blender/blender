@@ -75,6 +75,13 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
             col.prop(probe, "influence_distance", "Distance")
             col.prop(probe, "falloff")
 
+            col.separator()
+
+            col.label("Visibily:")
+            col.prop(probe, "visibility_buffer_bias", "Bias")
+            col.prop(probe, "visibility_bleed_bias", "Bleed Bias")
+            col.prop(probe, "visibility_blur", "Blur")
+
         elif probe.type == 'PLANAR':
             col = split.column(align=True)
             col.label("Influence:")

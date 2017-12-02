@@ -338,6 +338,7 @@ static void eevee_view_layer_settings_create(RenderEngine *UNUSED(engine), IDPro
 
 	BKE_collection_engine_property_add_int(props, "gi_diffuse_bounces", 3);
 	BKE_collection_engine_property_add_int(props, "gi_cubemap_resolution", 512);
+	BKE_collection_engine_property_add_int(props, "gi_visibility_resolution", 32);
 
 	BKE_collection_engine_property_add_int(props, "taa_samples", 8);
 
