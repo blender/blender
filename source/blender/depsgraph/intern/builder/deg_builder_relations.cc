@@ -963,12 +963,6 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 	                        fcu->array_index);
 	const char *rna_path = fcu->rna_path ? fcu->rna_path : "";
 	const RNAPathKey self_key(id, rna_path);
-
-	/* Create dependency between driver and data affected by it. */
-	/* - direct property relationship... */
-	//RNAPathKey affected_key(id, fcu->rna_path);
-	//add_relation(driver_key, affected_key, "Driver -> Data");
-
 	/* Driver -> data components (for interleaved evaluation
 	 * bones/constraints/modifiers).
 	 */
@@ -1033,15 +1027,6 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 		RNAPathKey target_key(id, rna_path);
 		add_relation(driver_key, target_key, "Driver -> Target");
 	}
-	/* Ensure that affected prop's update callbacks will be triggered once
-	 * done.
-	 */
-	/* TODO: Implement this once the functionality to add these links exists
-	 * RNA.
-	 */
-	/* XXX: the data itself could also set this, if it were to be truly
-	 * initialised later?
-	 */
 	/* Loop over variables to get the target relationships. */
 	build_driver_variables(id, fcu);
 	/* It's quite tricky to detect if the driver actually depends on time or
