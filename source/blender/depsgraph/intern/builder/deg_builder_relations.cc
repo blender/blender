@@ -1132,7 +1132,7 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 				                        DEG_OPCODE_TRANSFORM_FINAL);
 				add_relation(target_key, driver_key, "Target -> Driver");
 			}
-			else if (dtar->rna_path && strstr(dtar->rna_path, "pose.bones[")) {
+			else if (dtar->rna_path) {
 				RNAPathKey variable_key(dtar->id, dtar->rna_path);
 				if (RNA_pointer_is_null(&variable_key.ptr)) {
 					continue;
