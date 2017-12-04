@@ -119,10 +119,10 @@ struct BuilderWalkUserData {
 	DepsgraphRelationBuilder *builder;
 };
 
-static void modifier_walk(void *user_data,
-                          struct Object * /*object*/,
-                          struct Object **obpoin,
-                          int /*cb_flag*/)
+void modifier_walk(void *user_data,
+                   struct Object * /*object*/,
+                   struct Object **obpoin,
+                   int /*cb_flag*/)
 {
 	BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
 	if (*obpoin) {
