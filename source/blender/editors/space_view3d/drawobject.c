@@ -9458,6 +9458,8 @@ static void bbs_mesh_verts(BMEditMesh *em, DerivedMesh *dm, int offset)
 #else
 static void bbs_mesh_verts(BMEditMesh *em, DerivedMesh *UNUSED(dm), int offset)
 {
+	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
+
 	Mesh *me = em->ob->data;
 	Gwn_Batch *batch = DRW_mesh_batch_cache_get_verts_with_select_id(me, offset);
 	GWN_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR_U32);
@@ -9508,8 +9510,6 @@ static void bbs_mesh_wire(BMEditMesh *em, DerivedMesh *dm, int offset)
 #else
 static void bbs_mesh_wire(BMEditMesh *em, DerivedMesh *UNUSED(dm), int offset)
 {
-	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
-
 	Mesh *me = em->ob->data;
 	Gwn_Batch *batch = DRW_mesh_batch_cache_get_edges_with_select_id(me, offset);
 	GWN_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR_U32);
