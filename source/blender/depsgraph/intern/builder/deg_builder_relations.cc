@@ -202,20 +202,6 @@ static bool object_particles_depends_on_time(Object *object)
 
 /* **** General purpose functions ****  */
 
-RNAPathKey::RNAPathKey(ID *id, const char *path) :
-    id(id)
-{
-	/* create ID pointer for root of path lookup */
-	PointerRNA id_ptr;
-	RNA_id_pointer_create(id, &id_ptr);
-	/* try to resolve path... */
-	int index;
-	if (!RNA_path_resolve_full(&id_ptr, path, &this->ptr, &this->prop, &index)) {
-		this->ptr = PointerRNA_NULL;
-		this->prop = NULL;
-	}
-}
-
 DepsgraphRelationBuilder::DepsgraphRelationBuilder(Main *bmain,
                                                    Depsgraph *graph)
     : bmain_(bmain),
