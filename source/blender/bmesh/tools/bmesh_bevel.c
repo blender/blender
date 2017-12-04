@@ -117,7 +117,7 @@ typedef struct Profile {
 	float *prof_co;      /* seg+1 profile coordinates (triples of floats) */
 	float *prof_co_2;    /* like prof_co, but for seg power of 2 >= seg */
 } Profile;
-#define PRO_SQUARE_R 4.0f
+#define PRO_SQUARE_R 1e4f
 #define PRO_CIRCLE_R 2.0f
 #define PRO_LINE_R 1.0f
 #define PRO_SQUARE_IN_R 0.0f
@@ -126,8 +126,10 @@ typedef struct Profile {
  * get even spacing on superellipse for current BevelParams seg
  * and pro_super_r. */
 typedef struct ProfileSpacing {
-	float *uvals;       /* seg+1 u values */
-	float *uvals_2;     /* seg_2+1 u values, seg_2 = power of 2 >= seg */
+	double *xvals;      /* seg+1 x values */
+	double *xvals_2;    /* seg_2+1 x values, seg_2 = power of 2 >= seg */
+	double *yvals;      /* seg+1 y values */
+	double *yvals_2;    /* seg_2+1 y values, seg_2 = power of 2 >= seg */
 	int seg_2;          /* the seg_2 value */
 } ProfileSpacing;
 
@@ -1383,56 +1385,21 @@ static void make_unit_cube_map(
 	r_mat[3][3] = 1.0f;
 }
 
-/* Get the coordinate on the superellipse (exponent r),
- * at parameter value u.  u goes from u to 2 as the
- * superellipse moves on the quadrant (0,1) to (1,0). */
-static void superellipse_co(float u, float r, float r_co[2])
+/* Get the coordinate on the superellipse (x^r + y^r = 1),
+ * at parameter value x (or, if !rbig, mirrored (y=x)-line).
+ * rbig should be true if r > 1.0 and false if <= 1.0.
+ * Assume r > 0.0 */
+static double superellipse_co(double x, float r, bool rbig)
 {
-	float t;
-	
-	if (u <= 0.0f) {
-		r_co[0] = 0.0f;
-		r_co[1] = 1.0f;
-	}
-	else if (u >= 2.0f) {
-		r_co[0] = 1.0f;
-		r_co[1] = 0.0f;
-	}
-	else if (r == PRO_LINE_R) {
-		t = u / 2.0f;
-		r_co[0] = t;
-		r_co[1] = 1.0f - t;
-		
-	}
-	else if (r == PRO_SQUARE_IN_R) {
-		if (u < 1.0f) {
-			r_co[0] = 0.0f;
-			r_co[1] = 1.0f - u;
-		}
-		else {
-			r_co[0] = u - 1.0f;
-			r_co[1] = 0.0f;
-		}
-	}
-	else if (r == PRO_SQUARE_R) {
-		if (u < 1.0f) {
-			r_co[0] = u;
-			r_co[1] = 1.0f;
-		}
-		else {
-			r_co[0] = 1.0f;
-			r_co[1] = 2.0f - u;
-		}
-		
+	BLI_assert(r > 0.0f);
+
+	/* If r<1, mirror the superellipse function by (y=x)-line to get a numerically stable range
+	 * Possible because of symmetry, later mirror back. */
+	if (rbig) {
+		return pow((1.0 - pow(x, r)), (1.0 / r));
 	}
 	else {
-		t = u * (float)M_PI / 4.0f;  /* angle from y axis */
-		r_co[0] = sinf(t);
-		r_co[1] = cosf(t);
-		if (r != PRO_SQUARE_R) {
-			r_co[0] = pow(r_co[0], 2.0f / r);
-			r_co[1] = pow(r_co[1], 2.0f / r);
-		}
+		return 1.0 - pow((1.0 - pow(1.0 - x, r)), (1.0 / r));
 	}
 }
 
@@ -1478,7 +1445,7 @@ static void get_profile_point(BevelParams *bp, const Profile *pro, int i, int n,
 static void calculate_profile(BevelParams *bp, BoundVert *bndv)
 {
 	int i, k, ns;
-	const float *uvals;
+	const double *xvals, *yvals;
 	float co[3], co2[3], p[3], m[4][4];
 	float *prof_co, *prof_co_k;
 	float r;
@@ -1504,17 +1471,19 @@ static void calculate_profile(BevelParams *bp, BoundVert *bndv)
 	for (i = 0; i < 2; i++) {
 		if (i == 0) {
 			ns = bp->seg;
-			uvals = bp->pro_spacing.uvals;
+			xvals = bp->pro_spacing.xvals;
+			yvals = bp->pro_spacing.yvals;
 			prof_co = pro->prof_co;
 		}
 		else {
 			if (!need_2)
 				break;  /* shares coords with pro->prof_co */
 			ns = bp->pro_spacing.seg_2;
-			uvals = bp->pro_spacing.uvals_2;
+			xvals = bp->pro_spacing.xvals_2;
+			yvals = bp->pro_spacing.yvals_2;
 			prof_co = pro->prof_co_2;
 		}
-		BLI_assert((r == PRO_LINE_R || uvals != NULL) && prof_co != NULL);
+		BLI_assert((r == PRO_LINE_R || (xvals != NULL && yvals != NULL)) && prof_co != NULL);
 		for (k = 0; k <= ns; k++) {
 			if (k == 0)
 				copy_v3_v3(co, pro->coa);
@@ -1522,7 +1491,8 @@ static void calculate_profile(BevelParams *bp, BoundVert *bndv)
 				copy_v3_v3(co, pro->cob);
 			else {
 				if (map_ok) {
-					superellipse_co(uvals[k], r, p);
+					p[0] = xvals[k];
+					p[1] = yvals[k];
 					p[2] = 0.0f;
 					mul_v3_m4v3(co, m, p);
 				}
@@ -2581,9 +2551,8 @@ static VMesh *cubic_subdiv(BevelParams *bp, VMesh *vm0)
 	return vm1;
 }
 
-/* Special case for cube corner, when r is PRO_SQUARE_R,
- * meaning straight sides */
-static VMesh *make_cube_corner_straight(MemArena *mem_arena, int nseg)
+/* Special case for cube corner, when r is PRO_SQUARE_R, meaning straight sides */
+static VMesh *make_cube_corner_square(MemArena *mem_arena, int nseg)
 {
 	VMesh *vm;
 	float co[3];
@@ -2613,6 +2582,46 @@ static VMesh *make_cube_corner_straight(MemArena *mem_arena, int nseg)
 	return vm;
 }
 
+/* Special case for cube corner, when r is PRO_SQUARE_IN_R, meaning inward
+ * straight sides.
+ * We mostly don't want a VMesh at all for this case -- just a three-way weld
+ * with a triangle in the middle for odd nseg */
+static VMesh *make_cube_corner_square_in(MemArena *mem_arena, int nseg)
+{
+	VMesh *vm;
+	float co[3];
+	float b;
+	int i, k, ns2, odd;
+
+	ns2 = nseg / 2;
+	odd = nseg % 2;
+	vm = new_adj_vmesh(mem_arena, 3, nseg, NULL);
+	vm->count = 0;  // reset, so following loop will end up with correct count
+	for (i = 0; i < 3; i++) {
+		zero_v3(co);
+		co[i] = 1.0f;
+		add_new_bound_vert(mem_arena, vm, co);
+	}
+	if (odd)
+		b = 2.0f / (2.0f * (float)ns2 + (float)M_SQRT2);
+	else
+		b = 2.0f / (float)nseg;
+	for (i = 0; i < 3; i++) {
+		for (k = 0; k <= ns2; k++) {
+			co[i] = 1.0f - (float)k * b;
+			co[(i + 1) % 3] = 0.0f;
+			co[(i + 2) % 3] = 0.0f;
+			copy_v3_v3(mesh_vert(vm, i, 0, k)->co, co);
+			co[(i + 1) % 3] = 1.0f - (float)k * b;
+			co[(i + 2) % 3] = 0.0f;
+			co[i] = 0.0f;
+			copy_v3_v3(mesh_vert(vm, i, 0, nseg - k)->co, co);
+		}
+	}
+	return vm;
+}
+
+
 /* Make a VMesh with nseg segments that covers the unit radius sphere octant
  * with center at (0,0,0).
  * This has BoundVerts at (1,0,0), (0,1,0) and (0,0,1), with quarter circle arcs
@@ -2629,7 +2638,9 @@ static VMesh *make_cube_corner_adj_vmesh(BevelParams *bp)
 	float co[3], coc[3];
 
 	if (r == PRO_SQUARE_R)
-		return make_cube_corner_straight(mem_arena, nseg);
+		return make_cube_corner_square(mem_arena, nseg);
+	else if (r == PRO_SQUARE_IN_R)
+		return make_cube_corner_square_in(mem_arena, nseg);
 
 	/* initial mesh has 3 sides, 2 segments */
 	vm0 = new_adj_vmesh(mem_arena, 3, 2, NULL);
@@ -2687,6 +2698,7 @@ static VMesh *make_cube_corner_adj_vmesh(BevelParams *bp)
 			}
 		}
 	}
+
 	return vm1;
 }
 
@@ -2944,6 +2956,87 @@ static float snap_face_dist_squared(float *co, BMFace *f, BMEdge **r_snap_e, flo
 	return beste_d2;
 }
 
+static void build_center_ngon(BMesh *bm, BevVert *bv, int mat_nr)
+{
+	VMesh *vm = bv->vmesh;
+	BoundVert *v;
+	int i, ns2;
+	BMFace *frep;
+	BMEdge *frep_e1, *frep_e2, *frep_e;
+	BMVert **vv = NULL;
+	BMFace **vf = NULL;
+	BMEdge **ve = NULL;
+	BLI_array_staticdeclare(vv, BM_DEFAULT_NGON_STACK_SIZE);
+	BLI_array_staticdeclare(vf, BM_DEFAULT_NGON_STACK_SIZE);
+	BLI_array_staticdeclare(ve, BM_DEFAULT_NGON_STACK_SIZE);
+
+	ns2 = vm->seg / 2;
+	if (bv->any_seam) {
+		frep = boundvert_rep_face(vm->boundstart, NULL);
+		get_incident_edges(frep, bv->v, &frep_e1, &frep_e2);
+	}
+	else {
+		frep = NULL;
+		frep_e1 = frep_e2 = NULL;
+	}
+	v = vm->boundstart;
+	do {
+		i = v->index;
+		BLI_array_append(vv, mesh_vert(vm, i, ns2, ns2)->v);
+		if (frep) {
+			BLI_array_append(vf, frep);
+			frep_e = find_closer_edge(mesh_vert(vm, i, ns2, ns2)->v->co, frep_e1, frep_e2);
+			BLI_array_append(ve, v == vm->boundstart ? NULL : frep_e);
+		}
+		else {
+			BLI_array_append(vf, boundvert_rep_face(v, NULL));
+			BLI_array_append(ve, NULL);
+		}
+	} while ((v = v->next) != vm->boundstart);
+	bev_create_ngon(bm, vv, BLI_array_count(vv), vf, frep, ve, mat_nr, true);
+
+	BLI_array_free(vv);
+	BLI_array_free(vf);
+	BLI_array_free(ve);
+}
+
+/* Special case of bevel_build_rings when tri-corner and profile is 0.
+ * There is no corner mesh except, if nseg odd, for a center poly.
+ * Boundary verts merge with previous ones according to pattern:
+ * (i, 0, k) merged with (i+1, 0, ns-k) for k <= ns/2 */
+static void build_square_in_vmesh(BevelParams *bp, BMesh *bm, BevVert *bv, VMesh *vm1)
+{
+	int n, ns, ns2, odd, i, k;
+	VMesh *vm;
+
+	vm = bv->vmesh;
+	n = vm->count;
+	ns = vm->seg;
+	ns2 = ns / 2;
+	odd = ns % 2;
+
+	for (i = 0; i < n; i++) {
+		for (k = 1; k < ns; k++) {
+			copy_v3_v3(mesh_vert(vm, i, 0, k)->co, mesh_vert(vm1, i, 0, k)->co);
+			if (i > 0 && k <= ns2) {
+				mesh_vert(vm, i, 0, k)->v = mesh_vert(vm, i - 1, 0, ns - k)->v;
+			}
+			else if (i == n - 1 && k > ns2) {
+				mesh_vert(vm, i, 0, k)->v = mesh_vert(vm, 0, 0, ns - k)->v;
+			}
+			else {
+				create_mesh_bmvert(bm, vm, i, 0, k, bv->v);
+			}
+		}
+	}
+	if (odd) {
+		for (i = 0; i < n; i++) {
+			mesh_vert(vm, i, ns2, ns2)->v = mesh_vert(vm, i, 0, ns2)->v;
+		}
+		build_center_ngon(bm, bv, bp->mat_nr);
+	}
+}
+
 /*
  * Given that the boundary is built and the boundary BMVerts have been made,
  * calculate the positions of the interior mesh points for the M_ADJ pattern,
@@ -2968,12 +3061,21 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv)
 
 	vpipe = pipe_test(bv);
 
-	if (vpipe)
+	if (vpipe) {
 		vm1 = pipe_adj_vmesh(bp, bv, vpipe);
-	else if (tri_corner_test(bp, bv))
+	}
+	else if (tri_corner_test(bp, bv)) {
 		vm1 = tri_corner_adj_vmesh(bp, bv);
-	else
+		/* the PRO_SQUARE_IN_R profile has boundary edges that merge
+		 * and no internal ring polys except possibly center ngon */
+		if (bp->pro_super_r == PRO_SQUARE_IN_R) {
+			build_square_in_vmesh(bp, bm, bv, vm1);
+			return;
+		}
+	}
+	else {
 		vm1 = adj_vmesh(bp, bv);
+	}
 
 	/* copy final vmesh into bv->vmesh, make BMVerts and BMFaces */
 	vm = bv->vmesh;
@@ -3086,42 +3188,7 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv)
 
 	/* center ngon */
 	if (odd) {
-		BMFace *frep;
-		BMEdge *frep_e1, *frep_e2, *frep_e;
-		BMVert **vv = NULL;
-		BMFace **vf = NULL;
-		BMEdge **ve = NULL;
-		BLI_array_staticdeclare(vv, BM_DEFAULT_NGON_STACK_SIZE);
-		BLI_array_staticdeclare(vf, BM_DEFAULT_NGON_STACK_SIZE);
-		BLI_array_staticdeclare(ve, BM_DEFAULT_NGON_STACK_SIZE);
-
-		if (bv->any_seam) {
-			frep = boundvert_rep_face(vm->boundstart, NULL);
-			get_incident_edges(frep, bv->v, &frep_e1, &frep_e2);
-		}
-		else {
-			frep = NULL;
-			frep_e1 = frep_e2 = NULL;
-		}
-		v = vm->boundstart;
-		do {
-			i = v->index;
-			BLI_array_append(vv, mesh_vert(vm, i, ns2, ns2)->v);
-			if (frep) {
-				BLI_array_append(vf, frep);
-				frep_e = find_closer_edge(mesh_vert(vm, i, ns2, ns2)->v->co, frep_e1, frep_e2);
-				BLI_array_append(ve, v == vm->boundstart ? NULL : frep_e);
-			}
-			else {
-				BLI_array_append(vf, boundvert_rep_face(v, NULL));
-				BLI_array_append(ve, NULL);
-			}
-		} while ((v = v->next) != vm->boundstart);
-		bev_create_ngon(bm, vv, BLI_array_count(vv), vf, frep, ve, mat_nr, true);
-
-		BLI_array_free(vv);
-		BLI_array_free(vf);
-		BLI_array_free(ve);
+		build_center_ngon(bm, bv, mat_nr);
 	}
 }
 
@@ -4389,143 +4456,296 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
 	}
 }
 
-/* Returns the square of the length of the chord from parameter u0 to parameter u1
- * of superellipse_co. */
-static float superellipse_chord_length_squared(float u0, float u1, float r)
+
+/* Find xnew > x0 so that distance((x0,y0), (xnew, ynew)) = dtarget.
+ * False position Illinois method used because the function is somewhat linear
+ * -> linear interpolation converges fast.
+ * Assumes that the gradient is always between 1 and -1 for
+ * x in [x0, x0+dtarget] */
+static double find_superellipse_chord_endpoint(double x0, double dtarget, float r, bool rbig)
 {
-	float a[2], b[2];
+	double xmin, xmax, ymin, ymax, dmaxerr, dminerr, dnewerr, xnew, ynew;
+	double y0 = superellipse_co(x0, r, rbig);
+	const double tol = 1e-13;     // accumulates for many segments so use low value
+	const int maxiter = 10;
+	bool lastupdated_upper;
 
-	BLI_assert(u0 >= 0.0f && u1 >= u0 && u1 <= 2.0f);
-	superellipse_co(u0, r, a);
-	superellipse_co(u1, r, b);
-	return len_squared_v2v2(a, b);
-}
+	/* For gradient between -1 and 1, xnew can only be in
+	 * [x0 + sqrt(2)/2*dtarget, x0 + dtarget]. */
+	xmin = x0 + M_SQRT2 / 2.0 * dtarget;
+	if (xmin > 1.0)
+		xmin = 1.0;
+	xmax = x0 + dtarget;
+	if (xmax > 1.0)
+		xmax = 1.0;
+	ymin = superellipse_co(xmin, r, rbig);
+	ymax = superellipse_co(xmax, r, rbig);
 
-/* Find parameter u >= u0 to make chord of squared length d2goal,
- * from u0 to u on superellipse with parameter r.
- * If it cannot be found, return -1.0f. */
-static float find_superellipse_chord_u(float u0, float d2goal, float r)
-{
-	float ulow, uhigh, u, d2, d2max;
-	const float dtol = 1e-4f;
-	const float utol = 1e-6f;
-	const float umax = 2.0f;
+	/* Note: using distance**2 (no sqrt needed) does not converge that well. */
+	dmaxerr = sqrt(pow((xmax - x0), 2) + pow((ymax - y0), 2)) - dtarget;
+	dminerr = sqrt(pow((xmin - x0), 2) + pow((ymin - y0), 2)) - dtarget;
 
-	if (d2goal == 0.0f)
-		return u0;
-	d2max = superellipse_chord_length_squared(u0, umax, r);
-	if (fabsf(d2goal - d2max) <= dtol)
-		return umax;
-	if (d2goal - d2max > dtol)
-		return -1.0f;
+	xnew = xmax - dmaxerr * (xmax - xmin) / (dmaxerr - dminerr);
+	lastupdated_upper = true;
 
-	/* binary search for good u value */
-	ulow = u0;
-	uhigh = umax;
-	do {
-		u = 0.5f * (ulow + uhigh);
-		d2 = superellipse_chord_length_squared(u0, u, r);
-		if (fabsf(d2goal - d2) <= dtol)
+	for (int iter = 0; iter < maxiter; iter++) {
+		ynew = superellipse_co(xnew, r, rbig);
+		dnewerr = sqrt(pow((xnew - x0), 2) + pow((ynew - y0), 2)) - dtarget;
+		if (fabs(dnewerr) < tol) {
 			break;
-		if (d2 < d2goal)
-			ulow = u;
-		else
-			uhigh = u;
-	} while (fabsf(uhigh - ulow) > utol);
-	return u;
+		}
+		if (dnewerr < 0) {
+			xmin = xnew;
+			ymin = ynew;
+			dminerr = dnewerr;
+			if (!lastupdated_upper) {
+				xnew = (dmaxerr / 2 * xmin - dminerr * xmax) / (dmaxerr / 2 - dminerr);
+			}
+			else {
+				xnew = xmax - dmaxerr * (xmax - xmin) / (dmaxerr - dminerr);
+			}
+			lastupdated_upper = false;
+		}
+		else {
+			xmax = xnew;
+			ymax = ynew;
+			dmaxerr = dnewerr;
+			if (lastupdated_upper) {
+				xnew = (dmaxerr * xmin - dminerr / 2 * xmax) / (dmaxerr - dminerr / 2);
+			}
+			else {
+				xnew = xmax - dmaxerr * (xmax - xmin) / (dmaxerr - dminerr);
+			}
+			lastupdated_upper = true;
+		}
+	}
+	return xnew;
 }
 
-/* Find parameters u0, u1, ..., un that divide the quarter-arc superellipse
- * with parameter r into n even chords.
- * There is no closed form way of doing this except for a few special
- * values of r, so this uses binary search to find a chord length that works.
- * Return the u's in *r_params, which should point to an array of size n+1. */
-static void find_even_superellipse_params(int n, float r, float *r_params)
-{
-	float d2low, d2high, d2 = 0.0f, d2final, u;
-	int i, j, n2;
-	const int maxiters = 40;
-	const float d2tol = 1e-6f;
-	const float umax = 2.0f;
+ /* This search procedure to find equidistant points (x,y) in the first
+  * superellipse quadrant works for every superellipse exponent but is more
+  * expensive than known solutions for special cases.
+  * Call the point on superellipse that intersects x=y line mx.
+  * For r>=1 use only the range x in [0,mx] and mirror the rest along x=y line,
+  * for r<1 use only x in [mx,1]. Points are initially spaced and iteratively
+  * repositioned to have the same distance. */
 
-	if (r == PRO_CIRCLE_R || r == PRO_LINE_R ||
-	    ((n % 2 == 0) && (r == PRO_SQUARE_IN_R || r == PRO_SQUARE_R)))
-	{
-		/* even parameter spacing works for these cases */
-		for (i = 0; i <= n; i++)
-			r_params[i] = i * 2.0f / (float) n;
+static void find_even_superellipse_chords_general(int seg, float r, double *xvals, double *yvals)
+{
+	const int smoothitermax = 10;
+	const double error_tol = 1e-7;
+	int i;
+	int imax = (seg + 1) / 2 - 1; /* ceiling division - 1 */
+
+	double d, dmin, dmax;
+	double davg;
+	double mx;
+	double sum;
+	double temp;
+
+	bool precision_reached;
+	bool seg_odd = seg % 2;
+	bool rbig;
+
+	if (r > 1.0f) {
+		rbig = true;
+		mx = pow(0.5, 1.0 / r);
+	}
+	else {
+		rbig = false;
+		mx = 1 - pow(0.5, 1.0 / r);
+	}
+
+	/* Initial positions, linear spacing along x axis. */
+	for (i = 0; i <= imax; i++) {
+		xvals[i] = i * mx / seg * 2;
+		yvals[i] = superellipse_co(xvals[i], r, rbig);
+	}
+	yvals[0] = 1;
+
+	/* Smooth distance loop */
+	for (int iter = 0; iter < smoothitermax; iter++) {
+		sum = 0.0;
+		dmin = 2.0;
+		dmax = 0.0;
+		/* Update distances between neighbor points. Store the highest and
+		 * lowest to see if the maximum error to average distance (which isn't
+		 * known yet) is below required precision. */
+		for (i = 0; i < imax; i++) {
+			d = sqrt(pow((xvals[i + 1] - xvals[i]), 2) + pow((yvals[i + 1] - yvals[i]), 2));
+			sum += d;
+			if (d > dmax) {
+				dmax = d;
+			}
+			if (d < dmin) {
+				dmin = d;
+			}
+		}
+		/* For last distance, weight with 1/2 if seg_odd. */
+		if (seg_odd) {
+			sum += M_SQRT2 / 2 * (yvals[imax] - xvals[imax]);
+			davg = sum / (imax + 0.5);
+		}
+		else {
+			sum += sqrt(pow((xvals[imax] - mx), 2) + pow((yvals[imax] - mx), 2));
+			davg = sum / (imax + 1.0);
+		}
+		/* Max error in tolerance? -> Quit. */
+		if (dmax - davg > error_tol) {
+			precision_reached = false;
+		}
+		if (dmin - davg < error_tol) {
+			precision_reached = false;
+		}
+		if (precision_reached) {
+			break;
+		}
+
+
+		/* Update new coordinates. */
+		for (i = 1; i <= imax; i++) {
+			xvals[i] = find_superellipse_chord_endpoint(xvals[i - 1], davg, r, rbig);
+			yvals[i] = superellipse_co(xvals[i], r, rbig);
+		}
+	}
+
+	/* Fill remaining. */
+	if (!seg_odd) {
+		xvals[imax + 1] = mx;
+		yvals[imax + 1] = mx;
+	}
+	for (i = imax + 1; i <= seg; i++) {
+		yvals[i] = xvals[seg - i];
+		xvals[i] = yvals[seg - i];
+	}
+
+	if (!rbig) {
+		for (i = 0; i <= seg; i++) {
+			temp = xvals[i];
+			xvals[i] = 1.0 - yvals[i];
+			yvals[i] = 1.0 - temp;
+		}
+	}
+}
+
+ /* Find equidistant points (x0,y0), (x1,y1)... (xn,yn) on the superellipse
+  * function in the first quadrant. For special profiles (linear, arc,
+  * rectangle) the point can be calculated easily, for any other profile a more
+  * expensive search procedure must be used because there is no known closed
+  * form for equidistant parametrization
+  * xvals and yvals should be size n+1 */
+
+static void find_even_superellipse_chords(int n, float r, double *xvals, double *yvals)
+{
+	int i, n2;
+	double temp;
+	bool seg_odd = n % 2;
+
+	n2 = n / 2;
+
+	/* Special cases. */
+	if (r == PRO_LINE_R) {
+		/* Linear spacing */
+		for (i = 0; i <= n; i++) {
+			xvals[i] = (double) i / n;
+			yvals[i] = 1.0 - (double) i / n;
+		}
 		return;
 	}
-	if (r == PRO_SQUARE_IN_R || r == PRO_SQUARE_R) {
-		/* n is odd, so get one corner-cut chord.
-		 * Solve u == sqrt(2*(1-n2*u)^2) where n2 = floor(n/2) */
-		n2 = n / 2;
-		u = (2.0f * n2 - (float)M_SQRT2) / (2.0f * n2 * n2 - 1.0f);
-		for (i = 0; i < n; i++)
-			r_params[i] = i * u;
-		r_params[n] = umax;
-	}
-	d2low = 2.0f / (n * n);  /* (sqrt(2)/n)**2 */
-	d2high = 2 * d2low;      /* (2/n)**2 */
-	for (i = 0; i < maxiters && fabsf(d2high - d2low) > d2tol; i++) {
-		d2 = 0.5f * (d2low + d2high);
-
-		/* find where we are after n-1 chords of squared length d2 */
-		u = 0.0f;
-		for (j = 0; j < n - 1; j++) {
-			u = find_superellipse_chord_u(u, d2, r);
-			if (u == -1.0f)
-				break;  /* d2 is too big to go n-1 chords */
+	if (r == PRO_CIRCLE_R) {
+		temp = (M_PI / 2) / n;
+		/* Angle spacing. */
+		for (i = 0; i <= n; i++) {
+			xvals[i] = sin(i * temp);
+			yvals[i] = cos(i * temp);
 		}
-		if (u == -1.0f) {
-			d2high = d2;
-			continue;
+		return;
+	}
+	if (r == PRO_SQUARE_IN_R) {
+		/* n is even, distribute first and second half linear. */
+		if (!seg_odd) {
+			for (i = 0; i <= n2; i++) {
+				xvals[i] = 0.0;
+				yvals[i] = 1.0 - (double) i / n2;
+				xvals[n - i] = yvals[i];
+				yvals[n - i] = xvals[i];
+			}
 		}
-		d2final = superellipse_chord_length_squared(u, umax, r);
-		if (fabsf(d2final - d2) <= d2tol)
-			break;
-		if (d2final < d2)
-			d2high = d2;
-		else
-			d2low = d2;
+		/* n is odd, so get one corner-cut chord. */
+		else {
+			temp = 1.0 / (n2 + M_SQRT2 / 2.0);
+			for (i = 0; i <= n2; i++) {
+				xvals[i] = 0.0;
+				yvals[i] = 1.0 - (double) i * temp;
+				xvals[n -i ] = yvals[i];
+				yvals[n - i] = xvals[i];
+			}
+		}
+		return;
 	}
-	u = 0.0f;
-	for (i = 0; i < n; i++) {
-		r_params[i] = u;
-		u = find_superellipse_chord_u(u, d2, r);
+	if (r == PRO_SQUARE_R) {
+		/* n is even, distribute first and second half linear. */
+		if (!seg_odd) {
+			for (i = 0; i <= n2; i++) {
+				xvals[i] = (double) i / n2;
+				yvals[i] = 1.0;
+				xvals[n - i] = yvals[i];
+				yvals[n - i] = xvals[i];
+			}
+		}
+		/* n is odd, so get one corner-cut chord. */
+		else {
+			temp = 1.0 / (n2 + M_SQRT2 / 2);
+			for (i = 0; i <= n2; i++) {
+				xvals[i] = (double) i * temp;
+				yvals[i] = 1.0;
+				xvals[n - i] = yvals[i];
+				yvals[n - i] = xvals[i];
+			}
+		}
+		return;
 	}
-	r_params[n] = umax;
+	/* For general case use the more expensive search algorithm. */
+	find_even_superellipse_chords_general(n, r, xvals, yvals);
 }
+
 
 /* The superellipse used for multisegment profiles does not
  * have a closed-form way to generate evenly spaced points
  * along an arc. We use an expensive search procedure to find
  * the parameter values that lead to bp->seg even chords.
  * We also want spacing for a number of segments that is
- * a power of 2 >= bp->seg (but at least 4). */
+ * a power of 2 >= bp->seg (but at least 4).
+ * Use doubles because otherwise we cannot come close to float
+ * precision for final results. */
 static void set_profile_spacing(BevelParams *bp)
 {
 	int seg, seg_2;
 
 	seg = bp->seg;
 	if (seg > 1) {
-		bp->pro_spacing.uvals = (float *)BLI_memarena_alloc(bp->mem_arena, (seg + 1) * sizeof(float));
-		find_even_superellipse_params(seg, bp->pro_super_r, bp->pro_spacing.uvals);
+		bp->pro_spacing.xvals = (double *)BLI_memarena_alloc(bp->mem_arena, (seg + 1) * sizeof(double));
+		bp->pro_spacing.yvals = (double *)BLI_memarena_alloc(bp->mem_arena, (seg + 1) * sizeof(double));
+		find_even_superellipse_chords(seg, bp->pro_super_r, bp->pro_spacing.xvals, bp->pro_spacing.yvals);
 		seg_2 = power_of_2_max_i(bp->seg);
 		if (seg_2 == 2)
 			seg_2 = 4;
 		bp->pro_spacing.seg_2 = seg_2;
 		if (seg_2 == seg) {
-			bp->pro_spacing.uvals_2 = bp->pro_spacing.uvals;
+			bp->pro_spacing.xvals_2 = bp->pro_spacing.xvals;
+			bp->pro_spacing.yvals_2 = bp->pro_spacing.yvals;
 		}
 		else {
-			bp->pro_spacing.uvals_2 = (float *)BLI_memarena_alloc(bp->mem_arena, (seg_2 + 1) * sizeof(float));
-			find_even_superellipse_params(seg_2, bp->pro_super_r, bp->pro_spacing.uvals_2);
+			bp->pro_spacing.xvals_2 = (double *)BLI_memarena_alloc(bp->mem_arena, (seg_2 + 1) * sizeof(double));
+			bp->pro_spacing.yvals_2 = (double *)BLI_memarena_alloc(bp->mem_arena, (seg_2 + 1) * sizeof(double));
+			find_even_superellipse_chords(seg_2, bp->pro_super_r, bp->pro_spacing.xvals_2, bp->pro_spacing.yvals_2);
 		}
 	}
 	else {
-		bp->pro_spacing.uvals = NULL;
-		bp->pro_spacing.uvals_2 = NULL;
+		bp->pro_spacing.xvals = NULL;
+		bp->pro_spacing.yvals = NULL;
+		bp->pro_spacing.xvals_2 = NULL;
+		bp->pro_spacing.yvals_2 = NULL;
 		bp->pro_spacing.seg_2 = 0;
 	}
 }
@@ -4754,7 +4974,7 @@ void BM_mesh_bevel(
 	bp.offset = offset;
 	bp.offset_type = offset_type;
 	bp.seg    = segments;
-	bp.pro_super_r = 4.0f * profile;  /* convert to superellipse exponent */
+	bp.pro_super_r = -log(2.0) / log(sqrt(profile));  /* convert to superellipse exponent */
 	bp.vertex_only = vertex_only;
 	bp.use_weights = use_weights;
 	bp.loop_slide = loop_slide;
@@ -4763,8 +4983,9 @@ void BM_mesh_bevel(
 	bp.vertex_group = vertex_group;
 	bp.mat_nr = mat;
 
-	if (bp.pro_super_r < 0.60f)
-		bp.pro_super_r = 0.60f;  /* TODO: implement 0 case properly */
+	if (profile >= 0.999f) {  /* r ~ 692, so PRO_SQUARE_R is 1e4 */
+		bp.pro_super_r = PRO_SQUARE_R;
+	}
 
 	if (bp.offset > 0) {
 		/* primary alloc */
