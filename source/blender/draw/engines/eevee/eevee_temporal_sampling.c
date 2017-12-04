@@ -56,9 +56,9 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
 
 	if (BKE_collection_engine_property_value_get_int(props, "taa_samples") != 1 &&
-		/* FIXME the motion blur camera evaluation is tagging view_updated
-		 * thus making the TAA always reset and never stopping rendering. */
-		(effects->enabled_effects & EFFECT_MOTION_BLUR) == 0)
+	    /* FIXME the motion blur camera evaluation is tagging view_updated
+	     * thus making the TAA always reset and never stopping rendering. */
+	    (effects->enabled_effects & EFFECT_MOTION_BLUR) == 0)
 	{
 		const float *viewport_size = DRW_viewport_size_get();
 		float persmat[4][4], viewmat[4][4];

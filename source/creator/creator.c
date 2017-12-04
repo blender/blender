@@ -231,7 +231,8 @@ int main(
 
 	/* --- end declarations --- */
 
-	/* ensure we free data on early-exit */	struct CreatorAtExitData app_init_data = {NULL};
+	/* ensure we free data on early-exit */
+	struct CreatorAtExitData app_init_data = {NULL};
 	BKE_blender_atexit_register(callback_main_atexit, &app_init_data);
 
 #ifdef WIN32

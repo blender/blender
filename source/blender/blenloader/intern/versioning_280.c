@@ -219,7 +219,7 @@ void do_versions_after_linking_280(Main *main)
 						if (base->lay & (1 << layer)) {
 							int collection_index = -1;
 							if ((base->object->restrictflag & OB_RESTRICT_VIEW) &&
-								(base->object->restrictflag & OB_RESTRICT_RENDER))
+							    (base->object->restrictflag & OB_RESTRICT_RENDER))
 							{
 								collection_index = DO_VERSION_COLLECTION_HIDE_ALL;
 							}
@@ -360,7 +360,7 @@ void do_versions_after_linking_280(Main *main)
 						/* Add new collection bases. */
 						for (int layer = 0; layer < 20; layer++) {
 							if ((scene->lay & srl->lay & ~(srl->lay_exclude) & (1 << layer)) ||
-								(srl->lay_zmask & (scene->lay | srl->lay_exclude) & (1 << layer)))
+							    (srl->lay_zmask & (scene->lay | srl->lay_exclude) & (1 << layer)))
 							{
 								if (collections[DO_VERSION_COLLECTION_VISIBLE].created & (1 << layer)) {
 
@@ -580,14 +580,14 @@ void do_versions_after_linking_280(Main *main)
 				SceneCollection *sc_hidden = NULL;
 
 				for (GroupObject *go = group->gobject.first; go; go = go->next) {
-					if (go->ob->lay & group->layer){
+					if (go->ob->lay & group->layer) {
 						BKE_collection_object_add(&group->id, sc, go->ob);
 					}
 					else {
 						if (sc_hidden == NULL) {
 							sc_hidden = BKE_collection_add(&group->id, sc, COLLECTION_TYPE_GROUP_INTERNAL, "Hidden");
 						}
-				        BKE_collection_object_add(&group->id, sc_hidden, go->ob);
+						BKE_collection_object_add(&group->id, sc_hidden, go->ob);
 					}
 				}
 

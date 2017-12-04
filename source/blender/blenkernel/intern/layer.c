@@ -142,7 +142,9 @@ ViewLayer *BKE_view_layer_add(Scene *scene, const char *name)
 	BLI_addtail(&scene->view_layers, view_layer);
 
 	/* unique name */
-	BLI_uniquename(&scene->view_layers, view_layer, DATA_("ViewLayer"), '.', offsetof(ViewLayer, name), sizeof(view_layer->name));
+	BLI_uniquename(
+	        &scene->view_layers, view_layer, DATA_("ViewLayer"), '.',
+	        offsetof(ViewLayer, name), sizeof(view_layer->name));
 
 	return view_layer;
 }
@@ -325,7 +327,8 @@ void BKE_view_layer_base_select(struct ViewLayer *view_layer, Base *selbase)
 /* Copying functions for datablocks that use ViewLayer/SceneCollection */
 
 /* Find the equivalent SceneCollection in the new tree */
-static SceneCollection *scene_collection_from_new_tree(SceneCollection *sc_reference, SceneCollection *sc_dst, SceneCollection *sc_src)
+static SceneCollection *scene_collection_from_new_tree(
+        SceneCollection *sc_reference, SceneCollection *sc_dst, SceneCollection *sc_src)
 {
 	if (sc_src == sc_reference) {
 		return sc_dst;
@@ -387,8 +390,9 @@ static void layer_collections_recreate(
  * \param mc_dst Master Collection the destination ViewLayer links in.
  * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
  */
-void BKE_view_layer_copy_data(ViewLayer *view_layer_dst, ViewLayer *view_layer_src, SceneCollection* mc_dst, SceneCollection* mc_src,
-                               const int flag)
+void BKE_view_layer_copy_data(
+        ViewLayer *view_layer_dst, ViewLayer *view_layer_src, SceneCollection *mc_dst, SceneCollection *mc_src,
+        const int flag)
 {
 	IDPropertyTemplate val = {0};
 
@@ -761,7 +765,8 @@ bool BKE_layer_collection_move_into(const ID *owner_id, LayerCollection *lc_dst,
 		}
 	}
 
-	LayerCollection *lc_new = BLI_findptr(&lc_dst->layer_collections, lc_src->scene_collection, offsetof(LayerCollection, scene_collection));
+	LayerCollection *lc_new = BLI_findptr(
+	        &lc_dst->layer_collections, lc_src->scene_collection, offsetof(LayerCollection, scene_collection));
 	BLI_assert(lc_new);
 	layer_collection_swap(view_layer, &lc_dst->layer_collections, NULL, lc_new, lc_src);
 

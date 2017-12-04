@@ -4000,7 +4000,7 @@ static bool write_file_handle(
 						write_scene(wd, (Scene *)id);
 						break;
 					case ID_CU:
-						write_curve(wd,(Curve *)id);
+						write_curve(wd, (Curve *)id);
 						break;
 					case ID_MB:
 						write_mball(wd, (MetaBall *)id);

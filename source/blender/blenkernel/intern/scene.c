@@ -2212,8 +2212,8 @@ Depsgraph *BKE_scene_get_depsgraph(Scene *scene,
 		Depsgraph **depsgraph_ptr;
 		if (!BLI_ghash_ensure_p_ex(scene->depsgraph_hash,
 		                           &key,
-		                           (void***)&key_ptr,
-		                           (void***)&depsgraph_ptr))
+		                           (void ***)&key_ptr,
+		                           (void ***)&depsgraph_ptr))
 		{
 			*key_ptr = MEM_mallocN(sizeof(DepsgraphKey), __func__);
 			**key_ptr = key;

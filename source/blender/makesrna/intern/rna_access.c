@@ -7319,8 +7319,7 @@ void RNA_property_override_apply(
         PointerRNA *dst, PointerRNA *src, PointerRNA *storage, PropertyRNA *prop, IDOverrideStaticProperty *op)
 {
 	for (IDOverrideStaticPropertyOperation *opop = op->operations.first; opop; opop = opop->next) {
-		if (!rna_property_override_operation_apply(dst, src, storage, prop, opop))
-		{
+		if (!rna_property_override_operation_apply(dst, src, storage, prop, opop)) {
 			BLI_assert(0);
 		}
 	}

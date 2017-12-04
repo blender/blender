@@ -82,7 +82,7 @@ typedef enum eParentType {
 	PAR_VERTEX_TRI,
 } eParentType;
 
-typedef enum eObjectSelect_Mode{
+typedef enum eObjectSelect_Mode {
 	BA_DESELECT = 0,
 	BA_SELECT = 1,
 	BA_INVERT = 2,

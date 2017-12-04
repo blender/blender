@@ -619,9 +619,9 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 
 				if (collection->scene_collection->type == COLLECTION_TYPE_NONE) {
 					bt = uiDefIconButBitS(block, UI_BTYPE_ICON_TOGGLE_N, COLLECTION_SELECTABLE, 0, ICON_RESTRICT_SELECT_OFF,
-										  (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), te->ys, UI_UNIT_X,
-										  UI_UNIT_Y, &collection->flag, 0, 0, 0, 0,
-										  TIP_("Restrict/Allow 3D View selection of objects in the collection"));
+					                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), te->ys, UI_UNIT_X,
+					                      UI_UNIT_Y, &collection->flag, 0, 0, 0, 0,
+					                      TIP_("Restrict/Allow 3D View selection of objects in the collection"));
 					UI_but_func_set(bt, restrictbutton_collection_flag_cb, scene, collection);
 					UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
 				}

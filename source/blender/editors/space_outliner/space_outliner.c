@@ -125,7 +125,8 @@ static int outliner_parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *e
 				 */
 				if (!scene) {
 					return 1;
-				} else {
+				}
+				else {
 					for (ViewLayer *view_layer = scene->view_layers.first;
 					     view_layer;
 					     view_layer = view_layer->next)

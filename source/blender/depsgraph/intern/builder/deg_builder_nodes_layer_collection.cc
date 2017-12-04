@@ -24,7 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/intern/builder/deg_builder_nodes_layer.cc
+/** \file blender/depsgraph/intern/builder/deg_builder_nodes_layer_collection.cc
  *  \ingroup depsgraph
  *
  * Methods for constructing depsgraph's nodes

@@ -502,7 +502,7 @@ static int override_type_set_button_exec(bContext *C, wmOperator *op)
 
 	short operation;
 
-	switch(op_type) {
+	switch (op_type) {
 		case UIOverride_Type_NOOP:
 			operation = IDOVERRIDESTATIC_OP_NOOP;
 			break;

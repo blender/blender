@@ -653,7 +653,7 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 	switch (id_type) {
 		case ID_SCE:
 		{
-			done = scene_copy_inplace_no_main((Scene *)id_orig, (Scene*)id_cow);
+			done = scene_copy_inplace_no_main((Scene *)id_orig, (Scene *)id_cow);
 			break;
 		}
 		case ID_ME:

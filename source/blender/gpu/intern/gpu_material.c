@@ -516,9 +516,9 @@ static float gaussian_profile(float r, float radius)
 	const float v = radius * radius * (0.25f * 0.25f);
 	const float Rm = sqrtf(v * GAUSS_TRUNCATE);
 
-	if(r >= Rm)
+	if (r >= Rm) {
 		return 0.0f;
-
+	}
 	return expf(-r * r / (2.0f * v)) / (2.0f * M_PI * v);
 }
 
@@ -535,20 +535,20 @@ static float cubic_profile(float r, float radius, float sharpness)
 {
 	float Rm = radius * (1.0f + sharpness);
 
-	if(r >= Rm)
+	if (r >= Rm) {
 		return 0.0f;
-
+	}
 	/* custom variation with extra sharpness, to match the previous code */
-	const float y = 1.0f/(1.0f + sharpness);
+	const float y = 1.0f / (1.0f + sharpness);
 	float Rmy, ry, ryinv;
 
 	Rmy = powf(Rm, y);
 	ry = powf(r, y);
-	ryinv = (r > 0.0f)? powf(r, y - 1.0f): 0.0f;
+	ryinv = (r > 0.0f) ? powf(r, y - 1.0f) : 0.0f;
 
-	const float Rmy5 = (Rmy*Rmy) * (Rmy*Rmy) * Rmy;
+	const float Rmy5 = (Rmy * Rmy) * (Rmy * Rmy) * Rmy;
 	const float f = Rmy - ry;
-	const float num = f*(f*f)*(y*ryinv);
+	const float num = f * (f * f) * (y * ryinv);
 
 	return (10.0f * num) / (Rmy5 * M_PI);
 }
@@ -576,7 +576,7 @@ static float eval_integral(float x0, float x1, short falloff_type, float sharpne
 	const float step = range / INTEGRAL_RESOLUTION;
 	float integral = 0.0f;
 
-	for(int i = 0; i < INTEGRAL_RESOLUTION; ++i) {
+	for (int i = 0; i < INTEGRAL_RESOLUTION; ++i) {
 		float x = x0 + range * ((float)i + 0.5f) / (float)INTEGRAL_RESOLUTION;
 		float y = eval_profile(x, falloff_type, sharpness, param);
 		integral += y * step;

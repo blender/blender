@@ -19,7 +19,7 @@
  *
  */
 
-/** \file eevee_volume.c
+/** \file eevee_volumes.c
  *  \ingroup draw_engine
  *
  * Volumetric effects rendering using frostbite approach.

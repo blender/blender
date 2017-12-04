@@ -832,7 +832,7 @@ static void clean_viewport_memory(Main *bmain, Scene *scene)
 		}
 	}
 
-    for (SETLOOPER_SET_ONLY(scene, sce_iter, base)) {
+	for (SETLOOPER_SET_ONLY(scene, sce_iter, base)) {
 		clean_viewport_memory_base(base);
 	}
 }

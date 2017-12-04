@@ -132,7 +132,7 @@ static int edbm_polybuild_face_at_cursor_invoke(
 				BMEdge *e_iter = v_act->e;
 				do {
 					if ((BM_elem_flag_test(e_iter, BM_ELEM_HIDDEN) == false) &&
-						(allow_wire ? BM_edge_is_wire(e_iter) : BM_edge_is_boundary(e_iter)))
+					    (allow_wire ? BM_edge_is_wire(e_iter) : BM_edge_is_boundary(e_iter)))
 					{
 						if (i == 2) {
 							e_pair[0] = e_pair[1] = NULL;
@@ -489,9 +489,9 @@ static int edbm_polybuild_hover_invoke(
 		/* pass */
 	}
 	else if (vc.win->tweak ||
-	    (vc.win->eventstate->check_click &&
-	     vc.win->eventstate->prevval == KM_PRESS &&
-	     ISMOUSE(vc.win->eventstate->prevtype)))
+	         (vc.win->eventstate->check_click &&
+	          vc.win->eventstate->prevval == KM_PRESS &&
+	          ISMOUSE(vc.win->eventstate->prevtype)))
 	{
 		return OPERATOR_PASS_THROUGH;
 	}

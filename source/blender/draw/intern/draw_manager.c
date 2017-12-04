@@ -1449,7 +1449,7 @@ void DRW_pass_sort_shgroup_z(DRWPass *pass)
 		DRWShadingGroup *last = pass->shgroups;
 		while ((last = last->next)) {
 			/* Do nothing */
-		};
+		}
 		pass->shgroups_last = last;
 	}
 }
@@ -2044,8 +2044,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 		}
 	}
 	else {
-		for (DRWCall *call = shgroup->calls_first; call; call = call->head.prev)
-		{
+		for (DRWCall *call = shgroup->calls_first; call; call = call->head.prev) {
 			bool neg_scale = is_negative_m4(call->obmat);
 
 			/* Negative scale objects */
