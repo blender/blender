@@ -871,25 +871,34 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
 
 void DepsgraphRelationBuilder::build_animdata(ID *id)
 {
+	/* Animation curves and NLA. */
+	build_animdata_curves(id);
+	/* Drivers. */
+	build_animdata_drievrs(id);
+}
+
+void DepsgraphRelationBuilder::build_animdata_curves(ID *id)
+{
 	AnimData *adt = BKE_animdata_from_id(id);
-
-	if (adt == NULL)
+	if (adt == NULL) {
 		return;
-
-	ComponentKey adt_key(id, DEG_NODE_TYPE_ANIMATION);
-
-	/* animation */
-	if (adt->action || adt->nla_tracks.first) {
-		/* wire up dependency to time source */
-		TimeSourceKey time_src_key;
-		add_relation(time_src_key, adt_key, "TimeSrc -> Animation");
-
-		// XXX: Hook up specific update callbacks for special properties which may need it...
-
-		// XXX: animdata "hierarchy" - top-level overrides need to go after lower-down
 	}
+	ComponentKey adt_key(id, DEG_NODE_TYPE_ANIMATION);
+	if (adt->action == NULL && adt->nla_tracks.first == NULL) {
+		return;
+	}
+	/* Wire up dependency to time source. */
+	TimeSourceKey time_src_key;
+	add_relation(time_src_key, adt_key, "TimeSrc -> Animation");
+}
 
-	/* drivers */
+void DepsgraphRelationBuilder::build_animdata_drievrs(ID *id)
+{
+	AnimData *adt = BKE_animdata_from_id(id);
+	if (adt == NULL) {
+		return;
+	}
+	ComponentKey adt_key(id, DEG_NODE_TYPE_ANIMATION);
 	LINKLIST_FOREACH (FCurve *, fcu, &adt->drivers) {
 		OperationKey driver_key(id,
 		                        DEG_NODE_TYPE_PARAMETERS,
