@@ -204,6 +204,9 @@ static bool pointer_to_component_node_criteria(
 	if (prop != NULL) {
 		/* All unknown data effectively falls under "parameter evaluation". */
 		*type = DEG_NODE_TYPE_PARAMETERS;
+		*operation_code = DEG_OPCODE_PARAMETERS_EVAL;
+		*operation_name = "";
+		*operation_name_tag = -1;
 		return true;
 	}
 	return false;
