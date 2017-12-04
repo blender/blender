@@ -1030,21 +1030,8 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 		add_relation(driver_key, target_key, "Driver -> Target");
 	}
 	else {
-		if (GS(id->name) == ID_OB) {
-			/* assume that driver affects a transform... */
-			OperationKey local_transform_key(id,
-			                                 DEG_NODE_TYPE_TRANSFORM,
-			                                 DEG_OPCODE_TRANSFORM_LOCAL);
-			add_relation(driver_key,
-			             local_transform_key,
-			             "Driver -> Transform");
-		}
-		else if (GS(id->name) == ID_KE) {
-			ComponentKey geometry_key(id, DEG_NODE_TYPE_GEOMETRY);
-			add_relation(driver_key,
-			             geometry_key,
-			             "Driver -> Shapekey Geometry");
-		}
+		RNAPathKey target_key(id, rna_path);
+		add_relation(driver_key, target_key, "Driver -> Target");
 	}
 	/* Ensure that affected prop's update callbacks will be triggered once
 	 * done.
