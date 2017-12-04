@@ -1088,7 +1088,10 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
 				continue;
 			}
 			/* Special handling for directly-named bones. */
-			if ((dtar->flag & DTAR_FLAG_STRUCT_REF) && (dtar->pchan_name[0])) {
+			if ((dtar->flag & DTAR_FLAG_STRUCT_REF) &&
+			    (((Object *)dtar->id)->type == OB_ARMATURE) &&
+			    (dtar->pchan_name[0]))
+			{
 				Object *object = (Object *)dtar->id;
 				bPoseChannel *target_pchan =
 				        BKE_pose_channel_find_name(object->pose,
