@@ -961,11 +961,33 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 	                        DEG_OPCODE_DRIVER,
 	                        fcu->rna_path ? fcu->rna_path : "",
 	                        fcu->array_index);
-	const char *rna_path = fcu->rna_path ? fcu->rna_path : "";
-	const RNAPathKey self_key(id, rna_path);
 	/* Driver -> data components (for interleaved evaluation
 	 * bones/constraints/modifiers).
 	 */
+	build_driver_data(id, fcu);
+	/* Loop over variables to get the target relationships. */
+	build_driver_variables(id, fcu);
+	/* It's quite tricky to detect if the driver actually depends on time or
+	 * not, so for now we'll be quite conservative here about optimization and
+	 * consider all python drivers to be depending on time.
+	 */
+	if ((driver->type == DRIVER_TYPE_PYTHON) &&
+	    python_driver_depends_on_time(driver))
+	{
+		TimeSourceKey time_src_key;
+		add_relation(time_src_key, driver_key, "TimeSrc -> Driver");
+	}
+}
+
+void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
+{
+	OperationKey driver_key(id,
+	                        DEG_NODE_TYPE_PARAMETERS,
+	                        DEG_OPCODE_DRIVER,
+	                        fcu->rna_path ? fcu->rna_path : "",
+	                        fcu->array_index);
+	const char *rna_path = fcu->rna_path ? fcu->rna_path : "";
+	const RNAPathKey self_key(id, rna_path);
 	if (GS(id->name) == ID_AR && strstr(rna_path, "bones[")) {
 		/* Drivers on armature-level bone settings (i.e. bbone stuff),
 		 * which will affect the evaluation of corresponding pose bones.
@@ -1008,18 +1030,6 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 	else {
 		RNAPathKey target_key(id, rna_path);
 		add_relation(driver_key, target_key, "Driver -> Target");
-	}
-	/* Loop over variables to get the target relationships. */
-	build_driver_variables(id, fcu);
-	/* It's quite tricky to detect if the driver actually depends on time or
-	 * not, so for now we'll be quite conservative here about optimization and
-	 * consider all python drivers to be depending on time.
-	 */
-	if ((driver->type == DRIVER_TYPE_PYTHON) &&
-	    python_driver_depends_on_time(driver))
-	{
-		TimeSourceKey time_src_key;
-		add_relation(time_src_key, driver_key, "TimeSrc -> Driver");
 	}
 }
 
