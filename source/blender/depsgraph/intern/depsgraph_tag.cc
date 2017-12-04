@@ -167,36 +167,6 @@ void DEG_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id)
 	}
 }
 
-/* Tag nodes related to a specific piece of data */
-void DEG_graph_data_tag_update(Depsgraph *graph, const PointerRNA *ptr)
-{
-	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
-	DEG::DepsNode *node = deg_graph->find_node_from_pointer(ptr, NULL);
-	if (node != NULL) {
-		node->tag_update(deg_graph);
-	}
-	else {
-		printf("Missing node in %s\n", __func__);
-		BLI_assert(!"Shouldn't happens since it'll miss crucial update.");
-	}
-}
-
-/* Tag nodes related to a specific property. */
-void DEG_graph_property_tag_update(Depsgraph *graph,
-                                   const PointerRNA *ptr,
-                                   const PropertyRNA *prop)
-{
-	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
-	DEG::DepsNode *node = deg_graph->find_node_from_pointer(ptr, prop);
-	if (node != NULL) {
-		node->tag_update(deg_graph);
-	}
-	else {
-		printf("Missing node in %s\n", __func__);
-		BLI_assert(!"Shouldn't happens since it'll miss crucial update.");
-	}
-}
-
 /* Tag given ID for an update in all the dependency graphs. */
 void DEG_id_tag_update(ID *id, short flag)
 {
