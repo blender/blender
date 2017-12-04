@@ -190,6 +190,100 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
 	}
 }
 
+static void lightprobe_shaders_init(void)
+{
+	const char *filter_defines = "#define HAMMERSLEY_SIZE " STRINGIFY(HAMMERSLEY_SIZE) "\n"
+#if defined(IRRADIANCE_SH_L2)
+	                             "#define IRRADIANCE_SH_L2\n"
+#elif defined(IRRADIANCE_CUBEMAP)
+	                             "#define IRRADIANCE_CUBEMAP\n"
+#elif defined(IRRADIANCE_HL2)
+	                             "#define IRRADIANCE_HL2\n"
+#endif
+	                             "#define NOISE_SIZE 64\n";
+
+	char *shader_str = NULL;
+
+	DynStr *ds_frag = BLI_dynstr_new();
+	BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
+	BLI_dynstr_append(ds_frag, datatoc_bsdf_sampling_lib_glsl);
+	BLI_dynstr_append(ds_frag, datatoc_lightprobe_filter_glossy_frag_glsl);
+	shader_str = BLI_dynstr_get_cstring(ds_frag);
+	BLI_dynstr_free(ds_frag);
+
+	e_data.probe_filter_glossy_sh = DRW_shader_create(
+	        datatoc_lightprobe_vert_glsl, datatoc_lightprobe_geom_glsl, shader_str, filter_defines);
+
+	e_data.probe_default_sh = DRW_shader_create(
+	        datatoc_background_vert_glsl, NULL, datatoc_default_world_frag_glsl, NULL);
+
+	MEM_freeN(shader_str);
+
+	ds_frag = BLI_dynstr_new();
+	BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
+	BLI_dynstr_append(ds_frag, datatoc_bsdf_sampling_lib_glsl);
+	BLI_dynstr_append(ds_frag, datatoc_lightprobe_filter_diffuse_frag_glsl);
+	shader_str = BLI_dynstr_get_cstring(ds_frag);
+	BLI_dynstr_free(ds_frag);
+
+	e_data.probe_filter_diffuse_sh = DRW_shader_create_fullscreen(shader_str, filter_defines);
+
+	MEM_freeN(shader_str);
+
+	ds_frag = BLI_dynstr_new();
+	BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
+	BLI_dynstr_append(ds_frag, datatoc_bsdf_sampling_lib_glsl);
+	BLI_dynstr_append(ds_frag, datatoc_lightprobe_filter_visibility_frag_glsl);
+	shader_str = BLI_dynstr_get_cstring(ds_frag);
+	BLI_dynstr_free(ds_frag);
+
+	e_data.probe_filter_visibility_sh = DRW_shader_create_fullscreen(shader_str, filter_defines);
+
+	MEM_freeN(shader_str);
+
+	ds_frag = BLI_dynstr_new();
+	BLI_dynstr_append(ds_frag, datatoc_octahedron_lib_glsl);
+	BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
+	BLI_dynstr_append(ds_frag, datatoc_irradiance_lib_glsl);
+	BLI_dynstr_append(ds_frag, datatoc_lightprobe_lib_glsl);
+	BLI_dynstr_append(ds_frag, datatoc_lightprobe_grid_display_frag_glsl);
+	shader_str = BLI_dynstr_get_cstring(ds_frag);
+	BLI_dynstr_free(ds_frag);
+
+	e_data.probe_grid_display_sh = DRW_shader_create(
+	        datatoc_lightprobe_grid_display_vert_glsl, NULL, shader_str, filter_defines);
+
+	MEM_freeN(shader_str);
+
+	e_data.probe_grid_fill_sh = DRW_shader_create_fullscreen(
+	        datatoc_lightprobe_grid_fill_frag_glsl, filter_defines);
+
+	ds_frag = BLI_dynstr_new();
+	BLI_dynstr_append(ds_frag, datatoc_octahedron_lib_glsl);
+	BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
+	BLI_dynstr_append(ds_frag, datatoc_lightprobe_lib_glsl);
+	BLI_dynstr_append(ds_frag, datatoc_lightprobe_cube_display_frag_glsl);
+	shader_str = BLI_dynstr_get_cstring(ds_frag);
+	BLI_dynstr_free(ds_frag);
+
+	e_data.probe_cube_display_sh = DRW_shader_create(
+	        datatoc_lightprobe_cube_display_vert_glsl, NULL, shader_str, NULL);
+
+	MEM_freeN(shader_str);
+
+	e_data.probe_planar_display_sh = DRW_shader_create(
+	        datatoc_lightprobe_planar_display_vert_glsl, NULL,
+	        datatoc_lightprobe_planar_display_frag_glsl, NULL);
+
+	e_data.probe_planar_downsample_sh = DRW_shader_create(
+	        datatoc_lightprobe_planar_downsample_vert_glsl,
+	        datatoc_lightprobe_planar_downsample_geom_glsl,
+	        datatoc_lightprobe_planar_downsample_frag_glsl,
+	        NULL);
+
+	e_data.hammersley = create_hammersley_sample_texture(HAMMERSLEY_SIZE);
+}
+
 void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *UNUSED(vedata))
 {
 	bool update_all = false;
@@ -199,116 +293,7 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *UNUSED(veda
 
 	/* Shaders */
 	if (!e_data.probe_filter_glossy_sh) {
-		char *shader_str = NULL;
-
-		DynStr *ds_frag = BLI_dynstr_new();
-		BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_bsdf_sampling_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_lightprobe_filter_glossy_frag_glsl);
-		shader_str = BLI_dynstr_get_cstring(ds_frag);
-		BLI_dynstr_free(ds_frag);
-
-		e_data.probe_filter_glossy_sh = DRW_shader_create(
-		        datatoc_lightprobe_vert_glsl, datatoc_lightprobe_geom_glsl, shader_str,
-		        "#define HAMMERSLEY_SIZE " STRINGIFY(HAMMERSLEY_SIZE) "\n"
-		        "#define NOISE_SIZE 64\n");
-
-		e_data.probe_default_sh = DRW_shader_create(
-		        datatoc_background_vert_glsl, NULL, datatoc_default_world_frag_glsl, NULL);
-
-		MEM_freeN(shader_str);
-
-		ds_frag = BLI_dynstr_new();
-		BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_bsdf_sampling_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_lightprobe_filter_diffuse_frag_glsl);
-		shader_str = BLI_dynstr_get_cstring(ds_frag);
-		BLI_dynstr_free(ds_frag);
-
-		e_data.probe_filter_diffuse_sh = DRW_shader_create_fullscreen(
-		        shader_str,
-#if defined(IRRADIANCE_SH_L2)
-		        "#define IRRADIANCE_SH_L2\n"
-#elif defined(IRRADIANCE_CUBEMAP)
-		        "#define IRRADIANCE_CUBEMAP\n"
-#elif defined(IRRADIANCE_HL2)
-		        "#define IRRADIANCE_HL2\n"
-#endif
-		        "#define HAMMERSLEY_SIZE " STRINGIFY(HAMMERSLEY_SIZE) "\n"
-		        "#define NOISE_SIZE 64\n");
-
-		MEM_freeN(shader_str);
-
-		ds_frag = BLI_dynstr_new();
-		BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_bsdf_sampling_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_lightprobe_filter_visibility_frag_glsl);
-		shader_str = BLI_dynstr_get_cstring(ds_frag);
-		BLI_dynstr_free(ds_frag);
-
-		e_data.probe_filter_visibility_sh = DRW_shader_create_fullscreen(
-		        shader_str,
-		        "#define HAMMERSLEY_SIZE " STRINGIFY(HAMMERSLEY_SIZE) "\n"
-		        "#define NOISE_SIZE 64\n");
-
-		MEM_freeN(shader_str);
-
-		ds_frag = BLI_dynstr_new();
-		BLI_dynstr_append(ds_frag, datatoc_octahedron_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_irradiance_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_lightprobe_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_lightprobe_grid_display_frag_glsl);
-		shader_str = BLI_dynstr_get_cstring(ds_frag);
-		BLI_dynstr_free(ds_frag);
-
-		e_data.probe_grid_display_sh = DRW_shader_create(
-		        datatoc_lightprobe_grid_display_vert_glsl, NULL, shader_str,
-#if defined(IRRADIANCE_SH_L2)
-		        "#define IRRADIANCE_SH_L2\n"
-#elif defined(IRRADIANCE_CUBEMAP)
-		        "#define IRRADIANCE_CUBEMAP\n"
-#elif defined(IRRADIANCE_HL2)
-		        "#define IRRADIANCE_HL2\n"
-#endif
-		        );
-
-		MEM_freeN(shader_str);
-
-		e_data.probe_grid_fill_sh = DRW_shader_create_fullscreen(datatoc_lightprobe_grid_fill_frag_glsl,
-#if defined(IRRADIANCE_SH_L2)
-		        "#define IRRADIANCE_SH_L2\n"
-#elif defined(IRRADIANCE_CUBEMAP)
-		        "#define IRRADIANCE_CUBEMAP\n"
-#elif defined(IRRADIANCE_HL2)
-		        "#define IRRADIANCE_HL2\n"
-#endif
-		        );
-
-		ds_frag = BLI_dynstr_new();
-		BLI_dynstr_append(ds_frag, datatoc_octahedron_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_lightprobe_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_lightprobe_cube_display_frag_glsl);
-		shader_str = BLI_dynstr_get_cstring(ds_frag);
-		BLI_dynstr_free(ds_frag);
-
-		e_data.probe_cube_display_sh = DRW_shader_create(
-		        datatoc_lightprobe_cube_display_vert_glsl, NULL, shader_str, NULL);
-
-		MEM_freeN(shader_str);
-
-		e_data.probe_planar_display_sh = DRW_shader_create(
-		        datatoc_lightprobe_planar_display_vert_glsl, NULL,
-		        datatoc_lightprobe_planar_display_frag_glsl, NULL);
-
-		e_data.probe_planar_downsample_sh = DRW_shader_create(
-		        datatoc_lightprobe_planar_downsample_vert_glsl,
-		        datatoc_lightprobe_planar_downsample_geom_glsl,
-		        datatoc_lightprobe_planar_downsample_frag_glsl,
-		        NULL);
-
-		e_data.hammersley = create_hammersley_sample_texture(HAMMERSLEY_SIZE);
+		lightprobe_shaders_init();
 	}
 
 	if (!sldata->probes) {
