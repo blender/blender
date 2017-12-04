@@ -334,9 +334,10 @@ void OUTLINER_OT_collection_override_new(wmOperatorType *ot)
 struct CollectionDeleteData {
 	Scene *scene;
 	SpaceOops *soops;
+	GSet *collections_to_delete;
 };
 
-static TreeTraversalAction collection_delete_cb(TreeElement *te, void *customdata)
+static TreeTraversalAction collection_find_data_to_delete(TreeElement *te, void *customdata)
 {
 	struct CollectionDeleteData *data = customdata;
 	SceneCollection *scene_collection = outliner_scene_collection_from_tree_element(te);
@@ -350,7 +351,7 @@ static TreeTraversalAction collection_delete_cb(TreeElement *te, void *customdat
 		 * when deleting multiple collections, so just do nothing */
 	}
 	else {
-		BKE_collection_remove(&data->scene->id, scene_collection);
+		BLI_gset_add(data->collections_to_delete, scene_collection);
 	}
 
 	return TRAVERSE_CONTINUE;
@@ -360,10 +361,24 @@ static int collection_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
-	struct CollectionDeleteData data = {.scene = scene, .soops = soops};
+	struct CollectionDeleteData data = {.scene = scene, .soops = soops };
+
+	data.collections_to_delete = BLI_gset_ptr_new(__func__);
 
 	TODO_LAYER_OVERRIDE; /* handle overrides */
-	outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, collection_delete_cb, &data);
+
+	/* We first walk over and find the SceneCollections we actually want to delete (ignoring duplicates). */
+	outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, collection_find_data_to_delete, &data);
+
+	/* Effectively delete the collections. */
+	GSetIterator collections_to_delete_iter;
+	GSET_ITER(collections_to_delete_iter, data.collections_to_delete) {
+
+		SceneCollection *sc = BLI_gsetIterator_getKey(&collections_to_delete_iter);
+		BKE_collection_remove(&data.scene->id, sc);
+	}
+
+	BLI_gset_free(data.collections_to_delete, NULL);
 
 	DEG_relations_tag_update(CTX_data_main(C));
 
