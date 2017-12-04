@@ -361,7 +361,7 @@ static int collection_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
-	struct CollectionDeleteData data = {.scene = scene, .soops = soops };
+	struct CollectionDeleteData data = {.scene = scene, .soops = soops};
 
 	data.collections_to_delete = BLI_gset_ptr_new(__func__);
 
