@@ -719,6 +719,8 @@ typedef enum eFileSel_Action {
 } eFileSel_Action;
 
 /* sfile->params->flag and simasel->flag */
+/* Note: short flag, also used as 16 lower bits of flags in link/append code
+ *       (WM and BLO code area, see BLO_LibLinkFlags in BLO_readfile.h). */
 typedef enum eFileSel_Params_Flag {
 	FILE_SHOWSHORT      = (1 << 0),
 	FILE_RELPATH        = (1 << 1), /* was FILE_STRINGCODE */
