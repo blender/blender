@@ -1507,7 +1507,7 @@ static void init_colormix_effect(Sequence *seq)
 {
 	ColorMixVars *data;
 
-	if (seq->effectdata){
+	if (seq->effectdata) {
 		MEM_freeN(seq->effectdata);
 	}
 	seq->effectdata = MEM_callocN(sizeof(ColorMixVars), "colormixvars");
