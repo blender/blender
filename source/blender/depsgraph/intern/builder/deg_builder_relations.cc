@@ -1104,28 +1104,19 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 			if ((dtar->flag & DTAR_FLAG_STRUCT_REF) && (dtar->pchan_name[0])) {
 				Object *object = (Object *)dtar->id;
 				bPoseChannel *target_pchan =
-				        BKE_pose_channel_find_name(object->pose, dtar->pchan_name);
-				if (target_pchan != NULL) {
-					/* Get node associated with bone. */
-					// XXX: watch the space!
-					/* Some cases can't use final bone transform, for example:
-					 * - Driving the bone with itself (addressed here)
-					 * - Relations inside an IK chain (TODO?)
-					 */
-					if (dtar->id == id &&
-					    pchan != NULL &&
-					    STREQ(pchan->name, target_pchan->name))
-					{
-						continue;
-					}
-					OperationKey target_key(dtar->id,
-					                        DEG_NODE_TYPE_BONE,
-					                        target_pchan->name,
-					                        DEG_OPCODE_BONE_DONE);
-					add_relation(target_key,
-					             driver_key,
-					             "Bone Target -> Driver");
+				        BKE_pose_channel_find_name(object->pose,
+				                                   dtar->pchan_name);
+				if (target_pchan == NULL) {
+					continue;
 				}
+				OperationKey variable_key(dtar->id,
+				                        DEG_NODE_TYPE_BONE,
+				                        target_pchan->name,
+				                        DEG_OPCODE_BONE_DONE);
+				if (is_same_bone_dependency(variable_key, self_key)) {
+					continue;
+				}
+				add_relation(variable_key, driver_key, "Bone Target -> Driver");
 			}
 			else if (dtar->flag & DTAR_FLAG_STRUCT_REF) {
 				/* Get node associated with the object's transforms. */
