@@ -966,18 +966,12 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 	/* Driver -> data components (for interleaved evaluation
 	 * bones/constraints/modifiers).
 	 */
-	// XXX: this probably should probably be moved out into a separate function.
-	if (strstr(rna_path, "pose.bones[") != NULL) {
-		RNAPathKey target_key(id, rna_path);
-		add_relation(driver_key, target_key, "Driver -> Target");
-	}
-	else if (GS(id->name) == ID_AR && strstr(rna_path, "bones[")) {
+	if (GS(id->name) == ID_AR && strstr(rna_path, "bones[")) {
 		/* Drivers on armature-level bone settings (i.e. bbone stuff),
 		 * which will affect the evaluation of corresponding pose bones.
 		 */
 		IDDepsNode *arm_node = graph_->find_id_node(id);
 		char *bone_name = BLI_str_quoted_substrN(rna_path, "bones[");
-
 		if (arm_node && bone_name) {
 			/* Find objects which use this, and make their eval callbacks
 			 * depend on this.
@@ -1010,18 +1004,6 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 			        "Couldn't find armature bone name for driver path - '%s'\n",
 			        rna_path);
 		}
-	}
-	else if (GS(id->name) == ID_OB && strstr(rna_path, "modifiers[")) {
-		RNAPathKey target_key(id, rna_path);
-		add_relation(driver_key, target_key, "Driver -> Target");
-	}
-	else if (GS(id->name) == ID_KE && strstr(rna_path, "key_blocks[")) {
-		RNAPathKey target_key(id, rna_path);
-		add_relation(driver_key, target_key, "Driver -> Target");
-	}
-	else if (strstr(rna_path, "key_blocks[")) {
-		RNAPathKey target_key(id, rna_path);
-		add_relation(driver_key, target_key, "Driver -> Target");
 	}
 	else {
 		RNAPathKey target_key(id, rna_path);
