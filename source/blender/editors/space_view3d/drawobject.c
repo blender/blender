@@ -9497,7 +9497,7 @@ static void bbs_mesh_wire(BMEditMesh *em, DerivedMesh *dm, int offset)
 
 	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR_U32);
 
-	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
+	glLineWidth(1);
 
 	immBeginAtMost(GWN_PRIM_LINES, imm_len);
 	dm->foreachMappedEdge(dm, bbs_mesh_wire__mapFunc, &data);
