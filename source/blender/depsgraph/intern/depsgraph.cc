@@ -91,22 +91,6 @@ Depsgraph::~Depsgraph()
 
 /* Query Conditions from RNA ----------------------- */
 
-static bool pointer_to_id_node_criteria(const PointerRNA *ptr,
-                                        const PropertyRNA *prop,
-                                        ID **id)
-{
-	if (ptr->type == NULL) {
-		return false;
-	}
-	if (prop != NULL) {
-		if (RNA_struct_is_ID(ptr->type)) {
-			*id = (ID *)ptr->data;
-			return true;
-		}
-	}
-	return false;
-}
-
 static bool pointer_to_component_node_criteria(
         const PointerRNA *ptr,
         const PropertyRNA *prop,
@@ -230,11 +214,7 @@ DepsNode *Depsgraph::find_node_from_pointer(const PointerRNA *ptr,
 	eDepsOperation_Code operation_code;
 	int operation_name_tag;
 
-	/* Get querying conditions. */
-	if (pointer_to_id_node_criteria(ptr, prop, &id)) {
-		return find_id_node(id);
-	}
-	else if (pointer_to_component_node_criteria(
+	if (pointer_to_component_node_criteria(
 	                 ptr, prop,
 	                 &id, &node_type, &component_name,
 	                 &operation_code, &operation_name, &operation_name_tag))
