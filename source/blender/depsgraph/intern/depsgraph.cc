@@ -107,25 +107,39 @@ static bool pointer_to_id_node_criteria(const PointerRNA *ptr,
 	return false;
 }
 
-static bool pointer_to_component_node_criteria(const PointerRNA *ptr,
-                                               const PropertyRNA *prop,
-                                               ID **id,
-                                               eDepsNode_Type *type,
-                                               const char **subdata)
+static bool pointer_to_component_node_criteria(
+        const PointerRNA *ptr,
+        const PropertyRNA *prop,
+        ID **id,
+        eDepsNode_Type *type,
+        const char **subdata,
+        eDepsOperation_Code *operation_code,
+        const char **operation_name,
+        int *operation_name_tag)
 {
 	if (ptr->type == NULL) {
 		return false;
 	}
 	/* Set default values for returns. */
-	*id      = (ID *)ptr->id.data;  /* For obvious reasons... */
-	*subdata = "";                 /* Default to no subdata (e.g. bone) name
-	                                * lookup in most cases. */
+	*id = (ID *)ptr->id.data;
+	*subdata = "";
+	*operation_code = DEG_OPCODE_OPERATION;
+	*operation_name = "";
+	*operation_name_tag = -1;
 	/* Handling of commonly known scenarios. */
 	if (ptr->type == &RNA_PoseBone) {
 		bPoseChannel *pchan = (bPoseChannel *)ptr->data;
-		/* Bone - generally, we just want the bone component. */
-		*type = DEG_NODE_TYPE_BONE;
-		*subdata = pchan->name;
+		if (prop != NULL && RNA_property_is_idprop(prop)) {
+			*type = DEG_NODE_TYPE_PARAMETERS;
+			*subdata = "";
+			*operation_code = DEG_OPCODE_PARAMETERS_EVAL;
+			*operation_name = pchan->name;;
+		}
+		else {
+			/* Bone - generally, we just want the bone component. */
+			*type = DEG_NODE_TYPE_BONE;
+			*subdata = pchan->name;
+		}
 		return true;
 	}
 	else if (ptr->type == &RNA_Bone) {
@@ -211,18 +225,32 @@ DepsNode *Depsgraph::find_node_from_pointer(const PointerRNA *ptr,
                                             const PropertyRNA *prop) const
 {
 	ID *id;
-	eDepsNode_Type type;
-	const char *name;
+	eDepsNode_Type node_type;
+	const char *component_name, *operation_name;
+	eDepsOperation_Code operation_code;
+	int operation_name_tag;
 
 	/* Get querying conditions. */
 	if (pointer_to_id_node_criteria(ptr, prop, &id)) {
 		return find_id_node(id);
 	}
-	else if (pointer_to_component_node_criteria(ptr, prop, &id, &type, &name)) {
+	else if (pointer_to_component_node_criteria(
+	                 ptr, prop,
+	                 &id, &node_type, &component_name,
+	                 &operation_code, &operation_name, &operation_name_tag))
+	{
 		IDDepsNode *id_node = find_id_node(id);
-		if (id_node != NULL) {
-			return id_node->find_component(type, name);
+		if (id_node == NULL) {
+			return NULL;
 		}
+		ComponentDepsNode *comp_node =
+		        id_node->find_component(node_type, component_name);
+		if (operation_code == DEG_OPCODE_OPERATION) {
+			return comp_node;
+		}
+		return comp_node->find_operation(operation_code,
+		                                 operation_name,
+		                                 operation_name_tag);
 	}
 
 	return NULL;
