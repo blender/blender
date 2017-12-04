@@ -157,7 +157,7 @@ typedef struct WMLinkAppendData {
 	LinkNodePair items;
 	int num_libraries;
 	int num_items;
-	short flag;
+	int flag;  /* Combines eFileSel_Params_Flag from DNA_space_types.h and BLO_LibLinkFlags from BLO_readfile.h */
 
 	/* Internal 'private' data */
 	MemArena *memarena;
@@ -211,9 +211,7 @@ static WMLinkAppendDataItem *wm_link_append_data_item_add(
 	return item;
 }
 
-static void wm_link_do(
-        WMLinkAppendData *lapp_data, ReportList *reports, Main *bmain, Scene *scene, View3D *v3d,
-        const bool use_placeholders, const bool force_indirect)
+static void wm_link_do(WMLinkAppendData *lapp_data, ReportList *reports, Main *bmain, Scene *scene, View3D *v3d)
 {
 	Main *mainl;
 	BlendHandle *bh;
@@ -260,8 +258,7 @@ static void wm_link_do(
 				continue;
 			}
 
-			new_id = BLO_library_link_named_part_ex(
-			             mainl, &bh, item->idcode, item->name, flag, scene, v3d, use_placeholders, force_indirect);
+			new_id = BLO_library_link_named_part_ex(mainl, &bh, item->idcode, item->name, flag, scene, v3d);
 
 			if (new_id) {
 				/* If the link is successful, clear item's libs 'todo' flags.
@@ -331,6 +328,8 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 		flag &= ~FILE_GROUP_INSTANCE;
 		scene = NULL;
 	}
+
+	/* We need to add nothing from BLO_LibLinkFlags to flag here. */
 
 	/* from here down, no error returns */
 
@@ -405,7 +404,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	/* XXX We'd need re-entrant locking on Main for this to work... */
 	/* BKE_main_lock(bmain); */
 
-	wm_link_do(lapp_data, op->reports, bmain, scene, CTX_wm_view3d(C), false, false);
+	wm_link_do(lapp_data, op->reports, bmain, scene, CTX_wm_view3d(C));
 
 	/* BKE_main_unlock(bmain); */
 
@@ -594,7 +593,7 @@ static void lib_relocate_do(
 	BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, true);
 
 	/* We do not want any instanciation here! */
-	wm_link_do(lapp_data, reports, bmain, NULL, NULL, do_reload, do_reload);
+	wm_link_do(lapp_data, reports, bmain, NULL, NULL);
 
 	BKE_main_lock(bmain);
 
@@ -758,7 +757,7 @@ void WM_lib_reload(Library *lib, bContext *C, ReportList *reports)
 		return;
 	}
 
-	WMLinkAppendData *lapp_data = wm_link_append_data_new(0);
+	WMLinkAppendData *lapp_data = wm_link_append_data_new(BLO_LIBLINK_USE_PLACEHOLDERS | BLO_LIBLINK_FORCE_INDIRECT);
 
 	wm_link_append_data_library_add(lapp_data, lib->filepath);
 
@@ -867,6 +866,10 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
 #endif
 				wm_link_append_data_library_add(lapp_data, path);
 			}
+		}
+
+		if (do_reload) {
+			lapp_data->flag |= BLO_LIBLINK_USE_PLACEHOLDERS | BLO_LIBLINK_FORCE_INDIRECT;
 		}
 
 		lib_relocate_do(bmain, scene, lib, lapp_data, op->reports, do_reload);
