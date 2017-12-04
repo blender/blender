@@ -1981,7 +1981,9 @@ static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerR
 		if (prop->noteflag)
 			WM_main_add_notifier(prop->noteflag, ptr->id.data);
 #else
-		{
+		/* if C is NULL, we're updating from animation.
+		 * avoid slow-down from f-curves by not publishing (for now). */
+		if (C != NULL) {
 			struct wmMsgBus *mbus = CTX_wm_message_bus(C);
 			/* we could add NULL check, for now don't */
 			WM_msg_publish_rna(mbus, ptr, prop);
