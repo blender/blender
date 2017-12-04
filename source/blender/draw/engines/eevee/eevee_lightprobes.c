@@ -46,7 +46,23 @@
 
 #include "ED_screen.h"
 
-#define IRRADIANCE_POOL_SIZE 1024
+/* Rounded to nearest PowerOfTwo */
+#if defined(IRRADIANCE_SH_L2)
+#define IRRADIANCE_SAMPLE_SIZE_X 4 /* 3 in reality */
+#define IRRADIANCE_SAMPLE_SIZE_Y 4 /* 3 in reality */
+#elif defined(IRRADIANCE_CUBEMAP)
+#define IRRADIANCE_SAMPLE_SIZE_X 8
+#define IRRADIANCE_SAMPLE_SIZE_Y 8
+#elif defined(IRRADIANCE_HL2)
+#define IRRADIANCE_SAMPLE_SIZE_X 4 /* 3 in reality */
+#define IRRADIANCE_SAMPLE_SIZE_Y 2
+#endif
+
+#define IRRADIANCE_MAX_POOL_LAYER 256 /* OpenGL 3.3 core requirement, can be extended but it's already very big */
+#define IRRADIANCE_MAX_POOL_SIZE 1024
+#define MAX_IRRADIANCE_SAMPLES \
+        (IRRADIANCE_MAX_POOL_SIZE / IRRADIANCE_SAMPLE_SIZE_X) * \
+        (IRRADIANCE_MAX_POOL_SIZE / IRRADIANCE_SAMPLE_SIZE_Y)
 #define HAMMERSLEY_SIZE 1024
 
 static struct {
@@ -96,6 +112,21 @@ extern char datatoc_bsdf_sampling_lib_glsl[];
 extern GlobalsUboStorage ts;
 
 /* *********** FUNCTIONS *********** */
+
+static void irradiance_pool_size_get(int visibility_size, int total_samples, int r_size[3])
+{
+	/* Compute how many irradiance samples we can store per visibility sample. */
+	int irr_per_vis = (visibility_size / IRRADIANCE_SAMPLE_SIZE_X) *
+	                  (visibility_size / IRRADIANCE_SAMPLE_SIZE_Y);
+
+	/* The irradiance itself take one layer, hence the +1 */
+	int layer_ct = MIN2(irr_per_vis + 1, IRRADIANCE_MAX_POOL_LAYER);
+
+	int texel_ct = (int)ceilf((float)total_samples / (float)(layer_ct - 1));
+	r_size[0] = visibility_size * max_ii(1, min_ii(texel_ct, (IRRADIANCE_MAX_POOL_SIZE / visibility_size)));
+	r_size[1] = visibility_size * max_ii(1, (texel_ct / (IRRADIANCE_MAX_POOL_SIZE / visibility_size)));
+	r_size[2] = layer_ct;
+}
 
 static struct GPUTexture *create_hammersley_sample_texture(int samples)
 {
@@ -357,6 +388,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 	pinfo->num_cube = 1; /* at least one for the world */
 	pinfo->num_grid = 1;
 	pinfo->num_planar = 0;
+	pinfo->total_irradiance_samples = 1;
 	memset(pinfo->probes_cube_ref, 0, sizeof(pinfo->probes_cube_ref));
 	memset(pinfo->probes_grid_ref, 0, sizeof(pinfo->probes_grid_ref));
 	memset(pinfo->probes_planar_ref, 0, sizeof(pinfo->probes_planar_ref));
@@ -522,6 +554,13 @@ void EEVEE_lightprobes_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
 
 	ped->num_cell = probe->grid_resolution_x * probe->grid_resolution_y * probe->grid_resolution_z;
 
+	if ((probe->type == LIGHTPROBE_TYPE_GRID) &&
+		((pinfo->total_irradiance_samples + ped->num_cell) >= MAX_IRRADIANCE_SAMPLES))
+	{
+		printf("Too much grid samples !!!\n");
+		return;
+	}
+
 	if (ped->need_full_update) {
 		ped->need_full_update = false;
 
@@ -554,6 +593,7 @@ void EEVEE_lightprobes_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
 	else { /* GRID */
 		pinfo->probes_grid_ref[pinfo->num_grid] = ob;
 		pinfo->num_grid++;
+		pinfo->total_irradiance_samples += ped->num_cell;
 	}
 }
 
@@ -828,6 +868,18 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 		pinfo->cache_num_planar = pinfo->num_planar;
 	}
 
+	int irr_size[3];
+	irradiance_pool_size_get(pinfo->irradiance_vis_size, pinfo->total_irradiance_samples, irr_size);
+
+	if ((irr_size[0] != pinfo->cache_irradiance_size[0]) ||
+	    (irr_size[1] != pinfo->cache_irradiance_size[1]) ||
+	    (irr_size[2] != pinfo->cache_irradiance_size[2]))
+	{
+		DRW_TEXTURE_FREE_SAFE(sldata->irradiance_pool);
+		DRW_TEXTURE_FREE_SAFE(sldata->irradiance_rt);
+		copy_v3_v3_int(pinfo->cache_irradiance_size, irr_size);
+	}
+
 	/* XXX this should be run each frame as it ensure planar_depth is set */
 	planar_pool_ensure_alloc(vedata, pinfo->num_planar);
 
@@ -867,14 +919,13 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 	int irradiance_format = DRW_TEX_RGBA_8;
 #endif
 
-	/* TODO Allocate bigger storage if needed. */
 	if (!sldata->irradiance_pool || !sldata->irradiance_rt) {
 		if (!sldata->irradiance_pool) {
-			sldata->irradiance_pool = DRW_texture_create_2D_array(IRRADIANCE_POOL_SIZE, IRRADIANCE_POOL_SIZE, 2,
+			sldata->irradiance_pool = DRW_texture_create_2D_array(irr_size[0], irr_size[1], irr_size[2],
 			                                                      irradiance_format, DRW_TEX_FILTER, NULL);
 		}
 		if (!sldata->irradiance_rt) {
-			sldata->irradiance_rt = DRW_texture_create_2D_array(IRRADIANCE_POOL_SIZE, IRRADIANCE_POOL_SIZE, 2,
+			sldata->irradiance_rt = DRW_texture_create_2D_array(irr_size[0], irr_size[1], irr_size[2],
 			                                                    irradiance_format, DRW_TEX_FILTER, NULL);
 		}
 		pinfo->num_render_grid = 0;
@@ -1000,6 +1051,9 @@ static void diffuse_filter_probe(
 {
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 
+	int pool_size[3];
+	irradiance_pool_size_get(pinfo->irradiance_vis_size, pinfo->total_irradiance_samples, pool_size);
+
 	/* find cell position on the virtual 3D texture */
 	/* NOTE : Keep in sync with load_irradiance_cell() */
 #if defined(IRRADIANCE_SH_L2)
@@ -1012,7 +1066,7 @@ static void diffuse_filter_probe(
 	pinfo->samples_ct = 1024.0f;
 #endif
 
-	int cell_per_row = IRRADIANCE_POOL_SIZE / size[0];
+	int cell_per_row = pool_size[0] / size[0];
 	int x = size[0] * (offset % cell_per_row);
 	int y = size[1] * (offset / cell_per_row);
 
@@ -1032,30 +1086,35 @@ static void diffuse_filter_probe(
 	EEVEE_downsample_cube_buffer(vedata, sldata->probe_filter_fb, sldata->probe_rt, (int)(pinfo->lod_rt_max));
 
 	DRW_framebuffer_texture_detach(sldata->probe_pool);
-	DRW_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->irradiance_rt, 0, 0);
+	DRW_framebuffer_texture_layer_attach(sldata->probe_filter_fb, sldata->irradiance_rt, 0, 0, 0);
 
 	DRW_framebuffer_viewport_size(sldata->probe_filter_fb, x, y, size[0], size[1]);
 	DRW_draw_pass(psl->probe_diffuse_compute);
 
-	/* Compute visibility */
-	pinfo->samples_ct = 512.0f; /* TODO refine */
-	pinfo->invsamples_ct = 1.0f / pinfo->samples_ct;
-	pinfo->shres = pinfo->irradiance_vis_size;
-	pinfo->visibility_range = vis_range;
-	pinfo->visibility_blur = vis_blur;
-	pinfo->near_clip = -clipsta;
-	pinfo->far_clip = -clipend;
-	pinfo->texel_size = 1.0f / (float)pinfo->irradiance_vis_size;
+	/* World irradiance have no visibility */
+	if (offset > 0) {
+		/* Compute visibility */
+		pinfo->samples_ct = 512.0f; /* TODO refine */
+		pinfo->invsamples_ct = 1.0f / pinfo->samples_ct;
+		pinfo->shres = pinfo->irradiance_vis_size;
+		pinfo->visibility_range = vis_range;
+		pinfo->visibility_blur = vis_blur;
+		pinfo->near_clip = -clipsta;
+		pinfo->far_clip = -clipend;
+		pinfo->texel_size = 1.0f / (float)pinfo->irradiance_vis_size;
 
-	cell_per_row = IRRADIANCE_POOL_SIZE / pinfo->irradiance_vis_size;
-	x = pinfo->irradiance_vis_size * (offset % cell_per_row);
-	y = pinfo->irradiance_vis_size * (offset / cell_per_row);
+		int cell_per_col = pool_size[1] / pinfo->irradiance_vis_size;
+		cell_per_row = pool_size[0] / pinfo->irradiance_vis_size;
+		x = pinfo->irradiance_vis_size * (offset % cell_per_row);
+		y = pinfo->irradiance_vis_size * ((offset / cell_per_row) % cell_per_col);
+		int layer = 1 + ((offset / cell_per_row) / cell_per_col);
 
-	DRW_framebuffer_texture_detach(sldata->irradiance_rt);
-	DRW_framebuffer_texture_layer_attach(sldata->probe_filter_fb, sldata->irradiance_rt, 0, 1, 0);
+		DRW_framebuffer_texture_detach(sldata->irradiance_rt);
+		DRW_framebuffer_texture_layer_attach(sldata->probe_filter_fb, sldata->irradiance_rt, 0, layer, 0);
 
-	DRW_framebuffer_viewport_size(sldata->probe_filter_fb, x, y, pinfo->irradiance_vis_size, sldata->probes->irradiance_vis_size);
-	DRW_draw_pass(psl->probe_visibility_compute);
+		DRW_framebuffer_viewport_size(sldata->probe_filter_fb, x, y, pinfo->irradiance_vis_size, sldata->probes->irradiance_vis_size);
+		DRW_draw_pass(psl->probe_visibility_compute);
+	}
 
 	/* reattach to have a valid framebuffer. */
 	DRW_framebuffer_texture_detach(sldata->irradiance_rt);

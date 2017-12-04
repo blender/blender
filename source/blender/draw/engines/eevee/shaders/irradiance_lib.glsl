@@ -82,9 +82,10 @@ float load_visibility_cell(int cell, vec3 L, float dist, float bias, float bleed
 {
 	/* Keep in sync with diffuse_filter_probe() */
 	ivec2 cell_co = ivec2(irradianceVisibilitySize);
-	int cell_per_row = textureSize(irradianceGrid, 0).x / irradianceVisibilitySize;
-	cell_co.x *= (cell) % cell_per_row;
-	cell_co.y *= (cell) / cell_per_row;
+	ivec2 cell_per_row_col = textureSize(irradianceGrid, 0).xy / irradianceVisibilitySize;
+	cell_co.x *= (cell % cell_per_row_col.x);
+	cell_co.y *= (cell / cell_per_row_col.x) % cell_per_row_col.y;
+	float layer = 1.0 + float((cell / cell_per_row_col.x) / cell_per_row_col.y);
 
 	vec2 texel_size = 1.0 / vec2(textureSize(irradianceGrid, 0).xy);
 	vec2 co = vec2(cell_co) * texel_size;
@@ -92,7 +93,7 @@ float load_visibility_cell(int cell, vec3 L, float dist, float bias, float bleed
 	vec2 uv = mapping_octahedron(-L, vec2(1.0 / float(irradianceVisibilitySize)));
 	uv *= vec2(irradianceVisibilitySize) * texel_size;
 
-	vec4 data = texture(irradianceGrid, vec3(co + uv, 1.0));
+	vec4 data = texture(irradianceGrid, vec3(co + uv, layer));
 
 	/* Decoding compressed data */
 	vec2 moments = visibility_decode(data, range);

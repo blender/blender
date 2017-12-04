@@ -388,6 +388,8 @@ typedef struct EEVEE_LightProbesInfo {
 	int num_cube, cache_num_cube;
 	int num_grid, cache_num_grid;
 	int num_planar, cache_num_planar;
+	int total_irradiance_samples; /* Total for all grids */
+	int cache_irradiance_size[3];
 	int update_flag;
 	int updated_bounce;
 	int num_bounce;
