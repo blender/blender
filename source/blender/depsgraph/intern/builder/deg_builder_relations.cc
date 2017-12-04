@@ -961,7 +961,6 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 	                        DEG_OPCODE_DRIVER,
 	                        fcu->rna_path ? fcu->rna_path : "",
 	                        fcu->array_index);
-	bPoseChannel *pchan = NULL;
 	const char *rna_path = fcu->rna_path ? fcu->rna_path : "";
 	const RNAPathKey self_key(id, rna_path);
 
@@ -975,33 +974,8 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 	 */
 	// XXX: this probably should probably be moved out into a separate function.
 	if (strstr(rna_path, "pose.bones[") != NULL) {
-		/* interleaved drivers during bone eval */
-		/* TODO: ideally, if this is for a constraint, it goes to said
-		 * constraint.
-		 */
-		Object *object = (Object *)id;
-		char *bone_name;
-
-		bone_name = BLI_str_quoted_substrN(rna_path, "pose.bones[");
-		pchan = BKE_pose_channel_find_name(object->pose, bone_name);
-
-		if (bone_name) {
-			MEM_freeN(bone_name);
-			bone_name = NULL;
-		}
-
-		if (pchan) {
-			OperationKey bone_key(id,
-			                      DEG_NODE_TYPE_BONE,
-			                      pchan->name,
-			                      DEG_OPCODE_BONE_LOCAL);
-			add_relation(driver_key, bone_key, "Driver -> Bone");
-		}
-		else {
-			fprintf(stderr,
-			        "Couldn't find bone name for driver path - '%s'\n",
-			        rna_path);
-		}
+		RNAPathKey target_key(id, rna_path);
+		add_relation(driver_key, target_key, "Driver -> Target");
 	}
 	else if (GS(id->name) == ID_AR && strstr(rna_path, "bones[")) {
 		/* Drivers on armature-level bone settings (i.e. bbone stuff),
