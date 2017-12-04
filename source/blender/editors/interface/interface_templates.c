@@ -977,8 +977,10 @@ void uiTemplateSearch(
         const char *newop, const char *unlinkop)
 {
 	TemplateSearch *template_search = template_search_setup(ptr, propname, searchptr, searchpropname);
-	template_search_buttons(C, layout, template_search, newop, unlinkop);
-	MEM_freeN(template_search);
+	if (template_search != NULL) {
+		template_search_buttons(C, layout, template_search, newop, unlinkop);
+		MEM_freeN(template_search);
+	}
 }
 
 void uiTemplateSearchPreview(
@@ -990,13 +992,15 @@ void uiTemplateSearchPreview(
 {
 	TemplateSearch *template_search = template_search_setup(ptr, propname, searchptr, searchpropname);
 
-	template_search->use_previews = true;
-	template_search->preview_rows = rows;
-	template_search->preview_cols = cols;
+	if (template_search != NULL) {
+		template_search->use_previews = true;
+		template_search->preview_rows = rows;
+		template_search->preview_cols = cols;
 
-	template_search_buttons(C, layout, template_search, newop, unlinkop);
+		template_search_buttons(C, layout, template_search, newop, unlinkop);
 
-	MEM_freeN(template_search);
+		MEM_freeN(template_search);
+	}
 }
 
 /********************* RNA Path Builder Template ********************/
