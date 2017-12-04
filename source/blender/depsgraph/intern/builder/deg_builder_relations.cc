@@ -1018,15 +1018,8 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 		}
 	}
 	else if (GS(id->name) == ID_OB && strstr(rna_path, "modifiers[")) {
-		OperationKey modifier_key(id,
-		                          DEG_NODE_TYPE_GEOMETRY,
-		                          DEG_OPCODE_GEOMETRY_UBEREVAL);
-		if (has_node(modifier_key)) {
-			add_relation(driver_key, modifier_key, "Driver -> Modifier");
-		}
-		else {
-			printf("Unexisting driver RNA path: %s\n", rna_path);
-		}
+		RNAPathKey target_key(id, rna_path);
+		add_relation(driver_key, target_key, "Driver -> Target");
 	}
 	else if (GS(id->name) == ID_KE && strstr(rna_path, "key_blocks[")) {
 		/* Shape key driver - hook into the base geometry operation. */
