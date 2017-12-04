@@ -5683,7 +5683,7 @@ void RNA_struct_property_unset(PointerRNA *ptr, const char *identifier)
 	}
 }
 
-bool RNA_property_is_idprop(PropertyRNA *prop)
+bool RNA_property_is_idprop(const PropertyRNA *prop)
 {
 	return (prop->magic != RNA_MAGIC);
 }
