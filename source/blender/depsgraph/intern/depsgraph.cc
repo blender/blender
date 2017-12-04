@@ -202,7 +202,7 @@ static bool pointer_to_component_node_criteria(
 		 * owns it.
 		 */
 		*id = key->from;
-		*type = DEG_NODE_TYPE_PARAMETERS;
+		*type = DEG_NODE_TYPE_GEOMETRY;
 		return true;
 	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_Sequence)) {

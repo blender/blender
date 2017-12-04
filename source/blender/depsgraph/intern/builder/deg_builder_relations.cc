@@ -1022,12 +1022,8 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 		add_relation(driver_key, target_key, "Driver -> Target");
 	}
 	else if (GS(id->name) == ID_KE && strstr(rna_path, "key_blocks[")) {
-		/* Shape key driver - hook into the base geometry operation. */
-		// XXX: double check where this points
-		Key *shape_key = (Key *)id;
-
-		ComponentKey geometry_key(shape_key->from, DEG_NODE_TYPE_GEOMETRY);
-		add_relation(driver_key, geometry_key, "Driver -> ShapeKey Geom");
+		RNAPathKey target_key(id, rna_path);
+		add_relation(driver_key, target_key, "Driver -> Target");
 	}
 	else if (strstr(rna_path, "key_blocks[")) {
 		ComponentKey geometry_key(id, DEG_NODE_TYPE_GEOMETRY);
