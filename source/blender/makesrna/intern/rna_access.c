@@ -172,6 +172,11 @@ void RNA_pointer_create(ID *id, StructRNA *type, void *data, PointerRNA *r_ptr)
 	}
 }
 
+bool RNA_pointer_is_null(const PointerRNA *ptr)
+{
+	return !((ptr->data != NULL) && (ptr->id.data != NULL) && (ptr->type != NULL));
+}
+
 static void rna_pointer_inherit_id(StructRNA *type, PointerRNA *parent, PointerRNA *ptr)
 {
 	if (type && type->flag & STRUCT_ID) {
