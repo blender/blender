@@ -193,6 +193,20 @@ RNAPathKey::RNAPathKey(ID *id, const PointerRNA &ptr, PropertyRNA *prop)
 {
 }
 
+RNAPathKey::RNAPathKey(ID *id, const char *path)
+        : id(id)
+{
+    /* create ID pointer for root of path lookup */
+    PointerRNA id_ptr;
+    RNA_id_pointer_create(id, &id_ptr);
+    /* try to resolve path... */
+    int index;
+    if (!RNA_path_resolve_full(&id_ptr, path, &this->ptr, &this->prop, &index)) {
+	this->ptr = PointerRNA_NULL;
+	this->prop = NULL;
+    }
+}
+
 string RNAPathKey::identifier() const
 {
 	const char *id_name   = (id) ?  id->name : "<No ID>";

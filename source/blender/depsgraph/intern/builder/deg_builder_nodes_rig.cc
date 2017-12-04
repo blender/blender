@@ -248,9 +248,9 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
 
 	/* bones */
 	LINKLIST_FOREACH (bPoseChannel *, pchan, &object_cow->pose->chanbase) {
-		/* node for bone eval */
-		op_node = add_operation_node(&object->id, DEG_NODE_TYPE_BONE,
-		                             pchan->name, NULL, DEG_OPCODE_BONE_LOCAL);
+		/* Node for bone evaluation. */
+		op_node = add_operation_node(&object->id, DEG_NODE_TYPE_BONE, pchan->name, NULL,
+		                             DEG_OPCODE_BONE_LOCAL);
 		op_node->set_as_entry();
 
 		add_operation_node(&object->id, DEG_NODE_TYPE_BONE, pchan->name,
@@ -269,6 +269,14 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
 		                             function_bind(BKE_pose_bone_done, _1, pchan),
 		                             DEG_OPCODE_BONE_DONE);
 		op_node->set_as_exit();
+		/* Custom properties. */
+		if (pchan->prop != NULL) {
+			add_operation_node(&object->id,
+			                   DEG_NODE_TYPE_PARAMETERS,
+			                   NULL,
+			                   DEG_OPCODE_PARAMETERS_EVAL,
+			                   pchan->name);
+		}
 		/* Build constraints. */
 		if (pchan->constraints.first != NULL) {
 			build_pose_constraints(object, pchan);

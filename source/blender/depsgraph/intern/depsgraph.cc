@@ -107,16 +107,15 @@ static bool pointer_to_id_node_criteria(const PointerRNA *ptr,
                                         const PropertyRNA *prop,
                                         ID **id)
 {
-	if (!ptr->type)
+	if (ptr->type == NULL) {
 		return false;
-
-	if (!prop) {
+	}
+	if (prop != NULL) {
 		if (RNA_struct_is_ID(ptr->type)) {
 			*id = (ID *)ptr->data;
 			return true;
 		}
 	}
-
 	return false;
 }
 
@@ -126,49 +125,40 @@ static bool pointer_to_component_node_criteria(const PointerRNA *ptr,
                                                eDepsNode_Type *type,
                                                const char **subdata)
 {
-	if (!ptr->type)
+	if (ptr->type == NULL) {
 		return false;
-
+	}
 	/* Set default values for returns. */
 	*id      = (ID *)ptr->id.data;  /* For obvious reasons... */
 	*subdata = "";                 /* Default to no subdata (e.g. bone) name
 	                                * lookup in most cases. */
-
-	/* Handling of commonly known scenarios... */
+	/* Handling of commonly known scenarios. */
 	if (ptr->type == &RNA_PoseBone) {
 		bPoseChannel *pchan = (bPoseChannel *)ptr->data;
-
-		/* Bone - generally, we just want the bone component... */
+		/* Bone - generally, we just want the bone component. */
 		*type = DEG_NODE_TYPE_BONE;
 		*subdata = pchan->name;
-
 		return true;
 	}
 	else if (ptr->type == &RNA_Bone) {
 		Bone *bone = (Bone *)ptr->data;
-
 		/* armature-level bone, but it ends up going to bone component anyway */
-		// TODO: the ID in thise case will end up being bArmature, not Object as needed!
+		// NOTE: the ID in thise case will end up being bArmature.
 		*type = DEG_NODE_TYPE_BONE;
 		*subdata = bone->name;
-		//*id = ...
-
 		return true;
 	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_Constraint)) {
 		Object *object = (Object *)ptr->id.data;
 		bConstraint *con = (bConstraint *)ptr->data;
-
-		/* object or bone? */
+		/* Check whether is object or bone constraint. */
 		if (BLI_findindex(&object->constraints, con) != -1) {
-			/* object transform */
-			// XXX: for now, we can't address the specific constraint or the constraint stack...
+			/* Constraint is defining object transform. */
 			*type = DEG_NODE_TYPE_TRANSFORM;
 			return true;
 		}
-		else if (object->pose) {
-			bPoseChannel *pchan;
-			for (pchan = (bPoseChannel *)object->pose->chanbase.first; pchan; pchan = pchan->next) {
+		else if (object->pose != NULL) {
+			LINKLIST_FOREACH(bPoseChannel *, pchan, &object->pose->chanbase) {
 				if (BLI_findindex(&pchan->constraints, con) != -1) {
 					/* bone transforms */
 					*type = DEG_NODE_TYPE_BONE;
@@ -179,23 +169,12 @@ static bool pointer_to_component_node_criteria(const PointerRNA *ptr,
 		}
 	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_Modifier)) {
-		//ModifierData *md = (ModifierData *)ptr->data;
-
-		/* Modifier */
-		/* NOTE: subdata is not the same as "operation name",
-		 * so although we have unique ops for modifiers,
-		 * we can't lump them together
-		 */
-		*type = DEG_NODE_TYPE_BONE;
-		//*subdata = md->name;
-
+		*type = DEG_NODE_TYPE_GEOMETRY;
 		return true;
 	}
 	else if (ptr->type == &RNA_Object) {
-		//Object *object = (Object *)ptr->data;
-
 		/* Transforms props? */
-		if (prop) {
+		if (prop != NULL) {
 			const char *prop_identifier = RNA_property_identifier((PropertyRNA *)prop);
 			/* TODO(sergey): How to optimize this? */
 			if (strstr(prop_identifier, "location") ||
@@ -217,11 +196,11 @@ static bool pointer_to_component_node_criteria(const PointerRNA *ptr,
 	}
 	else if (ptr->type == &RNA_ShapeKey) {
 		Key *key = (Key *)ptr->id.data;
-
-		/* ShapeKeys are currently handled as geometry on the geometry that owns it */
-		*id = key->from; // XXX
+		/* ShapeKeys are currently handled as geometry on the geometry that
+		 * owns it.
+		 */
+		*id = key->from;
 		*type = DEG_NODE_TYPE_PARAMETERS;
-
 		return true;
 	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_Sequence)) {
@@ -231,13 +210,11 @@ static bool pointer_to_component_node_criteria(const PointerRNA *ptr,
 		*subdata = seq->name; // xxx?
 		return true;
 	}
-
-	if (prop) {
-		/* All unknown data effectively falls under "parameter evaluation" */
+	if (prop != NULL) {
+		/* All unknown data effectively falls under "parameter evaluation". */
 		*type = DEG_NODE_TYPE_PARAMETERS;
 		return true;
 	}
-
 	return false;
 }
 

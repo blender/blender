@@ -203,20 +203,6 @@ static bool object_particles_depends_on_time(Object *object)
 
 /* **** General purpose functions ****  */
 
-RNAPathKey::RNAPathKey(ID *id, const char *path) :
-    id(id)
-{
-	/* create ID pointer for root of path lookup */
-	PointerRNA id_ptr;
-	RNA_id_pointer_create(id, &id_ptr);
-	/* try to resolve path... */
-	int index;
-	if (!RNA_path_resolve_full(&id_ptr, path, &this->ptr, &this->prop, &index)) {
-		this->ptr = PointerRNA_NULL;
-		this->prop = NULL;
-	}
-}
-
 DepsgraphRelationBuilder::DepsgraphRelationBuilder(Main *bmain,
                                                    Depsgraph *graph)
     : bmain_(bmain),
@@ -463,7 +449,7 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
 		/* Local -> parent. */
 		add_relation(local_transform_key,
 		             parent_transform_key,
-		             "[ObLocal -> ObParent]");
+		             "ObLocal -> ObParent");
 	}
 	/* Modifiers. */
 	if (object->modifiers.first != NULL) {
@@ -489,8 +475,8 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
 		                  &object->constraints,
 		                  NULL);
 		/* operation order */
-		add_relation(base_op_key, constraint_key, "[ObBase-> Constraint Stack]");
-		add_relation(constraint_key, final_transform_key, "[ObConstraints -> Done]");
+		add_relation(base_op_key, constraint_key, "ObBase-> Constraint Stack");
+		add_relation(constraint_key, final_transform_key, "ObConstraints -> Done");
 		// XXX
 		add_relation(constraint_key, ob_ubereval_key, "Temp Ubereval");
 		add_relation(ob_ubereval_key, final_transform_key, "Temp Ubereval");
@@ -753,14 +739,14 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
 			 * Constraint dependency chain.
 			 */
 			TimeSourceKey time_src_key;
-			add_relation(time_src_key, constraint_op_key, "[TimeSrc -> Animation]");
+			add_relation(time_src_key, constraint_op_key, "TimeSrc -> Animation");
 		}
 		else if (cti->type == CONSTRAINT_TYPE_TRANSFORM_CACHE) {
 			/* TODO(kevin): This is more a TimeSource -> CacheFile -> Constraint
 			 * dependency chain.
 			 */
 			TimeSourceKey time_src_key;
-			add_relation(time_src_key, constraint_op_key, "[TimeSrc -> Animation]");
+			add_relation(time_src_key, constraint_op_key, "TimeSrc -> Animation");
 			bTransformCacheConstraint *data = (bTransformCacheConstraint *)con->data;
 			if (data->cache_file) {
 				ComponentKey cache_key(&data->cache_file->id, DEG_NODE_TYPE_CACHE);
@@ -925,7 +911,7 @@ void DepsgraphRelationBuilder::build_animdata(ID *id)
 	if (adt->action || adt->nla_tracks.first) {
 		/* wire up dependency to time source */
 		TimeSourceKey time_src_key;
-		add_relation(time_src_key, adt_key, "[TimeSrc -> Animation]");
+		add_relation(time_src_key, adt_key, "TimeSrc -> Animation");
 
 		// XXX: Hook up specific update callbacks for special properties which may need it...
 
@@ -985,13 +971,13 @@ void DepsgraphRelationBuilder::build_animdata(ID *id)
 				                        DEG_OPCODE_DRIVER,
 				                        fcu->rna_path ? fcu->rna_path : "",
 				                        fcu->array_index);
-				add_relation(prev_driver_key, driver_key, "[Driver Order]");
+				add_relation(prev_driver_key, driver_key, "Driver Order");
 			}
 		}
 
 		/* prevent driver from occurring before own animation... */
 		if (adt->action || adt->nla_tracks.first) {
-			add_relation(adt_key, driver_key, "[AnimData Before Drivers]");
+			add_relation(adt_key, driver_key, "AnimData Before Drivers");
 		}
 	}
 }
@@ -1011,7 +997,7 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 	/* Create dependency between driver and data affected by it. */
 	/* - direct property relationship... */
 	//RNAPathKey affected_key(id, fcu->rna_path);
-	//add_relation(driver_key, affected_key, "[Driver -> Data] DepsRel");
+	//add_relation(driver_key, affected_key, "Driver -> Data");
 
 	/* Driver -> data components (for interleaved evaluation
 	 * bones/constraints/modifiers).
@@ -1034,7 +1020,7 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 			                      DEG_NODE_TYPE_BONE,
 			                      pchan->name,
 			                      DEG_OPCODE_BONE_LOCAL);
-			add_relation(driver_key, bone_key, "[Driver -> Bone]");
+			add_relation(driver_key, bone_key, "Driver -> Bone");
 		}
 		else {
 			fprintf(stderr,
@@ -1067,7 +1053,7 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 						                      DEG_OPCODE_BONE_LOCAL);
 						add_relation(driver_key,
 						             bone_key,
-						             "[Arm Bone -> Driver -> Bone]");
+						             "Arm Bone -> Driver -> Bone");
 					}
 				}
 			}
@@ -1086,7 +1072,7 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 		                          DEG_NODE_TYPE_GEOMETRY,
 		                          DEG_OPCODE_GEOMETRY_UBEREVAL);
 		if (has_node(modifier_key)) {
-			add_relation(driver_key, modifier_key, "[Driver -> Modifier]");
+			add_relation(driver_key, modifier_key, "Driver -> Modifier");
 		}
 		else {
 			printf("Unexisting driver RNA path: %s\n", rna_path);
@@ -1097,43 +1083,27 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 		// XXX: double check where this points
 		Key *shape_key = (Key *)id;
 		ComponentKey geometry_key(shape_key->from, DEG_NODE_TYPE_GEOMETRY);
-		add_relation(driver_key, geometry_key, "[Driver -> ShapeKey Geom]");
+		add_relation(driver_key, geometry_key, "Driver -> ShapeKey Geom");
 	}
 	else if (strstr(rna_path, "key_blocks[")) {
 		ComponentKey geometry_key(id, DEG_NODE_TYPE_GEOMETRY);
-		add_relation(driver_key, geometry_key, "[Driver -> ShapeKey Geom]");
+		add_relation(driver_key, geometry_key, "Driver -> ShapeKey Geom");
 	}
 	else {
-		switch (id_type) {
-			case ID_OB:
-			{
-				/* Assume that driver affects a transform. */
-				OperationKey local_transform_key(id,
-				                                 DEG_NODE_TYPE_TRANSFORM,
-				                                 DEG_OPCODE_TRANSFORM_LOCAL);
-				add_relation(driver_key,
-				             local_transform_key,
-				             "[Driver -> Transform]");
-				break;
-			}
-			case ID_KE:
-			{
-				ComponentKey geometry_key(id, DEG_NODE_TYPE_GEOMETRY);
-				add_relation(driver_key,
-				             geometry_key,
-				             "[Driver -> Shapekey Geometry]");
-				break;
-			}
-			case ID_NT:
-			{
-				ComponentKey ntree_key(id, DEG_NODE_TYPE_SHADING);
-				add_relation(driver_key,
-				             ntree_key,
-				             "[Driver -> NTree Shading Update]");
-				break;
-			}
-			default:
-				break;
+		if (GS(id->name) == ID_OB) {
+			/* assume that driver affects a transform... */
+			OperationKey local_transform_key(id,
+			                                 DEG_NODE_TYPE_TRANSFORM,
+			                                 DEG_OPCODE_TRANSFORM_LOCAL);
+			add_relation(driver_key,
+			             local_transform_key,
+			             "Driver -> Transform");
+		}
+		else if (GS(id->name) == ID_KE) {
+			ComponentKey geometry_key(id, DEG_NODE_TYPE_GEOMETRY);
+			add_relation(driver_key,
+			             geometry_key,
+			             "Driver -> Shapekey Geometry");
 		}
 	}
 	/* Ensure that affected prop's update callbacks will be triggered once
@@ -1177,7 +1147,7 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 					                        DEG_OPCODE_BONE_DONE);
 					add_relation(target_key,
 					             driver_key,
-					             "[Bone Target -> Driver]");
+					             "Bone Target -> Driver");
 				}
 			}
 			else if (dtar->flag & DTAR_FLAG_STRUCT_REF) {
@@ -1192,7 +1162,7 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 				OperationKey target_key(dtar->id,
 				                        DEG_NODE_TYPE_TRANSFORM,
 				                        DEG_OPCODE_TRANSFORM_FINAL);
-				add_relation(target_key, driver_key, "[Target -> Driver]");
+				add_relation(target_key, driver_key, "Target -> Driver");
 			}
 			else if (dtar->rna_path && strstr(dtar->rna_path, "pose.bones[")) {
 				/* Workaround for ensuring that local bone transforms don't end
@@ -1218,7 +1188,7 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 					                      DEG_NODE_TYPE_BONE,
 					                      target_pchan->name,
 					                      DEG_OPCODE_BONE_LOCAL);
-					add_relation(bone_key, driver_key, "[RNA Bone -> Driver]");
+					add_relation(bone_key, driver_key, "RNA Bone -> Driver");
 				}
 			}
 			else {
@@ -1232,7 +1202,7 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 				/* Resolve path to get node. */
 				RNAPathKey target_key(dtar->id,
 				                      dtar->rna_path ? dtar->rna_path : "");
-				add_relation(target_key, driver_key, "[RNA Target -> Driver]");
+				add_relation(target_key, driver_key, "RNA Target -> Driver");
 			}
 		}
 		DRIVER_TARGETS_LOOPER_END
@@ -1245,7 +1215,7 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 	    python_driver_depends_on_time(driver))
 	{
 		TimeSourceKey time_src_key;
-		add_relation(time_src_key, driver_key, "[TimeSrc -> Driver]");
+		add_relation(time_src_key, driver_key, "TimeSrc -> Driver");
 	}
 }
 
