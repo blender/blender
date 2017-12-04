@@ -189,6 +189,11 @@ static bool pointer_to_component_node_criteria(
 		*type = DEG_NODE_TYPE_GEOMETRY;
 		return true;
 	}
+	else if (ptr->type == &RNA_Key) {
+		*id = (ID *)ptr->id.data;
+		*type = DEG_NODE_TYPE_GEOMETRY;
+		return true;
+	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_Sequence)) {
 		Sequence *seq = (Sequence *)ptr->data;
 		/* Sequencer strip */
