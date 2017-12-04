@@ -1026,8 +1026,8 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 		add_relation(driver_key, target_key, "Driver -> Target");
 	}
 	else if (strstr(rna_path, "key_blocks[")) {
-		ComponentKey geometry_key(id, DEG_NODE_TYPE_GEOMETRY);
-		add_relation(driver_key, geometry_key, "Driver -> ShapeKey Geom");
+		RNAPathKey target_key(id, rna_path);
+		add_relation(driver_key, target_key, "Driver -> Target");
 	}
 	else {
 		if (GS(id->name) == ID_OB) {
