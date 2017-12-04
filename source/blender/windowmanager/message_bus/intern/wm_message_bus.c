@@ -95,9 +95,10 @@ void WM_msgbus_clear_by_owner(struct wmMsgBus *mbus, void *owner)
 		}
 
 		if (BLI_listbase_is_empty(&msg_key->values)) {
-			wmMsgTypeInfo *info = &wm_msg_types[msg_key->msg->type];
+			const wmMsg *msg = wm_msg_subscribe_value_msg_cast(msg_key);
+			wmMsgTypeInfo *info = &wm_msg_types[msg->type];
 			BLI_remlink(&mbus->messages, msg_key);
-			bool ok = BLI_gset_remove(mbus->messages_gset[msg_key->msg->type], msg_key, info->gset.key_free_fn);
+			bool ok = BLI_gset_remove(mbus->messages_gset[msg->type], msg_key, info->gset.key_free_fn);
 			BLI_assert(ok);
 			UNUSED_VARS_NDEBUG(ok);
 		}
@@ -108,7 +109,8 @@ void WM_msg_dump(struct wmMsgBus *mbus, const char *info_str)
 {
 	printf(">>>> %s\n", info_str);
 	for (wmMsgSubscribeKey *key = mbus->messages.first; key; key = key->next) {
-		const wmMsgTypeInfo *info = &wm_msg_types[key->msg->type];
+		const wmMsg *msg = wm_msg_subscribe_value_msg_cast(key);
+		const wmMsgTypeInfo *info = &wm_msg_types[msg->type];
 		info->repr(stdout, key);
 	}
 	printf("<<<< %s\n", info_str);
@@ -157,11 +159,11 @@ wmMsgSubscribeKey *WM_msg_subscribe_with_key(
         const wmMsgSubscribeKey *msg_key_test,
         const wmMsgSubscribeValue *msg_val_params)
 {
-	const uint type = msg_key_test->msg->type;
+	const uint type = wm_msg_subscribe_value_msg_cast(msg_key_test)->type;
 	const wmMsgTypeInfo *info = &wm_msg_types[type];
 	wmMsgSubscribeKey *key;
 
-	BLI_assert(msg_key_test->msg->id != NULL);
+	BLI_assert(wm_msg_subscribe_value_msg_cast(msg_key_test)->id != NULL);
 
 	void **r_key;
 	if (!BLI_gset_ensure_p_ex(mbus->messages_gset[type], msg_key_test, &r_key)) {

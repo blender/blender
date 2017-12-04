@@ -38,4 +38,18 @@ struct wmMsgBus {
 void wm_msg_subscribe_value_free(
         struct wmMsgSubscribeKey *msg_key, struct wmMsgSubscribeValueLink *msg_lnk);
 
+typedef struct wmMsgSubscribeKey_Generic {
+	wmMsgSubscribeKey head;
+	wmMsg msg;
+} wmMsgSubscribeKey_Generic;
+
+BLI_INLINE const wmMsg *wm_msg_subscribe_value_msg_cast(const wmMsgSubscribeKey *key)
+{
+	return &((wmMsgSubscribeKey_Generic *)key)->msg;
+}
+BLI_INLINE wmMsg *wm_msg_subscribe_value_msg_cast_mut(wmMsgSubscribeKey *key)
+{
+	return &((wmMsgSubscribeKey_Generic *)key)->msg;
+}
+
 #endif /* __WM_MESSAGE_BUS_INTERN_H__ */
