@@ -196,7 +196,7 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
 
 	/* bones */
 	LINKLIST_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
-		/* node for bone eval */
+		/* Node for bone evaluation. */
 		op_node = add_operation_node(&object->id, DEG_NODE_TYPE_BONE, pchan->name, NULL,
 		                             DEG_OPCODE_BONE_LOCAL);
 		op_node->set_as_entry();
@@ -213,14 +213,20 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
 		                             function_bind(BKE_pose_bone_done, _1, pchan),
 		                             DEG_OPCODE_BONE_DONE);
 		op_node->set_as_exit();
-
-		/* constraints */
+		/* Custom properties. */
+		if (pchan->prop != NULL) {
+			add_operation_node(&object->id,
+			                   DEG_NODE_TYPE_PARAMETERS,
+			                   NULL,
+			                   DEG_OPCODE_PARAMETERS_EVAL,
+			                   pchan->name);
+		}
+		/* Constraints. */
 		if (pchan->constraints.first != NULL) {
 			build_pose_constraints(object, pchan);
 		}
-
 		/**
-		 * IK Solvers...
+		 * IK Solvers.
 		 *
 		 * - These require separate processing steps are pose-level
 		 *   to be executed between chains of bones (i.e. once the
