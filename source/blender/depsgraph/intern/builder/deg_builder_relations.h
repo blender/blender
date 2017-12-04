@@ -31,6 +31,7 @@
 #pragma once
 
 #include <cstdio>
+#include <cstring>
 
 #include "intern/depsgraph_types.h"
 
@@ -43,6 +44,7 @@
 #include "BLI_string.h"
 
 #include "intern/nodes/deg_node.h"
+#include "intern/nodes/deg_node_component.h"
 #include "intern/nodes/deg_node_operation.h"
 
 struct Base;
@@ -266,6 +268,9 @@ protected:
 
 	bool needs_animdata_node(ID *id);
 
+	template <typename KeyFrom, typename KeyTo>
+	bool is_same_bone_dependency(const KeyFrom& key_from, const KeyTo& key_to);
+
 private:
 	/* State which never changes, same for the whole builder time. */
 	Main *bmain_;
@@ -376,6 +381,37 @@ DepsNodeHandle DepsgraphRelationBuilder::create_node_handle(
         const char *default_name)
 {
 	return DepsNodeHandle(this, get_node(key), default_name);
+}
+
+/* Rig compatibility: we check if bone is using local transform as a variable
+ * for driver on itself and ignore those relations to avoid "false-positive"
+ * dependency cycles.
+ */
+template <typename KeyFrom, typename KeyTo>
+bool DepsgraphRelationBuilder::is_same_bone_dependency(const KeyFrom& key_from,
+                                                       const KeyTo& key_to)
+{
+	/* Get operations for requested keys. */
+	DepsNode *node_from = get_node(key_from);
+	DepsNode *node_to = get_node(key_to);
+	if (node_from == NULL || node_to == NULL) {
+		return false;
+	}
+	OperationDepsNode *op_from = node_from->get_exit_operation();
+	OperationDepsNode *op_to = node_to->get_entry_operation();
+	if (op_from == NULL || op_to == NULL) {
+		return false;
+	}
+	/* We are only interested in relations like BONE_DONE -> BONE_LOCAL... */
+	if (!(op_from->opcode == DEG_OPCODE_BONE_DONE &&
+	      op_to->opcode == DEG_OPCODE_BONE_LOCAL)) {
+		return false;
+	}
+	/* ... BUT, we also need to check if it's same bone.  */
+	if (!STREQ(op_from->owner->name, op_to->owner->name)) {
+		return false;
+	}
+	return true;
 }
 
 }  // namespace DEG

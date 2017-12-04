@@ -962,8 +962,8 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 	                        fcu->rna_path ? fcu->rna_path : "",
 	                        fcu->array_index);
 	bPoseChannel *pchan = NULL;
-
 	const char *rna_path = fcu->rna_path ? fcu->rna_path : "";
+	const RNAPathKey self_key(id, rna_path);
 
 	/* Create dependency between driver and data affected by it. */
 	/* - direct property relationship... */
@@ -1142,31 +1142,14 @@ void DepsgraphRelationBuilder::build_driver(ID *id, FCurve *fcu)
 				add_relation(target_key, driver_key, "Target -> Driver");
 			}
 			else if (dtar->rna_path && strstr(dtar->rna_path, "pose.bones[")) {
-				/* Workaround for ensuring that local bone transforms don't end
-				 * up having to wait for pose eval to finish (to prevent cycles).
-				 */
-				Object *object = (Object *)dtar->id;
-				char *bone_name = BLI_str_quoted_substrN(dtar->rna_path,
-				                                         "pose.bones[");
-				bPoseChannel *target_pchan =
-				        BKE_pose_channel_find_name(object->pose, bone_name);
-				if (bone_name != NULL) {
-					MEM_freeN(bone_name);
-					bone_name = NULL;
+				RNAPathKey variable_key(dtar->id, dtar->rna_path);
+				if (RNA_pointer_is_null(&variable_key.ptr)) {
+					continue;
 				}
-				if (target_pchan != NULL) {
-					if (dtar->id == id &&
-					    pchan != NULL &&
-					    STREQ(pchan->name, target_pchan->name))
-					{
-						continue;
-					}
-					OperationKey bone_key(dtar->id,
-					                      DEG_NODE_TYPE_BONE,
-					                      target_pchan->name,
-					                      DEG_OPCODE_BONE_LOCAL);
-					add_relation(bone_key, driver_key, "RNA Bone -> Driver");
+				if (is_same_bone_dependency(variable_key, self_key)) {
+					continue;
 				}
+				add_relation(variable_key, driver_key, "RNA Bone -> Driver");
 			}
 			else {
 				if (dtar->id == id) {
