@@ -8273,6 +8273,7 @@ static DMDrawOption bbs_mesh_wire__setDrawOptions(void *userData, int index)
 static void bbs_mesh_wire(BMEditMesh *em, DerivedMesh *dm, int offset)
 {
 	drawBMOffset_userData data = {em->bm, offset};
+	glLineWidth(1);
 	dm->drawMappedEdges(dm, bbs_mesh_wire__setDrawOptions, &data);
 }
 
@@ -8437,9 +8438,11 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 
 				ED_view3d_polygon_offset(rv3d, 1.0);
 
-				/* we draw edges always, for loop (select) tools */
-				bbs_mesh_wire(em, dm, bm_solidoffs);
-				bm_wireoffs = bm_solidoffs + em->bm->totedge;
+				/* we draw edges if edge select mode */
+				if (ts->selectmode & SCE_SELECT_EDGE) {
+					bbs_mesh_wire(em, dm, bm_solidoffs);
+					bm_wireoffs = bm_solidoffs + em->bm->totedge;
+				}
 
 				/* we draw verts if vert select mode. */
 				if (ts->selectmode & SCE_SELECT_VERTEX) {
