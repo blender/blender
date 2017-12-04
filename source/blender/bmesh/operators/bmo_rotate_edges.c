@@ -18,7 +18,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/bmesh/operators/bmo_rotate_edge.c
+/** \file blender/bmesh/operators/bmo_rotate_edges.c
  *  \ingroup bmesh
  *
  * Rotate edges topology that share two faces.

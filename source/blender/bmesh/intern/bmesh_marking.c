@@ -254,8 +254,8 @@ void BM_mesh_select_mode_flush_ex(BMesh *bm, const short selectmode)
 		/* both loops only set edge/face flags and read off verts */
 		BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
 			if (BM_elem_flag_test(e->v1, BM_ELEM_SELECT) &&
-				BM_elem_flag_test(e->v2, BM_ELEM_SELECT) &&
-				!BM_elem_flag_test(e, BM_ELEM_HIDDEN))
+			    BM_elem_flag_test(e->v2, BM_ELEM_SELECT) &&
+			    !BM_elem_flag_test(e, BM_ELEM_HIDDEN))
 			{
 				BM_elem_flag_enable(e, BM_ELEM_SELECT);
 			}
@@ -366,8 +366,8 @@ void BM_mesh_select_flush(BMesh *bm)
 
 	BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
 		if (BM_elem_flag_test(e->v1, BM_ELEM_SELECT) &&
-			BM_elem_flag_test(e->v2, BM_ELEM_SELECT) &&
-			!BM_elem_flag_test(e, BM_ELEM_HIDDEN))
+		    BM_elem_flag_test(e->v2, BM_ELEM_SELECT) &&
+		    !BM_elem_flag_test(e, BM_ELEM_HIDDEN))
 		{
 			BM_elem_flag_enable(e, BM_ELEM_SELECT);
 		}

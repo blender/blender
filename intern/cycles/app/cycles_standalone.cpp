@@ -121,7 +121,6 @@ static void scene_init()
 static void session_init()
 {
 	options.session = new Session(options.session_params);
-	options.session->reset(session_buffer_params(), options.session_params.samples);
 
 	if(options.session_params.background && !options.quiet)
 		options.session->progress.set_update_callback(function_bind(&session_print_status));
@@ -134,6 +133,7 @@ static void session_init()
 	scene_init();
 	options.session->scene = options.scene;
 
+	options.session->reset(session_buffer_params(), options.session_params.samples);
 	options.session->start();
 }
 

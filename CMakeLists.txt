@@ -729,7 +729,7 @@ if(WITH_INTERNATIONAL)
 endif()
 
 if(WITH_PYTHON)
-	# While we have this as an '#error' in bpy_util.h,
+	# While we have this as an '#error' in 'bpy_capi_utils.h',
 	# upgrading Python tends to cause confusion for users who build.
 	# Give the error message early to make this more obvious.
 	#
