@@ -918,7 +918,7 @@ protected:
 #endif
 	}
 
-	virtual bool load_kernels(DeviceRequestedFeatures& requested_features_) {
+	virtual bool load_kernels(const DeviceRequestedFeatures& requested_features_) {
 		requested_features = requested_features_;
 
 		return true;
