@@ -1631,14 +1631,6 @@ void DepsgraphRelationBuilder::build_camera(Object *object)
 		return;
 	}
 	camera_id->tag |= LIB_TAG_DOIT;
-
-	ComponentKey parameters_key(camera_id, DEG_NODE_TYPE_PARAMETERS);
-
-	if (needs_animdata_node(camera_id)) {
-		ComponentKey animation_key(camera_id, DEG_NODE_TYPE_ANIMATION);
-		add_relation(animation_key, parameters_key, "Camera Parameters");
-	}
-
 	/* DOF */
 	if (cam->dof_ob) {
 		ComponentKey ob_param_key(&object->id, DEG_NODE_TYPE_PARAMETERS);
