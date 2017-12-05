@@ -58,8 +58,7 @@
 
 #define MVAL_PIXEL_MARGIN  5.0f
 
-/* until implement profile = 0 case, need to clamp somewhat above zero */
-#define PROFILE_HARD_MIN 0.15f
+#define PROFILE_HARD_MIN 0.0f
 
 #define SEGMENTS_HARD_MAX 1000
 

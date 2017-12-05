@@ -1144,7 +1144,7 @@ bool RNA_property_is_set(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_unset(PointerRNA *ptr, PropertyRNA *prop);
 bool RNA_struct_property_is_set_ex(PointerRNA *ptr, const char *identifier, bool use_ghost);
 bool RNA_struct_property_is_set(PointerRNA *ptr, const char *identifier);
-bool RNA_property_is_idprop(PropertyRNA *prop);
+bool RNA_property_is_idprop(const PropertyRNA *prop);
 bool RNA_property_is_unlink(PropertyRNA *prop);
 void RNA_struct_property_unset(PointerRNA *ptr, const char *identifier);
 
