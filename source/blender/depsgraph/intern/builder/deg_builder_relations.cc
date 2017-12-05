@@ -1785,15 +1785,6 @@ void DepsgraphRelationBuilder::build_gpencil(bGPdata *gpd)
 	// TODO: parent object (when that feature is implemented)
 }
 
-bool DepsgraphRelationBuilder::needs_animdata_node(ID *id)
-{
-	AnimData *adt = BKE_animdata_from_id(id);
-	if (adt != NULL) {
-		return (adt->action != NULL) || (adt->nla_tracks.first != NULL);
-	}
-	return false;
-}
-
 void DepsgraphRelationBuilder::build_cachefile(CacheFile *cache_file) {
 	/* Animation. */
 	build_animdata(&cache_file->id);

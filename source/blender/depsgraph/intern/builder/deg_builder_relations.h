@@ -276,8 +276,6 @@ protected:
 	DepsNodeHandle create_node_handle(const KeyType& key,
 	                                  const char *default_name = "");
 
-	bool needs_animdata_node(ID *id);
-
 	template <typename KeyFrom, typename KeyTo>
 	bool is_same_bone_dependency(const KeyFrom& key_from, const KeyTo& key_to);
 
