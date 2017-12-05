@@ -233,6 +233,9 @@ DepsNode *Depsgraph::find_node_from_pointer(const PointerRNA *ptr,
 		}
 		ComponentDepsNode *comp_node =
 		        id_node->find_component(node_type, component_name);
+		if (comp_node == NULL) {
+			return NULL;
+		}
 		if (operation_code == DEG_OPCODE_OPERATION) {
 			return comp_node;
 		}
@@ -240,7 +243,6 @@ DepsNode *Depsgraph::find_node_from_pointer(const PointerRNA *ptr,
 		                                 operation_name,
 		                                 operation_name_tag);
 	}
-
 	return NULL;
 }
 
