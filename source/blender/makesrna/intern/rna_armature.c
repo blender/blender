@@ -555,7 +555,7 @@ void rna_def_bone_curved_common(StructRNA *srna, bool is_posebone)
 	RNA_def_property_float_sdna(prop, NULL, "ease2");
 	RNA_def_property_range(prop, -5.0f, 5.0f);
 	RNA_def_property_float_default(prop, 1.0f);
-	RNA_def_property_ui_text(prop, "ase Out", "Length of second Bezier Handle (for B-Bones only)");
+	RNA_def_property_ui_text(prop, "Ease Out", "Length of second Bezier Handle (for B-Bones only)");
 	RNA_DEF_CURVEBONE_UPDATE(prop, is_posebone);
 
 	/* Scale In/Out */
