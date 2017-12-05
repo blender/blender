@@ -286,10 +286,12 @@ private:
 
 struct DepsNodeHandle
 {
-	DepsNodeHandle(DepsgraphRelationBuilder *builder, OperationDepsNode *node, const char *default_name = "") :
-	    builder(builder),
-	    node(node),
-	    default_name(default_name)
+	DepsNodeHandle(DepsgraphRelationBuilder *builder,
+	               OperationDepsNode *node,
+	               const char *default_name = "")
+	        : builder(builder),
+	          node(node),
+	          default_name(default_name)
 	{
 		BLI_assert(node != NULL);
 	}
