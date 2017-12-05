@@ -152,9 +152,15 @@ char *BKE_animdata_driver_path_hack(struct bContext *C, struct PointerRNA *ptr, 
 /* Define for callback looper used in BKE_animdata_main_cb */
 typedef void (*ID_AnimData_Edit_Callback)(struct ID *id, struct AnimData *adt, void *user_data);
 
+/* Define for callback looper used in BKE_fcurves_main_cb */
+typedef void (*ID_FCurve_Edit_Callback)(struct ID *id, struct FCurve *fcu, void *user_data);
+
 
 /* Loop over all datablocks applying callback */
-void BKE_animdata_main_cb(struct Main *main, ID_AnimData_Edit_Callback func, void *user_data);
+void BKE_animdata_main_cb(struct Main *bmain, ID_AnimData_Edit_Callback func, void *user_data);
+
+/* Loop over all datablocks applying callback to all its F-Curves */
+void BKE_fcurves_main_cb(struct Main *bmain, ID_FCurve_Edit_Callback func, void *user_data);
 
 /* ************************************* */
 // TODO: overrides, remapping, and path-finding api's
