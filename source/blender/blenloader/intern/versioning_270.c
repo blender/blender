@@ -62,6 +62,8 @@
 #include "BKE_animsys.h"
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
+#include "BKE_fcurve.h"
+#include "BKE_gpencil.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mask.h"
@@ -71,7 +73,6 @@
 #include "BKE_sequencer.h"
 #include "BKE_screen.h"
 #include "BKE_tracking.h"
-#include "BKE_gpencil.h"
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
@@ -284,6 +285,67 @@ static void do_versions_compositor_render_passes(bNodeTree *ntree)
 		}
 	}
 }
+
+
+static char *replace_bbone_easing_rnapath(char *old_path)
+{
+	char *new_path = NULL;
+	
+	/* NOTE: This will break paths for any bones/custom-properties
+	 * which happen be named after the bbone property id's
+	 */
+	if (strstr(old_path, "bbone_in"))
+		new_path = BLI_str_replaceN(old_path, "bbone_in", "bbone_easein");
+	else if (strstr(old_path, "bbone_out"))
+		new_path = BLI_str_replaceN(old_path, "bbone_out", "bbone_easeout");
+	
+	if (new_path) {
+		MEM_freeN(old_path);
+		return new_path;
+	}
+	else {
+		return old_path;
+	}
+}
+
+static void do_version_bbone_easing_fcurve_fix(ID *UNUSED(id), FCurve *fcu, void *UNUSED(user_data))
+{
+	/* F-Curve's path (for bbone_in/out) */
+	if (fcu->rna_path) {
+		fcu->rna_path = replace_bbone_easing_rnapath(fcu->rna_path);
+	}
+	
+	/* Driver -> Driver Vars (for bbone_in/out) */
+	if (fcu->driver) {
+		for (DriverVar *dvar = fcu->driver->variables.first; dvar; dvar = dvar->next) {
+			DRIVER_TARGETS_LOOPER(dvar)
+			{
+				if (dtar->rna_path) {
+					dtar->rna_path = replace_bbone_easing_rnapath(dtar->rna_path);
+				}
+			}
+			DRIVER_TARGETS_LOOPER_END;
+		}
+	}
+	
+	/* FModifiers -> Stepped (for frame_start/end) */
+	if (fcu->modifiers.first) {
+		for (FModifier *fcm = fcu->modifiers.first; fcm; fcm = fcm->next) {
+			if (fcm->type == FMODIFIER_TYPE_STEPPED) {
+				FMod_Stepped *data = fcm->data;
+				
+				/* Modifier doesn't work if the modifier's copy of start/end frame are both 0
+				 * as those were only getting written to the fcm->data copy (T52009)
+				 */
+				if ((fcm->sfra == fcm->efra) && (fcm->sfra == 0)) {
+					fcm->sfra = data->start_frame;
+					fcm->efra = data->end_frame;
+				}
+			}
+		}
+	}
+}
+
 
 void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 {
@@ -1720,5 +1782,11 @@ void do_versions_after_linking_270(Main *main)
 				}
 			}
 		} FOREACH_NODETREE_END
+	}
+	
+	if (!MAIN_VERSION_ATLEAST(main, 279, 2)) {
+		/* B-Bones (bbone_in/out -> bbone_easein/out) + Stepped FMod Frame Start/End fix */
+		/* if (!DNA_struct_elem_find(fd->filesdna, "Bone", "float", "bbone_easein")) */
+		BKE_fcurves_main_cb(main, do_version_bbone_easing_fcurve_fix, NULL);
 	}
 }

@@ -1047,8 +1047,9 @@ static void nlastrips_apply_all_curves_cb(ID *id, ListBase *strips, AllFCurvesCb
 }
 
 /* Helper for BKE_fcurves_main_cb() - Dispatch wrapped operator to all F-Curves */
-static void adt_apply_all_fcurves_cb(ID *id, AnimData *adt, AllFCurvesCbWrapper *wrapper)
+static void adt_apply_all_fcurves_cb(ID *id, AnimData *adt, void *wrapper_data)
 {
+	AllFCurvesCbWrapper *wrapper = wrapper_data;
 	NlaTrack *nlt;
 	
 	if (adt->action) {
