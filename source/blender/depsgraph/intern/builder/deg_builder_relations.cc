@@ -1711,11 +1711,6 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 			BLI_assert(!"Unknown ID type used for node");
 		}
 	}
-
-	if (needs_animdata_node(ntree_id)) {
-		ComponentKey animation_key(ntree_id, DEG_NODE_TYPE_ANIMATION);
-		add_relation(animation_key, parameters_key, "NTree Parameters");
-	}
 }
 
 /* Recursively build graph for material */
