@@ -151,14 +151,24 @@ static FileSelection file_selection_get(bContext *C, const rcti *rect, bool fill
 
 	/* if desired, fill the selection up from the last selected file to the current one */
 	if (fill && (sel.last >= 0) && (sel.last < numfiles) ) {
-		int f = sel.last;
-		while (f >= 0) {
+		int f;
+		/* Try to find a smaller-index selected item. */
+		for (f = sel.last; f >= 0; f--) {
 			if (filelist_entry_select_index_get(sfile->files, f, CHECK_ALL) )
 				break;
-			f--;
 		}
 		if (f >= 0) {
 			sel.first = f + 1;
+		}
+		/* If none found, try to find a higher-index selected item. */
+		else {
+			for (f = sel.first; f < numfiles; f++) {
+				if (filelist_entry_select_index_get(sfile->files, f, CHECK_ALL) )
+					break;
+			}
+			if (f < numfiles) {
+				sel.last = f - 1;
+			}
 		}
 	}
 	return sel;
