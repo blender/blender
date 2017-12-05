@@ -285,6 +285,15 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
 		op_node = add_operation_node(&object->id, DEG_NODE_TYPE_BONE, pchan->name,
 		                             NULL, DEG_OPCODE_BONE_DONE);
 		op_node->set_as_exit();
+
+		/* Custom properties. */
+		if (pchan->prop != NULL) {
+			add_operation_node(&object->id,
+			                   DEG_NODE_TYPE_PARAMETERS,
+			                   NULL,
+			                   DEG_OPCODE_PARAMETERS_EVAL,
+			                   pchan->name);
+		}
 	}
 
 	op_node = add_operation_node(&object->id, DEG_NODE_TYPE_EVAL_POSE,
