@@ -486,11 +486,6 @@ void DepsgraphRelationBuilder::build_object(Object *object)
 	}
 	/* Animation data */
 	build_animdata(&object->id);
-	// XXX: This should be hooked up by the build_animdata code
-	if (needs_animdata_node(&object->id)) {
-		ComponentKey adt_key(&object->id, DEG_NODE_TYPE_ANIMATION);
-		add_relation(adt_key, local_transform_key, "Object Animation");
-	}
 	/* Object data. */
 	build_object_data(object);
 	/* Particle systems. */
@@ -899,19 +894,12 @@ void DepsgraphRelationBuilder::build_animdata_curves(ID *id)
 		PointerRNA id_ptr;
 		RNA_id_pointer_create(id, &id_ptr);
 		LINKLIST_FOREACH(FCurve *, fcu, &adt->action->curves) {
-			PointerRNA ptr;
-			PropertyRNA *prop;
-			int index;
-			if (!RNA_path_resolve_full(&id_ptr, fcu->rna_path,
-			                           &ptr, &prop, &index))
-			{
-				continue;
-			}
 			/* TODO(sergey): Avoid duplicated relations. */
-			if (prop != NULL && RNA_property_is_idprop(prop)) {
-				RNAPathKey prop_key(id, fcu->rna_path);
-				add_relation(adt_key, prop_key, "Animation -> ID Prop");
-			}
+			/* TODO(sergey): FCurve on a bone should be hooking up to pose
+			 * init rather than to bone local.
+			 */
+			RNAPathKey prop_key(id, fcu->rna_path);
+			add_relation(adt_key, prop_key, "Animation -> Prop", true);
 		}
 	}
 }
