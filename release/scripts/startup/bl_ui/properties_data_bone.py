@@ -188,13 +188,13 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
         row = col.row()
         sub = row.column(align=True)
         sub.label(text="Scale:")
-        sub.prop(bbone, "bbone_scalein", text="Scale In")
-        sub.prop(bbone, "bbone_scaleout", text="Scale Out")
+        sub.prop(bbone, "bbone_scalein", text="In")
+        sub.prop(bbone, "bbone_scaleout", text="Out")
 
         sub = row.column(align=True)
         sub.label("Easing:")
-        sub.prop(bbone, "bbone_easein", text="Ease In")
-        sub.prop(bbone, "bbone_easeout", text="Ease Out")
+        sub.prop(bbone, "bbone_easein", text="In")
+        sub.prop(bbone, "bbone_easeout", text="Out")
 
         if pchan:
             layout.separator()

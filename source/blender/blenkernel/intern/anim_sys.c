@@ -800,8 +800,7 @@ static void nlastrips_path_rename_fix(ID *owner_id, const char *prefix, const ch
 	}
 }
 
-/* ----------------------- */
-
+/* Rename Sub-ID Entities in RNA Paths ----------------------- */
 
 /* Fix up the given RNA-Path
  *
@@ -947,8 +946,7 @@ void BKE_animdata_fix_paths_rename(ID *owner_id, AnimData *adt, ID *ref_id, cons
 	MEM_freeN(newN);
 }
 
-/* *************************** */
-/* remove of individual paths */
+/* Remove FCurves with Prefix  -------------------------------------- */
 
 /* Check RNA-Paths for a list of F-Curves */
 static void fcurves_path_remove_fix(const char *prefix, ListBase *curves)
@@ -976,7 +974,6 @@ static void nlastrips_path_remove_fix(const char *prefix, ListBase *strips)
 
 	/* recursively check strips, fixing only actions... */
 	for (strip = strips->first; strip; strip = strip->next) {
-
 		/* fix strip's action */
 		if (strip->act)
 			fcurves_path_remove_fix(prefix, &strip->act->curves);
@@ -999,7 +996,6 @@ void BKE_animdata_fix_paths_remove(ID *id, const char *prefix)
 
 		/* check if there's any AnimData to start with */
 		if (adt) {
-
 			/* free fcurves */
 			if (adt->action)
 				fcurves_path_remove_fix(prefix, &adt->action->curves);
@@ -1016,6 +1012,75 @@ void BKE_animdata_fix_paths_remove(ID *id, const char *prefix)
 		}
 	}
 }
+
+
+/* Apply Op to All FCurves in Database --------------------------- */
+
+/* "User-Data" wrapper used by BKE_fcurves_main_cb() */
+typedef struct AllFCurvesCbWrapper {
+	ID_FCurve_Edit_Callback func;  /* Operation to apply on F-Curve */
+	void *user_data;               /* Custom data for that operation */
+} AllFCurvesCbWrapper;
+
+/* Helper for adt_apply_all_fcurves_cb() - Apply wrapped operator to list of F-Curves */
+static void fcurves_apply_cb(ID *id, ListBase *fcurves, ID_FCurve_Edit_Callback func, void *user_data)
+{
+	FCurve *fcu;
+	
+	for (fcu = fcurves->first; fcu; fcu = fcu->next) {
+		func(id, fcu, user_data);
+	}
+}
+
+/* Helper for adt_apply_all_fcurves_cb() - Recursively go through each NLA strip */
+static void nlastrips_apply_all_curves_cb(ID *id, ListBase *strips, AllFCurvesCbWrapper *wrapper)
+{
+	NlaStrip *strip;
+	
+	for (strip = strips->first; strip; strip = strip->next) {
+		/* fix strip's action */
+		if (strip->act) {
+			fcurves_apply_cb(id, &strip->act->curves, wrapper->func, wrapper->user_data);
+		}
+		
+		/* check sub-strips (if metas) */
+		nlastrips_apply_all_curves_cb(id, &strip->strips, wrapper);
+	}
+}
+
+/* Helper for BKE_fcurves_main_cb() - Dispatch wrapped operator to all F-Curves */
+static void adt_apply_all_fcurves_cb(ID *id, AnimData *adt, void *wrapper_data)
+{
+	AllFCurvesCbWrapper *wrapper = wrapper_data;
+	NlaTrack *nlt;
+	
+	if (adt->action) {
+		fcurves_apply_cb(id, &adt->action->curves, wrapper->func, wrapper->user_data);
+	}
+	
+	if (adt->tmpact) {
+		fcurves_apply_cb(id, &adt->tmpact->curves, wrapper->func, wrapper->user_data);
+	}
+	
+	/* free drivers - stored as a list of F-Curves */
+	fcurves_apply_cb(id, &adt->drivers, wrapper->func, wrapper->user_data);
+	
+	/* NLA Data - Animation Data for Strips */
+	for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
+		nlastrips_apply_all_curves_cb(id, &nlt->strips, wrapper);
+	}
+}
+
+/* apply the given callback function on all F-Curves attached to data in main database */
+void BKE_fcurves_main_cb(Main *mainptr, ID_FCurve_Edit_Callback func, void *user_data)
+{
+	/* Wrap F-Curve operation stuff to pass to the general AnimData-level func */
+	AllFCurvesCbWrapper wrapper = {func, user_data};
+	
+	/* Use the AnimData-based function so that we don't have to reimplement all that stuff */
+	BKE_animdata_main_cb(mainptr, adt_apply_all_fcurves_cb, &wrapper);
+}
+
 
 /* Whole Database Ops -------------------------------------------- */
 

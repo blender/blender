@@ -640,8 +640,16 @@ BMEdge *EDBM_edge_find_nearest_ex(
 		unsigned int index;
 		BMEdge *eed;
 
+		/* Make sure that the edges also are considered to find nearest.
+		 * TODO: cleanup: add `selectmode` as a parameter */
+		const short ts_selectmode = vc->scene->toolsettings->selectmode;
+		vc->scene->toolsettings->selectmode |= SCE_SELECT_EDGE;
+
 		/* No afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
 		ED_view3d_backbuf_validate(eval_ctx, vc);
+
+		/* restore `selectmode` */
+		vc->scene->toolsettings->selectmode = ts_selectmode;
 
 		index = ED_view3d_backbuf_sample_rect(eval_ctx, vc, vc->mval, dist_px, bm_solidoffs, bm_wireoffs, &dist_test);
 		eed = index ? BM_edge_at_index_find_or_table(bm, index - 1) : NULL;
