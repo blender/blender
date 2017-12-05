@@ -75,6 +75,7 @@ set(SRC
 	intern/builder/deg_builder_nodes.h
 	intern/builder/deg_builder_pchanmap.h
 	intern/builder/deg_builder_relations.h
+	intern/builder/deg_builder_relations_impl.h
 	intern/builder/deg_builder_transitive.h
 	intern/eval/deg_eval.h
 	intern/eval/deg_eval_flush.h
