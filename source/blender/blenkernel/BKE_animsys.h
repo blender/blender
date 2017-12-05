@@ -46,6 +46,7 @@ struct ReportList;
 struct bAction;
 struct bActionGroup;
 struct AnimMapper;
+struct FCurve;
 
 /* ************************************* */
 /* AnimData API */
@@ -178,7 +179,6 @@ void BKE_animsys_evaluate_animdata(struct Scene *scene, struct ID *id, struct An
 void BKE_animsys_evaluate_all_animation(struct Main *main, struct Scene *scene, float ctime);
 
 /* TODO(sergey): This is mainly a temp public function. */
-struct FCurve;
 bool BKE_animsys_execute_fcurve(struct PointerRNA *ptr, struct AnimMapper *remap, struct FCurve *fcu, float curval);
 
 /* ------------ Specialized API --------------- */
