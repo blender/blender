@@ -1648,21 +1648,13 @@ void DepsgraphRelationBuilder::build_lamp(Object *object)
 		return;
 	}
 	lamp_id->tag |= LIB_TAG_DOIT;
-
-	ComponentKey parameters_key(lamp_id, DEG_NODE_TYPE_PARAMETERS);
-
-	if (needs_animdata_node(lamp_id)) {
-		ComponentKey animation_key(lamp_id, DEG_NODE_TYPE_ANIMATION);
-		add_relation(animation_key, parameters_key, "Lamp Parameters");
-	}
-
 	/* lamp's nodetree */
-	if (la->nodetree) {
+	if (la->nodetree != NULL) {
 		build_nodetree(la->nodetree);
+		ComponentKey parameters_key(lamp_id, DEG_NODE_TYPE_PARAMETERS);
 		ComponentKey nodetree_key(&la->nodetree->id, DEG_NODE_TYPE_PARAMETERS);
 		add_relation(nodetree_key, parameters_key, "NTree->Lamp Parameters");
 	}
-
 	/* textures */
 	build_texture_stack(la->mtex);
 }
