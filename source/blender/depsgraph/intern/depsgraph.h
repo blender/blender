@@ -117,11 +117,21 @@ struct Depsgraph {
 	/* Add new relationship between two nodes. */
 	DepsRelation *add_new_relation(OperationDepsNode *from,
 	                               OperationDepsNode *to,
-	                               const char *description);
+	                               const char *description,
+	                               bool check_unique);
 
 	DepsRelation *add_new_relation(DepsNode *from,
 	                               DepsNode *to,
-	                               const char *description);
+	                               const char *description,
+	                               bool check_unique);
+
+	/* Check whether two nodes are connected by relation with given
+	 * description. Description might be NULL to check ANY relation between
+	 * given nodes.
+	 */
+	DepsRelation *check_nodes_connected(const DepsNode *from,
+	                                    const DepsNode *to,
+	                                    const char *description);
 
 	/* Tag a specific node as needing updates. */
 	void add_entry_tag(OperationDepsNode *node);

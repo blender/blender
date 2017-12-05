@@ -274,10 +274,11 @@ bool DepsgraphRelationBuilder::has_node(const OperationKey &key) const
 
 void DepsgraphRelationBuilder::add_time_relation(TimeSourceDepsNode *timesrc,
                                                  DepsNode *node_to,
-                                                 const char *description)
+                                                 const char *description,
+                                                 bool check_unique)
 {
 	if (timesrc && node_to) {
-		graph_->add_new_relation(timesrc, node_to, description);
+		graph_->add_new_relation(timesrc, node_to, description, check_unique);
 	}
 	else {
 		DEG_DEBUG_PRINTF("add_time_relation(%p = %s, %p = %s, %s) Failed\n",
@@ -290,10 +291,11 @@ void DepsgraphRelationBuilder::add_time_relation(TimeSourceDepsNode *timesrc,
 void DepsgraphRelationBuilder::add_operation_relation(
         OperationDepsNode *node_from,
         OperationDepsNode *node_to,
-        const char *description)
+        const char *description,
+        bool check_unique)
 {
 	if (node_from && node_to) {
-		graph_->add_new_relation(node_from, node_to, description);
+		graph_->add_new_relation(node_from, node_to, description, check_unique);
 	}
 	else {
 		DEG_DEBUG_PRINTF("add_operation_relation(%p = %s, %p = %s, %s) Failed\n",

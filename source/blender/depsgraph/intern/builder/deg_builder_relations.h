@@ -174,17 +174,20 @@ struct DepsgraphRelationBuilder
 	template <typename KeyFrom, typename KeyTo>
 	void add_relation(const KeyFrom& key_from,
 	                  const KeyTo& key_to,
-	                  const char *description);
+	                  const char *description,
+	                  bool check_unique = false);
 
 	template <typename KeyTo>
 	void add_relation(const TimeSourceKey& key_from,
 	                  const KeyTo& key_to,
-	                  const char *description);
+	                  const char *description,
+	                  bool check_unique = false);
 
 	template <typename KeyType>
 	void add_node_handle_relation(const KeyType& key_from,
 	                              const DepsNodeHandle *handle,
-	                              const char *description);
+	                              const char *description,
+	                              bool check_unique = false);
 
 	void build_scene(Scene *scene);
 	void build_group(Object *object, Group *group);
@@ -261,10 +264,12 @@ protected:
 
 	void add_time_relation(TimeSourceDepsNode *timesrc,
 	                       DepsNode *node_to,
-	                       const char *description);
+	                       const char *description,
+	                       bool check_unique = false);
 	void add_operation_relation(OperationDepsNode *node_from,
 	                            OperationDepsNode *node_to,
-	                            const char *description);
+	                            const char *description,
+	                            bool check_unique = false);
 
 	template <typename KeyType>
 	DepsNodeHandle create_node_handle(const KeyType& key,

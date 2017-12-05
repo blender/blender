@@ -292,10 +292,18 @@ void Depsgraph::clear_id_nodes()
 /* Add new relationship between two nodes. */
 DepsRelation *Depsgraph::add_new_relation(OperationDepsNode *from,
                                           OperationDepsNode *to,
-                                          const char *description)
+                                          const char *description,
+                                          bool check_unique)
 {
+	DepsRelation *rel = NULL;
+	if (check_unique) {
+		rel = check_nodes_connected(from, to, description);
+	}
+	if (rel != NULL) {
+		return rel;
+	}
 	/* Create new relation, and add it to the graph. */
-	DepsRelation *rel = OBJECT_GUARDED_NEW(DepsRelation, from, to, description);
+	rel = OBJECT_GUARDED_NEW(DepsRelation, from, to, description);
 	/* TODO(sergey): Find a better place for this. */
 #ifdef WITH_OPENSUBDIV
 	ComponentDepsNode *comp_node = from->owner;
@@ -315,11 +323,36 @@ DepsRelation *Depsgraph::add_new_relation(OperationDepsNode *from,
 
 /* Add new relation between two nodes */
 DepsRelation *Depsgraph::add_new_relation(DepsNode *from, DepsNode *to,
-                                          const char *description)
+                                          const char *description,
+                                          bool check_unique)
 {
+	DepsRelation *rel = NULL;
+	if (check_unique) {
+		rel = check_nodes_connected(from, to, description);
+	}
+	if (rel != NULL) {
+		return rel;
+	}
 	/* Create new relation, and add it to the graph. */
-	DepsRelation *rel = OBJECT_GUARDED_NEW(DepsRelation, from, to, description);
+	rel = OBJECT_GUARDED_NEW(DepsRelation, from, to, description);
 	return rel;
+}
+
+DepsRelation *Depsgraph::check_nodes_connected(const DepsNode *from,
+                                               const DepsNode *to,
+                                               const char *description)
+{
+	foreach (DepsRelation *rel, from->outlinks) {
+		BLI_assert(rel->from == from);
+		if (rel->to != to) {
+			continue;
+		}
+		if (description != NULL && !STREQ(rel->name, description)) {
+			continue;
+		}
+		return rel;
+	}
+	return NULL;
 }
 
 /* ************************ */
@@ -333,24 +366,6 @@ DepsRelation::DepsRelation(DepsNode *from,
     name(description),
     flag(0)
 {
-#ifndef NDEBUG
-/*
-	for (OperationDepsNode::Relations::const_iterator it = from->outlinks.begin();
-	     it != from->outlinks.end();
-	     ++it)
-	{
-		DepsRelation *rel = *it;
-		if (rel->from == from &&
-		    rel->to == to &&
-		    rel->type == type &&
-		    rel->name == description)
-		{
-			BLI_assert(!"Duplicated relation, should not happen!");
-		}
-	}
-*/
-#endif
-
 	/* Hook it up to the nodes which use it.
 	 *
 	 * NOTE: We register relation in the nodes which this link connects to here
