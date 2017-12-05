@@ -890,6 +890,28 @@ void DepsgraphRelationBuilder::build_animdata_curves(ID *id)
 	/* Wire up dependency to time source. */
 	TimeSourceKey time_src_key;
 	add_relation(time_src_key, adt_key, "TimeSrc -> Animation");
+	/* Build dependencies from FCurve to a "target" which is modified by
+	 * the curve.
+	 */
+	if (adt->action != NULL) {
+		PointerRNA id_ptr;
+		RNA_id_pointer_create(id, &id_ptr);
+		LINKLIST_FOREACH(FCurve *, fcu, &adt->action->curves) {
+			PointerRNA ptr;
+			PropertyRNA *prop;
+			int index;
+			if (!RNA_path_resolve_full(&id_ptr, fcu->rna_path,
+			                           &ptr, &prop, &index))
+			{
+				continue;
+			}
+			/* TODO(sergey): Avoid duplicated relations. */
+			if (prop != NULL && RNA_property_is_idprop(prop)) {
+				RNAPathKey prop_key(id, fcu->rna_path);
+				add_relation(adt_key, prop_key, "Animation -> ID Prop");
+			}
+		}
+	}
 }
 
 void DepsgraphRelationBuilder::build_animdata_drievrs(ID *id)
