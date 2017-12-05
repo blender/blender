@@ -908,27 +908,63 @@ void DepsgraphRelationBuilder::build_animdata_curves(ID *id)
 	if (adt == NULL) {
 		return;
 	}
-	ComponentKey adt_key(id, DEG_NODE_TYPE_ANIMATION);
 	if (adt->action == NULL && adt->nla_tracks.first == NULL) {
 		return;
 	}
 	/* Wire up dependency to time source. */
+	ComponentKey adt_key(id, DEG_NODE_TYPE_ANIMATION);
 	TimeSourceKey time_src_key;
 	add_relation(time_src_key, adt_key, "TimeSrc -> Animation");
-	/* Build dependencies from FCurve to a "target" which is modified by
-	 * the curve.
-	 */
-	if (adt->action != NULL) {
-		PointerRNA id_ptr;
-		RNA_id_pointer_create(id, &id_ptr);
-		LINKLIST_FOREACH(FCurve *, fcu, &adt->action->curves) {
-			/* TODO(sergey): Avoid duplicated relations. */
-			/* TODO(sergey): FCurve on a bone should be hooking up to pose
-			 * init rather than to bone local.
-			 */
-			RNAPathKey prop_key(id, fcu->rna_path);
-			add_relation(adt_key, prop_key, "Animation -> Prop", true);
+	/* Build relations from animation operation to properties it changes. */
+	build_animdata_curves_targets(id);
+}
+
+void DepsgraphRelationBuilder::build_animdata_curves_targets(ID *id)
+{
+	AnimData *adt = BKE_animdata_from_id(id);
+	if (adt == NULL || adt->action == NULL) {
+		return;
+	}
+	/* Get source operation. */
+	ComponentKey adt_key(id, DEG_NODE_TYPE_ANIMATION);
+	DepsNode *node_from = get_node(adt_key);
+	BLI_assert(node_from != NULL);
+	if (node_from == NULL) {
+		return;
+	}
+	OperationDepsNode *operation_from = node_from->get_exit_operation();
+	BLI_assert(operation_from != NULL);
+	/* Iterate over all curves and build relations. */
+	PointerRNA id_ptr;
+	RNA_id_pointer_create(id, &id_ptr);
+	LINKLIST_FOREACH(FCurve *, fcu, &adt->action->curves) {
+		PointerRNA ptr;
+		PropertyRNA *prop;
+		int index;
+		if (!RNA_path_resolve_full(&id_ptr, fcu->rna_path,
+		                           &ptr, &prop, &index))
+		{
+			continue;
 		}
+		DepsNode *node_to = graph_->find_node_from_pointer(&ptr, prop);
+		if (node_to == NULL) {
+			continue;
+		}
+		OperationDepsNode *operation_to = node_to->get_entry_operation();
+		/* NOTE: Special case for bones, avoid relation from animation to
+		 * each of the bones. Bone evaluation could only start from pose
+		 * init anyway.
+		 */
+		if (operation_to->opcode == DEG_OPCODE_BONE_LOCAL) {
+			OperationKey pose_init_key(id,
+			                           DEG_NODE_TYPE_EVAL_POSE,
+			                           DEG_OPCODE_POSE_INIT);
+			add_relation(adt_key, pose_init_key, "Animation -> Prop", true);
+			continue;
+		}
+		graph_->add_new_relation(operation_from, operation_to,
+		                         "Animation -> Prop",
+		                         true);
 	}
 }
 

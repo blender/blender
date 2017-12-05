@@ -324,11 +324,6 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 	                          "Armature Eval");
 	add_relation(armature_key, init_key, "Data dependency");
 
-	if (needs_animdata_node(&object->id)) {
-		ComponentKey animation_key(&object->id, DEG_NODE_TYPE_ANIMATION);
-		add_relation(animation_key, init_key, "Rig Animation");
-	}
-
 	/* IK Solvers...
 	 * - These require separate processing steps are pose-level
 	 *   to be executed between chains of bones (i.e. once the
