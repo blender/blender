@@ -1482,7 +1482,6 @@ void DepsgraphRelationBuilder::build_obdata_geom(Object *object)
 
 		LINKLIST_FOREACH (ModifierData *, md, &object->modifiers) {
 			const ModifierTypeInfo *mti = modifierType_getInfo((ModifierType)md->type);
-
 			if (mti->updateDepsgraph) {
 				DepsNodeHandle handle = create_node_handle(obdata_ubereval_key);
 				mti->updateDepsgraph(
@@ -1492,23 +1491,10 @@ void DepsgraphRelationBuilder::build_obdata_geom(Object *object)
 				        object,
 				        reinterpret_cast< ::DepsNodeHandle* >(&handle));
 			}
-
 			if (BKE_object_modifier_use_time(object, md)) {
 				TimeSourceKey time_src_key;
 				add_relation(time_src_key, obdata_ubereval_key, "Time Source");
-
-				/* Hacky fix for T45633 (Animated modifiers aren't updated)
-				 *
-				 * This check works because BKE_object_modifier_use_time() tests
-				 * for either the modifier needing time, or that it is animated.
-				 */
-				/* XXX: Remove this hack when these links are added as part of build_animdata() instead */
-				if (modifier_dependsOnTime(md) == false && needs_animdata_node(&object->id)) {
-					ComponentKey animation_key(&object->id, DEG_NODE_TYPE_ANIMATION);
-					add_relation(animation_key, obdata_ubereval_key, "Modifier Animation");
-				}
 			}
-
 			if (md->type == eModifierType_Cloth) {
 				build_cloth(object, md);
 			}
