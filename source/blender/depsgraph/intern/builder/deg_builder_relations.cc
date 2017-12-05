@@ -1619,16 +1619,6 @@ void DepsgraphRelationBuilder::build_obdata_geom(Object *object)
 	if (key) {
 		build_shapekeys(obdata, key);
 	}
-
-	if (needs_animdata_node(obdata)) {
-		ComponentKey animation_key(obdata, DEG_NODE_TYPE_ANIMATION);
-		ComponentKey parameters_key(obdata, DEG_NODE_TYPE_PARAMETERS);
-		add_relation(animation_key, parameters_key, "Geom Parameters");
-		/* Evaluation usually depends on animation.
-		 * TODO(sergey): Need to re-hook it after granular update is implemented..
-		 */
-		add_relation(animation_key, obdata_geom_eval_key, "Animation");
-	}
 }
 
 /* Cameras */
