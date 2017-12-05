@@ -798,8 +798,7 @@ static void nlastrips_path_rename_fix(ID *owner_id, const char *prefix, const ch
 	}
 }
 
-/* ----------------------- */
-
+/* Rename Sub-ID Entities in RNA Paths ----------------------- */
 
 /* Fix up the given RNA-Path
  *
@@ -945,8 +944,7 @@ void BKE_animdata_fix_paths_rename(ID *owner_id, AnimData *adt, ID *ref_id, cons
 	MEM_freeN(newN);
 }
 
-/* *************************** */
-/* remove of individual paths */
+/* Remove FCurves with Prefix  -------------------------------------- */
 
 /* Check RNA-Paths for a list of F-Curves */
 static void fcurves_path_remove_fix(const char *prefix, ListBase *curves)
@@ -974,7 +972,6 @@ static void nlastrips_path_remove_fix(const char *prefix, ListBase *strips)
 
 	/* recursively check strips, fixing only actions... */
 	for (strip = strips->first; strip; strip = strip->next) {
-
 		/* fix strip's action */
 		if (strip->act)
 			fcurves_path_remove_fix(prefix, &strip->act->curves);
@@ -997,7 +994,6 @@ void BKE_animdata_fix_paths_remove(ID *id, const char *prefix)
 
 		/* check if there's any AnimData to start with */
 		if (adt) {
-
 			/* free fcurves */
 			if (adt->action)
 				fcurves_path_remove_fix(prefix, &adt->action->curves);
