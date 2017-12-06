@@ -321,15 +321,24 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
 {
 	ID *obdata = (ID *)object->data;
 	OperationDepsNode *op_node;
-	Object *object_cow = get_cow_datablock(object);
+	Object *object_cow;
+	if (DEG_depsgraph_use_copy_on_write()) {
+		/* NOTE: We need to expand both object and armature, so this way we can
+		 * safely create object level pose.
+		 */
+		object_cow = expand_cow_datablock(object);
+	}
+	else {
+		object_cow = object;
+	}
 	/* Sanity check. */
 	BLI_assert(object->pose != NULL);
 	/* Animation. */
 	build_animdata(obdata);
 	/* speed optimization for animation lookups */
 	BKE_pose_channels_hash_make(object->pose);
-	if (object->pose->flag & POSE_CONSTRAINTS_NEED_UPDATE_FLAGS) {
-		BKE_pose_update_constraint_flags(object->pose);
+	if (object_cow->pose->flag & POSE_CONSTRAINTS_NEED_UPDATE_FLAGS) {
+		BKE_pose_update_constraint_flags(object_cow->pose);
 	}
 	op_node = add_operation_node(&object->id,
 	                             DEG_NODE_TYPE_EVAL_POSE,
@@ -338,7 +347,7 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
 	                                           object_cow),
 	                             DEG_OPCODE_POSE_INIT);
 	op_node->set_as_entry();
-	LINKLIST_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
+	LINKLIST_FOREACH (bPoseChannel *, pchan, &object_cow->pose->chanbase) {
 		/* Local bone transform. */
 		op_node = add_operation_node(&object->id,
 		                             DEG_NODE_TYPE_BONE,
