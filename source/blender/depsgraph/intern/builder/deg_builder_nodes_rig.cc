@@ -255,10 +255,10 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
 
 void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
 {
-	ID *obdata = (ID *)object->data;
+	bArmature *arm = (bArmature *)object->data;
 	OperationDepsNode *op_node;
 
-	build_animdata(obdata);
+	build_animdata(&arm->id);
 
 	BLI_assert(object->pose != NULL);
 
