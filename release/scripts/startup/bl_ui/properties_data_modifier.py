@@ -115,6 +115,13 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         sub.active = md.use_object_offset
         sub.prop(md, "offset_object", text="")
 
+        row = layout.row()
+        split = row.split()
+        col = split.column()
+        col.label(text="UVs:")
+        sub = col.column(align=True)
+        sub.prop(md, "offset_u")
+        sub.prop(md, "offset_v")
         layout.separator()
 
         layout.prop(md, "start_cap")
