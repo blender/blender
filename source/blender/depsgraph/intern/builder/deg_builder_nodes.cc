@@ -1241,6 +1241,9 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
 			 * pipeline. No need to build dependencies for them here.
 			 */
 		}
+		else if (id_type == ID_TXT) {
+			/* Ignore script nodes. */
+		}
 		else if (bnode->type == NODE_GROUP) {
 			bNodeTree *group_ntree = (bNodeTree *)id;
 			if ((group_ntree->id.tag & LIB_TAG_DOIT) == 0) {
