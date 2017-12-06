@@ -80,8 +80,10 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
 {
 	InsetData *opdata = op->customdata;
 
-	const char *str = IFACE_("Confirm: Enter/LClick, Cancel: (Esc/RClick), Thickness: %s, "
-	                         "Depth (Ctrl to tweak): %s (%s), Outset (O): (%s), Boundary (B): (%s), Individual (I): (%s)");
+	const char *str = IFACE_(
+	        "Confirm: Enter/LClick, Cancel: (Esc/RClick), Thickness: %s, "
+	        "Depth (Ctrl to tweak): %s (%s), Outset (O): (%s), Boundary (B): (%s), Individual (I): (%s)"
+	);
 
 	char msg[UI_MAX_DRAW_STR];
 	ScrArea *sa = CTX_wm_area(C);
@@ -141,7 +143,8 @@ static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
 		ARegion *ar = CTX_wm_region(C);
 
 		opdata->mesh_backup = EDBM_redo_state_store(em);
-		opdata->draw_handle_pixel = ED_region_draw_cb_activate(ar->type, ED_region_draw_mouse_line_cb, opdata->mcenter, REGION_DRAW_POST_PIXEL);
+		opdata->draw_handle_pixel = ED_region_draw_cb_activate(
+		        ar->type, ED_region_draw_mouse_line_cb, opdata->mcenter, REGION_DRAW_POST_PIXEL);
 		G.moving = G_TRANSFORM_EDIT;
 		if (v3d) {
 			opdata->twtype = v3d->twtype;
@@ -506,16 +509,27 @@ void MESH_OT_inset(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_GRAB_CURSOR | OPTYPE_BLOCKING;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "use_boundary",        true, "Boundary",  "Inset face boundaries");
-	RNA_def_boolean(ot->srna, "use_even_offset",     true, "Offset Even",      "Scale the offset to give more even thickness");
-	RNA_def_boolean(ot->srna, "use_relative_offset", false, "Offset Relative", "Scale the offset by surrounding geometry");
-	RNA_def_boolean(ot->srna, "use_edge_rail",       false, "Edge Rail", "Inset the region along existing edges");
+	RNA_def_boolean(
+	        ot->srna, "use_boundary",
+	        true, "Boundary",  "Inset face boundaries");
+	RNA_def_boolean(
+	        ot->srna, "use_even_offset",
+	        true, "Offset Even",      "Scale the offset to give more even thickness");
+	RNA_def_boolean(
+	        ot->srna, "use_relative_offset",
+	        false, "Offset Relative", "Scale the offset by surrounding geometry");
+	RNA_def_boolean(
+	        ot->srna, "use_edge_rail",
+	        false, "Edge Rail", "Inset the region along existing edges");
 
 	prop = RNA_def_float_distance(ot->srna, "thickness", 0.01f, 0.0f, 1e12f, "Thickness", "", 0.0f, 10.0f);
 	/* use 1 rather then 10 for max else dragging the button moves too far */
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.01, 4);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
 	prop = RNA_def_float_distance(ot->srna, "depth", 0.0f, -1e12f, 1e12f, "Depth", "", -10.0f, 10.0f);
 	RNA_def_property_ui_range(prop, -10.0f, 10.0f, 0.01, 4);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
 	RNA_def_boolean(ot->srna, "use_outset", false, "Outset", "Outset rather than inset");
 	RNA_def_boolean(ot->srna, "use_select_inset", false, "Select Outer", "Select the new inset faces");
