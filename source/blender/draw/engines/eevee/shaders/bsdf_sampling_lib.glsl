@@ -54,7 +54,7 @@ vec3 sample_ggx(vec3 rand, float a2)
 {
 	/* Theta is the aperture angle of the cone */
 	float z = sqrt( (1.0 - rand.x) / ( 1.0 + a2 * rand.x - rand.x ) ); /* cos theta */
-	float r = sqrt( 1.0 - z * z ); /* sin theta */
+	float r = sqrt(max(0.0, 1.0f - z*z)); /* sin theta */
 	float x = r * rand.y;
 	float y = r * rand.z;
 
@@ -82,7 +82,7 @@ vec3 sample_hemisphere(float nsample, vec3 N, vec3 T, vec3 B)
 	vec3 Xi = hammersley_3d(nsample);
 
 	float z = Xi.x; /* cos theta */
-	float r = sqrt( 1.0f - z*z ); /* sin theta */
+	float r = sqrt(max(0.0, 1.0f - z*z)); /* sin theta */
 	float x = r * Xi.y;
 	float y = r * Xi.z;
 
@@ -96,7 +96,7 @@ vec3 sample_cone(float nsample, float angle, vec3 N, vec3 T, vec3 B)
 	vec3 Xi = hammersley_3d(nsample);
 
 	float z = cos(angle * Xi.x); /* cos theta */
-	float r = sqrt( 1.0f - z*z ); /* sin theta */
+	float r = sqrt(max(0.0, 1.0f - z*z)); /* sin theta */
 	float x = r * Xi.y;
 	float y = r * Xi.z;
 
