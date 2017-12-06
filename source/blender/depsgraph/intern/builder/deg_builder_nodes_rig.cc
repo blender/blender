@@ -319,7 +319,7 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
 
 void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
 {
-	ID *obdata = (ID *)object->data;
+	bArmature *arm = (bArmature *)object->data;
 	OperationDepsNode *op_node;
 	Object *object_cow;
 	if (DEG_depsgraph_use_copy_on_write()) {
@@ -334,7 +334,7 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
 	/* Sanity check. */
 	BLI_assert(object->pose != NULL);
 	/* Animation. */
-	build_animdata(obdata);
+	build_animdata(&arm->id);
 	/* speed optimization for animation lookups */
 	BKE_pose_channels_hash_make(object->pose);
 	if (object_cow->pose->flag & POSE_CONSTRAINTS_NEED_UPDATE_FLAGS) {
