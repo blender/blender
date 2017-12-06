@@ -103,41 +103,39 @@ Depsgraph::~Depsgraph()
 
 /* Query Conditions from RNA ----------------------- */
 
-static bool pointer_to_id_node_criteria(const PointerRNA *ptr,
-                                        const PropertyRNA *prop,
-                                        ID **id)
-{
-	if (ptr->type == NULL) {
-		return false;
-	}
-	if (prop != NULL) {
-		if (RNA_struct_is_ID(ptr->type)) {
-			*id = (ID *)ptr->data;
-			return true;
-		}
-	}
-	return false;
-}
-
-static bool pointer_to_component_node_criteria(const PointerRNA *ptr,
-                                               const PropertyRNA *prop,
-                                               ID **id,
-                                               eDepsNode_Type *type,
-                                               const char **subdata)
+static bool pointer_to_component_node_criteria(
+        const PointerRNA *ptr,
+        const PropertyRNA *prop,
+        ID **id,
+        eDepsNode_Type *type,
+        const char **subdata,
+        eDepsOperation_Code *operation_code,
+        const char **operation_name,
+        int *operation_name_tag)
 {
 	if (ptr->type == NULL) {
 		return false;
 	}
 	/* Set default values for returns. */
-	*id      = (ID *)ptr->id.data;  /* For obvious reasons... */
-	*subdata = "";                 /* Default to no subdata (e.g. bone) name
-	                                * lookup in most cases. */
+	*id = (ID *)ptr->id.data;
+	*subdata = "";
+	*operation_code = DEG_OPCODE_OPERATION;
+	*operation_name = "";
+	*operation_name_tag = -1;
 	/* Handling of commonly known scenarios. */
 	if (ptr->type == &RNA_PoseBone) {
 		bPoseChannel *pchan = (bPoseChannel *)ptr->data;
-		/* Bone - generally, we just want the bone component. */
-		*type = DEG_NODE_TYPE_BONE;
-		*subdata = pchan->name;
+		if (prop != NULL && RNA_property_is_idprop(prop)) {
+			*type = DEG_NODE_TYPE_PARAMETERS;
+			*subdata = "";
+			*operation_code = DEG_OPCODE_PARAMETERS_EVAL;
+			*operation_name = pchan->name;;
+		}
+		else {
+			/* Bone - generally, we just want the bone component. */
+			*type = DEG_NODE_TYPE_BONE;
+			*subdata = pchan->name;
+		}
 		return true;
 	}
 	else if (ptr->type == &RNA_Bone) {
@@ -200,7 +198,12 @@ static bool pointer_to_component_node_criteria(const PointerRNA *ptr,
 		 * owns it.
 		 */
 		*id = key->from;
-		*type = DEG_NODE_TYPE_PARAMETERS;
+		*type = DEG_NODE_TYPE_GEOMETRY;
+		return true;
+	}
+	else if (ptr->type == &RNA_Key) {
+		*id = (ID *)ptr->id.data;
+		*type = DEG_NODE_TYPE_GEOMETRY;
 		return true;
 	}
 	else if (RNA_struct_is_a(ptr->type, &RNA_Sequence)) {
@@ -213,6 +216,9 @@ static bool pointer_to_component_node_criteria(const PointerRNA *ptr,
 	if (prop != NULL) {
 		/* All unknown data effectively falls under "parameter evaluation". */
 		*type = DEG_NODE_TYPE_PARAMETERS;
+		*operation_code = DEG_OPCODE_PARAMETERS_EVAL;
+		*operation_name = "";
+		*operation_name_tag = -1;
 		return true;
 	}
 	return false;
@@ -223,20 +229,32 @@ DepsNode *Depsgraph::find_node_from_pointer(const PointerRNA *ptr,
                                             const PropertyRNA *prop) const
 {
 	ID *id;
-	eDepsNode_Type type;
-	const char *name;
+	eDepsNode_Type node_type;
+	const char *component_name, *operation_name;
+	eDepsOperation_Code operation_code;
+	int operation_name_tag;
 
-	/* Get querying conditions. */
-	if (pointer_to_id_node_criteria(ptr, prop, &id)) {
-		return find_id_node(id);
-	}
-	else if (pointer_to_component_node_criteria(ptr, prop, &id, &type, &name)) {
+	if (pointer_to_component_node_criteria(
+	                 ptr, prop,
+	                 &id, &node_type, &component_name,
+	                 &operation_code, &operation_name, &operation_name_tag))
+	{
 		IDDepsNode *id_node = find_id_node(id);
-		if (id_node != NULL) {
-			return id_node->find_component(type, name);
+		if (id_node == NULL) {
+			return NULL;
 		}
+		ComponentDepsNode *comp_node =
+		        id_node->find_component(node_type, component_name);
+		if (comp_node == NULL) {
+			return NULL;
+		}
+		if (operation_code == DEG_OPCODE_OPERATION) {
+			return comp_node;
+		}
+		return comp_node->find_operation(operation_code,
+		                                 operation_name,
+		                                 operation_name_tag);
 	}
-
 	return NULL;
 }
 
@@ -318,10 +336,18 @@ void Depsgraph::clear_id_nodes()
 /* Add new relationship between two nodes. */
 DepsRelation *Depsgraph::add_new_relation(OperationDepsNode *from,
                                           OperationDepsNode *to,
-                                          const char *description)
+                                          const char *description,
+                                          bool check_unique)
 {
+	DepsRelation *rel = NULL;
+	if (check_unique) {
+		rel = check_nodes_connected(from, to, description);
+	}
+	if (rel != NULL) {
+		return rel;
+	}
 	/* Create new relation, and add it to the graph. */
-	DepsRelation *rel = OBJECT_GUARDED_NEW(DepsRelation, from, to, description);
+	rel = OBJECT_GUARDED_NEW(DepsRelation, from, to, description);
 	/* TODO(sergey): Find a better place for this. */
 #ifdef WITH_OPENSUBDIV
 	ComponentDepsNode *comp_node = from->owner;
@@ -341,11 +367,36 @@ DepsRelation *Depsgraph::add_new_relation(OperationDepsNode *from,
 
 /* Add new relation between two nodes */
 DepsRelation *Depsgraph::add_new_relation(DepsNode *from, DepsNode *to,
-                                          const char *description)
+                                          const char *description,
+                                          bool check_unique)
 {
+	DepsRelation *rel = NULL;
+	if (check_unique) {
+		rel = check_nodes_connected(from, to, description);
+	}
+	if (rel != NULL) {
+		return rel;
+	}
 	/* Create new relation, and add it to the graph. */
-	DepsRelation *rel = OBJECT_GUARDED_NEW(DepsRelation, from, to, description);
+	rel = OBJECT_GUARDED_NEW(DepsRelation, from, to, description);
 	return rel;
+}
+
+DepsRelation *Depsgraph::check_nodes_connected(const DepsNode *from,
+                                               const DepsNode *to,
+                                               const char *description)
+{
+	foreach (DepsRelation *rel, from->outlinks) {
+		BLI_assert(rel->from == from);
+		if (rel->to != to) {
+			continue;
+		}
+		if (description != NULL && !STREQ(rel->name, description)) {
+			continue;
+		}
+		return rel;
+	}
+	return NULL;
 }
 
 /* ************************ */
@@ -359,24 +410,6 @@ DepsRelation::DepsRelation(DepsNode *from,
     name(description),
     flag(0)
 {
-#ifndef NDEBUG
-/*
-	for (OperationDepsNode::Relations::const_iterator it = from->outlinks.begin();
-	     it != from->outlinks.end();
-	     ++it)
-	{
-		DepsRelation *rel = *it;
-		if (rel->from == from &&
-		    rel->to == to &&
-		    rel->type == type &&
-		    rel->name == description)
-		{
-			BLI_assert(!"Duplicated relation, should not happen!");
-		}
-	}
-*/
-#endif
-
 	/* Hook it up to the nodes which use it.
 	 *
 	 * NOTE: We register relation in the nodes which this link connects to here
