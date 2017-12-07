@@ -41,7 +41,7 @@
 #include "BLI_math.h"
 
 #include "BKE_DerivedMesh.h"
-#include "BKE_texture.h"
+#include "BKE_colorband.h"
 #include "BKE_particle.h"
 
 #include "smoke_API.h"

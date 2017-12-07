@@ -112,6 +112,7 @@ static const EnumPropertyItem blend_type_items[] = {
 
 #include "RNA_access.h"
 
+#include "BKE_colorband.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_image.h"

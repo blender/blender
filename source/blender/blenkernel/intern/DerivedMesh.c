@@ -52,6 +52,7 @@
 #include "BLI_task.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_colorband.h"
 #include "BKE_editmesh.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
@@ -62,7 +63,6 @@
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
 #include "BKE_paint.h"
-#include "BKE_texture.h"
 #include "BKE_multires.h"
 #include "BKE_bvhutils.h"
 #include "BKE_deform.h"

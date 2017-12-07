@@ -54,6 +54,7 @@
 #include "BKE_node.h"
 
 #include "BKE_animsys.h"
+#include "BKE_colorband.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_main.h"

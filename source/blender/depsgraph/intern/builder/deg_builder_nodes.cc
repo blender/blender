@@ -92,7 +92,6 @@ extern "C" {
 #include "BKE_particle.h"
 #include "BKE_rigidbody.h"
 #include "BKE_sound.h"
-#include "BKE_texture.h"
 #include "BKE_tracking.h"
 #include "BKE_world.h"
 

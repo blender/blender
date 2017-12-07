@@ -128,7 +128,7 @@ const EnumPropertyItem rna_enum_brush_image_tool_items[] = {
 
 #include "RNA_access.h"
 
-#include "BKE_texture.h"
+#include "BKE_colorband.h"
 #include "BKE_brush.h"
 #include "BKE_icons.h"
 #include "BKE_paint.h"

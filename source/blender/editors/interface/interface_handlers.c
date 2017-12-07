@@ -61,6 +61,7 @@
 
 #include "PIL_time.h"
 
+#include "BKE_colorband.h"
 #include "BKE_blender_undo.h"
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
@@ -68,7 +69,6 @@
 #include "BKE_idprop.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
-#include "BKE_texture.h"
 #include "BKE_tracking.h"
 #include "BKE_unit.h"
 #include "BKE_paint.h"

@@ -50,6 +50,7 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_colorband.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
@@ -59,7 +60,6 @@
 #include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_paint.h"
-#include "BKE_texture.h"
 
 #include "UI_interface.h"
 #include "UI_view2d.h"

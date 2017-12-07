@@ -55,6 +55,7 @@
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_bvhutils.h"   /* bvh tree	*/
+#include "BKE_colorband.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_constraint.h"
 #include "BKE_customdata.h"
@@ -72,7 +73,6 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
-#include "BKE_texture.h"
 
 /* for image output	*/
 #include "IMB_imbuf_types.h"

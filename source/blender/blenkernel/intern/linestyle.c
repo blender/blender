@@ -44,13 +44,13 @@
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_colorband.h"
 #include "BKE_context.h"
 #include "BKE_freestyle.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_linestyle.h"
 #include "BKE_node.h"
-#include "BKE_texture.h"
 #include "BKE_colortools.h"
 #include "BKE_animsys.h"
 

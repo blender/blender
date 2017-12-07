@@ -52,13 +52,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_colorband.h"
 #include "BKE_colortools.h"
 #include "BKE_depsgraph.h"
 #include "BKE_image.h"
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
 #include "BKE_sequencer.h"
-#include "BKE_texture.h"
 #include "BKE_linestyle.h"
 
 #include "ED_node.h"

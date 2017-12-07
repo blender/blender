@@ -52,10 +52,10 @@
 
 #ifdef RNA_RUNTIME
 
+#include "BKE_colorband.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_particle.h"
-#include "BKE_texture.h"
 
 #include "smoke_API.h"
 

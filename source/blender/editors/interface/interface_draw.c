@@ -40,9 +40,9 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_colorband.h"
 #include "BKE_colortools.h"
 #include "BKE_node.h"
-#include "BKE_texture.h"
 #include "BKE_tracking.h"
 
 

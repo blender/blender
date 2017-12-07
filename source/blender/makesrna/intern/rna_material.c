@@ -85,6 +85,7 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
+#include "BKE_colorband.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"

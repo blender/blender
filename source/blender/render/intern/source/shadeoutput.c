@@ -27,7 +27,6 @@
  *  \ingroup render
  */
 
-
 #include <stdio.h>
 #include <float.h>
 #include <math.h>
@@ -36,10 +35,9 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_colorband.h"
 #include "BKE_colortools.h"
 #include "BKE_material.h"
-#include "BKE_texture.h"
-
 
 #include "DNA_group_types.h"
 #include "DNA_lamp_types.h"

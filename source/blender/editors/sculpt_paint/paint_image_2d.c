@@ -44,13 +44,13 @@
 #include "BLI_bitmap.h"
 #include "BLI_task.h"
 
+#include "BKE_colorband.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_brush.h"
 #include "BKE_image.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
-#include "BKE_texture.h"
 
 #include "ED_paint.h"
 #include "ED_screen.h"

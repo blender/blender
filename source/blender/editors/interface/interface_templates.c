@@ -53,6 +53,7 @@
 #include "BLF_api.h"
 #include "BLT_translation.h"
 
+#include "BKE_colorband.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -70,7 +71,6 @@
 #include "BKE_report.h"
 #include "BKE_sca.h"
 #include "BKE_screen.h"
-#include "BKE_texture.h"
 
 #include "ED_screen.h"
 #include "ED_object.h"
