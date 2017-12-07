@@ -1020,6 +1020,7 @@ static int convertRGBA_RGB(float *src, float *dst, LogImageFile *logImage,
 	float *dst_ptr = dst;
 
 	switch (logElement.transfer) {
+		case transfer_Unspecified:
 		case transfer_UserDefined:
 		case transfer_Linear:
 		case transfer_Logarithmic: {
@@ -1054,6 +1055,7 @@ static int convertRGBA_RGB(float *src, float *dst, LogImageFile *logImage,
 		}
 
 		default:
+			if (verbose) printf("DPX/Cineon: Unknown transfer %d.\n", logElement.transfer);
 			return 1;
 	}
 }
@@ -1066,6 +1068,7 @@ static int convertRGB_RGBA(float *src, float *dst, LogImageFile *logImage,
 	float *dst_ptr = dst;
 
 	switch (logElement.transfer) {
+		case transfer_Unspecified:
 		case transfer_UserDefined:
 		case transfer_Linear:
 		case transfer_Logarithmic: {
@@ -1100,6 +1103,7 @@ static int convertRGB_RGBA(float *src, float *dst, LogImageFile *logImage,
 		}
 
 		default:
+			if (verbose) printf("DPX/Cineon: Unknown transfer %d.\n", logElement.transfer);
 			return 1;
 	}
 }
