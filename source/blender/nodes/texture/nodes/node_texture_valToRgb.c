@@ -49,7 +49,7 @@ static void valtorgb_colorfn(float *out, TexParams *p, bNode *node, bNodeStack *
 	if (node->storage) {
 		float fac = tex_input_value(in[0], p, thread);
 
-		do_colorband(node->storage, fac, out);
+		BKE_colorband_evaluate(node->storage, fac, out);
 	}
 }
 
@@ -60,7 +60,7 @@ static void valtorgb_exec(void *data, int UNUSED(thread), bNode *node, bNodeExec
 
 static void valtorgb_init(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	node->storage = add_colorband(true);
+	node->storage = BKE_colorband_add(true);
 }
 
 void register_node_type_tex_valtorgb(void)

@@ -62,6 +62,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_camera.h"
+#include "BKE_colorband.h"
 #include "BKE_context.h"
 #include "BKE_colortools.h"
 #include "BKE_DerivedMesh.h"
@@ -4582,7 +4583,7 @@ static void *do_projectpaint_thread(void *ph_v)
 								break;
 							}
 						}
-						do_colorband(brush->gradient, f, color_f);
+						BKE_colorband_evaluate(brush->gradient, f, color_f);
 						color_f[3] *= ((float)projPixel->mask) * (1.0f / 65535.0f) * brush->alpha;
 
 						if (is_floatbuf) {

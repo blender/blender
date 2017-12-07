@@ -41,7 +41,7 @@
 #include "BLI_math.h"
 
 #include "BKE_DerivedMesh.h"
-#include "BKE_texture.h"
+#include "BKE_colorband.h"
 #include "BKE_particle.h"
 
 #include "smoke_API.h"
@@ -111,7 +111,7 @@ static void create_flame_spectrum_texture(float *data)
 static void create_color_ramp(const ColorBand *coba, float *data)
 {
 	for (int i = 0; i < TFUNC_WIDTH; i++) {
-		do_colorband(coba, (float)i / TFUNC_WIDTH, &data[i * 4]);
+		BKE_colorband_evaluate(coba, (float)i / TFUNC_WIDTH, &data[i * 4]);
 	}
 }
 

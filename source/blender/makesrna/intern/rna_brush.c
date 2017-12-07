@@ -128,7 +128,7 @@ const EnumPropertyItem rna_enum_brush_image_tool_items[] = {
 
 #include "RNA_access.h"
 
-#include "BKE_texture.h"
+#include "BKE_colorband.h"
 #include "BKE_brush.h"
 #include "BKE_icons.h"
 #include "BKE_paint.h"
@@ -474,7 +474,7 @@ static void rna_Brush_use_gradient_set(PointerRNA *ptr, int value)
 	else br->flag &= ~BRUSH_USE_GRADIENT;
 
 	if ((br->flag & BRUSH_USE_GRADIENT) && br->gradient == NULL)
-		br->gradient = add_colorband(true);
+		br->gradient = BKE_colorband_add(true);
 }
 
 static void rna_Brush_set_unprojected_radius(PointerRNA *ptr, float value)

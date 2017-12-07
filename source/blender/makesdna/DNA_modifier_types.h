@@ -249,6 +249,7 @@ typedef struct ArrayModifierData {
 	int flags;
 	/* the number of duplicates to generate for MOD_ARR_FIXEDCOUNT */
 	int count;
+	float uv_offset[2];
 } ArrayModifierData;
 
 /* ArrayModifierData->fit_type */

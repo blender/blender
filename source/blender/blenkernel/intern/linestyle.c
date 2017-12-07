@@ -44,13 +44,13 @@
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_colorband.h"
 #include "BKE_context.h"
 #include "BKE_freestyle.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_linestyle.h"
 #include "BKE_node.h"
-#include "BKE_texture.h"
 #include "BKE_colortools.h"
 #include "BKE_animsys.h"
 
@@ -296,39 +296,39 @@ LineStyleModifier *BKE_linestyle_color_modifier_add(FreestyleLineStyle *linestyl
 
 	switch (type) {
 		case LS_MODIFIER_ALONG_STROKE:
-			((LineStyleColorModifier_AlongStroke *)m)->color_ramp = add_colorband(1);
+			((LineStyleColorModifier_AlongStroke *)m)->color_ramp = BKE_colorband_add(true);
 			break;
 		case LS_MODIFIER_DISTANCE_FROM_CAMERA:
-			((LineStyleColorModifier_DistanceFromCamera *)m)->color_ramp = add_colorband(1);
+			((LineStyleColorModifier_DistanceFromCamera *)m)->color_ramp = BKE_colorband_add(true);
 			((LineStyleColorModifier_DistanceFromCamera *)m)->range_min = 0.0f;
 			((LineStyleColorModifier_DistanceFromCamera *)m)->range_max = 10000.0f;
 			break;
 		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
 			((LineStyleColorModifier_DistanceFromObject *)m)->target = NULL;
-			((LineStyleColorModifier_DistanceFromObject *)m)->color_ramp = add_colorband(1);
+			((LineStyleColorModifier_DistanceFromObject *)m)->color_ramp = BKE_colorband_add(true);
 			((LineStyleColorModifier_DistanceFromObject *)m)->range_min = 0.0f;
 			((LineStyleColorModifier_DistanceFromObject *)m)->range_max = 10000.0f;
 			break;
 		case LS_MODIFIER_MATERIAL:
-			((LineStyleColorModifier_Material *)m)->color_ramp = add_colorband(1);
+			((LineStyleColorModifier_Material *)m)->color_ramp = BKE_colorband_add(true);
 			((LineStyleColorModifier_Material *)m)->mat_attr = LS_MODIFIER_MATERIAL_LINE;
 			break;
 		case LS_MODIFIER_TANGENT:
-			((LineStyleColorModifier_Tangent *)m)->color_ramp = add_colorband(1);
+			((LineStyleColorModifier_Tangent *)m)->color_ramp = BKE_colorband_add(true);
 			break;
 		case LS_MODIFIER_NOISE:
-			((LineStyleColorModifier_Noise *)m)->color_ramp = add_colorband(1);
+			((LineStyleColorModifier_Noise *)m)->color_ramp = BKE_colorband_add(true);
 			((LineStyleColorModifier_Noise *)m)->amplitude = 10.0f;
 			((LineStyleColorModifier_Noise *)m)->period = 10.0f;
 			((LineStyleColorModifier_Noise *)m)->seed = 512;
 			break;
 		case LS_MODIFIER_CREASE_ANGLE:
-			((LineStyleColorModifier_CreaseAngle *)m)->color_ramp = add_colorband(1);
+			((LineStyleColorModifier_CreaseAngle *)m)->color_ramp = BKE_colorband_add(true);
 			((LineStyleColorModifier_CreaseAngle *)m)->min_angle = 0.0f;
 			((LineStyleColorModifier_CreaseAngle *)m)->max_angle = DEG2RADF(180.0f);
 			break;
 		case LS_MODIFIER_CURVATURE_3D:
-			((LineStyleColorModifier_Curvature_3D *)m)->color_ramp = add_colorband(1);
+			((LineStyleColorModifier_Curvature_3D *)m)->color_ramp = BKE_colorband_add(true);
 			((LineStyleColorModifier_Curvature_3D *)m)->min_curvature = 0.0f;
 			((LineStyleColorModifier_Curvature_3D *)m)->max_curvature = 0.5f;
 			break;

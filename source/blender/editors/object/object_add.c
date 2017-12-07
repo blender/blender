@@ -92,7 +92,6 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_speaker.h"
-#include "BKE_texture.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"

@@ -31,7 +31,7 @@
 #include "UI_resources.h"
 
 #include "BKE_global.h"
-#include "BKE_texture.h"
+#include "BKE_colorband.h"
 
 #include "draw_common.h"
 
@@ -130,7 +130,7 @@ void DRW_globals_update(void)
 	ramp.data[2].r = 1.0f;
 	ramp.data[2].pos = 1.0f;
 
-	colorband_table_RGBA(&ramp, &colors, &col_size);
+	BKE_colorband_evaluate_table_rgba(&ramp, &colors, &col_size);
 
 	if (globals_ramp) {
 		GPU_texture_free(globals_ramp);

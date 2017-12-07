@@ -48,6 +48,7 @@
 #include "BLI_rand.h"
 
 #include "BKE_anim.h"
+#include "BKE_colorband.h"
 #include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -55,7 +56,6 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
-#include "BKE_texture.h"
 #include "BKE_group.h"
 
 #include "IMB_imbuf_types.h"
@@ -994,7 +994,7 @@ static void ramp_blend(
 	GPU_link(mat, names[type], fac, col1, col2, r_col);
 }
 
-static void do_colorband_blend(
+static void BKE_colorband_eval_blend(
         GPUMaterial *mat, ColorBand *coba, GPUNodeLink *fac, float rampfac, int type,
         GPUNodeLink *incol, GPUNodeLink **r_col)
 {
@@ -1003,7 +1003,7 @@ static void do_colorband_blend(
 	int size;
 
 	/* do colorband */
-	colorband_table_RGBA(coba, &array, &size);
+	BKE_colorband_evaluate_table_rgba(coba, &array, &size);
 	GPU_link(mat, "valtorgb", fac, GPU_texture(size, array), &col, &tmp);
 
 	/* use alpha in fac */
@@ -1026,7 +1026,7 @@ static void ramp_diffuse_result(GPUShadeInput *shi, GPUNodeLink **diff)
 				GPU_link(mat, "ramp_rgbtobw", *diff, &fac);
 				
 				/* colorband + blend */
-				do_colorband_blend(mat, ma->ramp_col, fac, ma->rampfac_col, ma->rampblend_col, *diff, diff);
+				BKE_colorband_eval_blend(mat, ma->ramp_col, fac, ma->rampfac_col, ma->rampblend_col, *diff, diff);
 			}
 		}
 	}
@@ -1063,7 +1063,7 @@ static void add_to_diffuse(
 			}
 
 			/* colorband + blend */
-			do_colorband_blend(mat, ma->ramp_col, fac, ma->rampfac_col, ma->rampblend_col, shi->rgb, &addcol);
+			BKE_colorband_eval_blend(mat, ma->ramp_col, fac, ma->rampfac_col, ma->rampblend_col, shi->rgb, &addcol);
 		}
 	}
 	else
@@ -1085,7 +1085,7 @@ static void ramp_spec_result(GPUShadeInput *shi, GPUNodeLink **spec)
 		GPU_link(mat, "ramp_rgbtobw", *spec, &fac);
 		
 		/* colorband + blend */
-		do_colorband_blend(mat, ma->ramp_spec, fac, ma->rampfac_spec, ma->rampblend_spec, *spec, spec);
+		BKE_colorband_eval_blend(mat, ma->ramp_spec, fac, ma->rampfac_spec, ma->rampblend_spec, *spec, spec);
 	}
 }
 
@@ -1117,7 +1117,7 @@ static void do_specular_ramp(GPUShadeInput *shi, GPUNodeLink *is, GPUNodeLink *t
 		}
 		
 		/* colorband + blend */
-		do_colorband_blend(mat, ma->ramp_spec, fac, ma->rampfac_spec, ma->rampblend_spec, *spec, spec);
+		BKE_colorband_eval_blend(mat, ma->ramp_spec, fac, ma->rampfac_spec, ma->rampblend_spec, *spec, spec);
 	}
 }
 

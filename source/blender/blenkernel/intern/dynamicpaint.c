@@ -55,6 +55,7 @@
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_bvhutils.h"   /* bvh tree	*/
+#include "BKE_colorband.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_constraint.h"
 #include "BKE_customdata.h"
@@ -72,7 +73,6 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
-#include "BKE_texture.h"
 
 #include "DEG_depsgraph.h"
 
@@ -1085,7 +1085,7 @@ bool dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, str
 			{
 				CBData *ramp;
 
-				brush->paint_ramp = add_colorband(false);
+				brush->paint_ramp = BKE_colorband_add(false);
 				if (!brush->paint_ramp)
 					return false;
 				ramp = brush->paint_ramp->data;
@@ -1101,7 +1101,7 @@ bool dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, str
 			{
 				CBData *ramp;
 
-				brush->vel_ramp = add_colorband(false);
+				brush->vel_ramp = BKE_colorband_add(false);
 				if (!brush->vel_ramp)
 					return false;
 				ramp = brush->vel_ramp->data;
@@ -3459,7 +3459,7 @@ static void dynamicPaint_updatePointData(
 		vel_factor /= brush->max_velocity;
 		CLAMP(vel_factor, 0.0f, 1.0f);
 
-		if (do_colorband(brush->vel_ramp, vel_factor, coba_res)) {
+		if (BKE_colorband_evaluate(brush->vel_ramp, vel_factor, coba_res)) {
 			if (brush->flags & MOD_DPAINT_VELOCITY_COLOR) {
 				copy_v3_v3(paint, coba_res);
 			}
@@ -3906,7 +3906,7 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(
 			else if (hit_found == HIT_PROXIMITY) {
 				/* apply falloff curve to the proximity_factor */
 				if (brush->proximity_falloff == MOD_DPAINT_PRFALL_RAMP &&
-				    do_colorband(brush->paint_ramp, (1.0f - proximity_factor), prox_colorband))
+				    BKE_colorband_evaluate(brush->paint_ramp, (1.0f - proximity_factor), prox_colorband))
 				{
 					proximity_factor = prox_colorband[3];
 				}
@@ -4470,7 +4470,7 @@ static void dynamic_paint_paint_single_point_cb_ex(
 
 		/* color ramp */
 		if (brush->proximity_falloff == MOD_DPAINT_PRFALL_RAMP &&
-		    do_colorband(brush->paint_ramp, (1.0f - strength), colorband))
+		    BKE_colorband_evaluate(brush->paint_ramp, (1.0f - strength), colorband))
 		{
 			strength = colorband[3];
 		}

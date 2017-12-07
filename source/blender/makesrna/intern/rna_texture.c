@@ -112,6 +112,7 @@ static const EnumPropertyItem blend_type_items[] = {
 
 #include "RNA_access.h"
 
+#include "BKE_colorband.h"
 #include "BKE_context.h"
 #include "BKE_image.h"
 #include "BKE_texture.h"
@@ -407,7 +408,7 @@ static void rna_Texture_use_color_ramp_set(PointerRNA *ptr, int value)
 	else tex->flag &= ~TEX_COLORBAND;
 
 	if ((tex->flag & TEX_COLORBAND) && tex->coba == NULL)
-		tex->coba = add_colorband(false);
+		tex->coba = BKE_colorband_add(false);
 }
 
 static void rna_Texture_use_nodes_update(bContext *C, PointerRNA *ptr)

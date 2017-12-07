@@ -42,6 +42,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_colorband.h"
 #include "BKE_colortools.h"
 #include "BKE_image.h"
 #include "BKE_texture.h"

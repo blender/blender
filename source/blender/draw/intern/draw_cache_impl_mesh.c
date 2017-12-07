@@ -48,7 +48,7 @@
 #include "BKE_editmesh_tangent.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_tangent.h"
-#include "BKE_texture.h"
+#include "BKE_colorband.h"
 
 #include "bmesh.h"
 
@@ -1097,7 +1097,7 @@ static void mesh_render_data_ensure_vert_weight_color(MeshRenderData *rdata, con
 				const MDeformVert *dvert = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
 				float weight = defvert_find_weight(dvert, defgroup);
 				if (U.flag & USER_CUSTOM_RANGE) {
-					do_colorband(&U.coba_weight, weight, vweight[i]);
+					BKE_colorband_evaluate(&U.coba_weight, weight, vweight[i]);
 				}
 				else {
 					rgb_from_weight(vweight[i], weight);
@@ -1113,7 +1113,7 @@ static void mesh_render_data_ensure_vert_weight_color(MeshRenderData *rdata, con
 			for (int i = 0; i < rdata->vert_len; i++) {
 				float weight = defvert_find_weight(&rdata->dvert[i], defgroup);
 				if (U.flag & USER_CUSTOM_RANGE) {
-					do_colorband(&U.coba_weight, weight, vweight[i]);
+					BKE_colorband_evaluate(&U.coba_weight, weight, vweight[i]);
 				}
 				else {
 					rgb_from_weight(vweight[i], weight);

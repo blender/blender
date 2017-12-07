@@ -52,12 +52,12 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_colorband.h"
 #include "BKE_colortools.h"
 #include "BKE_image.h"
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
 #include "BKE_sequencer.h"
-#include "BKE_texture.h"
 #include "BKE_linestyle.h"
 
 #include "DEG_depsgraph.h"
@@ -362,12 +362,12 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 
 static void rna_ColorRamp_eval(struct ColorBand *coba, float position, float color[4])
 {
-	do_colorband(coba, position, color);
+	BKE_colorband_evaluate(coba, position, color);
 }
 
 static CBData *rna_ColorRampElement_new(struct ColorBand *coba, ReportList *reports, float position)
 {
-	CBData *element = colorband_element_add(coba, position);
+	CBData *element = BKE_colorband_element_add(coba, position);
 
 	if (element == NULL)
 		BKE_reportf(reports, RPT_ERROR, "Unable to add element to colorband (limit %d)", MAXCOLORBAND);
@@ -379,7 +379,7 @@ static void rna_ColorRampElement_remove(struct ColorBand *coba, ReportList *repo
 {
 	CBData *element = element_ptr->data;
 	int index = (int)(element - coba->data);
-	if (colorband_element_remove(coba, index) == false) {
+	if (BKE_colorband_element_remove(coba, index) == false) {
 		BKE_report(reports, RPT_ERROR, "Element not found in element collection or last element");
 		return;
 	}

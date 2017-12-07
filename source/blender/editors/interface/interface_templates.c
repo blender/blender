@@ -53,6 +53,7 @@
 #include "BLF_api.h"
 #include "BLT_translation.h"
 
+#include "BKE_colorband.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -70,7 +71,6 @@
 #include "BKE_report.h"
 #include "BKE_sca.h"
 #include "BKE_screen.h"
-#include "BKE_texture.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -1714,7 +1714,7 @@ static void colorband_add_cb(bContext *C, void *cb_v, void *coba_v)
 		else pos = (coba->data[coba->cur + 1].pos + coba->data[coba->cur].pos) * 0.5f;
 	}
 
-	if (colorband_element_add(coba, pos)) {
+	if (BKE_colorband_element_add(coba, pos)) {
 		rna_update_cb(C, cb_v, NULL);
 		ED_undo_push(C, "Add colorband");
 	}
@@ -1724,7 +1724,7 @@ static void colorband_del_cb(bContext *C, void *cb_v, void *coba_v)
 {
 	ColorBand *coba = coba_v;
 
-	if (colorband_element_remove(coba, coba->cur)) {
+	if (BKE_colorband_element_remove(coba, coba->cur)) {
 		ED_undo_push(C, "Delete colorband");
 		rna_update_cb(C, cb_v, NULL);
 	}
@@ -1760,7 +1760,7 @@ static void colorband_update_cb(bContext *UNUSED(C), void *bt_v, void *coba_v)
 
 	/* sneaky update here, we need to sort the colorband points to be in order,
 	 * however the RNA pointer then is wrong, so we update it */
-	colorband_update_sort(coba);
+	BKE_colorband_update_sort(coba);
 	bt->rnapoin.data = coba->data + coba->cur;
 }
 

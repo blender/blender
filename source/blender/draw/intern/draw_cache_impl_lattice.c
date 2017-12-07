@@ -41,7 +41,7 @@
 
 #include "BKE_lattice.h"
 #include "BKE_deform.h"
-#include "BKE_texture.h"
+#include "BKE_colorband.h"
 
 #include "GPU_batch.h"
 
@@ -260,7 +260,7 @@ static void lattice_render_data_weight_col_get(const LatticeRenderData *rdata, c
 		float weight = defvert_find_weight(rdata->dvert + vert_idx, actdef);
 
 		if (U.flag & USER_CUSTOM_RANGE) {
-			do_colorband(&U.coba_weight, weight, r_col);
+			BKE_colorband_evaluate(&U.coba_weight, weight, r_col);
 		}
 		else {
 			rgb_from_weight(r_col, weight);

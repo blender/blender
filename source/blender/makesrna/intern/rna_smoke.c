@@ -52,9 +52,9 @@
 
 #ifdef RNA_RUNTIME
 
+#include "BKE_colorband.h"
 #include "BKE_context.h"
 #include "BKE_particle.h"
-#include "BKE_texture.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -395,7 +395,7 @@ static void rna_Smoke_use_color_ramp_set(PointerRNA *ptr, int value)
 	sds->use_coba = value;
 
 	if (value && sds->coba == NULL) {
-		sds->coba = add_colorband(false);
+		sds->coba = BKE_colorband_add(false);
 	}
 }
 

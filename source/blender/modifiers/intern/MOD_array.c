@@ -608,6 +608,26 @@ static DerivedMesh *arrayModifier_doArray(
 		}
 	}
 
+	/* handle UVs */
+	if (chunk_nloops > 0 && is_zero_v2(amd->uv_offset) == false) {
+		const int totuv = CustomData_number_of_layers(&result->loopData, CD_MLOOPUV);
+		for (i = 0; i < totuv; i++) {
+			MLoopUV *dmloopuv = CustomData_get_layer_n(&result->loopData, CD_MLOOPUV, i);
+			dmloopuv += chunk_nloops;
+			for (c = 1; c < count; c++) {
+				const float uv_offset[2] = {
+					amd->uv_offset[0] * (float)c,
+					amd->uv_offset[1] * (float)c,
+				};
+				int l_index = chunk_nloops;
+				for (; l_index-- != 0; dmloopuv++) {
+					dmloopuv->uv[0] += uv_offset[0];
+					dmloopuv->uv[1] += uv_offset[1];
+				}
+			}
+		}
+	}
+
 	last_chunk_start = (count - 1) * chunk_nverts;
 	last_chunk_nverts = chunk_nverts;
 

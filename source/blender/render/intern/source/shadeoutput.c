@@ -27,7 +27,6 @@
  *  \ingroup render
  */
 
-
 #include <stdio.h>
 #include <float.h>
 #include <math.h>
@@ -36,10 +35,9 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_colorband.h"
 #include "BKE_colortools.h"
 #include "BKE_material.h"
-#include "BKE_texture.h"
-
 
 #include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
@@ -942,7 +940,7 @@ static void ramp_diffuse_result(float *diff, ShadeInput *shi)
 	if (ma->ramp_col) {
 		if (ma->rampin_col==MA_RAMP_IN_RESULT) {
 			float fac = IMB_colormanagement_get_luminance(diff);
-			do_colorband(ma->ramp_col, fac, col);
+			BKE_colorband_evaluate(ma->ramp_col, fac, col);
 			
 			/* blending method */
 			fac= col[3]*ma->rampfac_col;
@@ -986,7 +984,7 @@ static void add_to_diffuse(float diff[3], const ShadeInput *shi, const float is,
 				break;
 			}
 	
-			do_colorband(ma->ramp_col, fac, col);
+			BKE_colorband_evaluate(ma->ramp_col, fac, col);
 			
 			/* blending method */
 			fac = col[3] * ma->rampfac_col;
@@ -1015,7 +1013,7 @@ static void ramp_spec_result(float spec_col[3], ShadeInput *shi)
 		float col[4];
 		float fac = IMB_colormanagement_get_luminance(spec_col);
 
-		do_colorband(ma->ramp_spec, fac, col);
+		BKE_colorband_evaluate(ma->ramp_spec, fac, col);
 		
 		/* blending method */
 		fac= col[3]*ma->rampfac_spec;
@@ -1055,7 +1053,7 @@ static void do_specular_ramp(ShadeInput *shi, float is, float t, float spec[3])
 			break;
 		}
 		
-		do_colorband(ma->ramp_spec, fac, col);
+		BKE_colorband_evaluate(ma->ramp_spec, fac, col);
 		
 		/* blending method */
 		fac= col[3]*ma->rampfac_spec;

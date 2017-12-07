@@ -40,9 +40,9 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_colorband.h"
 #include "BKE_colortools.h"
 #include "BKE_node.h"
-#include "BKE_texture.h"
 #include "BKE_tracking.h"
 
 
@@ -1335,7 +1335,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti 
 	immBegin(GWN_PRIM_TRI_STRIP, (sizex + 1) * 2);
 	for (int a = 0; a <= sizex; a++) {
 		float pos = ((float)a) / sizex;
-		do_colorband(coba, pos, colf);
+		BKE_colorband_evaluate(coba, pos, colf);
 		if (display)
 			IMB_colormanagement_scene_linear_to_display_v3(colf, display);
 		
@@ -1354,7 +1354,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti 
 	immBegin(GWN_PRIM_TRI_STRIP, (sizex + 1) * 2);
 	for (int a = 0; a <= sizex; a++) {
 		float pos = ((float)a) / sizex;
-		do_colorband(coba, pos, colf);
+		BKE_colorband_evaluate(coba, pos, colf);
 		if (display)
 			IMB_colormanagement_scene_linear_to_display_v3(colf, display);
 

@@ -52,6 +52,7 @@
 #include "BLI_task.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_colorband.h"
 #include "BKE_editmesh.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"
@@ -64,7 +65,6 @@
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
 #include "BKE_paint.h"
-#include "BKE_texture.h"
 #include "BKE_multires.h"
 #include "BKE_bvhutils.h"
 #include "BKE_deform.h"
@@ -1379,7 +1379,7 @@ static void weightpaint_color(unsigned char r_col[4], DMWeightColorInfo *dm_wcin
 	float colf[4];
 
 	if (dm_wcinfo && dm_wcinfo->coba) {
-		do_colorband(dm_wcinfo->coba, input, colf);
+		BKE_colorband_evaluate(dm_wcinfo->coba, input, colf);
 	}
 	else {
 		weight_to_rgb(colf, input);

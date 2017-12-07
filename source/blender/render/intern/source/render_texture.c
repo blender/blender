@@ -54,6 +54,7 @@
 #include "BKE_node.h"
 
 #include "BKE_animsys.h"
+#include "BKE_colorband.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -161,15 +162,15 @@ static void tex_normal_derivate(Tex *tex, TexResult *texres)
 {
 	if (tex->flag & TEX_COLORBAND) {
 		float col[4];
-		if (do_colorband(tex->coba, texres->tin, col)) {
+		if (BKE_colorband_evaluate(tex->coba, texres->tin, col)) {
 			float fac0, fac1, fac2, fac3;
 			
 			fac0= (col[0]+col[1]+col[2]);
-			do_colorband(tex->coba, texres->nor[0], col);
+			BKE_colorband_evaluate(tex->coba, texres->nor[0], col);
 			fac1= (col[0]+col[1]+col[2]);
-			do_colorband(tex->coba, texres->nor[1], col);
+			BKE_colorband_evaluate(tex->coba, texres->nor[1], col);
 			fac2= (col[0]+col[1]+col[2]);
-			do_colorband(tex->coba, texres->nor[2], col);
+			BKE_colorband_evaluate(tex->coba, texres->nor[2], col);
 			fac3= (col[0]+col[1]+col[2]);
 			
 			texres->nor[0]= (fac0 - fac1) / 3.0f;
@@ -1218,7 +1219,7 @@ static int multitex(Tex *tex,
 
 	if (tex->flag & TEX_COLORBAND) {
 		float col[4];
-		if (do_colorband(tex->coba, texres->tin, col)) {
+		if (BKE_colorband_evaluate(tex->coba, texres->tin, col)) {
 			texres->talpha = true;
 			texres->tr= col[0];
 			texres->tg= col[1];

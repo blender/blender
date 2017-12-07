@@ -2124,6 +2124,20 @@ static void rna_def_modifier_array(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_ArrayModifier_end_cap_set", NULL, "rna_Mesh_object_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+	
+	prop = RNA_def_property(srna, "offset_u", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "uv_offset[0]");
+	RNA_def_property_range(prop, -1, 1);
+	RNA_def_property_ui_range(prop, -1, 1, 2, 4);
+	RNA_def_property_ui_text(prop, "U Offset", "Amount to offset array UVs on the U axis");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "offset_v", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "uv_offset[1]");
+	RNA_def_property_range(prop, -1, 1);
+	RNA_def_property_ui_range(prop, -1, 1, 2, 4);
+	RNA_def_property_ui_text(prop, "V Offset", "Amount to offset array UVs on the V axis");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
 static void rna_def_modifier_edgesplit(BlenderRNA *brna)

@@ -25,7 +25,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#  include "BKE_texture.h"
+#  include "BKE_colorband.h"
 #ifdef __cplusplus
 }
 #endif
@@ -48,7 +48,7 @@ void ColorRampOperation::executePixelSampled(float output[4], float x, float y, 
 	float values[4];
 
 	this->m_inputProgram->readSampled(values, x, y, sampler);
-	do_colorband(this->m_colorBand, values[0], output);
+	BKE_colorband_evaluate(this->m_colorBand, values[0], output);
 }
 
 void ColorRampOperation::deinitExecution()
