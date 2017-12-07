@@ -59,7 +59,7 @@ static struct ImBuf *imb_load_dpx_cineon(
 
 	colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_FLOAT);
 
-	logImageSetVerbose((G.f & G_DEBUG) ? 1 : 0);
+	logImageSetVerbose((G.debug & G_DEBUG) ? 1 : 0);
 
 	image = logImageOpenFromMemory(mem, size);
 
@@ -107,7 +107,7 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon
 		return 0;
 	}
 	
-	logImageSetVerbose((G.f & G_DEBUG) ? 1 : 0);
+	logImageSetVerbose((G.debug & G_DEBUG) ? 1 : 0);
 
 	depth = (ibuf->planes + 7) >> 3;
 	if (depth > 4 || depth < 3) {
