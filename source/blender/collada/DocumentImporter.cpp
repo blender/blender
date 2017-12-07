@@ -62,6 +62,7 @@ extern "C" {
 #include "BKE_layer.h"
 #include "BKE_lamp.h"
 #include "BKE_library.h"
+#include "BKE_texture.h"
 #include "BKE_fcurve.h"
 #include "BKE_scene.h"
 #include "BKE_global.h"

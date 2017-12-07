@@ -377,6 +377,7 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
 		printf("Gamma: %f\n", dpx->gamma);
 		printf("Reference black: %f\n", dpx->referenceBlack);
 		printf("Reference white: %f\n", dpx->referenceWhite);
+		printf("Orientation: %d\n", header.imageHeader.orientation);
 		printf("----------------------------\n");
 	}
 	return dpx;

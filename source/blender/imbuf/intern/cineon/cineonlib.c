@@ -318,6 +318,7 @@ LogImageFile *cineonOpen(const unsigned char *byteStuff, int fromMemory, size_t 
 		printf("Gamma: %f\n", cineon->gamma);
 		printf("Reference black: %f\n", cineon->referenceBlack);
 		printf("Reference white: %f\n", cineon->referenceWhite);
+		printf("Orientation: %d\n", header.imageHeader.orientation);
 		printf("----------------------------\n");
 	}
 	return cineon;
