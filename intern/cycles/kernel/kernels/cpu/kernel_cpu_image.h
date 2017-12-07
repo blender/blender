@@ -83,145 +83,160 @@ template<typename T> struct TextureInterpolator  {
 		return x - (float)i;
 	}
 
-	static ccl_always_inline float4 interp(const TextureInfo& info, float x, float y)
+	/* ********  2D interpolation ******** */
+
+	static ccl_always_inline float4 interp_closest(const TextureInfo& info,
+	                                               float x, float y)
 	{
-		if(UNLIKELY(!info.data))
-			return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-
 		const T *data = (const T*)info.data;
-		int width = info.width;
-		int height = info.height;
+		const int width = info.width;
+		const int height = info.height;
+		int ix, iy;
+		frac(x*(float)width, &ix);
+		frac(y*(float)height, &iy);
+		switch(info.extension) {
+			case EXTENSION_REPEAT:
+				ix = wrap_periodic(ix, width);
+				iy = wrap_periodic(iy, height);
+				break;
+			case EXTENSION_CLIP:
+				if(x < 0.0f || y < 0.0f || x > 1.0f || y > 1.0f) {
+					return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+				}
+				ATTR_FALLTHROUGH;
+			case EXTENSION_EXTEND:
+				ix = wrap_clamp(ix, width);
+				iy = wrap_clamp(iy, height);
+				break;
+			default:
+				kernel_assert(0);
+				return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+		}
+		return read(data[ix + iy*width]);
+	}
+
+	static ccl_always_inline float4 interp_linear(const TextureInfo& info,
+	                                              float x, float y)
+	{
+		const T *data = (const T*)info.data;
+		const int width = info.width;
+		const int height = info.height;
 		int ix, iy, nix, niy;
-
-		if(info.interpolation == INTERPOLATION_CLOSEST) {
-			frac(x*(float)width, &ix);
-			frac(y*(float)height, &iy);
-			switch(info.extension) {
-				case EXTENSION_REPEAT:
-					ix = wrap_periodic(ix, width);
-					iy = wrap_periodic(iy, height);
-					break;
-				case EXTENSION_CLIP:
-					if(x < 0.0f || y < 0.0f || x > 1.0f || y > 1.0f) {
-						return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-					}
-					ATTR_FALLTHROUGH;
-				case EXTENSION_EXTEND:
-					ix = wrap_clamp(ix, width);
-					iy = wrap_clamp(iy, height);
-					break;
-				default:
-					kernel_assert(0);
+		const float tx = frac(x*(float)width - 0.5f, &ix);
+		const float ty = frac(y*(float)height - 0.5f, &iy);
+		switch(info.extension) {
+			case EXTENSION_REPEAT:
+				ix = wrap_periodic(ix, width);
+				iy = wrap_periodic(iy, height);
+				nix = wrap_periodic(ix+1, width);
+				niy = wrap_periodic(iy+1, height);
+				break;
+			case EXTENSION_CLIP:
+				if(x < 0.0f || y < 0.0f || x > 1.0f || y > 1.0f) {
 					return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-			}
-			return read(data[ix + iy*width]);
+				}
+				ATTR_FALLTHROUGH;
+			case EXTENSION_EXTEND:
+				nix = wrap_clamp(ix+1, width);
+				niy = wrap_clamp(iy+1, height);
+				ix = wrap_clamp(ix, width);
+				iy = wrap_clamp(iy, height);
+				break;
+			default:
+				kernel_assert(0);
+				return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 		}
-		else if(info.interpolation == INTERPOLATION_LINEAR) {
-			float tx = frac(x*(float)width - 0.5f, &ix);
-			float ty = frac(y*(float)height - 0.5f, &iy);
+		float4 r = (1.0f - ty)*(1.0f - tx)*read(data[ix + iy*width]);
+		r += (1.0f - ty)*tx*read(data[nix + iy*width]);
+		r += ty*(1.0f - tx)*read(data[ix + niy*width]);
+		r += ty*tx*read(data[nix + niy*width]);
+		return r;
+	}
 
-			switch(info.extension) {
-				case EXTENSION_REPEAT:
-					ix = wrap_periodic(ix, width);
-					iy = wrap_periodic(iy, height);
-
-					nix = wrap_periodic(ix+1, width);
-					niy = wrap_periodic(iy+1, height);
-					break;
-				case EXTENSION_CLIP:
-					if(x < 0.0f || y < 0.0f || x > 1.0f || y > 1.0f) {
-						return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-					}
-					ATTR_FALLTHROUGH;
-				case EXTENSION_EXTEND:
-					nix = wrap_clamp(ix+1, width);
-					niy = wrap_clamp(iy+1, height);
-
-					ix = wrap_clamp(ix, width);
-					iy = wrap_clamp(iy, height);
-					break;
-				default:
-					kernel_assert(0);
+	static ccl_always_inline float4 interp_cubic(const TextureInfo& info,
+	                                             float x, float y)
+	{
+		const T *data = (const T*)info.data;
+		const int width = info.width;
+		const int height = info.height;
+		int ix, iy, nix, niy;
+		const float tx = frac(x*(float)width - 0.5f, &ix);
+		const float ty = frac(y*(float)height - 0.5f, &iy);
+		int pix, piy, nnix, nniy;
+		switch(info.extension) {
+			case EXTENSION_REPEAT:
+				ix = wrap_periodic(ix, width);
+				iy = wrap_periodic(iy, height);
+				pix = wrap_periodic(ix-1, width);
+				piy = wrap_periodic(iy-1, height);
+				nix = wrap_periodic(ix+1, width);
+				niy = wrap_periodic(iy+1, height);
+				nnix = wrap_periodic(ix+2, width);
+				nniy = wrap_periodic(iy+2, height);
+				break;
+			case EXTENSION_CLIP:
+				if(x < 0.0f || y < 0.0f || x > 1.0f || y > 1.0f) {
 					return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-			}
-
-			float4 r = (1.0f - ty)*(1.0f - tx)*read(data[ix + iy*width]);
-			r += (1.0f - ty)*tx*read(data[nix + iy*width]);
-			r += ty*(1.0f - tx)*read(data[ix + niy*width]);
-			r += ty*tx*read(data[nix + niy*width]);
-
-			return r;
+				}
+				ATTR_FALLTHROUGH;
+			case EXTENSION_EXTEND:
+				pix = wrap_clamp(ix-1, width);
+				piy = wrap_clamp(iy-1, height);
+				nix = wrap_clamp(ix+1, width);
+				niy = wrap_clamp(iy+1, height);
+				nnix = wrap_clamp(ix+2, width);
+				nniy = wrap_clamp(iy+2, height);
+				ix = wrap_clamp(ix, width);
+				iy = wrap_clamp(iy, height);
+				break;
+			default:
+				kernel_assert(0);
+				return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 		}
-		else {
-			/* Bicubic b-spline interpolation. */
-			float tx = frac(x*(float)width - 0.5f, &ix);
-			float ty = frac(y*(float)height - 0.5f, &iy);
-			int pix, piy, nnix, nniy;
-			switch(info.extension) {
-				case EXTENSION_REPEAT:
-					ix = wrap_periodic(ix, width);
-					iy = wrap_periodic(iy, height);
-
-					pix = wrap_periodic(ix-1, width);
-					piy = wrap_periodic(iy-1, height);
-
-					nix = wrap_periodic(ix+1, width);
-					niy = wrap_periodic(iy+1, height);
-
-					nnix = wrap_periodic(ix+2, width);
-					nniy = wrap_periodic(iy+2, height);
-					break;
-				case EXTENSION_CLIP:
-					if(x < 0.0f || y < 0.0f || x > 1.0f || y > 1.0f) {
-						return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-					}
-					ATTR_FALLTHROUGH;
-				case EXTENSION_EXTEND:
-					pix = wrap_clamp(ix-1, width);
-					piy = wrap_clamp(iy-1, height);
-
-					nix = wrap_clamp(ix+1, width);
-					niy = wrap_clamp(iy+1, height);
-
-					nnix = wrap_clamp(ix+2, width);
-					nniy = wrap_clamp(iy+2, height);
-
-					ix = wrap_clamp(ix, width);
-					iy = wrap_clamp(iy, height);
-					break;
-				default:
-					kernel_assert(0);
-					return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-			}
-
-			const int xc[4] = {pix, ix, nix, nnix};
-			const int yc[4] = {width * piy,
-			                   width * iy,
-			                   width * niy,
-			                   width * nniy};
-			float u[4], v[4];
-			/* Some helper macro to keep code reasonable size,
-			 * let compiler to inline all the matrix multiplications.
-			 */
+		const int xc[4] = {pix, ix, nix, nnix};
+		const int yc[4] = {width * piy,
+		                   width * iy,
+		                   width * niy,
+		                   width * nniy};
+		float u[4], v[4];
+		/* Some helper macro to keep code reasonable size,
+		 * let compiler to inline all the matrix multiplications.
+		 */
 #define DATA(x, y) (read(data[xc[x] + yc[y]]))
 #define TERM(col) \
-			(v[col] * (u[0] * DATA(0, col) + \
-			           u[1] * DATA(1, col) + \
-			           u[2] * DATA(2, col) + \
-			           u[3] * DATA(3, col)))
+		(v[col] * (u[0] * DATA(0, col) + \
+		           u[1] * DATA(1, col) + \
+		           u[2] * DATA(2, col) + \
+		           u[3] * DATA(3, col)))
 
-			SET_CUBIC_SPLINE_WEIGHTS(u, tx);
-			SET_CUBIC_SPLINE_WEIGHTS(v, ty);
+		SET_CUBIC_SPLINE_WEIGHTS(u, tx);
+		SET_CUBIC_SPLINE_WEIGHTS(v, ty);
 
-			/* Actual interpolation. */
-			return TERM(0) + TERM(1) + TERM(2) + TERM(3);
-
+		/* Actual interpolation. */
+		return TERM(0) + TERM(1) + TERM(2) + TERM(3);
 #undef TERM
 #undef DATA
+	}
+
+	static ccl_always_inline float4 interp(const TextureInfo& info, float x, float y)
+	{
+		if(UNLIKELY(!info.data)) {
+			return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+		}
+		switch(info.interpolation) {
+			case INTERPOLATION_CLOSEST:
+				return interp_closest(info, x, y);
+			case INTERPOLATION_LINEAR:
+				return interp_linear(info, x, y);
+			default:
+				return interp_cubic(info, x, y);
 		}
 	}
 
-	static ccl_always_inline float4 interp_3d_closest(const TextureInfo& info, float x, float y, float z)
+	/* ********  3D interpolation ******** */
+
+	static ccl_always_inline float4 interp_3d_closest(const TextureInfo& info,
+	                                                  float x, float y, float z)
 	{
 		int width = info.width;
 		int height = info.height;
@@ -259,7 +274,8 @@ template<typename T> struct TextureInterpolator  {
 		return read(data[ix + iy*width + iz*width*height]);
 	}
 
-	static ccl_always_inline float4 interp_3d_linear(const TextureInfo& info, float x, float y, float z)
+	static ccl_always_inline float4 interp_3d_linear(const TextureInfo& info,
+	                                                 float x, float y, float z)
 	{
 		int width = info.width;
 		int height = info.height;
