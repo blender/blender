@@ -1377,7 +1377,7 @@ static void weightpaint_color(unsigned char r_col[4], DMWeightColorInfo *dm_wcin
 	float colf[4];
 
 	if (dm_wcinfo && dm_wcinfo->coba) {
-		do_colorband(dm_wcinfo->coba, input, colf);
+		BKE_colorband_evaluate(dm_wcinfo->coba, input, colf);
 	}
 	else {
 		weight_to_rgb(colf, input);

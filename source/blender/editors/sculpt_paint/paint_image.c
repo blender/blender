@@ -665,17 +665,17 @@ void paint_brush_color_get(struct Scene *scene, struct Brush *br, bool color_cor
 			float color_gr[4];
 			switch (br->gradient_stroke_mode) {
 				case BRUSH_GRADIENT_PRESSURE:
-					do_colorband(br->gradient, pressure, color_gr);
+					BKE_colorband_evaluate(br->gradient, pressure, color_gr);
 					break;
 				case BRUSH_GRADIENT_SPACING_REPEAT:
 				{
 					float coord = fmod(distance / br->gradient_spacing, 1.0);
-					do_colorband(br->gradient, coord, color_gr);
+					BKE_colorband_evaluate(br->gradient, coord, color_gr);
 					break;
 				}
 				case BRUSH_GRADIENT_SPACING_CLAMP:
 				{
-					do_colorband(br->gradient, distance / br->gradient_spacing, color_gr);
+					BKE_colorband_evaluate(br->gradient, distance / br->gradient_spacing, color_gr);
 					break;
 				}
 			}

@@ -35,13 +35,13 @@ struct ColorBand;
 /*  in ColorBand struct */
 #define MAXCOLORBAND 32
 
-void init_colorband(struct ColorBand *coba, bool rangetype);
-struct ColorBand *add_colorband(bool rangetype);
-bool do_colorband(const struct ColorBand *coba, float in, float out[4]);
-void colorband_table_RGBA(struct ColorBand *coba, float **array, int *size);
-struct CBData *colorband_element_add(struct ColorBand *coba, float position);
-int colorband_element_remove(struct ColorBand *coba, int index);
-void colorband_update_sort(struct ColorBand *coba);
+void              BKE_colorband_init(struct ColorBand *coba, bool rangetype);
+struct ColorBand *BKE_colorband_add(bool rangetype);
+bool              BKE_colorband_evaluate(const struct ColorBand *coba, float in, float out[4]);
+void              BKE_colorband_evaluate_table_rgba(const struct ColorBand *coba, float **array, int *size);
+struct CBData    *BKE_colorband_element_add(struct ColorBand *coba, float position);
+int               BKE_colorband_element_remove(struct ColorBand *coba, int index);
+void              BKE_colorband_update_sort(struct ColorBand *coba);
 
 #ifdef __cplusplus
 }

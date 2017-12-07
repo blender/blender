@@ -5933,7 +5933,7 @@ static bool ui_numedit_but_COLORBAND(uiBut *but, uiHandleButtonData *data, int m
 	data->dragcbd->pos += dx;
 	CLAMP(data->dragcbd->pos, 0.0f, 1.0f);
 	
-	colorband_update_sort(data->coba);
+	BKE_colorband_update_sort(data->coba);
 	data->dragcbd = data->coba->data + data->coba->cur;  /* because qsort */
 	
 	data->draglastx = mx;
@@ -5963,7 +5963,7 @@ static int ui_do_but_COLORBAND(
 			if (event->ctrl) {
 				/* insert new key on mouse location */
 				float pos = ((float)(mx - but->rect.xmin)) / BLI_rctf_size_x(&but->rect);
-				colorband_element_add(coba, pos);
+				BKE_colorband_element_add(coba, pos);
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 			}
 			else {

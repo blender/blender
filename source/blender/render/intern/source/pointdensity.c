@@ -781,7 +781,7 @@ static int pointdensity_color(PointDensity *pd, TexResult *texres, float age, co
 		switch (pd->color_source) {
 			case TEX_PD_COLOR_PARTAGE:
 				if (pd->coba) {
-					if (do_colorband(pd->coba, age, rgba)) {
+					if (BKE_colorband_evaluate(pd->coba, age, rgba)) {
 						texres->talpha = true;
 						copy_v3_v3(&texres->tr, rgba);
 						texres->tin *= rgba[3];
@@ -794,7 +794,7 @@ static int pointdensity_color(PointDensity *pd, TexResult *texres, float age, co
 				float speed = len_v3(vec) * pd->speed_scale;
 				
 				if (pd->coba) {
-					if (do_colorband(pd->coba, speed, rgba)) {
+					if (BKE_colorband_evaluate(pd->coba, speed, rgba)) {
 						texres->talpha = true;
 						copy_v3_v3(&texres->tr, rgba);
 						texres->tin *= rgba[3];
@@ -826,7 +826,7 @@ static int pointdensity_color(PointDensity *pd, TexResult *texres, float age, co
 				break;
 			case TEX_PD_COLOR_VERTWEIGHT:
 				texres->talpha = true;
-				if (pd->coba && do_colorband(pd->coba, col[0], rgba)) {
+				if (pd->coba && BKE_colorband_evaluate(pd->coba, col[0], rgba)) {
 					copy_v3_v3(&texres->tr, rgba);
 					texres->tin *= rgba[3];
 				}

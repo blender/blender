@@ -4579,7 +4579,7 @@ static void *do_projectpaint_thread(void *ph_v)
 								break;
 							}
 						}
-						do_colorband(brush->gradient, f, color_f);
+						BKE_colorband_evaluate(brush->gradient, f, color_f);
 						color_f[3] *= ((float)projPixel->mask) * (1.0f / 65535.0f) * brush->alpha;
 
 						if (is_floatbuf) {

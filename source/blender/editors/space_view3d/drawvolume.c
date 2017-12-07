@@ -112,7 +112,7 @@ static void create_flame_spectrum_texture(float *data)
 static void create_color_ramp(const ColorBand *coba, float *data)
 {
 	for (int i = 0; i < TFUNC_WIDTH; i++) {
-		do_colorband(coba, (float)i / TFUNC_WIDTH, &data[i * 4]);
+		BKE_colorband_evaluate(coba, (float)i / TFUNC_WIDTH, &data[i * 4]);
 	}
 }
 

@@ -1666,7 +1666,7 @@ void paint_2d_gradient_fill(
 						break;
 					}
 				}
-				do_colorband(br->gradient, f, color_f);
+				BKE_colorband_evaluate(br->gradient, f, color_f);
 				/* convert to premultiplied */
 				mul_v3_fl(color_f, color_f[3]);
 				color_f[3] *= br->alpha;
@@ -1696,7 +1696,7 @@ void paint_2d_gradient_fill(
 					}
 				}
 
-				do_colorband(br->gradient, f, color_f);
+				BKE_colorband_evaluate(br->gradient, f, color_f);
 				linearrgb_to_srgb_v3_v3(color_f, color_f);
 				rgba_float_to_uchar((unsigned char *)&color_b, color_f);
 				((unsigned char *)&color_b)[3] *= br->alpha;

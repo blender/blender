@@ -393,7 +393,7 @@ static void rna_Smoke_use_color_ramp_set(PointerRNA *ptr, int value)
 	sds->use_coba = value;
 
 	if (value && sds->coba == NULL) {
-		sds->coba = add_colorband(false);
+		sds->coba = BKE_colorband_add(false);
 	}
 }
 

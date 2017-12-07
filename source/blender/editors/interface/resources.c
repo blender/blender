@@ -1839,7 +1839,7 @@ void init_userdef_do_versions(void)
 			rgba_char_args_set(btheme->tv3d.editmesh_active, 255, 255, 255, 128);
 		}
 		if (U.coba_weight.tot == 0)
-			init_colorband(&U.coba_weight, true);
+			BKE_colorband_init(&U.coba_weight, true);
 	}
 	if (!USER_VERSION_ATLEAST(245, 3)) {
 		bTheme *btheme;

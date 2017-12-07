@@ -1121,7 +1121,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti 
 	glBegin(GL_TRIANGLE_STRIP);
 	for (int a = 0; a <= sizex; a++) {
 		float pos = ((float)a) / sizex;
-		do_colorband(coba, pos, colf);
+		BKE_colorband_evaluate(coba, pos, colf);
 		if (display)
 			IMB_colormanagement_scene_linear_to_display_v3(colf, display);
 		
@@ -1140,7 +1140,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti 
 	glBegin(GL_TRIANGLE_STRIP);
 	for (int a = 0; a <= sizex; a++) {
 		float pos = ((float)a) / sizex;
-		do_colorband(coba, pos, colf);
+		BKE_colorband_evaluate(coba, pos, colf);
 		if (display)
 			IMB_colormanagement_scene_linear_to_display_v3(colf, display);
 

@@ -46,7 +46,7 @@ static bNodeSocketTemplate cmp_node_valtorgb_out[] = {
 
 static void node_composit_init_valtorgb(bNodeTree *UNUSED(ntree), bNode *node)
 {
-	node->storage = add_colorband(true);
+	node->storage = BKE_colorband_add(true);
 }
 
 void register_node_type_cmp_valtorgb(void)

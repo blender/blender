@@ -38,7 +38,7 @@
 #include "BKE_material.h"
 #include "BKE_key.h"
 
-void init_colorband(ColorBand *coba, bool rangetype)
+void BKE_colorband_init(ColorBand *coba, bool rangetype)
 {
 	int a;
 
@@ -80,12 +80,12 @@ void init_colorband(ColorBand *coba, bool rangetype)
 	coba->color_mode = COLBAND_BLEND_RGB;
 }
 
-ColorBand *add_colorband(bool rangetype)
+ColorBand *BKE_colorband_add(bool rangetype)
 {
 	ColorBand *coba;
 
 	coba = MEM_callocN(sizeof(ColorBand), "colorband");
-	init_colorband(coba, rangetype);
+	BKE_colorband_init(coba, rangetype);
 
 	return coba;
 }
@@ -160,7 +160,7 @@ static float colorband_hue_interp(
 	return h_interp;
 }
 
-bool do_colorband(const ColorBand *coba, float in, float out[4])
+bool BKE_colorband_evaluate(const ColorBand *coba, float in, float out[4])
 {
 	const CBData *cbd1, *cbd2, *cbd0, *cbd3;
 	float fac;
@@ -310,7 +310,7 @@ bool do_colorband(const ColorBand *coba, float in, float out[4])
 	return true;   /* OK */
 }
 
-void colorband_table_RGBA(ColorBand *coba, float **array, int *size)
+void BKE_colorband_evaluate_table_rgba(const ColorBand *coba, float **array, int *size)
 {
 	int a;
 
@@ -318,7 +318,7 @@ void colorband_table_RGBA(ColorBand *coba, float **array, int *size)
 	*array = MEM_callocN(sizeof(float) * (*size) * 4, "ColorBand");
 
 	for (a = 0; a < *size; a++)
-		do_colorband(coba, (float)a / (float)CM_TABLE, &(*array)[a * 4]);
+		BKE_colorband_evaluate(coba, (float)a / (float)CM_TABLE, &(*array)[a * 4]);
 }
 
 static int vergcband(const void *a1, const void *a2)
@@ -330,7 +330,7 @@ static int vergcband(const void *a1, const void *a2)
 	return 0;
 }
 
-void colorband_update_sort(ColorBand *coba)
+void BKE_colorband_update_sort(ColorBand *coba)
 {
 	int a;
 
@@ -350,7 +350,7 @@ void colorband_update_sort(ColorBand *coba)
 	}
 }
 
-CBData *colorband_element_add(struct ColorBand *coba, float position)
+CBData *BKE_colorband_element_add(struct ColorBand *coba, float position)
 {
 	if (coba->tot == MAXCOLORBAND) {
 		return NULL;
@@ -362,7 +362,7 @@ CBData *colorband_element_add(struct ColorBand *coba, float position)
 		xnew->pos = position;
 
 		if (coba->tot != 0) {
-			do_colorband(coba, position, &xnew->r);
+			BKE_colorband_evaluate(coba, position, &xnew->r);
 		}
 		else {
 			zero_v4(&xnew->r);
@@ -372,12 +372,12 @@ CBData *colorband_element_add(struct ColorBand *coba, float position)
 	coba->tot++;
 	coba->cur = coba->tot - 1;
 
-	colorband_update_sort(coba);
+	BKE_colorband_update_sort(coba);
 
 	return coba->data + coba->cur;
 }
 
-int colorband_element_remove(struct ColorBand *coba, int index)
+int BKE_colorband_element_remove(struct ColorBand *coba, int index)
 {
 	int a;
 

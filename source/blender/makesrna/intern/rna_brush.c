@@ -465,7 +465,7 @@ static void rna_Brush_use_gradient_set(PointerRNA *ptr, int value)
 	else br->flag &= ~BRUSH_USE_GRADIENT;
 
 	if ((br->flag & BRUSH_USE_GRADIENT) && br->gradient == NULL)
-		br->gradient = add_colorband(true);
+		br->gradient = BKE_colorband_add(true);
 }
 
 static void rna_Brush_set_unprojected_radius(PointerRNA *ptr, float value)

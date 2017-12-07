@@ -186,7 +186,7 @@ void BKE_texture_colormapping_default(ColorMapping *colormap)
 {
 	memset(colormap, 0, sizeof(ColorMapping));
 
-	init_colorband(&colormap->coba, true);
+	BKE_colorband_init(&colormap->coba, true);
 
 	colormap->bright = 1.0;
 	colormap->contrast = 1.0;
@@ -999,7 +999,7 @@ void BKE_texture_pointdensity_init_data(PointDensity *pd)
 	pd->noise_depth = 1;
 	pd->noise_fac = 1.0f;
 	pd->noise_influence = TEX_PD_NOISE_STATIC;
-	pd->coba = add_colorband(true);
+	pd->coba = BKE_colorband_add(true);
 	pd->speed_scale = 1.0f;
 	pd->totpoints = 0;
 	pd->object = NULL;
