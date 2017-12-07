@@ -60,6 +60,7 @@ extern "C" {
 #include "BKE_main.h"
 #include "BKE_lamp.h"
 #include "BKE_library.h"
+#include "BKE_texture.h"
 #include "BKE_fcurve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_scene.h"
