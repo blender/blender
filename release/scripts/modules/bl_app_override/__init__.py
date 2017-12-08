@@ -77,7 +77,7 @@ def ui_draw_filter_register(
                     return UILayout_Fake(ret)
                 return dummy_func
 
-            elif attr in {"operator", "operator_menu_enum", "operator_enum"}:
+            elif attr in {"operator", "operator_menu_enum", "operator_enum", "operator_menu_hold"}:
                 if ui_ignore_operator is None:
                     return UILayout.__getattribute__(self, attr)
 
@@ -85,10 +85,14 @@ def ui_draw_filter_register(
 
                 def dummy_func(*args, **kw):
                     # print("wrapped", attr)
-                    if not ui_ignore_operator(args[0]):
+                    ui_test = ui_ignore_operator(args[0])
+                    if ui_test is False:
                         ret = real_func(*args, **kw)
                     else:
-                        # UILayout.__getattribute__(self, "label")()
+                        if ui_test is None:
+                            UILayout.__getattribute__(self, "label")("")
+                        else:
+                            assert(ui_test is True)
                         # may need to be set
                         ret = OperatorProperties_Fake()
                     return ret
@@ -102,9 +106,14 @@ def ui_draw_filter_register(
 
                 def dummy_func(*args, **kw):
                     # print("wrapped", attr)
-                    if not ui_ignore_property(args[0].__class__.__name__, args[1]):
+                    ui_test = ui_ignore_property(args[0].__class__.__name__, args[1])
+                    if ui_test is False:
                         ret = real_func(*args, **kw)
                     else:
+                        if ui_test is None:
+                            UILayout.__getattribute__(self, "label")("")
+                        else:
+                            assert(ui_test is True)
                         ret = None
                     return ret
                 return dummy_func
@@ -117,9 +126,14 @@ def ui_draw_filter_register(
 
                 def dummy_func(*args, **kw):
                     # print("wrapped", attr)
-                    if not ui_ignore_menu(args[0]):
+                    ui_test = ui_ignore_menu(args[0])
+                    if ui_test is False:
                         ret = real_func(*args, **kw)
                     else:
+                        if ui_test is None:
+                            UILayout.__getattribute__(self, "label")("")
+                        else:
+                            assert(ui_test is True)
                         ret = None
                     return ret
                 return dummy_func
@@ -132,10 +146,14 @@ def ui_draw_filter_register(
 
                 def dummy_func(*args, **kw):
                     # print("wrapped", attr)
-                    if not ui_ignore_label(args[0] if args else kw.get("text", "")):
+                    ui_test = ui_ignore_label(args[0] if args else kw.get("text", ""))
+                    if ui_test is False:
                         ret = real_func(*args, **kw)
                     else:
-                        # ret = real_func()
+                        if ui_test is None:
+                            real_func("")
+                        else:
+                            assert(ui_test is True)
                         ret = None
                     return ret
                 return dummy_func
