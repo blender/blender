@@ -422,7 +422,6 @@ void DepsgraphNodeBuilder::end_build()
 void DepsgraphNodeBuilder::build_group(Group *group)
 {
 	ID *group_id = &group->id;
-	Group *group_cow = get_cow_datablock(group);
 	if (group_id->tag & LIB_TAG_DOIT) {
 		return;
 	}
@@ -437,6 +436,8 @@ void DepsgraphNodeBuilder::build_group(Group *group)
 	 * This way we wouldn't need to worry about possible relations from DONE,
 	 * regardless whether it's a group or scene or something else.
 	 */
+	add_id_node(group_id);
+	Group *group_cow = get_cow_datablock(group);
 	add_operation_node(group_id,
 	                   DEG_NODE_TYPE_LAYER_COLLECTIONS,
 	                   function_bind(BKE_group_eval_view_layers,
