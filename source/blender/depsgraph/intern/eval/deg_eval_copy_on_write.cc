@@ -324,7 +324,6 @@ static bool check_datablocks_copy_on_writable(const ID *id_orig)
 	return !ELEM(id_type, ID_BR,
 	                      ID_LS,
 	                      ID_AC,
-	                      ID_GR,
 	                      ID_PAL);
 }
 
