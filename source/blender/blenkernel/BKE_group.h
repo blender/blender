@@ -55,6 +55,13 @@ bool          BKE_group_is_animated(struct Group *group, struct Object *parent);
 
 void          BKE_group_handle_recalc_and_update(const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *parent, struct Group *group);
 
+/* Dependency graph evaluation. */
+
+void BKE_group_eval_view_layers(const struct EvaluationContext *eval_ctx,
+                                struct Group *group);
+
+/* Helper macros. */
+
 #define FOREACH_GROUP_BASE(_group, _base)                         \
 	for (Base *_base = (Base *)(_group)->view_layer->object_bases.first; \
 	     _base;                                                   \

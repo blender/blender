@@ -429,8 +429,6 @@ void DepsgraphRelationBuilder::build_group(Object *object, Group *group)
 		LINKLIST_FOREACH(Base *, base, &group->view_layer->object_bases) {
 			build_object(NULL, base->object);
 		}
-
-		build_view_layer_collections(&group->id, group->view_layer);
 		group_id->tag |= LIB_TAG_DOIT;
 	}
 

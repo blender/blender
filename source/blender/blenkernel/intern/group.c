@@ -55,6 +55,8 @@
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
+#define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH) printf
+
 /** Free (or release) any data used by this group (does not free the group itself). */
 void BKE_group_free(Group *group)
 {
@@ -378,4 +380,37 @@ void BKE_group_handle_recalc_and_update(const struct EvaluationContext *eval_ctx
 		}
 		FOREACH_GROUP_OBJECT_END
 	}
+}
+
+/* ******** Dependency graph evaluation ******** */
+
+static void group_eval_layer_collections(
+        const struct EvaluationContext *eval_ctx,
+        Group *group,
+        ListBase *layer_collections,
+        LayerCollection *parent_layer_collection)
+{
+	LINKLIST_FOREACH (LayerCollection *, layer_collection, layer_collections) {
+		/* Evaluate layer collection itself. */
+		BKE_layer_eval_layer_collection(eval_ctx,
+		                                layer_collection,
+		                                parent_layer_collection);
+		/* Evaluate nested collections. */
+		group_eval_layer_collections(eval_ctx,
+		                             group,
+		                             &layer_collection->layer_collections,
+		                             layer_collection);
+	}
+}
+
+void BKE_group_eval_view_layers(const struct EvaluationContext *eval_ctx,
+                                Group *group)
+{
+	DEBUG_PRINT("%s on %s (%p)\n", __func__, group->id.name, group);
+	BKE_layer_eval_layer_collection_pre(eval_ctx, &group->id, group->view_layer);
+	group_eval_layer_collections(eval_ctx,
+	                             group,
+	                             &group->view_layer->layer_collections,
+	                             NULL);
+	BKE_layer_eval_layer_collection_post(eval_ctx, group->view_layer);
 }
