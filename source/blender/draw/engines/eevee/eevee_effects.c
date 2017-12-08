@@ -77,31 +77,25 @@ static void eevee_create_shader_downsample(void)
 	        "#define MAX_PASS\n");
 	e_data.minz_downdepth_sh = DRW_shader_create_fullscreen(
 	        datatoc_effect_minmaxz_frag_glsl,
-	        "#define MIN_PASS\n"
-	        "#define INPUT_DEPTH\n");
+	        "#define MIN_PASS\n");
 	e_data.maxz_downdepth_sh = DRW_shader_create_fullscreen(
 	        datatoc_effect_minmaxz_frag_glsl,
-	        "#define MAX_PASS\n"
-	        "#define INPUT_DEPTH\n");
+	        "#define MAX_PASS\n");
 	e_data.minz_downdepth_layer_sh = DRW_shader_create_fullscreen(
 	        datatoc_effect_minmaxz_frag_glsl,
 	        "#define MIN_PASS\n"
-	        "#define LAYERED\n"
-	        "#define INPUT_DEPTH\n");
+	        "#define LAYERED\n");
 	e_data.maxz_downdepth_layer_sh = DRW_shader_create_fullscreen(
 	        datatoc_effect_minmaxz_frag_glsl,
 	        "#define MAX_PASS\n"
-	        "#define LAYERED\n"
-	        "#define INPUT_DEPTH\n");
+	        "#define LAYERED\n");
 	e_data.minz_copydepth_sh = DRW_shader_create_fullscreen(
 	        datatoc_effect_minmaxz_frag_glsl,
 	        "#define MIN_PASS\n"
-	        "#define INPUT_DEPTH\n"
 	        "#define COPY_DEPTH\n");
 	e_data.maxz_copydepth_sh = DRW_shader_create_fullscreen(
 	        datatoc_effect_minmaxz_frag_glsl,
 	        "#define MAX_PASS\n"
-	        "#define INPUT_DEPTH\n"
 	        "#define COPY_DEPTH\n");
 }
 
