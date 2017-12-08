@@ -9769,8 +9769,9 @@ void draw_object_backbufsel(
 				bbs_mesh_solid_EM(em, scene, v3d, ob, dm, (ts->selectmode & SCE_SELECT_FACE) != 0);
 				if (ts->selectmode & SCE_SELECT_FACE)
 					bm_solidoffs = 1 + em->bm->totface;
-				else
+				else {
 					bm_solidoffs = 1;
+				}
 
 				ED_view3d_polygon_offset(rv3d, 1.0);
 
@@ -9778,6 +9779,10 @@ void draw_object_backbufsel(
 				if (ts->selectmode & SCE_SELECT_EDGE) {
 					bbs_mesh_wire(em, dm, bm_solidoffs);
 					bm_wireoffs = bm_solidoffs + em->bm->totedge;
+				}
+				else {
+					/* `bm_vertoffs` is calculated from `bm_wireoffs`. (otherwise see T53512) */
+					bm_wireoffs = bm_solidoffs;
 				}
 
 				/* we draw verts if vert select mode. */
