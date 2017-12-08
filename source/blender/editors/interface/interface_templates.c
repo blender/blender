@@ -120,36 +120,36 @@ typedef struct TemplateID {
 /* Search browse menu, assign  */
 static void id_search_call_cb(bContext *C, void *arg_template, void *item)
 {
-	TemplateID *template = (TemplateID *)arg_template;
+	TemplateID *template_ui = (TemplateID *)arg_template;
 
 	/* ID */
 	if (item) {
 		PointerRNA idptr;
 
 		RNA_id_pointer_create(item, &idptr);
-		RNA_property_pointer_set(&template->ptr, template->prop, idptr);
-		RNA_property_update(C, &template->ptr, template->prop);
+		RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr);
+		RNA_property_update(C, &template_ui->ptr, template_ui->prop);
 	}
 }
 
 /* ID Search browse menu, do the search */
 static void id_search_cb(const bContext *C, void *arg_template, const char *str, uiSearchItems *items)
 {
-	TemplateID *template = (TemplateID *)arg_template;
-	ListBase *lb = template->idlb;
-	ID *id, *id_from = template->ptr.id.data;
+	TemplateID *template_ui = (TemplateID *)arg_template;
+	ListBase *lb = template_ui->idlb;
+	ID *id, *id_from = template_ui->ptr.id.data;
 	int iconid;
-	int flag = RNA_property_flag(template->prop);
+	int flag = RNA_property_flag(template_ui->prop);
 
 	/* ID listbase */
 	for (id = lb->first; id; id = id->next) {
 		if (!((flag & PROP_ID_SELF_CHECK) && id == id_from)) {
 
 			/* use filter */
-			if (RNA_property_type(template->prop) == PROP_POINTER) {
+			if (RNA_property_type(template_ui->prop) == PROP_POINTER) {
 				PointerRNA ptr;
 				RNA_id_pointer_create(id, &ptr);
-				if (RNA_property_pointer_poll(&template->ptr, template->prop, &ptr) == 0)
+				if (RNA_property_pointer_poll(&template_ui->ptr, template_ui->prop, &ptr) == 0)
 					continue;
 			}
 
@@ -165,7 +165,7 @@ static void id_search_cb(const bContext *C, void *arg_template, const char *str,
 				char name_ui[MAX_ID_NAME + 1];
 				BKE_id_ui_prefix(name_ui, id);
 
-				iconid = ui_id_icon_get(C, id, template->preview);
+				iconid = ui_id_icon_get(C, id, template_ui->preview);
 
 				if (false == UI_search_item_add(items, name_ui, id, iconid))
 					break;
@@ -178,7 +178,7 @@ static void id_search_cb(const bContext *C, void *arg_template, const char *str,
 static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 {
 	static char search[256];
-	static TemplateID template;
+	static TemplateID template_ui;
 	PointerRNA idptr;
 	wmWindow *win = CTX_wm_window(C);
 	uiBlock *block;
@@ -187,27 +187,27 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 	/* clear initial search string, then all items show */
 	search[0] = 0;
 	/* arg_litem is malloced, can be freed by parent button */
-	template = *((TemplateID *)arg_litem);
+	template_ui = *((TemplateID *)arg_litem);
 	
 	/* get active id for showing first item */
-	idptr = RNA_property_pointer_get(&template.ptr, template.prop);
+	idptr = RNA_property_pointer_get(&template_ui.ptr, template_ui.prop);
 
 	block = UI_block_begin(C, ar, "_popup", UI_EMBOSS);
 	UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_SEARCH_MENU);
 	
 	/* preview thumbnails */
-	if (template.prv_rows > 0 && template.prv_cols > 0) {
-		int w = 4 * U.widget_unit * template.prv_cols;
-		int h = 5 * U.widget_unit * template.prv_rows;
+	if (template_ui.prv_rows > 0 && template_ui.prv_cols > 0) {
+		int w = 4 * U.widget_unit * template_ui.prv_cols;
+		int h = 5 * U.widget_unit * template_ui.prv_rows;
 		
 		/* fake button, it holds space for search items */
 		uiDefBut(block, UI_BTYPE_LABEL, 0, "", 10, 26, w, h, NULL, 0, 0, 0, 0, NULL);
 		
 		but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, w, UI_UNIT_Y,
-		                     template.prv_rows, template.prv_cols, "");
+		                     template_ui.prv_rows, template_ui.prv_cols, "");
 		UI_but_func_search_set(
 		        but, ui_searchbox_create_generic, id_search_cb,
-		        &template, id_search_call_cb, idptr.data);
+		        &template_ui, id_search_call_cb, idptr.data);
 	}
 	/* list view */
 	else {
@@ -219,7 +219,7 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 		but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, searchbox_width, UI_UNIT_Y - 1, 0, 0, "");
 		UI_but_func_search_set(
 		        but, ui_searchbox_create_generic, id_search_cb,
-		        &template, id_search_call_cb, idptr.data);
+		        &template_ui, id_search_call_cb, idptr.data);
 	}
 		
 	
@@ -242,7 +242,7 @@ void UI_context_active_but_prop_get_templateID(
 	bContext *C,
 	PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
-	TemplateID *template;
+	TemplateID *template_ui;
 	ARegion *ar = CTX_wm_region(C);
 	uiBlock *block;
 	uiBut *but;
@@ -258,9 +258,9 @@ void UI_context_active_but_prop_get_templateID(
 			/* find the button before the active one */
 			if ((but->flag & (UI_BUT_LAST_ACTIVE | UI_ACTIVE))) {
 				if (but->func_argN) {
-					template = but->func_argN;
-					*r_ptr = template->ptr;
-					*r_prop = template->prop;
+					template_ui = but->func_argN;
+					*r_ptr = template_ui->ptr;
+					*r_prop = template_ui->prop;
 					return;
 				}
 			}
@@ -271,8 +271,8 @@ void UI_context_active_but_prop_get_templateID(
 
 static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 {
-	TemplateID *template = (TemplateID *)arg_litem;
-	PointerRNA idptr = RNA_property_pointer_get(&template->ptr, template->prop);
+	TemplateID *template_ui = (TemplateID *)arg_litem;
+	PointerRNA idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
 	ID *id = idptr.data;
 	int event = GET_INT_FROM_POINTER(arg_event);
 	
@@ -287,8 +287,8 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 			break;
 		case UI_ID_DELETE:
 			memset(&idptr, 0, sizeof(idptr));
-			RNA_property_pointer_set(&template->ptr, template->prop, idptr);
-			RNA_property_update(C, &template->ptr, template->prop);
+			RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr);
+			RNA_property_update(C, &template_ui->ptr, template_ui->prop);
 
 			if (id && CTX_wm_window(C)->eventstate->shift) {
 				/* only way to force-remove data (on save) */
@@ -313,16 +313,16 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 					BKE_main_id_clear_newpoins(bmain);
 
 					/* reassign to get get proper updates/notifiers */
-					idptr = RNA_property_pointer_get(&template->ptr, template->prop);
-					RNA_property_pointer_set(&template->ptr, template->prop, idptr);
-					RNA_property_update(C, &template->ptr, template->prop);
+					idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
+					RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr);
+					RNA_property_update(C, &template_ui->ptr, template_ui->prop);
 				}
 			}
 			break;
 		case UI_ID_ALONE:
 			if (id) {
 				const bool do_scene_obj = (GS(id->name) == ID_OB) &&
-				                          (template->ptr.type == &RNA_SceneObjects);
+				                          (template_ui->ptr.type == &RNA_SceneObjects);
 
 				/* make copy */
 				if (do_scene_obj) {
@@ -335,7 +335,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 				else {
 					if (id) {
 						Main *bmain = CTX_data_main(C);
-						id_single_user(C, id, &template->ptr, template->prop);
+						id_single_user(C, id, &template_ui->ptr, template_ui->prop);
 						DAG_relations_tag_update(bmain);
 					}
 				}
@@ -413,7 +413,7 @@ static void template_ID(
 	idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
 	id = idptr.data;
 	idfrom = template_ui->ptr.id.data;
-	// lb = template->idlb;
+	// lb = template_ui->idlb;
 
 	block = uiLayoutGetBlock(layout);
 	UI_block_align_begin(block);
