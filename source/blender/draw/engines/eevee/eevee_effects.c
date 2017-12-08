@@ -31,6 +31,7 @@
 
 #include "eevee_private.h"
 #include "GPU_texture.h"
+#include "GPU_extensions.h"
 
 static struct {
 	/* Downsample Depth */
@@ -148,9 +149,16 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	 * MinMax Pyramid
 	 */
 	DRWFboTexture texmax = {&txl->maxzbuffer, DRW_TEX_DEPTH_24, DRW_TEX_MIPMAP};
+
+	if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY)) {
+		/* Intel gpu seems to have problem rendering to only depth format */
+		texmax.format = DRW_TEX_R_32;
+	}
+
 	DRW_framebuffer_init(&fbl->downsample_fb, &draw_engine_eevee_type,
 	                    (int)viewport_size[0] / 2, (int)viewport_size[1] / 2,
 	                    &texmax, 1);
+
 
 	/**
 	 * Compute Mipmap texel alignement.
@@ -207,6 +215,13 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_EffectsInfo *effects = stl->effects;
+	int downsample_write = DRW_STATE_WRITE_DEPTH;
+
+	/* Intel gpu seems to have problem rendering to only depth format.
+	 * Use color texture instead. */
+	if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY)) {
+		downsample_write = DRW_STATE_WRITE_COLOR;
+	}
 
 	struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
 
@@ -233,39 +248,39 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 		DRWShadingGroup *grp;
 
 #if 0 /* Not used for now */
-		psl->minz_downlevel_ps = DRW_pass_create("HiZ Min Down Level", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
+		psl->minz_downlevel_ps = DRW_pass_create("HiZ Min Down Level", downsample_write | DRW_STATE_DEPTH_ALWAYS);
 		grp = DRW_shgroup_create(e_data.minz_downlevel_sh, psl->minz_downlevel_ps);
 		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &stl->g_data->minzbuffer);
 		DRW_shgroup_call_add(grp, quad, NULL);
 #endif
 
-		psl->maxz_downlevel_ps = DRW_pass_create("HiZ Max Down Level", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
+		psl->maxz_downlevel_ps = DRW_pass_create("HiZ Max Down Level", downsample_write | DRW_STATE_DEPTH_ALWAYS);
 		grp = DRW_shgroup_create(e_data.maxz_downlevel_sh, psl->maxz_downlevel_ps);
 		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &txl->maxzbuffer);
 		DRW_shgroup_call_add(grp, quad, NULL);
 
 		/* Copy depth buffer to halfres top level of HiZ */
 #if 0 /* Not used for now */
-		psl->minz_downdepth_ps = DRW_pass_create("HiZ Min Copy Depth Halfres", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
+		psl->minz_downdepth_ps = DRW_pass_create("HiZ Min Copy Depth Halfres", downsample_write | DRW_STATE_DEPTH_ALWAYS);
 		grp = DRW_shgroup_create(e_data.minz_downdepth_sh, psl->minz_downdepth_ps);
 		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
 		DRW_shgroup_call_add(grp, quad, NULL);
 #endif
 
-		psl->maxz_downdepth_ps = DRW_pass_create("HiZ Max Copy Depth Halfres", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
+		psl->maxz_downdepth_ps = DRW_pass_create("HiZ Max Copy Depth Halfres", downsample_write | DRW_STATE_DEPTH_ALWAYS);
 		grp = DRW_shgroup_create(e_data.maxz_downdepth_sh, psl->maxz_downdepth_ps);
 		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
 		DRW_shgroup_call_add(grp, quad, NULL);
 
 #if 0 /* Not used for now */
-		psl->minz_downdepth_layer_ps = DRW_pass_create("HiZ Min Copy DepthLayer Halfres", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
+		psl->minz_downdepth_layer_ps = DRW_pass_create("HiZ Min Copy DepthLayer Halfres", downsample_write | DRW_STATE_DEPTH_ALWAYS);
 		grp = DRW_shgroup_create(e_data.minz_downdepth_layer_sh, psl->minz_downdepth_layer_ps);
 		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
 		DRW_shgroup_uniform_int(grp, "depthLayer", &e_data.depth_src_layer, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
 #endif
 
-		psl->maxz_downdepth_layer_ps = DRW_pass_create("HiZ Max Copy DepthLayer Halfres", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
+		psl->maxz_downdepth_layer_ps = DRW_pass_create("HiZ Max Copy DepthLayer Halfres", downsample_write | DRW_STATE_DEPTH_ALWAYS);
 		grp = DRW_shgroup_create(e_data.maxz_downdepth_layer_sh, psl->maxz_downdepth_layer_ps);
 		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
 		DRW_shgroup_uniform_int(grp, "depthLayer", &e_data.depth_src_layer, 1);
@@ -273,13 +288,13 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 
 		/* Copy depth buffer to halfres top level of HiZ */
 #if 0 /* Not used for now */
-		psl->minz_copydepth_ps = DRW_pass_create("HiZ Min Copy Depth Fullres", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
+		psl->minz_copydepth_ps = DRW_pass_create("HiZ Min Copy Depth Fullres", downsample_write | DRW_STATE_DEPTH_ALWAYS);
 		grp = DRW_shgroup_create(e_data.minz_copydepth_sh, psl->minz_copydepth_ps);
 		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
 		DRW_shgroup_call_add(grp, quad, NULL);
 #endif
 
-		psl->maxz_copydepth_ps = DRW_pass_create("HiZ Max Copy Depth Fullres", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
+		psl->maxz_copydepth_ps = DRW_pass_create("HiZ Max Copy Depth Fullres", downsample_write | DRW_STATE_DEPTH_ALWAYS);
 		grp = DRW_shgroup_create(e_data.maxz_copydepth_sh, psl->maxz_copydepth_ps);
 		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
 		DRW_shgroup_call_add(grp, quad, NULL);

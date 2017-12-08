@@ -23,6 +23,10 @@ uniform sampler2D depthBuffer;
 #define minmax(a, b) max(a, b)
 #endif
 
+#ifdef GPU_INTEL
+out vec4 fragColor;
+#endif
+
 void main()
 {
 	ivec2 texelPos = ivec2(gl_FragCoord.xy);
@@ -61,5 +65,10 @@ void main()
 	}
 #endif
 
+#ifdef GPU_INTEL
+	/* Use color format instead of 24bit depth texture */
+	fragColor = vec4(val);
+#else
 	gl_FragDepth = val;
+#endif
 }
