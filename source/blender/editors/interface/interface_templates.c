@@ -400,7 +400,7 @@ static const char *template_id_context(StructRNA *type)
 #endif
 
 static void template_ID(
-        bContext *C, uiLayout *layout, TemplateID *template, StructRNA *type, short idcode, int flag,
+        bContext *C, uiLayout *layout, TemplateID *template_ui, StructRNA *type, short idcode, int flag,
         const char *newop, const char *openop, const char *unlinkop)
 {
 	uiBut *but;
@@ -408,11 +408,11 @@ static void template_ID(
 	PointerRNA idptr;
 	// ListBase *lb; // UNUSED
 	ID *id, *idfrom;
-	const bool editable = RNA_property_editable(&template->ptr, template->prop);
+	const bool editable = RNA_property_editable(&template_ui->ptr, template_ui->prop);
 
-	idptr = RNA_property_pointer_get(&template->ptr, template->prop);
+	idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
 	id = idptr.data;
-	idfrom = template->ptr.id.data;
+	idfrom = template_ui->ptr.id.data;
 	// lb = template->idlb;
 
 	block = uiLayoutGetBlock(layout);
@@ -422,9 +422,9 @@ static void template_ID(
 		type = idptr.type;
 
 	if (flag & UI_ID_PREVIEWS) {
-		template->preview = true;
+		template_ui->preview = true;
 
-		but = uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6,
+		but = uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template_ui), "", 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6,
 		                     TIP_(template_id_browse_tip(type)));
 		ui_def_but_icon(but, id ? ui_id_icon_get(C, id, true) : RNA_struct_ui_icon(type),
 		                UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
@@ -435,7 +435,7 @@ static void template_ID(
 		uiLayoutRow(layout, true);
 	}
 	else if (flag & UI_ID_BROWSE) {
-		but = uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X * 1.6, UI_UNIT_Y,
+		but = uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template_ui), "", 0, 0, UI_UNIT_X * 1.6, UI_UNIT_Y,
 		                     TIP_(template_id_browse_tip(type)));
 		ui_def_but_icon(but, RNA_struct_ui_icon(type), UI_HAS_ICON);
 		/* default dragging of icon for id browse buttons */
@@ -455,7 +455,7 @@ static void template_ID(
 		name[0] = '\0';
 		but = uiDefButR(block, UI_BTYPE_TEXT, 0, name, 0, 0, UI_UNIT_X * 6, UI_UNIT_Y,
 		                &idptr, "name", -1, 0, 0, -1, -1, RNA_struct_ui_description(type));
-		UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_RENAME));
+		UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), SET_INT_IN_POINTER(UI_ID_RENAME));
 		if (user_alert) UI_but_flag_enable(but, UI_BUT_REDALERT);
 
 		if (id->lib) {
@@ -471,7 +471,7 @@ static void template_ID(
 					UI_but_flag_enable(but, UI_BUT_DISABLED);
 			}
 
-			UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_LOCAL));
+			UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), SET_INT_IN_POINTER(UI_ID_LOCAL));
 		}
 
 		if (id->us > 1) {
@@ -485,7 +485,7 @@ static void template_ID(
 			               TIP_("Display number of users of this data (click to make a single-user copy)"));
 			but->flag |= UI_BUT_UNDO;
 
-			UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ALONE));
+			UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), SET_INT_IN_POINTER(UI_ID_ALONE));
 			if (/* test only */
 			    (id_copy(CTX_data_main(C), id, NULL, true) == false) ||
 			    (idfrom && idfrom->lib) ||
@@ -538,12 +538,12 @@ static void template_ID(
 		if (newop) {
 			but = uiDefIconTextButO(block, UI_BTYPE_BUT, newop, WM_OP_INVOKE_DEFAULT, ICON_ZOOMIN,
 			                        (id) ? "" : CTX_IFACE_(template_id_context(type), "New"), 0, 0, w, UI_UNIT_Y, NULL);
-			UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ADD_NEW));
+			UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), SET_INT_IN_POINTER(UI_ID_ADD_NEW));
 		}
 		else {
 			but = uiDefIconTextBut(block, UI_BTYPE_BUT, 0, ICON_ZOOMIN, (id) ? "" : CTX_IFACE_(template_id_context(type), "New"),
 			                       0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
-			UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ADD_NEW));
+			UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), SET_INT_IN_POINTER(UI_ID_ADD_NEW));
 		}
 
 		if ((idfrom && idfrom->lib) || !editable)
@@ -567,12 +567,12 @@ static void template_ID(
 		if (openop) {
 			but = uiDefIconTextButO(block, UI_BTYPE_BUT, openop, WM_OP_INVOKE_DEFAULT, ICON_FILESEL, (id) ? "" : IFACE_("Open"),
 			                        0, 0, w, UI_UNIT_Y, NULL);
-			UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_OPEN));
+			UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), SET_INT_IN_POINTER(UI_ID_OPEN));
 		}
 		else {
 			but = uiDefIconTextBut(block, UI_BTYPE_BUT, 0, ICON_FILESEL, (id) ? "" : IFACE_("Open"), 0, 0, w, UI_UNIT_Y,
 			                       NULL, 0, 0, 0, 0, NULL);
-			UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_OPEN));
+			UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), SET_INT_IN_POINTER(UI_ID_OPEN));
 		}
 
 		if ((idfrom && idfrom->lib) || !editable)
@@ -588,16 +588,16 @@ static void template_ID(
 		if (unlinkop) {
 			but = uiDefIconButO(block, UI_BTYPE_BUT, unlinkop, WM_OP_INVOKE_REGION_WIN, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
 			/* so we can access the template from operators, font unlinking needs this */
-			UI_but_funcN_set(but, NULL, MEM_dupallocN(template), NULL);
+			UI_but_funcN_set(but, NULL, MEM_dupallocN(template_ui), NULL);
 		}
 		else {
-			if ((RNA_property_flag(template->prop) & PROP_NEVER_UNLINK) == 0) {
+			if ((RNA_property_flag(template_ui->prop) & PROP_NEVER_UNLINK) == 0) {
 				but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0,
 				                   TIP_("Unlink data-block "
 				                        "(Shift + Click to set users to zero, data will then not be saved)"));
-				UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_DELETE));
+				UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), SET_INT_IN_POINTER(UI_ID_DELETE));
 
-				if (RNA_property_flag(template->prop) & PROP_NEVER_NULL) {
+				if (RNA_property_flag(template_ui->prop) & PROP_NEVER_NULL) {
 					UI_but_flag_enable(but, UI_BUT_DISABLED);
 				}
 			}
@@ -611,7 +611,7 @@ static void template_ID(
 	}
 
 	if (idcode == ID_TE)
-		uiTemplateTextureShow(layout, C, &template->ptr, template->prop);
+		uiTemplateTextureShow(layout, C, &template_ui->ptr, template_ui->prop);
 	
 	UI_block_align_end(block);
 }
@@ -620,7 +620,7 @@ static void ui_template_id(
         uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, const char *newop,
         const char *openop, const char *unlinkop, int flag, int prv_rows, int prv_cols)
 {
-	TemplateID *template;
+	TemplateID *template_ui;
 	PropertyRNA *prop;
 	StructRNA *type;
 	short idcode;
@@ -632,11 +632,11 @@ static void ui_template_id(
 		return;
 	}
 
-	template = MEM_callocN(sizeof(TemplateID), "TemplateID");
-	template->ptr = *ptr;
-	template->prop = prop;
-	template->prv_rows = prv_rows;
-	template->prv_cols = prv_cols;
+	template_ui = MEM_callocN(sizeof(TemplateID), "TemplateID");
+	template_ui->ptr = *ptr;
+	template_ui->prop = prop;
+	template_ui->prv_rows = prv_rows;
+	template_ui->prv_cols = prv_cols;
 
 	if (newop)
 		flag |= UI_ID_ADD_NEW;
@@ -645,17 +645,17 @@ static void ui_template_id(
 
 	type = RNA_property_pointer_type(ptr, prop);
 	idcode = RNA_type_to_ID_code(type);
-	template->idlb = which_libbase(CTX_data_main(C), idcode);
+	template_ui->idlb = which_libbase(CTX_data_main(C), idcode);
 	
 	/* create UI elements for this template
 	 *	- template_ID makes a copy of the template data and assigns it to the relevant buttons
 	 */
-	if (template->idlb) {
+	if (template_ui->idlb) {
 		uiLayoutRow(layout, true);
-		template_ID(C, layout, template, type, idcode, flag, newop, openop, unlinkop);
+		template_ID(C, layout, template_ui, type, idcode, flag, newop, openop, unlinkop);
 	}
 
-	MEM_freeN(template);
+	MEM_freeN(template_ui);
 }
 
 void uiTemplateID(
