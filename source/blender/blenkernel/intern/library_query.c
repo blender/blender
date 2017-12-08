@@ -773,11 +773,11 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 			case ID_GR:
 			{
 				Group *group = (Group *) id;
-				FOREACH_GROUP_OBJECT(group, object)
+				FOREACH_GROUP_BASE(group, base)
 				{
-					CALLBACK_INVOKE(object, IDWALK_CB_USER_ONE);
+					CALLBACK_INVOKE(base->object, IDWALK_CB_USER_ONE);
 				}
-				FOREACH_GROUP_OBJECT_END
+				FOREACH_GROUP_BASE_END
 				break;
 			}
 
