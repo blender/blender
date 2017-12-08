@@ -80,7 +80,6 @@ void BKE_group_init(Group *group)
 {
 	group->collection = MEM_callocN(sizeof(SceneCollection), __func__);
 	BLI_strncpy(group->collection->name, "Master Collection", sizeof(group->collection->name));
-	group->view_layer = NULL; /* groups are not calloced. */
 	group->view_layer = BKE_view_layer_group_add(group);
 
 	/* Unlink the master collection. */
