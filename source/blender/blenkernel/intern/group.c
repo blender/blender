@@ -140,8 +140,8 @@ void BKE_group_copy_data(Main *UNUSED(bmain), Group *group_dst, const Group *gro
 
 	group_dst->view_layer = MEM_dupallocN(group_src->view_layer);
 	BKE_view_layer_copy_data(group_dst->view_layer, group_src->view_layer,
-	                          master_collection_dst, master_collection_src,
-	                          flag_subdata);
+	                         master_collection_dst, master_collection_src,
+	                         flag_subdata);
 }
 
 Group *BKE_group_copy(Main *bmain, const Group *group)
