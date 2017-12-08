@@ -65,7 +65,7 @@ void BKE_group_eval_view_layers(const struct EvaluationContext *eval_ctx,
 #define FOREACH_GROUP_BASE(_group, _base)                         \
 	for (Base *_base = (Base *)(_group)->view_layer->object_bases.first; \
 	     _base;                                                   \
-		 _base = _base->next)                                     \
+	     _base = _base->next)                                     \
 	{
 
 #define FOREACH_GROUP_BASE_END                                    \
@@ -74,7 +74,7 @@ void BKE_group_eval_view_layers(const struct EvaluationContext *eval_ctx,
 #define FOREACH_GROUP_OBJECT(_group, _object)                     \
 	for (Base *_base = (Base *)(_group)->view_layer->object_bases.first; \
 	     _base;                                                   \
-		 _base = _base->next)                                     \
+	     _base = _base->next)                                     \
 	{                                                             \
 		Object *_object = _base->object;                          \
 		BLI_assert(_object != NULL);
