@@ -63,6 +63,16 @@ template<typename T> struct TextureInterpolator  {
 		return make_float4(f, f, f, 1.0f);
 	}
 
+	static ccl_always_inline float4 read(const T *data,
+	                                     int x, int y,
+	                                     int width, int height)
+	{
+		if(x < 0 || y < 0 || x >= width || y >= height) {
+			return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+		}
+		return read(data[y * width + x]);
+	}
+
 	static ccl_always_inline int wrap_periodic(int x, int width)
 	{
 		x %= width;
@@ -132,10 +142,9 @@ template<typename T> struct TextureInterpolator  {
 				niy = wrap_periodic(iy+1, height);
 				break;
 			case EXTENSION_CLIP:
-				if(x < 0.0f || y < 0.0f || x > 1.0f || y > 1.0f) {
-					return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-				}
-				ATTR_FALLTHROUGH;
+				nix = ix + 1;
+				niy = iy + 1;
+				break;
 			case EXTENSION_EXTEND:
 				nix = wrap_clamp(ix+1, width);
 				niy = wrap_clamp(iy+1, height);
@@ -146,11 +155,10 @@ template<typename T> struct TextureInterpolator  {
 				kernel_assert(0);
 				return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 		}
-		float4 r = (1.0f - ty)*(1.0f - tx)*read(data[ix + iy*width]);
-		r += (1.0f - ty)*tx*read(data[nix + iy*width]);
-		r += ty*(1.0f - tx)*read(data[ix + niy*width]);
-		r += ty*tx*read(data[nix + niy*width]);
-		return r;
+		return (1.0f - ty) * (1.0f - tx) * read(data, ix, iy, width, height) +
+		       (1.0f - ty) * tx * read(data, nix, iy, width, height) +
+		       ty * (1.0f - tx) * read(data, ix, niy, width, height) +
+		       ty * tx * read(data, nix, niy, width, height);
 	}
 
 	static ccl_always_inline float4 interp_cubic(const TextureInfo& info,
@@ -175,10 +183,13 @@ template<typename T> struct TextureInterpolator  {
 				nniy = wrap_periodic(iy+2, height);
 				break;
 			case EXTENSION_CLIP:
-				if(x < 0.0f || y < 0.0f || x > 1.0f || y > 1.0f) {
-					return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-				}
-				ATTR_FALLTHROUGH;
+				pix = ix - 1;
+				piy = iy - 1;
+				nix = ix + 1;
+				niy = iy + 1;
+				nnix = ix + 2;
+				nniy = iy + 2;
+				break;
 			case EXTENSION_EXTEND:
 				pix = wrap_clamp(ix-1, width);
 				piy = wrap_clamp(iy-1, height);
@@ -194,15 +205,12 @@ template<typename T> struct TextureInterpolator  {
 				return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 		}
 		const int xc[4] = {pix, ix, nix, nnix};
-		const int yc[4] = {width * piy,
-		                   width * iy,
-		                   width * niy,
-		                   width * nniy};
+		const int yc[4] = {piy, iy, niy, nniy};
 		float u[4], v[4];
 		/* Some helper macro to keep code reasonable size,
 		 * let compiler to inline all the matrix multiplications.
 		 */
-#define DATA(x, y) (read(data[xc[x] + yc[y]]))
+#define DATA(x, y) (read(data, xc[x], yc[y], width, height))
 #define TERM(col) \
 		(v[col] * (u[0] * DATA(0, col) + \
 		           u[1] * DATA(1, col) + \
@@ -218,7 +226,8 @@ template<typename T> struct TextureInterpolator  {
 #undef DATA
 	}
 
-	static ccl_always_inline float4 interp(const TextureInfo& info, float x, float y)
+	static ccl_always_inline float4 interp(const TextureInfo& info,
+	                                       float x, float y)
 	{
 		if(UNLIKELY(!info.data)) {
 			return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
