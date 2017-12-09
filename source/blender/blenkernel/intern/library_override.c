@@ -66,16 +66,26 @@ IDOverrideStatic *BKE_override_static_init(ID *local_id, ID *reference_id)
 	BLI_assert(reference_id == NULL || reference_id->lib != NULL);
 	BLI_assert(local_id->override_static == NULL);
 
-	if (reference_id != NULL && reference_id->override_static != NULL && reference_id->override_static->reference == NULL) {
-		/* reference ID has an override template, use it! */
-		BKE_override_static_copy(local_id, reference_id);
+	ID *ancestor_id;
+	for (ancestor_id = reference_id;
+	     ancestor_id != NULL && ancestor_id->override_static != NULL && ancestor_id->override_static->reference != NULL;
+	     ancestor_id = ancestor_id->override_static->reference);
+
+	if (ancestor_id != NULL && ancestor_id->override_static != NULL) {
+		/* Original ID has a template, use it! */
+		BKE_override_static_copy(local_id, ancestor_id);
+		if (local_id->override_static->reference != reference_id) {
+			id_us_min(local_id->override_static->reference);
+			local_id->override_static->reference = reference_id;
+			id_us_plus(local_id->override_static->reference);
+		}
 		return local_id->override_static;
 	}
 
 	/* Else, generate new empty override. */
 	local_id->override_static = MEM_callocN(sizeof(*local_id->override_static), __func__);
 	local_id->override_static->reference = reference_id;
-	id_us_plus(reference_id);
+	id_us_plus(local_id->override_static->reference);
 	local_id->tag &= ~LIB_TAG_OVERRIDESTATIC_OK;
 	/* TODO do we want to add tag or flag to referee to mark it as such? */
 	return local_id->override_static;
