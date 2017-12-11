@@ -57,6 +57,7 @@
 #include "BKE_group.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
+#include "BKE_library_override.h"
 #include "BKE_library_query.h"
 #include "BKE_library_remap.h"
 #include "BKE_main.h"
@@ -449,6 +450,19 @@ static void id_local_cb(
 			id_clear_lib_data(bmain, tselem->id);
 		}
 		else {
+			BKE_main_id_clear_newpoins(bmain);
+		}
+	}
+}
+
+static void id_static_override_cb(
+        bContext *C, ReportList *UNUSED(reports), Scene *UNUSED(scene), TreeElement *UNUSED(te),
+        TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
+{
+	if (ID_IS_LINKED(tselem->id) && (tselem->id->tag & LIB_TAG_EXTERN)) {
+		Main *bmain = CTX_data_main(C);
+		ID *override_id = BKE_override_static_create_from(bmain, tselem->id);
+		if (override_id != NULL) {
 			BKE_main_id_clear_newpoins(bmain);
 		}
 	}
@@ -1117,6 +1131,7 @@ void OUTLINER_OT_object_operation(wmOperatorType *ot)
 typedef enum eOutliner_PropGroupOps {
 	OL_GROUPOP_UNLINK = 1,
 	OL_GROUPOP_LOCAL,
+	OL_GROUPOP_STATIC_OVERRIDE,
 	OL_GROUPOP_LINK,
 	OL_GROUPOP_DELETE,
 	OL_GROUPOP_REMAP,
@@ -1130,6 +1145,8 @@ typedef enum eOutliner_PropGroupOps {
 static const EnumPropertyItem prop_group_op_types[] = {
 	{OL_GROUPOP_UNLINK, "UNLINK",     0, "Unlink Group", ""},
 	{OL_GROUPOP_LOCAL, "LOCAL",       0, "Make Local Group", ""},
+	{OL_GROUPOP_STATIC_OVERRIDE, "STATIC_OVERRIDE",
+	 0, "Add Static Override", "Add a local static override of that group"},
 	{OL_GROUPOP_LINK, "LINK",         0, "Link Group Objects to Scene", ""},
 	{OL_GROUPOP_DELETE, "DELETE",     0, "Delete Group", ""},
 	{OL_GROUPOP_REMAP, "REMAP",       0, "Remap Users",
@@ -1160,6 +1177,9 @@ static int outliner_group_operation_exec(bContext *C, wmOperator *op)
 			break;
 		case OL_GROUPOP_LOCAL:
 			outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, id_local_cb, NULL);
+			break;
+		case OL_GROUPOP_STATIC_OVERRIDE:
+			outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, id_static_override_cb, NULL);
 			break;
 		case OL_GROUPOP_LINK:
 			outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, group_linkobs2scene_cb, NULL);
@@ -1213,6 +1233,7 @@ typedef enum eOutlinerIdOpTypes {
 	
 	OUTLINER_IDOP_UNLINK,
 	OUTLINER_IDOP_LOCAL,
+	OUTLINER_IDOP_STATIC_OVERRIDE,
 	OUTLINER_IDOP_SINGLE,
 	OUTLINER_IDOP_DELETE,
 	OUTLINER_IDOP_REMAP,
@@ -1228,6 +1249,8 @@ typedef enum eOutlinerIdOpTypes {
 static const EnumPropertyItem prop_id_op_types[] = {
 	{OUTLINER_IDOP_UNLINK, "UNLINK", 0, "Unlink", ""},
 	{OUTLINER_IDOP_LOCAL, "LOCAL", 0, "Make Local", ""},
+	{OUTLINER_IDOP_STATIC_OVERRIDE, "STATIC_OVERRIDE",
+	 0, "Add Static Override", "Add a local static override of this data-block"},
 	{OUTLINER_IDOP_SINGLE, "SINGLE", 0, "Make Single User", ""},
 	{OUTLINER_IDOP_DELETE, "DELETE", 0, "Delete", "WARNING: no undo"},
 	{OUTLINER_IDOP_REMAP, "REMAP", 0, "Remap Users",
@@ -1295,6 +1318,13 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 			/* make local */
 			outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, id_local_cb, NULL);
 			ED_undo_push(C, "Localized Data");
+			break;
+		}
+		case OUTLINER_IDOP_STATIC_OVERRIDE:
+		{
+			/* make local */
+			outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, id_static_override_cb, NULL);
+			ED_undo_push(C, "Overrided Data");
 			break;
 		}
 		case OUTLINER_IDOP_SINGLE:
