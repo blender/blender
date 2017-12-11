@@ -302,7 +302,8 @@ static int manipulator_grab_test_select(
 		return -1;
 	}
 
-	if (len_squared_v2(point_local) < SQUARE(mpr->scale_final)) {
+	/* The 'mpr->scale_final' is already applied when projecting. */
+	if (len_squared_v2(point_local) < 1.0f) {
 		return 0;
 	}
 
