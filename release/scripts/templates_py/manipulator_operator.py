@@ -169,7 +169,7 @@ class SelectSideOfPlaneManipulatorGroup(ManipulatorGroup):
         mpr.color = 0.8, 0.8, 0.8
         mpr.alpha = 0.5
 
-        mpr.color_highlight = 1.0, 1.0, 1.0, 1.0
+        mpr.color_highlight = 1.0, 1.0, 1.0
         mpr.alpha_highlight = 1.0
 
         self.widget_dial = mpr
