@@ -80,6 +80,71 @@ void BKE_colorband_init(ColorBand *coba, bool rangetype)
 	coba->color_mode = COLBAND_BLEND_RGB;
 }
 
+static void colorband_init_from_table_rgba_simple(
+        ColorBand *coba,
+        const float (*array)[4], const int array_len)
+{
+	/* No Re-sample, just de-duplicate. */
+	const float eps = (1.0f / 255.0f) + 1e-6f;
+	BLI_assert(array_len < MAXCOLORBAND);
+	int stops = min_ii(MAXCOLORBAND, array_len);
+	if (stops) {
+		const float step_size = 1.0f / (float)max_ii(stops - 1, 1);
+		int i_curr = -1;
+		for (int i_step = 0; i_step < stops; i_step++) {
+			if ((i_curr != -1) && compare_v4v4(&coba->data[i_curr].r, array[i_step], eps)) {
+				continue;
+			}
+			i_curr += 1;
+			copy_v4_v4(&coba->data[i_curr].r, array[i_step]);
+			coba->data[i_curr].pos = i_step * step_size;
+			coba->data[i_curr].cur = i_curr;
+		}
+		coba->tot = i_curr + 1;
+		coba->cur = 0;
+	}
+	else {
+		/* coba is empty, set 1 black stop */
+		zero_v3(&coba->data[0].r);
+		coba->data[0].a = 1.0f;
+		coba->cur = 0;
+		coba->tot = 1;
+	}
+}
+
+static void colorband_init_from_table_rgba_resample(
+        ColorBand *coba,
+        const float (*array)[4], const int array_len)
+{
+	/* TODO: more optimal method of color simplification,
+	 * for now just pick evenly spaced colors. */
+	BLI_assert(array_len >= MAXCOLORBAND);
+	float step = array_len / (float)MAXCOLORBAND;
+	float color_step = 1.0f / (MAXCOLORBAND - 1);
+	for (int i = 0; i < MAXCOLORBAND; i++) {
+		int cur_color = (int)(step * i);
+		copy_v4_v4(&coba->data[i].r, array[cur_color]);
+		coba->data[i].pos = i * color_step;
+		coba->data[i].cur = i;
+	}
+	coba->tot = MAXCOLORBAND;
+	coba->cur = 0;
+}
+
+void BKE_colorband_init_from_table_rgba(
+        ColorBand *coba,
+        const float (*array)[4], const int array_len)
+{
+	if (array_len < MAXCOLORBAND) {
+		/* No Re-sample, just de-duplicate. */
+		colorband_init_from_table_rgba_simple(coba, array, array_len);
+	}
+	else {
+		/* Re-sample */
+		colorband_init_from_table_rgba_resample(coba, array, array_len);
+	}
+}
+
 ColorBand *BKE_colorband_add(bool rangetype)
 {
 	ColorBand *coba;

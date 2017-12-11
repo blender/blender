@@ -1532,6 +1532,11 @@ static void colorband_buttons_layout(
 	bt = uiDefIconTextBut(block, UI_BTYPE_BUT, 0, ICON_ARROW_LEFTRIGHT, "", xs + 4.0f * unit, ys + UI_UNIT_Y, 2.0f * unit, UI_UNIT_Y,
 	              NULL, 0, 0, 0, 0, TIP_("Flip the color ramp"));
 	UI_but_funcN_set(bt, colorband_flip_cb, MEM_dupallocN(cb), coba);
+
+	bt = uiDefIconButO(block, UI_BTYPE_BUT, "UI_OT_eyedropper_colorband", WM_OP_INVOKE_DEFAULT, ICON_EYEDROPPER, xs + 6.0f * unit, ys + UI_UNIT_Y, UI_UNIT_X, UI_UNIT_Y, NULL);
+	bt->custom_data = coba;
+	bt->func_argN = MEM_dupallocN(cb);
+
 	UI_block_align_end(block);
 	UI_block_emboss_set(block, UI_EMBOSS);
 
