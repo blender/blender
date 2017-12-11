@@ -217,6 +217,7 @@ void rna_ID_name_set(struct PointerRNA *ptr, const char *value);
 struct StructRNA *rna_ID_refine(struct PointerRNA *ptr);
 struct IDProperty *rna_ID_idprops(struct PointerRNA *ptr, bool create);
 void rna_ID_fake_user_set(struct PointerRNA *ptr, int value);
+void **rna_ID_instance(PointerRNA *ptr);
 struct IDProperty *rna_PropertyGroup_idprops(struct PointerRNA *ptr, bool create);
 void rna_PropertyGroup_unregister(struct Main *bmain, struct StructRNA *type);
 struct StructRNA *rna_PropertyGroup_register(struct Main *bmain, struct ReportList *reports, void *data,

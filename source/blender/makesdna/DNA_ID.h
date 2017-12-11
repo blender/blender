@@ -131,6 +131,10 @@ typedef struct ID {
 	int us;
 	int icon_id;
 	IDProperty *properties;
+
+	void *py_instance;
+
+	void *pad1;
 } ID;
 
 /**
