@@ -80,6 +80,10 @@ typedef enum eWM_ManipulatorFlag {
 	 * This simply skips scale when calculating the final matrix.
 	 * Needed when the manipulator needs to align with the interface underneath it. */
 	WM_MANIPULATOR_DRAW_NO_SCALE  = (1 << 5),
+	/**
+	 * Hide the cursor and lock it's position while interacting with this manipulator.
+	 */
+	WM_MANIPULATOR_GRAB_CURSOR = (1 << 6),
 } eWM_ManipulatorFlag;
 
 /**

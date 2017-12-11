@@ -401,6 +401,7 @@ RNA_MANIPULATOR_GENERIC_FLAG_RW_DEF(flag_use_draw_value, flag, WM_MANIPULATOR_DR
 RNA_MANIPULATOR_GENERIC_FLAG_RW_DEF(flag_use_draw_offset_scale, flag, WM_MANIPULATOR_DRAW_OFFSET_SCALE);
 RNA_MANIPULATOR_GENERIC_FLAG_NEG_RW_DEF(flag_use_draw_scale, flag, WM_MANIPULATOR_DRAW_OFFSET_SCALE);
 RNA_MANIPULATOR_GENERIC_FLAG_RW_DEF(flag_hide, flag, WM_MANIPULATOR_HIDDEN);
+RNA_MANIPULATOR_GENERIC_FLAG_RW_DEF(flag_use_grab_cursor, flag, WM_MANIPULATOR_GRAB_CURSOR);
 
 /* wmManipulator.state */
 RNA_MANIPULATOR_FLAG_RO_DEF(state_is_highlight, state, WM_MANIPULATOR_STATE_HIGHLIGHT);
@@ -1087,6 +1088,13 @@ static void rna_def_manipulator(BlenderRNA *brna, PropertyRNA *cprop)
 	        prop, "rna_Manipulator_flag_hide_get", "rna_Manipulator_flag_hide_set");
 	RNA_def_property_ui_text(prop, "Hide", "");
 	RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+	/* WM_MANIPULATOR_GRAB_CURSOR */
+	prop = RNA_def_property(srna, "use_grab_cursor", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(
+	        prop, "rna_Manipulator_flag_use_grab_cursor_get", "rna_Manipulator_flag_use_grab_cursor_set");
+	RNA_def_property_ui_text(prop, "Grab Cursor", "");
+	RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+
 	/* WM_MANIPULATOR_DRAW_HOVER */
 	prop = RNA_def_property(srna, "use_draw_hover", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(

@@ -112,6 +112,9 @@ struct wmManipulatorMap {
 		struct wmManipulator *modal;
 		/* array for all selected manipulators */
 		struct wmManipulatorMapSelectState select;
+		/* cursor location at point of entering modal (see: WM_MANIPULATOR_GRAB_CURSOR) */
+		int event_xy[2];
+		short event_grabcursor;
 	} mmap_context;
 };
 

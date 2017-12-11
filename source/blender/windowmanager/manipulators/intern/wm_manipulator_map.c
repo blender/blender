@@ -886,9 +886,9 @@ void wm_manipulatormap_modal_set(
 {
 	if (enable) {
 		BLI_assert(mmap->mmap_context.modal == NULL);
+		wmWindow *win = CTX_wm_window(C);
 
 		/* For now only grab cursor for 3D manipulators. */
-		bool grab_cursor = (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) != 0;
 		int retval = OPERATOR_RUNNING_MODAL;
 
 		if (mpr->type->invoke &&
@@ -904,6 +904,17 @@ void wm_manipulatormap_modal_set(
 		mpr->state |= WM_MANIPULATOR_STATE_MODAL;
 		mmap->mmap_context.modal = mpr;
 
+		if ((mpr->flag & WM_MANIPULATOR_GRAB_CURSOR) &&
+		    (WM_event_is_absolute(event) == false))
+		{
+			WM_cursor_grab_enable(win, true, true, NULL);
+			copy_v2_v2_int(mmap->mmap_context.event_xy, &event->x);
+			mmap->mmap_context.event_grabcursor = win->grabcursor;
+		}
+		else {
+			mmap->mmap_context.event_xy[0] = INT_MAX;
+		}
+
 		struct wmManipulatorOpElem *mpop = WM_manipulator_operator_get(mpr, mpr->highlight_part);
 		if (mpop && mpop->type) {
 			WM_operator_name_call_ptr(C, mpop->type, WM_OP_INVOKE_DEFAULT, &mpop->ptr);
@@ -914,10 +925,6 @@ void wm_manipulatormap_modal_set(
 				MEM_SAFE_FREE(mpr->interaction_data);
 			}
 			return;
-		}
-
-		if (grab_cursor) {
-			WM_cursor_grab_enable(CTX_wm_window(C), true, true, NULL);
 		}
 	}
 	else {
@@ -931,7 +938,18 @@ void wm_manipulatormap_modal_set(
 		mmap->mmap_context.modal = NULL;
 
 		if (C) {
-			WM_cursor_grab_disable(CTX_wm_window(C), NULL);
+			wmWindow *win = CTX_wm_window(C);
+			if (mmap->mmap_context.event_xy[0] != INT_MAX) {
+				/* Check if some other part of Blender (typically operators)
+				 * have adjusted the grab mode since it was set.
+				 * If so: warp, so we have a predictable outcome. */
+				if (mmap->mmap_context.event_grabcursor == win->grabcursor) {
+					WM_cursor_grab_disable(win, mmap->mmap_context.event_xy);
+				}
+				else {
+					WM_cursor_warp(win, UNPACK2(mmap->mmap_context.event_xy));
+				}
+			}
 			ED_region_tag_redraw(CTX_wm_region(C));
 			WM_event_add_mousemove(C);
 		}
