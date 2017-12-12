@@ -766,6 +766,7 @@ int BPY_context_member_get(struct bContext *C, const char *member, struct bConte
 void BPY_pyconstraint_target(struct bPythonConstraint *con, struct bConstraintTarget *ct) RET_NONE
 float BPY_driver_exec(PathResolvedRNA *anim_rna, struct ChannelDriver *driver, const float evaltime) RET_ZERO /* might need this one! */
 void BPY_DECREF(void *pyob_ptr) RET_NONE
+void BPY_DECREF_RNA_INVALIDATE(void *pyob_ptr) RET_NONE;
 void BPY_pyconstraint_exec(struct bPythonConstraint *con, struct bConstraintOb *cob, struct ListBase *targets) RET_NONE
 bool pyrna_id_FromPyObject(struct PyObject *obj, struct ID **id) RET_ZERO
 struct PyObject *pyrna_id_CreatePyObject(struct ID *id) RET_NULL
