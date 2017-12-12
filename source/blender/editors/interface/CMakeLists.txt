@@ -45,6 +45,11 @@ set(SRC
 	interface_anim.c
 	interface_draw.c
 	interface_eyedropper.c
+	interface_eyedropper_color.c
+	interface_eyedropper_colorband.c
+	interface_eyedropper_datablock.c
+	interface_eyedropper_depth.c
+	interface_eyedropper_driver.c
 	interface_handlers.c
 	interface_icons.c
 	interface_layout.c
