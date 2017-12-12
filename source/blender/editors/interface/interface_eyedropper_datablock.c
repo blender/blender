@@ -150,8 +150,8 @@ static void datadropper_exit(bContext *C, wmOperator *op)
 static void datadropper_id_sample_pt(bContext *C, DataDropper *ddr, int mx, int my, ID **r_id)
 {
 	/* we could use some clever */
-	wmWindow *win = CTX_wm_window(C);
-	ScrArea *sa = BKE_screen_find_area_xy(win->screen, -1, mx, my);
+	bScreen *screen = CTX_wm_screen(C);
+	ScrArea *sa = BKE_screen_find_area_xy(screen, -1, mx, my);
 
 	ScrArea *area_prev = CTX_wm_area(C);
 	ARegion *ar_prev = CTX_wm_region(C);
