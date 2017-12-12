@@ -754,11 +754,21 @@ void ui_but_anim_autokey(struct bContext *C, uiBut *but, struct Scene *scene, fl
 /* interface_eyedropper.c */
 struct wmKeyMap *eyedropper_modal_keymap(struct wmKeyConfig *keyconf);
 struct wmKeyMap *eyedropper_colorband_modal_keymap(struct wmKeyConfig *keyconf);
+
+/* interface_eyedropper_color.c */
 void UI_OT_eyedropper_color(struct wmOperatorType *ot);
+
+/* interface_eyedropper_colorband.c */
 void UI_OT_eyedropper_colorband(struct wmOperatorType *ot);
 void UI_OT_eyedropper_colorband_point(struct wmOperatorType *ot);
+
+/* interface_eyedropper_datablock.c */
 void UI_OT_eyedropper_id(struct wmOperatorType *ot);
+
+/* interface_eyedropper_depth.c */
 void UI_OT_eyedropper_depth(struct wmOperatorType *ot);
+
+/* interface_eyedropper_driver.c */
 void UI_OT_eyedropper_driver(struct wmOperatorType *ot);
 
 #endif  /* __INTERFACE_INTERN_H__ */
