@@ -1466,6 +1466,8 @@ void ED_operatortypes_ui(void)
 
 	/* external */
 	WM_operatortype_append(UI_OT_eyedropper_color);
+	WM_operatortype_append(UI_OT_eyedropper_colorband);
+	WM_operatortype_append(UI_OT_eyedropper_colorband_point);
 	WM_operatortype_append(UI_OT_eyedropper_id);
 	WM_operatortype_append(UI_OT_eyedropper_depth);
 	WM_operatortype_append(UI_OT_eyedropper_driver);
@@ -1482,6 +1484,8 @@ void ED_keymap_ui(wmKeyConfig *keyconf)
 	/* eyedroppers - notice they all have the same shortcut, but pass the event
 	 * through until a suitable eyedropper for the active button is found */
 	WM_keymap_add_item(keymap, "UI_OT_eyedropper_color", EKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "UI_OT_eyedropper_colorband", EKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "UI_OT_eyedropper_colorband_point", EKEY, KM_PRESS , KM_ALT, 0);
 	WM_keymap_add_item(keymap, "UI_OT_eyedropper_id", EKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "UI_OT_eyedropper_depth", EKEY, KM_PRESS, 0, 0);
 
@@ -1504,4 +1508,5 @@ void ED_keymap_ui(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "ANIM_OT_keyingset_button_remove", KKEY, KM_PRESS, KM_ALT, 0);
 
 	eyedropper_modal_keymap(keyconf);
+	eyedropper_colorband_modal_keymap(keyconf);
 }

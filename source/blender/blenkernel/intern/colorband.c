@@ -30,6 +30,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_math_color.h"
+#include "BLI_heap.h"
 
 #include "DNA_key_types.h"
 #include "DNA_texture_types.h"
@@ -79,6 +80,181 @@ void BKE_colorband_init(ColorBand *coba, bool rangetype)
 	coba->tot = 2;
 	coba->color_mode = COLBAND_BLEND_RGB;
 }
+
+static void colorband_init_from_table_rgba_simple(
+        ColorBand *coba,
+        const float (*array)[4], const int array_len)
+{
+	/* No Re-sample, just de-duplicate. */
+	const float eps = (1.0f / 255.0f) + 1e-6f;
+	BLI_assert(array_len < MAXCOLORBAND);
+	int stops = min_ii(MAXCOLORBAND, array_len);
+	if (stops) {
+		const float step_size = 1.0f / (float)max_ii(stops - 1, 1);
+		int i_curr = -1;
+		for (int i_step = 0; i_step < stops; i_step++) {
+			if ((i_curr != -1) && compare_v4v4(&coba->data[i_curr].r, array[i_step], eps)) {
+				continue;
+			}
+			i_curr += 1;
+			copy_v4_v4(&coba->data[i_curr].r, array[i_step]);
+			coba->data[i_curr].pos = i_step * step_size;
+			coba->data[i_curr].cur = i_curr;
+		}
+		coba->tot = i_curr + 1;
+		coba->cur = 0;
+	}
+	else {
+		/* coba is empty, set 1 black stop */
+		zero_v3(&coba->data[0].r);
+		coba->data[0].a = 1.0f;
+		coba->cur = 0;
+		coba->tot = 1;
+	}
+}
+
+
+/* -------------------------------------------------------------------- */
+/** \name Color Ramp Re-Sample
+ *
+ * Local functions for #BKE_colorband_init_from_table_rgba
+ * \{ */
+
+/**
+ * Used for calculating which samples of a color-band to remove (when simplifying).
+ */
+struct ColorResampleElem {
+	struct ColorResampleElem *next, *prev;
+	HeapNode *node;
+	float rgba[4];
+	float pos;
+};
+
+/**
+ * Measure the 'area' of each channel and combine to use as a cost for this samples removal.
+ */
+static float color_sample_remove_cost(const struct ColorResampleElem *c)
+{
+	if (c->next == NULL || c->prev == NULL) {
+		return -1.0f;
+	}
+	float area = 0.0f;
+#if 0
+	float xy_prev[2], xy_curr[2], xy_next[2];
+	xy_prev[0] = c->prev->pos;
+	xy_curr[0] = c->pos;
+	xy_next[0] = c->next->pos;
+	for (int i = 0; i < 4; i++) {
+		xy_prev[1] = c->prev->rgba[i];
+		xy_curr[1] = c->rgba[i];
+		xy_next[1] = c->next->rgba[i];
+		area += fabsf(cross_tri_v2(xy_prev, xy_curr, xy_next));
+	}
+#else
+	/* Above logic, optimized (p: previous, c: current, n: next). */
+	const float xpc = c->prev->pos - c->pos;
+	const float xnc = c->next->pos - c->pos;
+	for (int i = 0; i < 4; i++) {
+		const float ycn = c->rgba[i] - c->next->rgba[i];
+		const float ypc = c->prev->rgba[i] - c->rgba[i];
+		area += fabsf((xpc * ycn) + (ypc * xnc));
+	}
+#endif
+	return area;
+}
+
+static void colorband_init_from_table_rgba_resample(
+        ColorBand *coba,
+        const float (*array)[4], const int array_len)
+{
+	BLI_assert(array_len >= MAXCOLORBAND);
+	/* Use 2x to avoid noise having too much impact, since this is RGBA accumulated. */
+	const float eps_2x = ((1.0f / 255.0f) + 1e-6f) * 2.0f;
+	struct ColorResampleElem *c, *carr = MEM_mallocN(sizeof(*carr) * array_len, __func__);
+	int carr_len = array_len;
+	c = carr;
+	const float step_size = 1.0f / (float)(array_len - 1);
+	for (int i = 0; i < array_len; i++, c++) {
+		copy_v4_v4(carr[i].rgba, array[i]);
+		c->next = c + 1;
+		c->prev = c - 1;
+		c->pos = i * step_size;
+	}
+	carr[0].prev = NULL;
+	carr[array_len - 1].next = NULL;
+
+	/* -2 to remove endpoints. */
+	Heap *heap = BLI_heap_new_ex(array_len - 2);
+	c = carr;
+	for (int i = 0; i < array_len; i++, c++) {
+		float cost = color_sample_remove_cost(c);
+		if (cost != -1.0f) {
+			c->node = BLI_heap_insert(heap, cost, c);
+		}
+		else {
+			c->node = NULL;
+		}
+	}
+
+	while ((carr_len > 1 && !BLI_heap_is_empty(heap)) &&
+	       ((carr_len >= MAXCOLORBAND) || (BLI_heap_node_value(BLI_heap_top(heap)) <= eps_2x)))
+	{
+		c = BLI_heap_popmin(heap);
+		struct ColorResampleElem *c_next = c->next, *c_prev = c->prev;
+		c_prev->next = c_next;
+		c_next->prev = c_prev;
+		/* Clear data (not essential, avoid confusion). */
+		c->prev = c->next = NULL;
+		c->node = NULL;
+
+		/* Update adjacent */
+		for (int i = 0; i < 2; i++) {
+			struct ColorResampleElem *c_other = i ? c_next : c_prev;
+			if (c_other->node != NULL) {
+				const float cost = color_sample_remove_cost(c_other);
+				if (cost != -1.0) {
+					BLI_heap_node_value_update(heap, c_other->node, cost);
+				}
+				else {
+					BLI_heap_remove(heap, c_other->node);
+					c_other->node = NULL;
+				}
+			}
+		}
+		carr_len -= 1;
+	}
+	BLI_heap_free(heap, NULL);
+
+	BLI_assert(carr_len < MAXCOLORBAND);
+	int i = 0;
+	/* First member is never removed. */
+	for (c = carr; c != NULL; c = c->next, i++) {
+		copy_v4_v4(&coba->data[i].r, c->rgba);
+		coba->data[i].pos = c->pos;
+		coba->data[i].cur = i;
+	}
+	BLI_assert(i == carr_len);
+	coba->tot = i;
+	coba->cur = 0;
+
+	MEM_freeN(carr);
+}
+
+void BKE_colorband_init_from_table_rgba(
+        ColorBand *coba,
+        const float (*array)[4], const int array_len)
+{
+	if (array_len < MAXCOLORBAND) {
+		/* No Re-sample, just de-duplicate. */
+		colorband_init_from_table_rgba_simple(coba, array, array_len);
+	}
+	else {
+		/* Re-sample */
+		colorband_init_from_table_rgba_resample(coba, array, array_len);
+	}
+}
+
+/** \} */
 
 ColorBand *BKE_colorband_add(bool rangetype)
 {

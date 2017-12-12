@@ -76,6 +76,9 @@
 /* for Driver eyedropper */
 #include "ED_keyframing.h"
 
+/* for colorband eyedropper*/
+#include "BLI_bitmap_draw_2d.h"
+#include "BKE_colorband.h"
 
 /* -------------------------------------------------------------------- */
 /* Keymap
@@ -89,6 +92,16 @@ enum {
 	EYE_MODAL_SAMPLE_BEGIN,
 	EYE_MODAL_SAMPLE_RESET,
 };
+
+/* Color-band point sample. */
+enum {
+	EYE_MODAL_POINT_CANCEL = 1,
+	EYE_MODAL_POINT_SAMPLE,
+	EYE_MODAL_POINT_CONFIRM,
+	EYE_MODAL_POINT_RESET,
+	EYE_MODAL_POINT_REMOVE_LAST,
+};
+
 
 wmKeyMap *eyedropper_modal_keymap(wmKeyConfig *keyconf)
 {
@@ -118,10 +131,42 @@ wmKeyMap *eyedropper_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, SPACEKEY, KM_RELEASE, KM_ANY, 0, EYE_MODAL_SAMPLE_RESET);
 
 	/* assign to operators */
+	WM_modalkeymap_assign(keymap, "UI_OT_eyedropper_colorband");
 	WM_modalkeymap_assign(keymap, "UI_OT_eyedropper_color");
 	WM_modalkeymap_assign(keymap, "UI_OT_eyedropper_id");
 	WM_modalkeymap_assign(keymap, "UI_OT_eyedropper_depth");
 	WM_modalkeymap_assign(keymap, "UI_OT_eyedropper_driver");
+
+	return keymap;
+}
+
+wmKeyMap *eyedropper_colorband_modal_keymap(wmKeyConfig *keyconf)
+{
+	static const EnumPropertyItem modal_items_point[] = {
+		{EYE_MODAL_POINT_CANCEL, "CANCEL", 0, "Cancel", ""},
+		{EYE_MODAL_POINT_SAMPLE, "SAMPLE_SAMPLE", 0, "Sample a point", ""},
+		{EYE_MODAL_POINT_CONFIRM, "SAMPLE_CONFIRM", 0, "Confirm Sampling", ""},
+		{EYE_MODAL_POINT_RESET, "SAMPLE_RESET", 0, "Reset Sampling", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "Eyedropper ColorBand PointSampling Map");
+	if (keymap && keymap->modal_items)
+		return keymap;
+
+	keymap = WM_modalkeymap_add(keyconf, "Eyedropper ColorBand PointSampling Map", modal_items_point);
+
+	/* items for modal map */
+	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, EYE_MODAL_CANCEL);
+	WM_modalkeymap_add_item(keymap, BACKSPACEKEY, KM_PRESS, KM_ANY, 0, EYE_MODAL_POINT_REMOVE_LAST);
+	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_PRESS, KM_ANY, 0, EYE_MODAL_POINT_CONFIRM);
+	WM_modalkeymap_add_item(keymap, RETKEY, KM_RELEASE, KM_ANY, 0, EYE_MODAL_POINT_CONFIRM);
+	WM_modalkeymap_add_item(keymap, PADENTER, KM_RELEASE, KM_ANY, 0, EYE_MODAL_POINT_CONFIRM);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_ANY, 0, EYE_MODAL_POINT_SAMPLE);
+	WM_modalkeymap_add_item(keymap, SPACEKEY, KM_RELEASE, KM_ANY, 0, EYE_MODAL_POINT_RESET);
+
+	/* assign to operators */
+	WM_modalkeymap_assign(keymap, "UI_OT_eyedropper_colorband_point");
 
 	return keymap;
 }
@@ -262,7 +307,7 @@ static void eyedropper_exit(bContext *C, wmOperator *op)
  *
  * Special check for image or nodes where we MAY have HDR pixels which don't display.
  */
-static void eyedropper_color_sample_fl(bContext *C, Eyedropper *UNUSED(eye), int mx, int my, float r_col[3])
+static void eyedropper_color_sample_fl(bContext *C, int mx, int my, float r_col[3])
 {
 	/* we could use some clever */
 	bScreen *screen = CTX_wm_screen(C);
@@ -351,14 +396,14 @@ static void eyedropper_color_set_accum(bContext *C, Eyedropper *eye)
 static void eyedropper_color_sample(bContext *C, Eyedropper *eye, int mx, int my)
 {
 	float col[3];
-	eyedropper_color_sample_fl(C, eye, mx, my, col);
+	eyedropper_color_sample_fl(C, mx, my, col);
 	eyedropper_color_set(C, eye, col);
 }
 
 static void eyedropper_color_sample_accum(bContext *C, Eyedropper *eye, int mx, int my)
 {
 	float col[3];
-	eyedropper_color_sample_fl(C, eye, mx, my, col);
+	eyedropper_color_sample_fl(C, mx, my, col);
 	/* delay linear conversion */
 	add_v3_v3(eye->accum_col, col);
 	eye->accum_tot++;
@@ -491,6 +536,284 @@ void UI_OT_eyedropper_color(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Eyedropper (RGB Color Band)
+ *
+ * Operates by either:
+ * - Dragging a straight line, sampling pixels formed by the line to extract a gradient.
+ * - Clicking on points, adding each color to the end of the color-band.
+ * \{ */
+
+typedef struct Colorband_RNAUpdateCb {
+	PointerRNA ptr;
+	PropertyRNA *prop;
+} Colorband_RNAUpdateCb;
+
+typedef struct EyedropperColorband {
+	int last_x, last_y;
+	/* Alpha is currently fixed at 1.0, may support in future. */
+	float (*color_buffer)[4];
+	int     color_buffer_alloc;
+	int     color_buffer_len;
+	bool sample_start;
+	ColorBand init_color_band;
+	ColorBand *color_band;
+	PointerRNA ptr;
+	PropertyRNA *prop;
+} EyedropperColorband;
+
+/* For user-data only. */
+struct EyedropperColorband_Context {
+	bContext *context;
+	EyedropperColorband *eye;
+};
+
+static bool eyedropper_colorband_init(bContext *C, wmOperator *op)
+{
+	ColorBand *band = NULL;
+	EyedropperColorband *eye;
+
+	uiBut *but = UI_context_active_but_get(C);
+
+	if (but == NULL) {
+		/* pass */
+	}
+	else if (but->type == UI_BTYPE_COLORBAND) {
+		/* When invoked with a hotkey, we can find the band in 'but->poin'. */
+		band = (ColorBand *)but->poin;
+	}
+	else {
+		/* When invoked from a button it's in custom_data field. */
+		band = (ColorBand *)but->custom_data;
+	}
+
+	if (!band)
+		return false;
+
+	op->customdata = eye = MEM_callocN(sizeof(EyedropperColorband), __func__);
+	eye->color_buffer_alloc = 16;
+	eye->color_buffer = MEM_mallocN(sizeof(*eye->color_buffer) * eye->color_buffer_alloc, __func__);
+	eye->color_buffer_len = 0;
+	eye->color_band = band;
+	eye->init_color_band = *eye->color_band;
+	eye->ptr = ((Colorband_RNAUpdateCb *)but->func_argN)->ptr;
+	eye->prop  = ((Colorband_RNAUpdateCb *)but->func_argN)->prop;
+
+	return true;
+}
+
+static void eyedropper_colorband_sample_point(bContext *C, EyedropperColorband *eye, int mx, int my)
+{
+	if (eye->last_x != mx || eye->last_y != my) {
+		float col[4];
+		col[3] = 1.0f;  /* TODO: sample alpha */
+		eyedropper_color_sample_fl(C, mx, my, col);
+		if (eye->color_buffer_len + 1 == eye->color_buffer_alloc) {
+			eye->color_buffer_alloc *= 2;
+			eye->color_buffer = MEM_reallocN(eye->color_buffer, sizeof(*eye->color_buffer) * eye->color_buffer_alloc);
+		}
+		copy_v4_v4(eye->color_buffer[eye->color_buffer_len], col);
+		eye->color_buffer_len += 1;
+		eye->last_x = mx;
+		eye->last_y = my;
+	}
+}
+
+static bool eyedropper_colorband_sample_callback(int mx, int my, void *userdata)
+{
+	struct EyedropperColorband_Context *data = userdata;
+	bContext *C = data->context;
+	EyedropperColorband *eye = data->eye;
+	eyedropper_colorband_sample_point(C, eye, mx, my);
+	return true;
+}
+
+static void eyedropper_colorband_sample_segment(bContext *C, EyedropperColorband *eye, int mx, int my)
+{
+	/* Since the mouse tends to move rather rapidly we use #BLI_bitmap_draw_2d_line_v2v2i
+	 * to interpolate between the reported coordinates */
+	struct EyedropperColorband_Context userdata = {C, eye};
+	int p1[2] = {eye->last_x, eye->last_y};
+	int p2[2] = {mx, my};
+	BLI_bitmap_draw_2d_line_v2v2i(p1, p2, eyedropper_colorband_sample_callback, &userdata);
+}
+
+static void eyedropper_colorband_exit(bContext *C, wmOperator *op)
+{
+	WM_cursor_modal_restore(CTX_wm_window(C));
+
+	if (op->customdata) {
+		EyedropperColorband *eye = op->customdata;
+		MEM_freeN(eye->color_buffer);
+		MEM_freeN(eye);
+		op->customdata = NULL;
+	}
+}
+
+static void eyedropper_colorband_apply(bContext *C, wmOperator *op)
+{
+	EyedropperColorband *eye = op->customdata;
+	BKE_colorband_init_from_table_rgba(eye->color_band, eye->color_buffer, eye->color_buffer_len);
+	RNA_property_update(C, &eye->ptr, eye->prop);
+}
+
+static void eyedropper_colorband_cancel(bContext *C, wmOperator *op)
+{
+	EyedropperColorband *eye = op->customdata;
+	*eye->color_band = eye->init_color_band;
+	RNA_property_update(C, &eye->ptr, eye->prop);
+	eyedropper_colorband_exit(C, op);
+}
+
+/* main modal status check */
+static int eyedropper_colorband_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	EyedropperColorband *eye = op->customdata;
+	/* handle modal keymap */
+	if (event->type == EVT_MODAL_MAP) {
+		switch (event->val) {
+			case EYE_MODAL_CANCEL:
+				eyedropper_colorband_cancel(C, op);
+				return OPERATOR_CANCELLED;
+			case EYE_MODAL_SAMPLE_CONFIRM:
+				eyedropper_colorband_sample_segment(C, eye, event->x, event->y);
+				eyedropper_colorband_apply(C, op);
+				eyedropper_colorband_exit(C, op);
+				return OPERATOR_FINISHED;
+			case EYE_MODAL_SAMPLE_BEGIN:
+				/* enable accum and make first sample */
+				eye->sample_start = true;
+				eyedropper_colorband_sample_point(C, eye, event->x, event->y);
+				eyedropper_colorband_apply(C, op);
+				eye->last_x = event->x;
+				eye->last_y = event->y;
+				break;
+			case EYE_MODAL_SAMPLE_RESET:
+				break;
+		}
+	}
+	else if (event->type == MOUSEMOVE) {
+		if (eye->sample_start) {
+			eyedropper_colorband_sample_segment(C, eye, event->x, event->y);
+			eyedropper_colorband_apply(C, op);
+		}
+	}
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int eyedropper_colorband_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	EyedropperColorband *eye = op->customdata;
+	/* handle modal keymap */
+	if (event->type == EVT_MODAL_MAP) {
+		switch (event->val) {
+			case EYE_MODAL_POINT_CANCEL:
+				eyedropper_colorband_cancel(C, op);
+				return OPERATOR_CANCELLED;
+			case EYE_MODAL_POINT_CONFIRM:
+				eyedropper_colorband_apply(C, op);
+				eyedropper_colorband_exit(C, op);
+				return OPERATOR_FINISHED;
+			case EYE_MODAL_POINT_REMOVE_LAST:
+				if (eye->color_buffer_len > 0) {
+					eye->color_buffer_len -= 1;
+					eyedropper_colorband_apply(C, op);
+				}
+				break;
+			case EYE_MODAL_POINT_SAMPLE:
+				eyedropper_colorband_sample_point(C, eye, event->x, event->y);
+				eyedropper_colorband_apply(C, op);
+				if (eye->color_buffer_len == MAXCOLORBAND ) {
+					eyedropper_colorband_exit(C, op);
+					return OPERATOR_FINISHED;
+				}
+				break;
+			case EYE_MODAL_SAMPLE_RESET:
+				*eye->color_band = eye->init_color_band;
+				RNA_property_update(C, &eye->ptr, eye->prop);
+				eye->color_buffer_len = 0;
+				break;
+		}
+	}
+	return OPERATOR_RUNNING_MODAL;
+}
+
+
+/* Modal Operator init */
+static int eyedropper_colorband_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	/* init */
+	if (eyedropper_colorband_init(C, op)) {
+		WM_cursor_modal_set(CTX_wm_window(C), BC_EYEDROPPER_CURSOR);
+
+		/* add temp handler */
+		WM_event_add_modal_handler(C, op);
+
+		return OPERATOR_RUNNING_MODAL;
+	}
+	else {
+		eyedropper_colorband_exit(C, op);
+		return OPERATOR_CANCELLED;
+	}
+}
+
+/* Repeat operator */
+static int eyedropper_colorband_exec(bContext *C, wmOperator *op)
+{
+	/* init */
+	if (eyedropper_colorband_init(C, op)) {
+
+		/* do something */
+
+		/* cleanup */
+		eyedropper_colorband_exit(C, op);
+
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+void UI_OT_eyedropper_colorband(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Eyedropper colorband";
+	ot->idname = "UI_OT_eyedropper_colorband";
+	ot->description = "Sample a color band";
+
+	/* api callbacks */
+	ot->invoke = eyedropper_colorband_invoke;
+	ot->modal = eyedropper_colorband_modal;
+	ot->cancel = eyedropper_colorband_cancel;
+	ot->exec = eyedropper_colorband_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
+
+	/* properties */
+}
+
+void UI_OT_eyedropper_colorband_point(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Eyedropper colorband (points)";
+	ot->idname = "UI_OT_eyedropper_colorband_point";
+	ot->description = "Pointsample a color band";
+
+	/* api callbacks */
+	ot->invoke = eyedropper_colorband_invoke;
+	ot->modal = eyedropper_colorband_point_modal;
+	ot->cancel = eyedropper_colorband_cancel;
+	ot->exec = eyedropper_colorband_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
+
+	/* properties */
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /* Data Dropper */

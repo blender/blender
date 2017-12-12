@@ -373,10 +373,12 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			case LEFTMOUSE:
 			case PADENTER:
 			case RETKEY:
-				edbm_inset_calc(op);
-				edbm_inset_exit(C, op);
-				return OPERATOR_FINISHED;
-
+				if (event->val == KM_PRESS) {
+					edbm_inset_calc(op);
+					edbm_inset_exit(C, op);
+					return OPERATOR_FINISHED;
+				}
+				break;
 			case LEFTSHIFTKEY:
 			case RIGHTSHIFTKEY:
 				if (event->val == KM_PRESS) {

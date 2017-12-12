@@ -76,22 +76,22 @@ if NOT "%1" == "" (
 	) else if "%1" == "x64" (
 		set BUILD_ARCH=x64
 	) else if "%1" == "2017" (
-	set BUILD_VS_VER=15
-	set BUILD_VS_YEAR=2017
-	set BUILD_VS_LIBDIRPOST=vc14
+		set BUILD_VS_VER=15
+		set BUILD_VS_YEAR=2017
+		set BUILD_VS_LIBDIRPOST=vc14
 	) else if "%1" == "2015" (
-	set BUILD_VS_VER=14
-	set BUILD_VS_YEAR=2015
-	set BUILD_VS_LIBDIRPOST=vc14
+		set BUILD_VS_VER=14
+		set BUILD_VS_YEAR=2015
+		set BUILD_VS_LIBDIRPOST=vc14
 	) else if "%1" == "2013" (
-	set BUILD_VS_VER=12
-	set BUILD_VS_YEAR=2013
-	set BUILD_VS_LIBDIRPOST=vc12
+		set BUILD_VS_VER=12
+		set BUILD_VS_YEAR=2013
+		set BUILD_VS_LIBDIRPOST=vc12
 	) else if "%1" == "packagename" (
-	set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -DCPACK_OVERRIDE_PACKAGENAME="%2"
-	shift /1
+		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -DCPACK_OVERRIDE_PACKAGENAME="%2"
+		shift /1
 	) else if "%1" == "nobuild" (
-	set NOBUILD=1
+		set NOBUILD=1
 	) else if "%1" == "showhash" (
 		for /f "delims=" %%i in ('git rev-parse HEAD') do echo Branch_hash=%%i
 		cd release/datafiles/locale
@@ -231,7 +231,7 @@ if NOT EXIST %BUILD_VS_LIBDIR% (
 		if /I "!GetLibs!"=="Y" (
 			echo.
 			echo Downloading %BUILD_VS_SVNDIR% libraries, please wait.
-			echo. 
+			echo.
 			svn checkout https://svn.blender.org/svnroot/bf-blender/trunk/lib/%BUILD_VS_SVNDIR% %BUILD_VS_LIBDIR%
 		)
 	)
@@ -255,18 +255,18 @@ if NOT EXIST %BUILD_DIR%\nul (
 	mkdir %BUILD_DIR%
 )
 if "%MUST_CLEAN%"=="1" (
-		echo Cleaning %BUILD_DIR%
-		msbuild ^
-			%BUILD_DIR%\Blender.sln ^
-			/target:clean ^
-			/property:Configuration=%BUILD_TYPE% ^
-			/verbosity:minimal ^
-			/p:platform=%MSBUILD_PLATFORM%
+	echo Cleaning %BUILD_DIR%
+	msbuild ^
+		%BUILD_DIR%\Blender.sln ^
+		/target:clean ^
+		/property:Configuration=%BUILD_TYPE% ^
+		/verbosity:minimal ^
+		/p:platform=%MSBUILD_PLATFORM%
 
-		if %ERRORLEVEL% NEQ 0 (
-			echo Cleaned "%BUILD_DIR%"
-		)
-		goto EOF
+	if %ERRORLEVEL% NEQ 0 (
+		echo Cleaned "%BUILD_DIR%"
+	)
+	goto EOF
 )
 REM Only configure on first run or when called with nobuild
 if NOT EXIST %BUILD_DIR%\Blender.sln set MUST_CONFIGURE=1
@@ -284,8 +284,8 @@ if "%MUST_CONFIGURE%"=="1" (
 		goto EOF
 	)
 )
-if DEFINED MSVC_VC_DIR echo call "%MSVC_VC_DIR%\vcvarsall.bat" > %BUILD_DIR%\rebuild.cmd 
-if DEFINED MSVC_VS_DIR echo call "%MSVC_VS_DIR%\Common7\Tools\VsDevCmd.bat" > %BUILD_DIR%\rebuild.cmd 
+if DEFINED MSVC_VC_DIR echo call "%MSVC_VC_DIR%\vcvarsall.bat" > %BUILD_DIR%\rebuild.cmd
+if DEFINED MSVC_VS_DIR echo call "%MSVC_VS_DIR%\Common7\Tools\VsDevCmd.bat" > %BUILD_DIR%\rebuild.cmd
 echo cmake . >> %BUILD_DIR%\rebuild.cmd
 echo msbuild ^
 	%BUILD_DIR%\Blender.sln ^
