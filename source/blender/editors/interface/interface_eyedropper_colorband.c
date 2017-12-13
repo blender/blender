@@ -165,7 +165,9 @@ static void eyedropper_colorband_exit(bContext *C, wmOperator *op)
 static void eyedropper_colorband_apply(bContext *C, wmOperator *op)
 {
 	EyedropperColorband *eye = op->customdata;
-	BKE_colorband_init_from_table_rgba(eye->color_band, eye->color_buffer, eye->color_buffer_len);
+	/* Always filter, avoids noise in resulting color-band. */
+	bool filter_samples = true;
+	BKE_colorband_init_from_table_rgba(eye->color_band, eye->color_buffer, eye->color_buffer_len, filter_samples);
 	RNA_property_update(C, &eye->ptr, eye->prop);
 }
 

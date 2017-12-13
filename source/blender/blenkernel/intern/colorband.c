@@ -163,22 +163,33 @@ static float color_sample_remove_cost(const struct ColorResampleElem *c)
 	return area;
 }
 
+/* TODO(campbell): create BLI_math_filter? */
+static float filter_gauss(float x)
+{
+	const float gaussfac = 1.6f;
+	const float two_gaussfac2 = 2.0f * gaussfac * gaussfac;
+	x *= 3.0f * gaussfac;
+	return 1.0f / sqrtf((float)M_PI * two_gaussfac2) * expf(-x * x / two_gaussfac2);
+}
+
 static void colorband_init_from_table_rgba_resample(
         ColorBand *coba,
-        const float (*array)[4], const int array_len)
+        const float (*array)[4], const int array_len,
+        bool filter_samples)
 {
-	BLI_assert(array_len >= MAXCOLORBAND);
-	/* Use 2x to avoid noise having too much impact, since this is RGBA accumulated. */
-	const float eps_2x = ((1.0f / 255.0f) + 1e-6f) * 2.0f;
+	BLI_assert(array_len >= 2);
+	const float eps_2x = ((1.0f / 255.0f) + 1e-6f);
 	struct ColorResampleElem *c, *carr = MEM_mallocN(sizeof(*carr) * array_len, __func__);
 	int carr_len = array_len;
 	c = carr;
-	const float step_size = 1.0f / (float)(array_len - 1);
-	for (int i = 0; i < array_len; i++, c++) {
-		copy_v4_v4(carr[i].rgba, array[i]);
-		c->next = c + 1;
-		c->prev = c - 1;
-		c->pos = i * step_size;
+	{
+		const float step_size = 1.0f / (float)(array_len - 1);
+		for (int i = 0; i < array_len; i++, c++) {
+			copy_v4_v4(carr[i].rgba, array[i]);
+			c->next = c + 1;
+			c->prev = c - 1;
+			c->pos = i * step_size;
+		}
 	}
 	carr[0].prev = NULL;
 	carr[array_len - 1].next = NULL;
@@ -225,13 +236,56 @@ static void colorband_init_from_table_rgba_resample(
 	}
 	BLI_heap_free(heap, NULL);
 
-	BLI_assert(carr_len < MAXCOLORBAND);
-	int i = 0;
 	/* First member is never removed. */
-	for (c = carr; c != NULL; c = c->next, i++) {
-		copy_v4_v4(&coba->data[i].r, c->rgba);
-		coba->data[i].pos = c->pos;
-		coba->data[i].cur = i;
+	int i = 0;
+	BLI_assert(carr_len < MAXCOLORBAND);
+	if (filter_samples == false) {
+		for (c = carr; c != NULL; c = c->next, i++) {
+			copy_v4_v4(&coba->data[i].r, c->rgba);
+			coba->data[i].pos = c->pos;
+			coba->data[i].cur = i;
+		}
+	}
+	else {
+		for (c = carr; c != NULL; c = c->next, i++) {
+			const int steps_prev = c->prev ? (c - c->prev) - 1 : 0;
+			const int steps_next = c->next ? (c->next - c) - 1 : 0;
+			if (steps_prev == 0 && steps_next == 0) {
+				copy_v4_v4(&coba->data[i].r, c->rgba);
+			}
+			else {
+				float rgba[4];
+				float rgba_accum = 1;
+				copy_v4_v4(rgba, c->rgba);
+
+				if (steps_prev) {
+					const float step_size = 1.0 / (float)(steps_prev + 1);
+					int j = steps_prev;
+					for (struct ColorResampleElem *c_other = c - 1; c_other != c->prev; c_other--, j--) {
+						const float step_pos = (float)j * step_size;
+						BLI_assert(step_pos > 0.0f && step_pos < 1.0f);
+						const float f = filter_gauss(step_pos);
+						madd_v4_v4fl(rgba, c_other->rgba, f);
+						rgba_accum += f;
+					}
+				}
+				if (steps_next) {
+					const float step_size = 1.0 / (float)(steps_next + 1);
+					int j = steps_next;
+					for (struct ColorResampleElem *c_other = c + 1; c_other != c->next; c_other++, j--) {
+						const float step_pos = (float)j * step_size;
+						BLI_assert(step_pos > 0.0f && step_pos < 1.0f);
+						const float f = filter_gauss(step_pos);
+						madd_v4_v4fl(rgba, c_other->rgba, f);
+						rgba_accum += f;
+					}
+				}
+
+				mul_v4_v4fl(&coba->data[i].r, rgba, 1.0f / rgba_accum);
+			}
+			coba->data[i].pos = c->pos;
+			coba->data[i].cur = i;
+		}
 	}
 	BLI_assert(i == carr_len);
 	coba->tot = i;
@@ -242,15 +296,18 @@ static void colorband_init_from_table_rgba_resample(
 
 void BKE_colorband_init_from_table_rgba(
         ColorBand *coba,
-        const float (*array)[4], const int array_len)
+        const float (*array)[4], const int array_len,
+        bool filter_samples)
 {
-	if (array_len < MAXCOLORBAND) {
+	/* Note, we could use MAXCOLORBAND here, but results of re-sampling are nicer,
+	 * avoid different behavior when limit is hit. */
+	if (array_len < 2) {
 		/* No Re-sample, just de-duplicate. */
 		colorband_init_from_table_rgba_simple(coba, array, array_len);
 	}
 	else {
 		/* Re-sample */
-		colorband_init_from_table_rgba_resample(coba, array, array_len);
+		colorband_init_from_table_rgba_resample(coba, array, array_len, filter_samples);
 	}
 }
 
