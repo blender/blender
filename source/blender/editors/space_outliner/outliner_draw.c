@@ -1378,22 +1378,24 @@ static void outliner_draw_tree_element(
 			}
 			else if (te->idcode == ID_OB) {
 				Object *ob = (Object *)tselem->id;
-				
-				if (ob == OBACT(view_layer) || (ob->flag & SELECT)) {
+				Base *base = (Base *)te->directdata;
+				const bool is_selected = (base != NULL) && ((base->flag & BASE_SELECTED) != 0);
+
+				if (ob == OBACT(view_layer) || is_selected) {
 					char col[4] = {0, 0, 0, 0};
 					
 					/* outliner active ob: always white text, circle color now similar to view3d */
 					
 					active = OL_DRAWSEL_ACTIVE;
 					if (ob == OBACT(view_layer)) {
-						if (ob->flag & SELECT) {
+						if (is_selected) {
 							UI_GetThemeColorType4ubv(TH_ACTIVE, SPACE_VIEW3D, col);
 							col[3] = alpha;
 						}
 						
 						active = OL_DRAWSEL_NORMAL;
 					}
-					else if (ob->flag & SELECT) {
+					else if (is_selected) {
 						UI_GetThemeColorType4ubv(TH_SELECT, SPACE_VIEW3D, col);
 						col[3] = alpha;
 					}

@@ -185,7 +185,7 @@ static eOLDrawState tree_element_set_active_object(
 
 		if (recursive) {
 			/* Recursive select/deselect for Object hierarchies */
-			do_outliner_object_select_recursive(view_layer, ob, (ob->flag & SELECT) != 0);
+			do_outliner_object_select_recursive(view_layer, ob, (base->flag & BASE_SELECTED) != 0);
 		}
 
 		if (set != OL_SETSEL_NONE) {
