@@ -2699,8 +2699,11 @@ void BKE_object_handle_update_ex(const EvaluationContext *eval_ctx,
                                  RigidBodyWorld *rbw,
                                  const bool do_proxy_update)
 {
+	const ID *object_data = ob->data;
 	const bool recalc_object = (ob->id.tag & LIB_TAG_ID_RECALC) != 0;
-	const bool recalc_data = (ob->id.tag & LIB_TAG_ID_RECALC_DATA) != 0;
+	const bool recalc_data =
+	        (object_data != NULL) ? ((object_data->tag & LIB_TAG_ID_RECALC_ALL) != 0)
+	                              : 0;
 	if (!recalc_object && ! recalc_data) {
 		object_handle_update_proxy(eval_ctx, scene, ob, do_proxy_update);
 		return;
