@@ -119,7 +119,6 @@ void deg_editors_scene_update(const DEGEditorUpdateContext *update_ctx,
 /* Tagging helpers ------------------------------------------------------ */
 
 void lib_id_recalc_tag(struct Main *bmain, struct ID *id);
-void lib_id_recalc_data_tag(struct Main *bmain, struct ID *id);
 
 #define DEG_DEBUG_PRINTF(...)               \
 	do {                                    \

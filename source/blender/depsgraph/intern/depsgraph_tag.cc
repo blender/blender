@@ -88,12 +88,6 @@ void lib_id_recalc_tag(Main *bmain, ID *id)
 	DEG_id_type_tag(bmain, GS(id->name));
 }
 
-void lib_id_recalc_data_tag(Main *bmain, ID *id)
-{
-	id->tag |= LIB_TAG_ID_RECALC_DATA;
-	DEG_id_type_tag(bmain, GS(id->name));
-}
-
 namespace {
 
 void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag);
@@ -114,8 +108,20 @@ void lib_id_recalc_tag_flag(Main *bmain, ID *id, int flag)
 		if (flag & OB_RECALC_OB) {
 			lib_id_recalc_tag(bmain, id);
 		}
-		if (flag & (OB_RECALC_DATA | PSYS_RECALC)) {
-			lib_id_recalc_data_tag(bmain, id);
+		if (flag & (OB_RECALC_DATA)) {
+			if (GS(id->name) == ID_OB) {
+				Object *object = (Object *)id;
+				ID *object_data = (ID *)object->data;
+				if (object_data != NULL) {
+					lib_id_recalc_tag(bmain, object_data);
+				}
+			}
+			else {
+				BLI_assert(!"Tagging non-object as object data update");
+			}
+		}
+		if (flag & PSYS_RECALC) {
+			lib_id_recalc_tag(bmain, id);
 		}
 	}
 	else {

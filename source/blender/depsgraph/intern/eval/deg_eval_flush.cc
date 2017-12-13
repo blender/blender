@@ -210,8 +210,6 @@ BLI_INLINE void flush_editors_id_update(Main *bmain,
 			deg_editors_id_update(update_ctx, id_cow);
 		}
 		lib_id_recalc_tag(bmain, id_orig);
-		/* TODO(sergey): For until we've got proper data nodes in the graph. */
-		lib_id_recalc_data_tag(bmain, id_orig);
 	}
 }
 
