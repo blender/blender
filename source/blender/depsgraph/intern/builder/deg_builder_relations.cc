@@ -1383,6 +1383,13 @@ void DepsgraphRelationBuilder::build_particles(Object *object)
 		if (part->ren_as == PART_DRAW_OB && part->dup_ob) {
 			ComponentKey dup_ob_key(&part->dup_ob->id, DEG_NODE_TYPE_TRANSFORM);
 			add_relation(dup_ob_key, psys_key, "Particle Object Visualization");
+			if (part->dup_ob->type == OB_MBALL) {
+				ComponentKey dup_geometry_key(&part->dup_ob->id,
+				                              DEG_NODE_TYPE_GEOMETRY);
+				add_relation(psys_key,
+				             dup_geometry_key,
+				             "Particle MBall Visualization");
+			}
 		}
 	}
 
