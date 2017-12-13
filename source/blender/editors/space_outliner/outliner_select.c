@@ -973,7 +973,7 @@ static void do_outliner_item_activate_tree_element(
  * \param extend: Don't deselect other items, only modify \a te.
  * \param toggle: Select \a te when not selected, deselect when selected.
  */
-static void outliner_item_select(SpaceOops *soops, const TreeElement *te, const bool extend, const bool toggle)
+void outliner_item_select(SpaceOops *soops, const TreeElement *te, const bool extend, const bool toggle)
 {
 	TreeStoreElem *tselem = TREESTORE(te);
 	const short new_flag = toggle ? (tselem->flag ^ TSE_SELECTED) : (tselem->flag | TSE_SELECTED);

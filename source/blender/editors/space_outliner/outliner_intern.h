@@ -203,6 +203,10 @@ int outliner_item_do_activate_from_cursor(
         struct bContext *C, const int mval[2],
         bool extend, bool recursive);
 
+void outliner_item_select(
+        struct SpaceOops *soops, const struct TreeElement *te,
+        const bool extend, const bool toggle);
+
 /* outliner_edit.c ---------------------------------------------- */
 typedef void (*outliner_operation_cb)(
         struct bContext *C, struct ReportList *, struct Scene *scene,
