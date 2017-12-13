@@ -440,7 +440,7 @@ enum {
 	/* RESET_AFTER_USE, used by update code (depsgraph). */
 	LIB_TAG_ID_RECALC       = 1 << 12,
 	LIB_TAG_ID_RECALC_DATA  = 1 << 13,
-	LIB_TAG_ANIM_NO_RECALC  = 1 << 14,
+	/* LIB_TAG_AVAILABLE  = 1 << 14, */  /* Was used by deprecated flag. */
 	LIB_TAG_ID_RECALC_ALL   = (LIB_TAG_ID_RECALC | LIB_TAG_ID_RECALC_DATA),
 
 	/* The datablock is a copy-on-write version. */
