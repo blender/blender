@@ -625,9 +625,9 @@ static bool select_grouped_object_hooks(bContext *C, Object *ob)
 	for (md = ob->modifiers.first; md; md = md->next) {
 		if (md->type == eModifierType_Hook) {
 			hmd = (HookModifierData *) md;
-			if (hmd->object && !(hmd->object->flag & SELECT)) {
+			if (hmd->object) {
 				base = BKE_view_layer_base_find(view_layer, hmd->object);
-				if (base && (BASE_SELECTABLE(base))) {
+				if (base && ((base->flag & BASE_SELECTED) == 0) && (BASE_SELECTABLE(base))) {
 					ED_object_base_select(base, BA_SELECT);
 					changed = true;
 				}
@@ -1107,12 +1107,12 @@ static bool object_select_more_less(bContext *C, const bool select)
 
 	bool changed = false;
 	const short select_mode = select ? BA_SELECT : BA_DESELECT;
-	const short select_flag = select ? SELECT : 0;
+	const short select_flag = select ? BASE_SELECTED : 0;
 
 	for (ctx_base = ctx_base_list.first; ctx_base; ctx_base = ctx_base->next) {
 		Base *base = ctx_base->ptr.data;
 		Object *ob = base->object;
-		if ((ob->id.tag & LIB_TAG_DOIT) && ((ob->flag & SELECT) != select_flag)) {
+		if ((ob->id.tag & LIB_TAG_DOIT) && ((base->flag & BASE_SELECTED) != select_flag)) {
 			ED_object_base_select(base, select_mode);
 			changed = true;
 		}
