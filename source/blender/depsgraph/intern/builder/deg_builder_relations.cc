@@ -1328,9 +1328,6 @@ void DepsgraphRelationBuilder::build_particles(Object *object)
 	OperationKey eval_init_key(&object->id,
 	                           DEG_NODE_TYPE_EVAL_PARTICLES,
 	                           DEG_OPCODE_PARTICLE_SYSTEM_EVAL_INIT);
-	if (object_particles_depends_on_time(object)) {
-		add_relation(time_src_key, eval_init_key, "TimeSrc -> PSys");
-	}
 
 	/* particle systems */
 	LINKLIST_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
