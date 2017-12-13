@@ -1351,9 +1351,6 @@ void DepsgraphRelationBuilder::build_particles(Object *object)
 	OperationKey eval_init_key(&object->id,
 	                           DEG_NODE_TYPE_EVAL_PARTICLES,
 	                           DEG_OPCODE_PARTICLE_SYSTEM_EVAL_INIT);
-	if (object_particles_depends_on_time(object)) {
-		add_relation(time_src_key, eval_init_key, "TimeSrc -> PSys");
-	}
 
 	/* particle systems */
 	LINKLIST_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
@@ -1452,6 +1449,13 @@ void DepsgraphRelationBuilder::build_particles(Object *object)
 		if (part->ren_as == PART_DRAW_OB && part->dup_ob) {
 			ComponentKey dup_ob_key(&part->dup_ob->id, DEG_NODE_TYPE_TRANSFORM);
 			add_relation(dup_ob_key, psys_key, "Particle Object Visualization");
+			if (part->dup_ob->type == OB_MBALL) {
+				ComponentKey dup_geometry_key(&part->dup_ob->id,
+				                              DEG_NODE_TYPE_GEOMETRY);
+				add_relation(psys_key,
+				             dup_geometry_key,
+				             "Particle MBall Visualization");
+			}
 		}
 	}
 

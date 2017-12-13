@@ -549,7 +549,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_boolean(func, "icon_only", false, "", "Draw only icons in buttons, no text");
 	RNA_def_boolean(func, "event", false, "", "Use button to input key events");
 	RNA_def_boolean(func, "full_event", false, "", "Use button to input full events including modifiers");
-	RNA_def_boolean(func, "emboss", true, "", "Draw the button itself, just the icon/text");
+	RNA_def_boolean(func, "emboss", true, "", "Draw the button itself, not just the icon/text");
 	RNA_def_int(func, "index", -1, -2, INT_MAX, "",
 	            "The index of this button, when set a single member of an array can be accessed, "
 	            "when set to -1 all array members are used", -2, INT_MAX); /* RNA_NO_INDEX == -1 */
@@ -582,7 +582,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 		        RNA_def_function(srna, "operator_menu_hold", "rna_uiItemOMenuHold") :
 		        RNA_def_function(srna, "operator", "rna_uiItemO");
 		api_ui_item_op_common(func);
-		RNA_def_boolean(func, "emboss", true, "", "Draw the button itself, just the icon/text");
+		RNA_def_boolean(func, "emboss", true, "", "Draw the button itself, not just the icon/text");
 		RNA_def_boolean(func, "depress", false, "", "Draw pressed in");
 		parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
 		RNA_def_property_ui_text(parm, "Icon Value", "Override automatic icon of the item");
