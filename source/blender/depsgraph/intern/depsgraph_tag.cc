@@ -117,7 +117,8 @@ void lib_id_recalc_tag_flag(Main *bmain, ID *id, int flag)
 				}
 			}
 			else {
-				BLI_assert(!"Tagging non-object as object data update");
+				// BLI_assert(!"Tagging non-object as object data update");
+				lib_id_recalc_tag(bmain, id);
 			}
 		}
 		if (flag & PSYS_RECALC) {
