@@ -601,12 +601,12 @@ void DEG_ids_clear_recalc(Main *bmain)
 
 		if (id && bmain->id_tag_update[BKE_idcode_to_index(GS(id->name))]) {
 			for (; id; id = (ID *)id->next) {
-				id->tag &= ~(LIB_TAG_ID_RECALC | LIB_TAG_ID_RECALC_DATA);
+				id->tag &= ~LIB_TAG_ID_RECALC_ALL;
 
 				/* Some ID's contain semi-datablock nodetree */
 				ntree = ntreeFromID(id);
 				if (ntree != NULL) {
-					ntree->id.tag &= ~(LIB_TAG_ID_RECALC | LIB_TAG_ID_RECALC_DATA);
+					ntree->id.tag &= ~LIB_TAG_ID_RECALC_ALL;
 				}
 			}
 		}
