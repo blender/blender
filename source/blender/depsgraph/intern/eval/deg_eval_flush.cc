@@ -234,11 +234,10 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 	FlushQueue queue;
 	flush_schedule_entrypoints(graph, &queue);
 	/* Prepare update context for editors. */
-	DEGEditorUpdateContext update_ctx = {
-		bmain,
-		graph->scene,
-		graph->view_layer,
-	};
+	DEGEditorUpdateContext update_ctx;
+	update_ctx.bmain = bmain;
+	update_ctx.scene = graph->scene;
+	update_ctx.view_layer = graph->view_layer;
 	/* Do actual flush. */
 	while (!queue.empty()) {
 		OperationDepsNode *op_node = queue.front();
