@@ -672,8 +672,9 @@ void psys_render_set(Object *ob, ParticleSystem *psys, float viewmat[4][4], floa
 	psys->renderdata = data;
 
 	/* Hair can and has to be recalculated if everything isn't displayed. */
-	if (psys->part->disp != 100 && psys->part->type == PART_HAIR)
+	if (psys->part->disp != 100 && ELEM(psys->part->type, PART_HAIR, PART_FLUID)) {
 		psys->recalc |= PSYS_RECALC_RESET;
+	}
 }
 
 void psys_render_restore(Object *ob, ParticleSystem *psys)
@@ -746,7 +747,7 @@ void psys_render_restore(Object *ob, ParticleSystem *psys)
 
 	if (disp != render_disp) {
 		/* Hair can and has to be recalculated if everything isn't displayed. */
-		if (psys->part->type == PART_HAIR) {
+		if (ELEM(psys->part->type, PART_HAIR, PART_FLUID)) {
 			psys->recalc |= PSYS_RECALC_RESET;
 		}
 		else {

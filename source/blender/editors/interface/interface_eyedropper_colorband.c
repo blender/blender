@@ -289,6 +289,13 @@ static int eyedropper_colorband_exec(bContext *C, wmOperator *op)
 	}
 }
 
+static int eyedropper_colorband_poll(bContext *C)
+{
+	uiBut *but = UI_context_active_but_get(C);
+	return (but && but->type == UI_BTYPE_COLORBAND);
+}
+
+
 void UI_OT_eyedropper_colorband(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -301,6 +308,7 @@ void UI_OT_eyedropper_colorband(wmOperatorType *ot)
 	ot->modal = eyedropper_colorband_modal;
 	ot->cancel = eyedropper_colorband_cancel;
 	ot->exec = eyedropper_colorband_exec;
+	ot->poll = eyedropper_colorband_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
@@ -320,6 +328,7 @@ void UI_OT_eyedropper_colorband_point(wmOperatorType *ot)
 	ot->modal = eyedropper_colorband_point_modal;
 	ot->cancel = eyedropper_colorband_cancel;
 	ot->exec = eyedropper_colorband_exec;
+	ot->poll = eyedropper_colorband_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
