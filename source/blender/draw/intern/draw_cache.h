@@ -130,6 +130,8 @@ void DRW_cache_mesh_sculpt_coords_ensure(struct Object *ob);
 
 /* Curve */
 struct Gwn_Batch *DRW_cache_curve_surface_get(struct Object *ob);
+struct Gwn_Batch **DRW_cache_curve_surface_shaded_get(
+        struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len);
 struct Gwn_Batch *DRW_cache_curve_surface_verts_get(struct Object *ob);
 struct Gwn_Batch *DRW_cache_curve_edge_wire_get(struct Object *ob);
 /* edit-mode */
@@ -140,12 +142,16 @@ struct Gwn_Batch *DRW_cache_curve_vert_overlay_get(struct Object *ob);
 /* Font */
 struct Gwn_Batch *DRW_cache_text_edge_wire_get(struct Object *ob);
 struct Gwn_Batch *DRW_cache_text_surface_get(struct Object *ob);
+struct Gwn_Batch **DRW_cache_text_surface_shaded_get(
+        struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len);
 /* edit-mode */
 struct Gwn_Batch *DRW_cache_text_cursor_overlay_get(struct Object *ob);
 struct Gwn_Batch *DRW_cache_text_select_overlay_get(struct Object *ob);
 
 /* Surface */
 struct Gwn_Batch *DRW_cache_surf_surface_get(struct Object *ob);
+struct Gwn_Batch **DRW_cache_surf_surface_shaded_get(
+        struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len);
 
 /* Lattice */
 struct Gwn_Batch *DRW_cache_lattice_verts_get(struct Object *ob);

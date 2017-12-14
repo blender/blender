@@ -29,14 +29,16 @@
 struct CurveCache;
 struct GPUMaterial;
 struct Gwn_Batch;
+struct Gwn_IndexBuf;
+struct Gwn_VertBuf;
 struct ListBase;
-struct MetaBall;
 struct ModifierData;
 struct ParticleSystem;
 
 struct Curve;
 struct Lattice;
 struct Mesh;
+struct MetaBall;
 
 /* Expose via BKE callbacks */
 void DRW_mball_batch_cache_dirty(struct MetaBall *mb, int mode);
@@ -62,6 +64,9 @@ struct Gwn_Batch *DRW_curve_batch_cache_get_overlay_edges(struct Curve *cu);
 struct Gwn_Batch *DRW_curve_batch_cache_get_overlay_verts(struct Curve *cu);
 
 struct Gwn_Batch *DRW_curve_batch_cache_get_triangles_with_normals(struct Curve *cu, struct CurveCache *ob_curve_cache);
+struct Gwn_Batch **DRW_curve_batch_cache_get_surface_shaded(
+        struct Curve *cu, struct CurveCache *ob_curve_cache,
+        struct GPUMaterial **gpumat_array, uint gpumat_array_len);
 
 /* Metaball */
 struct Gwn_Batch *DRW_metaball_batch_cache_get_triangles_with_normals(struct Object *ob);
@@ -71,7 +76,9 @@ struct Gwn_Batch *DRW_curve_batch_cache_get_overlay_cursor(struct Curve *cu);
 struct Gwn_Batch *DRW_curve_batch_cache_get_overlay_select(struct Curve *cu);
 
 /* DispList */
-struct Gwn_Batch *BLI_displist_batch_calc_surface(struct ListBase *lb);
+struct Gwn_VertBuf *DRW_displist_vertbuf_calc_pos_with_normals(struct ListBase *lb);
+struct Gwn_IndexBuf *DRW_displist_indexbuf_calc_triangles_in_order(struct ListBase *lb);
+struct Gwn_IndexBuf **DRW_displist_indexbuf_calc_triangles_in_order_split_by_material(struct ListBase *lb, uint gpumat_array_len);
 
 /* Lattice */
 struct Gwn_Batch *DRW_lattice_batch_cache_get_all_edges(struct Lattice *lt, bool use_weight, const int actdef);

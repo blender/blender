@@ -31,6 +31,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_alloca.h"
 #include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
 
@@ -86,7 +87,38 @@ static int curve_render_surface_tri_len_get(const ListBase *lb)
 	return tri_len;
 }
 
-Gwn_Batch *BLI_displist_batch_calc_surface(ListBase *lb)
+static void displist_indexbufbuilder_set(Gwn_IndexBufBuilder *elb, const DispList *dl, const int ofs)
+{
+	if (ELEM(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)) {
+		const int *idx = dl->index;
+		if (dl->type == DL_INDEX3) {
+			const int i_end = dl->parts;
+			for (int i = 0; i < i_end; i++, idx += 3) {
+				GWN_indexbuf_add_tri_verts(elb, idx[0] + ofs, idx[1] + ofs, idx[2] + ofs);
+			}
+		}
+		else if (dl->type == DL_SURF) {
+			const int i_end = dl->totindex;
+			for (int i = 0; i < i_end; i++, idx += 4) {
+				GWN_indexbuf_add_tri_verts(elb, idx[0] + ofs, idx[1] + ofs, idx[2] + ofs);
+				GWN_indexbuf_add_tri_verts(elb, idx[0] + ofs, idx[2] + ofs, idx[3] + ofs);
+			}
+		}
+		else {
+			BLI_assert(dl->type == DL_INDEX4);
+			const int i_end = dl->parts;
+			for (int i = 0; i < i_end; i++, idx += 4) {
+				GWN_indexbuf_add_tri_verts(elb, idx[0] + ofs, idx[1] + ofs, idx[2] + ofs);
+
+				if (idx[2] != idx[3]) {
+					GWN_indexbuf_add_tri_verts(elb, idx[0] + ofs, idx[2] + ofs, idx[3] + ofs);
+				}
+			}
+		}
+	}
+}
+
+Gwn_VertBuf *DRW_displist_vertbuf_calc_pos_with_normals(ListBase *lb)
 {
 	const int tri_len = curve_render_surface_tri_len_get(lb);
 	if (tri_len == 0) {
@@ -131,44 +163,64 @@ Gwn_Batch *BLI_displist_batch_calc_surface(ListBase *lb)
 		}
 	}
 
+	return vbo;
+}
+
+Gwn_IndexBuf *DRW_displist_indexbuf_calc_triangles_in_order(ListBase *lb)
+{
+	const int tri_len = curve_render_surface_tri_len_get(lb);
+	if (tri_len == 0) {
+		return NULL;
+	}
+
+	const int vert_len = curve_render_surface_vert_len_get(lb);
+
 	{
 		Gwn_IndexBufBuilder elb;
 		GWN_indexbuf_init(&elb, GWN_PRIM_TRIS, tri_len, vert_len);
 
 		int ofs = 0;
 		for (const DispList *dl = lb->first; dl; dl = dl->next) {
-			if (ELEM(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)) {
-				const int *idx = dl->index;
-				if (dl->type == DL_INDEX3) {
-					const int i_end = dl->parts;
-					for (int i = 0; i < i_end; i++, idx += 3) {
-						GWN_indexbuf_add_tri_verts(&elb, idx[0] + ofs, idx[1] + ofs, idx[2] + ofs);
-					}
-				}
-				else if (dl->type == DL_SURF) {
-					const int i_end = dl->totindex;
-					for (int i = 0; i < i_end; i++, idx += 4) {
-						GWN_indexbuf_add_tri_verts(&elb, idx[0] + ofs, idx[1] + ofs, idx[2] + ofs);
-						GWN_indexbuf_add_tri_verts(&elb, idx[0] + ofs, idx[2] + ofs, idx[3] + ofs);
-					}
-				}
-				else {
-					BLI_assert(dl->type == DL_INDEX4);
-					const int i_end = dl->parts;
-					for (int i = 0; i < i_end; i++, idx += 4) {
-						GWN_indexbuf_add_tri_verts(&elb, idx[0] + ofs, idx[1] + ofs, idx[2] + ofs);
-
-						if (idx[2] != idx[3]) {
-							GWN_indexbuf_add_tri_verts(&elb, idx[0] + ofs, idx[2] + ofs, idx[3] + ofs);
-						}
-					}
-				}
-				ofs += dl_vert_len(dl);
-			}
+			displist_indexbufbuilder_set(&elb, dl, ofs);
+			ofs += dl_vert_len(dl);
 		}
 
-		return GWN_batch_create_ex(
-		        GWN_PRIM_TRIS, vbo, GWN_indexbuf_build(&elb),
-		        GWN_BATCH_OWNS_VBO | GWN_BATCH_OWNS_INDEX);
+		return GWN_indexbuf_build(&elb);
 	}
+}
+
+Gwn_IndexBuf **DRW_displist_indexbuf_calc_triangles_in_order_split_by_material(ListBase *lb, uint gpumat_array_len)
+{
+	const int tri_len = curve_render_surface_tri_len_get(lb);
+	if (tri_len == 0) {
+		return NULL;
+	}
+
+	const int vert_len = curve_render_surface_vert_len_get(lb);
+
+	Gwn_IndexBuf **shaded_triangles_in_order = MEM_callocN(sizeof(*shaded_triangles_in_order) * gpumat_array_len, __func__);
+
+	{
+		int i;
+		Gwn_IndexBufBuilder *elb = BLI_array_alloca(elb, gpumat_array_len);
+
+		/* Init each index buffer builder */
+		for (i = 0; i < gpumat_array_len; i++) {
+			GWN_indexbuf_init(&elb[i], GWN_PRIM_TRIS, tri_len, vert_len);
+		}
+
+		/* calc each index buffer builder */
+		int ofs = 0;
+		for (const DispList *dl = lb->first; dl; dl = dl->next) {
+			displist_indexbufbuilder_set(&elb[dl->col], dl, ofs);
+			ofs += dl_vert_len(dl);
+		}
+
+		/* build each indexbuf */
+		for (i = 0; i < gpumat_array_len; i++) {
+			shaded_triangles_in_order[i] = GWN_indexbuf_build(&elb[i]);
+		}
+	}
+
+	return shaded_triangles_in_order;
 }

@@ -310,7 +310,11 @@ typedef struct CurveBatchCache {
 	} overlay;
 
 	struct {
+		Gwn_VertBuf *verts;
+		Gwn_IndexBuf *triangles_in_order;
+		Gwn_Batch **shaded_triangles;
 		Gwn_Batch *batch;
+		int mat_len;
 	} surface;
 
 	/* 3d text */
@@ -444,6 +448,14 @@ static void curve_batch_cache_clear(Curve *cu)
 	GWN_BATCH_DISCARD_SAFE(cache->overlay.verts);
 	GWN_BATCH_DISCARD_SAFE(cache->overlay.edges);
 
+	GWN_VERTBUF_DISCARD_SAFE(cache->surface.verts);
+	GWN_INDEXBUF_DISCARD_SAFE(cache->surface.triangles_in_order);
+	if (cache->surface.shaded_triangles) {
+		for (int i = 0; i < cache->surface.mat_len; ++i) {
+			GWN_BATCH_DISCARD_SAFE(cache->surface.shaded_triangles[i]);
+		}
+	}
+	MEM_SAFE_FREE(cache->surface.shaded_triangles);
 	GWN_BATCH_DISCARD_SAFE(cache->surface.batch);
 
 	/* don't own vbo & elems */
@@ -796,8 +808,20 @@ static Gwn_Batch *curve_batch_cache_get_pos_and_normals(CurveRenderData *rdata, 
 {
 	BLI_assert(rdata->types & CU_DATATYPE_SURFACE);
 	if (cache->surface.batch == NULL) {
-		cache->surface.batch = BLI_displist_batch_calc_surface(&rdata->ob_curve_cache->disp);
+		ListBase *lb = &rdata->ob_curve_cache->disp;
+
+		if (cache->surface.verts == NULL) {
+			cache->surface.verts = DRW_displist_vertbuf_calc_pos_with_normals(lb);
+		}
+		if (cache->surface.verts) {
+			if (cache->surface.triangles_in_order == NULL) {
+				cache->surface.triangles_in_order = DRW_displist_indexbuf_calc_triangles_in_order(lb);
+			}
+			cache->surface.batch = GWN_batch_create_ex(
+			        GWN_PRIM_TRIS, cache->surface.verts, cache->surface.triangles_in_order, 0);
+		}
 	}
+
 	return cache->surface.batch;
 }
 
@@ -995,6 +1019,48 @@ Gwn_Batch *DRW_curve_batch_cache_get_triangles_with_normals(
 	}
 
 	return cache->surface.batch;
+}
+
+Gwn_Batch **DRW_curve_batch_cache_get_surface_shaded(
+        struct Curve *cu, struct CurveCache *ob_curve_cache,
+        struct GPUMaterial **UNUSED(gpumat_array), uint gpumat_array_len)
+{
+	CurveBatchCache *cache = curve_batch_cache_get(cu);
+
+	if (cache->surface.mat_len != gpumat_array_len) {
+		/* TODO: deduplicate code */
+		GWN_INDEXBUF_DISCARD_SAFE(cache->surface.triangles_in_order);
+		if (cache->surface.shaded_triangles) {
+			for (int i = 0; i < cache->surface.mat_len; ++i) {
+				GWN_BATCH_DISCARD_SAFE(cache->surface.shaded_triangles[i]);
+			}
+		}
+		MEM_SAFE_FREE(cache->surface.shaded_triangles);
+	}
+
+	if (cache->surface.shaded_triangles == NULL) {
+		CurveRenderData *rdata = curve_render_data_create(cu, ob_curve_cache, CU_DATATYPE_SURFACE);
+		ListBase *lb = &rdata->ob_curve_cache->disp;
+
+		cache->surface.mat_len = gpumat_array_len;
+		Gwn_IndexBuf **el = DRW_displist_indexbuf_calc_triangles_in_order_split_by_material(lb, gpumat_array_len);
+		cache->surface.shaded_triangles = MEM_mallocN(sizeof(*cache->surface.shaded_triangles) * gpumat_array_len, __func__);
+
+		if (cache->surface.verts == NULL) {
+			cache->surface.verts = DRW_displist_vertbuf_calc_pos_with_normals(lb);
+		}
+
+		for (int i = 0; i < gpumat_array_len; ++i) {
+			cache->surface.shaded_triangles[i] = GWN_batch_create(
+			        GWN_PRIM_TRIS, cache->surface.verts, el[i]);
+			/* TODO: Add vertbuff for UV */
+		}
+
+		MEM_freeN(el); /* Save `el` in cache? */
+		curve_render_data_free(rdata);
+	}
+
+	return cache->surface.shaded_triangles;
 }
 
 
