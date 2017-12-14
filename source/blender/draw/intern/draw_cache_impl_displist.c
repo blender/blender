@@ -121,9 +121,6 @@ static void displist_indexbufbuilder_set(Gwn_IndexBufBuilder *elb, const DispLis
 Gwn_VertBuf *DRW_displist_vertbuf_calc_pos_with_normals(ListBase *lb)
 {
 	const int tri_len = curve_render_surface_tri_len_get(lb);
-	if (tri_len == 0) {
-		return NULL;
-	}
 
 	static Gwn_VertFormat format = { 0 };
 	static struct { uint pos, nor; } attr_id;
@@ -191,16 +188,11 @@ Gwn_IndexBuf *DRW_displist_indexbuf_calc_triangles_in_order(ListBase *lb)
 
 Gwn_IndexBuf **DRW_displist_indexbuf_calc_triangles_in_order_split_by_material(ListBase *lb, uint gpumat_array_len)
 {
-	const int tri_len = curve_render_surface_tri_len_get(lb);
-	if (tri_len == 0) {
-		return NULL;
-	}
-
-	const int vert_len = curve_render_surface_vert_len_get(lb);
-
 	Gwn_IndexBuf **shaded_triangles_in_order = MEM_callocN(sizeof(*shaded_triangles_in_order) * gpumat_array_len, __func__);
+	const int tri_len = curve_render_surface_tri_len_get(lb);
 
-	{
+	if (tri_len != 0) {
+		const int vert_len = curve_render_surface_vert_len_get(lb);
 		int i;
 		Gwn_IndexBufBuilder *elb = BLI_array_alloca(elb, gpumat_array_len);
 

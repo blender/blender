@@ -813,13 +813,11 @@ static Gwn_Batch *curve_batch_cache_get_pos_and_normals(CurveRenderData *rdata, 
 		if (cache->surface.verts == NULL) {
 			cache->surface.verts = DRW_displist_vertbuf_calc_pos_with_normals(lb);
 		}
-		if (cache->surface.verts) {
-			if (cache->surface.triangles_in_order == NULL) {
-				cache->surface.triangles_in_order = DRW_displist_indexbuf_calc_triangles_in_order(lb);
-			}
-			cache->surface.batch = GWN_batch_create_ex(
-			        GWN_PRIM_TRIS, cache->surface.verts, cache->surface.triangles_in_order, 0);
+		if (cache->surface.triangles_in_order == NULL) {
+			cache->surface.triangles_in_order = DRW_displist_indexbuf_calc_triangles_in_order(lb);
 		}
+		cache->surface.batch = GWN_batch_create_ex(
+		        GWN_PRIM_TRIS, cache->surface.verts, cache->surface.triangles_in_order, 0);
 	}
 
 	return cache->surface.batch;
@@ -1051,8 +1049,9 @@ Gwn_Batch **DRW_curve_batch_cache_get_surface_shaded(
 		}
 
 		for (int i = 0; i < gpumat_array_len; ++i) {
-			cache->surface.shaded_triangles[i] = GWN_batch_create(
-			        GWN_PRIM_TRIS, cache->surface.verts, el[i]);
+			cache->surface.shaded_triangles[i] = GWN_batch_create_ex(
+			        GWN_PRIM_TRIS, cache->surface.verts, el[i], GWN_BATCH_OWNS_INDEX);
+
 			/* TODO: Add vertbuff for UV */
 		}
 
