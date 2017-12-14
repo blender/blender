@@ -113,7 +113,7 @@ static void eevee_cache_populate(void *vedata, Object *ob)
 		}
 	}
 
-	if (ELEM(ob->type, OB_MESH)) {
+	if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT)) {
 		if (!BKE_object_is_visible(ob)) {
 			return;
 		}
