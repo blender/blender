@@ -229,6 +229,15 @@ static void rna_Object_hide_update(Main *bmain, Scene *UNUSED(scene), PointerRNA
 	DEG_id_type_tag(bmain, ID_OB);
 }
 
+static void rna_Object_collection_properties_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Object *ob = ptr->data;
+
+	if (ob->base_collection_properties != NULL) {
+		rna_iterator_listbase_begin(iter, &ob->base_collection_properties->data.group, NULL);
+	}
+}
+
 static void rna_Object_matrix_local_get(PointerRNA *ptr, float values[16])
 {
 	Object *ob = ptr->id.data;
@@ -2803,6 +2812,15 @@ static void rna_def_object(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "collection_properties", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "base_collection_properties->data.group", NULL);
+	RNA_def_property_collection_funcs(prop,
+	                                  "rna_Object_collection_properties_begin",
+	                                  NULL,
+	                                  NULL,
+	                                  NULL,
+	                                  NULL,
+	                                  NULL,
+	                                  NULL,
+	                                  NULL);
 	RNA_def_property_struct_type(prop, "LayerCollectionSettings");
 	RNA_def_property_ui_text(prop, "Collection Settings",
 	                         "Engine specific render settings to be overridden by collections");
