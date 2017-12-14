@@ -33,6 +33,7 @@
 
 #include "BIF_glutil.h"
 
+#include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
@@ -47,10 +48,12 @@
 #include "DRW_render.h"
 
 #include "DNA_camera_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_meta_types.h"
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -1870,8 +1873,24 @@ static void draw_geometry(DRWShadingGroup *shgroup, Gwn_Batch *geom, const float
 			case ID_ME:
 				BKE_mesh_texspace_get_reference((Mesh *)ob_data, NULL, &texcoloc, NULL, &texcosize);
 				break;
+			case ID_CU:
+			{
+				Curve *cu = (Curve *)ob_data;
+				if (cu->bb == NULL || (cu->bb->flag & BOUNDBOX_DIRTY)) {
+					BKE_curve_texspace_calc(cu);
+				}
+				texcoloc = cu->loc;
+				texcosize = cu->size;
+				break;
+			}
+			case ID_MB:
+			{
+				MetaBall *mb = (MetaBall *)ob_data;
+				texcoloc = mb->loc;
+				texcosize = mb->size;
+				break;
+			}
 			default:
-				/* TODO, curve, metaball? */
 				break;
 		}
 	}
