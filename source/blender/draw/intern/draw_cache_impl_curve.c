@@ -344,6 +344,10 @@ static bool curve_batch_cache_valid(Curve *cu)
 		return false;
 	}
 
+	if (cache->is_dirty) {
+		return false;
+	}
+
 	if (cache->is_editmode != ((cu->editnurb != NULL) || (cu->editfont != NULL))) {
 		return false;
 	}
@@ -359,16 +363,6 @@ static bool curve_batch_cache_valid(Curve *cu)
 		}
 		else if (cu->editfont) {
 			/* TODO */
-		}
-	}
-
-	if (cache->is_dirty == false) {
-		return true;
-	}
-	else {
-		/* TODO: check number of vertices/edges? */
-		if (cache->is_editmode) {
-			return false;
 		}
 	}
 
@@ -1050,7 +1044,7 @@ Gwn_Batch **DRW_curve_batch_cache_get_surface_shaded(
 
 		for (int i = 0; i < gpumat_array_len; ++i) {
 			cache->surface.shaded_triangles[i] = GWN_batch_create_ex(
-			        GWN_PRIM_TRIS, cache->surface.verts, el[i], GWN_BATCH_OWNS_INDEX);
+			        GWN_PRIM_TRIS, cache->surface.verts, el[i], el[i] ? GWN_BATCH_OWNS_INDEX : 0);
 
 			/* TODO: Add vertbuff for UV */
 		}
