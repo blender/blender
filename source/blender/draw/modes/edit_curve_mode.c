@@ -293,7 +293,7 @@ static void EDIT_CURVE_draw_scene(void *vedata)
  * Mostly used for freeing shaders */
 static void EDIT_CURVE_engine_free(void)
 {
-	// DRW_SHADER_FREE_SAFE(custom_shader);
+	DRW_SHADER_FREE_SAFE(e_data.overlay_vert_sh);
 }
 
 /* Create collection settings here.
