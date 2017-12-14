@@ -313,11 +313,10 @@ static void set_preview_layer(ViewLayer *view_layer, char pr_type)
 
 	for (lc = view_layer->layer_collections.first; lc; lc = lc->next) {
 		if (STREQ(lc->scene_collection->name, collection_name)) {
-			lc->flag = COLLECTION_VISIBLE | COLLECTION_DISABLED;
-			BKE_collection_enable(view_layer, lc);
+			lc->flag = COLLECTION_VIEWPORT | COLLECTION_RENDER;
 		}
 		else {
-			BKE_collection_disable(view_layer, lc);
+			lc->flag = COLLECTION_DISABLED;
 		}
 	}
 }

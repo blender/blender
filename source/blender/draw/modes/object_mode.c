@@ -1763,10 +1763,6 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 	View3D *v3d = draw_ctx->v3d;
 	int theme_id = TH_UNDEFINED;
 
-	if (!BKE_object_is_visible(ob)) {
-		return;
-	}
-
 	//CollectionEngineSettings *ces_mode_ob = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_OBJECT, "");
 
 	//bool do_wire = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_wire");

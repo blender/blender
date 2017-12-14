@@ -35,10 +35,10 @@ class UnitTesting(ViewLayerTesting):
         grandma_layer_collection = scene.view_layers[0].collections.link(grandma)
         mom_layer_collection = grandma_layer_collection.collections[0]
 
-        grandma_layer_collection.hide = False
-        grandma_layer_collection.hide = False
-        mom_layer_collection.hide = True
-        mom_layer_collection.hide_select = False
+        grandma_layer_collection.enabled = True
+        grandma_layer_collection.enabled = True
+        mom_layer_collection.enabled = False
+        mom_layer_collection.selectable = True
 
         # update depsgraph
         scene.update()
@@ -53,14 +53,14 @@ class UnitTesting(ViewLayerTesting):
         self.assertEqual(len(group.view_layer.collections), 1)
         grandma_group_layer = group.view_layer.collections[0]
 
-        self.assertEqual(grandma_group_layer.hide, False)
-        self.assertEqual(grandma_group_layer.hide_select, False)
+        self.assertTrue(grandma_group_layer.enabled, True)
+        self.assertTrue(grandma_group_layer.selectable)
 
         self.assertEqual(len(grandma_group_layer.collections), 1)
         mom_group_layer = grandma_group_layer.collections[0]
 
-        self.assertEqual(mom_group_layer.hide, True)
-        self.assertEqual(mom_group_layer.hide_select, False)
+        self.assertFalse(mom_group_layer.enabled)
+        self.assertTrue(mom_group_layer.selectable)
 
 
 # ############################################################

@@ -123,9 +123,10 @@ enum {
 
 /* LayerCollection->flag */
 enum {
-	COLLECTION_VISIBLE    = (1 << 0),
+	COLLECTION_VIEWPORT   = (1 << 0), /* Only used for group collections. */
 	COLLECTION_SELECTABLE = (1 << 1),
 	COLLECTION_DISABLED   = (1 << 2),
+	COLLECTION_RENDER     = (1 << 3), /* Only used for group collections. */
 };
 
 /* ViewLayer->flag */

@@ -38,8 +38,8 @@ class UnitTesting(ViewLayerTesting):
         layer_collection_mom = layer.collections.link(scene_collection_mom)
         layer_collection_kid = layer.collections.link(scene_collection_kid)
 
-        layer_collection_mom.hide = False
-        layer_collection_kid.hide = True
+        layer_collection_mom.enabled = True
+        layer_collection_kid.enabled = False
 
         bpy.context.scene.update()  # update depsgraph
         self.assertTrue(cube.visible_get(), "Object should be visible")

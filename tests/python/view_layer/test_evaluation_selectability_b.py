@@ -39,8 +39,8 @@ class UnitTesting(ViewLayerTesting):
         bpy.context.scene.update()  # update depsgraph
         cube.select_set('SELECT')
 
-        layer_collection_mom.collections[layer_collection_kid.name].hide = True
-        layer_collection_kid.hide = True
+        layer_collection_mom.collections[layer_collection_kid.name].enabled = False
+        layer_collection_kid.enabled = False
 
         bpy.context.scene.update()  # update depsgraph
         self.assertFalse(cube.visible_get(), "Cube should be invisible")

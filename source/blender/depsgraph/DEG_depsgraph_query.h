@@ -111,7 +111,7 @@ void DEG_iterator_objects_end(struct BLI_Iterator *iter);
 
 #define DEG_OBJECT_ITER(graph_, instance_, flag_)                                 \
 	{                                                                             \
-		DEGOIterObjectData data_ = {                                          \
+		DEGOIterObjectData data_ = {                                              \
 			.graph = (graph_),                                                    \
 			.flag = (flag_),                                                      \
 		};                                                                        \
@@ -119,7 +119,11 @@ void DEG_iterator_objects_end(struct BLI_Iterator *iter);
 		ITER_BEGIN(DEG_iterator_objects_begin,                                    \
 		           DEG_iterator_objects_next,                                     \
 		           DEG_iterator_objects_end,                                      \
-		           &data_, Object *, instance_)
+		           &data_, Object *, instance_)                                   \
+                                                                                  \
+			if (BKE_object_is_visible(instance_) == false) {                      \
+				continue;                                                         \
+			}
 
 #define DEG_OBJECT_ITER_END                                                       \
 		ITER_END                                                                  \

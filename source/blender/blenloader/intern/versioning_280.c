@@ -189,21 +189,21 @@ void do_versions_after_linking_280(Main *main)
 						.collections = {NULL},
 						.created = 0,
 						.suffix = "",
-						.flag_viewport = COLLECTION_VISIBLE | COLLECTION_SELECTABLE,
-						.flag_render = COLLECTION_VISIBLE | COLLECTION_SELECTABLE
+						.flag_viewport = COLLECTION_SELECTABLE,
+						.flag_render = COLLECTION_SELECTABLE
 					},
 					{
 						.collections = {NULL},
 						.created = 0,
 						.suffix = " - Hide Viewport",
 						.flag_viewport = COLLECTION_SELECTABLE,
-						.flag_render = COLLECTION_VISIBLE | COLLECTION_SELECTABLE
+						.flag_render = COLLECTION_SELECTABLE
 					},
 					{
 						.collections = {NULL},
 						.created = 0,
 						.suffix = " - Hide Render",
-						.flag_viewport = COLLECTION_VISIBLE | COLLECTION_SELECTABLE,
+						.flag_viewport = COLLECTION_SELECTABLE,
 						.flag_render = COLLECTION_SELECTABLE | COLLECTION_DISABLED
 					},
 					{
@@ -391,13 +391,9 @@ void do_versions_after_linking_280(Main *main)
 
 									for (int j = 1; j < 4; j++) {
 										if (collections[j].created & (1 << layer)) {
-											layer_collection_child->flag =
-												collections[j].flag_render & (~COLLECTION_DISABLED);
-
-											if (collections[j].flag_render & COLLECTION_DISABLED) {
-												BKE_collection_disable(view_layer, layer_collection_child);
-											}
-
+											layer_collection_child->flag = COLLECTION_VIEWPORT |
+											                               COLLECTION_RENDER |
+											                               collections[j].flag_render;
 											layer_collection_child = layer_collection_child->next;
 										}
 									}
@@ -450,7 +446,7 @@ void do_versions_after_linking_280(Main *main)
 
 						/* We only need to disable the parent collection. */
 						if (is_disabled) {
-							BKE_collection_disable(view_layer, layer_collection_parent);
+							layer_collection_parent->flag |= COLLECTION_DISABLED;
 						}
 
 						LayerCollection *layer_collection_child;
@@ -458,11 +454,9 @@ void do_versions_after_linking_280(Main *main)
 
 						for (int j = 1; j < 4; j++) {
 							if (collections[j].created & (1 << layer)) {
-								layer_collection_child->flag = collections[j].flag_viewport & (~COLLECTION_DISABLED);
-
-								if (collections[j].flag_viewport & COLLECTION_DISABLED) {
-									BKE_collection_disable(view_layer, layer_collection_child);
-								}
+								layer_collection_child->flag = COLLECTION_VIEWPORT |
+								                               COLLECTION_RENDER |
+								                               collections[j].flag_viewport;
 								layer_collection_child = layer_collection_child->next;
 							}
 						}
@@ -594,11 +588,9 @@ void do_versions_after_linking_280(Main *main)
 
 				if (sc_hidden != NULL) {
 					LayerCollection *layer_collection_master, *layer_collection_hidden;
-
 					layer_collection_master = group->view_layer->layer_collections.first;
 					layer_collection_hidden = layer_collection_master->layer_collections.first;
-
-					layer_collection_hidden->flag &= ~COLLECTION_VISIBLE;
+					layer_collection_hidden->flag |= COLLECTION_DISABLED;
 				}
 			}
 
@@ -626,6 +618,25 @@ static void do_version_layer_collections_idproperties(ListBase *lb)
 
 		/* Do it recursively */
 		do_version_layer_collections_idproperties(&lc->layer_collections);
+	}
+}
+
+static void do_version_view_layer_visibility(ViewLayer *view_layer)
+{
+	LayerCollection *layer_collection;
+	for (layer_collection = view_layer->layer_collections.first;
+	     layer_collection;
+	     layer_collection = layer_collection->next)
+	{
+		if (layer_collection->flag & COLLECTION_DISABLED) {
+			BKE_collection_enable(view_layer, layer_collection);
+			layer_collection->flag &= ~COLLECTION_DISABLED;
+		}
+
+		if ((layer_collection->flag & (1 << 0)) == 0) { /* !COLLECTION_VISIBLE */
+			layer_collection->flag |= COLLECTION_DISABLED;
+		}
+		layer_collection->flag |= COLLECTION_VIEWPORT | COLLECTION_RENDER;
 	}
 }
 
@@ -824,6 +835,21 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 					view_layer->pass_alpha_threshold = 0.5f;
 					BKE_freestyle_config_init(&view_layer->freestyle_config);
 				}
+			}
+		}
+	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 280, 3)) {
+		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+			ViewLayer *view_layer;
+			for (view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
+				do_version_view_layer_visibility(view_layer);
+			}
+		}
+
+		for (Group *group = main->group.first; group; group = group->id.next) {
+			if (group->view_layer != NULL){
+				do_version_view_layer_visibility(group->view_layer);
 			}
 		}
 	}

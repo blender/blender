@@ -685,8 +685,7 @@ static void EEVEE_planar_reflections_updates(EEVEE_ViewLayerData *sldata, EEVEE_
 		eplanar->attenuation_bias = max_dist * -eplanar->attenuation_scale;
 
 		/* Debug Display */
-		if (BKE_object_is_visible(ob) &&
-		    DRW_state_draw_support() &&
+		if (DRW_state_draw_support() &&
 		    (probe->flag & LIGHTPROBE_FLAG_SHOW_DATA))
 		{
 			DRW_shgroup_call_dynamic_add(stl->g_data->planar_display_shgrp, &ped->probe_id, ob->obmat);
@@ -734,8 +733,7 @@ static void EEVEE_lightprobes_updates(EEVEE_ViewLayerData *sldata, EEVEE_PassLis
 		invert_m4(eprobe->parallaxmat);
 
 		/* Debug Display */
-		if (BKE_object_is_visible(ob) &&
-		    DRW_state_draw_support() &&
+		if (DRW_state_draw_support() &&
 		    (probe->flag & LIGHTPROBE_FLAG_SHOW_DATA))
 		{
 			ped->probe_size = probe->data_draw_size * 0.1f;
@@ -816,8 +814,7 @@ static void EEVEE_lightprobes_updates(EEVEE_ViewLayerData *sldata, EEVEE_PassLis
 		                                        len_v3(egrid->increment_z)) + 1.0f;
 
 		/* Debug Display */
-		if (BKE_object_is_visible(ob) &&
-		    DRW_state_draw_support() &&
+		if (DRW_state_draw_support() &&
 		    (probe->flag & LIGHTPROBE_FLAG_SHOW_DATA))
 		{
 			struct Gwn_Batch *geom = DRW_cache_sphere_get();

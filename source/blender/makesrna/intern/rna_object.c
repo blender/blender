@@ -229,6 +229,12 @@ static void rna_Object_hide_update(Main *bmain, Scene *UNUSED(scene), PointerRNA
 	DEG_id_type_tag(bmain, ID_OB);
 }
 
+static int rna_Object_is_visible_get(PointerRNA *ptr)
+{
+	Object *ob = ptr->id.data;
+	return BKE_object_is_visible(ob);
+}
+
 static void rna_Object_collection_properties_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Object *ob = ptr->data;
@@ -2786,27 +2792,14 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Rigid Body Constraint", "Constraint constraining rigid bodies");
 	
 	/* restrict */
-	prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_VIEW);
-	RNA_def_property_ui_text(prop, "Restrict View", "Restrict visibility in the viewport");
-	RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, 1);
-	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_hide_update");
-
-	prop = RNA_def_property(srna, "hide_select", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_SELECT);
-	RNA_def_property_ui_text(prop, "Restrict Select", "Restrict selection in the viewport");
-	RNA_def_property_ui_icon(prop, ICON_RESTRICT_SELECT_OFF, 1);
-	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
-
 	prop = RNA_def_property(srna, "hide_render", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_RENDER);
 	RNA_def_property_ui_text(prop, "Restrict Render", "Restrict renderability");
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, 1);
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_hide_update");
 
-	/* Keep it in sync with BKE_object_is_visible. */
 	prop = RNA_def_property(srna, "is_visible", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "base_flag", BASE_VISIBLED);
+	RNA_def_property_boolean_funcs(prop, "rna_Object_is_visible_get", NULL);
 	RNA_def_property_ui_text(prop, "Visible", "Visible to camera rays, set only on objects evaluated by depsgraph");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 

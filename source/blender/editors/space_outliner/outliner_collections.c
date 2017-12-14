@@ -489,13 +489,12 @@ static int collection_toggle_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = CTX_data_view_layer(C);
 	int action = RNA_enum_get(op->ptr, "action");
 	LayerCollection *layer_collection = CTX_data_layer_collection(C);
 
 	if (layer_collection->flag & COLLECTION_DISABLED) {
 		if (ELEM(action, ACTION_TOGGLE, ACTION_ENABLE)) {
-			BKE_collection_enable(view_layer, layer_collection);
+			layer_collection->flag &= ~COLLECTION_DISABLED;
 		}
 		else { /* ACTION_DISABLE */
 			BKE_reportf(op->reports, RPT_ERROR, "Layer collection %s already disabled",
@@ -505,7 +504,7 @@ static int collection_toggle_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		if (ELEM(action, ACTION_TOGGLE, ACTION_DISABLE)) {
-			BKE_collection_disable(view_layer, layer_collection);
+			layer_collection->flag |= COLLECTION_DISABLED;
 		}
 		else { /* ACTION_ENABLE */
 			BKE_reportf(op->reports, RPT_ERROR, "Layer collection %s already enabled",

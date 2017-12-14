@@ -24,11 +24,11 @@ class UnitTesting(ViewLayerTesting):
 
         scene = bpy.context.scene
 
-        hide_lookup = [0, 1, 1, 0]
-        hide_lookup_sub = [1, 0, 1]
+        enabled_lookup = [True, False, False, True]
+        enabled_lookup_sub = [False, True, False]
 
-        hide_select_lookup = [0, 0, 1, 1]
-        hide_select_lookup_sub = [1, 0, 1, 0]
+        selectable_lookup = [True, True, False, False]
+        selectable_lookup_sub = [False, True, False, True]
         new_collections = []
 
         # clean everything
@@ -50,12 +50,12 @@ class UnitTesting(ViewLayerTesting):
                 layer.collections.link(collection)
                 self.assertEqual(layer.collections[-1], layer.collections[i])
 
-                layer.collections[i].hide = hide_lookup[i]
-                layer.collections[i].hide_select = hide_select_lookup[i]
+                layer.collections[i].enabled = enabled_lookup[i]
+                layer.collections[i].selectable = selectable_lookup[i]
 
                 for j, sub_collection in enumerate(layer.collections[i].collections):
-                    sub_collection.hide = hide_lookup_sub[j]
-                    sub_collection.hide_select = hide_select_lookup_sub[j]
+                    sub_collection.enabled = enabled_lookup_sub[j]
+                    sub_collection.selectable = selectable_lookup_sub[j]
 
         # copy scene
         bpy.ops.scene.new(type='FULL_COPY')
@@ -71,13 +71,13 @@ class UnitTesting(ViewLayerTesting):
 
             for i, collection in enumerate(layer.collections):
                 new_collection = new_layer.collections[i]
-                self.assertEqual(collection.hide, new_collection.hide)
-                self.assertEqual(collection.hide_select, new_collection.hide_select)
+                self.assertEqual(collection.enabled, new_collection.enabled)
+                self.assertEqual(collection.selectable, new_collection.selectable)
 
                 for j, sub_collection in enumerate(layer.collections[i].collections):
                     new_sub_collection = new_collection.collections[j]
-                    self.assertEqual(sub_collection.hide, new_sub_collection.hide)
-                    self.assertEqual(sub_collection.hide_select, new_sub_collection.hide_select)
+                    self.assertEqual(sub_collection.enabled, new_sub_collection.enabled)
+                    self.assertEqual(sub_collection.selectable, new_sub_collection.selectable)
 
 
 # ############################################################

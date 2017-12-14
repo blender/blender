@@ -70,6 +70,7 @@ const EnumPropertyItem rna_enum_collection_type_items[] = {
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_node.h"
+#include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_mesh.h"
 
@@ -701,48 +702,6 @@ static void rna_LayerCollection_flag_update(bContext *C, PointerRNA *ptr)
 	/* TODO(sergey): Use proper flag for tagging here. */
 	DEG_id_tag_update(id, 0);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, CTX_data_scene(C));
-}
-
-static void rna_LayerCollection_enable_set(
-        ID *id, LayerCollection *layer_collection, Main *bmain, bContext *C, ReportList *reports, int value)
-{
-	ViewLayer *view_layer;
-	if (GS(id->name) == ID_SCE) {
-		Scene *scene = (Scene *)id;
-		view_layer = BKE_view_layer_find_from_collection(&scene->id, layer_collection);
-	}
-	else {
-		BLI_assert(GS(id->name) == ID_GR);
-		Group *group = (Group *)id;
-		view_layer = group->view_layer;
-	}
-
-	if (layer_collection->flag & COLLECTION_DISABLED) {
-		if (value == 1) {
-			BKE_collection_enable(view_layer, layer_collection);
-		}
-		else {
-			BKE_reportf(reports, RPT_ERROR, "Layer collection '%s' is already disabled",
-			            layer_collection->scene_collection->name);
-			return;
-		}
-	}
-	else {
-		if (value == 0) {
-			BKE_collection_disable(view_layer, layer_collection);
-		}
-		else {
-			BKE_reportf(reports, RPT_ERROR, "Layer collection '%s' is already enabled",
-			            layer_collection->scene_collection->name);
-		}
-	}
-
-	Scene *scene = CTX_data_scene(C);
-	DEG_relations_tag_update(bmain);
-	/* TODO(sergey): Use proper flag for tagging here. */
-	DEG_id_tag_update(&scene->id, 0);
-	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
-	WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 }
 
 static Group *rna_LayerCollection_create_group(
@@ -2065,11 +2024,6 @@ static void rna_def_layer_collection(BlenderRNA *brna)
 	parm = RNA_def_boolean(func, "result", false, "Result", "Whether the operation succeded");
 	RNA_def_function_return(func, parm);
 
-	func = RNA_def_function(srna, "enable_set", "rna_LayerCollection_enable_set");
-	RNA_def_function_ui_description(func, "Enable or disable a collection");
-	parm = RNA_def_boolean(func, "value", 1, "Enable", "");
-	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
-
 	func = RNA_def_function(srna, "create_group", "rna_LayerCollection_create_group");
 	RNA_def_function_ui_description(func, "Enable or disable a collection");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
@@ -2077,23 +2031,31 @@ static void rna_def_layer_collection(BlenderRNA *brna)
 	RNA_def_function_return(func, parm);
 
 	/* Flags */
-	prop = RNA_def_property(srna, "is_enabled", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", COLLECTION_DISABLED);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Enabled", "Enable or disable collection from depsgraph");
-
-	prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", COLLECTION_VISIBLE);
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, 1);
-	RNA_def_property_ui_text(prop, "Hide", "Restrict visiblity");
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollection_flag_update");
-
-	prop = RNA_def_property(srna, "hide_select", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", COLLECTION_SELECTABLE);
+	prop = RNA_def_property(srna, "selectable", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", COLLECTION_SELECTABLE);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_SELECT_OFF, 1);
-	RNA_def_property_ui_text(prop, "Hide Selectable", "Restrict selection");
+	RNA_def_property_ui_text(prop, "Selectable", "Restrict selection");
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollection_flag_update");
+
+	prop = RNA_def_property(srna, "visible_viewport", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", COLLECTION_VIEWPORT);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, 1);
+	RNA_def_property_ui_text(prop, "Viewport Visibility", "");
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollection_flag_update");
+
+	prop = RNA_def_property(srna, "visible_render", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", COLLECTION_RENDER);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, 1);
+	RNA_def_property_ui_text(prop, "Render Visibility", "Control");
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollection_flag_update");
+
+	prop = RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", COLLECTION_DISABLED);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_ui_text(prop, "Enabled", "Enable or disable collection");
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollection_flag_update");
 
 	/* TODO_LAYER_OVERRIDE */

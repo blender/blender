@@ -50,8 +50,8 @@ class UnitTesting(MoveLayerCollectionTesting):
 
         # collection that will be moved
         collection_original = self.parse_move('Layer 2.C')
-        collection_original.hide = False
-        collection_original.hide_select = True
+        collection_original.enabled = True
+        collection_original.selectable = False
 
         # move
         self.assertTrue(self.move_below('Layer 2.C', 'Layer 2.3'))
@@ -60,8 +60,8 @@ class UnitTesting(MoveLayerCollectionTesting):
         # we expect the settings to be carried along from the
         # original layer collection
         collection_new = self.parse_move('Layer 2.C')
-        self.assertEqual(collection_new.hide, False)
-        self.assertEqual(collection_new.hide_select, True)
+        self.assertEqual(collection_new.enabled, True)
+        self.assertEqual(collection_new.selectable, False)
 
 
 # ############################################################
