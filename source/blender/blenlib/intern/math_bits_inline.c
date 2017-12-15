@@ -44,6 +44,18 @@ MINLINE unsigned int bitscan_forward_uint(unsigned int a)
 	return (unsigned int)bitscan_forward_i((int)a);
 }
 
+MINLINE int bitscan_forward_clear_i(int *a)
+{
+	int i = bitscan_forward_i(*a);
+	*a &= (*a) - 1;
+	return i;
+}
+
+MINLINE unsigned int bitscan_forward_clear_uint(unsigned int *a)
+{
+	return (unsigned int)bitscan_forward_clear_i((int *)a);
+}
+
 MINLINE int bitscan_reverse_i(int a)
 {
 	BLI_assert(a != 0);
@@ -59,6 +71,19 @@ MINLINE int bitscan_reverse_i(int a)
 MINLINE unsigned int bitscan_reverse_uint(unsigned int a)
 {
 	return (unsigned int)bitscan_reverse_i((int)a);
+}
+
+MINLINE int bitscan_reverse_clear_i(int *a)
+{
+	int i = bitscan_reverse_i(*a);
+	/* TODO(sergey): This could probably be optimized. */
+	*a &= ~(1 << (sizeof(int) * 8 - i - 1));
+	return i;
+}
+
+MINLINE unsigned int bitscan_reverse_clear_uint(unsigned int *a)
+{
+	return (unsigned int)bitscan_reverse_clear_i((int *)a);
 }
 
 MINLINE unsigned int highest_order_bit_uint(unsigned int n)

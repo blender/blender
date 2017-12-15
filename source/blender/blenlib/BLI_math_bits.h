@@ -35,9 +35,17 @@ extern "C" {
 MINLINE int bitscan_forward_i(int a);
 MINLINE unsigned int bitscan_forward_uint(unsigned int a);
 
+/* Similar to above, but also clears the bit. */
+MINLINE int bitscan_forward_clear_i(int *a);
+MINLINE unsigned int bitscan_forward_clear_uint(unsigned int *a);
+
 /* Search the value from MSB to LSB for a set bit. Returns index of this bit. */
 MINLINE int bitscan_reverse_i(int a);
 MINLINE unsigned int bitscan_reverse_uint(unsigned int a);
+
+/* Similar to above, but also clears the bit. */
+MINLINE int bitscan_reverse_clear_i(int *a);
+MINLINE unsigned int bitscan_reverse_clear_uint(unsigned int *a);
 
 /* NOTE: Those functions returns 2 to the power of index of highest order bit. */
 MINLINE unsigned int highest_order_bit_uint(unsigned int n);
