@@ -265,38 +265,7 @@ void IDDepsNode::tag_update(Depsgraph *graph)
 {
 	GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, components)
 	{
-		/* TODO(sergey): What about drivers? */
-		bool do_component_tag = comp_node->type != DEG_NODE_TYPE_ANIMATION;
-		if (comp_node->type == DEG_NODE_TYPE_ANIMATION) {
-			AnimData *adt = BKE_animdata_from_id(id_orig);
-			/* Animation data might be null if relations are tagged for update. */
-			if (adt != NULL && (adt->recalc & ADT_RECALC_ANIM)) {
-				do_component_tag = true;
-			}
-		}
-		else if (comp_node->type == DEG_NODE_TYPE_SHADING) {
-			/* TODO(sergey): For until we properly handle granular flags for DEG_id_tag_update()
-			 * we skip flushing here to keep Luca happy.
-			 */
-			if (GS(id_orig->name) != ID_MA &&
-			    GS(id_orig->name) != ID_WO)
-			{
-				do_component_tag = false;
-			}
-		}
-		else if (comp_node->type == DEG_NODE_TYPE_SHADING_PARAMETERS) {
-			do_component_tag = false;
-		}
-		else if (comp_node->type == DEG_NODE_TYPE_EVAL_PARTICLES) {
-			/* Only do explicit particle settings tagging. */
-			do_component_tag = false;
-		}
-		else if (comp_node->type == DEG_NODE_TYPE_BATCH_CACHE) {
-			do_component_tag = false;
-		}
-		if (do_component_tag) {
-			comp_node->tag_update(graph);
-		}
+		comp_node->tag_update(graph);
 	}
 	GHASH_FOREACH_END();
 }
