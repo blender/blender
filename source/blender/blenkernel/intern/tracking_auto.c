@@ -289,7 +289,7 @@ static void fill_autotrack_tracks(const int frame_width,
                                   struct libmv_AutoTrack *autotrack)
 {
 	/* Count number of markers to be put to a context. */
-	size_t num_trackable_marekrs = 0;
+	size_t num_trackable_markers = 0;
 	for (MovieTrackingTrack *track = tracksbase->first;
 	     track != NULL;
 	     track = track->next)
@@ -297,17 +297,17 @@ static void fill_autotrack_tracks(const int frame_width,
 		for (int i = 0; i < track->markersnr; ++i) {
 			const MovieTrackingMarker *marker = track->markers + i;
 			if ((marker->flag & MARKER_DISABLED) == 0) {
-				num_trackable_marekrs++;
+				num_trackable_markers++;
 			}
 		}
 	}
 	/* Early output if we don't have any markers. */
-	if (num_trackable_marekrs == 0) {
+	if (num_trackable_markers == 0) {
 		return;
 	}
 	/* Allocate memory for all the markers. */
 	libmv_Marker *libmv_markers = MEM_mallocN(
-	        sizeof(libmv_Marker) * num_trackable_marekrs,
+	        sizeof(libmv_Marker) * num_trackable_markers,
 	        "libmv markers array");
 	/* Fill in markers array. */
 	int track_index = 0, num_filled_libmv_markers = 0;
@@ -335,7 +335,7 @@ static void fill_autotrack_tracks(const int frame_width,
 	/* Add all markers to autotrack. */
 	libmv_autoTrackSetMarkers(autotrack,
 	                          libmv_markers,
-	                          num_trackable_marekrs);
+	                          num_trackable_markers);
 	/* Free temporary memory. */
 	MEM_freeN(libmv_markers);
 }
