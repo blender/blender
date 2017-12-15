@@ -562,7 +562,9 @@ void do_versions_after_linking_280(Main *main)
 					}
 				}
 			}
-			BLI_assert(workspace->view_layer == NULL);
+			/* While this should apply to most cases, it fails when reading workspaces.blend
+			 * to get its list of workspaces without actually appending any of them. */
+//			BLI_assert(workspace->view_layer == NULL);
 		}
 	}
 
