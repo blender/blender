@@ -151,12 +151,16 @@ enum {
 	DEG_TAG_TIME        = (1 << 2),
 
 	/* Particle system changed. */
-	DEG_TAG_PSYSC_REDO  = (1 << 3),
+	DEG_TAG_PSYS_REDO   = (1 << 3),
 	DEG_TAG_PSYS_RESET  = (1 << 4),
 	DEG_TAG_PSYS_TYPE   = (1 << 5),
 	DEG_TAG_PSYS_CHILD  = (1 << 6),
 	DEG_TAG_PSYS_PHYS   = (1 << 7),
-	DEG_TAG_PSYS        = ((1 << 3) | (1 << 4) | (1 << 5) | (1 << 6) | (1 << 7)),
+	DEG_TAG_PSYS_ALL    = (DEG_TAG_PSYS_REDO |
+	                       DEG_TAG_PSYS_RESET |
+	                       DEG_TAG_PSYS_TYPE |
+	                       DEG_TAG_PSYS_CHILD |
+	                       DEG_TAG_PSYS_PHYS),
 
 	/* Update copy on write component without flushing down the road. */
 	DEG_TAG_COPY_ON_WRITE = (1 << 8),
