@@ -63,12 +63,10 @@ MINLINE unsigned int bitscan_reverse_uint(unsigned int a)
 
 MINLINE unsigned int highest_order_bit_uint(unsigned int n)
 {
-	n |= (n >>  1);
-	n |= (n >>  2);
-	n |= (n >>  4);
-	n |= (n >>  8);
-	n |= (n >> 16);
-	return n - (n >> 1);
+	if (n == 0) {
+		return 0;
+	}
+	return 1 << (sizeof(unsigned int) * 8 - bitscan_reverse_uint(n));
 }
 
 MINLINE unsigned short highest_order_bit_s(unsigned short n)
