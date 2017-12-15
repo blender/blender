@@ -83,9 +83,15 @@ static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 		*temp_dupli_object = *dob->ob;
 		temp_dupli_object->select_color = dupli_parent->select_color;
 		temp_dupli_object->base_flag = dupli_parent->base_flag | BASE_FROMDUPLI;
-		BLI_assert(dob->collection_properties != NULL);
-		temp_dupli_object->base_collection_properties = dob->collection_properties;
-		IDP_MergeGroup(temp_dupli_object->base_collection_properties, dupli_parent->base_collection_properties, false);
+
+		if (dob->collection_properties != NULL) {
+			temp_dupli_object->base_collection_properties = dob->collection_properties;
+			IDP_MergeGroup(temp_dupli_object->base_collection_properties, dupli_parent->base_collection_properties, false);
+		}
+		else {
+			temp_dupli_object->base_collection_properties = dupli_parent->base_collection_properties;
+		}
+
 		copy_m4_m4(data->temp_dupli_object.obmat, dob->mat);
 		iter->current = &data->temp_dupli_object;
 		BLI_assert(
