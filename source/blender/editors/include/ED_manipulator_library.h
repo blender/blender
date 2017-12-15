@@ -33,6 +33,7 @@
 /* initialize manipulators */
 void ED_manipulatortypes_arrow_2d(void);
 void ED_manipulatortypes_arrow_3d(void);
+void ED_manipulatortypes_button_2d(void);
 void ED_manipulatortypes_cage_2d(void);
 void ED_manipulatortypes_cage_3d(void);
 void ED_manipulatortypes_dial_3d(void);

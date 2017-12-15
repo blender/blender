@@ -3525,6 +3525,11 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Manipulator", "Use 3D transform manipulator");
 	RNA_def_property_update(prop, 0, "rna_userdef_show_manipulator_update");
 
+	prop = RNA_def_property(srna, "show_manipulator_navigate", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "manipulator_flag", USER_MANIPULATOR_DRAW_NAVIGATE);
+	RNA_def_property_ui_text(prop, "Navigate Manipulator", "Use 3D navigation manipulator");
+	RNA_def_property_update(prop, 0, "rna_userdef_show_manipulator_update");
+	
 	/* TODO, expose once it's working. */
 #if 0
 	prop = RNA_def_property(srna, "show_manipulator_shaded", PROP_BOOLEAN, PROP_NONE);

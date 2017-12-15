@@ -817,8 +817,9 @@ typedef enum eGP_UserdefSettings {
 } eGP_UserdefSettings;
 
 enum {
-	USER_MANIPULATOR_DRAW        = (1 << 0),
-	USER_MANIPULATOR_SHADED      = (1 << 1),
+	USER_MANIPULATOR_DRAW            = (1 << 0),
+	USER_MANIPULATOR_DRAW_NAVIGATE   = (1 << 1),
+	USER_MANIPULATOR_SHADED          = (1 << 8),
 };
 
 /* Color Picker Types.

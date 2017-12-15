@@ -127,6 +127,7 @@ void ED_spacetypes_init(void)
 	ED_operatortypes_ui();
 
 	/* manipulator types */
+	ED_manipulatortypes_button_2d();
 	ED_manipulatortypes_dial_3d();
 	ED_manipulatortypes_grab_3d();
 	ED_manipulatortypes_arrow_2d();

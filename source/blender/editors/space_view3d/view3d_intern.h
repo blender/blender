@@ -153,7 +153,7 @@ void draw_object_select(
         const struct EvaluationContext *eval_ctx, Scene *scene, struct ViewLayer *view_layer, struct ARegion *ar, View3D *v3d,
         Base *base, const short dflag);
 
-void draw_mesh_object_outline(View3D *v3d, Object *ob, struct DerivedMesh *dm, const unsigned char ob_wire_col[4]);
+void draw_mesh_object_outline(View3D *v3d, struct Object *ob, struct DerivedMesh *dm, const unsigned char ob_wire_col[4]);
 
 bool draw_glsl_material(Scene *scene, struct ViewLayer *view_layer, struct Object *ob, View3D *v3d, const char dt);
 void draw_object_instance(const struct EvaluationContext *eval_ctx, Scene *scene, struct ViewLayer *view_layer, View3D *v3d, RegionView3D *rv3d, struct Object *ob, const char dt, int outline, const float wire_col[4]);
@@ -304,7 +304,7 @@ void ED_view3d_cameracontrol_update(
 void ED_view3d_cameracontrol_release(
         struct View3DCameraControl *vctrl,
         const bool restore);
-Object *ED_view3d_cameracontrol_object_get(
+struct Object *ED_view3d_cameracontrol_object_get(
         struct View3DCameraControl *vctrl);
 
 /* view3d_toolbar.c */
@@ -338,10 +338,13 @@ void VIEW3D_WGT_camera_view(struct wmManipulatorGroupType *wgt);
 void VIEW3D_WGT_force_field(struct wmManipulatorGroupType *wgt);
 void VIEW3D_WGT_empty_image(struct wmManipulatorGroupType *wgt);
 void VIEW3D_WGT_armature_spline(struct wmManipulatorGroupType *wgt);
+void VIEW3D_WGT_navigate(struct wmManipulatorGroupType *wgt);
 
 void VIEW3D_WGT_ruler(struct wmManipulatorGroupType *wgt);
 void VIEW3D_WT_ruler_item(struct wmManipulatorType *wt);
 void VIEW3D_OT_ruler_add(struct wmOperatorType *ot);
+
+void VIEW3D_WT_navigate_rotate(struct wmManipulatorType *wt);
 
 /* draw_volume.c */
 void draw_smoke_volume(struct SmokeDomainSettings *sds, struct Object *ob,
@@ -365,7 +368,7 @@ extern bool view3d_camera_border_hack_test;
 void VP_legacy_drawcursor(Scene *scene, struct ViewLayer *view_layer, ARegion *ar, View3D *v3d);
 void VP_legacy_draw_view_axis(RegionView3D *rv3d, rcti *rect);
 void VP_legacy_draw_viewport_name(ARegion *ar, View3D *v3d, rcti *rect);
-void VP_legacy_draw_selected_name(Scene *scene, Object *ob, rcti *rect);
+void VP_legacy_draw_selected_name(Scene *scene, struct Object *ob, rcti *rect);
 void VP_legacy_drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **grid_unit);
 void VP_legacy_drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool write_depth);
 void VP_legacy_view3d_main_region_setup_view(const struct EvaluationContext *eval_ctx, Scene *scene, View3D *v3d, ARegion *ar, float viewmat[4][4], float winmat[4][4]);

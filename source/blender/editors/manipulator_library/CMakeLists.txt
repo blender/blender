@@ -47,6 +47,7 @@ set(SRC
 	geometry/geom_dial_manipulator.c
 	manipulator_types/arrow2d_manipulator.c
 	manipulator_types/arrow3d_manipulator.c
+	manipulator_types/button2d_manipulator.c
 	manipulator_types/cage2d_manipulator.c
 	manipulator_types/cage3d_manipulator.c
 	manipulator_types/dial3d_manipulator.c
