@@ -205,7 +205,7 @@ BLI_INLINE void flush_editors_id_update(Main *bmain,
 		 * This is because DEG_id_tag_update() sets tags on original
 		 * data.
 		 */
-		id_cow->tag |= (id_orig->recalc & ID_RECALC_ALL);
+		id_cow->recalc |= (id_orig->recalc & ID_RECALC_ALL);
 		if (deg_copy_on_write_is_expanded(id_cow)) {
 			deg_editors_id_update(update_ctx, id_cow);
 		}
