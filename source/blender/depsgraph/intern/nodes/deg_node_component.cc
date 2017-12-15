@@ -227,7 +227,7 @@ OperationDepsNode *ComponentDepsNode::add_operation(const DepsEvalOperationCb& o
 {
 	OperationDepsNode *op_node = find_operation(opcode, name, name_tag);
 	if (!op_node) {
-		DepsNodeFactory *factory = deg_get_node_factory(DEG_NODE_TYPE_OPERATION);
+		DepsNodeFactory *factory = deg_type_get_factory(DEG_NODE_TYPE_OPERATION);
 		op_node = (OperationDepsNode *)factory->create_node(this->owner->id_orig, "", name);
 
 		/* register opnode in this component's operation set */

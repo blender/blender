@@ -263,7 +263,7 @@ DepsNode *Depsgraph::find_node_from_pointer(const PointerRNA *ptr,
 TimeSourceDepsNode *Depsgraph::add_time_source()
 {
 	if (time_source == NULL) {
-		DepsNodeFactory *factory = deg_get_node_factory(DEG_NODE_TYPE_TIMESOURCE);
+		DepsNodeFactory *factory = deg_type_get_factory(DEG_NODE_TYPE_TIMESOURCE);
 		time_source = (TimeSourceDepsNode *)factory->create_node(NULL, "", "Time Source");
 	}
 	return time_source;
@@ -284,7 +284,7 @@ IDDepsNode *Depsgraph::add_id_node(ID *id, bool do_tag, ID *id_cow_hint)
 	BLI_assert((id->tag & LIB_TAG_COPY_ON_WRITE) == 0);
 	IDDepsNode *id_node = find_id_node(id);
 	if (!id_node) {
-		DepsNodeFactory *factory = deg_get_node_factory(DEG_NODE_TYPE_ID_REF);
+		DepsNodeFactory *factory = deg_type_get_factory(DEG_NODE_TYPE_ID_REF);
 		id_node = (IDDepsNode *)factory->create_node(id, "", id->name);
 		id_node->init_copy_on_write(id_cow_hint);
 		if (do_tag) {

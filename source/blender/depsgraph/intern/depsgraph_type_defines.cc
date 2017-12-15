@@ -51,14 +51,7 @@ namespace DEG {
 
 /* Global type registry */
 
-/**
- * \note For now, this is a hashtable not array, since the core node types
- * currently do not have contiguous ID values. Using a hash here gives us
- * more flexibility, albeit using more memory and also sacrificing a little
- * speed. Later on, when things stabilise we may turn this back to an array
- * since there are only just a few node types that an array would cope fine...
- */
-static GHash *_depsnode_typeinfo_registry = NULL;
+static DepsNodeFactory *depsnode_typeinfo_registry[NUM_DEG_NODE_TYPES] = {NULL};
 
 /* Registration ------------------------------------------- */
 
@@ -66,28 +59,16 @@ static GHash *_depsnode_typeinfo_registry = NULL;
 void deg_register_node_typeinfo(DepsNodeFactory *factory)
 {
 	BLI_assert(factory != NULL);
-	BLI_ghash_insert(_depsnode_typeinfo_registry,
-	                 SET_INT_IN_POINTER(factory->type()),
-	                 factory);
+	depsnode_typeinfo_registry[factory->type()] = factory;
 }
 
 /* Getters ------------------------------------------------- */
 
 /* Get typeinfo for specified type */
-DepsNodeFactory *deg_get_node_factory(const eDepsNode_Type type)
+DepsNodeFactory *deg_type_get_factory(const eDepsNode_Type type)
 {
 	/* look up type - at worst, it doesn't exist in table yet, and we fail */
-	return (DepsNodeFactory *)BLI_ghash_lookup(_depsnode_typeinfo_registry,
-	                                           SET_INT_IN_POINTER(type));
-}
-
-/* Get typeinfo for provided node */
-DepsNodeFactory *deg_node_get_factory(const DepsNode *node)
-{
-	if (node != NULL) {
-		return NULL;
-	}
-	return deg_get_node_factory(node->type);
+	return depsnode_typeinfo_registry[type];
 }
 
 /* Stringified opcodes ------------------------------------- */
@@ -183,9 +164,6 @@ const char *DepsOperationStringifier::operator[](eDepsOperation_Code opcode)
 /* Register all node types */
 void DEG_register_node_types(void)
 {
-	/* initialise registry */
-	DEG::_depsnode_typeinfo_registry = BLI_ghash_int_new("Depsgraph Node Type Registry");
-
 	/* register node types */
 	DEG::deg_register_base_depsnodes();
 	DEG::deg_register_component_depsnodes();
@@ -195,5 +173,4 @@ void DEG_register_node_types(void)
 /* Free registry on exit */
 void DEG_free_node_types(void)
 {
-	BLI_ghash_free(DEG::_depsnode_typeinfo_registry, NULL, NULL);
 }
