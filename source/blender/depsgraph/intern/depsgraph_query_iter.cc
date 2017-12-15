@@ -58,7 +58,7 @@ extern "C" {
 
 static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 {
-	DEGOIterObjectData *data = (DEGOIterObjectData *)iter->data;
+	DEGObjectIterData *data = (DEGObjectIterData *)iter->data;
 	while (data->dupli_object_next != NULL) {
 		DupliObject *dob = data->dupli_object_next;
 		Object *obd = dob->ob;
@@ -109,7 +109,7 @@ static void DEG_iterator_objects_step(BLI_Iterator *iter, DEG::IDDepsNode *id_no
 	/* Set it early in case we need to exit and we are running from within a loop. */
 	iter->skip = true;
 
-	DEGOIterObjectData *data = (DEGOIterObjectData *)iter->data;
+	DEGObjectIterData *data = (DEGObjectIterData *)iter->data;
 	const ID_Type id_type = GS(id_node->id_orig->name);
 
 	if (id_type != ID_OB) {
@@ -153,7 +153,7 @@ static void DEG_iterator_objects_step(BLI_Iterator *iter, DEG::IDDepsNode *id_no
 	iter->skip = false;
 }
 
-void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGOIterObjectData *data)
+void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGObjectIterData *data)
 {
 	Depsgraph *depsgraph = data->graph;
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
@@ -187,7 +187,7 @@ void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGOIterObjectData *data)
 
 void DEG_iterator_objects_next(BLI_Iterator *iter)
 {
-	DEGOIterObjectData *data = (DEGOIterObjectData *)iter->data;
+	DEGObjectIterData *data = (DEGObjectIterData *)iter->data;
 	Depsgraph *depsgraph = data->graph;
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
 	do {
@@ -218,7 +218,7 @@ void DEG_iterator_objects_next(BLI_Iterator *iter)
 void DEG_iterator_objects_end(BLI_Iterator *iter)
 {
 #ifndef NDEBUG
-	DEGOIterObjectData *data = (DEGOIterObjectData *)iter->data;
+	DEGObjectIterData *data = (DEGObjectIterData *)iter->data;
 	/* Force crash in case the iterator data is referenced and accessed down the line. (T51718) */
 	memset(&data->temp_dupli_object, 0xff, sizeof(data->temp_dupli_object));
 #else

@@ -77,7 +77,7 @@ enum {
 	DEG_ITER_OBJECT_FLAG_DUPLI             = (1 << 4),
 };
 
-typedef struct DEGOIterObjectData {
+typedef struct DEGObjectIterData {
 	struct Depsgraph *graph;
 	struct Scene *scene;
 	struct EvaluationContext eval_ctx;
@@ -104,9 +104,9 @@ typedef struct DEGOIterObjectData {
 	/* **** Iteration ober ID nodes **** */
 	size_t id_node_index;
 	size_t num_id_nodes;
-} DEGOIterObjectData;
+} DEGObjectIterData;
 
-void DEG_iterator_objects_begin(struct BLI_Iterator *iter, DEGOIterObjectData *data);
+void DEG_iterator_objects_begin(struct BLI_Iterator *iter, DEGObjectIterData *data);
 void DEG_iterator_objects_next(struct BLI_Iterator *iter);
 void DEG_iterator_objects_end(struct BLI_Iterator *iter);
 
@@ -117,7 +117,7 @@ void DEG_iterator_objects_end(struct BLI_Iterator *iter);
  */
 #define DEG_OBJECT_ITER(graph_, instance_, flag_)                                 \
 	{                                                                             \
-		DEGOIterObjectData data_ = {                                              \
+		DEGObjectIterData data_ = {                                               \
 			.graph = (graph_),                                                    \
 			.flag = (flag_),                                                      \
 		};                                                                        \
