@@ -48,6 +48,7 @@
 #include "ED_screen.h"
 
 #include "WM_api.h"
+#include "WM_message.h"
 #include "WM_types.h"
 
 #include "BIF_gl.h"
@@ -423,6 +424,24 @@ static void outliner_main_region_listener(
 	
 }
 
+static void outliner_main_region_message_subscribe(
+        const struct bContext *UNUSED(C),
+        struct WorkSpace *UNUSED(workspace), struct Scene *UNUSED(scene),
+        struct bScreen *UNUSED(screen), struct ScrArea *sa, struct ARegion *ar,
+        struct wmMsgBus *mbus)
+{
+	SpaceOops *soops = sa->spacedata.first;
+	wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
+		.owner = ar,
+		.user_data = ar,
+		.notify = ED_region_do_msg_notify_tag_redraw,
+	};
+
+	if (ELEM(soops->outlinevis, SO_ACT_LAYER, SO_COLLECTIONS)) {
+		WM_msg_subscribe_rna_anon_prop(mbus, Window, view_layer, &msg_sub_value_region_tag_redraw);
+	}
+}
+
 
 /* ************************ header outliner area region *********************** */
 
@@ -576,6 +595,7 @@ void ED_spacetype_outliner(void)
 	art->draw = outliner_main_region_draw;
 	art->free = outliner_main_region_free;
 	art->listener = outliner_main_region_listener;
+	art->message_subscribe = outliner_main_region_message_subscribe;
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */

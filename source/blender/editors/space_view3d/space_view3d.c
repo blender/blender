@@ -1073,6 +1073,8 @@ static void view3d_main_region_message_subscribe(
 
 	/* Only subscribe to types. */
 	StructRNA *type_array[] = {
+		&RNA_Window,
+
 		/* These object have properties that impact drawing. */
 		&RNA_AreaLamp,
 		&RNA_Camera,
