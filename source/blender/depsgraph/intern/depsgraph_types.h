@@ -82,9 +82,9 @@ typedef enum eDepsNode_Class {
 /* Types of Nodes */
 typedef enum eDepsNode_Type {
 	/* Fallback type for invalid return value */
-	DEG_NODE_TYPE_UNDEFINED        = -1,
+	DEG_NODE_TYPE_UNDEFINED        = 0,
 	/* Inner Node (Operation) */
-	DEG_NODE_TYPE_OPERATION        = 0,
+	DEG_NODE_TYPE_OPERATION,
 
 	/* **** Generic Types **** */
 
