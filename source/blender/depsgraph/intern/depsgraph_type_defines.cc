@@ -71,15 +71,6 @@ DepsNodeFactory *deg_type_get_factory(const eDepsNode_Type type)
 	return depsnode_typeinfo_registry[type];
 }
 
-/* Get typeinfo for provided node */
-DepsNodeFactory *deg_node_get_factory(const DepsNode *node)
-{
-	if (node != NULL) {
-		return NULL;
-	}
-	return deg_type_get_factory(node->type);
-}
-
 /* Stringified opcodes ------------------------------------- */
 
 DepsOperationStringifier DEG_OPNAMES;
