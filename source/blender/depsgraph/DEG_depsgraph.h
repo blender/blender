@@ -143,13 +143,10 @@ void DEG_on_visible_update(struct Main *bmain, const bool do_time);
 enum {
 	/* Object transformation changed, corresponds to OB_RECALC_OB. */
 	DEG_TAG_TRANSFORM   = (1 << 0),
-
 	/* Object geoemtry changed, corresponds to OB_RECALC_DATA. */
 	DEG_TAG_GEOMETRY    = (1 << 1),
-
 	/* Time changed and animation is to be re-evaluated, OB_RECALC_TIME. */
 	DEG_TAG_TIME        = (1 << 2),
-
 	/* Particle system changed. */
 	DEG_TAG_PSYS_REDO   = (1 << 3),
 	DEG_TAG_PSYS_RESET  = (1 << 4),
@@ -161,17 +158,14 @@ enum {
 	                       DEG_TAG_PSYS_TYPE |
 	                       DEG_TAG_PSYS_CHILD |
 	                       DEG_TAG_PSYS_PHYS),
-
 	/* Update copy on write component without flushing down the road. */
 	DEG_TAG_COPY_ON_WRITE = (1 << 8),
-
 	/* Tag shading components for update.
 	 * Only parameters of material changed).
 	 */
 	DEG_TAG_SHADING_UPDATE  = (1 << 9),
 	DEG_TAG_SELECT_UPDATE   = (1 << 10),
 	DEG_TAG_BASE_FLAGS_UPDATE = (1 << 11),
-
 	/* Only inform editors about the change. Don't modify datablock itself. */
 	DEG_TAG_EDITORS_UPDATE = (1 << 12),
 };
