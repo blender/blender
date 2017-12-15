@@ -236,17 +236,15 @@ static void libmv_marker_to_dna_marker(libmv_Marker *libmv_marker,
 	}
 }
 
-static bool check_track_trackable(MovieClip *clip,
+static bool check_track_trackable(const MovieClip *clip,
                                   MovieTrackingTrack *track,
-                                  MovieClipUser *user)
+                                  const MovieClipUser *user)
 {
 	if (TRACK_SELECTED(track) &&
 	    (track->flag & (TRACK_LOCKED | TRACK_HIDDEN)) == 0)
 	{
-		MovieTrackingMarker *marker;
-		int frame;
-		frame = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr);
-		marker = BKE_tracking_marker_get(track, frame);
+		int frame = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr);
+		const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, frame);
 		return (marker->flag & MARKER_DISABLED) == 0;
 	}
 	return false;
