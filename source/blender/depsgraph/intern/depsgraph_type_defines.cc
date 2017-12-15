@@ -65,7 +65,7 @@ void deg_register_node_typeinfo(DepsNodeFactory *factory)
 /* Getters ------------------------------------------------- */
 
 /* Get typeinfo for specified type */
-DepsNodeFactory *deg_get_node_factory(const eDepsNode_Type type)
+DepsNodeFactory *deg_type_get_factory(const eDepsNode_Type type)
 {
 	/* look up type - at worst, it doesn't exist in table yet, and we fail */
 	return depsnode_typeinfo_registry[type];
@@ -77,7 +77,7 @@ DepsNodeFactory *deg_node_get_factory(const DepsNode *node)
 	if (node != NULL) {
 		return NULL;
 	}
-	return deg_get_node_factory(node->type);
+	return deg_type_get_factory(node->type);
 }
 
 /* Stringified opcodes ------------------------------------- */

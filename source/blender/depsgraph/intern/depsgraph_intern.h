@@ -102,7 +102,7 @@ struct DepsNodeFactoryImpl : public DepsNodeFactory {
 void deg_register_node_typeinfo(DepsNodeFactory *factory);
 
 /* Get typeinfo for specified type */
-DepsNodeFactory *deg_get_node_factory(const eDepsNode_Type type);
+DepsNodeFactory *deg_type_get_factory(const eDepsNode_Type type);
 
 /* Get typeinfo for provided node */
 DepsNodeFactory *deg_node_get_factory(const DepsNode *node);

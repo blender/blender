@@ -177,7 +177,7 @@ static void deg_debug_graphviz_legend(const DebugContext &ctx)
 #ifdef COLOR_SCHEME_NODE_TYPE
 	const int (*pair)[2];
 	for (pair = deg_debug_node_type_color_map; (*pair)[0] >= 0; ++pair) {
-		DepsNodeFactory *nti = DEG_get_node_factory((eDepsNode_Type)(*pair)[0]);
+		DepsNodeFactory *nti = deg_type_get_factory((eDepsNode_Type)(*pair)[0]);
 		deg_debug_graphviz_legend_color(ctx,
 		                                nti->tname().c_str(),
 		                                deg_debug_colors_light[(*pair)[1] % deg_debug_max_colors]);

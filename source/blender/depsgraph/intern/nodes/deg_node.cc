@@ -202,7 +202,7 @@ ComponentDepsNode *IDDepsNode::add_component(eDepsNode_Type type,
 {
 	ComponentDepsNode *comp_node = find_component(type, name);
 	if (!comp_node) {
-		DepsNodeFactory *factory = deg_get_node_factory(type);
+		DepsNodeFactory *factory = deg_type_get_factory(type);
 		comp_node = (ComponentDepsNode *)factory->create_node(this->id, "", name);
 
 		/* Register. */
