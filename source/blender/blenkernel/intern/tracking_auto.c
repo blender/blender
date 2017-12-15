@@ -288,7 +288,29 @@ static void fill_autotrack_tracks(const int frame_width,
                                   const bool backwards,
                                   struct libmv_AutoTrack *autotrack)
 {
-	int track_index = 0;
+	/* Count number of markers to be put to a context. */
+	size_t num_trackable_marekrs = 0;
+	for (MovieTrackingTrack *track = tracksbase->first;
+	     track != NULL;
+	     track = track->next)
+	{
+		for (int i = 0; i < track->markersnr; ++i) {
+			const MovieTrackingMarker *marker = track->markers + i;
+			if ((marker->flag & MARKER_DISABLED) == 0) {
+				num_trackable_marekrs++;
+			}
+		}
+	}
+	/* Early output if we don't have any markers. */
+	if (num_trackable_marekrs == 0) {
+		return;
+	}
+	/* Allocate memory for all the markers. */
+	libmv_Marker *libmv_markers = MEM_mallocN(
+	        sizeof(libmv_Marker) * num_trackable_marekrs,
+	        "libmv markers array");
+	/* Fill in markers array. */
+	int track_index = 0, num_filled_libmv_markers = 0;
 	for (MovieTrackingTrack *track = tracksbase->first;
 	     track != NULL;
 	     track = track->next)
@@ -298,19 +320,24 @@ static void fill_autotrack_tracks(const int frame_width,
 			if ((marker->flag & MARKER_DISABLED) != 0) {
 				continue;
 			}
-			libmv_Marker libmv_marker;
-			dna_marker_to_libmv_marker(track,
-			                           marker,
-			                           0,
-			                           track_index,
-			                           frame_width,
-			                           frame_height,
-			                           backwards,
-			                           &libmv_marker);
-			libmv_autoTrackAddMarker(autotrack, &libmv_marker);
+			dna_marker_to_libmv_marker(
+			        track,
+			        marker,
+			        0,
+			        track_index,
+			        frame_width, frame_height,
+			        backwards,
+			        &libmv_markers[num_filled_libmv_markers++]);
 		}
+		/* Put all markers to autotrack at once. */
 		track_index++;
 	}
+	/* Add all markers to autotrack. */
+	libmv_autoTrackSetMarkers(autotrack,
+	                          libmv_markers,
+	                          num_trackable_marekrs);
+	/* Free temporary memory. */
+	MEM_freeN(libmv_markers);
 }
 
 static void create_per_track_tracking_options(const MovieClip *clip,
