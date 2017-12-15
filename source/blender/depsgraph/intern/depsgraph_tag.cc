@@ -133,7 +133,7 @@ void lib_id_recalc_tag_flag(Main *bmain, ID *id, int flag)
 /* Special tagging  */
 void id_tag_update_special_zero_flag(Depsgraph *graph, IDDepsNode *id_node)
 {
-	/* NOTE: Full ID node update for now, need to minimize that i9n the future. */
+	/* NOTE: Full ID node update for now, need to minimize that in the future. */
 	id_node->tag_update(graph);
 }
 
