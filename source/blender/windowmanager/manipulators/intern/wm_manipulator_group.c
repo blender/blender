@@ -389,13 +389,21 @@ static int manipulator_tweak_invoke(bContext *C, wmOperator *op, const wmEvent *
 		return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
 	}
 
+	wmManipulatorOpElem *mpop = WM_manipulator_operator_get(mpr, mpr->highlight_part);
+
+	/* Allow for 'button' manipulators, single click to run an action. */
+	if (mpop && mpop->type) {
+		if (mpop->type->modal == NULL) {
+			WM_operator_name_call_ptr(C, mpop->type, WM_OP_INVOKE_DEFAULT, &mpop->ptr);
+			return OPERATOR_FINISHED;
+		}
+	}
 
 	/* activate highlighted manipulator */
 	wm_manipulatormap_modal_set(mmap, C, mpr, event, true);
 
 	/* XXX temporary workaround for modal manipulator operator
 	 * conflicting with modal operator attached to manipulator */
-	wmManipulatorOpElem *mpop = WM_manipulator_operator_get(mpr, mpr->highlight_part);
 	if (mpop && mpop->type) {
 		if (mpop->type->modal) {
 			return OPERATOR_FINISHED;
