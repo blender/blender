@@ -27,6 +27,40 @@
 
 #include "BLI_math_bits.h"
 
+MINLINE int bitscan_forward_i(int a)
+{
+	BLI_assert(a != 0);
+#  ifdef _MSC_VER
+	unsigned long ctz;
+	_BitScanForward(&ctz, a);
+	return ctz;
+#else
+	return __builtin_ctz((unsigned int)a);
+#endif
+}
+
+MINLINE unsigned int bitscan_forward_uint(unsigned int a)
+{
+	return (unsigned int)bitscan_forward_i((int)a);
+}
+
+MINLINE int bitscan_reverse_i(int a)
+{
+	BLI_assert(a != 0);
+#  ifdef _MSC_VER
+	unsigned long clz;
+	_BitScanReverse(&clz, a);
+	return clz;
+#else
+	return __builtin_clz((unsigned int)a);
+#endif
+}
+
+MINLINE unsigned int bitscan_reverse_uint(unsigned int a)
+{
+	return (unsigned int)bitscan_reverse_i((int)a);
+}
+
 MINLINE unsigned int highest_order_bit_uint(unsigned int n)
 {
 	n |= (n >>  1);
