@@ -27,7 +27,7 @@
 
 #include "BLI_math_bits.h"
 
-MINLINE unsigned int highest_order_bit_i(unsigned int n)
+MINLINE unsigned int highest_order_bit_uint(unsigned int n)
 {
 	n |= (n >>  1);
 	n |= (n >>  2);

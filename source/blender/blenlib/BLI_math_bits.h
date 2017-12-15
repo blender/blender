@@ -31,7 +31,7 @@ extern "C" {
 
 #include "BLI_math_inline.h"
 
-MINLINE unsigned int highest_order_bit_i(unsigned int n);
+MINLINE unsigned int highest_order_bit_uint(unsigned int n);
 MINLINE unsigned short highest_order_bit_s(unsigned short n);
 
 #ifdef __GNUC__
