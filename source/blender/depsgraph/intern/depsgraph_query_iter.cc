@@ -38,6 +38,7 @@ extern "C" {
 #include "BKE_anim.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
+#include "BKE_object.h"
 } /* extern "C" */
 
 #include "DNA_object_types.h"
@@ -105,34 +106,42 @@ static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 
 static void DEG_iterator_objects_step(BLI_Iterator *iter, DEG::IDDepsNode *id_node)
 {
-	/* Reset the skip in case we are running from within a loop. */
-	iter->skip = false;
+	/* Set it early in case we need to exit and we are running from within a loop. */
+	iter->skip = true;
 
 	DEGOIterObjectData *data = (DEGOIterObjectData *)iter->data;
 	const ID_Type id_type = GS(id_node->id_orig->name);
 
 	if (id_type != ID_OB) {
-		iter->skip = true;
 		return;
 	}
 
 	switch (id_node->linked_state) {
 		case DEG::DEG_ID_LINKED_DIRECTLY:
+			if ((data->flag & DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY) == 0) {
+				return;
+			}
 			break;
 		case DEG::DEG_ID_LINKED_VIA_SET:
-			if (data->flag & DEG_ITER_OBJECT_FLAG_SET) {
-				break;
+			if ((data->flag & DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET) == 0) {
+				return;
 			}
-			else {
-				ATTR_FALLTHROUGH;
-			}
+			break;
 		case DEG::DEG_ID_LINKED_INDIRECTLY:
-			iter->skip = true;
-			return;
+			if ((data->flag & DEG_ITER_OBJECT_FLAG_LINKED_INDIRECTLY) == 0) {
+				return;
+			}
+			break;
 	}
 
 	Object *object = (Object *)id_node->id_cow;
 	BLI_assert(DEG::deg_validate_copy_on_write_datablock(&object->id));
+
+	if ((BKE_object_is_visible(object) == false) &&
+	    ((data->flag & DEG_ITER_OBJECT_FLAG_VISIBLE) != 0))
+	{
+		return;
+	}
 
 	if ((data->flag & DEG_ITER_OBJECT_FLAG_DUPLI) && (object->transflag & OB_DUPLI)) {
 		data->dupli_parent = object;
@@ -141,6 +150,7 @@ static void DEG_iterator_objects_step(BLI_Iterator *iter, DEG::IDDepsNode *id_no
 	}
 
 	iter->current = object;
+	iter->skip = false;
 }
 
 void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGOIterObjectData *data)

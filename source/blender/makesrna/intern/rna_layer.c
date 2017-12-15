@@ -70,7 +70,6 @@ const EnumPropertyItem rna_enum_collection_type_items[] = {
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_node.h"
-#include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_mesh.h"
 
@@ -871,7 +870,12 @@ static void rna_LayerObjects_selected_begin(CollectionPropertyIterator *iter, Po
 static void rna_ViewLayer_update_tagged(ViewLayer *UNUSED(view_layer), bContext *C)
 {
 	Depsgraph *graph = CTX_data_depsgraph(C);
-	DEG_OBJECT_ITER(graph, ob, DEG_ITER_OBJECT_FLAG_ALL)
+	DEG_OBJECT_ITER(graph, ob,
+	                DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+	                DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |
+	                DEG_ITER_OBJECT_FLAG_LINKED_INDIRECTLY |
+	                DEG_ITER_OBJECT_FLAG_VISIBLE |
+	                DEG_ITER_OBJECT_FLAG_DUPLI)
 	{
 		/* Don't do anything, we just need to run the iterator to flush
 		 * the base info to the objects. */

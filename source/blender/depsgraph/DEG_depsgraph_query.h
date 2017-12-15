@@ -70,10 +70,11 @@ struct ID *DEG_get_evaluated_id(struct Depsgraph *depsgraph, struct ID *id);
 /* ************************ DEG iterators ********************* */
 
 enum {
-	DEG_ITER_OBJECT_FLAG_SET = (1 << 0),
-	DEG_ITER_OBJECT_FLAG_DUPLI = (1 << 1),
-
-	DEG_ITER_OBJECT_FLAG_ALL = (DEG_ITER_OBJECT_FLAG_SET | DEG_ITER_OBJECT_FLAG_DUPLI),
+	DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY   = (1 << 0),
+	DEG_ITER_OBJECT_FLAG_LINKED_INDIRECTLY = (1 << 1),
+	DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET    = (1 << 2),
+	DEG_ITER_OBJECT_FLAG_VISIBLE           = (1 << 3),
+	DEG_ITER_OBJECT_FLAG_DUPLI             = (1 << 4),
 };
 
 typedef struct DEGOIterObjectData {
@@ -109,6 +110,11 @@ void DEG_iterator_objects_begin(struct BLI_Iterator *iter, DEGOIterObjectData *d
 void DEG_iterator_objects_next(struct BLI_Iterator *iter);
 void DEG_iterator_objects_end(struct BLI_Iterator *iter);
 
+/**
+ * Note: Be careful with DEG_ITER_OBJECT_FLAG_LINKED_INDIRECTLY objects.
+ * Although they are available they have no overrides (collection_properties)
+ * and will crash if you try to access it.
+ */
 #define DEG_OBJECT_ITER(graph_, instance_, flag_)                                 \
 	{                                                                             \
 		DEGOIterObjectData data_ = {                                              \
@@ -119,15 +125,24 @@ void DEG_iterator_objects_end(struct BLI_Iterator *iter);
 		ITER_BEGIN(DEG_iterator_objects_begin,                                    \
 		           DEG_iterator_objects_next,                                     \
 		           DEG_iterator_objects_end,                                      \
-		           &data_, Object *, instance_)                                   \
-                                                                                  \
-			if (BKE_object_is_visible(instance_) == false) {                      \
-				continue;                                                         \
-			}
+		           &data_, Object *, instance_)
 
 #define DEG_OBJECT_ITER_END                                                       \
 		ITER_END                                                                  \
 	}
+
+/**
+  * Depsgraph objects iterator for draw manager and final render
+  */
+#define DEG_OBJECT_ITER_FOR_RENDER_ENGINE(graph_, instance_) \
+	DEG_OBJECT_ITER(graph_, instance_,                       \
+	        DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY  |          \
+	        DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |            \
+	        DEG_ITER_OBJECT_FLAG_VISIBLE |                   \
+	        DEG_ITER_OBJECT_FLAG_DUPLI)
+
+#define DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END                \
+	DEG_OBJECT_ITER_END
 
 /* ************************ DEG traversal ********************* */
 

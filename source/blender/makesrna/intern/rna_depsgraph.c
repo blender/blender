@@ -152,7 +152,9 @@ static void rna_Depsgraph_objects_begin(CollectionPropertyIterator *iter, Pointe
 	DEGOIterObjectData *data = MEM_callocN(sizeof(DEGOIterObjectData), __func__);
 
 	data->graph = (Depsgraph *)ptr->data;
-	data->flag = DEG_ITER_OBJECT_FLAG_SET;
+	data->flag = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+	             DEG_ITER_OBJECT_FLAG_VISIBLE |
+	             DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET;
 
 	((BLI_Iterator *)iter->internal.custom)->valid = true;
 	DEG_iterator_objects_begin(iter->internal.custom, data);
@@ -189,7 +191,10 @@ static void rna_Depsgraph_duplis_begin(CollectionPropertyIterator *iter, Pointer
 	DEGOIterObjectData *data = MEM_callocN(sizeof(DEGOIterObjectData), __func__);
 
 	data->graph = (Depsgraph *)ptr->data;
-	data->flag = DEG_ITER_OBJECT_FLAG_ALL;
+	data->flag = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+	             DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |
+	             DEG_ITER_OBJECT_FLAG_VISIBLE |
+	             DEG_ITER_OBJECT_FLAG_DUPLI;
 
 	((BLI_Iterator *)iter->internal.custom)->valid = true;
 	DEG_iterator_objects_begin(iter->internal.custom, data);
