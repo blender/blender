@@ -2700,9 +2700,9 @@ void BKE_object_handle_update_ex(const EvaluationContext *eval_ctx,
                                  const bool do_proxy_update)
 {
 	const ID *object_data = ob->data;
-	const bool recalc_object = (ob->id.tag & LIB_TAG_ID_RECALC) != 0;
+	const bool recalc_object = (ob->id.recalc & ID_RECALC) != 0;
 	const bool recalc_data =
-	        (object_data != NULL) ? ((object_data->tag & LIB_TAG_ID_RECALC_ALL) != 0)
+	        (object_data != NULL) ? ((object_data->recalc & ID_RECALC_ALL) != 0)
 	                              : 0;
 	if (!recalc_object && ! recalc_data) {
 		object_handle_update_proxy(eval_ctx, scene, ob, do_proxy_update);
@@ -2742,7 +2742,7 @@ void BKE_object_handle_update_ex(const EvaluationContext *eval_ctx,
 		BKE_object_handle_data_update(eval_ctx, scene, ob);
 	}
 
-	ob->id.tag &= ~LIB_TAG_ID_RECALC_ALL;
+	ob->id.recalc &= ID_RECALC_ALL;
 
 	object_handle_update_proxy(eval_ctx, scene, ob, do_proxy_update);
 }
@@ -3725,7 +3725,7 @@ bool BKE_object_modifier_update_subframe(
 
 	/* was originally OB_RECALC_ALL - TODO - which flags are really needed??? */
 	/* TODO(sergey): What about animation? */
-	ob->id.tag |= LIB_TAG_ID_RECALC_ALL;
+	ob->id.recalc |= ID_RECALC_ALL;
 	BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, frame, ADT_RECALC_ANIM);
 	if (update_mesh) {
 		/* ignore cache clear during subframe updates

@@ -211,13 +211,14 @@ typedef struct ID {
 	int tag;
 	int us;
 	int icon_id;
+	int recalc;
+	int pad;
 	IDProperty *properties;
 
 	IDOverrideStatic *override_static;  /* Reference linked ID which this one overrides. */
+	void *pad1;
 
 	void *py_instance;
-
-	void *pad1;
 } ID;
 
 /**
@@ -437,22 +438,24 @@ enum {
 	/* RESET_AFTER_USE tag existing data before linking so we know what is new. */
 	LIB_TAG_PRE_EXISTING    = 1 << 11,
 
-	/* RESET_AFTER_USE, used by update code (depsgraph). */
-	LIB_TAG_ID_RECALC       = 1 << 12,
-	/* LIB_TAG_AVAILABLE  = 1 << 13, */  /* Was used by deprecated flag. */
-	/* LIB_TAG_AVAILABLE  = 1 << 14, */  /* Was used by deprecated flag. */
-	LIB_TAG_ID_RECALC_ALL   = (LIB_TAG_ID_RECALC),
-
 	/* The datablock is a copy-on-write version. */
-	LIB_TAG_COPY_ON_WRITE   = 1 << 15,
-	LIB_TAG_COPY_ON_WRITE_EVAL = 1 << 16,
+	LIB_TAG_COPY_ON_WRITE   = 1 << 12,
+	LIB_TAG_COPY_ON_WRITE_EVAL = 1 << 13,
 
 	/* RESET_NEVER tag datablock for freeing etc. behavior (usually set when copying real one into temp/runtime one). */
-	LIB_TAG_NO_MAIN          = 1 << 17,  /* Datablock is not listed in Main database. */
-	LIB_TAG_NO_USER_REFCOUNT = 1 << 18,  /* Datablock does not refcount usages of other IDs. */
+	LIB_TAG_NO_MAIN          = 1 << 14,  /* Datablock is not listed in Main database. */
+	LIB_TAG_NO_USER_REFCOUNT = 1 << 15,  /* Datablock does not refcount usages of other IDs. */
 	/* Datablock was not allocated by standard system (BKE_libblock_alloc), do not free its memory
 	 * (usual type-specific freeing is called though). */
-	LIB_TAG_NOT_ALLOCATED     = 1 << 19,
+	LIB_TAG_NOT_ALLOCATED     = 1 << 16,
+};
+
+enum {
+	/* RESET_AFTER_USE, used by update code (depsgraph). */
+	ID_RECALC       = 1 << 0,
+	ID_RECALC_DATA  = 1 << 1,
+	ID_RECALC_SKIP_ANIM_TAG  = 1 << 2,
+	ID_RECALC_ALL   = (ID_RECALC | ID_RECALC_DATA),
 };
 
 /* To filter ID types (filter_id) */

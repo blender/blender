@@ -52,7 +52,7 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
 	foreach (IDDepsNode *id_node, graph->id_nodes) {
 		ID *id = id_node->id_orig;
 		id_node->finalize_build(graph);
-		if ((id->tag & LIB_TAG_ID_RECALC_ALL)) {
+		if ((id->recalc & ID_RECALC_ALL)) {
 			id_node->tag_update(graph);
 		}
 		/* TODO(sergey): This is not ideal at all, since this forces

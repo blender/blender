@@ -75,6 +75,8 @@
 
 #include "nla_private.h"
 
+#include "atomic_ops.h"
+
 /* ***************************************** */
 /* AnimData API */
 

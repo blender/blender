@@ -374,7 +374,7 @@ void BKE_group_handle_recalc_and_update(const struct EvaluationContext *eval_ctx
 		/* only do existing tags, as set by regular depsgraph */
 		FOREACH_GROUP_OBJECT(group, object)
 		{
-			if (object->id.tag & LIB_TAG_ID_RECALC_ALL) {
+			if (object->id.recalc & ID_RECALC_ALL) {
 				BKE_object_handle_update(eval_ctx, scene, object);
 			}
 		}

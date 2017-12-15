@@ -309,7 +309,7 @@ static void material_changed(Main *bmain, Material *ma)
 	BKE_icon_changed(BKE_icon_id_ensure(&ma->id));
 
 	/* glsl */
-	if (ma->id.tag & LIB_TAG_ID_RECALC) {
+	if (ma->id.recalc & ID_RECALC) {
 		if (!BLI_listbase_is_empty(&ma->gpumaterial)) {
 			GPU_material_free(&ma->gpumaterial);
 		}
@@ -493,7 +493,7 @@ static void world_changed(Main *UNUSED(bmain), World *wo)
 	wo->update_flag = 1;
 
 	/* glsl */
-	if (wo->id.tag & LIB_TAG_ID_RECALC) {
+	if (wo->id.recalc & ID_RECALC) {
 		if (!BLI_listbase_is_empty(&defmaterial.gpumaterial)) {
 			GPU_material_free(&defmaterial.gpumaterial);
 		}

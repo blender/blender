@@ -783,7 +783,7 @@ static int rna_ID_is_updated_data_get(PointerRNA *ptr)
 	if (data == NULL) {
 		return 0;
 	}
-	return ((data->tag & LIB_TAG_ID_RECALC_ALL) != 0);
+	return ((data->recalc & ID_RECALC_ALL) != 0);
 }
 
 static PointerRNA rna_ID_override_reference_get(PointerRNA *ptr)
@@ -1037,11 +1037,12 @@ static void rna_def_ID(BlenderRNA *brna)
 	                         "(initial state is undefined)");
 
 	prop = RNA_def_property(srna, "is_updated", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "tag", LIB_TAG_ID_RECALC);
+	RNA_def_property_boolean_sdna(prop, NULL, "recalc", ID_RECALC);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Is Updated", "Data-block is tagged for recalculation");
 
 	prop = RNA_def_property(srna, "is_updated_data", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "recalc", ID_RECALC_DATA);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_ID_is_updated_data_get", NULL);
 	RNA_def_property_ui_text(prop, "Is Updated Data", "Data-block data is tagged for recalculation");
