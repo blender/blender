@@ -236,17 +236,15 @@ static void libmv_marker_to_dna_marker(libmv_Marker *libmv_marker,
 	}
 }
 
-static bool check_track_trackable(MovieClip *clip,
+static bool check_track_trackable(const MovieClip *clip,
                                   MovieTrackingTrack *track,
-                                  MovieClipUser *user)
+                                  const MovieClipUser *user)
 {
 	if (TRACK_SELECTED(track) &&
 	    (track->flag & (TRACK_LOCKED | TRACK_HIDDEN)) == 0)
 	{
-		MovieTrackingMarker *marker;
-		int frame;
-		frame = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr);
-		marker = BKE_tracking_marker_get(track, frame);
+		int frame = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr);
+		const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, frame);
 		return (marker->flag & MARKER_DISABLED) == 0;
 	}
 	return false;
@@ -283,6 +281,108 @@ static bool tracking_check_marker_margin(libmv_Marker *libmv_marker,
 	return true;
 }
 
+/* Provide Libmv side of auto track all information about given tracks. */
+static void fill_autotrack_tracks(const int frame_width,
+                                  const int frame_height,
+                                  const ListBase *tracksbase,
+                                  const bool backwards,
+                                  struct libmv_AutoTrack *autotrack)
+{
+	/* Count number of markers to be put to a context. */
+	size_t num_trackable_markers = 0;
+	for (MovieTrackingTrack *track = tracksbase->first;
+	     track != NULL;
+	     track = track->next)
+	{
+		for (int i = 0; i < track->markersnr; ++i) {
+			const MovieTrackingMarker *marker = track->markers + i;
+			if ((marker->flag & MARKER_DISABLED) == 0) {
+				num_trackable_markers++;
+			}
+		}
+	}
+	/* Early output if we don't have any markers. */
+	if (num_trackable_markers == 0) {
+		return;
+	}
+	/* Allocate memory for all the markers. */
+	libmv_Marker *libmv_markers = MEM_mallocN(
+	        sizeof(libmv_Marker) * num_trackable_markers,
+	        "libmv markers array");
+	/* Fill in markers array. */
+	int track_index = 0, num_filled_libmv_markers = 0;
+	for (MovieTrackingTrack *track = tracksbase->first;
+	     track != NULL;
+	     track = track->next)
+	{
+		for (int i = 0; i < track->markersnr; ++i) {
+			MovieTrackingMarker *marker = track->markers + i;
+			if ((marker->flag & MARKER_DISABLED) != 0) {
+				continue;
+			}
+			dna_marker_to_libmv_marker(
+			        track,
+			        marker,
+			        0,
+			        track_index,
+			        frame_width, frame_height,
+			        backwards,
+			        &libmv_markers[num_filled_libmv_markers++]);
+		}
+		/* Put all markers to autotrack at once. */
+		track_index++;
+	}
+	/* Add all markers to autotrack. */
+	libmv_autoTrackSetMarkers(autotrack,
+	                          libmv_markers,
+	                          num_trackable_markers);
+	/* Free temporary memory. */
+	MEM_freeN(libmv_markers);
+}
+
+static void create_per_track_tracking_options(const MovieClip *clip,
+                                              const MovieClipUser *user,
+                                              const ListBase *tracksbase,
+                                              AutoTrackContext *context)
+{
+	/* Count number of trackable tracks. */
+	for (MovieTrackingTrack *track = tracksbase->first;
+	     track != NULL;
+	     track = track->next)
+	{
+		if (check_track_trackable(clip, track, user)) {
+			context->num_tracks++;
+		}
+	}
+	/* Allocate required memory. */
+	context->options =
+		MEM_callocN(sizeof(AutoTrackOptions) * context->num_tracks,
+		            "auto track options");
+	/* Fill in all the settings. */
+	int i = 0, track_index = 0;
+	for (MovieTrackingTrack *track = tracksbase->first;
+	     track != NULL;
+	     track = track->next)
+	{
+		if (!check_track_trackable(clip, track, user)) {
+			++track_index;
+			continue;
+		}
+		AutoTrackOptions *options = &context->options[i++];
+		/* TODO(sergey): Single clip only for now. */
+		options->clip_index = 0;
+		options->track_index = track_index;
+		options->track = track;
+		tracking_configure_tracker(track,
+		                           NULL,
+		                           &options->track_region_options);
+		options->use_keyframe_match =
+		        track->pattern_match == TRACK_MATCH_KEYFRAME;
+		context->tracks[track_index] = track;
+		++track_index;
+	}
+}
+
 AutoTrackContext *BKE_autotrack_context_new(MovieClip *clip,
                                             MovieClipUser *user,
                                             const bool backwards,
@@ -291,16 +391,13 @@ AutoTrackContext *BKE_autotrack_context_new(MovieClip *clip,
 	AutoTrackContext *context = MEM_callocN(sizeof(AutoTrackContext),
 	                                        "autotrack context");
 	MovieTracking *tracking = &clip->tracking;
-	MovieTrackingTrack *track;
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
-	int i, track_index, frame_width, frame_height;
-
+	int frame_width, frame_height;
+	/* get size of frame to convert normalized coordinates to a picture ones. */
 	BKE_movieclip_get_size(clip, user, &frame_width, &frame_height);
-
 	/* TODO(sergey): Currently using only a single clip. */
 	context->clips[0] = clip;
 	context->num_clips = 1;
-
 	context->user = *user;
 	context->user.render_size = MCLIP_PROXY_RENDER_SIZE_FULL;
 	context->user.render_flag = 0;
@@ -311,75 +408,27 @@ AutoTrackContext *BKE_autotrack_context_new(MovieClip *clip,
 	context->first_frame = user->framenr;
 	context->sync_frame = user->framenr;
 	context->first_sync = true;
-
 	BLI_spin_init(&context->spin_lock);
-
-	int num_total_tracks = BLI_listbase_count(tracksbase);
+	const int num_total_tracks = BLI_listbase_count(tracksbase);
 	context->tracks =
-		MEM_callocN(sizeof(MovieTrackingTrack *) * num_total_tracks,
-		            "auto track pointers");
-
+	        MEM_callocN(sizeof(MovieTrackingTrack *) * num_total_tracks,
+	                    "auto track pointers");
+	/* Initialize image accessor. */
 	context->image_accessor =
 		tracking_image_accessor_new(context->clips, 1,
 		                            context->tracks, num_total_tracks,
 		                            user->framenr);
+	/* Initialize auto track context and provide all information about currently
+	 * tracked markers.
+	 */
 	context->autotrack =
-		libmv_autoTrackNew(context->image_accessor->libmv_accessor);
-
-	/* Fill in Autotrack with all markers we know. */
-	track_index = 0;
-	for (track = tracksbase->first;
-	     track;
-	     track = track->next)
-	{
-		if (check_track_trackable(clip, track, user)) {
-			context->num_tracks++;
-		}
-
-		for (i = 0; i < track->markersnr; ++i) {
-			MovieTrackingMarker *marker = track->markers + i;
-			if ((marker->flag & MARKER_DISABLED) == 0) {
-				libmv_Marker libmv_marker;
-				dna_marker_to_libmv_marker(track,
-				                           marker,
-				                           0,
-				                           track_index,
-				                           frame_width,
-				                           frame_height,
-				                           backwards,
-				                           &libmv_marker);
-				libmv_autoTrackAddMarker(context->autotrack,
-				                         &libmv_marker);
-			}
-		}
-		track_index++;
-	}
-
+	        libmv_autoTrackNew(context->image_accessor->libmv_accessor);
+	fill_autotrack_tracks(frame_width, frame_height,
+	                      tracksbase,
+	                      backwards,
+	                      context->autotrack);
 	/* Create per-track tracking options. */
-	context->options =
-		MEM_callocN(sizeof(AutoTrackOptions) * context->num_tracks,
-		            "auto track options");
-	i = track_index = 0;
-	for (track = tracksbase->first;
-	     track;
-	     track = track->next)
-	{
-		if (check_track_trackable(clip, track, user)) {
-			AutoTrackOptions *options = &context->options[i++];
-			/* TODO(sergey): Single clip only for now. */
-			options->clip_index = 0;
-			options->track_index = track_index;
-			options->track = track;
-			tracking_configure_tracker(track,
-			                           NULL,
-			                           &options->track_region_options);
-			options->use_keyframe_match =
-				track->pattern_match == TRACK_MATCH_KEYFRAME;
-		}
-		context->tracks[track_index] = track;
-		++track_index;
-	}
-
+	create_per_track_tracking_options(clip, user, tracksbase, context);
 	return context;
 }
 
