@@ -369,14 +369,7 @@ void id_tag_update_editors_update(Main *bmain, Depsgraph *graph, ID *id)
 
 void id_tag_update_ntree_special(Main *bmain, Depsgraph *graph, ID *id, int flag)
 {
-	bNodeTree *ntree = NULL;
-	switch (GS(id->name)) {
-		case ID_MA:
-			ntree = ((Material *)id)->nodetree;
-			break;
-		default:
-			break;
-	}
+	bNodeTree *ntree = ntreeFromID(id);
 	if (ntree == NULL) {
 		return;
 	}
