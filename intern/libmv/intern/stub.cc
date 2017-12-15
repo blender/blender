@@ -361,6 +361,12 @@ void libmv_autoTrackAddMarker(libmv_AutoTrack* /*libmv_autotrack*/,
 {
 }
 
+void libmv_autoTrackSetMarkers(libmv_AutoTrack* /*libmv_autotrack*/,
+                               const libmv_Marker* /*libmv_marker-*/,
+                               size_t /*num_markers*/)
+{
+}
+
 int libmv_autoTrackGetMarker(libmv_AutoTrack* /*libmv_autotrack*/,
                              int /*clip*/,
                              int /*frame*/,

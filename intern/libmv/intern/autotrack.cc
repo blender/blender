@@ -82,6 +82,21 @@ void libmv_autoTrackAddMarker(libmv_AutoTrack* libmv_autotrack,
   ((AutoTrack*) libmv_autotrack)->AddMarker(marker);
 }
 
+void libmv_autoTrackSetMarkers(libmv_AutoTrack* libmv_autotrack,
+                               const libmv_Marker* libmv_marker,
+                               size_t num_markers) {
+  if (num_markers == 0) {
+    // Early output.
+    return;
+  }
+  libmv::vector<Marker> markers;
+  markers.resize(num_markers);
+  for (size_t i = 0; i < num_markers; ++i) {
+    libmv_apiMarkerToMarker(libmv_marker[i], &markers[i]);
+  }
+  ((AutoTrack*) libmv_autotrack)->SetMarkers(&markers);
+}
+
 int libmv_autoTrackGetMarker(libmv_AutoTrack* libmv_autotrack,
                              int clip,
                              int frame,
