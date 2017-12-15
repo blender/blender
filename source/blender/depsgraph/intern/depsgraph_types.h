@@ -124,6 +124,9 @@ typedef enum eDepsNode_Type {
 	DEG_NODE_TYPE_SHADING,
 	/* Cache Component */
 	DEG_NODE_TYPE_CACHE,
+
+	/* Total number of meaningful node types. */
+	NUM_DEG_NODE_TYPES,
 } eDepsNode_Type;
 
 /* Identifiers for common operations (as an enum). */

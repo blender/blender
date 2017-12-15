@@ -176,6 +176,7 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 						case DEG_NODE_TYPE_TIMESOURCE:
 						case DEG_NODE_TYPE_ID_REF:
 						case DEG_NODE_TYPE_SEQUENCER:
+						case NUM_DEG_NODE_TYPES:
 							/* Ignore, does not translate to object component. */
 							BLI_assert(!"This should never happen!");
 							break;
