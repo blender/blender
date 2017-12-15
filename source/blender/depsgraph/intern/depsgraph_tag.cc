@@ -83,13 +83,13 @@ namespace {
 
 void lib_id_recalc_tag(Main *bmain, ID *id)
 {
-	id->tag |= LIB_TAG_ID_RECALC;
+	id->recalc |= ID_RECALC;
 	DEG_id_type_tag(bmain, GS(id->name));
 }
 
 void lib_id_recalc_data_tag(Main *bmain, ID *id)
 {
-	id->tag |= LIB_TAG_ID_RECALC_DATA;
+	id->recalc |= ID_RECALC_DATA;
 	DEG_id_type_tag(bmain, GS(id->name));
 }
 
@@ -295,7 +295,7 @@ void DEG_graph_on_visible_update(Main *bmain, Scene *scene)
 		GHASH_FOREACH_BEGIN(DEG::IDDepsNode *, id_node, graph->id_hash)
 		{
 			ID *id = id_node->id;
-			if ((id->tag & LIB_TAG_ID_RECALC_ALL) != 0 ||
+			if ((id->recalc & ID_RECALC_ALL) != 0 ||
 			    (id_node->layers & scene->lay_updated) == 0)
 			{
 				id_node->tag_update(graph);
@@ -307,7 +307,7 @@ void DEG_graph_on_visible_update(Main *bmain, Scene *scene)
 			 */
 			if (GS(id->name) == ID_OB) {
 				Object *object = (Object *)id;
-				if ((id->tag & LIB_TAG_ID_RECALC_ALL) == 0 &&
+				if ((id->recalc & ID_RECALC_ALL) == 0 &&
 				    (object->recalc & OB_RECALC_ALL) != 0)
 				{
 					id_node->tag_update(graph);
@@ -409,12 +409,12 @@ void DEG_ids_clear_recalc(Main *bmain)
 
 		if (id && bmain->id_tag_update[BKE_idcode_to_index(GS(id->name))]) {
 			for (; id; id = (ID *)id->next) {
-				id->tag &= ~LIB_TAG_ID_RECALC_ALL;
+				id->recalc &= ~ID_RECALC_ALL;
 
 				/* Some ID's contain semi-datablock nodetree */
 				ntree = ntreeFromID(id);
 				if (ntree != NULL) {
-					ntree->id.tag &= ~LIB_TAG_ID_RECALC_ALL;
+					ntree->id.recalc &= ~ID_RECALC_ALL;
 				}
 			}
 		}

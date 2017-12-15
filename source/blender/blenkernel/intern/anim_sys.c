@@ -74,6 +74,8 @@
 
 #include "nla_private.h"
 
+#include "atomic_ops.h"
+
 /* ***************************************** */
 /* AnimData API */
 
@@ -1663,8 +1665,11 @@ static bool animsys_write_rna_setting(PathResolvedRNA *anim_rna, const float val
 
 		/* for cases like duplifarmes it's only a temporary so don't
 		 * notify anyone of updates */
-		if (!(id->tag & LIB_TAG_ANIM_NO_RECALC)) {
-			BKE_id_tag_set_atomic(id, LIB_TAG_ID_RECALC);
+		if (!(id->recalc & ID_RECALC_SKIP_ANIM_TAG)) {
+			/* NOTE: This is a bit annoying to use atomic API here, but this
+			 * code is at it's EOL and removed already in 2.8 branch.
+			 */
+			atomic_fetch_and_or_int32(&id->recalc, ID_RECALC);
 			DAG_id_type_tag(G.main, GS(id->name));
 		}
 	}
@@ -2618,8 +2623,8 @@ static void animsys_evaluate_nla(ListBase *echannels, PointerRNA *ptr, AnimData 
 	 */
 	if (ptr->id.data != NULL) {
 		ID *id = ptr->id.data;
-		if (!(id->tag & LIB_TAG_ANIM_NO_RECALC)) {
-			id->tag |= LIB_TAG_ID_RECALC;
+		if (!(id->recalc & ID_RECALC_SKIP_ANIM_TAG)) {
+			id->recalc |= ID_RECALC;
 			DAG_id_type_tag(G.main, GS(id->name));
 		}
 	}

@@ -1532,7 +1532,7 @@ static bool check_object_tagged_for_update(Object *object)
 
 	if (ELEM(object->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_LATTICE)) {
 		ID *data_id = object->data;
-		return (data_id->tag & LIB_TAG_ID_RECALC_ALL) != 0;
+		return (data_id->recalc & ID_RECALC_ALL) != 0;
 	}
 
 	return false;
@@ -1780,13 +1780,13 @@ void DAG_scene_free(Scene *sce)
 
 static void lib_id_recalc_tag(Main *bmain, ID *id)
 {
-	id->tag |= LIB_TAG_ID_RECALC;
+	id->recalc |= ID_RECALC;
 	DAG_id_type_tag(bmain, GS(id->name));
 }
 
 static void lib_id_recalc_data_tag(Main *bmain, ID *id)
 {
-	id->tag |= LIB_TAG_ID_RECALC_DATA;
+	id->recalc |= ID_RECALC_DATA;
 	DAG_id_type_tag(bmain, GS(id->name));
 }
 
@@ -2825,7 +2825,7 @@ void DAG_ids_flush_tagged(Main *bmain)
 
 		if (id && bmain->id_tag_update[BKE_idcode_to_index(GS(id->name))]) {
 			for (; id; id = id->next) {
-				if (id->tag & LIB_TAG_ID_RECALC_ALL) {
+				if (id->recalc & ID_RECALC_ALL) {
 					for (dsl = listbase.first; dsl; dsl = dsl->next)
 						dag_id_flush_update(bmain, dsl->scene, id);
 					
@@ -2945,12 +2945,12 @@ void DAG_ids_clear_recalc(Main *bmain)
 
 		if (id && bmain->id_tag_update[BKE_idcode_to_index(GS(id->name))]) {
 			for (; id; id = id->next) {
-				id->tag &= ~LIB_TAG_ID_RECALC_ALL;
+				id->recalc &= ~ID_RECALC_ALL;
 
 				/* some ID's contain semi-datablock nodetree */
 				ntree = ntreeFromID(id);
 				if (ntree)
-					ntree->id.tag &= ~LIB_TAG_ID_RECALC_ALL;
+					ntree->id.recalc &= ~ID_RECALC_ALL;
 			}
 		}
 	}

@@ -1463,8 +1463,8 @@ void BKE_mask_update_scene(Main *bmain, Scene *scene)
 	Mask *mask;
 
 	for (mask = bmain->mask.first; mask; mask = mask->id.next) {
-		if (mask->id.tag & LIB_TAG_ID_RECALC_ALL) {
-			bool do_new_frame = (mask->id.tag & LIB_TAG_ID_RECALC_DATA) != 0;
+		if (mask->id.recalc & ID_RECALC_ALL) {
+			bool do_new_frame = (mask->id.recalc & ID_RECALC_DATA) != 0;
 			BKE_mask_evaluate_all_masks(bmain, CFRA, do_new_frame);
 		}
 	}
