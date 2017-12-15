@@ -120,8 +120,6 @@ static void displist_indexbufbuilder_set(Gwn_IndexBufBuilder *elb, const DispLis
 
 Gwn_VertBuf *DRW_displist_vertbuf_calc_pos_with_normals(ListBase *lb)
 {
-	const int tri_len = curve_render_surface_tri_len_get(lb);
-
 	static Gwn_VertFormat format = { 0 };
 	static struct { uint pos, nor; } attr_id;
 	if (format.attrib_ct == 0) {
