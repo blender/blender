@@ -25,7 +25,9 @@
  *
  * \brief Simple manipulator to axis and translate.
  *
- * matrix_offset is used to store the orientation.
+ * - scale_basis: used for the size.
+ * - matrix_basis: used for the location.
+ * - matrix_offset: used to store the orientation.
  */
 
 #include "MEM_guardedalloc.h"
@@ -286,7 +288,7 @@ static int manipulator_axis_test_select(
 static int manipulator_axis_cursor_get(wmManipulator *mpr)
 {
 	if (mpr->highlight_part > 0) {
-		return BC_CROSSCURSOR;
+		return CURSOR_EDIT;
 	}
 	return BC_NSEW_SCROLLCURSOR;
 }
