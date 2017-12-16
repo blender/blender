@@ -94,14 +94,14 @@ static void displist_indexbufbuilder_set(Gwn_IndexBufBuilder *elb, const DispLis
 		if (dl->type == DL_INDEX3) {
 			const int i_end = dl->parts;
 			for (int i = 0; i < i_end; i++, idx += 3) {
-				GWN_indexbuf_add_tri_verts(elb, idx[0] + ofs, idx[1] + ofs, idx[2] + ofs);
+				GWN_indexbuf_add_tri_verts(elb, idx[0] + ofs, idx[2] + ofs, idx[1] + ofs);
 			}
 		}
 		else if (dl->type == DL_SURF) {
 			const int i_end = dl->totindex;
 			for (int i = 0; i < i_end; i++, idx += 4) {
-				GWN_indexbuf_add_tri_verts(elb, idx[0] + ofs, idx[1] + ofs, idx[2] + ofs);
-				GWN_indexbuf_add_tri_verts(elb, idx[0] + ofs, idx[2] + ofs, idx[3] + ofs);
+				GWN_indexbuf_add_tri_verts(elb, idx[0] + ofs, idx[2] + ofs, idx[1] + ofs);
+				GWN_indexbuf_add_tri_verts(elb, idx[0] + ofs, idx[3] + ofs, idx[2] + ofs);
 			}
 		}
 		else {
