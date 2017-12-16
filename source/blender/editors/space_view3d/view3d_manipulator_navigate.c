@@ -128,7 +128,6 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmManipulatorG
 		navgroup->mpr_array[i] = WM_manipulator_new(info->manipulator, mgroup, NULL);
 		wmManipulator *mpr = navgroup->mpr_array[i];
 		mpr->flag |= WM_MANIPULATOR_GRAB_CURSOR;
-		RNA_enum_set(mpr->ptr, "draw_options", ED_MANIPULATOR_GRAB_DRAW_FLAG_FILL);
 		copy_v3_fl(mpr->color, 1.0f);
 		mpr->color[3] = 0.4f;
 

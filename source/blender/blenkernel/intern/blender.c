@@ -278,6 +278,8 @@ void BKE_blender_userdef_app_template_data_swap(UserDef *userdef_a, UserDef *use
 	DATA_SWAP(font_path_ui);
 	DATA_SWAP(font_path_ui_mono);
 
+	DATA_SWAP(manipulator_flag);
+
 #undef SWAP_TYPELESS
 #undef LIST_SWAP
 #undef DATA_SWAP
