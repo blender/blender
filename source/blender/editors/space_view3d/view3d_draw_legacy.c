@@ -2007,11 +2007,6 @@ static void view3d_main_region_draw_objects(const bContext *C, Scene *scene, Vie
 	/* main drawing call */
 	view3d_draw_objects(C, &eval_ctx, scene, v3d, ar, grid_unit, true, false, do_compositing ? rv3d->compositor : NULL);
 
-	/* draw depth culled manipulators - manipulators need to be updated *after* view matrix was set up */
-	/* TODO depth culling manipulators is not yet supported, just drawing _3D here, should
-	 * later become _IN_SCENE (and draw _3D separate) */
-	WM_manipulatormap_draw(ar->manipulator_map, C, WM_MANIPULATORMAP_DRAWSTEP_3D);
-
 	/* post process */
 	if (do_compositing) {
 		GPU_fx_do_composite_pass(rv3d->compositor, rv3d->winmat, rv3d->is_persp, scene, NULL);
@@ -2141,11 +2136,13 @@ void view3d_main_region_draw_legacy(const bContext *C, ARegion *ar)
 	VP_legacy_view3d_main_region_setup_view(&eval_ctx, scene, v3d, ar, NULL, NULL);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
+	WM_manipulatormap_draw(ar->manipulator_map, C, WM_MANIPULATORMAP_DRAWSTEP_3D);
+
 	ED_region_pixelspace(ar);
 
-	WM_manipulatormap_draw(ar->manipulator_map, C, WM_MANIPULATORMAP_DRAWSTEP_2D);
-
 	view3d_main_region_draw_info(C, scene, ar, v3d, grid_unit, render_border);
+
+	WM_manipulatormap_draw(ar->manipulator_map, C, WM_MANIPULATORMAP_DRAWSTEP_2D);
 
 	gpuPopProjectionMatrix();
 	gpuPopMatrix();

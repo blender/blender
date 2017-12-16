@@ -3456,10 +3456,14 @@ void DRW_draw_render_loop_ex(
 	if (DST.draw_ctx.evil_C) {
 		/* needed so manipulator isn't obscured */
 		glDisable(GL_DEPTH_TEST);
-		DRW_draw_manipulator();
-		glEnable(GL_DEPTH_TEST);
+		DRW_draw_manipulator_3d();
 
 		DRW_draw_region_info();
+
+		/* Draw 2D after region info so we can draw on top of the camera passepartout overlay.
+		 * 'DRW_draw_region_info' sets the projection in pixel-space. */
+		DRW_draw_manipulator_2d();
+		glEnable(GL_DEPTH_TEST);
 	}
 
 	DRW_stats_reset();

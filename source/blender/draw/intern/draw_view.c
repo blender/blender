@@ -715,15 +715,12 @@ void DRW_draw_cursor(void)
 
 /* **************************** 3D Manipulator ******************************** */
 
-void DRW_draw_manipulator(void)
+void DRW_draw_manipulator_3d(void)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	View3D *v3d = draw_ctx->v3d;
 	v3d->zbuf = false;
 	ARegion *ar = draw_ctx->ar;
-
-
-	/* TODO, only draws 3D manipulators right now, need to see how 2D drawing will work in new viewport */
 
 	/* draw depth culled manipulators - manipulators need to be updated *after* view matrix was set up */
 	/* TODO depth culling manipulators is not yet supported, just drawing _3D here, should
@@ -732,25 +729,18 @@ void DRW_draw_manipulator(void)
 	        ar->manipulator_map, draw_ctx->evil_C,
 	        WM_MANIPULATORMAP_DRAWSTEP_3D);
 
-	/* We may want to split this into a separate pass.
-	 * or maintain a stage in the draw manager where all pixel-space drawing happens. */
-	{
-		float original_proj[4][4];
-		gpuGetProjectionMatrix(original_proj);
-		wmOrtho2_region_pixelspace(ar);
+}
 
-		gpuPushMatrix();
-		gpuLoadIdentity();
+void DRW_draw_manipulator_2d(void)
+{
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	View3D *v3d = draw_ctx->v3d;
+	v3d->zbuf = false;
+	ARegion *ar = draw_ctx->ar;
 
-		glDepthMask(GL_FALSE);
+	WM_manipulatormap_draw(
+	        ar->manipulator_map, draw_ctx->evil_C,
+	        WM_MANIPULATORMAP_DRAWSTEP_2D);
 
-		WM_manipulatormap_draw(
-		        ar->manipulator_map, draw_ctx->evil_C,
-		        WM_MANIPULATORMAP_DRAWSTEP_2D);
-
-		glDepthMask(GL_TRUE);
-
-		gpuPopMatrix();
-		gpuLoadProjectionMatrix(original_proj);
-	}
+	glDepthMask(GL_TRUE);
 }
