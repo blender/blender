@@ -726,6 +726,7 @@ static void rna_def_bone(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Bone");
 	RNA_def_property_pointer_sdna(prop, NULL, "parent");
+	RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
 	RNA_def_property_ui_text(prop, "Parent", "Parent bone (in same Armature)");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
@@ -733,6 +734,7 @@ static void rna_def_bone(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "children", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "childbase", NULL);
 	RNA_def_property_struct_type(prop, "Bone");
+	RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
 	RNA_def_property_ui_text(prop, "Children", "Bones which are children of this bone");
 
 	rna_def_bone_common(srna, 0);

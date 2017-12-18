@@ -823,16 +823,19 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "bone", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "Bone");
+	RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Bone", "Bone associated with this PoseBone");
 
 	prop = RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "PoseBone");
+	RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Parent", "Parent of this pose bone");
 
 	prop = RNA_def_property(srna, "child", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "PoseBone");
+	RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Child", "Child of this pose bone");
 	

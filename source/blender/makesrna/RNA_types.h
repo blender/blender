@@ -158,7 +158,7 @@ typedef enum PropertySubType {
 
 /* Make sure enums are updated with these */
 /* HIGHEST FLAG IN USE: 1 << 31
- * FREE FLAGS: 3, 7, 9, 11, 13, 14, 15, 30 */
+ * FREE FLAGS: 3, 9, 11, 13, 14, 15, 30 */
 typedef enum PropertyFlag {
 	/* editable means the property is editable in the user
 	 * interface, properties are editable by default except
@@ -212,6 +212,13 @@ typedef enum PropertyFlag {
 	 * except that the value may be NULL at times, used for ObData, where an Empty's will be NULL
 	 * but setting NULL on a mesh object is not possible. So, if its not NULL, setting NULL cant be done! */
 	PROP_NEVER_UNLINK            = (1 << 25),
+
+	/* Pointers to data that is not owned by the struct.
+	 * Typical example: Bone.parent, Bone.child, etc., and nearly all ID pointers.
+	 * This is crucial information for processes that walk the whole data of an ID e.g. (like static override).
+	 * Note that all ID pointers are enforced to this by default, this probably will need to be rechecked
+	 * (see ugly infamous NodeTrees of mat/tex/scene/etc.). */
+	PROP_PTR_NO_OWNERSHIP        = (1 << 7),
 
 	/* flag contains multiple enums.
 	 * note: not to be confused with prop->enumbitflags

@@ -2995,6 +2995,28 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 			}
 			break;
 		}
+		case PROP_POINTER:
+		{
+			PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
+
+			/* XXX This systematically enforces that flag on ID pointers... we'll probably have to revisit. :/ */
+			StructRNA *type = rna_find_struct((const char *)pprop->type);
+			if (type && (type->flag & STRUCT_ID)) {
+				prop->flag |= PROP_PTR_NO_OWNERSHIP;
+			}
+			break;
+		}
+		case PROP_COLLECTION:
+		{
+			CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)prop;
+
+			/* XXX This systematically enforces that flag on ID pointers... we'll probably have to revisit. :/ */
+			StructRNA *type = rna_find_struct((const char *)cprop->item_type);
+			if (type && (type->flag & STRUCT_ID)) {
+				prop->flag |= PROP_PTR_NO_OWNERSHIP;
+			}
+			break;
+		}
 		default:
 			break;
 	}
