@@ -459,9 +459,7 @@ enum {
 enum {
 	/* RESET_AFTER_USE, used by update code (depsgraph). */
 	ID_RECALC       = 1 << 0,
-	ID_RECALC_DATA  = 1 << 1,
-	ID_RECALC_SKIP_ANIM_TAG  = 1 << 2,
-	ID_RECALC_ALL   = (ID_RECALC | ID_RECALC_DATA),
+	ID_RECALC_ALL   = ID_RECALC,
 };
 
 /* To filter ID types (filter_id) */
