@@ -33,7 +33,7 @@ datatoc_icon_split_py = os.path.join(BASEDIR, "..", "..", "source", "blender", "
 # create .dat pixmaps (which are stored in git)
 cmd = (
     blender_bin + " "
-    "--background -noaudio "
+    "--factory-startup --background -noaudio "
     "--python " + datatoc_icon_split_py + " -- "
     "--image=" + BASEDIR + "blender_icons16.png "
     "--output=" + BASEDIR + "blender_icons16 "
@@ -48,7 +48,7 @@ run(cmd)
 
 cmd = (
     blender_bin + " "
-    "--background -noaudio "
+    "--factory-startup --background -noaudio "
     "--python " + datatoc_icon_split_py + " -- "
     "--image=" + BASEDIR + "blender_icons32.png "
     "--output=" + BASEDIR + "blender_icons32 "
