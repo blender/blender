@@ -1453,6 +1453,11 @@ static void outliner_draw_tree_element(
 			}
 			offsx += UI_UNIT_X + 2 * ufac;
 		}
+		else if (tselem->type == 0 && ID_IS_STATIC_OVERRIDE(tselem->id)) {
+			UI_icon_draw_alpha((float)startx + offsx + 2 * ufac, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_OVERRIDE,
+			                   alpha_fac);
+			offsx += UI_UNIT_X + 2 * ufac;
+		}
 		glDisable(GL_BLEND);
 		
 		/* name */
