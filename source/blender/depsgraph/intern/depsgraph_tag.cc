@@ -469,7 +469,10 @@ void deg_graph_on_visible_update(Main *bmain, Depsgraph *graph)
 		deg_graph_id_tag_update(bmain, graph, id_node->id_orig, flag);
 	}
 	/* Make sure collection properties are up to date. */
-	for (Scene *scene_iter = graph->scene; scene_iter != NULL; scene_iter = scene_iter->set) {
+	for (Scene *scene_iter = graph->scene;
+	     scene_iter != NULL;
+	     scene_iter = scene_iter->set)
+	{
 		IDDepsNode *scene_id_node = graph->find_id_node(&scene_iter->id);
 		BLI_assert(scene_id_node != NULL);
 		scene_id_node->tag_update(graph);
