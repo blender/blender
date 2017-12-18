@@ -641,8 +641,9 @@ void paint_update_brush_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, f
 		ups->brush_rotation_sec = 0.0f;
 }
 
-void paint_calculate_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, const float mouse_pos[2])
+bool paint_calculate_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, const float mouse_pos[2])
 {
+	bool ok = false;
 	if ((brush->mtex.brush_angle_mode & MTEX_ANGLE_RAKE) || (brush->mask_mtex.brush_angle_mode & MTEX_ANGLE_RAKE)) {
 		const float r = RAKE_THRESHHOLD;
 		float rotation;
@@ -658,16 +659,20 @@ void paint_calculate_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, cons
 			ups->last_rake_angle = rotation;
 
 			paint_update_brush_rake_rotation(ups, brush, rotation);
+			ok = true;
 		}
 		/* make sure we reset here to the last rotation to avoid accumulating
 		 * values in case a random rotation is also added */
 		else {
 			paint_update_brush_rake_rotation(ups, brush, ups->last_rake_angle);
+			ok = false;
 		}
 	}
 	else {
 		ups->brush_rotation = ups->brush_rotation_sec = 0.0f;
+		ok = true;
 	}
+	return ok;
 }
 
 void BKE_sculptsession_free_deformMats(SculptSession *ss)

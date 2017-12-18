@@ -314,11 +314,13 @@ BLI_INLINE int isPolyValid(const float coords[][2], const unsigned int nr)
 
 	copy_v2_v2(prev_co, coords[nr - 1]);
 	sub_v2_v2v2(prev_vec, prev_co, coords[nr - 2]);
+	normalize_v2(prev_vec);
 
 	for (int i = 0; i < nr; i++) {
 		sub_v2_v2v2(curr_vec, coords[i], prev_co);
 
-		if (len_squared_v2(curr_vec) < FLT_EPSILON) {
+		const float curr_len = normalize_v2(curr_vec);
+		if (curr_len < FLT_EPSILON) {
 			return MOD_SDEF_BIND_RESULT_OVERLAP_ERR;
 		}
 

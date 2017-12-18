@@ -233,6 +233,9 @@ static bool paint_brush_update(bContext *C,
 	UnifiedPaintSettings *ups = stroke->ups;
 	bool location_sampled = false;
 	bool location_success = false;
+	/* Use to perform all operations except applying the stroke,
+	 * needed for operations that require cursor motion (rake). */
+	bool is_dry_run = false;
 	bool do_random = false;
 	bool do_random_mask = false;
 	/* XXX: Use pressure value from first brush step for brushes which don't
@@ -371,7 +374,10 @@ static bool paint_brush_update(bContext *C,
 		}
 		/* curve strokes do their own rake calculation */
 		else if (!(brush->flag & BRUSH_CURVE)) {
-			paint_calculate_rake_rotation(ups, brush, mouse_init);
+			if (!paint_calculate_rake_rotation(ups, brush, mouse_init)) {
+				/* Not enough motion to define an angle. */
+				is_dry_run = true;
+			}
 		}
 	}
 
@@ -402,7 +408,7 @@ static bool paint_brush_update(bContext *C,
 		}
 	}
 
-	return location_success;
+	return location_success && (is_dry_run == false);
 }
 
 static bool paint_stroke_use_jitter(ePaintMode mode, Brush *brush, bool invert)
