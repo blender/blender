@@ -1094,10 +1094,12 @@ static int rna_BlenderRNA_structs_lookup_string(PointerRNA *ptr, const char *key
 /* Default override (and compare) callbacks. */
 
 /* Used for both Pointer and Collection properties. */
-static int rna_property_override_equals_propptr(
-        PointerRNA *propptr_a, PointerRNA *propptr_b, eRNACompareMode mode,
-        IDOverrideStatic *override, const char *rna_path, bool *r_override_changed, const int flags)
+static int rna_property_override_diff_propptr(
+        PointerRNA *propptr_a, PointerRNA *propptr_b, eRNACompareMode mode, const bool no_ownership,
+        IDOverrideStatic *override, const char *rna_path, const int flags, bool *r_override_changed)
 {
+	const bool do_create = override != NULL && (flags & RNA_OVERRIDE_COMPARE_CREATE) != 0 && rna_path != NULL;
+
 	bool is_id = false;
 	bool is_type_null = false;
 
@@ -1119,46 +1121,38 @@ static int rna_property_override_equals_propptr(
 
 	if (is_id) {
 		BLI_assert(propptr_a->data == propptr_a->id.data && propptr_b->data == propptr_b->id.data);
+		BLI_assert(no_ownership);  /* For now, once we deal with nodetrees we'll want to get rid of that one. */
 	}
 
 	if (override) {
-		if (rna_path) {
-			if (is_type_null || is_id) {
-				/* In case this is an ID (or one of the pointers is NULL), do not compare structs!
-				 * This is a quite safe path to infinite loop.
-				 * Instead, just compare pointers themselves (we assume sub-ID structs cannot loop). */
-				const int comp = (propptr_a->data != propptr_b->data);
+		if (no_ownership /* || is_id */ || is_type_null) {
+			/* In case this pointer prop does not own its data (or one is NULL), do not compare structs!
+			 * This is a quite safe path to infinite loop, among other nasty issues.
+			 * Instead, just compare pointers themselves. */
+			const int comp = (propptr_a->data != propptr_b->data);
 
-				if (comp != 0 && rna_path) {
-					bool created = false;
-					IDOverrideStaticProperty *op = BKE_override_static_property_get(override, rna_path, &created);
+			if (do_create && comp != 0) {
+				bool created = false;
+				IDOverrideStaticProperty *op = BKE_override_static_property_get(override, rna_path, &created);
 
-					if (op != NULL && created) {  /* If not yet overridden... */
-						BKE_override_static_property_operation_get(
-						            op, IDOVERRIDESTATIC_OP_REPLACE, NULL, NULL, -1, -1, true, NULL, NULL);
-						if (r_override_changed) {
-							*r_override_changed = created;
-						}
+				if (op != NULL && created) {  /* If not yet overridden... */
+					BKE_override_static_property_operation_get(
+					            op, IDOVERRIDESTATIC_OP_REPLACE, NULL, NULL, -1, -1, true, NULL, NULL);
+					if (r_override_changed) {
+						*r_override_changed = created;
 					}
 				}
+			}
 
-				return comp;
-			}
-			else {
-				const bool changed = RNA_struct_auto_override(propptr_a, propptr_b, override, rna_path);
-				if (r_override_changed) {
-					*r_override_changed = *r_override_changed || changed;
-				}
-				/* XXX Simplification here, if no override was added we assume they are equal,
-				 *     this may not be good behavior, time will say. */
-				return !changed;
-			}
+			return comp;
 		}
 		else {
-			return !RNA_struct_override_matches(
-			            propptr_a, propptr_b, override,
-			            flags & RNA_OVERRIDE_COMPARE_IGNORE_NON_OVERRIDABLE,
-			            flags & RNA_OVERRIDE_COMPARE_IGNORE_OVERRIDDEN);
+			eRNAOverrideMatchResult report_flags = 0;
+			const bool match = RNA_struct_override_matches(propptr_a, propptr_b, rna_path, override, flags, &report_flags);
+			if (r_override_changed && (report_flags & RNA_OVERRIDE_MATCH_RESULT_CREATED) != 0) {
+				*r_override_changed = true;
+			}
+			return !match;
 		}
 	}
 	else {
@@ -1183,6 +1177,10 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 {
 	BLI_assert(len_a == len_b);
 
+	/* Note: at this point, we are sure that when len_a is zero, we are not handling an (empty) array. */
+
+	const bool do_create = override != NULL && (flags & RNA_OVERRIDE_COMPARE_CREATE) != 0 && rna_path != NULL;
+
 	switch (RNA_property_type(prop_a)) {
 		case PROP_BOOLEAN:
 		{
@@ -1198,7 +1196,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 
 				const int comp = memcmp(array_a, array_b, sizeof(int) * len_a);
 
-				if (comp != 0 && rna_path) {
+				if (do_create && comp != 0) {
 					/* XXX TODO this will have to be refined to handle array items */
 					bool created = false;
 					IDOverrideStaticProperty *op = BKE_override_static_property_get(override, rna_path, &created);
@@ -1225,7 +1223,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 				const int value_b = RNA_property_boolean_get(ptr_b, prop_b);
 				const int comp = (value_a < value_b) ? -1 : (value_a > value_b) ? 1 : 0;
 
-				if (comp != 0 && rna_path) {
+				if (do_create && comp != 0) {
 					bool created = false;
 					IDOverrideStaticProperty *op = BKE_override_static_property_get(override, rna_path, &created);
 
@@ -1256,7 +1254,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 
 				const int comp = memcmp(array_a, array_b, sizeof(int) * len_a);
 
-				if (comp != 0 && rna_path) {
+				if (do_create && comp != 0) {
 					/* XXX TODO this will have to be refined to handle array items */
 					bool created = false;
 					IDOverrideStaticProperty *op = BKE_override_static_property_get(override, rna_path, &created);
@@ -1283,7 +1281,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 				const int value_b = RNA_property_int_get(ptr_b, prop_b);
 				const int comp = (value_a < value_b) ? -1 : (value_a > value_b) ? 1 : 0;
 
-				if (comp != 0 && rna_path) {
+				if (do_create && comp != 0) {
 					bool created = false;
 					IDOverrideStaticProperty *op = BKE_override_static_property_get(override, rna_path, &created);
 
@@ -1315,7 +1313,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 
 				const int comp = memcmp(array_a, array_b, sizeof(float) * len_a);
 
-				if (comp != 0 && rna_path) {
+				if (do_create && comp != 0) {
 					/* XXX TODO this will have to be refined to handle array items */
 					bool created = false;
 					IDOverrideStaticProperty *op = BKE_override_static_property_get(override, rna_path, &created);
@@ -1343,7 +1341,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 				const float value_b = RNA_property_float_get(ptr_b, prop_b);
 				const int comp = (value_a < value_b) ? -1 : (value_a > value_b) ? 1 : 0;
 
-				if (comp != 0 && rna_path) {
+				if (do_create && comp != 0) {
 					bool created = false;
 					IDOverrideStaticProperty *op = BKE_override_static_property_get(override, rna_path, &created);
 
@@ -1367,7 +1365,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 			const int value_b = RNA_property_enum_get(ptr_b, prop_b);
 			const int comp = value_a != value_b;
 
-			if (comp != 0 && rna_path) {
+			if (do_create && comp != 0) {
 				bool created = false;
 				IDOverrideStaticProperty *op = BKE_override_static_property_get(override, rna_path, &created);
 
@@ -1391,7 +1389,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 			char *value_b = RNA_property_string_get_alloc(ptr_b, prop_b, fixed_b, sizeof(fixed_b), &len_str_b);
 			const int comp = strcmp(value_a, value_b);
 
-			if (comp != 0 && rna_path) {
+			if (do_create && comp != 0) {
 				bool created = false;
 				IDOverrideStaticProperty *op = BKE_override_static_property_get(override, rna_path, &created);
 
@@ -1419,9 +1417,10 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 			else {
 				PointerRNA propptr_a = RNA_property_pointer_get(ptr_a, prop_a);
 				PointerRNA propptr_b = RNA_property_pointer_get(ptr_b, prop_b);
-				return rna_property_override_equals_propptr(
-				            &propptr_a, &propptr_b, mode,
-				            override, rna_path, r_override_changed, flags);
+				const bool no_ownership = (RNA_property_flag(prop_a) & PROP_PTR_NO_OWNERSHIP) != 0;
+				return rna_property_override_diff_propptr(
+				            &propptr_a, &propptr_b, mode, no_ownership,
+				            override, rna_path, flags, r_override_changed);
 			}
 			break;
 		}
@@ -1468,9 +1467,10 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 				}
 
 				if (equals) {
-					const int eq = rna_property_override_equals_propptr(
-					              &iter_a.ptr, &iter_b.ptr, mode,
-					              override, extended_rna_path, r_override_changed, flags);
+					const bool no_ownership = (RNA_property_flag(prop_a) & PROP_PTR_NO_OWNERSHIP) != 0;
+					const int eq = rna_property_override_diff_propptr(
+					              &iter_a.ptr, &iter_b.ptr, mode, no_ownership,
+					              override, extended_rna_path, flags, r_override_changed);
 					equals = equals && eq;
 				}
 

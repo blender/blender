@@ -121,12 +121,6 @@ typedef int (*PropEnumGetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *pro
 typedef void (*PropEnumSetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, int value);
 
 /* Handling override operations, and also comparison. */
-enum {
-	/* Do not compare properties that are not overridable. */
-	RNA_OVERRIDE_COMPARE_IGNORE_NON_OVERRIDABLE = 1 << 0,
-	/* Do not compare properties that are already overridden. */
-	RNA_OVERRIDE_COMPARE_IGNORE_OVERRIDDEN = 1 << 1,
-};
 
 /**
  * If \a override is NULL, merely do comparison between prop_a from ptr_a and prop_b from ptr_b,

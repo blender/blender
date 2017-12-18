@@ -1251,14 +1251,35 @@ typedef enum eRNACompareMode {
 	RNA_EQ_COMPARE,
 } eRNACompareMode;
 
-bool RNA_property_equals(struct PointerRNA *a, struct PointerRNA *b, struct PropertyRNA *prop, eRNACompareMode mode);
-bool RNA_struct_equals(struct PointerRNA *a, struct PointerRNA *b, eRNACompareMode mode);
+bool RNA_property_equals(struct PointerRNA *ptr_a, struct PointerRNA *ptr_b, struct PropertyRNA *prop, eRNACompareMode mode);
+bool RNA_struct_equals(struct PointerRNA *ptr_a, struct PointerRNA *ptr_b, eRNACompareMode mode);
 
 /* Override. */
 
+/* flags for RNA_struct_override_matches. */
+typedef enum eRNAOverrideMatch {
+	/* Do not compare properties that are not overridable. */
+	RNA_OVERRIDE_COMPARE_IGNORE_NON_OVERRIDABLE = 1 << 0,
+	/* Do not compare properties that are already overridden. */
+	RNA_OVERRIDE_COMPARE_IGNORE_OVERRIDDEN = 1 << 1,
+
+	/* Create new property override if needed and possible. */
+	RNA_OVERRIDE_COMPARE_CREATE = 1 << 16,
+	/* Restore property's value(s) to reference ones if needed and possible. */
+	RNA_OVERRIDE_COMPARE_RESTORE = 1 << 17,
+} eRNAOverrideMatch;
+
+typedef enum eRNAOverrideMatchResult {
+	/* Some new property overrides were created to take into account differences between local and reference. */
+	RNA_OVERRIDE_MATCH_RESULT_CREATED = 1 << 0,
+	/* Some properties were reset to reference values. */
+	RNA_OVERRIDE_MATCH_RESULT_RESTORED = 1 << 1,
+} eRNAOverrideMatchResult;
+
 bool RNA_struct_override_matches(
-        struct PointerRNA *ptr_local, struct PointerRNA *ptr_reference,
-        struct IDOverrideStatic *override, const bool ignore_non_overridable, const bool ignore_overridden);
+        struct PointerRNA *ptr_local, struct PointerRNA *ptr_reference, const char *root_path,
+        struct IDOverrideStatic *override, const eRNAOverrideMatch flags,
+        eRNAOverrideMatchResult *r_report_flags);
 
 bool RNA_struct_override_store(
         struct PointerRNA *ptr_local, struct PointerRNA *ptr_reference, PointerRNA *ptr_storage,
@@ -1267,10 +1288,6 @@ bool RNA_struct_override_store(
 void RNA_struct_override_apply(
         struct PointerRNA *ptr_local, struct PointerRNA *ptr_reference, struct PointerRNA *ptr_storage,
         struct IDOverrideStatic *override);
-
-bool RNA_struct_auto_override(
-        struct PointerRNA *ptr_local, struct PointerRNA *ptr_reference,
-        struct IDOverrideStatic *override, const char *root_path);
 
 struct IDOverrideStaticProperty *RNA_property_override_property_find(PointerRNA *ptr, PropertyRNA *prop);
 struct IDOverrideStaticProperty *RNA_property_override_property_get(PointerRNA *ptr, PropertyRNA *prop, bool *r_created);
