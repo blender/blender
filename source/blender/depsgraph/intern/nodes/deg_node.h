@@ -51,11 +51,13 @@ struct OperationDepsNode;
 struct DepsNode {
 	/* Helper class for static typeinfo in subclasses. */
 	struct TypeInfo {
-		TypeInfo(eDepsNode_Type type, const char *tname);
+		TypeInfo(eDepsNode_Type type, const char *tname, int id_recalc_tag = 0);
 
 		eDepsNode_Type type;
 		eDepsNode_Class tclass;
 		const char *tname;
+
+		int id_recalc_tag;
 	};
 
 	/* Identifier - mainly for debugging purposes. */

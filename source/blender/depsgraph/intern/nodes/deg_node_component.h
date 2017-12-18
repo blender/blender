@@ -164,25 +164,38 @@ struct ComponentDepsNode : public DepsNode {
 
 /* ---------------------------------------- */
 
-#define DEG_COMPONENT_DECLARE_GENERIC(name)                        \
+#define DEG_COMPONENT_NODE_DEFINE_TYPEINFO(NodeType, type_, tname_, id_recalc_tag) \
+    const DepsNode::TypeInfo NodeType::typeinfo = \
+        DepsNode::TypeInfo(type_, tname_, id_recalc_tag)
+
+#define DEG_COMPONENT_NODE_DECLARE DEG_DEPSNODE_DECLARE
+
+#define DEG_COMPONENT_NODE_DEFINE(name, NAME, id_recalc_tag)            \
+    DEG_COMPONENT_NODE_DEFINE_TYPEINFO(name ## ComponentDepsNode,       \
+                                       DEG_NODE_TYPE_ ## NAME,          \
+                                       #name  " Component",             \
+                                       id_recalc_tag) ;                 \
+    static DepsNodeFactoryImpl<name ## ComponentDepsNode> DNTI_ ## NAME
+
+#define DEG_COMPONENT_NODE_DECLARE_GENERIC(name)                   \
 	struct name ## ComponentDepsNode : public ComponentDepsNode {  \
-		DEG_DEPSNODE_DECLARE;                                      \
+		DEG_COMPONENT_NODE_DECLARE;                                \
 	}
 
-DEG_COMPONENT_DECLARE_GENERIC(Animation);
-DEG_COMPONENT_DECLARE_GENERIC(BatchCache);
-DEG_COMPONENT_DECLARE_GENERIC(Cache);
-DEG_COMPONENT_DECLARE_GENERIC(CopyOnWrite);
-DEG_COMPONENT_DECLARE_GENERIC(Geometry);
-DEG_COMPONENT_DECLARE_GENERIC(LayerCollections);
-DEG_COMPONENT_DECLARE_GENERIC(Parameters);
-DEG_COMPONENT_DECLARE_GENERIC(Particles);
-DEG_COMPONENT_DECLARE_GENERIC(Proxy);
-DEG_COMPONENT_DECLARE_GENERIC(Pose);
-DEG_COMPONENT_DECLARE_GENERIC(Sequencer);
-DEG_COMPONENT_DECLARE_GENERIC(Shading);
-DEG_COMPONENT_DECLARE_GENERIC(ShadingParameters);
-DEG_COMPONENT_DECLARE_GENERIC(Transform);
+DEG_COMPONENT_NODE_DECLARE_GENERIC(Animation);
+DEG_COMPONENT_NODE_DECLARE_GENERIC(BatchCache);
+DEG_COMPONENT_NODE_DECLARE_GENERIC(Cache);
+DEG_COMPONENT_NODE_DECLARE_GENERIC(CopyOnWrite);
+DEG_COMPONENT_NODE_DECLARE_GENERIC(Geometry);
+DEG_COMPONENT_NODE_DECLARE_GENERIC(LayerCollections);
+DEG_COMPONENT_NODE_DECLARE_GENERIC(Parameters);
+DEG_COMPONENT_NODE_DECLARE_GENERIC(Particles);
+DEG_COMPONENT_NODE_DECLARE_GENERIC(Proxy);
+DEG_COMPONENT_NODE_DECLARE_GENERIC(Pose);
+DEG_COMPONENT_NODE_DECLARE_GENERIC(Sequencer);
+DEG_COMPONENT_NODE_DECLARE_GENERIC(Shading);
+DEG_COMPONENT_NODE_DECLARE_GENERIC(ShadingParameters);
+DEG_COMPONENT_NODE_DECLARE_GENERIC(Transform);
 
 /* Bone Component */
 struct BoneComponentDepsNode : public ComponentDepsNode {
@@ -190,7 +203,7 @@ struct BoneComponentDepsNode : public ComponentDepsNode {
 
 	struct bPoseChannel *pchan;     /* the bone that this component represents */
 
-	DEG_DEPSNODE_DECLARE;
+	DEG_COMPONENT_NODE_DECLARE;
 };
 
 void deg_register_component_depsnodes();
