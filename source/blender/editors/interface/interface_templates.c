@@ -383,28 +383,34 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 		case UI_ID_LOCAL:
 			if (id) {
 				Main *bmain = CTX_data_main(C);
-				if (id_make_local(bmain, id, false, false)) {
-					BKE_main_id_clear_newpoins(bmain);
+				if (CTX_wm_window(C)->eventstate->shift) {
+					ID *override_id = BKE_override_static_create_from(bmain, id);
+					if (override_id != NULL) {
+						BKE_main_id_clear_newpoins(bmain);
 
-					/* reassign to get get proper updates/notifiers */
-					idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
-					RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr);
-					RNA_property_update(C, &template_ui->ptr, template_ui->prop);
+						/* Assign new pointer, takes care of updates/notifiers */
+						RNA_id_pointer_create(override_id, &idptr);
+					}
 				}
+				else {
+					if (id_make_local(bmain, id, false, false)) {
+						BKE_main_id_clear_newpoins(bmain);
+
+						/* reassign to get get proper updates/notifiers */
+						idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
+					}
+				}
+				RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr);
+				RNA_property_update(C, &template_ui->ptr, template_ui->prop);
 			}
 			break;
 		case UI_ID_OVERRIDE:
-			if (id) {
-				Main *bmain = CTX_data_main(C);
-				ID *override_id = BKE_override_static_create_from(bmain, id);
-				if (override_id != NULL) {
-					BKE_main_id_clear_newpoins(bmain);
-
-					/* Assign new pointer, takes care of updates/notifiers */
-					RNA_id_pointer_create(override_id, &idptr);
-					RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr);
-					RNA_property_update(C, &template_ui->ptr, template_ui->prop);
-				}
+			if (id && id->override_static) {
+				BKE_override_static_free(&id->override_static);
+				/* reassign to get get proper updates/notifiers */
+				idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
+				RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr);
+				RNA_property_update(C, &template_ui->ptr, template_ui->prop);
 			}
 			break;
 		case UI_ID_ALONE:
@@ -542,24 +548,22 @@ static void template_ID(
 				const bool disabled = (!id_make_local(CTX_data_main(C), id, true /* test */, false) ||
 				                       (idfrom && idfrom->lib));
 				but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_LIBRARY_DATA_DIRECT, 0, 0, UI_UNIT_X, UI_UNIT_Y,
-				                   NULL, 0, 0, 0, 0, TIP_("Direct linked library data-block, click to make local"));
+				                   NULL, 0, 0, 0, 0,
+				                   TIP_("Direct linked library data-block, click to make local, "
+				                        "Shift + Click to create a static override"));
 				if (disabled) {
 					UI_but_flag_enable(but, UI_BUT_DISABLED);
 				}
 				else {
 					UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), SET_INT_IN_POINTER(UI_ID_LOCAL));
 				}
-
-				but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_LIBRARY_DATA_OVERRIDE, 0, 0, UI_UNIT_X, UI_UNIT_Y,
-				                   NULL, 0, 0, 0, 0,
-				                   TIP_("Direct linked library data-block, click to create static override"));
-				if (disabled) {
-					UI_but_flag_enable(but, UI_BUT_DISABLED);
-				}
-				else {
-					UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), SET_INT_IN_POINTER(UI_ID_OVERRIDE));
-				}
 			}
+		}
+		else if (ID_IS_STATIC_OVERRIDE(id)) {
+			but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_LIBRARY_DATA_OVERRIDE, 0, 0, UI_UNIT_X, UI_UNIT_Y,
+			                   NULL, 0, 0, 0, 0,
+			                   TIP_("Static override of linked library data-block, click to make fully local"));
+			UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), SET_INT_IN_POINTER(UI_ID_OVERRIDE));
 		}
 
 		if (id->us > 1) {
