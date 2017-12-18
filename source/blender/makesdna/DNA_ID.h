@@ -374,6 +374,12 @@ typedef enum ID_Type {
 
 #define ID_IS_LINKED(_id) (((ID *)(_id))->lib != NULL)
 
+#define ID_IS_STATIC_OVERRIDE(_id) (((ID *)(_id))->override_static != NULL && \
+                                    ((ID *)(_id))->override_static->reference != NULL)
+
+#define ID_IS_STATIC_OVERRIDE_TEMPLATE(_id) (((ID *)(_id))->override_static != NULL && \
+                                             ((ID *)(_id))->override_static->reference == NULL)
+
 #ifdef GS
 #  undef GS
 #endif
