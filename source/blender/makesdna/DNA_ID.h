@@ -358,6 +358,7 @@ enum {
 
 enum {
 	/* RESET_AFTER_USE, used by update code (depsgraph). */
+	ID_RECALC_NONE  = 0,
 	ID_RECALC       = 1 << 0,
 	ID_RECALC_DATA  = 1 << 1,
 	ID_RECALC_SKIP_ANIM_TAG  = 1 << 2,
