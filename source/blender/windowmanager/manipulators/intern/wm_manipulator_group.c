@@ -323,6 +323,7 @@ static int manipulator_tweak_modal(bContext *C, wmOperator *op, const wmEvent *e
 {
 	ManipulatorTweakData *mtweak = op->customdata;
 	wmManipulator *mpr = mtweak->mpr_modal;
+	int retval = OPERATOR_PASS_THROUGH;
 
 	if (mpr == NULL) {
 		BLI_assert(0);
@@ -330,20 +331,16 @@ static int manipulator_tweak_modal(bContext *C, wmOperator *op, const wmEvent *e
 	}
 
 	if (event->type == mtweak->init_event && event->val == KM_RELEASE) {
-		manipulator_tweak_finish(C, op, false);
-		return OPERATOR_FINISHED;
+		retval = OPERATOR_FINISHED;
 	}
-
-
-	if (event->type == EVT_MODAL_MAP) {
+	else if (event->type == EVT_MODAL_MAP) {
 		switch (event->val) {
 			case TWEAK_MODAL_CANCEL:
-				manipulator_tweak_finish(C, op, true);
-				return OPERATOR_CANCELLED;
+				retval = OPERATOR_CANCELLED;
+				break;
 			case TWEAK_MODAL_CONFIRM:
-				manipulator_tweak_finish(C, op, false);
-				return OPERATOR_FINISHED;
-
+				retval = OPERATOR_FINISHED;
+				break;
 			case TWEAK_MODAL_PRECISION_ON:
 				mtweak->flag |= WM_MANIPULATOR_TWEAK_PRECISE;
 				break;
@@ -360,20 +357,28 @@ static int manipulator_tweak_modal(bContext *C, wmOperator *op, const wmEvent *e
 		}
 	}
 
-	/* handle manipulator */
-	wmManipulatorFnModal modal_fn = mpr->custom_modal ? mpr->custom_modal : mpr->type->modal;
-	int retval = modal_fn(C, mpr, event, mtweak->flag);
-
-	if ((retval & OPERATOR_RUNNING_MODAL) == 0) {
-		manipulator_tweak_finish(C, op, (retval & OPERATOR_CANCELLED) != 0);
-		return OPERATOR_FINISHED;
+	if (retval != OPERATOR_PASS_THROUGH) {
+		manipulator_tweak_finish(C, op, retval != OPERATOR_FINISHED);
+		return retval;
 	}
 
-	/* Ugly hack to send manipulator events */
-	((wmEvent *)event)->type = EVT_MANIPULATOR_UPDATE;
+	/* handle manipulator */
+	wmManipulatorFnModal modal_fn = mpr->custom_modal ? mpr->custom_modal : mpr->type->modal;
+	if (modal_fn) {
+		int modal_retval = modal_fn(C, mpr, event, mtweak->flag);
+
+		if ((modal_retval & OPERATOR_RUNNING_MODAL) == 0) {
+			manipulator_tweak_finish(C, op, (modal_retval & OPERATOR_CANCELLED) != 0);
+			return OPERATOR_FINISHED;
+		}
+
+		/* Ugly hack to send manipulator events */
+		((wmEvent *)event)->type = EVT_MANIPULATOR_UPDATE;
+	}
 
 	/* always return PASS_THROUGH so modal handlers
 	 * with manipulators attached can update */
+	BLI_assert(retval == OPERATOR_PASS_THROUGH);
 	return OPERATOR_PASS_THROUGH;
 }
 
