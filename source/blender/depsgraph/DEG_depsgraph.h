@@ -143,7 +143,7 @@ void DEG_on_visible_update(struct Main *bmain, const bool do_time);
 enum {
 	/* Object transformation changed, corresponds to OB_RECALC_OB. */
 	DEG_TAG_TRANSFORM   = (1 << 0),
-	/* Object geoemtry changed, corresponds to OB_RECALC_DATA. */
+	/* Object geometry changed, corresponds to OB_RECALC_DATA. */
 	DEG_TAG_GEOMETRY    = (1 << 1),
 	/* Time changed and animation is to be re-evaluated, OB_RECALC_TIME. */
 	DEG_TAG_TIME        = (1 << 2),
