@@ -718,14 +718,18 @@ static void slide_dist(EdgeHalf *e, BMVert *v, float d, float slideco[3])
 /* Is co not on the edge e? if not, return the closer end of e in ret_closer_v */
 static bool is_outside_edge(EdgeHalf *e, const float co[3], BMVert **ret_closer_v)
 {
-	float d_squared;
+	float h[3], u[3], lambda, lenu, *l1 = e->e->v1->co;
 
-	d_squared = dist_squared_to_line_segment_v3(co, e->e->v1->co, e->e->v2->co);
-	if (d_squared > BEVEL_EPSILON_BIG * BEVEL_EPSILON_BIG) {
-		if (len_squared_v3v3(co, e->e->v1->co) > len_squared_v3v3(co, e->e->v2->co))
-			*ret_closer_v = e->e->v2;
-		else
-			*ret_closer_v = e->e->v1;
+	sub_v3_v3v3(u, e->e->v2->co, l1);
+	sub_v3_v3v3(h, co, l1);
+	lenu = normalize_v3(u);
+	lambda = dot_v3v3(u, h);
+	if (lambda <= -BEVEL_EPSILON_BIG * lenu) {
+		*ret_closer_v = e->e->v1;
+		return true;
+	}
+	else if (lambda >= (1.0f + BEVEL_EPSILON_BIG) * lenu) {
+		*ret_closer_v = e->e->v2;
 		return true;
 	}
 	else {
