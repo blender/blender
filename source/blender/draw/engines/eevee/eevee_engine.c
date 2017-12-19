@@ -283,6 +283,13 @@ static void eevee_view_update(void *vedata)
 
 static void eevee_id_update(void *UNUSED(vedata), ID *id)
 {
+	/* This is a bit mask of components which update is to be ignored. */
+	const int ignore_updates = ID_RECALC_COLLECTIONS;
+	/* Check whether we have to do anything here. */
+	if ((id->recalc & ~ignore_updates) == 0) {
+		return;
+	}
+	/* Handle updates based on ID type. */
 	const ID_Type id_type = GS(id->name);
 	if (id_type == ID_OB) {
 		Object *object = (Object *)id;
