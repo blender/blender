@@ -313,9 +313,10 @@ void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag)
 			id_node->tag_update(graph);
 		}
 	}
-	while (flag != 0) {
+	int current_flag = flag;
+	while (current_flag != 0) {
 		eDepsgraph_Tag tag =
-		        (eDepsgraph_Tag)(1 << bitscan_forward_clear_i(&flag));
+		        (eDepsgraph_Tag)(1 << bitscan_forward_clear_i(&current_flag));
 		deg_graph_id_tag_update_single_flag(bmain,
 		                                    graph,
 		                                    id,
