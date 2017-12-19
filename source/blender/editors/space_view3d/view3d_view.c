@@ -271,7 +271,7 @@ void ED_view3d_smooth_view_ex(
 			 * this means small rotations wont lag */
 			if (sview->quat && !sview->ofs && !sview->dist) {
 				/* scale the time allowed by the rotation */
-				sms.time_allowed *= (double)angle_normalized_qtqt(sms.dst.quat, sms.src.quat) / M_PI; /* 180deg == 1.0 */
+				sms.time_allowed *= (double)fabsf(angle_signed_normalized_qtqt(sms.dst.quat, sms.src.quat)) / M_PI; /* 180deg == 1.0 */
 			}
 
 			/* ensure it shows correct */
@@ -1076,7 +1076,7 @@ char ED_view3d_quat_to_axis_view(const float quat[4], const float epsilon)
 	char view;
 
 	for (view = RV3D_VIEW_FRONT; view <= RV3D_VIEW_BOTTOM; view++) {
-		if (angle_qtqt(quat, view3d_quat_axis[view - RV3D_VIEW_FRONT]) < epsilon) {
+		if (fabsf(angle_signed_qtqt(quat, view3d_quat_axis[view - RV3D_VIEW_FRONT])) < epsilon) {
 			return view;
 		}
 	}
