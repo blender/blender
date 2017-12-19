@@ -86,7 +86,7 @@ struct VFont *BKE_vfont_load_exists(struct Main *bmain, const char *filepath);
 
 void BKE_vfont_make_local(struct Main *bmain, struct VFont *vfont, const bool lib_local);
 
-bool BKE_vfont_to_curve_ex(struct Main *bmain, struct Object *ob, int mode,
+bool BKE_vfont_to_curve_ex(struct Main *bmain, struct Object *ob, struct Curve *cu, int mode,
                            struct ListBase *r_nubase,
                            const wchar_t **r_text, int *r_text_len, bool *r_text_free,
                            struct CharTrans **r_chartransdata);
