@@ -2906,15 +2906,16 @@ void BKE_tracking_dopesheet_update(MovieTracking *tracking)
 }
 
 /* NOTE: Returns NULL if the track comes from camera object, */
-MovieTrackingObject *BKE_tracking_find_object_for_track(const MovieTracking *tracking,
-                                                        const MovieTrackingTrack *track)
+MovieTrackingObject *BKE_tracking_find_object_for_track(
+        const MovieTracking *tracking,
+        const MovieTrackingTrack *track)
 {
 	const ListBase *tracksbase = &tracking->tracks;
 	if (BLI_findindex(tracksbase, track) != -1) {
 		return NULL;
 	}
 	MovieTrackingObject *object = tracking->objects.first;
-	while (object) {
+	while (object != NULL) {
 		if (BLI_findindex(&object->tracks, track) != -1) {
 			return object;
 		}
@@ -2923,12 +2924,45 @@ MovieTrackingObject *BKE_tracking_find_object_for_track(const MovieTracking *tra
 	return NULL;
 }
 
-ListBase *BKE_tracking_find_tracks_list_for_track(MovieTracking *tracking,
-                                                  const MovieTrackingTrack *track)
+ListBase *BKE_tracking_find_tracks_list_for_track(
+        MovieTracking *tracking,
+        const MovieTrackingTrack *track)
 {
-	MovieTrackingObject *object = BKE_tracking_find_object_for_track(tracking, track);
+	MovieTrackingObject *object = BKE_tracking_find_object_for_track(tracking,
+	                                                                 track);
 	if (object != NULL) {
 		return &object->tracks;
 	}
 	return &tracking->tracks;
+}
+
+/* NOTE: Returns NULL if the track comes from camera object, */
+MovieTrackingObject *BKE_tracking_find_object_for_plane_track(
+        const MovieTracking *tracking,
+        const MovieTrackingPlaneTrack *plane_track)
+{
+	const ListBase *plane_tracks_base = &tracking->plane_tracks;
+	if (BLI_findindex(plane_tracks_base, plane_track) != -1) {
+		return NULL;
+	}
+	MovieTrackingObject *object = tracking->objects.first;
+	while (object != NULL) {
+		if (BLI_findindex(&object->plane_tracks, plane_track) != -1) {
+			return object;
+		}
+		object = object->next;
+	}
+	return NULL;
+}
+
+ListBase *BKE_tracking_find_tracks_list_for_plane_track(
+        MovieTracking *tracking,
+        const MovieTrackingPlaneTrack *plane_track)
+{
+	MovieTrackingObject *object =
+	        BKE_tracking_find_object_for_plane_track(tracking, plane_track);
+	if (object != NULL) {
+		return &object->plane_tracks;
+	}
+	return &tracking->plane_tracks;
 }
