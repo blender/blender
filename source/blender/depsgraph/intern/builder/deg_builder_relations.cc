@@ -1452,7 +1452,7 @@ void DepsgraphRelationBuilder::build_particles(Object *object)
 			if (part->dup_ob->type == OB_MBALL) {
 				ComponentKey dup_geometry_key(&part->dup_ob->id,
 				                              DEG_NODE_TYPE_GEOMETRY);
-				add_relation(psys_key,
+				add_relation(obdata_ubereval_key,
 				             dup_geometry_key,
 				             "Particle MBall Visualization");
 			}
