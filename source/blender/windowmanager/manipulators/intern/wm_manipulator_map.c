@@ -953,6 +953,8 @@ void wm_manipulatormap_modal_set(
 			ED_region_tag_redraw(CTX_wm_region(C));
 			WM_event_add_mousemove(C);
 		}
+
+		mmap->mmap_context.event_xy[0] = INT_MAX;
 	}
 }
 

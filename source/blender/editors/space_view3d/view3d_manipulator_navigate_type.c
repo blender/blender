@@ -96,7 +96,7 @@ static void axis_geom_draw(
 	};
 	qsort(&axis_order, ARRAY_SIZE(axis_order), sizeof(axis_order[0]), BLI_sortutil_cmp_float);
 
-	const float scale_axis = 0.33f;
+	const float scale_axis = 0.25f;
 	static const float axis_highlight[4] = {1, 1, 1, 1};
 	static const float axis_black[4] = {0, 0, 0, 1};
 	static float axis_color[3][4];

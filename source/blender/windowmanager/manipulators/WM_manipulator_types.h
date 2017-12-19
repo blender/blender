@@ -182,6 +182,8 @@ struct wmManipulator {
 	/* Optional ID for highlighting different parts of this manipulator.
 	 * -1 when unset, otherwise a valid index. (Used as index to 'op_data'). */
 	int highlight_part;
+	/* For single click button manipulators, use a different part as a fallback, -1 when unused. */
+	int drag_part;
 
 	/* Transformation of the manipulator in 2d or 3d space.
 	 * - Matrix axis are expected to be unit length (scale is applied after).

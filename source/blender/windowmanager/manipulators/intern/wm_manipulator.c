@@ -98,6 +98,8 @@ static wmManipulator *wm_manipulator_create(
 	unit_m4(mpr->matrix_basis);
 	unit_m4(mpr->matrix_offset);
 
+	mpr->drag_part = -1;
+
 	return mpr;
 }
 

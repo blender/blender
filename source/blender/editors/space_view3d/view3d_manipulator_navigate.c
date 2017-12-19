@@ -163,6 +163,9 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmManipulatorG
 			PointerRNA *ptr = WM_manipulator_operator_set(mpr, mapping[part_index], ot_viewnumpad, NULL);
 			RNA_enum_set(ptr, "type", RV3D_VIEW_FRONT + part_index);
 		}
+
+		/* When dragging an axis, use this instead. */
+		mpr->drag_part = 0;
 	}
 
 	mgroup->customdata = navgroup;
