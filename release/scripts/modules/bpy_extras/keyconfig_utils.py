@@ -137,6 +137,7 @@ KM_HIERARCHY = [
     ('Standard Modal Map', 'EMPTY', 'WINDOW', []),
     ('Transform Modal Map', 'EMPTY', 'WINDOW', []),
     ('Eyedropper Modal Map', 'EMPTY', 'WINDOW', []),
+    ('Eyedropper ColorBand PointSampling Map', 'EMPTY', 'WINDOW', []),
 ]
 
 
