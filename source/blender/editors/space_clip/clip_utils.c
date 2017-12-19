@@ -178,7 +178,8 @@ void clip_delete_track(bContext *C, MovieClip *clip, MovieTrackingTrack *track)
 	MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	bool has_bundle = false;
-	const bool used_for_stabilization = (track->flag & (TRACK_USE_2D_STAB | TRACK_USE_2D_STAB_ROT));
+	const bool used_for_stabilization =
+	        (track->flag & (TRACK_USE_2D_STAB | TRACK_USE_2D_STAB_ROT)) != 0;
 	if (track == act_track) {
 		tracking->act_track = NULL;
 	}
