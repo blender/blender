@@ -2922,3 +2922,13 @@ MovieTrackingObject *BKE_tracking_find_object_for_track(const MovieTracking *tra
 	}
 	return NULL;
 }
+
+ListBase *BKE_tracking_find_tracks_list_for_track(MovieTracking *tracking,
+                                                  const MovieTrackingTrack *track)
+{
+	MovieTrackingObject *object = BKE_tracking_find_object_for_track(tracking, track);
+	if (object != NULL) {
+		return &object->tracks;
+	}
+	return &tracking->tracks;
+}
