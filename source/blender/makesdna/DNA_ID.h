@@ -459,8 +459,17 @@ enum {
 enum {
 	/* RESET_AFTER_USE, used by update code (depsgraph). */
 	ID_RECALC_NONE  = 0,
+	/* Generic recalc flag, when nothing else matches. */
 	ID_RECALC       = 1 << 0,
-	ID_RECALC_ALL   = ID_RECALC,
+	/* Per-component update flags. */
+	ID_RECALC_ANIMATION   = 1 << 1,
+	ID_RECALC_DRAW        = 1 << 2,
+	ID_RECALC_DRAW_CACHE  = 1 << 3,
+	ID_RECALC_GEOMETRY    = 1 << 4,
+	ID_RECALC_TRANSFORM   = 1 << 5,
+	ID_RECALC_COLLECTIONS = 1 << 6,
+	/* Special flag to check if SOMETHING was changed. */
+	ID_RECALC_ALL   = (~(int)0),
 };
 
 /* To filter ID types (filter_id) */
