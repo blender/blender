@@ -620,13 +620,10 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 	}
 }
 
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name ToolTip Public API
- * \{ */
-
-ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
+static ARegion *ui_tooltip_create_with_data(
+        bContext *C, uiTooltipData *data,
+        const float init_position[2],
+        const float aspect)
 {
 	const float pad_px = UI_TIP_PADDING;
 	wmWindow *win = CTX_wm_window(C);
@@ -634,42 +631,11 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	uiStyle *style = UI_style_get();
 	static ARegionType type;
 	ARegion *ar;
-/*	IDProperty *prop;*/
-	/* aspect values that shrink text are likely unreadable */
-	const float aspect = min_ff(1.0f, but->block->aspect);
 	int fonth, fontw;
-	int ofsx, ofsy, h, i;
+	int h, i;
 	rctf rect_fl;
 	rcti rect_i;
 	int font_flag = 0;
-
-	if (but->drawflag & UI_BUT_NO_TOOLTIP) {
-		return NULL;
-	}
-	uiTooltipData *data = NULL;
-
-	/* custom tips for pre-defined operators */
-	if (but->optype) {
-		if (STREQ(but->optype->idname, "WM_OT_tool_set")) {
-			char keymap[64] = "";
-			RNA_string_get(but->opptr, "keymap", keymap);
-			if (keymap[0]) {
-				ScrArea *sa = CTX_wm_area(C);
-				wmKeyMap *km = WM_keymap_find_all(C, keymap, sa->spacetype, RGN_TYPE_WINDOW);
-				if (km != NULL) {
-					data = ui_tooltip_data_from_keymap(C, km);
-				}
-			}
-		}
-	}
-	/* toolsystem exception */
-
-	if (data == NULL) {
-		data = ui_tooltip_data_from_button(C, but);
-	}
-	if (data == NULL) {
-		return NULL;
-	}
 
 	/* create area region */
 	ar = ui_region_temp_add(CTX_wm_screen(C));
@@ -748,31 +714,12 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	data->lineh = h;
 
 	/* compute position */
-	ofsx = 0; //(but->block->panel) ? but->block->panel->ofsx : 0;
-	ofsy = 0; //(but->block->panel) ? but->block->panel->ofsy : 0;
 
-	rect_fl.xmin = BLI_rctf_cent_x(&but->rect) + ofsx - TIP_BORDER_X;
+	rect_fl.xmin = init_position[0] - TIP_BORDER_X;
 	rect_fl.xmax = rect_fl.xmin + fontw + pad_px;
-	rect_fl.ymax = but->rect.ymin + ofsy - TIP_BORDER_Y;
+	rect_fl.ymax = init_position[1] - TIP_BORDER_Y;
 	rect_fl.ymin = rect_fl.ymax - fonth  - TIP_BORDER_Y;
 
-	/* since the text has beens caled already, the size of tooltips is defined now */
-	/* here we try to figure out the right location */
-	if (butregion) {
-		float mx, my;
-		float ofsx_fl = rect_fl.xmin, ofsy_fl = rect_fl.ymax;
-		ui_block_to_window_fl(butregion, but->block, &ofsx_fl, &ofsy_fl);
-
-#if 1
-		/* use X mouse location */
-		mx = (win->eventstate->x + (TIP_BORDER_X * 2)) - BLI_rctf_cent_x(&but->rect);
-#else
-		mx = ofsx_fl - rect_fl.xmin;
-#endif
-		my = ofsy_fl - rect_fl.ymax;
-
-		BLI_rctf_translate(&rect_fl, mx, my);
-	}
 	BLI_rcti_rctf_copy(&rect_i, &rect_fl);
 
 #undef TIP_BORDER_X
@@ -825,6 +772,59 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	ED_region_tag_redraw(ar);
 
 	return ar;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name ToolTip Public API
+ * \{ */
+
+
+ARegion *ui_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *but)
+{
+	wmWindow *win = CTX_wm_window(C);
+	/* aspect values that shrink text are likely unreadable */
+	const float aspect = min_ff(1.0f, but->block->aspect);
+	float init_position[2];
+
+	if (but->drawflag & UI_BUT_NO_TOOLTIP) {
+		return NULL;
+	}
+	uiTooltipData *data = NULL;
+
+	/* custom tips for pre-defined operators */
+	if (but->optype) {
+		if (STREQ(but->optype->idname, "WM_OT_tool_set")) {
+			char keymap[64] = "";
+			RNA_string_get(but->opptr, "keymap", keymap);
+			if (keymap[0]) {
+				ScrArea *sa = CTX_wm_area(C);
+				wmKeyMap *km = WM_keymap_find_all(C, keymap, sa->spacetype, RGN_TYPE_WINDOW);
+				if (km != NULL) {
+					data = ui_tooltip_data_from_keymap(C, km);
+				}
+			}
+		}
+	}
+	/* toolsystem exception */
+
+	if (data == NULL) {
+		data = ui_tooltip_data_from_button(C, but);
+	}
+	if (data == NULL) {
+		return NULL;
+	}
+
+	init_position[0] = BLI_rctf_cent_x(&but->rect);
+	init_position[1] = but->rect.ymin;
+
+	if (butregion) {
+		ui_block_to_window_fl(butregion, but->block, &init_position[0], &init_position[1]);
+		init_position[0] = win->eventstate->x;
+	}
+
+	return ui_tooltip_create_with_data(C, data, init_position, aspect);
 }
 
 void ui_tooltip_free(bContext *C, ARegion *ar)

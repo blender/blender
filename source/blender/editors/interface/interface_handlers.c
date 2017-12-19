@@ -7698,7 +7698,7 @@ void UI_but_tooltip_refresh(bContext *C, uiBut *but)
 	data = but->active;
 	if (data && data->tooltip) {
 		ui_tooltip_free(C, data->tooltip);
-		data->tooltip = ui_tooltip_create(C, data->region, but);
+		data->tooltip = ui_tooltip_create_from_button(C, data->region, but);
 	}
 }
 
@@ -8443,7 +8443,7 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 					data->tooltiptimer = NULL;
 
 					if (!data->tooltip)
-						data->tooltip = ui_tooltip_create(C, data->region, but);
+						data->tooltip = ui_tooltip_create_from_button(C, data->region, but);
 				}
 				/* handle menu auto open timer */
 				else if (event->customdata == data->autoopentimer) {
