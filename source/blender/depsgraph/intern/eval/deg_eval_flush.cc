@@ -190,6 +190,7 @@ BLI_INLINE OperationDepsNode *flush_schedule_children(
 	return result;
 }
 
+/* NOTE: It will also accumulate flags from changed components. */
 BLI_INLINE void flush_editors_id_update(Main *bmain,
                                         Depsgraph *graph,
                                         const DEGEditorUpdateContext *update_ctx)
@@ -198,6 +199,7 @@ BLI_INLINE void flush_editors_id_update(Main *bmain,
 		if (id_node->done != ID_STATE_MODIFIED) {
 			continue;
 		}
+		DEG_id_type_tag(bmain, GS(id_node->id_orig->name));
 		/* TODO(sergey): Do we need to pass original or evaluated ID here? */
 		ID *id_orig = id_node->id_orig;
 		ID *id_cow = id_node->id_cow;
@@ -206,10 +208,23 @@ BLI_INLINE void flush_editors_id_update(Main *bmain,
 		 * data.
 		 */
 		id_cow->recalc |= (id_orig->recalc & ID_RECALC_ALL);
+		/* Gather recalc flags from all changed components. */
+		GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, id_node->components)
+		{
+			if (comp_node->done != COMPONENT_STATE_DONE) {
+				continue;
+			}
+			DepsNodeFactory *factory = deg_type_get_factory(comp_node->type);
+			BLI_assert(factory != NULL);
+			id_cow->recalc |= factory->id_recalc_tag();
+		}
+		GHASH_FOREACH_END();
+		DEG_DEBUG_PRINTF("Accumulated recalc bits for %s: %u\n",
+		                 id_orig->name, (unsigned int)id_cow->recalc);
+		/* Inform editors. */
 		if (deg_copy_on_write_is_expanded(id_cow)) {
 			deg_editors_id_update(update_ctx, id_cow);
 		}
-		lib_id_recalc_tag(bmain, id_orig);
 	}
 }
 

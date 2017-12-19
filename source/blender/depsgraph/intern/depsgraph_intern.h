@@ -115,10 +115,6 @@ void deg_editors_id_update(const DEGEditorUpdateContext *update_ctx,
 void deg_editors_scene_update(const DEGEditorUpdateContext *update_ctx,
                               bool updated);
 
-/* Tagging helpers ------------------------------------------------------ */
-
-void lib_id_recalc_tag(struct Main *bmain, struct ID *id);
-
 #define DEG_DEBUG_PRINTF(...)               \
 	do {                                    \
 		if (G.debug & G_DEBUG_DEPSGRAPH) {  \
