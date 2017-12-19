@@ -127,9 +127,9 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmManipulatorG
 		const struct NavigateManipulatorInfo *info = &g_navigate_params[i];
 		navgroup->mpr_array[i] = WM_manipulator_new(info->manipulator, mgroup, NULL);
 		wmManipulator *mpr = navgroup->mpr_array[i];
-		mpr->flag |= WM_MANIPULATOR_GRAB_CURSOR;
-		copy_v3_fl(mpr->color, 1.0f);
-		mpr->color[3] = 0.4f;
+		mpr->flag |= WM_MANIPULATOR_GRAB_CURSOR | WM_MANIPULATOR_DRAW_MODAL;
+		mpr->color[3] = 0.2f;
+		mpr->color_hi[3] = 0.4f;
 
 		/* may be overwritten later */
 		mpr->scale_basis = (MANIPULATOR_SIZE * MANIPULATOR_MINI_FAC) / 2;
@@ -223,7 +223,8 @@ void VIEW3D_WGT_navigate(wmManipulatorGroupType *wgt)
 	wgt->idname = "VIEW3D_WGT_navigate";
 
 	wgt->flag |= (WM_MANIPULATORGROUPTYPE_PERSISTENT |
-	              WM_MANIPULATORGROUPTYPE_SCALE);
+	              WM_MANIPULATORGROUPTYPE_SCALE |
+	              WM_MANIPULATORGROUPTYPE_DRAW_MODAL_ALL);
 
 	wgt->poll = WIDGETGROUP_navigate_poll;
 	wgt->setup = WIDGETGROUP_navigate_setup;
