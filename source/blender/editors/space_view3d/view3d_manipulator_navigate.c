@@ -159,9 +159,9 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmManipulatorG
 			RV3D_VIEW_TOP,
 		};
 
-		for (int part_index = 0; part_index < 6; part_index+= 1) {
-			PointerRNA *ptr = WM_manipulator_operator_set(mpr, mapping[part_index], ot_viewnumpad, NULL);
-			RNA_enum_set(ptr, "type", RV3D_VIEW_FRONT + part_index);
+		for (int part_index = 0; part_index < 6; part_index += 1) {
+			PointerRNA *ptr = WM_manipulator_operator_set(mpr, part_index + 1, ot_viewnumpad, NULL);
+			RNA_enum_set(ptr, "type", mapping[part_index]);
 		}
 
 		/* When dragging an axis, use this instead. */
