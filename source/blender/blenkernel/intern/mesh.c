@@ -1436,6 +1436,17 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const bool use
 	me->totcol = cu->totcol;
 	me->mat = cu->mat;
 
+	/* Copy evaluated texture space from curve to mesh.
+	 *
+	 * Note that we disable auto texture space feature since that will cause
+	 * texture space to evaluate differently for curve and mesh, since curve
+	 * uses CV to calculate bounding box, and mesh uses what is coming from
+	 * tessellated curve.
+	 */
+	me->texflag = cu->texflag & ~CU_AUTOSPACE;
+	copy_v3_v3(me->loc, cu->loc);
+	copy_v3_v3(me->size, cu->size);
+	copy_v3_v3(me->rot, cu->rot);
 	BKE_mesh_texspace_calc(me);
 
 	cu->mat = NULL;
@@ -2460,6 +2471,11 @@ Mesh *BKE_mesh_new_from_object(
 			/* copies the data */
 			copycu = tmpobj->data = BKE_curve_copy(bmain, (Curve *) ob->data);
 
+			/* make sure texture space is calculated for a copy of curve,
+			 * it will be used for the final result.
+			 */
+			BKE_curve_texspace_calc(copycu);
+
 			/* temporarily set edit so we get updates from edit mode, but
 			 * also because for text datablocks copying it while in edit
 			 * mode gives invalid data structures */
@@ -2489,8 +2505,6 @@ Mesh *BKE_mesh_new_from_object(
 				BKE_libblock_free_us(bmain, tmpobj);
 				return NULL;
 			}
-
-			BKE_mesh_texspace_copy_from_object(tmpmesh, ob);
 
 			BKE_libblock_free_us(bmain, tmpobj);
 
