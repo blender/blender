@@ -2904,3 +2904,21 @@ void BKE_tracking_dopesheet_update(MovieTracking *tracking)
 
 	dopesheet->ok = true;
 }
+
+/* NOTE: Returns NULL if the track comes from camera object, */
+MovieTrackingObject *BKE_tracking_find_object_for_track(const MovieTracking *tracking,
+                                                        const MovieTrackingTrack *track)
+{
+	const ListBase *tracksbase = &tracking->tracks;
+	if (BLI_findindex(tracksbase, track) != -1) {
+		return NULL;
+	}
+	MovieTrackingObject *object = tracking->objects.first;
+	while (object) {
+		if (BLI_findindex(&object->tracks, track) != -1) {
+			return object;
+		}
+		object = object->next;
+	}
+	return NULL;
+}
