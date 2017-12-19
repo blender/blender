@@ -84,20 +84,12 @@ static char *rna_trackingTrack_path(PointerRNA *ptr)
 {
 	MovieClip *clip = (MovieClip *)ptr->id.data;
 	MovieTrackingTrack *track = (MovieTrackingTrack *)ptr->data;
-	MovieTrackingObject *object =
-	        BKE_tracking_find_object_for_track(&clip->tracking, track);
-	char track_name_esc[sizeof(track->name) * 2];
-	BLI_strescape(track_name_esc, track->name, sizeof(track_name_esc));
-	if (object == NULL) {
-		return BLI_sprintfN("tracking.tracks[\"%s\"]", track_name_esc);
-	}
-	else {
-		char object_name_esc[sizeof(object->name) * 2];
-		BLI_strescape(object_name_esc, object->name, sizeof(object_name_esc));
-		return BLI_sprintfN("tracking.objects[\"%s\"].tracks[\"%s\"]",
-		                    object_name_esc,
-		                    track_name_esc);
-	}
+	/* Escaped object name, escaped track name, rest of the path. */
+	char rna_path[MAX_NAME * 4 + 64];
+	BKE_tracking_get_rna_path_for_track(&clip->tracking,
+	                                    track,
+	                                    rna_path, sizeof(rna_path));
+	return BLI_strdup(rna_path);
 }
 
 static void rna_trackingTracks_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -263,21 +255,12 @@ static char *rna_trackingPlaneTrack_path(PointerRNA *ptr)
 {
 	MovieClip *clip = (MovieClip *)ptr->id.data;
 	MovieTrackingPlaneTrack *plane_track = (MovieTrackingPlaneTrack *)ptr->data;
-	char track_name_esc[sizeof(plane_track->name) * 2];
-	MovieTrackingObject *object =
-	        BKE_tracking_find_object_for_plane_track(&clip->tracking,
-	                                                 plane_track);
-	BLI_strescape(track_name_esc, plane_track->name, sizeof(track_name_esc));
-	if (object == NULL) {
-		return BLI_sprintfN("tracking.plane_tracks[\"%s\"]", track_name_esc);
-	}
-	else {
-		char object_name_esc[sizeof(object->name) * 2];
-		BLI_strescape(object_name_esc, object->name, sizeof(object_name_esc));
-		return BLI_sprintfN("tracking.objects[\"%s\"].plane_tracks[\"%s\"]",
-		                    object_name_esc,
-		                    track_name_esc);
-	}
+	/* Escaped object name, escaped track name, rest of the path. */
+	char rna_path[MAX_NAME * 4 + 64];
+	BKE_tracking_get_rna_path_for_plane_track(&clip->tracking,
+	                                          plane_track,
+	                                          rna_path, sizeof(rna_path));
+	return BLI_strdup(rna_path);
 }
 
 static void rna_trackingPlaneTrack_name_set(PointerRNA *ptr, const char *value)
