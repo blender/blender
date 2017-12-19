@@ -2190,23 +2190,24 @@ static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	Editing *ed = BKE_sequencer_editing_get(scene, false);
 	Sequence *seq;
 	MetaStack *ms;
-	bool nothingSelected = true;
+	bool nothing_selected = true;
 
 	seq = BKE_sequencer_active_get(scene);
 	if (seq && seq->flag & SELECT) { /* avoid a loop since this is likely to be selected */
-		nothingSelected = false;
+		nothing_selected = false;
 	}
 	else {
 		for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 			if (seq->flag & SELECT) {
-				nothingSelected = false;
+				nothing_selected = false;
 				break;
 			}
 		}
 	}
 
-	if (nothingSelected)
+	if (nothing_selected) {
 		return OPERATOR_FINISHED;
+	}
 
 	/* for effects and modifiers, try to find a replacement input */
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {

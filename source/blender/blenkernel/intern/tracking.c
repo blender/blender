@@ -2905,3 +2905,155 @@ void BKE_tracking_dopesheet_update(MovieTracking *tracking)
 
 	dopesheet->ok = true;
 }
+
+/* NOTE: Returns NULL if the track comes from camera object, */
+MovieTrackingObject *BKE_tracking_find_object_for_track(
+        const MovieTracking *tracking,
+        const MovieTrackingTrack *track)
+{
+	const ListBase *tracksbase = &tracking->tracks;
+	if (BLI_findindex(tracksbase, track) != -1) {
+		return NULL;
+	}
+	MovieTrackingObject *object = tracking->objects.first;
+	while (object != NULL) {
+		if (BLI_findindex(&object->tracks, track) != -1) {
+			return object;
+		}
+		object = object->next;
+	}
+	return NULL;
+}
+
+ListBase *BKE_tracking_find_tracks_list_for_track(
+        MovieTracking *tracking,
+        const MovieTrackingTrack *track)
+{
+	MovieTrackingObject *object = BKE_tracking_find_object_for_track(tracking,
+	                                                                 track);
+	if (object != NULL) {
+		return &object->tracks;
+	}
+	return &tracking->tracks;
+}
+
+/* NOTE: Returns NULL if the track comes from camera object, */
+MovieTrackingObject *BKE_tracking_find_object_for_plane_track(
+        const MovieTracking *tracking,
+        const MovieTrackingPlaneTrack *plane_track)
+{
+	const ListBase *plane_tracks_base = &tracking->plane_tracks;
+	if (BLI_findindex(plane_tracks_base, plane_track) != -1) {
+		return NULL;
+	}
+	MovieTrackingObject *object = tracking->objects.first;
+	while (object != NULL) {
+		if (BLI_findindex(&object->plane_tracks, plane_track) != -1) {
+			return object;
+		}
+		object = object->next;
+	}
+	return NULL;
+}
+
+ListBase *BKE_tracking_find_tracks_list_for_plane_track(
+        MovieTracking *tracking,
+        const MovieTrackingPlaneTrack *plane_track)
+{
+	MovieTrackingObject *object =
+	        BKE_tracking_find_object_for_plane_track(tracking, plane_track);
+	if (object != NULL) {
+		return &object->plane_tracks;
+	}
+	return &tracking->plane_tracks;
+}
+
+void BKE_tracking_get_rna_path_for_track(
+        const struct MovieTracking *tracking,
+        const struct MovieTrackingTrack *track,
+        char *rna_path,
+        size_t rna_path_len)
+{
+	MovieTrackingObject *object =
+	        BKE_tracking_find_object_for_track(tracking, track);
+	char track_name_esc[MAX_NAME * 2];
+	BLI_strescape(track_name_esc, track->name, sizeof(track_name_esc));
+	if (object == NULL) {
+		BLI_snprintf(rna_path, rna_path_len,
+		             "tracking.tracks[\"%s\"]",
+		             track_name_esc);
+	}
+	else {
+		char object_name_esc[MAX_NAME * 2];
+		BLI_strescape(object_name_esc, object->name, sizeof(object_name_esc));
+		BLI_snprintf(rna_path, rna_path_len,
+		             "tracking.objects[\"%s\"].tracks[\"%s\"]",
+		             object_name_esc,
+		             track_name_esc);
+	}
+}
+
+void BKE_tracking_get_rna_path_prefix_for_track(
+        const struct MovieTracking *tracking,
+        const struct MovieTrackingTrack *track,
+        char *rna_path,
+        size_t rna_path_len)
+{
+	MovieTrackingObject *object =
+	        BKE_tracking_find_object_for_track(tracking, track);
+	if (object == NULL) {
+		BLI_snprintf(rna_path, rna_path_len, "tracking.tracks");
+	}
+	else {
+		char object_name_esc[MAX_NAME * 2];
+		BLI_strescape(object_name_esc, object->name, sizeof(object_name_esc));
+		BLI_snprintf(rna_path, rna_path_len,
+		             "tracking.objects[\"%s\"]",
+		             object_name_esc);
+	}
+}
+
+void BKE_tracking_get_rna_path_for_plane_track(
+        const struct MovieTracking *tracking,
+        const struct MovieTrackingPlaneTrack *plane_track,
+        char *rna_path,
+        size_t rna_path_len)
+{
+	MovieTrackingObject *object =
+	        BKE_tracking_find_object_for_plane_track(tracking, plane_track);
+	char track_name_esc[MAX_NAME * 2];
+	BLI_strescape(track_name_esc, plane_track->name, sizeof(track_name_esc));
+	if (object == NULL) {
+		BLI_snprintf(rna_path, rna_path_len,
+		             "tracking.plane_tracks[\"%s\"]",
+		             track_name_esc);
+	}
+	else {
+		char object_name_esc[MAX_NAME * 2];
+		BLI_strescape(object_name_esc, object->name, sizeof(object_name_esc));
+		BLI_snprintf(rna_path, rna_path_len,
+		             "tracking.objects[\"%s\"].plane_tracks[\"%s\"]",
+		             object_name_esc,
+		             track_name_esc);
+	}
+}
+
+void BKE_tracking_get_rna_path_prefix_for_plane_track(
+        const struct MovieTracking *tracking,
+        const struct MovieTrackingPlaneTrack *plane_track,
+        char *rna_path,
+        size_t rna_path_len)
+{
+	MovieTrackingObject *object =
+	        BKE_tracking_find_object_for_plane_track(tracking, plane_track);
+	if (object == NULL) {
+		BLI_snprintf(rna_path, rna_path_len, "tracking.plane_tracks");
+	}
+	else {
+		char object_name_esc[MAX_NAME * 2];
+		BLI_strescape(object_name_esc, object->name, sizeof(object_name_esc));
+		BLI_snprintf(rna_path, rna_path_len,
+		             "tracking.objects[\"%s\"].plane_tracks",
+		             object_name_esc);
+	}
+}

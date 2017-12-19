@@ -139,6 +139,8 @@ void clip_graph_tracking_iterate(struct SpaceClip *sc, bool selected_only, bool 
 void clip_delete_track(struct bContext *C, struct MovieClip *clip, struct MovieTrackingTrack *track);
 void clip_delete_marker(struct bContext *C, struct MovieClip *clip, struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker);
 
+void clip_delete_plane_track(struct bContext *C, struct MovieClip *clip, struct MovieTrackingPlaneTrack *plane_track);
+
 void clip_view_center_to_point(SpaceClip *sc, float x, float y);
 
 void clip_draw_cfra(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);

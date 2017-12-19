@@ -184,37 +184,37 @@ void clip_delete_track(bContext *C, MovieClip *clip, MovieTrackingTrack *track)
 	MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	bool has_bundle = false;
-	char track_name_escaped[MAX_NAME], prefix[MAX_NAME * 2];
-	const bool used_for_stabilization = (track->flag & (TRACK_USE_2D_STAB | TRACK_USE_2D_STAB_ROT));
-
-	if (track == act_track)
+	const bool used_for_stabilization =
+	        (track->flag & (TRACK_USE_2D_STAB | TRACK_USE_2D_STAB_ROT)) != 0;
+	if (track == act_track) {
 		tracking->act_track = NULL;
-
-	/* handle reconstruction display in 3d viewport */
-	if (track->flag & TRACK_HAS_BUNDLE)
+	}
+	/* Handle reconstruction display in 3d viewport. */
+	if (track->flag & TRACK_HAS_BUNDLE) {
 		has_bundle = true;
-
+	}
 	/* Make sure no plane will use freed track */
 	BKE_tracking_plane_tracks_remove_point_track(tracking, track);
-
 	/* Delete f-curves associated with the track (such as weight, i.e.) */
-	BLI_strescape(track_name_escaped, track->name, sizeof(track_name_escaped));
-	BLI_snprintf(prefix, sizeof(prefix), "tracks[\"%s\"]", track_name_escaped);
-	BKE_animdata_fix_paths_remove(&clip->id, prefix);
-
+	/* Escaped object name, escaped track name, rest of the path. */
+	char rna_path[MAX_NAME * 4 + 64];
+	BKE_tracking_get_rna_path_for_track(tracking,
+	                                    track,
+	                                    rna_path, sizeof(rna_path));
+	BKE_animdata_fix_paths_remove(&clip->id, rna_path);
+	/* Delete track itself. */
 	BKE_tracking_track_free(track);
 	BLI_freelinkN(tracksbase, track);
-
+	/* Send notifiers. */
 	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
-
 	if (used_for_stabilization) {
 		WM_event_add_notifier(C, NC_MOVIECLIP | ND_DISPLAY, clip);
 	}
-
+	/* Inform dependency graph. */
 	DEG_id_tag_update(&clip->id, 0);
-
-	if (has_bundle)
+	if (has_bundle) {
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+	}
 }
 
 void clip_delete_marker(bContext *C, MovieClip *clip, MovieTrackingTrack *track,
@@ -228,6 +228,28 @@ void clip_delete_marker(bContext *C, MovieClip *clip, MovieTrackingTrack *track,
 
 		WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 	}
+}
+
+void clip_delete_plane_track(bContext *C,
+                             MovieClip *clip,
+                             MovieTrackingPlaneTrack *plane_track)
+{
+	MovieTracking *tracking = &clip->tracking;
+	ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
+	/* Delete f-curves associated with the track (such as weight, i.e.) */
+	/* Escaped object name, escaped track name, rest of the path. */
+	char rna_path[MAX_NAME * 4 + 64];
+	BKE_tracking_get_rna_path_for_plane_track(tracking,
+	                                          plane_track,
+	                                          rna_path, sizeof(rna_path));
+	BKE_animdata_fix_paths_remove(&clip->id, rna_path);
+	/* Delete the plane track itself. */
+	BKE_tracking_plane_track_free(plane_track);
+	BLI_freelinkN(plane_tracks_base, plane_track);
+	/* TODO(sergey): Any notifiers to be sent here? */
+	(void) C;
+	/* Inform dependency graph. */
+	DEG_id_tag_update(&clip->id, 0);
 }
 
 void clip_view_center_to_point(SpaceClip *sc, float x, float y)
