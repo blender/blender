@@ -43,7 +43,6 @@
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
-#include "GPU_select.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -54,8 +53,6 @@
 #include "WM_types.h"
 
 #include "ED_screen.h"
-#include "ED_view3d.h"
-#include "ED_manipulator_library.h"
 
 #include "view3d_intern.h"
 
@@ -240,7 +237,7 @@ static int manipulator_axis_test_select(
 {
 	float point_local[2] = {UNPACK2(event->mval)};
 	sub_v2_v2(point_local, mpr->matrix_basis[3]);
-	mul_v2_fl(point_local, 1.0f / mpr->scale_basis);
+	mul_v2_fl(point_local, 1.0f / (mpr->scale_basis * U.ui_scale));
 
 	const float len_sq = len_squared_v2(point_local);
 	if (len_sq > 1.0) {

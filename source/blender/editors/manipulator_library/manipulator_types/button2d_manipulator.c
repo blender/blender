@@ -114,8 +114,8 @@ static void button3d_draw_intern(
 		int icon = RNA_enum_get(mpr->ptr, "icon");
 		if (icon != ICON_NONE) {
 			UI_icon_draw(
-			        mpr->matrix_basis[3][0] - (ICON_DEFAULT_WIDTH / 2.0) * U.pixelsize,
-			        mpr->matrix_basis[3][1] - (ICON_DEFAULT_HEIGHT / 2.0) * U.pixelsize,
+			        mpr->matrix_basis[3][0] - (ICON_DEFAULT_WIDTH / 2.0) * U.ui_scale,
+			        mpr->matrix_basis[3][1] - (ICON_DEFAULT_HEIGHT / 2.0) * U.ui_scale,
 			        icon);
 		}
 	}
@@ -153,9 +153,8 @@ static int manipulator_button_test_select(
 	else {
 		copy_v2_v2(point_local, (float [2]){UNPACK2(event->mval)});
 		sub_v2_v2(point_local, mpr->matrix_basis[3]);
-		mul_v2_fl(point_local, 1.0f / mpr->scale_basis);
+		mul_v2_fl(point_local, 1.0f / (mpr->scale_basis * U.ui_scale));
 	}
-
 	/* The 'mpr->scale_final' is already applied when projecting. */
 	if (len_squared_v2(point_local) < 1.0f) {
 		return 0;
