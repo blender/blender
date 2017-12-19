@@ -133,10 +133,9 @@ Gwn_Batch *DRW_metaball_batch_cache_get_triangles_with_normals(Object *ob)
 
 	if (cache->batch == NULL) {
 		ListBase *lb = &ob->curve_cache->disp;
-		Gwn_VertBuf *verts = DRW_displist_vertbuf_calc_pos_with_normals(lb);
 		cache->batch = GWN_batch_create_ex(
 		        GWN_PRIM_TRIS,
-		        verts,
+		        DRW_displist_vertbuf_calc_pos_with_normals(lb),
 		        DRW_displist_indexbuf_calc_triangles_in_order(lb),
 		        GWN_BATCH_OWNS_VBO | GWN_BATCH_OWNS_INDEX);
 	}

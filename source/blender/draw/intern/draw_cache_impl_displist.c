@@ -128,32 +128,28 @@ Gwn_VertBuf *DRW_displist_vertbuf_calc_pos_with_normals(ListBase *lb)
 		attr_id.nor = GWN_vertformat_attr_add(&format, "nor", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 	}
 
-	const int vert_len = curve_render_surface_vert_len_get(lb);
 	Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
-	{
-		const int vbo_len_capacity = vert_len;
-		int vbo_len_used = 0;
-		GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
+	GWN_vertbuf_data_alloc(vbo, curve_render_surface_vert_len_get(lb));
 
-		BKE_displist_normals_add(lb);
+	BKE_displist_normals_add(lb);
 
-		for (const DispList *dl = lb->first; dl; dl = dl->next) {
-			const bool ndata_is_single = dl->type == DL_INDEX3;
-			if (ELEM(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)) {
-				const float *fp_co = dl->verts;
-				const float *fp_no = dl->nors;
-				const int vbo_end = vbo_len_used + dl_vert_len(dl);
-				while (vbo_len_used < vbo_end) {
-					GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, fp_co);
-					if (fp_no) {
-						GWN_vertbuf_attr_set(vbo, attr_id.nor, vbo_len_used, fp_no);
-						if (ndata_is_single == false) {
-							fp_no += 3;
-						}
+	int vbo_len_used = 0;
+	for (const DispList *dl = lb->first; dl; dl = dl->next) {
+		const bool ndata_is_single = dl->type == DL_INDEX3;
+		if (ELEM(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)) {
+			const float *fp_co = dl->verts;
+			const float *fp_no = dl->nors;
+			const int vbo_end = vbo_len_used + dl_vert_len(dl);
+			while (vbo_len_used < vbo_end) {
+				GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, fp_co);
+				if (fp_no) {
+					GWN_vertbuf_attr_set(vbo, attr_id.nor, vbo_len_used, fp_no);
+					if (ndata_is_single == false) {
+						fp_no += 3;
 					}
-					fp_co += 3;
-					vbo_len_used += 1;
 				}
+				fp_co += 3;
+				vbo_len_used += 1;
 			}
 		}
 	}
@@ -164,24 +160,18 @@ Gwn_VertBuf *DRW_displist_vertbuf_calc_pos_with_normals(ListBase *lb)
 Gwn_IndexBuf *DRW_displist_indexbuf_calc_triangles_in_order(ListBase *lb)
 {
 	const int tri_len = curve_render_surface_tri_len_get(lb);
-	if (tri_len == 0) {
-		return NULL;
-	}
-
 	const int vert_len = curve_render_surface_vert_len_get(lb);
 
-	{
-		Gwn_IndexBufBuilder elb;
-		GWN_indexbuf_init(&elb, GWN_PRIM_TRIS, tri_len, vert_len);
+	Gwn_IndexBufBuilder elb;
+	GWN_indexbuf_init(&elb, GWN_PRIM_TRIS, tri_len, vert_len);
 
-		int ofs = 0;
-		for (const DispList *dl = lb->first; dl; dl = dl->next) {
-			displist_indexbufbuilder_set(&elb, dl, ofs);
-			ofs += dl_vert_len(dl);
-		}
-
-		return GWN_indexbuf_build(&elb);
+	int ofs = 0;
+	for (const DispList *dl = lb->first; dl; dl = dl->next) {
+		displist_indexbufbuilder_set(&elb, dl, ofs);
+		ofs += dl_vert_len(dl);
 	}
+
+	return GWN_indexbuf_build(&elb);
 }
 
 Gwn_IndexBuf **DRW_displist_indexbuf_calc_triangles_in_order_split_by_material(ListBase *lb, uint gpumat_array_len)

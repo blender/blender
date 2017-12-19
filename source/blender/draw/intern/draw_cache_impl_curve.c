@@ -1043,7 +1043,7 @@ Gwn_Batch **DRW_curve_batch_cache_get_surface_shaded(
 
 		for (int i = 0; i < gpumat_array_len; ++i) {
 			cache->surface.shaded_triangles[i] = GWN_batch_create_ex(
-			        GWN_PRIM_TRIS, cache->surface.verts, el[i], el[i] ? GWN_BATCH_OWNS_INDEX : 0);
+			        GWN_PRIM_TRIS, cache->surface.verts, el[i], GWN_BATCH_OWNS_INDEX);
 
 			/* TODO: Add vertbuff for UV */
 		}
