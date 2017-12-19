@@ -1100,6 +1100,7 @@ static int group_instance_add_exec(bContext *C, wmOperator *op)
 
 		/* works without this except if you try render right after, see: 22027 */
 		DEG_relations_tag_update(bmain);
+		DEG_id_tag_update(&group->id, 0);
 
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 
