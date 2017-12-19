@@ -48,6 +48,9 @@
 
 #ifdef RNA_RUNTIME
 
+#include "DNA_anim_types.h"
+
+#include "BKE_animsys.h"
 #include "BKE_depsgraph.h"
 #include "BKE_node.h"
 
@@ -185,8 +188,24 @@ static void rna_trackingTrack_name_set(PointerRNA *ptr, const char *value)
 	MovieTrackingTrack *track = (MovieTrackingTrack *)ptr->data;
 	ListBase *tracksbase =
 	        BKE_tracking_find_tracks_list_for_track(&clip->tracking, track);
+	/* Store old name, for the animation fix later. */
+	char old_name[sizeof(track->name)];
+	BLI_strncpy(old_name, track->name, sizeof(track->name));
+	/* Update the name, */
 	BLI_strncpy(track->name, value, sizeof(track->name));
 	BKE_tracking_track_unique_name(tracksbase, track);
+	/* Fix animation paths. */
+	AnimData *adt = BKE_animdata_from_id(&clip->id);
+	if (adt != NULL) {
+		char rna_path[MAX_NAME * 2 + 64];
+		BKE_tracking_get_rna_path_prefix_for_track(&clip->tracking,
+		                                           track,
+		                                           rna_path, sizeof(rna_path));
+		BKE_animdata_fix_paths_rename(&clip->id, adt, NULL,
+		                              rna_path,
+		                              old_name, track->name,
+		                              0, 0, 1);
+	}
 }
 
 static int rna_trackingTrack_select_get(PointerRNA *ptr)
@@ -270,8 +289,25 @@ static void rna_trackingPlaneTrack_name_set(PointerRNA *ptr, const char *value)
 	ListBase *plane_tracks_base =
 	        BKE_tracking_find_tracks_list_for_plane_track(&clip->tracking,
 	                                                      plane_track);
+	/* Store old name, for the animation fix later. */
+	char old_name[sizeof(plane_track->name)];
+	BLI_strncpy(old_name, plane_track->name, sizeof(plane_track->name));
+	/* Update the name, */
 	BLI_strncpy(plane_track->name, value, sizeof(plane_track->name));
 	BKE_tracking_plane_track_unique_name(plane_tracks_base, plane_track);
+	/* Fix animation paths. */
+	AnimData *adt = BKE_animdata_from_id(&clip->id);
+	if (adt != NULL) {
+		char rna_path[MAX_NAME * 2 + 64];
+		BKE_tracking_get_rna_path_prefix_for_plane_track(&clip->tracking,
+		                                                 plane_track,
+		                                                 rna_path,
+		                                                 sizeof(rna_path));
+		BKE_animdata_fix_paths_rename(&clip->id, adt, NULL,
+		                              rna_path,
+		                              old_name, plane_track->name,
+		                              0, 0, 1);
+	}
 }
 
 static char *rna_trackingCamera_path(PointerRNA *UNUSED(ptr))
