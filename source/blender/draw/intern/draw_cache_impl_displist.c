@@ -177,29 +177,27 @@ Gwn_IndexBuf *DRW_displist_indexbuf_calc_triangles_in_order(ListBase *lb)
 Gwn_IndexBuf **DRW_displist_indexbuf_calc_triangles_in_order_split_by_material(ListBase *lb, uint gpumat_array_len)
 {
 	Gwn_IndexBuf **shaded_triangles_in_order = MEM_callocN(sizeof(*shaded_triangles_in_order) * gpumat_array_len, __func__);
+	Gwn_IndexBufBuilder *elb = BLI_array_alloca(elb, gpumat_array_len);
+
 	const int tri_len = curve_render_surface_tri_len_get(lb);
+	const int vert_len = curve_render_surface_vert_len_get(lb);
+	int i;
 
-	if (tri_len != 0) {
-		const int vert_len = curve_render_surface_vert_len_get(lb);
-		int i;
-		Gwn_IndexBufBuilder *elb = BLI_array_alloca(elb, gpumat_array_len);
+	/* Init each index buffer builder */
+	for (i = 0; i < gpumat_array_len; i++) {
+		GWN_indexbuf_init(&elb[i], GWN_PRIM_TRIS, tri_len, vert_len);
+	}
 
-		/* Init each index buffer builder */
-		for (i = 0; i < gpumat_array_len; i++) {
-			GWN_indexbuf_init(&elb[i], GWN_PRIM_TRIS, tri_len, vert_len);
-		}
+	/* calc each index buffer builder */
+	int ofs = 0;
+	for (const DispList *dl = lb->first; dl; dl = dl->next) {
+		displist_indexbufbuilder_set(&elb[dl->col], dl, ofs);
+		ofs += dl_vert_len(dl);
+	}
 
-		/* calc each index buffer builder */
-		int ofs = 0;
-		for (const DispList *dl = lb->first; dl; dl = dl->next) {
-			displist_indexbufbuilder_set(&elb[dl->col], dl, ofs);
-			ofs += dl_vert_len(dl);
-		}
-
-		/* build each indexbuf */
-		for (i = 0; i < gpumat_array_len; i++) {
-			shaded_triangles_in_order[i] = GWN_indexbuf_build(&elb[i]);
-		}
+	/* build each indexbuf */
+	for (i = 0; i < gpumat_array_len; i++) {
+		shaded_triangles_in_order[i] = GWN_indexbuf_build(&elb[i]);
 	}
 
 	return shaded_triangles_in_order;
