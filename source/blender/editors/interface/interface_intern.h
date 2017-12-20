@@ -587,8 +587,7 @@ struct uiPopupBlockHandle {
 /* interface_region_*.c */
 
 /* interface_region_tooltip.c */
-struct ARegion *ui_tooltip_create_from_button(struct bContext *C, struct ARegion *butregion, uiBut *but);
-void ui_tooltip_free(struct bContext *C, struct ARegion *ar);
+/* exposed as public API in UI_interface.h */
 
 /* interface_region_color_picker.c */
 void ui_rgb_to_color_picker_compat_v(const float rgb[3], float r_cp[3]);

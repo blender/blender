@@ -130,7 +130,6 @@ static bool ui_mouse_motion_keynav_test(struct uiKeyNavLock *keynav, const wmEve
 
 /***************** structs and defines ****************/
 
-#define BUTTON_TOOLTIP_DELAY        0.500
 #define BUTTON_FLASH_DELAY          0.020
 #define MENU_SCROLL_INTERVAL        0.1
 #define PIE_MENU_INTERVAL           0.01
@@ -7648,8 +7647,8 @@ void UI_but_tooltip_refresh(bContext *C, uiBut *but)
 
 	data = but->active;
 	if (data && data->tooltip) {
-		ui_tooltip_free(C, data->tooltip);
-		data->tooltip = ui_tooltip_create_from_button(C, data->region, but);
+		UI_tooltip_free(C, data->tooltip);
+		data->tooltip = UI_tooltip_create_from_button(C, data->region, but);
 	}
 }
 
@@ -7666,7 +7665,7 @@ void UI_but_tooltip_timer_remove(bContext *C, uiBut *but)
 			data->tooltiptimer = NULL;
 		}
 		if (data->tooltip) {
-			ui_tooltip_free(C, data->tooltip);
+			UI_tooltip_free(C, data->tooltip);
 			data->tooltip = NULL;
 		}
 
@@ -7692,7 +7691,7 @@ static void button_tooltip_timer_reset(bContext *C, uiBut *but)
 	if ((U.flag & USER_TOOLTIPS) || (data->tooltip_force)) {
 		if (!but->block->tooltipdisabled) {
 			if (!wm->drags.first) {
-				data->tooltiptimer = WM_event_add_timer(data->wm, data->window, TIMER, BUTTON_TOOLTIP_DELAY);
+				data->tooltiptimer = WM_event_add_timer(data->wm, data->window, TIMER, UI_TOOLTIP_DELAY);
 			}
 		}
 	}
@@ -8393,7 +8392,7 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 					data->tooltiptimer = NULL;
 
 					if (!data->tooltip)
-						data->tooltip = ui_tooltip_create_from_button(C, data->region, but);
+						data->tooltip = UI_tooltip_create_from_button(C, data->region, but);
 				}
 				/* handle menu auto open timer */
 				else if (event->customdata == data->autoopentimer) {
