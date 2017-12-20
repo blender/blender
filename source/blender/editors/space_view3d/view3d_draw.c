@@ -2060,7 +2060,7 @@ void ED_view3d_draw_offscreen(
 		/* XXX, should take depsgraph as arg */
 		Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, false);
 		BLI_assert(depsgraph != NULL);
-		DRW_draw_render_loop_offscreen(depsgraph, eval_ctx->engine_type, ar, v3d, ofs);
+		DRW_draw_render_loop_offscreen(depsgraph, eval_ctx->engine_type, ar, v3d, do_sky, ofs);
 	}
 
 	/* restore size */

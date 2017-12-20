@@ -95,6 +95,7 @@ void DRW_draw_render_loop_offscreen(
         struct Depsgraph *graph,
         struct RenderEngineType *engine_type,
         struct ARegion *ar, struct View3D *v3d,
+        const bool draw_background,
         struct GPUOffScreen *ofs);
 void DRW_draw_select_loop(
         struct Depsgraph *graph,

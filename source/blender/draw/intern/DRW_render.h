@@ -431,6 +431,7 @@ bool DRW_state_is_image_render(void);
 bool DRW_state_is_scene_render(void);
 bool DRW_state_show_text(void);
 bool DRW_state_draw_support(void);
+bool DRW_state_draw_background(void);
 
 struct DRWTextStore *DRW_state_text_cache_get(void);
 

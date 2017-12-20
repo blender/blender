@@ -56,7 +56,7 @@ static void eevee_engine_init(void *ved)
 		/* Alloc transient pointers */
 		stl->g_data = MEM_callocN(sizeof(*stl->g_data), __func__);
 	}
-	stl->g_data->background_alpha = 1.0f;
+	stl->g_data->background_alpha = DRW_state_draw_background() ? 1.0f : 0.0f;
 	stl->g_data->valid_double_buffer = (txl->color_double_buffer != NULL);
 
 	DRWFboTexture tex = {&txl->color, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
@@ -414,8 +414,8 @@ DrawEngineType draw_engine_eevee_type = {
 	&eevee_cache_init,
 	&eevee_cache_populate,
 	&eevee_cache_finish,
+	NULL,
 	&eevee_draw_scene,
-	NULL, //&EEVEE_draw_scene
 	&eevee_view_update,
 	&eevee_id_update,
 };
