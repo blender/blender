@@ -43,10 +43,6 @@ extern "C" {
 #include "BKE_animsys.h"
 }
 
-#include "DEG_depsgraph.h"
-
-#include "intern/nodes/deg_node_component.h"
-#include "intern/nodes/deg_node_operation.h"
 #include "intern/nodes/deg_node_time.h"
 #include "intern/depsgraph_intern.h"
 

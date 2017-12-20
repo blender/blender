@@ -31,19 +31,8 @@
 #include "intern/nodes/deg_node.h"
 
 #include <stdio.h>
-#include <cstring>  /* required for STREQ later on. */
 
 #include "BLI_utildefines.h"
-#include "BLI_ghash.h"
-
-extern "C" {
-#include "DNA_ID.h"
-#include "DNA_anim_types.h"
-
-#include "BKE_animsys.h"
-}
-
-#include "DEG_depsgraph.h"
 
 #include "intern/nodes/deg_node_component.h"
 #include "intern/nodes/deg_node_id.h"
