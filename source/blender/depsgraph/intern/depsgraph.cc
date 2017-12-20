@@ -51,6 +51,7 @@ extern "C" {
 #include "RNA_access.h"
 }
 
+#include <algorithm>
 #include <cstring>
 
 #include "DEG_depsgraph.h"
@@ -67,6 +68,14 @@ namespace DEG {
 static DEG_EditorUpdateIDCb deg_editor_update_id_cb = NULL;
 static DEG_EditorUpdateSceneCb deg_editor_update_scene_cb = NULL;
 static DEG_EditorUpdateScenePreCb deg_editor_update_scene_pre_cb = NULL;
+
+/* TODO(sergey): Find a better place for this. */
+template <typename T>
+static void remove_from_vector(vector<T> *vector, const T& value)
+{
+	vector->erase(std::remove(vector->begin(), vector->end(), value),
+	              vector->end());
+}
 
 Depsgraph::Depsgraph()
   : time_source(NULL),
@@ -391,7 +400,15 @@ DepsRelation::DepsRelation(DepsNode *from,
 DepsRelation::~DepsRelation()
 {
 	/* Sanity check. */
-	BLI_assert(this->from && this->to);
+	BLI_assert(from != NULL && to != NULL);
+}
+
+void DepsRelation::unlink()
+{
+	/* Sanity check. */
+	BLI_assert(from != NULL && to != NULL);
+	remove_from_vector(&from->outlinks, this);
+	remove_from_vector(&to->inlinks, this);
 }
 
 /* Low level tagging -------------------------------------- */
