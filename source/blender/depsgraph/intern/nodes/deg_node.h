@@ -114,21 +114,6 @@ struct DepsNode {
 struct ComponentDepsNode;
 struct IDDepsNode;
 
-/* Time Source Node. */
-struct TimeSourceDepsNode : public DepsNode {
-	/* New "current time". */
-	float cfra;
-
-	/* time-offset relative to the "official" time source that this one has. */
-	float offset;
-
-	// TODO: evaluate() operation needed
-
-	void tag_update(Depsgraph *graph);
-
-	DEG_DEPSNODE_DECLARE;
-};
-
 /* ID-Block Reference */
 struct IDDepsNode : public DepsNode {
 	struct ComponentIDKey {

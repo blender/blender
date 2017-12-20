@@ -47,7 +47,9 @@ extern "C" {
 
 #include "intern/nodes/deg_node_component.h"
 #include "intern/nodes/deg_node_operation.h"
+#include "intern/nodes/deg_node_time.h"
 #include "intern/depsgraph_intern.h"
+
 #include "util/deg_util_foreach.h"
 
 namespace DEG {
@@ -101,16 +103,6 @@ string DepsNode::identifier() const
 
 /* ************* */
 /* Generic Nodes */
-
-/* Time Source Node ============================================== */
-
-void TimeSourceDepsNode::tag_update(Depsgraph *graph)
-{
-	foreach (DepsRelation *rel, outlinks) {
-		DepsNode *node = rel->to;
-		node->tag_update(graph);
-	}
-}
 
 /* Time Source Node ======================================= */
 

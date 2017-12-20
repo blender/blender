@@ -57,6 +57,7 @@ set(SRC
 	intern/nodes/deg_node.cc
 	intern/nodes/deg_node_component.cc
 	intern/nodes/deg_node_operation.cc
+	intern/nodes/deg_node_time.cc
 	intern/depsgraph.cc
 	intern/depsgraph_build.cc
 	intern/depsgraph_debug.cc
@@ -83,6 +84,7 @@ set(SRC
 	intern/nodes/deg_node.h
 	intern/nodes/deg_node_component.h
 	intern/nodes/deg_node_operation.h
+	intern/nodes/deg_node_time.h
 	intern/depsgraph.h
 	intern/depsgraph_intern.h
 	intern/depsgraph_types.h
