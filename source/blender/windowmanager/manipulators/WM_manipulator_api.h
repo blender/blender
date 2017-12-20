@@ -259,6 +259,15 @@ bool WM_manipulatormap_minmax(
         const struct wmManipulatorMap *mmap, bool use_hidden, bool use_select,
         float r_min[3], float r_max[3]);
 
+void WM_manipulatormap_tooltip_create(
+        struct bContext *C, struct wmManipulatorMap *mmap);
+void WM_manipulatormap_tooltip_clear(
+        struct bContext *C, struct wmManipulatorMap *mmap);
+void WM_manipulatormap_tooltip_timer_init(
+        struct bContext *C, struct wmManipulatorMap *mmap);
+const void *WM_manipulatormap_tooltip_timer_get(
+        struct wmManipulatorMap *mmap);
+
 /* -------------------------------------------------------------------- */
 /* wmManipulatorMapType */
 

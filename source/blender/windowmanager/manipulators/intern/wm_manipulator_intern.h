@@ -115,6 +115,9 @@ struct wmManipulatorMap {
 		/* cursor location at point of entering modal (see: WM_MANIPULATOR_GRAB_CURSOR) */
 		int event_xy[2];
 		short event_grabcursor;
+
+		struct ARegion *tooltip;
+		struct wmTimer *tooltip_timer;
 	} mmap_context;
 };
 

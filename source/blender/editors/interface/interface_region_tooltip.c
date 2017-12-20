@@ -620,6 +620,112 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 	}
 }
 
+static uiTooltipData *ui_tooltip_data_from_manipulator(bContext *C, wmManipulator *mpr)
+{
+	uiTooltipData *data = MEM_callocN(sizeof(uiTooltipData), "uiTooltipData");
+
+	/* TODO(campbell): a way for manipulators to have their own descriptions (low priority). */
+
+	/* Operator Actions */
+	{
+		bool use_drag = mpr->drag_part != -1 && mpr->highlight_part != mpr->drag_part;
+
+		const struct {
+			int part;
+			const char *prefix;
+		} mpop_actions[] = {
+			{
+				.part = mpr->highlight_part,
+				.prefix = use_drag ? TIP_("Click") : NULL,
+			}, {
+				.part = use_drag ? mpr->drag_part : -1,
+				.prefix = use_drag ? TIP_("Drag") : NULL,
+			},
+		};
+
+		for (int i = 0; i < ARRAY_SIZE(mpop_actions); i++) {
+			wmManipulatorOpElem *mpop = (mpop_actions[i].part != -1) ? WM_manipulator_operator_get(mpr, mpop_actions[i].part) : NULL;
+			if (mpop != NULL) {
+				/* Description */
+				const char *info = RNA_struct_ui_description(mpop->type->srna);
+				if (!(info && info[0])) {
+					info  = RNA_struct_ui_name(mpop->type->srna);
+				}
+
+				if (info && info[0]) {
+					char *text = NULL;
+					if (mpop_actions[i].prefix != NULL) {
+						text = BLI_sprintfN("%s: %s", mpop_actions[i].prefix, info);
+					}
+					else {
+						text = BLI_strdup(info);
+					}
+
+					if (text != NULL) {
+						uiTooltipField *field = text_field_add(
+						        data, &(uiTooltipFormat){
+						            .style = UI_TIP_STYLE_HEADER,
+						            .color_id = UI_TIP_LC_VALUE,
+						            .is_pad = true,
+						        });
+						field->text = text;
+					}
+				}
+
+				/* Shortcut */
+				{
+					bool found = false;
+					IDProperty *prop = mpop->ptr.data;
+					char buf[128];
+					if (WM_key_event_operator_string(
+					            C, mpop->type->idname, WM_OP_INVOKE_DEFAULT, prop, true,
+					            buf, ARRAY_SIZE(buf)))
+					{
+						found = true;
+					}
+					uiTooltipField *field = text_field_add(
+					        data, &(uiTooltipFormat){
+					            .style = UI_TIP_STYLE_NORMAL,
+					            .color_id = UI_TIP_LC_VALUE,
+					            .is_pad = true,
+					        });
+					field->text = BLI_sprintfN(TIP_("Shortcut: %s"), found ? buf : "None");
+				}
+			}
+		}
+	}
+
+	/* Property Actions */
+	if (mpr->type->target_property_defs_len) {
+		wmManipulatorProperty *mpr_prop_array = WM_manipulator_target_property_array(mpr);
+		for (int i = 0; i < mpr->type->target_property_defs_len; i++) {
+			/* TODO(campbell): function callback descriptions. */
+			wmManipulatorProperty *mpr_prop = &mpr_prop_array[i];
+			if (mpr_prop->prop != NULL) {
+				const char *info = RNA_property_ui_description(mpr_prop->prop);
+				if (info && info[0]) {
+					uiTooltipField *field = text_field_add(
+					        data, &(uiTooltipFormat){
+					            .style = UI_TIP_STYLE_NORMAL,
+					            .color_id = UI_TIP_LC_VALUE,
+					            .is_pad = true,
+					        });
+					field->text = BLI_strdup(info);
+				}
+			}
+		}
+	}
+
+	if (data->fields_len == 0) {
+		MEM_freeN(data);
+		return NULL;
+	}
+	else {
+		return data;
+	}
+}
+
+
 static ARegion *ui_tooltip_create_with_data(
         bContext *C, uiTooltipData *data,
         const float init_position[2],
@@ -823,6 +929,23 @@ ARegion *UI_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *b
 		ui_block_to_window_fl(butregion, but->block, &init_position[0], &init_position[1]);
 		init_position[0] = win->eventstate->x;
 	}
+
+	return ui_tooltip_create_with_data(C, data, init_position, aspect);
+}
+
+ARegion *UI_tooltip_create_from_manipulator(bContext *C, wmManipulator *mpr)
+{
+	wmWindow *win = CTX_wm_window(C);
+	const float aspect = 1.0f;
+	float init_position[2];
+
+	uiTooltipData *data = ui_tooltip_data_from_manipulator(C, mpr);
+	if (data == NULL) {
+		return NULL;
+	}
+
+	init_position[0] = win->eventstate->x;
+	init_position[1] = win->eventstate->y;
 
 	return ui_tooltip_create_with_data(C, data, init_position, aspect);
 }

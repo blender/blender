@@ -2251,13 +2251,32 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 				wm_manipulatormap_handler_context(C, handler);
 				wm_region_mouse_co(C, event);
 
+				if (event->type == MOUSEMOVE) {
+					WM_manipulatormap_tooltip_clear(C, mmap);
+				}
+
 				/* handle manipulator highlighting */
 				if (event->type == MOUSEMOVE && !wm_manipulatormap_modal_get(mmap)) {
 					int part;
 					mpr = wm_manipulatormap_highlight_find(mmap, C, event, &part);
 					wm_manipulatormap_highlight_set(mmap, C, mpr, part);
+					if (mpr != NULL) {
+						WM_manipulatormap_tooltip_timer_init(C, mmap);
+					}
 				}
 				/* handle user configurable manipulator-map keymap */
+				else if ((event->type == TIMER) &&
+				         (event->customdata == WM_manipulatormap_tooltip_timer_get(mmap)))
+				{
+					if (mpr) {
+						if (mpr->state & WM_MANIPULATOR_STATE_MODAL) {
+							WM_manipulatormap_tooltip_clear(C, mmap);
+						}
+						else {
+							WM_manipulatormap_tooltip_create(C, mmap);
+						}
+					}
+				}
 				else {
 					/* Either we operate on a single highlighted item
 					 * or groups attached to the selected manipulators.
