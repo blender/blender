@@ -49,6 +49,7 @@ extern "C" {
 #include "RNA_access.h"
 }
 
+#include <algorithm>
 #include <cstring>
 
 #include "DEG_depsgraph.h"
@@ -57,7 +58,9 @@ extern "C" {
 
 #include "intern/nodes/deg_node.h"
 #include "intern/nodes/deg_node_component.h"
+#include "intern/nodes/deg_node_id.h"
 #include "intern/nodes/deg_node_operation.h"
+#include "intern/nodes/deg_node_time.h"
 
 #include "intern/depsgraph_intern.h"
 #include "util/deg_util_foreach.h"
@@ -78,6 +81,14 @@ namespace DEG {
 
 static DEG_EditorUpdateIDCb deg_editor_update_id_cb = NULL;
 static DEG_EditorUpdateSceneCb deg_editor_update_scene_cb = NULL;
+
+/* TODO(sergey): Find a better place for this. */
+template <typename T>
+static void remove_from_vector(vector<T> *vector, const T& value)
+{
+	vector->erase(std::remove(vector->begin(), vector->end(), value),
+	              vector->end());
+}
 
 Depsgraph::Depsgraph()
   : time_source(NULL),
@@ -431,7 +442,15 @@ DepsRelation::DepsRelation(DepsNode *from,
 DepsRelation::~DepsRelation()
 {
 	/* Sanity check. */
-	BLI_assert(this->from && this->to);
+	BLI_assert(from != NULL && to != NULL);
+}
+
+void DepsRelation::unlink()
+{
+	/* Sanity check. */
+	BLI_assert(from != NULL && to != NULL);
+	remove_from_vector(&from->outlinks, this);
+	remove_from_vector(&to->inlinks, this);
 }
 
 /* Low level tagging -------------------------------------- */

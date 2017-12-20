@@ -42,6 +42,7 @@ extern "C" {
 #include "BKE_action.h"
 } /* extern "C" */
 
+#include "intern/nodes/deg_node_id.h"
 #include "intern/nodes/deg_node_operation.h"
 #include "intern/depsgraph_intern.h"
 #include "util/deg_util_foreach.h"

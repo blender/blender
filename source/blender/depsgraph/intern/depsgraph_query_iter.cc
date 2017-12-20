@@ -50,6 +50,8 @@ extern "C" {
 #include "intern/depsgraph_intern.h"
 #include "util/deg_util_foreach.h"
 
+#include "intern/nodes/deg_node_id.h"
+
 #ifndef NDEBUG
 #  include "intern/eval/deg_eval_copy_on_write.h"
 #endif

@@ -80,6 +80,7 @@ extern "C" {
 #include "intern/depsgraph.h"
 #include "intern/builder/deg_builder_nodes.h"
 #include "intern/nodes/deg_node.h"
+#include "intern/nodes/deg_node_id.h"
 
 namespace DEG {
 

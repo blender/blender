@@ -38,6 +38,8 @@ struct Depsgraph;
 
 namespace DEG {
 
+struct ComponentDepsNode;
+
 /* Flags for Depsgraph Nodes */
 typedef enum eDepsOperation_Flag {
 	/* node needs to be updated */

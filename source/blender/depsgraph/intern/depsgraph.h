@@ -87,6 +87,8 @@ struct DepsRelation {
 	             const char *description);
 
 	~DepsRelation();
+
+	void unlink();
 };
 
 /* ********* */

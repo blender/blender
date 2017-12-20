@@ -109,68 +109,6 @@ struct DepsNode {
 #define DEG_DEPSNODE_DEFINE(NodeType, type_, tname_) \
 	const DepsNode::TypeInfo NodeType::typeinfo = DepsNode::TypeInfo(type_, tname_)
 
-/* Generic Nodes ======================= */
-
-struct ComponentDepsNode;
-struct IDDepsNode;
-
-/* Time Source Node. */
-struct TimeSourceDepsNode : public DepsNode {
-	/* New "current time". */
-	float cfra;
-
-	/* time-offset relative to the "official" time source that this one has. */
-	float offset;
-
-	// TODO: evaluate() operation needed
-
-	void tag_update(Depsgraph *graph);
-
-	DEG_DEPSNODE_DECLARE;
-};
-
-/* ID-Block Reference */
-struct IDDepsNode : public DepsNode {
-	struct ComponentIDKey {
-		ComponentIDKey(eDepsNode_Type type, const char *name = "");
-		bool operator==(const ComponentIDKey &other) const;
-
-		eDepsNode_Type type;
-		const char *name;
-	};
-
-	void init(const ID *id, const char *subdata);
-	void init_copy_on_write(ID *id_cow_hint = NULL);
-	~IDDepsNode();
-	void destroy();
-
-	ComponentDepsNode *find_component(eDepsNode_Type type,
-	                                  const char *name = "") const;
-	ComponentDepsNode *add_component(eDepsNode_Type type,
-	                                 const char *name = "");
-
-	void tag_update(Depsgraph *graph);
-
-	void finalize_build(Depsgraph *graph);
-
-	/* ID Block referenced. */
-	ID *id_orig;
-	ID *id_cow;
-
-	/* Hash to make it faster to look up components. */
-	GHash *components;
-
-	/* Additional flags needed for scene evaluation.
-	 * TODO(sergey): Only needed for until really granular updates
-	 * of all the entities.
-	 */
-	int eval_flags;
-
-	eDepsNode_LinkedState_Type linked_state;
-
-	DEG_DEPSNODE_DECLARE;
-};
-
 void deg_register_base_depsnodes();
 
 }  // namespace DEG

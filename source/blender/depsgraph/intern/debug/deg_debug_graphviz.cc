@@ -41,6 +41,9 @@ extern "C" {
 #include "DEG_depsgraph_debug.h"
 
 #include "intern/depsgraph_intern.h"
+#include "intern/nodes/deg_node_id.h"
+#include "intern/nodes/deg_node_time.h"
+
 #include "util/deg_util_foreach.h"
 
 /* ****************** */

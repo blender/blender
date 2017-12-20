@@ -25,6 +25,10 @@
 #ifndef __MATH_BITS_INLINE_C__
 #define __MATH_BITS_INLINE_C__
 
+#ifdef _MSC_VER
+#  include <intrin.h>
+#endif
+
 #include "BLI_math_bits.h"
 
 MINLINE int bitscan_forward_i(int a)

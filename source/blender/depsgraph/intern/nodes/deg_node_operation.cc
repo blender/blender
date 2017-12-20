@@ -37,6 +37,7 @@
 
 #include "intern/depsgraph.h"
 #include "intern/depsgraph_intern.h"
+#include "intern/nodes/deg_node_id.h"
 
 namespace DEG {
 

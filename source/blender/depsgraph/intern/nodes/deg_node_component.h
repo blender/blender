@@ -46,6 +46,7 @@ namespace DEG {
 struct Depsgraph;
 struct OperationDepsNode;
 struct BoneComponentDepsNode;
+struct IDDepsNode;
 
 /* ID Component - Base type for all components */
 struct ComponentDepsNode : public DepsNode {

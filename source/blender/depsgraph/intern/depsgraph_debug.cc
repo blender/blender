@@ -42,6 +42,9 @@ extern "C" {
 #include "DEG_depsgraph_build.h"
 
 #include "intern/depsgraph_intern.h"
+#include "intern/nodes/deg_node_id.h"
+#include "intern/nodes/deg_node_time.h"
+
 #include "util/deg_util_foreach.h"
 
 bool DEG_debug_compare(const struct Depsgraph *graph1,
