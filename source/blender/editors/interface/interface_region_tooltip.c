@@ -29,6 +29,14 @@
  * ToolTip Region and Construction
  */
 
+/* TODO(campbell):
+ * We may want to have a higher level API that initializes a timer,
+ * checks for mouse motion and clears the tool-tip afterwards.
+ * We never want multiple tool-tips at once so this could be handled on the window / window-manager level.
+ *
+ * For now it's not a priority, so leave as-is.
+ */
+
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
@@ -97,7 +105,6 @@ typedef struct uiTooltipField {
 
 } uiTooltipField;
 
-#define MAX_TOOLTIP_LINES 8
 typedef struct uiTooltipData {
 	rcti bbox;
 	uiTooltipField *fields;
@@ -548,8 +555,6 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 		MEM_freeN(rna_struct.strinfo);
 	if (rna_prop.strinfo)
 		MEM_freeN(rna_prop.strinfo);
-
-	BLI_assert(data->fields_len < MAX_TOOLTIP_LINES);
 
 	if (data->fields_len == 0) {
 		MEM_freeN(data);
