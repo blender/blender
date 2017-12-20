@@ -56,12 +56,6 @@ DepsNode::TypeInfo::TypeInfo(eDepsNode_Type type,
           tname(tname),
           id_recalc_tag(id_recalc_tag)
 {
-	if (type == DEG_NODE_TYPE_OPERATION)
-		this->tclass = DEG_NODE_CLASS_OPERATION;
-	else if (type < DEG_NODE_TYPE_PARAMETERS)
-		this->tclass = DEG_NODE_CLASS_GENERIC;
-	else
-		this->tclass = DEG_NODE_CLASS_COMPONENT;
 }
 
 DepsNode::DepsNode()

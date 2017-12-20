@@ -52,23 +52,10 @@ struct DepsNode {
 	/* Helper class for static typeinfo in subclasses. */
 	struct TypeInfo {
 		TypeInfo(eDepsNode_Type type, const char *tname, int id_recalc_tag = 0);
-
 		eDepsNode_Type type;
-		eDepsNode_Class tclass;
 		const char *tname;
-
 		int id_recalc_tag;
 	};
-
-	/* Identifier - mainly for debugging purposes. */
-	const char *name;
-
-	/* Structural type of node. */
-	eDepsNode_Type type;
-
-	/* Type of data/behaviour represented by node... */
-	eDepsNode_Class tclass;
-
 	/* Relationships between nodes
 	 * The reason why all depsgraph nodes are descended from this type (apart
 	 * from basic serialization benefits - from the typeinfo) is that we can have
@@ -76,9 +63,12 @@ struct DepsNode {
 	 */
 	typedef vector<DepsRelation *> Relations;
 
+	/* Identifier - mainly for debugging purposes. */
+	const char *name;
+	/* Structural type of node. */
+	eDepsNode_Type type;
 	/* Nodes which this one depends on. */
 	Relations inlinks;
-
 	/* Nodes which depend on this one. */
 	Relations outlinks;
 
@@ -87,7 +77,6 @@ struct DepsNode {
 	int tag;
 
 	/* Methods. */
-
 	DepsNode();
 	virtual ~DepsNode();
 
@@ -101,6 +90,18 @@ struct DepsNode {
 
 	virtual OperationDepsNode *get_entry_operation() { return NULL; }
 	virtual OperationDepsNode *get_exit_operation() { return NULL; }
+
+	virtual eDepsNode_Class get_class() const {
+		if (type == DEG_NODE_TYPE_OPERATION) {
+			return DEG_NODE_CLASS_OPERATION;
+		}
+		else if (type < DEG_NODE_TYPE_PARAMETERS) {
+			return DEG_NODE_CLASS_GENERIC;
+		}
+		else {
+			return DEG_NODE_CLASS_COMPONENT;
+		}
+	}
 };
 
 /* Macros for common static typeinfo. */

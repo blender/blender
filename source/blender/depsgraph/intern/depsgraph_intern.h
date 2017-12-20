@@ -59,7 +59,6 @@ namespace DEG {
 /* Typeinfo Struct (nti) */
 struct DepsNodeFactory {
 	virtual eDepsNode_Type type() const = 0;
-	virtual eDepsNode_Class tclass() const = 0;
 	virtual const char *tname() const = 0;
 	virtual int id_recalc_tag() const = 0;
 
@@ -71,7 +70,6 @@ struct DepsNodeFactory {
 template <class NodeType>
 struct DepsNodeFactoryImpl : public DepsNodeFactory {
 	eDepsNode_Type type() const { return NodeType::typeinfo.type; }
-	eDepsNode_Class tclass() const { return NodeType::typeinfo.tclass; }
 	const char *tname() const { return NodeType::typeinfo.tname; }
 	int id_recalc_tag() const { return NodeType::typeinfo.id_recalc_tag; }
 
@@ -81,7 +79,6 @@ struct DepsNodeFactoryImpl : public DepsNodeFactory {
 
 		/* populate base node settings */
 		node->type = type();
-		node->tclass = tclass();
 
 		if (name[0] != '\0') {
 			/* set name if provided ... */

@@ -115,7 +115,7 @@ static int deg_debug_node_color_index(const DepsNode *node)
 			break;
 	}
 	/* Do others based on class. */
-	switch (node->tclass) {
+	switch (node->get_class()) {
 		case DEG_NODE_CLASS_OPERATION:
 			return 4;
 		case DEG_NODE_CLASS_COMPONENT:
@@ -202,7 +202,7 @@ static void deg_debug_graphviz_node_color(const DebugContext &ctx,
 	const char *color_update = "dodgerblue3";
 	const char *color = color_default;
 	if (ctx.show_tags) {
-		if (node->tclass == DEG_NODE_CLASS_OPERATION) {
+		if (node->get_class() == DEG_NODE_CLASS_OPERATION) {
 			OperationDepsNode *op_node = (OperationDepsNode *)node;
 			if (op_node->flag & DEPSOP_FLAG_DIRECTLY_MODIFIED) {
 				color = color_modified;
@@ -223,7 +223,7 @@ static void deg_debug_graphviz_node_penwidth(const DebugContext &ctx,
 	float penwidth_update = 4.0f;
 	float penwidth = penwidth_default;
 	if (ctx.show_tags) {
-		if (node->tclass == DEG_NODE_CLASS_OPERATION) {
+		if (node->get_class() == DEG_NODE_CLASS_OPERATION) {
 			OperationDepsNode *op_node = (OperationDepsNode *)node;
 			if (op_node->flag & DEPSOP_FLAG_DIRECTLY_MODIFIED) {
 				penwidth = penwidth_modified;
@@ -261,14 +261,14 @@ static void deg_debug_graphviz_node_style(const DebugContext &ctx, const DepsNod
 {
 	const char *base_style = "filled"; /* default style */
 	if (ctx.show_tags) {
-		if (node->tclass == DEG_NODE_CLASS_OPERATION) {
+		if (node->get_class() == DEG_NODE_CLASS_OPERATION) {
 			OperationDepsNode *op_node = (OperationDepsNode *)node;
 			if (op_node->flag & (DEPSOP_FLAG_DIRECTLY_MODIFIED | DEPSOP_FLAG_NEEDS_UPDATE)) {
 				base_style = "striped";
 			}
 		}
 	}
-	switch (node->tclass) {
+	switch (node->get_class()) {
 		case DEG_NODE_CLASS_GENERIC:
 			deg_debug_fprintf(ctx, "\"%s\"", base_style);
 			break;
@@ -293,7 +293,7 @@ static void deg_debug_graphviz_node_single(const DebugContext &ctx,
 		BLI_snprintf(buf, sizeof(buf), " (Layers: %u)", id_node->layers);
 		name += buf;
 	}
-	if (ctx.show_eval_priority && node->tclass == DEG_NODE_CLASS_OPERATION) {
+	if (ctx.show_eval_priority && node->get_class() == DEG_NODE_CLASS_OPERATION) {
 		priority = ((OperationDepsNode *)node)->eval_priority;
 	}
 	deg_debug_fprintf(ctx, "// %s\n", name.c_str());
@@ -440,7 +440,7 @@ static bool deg_debug_graphviz_is_cluster(const DepsNode *node)
 static bool deg_debug_graphviz_is_owner(const DepsNode *node,
                                         const DepsNode *other)
 {
-	switch (node->tclass) {
+	switch (node->get_class()) {
 		case DEG_NODE_CLASS_COMPONENT:
 		{
 			ComponentDepsNode *comp_node = (ComponentDepsNode *)node;
