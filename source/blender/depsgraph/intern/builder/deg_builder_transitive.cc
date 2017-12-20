@@ -37,6 +37,7 @@
 #include "intern/nodes/deg_node_operation.h"
 
 #include "intern/depsgraph.h"
+#include "intern/depsgraph_intern.h"
 
 #include "util/deg_util_foreach.h"
 
@@ -79,6 +80,7 @@ static void deg_graph_tag_paths_recursive(DepsNode *node)
 
 void deg_graph_transitive_reduction(Depsgraph *graph)
 {
+	int num_removed_relations = 0;
 	foreach (OperationDepsNode *target, graph->operations) {
 		/* Clear tags. */
 		foreach (OperationDepsNode *node, graph->operations) {
@@ -108,12 +110,14 @@ void deg_graph_transitive_reduction(Depsgraph *graph)
 			else if (rel->from->done & OP_REACHABLE) {
 				rel->unlink();
 				OBJECT_GUARDED_DELETE(rel, DepsRelation);
+				++num_removed_relations;
 			}
 			else {
 				++it_rel;
 			}
 		}
 	}
+	DEG_DEBUG_PRINTF("Removed %d relations\n", num_removed_relations);
 }
 
 }  // namespace DEG
