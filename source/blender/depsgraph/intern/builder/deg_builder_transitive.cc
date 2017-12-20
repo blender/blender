@@ -84,8 +84,7 @@ void deg_graph_transitive_reduction(Depsgraph *graph)
 		foreach (OperationDepsNode *node, graph->operations) {
 			node->done = 0;
 		}
-
-		/* mark nodes from which we can reach the target
+		/* Mark nodes from which we can reach the target
 		 * start with children, so the target node and direct children are not
 		 * flagged.
 		 */
@@ -93,24 +92,25 @@ void deg_graph_transitive_reduction(Depsgraph *graph)
 		foreach (DepsRelation *rel, target->inlinks) {
 			deg_graph_tag_paths_recursive(rel->from);
 		}
-
 		/* Remove redundant paths to the target. */
 		for (DepsNode::Relations::const_iterator it_rel = target->inlinks.begin();
 		     it_rel != target->inlinks.end();
 		     )
 		{
 			DepsRelation *rel = *it_rel;
-			/* Increment in advance, so we can safely remove the relation. */
-			++it_rel;
-
 			if (rel->from->type == DEG_NODE_TYPE_TIMESOURCE) {
 				/* HACK: time source nodes don't get "done" flag set/cleared. */
 				/* TODO: there will be other types in future, so iterators above
 				 * need modifying.
 				 */
+				++it_rel;
 			}
 			else if (rel->from->done & OP_REACHABLE) {
+				rel->unlink();
 				OBJECT_GUARDED_DELETE(rel, DepsRelation);
+			}
+			else {
+				++it_rel;
 			}
 		}
 	}
