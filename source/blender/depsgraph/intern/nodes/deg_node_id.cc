@@ -47,8 +47,6 @@ extern "C" {
 #include "DEG_depsgraph.h"
 
 #include "intern/eval/deg_eval_copy_on_write.h"
-#include "intern/nodes/deg_node_component.h"
-#include "intern/nodes/deg_node_operation.h"
 #include "intern/nodes/deg_node_time.h"
 #include "intern/depsgraph_intern.h"
 
