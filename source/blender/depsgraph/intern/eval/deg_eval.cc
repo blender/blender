@@ -55,9 +55,6 @@ extern "C" {
 #include "intern/depsgraph_intern.h"
 #include "util/deg_util_foreach.h"
 
-/* Unfinished and unused, and takes quite some pre-processing time. */
-#undef USE_EVAL_PRIORITY
-
 namespace DEG {
 
 /* ********************** */
@@ -160,33 +157,6 @@ static void calculate_pending_parents(Depsgraph *graph, unsigned int layers)
 	                        calculate_pending_func,
 	                        do_threads);
 }
-
-#ifdef USE_EVAL_PRIORITY
-static void calculate_eval_priority(OperationDepsNode *node)
-{
-	if (node->done) {
-		return;
-	}
-	node->done = 1;
-
-	if (node->flag & DEPSOP_FLAG_NEEDS_UPDATE) {
-		/* XXX standard cost of a node, could be estimated somewhat later on */
-		const float cost = 1.0f;
-		/* NOOP nodes have no cost */
-		node->eval_priority = node->is_noop() ? cost : 0.0f;
-
-		foreach (DepsRelation *rel, node->outlinks) {
-			OperationDepsNode *to = (OperationDepsNode *)rel->to;
-			BLI_assert(to->type == DEG_NODE_TYPE_OPERATION);
-			calculate_eval_priority(to);
-			node->eval_priority += to->eval_priority;
-		}
-	}
-	else {
-		node->eval_priority = 0.0f;
-	}
-}
-#endif
 
 /* Schedule a node if it needs evaluation.
  *   dec_parents: Decrement pending parents count, true when child nodes are
@@ -313,13 +283,6 @@ void deg_evaluate_on_refresh(EvaluationContext *eval_ctx,
 	foreach (OperationDepsNode *node, graph->operations) {
 		node->done = 0;
 	}
-
-	/* Calculate priority for operation nodes. */
-#ifdef USE_EVAL_PRIORITY
-	foreach (OperationDepsNode *node, graph->operations) {
-		calculate_eval_priority(node);
-	}
-#endif
 
 	schedule_graph(task_pool, graph, layers);
 
