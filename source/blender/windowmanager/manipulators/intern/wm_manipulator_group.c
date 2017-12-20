@@ -493,6 +493,9 @@ static int manipulator_tweak_invoke(bContext *C, wmOperator *op, const wmEvent *
 	wmManipulatorMap *mmap = ar->manipulator_map;
 	wmManipulator *mpr = mmap->mmap_context.highlight;
 
+	/* Needed for single click actions which don't enter modal state. */
+	WM_manipulatormap_tooltip_clear(C, mmap);
+
 	if (!mpr) {
 		/* wm_handlers_do_intern shouldn't let this happen */
 		BLI_assert(0);
