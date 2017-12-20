@@ -109,51 +109,6 @@ struct DepsNode {
 #define DEG_DEPSNODE_DEFINE(NodeType, type_, tname_) \
 	const DepsNode::TypeInfo NodeType::typeinfo = DepsNode::TypeInfo(type_, tname_)
 
-/* Generic Nodes ======================= */
-
-struct ComponentDepsNode;
-struct IDDepsNode;
-
-/* ID-Block Reference */
-struct IDDepsNode : public DepsNode {
-	struct ComponentIDKey {
-		ComponentIDKey(eDepsNode_Type type, const char *name = "");
-		bool operator==(const ComponentIDKey &other) const;
-
-		eDepsNode_Type type;
-		const char *name;
-	};
-
-	void init(const ID *id, const char *subdata);
-	~IDDepsNode();
-
-	ComponentDepsNode *find_component(eDepsNode_Type type,
-	                                  const char *name = "") const;
-	ComponentDepsNode *add_component(eDepsNode_Type type,
-	                                 const char *name = "");
-
-	void tag_update(Depsgraph *graph);
-
-	void finalize_build();
-
-	/* ID Block referenced. */
-	ID *id;
-
-	/* Hash to make it faster to look up components. */
-	GHash *components;
-
-	/* Layers of this node with accumulated layers of it's output relations. */
-	unsigned int layers;
-
-	/* Additional flags needed for scene evaluation.
-	 * TODO(sergey): Only needed for until really granular updates
-	 * of all the entities.
-	 */
-	int eval_flags;
-
-	DEG_DEPSNODE_DECLARE;
-};
-
 void deg_register_base_depsnodes();
 
 }  // namespace DEG

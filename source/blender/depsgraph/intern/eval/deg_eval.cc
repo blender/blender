@@ -50,6 +50,7 @@ extern "C" {
 #include "intern/eval/deg_eval_flush.h"
 #include "intern/nodes/deg_node.h"
 #include "intern/nodes/deg_node_component.h"
+#include "intern/nodes/deg_node_id.h"
 #include "intern/nodes/deg_node_operation.h"
 #include "intern/nodes/deg_node_time.h"
 #include "intern/depsgraph.h"
