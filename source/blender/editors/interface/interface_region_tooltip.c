@@ -321,8 +321,6 @@ static uiTooltipData *ui_tooltip_data_from_keymap(bContext *C, wmKeyMap *keymap)
 	/* create tooltip data */
 	uiTooltipData *data = MEM_callocN(sizeof(uiTooltipData), "uiTooltipData");
 
-	BLI_assert(data->fields_len < MAX_TOOLTIP_LINES);
-
 	for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
 		wmOperatorType *ot = WM_operatortype_find(kmi->idname, true);
 		if (ot != NULL) {
