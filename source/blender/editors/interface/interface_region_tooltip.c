@@ -781,7 +781,7 @@ static ARegion *ui_tooltip_create_with_data(
  * \{ */
 
 
-ARegion *ui_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *but)
+ARegion *UI_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *but)
 {
 	wmWindow *win = CTX_wm_window(C);
 	/* aspect values that shrink text are likely unreadable */
@@ -827,7 +827,7 @@ ARegion *ui_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *b
 	return ui_tooltip_create_with_data(C, data, init_position, aspect);
 }
 
-void ui_tooltip_free(bContext *C, ARegion *ar)
+void UI_tooltip_free(bContext *C, ARegion *ar)
 {
 	ui_region_temp_remove(C, CTX_wm_screen(C), ar);
 }

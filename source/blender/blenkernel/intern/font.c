@@ -635,11 +635,10 @@ struct TempLineInfo {
 	int   wspace_nr;  /* number of whitespaces of line */
 };
 
-bool BKE_vfont_to_curve_ex(Main *bmain, Object *ob, int mode, ListBase *r_nubase,
+bool BKE_vfont_to_curve_ex(Main *bmain, Object *ob, Curve *cu, int mode, ListBase *r_nubase,
                            const wchar_t **r_text, int *r_text_len, bool *r_text_free,
                            struct CharTrans **r_chartransdata)
 {
-	Curve *cu = ob->data;
 	EditFont *ef = cu->editfont;
 	EditFontSelBox *selboxes = NULL;
 	VFont *vfont, *oldvfont;
@@ -670,7 +669,7 @@ bool BKE_vfont_to_curve_ex(Main *bmain, Object *ob, int mode, ListBase *r_nubase
 	/* remark: do calculations including the trailing '\0' of a string
 	 * because the cursor can be at that location */
 
-	BLI_assert(ob->type == OB_FONT);
+	BLI_assert(ob == NULL || ob->type == OB_FONT);
 
 	/* Set font data */
 	vfont = cu->vfont;
@@ -708,7 +707,7 @@ bool BKE_vfont_to_curve_ex(Main *bmain, Object *ob, int mode, ListBase *r_nubase
 	if (cu->tb == NULL)
 		cu->tb = MEM_callocN(MAXTEXTBOX * sizeof(TextBox), "TextBox compat");
 
-	if (ef) {
+	if (ef != NULL && ob != NULL) {
 		if (ef->selboxes)
 			MEM_freeN(ef->selboxes);
 
@@ -1258,7 +1257,7 @@ makebreak:
 				cha = towupper(cha);
 			}
 
-			if (info->mat_nr > (ob->totcol)) {
+			if (ob == NULL || info->mat_nr > (ob->totcol)) {
 				/* printf("Error: Illegal material index (%d) in text object, setting to 0\n", info->mat_nr); */
 				info->mat_nr = 0;
 			}
@@ -1334,7 +1333,7 @@ bool BKE_vfont_to_curve_nubase(Main *bmain, Object *ob, int mode, ListBase *r_nu
 {
 	BLI_assert(ob->type == OB_FONT);
 
-	return BKE_vfont_to_curve_ex(bmain, ob, mode, r_nubase,
+	return BKE_vfont_to_curve_ex(bmain, ob, ob->data, mode, r_nubase,
 	                             NULL, NULL, NULL, NULL);
 }
 
@@ -1342,7 +1341,7 @@ bool BKE_vfont_to_curve(Main *bmain, Object *ob, int mode)
 {
 	Curve *cu = ob->data;
 
-	return BKE_vfont_to_curve_ex(bmain, ob, mode, &cu->nurb, NULL, NULL, NULL, NULL);
+	return BKE_vfont_to_curve_ex(bmain, ob, ob->data, mode, &cu->nurb, NULL, NULL, NULL, NULL);
 }
 
 

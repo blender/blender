@@ -4938,12 +4938,27 @@ void BKE_curve_nurb_vert_active_validate(Curve *cu)
 bool BKE_curve_minmax(Curve *cu, bool use_radius, float min[3], float max[3])
 {
 	ListBase *nurb_lb = BKE_curve_nurbs_get(cu);
-	Nurb *nu;
-
-	for (nu = nurb_lb->first; nu; nu = nu->next)
+	ListBase temp_nurb_lb = {NULL, NULL};
+	const bool is_font = (BLI_listbase_is_empty(nurb_lb)) && (cu->len != 0);
+	/* For font curves we generate temp list of splines.
+	 *
+	 * This is likely to be fine, this function is not supposed to be called
+	 * often, and it's the only way to get meaningful bounds for fonts.
+	 */
+	if (is_font) {
+		nurb_lb = &temp_nurb_lb;
+		BKE_vfont_to_curve_ex(G.main, NULL, cu, FO_EDIT, nurb_lb,
+		                      NULL, NULL, NULL, NULL);
+		use_radius = false;
+	}
+	/* Do bounding box based on splines. */
+	for (Nurb *nu = nurb_lb->first; nu; nu = nu->next) {
 		BKE_nurb_minmax(nu, use_radius, min, max);
-
-	return (BLI_listbase_is_empty(nurb_lb) == false);
+	}
+	const bool result = (BLI_listbase_is_empty(nurb_lb) == false);
+	/* Cleanup if needed. */
+	BKE_nurbList_free(&temp_nurb_lb);
+	return result;
 }
 
 bool BKE_curve_center_median(Curve *cu, float cent[3])

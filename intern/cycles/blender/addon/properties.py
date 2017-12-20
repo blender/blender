@@ -1365,24 +1365,19 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
     devices = bpy.props.CollectionProperty(type=CyclesDeviceSettings)
 
-    def get_devices(self):
-        import _cycles
-        # Layout of the device tuples: (Name, Type, Persistent ID)
-        device_list = _cycles.available_devices()
+    def find_existing_device_entry(self, device):
+        for device_entry in self.devices:
+            if device_entry.id == device[2] and device_entry.type == device[1]:
+                return device_entry
+        return None
 
-        cuda_devices = []
-        opencl_devices = []
-        cpu_devices = []
+
+    def update_device_entries(self, device_list):
         for device in device_list:
             if not device[1] in {'CUDA', 'OPENCL', 'CPU'}:
                 continue
-
-            entry = None
             # Try to find existing Device entry
-            for dev in self.devices:
-                if dev.id == device[2] and dev.type == device[1]:
-                    entry = dev
-                    break
+            entry = self.find_existing_device_entry(device)
             if not entry:
                 # Create new entry if no existing one was found
                 entry = self.devices.add()
@@ -1394,17 +1389,30 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 # Update name in case it changed
                 entry.name = device[0]
 
-            # Sort entries into lists
+
+    def get_devices(self):
+        import _cycles
+        # Layout of the device tuples: (Name, Type, Persistent ID)
+        device_list = _cycles.available_devices()
+        # Make sure device entries are up to date and not referenced before
+        # we know we don't add new devices. This way we guarantee to not
+        # hold pointers to a resized array.
+        self.update_device_entries(device_list)
+        # Sort entries into lists
+        cuda_devices = []
+        opencl_devices = []
+        cpu_devices = []
+        for device in device_list:
+            entry = self.find_existing_device_entry(device)
             if entry.type == 'CUDA':
                 cuda_devices.append(entry)
             elif entry.type == 'OPENCL':
                 opencl_devices.append(entry)
-            else:
+            elif entry.type == 'CPU':
                 cpu_devices.append(entry)
-
+        # Extend all GPU devices with CPU.
         cuda_devices.extend(cpu_devices)
         opencl_devices.extend(cpu_devices)
-
         return cuda_devices, opencl_devices
 
 
