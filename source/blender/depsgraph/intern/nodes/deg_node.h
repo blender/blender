@@ -91,17 +91,7 @@ struct DepsNode {
 	virtual OperationDepsNode *get_entry_operation() { return NULL; }
 	virtual OperationDepsNode *get_exit_operation() { return NULL; }
 
-	virtual eDepsNode_Class get_class() const {
-		if (type == DEG_NODE_TYPE_OPERATION) {
-			return DEG_NODE_CLASS_OPERATION;
-		}
-		else if (type < DEG_NODE_TYPE_PARAMETERS) {
-			return DEG_NODE_CLASS_GENERIC;
-		}
-		else {
-			return DEG_NODE_CLASS_COMPONENT;
-		}
-	}
+	virtual eDepsNode_Class get_class() const;
 };
 
 /* Macros for common static typeinfo. */
