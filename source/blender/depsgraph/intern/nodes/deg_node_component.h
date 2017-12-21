@@ -124,19 +124,6 @@ struct ComponentDepsNode : public DepsNode {
 
 	void tag_update(Depsgraph *graph);
 
-	/* Evaluation Context Management .................. */
-
-	/* Initialize component's evaluation context used for the specified
-	 * purpose.
-	 */
-	virtual bool eval_context_init(EvaluationContext * /*eval_ctx*/) { return false; }
-	/* Free data in component's evaluation context which is used for
-	 * the specified purpose
-	 *
-	 * NOTE: this does not free the actual context in question
-	 */
-	virtual void eval_context_free(EvaluationContext * /*eval_ctx*/) {}
-
 	OperationDepsNode *get_entry_operation();
 	OperationDepsNode *get_exit_operation();
 
