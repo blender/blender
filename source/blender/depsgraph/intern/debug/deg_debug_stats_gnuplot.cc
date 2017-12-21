@@ -110,7 +110,7 @@ void write_stats_data(const DebugContext& ctx)
 	deg_debug_fprintf(ctx, "$data << EOD" NL);
 	foreach (const StatsEntry& entry, stats) {
 		deg_debug_fprintf(ctx, "\"%s\",%f" NL,
-		                  id_node->id_orig->name + 2,
+		                  entry.id_node->id_orig->name + 2,
 		                  entry.time);
 	}
 	deg_debug_fprintf(ctx, "EOD" NL);
