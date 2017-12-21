@@ -1372,8 +1372,8 @@ public:
 
 		void *args[] = {&task->render_buffer.samples,
 		                &task->tiles_mem.device_pointer,
-				        &mean_offset,
-				        &variance_offset,
+		                &mean_offset,
+		                &variance_offset,
 		                &mean_ptr,
 		                &variance_ptr,
 		                &task->rect,

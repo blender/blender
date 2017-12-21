@@ -52,9 +52,6 @@ extern "C" {
 
 #include "intern/depsgraph.h"
 
-/* Unfinished and unused, and takes quite some pre-processing time. */
-#undef USE_EVAL_PRIORITY
-
 /* ****************** */
 /* Evaluation Context */
 
