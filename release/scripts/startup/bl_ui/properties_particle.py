@@ -926,7 +926,6 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(part, "use_render_emitter")
         col.prop(part, "use_parent_particles")
 
         col = split.column()

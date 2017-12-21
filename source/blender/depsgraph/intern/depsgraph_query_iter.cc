@@ -84,6 +84,7 @@ static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 		Object *dupli_parent = data->dupli_parent;
 		Object *temp_dupli_object = &data->temp_dupli_object;
 		*temp_dupli_object = *dob->ob;
+		temp_dupli_object->transflag &= ~OB_DUPLI;
 		temp_dupli_object->select_color = dupli_parent->select_color;
 		temp_dupli_object->base_flag = dupli_parent->base_flag | BASE_FROMDUPLI;
 
@@ -139,7 +140,7 @@ static void DEG_iterator_objects_step(BLI_Iterator *iter, DEG::IDDepsNode *id_no
 	Object *object = (Object *)id_node->id_cow;
 	BLI_assert(DEG::deg_validate_copy_on_write_datablock(&object->id));
 
-	if ((BKE_object_is_visible(object) == false) &&
+	if ((BKE_object_is_visible(object, OB_VISIBILITY_CHECK_UNKNOWN_RENDER_MODE) == false) &&
 	    ((data->flag & DEG_ITER_OBJECT_FLAG_VISIBLE) != 0))
 	{
 		return;
@@ -149,6 +150,14 @@ static void DEG_iterator_objects_step(BLI_Iterator *iter, DEG::IDDepsNode *id_no
 		data->dupli_parent = object;
 		data->dupli_list = object_duplilist(&data->eval_ctx, data->scene, object);
 		data->dupli_object_next = (DupliObject *)data->dupli_list->first;
+
+		const eObjectVisibilityCheck mode = (data->mode == DEG_ITER_OBJECT_MODE_RENDER) ?
+		                                     OB_VISIBILITY_CHECK_FOR_RENDER :
+		                                     OB_VISIBILITY_CHECK_FOR_VIEWPORT;
+
+		if (BKE_object_is_visible(object, mode) == false) {
+			return;
+		}
 	}
 
 	iter->current = object;
@@ -167,7 +176,10 @@ void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGObjectIterData *data)
 	}
 
 	/* TODO(sergey): What evaluation type we want here? */
-	DEG_evaluation_context_init(&data->eval_ctx, DAG_EVAL_RENDER);
+	/* TODO(dfelinto): Get rid of evaluation context here, it's only used to do
+	 * direct dupli-objects update in group.c. Which is terribly bad, and all
+	 * objects are expected to be evaluated already. */
+	DEG_evaluation_context_init(&data->eval_ctx, DAG_EVAL_VIEWPORT);
 	data->eval_ctx.view_layer = DEG_get_evaluated_view_layer(depsgraph);
 
 	iter->data = data;
@@ -193,6 +205,7 @@ void DEG_iterator_objects_next(BLI_Iterator *iter)
 	Depsgraph *depsgraph = data->graph;
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(depsgraph);
 	do {
+		iter->skip = false;
 		if (data->dupli_list) {
 			if (deg_objects_dupli_iterator_next(iter)) {
 				return;

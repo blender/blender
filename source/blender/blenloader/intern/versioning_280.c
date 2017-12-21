@@ -45,6 +45,7 @@
 #include "DNA_lightprobe_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
@@ -852,6 +853,30 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		for (Group *group = main->group.first; group; group = group->id.next) {
 			if (group->view_layer != NULL){
 				do_version_view_layer_visibility(group->view_layer);
+			}
+		}
+	}
+
+	{
+		if (!DNA_struct_elem_find(fd->filesdna, "Object", "char", "duplicator_visibility_flag")) {
+			for (Object *object = main->object.first; object; object = object->id.next) {
+				if (object->particlesystem.first) {
+					bool show_emitter = false;
+					for (ParticleSystem *psys = object->particlesystem.first; psys; psys=psys->next) {
+						show_emitter |= (psys->part->draw & PART_DRAW_EMITTER) != 0;
+					}
+
+					object->duplicator_visibility_flag = OB_DUPLI_FLAG_VIEWPORT;
+					if (show_emitter) {
+						object->duplicator_visibility_flag |= OB_DUPLI_FLAG_RENDER;
+					}
+				}
+				else if (object->transflag & OB_DUPLI){
+					object->duplicator_visibility_flag = OB_DUPLI_FLAG_VIEWPORT;
+				}
+				else {
+					object->duplicator_visibility_flag = OB_DUPLI_FLAG_VIEWPORT | OB_DUPLI_FLAG_RENDER;
+				}
 			}
 		}
 	}

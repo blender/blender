@@ -4668,9 +4668,8 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 	/* the emitter has to be processed first (render levels of modifiers) */
 	/* so here we only check if the emitter should be rendered */
 	if (ob->particlesystem.first) {
-		show_emitter= 0;
+		show_emitter = (ob->duplicator_visibility_flag & OB_DUPLI_FLAG_RENDER) != 0;
 		for (psys=ob->particlesystem.first; psys; psys=psys->next) {
-			show_emitter += psys->part->draw & PART_DRAW_EMITTER;
 			if (!(re->r.scemode & R_VIEWPORT_PREVIEW)) {
 				psys_has_renderdata |= (psys->renderdata != NULL);
 				psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy, timeoffset);

@@ -3279,7 +3279,7 @@ static void default_particle_settings(ParticleSettings *part)
 	part->clength = 1.0f;
 	part->clength_thres = 0.0f;
 
-	part->draw = PART_DRAW_EMITTER;
+	part->draw = 0;
 	part->draw_line[0] = 0.5;
 	part->path_start = 0.0f;
 	part->path_end = 1.0f;

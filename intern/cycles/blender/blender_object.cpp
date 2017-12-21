@@ -469,6 +469,7 @@ static bool object_render_hide(BL::Object& b_ob,
 	BL::Object::particle_systems_iterator b_psys;
 
 	bool hair_present = false;
+	bool has_particles = false;
 	bool show_emitter = false;
 	bool hide_emitter = false;
 	bool hide_as_dupli_parent = false;
@@ -478,20 +479,17 @@ static bool object_render_hide(BL::Object& b_ob,
 		if((b_psys->settings().render_type() == BL::ParticleSettings::render_type_PATH) &&
 		   (b_psys->settings().type()==BL::ParticleSettings::type_HAIR))
 			hair_present = true;
-
-		if(b_psys->settings().use_render_emitter())
-			show_emitter = true;
-		else
-			hide_emitter = true;
+		has_particles = true;
 	}
 
-	if(show_emitter)
-		hide_emitter = false;
-
-	/* duplicators hidden by default, except dupliframes which duplicate self */
-	if(b_ob.is_duplicator())
-		if(top_level || b_ob.dupli_type() != BL::Object::dupli_type_FRAMES)
+	if(has_particles) {
+		show_emitter = b_ob.show_duplicator_for_render();
+		hide_emitter = !show_emitter;
+	} else if(b_ob.is_duplicator()) {
+		if(top_level || b_ob.show_duplicator_for_render()) {
 			hide_as_dupli_parent = true;
+		}
+	}
 
 	/* hide original object for duplis */
 	BL::Object parent = b_ob.parent();

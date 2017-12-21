@@ -552,11 +552,32 @@ bool BKE_object_is_in_wpaint_select_vert(Object *ob)
 
 /**
  * Return if the object is visible, as evaluated by depsgraph
- * Keep in sync with rna_object.c (object.is_visible).
  */
-bool BKE_object_is_visible(Object *ob)
+bool BKE_object_is_visible(Object *ob, const eObjectVisibilityCheck mode)
 {
-	return (ob->base_flag & BASE_VISIBLED) != 0;
+	if ((ob->base_flag & BASE_VISIBLED) == 0) {
+		return false;
+	}
+
+	if (mode == OB_VISIBILITY_CHECK_UNKNOWN_RENDER_MODE) {
+		return true;
+	}
+
+	if (((ob->transflag & OB_DUPLI) == 0) &&
+	    (ob->particlesystem.first == NULL))
+	{
+		return true;
+	}
+
+	switch (mode) {
+		case OB_VISIBILITY_CHECK_FOR_VIEWPORT:
+			return ((ob->duplicator_visibility_flag & OB_DUPLI_FLAG_VIEWPORT) != 0);
+		case OB_VISIBILITY_CHECK_FOR_RENDER:
+			return ((ob->duplicator_visibility_flag & OB_DUPLI_FLAG_RENDER) != 0);
+		default:
+			BLI_assert(!"Object visible test mode not supported.");
+			return false;
+	}
 }
 
 bool BKE_object_exists_check(Object *obtest)
@@ -684,6 +705,7 @@ void BKE_object_init(Object *ob)
 	ob->col_group = 0x01;
 	ob->col_mask = 0xffff;
 	ob->preview = NULL;
+	ob->duplicator_visibility_flag = OB_DUPLI_FLAG_VIEWPORT | OB_DUPLI_FLAG_RENDER;
 
 	/* NT fluid sim defaults */
 	ob->fluidsimSettings = NULL;

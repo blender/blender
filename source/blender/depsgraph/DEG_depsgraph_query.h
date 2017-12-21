@@ -77,12 +77,18 @@ enum {
 	DEG_ITER_OBJECT_FLAG_DUPLI             = (1 << 4),
 };
 
+typedef enum eDepsObjectIteratorMode {
+	DEG_ITER_OBJECT_MODE_VIEWPORT = 0,
+	DEG_ITER_OBJECT_MODE_RENDER   = 1,
+} eDepsObjectIteratorMode;
+
 typedef struct DEGObjectIterData {
 	struct Depsgraph *graph;
 	struct Scene *scene;
 	struct EvaluationContext eval_ctx;
 
 	int flag;
+	eDepsObjectIteratorMode mode;
 
 	/* **** Iteration over dupli-list. *** */
 
@@ -115,10 +121,11 @@ void DEG_iterator_objects_end(struct BLI_Iterator *iter);
  * Although they are available they have no overrides (collection_properties)
  * and will crash if you try to access it.
  */
-#define DEG_OBJECT_ITER(graph_, instance_, flag_)                                 \
+#define DEG_OBJECT_ITER(graph_, instance_, mode_, flag_)                          \
 	{                                                                             \
 		DEGObjectIterData data_ = {                                               \
 			.graph = (graph_),                                                    \
+			.mode = (mode_),                                                      \
 			.flag = (flag_),                                                      \
 		};                                                                        \
                                                                                   \
@@ -134,8 +141,8 @@ void DEG_iterator_objects_end(struct BLI_Iterator *iter);
 /**
   * Depsgraph objects iterator for draw manager and final render
   */
-#define DEG_OBJECT_ITER_FOR_RENDER_ENGINE(graph_, instance_) \
-	DEG_OBJECT_ITER(graph_, instance_,                       \
+#define DEG_OBJECT_ITER_FOR_RENDER_ENGINE(graph_, instance_, mode_) \
+	DEG_OBJECT_ITER(graph_, instance_, mode_,                \
 	        DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY  |          \
 	        DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |            \
 	        DEG_ITER_OBJECT_FLAG_VISIBLE |                   \

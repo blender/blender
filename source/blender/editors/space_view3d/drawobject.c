@@ -9217,7 +9217,10 @@ afterdraw:
 
 		/* help lines and so */
 		if (ob != scene->obedit && ob->parent) {
-			if (BKE_object_is_visible(ob->parent)) {
+			const eObjectVisibilityCheck mode = eval_ctx->mode != DAG_EVAL_VIEWPORT ?
+			                                                 OB_VISIBILITY_CHECK_FOR_RENDER :
+			                                                 OB_VISIBILITY_CHECK_FOR_VIEWPORT;
+			if (BKE_object_is_visible(ob->parent, mode)) {
 				setlinestyle(3);
 				immBegin(GWN_PRIM_LINES, 2);
 				immVertex3fv(pos, ob->obmat[3]);

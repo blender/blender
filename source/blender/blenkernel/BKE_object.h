@@ -82,7 +82,14 @@ bool BKE_object_exists_check(struct Object *obtest);
 bool BKE_object_is_in_editmode(struct Object *ob);
 bool BKE_object_is_in_editmode_vgroup(struct Object *ob);
 bool BKE_object_is_in_wpaint_select_vert(struct Object *ob);
-bool BKE_object_is_visible(struct Object *ob);
+
+typedef enum eObjectVisibilityCheck {
+	OB_VISIBILITY_CHECK_FOR_VIEWPORT,
+	OB_VISIBILITY_CHECK_FOR_RENDER,
+	OB_VISIBILITY_CHECK_UNKNOWN_RENDER_MODE,
+} eObjectVisibilityCheck;
+
+bool BKE_object_is_visible(struct Object *ob, const eObjectVisibilityCheck mode);
 
 void BKE_object_init(struct Object *ob);
 struct Object *BKE_object_add_only_object(

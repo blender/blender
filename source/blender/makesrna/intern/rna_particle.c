@@ -2292,11 +2292,6 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Size", "Show particle size");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop = RNA_def_property(srna, "use_render_emitter", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_EMITTER);
-	RNA_def_property_ui_text(prop, "Emitter", "Render emitter Object also");
-	RNA_def_property_update(prop, 0, "rna_Particle_redo");
-
 	prop = RNA_def_property(srna, "show_health", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_HEALTH);
 	RNA_def_property_ui_text(prop, "Health", "Draw boid health");
