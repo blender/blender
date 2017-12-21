@@ -74,7 +74,6 @@ struct DepsNode {
 	virtual ~DepsNode();
 
 	virtual string identifier() const;
-	string full_identifier() const;
 
 	virtual void init(const ID * /*id*/,
 	                  const char * /*subdata*/) {}
