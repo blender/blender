@@ -63,25 +63,17 @@ struct DepsNode {
 	 */
 	typedef vector<DepsRelation *> Relations;
 
-	/* Identifier - mainly for debugging purposes. */
-	const char *name;
-	/* Structural type of node. */
-	eDepsNode_Type type;
-	/* Nodes which this one depends on. */
-	Relations inlinks;
-	/* Nodes which depend on this one. */
-	Relations outlinks;
-
-	/* Generic tags for traversal algorithms. */
-	int done;
-	int tag;
+	const char *name;     /* Identifier - mainly for debugging purposes. */
+	eDepsNode_Type type;  /* Structural type of node. */
+	Relations inlinks;    /* Nodes which this one depends on. */
+	Relations outlinks;   /* Nodes which depend on this one. */
+	int done;    /* Generic tags for traversal algorithms. */
 
 	/* Methods. */
 	DepsNode();
 	virtual ~DepsNode();
 
 	virtual string identifier() const;
-	string full_identifier() const;
 
 	virtual void init(const ID * /*id*/,
 	                  const char * /*subdata*/) {}
@@ -91,17 +83,7 @@ struct DepsNode {
 	virtual OperationDepsNode *get_entry_operation() { return NULL; }
 	virtual OperationDepsNode *get_exit_operation() { return NULL; }
 
-	virtual eDepsNode_Class get_class() const {
-		if (type == DEG_NODE_TYPE_OPERATION) {
-			return DEG_NODE_CLASS_OPERATION;
-		}
-		else if (type < DEG_NODE_TYPE_PARAMETERS) {
-			return DEG_NODE_CLASS_GENERIC;
-		}
-		else {
-			return DEG_NODE_CLASS_COMPONENT;
-		}
-	}
+	virtual eDepsNode_Class get_class() const;
 };
 
 /* Macros for common static typeinfo. */

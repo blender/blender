@@ -46,17 +46,38 @@
 
 namespace DEG {
 
+typedef enum eCyclicCheckVisitedState {
+	/* Not is not visited at all during traversal. */
+	NODE_NOT_VISITED = 0,
+	/* Node has been visited during traversal and not in current stack. */
+	NODE_VISITED = 1,
+	/* Node has been visited during traversal and is in current stack. */
+	NODE_IN_STACK = 2,
+} eCyclicCheckVisitedState;
+
+BLI_INLINE void set_node_visited_state(DepsNode *node,
+                                       eCyclicCheckVisitedState state)
+{
+	node->done = (node->done & ~0x3) | (int)state;
+}
+
+BLI_INLINE eCyclicCheckVisitedState get_node_visited_state(DepsNode *node)
+{
+	return (eCyclicCheckVisitedState)(node->done & 0x3);
+}
+
+BLI_INLINE void set_node_num_visited_children(DepsNode *node, int num_children)
+{
+	node->done = (node->done & 0x3) | (num_children << 2);
+}
+
+BLI_INLINE int get_node_num_visited_children(DepsNode *node)
+{
+	return node->done >> 2;
+}
+
 void deg_graph_detect_cycles(Depsgraph *graph)
 {
-	enum {
-		/* Not is not visited at all during traversal. */
-		NODE_NOT_VISITED = 0,
-		/* Node has been visited during traversal and not in current stack. */
-		NODE_VISITED = 1,
-		/* Node has been visited during traversal and is in current stack. */
-		NODE_IN_STACK = 2,
-	};
-
 	struct StackEntry {
 		OperationDepsNode *node;
 		StackEntry *from;
@@ -73,16 +94,17 @@ void deg_graph_detect_cycles(Depsgraph *graph)
 				has_inlinks = true;
 			}
 		}
+		node->done = 0;
 		if (has_inlinks == false) {
 			StackEntry entry;
 			entry.node = node;
 			entry.from = NULL;
 			entry.via_relation = NULL;
 			BLI_stack_push(traversal_stack, &entry);
-			node->tag = NODE_IN_STACK;
+			set_node_visited_state(node, NODE_IN_STACK);
 		}
 		else {
-			node->tag = NODE_NOT_VISITED;
+			set_node_visited_state(node, NODE_NOT_VISITED);
 		}
 		node->done = 0;
 	}
@@ -91,11 +113,13 @@ void deg_graph_detect_cycles(Depsgraph *graph)
 		StackEntry *entry = (StackEntry *)BLI_stack_peek(traversal_stack);
 		OperationDepsNode *node = entry->node;
 		bool all_child_traversed = true;
-		for (int i = node->done; i < node->outlinks.size(); ++i) {
+		const int num_visited = get_node_num_visited_children(node);
+		for (int i = num_visited; i < node->outlinks.size(); ++i) {
 			DepsRelation *rel = node->outlinks[i];
 			if (rel->to->type == DEG_NODE_TYPE_OPERATION) {
 				OperationDepsNode *to = (OperationDepsNode *)rel->to;
-				if (to->tag == NODE_IN_STACK) {
+				eCyclicCheckVisitedState state = get_node_visited_state(node);
+				if (state == NODE_IN_STACK) {
 					printf("Dependency cycle detected:\n");
 					printf("  '%s' depends on '%s' through '%s'\n",
 					       to->full_identifier().c_str(),
@@ -114,21 +138,21 @@ void deg_graph_detect_cycles(Depsgraph *graph)
 					/* TODO(sergey): So called russian roulette cycle solver. */
 					rel->flag |= DEPSREL_FLAG_CYCLIC;
 				}
-				else if (to->tag == NODE_NOT_VISITED) {
+				else if (state == NODE_NOT_VISITED) {
 					StackEntry new_entry;
 					new_entry.node = to;
 					new_entry.from = entry;
 					new_entry.via_relation = rel;
 					BLI_stack_push(traversal_stack, &new_entry);
-					to->tag = NODE_IN_STACK;
+					set_node_visited_state(node, NODE_IN_STACK);
 					all_child_traversed = false;
-					node->done = i;
+					set_node_num_visited_children(node, i);
 					break;
 				}
 			}
 		}
 		if (all_child_traversed) {
-			node->tag = NODE_VISITED;
+			set_node_visited_state(node, NODE_VISITED);
 			BLI_stack_discard(traversal_stack);
 		}
 	}

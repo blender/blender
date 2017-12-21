@@ -87,6 +87,18 @@ string DepsNode::identifier() const
 	return string(typebuf) + " : " + name;
 }
 
+eDepsNode_Class DepsNode::get_class() const {
+	if (type == DEG_NODE_TYPE_OPERATION) {
+		return DEG_NODE_CLASS_OPERATION;
+	}
+	else if (type < DEG_NODE_TYPE_PARAMETERS) {
+		return DEG_NODE_CLASS_GENERIC;
+	}
+	else {
+		return DEG_NODE_CLASS_COMPONENT;
+	}
+}
+
 /* Generic Nodes */
 
 DEG_DEPSNODE_DEFINE(TimeSourceDepsNode, DEG_NODE_TYPE_TIMESOURCE, "Time Source");
