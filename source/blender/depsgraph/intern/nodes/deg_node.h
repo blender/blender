@@ -63,18 +63,11 @@ struct DepsNode {
 	 */
 	typedef vector<DepsRelation *> Relations;
 
-	/* Identifier - mainly for debugging purposes. */
-	const char *name;
-	/* Structural type of node. */
-	eDepsNode_Type type;
-	/* Nodes which this one depends on. */
-	Relations inlinks;
-	/* Nodes which depend on this one. */
-	Relations outlinks;
-
-	/* Generic tags for traversal algorithms. */
-	int done;
-	int tag;
+	const char *name;     /* Identifier - mainly for debugging purposes. */
+	eDepsNode_Type type;  /* Structural type of node. */
+	Relations inlinks;    /* Nodes which this one depends on. */
+	Relations outlinks;   /* Nodes which depend on this one. */
+	int done;    /* Generic tags for traversal algorithms. */
 
 	/* Methods. */
 	DepsNode();
