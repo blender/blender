@@ -51,7 +51,7 @@ set(SRC
 	intern/builder/deg_builder_relations_rig.cc
 	intern/builder/deg_builder_relations_scene.cc
 	intern/builder/deg_builder_transitive.cc
-	intern/debug/deg_debug_graphviz.cc
+	intern/debug/deg_debug_relations_graphviz.cc
 	intern/eval/deg_eval.cc
 	intern/eval/deg_eval_flush.cc
 	intern/nodes/deg_node.cc

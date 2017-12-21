@@ -24,7 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/intern/debug/deg_debug_graphviz.cc
+/** \file blender/depsgraph/intern/debug/deg_debug_relations_graphviz.cc
  *  \ingroup depsgraph
  *
  * Implementation of tools for debugging the depsgraph
@@ -518,7 +518,9 @@ static void deg_debug_graphviz_graph_relations(const DebugContext &ctx,
 
 }  // namespace DEG
 
-void DEG_debug_graphviz(const Depsgraph *graph, FILE *f, const char *label)
+void DEG_debug_relations_graphviz(const Depsgraph *graph,
+                                  FILE *f,
+                                  const char *label)
 {
 	if (!graph) {
 		return;

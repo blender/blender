@@ -51,7 +51,9 @@ void DEG_stats_simple(const struct Depsgraph *graph,
 /* ************************************************ */
 /* Diagram-Based Graph Debugging */
 
-void DEG_debug_graphviz(const struct Depsgraph *graph, FILE *stream, const char *label);
+void DEG_debug_relations_graphviz(const struct Depsgraph *graph,
+                                  FILE *stream,
+                                  const char *label);
 
 /* ************************************************ */
 
