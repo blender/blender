@@ -139,7 +139,6 @@ static int deg_debug_node_color_index(const DepsNode *node)
 struct DebugContext {
 	FILE *file;
 	bool show_tags;
-	bool show_eval_priority;
 };
 
 static void deg_debug_fprintf(const DebugContext &ctx, const char *fmt, ...) ATTR_PRINTF_FORMAT(2, 3);
@@ -286,28 +285,17 @@ static void deg_debug_graphviz_node_single(const DebugContext &ctx,
 {
 	const char *shape = "box";
 	string name = node->identifier();
-	float priority = -1.0f;
 	if (node->type == DEG_NODE_TYPE_ID_REF) {
 		IDDepsNode *id_node = (IDDepsNode *)node;
 		char buf[256];
 		BLI_snprintf(buf, sizeof(buf), " (Layers: %u)", id_node->layers);
 		name += buf;
 	}
-	if (ctx.show_eval_priority && node->get_class() == DEG_NODE_CLASS_OPERATION) {
-		priority = ((OperationDepsNode *)node)->eval_priority;
-	}
 	deg_debug_fprintf(ctx, "// %s\n", name.c_str());
 	deg_debug_fprintf(ctx, "\"node_%p\"", node);
 	deg_debug_fprintf(ctx, "[");
 //	deg_debug_fprintf(ctx, "label=<<B>%s</B>>", name);
-	if (priority >= 0.0f) {
-		deg_debug_fprintf(ctx, "label=<%s<BR/>(<I>%.2f</I>)>",
-		                 name.c_str(),
-		                 priority);
-	}
-	else {
-		deg_debug_fprintf(ctx, "label=<%s>", name.c_str());
-	}
+	deg_debug_fprintf(ctx, "label=<%s>", name.c_str());
 	deg_debug_fprintf(ctx, ",fontname=\"%s\"", deg_debug_graphviz_fontname);
 	deg_debug_fprintf(ctx, ",fontsize=%f", deg_debug_graphviz_node_label_size);
 	deg_debug_fprintf(ctx, ",shape=%s", shape);
@@ -530,7 +518,7 @@ static void deg_debug_graphviz_graph_relations(const DebugContext &ctx,
 
 }  // namespace DEG
 
-void DEG_debug_graphviz(const Depsgraph *graph, FILE *f, const char *label, bool show_eval)
+void DEG_debug_graphviz(const Depsgraph *graph, FILE *f, const char *label)
 {
 	if (!graph) {
 		return;
@@ -540,8 +528,6 @@ void DEG_debug_graphviz(const Depsgraph *graph, FILE *f, const char *label, bool
 
 	DEG::DebugContext ctx;
 	ctx.file = f;
-	ctx.show_tags = show_eval;
-	ctx.show_eval_priority = show_eval;
 
 	DEG::deg_debug_fprintf(ctx, "digraph depgraph {" NL);
 	DEG::deg_debug_fprintf(ctx, "rankdir=LR;" NL);

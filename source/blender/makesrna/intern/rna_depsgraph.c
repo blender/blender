@@ -51,7 +51,7 @@ static void rna_Depsgraph_debug_graphviz(Depsgraph *graph, const char *filename)
 	if (f == NULL) {
 		return;
 	}
-	DEG_debug_graphviz(graph, f, "Depsgraph", false);
+	DEG_debug_graphviz(graph, f, "Depsgraph");
 	fclose(f);
 }
 

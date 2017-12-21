@@ -3704,7 +3704,7 @@ void DAG_print_dependencies(Main *UNUSED(bmain),
                             Scene *scene,
                             Object *UNUSED(ob))
 {
-	DEG_debug_graphviz(scene->depsgraph, stdout, "Depsgraph", false);
+	DEG_debug_graphviz(scene->depsgraph, stdout, "Depsgraph");
 }
 
 #endif
