@@ -76,7 +76,6 @@ struct OperationDepsNode : public DepsNode {
 
 	/* How many inlinks are we still waiting on before we can be evaluated. */
 	uint32_t num_links_pending;
-	float eval_priority;
 	bool scheduled;
 
 	/* Identifier for the operation being performed. */

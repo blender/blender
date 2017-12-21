@@ -45,7 +45,6 @@ namespace DEG {
 /* Inner Nodes */
 
 OperationDepsNode::OperationDepsNode() :
-    eval_priority(0.0f),
     flag(0),
     customdata_mask(0)
 {

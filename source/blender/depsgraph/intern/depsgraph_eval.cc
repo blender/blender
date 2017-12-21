@@ -57,9 +57,6 @@ extern "C" {
 static bool use_legacy_depsgraph = true;
 #endif
 
-/* Unfinished and unused, and takes quite some pre-processing time. */
-#undef USE_EVAL_PRIORITY
-
 bool DEG_depsgraph_use_legacy(void)
 {
 #ifdef DISABLE_NEW_DEPSGRAPH
