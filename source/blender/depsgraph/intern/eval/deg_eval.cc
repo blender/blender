@@ -80,32 +80,14 @@ static void deg_task_run_func(TaskPool *pool,
                               void *taskdata,
                               int thread_id)
 {
-	DepsgraphEvalState *state =
-	        reinterpret_cast<DepsgraphEvalState *>(BLI_task_pool_userdata(pool));
-	OperationDepsNode *node = reinterpret_cast<OperationDepsNode *>(taskdata);
-
+	void *userdata_v = BLI_task_pool_userdata(pool);
+	DepsgraphEvalState *state = (DepsgraphEvalState *)userdata_v;
+	OperationDepsNode *node = (OperationDepsNode *)taskdata;
+	/* Sanity checks. */
 	BLI_assert(!node->is_noop() && "NOOP nodes should not actually be scheduled");
-
-	/* Should only be the case for NOOPs, which never get to this point. */
-	BLI_assert(node->evaluate);
-
-	/* Get context. */
-	/* TODO: Who initialises this? "Init" operations aren't able to
-	 * initialise it!!!
-	 */
-	/* TODO(sergey): We don't use component contexts at this moment. */
-	/* ComponentDepsNode *comp = node->owner; */
-	BLI_assert(node->owner != NULL);
-
-	/* Since we're not leaving the thread for until the graph branches it is
-	 * possible to have NO-OP on the way. for which evaluate() will be NULL.
-	 * but that's all fine, we'll just scheduler it's children.
-	 */
-	if (node->evaluate) {
-		/* Perform operation. */
-		node->evaluate(state->eval_ctx);
-	}
-
+	/* Perform operation. */
+	node->evaluate(state->eval_ctx);
+	/* Schedule children. */
 	BLI_task_pool_delayed_push_begin(pool, thread_id);
 	schedule_children(pool, state->graph, node, state->layers, thread_id);
 	BLI_task_pool_delayed_push_end(pool, thread_id);
