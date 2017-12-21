@@ -30,9 +30,11 @@
 
 #include "DEG_depsgraph_debug.h"
 
-#include <stdarg.h>
+#include <algorithm>
+#include <cstdarg>
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_math_base.h"
 
 #include "intern/depsgraph.h"
 #include "intern/nodes/deg_node_id.h"
@@ -55,6 +57,11 @@ struct DebugContext {
 	const char *output_filename;
 };
 
+struct StatsEntry {
+	const IDDepsNode *id_node;
+	double time;
+};
+
 /* TODO(sergey): De-duplicate with graphviz relation debugger. */
 static void deg_debug_fprintf(const DebugContext &ctx,
                               const char *fmt,
@@ -67,20 +74,44 @@ static void deg_debug_fprintf(const DebugContext &ctx, const char *fmt, ...)
 	va_end(args);
 }
 
+BLI_INLINE double get_node_time(const DebugContext& /*ctx*/,
+                                const DepsNode *node)
+{
+	// TODO(sergey): Figure out a nice way to define which exact time
+	// we want to show.
+	return node->stats.current_time;
+}
+
+bool stat_entry_comparator(const StatsEntry& a, const StatsEntry& b)
+{
+	return a.time < b.time;
+}
+
 void write_stats_data(const DebugContext& ctx)
 {
-	deg_debug_fprintf(ctx, "$data << EOD" NL);
-	// TODO(sergey): Sort nodes by time.
+	// Fill in array of all stats which are to be displayed.
+	vector<StatsEntry> stats;
+	stats.reserve(ctx.graph->id_nodes.size());
 	foreach (const IDDepsNode *id_node, ctx.graph->id_nodes) {
-		// TODO(sergey): Figure out a nice way to define which exact time
-		// we want to show.
-		const double time = id_node->stats.current_time;
+		const double time = get_node_time(ctx, id_node);
 		if (time == 0.0) {
 			continue;
 		}
+		StatsEntry entry;
+		entry.id_node = id_node;
+		entry.time = time;
+		stats.push_back(entry);
+	}
+	// Sort the data.
+	std::sort(stats.begin(), stats.end(), stat_entry_comparator);
+	// We limit number of entries, otherwise things become unreadable.
+	stats.resize(min_ii(stats.size(), 32));
+	// Print data to the file stream.
+	deg_debug_fprintf(ctx, "$data << EOD" NL);
+	foreach (const StatsEntry& entry, stats) {
 		deg_debug_fprintf(ctx, "\"%s\",%f" NL,
 		                  id_node->id_orig->name + 2,
-		                  time);
+		                  entry.time);
 	}
 	deg_debug_fprintf(ctx, "EOD" NL);
 }
