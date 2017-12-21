@@ -143,6 +143,15 @@ static void calculate_pending_parents(Depsgraph *graph, unsigned int layers)
 	                        do_threads);
 }
 
+static void initialize_execution(DepsgraphEvalState *state, Depsgraph *graph)
+{
+	calculate_pending_parents(graph, state->layers);
+	/* Clear tags and other things which needs to be clear. */
+	foreach (OperationDepsNode *node, graph->operations) {
+		node->done = 0;
+	}
+}
+
 /* Schedule a node if it needs evaluation.
  *   dec_parents: Decrement pending parents count, true when child nodes are
  *                scheduled after a task has been completed.
@@ -225,32 +234,25 @@ void deg_evaluate_on_refresh(EvaluationContext *eval_ctx,
                              Depsgraph *graph,
                              const unsigned int layers)
 {
-	/* Generate base evaluation context, upon which all the others are derived. */
-	// TODO: this needs both main and scene access...
-
 	/* Nothing to update, early out. */
 	if (BLI_gset_size(graph->entry_tags) == 0) {
 		return;
 	}
-
 	DEG_DEBUG_PRINTF("%s: layers:%u, graph->layers:%u\n",
 	                 __func__,
 	                 layers,
 	                 graph->layers);
-
 	/* Set time for the current graph evaluation context. */
 	TimeSourceDepsNode *time_src = graph->find_time_source();
 	eval_ctx->ctime = time_src->cfra;
-
-	/* XXX could use a separate pool for each eval context */
+	/* Set up evaluation context for depsgraph itself. */
 	DepsgraphEvalState state;
 	state.eval_ctx = eval_ctx;
 	state.graph = graph;
 	state.layers = layers;
-
+	/* Set up task scheduler and pull for threaded evaluation. */
 	TaskScheduler *task_scheduler;
 	bool need_free_scheduler;
-
 	if (G.debug & G_DEBUG_DEPSGRAPH_NO_THREADS) {
 		task_scheduler = BLI_task_scheduler_create(1);
 		need_free_scheduler = true;
@@ -259,24 +261,15 @@ void deg_evaluate_on_refresh(EvaluationContext *eval_ctx,
 		task_scheduler = BLI_task_scheduler_get();
 		need_free_scheduler = false;
 	}
-
 	TaskPool *task_pool = BLI_task_pool_create_suspended(task_scheduler, &state);
-
-	calculate_pending_parents(graph, layers);
-
-	/* Clear tags. */
-	foreach (OperationDepsNode *node, graph->operations) {
-		node->done = 0;
-	}
-
+	/* Prepare all nodes for evaluation. */
+	initialize_execution(&state, graph);
+	/* Do actual evaluation now. */
 	schedule_graph(task_pool, graph, layers);
-
 	BLI_task_pool_work_and_wait(task_pool);
 	BLI_task_pool_free(task_pool);
-
 	/* Clear any uncleared tags - just in case. */
 	deg_graph_clear_tags(graph);
-
 	if (need_free_scheduler) {
 		BLI_task_scheduler_free(task_scheduler);
 	}
