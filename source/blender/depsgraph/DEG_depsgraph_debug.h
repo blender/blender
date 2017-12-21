@@ -55,6 +55,11 @@ void DEG_debug_relations_graphviz(const struct Depsgraph *graph,
                                   FILE *stream,
                                   const char *label);
 
+void DEG_debug_stats_gnuplot(const struct Depsgraph *graph,
+                             FILE *stream,
+                             const char *label,
+                             const char *output_filename);
+
 /* ************************************************ */
 
 /* Compare two dependency graphs. */
