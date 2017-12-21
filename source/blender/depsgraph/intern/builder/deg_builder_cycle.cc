@@ -106,7 +106,6 @@ void deg_graph_detect_cycles(Depsgraph *graph)
 		else {
 			set_node_visited_state(node, NODE_NOT_VISITED);
 		}
-		node->done = 0;
 	}
 
 	while (!BLI_stack_is_empty(traversal_stack)) {
@@ -118,8 +117,8 @@ void deg_graph_detect_cycles(Depsgraph *graph)
 			DepsRelation *rel = node->outlinks[i];
 			if (rel->to->type == DEG_NODE_TYPE_OPERATION) {
 				OperationDepsNode *to = (OperationDepsNode *)rel->to;
-				eCyclicCheckVisitedState state = get_node_visited_state(node);
-				if (state == NODE_IN_STACK) {
+				eCyclicCheckVisitedState to_state = get_node_visited_state(to);
+				if (to_state == NODE_IN_STACK) {
 					printf("Dependency cycle detected:\n");
 					printf("  '%s' depends on '%s' through '%s'\n",
 					       to->full_identifier().c_str(),
@@ -138,7 +137,7 @@ void deg_graph_detect_cycles(Depsgraph *graph)
 					/* TODO(sergey): So called russian roulette cycle solver. */
 					rel->flag |= DEPSREL_FLAG_CYCLIC;
 				}
-				else if (state == NODE_NOT_VISITED) {
+				else if (to_state == NODE_NOT_VISITED) {
 					StackEntry new_entry;
 					new_entry.node = to;
 					new_entry.from = entry;
