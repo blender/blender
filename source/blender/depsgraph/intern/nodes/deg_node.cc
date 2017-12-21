@@ -46,10 +46,9 @@
 
 namespace DEG {
 
-/* *************** */
-/* Node Management */
-
-/* Add ------------------------------------------------ */
+/*******************************************************************************
+ * Type information.
+ */
 
 DepsNode::TypeInfo::TypeInfo(eDepsNode_Type type,
                              const char *tname,
@@ -59,6 +58,29 @@ DepsNode::TypeInfo::TypeInfo(eDepsNode_Type type,
           id_recalc_tag(id_recalc_tag)
 {
 }
+
+/*******************************************************************************
+ * Evaluation statistics.
+ */
+
+DepsNode::Stats::Stats()
+{
+	reset();
+}
+
+void DepsNode::Stats::reset()
+{
+	current_time = 0.0;
+}
+
+void DepsNode::Stats::reset_current()
+{
+	current_time = 0.0;
+}
+
+/*******************************************************************************
+ * Node itself.
+ */
 
 DepsNode::DepsNode()
 {
@@ -99,8 +121,10 @@ eDepsNode_Class DepsNode::get_class() const {
 	}
 }
 
-/* Generic Nodes */
-
+/*******************************************************************************
+ * Generic nodes definition.
+ */
+\
 DEG_DEPSNODE_DEFINE(TimeSourceDepsNode, DEG_NODE_TYPE_TIMESOURCE, "Time Source");
 static DepsNodeFactoryImpl<TimeSourceDepsNode> DNTI_TIMESOURCE;
 

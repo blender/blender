@@ -56,6 +56,19 @@ struct DepsNode {
 		const char *tname;
 		int id_recalc_tag;
 	};
+	struct Stats {
+		Stats();
+		/* Reset all the counters. Including all stats needed for average
+		 * evaluation time calculation.
+		 */
+		void reset();
+		/* Reset counters needed for the current graph evaluation, does not
+		 * touch averaging accumulators.
+		 */
+		void reset_current();
+		/* Time spend on this node during current graph evaluation. */
+		double current_time;
+	};
 	/* Relationships between nodes
 	 * The reason why all depsgraph nodes are descended from this type (apart
 	 * from basic serialization benefits - from the typeinfo) is that we can have
@@ -67,7 +80,8 @@ struct DepsNode {
 	eDepsNode_Type type;  /* Structural type of node. */
 	Relations inlinks;    /* Nodes which this one depends on. */
 	Relations outlinks;   /* Nodes which depend on this one. */
-	int done;    /* Generic tags for traversal algorithms. */
+	int done;     /* Generic tags for traversal algorithms. */
+	Stats stats;  /* Evaluation statistics. */
 
 	/* Methods. */
 	DepsNode();

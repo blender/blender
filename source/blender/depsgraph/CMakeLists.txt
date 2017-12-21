@@ -53,10 +53,12 @@ set(SRC
 	intern/builder/deg_builder_relations_rig.cc
 	intern/builder/deg_builder_relations_view_layer.cc
 	intern/builder/deg_builder_transitive.cc
-	intern/debug/deg_debug_graphviz.cc
+	intern/debug/deg_debug_relations_graphviz.cc
+	intern/debug/deg_debug_stats_gnuplot.cc
 	intern/eval/deg_eval.cc
 	intern/eval/deg_eval_copy_on_write.cc
 	intern/eval/deg_eval_flush.cc
+	intern/eval/deg_eval_stats.cc
 	intern/nodes/deg_node.cc
 	intern/nodes/deg_node_component.cc
 	intern/nodes/deg_node_id.cc
@@ -87,6 +89,7 @@ set(SRC
 	intern/eval/deg_eval.h
 	intern/eval/deg_eval_copy_on_write.h
 	intern/eval/deg_eval_flush.h
+	intern/eval/deg_eval_stats.h
 	intern/nodes/deg_node.h
 	intern/nodes/deg_node_component.h
 	intern/nodes/deg_node_id.h

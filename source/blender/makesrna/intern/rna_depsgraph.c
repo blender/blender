@@ -120,13 +120,26 @@ static int rna_DepsgraphIter_is_instance_get(PointerRNA *ptr)
 
 /* **************** Depsgraph **************** */
 
-static void rna_Depsgraph_debug_graphviz(Depsgraph *graph, const char *filename)
+static void rna_Depsgraph_debug_relations_graphviz(Depsgraph *graph,
+                                                   const char *filename)
 {
 	FILE *f = fopen(filename, "w");
 	if (f == NULL) {
 		return;
 	}
-	DEG_debug_graphviz(graph, f, "Depsgraph");
+	DEG_debug_relations_graphviz(graph, f, "Depsgraph");
+	fclose(f);
+}
+
+static void rna_Depsgraph_debug_stats_gnuplot(Depsgraph *graph,
+                                              const char *filename,
+                                              const char *output_filename)
+{
+	FILE *f = fopen(filename, "w");
+	if (f == NULL) {
+		return;
+	}
+	DEG_debug_stats_gnuplot(graph, f, "Timing Statistics", output_filename);
 	fclose(f);
 }
 
@@ -297,9 +310,17 @@ static void rna_def_depsgraph(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "Depsgraph", NULL);
 	RNA_def_struct_ui_text(srna, "Dependency Graph", "");
 
-	func = RNA_def_function(srna, "debug_graphviz", "rna_Depsgraph_debug_graphviz");
+	func = RNA_def_function(srna, "debug_relations_graphviz", "rna_Depsgraph_debug_relations_graphviz");
 	parm = RNA_def_string_file_path(func, "filename", NULL, FILE_MAX, "File Name",
 	                                "File in which to store graphviz debug output");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+
+	func = RNA_def_function(srna, "debug_stats_gnuplot", "rna_Depsgraph_debug_stats_gnuplot");
+	parm = RNA_def_string_file_path(func, "filename", NULL, FILE_MAX, "File Name",
+	                                "File in which to store graphviz debug output");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	parm = RNA_def_string_file_path(func, "output_filename", NULL, FILE_MAX, "Output File Name",
+	                                "File name where gnuplot script will save the result");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 	func = RNA_def_function(srna, "debug_tag_update", "rna_Depsgraph_debug_tag_update");
