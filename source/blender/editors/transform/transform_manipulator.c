@@ -1155,6 +1155,8 @@ static void manipulator_xform_message_subscribe(
 	else {
 		BLI_assert(0);
 	}
+
+	WM_msg_subscribe_rna_anon_prop(mbus, Window, view_layer, &msg_sub_value_mpr_tag_refresh);
 }
 
 /** \} */
