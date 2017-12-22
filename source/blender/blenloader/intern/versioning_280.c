@@ -603,6 +603,38 @@ void do_versions_after_linking_280(Main *main)
 			}
 		}
 	}
+
+	{
+		for (Object *object = main->object.first; object; object = object->id.next) {
+#ifndef VERSION_280_SUBVERSION_4
+			/* If any object already has an initialized value for
+			 * duplicator_visibility_flag it means we've already doversioned it.
+			 * TODO(all) remove the VERSION_280_SUBVERSION_4 code once the subversion was bumped. */
+			if (object->duplicator_visibility_flag != 0) {
+				break;
+			}
+#endif
+			if (object->particlesystem.first) {
+				object->duplicator_visibility_flag = OB_DUPLI_FLAG_VIEWPORT;
+				for (ParticleSystem *psys = object->particlesystem.first; psys; psys=psys->next) {
+					if (psys->part->draw & PART_DRAW_EMITTER) {
+						object->duplicator_visibility_flag |= OB_DUPLI_FLAG_RENDER;
+#ifndef VERSION_280_SUBVERSION_4
+						psys->part->draw &= ~PART_DRAW_EMITTER;
+#else
+						break;
+#endif
+					}
+				}
+			}
+			else if (object->transflag & OB_DUPLI){
+				object->duplicator_visibility_flag = OB_DUPLI_FLAG_VIEWPORT;
+			}
+			else {
+				object->duplicator_visibility_flag = OB_DUPLI_FLAG_VIEWPORT | OB_DUPLI_FLAG_RENDER;
+			}
+		}
+	}
 }
 
 static void do_version_layer_collections_idproperties(ListBase *lb)
@@ -853,30 +885,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		for (Group *group = main->group.first; group; group = group->id.next) {
 			if (group->view_layer != NULL){
 				do_version_view_layer_visibility(group->view_layer);
-			}
-		}
-	}
-
-	{
-		if (!DNA_struct_elem_find(fd->filesdna, "Object", "char", "duplicator_visibility_flag")) {
-			for (Object *object = main->object.first; object; object = object->id.next) {
-				if (object->particlesystem.first) {
-					bool show_emitter = false;
-					for (ParticleSystem *psys = object->particlesystem.first; psys; psys=psys->next) {
-						show_emitter |= (psys->part->draw & PART_DRAW_EMITTER) != 0;
-					}
-
-					object->duplicator_visibility_flag = OB_DUPLI_FLAG_VIEWPORT;
-					if (show_emitter) {
-						object->duplicator_visibility_flag |= OB_DUPLI_FLAG_RENDER;
-					}
-				}
-				else if (object->transflag & OB_DUPLI){
-					object->duplicator_visibility_flag = OB_DUPLI_FLAG_VIEWPORT;
-				}
-				else {
-					object->duplicator_visibility_flag = OB_DUPLI_FLAG_VIEWPORT | OB_DUPLI_FLAG_RENDER;
-				}
 			}
 		}
 	}
