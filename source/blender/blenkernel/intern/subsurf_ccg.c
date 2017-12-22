@@ -1490,13 +1490,16 @@ static void ccgDM_copyFinalLoopArray(DerivedMesh *dm, MLoop *mloop)
 		BLI_rw_mutex_lock(&ccgdm->loops_cache_rwlock, THREAD_LOCK_WRITE);
 		if (!ccgdm->ehash) {
 			MEdge *medge;
+			EdgeHash *ehash;
 
-			ccgdm->ehash = BLI_edgehash_new_ex(__func__, ccgdm->dm.numEdgeData);
+			ehash = BLI_edgehash_new_ex(__func__, ccgdm->dm.numEdgeData);
 			medge = ccgdm->dm.getEdgeArray((DerivedMesh *)ccgdm);
 
 			for (i = 0; i < ccgdm->dm.numEdgeData; i++) {
-				BLI_edgehash_insert(ccgdm->ehash, medge[i].v1, medge[i].v2, SET_INT_IN_POINTER(i));
+				BLI_edgehash_insert(ehash, medge[i].v1, medge[i].v2, SET_INT_IN_POINTER(i));
 			}
+
+			atomic_cas_ptr((void**)&ccgdm->ehash, ccgdm->ehash, ehash);
 		}
 		BLI_rw_mutex_unlock(&ccgdm->loops_cache_rwlock);
 	}
