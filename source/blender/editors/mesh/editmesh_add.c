@@ -85,10 +85,10 @@ static Object *make_prim_init(bContext *C, const char *idname,
 	return obedit;
 }
 
-static void make_prim_finish(bContext *C, Object *obedit, bool was_editmode, int enter_editmode)
+static void make_prim_finish(bContext *C, Object *obedit, const MakePrimitiveData *creation_data, int enter_editmode)
 {
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	const bool exit_editmode = ((was_editmode == true) && (enter_editmode == false));
+	const bool exit_editmode = ((creation_data->was_editmode == true) && (enter_editmode == false));
 
 	/* Primitive has all verts selected, use vert select flush
 	 * to push this up to edges & faces. */
@@ -131,7 +131,7 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	make_prim_finish(C, obedit, creation_data.was_editmode, enter_editmode);
+	make_prim_finish(C, obedit, &creation_data, enter_editmode);
 
 	return OPERATOR_FINISHED;
 }
@@ -183,7 +183,7 @@ static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 	}
 
 	/* BMESH_TODO make plane side this: M_SQRT2 - plane (diameter of 1.41 makes it unit size) */
-	make_prim_finish(C, obedit, creation_data.was_editmode, enter_editmode);
+	make_prim_finish(C, obedit, &creation_data, enter_editmode);
 
 	return OPERATOR_FINISHED;
 }
@@ -245,7 +245,7 @@ static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	make_prim_finish(C, obedit, creation_data.was_editmode, enter_editmode);
+	make_prim_finish(C, obedit, &creation_data, enter_editmode);
 
 	return OPERATOR_FINISHED;
 }
@@ -307,7 +307,7 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	make_prim_finish(C, obedit, creation_data.was_editmode, enter_editmode);
+	make_prim_finish(C, obedit, &creation_data, enter_editmode);
 
 	return OPERATOR_FINISHED;
 }
@@ -368,7 +368,7 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	make_prim_finish(C, obedit, creation_data.was_editmode, enter_editmode);
+	make_prim_finish(C, obedit, &creation_data, enter_editmode);
 
 	return OPERATOR_FINISHED;
 }
@@ -427,7 +427,7 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	make_prim_finish(C, obedit, creation_data.was_editmode, enter_editmode);
+	make_prim_finish(C, obedit, &creation_data, enter_editmode);
 
 	return OPERATOR_FINISHED;
 }
@@ -488,7 +488,7 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	make_prim_finish(C, obedit, creation_data.was_editmode, enter_editmode);
+	make_prim_finish(C, obedit, &creation_data, enter_editmode);
 
 	return OPERATOR_FINISHED;
 }
@@ -541,7 +541,7 @@ static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	make_prim_finish(C, obedit, creation_data.was_editmode, enter_editmode);
+	make_prim_finish(C, obedit, &creation_data, enter_editmode);
 
 	return OPERATOR_FINISHED;
 }
@@ -597,7 +597,7 @@ static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	make_prim_finish(C, obedit, creation_data.was_editmode, enter_editmode);
+	make_prim_finish(C, obedit, &creation_data, enter_editmode);
 
 	return OPERATOR_FINISHED;
 }
