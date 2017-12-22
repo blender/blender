@@ -175,6 +175,8 @@ static void layer_collection_remove(ViewLayer *view_layer, ListBase *lb, const S
 
 /**
  * Remove a collection from the scene, and syncronize all render layers
+ *
+ * If an object is in any other collection, link the object to the master collection.
  */
 bool BKE_collection_remove(ID *owner_id, SceneCollection *sc)
 {
@@ -189,6 +191,36 @@ bool BKE_collection_remove(ID *owner_id, SceneCollection *sc)
 	if (!collection_remlink(sc_master, sc)) {
 		BLI_assert(false);
 	}
+
+	/* If an object is no longer in any collection, we add it to the master collection. */
+	ListBase collection_objects;
+	BLI_duplicatelist(&collection_objects, &sc->objects);
+
+	FOREACH_SCENE_COLLECTION(owner_id, scene_collection_iter)
+	{
+		if (scene_collection_iter == sc) {
+			continue;
+		}
+
+		LinkData *link_next, *link = collection_objects.first;
+		while (link) {
+			link_next = link->next;
+
+			if (BLI_findptr(&scene_collection_iter->objects, link->data, offsetof(LinkData, data))) {
+				BLI_remlink(&collection_objects, link);
+				MEM_freeN(link);
+			}
+
+			link = link_next;
+		}
+	}
+	FOREACH_SCENE_COLLECTION_END
+
+	for (LinkData *link = collection_objects.first; link; link = link->next) {
+		BKE_collection_object_add(owner_id, sc_master, link->data);
+	}
+
+	BLI_freelistN(&collection_objects);
 
 	/* Clear the collection items. */
 	collection_free(sc, true);
