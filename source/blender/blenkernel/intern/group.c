@@ -88,10 +88,7 @@ void BKE_group_init(Group *group)
 	BKE_collection_unlink(group->view_layer, group->view_layer->layer_collections.first);
 
 	/* Create and link a new default collection. */
-	SceneCollection *defaut_collection = BKE_collection_add(&group->id,
-	                                                        NULL,
-	                                                        COLLECTION_TYPE_GROUP_INTERNAL,
-	                                                        "Default Collection");
+	SceneCollection *defaut_collection = BKE_collection_add(&group->id, NULL, COLLECTION_TYPE_GROUP_INTERNAL, NULL);
 	BKE_collection_link(group->view_layer, defaut_collection);
 }
 

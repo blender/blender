@@ -69,24 +69,35 @@ static SceneCollection *collection_master_from_id(const ID *owner_id)
  * Add a collection to a collection ListBase and syncronize all render layers
  * The ListBase is NULL when the collection is to be added to the master collection
  */
-SceneCollection *BKE_collection_add(ID *owner_id, SceneCollection *sc_parent, const int type, const char *name)
+SceneCollection *BKE_collection_add(ID *owner_id, SceneCollection *sc_parent, const int type, const char *name_custom)
 {
 	SceneCollection *sc_master = collection_master_from_id(owner_id);
 	SceneCollection *sc = MEM_callocN(sizeof(SceneCollection), "New Collection");
 	sc->type = type;
-
-	if (!name) {
-		name = DATA_("New Collection");
-	}
+	const char *name = name_custom;
 
 	if (!sc_parent) {
 		sc_parent = sc_master;
+	}
+
+	if (!name) {
+		if (sc_parent == sc_master) {
+			name = BLI_sprintfN("Collection %d", BLI_listbase_count(&sc_master->scene_collections) + 1);
+		}
+		else {
+			name = BLI_sprintfN("%s %d", sc_parent->name, BLI_listbase_count(&sc_parent->scene_collections) + 1);
+		}
 	}
 
 	BKE_collection_rename((Scene *)owner_id, sc, name);
 	BLI_addtail(&sc_parent->scene_collections, sc);
 
 	BKE_layer_sync_new_scene_collection(owner_id, sc_parent, sc);
+
+	if (name != name_custom) {
+		MEM_freeN((char *)name);
+	}
+
 	return sc;
 }
 

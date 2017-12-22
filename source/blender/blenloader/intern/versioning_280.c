@@ -482,11 +482,6 @@ void do_versions_after_linking_280(Main *main)
 					base->lay = base->object->lay;
 				}
 
-				/* Fallback name if only one layer was found in the original file */
-				if (BLI_listbase_is_single(&sc_master->scene_collections)) {
-					BKE_collection_rename(scene, sc_master->scene_collections.first, "Default Collection");
-				}
-
 				/* remove bases once and for all */
 				for (Base *base = scene->base.first; base; base = base->next) {
 					id_us_min(&base->object->id);
