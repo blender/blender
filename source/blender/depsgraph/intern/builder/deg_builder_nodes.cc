@@ -757,7 +757,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Object *object)
 
 	// TODO: "Done" operation
 
-	/* Cloyth modifier. */
+	/* Cloth modifier. */
 	LINKLIST_FOREACH (ModifierData *, md, &object->modifiers) {
 		if (md->type == eModifierType_Cloth) {
 			build_cloth(object);

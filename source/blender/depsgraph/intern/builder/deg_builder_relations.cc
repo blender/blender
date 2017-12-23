@@ -900,7 +900,7 @@ void DepsgraphRelationBuilder::build_animdata(ID *id)
 	/* Animation curves and NLA. */
 	build_animdata_curves(id);
 	/* Drivers. */
-	build_animdata_drievrs(id);
+	build_animdata_drivers(id);
 }
 
 void DepsgraphRelationBuilder::build_animdata_curves(ID *id)
@@ -969,7 +969,7 @@ void DepsgraphRelationBuilder::build_animdata_curves_targets(ID *id)
 	}
 }
 
-void DepsgraphRelationBuilder::build_animdata_drievrs(ID *id)
+void DepsgraphRelationBuilder::build_animdata_drivers(ID *id)
 {
 	AnimData *adt = BKE_animdata_from_id(id);
 	if (adt == NULL) {
@@ -1793,7 +1793,8 @@ void DepsgraphRelationBuilder::build_gpencil(bGPdata *gpd)
 	// TODO: parent object (when that feature is implemented)
 }
 
-void DepsgraphRelationBuilder::build_cachefile(CacheFile *cache_file) {
+void DepsgraphRelationBuilder::build_cachefile(CacheFile *cache_file)
+{
 	/* Animation. */
 	build_animdata(&cache_file->id);
 }
