@@ -151,6 +151,10 @@ bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progre
 	progress.reset_sample();
 	progress.set_total_pixel_samples(total_pixel_samples);
 
+	/* needs to be up to date for baking specific AA samples */
+	dscene->data.integrator.aa_samples = num_samples;
+	device->const_copy_to("__data", &dscene->data, sizeof(dscene->data));
+
 	for(size_t shader_offset = 0; shader_offset < num_pixels; shader_offset += m_shader_limit) {
 		size_t shader_size = (size_t)fminf(num_pixels - shader_offset, m_shader_limit);
 
@@ -174,9 +178,6 @@ bool BakeManager::bake(Device *device, DeviceScene *dscene, Scene *scene, Progre
 		d_output.alloc(shader_size);
 		d_output.zero_to_device();
 		d_input.copy_to_device();
-
-		/* needs to be up to data for attribute access */
-		device->const_copy_to("__data", &dscene->data, sizeof(dscene->data));
 
 		DeviceTask task(DeviceTask::SHADER);
 		task.shader_input = d_input.device_pointer;
