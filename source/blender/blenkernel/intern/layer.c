@@ -163,10 +163,15 @@ ViewLayer *BKE_view_layer_group_add(Group *group)
 	return view_layer;
 }
 
+void BKE_view_layer_free(ViewLayer *view_layer)
+{
+	BKE_view_layer_free_ex(view_layer, true);
+}
+
 /**
  * Free (or release) any data used by this ViewLayer.
  */
-void BKE_view_layer_free(ViewLayer *view_layer)
+void BKE_view_layer_free_ex(ViewLayer *view_layer, const bool do_id_user)
 {
 	view_layer->basact = NULL;
 
@@ -205,7 +210,7 @@ void BKE_view_layer_free(ViewLayer *view_layer)
 
 	MEM_SAFE_FREE(view_layer->stats);
 
-	BKE_freestyle_config_free(&view_layer->freestyle_config);
+	BKE_freestyle_config_free(&view_layer->freestyle_config, do_id_user);
 
 	if (view_layer->id_properties) {
 		IDP_FreeProperty(view_layer->id_properties);

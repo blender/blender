@@ -66,6 +66,7 @@ struct ViewLayer *BKE_view_layer_group_add(struct Group *group);
 struct ViewLayer *BKE_view_layer_context_active_PLACEHOLDER(const struct Scene *scene);
 
 void BKE_view_layer_free(struct ViewLayer *view_layer);
+void BKE_view_layer_free_ex(struct ViewLayer *view_layer, const bool do_id_user);
 
 void BKE_view_layer_selected_objects_tag(struct ViewLayer *view_layer, const int tag);
 

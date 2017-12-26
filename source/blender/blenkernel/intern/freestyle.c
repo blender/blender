@@ -61,17 +61,21 @@ void BKE_freestyle_config_init(FreestyleConfig *config)
 	BLI_listbase_clear(&config->linesets);
 }
 
-void BKE_freestyle_config_free(FreestyleConfig *config)
+void BKE_freestyle_config_free(FreestyleConfig *config, const bool do_id_user)
 {
 	FreestyleLineSet *lineset;
 
 	for (lineset = (FreestyleLineSet *)config->linesets.first; lineset; lineset = lineset->next) {
 		if (lineset->group) {
-			id_us_min(&lineset->group->id);
+			if (do_id_user) {
+				id_us_min(&lineset->group->id);
+			}
 			lineset->group = NULL;
 		}
 		if (lineset->linestyle) {
-			id_us_min(&lineset->linestyle->id);
+			if (do_id_user) {
+				id_us_min(&lineset->linestyle->id);
+			}
 			lineset->linestyle = NULL;
 		}
 	}
