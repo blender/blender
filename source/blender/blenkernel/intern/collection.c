@@ -50,6 +50,7 @@
 #include "MEM_guardedalloc.h"
 
 /* Prototypes. */
+static SceneCollection *find_collection_parent(const struct SceneCollection *sc_child, struct SceneCollection *sc_parent);
 static bool is_collection_in_tree(const struct SceneCollection *sc_reference, struct SceneCollection *sc_parent);
 
 static SceneCollection *collection_master_from_id(const ID *owner_id)
@@ -89,8 +90,8 @@ SceneCollection *BKE_collection_add(ID *owner_id, SceneCollection *sc_parent, co
 		}
 	}
 
-	BKE_collection_rename((Scene *)owner_id, sc, name);
 	BLI_addtail(&sc_parent->scene_collections, sc);
+	BKE_collection_rename((Scene *)owner_id, sc, name);
 
 	BKE_layer_sync_new_scene_collection(owner_id, sc_parent, sc);
 
@@ -291,33 +292,11 @@ struct UniqueNameCheckData {
 	SceneCollection *lookup_sc;
 };
 
-static bool collection_unique_name_check(void *arg, const char *name)
-{
-	struct UniqueNameCheckData *data = arg;
-
-	for (SceneCollection *sc = data->lb->first; sc; sc = sc->next) {
-		struct UniqueNameCheckData child_data = {.lb = &sc->scene_collections, .lookup_sc = data->lookup_sc};
-
-		if (sc != data->lookup_sc) {
-			if (STREQ(sc->name, name)) {
-				return true;
-			}
-		}
-		if (collection_unique_name_check(&child_data, name)) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
 static void collection_rename(const ID *owner_id, SceneCollection *sc, const char *name)
 {
-	SceneCollection *sc_master = collection_master_from_id(owner_id);
-	struct UniqueNameCheckData data = {.lb = &sc_master->scene_collections, .lookup_sc = sc};
-
+	SceneCollection *sc_parent = find_collection_parent(sc, collection_master_from_id(owner_id));
 	BLI_strncpy(sc->name, name, sizeof(sc->name));
-	BLI_uniquename_cb(collection_unique_name_check, &data, DATA_("Collection"), '.', sc->name, sizeof(sc->name));
+	BLI_uniquename(&sc_parent->scene_collections, sc, DATA_("Collection"), '.', offsetof(SceneCollection, name), sizeof(sc->name));
 }
 
 void BKE_collection_rename(const Scene *scene, SceneCollection *sc, const char *name)
