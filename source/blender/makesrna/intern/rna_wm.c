@@ -763,8 +763,10 @@ static PointerRNA rna_Window_view_layer_get(PointerRNA *ptr)
 	Scene *scene = WM_window_get_active_scene(win);
 	WorkSpace *workspace = WM_window_get_active_workspace(win);
 	ViewLayer *view_layer = BKE_workspace_view_layer_get(workspace, scene);
+	PointerRNA scene_ptr;
 
-	return rna_pointer_inherit_refine(ptr, &RNA_ViewLayer, view_layer);
+	RNA_id_pointer_create(&scene->id, &scene_ptr);
+	return rna_pointer_inherit_refine(&scene_ptr, &RNA_ViewLayer, view_layer);
 }
 
 static void rna_Window_view_layer_set(PointerRNA *ptr, PointerRNA value)
