@@ -226,11 +226,12 @@ static void buttons_header_region_draw(const bContext *C, ARegion *ar)
 }
 
 static void buttons_header_region_message_subscribe(
-        const struct bContext *UNUSED(C),
-        struct WorkSpace *UNUSED(workspace), struct Scene *UNUSED(scene),
-        struct bScreen *UNUSED(screen), struct ScrArea *UNUSED(sa), struct ARegion *ar,
+        const bContext *UNUSED(C),
+        WorkSpace *UNUSED(workspace), Scene *UNUSED(scene),
+        bScreen *UNUSED(screen), ScrArea *sa, ARegion *ar,
         struct wmMsgBus *mbus)
 {
+	SpaceButs *sbuts = sa->spacedata.first;
 	wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
 		.owner = ar,
 		.user_data = ar,
@@ -240,6 +241,10 @@ static void buttons_header_region_message_subscribe(
 	/* Don't check for SpaceButs.mainb here, we may toggle between view-layers
 	 * where one has no active object, so that available contexts changes. */
 	WM_msg_subscribe_rna_anon_prop(mbus, Window, view_layer, &msg_sub_value_region_tag_redraw);
+
+	if (!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_SCENE, BCONTEXT_WORLD)) {
+		WM_msg_subscribe_rna_anon_prop(mbus, ViewLayer, name, &msg_sub_value_region_tag_redraw);
+	}
 }
 
 /* draw a certain button set only if properties area is currently
