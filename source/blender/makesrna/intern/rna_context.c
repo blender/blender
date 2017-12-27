@@ -132,7 +132,11 @@ static PointerRNA rna_Context_scene_get(PointerRNA *ptr)
 static PointerRNA rna_Context_view_layer_get(PointerRNA *ptr)
 {
 	bContext *C = (bContext *)ptr->data;
-	return rna_pointer_inherit_refine(ptr, &RNA_ViewLayer, CTX_data_view_layer(C));
+	Scene *scene = CTX_data_scene(C);
+	PointerRNA scene_ptr;
+
+	RNA_id_pointer_create(&scene->id, &scene_ptr);
+	return rna_pointer_inherit_refine(&scene_ptr, &RNA_ViewLayer, CTX_data_view_layer(C));
 }
 
 static PointerRNA rna_Context_view_render_get(PointerRNA *ptr)
