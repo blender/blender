@@ -968,11 +968,11 @@ RenderEngineType *CTX_data_engine_type(const bContext *C)
 LayerCollection *CTX_data_layer_collection(const bContext *C)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
-	LayerCollection *lc;
+	LayerCollection *layer_collection;
 
-	if (ctx_data_pointer_verify(C, "layer_collection", (void *)&lc)) {
-		if (BKE_view_layer_has_collection(view_layer, lc->scene_collection)) {
-			return lc;
+	if (ctx_data_pointer_verify(C, "layer_collection", (void *)&layer_collection)) {
+		if (BKE_view_layer_has_collection(view_layer, layer_collection->scene_collection)) {
+			return layer_collection;
 		}
 	}
 
@@ -982,16 +982,14 @@ LayerCollection *CTX_data_layer_collection(const bContext *C)
 
 SceneCollection *CTX_data_scene_collection(const bContext *C)
 {
-	SceneCollection *sc;
-	if (ctx_data_pointer_verify(C, "scene_collection", (void *)&sc)) {
-		if (BKE_view_layer_has_collection(CTX_data_view_layer(C), sc)) {
-			return sc;
-		}
+	SceneCollection *scene_collection;
+	if (ctx_data_pointer_verify(C, "scene_collection", (void *)&scene_collection)) {
+		return scene_collection;
 	}
 
-	LayerCollection *lc = CTX_data_layer_collection(C);
-	if (lc) {
-		return lc->scene_collection;
+	LayerCollection *layer_collection = CTX_data_layer_collection(C);
+	if (layer_collection) {
+		return layer_collection->scene_collection;
 	}
 
 	/* fallback */
