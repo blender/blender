@@ -287,11 +287,6 @@ SceneCollection *BKE_collection_master(const ID *owner_id)
 	return master_collection_from_id(owner_id);
 }
 
-struct UniqueNameCheckData {
-	ListBase *lb;
-	SceneCollection *lookup_sc;
-};
-
 static void collection_rename(const ID *owner_id, SceneCollection *sc, const char *name)
 {
 	SceneCollection *sc_parent = find_collection_parent(sc, collection_master_from_id(owner_id));
