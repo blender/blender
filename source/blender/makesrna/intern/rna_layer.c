@@ -996,9 +996,9 @@ static void rna_def_scene_collections(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_SceneCollection_remove");
-	RNA_def_function_ui_description(func, "Remove a collection layer");
+	RNA_def_function_ui_description(func, "Remove a collection and move its objects to the master collection");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
-	parm = RNA_def_pointer(func, "layer", "SceneCollection", "", "Collection to remove");
+	parm = RNA_def_pointer(func, "collection", "SceneCollection", "", "Collection to remove");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
 	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
 }
