@@ -75,7 +75,6 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 			read_node(kg, offset);
 			read_node(kg, offset);
 			read_node(kg, offset);
-			read_node(kg, offset);
 		}
 
 		return;
