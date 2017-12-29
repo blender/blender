@@ -581,10 +581,6 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
         layout.row().prop(part, "physics_type", expand=True)
 
         row = layout.row()
-        col = row.column(align=True)
-        col.prop(part, "particle_size")
-        col.prop(part, "size_random", slider=True)
-
         if part.physics_type != 'NO':
             col = row.column(align=True)
             col.prop(part, "mass")
@@ -1089,7 +1085,8 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
                 col = row.column()
                 col.label(text="")
 
-        if part.render_type in {'OBJECT', 'GROUP'} and not part.use_advanced_hair:
+        if part.type == 'EMITTER' or \
+           (part.render_type in {'OBJECT', 'GROUP'} and part.type == 'HAIR' and not part.use_advanced_hair):
             row = layout.row(align=True)
             row.prop(part, "particle_size")
             row.prop(part, "size_random", slider=True)
