@@ -1958,8 +1958,10 @@ void outliner_build_tree(Main *mainvar, Scene *scene, ViewLayer *view_layer, Spa
 		outliner_add_collections_master(soops, scene);
 	}
 	else {
-		ten = outliner_add_element(soops, &soops->tree, OBACT(view_layer), NULL, 0, 0);
-		ten->directdata = BASACT(view_layer);
+		if (BASACT(view_layer)) {
+			ten = outliner_add_element(soops, &soops->tree, OBACT(view_layer), NULL, 0, 0);
+			ten->directdata = BASACT(view_layer);
+		}
 	}
 
 	if ((soops->flag & SO_SKIP_SORT_ALPHA) == 0) {
