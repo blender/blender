@@ -51,6 +51,9 @@
 
 #include "outliner_intern.h" /* own include */
 
+/* Prototypes. */
+static int collection_delete_exec(struct bContext *C, struct wmOperator *op);
+
 /* -------------------------------------------------------------------- */
 
 static LayerCollection *outliner_collection_active(bContext *C)
@@ -415,6 +418,24 @@ void OUTLINER_OT_collection_nested_new(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = collection_nested_new_exec;
+	ot->poll = collections_editor_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/**********************************************************************************/
+/* Delete selected collection. */
+
+void OUTLINER_OT_collection_delete_selected(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Delete Selected Collections";
+	ot->idname = "OUTLINER_OT_collection_delete_selected";
+	ot->description = "Delete all the selected collections";
+
+	/* api callbacks */
+	ot->exec = collection_delete_exec;
 	ot->poll = collections_editor_poll;
 
 	/* flags */

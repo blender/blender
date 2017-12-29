@@ -341,6 +341,7 @@ void OUTLINER_OT_collection_objects_select(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_objects_deselect(struct wmOperatorType *ot);
 
 void OUTLINER_OT_collection_nested_new(struct wmOperatorType *ot);
+void OUTLINER_OT_collection_delete_selected(struct wmOperatorType *ot);
 
 /* outliner_utils.c ---------------------------------------------- */
 
