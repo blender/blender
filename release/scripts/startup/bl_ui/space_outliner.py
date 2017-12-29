@@ -60,14 +60,13 @@ class OUTLINER_HT_header(Header):
         elif space.display_mode == 'ORPHAN_DATA':
             layout.operator("outliner.orphans_purge")
 
-        elif space.display_mode in {'ACT_LAYER', 'MASTER_COLLECTION'}:
+        elif space.display_mode == 'ACT_LAYER':
             row = layout.row(align=True)
 
             row.operator("outliner.collection_new", text="", icon='NEW')
-            if space.display_mode == 'ACT_LAYER':
-                row.operator("outliner.collection_override_new", text="", icon='LINK_AREA')
-                row.operator("outliner.collection_link", text="", icon='LINKED')
-                row.operator("outliner.collection_unlink", text="", icon='UNLINKED')
+            row.operator("outliner.collection_override_new", text="", icon='LINK_AREA')
+            row.operator("outliner.collection_link", text="", icon='LINKED')
+            row.operator("outliner.collection_unlink", text="", icon='UNLINKED')
             row.operator("outliner.collections_delete", text="", icon='X')
 
 
@@ -87,6 +86,9 @@ class OUTLINER_MT_editor_menus(Menu):
 
         if space.display_mode == 'DATABLOCKS':
             layout.menu("OUTLINER_MT_edit_datablocks")
+
+        elif space.display_mode == 'MASTER_COLLECTION':
+            layout.menu("OUTLINER_MT_edit_collections")
 
 
 class OUTLINER_MT_view(Menu):
@@ -127,6 +129,16 @@ class OUTLINER_MT_search(Menu):
         layout.prop(space, "use_filter_complete")
 
 
+class OUTLINER_MT_edit_collections(Menu):
+    bl_label = "Edit"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("outliner.collection_nested_new", text="New Collection", icon='NEW')
+        layout.operator("outliner.collection_delete_selected", text="Delete Collections", icon='X')
+
+
 class OUTLINER_MT_edit_datablocks(Menu):
     bl_label = "Edit"
 
@@ -147,6 +159,7 @@ classes = (
     OUTLINER_MT_editor_menus,
     OUTLINER_MT_view,
     OUTLINER_MT_search,
+    OUTLINER_MT_edit_collections,
     OUTLINER_MT_edit_datablocks,
 )
 
