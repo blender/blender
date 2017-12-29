@@ -86,6 +86,19 @@ static CollectionOverride *outliner_override_active(bContext *UNUSED(C))
 #endif
 
 /* -------------------------------------------------------------------- */
+/* Poll functions. */
+
+static int collections_editor_poll(bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if ((sa) && (sa->spacetype == SPACE_OUTLINER)) {
+		SpaceOops *so = CTX_wm_space_outliner(C);
+		return (so->outlinevis == SO_COLLECTIONS);
+	}
+	return 0;
+}
+
+/* -------------------------------------------------------------------- */
 /* collection manager operators */
 
 /**
@@ -328,6 +341,81 @@ void OUTLINER_OT_collection_new(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = collection_new_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/**********************************************************************************/
+/* Add new nested collection. */
+
+struct CollectionNewData
+{
+	bool error;
+	SceneCollection *scene_collection;
+};
+
+static TreeTraversalAction collection_find_selected_to_add(TreeElement *te, void *customdata)
+{
+	struct CollectionNewData *data = customdata;
+	SceneCollection *scene_collection = outliner_scene_collection_from_tree_element(te);
+
+	if (!scene_collection) {
+		return TRAVERSE_SKIP_CHILDS;
+	}
+
+	if (data->scene_collection != NULL) {
+		data->error = true;
+		return TRAVERSE_BREAK;
+	}
+
+	data->scene_collection = scene_collection;
+	return TRAVERSE_CONTINUE;
+}
+
+static int collection_nested_new_exec(bContext *C, wmOperator *op)
+{
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+
+	struct CollectionNewData data = {
+		.error = false,
+		.scene_collection = NULL,
+	};
+
+	outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, collection_find_selected_to_add, &data);
+
+	if (data.error) {
+		BKE_report(op->reports, RPT_ERROR, "More than one collection is selected");
+		return OPERATOR_CANCELLED;
+	}
+
+	SceneCollection *scene_collection;
+	scene_collection = BKE_collection_add(
+	                       &scene->id,
+	                       data.scene_collection,
+	                       COLLECTION_TYPE_NONE,
+	                       NULL);
+	BKE_collection_link(view_layer, scene_collection);
+
+	outliner_cleanup_tree(soops);
+	DEG_relations_tag_update(bmain);
+	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_collection_nested_new(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "New Nested Collection";
+	ot->idname = "OUTLINER_OT_collection_nested_new";
+	ot->description = "Add a new collection inside selected collection";
+
+	/* api callbacks */
+	ot->exec = collection_nested_new_exec;
+	ot->poll = collections_editor_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

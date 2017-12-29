@@ -340,6 +340,8 @@ void OUTLINER_OT_collection_objects_remove(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_objects_select(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_objects_deselect(struct wmOperatorType *ot);
 
+void OUTLINER_OT_collection_nested_new(struct wmOperatorType *ot);
+
 /* outliner_utils.c ---------------------------------------------- */
 
 TreeElement *outliner_find_item_at_y(const SpaceOops *soops, const ListBase *tree, float view_co_y);
