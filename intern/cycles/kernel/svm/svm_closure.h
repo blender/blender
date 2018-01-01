@@ -67,8 +67,17 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 	/* note we read this extra node before weight check, so offset is added */
 	uint4 data_node = read_node(kg, offset);
 
-	if(mix_weight == 0.0f)
+	if(mix_weight == 0.0f) {
+		if(type == CLOSURE_BSDF_PRINCIPLED_ID) {
+			/* Read all principled BSDF extra data to get the right offset. */
+			read_node(kg, offset);
+			read_node(kg, offset);
+			read_node(kg, offset);
+			read_node(kg, offset);
+		}
+
 		return;
+	}
 
 	float3 N = stack_valid(data_node.x)? stack_load_float3(stack, data_node.x): sd->N;
 
