@@ -81,7 +81,6 @@ extern void bc_set_mark(Object *ob);
 
 extern char *bc_CustomData_get_layer_name(const CustomData *data, int type, int n);
 extern char *bc_CustomData_get_active_layer_name(const CustomData *data, int type);
-extern char *bc_CustomData_get_layer_name(const CustomData *data, int layer_index, int type);
 
 extern void bc_bubble_sort_by_Object_name(LinkNode *export_set);
 extern bool bc_is_root_bone(Bone *aBone, bool deform_bones_only);
