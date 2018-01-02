@@ -2899,7 +2899,9 @@ static void drw_engines_draw_background(void)
 	}
 
 	/* No draw_background found, doing default background */
-	DRW_draw_background();
+	if (DRW_state_draw_background()) {
+		DRW_draw_background();
+	}
 }
 
 static void drw_engines_draw_scene(void)
@@ -3429,9 +3431,7 @@ void DRW_draw_render_loop_ex(
 	/* Start Drawing */
 	DRW_state_reset();
 
-	if (DRW_state_draw_background()) {
-		drw_engines_draw_background();
-	}
+	drw_engines_draw_background();
 
 	/* WIP, single image drawn over the camera view (replace) */
 	bool do_bg_image = false;

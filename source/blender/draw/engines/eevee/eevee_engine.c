@@ -158,7 +158,12 @@ static void eevee_cache_finish(void *vedata)
 	EEVEE_lightprobes_cache_finish(sldata, vedata);
 }
 
-static void eevee_draw_scene(void *vedata)
+/* As renders in an HDR offscreen buffer, we need draw everything once
+ * during the background pass. This way the other drawing callback between
+ * the background and the scene pass are visible.
+ * Note: we could break it up in two passes using some depth test
+ * to reduce the fillrate */
+static void eevee_draw_background(void *vedata)
 {
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
@@ -207,7 +212,14 @@ static void eevee_draw_scene(void *vedata)
 		DRW_framebuffer_texture_detach(dtxl->depth);
 		DRW_framebuffer_texture_attach(fbl->main, dtxl->depth, 0, 0);
 		DRW_framebuffer_bind(fbl->main);
-		DRW_framebuffer_clear(false, true, true, NULL, 1.0f);
+		if (DRW_state_draw_background()) {
+			DRW_framebuffer_clear(false, true, true, NULL, 1.0f);
+		}
+		else {
+			/* We need to clear the alpha chanel in this case. */
+			float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+			DRW_framebuffer_clear(true, true, true, clear_col, 1.0f);
+		}
 
 		if (((stl->effects->enabled_effects & EFFECT_TAA) != 0) && stl->effects->taa_current_sample > 1) {
 			DRW_viewport_matrix_override_set(stl->effects->overide_persmat, DRW_MAT_PERS);
@@ -418,8 +430,8 @@ DrawEngineType draw_engine_eevee_type = {
 	&eevee_cache_init,
 	&eevee_cache_populate,
 	&eevee_cache_finish,
-	NULL,
-	&eevee_draw_scene,
+	&eevee_draw_background,
+	NULL, /* Everything is drawn in the background pass (see comment on function) */
 	&eevee_view_update,
 	&eevee_id_update,
 };
