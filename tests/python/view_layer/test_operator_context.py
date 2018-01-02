@@ -114,11 +114,14 @@ class UnitTesting(ViewLayerTesting):
         override = bpy.context.copy()
         override["view_layer"] = layer
 
+        self.assertNotEqual(bpy.context.view_layer.name, layer.name)
+        self.assertNotEqual(bpy.context.scene_collection.name, layer.collections.active.name)
+
         self.assertEqual(bpy.ops.testing.sample(
             override,
             view_layer=layer.name,
             scene_collection=layer.collections.active.name,  # 'scorpion'
-            use_verbose=True), {'FINISHED'})
+            use_verbose=False), {'CANCELLED'})
 
 
 # ############################################################
