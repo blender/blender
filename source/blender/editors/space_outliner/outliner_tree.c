@@ -1474,7 +1474,7 @@ static bool outliner_scene_collections_reorder_poll(
 	return true;
 }
 
-static void inline outliner_add_scene_collection_init(TreeElement *te, SceneCollection *collection)
+BLI_INLINE void outliner_add_scene_collection_init(TreeElement *te, SceneCollection *collection)
 {
 	te->name = collection->name;
 	te->directdata = collection;
@@ -1482,7 +1482,7 @@ static void inline outliner_add_scene_collection_init(TreeElement *te, SceneColl
 	te->reinsert_poll = outliner_scene_collections_reorder_poll;
 }
 
-static void inline outliner_add_scene_collection_objects(
+BLI_INLINE void outliner_add_scene_collection_objects(
         SpaceOops *soops, ListBase *tree, SceneCollection *collection, TreeElement *parent)
 {
 	for (LinkData *link = collection->objects.first; link; link = link->next) {
