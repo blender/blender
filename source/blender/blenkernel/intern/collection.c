@@ -188,6 +188,15 @@ bool BKE_collection_remove(ID *owner_id, SceneCollection *sc)
 		return false;
 	}
 
+	/* We need to do bottom up removal, otherwise we get a crash when we remove a collection that
+	 * has one of its nested collections linked to a view layer. */
+	SceneCollection *scene_collection_nested = sc->scene_collections.first;
+	while (scene_collection_nested != NULL) {
+		SceneCollection *scene_collection_next = scene_collection_nested->next;
+		BKE_collection_remove(owner_id, scene_collection_nested);
+		scene_collection_nested = scene_collection_next;
+	}
+
 	/* Unlink from the respective collection tree. */
 	if (!collection_remlink(sc_master, sc)) {
 		BLI_assert(false);
