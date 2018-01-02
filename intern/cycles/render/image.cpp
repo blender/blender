@@ -703,7 +703,7 @@ void ImageManager::device_load_image(Device *device,
 
 	/* Slot assignment */
 	int flat_slot = type_index_to_flattened_slot(slot, type);
-	string name = string_printf("__tex_image_%s_%03d", name_from_type(type).c_str(), flat_slot);
+	img->mem_name = string_printf("__tex_image_%s_%03d", name_from_type(type).c_str(), flat_slot);
 
 	/* Free previous texture in slot. */
 	if(img->mem) {
@@ -715,7 +715,7 @@ void ImageManager::device_load_image(Device *device,
 	/* Create new texture. */
 	if(type == IMAGE_DATA_TYPE_FLOAT4) {
 		device_vector<float4> *tex_img
-			= new device_vector<float4>(device, name.c_str(), MEM_TEXTURE);
+			= new device_vector<float4>(device, img->mem_name.c_str(), MEM_TEXTURE);
 
 		if(!file_load_image<TypeDesc::FLOAT, float>(img,
 		                                            type,
@@ -741,7 +741,7 @@ void ImageManager::device_load_image(Device *device,
 	}
 	else if(type == IMAGE_DATA_TYPE_FLOAT) {
 		device_vector<float> *tex_img
-			= new device_vector<float>(device, name.c_str(), MEM_TEXTURE);
+			= new device_vector<float>(device, img->mem_name.c_str(), MEM_TEXTURE);
 
 		if(!file_load_image<TypeDesc::FLOAT, float>(img,
 		                                            type,
@@ -764,7 +764,7 @@ void ImageManager::device_load_image(Device *device,
 	}
 	else if(type == IMAGE_DATA_TYPE_BYTE4) {
 		device_vector<uchar4> *tex_img
-			= new device_vector<uchar4>(device, name.c_str(), MEM_TEXTURE);
+			= new device_vector<uchar4>(device, img->mem_name.c_str(), MEM_TEXTURE);
 
 		if(!file_load_image<TypeDesc::UINT8, uchar>(img,
 		                                            type,
@@ -790,7 +790,7 @@ void ImageManager::device_load_image(Device *device,
 	}
 	else if(type == IMAGE_DATA_TYPE_BYTE) {
 		device_vector<uchar> *tex_img
-			= new device_vector<uchar>(device, name.c_str(), MEM_TEXTURE);
+			= new device_vector<uchar>(device, img->mem_name.c_str(), MEM_TEXTURE);
 
 		if(!file_load_image<TypeDesc::UINT8, uchar>(img,
 		                                            type,
@@ -812,7 +812,7 @@ void ImageManager::device_load_image(Device *device,
 	}
 	else if(type == IMAGE_DATA_TYPE_HALF4) {
 		device_vector<half4> *tex_img
-			= new device_vector<half4>(device, name.c_str(), MEM_TEXTURE);
+			= new device_vector<half4>(device, img->mem_name.c_str(), MEM_TEXTURE);
 
 		if(!file_load_image<TypeDesc::HALF, half>(img,
 		                                          type,
@@ -837,7 +837,7 @@ void ImageManager::device_load_image(Device *device,
 	}
 	else if(type == IMAGE_DATA_TYPE_HALF) {
 		device_vector<half> *tex_img
-			= new device_vector<half>(device, name.c_str(), MEM_TEXTURE);
+			= new device_vector<half>(device, img->mem_name.c_str(), MEM_TEXTURE);
 
 		if(!file_load_image<TypeDesc::HALF, half>(img,
 		                                          type,

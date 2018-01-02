@@ -644,7 +644,7 @@ void ObjectManager::device_update_flags(Device *,
 
 void ObjectManager::device_update_mesh_offsets(Device *, DeviceScene *dscene, Scene *scene)
 {
-	if(scene->objects.size() == 0) {
+	if(dscene->objects.size() == 0) {
 		return;
 	}
 

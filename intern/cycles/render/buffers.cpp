@@ -151,6 +151,10 @@ bool RenderBuffers::copy_from_device()
 
 bool RenderBuffers::get_denoising_pass_rect(int offset, float exposure, int sample, int components, float *pixels)
 {
+	if(buffer.data() == NULL) {
+		return false;
+	}
+
 	float invsample = 1.0f/sample;
 	float scale = invsample;
 	bool variance = (offset == DENOISING_PASS_NORMAL_VAR) ||
@@ -218,6 +222,10 @@ bool RenderBuffers::get_denoising_pass_rect(int offset, float exposure, int samp
 
 bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int components, float *pixels)
 {
+	if(buffer.data() == NULL) {
+		return false;
+	}
+
 	int pass_offset = 0;
 
 	for(size_t j = 0; j < params.passes.size(); j++) {

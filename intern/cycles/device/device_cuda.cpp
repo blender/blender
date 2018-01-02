@@ -650,7 +650,7 @@ public:
 
 	void generic_copy_to(device_memory& mem)
 	{
-		if(mem.device_pointer) {
+		if(mem.host_pointer && mem.device_pointer) {
 			CUDAContextScope scope(this);
 			cuda_assert(cuMemcpyHtoD(cuda_device_ptr(mem.device_pointer), mem.host_pointer, mem.memory_size()));
 		}
@@ -715,11 +715,11 @@ public:
 			size_t offset = elem*y*w;
 			size_t size = elem*w*h;
 
-			if(mem.device_pointer) {
+			if(mem.host_pointer && mem.device_pointer) {
 				cuda_assert(cuMemcpyDtoH((uchar*)mem.host_pointer + offset,
 										 (CUdeviceptr)(mem.device_pointer + offset), size));
 			}
-			else {
+			else if(mem.host_pointer) {
 				memset((char*)mem.host_pointer + offset, 0, size);
 			}
 		}
@@ -1118,13 +1118,17 @@ public:
 
 		int shift_stride = stride*h;
 		int num_shifts = (2*r+1)*(2*r+1);
-		int mem_size = sizeof(float)*shift_stride*2*num_shifts;
+		int mem_size = sizeof(float)*shift_stride*num_shifts;
 		int channel_offset = 0;
 
-		CUdeviceptr temporary_mem;
-		cuda_assert(cuMemAlloc(&temporary_mem, mem_size));
-		CUdeviceptr difference     = temporary_mem;
-		CUdeviceptr blurDifference = temporary_mem + sizeof(float)*shift_stride * num_shifts;
+		device_only_memory<uchar> temporary_mem(this, "Denoising temporary_mem");
+		temporary_mem.alloc_to_device(2*mem_size);
+
+		if(have_error())
+			return false;
+
+		CUdeviceptr difference     = cuda_device_ptr(temporary_mem.device_pointer);
+		CUdeviceptr blurDifference = difference + mem_size;
 
 		CUdeviceptr weightAccum = task->nlm_state.temporary_3_ptr;
 		cuda_assert(cuMemsetD8(weightAccum, 0, sizeof(float)*shift_stride));
@@ -1156,7 +1160,7 @@ public:
 			CUDA_LAUNCH_KERNEL_1D(cuNLMUpdateOutput, update_output_args);
 		}
 
-		cuMemFree(temporary_mem);
+		temporary_mem.free();
 
 		{
 			CUfunction cuNLMNormalize;
@@ -1225,10 +1229,14 @@ public:
 		int num_shifts = (2*r+1)*(2*r+1);
 		int mem_size = sizeof(float)*shift_stride*num_shifts;
 
-		CUdeviceptr temporary_mem;
-		cuda_assert(cuMemAlloc(&temporary_mem, 2*mem_size));
-		CUdeviceptr difference     = temporary_mem;
-		CUdeviceptr blurDifference = temporary_mem + mem_size;
+		device_only_memory<uchar> temporary_mem(this, "Denoising temporary_mem");
+		temporary_mem.alloc_to_device(2*mem_size);
+
+		if(have_error())
+			return false;
+
+		CUdeviceptr difference     = cuda_device_ptr(temporary_mem.device_pointer);
+		CUdeviceptr blurDifference = difference + mem_size;
 
 		{
 			CUfunction cuNLMCalcDifference, cuNLMBlur, cuNLMCalcWeight, cuNLMConstructGramian;
@@ -1268,7 +1276,7 @@ public:
 			CUDA_LAUNCH_KERNEL_1D(cuNLMConstructGramian, construct_gramian_args);
 		}
 
-		cuMemFree(temporary_mem);
+		temporary_mem.free();
 
 		{
 			CUfunction cuFinalize;

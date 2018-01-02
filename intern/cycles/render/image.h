@@ -111,6 +111,7 @@ public:
 		InterpolationType interpolation;
 		ExtensionType extension;
 
+		string mem_name;
 		device_memory *mem;
 
 		int users;
