@@ -34,7 +34,8 @@ class UnitTesting(ViewLayerTesting):
         family = self.setup_family()
 
         family['mom'].name = family['daughter'].name
-        self.assertNotEqual(family['mom'].name, family['daughter'].name)
+        # Since they are not siblings, we allow them to have the same name.
+        self.assertEqual(family['mom'].name, family['daughter'].name)
 
     def test_rename_b(self):
         family = self.setup_family()
@@ -46,13 +47,20 @@ class UnitTesting(ViewLayerTesting):
         family = self.setup_family()
 
         family['cousin'].name = family['daughter'].name
-        self.assertNotEqual(family['cousin'].name, family['daughter'].name)
+        # Since they are not siblings, we allow them to have the same name.
+        self.assertEqual(family['cousin'].name, family['daughter'].name)
 
     def test_rename_d(self):
         family = self.setup_family()
 
         family['son'].name = family['daughter'].name
         self.assertNotEqual(family['son'].name, family['daughter'].name)
+
+    def test_rename_e(self):
+        family = self.setup_family()
+
+        family['grandma'].name = family['grandpa'].name
+        self.assertNotEqual(family['grandma'].name, family['grandpa'].name)
 
     def test_add_equal_name_a(self):
         family = self.setup_family()
@@ -64,7 +72,14 @@ class UnitTesting(ViewLayerTesting):
         family = self.setup_family()
 
         other_aunt = family['grandma'].collections.new(family['daughter'].name)
-        self.assertNotEqual(other_aunt.name, family['daughter'].name)
+        # Since they are not siblings, we allow them to have the same name.
+        self.assertEqual(other_aunt.name, family['daughter'].name)
+
+    def test_add_equal_name_c(self):
+        family = self.setup_family()
+
+        other_aunt = family['grandma'].collections.new(family['mom'].name)
+        self.assertNotEqual(other_aunt.name, family['mom'].name)
 
 
 # ############################################################
