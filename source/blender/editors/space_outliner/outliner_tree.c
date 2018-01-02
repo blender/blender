@@ -1474,35 +1474,43 @@ static bool outliner_scene_collections_reorder_poll(
 	return true;
 }
 
-static void outliner_add_scene_collection_objects(
+static void inline outliner_add_scene_collection_init(TreeElement *te, SceneCollection *collection)
+{
+	te->name = collection->name;
+	te->directdata = collection;
+	te->reinsert = outliner_scene_collections_reorder;
+	te->reinsert_poll = outliner_scene_collections_reorder_poll;
+}
+
+static void inline outliner_add_scene_collection_objects(
         SpaceOops *soops, ListBase *tree, SceneCollection *collection, TreeElement *parent)
 {
 	for (LinkData *link = collection->objects.first; link; link = link->next) {
 		outliner_add_element(soops, tree, link->data, parent, 0, 0);
 	}
-	outliner_make_hierarchy(tree);
 }
 
-static void outliner_add_scene_collections_recursive(
-        SpaceOops *soops, ListBase *tree, ListBase *scene_collections, TreeElement *parent_ten)
+static void outliner_add_scene_collection_recursive(
+        SpaceOops *soops, ListBase *tree, SceneCollection *scene_collection, TreeElement *parent_ten)
 {
-	for (SceneCollection *collection = scene_collections->first; collection; collection = collection->next) {
-		TreeElement *ten = outliner_add_element(soops, tree, collection, parent_ten, TSE_SCENE_COLLECTION, 0);
+	TreeElement *ten = outliner_add_element(soops, tree, scene_collection, parent_ten, TSE_SCENE_COLLECTION, 0);
+	outliner_add_scene_collection_init(ten, scene_collection);
+	outliner_add_scene_collection_objects(soops, &ten->subtree, scene_collection, ten);
 
-		ten->name = collection->name;
-		ten->directdata = collection;
-		ten->reinsert = outliner_scene_collections_reorder;
-		ten->reinsert_poll = outliner_scene_collections_reorder_poll;
-
-		outliner_add_scene_collections_recursive(soops, &ten->subtree, &collection->scene_collections, ten);
-		outliner_add_scene_collection_objects(soops, &ten->subtree, collection, ten);
+	for (SceneCollection *scene_collection_nested = scene_collection->scene_collections.first;
+	     scene_collection_nested != NULL;
+	     scene_collection_nested = scene_collection_nested->next)
+	{
+		outliner_add_scene_collection_recursive(soops, &ten->subtree, scene_collection_nested, ten);
 	}
+
+	outliner_make_hierarchy(&ten->subtree);
 }
+
 static void outliner_add_collections_master(SpaceOops *soops, Scene *scene)
 {
-	SceneCollection *master = BKE_collection_master(&scene->id);
-	outliner_add_scene_collections_recursive(soops, &soops->tree, &master->scene_collections, NULL);
-	outliner_add_scene_collection_objects(soops, &soops->tree, master, NULL);
+	SceneCollection *master_collection = BKE_collection_master(&scene->id);
+	outliner_add_scene_collection_recursive(soops, &soops->tree, master_collection, NULL);
 }
 
 /* ======================================================= */
