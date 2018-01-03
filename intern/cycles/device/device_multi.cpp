@@ -48,11 +48,17 @@ public:
 	MultiDevice(DeviceInfo& info, Stats &stats, bool background_)
 	: Device(info, stats, background_), unique_key(1)
 	{
-		Device *device;
-
 		foreach(DeviceInfo& subinfo, info.multi_devices) {
-			device = Device::create(subinfo, sub_stats_, background);
-			devices.push_back(SubDevice(device));
+			Device *device = Device::create(subinfo, sub_stats_, background);
+
+			/* Always add CPU devices at the back since GPU devices can change
+			 * host memory pointers, which CPU uses as device pointer. */
+			if(subinfo.type == DEVICE_CPU) {
+				devices.push_back(SubDevice(device));
+			}
+			else {
+				devices.push_front(SubDevice(device));
+			}
 		}
 
 #ifdef WITH_NETWORK
@@ -63,7 +69,7 @@ public:
 		vector<string> servers = discovery.get_server_list();
 
 		foreach(string& server, servers) {
-			device = device_network_create(info, stats, server.c_str());
+			Device *device = device_network_create(info, stats, server.c_str());
 			if(device)
 				devices.push_back(SubDevice(device));
 		}

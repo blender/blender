@@ -4501,8 +4501,10 @@ Sequence *BKE_sequencer_foreground_frame_get(Scene *scene, int frame)
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 		if (seq->flag & SEQ_MUTE || seq->startdisp > frame || seq->enddisp <= frame)
 			continue;
-		/* only use elements you can see - not */
-		if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_META, SEQ_TYPE_SCENE, SEQ_TYPE_MOVIE, SEQ_TYPE_COLOR)) {
+		/* Only use strips that generate an image, not ones that combine
+		 * other strips or apply some effect. */
+		if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_META, SEQ_TYPE_SCENE,
+		         SEQ_TYPE_MOVIE, SEQ_TYPE_COLOR, SEQ_TYPE_TEXT)) {
 			if (seq->machine > best_machine) {
 				best_seq = seq;
 				best_machine = seq->machine;

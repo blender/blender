@@ -56,7 +56,7 @@ ccl_device void svm_node_glass_setup(ShaderData *sd, MicrofacetBsdf *bsdf, int t
 	}
 }
 
-ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int path_flag, int *offset)
+ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, ShaderType shader_type, int path_flag, int *offset)
 {
 	uint type, param1_offset, param2_offset;
 
@@ -67,8 +67,18 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 	/* note we read this extra node before weight check, so offset is added */
 	uint4 data_node = read_node(kg, offset);
 
-	if(mix_weight == 0.0f)
+	/* Only compute BSDF for surfaces, transparent variable is shared with volume extinction. */
+	if(mix_weight == 0.0f || shader_type != SHADER_TYPE_SURFACE) {
+		if(type == CLOSURE_BSDF_PRINCIPLED_ID) {
+			/* Read all principled BSDF extra data to get the right offset. */
+			read_node(kg, offset);
+			read_node(kg, offset);
+			read_node(kg, offset);
+			read_node(kg, offset);
+		}
+
 		return;
+	}
 
 	float3 N = stack_valid(data_node.x)? stack_load_float3(stack, data_node.x): sd->N;
 
@@ -835,9 +845,14 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 	}
 }
 
-ccl_device void svm_node_closure_volume(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int path_flag)
+ccl_device void svm_node_closure_volume(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, ShaderType shader_type, int path_flag)
 {
 #ifdef __VOLUME__
+	/* Only sum extinction for volumes, variable is shared with surface transparency. */
+	if(shader_type != SHADER_TYPE_VOLUME) {
+		return;
+	}
+
 	uint type, param1_offset, param2_offset;
 
 	uint mix_weight_offset;

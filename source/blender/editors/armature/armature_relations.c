@@ -126,7 +126,7 @@ typedef struct tJoinArmature_AdtFixData {
 	GHash *names_map;
 } tJoinArmature_AdtFixData;
 
-/* Callback to pass to void BKE_animdata_main_cb() for fixing driver ID's to point to the new ID */
+/* Callback to pass to BKE_animdata_main_cb() for fixing driver ID's to point to the new ID */
 /* FIXME: For now, we only care about drivers here. When editing rigs, it's very rare to have animation
  *        on the rigs being edited already, so it should be safe to skip these.
  */

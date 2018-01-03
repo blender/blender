@@ -1711,7 +1711,7 @@ void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRN
 	}
 	else if (but->type == UI_BTYPE_SEARCH_MENU) {
 		/* In case we fail to find proper searchprop, so other code might have already set but->type to search menu... */
-		but->type = UI_BTYPE_LABEL;
+		but->flag |= UI_BUT_DISABLED;
 	}
 }
 

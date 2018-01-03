@@ -43,7 +43,7 @@ if(WIN32)
 	set(OPENSUBDIV_EXTRA_ARGS
 		${OPENSUBDIV_EXTRA_ARGS}
 		-DNO_CUDA=${OPENSUBDIV_CUDA}
-		-DCLEW_INCLUDE_DIR=${LIBDIR}/clew/include/cl
+		-DCLEW_INCLUDE_DIR=${LIBDIR}/clew/include/CL
 		-DCLEW_LIBRARY=${LIBDIR}/clew/lib/clew${LIBEXT}
 		-DCUEW_INCLUDE_DIR=${LIBDIR}/cuew/include
 		-DCUEW_LIBRARY=${LIBDIR}/cuew/lib/cuew${LIBEXT}
@@ -54,6 +54,7 @@ else()
 		${OPENSUBDIV_EXTRA_ARGS}
 		-DNO_CUDA=ON
 		-DCUEW_INCLUDE_DIR=${LIBDIR}/cuew/include
+		-DCLEW_INCLUDE_DIR=${LIBDIR}/clew/include/CL
 		-DCLEW_LIBRARY=${LIBDIR}/clew/lib/static/${LIBPREFIX}clew${LIBEXT}
 	)
 endif()
