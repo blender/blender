@@ -1645,6 +1645,9 @@ void EEVEE_lightprobes_refresh(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	else if (true) { /* TODO if at least one probe needs refresh */
 		lightprobes_refresh_all_no_world(sldata, vedata);
 	}
+
+	/* Disable SSR if we cannot read previous frame */
+	sldata->probes->ssr_toggle = vedata->stl->g_data->valid_double_buffer;
 }
 
 void EEVEE_lightprobes_free(void)

@@ -354,7 +354,7 @@ static void add_standard_uniforms(
         DRWShadingGroup *shgrp, EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata,
         int *ssr_id, float *refract_depth, bool use_ssrefraction, bool use_alpha_blend, bool use_sss)
 {
-	if (ssr_id == NULL || !vedata->stl->g_data->valid_double_buffer) {
+	if (ssr_id == NULL) {
 		static int no_ssr = -1.0f;
 		ssr_id = &no_ssr;
 	}
