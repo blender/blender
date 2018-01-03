@@ -126,6 +126,7 @@ static int curve_render_normal_len_get(const ListBase *lb, const CurveCache *ob_
 			nr -= skip;
 		}
 #else
+		/* Same as loop above */
 		normal_len += (nr / (skip + 1)) + ((nr % (skip + 1)) != 0);
 #endif
 	}
