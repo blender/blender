@@ -7405,7 +7405,7 @@ static void draw_editnurb(
 			}
 #else
 			/* Same as loop above */
-			count += (nr / (skip + 1)) + ((nr % (skip + 1)) != 0);
+			count += 4 * ((nr / (skip + 1)) + ((nr % (skip + 1)) != 0));
 #endif
 		}
 
