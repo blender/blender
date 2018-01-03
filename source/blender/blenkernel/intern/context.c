@@ -1059,6 +1059,7 @@ static const char *data_mode_strings[] = {
 	"objectmode",
 	NULL
 };
+BLI_STATIC_ASSERT(ARRAY_SIZE(data_mode_strings) == CTX_MODE_NUM + 1, "Must have a string for each context mode")
 const char *CTX_data_mode_string(const bContext *C)
 {
 	return data_mode_strings[CTX_data_mode_enum(C)];
