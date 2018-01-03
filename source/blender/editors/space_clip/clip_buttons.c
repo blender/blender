@@ -106,7 +106,7 @@ void uiTemplateMovieClip(uiLayout *layout, bContext *C, PointerRNA *ptr, const c
 	uiLayoutSetContextPointer(layout, "edit_movieclip", &clipptr);
 
 	if (!compact)
-		uiTemplateID(layout, C, ptr, propname, NULL, "CLIP_OT_open", NULL);
+		uiTemplateID(layout, C, ptr, propname, NULL, "CLIP_OT_open", NULL, UI_TEMPLATE_ID_FILTER_ALL);
 
 	if (clip) {
 		uiLayout *col;

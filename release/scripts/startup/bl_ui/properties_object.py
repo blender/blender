@@ -40,7 +40,7 @@ class OBJECT_PT_context_object(ObjectButtonsPanel, Panel):
             layout.template_ID(space, "pin_id")
         else:
             row = layout.row()
-            row.template_ID(context.scene.objects, "active")
+            row.template_ID(context.scene.objects, "active", filter='AVAILABLE')
 
 
 class OBJECT_PT_transform(ObjectButtonsPanel, Panel):
