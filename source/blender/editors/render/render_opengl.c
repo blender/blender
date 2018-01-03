@@ -279,7 +279,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 	const short view_context = (v3d != NULL);
 	bool draw_bgpic = true;
 	bool draw_sky = (scene->r.alphamode == R_ADDSKY);
-	unsigned char *rect = NULL;
+	float *rectf = NULL;
 	const char *viewname = RE_GetActiveRenderView(oglrender->re);
 	ImBuf *ibuf_result = NULL;
 	EvaluationContext eval_ctx;
@@ -360,7 +360,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 
 			ibuf_view = ED_view3d_draw_offscreen_imbuf(
 			       &eval_ctx, scene, view_layer, v3d, ar, sizex, sizey,
-			       IB_rect, draw_flags, alpha_mode, oglrender->ofs_samples, viewname,
+			       IB_rectfloat, draw_flags, alpha_mode, oglrender->ofs_samples, viewname,
 			       oglrender->fx, oglrender->ofs, err_out);
 
 			/* for stamp only */
@@ -372,7 +372,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 			draw_flags |= (V3D_OFSDRAW_USE_GPENCIL | V3D_OFSDRAW_USE_BACKGROUND);
 			ibuf_view = ED_view3d_draw_offscreen_imbuf_simple(
 			        &eval_ctx, scene, view_layer, scene->camera, oglrender->sizex, oglrender->sizey,
-			        IB_rect, draw_flags, OB_SOLID,
+			        IB_rectfloat, draw_flags, OB_SOLID,
 			        alpha_mode, oglrender->ofs_samples, viewname,
 			        oglrender->fx, oglrender->ofs, err_out);
 			camera = scene->camera;
@@ -380,7 +380,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 
 		if (ibuf_view) {
 			ibuf_result = ibuf_view;
-			rect = (unsigned char *)ibuf_view->rect;
+			rectf = (float *)ibuf_view->rect_float;
 		}
 		else {
 			fprintf(stderr, "%s: failed to get buffer, %s\n", __func__, err_out);
@@ -389,7 +389,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 
 	if (ibuf_result != NULL) {
 		if ((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW)) {
-			BKE_image_stamp_buf(scene, camera, NULL, rect, NULL, rr->rectx, rr->recty, 4);
+			BKE_image_stamp_buf(scene, camera, NULL, NULL, rectf, rr->rectx, rr->recty, 4);
 		}
 		RE_render_result_rect_from_ibuf(rr, &scene->r, ibuf_result, oglrender->view_id);
 		IMB_freeImBuf(ibuf_result);

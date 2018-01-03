@@ -2466,18 +2466,22 @@ void DRW_transform_to_display(GPUTexture *tex)
 
 	bool use_ocio = false;
 
-	{
+	/* View transform is already applied for offscreen, don't apply again, see: T52046 */
+	if (!(DST.options.is_image_render && !DST.options.is_scene_render)) {
 		Scene *scene = DST.draw_ctx.scene;
-		/* View transform is already applied for offscreen, don't apply again, see: T52046 */
-		ColorManagedViewSettings *view_settings =
-		        (DST.options.is_image_render && !DST.options.is_scene_render) ?
-		        NULL : &scene->view_settings;
 		use_ocio = IMB_colormanagement_setup_glsl_draw_from_space(
-		        view_settings, &scene->display_settings, NULL, dither, false);
+		        &scene->view_settings, &scene->display_settings, NULL, dither, false);
 	}
 
 	if (!use_ocio) {
-		immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_LINEAR_TO_SRGB);
+		/* View transform is already applied for offscreen, don't apply again, see: T52046 */
+		if (DST.options.is_image_render && !DST.options.is_scene_render) {
+			immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
+			immUniformColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		}
+		else {
+			immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_LINEAR_TO_SRGB);
+		}
 		immUniform1i("image", 0);
 	}
 
