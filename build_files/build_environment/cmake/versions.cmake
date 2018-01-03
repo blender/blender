@@ -104,10 +104,10 @@ set(OPENCOLORIO_URI https://github.com/imageworks/OpenColorIO/archive/6de971097c
 set(OPENCOLORIO_HASH c9de0fd98f26ce6f2e08d617ca68b8e4)
 
 set(LLVM_VERSION 3.4.2)
-set(LLVM_URI http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.gz)
+set(LLVM_URI http://releases.llvm.org/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.gz)
 set(LLVM_HASH a20669f75967440de949ac3b1bad439c)
 
-set(CLANG_URI http://llvm.org/releases/${LLVM_VERSION}/cfe-${LLVM_VERSION}.src.tar.gz)
+set(CLANG_URI http://releases.llvm.org/${LLVM_VERSION}/cfe-${LLVM_VERSION}.src.tar.gz)
 set(CLANG_HASH 87945973b7c73038871c5f849a818588)
 
 set(OPENIMAGEIO_VERSION 1.7.15)
