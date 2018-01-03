@@ -581,14 +581,14 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				         (collection->scene_collection->type == COLLECTION_TYPE_GROUP_INTERNAL))
 				{
 					bt = uiDefIconButBitS(block, UI_BTYPE_ICON_TOGGLE_N, COLLECTION_VIEWPORT, 0, ICON_RESTRICT_VIEW_OFF,
-					                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWPORTX), te->ys, UI_UNIT_X,
+					                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X,
 					                      UI_UNIT_Y, &collection->flag, 0, 0, 0, 0,
 					                      TIP_("Restrict/Allow 3D View selection of objects in the collection"));
 					UI_but_func_set(bt, restrictbutton_collection_flag_cb, tselem->id, collection);
 					UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
 
 					bt = uiDefIconButBitS(block, UI_BTYPE_ICON_TOGGLE_N, COLLECTION_RENDER, 0, ICON_RESTRICT_RENDER_OFF,
-					                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), te->ys, UI_UNIT_X,
+					                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), te->ys, UI_UNIT_X,
 					                      UI_UNIT_Y, &collection->flag, 0, 0, 0, 0,
 					                      TIP_("Restrict/Allow 3D View selection of objects in the collection"));
 					UI_but_func_set(bt, restrictbutton_collection_flag_cb, tselem->id, collection);
@@ -597,7 +597,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 
 				bt = uiDefIconButBitS(block, UI_BTYPE_BUT_TOGGLE, COLLECTION_DISABLED, 0,
 				                      is_enabled ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT,
-				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_ENABLEX), te->ys, UI_UNIT_X,
+				                      (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), te->ys, UI_UNIT_X,
 				                      UI_UNIT_Y, &collection->flag, 0, 0, 0, 0,
 				                      TIP_("Enable/Disable collection"));
 				UI_but_func_set(bt, restrictbutton_collection_flag_cb, tselem->id, collection);
@@ -1790,9 +1790,8 @@ static void outliner_draw_tree(
 
 	/* set scissor so tree elements or lines can't overlap restriction icons */
 	GLfloat scissor[4] = {0};
-	const bool is_group = (soops->outlinevis == SO_GROUPS);
 	if (has_restrict_icons) {
-		int mask_x = BLI_rcti_size_x(&ar->v2d.mask) - (int)(is_group ? OL_TOG_GROUPW : OL_TOGW) + 1;
+		int mask_x = BLI_rcti_size_x(&ar->v2d.mask) - (int)OL_TOGW + 1;
 		CLAMP_MIN(mask_x, 0);
 
 		glGetFloatv(GL_SCISSOR_BOX, scissor);
@@ -1858,30 +1857,23 @@ static void outliner_back(ARegion *ar)
 	immUnbindProgram();
 }
 
-static void outliner_draw_restrictcols(ARegion *ar, SpaceOops *soops)
+static void outliner_draw_restrictcols(ARegion *ar)
 {
 	glLineWidth(1.0f);
-
-	const bool is_group = (soops->outlinevis == SO_GROUPS);
 
 	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformThemeColorShadeAlpha(TH_BACK, -15, -200);
-	immBegin(GWN_PRIM_LINES, is_group ? 6 : 4);
+	immBegin(GWN_PRIM_LINES, 6);
 
-	/* view */
-	immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_ENABLEX), (int)ar->v2d.cur.ymax);
-	immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_ENABLEX), (int)ar->v2d.cur.ymin);
+	immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), (int)ar->v2d.cur.ymax);
+	immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), (int)ar->v2d.cur.ymin);
 
-	/* render */
+	immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), (int)ar->v2d.cur.ymax);
+	immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), (int)ar->v2d.cur.ymin);
+
 	immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), (int)ar->v2d.cur.ymax);
 	immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), (int)ar->v2d.cur.ymin);
-
-	if (is_group) {
-		/* render */
-		immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWPORTX), (int)ar->v2d.cur.ymax);
-		immVertex2i(pos, (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWPORTX), (int)ar->v2d.cur.ymin);
-	}
 
 	immEnd();
 	immUnbindProgram();
@@ -1934,7 +1926,7 @@ void draw_outliner(const bContext *C)
 		/* constant offset for restriction columns */
 		// XXX this isn't that great yet...
 		if ((soops->flag & SO_HIDE_RESTRICTCOLS) == 0) {
-			sizex += OL_TOGW * ((soops->flag & SO_GROUPS) != 0 ? 3 : 2);
+			sizex += OL_TOGW * 3;
 		}
 
 		has_restrict_icons = !(soops->flag & SO_HIDE_RESTRICTCOLS);
@@ -1963,12 +1955,12 @@ void draw_outliner(const bContext *C)
 	}
 	else if ((soops->outlinevis == SO_ID_ORPHANS) && has_restrict_icons) {
 		/* draw user toggle columns */
-		outliner_draw_restrictcols(ar, soops);
+		outliner_draw_restrictcols(ar);
 		outliner_draw_userbuts(block, ar, soops, &soops->tree);
 	}
 	else if (has_restrict_icons) {
 		/* draw restriction columns */
-		outliner_draw_restrictcols(ar, soops);
+		outliner_draw_restrictcols(ar);
 		outliner_draw_restrictbuts(block, scene, ar, soops, &soops->tree);
 	}
 
