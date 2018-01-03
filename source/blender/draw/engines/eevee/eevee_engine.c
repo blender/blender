@@ -244,7 +244,9 @@ static void eevee_draw_background(void *vedata)
 
 		/* Shading pass */
 		DRW_stats_group_start("Shading");
-		DRW_draw_pass(psl->background_pass);
+		if (DRW_state_draw_background()) {
+			DRW_draw_pass(psl->background_pass);
+		}
 		EEVEE_draw_default_passes(psl);
 		DRW_draw_pass(psl->material_pass);
 		EEVEE_subsurface_data_render(sldata, vedata);
