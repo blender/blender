@@ -1394,6 +1394,19 @@ int WM_operator_name_call(bContext *C, const char *opstring, short context, Poin
 }
 
 /**
+ * Call an existent menu. The menu can be created in C or Python.
+ */
+void WM_menu_name_call(bContext *C, const char *menu_name, short context)
+{
+	wmOperatorType *ot = WM_operatortype_find("WM_OT_call_menu", false);
+	PointerRNA ptr;
+	WM_operator_properties_create_ptr(&ptr, ot);
+	RNA_string_set(&ptr, "name", menu_name);
+	WM_operator_name_call_ptr(C, ot, context, &ptr);
+	WM_operator_properties_free(&ptr);
+}
+
+/**
  * Similar to #WM_operator_name_call called with #WM_OP_EXEC_DEFAULT context.
  *
  * - #wmOperatorType is used instead of operator name since python already has the operator type.
