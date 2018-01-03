@@ -725,6 +725,7 @@ void BKE_scene_collections_iterator_begin(BLI_Iterator *iter, void *data_in)
 
 	data->owner_id = owner_id;
 	iter->data = data;
+	iter->valid = true;
 
 	scene_collections_array(owner_id, (SceneCollection ***)&data->array, &data->tot);
 	BLI_assert(data->tot != 0);
