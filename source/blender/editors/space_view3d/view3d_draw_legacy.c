@@ -284,7 +284,7 @@ static void backdrawview3d(const struct EvaluationContext *eval_ctx, Scene *scen
 		}
 
 		if (!rv3d->gpuoffscreen) {
-			rv3d->gpuoffscreen = GPU_offscreen_create(w, h, 0, error);
+			rv3d->gpuoffscreen = GPU_offscreen_create(w, h, 0, false, error);
 
 			if (!rv3d->gpuoffscreen)
 				fprintf(stderr, "Failed to create offscreen selection buffer for multisample: %s\n", error);

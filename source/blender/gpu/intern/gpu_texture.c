@@ -663,6 +663,12 @@ GPUTexture *GPU_texture_create_2D_multisample(int w, int h, const float *pixels,
 	return GPU_texture_create_nD(w, h, 0, 2, pixels, GPU_RGBA8, 4, samples, false, err_out);
 }
 
+GPUTexture *GPU_texture_create_2D_custom_multisample(
+        int w, int h, int channels, GPUTextureFormat data_type, const float *pixels, int samples, char err_out[256])
+{
+	return GPU_texture_create_nD(w, h, 0, 2, pixels, data_type, channels, samples, false, err_out);
+}
+
 GPUTexture *GPU_texture_create_2D_array_custom(int w, int h, int d, int channels, GPUTextureFormat data_type, const float *pixels, char err_out[256])
 {
 	return GPU_texture_create_nD(w, h, d, 2, pixels, data_type, channels, 0, false, err_out);

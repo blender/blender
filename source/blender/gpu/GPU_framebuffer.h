@@ -83,7 +83,7 @@ void GPU_framebuffer_recursive_downsample(
  * - wrapper around framebuffer and texture for simple offscreen drawing
  * - changes size if graphics card can't support it */
 
-GPUOffScreen *GPU_offscreen_create(int width, int height, int samples, char err_out[256]);
+GPUOffScreen *GPU_offscreen_create(int width, int height, int samples, bool high_bitdepth, char err_out[256]);
 void GPU_offscreen_free(GPUOffScreen *ofs);
 void GPU_offscreen_bind(GPUOffScreen *ofs, bool save);
 void GPU_offscreen_unbind(GPUOffScreen *ofs, bool restore);

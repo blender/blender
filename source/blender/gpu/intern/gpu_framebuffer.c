@@ -650,7 +650,7 @@ struct GPUOffScreen {
 	GPUTexture *depth;
 };
 
-GPUOffScreen *GPU_offscreen_create(int width, int height, int samples, char err_out[256])
+GPUOffScreen *GPU_offscreen_create(int width, int height, int samples, bool high_bitdepth, char err_out[256])
 {
 	GPUOffScreen *ofs;
 
@@ -683,7 +683,12 @@ GPUOffScreen *GPU_offscreen_create(int width, int height, int samples, char err_
 		return NULL;
 	}
 
-	ofs->color = GPU_texture_create_2D_multisample(width, height, NULL, samples, err_out);
+	if (high_bitdepth) {
+		ofs->color = GPU_texture_create_2D_custom_multisample(width, height, 4, GPU_RGBA16F, NULL, samples, err_out);
+	}
+	else {
+		ofs->color = GPU_texture_create_2D_multisample(width, height, NULL, samples, err_out);
+	}
 	if (!ofs->color) {
 		GPU_offscreen_free(ofs);
 		return NULL;
