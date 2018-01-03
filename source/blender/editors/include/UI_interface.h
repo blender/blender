@@ -671,6 +671,15 @@ void UI_but_string_info_get(struct bContext *C, uiBut *but, ...) ATTR_SENTINEL(0
 #define UI_ID_OVERRIDE      (1 << 11)
 #define UI_ID_FULL          (UI_ID_RENAME | UI_ID_BROWSE | UI_ID_ADD_NEW | UI_ID_OPEN | UI_ID_ALONE | UI_ID_DELETE | UI_ID_LOCAL)
 
+/**
+ * Ways to limit what is displayed in ID-search popup.
+ * \note We may want to add LOCAL, LIBRARY ... as needed.
+ */
+enum {
+	UI_TEMPLATE_ID_FILTER_ALL = 0,
+	UI_TEMPLATE_ID_FILTER_AVAILABLE = 1,
+};
+
 int UI_icon_from_id(struct ID *id);
 int UI_icon_from_report_type(int type);
 
@@ -926,12 +935,15 @@ uiLayout *uiLayoutRadial(uiLayout *layout);
 
 /* templates */
 void uiTemplateHeader(uiLayout *layout, struct bContext *C);
-void uiTemplateID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname,
-                  const char *newop, const char *openop, const char *unlinkop);
-void uiTemplateIDBrowse(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname,
-                        const char *newop, const char *openop, const char *unlinkop);
-void uiTemplateIDPreview(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname,
-                         const char *newop, const char *openop, const char *unlinkop, int rows, int cols);
+void uiTemplateID(
+        uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname,
+        const char *newop, const char *openop, const char *unlinkop, int filter);
+void uiTemplateIDBrowse(
+        uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname,
+        const char *newop, const char *openop, const char *unlinkop, int filter);
+void uiTemplateIDPreview(
+        uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname,
+        const char *newop, const char *openop, const char *unlinkop, int rows, int cols, int filter);
 void uiTemplateAnyID(uiLayout *layout, struct PointerRNA *ptr, const char *propname, 
                      const char *proptypename, const char *text);
 void uiTemplateSearch(

@@ -232,6 +232,8 @@ typedef struct TemplateID {
 	PropertyRNA *prop;
 
 	ListBase *idlb;
+	short idcode;
+	short filter;
 	int prv_rows, prv_cols;
 	bool preview;
 } TemplateID;
@@ -251,46 +253,110 @@ static void id_search_call_cb(bContext *C, void *arg_template, void *item)
 	}
 }
 
+static bool id_search_add(
+        const bContext *C, TemplateID *template_ui,
+        const int flag, const char *str, uiSearchItems *items,
+        ID *id)
+{
+	ID *id_from = template_ui->ptr.id.data;
+
+	if (!((flag & PROP_ID_SELF_CHECK) && id == id_from)) {
+
+		/* use filter */
+		if (RNA_property_type(template_ui->prop) == PROP_POINTER) {
+			PointerRNA ptr;
+			RNA_id_pointer_create(id, &ptr);
+			if (RNA_property_pointer_poll(&template_ui->ptr, template_ui->prop, &ptr) == 0) {
+				return true;
+			}
+		}
+
+		/* hide dot-datablocks, but only if filter does not force it visible */
+		if (U.uiflag & USER_HIDE_DOT) {
+			if ((id->name[2] == '.') && (str[0] != '.')) {
+				return true;
+			}
+		}
+
+		if (*str == '\0' || BLI_strcasestr(id->name + 2, str)) {
+			/* +1 is needed because BKE_id_ui_prefix used 3 letter prefix
+			 * followed by ID_NAME-2 characters from id->name
+			 */
+			char name_ui[MAX_ID_NAME + 1];
+			BKE_id_ui_prefix(name_ui, id);
+
+			int iconid = ui_id_icon_get(C, id, template_ui->preview);
+
+			if (false == UI_search_item_add(items, name_ui, id, iconid)) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
 /* ID Search browse menu, do the search */
 static void id_search_cb(const bContext *C, void *arg_template, const char *str, uiSearchItems *items)
 {
 	TemplateID *template_ui = (TemplateID *)arg_template;
 	ListBase *lb = template_ui->idlb;
-	ID *id, *id_from = template_ui->ptr.id.data;
-	int iconid;
+	ID *id;
 	int flag = RNA_property_flag(template_ui->prop);
 
 	/* ID listbase */
 	for (id = lb->first; id; id = id->next) {
-		if (!((flag & PROP_ID_SELF_CHECK) && id == id_from)) {
-
-			/* use filter */
-			if (RNA_property_type(template_ui->prop) == PROP_POINTER) {
-				PointerRNA ptr;
-				RNA_id_pointer_create(id, &ptr);
-				if (RNA_property_pointer_poll(&template_ui->ptr, template_ui->prop, &ptr) == 0)
-					continue;
-			}
-
-			/* hide dot-datablocks, but only if filter does not force it visible */
-			if (U.uiflag & USER_HIDE_DOT)
-				if ((id->name[2] == '.') && (str[0] != '.'))
-					continue;
-
-			if (*str == '\0' || BLI_strcasestr(id->name + 2, str)) {
-				/* +1 is needed because BKE_id_ui_prefix used 3 letter prefix
-				 * followed by ID_NAME-2 characters from id->name
-				 */
-				char name_ui[MAX_ID_NAME + 1];
-				BKE_id_ui_prefix(name_ui, id);
-
-				iconid = ui_id_icon_get(C, id, template_ui->preview);
-
-				if (false == UI_search_item_add(items, name_ui, id, iconid))
-					break;
-			}
+		if (!id_search_add(C, template_ui, flag, str, items, id)) {
+			break;
 		}
 	}
+}
+
+/**
+ * Use id tags for filtering.
+ */
+static void id_search_cb_tagged(const bContext *C, void *arg_template, const char *str, uiSearchItems *items)
+{
+	TemplateID *template_ui = (TemplateID *)arg_template;
+	ListBase *lb = template_ui->idlb;
+	ID *id;
+	int flag = RNA_property_flag(template_ui->prop);
+
+	/* ID listbase */
+	for (id = lb->first; id; id = id->next) {
+		if (id->tag & LIB_TAG_DOIT) {
+			if (!id_search_add(C, template_ui, flag, str, items, id)) {
+				break;
+			}
+			id->tag &= ~LIB_TAG_DOIT;
+		}
+	}
+}
+
+/**
+ * A version of 'id_search_cb' that lists scene objects.
+ */
+static void id_search_cb_objects_from_scene(const bContext *C, void *arg_template, const char *str, uiSearchItems *items)
+{
+	TemplateID *template_ui = (TemplateID *)arg_template;
+	ListBase *lb = template_ui->idlb;
+	Scene *scene = NULL;
+	ID *id_from = template_ui->ptr.id.data;
+
+	if (id_from && GS(id_from->name) == ID_SCE) {
+		scene = (Scene *)id_from;
+	}
+	else {
+		scene = CTX_data_scene(C);
+	}
+
+	BKE_main_id_flag_listbase(lb, LIB_TAG_DOIT, false);
+
+	FOREACH_SCENE_OBJECT(scene, ob_iter)
+	{
+		ob_iter->id.tag |= LIB_TAG_DOIT;
+	}
+	FOREACH_SCENE_OBJECT_END
+	id_search_cb_tagged(C, arg_template, str, items);
 }
 
 /* ID Search browse menu, open */
@@ -298,13 +364,23 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 {
 	static TemplateID template_ui;
 	PointerRNA active_item_ptr;
+	void (*id_search_cb_p)(const bContext *, void *, const char *, uiSearchItems *) = id_search_cb;
 
 	/* arg_litem is malloced, can be freed by parent button */
 	template_ui = *((TemplateID *)arg_litem);
 	active_item_ptr = RNA_property_pointer_get(&template_ui.ptr, template_ui.prop);
 
+	if (template_ui.filter) {
+		/* Currently only used for objects. */
+		if (template_ui.idcode == ID_OB) {
+			if (template_ui.filter == UI_TEMPLATE_ID_FILTER_AVAILABLE) {
+				id_search_cb_p = id_search_cb_objects_from_scene;
+			}
+		}
+	}
+
 	return template_common_search_menu(
-	               C, ar, id_search_cb, &template_ui, id_search_call_cb, active_item_ptr.data,
+	               C, ar, id_search_cb_p, &template_ui, id_search_call_cb, active_item_ptr.data,
 	               template_ui.prv_rows, template_ui.prv_cols);
 }
 
@@ -496,7 +572,7 @@ static const char *template_id_context(StructRNA *type)
 #endif
 
 static void template_ID(
-        bContext *C, uiLayout *layout, TemplateID *template_ui, StructRNA *type, short idcode, int flag,
+        bContext *C, uiLayout *layout, TemplateID *template_ui, StructRNA *type, int flag,
         const char *newop, const char *openop, const char *unlinkop)
 {
 	uiBut *but;
@@ -704,15 +780,15 @@ static void template_ID(
 		}
 	}
 
-	if (idcode == ID_TE)
+	if (template_ui->idcode == ID_TE) {
 		uiTemplateTextureShow(layout, C, &template_ui->ptr, template_ui->prop);
-	
+	}
 	UI_block_align_end(block);
 }
 
 static void ui_template_id(
         uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, const char *newop,
-        const char *openop, const char *unlinkop, int flag, int prv_rows, int prv_cols)
+        const char *openop, const char *unlinkop, int flag, int prv_rows, int prv_cols, int filter)
 {
 	TemplateID *template_ui;
 	PropertyRNA *prop;
@@ -732,6 +808,13 @@ static void ui_template_id(
 	template_ui->prv_rows = prv_rows;
 	template_ui->prv_cols = prv_cols;
 
+	if ((flag & UI_ID_PIN) == 0) {
+		template_ui->filter = filter;
+	}
+	else {
+		template_ui->filter = 0;
+	}
+
 	if (newop)
 		flag |= UI_ID_ADD_NEW;
 	if (openop)
@@ -739,14 +822,15 @@ static void ui_template_id(
 
 	type = RNA_property_pointer_type(ptr, prop);
 	idcode = RNA_type_to_ID_code(type);
+	template_ui->idcode = idcode;
 	template_ui->idlb = which_libbase(CTX_data_main(C), idcode);
-	
+
 	/* create UI elements for this template
 	 *	- template_ID makes a copy of the template data and assigns it to the relevant buttons
 	 */
 	if (template_ui->idlb) {
 		uiLayoutRow(layout, true);
-		template_ID(C, layout, template_ui, type, idcode, flag, newop, openop, unlinkop);
+		template_ID(C, layout, template_ui, type, flag, newop, openop, unlinkop);
 	}
 
 	MEM_freeN(template_ui);
@@ -754,25 +838,25 @@ static void ui_template_id(
 
 void uiTemplateID(
         uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, const char *newop,
-        const char *openop, const char *unlinkop)
+        const char *openop, const char *unlinkop, int filter)
 {
 	ui_template_id(layout, C, ptr, propname, newop, openop, unlinkop,
-	               UI_ID_BROWSE | UI_ID_RENAME | UI_ID_DELETE, 0, 0);
+	               UI_ID_BROWSE | UI_ID_RENAME | UI_ID_DELETE, 0, 0, filter);
 }
 
 void uiTemplateIDBrowse(
         uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, const char *newop,
-        const char *openop, const char *unlinkop)
+        const char *openop, const char *unlinkop, int filter)
 {
-	ui_template_id(layout, C, ptr, propname, newop, openop, unlinkop, UI_ID_BROWSE | UI_ID_RENAME, 0, 0);
+	ui_template_id(layout, C, ptr, propname, newop, openop, unlinkop, UI_ID_BROWSE | UI_ID_RENAME, 0, 0, filter);
 }
 
 void uiTemplateIDPreview(
         uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, const char *newop,
-        const char *openop, const char *unlinkop, int rows, int cols)
+        const char *openop, const char *unlinkop, int rows, int cols, int filter)
 {
 	ui_template_id(layout, C, ptr, propname, newop, openop, unlinkop,
-	               UI_ID_BROWSE | UI_ID_RENAME | UI_ID_DELETE | UI_ID_PREVIEWS, rows, cols);
+	               UI_ID_BROWSE | UI_ID_RENAME | UI_ID_DELETE | UI_ID_PREVIEWS, rows, cols, filter);
 }
 
 /************************ ID Chooser Template ***************************/
@@ -4375,7 +4459,7 @@ void uiTemplateCacheFile(uiLayout *layout, bContext *C, PointerRNA *ptr, const c
 
 	uiLayoutSetContextPointer(layout, "edit_cachefile", &fileptr);
 
-	uiTemplateID(layout, C, ptr, propname, NULL, "CACHEFILE_OT_open", NULL);
+	uiTemplateID(layout, C, ptr, propname, NULL, "CACHEFILE_OT_open", NULL, UI_TEMPLATE_ID_FILTER_ALL);
 
 	if (!file) {
 		return;
