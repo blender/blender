@@ -2096,6 +2096,9 @@ static int do_outliner_operation_event(bContext *C, ARegion *ar, SpaceOops *soop
 				else if (datalevel == TSE_LAYER_COLLECTION) {
 					WM_operator_name_call(C, "OUTLINER_OT_collection_operation", WM_OP_INVOKE_REGION_WIN, NULL);
 				}
+				else if (datalevel == TSE_SCENE_COLLECTION) {
+					WM_menu_name_call(C, "OUTLINER_MT_edit_collections", WM_OP_INVOKE_REGION_WIN);
+				}
 				else {
 					WM_operator_name_call(C, "OUTLINER_OT_data_operation", WM_OP_INVOKE_REGION_WIN, NULL);
 				}
