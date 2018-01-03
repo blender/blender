@@ -1608,7 +1608,8 @@ static void drw_state_set(DRWState state)
 				glEnable(GL_BLEND);
 
 				if ((state & DRW_STATE_BLEND) != 0) {
-					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+					glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, /* RGB */
+					                    GL_ONE, GL_ONE_MINUS_SRC_ALPHA); /* Alpha */
 				}
 				else if ((state & DRW_STATE_MULTIPLY) != 0) {
 					glBlendFunc(GL_DST_COLOR, GL_ZERO);
@@ -1617,7 +1618,9 @@ static void drw_state_set(DRWState state)
 					glBlendFunc(GL_ONE, GL_SRC_ALPHA);
 				}
 				else if ((state & DRW_STATE_ADDITIVE) != 0) {
-					glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+					/* Do not let alpha accumulate but premult the source RGB by it. */
+					glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, /* RGB */
+					                    GL_ZERO, GL_ONE); /* Alpha */
 				}
 				else {
 					BLI_assert(0);
