@@ -511,6 +511,63 @@ void OUTLINER_OT_collection_objects_add(wmOperatorType *ot)
 }
 
 /**********************************************************************************/
+/* Remove selected objects. */
+
+
+static int collection_objects_remove_exec(bContext *C, wmOperator *op)
+{
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
+
+	struct SceneCollectionSelectedData data = {
+		.scene_collections_array = {NULL, NULL},
+	};
+
+	outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, collection_find_selected_scene_collections, &data);
+
+	if (BLI_listbase_is_empty(&data.scene_collections_array)) {
+		BKE_report(op->reports, RPT_ERROR, "No collection is selected");
+		return OPERATOR_CANCELLED;
+	}
+
+	CTX_DATA_BEGIN (C, struct Object *, ob, selected_objects)
+	{
+		LINKLIST_FOREACH(LinkData *, link, &data.scene_collections_array) {
+			SceneCollection *scene_collection = link->data;
+			BKE_collection_object_remove(
+			            bmain,
+			            &scene->id,
+			            scene_collection,
+			            ob,
+			            true);
+		}
+	}
+	CTX_DATA_END;
+	BLI_freelistN(&data.scene_collections_array);
+
+	outliner_cleanup_tree(soops);
+	DEG_relations_tag_update(bmain);
+	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_collection_objects_remove(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Remove Objects";
+	ot->idname = "OUTLINER_OT_collection_objects_remove";
+	ot->description = "Remove selected objects from collection";
+
+	/* api callbacks */
+	ot->exec = collection_objects_remove_exec;
+	ot->poll = collections_editor_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/**********************************************************************************/
 
 /**
  * Returns true is selected element is a collection
@@ -742,20 +799,6 @@ static int stubs_invoke(bContext *UNUSED(C), wmOperator *op, const wmEvent *UNUS
 	TODO_LAYER_OPERATORS;
 	BKE_report(op->reports, RPT_ERROR, "Operator not implemented yet");
 	return OPERATOR_CANCELLED;
-}
-
-void OUTLINER_OT_collection_objects_remove(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Remove Object";
-	ot->idname = "OUTLINER_OT_collection_objects_remove";
-	ot->description = "Remove objects from collection";
-
-	/* api callbacks */
-	ot->invoke = stubs_invoke;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 void OUTLINER_OT_collection_objects_select(wmOperatorType *ot)

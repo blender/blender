@@ -331,13 +331,13 @@ void outliner_operatortypes(void)
 	WM_operatortype_append(OUTLINER_OT_collection_unlink);
 	WM_operatortype_append(OUTLINER_OT_collection_new);
 	WM_operatortype_append(OUTLINER_OT_collection_override_new);
-	WM_operatortype_append(OUTLINER_OT_collection_objects_remove);
 	WM_operatortype_append(OUTLINER_OT_collection_objects_select);
 	WM_operatortype_append(OUTLINER_OT_collection_objects_deselect);
 
 	WM_operatortype_append(OUTLINER_OT_collection_nested_new);
 	WM_operatortype_append(OUTLINER_OT_collection_delete_selected);
 	WM_operatortype_append(OUTLINER_OT_collection_objects_add);
+	WM_operatortype_append(OUTLINER_OT_collection_objects_remove);
 }
 
 static wmKeyMap *outliner_item_drag_drop_modal_keymap(wmKeyConfig *keyconf)
