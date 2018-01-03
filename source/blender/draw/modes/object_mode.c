@@ -749,8 +749,9 @@ static void OBJECT_cache_init(void *vedata)
 		DRWState state = DRW_STATE_WRITE_COLOR;
 		struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
 		static float alphaOcclu = 0.35f;
-		static bool bTrue = true;
-		static bool bFalse = false;
+		/* Reminder : bool uniforms need to be 4 bytes. */
+		static const int bTrue = true;
+		static const int bFalse = false;
 
 		psl->outlines_search = DRW_pass_create("Outlines Detect Pass", state);
 

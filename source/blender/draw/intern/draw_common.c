@@ -308,8 +308,8 @@ DRWShadingGroup *shgroup_distance_lines_instance(DRWPass *pass, struct Gwn_Batch
 DRWShadingGroup *shgroup_spot_instance(DRWPass *pass, struct Gwn_Batch *geom)
 {
 	GPUShader *sh_inst = GPU_shader_get_builtin_shader(GPU_SHADER_INSTANCE_EDGES_VARIYING_COLOR);
-	static bool True = true;
-	static bool False = false;
+	static const int True = true;
+	static const int False = false;
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh_inst, pass, geom);
 	DRW_shgroup_attrib_float(grp, "color", 3);

@@ -416,9 +416,9 @@ typedef struct EEVEE_LightProbesInfo {
 	float visibility_blur;
 	int shres;
 	int shnbr;
-	bool specular_toggle;
-	bool ssr_toggle;
-	bool sss_toggle;
+	int specular_toggle;
+	int ssr_toggle;
+	int sss_toggle;
 	/* List of probes in the scene. */
 	/* XXX This is fragile, can get out of sync quickly. */
 	struct Object *probes_cube_ref[MAX_PROBE];
