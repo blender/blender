@@ -1485,9 +1485,6 @@ static RenderView *duplicate_render_view(RenderView *rview)
 	if (new_rview->rectf != NULL) {
 		new_rview->rectf = MEM_dupallocN(new_rview->rectf);
 	}
-	if (new_rview->rectf != NULL) {
-		new_rview->rectf = MEM_dupallocN(new_rview->rectf);
-	}
 	if (new_rview->rectz != NULL) {
 		new_rview->rectz = MEM_dupallocN(new_rview->rectz);
 	}
