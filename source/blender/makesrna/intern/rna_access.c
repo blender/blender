@@ -7147,7 +7147,7 @@ static int rna_property_override_diff(
 		return 0;
 	}
 
-	bool override_changed;
+	bool override_changed = false;
 	int diff_flags = flags;
 	if ((RNA_property_flag(prop_a) & PROP_OVERRIDABLE_STATIC) == 0) {
 		diff_flags &= ~RNA_OVERRIDE_COMPARE_CREATE;
