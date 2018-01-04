@@ -417,12 +417,14 @@ void CLOSURE_NAME(
 	/* This factor is outputed to be used by SSR in order
 	 * to match the intensity of the regular reflections. */
 	ssr_spec = F_ibl(f0, brdf_lut);
-	if (!(ssrToggle && ssr_id == outputSsrId)) {
-		/* The SSR pass recompute the occlusion to not apply it to the SSR */
-		ssr_spec *= specular_occlusion(NV, final_ao, roughness);
+	float spec_occlu = specular_occlusion(NV, final_ao, roughness);
+
+	/* The SSR pass recompute the occlusion to not apply it to the SSR */
+	if (ssrToggle && ssr_id == outputSsrId) {
+		spec_occlu = 1.0;
 	}
 
-	out_spec += spec_accum.rgb * ssr_spec * float(specToggle);
+	out_spec += spec_accum.rgb * ssr_spec * spec_occlu * float(specToggle);
 #endif
 
 #ifdef CLOSURE_REFRACTION
