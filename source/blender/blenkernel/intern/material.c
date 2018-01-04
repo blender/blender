@@ -1179,7 +1179,6 @@ void material_drivers_update(Scene *scene, Material *ma, float ctime)
 bool BKE_object_material_slot_remove(Object *ob)
 {
 	Material *mao, ***matarar;
-	Object *obt;
 	short *totcolp;
 	short a, actcol;
 	
@@ -1227,11 +1226,13 @@ bool BKE_object_material_slot_remove(Object *ob)
 	}
 	
 	actcol = ob->actcol;
-	obt = G.main->object.first;
-	while (obt) {
-	
+
+	for (Object *obt = G.main->object.first; obt; obt = obt->id.next) {
 		if (obt->data == ob->data) {
-			
+			/* Can happen when object material lists are used, see: T52953 */
+			if (actcol > obt->totcol) {
+				continue;
+			}
 			/* WATCH IT: do not use actcol from ob or from obt (can become zero) */
 			mao = obt->mat[actcol - 1];
 			if (mao)
@@ -1251,7 +1252,6 @@ bool BKE_object_material_slot_remove(Object *ob)
 				obt->matbits = NULL;
 			}
 		}
-		obt = obt->id.next;
 	}
 
 	/* check indices from mesh */
