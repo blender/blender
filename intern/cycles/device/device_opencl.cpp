@@ -22,6 +22,7 @@
 
 #include "util/util_foreach.h"
 #include "util/util_logging.h"
+#include "util/util_set.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -105,7 +106,9 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 	OpenCLInfo::get_usable_devices(&usable_devices);
 	/* Devices are numbered consecutively across platforms. */
 	int num_devices = 0;
+	set<string> unique_ids;
 	foreach(OpenCLPlatformDevice& platform_device, usable_devices) {
+		/* Compute unique ID for persistent user preferences. */
 		const string& platform_name = platform_device.platform_name;
 		const cl_device_type device_type = platform_device.device_type;
 		const string& device_name = platform_device.device_name;
@@ -113,7 +116,15 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 		if(hardware_id == "") {
 			hardware_id = string_printf("ID_%d", num_devices);
 		}
+		string id = string("OPENCL_") + platform_name + "_" + device_name + "_" + hardware_id;
 
+		/* Hardware ID might not be unique, add device number in that case. */
+		if(unique_ids.find(id) != unique_ids.end()) {
+			id += string_printf("_ID_%d", num_devices);
+		}
+		unique_ids.insert(id);
+
+		/* Create DeviceInfo. */
 		DeviceInfo info;
 		info.type = DEVICE_OPENCL;
 		info.description = string_remove_trademark(string(device_name));
@@ -125,7 +136,7 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 		                                                     device_type);
 		info.has_volume_decoupled = false;
 		info.has_qbvh = false;
-		info.id = string("OPENCL_") + platform_name + "_" + device_name + "_" + hardware_id;
+		info.id = id;
 		devices.push_back(info);
 		num_devices++;
 	}
