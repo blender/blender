@@ -247,7 +247,6 @@ void BKE_blender_userdef_data_free(UserDef *userdef, bool clear_fonts)
 void BKE_blender_userdef_app_template_data_swap(UserDef *userdef_a, UserDef *userdef_b)
 {
 	/* TODO:
-	 * - keymaps
 	 * - various minor settings (add as needed).
 	 */
 
@@ -263,10 +262,6 @@ void BKE_blender_userdef_app_template_data_swap(UserDef *userdef_a, UserDef *use
 	SWAP(ListBase, userdef_a->id, userdef_b->id); \
 } ((void)0)
 
-	/* for some types we need custom free functions */
-	LIST_SWAP(addons);
-	LIST_SWAP(user_keymaps);
-
 	LIST_SWAP(uistyles);
 	LIST_SWAP(uifonts);
 	LIST_SWAP(themes);
@@ -277,6 +272,7 @@ void BKE_blender_userdef_app_template_data_swap(UserDef *userdef_a, UserDef *use
 
 	DATA_SWAP(font_path_ui);
 	DATA_SWAP(font_path_ui_mono);
+	DATA_SWAP(keyconfigstr);
 
 	DATA_SWAP(manipulator_flag);
 
