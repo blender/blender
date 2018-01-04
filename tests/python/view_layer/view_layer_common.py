@@ -1,5 +1,19 @@
 import unittest
 
+__all__ = (
+    "Clay",
+    "MoveLayerCollectionTesting",
+    "MoveSceneCollectionSyncTesting",
+    "MoveSceneCollectionTesting",
+    "ViewLayerTesting",
+    "compare_files",
+    "dump",
+    "get_layers",
+    "get_scene_collections",
+    "query_scene",
+    "setup_extra_arguments",
+)
+
 # ############################################################
 # Layer Collection Crawler
 # ############################################################
