@@ -30,10 +30,5 @@ class UnitTesting(ViewLayerTesting):
 # ############################################################
 
 if __name__ == '__main__':
-    import sys
-
-    extra_arguments = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
-    sys.argv = [__file__] + (sys.argv[sys.argv.index("--") + 2:] if "--" in sys.argv else [])
-
-    UnitTesting._extra_arguments = extra_arguments
+    UnitTesting._extra_arguments = setup_extra_arguments(__file__)
     unittest.main()
