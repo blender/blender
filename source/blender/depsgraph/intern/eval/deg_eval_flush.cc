@@ -83,14 +83,18 @@ void lib_id_recalc_data_tag(Main *bmain, ID *id)
 	DEG_id_type_tag(bmain, GS(id->name));
 }
 
-void flush_init_operation_node_func(void *data_v, int i)
+void flush_init_operation_node_func(void *data_v,
+                                    int i,
+                                    const ParallelRangeTLS * /*tls*/)
 {
 	Depsgraph *graph = (Depsgraph *)data_v;
 	OperationDepsNode *node = graph->operations[i];
 	node->scheduled = false;
 }
 
-void flush_init_id_node_func(void *data_v, int i)
+void flush_init_id_node_func(void *data_v,
+                             int i,
+                             const ParallelRangeTLS * /*tls*/)
 {
 	Depsgraph *graph = (Depsgraph *)data_v;
 	IDDepsNode *id_node = graph->id_nodes[i];
@@ -279,7 +283,9 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 	flush_editors_id_update(bmain, graph);
 }
 
-static void graph_clear_func(void *data_v, int i)
+static void graph_clear_func(void *data_v,
+                             int i,
+                             const ParallelRangeTLS * /*tls*/)
 {
 	Depsgraph *graph = (Depsgraph *)data_v;
 	OperationDepsNode *node = graph->operations[i];

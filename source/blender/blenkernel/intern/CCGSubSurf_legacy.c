@@ -136,7 +136,8 @@ typedef struct CCGSubSurfCalcSubdivData {
 	int curLvl;
 } CCGSubSurfCalcSubdivData;
 
-static void ccgSubSurf__calcVertNormals_faces_accumulate_cb(void *userdata, int ptrIdx)
+static void ccgSubSurf__calcVertNormals_faces_accumulate_cb(void *userdata, int ptrIdx,
+                                                            const ParallelRangeTLS *UNUSED(tls))
 {
 	CCGSubSurfCalcSubdivData *data = userdata;
 
@@ -227,7 +228,8 @@ static void ccgSubSurf__calcVertNormals_faces_accumulate_cb(void *userdata, int 
 	}
 }
 
-static void ccgSubSurf__calcVertNormals_faces_finalize_cb(void *userdata, int ptrIdx)
+static void ccgSubSurf__calcVertNormals_faces_finalize_cb(void *userdata, int ptrIdx,
+                                                          const ParallelRangeTLS *UNUSED(tls))
 {
 	CCGSubSurfCalcSubdivData *data = userdata;
 
@@ -265,7 +267,8 @@ static void ccgSubSurf__calcVertNormals_faces_finalize_cb(void *userdata, int pt
 	}
 }
 
-static void ccgSubSurf__calcVertNormals_edges_accumulate_cb(void *userdata, int ptrIdx)
+static void ccgSubSurf__calcVertNormals_edges_accumulate_cb(void *userdata, int ptrIdx,
+                                                            const ParallelRangeTLS *UNUSED(tls))
 {
 	CCGSubSurfCalcSubdivData *data = userdata;
 
@@ -396,7 +399,8 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 }
 
 
-static void ccgSubSurf__calcSubdivLevel_interior_faces_edges_midpoints_cb(void *userdata, int ptrIdx)
+static void ccgSubSurf__calcSubdivLevel_interior_faces_edges_midpoints_cb(void *userdata, int ptrIdx,
+                                                                          const ParallelRangeTLS *UNUSED(tls))
 {
 	CCGSubSurfCalcSubdivData *data = userdata;
 
@@ -483,7 +487,8 @@ static void ccgSubSurf__calcSubdivLevel_interior_faces_edges_midpoints_cb(void *
 	}
 }
 
-static void ccgSubSurf__calcSubdivLevel_interior_faces_edges_centerpoints_shift_cb(void *userdata, int ptrIdx)
+static void ccgSubSurf__calcSubdivLevel_interior_faces_edges_centerpoints_shift_cb(void *userdata, int ptrIdx,
+                                                                                   const ParallelRangeTLS *UNUSED(tls))
 {
 	CCGSubSurfCalcSubdivData *data = userdata;
 
@@ -588,7 +593,8 @@ static void ccgSubSurf__calcSubdivLevel_interior_faces_edges_centerpoints_shift_
 	}
 }
 
-static void ccgSubSurf__calcSubdivLevel_verts_copydata_cb(void *userdata, int ptrIdx)
+static void ccgSubSurf__calcSubdivLevel_verts_copydata_cb(void *userdata, int ptrIdx,
+                                                          const ParallelRangeTLS *UNUSED(tls))
 {
 	CCGSubSurfCalcSubdivData *data = userdata;
 

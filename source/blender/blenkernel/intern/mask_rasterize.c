@@ -1434,7 +1434,8 @@ typedef struct MaskRasterizeBufferData {
 	float *buffer;
 } MaskRasterizeBufferData;
 
-static void maskrasterize_buffer_cb(void *userdata, int y)
+static void maskrasterize_buffer_cb(void *userdata, int y,
+                                    const ParallelRangeTLS *UNUSED(tls))
 {
 	MaskRasterizeBufferData *data = userdata;
 

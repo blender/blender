@@ -112,7 +112,7 @@ typedef struct UVWarpData {
 	int axis_v;
 } UVWarpData;
 
-static void uv_warp_compute(void *userdata, const int i)
+static void uv_warp_compute(void *userdata, const int i, const ParallelRangeTLS *UNUSED(tls))
 {
 	const UVWarpData *data = userdata;
 

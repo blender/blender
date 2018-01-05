@@ -261,7 +261,8 @@ typedef struct GenerateOceanGeometryData {
 	float ix, iy;
 } GenerateOceanGeometryData;
 
-static void generate_ocean_geometry_vertices(void *userdata, const int y)
+static void generate_ocean_geometry_vertices(void *userdata, const int y,
+                                             const ParallelRangeTLS *UNUSED(tls))
 {
 	GenerateOceanGeometryData *gogd = userdata;
 	int x;
@@ -275,7 +276,8 @@ static void generate_ocean_geometry_vertices(void *userdata, const int y)
 	}
 }
 
-static void generate_ocean_geometry_polygons(void *userdata, const int y)
+static void generate_ocean_geometry_polygons(void *userdata, const int y,
+                                             const ParallelRangeTLS *UNUSED(tls))
 {
 	GenerateOceanGeometryData *gogd = userdata;
 	int x;
@@ -305,7 +307,8 @@ static void generate_ocean_geometry_polygons(void *userdata, const int y)
 	}
 }
 
-static void generate_ocean_geometry_uvs(void *userdata, const int y)
+static void generate_ocean_geometry_uvs(void *userdata, const int y,
+                                        const ParallelRangeTLS *UNUSED(tls))
 {
 	GenerateOceanGeometryData *gogd = userdata;
 	int x;

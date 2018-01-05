@@ -994,7 +994,6 @@ typedef struct ParallelRangeState {
 	void *userdata;
 
 	TaskParallelRangeFunc func;
-	TaskParallelRangeFuncEx func_ex;
 
 	int iter;
 	int chunk_size;
@@ -1015,23 +1014,17 @@ BLI_INLINE bool parallel_range_next_iter_get(
 static void parallel_range_func(
         TaskPool * __restrict pool,
         void *userdata_chunk,
-        int threadid)
+        int thread_id)
 {
 	ParallelRangeState * __restrict state = BLI_task_pool_userdata(pool);
+	ParallelRangeTLS tls = {
+		.thread_id = thread_id,
+		.userdata_chunk = userdata_chunk,
+	};
 	int iter, count;
-
 	while (parallel_range_next_iter_get(state, &iter, &count)) {
-		int i;
-
-		if (state->func_ex) {
-			for (i = 0; i < count; ++i) {
-				state->func_ex(state->userdata, userdata_chunk, iter + i, threadid);
-			}
-		}
-		else {
-			for (i = 0; i < count; ++i) {
-				state->func(state->userdata, iter + i);
-			}
+		for (int i = 0; i < count; ++i) {
+			state->func(state->userdata, iter + i, &tls);
 		}
 	}
 }
@@ -1047,7 +1040,6 @@ static void task_parallel_range_ex(
         void *userdata_chunk,
         const size_t userdata_chunk_size,
         TaskParallelRangeFunc func,
-        TaskParallelRangeFuncEx func_ex,
         TaskParallelRangeFuncFinalize func_finalize,
         const bool use_threading,
         const bool use_dynamic_scheduling)
@@ -1059,7 +1051,7 @@ static void task_parallel_range_ex(
 
 	void *userdata_chunk_local = NULL;
 	void *userdata_chunk_array = NULL;
-	const bool use_userdata_chunk = (func_ex != NULL) && (userdata_chunk_size != 0) && (userdata_chunk != NULL);
+	const bool use_userdata_chunk = (userdata_chunk_size != 0) && (userdata_chunk != NULL);
 
 	if (start == stop) {
 		return;
@@ -1067,7 +1059,6 @@ static void task_parallel_range_ex(
 
 	BLI_assert(start < stop);
 	if (userdata_chunk_size != 0) {
-		BLI_assert(func_ex != NULL && func == NULL);
 		BLI_assert(userdata_chunk != NULL);
 	}
 
@@ -1075,27 +1066,24 @@ static void task_parallel_range_ex(
 	 * do everything from the main thread.
 	 */
 	if (!use_threading) {
-		if (func_ex) {
-			if (use_userdata_chunk) {
-				userdata_chunk_local = MALLOCA(userdata_chunk_size);
-				memcpy(userdata_chunk_local, userdata_chunk, userdata_chunk_size);
-			}
-
-			for (i = start; i < stop; ++i) {
-				func_ex(userdata, userdata_chunk_local, i, 0);
-			}
-
-			if (func_finalize) {
-				func_finalize(userdata, userdata_chunk_local);
-			}
-
-			MALLOCA_FREE(userdata_chunk_local, userdata_chunk_size);
+		if (use_userdata_chunk) {
+			userdata_chunk_local = MALLOCA(userdata_chunk_size);
+			memcpy(userdata_chunk_local, userdata_chunk, userdata_chunk_size);
 		}
-		else {
-			for (i = start; i < stop; ++i) {
-				func(userdata, i);
-			}
+
+		ParallelRangeTLS tls = {
+			.thread_id = 0,
+			.userdata_chunk = userdata_chunk_local,
+		};
+		for (i = start; i < stop; ++i) {
+			func(userdata, i, &tls);
 		}
+
+		if (func_finalize) {
+			func_finalize(userdata, userdata_chunk_local);
+		}
+
+		MALLOCA_FREE(userdata_chunk_local, userdata_chunk_size);
 
 		return;
 	}
@@ -1114,7 +1102,6 @@ static void task_parallel_range_ex(
 	state.stop = stop;
 	state.userdata = userdata;
 	state.func = func;
-	state.func_ex = func_ex;
 	state.iter = start;
 	if (use_dynamic_scheduling) {
 		state.chunk_size = 32;
@@ -1180,12 +1167,12 @@ void BLI_task_parallel_range_ex(
         void *userdata,
         void *userdata_chunk,
         const size_t userdata_chunk_size,
-        TaskParallelRangeFuncEx func_ex,
+        TaskParallelRangeFunc func,
         const bool use_threading,
         const bool use_dynamic_scheduling)
 {
 	task_parallel_range_ex(
-	            start, stop, userdata, userdata_chunk, userdata_chunk_size, NULL, func_ex, NULL,
+	            start, stop, userdata, userdata_chunk, userdata_chunk_size, func, NULL,
 	            use_threading, use_dynamic_scheduling);
 }
 
@@ -1206,7 +1193,7 @@ void BLI_task_parallel_range(
         TaskParallelRangeFunc func,
         const bool use_threading)
 {
-	task_parallel_range_ex(start, stop, userdata, NULL, 0, func, NULL, NULL, use_threading, false);
+	task_parallel_range_ex(start, stop, userdata, NULL, 0, func, NULL, use_threading, false);
 }
 
 /**
@@ -1232,13 +1219,13 @@ void BLI_task_parallel_range_finalize(
         void *userdata,
         void *userdata_chunk,
         const size_t userdata_chunk_size,
-        TaskParallelRangeFuncEx func_ex,
+        TaskParallelRangeFunc func,
         TaskParallelRangeFuncFinalize func_finalize,
         const bool use_threading,
         const bool use_dynamic_scheduling)
 {
 	task_parallel_range_ex(
-	            start, stop, userdata, userdata_chunk, userdata_chunk_size, NULL, func_ex, func_finalize,
+	            start, stop, userdata, userdata_chunk, userdata_chunk_size, func, func_finalize,
 	            use_threading, use_dynamic_scheduling);
 }
 

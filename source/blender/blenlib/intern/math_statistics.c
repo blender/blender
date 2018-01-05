@@ -46,7 +46,8 @@ typedef struct CovarianceData {
 	int nbr_cos_vn;
 } CovarianceData;
 
-static void covariance_m_vn_ex_task_cb(void *userdata, const int a)
+static void covariance_m_vn_ex_task_cb(void *userdata, const int a,
+                                       const ParallelRangeTLS *UNUSED(tls))
 {
 	CovarianceData *data = userdata;
 	const float *cos_vn = data->cos_vn;

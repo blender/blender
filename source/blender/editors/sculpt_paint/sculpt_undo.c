@@ -316,7 +316,8 @@ static bool sculpt_undo_restore_mask(bContext *C, DerivedMesh *dm, SculptUndoNod
 	return 1;
 }
 
-static void sculpt_undo_bmesh_restore_generic_task_cb(void *userdata, const int n)
+static void sculpt_undo_bmesh_restore_generic_task_cb(void *userdata, const int n,
+                                                      const ParallelRangeTLS *UNUSED(tls))
 {
 	PBVHNode **nodes = userdata;
 

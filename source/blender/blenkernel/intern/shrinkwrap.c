@@ -88,13 +88,13 @@ typedef struct ShrinkwrapCalcCBData {
  * for each vertex performs a nearest vertex search on the tree
  */
 static void shrinkwrap_calc_nearest_vertex_cb_ex(
-        void *userdata, void *userdata_chunk, const int i, const int UNUSED(threadid))
+        void *userdata, const int i, const ParallelRangeTLS *tls)
 {
 	ShrinkwrapCalcCBData *data = userdata;
 
 	ShrinkwrapCalcData *calc = data->calc;
 	BVHTreeFromMesh *treeData = data->treeData;
-	BVHTreeNearest *nearest = userdata_chunk;
+	BVHTreeNearest *nearest = tls->userdata_chunk;
 
 	float *co = calc->vertexCos[i];
 	float tmp_co[3];
@@ -257,7 +257,7 @@ bool BKE_shrinkwrap_project_normal(
 }
 
 static void shrinkwrap_calc_normal_projection_cb_ex(
-        void *userdata, void *userdata_chunk, const int i, const int UNUSED(threadid))
+        void *userdata, const int i, const ParallelRangeTLS *tls)
 {
 	ShrinkwrapCalcCBData *data = userdata;
 
@@ -272,7 +272,7 @@ static void shrinkwrap_calc_normal_projection_cb_ex(
 	float *proj_axis = data->proj_axis;
 	SpaceTransform *local2aux = data->local2aux;
 
-	BVHTreeRayHit *hit = userdata_chunk;
+	BVHTreeRayHit *hit = tls->userdata_chunk;
 
 	const float proj_limit_squared = calc->smd->projLimit * calc->smd->projLimit;
 	float *co = calc->vertexCos[i];
@@ -495,13 +495,13 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
  * NN matches for each vertex
  */
 static void shrinkwrap_calc_nearest_surface_point_cb_ex(
-        void *userdata, void *userdata_chunk, const int i, const int UNUSED(threadid))
+        void *userdata, const int i, const ParallelRangeTLS *tls)
 {
 	ShrinkwrapCalcCBData *data = userdata;
 
 	ShrinkwrapCalcData *calc = data->calc;
 	BVHTreeFromMesh *treeData = data->treeData;
-	BVHTreeNearest *nearest = userdata_chunk;
+	BVHTreeNearest *nearest = tls->userdata_chunk;
 
 	float *co = calc->vertexCos[i];
 	float tmp_co[3];

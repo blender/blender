@@ -432,7 +432,9 @@ AutoTrackContext *BKE_autotrack_context_new(MovieClip *clip,
 	return context;
 }
 
-static void autotrack_context_step_cb(void *userdata, int track)
+static void autotrack_context_step_cb(void *userdata,
+                                      int track,
+                                      const ParallelRangeTLS *UNUSED(tls))
 {
 	AutoTrackContext *context = userdata;
 	const int frame_delta = context->backwards ? -1 : 1;

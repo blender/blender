@@ -234,7 +234,8 @@ typedef struct MeshdeformUserdata {
 	float (*icagemat)[3];
 } MeshdeformUserdata;
 
-static void meshdeform_vert_task(void *userdata, const int iter)
+static void meshdeform_vert_task(void *userdata, const int iter,
+                                 const ParallelRangeTLS *UNUSED(tls))
 {
 	MeshdeformUserdata *data = userdata;
 	/*const*/ MeshDeformModifierData *mmd = data->mmd;

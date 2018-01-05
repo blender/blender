@@ -116,15 +116,27 @@ void BLI_task_pool_delayed_push_begin(TaskPool *pool, int thread_id);
 void BLI_task_pool_delayed_push_end(TaskPool *pool, int thread_id);
 
 /* Parallel for routines */
-typedef void (*TaskParallelRangeFunc)(void *userdata, const int iter);
-typedef void (*TaskParallelRangeFuncEx)(void *userdata, void *userdata_chunk, const int iter, const int thread_id);
+
+/* Per-thread specific data passed to the callback. */
+typedef struct ParallelRangeTLS {
+	/* Identifier of the thread who this data belongs to. */
+	int thread_id;
+	/* Copy of user-specifier chunk, which is copied from original chunk to all
+	 * worker threads. This is similar to OpenMP's firstprivate.
+	 */
+	void *userdata_chunk;
+} ParallelRangeTLS;
+
+typedef void (*TaskParallelRangeFunc)(void *userdata,
+                                      const int iter,
+                                      const ParallelRangeTLS *tls);
 typedef void (*TaskParallelRangeFuncFinalize)(void *userdata, void *userdata_chunk);
 void BLI_task_parallel_range_ex(
         int start, int stop,
         void *userdata,
         void *userdata_chunk,
         const size_t userdata_chunk_size,
-        TaskParallelRangeFuncEx func_ex,
+        TaskParallelRangeFunc func,
         const bool use_threading,
         const bool use_dynamic_scheduling);
 void BLI_task_parallel_range(
@@ -138,7 +150,7 @@ void BLI_task_parallel_range_finalize(
         void *userdata,
         void *userdata_chunk,
         const size_t userdata_chunk_size,
-        TaskParallelRangeFuncEx func_ex,
+        TaskParallelRangeFunc func,
         TaskParallelRangeFuncFinalize func_finalize,
         const bool use_threading,
         const bool use_dynamic_scheduling);

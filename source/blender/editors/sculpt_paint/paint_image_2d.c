@@ -1070,7 +1070,8 @@ typedef struct Paint2DForeachData {
 	int tilew;
 } Paint2DForeachData;
 
-static void paint_2d_op_foreach_do(void *data_v, const int iter)
+static void paint_2d_op_foreach_do(void *data_v, const int iter,
+                                   const ParallelRangeTLS *UNUSED(tls))
 {
 	Paint2DForeachData *data = (Paint2DForeachData *)data_v;
 	paint_2d_do_making_brush(data->s, data->region, data->curveb,

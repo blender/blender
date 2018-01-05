@@ -151,7 +151,7 @@ typedef struct LoadTexData {
 	float radius;
 } LoadTexData;
 
-static void load_tex_task_cb_ex(void *userdata, void *UNUSED(userdata_chunck), const int j, const int thread_id)
+static void load_tex_task_cb_ex(void *userdata, const int j, const ParallelRangeTLS *tls)
 {
 	LoadTexData *data = userdata;
 	Brush *br = data->br;
@@ -212,7 +212,7 @@ static void load_tex_task_cb_ex(void *userdata, void *UNUSED(userdata_chunck), c
 			if (col) {
 				float rgba[4];
 
-				paint_get_tex_pixel_col(mtex, x, y, rgba, pool, thread_id, convert_to_linear, colorspace);
+				paint_get_tex_pixel_col(mtex, x, y, rgba, pool, tls->thread_id, convert_to_linear, colorspace);
 
 				buffer[index * 4]     = rgba[0] * 255;
 				buffer[index * 4 + 1] = rgba[1] * 255;
@@ -220,7 +220,7 @@ static void load_tex_task_cb_ex(void *userdata, void *UNUSED(userdata_chunck), c
 				buffer[index * 4 + 3] = rgba[3] * 255;
 			}
 			else {
-				float avg = paint_get_tex_pixel(mtex, x, y, pool, thread_id);
+				float avg = paint_get_tex_pixel(mtex, x, y, pool, tls->thread_id);
 
 				avg += br->texture_sample_bias;
 
@@ -367,7 +367,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 	return 1;
 }
 
-static void load_tex_cursor_task_cb(void *userdata, const int j)
+static void load_tex_cursor_task_cb(void *userdata, const int j, const ParallelRangeTLS *UNUSED(tls))
 {
 	LoadTexData *data = userdata;
 	Brush *br = data->br;

@@ -3371,14 +3371,14 @@ typedef struct DynamicStepSolverTaskData {
 } DynamicStepSolverTaskData;
 
 static void dynamics_step_sph_ddr_task_cb_ex(
-        void *userdata, void *userdata_chunk, const int p, const int UNUSED(thread_id))
+        void *userdata, const int p, const ParallelRangeTLS *tls)
 {
 	DynamicStepSolverTaskData *data = userdata;
 	ParticleSimulationData *sim = data->sim;
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
 
-	SPHData *sphdata = userdata_chunk;
+	SPHData *sphdata = tls->userdata_chunk;
 
 	ParticleData *pa;
 
@@ -3405,7 +3405,7 @@ static void dynamics_step_sph_ddr_task_cb_ex(
 }
 
 static void dynamics_step_sph_classical_basic_integrate_task_cb_ex(
-        void *userdata,  void *UNUSED(userdata_chunk), const int p, const int UNUSED(thread_id))
+        void *userdata,  const int p, const ParallelRangeTLS *UNUSED(tls))
 {
 	DynamicStepSolverTaskData *data = userdata;
 	ParticleSimulationData *sim = data->sim;
@@ -3421,13 +3421,13 @@ static void dynamics_step_sph_classical_basic_integrate_task_cb_ex(
 }
 
 static void dynamics_step_sph_classical_calc_density_task_cb_ex(
-        void *userdata, void *userdata_chunk, const int p, const int UNUSED(thread_id))
+        void *userdata, const int p, const ParallelRangeTLS *tls)
 {
 	DynamicStepSolverTaskData *data = userdata;
 	ParticleSimulationData *sim = data->sim;
 	ParticleSystem *psys = sim->psys;
 
-	SPHData *sphdata = userdata_chunk;
+	SPHData *sphdata = tls->userdata_chunk;
 
 	ParticleData *pa;
 
@@ -3439,14 +3439,14 @@ static void dynamics_step_sph_classical_calc_density_task_cb_ex(
 }
 
 static void dynamics_step_sph_classical_integrate_task_cb_ex(
-        void *userdata, void *userdata_chunk, const int p, const int UNUSED(thread_id))
+        void *userdata, const int p, const ParallelRangeTLS *tls)
 {
 	DynamicStepSolverTaskData *data = userdata;
 	ParticleSimulationData *sim = data->sim;
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
 
-	SPHData *sphdata = userdata_chunk;
+	SPHData *sphdata = tls->userdata_chunk;
 
 	ParticleData *pa;
 

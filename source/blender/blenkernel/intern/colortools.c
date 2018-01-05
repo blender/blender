@@ -1165,7 +1165,7 @@ typedef struct ScopesUpdateDataChunk {
 	float min[3], max[3];
 } ScopesUpdateDataChunk;
 
-static void scopes_update_cb(void *userdata, void *userdata_chunk, const int y, const int UNUSED(threadid))
+static void scopes_update_cb(void *userdata, const int y, const ParallelRangeTLS *tls)
 {
 	const ScopesUpdateData *data = userdata;
 
@@ -1175,7 +1175,7 @@ static void scopes_update_cb(void *userdata, void *userdata_chunk, const int y, 
 	const unsigned char *display_buffer = data->display_buffer;
 	const int ycc_mode = data->ycc_mode;
 
-	ScopesUpdateDataChunk *data_chunk = userdata_chunk;
+	ScopesUpdateDataChunk *data_chunk = tls->userdata_chunk;
 	unsigned int *bin_lum = data_chunk->bin_lum;
 	unsigned int *bin_r = data_chunk->bin_r;
 	unsigned int *bin_g = data_chunk->bin_g;

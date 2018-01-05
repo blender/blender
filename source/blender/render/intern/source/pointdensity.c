@@ -1007,7 +1007,8 @@ typedef struct SampleCallbackData {
 	float *values;
 } SampleCallbackData;
 
-static void point_density_sample_func(void *data_v, const int iter)
+static void point_density_sample_func(void *data_v, const int iter,
+                                      const ParallelRangeTLS *UNUSED(tls))
 {
 	SampleCallbackData *data = (SampleCallbackData *)data_v;
 
