@@ -87,7 +87,7 @@ class OUTLINER_MT_editor_menus(Menu):
         if space.display_mode == 'DATABLOCKS':
             layout.menu("OUTLINER_MT_edit_datablocks")
 
-        elif space.display_mode == 'MASTER_COLLECTION':
+        elif space.display_mode == 'COLLECTIONS':
             layout.menu("OUTLINER_MT_edit_collections")
 
 
@@ -100,7 +100,7 @@ class OUTLINER_MT_view(Menu):
         space = context.space_data
 
         if space.display_mode not in {'DATABLOCKS', 'USER_PREFERENCES', 'KEYMAPS'}:
-            if space.display_mode not in {'ACT_LAYER', 'MASTER_COLLECTION'}:
+            if space.display_mode not in {'ACT_LAYER', 'COLLECTIONS'}:
                 layout.prop(space, "use_sort_alpha")
             layout.prop(space, "show_restrict_columns")
             layout.separator()

@@ -2116,7 +2116,7 @@ static void rna_def_space_outliner(BlenderRNA *brna)
 		{SO_ID_ORPHANS, "ORPHAN_DATA", 0, "Orphan Data",
 		                "Display data-blocks which are unused and/or will be lost when the file is reloaded"},
 		{SO_ACT_LAYER, "ACT_LAYER", 0, "Active View Layer", "Display the collections of the active view layer"},
-		{SO_COLLECTIONS, "MASTER_COLLECTION", 0, "Master Collection Tree", "Display all collections based on the "
+		{SO_COLLECTIONS, "COLLECTIONS", 0, "Collections", "Display all collections based on the "
 		                 "master collection hierarchy"},
 		{0, NULL, 0, NULL, NULL}
 	};
