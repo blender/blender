@@ -73,7 +73,7 @@ static void eevee_engine_init(void *ved)
 	EEVEE_lights_init(sldata);
 	EEVEE_lightprobes_init(sldata, vedata);
 
-	if (stl->effects->taa_current_sample > 1) {
+	if ((stl->effects->taa_current_sample > 1) && !DRW_state_is_image_render()) {
 		/* XXX otherwise it would break the other engines. */
 		DRW_viewport_matrix_override_unset(DRW_MAT_PERS);
 		DRW_viewport_matrix_override_unset(DRW_MAT_PERSINV);
@@ -177,26 +177,25 @@ static void eevee_draw_background(void *vedata)
 	 * when using opengl render. */
 	int loop_ct = DRW_state_is_image_render() ? 4 : 1;
 
-	static float rand = 0.0f;
-
-	/* XXX temp for denoising render. TODO plug number of samples here */
-	if (DRW_state_is_image_render()) {
-		rand += 1.0f / 16.0f;
-		rand = rand - floorf(rand);
-
-		/* Set jitter offset */
-		EEVEE_update_util_texture(rand);
-	}
-	else if (((stl->effects->enabled_effects & EFFECT_TAA) != 0) && (stl->effects->taa_current_sample > 1)) {
-		double r;
-		BLI_halton_1D(2, 0.0, stl->effects->taa_current_sample - 1, &r);
-
-		/* Set jitter offset */
-		/* PERF This is killing perf ! */
-		EEVEE_update_util_texture((float)r);
-	}
-
 	while (loop_ct--) {
+
+		/* XXX temp for denoising render. TODO plug number of samples here */
+		if (DRW_state_is_image_render()) {
+			double r;
+			BLI_halton_1D(2, 0.0, stl->effects->taa_current_sample - 1, &r);
+
+			/* Set jitter offset */
+			/* PERF This is killing perf ! */
+			EEVEE_update_util_texture((float)r);
+		}
+		else if (((stl->effects->enabled_effects & EFFECT_TAA) != 0) && (stl->effects->taa_current_sample > 1)) {
+			double r;
+			BLI_halton_1D(2, 0.0, stl->effects->taa_current_sample - 1, &r);
+
+			/* Set jitter offset */
+			/* PERF This is killing perf ! */
+			EEVEE_update_util_texture((float)r);
+		}
 
 		/* Refresh Probes */
 		DRW_stats_group_start("Probes Refresh");
@@ -221,7 +220,10 @@ static void eevee_draw_background(void *vedata)
 			DRW_framebuffer_clear(true, true, true, clear_col, 1.0f);
 		}
 
-		if (((stl->effects->enabled_effects & EFFECT_TAA) != 0) && stl->effects->taa_current_sample > 1) {
+		if (((stl->effects->enabled_effects & EFFECT_TAA) != 0) &&
+			 (stl->effects->taa_current_sample > 1) &&
+			 !DRW_state_is_image_render())
+		{
 			DRW_viewport_matrix_override_set(stl->effects->overide_persmat, DRW_MAT_PERS);
 			DRW_viewport_matrix_override_set(stl->effects->overide_persinv, DRW_MAT_PERSINV);
 			DRW_viewport_matrix_override_set(stl->effects->overide_winmat, DRW_MAT_WIN);
@@ -278,7 +280,7 @@ static void eevee_draw_background(void *vedata)
 		EEVEE_draw_effects(vedata);
 		DRW_stats_group_end();
 
-		if (stl->effects->taa_current_sample > 1) {
+		if ((stl->effects->taa_current_sample > 1) && !DRW_state_is_image_render()) {
 			DRW_viewport_matrix_override_unset(DRW_MAT_PERS);
 			DRW_viewport_matrix_override_unset(DRW_MAT_PERSINV);
 			DRW_viewport_matrix_override_unset(DRW_MAT_WIN);

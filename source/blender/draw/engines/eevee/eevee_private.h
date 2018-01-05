@@ -465,6 +465,7 @@ typedef struct EEVEE_EffectsInfo {
 
 	/* Temporal Anti Aliasing */
 	int taa_current_sample;
+	int taa_render_sample;
 	int taa_total_sample;
 	float taa_alpha;
 	bool prev_drw_support;

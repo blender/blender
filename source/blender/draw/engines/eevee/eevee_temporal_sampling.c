@@ -51,14 +51,21 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_EffectsInfo *effects = stl->effects;
 
+	/* Reset for each "redraw". When rendering using ogl render,
+	 * we accumulate the redraw inside the drawing loop in eevee_draw_background().
+	 * But we do NOT accumulate between "redraw" (as in full draw manager drawloop)
+	 * because the opengl render already does that. */
+	effects->taa_render_sample = 1;
+
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	ViewLayer *view_layer = draw_ctx->view_layer;
 	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
 
-	if (BKE_collection_engine_property_value_get_int(props, "taa_samples") != 1 &&
+	if ((BKE_collection_engine_property_value_get_int(props, "taa_samples") != 1 &&
 	    /* FIXME the motion blur camera evaluation is tagging view_updated
 	     * thus making the TAA always reset and never stopping rendering. */
-	    (effects->enabled_effects & EFFECT_MOTION_BLUR) == 0)
+	    (effects->enabled_effects & EFFECT_MOTION_BLUR) == 0) ||
+	    DRW_state_is_image_render())
 	{
 		const float *viewport_size = DRW_viewport_size_get();
 		float persmat[4][4], viewmat[4][4];
@@ -79,40 +86,48 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 		DRW_viewport_matrix_get(persmat, DRW_MAT_PERS);
 		DRW_viewport_matrix_get(viewmat, DRW_MAT_VIEW);
 		DRW_viewport_matrix_get(effects->overide_winmat, DRW_MAT_WIN);
-		view_is_valid = view_is_valid && compare_m4m4(persmat, effects->prev_drw_persmat, FLT_MIN);
-		copy_m4_m4(effects->prev_drw_persmat, persmat);
+		/* The view is jittered by the oglrenderer. So avoid testing in this case. */
+		if (!DRW_state_is_image_render()) {
+			view_is_valid = view_is_valid && compare_m4m4(persmat, effects->prev_drw_persmat, FLT_MIN);
+			copy_m4_m4(effects->prev_drw_persmat, persmat);
+		}
 
 		/* Prevent ghosting from probe data. */
 		view_is_valid = view_is_valid && (effects->prev_drw_support == DRW_state_draw_support());
 		effects->prev_drw_support = DRW_state_draw_support();
 
-		if (view_is_valid &&
-		    ((effects->taa_total_sample == 0) ||
-		     (effects->taa_current_sample < effects->taa_total_sample)))
+		if (((effects->taa_total_sample == 0) || (effects->taa_current_sample < effects->taa_total_sample)) ||
+		    DRW_state_is_image_render())
 		{
-			effects->taa_current_sample += 1;
+			if (view_is_valid) {
+				/* OGL render already jitter the camera. */
+				if (!DRW_state_is_image_render()) {
+					effects->taa_current_sample += 1;
 
-			effects->taa_alpha = 1.0f / (float)(effects->taa_current_sample);
+					double ht_point[2];
+					double ht_offset[2] = {0.0, 0.0};
+					unsigned int ht_primes[2] = {2, 3};
 
-			double ht_point[2];
-			double ht_offset[2] = {0.0, 0.0};
-			unsigned int ht_primes[2] = {2, 3};
+					BLI_halton_2D(ht_primes, ht_offset, effects->taa_current_sample - 1, ht_point);
 
-			BLI_halton_2D(ht_primes, ht_offset, effects->taa_current_sample - 1, ht_point);
+					window_translate_m4(
+					        effects->overide_winmat, persmat,
+					        ((float)(ht_point[0]) * 2.0f - 1.0f) / viewport_size[0],
+					        ((float)(ht_point[1]) * 2.0f - 1.0f) / viewport_size[1]);
 
-			window_translate_m4(
-			        effects->overide_winmat, persmat,
-			        ((float)(ht_point[0]) * 2.0f - 1.0f) / viewport_size[0],
-			        ((float)(ht_point[1]) * 2.0f - 1.0f) / viewport_size[1]);
+					mul_m4_m4m4(effects->overide_persmat, effects->overide_winmat, viewmat);
+					invert_m4_m4(effects->overide_persinv, effects->overide_persmat);
+					invert_m4_m4(effects->overide_wininv, effects->overide_winmat);
 
-			mul_m4_m4m4(effects->overide_persmat, effects->overide_winmat, viewmat);
-			invert_m4_m4(effects->overide_persinv, effects->overide_persmat);
-			invert_m4_m4(effects->overide_wininv, effects->overide_winmat);
-
-			DRW_viewport_matrix_override_set(effects->overide_persmat, DRW_MAT_PERS);
-			DRW_viewport_matrix_override_set(effects->overide_persinv, DRW_MAT_PERSINV);
-			DRW_viewport_matrix_override_set(effects->overide_winmat, DRW_MAT_WIN);
-			DRW_viewport_matrix_override_set(effects->overide_wininv, DRW_MAT_WININV);
+					DRW_viewport_matrix_override_set(effects->overide_persmat, DRW_MAT_PERS);
+					DRW_viewport_matrix_override_set(effects->overide_persinv, DRW_MAT_PERSINV);
+					DRW_viewport_matrix_override_set(effects->overide_winmat, DRW_MAT_WIN);
+					DRW_viewport_matrix_override_set(effects->overide_wininv, DRW_MAT_WININV);
+				}
+			}
+			else {
+				effects->taa_current_sample = 1;
+			}
 		}
 		else {
 			effects->taa_current_sample = 1;
@@ -162,6 +177,14 @@ void EEVEE_temporal_sampling_draw(EEVEE_Data *vedata)
 
 	if ((effects->enabled_effects & EFFECT_TAA) != 0) {
 		if (effects->taa_current_sample != 1) {
+			if (DRW_state_is_image_render()) {
+				/* See EEVEE_temporal_sampling_init() for more details. */
+				effects->taa_alpha = 1.0f / (float)(effects->taa_render_sample);
+			}
+			else {
+				effects->taa_alpha = 1.0f / (float)(effects->taa_current_sample);
+			}
+
 			DRW_framebuffer_bind(fbl->effect_fb);
 			DRW_draw_pass(psl->taa_resolve);
 
@@ -182,12 +205,20 @@ void EEVEE_temporal_sampling_draw(EEVEE_Data *vedata)
 			DRW_framebuffer_blit(fbl->main, fbl->depth_double_buffer_fb, true, false);
 		}
 
-		if ((effects->taa_total_sample == 0) ||
-		    (effects->taa_current_sample < effects->taa_total_sample))
-		{
-			DRW_viewport_request_redraw();
+		/* Make each loop count when doing a render. */
+		if (DRW_state_is_image_render()) {
+			effects->taa_render_sample += 1;
+			effects->taa_current_sample += 1;
+		}
+		else {
+			if ((effects->taa_total_sample == 0) ||
+			    (effects->taa_current_sample < effects->taa_total_sample))
+			{
+				DRW_viewport_request_redraw();
+			}
 		}
 	}
+
 }
 
 void EEVEE_temporal_sampling_free(void)
