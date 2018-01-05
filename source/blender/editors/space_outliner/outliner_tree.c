@@ -387,12 +387,38 @@ static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *s
 #endif
 }
 
-static void outliner_object_reorder(
-        Main *UNUSED(bmain),
-        TreeElement *insert_element, TreeElement *insert_handle, TreeElementInsertType action)
+struct ObjectsSelectedData {
+	ListBase objects_selected_array;
+};
+
+static TreeTraversalAction outliner_find_selected_objects(TreeElement *te, void *customdata)
 {
-	TreeStoreElem *tselem_insert = TREESTORE(insert_element);
-	Object *ob = (Object *)tselem_insert->id;
+	struct ObjectsSelectedData *data = customdata;
+	TreeStoreElem *tselem = TREESTORE(te);
+
+	if (ELEM(tselem->type, TSE_LAYER_COLLECTION, TSE_SCENE_COLLECTION)) {
+		return TRAVERSE_CONTINUE;
+	}
+
+	if (tselem->type || (tselem->id == NULL) || (GS(tselem->id->name) != ID_OB)) {
+		return TRAVERSE_SKIP_CHILDS;
+	}
+
+	BLI_addtail(&data->objects_selected_array, BLI_genericNodeN(te));
+
+	return TRAVERSE_CONTINUE;
+}
+
+/**
+ * Move objects from a collection to another.
+ * We ignore the original object being inserted, we used it for polling only.
+ * Instead we move all the selected objects around.
+ */
+static void outliner_object_reorder(
+        Main *bmain, SpaceOops *soops,
+        TreeElement *insert_element,
+        TreeElement *insert_handle, TreeElementInsertType action)
+{
 	SceneCollection *sc = outliner_scene_collection_from_tree_element(insert_handle);
 	SceneCollection *sc_ob_parent = NULL;
 	ID *id = insert_handle->store_elem->id;
@@ -400,19 +426,36 @@ static void outliner_object_reorder(
 	BLI_assert(action == TE_INSERT_INTO);
 	UNUSED_VARS_NDEBUG(action);
 
-	/* find parent scene-collection of object */
-	if (insert_element->parent) {
-		for (TreeElement *te_ob_parent = insert_element->parent; te_ob_parent; te_ob_parent = te_ob_parent->parent) {
-			if (ELEM(TREESTORE(te_ob_parent)->type, TSE_SCENE_COLLECTION, TSE_LAYER_COLLECTION)) {
-				sc_ob_parent = outliner_scene_collection_from_tree_element(te_ob_parent);
-				break;
+	struct ObjectsSelectedData data = {
+		.objects_selected_array  = {NULL, NULL},
+	};
+
+	/* Make sure we include the originally inserted element as well. */
+	TREESTORE(insert_element)->flag |= TSE_SELECTED;
+
+	outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, outliner_find_selected_objects, &data);
+	LINKLIST_FOREACH(LinkData *, link, &data.objects_selected_array) {
+		TreeElement *ten_selected = (TreeElement *)link->data;
+		/* Find parent scene-collection of object. */
+		if (ten_selected->parent) {
+			for (TreeElement *te_ob_parent = ten_selected->parent; te_ob_parent; te_ob_parent = te_ob_parent->parent) {
+				if (ELEM(TREESTORE(te_ob_parent)->type, TSE_SCENE_COLLECTION, TSE_LAYER_COLLECTION)) {
+					sc_ob_parent = outliner_scene_collection_from_tree_element(te_ob_parent);
+					break;
+				}
 			}
 		}
+		else {
+			sc_ob_parent = BKE_collection_master(id);
+		}
+		Object *ob = (Object *)TREESTORE(ten_selected)->id;
+		BKE_collection_object_move(id, sc, sc_ob_parent, ob);
 	}
-	else {
-		sc_ob_parent = BKE_collection_master(id);
-	}
-	BKE_collection_object_move(id, sc, sc_ob_parent, ob);
+
+	BLI_freelistN(&data.objects_selected_array);
+
+	DEG_relations_tag_update(bmain);
+	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 }
 
 static bool outliner_object_reorder_poll(
@@ -1358,6 +1401,7 @@ static void outliner_add_orphaned_datablocks(Main *mainvar, SpaceOops *soops)
 
 static void outliner_layer_collections_reorder(
         Main *bmain,
+        SpaceOops *UNUSED(soops),
         TreeElement *insert_element, TreeElement *insert_handle, TreeElementInsertType action)
 {
 	LayerCollection *lc_insert = insert_element->directdata;
@@ -1419,6 +1463,7 @@ static void outliner_add_collections_act_layer(SpaceOops *soops, Scene *scene, V
 
 static void outliner_scene_collections_reorder(
         Main *bmain,
+        SpaceOops *UNUSED(soops),
         TreeElement *insert_element, TreeElement *insert_handle, TreeElementInsertType action)
 {
 	SceneCollection *sc_insert = insert_element->directdata;
