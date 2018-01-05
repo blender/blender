@@ -70,6 +70,7 @@ struct wmWindowManager;
 struct GPUFX;
 struct GPUOffScreen;
 struct GPUFXSettings;
+struct GPUViewport;
 struct WorkSpace;
 enum eGPUFXFlags;
 
@@ -380,7 +381,7 @@ void ED_view3d_draw_offscreen(
         struct ViewLayer *view_layer, struct View3D *v3d, struct ARegion *ar, int winx, int winy, float viewmat[4][4],
         float winmat[4][4], bool do_bgpic, bool do_sky, bool is_persp, const char *viewname,
         struct GPUFX *fx, struct GPUFXSettings *fx_settings,
-        struct GPUOffScreen *ofs);
+        struct GPUOffScreen *ofs, struct GPUViewport *viewport);
 void ED_view3d_draw_setup_view(
         struct wmWindow *win, const struct EvaluationContext *eval_ctx, struct Scene *scene, struct ARegion *ar, struct View3D *v3d,
         float viewmat[4][4], float winmat[4][4], const struct rcti *rect);

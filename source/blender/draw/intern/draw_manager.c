@@ -3523,9 +3523,11 @@ void DRW_draw_render_loop(
 	DRW_draw_render_loop_ex(graph, engine_type, ar, v3d, NULL);
 }
 
+/* @viewport CAN be NULL, in this case we create one. */
 void DRW_draw_render_loop_offscreen(
         struct Depsgraph *graph, RenderEngineType *engine_type,
-        ARegion *ar, View3D *v3d, const bool draw_background, GPUOffScreen *ofs)
+        ARegion *ar, View3D *v3d, const bool draw_background, GPUOffScreen *ofs,
+        GPUViewport *viewport)
 {
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -3533,7 +3535,12 @@ void DRW_draw_render_loop_offscreen(
 	void *backup_viewport = rv3d->viewport;
 	{
 		/* backup (_never_ use rv3d->viewport) */
-		rv3d->viewport = GPU_viewport_create_from_offscreen(ofs);
+		if (viewport == NULL) {
+			rv3d->viewport = GPU_viewport_create_from_offscreen(ofs);
+		}
+		else {
+			rv3d->viewport = viewport;
+		}
 	}
 
 	/* Reset before using it. */
@@ -3544,10 +3551,12 @@ void DRW_draw_render_loop_offscreen(
 
 	/* restore */
 	{
-		/* don't free data owned by 'ofs' */
-		GPU_viewport_clear_from_offscreen(rv3d->viewport);
-		GPU_viewport_free(rv3d->viewport);
-		MEM_freeN(rv3d->viewport);
+		if (viewport == NULL) {
+			/* don't free data owned by 'ofs' */
+			GPU_viewport_clear_from_offscreen(rv3d->viewport);
+			GPU_viewport_free(rv3d->viewport);
+			MEM_freeN(rv3d->viewport);
+		}
 
 		rv3d->viewport = backup_viewport;
 	}

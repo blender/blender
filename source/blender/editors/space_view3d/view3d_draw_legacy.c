@@ -1423,7 +1423,7 @@ static void gpu_update_lamps_shadows_world(const EvaluationContext *eval_ctx, Sc
 		ED_view3d_draw_offscreen(
 		            eval_ctx, scene, eval_ctx->view_layer, v3d, &ar, winsize, winsize, viewmat, winmat,
 		            false, false, true,
-		            NULL, NULL, NULL, NULL);
+		            NULL, NULL, NULL, NULL, NULL);
 		GPU_lamp_shadow_buffer_unbind(shadow->lamp);
 		
 		v3d->drawtype = drawtype;

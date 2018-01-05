@@ -1966,7 +1966,7 @@ void ED_view3d_draw_offscreen(
         float viewmat[4][4], float winmat[4][4],
         bool do_bgpic, bool do_sky, bool is_persp, const char *viewname,
         GPUFX *fx, GPUFXSettings *fx_settings,
-        GPUOffScreen *ofs)
+        GPUOffScreen *ofs, GPUViewport *viewport)
 {
 	bool do_compositing = false;
 	RegionView3D *rv3d = ar->regiondata;
@@ -2060,7 +2060,7 @@ void ED_view3d_draw_offscreen(
 		/* XXX, should take depsgraph as arg */
 		Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, false);
 		BLI_assert(depsgraph != NULL);
-		DRW_draw_render_loop_offscreen(depsgraph, eval_ctx->engine_type, ar, v3d, do_sky, ofs);
+		DRW_draw_render_loop_offscreen(depsgraph, eval_ctx->engine_type, ar, v3d, do_sky, ofs, viewport);
 	}
 
 	/* restore size */
@@ -2159,7 +2159,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 		ED_view3d_draw_offscreen(
 		        eval_ctx, scene, view_layer, v3d, ar, sizex, sizey, NULL, winmat,
 		        draw_background, draw_sky, !is_ortho, viewname,
-		        fx, &fx_settings, ofs);
+		        fx, &fx_settings, ofs, NULL);
 
 		if (ibuf->rect_float) {
 			GPU_offscreen_read_pixels(ofs, GL_FLOAT, ibuf->rect_float);
@@ -2175,6 +2175,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 		float winmat_jitter[4][4];
 		float *rect_temp = (ibuf->rect_float) ? ibuf->rect_float : MEM_mallocN(sizex * sizey * sizeof(float[4]), "rect_temp");
 		float *accum_buffer = MEM_mallocN(sizex * sizey * sizeof(float[4]), "accum_buffer");
+		GPUViewport *viewport = GPU_viewport_create_from_offscreen(ofs);
 
 		BLI_jitter_init(jit_ofs, samples);
 
@@ -2182,7 +2183,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 		ED_view3d_draw_offscreen(
 		        eval_ctx, scene, view_layer, v3d, ar, sizex, sizey, NULL, winmat,
 		        draw_background, draw_sky, !is_ortho, viewname,
-		        fx, &fx_settings, ofs);
+		        fx, &fx_settings, ofs, viewport);
 		GPU_offscreen_read_pixels(ofs, GL_FLOAT, accum_buffer);
 
 		/* skip the first sample */
@@ -2196,13 +2197,20 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 			ED_view3d_draw_offscreen(
 			        eval_ctx, scene, view_layer, v3d, ar, sizex, sizey, NULL, winmat_jitter,
 			        draw_background, draw_sky, !is_ortho, viewname,
-			        fx, &fx_settings, ofs);
+			        fx, &fx_settings, ofs, viewport);
 			GPU_offscreen_read_pixels(ofs, GL_FLOAT, rect_temp);
 
 			unsigned int i = sizex * sizey * 4;
 			while (i--) {
 				accum_buffer[i] += rect_temp[i];
 			}
+		}
+
+		{
+			/* don't free data owned by 'ofs' */
+			GPU_viewport_clear_from_offscreen(viewport);
+			GPU_viewport_free(viewport);
+			MEM_freeN(viewport);
 		}
 
 		if (ibuf->rect_float == NULL) {
