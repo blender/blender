@@ -1491,9 +1491,9 @@ BLI_INLINE void outliner_add_scene_collection_objects(
 }
 
 static TreeElement *outliner_add_scene_collection_recursive(
-        SpaceOops *soops, ListBase *tree, SceneCollection *scene_collection, TreeElement *parent_ten)
+        SpaceOops *soops, ListBase *tree, ID *id, SceneCollection *scene_collection, TreeElement *parent_ten)
 {
-	TreeElement *ten = outliner_add_element(soops, tree, scene_collection, parent_ten, TSE_SCENE_COLLECTION, 0);
+	TreeElement *ten = outliner_add_element(soops, tree, id, parent_ten, TSE_SCENE_COLLECTION, 0);
 	outliner_add_scene_collection_init(ten, scene_collection);
 	outliner_add_scene_collection_objects(soops, &ten->subtree, scene_collection, ten);
 
@@ -1501,7 +1501,7 @@ static TreeElement *outliner_add_scene_collection_recursive(
 	     scene_collection_nested != NULL;
 	     scene_collection_nested = scene_collection_nested->next)
 	{
-		outliner_add_scene_collection_recursive(soops, &ten->subtree, scene_collection_nested, ten);
+		outliner_add_scene_collection_recursive(soops, &ten->subtree, id, scene_collection_nested, ten);
 	}
 
 	outliner_make_hierarchy(&ten->subtree);
@@ -1511,7 +1511,7 @@ static TreeElement *outliner_add_scene_collection_recursive(
 static void outliner_add_collections_master(SpaceOops *soops, Scene *scene)
 {
 	SceneCollection *master_collection = BKE_collection_master(&scene->id);
-	TreeElement *ten = outliner_add_scene_collection_recursive(soops, &soops->tree, master_collection, NULL);
+	TreeElement *ten = outliner_add_scene_collection_recursive(soops, &soops->tree, &scene->id, master_collection, NULL);
 	/* Master Collection should always be expanded. */
 	TREESTORE(ten)->flag &= ~TSE_CLOSED;
 }
