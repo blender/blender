@@ -893,17 +893,13 @@ void wm_manipulatormap_modal_set(
 
 		WM_manipulatormap_tooltip_clear(C, mmap);
 
-		/* For now only grab cursor for 3D manipulators. */
-		int retval = OPERATOR_RUNNING_MODAL;
-
 		if (mpr->type->invoke &&
 		    (mpr->type->modal || mpr->custom_modal))
 		{
-			retval = mpr->type->invoke(C, mpr, event);
-		}
-
-		if ((retval & OPERATOR_RUNNING_MODAL) == 0) {
-			return;
+			const int retval = mpr->type->invoke(C, mpr, event);
+			if ((retval & OPERATOR_RUNNING_MODAL) == 0) {
+				return;
+			}
 		}
 
 		mpr->state |= WM_MANIPULATOR_STATE_MODAL;
@@ -922,7 +918,10 @@ void wm_manipulatormap_modal_set(
 
 		struct wmManipulatorOpElem *mpop = WM_manipulator_operator_get(mpr, mpr->highlight_part);
 		if (mpop && mpop->type) {
-			WM_operator_name_call_ptr(C, mpop->type, WM_OP_INVOKE_DEFAULT, &mpop->ptr);
+			const int retval = WM_operator_name_call_ptr(C, mpop->type, WM_OP_INVOKE_DEFAULT, &mpop->ptr);
+			if ((retval & OPERATOR_RUNNING_MODAL) == 0) {
+				wm_manipulatormap_modal_set(mmap, C, mpr, event, false);
+			}
 
 			/* we failed to hook the manipulator to the operator handler or operator was cancelled, return */
 			if (!mmap->mmap_context.modal) {
