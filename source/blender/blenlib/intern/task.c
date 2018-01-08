@@ -1104,7 +1104,7 @@ void BLI_task_parallel_range(int start, int stop,
 	 * and instead have tasks which are evenly distributed across CPU cores and
 	 * pull next iter to be crunched using the queue.
 	 */
-	num_tasks = num_threads * 2;
+	num_tasks = num_threads + 2;
 
 	state.start = start;
 	state.stop = stop;
@@ -1257,7 +1257,7 @@ void BLI_task_parallel_listbase(
 	 * and instead have tasks which are evenly distributed across CPU cores and
 	 * pull next iter to be crunched using the queue.
 	 */
-	num_tasks = num_threads * 2;
+	num_tasks = num_threads + 2;
 
 	state.index = 0;
 	state.link = listbase->first;
@@ -1345,7 +1345,7 @@ void BLI_task_parallel_mempool(
 	 * and instead have tasks which are evenly distributed across CPU cores and
 	 * pull next item to be crunched using the threaded-aware BLI_mempool_iter.
 	 */
-	num_tasks = num_threads * 2;
+	num_tasks = num_threads + 2;
 
 	state.userdata = userdata;
 	state.func = func;
