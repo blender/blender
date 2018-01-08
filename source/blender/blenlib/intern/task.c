@@ -1029,26 +1029,49 @@ static void parallel_range_func(
 	}
 }
 
+static void palallel_range_single_thread(int start, int stop,
+                                         void *userdata,
+                                         TaskParallelRangeFunc func,
+                                         const ParallelRangeSettings *settings)
+{
+	void *userdata_chunk = settings->userdata_chunk;
+	const size_t userdata_chunk_size = settings->userdata_chunk_size;
+	void *userdata_chunk_local = NULL;
+	const bool use_userdata_chunk = (userdata_chunk_size != 0) && (userdata_chunk != NULL);
+	if (use_userdata_chunk) {
+		userdata_chunk_local = MALLOCA(userdata_chunk_size);
+		memcpy(userdata_chunk_local, userdata_chunk, userdata_chunk_size);
+	}
+	ParallelRangeTLS tls = {
+		.thread_id = 0,
+		.userdata_chunk = userdata_chunk_local,
+	};
+	for (int i = start; i < stop; ++i) {
+		func(userdata, i, &tls);
+	}
+	if (settings->func_finalize != NULL) {
+		settings->func_finalize(userdata, userdata_chunk_local);
+	}
+	MALLOCA_FREE(userdata_chunk_local, userdata_chunk_size);
+}
+
 /**
  * This function allows to parallelized for loops in a similar way to OpenMP's 'parallel for' statement.
  *
- * See public API doc for description of parameters.
+ * See public API doc of ParallelRangeSettings for description of all settings.
  */
-static void task_parallel_range_ex(
-        int start, int stop,
-        void *userdata,
-        void *userdata_chunk,
-        const size_t userdata_chunk_size,
-        TaskParallelRangeFunc func,
-        TaskParallelRangeFuncFinalize func_finalize,
-        const bool use_threading,
-        const bool use_dynamic_scheduling)
+void BLI_task_parallel_range(int start, int stop,
+                             void *userdata,
+                             TaskParallelRangeFunc func,
+                             const ParallelRangeSettings *settings)
 {
 	TaskScheduler *task_scheduler;
 	TaskPool *task_pool;
 	ParallelRangeState state;
 	int i, num_threads, num_tasks;
 
+	void *userdata_chunk = settings->userdata_chunk;
+	const size_t userdata_chunk_size = settings->userdata_chunk_size;
 	void *userdata_chunk_local = NULL;
 	void *userdata_chunk_array = NULL;
 	const bool use_userdata_chunk = (userdata_chunk_size != 0) && (userdata_chunk != NULL);
@@ -1065,26 +1088,11 @@ static void task_parallel_range_ex(
 	/* If it's not enough data to be crunched, don't bother with tasks at all,
 	 * do everything from the main thread.
 	 */
-	if (!use_threading) {
-		if (use_userdata_chunk) {
-			userdata_chunk_local = MALLOCA(userdata_chunk_size);
-			memcpy(userdata_chunk_local, userdata_chunk, userdata_chunk_size);
-		}
-
-		ParallelRangeTLS tls = {
-			.thread_id = 0,
-			.userdata_chunk = userdata_chunk_local,
-		};
-		for (i = start; i < stop; ++i) {
-			func(userdata, i, &tls);
-		}
-
-		if (func_finalize) {
-			func_finalize(userdata, userdata_chunk_local);
-		}
-
-		MALLOCA_FREE(userdata_chunk_local, userdata_chunk_size);
-
+	if (!settings->use_threading) {
+		palallel_range_single_thread(start, stop,
+		                             userdata,
+		                             func,
+		                             settings);
 		return;
 	}
 
@@ -1103,11 +1111,13 @@ static void task_parallel_range_ex(
 	state.userdata = userdata;
 	state.func = func;
 	state.iter = start;
-	if (use_dynamic_scheduling) {
-		state.chunk_size = 32;
-	}
-	else {
-		state.chunk_size = max_ii(1, (stop - start) / (num_tasks));
+	switch (settings->scheduling_mode) {
+		case TASK_SCHEDULING_STATIC:
+			state.chunk_size = max_ii(1, (stop - start) / (num_tasks));
+			break;
+		case TASK_SCHEDULING_DYNAMIC:
+			state.chunk_size = 32;
+			break;
 	}
 
 	num_tasks = min_ii(num_tasks, (stop - start) / state.chunk_size);
@@ -1137,31 +1147,14 @@ static void task_parallel_range_ex(
 	BLI_task_pool_free(task_pool);
 
 	if (use_userdata_chunk) {
-		if (func_finalize) {
+		if (settings->func_finalize != NULL) {
 			for (i = 0; i < num_tasks; i++) {
 				userdata_chunk_local = (char *)userdata_chunk_array + (userdata_chunk_size * i);
-				func_finalize(userdata, userdata_chunk_local);
+				settings->func_finalize(userdata, userdata_chunk_local);
 			}
 		}
 		MALLOCA_FREE(userdata_chunk_array, userdata_chunk_size * num_tasks);
 	}
-}
-
-void BLI_task_parallel_range(
-        int start, int stop,
-        void *userdata,
-        TaskParallelRangeFunc func,
-        const ParallelRangeSettings *settings)
-{
-	task_parallel_range_ex(
-	        start, stop,
-	        userdata,
-	        settings->userdata_chunk,
-	        settings->userdata_chunk_size,
-	        func,
-	        settings->func_finalize,
-	        settings->use_threading,
-	        (settings->scheduling_mode == TASK_SCHEDULING_DYNAMIC));
 }
 
 #undef MALLOCA
