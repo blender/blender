@@ -318,7 +318,9 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 		    .pool = pool, .size = size, .rotation = rotation, .radius = radius,
 		};
 
-		BLI_task_parallel_range_ex(0, size, &data, NULL, 0, load_tex_task_cb_ex, true, false);
+		ParallelRangeSettings settings;
+		BLI_parallel_range_settings_defaults(&settings);
+		BLI_task_parallel_range(0, size, &data, load_tex_task_cb_ex, &settings);
 
 		if (mtex->tex && mtex->tex->nodetree)
 			ntreeTexEndExecTree(mtex->tex->nodetree->execdata);
@@ -447,7 +449,9 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
 		    .br = br, .buffer = buffer, .size = size,
 		};
 
-		BLI_task_parallel_range(0, size, &data, load_tex_cursor_task_cb, true);
+		ParallelRangeSettings settings;
+		BLI_parallel_range_settings_defaults(&settings);
+		BLI_task_parallel_range(0, size, &data, load_tex_cursor_task_cb, &settings);
 
 		if (!cursor_snap.overlay_texture)
 			glGenTextures(1, &cursor_snap.overlay_texture);

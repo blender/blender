@@ -370,11 +370,15 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 
 	gogd.origindex = CustomData_get_layer(&result->polyData, CD_ORIGINDEX);
 
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.use_threading = use_threading;
+
 	/* create vertices */
-	BLI_task_parallel_range(0, gogd.res_y + 1, &gogd, generate_ocean_geometry_vertices, use_threading);
+	BLI_task_parallel_range(0, gogd.res_y + 1, &gogd, generate_ocean_geometry_vertices, &settings);
 
 	/* create faces */
-	BLI_task_parallel_range(0, gogd.res_y, &gogd, generate_ocean_geometry_polygons, use_threading);
+	BLI_task_parallel_range(0, gogd.res_y, &gogd, generate_ocean_geometry_polygons, &settings);
 
 	CDDM_calc_edges(result);
 
@@ -387,7 +391,7 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 			gogd.ix = 1.0 / gogd.rx;
 			gogd.iy = 1.0 / gogd.ry;
 
-			BLI_task_parallel_range(0, gogd.res_y, &gogd, generate_ocean_geometry_uvs, use_threading);
+			BLI_task_parallel_range(0, gogd.res_y, &gogd, generate_ocean_geometry_uvs, &settings);
 		}
 	}
 

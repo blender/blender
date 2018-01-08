@@ -868,8 +868,13 @@ static void obstacles_from_derivedmesh(
 			    .velocityX = velocityX, .velocityY = velocityY, .velocityZ = velocityZ,
 			    .num_obstacles = num_obstacles
 			};
-			BLI_task_parallel_range(
-			            sds->res_min[2], sds->res_max[2], &data, obstacles_from_derivedmesh_task_cb, true);
+			ParallelRangeSettings settings;
+			BLI_parallel_range_settings_defaults(&settings);
+			settings.scheduling_mode = TASK_SCHEDULING_DYNAMIC;
+			BLI_task_parallel_range(sds->res_min[2], sds->res_max[2],
+			                        &data,
+			                        obstacles_from_derivedmesh_task_cb,
+			                        &settings);
 		}
 		/* free bvh tree */
 		free_bvhtree_from_mesh(&treeData);
@@ -1395,7 +1400,13 @@ static void emit_from_particles(
 			    .solid = solid, .smooth = smooth, .hr_smooth = hr_smooth,
 			};
 
-			BLI_task_parallel_range(min[2], max[2], &data, emit_from_particles_task_cb, true);
+			ParallelRangeSettings settings;
+			BLI_parallel_range_settings_defaults(&settings);
+			settings.scheduling_mode = TASK_SCHEDULING_DYNAMIC;
+			BLI_task_parallel_range(min[2], max[2],
+			                        &data,
+			                        emit_from_particles_task_cb,
+			                        &settings);
 		}
 
 		if (sfs->flags & MOD_SMOKE_FLOW_USE_PART_SIZE) {
@@ -1720,7 +1731,13 @@ static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, Smo
 			    .flow_center = flow_center, .min = min, .max = max, .res = res,
 			};
 
-			BLI_task_parallel_range(min[2], max[2], &data, emit_from_derivedmesh_task_cb, true);
+			ParallelRangeSettings settings;
+			BLI_parallel_range_settings_defaults(&settings);
+			settings.scheduling_mode = TASK_SCHEDULING_DYNAMIC;
+			BLI_task_parallel_range(min[2], max[2],
+			                        &data,
+			                        emit_from_derivedmesh_task_cb,
+			                        &settings);
 		}
 		/* free bvh tree */
 		free_bvhtree_from_mesh(&treeData);
@@ -2510,7 +2527,13 @@ static void update_effectors(Scene *scene, Object *ob, SmokeDomainSettings *sds,
 		data.velocity_z = smoke_get_velocity_z(sds->fluid);
 		data.obstacle = smoke_get_obstacle(sds->fluid);
 
-		BLI_task_parallel_range(0, sds->res[0], &data, update_effectors_task_cb, true);
+		ParallelRangeSettings settings;
+		BLI_parallel_range_settings_defaults(&settings);
+		settings.scheduling_mode = TASK_SCHEDULING_DYNAMIC;
+		BLI_task_parallel_range(0, sds->res[0],
+		                        &data,
+		                        update_effectors_task_cb,
+		                        &settings);
 	}
 
 	pdEndEffectors(&effectors);

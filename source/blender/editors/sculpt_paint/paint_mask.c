@@ -156,9 +156,12 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 	    .mode = mode, .value = value,
 	};
 
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.use_threading = ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_THREADED_LIMIT);
 	BLI_task_parallel_range(
 	            0, totnode, &data, mask_flood_fill_task_cb,
-	            ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_THREADED_LIMIT));
+	            &settings);
 
 	if (multires)
 		multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
@@ -301,9 +304,12 @@ int ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *r
 			    .mode = mode, .value = value, .clip_planes_final = clip_planes_final,
 			};
 
+			ParallelRangeSettings settings;
+			BLI_parallel_range_settings_defaults(&settings);
+			settings.use_threading = ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_THREADED_LIMIT);
 			BLI_task_parallel_range(
 			            0, totnode, &data, mask_box_select_task_cb,
-			            ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_THREADED_LIMIT));
+			            &settings);
 
 			if (nodes)
 				MEM_freeN(nodes);
@@ -482,9 +488,12 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 				data.task_data.mode = mode;
 				data.task_data.value = value;
 
+				ParallelRangeSettings settings;
+				BLI_parallel_range_settings_defaults(&settings);
+				settings.use_threading = ((sd->flags & SCULPT_USE_OPENMP) && (totnode > SCULPT_THREADED_LIMIT));
 				BLI_task_parallel_range(
 				            0, totnode, &data, mask_gesture_lasso_task_cb,
-				            ((sd->flags & SCULPT_USE_OPENMP) && (totnode > SCULPT_THREADED_LIMIT)));
+				            &settings);
 
 				if (nodes)
 					MEM_freeN(nodes);

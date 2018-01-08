@@ -1147,86 +1147,21 @@ static void task_parallel_range_ex(
 	}
 }
 
-/**
- * This function allows to parallelize for loops in a similar way to OpenMP's 'parallel for' statement.
- *
- * \param start First index to process.
- * \param stop Index to stop looping (excluded).
- * \param userdata Common userdata passed to all instances of \a func.
- * \param userdata_chunk Optional, each instance of looping chunks will get a copy of this data
- *                       (similar to OpenMP's firstprivate).
- * \param userdata_chunk_size Memory size of \a userdata_chunk.
- * \param func_ex Callback function (advanced version).
- * \param use_threading If \a true, actually split-execute loop in threads, else just do a sequential forloop
- *                      (allows caller to use any kind of test to switch on parallelization or not).
- * \param use_dynamic_scheduling If \a true, the whole range is divided in a lot of small chunks (of size 32 currently),
- *                               otherwise whole range is split in a few big chunks (num_threads * 2 chunks currently).
- */
-void BLI_task_parallel_range_ex(
-        int start, int stop,
-        void *userdata,
-        void *userdata_chunk,
-        const size_t userdata_chunk_size,
-        TaskParallelRangeFunc func,
-        const bool use_threading,
-        const bool use_dynamic_scheduling)
-{
-	task_parallel_range_ex(
-	            start, stop, userdata, userdata_chunk, userdata_chunk_size, func, NULL,
-	            use_threading, use_dynamic_scheduling);
-}
-
-/**
- * A simpler version of \a BLI_task_parallel_range_ex, which does not use \a use_dynamic_scheduling,
- * and does not handle 'firstprivate'-like \a userdata_chunk.
- *
- * \param start First index to process.
- * \param stop Index to stop looping (excluded).
- * \param userdata Common userdata passed to all instances of \a func.
- * \param func Callback function (simple version).
- * \param use_threading If \a true, actually split-execute loop in threads, else just do a sequential forloop
- *                      (allows caller to use any kind of test to switch on parallelization or not).
- */
 void BLI_task_parallel_range(
         int start, int stop,
         void *userdata,
         TaskParallelRangeFunc func,
-        const bool use_threading)
-{
-	task_parallel_range_ex(start, stop, userdata, NULL, 0, func, NULL, use_threading, false);
-}
-
-/**
- * This function allows to parallelize for loops in a similar way to OpenMP's 'parallel for' statement,
- * with an additional 'finalize' func called from calling thread once whole range have been processed.
- *
- * \param start First index to process.
- * \param stop Index to stop looping (excluded).
- * \param userdata Common userdata passed to all instances of \a func.
- * \param userdata_chunk Optional, each instance of looping chunks will get a copy of this data
- *                       (similar to OpenMP's firstprivate).
- * \param userdata_chunk_size Memory size of \a userdata_chunk.
- * \param func_ex Callback function (advanced version).
- * \param func_finalize Callback function, called after all workers have finished,
- * useful to finalize accumulative tasks.
- * \param use_threading If \a true, actually split-execute loop in threads, else just do a sequential forloop
- *                      (allows caller to use any kind of test to switch on parallelization or not).
- * \param use_dynamic_scheduling If \a true, the whole range is divided in a lot of small chunks (of size 32 currently),
- *                               otherwise whole range is split in a few big chunks (num_threads * 2 chunks currently).
- */
-void BLI_task_parallel_range_finalize(
-        int start, int stop,
-        void *userdata,
-        void *userdata_chunk,
-        const size_t userdata_chunk_size,
-        TaskParallelRangeFunc func,
-        TaskParallelRangeFuncFinalize func_finalize,
-        const bool use_threading,
-        const bool use_dynamic_scheduling)
+        const ParallelRangeSettings *settings)
 {
 	task_parallel_range_ex(
-	            start, stop, userdata, userdata_chunk, userdata_chunk_size, func, func_finalize,
-	            use_threading, use_dynamic_scheduling);
+	        start, stop,
+	        userdata,
+	        settings->userdata_chunk,
+	        settings->userdata_chunk_size,
+	        func,
+	        settings->func_finalize,
+	        settings->use_threading,
+	        (settings->scheduling_mode == TASK_SCHEDULING_DYNAMIC));
 }
 
 #undef MALLOCA

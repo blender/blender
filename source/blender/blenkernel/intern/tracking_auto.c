@@ -512,10 +512,13 @@ bool BKE_autotrack_context_step(AutoTrackContext *context)
 	const int frame_delta = context->backwards ? -1 : 1;
 	context->step_ok = false;
 
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.use_threading = (context->num_tracks > 1);
 	BLI_task_parallel_range(0, context->num_tracks,
 	                        context,
 	                        autotrack_context_step_cb,
-	                        context->num_tracks > 1);
+	                        &settings);
 
 	/* Advance the frame. */
 	BLI_spin_lock(&context->spin_lock);

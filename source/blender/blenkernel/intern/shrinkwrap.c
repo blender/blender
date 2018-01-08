@@ -167,9 +167,14 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	nearest.dist_sq = FLT_MAX;
 
 	ShrinkwrapCalcCBData data = {.calc = calc, .treeData = &treeData};
-	BLI_task_parallel_range_ex(
-	            0, calc->numVerts, &data, &nearest, sizeof(nearest), shrinkwrap_calc_nearest_vertex_cb_ex,
-	            calc->numVerts > BKE_MESH_OMP_LIMIT, false);
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.use_threading = (calc->numVerts > BKE_MESH_OMP_LIMIT);
+	settings.userdata_chunk = &nearest;
+	settings.userdata_chunk_size = sizeof(nearest);
+	BLI_task_parallel_range(0, calc->numVerts,
+	                        &data,shrinkwrap_calc_nearest_vertex_cb_ex,
+	                        &settings);
 
 	free_bvhtree_from_mesh(&treeData);
 }
@@ -463,9 +468,15 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 			.auxData = auxData, .aux_tree = aux_tree, .aux_callback = aux_callback,
 			.proj_axis = proj_axis, .local2aux = &local2aux,
 		};
-		BLI_task_parallel_range_ex(
-		            0, calc->numVerts, &data, &hit, sizeof(hit), shrinkwrap_calc_normal_projection_cb_ex,
-		            calc->numVerts > BKE_MESH_OMP_LIMIT, false);
+		ParallelRangeSettings settings;
+		BLI_parallel_range_settings_defaults(&settings);
+		settings.use_threading = (calc->numVerts > BKE_MESH_OMP_LIMIT);
+		settings.userdata_chunk = &hit;
+		settings.userdata_chunk_size = sizeof(hit);
+		BLI_task_parallel_range(0, calc->numVerts,
+		                        &data,
+		                        shrinkwrap_calc_normal_projection_cb_ex,
+		                        &settings);
 	}
 
 	/* free data structures */
@@ -583,9 +594,15 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 
 	/* Find the nearest vertex */
 	ShrinkwrapCalcCBData data = {.calc = calc, .treeData = &treeData};
-	BLI_task_parallel_range_ex(
-	            0, calc->numVerts, &data, &nearest, sizeof(nearest), shrinkwrap_calc_nearest_surface_point_cb_ex,
-	            calc->numVerts > BKE_MESH_OMP_LIMIT, false);
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.use_threading = (calc->numVerts > BKE_MESH_OMP_LIMIT);
+	settings.userdata_chunk = &nearest;
+	settings.userdata_chunk_size = sizeof(nearest);
+	BLI_task_parallel_range(0, calc->numVerts,
+	                        &data,
+	                        shrinkwrap_calc_nearest_surface_point_cb_ex,
+	                        &settings);
 
 	free_bvhtree_from_mesh(&treeData);
 }

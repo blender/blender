@@ -3637,9 +3637,16 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 				/* Apply SPH forces using double-density relaxation algorithm
 				 * (Clavat et. al.) */
 
-				BLI_task_parallel_range_ex(
-				            0, psys->totpart, &task_data, &sphdata, sizeof(sphdata),
-				            dynamics_step_sph_ddr_task_cb_ex, psys->totpart > 100, true);
+				ParallelRangeSettings settings;
+				BLI_parallel_range_settings_defaults(&settings);
+				settings.use_threading = (psys->totpart > 100);
+				settings.userdata_chunk = &sphdata;
+				settings.userdata_chunk_size = sizeof(sphdata);
+				BLI_task_parallel_range(
+				        0, psys->totpart,
+				        &task_data,
+				        dynamics_step_sph_ddr_task_cb_ex,
+				        &settings);
 
 				sph_springs_modify(psys, timestep);
 			}
@@ -3649,21 +3656,46 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 				 * and Monaghan). Note that, unlike double-density relaxation,
 				 * this algorithm is separated into distinct loops. */
 
-				BLI_task_parallel_range_ex(
-				            0, psys->totpart, &task_data, NULL, 0,
-				            dynamics_step_sph_classical_basic_integrate_task_cb_ex, psys->totpart > 100, true);
+				{
+					ParallelRangeSettings settings;
+					BLI_parallel_range_settings_defaults(&settings);
+					settings.use_threading = (psys->totpart > 100);
+					BLI_task_parallel_range(
+					        0, psys->totpart,
+					        &task_data,
+					        dynamics_step_sph_classical_basic_integrate_task_cb_ex,
+					        &settings);
+				}
 
 				/* calculate summation density */
 				/* Note that we could avoid copying sphdata for each thread here (it's only read here),
 				 * but doubt this would gain us anything except confusion... */
-				BLI_task_parallel_range_ex(
-				            0, psys->totpart, &task_data, &sphdata, sizeof(sphdata),
-				            dynamics_step_sph_classical_calc_density_task_cb_ex, psys->totpart > 100, true);
+				{
+				ParallelRangeSettings settings;
+				BLI_parallel_range_settings_defaults(&settings);
+				settings.use_threading = (psys->totpart > 100);
+				settings.userdata_chunk = &sphdata;
+				settings.userdata_chunk_size = sizeof(sphdata);
+					BLI_task_parallel_range(
+					        0, psys->totpart,
+					        &task_data,
+					        dynamics_step_sph_classical_calc_density_task_cb_ex,
+					        &settings);
+				}
 
 				/* do global forces & effectors */
-				BLI_task_parallel_range_ex(
-				            0, psys->totpart, &task_data, &sphdata, sizeof(sphdata),
-				            dynamics_step_sph_classical_integrate_task_cb_ex, psys->totpart > 100, true);
+				{
+				ParallelRangeSettings settings;
+				BLI_parallel_range_settings_defaults(&settings);
+				settings.use_threading = (psys->totpart > 100);
+				settings.userdata_chunk = &sphdata;
+				settings.userdata_chunk_size = sizeof(sphdata);
+					BLI_task_parallel_range(
+					        0, psys->totpart,
+					        &task_data,
+					        dynamics_step_sph_classical_integrate_task_cb_ex,
+					        &settings);
+				}
 			}
 
 			BLI_spin_end(&task_data.spin);

@@ -1052,9 +1052,13 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 	    .fnors = fnors, .vnors = vnors,
 	};
 
-	BLI_task_parallel_range(0, totnode, &data, pbvh_update_normals_accum_task_cb, totnode > PBVH_THREADED_LIMIT);
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.use_threading = (totnode > PBVH_THREADED_LIMIT);
 
-	BLI_task_parallel_range(0, totnode, &data, pbvh_update_normals_store_task_cb, totnode > PBVH_THREADED_LIMIT);
+	BLI_task_parallel_range(0, totnode, &data, pbvh_update_normals_accum_task_cb, &settings);
+
+	BLI_task_parallel_range(0, totnode, &data, pbvh_update_normals_store_task_cb, &settings);
 
 	MEM_freeN(vnors);
 }
@@ -1087,7 +1091,10 @@ void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes, int totnode, int flag)
 	    .flag = flag,
 	};
 
-	BLI_task_parallel_range(0, totnode, &data, pbvh_update_BB_redraw_task_cb, totnode > PBVH_THREADED_LIMIT);
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.use_threading = (totnode > PBVH_THREADED_LIMIT);
+	BLI_task_parallel_range(0, totnode, &data, pbvh_update_BB_redraw_task_cb, &settings);
 }
 
 static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)

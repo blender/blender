@@ -1157,9 +1157,12 @@ static int paint_2d_op(void *state, ImBuf *ibufb, unsigned short *curveb, unsign
 				data.blend = blend;
 				data.tilex = tilex;
 				data.tilew = tilew;
+
+				ParallelRangeSettings settings;
+				BLI_parallel_range_settings_defaults(&settings);
 				BLI_task_parallel_range(tiley, tileh + 1, &data,
 				                        paint_2d_op_foreach_do,
-				                        true);
+				                        &settings);
 
 			}
 		}

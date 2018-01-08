@@ -923,9 +923,14 @@ static void non_recursive_bvh_div_nodes(
 		cb_data.depth = depth;
 
 		if (true) {
+			ParallelRangeSettings settings;
+			BLI_parallel_range_settings_defaults(&settings);
+			settings.use_threading = (num_leafs > KDOPBVH_THREAD_LEAF_THRESHOLD);
 			BLI_task_parallel_range(
-			        i, i_stop, &cb_data, non_recursive_bvh_div_nodes_task_cb,
-			        num_leafs > KDOPBVH_THREAD_LEAF_THRESHOLD);
+			        i, i_stop,
+			        &cb_data,
+			        non_recursive_bvh_div_nodes_task_cb,
+			        &settings);
 		}
 		else {
 			/* Less hassle for debugging. */
@@ -1342,9 +1347,14 @@ BVHTreeOverlap *BLI_bvhtree_overlap(
 		data[j].thread = j;
 	}
 
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.use_threading = (tree1->totleaf > KDOPBVH_THREAD_LEAF_THRESHOLD);
 	BLI_task_parallel_range(
-	            0, thread_num, data, bvhtree_overlap_task_cb,
-	            tree1->totleaf > KDOPBVH_THREAD_LEAF_THRESHOLD);
+	            0, thread_num,
+	            data,
+	            bvhtree_overlap_task_cb,
+	            &settings);
 	
 	for (j = 0; j < thread_num; j++)
 		total += BLI_stack_count(data[j].overlap);

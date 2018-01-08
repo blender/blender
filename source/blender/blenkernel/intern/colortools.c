@@ -1387,8 +1387,16 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 	ScopesUpdateDataChunk data_chunk = {{0}};
 	INIT_MINMAX(data_chunk.min, data_chunk.max);
 
-	BLI_task_parallel_range_finalize(0, ibuf->y, &data, &data_chunk, sizeof(data_chunk),
-	                                 scopes_update_cb, scopes_update_finalize, ibuf->y > 256, false);
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.use_threading = (ibuf->y > 256);
+	settings.userdata_chunk = &data_chunk;
+	settings.userdata_chunk_size = sizeof(data_chunk);
+	settings.func_finalize = scopes_update_finalize;
+	BLI_task_parallel_range(0, ibuf->y,
+	                        &data,
+	                        scopes_update_cb,
+	                        &settings);
 
 	/* test for nicer distribution even - non standard, leave it out for a while */
 #if 0

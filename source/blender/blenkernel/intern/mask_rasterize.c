@@ -1475,5 +1475,11 @@ void BKE_maskrasterize_buffer(MaskRasterHandle *mr_handle,
 	    .width = width,
 	    .buffer = buffer
 	};
-	BLI_task_parallel_range(0, (int)height, &data, maskrasterize_buffer_cb, height * width > 10000);
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.use_threading = ((size_t)height * width > 10000);
+	BLI_task_parallel_range(0, (int)height,
+	                        &data,
+	                        maskrasterize_buffer_cb,
+	                        &settings);
 }

@@ -19,7 +19,9 @@
  */
 
 #ifndef __BLI_TASK_H__
-#define __BLI_TASK_H__ 
+#define __BLI_TASK_H__
+
+#include <string.h>  /* for memset() */
 
 struct Link;
 struct ListBase;
@@ -117,6 +119,20 @@ void BLI_task_pool_delayed_push_end(TaskPool *pool, int thread_id);
 
 /* Parallel for routines */
 
+typedef enum eTaskSchedulingMode {
+	/* Task scheduler will divide overall work into equal chunks, scheduling
+	 * even chunks to all worker threads.
+	 * Least run time benefit, ideal for cases when each task requires equal
+	 * amount of compute power.
+	 */
+	TASK_SCHEDULING_STATIC,
+	/* Task scheduler will schedule small amount of work to each worker thread.
+	 * Has more run time overhead, but deals much better with cases when each
+	 * part of the work requires totally different amount of compute power.
+	 */
+	TASK_SCHEDULING_DYNAMIC,
+} eTaskSchedulingMode;
+
 /* Per-thread specific data passed to the callback. */
 typedef struct ParallelRangeTLS {
 	/* Identifier of the thread who this data belongs to. */
@@ -131,29 +147,36 @@ typedef void (*TaskParallelRangeFunc)(void *userdata,
                                       const int iter,
                                       const ParallelRangeTLS *tls);
 typedef void (*TaskParallelRangeFuncFinalize)(void *userdata, void *userdata_chunk);
-void BLI_task_parallel_range_ex(
-        int start, int stop,
-        void *userdata,
-        void *userdata_chunk,
-        const size_t userdata_chunk_size,
-        TaskParallelRangeFunc func,
-        const bool use_threading,
-        const bool use_dynamic_scheduling);
+
+typedef struct ParallelRangeSettings {
+	/* Whether caller allows to do threading of the particular range.
+	 * Usually set by some equation, which forces threading off when threading
+	 * overhead becomes higher than speed benefit.
+	 * BLI_task_parallel_range() by itself will always use threading when range
+	 * is higher than a chunk size. As in, threading will always be performed.
+	 */
+	bool use_threading;
+	/* Scheduling mode to use for this parallel range invocation. */
+	eTaskSchedulingMode scheduling_mode;
+	/* Each instance of looping chunks will get a copy of this data
+	 * (similar to OpenMP's firstprivate).
+	 */
+	void *userdata_chunk;        /* Pointer to actual data. */
+	size_t userdata_chunk_size;  /* Size of that data.  */
+	/* Function called from calling thread once whole range have been
+	 * processed.
+	 */
+	TaskParallelRangeFuncFinalize func_finalize;
+} ParallelRangeSettings;
+
+BLI_INLINE void BLI_parallel_range_settings_defaults(
+        ParallelRangeSettings* settings);
+
 void BLI_task_parallel_range(
         int start, int stop,
         void *userdata,
         TaskParallelRangeFunc func,
-        const bool use_threading);
-
-void BLI_task_parallel_range_finalize(
-        int start, int stop,
-        void *userdata,
-        void *userdata_chunk,
-        const size_t userdata_chunk_size,
-        TaskParallelRangeFunc func,
-        TaskParallelRangeFuncFinalize func_finalize,
-        const bool use_threading,
-        const bool use_dynamic_scheduling);
+        const ParallelRangeSettings *settings);
 
 typedef void (*TaskParallelListbaseFunc)(void *userdata,
                                          struct Link *iter,
@@ -172,6 +195,15 @@ void BLI_task_parallel_mempool(
         void *userdata,
         TaskParallelMempoolFunc func,
         const bool use_threading);
+
+/* TODO(sergey): Think of a better place for this. */
+BLI_INLINE void BLI_parallel_range_settings_defaults(
+        ParallelRangeSettings* settings)
+{
+	memset(settings, 0, sizeof(*settings));
+	settings->use_threading = true;
+	settings->scheduling_mode = TASK_SCHEDULING_STATIC;
+}
 
 #ifdef __cplusplus
 }

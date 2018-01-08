@@ -1013,8 +1013,13 @@ static bool surfacedeformBind(SurfaceDeformModifierData *smd, float (*vertexCos)
 		mul_v3_m4v3(data.targetCos[i], smd->mat, mvert[i].co);
 	}
 
-	BLI_task_parallel_range_ex(0, numverts, &data, NULL, 0, bindVert,
-	                           numverts > 10000, false);
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.use_threading = (numverts > 10000);
+	BLI_task_parallel_range(0, numverts,
+	                        &data,
+	                        bindVert,
+	                        &settings);
 
 	MEM_freeN(data.targetCos);
 
@@ -1170,8 +1175,13 @@ static void surfacedeformModifier_do(ModifierData *md, float (*vertexCos)[3], un
 			mul_v3_m4v3(data.targetCos[i], smd->mat, mvert[i].co);
 		}
 
-		BLI_task_parallel_range_ex(0, numverts, &data, NULL, 0, deformVert,
-		                           numverts > 10000, false);
+		ParallelRangeSettings settings;
+		BLI_parallel_range_settings_defaults(&settings);
+		settings.use_threading = (numverts > 10000);
+		BLI_task_parallel_range(0, numverts,
+		                        &data,
+		                        deformVert,
+		                        &settings);
 
 		if (tdm_vert_alloc) {
 			MEM_freeN((void *)mvert);

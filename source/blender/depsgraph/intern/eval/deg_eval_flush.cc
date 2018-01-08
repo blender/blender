@@ -106,16 +106,26 @@ void flush_init_id_node_func(void *data_v,
 
 BLI_INLINE void flush_prepare(Depsgraph *graph)
 {
-	const int num_operations = graph->operations.size();
-	BLI_task_parallel_range(0, num_operations,
-	                        graph,
-	                        flush_init_operation_node_func,
-	                        (num_operations > 256));
-	const int num_id_nodes = graph->id_nodes.size();
-	BLI_task_parallel_range(0, num_id_nodes,
-	                        graph,
-	                        flush_init_id_node_func,
-	                        (num_id_nodes > 256));
+	{
+		const int num_operations = graph->operations.size();
+		ParallelRangeSettings settings;
+		BLI_parallel_range_settings_defaults(&settings);
+		settings.use_threading = (num_operations > 256);
+		BLI_task_parallel_range(0, num_operations,
+		                        graph,
+		                        flush_init_operation_node_func,
+		                        &settings);
+	}
+	{
+		const int num_id_nodes = graph->id_nodes.size();
+		ParallelRangeSettings settings;
+		BLI_parallel_range_settings_defaults(&settings);
+		settings.use_threading = (num_id_nodes > 256);
+		BLI_task_parallel_range(0, num_id_nodes,
+		                        graph,
+		                        flush_init_id_node_func,
+		                        &settings);
+	}
 }
 
 BLI_INLINE void flush_schedule_entrypoints(Depsgraph *graph, FlushQueue *queue)
@@ -299,7 +309,13 @@ void deg_graph_clear_tags(Depsgraph *graph)
 	/* Go over all operation nodes, clearing tags. */
 	const int num_operations = graph->operations.size();
 	const bool do_threads = num_operations > 256;
-	BLI_task_parallel_range(0, num_operations, graph, graph_clear_func, do_threads);
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.use_threading = do_threads;
+	BLI_task_parallel_range(0, num_operations,
+	                        graph,
+	                        graph_clear_func,
+	                        &settings);
 	/* Clear any entry tags which haven't been flushed. */
 	BLI_gset_clear(graph->entry_tags, NULL);
 }
