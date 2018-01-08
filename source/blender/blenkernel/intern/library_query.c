@@ -1094,7 +1094,7 @@ bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
 			return true;
 #endif
 		case ID_ME:
-			return ELEM(id_type_used, ID_ME, ID_KE, ID_MA);
+			return ELEM(id_type_used, ID_ME, ID_KE, ID_MA, ID_IM);
 		case ID_CU:
 			return ELEM(id_type_used, ID_OB, ID_KE, ID_MA, ID_VF);
 		case ID_MB:

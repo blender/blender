@@ -5286,14 +5286,14 @@ static void def_cmp_luma_matte(StructRNA *srna)
 	prop = RNA_def_property(srna, "limit_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t1");
 	RNA_def_property_float_funcs(prop, NULL, "rna_Matte_t1_set", NULL);
-	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_range(prop, 0, 1, 0.1f, 3);
 	RNA_def_property_ui_text(prop, "High", "Values higher than this setting are 100% opaque");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "limit_min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t2");
 	RNA_def_property_float_funcs(prop, NULL, "rna_Matte_t2_set", NULL);
-	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_range(prop, 0, 1, 0.1f, 3);
 	RNA_def_property_ui_text(prop, "Low", "Values lower than this setting are 100% keyed");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
@@ -5396,14 +5396,14 @@ static void def_cmp_channel_matte(StructRNA *srna)
 	prop = RNA_def_property(srna, "limit_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t1");
 	RNA_def_property_float_funcs(prop, NULL, "rna_Matte_t1_set", NULL);
-	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_range(prop, 0, 1, 0.1f, 3);
 	RNA_def_property_ui_text(prop, "High", "Values higher than this setting are 100% opaque");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "limit_min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t2");
 	RNA_def_property_float_funcs(prop, NULL, "rna_Matte_t2_set", NULL);
-	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_range(prop, 0, 1, 0.1f, 3);
 	RNA_def_property_ui_text(prop, "Low", "Values lower than this setting are 100% keyed");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }

@@ -4119,10 +4119,6 @@ static void lib_link_material(FileData *fd, Main *main)
 			IDP_LibLinkProperty(ma->id.properties, fd);
 			lib_link_animdata(fd, &ma->id, ma->adt);
 			
-			/* Link ID Properties -- and copy this comment EXACTLY for easy finding
-			 * of library blocks that implement this.*/
-			IDP_LibLinkProperty(ma->id.properties, fd);
-			
 			ma->ipo = newlibadr_us(fd, ma->id.lib, ma->ipo);  // XXX deprecated - old animation system
 			ma->group = newlibadr_us(fd, ma->id.lib, ma->group);
 			
