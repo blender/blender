@@ -167,6 +167,17 @@ typedef struct ParallelRangeSettings {
 	 * processed.
 	 */
 	TaskParallelRangeFuncFinalize func_finalize;
+	/* Minimum allowed number of range iterators to be handled by a single
+	 * thread. This allows to achieve following:
+	 * - Reduce amount of threading overhead.
+	 * - Partially occupy thread pool with ranges which are computationally
+	 *   expensive, but which are smaller than amount of available threads.
+	 *   For example, it's possible to multi-thread [0 .. 64] range into 4
+	 *   thread which will be doing 16 iterators each.
+	 * This is a preferred way to tell scheduler when to start threading than
+	 * having a global use_threading switch based on just range size.
+	 */
+	int min_iter_per_thread;
 } ParallelRangeSettings;
 
 BLI_INLINE void BLI_parallel_range_settings_defaults(
@@ -203,6 +214,11 @@ BLI_INLINE void BLI_parallel_range_settings_defaults(
 	memset(settings, 0, sizeof(*settings));
 	settings->use_threading = true;
 	settings->scheduling_mode = TASK_SCHEDULING_STATIC;
+	/* NOTE: Current value mimics old behavior, but it's not ideal by any
+	 * means. Would be cool to find a common value which will work good enough
+	 * for both static and dynamic scheduling.
+	 */
+	settings->min_iter_per_thread = 1;
 }
 
 #ifdef __cplusplus

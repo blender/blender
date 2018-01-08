@@ -1113,14 +1113,21 @@ void BLI_task_parallel_range(int start, int stop,
 	state.iter = start;
 	switch (settings->scheduling_mode) {
 		case TASK_SCHEDULING_STATIC:
-			state.chunk_size = max_ii(1, (stop - start) / (num_tasks));
+			state.chunk_size = max_ii(
+			        settings->min_iter_per_thread,
+			        (stop - start) / (num_tasks));
 			break;
 		case TASK_SCHEDULING_DYNAMIC:
+			/* TODO(sergey): Make it configurable from min_iter_per_thread. */
 			state.chunk_size = 32;
 			break;
 	}
 
 	num_tasks = min_ii(num_tasks, (stop - start) / state.chunk_size);
+
+	/* TODO(sergey): If number of tasks happened to be 1, use single threaded
+	 * path.
+	 */
 
 	/* NOTE: This way we are adding a memory barrier and ensure all worker
 	 * threads can read and modify the value, without any locks. */
