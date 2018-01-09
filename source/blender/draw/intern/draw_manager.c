@@ -185,19 +185,8 @@ struct DRWUniform {
 	const void *value;
 };
 
-typedef struct DRWAttrib {
-	struct DRWAttrib *prev;
-	char name[MAX_ATTRIB_NAME];
-	int location;
-	int format_id;
-	int size; /* number of component */
-	int type;
-} DRWAttrib;
-
 struct DRWInterface {
 	DRWUniform *uniforms;   /* DRWUniform, single-linked list */
-	DRWAttrib *attribs;     /* DRWAttrib, single-linked list */
-	DRWAttrib *attribs_first; /* First added attrib to traverse in the right order */
 	int attribs_count;
 	int attribs_stride;
 	int attribs_size[16];
@@ -270,12 +259,6 @@ typedef struct DRWCallGenerate {
 	void *user_data;
 } DRWCallGenerate;
 
-typedef struct DRWCallDynamic {
-	DRWCallHeader head;
-
-	const void *data[MAX_ATTRIB_COUNT];
-} DRWCallDynamic;
-
 struct DRWShadingGroup {
 	struct DRWShadingGroup *next;
 
@@ -320,21 +303,13 @@ enum {
 	DRW_CALL_DYNAMIC,
 };
 
-/* only 16 bits long */
-enum {
-	STENCIL_SELECT          = (1 << 0),
-	STENCIL_ACTIVE          = (1 << 1),
-};
-
 /** Render State: No persistent data between draw calls. */
 static struct DRWGlobalState {
 	/* Cache generation */
 	ViewportMemoryPool *vmempool;
 	DRWUniform *last_uniform;
-	DRWAttrib *last_attrib;
 	DRWCall *last_call;
 	DRWCallGenerate *last_callgenerate;
-	DRWCallDynamic *last_calldynamic;
 	DRWShadingGroup *last_shgroup;
 	DRWInstanceDataList *idatalist;
 
@@ -2587,10 +2562,8 @@ static void drw_viewport_cache_resize(void)
 	if (DST.vmempool != NULL) {
 		BLI_mempool_clear_ex(DST.vmempool->calls, BLI_mempool_count(DST.vmempool->calls));
 		BLI_mempool_clear_ex(DST.vmempool->calls_generate, BLI_mempool_count(DST.vmempool->calls_generate));
-		BLI_mempool_clear_ex(DST.vmempool->calls_dynamic, BLI_mempool_count(DST.vmempool->calls_dynamic));
 		BLI_mempool_clear_ex(DST.vmempool->shgroups, BLI_mempool_count(DST.vmempool->shgroups));
 		BLI_mempool_clear_ex(DST.vmempool->uniforms, BLI_mempool_count(DST.vmempool->uniforms));
-		BLI_mempool_clear_ex(DST.vmempool->attribs, BLI_mempool_count(DST.vmempool->attribs));
 		BLI_mempool_clear_ex(DST.vmempool->passes, BLI_mempool_count(DST.vmempool->passes));
 	}
 
@@ -2624,17 +2597,11 @@ static void drw_viewport_var_init(void)
 		if (DST.vmempool->calls_generate == NULL) {
 			DST.vmempool->calls_generate = BLI_mempool_create(sizeof(DRWCallGenerate), 0, 512, 0);
 		}
-		if (DST.vmempool->calls_dynamic == NULL) {
-			DST.vmempool->calls_dynamic = BLI_mempool_create(sizeof(DRWCallDynamic), 0, 512, 0);
-		}
 		if (DST.vmempool->shgroups == NULL) {
 			DST.vmempool->shgroups = BLI_mempool_create(sizeof(DRWShadingGroup), 0, 256, 0);
 		}
 		if (DST.vmempool->uniforms == NULL) {
 			DST.vmempool->uniforms = BLI_mempool_create(sizeof(DRWUniform), 0, 512, 0);
-		}
-		if (DST.vmempool->attribs == NULL) {
-			DST.vmempool->attribs = BLI_mempool_create(sizeof(DRWAttrib), 0, 256, 0);
 		}
 		if (DST.vmempool->passes == NULL) {
 			DST.vmempool->passes = BLI_mempool_create(sizeof(DRWPass), 0, 64, 0);

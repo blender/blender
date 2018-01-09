@@ -590,17 +590,11 @@ void GPU_viewport_free(GPUViewport *viewport)
 	if (viewport->vmempool.calls_generate != NULL) {
 		BLI_mempool_destroy(viewport->vmempool.calls_generate);
 	}
-	if (viewport->vmempool.calls_dynamic != NULL) {
-		BLI_mempool_destroy(viewport->vmempool.calls_dynamic);
-	}
 	if (viewport->vmempool.shgroups != NULL) {
 		BLI_mempool_destroy(viewport->vmempool.shgroups);
 	}
 	if (viewport->vmempool.uniforms != NULL) {
 		BLI_mempool_destroy(viewport->vmempool.uniforms);
-	}
-	if (viewport->vmempool.attribs != NULL) {
-		BLI_mempool_destroy(viewport->vmempool.attribs);
 	}
 	if (viewport->vmempool.passes != NULL) {
 		BLI_mempool_destroy(viewport->vmempool.passes);
