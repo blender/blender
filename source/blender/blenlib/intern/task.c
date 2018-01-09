@@ -1060,7 +1060,7 @@ static void palallel_range_single_thread(int start, int stop,
  *
  * See public API doc of ParallelRangeSettings for description of all settings.
  */
-void BLI_task_parallel_range(int start, int stop,
+void BLI_task_parallel_range(const int start, const int stop,
                              void *userdata,
                              TaskParallelRangeFunc func,
                              const ParallelRangeSettings *settings)

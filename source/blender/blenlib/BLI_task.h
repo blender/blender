@@ -184,7 +184,7 @@ BLI_INLINE void BLI_parallel_range_settings_defaults(
         ParallelRangeSettings* settings);
 
 void BLI_task_parallel_range(
-        int start, int stop,
+        const int start, const int stop,
         void *userdata,
         TaskParallelRangeFunc func,
         const ParallelRangeSettings *settings);
