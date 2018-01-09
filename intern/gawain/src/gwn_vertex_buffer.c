@@ -107,7 +107,7 @@ void GWN_vertbuf_data_alloc(Gwn_VertBuf* verts, unsigned v_ct)
 	verts->data = malloc(GWN_vertbuf_size_get(verts));
 	}
 
-void GWN_vertbuf_data_set(Gwn_VertBuf* verts, unsigned v_ct, void *data, bool pass_ownership)
+void GWN_vertbuf_data_set(Gwn_VertBuf* verts, unsigned v_ct, void* data, bool pass_ownership)
 	{
 	Gwn_VertFormat* format = &verts->format;
 	if (!format->packed)
