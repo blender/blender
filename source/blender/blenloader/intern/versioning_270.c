@@ -1735,29 +1735,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 279, 1)) {
-		/* Simple deform modifier no longer assumes Z axis (X for bend type).
-		 * Must set previous defaults. */
-		if (!DNA_struct_elem_find(fd->filesdna, "SimpleDeformModifierData", "char", "deform_axis")) {
-			for (Object *ob = main->object.first; ob; ob = ob->id.next) {
-				for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
-					if (md->type == eModifierType_SimpleDeform) {
-						SimpleDeformModifierData *smd = (SimpleDeformModifierData *)md;
-						switch (smd->mode) {
-							case MOD_SIMPLEDEFORM_MODE_BEND:
-								smd->deform_axis = 0;
-								break;
-							default:
-								smd->deform_axis = 2;
-								break;
-						}
-					}
-				}
-			}
-		}
-	}
-
-
 	{
 		/* Fix for invalid state of screen due to bug in older versions. */
 		for (bScreen *sc = main->screen.first; sc; sc = sc->id.next) {
@@ -1784,6 +1761,26 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 					if (vp != NULL) {
 						/* remove all other flags */
 						vp->flag &= (VP_FLAG_VGROUP_RESTRICT);
+					}
+				}
+			}
+		}
+
+		/* Simple deform modifier no longer assumes Z axis (X for bend type).
+		 * Must set previous defaults. */
+		if (!DNA_struct_elem_find(fd->filesdna, "SimpleDeformModifierData", "char", "deform_axis")) {
+			for (Object *ob = main->object.first; ob; ob = ob->id.next) {
+				for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
+					if (md->type == eModifierType_SimpleDeform) {
+						SimpleDeformModifierData *smd = (SimpleDeformModifierData *)md;
+						switch (smd->mode) {
+							case MOD_SIMPLEDEFORM_MODE_BEND:
+								smd->deform_axis = 0;
+								break;
+							default:
+								smd->deform_axis = 2;
+								break;
+						}
 					}
 				}
 			}
