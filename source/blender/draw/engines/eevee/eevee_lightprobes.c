@@ -1276,7 +1276,7 @@ static void render_scene_to_planar(
 	EEVEE_create_minmax_buffer(vedata, tmp_planar_depth, layer);
 
 	/* Compute GTAO Horizons */
-	EEVEE_occlusion_compute(sldata, vedata);
+	EEVEE_occlusion_compute(sldata, vedata, tmp_planar_depth, layer);
 
 	/* Rebind Planar FB */
 	DRW_framebuffer_bind(fbl->planarref_fb);

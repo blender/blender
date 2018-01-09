@@ -148,6 +148,7 @@ typedef struct EEVEE_PassList {
 
 	/* Effects */
 	struct DRWPass *ao_horizon_search;
+	struct DRWPass *ao_horizon_search_layer;
 	struct DRWPass *ao_horizon_debug;
 	struct DRWPass *motion_blur;
 	struct DRWPass *bloom_blit;
@@ -481,6 +482,8 @@ typedef struct EEVEE_EffectsInfo {
 	float ao_offset, ao_bounce_fac, ao_quality, ao_settings;
 	float ao_sample_nbr;
 	int ao_texsize[2], hori_tex_layers;
+	int ao_depth_layer;
+	struct GPUTexture *ao_src_depth; /* pointer copy */
 
 	/* Motion Blur */
 	float current_ndc_to_world[4][4];
@@ -717,7 +720,7 @@ void EEVEE_bloom_free(void);
 /* eevee_occlusion.c */
 int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
-void EEVEE_occlusion_compute(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_occlusion_compute(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, struct GPUTexture *depth_src, int layer);
 void EEVEE_occlusion_draw_debug(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_occlusion_free(void);
 

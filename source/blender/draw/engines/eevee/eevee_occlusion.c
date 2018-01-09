@@ -38,7 +38,9 @@
 static struct {
 	/* Ground Truth Ambient Occlusion */
 	struct GPUShader *gtao_sh;
+	struct GPUShader *gtao_layer_sh;
 	struct GPUShader *gtao_debug_sh;
+	struct GPUTexture *src_depth;
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_ambient_occlusion_lib_glsl[];
@@ -55,6 +57,7 @@ static void eevee_create_shader_occlusion(void)
 	BLI_dynstr_free(ds_frag);
 
 	e_data.gtao_sh = DRW_shader_create_fullscreen(frag_str, NULL);
+	e_data.gtao_layer_sh = DRW_shader_create_fullscreen(frag_str, "#define LAYERED_DEPTH\n");
 	e_data.gtao_debug_sh = DRW_shader_create_fullscreen(frag_str, "#define DEBUG_AO\n");
 
 	MEM_freeN(frag_str);
@@ -167,7 +170,20 @@ void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data 
 		psl->ao_horizon_search = DRW_pass_create("GTAO Horizon Search", DRW_STATE_WRITE_COLOR);
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.gtao_sh, psl->ao_horizon_search);
 		DRW_shgroup_uniform_buffer(grp, "maxzBuffer", &txl->maxzbuffer);
-		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth);
+		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &effects->ao_src_depth);
+		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
+		DRW_shgroup_uniform_vec2(grp, "mipRatio[0]", (float *)stl->g_data->mip_ratio, 10);
+		DRW_shgroup_uniform_vec4(grp, "aoParameters[0]", &stl->effects->ao_dist, 2);
+		DRW_shgroup_uniform_float(grp, "sampleNbr", &stl->effects->ao_sample_nbr, 1);
+		DRW_shgroup_uniform_ivec2(grp, "aoHorizonTexSize", (int *)stl->effects->ao_texsize, 1);
+		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
+		DRW_shgroup_call_add(grp, quad, NULL);
+
+		psl->ao_horizon_search_layer = DRW_pass_create("GTAO Horizon Search Layer", DRW_STATE_WRITE_COLOR);
+		grp = DRW_shgroup_create(e_data.gtao_layer_sh, psl->ao_horizon_search_layer);
+		DRW_shgroup_uniform_buffer(grp, "maxzBuffer", &txl->maxzbuffer);
+		DRW_shgroup_uniform_buffer(grp, "depthBufferLayered", &effects->ao_src_depth);
+		DRW_shgroup_uniform_int(grp, "layer", &stl->effects->ao_depth_layer, 1);
 		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
 		DRW_shgroup_uniform_vec2(grp, "mipRatio[0]", (float *)stl->g_data->mip_ratio, 10);
 		DRW_shgroup_uniform_vec4(grp, "aoParameters[0]", &stl->effects->ao_dist, 2);
@@ -193,7 +209,8 @@ void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data 
 	}
 }
 
-void EEVEE_occlusion_compute(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+void EEVEE_occlusion_compute(
+        EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata, struct GPUTexture *depth_src, int layer)
 {
 	EEVEE_PassList *psl = vedata->psl;
 	EEVEE_TextureList *txl = vedata->txl;
@@ -203,6 +220,9 @@ void EEVEE_occlusion_compute(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *ve
 
 	if ((effects->enabled_effects & EFFECT_GTAO) != 0) {
 		DRW_stats_group_start("GTAO Horizon Scan");
+		effects->ao_src_depth = depth_src;
+		effects->ao_depth_layer = layer;
+
 		for (effects->ao_sample_nbr = 0.0;
 		     effects->ao_sample_nbr < effects->ao_samples;
 		     ++effects->ao_sample_nbr)
@@ -211,7 +231,12 @@ void EEVEE_occlusion_compute(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *ve
 			DRW_framebuffer_texture_layer_attach(fbl->gtao_fb, txl->gtao_horizons, 0, (int)effects->ao_sample_nbr, 0);
 			DRW_framebuffer_bind(fbl->gtao_fb);
 
-			DRW_draw_pass(psl->ao_horizon_search);
+			if (layer >= 0) {
+				DRW_draw_pass(psl->ao_horizon_search_layer);
+			}
+			else {
+				DRW_draw_pass(psl->ao_horizon_search);
+			}
 		}
 
 		/* Restore */
@@ -247,5 +272,6 @@ void EEVEE_occlusion_draw_debug(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data 
 void EEVEE_occlusion_free(void)
 {
 	DRW_SHADER_FREE_SAFE(e_data.gtao_sh);
+	DRW_SHADER_FREE_SAFE(e_data.gtao_layer_sh);
 	DRW_SHADER_FREE_SAFE(e_data.gtao_debug_sh);
 }
