@@ -21,8 +21,11 @@ if(WITH_CYCLES_NATIVE_ONLY)
 	add_definitions(
 		-DWITH_KERNEL_NATIVE
 	)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
-	set(CYCLES_KERNEL_FLAGS "-march=native")
+
+	if(NOT MSVC)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+		set(CYCLES_KERNEL_FLAGS "-march=native")
+	endif()
 elseif(NOT WITH_CPU_SSE)
 	set(CXX_HAS_SSE FALSE)
 	set(CXX_HAS_AVX FALSE)
