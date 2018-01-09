@@ -1856,11 +1856,11 @@ static void draw_geometry_execute(DRWShadingGroup *shgroup, Gwn_Batch *geom)
 	}
 	else if (interface->instance_vbo) {
 		GWN_batch_draw_stupid_instanced(
-		        geom, interface->instance_vbo, interface->instance_count, interface->attribs_count,
+		        geom, interface->instance_vbo, 0, interface->instance_count, interface->attribs_count,
 		        interface->attribs_stride, interface->attribs_size, interface->attribs_loc);
 	}
 	else {
-		GWN_batch_draw_stupid(geom);
+		GWN_batch_draw_stupid(geom, 0, 0);
 	}
 	/* XXX this just tells gawain we are done with the shader.
 	 * This does not unbind the shader. */

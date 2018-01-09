@@ -1007,7 +1007,7 @@ bool GPU_fx_do_composite_pass(
 				glClearColor(0.0, 0.0, 0.0, 0.0);
 				glClear(GL_COLOR_BUFFER_BIT);
 				/* the draw call we all waited for, draw a point per pixel, scaled per circle of confusion */
-				GWN_batch_draw_stupid_instanced(fx->point_batch, 0, fx->dof_downsampled_w * fx->dof_downsampled_h, 0, 0, NULL, NULL);
+				GWN_batch_draw_stupid_instanced(fx->point_batch, 0, fx->dof_downsampled_w * fx->dof_downsampled_h, 0, 0, 0, NULL, NULL);
 
 				GPU_texture_unbind(fx->dof_half_downsampled_far);
 				GPU_framebuffer_texture_detach(fx->dof_far_blur);
@@ -1023,7 +1023,7 @@ bool GPU_fx_do_composite_pass(
 				/* have to clear the buffer unfortunately */
 				glClear(GL_COLOR_BUFFER_BIT);
 				/* the draw call we all waited for, draw a point per pixel, scaled per circle of confusion */
-				GWN_batch_draw_stupid_instanced(fx->point_batch, 0, fx->dof_downsampled_w * fx->dof_downsampled_h, 0, 0, NULL, NULL);
+				GWN_batch_draw_stupid_instanced(fx->point_batch, 0, fx->dof_downsampled_w * fx->dof_downsampled_h, 0, 0, 0, NULL, NULL);
 				GWN_batch_program_use_end(fx->point_batch);
 
 				/* disable bindings */

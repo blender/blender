@@ -86,8 +86,8 @@ void GWN_batch_draw(Gwn_Batch*);
 
 
 // clement : temp stuff
-void GWN_batch_draw_stupid(Gwn_Batch*);
-void GWN_batch_draw_stupid_instanced(Gwn_Batch*, unsigned int instance_vbo, int instance_count,
+void GWN_batch_draw_stupid(Gwn_Batch*, int v_first, int v_count);
+void GWN_batch_draw_stupid_instanced(Gwn_Batch*, unsigned int instance_vbo, int instance_first, int instance_count,
                                  int attrib_nbr, int attrib_stride, int attrib_loc[16], int attrib_size[16]);
 void GWN_batch_draw_stupid_instanced_with_batch(Gwn_Batch*, Gwn_Batch*);
 
