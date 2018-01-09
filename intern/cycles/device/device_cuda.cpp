@@ -829,18 +829,26 @@ public:
 				status = " in host memory";
 
 				/* Replace host pointer with our host allocation. Only works if
-				 * CUDA memory layout is the same and has no pitch padding. */
-				if(pitch_padding == 0 && mem.host_pointer && mem.host_pointer != mem.shared_pointer) {
+				 * CUDA memory layout is the same and has no pitch padding. Also
+				 * does not work if we move textures to host during a render,
+				 * since other devices might be using the memory. */
+				if(!move_texture_to_host && pitch_padding == 0 &&
+				   mem.host_pointer && mem.host_pointer != mem.shared_pointer) {
 					memcpy(mem.shared_pointer, mem.host_pointer, size);
 					mem.host_free();
 					mem.host_pointer = mem.shared_pointer;
 				}
 			}
+			else {
+				status = " failed, out of host memory";
+			}
+		}
+		else if(mem_alloc_result != CUDA_SUCCESS) {
+			status = " failed, out of device and host memory";
 		}
 
 		if(mem_alloc_result != CUDA_SUCCESS) {
 			cuda_assert(mem_alloc_result);
-			status = " failed, out of memory";
 		}
 
 		if(mem.name) {
