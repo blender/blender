@@ -1123,7 +1123,8 @@ void BLI_task_parallel_range(const int start, const int stop,
 			break;
 	}
 
-	num_tasks = min_ii(num_tasks, (stop - start) / state.chunk_size);
+	num_tasks = min_ii(num_tasks,
+	                   max_ii(1, (stop - start) / state.chunk_size));
 
 	/* TODO(sergey): If number of tasks happened to be 1, use single threaded
 	 * path.
