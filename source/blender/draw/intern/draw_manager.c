@@ -1219,7 +1219,13 @@ static void shgroup_dynamic_batch(DRWShadingGroup *shgroup)
 
 	/* Upload Data */
 	Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&interface->vbo_format);
-	GWN_vertbuf_data_set(vbo, nbr, DRW_instance_data_get(interface->inst_data), false);
+	if (interface->inst_data) {
+		GWN_vertbuf_data_set(vbo, nbr, DRW_instance_data_get(interface->inst_data), false);
+	} else {
+		/* Use unitialized memory. This is for dummy vertex buffers. */
+		/* XXX TODO do not alloc at all. */
+		GWN_vertbuf_data_alloc(vbo, nbr);
+	}
 
 	/* TODO make the batch dynamic instead of freeing it every times */
 	if (shgroup->batch_geom)
