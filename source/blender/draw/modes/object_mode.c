@@ -1500,9 +1500,6 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, OBJECT_PassList *psl
 			sub_v3_v3(prb_data->increment_z, prb_data->corner);
 
 			DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.lightprobe_grid_sh, psl->lightprobes, DRW_cache_sphere_get());
-			/* Dummy call just to save select ID */
-			DRW_shgroup_call_dynamic_add_empty(grp);
-			/* Then overide the instance count */
 			DRW_shgroup_set_instance_count(grp, prb->grid_resolution_x * prb->grid_resolution_y * prb->grid_resolution_z);
 			DRW_shgroup_uniform_vec4(grp, "color", color, 1);
 			DRW_shgroup_uniform_vec3(grp, "corner", prb_data->corner, 1);

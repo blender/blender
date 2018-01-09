@@ -88,6 +88,8 @@
 /* only for callbacks */
 #include "draw_cache_impl.h"
 
+#include "draw_instance_data.h"
+
 #include "draw_mode_engines.h"
 #include "engines/clay/clay_engine.h"
 #include "engines/eevee/eevee_engine.h"
@@ -221,6 +223,12 @@ struct DRWInterface {
 	/* Dynamic batch */
 	Gwn_Batch *instance_batch; /* contains instances attributes */
 	GLuint instance_vbo; /* same as instance_batch but generated from DRWCalls */
+	struct DRWInstanceData *inst_data;
+#ifdef USE_GPU_SELECT
+	struct DRWInstanceData *inst_selectid;
+	/* Override for single object instances. */
+	int override_selectid;
+#endif
 	int instance_count;
 	Gwn_VertFormat vbo_format;
 };
@@ -328,6 +336,7 @@ static struct DRWGlobalState {
 	DRWCallGenerate *last_callgenerate;
 	DRWCallDynamic *last_calldynamic;
 	DRWShadingGroup *last_shgroup;
+	DRWInstanceDataList *idatalist;
 
 	/* Rendering state */
 	GPUShader *shader;
@@ -686,12 +695,14 @@ static void drw_interface_create(DRWInterface *interface, GPUShader *shader)
 	interface->attribs_stride = 0;
 	interface->instance_vbo = 0;
 	interface->instance_batch = NULL;
+	interface->inst_data = NULL;
+	interface->uniforms = NULL;
+#ifdef USE_GPU_SELECT
+	interface->inst_selectid = NULL;
+	interface->override_selectid = -1;
+#endif
 
 	memset(&interface->vbo_format, 0, sizeof(Gwn_VertFormat));
-
-	interface->uniforms = NULL;
-	interface->attribs = NULL;
-	interface->attribs_first = NULL;
 }
 
 
@@ -729,14 +740,22 @@ static void drw_interface_uniform(DRWShadingGroup *shgroup, const char *name,
 	shgroup->interface.uniforms = uni;
 }
 
-static void drw_interface_attrib(DRWShadingGroup *shgroup, const char *name, DRWAttribType type, int size, bool dummy)
+static void drw_interface_attrib(DRWShadingGroup *shgroup, const char *name, DRWAttribType UNUSED(type), int size, bool dummy)
 {
-	DRWAttrib *attrib = BLI_mempool_alloc(DST.vmempool->attribs);
+	unsigned int attrib_id = shgroup->interface.attribs_count;
 	GLuint program = GPU_shader_get_program(shgroup->shader);
 
-	attrib->location = glGetAttribLocation(program, name);
-	attrib->type = type;
-	attrib->size = size;
+	shgroup->interface.attribs_loc[attrib_id] = glGetAttribLocation(program, name);
+	shgroup->interface.attribs_size[attrib_id] = size;
+	shgroup->interface.attribs_stride += size;
+	shgroup->interface.attribs_count += 1;
+
+	if (shgroup->type != DRW_SHG_INSTANCE) {
+		BLI_assert(size <= 4); /* Matrices are not supported by Gawain. */
+		GWN_vertformat_attr_add(&shgroup->interface.vbo_format, name, GWN_COMP_F32, size, GWN_FETCH_FLOAT);
+	}
+
+	BLI_assert(shgroup->interface.attribs_count < MAX_ATTRIB_COUNT);
 
 /* Adding attribute even if not found for now (to keep memory alignment).
  * Should ideally take vertex format automatically from batch eventually */
@@ -751,23 +770,6 @@ static void drw_interface_attrib(DRWShadingGroup *shgroup, const char *name, DRW
 #else
 	UNUSED_VARS(dummy);
 #endif
-
-	BLI_assert(BLI_strnlen(name, 32) < 32);
-	BLI_strncpy(attrib->name, name, 32);
-
-	shgroup->interface.attribs_count += 1;
-	BLI_assert(shgroup->interface.attribs_count < MAX_ATTRIB_COUNT);
-
-	/* Prepend */
-	if (shgroup->interface.attribs == NULL) {
-		shgroup->interface.attribs = attrib;
-		shgroup->interface.attribs_first = attrib;
-	}
-	else {
-		shgroup->interface.attribs->prev = attrib;
-		shgroup->interface.attribs = attrib;
-	}
-	attrib->prev = NULL;
 }
 
 /** \} */
@@ -965,14 +967,6 @@ void DRW_shgroup_free(struct DRWShadingGroup *shgroup)
 	GWN_BATCH_DISCARD_SAFE(shgroup->batch_geom);
 }
 
-void DRW_shgroup_instance_batch(DRWShadingGroup *shgroup, struct Gwn_Batch *instances)
-{
-	BLI_assert(shgroup->type == DRW_SHG_INSTANCE);
-	BLI_assert(shgroup->interface.instance_batch == NULL);
-
-	shgroup->interface.instance_batch = instances;
-}
-
 #define CALL_PREPEND(shgroup, call) { \
 	if (shgroup->calls == NULL) { \
 		shgroup->calls = call; \
@@ -985,10 +979,25 @@ void DRW_shgroup_instance_batch(DRWShadingGroup *shgroup, struct Gwn_Batch *inst
 	call->head.prev = NULL; \
 } ((void)0)
 
+void DRW_shgroup_instance_batch(DRWShadingGroup *shgroup, struct Gwn_Batch *instances)
+{
+	BLI_assert(shgroup->type == DRW_SHG_INSTANCE);
+	BLI_assert(shgroup->interface.instance_batch == NULL);
+
+	shgroup->interface.instance_batch = instances;
+
+#ifdef USE_GPU_SELECT
+	DRWCall *call = BLI_mempool_alloc(DST.vmempool->calls);
+	call->head.select_id = g_DRW_select_id;
+
+	CALL_PREPEND(shgroup, call);
+#endif
+}
 
 void DRW_shgroup_call_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, float (*obmat)[4])
 {
 	BLI_assert(geom != NULL);
+	BLI_assert(shgroup->type == DRW_SHG_NORMAL);
 
 	DRWCall *call = BLI_mempool_alloc(DST.vmempool->calls);
 
@@ -1010,6 +1019,7 @@ void DRW_shgroup_call_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, float (*obm
 void DRW_shgroup_call_object_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, Object *ob)
 {
 	BLI_assert(geom != NULL);
+	BLI_assert(shgroup->type == DRW_SHG_NORMAL);
 
 	DRWCall *call = BLI_mempool_alloc(DST.vmempool->calls);
 
@@ -1031,6 +1041,7 @@ void DRW_shgroup_call_generate_add(
         float (*obmat)[4])
 {
 	BLI_assert(geometry_fn != NULL);
+	BLI_assert(shgroup->type == DRW_SHG_NORMAL);
 
 	DRWCallGenerate *call = BLI_mempool_alloc(DST.vmempool->calls_generate);
 
@@ -1074,43 +1085,30 @@ void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *at
 	DRWInterface *interface = &shgroup->interface;
 
 #ifdef USE_GPU_SELECT
-	if ((G.f & G_PICKSEL) && (interface->instance_count > 0)) {
-		DRWShadingGroup *original_shgroup = shgroup;
-		shgroup = BLI_mempool_alloc(DST.vmempool->shgroups);
-		memcpy(shgroup, original_shgroup, sizeof(DRWShadingGroup));
-
-		shgroup->calls = NULL;
-		shgroup->calls_first = NULL;
-
-		interface = &shgroup->interface;
-		interface->instance_count = 0;
-
-		/* Append */
-		if (shgroup->pass_parent->shgroups != NULL) {
-			shgroup->pass_parent->shgroups_last->next = shgroup;
+	if (G.f & G_PICKSEL) {
+		if (interface->inst_selectid == NULL) {
+			interface->inst_selectid = DRW_instance_data_request(DST.idatalist, 1, 128);
 		}
-		else {
-			shgroup->pass_parent->shgroups = shgroup;
-		}
-		shgroup->pass_parent->shgroups_last = shgroup;
-		shgroup->next = NULL;
+
+		int *select_id = DRW_instance_data_next(interface->inst_selectid);
+		*select_id = g_DRW_select_id;
 	}
 #endif
-
-	DRWCallDynamic *call = BLI_mempool_alloc(DST.vmempool->calls_dynamic);
-
-	CALL_PREPEND(shgroup, call);
 
 	BLI_assert(attr_len == interface->attribs_count);
 	UNUSED_VARS_NDEBUG(attr_len);
 
-	call->head.type = DRW_CALL_DYNAMIC;
-#ifdef USE_GPU_SELECT
-	call->head.select_id = g_DRW_select_id;
-#endif
+	if (interface->attribs_stride > 0) {
+		if (interface->inst_data == NULL) {
+			interface->inst_data = DRW_instance_data_request(DST.idatalist, interface->attribs_stride, 16);
+		}
 
-	if (interface->attribs_count != 0) {
-		memcpy((void *)call->data, attr, sizeof(void *) * interface->attribs_count);
+		float *data = DRW_instance_data_next(interface->inst_data);
+
+		for (int i = 0; i < interface->attribs_count; ++i) {
+			memcpy(data, attr[i], sizeof(float) * interface->attribs_size[i]);
+			data = data + interface->attribs_size[i];
+		}
 	}
 
 	interface->instance_count += 1;
@@ -1121,7 +1119,14 @@ void DRW_shgroup_set_instance_count(DRWShadingGroup *shgroup, int count)
 {
 	DRWInterface *interface = &shgroup->interface;
 
+	BLI_assert(interface->instance_count == 0);
 	BLI_assert(interface->attribs_count == 0);
+
+#ifdef USE_GPU_SELECT
+	if (G.f & G_PICKSEL) {
+		interface->override_selectid = g_DRW_select_id;
+	}
+#endif
 
 	interface->instance_count = count;
 }
@@ -1238,33 +1243,8 @@ static void shgroup_dynamic_batch(DRWShadingGroup *shgroup)
 		return;
 
 	/* Upload Data */
-	if (interface->vbo_format.attrib_ct == 0) {
-		for (DRWAttrib *attrib = interface->attribs_first; attrib; attrib = attrib->prev) {
-			BLI_assert(attrib->size <= 4); /* matrices have no place here for now */
-			if (attrib->type == DRW_ATTRIB_FLOAT) {
-				attrib->format_id = GWN_vertformat_attr_add(
-				        &interface->vbo_format, attrib->name, GWN_COMP_F32, attrib->size, GWN_FETCH_FLOAT);
-			}
-			else if (attrib->type == DRW_ATTRIB_INT) {
-				attrib->format_id = GWN_vertformat_attr_add(
-				        &interface->vbo_format, attrib->name, GWN_COMP_I8, attrib->size, GWN_FETCH_INT);
-			}
-			else {
-				BLI_assert(false);
-			}
-		}
-	}
-
 	Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&interface->vbo_format);
-	GWN_vertbuf_data_alloc(vbo, nbr);
-
-	int j = 0;
-	for (DRWCallDynamic *call = shgroup->calls_first; call; call = call->head.prev, j++) {
-		int i = 0;
-		for (DRWAttrib *attrib = interface->attribs_first; attrib; attrib = attrib->prev, i++) {
-			GWN_vertbuf_attr_set(vbo, attrib->format_id, j, call->data[i]);
-		}
-	}
+	GWN_vertbuf_data_set(vbo, nbr, DRW_instance_data_get(interface->inst_data), false);
 
 	/* TODO make the batch dynamic instead of freeing it every times */
 	if (shgroup->batch_geom)
@@ -1275,10 +1255,9 @@ static void shgroup_dynamic_batch(DRWShadingGroup *shgroup)
 
 static void shgroup_dynamic_instance(DRWShadingGroup *shgroup)
 {
-	int i = 0;
-	int offset = 0;
 	DRWInterface *interface = &shgroup->interface;
 	int buffer_size = 0;
+	void *data = NULL;
 
 	if (interface->instance_batch != NULL) {
 		return;
@@ -1293,26 +1272,8 @@ static void shgroup_dynamic_instance(DRWShadingGroup *shgroup)
 		return;
 	}
 
-	/* only once */
-	if (interface->attribs_stride == 0) {
-		for (DRWAttrib *attrib = interface->attribs_first; attrib; attrib = attrib->prev, i++) {
-			BLI_assert(attrib->type == DRW_ATTRIB_FLOAT); /* Only float for now */
-			interface->attribs_stride += attrib->size;
-			interface->attribs_size[i] = attrib->size;
-			interface->attribs_loc[i] = attrib->location;
-		}
-	}
-
 	/* Gather Data */
 	buffer_size = sizeof(float) * interface->attribs_stride * interface->instance_count;
-	float *data = MEM_mallocN(buffer_size, "Instance VBO data");
-
-	for (DRWCallDynamic *call = shgroup->calls_first; call; call = call->head.prev) {
-		for (int j = 0; j < interface->attribs_count; ++j) {
-			memcpy(data + offset, call->data[j], sizeof(float) * interface->attribs_size[j]);
-			offset += interface->attribs_size[j];
-		}
-	}
 
 	/* TODO poke mike to add this to gawain */
 	if (interface->instance_vbo) {
@@ -1320,11 +1281,13 @@ static void shgroup_dynamic_instance(DRWShadingGroup *shgroup)
 		interface->instance_vbo = 0;
 	}
 
+	if (interface->inst_data) {
+		data = DRW_instance_data_get(interface->inst_data);
+	}
+
 	glGenBuffers(1, &interface->instance_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, interface->instance_vbo);
 	glBufferData(GL_ARRAY_BUFFER, buffer_size, data, GL_STATIC_DRAW);
-
-	MEM_freeN(data);
 }
 
 static void shgroup_dynamic_batch_from_calls(DRWShadingGroup *shgroup)
@@ -1846,28 +1809,37 @@ static void draw_geometry_prepare(
 	GPU_shader_uniform_vector(shgroup->shader, interface->clipplanes, 4, DST.num_clip_planes, (float *)DST.clip_planes_eq);
 }
 
-static void draw_geometry_execute(DRWShadingGroup *shgroup, Gwn_Batch *geom)
+static void draw_geometry_execute_ex(
+        DRWShadingGroup *shgroup, Gwn_Batch *geom, unsigned int start, unsigned int count)
 {
 	DRWInterface *interface = &shgroup->interface;
 	/* step 2 : bind vertex array & draw */
 	GWN_batch_program_set(geom, GPU_shader_get_program(shgroup->shader), GPU_shader_get_interface(shgroup->shader));
 	if (interface->instance_batch) {
+		/* Used for Particles. Cannot do partial drawing. */
 		GWN_batch_draw_stupid_instanced_with_batch(geom, interface->instance_batch);
 	}
 	else if (interface->instance_vbo) {
 		GWN_batch_draw_stupid_instanced(
-		        geom, interface->instance_vbo, 0, interface->instance_count, interface->attribs_count,
+		        geom, interface->instance_vbo, start, count, interface->attribs_count,
 		        interface->attribs_stride, interface->attribs_size, interface->attribs_loc);
 	}
 	else {
-		GWN_batch_draw_stupid(geom, 0, 0);
+		GWN_batch_draw_stupid(geom, start, count);
 	}
 	/* XXX this just tells gawain we are done with the shader.
 	 * This does not unbind the shader. */
 	GWN_batch_program_unset(geom);
 }
 
-static void draw_geometry(DRWShadingGroup *shgroup, Gwn_Batch *geom, const float (*obmat)[4], ID *ob_data)
+static void draw_geometry_execute(DRWShadingGroup *shgroup, Gwn_Batch *geom)
+{
+	draw_geometry_execute_ex(shgroup, geom, 0, 0);
+}
+
+static void draw_geometry(
+        DRWShadingGroup *shgroup, Gwn_Batch *geom, const float (*obmat)[4], ID *ob_data,
+        unsigned int start, unsigned int count)
 {
 	float *texcoloc = NULL;
 	float *texcosize = NULL;
@@ -1901,7 +1873,7 @@ static void draw_geometry(DRWShadingGroup *shgroup, Gwn_Batch *geom, const float
 
 	draw_geometry_prepare(shgroup, obmat, texcoloc, texcosize);
 
-	draw_geometry_execute(shgroup, geom);
+	draw_geometry_execute_ex(shgroup, geom, start, count);
 }
 
 static void bind_texture(GPUTexture *tex)
@@ -2035,15 +2007,39 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 		GPU_select_load_id((_call)->head.select_id); \
 	} ((void)0)
 
-#  define GPU_SELECT_LOAD_IF_PICKSEL_LIST(_call_last, _call_first) \
-	if ((G.f & G_PICKSEL) && _call_first) { \
-		BLI_assert(_call_first && (_call_first == _call_last)); \
-		GPU_select_load_id(((DRWCall *)_call_first)->head.select_id); \
-	} ((void)0)
+#  define GPU_SELECT_LOAD_IF_PICKSEL_LIST(_shgroup, _start, _count)  \
+	_start = 0;                                                      \
+	_count = _shgroup->interface.instance_count;                     \
+	int *select_id = NULL;                                           \
+	if (G.f & G_PICKSEL) {                                           \
+		if (_shgroup->interface.override_selectid == -1) {                        \
+			select_id = DRW_instance_data_get(_shgroup->interface.inst_selectid); \
+			switch (_shgroup->type) {                                             \
+				case DRW_SHG_TRIANGLE_BATCH: _count = 3; break;                   \
+				case DRW_SHG_LINE_BATCH: _count = 2; break;                       \
+				default: _count = 1; break;                                       \
+			}                                                                     \
+		}                                                                         \
+		else {                                                                    \
+			GPU_select_load_id(_shgroup->interface.override_selectid);            \
+		}                                                                         \
+	}                                                                \
+	while (_start < _shgroup->interface.instance_count) {            \
+		if (select_id) {                                             \
+			GPU_select_load_id(select_id[_start]);                   \
+		}
+
+# define GPU_SELECT_LOAD_IF_PICKSEL_LIST_END(_start, _count) \
+		_start += _count;                                    \
+	}
 
 #else
 #  define GPU_SELECT_LOAD_IF_PICKSEL(call)
-#  define GPU_SELECT_LOAD_IF_PICKSEL_LIST(call, _call_first)
+#  define GPU_SELECT_LOAD_IF_PICKSEL_LIST_END(start, count)
+#  define GPU_SELECT_LOAD_IF_PICKSEL_LIST(_shgroup, _start, _count) \
+	_start = 0;                                                     \
+	_count = _shgroup->interface.instance_count;
+
 #endif
 
 	/* Rendering Calls */
@@ -2055,14 +2051,28 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 		if (shgroup->type == DRW_SHG_INSTANCE &&
 		    (interface->instance_count > 0 || interface->instance_batch != NULL))
 		{
-			GPU_SELECT_LOAD_IF_PICKSEL_LIST(shgroup->calls, shgroup->calls_first);
-			draw_geometry(shgroup, shgroup->instance_geom, obmat, shgroup->instance_data);
+			if (interface->instance_batch != NULL) {
+				GPU_SELECT_LOAD_IF_PICKSEL((DRWCall *)shgroup->calls_first);
+				draw_geometry(shgroup, shgroup->instance_geom, obmat, shgroup->instance_data, 0, 0);
+			}
+			else {
+				unsigned int count, start;
+				GPU_SELECT_LOAD_IF_PICKSEL_LIST(shgroup, start, count)
+				{
+					draw_geometry(shgroup, shgroup->instance_geom, obmat, shgroup->instance_data, start, count);
+				}
+				GPU_SELECT_LOAD_IF_PICKSEL_LIST_END(start, count)
+			}
 		}
 		else {
 			/* Some dynamic batch can have no geom (no call to aggregate) */
 			if (shgroup->batch_geom) {
-				GPU_SELECT_LOAD_IF_PICKSEL_LIST(shgroup->calls, shgroup->calls_first);
-				draw_geometry(shgroup, shgroup->batch_geom, obmat, NULL);
+				unsigned int count, start;
+				GPU_SELECT_LOAD_IF_PICKSEL_LIST(shgroup, start, count)
+				{
+					draw_geometry(shgroup, shgroup->batch_geom, obmat, NULL, start, count);
+				}
+				GPU_SELECT_LOAD_IF_PICKSEL_LIST_END(start, count)
 			}
 		}
 	}
@@ -2078,7 +2088,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 			GPU_SELECT_LOAD_IF_PICKSEL(call);
 
 			if (call->head.type == DRW_CALL_SINGLE) {
-				draw_geometry(shgroup, call->geometry, call->obmat, call->ob_data);
+				draw_geometry(shgroup, call->geometry, call->obmat, call->ob_data, 0, 0);
 			}
 			else {
 				BLI_assert(call->head.type == DRW_CALL_GENERATE);
@@ -2583,6 +2593,9 @@ static void drw_viewport_cache_resize(void)
 		BLI_mempool_clear_ex(DST.vmempool->attribs, BLI_mempool_count(DST.vmempool->attribs));
 		BLI_mempool_clear_ex(DST.vmempool->passes, BLI_mempool_count(DST.vmempool->passes));
 	}
+
+	DRW_instance_data_list_free_unused(DST.idatalist);
+	DRW_instance_data_list_resize(DST.idatalist);
 }
 
 /* It also stores viewport variable to an immutable place: DST
@@ -2626,6 +2639,9 @@ static void drw_viewport_var_init(void)
 		if (DST.vmempool->passes == NULL) {
 			DST.vmempool->passes = BLI_mempool_create(sizeof(DRWPass), 0, 64, 0);
 		}
+
+		DST.idatalist = GPU_viewport_instance_data_list_get(DST.viewport);
+		DRW_instance_data_list_reset(DST.idatalist);
 	}
 	else {
 		DST.size[0] = 0;
