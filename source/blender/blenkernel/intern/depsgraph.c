@@ -506,7 +506,8 @@ static bool build_deg_tracking_constraints(DagForest *dag,
                                            DagNode *scenenode,
                                            bConstraint *con,
                                            const bConstraintTypeInfo *cti,
-                                           DagNode *node)
+                                           DagNode *node,
+                                           bool is_data)
 {
 	if (!ELEM(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK,
 	          CONSTRAINT_TYPE_CAMERASOLVER,
@@ -522,7 +523,11 @@ static bool build_deg_tracking_constraints(DagForest *dag,
 		}
 		if (data->depth_ob != NULL) {
 			DagNode *node2 = dag_get_node(dag, data->depth_ob);
-			dag_add_relation(dag, node2, node, DAG_RL_DATA_OB | DAG_RL_OB_OB, cti->name);
+			dag_add_relation(dag,
+			                 node2, node,
+			                 (is_data) ? (DAG_RL_DATA_DATA | DAG_RL_OB_DATA)
+			                           : (DAG_RL_DATA_OB | DAG_RL_OB_OB),
+			                 cti->name);
 		}
 	}
 	else if (cti->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
@@ -530,7 +535,11 @@ static bool build_deg_tracking_constraints(DagForest *dag,
 	}
 	if (depends_on_camera && scene->camera != NULL) {
 		DagNode *node2 = dag_get_node(dag, scene->camera);
-		dag_add_relation(dag, node2, node, DAG_RL_DATA_OB | DAG_RL_OB_OB, cti->name);
+		dag_add_relation(dag,
+		                 node2, node,
+		                 (is_data) ? (DAG_RL_DATA_DATA | DAG_RL_OB_DATA)
+		                           : (DAG_RL_DATA_OB | DAG_RL_OB_OB),
+		                 cti->name);
 	}
 	dag_add_relation(dag, scenenode, node, DAG_RL_SCENE, "Scene Relation");
 	return true;
@@ -571,7 +580,10 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Main *bmain, Sc
 						continue;
 					}
 
-					if (cti->get_constraint_targets) {
+					if (build_deg_tracking_constraints(dag, scene, scenenode, con, cti, node, true)) {
+						/* pass */
+					}
+					else if (cti->get_constraint_targets) {
 						cti->get_constraint_targets(con, &targets);
 						
 						for (ct = targets.first; ct; ct = ct->next) {
@@ -882,7 +894,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Main *bmain, Sc
 			continue;
 
 		/* special case for camera tracking -- it doesn't use targets to define relations */
-		if (build_deg_tracking_constraints(dag, scene, scenenode, con, cti, node)) {
+		if (build_deg_tracking_constraints(dag, scene, scenenode, con, cti, node, false)) {
 			addtoroot = 0;
 		}
 		else if (cti->get_constraint_targets) {
