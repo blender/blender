@@ -81,6 +81,21 @@ void DRW_globals_update(void)
 	UI_GetThemeColor4fv(TH_FACE_DOT, ts.colorFaceDot);
 	UI_GetThemeColor4fv(TH_BACK, ts.colorBackground);
 
+	/* Curve */
+	UI_GetThemeColor4fv(TH_HANDLE_FREE, ts.colorHandleFree);
+	UI_GetThemeColor4fv(TH_HANDLE_AUTO, ts.colorHandleAuto);
+	UI_GetThemeColor4fv(TH_HANDLE_VECT, ts.colorHandleVect);
+	UI_GetThemeColor4fv(TH_HANDLE_ALIGN, ts.colorHandleAlign);
+	UI_GetThemeColor4fv(TH_HANDLE_AUTOCLAMP, ts.colorHandleAutoclamp);
+	UI_GetThemeColor4fv(TH_HANDLE_SEL_FREE, ts.colorHandleSelFree);
+	UI_GetThemeColor4fv(TH_HANDLE_SEL_AUTO, ts.colorHandleSelAuto);
+	UI_GetThemeColor4fv(TH_HANDLE_SEL_VECT, ts.colorHandleSelVect);
+	UI_GetThemeColor4fv(TH_HANDLE_SEL_ALIGN, ts.colorHandleSelAlign);
+	UI_GetThemeColor4fv(TH_HANDLE_SEL_AUTOCLAMP, ts.colorHandleSelAutoclamp);
+	UI_GetThemeColor4fv(TH_NURB_ULINE, ts.colorNurbUline);
+	UI_GetThemeColor4fv(TH_NURB_SEL_ULINE, ts.colorNurbSelUline);
+	UI_GetThemeColor4fv(TH_ACTIVE_SPLINE, ts.colorActiveSpline);
+
 	/* Grid */
 	UI_GetThemeColorShade4fv(TH_GRID, 10, ts.colorGrid);
 	/* emphasise division lines lighter instead of darker, if background is darker than grid */

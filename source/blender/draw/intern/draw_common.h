@@ -72,6 +72,20 @@ typedef struct GlobalsUboStorage {
 
 	float colorBackground[4];
 
+	float colorHandleFree[4];
+	float colorHandleAuto[4];
+	float colorHandleVect[4];
+	float colorHandleAlign[4];
+	float colorHandleAutoclamp[4];
+	float colorHandleSelFree[4];
+	float colorHandleSelAuto[4];
+	float colorHandleSelVect[4];
+	float colorHandleSelAlign[4];
+	float colorHandleSelAutoclamp[4];
+	float colorNurbUline[4];
+	float colorNurbSelUline[4];
+	float colorActiveSpline[4];
+
 	float colorGrid[4];
 	float colorGridEmphasise[4];
 	float colorGridAxisX[4];

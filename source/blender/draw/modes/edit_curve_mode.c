@@ -45,10 +45,12 @@ extern struct GlobalsUboStorage ts; /* draw_common.c */
 extern char datatoc_common_globals_lib_glsl[];
 extern char datatoc_edit_curve_overlay_loosevert_vert_glsl[];
 extern char datatoc_edit_curve_overlay_frag_glsl[];
+extern char datatoc_edit_curve_overlay_handle_geom_glsl[];
 
 extern char datatoc_gpu_shader_3D_vert_glsl[];
 extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
 extern char datatoc_gpu_shader_point_uniform_color_frag_glsl[];
+extern char datatoc_gpu_shader_flat_color_frag_glsl[];
 
 /* *********** LISTS *********** */
 /* All lists are per viewport specific datas.
@@ -158,7 +160,11 @@ static void EDIT_CURVE_engine_init(void *vedata)
 	}
 
 	if (!e_data.overlay_edge_sh) {
-		e_data.overlay_edge_sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
+		e_data.overlay_edge_sh = DRW_shader_create_with_lib(
+		        datatoc_edit_curve_overlay_loosevert_vert_glsl,
+		        datatoc_edit_curve_overlay_handle_geom_glsl,
+		        datatoc_gpu_shader_flat_color_frag_glsl,
+		        datatoc_common_globals_lib_glsl, NULL);
 	}
 
 	if (!e_data.overlay_vert_sh) {
@@ -189,15 +195,14 @@ static void EDIT_CURVE_cache_init(void *vedata)
 		stl->g_data->wire_shgrp = DRW_shgroup_create(e_data.wire_sh, psl->wire_pass);
 
 
-		/* TODO: following handle theme colors,
-		 * For now use overlay vert shader for handles (we want them colored):
-		 * TH_NURB_ULINE, TH_NURB_SEL_ULINE, TH_HANDLE_* */
 		psl->overlay_edge_pass = DRW_pass_create(
 		        "Curve Handle Overlay",
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_WIRE);
-		/* TODO: following handle theme colors,
-		 * For now use overlay vert shader for handles (we want them colored) */
-		stl->g_data->overlay_edge_shgrp = DRW_shgroup_create(e_data.overlay_vert_sh, psl->overlay_edge_pass);
+
+		DRWShadingGroup *overlay_edge_shgrp = DRW_shgroup_create(e_data.overlay_edge_sh, psl->overlay_edge_pass);
+		DRW_shgroup_uniform_vec2(overlay_edge_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
+		stl->g_data->overlay_edge_shgrp = overlay_edge_shgrp;
+
 
 		psl->overlay_vert_pass = DRW_pass_create(
 		        "Curve Vert Overlay",
@@ -293,6 +298,7 @@ static void EDIT_CURVE_draw_scene(void *vedata)
  * Mostly used for freeing shaders */
 static void EDIT_CURVE_engine_free(void)
 {
+	DRW_SHADER_FREE_SAFE(e_data.overlay_edge_sh);
 	DRW_SHADER_FREE_SAFE(e_data.overlay_vert_sh);
 }
 

@@ -40,9 +40,22 @@
 
 #include "GPU_batch.h"
 
+#include "UI_resources.h"
+
 #include "draw_cache_impl.h"  /* own include */
 
-#define SELECT   1
+#define SELECT            1
+#define ACTIVE_NURB       1 << 7 /* last char bite */
+#define HANDLE_SEL_OFFSET (TH_HANDLE_SEL_FREE - TH_HANDLE_FREE)
+
+/* Used as values of `color_id` in `edit_curve_overlay_handle_geom.glsl` */
+enum {
+	COLOR_NURB_ULINE_ID = TH_HANDLE_SEL_AUTOCLAMP - TH_HANDLE_FREE + 1,
+	COLOR_NURB_SEL_ULINE_ID,
+	COLOR_ACTIVE_SPLINE,
+
+	TOT_HANDLE_COL,
+};
 
 /**
  * TODO
@@ -742,47 +755,50 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 		int vbo_len_used = 0;
 		GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
 		int i = 0;
-		for (Nurb *nu = rdata->nurbs->first; nu; nu = nu->next) {
+		for (Nurb *nu = rdata->nurbs->first; nu; nu = nu->next, i++) {
+			const bool is_active_nurb = (i == cu->actnu);
+
 			if (nu->bezt) {
 				int a = 0;
 				for (const BezTriple *bezt = nu->bezt; a < nu->pntsu; a++, bezt++) {
 					if (bezt->hide == false) {
-						const bool is_active = (i == rdata->actvert);
-						char vflag;
+						char col_id;
 
-						vflag = (bezt->f1 & SELECT) ? (is_active ? VFLAG_VERTEX_ACTIVE : VFLAG_VERTEX_SELECTED) : 0;
-						GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, bezt->vec[0]);
-						GWN_vertbuf_attr_set(vbo, attr_id.data, vbo_len_used, &vflag);
-						vbo_len_used += 1;
-
-						/* same vertex twice, only check different selection */
-						for (int j = 0; j < 2; j++) {
-							vflag = ((j ? bezt->f3 : bezt->f1) & SELECT) ?
-							        (is_active ? VFLAG_VERTEX_ACTIVE : VFLAG_VERTEX_SELECTED) : 0;
+						for (int j = 0; j < 2; j += 1) {
+							/* same vertex twice, only check different selection */
 							GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, bezt->vec[1]);
-							GWN_vertbuf_attr_set(vbo, attr_id.data, vbo_len_used, &vflag);
+							vbo_len_used += 1;
+
+							col_id = (&bezt->h1)[j];
+							if ((&bezt->f1)[j * 2] & SELECT) {
+								col_id += HANDLE_SEL_OFFSET;
+							}
+							if (is_active_nurb) {
+								col_id |= ACTIVE_NURB;
+							}
+
+							GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, bezt->vec[j * 2]);
+							GWN_vertbuf_attr_set(vbo, attr_id.data, vbo_len_used, &col_id);
 							vbo_len_used += 1;
 						}
-
-						vflag = (bezt->f3 & SELECT) ? (is_active ? VFLAG_VERTEX_ACTIVE : VFLAG_VERTEX_SELECTED) : 0;
-						GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, bezt->vec[2]);
-						GWN_vertbuf_attr_set(vbo, attr_id.data, vbo_len_used, &vflag);
-						vbo_len_used += 1;
 					}
-					i += 1;
 				}
 			}
 			else if (nu->bp) {
 				int a = 1;
 				for (const BPoint *bp_prev = nu->bp, *bp_curr = &nu->bp[1]; a < nu->pntsu; a++, bp_prev = bp_curr++) {
 					if ((bp_prev->hide == false) && (bp_curr->hide == false)) {
-						char vflag;
-						vflag = ((bp_prev->f1 & SELECT) && (bp_curr->f1 & SELECT)) ? VFLAG_VERTEX_SELECTED : 0;
+						char col_id = ((bp_prev->f1 & SELECT) && (bp_curr->f1 & SELECT)) ? COLOR_NURB_SEL_ULINE_ID : COLOR_NURB_ULINE_ID;
+
+						if (is_active_nurb) {
+							col_id |= ACTIVE_NURB;
+						}
+
 						GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, bp_prev->vec);
-						GWN_vertbuf_attr_set(vbo, attr_id.data, vbo_len_used, &vflag);
 						vbo_len_used += 1;
+
 						GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, bp_curr->vec);
-						GWN_vertbuf_attr_set(vbo, attr_id.data, vbo_len_used, &vflag);
+						GWN_vertbuf_attr_set(vbo, attr_id.data, vbo_len_used, &col_id);
 						vbo_len_used += 1;
 
 					}
