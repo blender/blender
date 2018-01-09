@@ -1254,7 +1254,11 @@ compile_Boost() {
 #### Build OCIO ####
 _init_ocio() {
   _src=$SRC/OpenColorIO-$OCIO_VERSION
-  _git=false
+  if [ "$OCIO_USE_REPO" = true ]; then
+    _git=true
+  else
+    _git=false
+  fi
   _inst=$INST/ocio-$OCIO_VERSION
   _inst_shortcut=$INST/ocio
 }

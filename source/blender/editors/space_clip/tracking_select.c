@@ -906,7 +906,7 @@ void CLIP_OT_select_all(wmOperatorType *ot)
 
 /********************** select grouped operator *********************/
 
-static int select_groped_exec(bContext *C, wmOperator *op)
+static int select_grouped_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -989,7 +989,7 @@ void CLIP_OT_select_grouped(wmOperatorType *ot)
 	ot->idname = "CLIP_OT_select_grouped";
 
 	/* api callbacks */
-	ot->exec = select_groped_exec;
+	ot->exec = select_grouped_exec;
 	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */

@@ -868,8 +868,8 @@ typedef struct SimpleDeformModifierData {
 
 	char mode;              /* deform function */
 	char axis;              /* lock axis (for taper and strech) */
+	char deform_axis;       /* axis to perform the deform on (default is X, but can be overridden by origin */
 	char flag;
-	char pad;
 
 } SimpleDeformModifierData;
 
@@ -889,6 +889,7 @@ enum {
 enum {
 	MOD_SIMPLEDEFORM_LOCK_AXIS_X = (1 << 0),
 	MOD_SIMPLEDEFORM_LOCK_AXIS_Y = (1 << 1),
+	MOD_SIMPLEDEFORM_LOCK_AXIS_Z = (1 << 2),
 };
 
 typedef struct ShapeKeyModifierData {
