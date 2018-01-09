@@ -78,7 +78,10 @@ struct Gwn_Batch *DRW_curve_batch_cache_get_overlay_select(struct Curve *cu);
 /* DispList */
 struct Gwn_VertBuf *DRW_displist_vertbuf_calc_pos_with_normals(struct ListBase *lb);
 struct Gwn_IndexBuf *DRW_displist_indexbuf_calc_triangles_in_order(struct ListBase *lb);
-struct Gwn_IndexBuf **DRW_displist_indexbuf_calc_triangles_in_order_split_by_material(struct ListBase *lb, uint gpumat_array_len);
+struct Gwn_IndexBuf **DRW_displist_indexbuf_calc_triangles_in_order_split_by_material(
+        struct ListBase *lb, uint gpumat_array_len);
+struct Gwn_Batch **DRW_displist_batch_calc_tri_pos_normals_and_uv_split_by_material(
+        struct ListBase *lb, uint gpumat_array_len);
 
 /* Lattice */
 struct Gwn_Batch *DRW_lattice_batch_cache_get_all_edges(struct Lattice *lt, bool use_weight, const int actdef);

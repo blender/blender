@@ -1051,21 +1051,28 @@ Gwn_Batch **DRW_curve_batch_cache_get_surface_shaded(
 		ListBase *lb = &rdata->ob_curve_cache->disp;
 
 		cache->surface.mat_len = gpumat_array_len;
-		Gwn_IndexBuf **el = DRW_displist_indexbuf_calc_triangles_in_order_split_by_material(lb, gpumat_array_len);
-		cache->surface.shaded_triangles = MEM_mallocN(sizeof(*cache->surface.shaded_triangles) * gpumat_array_len, __func__);
+		if (cu->flag & CU_UV_ORCO) {
+			cache->surface.shaded_triangles = DRW_displist_batch_calc_tri_pos_normals_and_uv_split_by_material(
+			        lb, gpumat_array_len);
+		}
+		else {
+			cache->surface.shaded_triangles = MEM_mallocN(
+			        sizeof(*cache->surface.shaded_triangles) * gpumat_array_len, __func__);
+			Gwn_IndexBuf **el = DRW_displist_indexbuf_calc_triangles_in_order_split_by_material(
+			        lb, gpumat_array_len);
 
-		if (cache->surface.verts == NULL) {
-			cache->surface.verts = DRW_displist_vertbuf_calc_pos_with_normals(lb);
+			if (cache->surface.verts == NULL) {
+				cache->surface.verts = DRW_displist_vertbuf_calc_pos_with_normals(lb);
+			}
+
+			for (int i = 0; i < gpumat_array_len; ++i) {
+				cache->surface.shaded_triangles[i] = GWN_batch_create_ex(
+				        GWN_PRIM_TRIS, cache->surface.verts, el[i], GWN_BATCH_OWNS_INDEX);
+			}
+
+			MEM_freeN(el); /* Save `el` in cache? */
 		}
 
-		for (int i = 0; i < gpumat_array_len; ++i) {
-			cache->surface.shaded_triangles[i] = GWN_batch_create_ex(
-			        GWN_PRIM_TRIS, cache->surface.verts, el[i], GWN_BATCH_OWNS_INDEX);
-
-			/* TODO: Add vertbuff for UV */
-		}
-
-		MEM_freeN(el); /* Save `el` in cache? */
 		curve_render_data_free(rdata);
 	}
 

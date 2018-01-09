@@ -202,3 +202,197 @@ Gwn_IndexBuf **DRW_displist_indexbuf_calc_triangles_in_order_split_by_material(L
 
 	return shaded_triangles_in_order;
 }
+
+static void displist_vertbuf_attr_set_tri_pos_normals_and_uv(
+        Gwn_VertBufRaw *pos_step, Gwn_VertBufRaw *nor_step, Gwn_VertBufRaw *uv_step,
+        const float v1[3], const float v2[3], const float v3[3],
+        const float n1[3], const float n2[3], const float n3[3],
+        const float uv1[2], const float uv2[2], const float uv3[2])
+{
+	copy_v3_v3(GWN_vertbuf_raw_step(pos_step), v1);
+	copy_v3_v3(GWN_vertbuf_raw_step(nor_step), n1);
+	copy_v2_v2(GWN_vertbuf_raw_step(uv_step), uv1);
+
+	copy_v3_v3(GWN_vertbuf_raw_step(pos_step), v2);
+	copy_v3_v3(GWN_vertbuf_raw_step(nor_step), n2);
+	copy_v2_v2(GWN_vertbuf_raw_step(uv_step), uv2);
+
+	copy_v3_v3(GWN_vertbuf_raw_step(pos_step), v3);
+	copy_v3_v3(GWN_vertbuf_raw_step(nor_step), n3);
+	copy_v2_v2(GWN_vertbuf_raw_step(uv_step), uv3);
+}
+
+Gwn_Batch **DRW_displist_batch_calc_tri_pos_normals_and_uv_split_by_material(ListBase *lb, uint gpumat_array_len)
+{
+	static Gwn_VertFormat shaded_triangles_format = { 0 };
+	static struct { uint pos, nor, uv; } attr_id;
+
+	if (shaded_triangles_format.attrib_ct == 0) {
+		/* initialize vertex format */
+		attr_id.pos = GWN_vertformat_attr_add(&shaded_triangles_format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		attr_id.nor = GWN_vertformat_attr_add(&shaded_triangles_format, "nor", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		attr_id.uv = GWN_vertformat_attr_add(&shaded_triangles_format, "u", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	}
+
+	Gwn_Batch **shaded_triangles = MEM_mallocN(sizeof(*shaded_triangles) * gpumat_array_len, __func__);
+
+	Gwn_VertBuf **vbo = BLI_array_alloca(vbo, gpumat_array_len);
+	uint *vbo_len_capacity = BLI_array_alloca(vbo_len_capacity, gpumat_array_len);
+
+	Gwn_VertBufRaw *pos_step, *nor_step, *uv_step;
+	pos_step = BLI_array_alloca(pos_step, gpumat_array_len);
+	nor_step = BLI_array_alloca(nor_step, gpumat_array_len);
+	uv_step = BLI_array_alloca(uv_step, gpumat_array_len);
+
+	/* Create each vertex buffer */
+	for (int i = 0; i < gpumat_array_len; i++) {
+		vbo[i] = GWN_vertbuf_create_with_format(&shaded_triangles_format);
+		vbo_len_capacity[i] = 0;
+	}
+
+	/* Calc `vbo_len_capacity` */
+	for (const DispList *dl = lb->first; dl; dl = dl->next) {
+		vbo_len_capacity[dl->col] += dl_tri_len(dl) * 3;
+	}
+
+	/* Alloc each vertex buffer and get each raw data */
+	for (int i = 0; i < gpumat_array_len; i++) {
+		GWN_vertbuf_data_alloc(vbo[i], vbo_len_capacity[i]);
+		GWN_vertbuf_attr_get_raw_data(vbo[i], attr_id.pos, &pos_step[i]);
+		GWN_vertbuf_attr_get_raw_data(vbo[i], attr_id.nor, &nor_step[i]);
+		GWN_vertbuf_attr_get_raw_data(vbo[i], attr_id.uv, &uv_step[i]);
+	}
+
+	BKE_displist_normals_add(lb);
+
+	for (const DispList *dl = lb->first; dl; dl = dl->next) {
+		if (ELEM(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)) {
+			const int col = dl->col;
+			const float(*verts)[3] = (float(*)[3])dl->verts;
+			const float(*nors)[3] = (float(*)[3])dl->nors;
+			const int *idx = dl->index;
+			float uv[4][2];
+
+			if (dl->type == DL_INDEX3) {
+				const float x_max = (float)(dl->nr - 1);
+				uv[0][1] = uv[1][1] = uv[2][1] = 0.0f;
+				const int i_end = dl->parts;
+				for (int i = 0; i < i_end; i++, idx += 3) {
+					uv[0][0] = idx[0] / x_max;
+					uv[1][0] = idx[2] / x_max;
+					uv[2][0] = idx[1] / x_max;
+
+					displist_vertbuf_attr_set_tri_pos_normals_and_uv(
+					        &pos_step[col], &nor_step[col], &uv_step[col],
+					        verts[idx[0]], verts[idx[2]], verts[idx[1]],
+					        nors[idx[0]], nors[idx[2]], nors[idx[1]],
+					        uv[0], uv[1], uv[2]);
+				}
+			}
+			else if (dl->type == DL_SURF) {
+				uint quad[4];
+				for (int a = 0; a < dl->parts; a++) {
+					if ((dl->flag & DL_CYCL_V) == 0 && a == dl->parts - 1) {
+						break;
+					}
+
+					int b;
+					if (dl->flag & DL_CYCL_U) {
+						quad[0] = dl->nr * a;
+						quad[3] = quad[0] + dl->nr - 1;
+						quad[1] = quad[0] + dl->nr;
+						quad[2] = quad[3] + dl->nr;
+						b = 0;
+					}
+					else {
+						quad[3] = dl->nr * a;
+						quad[0] = quad[3] + 1;
+						quad[2] = quad[3] + dl->nr;
+						quad[1] = quad[0] + dl->nr;
+						b = 1;
+					}
+					if ((dl->flag & DL_CYCL_V) && a == dl->parts - 1) {
+						quad[1] -= dl->parts * dl->nr;
+						quad[2] -= dl->parts * dl->nr;
+					}
+
+					for (; b < dl->nr; b++) {
+						int orco_sizeu = dl->nr - 1;
+						int orco_sizev = dl->parts - 1;
+
+						/* exception as handled in convertblender.c too */
+						if (dl->flag & DL_CYCL_U) {
+							orco_sizeu++;
+						}
+						if (dl->flag & DL_CYCL_V) {
+							orco_sizev++;
+						}
+
+						for (int i = 0; i < 4; i++) {
+							/* find uv based on vertex index into grid array */
+							uv[i][0] = (quad[i] / dl->nr) / (float)orco_sizev;
+							uv[i][1] = (quad[i] % dl->nr) / (float)orco_sizeu;
+
+							/* cyclic correction */
+							if ((i == 1 || i == 2) && uv[i][0] == 0.0f) {
+								uv[i][0] = 1.0f;
+							}
+							if ((i == 0 || i == 1) && uv[i][1] == 0.0f) {
+								uv[i][1] = 1.0f;
+							}
+						}
+
+						displist_vertbuf_attr_set_tri_pos_normals_and_uv(
+						        &pos_step[col], &nor_step[col], &uv_step[col],
+						        verts[quad[0]], verts[quad[1]], verts[quad[2]],
+						        nors[quad[0]], nors[quad[1]], nors[quad[2]],
+						        uv[0], uv[1], uv[2]);
+
+						displist_vertbuf_attr_set_tri_pos_normals_and_uv(
+						        &pos_step[col], &nor_step[col], &uv_step[col],
+						        verts[quad[0]], verts[quad[2]], verts[quad[3]],
+						        nors[quad[0]], nors[quad[2]], nors[quad[3]],
+						        uv[0], uv[2], uv[3]);
+
+						quad[2] = quad[1];
+						quad[1]++;
+						quad[3] = quad[0];
+						quad[0]++;
+					}
+				}
+			}
+			else {
+				BLI_assert(dl->type == DL_INDEX4);
+				uv[0][0] = uv[0][1] = uv[1][0] = uv[3][1] = 0.0f;
+				uv[1][1] = uv[2][0] = uv[2][1] = uv[3][0] = 1.0f;
+
+				const int i_end = dl->parts;
+				for (int i = 0; i < i_end; i++, idx += 4) {
+					displist_vertbuf_attr_set_tri_pos_normals_and_uv(
+					        &pos_step[col], &nor_step[col], &uv_step[col],
+					        verts[idx[0]], verts[idx[1]], verts[idx[2]],
+					        nors[idx[0]], nors[idx[1]], nors[idx[2]],
+					        uv[0], uv[1], uv[2]);
+
+					if (idx[2] != idx[3]) {
+						displist_vertbuf_attr_set_tri_pos_normals_and_uv(
+						        &pos_step[col], &nor_step[col], &uv_step[col],
+						        verts[idx[0]], verts[idx[2]], verts[idx[3]],
+						        nors[idx[0]], nors[idx[2]], nors[idx[3]],
+						        uv[0], uv[2], uv[3]);
+					}
+				}
+			}
+		}
+	}
+
+	for (int i = 0; i < gpumat_array_len; i++) {
+		uint vbo_len_used = GWN_vertbuf_raw_used(&pos_step[i]);
+		if (vbo_len_capacity[i] != vbo_len_used) {
+			GWN_vertbuf_data_resize(vbo[i], vbo_len_used);
+		}
+		shaded_triangles[i] = GWN_batch_create_ex(GWN_PRIM_TRIS, vbo[i], NULL, GWN_BATCH_OWNS_VBO);
+	}
+
+	return shaded_triangles;
+}
