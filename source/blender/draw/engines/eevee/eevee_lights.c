@@ -70,6 +70,9 @@ extern char datatoc_shadow_store_frag_glsl[];
 extern char datatoc_shadow_copy_frag_glsl[];
 extern char datatoc_concentric_samples_lib_glsl[];
 
+/* Prototype */
+static void eevee_light_setup(Object *ob, EEVEE_Light *evli);
+
 /* *********** FUNCTIONS *********** */
 
 void EEVEE_lights_init(EEVEE_ViewLayerData *sldata)
@@ -96,7 +99,8 @@ void EEVEE_lights_init(EEVEE_ViewLayerData *sldata)
 		        store_shadow_shader_str,
 		        "#define ESM\n");
 		e_data.shadow_store_cascade_sh[SHADOW_ESM] = DRW_shader_create_fullscreen(
-		        store_shadow_shader_str, "#define ESM\n"
+		        store_shadow_shader_str,
+		        "#define ESM\n"
 		        "#define CSM\n");
 
 		e_data.shadow_store_cube_sh[SHADOW_VSM] = DRW_shader_create_fullscreen(
@@ -114,7 +118,8 @@ void EEVEE_lights_init(EEVEE_ViewLayerData *sldata)
 		        "#define ESM\n"
 		        "#define COPY\n");
 		e_data.shadow_copy_cascade_sh[SHADOW_ESM] = DRW_shader_create_fullscreen(
-		        datatoc_shadow_copy_frag_glsl, "#define ESM\n"
+		        datatoc_shadow_copy_frag_glsl,
+		        "#define ESM\n"
 		        "#define COPY\n"
 		        "#define CSM\n");
 
@@ -255,6 +260,15 @@ void EEVEE_lights_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
 	}
 	else {
 		Lamp *la = (Lamp *)ob->data;
+		EEVEE_Light *evli = linfo->light_data + linfo->num_light;
+		eevee_light_setup(ob, evli);
+
+		/* We do not support shadowmaps for dupli lamps. */
+		if ((ob->base_flag & BASE_FROMDUPLI) != 0) {
+			linfo->num_light++;
+			return;
+		}
+
 		EEVEE_LampEngineData *led = EEVEE_lamp_data_ensure(ob);
 
 		MEM_SAFE_FREE(led->storage);
@@ -428,11 +442,8 @@ void EEVEE_lights_cache_finish(EEVEE_ViewLayerData *sldata)
 }
 
 /* Update buffer with lamp data */
-static void eevee_light_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE_LampEngineData *led)
+static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
 {
-	/* TODO only update if data changes */
-	EEVEE_LightData *evld = led->storage;
-	EEVEE_Light *evli = linfo->light_data + evld->light_id;
 	Lamp *la = (Lamp *)ob->data;
 	float mat[4][4], scale[3], power;
 
@@ -894,11 +905,6 @@ void EEVEE_lights_update(EEVEE_ViewLayerData *sldata)
 
 	for (LinkData *ldata = sldata->shadow_casters.first; ldata; ldata = ldata->next) {
 		eevee_lights_shcaster_updated(sldata, ldata->data);
-	}
-
-	for (i = 0; (ob = linfo->light_ref[i]) && (i < MAX_LIGHT); i++) {
-		EEVEE_LampEngineData *led = EEVEE_lamp_data_ensure(ob);
-		eevee_light_setup(ob, linfo, led);
 	}
 
 	for (i = 0; (ob = linfo->shadow_cube_ref[i]) && (i < MAX_SHADOW_CUBE); i++) {
