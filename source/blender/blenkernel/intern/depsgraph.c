@@ -501,6 +501,41 @@ void dag_add_forcefield_relations(DagForest *dag, Scene *scene, Object *ob, DagN
 	pdEndEffectors(&effectors);
 }
 
+static bool build_deg_tracking_constraints(DagForest *dag,
+                                           Scene *scene,
+                                           DagNode *scenenode,
+                                           bConstraint *con,
+                                           const bConstraintTypeInfo *cti,
+                                           DagNode *node)
+{
+	if (!ELEM(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK,
+	          CONSTRAINT_TYPE_CAMERASOLVER,
+	          CONSTRAINT_TYPE_OBJECTSOLVER))
+	{
+		return false;
+	}
+	bool depends_on_camera = false;
+	if (cti->type == CONSTRAINT_TYPE_FOLLOWTRACK) {
+		bFollowTrackConstraint *data = (bFollowTrackConstraint *)con->data;
+		if ((data->clip || data->flag & FOLLOWTRACK_ACTIVECLIP) && data->track[0]) {
+			depends_on_camera = true;
+		}
+		if (data->depth_ob != NULL) {
+			DagNode *node2 = dag_get_node(dag, data->depth_ob);
+			dag_add_relation(dag, node2, node, DAG_RL_DATA_OB | DAG_RL_OB_OB, cti->name);
+		}
+	}
+	else if (cti->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
+		depends_on_camera = true;
+	}
+	if (depends_on_camera && scene->camera != NULL) {
+		DagNode *node2 = dag_get_node(dag, scene->camera);
+		dag_add_relation(dag, node2, node, DAG_RL_DATA_OB | DAG_RL_OB_OB, cti->name);
+	}
+	dag_add_relation(dag, scenenode, node, DAG_RL_SCENE, "Scene Relation");
+	return true;
+}
+
 static void build_dag_object(DagForest *dag, DagNode *scenenode, Main *bmain, Scene *scene, Object *ob, int mask)
 {
 	bConstraint *con;
@@ -847,29 +882,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Main *bmain, Sc
 			continue;
 
 		/* special case for camera tracking -- it doesn't use targets to define relations */
-		if (ELEM(cti->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_CAMERASOLVER, CONSTRAINT_TYPE_OBJECTSOLVER)) {
-			int depends_on_camera = 0;
-
-			if (cti->type == CONSTRAINT_TYPE_FOLLOWTRACK) {
-				bFollowTrackConstraint *data = (bFollowTrackConstraint *)con->data;
-
-				if ((data->clip || data->flag & FOLLOWTRACK_ACTIVECLIP) && data->track[0])
-					depends_on_camera = 1;
-
-				if (data->depth_ob) {
-					node2 = dag_get_node(dag, data->depth_ob);
-					dag_add_relation(dag, node2, node, DAG_RL_DATA_OB | DAG_RL_OB_OB, cti->name);
-				}
-			}
-			else if (cti->type == CONSTRAINT_TYPE_OBJECTSOLVER)
-				depends_on_camera = 1;
-
-			if (depends_on_camera && scene->camera) {
-				node2 = dag_get_node(dag, scene->camera);
-				dag_add_relation(dag, node2, node, DAG_RL_DATA_OB | DAG_RL_OB_OB, cti->name);
-			}
-
-			dag_add_relation(dag, scenenode, node, DAG_RL_SCENE, "Scene Relation");
+		if (build_deg_tracking_constraints(dag, scene, scenenode, con, cti, node)) {
 			addtoroot = 0;
 		}
 		else if (cti->get_constraint_targets) {
