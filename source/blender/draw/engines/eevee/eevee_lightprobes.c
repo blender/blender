@@ -1485,7 +1485,6 @@ static void lightprobes_refresh_cube(EEVEE_ViewLayerData *sldata, EEVEE_Data *ve
 		stl->effects->taa_current_sample = 1;
 
 		/* Only do one probe per frame */
-		lightprobes_refresh_planar(sldata, vedata);
 		return;
 	}
 }
@@ -1503,7 +1502,6 @@ static void lightprobes_refresh_all_no_world(EEVEE_ViewLayerData *sldata, EEVEE_
 		/* Only compute probes if not navigating or in playback */
 		struct wmWindowManager *wm = CTX_wm_manager(draw_ctx->evil_C);
 		if (((rv3d->rflag & RV3D_NAVIGATING) != 0) || ED_screen_animation_no_scrub(wm) != NULL) {
-			lightprobes_refresh_planar(sldata, vedata);
 			return;
 		}
 	}
@@ -1605,7 +1603,6 @@ static void lightprobes_refresh_all_no_world(EEVEE_ViewLayerData *sldata, EEVEE_
 			DRW_viewport_request_redraw();
 			/* Do not let this frame accumulate. */
 			stl->effects->taa_current_sample = 1;
-			lightprobes_refresh_planar(sldata, vedata);
 			return;
 		}
 
@@ -1645,6 +1642,8 @@ void EEVEE_lightprobes_refresh(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	else if (true) { /* TODO if at least one probe needs refresh */
 		lightprobes_refresh_all_no_world(sldata, vedata);
 	}
+
+	lightprobes_refresh_planar(sldata, vedata);
 
 	/* Disable SSR if we cannot read previous frame */
 	sldata->probes->ssr_toggle = vedata->stl->g_data->valid_double_buffer;
