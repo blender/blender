@@ -1165,7 +1165,7 @@ typedef struct ScopesUpdateDataChunk {
 	float min[3], max[3];
 } ScopesUpdateDataChunk;
 
-static void scopes_update_cb(void *userdata, void *userdata_chunk, const int y, const int UNUSED(threadid))
+static void scopes_update_cb(void *userdata, const int y, const ParallelRangeTLS *tls)
 {
 	const ScopesUpdateData *data = userdata;
 
@@ -1175,7 +1175,7 @@ static void scopes_update_cb(void *userdata, void *userdata_chunk, const int y, 
 	const unsigned char *display_buffer = data->display_buffer;
 	const int ycc_mode = data->ycc_mode;
 
-	ScopesUpdateDataChunk *data_chunk = userdata_chunk;
+	ScopesUpdateDataChunk *data_chunk = tls->userdata_chunk;
 	unsigned int *bin_lum = data_chunk->bin_lum;
 	unsigned int *bin_r = data_chunk->bin_r;
 	unsigned int *bin_g = data_chunk->bin_g;
@@ -1387,8 +1387,16 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 	ScopesUpdateDataChunk data_chunk = {{0}};
 	INIT_MINMAX(data_chunk.min, data_chunk.max);
 
-	BLI_task_parallel_range_finalize(0, ibuf->y, &data, &data_chunk, sizeof(data_chunk),
-	                                 scopes_update_cb, scopes_update_finalize, ibuf->y > 256, false);
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.use_threading = (ibuf->y > 256);
+	settings.userdata_chunk = &data_chunk;
+	settings.userdata_chunk_size = sizeof(data_chunk);
+	settings.func_finalize = scopes_update_finalize;
+	BLI_task_parallel_range(0, ibuf->y,
+	                        &data,
+	                        scopes_update_cb,
+	                        &settings);
 
 	/* test for nicer distribution even - non standard, leave it out for a while */
 #if 0

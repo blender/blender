@@ -46,7 +46,8 @@ typedef struct CovarianceData {
 	int nbr_cos_vn;
 } CovarianceData;
 
-static void covariance_m_vn_ex_task_cb(void *userdata, const int a)
+static void covariance_m_vn_ex_task_cb(void *userdata, const int a,
+                                       const ParallelRangeTLS *UNUSED(tls))
 {
 	CovarianceData *data = userdata;
 	const float *cos_vn = data->cos_vn;
@@ -117,8 +118,14 @@ void BLI_covariance_m_vn_ex(
 		.covfac = covfac, .n = n, .nbr_cos_vn = nbr_cos_vn,
 	};
 
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.use_threading = ((nbr_cos_vn * n * n) >= 10000);
 	BLI_task_parallel_range(
-	            0, n * n, &data, covariance_m_vn_ex_task_cb, (nbr_cos_vn * n * n) >= 10000);
+	            0, n * n,
+	            &data,
+	            covariance_m_vn_ex_task_cb,
+	            &settings);
 }
 
 /**

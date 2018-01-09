@@ -102,7 +102,9 @@ typedef struct CalculatePengindData {
 	Depsgraph *graph;
 } CalculatePengindData;
 
-static void calculate_pending_func(void *data_v, int i)
+static void calculate_pending_func(void *data_v,
+                                   int i,
+                                   const ParallelRangeTLS * /*tls*/)
 {
 	CalculatePengindData *data = (CalculatePengindData *)data_v;
 	Depsgraph *graph = data->graph;
@@ -129,14 +131,17 @@ static void calculate_pending_func(void *data_v, int i)
 static void calculate_pending_parents(Depsgraph *graph)
 {
 	const int num_operations = graph->operations.size();
-	const bool do_threads = num_operations > 256;
+	const bool do_threads = (num_operations > 256);
 	CalculatePengindData data;
 	data.graph = graph;
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.use_threading = do_threads;
 	BLI_task_parallel_range(0,
 	                        num_operations,
 	                        &data,
 	                        calculate_pending_func,
-	                        do_threads);
+	                        &settings);
 }
 
 static void initialize_execution(DepsgraphEvalState *state, Depsgraph *graph)

@@ -502,7 +502,8 @@ typedef struct OceanSimulateData {
 	float chop_amount;
 } OceanSimulateData;
 
-static void ocean_compute_htilda(void *userdata, const int i)
+static void ocean_compute_htilda(void *userdata, const int i,
+                                 const ParallelRangeTLS *UNUSED(tls))
 {
 	OceanSimulateData *osd = userdata;
 	const Ocean *o = osd->o;
@@ -748,7 +749,10 @@ void BKE_ocean_simulate(struct Ocean *o, float t, float scale, float chop_amount
 	 * This is not optimal in all cases, but remains reasonably simple and should be OK most of the time. */
 
 	/* compute a new htilda */
-	BLI_task_parallel_range(0, o->_M, &osd, ocean_compute_htilda, o->_M > 16);
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.use_threading = (o->_M > 16);
+	BLI_task_parallel_range(0, o->_M, &osd, ocean_compute_htilda, &settings);
 
 	if (o->_do_disp_y) {
 		BLI_task_pool_push(pool, ocean_compute_displacement_y, NULL, false, TASK_PRIORITY_HIGH);

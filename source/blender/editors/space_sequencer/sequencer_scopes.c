@@ -459,13 +459,13 @@ typedef struct MakeHistogramViewData {
 } MakeHistogramViewData;
 
 static void make_histogram_view_from_ibuf_byte_cb_ex(
-        void *userdata, void *userdata_chunk, const int y, const int UNUSED(threadid))
+        void *userdata, const int y, const ParallelRangeTLS *tls)
 {
 	MakeHistogramViewData *data = userdata;
 	const ImBuf *ibuf = data->ibuf;
 	const unsigned char *src = (unsigned char *)ibuf->rect;
 
-	uint32_t (*cur_bins)[HIS_STEPS] = userdata_chunk;
+	uint32_t (*cur_bins)[HIS_STEPS] = tls->userdata_chunk;
 
 	for (int x = 0; x < ibuf->x; x++) {
 		const unsigned char *pixel = src + (y * ibuf->x + x) * 4;
@@ -501,9 +501,17 @@ static ImBuf *make_histogram_view_from_ibuf_byte(ImBuf *ibuf)
 	memset(bins, 0, sizeof(bins));
 
 	MakeHistogramViewData data = {.ibuf = ibuf, .bins = bins};
-	BLI_task_parallel_range_finalize(
-	            0, ibuf->y, &data, bins, sizeof(bins), make_histogram_view_from_ibuf_byte_cb_ex,
-	            make_histogram_view_from_ibuf_finalize, ibuf->y >= 256, false);
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.use_threading = (ibuf->y >= 256);
+	settings.userdata_chunk = bins;
+	settings.userdata_chunk_size = sizeof(bins);
+	settings.func_finalize = make_histogram_view_from_ibuf_finalize;
+	BLI_task_parallel_range(
+	            0, ibuf->y,
+	            &data,
+	            make_histogram_view_from_ibuf_byte_cb_ex,
+	            &settings);
 
 	nr = nb = ng = 0;
 	for (x = 0; x < HIS_STEPS; x++) {
@@ -548,13 +556,13 @@ BLI_INLINE int get_bin_float(float f)
 }
 
 static void make_histogram_view_from_ibuf_float_cb_ex(
-        void *userdata, void *userdata_chunk, const int y, const int UNUSED(threadid))
+        void *userdata, const int y, const ParallelRangeTLS *tls)
 {
 	const MakeHistogramViewData *data = userdata;
 	const ImBuf *ibuf = data->ibuf;
 	const float *src = ibuf->rect_float;
 
-	uint32_t (*cur_bins)[HIS_STEPS] = userdata_chunk;
+	uint32_t (*cur_bins)[HIS_STEPS] = tls->userdata_chunk;
 
 	for (int x = 0; x < ibuf->x; x++) {
 		const float *pixel = src + (y * ibuf->x + x) * 4;
@@ -576,9 +584,17 @@ static ImBuf *make_histogram_view_from_ibuf_float(ImBuf *ibuf)
 	memset(bins, 0, sizeof(bins));
 
 	MakeHistogramViewData data = {.ibuf = ibuf, .bins = bins};
-	BLI_task_parallel_range_finalize(
-	            0, ibuf->y, &data, bins, sizeof(bins), make_histogram_view_from_ibuf_float_cb_ex,
-	            make_histogram_view_from_ibuf_finalize, ibuf->y >= 256, false);
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.use_threading = (ibuf->y >= 256);
+	settings.userdata_chunk = bins;
+	settings.userdata_chunk_size = sizeof(bins);
+	settings.func_finalize = make_histogram_view_from_ibuf_finalize;
+	BLI_task_parallel_range(
+	            0, ibuf->y,
+	            &data,
+	            make_histogram_view_from_ibuf_float_cb_ex,
+	            &settings);
 
 	nr = nb = ng = 0;
 	for (x = 0; x < HIS_STEPS; x++) {

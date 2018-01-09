@@ -1033,7 +1033,8 @@ typedef struct SampleCallbackData {
 	float *values;
 } SampleCallbackData;
 
-static void point_density_sample_func(void *data_v, const int iter)
+static void point_density_sample_func(void *data_v, const int iter,
+                                      const ParallelRangeTLS *UNUSED(tls))
 {
 	SampleCallbackData *data = (SampleCallbackData *)data_v;
 
@@ -1108,11 +1109,14 @@ void RE_point_density_sample(
 	data.min = min;
 	data.dim = dim;
 	data.values = values;
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.use_threading = (resolution > 32);
 	BLI_task_parallel_range(0,
 	                        resolution,
 	                        &data,
 	                        point_density_sample_func,
-	                        resolution > 32);
+	                        &settings);
 
 	free_pointdensity(pd);
 }

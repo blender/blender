@@ -740,7 +740,7 @@ typedef struct ObstaclesFromDMData {
 	int *num_obstacles;
 } ObstaclesFromDMData;
 
-static void obstacles_from_derivedmesh_task_cb(void *userdata, const int z)
+static void obstacles_from_derivedmesh_task_cb(void *userdata, const int z, const ParallelRangeTLS *UNUSED(tls))
 {
 	ObstaclesFromDMData *data = userdata;
 	SmokeDomainSettings *sds = data->sds;
@@ -870,8 +870,13 @@ static void obstacles_from_derivedmesh(
 			    .velocityX = velocityX, .velocityY = velocityY, .velocityZ = velocityZ,
 			    .num_obstacles = num_obstacles
 			};
-			BLI_task_parallel_range(
-			            sds->res_min[2], sds->res_max[2], &data, obstacles_from_derivedmesh_task_cb, true);
+			ParallelRangeSettings settings;
+			BLI_parallel_range_settings_defaults(&settings);
+			settings.scheduling_mode = TASK_SCHEDULING_DYNAMIC;
+			BLI_task_parallel_range(sds->res_min[2], sds->res_max[2],
+			                        &data,
+			                        obstacles_from_derivedmesh_task_cb,
+			                        &settings);
 		}
 		/* free bvh tree */
 		free_bvhtree_from_mesh(&treeData);
@@ -1186,7 +1191,7 @@ typedef struct EmitFromParticlesData {
 	float hr_smooth;
 } EmitFromParticlesData;
 
-static void emit_from_particles_task_cb(void *userdata, const int z)
+static void emit_from_particles_task_cb(void *userdata, const int z, const ParallelRangeTLS *UNUSED(tls))
 {
 	EmitFromParticlesData *data = userdata;
 	SmokeFlowSettings *sfs = data->sfs;
@@ -1397,7 +1402,13 @@ static void emit_from_particles(
 			    .solid = solid, .smooth = smooth, .hr_smooth = hr_smooth,
 			};
 
-			BLI_task_parallel_range(min[2], max[2], &data, emit_from_particles_task_cb, true);
+			ParallelRangeSettings settings;
+			BLI_parallel_range_settings_defaults(&settings);
+			settings.scheduling_mode = TASK_SCHEDULING_DYNAMIC;
+			BLI_task_parallel_range(min[2], max[2],
+			                        &data,
+			                        emit_from_particles_task_cb,
+			                        &settings);
 		}
 
 		if (sfs->flags & MOD_SMOKE_FLOW_USE_PART_SIZE) {
@@ -1569,7 +1580,7 @@ typedef struct EmitFromDMData {
 	int *min, *max, *res;
 } EmitFromDMData;
 
-static void emit_from_derivedmesh_task_cb(void *userdata, const int z)
+static void emit_from_derivedmesh_task_cb(void *userdata, const int z, const ParallelRangeTLS *UNUSED(tls))
 {
 	EmitFromDMData *data = userdata;
 	EmissionMap *em = data->em;
@@ -1722,7 +1733,13 @@ static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, Smo
 			    .flow_center = flow_center, .min = min, .max = max, .res = res,
 			};
 
-			BLI_task_parallel_range(min[2], max[2], &data, emit_from_derivedmesh_task_cb, true);
+			ParallelRangeSettings settings;
+			BLI_parallel_range_settings_defaults(&settings);
+			settings.scheduling_mode = TASK_SCHEDULING_DYNAMIC;
+			BLI_task_parallel_range(min[2], max[2],
+			                        &data,
+			                        emit_from_derivedmesh_task_cb,
+			                        &settings);
 		}
 		/* free bvh tree */
 		free_bvhtree_from_mesh(&treeData);
@@ -2438,7 +2455,7 @@ typedef struct UpdateEffectorsData {
 	unsigned char *obstacle;
 } UpdateEffectorsData;
 
-static void update_effectors_task_cb(void *userdata, const int x)
+static void update_effectors_task_cb(void *userdata, const int x, const ParallelRangeTLS *UNUSED(tls))
 {
 	UpdateEffectorsData *data = userdata;
 	SmokeDomainSettings *sds = data->sds;
@@ -2512,7 +2529,13 @@ static void update_effectors(const struct EvaluationContext *eval_ctx, Scene *sc
 		data.velocity_z = smoke_get_velocity_z(sds->fluid);
 		data.obstacle = smoke_get_obstacle(sds->fluid);
 
-		BLI_task_parallel_range(0, sds->res[0], &data, update_effectors_task_cb, true);
+		ParallelRangeSettings settings;
+		BLI_parallel_range_settings_defaults(&settings);
+		settings.scheduling_mode = TASK_SCHEDULING_DYNAMIC;
+		BLI_task_parallel_range(0, sds->res[0],
+		                        &data,
+		                        update_effectors_task_cb,
+		                        &settings);
 	}
 
 	pdEndEffectors(&effectors);

@@ -736,7 +736,7 @@ BLI_INLINE float computeNormalDisplacement(const float point_co[3], const float 
 	return normal_dist;
 }
 
-static void bindVert(void *userdata, void *UNUSED(userdata_chunk), const int index, const int UNUSED(threadid))
+static void bindVert(void *userdata, const int index, const ParallelRangeTLS *UNUSED(tls))
 {
 	SDefBindCalcData * const data = (SDefBindCalcData *)userdata;
 	float point_co[3];
@@ -996,8 +996,13 @@ static bool surfacedeformBind(SurfaceDeformModifierData *smd, float (*vertexCos)
 		mul_v3_m4v3(data.targetCos[i], smd->mat, mvert[i].co);
 	}
 
-	BLI_task_parallel_range_ex(0, numverts, &data, NULL, 0, bindVert,
-	                           numverts > 10000, false);
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.use_threading = (numverts > 10000);
+	BLI_task_parallel_range(0, numverts,
+	                        &data,
+	                        bindVert,
+	                        &settings);
 
 	MEM_freeN(data.targetCos);
 
@@ -1032,7 +1037,7 @@ static bool surfacedeformBind(SurfaceDeformModifierData *smd, float (*vertexCos)
 	return data.success == 1;
 }
 
-static void deformVert(void *userdata, void *UNUSED(userdata_chunk), const int index, const int UNUSED(threadid))
+static void deformVert(void *userdata, const int index, const ParallelRangeTLS *UNUSED(tls))
 {
 	const SDefDeformData * const data = (SDefDeformData *)userdata;
 	const SDefBind *sdbind = data->bind_verts[index].binds;
@@ -1153,8 +1158,13 @@ static void surfacedeformModifier_do(ModifierData *md, float (*vertexCos)[3], un
 			mul_v3_m4v3(data.targetCos[i], smd->mat, mvert[i].co);
 		}
 
-		BLI_task_parallel_range_ex(0, numverts, &data, NULL, 0, deformVert,
-		                           numverts > 10000, false);
+		ParallelRangeSettings settings;
+		BLI_parallel_range_settings_defaults(&settings);
+		settings.use_threading = (numverts > 10000);
+		BLI_task_parallel_range(0, numverts,
+		                        &data,
+		                        deformVert,
+		                        &settings);
 
 		if (tdm_vert_alloc) {
 			MEM_freeN((void *)mvert);

@@ -319,7 +319,8 @@ static bool sculpt_undo_restore_mask(bContext *C, DerivedMesh *dm, SculptUndoNod
 	return 1;
 }
 
-static void sculpt_undo_bmesh_restore_generic_task_cb(void *userdata, const int n)
+static void sculpt_undo_bmesh_restore_generic_task_cb(void *userdata, const int n,
+                                                      const ParallelRangeTLS *UNUSED(tls))
 {
 	PBVHNode **nodes = userdata;
 
@@ -347,9 +348,14 @@ static void sculpt_undo_bmesh_restore_generic(bContext *C,
 
 		BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
 
+		ParallelRangeSettings settings;
+		BLI_parallel_range_settings_defaults(&settings);
+		settings.use_threading = ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_THREADED_LIMIT);
 		BLI_task_parallel_range(
-		            0, totnode, nodes, sculpt_undo_bmesh_restore_generic_task_cb,
-		            ((sd->flags & SCULPT_USE_OPENMP) && totnode > SCULPT_THREADED_LIMIT));
+		            0, totnode,
+		            nodes,
+		            sculpt_undo_bmesh_restore_generic_task_cb,
+		            &settings);
 
 		if (nodes)
 			MEM_freeN(nodes);

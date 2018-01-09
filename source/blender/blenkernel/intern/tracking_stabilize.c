@@ -1503,7 +1503,10 @@ typedef struct TrackingStabilizeFrameInterpolationData {
 	interpolation_func interpolation;
 } TrackingStabilizeFrameInterpolationData;
 
-static void tracking_stabilize_frame_interpolation_cb(void *userdata, int j)
+static void tracking_stabilize_frame_interpolation_cb(
+        void *userdata,
+        int j,
+        const ParallelRangeTLS *UNUSED(tls))
 {
 	TrackingStabilizeFrameInterpolationData *data = userdata;
 	ImBuf *ibuf = data->ibuf;
@@ -1597,10 +1600,14 @@ ImBuf *BKE_tracking_stabilize_frame(MovieClip *clip,
 		.ibuf = ibuf, .tmpibuf = tmpibuf, .mat = mat,
 		.interpolation = interpolation
 	};
+
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.use_threading = (tmpibuf->y > 128);
 	BLI_task_parallel_range(0, tmpibuf->y,
 	                        &data,
 	                        tracking_stabilize_frame_interpolation_cb,
-	                        tmpibuf->y > 128);
+	                        &settings);
 
 	if (tmpibuf->rect_float)
 		tmpibuf->userflags |= IB_RECT_INVALID;

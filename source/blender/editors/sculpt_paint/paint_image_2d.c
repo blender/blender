@@ -1071,7 +1071,8 @@ typedef struct Paint2DForeachData {
 	int tilew;
 } Paint2DForeachData;
 
-static void paint_2d_op_foreach_do(void *data_v, const int iter)
+static void paint_2d_op_foreach_do(void *data_v, const int iter,
+                                   const ParallelRangeTLS *UNUSED(tls))
 {
 	Paint2DForeachData *data = (Paint2DForeachData *)data_v;
 	paint_2d_do_making_brush(data->s, data->region, data->curveb,
@@ -1157,9 +1158,12 @@ static int paint_2d_op(void *state, ImBuf *ibufb, unsigned short *curveb, unsign
 				data.blend = blend;
 				data.tilex = tilex;
 				data.tilew = tilew;
+
+				ParallelRangeSettings settings;
+				BLI_parallel_range_settings_defaults(&settings);
 				BLI_task_parallel_range(tiley, tileh + 1, &data,
 				                        paint_2d_op_foreach_do,
-				                        true);
+				                        &settings);
 
 			}
 		}
