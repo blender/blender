@@ -531,8 +531,12 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Main *bmain, Sc
 					const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 					ListBase targets = {NULL, NULL};
 					bConstraintTarget *ct;
-					
-					if (cti && cti->get_constraint_targets) {
+
+					if (!cti) {
+						continue;
+					}
+
+					if (cti->get_constraint_targets) {
 						cti->get_constraint_targets(con, &targets);
 						
 						for (ct = targets.first; ct; ct = ct->next) {
