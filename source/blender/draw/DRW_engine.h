@@ -30,6 +30,7 @@ struct ARegion;
 struct CollectionEngineSettings;
 struct Depsgraph;
 struct DRWPass;
+struct DRWInstanceDataList;
 struct Main;
 struct Material;
 struct Scene;
@@ -109,6 +110,8 @@ void DRW_draw_depth_loop(
 
 /* This is here because GPUViewport needs it */
 void DRW_pass_free(struct DRWPass *pass);
+struct DRWInstanceDataList *DRW_instance_data_list_create(void);
+void DRW_instance_data_list_free(struct DRWInstanceDataList *idatalist);
 
 /* Mode engines initialization */
 void OBJECT_collection_settings_create(struct IDProperty *properties);

@@ -84,6 +84,7 @@ struct GPUViewport {
 	DefaultTextureList *txl;
 
 	ViewportMemoryPool vmempool; /* Used for rendering data structure. */
+	struct DRWInstanceDataList *idatalist; /* Used for rendering data structure. */
 
 	ListBase tex_pool;  /* ViewportTempTexture list : Temporary textures shared across draw engines */
 };
@@ -114,6 +115,7 @@ GPUViewport *GPU_viewport_create(void)
 	GPUViewport *viewport = MEM_callocN(sizeof(GPUViewport), "GPUViewport");
 	viewport->fbl = MEM_callocN(sizeof(DefaultFramebufferList), "FramebufferList");
 	viewport->txl = MEM_callocN(sizeof(DefaultTextureList), "TextureList");
+	viewport->idatalist = DRW_instance_data_list_create();
 
 	viewport->size[0] = viewport->size[1] = -1;
 
@@ -208,6 +210,11 @@ void *GPU_viewport_engine_data_get(GPUViewport *viewport, void *engine_type)
 ViewportMemoryPool *GPU_viewport_mempool_get(GPUViewport *viewport)
 {
 	return &viewport->vmempool;
+}
+
+struct DRWInstanceDataList *GPU_viewport_instance_data_list_get(GPUViewport *viewport)
+{
+	return viewport->idatalist;
 }
 
 void *GPU_viewport_framebuffer_list_get(GPUViewport *viewport)
@@ -598,6 +605,9 @@ void GPU_viewport_free(GPUViewport *viewport)
 	if (viewport->vmempool.passes != NULL) {
 		BLI_mempool_destroy(viewport->vmempool.passes);
 	}
+
+	DRW_instance_data_list_free(viewport->idatalist);
+	MEM_freeN(viewport->idatalist);
 
 	GPU_viewport_debug_depth_free(viewport);
 }

@@ -62,6 +62,7 @@ set(SRC
 	intern/draw_cache_impl_metaball.c
 	intern/draw_cache_impl_particles.c
 	intern/draw_common.c
+	intern/draw_instance_data.c
 	intern/draw_manager.c
 	intern/draw_manager_text.c
 	intern/draw_manager_profiling.c
@@ -104,6 +105,7 @@ set(SRC
 	intern/draw_cache.h
 	intern/draw_cache_impl.h
 	intern/draw_common.h
+	intern/draw_instance_data.h
 	intern/draw_manager_text.h
 	intern/draw_manager_profiling.h
 	intern/draw_view.h
