@@ -24,6 +24,7 @@
 typedef struct Gwn_VertBuf {
 	Gwn_VertFormat format;
 	unsigned vertex_ct;
+	bool own_data; // does gawain own the data an is able to free it
 	GLubyte* data; // NULL indicates data in VRAM (unmapped) or not yet allocated
 	GLuint vbo_id; // 0 indicates not yet sent to VRAM
 } Gwn_VertBuf;
@@ -39,6 +40,7 @@ void GWN_vertbuf_init_with_format(Gwn_VertBuf*, const Gwn_VertFormat*);
 
 unsigned GWN_vertbuf_size_get(const Gwn_VertBuf*);
 void GWN_vertbuf_data_alloc(Gwn_VertBuf*, unsigned v_ct);
+void GWN_vertbuf_data_set(Gwn_VertBuf*, unsigned v_ct, void *data, bool pass_ownership);
 void GWN_vertbuf_data_resize(Gwn_VertBuf*, unsigned v_ct);
 
 // The most important set_attrib variant is the untyped one. Get it right first.

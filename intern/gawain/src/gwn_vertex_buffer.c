@@ -63,7 +63,7 @@ void GWN_vertbuf_clear(Gwn_VertBuf* verts)
 #if KEEP_SINGLE_COPY
 	else
 #endif
-	if (verts->data)
+	if (verts->data && verts->own_data)
 		{
 		free(verts->data);
 		verts->data = NULL;
@@ -72,15 +72,18 @@ void GWN_vertbuf_clear(Gwn_VertBuf* verts)
 
 void GWN_vertbuf_discard(Gwn_VertBuf* verts)
 	{
-	if (verts->vbo_id) {
+	if (verts->vbo_id)
+		{
 		GWN_buf_id_free(verts->vbo_id);
 		vbo_memory_usage -= GWN_vertbuf_size_get(verts);
-	}
+		}
 #if KEEP_SINGLE_COPY
 	else
 #endif
-	if (verts->data)
+	if (verts->data && verts->own_data)
+		{
 		free(verts->data);
+		}
 
 
 	free(verts);
@@ -98,9 +101,23 @@ void GWN_vertbuf_data_alloc(Gwn_VertBuf* verts, unsigned v_ct)
 		VertexFormat_pack(format);
 
 	verts->vertex_ct = v_ct;
+	verts->own_data = true;
 
 	// Data initially lives in main memory. Will be transferred to VRAM when we "prime" it.
 	verts->data = malloc(GWN_vertbuf_size_get(verts));
+	}
+
+void GWN_vertbuf_data_set(Gwn_VertBuf* verts, unsigned v_ct, void *data, bool pass_ownership)
+	{
+	Gwn_VertFormat* format = &verts->format;
+	if (!format->packed)
+		VertexFormat_pack(format);
+
+	verts->vertex_ct = v_ct;
+	verts->own_data = pass_ownership;
+
+	// Data initially lives in main memory. Will be transferred to VRAM when we "prime" it.
+	verts->data = data;
 	}
 
 void GWN_vertbuf_data_resize(Gwn_VertBuf* verts, unsigned v_ct)
@@ -203,8 +220,11 @@ static void VertexBuffer_prime(Gwn_VertBuf* verts)
 
 #if KEEP_SINGLE_COPY
 	// now that GL has a copy, discard original
-	free(verts->data);
-	verts->data = NULL;
+	if (verts->own_data)
+		{
+		free(verts->data);
+		verts->data = NULL;
+		}
 #endif
 	}
 
