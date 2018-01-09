@@ -399,6 +399,7 @@ extern StructRNA RNA_PropertyGroup;
 #endif
 
 struct IDProperty *rna_idproperty_check(struct PropertyRNA **prop, struct PointerRNA *ptr);
+struct PropertyRNA *rna_ensure_property_realdata(struct PropertyRNA **prop, struct PointerRNA *ptr);
 
 /* Override default callbacks. */
 /* Default override callbacks for all types. */

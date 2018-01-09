@@ -425,7 +425,7 @@ static PropertyRNA *arraytypemap[IDP_NUMTYPES] = {
 	(PropertyRNA *)&rna_PropertyGroupItem_double_array
 };
 
-IDProperty *rna_idproperty_check(PropertyRNA **prop, PointerRNA *ptr)
+static void *rna_idproperty_check_ex(PropertyRNA **prop, PointerRNA *ptr, const bool return_rnaprop)
 {
 	/* This is quite a hack, but avoids some complexity in the API. we
 	 * pass IDProperty structs as PropertyRNA pointers to the outside.
@@ -448,7 +448,7 @@ IDProperty *rna_idproperty_check(PropertyRNA **prop, PointerRNA *ptr)
 			return idprop;
 		}
 		else
-			return NULL;
+			return return_rnaprop ? *prop : NULL;
 	}
 
 	{
@@ -461,6 +461,19 @@ IDProperty *rna_idproperty_check(PropertyRNA **prop, PointerRNA *ptr)
 
 		return idprop;
 	}
+}
+
+/* This function only returns an IDProperty,
+ * or NULL (in case IDProp could not be found, or prop is a real RNA property). */
+IDProperty *rna_idproperty_check(PropertyRNA **prop, PointerRNA *ptr)
+{
+	return rna_idproperty_check_ex(prop, ptr, false);
+}
+
+/* This function always return the valid, real data pointer, be it a regular RNA property one, or an IDProperty one. */
+PropertyRNA *rna_ensure_property_realdata(PropertyRNA **prop, PointerRNA *ptr)
+{
+	return rna_idproperty_check_ex(prop, ptr, true);
 }
 
 static PropertyRNA *rna_ensure_property(PropertyRNA *prop)
@@ -6999,11 +7012,12 @@ bool RNA_property_copy(PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, 
 	PropertyRNA *prop_dst = prop;
 	PropertyRNA *prop_src = prop;
 
-	if (prop_dst->magic != RNA_MAGIC) {
-		/* In case of IDProperty, we have to find the *real* idprop of ptr,
-		 * since prop in this case is just a fake wrapper around actual IDProp data, and not a 'real' PropertyRNA. */
-		prop_dst = (PropertyRNA *)rna_idproperty_find(ptr, ((IDProperty *)prop_dst)->name);
-		prop_src = (PropertyRNA *)rna_idproperty_find(fromptr, ((IDProperty *)prop_src)->name);
+	/* Ensure we get real property data, be it an actual RNA property, or an IDProperty in disguise. */
+	prop_dst = rna_ensure_property_realdata(&prop_dst, ptr);
+	prop_src = rna_ensure_property_realdata(&prop_src, fromptr);
+
+	if (ELEM(NULL, prop_dst, prop_src)) {
+		false;
 	}
 
 	IDOverrideStaticPropertyOperation opop = {
@@ -7047,14 +7061,11 @@ bool RNA_property_equals(PointerRNA *ptr_a, PointerRNA *ptr_b, PropertyRNA *prop
 	PropertyRNA *prop_a = prop;
 	PropertyRNA *prop_b = prop;
 
-	if (prop_a->magic != RNA_MAGIC) {
-		/* In case of IDProperty, we have to find the *real* idprop of ptr,
-		 * since prop in this case is just a fake wrapper around actual IDProp data, and not a 'real' PropertyRNA. */
-		prop_a = (PropertyRNA *)rna_idproperty_find(ptr_a, ((IDProperty *)prop_a)->name);
-		prop_b = (PropertyRNA *)rna_idproperty_find(ptr_b, ((IDProperty *)prop_b)->name);
-	}
+	/* Ensure we get real property data, be it an actual RNA property, or an IDProperty in disguise. */
+	prop_a = rna_ensure_property_realdata(&prop_a, ptr_a);
+	prop_b = rna_ensure_property_realdata(&prop_b, ptr_b);
 
-	return (rna_property_override_diff(ptr_a, ptr_b, prop_a, prop_b, NULL, mode, NULL, 0, NULL) != 0);
+	return (rna_property_override_diff(ptr_a, ptr_b, prop_a, prop_b, NULL, mode, NULL, 0, NULL) == 0);
 }
 
 bool RNA_struct_equals(PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACompareMode mode)
@@ -7107,10 +7118,7 @@ static int rna_property_override_diff(
 			return 1;
 	}
 
-	/* get the length of the array to work with */
-	const int len_a = RNA_property_array_length(ptr_a, prop_a);
-	const int len_b = RNA_property_array_length(ptr_b, prop_b);
-
+	/* Check if we are working with arrays. */
 	const bool is_array_a = RNA_property_array_check(prop_a);
 	const bool is_array_b = RNA_property_array_check(prop_b);
 
@@ -7120,31 +7128,46 @@ static int rna_property_override_diff(
 		return is_array_a ? 1 : -1;
 	}
 
+	/* Get the length of the array to work with. */
+	const int len_a = RNA_property_array_length(ptr_a, prop_a);
+	const int len_b = RNA_property_array_length(ptr_b, prop_b);
+
 	if (len_a != len_b) {
 		/* Do not handle override in that case, we do not support insertion/deletion from arrays for now. */
 		return len_a > len_b ? 1 : -1;
 	}
 
 	if (is_array_a && len_a == 0) {
-		/* Empty array, will happen in some case with dynamic ones. */
+		/* Empty arrays, will happen in some case with dynamic ones. */
 		return 0;
 	}
 
-	/* XXX TODO: support IDProps.
-	 * Currently those fail in several cases, due among other things to the lack of proper callbacks... */
-	if (prop_a->magic != RNA_MAGIC || prop_b->magic != RNA_MAGIC) {
-		return 0;
-	}
-
-	if (prop_a->override_diff != prop_b->override_diff || prop_a->override_diff == NULL) {
-		if (prop_a->override_diff != prop_b->override_diff) {
-			printf("'%s' gives unmatching or NULL RNA diff callbacks, should not happen (%p vs. %p, %d vs. %d).\n",
-			       rna_path, prop_a->override_diff, prop_b->override_diff, prop_a->magic, prop_b->magic);
-			BLI_assert(0);
+	RNAPropOverrideDiff override_diff = NULL;
+	/* Special case for IDProps, we use default callback then. */
+	if (prop_a->magic != RNA_MAGIC) {
+		override_diff = rna_property_override_diff_default;
+		if (prop_b->magic == RNA_MAGIC && prop_b->override_diff != override_diff) {
+			override_diff = NULL;
 		}
-		/* Other case (both diff callbacks being NULL) is annoying, but happens with addons-defined ID properties,
-		 * for some reasons :/ */
-		return 0;
+	}
+	else if (prop_b->magic != RNA_MAGIC) {
+		override_diff = rna_property_override_diff_default;
+		if (prop_a->override_diff != override_diff) {
+			override_diff = NULL;
+		}
+	}
+	else if (prop_a->override_diff == prop_b->override_diff) {
+		override_diff = prop_a->override_diff;
+	}
+
+	if (override_diff == NULL) {
+#ifndef NDEBUG
+		printf("'%s' gives unmatching or NULL RNA diff callbacks, should not happen (%d vs. %d).\n",
+		       rna_path ? rna_path : (prop_a->magic != RNA_MAGIC ? ((IDProperty *)prop_a)->name : prop_a->identifier),
+		       prop_a->magic == RNA_MAGIC, prop_b->magic == RNA_MAGIC);
+#endif
+		BLI_assert(0);
+		return 1;
 	}
 
 	bool override_changed = false;
@@ -7152,7 +7175,7 @@ static int rna_property_override_diff(
 	if ((RNA_property_flag(prop_a) & PROP_OVERRIDABLE_STATIC) == 0) {
 		diff_flags &= ~RNA_OVERRIDE_COMPARE_CREATE;
 	}
-	const int diff = prop_a->override_diff(
+	const int diff = override_diff(
 	                     ptr_a, ptr_b, prop_a, prop_b, len_a, len_b,
 	                     mode, override, rna_path, diff_flags, &override_changed);
 	if (override_changed && r_report_flags) {
@@ -7234,6 +7257,38 @@ static bool rna_property_override_operation_apply(
 		return false;
 	}
 
+	RNAPropOverrideApply override_apply = NULL;
+	/* Special case for IDProps, we use default callback then. */
+	if (prop_local->magic != RNA_MAGIC) {
+		override_apply = rna_property_override_apply_default;
+		if (prop_reference->magic == RNA_MAGIC && prop_reference->override_apply != override_apply) {
+			override_apply = NULL;
+		}
+	}
+	else if (prop_reference->magic != RNA_MAGIC) {
+		override_apply = rna_property_override_apply_default;
+		if (prop_local->override_apply != override_apply) {
+			override_apply = NULL;
+		}
+	}
+	else if (prop_local->override_apply == prop_reference->override_apply) {
+		override_apply = prop_local->override_apply;
+	}
+
+	if (ptr_storage && prop_storage->magic == RNA_MAGIC && prop_storage->override_apply != override_apply) {
+		override_apply = NULL;
+	}
+
+	if (override_apply == NULL) {
+#ifndef NDEBUG
+		printf("'%s' gives unmatching or NULL RNA copy callbacks, should not happen (%d vs. %d).\n",
+		       prop_local->magic != RNA_MAGIC ? ((IDProperty *)prop_local)->name : prop_local->identifier,
+		       prop_local->magic == RNA_MAGIC, prop_reference->magic == RNA_MAGIC);
+#endif
+		BLI_assert(0);
+		return false;
+	}
+
 	/* get the length of the array to work with */
 	len_local = RNA_property_array_length(ptr_local, prop_local);
 	len_reference = RNA_property_array_length(ptr_reference, prop_reference);
@@ -7246,12 +7301,8 @@ static bool rna_property_override_operation_apply(
 		return false;
 	}
 
-	BLI_assert(prop_local->override_apply == prop_reference->override_apply &&
-	           (!ptr_storage || prop_local->override_apply == prop_storage->override_apply) &&
-	           prop_local->override_apply != NULL);
-
 	/* get and set the default values as appropriate for the various types */
-	return prop_local->override_apply(
+	return override_apply(
 	            ptr_local, ptr_reference, ptr_storage,
 	            prop_local, prop_reference, prop_storage,
 	            len_local, len_reference, len_storage,
@@ -7299,15 +7350,12 @@ bool RNA_struct_override_matches(
 		PropertyRNA *prop_local = iter.ptr.data;
 		PropertyRNA *prop_reference = iter.ptr.data;
 
-		if (prop_local->magic != RNA_MAGIC) {
-			/* In case of IDProperty, we have to find the *real* idprop of ptr,
-			 * since prop in this case is just a fake wrapper around actual IDProp data, and not a 'real' PropertyRNA. */
-			prop_local = (PropertyRNA *)rna_idproperty_find(ptr_local, ((IDProperty *)prop_local)->name);
-			prop_reference = (PropertyRNA *)rna_idproperty_find(ptr_reference, ((IDProperty *)prop_reference)->name);
+		/* Ensure we get real property data, be it an actual RNA property, or an IDProperty in disguise. */
+		prop_local = rna_ensure_property_realdata(&prop_local, ptr_local);
+		prop_reference = rna_ensure_property_realdata(&prop_reference, ptr_reference);
 
-			if (ELEM(NULL, prop_local, prop_reference)) {
-				continue;
-			}
+		if (ELEM(NULL, prop_local, prop_reference)) {
+			continue;
 		}
 
 		if (ignore_non_overridable && !(prop_local->flag & PROP_OVERRIDABLE_STATIC)) {
