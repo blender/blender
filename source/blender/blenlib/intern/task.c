@@ -1097,7 +1097,6 @@ void BLI_task_parallel_range(const int start, const int stop,
 	}
 
 	task_scheduler = BLI_task_scheduler_get();
-	task_pool = BLI_task_pool_create_suspended(task_scheduler, &state);
 	num_threads = BLI_task_scheduler_num_threads(task_scheduler);
 
 	/* The idea here is to prevent creating task for each of the loop iterations
@@ -1126,9 +1125,15 @@ void BLI_task_parallel_range(const int start, const int stop,
 	num_tasks = min_ii(num_tasks,
 	                   max_ii(1, (stop - start) / state.chunk_size));
 
-	/* TODO(sergey): If number of tasks happened to be 1, use single threaded
-	 * path.
-	 */
+	if (num_tasks == 1) {
+		palallel_range_single_thread(start, stop,
+		                             userdata,
+		                             func,
+		                             settings);
+		return;
+	}
+
+	task_pool = BLI_task_pool_create_suspended(task_scheduler, &state);
 
 	/* NOTE: This way we are adding a memory barrier and ensure all worker
 	 * threads can read and modify the value, without any locks. */
