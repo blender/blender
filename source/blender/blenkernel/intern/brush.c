@@ -148,12 +148,14 @@ void BKE_brush_init(Brush *brush)
 	BKE_brush_curve_preset(brush, CURVE_PRESET_SMOOTH);
 }
 
+/**
+ * \note Resulting brush will have two users: one as a fake user, another is assumed to be used by the caller.
+ .*/
 Brush *BKE_brush_add(Main *bmain, const char *name, short ob_mode)
 {
 	Brush *brush;
 
-	/* Use no refcount, fakeuser is added in 'BKE_brush_init' */
-	brush = BKE_libblock_alloc(bmain, ID_BR, name, LIB_ID_CREATE_NO_USER_REFCOUNT);
+	brush = BKE_libblock_alloc(bmain, ID_BR, name, 0);
 
 	BKE_brush_init(brush);
 
