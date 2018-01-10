@@ -84,7 +84,7 @@
 
 /* ***************** Library data level operations on action ************** */
 
-bAction *add_empty_action(Main *bmain, const char name[])
+bAction *BKE_action_add(Main *bmain, const char name[])
 {
 	bAction *act;
 	

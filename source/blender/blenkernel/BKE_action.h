@@ -55,7 +55,7 @@ extern "C" {
 /* Action Lib Stuff ----------------- */
 
 /* Allocate a new bAction with the given name */
-struct bAction *add_empty_action(struct Main *bmain, const char name[]);
+struct bAction *BKE_action_add(struct Main *bmain, const char name[]);
 
 void BKE_action_copy_data(struct Main *bmain, struct bAction *act_dst, const struct bAction *act_src, const int flag);
 /* Allocate a copy of the given Action and all its data */

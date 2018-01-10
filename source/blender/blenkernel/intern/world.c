@@ -108,7 +108,7 @@ void BKE_world_init(World *wrld)
 	wrld->mistdist = 25.0f;
 }
 
-World *add_world(Main *bmain, const char *name)
+World *BKE_world_add(Main *bmain, const char *name)
 {
 	World *wrld;
 
@@ -158,7 +158,7 @@ World *BKE_world_copy(Main *bmain, const World *wrld)
 	return wrld_copy;
 }
 
-World *localize_world(World *wrld)
+World *BKE_world_localize(World *wrld)
 {
 	/* TODO replace with something like
 	 * 	World *wrld_copy;
@@ -174,7 +174,7 @@ World *localize_world(World *wrld)
 	
 	for (a = 0; a < MAX_MTEX; a++) {
 		if (wrld->mtex[a]) {
-			wrldn->mtex[a] = MEM_mallocN(sizeof(MTex), "localize_world");
+			wrldn->mtex[a] = MEM_mallocN(sizeof(MTex), __func__);
 			memcpy(wrldn->mtex[a], wrld->mtex[a], sizeof(MTex));
 		}
 	}

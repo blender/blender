@@ -125,7 +125,7 @@ static bAction *action_create_new(bContext *C, bAction *oldact)
 	}
 	else {
 		/* just make a new (empty) action */
-		action = add_empty_action(CTX_data_main(C), "Action");
+		action = BKE_action_add(CTX_data_main(C), "Action");
 	}
 	
 	/* when creating new ID blocks, there is already 1 user (as for all new datablocks), 

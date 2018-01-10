@@ -3754,7 +3754,7 @@ Material *RE_sample_material_init(Material *orig_mat, Scene *scene)
 	if (!orig_mat) return NULL;
 
 	/* copy material */
-	mat = localize_material(orig_mat);
+	mat = BKE_material_localize(orig_mat);
 
 	/* update material anims */
 	BKE_animsys_evaluate_animdata(scene, &mat->id, mat->adt, BKE_scene_frame_get(scene), ADT_RECALC_ANIM);

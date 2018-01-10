@@ -430,7 +430,7 @@ static World *rna_Main_worlds_new(Main *bmain, const char *name)
 	char safe_name[MAX_ID_NAME - 2];
 	rna_idname_validate(name, safe_name);
 
-	World *world = add_world(bmain, safe_name);
+	World *world = BKE_world_add(bmain, safe_name);
 	id_us_min(&world->id);
 	return world;
 }
@@ -505,7 +505,7 @@ static bAction *rna_Main_actions_new(Main *bmain, const char *name)
 	char safe_name[MAX_ID_NAME - 2];
 	rna_idname_validate(name, safe_name);
 
-	bAction *act = add_empty_action(bmain, safe_name);
+	bAction *act = BKE_action_add(bmain, safe_name);
 	id_fake_user_clear(&act->id);
 	return act;
 }
@@ -515,7 +515,7 @@ static ParticleSettings *rna_Main_particles_new(Main *bmain, const char *name)
 	char safe_name[MAX_ID_NAME - 2];
 	rna_idname_validate(name, safe_name);
 
-	ParticleSettings *part = psys_new_settings(safe_name, bmain);
+	ParticleSettings *part = BKE_particlesettings_add(bmain, safe_name);
 	id_us_min(&part->id);
 	return part;
 }

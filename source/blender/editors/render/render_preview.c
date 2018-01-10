@@ -331,7 +331,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 			
 			if (origmat) {
 				/* work on a copy */
-				mat = localize_material(origmat);
+				mat = BKE_material_localize(origmat);
 				sp->matcopy = mat;
 				BLI_addtail(&pr_main->mat, mat);
 				
@@ -476,7 +476,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 
 			/* work on a copy */
 			if (origla) {
-				la = localize_lamp(origla);
+				la = BKE_lamp_localize(origla);
 				sp->lampcopy = la;
 				BLI_addtail(&pr_main->lamp, la);
 			}
@@ -512,7 +512,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 			World *wrld = NULL, *origwrld = (World *)id;
 
 			if (origwrld) {
-				wrld = localize_world(origwrld);
+				wrld = BKE_world_localize(origwrld);
 				sp->worldcopy = wrld;
 				BLI_addtail(&pr_main->world, wrld);
 			}

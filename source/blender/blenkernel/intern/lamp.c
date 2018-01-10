@@ -156,7 +156,7 @@ Lamp *BKE_lamp_copy(Main *bmain, const Lamp *la)
 	return la_copy;
 }
 
-Lamp *localize_lamp(Lamp *la)
+Lamp *BKE_lamp_localize(Lamp *la)
 {
 	/* TODO replace with something like
 	 * 	Lamp *la_copy;
@@ -172,7 +172,7 @@ Lamp *localize_lamp(Lamp *la)
 
 	for (a = 0; a < MAX_MTEX; a++) {
 		if (lan->mtex[a]) {
-			lan->mtex[a] = MEM_mallocN(sizeof(MTex), "localize_lamp");
+			lan->mtex[a] = MEM_mallocN(sizeof(MTex), __func__);
 			memcpy(lan->mtex[a], la->mtex[a], sizeof(MTex));
 		}
 	}
