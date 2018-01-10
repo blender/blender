@@ -906,7 +906,7 @@ void wm_manipulatormap_modal_set(
 		mmap->mmap_context.modal = mpr;
 
 		if ((mpr->flag & WM_MANIPULATOR_GRAB_CURSOR) &&
-		    (WM_event_is_absolute(event) == false))
+		    (event->is_motion_absolute == false))
 		{
 			WM_cursor_grab_enable(win, true, true, NULL);
 			copy_v2_v2_int(mmap->mmap_context.event_xy, &event->x);

@@ -473,8 +473,9 @@ typedef struct wmEvent {
 	short keymodifier;				/* rawkey modifier */
 	
 	/* set in case a KM_PRESS went by unhandled */
-	short check_click;
-	
+	char check_click;
+	char is_motion_absolute;
+
 	/* keymap item, set by handler (weak?) */
 	const char *keymap_idname;
 

@@ -1991,7 +1991,8 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 			float compare;
 			float bstune = sb->ballstiff;
 
-			for (c=sb->totpoint, obp= sb->bpoint; c>=ifirst+bb; c--, obp++) {
+                        /* running in a slice we must not assume anything done with obp  neither alter the data of obp */
+			for (c=sb->totpoint, obp= sb->bpoint; c>0; c--, obp++) {
 				compare = (obp->colball + bp->colball);
 				sub_v3_v3v3(def, bp->pos, obp->pos);
 				/* rather check the AABBoxes before ever calulating the real distance */
@@ -2016,13 +2017,6 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 
 						madd_v3_v3fl(bp->force, def, f * (1.0f - sb->balldamp));
 						madd_v3_v3fl(bp->force, dvel, sb->balldamp);
-
-						/* exploit force(a, b) == -force(b, a) part2/2 */
-						sub_v3_v3v3(dvel, velcenter, obp->vec);
-						mul_v3_fl(dvel, _final_mass(ob, bp));
-
-						madd_v3_v3fl(obp->force, dvel, sb->balldamp);
-						madd_v3_v3fl(obp->force, def, -f * (1.0f - sb->balldamp));
 					}
 				}
 			}

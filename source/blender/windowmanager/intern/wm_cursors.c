@@ -213,13 +213,10 @@ void WM_cursor_grab_enable(wmWindow *win, bool wrap, bool hide, int bounds[4])
 	}
 	if ((G.debug & G_DEBUG) == 0) {
 		if (win->ghostwin) {
-			const GHOST_TabletData *tabletdata = GHOST_GetTabletData(win->ghostwin);
-			
 			/* Note: There is no tabletdata on Windows if no tablet device is connected. */
-			if (!tabletdata)
+			if (win->eventstate->is_motion_absolute == false) {
 				GHOST_SetCursorGrab(win->ghostwin, mode, bounds, NULL);
-			else if (tabletdata->Active == GHOST_kTabletModeNone)
-				GHOST_SetCursorGrab(win->ghostwin, mode, bounds, NULL);
+			}
 
 			win->grabcursor = mode;
 		}

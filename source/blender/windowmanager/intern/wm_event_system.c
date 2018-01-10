@@ -97,13 +97,20 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA
 
 /* ************ event management ************** */
 
-void wm_event_add_ex(wmWindow *win, const wmEvent *event_to_add, const wmEvent *event_to_add_after)
+wmEvent *wm_event_add_ex(wmWindow *win, const wmEvent *event_to_add, const wmEvent *event_to_add_after)
 {
 	wmEvent *event = MEM_mallocN(sizeof(wmEvent), "wmEvent");
 	
 	*event = *event_to_add;
 
 	update_tablet_data(win, event);
+
+	if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+		/* We could have a preference to support relative tablet motion (we can't detect that). */
+		event->is_motion_absolute = (
+		        (event->tablet_data != NULL) &&
+		        (event->tablet_data->Active != GHOST_kTabletModeNone));
+	}
 
 	if (event_to_add_after == NULL) {
 		BLI_addtail(&win->queue, event);
@@ -112,11 +119,12 @@ void wm_event_add_ex(wmWindow *win, const wmEvent *event_to_add, const wmEvent *
 		/* note, strictly speaking this breaks const-correctness, however we're only changing 'next' member */
 		BLI_insertlinkafter(&win->queue, (void *)event_to_add_after, event);
 	}
+	return event;
 }
 
-void wm_event_add(wmWindow *win, const wmEvent *event_to_add)
+wmEvent *wm_event_add(wmWindow *win, const wmEvent *event_to_add)
 {
-	wm_event_add_ex(win, event_to_add, NULL);
+	return wm_event_add_ex(win, event_to_add, NULL);
 }
 
 void wm_event_free(wmEvent *event)
@@ -687,11 +695,6 @@ void WM_report_banner_show(void)
 
 	rti = MEM_callocN(sizeof(ReportTimerInfo), "ReportTimerInfo");
 	wm_reports->reporttimer->customdata = rti;
-}
-
-bool WM_event_is_absolute(const wmEvent *event)
-{
-	return (event->tablet_data != NULL);
 }
 
 bool WM_event_is_last_mousemove(const wmEvent *event)
@@ -3523,7 +3526,7 @@ static bool wm_event_is_double_click(wmEvent *event, const wmEvent *event_state)
 	return false;
 }
 
-static void wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
+static wmEvent *wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
 {
 	wmEvent *event_last = win->queue.last;
 
@@ -3533,16 +3536,13 @@ static void wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
 	if (event_last && event_last->type == MOUSEMOVE)
 		event_last->type = INBETWEEN_MOUSEMOVE;
 
-	wm_event_add(win, event);
-
-	{
-		wmEvent *event_new = win->queue.last;
-		if (event_last == NULL) {
-			event_last = win->eventstate;
-		}
-
-		copy_v2_v2_int(&event_new->prevx, &event_last->x);
+	wmEvent *event_new = wm_event_add(win, event);
+	if (event_last == NULL) {
+		event_last = win->eventstate;
 	}
+
+	copy_v2_v2_int(&event_new->prevx, &event_last->x);
+	return event_new;
 }
 
 /* windows store own event queues, no bContext here */
@@ -3572,8 +3572,11 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			wm_stereo3d_mouse_offset_apply(win, &event.x);
 
 			event.type = MOUSEMOVE;
-			wm_event_add_mousemove(win, &event);
-			copy_v2_v2_int(&evt->x, &event.x);
+			{
+				wmEvent *event_new = wm_event_add_mousemove(win, &event);
+				copy_v2_v2_int(&evt->x, &event_new->x);
+				evt->is_motion_absolute = event_new->is_motion_absolute;
+			}
 			
 			/* also add to other window if event is there, this makes overdraws disappear nicely */
 			/* it remaps mousecoord to other window in event */
@@ -3585,8 +3588,11 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 
 				copy_v2_v2_int(&oevent.x, &event.x);
 				oevent.type = MOUSEMOVE;
-				wm_event_add_mousemove(owin, &oevent);
-				copy_v2_v2_int(&oevt->x, &oevent.x);
+				{
+					wmEvent *event_new = wm_event_add_mousemove(owin, &oevent);
+					copy_v2_v2_int(&oevt->x, &event_new->x);
+					oevt->is_motion_absolute = event_new->is_motion_absolute;
+				}
 			}
 				
 			break;

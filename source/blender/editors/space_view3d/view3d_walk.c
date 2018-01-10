@@ -716,7 +716,7 @@ static void walkEvent(bContext *C, wmOperator *op, WalkInfo *walk, const wmEvent
 			return;
 		}
 
-		if ((walk->is_cursor_absolute == false) && WM_event_is_absolute(event)) {
+		if ((walk->is_cursor_absolute == false) && event->is_motion_absolute) {
 			walk->is_cursor_absolute = true;
 			copy_v2_v2_int(walk->prev_mval, event->mval);
 			copy_v2_v2_int(walk->center_mval, event->mval);
