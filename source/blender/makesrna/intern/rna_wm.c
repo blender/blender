@@ -1764,12 +1764,12 @@ static void rna_def_event(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "is_tablet", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Event_is_tablet_get", NULL);
-	RNA_def_property_ui_text(prop, "Tablet Pressure", "The pressure of the tablet or 1.0 if no tablet present");
+	RNA_def_property_ui_text(prop, "Is Tablet", "The event has tablet data");
 
 	prop = RNA_def_property(srna, "is_mouse_absolute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "is_motion_absolute", 1);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Absolute Motion", "The last motion event was an absolute an input");
+	RNA_def_property_ui_text(prop, "Absolute Motion", "The last motion event was an absolute input");
 
 	/* modifiers */
 	prop = RNA_def_property(srna, "shift", PROP_BOOLEAN, PROP_NONE);
