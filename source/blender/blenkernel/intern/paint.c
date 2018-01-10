@@ -532,8 +532,10 @@ void BKE_paint_init(Scene *sce, ePaintMode mode, const char col[3])
 		short ob_mode = BKE_paint_object_mode_from_paint_mode(mode);
 		brush = BKE_brush_first_search(G.main, ob_mode);
 
-		if (!brush)
+		if (!brush) {
 			brush = BKE_brush_add(G.main, "Brush", ob_mode);
+			id_us_min(&brush->id);  /* fake user only */
+		}
 		BKE_paint_brush_set(paint, brush);
 	}
 

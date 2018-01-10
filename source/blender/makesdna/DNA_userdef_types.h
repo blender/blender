@@ -833,7 +833,7 @@ typedef enum eColorPicker_Types {
 } eColorPicker_Types;
 
 /* timecode display styles
-  * UserDef.timecode_style */
+ * UserDef.timecode_style */
 typedef enum eTimecodeStyles {
 	/* as little info as is necessary to show relevant info
 	 * with '+' to denote the frames 

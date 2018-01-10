@@ -128,7 +128,7 @@ bool BLI_rctf_isect_pt_v(const rctf *rect, const float xy[2])
 
 /**
  * \returns shortest distance from \a rect to x/y (0 if inside)
-*/
+ */
 
 int BLI_rcti_length_x(const rcti *rect, const int x)
 {

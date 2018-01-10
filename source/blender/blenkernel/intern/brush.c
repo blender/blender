@@ -148,6 +148,9 @@ void BKE_brush_init(Brush *brush)
 	BKE_brush_curve_preset(brush, CURVE_PRESET_SMOOTH);
 }
 
+/**
+ * \note Resulting brush will have two users: one as a fake user, another is assumed to be used by the caller.
+ */
 Brush *BKE_brush_add(Main *bmain, const char *name, short ob_mode)
 {
 	Brush *brush;
@@ -1063,7 +1066,8 @@ struct ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary)
 		for (i = 0; i < side; ++i) {
 			for (j = 0; j < side; ++j) {
 				const int col = texcache[i * side + j];
-				im->rect_float[i * side + j] *= (((char *)&col)[0] + ((char *)&col)[1] + ((char *)&col)[2]) / 3.0f / 255.0f;
+				im->rect_float[i * side + j] *=
+				        (((char *)&col)[0] + ((char *)&col)[1] + ((char *)&col)[2]) / 3.0f / 255.0f;
 			}
 		}
 

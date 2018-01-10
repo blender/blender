@@ -119,7 +119,7 @@ typedef struct SculptUndoNode {
 } SculptUndoNode;
 
 /* Factor of brush to have rake point following behind
-* (could be configurable but this is reasonable default). */
+ * (could be configurable but this is reasonable default). */
 #define SCULPT_RAKE_BRUSH_FACTOR 0.25f
 
 struct SculptRakeData {
@@ -148,7 +148,7 @@ typedef struct SculptThreadedTaskData {
 
 	/* Data specific to some callbacks. */
 	/* Note: even if only one or two of those are used at a time, keeping them separated, names help figuring out
-	*       what it is, and memory overhead is ridiculous anyway... */
+	 *       what it is, and memory overhead is ridiculous anyway... */
 	float flippedbstrength;
 	float angle;
 	float strength;
@@ -239,10 +239,10 @@ void sculpt_pbvh_calc_area_normal(
         float r_area_no[3]);
 
 /* Cache stroke properties. Used because
-* RNA property lookup isn't particularly fast.
-*
-* For descriptions of these settings, check the operator properties.
-*/
+ * RNA property lookup isn't particularly fast.
+ *
+ * For descriptions of these settings, check the operator properties.
+ */
 
 typedef struct StrokeCache {
 	/* Invariants */
@@ -296,13 +296,13 @@ typedef struct StrokeCache {
 	float view_normal[3];
 
 	/* sculpt_normal gets calculated by calc_sculpt_normal(), then the
-	* sculpt_normal_symm gets updated quickly with the usual symmetry
-	* transforms */
+	 * sculpt_normal_symm gets updated quickly with the usual symmetry
+	 * transforms */
 	float sculpt_normal[3];
 	float sculpt_normal_symm[3];
 
 	/* Used for area texture mode, local_mat gets calculated by
-	* calc_brush_local_mat() and used in tex_strength(). */
+	 * calc_brush_local_mat() and used in tex_strength(). */
 	float brush_local_mat[4][4];
 
 	float plane_offset[3]; /* used to shift the plane around when doing tiled strokes */

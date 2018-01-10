@@ -68,10 +68,13 @@ static int brush_add_exec(bContext *C, wmOperator *UNUSED(op))
 	Main *bmain = CTX_data_main(C);
 	ePaintMode mode = BKE_paintmode_get_active_from_context(C);
 
-	if (br)
+	if (br) {
 		br = BKE_brush_copy(bmain, br);
-	else
+	}
+	else {
 		br = BKE_brush_add(bmain, "Brush", BKE_paint_object_mode_from_paint_mode(mode));
+		id_us_min(&br->id);  /* fake user only */
+	}
 
 	BKE_paint_brush_set(paint, br);
 
@@ -376,6 +379,7 @@ static int brush_generic_tool_set(Main *bmain, Paint *paint, const int tool,
 
 	if (!brush && brush_tool(brush_orig, tool_offset) != tool && create_missing) {
 		brush = BKE_brush_add(bmain, tool_name, ob_mode);
+		id_us_min(&brush->id);  /* fake user only */
 		brush_tool_set(brush, tool_offset, tool);
 		brush->toggle_brush = brush_orig;
 	}

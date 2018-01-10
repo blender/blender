@@ -141,7 +141,7 @@ struct SnapObjectContext {
 /* -------------------------------------------------------------------- */
 
 /** Common utilities
-* \{ */
+ * \{ */
 
 
 typedef void(*IterSnapObjsCallback)(SnapObjectContext *sctx, bool is_obedit, Object *ob, float obmat[4][4], void *data);
@@ -264,7 +264,7 @@ static int dm_looptri_to_poly_index(DerivedMesh *dm, const MLoopTri *lt);
 /* -------------------------------------------------------------------- */
 
 /** \name Ray Cast Funcs
-* \{ */
+ * \{ */
 
 /* Store all ray-hits
  * Support for storing all depths, not just the first (raycast 'all') */

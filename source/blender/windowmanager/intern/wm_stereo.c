@@ -397,7 +397,7 @@ bool WM_stereo3d_enabled(wmWindow *win, bool skip_stereo3d_check)
 
 /**
  * If needed, this adjusts \a r_mouse_xy so that drawn cursor and handled mouse position are matching visually.
-*/
+ */
 void wm_stereo3d_mouse_offset_apply(wmWindow *win, int *r_mouse_xy)
 {
 	if (!WM_stereo3d_enabled(win, false))

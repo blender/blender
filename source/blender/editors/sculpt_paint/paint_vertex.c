@@ -1195,7 +1195,7 @@ static void vwpaint_update_cache_invariants(
 	cache->invert = mode == BRUSH_STROKE_INVERT;
 	cache->alt_smooth = mode == BRUSH_STROKE_SMOOTH;
 	/* not very nice, but with current events system implementation
-	* we can't handle brush appearance inversion hotkey separately (sergey) */
+	 * we can't handle brush appearance inversion hotkey separately (sergey) */
 	if (cache->invert) ups->draw_inverted = true;
 	else ups->draw_inverted = false;
 

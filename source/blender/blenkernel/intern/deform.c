@@ -628,7 +628,7 @@ float defvert_array_find_weight_safe(const struct MDeformVert *dvert, const int 
 	 * (i.e. maximum weight, as if no vgroup was selected).
 	 * But in case of valid defgroup and NULL dvert data pointer, it means that vgroup **is** valid,
 	 * and just totally empty, so we shall return '0.0' value then!
-	*/
+	 */
 	if (defgroup == -1) {
 		return 1.0f;
 	}
