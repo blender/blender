@@ -492,7 +492,9 @@ typedef struct UserDef {
 	char keyconfigstr[64];
 	
 	short undosteps;
-	short undomemory;
+	short pad1;
+	int undomemory;
+	int pad3;
 	short gp_manhattendist, gp_euclideandist, gp_eraser;
 	short gp_settings;  /* eGP_UserdefSettings */
 	short tb_leftmouse, tb_rightmouse;
