@@ -125,30 +125,28 @@ static SceneCollection *scene_collection_from_index(ListBase *lb, const int numb
 }
 
 typedef struct TreeElementFindData {
-	SceneCollection *sc;
-	TreeElement *te;
+	SceneCollection *collection;
+	TreeElement *r_result_te;
 } TreeElementFindData;
 
-static TreeTraversalAction tree_element_find_by_scene_collection(TreeElement *te, void *customdata)
+static TreeTraversalAction tree_element_find_by_scene_collection_cb(TreeElement *te, void *customdata)
 {
 	TreeElementFindData *data = customdata;
+	const SceneCollection *current_element_sc = outliner_scene_collection_from_tree_element(te);
 
-	SceneCollection *current_element_sc = outliner_scene_collection_from_tree_element(te);
-
-	if (current_element_sc == data->sc) {
-		data->te = te;
+	if (current_element_sc == data->collection) {
+		data->r_result_te = te;
 		return TRAVERSE_BREAK;
 	}
 
 	return TRAVERSE_CONTINUE;
 }
 
-static TreeElement *outliner_tree_element_from_layer_collection(bContext *C)
+static TreeElement *outliner_tree_element_from_layer_collection_index(
+        SpaceOops *soops, ViewLayer *view_layer,
+        const int index)
 {
-	ViewLayer *view_layer = CTX_data_view_layer(C);
-	SpaceOops *soops = CTX_wm_space_outliner(C);
-
-	LayerCollection *lc = BKE_layer_collection_from_index(view_layer, 0);
+	LayerCollection *lc = BKE_layer_collection_from_index(view_layer, index);
 
 	if (lc == NULL) {
 		return NULL;
@@ -156,12 +154,12 @@ static TreeElement *outliner_tree_element_from_layer_collection(bContext *C)
 
 	/* Find the tree element containing the LayerCollection's scene_collection. */
 	TreeElementFindData data = {
-		.sc = lc->scene_collection,
-		.te = NULL,
+		.collection = lc->scene_collection,
+		.r_result_te = NULL,
 	};
-	outliner_tree_traverse(soops, &soops->tree, 0, 0, tree_element_find_by_scene_collection, &data);
+	outliner_tree_traverse(soops, &soops->tree, 0, 0, tree_element_find_by_scene_collection_cb, &data);
 
-	return data.te;
+	return data.r_result_te;
 }
 
 static int collection_link_exec(bContext *C, wmOperator *op)
@@ -679,7 +677,7 @@ static int collection_delete_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BLI_gset_free(data.collections_to_delete, NULL);
 
-	TreeElement *select_te = outliner_tree_element_from_layer_collection(C);
+	TreeElement *select_te = outliner_tree_element_from_layer_collection_index(soops, CTX_data_view_layer(C), 0);
 	if (select_te) {
 		outliner_item_select(soops, select_te, false, false);
 	}
