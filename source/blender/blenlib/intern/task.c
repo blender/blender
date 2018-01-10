@@ -1029,7 +1029,7 @@ static void parallel_range_func(
 	}
 }
 
-static void palallel_range_single_thread(int start, int stop,
+static void palallel_range_single_thread(const int start, int const stop,
                                          void *userdata,
                                          TaskParallelRangeFunc func,
                                          const ParallelRangeSettings *settings)
