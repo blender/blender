@@ -188,27 +188,36 @@ static void EDIT_CURVE_cache_init(void *vedata)
 	}
 
 	{
+		DRWShadingGroup *grp;
+
 		/* Center-Line (wire) */
 		psl->wire_pass = DRW_pass_create(
 		        "Curve Wire",
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_WIRE);
-		stl->g_data->wire_shgrp = DRW_shgroup_create(e_data.wire_sh, psl->wire_pass);
+
+		grp = DRW_shgroup_create(e_data.wire_sh, psl->wire_pass);
+		DRW_shgroup_uniform_vec4(grp, "color", ts.colorWireEdit, 1);
+		stl->g_data->wire_shgrp = grp;
 
 
 		psl->overlay_edge_pass = DRW_pass_create(
 		        "Curve Handle Overlay",
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_WIRE);
 
-		DRWShadingGroup *overlay_edge_shgrp = DRW_shgroup_create(e_data.overlay_edge_sh, psl->overlay_edge_pass);
-		DRW_shgroup_uniform_vec2(overlay_edge_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
-		DRW_shgroup_uniform_block(overlay_edge_shgrp, "globalsBlock", globals_ubo);
-		stl->g_data->overlay_edge_shgrp = overlay_edge_shgrp;
+		grp = DRW_shgroup_create(e_data.overlay_edge_sh, psl->overlay_edge_pass);
+		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
+		DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
+		stl->g_data->overlay_edge_shgrp = grp;
 
 
 		psl->overlay_vert_pass = DRW_pass_create(
 		        "Curve Vert Overlay",
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_POINT);
-		stl->g_data->overlay_vert_shgrp = DRW_shgroup_create(e_data.overlay_vert_sh, psl->overlay_vert_pass);
+
+		grp = DRW_shgroup_create(e_data.overlay_vert_sh, psl->overlay_vert_pass);
+		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
+		DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
+		stl->g_data->overlay_vert_shgrp = grp;
 	}
 
 }
