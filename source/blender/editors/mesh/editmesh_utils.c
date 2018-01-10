@@ -397,7 +397,7 @@ void EDBM_mesh_load(Object *ob)
 	 * of freed data on scene update, especially in cases when there are dependency
 	 * cycles.
 	 */
-	/*
+#if 0
 	for (Object *other_object = G.main->object.first;
 	     other_object != NULL;
 	     other_object = other_object->id.next)
@@ -406,7 +406,7 @@ void EDBM_mesh_load(Object *ob)
 			BKE_object_free_derived_caches(other_object);
 		}
 	}
-	*/
+#endif
 }
 
 /**
