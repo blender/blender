@@ -138,7 +138,7 @@ typedef struct CCGSubSurfCalcSubdivData {
 
 static void ccgSubSurf__calcVertNormals_faces_accumulate_cb(
         void *__restrict userdata,
-        int ptrIdx,
+        const int ptrIdx,
         const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	CCGSubSurfCalcSubdivData *data = userdata;
@@ -232,7 +232,7 @@ static void ccgSubSurf__calcVertNormals_faces_accumulate_cb(
 
 static void ccgSubSurf__calcVertNormals_faces_finalize_cb(
         void *__restrict userdata,
-        int ptrIdx,
+        const int ptrIdx,
         const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	CCGSubSurfCalcSubdivData *data = userdata;
@@ -273,7 +273,7 @@ static void ccgSubSurf__calcVertNormals_faces_finalize_cb(
 
 static void ccgSubSurf__calcVertNormals_edges_accumulate_cb(
         void *__restrict userdata,
-        int ptrIdx,
+        const int ptrIdx,
         const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	CCGSubSurfCalcSubdivData *data = userdata;
@@ -422,7 +422,7 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 
 static void ccgSubSurf__calcSubdivLevel_interior_faces_edges_midpoints_cb(
         void *__restrict userdata,
-        int ptrIdx,
+        const int ptrIdx,
         const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	CCGSubSurfCalcSubdivData *data = userdata;
@@ -512,7 +512,7 @@ static void ccgSubSurf__calcSubdivLevel_interior_faces_edges_midpoints_cb(
 
 static void ccgSubSurf__calcSubdivLevel_interior_faces_edges_centerpoints_shift_cb(
         void *__restrict userdata,
-        int ptrIdx,
+        const int ptrIdx,
         const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	CCGSubSurfCalcSubdivData *data = userdata;
@@ -620,7 +620,7 @@ static void ccgSubSurf__calcSubdivLevel_interior_faces_edges_centerpoints_shift_
 
 static void ccgSubSurf__calcSubdivLevel_verts_copydata_cb(
         void *__restrict userdata,
-        int ptrIdx,
+        const int ptrIdx,
         const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	CCGSubSurfCalcSubdivData *data = userdata;

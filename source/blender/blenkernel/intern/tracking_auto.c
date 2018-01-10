@@ -434,7 +434,7 @@ AutoTrackContext *BKE_autotrack_context_new(MovieClip *clip,
 
 static void autotrack_context_step_cb(
         void *__restrict userdata,
-        int track,
+        const int track,
         const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	AutoTrackContext *context = userdata;

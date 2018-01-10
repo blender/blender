@@ -85,7 +85,7 @@ void lib_id_recalc_data_tag(Main *bmain, ID *id)
 
 void flush_init_operation_node_func(
         void *__restrict data_v,
-        int i,
+        const int i,
         const ParallelRangeTLS *__restrict /*tls*/)
 {
 	Depsgraph *graph = (Depsgraph *)data_v;
@@ -95,7 +95,7 @@ void flush_init_operation_node_func(
 
 void flush_init_id_node_func(
         void *__restrict data_v,
-        int i,
+        const int i,
         const ParallelRangeTLS *__restrict /*tls*/)
 {
 	Depsgraph *graph = (Depsgraph *)data_v;
@@ -297,7 +297,7 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 
 static void graph_clear_func(
         void *__restrict data_v,
-        int i,
+        const int i,
         const ParallelRangeTLS *__restrict /*tls*/)
 {
 	Depsgraph *graph = (Depsgraph *)data_v;

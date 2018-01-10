@@ -109,7 +109,7 @@ typedef struct CalculatePengindData {
 
 static void calculate_pending_func(
         void *__restrict data_v,
-        int i,
+        const int i,
         const ParallelRangeTLS *__restrict /*tls*/)
 {
 	CalculatePengindData *data = (CalculatePengindData *)data_v;

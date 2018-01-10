@@ -1505,7 +1505,7 @@ typedef struct TrackingStabilizeFrameInterpolationData {
 
 static void tracking_stabilize_frame_interpolation_cb(
         void *__restrict userdata,
-        int j,
+        const int j,
         const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	TrackingStabilizeFrameInterpolationData *data = userdata;
