@@ -151,7 +151,10 @@ typedef struct LoadTexData {
 	float radius;
 } LoadTexData;
 
-static void load_tex_task_cb_ex(void *userdata, const int j, const ParallelRangeTLS *tls)
+static void load_tex_task_cb_ex(
+        void *__restrict userdata,
+        const int j,
+        const ParallelRangeTLS *__restrict tls)
 {
 	LoadTexData *data = userdata;
 	Brush *br = data->br;
@@ -367,7 +370,10 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 	return 1;
 }
 
-static void load_tex_cursor_task_cb(void *userdata, const int j, const ParallelRangeTLS *UNUSED(tls))
+static void load_tex_cursor_task_cb(
+        void *__restrict userdata,
+        const int j,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	LoadTexData *data = userdata;
 	Brush *br = data->br;

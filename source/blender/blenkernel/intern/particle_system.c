@@ -3375,7 +3375,9 @@ typedef struct DynamicStepSolverTaskData {
 } DynamicStepSolverTaskData;
 
 static void dynamics_step_sph_ddr_task_cb_ex(
-        void *userdata, const int p, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int p,
+        const ParallelRangeTLS *__restrict tls)
 {
 	DynamicStepSolverTaskData *data = userdata;
 	ParticleSimulationData *sim = data->sim;
@@ -3409,7 +3411,9 @@ static void dynamics_step_sph_ddr_task_cb_ex(
 }
 
 static void dynamics_step_sph_classical_basic_integrate_task_cb_ex(
-        void *userdata,  const int p, const ParallelRangeTLS *UNUSED(tls))
+        void *__restrict userdata, 
+        const int p,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	DynamicStepSolverTaskData *data = userdata;
 	ParticleSimulationData *sim = data->sim;
@@ -3425,7 +3429,9 @@ static void dynamics_step_sph_classical_basic_integrate_task_cb_ex(
 }
 
 static void dynamics_step_sph_classical_calc_density_task_cb_ex(
-        void *userdata, const int p, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int p,
+        const ParallelRangeTLS *__restrict tls)
 {
 	DynamicStepSolverTaskData *data = userdata;
 	ParticleSimulationData *sim = data->sim;
@@ -3443,7 +3449,9 @@ static void dynamics_step_sph_classical_calc_density_task_cb_ex(
 }
 
 static void dynamics_step_sph_classical_integrate_task_cb_ex(
-        void *userdata, const int p, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int p,
+        const ParallelRangeTLS *__restrict tls)
 {
 	DynamicStepSolverTaskData *data = userdata;
 	ParticleSimulationData *sim = data->sim;

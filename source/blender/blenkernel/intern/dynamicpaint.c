@@ -604,7 +604,9 @@ static void freeGrid(PaintSurfaceData *data)
 	bData->grid = NULL;
 }
 
-static void grid_bound_insert_cb_ex(void *userdata, const int i, const ParallelRangeTLS *tls)
+static void grid_bound_insert_cb_ex(void *__restrict userdata,
+                                    const int i,
+                                    const ParallelRangeTLS *__restrict tls)
 {
 	PaintBakeData *bData = userdata;
 
@@ -613,7 +615,8 @@ static void grid_bound_insert_cb_ex(void *userdata, const int i, const ParallelR
 	boundInsert(grid_bound, bData->realCoord[bData->s_pos[i]].v);
 }
 
-static void grid_bound_insert_finalize(void *userdata, void *userdata_chunk)
+static void grid_bound_insert_finalize(void *__restrict userdata,
+                                       void *__restrict userdata_chunk)
 {
 	PaintBakeData *bData = userdata;
 	VolumeGrid *grid = bData->grid;
@@ -624,7 +627,9 @@ static void grid_bound_insert_finalize(void *userdata, void *userdata_chunk)
 	boundInsert(&grid->grid_bounds, grid_bound->max);
 }
 
-static void grid_cell_points_cb_ex(void *userdata, const int i, const ParallelRangeTLS *tls)
+static void grid_cell_points_cb_ex(void *__restrict userdata,
+                                   const int i,
+                                   const ParallelRangeTLS *__restrict tls)
 {
 	PaintBakeData *bData = userdata;
 	VolumeGrid *grid = bData->grid;
@@ -643,7 +648,8 @@ static void grid_cell_points_cb_ex(void *userdata, const int i, const ParallelRa
 	s_num[temp_t_index[i]]++;
 }
 
-static void grid_cell_points_finalize(void *userdata, void *userdata_chunk)
+static void grid_cell_points_finalize(void *__restrict userdata,
+                                      void *__restrict userdata_chunk)
 {
 	PaintBakeData *bData = userdata;
 	VolumeGrid *grid = bData->grid;
@@ -657,7 +663,9 @@ static void grid_cell_points_finalize(void *userdata, void *userdata_chunk)
 	}
 }
 
-static void grid_cell_bounds_cb(void *userdata, const int x, const ParallelRangeTLS *UNUSED(tls))
+static void grid_cell_bounds_cb(void *__restrict userdata,
+                                const int x,
+                                const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	PaintBakeData *bData = userdata;
 	VolumeGrid *grid = bData->grid;
@@ -1417,8 +1425,10 @@ typedef struct DynamicPaintSetInitColorData {
 	const bool scene_color_manage;
 } DynamicPaintSetInitColorData;
 
-static void dynamic_paint_set_init_color_tex_to_vcol_cb(void *userdata, const int i,
-                                                       const ParallelRangeTLS *UNUSED(tls))
+static void dynamic_paint_set_init_color_tex_to_vcol_cb(
+        void *__restrict userdata,
+        const int i,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintSetInitColorData *data = userdata;
 
@@ -1452,8 +1462,10 @@ static void dynamic_paint_set_init_color_tex_to_vcol_cb(void *userdata, const in
 	}
 }
 
-static void dynamic_paint_set_init_color_tex_to_imseq_cb(void *userdata, const int i,
-                                                         const ParallelRangeTLS *UNUSED(tls))
+static void dynamic_paint_set_init_color_tex_to_imseq_cb(
+        void *__restrict userdata,
+        const int i,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintSetInitColorData *data = userdata;
 
@@ -1491,8 +1503,10 @@ static void dynamic_paint_set_init_color_tex_to_imseq_cb(void *userdata, const i
 	pPoint[i].color[3] = texres.tin;
 }
 
-static void dynamic_paint_set_init_color_vcol_to_imseq_cb(void *userdata, const int i,
-                                                          const ParallelRangeTLS *UNUSED(tls))
+static void dynamic_paint_set_init_color_vcol_to_imseq_cb(
+        void *__restrict userdata,
+        const int i,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintSetInitColorData *data = userdata;
 
@@ -1712,8 +1726,10 @@ typedef struct DynamicPaintModifierApplyData {
 	MLoopCol *mloopcol_preview;
 } DynamicPaintModifierApplyData;
 
-static void dynamic_paint_apply_surface_displace_cb(void *userdata, const int i,
-                                                    const ParallelRangeTLS *UNUSED(tls))
+static void dynamic_paint_apply_surface_displace_cb(
+        void *__restrict userdata,
+        const int i,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintModifierApplyData *data = userdata;
 
@@ -1753,8 +1769,10 @@ static void dynamicPaint_applySurfaceDisplace(DynamicPaintSurface *surface, Deri
 	}
 }
 
-static void dynamic_paint_apply_surface_vpaint_blend_cb(void *userdata, const int i,
-                                                        const ParallelRangeTLS *UNUSED(tls))
+static void dynamic_paint_apply_surface_vpaint_blend_cb(
+        void *__restrict userdata,
+        const int i,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintModifierApplyData *data = userdata;
 
@@ -1765,8 +1783,10 @@ static void dynamic_paint_apply_surface_vpaint_blend_cb(void *userdata, const in
 	blendColors(pPoint[i].color, pPoint[i].color[3], pPoint[i].e_color, pPoint[i].e_color[3], fcolor[i]);
 }
 
-static void dynamic_paint_apply_surface_vpaint_cb(void *userdata, const int p_index,
-                                                  const ParallelRangeTLS *UNUSED(tls))
+static void dynamic_paint_apply_surface_vpaint_cb(
+        void *__restrict userdata,
+        const int p_index,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintModifierApplyData *data = userdata;
 	Object *ob = data->ob;
@@ -1836,8 +1856,10 @@ static void dynamic_paint_apply_surface_vpaint_cb(void *userdata, const int p_in
 	}
 }
 
-static void dynamic_paint_apply_surface_wave_cb(void *userdata, const int i,
-                                                const ParallelRangeTLS *UNUSED(tls))
+static void dynamic_paint_apply_surface_wave_cb(
+        void *__restrict userdata,
+        const int i,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintModifierApplyData *data = userdata;
 
@@ -2179,8 +2201,10 @@ typedef struct DynamicPaintCreateUVSurfaceData {
 	uint32_t *active_points;
 } DynamicPaintCreateUVSurfaceData;
 
-static void dynamic_paint_create_uv_surface_direct_cb(void *userdata, const int ty,
-                                                      const ParallelRangeTLS *UNUSED(tls))
+static void dynamic_paint_create_uv_surface_direct_cb(
+        void *__restrict userdata,
+        const int ty,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintCreateUVSurfaceData *data = userdata;
 
@@ -2277,8 +2301,10 @@ static void dynamic_paint_create_uv_surface_direct_cb(void *userdata, const int 
 	}
 }
 
-static void dynamic_paint_create_uv_surface_neighbor_cb(void *userdata, const int ty,
-                                                        const ParallelRangeTLS *UNUSED(tls))
+static void dynamic_paint_create_uv_surface_neighbor_cb(
+        void *__restrict userdata,
+        const int ty,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintCreateUVSurfaceData *data = userdata;
 
@@ -3086,8 +3112,10 @@ typedef struct DynamicPaintOutputSurfaceImageData {
 	ImBuf *ibuf;
 } DynamicPaintOutputSurfaceImageData;
 
-static void dynamic_paint_output_surface_image_paint_cb(void *userdata, const int index,
-                                                        const ParallelRangeTLS *UNUSED(tls))
+static void dynamic_paint_output_surface_image_paint_cb(
+        void *__restrict userdata,
+        const int index,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintOutputSurfaceImageData *data = userdata;
 
@@ -3107,8 +3135,10 @@ static void dynamic_paint_output_surface_image_paint_cb(void *userdata, const in
 	}
 }
 
-static void dynamic_paint_output_surface_image_displace_cb(void *userdata, const int index,
-                                                           const ParallelRangeTLS *UNUSED(tls))
+static void dynamic_paint_output_surface_image_displace_cb(
+        void *__restrict userdata,
+        const int index,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintOutputSurfaceImageData *data = userdata;
 
@@ -3132,8 +3162,10 @@ static void dynamic_paint_output_surface_image_displace_cb(void *userdata, const
 	ibuf->rect_float[pos + 3] = 1.0f;
 }
 
-static void dynamic_paint_output_surface_image_wave_cb(void *userdata, const int index,
-                                                       const ParallelRangeTLS *UNUSED(tls))
+static void dynamic_paint_output_surface_image_wave_cb(
+        void *__restrict userdata,
+        const int index,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintOutputSurfaceImageData *data = userdata;
 
@@ -3155,8 +3187,10 @@ static void dynamic_paint_output_surface_image_wave_cb(void *userdata, const int
 	ibuf->rect_float[pos + 3] = 1.0f;
 }
 
-static void dynamic_paint_output_surface_image_wetmap_cb(void *userdata, const int index,
-                                                         const ParallelRangeTLS *UNUSED(tls))
+static void dynamic_paint_output_surface_image_wetmap_cb(
+        void *__restrict userdata,
+        const int index,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintOutputSurfaceImageData *data = userdata;
 
@@ -3676,8 +3710,10 @@ typedef struct DynamicPaintBrushVelocityData {
 	const float timescale;
 } DynamicPaintBrushVelocityData;
 
-static void dynamic_paint_brush_velocity_compute_cb(void *userdata, const int i,
-                                                    const ParallelRangeTLS *UNUSED(tls))
+static void dynamic_paint_brush_velocity_compute_cb(
+        void *__restrict userdata,
+        const int i,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintBrushVelocityData *data = userdata;
 
@@ -3834,7 +3870,9 @@ typedef struct DynamicPaintPaintData {
  *	Paint a brush object mesh to the surface
  */
 static void dynamic_paint_paint_mesh_cell_point_cb_ex(
-        void *userdata, const int id, const ParallelRangeTLS *UNUSED(tls))
+        void *__restrict userdata,
+        const int id,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintPaintData *data = userdata;
 
@@ -4279,7 +4317,9 @@ static int dynamicPaint_paintMesh(const struct EvaluationContext *eval_ctx, Dyna
  *	Paint a particle system to the surface
  */
 static void dynamic_paint_paint_particle_cell_point_cb_ex(
-        void *userdata, const int id, const ParallelRangeTLS *UNUSED(tls))
+        void *__restrict userdata,
+        const int id,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintPaintData *data = userdata;
 
@@ -4558,7 +4598,9 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 
 /* paint a single point of defined proximity radius to the surface */
 static void dynamic_paint_paint_single_point_cb_ex(
-        void *userdata, const int index, const ParallelRangeTLS *UNUSED(tls))
+        void *__restrict userdata,
+        const int index,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintPaintData *data = userdata;
 
@@ -4708,8 +4750,10 @@ static int dynamicPaint_paintSinglePoint(
  *	Calculate current frame distances and directions for adjacency data
  */
 
-static void dynamic_paint_prepare_adjacency_cb(void *userdata, const int index,
-                                               const ParallelRangeTLS *UNUSED(tls))
+static void dynamic_paint_prepare_adjacency_cb(
+        void *__restrict userdata,
+        const int index,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	PaintSurfaceData *sData = userdata;
 	PaintBakeData *bData = sData->bData;
@@ -4941,8 +4985,10 @@ typedef struct DynamicPaintEffectData {
  *	Prepare data required by effects for current frame.
  *	Returns number of steps required
  */
-static void dynamic_paint_prepare_effect_cb(void *userdata, const int index,
-                                            const ParallelRangeTLS *UNUSED(tls))
+static void dynamic_paint_prepare_effect_cb(
+        void *__restrict userdata,
+        const int index,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintEffectData *data = userdata;
 
@@ -5052,8 +5098,10 @@ static int dynamicPaint_prepareEffectStep(
 /**
  *	Processes active effect step.
  */
-static void dynamic_paint_effect_spread_cb(void *userdata, const int index,
-                                           const ParallelRangeTLS *UNUSED(tls))
+static void dynamic_paint_effect_spread_cb(
+        void *__restrict userdata,
+        const int index,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintEffectData *data = userdata;
 
@@ -5098,8 +5146,10 @@ static void dynamic_paint_effect_spread_cb(void *userdata, const int index,
 	}
 }
 
-static void dynamic_paint_effect_shrink_cb(void *userdata, const int index,
-                                           const ParallelRangeTLS *UNUSED(tls))
+static void dynamic_paint_effect_shrink_cb(
+        void *__restrict userdata,
+        const int index,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintEffectData *data = userdata;
 
@@ -5149,8 +5199,10 @@ static void dynamic_paint_effect_shrink_cb(void *userdata, const int index,
 	}
 }
 
-static void dynamic_paint_effect_drip_cb(void *userdata, const int index,
-                                         const ParallelRangeTLS *UNUSED(tls))
+static void dynamic_paint_effect_drip_cb(
+        void *__restrict userdata,
+        const int index,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintEffectData *data = userdata;
 
@@ -5343,8 +5395,10 @@ static void dynamicPaint_doEffectStep(
 	}
 }
 
-static void dynamic_paint_border_cb(void *userdata, const int b_index,
-                                    const ParallelRangeTLS *UNUSED(tls))
+static void dynamic_paint_border_cb(
+        void *__restrict userdata,
+        const int b_index,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintEffectData *data = userdata;
 
@@ -5423,8 +5477,10 @@ static void dynamicPaint_doBorderStep(DynamicPaintSurface *surface)
 	                        &settings);
 }
 
-static void dynamic_paint_wave_step_cb(void *userdata, const int index,
-                                       const ParallelRangeTLS *UNUSED(tls))
+static void dynamic_paint_wave_step_cb(
+        void *__restrict userdata,
+        const int index,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintEffectData *data = userdata;
 
@@ -5591,8 +5647,10 @@ typedef struct DynamicPaintDissolveDryData {
 	const float timescale;
 } DynamicPaintDissolveDryData;
 
-static void dynamic_paint_surface_pre_step_cb(void *userdata, const int index,
-                                              const ParallelRangeTLS *UNUSED(tls))
+static void dynamic_paint_surface_pre_step_cb(
+        void *__restrict userdata,
+        const int index,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintDissolveDryData *data = userdata;
 
@@ -5715,8 +5773,10 @@ typedef struct DynamicPaintGenerateBakeData {
 	const bool new_bdata;
 } DynamicPaintGenerateBakeData;
 
-static void dynamic_paint_generate_bake_data_cb(void *userdata, const int index,
-                                                const ParallelRangeTLS *UNUSED(tls))
+static void dynamic_paint_generate_bake_data_cb(
+        void *__restrict userdata,
+        const int index,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const DynamicPaintGenerateBakeData *data = userdata;
 

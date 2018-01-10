@@ -104,8 +104,10 @@ typedef struct MaskTaskData {
 	float (*clip_planes_final)[4];
 } MaskTaskData;
 
-static void mask_flood_fill_task_cb(void *userdata, const int i,
-                                    const ParallelRangeTLS *UNUSED(tls))
+static void mask_flood_fill_task_cb(
+        void *__restrict userdata,
+        const int i,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	MaskTaskData *data = userdata;
 
@@ -225,8 +227,10 @@ static void flip_plane(float out[4], const float in[4], const char symm)
 	out[3] = in[3];
 }
 
-static void mask_box_select_task_cb(void *userdata, const int i,
-                                    const ParallelRangeTLS *UNUSED(tls))
+static void mask_box_select_task_cb(
+        void *__restrict userdata,
+        const int i,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	MaskTaskData *data = userdata;
 
@@ -385,8 +389,10 @@ static void mask_lasso_px_cb(int x, int x_end, int y, void *user_data)
 	} while (++index != index_end);
 }
 
-static void mask_gesture_lasso_task_cb(void *userdata, const int i,
-                                       const ParallelRangeTLS *UNUSED(tls))
+static void mask_gesture_lasso_task_cb(
+        void *__restrict userdata,
+        const int i,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	LassoMaskData *lasso_data = userdata;
 	MaskTaskData *data = &lasso_data->task_data;

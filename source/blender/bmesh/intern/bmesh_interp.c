@@ -419,8 +419,10 @@ typedef struct BMLoopInterpMultiresData {
 	float d;
 } BMLoopInterpMultiresData;
 
-static void loop_interp_multires_cb(void *userdata, int ix,
-                                    const ParallelRangeTLS *UNUSED(tls))
+static void loop_interp_multires_cb(
+        void *__restrict userdata,
+        const int ix,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	BMLoopInterpMultiresData *data = userdata;
 

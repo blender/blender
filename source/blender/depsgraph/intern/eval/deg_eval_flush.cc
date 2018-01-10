@@ -71,18 +71,20 @@ typedef std::deque<OperationDepsNode *> FlushQueue;
 
 namespace {
 
-void flush_init_operation_node_func(void *data_v,
-                                    int i,
-                                    const ParallelRangeTLS * /*tls*/)
+void flush_init_operation_node_func(
+        void *__restrict data_v,
+        const int i,
+        const ParallelRangeTLS *__restrict /*tls*/)
 {
 	Depsgraph *graph = (Depsgraph *)data_v;
 	OperationDepsNode *node = graph->operations[i];
 	node->scheduled = false;
 }
 
-void flush_init_id_node_func(void *data_v,
-                             int i,
-                             const ParallelRangeTLS * /*tls*/)
+void flush_init_id_node_func(
+        void *__restrict data_v,
+        const int i,
+        const ParallelRangeTLS *__restrict /*tls*/)
 {
 	Depsgraph *graph = (Depsgraph *)data_v;
 	IDDepsNode *id_node = graph->id_nodes[i];
@@ -292,9 +294,10 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 	flush_editors_id_update(bmain, graph, &update_ctx);
 }
 
-static void graph_clear_func(void *data_v,
-                             int i,
-                             const ParallelRangeTLS * /*tls*/)
+static void graph_clear_func(
+        void *__restrict data_v,
+        const int i,
+        const ParallelRangeTLS *__restrict /*tls*/)
 {
 	Depsgraph *graph = (Depsgraph *)data_v;
 	OperationDepsNode *node = graph->operations[i];

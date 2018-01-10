@@ -143,10 +143,11 @@ typedef struct ParallelRangeTLS {
 	void *userdata_chunk;
 } ParallelRangeTLS;
 
-typedef void (*TaskParallelRangeFunc)(void *userdata,
+typedef void (*TaskParallelRangeFunc)(void *__restrict userdata,
                                       const int iter,
-                                      const ParallelRangeTLS *tls);
-typedef void (*TaskParallelRangeFuncFinalize)(void *userdata, void *userdata_chunk);
+                                      const ParallelRangeTLS *__restrict tls);
+typedef void (*TaskParallelRangeFuncFinalize)(void *__restrict userdata,
+                                              void *__restrict userdata_chunk);
 
 typedef struct ParallelRangeSettings {
 	/* Whether caller allows to do threading of the particular range.

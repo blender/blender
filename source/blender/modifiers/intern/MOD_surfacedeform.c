@@ -736,7 +736,10 @@ BLI_INLINE float computeNormalDisplacement(const float point_co[3], const float 
 	return normal_dist;
 }
 
-static void bindVert(void *userdata, const int index, const ParallelRangeTLS *UNUSED(tls))
+static void bindVert(
+        void *__restrict userdata,
+        const int index,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	SDefBindCalcData * const data = (SDefBindCalcData *)userdata;
 	float point_co[3];
@@ -1037,7 +1040,10 @@ static bool surfacedeformBind(SurfaceDeformModifierData *smd, float (*vertexCos)
 	return data.success == 1;
 }
 
-static void deformVert(void *userdata, const int index, const ParallelRangeTLS *UNUSED(tls))
+static void deformVert(
+        void *__restrict userdata,
+        const int index,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	const SDefDeformData * const data = (SDefDeformData *)userdata;
 	const SDefBind *sdbind = data->bind_verts[index].binds;

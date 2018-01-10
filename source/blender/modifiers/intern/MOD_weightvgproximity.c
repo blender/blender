@@ -90,7 +90,10 @@ typedef struct Vert2GeomDataChunk {
 /**
  * Callback used by BLI_task 'for loop' helper.
  */
-static void vert2geom_task_cb_ex(void *userdata, const int iter, const ParallelRangeTLS *tls)
+static void vert2geom_task_cb_ex(
+        void *__restrict userdata,
+        const int iter,
+        const ParallelRangeTLS *__restrict tls)
 {
 	Vert2GeomData *data = userdata;
 	Vert2GeomDataChunk *data_chunk = tls->userdata_chunk;

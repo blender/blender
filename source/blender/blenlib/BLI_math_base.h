@@ -129,6 +129,9 @@ MINLINE int max_iii(int a, int b, int c);
 MINLINE int min_iiii(int a, int b, int c, int d);
 MINLINE int max_iiii(int a, int b, int c, int d);
 
+MINLINE size_t min_zz(size_t a, size_t b);
+MINLINE size_t max_zz(size_t a, size_t b);
+
 MINLINE int compare_ff(float a, float b, const float max_diff);
 MINLINE int compare_ff_relative(float a, float b, const float max_diff, const int max_ulps);
 

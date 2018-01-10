@@ -187,7 +187,10 @@ typedef struct DisplaceUserdata {
 	float (*vert_clnors)[3];
 } DisplaceUserdata;
 
-static void displaceModifier_do_task(void *userdata, const int iter, const ParallelRangeTLS *UNUSED(tls))
+static void displaceModifier_do_task(
+        void *__restrict userdata,
+        const int iter,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	DisplaceUserdata *data = (DisplaceUserdata *)userdata;
 	DisplaceModifierData *dmd = data->dmd;

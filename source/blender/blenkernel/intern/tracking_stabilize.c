@@ -1504,9 +1504,9 @@ typedef struct TrackingStabilizeFrameInterpolationData {
 } TrackingStabilizeFrameInterpolationData;
 
 static void tracking_stabilize_frame_interpolation_cb(
-        void *userdata,
-        int j,
-        const ParallelRangeTLS *UNUSED(tls))
+        void *__restrict userdata,
+        const int j,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	TrackingStabilizeFrameInterpolationData *data = userdata;
 	ImBuf *ibuf = data->ibuf;

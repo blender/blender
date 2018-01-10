@@ -798,7 +798,10 @@ typedef struct BVHDivNodesData {
 	int first_of_next_level;
 } BVHDivNodesData;
 
-static void non_recursive_bvh_div_nodes_task_cb(void *userdata, const int j, const ParallelRangeTLS *UNUSED(tls))
+static void non_recursive_bvh_div_nodes_task_cb(
+        void *__restrict userdata,
+        const int j,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	BVHDivNodesData *data = userdata;
 
@@ -1282,7 +1285,10 @@ int BLI_bvhtree_overlap_thread_num(const BVHTree *tree)
 	return (int)MIN2(tree->tree_type, tree->nodes[tree->totleaf]->totnode);
 }
 
-static void bvhtree_overlap_task_cb(void *userdata, const int j, const ParallelRangeTLS *UNUSED(tls))
+static void bvhtree_overlap_task_cb(
+        void *__restrict userdata,
+        const int j,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	BVHOverlapData_Thread *data = &((BVHOverlapData_Thread *)userdata)[j];
 	BVHOverlapData_Shared *data_shared = data->shared;
