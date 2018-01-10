@@ -152,7 +152,8 @@ Brush *BKE_brush_add(Main *bmain, const char *name, short ob_mode)
 {
 	Brush *brush;
 
-	brush = BKE_libblock_alloc(bmain, ID_BR, name, 0);
+	/* Use no refcount, fakeuser is added in 'BKE_brush_init' */
+	brush = BKE_libblock_alloc(bmain, ID_BR, name, LIB_ID_CREATE_NO_USER_REFCOUNT);
 
 	BKE_brush_init(brush);
 
