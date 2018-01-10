@@ -22,20 +22,18 @@ import bpy
 
 def example_function(text, save_path, render_path):
 
-    scene = bpy.context.scene
-
     # Clear existing objects.
-    scene.camera = None
-    for obj in scene.objects:
-        scene.objects.unlink(obj)
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+
+    scene = bpy.context.scene
 
     txt_data = bpy.data.curves.new(name="MyText", type='FONT')
 
     # Text Object
     txt_ob = bpy.data.objects.new(name="MyText", object_data=txt_data)
-    scene.objects.link(txt_ob)  # add the data to the scene as an object
-    txt_data.body = text        # the body text to the command line arg given
-    txt_data.align = 'CENTER'   # center text
+    scene.objects.link(txt_ob)   # add the data to the scene as an object
+    txt_data.body = text         # the body text to the command line arg given
+    txt_data.align_x = 'CENTER'  # center text
 
     # Camera
     cam_data = bpy.data.cameras.new("MyCam")
