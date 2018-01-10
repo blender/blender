@@ -459,7 +459,9 @@ typedef struct MakeHistogramViewData {
 } MakeHistogramViewData;
 
 static void make_histogram_view_from_ibuf_byte_cb_ex(
-        void *userdata, const int y, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int y,
+        const ParallelRangeTLS *__restrict tls)
 {
 	MakeHistogramViewData *data = userdata;
 	const ImBuf *ibuf = data->ibuf;
@@ -476,7 +478,8 @@ static void make_histogram_view_from_ibuf_byte_cb_ex(
 	}
 }
 
-static void make_histogram_view_from_ibuf_finalize(void *userdata, void *userdata_chunk)
+static void make_histogram_view_from_ibuf_finalize(void *__restrict userdata,
+                                                   void *__restrict userdata_chunk)
 {
 	MakeHistogramViewData *data = userdata;
 	uint32_t (*bins)[HIS_STEPS] = data->bins;
@@ -556,7 +559,9 @@ BLI_INLINE int get_bin_float(float f)
 }
 
 static void make_histogram_view_from_ibuf_float_cb_ex(
-        void *userdata, const int y, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int y,
+        const ParallelRangeTLS *__restrict tls)
 {
 	const MakeHistogramViewData *data = userdata;
 	const ImBuf *ibuf = data->ibuf;

@@ -938,8 +938,10 @@ typedef struct PBVHUpdateData {
 	int flag;
 } PBVHUpdateData;
 
-static void pbvh_update_normals_accum_task_cb(void *userdata, const int n,
-                                              const ParallelRangeTLS *UNUSED(tls))
+static void pbvh_update_normals_accum_task_cb(
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	PBVHUpdateData *data = userdata;
 
@@ -992,8 +994,10 @@ static void pbvh_update_normals_accum_task_cb(void *userdata, const int n,
 	}
 }
 
-static void pbvh_update_normals_store_task_cb(void *userdata, const int n,
-                                              const ParallelRangeTLS *UNUSED(tls))
+static void pbvh_update_normals_store_task_cb(
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	PBVHUpdateData *data = userdata;
 	PBVH *bvh = data->bvh;
@@ -1063,8 +1067,10 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 	MEM_freeN(vnors);
 }
 
-static void pbvh_update_BB_redraw_task_cb(void *userdata, const int n,
-                                          const ParallelRangeTLS *UNUSED(tls))
+static void pbvh_update_BB_redraw_task_cb(
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	PBVHUpdateData *data = userdata;
 	PBVH *bvh = data->bvh;

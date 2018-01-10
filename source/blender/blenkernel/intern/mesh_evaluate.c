@@ -177,8 +177,10 @@ typedef struct MeshCalcNormalsData {
 	float (*vnors)[3];
 } MeshCalcNormalsData;
 
-static void mesh_calc_normals_poly_cb(void *userdata, const int pidx,
-                                      const ParallelRangeTLS *UNUSED(tls))
+static void mesh_calc_normals_poly_cb(
+        void *__restrict userdata, 
+        const int pidx,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	MeshCalcNormalsData *data = userdata;
 	const MPoly *mp = &data->mpolys[pidx];
@@ -186,8 +188,10 @@ static void mesh_calc_normals_poly_cb(void *userdata, const int pidx,
 	BKE_mesh_calc_poly_normal(mp, data->mloop + mp->loopstart, data->mverts, data->pnors[pidx]);
 }
 
-static void mesh_calc_normals_poly_prepare_cb(void *userdata, const int pidx,
-                                              const ParallelRangeTLS *UNUSED(tls))
+static void mesh_calc_normals_poly_prepare_cb(
+        void *__restrict userdata, 
+        const int pidx,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	MeshCalcNormalsData *data = userdata;
 	const MPoly *mp = &data->mpolys[pidx];
@@ -249,16 +253,20 @@ static void mesh_calc_normals_poly_prepare_cb(void *userdata, const int pidx,
 	}
 }
 
-static void mesh_calc_normals_poly_accum_cb(void *userdata, const int lidx,
-                                            const ParallelRangeTLS *UNUSED(tls))
+static void mesh_calc_normals_poly_accum_cb(
+        void *__restrict userdata,
+        const int lidx,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	MeshCalcNormalsData *data = userdata;
 
 	add_v3_v3(data->vnors[data->mloop[lidx].v], data->lnors_weighted[lidx]);
 }
 
-static void mesh_calc_normals_poly_finalize_cb(void *userdata, const int vidx,
-                                               const ParallelRangeTLS *UNUSED(tls))
+static void mesh_calc_normals_poly_finalize_cb(
+        void *__restrict userdata,
+        const int vidx,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	MeshCalcNormalsData *data = userdata;
 

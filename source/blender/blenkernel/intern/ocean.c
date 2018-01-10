@@ -502,8 +502,10 @@ typedef struct OceanSimulateData {
 	float chop_amount;
 } OceanSimulateData;
 
-static void ocean_compute_htilda(void *userdata, const int i,
-                                 const ParallelRangeTLS *UNUSED(tls))
+static void ocean_compute_htilda(
+        void *__restrict userdata,
+        const int i,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	OceanSimulateData *osd = userdata;
 	const Ocean *o = osd->o;

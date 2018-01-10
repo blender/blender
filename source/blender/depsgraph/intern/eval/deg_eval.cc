@@ -107,9 +107,10 @@ typedef struct CalculatePengindData {
 	unsigned int layers;
 } CalculatePengindData;
 
-static void calculate_pending_func(void *data_v,
-                                   int i,
-                                   const ParallelRangeTLS * /*tls*/)
+static void calculate_pending_func(
+        void *__restrict data_v,
+        int i,
+        const ParallelRangeTLS *__restrict /*tls*/)
 {
 	CalculatePengindData *data = (CalculatePengindData *)data_v;
 	Depsgraph *graph = data->graph;

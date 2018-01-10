@@ -738,7 +738,10 @@ typedef struct ObstaclesFromDMData {
 	int *num_obstacles;
 } ObstaclesFromDMData;
 
-static void obstacles_from_derivedmesh_task_cb(void *userdata, const int z, const ParallelRangeTLS *UNUSED(tls))
+static void obstacles_from_derivedmesh_task_cb(
+        void *__restrict userdata,
+        const int z,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	ObstaclesFromDMData *data = userdata;
 	SmokeDomainSettings *sds = data->sds;
@@ -1189,7 +1192,10 @@ typedef struct EmitFromParticlesData {
 	float hr_smooth;
 } EmitFromParticlesData;
 
-static void emit_from_particles_task_cb(void *userdata, const int z, const ParallelRangeTLS *UNUSED(tls))
+static void emit_from_particles_task_cb(
+        void *__restrict userdata,
+        const int z,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	EmitFromParticlesData *data = userdata;
 	SmokeFlowSettings *sfs = data->sfs;
@@ -1578,7 +1584,10 @@ typedef struct EmitFromDMData {
 	int *min, *max, *res;
 } EmitFromDMData;
 
-static void emit_from_derivedmesh_task_cb(void *userdata, const int z, const ParallelRangeTLS *UNUSED(tls))
+static void emit_from_derivedmesh_task_cb(
+        void *__restrict userdata,
+        const int z,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	EmitFromDMData *data = userdata;
 	EmissionMap *em = data->em;
@@ -2453,7 +2462,10 @@ typedef struct UpdateEffectorsData {
 	unsigned char *obstacle;
 } UpdateEffectorsData;
 
-static void update_effectors_task_cb(void *userdata, const int x, const ParallelRangeTLS *UNUSED(tls))
+static void update_effectors_task_cb(
+        void *__restrict userdata,
+        const int x,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	UpdateEffectorsData *data = userdata;
 	SmokeDomainSettings *sds = data->sds;

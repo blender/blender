@@ -376,8 +376,10 @@ static bool sculpt_stroke_is_dynamic_topology(
 
 /*** paint mesh ***/
 
-static void paint_mesh_restore_co_task_cb(void *userdata, const int n,
-                                          const ParallelRangeTLS *UNUSED(tls))
+static void paint_mesh_restore_co_task_cb(
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
@@ -800,8 +802,10 @@ static float calc_symmetry_feather(Sculpt *sd, StrokeCache *cache)
  * \note These are all _very_ similar, when changing one, check others.
  * \{ */
 
-static void calc_area_normal_and_center_task_cb(void *userdata, const int n,
-                                                const ParallelRangeTLS *UNUSED(tls))
+static void calc_area_normal_and_center_task_cb(
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
@@ -1648,7 +1652,9 @@ typedef struct {
 } SculptFindNearestToRayData;
 
 static void do_smooth_brush_mesh_task_cb_ex(
-        void *userdata, const int n, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict tls)
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
@@ -1696,7 +1702,9 @@ static void do_smooth_brush_mesh_task_cb_ex(
 }
 
 static void do_smooth_brush_bmesh_task_cb_ex(
-        void *userdata, const int n, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict tls)
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
@@ -1744,7 +1752,9 @@ static void do_smooth_brush_bmesh_task_cb_ex(
 }
 
 static void do_smooth_brush_multires_task_cb_ex(
-        void *userdata, const int n, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict tls)
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptDoBrushSmoothGridDataChunk *data_chunk = tls->userdata_chunk;
@@ -1974,7 +1984,9 @@ static void do_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 }
 
 static void do_mask_brush_draw_task_cb_ex(
-        void *userdata, const int n, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict tls)
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
@@ -2039,7 +2051,9 @@ static void do_mask_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 }
 
 static void do_draw_brush_task_cb_ex(
-        void *userdata, const int n, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict tls)
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
@@ -2104,7 +2118,9 @@ static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
  * Used for 'SCULPT_TOOL_CREASE' and 'SCULPT_TOOL_BLOB'
  */
 static void do_crease_brush_task_cb_ex(
-        void *userdata, const int n, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict tls)
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
@@ -2203,7 +2219,9 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 }
 
 static void do_pinch_brush_task_cb_ex(
-        void *userdata, const int n, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict tls)
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
@@ -2259,7 +2277,9 @@ static void do_pinch_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 }
 
 static void do_grab_brush_task_cb_ex(
-        void *userdata, const int n, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict tls)
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
@@ -2325,7 +2345,9 @@ static void do_grab_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 }
 
 static void do_nudge_brush_task_cb_ex(
-        void *userdata, const int n, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict tls)
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
@@ -2386,7 +2408,9 @@ static void do_nudge_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 }
 
 static void do_snake_hook_brush_task_cb_ex(
-        void *userdata, const int n, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict tls)
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
@@ -2497,7 +2521,9 @@ static void do_snake_hook_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 }
 
 static void do_thumb_brush_task_cb_ex(
-        void *userdata, const int n, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict tls)
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
@@ -2563,7 +2589,9 @@ static void do_thumb_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 }
 
 static void do_rotate_brush_task_cb_ex(
-        void *userdata, const int n, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict tls)
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
@@ -2630,7 +2658,9 @@ static void do_rotate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 }
 
 static void do_layer_brush_task_cb_ex(
-        void *userdata, const int n, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict tls)
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
@@ -2722,7 +2752,9 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 }
 
 static void do_inflate_brush_task_cb_ex(
-        void *userdata, const int n, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict tls)
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
@@ -2891,7 +2923,9 @@ static float get_offset(Sculpt *sd, SculptSession *ss)
 }
 
 static void do_flatten_brush_task_cb_ex(
-        void *userdata, const int n, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict tls)
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
@@ -2974,7 +3008,9 @@ static void do_flatten_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 }
 
 static void do_clay_brush_task_cb_ex(
-        void *userdata, const int n, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict tls)
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
@@ -3065,7 +3101,9 @@ static void do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 }
 
 static void do_clay_strips_brush_task_cb_ex(
-        void *userdata, const int n, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict tls)
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
@@ -3180,7 +3218,9 @@ static void do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
 }
 
 static void do_fill_brush_task_cb_ex(
-        void *userdata, const int n, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict tls)
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
@@ -3266,7 +3306,9 @@ static void do_fill_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 }
 
 static void do_scrape_brush_task_cb_ex(
-        void *userdata, const int n, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict tls)
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
@@ -3351,7 +3393,9 @@ static void do_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 }
 
 static void do_gravity_task_cb_ex(
-        void *userdata, const int n, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict tls)
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
@@ -3511,8 +3555,10 @@ static void sculpt_topology_update(Sculpt *sd, Object *ob, Brush *brush, Unified
 	}
 }
 
-static void do_brush_action_task_cb(void *userdata, const int n,
-                                    const ParallelRangeTLS *UNUSED(tls))
+static void do_brush_action_task_cb(
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	SculptThreadedTaskData *data = userdata;
 
@@ -3658,8 +3704,10 @@ static void sculpt_flush_pbvhvert_deform(Object *ob, PBVHVertexIter *vd)
 		copy_v3_v3(me->mvert[index].co, newco);
 }
 
-static void sculpt_combine_proxies_task_cb(void *userdata, const int n,
-                                           const ParallelRangeTLS *UNUSED(tls))
+static void sculpt_combine_proxies_task_cb(
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;
@@ -3759,8 +3807,10 @@ static void sculpt_update_keyblock(Object *ob)
 	}
 }
 
-static void sculpt_flush_stroke_deform_task_cb(void *userdata, const int n,
-                                               const ParallelRangeTLS *UNUSED(tls))
+static void sculpt_flush_stroke_deform_task_cb(
+        void *__restrict userdata,
+        const int n,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	SculptThreadedTaskData *data = userdata;
 	SculptSession *ss = data->ob->sculpt;

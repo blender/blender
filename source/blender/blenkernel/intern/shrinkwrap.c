@@ -88,7 +88,9 @@ typedef struct ShrinkwrapCalcCBData {
  * for each vertex performs a nearest vertex search on the tree
  */
 static void shrinkwrap_calc_nearest_vertex_cb_ex(
-        void *userdata, const int i, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int i,
+        const ParallelRangeTLS *__restrict tls)
 {
 	ShrinkwrapCalcCBData *data = userdata;
 
@@ -262,7 +264,9 @@ bool BKE_shrinkwrap_project_normal(
 }
 
 static void shrinkwrap_calc_normal_projection_cb_ex(
-        void *userdata, const int i, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int i,
+        const ParallelRangeTLS *__restrict tls)
 {
 	ShrinkwrapCalcCBData *data = userdata;
 
@@ -506,7 +510,9 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
  * NN matches for each vertex
  */
 static void shrinkwrap_calc_nearest_surface_point_cb_ex(
-        void *userdata, const int i, const ParallelRangeTLS *tls)
+        void *__restrict userdata,
+        const int i,
+        const ParallelRangeTLS *__restrict tls)
 {
 	ShrinkwrapCalcCBData *data = userdata;
 
