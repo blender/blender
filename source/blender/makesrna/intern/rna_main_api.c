@@ -421,7 +421,8 @@ static Brush *rna_Main_brushes_new(Main *bmain, const char *name, int mode)
 	rna_idname_validate(name, safe_name);
 
 	Brush *brush = BKE_brush_add(bmain, safe_name, mode);
-	id_us_min(&brush->id);
+	/* Brushes have a single fake user, leave this as is. */
+	// id_us_min(&brush->id);
 	return brush;
 }
 
