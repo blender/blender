@@ -510,7 +510,7 @@ typedef struct UserDef {
 	short tb_leftmouse, tb_rightmouse;
 	struct SolidLight light[3];
 	short manipulator_flag, manipulator_size;
-	int pad3;
+	int pad6;
 	short textimeout, texcollectrate;
 	short wmdrawmethod; /* eWM_DrawMethod */
 	short dragthreshold;
