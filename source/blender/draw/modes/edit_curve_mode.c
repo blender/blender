@@ -201,6 +201,7 @@ static void EDIT_CURVE_cache_init(void *vedata)
 
 		DRWShadingGroup *overlay_edge_shgrp = DRW_shgroup_create(e_data.overlay_edge_sh, psl->overlay_edge_pass);
 		DRW_shgroup_uniform_vec2(overlay_edge_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
+		DRW_shgroup_uniform_block(overlay_edge_shgrp, "globalsBlock", globals_ubo);
 		stl->g_data->overlay_edge_shgrp = overlay_edge_shgrp;
 
 
