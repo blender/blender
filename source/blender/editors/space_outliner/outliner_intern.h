@@ -178,8 +178,9 @@ typedef enum {
 
 /* outliner_tree.c ----------------------------------------------- */
 
-void outliner_free_tree(ListBase *lb);
+void outliner_free_tree(ListBase *tree);
 void outliner_cleanup_tree(struct SpaceOops *soops);
+void outliner_free_tree_element(TreeElement *element, ListBase *parent_subtree);
 void outliner_remove_treestore_element(struct SpaceOops *soops, TreeStoreElem *tselem);
 
 void outliner_build_tree(struct Main *mainvar, struct Scene *scene, struct ViewLayer *view_layer, struct SpaceOops *soops);

@@ -189,16 +189,11 @@ static void check_persistent(SpaceOops *soops, TreeElement *te, ID *id, short ty
 /* ********************************************************* */
 /* Tree Management */
 
-void outliner_free_tree(ListBase *lb)
+void outliner_free_tree(ListBase *tree)
 {
-	while (lb->first) {
-		TreeElement *te = lb->first;
-		
-		outliner_free_tree(&te->subtree);
-		BLI_remlink(lb, te);
-		
-		if (te->flag & TE_FREE_NAME) MEM_freeN((void *)te->name);
-		MEM_freeN(te);
+	for (TreeElement *element = tree->first, *element_next; element; element = element_next) {
+		element_next = element->next;
+		outliner_free_tree_element(element, tree);
 	}
 }
 
@@ -206,6 +201,25 @@ void outliner_cleanup_tree(SpaceOops *soops)
 {
 	outliner_free_tree(&soops->tree);
 	outliner_storage_cleanup(soops);
+}
+
+/**
+ * Free \a element and its sub-tree and remove its link in \a parent_subtree.
+ *
+ * \note Does not remove the TreeStoreElem of \a element!
+ * \param parent_subtree Subtree of the parent element, so the list containing \a element.
+ */
+void outliner_free_tree_element(TreeElement *element, ListBase *parent_subtree)
+{
+	BLI_assert(BLI_findindex(parent_subtree, element) > -1);
+	BLI_remlink(parent_subtree, element);
+
+	outliner_free_tree(&element->subtree);
+
+	if (element->flag & TE_FREE_NAME) {
+		MEM_freeN((void *)element->name);
+	}
+	MEM_freeN(element);
 }
 
 
@@ -1780,11 +1794,7 @@ static int outliner_filter_tree(SpaceOops *soops, ListBase *lb)
 			tselem->flag &= ~TSE_SEARCHMATCH;
 			
 			if ((!TSELEM_OPEN(tselem, soops)) || outliner_filter_tree(soops, &te->subtree) == 0) {
-				outliner_free_tree(&te->subtree);
-				BLI_remlink(lb, te);
-				
-				if (te->flag & TE_FREE_NAME) MEM_freeN((void *)te->name);
-				MEM_freeN(te);
+				outliner_free_tree_element(te, lb);
 			}
 		}
 		else {
