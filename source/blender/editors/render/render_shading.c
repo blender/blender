@@ -582,7 +582,7 @@ static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
 		wo = BKE_world_copy(bmain, wo);
 	}
 	else {
-		wo = add_world(bmain, DATA_("World"));
+		wo = BKE_world_add(bmain, DATA_("World"));
 
 		if (BKE_scene_use_new_shading_nodes(scene)) {
 			ED_node_shader_default(C, &wo->id);

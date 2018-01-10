@@ -1484,8 +1484,7 @@ static void ccgDM_copyFinalLoopArray(DerivedMesh *dm, MLoop *mloop)
 	int totface;
 	int gridSize = ccgSubSurf_getGridSize(ss);
 	int edgeSize = ccgSubSurf_getEdgeSize(ss);
-	int i = 0;
-	MLoop *mv;
+	MLoop *ml;
 	/* DMFlagMat *faceFlags = ccgdm->faceFlags; */ /* UNUSED */
 
 	if (!ccgdm->ehash) {
@@ -1497,7 +1496,7 @@ static void ccgDM_copyFinalLoopArray(DerivedMesh *dm, MLoop *mloop)
 			ehash = BLI_edgehash_new_ex(__func__, ccgdm->dm.numEdgeData);
 			medge = ccgdm->dm.getEdgeArray((DerivedMesh *)ccgdm);
 
-			for (i = 0; i < ccgdm->dm.numEdgeData; i++) {
+			for (int i = 0; i < ccgdm->dm.numEdgeData; i++) {
 				BLI_edgehash_insert(ehash, medge[i].v1, medge[i].v2, SET_INT_IN_POINTER(i));
 			}
 
@@ -1508,7 +1507,7 @@ static void ccgDM_copyFinalLoopArray(DerivedMesh *dm, MLoop *mloop)
 
 	BLI_rw_mutex_lock(&ccgdm->loops_cache_rwlock, THREAD_LOCK_READ);
 	totface = ccgSubSurf_getNumFaces(ss);
-	mv = mloop;
+	ml = mloop;
 	for (index = 0; index < totface; index++) {
 		CCGFace *f = ccgdm->faceMap[index].face;
 		int x, y, S, numVerts = ccgSubSurf_getFaceNumVerts(f);
@@ -1530,21 +1529,21 @@ static void ccgDM_copyFinalLoopArray(DerivedMesh *dm, MLoop *mloop)
 					v4 = getFaceIndex(ss, f, S, x + 1, y + 0,
 					                  edgeSize, gridSize);
 
-					mv->v = v1;
-					mv->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v1, v2));
-					mv++; i++;
+					ml->v = v1;
+					ml->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v1, v2));
+					ml++;
 
-					mv->v = v2;
-					mv->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v2, v3));
-					mv++; i++;
+					ml->v = v2;
+					ml->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v2, v3));
+					ml++;
 
-					mv->v = v3;
-					mv->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v3, v4));
-					mv++; i++;
+					ml->v = v3;
+					ml->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v3, v4));
+					ml++;
 
-					mv->v = v4;
-					mv->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v4, v1));
-					mv++; i++;
+					ml->v = v4;
+					ml->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v4, v1));
+					ml++;
 				}
 			}
 		}

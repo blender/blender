@@ -326,7 +326,7 @@ struct ParticleSystemModifierData *psys_get_modifier(struct Object *ob, struct P
 
 struct ModifierData *object_add_particle_system(struct Scene *scene, struct Object *ob, const char *name);
 void object_remove_particle_system(struct Scene *scene, struct Object *ob);
-struct ParticleSettings *psys_new_settings(const char *name, struct Main *main);
+struct ParticleSettings *BKE_particlesettings_add(struct Main *main, const char *name);
 void BKE_particlesettings_copy_data(
         struct Main *bmain, struct ParticleSettings *part_dst, const struct ParticleSettings *part_src,
         const int flag);

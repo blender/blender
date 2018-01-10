@@ -2949,7 +2949,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 				psys = MEM_callocN(sizeof(ParticleSystem), "particle_system");
 				psys->pointcache = BKE_ptcache_add(&psys->ptcaches);
 
-				part = psys->part = psys_new_settings("ParticleSettings", main);
+				part = psys->part = BKE_particlesettings_add(main, "ParticleSettings");
 
 				/* needed for proper libdata lookup */
 				blo_do_versions_oldnewmap_insert(fd->libmap, psys->part, psys->part, 0);

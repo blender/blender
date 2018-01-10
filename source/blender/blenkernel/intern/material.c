@@ -272,7 +272,7 @@ Material *BKE_material_copy(Main *bmain, const Material *ma)
 }
 
 /* XXX (see above) material copy without adding to main dbase */
-Material *localize_material(Material *ma)
+Material *BKE_material_localize(Material *ma)
 {
 	/* TODO replace with something like
 	 * 	Material *ma_copy;

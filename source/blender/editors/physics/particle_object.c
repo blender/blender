@@ -200,7 +200,7 @@ static int new_particle_settings_exec(bContext *C, wmOperator *UNUSED(op))
 	if (psys->part)
 		part= BKE_particlesettings_copy(bmain, psys->part);
 	else
-		part= psys_new_settings("ParticleSettings", bmain);
+		part= BKE_particlesettings_add(bmain, "ParticleSettings");
 
 	ob= ptr.id.data;
 

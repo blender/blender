@@ -1559,7 +1559,7 @@ static void ipo_to_animdata(ID *id, Ipo *ipo, char actname[], char constname[], 
 			
 			BLI_snprintf(nameBuf, sizeof(nameBuf), "CDA:%s", ipo->id.name + 2);
 			
-			adt->action = add_empty_action(G.main, nameBuf);
+			adt->action = BKE_action_add(G.main, nameBuf);
 			if (G.debug & G_DEBUG) printf("\t\tadded new action - '%s'\n", nameBuf);
 		}
 		
@@ -2107,7 +2107,7 @@ void do_versions_ipos_to_animato(Main *main)
 			bAction *new_act;
 			
 			/* add a new action for this, and convert all data into that action */
-			new_act = add_empty_action(main, id->name + 2);
+			new_act = BKE_action_add(main, id->name + 2);
 			ipo_to_animato(NULL, ipo, NULL, NULL, NULL, NULL, &new_act->curves, &drivers);
 			new_act->idroot = ipo->blocktype;
 		}

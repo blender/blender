@@ -147,7 +147,7 @@ bAction *verify_adt_action(ID *id, short add)
 		BLI_snprintf(actname, sizeof(actname), "%sAction", id->name + 2);
 		
 		/* create action */
-		adt->action = add_empty_action(G.main, actname);
+		adt->action = BKE_action_add(G.main, actname);
 		
 		/* set ID-type from ID-block that this is going to be assigned to
 		 * so that users can't accidentally break actions by assigning them
