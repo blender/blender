@@ -134,7 +134,7 @@ class MyCustomShapeWidgetGroup(ManipulatorGroup):
         mpr.color = 1.0, 0.5, 1.0
         mpr.alpha = 0.5
 
-        mpr.color_highlight = 1.0, 0.5, 1.0
+        mpr.color_highlight = 1.0, 1.0, 1.0
         mpr.alpha_highlight = 0.5
 
         # units are large, so shrink to something more reasonable.

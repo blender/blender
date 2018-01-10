@@ -644,6 +644,11 @@ class Manipulator(StructRNA, metaclass=OrderedMeta):
         if matrix is None:
             matrix = self.matrix_world
 
+        batch, dims = shape
+
+        # XXX, can we avoid setting the shader every time?
+        batch.program_set_builtin('3D_UNIFORM_COLOR' if dims == 3 else '2D_UNIFORM_COLOR')
+
         if select_id is not None:
             gpu.select.load_id(select_id)
         else:
@@ -651,11 +656,11 @@ class Manipulator(StructRNA, metaclass=OrderedMeta):
                 color = (*self.color_highlight, self.alpha_highlight)
             else:
                 color = (*self.color, self.alpha)
-            shape.uniform_f32("color", *color)
+            batch.uniform_f32("color", *color)
 
         with gpu.matrix.push_pop():
             gpu.matrix.multiply_matrix(matrix)
-            shape.draw()
+            batch.draw()
 
     @staticmethod
     def new_custom_shape(type, verts):
@@ -684,8 +689,7 @@ class Manipulator(StructRNA, metaclass=OrderedMeta):
         vbo = Gwn_VertBuf(len=len(verts), format=fmt)
         vbo.fill(id=pos_id, data=verts)
         batch = Gwn_Batch(type=type, buf=vbo)
-        batch.program_set_builtin('3D_UNIFORM_COLOR' if dims == 3 else '2D_UNIFORM_COLOR')
-        return batch
+        return (batch, dims)
 
 
 # Only defined so operators members can be used by accessing self.order
