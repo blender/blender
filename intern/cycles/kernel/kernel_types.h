@@ -346,11 +346,12 @@ enum PathRayFlag {
 
 	PATH_RAY_ALL_VISIBILITY = ((1 << 14)-1),
 
-	PATH_RAY_MIS_SKIP            = (1 << 15),
-	PATH_RAY_DIFFUSE_ANCESTOR    = (1 << 16),
-	PATH_RAY_SINGLE_PASS_DONE    = (1 << 17),
-	PATH_RAY_SHADOW_CATCHER      = (1 << 18),
-	PATH_RAY_STORE_SHADOW_INFO   = (1 << 19),
+	PATH_RAY_MIS_SKIP               = (1 << 15),
+	PATH_RAY_DIFFUSE_ANCESTOR       = (1 << 16),
+	PATH_RAY_SINGLE_PASS_DONE       = (1 << 17),
+	PATH_RAY_SHADOW_CATCHER         = (1 << 18),
+	PATH_RAY_STORE_SHADOW_INFO      = (1 << 19),
+	PATH_RAY_TRANSPARENT_BACKGROUND = (1 << 20),
 };
 
 /* Closure Label */
@@ -364,6 +365,7 @@ typedef enum ClosureLabel {
 	LABEL_SINGULAR = 16,
 	LABEL_TRANSPARENT = 32,
 	LABEL_VOLUME_SCATTER = 64,
+	LABEL_TRANSMIT_TRANSPARENT = 128,
 } ClosureLabel;
 
 /* Render Passes */
@@ -1259,7 +1261,7 @@ typedef struct KernelBackground {
 	int surface_shader;
 	int volume_shader;
 	int transparent;
-	int pad;
+	float transparent_roughness_squared_threshold;
 
 	/* ambient occlusion */
 	float ao_factor;

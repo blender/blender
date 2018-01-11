@@ -367,13 +367,20 @@ class CYCLES_RENDER_PT_film(CyclesButtonsPanel, Panel):
 
         col = split.column()
         col.prop(cscene, "film_exposure")
-        col.prop(cscene, "film_transparent")
-
-        col = split.column()
+        col.separator()
         sub = col.column(align=True)
         sub.prop(cscene, "pixel_filter_type", text="")
         if cscene.pixel_filter_type != 'BOX':
             sub.prop(cscene, "filter_width", text="Width")
+
+        col = split.column()
+        col.prop(cscene, "film_transparent")
+        sub = col.row()
+        sub.prop(cscene, "film_transparent_glass", text="Transparent Glass")
+        sub.active = cscene.film_transparent
+        sub = col.row()
+        sub.prop(cscene, "film_transparent_roughness", text="Roughness Threshold")
+        sub.active = cscene.film_transparent and cscene.film_transparent_glass
 
 
 class CYCLES_RENDER_PT_performance(CyclesButtonsPanel, Panel):

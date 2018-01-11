@@ -413,8 +413,19 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 )
         cls.film_transparent = BoolProperty(
                 name="Transparent",
-                description="World background is transparent with premultiplied alpha",
+                description="World background is transparent, for compositing the render over another background",
                 default=False,
+                )
+        cls.film_transparent_glass = BoolProperty(
+                name="Transparent Glass",
+                description="Render transmissive surfaces as transparent, for compositing glass over another background",
+                default=False,
+                )
+        cls.film_transparent_roughness = FloatProperty(
+                name="Transparent Roughness Threshold",
+                description="For transparent transmission, keep surfaces with roughness above the threshold opaque",
+                min=0.0, max=1.0,
+                default=0.1,
                 )
 
         # Really annoyingly, we have to keep it around for a few releases,
