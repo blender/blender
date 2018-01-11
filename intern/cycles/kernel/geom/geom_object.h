@@ -169,6 +169,10 @@ ccl_device_inline void object_inverse_normal_transform(KernelGlobals *kg, const 
 		Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM);
 		*N = normalize(transform_direction_transposed(&tfm, *N));
 	}
+	else if(sd->type == PRIMITIVE_LAMP) {
+		Transform tfm = lamp_fetch_transform(kg, sd->lamp, false);
+		*N = normalize(transform_direction_transposed(&tfm, *N));
+	}
 #endif
 }
 
