@@ -42,6 +42,10 @@
 #include "BLI_ghash.h"
 #include "BLI_math.h"
 
+#ifdef DEBUG_OVERRIDE_TIMEIT
+#  include "PIL_time_utildefines.h"
+#endif
+
 #include "BLF_api.h"
 #include "BLT_translation.h"
 
@@ -7048,21 +7052,14 @@ void _RNA_warning(const char *format, ...)
 }
 
 static int rna_property_override_diff(
-        PointerRNA *ptr_a, PointerRNA *ptr_b, PropertyRNA *prop_a, PropertyRNA *prop_b, const char *rna_path,
+        PointerRNA *ptr_a, PointerRNA *ptr_b, PropertyRNA *prop, PropertyRNA *prop_a, PropertyRNA *prop_b, const char *rna_path,
         eRNACompareMode mode, IDOverrideStatic *override, const int flags, eRNAOverrideMatchResult *r_report_flags);
 
 bool RNA_property_equals(PointerRNA *ptr_a, PointerRNA *ptr_b, PropertyRNA *prop, eRNACompareMode mode)
 {
 	BLI_assert(ELEM(mode, RNA_EQ_STRICT, RNA_EQ_UNSET_MATCH_ANY, RNA_EQ_UNSET_MATCH_NONE));
 
-	PropertyRNA *prop_a = prop;
-	PropertyRNA *prop_b = prop;
-
-	/* Ensure we get real property data, be it an actual RNA property, or an IDProperty in disguise. */
-	prop_a = rna_ensure_property_realdata(&prop_a, ptr_a);
-	prop_b = rna_ensure_property_realdata(&prop_b, ptr_b);
-
-	return (rna_property_override_diff(ptr_a, ptr_b, prop_a, prop_b, NULL, mode, NULL, 0, NULL) == 0);
+	return (rna_property_override_diff(ptr_a, ptr_b, prop, NULL, NULL, NULL, mode, NULL, 0, NULL) == 0);
 }
 
 bool RNA_struct_equals(PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACompareMode mode)
@@ -7095,24 +7092,50 @@ bool RNA_struct_equals(PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACompareMode mod
 }
 
 /* Low-level functions, also used by non-override RNA API like copy or equality check. */
-#include "PIL_time_utildefines.h"
+
+/** Generic RNA property diff function.
+ *
+ * \note about \a prop and \a prop_a/prop_b parameters: the former is exptected to be an 'un-resolved' one,
+ * while the two laters are expected to be fully resolved ones (i.e. to be the IDProps when they should be, etc.).
+ * When \a prop is given, \a prop_a and \a prop_b should always be NULL, and vice-versa.
+ * This is necessary, because we cannot perform 'set/unset' checks on resolved properties
+ * (unset IDProps would merely be NULL then).
+ */
 static int rna_property_override_diff(
-        PointerRNA *ptr_a, PointerRNA *ptr_b, PropertyRNA *prop_a, PropertyRNA *prop_b, const char *rna_path,
+        PointerRNA *ptr_a, PointerRNA *ptr_b, PropertyRNA *prop, PropertyRNA *prop_a, PropertyRNA *prop_b, const char *rna_path,
         eRNACompareMode mode, IDOverrideStatic *override, const int flags, eRNAOverrideMatchResult *r_report_flags)
 {
+	if (prop != NULL) {
+		BLI_assert(prop_a == NULL && prop_b == NULL);
+		prop_a = prop;
+		prop_b = prop;
+	}
+
 	if (ELEM(NULL, prop_a, prop_b)) {
-		return 1;
+		return (prop_a == prop_b) ? 0 : 1;
 	}
 
 	if (mode == RNA_EQ_UNSET_MATCH_ANY) {
 		/* uninitialized properties are assumed to match anything */
-		if (!RNA_property_is_set(ptr_a, prop_a) || !RNA_property_is_set(ptr_b, prop_b))
+		if (!RNA_property_is_set(ptr_a, prop_a) || !RNA_property_is_set(ptr_b, prop_b)) {
 			return 0;
+		}
 	}
 	else if (mode == RNA_EQ_UNSET_MATCH_NONE) {
 		/* unset properties never match set properties */
-		if (RNA_property_is_set(ptr_a, prop_a) != RNA_property_is_set(ptr_b, prop_b))
+		if (RNA_property_is_set(ptr_a, prop_a) != RNA_property_is_set(ptr_b, prop_b)) {
 			return 1;
+		}
+	}
+
+	if (prop != NULL) {
+		/* Ensure we get real property data, be it an actual RNA property, or an IDProperty in disguise. */
+		prop_a = rna_ensure_property_realdata(&prop_a, ptr_a);
+		prop_b = rna_ensure_property_realdata(&prop_b, ptr_b);
+
+		if (ELEM(NULL, prop_a, prop_b)) {
+			return (prop_a == prop_b) ? 0 : 1;
+		}
 	}
 
 	/* Check if we are working with arrays. */
@@ -7390,7 +7413,7 @@ bool RNA_struct_override_matches(
 
 		eRNAOverrideMatchResult report_flags = 0;
 		const int diff = rna_property_override_diff(
-		                     ptr_local, ptr_reference, prop_local, prop_reference, rna_path,
+		                     ptr_local, ptr_reference, NULL, prop_local, prop_reference, rna_path,
 		                     RNA_EQ_STRICT, override, flags, &report_flags);
 
 		matching = matching && diff == 0;
