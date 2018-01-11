@@ -7,7 +7,6 @@
 
 
 uniform mat4 ViewMatrix;
-uniform mat4 ObjectModelMatrix;
 uniform mat4 ViewProjectionMatrix;
 
 
@@ -38,7 +37,7 @@ void main()
 	bone_mat[1] = normalize(bone_mat[1]);
 	bone_mat[2] = normalize(bone_mat[2]);
 
-	mat3 nor_mat = transpose(inverse(mat3(ViewMatrix * ObjectModelMatrix) * bone_mat));
+	mat3 nor_mat = transpose(inverse(mat3(ViewMatrix) * bone_mat));
 
 	/* Where does this comes from???? Don't know why, but is mandatory anyway... :/ */
 	const float size = 2.0f;
@@ -116,7 +115,7 @@ void main()
 	ob_pos.xyz = bone_mat * ob_pos.xyz;
 	ob_pos.w = 1.0f;
 
-	gl_Position = ViewProjectionMatrix * ObjectModelMatrix * (ob_pos + ob_bone_origin);
+	gl_Position = ViewProjectionMatrix * (ob_pos + ob_bone_origin);
 	normal = normalize(nor_mat * nor);
 	finalColor = color;
 }

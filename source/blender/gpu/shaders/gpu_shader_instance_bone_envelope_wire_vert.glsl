@@ -7,11 +7,8 @@
  * Note that if one of head/tail radius is negative, it assumes it only works on the other end of the bone
  * (used to draw head/tail spheres). */
 
-
 uniform mat4 ViewMatrix;
 uniform mat4 ProjectionMatrix;
-uniform mat4 ObjectModelMatrix;
-
 
 /* ---- Instanciated Attribs ---- */
 in vec4 pos;  /* z encodes head (== 0.0f), tail (== 1.0f) or in-between; w encodes inner (0.0f) or outer border. */
@@ -36,7 +33,7 @@ void main()
 	vec4 tail = bone_mat * vec4(0.0f, 1.0f, 0.0f, 1.0f);
 
 	/* We generate our XY axes in object space, Y axis being aligned with bone in view space. */
-	mat4 obview_mat = ViewMatrix * ObjectModelMatrix;
+	mat4 obview_mat = ViewMatrix;
 	mat4 iobview_mat = inverse(obview_mat);
 
 	vec4 view_bone_vec = obview_mat * normalize(tail - head);
