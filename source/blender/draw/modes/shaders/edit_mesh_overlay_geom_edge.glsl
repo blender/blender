@@ -22,7 +22,6 @@ in float vFacing[];
  * and does not need interpolation */
 flat out vec3 edgesCrease;
 flat out vec3 edgesBweight;
-flat out ivec3 flag;
 flat out vec4 faceColor;
 flat out int clipCase;
 #ifdef VERTEX_SELECTION
@@ -30,6 +29,13 @@ out vec3 vertexColor;
 #endif
 #ifdef VERTEX_FACING
 out float facing;
+#endif
+
+/* Some intel Gpu seems to have memory alignement problems. So adding a padding int */
+#ifdef GPU_INTEL
+flat out ivec4 flag;
+#else
+flat out ivec3 flag;
 #endif
 
 /* See fragment shader */

@@ -15,11 +15,17 @@ in ivec4 data;
  * and does not need interpolation */
 flat out vec3 edgesCrease;
 flat out vec3 edgesBweight;
-flat out ivec3 flag;
 flat out vec4 faceColor;
 flat out int clipCase;
 #ifdef VERTEX_SELECTION
 out vec3 vertexColor;
+#endif
+
+/* Some intel Gpu seems to have memory alignement problems. So adding a padding int */
+#ifdef GPU_INTEL
+flat out ivec4 flag;
+#else
+flat out ivec3 flag;
 #endif
 
 /* See fragment shader */
@@ -51,8 +57,8 @@ void main()
 	eData1 = eData2 = vec4(1e10);
 	eData2.zw = proj(pPos);
 
-	flag = ivec3(0);
 	flag[0] = (data.x << 8);
+	flag[1] = flag[2] = 0;
 
 	gl_PointSize = sizeEdgeFix;
 	gl_Position = pPos;

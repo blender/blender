@@ -10,7 +10,7 @@ flat in int faceActive;
 
 out vec4 FragColor;
 
-const mat4 stipple_matrix = mat4(
+const vec4 stipple_matrix[4] = vec4[4](
 	vec4(1.0, 0.0, 0.0, 0.0),
 	vec4(0.0, 0.0, 0.0, 0.0),
 	vec4(0.0, 0.0, 1.0, 0.0),

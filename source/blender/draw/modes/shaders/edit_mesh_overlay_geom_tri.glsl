@@ -7,6 +7,13 @@
 
 layout(triangles) in;
 
+/* This is not perfect. Only a subset of intel gpus are affected.
+ * This fix have some performance impact.
+ * TODO Refine the range to only affect GPUs. */
+#ifndef GPU_INTEL
+# undef INTEL_FIX
+#endif
+
 #ifdef EDGE_FIX
 /* To fix the edge artifacts, we render
  * an outline strip around the screenspace
@@ -37,7 +44,6 @@ in float vFacing[];
  * and does not need interpolation */
 flat out vec3 edgesCrease;
 flat out vec3 edgesBweight;
-flat out ivec3 flag;
 flat out vec4 faceColor;
 flat out int clipCase;
 #ifdef VERTEX_SELECTION
@@ -50,7 +56,17 @@ out float facing;
 /* See fragment shader */
 noperspective out vec4 eData1;
 flat out vec4 eData2;
+/* Some intel gpu have problems with having the vertex position packed. */
+#ifdef INTEL_FIX
+flat out vec2 eData3;
+#endif
 
+/* Some intel Gpu seems to have memory alignement problems. So adding a padding int */
+#ifdef GPU_INTEL
+flat out ivec4 flag;
+#else
+flat out ivec3 flag;
+#endif
 
 #define VERTEX_ACTIVE   (1 << 0)
 #define VERTEX_SELECTED (1 << 1)
@@ -164,7 +180,12 @@ void main()
 	if (clipCase == 0) {
 
 		/* Packing screen positions and 2 distances */
+#ifdef INTEL_FIX
+		eData1 = vec4(0.0);
+		eData3 = pos[2];
+#else
 		eData1 = vec4(0.0, 0.0, pos[2]);
+#endif
 		eData2 = vec4(pos[1], pos[0]);
 
 		/* Only pass the first 2 distances */
@@ -244,8 +265,11 @@ void main()
 			int v = i % 3;
 
 			/* Position of the "hidden" third vertex */
+#ifdef INTEL_FIX
+			eData3 = pos[vbe];
+#else
 			eData1.zw = pos[vbe];
-
+#endif
 			doVertex(v, pPos[v]);
 			doVertex(v, pPos[v] + vec4(fixvec[v], Z_OFFSET, 0.0));
 

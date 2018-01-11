@@ -5,11 +5,17 @@
 /* This shader follows the principles of
  * http://developer.download.nvidia.com/SDK/10/direct3d/Source/SolidWireframe/Doc/SolidWireframe.pdf */
 
+/* This is not perfect. Only a subset of intel gpus are affected.
+ * This fix have some performance impact.
+ * TODO Refine the range to only affect GPUs. */
+#ifndef GPU_INTEL
+# undef INTEL_FIX
+#endif
+
 uniform float faceAlphaMod;
 
 flat in vec3 edgesCrease;
 flat in vec3 edgesBweight;
-flat in ivec3 flag;
 flat in vec4 faceColor;
 flat in int clipCase;
 #ifdef VERTEX_SELECTION
@@ -38,6 +44,17 @@ in float facing;
 
 noperspective in vec4 eData1;
 flat in vec4 eData2;
+/* Some intel gpu have problems with having the vertex position packed. */
+#ifdef INTEL_FIX
+flat in vec2 eData3;
+#endif
+
+/* Some intel Gpu seems to have memory alignement problems. So adding a padding int */
+#ifdef GPU_INTEL
+flat in ivec4 flag;
+#else
+flat in ivec3 flag;
+#endif
 
 out vec4 FragColor;
 
@@ -72,7 +89,7 @@ const ivec3 clipPointIdx[6] = ivec3[6](
 	ivec3(2, 1, 0)
 );
 
-const mat4 stipple_matrix = mat4(
+const vec4 stipple_matrix[4] = vec4[4](
 	vec4(1.0, 0.0, 0.0, 0.0),
 	vec4(0.0, 0.0, 0.0, 0.0),
 	vec4(0.0, 0.0, 1.0, 0.0),
@@ -115,7 +132,11 @@ void main()
 
 		p.x = distance(eData2.zw, gl_FragCoord.xy);
 		p.y = distance(eData2.xy, gl_FragCoord.xy);
+#ifdef INTEL_FIX
+		p.z = distance(eData3.xy, gl_FragCoord.xy);
+#else
 		p.z = distance(eData1.zw, gl_FragCoord.xy);
+#endif
 	}
 	else {
 		ivec3 eidxs = clipEdgeIdx[clipCase - 1];
