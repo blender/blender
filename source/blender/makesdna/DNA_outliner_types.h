@@ -111,8 +111,7 @@ enum {
 	(!ELEM((_tse)->type, TSE_NLA, TSE_NLA_TRACK, TSE_DRIVER_BASE, \
 	                     TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP, \
                          TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM, \
-                         TSE_KEYMAP, TSE_KEYMAP_ITEM, TSE_ID_BASE, TSE_GP_LAYER, \
-                         TSE_SCENE_COLLECTION, TSE_LAYER_COLLECTION))
+                         TSE_KEYMAP, TSE_KEYMAP_ITEM, TSE_ID_BASE, TSE_GP_LAYER))
 
 
 #endif
