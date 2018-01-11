@@ -1545,7 +1545,8 @@ static void drw_state_set(DRWState state)
 	{
 		int test;
 		if (CHANGED_ANY_STORE_VAR(
-		        DRW_STATE_BLEND | DRW_STATE_ADDITIVE | DRW_STATE_MULTIPLY | DRW_STATE_TRANSMISSION,
+		        DRW_STATE_BLEND | DRW_STATE_ADDITIVE | DRW_STATE_MULTIPLY | DRW_STATE_TRANSMISSION |
+		        DRW_STATE_ADDITIVE_FULL,
 		        test))
 		{
 			if (test) {
@@ -1565,6 +1566,10 @@ static void drw_state_set(DRWState state)
 					/* Do not let alpha accumulate but premult the source RGB by it. */
 					glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, /* RGB */
 					                    GL_ZERO, GL_ONE); /* Alpha */
+				}
+				else if ((state & DRW_STATE_ADDITIVE_FULL) != 0) {
+					/* Let alpha accumulate. */
+					glBlendFunc(GL_ONE, GL_ONE);
 				}
 				else {
 					BLI_assert(0);
