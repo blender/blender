@@ -39,21 +39,13 @@ typedef struct Transform {
 
 /* transform decomposed in rotation/translation/scale. we use the same data
  * structure as Transform, and tightly pack decomposition into it. first the
- * rotation (4), then translation (3), then 3x3 scale matrix (9).
- *
- * For the DecompMotionTransform we drop scale from pre/post. */
+ * rotation (4), then translation (3), then 3x3 scale matrix (9). */
 
 typedef struct ccl_may_alias MotionTransform {
 	Transform pre;
 	Transform mid;
 	Transform post;
 } MotionTransform;
-
-typedef struct DecompMotionTransform {
-	Transform mid;
-	float4 pre_x, pre_y;
-	float4 post_x, post_y;
-} DecompMotionTransform;
 
 typedef struct PerspectiveMotionTransform {
 	Transform pre;
@@ -466,7 +458,7 @@ ccl_device_inline void transform_compose(Transform *tfm, const Transform *decomp
 /* Disabled for now, need arc-length parametrization for constant speed motion.
  * #define CURVED_MOTION_INTERPOLATE */
 
-ccl_device void transform_motion_interpolate(Transform *tfm, const DecompMotionTransform *motion, float t)
+ccl_device void transform_motion_interpolate(Transform *tfm, const MotionTransform *motion, float t)
 {
 	/* possible optimization: is it worth it adding a check to skip scaling?
 	 * it's probably quite uncommon to have scaling objects. or can we skip
@@ -475,9 +467,9 @@ ccl_device void transform_motion_interpolate(Transform *tfm, const DecompMotionT
 
 #ifdef CURVED_MOTION_INTERPOLATE
 	/* 3 point bezier curve interpolation for position */
-	float3 Ppre = float4_to_float3(motion->pre_y);
+	float3 Ppre = float4_to_float3(motion->pre.y);
 	float3 Pmid = float4_to_float3(motion->mid.y);
-	float3 Ppost = float4_to_float3(motion->post_y);
+	float3 Ppost = float4_to_float3(motion->post.y);
 
 	float3 Pcontrol = 2.0f*Pmid - 0.5f*(Ppre + Ppost);
 	float3 P = Ppre*t*t + Pcontrol*2.0f*t*(1.0f - t) + Ppost*(1.0f - t)*(1.0f - t);
@@ -491,26 +483,27 @@ ccl_device void transform_motion_interpolate(Transform *tfm, const DecompMotionT
 	if(t < 0.5f) {
 		t *= 2.0f;
 
-		decomp.x = quat_interpolate(motion->pre_x, motion->mid.x, t);
+		decomp.x = quat_interpolate(motion->pre.x, motion->mid.x, t);
 #ifdef CURVED_MOTION_INTERPOLATE
-		decomp.y.w = (1.0f - t)*motion->pre_y.w + t*motion->mid.y.w;
+		decomp.y.w = (1.0f - t)*motion->pre.y.w + t*motion->mid.y.w;
 #else
-		decomp.y = (1.0f - t)*motion->pre_y + t*motion->mid.y;
+		decomp.y = (1.0f - t)*motion->pre.y + t*motion->mid.y;
 #endif
+		decomp.z = (1.0f - t)*motion->pre.z + t*motion->mid.z;
+		decomp.w = (1.0f - t)*motion->pre.w + t*motion->mid.w;
 	}
 	else {
 		t = (t - 0.5f)*2.0f;
 
-		decomp.x = quat_interpolate(motion->mid.x, motion->post_x, t);
+		decomp.x = quat_interpolate(motion->mid.x, motion->post.x, t);
 #ifdef CURVED_MOTION_INTERPOLATE
-		decomp.y.w = (1.0f - t)*motion->mid.y.w + t*motion->post_y.w;
+		decomp.y.w = (1.0f - t)*motion->mid.y.w + t*motion->post.y.w;
 #else
-		decomp.y = (1.0f - t)*motion->mid.y + t*motion->post_y;
+		decomp.y = (1.0f - t)*motion->mid.y + t*motion->post.y;
 #endif
+		decomp.z = (1.0f - t)*motion->mid.z + t*motion->post.z;
+		decomp.w = (1.0f - t)*motion->mid.w + t*motion->post.w;
 	}
-
-	decomp.z = motion->mid.z;
-	decomp.w = motion->mid.w;
 
 	/* compose rotation, translation, scale into matrix */
 	transform_compose(tfm, &decomp);
@@ -526,7 +519,7 @@ ccl_device_inline bool operator==(const MotionTransform& A, const MotionTransfor
 }
 
 float4 transform_to_quat(const Transform& tfm);
-void transform_motion_decompose(DecompMotionTransform *decomp, const MotionTransform *motion, const Transform *mid);
+void transform_motion_decompose(MotionTransform *decomp, const MotionTransform *motion, const Transform *mid);
 Transform transform_from_viewplane(BoundBox2D& viewplane);
 
 #endif

@@ -53,7 +53,7 @@ ccl_device_inline AttributeDescriptor attribute_not_found()
 
 ccl_device_inline uint object_attribute_map_offset(KernelGlobals *kg, int object)
 {
-	int offset = object*OBJECT_SIZE + 11;
+	int offset = object*OBJECT_SIZE + 15;
 	float4 f = kernel_tex_fetch(__objects, offset);
 	return __float_as_uint(f.y);
 }

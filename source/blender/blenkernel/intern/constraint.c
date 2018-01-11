@@ -1013,8 +1013,11 @@ static void vectomat(const float vec[3], const float target_up[3], short axis, s
 		u[2] = 1;
 	}
 
+	/* note: even though 'n' is normalized, don't use 'project_v3_v3v3_normalized' below
+	 * because precision issues cause a problem in near degenerate states, see: T53455. */
+
 	/* project the up vector onto the plane specified by n */
-	project_v3_v3v3_normalized(proj, u, n); /* first u onto n... */
+	project_v3_v3v3(proj, u, n); /* first u onto n... */
 	sub_v3_v3v3(proj, u, proj); /* then onto the plane */
 	/* proj specifies the transformation of the up axis */
 
