@@ -283,22 +283,23 @@ ccl_device_inline int subsurface_scatter_multi_intersect(
 			object_normal_transform(kg, sd, &hit_Ng);
 		}
 
-		/* probability densities for local frame axes */
+		/* Probability densities for local frame axes. */
 		float pdf_N = pick_pdf_N * fabsf(dot(disk_N, hit_Ng));
 		float pdf_T = pick_pdf_T * fabsf(dot(disk_T, hit_Ng));
 		float pdf_B = pick_pdf_B * fabsf(dot(disk_B, hit_Ng));
 
-		/* multiple importance sample between 3 axes, power heuristic
-		 * found to be slightly better than balance heuristic */
-		float mis_weight = power_heuristic_3(pdf_N, pdf_T, pdf_B);
+		/* Multiple importance sample between 3 axes, power heuristic
+		 * found to be slightly better than balance heuristic. pdf_N
+		 * in the MIS weight and denominator cancelled out. */
+		float w = pdf_N / (sqr(pdf_N) + sqr(pdf_T) + sqr(pdf_B));
+		if(ss_isect->num_hits > BSSRDF_MAX_HITS) {
+			w *= ss_isect->num_hits/(float)BSSRDF_MAX_HITS;
+		}
 
-		/* real distance to sampled point */
+		/* Real distance to sampled point. */
 		float r = len(hit_P - sd->P);
 
-		/* evaluate */
-		float w = mis_weight / pdf_N;
-		if(ss_isect->num_hits > BSSRDF_MAX_HITS)
-			w *= ss_isect->num_hits/(float)BSSRDF_MAX_HITS;
+		/* Evaluate profiles. */
 		float3 eval = subsurface_scatter_eval(sd, sc, disk_r, r, all) * w;
 
 		ss_isect->weight[hit] = eval;
@@ -417,20 +418,21 @@ ccl_device void subsurface_scatter_step(KernelGlobals *kg, ShaderData *sd, ccl_a
 		/* setup new shading point */
 		shader_setup_from_subsurface(kg, sd, &ss_isect.hits[0], &ray);
 
-		/* probability densities for local frame axes */
+		/* Probability densities for local frame axes. */
 		float pdf_N = pick_pdf_N * fabsf(dot(disk_N, sd->Ng));
 		float pdf_T = pick_pdf_T * fabsf(dot(disk_T, sd->Ng));
 		float pdf_B = pick_pdf_B * fabsf(dot(disk_B, sd->Ng));
 
-		/* multiple importance sample between 3 axes, power heuristic
-		 * found to be slightly better than balance heuristic */
-		float mis_weight = power_heuristic_3(pdf_N, pdf_T, pdf_B);
+		/* Multiple importance sample between 3 axes, power heuristic
+		 * found to be slightly better than balance heuristic. pdf_N
+		 * in the MIS weight and denominator cancelled out. */
+		float w = pdf_N / (sqr(pdf_N) + sqr(pdf_T) + sqr(pdf_B));
+		w *= ss_isect.num_hits;
 
-		/* real distance to sampled point */
+		/* Real distance to sampled point. */
 		float r = len(sd->P - origP);
 
-		/* evaluate */
-		float w = (mis_weight * ss_isect.num_hits) / pdf_N;
+		/* Evaluate profiles. */
 		eval = subsurface_scatter_eval(sd, sc, disk_r, r, all) * w;
 	}
 
