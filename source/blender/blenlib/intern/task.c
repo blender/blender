@@ -693,7 +693,7 @@ static TaskPool *task_pool_create_ex(TaskScheduler *scheduler,
 	/* Ensure malloc will go fine from threads,
 	 *
 	 * This is needed because we could be in main thread here
-	 * and malloc could be non-threda safe at this point because
+	 * and malloc could be non-thread safe at this point because
 	 * no other jobs are running.
 	 */
 	BLI_begin_threaded_malloc();
