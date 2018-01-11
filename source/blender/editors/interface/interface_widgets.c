@@ -685,6 +685,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 	/* backdrop non AA */
 	if (wtb->draw_inner) {
+		BLI_assert(wtb->totvert != 0);
 		if (wcol->shaded == 0) {
 			if (wcol->alpha_check) {
 				float inner_v_half[WIDGET_SIZE_MAX][2];
@@ -764,6 +765,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 	
 	/* for each AA step */
 	if (wtb->draw_outline) {
+		BLI_assert(wtb->totvert != 0);
 		float triangle_strip[WIDGET_SIZE_MAX * 2 + 2][2]; /* + 2 because the last pair is wrapped */
 		float triangle_strip_emboss[WIDGET_SIZE_MAX * 2][2]; /* only for emboss */
 
@@ -2679,6 +2681,10 @@ static void widget_numbut_draw(uiWidgetColors *wcol, rcti *rect, int state, int 
 	
 	if (!emboss) {
 		round_box_edges(&wtb, roundboxalign, rect, rad);
+	}
+	else {
+		wtb.draw_inner = false;
+		wtb.draw_outline = false;
 	}
 
 	/* decoration */
