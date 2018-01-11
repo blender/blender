@@ -1004,23 +1004,25 @@ static void grid_tangent_matrix(float mat[3][3], const CCGKey *key,
 }
 
 
-typedef struct MultiresDispRunData {
+typedef struct MultiresThreadedData {
 	DispOp op;
 	CCGElem **gridData, **subGridData;
 	CCGKey *key;
+	CCGKey *sub_key;
 	MPoly *mpoly;
 	MDisps *mdisps;
 	GridPaintMask *grid_paint_mask;
 	int *gridOffset;
 	int gridSize, dGridSize, dSkip;
-} MultiresDispRunData;
+	float (*smat)[3];
+} MultiresThreadedData;
 
 static void multires_disp_run_cb(
         void *__restrict userdata,
         const int pidx,
         const ParallelRangeTLS *__restrict UNUSED(tls))
 {
-	MultiresDispRunData *tdata = userdata;
+	MultiresThreadedData *tdata = userdata;
 
 	DispOp op = tdata->op;
 	CCGElem **gridData = tdata->gridData;
@@ -1172,7 +1174,7 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 	BLI_parallel_range_settings_defaults(&settings);
 	settings.min_iter_per_thread = CCG_TASK_LIMIT;
 
-	MultiresDispRunData data = {
+	MultiresThreadedData data = {
 	    .op = op,
 	    .gridData = gridData,
 	    .subGridData = subGridData,
@@ -2220,6 +2222,56 @@ static void multires_sync_levels(Scene *scene, Object *ob_src, Object *ob_dst)
 	}
 }
 
+static void multires_apply_smat_cb(
+        void *__restrict userdata,
+        const int pidx,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
+{
+	MultiresThreadedData *tdata = userdata;
+
+	CCGElem **gridData = tdata->gridData;
+	CCGElem **subGridData = tdata->subGridData;
+	CCGKey *dm_key = tdata->key;
+	CCGKey *subdm_key = tdata->sub_key;
+	MPoly *mpoly = tdata->mpoly;
+	MDisps *mdisps = tdata->mdisps;
+	int *gridOffset = tdata->gridOffset;
+	int gridSize = tdata->gridSize;
+	int dGridSize = tdata->dGridSize;
+	int dSkip = tdata->dSkip;
+	float (*smat)[3] = tdata->smat;
+
+	const int numVerts = mpoly[pidx].totloop;
+	MDisps *mdisp = &mdisps[mpoly[pidx].loopstart];
+	int S, x, y, gIndex = gridOffset[pidx];
+
+	for (S = 0; S < numVerts; ++S, ++gIndex, mdisp++) {
+		CCGElem *grid = gridData[gIndex];
+		CCGElem *subgrid = subGridData[gIndex];
+		float (*dispgrid)[3] = mdisp->disps;
+
+		for (y = 0; y < gridSize; y++) {
+			for (x = 0; x < gridSize; x++) {
+				float *co = CCG_grid_elem_co(dm_key, grid, x, y);
+				float *sco = CCG_grid_elem_co(subdm_key, subgrid, x, y);
+				float *data = dispgrid[dGridSize * y * dSkip + x * dSkip];
+				float mat[3][3], disp[3];
+
+				/* construct tangent space matrix */
+				grid_tangent_matrix(mat, dm_key, x, y, grid);
+
+				/* scale subgrid coord and calculate displacement */
+				mul_m3_v3(smat, sco);
+				sub_v3_v3v3(disp, sco, co);
+
+				/* convert difference to tangent space */
+				invert_m3(mat);
+				mul_v3_m3v3(data, mat, disp);
+			}
+		}
+	}
+}
+
 static void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
 {
 	DerivedMesh *dm = NULL, *cddm = NULL, *subdm = NULL;
@@ -2272,38 +2324,25 @@ static void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
 	dGridSize = multires_side_tot[high_mmd.totlvl];
 	dSkip = (dGridSize - 1) / (gridSize - 1);
 
-#pragma omp parallel for private(i) if (me->totloop * gridSize * gridSize >= CCG_OMP_LIMIT)
-	for (i = 0; i < me->totpoly; ++i) {
-		const int numVerts = mpoly[i].totloop;
-		MDisps *mdisp = &mdisps[mpoly[i].loopstart];
-		int S, x, y, gIndex = gridOffset[i];
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.min_iter_per_thread = CCG_TASK_LIMIT;
 
-		for (S = 0; S < numVerts; ++S, ++gIndex, mdisp++) {
-			CCGElem *grid = gridData[gIndex];
-			CCGElem *subgrid = subGridData[gIndex];
-			float (*dispgrid)[3] = mdisp->disps;
+	MultiresThreadedData data = {
+	    .gridData = gridData,
+	    .subGridData = subGridData,
+	    .key = &dm_key,
+	    .sub_key = &subdm_key,
+	    .mpoly = mpoly,
+	    .mdisps = mdisps,
+	    .gridOffset = gridOffset,
+	    .gridSize = gridSize,
+	    .dGridSize = dGridSize,
+	    .dSkip = dSkip,
+	    .smat = smat
+	};
 
-			for (y = 0; y < gridSize; y++) {
-				for (x = 0; x < gridSize; x++) {
-					float *co = CCG_grid_elem_co(&dm_key, grid, x, y);
-					float *sco = CCG_grid_elem_co(&subdm_key, subgrid, x, y);
-					float *data = dispgrid[dGridSize * y * dSkip + x * dSkip];
-					float mat[3][3], disp[3];
-
-					/* construct tangent space matrix */
-					grid_tangent_matrix(mat, &dm_key, x, y, grid);
-
-					/* scale subgrid coord and calculate displacement */
-					mul_m3_v3(smat, sco);
-					sub_v3_v3v3(disp, sco, co);
-
-					/* convert difference to tangent space */
-					invert_m3(mat);
-					mul_v3_m3v3(data, mat, disp);
-				}
-			}
-		}
-	}
+	BLI_task_parallel_range(0, me->totpoly, &data, multires_apply_smat_cb, &settings);
 
 	dm->release(dm);
 	subdm->release(subdm);
