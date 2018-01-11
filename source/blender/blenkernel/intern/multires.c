@@ -1380,8 +1380,7 @@ void multires_set_space(DerivedMesh *dm, Object *ob, int from, int to)
 
 	k = 0; /*current loop/mdisp index within the mloop array*/
 
-	//#pragma omp parallel for private(i) if (dm->numLoopData * gridSize * gridSize >= CCG_OMP_LIMIT)
-
+	/* TODO: Use BLI_task parallel range for that one too? */
 	for (i = 0; i < dm->numPolyData; ++i) {
 		const int numVerts = mpoly[i].totloop;
 		int S, x, y, gIndex = gridOffset[i];
