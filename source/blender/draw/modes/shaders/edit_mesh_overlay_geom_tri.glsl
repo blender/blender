@@ -53,7 +53,6 @@ out float facing;
 /* See fragment shader */
 noperspective out vec2 eData1;
 flat out vec2 eData2[3];
-/* Some intel gpu have problems with having the vertex position packed. */
 
 /* Some intel Gpu seems to have memory alignement problems. So adding a padding int */
 #ifdef GPU_INTEL
