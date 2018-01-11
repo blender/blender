@@ -39,8 +39,8 @@ flat out ivec3 flag;
 #endif
 
 /* See fragment shader */
-noperspective out vec4 eData1;
-flat out vec4 eData2;
+noperspective out vec2 eData1;
+flat out vec2 eData2[3];
 
 #define VERTEX_ACTIVE   (1 << 0)
 #define VERTEX_SELECTED (1 << 1)
@@ -134,9 +134,10 @@ void main()
 	}
 
 	/* Edge / Vert data */
-	eData1 = vec4(1e10);
-	eData2.zw = pos[0];
-	eData2.xy = pos[1];
+	eData1 = vec2(1e10);
+	eData2[0] = vec2(1e10);
+	eData2[2] = pos[0];
+	eData2[1] = pos[1];
 	flag[0] = (vData[0].x << 8);
 	flag[1] = (vData[1].x << 8);
 	flag[2] = 0;

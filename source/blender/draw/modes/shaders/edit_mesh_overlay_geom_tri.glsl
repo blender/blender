@@ -10,9 +10,6 @@ layout(triangles) in;
 /* This is not perfect. Only a subset of intel gpus are affected.
  * This fix have some performance impact.
  * TODO Refine the range to only affect GPUs. */
-#ifndef GPU_INTEL
-# undef INTEL_FIX
-#endif
 
 #ifdef EDGE_FIX
 /* To fix the edge artifacts, we render
@@ -54,12 +51,9 @@ out float facing;
 #endif
 
 /* See fragment shader */
-noperspective out vec4 eData1;
-flat out vec4 eData2;
+noperspective out vec2 eData1;
+flat out vec2 eData2[3];
 /* Some intel gpu have problems with having the vertex position packed. */
-#ifdef INTEL_FIX
-flat out vec2 eData3;
-#endif
 
 /* Some intel Gpu seems to have memory alignement problems. So adding a padding int */
 #ifdef GPU_INTEL
@@ -180,13 +174,9 @@ void main()
 	if (clipCase == 0) {
 
 		/* Packing screen positions and 2 distances */
-#ifdef INTEL_FIX
-		eData1 = vec4(0.0);
-		eData3 = pos[2];
-#else
-		eData1 = vec4(0.0, 0.0, pos[2]);
-#endif
-		eData2 = vec4(pos[1], pos[0]);
+		eData2[0] = pos[2];
+		eData2[1] = pos[1];
+		eData2[2] = pos[0];
 
 		/* Only pass the first 2 distances */
 		for (int v = 0; v < 2; ++v) {
@@ -254,7 +244,8 @@ void main()
 		faceColor.a = 0.0;
 
 		/* we don't want other edges : make them far */
-		eData1 = vec4(1e10);
+		eData1 = vec2(1e10);
+		eData2[0] = vec2(1e10);
 
 		/* Start with the same last vertex to create a
 		 * degenerate triangle in order to "create"
@@ -265,11 +256,7 @@ void main()
 			int v = i % 3;
 
 			/* Position of the "hidden" third vertex */
-#ifdef INTEL_FIX
-			eData3 = pos[vbe];
-#else
-			eData1.zw = pos[vbe];
-#endif
+			eData2[0] = pos[vbe];
 			doVertex(v, pPos[v]);
 			doVertex(v, pPos[v] + vec4(fixvec[v], Z_OFFSET, 0.0));
 
@@ -278,8 +265,8 @@ void main()
 			 * in the fragment shader, the third edge;
 			 * we do this because we need flat interp to
 			 * draw a continuous triangle strip */
-			eData2.xy = pos[vaf];
-			eData2.zw = pos[v];
+			eData2[1] = pos[vaf];
+			eData2[2] = pos[v];
 			flag[0] = (vData[v].x << 8);
 			flag[1] = (vData[vaf].x << 8);
 			flag[2] = eflag[vbe];
@@ -306,8 +293,13 @@ void main()
 	else {
 		ivec4 vindices = clipPointsIdx[clipCase - 1];
 
-		eData1 = getClipData(pos, vindices.xz);
-		eData2 = getClipData(pos, vindices.yw);
+		vec4 tmp;
+		tmp = getClipData(pos, vindices.xz);
+		eData1 = tmp.xy;
+		eData2[0] = tmp.zw;
+		tmp = getClipData(pos, vindices.yw);
+		eData2[1] = tmp.xy;
+		eData2[2] = tmp.zw;
 
 		for (int v = 0; v < 3; ++v)
 			doVertex(v, pPos[v]);

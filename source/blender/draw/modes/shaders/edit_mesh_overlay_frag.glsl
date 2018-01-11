@@ -8,9 +8,6 @@
 /* This is not perfect. Only a subset of intel gpus are affected.
  * This fix have some performance impact.
  * TODO Refine the range to only affect GPUs. */
-#ifndef GPU_INTEL
-# undef INTEL_FIX
-#endif
 
 uniform float faceAlphaMod;
 
@@ -34,20 +31,16 @@ in float facing;
  *   in the first 2 components of the first vec4.
  *   This needs noperspective interpolation.
  *   The rest is filled with vertex screen positions.
- *   eData1.zw actually contain v2
- *   eData2.xy actually contain v1
- *   eData2.zw actually contain v0
+ *   eData2[0] actually contain v2
+ *   eData2[1] actually contain v1
+ *   eData2[2] actually contain v0
  *
  * - Hard case : two 2d edge corner are described by each
  *   vec4 as origin and direction. This is constant over
  *   the triangle and use to detect the correct case. */
 
-noperspective in vec4 eData1;
-flat in vec4 eData2;
-/* Some intel gpu have problems with having the vertex position packed. */
-#ifdef INTEL_FIX
-flat in vec2 eData3;
-#endif
+noperspective in vec2 eData1;
+flat in vec2 eData2[3];
 
 /* Some intel Gpu seems to have memory alignement problems. So adding a padding int */
 #ifdef GPU_INTEL
@@ -124,38 +117,34 @@ void main()
 	/* Step 1 : Computing Distances */
 
 	if (clipCase == 0) {
-		e.xy = eData1.xy;
+		e.xy = eData1;
 
 		/* computing missing distance */
-		vec2 dir = normalize(eData2.zw - eData2.xy);
-		e.z = distToEdge(eData2.zw, dir);
+		vec2 dir = normalize(eData2[2] - eData2[1]);
+		e.z = distToEdge(eData2[2], dir);
 
-		p.x = distance(eData2.zw, gl_FragCoord.xy);
-		p.y = distance(eData2.xy, gl_FragCoord.xy);
-#ifdef INTEL_FIX
-		p.z = distance(eData3.xy, gl_FragCoord.xy);
-#else
-		p.z = distance(eData1.zw, gl_FragCoord.xy);
-#endif
+		p.x = distance(eData2[2], gl_FragCoord.xy);
+		p.y = distance(eData2[1], gl_FragCoord.xy);
+		p.z = distance(eData2[0], gl_FragCoord.xy);
 	}
 	else {
 		ivec3 eidxs = clipEdgeIdx[clipCase - 1];
 		ivec3 pidxs = clipPointIdx[clipCase - 1];
 
-		e[eidxs.x] = distToEdge(eData1.xy, eData1.zw);
-		e[eidxs.y] = distToEdge(eData2.xy, eData2.zw);
+		e[eidxs.x] = distToEdge(eData1, eData2[0]);
+		e[eidxs.y] = distToEdge(eData2[1], eData2[2]);
 
 		/* Three edges visible cases */
 		if (clipCase == 1 || clipCase == 2 || clipCase == 4) {
-			e[eidxs.z] = distToEdge(eData1.xy, normalize(eData2.xy - eData1.xy));
-			p[pidxs.y] = distance(eData2.xy, gl_FragCoord.xy);
+			e[eidxs.z] = distToEdge(eData1, normalize(eData2[1] - eData1));
+			p[pidxs.y] = distance(eData2[1], gl_FragCoord.xy);
 		}
 		else {
 			e[eidxs.z] = 1e10; /* off screen */
 			p[pidxs.y] = 1e10; /* off screen */
 		}
 
-		p[pidxs.x] = distance(eData1.xy, gl_FragCoord.xy);
+		p[pidxs.x] = distance(eData1, gl_FragCoord.xy);
 		p[pidxs.z] = 1e10; /* off screen */
 	}
 
