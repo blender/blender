@@ -44,6 +44,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_task.h"
 
 #include "BKE_pbvh.h"
 #include "BKE_ccg.h"
@@ -1052,6 +1053,16 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 
 	k = 0; /*current loop/mdisp index within the mloop array*/
 
+	/* when adding new faces in edit mode, need to allocate disps */
+	for (i = 0; i < totloop; ++i) {
+		if (mdisps[i].disps == NULL) {
+			multires_reallocate_mdisps(totloop, mdisps, totlvl);
+			break;
+		}
+	}
+
+	BLI_begin_threaded_malloc();
+
 #pragma omp parallel for private(i) if (totloop * gridSize * gridSize >= CCG_OMP_LIMIT)
 
 	for (i = 0; i < totpoly; ++i) {
@@ -1065,24 +1076,15 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 			CCGElem *subgrid = subGridData[gIndex];
 			float (*dispgrid)[3] = NULL;
 
-			/* when adding new faces in edit mode, need to allocate disps */
-			if (!mdisp->disps)
-#pragma omp critical
-			{
-				multires_reallocate_mdisps(totloop, mdisps, totlvl);
-			}
-
 			dispgrid = mdisp->disps;
 
 			/* if needed, reallocate multires paint mask */
 			if (gpm && gpm->level < key.level) {
 				gpm->level = key.level;
-#pragma omp critical
-				{
-					if (gpm->data)
-						MEM_freeN(gpm->data);
-					gpm->data = MEM_callocN(sizeof(float) * key.grid_area, "gpm.data");
+				if (gpm->data) {
+					MEM_freeN(gpm->data);
 				}
+				gpm->data = MEM_callocN(sizeof(float) * key.grid_area, "gpm.data");
 			}
 
 			for (y = 0; y < gridSize; y++) {
@@ -1142,6 +1144,8 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 		}
 	}
 	
+	BLI_end_threaded_malloc();
+
 	if (op == APPLY_DISPLACEMENTS) {
 		ccgSubSurf_stitchFaces(ccgdm->ss, 0, NULL, 0);
 		ccgSubSurf_updateNormals(ccgdm->ss, NULL, 0);
