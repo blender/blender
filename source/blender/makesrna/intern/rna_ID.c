@@ -772,6 +772,13 @@ static PointerRNA rna_IDPreview_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_ImagePreview, prv_img);
 }
 
+static int rna_ID_is_updated_get(PointerRNA *ptr)
+{
+	ID *id = (ID *)ptr->data;
+	/* TODO(sergey): Do we need to limit some of flags here? */
+	return ((id->recalc & ID_RECALC_ALL) != 0);
+}
+
 static int rna_ID_is_updated_data_get(PointerRNA *ptr)
 {
 	ID *id = (ID *)ptr->data;
@@ -1037,8 +1044,8 @@ static void rna_def_ID(BlenderRNA *brna)
 	                         "(initial state is undefined)");
 
 	prop = RNA_def_property(srna, "is_updated", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "recalc", ID_RECALC);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_ID_is_updated_get", NULL);
 	RNA_def_property_ui_text(prop, "Is Updated", "Data-block is tagged for recalculation");
 
 	prop = RNA_def_property(srna, "is_updated_data", PROP_BOOLEAN, PROP_NONE);
