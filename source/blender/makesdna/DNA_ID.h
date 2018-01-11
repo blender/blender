@@ -349,7 +349,7 @@ enum {
 	LIB_TAG_PRE_EXISTING    = 1 << 11,
 
 	/* RESET_NEVER tag datablock for freeing etc. behavior (usually set when copying real one into temp/runtime one). */
-	LIB_TAG_NO_MAIN          = 1 << 11,  /* Datablock is not listed in Main database. */
+	LIB_TAG_NO_MAIN          = 1 << 12,  /* Datablock is not listed in Main database. */
 	LIB_TAG_NO_USER_REFCOUNT = 1 << 13,  /* Datablock does not refcount usages of other IDs. */
 	/* Datablock was not allocated by standard system (BKE_libblock_alloc), do not free its memory
 	 * (usual type-specific freeing is called though). */
