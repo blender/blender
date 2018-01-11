@@ -93,12 +93,14 @@ static CollectionOverride *outliner_override_active(bContext *UNUSED(C))
 
 static int collections_editor_poll(bContext *C)
 {
-	ScrArea *sa = CTX_wm_area(C);
-	if ((sa) && (sa->spacetype == SPACE_OUTLINER)) {
-		SpaceOops *so = CTX_wm_space_outliner(C);
-		return (so->outlinevis == SO_COLLECTIONS);
-	}
-	return 0;
+	SpaceOops *so = CTX_wm_space_outliner(C);
+	return (so != NULL) && (so->outlinevis == SO_COLLECTIONS);
+}
+
+static int view_layer_editor_poll(bContext *C)
+{
+	SpaceOops *so = CTX_wm_space_outliner(C);
+	return (so != NULL) && (so->outlinevis == SO_ACT_LAYER);
 }
 
 /* -------------------------------------------------------------------- */
@@ -241,13 +243,14 @@ void OUTLINER_OT_collection_link(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name = "Add Collection";
+	ot->name = "Link Collection";
 	ot->idname = "OUTLINER_OT_collection_link";
 	ot->description = "Link a new collection to the active layer";
 
 	/* api callbacks */
 	ot->exec = collection_link_exec;
 	ot->invoke = collection_link_invoke;
+	ot->poll = view_layer_editor_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -264,6 +267,10 @@ void OUTLINER_OT_collection_link(wmOperatorType *ot)
  */
 static int collection_unlink_poll(bContext *C)
 {
+	if (view_layer_editor_poll(C) == 0) {
+		return 0;
+	}
+
 	LayerCollection *lc = outliner_collection_active(C);
 
 	if (lc == NULL) {
@@ -303,7 +310,7 @@ static int collection_unlink_exec(bContext *C, wmOperator *op)
 void OUTLINER_OT_collection_unlink(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Add Collection";
+	ot->name = "Unlink Collection";
 	ot->idname = "OUTLINER_OT_collection_unlink";
 	ot->description = "Unlink collection from the active layer";
 
