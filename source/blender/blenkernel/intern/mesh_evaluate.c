@@ -287,12 +287,11 @@ void BKE_mesh_calc_normals_poly(
         int numLoops, int numPolys, float (*r_polynors)[3],
         const bool only_face_normals)
 {
-	const bool do_threaded = (numPolys > BKE_MESH_OMP_LIMIT);
 	float (*pnors)[3] = r_polynors;
 
 	ParallelRangeSettings settings;
 	BLI_parallel_range_settings_defaults(&settings);
-	settings.use_threading = do_threaded;
+	settings.min_iter_per_thread = 1024;
 
 	if (only_face_normals) {
 		BLI_assert((pnors != NULL) || (numPolys == 0));

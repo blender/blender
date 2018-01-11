@@ -34,6 +34,9 @@
 
 #define FACE_calcIFNo(f, lvl, S, x, y, no)  _face_calcIFNo(f, lvl, S, x, y, no, subdivLevels, vertDataSize)
 
+/* TODO(sergey): This actually depends on subsurf level as well. */
+#define CCG_TASK_LIMIT 16
+
 /* TODO(sergey): Deduplicate the following functions/ */
 static void *_edge_getCoVert(CCGEdge *e, CCGVert *v, int lvl, int x, int dataSize)
 {
@@ -340,7 +343,7 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 	{
 		ParallelRangeSettings settings;
 		BLI_parallel_range_settings_defaults(&settings);
-		settings.use_threading = (numEffectedF * edgeSize * edgeSize * 4 >= CCG_OMP_LIMIT);
+		settings.min_iter_per_thread = CCG_TASK_LIMIT;
 		BLI_task_parallel_range(0, numEffectedF,
 		                        &data,
 		                        ccgSubSurf__calcVertNormals_faces_accumulate_cb,
@@ -374,7 +377,7 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 	{
 		ParallelRangeSettings settings;
 		BLI_parallel_range_settings_defaults(&settings);
-		settings.use_threading = (numEffectedE * edgeSize * 4 >= CCG_OMP_LIMIT);
+		settings.min_iter_per_thread = CCG_TASK_LIMIT;
 		BLI_task_parallel_range(0, numEffectedE,
 		                        &data,
 		                        ccgSubSurf__calcVertNormals_edges_accumulate_cb,
@@ -384,7 +387,7 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 	{
 		ParallelRangeSettings settings;
 		BLI_parallel_range_settings_defaults(&settings);
-		settings.use_threading = (numEffectedF * edgeSize * edgeSize * 4 >= CCG_OMP_LIMIT);
+		settings.min_iter_per_thread = CCG_TASK_LIMIT;
 		BLI_task_parallel_range(0, numEffectedF,
 		                        &data,
 		                        ccgSubSurf__calcVertNormals_faces_finalize_cb,
@@ -683,7 +686,7 @@ static void ccgSubSurf__calcSubdivLevel(
 	{
 		ParallelRangeSettings settings;
 		BLI_parallel_range_settings_defaults(&settings);
-		settings.use_threading = (numEffectedF * edgeSize * edgeSize * 4 >= CCG_OMP_LIMIT);
+		settings.min_iter_per_thread = CCG_TASK_LIMIT;
 		BLI_task_parallel_range(0, numEffectedF,
 		                        &data,
 		                        ccgSubSurf__calcSubdivLevel_interior_faces_edges_midpoints_cb,
@@ -966,7 +969,7 @@ static void ccgSubSurf__calcSubdivLevel(
 	{
 		ParallelRangeSettings settings;
 		BLI_parallel_range_settings_defaults(&settings);
-		settings.use_threading = (numEffectedF * edgeSize * edgeSize * 4 >= CCG_OMP_LIMIT);
+		settings.min_iter_per_thread = CCG_TASK_LIMIT;
 		BLI_task_parallel_range(0, numEffectedF,
 		                        &data,
 		                        ccgSubSurf__calcSubdivLevel_interior_faces_edges_centerpoints_shift_cb,
@@ -986,7 +989,7 @@ static void ccgSubSurf__calcSubdivLevel(
 	{
 		ParallelRangeSettings settings;
 		BLI_parallel_range_settings_defaults(&settings);
-		settings.use_threading = (numEffectedF * edgeSize * edgeSize * 4 >= CCG_OMP_LIMIT);
+		settings.min_iter_per_thread = CCG_TASK_LIMIT;
 		BLI_task_parallel_range(0, numEffectedF,
 		                        &data,
 		                        ccgSubSurf__calcSubdivLevel_verts_copydata_cb,

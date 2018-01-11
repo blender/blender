@@ -132,12 +132,11 @@ static void calculate_pending_func(
 static void calculate_pending_parents(Depsgraph *graph)
 {
 	const int num_operations = graph->operations.size();
-	const bool do_threads = (num_operations > 256);
 	CalculatePengindData data;
 	data.graph = graph;
 	ParallelRangeSettings settings;
 	BLI_parallel_range_settings_defaults(&settings);
-	settings.use_threading = do_threads;
+	settings.min_iter_per_thread = 1024;
 	BLI_task_parallel_range(0,
 	                        num_operations,
 	                        &data,

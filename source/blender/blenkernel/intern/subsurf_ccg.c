@@ -58,6 +58,7 @@
 #include "BLI_edgehash.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
+#include "BLI_task.h"
 #include "BLI_threads.h"
 
 #include "BKE_pbvh.h"
@@ -1476,19 +1477,70 @@ static void ccgDM_copyFinalFaceArray(DerivedMesh *dm, MFace *mface)
 	}
 }
 
+typedef struct CopyFinalLoopArrayData {
+	CCGDerivedMesh *ccgdm;
+	MLoop *mloop;
+	int grid_size;
+	int *grid_offset;
+	int edge_size;
+	size_t mloop_index;
+} CopyFinalLoopArrayData;
+
+static void copyFinalLoopArray_task_cb(
+        void *__restrict userdata,
+        const int iter,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
+{
+	CopyFinalLoopArrayData *data = userdata;
+	CCGDerivedMesh *ccgdm = data->ccgdm;
+	CCGSubSurf *ss = ccgdm->ss;
+	const int grid_size = data->grid_size;
+	const int edge_size = data->edge_size;
+	CCGFace *f = ccgdm->faceMap[iter].face;
+	const int num_verts = ccgSubSurf_getFaceNumVerts(f);
+	const int grid_index = data->grid_offset[iter];
+	const size_t loop_index = 4 * (size_t)grid_index * (grid_size - 1) * (grid_size - 1);
+	MLoop *ml = &data->mloop[loop_index];
+	for (int S = 0; S < num_verts; S++) {
+		for (int y = 0; y < grid_size - 1; y++) {
+			for (int x = 0; x < grid_size - 1; x++) {
+
+				uint v1 = getFaceIndex(ss, f, S, x + 0, y + 0,
+				                       edge_size, grid_size);
+				uint v2 = getFaceIndex(ss, f, S, x + 0, y + 1,
+				                       edge_size, grid_size);
+				uint v3 = getFaceIndex(ss, f, S, x + 1, y + 1,
+				                       edge_size, grid_size);
+				uint v4 = getFaceIndex(ss, f, S, x + 1, y + 0,
+				                       edge_size, grid_size);
+
+				ml->v = v1;
+				ml->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v1, v2));
+				ml++;
+
+				ml->v = v2;
+				ml->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v2, v3));
+				ml++;
+
+				ml->v = v3;
+				ml->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v3, v4));
+				ml++;
+
+				ml->v = v4;
+				ml->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v4, v1));
+				ml++;
+			}
+		}
+	}
+}
+
 static void ccgDM_copyFinalLoopArray(DerivedMesh *dm, MLoop *mloop)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
 	CCGSubSurf *ss = ccgdm->ss;
-	int index;
-	int totface;
-	int gridSize = ccgSubSurf_getGridSize(ss);
-	int edgeSize = ccgSubSurf_getEdgeSize(ss);
-	MLoop *ml;
-	/* DMFlagMat *faceFlags = ccgdm->faceFlags; */ /* UNUSED */
 
 	if (!ccgdm->ehash) {
-		BLI_rw_mutex_lock(&ccgdm->loops_cache_rwlock, THREAD_LOCK_WRITE);
+		BLI_mutex_lock(&ccgdm->loops_cache_lock);
 		if (!ccgdm->ehash) {
 			MEdge *medge;
 			EdgeHash *ehash;
@@ -1502,53 +1554,30 @@ static void ccgDM_copyFinalLoopArray(DerivedMesh *dm, MLoop *mloop)
 
 			atomic_cas_ptr((void**)&ccgdm->ehash, ccgdm->ehash, ehash);
 		}
-		BLI_rw_mutex_unlock(&ccgdm->loops_cache_rwlock);
+		BLI_mutex_unlock(&ccgdm->loops_cache_lock);
 	}
 
-	BLI_rw_mutex_lock(&ccgdm->loops_cache_rwlock, THREAD_LOCK_READ);
-	totface = ccgSubSurf_getNumFaces(ss);
-	ml = mloop;
-	for (index = 0; index < totface; index++) {
-		CCGFace *f = ccgdm->faceMap[index].face;
-		int x, y, S, numVerts = ccgSubSurf_getFaceNumVerts(f);
-		/* int flag = (faceFlags) ? faceFlags[index * 2]: ME_SMOOTH; */ /* UNUSED */
-		/* int mat_nr = (faceFlags) ? faceFlags[index * 2 + 1]: 0; */ /* UNUSED */
+	CopyFinalLoopArrayData data;
+	data.ccgdm = ccgdm;
+	data.mloop = mloop;
+	data.grid_size = ccgSubSurf_getGridSize(ss);
+	data.grid_offset = dm->getGridOffset(dm);
+	data.edge_size = ccgSubSurf_getEdgeSize(ss);
 
-		for (S = 0; S < numVerts; S++) {
-			for (y = 0; y < gridSize - 1; y++) {
-				for (x = 0; x < gridSize - 1; x++) {
-					unsigned int v1, v2, v3, v4;
+	/* NOTE: For a dense subdivision we've got enough work for each face and
+	 * hence can dedicate whole thread to single face. For less dense
+	 * subdivision we handle multiple faces per thread.
+	 */
+	data.mloop_index = data.grid_size >= 5 ? 1 : 8;
 
-					v1 = getFaceIndex(ss, f, S, x + 0, y + 0,
-					                  edgeSize, gridSize);
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.min_iter_per_thread = 1;
 
-					v2 = getFaceIndex(ss, f, S, x + 0, y + 1,
-					                  edgeSize, gridSize);
-					v3 = getFaceIndex(ss, f, S, x + 1, y + 1,
-					                  edgeSize, gridSize);
-					v4 = getFaceIndex(ss, f, S, x + 1, y + 0,
-					                  edgeSize, gridSize);
-
-					ml->v = v1;
-					ml->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v1, v2));
-					ml++;
-
-					ml->v = v2;
-					ml->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v2, v3));
-					ml++;
-
-					ml->v = v3;
-					ml->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v3, v4));
-					ml++;
-
-					ml->v = v4;
-					ml->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(ccgdm->ehash, v4, v1));
-					ml++;
-				}
-			}
-		}
-	}
-	BLI_rw_mutex_unlock(&ccgdm->loops_cache_rwlock);
+	BLI_task_parallel_range(0, ccgSubSurf_getNumFaces(ss),
+	                        &data,
+	                        copyFinalLoopArray_task_cb,
+	                        &settings);
 }
 
 static void ccgDM_copyFinalPolyArray(DerivedMesh *dm, MPoly *mpoly)
@@ -3796,7 +3825,7 @@ static void ccgDM_release(DerivedMesh *dm)
 			MEM_freeN(ccgdm->faceMap);
 		}
 
-		BLI_rw_mutex_end(&ccgdm->loops_cache_rwlock);
+		BLI_mutex_end(&ccgdm->loops_cache_lock);
 		BLI_rw_mutex_end(&ccgdm->origindex_cache_rwlock);
 
 		MEM_freeN(ccgdm);
@@ -4787,7 +4816,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.numLoopData = ccgdm->dm.numPolyData * 4;
 	ccgdm->dm.numTessFaceData = 0;
 
-	BLI_rw_mutex_init(&ccgdm->loops_cache_rwlock);
+	BLI_mutex_init(&ccgdm->loops_cache_lock);
 	BLI_rw_mutex_init(&ccgdm->origindex_cache_rwlock);
 
 	return ccgdm;

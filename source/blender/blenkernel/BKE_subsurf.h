@@ -144,7 +144,7 @@ typedef struct CCGDerivedMesh {
 
 	struct EdgeHash *ehash;
 
-	ThreadRWMutex loops_cache_rwlock;
+	ThreadMutex loops_cache_lock;
 	ThreadRWMutex origindex_cache_rwlock;
 } CCGDerivedMesh;
 
