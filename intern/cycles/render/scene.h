@@ -165,6 +165,7 @@ class Scene {
 public:
 	/* data */
 	Camera *camera;
+	Camera *dicing_camera;
 	LookupTables *lookup_tables;
 	Film *film;
 	Background *background;

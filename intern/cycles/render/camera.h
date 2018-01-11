@@ -129,6 +129,8 @@ public:
 	BoundBox2D viewplane;
 	/* width and height change during preview, so we need these for calculating dice rates. */
 	int full_width, full_height;
+	/* controls how fast the dicing rate falls off for geometry out side of view */
+	float offscreen_dicing_scale;
 
 	/* border */
 	BoundBox2D border;
@@ -162,6 +164,9 @@ public:
 
 	float3 full_dx;
 	float3 full_dy;
+
+	float3 frustum_right_normal;
+	float3 frustum_top_normal;
 
 	/* update */
 	bool need_update;

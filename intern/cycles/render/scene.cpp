@@ -85,6 +85,7 @@ Scene::Scene(const SceneParams& params_, Device *device)
 	memset(&dscene.data, 0, sizeof(dscene.data));
 
 	camera = new Camera();
+	dicing_camera = new Camera();
 	lookup_tables = new LookupTables();
 	film = new Film();
 	background = new Background();
@@ -155,6 +156,7 @@ void Scene::free_memory(bool final)
 	if(final) {
 		delete lookup_tables;
 		delete camera;
+		delete dicing_camera;
 		delete film;
 		delete background;
 		delete integrator;
@@ -359,6 +361,7 @@ void Scene::reset()
 
 	/* ensure all objects are updated */
 	camera->tag_update();
+	dicing_camera->tag_update();
 	film->tag_update(this);
 	background->tag_update(this);
 	integrator->tag_update(this);

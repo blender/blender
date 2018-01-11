@@ -388,6 +388,23 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 default=12,
                 )
 
+        cls.dicing_camera = PointerProperty(
+                name="Dicing Camera",
+                description="Camera to use as reference point when subdividing geometry, useful to avoid crawling "
+                            "artifacts in animations when the scene camera is moving",
+                type=bpy.types.Object,
+                poll=lambda self, obj: obj.type == 'CAMERA',
+                )
+        cls.offscreen_dicing_scale = FloatProperty(
+                name="Offscreen Dicing Scale",
+                description="Multiplier for dicing rate of geometry outside of the camera view. The dicing rate "
+                            "of objects is gradually increased the further they are outside the camera view. "
+                            "Lower values provide higher quality reflections and shadows for off screen objects, "
+                            "while higher values use less memory",
+                min=1.0, soft_max=25.0,
+                default=4.0,
+                )
+
         cls.film_exposure = FloatProperty(
                 name="Exposure",
                 description="Image brightness scale",

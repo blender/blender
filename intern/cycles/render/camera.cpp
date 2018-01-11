@@ -128,6 +128,8 @@ NODE_DEFINE(Camera)
 	SOCKET_FLOAT(border.bottom, "Border Bottom", 0);
 	SOCKET_FLOAT(border.top, "Border Top", 0);
 
+	SOCKET_FLOAT(offscreen_dicing_scale, "Offscreen Dicing Scale", 1.0f);
+
 	return type;
 }
 
@@ -272,6 +274,13 @@ void Camera::update()
 	dy = transform_direction(&cameratoworld, dy);
 	full_dx = transform_direction(&cameratoworld, full_dx);
 	full_dy = transform_direction(&cameratoworld, full_dy);
+
+	if(type == CAMERA_PERSPECTIVE) {
+		float3 v = transform_perspective(&full_rastertocamera, make_float3(full_width, full_height, 1.0f));
+
+		frustum_right_normal = normalize(make_float3(v.z, 0.0f, -v.x));
+		frustum_top_normal = normalize(make_float3(0.0f, v.z, -v.y));
+	}
 
 	/* TODO(sergey): Support other types of camera. */
 	if(type == CAMERA_PERSPECTIVE) {
@@ -581,8 +590,27 @@ BoundBox Camera::viewplane_bounds_get()
 
 float Camera::world_to_raster_size(float3 P)
 {
+	float res = 1.0f;
+
 	if(type == CAMERA_ORTHOGRAPHIC) {
-		return min(len(full_dx), len(full_dy));
+		res = min(len(full_dx), len(full_dy));
+
+		if(offscreen_dicing_scale > 1.0f) {
+			float3 p = transform_perspective(&worldtocamera, P);
+			float3 v = transform_perspective(&rastertocamera, make_float3(width, height, 0.0f));
+
+			/* Create point clamped to frustum */
+			float3 c;
+			c.x = max(-v.x, min(v.x, p.x));
+			c.y = max(-v.y, min(v.y, p.y));
+			c.z = max(0.0f, p.z);
+
+			float f_dist = len(p - c) / sqrtf((v.x*v.x+v.y*v.y)*0.5f);
+
+			if(f_dist > 0.0f) {
+				res += res * f_dist * (offscreen_dicing_scale - 1.0f);
+			}
+		}
 	}
 	else if(type == CAMERA_PERSPECTIVE) {
 		/* Calculate as if point is directly ahead of the camera. */
@@ -597,14 +625,74 @@ float Camera::world_to_raster_size(float3 P)
 		/* dPdx */
 		float dist = len(transform_point(&worldtocamera, P));
 		float3 D = normalize(Ddiff);
-		return len(dist*dDdx - dot(dist*dDdx, D)*D);
+		res = len(dist*dDdx - dot(dist*dDdx, D)*D);
+
+		/* Decent approx distance to frustum (doesn't handle corners correctly, but not that big of a deal) */
+		float f_dist = 0.0f;
+
+		if(offscreen_dicing_scale > 1.0f) {
+			float3 p = transform_point(&worldtocamera, P);
+
+			/* Distance from the four planes */
+			float r = dot(p, frustum_right_normal);
+			float t = dot(p, frustum_top_normal);
+			p = make_float3(-p.x, -p.y, p.z);
+			float l = dot(p, frustum_right_normal);
+			float b = dot(p, frustum_top_normal);
+			p = make_float3(-p.x, -p.y, p.z);
+
+			if(r <= 0.0f && l <= 0.0f && t <= 0.0f && b <= 0.0f) {
+				/* Point is inside frustum */
+				f_dist = 0.0f;
+			}
+			else if(r > 0.0f && l > 0.0f && t > 0.0f && b > 0.0f) {
+				/* Point is behind frustum */
+				f_dist = len(p);
+			}
+			else {
+				/* Point may be behind or off to the side, need to check */
+				float3 along_right = make_float3(-frustum_right_normal.z, 0.0f, frustum_right_normal.x);
+				float3 along_left = make_float3(frustum_right_normal.z, 0.0f, frustum_right_normal.x);
+				float3 along_top = make_float3(0.0f, -frustum_top_normal.z, frustum_top_normal.y);
+				float3 along_bottom = make_float3(0.0f, frustum_top_normal.z, frustum_top_normal.y);
+
+				float dist[] = {r, l, t, b};
+				float3 along[] = {along_right, along_left, along_top, along_bottom};
+
+				bool test_o = false;
+
+				float *d = dist;
+				float3 *a = along;
+				for(int i = 0; i < 4; i++, d++, a++) {
+					/* Test if we should check this side at all */
+					if(*d > 0.0f) {
+						if(dot(p, *a) >= 0.0f) {
+							/* We are in front of the back edge of this side of the frustum */
+							f_dist = max(f_dist, *d);
+						}
+						else {
+							/* Possibly far enough behind the frustum to use distance to origin instead of edge */
+							test_o = true;
+						}
+					}
+				}
+
+				if(test_o) {
+					f_dist = (f_dist > 0) ? min(f_dist, len(p)) : len(p);
+				}
+			}
+
+			if(f_dist > 0.0f) {
+				res += len(dDdx - dot(dDdx, D)*D) * f_dist * (offscreen_dicing_scale - 1.0f);
+			}
+		}
 	}
 	else {
 		// TODO(mai): implement for CAMERA_PANORAMA
 		assert(!"pixel width calculation for panoramic projection not implemented yet");
 	}
 
-	return 1.0f;
+	return res;
 }
 
 CCL_NAMESPACE_END

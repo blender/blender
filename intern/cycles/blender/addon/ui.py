@@ -225,31 +225,32 @@ class CYCLES_RENDER_PT_geometry(CyclesButtonsPanel, Panel):
         cscene = scene.cycles
         ccscene = scene.cycles_curves
 
+        row = layout.row()
+        row.label("Volume Sampling:")
+        row = layout.row()
+        row.prop(cscene, "volume_step_size")
+        row.prop(cscene, "volume_max_steps")
+
+        layout.separator()
+
         if cscene.feature_set == 'EXPERIMENTAL':
+            layout.label("Subdivision Rate:")
             split = layout.split()
 
             col = split.column()
-
             sub = col.column(align=True)
-            sub.label("Volume Sampling:")
-            sub.prop(cscene, "volume_step_size")
-            sub.prop(cscene, "volume_max_steps")
-
-            col = split.column()
-
-            sub = col.column(align=True)
-            sub.label("Subdivision Rate:")
             sub.prop(cscene, "dicing_rate", text="Render")
             sub.prop(cscene, "preview_dicing_rate", text="Preview")
-            sub.separator()
-            sub.prop(cscene, "max_subdivisions")
-        else:
-            row = layout.row()
-            row.label("Volume Sampling:")
-            row = layout.row()
-            row.prop(cscene, "volume_step_size")
-            row.prop(cscene, "volume_max_steps")
 
+            col = split.column()
+            col.prop(cscene, "offscreen_dicing_scale", text="Offscreen Scale")
+            col.prop(cscene, "max_subdivisions")
+
+            layout.prop(cscene, "dicing_camera")
+
+            layout.separator()
+
+        layout.label("Hair:")
         layout.prop(ccscene, "use_curves", text="Use Hair")
         col = layout.column()
         col.active = ccscene.use_curves
