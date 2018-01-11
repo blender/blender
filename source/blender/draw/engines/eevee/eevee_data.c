@@ -45,7 +45,10 @@ static void eevee_view_layer_data_free(void *storage)
 	DRW_TEXTURE_FREE_SAFE(sldata->shadow_cascade_target);
 	DRW_TEXTURE_FREE_SAFE(sldata->shadow_cascade_blur);
 	DRW_TEXTURE_FREE_SAFE(sldata->shadow_pool);
-	BLI_freelistN(&sldata->shadow_casters);
+	MEM_SAFE_FREE(sldata->shcasters_buffers[0].shadow_casters);
+	MEM_SAFE_FREE(sldata->shcasters_buffers[0].flags);
+	MEM_SAFE_FREE(sldata->shcasters_buffers[1].shadow_casters);
+	MEM_SAFE_FREE(sldata->shcasters_buffers[1].flags);
 
 	/* Probes */
 	MEM_SAFE_FREE(sldata->probes);
@@ -62,14 +65,6 @@ static void eevee_view_layer_data_free(void *storage)
 
 	/* Volumetrics */
 	MEM_SAFE_FREE(sldata->volumetrics);
-}
-
-static void eevee_lamp_data_free(void *storage)
-{
-	EEVEE_LampEngineData *led = (EEVEE_LampEngineData *)storage;
-
-	MEM_SAFE_FREE(led->storage);
-	BLI_freelistN(&led->shadow_caster_list);
 }
 
 static void eevee_lightprobe_data_free(void *storage)
@@ -110,6 +105,7 @@ EEVEE_ObjectEngineData *EEVEE_object_data_ensure(Object *ob)
 
 	if (*oedata == NULL) {
 		*oedata = MEM_callocN(sizeof(**oedata), "EEVEE_ObjectEngineData");
+		(*oedata)->shadow_caster_id = -1;
 	}
 
 	return *oedata;
@@ -144,11 +140,12 @@ EEVEE_LampEngineData *EEVEE_lamp_data_get(Object *ob)
 EEVEE_LampEngineData *EEVEE_lamp_data_ensure(Object *ob)
 {
 	EEVEE_LampEngineData **ledata = (EEVEE_LampEngineData **)DRW_object_engine_data_ensure(
-	        ob, &draw_engine_eevee_type, &eevee_lamp_data_free);
+	        ob, &draw_engine_eevee_type, NULL);
 
 	if (*ledata == NULL) {
 		*ledata = MEM_callocN(sizeof(**ledata), "EEVEE_LampEngineData");
 		(*ledata)->need_update = true;
+		(*ledata)->prev_cube_shadow_id = -1;
 	}
 
 	return *ledata;

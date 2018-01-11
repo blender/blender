@@ -123,12 +123,7 @@ static void eevee_cache_populate(void *vedata, Object *ob)
 		const bool cast_shadow = true;
 
 		if (cast_shadow) {
-			if ((ob->base_flag & BASE_FROMDUPLI) != 0) {
-				/* TODO: Special case for dupli objects because we cannot save the object pointer. */
-			}
-			else {
-				BLI_addtail(&sldata->shadow_casters, BLI_genericNodeN(ob));
-			}
+			EEVEE_lights_cache_shcaster_object_add(sldata, ob);
 		}
 	}
 	else if (ob->type == OB_LIGHTPROBE) {
