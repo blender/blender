@@ -418,7 +418,7 @@ static void meshdeformModifier_do(
 	/* Do deformation. */
 	ParallelRangeSettings settings;
 	BLI_parallel_range_settings_defaults(&settings);
-	settings.use_threading = (totvert > 1000);
+	settings.min_iter_per_thread = 16;
 	BLI_task_parallel_range(0, totvert,
 	                        &data,
 	                        meshdeform_vert_task,
