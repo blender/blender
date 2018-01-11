@@ -1599,7 +1599,7 @@ static void outliner_draw_hierarchy_lines_recursive(unsigned pos, SpaceOops *soo
                                                     const unsigned char col[4], bool draw_grayed_out,
                                                     int *starty)
 {
-	TreeElement *te;
+	TreeElement *te, *te_vertical_line_last = NULL;
 	TreeStoreElem *tselem;
 	int y1, y2;
 
@@ -1609,10 +1609,10 @@ static void outliner_draw_hierarchy_lines_recursive(unsigned pos, SpaceOops *soo
 
 	const unsigned char grayed_alpha = col[3] / 2;
 
-	y1 = y2 = *starty; /* for vertical lines between objects */
+	/* For vertical lines between objects. */
+	y1 = *starty;
 	for (te = lb->first; te; te = te->next) {
 		bool draw_childs_grayed_out = draw_grayed_out || (te->drag_data != NULL);
-		y2 = *starty;
 		tselem = TREESTORE(te);
 
 		if (draw_childs_grayed_out) {
@@ -1622,10 +1622,17 @@ static void outliner_draw_hierarchy_lines_recursive(unsigned pos, SpaceOops *soo
 			immUniformColor4ubv(col);
 		}
 
-		/* horizontal line? */
-		if (tselem->type == 0 && (te->idcode == ID_OB || te->idcode == ID_SCE))
+		/* Horizontal Line? */
+		if (tselem->type == 0 && (te->idcode == ID_OB || te->idcode == ID_SCE)) {
 			immRecti(pos, startx, *starty, startx + UI_UNIT_X, *starty - 1);
-			
+
+			/* Vertical Line? */
+			if (te->idcode == ID_OB) {
+				te_vertical_line_last = te;
+				y2 = *starty;
+			}
+		}
+
 		*starty -= UI_UNIT_Y;
 		
 		if (TSELEM_OPEN(tselem, soops))
@@ -1640,12 +1647,10 @@ static void outliner_draw_hierarchy_lines_recursive(unsigned pos, SpaceOops *soo
 		immUniformColor4ubv(col);
 	}
 
-	/* vertical line */
-	te = lb->last;
-	if (te->parent || lb->first != lb->last) {
-		tselem = TREESTORE(te);
-		if (tselem->type == 0 && te->idcode == ID_OB)
-			immRecti(pos, startx, y1 + UI_UNIT_Y, startx + 1, y2);
+	/* Vertical line. */
+	te = te_vertical_line_last;
+	if ((te != NULL) && (te->parent || lb->first != lb->last)) {
+		immRecti(pos, startx, y1 + UI_UNIT_Y, startx + 1, y2);
 	}
 }
 
