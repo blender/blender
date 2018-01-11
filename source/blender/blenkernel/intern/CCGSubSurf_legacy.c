@@ -34,9 +34,6 @@
 
 #define FACE_calcIFNo(f, lvl, S, x, y, no)  _face_calcIFNo(f, lvl, S, x, y, no, subdivLevels, vertDataSize)
 
-/* TODO(sergey): This actually depends on subsurf level as well. */
-#define CCG_TASK_LIMIT 16
-
 /* TODO(sergey): Deduplicate the following functions/ */
 static void *_edge_getCoVert(CCGEdge *e, CCGVert *v, int lvl, int x, int dataSize)
 {
