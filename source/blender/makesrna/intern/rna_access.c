@@ -7352,8 +7352,8 @@ bool RNA_struct_override_matches(
 
 	const bool ignore_non_overridable = (flags & RNA_OVERRIDE_COMPARE_IGNORE_NON_OVERRIDABLE) != 0;
 	const bool ignore_overridden = (flags & RNA_OVERRIDE_COMPARE_IGNORE_OVERRIDDEN) != 0;
-	const bool do_create = (flags & RNA_OVERRIDE_COMPARE_IGNORE_NON_OVERRIDABLE) != 0;
-	const bool do_restore = (flags & RNA_OVERRIDE_COMPARE_IGNORE_OVERRIDDEN) != 0;
+	const bool do_create = (flags & RNA_OVERRIDE_COMPARE_CREATE) != 0;
+	const bool do_restore = (flags & RNA_OVERRIDE_COMPARE_RESTORE) != 0;
 
 #ifdef DEBUG_OVERRIDE_TIMEIT
 	static float _sum_time = 0.0f;
@@ -7406,7 +7406,7 @@ bool RNA_struct_override_matches(
 			continue;
 		}
 
-		if (ignore_overridden && BKE_override_static_property_find(override, rna_path) == NULL) {
+		if (ignore_overridden && BKE_override_static_property_find(override, rna_path) != NULL) {
 			MEM_SAFE_FREE(rna_path);
 			continue;
 		}
@@ -7443,7 +7443,8 @@ bool RNA_struct_override_matches(
 						}
 					}
 					else {
-						BLI_assert(!"We have differences between reference and overriding data on non-editable property.");
+						/* Too noisy for now, this triggers on runtime props like transform matrices etc. */
+						/* BLI_assert(!"We have differences between reference and overriding data on non-editable property."); */
 						matching = false;
 					}
 				}
