@@ -679,7 +679,9 @@ typedef enum eUserpref_UI_Flag {
 	USER_DRAWVIEWINFO		= (1 << 4),
 	USER_PLAINMENUS			= (1 << 5),
 	USER_LOCK_CURSOR_ADJUST	= (1 << 6),
-	USER_UIFLAG_DEPRECATED_7	= (1 << 7),  /* cleared */
+	/* Avoid accidentally adjusting the layout
+	 * (exact behavior may change based on whats considered reasonable to lock down). */
+	USER_LOCK_UI_LAYOUT	= (1 << 7),
 	USER_ALLWINCODECS		= (1 << 8),
 	USER_MENUOPENAUTO		= (1 << 9),
 	USER_ZBUF_CURSOR		= (1 << 10),

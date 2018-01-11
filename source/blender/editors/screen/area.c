@@ -769,6 +769,10 @@ static void area_azone_initialize(wmWindow *win, const bScreen *screen, ScrArea 
 		return;
 	}
 
+	if (U.uiflag & USER_LOCK_UI_LAYOUT) {
+		return;
+	}
+
 	/* can't click on bottom corners on OS X, already used for resizing */
 #ifdef __APPLE__
 	if (!(sa->totrct.xmin == 0 && sa->totrct.ymin == 0) || WM_window_is_fullscreen(win))

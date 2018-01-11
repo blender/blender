@@ -318,6 +318,9 @@ class USERPREF_PT_interface(Panel):
         col.separator()
         col.separator()
 
+        col.label(text="Screen:")
+        col.prop(view, "show_layout_ui")
+
         col.prop(view, "show_splash")
 
 
