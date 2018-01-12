@@ -1259,7 +1259,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			te->flag |= TE_LAZY_CLOSED;
 	}
 
-	if ((type !=  TSE_LAYER_COLLECTION) && GS(id->name) == ID_GR) {
+	if ((type != TSE_LAYER_COLLECTION) && (te->idcode == ID_GR)) {
 		Group *group = (Group *)id;
 		outliner_add_layer_collections_recursive(soops, &te->subtree, id, &group->view_layer->layer_collections, NULL);
 	}
