@@ -174,13 +174,16 @@ public:
 	bool need_flags_update;
 	int previous_need_motion;
 
+	/* Kernel camera data, copied here for dicing. */
+	KernelCamera kernel_camera;
+
 	/* functions */
 	Camera();
 	~Camera();
 	
 	void compute_auto_viewplane();
 
-	void update();
+	void update(Scene *scene);
 
 	void device_update(Device *device, DeviceScene *dscene, Scene *scene);
 	void device_update_volume(Device *device, DeviceScene *dscene, Scene *scene);

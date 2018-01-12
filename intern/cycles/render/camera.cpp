@@ -168,6 +168,8 @@ Camera::Camera()
 	need_device_update = true;
 	need_flags_update = true;
 	previous_need_motion = -1;
+
+	memset(&kernel_camera, 0, sizeof(kernel_camera));
 }
 
 Camera::~Camera()
@@ -199,8 +201,17 @@ void Camera::compute_auto_viewplane()
 	}
 }
 
-void Camera::update()
+void Camera::update(Scene *scene)
 {
+	Scene::MotionType need_motion = scene->need_motion();
+
+	if(previous_need_motion != need_motion) {
+		/* scene's motion model could have been changed since previous device
+		 * camera update this could happen for example in case when one render
+		 * layer has got motion pass and another not */
+		need_device_update = true;
+	}
+
 	if(!need_update)
 		return;
 
@@ -299,28 +310,8 @@ void Camera::update()
 		perspective_motion.post = screentocamera_post * rastertoscreen;
 	}
 
-	need_update = false;
-	need_device_update = true;
-	need_flags_update = true;
-}
-
-void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
-{
-	Scene::MotionType need_motion = scene->need_motion();
-
-	update();
-
-	if(previous_need_motion != need_motion) {
-		/* scene's motion model could have been changed since previous device
-		 * camera update this could happen for example in case when one render
-		 * layer has got motion pass and another not */
-		need_device_update = true;
-	}
-
-	if(!need_device_update)
-		return;
-	
-	KernelCamera *kcam = &dscene->data.cam;
+	/* Compute kernel camera data. */
+	KernelCamera *kcam = &kernel_camera;
 
 	/* store matrices */
 	kcam->screentoworld = screentoworld;
@@ -378,20 +369,6 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 
 	/* motion blur */
 	kcam->shuttertime = (need_motion == Scene::MOTION_BLUR) ? shuttertime: -1.0f;
-
-	scene->lookup_tables->remove_table(&shutter_table_offset);
-	if(need_motion == Scene::MOTION_BLUR) {
-		vector<float> shutter_table;
-		util_cdf_inverted(SHUTTER_TABLE_SIZE,
-		                  0.0f,
-		                  1.0f,
-		                  function_bind(shutter_curve_eval, _1, shutter_curve),
-		                  false,
-		                  shutter_table);
-		shutter_table_offset = scene->lookup_tables->add_table(dscene,
-		                                                       shutter_table);
-		kcam->shutter_table_offset = (int)shutter_table_offset;
-	}
 
 	/* type */
 	kcam->type = type;
@@ -453,7 +430,37 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	kcam->rolling_shutter_type = rolling_shutter_type;
 	kcam->rolling_shutter_duration = rolling_shutter_duration;
 
+	/* Set further update flags */
+	need_update = false;
+	need_device_update = true;
+	need_flags_update = true;
 	previous_need_motion = need_motion;
+}
+
+void Camera::device_update(Device * /* device */,
+                           DeviceScene *dscene,
+                           Scene *scene)
+{
+	update(scene);
+
+	if(!need_device_update)
+		return;
+
+	scene->lookup_tables->remove_table(&shutter_table_offset);
+	if(kernel_camera.shuttertime != -1.0f) {
+		vector<float> shutter_table;
+		util_cdf_inverted(SHUTTER_TABLE_SIZE,
+		                  0.0f,
+		                  1.0f,
+		                  function_bind(shutter_curve_eval, _1, shutter_curve),
+		                  false,
+		                  shutter_table);
+		shutter_table_offset = scene->lookup_tables->add_table(dscene,
+		                                                       shutter_table);
+		kernel_camera.shutter_table_offset = (int)shutter_table_offset;
+	}
+
+	dscene->data.cam = kernel_camera;
 }
 
 void Camera::device_update_volume(Device * /*device*/,
