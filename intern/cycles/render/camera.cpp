@@ -27,6 +27,15 @@
 #include "util/util_math_cdf.h"
 #include "util/util_vector.h"
 
+/* needed for calculating differentials */
+#include "kernel/kernel_compat_cpu.h"
+#include "kernel/split/kernel_split_data.h"
+#include "kernel/kernel_globals.h"
+#include "kernel/kernel_projection.h"
+#include "kernel/kernel_differential.h"
+#include "kernel/kernel_montecarlo.h"
+#include "kernel/kernel_camera.h"
+
 CCL_NAMESPACE_BEGIN
 
 static float shutter_curve_eval(float x,
@@ -688,9 +697,33 @@ float Camera::world_to_raster_size(float3 P)
 			}
 		}
 	}
-	else {
-		// TODO(mai): implement for CAMERA_PANORAMA
-		assert(!"pixel width calculation for panoramic projection not implemented yet");
+	else if(type == CAMERA_PANORAMA) {
+		float3 D = transform_point(&worldtocamera, P);
+		float dist = len(D);
+
+		Ray ray;
+
+		/* Distortion can become so great that the results become meaningless, there
+		 * may be a better way to do this, but calculating differentials from the
+		 * point directly ahead seems to produce good enough results. */
+#if 0
+		float2 dir = direction_to_panorama(&kernel_camera, normalize(D));
+		float3 raster = transform_perspective(&cameratoraster, make_float3(dir.x, dir.y, 0.0f));
+
+		ray.t = 1.0f;
+		camera_sample_panorama(&kernel_camera, raster.x, raster.y, 0.0f, 0.0f, &ray);
+		if(ray.t == 0.0f) {
+			/* No differentials, just use from directly ahead. */
+			camera_sample_panorama(&kernel_camera, 0.5f*width, 0.5f*height, 0.0f, 0.0f, &ray);
+		}
+#else
+		camera_sample_panorama(&kernel_camera, 0.5f*width, 0.5f*height, 0.0f, 0.0f, &ray);
+#endif
+
+		differential_transfer(&ray.dP, ray.dP, ray.D, ray.dD, ray.D, dist);
+
+		return max(len(ray.dP.dx) * (float(width)/float(full_width)),
+		           len(ray.dP.dy) * (float(height)/float(full_height)));
 	}
 
 	return res;
