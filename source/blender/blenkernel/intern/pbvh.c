@@ -1103,6 +1103,13 @@ void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes, int totnode, int flag)
 	BLI_task_parallel_range(0, totnode, &data, pbvh_update_BB_redraw_task_cb, &settings);
 }
 
+static int pbvh_get_buffers_update_flags(PBVH *bvh)
+{
+	int update_flags = 0;
+	update_flags |= bvh->show_diffuse_color ? GPU_PBVH_BUFFERS_SHOW_DIFFUSE_COLOR : 0;
+	return update_flags;
+}
+
 static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 {
 	/* can't be done in parallel with OpenGL */
@@ -1138,6 +1145,7 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 		}
 
 		if (node->flag & PBVH_UpdateDrawBuffers) {
+			const int update_flags = pbvh_get_buffers_update_flags(bvh);
 			switch (bvh->type) {
 				case PBVH_GRIDS:
 					GPU_pbvh_grid_buffers_update(
@@ -1147,7 +1155,7 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 					        node->prim_indices,
 					        node->totprim,
 					        &bvh->gridkey,
-					        bvh->show_diffuse_color);
+					        update_flags);
 					break;
 				case PBVH_FACES:
 					GPU_pbvh_mesh_buffers_update(
@@ -1158,7 +1166,7 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 					        node->face_verts,
 					        CustomData_get_layer(bvh->vdata, CD_PAINT_MASK),
 					        node->face_vert_indices,
-					        bvh->show_diffuse_color);
+					        update_flags);
 					break;
 				case PBVH_BMESH:
 					GPU_pbvh_bmesh_buffers_update(
@@ -1167,7 +1175,7 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 					        node->bm_faces,
 					        node->bm_unique_verts,
 					        node->bm_other_verts,
-					        bvh->show_diffuse_color);
+					        update_flags);
 					break;
 			}
 

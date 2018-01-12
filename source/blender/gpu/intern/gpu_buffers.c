@@ -1033,8 +1033,10 @@ static void gpu_color_from_mask_quad_copy(const CCGKey *key,
 void GPU_pbvh_mesh_buffers_update(
         GPU_PBVH_Buffers *buffers, const MVert *mvert,
         const int *vert_indices, int totvert, const float *vmask,
-        const int (*face_vert_indices)[3], bool show_diffuse_color)
+        const int (*face_vert_indices)[3],
+        const int update_flags)
 {
+	const bool show_diffuse_color = (update_flags & GPU_PBVH_BUFFERS_SHOW_DIFFUSE_COLOR) != 0;
 	VertexBufferFormat *vert_data;
 	int i;
 
@@ -1239,8 +1241,10 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(
 void GPU_pbvh_grid_buffers_update(
         GPU_PBVH_Buffers *buffers, CCGElem **grids,
         const DMFlagMat *grid_flag_mats, int *grid_indices,
-        int totgrid, const CCGKey *key, bool show_diffuse_color)
+        int totgrid, const CCGKey *key,
+        const int update_flags)
 {
+	const bool show_diffuse_color = (update_flags & GPU_PBVH_BUFFERS_SHOW_DIFFUSE_COLOR) != 0;
 	VertexBufferFormat *vert_data;
 	int i, j, k, x, y;
 
@@ -1611,8 +1615,9 @@ void GPU_pbvh_bmesh_buffers_update(
         GSet *bm_faces,
         GSet *bm_unique_verts,
         GSet *bm_other_verts,
-        bool show_diffuse_color)
+        const int update_flags)
 {
+	const bool show_diffuse_color = (update_flags & GPU_PBVH_BUFFERS_SHOW_DIFFUSE_COLOR) != 0;
 	VertexBufferFormat *vert_data;
 	void *tri_data;
 	int tottri, totvert, maxvert = 0;
