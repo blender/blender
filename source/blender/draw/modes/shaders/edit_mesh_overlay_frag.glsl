@@ -14,6 +14,7 @@ uniform float faceAlphaMod;
 flat in vec3 edgesCrease;
 flat in vec3 edgesBweight;
 flat in vec4 faceColor;
+flat in ivec3 flag;
 flat in int clipCase;
 #ifdef VERTEX_SELECTION
 in vec3 vertexColor;
@@ -41,13 +42,6 @@ in float facing;
 
 noperspective in vec2 eData1;
 flat in vec2 eData2[3];
-
-/* Some intel Gpu seems to have memory alignement problems. So adding a padding int */
-#ifdef GPU_INTEL
-flat in ivec4 flag;
-#else
-flat in ivec3 flag;
-#endif
 
 out vec4 FragColor;
 

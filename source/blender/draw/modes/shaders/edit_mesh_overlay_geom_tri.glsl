@@ -42,6 +42,7 @@ in float vFacing[];
 flat out vec3 edgesCrease;
 flat out vec3 edgesBweight;
 flat out vec4 faceColor;
+flat out ivec3 flag;
 flat out int clipCase;
 #ifdef VERTEX_SELECTION
 out vec3 vertexColor;
@@ -53,13 +54,6 @@ out float facing;
 /* See fragment shader */
 noperspective out vec2 eData1;
 flat out vec2 eData2[3];
-
-/* Some intel Gpu seems to have memory alignement problems. So adding a padding int */
-#ifdef GPU_INTEL
-flat out ivec4 flag;
-#else
-flat out ivec3 flag;
-#endif
 
 #define VERTEX_ACTIVE   (1 << 0)
 #define VERTEX_SELECTED (1 << 1)
