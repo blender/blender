@@ -57,7 +57,7 @@ void main()
 	float inc = 2.0 * inv_samples;
 	float i = -1.0 + noise;
 
-	FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+	FragColor = vec4(0.0);
 	for (int j = 0; j < samples && j < MAX_SAMPLE; j++) {
 		FragColor += textureLod(colorBuffer, uvcoordsvar.xy + motion * i, 0.0) * inv_samples;
 		i += inc;
