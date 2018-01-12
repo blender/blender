@@ -52,7 +52,11 @@ static struct {
 extern char datatoc_effect_motion_blur_frag_glsl[];
 
 static void eevee_motion_blur_camera_get_matrix_at_time(
-        const bContext *C, Scene *scene, ARegion *ar, RegionView3D *rv3d, View3D *v3d, Object *camera, float time, float r_mat[4][4])
+        Scene *scene,
+        ARegion *ar, RegionView3D *rv3d, View3D *v3d,
+        Object *camera,
+        float time,
+        float r_mat[4][4])
 {
 	EvaluationContext eval_ctx;
 	float obmat[4][4];
@@ -63,7 +67,19 @@ static void eevee_motion_blur_camera_get_matrix_at_time(
 	memcpy(&camdata_cpy, camera->data, sizeof(camdata_cpy));
 	cam_cpy.data = &camdata_cpy;
 
-	CTX_data_eval_ctx(C, &eval_ctx);
+	/* NOTE: Mode corresponds to old usage of eval_ctx from viewport (which was
+	 * actually coming from bmain). It was always DAG_EVAL_VIEWPORT. For F12
+	 * render this should be DAG_EVAL_RENDER, but the whole hack is to be
+	 * reconsidered first anyway.
+	 */
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	DEG_evaluation_context_init_from_scene(
+	        &eval_ctx,
+	        scene,
+	        draw_ctx->view_layer,
+	        draw_ctx->engine_type,
+	        DAG_EVAL_VIEWPORT);
+	eval_ctx.ctime = time;
 
 	/* Past matrix */
 	/* FIXME : This is a temporal solution that does not take care of parent animations */
@@ -121,9 +137,11 @@ int EEVEE_motion_blur_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *veda
 	View3D *v3d = draw_ctx->v3d;
 	RegionView3D *rv3d = draw_ctx->rv3d;
 	ARegion *ar = draw_ctx->ar;
-	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
+	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer,
+	                                                        COLLECTION_MODE_NONE,
+	                                                        RE_engine_id_BLENDER_EEVEE);
 
-	if (BKE_collection_engine_property_value_get_bool(props, "motion_blur_enable") && (draw_ctx->evil_C != NULL)) {
+	if (BKE_collection_engine_property_value_get_bool(props, "motion_blur_enable")) {
 		/* Update Motion Blur Matrices */
 		if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
 			float persmat[4][4];
@@ -131,24 +149,38 @@ int EEVEE_motion_blur_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *veda
 			float delta = BKE_collection_engine_property_value_get_float(props, "motion_blur_shutter");
 
 			/* Current matrix */
-			eevee_motion_blur_camera_get_matrix_at_time(draw_ctx->evil_C, scene, ar, rv3d, v3d, v3d->camera, ctime, effects->current_ndc_to_world);
+			eevee_motion_blur_camera_get_matrix_at_time(scene,
+			                                            ar, rv3d, v3d,
+			                                            v3d->camera,
+			                                            ctime,
+			                                            effects->current_ndc_to_world);
 
 			/* Viewport Matrix */
 			DRW_viewport_matrix_get(persmat, DRW_MAT_PERS);
 
 			/* Only continue if camera is not being keyed */
-			if (compare_m4m4(persmat, effects->current_ndc_to_world, 0.0001f)) {
-
+			if (DRW_state_is_image_render() ||
+			    compare_m4m4(persmat, effects->current_ndc_to_world, 0.0001f))
+			{
 				/* Past matrix */
-				eevee_motion_blur_camera_get_matrix_at_time(draw_ctx->evil_C, scene, ar, rv3d, v3d, v3d->camera, ctime - delta, effects->past_world_to_ndc);
+				eevee_motion_blur_camera_get_matrix_at_time(scene,
+				                                            ar, rv3d, v3d,
+				                                            v3d->camera,
+				                                            ctime - delta,
+				                                            effects->past_world_to_ndc);
 
 #if 0       /* for future high quality blur */
 				/* Future matrix */
-				eevee_motion_blur_camera_get_matrix_at_time(scene, ar, rv3d, v3d, v3d->camera, ctime + delta, effects->future_world_to_ndc);
+				eevee_motion_blur_camera_get_matrix_at_time(scene,
+				                                            ar, rv3d, v3d,
+				                                            v3d->camera,
+				                                            ctime + delta,
+				                                            effects->future_world_to_ndc);
 #endif
 				invert_m4(effects->current_ndc_to_world);
 
-				effects->motion_blur_samples = BKE_collection_engine_property_value_get_int(props, "motion_blur_samples");
+				effects->motion_blur_samples = BKE_collection_engine_property_value_get_int(props,
+				                                                                            "motion_blur_samples");
 
 				if (!e_data.motion_blur_sh) {
 					eevee_create_shader_motion_blur();
