@@ -666,7 +666,7 @@ static void area_azone_initialize(wmWindow *win, bScreen *screen, ScrArea *sa)
 		return;
 	}
 
-	if (U.uiflag & USER_LOCK_UI_LAYOUT) {
+	if (U.app_flag & USER_APP_LOCK_UI_LAYOUT) {
 		return;
 	}
 

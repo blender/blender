@@ -280,7 +280,10 @@ void BKE_blender_userdef_app_template_data_swap(UserDef *userdef_a, UserDef *use
 	DATA_SWAP(font_path_ui_mono);
 	DATA_SWAP(keyconfigstr);
 
-	FLAG_SWAP(uiflag, int, USER_LOCK_UI_LAYOUT);
+	DATA_SWAP(app_flag);
+
+	/* We could add others. */
+	FLAG_SWAP(uiflag, int, USER_QUIT_PROMPT);
 
 #undef DATA_SWAP
 #undef LIST_SWAP
