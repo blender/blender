@@ -3934,6 +3934,10 @@ static void view3d_main_region_draw_objects(const bContext *C, Scene *scene, Vie
 
 static bool is_cursor_visible(Scene *scene)
 {
+	if (U.app_flag & USER_APP_VIEW3D_HIDE_CURSOR) {
+		return false;
+	}
+
 	Object *ob = OBACT;
 
 	/* don't draw cursor in paint modes, but with a few exceptions */
