@@ -306,7 +306,7 @@ void Camera::update()
 
 void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 {
-	Scene::MotionType need_motion = scene->need_motion(device->info.advanced_shading);
+	Scene::MotionType need_motion = scene->need_motion();
 
 	update();
 
@@ -359,7 +359,6 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 			}
 		}
 	}
-#ifdef __CAMERA_MOTION__
 	else if(need_motion == Scene::MOTION_BLUR) {
 		if(use_motion) {
 			transform_motion_decompose(&kcam->motion, &motion, &matrix);
@@ -370,7 +369,6 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 			kcam->have_perspective_motion = 1;
 		}
 	}
-#endif
 
 	/* depth of field */
 	kcam->aperturesize = aperturesize;
@@ -379,7 +377,6 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	kcam->bladesrotation = bladesrotation;
 
 	/* motion blur */
-#ifdef __CAMERA_MOTION__
 	kcam->shuttertime = (need_motion == Scene::MOTION_BLUR) ? shuttertime: -1.0f;
 
 	scene->lookup_tables->remove_table(&shutter_table_offset);
@@ -395,9 +392,6 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 		                                                       shutter_table);
 		kcam->shutter_table_offset = (int)shutter_table_offset;
 	}
-#else
-	kcam->shuttertime = -1.0f;
-#endif
 
 	/* type */
 	kcam->type = type;

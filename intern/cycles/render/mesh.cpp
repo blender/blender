@@ -2103,12 +2103,8 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 		shader->need_update_attributes = false;
 	}
 
-#ifdef __OBJECT_MOTION__
-	Scene::MotionType need_motion = scene->need_motion(device->info.advanced_shading);
+	Scene::MotionType need_motion = scene->need_motion();
 	bool motion_blur = need_motion == Scene::MOTION_BLUR;
-#else
-	bool motion_blur = false;
-#endif
 
 	/* Update objects. */
 	vector<Object *> volume_objects;
