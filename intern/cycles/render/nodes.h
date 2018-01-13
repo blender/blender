@@ -1027,6 +1027,18 @@ public:
 	int samples;
 };
 
+class DisplacementNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(DisplacementNode)
+	virtual int get_feature() {
+		return NODE_FEATURE_BUMP;
+	}
+
+	float height;
+	float scale;
+	float3 normal;
+};
+
 CCL_NAMESPACE_END
 
 #endif /* __NODES_H__ */

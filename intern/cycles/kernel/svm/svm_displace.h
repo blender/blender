@@ -22,8 +22,8 @@ ccl_device void svm_node_set_bump(KernelGlobals *kg, ShaderData *sd, float *stac
 {
 #ifdef __RAY_DIFFERENTIALS__
 	/* get normal input */
-	uint normal_offset, distance_offset, invert, use_object_space;
-	decode_node_uchar4(node.y, &normal_offset, &distance_offset, &invert, &use_object_space);
+	uint normal_offset, scale_offset, invert, use_object_space;
+	decode_node_uchar4(node.y, &normal_offset, &scale_offset, &invert, &use_object_space);
 
 	float3 normal_in = stack_valid(normal_offset)? stack_load_float3(stack, normal_offset): sd->N;
 
@@ -55,15 +55,15 @@ ccl_device void svm_node_set_bump(KernelGlobals *kg, ShaderData *sd, float *stac
 	float absdet = fabsf(det);
 
 	float strength = stack_load_float(stack, strength_offset);
-	float distance = stack_load_float(stack, distance_offset);
+	float scale = stack_load_float(stack, scale_offset);
 
 	if(invert)
-		distance *= -1.0f;
+		scale *= -1.0f;
 
 	strength = max(strength, 0.0f);
 
 	/* compute and output perturbed normal */
-	float3 normal_out = safe_normalize(absdet*normal_in - distance*signf(det)*surfgrad);
+	float3 normal_out = safe_normalize(absdet*normal_in - scale*signf(det)*surfgrad);
 	if(is_zero(normal_out)) {
 		normal_out = normal_in;
 	}
@@ -93,6 +93,23 @@ ccl_device void svm_node_set_displacement(KernelGlobals *kg, ShaderData *sd, flo
 	object_dir_transform(kg, sd, &dP);
 
 	sd->P += dP;
+}
+
+ccl_device void svm_node_displacement(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
+{
+	uint height_offset, scale_offset, normal_offset, displacement_offset;
+	decode_node_uchar4(node.y, &height_offset, &scale_offset, &normal_offset, &displacement_offset);
+
+	float height = stack_load_float(stack, height_offset);
+	float scale = stack_load_float(stack, scale_offset);
+	float3 normal = stack_valid(normal_offset)? stack_load_float3(stack, normal_offset): sd->N;
+
+	float3 dP = normal;
+	object_inverse_normal_transform(kg, sd, &dP);
+	dP *= height * scale;
+	object_dir_transform(kg, sd, &dP);
+
+	stack_store_float3(stack, displacement_offset, dP);
 }
 
 CCL_NAMESPACE_END
