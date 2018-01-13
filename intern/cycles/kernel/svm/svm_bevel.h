@@ -174,18 +174,17 @@ ccl_device_noinline float3 svm_bevel(
 			float pdf_B = pick_pdf_B * fabsf(dot(disk_B, hit_Ng));
 
 			/* Multiple importance sample between 3 axes, power heuristic
-			 * found to be slightly better than balance heuristic. */
-			float mis_weight = power_heuristic_3(pdf_N, pdf_T, pdf_B);
+			 * found to be slightly better than balance heuristic. pdf_N
+			 * in the MIS weight and denominator cancelled out. */
+			float w = pdf_N / (sqr(pdf_N) + sqr(pdf_T) + sqr(pdf_B));
+			if(isect.num_hits > LOCAL_MAX_HITS) {
+				w *= isect.num_hits/(float)LOCAL_MAX_HITS;
+			}
 
 			/* Real distance to sampled point. */
 			float r = len(hit_P - sd->P);
 
 			/* Compute weight. */
-			float w = mis_weight / pdf_N;
-			if(isect.num_hits > LOCAL_MAX_HITS) {
-				w *= isect.num_hits/(float)LOCAL_MAX_HITS;
-			}
-
 			float pdf = bssrdf_cubic_pdf(radius, 0.0f, r);
 			float disk_pdf = bssrdf_cubic_pdf(radius, 0.0f, disk_r);
 

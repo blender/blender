@@ -225,9 +225,7 @@ void BlenderSync::sync_data(BL::RenderSettings& b_render,
 
 void BlenderSync::sync_integrator()
 {
-#ifdef __CAMERA_MOTION__
 	BL::RenderSettings r = b_scene.render();
-#endif
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 
 	experimental = (get_enum(cscene, "feature_set") != 0);
@@ -272,7 +270,6 @@ void BlenderSync::sync_integrator()
 
 	integrator->sample_clamp_direct = get_float(cscene, "sample_clamp_direct");
 	integrator->sample_clamp_indirect = get_float(cscene, "sample_clamp_indirect");
-#ifdef __CAMERA_MOTION__
 	if(!preview) {
 		if(integrator->motion_blur != r.use_motion_blur()) {
 			scene->object_manager->tag_update(scene);
@@ -281,7 +278,6 @@ void BlenderSync::sync_integrator()
 
 		integrator->motion_blur = r.use_motion_blur();
 	}
-#endif
 
 	integrator->method = (Integrator::Method)get_enum(cscene,
 	                                                  "progressive",

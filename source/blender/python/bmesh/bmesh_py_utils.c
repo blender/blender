@@ -650,7 +650,7 @@ static PyObject *bpy_bm_utils_face_join(PyObject *UNUSED(self), PyObject *args)
 	bool do_remove = true;
 
 	if (!PyArg_ParseTuple(
-	        args, "O|i:face_join",
+	        args, "O|O&:face_join",
 	        &py_face_array,
 	        PyC_ParseBool, &do_remove))
 	{

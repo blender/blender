@@ -27,6 +27,15 @@
 #include "util/util_math_cdf.h"
 #include "util/util_vector.h"
 
+/* needed for calculating differentials */
+#include "kernel/kernel_compat_cpu.h"
+#include "kernel/split/kernel_split_data.h"
+#include "kernel/kernel_globals.h"
+#include "kernel/kernel_projection.h"
+#include "kernel/kernel_differential.h"
+#include "kernel/kernel_montecarlo.h"
+#include "kernel/kernel_camera.h"
+
 CCL_NAMESPACE_BEGIN
 
 static float shutter_curve_eval(float x,
@@ -128,6 +137,8 @@ NODE_DEFINE(Camera)
 	SOCKET_FLOAT(border.bottom, "Border Bottom", 0);
 	SOCKET_FLOAT(border.top, "Border Top", 0);
 
+	SOCKET_FLOAT(offscreen_dicing_scale, "Offscreen Dicing Scale", 1.0f);
+
 	return type;
 }
 
@@ -166,6 +177,8 @@ Camera::Camera()
 	need_device_update = true;
 	need_flags_update = true;
 	previous_need_motion = -1;
+
+	memset(&kernel_camera, 0, sizeof(kernel_camera));
 }
 
 Camera::~Camera()
@@ -197,8 +210,17 @@ void Camera::compute_auto_viewplane()
 	}
 }
 
-void Camera::update()
+void Camera::update(Scene *scene)
 {
+	Scene::MotionType need_motion = scene->need_motion();
+
+	if(previous_need_motion != need_motion) {
+		/* scene's motion model could have been changed since previous device
+		 * camera update this could happen for example in case when one render
+		 * layer has got motion pass and another not */
+		need_device_update = true;
+	}
+
 	if(!need_update)
 		return;
 
@@ -273,6 +295,13 @@ void Camera::update()
 	full_dx = transform_direction(&cameratoworld, full_dx);
 	full_dy = transform_direction(&cameratoworld, full_dy);
 
+	if(type == CAMERA_PERSPECTIVE) {
+		float3 v = transform_perspective(&full_rastertocamera, make_float3(full_width, full_height, 1.0f));
+
+		frustum_right_normal = normalize(make_float3(v.z, 0.0f, -v.x));
+		frustum_top_normal = normalize(make_float3(0.0f, v.z, -v.y));
+	}
+
 	/* TODO(sergey): Support other types of camera. */
 	if(type == CAMERA_PERSPECTIVE) {
 		/* TODO(sergey): Move to an utility function and de-duplicate with
@@ -290,28 +319,8 @@ void Camera::update()
 		perspective_motion.post = screentocamera_post * rastertoscreen;
 	}
 
-	need_update = false;
-	need_device_update = true;
-	need_flags_update = true;
-}
-
-void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
-{
-	Scene::MotionType need_motion = scene->need_motion(device->info.advanced_shading);
-
-	update();
-
-	if(previous_need_motion != need_motion) {
-		/* scene's motion model could have been changed since previous device
-		 * camera update this could happen for example in case when one render
-		 * layer has got motion pass and another not */
-		need_device_update = true;
-	}
-
-	if(!need_device_update)
-		return;
-	
-	KernelCamera *kcam = &dscene->data.cam;
+	/* Compute kernel camera data. */
+	KernelCamera *kcam = &kernel_camera;
 
 	/* store matrices */
 	kcam->screentoworld = screentoworld;
@@ -350,7 +359,6 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 			}
 		}
 	}
-#ifdef __CAMERA_MOTION__
 	else if(need_motion == Scene::MOTION_BLUR) {
 		if(use_motion) {
 			transform_motion_decompose(&kcam->motion, &motion, &matrix);
@@ -361,7 +369,6 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 			kcam->have_perspective_motion = 1;
 		}
 	}
-#endif
 
 	/* depth of field */
 	kcam->aperturesize = aperturesize;
@@ -370,25 +377,7 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	kcam->bladesrotation = bladesrotation;
 
 	/* motion blur */
-#ifdef __CAMERA_MOTION__
 	kcam->shuttertime = (need_motion == Scene::MOTION_BLUR) ? shuttertime: -1.0f;
-
-	scene->lookup_tables->remove_table(&shutter_table_offset);
-	if(need_motion == Scene::MOTION_BLUR) {
-		vector<float> shutter_table;
-		util_cdf_inverted(SHUTTER_TABLE_SIZE,
-		                  0.0f,
-		                  1.0f,
-		                  function_bind(shutter_curve_eval, _1, shutter_curve),
-		                  false,
-		                  shutter_table);
-		shutter_table_offset = scene->lookup_tables->add_table(dscene,
-		                                                       shutter_table);
-		kcam->shutter_table_offset = (int)shutter_table_offset;
-	}
-#else
-	kcam->shuttertime = -1.0f;
-#endif
 
 	/* type */
 	kcam->type = type;
@@ -450,7 +439,37 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	kcam->rolling_shutter_type = rolling_shutter_type;
 	kcam->rolling_shutter_duration = rolling_shutter_duration;
 
+	/* Set further update flags */
+	need_update = false;
+	need_device_update = true;
+	need_flags_update = true;
 	previous_need_motion = need_motion;
+}
+
+void Camera::device_update(Device * /* device */,
+                           DeviceScene *dscene,
+                           Scene *scene)
+{
+	update(scene);
+
+	if(!need_device_update)
+		return;
+
+	scene->lookup_tables->remove_table(&shutter_table_offset);
+	if(kernel_camera.shuttertime != -1.0f) {
+		vector<float> shutter_table;
+		util_cdf_inverted(SHUTTER_TABLE_SIZE,
+		                  0.0f,
+		                  1.0f,
+		                  function_bind(shutter_curve_eval, _1, shutter_curve),
+		                  false,
+		                  shutter_table);
+		shutter_table_offset = scene->lookup_tables->add_table(dscene,
+		                                                       shutter_table);
+		kernel_camera.shutter_table_offset = (int)shutter_table_offset;
+	}
+
+	dscene->data.cam = kernel_camera;
 }
 
 void Camera::device_update_volume(Device * /*device*/,
@@ -581,8 +600,27 @@ BoundBox Camera::viewplane_bounds_get()
 
 float Camera::world_to_raster_size(float3 P)
 {
+	float res = 1.0f;
+
 	if(type == CAMERA_ORTHOGRAPHIC) {
-		return min(len(full_dx), len(full_dy));
+		res = min(len(full_dx), len(full_dy));
+
+		if(offscreen_dicing_scale > 1.0f) {
+			float3 p = transform_perspective(&worldtocamera, P);
+			float3 v = transform_perspective(&rastertocamera, make_float3(width, height, 0.0f));
+
+			/* Create point clamped to frustum */
+			float3 c;
+			c.x = max(-v.x, min(v.x, p.x));
+			c.y = max(-v.y, min(v.y, p.y));
+			c.z = max(0.0f, p.z);
+
+			float f_dist = len(p - c) / sqrtf((v.x*v.x+v.y*v.y)*0.5f);
+
+			if(f_dist > 0.0f) {
+				res += res * f_dist * (offscreen_dicing_scale - 1.0f);
+			}
+		}
 	}
 	else if(type == CAMERA_PERSPECTIVE) {
 		/* Calculate as if point is directly ahead of the camera. */
@@ -597,14 +635,98 @@ float Camera::world_to_raster_size(float3 P)
 		/* dPdx */
 		float dist = len(transform_point(&worldtocamera, P));
 		float3 D = normalize(Ddiff);
-		return len(dist*dDdx - dot(dist*dDdx, D)*D);
+		res = len(dist*dDdx - dot(dist*dDdx, D)*D);
+
+		/* Decent approx distance to frustum (doesn't handle corners correctly, but not that big of a deal) */
+		float f_dist = 0.0f;
+
+		if(offscreen_dicing_scale > 1.0f) {
+			float3 p = transform_point(&worldtocamera, P);
+
+			/* Distance from the four planes */
+			float r = dot(p, frustum_right_normal);
+			float t = dot(p, frustum_top_normal);
+			p = make_float3(-p.x, -p.y, p.z);
+			float l = dot(p, frustum_right_normal);
+			float b = dot(p, frustum_top_normal);
+			p = make_float3(-p.x, -p.y, p.z);
+
+			if(r <= 0.0f && l <= 0.0f && t <= 0.0f && b <= 0.0f) {
+				/* Point is inside frustum */
+				f_dist = 0.0f;
+			}
+			else if(r > 0.0f && l > 0.0f && t > 0.0f && b > 0.0f) {
+				/* Point is behind frustum */
+				f_dist = len(p);
+			}
+			else {
+				/* Point may be behind or off to the side, need to check */
+				float3 along_right = make_float3(-frustum_right_normal.z, 0.0f, frustum_right_normal.x);
+				float3 along_left = make_float3(frustum_right_normal.z, 0.0f, frustum_right_normal.x);
+				float3 along_top = make_float3(0.0f, -frustum_top_normal.z, frustum_top_normal.y);
+				float3 along_bottom = make_float3(0.0f, frustum_top_normal.z, frustum_top_normal.y);
+
+				float dist[] = {r, l, t, b};
+				float3 along[] = {along_right, along_left, along_top, along_bottom};
+
+				bool test_o = false;
+
+				float *d = dist;
+				float3 *a = along;
+				for(int i = 0; i < 4; i++, d++, a++) {
+					/* Test if we should check this side at all */
+					if(*d > 0.0f) {
+						if(dot(p, *a) >= 0.0f) {
+							/* We are in front of the back edge of this side of the frustum */
+							f_dist = max(f_dist, *d);
+						}
+						else {
+							/* Possibly far enough behind the frustum to use distance to origin instead of edge */
+							test_o = true;
+						}
+					}
+				}
+
+				if(test_o) {
+					f_dist = (f_dist > 0) ? min(f_dist, len(p)) : len(p);
+				}
+			}
+
+			if(f_dist > 0.0f) {
+				res += len(dDdx - dot(dDdx, D)*D) * f_dist * (offscreen_dicing_scale - 1.0f);
+			}
+		}
 	}
-	else {
-		// TODO(mai): implement for CAMERA_PANORAMA
-		assert(!"pixel width calculation for panoramic projection not implemented yet");
+	else if(type == CAMERA_PANORAMA) {
+		float3 D = transform_point(&worldtocamera, P);
+		float dist = len(D);
+
+		Ray ray;
+
+		/* Distortion can become so great that the results become meaningless, there
+		 * may be a better way to do this, but calculating differentials from the
+		 * point directly ahead seems to produce good enough results. */
+#if 0
+		float2 dir = direction_to_panorama(&kernel_camera, normalize(D));
+		float3 raster = transform_perspective(&cameratoraster, make_float3(dir.x, dir.y, 0.0f));
+
+		ray.t = 1.0f;
+		camera_sample_panorama(&kernel_camera, raster.x, raster.y, 0.0f, 0.0f, &ray);
+		if(ray.t == 0.0f) {
+			/* No differentials, just use from directly ahead. */
+			camera_sample_panorama(&kernel_camera, 0.5f*width, 0.5f*height, 0.0f, 0.0f, &ray);
+		}
+#else
+		camera_sample_panorama(&kernel_camera, 0.5f*width, 0.5f*height, 0.0f, 0.0f, &ray);
+#endif
+
+		differential_transfer(&ray.dP, ray.dP, ray.D, ray.dD, ray.D, dist);
+
+		return max(len(ray.dP.dx) * (float(width)/float(full_width)),
+		           len(ray.dP.dy) * (float(height)/float(full_height)));
 	}
 
-	return 1.0f;
+	return res;
 }
 
 CCL_NAMESPACE_END

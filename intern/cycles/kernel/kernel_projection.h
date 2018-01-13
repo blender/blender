@@ -195,49 +195,49 @@ ccl_device float2 direction_to_mirrorball(float3 dir)
 	return make_float2(u, v);
 }
 
-ccl_device_inline float3 panorama_to_direction(KernelGlobals *kg, float u, float v)
+ccl_device_inline float3 panorama_to_direction(ccl_constant KernelCamera *cam, float u, float v)
 {
-	switch(kernel_data.cam.panorama_type) {
+	switch(cam->panorama_type) {
 		case PANORAMA_EQUIRECTANGULAR:
-			return equirectangular_range_to_direction(u, v, kernel_data.cam.equirectangular_range);
+			return equirectangular_range_to_direction(u, v, cam->equirectangular_range);
 		case PANORAMA_MIRRORBALL:
 			return mirrorball_to_direction(u, v);
 		case PANORAMA_FISHEYE_EQUIDISTANT:
-			return fisheye_to_direction(u, v, kernel_data.cam.fisheye_fov);
+			return fisheye_to_direction(u, v, cam->fisheye_fov);
 		case PANORAMA_FISHEYE_EQUISOLID:
 		default:
-			return fisheye_equisolid_to_direction(u, v, kernel_data.cam.fisheye_lens,
-				kernel_data.cam.fisheye_fov, kernel_data.cam.sensorwidth, kernel_data.cam.sensorheight);
+			return fisheye_equisolid_to_direction(u, v, cam->fisheye_lens,
+				cam->fisheye_fov, cam->sensorwidth, cam->sensorheight);
 	}
 }
 
-ccl_device_inline float2 direction_to_panorama(KernelGlobals *kg, float3 dir)
+ccl_device_inline float2 direction_to_panorama(ccl_constant KernelCamera *cam, float3 dir)
 {
-	switch(kernel_data.cam.panorama_type) {
+	switch(cam->panorama_type) {
 		case PANORAMA_EQUIRECTANGULAR:
-			return direction_to_equirectangular_range(dir, kernel_data.cam.equirectangular_range);
+			return direction_to_equirectangular_range(dir, cam->equirectangular_range);
 		case PANORAMA_MIRRORBALL:
 			return direction_to_mirrorball(dir);
 		case PANORAMA_FISHEYE_EQUIDISTANT:
-			return direction_to_fisheye(dir, kernel_data.cam.fisheye_fov);
+			return direction_to_fisheye(dir, cam->fisheye_fov);
 		case PANORAMA_FISHEYE_EQUISOLID:
 		default:
-			return direction_to_fisheye_equisolid(dir, kernel_data.cam.fisheye_lens,
-				kernel_data.cam.sensorwidth, kernel_data.cam.sensorheight);
+			return direction_to_fisheye_equisolid(dir, cam->fisheye_lens,
+				cam->sensorwidth, cam->sensorheight);
 	}
 }
 
-ccl_device_inline void spherical_stereo_transform(KernelGlobals *kg, float3 *P, float3 *D)
+ccl_device_inline void spherical_stereo_transform(ccl_constant KernelCamera *cam, float3 *P, float3 *D)
 {
-	float interocular_offset = kernel_data.cam.interocular_offset;
+	float interocular_offset = cam->interocular_offset;
 
 	/* Interocular offset of zero means either non stereo, or stereo without
 	 * spherical stereo. */
 	kernel_assert(interocular_offset != 0.0f);
 
-	if(kernel_data.cam.pole_merge_angle_to > 0.0f) {
-		const float pole_merge_angle_from = kernel_data.cam.pole_merge_angle_from,
-		            pole_merge_angle_to = kernel_data.cam.pole_merge_angle_to;
+	if(cam->pole_merge_angle_to > 0.0f) {
+		const float pole_merge_angle_from = cam->pole_merge_angle_from,
+		            pole_merge_angle_to = cam->pole_merge_angle_to;
 		float altitude = fabsf(safe_asinf((*D).z));
 		if(altitude > pole_merge_angle_to) {
 			interocular_offset = 0.0f;
@@ -257,7 +257,7 @@ ccl_device_inline void spherical_stereo_transform(KernelGlobals *kg, float3 *P, 
 
 	/* Convergence distance is FLT_MAX in the case of parallel convergence mode,
 	 * no need to modify direction in this case either. */
-	const float convergence_distance = kernel_data.cam.convergence_distance;
+	const float convergence_distance = cam->convergence_distance;
 
 	if(convergence_distance != FLT_MAX)
 	{

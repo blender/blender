@@ -285,8 +285,10 @@ void BKE_blender_userdef_app_template_data_swap(UserDef *userdef_a, UserDef *use
 	DATA_SWAP(keyconfigstr);
 
 	DATA_SWAP(manipulator_flag);
+	DATA_SWAP(app_flag);
 
-	FLAG_SWAP(uiflag, int, USER_LOCK_UI_LAYOUT);
+	/* We could add others. */
+	FLAG_SWAP(uiflag, int, USER_QUIT_PROMPT);
 
 #undef SWAP_TYPELESS
 #undef DATA_SWAP

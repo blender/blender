@@ -1318,6 +1318,10 @@ float ED_view3d_grid_scale(Scene *scene, View3D *v3d, const char **grid_unit)
 
 static bool is_cursor_visible(Scene *scene, ViewLayer *view_layer)
 {
+	if (U.app_flag & USER_APP_VIEW3D_HIDE_CURSOR) {
+		return false;
+	}
+
 	Object *ob = OBACT(view_layer);
 
 	/* don't draw cursor in paint modes, but with a few exceptions */

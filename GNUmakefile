@@ -48,6 +48,11 @@ DEPS_SOURCE_DIR:=$(BLENDER_DIR)/build_files/build_environment
 DEPS_BUILD_DIR:=$(BUILD_DIR)/deps
 DEPS_INSTALL_DIR:=$(shell dirname "$(BLENDER_DIR)")/lib/$(OS_NCASE)
 
+ifneq ($(OS_NCASE),darwin)
+	# Add processor type to directory name
+	DEPS_INSTALL_DIR:=$(DEPS_INSTALL_DIR)_$(shell uname -p)
+endif
+
 # Allow to use alternative binary (pypy3, etc)
 ifndef PYTHON
 	PYTHON:=python3

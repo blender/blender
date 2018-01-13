@@ -1059,11 +1059,11 @@ void IMB_exr_write_channels(void *handle)
 
 /* temporary function, used for FSA and Save Buffers */
 /* called once per tile * view */
-void IMB_exrtile_write_channels(void *handle, int partx, int party, int level, const char *viewname)
+void IMB_exrtile_write_channels(void *handle, int partx, int party, int level, const char *viewname, bool empty)
 {
+	/* Can write empty channels for incomplete renders. */
 	ExrHandle *data = (ExrHandle *)handle;
 	FrameBuffer frameBuffer;
-	ExrChannel *echan;
 	std::string view(viewname);
 	const int view_id = imb_exr_get_multiView_id(*data->multiView, view);
 
@@ -1071,28 +1071,32 @@ void IMB_exrtile_write_channels(void *handle, int partx, int party, int level, c
 	exr_printf("%s %-6s %-22s \"%s\"\n", "p", "view", "name", "internal_name");
 	exr_printf("---------------------------------------------------------------------\n");
 
-	for (echan = (ExrChannel *)data->channels.first; echan; echan = echan->next) {
+	if (!empty) {
+		ExrChannel *echan;
 
-		/* eventually we can make the parts' channels to include
-		   only the current view TODO */
-		if (strcmp(viewname, echan->m->view.c_str()) != 0)
-			continue;
+		for (echan = (ExrChannel *)data->channels.first; echan; echan = echan->next) {
 
-		exr_printf("%d %-6s %-22s \"%s\"\n",
-		           echan->m->part_number,
-		           echan->m->view.c_str(),
-		           echan->m->name.c_str(),
-		           echan->m->internal_name.c_str()
-		           );
+			/* eventually we can make the parts' channels to include
+			   only the current view TODO */
+			if (strcmp(viewname, echan->m->view.c_str()) != 0)
+				continue;
 
-		float *rect = echan->rect - echan->xstride * partx - echan->ystride * party;
-		frameBuffer.insert(echan->m->internal_name,
-		                   Slice(Imf::FLOAT,
-		                         (char *)rect,
-		                         echan->xstride * sizeof(float),
-		                         echan->ystride * sizeof(float)
-		                        )
-		                  );
+			exr_printf("%d %-6s %-22s \"%s\"\n",
+			           echan->m->part_number,
+			           echan->m->view.c_str(),
+			           echan->m->name.c_str(),
+			           echan->m->internal_name.c_str()
+			           );
+
+			float *rect = echan->rect - echan->xstride * partx - echan->ystride * party;
+			frameBuffer.insert(echan->m->internal_name,
+			                   Slice(Imf::FLOAT,
+			                         (char *)rect,
+			                         echan->xstride * sizeof(float),
+			                         echan->ystride * sizeof(float)
+			                        )
+			);
+		}
 	}
 
 	TiledOutputPart out (*data->mpofile, view_id);

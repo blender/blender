@@ -382,6 +382,23 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 default=12,
                 )
 
+        cls.dicing_camera = PointerProperty(
+                name="Dicing Camera",
+                description="Camera to use as reference point when subdividing geometry, useful to avoid crawling "
+                            "artifacts in animations when the scene camera is moving",
+                type=bpy.types.Object,
+                poll=lambda self, obj: obj.type == 'CAMERA',
+                )
+        cls.offscreen_dicing_scale = FloatProperty(
+                name="Offscreen Dicing Scale",
+                description="Multiplier for dicing rate of geometry outside of the camera view. The dicing rate "
+                            "of objects is gradually increased the further they are outside the camera view. "
+                            "Lower values provide higher quality reflections and shadows for off screen objects, "
+                            "while higher values use less memory",
+                min=1.0, soft_max=25.0,
+                default=4.0,
+                )
+
         cls.film_exposure = FloatProperty(
                 name="Exposure",
                 description="Image brightness scale",
@@ -390,8 +407,19 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 )
         cls.film_transparent = BoolProperty(
                 name="Transparent",
-                description="World background is transparent with premultiplied alpha",
+                description="World background is transparent, for compositing the render over another background",
                 default=False,
+                )
+        cls.film_transparent_glass = BoolProperty(
+                name="Transparent Glass",
+                description="Render transmissive surfaces as transparent, for compositing glass over another background",
+                default=False,
+                )
+        cls.film_transparent_roughness = FloatProperty(
+                name="Transparent Roughness Threshold",
+                description="For transparent transmission, keep surfaces with roughness above the threshold opaque",
+                min=0.0, max=1.0,
+                default=0.1,
                 )
 
         # Really annoyingly, we have to keep it around for a few releases,
