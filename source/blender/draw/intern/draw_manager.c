@@ -397,6 +397,7 @@ static void drw_texture_get_format(
 		case DRW_TEX_RGB_11_11_10: *r_data_type = GPU_R11F_G11F_B10F; break;
 		case DRW_TEX_RG_8: *r_data_type = GPU_RG8; break;
 		case DRW_TEX_RG_16: *r_data_type = GPU_RG16F; break;
+		case DRW_TEX_RG_16I: *r_data_type = GPU_RG16I; break;
 		case DRW_TEX_RG_32: *r_data_type = GPU_RG32F; break;
 		case DRW_TEX_R_8: *r_data_type = GPU_R8; break;
 		case DRW_TEX_R_16: *r_data_type = GPU_R16F; break;
@@ -430,6 +431,7 @@ static void drw_texture_get_format(
 			break;
 		case DRW_TEX_RG_8:
 		case DRW_TEX_RG_16:
+		case DRW_TEX_RG_16I:
 		case DRW_TEX_RG_32:
 			*r_channels = 2;
 			break;
@@ -2294,6 +2296,7 @@ static GPUTextureFormat convert_tex_format(
 		case DRW_TEX_R_32:     *r_channels = 1; return GPU_R32F;
 		case DRW_TEX_RG_8:     *r_channels = 2; return GPU_RG8;
 		case DRW_TEX_RG_16:    *r_channels = 2; return GPU_RG16F;
+		case DRW_TEX_RG_16I:   *r_channels = 2; return GPU_RG16I;
 		case DRW_TEX_RG_32:    *r_channels = 2; return GPU_RG32F;
 		case DRW_TEX_RGBA_8:   *r_channels = 4; return GPU_RGBA8;
 		case DRW_TEX_RGBA_16:  *r_channels = 4; return GPU_RGBA16F;

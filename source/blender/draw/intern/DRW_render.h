@@ -157,7 +157,9 @@ typedef struct DefaultTextureList {
 #endif
 
 /* Textures */
-
+/* NOTE naming in this struct is broken.
+ * There should either be suffixes for Normalized int formats or float formats.
+ * Right now every 8bit texture is Normalized int and others are Floating point. */
 typedef enum {
 	DRW_TEX_RGBA_8,
 	DRW_TEX_RGBA_16,
@@ -168,6 +170,7 @@ typedef enum {
 	DRW_TEX_RGB_32,
 	DRW_TEX_RG_8,
 	DRW_TEX_RG_16,
+	DRW_TEX_RG_16I,
 	DRW_TEX_RG_32,
 	DRW_TEX_R_8,
 	DRW_TEX_R_16,

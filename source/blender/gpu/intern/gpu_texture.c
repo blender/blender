@@ -115,9 +115,9 @@ static GLenum gpu_texture_get_format(
         int components, GPUTextureFormat data_type,
         GLenum *format, GLenum *data_format, bool *is_depth, bool *is_stencil, unsigned int *bytesize)
 {
-	if (data_type == GPU_DEPTH_COMPONENT24 ||
-	    data_type == GPU_DEPTH_COMPONENT16 ||
-	    data_type == GPU_DEPTH_COMPONENT32F)
+	if (ELEM(data_type, GPU_DEPTH_COMPONENT24,
+	                    GPU_DEPTH_COMPONENT16,
+	                    GPU_DEPTH_COMPONENT32F))
 	{
 		*is_depth = true;
 		*is_stencil = false;
@@ -133,14 +133,29 @@ static GLenum gpu_texture_get_format(
 	else {
 		*is_depth = false;
 		*is_stencil = false;
-		*data_format = GL_FLOAT;
 
-		switch (components) {
-			case 1: *format = GL_RED; break;
-			case 2: *format = GL_RG; break;
-			case 3: *format = GL_RGB; break;
-			case 4: *format = GL_RGBA; break;
-			default: break;
+		/* Integer formats */
+		if (ELEM(data_type, GPU_RG16I)) {
+			*data_format = GL_INT;
+
+			switch (components) {
+				case 1: *format = GL_RED_INTEGER; break;
+				case 2: *format = GL_RG_INTEGER; break;
+				case 3: *format = GL_RGB_INTEGER; break;
+				case 4: *format = GL_RGBA_INTEGER; break;
+				default: break;
+			}
+		}
+		else {
+			*data_format = GL_FLOAT;
+
+			switch (components) {
+				case 1: *format = GL_RED; break;
+				case 2: *format = GL_RG; break;
+				case 3: *format = GL_RGB; break;
+				case 4: *format = GL_RGBA; break;
+				default: break;
+			}
 		}
 	}
 
@@ -156,6 +171,7 @@ static GLenum gpu_texture_get_format(
 			*bytesize = 12;
 			break;
 		case GPU_RG16F:
+		case GPU_RG16I:
 		case GPU_DEPTH24_STENCIL8:
 		case GPU_DEPTH_COMPONENT32F:
 		case GPU_RGBA8:
@@ -188,6 +204,7 @@ static GLenum gpu_texture_get_format(
 		case GPU_RG32F: return GL_RG32F;
 		case GPU_RGB16F: return GL_RGB16F;
 		case GPU_RG16F: return GL_RG16F;
+		case GPU_RG16I: return GL_RG16I;
 		case GPU_RGBA8: return GL_RGBA8;
 		case GPU_R32F: return GL_R32F;
 		case GPU_R16F: return GL_R16F;
