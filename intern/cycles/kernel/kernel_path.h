@@ -136,7 +136,7 @@ ccl_device_forceinline void kernel_path_background(
 	PathRadiance *L)
 {
 	/* eval background shader if nothing hit */
-	if(kernel_data.background.transparent && (state->flag & PATH_RAY_CAMERA)) {
+	if(kernel_data.background.transparent && (state->flag & PATH_RAY_TRANSPARENT_BACKGROUND)) {
 		L->transparent += average(throughput);
 
 #ifdef __PASSES__
@@ -280,7 +280,7 @@ ccl_device_forceinline bool kernel_path_shader_apply(
 {
 #ifdef __SHADOW_TRICKS__
 	if((sd->object_flag & SD_OBJECT_SHADOW_CATCHER)) {
-		if(state->flag & PATH_RAY_CAMERA) {
+		if(state->flag & PATH_RAY_TRANSPARENT_BACKGROUND) {
 			state->flag |= (PATH_RAY_SHADOW_CATCHER |
 						   PATH_RAY_STORE_SHADOW_INFO);
 
@@ -302,7 +302,7 @@ ccl_device_forceinline bool kernel_path_shader_apply(
 #ifdef __HOLDOUT__
 	if(((sd->flag & SD_HOLDOUT) ||
 		(sd->object_flag & SD_OBJECT_HOLDOUT_MASK)) &&
-	   (state->flag & PATH_RAY_CAMERA))
+	   (state->flag & PATH_RAY_TRANSPARENT_BACKGROUND))
 	{
 		if(kernel_data.background.transparent) {
 			float3 holdout_weight;

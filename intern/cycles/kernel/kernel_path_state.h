@@ -23,7 +23,7 @@ ccl_device_inline void path_state_init(KernelGlobals *kg,
                                        int sample,
                                        ccl_addr_space Ray *ray)
 {
-	state->flag = PATH_RAY_CAMERA|PATH_RAY_MIS_SKIP;
+	state->flag = PATH_RAY_CAMERA|PATH_RAY_MIS_SKIP|PATH_RAY_TRANSPARENT_BACKGROUND;
 
 	state->rng_hash = rng_hash;
 	state->rng_offset = PRNG_BASE_NUM;
@@ -86,12 +86,13 @@ ccl_device_inline void path_state_next(KernelGlobals *kg, ccl_addr_space PathSta
 	}
 
 	state->bounce++;
+	state->flag &= ~(PATH_RAY_ALL_VISIBILITY|PATH_RAY_MIS_SKIP);
 
 #ifdef __VOLUME__
 	if(label & LABEL_VOLUME_SCATTER) {
 		/* volume scatter */
 		state->flag |= PATH_RAY_VOLUME_SCATTER;
-		state->flag &= ~(PATH_RAY_REFLECT|PATH_RAY_TRANSMIT|PATH_RAY_CAMERA|PATH_RAY_TRANSPARENT|PATH_RAY_DIFFUSE|PATH_RAY_GLOSSY|PATH_RAY_SINGULAR|PATH_RAY_MIS_SKIP);
+		state->flag &= ~PATH_RAY_TRANSPARENT_BACKGROUND;
 
 		state->volume_bounce++;
 	}
@@ -101,7 +102,7 @@ ccl_device_inline void path_state_next(KernelGlobals *kg, ccl_addr_space PathSta
 		/* surface reflection/transmission */
 		if(label & LABEL_REFLECT) {
 			state->flag |= PATH_RAY_REFLECT;
-			state->flag &= ~(PATH_RAY_TRANSMIT|PATH_RAY_VOLUME_SCATTER|PATH_RAY_CAMERA|PATH_RAY_TRANSPARENT);
+			state->flag &= ~PATH_RAY_TRANSPARENT_BACKGROUND;
 
 			if(label & LABEL_DIFFUSE)
 				state->diffuse_bounce++;
@@ -112,7 +113,10 @@ ccl_device_inline void path_state_next(KernelGlobals *kg, ccl_addr_space PathSta
 			kernel_assert(label & LABEL_TRANSMIT);
 
 			state->flag |= PATH_RAY_TRANSMIT;
-			state->flag &= ~(PATH_RAY_REFLECT|PATH_RAY_VOLUME_SCATTER|PATH_RAY_CAMERA|PATH_RAY_TRANSPARENT);
+
+			if(!(label & LABEL_TRANSMIT_TRANSPARENT)) {
+				state->flag &= ~PATH_RAY_TRANSPARENT_BACKGROUND;
+			}
 
 			state->transmission_bounce++;
 		}
@@ -120,17 +124,13 @@ ccl_device_inline void path_state_next(KernelGlobals *kg, ccl_addr_space PathSta
 		/* diffuse/glossy/singular */
 		if(label & LABEL_DIFFUSE) {
 			state->flag |= PATH_RAY_DIFFUSE|PATH_RAY_DIFFUSE_ANCESTOR;
-			state->flag &= ~(PATH_RAY_GLOSSY|PATH_RAY_SINGULAR|PATH_RAY_MIS_SKIP);
 		}
 		else if(label & LABEL_GLOSSY) {
 			state->flag |= PATH_RAY_GLOSSY;
-			state->flag &= ~(PATH_RAY_DIFFUSE|PATH_RAY_SINGULAR|PATH_RAY_MIS_SKIP);
 		}
 		else {
 			kernel_assert(label & LABEL_SINGULAR);
-
 			state->flag |= PATH_RAY_GLOSSY|PATH_RAY_SINGULAR|PATH_RAY_MIS_SKIP;
-			state->flag &= ~PATH_RAY_DIFFUSE;
 		}
 	}
 

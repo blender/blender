@@ -62,7 +62,7 @@ void BlenderObjectCulling::init_object(Scene *scene, BL::Object& b_ob)
 
 	if(use_camera_cull_ || use_distance_cull_) {
 		/* Need to have proper projection matrix. */
-		scene->camera->update();
+		scene->camera->update(scene);
 	}
 }
 

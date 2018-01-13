@@ -216,19 +216,19 @@ ccl_device_inline float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *
 	else {
 		tfm = kernel_data.cam.worldtocamera;
 		motion_center = normalize(transform_point(&tfm, center));
-		motion_center = float2_to_float3(direction_to_panorama(kg, motion_center));
+		motion_center = float2_to_float3(direction_to_panorama(&kernel_data.cam, motion_center));
 		motion_center.x *= kernel_data.cam.width;
 		motion_center.y *= kernel_data.cam.height;
 
 		tfm = kernel_data.cam.motion.pre;
 		motion_pre = normalize(transform_point(&tfm, motion_pre));
-		motion_pre = float2_to_float3(direction_to_panorama(kg, motion_pre));
+		motion_pre = float2_to_float3(direction_to_panorama(&kernel_data.cam, motion_pre));
 		motion_pre.x *= kernel_data.cam.width;
 		motion_pre.y *= kernel_data.cam.height;
 
 		tfm = kernel_data.cam.motion.post;
 		motion_post = normalize(transform_point(&tfm, motion_post));
-		motion_post = float2_to_float3(direction_to_panorama(kg, motion_post));
+		motion_post = float2_to_float3(direction_to_panorama(&kernel_data.cam, motion_post));
 		motion_post.x *= kernel_data.cam.width;
 		motion_post.y *= kernel_data.cam.height;
 	}

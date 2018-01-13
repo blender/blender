@@ -1081,7 +1081,7 @@ static void save_render_result_tile(RenderResult *rr, RenderResult *rrpart, cons
 			continue;
 		}
 
-		IMB_exrtile_write_channels(rl->exrhandle, partx, party, 0, viewname);
+		IMB_exrtile_write_channels(rl->exrhandle, partx, party, 0, viewname, false);
 	}
 
 	BLI_unlock_thread(LOCK_IMAGE);
@@ -1095,13 +1095,11 @@ void render_result_save_empty_result_tiles(Render *re)
 	
 	for (rr = re->result; rr; rr = rr->next) {
 		for (rl = rr->layers.first; rl; rl = rl->next) {
-			IMB_exr_clear_channels(rl->exrhandle);
-		
 			for (pa = re->parts.first; pa; pa = pa->next) {
 				if (pa->status != PART_STATUS_MERGED) {
 					int party = pa->disprect.ymin - re->disprect.ymin + pa->crop;
 					int partx = pa->disprect.xmin - re->disprect.xmin + pa->crop;
-					IMB_exrtile_write_channels(rl->exrhandle, partx, party, 0, re->viewname);
+					IMB_exrtile_write_channels(rl->exrhandle, partx, party, 0, re->viewname, true);
 				}
 			}
 		}

@@ -920,8 +920,8 @@ static void create_subd_mesh(Scene *scene,
 	sdparams.dicing_rate = max(0.1f, RNA_float_get(&cobj, "dicing_rate") * dicing_rate);
 	sdparams.max_level = max_subdivisions;
 
-	scene->camera->update();
-	sdparams.camera = scene->camera;
+	scene->dicing_camera->update(scene);
+	sdparams.camera = scene->dicing_camera;
 	sdparams.objecttoworld = get_transform(b_ob.matrix_world());
 }
 
