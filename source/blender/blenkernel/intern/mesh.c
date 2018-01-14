@@ -782,7 +782,7 @@ float (*BKE_mesh_orco_verts_get(Object *ob))[3]
 	float (*vcos)[3] = NULL;
 
 	/* Get appropriate vertex coordinates */
-	vcos = MEM_callocN(sizeof(*vcos) * me->totvert, "orco mesh");
+	vcos = MEM_calloc_arrayN(me->totvert, sizeof(*vcos), "orco mesh");
 	mvert = tme->mvert;
 	totvert = min_ii(tme->totvert, me->totvert);
 
@@ -1021,7 +1021,7 @@ static void make_edges_mdata_extend(MEdge **r_alledge, int *r_totedge,
 		unsigned int e_index = totedge;
 
 		*r_alledge = medge = (*r_alledge ? MEM_reallocN(*r_alledge, sizeof(MEdge) * (totedge + totedge_new)) :
-		                                   MEM_callocN(sizeof(MEdge) * totedge_new, __func__));
+		                                   MEM_calloc_arrayN(totedge_new, sizeof(MEdge), __func__));
 		medge += totedge;
 
 		totedge += totedge_new;
@@ -1141,13 +1141,13 @@ int BKE_mesh_nurbs_displist_to_mdata(
 		return -1;
 	}
 
-	*r_allvert = mvert = MEM_callocN(sizeof(MVert) * totvert, "nurbs_init mvert");
-	*r_alledge = medge = MEM_callocN(sizeof(MEdge) * totedge, "nurbs_init medge");
-	*r_allloop = mloop = MEM_callocN(sizeof(MLoop) * totvlak * 4, "nurbs_init mloop"); // totloop
-	*r_allpoly = mpoly = MEM_callocN(sizeof(MPoly) * totvlak, "nurbs_init mloop");
+	*r_allvert = mvert = MEM_calloc_arrayN(totvert, sizeof(MVert), "nurbs_init mvert");
+	*r_alledge = medge = MEM_calloc_arrayN(totedge, sizeof(MEdge), "nurbs_init medge");
+	*r_allloop = mloop = MEM_calloc_arrayN(totvlak, 4 * sizeof(MLoop), "nurbs_init mloop"); // totloop
+	*r_allpoly = mpoly = MEM_calloc_arrayN(totvlak, sizeof(MPoly), "nurbs_init mloop");
 
 	if (r_alluv)
-		*r_alluv = mloopuv = MEM_callocN(sizeof(MLoopUV) * totvlak * 4, "nurbs_init mloopuv");
+		*r_alluv = mloopuv = MEM_calloc_arrayN(totvlak, 4 * sizeof(MLoopUV), "nurbs_init mloopuv");
 	
 	/* verts and faces */
 	vertcount = 0;
@@ -1487,7 +1487,7 @@ void BKE_mesh_to_curve_nurblist(DerivedMesh *dm, ListBase *nurblist, const int e
 	ListBase edges = {NULL, NULL};
 
 	/* get boundary edges */
-	edge_users = MEM_callocN(sizeof(int) * dm_totedge, __func__);
+	edge_users = MEM_calloc_arrayN(dm_totedge, sizeof(int), __func__);
 	for (i = 0, mp = mpoly; i < dm_totpoly; i++, mp++) {
 		MLoop *ml = &mloop[mp->loopstart];
 		int j;
@@ -1583,7 +1583,7 @@ void BKE_mesh_to_curve_nurblist(DerivedMesh *dm, ListBase *nurblist, const int e
 				nu->flagu = CU_NURB_ENDPOINT | (closed ? CU_NURB_CYCLIC : 0);  /* endpoint */
 				nu->resolu = 12;
 
-				nu->bp = (BPoint *)MEM_callocN(sizeof(BPoint) * totpoly, "bpoints");
+				nu->bp = (BPoint *)MEM_calloc_arrayN(totpoly, sizeof(BPoint), "bpoints");
 
 				/* add points */
 				vl = polyline.first;
@@ -1739,7 +1739,7 @@ void BKE_mesh_smooth_flag_set(Object *meshOb, int enableSmooth)
 float (*BKE_mesh_vertexCos_get(const Mesh *me, int *r_numVerts))[3]
 {
 	int i, numVerts = me->totvert;
-	float (*cos)[3] = MEM_mallocN(sizeof(*cos) * numVerts, "vertexcos1");
+	float (*cos)[3] = MEM_malloc_arrayN(numVerts, sizeof(*cos), "vertexcos1");
 
 	if (r_numVerts) *r_numVerts = numVerts;
 	for (i = 0; i < numVerts; i++)
@@ -1875,7 +1875,7 @@ void BKE_mesh_ensure_navmesh(Mesh *me)
 		int i;
 		int numFaces = me->totpoly;
 		int *recastData;
-		recastData = (int *)MEM_mallocN(numFaces * sizeof(int), __func__);
+		recastData = (int *)MEM_malloc_arrayN(numFaces, sizeof(int), __func__);
 		for (i = 0; i < numFaces; i++) {
 			recastData[i] = i + 1;
 		}
@@ -1963,7 +1963,7 @@ void BKE_mesh_mselect_validate(Mesh *me)
 		return;
 
 	mselect_src = me->mselect;
-	mselect_dst = MEM_mallocN(sizeof(MSelect) * (me->totselect), "Mesh selection history");
+	mselect_dst = MEM_malloc_arrayN((me->totselect), sizeof(MSelect), "Mesh selection history");
 
 	for (i_src = 0, i_dst = 0; i_src < me->totselect; i_src++) {
 		int index = mselect_src[i_src].index;
@@ -2106,7 +2106,7 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh, MLoopNorSpaceArray *r_lnors_spac
 		free_polynors = false;
 	}
 	else {
-		polynors = MEM_mallocN(sizeof(float[3]) * mesh->totpoly, __func__);
+		polynors = MEM_malloc_arrayN(mesh->totpoly, sizeof(float[3]), __func__);
 		BKE_mesh_calc_normals_poly(
 		            mesh->mvert, NULL, mesh->totvert,
 		            mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, polynors, false);

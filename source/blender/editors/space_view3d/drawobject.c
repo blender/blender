@@ -5762,7 +5762,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 	totkeys = (*edit->pathcache)->segments + 1;
 
 	glEnable(GL_BLEND);
-	pathcol = MEM_callocN(totkeys * 4 * sizeof(float), "particle path color data");
+	pathcol = MEM_calloc_arrayN(totkeys, 4 * sizeof(float), "particle path color data");
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
@@ -5815,8 +5815,8 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, PTCacheEdit *edit)
 
 			if (totkeys_visible) {
 				if (edit->points && !(edit->points->keys->flag & PEK_USE_WCO))
-					pd = pdata = MEM_callocN(totkeys_visible * 3 * sizeof(float), "particle edit point data");
-				cd = cdata = MEM_callocN(totkeys_visible * (timed ? 4 : 3) * sizeof(float), "particle edit color data");
+					pd = pdata = MEM_calloc_arrayN(totkeys_visible, 3 * sizeof(float), "particle edit point data");
+				cd = cdata = MEM_calloc_arrayN(totkeys_visible, (timed ? 4 : 3) * sizeof(float), "particle edit color data");
 			}
 
 			for (i = 0, point = edit->points; i < totpoint; i++, point++) {

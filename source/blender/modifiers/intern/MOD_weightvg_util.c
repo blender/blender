@@ -143,9 +143,9 @@ void weightvg_do_mask(int num, const int *indices, float *org_w, const float *ne
 		t_map.map_object = tex_map_object;
 		BLI_strncpy(t_map.uvlayer_name, tex_uvlayer_name, sizeof(t_map.uvlayer_name));
 		t_map.texmapping = tex_mapping;
-		v_co = MEM_mallocN(sizeof(*v_co) * numVerts, "WeightVG Modifier, TEX mode, v_co");
+		v_co = MEM_malloc_arrayN(numVerts, sizeof(*v_co), "WeightVG Modifier, TEX mode, v_co");
 		dm->getVertCos(dm, v_co);
-		tex_co = MEM_callocN(sizeof(*tex_co) * numVerts, "WeightVG Modifier, TEX mode, tex_co");
+		tex_co = MEM_calloc_arrayN(numVerts, sizeof(*tex_co), "WeightVG Modifier, TEX mode, tex_co");
 		get_texture_coords(&t_map, ob, dm, v_co, tex_co, num);
 		MEM_freeN(v_co);
 

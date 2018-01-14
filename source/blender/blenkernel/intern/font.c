@@ -382,7 +382,7 @@ static void build_underline(Curve *cu, ListBase *nubase, const rctf *rect,
 	nu2->orderv = 1;
 	nu2->flagu = CU_NURB_CYCLIC;
 
-	bp = (BPoint *)MEM_callocN(4 * sizeof(BPoint), "underline_bp");
+	bp = (BPoint *)MEM_calloc_arrayN(4, sizeof(BPoint), "underline_bp");
 
 	copy_v4_fl4(bp[0].vec, rect->xmin, (rect->ymax + yofs), 0.0f, 1.0f);
 	copy_v4_fl4(bp[1].vec, rect->xmax, (rect->ymax + yofs), 0.0f, 1.0f);
@@ -481,7 +481,7 @@ static void buildchar(Main *bmain, Curve *cu, ListBase *nubase, unsigned int cha
 			/* nu2->trim.last = 0; */
 			i = nu2->pntsu;
 
-			bezt2 = (BezTriple *)MEM_mallocN(i * sizeof(BezTriple), "duplichar_bezt2");
+			bezt2 = (BezTriple *)MEM_malloc_arrayN(i, sizeof(BezTriple), "duplichar_bezt2");
 			if (bezt2 == NULL) {
 				MEM_freeN(nu2);
 				break;
@@ -692,12 +692,12 @@ bool BKE_vfont_to_curve_ex(Main *bmain, Object *ob, Curve *cu, int mode, ListBas
 		slen = cu->len_wchar;
 
 		/* Create unicode string */
-		mem_tmp = MEM_mallocN(((slen + 1) * sizeof(wchar_t)), "convertedmem");
+		mem_tmp = MEM_malloc_arrayN((slen + 1), sizeof(wchar_t), "convertedmem");
 
 		BLI_strncpy_wchar_from_utf8(mem_tmp, cu->str, slen + 1);
 
 		if (cu->strinfo == NULL) {  /* old file */
-			cu->strinfo = MEM_callocN((slen + 4) * sizeof(CharInfo), "strinfo compat");
+			cu->strinfo = MEM_calloc_arrayN((slen + 4), sizeof(CharInfo), "strinfo compat");
 		}
 		custrinfo = cu->strinfo;
 
@@ -705,7 +705,7 @@ bool BKE_vfont_to_curve_ex(Main *bmain, Object *ob, Curve *cu, int mode, ListBas
 	}
 
 	if (cu->tb == NULL)
-		cu->tb = MEM_callocN(MAXTEXTBOX * sizeof(TextBox), "TextBox compat");
+		cu->tb = MEM_calloc_arrayN(MAXTEXTBOX, sizeof(TextBox), "TextBox compat");
 
 	if (ef != NULL && ob != NULL) {
 		if (ef->selboxes)
@@ -713,7 +713,7 @@ bool BKE_vfont_to_curve_ex(Main *bmain, Object *ob, Curve *cu, int mode, ListBas
 
 		if (BKE_vfont_select_get(ob, &selstart, &selend)) {
 			ef->selboxes_len = (selend - selstart) + 1;
-			ef->selboxes = MEM_callocN(ef->selboxes_len * sizeof(EditFontSelBox), "font selboxes");
+			ef->selboxes = MEM_calloc_arrayN(ef->selboxes_len, sizeof(EditFontSelBox), "font selboxes");
 		}
 		else {
 			ef->selboxes_len = 0;
@@ -724,10 +724,10 @@ bool BKE_vfont_to_curve_ex(Main *bmain, Object *ob, Curve *cu, int mode, ListBas
 	}
 
 	/* calc offset and rotation of each char */
-	ct = chartransdata = MEM_callocN((slen + 1) * sizeof(struct CharTrans), "buildtext");
+	ct = chartransdata = MEM_calloc_arrayN((slen + 1), sizeof(struct CharTrans), "buildtext");
 
 	/* We assume the worst case: 1 character per line (is freed at end anyway) */
-	lineinfo = MEM_mallocN(sizeof(*lineinfo) * (slen * 2 + 1), "lineinfo");
+	lineinfo = MEM_malloc_arrayN((slen * 2 + 1), sizeof(*lineinfo), "lineinfo");
 	
 	linedist = cu->linedist;
 	
@@ -1373,12 +1373,12 @@ void BKE_vfont_clipboard_set(const wchar_t *text_buf, const CharInfo *info_buf, 
 	/* clean previous buffers*/
 	BKE_vfont_clipboard_free();
 
-	text = MEM_mallocN((len + 1) * sizeof(wchar_t), __func__);
+	text = MEM_malloc_arrayN((len + 1), sizeof(wchar_t), __func__);
 	if (text == NULL) {
 		return;
 	}
 
-	info = MEM_mallocN(len * sizeof(CharInfo), __func__);
+	info = MEM_malloc_arrayN(len, sizeof(CharInfo), __func__);
 	if (info == NULL) {
 		MEM_freeN(text);
 		return;

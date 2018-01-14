@@ -257,7 +257,7 @@ static DerivedMesh *applyModifier_bmesh(
 				int tottri;
 				BMLoop *(*looptris)[3];
 
-				looptris = MEM_mallocN(sizeof(*looptris) * looptris_tot, __func__);
+				looptris = MEM_malloc_arrayN(looptris_tot, sizeof(*looptris), __func__);
 
 				BM_mesh_calc_tessellation_beauty(bm, looptris, &tottri);
 

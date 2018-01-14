@@ -289,7 +289,7 @@ static OldNewMap *oldnewmap_new(void)
 	OldNewMap *onm= MEM_callocN(sizeof(*onm), "OldNewMap");
 	
 	onm->entriessize = 1024;
-	onm->entries = MEM_mallocN(sizeof(*onm->entries)*onm->entriessize, "OldNewMap.entries");
+	onm->entries = MEM_malloc_arrayN(onm->entriessize, sizeof(*onm->entries), "OldNewMap.entries");
 	
 	return onm;
 }
@@ -536,7 +536,7 @@ void blo_split_main(ListBase *mainlist, Main *main)
 	
 	/* (Library.temp_index -> Main), lookup table */
 	const unsigned int lib_main_array_len = BLI_listbase_count(&main->library);
-	Main             **lib_main_array     = MEM_mallocN(lib_main_array_len * sizeof(*lib_main_array), __func__);
+	Main             **lib_main_array     = MEM_malloc_arrayN(lib_main_array_len, sizeof(*lib_main_array), __func__);
 
 	int i = 0;
 	for (Library *lib = main->library.first; lib; lib = lib->id.next, i++) {
@@ -1994,7 +1994,7 @@ static void test_pointer_array(FileData *fd, void **mat)
 		len = MEM_allocN_len(*mat)/fd->filesdna->pointerlen;
 			
 		if (fd->filesdna->pointerlen==8 && fd->memsdna->pointerlen==4) {
-			ipoin=imat= MEM_mallocN(len * 4, "newmatar");
+			ipoin=imat= MEM_malloc_arrayN(len, 4, "newmatar");
 			lpoin= *mat;
 			
 			while (len-- > 0) {
@@ -2009,7 +2009,7 @@ static void test_pointer_array(FileData *fd, void **mat)
 		}
 		
 		if (fd->filesdna->pointerlen==4 && fd->memsdna->pointerlen==8) {
-			lpoin = lmat = MEM_mallocN(len * 8, "newmatar");
+			lpoin = lmat = MEM_malloc_arrayN(len, 8, "newmatar");
 			ipoin = *mat;
 			
 			while (len-- > 0) {
@@ -3871,7 +3871,7 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 	else {
 		cu->nurb.first=cu->nurb.last= NULL;
 		
-		tb = MEM_callocN(MAXTEXTBOX*sizeof(TextBox), "TextBoxread");
+		tb = MEM_calloc_arrayN(MAXTEXTBOX, sizeof(TextBox), "TextBoxread");
 		if (cu->tb) {
 			memcpy(tb, cu->tb, cu->totbox*sizeof(TextBox));
 			MEM_freeN(cu->tb);
@@ -5266,9 +5266,9 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			collmd->xnew = newdataadr(fd, collmd->xnew);
 			collmd->mfaces = newdataadr(fd, collmd->mfaces);
 			
-			collmd->current_x = MEM_callocN(sizeof(MVert)*collmd->numverts, "current_x");
-			collmd->current_xnew = MEM_callocN(sizeof(MVert)*collmd->numverts, "current_xnew");
-			collmd->current_v = MEM_callocN(sizeof(MVert)*collmd->numverts, "current_v");
+			collmd->current_x = MEM_calloc_arrayN(collmd->numverts, sizeof(MVert), "current_x");
+			collmd->current_xnew = MEM_calloc_arrayN(collmd->numverts, sizeof(MVert), "current_xnew");
+			collmd->current_v = MEM_calloc_arrayN(collmd->numverts, sizeof(MVert), "current_v");
 #endif
 			
 			collmd->x = NULL;
@@ -8763,7 +8763,7 @@ static void sort_bhead_old_map(FileData *fd)
 	fd->tot_bheadmap = tot;
 	if (tot == 0) return;
 	
-	bhs = fd->bheadmap = MEM_mallocN(tot * sizeof(struct BHeadSort), "BHeadSort");
+	bhs = fd->bheadmap = MEM_malloc_arrayN(tot, sizeof(struct BHeadSort), "BHeadSort");
 	
 	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead), bhs++) {
 		bhs->bhead = bhead;

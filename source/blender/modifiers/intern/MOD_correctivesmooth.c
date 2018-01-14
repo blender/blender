@@ -156,7 +156,7 @@ static void dm_get_boundaries(DerivedMesh *dm, float *smooth_weights)
 	mpoly_num = (unsigned int)dm->getNumPolys(dm);
 	medge_num = (unsigned int)dm->getNumEdges(dm);
 
-	boundaries = MEM_callocN(medge_num * sizeof(*boundaries), __func__);
+	boundaries = MEM_calloc_arrayN(medge_num, sizeof(*boundaries), __func__);
 
 	/* count the number of adjacent faces */
 	for (i = 0; i < mpoly_num; i++) {
@@ -199,9 +199,9 @@ static void smooth_iter__simple(
 
 	struct SmoothingData_Simple {
 		float delta[3];
-	} *smooth_data = MEM_callocN((size_t)numVerts * sizeof(*smooth_data), __func__);
+	} *smooth_data = MEM_calloc_arrayN(numVerts, sizeof(*smooth_data), __func__);
 
-	vertex_edge_count_div = MEM_callocN((size_t)numVerts * sizeof(float), __func__);
+	vertex_edge_count_div = MEM_calloc_arrayN(numVerts, sizeof(float), __func__);
 
 	/* calculate as floats to avoid int->float conversion in #smooth_iter */
 	for (i = 0; i < numEdges; i++) {
@@ -277,11 +277,11 @@ static void smooth_iter__length_weight(
 	struct SmoothingData_Weighted {
 		float delta[3];
 		float edge_length_sum;
-	} *smooth_data = MEM_callocN((size_t)numVerts * sizeof(*smooth_data), __func__);
+	} *smooth_data = MEM_calloc_arrayN(numVerts, sizeof(*smooth_data), __func__);
 
 
 	/* calculate as floats to avoid int->float conversion in #smooth_iter */
-	vertex_edge_count = MEM_callocN((size_t)numVerts * sizeof(float), __func__);
+	vertex_edge_count = MEM_calloc_arrayN(numVerts, sizeof(float), __func__);
 	for (i = 0; i < numEdges; i++) {
 		vertex_edge_count[edges[i].v1] += 1.0f;
 		vertex_edge_count[edges[i].v2] += 1.0f;
@@ -382,7 +382,7 @@ static void smooth_verts(
 
 	if (dvert || (csmd->flag & MOD_CORRECTIVESMOOTH_PIN_BOUNDARY)) {
 
-		smooth_weights = MEM_mallocN(numVerts * sizeof(float), __func__);
+		smooth_weights = MEM_malloc_arrayN(numVerts, sizeof(float), __func__);
 
 		if (dvert) {
 			dm_get_weights(
@@ -530,7 +530,7 @@ static void calc_deltas(
 	float (*tangent_spaces)[3][3];
 	unsigned int i;
 
-	tangent_spaces = MEM_callocN((size_t)(numVerts) * sizeof(float[3][3]), __func__);
+	tangent_spaces = MEM_calloc_arrayN(numVerts, sizeof(float[3][3]), __func__);
 
 	if (csmd->delta_cache_num != numVerts) {
 		MEM_SAFE_FREE(csmd->delta_cache);
@@ -539,7 +539,7 @@ static void calc_deltas(
 	/* allocate deltas if they have not yet been allocated, otheriwse we will just write over them */
 	if (!csmd->delta_cache) {
 		csmd->delta_cache_num = numVerts;
-		csmd->delta_cache = MEM_mallocN((size_t)numVerts * sizeof(float[3]), __func__);
+		csmd->delta_cache = MEM_malloc_arrayN(numVerts, sizeof(float[3]), __func__);
 	}
 
 	smooth_verts(csmd, dm, dvert, defgrp_index, smooth_vertex_coords, numVerts);
@@ -680,7 +680,7 @@ static void correctivesmooth_modifier_do(
 		float (*tangent_spaces)[3][3];
 
 		/* calloc, since values are accumulated */
-		tangent_spaces = MEM_callocN((size_t)numVerts * sizeof(float[3][3]), __func__);
+		tangent_spaces = MEM_calloc_arrayN(numVerts, sizeof(float[3][3]), __func__);
 
 		calc_tangent_spaces(dm, vertexCos, tangent_spaces);
 
