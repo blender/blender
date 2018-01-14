@@ -65,8 +65,10 @@ class AddPresetBase:
                 setattr(cls, attr, trans)
             return trans
 
+        name = name.lower().strip()
+        name = bpy.path.display_name_to_filepath(name)
         trans = maketrans_init()
-        return name.lower().strip().translate(trans)
+        return name.translate(trans)
 
     def execute(self, context):
         import os

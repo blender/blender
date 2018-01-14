@@ -50,18 +50,27 @@
 #include "BLI_ghash.h"
 #include "BLI_strict_flags.h"
 
+/* -------------------------------------------------------------------- */
+/** \name Structs & Constants
+ * \{ */
+
 #define GHASH_USE_MODULO_BUCKETS
 
-/* Also used by smallhash! */
+/**
+ * Next prime after `2^n` (skipping 2 & 3).
+ *
+ * \note Also used by: `BLI_edgehash` & `BLI_smallhash`.
+ */
 const uint hashsizes[] = {
-	5, 11, 17, 37, 67, 131, 257, 521, 1031, 2053, 4099, 8209, 
-	16411, 32771, 65537, 131101, 262147, 524309, 1048583, 2097169, 
-	4194319, 8388617, 16777259, 33554467, 67108879, 134217757, 
+	5, 11, 17, 37, 67, 131, 257, 521, 1031, 2053, 4099, 8209,
+	16411, 32771, 65537, 131101, 262147, 524309, 1048583, 2097169,
+	4194319, 8388617, 16777259, 33554467, 67108879, 134217757,
 	268435459
 };
 
 #ifdef GHASH_USE_MODULO_BUCKETS
 #  define GHASH_MAX_SIZE 27
+BLI_STATIC_ASSERT(ARRAY_SIZE(hashsizes) == GHASH_MAX_SIZE, "Invalid 'hashsizes' size");
 #else
 #  define GHASH_BUCKET_BIT_MIN 2
 #  define GHASH_BUCKET_BIT_MAX 28  /* About 268M of buckets... */
@@ -76,8 +85,6 @@ const uint hashsizes[] = {
  */
 #define GHASH_LIMIT_GROW(_nbkt)   (((_nbkt) * 3) /  4)
 #define GHASH_LIMIT_SHRINK(_nbkt) (((_nbkt) * 3) / 16)
-
-/***/
 
 /* WARNING! Keep in sync with ugly _gh_Entry in header!!! */
 typedef struct Entry {
@@ -115,10 +122,9 @@ struct GHash {
 	uint flag;
 };
 
+/** \} */
 
 /* -------------------------------------------------------------------- */
-/* GHash API */
-
 /** \name Internal Utility API
  * \{ */
 
@@ -429,8 +435,9 @@ BLI_INLINE Entry *ghash_lookup_entry(GHash *gh, const void *key)
 	return ghash_lookup_entry_ex(gh, key, bucket_index);
 }
 
-static GHash *ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info,
-                        const uint nentries_reserve, const uint flag)
+static GHash *ghash_new(
+        GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info,
+        const uint nentries_reserve, const uint flag)
 {
 	GHash *gh = MEM_mallocN(sizeof(*gh), info);
 
@@ -685,8 +692,8 @@ static GHash *ghash_copy(GHash *gh, GHashKeyCopyFP keycopyfp, GHashValCopyFP val
 
 /** \} */
 
-
-/** \name Public API
+/* -------------------------------------------------------------------- */
+/** \name GHash Public API
  * \{ */
 
 /**
@@ -699,8 +706,9 @@ static GHash *ghash_copy(GHash *gh, GHashKeyCopyFP keycopyfp, GHashValCopyFP val
  * Use this to avoid resizing buckets if the size is known or can be closely approximated.
  * \return  An empty GHash.
  */
-GHash *BLI_ghash_new_ex(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info,
-                        const uint nentries_reserve)
+GHash *BLI_ghash_new_ex(
+        GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info,
+        const uint nentries_reserve)
 {
 	return ghash_new(hashfp, cmpfp, info, nentries_reserve, 0);
 }
@@ -974,8 +982,9 @@ bool BLI_ghash_pop(
  * \param valfreefp  Optional callback to free the value.
  * \param nentries_reserve  Optionally reserve the number of members that the hash will hold.
  */
-void BLI_ghash_clear_ex(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp,
-                        const uint nentries_reserve)
+void BLI_ghash_clear_ex(
+        GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp,
+        const uint nentries_reserve)
 {
 	if (keyfreefp || valfreefp)
 		ghash_free_cb(gh, keyfreefp, valfreefp);
@@ -1028,11 +1037,8 @@ void BLI_ghash_flag_clear(GHash *gh, uint flag)
 
 /** \} */
 
-
 /* -------------------------------------------------------------------- */
-/* GHash Iterator API */
-
-/** \name Iterator API
+/** \name GHash Iterator API
  * \{ */
 
 /**
@@ -1154,7 +1160,7 @@ bool BLI_ghashIterator_done(GHashIterator *ghi)
 
 /** \} */
 
-
+/* -------------------------------------------------------------------- */
 /** \name Generic Key Hash & Comparison Functions
  * \{ */
 
@@ -1325,7 +1331,7 @@ void BLI_ghashutil_pairfree(void *ptr)
 
 /** \} */
 
-
+/* -------------------------------------------------------------------- */
 /** \name Convenience GHash Creation Functions
  * \{ */
 
@@ -1367,16 +1373,14 @@ GHash *BLI_ghash_pair_new(const char *info)
 
 /** \} */
 
-
 /* -------------------------------------------------------------------- */
-/* GSet API */
-
-/* Use ghash API to give 'set' functionality */
-
-/** \name GSet Functions
+/** \name GSet Public API
+ *
+ * Use ghash API to give 'set' functionality
  * \{ */
-GSet *BLI_gset_new_ex(GSetHashFP hashfp, GSetCmpFP cmpfp, const char *info,
-                      const uint nentries_reserve)
+GSet *BLI_gset_new_ex(
+        GSetHashFP hashfp, GSetCmpFP cmpfp, const char *info,
+        const uint nentries_reserve)
 {
 	return (GSet *)ghash_new(hashfp, cmpfp, info, nentries_reserve, GHASH_FLAG_IS_GSET);
 }
@@ -1504,11 +1508,13 @@ bool BLI_gset_pop(
 	}
 }
 
-void BLI_gset_clear_ex(GSet *gs, GSetKeyFreeFP keyfreefp,
-                       const uint nentries_reserve)
+void BLI_gset_clear_ex(
+        GSet *gs, GSetKeyFreeFP keyfreefp,
+        const uint nentries_reserve)
 {
-	BLI_ghash_clear_ex((GHash *)gs, keyfreefp, NULL,
-	                   nentries_reserve);
+	BLI_ghash_clear_ex(
+	        (GHash *)gs, keyfreefp, NULL,
+	        nentries_reserve);
 }
 
 void BLI_gset_clear(GSet *gs, GSetKeyFreeFP keyfreefp)
@@ -1533,6 +1539,7 @@ void BLI_gset_flag_clear(GSet *gs, uint flag)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name GSet Combined Key/Value Usage
  *
  * \note Not typical ``set`` use, only use when the pointer identity matters.
@@ -1569,6 +1576,7 @@ void *BLI_gset_pop_key(GSet *gs, const void *key)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Convenience GSet Creation Functions
  * \{ */
 
@@ -1601,7 +1609,7 @@ GSet *BLI_gset_pair_new(const char *info)
 
 /** \} */
 
-
+/* -------------------------------------------------------------------- */
 /** \name Debugging & Introspection
  * \{ */
 
@@ -1713,8 +1721,9 @@ double BLI_gset_calc_quality_ex(
         GSet *gs, double *r_load, double *r_variance,
         double *r_prop_empty_buckets, double *r_prop_overloaded_buckets, int *r_biggest_bucket)
 {
-	return BLI_ghash_calc_quality_ex((GHash *)gs, r_load, r_variance,
-	                                 r_prop_empty_buckets, r_prop_overloaded_buckets, r_biggest_bucket);
+	return BLI_ghash_calc_quality_ex(
+	        (GHash *)gs, r_load, r_variance,
+	        r_prop_empty_buckets, r_prop_overloaded_buckets, r_biggest_bucket);
 }
 
 double BLI_ghash_calc_quality(GHash *gh)
