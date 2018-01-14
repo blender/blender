@@ -62,13 +62,11 @@
 #include "../manipulator_geometry.h"
 #include "../manipulator_library_intern.h"
 
-typedef struct ButtonManipulator3D {
+typedef struct ButtonManipulator2D {
 	wmManipulator manipulator;
-	/* Added to 'matrix_basis' when calculating the matrix. */
-	float prop_co[3];
-} ButtonManipulator3D;
+} ButtonManipulator2D;
 
-#define DIAL_RESOLUTION 32
+#define CIRCLE_RESOLUTION 32
 
 /* -------------------------------------------------------------------- */
 
@@ -85,7 +83,7 @@ static void button_geom_draw(
 	immUniformColor4fv(color);
 
 	/* TODO, other draw styles */
-	imm_draw_circle_fill_2d(pos, 0, 0, 1.0f, DIAL_RESOLUTION);
+	imm_draw_circle_fill_2d(pos, 0, 0, 1.0f, CIRCLE_RESOLUTION);
 
 	immUnbindProgram();
 
@@ -184,7 +182,7 @@ static void MANIPULATOR_WT_button_2d(wmManipulatorType *wt)
 	wt->test_select = manipulator_button_test_select;
 	wt->cursor_get = manipulator_button_cursor_get;
 
-	wt->struct_size = sizeof(ButtonManipulator3D);
+	wt->struct_size = sizeof(ButtonManipulator2D);
 
 	/* rna */
 	PropertyRNA *prop;
