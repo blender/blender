@@ -124,7 +124,7 @@ struct ImBuf *imb_bmp_decode(const unsigned char *mem, size_t size, int flags, c
 {
 	struct ImBuf *ibuf = NULL;
 	BMPINFOHEADER bmi;
-	int x, y, depth, ibuf_depth, skip, i, j;
+	int x, y, depth, ibuf_depth, skip;
 	const unsigned char *bmp;
 	unsigned char *rect;
 	unsigned short col;
@@ -179,13 +179,17 @@ struct ImBuf *imb_bmp_decode(const unsigned char *mem, size_t size, int flags, c
 	}
 	else {
 		ibuf = IMB_allocImBuf(x, y, ibuf_depth, IB_rect);
+		if (!ibuf) {
+			return NULL;
+		}
+
 		rect = (unsigned char *) ibuf->rect;
 
 		if (depth <= 8) {
 			const int rowsize = (depth * x + 31) / 32 * 4;
 			const char (*palette)[4] = (void *)(mem + skip);
 			const int startmask = ((1 << depth) - 1) << 8;
-			for (i = y; i > 0; i--) {
+			for (size_t i = y; i > 0; i--) {
 				int index;
 				int bitoffs = 8;
 				int bitmask = startmask;
@@ -194,7 +198,7 @@ struct ImBuf *imb_bmp_decode(const unsigned char *mem, size_t size, int flags, c
 				if (top_to_bottom) {
 					rect = (unsigned char *) &ibuf->rect[(i - 1) * x];
 				}
-				for (j = x; j > 0; j--) {
+				for (size_t j = x; j > 0; j--) {
 					bitoffs -= depth;
 					bitmask >>= depth;
 					index = (bmp[0] & bitmask) >> bitoffs;
@@ -219,11 +223,11 @@ struct ImBuf *imb_bmp_decode(const unsigned char *mem, size_t size, int flags, c
 			}
 		}
 		else if (depth == 16) {
-			for (i = y; i > 0; i--) {
+			for (size_t i = y; i > 0; i--) {
 				if (top_to_bottom) {
 					rect = (unsigned char *) &ibuf->rect[(i - 1) * x];
 				}
-				for (j = x; j > 0; j--) {
+				for (size_t j = x; j > 0; j--) {
 					col = bmp[0] + (bmp[1] << 8);
 					rect[0] = ((col >> 10) & 0x1f) << 3;
 					rect[1] = ((col >>  5) & 0x1f) << 3;
@@ -236,11 +240,11 @@ struct ImBuf *imb_bmp_decode(const unsigned char *mem, size_t size, int flags, c
 		}
 		else if (depth == 24) {
 			const int x_pad = x % 4;
-			for (i = y; i > 0; i--) {
+			for (size_t i = y; i > 0; i--) {
 				if (top_to_bottom) {
 					rect = (unsigned char *) &ibuf->rect[(i - 1) * x];
 				}
-				for (j = x; j > 0; j--) {
+				for (size_t j = x; j > 0; j--) {
 					rect[0] = bmp[2];
 					rect[1] = bmp[1];
 					rect[2] = bmp[0];
@@ -253,11 +257,11 @@ struct ImBuf *imb_bmp_decode(const unsigned char *mem, size_t size, int flags, c
 			}
 		}
 		else if (depth == 32) {
-			for (i = y; i > 0; i--) {
+			for (size_t i = y; i > 0; i--) {
 				if (top_to_bottom) {
 					rect = (unsigned char *) &ibuf->rect[(i - 1) * x];
 				}
-				for (j = x; j > 0; j--) {
+				for (size_t j = x; j > 0; j--) {
 					rect[0] = bmp[2];
 					rect[1] = bmp[1];
 					rect[2] = bmp[0];
@@ -299,7 +303,7 @@ static int putShortLSB(unsigned short us, FILE *ofile)
 int imb_savebmp(struct ImBuf *ibuf, const char *name, int flags)
 {
 	BMPINFOHEADER infoheader;
-	int bytesize, extrabytes, x, y, t, ptr;
+	size_t bytesize, extrabytes, ptr;
 	uchar *data;
 	FILE *ofile;
 	
@@ -331,15 +335,15 @@ int imb_savebmp(struct ImBuf *ibuf, const char *name, int flags)
 	putIntLSB(0, ofile);
 
 	/* Need to write out padded image data in bgr format */
-	for (y = 0; y < ibuf->y; y++) {
-		for (x = 0; x < ibuf->x; x++) {
+	for (size_t y = 0; y < ibuf->y; y++) {
+		for (size_t x = 0; x < ibuf->x; x++) {
 			ptr = (x + y * ibuf->x) * 4;
 			if (putc(data[ptr + 2], ofile) == EOF) return 0;
 			if (putc(data[ptr + 1], ofile) == EOF) return 0;
 			if (putc(data[ptr], ofile) == EOF) return 0;
 		}
 		/* add padding here */
-		for (t = 0; t < extrabytes; t++) {
+		for (size_t t = 0; t < extrabytes; t++) {
 			if (putc(0, ofile) == EOF) return 0;
 		}
 	}

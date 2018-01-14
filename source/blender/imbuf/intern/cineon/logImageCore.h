@@ -196,7 +196,7 @@ LogImageFile *logImageCreate(const char *filename, int cineon, int width, int he
 void logImageClose(LogImageFile *logImage);
 
 /* Data handling */
-unsigned int getRowLength(int width, LogImageElement logElement);
+size_t getRowLength(size_t width, LogImageElement logElement);
 int logImageSetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB);
 int logImageGetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB);
 
