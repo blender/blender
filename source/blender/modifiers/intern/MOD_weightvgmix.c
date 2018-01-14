@@ -290,9 +290,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 			return dm;
 	}
 	/* Find out which vertices to work on. */
-	tidx = MEM_mallocN(sizeof(int) * numVerts, "WeightVGMix Modifier, tidx");
-	tdw1 = MEM_mallocN(sizeof(MDeformWeight *) * numVerts, "WeightVGMix Modifier, tdw1");
-	tdw2 = MEM_mallocN(sizeof(MDeformWeight *) * numVerts, "WeightVGMix Modifier, tdw2");
+	tidx = MEM_malloc_arrayN(numVerts, sizeof(int), "WeightVGMix Modifier, tidx");
+	tdw1 = MEM_malloc_arrayN(numVerts, sizeof(MDeformWeight *), "WeightVGMix Modifier, tdw1");
+	tdw2 = MEM_malloc_arrayN(numVerts, sizeof(MDeformWeight *), "WeightVGMix Modifier, tdw2");
 	switch (wmd->mix_set) {
 		case MOD_WVG_SET_A:
 			/* All vertices in first vgroup. */
@@ -358,12 +358,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 		return dm;
 	}
 	if (numIdx != -1) {
-		indices = MEM_mallocN(sizeof(int) * numIdx, "WeightVGMix Modifier, indices");
+		indices = MEM_malloc_arrayN(numIdx, sizeof(int), "WeightVGMix Modifier, indices");
 		memcpy(indices, tidx, sizeof(int) * numIdx);
-		dw1 = MEM_mallocN(sizeof(MDeformWeight *) * numIdx, "WeightVGMix Modifier, dw1");
+		dw1 = MEM_malloc_arrayN(numIdx, sizeof(MDeformWeight *), "WeightVGMix Modifier, dw1");
 		memcpy(dw1, tdw1, sizeof(MDeformWeight *) * numIdx);
 		MEM_freeN(tdw1);
-		dw2 = MEM_mallocN(sizeof(MDeformWeight *) * numIdx, "WeightVGMix Modifier, dw2");
+		dw2 = MEM_malloc_arrayN(numIdx, sizeof(MDeformWeight *), "WeightVGMix Modifier, dw2");
 		memcpy(dw2, tdw2, sizeof(MDeformWeight *) * numIdx);
 		MEM_freeN(tdw2);
 	}
@@ -376,8 +376,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	}
 	MEM_freeN(tidx);
 
-	org_w = MEM_mallocN(sizeof(float) * numIdx, "WeightVGMix Modifier, org_w");
-	new_w = MEM_mallocN(sizeof(float) * numIdx, "WeightVGMix Modifier, new_w");
+	org_w = MEM_malloc_arrayN(numIdx, sizeof(float), "WeightVGMix Modifier, org_w");
+	new_w = MEM_malloc_arrayN(numIdx, sizeof(float), "WeightVGMix Modifier, new_w");
 
 	/* Mix weights. */
 	for (i = 0; i < numIdx; i++) {

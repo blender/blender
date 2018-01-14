@@ -238,7 +238,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	if (pimd->flag & eParticleInstanceFlag_UseSize) {
 		float *si;
-		si = size = MEM_callocN(totpart * sizeof(float), "particle size array");
+		si = size = MEM_calloc_arrayN(totpart, sizeof(float), "particle size array");
 
 		if (pimd->flag & eParticleInstanceFlag_Parents) {
 			for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++, si++)

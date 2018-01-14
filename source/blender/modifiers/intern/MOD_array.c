@@ -217,8 +217,8 @@ static void dm_mvert_map_doubles(
 	source_end = source_start + source_num_verts;
 
 	/* build array of MVerts to be tested for merging */
-	sorted_verts_target = MEM_mallocN(sizeof(SortVertsElem) * target_num_verts, __func__);
-	sorted_verts_source = MEM_mallocN(sizeof(SortVertsElem) * source_num_verts, __func__);
+	sorted_verts_target = MEM_malloc_arrayN(target_num_verts, sizeof(SortVertsElem), __func__);
+	sorted_verts_source = MEM_malloc_arrayN(source_num_verts, sizeof(SortVertsElem), __func__);
 
 	/* Copy target vertices index and cos into SortVertsElem array */
 	svert_from_mvert(sorted_verts_target, mverts + target_start, target_start, target_end);
@@ -538,7 +538,7 @@ static DerivedMesh *arrayModifier_doArray(
 
 	if (use_merge) {
 		/* Will need full_doubles_map for handling merge */
-		full_doubles_map = MEM_mallocN(sizeof(int) * result_nverts, "mod array doubles map");
+		full_doubles_map = MEM_malloc_arrayN(result_nverts, sizeof(int), "mod array doubles map");
 		copy_vn_i(full_doubles_map, result_nverts, -1);
 	}
 

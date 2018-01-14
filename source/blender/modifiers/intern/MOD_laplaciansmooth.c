@@ -132,14 +132,14 @@ static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numPolys, in
 	sys->numLoops = a_numLoops;
 	sys->numVerts = a_numVerts;
 
-	sys->eweights =  MEM_callocN(sizeof(float) * sys->numEdges, __func__);
-	sys->fweights =  MEM_callocN(sizeof(float[3]) * sys->numLoops, __func__);
-	sys->numNeEd =  MEM_callocN(sizeof(short) * sys->numVerts, __func__);
-	sys->numNeFa =  MEM_callocN(sizeof(short) * sys->numVerts, __func__);
-	sys->ring_areas =  MEM_callocN(sizeof(float) * sys->numVerts, __func__);
-	sys->vlengths =  MEM_callocN(sizeof(float) * sys->numVerts, __func__);
-	sys->vweights =  MEM_callocN(sizeof(float) * sys->numVerts, __func__);
-	sys->zerola =  MEM_callocN(sizeof(short) * sys->numVerts, __func__);
+	sys->eweights =  MEM_calloc_arrayN(sys->numEdges, sizeof(float), __func__);
+	sys->fweights =  MEM_calloc_arrayN(sys->numLoops, sizeof(float[3]), __func__);
+	sys->numNeEd =  MEM_calloc_arrayN(sys->numVerts, sizeof(short), __func__);
+	sys->numNeFa =  MEM_calloc_arrayN(sys->numVerts, sizeof(short), __func__);
+	sys->ring_areas =  MEM_calloc_arrayN(sys->numVerts, sizeof(float), __func__);
+	sys->vlengths =  MEM_calloc_arrayN(sys->numVerts, sizeof(float), __func__);
+	sys->vweights =  MEM_calloc_arrayN(sys->numVerts, sizeof(float), __func__);
+	sys->zerola =  MEM_calloc_arrayN(sys->numVerts, sizeof(short), __func__);
 
 	return sys;
 }

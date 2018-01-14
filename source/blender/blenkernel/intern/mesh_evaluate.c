@@ -127,8 +127,8 @@ void BKE_mesh_calc_normals_mapping_ex(
 		return;
 	}
 
-	if (!pnors) pnors = MEM_callocN(sizeof(float[3]) * (size_t)numPolys, __func__);
-	/* if (!fnors) fnors = MEM_callocN(sizeof(float[3]) * numFaces, "face nors mesh.c"); */ /* NO NEED TO ALLOC YET */
+	if (!pnors) pnors = MEM_calloc_arrayN((size_t)numPolys, sizeof(float[3]), __func__);
+	/* if (!fnors) fnors = MEM_calloc_arrayN(numFaces, sizeof(float[3]), "face nors mesh.c"); */ /* NO NEED TO ALLOC YET */
 
 
 	if (only_face_normals == false) {
@@ -296,7 +296,7 @@ void BKE_mesh_calc_normals_poly(
 
 	/* first go through and calculate normals for all the polys */
 	if (vnors == NULL) {
-		vnors = MEM_callocN(sizeof(*vnors) * (size_t)numVerts, __func__);
+		vnors = MEM_calloc_arrayN((size_t)numVerts, sizeof(*vnors), __func__);
 		free_vnors = true;
 	}
 	else {
@@ -341,9 +341,13 @@ void BKE_mesh_calc_normals_tessface(
         const MFace *mfaces, int numFaces,
         float (*r_faceNors)[3])
 {
-	float (*tnorms)[3] = MEM_callocN(sizeof(*tnorms) * (size_t)numVerts, "tnorms");
-	float (*fnors)[3] = (r_faceNors) ? r_faceNors : MEM_callocN(sizeof(*fnors) * (size_t)numFaces, "meshnormals");
+	float (*tnorms)[3] = MEM_calloc_arrayN((size_t)numVerts, sizeof(*tnorms), "tnorms");
+	float (*fnors)[3] = (r_faceNors) ? r_faceNors : MEM_calloc_arrayN((size_t)numFaces, sizeof(*fnors), "meshnormals");
 	int i;
+
+	if (!tnorms || !fnors) {
+		goto cleanup;
+	}
 
 	for (i = 0; i < numFaces; i++) {
 		const MFace *mf = &mfaces[i];
@@ -372,6 +376,7 @@ void BKE_mesh_calc_normals_tessface(
 		normal_float_to_short_v3(mv->no, no);
 	}
 	
+cleanup:
 	MEM_freeN(tnorms);
 
 	if (fnors != r_faceNors)
@@ -384,9 +389,13 @@ void BKE_mesh_calc_normals_looptri(
         const MLoopTri *looptri, int looptri_num,
         float (*r_tri_nors)[3])
 {
-	float (*tnorms)[3] = MEM_callocN(sizeof(*tnorms) * (size_t)numVerts, "tnorms");
-	float (*fnors)[3] = (r_tri_nors) ? r_tri_nors : MEM_callocN(sizeof(*fnors) * (size_t)looptri_num, "meshnormals");
+	float (*tnorms)[3] = MEM_calloc_arrayN((size_t)numVerts, sizeof(*tnorms), "tnorms");
+	float (*fnors)[3] = (r_tri_nors) ? r_tri_nors : MEM_calloc_arrayN((size_t)looptri_num, sizeof(*fnors), "meshnormals");
 	int i;
+
+	if (!tnorms || !fnors) {
+		goto cleanup;
+	}
 
 	for (i = 0; i < looptri_num; i++) {
 		const MLoopTri *lt = &looptri[i];
@@ -418,6 +427,7 @@ void BKE_mesh_calc_normals_looptri(
 		normal_float_to_short_v3(mv->no, no);
 	}
 
+cleanup:
 	MEM_freeN(tnorms);
 
 	if (fnors != r_tri_nors)
@@ -1158,7 +1168,7 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
 
 				if (pool) {
 					if (data_idx == 0) {
-						data_buff = MEM_callocN(sizeof(*data_buff) * LOOP_SPLIT_TASK_BLOCK_SIZE, __func__);
+						data_buff = MEM_calloc_arrayN(LOOP_SPLIT_TASK_BLOCK_SIZE, sizeof(*data_buff), __func__);
 					}
 					data = &data_buff[data_idx];
 				}
@@ -1288,10 +1298,10 @@ void BKE_mesh_normals_loop_split(
 	 * store the negated value of loop index instead of INDEX_INVALID to retrieve the real value later in code).
 	 * Note also that lose edges always have both values set to 0!
 	 */
-	int (*edge_to_loops)[2] = MEM_callocN(sizeof(*edge_to_loops) * (size_t)numEdges, __func__);
+	int (*edge_to_loops)[2] = MEM_calloc_arrayN((size_t)numEdges, sizeof(*edge_to_loops), __func__);
 
 	/* Simple mapping from a loop to its polygon index. */
-	int *loop_to_poly = r_loop_to_poly ? r_loop_to_poly : MEM_mallocN(sizeof(*loop_to_poly) * (size_t)numLoops, __func__);
+	int *loop_to_poly = r_loop_to_poly ? r_loop_to_poly : MEM_malloc_arrayN((size_t)numLoops, sizeof(*loop_to_poly), __func__);
 
 	MPoly *mp;
 	int mp_index;
@@ -1445,8 +1455,8 @@ static void mesh_normals_loop_custom_set(
 	 */
 	MLoopNorSpaceArray lnors_spacearr = {NULL};
 	BLI_bitmap *done_loops = BLI_BITMAP_NEW((size_t)numLoops, __func__);
-	float (*lnors)[3] = MEM_callocN(sizeof(*lnors) * (size_t)numLoops, __func__);
-	int *loop_to_poly = MEM_mallocN(sizeof(int) * (size_t)numLoops, __func__);
+	float (*lnors)[3] = MEM_calloc_arrayN((size_t)numLoops, sizeof(*lnors), __func__);
+	int *loop_to_poly = MEM_malloc_arrayN((size_t)numLoops, sizeof(int), __func__);
 	/* In this case we always consider split nors as ON, and do not want to use angle to define smooth fans! */
 	const bool use_split_normals = true;
 	const float split_angle = (float)M_PI;
@@ -1661,7 +1671,7 @@ void BKE_mesh_normals_loop_to_vertex(
 	const MLoop *ml;
 	int i;
 
-	int *vert_loops_nbr = MEM_callocN(sizeof(*vert_loops_nbr) * (size_t)numVerts, __func__);
+	int *vert_loops_nbr = MEM_calloc_arrayN((size_t)numVerts, sizeof(*vert_loops_nbr), __func__);
 
 	copy_vn_fl((float *)r_vert_clnors, 3 * numVerts, 0.0f);
 
@@ -2653,9 +2663,9 @@ int BKE_mesh_recalc_tessellation(
 	/* allocate the length of totfaces, avoid many small reallocs,
 	 * if all faces are tri's it will be correct, quads == 2x allocs */
 	/* take care. we are _not_ calloc'ing so be sure to initialize each field */
-	mface_to_poly_map = MEM_mallocN(sizeof(*mface_to_poly_map) * (size_t)looptri_num, __func__);
-	mface             = MEM_mallocN(sizeof(*mface) *             (size_t)looptri_num, __func__);
-	lindices          = MEM_mallocN(sizeof(*lindices) *          (size_t)looptri_num, __func__);
+	mface_to_poly_map = MEM_malloc_arrayN((size_t)looptri_num, sizeof(*mface_to_poly_map), __func__);
+	mface             = MEM_malloc_arrayN((size_t)looptri_num, sizeof(*mface), __func__);
+	lindices          = MEM_malloc_arrayN((size_t)looptri_num, sizeof(*lindices), __func__);
 
 	mface_index = 0;
 	mp = mpoly;
@@ -3035,7 +3045,7 @@ int BKE_mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 	const bool hasLNor = CustomData_has_layer(ldata, CD_NORMAL);
 
 	/* over-alloc, ngons will be skipped */
-	mface = MEM_mallocN(sizeof(*mface) * (size_t)totpoly, __func__);
+	mface = MEM_malloc_arrayN((size_t)totpoly, sizeof(*mface), __func__);
 
 	mpoly = CustomData_get_layer(pdata, CD_MPOLY);
 	mloop = CustomData_get_layer(ldata, CD_MLOOP);
@@ -3203,7 +3213,6 @@ static void bm_corners_to_loops_ex(ID *id, CustomData *fdata, CustomData *ldata,
 		else {
 			const int side = (int)sqrtf((float)(fd->totdisp / corners));
 			const int side_sq = side * side;
-			const size_t disps_size = sizeof(float[3]) * (size_t)side_sq;
 
 			for (i = 0; i < tot; i++, disps += side_sq, ld++) {
 				ld->totdisp = side_sq;
@@ -3212,12 +3221,12 @@ static void bm_corners_to_loops_ex(ID *id, CustomData *fdata, CustomData *ldata,
 				if (ld->disps)
 					MEM_freeN(ld->disps);
 
-				ld->disps = MEM_mallocN(disps_size, "converted loop mdisps");
+				ld->disps = MEM_malloc_arrayN((size_t)side_sq, sizeof(float[3]), "converted loop mdisps");
 				if (fd->disps) {
-					memcpy(ld->disps, disps, disps_size);
+					memcpy(ld->disps, disps, (size_t)side_sq * sizeof(float[3]));
 				}
 				else {
-					memset(ld->disps, 0, disps_size);
+					memset(ld->disps, 0, (size_t)side_sq * sizeof(float[3]));
 				}
 			}
 		}
@@ -3279,7 +3288,7 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id, CustomData *fdata, CustomData 
 	CustomData_free(pdata, totpoly_i);
 
 	totpoly = totface_i;
-	mpoly = MEM_callocN(sizeof(MPoly) * (size_t)totpoly, "mpoly converted");
+	mpoly = MEM_calloc_arrayN((size_t)totpoly, sizeof(MPoly), "mpoly converted");
 	CustomData_add_layer(pdata, CD_MPOLY, CD_ASSIGN, mpoly, totpoly);
 
 	numTex = CustomData_number_of_layers(fdata, CD_MTFACE);
@@ -3291,7 +3300,7 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id, CustomData *fdata, CustomData 
 		totloop += mf->v4 ? 4 : 3;
 	}
 
-	mloop = MEM_callocN(sizeof(MLoop) * (size_t)totloop, "mloop converted");
+	mloop = MEM_calloc_arrayN((size_t)totloop, sizeof(MLoop), "mloop converted");
 
 	CustomData_add_layer(ldata, CD_MLOOP, CD_ASSIGN, mloop, totloop);
 
@@ -3690,7 +3699,7 @@ void BKE_mesh_calc_relative_deform(
 	const MPoly *mp;
 	int i;
 
-	int *vert_accum = MEM_callocN(sizeof(*vert_accum) * (size_t)totvert, __func__);
+	int *vert_accum = MEM_calloc_arrayN((size_t)totvert, sizeof(*vert_accum), __func__);
 
 	memset(vert_cos_new, '\0', sizeof(*vert_cos_new) * (size_t)totvert);
 
