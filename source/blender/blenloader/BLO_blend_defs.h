@@ -75,6 +75,6 @@ enum {
 	ENDB = BLEND_MAKE_ID('E', 'N', 'D', 'B'),
 };
 
-#define BLEN_THUMB_MEMSIZE_FILE(_x, _y) (sizeof(int) * (size_t)(2 + (_x) * (_y)))
+#define BLEN_THUMB_MEMSIZE_FILE(_x, _y) (sizeof(int) * (2 + (size_t)(_x) * (size_t)(_y)))
 
 #endif  /* __BLO_BLEND_DEFS_H__ */

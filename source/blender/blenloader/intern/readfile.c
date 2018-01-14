@@ -969,7 +969,13 @@ static int *read_file_thumbnail(FileData *fd)
 				BLI_endian_switch_int32(&data[1]);
 			}
 
-			if (bhead->len < BLEN_THUMB_MEMSIZE_FILE(data[0], data[1])) {
+			int width = data[0];
+			int height = data[1];
+
+			if (!BLEN_THUMB_SAFE_MEMSIZE(width, height)) {
+				break;
+			}
+			if (bhead->len < BLEN_THUMB_MEMSIZE_FILE(width, height)) {
 				break;
 			}
 
@@ -1408,23 +1414,28 @@ bool BLO_library_path_explode(const char *path, char *r_dir, char **r_group, cha
 BlendThumbnail *BLO_thumbnail_from_file(const char *filepath)
 {
 	FileData *fd;
-	BlendThumbnail *data;
+	BlendThumbnail *data = NULL;
 	int *fd_data;
 
 	fd = blo_openblenderfile_minimal(filepath);
 	fd_data = fd ? read_file_thumbnail(fd) : NULL;
 
 	if (fd_data) {
-		const size_t sz = BLEN_THUMB_MEMSIZE(fd_data[0], fd_data[1]);
-		data = MEM_mallocN(sz, __func__);
+		int width = fd_data[0];
+		int height = fd_data[1];
 
-		BLI_assert((sz - sizeof(*data)) == (BLEN_THUMB_MEMSIZE_FILE(fd_data[0], fd_data[1]) - (sizeof(*fd_data) * 2)));
-		data->width = fd_data[0];
-		data->height = fd_data[1];
-		memcpy(data->rect, &fd_data[2], sz - sizeof(*data));
-	}
-	else {
-		data = NULL;
+		/* Protect against buffer overflow vulnerability. */
+		if (BLEN_THUMB_SAFE_MEMSIZE(width, height)) {
+			const size_t sz = BLEN_THUMB_MEMSIZE(width, height);
+			data = MEM_mallocN(sz, __func__);
+
+			if (data) {
+				BLI_assert((sz - sizeof(*data)) == (BLEN_THUMB_MEMSIZE_FILE(width, height) - (sizeof(*fd_data) * 2)));
+				data->width = width;
+				data->height = height;
+				memcpy(data->rect, &fd_data[2], sz - sizeof(*data));
+			}
+		}
 	}
 
 	blo_freefiledata(fd);
@@ -8638,14 +8649,20 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 		const int *data = read_file_thumbnail(fd);
 
 		if (data) {
-			const size_t sz = BLEN_THUMB_MEMSIZE(data[0], data[1]);
-			bfd->main->blen_thumb = MEM_mallocN(sz, __func__);
+			int width = data[0];
+			int height = data[1];
 
-			BLI_assert((sz - sizeof(*bfd->main->blen_thumb)) ==
-			           (BLEN_THUMB_MEMSIZE_FILE(data[0], data[1]) - (sizeof(*data) * 2)));
-			bfd->main->blen_thumb->width = data[0];
-			bfd->main->blen_thumb->height = data[1];
-			memcpy(bfd->main->blen_thumb->rect, &data[2], sz - sizeof(*bfd->main->blen_thumb));
+			/* Protect against buffer overflow vulnerability. */
+			if (BLEN_THUMB_SAFE_MEMSIZE(width, height)) {
+				const size_t sz = BLEN_THUMB_MEMSIZE(width, height);
+				bfd->main->blen_thumb = MEM_mallocN(sz, __func__);
+
+				BLI_assert((sz - sizeof(*bfd->main->blen_thumb)) ==
+				           (BLEN_THUMB_MEMSIZE_FILE(width, height) - (sizeof(*data) * 2)));
+				bfd->main->blen_thumb->width = width;
+				bfd->main->blen_thumb->height = height;
+				memcpy(bfd->main->blen_thumb->rect, &data[2], sz - sizeof(*bfd->main->blen_thumb));
+			}
 		}
 	}
 
