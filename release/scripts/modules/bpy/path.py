@@ -28,6 +28,7 @@ __all__ = (
     "basename",
     "clean_name",
     "display_name",
+    "display_name_to_filepath",
     "display_name_from_filepath",
     "ensure_ext",
     "extensions_image",
@@ -193,6 +194,12 @@ def _clean_utf8(name):
         return name.encode("utf8", "replace").decode("utf8")
 
 
+_display_name_literals = {
+    ":": "_colon_",
+    "+": "_plus_",
+}
+
+
 def display_name(name):
     """
     Creates a display string from name to be used menus and the user interface.
@@ -201,8 +208,8 @@ def display_name(name):
     filenames and module names.
     """
     # string replacements
-    name = name.replace("_colon_", ":")
-    name = name.replace("_plus_", "+")
+    for disp_value, file_value in _display_name_literals.items():
+        name = name.replace(file_value, disp_value)
 
     # strip to allow underscore prefix
     # (when paths can't start with numbers for eg).
@@ -212,6 +219,15 @@ def display_name(name):
         name = name.lower().title()
 
     name = _clean_utf8(name)
+    return name
+
+def display_name_to_filepath(name):
+    """
+    Performs the reverse of display_name using literal versions of characters
+    which aren't supported in a filepath.
+    """
+    for disp_value, file_value in _display_name_literals.items():
+        name = name.replace(disp_value, file_value)
     return name
 
 
