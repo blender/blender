@@ -26,6 +26,7 @@
 set(INC 
 	.
 	../blenlib
+	../imbuf
 	../../../intern/guardedalloc
 )
 

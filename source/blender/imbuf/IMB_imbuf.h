@@ -583,6 +583,12 @@ bool IMB_metadata_change_field(struct ImBuf *img, const char *key, const char *f
 void IMB_metadata_copy(struct ImBuf *dimb, struct ImBuf *simb);
 
 /* exported for image tools in blender, to quickly allocate 32 bits rect */
+void *imb_alloc_pixels(unsigned int x,
+                       unsigned int y,
+                       unsigned int channels,
+                       size_t typesize,
+                       const char *name);
+
 bool imb_addrectImBuf(struct ImBuf *ibuf);
 void imb_freerectImBuf(struct ImBuf *ibuf);
 
