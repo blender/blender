@@ -2329,6 +2329,7 @@ void DRW_framebuffer_init(
 	for (int i = 0; i < textures_len; ++i) {
 		int channels;
 		bool is_depth;
+		bool create_tex = false;
 
 		DRWFboTexture fbotex = textures[i];
 		bool is_temp = (fbotex.flag & DRW_TEX_TEMP) != 0;
@@ -2341,16 +2342,18 @@ void DRW_framebuffer_init(
 				*fbotex.tex = GPU_viewport_texture_pool_query(
 				        DST.viewport, engine_type, width, height, channels, gpu_format);
 			}
-			else if (create_fb) {
+			else {
 				*fbotex.tex = GPU_texture_create_2D_custom(
 				        width, height, channels, gpu_format, NULL, NULL);
+				create_tex = true;
 			}
 		}
 
-		if (create_fb) {
-			if (!is_depth) {
-				++color_attachment;
-			}
+		if (!is_depth) {
+			++color_attachment;
+		}
+
+		if (create_fb || create_tex) {
 			drw_texture_set_parameters(*fbotex.tex, fbotex.flag);
 			GPU_framebuffer_texture_attach(*fb, *fbotex.tex, color_attachment, 0);
 		}
