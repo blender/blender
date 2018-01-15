@@ -32,6 +32,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_rect.h"
 #include "BLI_math.h"
 #include "BLI_polyfill2d.h"
 
@@ -61,25 +62,38 @@ void GWN_batch_program_set_builtin(Gwn_Batch *batch, GPUBuiltinShader shader_id)
  * Creates triangles from a byte-array of polygons.
  *
  * See 'make_shape_2d_from_blend.py' utility to create data to pass to this function.
+ *
+ * \param polys_flat: Pairs of X, Y coordinates (repeating to signify closing the polygon).
+ * \param polys_flat_len: Length of the array (must be an even number).
+ * \param rect: Optional region to map the byte 0..255 coords to. When not set use -1..1.
  */
 Gwn_Batch *GPU_batch_from_poly_2d_encoded(
-        const uchar *polys_flat, uint polys_flat_len, float min, float max)
+        const uchar *polys_flat, uint polys_flat_len, const rctf *rect)
 {
 	uchar (*polys)[2] = (void *)polys_flat;
 	uint polys_len = polys_flat_len / 2;
+	BLI_assert(polys_flat_len == polys_len * 2);
 
 	/* Over alloc in both cases */
 	float (*verts)[2] = MEM_mallocN(sizeof(*verts) * polys_len, __func__);
 	float (*verts_step)[2] = verts;
 	uint (*tris)[3] = MEM_mallocN(sizeof(*tris) * polys_len, __func__);
 	uint (*tris_step)[3] = tris;
-	const float range_uchar = (max - min) / 255.0f;
+
+	const float range_uchar[2] = {
+		(rect ? (rect->xmax - rect->xmin) : 2.0f) / 255.0f,
+		(rect ? (rect->ymax - rect->ymin) : 2.0f) / 255.0f,
+	};
+	const float min_uchar[2] = {
+		(rect ? rect->xmin : -1.0f),
+		(rect ? rect->ymin : -1.0f),
+	};
 
 	uint i_poly = 0;
 	uint i_vert = 0;
 	while (i_poly != polys_len) {
 		for (uint j = 0; j < 2; j++) {
-			verts[i_vert][j] = min + ((float)polys[i_poly][j] * range_uchar);
+			verts[i_vert][j] = min_uchar[j] + ((float)polys[i_poly][j] * range_uchar[j]);
 		}
 		i_vert++;
 		i_poly++;

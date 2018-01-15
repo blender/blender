@@ -114,7 +114,7 @@ static void button2d_draw_intern(
 			/* We shouldn't need the +1, but a NULL char is set. */
 			char *polys = MEM_mallocN(polys_len + 1, __func__);
 			RNA_property_string_get(mpr->ptr, prop, polys);
-			button->shape_batch = GPU_batch_from_poly_2d_encoded((uchar *)polys, polys_len, -1.0f, 1.0f);
+			button->shape_batch = GPU_batch_from_poly_2d_encoded((uchar *)polys, polys_len, NULL);
 			MEM_freeN(polys);
 		}
 	}
