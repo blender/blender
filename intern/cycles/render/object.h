@@ -93,8 +93,7 @@ public:
 	~ObjectManager();
 
 	void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
-	void device_update_transforms(Device *device,
-	                              DeviceScene *dscene,
+	void device_update_transforms(DeviceScene *dscene,
 	                              Scene *scene,
 	                              uint *object_flag,
 	                              Progress& progress);
