@@ -993,6 +993,8 @@ struct GPU_PBVH_Buffers {
 	bool smooth;
 
 	bool show_diffuse_color;
+	bool show_mask;
+
 	bool use_matcaps;
 	float diffuse_color[4];
 };
@@ -1037,11 +1039,13 @@ void GPU_pbvh_mesh_buffers_update(
         const int update_flags)
 {
 	const bool show_diffuse_color = (update_flags & GPU_PBVH_BUFFERS_SHOW_DIFFUSE_COLOR) != 0;
+	const bool show_mask = (update_flags & GPU_PBVH_BUFFERS_SHOW_MASK) != 0;
 	VertexBufferFormat *vert_data;
 	int i;
 
 	buffers->vmask = vmask;
 	buffers->show_diffuse_color = show_diffuse_color;
+	buffers->show_mask = show_mask;
 	buffers->use_matcaps = GPU_material_use_matcaps_get();
 
 	{
@@ -1086,7 +1090,7 @@ void GPU_pbvh_mesh_buffers_update(
 					for (uint j = 0; j < 3; j++) {
 						VertexBufferFormat *out = vert_data + face_vert_indices[i][j];
 
-						if (vmask) {
+						if (vmask && show_mask) {
 							uint v_index = buffers->mloop[lt->tri[j]].v;
 							gpu_color_from_mask_copy(vmask[v_index], diffuse_color, out->color);
 						}
@@ -1122,7 +1126,7 @@ void GPU_pbvh_mesh_buffers_update(
 					}
 
 					uchar color_ub[3];
-					if (vmask) {
+					if (vmask && show_mask) {
 						float fmask = (vmask[vtri[0]] + vmask[vtri[1]] + vmask[vtri[2]]) / 3.0f;
 						gpu_color_from_mask_copy(fmask, diffuse_color, color_ub);
 					}
@@ -1170,6 +1174,7 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(
 	buffers->smooth = mpoly[looptri[face_indices[0]].poly].flag & ME_SMOOTH;
 
 	buffers->show_diffuse_color = false;
+	buffers->show_mask = true;
 	buffers->use_matcaps = false;
 
 	/* Count the number of visible triangles */
@@ -1245,10 +1250,12 @@ void GPU_pbvh_grid_buffers_update(
         const int update_flags)
 {
 	const bool show_diffuse_color = (update_flags & GPU_PBVH_BUFFERS_SHOW_DIFFUSE_COLOR) != 0;
+	const bool show_mask = (update_flags & GPU_PBVH_BUFFERS_SHOW_MASK) != 0;
 	VertexBufferFormat *vert_data;
 	int i, j, k, x, y;
 
 	buffers->show_diffuse_color = show_diffuse_color;
+	buffers->show_mask = show_mask;
 	buffers->use_matcaps = GPU_material_use_matcaps_get();
 	buffers->smooth = grid_flag_mats[grid_indices[0]].flag & ME_SMOOTH;
 
@@ -1281,7 +1288,7 @@ void GPU_pbvh_grid_buffers_update(
 						if (buffers->smooth) {
 							normal_float_to_short_v3(vd->no, CCG_elem_no(key, elem));
 
-							if (has_mask) {
+							if (has_mask && show_mask) {
 								gpu_color_from_mask_copy(*CCG_elem_mask(key, elem),
 								                         diffuse_color, vd->color);
 							}
@@ -1476,6 +1483,7 @@ GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(
 	buffers->totgrid = totgrid;
 
 	buffers->show_diffuse_color = false;
+	buffers->show_mask = true;
 	buffers->use_matcaps = false;
 
 	/* Count the number of quads */
@@ -1547,7 +1555,8 @@ static void gpu_bmesh_vert_to_buffer_copy(BMVert *v,
                                           const float fno[3],
                                           const float *fmask,
                                           const int cd_vert_mask_offset,
-                                          const float diffuse_color[4])
+                                          const float diffuse_color[4],
+                                          const bool show_mask)
 {
 	if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
 		VertexBufferFormat *vd = &vert_data[*v_index];
@@ -1556,11 +1565,16 @@ static void gpu_bmesh_vert_to_buffer_copy(BMVert *v,
 		copy_v3_v3(vd->co, v->co);
 		normal_float_to_short_v3(vd->no, fno ? fno : v->no);
 
-		gpu_color_from_mask_copy(
-		        fmask ? *fmask :
-		                BM_ELEM_CD_GET_FLOAT(v, cd_vert_mask_offset),
-		        diffuse_color,
-		        vd->color);
+		float effective_mask;
+		if (show_mask) {
+			effective_mask = fmask ? *fmask
+			                       : BM_ELEM_CD_GET_FLOAT(v, cd_vert_mask_offset);
+		}
+		else {
+			effective_mask = 0.0f;
+		}
+
+		gpu_color_from_mask_copy(effective_mask, diffuse_color, vd->color);
 
 		/* Assign index for use in the triangle index buffer */
 		/* note: caller must set:  bm->elem_index_dirty |= BM_VERT; */
@@ -1618,6 +1632,7 @@ void GPU_pbvh_bmesh_buffers_update(
         const int update_flags)
 {
 	const bool show_diffuse_color = (update_flags & GPU_PBVH_BUFFERS_SHOW_DIFFUSE_COLOR) != 0;
+	const bool show_mask = (update_flags & GPU_PBVH_BUFFERS_SHOW_MASK) != 0;
 	VertexBufferFormat *vert_data;
 	void *tri_data;
 	int tottri, totvert, maxvert = 0;
@@ -1627,6 +1642,7 @@ void GPU_pbvh_bmesh_buffers_update(
 	const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
 
 	buffers->show_diffuse_color = show_diffuse_color;
+	buffers->show_mask = show_mask;
 	buffers->use_matcaps = GPU_material_use_matcaps_get();
 
 	/* Count visible triangles */
@@ -1677,13 +1693,15 @@ void GPU_pbvh_bmesh_buffers_update(
 			GSET_ITER (gs_iter, bm_unique_verts) {
 				gpu_bmesh_vert_to_buffer_copy(BLI_gsetIterator_getKey(&gs_iter),
 				                              vert_data, &v_index, NULL, NULL,
-				                              cd_vert_mask_offset, diffuse_color);
+				                              cd_vert_mask_offset, diffuse_color,
+				                              show_mask);
 			}
 
 			GSET_ITER (gs_iter, bm_other_verts) {
 				gpu_bmesh_vert_to_buffer_copy(BLI_gsetIterator_getKey(&gs_iter),
 				                              vert_data, &v_index, NULL, NULL,
-				                              cd_vert_mask_offset, diffuse_color);
+				                              cd_vert_mask_offset, diffuse_color,
+				                              show_mask);
 			}
 
 			maxvert = v_index;
@@ -1715,7 +1733,8 @@ void GPU_pbvh_bmesh_buffers_update(
 					for (i = 0; i < 3; i++) {
 						gpu_bmesh_vert_to_buffer_copy(v[i], vert_data,
 						                              &v_index, f->no, &fmask,
-						                              cd_vert_mask_offset, diffuse_color);
+						                              cd_vert_mask_offset, diffuse_color,
+						                              show_mask);
 					}
 				}
 			}
@@ -1810,6 +1829,7 @@ GPU_PBVH_Buffers *GPU_pbvh_bmesh_buffers_build(bool smooth_shading)
 	buffers->use_bmesh = true;
 	buffers->smooth = smooth_shading;
 	buffers->show_diffuse_color = false;
+	buffers->show_mask = true;
 	buffers->use_matcaps = false;
 
 	return buffers;
@@ -1998,6 +2018,11 @@ bool GPU_pbvh_buffers_diffuse_changed(
 	}
 
 	return !equals_v3v3(diffuse_color, buffers->diffuse_color);
+}
+
+bool GPU_pbvh_buffers_mask_changed(GPU_PBVH_Buffers *buffers, bool show_mask)
+{
+	return (buffers->show_mask != show_mask);
 }
 
 void GPU_pbvh_buffers_free(GPU_PBVH_Buffers *buffers)

@@ -1107,6 +1107,7 @@ static int pbvh_get_buffers_update_flags(PBVH *bvh)
 {
 	int update_flags = 0;
 	update_flags |= bvh->show_diffuse_color ? GPU_PBVH_BUFFERS_SHOW_DIFFUSE_COLOR : 0;
+	update_flags |= bvh->show_mask ? GPU_PBVH_BUFFERS_SHOW_MASK : 0;
 	return update_flags;
 }
 
@@ -2109,6 +2110,16 @@ static void pbvh_node_check_diffuse_changed(PBVH *bvh, PBVHNode *node)
 		node->flag |= PBVH_UpdateDrawBuffers;
 }
 
+static void pbvh_node_check_mask_changed(PBVH *bvh, PBVHNode *node)
+{
+	if (!node->draw_buffers) {
+		return;
+	}
+	if (GPU_pbvh_buffers_mask_changed(node->draw_buffers, bvh->show_mask)) {
+		node->flag |= PBVH_UpdateDrawBuffers;
+	}
+}
+
 void BKE_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*fnors)[3],
                    DMSetMaterial setMaterial, bool wireframe, bool fast)
 {
@@ -2116,8 +2127,10 @@ void BKE_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*fnors)[3],
 	PBVHNode **nodes;
 	int totnode;
 
-	for (int a = 0; a < bvh->totnode; a++)
+	for (int a = 0; a < bvh->totnode; a++) {
 		pbvh_node_check_diffuse_changed(bvh, &bvh->nodes[a]);
+		pbvh_node_check_mask_changed(bvh, &bvh->nodes[a]);
+	}
 
 	BKE_pbvh_search_gather(bvh, update_search_cb, SET_INT_IN_POINTER(PBVH_UpdateNormals | PBVH_UpdateDrawBuffers),
 	                       &nodes, &totnode);
@@ -2366,4 +2379,9 @@ void pbvh_show_diffuse_color_set(PBVH *bvh, bool show_diffuse_color)
 	}
 
 	bvh->show_diffuse_color = !has_mask || show_diffuse_color;
+}
+
+void pbvh_show_mask_set(PBVH *bvh, bool show_mask)
+{
+	bvh->show_mask = show_mask;
 }

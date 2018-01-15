@@ -164,6 +164,7 @@ struct PBVH {
 	bool deformed;
 
 	bool show_diffuse_color;
+	bool show_mask;
 
 	/* Dynamic topology */
 	BMesh *bm;

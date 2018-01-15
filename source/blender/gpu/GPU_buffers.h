@@ -239,6 +239,7 @@ GPU_PBVH_Buffers *GPU_pbvh_bmesh_buffers_build(bool smooth_shading);
 
 enum {
 	GPU_PBVH_BUFFERS_SHOW_DIFFUSE_COLOR = (1 << 0),
+	GPU_PBVH_BUFFERS_SHOW_MASK = (1 << 1),
 };
 
 void GPU_pbvh_mesh_buffers_update(
@@ -272,6 +273,7 @@ void GPU_pbvh_BB_draw_init(void);
 void GPU_pbvh_BB_draw_end(void);
 
 bool GPU_pbvh_buffers_diffuse_changed(GPU_PBVH_Buffers *buffers, struct GSet *bm_faces, bool show_diffuse_color);
+bool GPU_pbvh_buffers_mask_changed(GPU_PBVH_Buffers *buffers, bool show_mask);
 
 void GPU_pbvh_buffers_free(GPU_PBVH_Buffers *buffers);
 void GPU_pbvh_multires_buffers_free(struct GridCommonGPUBuffer **grid_common_gpu_buffer);

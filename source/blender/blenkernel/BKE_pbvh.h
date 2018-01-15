@@ -370,5 +370,6 @@ bool BKE_pbvh_node_vert_update_check_any(PBVH *bvh, PBVHNode *node);
 //void BKE_pbvh_node_BB_expand(PBVHNode *node, float co[3]);
 
 void pbvh_show_diffuse_color_set(PBVH *bvh, bool show_diffuse_color);
+void pbvh_show_mask_set(PBVH *bvh, bool show_mask);
 
 #endif /* __BKE_PBVH_H__ */
