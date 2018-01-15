@@ -43,6 +43,9 @@
 /* gpu_batch.c */
 void GWN_batch_program_set_builtin(Gwn_Batch *, GPUBuiltinShader);
 
+Gwn_Batch *GPU_batch_from_poly_2d_encoded(
+        const uchar *polys_flat, uint polys_flat_len, float min, float max);
+
 void gpu_batch_init(void);
 void gpu_batch_exit(void);
 
