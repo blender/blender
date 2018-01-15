@@ -298,9 +298,7 @@ vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, float scale)
 {
 #if !defined(USE_TRANSLUCENCY) || defined(VOLUMETRICS)
 	return vec3(0.0);
-#endif
-
-#ifndef VOLUMETRICS
+#else
 	vec3 vis = vec3(1.0);
 
 	/* Only shadowed light can produce translucency */
