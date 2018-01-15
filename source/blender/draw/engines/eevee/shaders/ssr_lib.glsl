@@ -2,10 +2,10 @@
 
 #define BTDF_BIAS 0.85
 
-vec4 screen_space_refraction(vec3 viewPosition, vec3 N, vec3 V, float ior, float roughnessSquared, vec3 rand, float ofs)
+vec4 screen_space_refraction(vec3 viewPosition, vec3 N, vec3 V, float ior, float roughnessSquared, vec3 rand)
 {
 	float a2 = max(5e-6, roughnessSquared * roughnessSquared);
-	float jitter = fract(rand.x + ofs);
+	float jitter = rand.x;
 
 	/* Importance sampling bias */
 	rand.x = mix(rand.x, 0.0, BTDF_BIAS);

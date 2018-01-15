@@ -361,7 +361,6 @@ static void eevee_view_layer_settings_create(RenderEngine *UNUSED(engine), IDPro
 	BKE_collection_engine_property_add_bool(props, "ssr_enable", false);
 	BKE_collection_engine_property_add_bool(props, "ssr_refraction", false);
 	BKE_collection_engine_property_add_bool(props, "ssr_halfres", true);
-	BKE_collection_engine_property_add_int(props, "ssr_ray_count", 1);
 	BKE_collection_engine_property_add_float(props, "ssr_quality", 0.25f);
 	BKE_collection_engine_property_add_float(props, "ssr_max_roughness", 0.5f);
 	BKE_collection_engine_property_add_float(props, "ssr_thickness", 0.2f);

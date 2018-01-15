@@ -387,7 +387,6 @@ RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(sss_separate_albedo)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(ssr_refraction)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(ssr_enable)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(ssr_halfres)
-RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(ssr_ray_count)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(ssr_quality)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(ssr_max_roughness)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(ssr_thickness)
@@ -1296,14 +1295,6 @@ static void rna_def_view_layer_engine_settings_eevee(BlenderRNA *brna)
 	                               "rna_LayerEngineSettings_Eevee_ssr_max_roughness_set", NULL);
 	RNA_def_property_ui_text(prop, "Max Roughness", "Do not raytrace reflections for roughness above this value");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_ViewLayerEngineSettings_update");
-
-	prop = RNA_def_property(srna, "ssr_ray_count", PROP_INT, PROP_NONE);
-	RNA_def_property_int_funcs(prop, "rna_LayerEngineSettings_Eevee_ssr_ray_count_get",
-	                               "rna_LayerEngineSettings_Eevee_ssr_ray_count_set", NULL);
-	RNA_def_property_ui_text(prop, "Samples", "Number of rays to trace per pixels");
-	RNA_def_property_range(prop, 1, 4);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_ViewLayerEngineSettings_update");
 

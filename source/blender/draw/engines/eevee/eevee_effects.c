@@ -441,7 +441,7 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 			if (txl->maxzbuffer) DRW_transform_to_display(txl->maxzbuffer);
 			break;
 		case 2:
-			if (stl->g_data->ssr_hit_output[0]) DRW_transform_to_display(stl->g_data->ssr_hit_output[0]);
+			if (stl->g_data->ssr_pdf_output) DRW_transform_to_display(stl->g_data->ssr_pdf_output);
 			break;
 		case 3:
 			if (txl->ssr_normal_input) DRW_transform_to_display(txl->ssr_normal_input);

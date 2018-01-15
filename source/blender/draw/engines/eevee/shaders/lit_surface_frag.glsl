@@ -29,7 +29,6 @@ in vec3 viewNormal;
 #endif
 
 uniform float maxRoughness;
-uniform int rayCount;
 
 #endif /* LIT_SURFACE_UNIFORM */
 
@@ -315,13 +314,7 @@ void CLOSURE_NAME(
 	if (ssrToggle && roughness < maxRoughness + 0.2) {
 		/* Find approximated position of the 2nd refraction event. */
 		vec3 refr_vpos = (refractionDepth > 0.0) ? transform_point(ViewMatrix, refr_pos) : viewPosition;
-
-		float ray_ofs = 1.0 / float(rayCount);
-		vec4 trans = screen_space_refraction(refr_vpos, N, refr_V, final_ior, roughnessSquared, rand.xzw, 0.0);
-		if (rayCount > 1) trans += screen_space_refraction(refr_vpos, N, refr_V, final_ior, roughnessSquared, rand.xzw * vec3(1.0, -1.0, -1.0), 1.0 * ray_ofs);
-		if (rayCount > 2) trans += screen_space_refraction(refr_vpos, N, refr_V, final_ior, roughnessSquared, rand.xwz * vec3(1.0,  1.0, -1.0), 2.0 * ray_ofs);
-		if (rayCount > 3) trans += screen_space_refraction(refr_vpos, N, refr_V, final_ior, roughnessSquared, rand.xwz * vec3(1.0, -1.0,  1.0), 3.0 * ray_ofs);
-		trans /= float(rayCount);
+		vec4 trans = screen_space_refraction(refr_vpos, N, refr_V, final_ior, roughnessSquared, rand.xzw);
 		trans.a *= smoothstep(maxRoughness + 0.2, maxRoughness, roughness);
 		accumulate_light(trans.rgb, trans.a, refr_accum);
 	}

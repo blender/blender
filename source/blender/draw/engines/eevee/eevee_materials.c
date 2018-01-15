@@ -391,7 +391,6 @@ static void add_standard_uniforms(
 		DRW_shgroup_uniform_buffer(shgrp, "colorBuffer", &vedata->txl->refract_color);
 		DRW_shgroup_uniform_float(shgrp, "borderFadeFactor", &vedata->stl->effects->ssr_border_fac, 1);
 		DRW_shgroup_uniform_float(shgrp, "maxRoughness", &vedata->stl->effects->ssr_max_roughness, 1);
-		DRW_shgroup_uniform_int(shgrp, "rayCount", &vedata->stl->effects->ssr_ray_count, 1);
 	}
 
 	if (vedata->stl->effects->use_ao) {

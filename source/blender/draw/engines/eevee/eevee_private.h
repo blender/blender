@@ -248,6 +248,7 @@ typedef struct EEVEE_TextureList {
 	struct GPUTexture *bloom_upsample[MAX_BLOOM_STEP - 1]; /* R16_G16_B16 */
 	struct GPUTexture *ssr_normal_input;
 	struct GPUTexture *ssr_specrough_input;
+	struct GPUTexture *ssr_hit_output;
 	struct GPUTexture *refract_color;
 
 	struct GPUTexture *volume_prop_scattering;
@@ -496,7 +497,6 @@ typedef struct EEVEE_EffectsInfo {
 	bool use_ssr;
 	bool reflection_trace_full;
 	bool ssr_use_normalization;
-	int ssr_ray_count;
 	float ssr_firefly_fac;
 	float ssr_border_fac;
 	float ssr_max_roughness;
@@ -702,7 +702,7 @@ typedef struct EEVEE_PrivateData {
 	struct GHash *material_hash;
 	struct GHash *hair_material_hash;
 	struct GPUTexture *minzbuffer;
-	struct GPUTexture *ssr_hit_output[4];
+	struct GPUTexture *ssr_pdf_output;
 	struct GPUTexture *gtao_horizons_debug;
 	float background_alpha; /* TODO find a better place for this. */
 	float viewvecs[2][4];
