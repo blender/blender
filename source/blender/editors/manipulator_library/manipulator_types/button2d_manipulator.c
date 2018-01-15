@@ -43,6 +43,7 @@
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 #include "GPU_select.h"
+#include "GPU_batch.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -64,13 +65,17 @@
 
 typedef struct ButtonManipulator2D {
 	wmManipulator manipulator;
+	bool is_init;
+	/* Use an icon or shape */
+	int icon;
+	Gwn_Batch *shape_batch;
 } ButtonManipulator2D;
 
 #define CIRCLE_RESOLUTION 32
 
 /* -------------------------------------------------------------------- */
 
-static void button_geom_draw(
+static void button2d_geom_draw_backdrop(
         const wmManipulator *mpr, const float color[4], const bool select)
 {
 	glLineWidth(mpr->line_width);
@@ -90,10 +95,29 @@ static void button_geom_draw(
 	UNUSED_VARS(select);
 }
 
-static void button3d_draw_intern(
+static void button2d_draw_intern(
         const bContext *UNUSED(C), wmManipulator *mpr,
         const bool select, const bool highlight)
 {
+	ButtonManipulator2D *button = (ButtonManipulator2D *)mpr;
+
+	if (button->is_init == false) {
+		button->is_init = true;
+		PropertyRNA *prop = RNA_struct_find_property(mpr->ptr, "icon");
+		if (RNA_property_is_set(mpr->ptr, prop)) {
+			button->icon = RNA_property_enum_get(mpr->ptr, prop);
+		}
+		else {
+			prop = RNA_struct_find_property(mpr->ptr, "shape");
+			const uint polys_len = RNA_property_string_length(mpr->ptr, prop);
+			/* We shouldn't need the +1, but a NULL char is set. */
+			char *polys = MEM_mallocN(polys_len + 1, __func__);
+			RNA_property_string_get(mpr->ptr, prop, polys);
+			button->shape_batch = GPU_batch_from_poly_2d_encoded((uchar *)polys, polys_len, -1.0f, 1.0f);
+			MEM_freeN(polys);
+		}
+	}
+
 	float color[4];
 	float matrix_final[4][4];
 
@@ -104,38 +128,47 @@ static void button3d_draw_intern(
 	gpuMultMatrix(matrix_final);
 
 	glEnable(GL_BLEND);
-	button_geom_draw(mpr, color, select);
-	gpuPopMatrix();
-
 
 	if (select == false) {
-		int icon = RNA_enum_get(mpr->ptr, "icon");
-		if (icon != ICON_NONE) {
+		if (button->shape_batch != NULL) {
+			glEnable(GL_POLYGON_SMOOTH);
+			GWN_batch_program_set_builtin(button->shape_batch, GPU_SHADER_2D_UNIFORM_COLOR);
+			GWN_batch_uniform_4f(button->shape_batch, "color", UNPACK4(color));
+			GWN_batch_draw(button->shape_batch);
+			glDisable(GL_POLYGON_SMOOTH);
+			gpuPopMatrix();
+		}
+		else if (button->icon != ICON_NONE) {
+			button2d_geom_draw_backdrop(mpr, color, select);
+			gpuPopMatrix();
 			UI_icon_draw(
 			        mpr->matrix_basis[3][0] - (ICON_DEFAULT_WIDTH / 2.0) * U.ui_scale,
 			        mpr->matrix_basis[3][1] - (ICON_DEFAULT_HEIGHT / 2.0) * U.ui_scale,
-			        icon);
+			        button->icon);
+		}
+		else {
+			gpuPopMatrix();
 		}
 	}
 	glDisable(GL_BLEND);
 }
 
-static void manipulator_button_draw_select(const bContext *C, wmManipulator *mpr, int select_id)
+static void manipulator_button2d_draw_select(const bContext *C, wmManipulator *mpr, int select_id)
 {
 	GPU_select_load_id(select_id);
-	button3d_draw_intern(C, mpr, true, false);
+	button2d_draw_intern(C, mpr, true, false);
 }
 
-static void manipulator_button_draw(const bContext *C, wmManipulator *mpr)
+static void manipulator_button2d_draw(const bContext *C, wmManipulator *mpr)
 {
 	const bool is_highlight = (mpr->state & WM_MANIPULATOR_STATE_HIGHLIGHT) != 0;
 
 	glEnable(GL_BLEND);
-	button3d_draw_intern(C, mpr, false, is_highlight);
+	button2d_draw_intern(C, mpr, false, is_highlight);
 	glDisable(GL_BLEND);
 }
 
-static int manipulator_button_test_select(
+static int manipulator_button2d_test_select(
         bContext *C, wmManipulator *mpr, const wmEvent *event)
 {
 	float point_local[2];
@@ -161,10 +194,18 @@ static int manipulator_button_test_select(
 	return -1;
 }
 
-static int manipulator_button_cursor_get(wmManipulator *UNUSED(mpr))
+static int manipulator_button2d_cursor_get(wmManipulator *UNUSED(mpr))
 {
 	return BC_HANDCURSOR;
 }
+
+static void manipulator_button2d_free(wmManipulator *mpr)
+{
+	ButtonManipulator2D *shape = (ButtonManipulator2D *)mpr;
+	GWN_BATCH_DISCARD_SAFE(shape->shape_batch);
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Button Manipulator API
@@ -177,10 +218,11 @@ static void MANIPULATOR_WT_button_2d(wmManipulatorType *wt)
 	wt->idname = "MANIPULATOR_WT_button_2d";
 
 	/* api callbacks */
-	wt->draw = manipulator_button_draw;
-	wt->draw_select = manipulator_button_draw_select;
-	wt->test_select = manipulator_button_test_select;
-	wt->cursor_get = manipulator_button_cursor_get;
+	wt->draw = manipulator_button2d_draw;
+	wt->draw_select = manipulator_button2d_draw_select;
+	wt->test_select = manipulator_button2d_test_select;
+	wt->cursor_get = manipulator_button2d_cursor_get;
+	wt->free = manipulator_button2d_free;
 
 	wt->struct_size = sizeof(ButtonManipulator2D);
 
@@ -188,7 +230,9 @@ static void MANIPULATOR_WT_button_2d(wmManipulatorType *wt)
 	PropertyRNA *prop;
 	prop = RNA_def_property(wt->srna, "icon", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, rna_enum_icon_items);
-	RNA_def_property_ui_text(prop, "Icon", "Override automatic icon of the item");
+
+	/* Passed to 'GPU_batch_from_poly_2d_encoded' */
+	RNA_def_property(wt->srna, "shape", PROP_STRING, PROP_BYTESTRING);
 }
 
 void ED_manipulatortypes_button_2d(void)
