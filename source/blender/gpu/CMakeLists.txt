@@ -52,6 +52,7 @@ set(INC_SYS
 set(SRC
 	intern/gpu_basic_shader.c
 	intern/gpu_batch.c
+	intern/gpu_batch_presets.c
 	intern/gpu_buffers.c
 	intern/gpu_codegen.c
 	intern/gpu_compositing.c
