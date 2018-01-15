@@ -412,8 +412,9 @@ bool BKE_collection_object_remove(Main *bmain, ID *owner_id, SceneCollection *sc
  */
 void BKE_collection_object_move(ID *owner_id, SceneCollection *sc_dst, SceneCollection *sc_src, Object *ob)
 {
-	BKE_collection_object_add(owner_id, sc_dst, ob);
-	BKE_collection_object_remove(NULL, owner_id, sc_src, ob, false);
+	if (BKE_collection_object_add(owner_id, sc_dst, ob)) {
+		BKE_collection_object_remove(NULL, owner_id, sc_src, ob, false);
+	}
 }
 
 /**
