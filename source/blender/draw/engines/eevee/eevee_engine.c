@@ -168,23 +168,21 @@ static void eevee_draw_background(void *vedata)
 	int loop_ct = DRW_state_is_image_render() ? 4 : 1;
 
 	while (loop_ct--) {
+		unsigned int primes[3] = {2, 3, 7};
+		double offset[3] = {0.0, 0.0, 0.0};
+		double r[3];
 
-		/* XXX temp for denoising render. TODO plug number of samples here */
 		if (DRW_state_is_image_render()) {
-			double r;
-			BLI_halton_1D(2, 0.0, stl->effects->taa_current_sample - 1, &r);
-
+			BLI_halton_3D(primes, offset, stl->effects->taa_current_sample, r);
 			/* Set jitter offset */
 			/* PERF This is killing perf ! */
-			EEVEE_update_util_texture((float)r);
+			EEVEE_update_util_texture(r);
 		}
-		else if (((stl->effects->enabled_effects & EFFECT_TAA) != 0) && (stl->effects->taa_current_sample > 1)) {
-			double r;
-			BLI_halton_1D(2, 0.0, stl->effects->taa_current_sample - 1, &r);
-
+		else if ((stl->effects->enabled_effects & EFFECT_TAA) != 0) {
+			BLI_halton_3D(primes, offset, stl->effects->taa_current_sample, r);
 			/* Set jitter offset */
 			/* PERF This is killing perf ! */
-			EEVEE_update_util_texture((float)r);
+			EEVEE_update_util_texture(r);
 		}
 
 		/* Refresh Probes */

@@ -432,7 +432,7 @@ static void create_default_shader(int options)
 	MEM_freeN(frag_str);
 }
 
-void EEVEE_update_util_texture(float offset)
+void EEVEE_update_util_texture(double offsets[3])
 {
 
 	/* TODO: split this into 2 functions : one for init,
@@ -456,12 +456,9 @@ void EEVEE_update_util_texture(float offset)
 
 	/* Copy blue noise in 3rd layer  */
 	for (int i = 0; i < 64 * 64; i++) {
-		float noise;
-		noise = fmod(blue_noise[i][0] + offset, 1.0f);
-		texels_layer[i][0] = noise;
-
-		noise = fmod(blue_noise[i][1] + offset, 1.0f);
-		texels_layer[i][1] = noise * 0.5f + 0.5f;
+		texels_layer[i][0] = fmod(blue_noise[i][0] + (float)offsets[0], 1.0f);
+		texels_layer[i][1] = fmod(blue_noise[i][1] + (float)offsets[1], 1.0f);
+		float noise = fmod(blue_noise[i][1] + (float)offsets[2], 1.0f);
 		texels_layer[i][2] = cosf(noise * 2.0f * M_PI);
 		texels_layer[i][3] = sinf(noise * 2.0f * M_PI);
 	}
@@ -549,7 +546,8 @@ void EEVEE_materials_init(EEVEE_StorageList *stl)
 
 		MEM_freeN(frag_str);
 
-		EEVEE_update_util_texture(0.0f);
+		double offsets[3] = {0.0, 0.0, 0.0};
+		EEVEE_update_util_texture(offsets);
 	}
 
 	{

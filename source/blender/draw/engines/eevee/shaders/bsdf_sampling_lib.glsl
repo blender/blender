@@ -14,7 +14,6 @@ uniform sampler2DArray utilTex;
 void setup_noise(void)
 {
 	jitternoise = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0)).rg; /* Global variable */
-	jitternoise.g = (jitternoise.g - 0.5) * 2.0;
 }
 
 #ifdef HAMMERSLEY_SIZE

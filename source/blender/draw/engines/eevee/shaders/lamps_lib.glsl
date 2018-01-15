@@ -203,14 +203,13 @@ float light_visibility(LightData ld, vec3 W,
 			vec3 T, B;
 			make_orthonormal_basis(L.xyz / L.w, T, B);
 
-			vec3 rand = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0)).xzw;
-			/* XXX This is a hack to not have noise correlation artifacts.
-			 * A better solution to have better noise is welcome. */
-			rand.yz *= fast_sqrt(fract(rand.x * 7919.0)) * data.sh_contact_spread;
+			vec4 rand = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0));
+			/* WATCH THIS : This still seems to have correlation artifacts for low samples. */
+			rand.zw *= fast_sqrt(rand.y) * data.sh_contact_spread;
 
 			/* We use the full l_vector.xyz so that the spread is minimize
 			 * if the shading point is further away from the light source */
-			vec3 ray_dir = L.xyz + T * rand.y + B * rand.z;
+			vec3 ray_dir = L.xyz + T * rand.z + B * rand.w;
 			ray_dir = transform_direction(ViewMatrix, ray_dir);
 			ray_dir = normalize(ray_dir);
 			vec3 ray_origin = viewPosition + viewNormal * data.sh_contact_offset;
@@ -311,14 +310,13 @@ vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, float scale)
 		vec3 T, B;
 		make_orthonormal_basis(L.xyz / L.w, T, B);
 
-		vec3 rand = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0)).xzw;
-		/* XXX This is a hack to not have noise correlation artifacts.
-		 * A better solution to have better noise is welcome. */
-		rand.yz *= fast_sqrt(fract(rand.x * 7919.0)) * data.sh_blur;
+		vec4 rand = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0));
+		/* WATCH THIS : This still seems to have correlation artifacts for low samples. */
+		rand.zw *= fast_sqrt(rand.y) * data.sh_blur;
 
 		/* We use the full l_vector.xyz so that the spread is minimize
 		 * if the shading point is further away from the light source */
-		W = W + T * rand.y + B * rand.z;
+		W = W + T * rand.z + B * rand.w;
 
 		if (ld.l_type == SUN) {
 			ShadowCascadeData scd = shadows_cascade_data[int(data.sh_data_start)];
