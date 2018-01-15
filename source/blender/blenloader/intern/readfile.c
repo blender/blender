@@ -3844,6 +3844,9 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 	cu->adt= newdataadr(fd, cu->adt);
 	direct_link_animdata(fd, cu->adt);
 	
+	/* Protect against integer overflow vulnerability. */
+	CLAMP(cu->len_wchar, 0, INT_MAX - 4);
+
 	cu->mat = newdataadr(fd, cu->mat);
 	test_pointer_array(fd, (void **)&cu->mat);
 	cu->str = newdataadr(fd, cu->str);
@@ -4258,6 +4261,9 @@ static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 	for (a = 0; a < MAX_MTEX; a++) {
 		part->mtex[a] = newdataadr(fd, part->mtex[a]);
 	}
+
+	/* Protect against integer overflow vulnerability. */
+	CLAMP(part->trail_count, 1, 100000);
 }
 
 static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase *particles)
@@ -8207,7 +8213,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const short 
 	id = read_struct(fd, bhead, "lib block");
 
 	if (id) {
-		const short idcode = (bhead->code == ID_ID) ? GS(id->name) : bhead->code;
+		const short idcode = GS(id->name);
 		/* do after read_struct, for dna reconstruct */
 		lb = which_libbase(main, idcode);
 		if (lb) {
