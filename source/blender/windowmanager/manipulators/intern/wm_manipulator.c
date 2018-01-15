@@ -166,6 +166,10 @@ static void wm_manipulator_register(wmManipulatorGroup *mgroup, wmManipulator *m
  */
 void WM_manipulator_free(wmManipulator *mpr)
 {
+	if (mpr->type->free != NULL) {
+		mpr->type->free(mpr);
+	}
+
 #ifdef WITH_PYTHON
 	if (mpr->py_instance) {
 		/* do this first in case there are any __del__ functions or

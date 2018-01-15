@@ -313,6 +313,9 @@ typedef struct wmManipulatorType {
 	/* called when manipulator selection state changes */
 	wmManipulatorFnSelectRefresh select_refresh;
 
+	/* Free data (not the manipulator it's self), use when the manipulator allocates it's own members. */
+	wmManipulatorFnFree free;
+
 	/* RNA for properties */
 	struct StructRNA *srna;
 
