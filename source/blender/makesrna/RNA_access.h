@@ -944,6 +944,7 @@ float RNA_property_float_get_default_index(PointerRNA *ptr, PropertyRNA *prop, i
 void RNA_property_string_get(PointerRNA *ptr, PropertyRNA *prop, char *value);
 char *RNA_property_string_get_alloc(PointerRNA *ptr, PropertyRNA *prop, char *fixedbuf, int fixedlen, int *r_len);
 void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *value);
+void RNA_property_string_set_bytes(PointerRNA *ptr, PropertyRNA *prop, const char *value, int len);
 int RNA_property_string_length(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_string_get_default(PointerRNA *ptr, PropertyRNA *prop, char *value);
 char *RNA_property_string_get_default_alloc(PointerRNA *ptr, PropertyRNA *prop, char *fixedbuf, int fixedlen);

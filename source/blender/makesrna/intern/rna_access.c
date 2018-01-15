@@ -3043,6 +3043,42 @@ void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *val
 	}
 }
 
+void RNA_property_string_set_bytes(PointerRNA *ptr, PropertyRNA *prop, const char *value, int len)
+{
+	StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
+	IDProperty *idprop;
+
+	BLI_assert(RNA_property_type(prop) == PROP_STRING);
+	BLI_assert(RNA_property_subtype(prop) == PROP_BYTESTRING);
+
+	if ((idprop = rna_idproperty_check(&prop, ptr))) {
+		IDP_ResizeArray(idprop, len);
+		memcpy(idprop->data.pointer, value, (size_t)len);
+
+		rna_idproperty_touch(idprop);
+	}
+	else if (sprop->set) {
+		/* XXX, should take length argument (currently not used). */
+		sprop->set(ptr, value);  /* set function needs to clamp its self */
+	}
+	else if (sprop->set_ex) {
+		/* XXX, should take length argument (currently not used). */
+		sprop->set_ex(ptr, prop, value);  /* set function needs to clamp its self */
+	}
+	else if (prop->flag & PROP_EDITABLE) {
+		IDProperty *group;
+
+		group = RNA_struct_idprops(ptr, 1);
+		if (group) {
+			IDPropertyTemplate val = {0};
+			val.string.str = value;
+			val.string.len = len;
+			val.string.subtype = IDP_STRING_SUB_BYTE;
+			IDP_AddToGroup(group, IDP_New(IDP_STRING, &val, prop->identifier));
+		}
+	}
+}
+
 void RNA_property_string_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop, char *value)
 {
 	StringPropertyRNA *sprop = (StringPropertyRNA *)rna_ensure_property(prop);
