@@ -2099,18 +2099,22 @@ static const char *collection_type_lookup[] =
     "Group Internal", /* COLLECTION_TYPE_GROUP_INTERNAL */
 };
 
+/**
+ * \note We can't use layer_collection->flag because of 3 level nesting (where parent is visible, but not grand-parent)
+ * So layer_collection->flag_evaluated is expected to be up to date with layer_collection->flag.
+ */
 static bool layer_collection_visible_get(const EvaluationContext *eval_ctx, LayerCollection *layer_collection)
 {
-	bool is_visible = (layer_collection->flag & COLLECTION_DISABLED) == 0;
+	if (layer_collection->flag_evaluated & COLLECTION_DISABLED) {
+		return false;
+	}
 
 	if (eval_ctx->mode == DAG_EVAL_VIEWPORT) {
-		is_visible &= (layer_collection->flag & COLLECTION_VIEWPORT) != 0;
+		return (layer_collection->flag_evaluated & COLLECTION_VIEWPORT) != 0;
 	}
 	else {
-		is_visible &= (layer_collection->flag & COLLECTION_RENDER) != 0;
+		return (layer_collection->flag_evaluated & COLLECTION_RENDER) != 0;
 	}
-
-	return is_visible;
 }
 
 void BKE_layer_eval_layer_collection(const EvaluationContext *eval_ctx,
@@ -2129,14 +2133,21 @@ void BKE_layer_eval_layer_collection(const EvaluationContext *eval_ctx,
 
 	/* visibility */
 	layer_collection->flag_evaluated = layer_collection->flag;
-	bool is_visible = layer_collection_visible_get(eval_ctx, layer_collection);
-	bool is_selectable = is_visible && ((layer_collection->flag & COLLECTION_SELECTABLE) != 0);
 
 	if (parent_layer_collection != NULL) {
-		is_visible &= layer_collection_visible_get(eval_ctx, parent_layer_collection);
-		is_selectable &= (parent_layer_collection->flag_evaluated & COLLECTION_SELECTABLE) != 0;
-		layer_collection->flag_evaluated &= parent_layer_collection->flag_evaluated;
+		if (layer_collection_visible_get(eval_ctx, parent_layer_collection) == false) {
+			layer_collection->flag_evaluated |= COLLECTION_DISABLED;
+		}
+
+		if ((parent_layer_collection->flag_evaluated & COLLECTION_DISABLED) ||
+		    (parent_layer_collection->flag_evaluated & COLLECTION_SELECTABLE) == 0)
+		{
+			layer_collection->flag_evaluated &= ~COLLECTION_SELECTABLE;
+		}
 	}
+
+	const bool is_visible = layer_collection_visible_get(eval_ctx, layer_collection);
+	const bool is_selectable = is_visible && ((layer_collection->flag_evaluated & COLLECTION_SELECTABLE) != 0);
 
 	/* overrides */
 	if (is_visible) {
