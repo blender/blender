@@ -297,6 +297,22 @@ static void rna_Sculpt_ShowDiffuseColor_update(bContext *C, PointerRNA *UNUSED(p
 	}
 }
 
+static void rna_Sculpt_ShowMask_update(bContext *C, PointerRNA *UNUSED(ptr))
+{
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *object = OBACT(view_layer);
+	if (object == NULL || object->sculpt == NULL) {
+		return;
+	}
+	Scene *scene = CTX_data_scene(C);
+	Sculpt *sd = scene->toolsettings->sculpt;
+	object->sculpt->show_mask = ((sd->flags & SCULPT_HIDE_MASK) == 0);
+	if (object->sculpt->pbvh != NULL) {
+		pbvh_show_mask_set(object->sculpt->pbvh, object->sculpt->show_mask);
+	}
+	WM_main_add_notifier(NC_OBJECT | ND_DRAW, object);
+}
+
 static char *rna_Sculpt_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_strdup("tool_settings.sculpt");
@@ -612,6 +628,12 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 	                         "Show diffuse color of object and overlay sculpt mask on top of it");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_ShowDiffuseColor_update");
+
+	prop = RNA_def_property(srna, "show_mask", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flags", SCULPT_HIDE_MASK);
+	RNA_def_property_ui_text(prop, "Show Mask", "Show mask as overlay on object");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_ShowMask_update");
 
 	prop = RNA_def_property(srna, "detail_size", PROP_FLOAT, PROP_PIXEL);
 	RNA_def_property_ui_range(prop, 0.5, 40.0, 10, 2);

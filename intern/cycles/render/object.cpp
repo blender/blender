@@ -473,8 +473,7 @@ void ObjectManager::device_update_object_transform_task(
 	}
 }
 
-void ObjectManager::device_update_transforms(Device *device,
-                                             DeviceScene *dscene,
+void ObjectManager::device_update_transforms(DeviceScene *dscene,
                                              Scene *scene,
                                              uint *object_flag,
                                              Progress& progress)
@@ -560,7 +559,7 @@ void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *sc
 
 	/* set object transform matrices, before applying static transforms */
 	progress.set_status("Updating Objects", "Copying Transformations to device");
-	device_update_transforms(device, dscene, scene, object_flag, progress);
+	device_update_transforms(dscene, scene, object_flag, progress);
 
 	if(progress.get_cancel()) return;
 

@@ -1028,13 +1028,13 @@ void IMB_exr_write_channels(void *handle)
 				for (size_t i = 0; i < num_pixels; ++i, ++cur) {
 					*cur = rect[i * echan->xstride];
 				}
-				half *rect_to_write = current_rect_half + (data->height - 1) * data->width;
+				half *rect_to_write = current_rect_half + (data->height - 1L) * data->width;
 				frameBuffer.insert(echan->name, Slice(Imf::HALF,  (char *)rect_to_write,
 				                                      sizeof(half), -data->width * sizeof(half)));
 				current_rect_half += num_pixels;
 			}
 			else {
-				float *rect = echan->rect + echan->xstride * (data->height - 1) * data->width;
+				float *rect = echan->rect + echan->xstride * (data->height - 1L) * data->width;
 				frameBuffer.insert(echan->name, Slice(Imf::FLOAT,  (char *)rect,
 				                                      echan->xstride * sizeof(float), -echan->ystride * sizeof(float)));
 			}

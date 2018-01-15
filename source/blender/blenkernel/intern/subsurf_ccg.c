@@ -4258,8 +4258,10 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 		                    looptri, looptris_num);
 	}
 
-	if (ccgdm->pbvh)
+	if (ccgdm->pbvh != NULL) {
 		pbvh_show_diffuse_color_set(ccgdm->pbvh, ob->sculpt->show_diffuse_color);
+		pbvh_show_mask_set(ccgdm->pbvh, ob->sculpt->show_mask);
+	}
 
 	/* For vertex paint, keep track of ccgdm */
 	if (!(ob->mode & OB_MODE_SCULPT) && ccgdm->pbvh) {

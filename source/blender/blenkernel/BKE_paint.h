@@ -196,6 +196,7 @@ typedef struct SculptSession {
 	/* PBVH acceleration structure */
 	struct PBVH *pbvh;
 	bool show_diffuse_color;
+	bool show_mask;
 
 	/* Painting on deformed mesh */
 	bool modifiers_active; /* object is deformed with some modifiers */
