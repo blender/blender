@@ -57,6 +57,11 @@ void GWN_batch_program_set_builtin(Gwn_Batch *batch, GPUBuiltinShader shader_id)
 /** \name Batch Creation
  * \{ */
 
+/**
+ * Creates triangles from a byte-array of polygons.
+ *
+ * See 'make_shape_2d_from_blend.py' utility to create data to pass to this function.
+ */
 Gwn_Batch *GPU_batch_from_poly_2d_encoded(
         const uchar *polys_flat, uint polys_flat_len, float min, float max)
 {

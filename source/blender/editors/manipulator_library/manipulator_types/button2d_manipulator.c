@@ -23,11 +23,12 @@
  *
  * \name Button Manipulator
  *
- * 3D Manipulator, also works in 2D views.
+ * 2D Manipulator, also works in 3D views.
  *
  * \brief Single click button action for use in manipulator groups.
  *
- * Note: currently only very basic icon buttons supported.
+ * \note Currently only basic icon & vector-shape buttons are supported.
+ *
  */
 
 #include "MEM_guardedalloc.h"
