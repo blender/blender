@@ -152,12 +152,8 @@ void BKE_override_static_free(struct IDOverrideStatic **override)
 	*override = NULL;
 }
 
-/** Create an overriden local copy of linked reference. */
-ID *BKE_override_static_create_from(Main *bmain, ID *reference_id)
+static ID *override_static_create_from(Main *bmain, ID *reference_id)
 {
-	BLI_assert(reference_id != NULL);
-	BLI_assert(reference_id->lib != NULL);
-
 	ID *local_id;
 
 	if (!id_copy(bmain, reference_id, (ID **)&local_id, false)) {
@@ -168,10 +164,61 @@ ID *BKE_override_static_create_from(Main *bmain, ID *reference_id)
 	BKE_override_static_init(local_id, reference_id);
 	local_id->flag |= LIB_OVERRIDE_STATIC_AUTO;
 
+	return local_id;
+}
+
+
+/** Create an overriden local copy of linked reference. */
+ID *BKE_override_static_create_from_id(Main *bmain, ID *reference_id)
+{
+	BLI_assert(reference_id != NULL);
+	BLI_assert(reference_id->lib != NULL);
+
+	ID *local_id = override_static_create_from(bmain, reference_id);
+
 	/* Remapping, we obviously only want to affect local data (and not our own reference pointer to overriden ID). */
 	BKE_libblock_remap(bmain, reference_id, local_id, ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_STATIC_OVERRIDE);
 
 	return local_id;
+}
+
+/** Create overriden local copies of all tagged data-blocks in given Main.
+ *
+ * \note Set id->newid of overridden libs with newly created overrides, caller is responsible to clean those pointers
+ * before/after usage as needed.
+ *
+ * \return \a true on success, \a false otherwise.
+ */
+bool BKE_override_static_create_from_tag(Main *bmain)
+{
+	ListBase *lbarray[MAX_LIBARRAY];
+	int a;
+	bool ret = true;
+
+	const int num_types = a = set_listbasepointers(bmain, lbarray);
+	while (a--) {
+		for (ID *reference_id = lbarray[a]->first; reference_id != NULL; reference_id = reference_id->next) {
+			if ((reference_id->tag & LIB_TAG_DOIT) != 0 && reference_id->lib != NULL) {
+				if ((reference_id->newid = override_static_create_from(bmain, reference_id)) == NULL) {
+					ret = false;
+				}
+			}
+		}
+	}
+
+	/* Remapping, we obviously only want to affect local data (and not our own reference pointer to overriden ID). */
+	a = num_types;
+	while (a--) {
+		for (ID *reference_id = lbarray[a]->first; reference_id != NULL; reference_id = reference_id->next) {
+			if ((reference_id->tag & LIB_TAG_DOIT) != 0 && reference_id->lib != NULL && reference_id->newid != NULL) {
+				ID *local_id = reference_id->newid;
+				BKE_libblock_remap(bmain, reference_id, local_id,
+				                   ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_STATIC_OVERRIDE);
+			}
+		}
+	}
+
+	return ret;
 }
 
 /**

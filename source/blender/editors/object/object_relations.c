@@ -2340,7 +2340,7 @@ static int make_override_exec(bContext *C, wmOperator *UNUSED(op))
 	Main *bmain = CTX_data_main(C);
 	Object *locobj, *refobj = CTX_data_active_object(C);
 
-	locobj = (Object *)BKE_override_static_create_from(bmain, &refobj->id);
+	locobj = (Object *)BKE_override_static_create_from_id(bmain, &refobj->id);
 	UNUSED_VARS(locobj);
 
 	WM_event_add_notifier(C, NC_WINDOW, NULL);

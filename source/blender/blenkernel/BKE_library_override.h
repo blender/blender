@@ -43,7 +43,8 @@ void BKE_override_static_copy(struct ID *dst_id, const struct ID *src_id);
 void BKE_override_static_clear(struct IDOverrideStatic *override);
 void BKE_override_static_free(struct IDOverrideStatic **override);
 
-struct ID *BKE_override_static_create_from(struct Main *bmain, struct ID *reference_id);
+struct ID *BKE_override_static_create_from_id(struct Main *bmain, struct ID *reference_id);
+bool BKE_override_static_create_from_tag(struct Main *bmain);
 
 struct IDOverrideStaticProperty *BKE_override_static_property_find(struct IDOverrideStatic *override, const char *rna_path);
 struct IDOverrideStaticProperty *BKE_override_static_property_get(struct IDOverrideStatic *override, const char *rna_path, bool *r_created);

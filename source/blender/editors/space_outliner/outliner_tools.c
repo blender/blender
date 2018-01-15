@@ -461,7 +461,7 @@ static void id_static_override_cb(
 {
 	if (ID_IS_LINKED(tselem->id) && (tselem->id->tag & LIB_TAG_EXTERN)) {
 		Main *bmain = CTX_data_main(C);
-		ID *override_id = BKE_override_static_create_from(bmain, tselem->id);
+		ID *override_id = BKE_override_static_create_from_id(bmain, tselem->id);
 		if (override_id != NULL) {
 			BKE_main_id_clear_newpoins(bmain);
 		}

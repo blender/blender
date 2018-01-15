@@ -460,7 +460,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 			if (id) {
 				Main *bmain = CTX_data_main(C);
 				if (CTX_wm_window(C)->eventstate->shift) {
-					ID *override_id = BKE_override_static_create_from(bmain, id);
+					ID *override_id = BKE_override_static_create_from_id(bmain, id);
 					if (override_id != NULL) {
 						BKE_main_id_clear_newpoins(bmain);
 

@@ -318,7 +318,7 @@ static ID *rna_ID_override_create(ID *id, Main *bmain)
 		return NULL;
 	}
 
-	return BKE_override_static_create_from(bmain, id);
+	return BKE_override_static_create_from_id(bmain, id);
 }
 
 static void rna_ID_update_tag(ID *id, ReportList *reports, int flag)
