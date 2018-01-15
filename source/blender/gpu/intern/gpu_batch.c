@@ -103,7 +103,7 @@ Gwn_Batch *GPU_batch_from_poly_2d_encoded(
 			const uint verts_len = (&verts[i_vert]) - verts_step;
 			BLI_assert(verts_len >= 3);
 			const uint tris_len = (verts_len - 2);
-			BLI_polyfill_calc(verts_step, verts_len, 0, tris_step);
+			BLI_polyfill_calc(verts_step, verts_len, -1, tris_step);
 			/* offset indices */
 			if (verts_step != verts) {
 				uint *t = tris_step[0];
