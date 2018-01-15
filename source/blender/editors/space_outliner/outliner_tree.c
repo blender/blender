@@ -71,6 +71,7 @@
 #include "BKE_idcode.h"
 #include "BKE_outliner_treehash.h"
 
+#include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
 #include "ED_armature.h"
@@ -469,6 +470,10 @@ static void outliner_object_reorder(
 	BLI_freelistN(&data.objects_selected_array);
 
 	DEG_relations_tag_update(bmain);
+
+	/* TODO(sergey): Use proper flag for tagging here. */
+	DEG_id_tag_update(id, 0);
+
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 }
 
