@@ -548,7 +548,8 @@ void psys_free_pdd(ParticleSystem *psys)
 		psys->pdd->vedata = NULL;
 
 		psys->pdd->totpoint = 0;
-		psys->pdd->tot_vec_size = 0;
+		psys->pdd->totpart = 0;
+		psys->pdd->partsize = 0;
 	}
 }
 /* free everything */

@@ -2687,7 +2687,8 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 		/* check we are a single point? also check we are not a surface and that the orderu is sane,
 		 * enforced in the UI but can go wrong possibly */
 		if (!BKE_nurb_check_valid_u(nu)) {
-			bl = MEM_callocN(sizeof(BevList) + 1 * sizeof(BevPoint), "makeBevelList1");
+			bl = MEM_callocN(sizeof(BevList), "makeBevelList1");
+			bl->bevpoints = MEM_calloc_arrayN(1, sizeof(BevPoint), "makeBevelPoints1");
 			BLI_addtail(bev, bl);
 			bl->nr = 0;
 			bl->charidx = nu->charidx;
@@ -2704,7 +2705,8 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 
 			if (nu->type == CU_POLY) {
 				len = nu->pntsu;
-				bl = MEM_callocN(sizeof(BevList) + len * sizeof(BevPoint), "makeBevelList2");
+				bl = MEM_callocN(sizeof(BevList), "makeBevelList2");
+				bl->bevpoints = MEM_calloc_arrayN(len, sizeof(BevPoint), "makeBevelPoints2");
 				if (need_seglen && (nu->flagu & CU_NURB_CYCLIC) == 0) {
 					bl->seglen = MEM_malloc_arrayN(segcount, sizeof(float), "makeBevelList2_seglen");
 					bl->segbevcount = MEM_malloc_arrayN(segcount, sizeof(int), "makeBevelList2_segbevcount");
@@ -2750,7 +2752,8 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 				/* in case last point is not cyclic */
 				len = segcount * resolu + 1;
 
-				bl = MEM_callocN(sizeof(BevList) + len * sizeof(BevPoint), "makeBevelBPoints");
+				bl = MEM_callocN(sizeof(BevList), "makeBevelBPoints");
+				bl->bevpoints = MEM_calloc_arrayN(len, sizeof(BevPoint), "makeBevelBPointsPoints");
 				if (need_seglen && (nu->flagu & CU_NURB_CYCLIC) == 0) {
 					bl->seglen = MEM_malloc_arrayN(segcount, sizeof(float), "makeBevelBPoints_seglen");
 					bl->segbevcount = MEM_malloc_arrayN(segcount, sizeof(int), "makeBevelBPoints_segbevcount");
@@ -2886,7 +2889,8 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 				if (nu->pntsv == 1) {
 					len = (resolu * segcount);
 
-					bl = MEM_callocN(sizeof(BevList) + len * sizeof(BevPoint), "makeBevelList3");
+					bl = MEM_callocN(sizeof(BevList), "makeBevelList3");
+					bl->bevpoints = MEM_calloc_arrayN(len, sizeof(BevPoint), "makeBevelPoints3");
 					if (need_seglen && (nu->flagu & CU_NURB_CYCLIC) == 0) {
 						bl->seglen = MEM_malloc_arrayN(segcount, sizeof(float), "makeBevelList3_seglen");
 						bl->segbevcount = MEM_malloc_arrayN(segcount, sizeof(int), "makeBevelList3_segbevcount");
@@ -2984,8 +2988,13 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 		blnext = bl->next;
 		if (bl->nr && bl->dupe_nr) {
 			nr = bl->nr - bl->dupe_nr + 1;  /* +1 because vectorbezier sets flag too */
-			blnew = MEM_mallocN(sizeof(BevList) + nr * sizeof(BevPoint), "makeBevelList4");
+			blnew = MEM_callocN(sizeof(BevList), "makeBevelList4");
 			memcpy(blnew, bl, sizeof(BevList));
+			blnew->bevpoints = MEM_calloc_arrayN(nr, sizeof(BevPoint), "makeBevelPoints4");
+			if (!blnew->bevpoints) {
+				MEM_freeN(blnew);
+				break;
+			}
 			blnew->segbevcount = bl->segbevcount;
 			blnew->seglen = bl->seglen;
 			blnew->nr = 0;
@@ -3001,6 +3010,9 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 					blnew->nr++;
 				}
 				bevp0++;
+			}
+			if (bl->bevpoints != NULL) {
+				MEM_freeN(bl->bevpoints);
 			}
 			MEM_freeN(bl);
 			blnew->dupe_nr = 0;
@@ -3440,7 +3452,7 @@ static void calchandlesNurb_intern(Nurb *nu, bool skip_align)
  */
 static void *allocate_arrays(int count, float ***floats, char ***chars, const char *name)
 {
-	int num_floats = 0, num_chars = 0;
+	size_t num_floats = 0, num_chars = 0;
 
 	while (floats && floats[num_floats]) {
 		num_floats++;
@@ -3450,7 +3462,7 @@ static void *allocate_arrays(int count, float ***floats, char ***chars, const ch
 		num_chars++;
 	}
 
-	void *buffer = (float *)MEM_mallocN(count * (sizeof(float) * num_floats + num_chars), name);
+	void *buffer = (float *)MEM_malloc_arrayN(count, (sizeof(float) * num_floats + num_chars), name);
 
 	if (!buffer)
 		return NULL;

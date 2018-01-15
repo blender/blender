@@ -693,6 +693,9 @@ bool BKE_vfont_to_curve_ex(Main *bmain, Object *ob, Curve *cu, int mode, ListBas
 
 		/* Create unicode string */
 		mem_tmp = MEM_malloc_arrayN((slen + 1), sizeof(wchar_t), "convertedmem");
+		if (!mem_tmp) {
+			return ok;
+		}
 
 		BLI_strncpy_wchar_from_utf8(mem_tmp, cu->str, slen + 1);
 
@@ -700,6 +703,9 @@ bool BKE_vfont_to_curve_ex(Main *bmain, Object *ob, Curve *cu, int mode, ListBas
 			cu->strinfo = MEM_calloc_arrayN((slen + 4), sizeof(CharInfo), "strinfo compat");
 		}
 		custrinfo = cu->strinfo;
+		if (!custrinfo) {
+			return ok;
+		}
 
 		mem = mem_tmp;
 	}
