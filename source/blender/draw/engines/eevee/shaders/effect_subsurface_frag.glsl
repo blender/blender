@@ -12,7 +12,12 @@ uniform float jitterThreshold;
 uniform sampler2D depthBuffer;
 uniform sampler2D sssData;
 uniform sampler2D sssAlbedo;
+
+#ifndef UTIL_TEX
+#define UTIL_TEX
 uniform sampler2DArray utilTex;
+#define texelfetch_noise_tex(coord) texelFetch(utilTex, ivec3(ivec2(coord) % LUT_SIZE, 2.0), 0)
+#endif /* UTIL_TEX */
 
 out vec4 FragColor;
 
@@ -41,7 +46,7 @@ void main(void)
 	vec4 sss_data = texture(sssData, uvs).rgba;
 	float depth_view = get_view_z_from_depth(texture(depthBuffer, uvs).r);
 
-	float rand = texelFetch(utilTex, ivec3(ivec2(gl_FragCoord.xy) % LUT_SIZE, 2), 0).r;
+	float rand = texelfetch_noise_tex(gl_FragCoord.xy).r;
 #ifdef FIRST_PASS
 	float angle = M_2PI * rand + M_PI_2;
 	vec2 dir = vec2(1.0, 0.0);

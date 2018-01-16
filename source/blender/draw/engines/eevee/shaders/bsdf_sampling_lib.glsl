@@ -9,11 +9,12 @@ vec2 jitternoise = vec2(0.0);
 #ifndef UTIL_TEX
 #define UTIL_TEX
 uniform sampler2DArray utilTex;
+#define texelfetch_noise_tex(coord) texelFetch(utilTex, ivec3(ivec2(coord) % LUT_SIZE, 2.0), 0)
 #endif /* UTIL_TEX */
 
 void setup_noise(void)
 {
-	jitternoise = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0)).rg; /* Global variable */
+	jitternoise = texelfetch_noise_tex(gl_FragCoord.xy).rg; /* Global variable */
 }
 
 #ifdef HAMMERSLEY_SIZE

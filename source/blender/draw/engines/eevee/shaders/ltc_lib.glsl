@@ -5,6 +5,7 @@
 #ifndef UTIL_TEX
 #define UTIL_TEX
 uniform sampler2DArray utilTex;
+#define texelfetch_noise_tex(coord) texelFetch(utilTex, ivec3(ivec2(coord) % LUT_SIZE, 2.0), 0)
 #endif /* UTIL_TEX */
 
 /* from Real-Time Area Lighting: a Journey from Research to Production

@@ -5,6 +5,7 @@
 #ifndef UTIL_TEX
 #define UTIL_TEX
 uniform sampler2DArray utilTex;
+#define texelfetch_noise_tex(coord) texelFetch(utilTex, ivec3(ivec2(coord) % LUT_SIZE, 2.0), 0)
 #endif /* UTIL_TEX */
 
 #define MAX_MIP 9.0
@@ -196,7 +197,7 @@ void fallback_cubemap(
 	/* Specular probes */
 	vec3 spec_dir = get_specular_reflection_dominant_dir(N, V, roughnessSquared);
 
-	vec4 rand = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0));
+	vec4 rand = texelfetch_noise_tex(gl_FragCoord.xy);
 	vec3 bent_normal;
 	float final_ao = occlusion_compute(N, viewPosition, 1.0, rand.rg, bent_normal);
 	final_ao = specular_occlusion(dot(N, V), final_ao, roughness);

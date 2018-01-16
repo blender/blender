@@ -15,6 +15,7 @@ uniform float refractionDepth;
 #ifndef UTIL_TEX
 #define UTIL_TEX
 uniform sampler2DArray utilTex;
+#define texelfetch_noise_tex(coord) texelFetch(utilTex, ivec3(ivec2(coord) % LUT_SIZE, 2.0), 0)
 #endif /* UTIL_TEX */
 
 in vec3 worldPosition;
@@ -175,7 +176,7 @@ void CLOSURE_NAME(
 
 	vec3 V = cameraVec;
 
-	vec4 rand = texture(utilTex, vec3(gl_FragCoord.xy / LUT_SIZE, 2.0));
+	vec4 rand = texelFetch(utilTex, ivec3(ivec2(gl_FragCoord.xy) % LUT_SIZE, 2.0), 0);
 
 	/* ---------------------------------------------------------------- */
 	/* -------------------- SCENE LAMPS LIGHTING ---------------------- */
