@@ -7,9 +7,9 @@
 uniform sampler2DArray utilTex;
 #endif /* UTIL_TEX */
 
-#define BRDF_BIAS 0.7
 #define MAX_MIP 9.0
 
+uniform float brdfBias;
 uniform float fireflyFactor;
 uniform float maxRoughness;
 uniform ivec2 halfresOffset;
@@ -42,13 +42,9 @@ layout(location = 1) out float pdfData;
 
 void do_planar_ssr(int index, vec3 V, vec3 N, vec3 T, vec3 B, vec3 planeNormal, vec3 viewPosition, float a2, vec4 rand)
 {
-	float pdf, NH;
-
-	/* Importance sampling bias */
-	rand.x = mix(rand.x, 0.0, BRDF_BIAS);
-
+	float NH;
 	vec3 H = sample_ggx(rand.xzw, a2, N, T, B, NH); /* Microfacet normal */
-	pdf = pdf_ggx_reflect(NH, a2);
+	float pdf = pdf_ggx_reflect(NH, a2);
 
 	vec3 R = reflect(-V, H);
 	R = reflect(R, planeNormal);
@@ -76,13 +72,9 @@ void do_planar_ssr(int index, vec3 V, vec3 N, vec3 T, vec3 B, vec3 planeNormal, 
 
 void do_ssr(vec3 V, vec3 N, vec3 T, vec3 B, vec3 viewPosition, float a2, vec4 rand)
 {
-	float pdf, NH;
-
-	/* Importance sampling bias */
-	rand.x = mix(rand.x, 0.0, BRDF_BIAS);
-
+	float NH;
 	vec3 H = sample_ggx(rand.xzw, a2, N, T, B, NH); /* Microfacet normal */
-	pdf = pdf_ggx_reflect(NH, a2);
+	float pdf = pdf_ggx_reflect(NH, a2);
 
 	vec3 R = reflect(-V, H);
 	pdfData = min(1024e32, pdf); /* Theoretical limit of 16bit float */
@@ -138,6 +130,8 @@ void main()
 	if (roughness < 0.04) {
 		rand.xzw *= 0.0;
 	}
+	/* Importance sampling bias */
+	rand.x = mix(rand.x, 0.0, brdfBias);
 
 	vec3 worldPosition = transform_point(ViewMatrixInverse, viewPosition);
 	vec3 wN = transform_direction(ViewMatrixInverse, N);
@@ -363,7 +357,7 @@ vec4 get_ssr_samples(
 
 	/* Compute cone footprint in screen space. */
 	vec4 cone_footprint = hit_dist * cone_tan;
-	cone_footprint = BRDF_BIAS * 0.5 * cone_footprint * max(ProjectionMatrix[0][0], ProjectionMatrix[1][1]) / homcoord;
+	cone_footprint = brdfBias * 0.5 * cone_footprint * max(ProjectionMatrix[0][0], ProjectionMatrix[1][1]) / homcoord;
 
 	/* Estimate a cone footprint to sample a corresponding mipmap level. */
 	vec4 mip = log2(cone_footprint * max_v2(vec2(textureSize(depthBuffer, 0))));

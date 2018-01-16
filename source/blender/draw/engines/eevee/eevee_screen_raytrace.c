@@ -126,11 +126,12 @@ int EEVEE_screen_raytrace_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *
 		bool prev_trace_full = effects->reflection_trace_full;
 		effects->reflection_trace_full = !BKE_collection_engine_property_value_get_bool(props, "ssr_halfres");
 		effects->ssr_use_normalization = BKE_collection_engine_property_value_get_bool(props, "ssr_normalize_weight");
-		effects->ssr_quality = 1.0f - BKE_collection_engine_property_value_get_float(props, "ssr_quality");
+		effects->ssr_quality = 1.0f - 0.95f * BKE_collection_engine_property_value_get_float(props, "ssr_quality");
 		effects->ssr_thickness = BKE_collection_engine_property_value_get_float(props, "ssr_thickness");
 		effects->ssr_border_fac = BKE_collection_engine_property_value_get_float(props, "ssr_border_fade");
 		effects->ssr_firefly_fac = BKE_collection_engine_property_value_get_float(props, "ssr_firefly_fac");
 		effects->ssr_max_roughness = BKE_collection_engine_property_value_get_float(props, "ssr_max_roughness");
+		effects->ssr_brdf_bias = 0.1f + effects->ssr_quality * 0.6f; /* Range [0.1, 0.7]. */
 
 		if (effects->ssr_firefly_fac < 1e-8f) {
 			effects->ssr_firefly_fac = FLT_MAX;
@@ -221,6 +222,7 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 		DRW_shgroup_uniform_vec4(grp, "ssrParameters", &effects->ssr_quality, 1);
 		DRW_shgroup_uniform_int(grp, "planar_count", &sldata->probes->num_planar, 1);
 		DRW_shgroup_uniform_float(grp, "maxRoughness", &effects->ssr_max_roughness, 1);
+		DRW_shgroup_uniform_float(grp, "brdfBias", &effects->ssr_brdf_bias, 1);
 		DRW_shgroup_uniform_buffer(grp, "planarDepth", &vedata->txl->planar_depth);
 		DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
 		if (!effects->reflection_trace_full) {
@@ -245,6 +247,7 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 		DRW_shgroup_uniform_float(grp, "lodCubeMax", &sldata->probes->lod_cube_max, 1);
 		DRW_shgroup_uniform_float(grp, "lodPlanarMax", &sldata->probes->lod_planar_max, 1);
 		DRW_shgroup_uniform_float(grp, "fireflyFactor", &effects->ssr_firefly_fac, 1);
+		DRW_shgroup_uniform_float(grp, "brdfBias", &effects->ssr_brdf_bias, 1);
 		DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
 		DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
 		DRW_shgroup_uniform_buffer(grp, "probeCubes", &sldata->probe_pool);
