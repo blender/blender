@@ -2336,7 +2336,7 @@ void OBJECT_OT_make_local(wmOperatorType *ot)
 }
 
 
-static void make_override_tag_object(Object *obact, Object *ob)
+static void make_override_static_tag_object(Object *obact, Object *ob)
 {
 	if (ob == obact) {
 		return;
@@ -2370,7 +2370,7 @@ static void make_override_tag_object(Object *obact, Object *ob)
 }
 
 /* Set the object to override. */
-static int make_override_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int make_override_static_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obact = ED_object_active_context(C);
@@ -2409,7 +2409,7 @@ static int make_override_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
 }
 
-static int make_override_exec(bContext *C, wmOperator *op)
+static int make_override_static_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Object *obact = CTX_data_active_object(C);
@@ -2470,7 +2470,7 @@ static int make_override_exec(bContext *C, wmOperator *op)
 		obact->id.tag |= LIB_TAG_DOIT;
 
 		for (Object *ob = bmain->object.first; ob != NULL; ob = ob->id.next) {
-			make_override_tag_object(obact, ob);
+			make_override_static_tag_object(obact, ob);
 		}
 
 		success = BKE_override_static_create_from_tag(bmain);
@@ -2491,7 +2491,7 @@ static int make_override_exec(bContext *C, wmOperator *op)
 	return success ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-static int make_override_poll(bContext *C)
+static int make_override_static_poll(bContext *C)
 {
 	Object *obact = CTX_data_active_object(C);
 
@@ -2501,17 +2501,17 @@ static int make_override_poll(bContext *C)
 	         (!ID_IS_LINKED(obact) && obact->dup_group != NULL && ID_IS_LINKED(obact->dup_group))));
 }
 
-void OBJECT_OT_make_override(wmOperatorType *ot)
+void OBJECT_OT_make_override_static(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Make Override";
+	ot->name = "Make Static Override";
 	ot->description = "Make local override of this library linked data-block";
-	ot->idname = "OBJECT_OT_make_override";
+	ot->idname = "OBJECT_OT_make_override_static";
 
 	/* api callbacks */
-	ot->invoke = make_override_invoke;
-	ot->exec = make_override_exec;
-	ot->poll = make_override_poll;
+	ot->invoke = make_override_static_invoke;
+	ot->exec = make_override_static_exec;
+	ot->poll = make_override_static_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
