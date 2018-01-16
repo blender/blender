@@ -194,6 +194,7 @@ void DEG_graph_flush_update(struct Main *bmain, Depsgraph *depsgraph);
  * editors about this.
  */
 void DEG_ids_check_recalc(struct Main *bmain,
+                          struct Depsgraph *depsgraph,
                           struct Scene *scene,
                           struct ViewLayer *view_layer,
                           bool time);
@@ -248,6 +249,7 @@ bool DEG_needs_eval(Depsgraph *graph);
 
 typedef struct DEGEditorUpdateContext {
 	struct Main *bmain;
+	struct Depsgraph *depsgraph;
 	struct Scene *scene;
 	struct ViewLayer *view_layer;
 } DEGEditorUpdateContext;

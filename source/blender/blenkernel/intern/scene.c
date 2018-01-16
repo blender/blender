@@ -1435,7 +1435,7 @@ void BKE_scene_graph_update_tagged(EvaluationContext *eval_ctx,
 	/* Update sound system animation (TODO, move to depsgraph). */
 	BKE_sound_update_scene(bmain, scene);
 	/* Inform editors about possible changes. */
-	DEG_ids_check_recalc(bmain, scene, view_layer, false);
+	DEG_ids_check_recalc(bmain, depsgraph, scene, view_layer, false);
 	/* Clear recalc flags. */
 	DEG_ids_clear_recalc(bmain);
 }
@@ -1482,7 +1482,7 @@ void BKE_scene_graph_update_for_newframe(EvaluationContext *eval_ctx,
 	/* Notify editors and python about recalc. */
 	BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_FRAME_CHANGE_POST);
 	/* Inform editors about possible changes. */
-	DEG_ids_check_recalc(bmain, scene, view_layer, true);
+	DEG_ids_check_recalc(bmain, depsgraph, scene, view_layer, true);
 	/* clear recalc flags */
 	DEG_ids_clear_recalc(bmain);
 }

@@ -239,6 +239,7 @@ void depsgraph_update_editors_tag(Main *bmain, Depsgraph *graph, ID *id)
 	/* TODO(sergey): Make sure this works for CoW-ed datablocks as well. */
 	DEGEditorUpdateContext update_ctx = {NULL};
 	update_ctx.bmain = bmain;
+	update_ctx.depsgraph = (::Depsgraph *)graph;
 	update_ctx.scene = graph->scene;
 	update_ctx.view_layer = graph->view_layer;
 	deg_editors_id_update(&update_ctx, id);
@@ -454,6 +455,7 @@ void DEG_on_visible_update(Main *bmain, const bool UNUSED(do_time))
  * editors about this.
  */
 void DEG_ids_check_recalc(Main *bmain,
+                          Depsgraph *depsgraph,
                           Scene *scene,
                           ViewLayer *view_layer,
                           bool time)
@@ -476,6 +478,7 @@ void DEG_ids_check_recalc(Main *bmain,
 
 	DEGEditorUpdateContext update_ctx = {NULL};
 	update_ctx.bmain = bmain;
+	update_ctx.depsgraph = depsgraph;
 	update_ctx.scene = scene;
 	update_ctx.view_layer = view_layer;
 	DEG::deg_editors_scene_update(&update_ctx, (updated || time));

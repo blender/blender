@@ -268,6 +268,7 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 	/* Prepare update context for editors. */
 	DEGEditorUpdateContext update_ctx;
 	update_ctx.bmain = bmain;
+	update_ctx.depsgraph = (::Depsgraph *)graph;
 	update_ctx.scene = graph->scene;
 	update_ctx.view_layer = graph->view_layer;
 	/* Do actual flush. */

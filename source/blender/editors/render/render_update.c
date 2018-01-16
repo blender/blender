@@ -202,6 +202,8 @@ void ED_render_engine_changed(Main *bmain)
 	for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 		update_ctx.scene = scene;
 		LINKLIST_FOREACH(ViewLayer *, view_layer, &scene->view_layers) {
+			/* TDODO(sergey): Iterate over depsgraphs instead? */
+			update_ctx.depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
 			update_ctx.view_layer = view_layer;
 			ED_render_id_flush_update(&update_ctx, &scene->id);
 		}
