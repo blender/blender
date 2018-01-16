@@ -1321,13 +1321,18 @@ void GPU_pbvh_grid_buffers_update(
 							normal_float_to_short_v3(vd->no, fno);
 
 							if (has_mask) {
-								gpu_color_from_mask_quad_copy(key,
-								                              elems[0],
-								                              elems[1],
-								                              elems[2],
-								                              elems[3],
-								                              diffuse_color,
-								                              vd->color);
+								if (show_mask) {
+									gpu_color_from_mask_quad_copy(key,
+									                              elems[0],
+									                              elems[1],
+									                              elems[2],
+									                              elems[3],
+									                              diffuse_color,
+									                              vd->color);
+								}
+								else {
+									F3TOCHAR3(diffuse_color, vd->color);
+								}
 							}
 						}
 					}
