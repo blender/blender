@@ -1288,9 +1288,14 @@ void GPU_pbvh_grid_buffers_update(
 						if (buffers->smooth) {
 							normal_float_to_short_v3(vd->no, CCG_elem_no(key, elem));
 
-							if (has_mask && show_mask) {
-								gpu_color_from_mask_copy(*CCG_elem_mask(key, elem),
-								                         diffuse_color, vd->color);
+							if (has_mask) {
+								if (show_mask) {
+									gpu_color_from_mask_copy(*CCG_elem_mask(key, elem),
+									                         diffuse_color, vd->color);
+								}
+								else {
+									F3TOCHAR3(diffuse_color, vd->color);
+								}
 							}
 						}
 						vd++;
