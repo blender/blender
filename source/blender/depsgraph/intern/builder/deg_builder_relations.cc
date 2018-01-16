@@ -1180,7 +1180,7 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
 				if (is_same_bone_dependency(variable_key, self_key)) {
 					continue;
 				}
-				add_relation(variable_key, driver_key, "RNA Bone -> Driver");
+				add_relation(variable_key, driver_key, "RNA Target -> Driver");
 			}
 			else {
 				if (dtar->id == id) {
