@@ -989,9 +989,11 @@ static void material_opaque(
 	float *rough_p = &ma->gloss_mir;
 
 	const bool use_gpumat = (ma->use_nodes && ma->nodetree);
-	const bool use_refract = ((ma->blend_flag & MA_BL_SS_REFRACTION) != 0) && ((stl->effects->enabled_effects & EFFECT_REFRACT) != 0);
-	const bool use_sss = ((ma->blend_flag & MA_BL_SS_SUBSURFACE) != 0) && ((stl->effects->enabled_effects & EFFECT_SSS) != 0);
-	const bool use_translucency = ((ma->blend_flag & MA_BL_TRANSLUCENCY) != 0) && ((stl->effects->enabled_effects & EFFECT_SSS) != 0);
+	const bool use_refract = ((ma->blend_flag & MA_BL_SS_REFRACTION) != 0) &&
+	                         ((stl->effects->enabled_effects & EFFECT_REFRACT) != 0);
+	const bool use_sss = ((ma->blend_flag & MA_BL_SS_SUBSURFACE) != 0) &&
+	                     ((stl->effects->enabled_effects & EFFECT_SSS) != 0);
+	const bool use_translucency = use_sss && ((ma->blend_flag & MA_BL_TRANSLUCENCY) != 0);
 
 	EeveeMaterialShadingGroups *emsg = BLI_ghash_lookup(material_hash, (const void *)ma);
 
