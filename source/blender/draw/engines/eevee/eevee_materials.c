@@ -28,6 +28,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
 #include "BLI_alloca.h"
+#include "BLI_rand.h"
 
 #include "BKE_particle.h"
 #include "BKE_paint.h"
@@ -61,6 +62,7 @@ static struct {
 	unsigned int sss_count;
 
 	float viewvecs[2][4];
+	float alpha_hash_offset;
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_lamps_lib_glsl[];
@@ -546,6 +548,19 @@ void EEVEE_materials_init(EEVEE_StorageList *stl)
 
 		double offsets[3] = {0.0, 0.0, 0.0};
 		EEVEE_update_util_texture(offsets);
+	}
+
+	/* Alpha hash scale: Non-flickering size if we are not refining the render. */
+	if (!DRW_state_is_image_render() &&
+		(((stl->effects->enabled_effects & EFFECT_TAA) == 0) ||
+		 (stl->effects->taa_current_sample == 1)))
+	{
+		e_data.alpha_hash_offset = 0.0f;
+	}
+	else {
+		double r;
+		BLI_halton_1D(5, 0.0, stl->effects->taa_current_sample, &r);
+		e_data.alpha_hash_offset = (float)r;
 	}
 
 	{
@@ -1068,6 +1083,10 @@ static void material_opaque(
 				if (ma->blend_method == MA_BM_CLIP) {
 					DRW_shgroup_uniform_float(*shgrp_depth, "alphaThreshold", &ma->alpha_threshold, 1);
 					DRW_shgroup_uniform_float(*shgrp_depth_clip, "alphaThreshold", &ma->alpha_threshold, 1);
+				}
+				else if (ma->blend_method == MA_BM_HASHED) {
+					DRW_shgroup_uniform_float(*shgrp_depth, "hashAlphaOffset", &e_data.alpha_hash_offset, 1);
+					DRW_shgroup_uniform_float(*shgrp_depth_clip, "hashAlphaOffset", &e_data.alpha_hash_offset, 1);
 				}
 			}
 		}
