@@ -2284,7 +2284,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 				char buf_copy[UI_MAX_DRAW_STR];
 
 				if (array_length == 4) {
-					 values[3] = RNA_property_float_get_index(&but->rnapoin, but->rnaprop, 3);
+					values[3] = RNA_property_float_get_index(&but->rnapoin, but->rnaprop, 3);
 				}
 				else {
 					values[3] = 0.0f;
@@ -6017,8 +6017,8 @@ static int ui_do_but_COLORBAND(
 
 static bool ui_numedit_but_CURVE(
         uiBlock *block, uiBut *but, uiHandleButtonData *data,
-                                 int evtx, int evty,
-                                 bool snap, const bool shift)
+        int evtx, int evty,
+        bool snap, const bool shift)
 {
 	CurveMapping *cumap = (CurveMapping *)but->poin;
 	CurveMap *cuma = cumap->cm + cumap->cur;

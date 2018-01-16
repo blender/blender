@@ -158,7 +158,7 @@ static int write_audio_frame(FFMpegContext *context)
 		for (channel = 0; channel < c->channels; channel++) {
 			for (i = 0; i < frame->nb_samples; i++) {
 				memcpy(context->audio_deinterleave_buffer + (i + channel * frame->nb_samples) * context->audio_sample_size,
-					   context->audio_input_buffer + (c->channels * i + channel) * context->audio_sample_size, context->audio_sample_size);
+				       context->audio_input_buffer + (c->channels * i + channel) * context->audio_sample_size, context->audio_sample_size);
 			}
 		}
 

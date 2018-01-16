@@ -2146,8 +2146,8 @@ void BKE_library_make_local(
 			 * was not used locally would be a nasty bug! */
 			if (is_local || is_lib) {
 				printf("Warning, made-local proxy object %s will loose its link to %s, "
-					   "because the linked-in proxy is referenced (is_local=%i, is_lib=%i).\n",
-					   id->newid->name, ob->proxy->id.name, is_local, is_lib);
+				       "because the linked-in proxy is referenced (is_local=%i, is_lib=%i).\n",
+				       id->newid->name, ob->proxy->id.name, is_local, is_lib);
 			}
 			else {
 				/* we can switch the proxy'ing from the linked-in to the made-local proxy.
@@ -2203,8 +2203,8 @@ void BKE_library_make_local(
 				 * was not used locally would be a nasty bug! */
 				else if (is_local || is_lib) {
 					printf("Warning, made-local proxy object %s will loose its link to %s, "
-						   "because the linked-in proxy is referenced (is_local=%i, is_lib=%i).\n",
-						   id->newid->name, ob->proxy->id.name, is_local, is_lib);
+					       "because the linked-in proxy is referenced (is_local=%i, is_lib=%i).\n",
+					       id->newid->name, ob->proxy->id.name, is_local, is_lib);
 				}
 				else {
 					/* we can switch the proxy'ing from the linked-in to the made-local proxy.

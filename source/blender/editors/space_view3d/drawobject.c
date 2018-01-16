@@ -926,14 +926,12 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, bool depth_write)
 					col_pack_prev = vos->col.pack;
 				}
 
-				((vos->flag & V3D_CACHE_TEXT_ASCII) ?
-				 BLF_draw_default_ascii :
-				 BLF_draw_default
-				 )((float)(vos->sco[0] + vos->xoffs),
-				   (float)(vos->sco[1]),
-				   (depth_write) ? 0.0f : 2.0f,
-				   vos->str,
-				   vos->str_len);
+				((vos->flag & V3D_CACHE_TEXT_ASCII) ? BLF_draw_default_ascii : BLF_draw_default)(
+				        (float)(vos->sco[0] + vos->xoffs),
+				        (float)(vos->sco[1]),
+				        (depth_write) ? 0.0f : 2.0f,
+				        vos->str,
+				        vos->str_len);
 			}
 		}
 
