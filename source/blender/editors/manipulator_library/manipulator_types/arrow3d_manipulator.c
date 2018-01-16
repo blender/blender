@@ -236,90 +236,64 @@ static int manipulator_arrow_modal(
 {
 	ArrowManipulator3D *arrow = (ArrowManipulator3D *)mpr;
 	ManipulatorInteraction *inter = mpr->interaction_data;
+	View3D *v3d = CTX_wm_view3d(C);
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = ar->regiondata;
 
-	float orig_origin[4];
-	float viewvec[3], tangent[3], plane[3];
-	float offset[4];
-	float m_diff[2];
-	float dir_2d[2], dir2d_final[2];
+	float offset[3];
 	float facdir = 1.0f;
-	bool use_vertical = false;
 
+	/* (src, dst) */
+	struct {
+		float mval[2];
+		float ray_origin[3], ray_direction[3];
+		float location[3];
+	} proj[2] = {
+		{.mval = {UNPACK2(inter->init_mval)}},
+		{.mval = {UNPACK2(event->mval)}},
+	};
 
-	copy_v3_v3(orig_origin, inter->init_matrix_basis[3]);
-	orig_origin[3] = 1.0f;
-	add_v3_v3v3(offset, orig_origin, arrow->manipulator.matrix_basis[2]);
-	offset[3] = 1.0f;
+	float arrow_co[3];
+	float arrow_no[3];
+	copy_v3_v3(arrow_co, inter->init_matrix_basis[3]);
+	normalize_v3_v3(arrow_no, arrow->manipulator.matrix_basis[2]);
 
-	/* calculate view vector */
-	if (rv3d->is_persp) {
-		sub_v3_v3v3(viewvec, orig_origin, rv3d->viewinv[3]);
-	}
-	else {
-		copy_v3_v3(viewvec, rv3d->viewinv[2]);
-	}
-	normalize_v3(viewvec);
+	int ok = 0;
 
-	/* first determine if view vector is really close to the direction. If it is, we use
-	 * vertical movement to determine offset, just like transform system does */
-	if (RAD2DEGF(acosf(dot_v3v3(viewvec, arrow->manipulator.matrix_basis[2]))) > 5.0f) {
-		/* multiply to projection space */
-		mul_m4_v4(rv3d->persmat, orig_origin);
-		mul_v4_fl(orig_origin, 1.0f / orig_origin[3]);
-		mul_m4_v4(rv3d->persmat, offset);
-		mul_v4_fl(offset, 1.0f / offset[3]);
+	for (int j = 0; j < 2; j++) {
+		if (ED_view3d_win_to_ray(
+		            ar, v3d, proj[j].mval,
+		            proj[j].ray_origin, proj[j].ray_direction, false))
+		{
+			/* Force Y axis if we're view aligned */
+			if (j == 0) {
+				if (RAD2DEGF(acosf(dot_v3v3(proj[j].ray_direction, arrow->manipulator.matrix_basis[2]))) < 5.0f) {
+					normalize_v3_v3(arrow_no, rv3d->viewinv[1]);
+				}
+			}
 
-		sub_v2_v2v2(dir_2d, offset, orig_origin);
-		dir_2d[0] *= ar->winx;
-		dir_2d[1] *= ar->winy;
-		normalize_v2(dir_2d);
-	}
-	else {
-		dir_2d[0] = 0.0f;
-		dir_2d[1] = 1.0f;
-		use_vertical = true;
-	}
+			float arrow_no_proj[3];
+			project_plane_v3_v3v3(arrow_no_proj, arrow_no, proj[j].ray_direction);
 
-	/* find mouse difference */
-	m_diff[0] = event->mval[0] - inter->init_mval[0];
-	m_diff[1] = event->mval[1] - inter->init_mval[1];
+			normalize_v3(arrow_no_proj);
 
-	/* project the displacement on the screen space arrow direction */
-	project_v2_v2v2(dir2d_final, m_diff, dir_2d);
+			float plane[4];
+			plane_from_point_normal_v3(plane, proj[j].ray_origin, arrow_no_proj);
 
-	float zfac = ED_view3d_calc_zfac(rv3d, orig_origin, NULL);
-	ED_view3d_win_to_delta(ar, dir2d_final, offset, zfac);
-
-	add_v3_v3v3(orig_origin, offset, inter->init_matrix_basis[3]);
-
-	/* calculate view vector for the new position */
-	if (rv3d->is_persp) {
-		sub_v3_v3v3(viewvec, orig_origin, rv3d->viewinv[3]);
-	}
-	else {
-		copy_v3_v3(viewvec, rv3d->viewinv[2]);
-	}
-
-	normalize_v3(viewvec);
-	if (!use_vertical) {
-		/* now find a plane parallel to the view vector so we can intersect with the arrow direction */
-		cross_v3_v3v3(tangent, viewvec, offset);
-		cross_v3_v3v3(plane, tangent, viewvec);
-
-		const float plane_offset = dot_v3v3(plane, offset);
-		const float plane_dir = dot_v3v3(plane, arrow->manipulator.matrix_basis[2]);
-		const float fac = (plane_dir != 0.0f) ? (plane_offset / plane_dir) : 0.0f;
-		facdir = (fac < 0.0f) ? -1.0f : 1.0f;
-		if (isfinite(fac)) {
-			mul_v3_v3fl(offset, arrow->manipulator.matrix_basis[2], fac);
+			float lambda;
+			if (isect_ray_plane_v3(arrow_co, arrow_no, plane, &lambda, false)) {
+				madd_v3_v3v3fl(proj[j].location, arrow_co, arrow_no, lambda);
+				ok++;
+			}
 		}
 	}
-	else {
-		facdir = (m_diff[1] < 0.0f) ? -1.0f : 1.0f;
+
+	if (ok != 2) {
+		return OPERATOR_RUNNING_MODAL;
 	}
 
+	sub_v3_v3v3(offset, proj[1].location, proj[0].location);
+	facdir = dot_v3v3(arrow_no, offset) < 0.0f ? -1 : 1;
 
 	ManipulatorCommonData *data = &arrow->data;
 	const float ofs_new = facdir * len_v3(offset);
