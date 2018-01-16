@@ -285,6 +285,7 @@ static void read_custom_data_mcols(const std::string & iobject_full_name,
 {
 	C3fArraySamplePtr c3f_ptr = C3fArraySamplePtr();
 	C4fArraySamplePtr c4f_ptr = C4fArraySamplePtr();
+	Alembic::Abc::UInt32ArraySamplePtr indices;
 	bool use_c3f_ptr;
 	bool is_facevarying;
 
@@ -299,6 +300,7 @@ static void read_custom_data_mcols(const std::string & iobject_full_name,
 		                 config.totloop == sample.getIndices()->size();
 
 		c3f_ptr = sample.getVals();
+		indices = sample.getIndices();
 		use_c3f_ptr = true;
 	}
 	else if (IC4fGeomParam::matches(prop_header)) {
@@ -311,6 +313,7 @@ static void read_custom_data_mcols(const std::string & iobject_full_name,
 		                 config.totloop == sample.getIndices()->size();
 
 		c4f_ptr = sample.getVals();
+		indices = sample.getIndices();
 		use_c3f_ptr = false;
 	}
 	else {
@@ -331,6 +334,12 @@ static void read_custom_data_mcols(const std::string & iobject_full_name,
 	size_t color_index;
 	bool bounds_warning_given = false;
 
+	/* The colors can go through two layers of indexing. Often the 'indices'
+	 * array doesn't do anything (i.e. indices[n] = n), but when it does, it's
+	 * important. Blender 2.79 writes indices incorrectly (see T53745), which
+	 * is why we have to check for indices->size() > 0 */
+	bool use_dual_indexing = is_facevarying && indices->size() > 0;
+
 	for (int i = 0; i < config.totpoly; ++i) {
 		MPoly *poly = &mpolys[i];
 		MCol *cface = &cfaces[poly->loopstart + poly->totloop];
@@ -340,9 +349,13 @@ static void read_custom_data_mcols(const std::string & iobject_full_name,
 			--cface;
 			--mloop;
 
+			color_index = is_facevarying ? face_index : mloop->v;
+			if (use_dual_indexing) {
+				color_index = (*indices)[color_index];
+			}
 			if (use_c3f_ptr) {
 				color_index = mcols_out_of_bounds_check(
-				                  is_facevarying ? face_index : mloop->v,
+				                  color_index,
 				                  c3f_ptr->size(),
 				                  iobject_full_name, prop_header,
 				                  bounds_warning_given);
@@ -355,7 +368,7 @@ static void read_custom_data_mcols(const std::string & iobject_full_name,
 			}
 			else {
 				color_index = mcols_out_of_bounds_check(
-				                  is_facevarying ? face_index : mloop->v,
+				                  color_index,
 				                  c4f_ptr->size(),
 				                  iobject_full_name, prop_header,
 				                  bounds_warning_given);
