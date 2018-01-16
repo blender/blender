@@ -1150,9 +1150,9 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
 					continue;
 				}
 				OperationKey variable_key(dtar->id,
-				                        DEG_NODE_TYPE_BONE,
-				                        target_pchan->name,
-				                        DEG_OPCODE_BONE_DONE);
+				                          DEG_NODE_TYPE_BONE,
+				                          target_pchan->name,
+				                          DEG_OPCODE_BONE_DONE);
 				if (is_same_bone_dependency(variable_key, self_key)) {
 					continue;
 				}
