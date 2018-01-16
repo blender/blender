@@ -142,7 +142,8 @@ bool DepsgraphRelationBuilder::is_same_bone_dependency(const KeyFrom& key_from,
 	}
 	/* We are only interested in relations like BONE_DONE -> BONE_LOCAL... */
 	if (!(op_from->opcode == DEG_OPCODE_BONE_DONE &&
-	      op_to->opcode == DEG_OPCODE_BONE_LOCAL)) {
+	      op_to->opcode == DEG_OPCODE_BONE_LOCAL))
+	{
 		return false;
 	}
 	/* ... BUT, we also need to check if it's same bone.  */
