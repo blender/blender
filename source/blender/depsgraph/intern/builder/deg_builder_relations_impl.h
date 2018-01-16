@@ -180,7 +180,7 @@ bool DepsgraphRelationBuilder::is_nodetree_node_dependency(
 		return false;
 	}
 	/* Check if this is actually a node tree. */
-	if (GS(op_from->owner->owner->id->name) != ID_NT) {
+	if (GS(op_from->owner->owner->id_orig->name) != ID_NT) {
 		return false;
 	}
 	/* Different node trees. */
