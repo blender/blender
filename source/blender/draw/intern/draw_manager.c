@@ -3279,6 +3279,7 @@ void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
 	ARegion *ar = update_ctx->ar;
 	View3D *v3d = update_ctx->v3d;
 	RegionView3D *rv3d = ar->regiondata;
+	Depsgraph *depsgraph = update_ctx->depsgraph;
 	Scene *scene = update_ctx->scene;
 	ViewLayer *view_layer = update_ctx->view_layer;
 
@@ -3292,7 +3293,8 @@ void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
 
 	DST.viewport = rv3d->viewport;
 	DST.draw_ctx = (DRWContextState){
-		ar, rv3d, v3d, scene, view_layer, OBACT(view_layer), engine_type, NULL,
+		ar, rv3d, v3d, scene, view_layer, OBACT(view_layer), engine_type, depsgraph,
+		NULL,
 	};
 
 	drw_engines_enable(scene, view_layer, engine_type);
@@ -3328,6 +3330,7 @@ void DRW_notify_id_update(const DRWUpdateContext *update_ctx, ID *id)
 	ARegion *ar = update_ctx->ar;
 	View3D *v3d = update_ctx->v3d;
 	RegionView3D *rv3d = ar->regiondata;
+	Depsgraph *depsgraph = update_ctx->depsgraph;
 	Scene *scene = update_ctx->scene;
 	ViewLayer *view_layer = update_ctx->view_layer;
 	if (rv3d->viewport == NULL) {
@@ -3337,7 +3340,7 @@ void DRW_notify_id_update(const DRWUpdateContext *update_ctx, ID *id)
 	memset(&DST, 0x0, sizeof(DST));
 	DST.viewport = rv3d->viewport;
 	DST.draw_ctx = (DRWContextState){
-		ar, rv3d, v3d, scene, view_layer, OBACT(view_layer), engine_type, NULL,
+		ar, rv3d, v3d, scene, view_layer, OBACT(view_layer), engine_type, depsgraph, NULL,
 	};
 	drw_engines_enable(scene, view_layer, engine_type);
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
@@ -3396,7 +3399,7 @@ void DRW_draw_render_loop_ex(
 	GPU_viewport_engines_data_validate(DST.viewport, DRW_engines_get_hash());
 
 	DST.draw_ctx = (DRWContextState){
-	    ar, rv3d, v3d, scene, view_layer, OBACT(view_layer), engine_type,
+	    ar, rv3d, v3d, scene, view_layer, OBACT(view_layer), engine_type, graph,
 
 	    /* reuse if caller sets */
 	    DST.draw_ctx.evil_C,
@@ -3623,7 +3626,7 @@ void DRW_draw_select_loop(
 
 	/* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
 	DST.draw_ctx = (DRWContextState){
-		ar, rv3d, v3d, scene, view_layer, OBACT(view_layer), engine_type, (bContext *)NULL,
+		ar, rv3d, v3d, scene, view_layer, OBACT(view_layer), engine_type, graph, (bContext *)NULL,
 	};
 
 	drw_viewport_var_init();
@@ -3722,7 +3725,7 @@ void DRW_draw_depth_loop(
 
 	/* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
 	DST.draw_ctx = (DRWContextState){
-		ar, rv3d, v3d, scene, view_layer, OBACT(view_layer), engine_type, (bContext *)NULL,
+		ar, rv3d, v3d, scene, view_layer, OBACT(view_layer), engine_type, graph, (bContext *)NULL,
 	};
 
 	drw_viewport_var_init();

@@ -453,6 +453,8 @@ typedef struct DRWContextState {
 
 	struct RenderEngineType *engine_type;
 
+	struct Depsgraph *depsgraph;
+
 	/* Last resort (some functions take this as an arg so we can't easily avoid).
 	 * May be NULL when used for selection or depth buffer. */
 	const struct bContext *evil_C;
