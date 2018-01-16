@@ -41,6 +41,7 @@
 #include <math.h> // for fabs
 #include <stdarg.h> /* for va_start/end */
 #include <time.h> /* for gmtime */
+#include <ctype.h> /* for isdigit */
 
 #include "BLI_utildefines.h"
 #ifndef WIN32
@@ -897,39 +898,42 @@ static void decode_blender_header(FileData *fd)
 {
 	char header[SIZEOFBLENDERHEADER], num[4];
 	int readsize;
-	
+
 	/* read in the header data */
 	readsize = fd->read(fd, header, sizeof(header));
-	
-	if (readsize == sizeof(header)) {
-		if (STREQLEN(header, "BLENDER", 7)) {
-			fd->flags |= FD_FLAGS_FILE_OK;
-			
-			/* what size are pointers in the file ? */
-			if (header[7]=='_') {
-				fd->flags |= FD_FLAGS_FILE_POINTSIZE_IS_4;
-				if (sizeof(void *) != 4) {
-					fd->flags |= FD_FLAGS_POINTSIZE_DIFFERS;
-				}
+
+	if (readsize == sizeof(header) &&
+	    STREQLEN(header, "BLENDER", 7) &&
+	    ELEM(header[7], '_', '-') &&
+	    ELEM(header[8], 'v', 'V') &&
+	    (isdigit(header[9]) && isdigit(header[10]) && isdigit(header[11])))
+	{
+		fd->flags |= FD_FLAGS_FILE_OK;
+
+		/* what size are pointers in the file ? */
+		if (header[7] == '_') {
+			fd->flags |= FD_FLAGS_FILE_POINTSIZE_IS_4;
+			if (sizeof(void *) != 4) {
+				fd->flags |= FD_FLAGS_POINTSIZE_DIFFERS;
 			}
-			else {
-				if (sizeof(void *) != 8) {
-					fd->flags |= FD_FLAGS_POINTSIZE_DIFFERS;
-				}
-			}
-			
-			/* is the file saved in a different endian
-			 * than we need ?
-			 */
-			if (((header[8] == 'v') ? L_ENDIAN : B_ENDIAN) != ENDIAN_ORDER) {
-				fd->flags |= FD_FLAGS_SWITCH_ENDIAN;
-			}
-			
-			/* get the version number */
-			memcpy(num, header + 9, 3);
-			num[3] = 0;
-			fd->fileversion = atoi(num);
 		}
+		else {
+			if (sizeof(void *) != 8) {
+				fd->flags |= FD_FLAGS_POINTSIZE_DIFFERS;
+			}
+		}
+
+		/* is the file saved in a different endian
+		 * than we need ?
+		 */
+		if (((header[8] == 'v') ? L_ENDIAN : B_ENDIAN) != ENDIAN_ORDER) {
+			fd->flags |= FD_FLAGS_SWITCH_ENDIAN;
+		}
+
+		/* get the version number */
+		memcpy(num, header + 9, 3);
+		num[3] = 0;
+		fd->fileversion = atoi(num);
 	}
 }
 

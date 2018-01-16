@@ -31,12 +31,14 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_node_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_easing.h"
 
+#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
@@ -62,6 +64,15 @@
 #include "node_intern.h"  /* own include */
 
 /* ****************** Relations helpers *********************** */
+
+static bool ntree_has_drivers(bNodeTree *ntree)
+{
+	AnimData *adt = BKE_animdata_from_id(&ntree->id);
+	if (adt == NULL) {
+		return false;
+	}
+	return !BLI_listbase_is_empty(&adt->drivers);
+}
 
 static bool ntree_check_nodes_connected_dfs(bNodeTree *ntree,
                                             bNode *from,
@@ -134,6 +145,14 @@ static bool node_group_has_output(bNode *node)
 
 bool node_connected_to_output(bNodeTree *ntree, bNode *node)
 {
+	/* Special case for drivers: if node tree has any drivers we assume it is
+	 * always to be tagged for update when node changes. Otherwise we will be
+	 * doomed to do some deep and nasty deep search of indirect dependencies,
+	 * which will be too complicated without real benefit.
+	 */
+	if (ntree_has_drivers(ntree)) {
+		return true;
+	}
 	for (bNode *current_node = ntree->nodes.first;
 	     current_node != NULL;
 	     current_node = current_node->next)
@@ -144,11 +163,17 @@ bool node_connected_to_output(bNodeTree *ntree, bNode *node)
 		 * We could make check more grained here by taking which socket the node
 		 * is connected to and so eventually.
 		 */
-		if (current_node->type == NODE_GROUP &&
-		    ntree_check_nodes_connected(ntree, node, current_node) &&
-		    node_group_has_output(current_node))
-		{
-			return true;
+		if (current_node->type == NODE_GROUP) {
+			if (current_node->id != NULL &&
+			    ntree_has_drivers((bNodeTree *)current_node->id))
+			{
+				return true;
+			}
+			if (ntree_check_nodes_connected(ntree, node, current_node) &&
+			    node_group_has_output(current_node))
+			{
+				return true;
+			}
 		}
 		if (current_node->flag & NODE_DO_OUTPUT) {
 			if (ntree_check_nodes_connected(ntree, node, current_node)) {
