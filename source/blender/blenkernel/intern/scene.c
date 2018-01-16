@@ -1866,7 +1866,7 @@ void BKE_scene_update_tagged(EvaluationContext *eval_ctx, Main *bmain, Scene *sc
 	/* (re-)build dependency graph if needed */
 	for (sce_iter = scene; sce_iter; sce_iter = sce_iter->set) {
 		DAG_scene_relations_update(bmain, sce_iter);
-		/* Uncomment this to check if graph was properly tagged for update. */
+		/* Uncomment this to check if dependency graph was properly tagged for update. */
 #if 0
 #ifdef WITH_LEGACY_DEPSGRAPH
 		if (use_new_eval)
@@ -1978,7 +1978,7 @@ void BKE_scene_update_for_newframe_ex(EvaluationContext *eval_ctx, Main *bmain, 
 #ifdef WITH_LEGACY_DEPSGRAPH
 	bool use_new_eval = !DEG_depsgraph_use_legacy();
 #else
-	/* TODO(sergey): Pass to evaluation routines instead of storing layer in the graph? */
+	/* TODO(sergey): Pass to evaluation routines instead of storing layer in the dependency graph? */
 	(void) do_invisible_flush;
 #endif
 

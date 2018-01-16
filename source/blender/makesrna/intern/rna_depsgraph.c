@@ -45,18 +45,18 @@
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_debug.h"
 
-static void rna_Depsgraph_debug_relations_graphviz(Depsgraph *graph,
+static void rna_Depsgraph_debug_relations_graphviz(Depsgraph *depsgraph,
                                                    const char *filename)
 {
 	FILE *f = fopen(filename, "w");
 	if (f == NULL) {
 		return;
 	}
-	DEG_debug_relations_graphviz(graph, f, "Depsgraph");
+	DEG_debug_relations_graphviz(depsgraph, f, "Depsgraph");
 	fclose(f);
 }
 
-static void rna_Depsgraph_debug_stats_gnuplot(Depsgraph *graph,
+static void rna_Depsgraph_debug_stats_gnuplot(Depsgraph *depsgraph,
                                               const char *filename,
                                               const char *output_filename)
 {
@@ -64,19 +64,19 @@ static void rna_Depsgraph_debug_stats_gnuplot(Depsgraph *graph,
 	if (f == NULL) {
 		return;
 	}
-	DEG_debug_stats_gnuplot(graph, f, "Timing Statistics", output_filename);
+	DEG_debug_stats_gnuplot(depsgraph, f, "Timing Statistics", output_filename);
 	fclose(f);
 }
 
-static void rna_Depsgraph_debug_tag_update(Depsgraph *graph)
+static void rna_Depsgraph_debug_tag_update(Depsgraph *depsgraph)
 {
-	DEG_graph_tag_relations_update(graph);
+	DEG_graph_tag_relations_update(depsgraph);
 }
 
-static void rna_Depsgraph_debug_stats(Depsgraph *graph, char *result)
+static void rna_Depsgraph_debug_stats(Depsgraph *depsgraph, char *result)
 {
 	size_t outer, ops, rels;
-	DEG_stats_simple(graph, &outer, &ops, &rels);
+	DEG_stats_simple(depsgraph, &outer, &ops, &rels);
 	BLI_snprintf(result, STATS_MAX_SIZE,
 	            "Approx %lu Operations, %lu Relations, %lu Outer Nodes",
 	            ops, rels, outer);
