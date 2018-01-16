@@ -249,6 +249,7 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 		DRW_shgroup_uniform_buffer(grp, "planarDepth", &vedata->txl->planar_depth);
 		DRW_shgroup_uniform_buffer(grp, "hitBuffer", &vedata->txl->ssr_hit_output);
 		DRW_shgroup_uniform_buffer(grp, "pdfBuffer", &stl->g_data->ssr_pdf_output);
+		DRW_shgroup_uniform_int(grp, "neighborOffset", &effects->ssr_neighbor_ofs, 1);
 
 		DRW_shgroup_uniform_vec4(grp, "aoParameters[0]", &effects->ao_dist, 2);
 		if (effects->use_ao) {
@@ -305,6 +306,10 @@ void EEVEE_reflection_compute(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 		EEVEE_downsample_buffer(vedata, fbl->downsample_fb, txl->color_double_buffer, 9);
 
 		/* Resolve at fullres */
+		int sample = (DRW_state_is_image_render()) ? effects->taa_render_sample : effects->taa_current_sample;
+		/* Doing a neighbor shift only after a few iteration. We wait for a prime number of cycles to avoid
+		 * noise correlation. This reduces variance faster. */
+		effects->ssr_neighbor_ofs = ((sample / 5) % 8) * 4;
 		DRW_framebuffer_texture_detach(dtxl->depth);
 		DRW_framebuffer_texture_detach(txl->ssr_normal_input);
 		DRW_framebuffer_texture_detach(txl->ssr_specrough_input);

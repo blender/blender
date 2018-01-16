@@ -125,6 +125,10 @@ float min_v3(vec3 v) { return min(v.x, min(v.y, v.z)); }
 float max_v2(vec2 v) { return max(v.x, v.y); }
 float max_v3(vec3 v) { return max(v.x, max(v.y, v.z)); }
 
+float sum(vec2 v) { return dot(vec2(1.0), v); }
+float sum(vec3 v) { return dot(vec3(1.0), v); }
+float sum(vec4 v) { return dot(vec4(1.0), v); }
+
 float saturate(float a) { return clamp(a, 0.0, 1.0); }
 vec2 saturate(vec2 a) { return clamp(a, 0.0, 1.0); }
 vec3 saturate(vec3 a) { return clamp(a, 0.0, 1.0); }
