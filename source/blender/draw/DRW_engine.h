@@ -74,6 +74,7 @@ void DRW_engine_viewport_data_size_get(
 
 typedef struct DRWUpdateContext {
 	struct Main *bmain;
+	struct Depsgraph *depsgraph;
 	struct Scene *scene;
 	struct ViewLayer *view_layer;
 	struct ARegion *ar;

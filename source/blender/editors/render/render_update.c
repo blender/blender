@@ -153,6 +153,7 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, int update
 							DRW_notify_view_update(
 							        (&(DRWUpdateContext){
 							            .bmain = bmain,
+							            .depsgraph = update_ctx->depsgraph,
 							            .scene = scene,
 							            .view_layer = view_layer,
 							            .ar = ar,
