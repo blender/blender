@@ -381,12 +381,10 @@ static void eevee_view_layer_settings_create(RenderEngine *UNUSED(engine), IDPro
 
 	BKE_collection_engine_property_add_bool(props, "gtao_enable", false);
 	BKE_collection_engine_property_add_bool(props, "gtao_use_bent_normals", true);
-	BKE_collection_engine_property_add_bool(props, "gtao_denoise", true);
 	BKE_collection_engine_property_add_bool(props, "gtao_bounce", true);
 	BKE_collection_engine_property_add_float(props, "gtao_distance", 0.2f);
 	BKE_collection_engine_property_add_float(props, "gtao_factor", 1.0f);
 	BKE_collection_engine_property_add_float(props, "gtao_quality", 0.25f);
-	BKE_collection_engine_property_add_int(props, "gtao_samples", 2);
 
 	BKE_collection_engine_property_add_bool(props, "dof_enable", false);
 	BKE_collection_engine_property_add_float(props, "bokeh_max_size", 100.0f);

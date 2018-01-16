@@ -633,9 +633,7 @@ class RENDER_PT_eevee_ambient_occlusion(RenderButtonsPanel, Panel):
         layout.active = props.gtao_enable
         col = layout.column()
         col.prop(props, "gtao_use_bent_normals")
-        col.prop(props, "gtao_denoise")
         col.prop(props, "gtao_bounce")
-        col.prop(props, "gtao_samples")
         col.prop(props, "gtao_distance")
         col.prop(props, "gtao_factor")
         col.prop(props, "gtao_quality")

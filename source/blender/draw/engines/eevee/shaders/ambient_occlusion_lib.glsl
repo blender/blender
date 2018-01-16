@@ -30,87 +30,29 @@
 #ifndef UTIL_TEX
 #define UTIL_TEX
 uniform sampler2DArray utilTex;
+#define texelfetch_noise_tex(coord) texelFetch(utilTex, ivec3(ivec2(coord) % LUT_SIZE, 2.0), 0)
 #endif /* UTIL_TEX */
 
 uniform vec4 aoParameters[2];
-uniform sampler2DArray horizonBuffer;
-
-/* Cannot use textureSize(horizonBuffer) when rendering to it */
-uniform ivec2 aoHorizonTexSize;
+uniform sampler2D horizonBuffer;
 
 #define aoDistance   aoParameters[0].x
-#define aoSamples    aoParameters[0].y
+#define aoSamples    aoParameters[0].y /* UNUSED */
 #define aoFactor     aoParameters[0].z
-#define aoInvSamples aoParameters[0].w
+#define aoInvSamples aoParameters[0].w /* UNUSED */
 
 #define aoOffset     aoParameters[1].x /* UNUSED */
 #define aoBounceFac  aoParameters[1].y
 #define aoQuality    aoParameters[1].z
 #define aoSettings   aoParameters[1].w
 
+/* aoSettings flags */
 #define USE_AO            1
 #define USE_BENT_NORMAL   2
 #define USE_DENOISE       4
 
-vec2 pack_horizons(vec2 v) { return v * 0.5 + 0.5; }
-vec2 unpack_horizons(vec2 v) { return v * 2.0 - 1.0; }
-
-/* Returns the texel coordinate in horizonBuffer
- * for a given fullscreen coord */
-ivec2 get_hr_co(ivec2 fs_co)
-{
-	bvec2 quarter = notEqual(fs_co & ivec2(1), ivec2(0));
-
-	ivec2 hr_co = fs_co / 2;
-	hr_co += ivec2(quarter) * (aoHorizonTexSize / 2);
-
-	return hr_co;
-}
-
-/* Returns the texel coordinate in fullscreen (depthBuffer)
- * for a given horizonBuffer coord */
-ivec2 get_fs_co(ivec2 hr_co)
-{
-	hr_co *= 2;
-	bvec2 quarter = greaterThanEqual(hr_co, aoHorizonTexSize);
-
-	hr_co -= ivec2(quarter) * (aoHorizonTexSize - 1);
-
-	return hr_co;
-}
-
-/* Returns the phi angle in horizonBuffer
- * for a given horizonBuffer coord */
-float get_phi(ivec2 hr_co, ivec2 fs_co, float sample)
-{
-	bvec2 quarter = greaterThanEqual(hr_co, aoHorizonTexSize / 2);
-	ivec2 tex_co = ((int(aoSettings) & USE_DENOISE) != 0) ? hr_co - ivec2(quarter) * (aoHorizonTexSize / 2) : fs_co;
-	float blue_noise = texture(utilTex, vec3((vec2(tex_co) + 0.5) / LUT_SIZE, 2.0)).r;
-
-	float phi = sample * aoInvSamples;
-
-	if ((int(aoSettings) & USE_DENOISE) != 0) {
-		/* Interleaved jitter for spatial 2x2 denoising */
-		phi += 0.25 * aoInvSamples * (float(quarter.x) + 2.0 * float(quarter.y));
-		blue_noise *= 0.25;
-	}
-	/* Blue noise is scaled to cover the rest of the range. */
-	phi += aoInvSamples * blue_noise;
-	phi *= M_PI;
-
-	return phi;
-}
-
-/* Returns direction jittered offset for a given fullscreen coord */
-float get_offset(ivec2 fs_co, float sample)
-{
-	float offset = sample * aoInvSamples;
-
-	/* Interleaved jitter for spatial 2x2 denoising */
-	offset += 0.25 * dot(vec2(1.0), vec2(fs_co & 1));
-	offset += texture(utilTex, vec3((vec2(fs_co / 2) + 0.5 + 16.0) / LUT_SIZE, 2.0)).r;
-	return offset;
-}
+vec4 pack_horizons(vec4 v) { return v * 0.5 + 0.5; }
+vec4 unpack_horizons(vec4 v) { return v * 2.0 - 1.0; }
 
 /* Returns maximum screen distance an AO ray can travel for a given view depth */
 vec2 get_max_dir(float view_depth)
@@ -118,6 +60,13 @@ vec2 get_max_dir(float view_depth)
 	float homcco = ProjectionMatrix[2][3] * view_depth + ProjectionMatrix[3][3];
 	float max_dist = aoDistance / homcco;
 	return vec2(ProjectionMatrix[0][0], ProjectionMatrix[1][1]) * max_dist;
+}
+
+vec2 get_ao_dir(float jitter)
+{
+	/* Only half a turn because we integrate in slices. */
+	jitter *= M_PI;
+	return vec2(cos(jitter), sin(jitter));
 }
 
 void get_max_horizon_grouped(vec4 co1, vec4 co2, vec3 x, float lod, inout float h)
@@ -161,10 +110,8 @@ void get_max_horizon_grouped(vec4 co1, vec4 co2, vec3 x, float lod, inout float 
 	h = mix(h, max(h, s_h.w), blend.w);
 }
 
-vec2 search_horizon_sweep(float phi, vec3 pos, vec2 uvs, float jitter, vec2 max_dir)
+vec2 search_horizon_sweep(vec2 t_phi, vec3 pos, vec2 uvs, float jitter, vec2 max_dir)
 {
-	vec2 t_phi = vec2(cos(phi), sin(phi)); /* Screen space direction */
-
 	max_dir *= max_v2(abs(t_phi));
 
 	/* Convert to pixel space. */
@@ -214,11 +161,8 @@ vec2 search_horizon_sweep(float phi, vec3 pos, vec2 uvs, float jitter, vec2 max_
 	return h;
 }
 
-void integrate_slice(vec3 normal, float phi, vec2 horizons, inout float visibility, inout vec3 bent_normal)
+void integrate_slice(vec3 normal, vec2 t_phi, vec2 horizons, inout float visibility, inout vec3 bent_normal)
 {
-	/* TODO OPTI Could be precomputed. */
-	vec2 t_phi = vec2(cos(phi), sin(phi)); /* Screen space direction */
-
 	/* Projecting Normal to Plane P defined by t_phi and omega_o */
 	vec3 np = vec3(t_phi.y, -t_phi.x, 0.0); /* Normal vector to Integration plane */
 	vec3 t = vec3(-t_phi, 0.0);
@@ -251,71 +195,43 @@ void integrate_slice(vec3 normal, float phi, vec2 horizons, inout float visibili
 	bent_normal += vec3(sin(b_angle) * -t_phi, cos(b_angle) * 0.5);
 }
 
-void denoise_ao(vec3 normal, float frag_depth, inout float visibility, inout vec3 bent_normal)
+void gtao_deferred(vec3 normal, vec3 position, vec4 noise, float frag_depth, out float visibility, out vec3 bent_normal)
 {
-	vec2 d_sign = vec2(ivec2(gl_FragCoord.xy) & 1) - 0.5;
+	/* Fetch early, hide latency! */
+	vec4 horizons = texelFetch(horizonBuffer, ivec2(gl_FragCoord.xy), 0);
 
-	if ((int(aoSettings) & USE_DENOISE) == 0) {
-		d_sign *= 0.0;
-	}
-
-	/* 2x2 Bilateral Filter using derivatives. */
-	vec2 n_step = step(-0.2, -abs(vec2(length(dFdx(normal)), length(dFdy(normal)))));
-	vec2 z_step = step(-0.1, -abs(vec2(dFdx(frag_depth), dFdy(frag_depth))));
-
-	visibility -= dFdx(visibility) * d_sign.x * z_step.x * n_step.x;
-	visibility -= dFdy(visibility) * d_sign.y * z_step.y * n_step.y;
-
-	bent_normal -= dFdx(bent_normal) * d_sign.x * z_step.x * n_step.x;
-	bent_normal -= dFdy(bent_normal) * d_sign.y * z_step.y * n_step.y;
-}
-
-void gtao_deferred(vec3 normal, vec3 position, float frag_depth, out float visibility, out vec3 bent_normal)
-{
+	vec4 dirs;
+	dirs.xy = get_ao_dir(noise.x * 0.5);
+	dirs.zw = get_ao_dir(noise.x * 0.5 + 0.5);
 	vec2 uvs = get_uvs_from_view(position);
-
-	vec4 texel_size = vec4(-1.0, -1.0, 1.0, 1.0) / vec2(textureSize(depthBuffer, 0)).xyxy;
-
-	ivec2 fs_co = ivec2(gl_FragCoord.xy);
-	ivec2 hr_co = get_hr_co(fs_co);
 
 	bent_normal = vec3(0.0);
 	visibility = 0.0;
 
-	for (float i = 0.0; i < MAX_PHI_STEP; i++) {
-		if (i >= aoSamples) break;
+	horizons = unpack_horizons(horizons);
 
-		vec2 horiz = unpack_horizons(texelFetch(horizonBuffer, ivec3(hr_co, int(i)), 0).rg);
-		float phi = get_phi(hr_co, fs_co, i);
+	integrate_slice(normal, dirs.xy, horizons.xy, visibility, bent_normal);
+	integrate_slice(normal, dirs.zw, horizons.zw, visibility, bent_normal);
 
-		integrate_slice(normal, phi, horiz.xy, visibility, bent_normal);
-	}
+	visibility *= 0.5; /* We integrated 2 slices. */
 
-	visibility *= aoInvSamples;
 	bent_normal = normalize(bent_normal);
 }
 
-void gtao(vec3 normal, vec3 position, vec2 noise, out float visibility, out vec3 bent_normal)
+void gtao(vec3 normal, vec3 position, vec4 noise, out float visibility, out vec3 bent_normal)
 {
 	vec2 uvs = get_uvs_from_view(position);
-
-	float homcco = ProjectionMatrix[2][3] * position.z + ProjectionMatrix[3][3];
-	float max_dist = aoDistance / homcco; /* Search distance */
-	vec2 max_dir = max_dist * vec2(ProjectionMatrix[0][0], ProjectionMatrix[1][1]);
+	vec2 max_dir = get_max_dir(position.z);
+	vec2 dir = get_ao_dir(noise.x);
 
 	bent_normal = vec3(0.0);
 	visibility = 0.0;
 
-	for (float i = 0.0; i < MAX_PHI_STEP; i++) {
-		if (i >= aoSamples) break;
+	/* Only trace in 2 directions. May lead to a darker result but since it's mostly for
+	 * alpha blended objects that will have overdraw, we limit the performance impact. */
+	vec2 horizons = search_horizon_sweep(dir, position, uvs, noise.y, max_dir);
+	integrate_slice(normal, dir, horizons, visibility, bent_normal);
 
-		float phi = M_PI * (i + noise.x) * aoInvSamples;
-		vec2 horizons = search_horizon_sweep(phi, position, uvs, noise.g, max_dir);
-
-		integrate_slice(normal, phi, horizons, visibility, bent_normal);
-	}
-
-	visibility *= aoInvSamples;
 	bent_normal = normalize(bent_normal);
 }
 
@@ -337,7 +253,7 @@ float gtao_multibounce(float visibility, vec3 albedo)
 }
 
 /* Use the right occlusion  */
-float occlusion_compute(vec3 N, vec3 vpos, float user_occlusion, vec2 randuv, out vec3 bent_normal)
+float occlusion_compute(vec3 N, vec3 vpos, float user_occlusion, vec4 rand, out vec3 bent_normal)
 {
 #ifndef USE_REFRACTION
 	if ((int(aoSettings) & USE_AO) > 0) {
@@ -345,11 +261,10 @@ float occlusion_compute(vec3 N, vec3 vpos, float user_occlusion, vec2 randuv, ou
 		vec3 vnor = mat3(ViewMatrix) * N;
 
 #ifdef ENABLE_DEFERED_AO
-		gtao_deferred(vnor, vpos, gl_FragCoord.z, visibility, bent_normal);
+		gtao_deferred(vnor, vpos, rand, gl_FragCoord.z, visibility, bent_normal);
 #else
-		gtao(vnor, vpos, randuv, visibility, bent_normal);
+		gtao(vnor, vpos, rand, visibility, bent_normal);
 #endif
-		denoise_ao(vnor, gl_FragCoord.z, visibility, bent_normal);
 
 		/* Prevent some problems down the road. */
 		visibility = max(1e-3, visibility);

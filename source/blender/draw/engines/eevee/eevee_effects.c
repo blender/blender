@@ -456,6 +456,9 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 			if (stl->g_data->gtao_horizons_debug) DRW_transform_to_display(stl->g_data->gtao_horizons_debug);
 			break;
 		case 7:
+			if (txl->gtao_horizons) DRW_transform_to_display(txl->gtao_horizons);
+			break;
+		case 8:
 			if (txl->sss_data) DRW_transform_to_display(txl->sss_data);
 			break;
 		default:

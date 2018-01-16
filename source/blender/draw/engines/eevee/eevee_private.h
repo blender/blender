@@ -521,7 +521,7 @@ typedef struct EEVEE_EffectsInfo {
 
 	/* Ambient Occlusion */
 	bool use_ao, use_bent_normals;
-	float ao_dist, ao_samples, ao_factor, ao_samples_inv;
+	float ao_dist, pad1, ao_factor, pad2;
 	float ao_offset, ao_bounce_fac, ao_quality, ao_settings;
 	float ao_sample_nbr;
 	int ao_texsize[2], hori_tex_layers;

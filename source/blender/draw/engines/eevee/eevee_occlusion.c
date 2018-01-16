@@ -72,7 +72,9 @@ int EEVEE_occlusion_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	ViewLayer *view_layer = draw_ctx->view_layer;
-	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
+	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer,
+	                                                        COLLECTION_MODE_NONE,
+	                                                        RE_engine_id_BLENDER_EEVEE);
 
 	if (BKE_collection_engine_property_value_get_bool(props, "gtao_enable")) {
 		const float *viewport_size = DRW_viewport_size_get();
@@ -85,8 +87,6 @@ int EEVEE_occlusion_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata
 		effects->ao_dist = BKE_collection_engine_property_value_get_float(props, "gtao_distance");
 		effects->ao_factor = BKE_collection_engine_property_value_get_float(props, "gtao_factor");
 		effects->ao_quality = 1.0f - BKE_collection_engine_property_value_get_float(props, "gtao_quality");
-		effects->ao_samples = BKE_collection_engine_property_value_get_int(props, "gtao_samples");
-		effects->ao_samples_inv = 1.0f / effects->ao_samples;
 
 		effects->ao_settings = 1.0; /* USE_AO */
 		if (BKE_collection_engine_property_value_get_bool(props, "gtao_use_bent_normals")) {
@@ -101,29 +101,10 @@ int EEVEE_occlusion_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata
 		effects->ao_texsize[0] = ((int)viewport_size[0]);
 		effects->ao_texsize[1] = ((int)viewport_size[1]);
 
-		/* Round up to multiple of 2 */
-		if ((effects->ao_texsize[0] & 0x1) != 0) {
-			effects->ao_texsize[0] += 1;
-		}
-		if ((effects->ao_texsize[1] & 0x1) != 0) {
-			effects->ao_texsize[1] += 1;
-		}
-
-		CLAMP(effects->ao_samples, 1, 32);
-
-		if (effects->hori_tex_layers != effects->ao_samples) {
-			DRW_TEXTURE_FREE_SAFE(txl->gtao_horizons);
-		}
-
-		if (txl->gtao_horizons == NULL) {
-			effects->hori_tex_layers = effects->ao_samples;
-			txl->gtao_horizons = DRW_texture_create_2D_array((int)viewport_size[0], (int)viewport_size[1], effects->hori_tex_layers, DRW_TEX_RG_8, 0, NULL);
-		}
-
-		DRWFboTexture tex = {&txl->gtao_horizons, DRW_TEX_RG_8, 0};
+		DRWFboTexture tex = {&txl->gtao_horizons, DRW_TEX_RGBA_8, 0};
 
 		DRW_framebuffer_init(&fbl->gtao_fb, &draw_engine_eevee_type,
-		                    effects->ao_texsize[0], effects->ao_texsize[1],
+		                    (int)viewport_size[0], (int)viewport_size[1],
 		                    &tex, 1);
 
 		if (G.debug_value == 6) {
@@ -174,8 +155,6 @@ void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data 
 		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
 		DRW_shgroup_uniform_vec2(grp, "mipRatio[0]", (float *)stl->g_data->mip_ratio, 10);
 		DRW_shgroup_uniform_vec4(grp, "aoParameters[0]", &stl->effects->ao_dist, 2);
-		DRW_shgroup_uniform_float(grp, "sampleNbr", &stl->effects->ao_sample_nbr, 1);
-		DRW_shgroup_uniform_ivec2(grp, "aoHorizonTexSize", (int *)stl->effects->ao_texsize, 1);
 		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
 		DRW_shgroup_call_add(grp, quad, NULL);
 
@@ -187,8 +166,6 @@ void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data 
 		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
 		DRW_shgroup_uniform_vec2(grp, "mipRatio[0]", (float *)stl->g_data->mip_ratio, 10);
 		DRW_shgroup_uniform_vec4(grp, "aoParameters[0]", &stl->effects->ao_dist, 2);
-		DRW_shgroup_uniform_float(grp, "sampleNbr", &stl->effects->ao_sample_nbr, 1);
-		DRW_shgroup_uniform_ivec2(grp, "aoHorizonTexSize", (int *)stl->effects->ao_texsize, 1);
 		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
 		DRW_shgroup_call_add(grp, quad, NULL);
 
@@ -202,7 +179,6 @@ void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data 
 			DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
 			DRW_shgroup_uniform_vec2(grp, "mipRatio[0]", (float *)stl->g_data->mip_ratio, 10);
 			DRW_shgroup_uniform_vec4(grp, "aoParameters[0]", &stl->effects->ao_dist, 2);
-			DRW_shgroup_uniform_ivec2(grp, "aoHorizonTexSize", (int *)stl->effects->ao_texsize, 1);
 			DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
 			DRW_shgroup_call_add(grp, quad, NULL);
 		}
@@ -213,7 +189,6 @@ void EEVEE_occlusion_compute(
         EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata, struct GPUTexture *depth_src, int layer)
 {
 	EEVEE_PassList *psl = vedata->psl;
-	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_EffectsInfo *effects = stl->effects;
@@ -223,20 +198,13 @@ void EEVEE_occlusion_compute(
 		effects->ao_src_depth = depth_src;
 		effects->ao_depth_layer = layer;
 
-		for (effects->ao_sample_nbr = 0.0;
-		     effects->ao_sample_nbr < effects->ao_samples;
-		     ++effects->ao_sample_nbr)
-		{
-			DRW_framebuffer_texture_detach(txl->gtao_horizons);
-			DRW_framebuffer_texture_layer_attach(fbl->gtao_fb, txl->gtao_horizons, 0, (int)effects->ao_sample_nbr, 0);
-			DRW_framebuffer_bind(fbl->gtao_fb);
+		DRW_framebuffer_bind(fbl->gtao_fb);
 
-			if (layer >= 0) {
-				DRW_draw_pass(psl->ao_horizon_search_layer);
-			}
-			else {
-				DRW_draw_pass(psl->ao_horizon_search);
-			}
+		if (layer >= 0) {
+			DRW_draw_pass(psl->ao_horizon_search_layer);
+		}
+		else {
+			DRW_draw_pass(psl->ao_horizon_search);
 		}
 
 		/* Restore */

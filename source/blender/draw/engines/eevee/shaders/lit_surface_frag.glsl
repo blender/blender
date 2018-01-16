@@ -396,7 +396,7 @@ void CLOSURE_NAME(
 	/* ---------------------------- */
 #if defined(CLOSURE_GLOSSY) || defined(CLOSURE_DIFFUSE)
 	vec3 bent_normal;
-	float final_ao = occlusion_compute(N, viewPosition, ao, rand.zw, bent_normal);
+	float final_ao = occlusion_compute(N, viewPosition, ao, rand, bent_normal);
 #endif
 
 
