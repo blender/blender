@@ -308,6 +308,7 @@ void MANIPULATORGROUP_OT_manipulator_select(wmOperatorType *ot)
 
 typedef struct ManipulatorTweakData {
 	wmManipulatorMap *mmap;
+	wmManipulatorGroup *mgroup;
 	wmManipulator *mpr_modal;
 
 	int init_event; /* initial event type */
@@ -375,7 +376,12 @@ static void manipulator_tweak_finish(bContext *C, wmOperator *op, const bool can
 		mtweak->mpr_modal->type->exit(C, mtweak->mpr_modal, cancel);
 	}
 	if (clear_modal) {
-		wm_manipulatormap_modal_set(mtweak->mmap, C, mtweak->mpr_modal, NULL, false);
+		/* The manipulator may have been removed. */
+		if ((BLI_findindex(&mtweak->mmap->groups, mtweak->mgroup) != -1) &&
+		    (BLI_findindex(&mtweak->mgroup->manipulators, mtweak->mpr_modal) != -1))
+		{
+			wm_manipulatormap_modal_set(mtweak->mmap, C, mtweak->mpr_modal, NULL, false);
+		}
 	}
 	MEM_freeN(mtweak);
 }
@@ -537,6 +543,7 @@ static int manipulator_tweak_invoke(bContext *C, wmOperator *op, const wmEvent *
 
 	mtweak->init_event = WM_userdef_event_type_from_keymap_type(event->type);
 	mtweak->mpr_modal = mmap->mmap_context.highlight;
+	mtweak->mgroup = mtweak->mpr_modal->parent_mgroup;
 	mtweak->mmap = mmap;
 	mtweak->flag = 0;
 
