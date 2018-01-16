@@ -223,6 +223,9 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 		DRW_shgroup_uniform_float(grp, "maxRoughness", &effects->ssr_max_roughness, 1);
 		DRW_shgroup_uniform_buffer(grp, "planarDepth", &vedata->txl->planar_depth);
 		DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
+		if (!effects->reflection_trace_full) {
+			DRW_shgroup_uniform_ivec2(grp, "halfresOffset", effects->ssr_halfres_ofs, 1);
+		}
 		DRW_shgroup_call_add(grp, quad, NULL);
 
 		psl->ssr_resolve = DRW_pass_create("SSR Resolve", DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE);
@@ -310,6 +313,24 @@ void EEVEE_reflection_compute(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 		/* Doing a neighbor shift only after a few iteration. We wait for a prime number of cycles to avoid
 		 * noise correlation. This reduces variance faster. */
 		effects->ssr_neighbor_ofs = ((sample / 5) % 8) * 4;
+		switch ((sample / 11) % 4) {
+			case 0:
+				effects->ssr_halfres_ofs[0] = 0;
+				effects->ssr_halfres_ofs[1] = 0;
+				break;
+			case 1:
+				effects->ssr_halfres_ofs[0] = 0;
+				effects->ssr_halfres_ofs[1] = 1;
+				break;
+			case 2:
+				effects->ssr_halfres_ofs[0] = 1;
+				effects->ssr_halfres_ofs[1] = 0;
+				break;
+			case 4:
+				effects->ssr_halfres_ofs[0] = 1;
+				effects->ssr_halfres_ofs[1] = 1;
+				break;
+		}
 		DRW_framebuffer_texture_detach(dtxl->depth);
 		DRW_framebuffer_texture_detach(txl->ssr_normal_input);
 		DRW_framebuffer_texture_detach(txl->ssr_specrough_input);

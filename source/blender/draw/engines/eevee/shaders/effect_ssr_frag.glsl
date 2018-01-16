@@ -12,6 +12,7 @@ uniform sampler2DArray utilTex;
 
 uniform float fireflyFactor;
 uniform float maxRoughness;
+uniform ivec2 halfresOffset;
 
 ivec2 encode_hit_data(vec2 hit_pos, bool has_hit, bool is_planar)
 {
@@ -97,7 +98,7 @@ void main()
 	ivec2 fullres_texel = ivec2(gl_FragCoord.xy);
 	ivec2 halfres_texel = fullres_texel;
 #else
-	ivec2 fullres_texel = ivec2(gl_FragCoord.xy) * 2;
+	ivec2 fullres_texel = ivec2(gl_FragCoord.xy) * 2 + halfresOffset;
 	ivec2 halfres_texel = ivec2(gl_FragCoord.xy);
 #endif
 
@@ -107,10 +108,7 @@ void main()
 	if (depth == 1.0)
 		discard;
 
-	vec2 uvs = gl_FragCoord.xy / vec2(textureSize(depthBuffer, 0));
-#ifndef FULLRES
-	uvs *= 2.0;
-#endif
+	vec2 uvs = vec2(fullres_texel) / vec2(textureSize(depthBuffer, 0));
 
 	/* Using view space */
 	vec3 viewPosition = get_view_space_from_depth(uvs, depth);

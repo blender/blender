@@ -498,6 +498,7 @@ typedef struct EEVEE_EffectsInfo {
 	bool reflection_trace_full;
 	bool ssr_use_normalization;
 	int ssr_neighbor_ofs;
+	int ssr_halfres_ofs[2];
 	float ssr_firefly_fac;
 	float ssr_border_fac;
 	float ssr_max_roughness;
