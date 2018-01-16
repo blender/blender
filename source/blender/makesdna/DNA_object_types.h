@@ -629,11 +629,6 @@ enum {
 	OB_BODY_TYPE_CHARACTER      = 8,
 };
 
-/* ob->deg_update_flag */
-enum {
-	DEG_RUNTIME_DATA_UPDATE     = 1 << 0,
-};
-
 /* ob->scavisflag */
 enum {
 	OB_VIS_SENS     = 1 << 0,
