@@ -2335,17 +2335,160 @@ void OBJECT_OT_make_local(wmOperatorType *ot)
 	ot->prop = RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
 }
 
-static int make_override_exec(bContext *C, wmOperator *UNUSED(op))
+
+static void make_override_tag_object(Object *obact, Object *ob)
+{
+	if (ob == obact) {
+		return;
+	}
+
+	if (!ID_IS_LINKED(ob)) {
+		return;
+	}
+
+	/* Note: all this is very case-by-case bad handling, ultimately we'll want a real full 'automatic', generic
+	 * handling of all this, will probably require adding some override-aware stuff to library_query code... */
+
+	if (obact->type == OB_ARMATURE && ob->modifiers.first != NULL) {
+		for (ModifierData *md = ob->modifiers.first; md != NULL; md = md->next) {
+			if (md->type == eModifierType_Armature) {
+				ArmatureModifierData *amd = (ArmatureModifierData *)md;
+				if (amd->object == obact) {
+					ob->id.tag |= LIB_TAG_DOIT;
+					break;
+				}
+			}
+		}
+	}
+	else if (ob->parent == obact) {
+		ob->id.tag |= LIB_TAG_DOIT;
+	}
+
+	if (ob->id.tag & LIB_TAG_DOIT) {
+		printf("Indirectly overriding %s for %s\n", ob->id.name, obact->id.name);
+	}
+}
+
+/* Set the object to override. */
+static int make_override_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *obact = ED_object_active_context(C);
+
+	/* Sanity checks. */
+	if (!scene || ID_IS_LINKED(scene) || !obact) {
+		return OPERATOR_CANCELLED;
+	}
+
+	/* Get object to work on - use a menu if we need to... */
+	if (!ID_IS_LINKED(obact) && obact->dup_group != NULL && ID_IS_LINKED(obact->dup_group)) {
+		/* Gives menu with list of objects in group. */
+		WM_enum_search_invoke(C, op, event);
+		return OPERATOR_CANCELLED;
+	}
+	else if (ID_IS_LINKED(obact)) {
+		uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("OK?"), ICON_QUESTION);
+		uiLayout *layout = UI_popup_menu_layout(pup);
+
+		/* Create operator menu item with relevant properties filled in. */
+		PointerRNA opptr_dummy;
+		uiItemFullO_ptr(layout, op->type, op->type->name, ICON_NONE, NULL,
+		                WM_OP_EXEC_REGION_WIN, 0, &opptr_dummy);
+
+		/* Present the menu and be done... */
+		UI_popup_menu_end(C, pup);
+
+		/* This invoke just calls another instance of this operator... */
+		return OPERATOR_INTERFACE;
+	}
+	else {
+		/* Error.. cannot continue. */
+		BKE_report(op->reports, RPT_ERROR, "Can only make static override for a referenced object or group");
+		return OPERATOR_CANCELLED;
+	}
+
+}
+
+static int make_override_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	Object *locobj, *refobj = CTX_data_active_object(C);
+	Object *obact = CTX_data_active_object(C);
 
-	locobj = (Object *)BKE_override_static_create_from_id(bmain, &refobj->id);
-	UNUSED_VARS(locobj);
+	bool success = false;
+
+	if (!ID_IS_LINKED(obact) && obact->dup_group != NULL && ID_IS_LINKED(obact->dup_group)) {
+#if 0  /* Not working yet! */
+		Base *base = BLI_findlink(&obact->dup_group->view_layer->object_bases, RNA_enum_get(op->ptr, "object"));
+		Object *obgroup = obact;
+		obact = base->object;
+
+		/* First, we make a static override of the linked group itself. */
+		obgroup->dup_group->id.tag |= LIB_TAG_DOIT;
+
+		/* Then, we tag our 'main' object and its detected dependencies to be also overridden. */
+		obact->id.tag |= LIB_TAG_DOIT;
+
+		FOREACH_GROUP_OBJECT(obgroup->dup_group, ob)
+		{
+			make_override_tag_object(obact, ob);
+		}
+		FOREACH_GROUP_OBJECT_END;
+
+		success = BKE_override_static_create_from_tag(bmain);
+
+		/* Intantiate our 'main' newly overridden object in scene, if not yet done. */
+		Scene *scene = CTX_data_scene(C);
+		ViewLayer *view_layer = CTX_data_view_layer(C);
+		Object *new_obact = (Object *)obact->id.newid;
+		if (new_obact != NULL && (base = BKE_view_layer_base_find(view_layer, new_obact)) == NULL) {
+			BKE_collection_object_add_from(scene, obact, new_obact);
+			base = BKE_view_layer_base_find(view_layer, new_obact);
+			BKE_view_layer_base_select(view_layer, base);
+		}
+
+		/* Parent the group instantiating object to the new overridden one, or vice-versa, if possible. */
+		if (obgroup->parent == NULL) {
+			obgroup->parent = new_obact;
+		}
+		else if (new_obact->parent == NULL) {
+			new_obact->parent = obgroup;
+		}
+
+		/* Also, we'd likely want to lock by default things like transformations of implicitly overriden objects? */
+
+		/* Cleanup. */
+		BKE_main_id_clear_newpoins(bmain);
+		BKE_main_id_tag_listbase(&bmain->object, LIB_TAG_DOIT, false);
+#else
+		UNUSED_VARS(op);
+#endif
+	}
+	/* Else, poll func ensures us that ID_IS_LINKED(obact) is true. */
+	else if (obact->type == OB_ARMATURE) {
+		BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+
+		obact->id.tag |= LIB_TAG_DOIT;
+
+		for (Object *ob = bmain->object.first; ob != NULL; ob = ob->id.next) {
+			make_override_tag_object(obact, ob);
+		}
+
+		success = BKE_override_static_create_from_tag(bmain);
+
+		/* Also, we'd likely want to lock by default things like transformations of implicitly overriden objects? */
+
+		/* Cleanup. */
+		BKE_main_id_clear_newpoins(bmain);
+		BKE_main_id_tag_listbase(&bmain->object, LIB_TAG_DOIT, false);
+	}
+	/* TODO: probably more cases where we want ot do automated smart things in the future! */
+	else {
+		success = (BKE_override_static_create_from_id(bmain, &obact->id) != NULL);
+	}
 
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 
-	return OPERATOR_FINISHED;
+	return success ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 static int make_override_poll(bContext *C)
@@ -2353,7 +2496,9 @@ static int make_override_poll(bContext *C)
 	Object *obact = CTX_data_active_object(C);
 
 	/* Object must be directly linked to be overridable. */
-	return (ED_operator_objectmode(C) && obact && obact->id.lib != NULL && obact->id.tag & LIB_TAG_EXTERN);
+	return (ED_operator_objectmode(C) && obact != NULL &&
+	        ((ID_IS_LINKED(obact) && obact->id.tag & LIB_TAG_EXTERN) ||
+	         (!ID_IS_LINKED(obact) && obact->dup_group != NULL && ID_IS_LINKED(obact->dup_group))));
 }
 
 void OBJECT_OT_make_override(wmOperatorType *ot)
@@ -2364,6 +2509,7 @@ void OBJECT_OT_make_override(wmOperatorType *ot)
 	ot->idname = "OBJECT_OT_make_override";
 
 	/* api callbacks */
+	ot->invoke = make_override_invoke;
 	ot->exec = make_override_exec;
 	ot->poll = make_override_poll;
 
@@ -2371,6 +2517,12 @@ void OBJECT_OT_make_override(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
+	PropertyRNA *prop;
+	prop = RNA_def_enum(ot->srna, "object", DummyRNA_DEFAULT_items, 0, "Proxy Object",
+	                    "Name of lib-linked/grouped object to make a proxy for");
+	RNA_def_enum_funcs(prop, proxy_group_object_itemf);
+	RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
+	ot->prop = prop;
 }
 
 enum {
