@@ -781,7 +781,7 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 				 */
 				if (mesh_evaluated != NULL) {
 					if (object->data == mesh_evaluated) {
-						object->data = mesh_evaluated->id.newid;
+						object->data = mesh_evaluated->id.orig_id;
 					}
 				}
 				/* Make a backup of base flags. */
@@ -817,7 +817,7 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 				 * pointers are left behind.
 				 */
 				mesh_evaluated->edit_btmesh =
-				        ((Mesh *)mesh_evaluated->id.newid)->edit_btmesh;
+				        ((Mesh *)mesh_evaluated->id.orig_id)->edit_btmesh;
 			}
 		}
 		if (base_collection_properties != NULL) {
@@ -921,8 +921,7 @@ bool deg_validate_copy_on_write_datablock(ID *id_cow)
 void deg_tag_copy_on_write_id(ID *id_cow, const ID *id_orig)
 {
 	id_cow->tag |= LIB_TAG_COPY_ON_WRITE;
-	/* TODO(sergey): Is it safe to re-use newid for original ID link? */
-	id_cow->newid = (ID *)id_orig;
+	id_cow->orig_id = (ID *)id_orig;
 }
 
 bool deg_copy_on_write_is_expanded(const ID *id_cow)

@@ -216,7 +216,11 @@ typedef struct ID {
 	IDProperty *properties;
 
 	IDOverrideStatic *override_static;  /* Reference linked ID which this one overrides. */
-	void *pad1;
+
+	/* Only set for datablocks which are coming from copy-on-write, points to
+	 * the original version of it.
+	 */
+	void *orig_id;
 
 	void *py_instance;
 } ID;

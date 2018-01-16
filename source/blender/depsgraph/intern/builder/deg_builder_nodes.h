@@ -102,7 +102,7 @@ struct DepsgraphNodeBuilder {
 	template<typename T>
 	T *get_orig_datablock(const T *cow) const {
 		if (DEG_depsgraph_use_copy_on_write()) {
-			return (T *)cow->id.newid;
+			return (T *)cow->id.orig_id;
 		}
 		else {
 			return (T *)cow;
