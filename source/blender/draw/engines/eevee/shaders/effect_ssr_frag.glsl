@@ -97,9 +97,14 @@ void main()
 
 	float depth = texelFetch(depthBuffer, fullres_texel, 0).r;
 
+	/* Default: not hits. */
+	hitData = encode_hit_data(vec2(0.5), false, false);
+	pdfData = 0.0;
+
 	/* Early out */
+	/* We can't do discard because we don't clear the render target. */
 	if (depth == 1.0)
-		discard;
+		return;
 
 	vec2 uvs = vec2(fullres_texel) / vec2(textureSize(depthBuffer, 0));
 
@@ -113,17 +118,15 @@ void main()
 
 	/* Early out */
 	if (dot(speccol_roughness.rgb, vec3(1.0)) == 0.0)
-		discard;
+		return;
 
 	float roughness = speccol_roughness.a;
 	float roughnessSquared = max(1e-3, roughness * roughness);
 	float a2 = roughnessSquared * roughnessSquared;
 
-	if (roughness > maxRoughness + 0.2) {
-		hitData = encode_hit_data(vec2(0.5), false, false);
-		pdfData = 0.0;
+	/* Early out */
+	if (roughness > maxRoughness + 0.2)
 		return;
-	}
 
 	vec4 rand = texelFetch(utilTex, ivec3(halfres_texel % LUT_SIZE, 2), 0);
 
