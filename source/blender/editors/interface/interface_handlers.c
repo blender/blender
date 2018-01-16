@@ -2278,7 +2278,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 				char buf_copy[UI_MAX_DRAW_STR];
 
 				if (array_length == 4) {
-					 values[3] = RNA_property_float_get_index(&but->rnapoin, but->rnaprop, 3);
+					values[3] = RNA_property_float_get_index(&but->rnapoin, but->rnaprop, 3);
 				}
 				else {
 					values[3] = 0.0f;
@@ -5980,6 +5980,7 @@ static int ui_do_but_COLORBAND(
 				}
 		
 				data->dragcbd = coba->data + coba->cur;
+				data->dragfstart = data->dragcbd->pos;
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 			}
 
@@ -5996,7 +5997,15 @@ static int ui_do_but_COLORBAND(
 		else if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
-		
+		else if (ELEM(event->type, ESCKEY, RIGHTMOUSE)) {
+			if (event->val == KM_PRESS) {
+				data->dragcbd->pos = data->dragfstart;
+				BKE_colorband_update_sort(data->coba);
+				data->cancel = true;
+				data->escapecancel = true;
+				button_activate_state(C, but, BUTTON_STATE_EXIT);
+			}
+		}
 		return WM_UI_HANDLER_BREAK;
 	}
 
@@ -6005,8 +6014,8 @@ static int ui_do_but_COLORBAND(
 
 static bool ui_numedit_but_CURVE(
         uiBlock *block, uiBut *but, uiHandleButtonData *data,
-                                 int evtx, int evty,
-                                 bool snap, const bool shift)
+        int evtx, int evty,
+        bool snap, const bool shift)
 {
 	CurveMapping *cumap = (CurveMapping *)but->poin;
 	CurveMap *cuma = cumap->cm + cumap->cur;

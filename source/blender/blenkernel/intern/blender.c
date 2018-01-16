@@ -267,8 +267,8 @@ void BKE_blender_userdef_app_template_data_swap(UserDef *userdef_a, UserDef *use
 	const ty f = flags; \
 	const ty a = userdef_a->id; \
 	const ty b = userdef_b->id; \
-	 userdef_a->id = (userdef_a->id & ~f) | (b & f); \
-	 userdef_b->id = (userdef_b->id & ~f) | (a & f); \
+	userdef_a->id = (userdef_a->id & ~f) | (b & f); \
+	userdef_b->id = (userdef_b->id & ~f) | (a & f); \
 } ((void)0)
 
 

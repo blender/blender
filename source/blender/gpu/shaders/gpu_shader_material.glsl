@@ -1004,8 +1004,8 @@ void texco_orco(vec3 attorco, out vec3 orco)
 
 void texco_uv(vec2 attuv, out vec3 uv)
 {
-	/* disabled for now, works together with leaving out mtex_2d_mapping
-	   uv = vec3(attuv * 2.0 - vec2(1.0), 0.0); */
+	/* disabled for now, works together with leaving out mtex_2d_mapping */
+	// uv = vec3(attuv*2.0 - vec2(1.0, 1.0), 0.0); */
 	uv = vec3(attuv, 0.0);
 }
 

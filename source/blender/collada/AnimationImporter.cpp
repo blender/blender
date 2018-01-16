@@ -816,10 +816,11 @@ void AnimationImporter::apply_matrix_curves(Object *ob, std::vector<FCurve *>& a
 		float rot[4], loc[3], scale[3];
 
 		mat4_to_quat(rot, mat);
-		/*for ( int i = 0 ; i < 4  ;  i ++ )
-		   {
-		   rot[i] = RAD2DEGF(rot[i]);
-		   }*/
+#if 0
+		for (int i = 0 ; i < 4;  i++) {
+			rot[i] = RAD2DEGF(rot[i]);
+		}
+#endif
 		copy_v3_v3(loc, mat[3]);
 		mat4_to_size(scale, mat);
 

@@ -64,7 +64,7 @@ typedef enum ChunkExecutionState {
  */
 class ExecutionGroup {
 public:
-	 typedef std::vector<NodeOperation*> Operations;
+	typedef std::vector<NodeOperation*> Operations;
 	
 private:
 	// fields

@@ -514,7 +514,7 @@ int                    BKE_node_clipboard_get_type(void);
 
 /* Node Instance Hash */
 typedef struct bNodeInstanceHash {
-	 GHash *ghash;	/* XXX should be made a direct member, GHash allocation needs to support it */
+	GHash *ghash;	/* XXX should be made a direct member, GHash allocation needs to support it */
 } bNodeInstanceHash;
 
 typedef void (*bNodeInstanceValueFP)(void *value);

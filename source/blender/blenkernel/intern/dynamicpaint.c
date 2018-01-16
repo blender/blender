@@ -3051,7 +3051,7 @@ int dynamicPaint_createUVSurface(Scene *scene, DynamicPaintSurface *surface, flo
 				if (tempPoints[index].tri_index != -1) {
 					memcpy(&f_data->uv_p[cursor], &tempPoints[index], sizeof(PaintUVPoint));
 					memcpy(&f_data->barycentricWeights[cursor * aa_samples], &tempWeights[index * aa_samples],
-						   sizeof(*tempWeights) * aa_samples);
+					       sizeof(*tempWeights) * aa_samples);
 					cursor++;
 				}
 			}
