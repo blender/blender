@@ -2,10 +2,9 @@
 
 #define BTDF_BIAS 0.85
 
-vec4 screen_space_refraction(vec3 viewPosition, vec3 N, vec3 V, float ior, float roughnessSquared, vec3 rand)
+vec4 screen_space_refraction(vec3 viewPosition, vec3 N, vec3 V, float ior, float roughnessSquared, vec4 rand)
 {
 	float a2 = max(5e-6, roughnessSquared * roughnessSquared);
-	float jitter = rand.x;
 
 	/* Importance sampling bias */
 	rand.x = mix(rand.x, 0.0, BTDF_BIAS);
@@ -13,12 +12,12 @@ vec4 screen_space_refraction(vec3 viewPosition, vec3 N, vec3 V, float ior, float
 	vec3 T, B;
 	float NH;
 	make_orthonormal_basis(N, T, B);
-	vec3 H = sample_ggx(rand, a2, N, T, B, NH); /* Microfacet normal */
+	vec3 H = sample_ggx(rand.xzw, a2, N, T, B, NH); /* Microfacet normal */
 	float pdf = pdf_ggx_reflect(NH, a2);
 
 	/* If ray is bad (i.e. going below the plane) regenerate. */
 	if (F_eta(ior, dot(H, V)) < 1.0) {
-		H = sample_ggx(rand * vec3(1.0, -1.0, -1.0), a2, N, T, B, NH); /* Microfacet normal */
+		H = sample_ggx(rand.xzw * vec3(1.0, -1.0, -1.0), a2, N, T, B, NH); /* Microfacet normal */
 		pdf = pdf_ggx_reflect(NH, a2);
 	}
 
@@ -33,7 +32,7 @@ vec4 screen_space_refraction(vec3 viewPosition, vec3 N, vec3 V, float ior, float
 
 	R = transform_direction(ViewMatrix, R);
 
-	vec3 hit_pos = raycast(-1, viewPosition, R * 1e16, ssrThickness, jitter, ssrQuality, roughnessSquared, false);
+	vec3 hit_pos = raycast(-1, viewPosition, R * 1e16, ssrThickness, rand.y, ssrQuality, roughnessSquared, false);
 
 	if ((hit_pos.z > 0.0) && (F_eta(ior, dot(H, V)) < 1.0)) {
 		hit_pos = get_view_space_from_depth(hit_pos.xy, hit_pos.z);

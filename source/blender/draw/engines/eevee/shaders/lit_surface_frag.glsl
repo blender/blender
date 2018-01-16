@@ -314,7 +314,7 @@ void CLOSURE_NAME(
 	if (ssrToggle && roughness < maxRoughness + 0.2) {
 		/* Find approximated position of the 2nd refraction event. */
 		vec3 refr_vpos = (refractionDepth > 0.0) ? transform_point(ViewMatrix, refr_pos) : viewPosition;
-		vec4 trans = screen_space_refraction(refr_vpos, N, refr_V, final_ior, roughnessSquared, rand.xzw);
+		vec4 trans = screen_space_refraction(refr_vpos, N, refr_V, final_ior, roughnessSquared, rand);
 		trans.a *= smoothstep(maxRoughness + 0.2, maxRoughness, roughness);
 		accumulate_light(trans.rgb, trans.a, refr_accum);
 	}
