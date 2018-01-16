@@ -285,7 +285,7 @@ static void read_custom_data_mcols(const std::string & iobject_full_name,
 {
 	C3fArraySamplePtr c3f_ptr = C3fArraySamplePtr();
 	C4fArraySamplePtr c4f_ptr = C4fArraySamplePtr();
-	Alembic::Abc::UInt32ArraySamplePtr indices(NULL);
+	Alembic::Abc::UInt32ArraySamplePtr indices;
 	bool use_c3f_ptr;
 	bool is_facevarying;
 
