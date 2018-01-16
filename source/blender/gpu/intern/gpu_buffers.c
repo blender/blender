@@ -1318,10 +1318,15 @@ void GPU_pbvh_grid_buffers_update(
 							normal_float_to_short_v3(no_short, CCG_elem_no(key, elem));
 							GWN_vertbuf_attr_set(buffers->vert_buf, vbo_id.nor, vbo_index, no_short);
 
-							if (has_mask && show_mask) {
+							if (has_mask) {
 								uchar color_ub[3];
-								gpu_color_from_mask_copy(*CCG_elem_mask(key, elem),
-									                     diffuse_color, color_ub);
+								if (show_mask) {
+									gpu_color_from_mask_copy(*CCG_elem_mask(key, elem),
+									                         diffuse_color, color_ub);
+								}
+								else {
+									F3TOCHAR3(diffuse_color, color_ub);
+								}
 								GWN_vertbuf_attr_set(buffers->vert_buf, vbo_id.col, vbo_index, color_ub);
 							}
 						}
@@ -1353,13 +1358,18 @@ void GPU_pbvh_grid_buffers_update(
 
 							if (has_mask) {
 								uchar color_ub[3];
-								gpu_color_from_mask_quad_copy(key,
-								                              elems[0],
-								                              elems[1],
-								                              elems[2],
-								                              elems[3],
-								                              diffuse_color,
-								                              color_ub);
+								if (show_mask) {
+									gpu_color_from_mask_quad_copy(key,
+									                              elems[0],
+									                              elems[1],
+									                              elems[2],
+									                              elems[3],
+									                              diffuse_color,
+									                              color_ub);
+								}
+								else {
+									F3TOCHAR3(diffuse_color, color_ub);
+								}
 								GWN_vertbuf_attr_set(buffers->vert_buf, vbo_id.col, vbo_index, color_ub);
 							}
 						}
