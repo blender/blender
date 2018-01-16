@@ -204,7 +204,7 @@ typedef struct Object {
 	short nlaflag;				/* used for DopeSheet filtering settings (expanded/collapsed) */
 	short scaflag;				/* ui state for game logic */
 	char scavisflag;			/* more display settings for game logic */
-	char depsflag;
+	char pad;
 
 	/* did last modifier stack generation need mapping support? */
 	char lastNeedMapping;  /* bool */
@@ -627,12 +627,6 @@ enum {
 	OB_BODY_TYPE_SENSOR         = 6,
 	OB_BODY_TYPE_NAVMESH        = 7,
 	OB_BODY_TYPE_CHARACTER      = 8,
-};
-
-/* ob->depsflag */
-enum {
-	OB_DEPS_EXTRA_OB_RECALC     = 1 << 0,
-	OB_DEPS_EXTRA_DATA_RECALC   = 1 << 1,
 };
 
 /* ob->deg_update_flag */

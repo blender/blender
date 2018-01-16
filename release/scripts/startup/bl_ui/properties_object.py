@@ -173,9 +173,6 @@ class OBJECT_PT_relations_extras(ObjectButtonsPanel, Panel):
         row.active = ((ob.parent is not None) and (ob.use_slow_parent))
         row.prop(ob, "slow_parent_offset", text="Offset")
 
-        layout.prop(ob, "use_extra_recalc_object")
-        layout.prop(ob, "use_extra_recalc_data")
-
 
 class GROUP_MT_specials(Menu):
     bl_label = "Group Specials"
