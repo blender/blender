@@ -5983,6 +5983,7 @@ static int ui_do_but_COLORBAND(
 				}
 		
 				data->dragcbd = coba->data + coba->cur;
+				data->dragfstart = data->dragcbd->pos;
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 			}
 
@@ -5999,7 +6000,15 @@ static int ui_do_but_COLORBAND(
 		else if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
-		
+		else if (ELEM(event->type, ESCKEY, RIGHTMOUSE)) {
+			if (event->val == KM_PRESS) {
+				data->dragcbd->pos = data->dragfstart;
+				BKE_colorband_update_sort(data->coba);
+				data->cancel = true;
+				data->escapecancel = true;
+				button_activate_state(C, but, BUTTON_STATE_EXIT);
+			}
+		}
 		return WM_UI_HANDLER_BREAK;
 	}
 
