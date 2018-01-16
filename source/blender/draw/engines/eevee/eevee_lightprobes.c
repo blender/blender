@@ -374,7 +374,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 		float *col = ts.colorBackground;
 		if (wo) {
 			col = &wo->horr;
-			if (wo->update_flag != 0) {
+			if (wo->update_flag != 0 || pinfo->prev_world != wo) {
 				e_data.update_world |= PROBE_UPDATE_ALL;
 				pinfo->updated_bounce = 0;
 				pinfo->grid_initialized = false;
@@ -396,6 +396,14 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 					col = pink;
 				}
 			}
+
+			pinfo->prev_world = wo;
+		}
+		else if (pinfo->prev_world) {
+			pinfo->prev_world = NULL;
+			e_data.update_world |= PROBE_UPDATE_ALL;
+			pinfo->updated_bounce = 0;
+			pinfo->grid_initialized = false;
 		}
 
 		/* Fallback if shader fails or if not using nodetree. */

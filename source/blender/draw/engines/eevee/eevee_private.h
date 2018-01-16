@@ -439,6 +439,7 @@ typedef struct EEVEE_LightProbesInfo {
 	int target_size;
 	int irradiance_vis_size;
 	int grid_initialized;
+	struct World *prev_world;
 	/* Actual number of probes that have datas. */
 	int num_render_cube;
 	int num_render_grid;
