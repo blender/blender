@@ -3366,14 +3366,14 @@ void DRW_notify_id_update(const DRWUpdateContext *update_ctx, ID *id)
  * for each relevant engine / mode engine. */
 void DRW_draw_view(const bContext *C)
 {
-	struct Depsgraph *graph = CTX_data_depsgraph(C);
+	struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	RenderEngineType *engine_type = CTX_data_engine_type(C);
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 
 	/* Reset before using it. */
 	memset(&DST, 0x0, sizeof(DST));
-	DRW_draw_render_loop_ex(graph, engine_type, ar, v3d, C);
+	DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, C);
 }
 
 /**
@@ -3381,13 +3381,13 @@ void DRW_draw_view(const bContext *C)
  * Need to reset DST before calling this function
  */
 void DRW_draw_render_loop_ex(
-        struct Depsgraph *graph,
+        struct Depsgraph *depsgraph,
         RenderEngineType *engine_type,
         ARegion *ar, View3D *v3d,
         const bContext *evil_C)
 {
-	Scene *scene = DEG_get_evaluated_scene(graph);
-	ViewLayer *view_layer = DEG_get_evaluated_view_layer(graph);
+	Scene *scene = DEG_get_evaluated_scene(depsgraph);
+	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
 	RegionView3D *rv3d = ar->regiondata;
 
 	DST.draw_ctx.evil_C = evil_C;
@@ -3399,7 +3399,7 @@ void DRW_draw_render_loop_ex(
 	GPU_viewport_engines_data_validate(DST.viewport, DRW_engines_get_hash());
 
 	DST.draw_ctx = (DRWContextState){
-	    ar, rv3d, v3d, scene, view_layer, OBACT(view_layer), engine_type, graph,
+	    ar, rv3d, v3d, scene, view_layer, OBACT(view_layer), engine_type, depsgraph,
 
 	    /* reuse if caller sets */
 	    DST.draw_ctx.evil_C,
@@ -3416,14 +3416,14 @@ void DRW_draw_render_loop_ex(
 	/* Init engines */
 	drw_engines_init();
 
-	/* TODO : tag to refresh by the deps graph */
+	/* TODO : tag to refresh by the dependency graph */
 	/* ideally only refresh when objects are added/removed */
 	/* or render properties / materials change */
 	{
 		PROFILE_START(stime);
 		drw_engines_cache_init();
 
-		DEG_OBJECT_ITER_FOR_RENDER_ENGINE(graph, ob, DRW_iterator_mode_get())
+		DEG_OBJECT_ITER_FOR_RENDER_ENGINE(depsgraph, ob, DRW_iterator_mode_get())
 		{
 			drw_engines_cache_populate(ob);
 		}
@@ -3511,21 +3511,21 @@ void DRW_draw_render_loop_ex(
 }
 
 void DRW_draw_render_loop(
-        struct Depsgraph *graph,
+        struct Depsgraph *depsgraph,
         ARegion *ar, View3D *v3d)
 {
 	/* Reset before using it. */
 	memset(&DST, 0x0, sizeof(DST));
 
-	Scene *scene = DEG_get_evaluated_scene(graph);
+	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 	RenderEngineType *engine_type = RE_engines_find(scene->view_render.engine_id);
 
-	DRW_draw_render_loop_ex(graph, engine_type, ar, v3d, NULL);
+	DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, NULL);
 }
 
 /* @viewport CAN be NULL, in this case we create one. */
 void DRW_draw_render_loop_offscreen(
-        struct Depsgraph *graph, RenderEngineType *engine_type,
+        struct Depsgraph *depsgraph, RenderEngineType *engine_type,
         ARegion *ar, View3D *v3d, const bool draw_background, GPUOffScreen *ofs,
         GPUViewport *viewport)
 {
@@ -3547,7 +3547,7 @@ void DRW_draw_render_loop_offscreen(
 	memset(&DST, 0x0, sizeof(DST));
 	DST.options.is_image_render = true;
 	DST.options.draw_background = draw_background;
-	DRW_draw_render_loop_ex(graph, engine_type, ar, v3d, NULL);
+	DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, NULL);
 
 	/* restore */
 	{
@@ -3569,13 +3569,13 @@ void DRW_draw_render_loop_offscreen(
  * object mode select-loop, see: ED_view3d_draw_select_loop (legacy drawing).
  */
 void DRW_draw_select_loop(
-        struct Depsgraph *graph,
+        struct Depsgraph *depsgraph,
         ARegion *ar, View3D *v3d,
         bool UNUSED(use_obedit_skip), bool UNUSED(use_nearest), const rcti *rect)
 {
-	Scene *scene = DEG_get_evaluated_scene(graph);
+	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 	RenderEngineType *engine_type = RE_engines_find(scene->view_render.engine_id);
-	ViewLayer *view_layer = DEG_get_evaluated_view_layer(graph);
+	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
 #ifndef USE_GPU_SELECT
 	UNUSED_VARS(vc, scene, view_layer, v3d, ar, rect);
 #else
@@ -3626,7 +3626,7 @@ void DRW_draw_select_loop(
 
 	/* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
 	DST.draw_ctx = (DRWContextState){
-		ar, rv3d, v3d, scene, view_layer, OBACT(view_layer), engine_type, graph, (bContext *)NULL,
+		ar, rv3d, v3d, scene, view_layer, OBACT(view_layer), engine_type, depsgraph, (bContext *)NULL,
 	};
 
 	drw_viewport_var_init();
@@ -3637,7 +3637,7 @@ void DRW_draw_select_loop(
 	/* Init engines */
 	drw_engines_init();
 
-	/* TODO : tag to refresh by the deps graph */
+	/* TODO : tag to refresh by the dependency graph */
 	/* ideally only refresh when objects are added/removed */
 	/* or render properties / materials change */
 	if (cache_is_dirty) {
@@ -3647,7 +3647,7 @@ void DRW_draw_select_loop(
 			drw_engines_cache_populate(scene->obedit);
 		}
 		else {
-			DEG_OBJECT_ITER(graph, ob, DRW_iterator_mode_get(),
+			DEG_OBJECT_ITER(depsgraph, ob, DRW_iterator_mode_get(),
 			                DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
 			                DEG_ITER_OBJECT_FLAG_VISIBLE |
 			                DEG_ITER_OBJECT_FLAG_DUPLI)
@@ -3690,12 +3690,12 @@ void DRW_draw_select_loop(
  * object mode select-loop, see: ED_view3d_draw_depth_loop (legacy drawing).
  */
 void DRW_draw_depth_loop(
-        Depsgraph *graph,
+        Depsgraph *depsgraph,
         ARegion *ar, View3D *v3d)
 {
-	Scene *scene = DEG_get_evaluated_scene(graph);
+	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 	RenderEngineType *engine_type = RE_engines_find(scene->view_render.engine_id);
-	ViewLayer *view_layer = DEG_get_evaluated_view_layer(graph);
+	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
 	RegionView3D *rv3d = ar->regiondata;
 
 	/* backup (_never_ use rv3d->viewport) */
@@ -3725,7 +3725,7 @@ void DRW_draw_depth_loop(
 
 	/* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
 	DST.draw_ctx = (DRWContextState){
-		ar, rv3d, v3d, scene, view_layer, OBACT(view_layer), engine_type, graph, (bContext *)NULL,
+		ar, rv3d, v3d, scene, view_layer, OBACT(view_layer), engine_type, depsgraph, (bContext *)NULL,
 	};
 
 	drw_viewport_var_init();
@@ -3736,13 +3736,13 @@ void DRW_draw_depth_loop(
 	/* Init engines */
 	drw_engines_init();
 
-	/* TODO : tag to refresh by the deps graph */
+	/* TODO : tag to refresh by the dependency graph */
 	/* ideally only refresh when objects are added/removed */
 	/* or render properties / materials change */
 	if (cache_is_dirty) {
 		drw_engines_cache_init();
 
-		DEG_OBJECT_ITER_FOR_RENDER_ENGINE(graph, ob, DRW_iterator_mode_get())
+		DEG_OBJECT_ITER_FOR_RENDER_ENGINE(depsgraph, ob, DRW_iterator_mode_get())
 		{
 			drw_engines_cache_populate(ob);
 		}
