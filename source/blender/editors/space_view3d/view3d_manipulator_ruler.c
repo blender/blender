@@ -148,6 +148,11 @@ static RulerItem *ruler_item_add(wmManipulatorGroup *mgroup)
 	return ruler_item;
 }
 
+static void ruler_item_remove(bContext *C, wmManipulatorGroup *mgroup, RulerItem *ruler_item)
+{
+	WM_manipulator_unlink(&mgroup->manipulators, mgroup->parent_mmap, &ruler_item->mpr, C);
+}
+
 static void ruler_item_as_string(RulerItem *ruler_item, UnitSettings *unit,
                                  char *numstr, size_t numstr_size, int prec)
 {
@@ -908,15 +913,23 @@ static void manipulator_ruler_exit(bContext *C, wmManipulator *mpr, const bool c
 {
 	wmManipulatorGroup *mgroup = mpr->parent_mgroup;
 	RulerInfo *ruler_info = mgroup->customdata;
-	RulerItem *ruler_item = (RulerItem *)mpr;
-	RulerInteraction *inter = mpr->interaction_data;
 
 	if (!cancel) {
 		if (ruler_info->state == RULER_STATE_DRAG) {
+			RulerItem *ruler_item = (RulerItem *)mpr;
+			RulerInteraction *inter = mpr->interaction_data;
 			/* rubber-band angle removal */
-			if (ruler_item && (inter->co_index == 1) && (ruler_item->flag & RULERITEM_USE_ANGLE)) {
-				if (!inter->inside_region) {
+			if (!inter->inside_region) {
+				if ((inter->co_index == 1) && (ruler_item->flag & RULERITEM_USE_ANGLE)) {
 					ruler_item->flag &= ~RULERITEM_USE_ANGLE;
+				}
+				else {
+				/* Not ideal, since the ruler isn't a mode and we don't want to override delete key
+				 * use dragging out of the view for removal. */
+					ruler_item_remove(C, mgroup, ruler_item);
+					ruler_item = NULL;
+					mpr = NULL;
+					inter = NULL;
 				}
 			}
 			if (ruler_info->snap_flag & RULER_SNAP_OK) {
@@ -928,7 +941,9 @@ static void manipulator_ruler_exit(bContext *C, wmManipulator *mpr, const bool c
 		view3d_ruler_to_gpencil(C, mgroup);
 	}
 
-	MEM_SAFE_FREE(mpr->interaction_data);
+	if (mpr) {
+		MEM_SAFE_FREE(mpr->interaction_data);
+	}
 
 	ruler_state_set(C, ruler_info, RULER_STATE_NORMAL);
 }
