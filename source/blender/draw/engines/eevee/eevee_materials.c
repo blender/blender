@@ -47,7 +47,9 @@
 /* *********** STATIC *********** */
 static struct {
 	char *frag_shader_lib;
+	char *prepass_shader_lib;
 	char *volume_shader_lib;
+	char *default_frag_glsl;
 
 	struct GPUShader *default_prepass_sh;
 	struct GPUShader *default_prepass_clip_sh;
@@ -116,10 +118,11 @@ static struct GPUTexture *create_ggx_lut_texture(int UNUSED(w), int UNUSED(h))
 	BLI_dynstr_free(ds_vert);
 
 	struct GPUShader *sh = DRW_shader_create_with_lib(
-	        datatoc_lightprobe_vert_glsl, datatoc_lightprobe_geom_glsl, datatoc_bsdf_lut_frag_glsl, lib_str,
+	        datatoc_lightprobe_vert_glsl, datatoc_lightprobe_geom_glsl, datatoc_bsdf_lut_frag_glsl,
 	        "#define HAMMERSLEY_SIZE 8192\n"
 	        "#define BRDF_LUT_SIZE 64\n"
-	        "#define NOISE_SIZE 64\n");
+	        "#define NOISE_SIZE 64\n",
+	        lib_str);
 
 	DRWPass *pass = DRW_pass_create("LightProbe Filtering", DRW_STATE_WRITE_COLOR);
 	DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
@@ -418,18 +421,12 @@ static void add_standard_uniforms(
 
 static void create_default_shader(int options)
 {
-	DynStr *ds_frag = BLI_dynstr_new();
-	BLI_dynstr_append(ds_frag, e_data.frag_shader_lib);
-	BLI_dynstr_append(ds_frag, datatoc_default_frag_glsl);
-	char *frag_str = BLI_dynstr_get_cstring(ds_frag);
-	BLI_dynstr_free(ds_frag);
-
 	char *defines = eevee_get_defines(options);
 
-	e_data.default_lit[options] = DRW_shader_create(datatoc_lit_surface_vert_glsl, NULL, frag_str, defines);
+	e_data.default_lit[options] = DRW_shader_create(datatoc_lit_surface_vert_glsl, NULL,
+	                                                e_data.default_frag_glsl, defines);
 
 	MEM_freeN(defines);
-	MEM_freeN(frag_str);
 }
 
 void EEVEE_update_util_texture(double offsets[3])
@@ -489,48 +486,47 @@ void EEVEE_update_util_texture(double offsets[3])
 void EEVEE_materials_init(EEVEE_StorageList *stl)
 {
 	if (!e_data.frag_shader_lib) {
-		char *frag_str = NULL;
+		DRW_shader_create_lib(e_data.frag_shader_lib,
+		                      datatoc_bsdf_common_lib_glsl,
+		                      datatoc_bsdf_sampling_lib_glsl,
+		                      datatoc_ambient_occlusion_lib_glsl,
+		                      datatoc_raytrace_lib_glsl,
+		                      datatoc_ssr_lib_glsl,
+		                      datatoc_octahedron_lib_glsl,
+		                      datatoc_irradiance_lib_glsl,
+		                      datatoc_lightprobe_lib_glsl,
+		                      datatoc_ltc_lib_glsl,
+		                      datatoc_bsdf_direct_lib_glsl,
+		                      datatoc_lamps_lib_glsl,
+		                      /* Add one for each Closure */
+		                      datatoc_lit_surface_frag_glsl,
+		                      datatoc_lit_surface_frag_glsl,
+		                      datatoc_lit_surface_frag_glsl,
+		                      datatoc_lit_surface_frag_glsl,
+		                      datatoc_lit_surface_frag_glsl,
+		                      datatoc_lit_surface_frag_glsl,
+		                      datatoc_lit_surface_frag_glsl,
+		                      datatoc_volumetric_lib_glsl);
 
-		/* Shaders */
-		DynStr *ds_frag = BLI_dynstr_new();
-		BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_bsdf_sampling_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_ambient_occlusion_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_raytrace_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_ssr_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_octahedron_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_irradiance_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_lightprobe_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_ltc_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_bsdf_direct_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_lamps_lib_glsl);
-		for (int i = 0; i < 7; ++i) {
-			/* Add one for each Closure */
-			BLI_dynstr_append(ds_frag, datatoc_lit_surface_frag_glsl);
-		}
-		BLI_dynstr_append(ds_frag, datatoc_volumetric_lib_glsl);
-		e_data.frag_shader_lib = BLI_dynstr_get_cstring(ds_frag);
-		BLI_dynstr_free(ds_frag);
+		DRW_shader_create_lib(e_data.volume_shader_lib,
+		                      datatoc_bsdf_common_lib_glsl,
+		                      datatoc_ambient_occlusion_lib_glsl,
+		                      datatoc_octahedron_lib_glsl,
+		                      datatoc_irradiance_lib_glsl,
+		                      datatoc_lightprobe_lib_glsl,
+		                      datatoc_ltc_lib_glsl,
+		                      datatoc_bsdf_direct_lib_glsl,
+		                      datatoc_lamps_lib_glsl,
+		                      datatoc_volumetric_lib_glsl,
+		                      datatoc_volumetric_frag_glsl);
 
-		ds_frag = BLI_dynstr_new();
-		BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_ambient_occlusion_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_octahedron_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_irradiance_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_lightprobe_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_ltc_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_bsdf_direct_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_lamps_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_volumetric_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_volumetric_frag_glsl);
-		e_data.volume_shader_lib = BLI_dynstr_get_cstring(ds_frag);
-		BLI_dynstr_free(ds_frag);
+		DRW_shader_create_lib(e_data.default_frag_glsl,
+		                      e_data.frag_shader_lib,
+		                      datatoc_default_frag_glsl);
 
-		ds_frag = BLI_dynstr_new();
-		BLI_dynstr_append(ds_frag, e_data.frag_shader_lib);
-		BLI_dynstr_append(ds_frag, datatoc_default_frag_glsl);
-		frag_str = BLI_dynstr_get_cstring(ds_frag);
-		BLI_dynstr_free(ds_frag);
+		DRW_shader_create_lib(e_data.prepass_shader_lib,
+		                      e_data.frag_shader_lib,
+		                      datatoc_prepass_frag_glsl);
 
 		e_data.default_background = DRW_shader_create(
 		        datatoc_background_vert_glsl, NULL, datatoc_default_world_frag_glsl,
@@ -543,8 +539,6 @@ void EEVEE_materials_init(EEVEE_StorageList *stl)
 		e_data.default_prepass_clip_sh = DRW_shader_create(
 		        datatoc_prepass_vert_glsl, NULL, datatoc_prepass_frag_glsl,
 		        "#define CLIP_PLANES\n");
-
-		MEM_freeN(frag_str);
 
 		double offsets[3] = {0.0, 0.0, 0.0};
 		EEVEE_update_util_texture(offsets);
@@ -739,20 +733,13 @@ struct GPUMaterial *EEVEE_material_mesh_depth_get(
 
 	char *defines = eevee_get_defines(options);
 
-	DynStr *ds_frag = BLI_dynstr_new();
-	BLI_dynstr_append(ds_frag, e_data.frag_shader_lib);
-	BLI_dynstr_append(ds_frag, datatoc_prepass_frag_glsl);
-	char *frag_str = BLI_dynstr_get_cstring(ds_frag);
-	BLI_dynstr_free(ds_frag);
-
 	mat = GPU_material_from_nodetree(
 	        scene, ma->nodetree, &ma->gpumaterial, engine, options,
 	        (is_shadow) ? datatoc_shadow_vert_glsl : datatoc_lit_surface_vert_glsl,
 	        (is_shadow) ? datatoc_shadow_geom_glsl : NULL,
-	        frag_str,
+	        e_data.prepass_shader_lib,
 	        defines);
 
-	MEM_freeN(frag_str);
 	MEM_freeN(defines);
 
 	return mat;
@@ -1449,7 +1436,9 @@ void EEVEE_materials_free(void)
 		DRW_SHADER_FREE_SAFE(e_data.default_lit[i]);
 	}
 	MEM_SAFE_FREE(e_data.frag_shader_lib);
+	MEM_SAFE_FREE(e_data.prepass_shader_lib);
 	MEM_SAFE_FREE(e_data.volume_shader_lib);
+	MEM_SAFE_FREE(e_data.default_frag_glsl);
 	DRW_SHADER_FREE_SAFE(e_data.default_prepass_sh);
 	DRW_SHADER_FREE_SAFE(e_data.default_prepass_clip_sh);
 	DRW_SHADER_FREE_SAFE(e_data.default_background);

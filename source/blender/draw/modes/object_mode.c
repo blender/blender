@@ -291,9 +291,9 @@ static void OBJECT_engine_init(void *vedata)
 		e_data.outline_resolve_aa_sh = DRW_shader_create_with_lib(
 		            datatoc_gpu_shader_fullscreen_vert_glsl, NULL,
 		            datatoc_object_outline_resolve_frag_glsl,
-		            datatoc_common_fxaa_lib_glsl,
 		            "#define FXAA_ALPHA\n"
-		            "#define USE_FXAA\n");
+		            "#define USE_FXAA\n",
+		            datatoc_common_fxaa_lib_glsl);
 	}
 
 	if (!e_data.outline_detect_sh) {
@@ -307,23 +307,23 @@ static void OBJECT_engine_init(void *vedata)
 	if (!e_data.object_empty_image_sh) {
 		e_data.object_empty_image_sh = DRW_shader_create_with_lib(
 		           datatoc_object_empty_image_vert_glsl, NULL,
-		           datatoc_object_empty_image_frag_glsl,
-		           datatoc_common_globals_lib_glsl, NULL);
+		           datatoc_object_empty_image_frag_glsl, NULL,
+		           datatoc_common_globals_lib_glsl);
 	}
 
 	if (!e_data.object_empty_image_wire_sh) {
 		e_data.object_empty_image_wire_sh = DRW_shader_create_with_lib(
 		           datatoc_object_empty_image_vert_glsl, NULL,
 		           datatoc_object_empty_image_frag_glsl,
-		           datatoc_common_globals_lib_glsl,
-		           "#define USE_WIRE\n");
+		           "#define USE_WIRE\n",
+		           datatoc_common_globals_lib_glsl);
 	}
 
 	if (!e_data.grid_sh) {
 		e_data.grid_sh = DRW_shader_create_with_lib(
 		        datatoc_object_grid_vert_glsl, NULL,
-		        datatoc_object_grid_frag_glsl,
-		        datatoc_common_globals_lib_glsl, NULL);
+		        datatoc_object_grid_frag_glsl, NULL,
+		        datatoc_common_globals_lib_glsl);
 	}
 
 	if (!e_data.part_prim_sh) {

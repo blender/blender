@@ -164,14 +164,14 @@ static void EDIT_CURVE_engine_init(void *vedata)
 		        datatoc_edit_curve_overlay_loosevert_vert_glsl,
 		        datatoc_edit_curve_overlay_handle_geom_glsl,
 		        datatoc_gpu_shader_flat_color_frag_glsl,
-		        datatoc_common_globals_lib_glsl, NULL);
+		        NULL, datatoc_common_globals_lib_glsl);
 	}
 
 	if (!e_data.overlay_vert_sh) {
 		e_data.overlay_vert_sh = DRW_shader_create_with_lib(
 		        datatoc_edit_curve_overlay_loosevert_vert_glsl, NULL,
 		        datatoc_edit_curve_overlay_frag_glsl,
-		        datatoc_common_globals_lib_glsl, NULL);
+		        NULL, datatoc_common_globals_lib_glsl);
 	}
 }
 

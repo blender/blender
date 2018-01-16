@@ -151,7 +151,7 @@ static void EDIT_LATTICE_engine_init(void *vedata)
 		e_data.overlay_vert_sh = DRW_shader_create_with_lib(
 		        datatoc_edit_lattice_overlay_loosevert_vert_glsl, NULL,
 		        datatoc_edit_lattice_overlay_frag_glsl,
-		        datatoc_common_globals_lib_glsl, NULL);
+		        NULL, datatoc_common_globals_lib_glsl);
 	}
 }
 

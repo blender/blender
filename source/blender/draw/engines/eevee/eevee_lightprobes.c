@@ -204,71 +204,54 @@ static void lightprobe_shaders_init(void)
 
 	char *shader_str = NULL;
 
-	DynStr *ds_frag = BLI_dynstr_new();
-	BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
-	BLI_dynstr_append(ds_frag, datatoc_bsdf_sampling_lib_glsl);
-	BLI_dynstr_append(ds_frag, datatoc_lightprobe_filter_glossy_frag_glsl);
-	shader_str = BLI_dynstr_get_cstring(ds_frag);
-	BLI_dynstr_free(ds_frag);
-
-	e_data.probe_filter_glossy_sh = DRW_shader_create(
-	        datatoc_lightprobe_vert_glsl, datatoc_lightprobe_geom_glsl, shader_str, filter_defines);
-
-	e_data.probe_default_sh = DRW_shader_create(
-	        datatoc_background_vert_glsl, NULL, datatoc_default_world_frag_glsl, NULL);
-
+	DRW_shader_create_lib(shader_str,
+	                      datatoc_bsdf_common_lib_glsl,
+	                      datatoc_bsdf_sampling_lib_glsl,
+	                      datatoc_lightprobe_filter_glossy_frag_glsl);
+	e_data.probe_filter_glossy_sh = DRW_shader_create(datatoc_lightprobe_vert_glsl,
+	                                                  datatoc_lightprobe_geom_glsl,
+	                                                  shader_str,
+	                                                  filter_defines);
 	MEM_freeN(shader_str);
 
-	ds_frag = BLI_dynstr_new();
-	BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
-	BLI_dynstr_append(ds_frag, datatoc_bsdf_sampling_lib_glsl);
-	BLI_dynstr_append(ds_frag, datatoc_lightprobe_filter_diffuse_frag_glsl);
-	shader_str = BLI_dynstr_get_cstring(ds_frag);
-	BLI_dynstr_free(ds_frag);
+	e_data.probe_default_sh = DRW_shader_create(datatoc_background_vert_glsl, NULL,
+	                                            datatoc_default_world_frag_glsl, NULL);
 
+	DRW_shader_create_lib(shader_str,
+	                      datatoc_bsdf_common_lib_glsl,
+	                      datatoc_bsdf_sampling_lib_glsl,
+	                      datatoc_lightprobe_filter_diffuse_frag_glsl);
 	e_data.probe_filter_diffuse_sh = DRW_shader_create_fullscreen(shader_str, filter_defines);
-
 	MEM_freeN(shader_str);
 
-	ds_frag = BLI_dynstr_new();
-	BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
-	BLI_dynstr_append(ds_frag, datatoc_bsdf_sampling_lib_glsl);
-	BLI_dynstr_append(ds_frag, datatoc_lightprobe_filter_visibility_frag_glsl);
-	shader_str = BLI_dynstr_get_cstring(ds_frag);
-	BLI_dynstr_free(ds_frag);
+	DRW_shader_create_lib(shader_str,
+	                      datatoc_bsdf_common_lib_glsl,
+	                      datatoc_bsdf_sampling_lib_glsl,
+	                      datatoc_lightprobe_filter_visibility_frag_glsl);
 
 	e_data.probe_filter_visibility_sh = DRW_shader_create_fullscreen(shader_str, filter_defines);
 
 	MEM_freeN(shader_str);
 
-	ds_frag = BLI_dynstr_new();
-	BLI_dynstr_append(ds_frag, datatoc_octahedron_lib_glsl);
-	BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
-	BLI_dynstr_append(ds_frag, datatoc_irradiance_lib_glsl);
-	BLI_dynstr_append(ds_frag, datatoc_lightprobe_lib_glsl);
-	BLI_dynstr_append(ds_frag, datatoc_lightprobe_grid_display_frag_glsl);
-	shader_str = BLI_dynstr_get_cstring(ds_frag);
-	BLI_dynstr_free(ds_frag);
-
-	e_data.probe_grid_display_sh = DRW_shader_create(
-	        datatoc_lightprobe_grid_display_vert_glsl, NULL, shader_str, filter_defines);
-
+	DRW_shader_create_lib(shader_str,
+	                      datatoc_octahedron_lib_glsl,
+	                      datatoc_bsdf_common_lib_glsl,
+	                      datatoc_irradiance_lib_glsl,
+	                      datatoc_lightprobe_lib_glsl,
+	                      datatoc_lightprobe_grid_display_frag_glsl);
+	e_data.probe_grid_display_sh = DRW_shader_create(datatoc_lightprobe_grid_display_vert_glsl, NULL,
+	                                                 shader_str, filter_defines);
 	MEM_freeN(shader_str);
 
-	e_data.probe_grid_fill_sh = DRW_shader_create_fullscreen(
-	        datatoc_lightprobe_grid_fill_frag_glsl, filter_defines);
+	e_data.probe_grid_fill_sh = DRW_shader_create_fullscreen(datatoc_lightprobe_grid_fill_frag_glsl, filter_defines);
 
-	ds_frag = BLI_dynstr_new();
-	BLI_dynstr_append(ds_frag, datatoc_octahedron_lib_glsl);
-	BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
-	BLI_dynstr_append(ds_frag, datatoc_lightprobe_lib_glsl);
-	BLI_dynstr_append(ds_frag, datatoc_lightprobe_cube_display_frag_glsl);
-	shader_str = BLI_dynstr_get_cstring(ds_frag);
-	BLI_dynstr_free(ds_frag);
-
+	DRW_shader_create_lib(shader_str,
+	                      datatoc_octahedron_lib_glsl,
+	                      datatoc_bsdf_common_lib_glsl,
+	                      datatoc_lightprobe_lib_glsl,
+	                      datatoc_lightprobe_cube_display_frag_glsl);
 	e_data.probe_cube_display_sh = DRW_shader_create(
 	        datatoc_lightprobe_cube_display_vert_glsl, NULL, shader_str, NULL);
-
 	MEM_freeN(shader_str);
 
 	e_data.probe_planar_display_sh = DRW_shader_create(

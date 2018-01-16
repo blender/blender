@@ -87,8 +87,8 @@ static void PAINT_VERTEX_engine_init(void *UNUSED(vedata))
 	if (!e_data.wire_overlay_shader) {
 		e_data.wire_overlay_shader = DRW_shader_create_with_lib(
 		        datatoc_paint_wire_vert_glsl, NULL,
-		        datatoc_paint_wire_frag_glsl,
-		        datatoc_common_globals_lib_glsl, "#define VERTEX_MODE\n");
+		        datatoc_paint_wire_frag_glsl, "#define VERTEX_MODE\n",
+		        datatoc_common_globals_lib_glsl);
 	}
 
 	if (!e_data.face_overlay_shader) {

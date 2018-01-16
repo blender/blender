@@ -577,28 +577,35 @@ GPUShader *DRW_shader_create(const char *vert, const char *geom, const char *fra
 }
 
 GPUShader *DRW_shader_create_with_lib(
-        const char *vert, const char *geom, const char *frag, const char *lib, const char *defines)
+        const char *vert, const char *geom, const char *frag, const char *defines, ...)
 {
 	GPUShader *sh;
 	char *vert_with_lib = NULL;
 	char *frag_with_lib = NULL;
 	char *geom_with_lib = NULL;
+	va_list args;
 
 	DynStr *ds_vert = BLI_dynstr_new();
-	BLI_dynstr_append(ds_vert, lib);
+	va_start(args, defines);
+	BLI_dynstr_append(ds_vert, va_arg(args, char *));
+	va_end(args);
 	BLI_dynstr_append(ds_vert, vert);
 	vert_with_lib = BLI_dynstr_get_cstring(ds_vert);
 	BLI_dynstr_free(ds_vert);
 
 	DynStr *ds_frag = BLI_dynstr_new();
-	BLI_dynstr_append(ds_frag, lib);
+	va_start(args, defines);
+	BLI_dynstr_append(ds_vert, va_arg(args, char *));
+	va_end(args);
 	BLI_dynstr_append(ds_frag, frag);
 	frag_with_lib = BLI_dynstr_get_cstring(ds_frag);
 	BLI_dynstr_free(ds_frag);
 
 	if (geom) {
 		DynStr *ds_geom = BLI_dynstr_new();
-		BLI_dynstr_append(ds_geom, lib);
+		va_start(args, defines);
+		BLI_dynstr_append(ds_vert, va_arg(args, char *));
+		va_end(args);
 		BLI_dynstr_append(ds_geom, geom);
 		geom_with_lib = BLI_dynstr_get_cstring(ds_geom);
 		BLI_dynstr_free(ds_geom);

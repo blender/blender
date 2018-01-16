@@ -49,12 +49,12 @@ extern char datatoc_effect_gtao_frag_glsl[];
 
 static void eevee_create_shader_occlusion(void)
 {
-	DynStr *ds_frag = BLI_dynstr_new();
-	BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
-	BLI_dynstr_append(ds_frag, datatoc_ambient_occlusion_lib_glsl);
-	BLI_dynstr_append(ds_frag, datatoc_effect_gtao_frag_glsl);
-	char *frag_str = BLI_dynstr_get_cstring(ds_frag);
-	BLI_dynstr_free(ds_frag);
+	char *frag_str;
+
+	DRW_shader_create_lib(frag_str,
+	                      datatoc_bsdf_common_lib_glsl,
+	                      datatoc_ambient_occlusion_lib_glsl,
+	                      datatoc_effect_gtao_frag_glsl);
 
 	e_data.gtao_sh = DRW_shader_create_fullscreen(frag_str, NULL);
 	e_data.gtao_layer_sh = DRW_shader_create_fullscreen(frag_str, "#define LAYERED_DEPTH\n");
