@@ -701,7 +701,7 @@ static int logImageElementGetData10Packed(LogImageFile *logImage, LogImageElemen
 	for (size_t y = 0; y < logImage->height; y++) {
 		/* seek to data */
 		if (logimage_fseek(logImage, y * rowLength + logElement.dataOffset, SEEK_SET) != 0) {
-			if (verbose) printf("DPX/Cineon: Couldn't seek at %u\n", (int)(y * rowLength + logElement.dataOffset));
+			if (verbose) printf("DPX/Cineon: Couldn't seek at %u\n", (unsigned int)(y * rowLength + logElement.dataOffset));
 			return 1;
 		}
 
@@ -779,7 +779,7 @@ static int logImageElementGetData12Packed(LogImageFile *logImage, LogImageElemen
 	for (size_t y = 0; y < logImage->height; y++) {
 		/* seek to data */
 		if (logimage_fseek(logImage, y * rowLength + logElement.dataOffset, SEEK_SET) != 0) {
-			if (verbose) printf("DPX/Cineon: Couldn't seek at %u\n", (int)(y * rowLength + logElement.dataOffset));
+			if (verbose) printf("DPX/Cineon: Couldn't seek at %u\n", (unsigned int)(y * rowLength + logElement.dataOffset));
 			return 1;
 		}
 

@@ -138,7 +138,7 @@ static const unsigned char *freadcolrs(RGBE *scan, const unsigned char *mem, int
 				if (UNLIKELY(code + j > xmax)) {
 					return NULL;
 				}
-				int val = *mem++;
+				val = *mem++;
 				while (code--) {
 					scan[j++][i] = (unsigned char)val;
 				}
@@ -263,7 +263,7 @@ struct ImBuf *imb_loadhdr(const unsigned char *mem, size_t size, int flags, char
 					printf("WARNING! HDR decode error, image may be just truncated, or completely wrong...\n");
 					break;
 				}
-				for (size_t x = 0; x < width; x++) {
+				for (x = 0; x < width; x++) {
 					/* convert to ldr */
 					RGBE2FLOAT(sline[x], fcol);
 					*rect_float++ = fcol[RED];
@@ -302,8 +302,7 @@ static int fwritecolrs(FILE *file, int width, int channels, unsigned char *ibufs
 	rgbe_scan = (RGBE *)MEM_mallocN(sizeof(RGBE) * width, "radhdr_write_tmpscan");
 
 	/* convert scanline */
-	size_t j = 0;
-	for (size_t i = 0; i < width; i++) {
+	for (size_t i = 0, j = 0; i < width; i++) {
 		if (fpscan) {
 			fcol[RED] = fpscan[j];
 			fcol[GRN] = (channels >= 2) ? fpscan[j + 1] : fpscan[j];
@@ -400,7 +399,7 @@ int imb_savehdr(struct ImBuf *ibuf, const char *name, int flags)
 	if (ibuf->rect_float)
 		fp = ibuf->rect_float + ibuf->channels * (height - 1) * width;
 	
-	for (size_t y = height - 1; y >= 0; y--) {
+	for (size_t y = 0; y < height; y++) {
 		if (fwritecolrs(file, width, ibuf->channels, cp, fp) < 0) {
 			fclose(file);
 			printf("HDR write error\n");
