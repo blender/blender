@@ -740,7 +740,15 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				handled = true;
 				break;
 			case MOUSEMOVE:  /* mouse moved somewhere to select another loop */
-				if (!has_numinput) {
+
+				/* This is normally disabled for all modal operators.
+				 * This is an exception since mouse movement doesn't relate to numeric input.
+				 *
+				 * If numeric input changes we'll need to add this back see: D2973 */
+#if 0
+				if (!has_numinput)
+#endif
+				{
 					lcd->vc.mval[0] = event->mval[0];
 					lcd->vc.mval[1] = event->mval[1];
 					loopcut_mouse_move(lcd, (int)lcd->cuts);
