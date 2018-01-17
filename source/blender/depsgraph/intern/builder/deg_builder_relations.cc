@@ -1178,7 +1178,8 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
 					continue;
 				}
 				if (is_same_bone_dependency(variable_key, self_key) ||
-				    is_nodetree_node_dependency(variable_key, self_key))
+				    is_same_nodetree_node_dependency(variable_key, self_key) ||
+				    is_same_shapekey_dependency(variable_key, self_key))
 				{
 					continue;
 				}
