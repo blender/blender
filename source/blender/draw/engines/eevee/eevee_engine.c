@@ -69,7 +69,7 @@ static void eevee_engine_init(void *ved)
 	/* EEVEE_effects_init needs to go first for TAA */
 	EEVEE_effects_init(sldata, vedata);
 
-	EEVEE_materials_init(stl);
+	EEVEE_materials_init(stl, fbl);
 	EEVEE_lights_init(sldata);
 	EEVEE_lightprobes_init(sldata, vedata);
 
@@ -175,14 +175,12 @@ static void eevee_draw_background(void *vedata)
 		if (DRW_state_is_image_render()) {
 			BLI_halton_3D(primes, offset, stl->effects->taa_current_sample, r);
 			/* Set jitter offset */
-			/* PERF This is killing perf ! */
-			EEVEE_update_util_texture(r);
+			EEVEE_update_noise(psl, fbl, r);
 		}
 		else if ((stl->effects->enabled_effects & EFFECT_TAA) != 0) {
 			BLI_halton_3D(primes, offset, stl->effects->taa_current_sample, r);
 			/* Set jitter offset */
-			/* PERF This is killing perf ! */
-			EEVEE_update_util_texture(r);
+			EEVEE_update_noise(psl, fbl, r);
 		}
 
 		/* Refresh Probes */

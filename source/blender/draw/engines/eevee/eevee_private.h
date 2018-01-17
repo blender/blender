@@ -206,6 +206,7 @@ typedef struct EEVEE_PassList {
 	struct DRWPass *refract_pass;
 	struct DRWPass *transparent_pass;
 	struct DRWPass *background_pass;
+	struct DRWPass *update_noise_pass;
 } EEVEE_PassList;
 
 typedef struct EEVEE_FramebufferList {
@@ -227,6 +228,8 @@ typedef struct EEVEE_FramebufferList {
 	struct GPUFrameBuffer *volumetric_integ_fb;
 	struct GPUFrameBuffer *screen_tracing_fb;
 	struct GPUFrameBuffer *refract_fb;
+
+	struct GPUFrameBuffer *update_noise_fb;
 
 	struct GPUFrameBuffer *planarref_fb;
 
@@ -732,7 +735,7 @@ EEVEE_LampEngineData *EEVEE_lamp_data_ensure(Object *ob);
 
 /* eevee_materials.c */
 struct GPUTexture *EEVEE_materials_get_util_tex(void); /* XXX */
-void EEVEE_materials_init(EEVEE_StorageList *stl);
+void EEVEE_materials_init(EEVEE_StorageList *stl, EEVEE_FramebufferList *fbl);
 void EEVEE_materials_cache_init(EEVEE_Data *vedata);
 void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, Object *ob);
 void EEVEE_materials_cache_finish(EEVEE_Data *vedata);
@@ -747,7 +750,7 @@ struct GPUMaterial *EEVEE_material_mesh_depth_get(struct Scene *scene, Material 
 struct GPUMaterial *EEVEE_material_hair_get(struct Scene *scene, Material *ma, int shadow_method);
 void EEVEE_materials_free(void);
 void EEVEE_draw_default_passes(EEVEE_PassList *psl);
-void EEVEE_update_util_texture(double offsets[3]);
+void EEVEE_update_noise(EEVEE_PassList *psl, EEVEE_FramebufferList *fbl, double offsets[3]);
 
 /* eevee_lights.c */
 void EEVEE_lights_init(EEVEE_ViewLayerData *sldata);

@@ -53,17 +53,19 @@ static struct {
 	struct GPUShader *default_prepass_sh;
 	struct GPUShader *default_prepass_clip_sh;
 	struct GPUShader *default_lit[VAR_MAT_MAX];
-
 	struct GPUShader *default_background;
+	struct GPUShader *update_noise_sh;
 
 	/* 64*64 array texture containing all LUTs and other utilitarian arrays.
 	 * Packing enables us to same precious textures slots. */
 	struct GPUTexture *util_tex;
+	struct GPUTexture *noise_tex;
 
 	unsigned int sss_count;
 
 	float viewvecs[2][4];
 	float alpha_hash_offset;
+	float noise_offsets[3];
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_lamps_lib_glsl[];
@@ -90,6 +92,7 @@ extern char datatoc_shadow_geom_glsl[];
 extern char datatoc_lightprobe_geom_glsl[];
 extern char datatoc_lightprobe_vert_glsl[];
 extern char datatoc_background_vert_glsl[];
+extern char datatoc_update_noise_frag_glsl[];
 extern char datatoc_volumetric_vert_glsl[];
 extern char datatoc_volumetric_geom_glsl[];
 extern char datatoc_volumetric_frag_glsl[];
@@ -423,11 +426,13 @@ static void create_default_shader(int options)
 	MEM_freeN(frag_str);
 }
 
-void EEVEE_update_util_texture(double offsets[3])
+static void eevee_init_noise_texture(void)
 {
+	e_data.noise_tex = DRW_texture_create_2D(64, 64, DRW_TEX_RGBA_16, 0, (float *)blue_noise);
+}
 
-	/* TODO: split this into 2 functions : one for init,
-	 * and the other one that updates the noise with the offset. */
+static void eevee_init_util_texture(void)
+{
 	const int layers = 3 + 16;
 	float (*texels)[4] = MEM_mallocN(sizeof(float[4]) * 64 * 64 * layers, "utils texels");
 	float (*texels_layer)[4] = texels;
@@ -447,11 +452,10 @@ void EEVEE_update_util_texture(double offsets[3])
 
 	/* Copy blue noise in 3rd layer  */
 	for (int i = 0; i < 64 * 64; i++) {
-		texels_layer[i][0] = fmod(blue_noise[i][0] + (float)offsets[0], 1.0f);
-		texels_layer[i][1] = fmod(blue_noise[i][1] + (float)offsets[1], 1.0f);
-		float noise = fmod(blue_noise[i][1] + (float)offsets[2], 1.0f);
-		texels_layer[i][2] = cosf(noise * 2.0f * M_PI);
-		texels_layer[i][3] = sinf(noise * 2.0f * M_PI);
+		texels_layer[i][0] = blue_noise[i][0];
+		texels_layer[i][1] = blue_noise[i][1];
+		texels_layer[i][2] = cosf(blue_noise[i][1] * 2.0f * M_PI);
+		texels_layer[i][3] = sinf(blue_noise[i][1] * 2.0f * M_PI);
 	}
 	texels_layer += 64 * 64;
 
@@ -466,18 +470,27 @@ void EEVEE_update_util_texture(double offsets[3])
 		texels_layer += 64 * 64;
 	}
 
-	if (e_data.util_tex == NULL) {
-		e_data.util_tex = DRW_texture_create_2D_array(
-		        64, 64, layers, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_WRAP, (float *)texels);
-	}
-	else {
-		DRW_texture_update(e_data.util_tex, (float *)texels);
-	}
+	e_data.util_tex = DRW_texture_create_2D_array(
+	        64, 64, layers, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_WRAP, (float *)texels);
 
 	MEM_freeN(texels);
 }
 
-void EEVEE_materials_init(EEVEE_StorageList *stl)
+void EEVEE_update_noise(EEVEE_PassList *psl, EEVEE_FramebufferList *fbl, double offsets[3])
+{
+	e_data.noise_offsets[0] = offsets[0];
+	e_data.noise_offsets[1] = offsets[1];
+	e_data.noise_offsets[2] = offsets[2];
+
+	/* Attach & detach because we don't currently support multiple FB per texture,
+	 * and this would be the case for multiple viewport. */
+	DRW_framebuffer_texture_layer_attach(fbl->update_noise_fb, e_data.util_tex, 0, 2, 0);
+	DRW_framebuffer_bind(fbl->update_noise_fb);
+	DRW_draw_pass(psl->update_noise_pass);
+	DRW_framebuffer_texture_detach(e_data.util_tex);
+}
+
+void EEVEE_materials_init(EEVEE_StorageList *stl, EEVEE_FramebufferList *fbl)
 {
 	if (!e_data.frag_shader_lib) {
 		char *frag_str = NULL;
@@ -536,8 +549,11 @@ void EEVEE_materials_init(EEVEE_StorageList *stl)
 
 		MEM_freeN(frag_str);
 
-		double offsets[3] = {0.0, 0.0, 0.0};
-		EEVEE_update_util_texture(offsets);
+		e_data.update_noise_sh = DRW_shader_create_fullscreen(
+		        datatoc_update_noise_frag_glsl, NULL);
+
+		eevee_init_util_texture();
+		eevee_init_noise_texture();
 	}
 
 	/* Alpha hash scale: Non-flickering size if we are not refining the render. */
@@ -593,6 +609,13 @@ void EEVEE_materials_init(EEVEE_StorageList *stl)
 			mul_m4_v4(invproj, vec_far);
 			mul_v3_fl(vec_far, 1.0f / vec_far[3]);
 			stl->g_data->viewvecs[1][2] = vec_far[2] - viewvecs[0][2];
+		}
+	}
+
+	{
+		/* Update noise Framebuffer. */
+		if (fbl->update_noise_fb == NULL) {
+			fbl->update_noise_fb = DRW_framebuffer_create();
 		}
 	}
 }
@@ -950,6 +973,15 @@ void EEVEE_materials_cache_init(EEVEE_Data *vedata)
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS | DRW_STATE_CLIP_PLANES | DRW_STATE_WIRE;
 		psl->transparent_pass = DRW_pass_create("Material Transparent Pass", state);
 	}
+
+	{
+		psl->update_noise_pass = DRW_pass_create("Update Noise Pass", DRW_STATE_WRITE_COLOR);
+		DRWShadingGroup *grp = DRW_shgroup_create(e_data.update_noise_sh, psl->update_noise_pass);
+		DRW_shgroup_uniform_texture(grp, "blueNoise", e_data.noise_tex);
+		DRW_shgroup_uniform_vec3(grp, "offsets", e_data.noise_offsets, 1);
+		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+	}
+
 }
 
 #define ADD_SHGROUP_CALL(shgrp, ob, geom) do { \
@@ -1443,7 +1475,9 @@ void EEVEE_materials_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.default_prepass_sh);
 	DRW_SHADER_FREE_SAFE(e_data.default_prepass_clip_sh);
 	DRW_SHADER_FREE_SAFE(e_data.default_background);
+	DRW_SHADER_FREE_SAFE(e_data.update_noise_sh);
 	DRW_TEXTURE_FREE_SAFE(e_data.util_tex);
+	DRW_TEXTURE_FREE_SAFE(e_data.noise_tex);
 }
 
 void EEVEE_draw_default_passes(EEVEE_PassList *psl)
