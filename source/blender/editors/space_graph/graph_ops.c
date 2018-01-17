@@ -468,6 +468,7 @@ void graphedit_operatortypes(void)
 	/* Drivers */
 	WM_operatortype_append(GRAPH_OT_driver_variables_copy);
 	WM_operatortype_append(GRAPH_OT_driver_variables_paste);
+	WM_operatortype_append(GRAPH_OT_driver_delete_invalid);
 }
 
 void ED_operatormacros_graph(void)
