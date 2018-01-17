@@ -1773,14 +1773,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
 					if (md->type == eModifierType_SimpleDeform) {
 						SimpleDeformModifierData *smd = (SimpleDeformModifierData *)md;
-						switch (smd->mode) {
-							case MOD_SIMPLEDEFORM_MODE_BEND:
-								smd->deform_axis = 0;
-								break;
-							default:
-								smd->deform_axis = 2;
-								break;
-						}
+						smd->deform_axis = 2;
 					}
 				}
 			}
