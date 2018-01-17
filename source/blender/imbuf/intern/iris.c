@@ -261,7 +261,7 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 	MFileOffset _inf_data = {mem, 0}, *inf = &_inf_data;
 	IMAGE image;
 	int bpp, rle, cur, badorder;
-	ImBuf *ibuf;
+	ImBuf *ibuf = NULL;
 	uchar dirty_flag = 0;
 
 	if (size < HEADER_SIZE) {
