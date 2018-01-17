@@ -201,6 +201,8 @@ class GRAPH_MT_channel(Menu):
         layout.operator_context = 'INVOKE_REGION_CHANNELS'
 
         layout.operator("anim.channels_delete")
+        if context.space_data.mode == 'DRIVERS':
+            layout.operator("graph.driver_delete_invalid")
 
         layout.separator()
         layout.operator("anim.channels_group")

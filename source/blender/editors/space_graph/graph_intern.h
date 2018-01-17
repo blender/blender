@@ -152,6 +152,7 @@ void GRAPH_OT_fmodifier_paste(struct wmOperatorType *ot);
 
 void GRAPH_OT_driver_variables_copy(struct wmOperatorType *ot);
 void GRAPH_OT_driver_variables_paste(struct wmOperatorType *ot);
+void GRAPH_OT_driver_delete_invalid(struct wmOperatorType *ot);
 
 /* ----------- */
 

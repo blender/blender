@@ -2746,3 +2746,92 @@ void GRAPH_OT_driver_variables_paste(wmOperatorType *ot)
 }
 
 /* ************************************************************************** */
+typedef struct InvalidDriverInfo {
+	struct InvalidDriverInfo *next, *prev;
+	ID *id;
+	FCurve *fcu;
+} InvalidDriverInfo;
+
+static int graph_driver_delete_invalid_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	ListBase anim_data = {NULL, NULL};
+	ListBase to_delete = {NULL, NULL};
+	bAnimListElem *ale;
+	InvalidDriverInfo *idi;
+	int filter;
+	bool ok = false;
+	unsigned int deleted = 0;
+
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+
+	/* NOTE: we might need a scene update to evaluate the driver flags */
+
+	/* filter data */
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+
+	/* find invalid drivers */
+	for (ale = anim_data.first; ale; ale = ale->next) {
+		FCurve *fcu = (FCurve *)ale->data;
+		if (ELEM(NULL, fcu, fcu->driver)) {
+			continue;
+		}
+		if (!(fcu->driver->flag & DRIVER_FLAG_INVALID)) {
+			continue;
+		}
+
+		/* remember in a separate list so we don't iterate over the same collection we modify */
+		idi = MEM_callocN(sizeof(InvalidDriverInfo), "invalid driver info");
+		BLI_assert(idi != NULL);
+		idi->id = ale->id;
+		idi->fcu = fcu;
+		BLI_addtail(&to_delete, idi);
+	}
+
+	/* delete invalid drivers */
+	for (idi = to_delete.first; idi; idi = idi->next) {
+		ok |= ANIM_remove_driver(op->reports, idi->id, idi->fcu->rna_path, idi->fcu->array_index, 0);
+		if (!ok) {
+			break;
+		}
+		deleted += 1;
+	}
+
+	/* cleanup */
+	BLI_freelistN(&to_delete);
+	ANIM_animdata_freelist(&anim_data);
+
+	if (deleted > 0) {
+		/* notify the world of any changes */
+		DAG_relations_tag_update(CTX_data_main(C));
+		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_REMOVED, NULL);
+		WM_reportf(RPT_INFO, "Deleted %u drivers", deleted);
+	} else {
+		WM_report(RPT_INFO, "No drivers deleted");
+	}
+
+	/* successful or not? */
+	if (!ok) {
+		return OPERATOR_CANCELLED;
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void GRAPH_OT_driver_delete_invalid(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Delete Invalid Drivers";
+	ot->idname = "GRAPH_OT_driver_delete_invalid";
+	ot->description = "Deletes all visible drivers considered invalid";
+
+	/* api callbacks */
+	ot->exec = graph_driver_delete_invalid_exec;
+	ot->poll = graphop_visible_keyframes_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
