@@ -2747,19 +2747,12 @@ void GRAPH_OT_driver_variables_paste(wmOperatorType *ot)
 }
 
 /* ************************************************************************** */
-typedef struct InvalidDriverInfo {
-	struct InvalidDriverInfo *next, *prev;
-	ID *id;
-	FCurve *fcu;
-} InvalidDriverInfo;
 
 static int graph_driver_delete_invalid_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
 	ListBase anim_data = {NULL, NULL};
-	ListBase to_delete = {NULL, NULL};
 	bAnimListElem *ale;
-	InvalidDriverInfo *idi;
 	int filter;
 	bool ok = false;
 	unsigned int deleted = 0;
@@ -2771,7 +2764,7 @@ static int graph_driver_delete_invalid_exec(bContext *C, wmOperator *op)
 	/* NOTE: we might need a scene update to evaluate the driver flags */
 
 	/* filter data */
-	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE);
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
 	/* find invalid drivers */
@@ -2784,17 +2777,7 @@ static int graph_driver_delete_invalid_exec(bContext *C, wmOperator *op)
 			continue;
 		}
 
-		/* remember in a separate list so we don't iterate over the same collection we modify */
-		idi = MEM_callocN(sizeof(InvalidDriverInfo), "invalid driver info");
-		BLI_assert(idi != NULL);
-		idi->id = ale->id;
-		idi->fcu = fcu;
-		BLI_addtail(&to_delete, idi);
-	}
-
-	/* delete invalid drivers */
-	for (idi = to_delete.first; idi; idi = idi->next) {
-		ok |= ANIM_remove_driver(op->reports, idi->id, idi->fcu->rna_path, idi->fcu->array_index, 0);
+		ok |= ANIM_remove_driver(op->reports, ale->id, fcu->rna_path, fcu->array_index, 0);
 		if (!ok) {
 			break;
 		}
@@ -2802,7 +2785,6 @@ static int graph_driver_delete_invalid_exec(bContext *C, wmOperator *op)
 	}
 
 	/* cleanup */
-	BLI_freelistN(&to_delete);
 	ANIM_animdata_freelist(&anim_data);
 
 	if (deleted > 0) {
