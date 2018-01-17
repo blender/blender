@@ -2167,11 +2167,10 @@ static Gwn_VertBuf *mesh_batch_cache_get_facedot_pos_with_normals_and_flag(
 			}
 		}
 		const int vbo_len_used = vidx;
+		BLI_assert(vbo_len_used <= vbo_len_capacity);
 		if (vbo_len_used != vbo_len_capacity) {
 			GWN_vertbuf_data_resize(vbo, vbo_len_used);
 		}
-		BLI_assert(vbo_len_capacity == vbo_len_used);
-		UNUSED_VARS_NDEBUG(vbo_len_used);
 	}
 
 	return cache->ed_fcenter_pos_with_nor_and_sel;
