@@ -376,7 +376,7 @@ static void imb_read_tiff_resolution(ImBuf *ibuf, TIFF *image)
  */
 static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
 {
-	ImBuf *tmpibuf;
+	ImBuf *tmpibuf = NULL;
 	int success = 0;
 	short bitspersample, spp, config;
 	size_t scanline;
@@ -412,16 +412,25 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
 	if (bitspersample == 32) {
 		ib_flag = IB_rectfloat;
 		fbuf = (float *)_TIFFmalloc(scanline);
+		if (!fbuf) {
+			goto cleanup;
+		}
 	}
 	else if (bitspersample == 16) {
 		ib_flag = IB_rectfloat;
 		sbuf = (unsigned short *)_TIFFmalloc(scanline);
+		if (!sbuf) {
+			goto cleanup;
+		}
 	}
 	else {
 		ib_flag = IB_rect;
 	}
 	
 	tmpibuf = IMB_allocImBuf(ibuf->x, ibuf->y, ibuf->planes, ib_flag);
+	if (!tmpibuf) {
+		goto cleanup;
+	}
 	
 	/* simple RGBA image */
 	if (!(bitspersample == 32 || bitspersample == 16)) {
@@ -430,7 +439,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
 	/* contiguous channels: RGBRGBRGB */
 	else if (config == PLANARCONFIG_CONTIG) {
 		for (row = 0; row < ibuf->y; row++) {
-			int ib_offset = ibuf->x * ibuf->y * 4 - ibuf->x * 4 * (row + 1);
+			size_t ib_offset = (size_t)ibuf->x * 4 * ((size_t)ibuf->y - ((size_t)row + 1));
 		
 			if (bitspersample == 32) {
 				success |= TIFFReadScanline(image, fbuf, row, 0);
@@ -450,7 +459,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
 		 * but only fill in from the TIFF scanline where necessary. */
 		for (chan = 0; chan < 4; chan++) {
 			for (row = 0; row < ibuf->y; row++) {
-				int ib_offset = ibuf->x * ibuf->y * 4 - ibuf->x * 4 * (row + 1);
+				size_t ib_offset = (size_t)ibuf->x * 4 * ((size_t)ibuf->y - ((size_t)row + 1));
 				
 				if (bitspersample == 32) {
 					if (chan == 3 && spp == 3) /* fill alpha if only RGB TIFF */
@@ -475,11 +484,6 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
 			}
 		}
 	}
-	
-	if (bitspersample == 32)
-		_TIFFfree(fbuf);
-	else if (bitspersample == 16)
-		_TIFFfree(sbuf);
 
 	if (success) {
 		/* Code seems to be not needed for 16 bits tif, on PPC G5 OSX (ton) */
@@ -497,6 +501,12 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
 		
 		tmpibuf->mall &= ~ib_flag;
 	}
+
+cleanup:
+	if (bitspersample == 32)
+		_TIFFfree(fbuf);
+	else if (bitspersample == 16)
+		_TIFFfree(sbuf);
 
 	IMB_freeImBuf(tmpibuf);
 	

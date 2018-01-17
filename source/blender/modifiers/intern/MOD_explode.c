@@ -119,9 +119,9 @@ static void createFacepa(ExplodeModifierData *emd,
 	if (emd->facepa)
 		MEM_freeN(emd->facepa);
 
-	facepa = emd->facepa = MEM_callocN(sizeof(int) * totface, "explode_facepa");
+	facepa = emd->facepa = MEM_calloc_arrayN(totface, sizeof(int), "explode_facepa");
 
-	vertpa = MEM_callocN(sizeof(int) * totvert, "explode_vertpa");
+	vertpa = MEM_calloc_arrayN(totvert, sizeof(int), "explode_vertpa");
 
 	/* initialize all faces & verts to no particle */
 	for (i = 0; i < totface; i++)
@@ -557,8 +557,8 @@ static DerivedMesh *cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 	int totvert = dm->getNumVerts(dm);
 	int totface = dm->getNumTessFaces(dm);
 
-	int *facesplit = MEM_callocN(sizeof(int) * totface, "explode_facesplit");
-	int *vertpa = MEM_callocN(sizeof(int) * totvert, "explode_vertpa2");
+	int *facesplit = MEM_calloc_arrayN(totface, sizeof(int), "explode_facesplit");
+	int *vertpa = MEM_calloc_arrayN(totvert, sizeof(int), "explode_vertpa2");
 	int *facepa = emd->facepa;
 	int *fs, totesplit = 0, totfsplit = 0, curdupface = 0;
 	int i, v1, v2, v3, v4, esplit,
@@ -656,7 +656,7 @@ static DerivedMesh *cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 	 * later interpreted as tri's, for this to work right I think we probably
 	 * have to stop using tessface - campbell */
 
-	facepa = MEM_callocN(sizeof(int) * (totface + (totfsplit * 2)), "explode_facepa");
+	facepa = MEM_calloc_arrayN((totface + (totfsplit * 2)), sizeof(int), "explode_facepa");
 	//memcpy(facepa, emd->facepa, totface*sizeof(int));
 	emd->facepa = facepa;
 

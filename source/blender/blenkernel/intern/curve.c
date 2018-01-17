@@ -169,12 +169,12 @@ void BKE_curve_init(Curve *cu)
 	if (cu->type == OB_FONT) {
 		cu->vfont = cu->vfontb = cu->vfonti = cu->vfontbi = BKE_vfont_builtin_get();
 		cu->vfont->id.us += 4;
-		cu->str = MEM_mallocN(12, "str");
+		cu->str = MEM_malloc_arrayN(12, sizeof(unsigned char), "str");
 		BLI_strncpy(cu->str, "Text", 12);
 		cu->len = cu->len_wchar = cu->pos = 4;
-		cu->strinfo = MEM_callocN(12 * sizeof(CharInfo), "strinfo new");
+		cu->strinfo = MEM_calloc_arrayN(12, sizeof(CharInfo), "strinfo new");
 		cu->totbox = cu->actbox = 1;
-		cu->tb = MEM_callocN(MAXTEXTBOX * sizeof(TextBox), "textbox");
+		cu->tb = MEM_calloc_arrayN(MAXTEXTBOX, sizeof(TextBox), "textbox");
 		cu->tb[0].w = cu->tb[0].h = 0.0;
 	}
 }
@@ -481,13 +481,13 @@ Nurb *BKE_nurb_duplicate(const Nurb *nu)
 
 	if (nu->bezt) {
 		newnu->bezt =
-		    (BezTriple *)MEM_mallocN((nu->pntsu) * sizeof(BezTriple), "duplicateNurb2");
+		    (BezTriple *)MEM_malloc_arrayN(nu->pntsu, sizeof(BezTriple), "duplicateNurb2");
 		memcpy(newnu->bezt, nu->bezt, nu->pntsu * sizeof(BezTriple));
 	}
 	else {
 		len = nu->pntsu * nu->pntsv;
 		newnu->bp =
-		    (BPoint *)MEM_mallocN((len) * sizeof(BPoint), "duplicateNurb3");
+		    (BPoint *)MEM_malloc_arrayN(len, sizeof(BPoint), "duplicateNurb3");
 		memcpy(newnu->bp, nu->bp, len * sizeof(BPoint));
 
 		newnu->knotsu = newnu->knotsv = NULL;
@@ -495,14 +495,14 @@ Nurb *BKE_nurb_duplicate(const Nurb *nu)
 		if (nu->knotsu) {
 			len = KNOTSU(nu);
 			if (len) {
-				newnu->knotsu = MEM_mallocN(len * sizeof(float), "duplicateNurb4");
+				newnu->knotsu = MEM_malloc_arrayN(len, sizeof(float), "duplicateNurb4");
 				memcpy(newnu->knotsu, nu->knotsu, sizeof(float) * len);
 			}
 		}
 		if (nu->pntsv > 1 && nu->knotsv) {
 			len = KNOTSV(nu);
 			if (len) {
-				newnu->knotsv = MEM_mallocN(len * sizeof(float), "duplicateNurb5");
+				newnu->knotsv = MEM_malloc_arrayN(len, sizeof(float), "duplicateNurb5");
 				memcpy(newnu->knotsv, nu->knotsv, sizeof(float) * len);
 			}
 		}
@@ -525,10 +525,10 @@ Nurb *BKE_nurb_copy(Nurb *src, int pntsu, int pntsv)
 	newnu->knotsv = NULL;
 
 	if (src->bezt) {
-		newnu->bezt = (BezTriple *)MEM_mallocN(pntsu * pntsv * sizeof(BezTriple), "copyNurb2");
+		newnu->bezt = (BezTriple *)MEM_malloc_arrayN(pntsu * pntsv, sizeof(BezTriple), "copyNurb2");
 	}
 	else {
-		newnu->bp = (BPoint *)MEM_mallocN(pntsu * pntsv * sizeof(BPoint), "copyNurb3");
+		newnu->bp = (BPoint *)MEM_malloc_arrayN(pntsu * pntsv, sizeof(BPoint), "copyNurb3");
 	}
 
 	return newnu;
@@ -975,7 +975,7 @@ static void makeknots(Nurb *nu, short uv)
 			if (nu->knotsu)
 				MEM_freeN(nu->knotsu);
 			if (BKE_nurb_check_valid_u(nu)) {
-				nu->knotsu = MEM_callocN(4 + sizeof(float) * KNOTSU(nu), "makeknots");
+				nu->knotsu = MEM_calloc_arrayN(KNOTSU(nu) + 1, sizeof(float), "makeknots");
 				if (nu->flagu & CU_NURB_CYCLIC) {
 					calcknots(nu->knotsu, nu->pntsu, nu->orderu, 0);  /* cyclic should be uniform */
 					makecyclicknots(nu->knotsu, nu->pntsu, nu->orderu);
@@ -991,7 +991,7 @@ static void makeknots(Nurb *nu, short uv)
 			if (nu->knotsv)
 				MEM_freeN(nu->knotsv);
 			if (BKE_nurb_check_valid_v(nu)) {
-				nu->knotsv = MEM_callocN(4 + sizeof(float) * KNOTSV(nu), "makeknots");
+				nu->knotsv = MEM_calloc_arrayN(KNOTSV(nu) + 1, sizeof(float), "makeknots");
 				if (nu->flagv & CU_NURB_CYCLIC) {
 					calcknots(nu->knotsv, nu->pntsv, nu->orderv, 0);  /* cyclic should be uniform */
 					makecyclicknots(nu->knotsv, nu->pntsv, nu->orderv);
@@ -1108,7 +1108,7 @@ void BKE_nurb_makeFaces(Nurb *nu, float *coord_array, int rowstride, int resolu,
 	if (len == 0)
 		return;
 
-	sum = (float *)MEM_callocN(sizeof(float) * len, "makeNurbfaces1");
+	sum = (float *)MEM_calloc_arrayN(len, sizeof(float), "makeNurbfaces1");
 
 	bp = nu->bp;
 	i = nu->pntsu * nu->pntsv;
@@ -1129,7 +1129,7 @@ void BKE_nurb_makeFaces(Nurb *nu, float *coord_array, int rowstride, int resolu,
 		uend = fp[nu->pntsu];
 	ustep = (uend - ustart) / ((nu->flagu & CU_NURB_CYCLIC) ? totu : totu - 1);
 
-	basisu = (float *)MEM_mallocN(sizeof(float) * KNOTSU(nu), "makeNurbfaces3");
+	basisu = (float *)MEM_malloc_arrayN(KNOTSU(nu), sizeof(float), "makeNurbfaces3");
 
 	fp = nu->knotsv;
 	vstart = fp[nu->orderv - 1];
@@ -1141,9 +1141,9 @@ void BKE_nurb_makeFaces(Nurb *nu, float *coord_array, int rowstride, int resolu,
 	vstep = (vend - vstart) / ((nu->flagv & CU_NURB_CYCLIC) ? totv : totv - 1);
 
 	len = KNOTSV(nu);
-	basisv = (float *)MEM_mallocN(sizeof(float) * len * totv, "makeNurbfaces3");
-	jstart = (int *)MEM_mallocN(sizeof(float) * totv, "makeNurbfaces4");
-	jend = (int *)MEM_mallocN(sizeof(float) * totv, "makeNurbfaces5");
+	basisv = (float *)MEM_malloc_arrayN(len * totv, sizeof(float), "makeNurbfaces3");
+	jstart = (int *)MEM_malloc_arrayN(totv, sizeof(float), "makeNurbfaces4");
+	jend = (int *)MEM_malloc_arrayN(totv, sizeof(float), "makeNurbfaces5");
 
 	/* precalculation of basisv and jstart, jend */
 	if (nu->flagv & CU_NURB_CYCLIC)
@@ -1281,7 +1281,7 @@ void BKE_nurb_makeCurve(Nurb *nu, float *coord_array, float *tilt_array, float *
 	len = nu->pntsu;
 	if (len == 0)
 		return;
-	sum = (float *)MEM_callocN(sizeof(float) * len, "makeNurbcurve1");
+	sum = (float *)MEM_calloc_arrayN(len, sizeof(float), "makeNurbcurve1");
 
 	resolu = (resolu * SEGMENTSU(nu));
 
@@ -1298,7 +1298,7 @@ void BKE_nurb_makeCurve(Nurb *nu, float *coord_array, float *tilt_array, float *
 		uend = fp[nu->pntsu];
 	ustep = (uend - ustart) / (resolu - ((nu->flagu & CU_NURB_CYCLIC) ? 0 : 1));
 
-	basisu = (float *)MEM_mallocN(sizeof(float) * KNOTSU(nu), "makeNurbcurve3");
+	basisu = (float *)MEM_malloc_arrayN(KNOTSU(nu), sizeof(float), "makeNurbcurve3");
 
 	if (nu->flagu & CU_NURB_CYCLIC)
 		cycl = nu->orderu - 1;
@@ -1549,7 +1549,7 @@ float *BKE_curve_surf_make_orco(Object *ob)
 		nu = nu->next;
 	}
 	/* makeNurbfaces wants zeros */
-	fp = coord_array = MEM_callocN(3 * sizeof(float) * tot, "make_orco");
+	fp = coord_array = MEM_calloc_arrayN(tot, 3 * sizeof(float), "make_orco");
 
 	nu = cu->nurb.first;
 	while (nu) {
@@ -1660,7 +1660,7 @@ float *BKE_curve_make_orco(const EvaluationContext *eval_ctx, Scene *scene, Obje
 	if (r_numVerts)
 		*r_numVerts = numVerts;
 
-	fp = coord_array = MEM_mallocN(3 * sizeof(float) * numVerts, "cu_orco");
+	fp = coord_array = MEM_malloc_arrayN(numVerts, 3 * sizeof(float), "cu_orco");
 	for (dl = disp.first; dl; dl = dl->next) {
 		if (dl->type == DL_INDEX3) {
 			for (u = 0; u < dl->nr; u++, fp += 3) {
@@ -1764,7 +1764,7 @@ void BKE_curve_bevel_make(
 				if (ELEM(dl->type, DL_POLY, DL_SEGM)) {
 					dlnew = MEM_mallocN(sizeof(DispList), "makebevelcurve1");
 					*dlnew = *dl;
-					dlnew->verts = MEM_mallocN(3 * sizeof(float) * dl->parts * dl->nr, "makebevelcurve1");
+					dlnew->verts = MEM_malloc_arrayN(dl->parts * dl->nr, 3 * sizeof(float), "makebevelcurve1");
 					memcpy(dlnew->verts, dl->verts, 3 * sizeof(float) * dl->parts * dl->nr);
 
 					if (dlnew->type == DL_SEGM)
@@ -1791,7 +1791,7 @@ void BKE_curve_bevel_make(
 	}
 	else if (cu->ext2 == 0.0f) {
 		dl = MEM_callocN(sizeof(DispList), "makebevelcurve2");
-		dl->verts = MEM_mallocN(2 * sizeof(float[3]), "makebevelcurve2");
+		dl->verts = MEM_malloc_arrayN(2, sizeof(float[3]), "makebevelcurve2");
 		BLI_addtail(disp, dl);
 		dl->type = DL_SEGM;
 		dl->parts = 1;
@@ -1808,7 +1808,7 @@ void BKE_curve_bevel_make(
 		nr = 4 + 2 * cu->bevresol;
 
 		dl = MEM_callocN(sizeof(DispList), "makebevelcurve p1");
-		dl->verts = MEM_mallocN(nr * sizeof(float[3]), "makebevelcurve p1");
+		dl->verts = MEM_malloc_arrayN(nr, sizeof(float[3]), "makebevelcurve p1");
 		BLI_addtail(disp, dl);
 		dl->type = DL_POLY;
 		dl->parts = 1;
@@ -1840,7 +1840,7 @@ void BKE_curve_bevel_make(
 				nr = 3 + 2 * cu->bevresol;
 			}
 			dl = MEM_callocN(sizeof(DispList), "makebevelcurve p1");
-			dl->verts = MEM_mallocN(nr * sizeof(float[3]), "makebevelcurve p1");
+			dl->verts = MEM_malloc_arrayN(nr, sizeof(float[3]), "makebevelcurve p1");
 			BLI_addtail(disp, dl);
 			dl->type = DL_SEGM;
 			dl->parts = 1;
@@ -1866,7 +1866,7 @@ void BKE_curve_bevel_make(
 			nr = 2;
 
 			dl = MEM_callocN(sizeof(DispList), "makebevelcurve p2");
-			dl->verts = MEM_mallocN(nr * sizeof(float[3]), "makebevelcurve p2");
+			dl->verts = MEM_malloc_arrayN(nr, sizeof(float[3]), "makebevelcurve p2");
 			BLI_addtail(disp, dl);
 			dl->type = DL_SEGM;
 			dl->parts = 1;
@@ -1898,7 +1898,7 @@ void BKE_curve_bevel_make(
 				nr = 3 + 2 * cu->bevresol;
 			}
 			dl = MEM_callocN(sizeof(DispList), "makebevelcurve p3");
-			dl->verts = MEM_mallocN(nr * sizeof(float[3]), "makebevelcurve p3");
+			dl->verts = MEM_malloc_arrayN(nr, sizeof(float[3]), "makebevelcurve p3");
 			BLI_addtail(disp, dl);
 			dl->type = DL_SEGM;
 			dl->flag = DL_FRONT_CURVE;
@@ -2692,7 +2692,8 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 		/* check we are a single point? also check we are not a surface and that the orderu is sane,
 		 * enforced in the UI but can go wrong possibly */
 		if (!BKE_nurb_check_valid_u(nu)) {
-			bl = MEM_callocN(sizeof(BevList) + 1 * sizeof(BevPoint), "makeBevelList1");
+			bl = MEM_callocN(sizeof(BevList), "makeBevelList1");
+			bl->bevpoints = MEM_calloc_arrayN(1, sizeof(BevPoint), "makeBevelPoints1");
 			BLI_addtail(bev, bl);
 			bl->nr = 0;
 			bl->charidx = nu->charidx;
@@ -2709,10 +2710,11 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 
 			if (nu->type == CU_POLY) {
 				len = nu->pntsu;
-				bl = MEM_callocN(sizeof(BevList) + len * sizeof(BevPoint), "makeBevelList2");
+				bl = MEM_callocN(sizeof(BevList), "makeBevelList2");
+				bl->bevpoints = MEM_calloc_arrayN(len, sizeof(BevPoint), "makeBevelPoints2");
 				if (need_seglen && (nu->flagu & CU_NURB_CYCLIC) == 0) {
-					bl->seglen = MEM_mallocN(segcount * sizeof(float), "makeBevelList2_seglen");
-					bl->segbevcount = MEM_mallocN(segcount * sizeof(int), "makeBevelList2_segbevcount");
+					bl->seglen = MEM_malloc_arrayN(segcount, sizeof(float), "makeBevelList2_seglen");
+					bl->segbevcount = MEM_malloc_arrayN(segcount, sizeof(int), "makeBevelList2_segbevcount");
 				}
 				BLI_addtail(bev, bl);
 
@@ -2755,10 +2757,11 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 				/* in case last point is not cyclic */
 				len = segcount * resolu + 1;
 
-				bl = MEM_callocN(sizeof(BevList) + len * sizeof(BevPoint), "makeBevelBPoints");
+				bl = MEM_callocN(sizeof(BevList), "makeBevelBPoints");
+				bl->bevpoints = MEM_calloc_arrayN(len, sizeof(BevPoint), "makeBevelBPointsPoints");
 				if (need_seglen && (nu->flagu & CU_NURB_CYCLIC) == 0) {
-					bl->seglen = MEM_mallocN(segcount * sizeof(float), "makeBevelBPoints_seglen");
-					bl->segbevcount = MEM_mallocN(segcount * sizeof(int), "makeBevelBPoints_segbevcount");
+					bl->seglen = MEM_malloc_arrayN(segcount, sizeof(float), "makeBevelBPoints_seglen");
+					bl->segbevcount = MEM_malloc_arrayN(segcount, sizeof(int), "makeBevelBPoints_segbevcount");
 				}
 				BLI_addtail(bev, bl);
 
@@ -2891,10 +2894,11 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 				if (nu->pntsv == 1) {
 					len = (resolu * segcount);
 
-					bl = MEM_callocN(sizeof(BevList) + len * sizeof(BevPoint), "makeBevelList3");
+					bl = MEM_callocN(sizeof(BevList), "makeBevelList3");
+					bl->bevpoints = MEM_calloc_arrayN(len, sizeof(BevPoint), "makeBevelPoints3");
 					if (need_seglen && (nu->flagu & CU_NURB_CYCLIC) == 0) {
-						bl->seglen = MEM_mallocN(segcount * sizeof(float), "makeBevelList3_seglen");
-						bl->segbevcount = MEM_mallocN(segcount * sizeof(int), "makeBevelList3_segbevcount");
+						bl->seglen = MEM_malloc_arrayN(segcount, sizeof(float), "makeBevelList3_seglen");
+						bl->segbevcount = MEM_malloc_arrayN(segcount, sizeof(int), "makeBevelList3_segbevcount");
 					}
 					BLI_addtail(bev, bl);
 					bl->nr = len;
@@ -2989,8 +2993,13 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 		blnext = bl->next;
 		if (bl->nr && bl->dupe_nr) {
 			nr = bl->nr - bl->dupe_nr + 1;  /* +1 because vectorbezier sets flag too */
-			blnew = MEM_mallocN(sizeof(BevList) + nr * sizeof(BevPoint), "makeBevelList4");
+			blnew = MEM_callocN(sizeof(BevList), "makeBevelList4");
 			memcpy(blnew, bl, sizeof(BevList));
+			blnew->bevpoints = MEM_calloc_arrayN(nr, sizeof(BevPoint), "makeBevelPoints4");
+			if (!blnew->bevpoints) {
+				MEM_freeN(blnew);
+				break;
+			}
 			blnew->segbevcount = bl->segbevcount;
 			blnew->seglen = bl->seglen;
 			blnew->nr = 0;
@@ -3006,6 +3015,9 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 					blnew->nr++;
 				}
 				bevp0++;
+			}
+			if (bl->bevpoints != NULL) {
+				MEM_freeN(bl->bevpoints);
 			}
 			MEM_freeN(bl);
 			blnew->dupe_nr = 0;
@@ -3027,7 +3039,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 
 	/* find extreme left points, also test (turning) direction */
 	if (poly > 0) {
-		sd = sortdata = MEM_mallocN(sizeof(struct BevelSort) * poly, "makeBevelList5");
+		sd = sortdata = MEM_malloc_arrayN(poly, sizeof(struct BevelSort), "makeBevelList5");
 		bl = bev->first;
 		while (bl) {
 			if (bl->poly > 0) {
@@ -3445,7 +3457,7 @@ static void calchandlesNurb_intern(Nurb *nu, bool skip_align)
  */
 static void *allocate_arrays(int count, float ***floats, char ***chars, const char *name)
 {
-	int num_floats = 0, num_chars = 0;
+	size_t num_floats = 0, num_chars = 0;
 
 	while (floats && floats[num_floats]) {
 		num_floats++;
@@ -3455,7 +3467,7 @@ static void *allocate_arrays(int count, float ***floats, char ***chars, const ch
 		num_chars++;
 	}
 
-	void *buffer = (float *)MEM_mallocN(count * (sizeof(float) * num_floats + num_chars), name);
+	void *buffer = (float *)MEM_malloc_arrayN(count, (sizeof(float) * num_floats + num_chars), name);
 
 	if (!buffer)
 		return NULL;
@@ -4429,7 +4441,7 @@ void BKE_nurb_direction_switch(Nurb *nu)
 				/* and make in increasing order again */
 				a = KNOTSU(nu);
 				fp1 = nu->knotsu;
-				fp2 = tempf = MEM_mallocN(sizeof(float) * a, "switchdirect");
+				fp2 = tempf = MEM_malloc_arrayN(a, sizeof(float), "switchdirect");
 				a--;
 				fp2[a] = fp1[a];
 				while (a--) {
@@ -4473,7 +4485,7 @@ void BKE_nurb_direction_switch(Nurb *nu)
 float (*BKE_curve_nurbs_vertexCos_get(ListBase *lb, int *r_numVerts))[3]
 {
 	int i, numVerts = *r_numVerts = BKE_nurbList_verts_count(lb);
-	float *co, (*cos)[3] = MEM_mallocN(sizeof(*cos) * numVerts, "cu_vcos");
+	float *co, (*cos)[3] = MEM_malloc_arrayN(numVerts, sizeof(*cos), "cu_vcos");
 	Nurb *nu;
 
 	co = cos[0];
@@ -4530,7 +4542,7 @@ void BK_curve_nurbs_vertexCos_apply(ListBase *lb, float (*vertexCos)[3])
 float (*BKE_curve_nurbs_keyVertexCos_get(ListBase *lb, float *key))[3]
 {
 	int i, numVerts = BKE_nurbList_verts_count(lb);
-	float *co, (*cos)[3] = MEM_mallocN(sizeof(*cos) * numVerts, "cu_vcos");
+	float *co, (*cos)[3] = MEM_malloc_arrayN(numVerts, sizeof(*cos), "cu_vcos");
 	Nurb *nu;
 
 	co = cos[0];
@@ -4677,7 +4689,7 @@ bool BKE_nurb_type_convert(Nurb *nu, const short type, const bool use_handles)
 	if (nu->type == CU_POLY) {
 		if (type == CU_BEZIER) {  /* to Bezier with vecthandles  */
 			nr = nu->pntsu;
-			bezt = (BezTriple *)MEM_callocN(nr * sizeof(BezTriple), "setsplinetype2");
+			bezt = (BezTriple *)MEM_calloc_arrayN(nr, sizeof(BezTriple), "setsplinetype2");
 			nu->bezt = bezt;
 			a = nr;
 			bp = nu->bp;
@@ -4713,7 +4725,7 @@ bool BKE_nurb_type_convert(Nurb *nu, const short type, const bool use_handles)
 	else if (nu->type == CU_BEZIER) {   /* Bezier */
 		if (type == CU_POLY || type == CU_NURBS) {
 			nr = use_handles ? (3 * nu->pntsu) : nu->pntsu;
-			nu->bp = MEM_callocN(nr * sizeof(BPoint), "setsplinetype");
+			nu->bp = MEM_calloc_arrayN(nr, sizeof(BPoint), "setsplinetype");
 			a = nu->pntsu;
 			bezt = nu->bezt;
 			bp = nu->bp;
@@ -4776,7 +4788,7 @@ bool BKE_nurb_type_convert(Nurb *nu, const short type, const bool use_handles)
 				return false;  /* conversion impossible */
 			}
 			else {
-				bezt = MEM_callocN(nr * sizeof(BezTriple), "setsplinetype2");
+				bezt = MEM_calloc_arrayN(nr, sizeof(BezTriple), "setsplinetype2");
 				nu->bezt = bezt;
 				a = nr;
 				bp = nu->bp;

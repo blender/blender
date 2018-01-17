@@ -37,24 +37,28 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "IMB_imbuf.h"
+
 #include "AVI_avi.h"
 #include "avi_rgb32.h"
 
-void *avi_converter_from_rgb32(AviMovie *movie, int stream, unsigned char *buffer, int *size)
+void *avi_converter_from_rgb32(AviMovie *movie, int stream, unsigned char *buffer, size_t *size)
 {
-	int y, x, rowstridea, rowstrideb;
 	unsigned char *buf;
 
 	(void)stream; /* unused */
 
-	buf = MEM_mallocN(movie->header->Height * movie->header->Width * 3, "fromrgb32buf");
-	*size = movie->header->Height * movie->header->Width * 3;
+	*size = (size_t)movie->header->Height * (size_t)movie->header->Width * 3;
+	buf = imb_alloc_pixels(movie->header->Height, movie->header->Width, 3, sizeof(unsigned char), "fromrgb32buf");
+	if (!buf) {
+		return NULL;
+	}
 
-	rowstridea = movie->header->Width * 3;
-	rowstrideb = movie->header->Width * 4;
+	size_t rowstridea = movie->header->Width * 3;
+	size_t rowstrideb = movie->header->Width * 4;
 
-	for (y = 0; y < movie->header->Height; y++) {
-		for (x = 0; x < movie->header->Width; x++) {
+	for (size_t y = 0; y < movie->header->Height; y++) {
+		for (size_t x = 0; x < movie->header->Width; x++) {
 			buf[y * rowstridea + x * 3 + 0] = buffer[y * rowstrideb + x * 4 + 3];
 			buf[y * rowstridea + x * 3 + 1] = buffer[y * rowstrideb + x * 4 + 2];
 			buf[y * rowstridea + x * 3 + 2] = buffer[y * rowstrideb + x * 4 + 1];
@@ -66,21 +70,23 @@ void *avi_converter_from_rgb32(AviMovie *movie, int stream, unsigned char *buffe
 	return buf;
 }
 
-void *avi_converter_to_rgb32(AviMovie *movie, int stream, unsigned char *buffer, int *size)
+void *avi_converter_to_rgb32(AviMovie *movie, int stream, unsigned char *buffer, size_t *size)
 {
-	int i;
 	unsigned char *buf;
 	unsigned char *to, *from;
 
 	(void)stream; /* unused */
 
-	*size = movie->header->Height * movie->header->Width * 4;
-	buf = MEM_mallocN(*size, "torgb32buf");
+	*size = (size_t)movie->header->Height * (size_t)movie->header->Width * 4;
+	buf = imb_alloc_pixels(movie->header->Height, movie->header->Width, 3, sizeof(unsigned char), "torgb32buf");
+	if (!buf) {
+		return NULL;
+	}
 
 	memset(buf, 255, *size);
 
 	to = buf; from = buffer;
-	i = movie->header->Height * movie->header->Width;
+	size_t i = (size_t)movie->header->Height * (size_t)movie->header->Width;
 	
 	while (i--) {
 		memcpy(to, from, 3);

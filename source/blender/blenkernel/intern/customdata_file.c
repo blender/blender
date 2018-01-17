@@ -210,8 +210,12 @@ static int cdf_read_header(CDataFile *cdf)
 	if (fseek(f, offset, SEEK_SET) != 0)
 		return 0;
 
-	cdf->layer = MEM_callocN(sizeof(CDataFileLayer) * header->totlayer, "CDataFileLayer");
+	cdf->layer = MEM_calloc_arrayN(header->totlayer, sizeof(CDataFileLayer), "CDataFileLayer");
 	cdf->totlayer = header->totlayer;
+
+	if (!cdf->layer) {
+		return 0;
+	}
 
 	for (a = 0; a < header->totlayer; a++) {
 		layer = &cdf->layer[a];
@@ -429,7 +433,7 @@ CDataFileLayer *cdf_layer_add(CDataFile *cdf, int type, const char *name, size_t
 	CDataFileLayer *newlayer, *layer;
 
 	/* expand array */
-	newlayer = MEM_callocN(sizeof(CDataFileLayer) * (cdf->totlayer + 1), "CDataFileLayer");
+	newlayer = MEM_calloc_arrayN((cdf->totlayer + 1), sizeof(CDataFileLayer), "CDataFileLayer");
 	memcpy(newlayer, cdf->layer, sizeof(CDataFileLayer) * cdf->totlayer);
 	cdf->layer = newlayer;
 

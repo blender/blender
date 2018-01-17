@@ -102,10 +102,10 @@ static void smoothModifier_do(
 	unsigned char *uctmp;
 	float *ftmp, fac, facm;
 
-	ftmp = (float *)MEM_callocN(3 * sizeof(float) * numVerts,
+	ftmp = (float *)MEM_calloc_arrayN(numVerts, 3 * sizeof(float),
 	                            "smoothmodifier_f");
 	if (!ftmp) return;
-	uctmp = (unsigned char *)MEM_callocN(sizeof(unsigned char) * numVerts,
+	uctmp = (unsigned char *)MEM_calloc_arrayN(numVerts, sizeof(unsigned char),
 	                                     "smoothmodifier_uc");
 	if (!uctmp) {
 		if (ftmp) MEM_freeN(ftmp);

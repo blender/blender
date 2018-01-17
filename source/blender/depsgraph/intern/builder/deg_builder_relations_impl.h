@@ -213,7 +213,7 @@ bool DepsgraphRelationBuilder::is_same_shapekey_dependency(
 		return false;
 	}
 	/* Check if this is actually a shape key datablock. */
-	if (GS(op_from->owner->owner->id->name) != ID_KE) {
+	if (GS(op_from->owner->owner->id_orig->name) != ID_KE) {
 		return false;
 	}
 	/* Different key data blocks. */

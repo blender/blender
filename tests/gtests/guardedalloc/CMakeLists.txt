@@ -35,3 +35,4 @@ set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${PLATFORM_LIN
 
 
 BLENDER_TEST(guardedalloc_alignment "")
+BLENDER_TEST(guardedalloc_overflow "")

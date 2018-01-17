@@ -526,7 +526,7 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
 	unsigned char *from, *to;
 	unsigned short *from16;
 	float *to_float;
-	int i, bytesperpixel;
+	unsigned int channels;
 
 	if (imb_is_a_png(mem) == 0) return(NULL);
 
@@ -571,7 +571,7 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
 	png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, 
 	             &color_type, NULL, NULL, NULL);
 
-	bytesperpixel = png_get_channels(png_ptr, info_ptr);
+	channels = png_get_channels(png_ptr, info_ptr);
 
 	switch (color_type) {
 		case PNG_COLOR_TYPE_RGB:
@@ -580,10 +580,10 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
 		case PNG_COLOR_TYPE_PALETTE:
 			png_set_palette_to_rgb(png_ptr);
 			if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)) {
-				bytesperpixel = 4;
+				channels = 4;
 			}
 			else {
-				bytesperpixel = 3;
+				channels = 3;
 			}
 			break;
 		case PNG_COLOR_TYPE_GRAY:
@@ -593,7 +593,7 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
 				bit_depth = 8;
 				if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)) {
 					/* PNG_COLOR_TYPE_GRAY may also have alpha 'values', like with palette. */
-					bytesperpixel = 2;
+					channels = 2;
 				}
 			}
 			break;
@@ -602,7 +602,7 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
 			longjmp(png_jmpbuf(png_ptr), 1);
 	}
 	
-	ibuf = IMB_allocImBuf(width, height, 8 * bytesperpixel, 0);
+	ibuf = IMB_allocImBuf(width, height, 8 * channels, 0);
 
 	if (ibuf) {
 		ibuf->ftype = IMB_FTYPE_PNG;
@@ -630,23 +630,23 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
 			imb_addrectfloatImBuf(ibuf);
 			png_set_swap(png_ptr);
 
-			pixels16 = MEM_mallocN(ibuf->x * ibuf->y * bytesperpixel * sizeof(png_uint_16), "pixels");
-			if (pixels16 == NULL) {
+			pixels16 = imb_alloc_pixels(ibuf->x, ibuf->y, channels, sizeof(png_uint_16), "pixels");
+			if (pixels16 == NULL || ibuf->rect_float == NULL) {
 				printf("Cannot allocate pixels array\n");
 				longjmp(png_jmpbuf(png_ptr), 1);
 			}
 
 			/* allocate memory for an array of row-pointers */
-			row_pointers = (png_bytepp) MEM_mallocN(ibuf->y * sizeof(png_uint_16p), "row_pointers");
+			row_pointers = (png_bytepp) MEM_mallocN((size_t)ibuf->y * sizeof(png_uint_16p), "row_pointers");
 			if (row_pointers == NULL) {
 				printf("Cannot allocate row-pointers array\n");
 				longjmp(png_jmpbuf(png_ptr), 1);
 			}
 
 			/* set the individual row-pointers to point at the correct offsets */
-			for (i = 0; i < ibuf->y; i++) {
+			for (size_t i = 0; i < ibuf->y; i++) {
 				row_pointers[ibuf->y - 1 - i] = (png_bytep)
-				                                ((png_uint_16 *)pixels16 + (i * ibuf->x) * bytesperpixel);
+				                                ((png_uint_16 *)pixels16 + (i * ibuf->x) * channels);
 			}
 
 			png_read_image(png_ptr, row_pointers);
@@ -656,9 +656,9 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
 			to_float = ibuf->rect_float;
 			from16 = pixels16;
 
-			switch (bytesperpixel) {
+			switch (channels) {
 				case 4:
-					for (i = ibuf->x * ibuf->y; i > 0; i--) {
+					for (size_t i = (size_t)ibuf->x * (size_t)ibuf->y; i > 0; i--) {
 						to_float[0] = from16[0] / 65535.0;
 						to_float[1] = from16[1] / 65535.0;
 						to_float[2] = from16[2] / 65535.0;
@@ -667,7 +667,7 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
 					}
 					break;
 				case 3:
-					for (i = ibuf->x * ibuf->y; i > 0; i--) {
+					for (size_t i = (size_t)ibuf->x * (size_t)ibuf->y; i > 0; i--) {
 						to_float[0] = from16[0] / 65535.0;
 						to_float[1] = from16[1] / 65535.0;
 						to_float[2] = from16[2] / 65535.0;
@@ -676,14 +676,14 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
 					}
 					break;
 				case 2:
-					for (i = ibuf->x * ibuf->y; i > 0; i--) {
+					for (size_t i = (size_t)ibuf->x * (size_t)ibuf->y; i > 0; i--) {
 						to_float[0] = to_float[1] = to_float[2] = from16[0] / 65535.0;
 						to_float[3] = from16[1] / 65535.0;
 						to_float += 4; from16 += 2;
 					}
 					break;
 				case 1:
-					for (i = ibuf->x * ibuf->y; i > 0; i--) {
+					for (size_t i = (size_t)ibuf->x * (size_t)ibuf->y; i > 0; i--) {
 						to_float[0] = to_float[1] = to_float[2] = from16[0] / 65535.0;
 						to_float[3] = 1.0;
 						to_float += 4; from16++;
@@ -694,23 +694,23 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
 		else {
 			imb_addrectImBuf(ibuf);
 
-			pixels = MEM_mallocN(((size_t)ibuf->x) * ibuf->y * bytesperpixel * sizeof(unsigned char), "pixels");
-			if (pixels == NULL) {
+			pixels = imb_alloc_pixels(ibuf->x, ibuf->y, channels, sizeof(unsigned char), "pixels");
+			if (pixels == NULL || ibuf->rect == NULL) {
 				printf("Cannot allocate pixels array\n");
 				longjmp(png_jmpbuf(png_ptr), 1);
 			}
 
 			/* allocate memory for an array of row-pointers */
-			row_pointers = (png_bytepp) MEM_mallocN(ibuf->y * sizeof(png_bytep), "row_pointers");
+			row_pointers = (png_bytepp) MEM_mallocN((size_t)ibuf->y * sizeof(png_bytep), "row_pointers");
 			if (row_pointers == NULL) {
 				printf("Cannot allocate row-pointers array\n");
 				longjmp(png_jmpbuf(png_ptr), 1);
 			}
 
 			/* set the individual row-pointers to point at the correct offsets */
-			for (i = 0; i < ibuf->y; i++) {
+			for (int i = 0; i < ibuf->y; i++) {
 				row_pointers[ibuf->y - 1 - i] = (png_bytep)
-				                                ((unsigned char *)pixels + (((size_t)i) * ibuf->x) * bytesperpixel * sizeof(unsigned char));
+				                                ((unsigned char *)pixels + (((size_t)i) * ibuf->x) * channels * sizeof(unsigned char));
 			}
 
 			png_read_image(png_ptr, row_pointers);
@@ -720,9 +720,9 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
 			to = (unsigned char *) ibuf->rect;
 			from = pixels;
 
-			switch (bytesperpixel) {
+			switch (channels) {
 				case 4:
-					for (i = ibuf->x * ibuf->y; i > 0; i--) {
+					for (size_t i = (size_t)ibuf->x * (size_t)ibuf->y; i > 0; i--) {
 						to[0] = from[0];
 						to[1] = from[1];
 						to[2] = from[2];
@@ -731,7 +731,7 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
 					}
 					break;
 				case 3:
-					for (i = ibuf->x * ibuf->y; i > 0; i--) {
+					for (size_t i = (size_t)ibuf->x * (size_t)ibuf->y; i > 0; i--) {
 						to[0] = from[0];
 						to[1] = from[1];
 						to[2] = from[2];
@@ -740,14 +740,14 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
 					}
 					break;
 				case 2:
-					for (i = ibuf->x * ibuf->y; i > 0; i--) {
+					for (size_t i = (size_t)ibuf->x * (size_t)ibuf->y; i > 0; i--) {
 						to[0] = to[1] = to[2] = from[0];
 						to[3] = from[1];
 						to += 4; from += 2;
 					}
 					break;
 				case 1:
-					for (i = ibuf->x * ibuf->y; i > 0; i--) {
+					for (size_t i = (size_t)ibuf->x * (size_t)ibuf->y; i > 0; i--) {
 						to[0] = to[1] = to[2] = from[0];
 						to[3] = 0xff;
 						to += 4; from++;
@@ -759,7 +759,7 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
 		if (flags & IB_metadata) {
 			png_text *text_chunks;
 			int count = png_get_text(png_ptr, info_ptr, &text_chunks, NULL);
-			for (i = 0; i < count; i++) {
+			for (int i = 0; i < count; i++) {
 				IMB_metadata_add_field(ibuf, text_chunks[i].key, text_chunks[i].text);
 				ibuf->flags |= IB_metadata;
 			}

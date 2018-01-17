@@ -32,7 +32,7 @@
 #ifndef __AVI_RGB_H__
 #define __AVI_RGB_H__
 
-void *avi_converter_from_avi_rgb(AviMovie *movie, int stream, unsigned char *buffer, int *size);
-void *avi_converter_to_avi_rgb(AviMovie *movie, int stream, unsigned char *buffer, int *size);
+void *avi_converter_from_avi_rgb(AviMovie *movie, int stream, unsigned char *buffer, size_t *size);
+void *avi_converter_to_avi_rgb(AviMovie *movie, int stream, unsigned char *buffer, size_t *size);
 
 #endif /* __AVI_RGB_H__ */

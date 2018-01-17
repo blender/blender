@@ -260,9 +260,8 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 	const uchar *mem_end = mem + size;
 	MFileOffset _inf_data = {mem, 0}, *inf = &_inf_data;
 	IMAGE image;
-	int x, y, z, tablen;
 	int bpp, rle, cur, badorder;
-	ImBuf *ibuf;
+	ImBuf *ibuf = NULL;
 	uchar dirty_flag = 0;
 
 	if (size < HEADER_SIZE) {
@@ -304,7 +303,7 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 	}
 	
 	if (rle) {
-		tablen = ysize * zsize * sizeof(int);
+		size_t tablen = (size_t)ysize * (size_t)zsize * sizeof(int);
 		MFILE_SEEK(inf, HEADER_SIZE);
 
 		uint *starttab = MEM_mallocN(tablen, "iris starttab");
@@ -321,8 +320,8 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 		/* check data order */
 		cur = 0;
 		badorder = 0;
-		for (y = 0; y < ysize; y++) {
-			for (z = 0; z < zsize; z++) {
+		for (size_t y = 0; y < ysize; y++) {
+			for (size_t z = 0; z < zsize; z++) {
 				if (starttab[y + z * ysize] < cur) {
 					badorder = 1;
 					break;
@@ -336,14 +335,17 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 		if (bpp == 1) {
 			
 			ibuf = IMB_allocImBuf(xsize, ysize, 8 * zsize, IB_rect);
+			if (!ibuf) {
+				goto fail_rle;
+			}
 			if (ibuf->planes > 32) ibuf->planes = 32;
 			base = ibuf->rect;
 			zbase = (uint *)ibuf->zbuf;
 			
 			if (badorder) {
-				for (z = 0; z < zsize; z++) {
+				for (size_t z = 0; z < zsize; z++) {
 					lptr = base;
-					for (y = 0; y < ysize; y++) {
+					for (size_t y = 0; y < ysize; y++) {
 						MFILE_SEEK(inf, starttab[y + z * ysize]);
 						rledat = MFILE_DATA(inf);
 						MFILE_STEP(inf, lengthtab[y + z * ysize]);
@@ -358,12 +360,12 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 			else {
 				lptr = base;
 				zptr = zbase;
-				for (y = 0; y < ysize; y++) {
+				for (size_t y = 0; y < ysize; y++) {
 
 					uint *lptr_next = lptr + xsize;
 					uint *zptr_next = zptr + xsize;
 
-					for (z = 0; z < zsize; z++) {
+					for (size_t z = 0; z < zsize; z++) {
 						MFILE_SEEK(inf, starttab[y + z * ysize]);
 						rledat = MFILE_DATA(inf);
 						MFILE_STEP(inf, lengthtab[y + z * ysize]);
@@ -386,13 +388,16 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 		else {  /* bpp == 2 */
 			
 			ibuf = IMB_allocImBuf(xsize, ysize, 32, (flags & IB_rect) | IB_rectfloat);
-			
+			if (!ibuf) {
+				goto fail_rle;
+			}
+
 			fbase = ibuf->rect_float;
 			
 			if (badorder) {
-				for (z = 0; z < zsize; z++) {
+				for (size_t z = 0; z < zsize; z++) {
 					fptr = fbase;
-					for (y = 0; y < ysize; y++) {
+					for (size_t y = 0; y < ysize; y++) {
 						MFILE_SEEK(inf, starttab[y + z * ysize]);
 						rledat = MFILE_DATA(inf);
 						MFILE_STEP(inf, lengthtab[y + z * ysize]);
@@ -408,9 +413,9 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 				fptr = fbase;
 				float *fptr_next = fptr + (xsize * 4);
 
-				for (y = 0; y < ysize; y++) {
+				for (size_t y = 0; y < ysize; y++) {
 				
-					for (z = 0; z < zsize; z++) {
+					for (size_t z = 0; z < zsize; z++) {
 						MFILE_SEEK(inf, starttab[y + z * ysize]);
 						rledat = MFILE_DATA(inf);
 						MFILE_STEP(inf, lengthtab[y + z * ysize]);
@@ -426,6 +431,10 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
 fail_rle:
 		MEM_freeN(starttab);
 		MEM_freeN(lengthtab);
+
+		if (!ibuf) {
+			return NULL;
+		}
 	}
 	else {
 
@@ -435,6 +444,9 @@ fail_rle:
 		if (bpp == 1) {
 			
 			ibuf = IMB_allocImBuf(xsize, ysize, 8 * zsize, IB_rect);
+			if (!ibuf) {
+				goto fail_uncompressed;
+			}
 			if (ibuf->planes > 32) ibuf->planes = 32;
 
 			base = ibuf->rect;
@@ -443,12 +455,12 @@ fail_rle:
 			MFILE_SEEK(inf, HEADER_SIZE);
 			rledat = MFILE_DATA(inf);
 			
-			for (z = 0; z < zsize; z++) {
+			for (size_t z = 0; z < zsize; z++) {
 				
 				if (z < 4) lptr = base;
 				else if (z < 8) lptr = zbase;
 
-				for (y = 0; y < ysize; y++) {
+				for (size_t y = 0; y < ysize; y++) {
 					const uchar *rledat_next = rledat + xsize;
 					const int z_ofs = 3 - z;
 					MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(rledat_next + z_ofs);
@@ -462,17 +474,20 @@ fail_rle:
 		else {  /* bpp == 2 */
 			
 			ibuf = IMB_allocImBuf(xsize, ysize, 32, (flags & IB_rect) | IB_rectfloat);
+			if (!ibuf) {
+				goto fail_uncompressed;
+			}
 
 			fbase = ibuf->rect_float;
 
 			MFILE_SEEK(inf, HEADER_SIZE);
 			rledat = MFILE_DATA(inf);
 			
-			for (z = 0; z < zsize; z++) {
+			for (size_t z = 0; z < zsize; z++) {
 				
 				fptr = fbase;
 
-				for (y = 0; y < ysize; y++) {
+				for (size_t y = 0; y < ysize; y++) {
 					const uchar *rledat_next = rledat + xsize * 2;
 					const int z_ofs = 3 - z;
 					MFILE_CAPACITY_AT_PTR_OK_OR_FAIL(rledat_next + z_ofs);
@@ -485,7 +500,9 @@ fail_rle:
 		}
 #undef MFILE_CAPACITY_AT_PTR_OK_OR_FAIL
 fail_uncompressed:
-		(void)0;
+		if (!ibuf) {
+			return NULL;
+		}
 	}
 
 	if (bpp == 1) {
@@ -493,7 +510,7 @@ fail_uncompressed:
 		
 		if (image.zsize == 1) {
 			rect = (uchar *) ibuf->rect;
-			for (x = ibuf->x * ibuf->y; x > 0; x--) {
+			for (size_t x = (size_t)ibuf->x * (size_t)ibuf->y; x > 0; x--) {
 				rect[0] = 255;
 				rect[1] = rect[2] = rect[3];
 				rect += 4;
@@ -502,7 +519,7 @@ fail_uncompressed:
 		else if (image.zsize == 2) {
 			/* grayscale with alpha */
 			rect = (uchar *) ibuf->rect;
-			for (x = ibuf->x * ibuf->y; x > 0; x--) {
+			for (size_t x = (size_t)ibuf->x * (size_t)ibuf->y; x > 0; x--) {
 				rect[0] = rect[2];
 				rect[1] = rect[2] = rect[3];
 				rect += 4;
@@ -511,7 +528,7 @@ fail_uncompressed:
 		else if (image.zsize == 3) {
 			/* add alpha */
 			rect = (uchar *) ibuf->rect;
-			for (x = ibuf->x * ibuf->y; x > 0; x--) {
+			for (size_t x = (size_t)ibuf->x * (size_t)ibuf->y; x > 0; x--) {
 				rect[0] = 255;
 				rect += 4;
 			}
@@ -522,7 +539,7 @@ fail_uncompressed:
 		
 		if (image.zsize == 1) {
 			fbase = ibuf->rect_float;
-			for (x = ibuf->x * ibuf->y; x > 0; x--) {
+			for (size_t x = (size_t)ibuf->x * (size_t)ibuf->y; x > 0; x--) {
 				fbase[0] = 1;
 				fbase[1] = fbase[2] = fbase[3];
 				fbase += 4;
@@ -531,7 +548,7 @@ fail_uncompressed:
 		else if (image.zsize == 2) {
 			/* grayscale with alpha */
 			fbase = ibuf->rect_float;
-			for (x = ibuf->x * ibuf->y; x > 0; x--) {
+			for (size_t x = (size_t)ibuf->x * (size_t)ibuf->y; x > 0; x--) {
 				fbase[0] = fbase[2];
 				fbase[1] = fbase[2] = fbase[3];
 				fbase += 4;
@@ -540,7 +557,7 @@ fail_uncompressed:
 		else if (image.zsize == 3) {
 			/* add alpha */
 			fbase = ibuf->rect_float;
-			for (x = ibuf->x * ibuf->y; x > 0; x--) {
+			for (size_t x = (size_t)ibuf->x * (size_t)ibuf->y; x > 0; x--) {
 				fbase[0] = 1;
 				fbase += 4;
 			}
