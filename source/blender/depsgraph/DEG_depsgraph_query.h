@@ -53,19 +53,21 @@ extern "C" {
 bool DEG_id_type_tagged(struct Main *bmain, short id_type);
 
 /* Get additional evaluation flags for the given ID. */
-short DEG_get_eval_flags_for_id(struct Depsgraph *graph, struct ID *id);
+short DEG_get_eval_flags_for_id(const struct Depsgraph *graph, struct ID *id);
 
 /* Get scene the despgraph is created for. */
-struct Scene *DEG_get_evaluated_scene(struct Depsgraph *graph);
+struct Scene *DEG_get_evaluated_scene(const struct Depsgraph *graph);
 
 /* Get scene layer the despgraph is created for. */
-struct ViewLayer *DEG_get_evaluated_view_layer(struct Depsgraph *graph);
+struct ViewLayer *DEG_get_evaluated_view_layer(const struct Depsgraph *graph);
 
 /* Get evaluated version of object for given original one. */
-struct Object *DEG_get_evaluated_object(struct Depsgraph *depsgraph, struct Object *object);
+struct Object *DEG_get_evaluated_object(const struct Depsgraph *depsgraph,
+                                        struct Object *object);
 
 /* Get evaluated version of given ID datablock. */
-struct ID *DEG_get_evaluated_id(struct Depsgraph *depsgraph, struct ID *id);
+struct ID *DEG_get_evaluated_id(const struct Depsgraph *depsgraph,
+                                struct ID *id);
 
 /* ************************ DEG iterators ********************* */
 

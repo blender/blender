@@ -53,7 +53,7 @@ bool DEG_id_type_tagged(Main *bmain, short id_type)
 	return bmain->id_tag_update[BKE_idcode_to_index(id_type)] != 0;
 }
 
-short DEG_get_eval_flags_for_id(Depsgraph *graph, ID *id)
+short DEG_get_eval_flags_for_id(const Depsgraph *graph, ID *id)
 {
 	if (graph == NULL) {
 		/* Happens when converting objects to mesh from a python script
@@ -65,9 +65,8 @@ short DEG_get_eval_flags_for_id(Depsgraph *graph, ID *id)
 		return 0;
 	}
 
-	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
-
-	DEG::IDDepsNode *id_node = deg_graph->find_id_node(id);
+	const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
+	const DEG::IDDepsNode *id_node = deg_graph->find_id_node(id);
 	if (id_node == NULL) {
 		/* TODO(sergey): Does it mean we need to check set scene? */
 		return 0;
@@ -76,16 +75,16 @@ short DEG_get_eval_flags_for_id(Depsgraph *graph, ID *id)
 	return id_node->eval_flags;
 }
 
-Scene *DEG_get_evaluated_scene(Depsgraph *graph)
+Scene *DEG_get_evaluated_scene(const Depsgraph *graph)
 {
-	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
+	const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
 	Scene *scene_orig = deg_graph->scene;
 	return reinterpret_cast<Scene *>(deg_graph->get_cow_id(&scene_orig->id));
 }
 
-ViewLayer *DEG_get_evaluated_view_layer(Depsgraph *graph)
+ViewLayer *DEG_get_evaluated_view_layer(const Depsgraph *graph)
 {
-	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
+	const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
 	Scene *scene_cow = DEG_get_evaluated_scene(graph);
 	ViewLayer *view_layer_orig = deg_graph->view_layer;
 	ViewLayer *view_layer_cow =
@@ -95,19 +94,19 @@ ViewLayer *DEG_get_evaluated_view_layer(Depsgraph *graph)
 	return view_layer_cow;
 }
 
-Object *DEG_get_evaluated_object(Depsgraph *depsgraph, Object *object)
+Object *DEG_get_evaluated_object(const Depsgraph *depsgraph, Object *object)
 {
 	return (Object *)DEG_get_evaluated_id(depsgraph, &object->id);
 }
 
-ID *DEG_get_evaluated_id(struct Depsgraph *depsgraph, ID *id)
+ID *DEG_get_evaluated_id(const Depsgraph *depsgraph, ID *id)
 {
 	/* TODO(sergey): This is a duplicate of Depsgraph::get_cow_id(),
 	 * but here we never do assert, since we don't know nature of the
 	 * incoming ID datablock.
 	 */
-	DEG::Depsgraph *deg_graph = (DEG::Depsgraph *)depsgraph;
-	DEG::IDDepsNode *id_node = deg_graph->find_id_node(id);
+	const DEG::Depsgraph *deg_graph = (const DEG::Depsgraph *)depsgraph;
+	const DEG::IDDepsNode *id_node = deg_graph->find_id_node(id);
 	if (id_node == NULL) {
 		return id;
 	}
