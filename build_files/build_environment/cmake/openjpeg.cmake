@@ -49,6 +49,13 @@ if(MSVC)
 		CMAKE_ARGS ${OPENJPEG_EXTRA_ARGS} -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openjpeg_msvc -DBUILD_SHARED_LIBS=Off -DBUILD_THIRDPARTY=OFF 
 		INSTALL_DIR ${LIBDIR}/openjpeg_msvc
 	)
+	if(BUILD_MODE STREQUAL Release)
+		ExternalProject_Add_Step(external_openjpeg_msvc after_install
+			COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openjpeg_msvc/lib ${HARVEST_TARGET}/openjpeg/lib &&
+					${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openjpeg_msvc/include ${HARVEST_TARGET}/openjpeg/include
+			DEPENDEES install
+		)
+	endif()
 endif()
 
 set(OPENJPEG_LIBRARY libopenjpeg${LIBEXT})
