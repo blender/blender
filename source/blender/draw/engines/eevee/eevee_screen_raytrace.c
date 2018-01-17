@@ -28,6 +28,7 @@
 #include "DRW_render.h"
 
 #include "BLI_dynstr.h"
+#include "BLI_string_utils.h"
 
 #include "eevee_private.h"
 #include "GPU_texture.h"
@@ -59,16 +60,14 @@ extern char datatoc_raytrace_lib_glsl[];
 static struct GPUShader *eevee_effects_screen_raytrace_shader_get(int options)
 {
 	if (e_data.ssr_sh[options] == NULL) {
-		DynStr *ds_frag = BLI_dynstr_new();
-		BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_bsdf_sampling_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_octahedron_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_lightprobe_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_ambient_occlusion_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_raytrace_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_effect_ssr_frag_glsl);
-		char *ssr_shader_str = BLI_dynstr_get_cstring(ds_frag);
-		BLI_dynstr_free(ds_frag);
+		char *ssr_shader_str = BLI_string_joinN(
+		        datatoc_bsdf_common_lib_glsl,
+		        datatoc_bsdf_sampling_lib_glsl,
+		        datatoc_octahedron_lib_glsl,
+		        datatoc_lightprobe_lib_glsl,
+		        datatoc_ambient_occlusion_lib_glsl,
+		        datatoc_raytrace_lib_glsl,
+		        datatoc_effect_ssr_frag_glsl);
 
 		DynStr *ds_defines = BLI_dynstr_new();
 		BLI_dynstr_appendf(ds_defines, SHADER_DEFINES);

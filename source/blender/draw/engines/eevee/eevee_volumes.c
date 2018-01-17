@@ -27,8 +27,8 @@
 
 #include "DRW_render.h"
 
-#include "BLI_dynstr.h"
 #include "BLI_rand.h"
+#include "BLI_string_utils.h"
 
 #include "DNA_object_force.h"
 #include "DNA_smoke_types.h"
@@ -77,21 +77,17 @@ extern char datatoc_gpu_shader_fullscreen_vert_glsl[];
 
 static void eevee_create_shader_volumes(void)
 {
-	DynStr *ds_frag = BLI_dynstr_new();
-	BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
-	BLI_dynstr_append(ds_frag, datatoc_volumetric_lib_glsl);
-	e_data.volumetric_common_lib = BLI_dynstr_get_cstring(ds_frag);
-	BLI_dynstr_free(ds_frag);
+	e_data.volumetric_common_lib = BLI_string_joinN(
+	        datatoc_bsdf_common_lib_glsl,
+	        datatoc_volumetric_lib_glsl);
 
-	ds_frag = BLI_dynstr_new();
-	BLI_dynstr_append(ds_frag, datatoc_bsdf_common_lib_glsl);
-	BLI_dynstr_append(ds_frag, datatoc_bsdf_direct_lib_glsl);
-	BLI_dynstr_append(ds_frag, datatoc_octahedron_lib_glsl);
-	BLI_dynstr_append(ds_frag, datatoc_irradiance_lib_glsl);
-	BLI_dynstr_append(ds_frag, datatoc_lamps_lib_glsl);
-	BLI_dynstr_append(ds_frag, datatoc_volumetric_lib_glsl);
-	e_data.volumetric_common_lamps_lib = BLI_dynstr_get_cstring(ds_frag);
-	BLI_dynstr_free(ds_frag);
+	e_data.volumetric_common_lamps_lib = BLI_string_joinN(
+	        datatoc_bsdf_common_lib_glsl,
+	        datatoc_bsdf_direct_lib_glsl,
+	        datatoc_octahedron_lib_glsl,
+	        datatoc_irradiance_lib_glsl,
+	        datatoc_lamps_lib_glsl,
+	        datatoc_volumetric_lib_glsl);
 
 	e_data.volumetric_clear_sh = DRW_shader_create_with_lib(
 	        datatoc_volumetric_vert_glsl,
