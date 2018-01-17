@@ -2299,6 +2299,11 @@ static GPUTextureFormat convert_tex_format(
 	}
 }
 
+struct GPUFrameBuffer *DRW_framebuffer_create(void)
+{
+	return GPU_framebuffer_create();
+}
+
 void DRW_framebuffer_init(
         struct GPUFrameBuffer **fb, void *engine_type, int width, int height,
         DRWFboTexture textures[MAX_FBO_TEX], int textures_len)
