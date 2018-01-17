@@ -2804,6 +2804,20 @@ static int graph_driver_delete_invalid_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static int graph_driver_delete_invalid_poll(bContext *C)
+{
+	bAnimContext ac;
+	ScrArea *sa = CTX_wm_area(C);
+
+	/* firstly, check if in Graph Editor */
+	if ((sa == NULL) || (sa->spacetype != SPACE_IPO))
+		return 0;
+
+	/* try to init Anim-Context stuff ourselves and check */
+	return ANIM_animdata_get_context(C, &ac) != 0;
+}
+
+
 void GRAPH_OT_driver_delete_invalid(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -2813,7 +2827,7 @@ void GRAPH_OT_driver_delete_invalid(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = graph_driver_delete_invalid_exec;
-	ot->poll = graphop_visible_keyframes_poll;
+	ot->poll = graph_driver_delete_invalid_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
