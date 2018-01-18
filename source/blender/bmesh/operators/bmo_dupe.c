@@ -389,12 +389,10 @@ void bmo_split_exec(BMesh *bm, BMOperator *op)
 
 	BMOperator *splitop = op;
 	BMOperator dupeop;
-	BMOperator delop;
 	const bool use_only_faces = BMO_slot_bool_get(op->slots_in, "use_only_faces");
 
 	/* initialize our sub-operator */
 	BMO_op_init(bm, &dupeop, op->flag, "duplicate");
-	BMO_op_init(bm, &delop, op->flag, "delete");
 	
 	BMO_slot_copy(splitop, slots_in, "geom",
 	              &dupeop, slots_in, "geom");
@@ -437,24 +435,13 @@ void bmo_split_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* connect outputs of dupe to delete, exluding keep geometry */
-	BMO_slot_int_set(delop.slots_in, "context", DEL_FACES);
-	BMO_slot_buffer_from_enabled_flag(bm, &delop, delop.slots_in, "geom", BM_ALL_NOLOOP, SPLIT_INPUT);
-	
-	BMO_op_exec(bm, &delop);
+	BMO_mesh_delete_oflag_context(bm, SPLIT_INPUT, DEL_FACES);
 
 	/* now we make our outputs by copying the dupe output */
 	BMO_slot_copy(&dupeop, slots_out, "geom.out",
 	              splitop, slots_out, "geom.out");
 
-	BMO_slot_copy(&dupeop, slots_out, "boundary_map.out",
-	              splitop, slots_out, "boundary_map.out");
-
-	BMO_slot_copy(&dupeop, slots_out, "isovert_map.out",
-	              splitop, slots_out, "isovert_map.out");
-
-
 	/* cleanup */
-	BMO_op_finish(bm, &delop);
 	BMO_op_finish(bm, &dupeop);
 
 #undef SPLIT_INPUT

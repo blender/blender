@@ -756,7 +756,8 @@ void BKE_scene_init(Scene *sce)
 	pset->draw_step = 2;
 	pset->fade_frames = 2;
 	pset->selectmode = SCE_SELECT_PATH;
-	for (a = 0; a < PE_TOT_BRUSH; a++) {
+
+	for (a = 0; a < ARRAY_SIZE(pset->brush); a++) {
 		pset->brush[a].strength = 0.5f;
 		pset->brush[a].size = 50;
 		pset->brush[a].step = 10;
