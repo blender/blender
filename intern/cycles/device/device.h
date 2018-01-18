@@ -286,7 +286,7 @@ public:
 	Stats &stats;
 
 	/* memory alignment */
-	virtual int mem_address_alignment() { return 16; }
+	virtual int mem_address_alignment() { return MIN_ALIGNMENT_CPU_DATA_TYPES; }
 
 	/* constant memory */
 	virtual void const_copy_to(const char *name, void *host, size_t size) = 0;

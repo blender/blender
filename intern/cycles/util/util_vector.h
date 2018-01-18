@@ -86,9 +86,9 @@ public:
  *   this was actually showing up in profiles quite significantly. it
  *   also does not run any constructors/destructors
  * - if this is used, we are not tempted to use inefficient operations
- * - aligned allocation for SSE data types */
+ * - aligned allocation for CPU native data types */
 
-template<typename T, size_t alignment = 16>
+template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES>
 class array
 {
 public:
