@@ -361,7 +361,7 @@ void BKE_object_eval_uber_data(const EvaluationContext *eval_ctx,
 				 * This way we can restore original object data when we are freeing
 				 * evaluated mesh.
 				 */
-				new_mesh->id.newid = &mesh->id;
+				new_mesh->id.orig_id = &mesh->id;
 			}
 #if 0
 			if (ob->derivedFinal != NULL) {
