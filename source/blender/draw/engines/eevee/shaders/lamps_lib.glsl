@@ -161,7 +161,7 @@ float light_visibility(LightData ld, vec3 W,
 		float x = dot(ld.l_right, lL) / ld.l_sizex;
 		float y = dot(ld.l_up, lL) / ld.l_sizey;
 
-		float ellipse = 1.0 / sqrt(1.0 + x * x + y * y);
+		float ellipse = inversesqrt(1.0 + x * x + y * y);
 
 		float spotmask = smoothstep(0.0, 1.0, (ellipse - ld.l_spot_size) / ld.l_spot_blend);
 
@@ -396,7 +396,7 @@ vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, float scale)
 			float x = dot(ld.l_right, lL) / ld.l_sizex;
 			float y = dot(ld.l_up, lL) / ld.l_sizey;
 
-			float ellipse = 1.0 / sqrt(1.0 + x * x + y * y);
+			float ellipse = inversesqrt(1.0 + x * x + y * y);
 
 			float spotmask = smoothstep(0.0, 1.0, (ellipse - ld.l_spot_size) / ld.l_spot_blend);
 
