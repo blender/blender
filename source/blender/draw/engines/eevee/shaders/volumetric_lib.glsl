@@ -71,14 +71,17 @@ vec3 light_volume(LightData ld, vec4 l_vector)
 	/* TODO : Area lighting ? */
 	/* XXX : Removing Area Power. */
 	/* TODO : put this out of the shader. */
+	/* See eevee_light_setup(). */
 	if (ld.l_type == AREA) {
-		power = 0.0962 * (ld.l_sizex * ld.l_sizey * 4.0 * M_PI);
+		power = (ld.l_sizex * ld.l_sizey * 4.0 * M_PI) * (1.0 / 80.0);
+		power *= 20.0 * max(0.0, dot(-ld.l_forward, l_vector.xyz / l_vector.w)); /* XXX ad hoc, empirical */
 	}
 	else if (ld.l_type == SUN) {
-		power = 1.0;
+		power = (4.0f * ld.l_radius * ld.l_radius * M_2PI) * (1.0 / 12.5); /* Removing area light power*/
+		power *= M_2PI * 0.78; /* Matching cycles with point light. */
 	}
 	else {
-		power = 0.0248 * (4.0 * ld.l_radius * ld.l_radius * M_PI * M_PI);
+		power = (4.0 * ld.l_radius * ld.l_radius) * (1.0 /10.0);
 	}
 
 	/* OPTI: find a better way than calculating this on the fly */
