@@ -285,7 +285,7 @@ static void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, c
 	float p[2], w[3], absw, minabsw;
 	float matrix[4][4], proj[4][4];
 	GLint view[4];
-	const eImageePaintMode mode = scene->toolsettings->imapaint.mode;
+	const eImagePaintMode mode = scene->toolsettings->imapaint.mode;
 	const MLoopTri *lt = dm->getLoopTriArray(dm);
 	const MPoly *mpoly = dm->getPolyArray(dm);
 	const MLoop *mloop = dm->getLoopArray(dm);
