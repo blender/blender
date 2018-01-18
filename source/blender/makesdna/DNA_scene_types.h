@@ -1070,7 +1070,7 @@ typedef struct ParticleEditSettings {
 	short totaddkey;
 	short brushtype;
 
-	ParticleBrushData brush[7]; /* 7 = PE_TOT_BRUSH */
+	ParticleBrushData brush[7];
 	void *paintcursor;			/* runtime */
 
 	float emitterdist, rt;
@@ -2235,9 +2235,6 @@ typedef enum eGPencil_Placement_Flags {
 #define PE_BRUSH_ADD		4
 #define PE_BRUSH_SMOOTH		5
 #define PE_BRUSH_WEIGHT		6
-
-/* this must equal ParticleEditSettings.brush array size */
-#define PE_TOT_BRUSH		6
 
 /* ParticleBrushData.flag */
 #define PE_BRUSH_DATA_PUFF_VOLUME 1

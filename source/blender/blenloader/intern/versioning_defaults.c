@@ -170,7 +170,7 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 			ts->gpencil_ima_align = GP_PROJECT_VIEWSPACE;
 
 			ParticleEditSettings *pset = &ts->particle;
-			for (int a = 0; a < PE_TOT_BRUSH; a++) {
+			for (int a = 0; a < ARRAY_SIZE(pset->brush); a++) {
 				pset->brush[a].strength = 0.5f;
 				pset->brush[a].count = 10;
 			}

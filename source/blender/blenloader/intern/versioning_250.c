@@ -1785,7 +1785,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 			ParticleEditSettings *pset = &sce->toolsettings->particle;
 			int a;
 
-			for (a = 0; a < PE_TOT_BRUSH; a++)
+			for (a = 0; a < ARRAY_SIZE(pset->brush); a++)
 				pset->brush[a].strength /= 100.0f;
 		}
 
