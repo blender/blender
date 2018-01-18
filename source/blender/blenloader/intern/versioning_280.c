@@ -503,7 +503,7 @@ void do_versions_after_linking_280(Main *main)
 					if (view_layer->spacetype == SPACE_OUTLINER) {
 						SpaceOops *soutliner = (SpaceOops *)view_layer;
 
-						soutliner->outlinevis = SO_ACT_LAYER;
+						soutliner->outlinevis = SO_VIEW_LAYER;
 
 						if (BLI_listbase_count_ex(&layer->layer_collections, 2) == 1) {
 							if (soutliner->treestore == NULL) {

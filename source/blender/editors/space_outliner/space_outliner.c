@@ -437,7 +437,7 @@ static void outliner_main_region_message_subscribe(
 		.notify = ED_region_do_msg_notify_tag_redraw,
 	};
 
-	if (ELEM(soops->outlinevis, SO_ACT_LAYER, SO_COLLECTIONS)) {
+	if (ELEM(soops->outlinevis, SO_VIEW_LAYER, SO_COLLECTIONS)) {
 		WM_msg_subscribe_rna_anon_prop(mbus, Window, view_layer, &msg_sub_value_region_tag_redraw);
 	}
 }

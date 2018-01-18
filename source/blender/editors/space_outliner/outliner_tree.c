@@ -1475,7 +1475,7 @@ static void outliner_add_layer_collections_recursive(
 		outliner_make_hierarchy(&ten->subtree);
 	}
 }
-static void outliner_add_collections_act_layer(SpaceOops *soops, Scene *scene, ViewLayer *layer)
+static void outliner_add_view_layer(SpaceOops *soops, Scene *scene, ViewLayer *layer)
 {
 	outliner_add_layer_collections_recursive(soops, &soops->tree, &scene->id, &layer->layer_collections, NULL);
 }
@@ -1572,7 +1572,7 @@ static TreeElement *outliner_add_scene_collection_recursive(
 	return ten;
 }
 
-static void outliner_add_collections_master(SpaceOops *soops, Scene *scene)
+static void outliner_add_collections(SpaceOops *soops, Scene *scene)
 {
 	SceneCollection *master_collection = BKE_collection_master(&scene->id);
 	TreeElement *ten = outliner_add_scene_collection_recursive(soops, &soops->tree, &scene->id, master_collection, NULL);
@@ -2022,11 +2022,11 @@ void outliner_build_tree(Main *mainvar, Scene *scene, ViewLayer *view_layer, Spa
 	else if (soops->outlinevis == SO_ID_ORPHANS) {
 		outliner_add_orphaned_datablocks(mainvar, soops);
 	}
-	else if (soops->outlinevis == SO_ACT_LAYER) {
-		outliner_add_collections_act_layer(soops, scene, view_layer);
+	else if (soops->outlinevis == SO_VIEW_LAYER) {
+		outliner_add_view_layer(soops, scene, view_layer);
 	}
 	else if (soops->outlinevis == SO_COLLECTIONS) {
-		outliner_add_collections_master(soops, scene);
+		outliner_add_collections(soops, scene);
 	}
 	else {
 		if (BASACT(view_layer)) {

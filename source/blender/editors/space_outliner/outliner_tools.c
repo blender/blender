@@ -1871,7 +1871,7 @@ static const EnumPropertyItem *outliner_collection_operation_type_itemf(
 	switch (soops->outlinevis) {
 		case SO_GROUPS:
 			return prop_collection_op_group_internal_types;
-		case SO_ACT_LAYER:
+		case SO_VIEW_LAYER:
 			return prop_collection_op_none_types;
 	}
 	return NULL;

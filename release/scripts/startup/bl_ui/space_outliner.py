@@ -43,7 +43,7 @@ class OUTLINER_HT_header(Header):
         row.prop(space, "use_filter_complete", text="")
         row.prop(space, "use_filter_case_sensitive", text="")
 
-        if space.display_mode not in {'DATABLOCKS', 'USER_PREFERENCES', 'KEYMAPS', 'ACT_LAYER', 'COLLECTIONS'}:
+        if space.display_mode not in {'DATABLOCKS', 'USER_PREFERENCES', 'KEYMAPS', 'VIEW_LAYER', 'COLLECTIONS'}:
             row.prop(space, "use_sort_alpha", text="")
 
         elif space.display_mode == 'DATABLOCKS':
@@ -83,8 +83,8 @@ class OUTLINER_MT_editor_menus(Menu):
         elif space.display_mode == 'ORPHAN_DATA':
             layout.menu("OUTLINER_MT_edit_orphan_data")
 
-        elif space.display_mode == 'ACT_LAYER':
-            layout.menu("OUTLINER_MT_edit_active_view_layer")
+        elif space.display_mode == 'VIEW_LAYER':
+            layout.menu("OUTLINER_MT_edit_view_layer")
 
 
 class OUTLINER_MT_view(Menu):
@@ -111,7 +111,7 @@ class OUTLINER_MT_view(Menu):
         layout.operator("screen.screen_full_area", text="Toggle Fullscreen Area").use_hide_panels = True
 
 
-class OUTLINER_MT_edit_active_view_layer(Menu):
+class OUTLINER_MT_edit_view_layer(Menu):
     bl_label = "Edit"
 
     def draw(self, context):
@@ -161,7 +161,7 @@ classes = (
     OUTLINER_HT_header,
     OUTLINER_MT_editor_menus,
     OUTLINER_MT_view,
-    OUTLINER_MT_edit_active_view_layer,
+    OUTLINER_MT_edit_view_layer,
     OUTLINER_MT_edit_datablocks,
     OUTLINER_MT_edit_orphan_data,
     OUTLINER_MT_context_scene_collection,

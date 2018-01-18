@@ -100,7 +100,7 @@ static int collections_editor_poll(bContext *C)
 static int view_layer_editor_poll(bContext *C)
 {
 	SpaceOops *so = CTX_wm_space_outliner(C);
-	return (so != NULL) && (so->outlinevis == SO_ACT_LAYER);
+	return (so != NULL) && (so->outlinevis == SO_VIEW_LAYER);
 }
 
 /* -------------------------------------------------------------------- */
