@@ -1729,7 +1729,8 @@ typedef struct Scene {
 #define R_BORDER		0x0200
 #define R_PANORAMA		0x0400	/* deprecated as scene option, still used in renderer */
 #define R_CROP			0x0800
-/*#define R_COSMO			0x1000 deprecated */
+		/* Disable camera switching: runtime (DURIAN_CAMERA_SWITCH) */
+#define R_NO_CAMERA_SWITCH	0x1000
 #define R_ODDFIELD		0x2000
 #define R_MBLUR			0x4000
 		/* unified was here */
