@@ -2085,7 +2085,7 @@ static int outliner_parenting_poll(bContext *C)
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 
 	if (soops) {
-		return ELEM(soops->outlinevis, SO_ALL_SCENES, SO_GROUPS);
+		return ELEM(soops->outlinevis, SO_SCENES, SO_GROUPS);
 	}
 
 	return false;

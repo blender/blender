@@ -330,7 +330,7 @@ typedef enum eSpaceOutliner_StateFilter {
 
 /* SpaceOops->outlinevis */
 typedef enum eSpaceOutliner_Mode {
-	SO_ALL_SCENES     = 0,
+	SO_SCENES         = 0,
 	/* SO_CUR_SCENE      = 1, */  /* deprecated! */
 	/* SO_VISIBLE        = 2, */  /* deprecated! */
 	/* SO_SELECTED       = 3, */  /* deprecated! */

@@ -92,7 +92,11 @@
 
 /* prototypes */
 static void outliner_add_layer_collections_recursive(
-        SpaceOops *soops, ListBase *tree, ID *id, ListBase *layer_collections, TreeElement *parent_ten);
+        SpaceOops *soops, ListBase *tree, ID *id, ListBase *layer_collections, TreeElement *parent_ten,
+        const bool show_objects);
+static void outliner_add_view_layer(
+        SpaceOops *soops, ListBase *tree, TreeElement *parent,
+        Scene *scene, ViewLayer *layer, const bool show_objects);
 static void outliner_make_hierarchy(ListBase *lb);
 
 /* ********************************************************* */
@@ -382,12 +386,21 @@ static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *s
 	TreeElement *tenla = outliner_add_element(soops, lb, sce, te, TSE_R_LAYER_BASE, 0);
 	int a;
 	
-	tenla->name = IFACE_("RenderLayers");
+	tenla->name = IFACE_("View Layers");
 	for (a = 0, view_layer = sce->view_layers.first; view_layer; view_layer = view_layer->next, a++) {
 		TreeElement *tenlay = outliner_add_element(soops, &tenla->subtree, sce, te, TSE_R_LAYER, a);
 		tenlay->name = view_layer->name;
 		tenlay->directdata = &view_layer->flag;
-		outliner_add_passes(soops, tenlay, &sce->id, view_layer);
+
+		TreeElement *te_view_layers;
+		te_view_layers = outliner_add_element(soops, &tenlay->subtree, sce, tenlay, TSE_LAYER_COLLECTION_BASE, 0);
+		te_view_layers->name = IFACE_("Collections");
+		outliner_add_view_layer(soops, &te_view_layers->subtree, te_view_layers, sce, view_layer, false);
+
+		TreeElement *te_passes;
+		te_passes = outliner_add_element(soops, &tenlay->subtree, sce, tenlay, TSE_LAYER_COLLECTION_BASE, 0);
+		te_passes->name = IFACE_("Passes");
+		outliner_add_passes(soops, te_passes, &sce->id, view_layer);
 	}
 	
 	// TODO: move this to the front?
@@ -396,8 +409,6 @@ static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *s
 		
 	outliner_add_element(soops, lb, sce->gpd, te, 0, 0);
 	
-	outliner_add_element(soops,  lb, sce->world, te, 0, 0);
-
 #ifdef WITH_FREESTYLE
 	if (STREQ(sce->view_render->engine_id, RE_engine_id_BLENDER_RENDER) && (sce->r.mode & R_EDGE_FRS))
 		outliner_add_line_styles(soops, lb, sce, te);
@@ -1268,7 +1279,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 
 	if ((type != TSE_LAYER_COLLECTION) && (te->idcode == ID_GR)) {
 		Group *group = (Group *)id;
-		outliner_add_layer_collections_recursive(soops, &te->subtree, id, &group->view_layer->layer_collections, NULL);
+		outliner_add_layer_collections_recursive(soops, &te->subtree, id, &group->view_layer->layer_collections, NULL, true);
 	}
 
 	return te;
@@ -1458,7 +1469,8 @@ static bool outliner_layer_collections_reorder_poll(
 }
 
 static void outliner_add_layer_collections_recursive(
-        SpaceOops *soops, ListBase *tree, ID *id, ListBase *layer_collections, TreeElement *parent_ten)
+        SpaceOops *soops, ListBase *tree, ID *id, ListBase *layer_collections, TreeElement *parent_ten,
+        const bool show_objects)
 {
 	for (LayerCollection *collection = layer_collections->first; collection; collection = collection->next) {
 		TreeElement *ten = outliner_add_element(soops, tree, id, parent_ten, TSE_LAYER_COLLECTION, 0);
@@ -1468,18 +1480,22 @@ static void outliner_add_layer_collections_recursive(
 		ten->reinsert = outliner_layer_collections_reorder;
 		ten->reinsert_poll = outliner_layer_collections_reorder_poll;
 
-		outliner_add_layer_collections_recursive(soops, &ten->subtree, id, &collection->layer_collections, ten);
-		for (LinkData *link = collection->object_bases.first; link; link = link->next) {
-			Base *base = (Base *)link->data;
-			TreeElement *te_object = outliner_add_element(soops, &ten->subtree, base->object, ten, 0, 0);
-			te_object->directdata = base;
+		outliner_add_layer_collections_recursive(soops, &ten->subtree, id, &collection->layer_collections, ten, show_objects);
+		if (show_objects) {
+			for (LinkData *link = collection->object_bases.first; link; link = link->next) {
+				Base *base = (Base *)link->data;
+				TreeElement *te_object = outliner_add_element(soops, &ten->subtree, base->object, ten, 0, 0);
+				te_object->directdata = base;
+			}
 		}
 		outliner_make_hierarchy(&ten->subtree);
 	}
 }
-static void outliner_add_view_layer(SpaceOops *soops, Scene *scene, ViewLayer *layer)
+
+static void outliner_add_view_layer(SpaceOops *soops, ListBase *tree, TreeElement *parent,
+                                    Scene *scene, ViewLayer *layer, const bool show_objects)
 {
-	outliner_add_layer_collections_recursive(soops, &soops->tree, &scene->id, &layer->layer_collections, NULL);
+	outliner_add_layer_collections_recursive(soops, tree, &scene->id, &layer->layer_collections, parent, show_objects);
 }
 
 static void outliner_scene_collections_reorder(
@@ -2220,28 +2236,17 @@ void outliner_build_tree(Main *mainvar, Scene *scene, ViewLayer *view_layer, Spa
 			lib->id.newid = NULL;
 		
 	}
-	else if (soops->outlinevis == SO_ALL_SCENES) {
+	else if (soops->outlinevis == SO_SCENES) {
 		Scene *sce;
 		for (sce = mainvar->scene.first; sce; sce = sce->id.next) {
 			te = outliner_add_element(soops, &soops->tree, sce, NULL, 0, 0);
 			tselem = TREESTORE(te);
-			if (sce == scene && show_opened)
-				tselem->flag &= ~TSE_CLOSED;
 
-			FOREACH_SCENE_OBJECT(scene, ob)
-			{
-				outliner_add_element(soops, &te->subtree, ob, te, 0, 0);
+			if (sce == scene && show_opened) {
+				tselem->flag &= ~TSE_CLOSED;
 			}
-			FOREACH_SCENE_OBJECT_END
 
 			outliner_make_hierarchy(&te->subtree);
-
-			/* clear id.newid, to prevent objects be inserted in wrong scenes (parent in other scene) */
-			FOREACH_SCENE_OBJECT(scene, ob)
-			{
-				ob->id.newid = NULL;
-			}
-			FOREACH_SCENE_OBJECT_END
 		}
 	}
 	else if (soops->outlinevis == SO_GROUPS) {
@@ -2311,7 +2316,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, ViewLayer *view_layer, Spa
 			outliner_make_hierarchy(&soops->tree);
 		}
 		else {
-			outliner_add_view_layer(soops, scene, view_layer);
+			outliner_add_view_layer(soops, &soops->tree, NULL, scene, view_layer, true);
 		}
 	}
 	else if (soops->outlinevis == SO_COLLECTIONS) {

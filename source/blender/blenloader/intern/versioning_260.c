@@ -2454,14 +2454,14 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 						SpaceOops *so = (SpaceOops *)sl;
 
 						if (!ELEM(so->outlinevis,
-						          SO_ALL_SCENES,
+						          SO_SCENES,
 						          SO_GROUPS,
 						          SO_LIBRARIES,
 						          SO_SEQUENCE,
 						          SO_DATABLOCKS,
 						          SO_USERDEF))
 						{
-							so->outlinevis = SO_ALL_SCENES;
+							so->outlinevis = SO_SCENES;
 						}
 					}
 				}

@@ -104,6 +104,7 @@ enum {
 #define TSE_GP_LAYER        37  /* NO ID */
 #define TSE_LAYER_COLLECTION 38
 #define TSE_SCENE_COLLECTION 39
+#define TSE_LAYER_COLLECTION_BASE 40
 
 
 /* Check whether given TreeStoreElem should have a real ID in its ->id member. */
