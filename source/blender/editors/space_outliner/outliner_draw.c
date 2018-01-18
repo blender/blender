@@ -1108,6 +1108,10 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 					ICON_DRAW(icon);
 				}
 				break;
+			case TSE_LAYER_COLLECTION:
+			case TSE_SCENE_COLLECTION:
+				ICON_DRAW(ICON_COLLAPSEMENU);
+				break;
 			/* Removed the icons from outliner. Need a better structure with Layers, Palettes and Colors */
 #if 0
 			case TSE_GP_LAYER:
