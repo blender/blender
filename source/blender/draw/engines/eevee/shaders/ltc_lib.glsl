@@ -15,17 +15,17 @@ uniform sampler2DArray utilTex;
 #endif /* UTIL_TEX */
 
 /* Diffuse *clipped* sphere integral. */
-float diffuse_sphere_integral_lut(vec3 avg_dir, float form_factor)
+float diffuse_sphere_integral_lut(float avg_dir_z, float form_factor)
 {
-	vec2 uv = vec2(avg_dir.z * 0.5 + 0.5, form_factor);
+	vec2 uv = vec2(avg_dir_z * 0.5 + 0.5, form_factor);
 	uv = uv * (LUT_SIZE - 1.0) / LUT_SIZE + 0.5 / LUT_SIZE;
 
 	return texture(utilTex, vec3(uv, 1.0)).w;
 }
 
-float diffuse_sphere_integral_cheap(vec3 avg_dir, float form_factor)
+float diffuse_sphere_integral_cheap(float avg_dir_z, float form_factor)
 {
-	return max((form_factor * form_factor + avg_dir.z) / (form_factor + 1.0), 0.0);
+	return max((form_factor * form_factor + avg_dir_z) / (form_factor + 1.0), 0.0);
 }
 
 /**
@@ -149,7 +149,7 @@ mat3 ltc_matrix(vec4 lut)
 	return Minv;
 }
 
-float ltc_evaluate_quad(vec3 N, vec3 V, mat3 Minv, vec3 corners[4])
+void ltc_transform_quad(vec3 N, vec3 V, mat3 Minv, inout vec3 corners[4])
 {
 	/* Avoid dot(N, V) == 1 in ortho mode, leading T1 normalize to fail. */
 	V = normalize(V + 1e-8);
@@ -167,24 +167,11 @@ float ltc_evaluate_quad(vec3 N, vec3 V, mat3 Minv, vec3 corners[4])
 	corners[1] = normalize(Minv * corners[1]);
 	corners[2] = normalize(Minv * corners[2]);
 	corners[3] = normalize(Minv * corners[3]);
-
-	/* Approximation using a sphere of the same solid angle than the quad.
-	 * Finding the clipped sphere diffuse integral is easier than clipping the quad. */
-	vec3 avg_dir;
-	avg_dir  = edge_integral_vec(corners[0], corners[1]);
-	avg_dir += edge_integral_vec(corners[1], corners[2]);
-	avg_dir += edge_integral_vec(corners[2], corners[3]);
-	avg_dir += edge_integral_vec(corners[3], corners[0]);
-
-	float form_factor = length(avg_dir);
-
-	float sphere_cosine_integral = form_factor * diffuse_sphere_integral_lut(avg_dir, form_factor);
-
-	return abs(sphere_cosine_integral);
 }
 
-/* Same as above but without the matrix transform. */
-float ltc_evaluate_quad_diffuse(vec3 corners[4])
+/* If corners have already pass through ltc_transform_quad(), then N **MUST** be vec3(0.0, 0.0, 1.0),
+ * corresponding to the Up axis of the shading basis. */
+float ltc_evaluate_quad(vec3 corners[4], vec3 N)
 {
 	/* Approximation using a sphere of the same solid angle than the quad.
 	 * Finding the clipped sphere diffuse integral is easier than clipping the quad. */
@@ -195,10 +182,27 @@ float ltc_evaluate_quad_diffuse(vec3 corners[4])
 	avg_dir += edge_integral_vec(corners[3], corners[0]);
 
 	float form_factor = length(avg_dir);
+	float avg_dir_z = dot(N, avg_dir / form_factor);
 
-	float sphere_cosine_integral = form_factor * diffuse_sphere_integral_lut(avg_dir, form_factor);
+#if 1 /* use tabulated horizon-clipped sphere */
+	return form_factor * diffuse_sphere_integral_lut(avg_dir_z, form_factor);
+#else /* Less accurate version, a bit cheaper. */
+	return form_factor * diffuse_sphere_integral_cheap(avg_dir_z, form_factor);
+#endif
+}
 
-	return abs(sphere_cosine_integral);
+/* If disk does not need to be transformed and is already front facing. */
+float ltc_evaluate_disk_simple(float disk_radius, float NL)
+{
+	float r_sqr = disk_radius * disk_radius;
+	float one_r_sqr = 1.0 + r_sqr;
+	float form_factor = r_sqr * inversesqrt(one_r_sqr * one_r_sqr);
+
+#if 1 /* use tabulated horizon-clipped sphere */
+	return form_factor * diffuse_sphere_integral_lut(NL, form_factor);
+#else /* Less accurate version, a bit cheaper. */
+	return form_factor * diffuse_sphere_integral_cheap(NL, form_factor);
+#endif
 }
 
 /* disk_points are WS vectors from the shading point to the disk "bounding domain" */
@@ -307,13 +311,12 @@ float ltc_evaluate_disk(vec3 N, vec3 V, mat3 Minv, vec3 disk_points[3])
 	float L2 = sqrt(-e2/e1);
 
 	/* Find the sphere and compute lighting. */
-	float form_factor = L1 * L2 * inversesqrt((1.0 + L1 * L1) * (1.0 + L2 * L2));
+	float form_factor = max(0.0, L1 * L2 * inversesqrt((1.0 + L1 * L1) * (1.0 + L2 * L2)));
 
-	/* use tabulated horizon-clipped sphere */
-	float sphere_cosine_integral = form_factor * diffuse_sphere_integral_lut(avg_dir, form_factor);
-	/* Less accurate version, a bit cheaper. */
-	//float sphere_cosine_integral = form_factor * diffuse_sphere_integral_cheap(avg_dir, form_factor);
-
-	return max(0.0, sphere_cosine_integral);
+#if 1 /* use tabulated horizon-clipped sphere */
+	return form_factor * diffuse_sphere_integral_lut(avg_dir.z, form_factor);
+#else /* Less accurate version, a bit cheaper. */
+	return form_factor * diffuse_sphere_integral_cheap(avg_dir.z, form_factor);
+#endif
 }
 

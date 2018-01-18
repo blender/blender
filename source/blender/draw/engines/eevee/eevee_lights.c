@@ -599,13 +599,14 @@ static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
 	}
 	else if (la->type == LA_SPOT || la->type == LA_LOCAL) {
 		power = 1.0f / (4.0f * evli->radius * evli->radius * M_PI * M_PI) * /* 1/(4*r²*Pi²) */
-		        M_PI * M_PI * M_PI * 10.0; /* XXX : Empirical, Fit cycles power */
+		        M_PI * M_PI * 10.0; /* XXX : Empirical, Fit cycles power */
 
 		/* for point lights (a.k.a radius == 0.0) */
 		// power = M_PI * M_PI * 0.78; /* XXX : Empirical, Fit cycles power */
 	}
 	else {
-		power = 1.0f;
+		power = 1.0f / (4.0f * evli->radius * evli->radius * M_PI * M_PI) * /* 1/(r²*Pi) */
+		        12.5f; /* XXX : Empirical, Fit cycles power */
 	}
 	mul_v3_fl(evli->color, power * la->energy);
 

@@ -28,54 +28,30 @@ float direct_diffuse_sun(LightData ld, vec3 N)
 	return bsdf;
 }
 
-/* From Frostbite PBR Course
- * Analytical irradiance from a sphere with correct horizon handling
- * http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf */
+#ifdef USE_LTC
 float direct_diffuse_sphere(LightData ld, vec3 N, vec4 l_vector)
 {
-	float dist = l_vector.w;
-	vec3 L = l_vector.xyz / dist;
-	float radius = max(ld.l_sizex, 0.0001);
-	float costheta = clamp(dot(N, L), -0.999, 0.999);
-	float h = min(ld.l_radius / dist , 0.9999);
-	float h2 = h*h;
-	float costheta2 = costheta * costheta;
-	float bsdf;
+	float NL = dot(N, l_vector.xyz / l_vector.w);
 
-	if (costheta2 > h2) {
-		bsdf = M_PI * h2 * clamp(costheta, 0.0, 1.0);
-	}
-	else {
-		float sintheta = sqrt(1.0 - costheta2);
-		float x = sqrt(1.0 / h2 - 1.0);
-		float y = -x * (costheta / sintheta);
-		float sinthetasqrty = sintheta * sqrt(1.0 - y * y);
-		bsdf = (costheta * acos(y) - x * sinthetasqrty) * h2 + atan(sinthetasqrty / x);
-	}
-
-	bsdf = max(bsdf, 0.0);
-	bsdf *= M_1_PI2;
-
-	return bsdf;
+	return ltc_evaluate_disk_simple(ld.l_radius / l_vector.w, NL);
 }
 
-#ifdef USE_LTC
 float direct_diffuse_rectangle(LightData ld, vec3 N, vec3 V, vec4 l_vector)
 {
 	vec3 corners[4];
-	corners[0] = l_vector.xyz + ld.l_right * -ld.l_sizex + ld.l_up *  ld.l_sizey;
-	corners[1] = l_vector.xyz + ld.l_right * -ld.l_sizex + ld.l_up * -ld.l_sizey;
-	corners[2] = l_vector.xyz + ld.l_right *  ld.l_sizex + ld.l_up * -ld.l_sizey;
-	corners[3] = l_vector.xyz + ld.l_right *  ld.l_sizex + ld.l_up *  ld.l_sizey;
+	corners[0] = normalize(l_vector.xyz + ld.l_right * -ld.l_sizex + ld.l_up *  ld.l_sizey);
+	corners[1] = normalize(l_vector.xyz + ld.l_right * -ld.l_sizex + ld.l_up * -ld.l_sizey);
+	corners[2] = normalize(l_vector.xyz + ld.l_right *  ld.l_sizex + ld.l_up * -ld.l_sizey);
+	corners[3] = normalize(l_vector.xyz + ld.l_right *  ld.l_sizex + ld.l_up *  ld.l_sizey);
 
-	return ltc_evaluate_quad_diffuse(corners);
+	return ltc_evaluate_quad(corners, N);
 }
-#endif
 
-#if 0
-float direct_diffuse_unit_disc(vec3 N, vec3 L)
+float direct_diffuse_unit_disc(LightData ld, vec3 N, vec3 V)
 {
+	float NL = dot(N, -ld.l_forward);
 
+	return ltc_evaluate_disk_simple(ld.l_radius, NL);
 }
 #endif
 
@@ -125,7 +101,6 @@ vec3 direct_ggx_sphere(LightData ld, vec3 N, vec3 V, vec4 l_vector, float roughn
 
 	float bsdf = ltc_evaluate_disk(N, V, ltc_mat, points);
 	bsdf *= brdf_lut.b; /* Bsdf intensity */
-	bsdf *= M_1_PI;
 
 	vec3 spec = F_area(f0, brdf_lut.xy) * bsdf;
 
@@ -145,18 +120,37 @@ vec3 direct_ggx_rectangle(LightData ld, vec3 N, vec3 V, vec4 l_vector, float rou
 	vec4 ltc_lut = texture(utilTex, vec3(uv, 0.0)).rgba;
 	mat3 ltc_mat = ltc_matrix(ltc_lut);
 
-	float bsdf = ltc_evaluate_quad(N, V, ltc_mat, corners);
+	ltc_transform_quad(N, V, ltc_mat, corners);
+	float bsdf = ltc_evaluate_quad(corners, vec3(0.0, 0.0, 1.0));
 	bsdf *= brdf_lut.b; /* Bsdf intensity */
 
 	vec3 spec = F_area(f0, brdf_lut.xy) * bsdf;
 
 	return spec;
 }
-#endif
 
-#if 0
-float direct_ggx_disc(vec3 N, vec3 L)
+vec3 direct_ggx_unit_disc(LightData ld, vec3 N, vec3 V, float roughness, vec3 f0)
 {
+	roughness = clamp(roughness, 0.0004, 0.999); /* Fix low roughness artifacts. */
 
+	vec2 uv = lut_coords(dot(N, V), sqrt(roughness));
+	vec3 brdf_lut = texture(utilTex, vec3(uv, 1.0)).rgb;
+	vec4 ltc_lut = texture(utilTex, vec3(uv, 0.0)).rgba;
+	mat3 ltc_mat = ltc_matrix(ltc_lut);
+
+	vec3 Px = ld.l_right * ld.l_radius;
+	vec3 Py = ld.l_up * ld.l_radius;
+
+	vec3 points[3];
+	points[0] = -ld.l_forward - Px - Py;
+	points[1] = -ld.l_forward + Px - Py;
+	points[2] = -ld.l_forward + Px + Py;
+
+	float bsdf = ltc_evaluate_disk(N, V, ltc_mat, points);
+	bsdf *= brdf_lut.b; /* Bsdf intensity */
+
+	vec3 spec = F_area(f0, brdf_lut.xy) * bsdf;
+
+	return spec;
 }
 #endif

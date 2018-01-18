@@ -234,8 +234,7 @@ float light_diffuse(LightData ld, vec3 N, vec3 V, vec4 l_vector)
 {
 #ifdef USE_LTC
 	if (ld.l_type == SUN) {
-		/* TODO disk area light */
-		return direct_diffuse_sun(ld, N);
+		return direct_diffuse_unit_disc(ld, N, V);
 	}
 	else if (ld.l_type == AREA) {
 		return direct_diffuse_rectangle(ld, N, V, l_vector);
@@ -257,8 +256,7 @@ vec3 light_specular(LightData ld, vec3 N, vec3 V, vec4 l_vector, float roughness
 {
 #ifdef USE_LTC
 	if (ld.l_type == SUN) {
-		/* TODO disk area light */
-		return direct_ggx_sun(ld, N, V, roughness, f0);
+		return direct_ggx_unit_disc(ld, N, V, roughness, f0);
 	}
 	else if (ld.l_type == AREA) {
 		return direct_ggx_rectangle(ld, N, V, l_vector, roughness, f0);
