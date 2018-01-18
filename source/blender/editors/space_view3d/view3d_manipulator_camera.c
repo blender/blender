@@ -378,11 +378,12 @@ static void WIDGETGROUP_camera_view_draw_prepare(const bContext *C, wmManipulato
 	struct CameraViewWidgetGroup *viewgroup = mgroup->customdata;
 
 	ARegion *ar = CTX_wm_region(C);
+	struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	RegionView3D *rv3d = ar->regiondata;
 	if (rv3d->persp == RV3D_CAMOB) {
 		Scene *scene = CTX_data_scene(C);
 		View3D *v3d = CTX_wm_view3d(C);
-		ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &viewgroup->state.view_border, false);
+		ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, &viewgroup->state.view_border, false);
 	}
 	else {
 		viewgroup->state.view_border = (rctf){.xmin = 0, .ymin = 0, .xmax = ar->winx, .ymax = ar->winy};

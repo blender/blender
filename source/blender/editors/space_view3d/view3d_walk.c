@@ -249,6 +249,7 @@ typedef struct WalkInfo {
 	RegionView3D *rv3d;
 	View3D *v3d;
 	ARegion *ar;
+	const struct Depsgraph *depsgraph;
 	Scene *scene;
 	ViewLayer *view_layer;
 	RenderEngineType *engine_type;
@@ -334,7 +335,7 @@ static void drawWalkPixel(const struct bContext *UNUSED(C), ARegion *ar, void *a
 	rctf viewborder;
 
 	if (walk->scene->camera) {
-		ED_view3d_calc_camera_border(walk->scene, ar, walk->v3d, walk->rv3d, &viewborder, false);
+		ED_view3d_calc_camera_border(walk->scene, walk->depsgraph, ar, walk->v3d, walk->rv3d, &viewborder, false);
 		xoff = viewborder.xmin + BLI_rctf_size_x(&viewborder) * 0.5f;
 		yoff = viewborder.ymin + BLI_rctf_size_y(&viewborder) * 0.5f;
 	}
@@ -513,6 +514,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
 	walk->rv3d = CTX_wm_region_view3d(C);
 	walk->v3d = CTX_wm_view3d(C);
 	walk->ar = CTX_wm_region(C);
+	walk->depsgraph = CTX_data_depsgraph(C);
 	walk->scene = CTX_data_scene(C);
 	walk->view_layer = CTX_data_view_layer(C);
 	walk->engine_type = CTX_data_engine_type(C);

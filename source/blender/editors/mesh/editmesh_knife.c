@@ -1562,8 +1562,8 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 	}
 
 	/* unproject screen line */
-	ED_view3d_win_to_segment(kcd->ar, kcd->vc.v3d, s1, v1, v3, true);
-	ED_view3d_win_to_segment(kcd->ar, kcd->vc.v3d, s2, v2, v4, true);
+	ED_view3d_win_to_segment(kcd->eval_ctx.depsgraph, kcd->ar, kcd->vc.v3d, s1, v1, v3, true);
+	ED_view3d_win_to_segment(kcd->eval_ctx.depsgraph, kcd->ar, kcd->vc.v3d, s2, v2, v4, true);
 
 	mul_m4_v3(kcd->ob->imat, v1);
 	mul_m4_v3(kcd->ob->imat, v2);
@@ -2519,7 +2519,8 @@ static void knife_recalc_projmat(KnifeTool_OpData *kcd)
 	mul_v3_mat3_m4v3(kcd->proj_zaxis, kcd->ob->imat, kcd->vc.rv3d->viewinv[2]);
 	normalize_v3(kcd->proj_zaxis);
 
-	kcd->is_ortho = ED_view3d_clip_range_get(kcd->vc.v3d, kcd->vc.rv3d,
+	kcd->is_ortho = ED_view3d_clip_range_get(kcd->eval_ctx.depsgraph,
+	                                         kcd->vc.v3d, kcd->vc.rv3d,
 	                                         &kcd->clipsta, &kcd->clipend, true);
 }
 

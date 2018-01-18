@@ -50,6 +50,8 @@
 
 #include "BKE_context.h"
 #include "BKE_image.h"
+#include "BKE_scene.h"
+#include "BKE_workspace.h"
 
 #include "GHOST_C-api.h"
 
@@ -133,7 +135,8 @@ static bool wm_area_test_invalid_backbuf(ScrArea *sa)
 		return true;
 }
 
-static void wm_region_test_render_do_draw(const Scene *scene, ScrArea *sa, ARegion *ar)
+static void wm_region_test_render_do_draw(const Scene *scene, const struct Depsgraph *depsgraph,
+                                          ScrArea *sa, ARegion *ar)
 {
 	/* tag region for redraw from render engine preview running inside of it */
 	if (sa->spacetype == SPACE_VIEW3D) {
@@ -146,7 +149,7 @@ static void wm_region_test_render_do_draw(const Scene *scene, ScrArea *sa, ARegi
 			rcti border_rect;
 
 			/* do partial redraw when possible */
-			if (ED_view3d_calc_render_border(scene, v3d, ar, &border_rect))
+			if (ED_view3d_calc_render_border(scene, depsgraph, v3d, ar, &border_rect))
 				ED_region_tag_redraw_partial(ar, &border_rect);
 			else
 				ED_region_tag_redraw(ar);
@@ -882,7 +885,10 @@ static void wm_method_draw_triple_multiview(bContext *C, wmWindow *win, eStereoV
 /* quick test to prevent changing window drawable */
 static bool wm_draw_update_test_window(wmWindow *win)
 {
-	const Scene *scene = WM_window_get_active_scene(win);
+	/*const*/ struct WorkSpace *workspace = WM_window_get_active_workspace(win);
+	/*const*/ Scene *scene = WM_window_get_active_scene(win);
+	/*const*/ ViewLayer *view_layer = BKE_workspace_view_layer_get(workspace, scene);
+	struct Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
 	const bScreen *screen = WM_window_get_active_screen(win);
 	ScrArea *sa;
 	ARegion *ar;
@@ -899,7 +905,7 @@ static bool wm_draw_update_test_window(wmWindow *win)
 
 	for (sa = screen->areabase.first; sa; sa = sa->next) {
 		for (ar = sa->regionbase.first; ar; ar = ar->next) {
-			wm_region_test_render_do_draw(scene, sa, ar);
+			wm_region_test_render_do_draw(scene, depsgraph, sa, ar);
 
 			if (ar->swinid && ar->do_draw)
 				do_draw = true;

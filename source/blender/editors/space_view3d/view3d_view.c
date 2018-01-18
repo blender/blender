@@ -68,6 +68,7 @@
 
 #include "DRW_engine.h"
 
+#include "DEG_depsgraph_query.h"
 
 #ifdef WITH_GAMEENGINE
 #  include "BLI_listbase.h"
@@ -925,6 +926,7 @@ void ED_view3d_dist_range_get(
 
 /* copies logic of get_view3d_viewplane(), keep in sync */
 bool ED_view3d_clip_range_get(
+        const Depsgraph *depsgraph,
         const View3D *v3d, const RegionView3D *rv3d,
         float *r_clipsta, float *r_clipend,
         const bool use_ortho_factor)
@@ -932,7 +934,7 @@ bool ED_view3d_clip_range_get(
 	CameraParams params;
 
 	BKE_camera_params_init(&params);
-	BKE_camera_params_from_view3d(&params, v3d, rv3d);
+	BKE_camera_params_from_view3d(&params, depsgraph, v3d, rv3d);
 
 	if (use_ortho_factor && params.is_ortho) {
 		const float fac = 2.0f / (params.clipend - params.clipsta);
@@ -947,13 +949,14 @@ bool ED_view3d_clip_range_get(
 }
 
 bool ED_view3d_viewplane_get(
+        const Depsgraph *depsgraph,
         const View3D *v3d, const RegionView3D *rv3d, int winx, int winy,
         rctf *r_viewplane, float *r_clipsta, float *r_clipend, float *r_pixsize)
 {
 	CameraParams params;
 
 	BKE_camera_params_init(&params);
-	BKE_camera_params_from_view3d(&params, v3d, rv3d);
+	BKE_camera_params_from_view3d(&params, depsgraph, v3d, rv3d);
 	BKE_camera_params_compute_viewplane(&params, winx, winy, 1.0f, 1.0f);
 
 	if (r_viewplane) *r_viewplane = params.viewplane;
@@ -992,14 +995,14 @@ void ED_view3d_polygon_offset(const RegionView3D *rv3d, const float dist)
 /**
  * \param rect optional for picking (can be NULL).
  */
-void view3d_winmatrix_set(ARegion *ar, const View3D *v3d, const rcti *rect)
+void view3d_winmatrix_set(const Depsgraph *depsgraph, ARegion *ar, const View3D *v3d, const rcti *rect)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	rctf viewplane;
 	float clipsta, clipend;
 	bool is_ortho;
 	
-	is_ortho = ED_view3d_viewplane_get(v3d, rv3d, ar->winx, ar->winy, &viewplane, &clipsta, &clipend, NULL);
+	is_ortho = ED_view3d_viewplane_get(depsgraph, v3d, rv3d, ar->winx, ar->winy, &viewplane, &clipsta, &clipend, NULL);
 	rv3d->is_persp = !is_ortho;
 
 #if 0
@@ -1113,8 +1116,10 @@ void view3d_viewmatrix_set(const EvaluationContext *eval_ctx, Scene *scene, cons
 {
 	if (rv3d->persp == RV3D_CAMOB) {      /* obs/camera */
 		if (v3d->camera) {
-			BKE_object_where_is_calc(eval_ctx, scene, v3d->camera);
-			obmat_to_viewmat(rv3d, v3d->camera);
+			const Depsgraph *depsgraph = eval_ctx->depsgraph;
+			Object *camera_object = DEG_get_evaluated_object(depsgraph, v3d->camera);
+			BKE_object_where_is_calc(eval_ctx, scene, camera_object);
+			obmat_to_viewmat(rv3d, camera_object);
 		}
 		else {
 			quat_to_mat4(rv3d->viewmat, rv3d->viewquat);
@@ -1533,9 +1538,10 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 	    (startscene->gm.framing.type == SCE_GAMEFRAMING_BARS) &&
 	    (startscene->gm.stereoflag != STEREO_DOME))
 	{
+		const Depsgraph *depsgraph = CTX_data_depsgraph(C);
 		/* Letterbox */
 		rctf cam_framef;
-		ED_view3d_calc_camera_border(startscene, ar, CTX_wm_view3d(C), rv3d, &cam_framef, false);
+		ED_view3d_calc_camera_border(startscene, depsgraph, ar, CTX_wm_view3d(C), rv3d, &cam_framef, false);
 		cam_frame.xmin = cam_framef.xmin + ar->winrct.xmin;
 		cam_frame.xmax = cam_framef.xmax + ar->winrct.xmin;
 		cam_frame.ymin = cam_framef.ymin + ar->winrct.ymin;

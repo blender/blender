@@ -233,8 +233,9 @@ void ED_view3d_draw_select_loop(
 void ED_view3d_draw_depth_loop(
         const struct EvaluationContext *eval_ctx, Scene *scene, ARegion *ar, View3D *v3d);
 
-void view3d_draw_bgpic_test(Scene *scene, ARegion *ar, View3D *v3d,
-                                   const bool do_foreground, const bool do_camera_frame);
+void view3d_draw_bgpic_test(Scene *scene, const struct Depsgraph *depsgraph,
+                            ARegion *ar, View3D *v3d,
+                            const bool do_foreground, const bool do_camera_frame);
 
 void ED_view3d_after_add(ListBase *lb, Base *base, const short dflag);
 
@@ -279,7 +280,7 @@ void ED_view3d_smooth_view_force_finish(
         struct bContext *C,
         struct View3D *v3d, struct ARegion *ar);
 
-void view3d_winmatrix_set(ARegion *ar, const View3D *v3d, const rcti *rect);
+void view3d_winmatrix_set(const struct Depsgraph *depsgraph, ARegion *ar, const View3D *v3d, const rcti *rect);
 void view3d_viewmatrix_set(const struct EvaluationContext *eval_ctx, Scene *scene, const View3D *v3d, RegionView3D *rv3d);
 
 void fly_modal_keymap(struct wmKeyConfig *keyconf);
@@ -376,7 +377,7 @@ bool VP_legacy_view3d_stereo3d_active(struct wmWindow *win, Scene *scene, View3D
 void VP_legacy_view3d_stereo3d_setup(const struct EvaluationContext *eval_ctx, Scene *scene, View3D *v3d, ARegion *ar);
 void draw_dupli_objects(const struct EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer, ARegion *ar, View3D *v3d, Base *base);
 bool VP_legacy_use_depth(Scene *scene, View3D *v3d);
-void VP_drawviewborder(Scene *scene, ARegion *ar, View3D *v3d);
+void VP_drawviewborder(Scene *scene, const struct Depsgraph *depsgraph, ARegion *ar, View3D *v3d);
 void VP_drawrenderborder(ARegion *ar, View3D *v3d);
 void VP_view3d_draw_background_none(void);
 void VP_view3d_draw_background_world(Scene *scene, RegionView3D *rv3d);

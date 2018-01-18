@@ -61,6 +61,8 @@
 #include "draw_manager_text.h"
 #include "draw_common.h"
 
+#include "DEG_depsgraph_query.h"
+
 extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
 extern struct GPUTexture *globals_ramp; /* draw_common.c */
 extern GlobalsUboStorage ts;
@@ -506,8 +508,14 @@ static void OBJECT_engine_init(void *vedata)
 			e_data.zneg_flag = e_data.zpos_flag = CLIP_ZNEG | CLIP_ZPOS;
 		}
 
-		float dist = (rv3d->persp == RV3D_CAMOB && v3d->camera)
-		             ? ((Camera *)v3d->camera)->clipend : v3d->far;
+		float dist;
+		if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
+			Object *camera_object = DEG_get_evaluated_object(draw_ctx->depsgraph, v3d->camera);
+			dist = ((Camera *)camera_object)->clipend;
+		}
+		else {
+			dist = v3d->far;
+		}
 
 		e_data.grid_settings[0] = dist / 2.0f; /* gridDistance */
 		e_data.grid_settings[1] = grid_res; /* gridResolution */

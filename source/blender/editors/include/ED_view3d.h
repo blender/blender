@@ -227,9 +227,11 @@ eV3DProjStatus ED_view3d_project_float_object(const struct ARegion *ar, const fl
 float ED_view3d_calc_zfac(const struct RegionView3D *rv3d, const float co[3], bool *r_flip);
 bool ED_view3d_clip_segment(const struct RegionView3D *rv3d, float ray_start[3], float ray_end[3]);
 bool ED_view3d_win_to_ray(
+        const struct Depsgraph *depsgraph,
         const struct ARegion *ar, const struct View3D *v3d, const float mval[2],
         float ray_start[3], float ray_normal[3], const bool do_clip);
 bool ED_view3d_win_to_ray_ex(
+        const struct Depsgraph *depsgraph,
         const struct ARegion *ar, const struct View3D *v3d, const float mval[2],
         float r_ray_co[3], float r_ray_normal[3], float r_ray_start[3], bool do_clip);
 void ED_view3d_global_to_vector(const struct RegionView3D *rv3d, const float coord[3], float vec[3]);
@@ -244,7 +246,8 @@ void ED_view3d_win_to_3d_int(
 void ED_view3d_win_to_delta(const struct ARegion *ar, const float mval[2], float out[3], const float zfac);
 void ED_view3d_win_to_origin(const struct ARegion *ar, const float mval[2], float out[3]);
 void ED_view3d_win_to_vector(const struct ARegion *ar, const float mval[2], float out[3]);
-bool ED_view3d_win_to_segment(const struct ARegion *ar, struct View3D *v3d, const float mval[2],
+bool ED_view3d_win_to_segment(const struct Depsgraph *depsgraph,
+                              const struct ARegion *ar, struct View3D *v3d, const float mval[2],
                               float r_ray_start[3], float r_ray_end[3], const bool do_clip);
 void ED_view3d_ob_project_mat_get(const struct RegionView3D *v3d, struct Object *ob, float pmat[4][4]);
 void ED_view3d_ob_project_mat_get_from_obmat(const struct RegionView3D *rv3d, float obmat[4][4], float pmat[4][4]);
@@ -259,24 +262,29 @@ void ED_view3d_dist_range_get(
         const struct View3D *v3d,
         float r_dist_range[2]);
 bool ED_view3d_clip_range_get(
+        const struct Depsgraph *depsgraph,
         const struct View3D *v3d, const struct RegionView3D *rv3d,
         float *r_clipsta, float *r_clipend, const bool use_ortho_factor);
 bool ED_view3d_viewplane_get(
+        const struct Depsgraph *depsgraph,
         const struct View3D *v3d, const struct RegionView3D *rv3d, int winxi, int winyi,
         struct rctf *r_viewplane, float *r_clipsta, float *r_clipend, float *r_pixsize);
 
 void ED_view3d_polygon_offset(const struct RegionView3D *rv3d, const float dist);
 
 void ED_view3d_calc_camera_border(
-        const struct Scene *scene, const struct ARegion *ar,
+        const struct Scene *scene, const struct Depsgraph *depsgraph,
+        const struct ARegion *ar,
         const struct View3D *v3d, const struct RegionView3D *rv3d,
         struct rctf *r_viewborder, const bool no_shift);
 void ED_view3d_calc_camera_border_size(
-        const struct Scene *scene, const struct ARegion *ar,
+        const struct Scene *scene, const struct Depsgraph *depsgraph,
+        const struct ARegion *ar,
         const struct View3D *v3d, const struct RegionView3D *rv3d,
         float r_size[2]);
 bool ED_view3d_calc_render_border(
-        const struct Scene *scene, struct View3D *v3d,
+        const struct Scene *scene, const struct Depsgraph *depsgraph,
+        struct View3D *v3d,
         struct ARegion *ar, struct rcti *rect);
 
 void ED_view3d_clipping_calc_from_boundbox(float clip[6][4], const struct BoundBox *clipbb, const bool is_flip);

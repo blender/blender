@@ -57,6 +57,8 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "GPU_compositing.h"
@@ -262,7 +264,7 @@ void BKE_camera_params_from_object(CameraParams *params, const Object *ob)
 	}
 }
 
-void BKE_camera_params_from_view3d(CameraParams *params, const View3D *v3d, const RegionView3D *rv3d)
+void BKE_camera_params_from_view3d(CameraParams *params, const Depsgraph *depsgraph, const View3D *v3d, const RegionView3D *rv3d)
 {
 	/* common */
 	params->lens = v3d->lens;
@@ -271,7 +273,8 @@ void BKE_camera_params_from_view3d(CameraParams *params, const View3D *v3d, cons
 
 	if (rv3d->persp == RV3D_CAMOB) {
 		/* camera view */
-		BKE_camera_params_from_object(params, v3d->camera);
+		Object *camera_object = DEG_get_evaluated_object(depsgraph, v3d->camera);
+		BKE_camera_params_from_object(params, camera_object);
 
 		params->zoom = BKE_screen_view3d_zoom_to_fac(rv3d->camzoom);
 

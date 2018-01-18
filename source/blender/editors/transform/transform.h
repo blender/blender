@@ -43,6 +43,7 @@
 
 /* ************************** Types ***************************** */
 
+struct Depsgraph;
 struct TransInfo;
 struct TransData;
 struct TransformOrientation;
@@ -468,6 +469,7 @@ typedef struct TransInfo {
 	struct bContext *context; /* Only valid (non null) during an operator called function. */
 	struct ScrArea	*sa;
 	struct ARegion	*ar;
+	struct Depsgraph *depsgraph;
 	struct Scene	*scene;
 	struct ViewLayer *view_layer;
 	struct RenderEngineType *engine_type;

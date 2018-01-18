@@ -93,6 +93,8 @@ struct StrokeElem {
 };
 
 struct CurveDrawData {
+	const Depsgraph *depsgraph;
+
 	short init_event_type;
 	short curve_type;
 
@@ -199,7 +201,7 @@ static bool stroke_elem_project(
 	if (cdd->project.use_plane) {
 		/* get the view vector to 'location' */
 		float ray_origin[3], ray_direction[3];
-		ED_view3d_win_to_ray(cdd->vc.ar, v3d, mval_fl, ray_origin, ray_direction, false);
+		ED_view3d_win_to_ray(cdd->depsgraph, cdd->vc.ar, v3d, mval_fl, ray_origin, ray_direction, false);
 
 		float lambda;
 		if (isect_ray_plane_v3(ray_origin, ray_direction, cdd->project.plane, &lambda, true)) {
@@ -602,6 +604,8 @@ static bool curve_draw_init(bContext *C, wmOperator *op, bool is_invoke)
 	BLI_assert(op->customdata == NULL);
 
 	struct CurveDrawData *cdd = MEM_callocN(sizeof(*cdd), __func__);
+
+	cdd->depsgraph = CTX_data_depsgraph(C);
 
 	if (is_invoke) {
 		view3d_set_viewcontext(C, &cdd->vc);

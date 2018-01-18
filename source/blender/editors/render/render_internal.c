@@ -1067,6 +1067,7 @@ typedef struct RenderPreview {
 	wmJob *job;
 	
 	Scene *scene;
+	Depsgraph *depsgraph;
 	ScrArea *sa;
 	ARegion *ar;
 	View3D *v3d;
@@ -1081,7 +1082,8 @@ typedef struct RenderPreview {
 	bool has_freestyle;
 } RenderPreview;
 
-static int render_view3d_disprect(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, rcti *disprect)
+static int render_view3d_disprect(Scene *scene, const Depsgraph *depsgraph,
+                                  ARegion *ar, View3D *v3d, RegionView3D *rv3d, rcti *disprect)
 {
 	/* copied code from view3d_draw.c */
 	rctf viewborder;
@@ -1094,7 +1096,7 @@ static int render_view3d_disprect(Scene *scene, ARegion *ar, View3D *v3d, Region
 
 	if (draw_border) {
 		if (rv3d->persp == RV3D_CAMOB) {
-			ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &viewborder, false);
+			ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, &viewborder, false);
 			
 			disprect->xmin = viewborder.xmin + scene->r.border.xmin * BLI_rctf_size_x(&viewborder);
 			disprect->ymin = viewborder.ymin + scene->r.border.ymin * BLI_rctf_size_y(&viewborder);
@@ -1116,13 +1118,15 @@ static int render_view3d_disprect(Scene *scene, ARegion *ar, View3D *v3d, Region
 }
 
 /* returns true if OK  */
-static bool render_view3d_get_rects(ARegion *ar, View3D *v3d, RegionView3D *rv3d, rctf *viewplane, RenderEngine *engine,
-                                    float *r_clipsta, float *r_clipend, float *r_pixsize, bool *r_ortho)
+static bool render_view3d_get_rects(
+        const Depsgraph *depsgraph,
+        ARegion *ar, View3D *v3d, RegionView3D *rv3d, rctf *viewplane, RenderEngine *engine,
+        float *r_clipsta, float *r_clipend, float *r_pixsize, bool *r_ortho)
 {
 	
 	if (ar->winx < 4 || ar->winy < 4) return false;
 	
-	*r_ortho = ED_view3d_viewplane_get(v3d, rv3d, ar->winx, ar->winy, viewplane, r_clipsta, r_clipend, r_pixsize);
+	*r_ortho = ED_view3d_viewplane_get(depsgraph, v3d, rv3d, ar->winx, ar->winy, viewplane, r_clipsta, r_clipend, r_pixsize);
 	
 	engine->resolution_x = ar->winx;
 	engine->resolution_y = ar->winy;
@@ -1229,7 +1233,7 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 
 	G.is_break = false;
 	
-	if (false == render_view3d_get_rects(rp->ar, rp->v3d, rp->rv3d, &viewplane, rp->engine, &clipsta, &clipend, &pixsize, &orth))
+	if (false == render_view3d_get_rects(rp->depsgraph, rp->ar, rp->v3d, rp->rv3d, &viewplane, rp->engine, &clipsta, &clipend, &pixsize, &orth))
 		return;
 	
 	rp->stop = stop;
@@ -1262,8 +1266,9 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 		}
 	}
 
-	use_border = render_view3d_disprect(rp->scene, rp->ar, rp->v3d,
-	                                    rp->rv3d, &cliprct);
+	use_border = render_view3d_disprect(rp->scene, rp->depsgraph,
+	                                    rp->ar, rp->v3d, rp->rv3d,
+	                                    &cliprct);
 
 	if ((update_flag & (PR_UPDATE_RENDERSIZE | PR_UPDATE_DATABASE | PR_UPDATE_VIEW)) || rstats->convertdone == 0) {
 		RenderData rdata;
@@ -1386,6 +1391,7 @@ static bool render_view3d_flag_changed(RenderEngine *engine, const bContext *C)
 	View3D *v3d = CTX_wm_view3d(C);
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Render *re;
 	rctf viewplane;
 	rcti disprect;
@@ -1435,14 +1441,14 @@ static bool render_view3d_flag_changed(RenderEngine *engine, const bContext *C)
 		job_update_flag |= PR_UPDATE_VIEW;
 	}
 	
-	render_view3d_get_rects(ar, v3d, rv3d, &viewplane, engine, &clipsta, &clipend, NULL, &orth);
+	render_view3d_get_rects(depsgraph, ar, v3d, rv3d, &viewplane, engine, &clipsta, &clipend, NULL, &orth);
 	
 	if (BLI_rctf_compare(&viewplane, &engine->last_viewplane, 0.00001f) == 0) {
 		engine->last_viewplane = viewplane;
 		job_update_flag |= PR_UPDATE_VIEW;
 	}
 	
-	render_view3d_disprect(scene, ar, v3d, rv3d, &disprect);
+	render_view3d_disprect(scene, depsgraph, ar, v3d, rv3d, &disprect);
 	if (BLI_rcti_compare(&disprect, &engine->last_disprect) == 0) {
 		engine->last_disprect = disprect;
 		job_update_flag |= PR_UPDATE_RENDERSIZE;
@@ -1462,6 +1468,7 @@ static void render_view3d_do(RenderEngine *engine, const bContext *C)
 	wmJob *wm_job;
 	RenderPreview *rp;
 	Scene *scene = CTX_data_scene(C);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	ARegion *ar = CTX_wm_region(C);
 	int width = ar->winx, height = ar->winy;
 	int divider = BKE_render_preview_pixel_size(&scene->r);
@@ -1486,6 +1493,7 @@ static void render_view3d_do(RenderEngine *engine, const bContext *C)
 
 	/* customdata for preview thread */
 	rp->scene = scene;
+	rp->depsgraph = depsgraph;
 	rp->engine = engine;
 	rp->sa = CTX_wm_area(C);
 	rp->ar = CTX_wm_region(C);
@@ -1543,6 +1551,7 @@ void render_view3d_draw(RenderEngine *engine, const bContext *C)
 		RegionView3D *rv3d = CTX_wm_region_view3d(C);
 		View3D *v3d = CTX_wm_view3d(C);
 		Scene *scene = CTX_data_scene(C);
+		Depsgraph *depsgraph = CTX_data_depsgraph(C);
 		ARegion *ar = CTX_wm_region(C);
 		bool force_fallback = false;
 		bool need_fallback = true;
@@ -1551,7 +1560,7 @@ void render_view3d_draw(RenderEngine *engine, const bContext *C)
 		rcti clip_rect;
 		int xof, yof;
 
-		if (render_view3d_disprect(scene, ar, v3d, rv3d, &clip_rect)) {
+		if (render_view3d_disprect(scene, depsgraph, ar, v3d, rv3d, &clip_rect)) {
 			scale_x = (float) BLI_rcti_size_x(&clip_rect) / rres.rectx;
 			scale_y = (float) BLI_rcti_size_y(&clip_rect) / rres.recty;
 			xof = clip_rect.xmin;

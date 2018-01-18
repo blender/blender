@@ -39,6 +39,7 @@ extern "C" {
 #include "DNA_vec_types.h"
 
 struct Camera;
+struct Depsgraph;
 struct Main;
 struct Object;
 struct RegionView3D;
@@ -113,7 +114,7 @@ typedef struct CameraParams {
 
 void BKE_camera_params_init(CameraParams *params);
 void BKE_camera_params_from_object(CameraParams *params, const struct Object *camera);
-void BKE_camera_params_from_view3d(CameraParams *params, const struct View3D *v3d, const struct RegionView3D *rv3d);
+void BKE_camera_params_from_view3d(CameraParams *params, const struct Depsgraph *depsgraph, const struct View3D *v3d, const struct RegionView3D *rv3d);
 
 void BKE_camera_params_compute_viewplane(CameraParams *params, int winx, int winy, float aspx, float aspy);
 void BKE_camera_params_compute_matrix(CameraParams *params);

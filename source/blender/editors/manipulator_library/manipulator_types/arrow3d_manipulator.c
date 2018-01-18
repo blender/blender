@@ -262,6 +262,7 @@ static int manipulator_arrow_modal(
 
 	for (int j = 0; j < 2; j++) {
 		if (ED_view3d_win_to_ray(
+		            CTX_data_depsgraph(C),
 		            ar, v3d, proj[j].mval,
 		            proj[j].ray_origin, proj[j].ray_direction, false))
 		{

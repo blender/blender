@@ -416,6 +416,7 @@ static BMElem *edbm_hover_preselect(
 	BMElem *ele_best = NULL;
 
 	if (ED_view3d_win_to_ray(
+	        CTX_data_depsgraph(C),
 	        vc.ar, vc.v3d, mval_fl,
 	        ray_origin, ray_direction, true))
 	{

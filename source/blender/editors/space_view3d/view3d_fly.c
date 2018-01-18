@@ -193,6 +193,7 @@ typedef struct FlyInfo {
 	RegionView3D *rv3d;
 	View3D *v3d;
 	ARegion *ar;
+	const struct Depsgraph *depsgraph;
 	Scene *scene;
 
 	wmTimer *timer; /* needed for redraws */
@@ -242,7 +243,7 @@ static void drawFlyPixel(const struct bContext *UNUSED(C), ARegion *UNUSED(ar), 
 	float x1, x2, y1, y2;
 
 	if (fly->scene->camera) {
-		ED_view3d_calc_camera_border(fly->scene, fly->ar, fly->v3d, fly->rv3d, &viewborder, false);
+		ED_view3d_calc_camera_border(fly->scene, fly->depsgraph, fly->ar, fly->v3d, fly->rv3d, &viewborder, false);
 		xoff = viewborder.xmin;
 		yoff = viewborder.ymin;
 	}
@@ -351,6 +352,7 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
 	fly->rv3d = CTX_wm_region_view3d(C);
 	fly->v3d = CTX_wm_view3d(C);
 	fly->ar = CTX_wm_region(C);
+	fly->depsgraph = CTX_data_depsgraph(C);
 	fly->scene = CTX_data_scene(C);
 
 #ifdef NDOF_FLY_DEBUG
@@ -422,7 +424,7 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
 
 	/* calculate center */
 	if (fly->scene->camera) {
-		ED_view3d_calc_camera_border(fly->scene, fly->ar, fly->v3d, fly->rv3d, &viewborder, false);
+		ED_view3d_calc_camera_border(fly->scene, fly->depsgraph, fly->ar, fly->v3d, fly->rv3d, &viewborder, false);
 
 		fly->width = BLI_rctf_size_x(&viewborder);
 		fly->height = BLI_rctf_size_y(&viewborder);

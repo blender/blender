@@ -2372,6 +2372,7 @@ bool ED_transform_snap_object_project_view3d_ex(
 	ED_view3d_win_to_vector(ar, mval, ray_normal);
 
 	ED_view3d_clip_range_get(
+	        sctx->eval_ctx.depsgraph,
 	        sctx->v3d_data.v3d, sctx->v3d_data.ar->regiondata,
 	        &depth_range[0], &depth_range[1], false);
 
@@ -2438,6 +2439,7 @@ bool ED_transform_snap_object_project_all_view3d_ex(
 	float ray_start[3], ray_normal[3];
 
 	if (!ED_view3d_win_to_ray_ex(
+	        sctx->eval_ctx.depsgraph,
 	        sctx->v3d_data.ar, sctx->v3d_data.v3d,
 	        mval, NULL, ray_normal, ray_start, true))
 	{

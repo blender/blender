@@ -227,6 +227,7 @@ typedef struct ProjPaintState {
 	View3D *v3d;
 	RegionView3D *rv3d;
 	ARegion *ar;
+	const Depsgraph *depsgraph;
 	Scene *scene;
 	int source; /* PROJ_SRC_**** */
 
@@ -3133,7 +3134,7 @@ static void proj_paint_state_viewport_init(
 
 		ED_view3d_ob_project_mat_get_from_obmat(ps->rv3d, ps->obmat, ps->projectMat);
 
-		ps->is_ortho = ED_view3d_clip_range_get(ps->v3d, ps->rv3d, &ps->clipsta, &ps->clipend, true);
+		ps->is_ortho = ED_view3d_clip_range_get(ps->depsgraph, ps->v3d, ps->rv3d, &ps->clipsta, &ps->clipend, true);
 	}
 	else {
 		/* re-projection */
@@ -5098,6 +5099,7 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
 	ps->rv3d = CTX_wm_region_view3d(C);
 	ps->ar = CTX_wm_region(C);
 
+	ps->depsgraph = CTX_data_depsgraph(C);
 	ps->scene = scene;
 	ps->ob = ob; /* allow override of active object */
 
@@ -5508,7 +5510,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 		array = (float *)IDP_Array(view_data);
 		memcpy(array, rv3d->winmat, sizeof(rv3d->winmat)); array += sizeof(rv3d->winmat) / sizeof(float);
 		memcpy(array, rv3d->viewmat, sizeof(rv3d->viewmat)); array += sizeof(rv3d->viewmat) / sizeof(float);
-		is_ortho = ED_view3d_clip_range_get(v3d, rv3d, &array[0], &array[1], true);
+		is_ortho = ED_view3d_clip_range_get(CTX_data_depsgraph(C), v3d, rv3d, &array[0], &array[1], true);
 		/* using float for a bool is dodgy but since its an extra member in the array...
 		 * easier then adding a single bool prop */
 		array[2] = is_ortho ? 1.0f : 0.0f;

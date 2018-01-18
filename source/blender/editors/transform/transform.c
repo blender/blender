@@ -6034,7 +6034,9 @@ static void calcEdgeSlide_mval_range(
 						continue;
 
 					/* This test is only relevant if object is not wire-drawn! See [#32068]. */
-					if (use_occlude_geometry && !BMBVH_EdgeVisible(bmbvh, e_other, ar, v3d, t->obedit)) {
+					if (use_occlude_geometry &&
+					    !BMBVH_EdgeVisible(bmbvh, e_other, t->depsgraph, ar, v3d, t->obedit))
+					{
 						continue;
 					}
 

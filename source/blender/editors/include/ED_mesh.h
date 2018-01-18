@@ -40,6 +40,7 @@ struct EvaluationContext;
 struct View3D;
 struct ARegion;
 struct bContext;
+struct Depsgraph;
 struct wmOperator;
 struct wmKeyConfig;
 struct ReportList;
@@ -126,6 +127,7 @@ void EDBM_flag_enable_all(struct BMEditMesh *em, const char hflag);
 void EDBM_flag_disable_all(struct BMEditMesh *em, const char hflag);
 
 bool BMBVH_EdgeVisible(struct BMBVHTree *tree, struct BMEdge *e,
+                       const struct Depsgraph *depsgraph,
                        struct ARegion *ar, struct View3D *v3d, struct Object *obedit);
 
 /* editmesh_select.c */

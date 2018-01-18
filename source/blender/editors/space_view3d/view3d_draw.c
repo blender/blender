@@ -123,14 +123,14 @@ void ED_view3d_update_viewmat(
         const EvaluationContext *eval_ctx, Scene *scene, View3D *v3d, ARegion *ar,
         float viewmat[4][4], float winmat[4][4], const rcti *rect)
 {
+	const Depsgraph *depsgraph = eval_ctx->depsgraph;
 	RegionView3D *rv3d = ar->regiondata;
-
 
 	/* setup window matrices */
 	if (winmat)
 		copy_m4_m4(rv3d->winmat, winmat);
 	else
-		view3d_winmatrix_set(ar, v3d, rect);
+		view3d_winmatrix_set(depsgraph, ar, v3d, rect);
 
 	/* setup view matrix */
 	if (viewmat)
@@ -148,7 +148,7 @@ void ED_view3d_update_viewmat(
 	/* store window coordinates scaling/offset */
 	if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
 		rctf cameraborder;
-		ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &cameraborder, false);
+		ED_view3d_calc_camera_border(scene, eval_ctx->depsgraph, ar, v3d, rv3d, &cameraborder, false);
 		rv3d->viewcamtexcofac[0] = (float)ar->winx / BLI_rctf_size_x(&cameraborder);
 		rv3d->viewcamtexcofac[1] = (float)ar->winy / BLI_rctf_size_y(&cameraborder);
 
@@ -307,7 +307,8 @@ void ED_view3d_draw_setup_view(
 /* ******************** view border ***************** */
 
 static void view3d_camera_border(
-        const Scene *scene, const ARegion *ar, const View3D *v3d, const RegionView3D *rv3d,
+        const Scene *scene, const struct Depsgraph *depsgraph,
+        const ARegion *ar, const View3D *v3d, const RegionView3D *rv3d,
         rctf *r_viewborder, const bool no_shift, const bool no_zoom)
 {
 	CameraParams params;
@@ -315,7 +316,7 @@ static void view3d_camera_border(
 
 	/* get viewport viewplane */
 	BKE_camera_params_init(&params);
-	BKE_camera_params_from_view3d(&params, v3d, rv3d);
+	BKE_camera_params_from_view3d(&params, depsgraph, v3d, rv3d);
 	if (no_zoom)
 		params.zoom = 1.0f;
 	BKE_camera_params_compute_viewplane(&params, ar->winx, ar->winy, 1.0f, 1.0f);
@@ -342,21 +343,23 @@ static void view3d_camera_border(
 }
 
 void ED_view3d_calc_camera_border_size(
-        const Scene *scene, const ARegion *ar, const View3D *v3d, const RegionView3D *rv3d,
+        const Scene *scene, const Depsgraph *depsgraph,
+        const ARegion *ar, const View3D *v3d, const RegionView3D *rv3d,
         float r_size[2])
 {
 	rctf viewborder;
 
-	view3d_camera_border(scene, ar, v3d, rv3d, &viewborder, true, true);
+	view3d_camera_border(scene, depsgraph, ar, v3d, rv3d, &viewborder, true, true);
 	r_size[0] = BLI_rctf_size_x(&viewborder);
 	r_size[1] = BLI_rctf_size_y(&viewborder);
 }
 
 void ED_view3d_calc_camera_border(
-        const Scene *scene, const ARegion *ar, const View3D *v3d, const RegionView3D *rv3d,
+        const Scene *scene, const Depsgraph *depsgraph,
+        const ARegion *ar, const View3D *v3d, const RegionView3D *rv3d,
         rctf *r_viewborder, const bool no_shift)
 {
-	view3d_camera_border(scene, ar, v3d, rv3d, r_viewborder, no_shift, false);
+	view3d_camera_border(scene, depsgraph, ar, v3d, rv3d, r_viewborder, no_shift, false);
 }
 
 static void drawviewborder_grid3(uint shdr_pos, float x1, float x2, float y1, float y2, float fac)
@@ -435,7 +438,7 @@ static void drawviewborder_triangle(
 	immEnd();
 }
 
-static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
+static void drawviewborder(Scene *scene, const Depsgraph *depsgraph, ARegion *ar, View3D *v3d)
 {
 	float x1, x2, y1, y2;
 	float x1i, x2i, y1i, y2i;
@@ -449,7 +452,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	if (v3d->camera->type == OB_CAMERA)
 		ca = v3d->camera->data;
 	
-	ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &viewborder, false);
+	ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, &viewborder, false);
 	/* the offsets */
 	x1 = viewborder.xmin;
 	y1 = viewborder.ymin;
@@ -1598,11 +1601,12 @@ static void UNUSED_FUNCTION(draw_rotation_guide)(RegionView3D *rv3d)
 static void view3d_draw_border(const bContext *C, ARegion *ar)
 {
 	Scene *scene = CTX_data_scene(C);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	RegionView3D *rv3d = ar->regiondata;
 	View3D *v3d = CTX_wm_view3d(C);
 
 	if (rv3d->persp == RV3D_CAMOB) {
-		drawviewborder(scene, ar, v3d);
+		drawviewborder(scene, depsgraph, ar, v3d);
 	}
 	else if (v3d->flag2 & V3D_RENDER_BORDER) {
 		drawrenderborder(ar, v3d);
@@ -2019,6 +2023,10 @@ void ED_view3d_draw_offscreen(
 	else
 		view3d_main_region_setup_view(eval_ctx, scene, v3d, ar, viewmat, winmat, NULL);
 
+	/* XXX, should take depsgraph as arg */
+	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, false);
+	BLI_assert(depsgraph != NULL);
+
 	/* main drawing call */
 	RenderEngineType *engine_type = eval_ctx->engine_type;
 	if (engine_type->flag & RE_USE_LEGACY_PIPELINE) {
@@ -2053,7 +2061,7 @@ void ED_view3d_draw_offscreen(
 
 			if (v3d->flag2 & V3D_SHOW_GPENCIL) {
 				/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
-				ED_gpencil_draw_view3d(NULL, scene, view_layer, v3d, ar, false);
+				ED_gpencil_draw_view3d(NULL, scene, view_layer, depsgraph, v3d, ar, false);
 			}
 
 			/* freeing the images again here could be done after the operator runs, leaving for now */
@@ -2061,9 +2069,6 @@ void ED_view3d_draw_offscreen(
 		}
 	}
 	else {
-		/* XXX, should take depsgraph as arg */
-		Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, false);
-		BLI_assert(depsgraph != NULL);
 		DRW_draw_render_loop_offscreen(depsgraph, eval_ctx->engine_type, ar, v3d, do_sky, ofs, viewport);
 	}
 
@@ -2094,6 +2099,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
         /* output vars */
         GPUFX *fx, GPUOffScreen *ofs, char err_out[256])
 {
+	const Depsgraph *depsgraph = eval_ctx->depsgraph;
 	RegionView3D *rv3d = ar->regiondata;
 	const bool draw_sky = (alpha_mode == R_ADDSKY);
 	const bool draw_background = (draw_flags & V3D_OFSDRAW_USE_BACKGROUND);
@@ -2149,7 +2155,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 		rctf viewplane;
 		float clipsta, clipend;
 
-		is_ortho = ED_view3d_viewplane_get(v3d, rv3d, sizex, sizey, &viewplane, &clipsta, &clipend, NULL);
+		is_ortho = ED_view3d_viewplane_get(depsgraph, v3d, rv3d, sizex, sizey, &viewplane, &clipsta, &clipend, NULL);
 		if (is_ortho) {
 			orthographic_m4(winmat, viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, -clipend, clipend);
 		}
@@ -2393,9 +2399,9 @@ bool VP_legacy_use_depth(Scene *scene, View3D *v3d)
 	return use_depth_doit(scene, v3d);
 }
 
-void VP_drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
+void VP_drawviewborder(Scene *scene, const struct Depsgraph *depsgraph, ARegion *ar, View3D *v3d)
 {
-	drawviewborder(scene, ar, v3d);
+	drawviewborder(scene, depsgraph, ar, v3d);
 }
 
 void VP_drawrenderborder(ARegion *ar, View3D *v3d)

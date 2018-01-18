@@ -1392,7 +1392,9 @@ static void scale_point(float c1[3], const float p[3], const float s)
 	add_v3_v3(c1, p);
 }
 
-bool BMBVH_EdgeVisible(struct BMBVHTree *tree, BMEdge *e, ARegion *ar, View3D *v3d, Object *obedit)
+bool BMBVH_EdgeVisible(struct BMBVHTree *tree, BMEdge *e,
+                       const struct Depsgraph *depsgraph,
+                       ARegion *ar, View3D *v3d, Object *obedit)
 {
 	BMFace *f;
 	float co1[3], co2[3], co3[3], dir1[3], dir2[3], dir3[3];
@@ -1402,7 +1404,7 @@ bool BMBVH_EdgeVisible(struct BMBVHTree *tree, BMEdge *e, ARegion *ar, View3D *v
 	const float mval_f[2] = {ar->winx / 2.0f,
 	                         ar->winy / 2.0f};
 
-	ED_view3d_win_to_segment(ar, v3d, mval_f, origin, end, false);
+	ED_view3d_win_to_segment(depsgraph, ar, v3d, mval_f, origin, end, false);
 
 	invert_m4_m4(invmat, obedit->obmat);
 	mul_m4_v3(invmat, origin);

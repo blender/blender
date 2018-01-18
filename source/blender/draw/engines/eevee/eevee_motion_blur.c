@@ -40,6 +40,7 @@
 #include "ED_screen.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "eevee_private.h"
 #include "GPU_texture.h"
@@ -147,11 +148,12 @@ int EEVEE_motion_blur_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *veda
 			float persmat[4][4];
 			float ctime = BKE_scene_frame_get(scene);
 			float delta = BKE_collection_engine_property_value_get_float(props, "motion_blur_shutter");
+			Object *camera_object = DEG_get_evaluated_object(draw_ctx->depsgraph, v3d->camera);
 
 			/* Current matrix */
 			eevee_motion_blur_camera_get_matrix_at_time(scene,
 			                                            ar, rv3d, v3d,
-			                                            v3d->camera,
+			                                            camera_object,
 			                                            ctime,
 			                                            effects->current_ndc_to_world);
 
@@ -165,7 +167,7 @@ int EEVEE_motion_blur_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *veda
 				/* Past matrix */
 				eevee_motion_blur_camera_get_matrix_at_time(scene,
 				                                            ar, rv3d, v3d,
-				                                            v3d->camera,
+				                                            camera_object,
 				                                            ctime - delta,
 				                                            effects->past_world_to_ndc);
 
@@ -173,7 +175,7 @@ int EEVEE_motion_blur_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *veda
 				/* Future matrix */
 				eevee_motion_blur_camera_get_matrix_at_time(scene,
 				                                            ar, rv3d, v3d,
-				                                            v3d->camera,
+				                                            camera_object,
 				                                            ctime + delta,
 				                                            effects->future_world_to_ndc);
 #endif

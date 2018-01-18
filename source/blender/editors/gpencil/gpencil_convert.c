@@ -1111,7 +1111,8 @@ static int gp_camera_view_subrect(bContext *C, rctf *subrect)
 		/* for camera view set the subrect */
 		if (rv3d->persp == RV3D_CAMOB) {
 			Scene *scene = CTX_data_scene(C);
-			ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, subrect, true); /* no shift */
+			Depsgraph *depsgraph = CTX_data_depsgraph(C);
+			ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, subrect, true); /* no shift */
 			return 1;
 		}
 	}

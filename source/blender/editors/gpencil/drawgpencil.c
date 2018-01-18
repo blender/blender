@@ -1672,6 +1672,7 @@ void ED_gpencil_draw_view2d(const bContext *C, bool onlyv2d)
 void ED_gpencil_draw_view3d(wmWindowManager *wm,
                             Scene *scene,
                             ViewLayer *view_layer,
+                            const struct Depsgraph *depsgraph,
                             View3D *v3d,
                             ARegion *ar,
                             bool only3d)
@@ -1688,7 +1689,7 @@ void ED_gpencil_draw_view3d(wmWindowManager *wm,
 	 * deal with the camera border, otherwise map the coords to the camera border. */
 	if ((rv3d->persp == RV3D_CAMOB) && !(G.f & G_RENDER_OGL)) {
 		rctf rectf;
-		ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &rectf, true); /* no shift */
+		ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, &rectf, true); /* no shift */
 
 		offsx = round_fl_to_int(rectf.xmin);
 		offsy = round_fl_to_int(rectf.ymin);

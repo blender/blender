@@ -304,6 +304,7 @@ float ED_view3d_calc_zfac(const RegionView3D *rv3d, const float co[3], bool *r_f
 }
 
 static void view3d_win_to_ray_segment(
+        const struct Depsgraph *depsgraph,
         const ARegion *ar, const View3D *v3d, const float mval[2],
         float r_ray_co[3], float r_ray_dir[3], float r_ray_start[3], float r_ray_end[3])
 {
@@ -321,7 +322,7 @@ static void view3d_win_to_ray_segment(
 		start_offset = -end_offset;
 	}
 	else {
-		ED_view3d_clip_range_get(v3d, rv3d, &start_offset, &end_offset, false);
+		ED_view3d_clip_range_get(depsgraph, v3d, rv3d, &start_offset, &end_offset, false);
 	}
 
 	if (r_ray_start) {
@@ -360,12 +361,13 @@ bool ED_view3d_clip_segment(const RegionView3D *rv3d, float ray_start[3], float 
  * \return success, false if the ray is totally clipped.
  */
 bool ED_view3d_win_to_ray_ex(
+        const struct Depsgraph *depsgraph,
         const ARegion *ar, const View3D *v3d, const float mval[2],
         float r_ray_co[3], float r_ray_normal[3], float r_ray_start[3], bool do_clip)
 {
 	float ray_end[3];
 
-	view3d_win_to_ray_segment(ar, v3d, mval, r_ray_co, r_ray_normal, r_ray_start, ray_end);
+	view3d_win_to_ray_segment(depsgraph, ar, v3d, mval, r_ray_co, r_ray_normal, r_ray_start, ray_end);
 
 	/* bounds clipping */
 	if (do_clip) {
@@ -389,10 +391,11 @@ bool ED_view3d_win_to_ray_ex(
  * \return success, false if the ray is totally clipped.
  */
 bool ED_view3d_win_to_ray(
+        const struct Depsgraph *depsgraph,
         const ARegion *ar, const View3D *v3d, const float mval[2],
         float r_ray_start[3], float r_ray_normal[3], const bool do_clip)
 {
-	return ED_view3d_win_to_ray_ex(ar, v3d, mval, NULL, r_ray_normal, r_ray_start, do_clip);
+	return ED_view3d_win_to_ray_ex(depsgraph,ar, v3d, mval, NULL, r_ray_normal, r_ray_start, do_clip);
 }
 
 /**
@@ -622,10 +625,11 @@ void ED_view3d_win_to_vector(const ARegion *ar, const float mval[2], float out[3
  * \param do_clip Optionally clip the ray by the view clipping planes.
  * \return success, false if the segment is totally clipped.
  */
-bool ED_view3d_win_to_segment(const ARegion *ar, View3D *v3d, const float mval[2],
+bool ED_view3d_win_to_segment(const struct Depsgraph *depsgraph,
+                              const ARegion *ar, View3D *v3d, const float mval[2],
                               float r_ray_start[3], float r_ray_end[3], const bool do_clip)
 {
-	view3d_win_to_ray_segment(ar, v3d, mval, NULL, NULL, r_ray_start, r_ray_end);
+	view3d_win_to_ray_segment(depsgraph, ar, v3d, mval, NULL, NULL, r_ray_start, r_ray_end);
 
 	/* bounds clipping */
 	if (do_clip) {

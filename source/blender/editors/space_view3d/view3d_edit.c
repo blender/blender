@@ -525,6 +525,7 @@ void ED_view3d_quadview_update(ScrArea *sa, ARegion *ar, bool do_clip)
 
 typedef struct ViewOpsData {
 	/* context pointers (assigned by viewops_data_alloc) */
+	const Depsgraph *depsgraph;
 	Scene *scene;
 	ScrArea *sa;
 	ARegion *ar;
@@ -596,6 +597,7 @@ static void viewops_data_alloc(bContext *C, wmOperator *op)
 
 	/* store data */
 	op->customdata = vod;
+	vod->depsgraph = CTX_data_depsgraph(C);
 	vod->scene = CTX_data_scene(C);
 	vod->sa = CTX_wm_area(C);
 	vod->ar = CTX_wm_region(C);
@@ -2153,7 +2155,7 @@ void viewzoom_modal_keymap(wmKeyConfig *keyconf)
 }
 
 static void view_zoom_mouseloc_camera(
-        Scene *scene, View3D *v3d,
+        Scene *scene, const Depsgraph *depsgraph, View3D *v3d,
         ARegion *ar, float dfac, int mx, int my)
 {
 	RegionView3D *rv3d = ar->regiondata;
@@ -2171,13 +2173,13 @@ static void view_zoom_mouseloc_camera(
 		float pt_dst[2];
 		float delta_px[2];
 
-		ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &camera_frame_old, false);
+		ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, &camera_frame_old, false);
 		BLI_rctf_translate(&camera_frame_old, ar->winrct.xmin, ar->winrct.ymin);
 
 		rv3d->camzoom = camzoom_new;
 		CLAMP(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
 
-		ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &camera_frame_new, false);
+		ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, &camera_frame_new, false);
 		BLI_rctf_translate(&camera_frame_new, ar->winrct.xmin, ar->winrct.ymin);
 
 		BLI_rctf_transform_pt_v(&camera_frame_new, &camera_frame_old, pt_dst, pt_src);
@@ -2324,7 +2326,7 @@ static void viewzoom_apply_camera(
 		/* calculate inverted, then invert again (needed because of camera zoom scaling) */
 		zfac = 1.0f / zfac;
 		view_zoom_mouseloc_camera(
-		        vod->scene, vod->v3d,
+		        vod->scene, vod->depsgraph, vod->v3d,
 		        vod->ar, zfac, vod->oldx, vod->oldy);
 	}
 
@@ -2438,6 +2440,7 @@ static int viewzoom_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 static int viewzoom_exec(bContext *C, wmOperator *op)
 {
+	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d;
 	RegionView3D *rv3d;
@@ -2474,7 +2477,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 		const float step = 1.2f;
 		/* this min and max is also in viewmove() */
 		if (use_cam_zoom) {
-			view_zoom_mouseloc_camera(scene, v3d, ar, step, mx, my);
+			view_zoom_mouseloc_camera(scene, depsgraph, v3d, ar, step, mx, my);
 		}
 		else {
 			if (rv3d->dist < dist_range[1]) {
@@ -2485,7 +2488,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	else {
 		const float step = 1.0f / 1.2f;
 		if (use_cam_zoom) {
-			view_zoom_mouseloc_camera(scene, v3d, ar, step, mx, my);
+			view_zoom_mouseloc_camera(scene, depsgraph, v3d, ar, step, mx, my);
 		}
 		else {
 			if (rv3d->dist > dist_range[0]) {
@@ -3374,6 +3377,7 @@ void VIEW3D_OT_view_center_pick(wmOperatorType *ot)
 
 static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op)) /* was view3d_home() in 2.4x */
 {
+	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = CTX_data_scene(C);
 	float xfac, yfac;
 	float size[2];
@@ -3388,7 +3392,7 @@ static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op)) /* was
 
 	rv3d->camdx = rv3d->camdy = 0.0f;
 
-	ED_view3d_calc_camera_border_size(scene, ar, v3d, rv3d, size);
+	ED_view3d_calc_camera_border_size(scene, depsgraph, ar, v3d, rv3d, size);
 
 	/* 4px is just a little room from the edge of the area */
 	xfac = (float)ar->winx / (float)(size[0] + 4);
@@ -3447,6 +3451,7 @@ void VIEW3D_OT_view_center_lock(wmOperatorType *ot)
 
 static int render_border_exec(bContext *C, wmOperator *op)
 {
+	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = ED_view3d_context_rv3d(C);
@@ -3467,7 +3472,7 @@ static int render_border_exec(bContext *C, wmOperator *op)
 	/* calculate range */
 
 	if (rv3d->persp == RV3D_CAMOB) {
-		ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &vb, false);
+		ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, &vb, false);
 	}
 	else {
 		vb.xmin = 0;
@@ -3760,13 +3765,13 @@ void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 }
 
 /* sets the view to 1:1 camera/render-pixel */
-static void view3d_set_1_to_1_viewborder(Scene *scene, ARegion *ar, View3D *v3d)
+static void view3d_set_1_to_1_viewborder(Scene *scene, const Depsgraph *depsgraph, ARegion *ar, View3D *v3d)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	float size[2];
 	int im_width = (scene->r.size * scene->r.xsch) / 100;
 	
-	ED_view3d_calc_camera_border_size(scene, ar, v3d, rv3d, size);
+	ED_view3d_calc_camera_border_size(scene, depsgraph, ar, v3d, rv3d, size);
 
 	rv3d->camzoom = BKE_screen_view3d_zoom_from_fac((float)im_width / size[0]);
 	CLAMP(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
@@ -3774,6 +3779,7 @@ static void view3d_set_1_to_1_viewborder(Scene *scene, ARegion *ar, View3D *v3d)
 
 static int view3d_zoom_1_to_1_camera_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = CTX_data_scene(C);
 
 	View3D *v3d;
@@ -3782,7 +3788,7 @@ static int view3d_zoom_1_to_1_camera_exec(bContext *C, wmOperator *UNUSED(op))
 	/* no NULL check is needed, poll checks */
 	ED_view3d_context_user_region(C, &v3d, &ar);
 
-	view3d_set_1_to_1_viewborder(scene, ar, v3d);
+	view3d_set_1_to_1_viewborder(scene, depsgraph, ar, v3d);
 
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
 

@@ -553,7 +553,7 @@ void gp_point_conversion_init(bContext *C, GP_SpaceConversion *r_gsc)
 		
 		/* for camera view set the subrect */
 		if (rv3d->persp == RV3D_CAMOB) {
-			ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &r_gsc->subrect_data, true); /* no shift */
+			ED_view3d_calc_camera_border(scene, CTX_data_depsgraph(C), ar, v3d, rv3d, &r_gsc->subrect_data, true); /* no shift */
 			r_gsc->subrect = &r_gsc->subrect_data;
 		}
 	}

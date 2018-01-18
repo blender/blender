@@ -3517,6 +3517,7 @@ static int particle_intersect_dm(const bContext *C, Scene *scene, Object *ob, De
 static int brush_add(const bContext *C, PEData *data, short number)
 {
 	EvaluationContext eval_ctx;
+	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene= data->scene;
 	Object *ob= data->ob;
 	DerivedMesh *dm;
@@ -3580,7 +3581,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
 
 		mco[0] = data->mval[0] + dmx;
 		mco[1] = data->mval[1] + dmy;
-		ED_view3d_win_to_segment(data->vc.ar, data->vc.v3d, mco, co1, co2, true);
+		ED_view3d_win_to_segment(depsgraph, data->vc.ar, data->vc.v3d, mco, co1, co2, true);
 
 		mul_m4_v3(imat, co1);
 		mul_m4_v3(imat, co2);

@@ -191,6 +191,7 @@ static void dial_ghostarc_draw(
 }
 
 static void dial_ghostarc_get_angles(
+        const struct Depsgraph *depsgraph,
         const wmManipulator *mpr,
         const wmEvent *event,
         const ARegion *ar, const View3D *v3d,
@@ -218,7 +219,7 @@ static void dial_ghostarc_get_angles(
 
 	plane_from_point_normal_v3(dial_plane, mpr->matrix_basis[3], axis_vec);
 
-	if (!ED_view3d_win_to_ray(ar, v3d, inter->init_mval, ray_co, ray_no, false) ||
+	if (!ED_view3d_win_to_ray(depsgraph, ar, v3d, inter->init_mval, ray_co, ray_no, false) ||
 	    !isect_ray_plane_v3(ray_co, ray_no, dial_plane, &ray_lambda, false))
 	{
 		goto fail;
@@ -226,7 +227,7 @@ static void dial_ghostarc_get_angles(
 	madd_v3_v3v3fl(proj_mval_init_rel, ray_co, ray_no, ray_lambda);
 	sub_v3_v3(proj_mval_init_rel, mpr->matrix_basis[3]);
 
-	if (!ED_view3d_win_to_ray(ar, v3d, mval, ray_co, ray_no, false) ||
+	if (!ED_view3d_win_to_ray(depsgraph, ar, v3d, mval, ray_co, ray_no, false) ||
 	    !isect_ray_plane_v3(ray_co, ray_no, dial_plane, &ray_lambda, false))
 	{
 		goto fail;
@@ -396,6 +397,7 @@ static int manipulator_dial_modal(
 	dial_calc_matrix(mpr, matrix);
 
 	dial_ghostarc_get_angles(
+	        CTX_data_depsgraph(C),
 	        mpr, event, CTX_wm_region(C), CTX_wm_view3d(C), matrix, co_outer, &angle_ofs, &angle_delta);
 
 	DialInteraction *inter = mpr->interaction_data;

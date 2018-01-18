@@ -530,7 +530,8 @@ static void view3d_stereo_bgpic_setup(Scene *scene, View3D *v3d, Image *ima, Ima
 	}
 }
 
-static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
+static void view3d_draw_bgpic(Scene *scene, const Depsgraph *depsgraph,
+                              ARegion *ar, View3D *v3d,
                               const bool do_foreground, const bool do_camera_frame)
 {
 	RegionView3D *rv3d = ar->regiondata;
@@ -629,7 +630,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 			{
 				if (do_camera_frame) {
 					rctf vb;
-					ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &vb, false);
+					ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, &vb, false);
 					x1 = vb.xmin;
 					y1 = vb.ymin;
 					x2 = vb.xmax;
@@ -773,7 +774,8 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 	}
 }
 
-void view3d_draw_bgpic_test(Scene *scene, ARegion *ar, View3D *v3d,
+void view3d_draw_bgpic_test(Scene *scene, const Depsgraph *depsgraph,
+                            ARegion *ar, View3D *v3d,
                             const bool do_foreground, const bool do_camera_frame)
 {
 	RegionView3D *rv3d = ar->regiondata;
@@ -797,11 +799,11 @@ void view3d_draw_bgpic_test(Scene *scene, ARegion *ar, View3D *v3d,
 
 	if ((rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO)) {
 		if (rv3d->persp == RV3D_CAMOB) {
-			view3d_draw_bgpic(scene, ar, v3d, do_foreground, do_camera_frame);
+			view3d_draw_bgpic(scene, depsgraph, ar, v3d, do_foreground, do_camera_frame);
 		}
 	}
 	else {
-		view3d_draw_bgpic(scene, ar, v3d, do_foreground, do_camera_frame);
+		view3d_draw_bgpic(scene, depsgraph, ar, v3d, do_foreground, do_camera_frame);
 	}
 }
 
@@ -1182,7 +1184,7 @@ void ED_view3d_draw_depth_gpencil(
 	glEnable(GL_DEPTH_TEST);
 
 	if (v3d->flag2 & V3D_SHOW_GPENCIL) {
-		ED_gpencil_draw_view3d(NULL, scene, eval_ctx->view_layer, v3d, ar, true);
+		ED_gpencil_draw_view3d(NULL, scene, eval_ctx->view_layer, eval_ctx->depsgraph, v3d, ar, true);
 	}
 
 	v3d->zbuf = zbuf;
@@ -1500,6 +1502,7 @@ static void view3d_draw_objects(
         const bool do_bgpic, const bool draw_offscreen, GPUFX *fx)
 {
 	ViewLayer *view_layer = C ? CTX_data_view_layer(C) : BKE_view_layer_from_scene_get(scene);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	RegionView3D *rv3d = ar->regiondata;
 	Base *base;
 	const bool do_camera_frame = !draw_offscreen;
@@ -1544,7 +1547,7 @@ static void view3d_draw_objects(
 
 	/* important to do before clipping */
 	if (do_bgpic) {
-		view3d_draw_bgpic_test(scene, ar, v3d, false, do_camera_frame);
+		view3d_draw_bgpic_test(scene, depsgraph, ar, v3d, false, do_camera_frame);
 	}
 
 	if (rv3d->rflag & RV3D_CLIPPING) {
@@ -1625,7 +1628,7 @@ static void view3d_draw_objects(
 		
 		/* must be before xray draw which clears the depth buffer */
 		if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
-		ED_gpencil_draw_view3d(wm, scene, view_layer, v3d, ar, true);
+		ED_gpencil_draw_view3d(wm, scene, view_layer, depsgraph, v3d, ar, true);
 		if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 	}
 
@@ -1654,7 +1657,7 @@ static void view3d_draw_objects(
 
 	/* important to do after clipping */
 	if (do_bgpic) {
-		view3d_draw_bgpic_test(scene, ar, v3d, true, do_camera_frame);
+		view3d_draw_bgpic_test(scene, depsgraph, ar, v3d, true, do_camera_frame);
 	}
 
 	/* cleanup */
@@ -1773,7 +1776,7 @@ static bool view3d_main_region_do_render_draw(const Scene *scene)
 	return (type && type->view_update && type->render_to_view);
 }
 
-bool ED_view3d_calc_render_border(const Scene *scene, View3D *v3d, ARegion *ar, rcti *rect)
+bool ED_view3d_calc_render_border(const Scene *scene, const Depsgraph *depsgraph, View3D *v3d, ARegion *ar, rcti *rect)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	bool use_border;
@@ -1794,7 +1797,7 @@ bool ED_view3d_calc_render_border(const Scene *scene, View3D *v3d, ARegion *ar, 
 	/* compute border */
 	if (rv3d->persp == RV3D_CAMOB) {
 		rctf viewborder;
-		ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &viewborder, false);
+		ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, &viewborder, false);
 
 		rect->xmin = viewborder.xmin + scene->r.border.xmin * BLI_rctf_size_x(&viewborder);
 		rect->ymin = viewborder.ymin + scene->r.border.ymin * BLI_rctf_size_y(&viewborder);
@@ -1823,10 +1826,10 @@ static bool view3d_main_region_draw_engine(
         ARegion *ar, View3D *v3d,
         bool clip_border, const rcti *border_rect)
 {
+	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	RegionView3D *rv3d = ar->regiondata;
 	RenderEngineType *type;
 	GLint scissor[4];
-
 
 	/* create render engine */
 	if (!rv3d->render_engine) {
@@ -1872,7 +1875,7 @@ static bool view3d_main_region_draw_engine(
 		Camera *cam = ED_view3d_camera_data_get(v3d, rv3d);
 		if (cam->flag & CAM_SHOW_BG_IMAGE) {
 			show_image = true;
-			view3d_draw_bgpic_test(scene, ar, v3d, false, true);
+			view3d_draw_bgpic_test(scene, depsgraph, ar, v3d, false, true);
 		}
 		else {
 			imm_draw_box_checker_2d(0, 0, ar->winx, ar->winy);
@@ -1880,7 +1883,7 @@ static bool view3d_main_region_draw_engine(
 	}
 
 	if (show_image) {
-		view3d_draw_bgpic_test(scene, ar, v3d, false, true);
+		view3d_draw_bgpic_test(scene, depsgraph, ar, v3d, false, true);
 	}
 	else {
 		imm_draw_box_checker_2d(0, 0, ar->winx, ar->winy);
@@ -1891,7 +1894,7 @@ static bool view3d_main_region_draw_engine(
 	type->render_to_view(rv3d->render_engine, C);
 
 	if (show_image) {
-		view3d_draw_bgpic_test(scene, ar, v3d, true, true);
+		view3d_draw_bgpic_test(scene, depsgraph, ar, v3d, true, true);
 	}
 
 	if (clip_border) {
@@ -2033,6 +2036,7 @@ static void view3d_main_region_draw_info(const bContext *C, Scene *scene,
                                        ARegion *ar, View3D *v3d,
                                        const char *grid_unit, bool render_border)
 {
+	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	wmWindowManager *wm = CTX_wm_manager(C);
 	RegionView3D *rv3d = ar->regiondata;
@@ -2042,7 +2046,7 @@ static void view3d_main_region_draw_info(const bContext *C, Scene *scene,
 	ED_region_visible_rect(ar, &rect);
 
 	if (rv3d->persp == RV3D_CAMOB) {
-		VP_drawviewborder(scene, ar, v3d);
+		VP_drawviewborder(scene, CTX_data_depsgraph(C), ar, v3d);
 	}
 	else if (v3d->flag2 & V3D_RENDER_BORDER) {
 		VP_drawrenderborder(ar, v3d);
@@ -2050,7 +2054,7 @@ static void view3d_main_region_draw_info(const bContext *C, Scene *scene,
 
 	if (v3d->flag2 & V3D_SHOW_GPENCIL) {
 		/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
-		ED_gpencil_draw_view3d(wm, scene, view_layer, v3d, ar, false);
+		ED_gpencil_draw_view3d(wm, scene, view_layer, depsgraph, v3d, ar, false);
 	}
 
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
@@ -2097,6 +2101,7 @@ static void view3d_main_region_draw_info(const bContext *C, Scene *scene,
 
 void view3d_main_region_draw_legacy(const bContext *C, ARegion *ar)
 {
+	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	EvaluationContext eval_ctx;
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -2106,7 +2111,7 @@ void view3d_main_region_draw_legacy(const bContext *C, ARegion *ar)
 
 	/* if we only redraw render border area, skip opengl draw and also
 	 * don't do scissor because it's already set */
-	bool render_border = ED_view3d_calc_render_border(scene, v3d, ar, &border_rect);
+	bool render_border = ED_view3d_calc_render_border(scene, depsgraph, v3d, ar, &border_rect);
 	bool clip_border = (render_border && !BLI_rcti_compare(&ar->drawrct, &border_rect));
 
 	gpuPushProjectionMatrix();

@@ -1115,6 +1115,7 @@ static int initTransInfo_edit_pet_to_flag(const int proportional)
  */
 void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *event)
 {
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *sce = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
@@ -1125,7 +1126,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	RenderEngineType *engine_type = CTX_data_engine_type(C);
 	PropertyRNA *prop;
-	
+
+	t->depsgraph = depsgraph;
 	t->scene = sce;
 	t->view_layer = view_layer;
 	t->engine_type = engine_type;
