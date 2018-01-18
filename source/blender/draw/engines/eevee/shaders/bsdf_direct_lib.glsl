@@ -106,51 +106,32 @@ vec3 direct_ggx_sun(LightData ld, vec3 N, vec3 V, float roughness, vec3 f0)
 #ifdef USE_LTC
 vec3 direct_ggx_sphere(LightData ld, vec3 N, vec3 V, vec4 l_vector, float roughness, vec3 f0)
 {
-	vec3 L = l_vector.xyz / l_vector.w;
-	vec3 spec_dir = get_specular_reflection_dominant_dir(N, V, roughness);
-	vec3 P = line_aligned_plane_intersect(vec3(0.0), spec_dir, l_vector.xyz);
-
-	vec3 Px = normalize(P - l_vector.xyz) * ld.l_radius;
-	vec3 Py = cross(Px, L);
+	roughness = clamp(roughness, 0.0008, 0.999); /* Fix low roughness artifacts. */
 
 	vec2 uv = lut_coords(dot(N, V), sqrt(roughness));
 	vec3 brdf_lut = texture(utilTex, vec3(uv, 1.0)).rgb;
 	vec4 ltc_lut = texture(utilTex, vec3(uv, 0.0)).rgba;
 	mat3 ltc_mat = ltc_matrix(ltc_lut);
 
-// #define HIGHEST_QUALITY
-#ifdef HIGHEST_QUALITY
-	vec3 Pxy1 = normalize( Px + Py) * ld.l_radius;
-	vec3 Pxy2 = normalize(-Px + Py) * ld.l_radius;
+	/* Make orthonormal basis. */
+	vec3 L = l_vector.xyz / l_vector.w;
+	vec3 Px, Py;
+	make_orthonormal_basis(L, Px, Py);
+	Px *= ld.l_radius;
+	Py *= ld.l_radius;
 
-	/* counter clockwise */
-	vec3 points[8];
-	points[0] = l_vector.xyz + Px;
-	points[1] = l_vector.xyz - Pxy2;
-	points[2] = l_vector.xyz - Py;
-	points[3] = l_vector.xyz - Pxy1;
-	points[4] = l_vector.xyz - Px;
-	points[5] = l_vector.xyz + Pxy2;
-	points[6] = l_vector.xyz + Py;
-	points[7] = l_vector.xyz + Pxy1;
-	float bsdf = ltc_evaluate_circle(N, V, ltc_mat, points);
-#else
-	vec3 points[4];
-	points[0] = l_vector.xyz + Px;
-	points[1] = l_vector.xyz - Py;
-	points[2] = l_vector.xyz - Px;
-	points[3] = l_vector.xyz + Py;
-	float bsdf = ltc_evaluate(N, V, ltc_mat, points);
-	/* sqrt(pi/2) difference between square and disk area */
-	bsdf *= 1.25331413731;
-#endif
+	vec3 points[3];
+	points[0] = l_vector.xyz - Px - Py;
+	points[1] = l_vector.xyz + Px - Py;
+	points[2] = l_vector.xyz + Px + Py;
 
+	float bsdf = ltc_evaluate_disk(N, V, ltc_mat, points);
 	bsdf *= brdf_lut.b; /* Bsdf intensity */
-	bsdf *= M_1_2PI * M_1_PI;
+	bsdf *= M_1_PI;
 
 	vec3 spec = F_area(f0, brdf_lut.xy) * bsdf;
 
-	return spec;
+	return vec3(bsdf);
 }
 
 vec3 direct_ggx_rectangle(LightData ld, vec3 N, vec3 V, vec4 l_vector, float roughness, vec3 f0)
@@ -165,13 +146,14 @@ vec3 direct_ggx_rectangle(LightData ld, vec3 N, vec3 V, vec4 l_vector, float rou
 	vec3 brdf_lut = texture(utilTex, vec3(uv, 1.0)).rgb;
 	vec4 ltc_lut = texture(utilTex, vec3(uv, 0.0)).rgba;
 	mat3 ltc_mat = ltc_matrix(ltc_lut);
+
 	float bsdf = ltc_evaluate(N, V, ltc_mat, corners);
 	bsdf *= brdf_lut.b; /* Bsdf intensity */
 	bsdf *= M_1_2PI;
 
 	vec3 spec = F_area(f0, brdf_lut.xy) * bsdf;
 
-	return spec;
+	return vec3(bsdf);
 }
 #endif
 

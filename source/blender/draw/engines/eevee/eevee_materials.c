@@ -447,6 +447,7 @@ static void eevee_init_util_texture(void)
 		texels_layer[i][0] = bsdf_split_sum_ggx[i * 2 + 0];
 		texels_layer[i][1] = bsdf_split_sum_ggx[i * 2 + 1];
 		texels_layer[i][2] = ltc_mag_ggx[i];
+		texels_layer[i][3] = ltc_disk_integral[i];
 	}
 	texels_layer += 64 * 64;
 

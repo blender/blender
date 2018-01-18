@@ -549,7 +549,7 @@ vec3 F_schlick(vec3 f0, float cos_theta)
 /* Fresnel approximation for LTC area lights (not MRP) */
 vec3 F_area(vec3 f0, vec2 lut)
 {
-	vec2 fac = normalize(lut.xy);
+	vec2 fac = normalize(lut.xy); /* XXX FIXME this does not work!!! */
 
 	/* Unreal specular matching : if specular color is below 2% intensity,
 	 * treat as shadowning */
