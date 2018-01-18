@@ -38,11 +38,16 @@ class OUTLINER_HT_header(Header):
 
         layout.prop(space, "display_mode", text="")
 
-        layout.prop(space, "filter_text", icon='VIEWZOOM', text="")
+        row = layout.row(align=True)
+        row.prop(space, "filter_text", icon='VIEWZOOM', text="")
+        row.prop(space, "use_filter_complete", text="")
+        row.prop(space, "use_filter_case_sensitive", text="")
 
-        layout.separator()
+        if space.display_mode not in {'DATABLOCKS', 'USER_PREFERENCES', 'KEYMAPS', 'ACT_LAYER', 'COLLECTIONS'}:
+            row.prop(space, "use_sort_alpha", text="")
 
-        if space.display_mode == 'DATABLOCKS':
+        elif space.display_mode == 'DATABLOCKS':
+            layout.separator()
             row = layout.row(align=True)
             row.operator("outliner.keyingset_add_selected", icon='ZOOMIN', text="")
             row.operator("outliner.keyingset_remove_selected", icon='ZOOMOUT', text="")
@@ -71,7 +76,6 @@ class OUTLINER_MT_editor_menus(Menu):
         space = context.space_data
 
         layout.menu("OUTLINER_MT_view")
-        layout.menu("OUTLINER_MT_search")
 
         if space.display_mode == 'DATABLOCKS':
             layout.menu("OUTLINER_MT_edit_datablocks")
@@ -92,8 +96,6 @@ class OUTLINER_MT_view(Menu):
         space = context.space_data
 
         if space.display_mode not in {'DATABLOCKS', 'USER_PREFERENCES', 'KEYMAPS'}:
-            if space.display_mode not in {'ACT_LAYER', 'COLLECTIONS'}:
-                layout.prop(space, "use_sort_alpha")
             layout.prop(space, "show_restrict_columns")
             layout.separator()
             layout.operator("outliner.show_active")
@@ -107,18 +109,6 @@ class OUTLINER_MT_view(Menu):
         layout.operator("screen.area_dupli")
         layout.operator("screen.screen_full_area")
         layout.operator("screen.screen_full_area", text="Toggle Fullscreen Area").use_hide_panels = True
-
-
-class OUTLINER_MT_search(Menu):
-    bl_label = "Search"
-
-    def draw(self, context):
-        layout = self.layout
-
-        space = context.space_data
-
-        layout.prop(space, "use_filter_case_sensitive")
-        layout.prop(space, "use_filter_complete")
 
 
 class OUTLINER_MT_edit_active_view_layer(Menu):
@@ -170,7 +160,6 @@ classes = (
     OUTLINER_HT_header,
     OUTLINER_MT_editor_menus,
     OUTLINER_MT_view,
-    OUTLINER_MT_search,
     OUTLINER_MT_edit_active_view_layer,
     OUTLINER_MT_edit_datablocks,
     OUTLINER_MT_edit_orphan_data,
