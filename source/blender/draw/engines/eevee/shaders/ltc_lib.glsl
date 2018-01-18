@@ -14,6 +14,20 @@ uniform sampler2DArray utilTex;
 #define texelfetch_noise_tex(coord) texelFetch(utilTex, ivec3(ivec2(coord) % LUT_SIZE, 2.0), 0)
 #endif /* UTIL_TEX */
 
+/* Diffuse *clipped* sphere integral. */
+float diffuse_sphere_integral_lut(vec3 avg_dir, float form_factor)
+{
+	vec2 uv = vec2(avg_dir.z * 0.5 + 0.5, form_factor);
+	uv = uv * (LUT_SIZE - 1.0) / LUT_SIZE + 0.5 / LUT_SIZE;
+
+	return texture(utilTex, vec3(uv, 1.0)).w;
+}
+
+float diffuse_sphere_integral_cheap(vec3 avg_dir, float form_factor)
+{
+	return max((form_factor * form_factor + avg_dir.z) / (form_factor + 1.0), 0.0);
+}
+
 /**
  * An extended version of the implementation from
  * "How to solve a cubic equation, revisited"
@@ -109,142 +123,18 @@ vec3 solve_cubic(vec4 coefs)
 
 /* from Real-Time Area Lighting: a Journey from Research to Production
  * Stephen Hill and Eric Heitz */
-float edge_integral(vec3 p1, vec3 p2)
+vec3 edge_integral_vec(vec3 v1, vec3 v2)
 {
-#if 0
-	/* more accurate replacement of acos */
-	float x = dot(p1, p2);
+	float x = dot(v1, v2);
 	float y = abs(x);
 
-	float a = 5.42031 + (3.12829 + 0.0902326 * y) * y;
-	float b = 3.45068 + (4.18814 + y) * y;
-	float theta_sintheta = a / b;
+	float a = 0.8543985 + (0.4965155 + 0.0145206 * y) * y;
+	float b = 3.4175940 + (4.1616724 + y) * y;
+	float v = a / b;
 
-	if (x < 0.0) {
-		theta_sintheta = (M_PI / sqrt(1.0 - x * x)) - theta_sintheta;
-	}
-	vec3 u = cross(p1, p2);
-	return theta_sintheta * dot(u, N);
-#endif
-	float cos_theta = dot(p1, p2);
-	cos_theta = clamp(cos_theta, -0.9999, 0.9999);
+	float theta_sintheta = (x > 0.0) ? v : 0.5 * inversesqrt(max(1.0 - x * x, 1e-7)) - v;
 
-	float theta = acos(cos_theta);
-	vec3 u = normalize(cross(p1, p2));
-	return theta * cross(p1, p2).z / sin(theta);
-}
-
-int clip_quad_to_horizon(inout vec3 L[5])
-{
-	/* detect clipping config */
-	int config = 0;
-	if (L[0].z > 0.0) config += 1;
-	if (L[1].z > 0.0) config += 2;
-	if (L[2].z > 0.0) config += 4;
-	if (L[3].z > 0.0) config += 8;
-
-	/* clip */
-	int n = 0;
-
-	if (config == 0)
-	{
-		/* clip all */
-	}
-	else if (config == 1) /* V1 clip V2 V3 V4 */
-	{
-		n = 3;
-		L[1] = -L[1].z * L[0] + L[0].z * L[1];
-		L[2] = -L[3].z * L[0] + L[0].z * L[3];
-	}
-	else if (config == 2) /* V2 clip V1 V3 V4 */
-	{
-		n = 3;
-		L[0] = -L[0].z * L[1] + L[1].z * L[0];
-		L[2] = -L[2].z * L[1] + L[1].z * L[2];
-	}
-	else if (config == 3) /* V1 V2 clip V3 V4 */
-	{
-		n = 4;
-		L[2] = -L[2].z * L[1] + L[1].z * L[2];
-		L[3] = -L[3].z * L[0] + L[0].z * L[3];
-	}
-	else if (config == 4) /* V3 clip V1 V2 V4 */
-	{
-		n = 3;
-		L[0] = -L[3].z * L[2] + L[2].z * L[3];
-		L[1] = -L[1].z * L[2] + L[2].z * L[1];
-	}
-	else if (config == 5) /* V1 V3 clip V2 V4) impossible */
-	{
-		n = 0;
-	}
-	else if (config == 6) /* V2 V3 clip V1 V4 */
-	{
-		n = 4;
-		L[0] = -L[0].z * L[1] + L[1].z * L[0];
-		L[3] = -L[3].z * L[2] + L[2].z * L[3];
-	}
-	else if (config == 7) /* V1 V2 V3 clip V4 */
-	{
-		n = 5;
-		L[4] = -L[3].z * L[0] + L[0].z * L[3];
-		L[3] = -L[3].z * L[2] + L[2].z * L[3];
-	}
-	else if (config == 8) /* V4 clip V1 V2 V3 */
-	{
-		n = 3;
-		L[0] = -L[0].z * L[3] + L[3].z * L[0];
-		L[1] = -L[2].z * L[3] + L[3].z * L[2];
-		L[2] =  L[3];
-	}
-	else if (config == 9) /* V1 V4 clip V2 V3 */
-	{
-		n = 4;
-		L[1] = -L[1].z * L[0] + L[0].z * L[1];
-		L[2] = -L[2].z * L[3] + L[3].z * L[2];
-	}
-	else if (config == 10) /* V2 V4 clip V1 V3) impossible */
-	{
-		n = 0;
-	}
-	else if (config == 11) /* V1 V2 V4 clip V3 */
-	{
-		n = 5;
-		L[4] = L[3];
-		L[3] = -L[2].z * L[3] + L[3].z * L[2];
-		L[2] = -L[2].z * L[1] + L[1].z * L[2];
-	}
-	else if (config == 12) /* V3 V4 clip V1 V2 */
-	{
-		n = 4;
-		L[1] = -L[1].z * L[2] + L[2].z * L[1];
-		L[0] = -L[0].z * L[3] + L[3].z * L[0];
-	}
-	else if (config == 13) /* V1 V3 V4 clip V2 */
-	{
-		n = 5;
-		L[4] = L[3];
-		L[3] = L[2];
-		L[2] = -L[1].z * L[2] + L[2].z * L[1];
-		L[1] = -L[1].z * L[0] + L[0].z * L[1];
-	}
-	else if (config == 14) /* V2 V3 V4 clip V1 */
-	{
-		n = 5;
-		L[4] = -L[0].z * L[3] + L[3].z * L[0];
-		L[0] = -L[0].z * L[1] + L[1].z * L[0];
-	}
-	else if (config == 15) /* V1 V2 V3 V4 */
-	{
-		n = 4;
-	}
-
-	if (n == 3)
-		L[3] = L[0];
-	if (n == 4)
-		L[4] = L[0];
-
-	return n;
+	return cross(v1, v2) * theta_sintheta;
 }
 
 mat3 ltc_matrix(vec4 lut)
@@ -259,7 +149,7 @@ mat3 ltc_matrix(vec4 lut)
 	return Minv;
 }
 
-float ltc_evaluate(vec3 N, vec3 V, mat3 Minv, vec3 corners[4])
+float ltc_evaluate_quad(vec3 N, vec3 V, mat3 Minv, vec3 corners[4])
 {
 	/* Avoid dot(N, V) == 1 in ortho mode, leading T1 normalize to fail. */
 	V = normalize(V + 1e-8);
@@ -272,42 +162,43 @@ float ltc_evaluate(vec3 N, vec3 V, mat3 Minv, vec3 corners[4])
 	/* rotate area light in (T1, T2, R) basis */
 	Minv = Minv * transpose(mat3(T1, T2, N));
 
-	/* polygon (allocate 5 vertices for clipping) */
-	vec3 L[5];
-	L[0] = Minv * corners[0];
-	L[1] = Minv * corners[1];
-	L[2] = Minv * corners[2];
-	L[3] = Minv * corners[3];
+	/* Apply LTC inverse matrix. */
+	corners[0] = normalize(Minv * corners[0]);
+	corners[1] = normalize(Minv * corners[1]);
+	corners[2] = normalize(Minv * corners[2]);
+	corners[3] = normalize(Minv * corners[3]);
 
-	int n = clip_quad_to_horizon(L);
+	/* Approximation using a sphere of the same solid angle than the quad.
+	 * Finding the clipped sphere diffuse integral is easier than clipping the quad. */
+	vec3 avg_dir;
+	avg_dir  = edge_integral_vec(corners[0], corners[1]);
+	avg_dir += edge_integral_vec(corners[1], corners[2]);
+	avg_dir += edge_integral_vec(corners[2], corners[3]);
+	avg_dir += edge_integral_vec(corners[3], corners[0]);
 
-	if (n == 0)
-		return 0.0;
+	float form_factor = length(avg_dir);
 
-	/* project onto sphere */
-	L[0] = normalize(L[0]);
-	L[1] = normalize(L[1]);
-	L[2] = normalize(L[2]);
-	L[3] = normalize(L[3]);
-	L[4] = normalize(L[4]);
+	float sphere_cosine_integral = form_factor * diffuse_sphere_integral_lut(avg_dir, form_factor);
 
-	/* integrate */
-	float sum = 0.0;
-
-	sum += edge_integral(L[0], L[1]);
-	sum += edge_integral(L[1], L[2]);
-	sum += edge_integral(L[2], L[3]);
-	if (n >= 4)
-		sum += edge_integral(L[3], L[4]);
-	if (n == 5)
-		sum += edge_integral(L[4], L[0]);
-
-	return abs(sum);
+	return abs(sphere_cosine_integral);
 }
 
-float diffuseSphereIntegralCheap(vec3 F, float l)
+/* Same as above but without the matrix transform. */
+float ltc_evaluate_quad_diffuse(vec3 corners[4])
 {
-	return max((l*l + F.z) / (l+1.0), 0.0);
+	/* Approximation using a sphere of the same solid angle than the quad.
+	 * Finding the clipped sphere diffuse integral is easier than clipping the quad. */
+	vec3 avg_dir;
+	avg_dir  = edge_integral_vec(corners[0], corners[1]);
+	avg_dir += edge_integral_vec(corners[1], corners[2]);
+	avg_dir += edge_integral_vec(corners[2], corners[3]);
+	avg_dir += edge_integral_vec(corners[3], corners[0]);
+
+	float form_factor = length(avg_dir);
+
+	float sphere_cosine_integral = form_factor * diffuse_sphere_integral_lut(avg_dir, form_factor);
+
+	return abs(sphere_cosine_integral);
 }
 
 /* disk_points are WS vectors from the shading point to the disk "bounding domain" */
@@ -404,27 +295,24 @@ float ltc_evaluate_disk(vec3 N, vec3 V, mat3 Minv, vec3 disk_points[3])
 	float e2 = roots.y;
 	float e3 = roots.z;
 
-	vec3 avgDir = vec3(a * x0 / (a - e2), b * y0 / (b - e2), 1.0);
+	vec3 avg_dir = vec3(a * x0 / (a - e2), b * y0 / (b - e2), 1.0);
 
 	mat3 rotate = mat3(V1, V2, V3);
 
-	avgDir = rotate * avgDir;
-	avgDir = normalize(avgDir);
+	avg_dir = rotate * avg_dir;
+	avg_dir = normalize(avg_dir);
 
 	/* L1, L2 are the extends of the front facing ellipse. */
 	float L1 = sqrt(-e2/e3);
 	float L2 = sqrt(-e2/e1);
 
 	/* Find the sphere and compute lighting. */
-	float formFactor = L1 * L2 * inversesqrt((1.0 + L1 * L1) * (1.0 + L2 * L2));
+	float form_factor = L1 * L2 * inversesqrt((1.0 + L1 * L1) * (1.0 + L2 * L2));
 
 	/* use tabulated horizon-clipped sphere */
-	vec2 uv = vec2(avgDir.z * 0.5 + 0.5, formFactor);
-	uv = uv * (64.0 - 1.0) / 64.0 + 0.5 / 64.0;
-
-	float sphere_cosine_integral = formFactor * texture(utilTex, vec3(uv, 1.0)).w;
+	float sphere_cosine_integral = form_factor * diffuse_sphere_integral_lut(avg_dir, form_factor);
 	/* Less accurate version, a bit cheaper. */
-	//float sphere_cosine_integral = formFactor * diffuseSphereIntegralCheap(avgDir, formFactor);
+	//float sphere_cosine_integral = form_factor * diffuse_sphere_integral_cheap(avg_dir, form_factor);
 
 	return max(0.0, sphere_cosine_integral);
 }

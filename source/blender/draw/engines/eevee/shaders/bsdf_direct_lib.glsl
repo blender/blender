@@ -68,9 +68,7 @@ float direct_diffuse_rectangle(LightData ld, vec3 N, vec3 V, vec4 l_vector)
 	corners[2] = l_vector.xyz + ld.l_right *  ld.l_sizex + ld.l_up * -ld.l_sizey;
 	corners[3] = l_vector.xyz + ld.l_right *  ld.l_sizex + ld.l_up *  ld.l_sizey;
 
-	float bsdf = ltc_evaluate(N, V, mat3(1.0), corners);
-	bsdf *= M_1_2PI;
-	return bsdf;
+	return ltc_evaluate_quad_diffuse(corners);
 }
 #endif
 
@@ -131,7 +129,7 @@ vec3 direct_ggx_sphere(LightData ld, vec3 N, vec3 V, vec4 l_vector, float roughn
 
 	vec3 spec = F_area(f0, brdf_lut.xy) * bsdf;
 
-	return vec3(bsdf);
+	return spec;
 }
 
 vec3 direct_ggx_rectangle(LightData ld, vec3 N, vec3 V, vec4 l_vector, float roughness, vec3 f0)
@@ -147,13 +145,12 @@ vec3 direct_ggx_rectangle(LightData ld, vec3 N, vec3 V, vec4 l_vector, float rou
 	vec4 ltc_lut = texture(utilTex, vec3(uv, 0.0)).rgba;
 	mat3 ltc_mat = ltc_matrix(ltc_lut);
 
-	float bsdf = ltc_evaluate(N, V, ltc_mat, corners);
+	float bsdf = ltc_evaluate_quad(N, V, ltc_mat, corners);
 	bsdf *= brdf_lut.b; /* Bsdf intensity */
-	bsdf *= M_1_2PI;
 
 	vec3 spec = F_area(f0, brdf_lut.xy) * bsdf;
 
-	return vec3(bsdf);
+	return spec;
 }
 #endif
 
