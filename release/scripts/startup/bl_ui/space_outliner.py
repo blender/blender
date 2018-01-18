@@ -118,6 +118,7 @@ class OUTLINER_MT_edit_active_view_layer(Menu):
         layout = self.layout
 
         layout.operator("outliner.collection_link", icon='LINKED')
+        layout.operator("outliner.collection_new", icon='NEW')
 
 
 class OUTLINER_MT_edit_datablocks(Menu):
