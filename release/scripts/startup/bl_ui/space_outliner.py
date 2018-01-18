@@ -43,10 +43,7 @@ class OUTLINER_HT_header(Header):
         row.prop(space, "use_filter_complete", text="")
         row.prop(space, "use_filter_case_sensitive", text="")
 
-        if space.display_mode not in {'DATABLOCKS', 'USER_PREFERENCES', 'KEYMAPS', 'VIEW_LAYER', 'COLLECTIONS'}:
-            row.prop(space, "use_sort_alpha", text="")
-
-        elif space.display_mode == 'DATABLOCKS':
+        if space.display_mode == 'DATABLOCKS':
             layout.separator()
             row = layout.row(align=True)
             row.operator("outliner.keyingset_add_selected", icon='ZOOMIN', text="")
@@ -96,6 +93,9 @@ class OUTLINER_MT_view(Menu):
         space = context.space_data
 
         if space.display_mode not in {'DATABLOCKS', 'USER_PREFERENCES', 'KEYMAPS'}:
+            if space.display_mode not in {'VIEW_LAYER', 'COLLECTIONS'}:
+                layout.prop(space, "use_sort_alpha")
+
             layout.prop(space, "show_restrict_columns")
             layout.separator()
             layout.operator("outliner.show_active")
