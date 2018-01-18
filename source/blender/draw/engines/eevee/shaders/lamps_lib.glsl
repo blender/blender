@@ -368,19 +368,24 @@ vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, float scale)
 		/* TODO : put this out of the shader. */
 		float falloff;
 		if (ld.l_type == AREA) {
-			vis *= 0.0962 * (ld.l_sizex * ld.l_sizey * 4.0 * M_PI);
+			vis *= (ld.l_sizex * ld.l_sizey * 4.0 * M_PI) * (1.0 / 80.0);
+			vis *= 0.3 * 20.0 * max(0.0, dot(-ld.l_forward, l_vector.xyz / l_vector.w)); /* XXX ad hoc, empirical */
 			vis /= (l_vector.w * l_vector.w);
 			falloff = dot(N, l_vector.xyz / l_vector.w);
 		}
 		else if (ld.l_type == SUN) {
+			vis *= (4.0f * ld.l_radius * ld.l_radius * M_2PI) * (1.0 / 12.5); /* Removing area light power*/
+			vis *= M_2PI * 0.78; /* Matching cycles with point light. */
+			vis *= 0.082; /* XXX ad hoc, empirical */
 			falloff = dot(N, -ld.l_forward);
 		}
 		else {
-			vis *= 0.0248 * (4.0 * ld.l_radius * ld.l_radius * M_PI * M_PI);
+			vis *= (4.0 * ld.l_radius * ld.l_radius) * (1.0 /10.0);
+			vis *= 1.5; /* XXX ad hoc, empirical */
 			vis /= (l_vector.w * l_vector.w);
 			falloff = dot(N, l_vector.xyz / l_vector.w);
 		}
-		vis *= M_1_PI; /* Normalize */
+		// vis *= M_1_PI; /* Normalize */
 
 		/* Applying profile */
 		vis *= sss_profile(abs(delta) / scale);
