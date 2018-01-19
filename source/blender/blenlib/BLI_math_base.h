@@ -143,6 +143,7 @@ MINLINE float power_of_2(float f);
 
 MINLINE int integer_digits_f(const float f);
 MINLINE int integer_digits_d(const double d);
+MINLINE int integer_digits_i(const int i);
 
 /* these don't really fit anywhere but were being copied about a lot */
 MINLINE int is_power_of_2_i(int n);
