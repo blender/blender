@@ -87,7 +87,7 @@ class OUTLINER_MT_view(Menu):
 
         space = context.space_data
 
-        if space.display_mode not in {'DATABLOCKS', 'USER_PREFERENCES', 'KEYMAPS'}:
+        if space.display_mode not in {'DATABLOCKS', 'USER_PREFERENCES'}:
             layout.prop(space, "use_sort_alpha")
             layout.prop(space, "show_restrict_columns")
             layout.separator()
