@@ -1936,7 +1936,7 @@ void GPU_pbvh_buffers_free(GPU_PBVH_Buffers *buffers)
 			GWN_INDEXBUF_DISCARD_SAFE(buffers->index_buf);
 		}
 		GWN_INDEXBUF_DISCARD_SAFE(buffers->index_buf_fast);
-		GWN_vertbuf_discard(buffers->vert_buf);
+		GWN_VERTBUF_DISCARD_SAFE(buffers->vert_buf);
 
 #ifdef USE_BASE_ELEM
 		if (buffers->baseelemarray)
