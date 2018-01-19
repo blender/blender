@@ -721,7 +721,7 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
 		if (ok)
 			*rect = newrect;
 
-		/* start a new preview render job if signalled through sbuts->preview,
+		/* start a new preview render job if signaled through sbuts->preview,
 		 * if no render result was found and no preview render job is running,
 		 * or if the job is running and the size of preview changed */
 		if ((sbuts != NULL && sbuts->preview) ||

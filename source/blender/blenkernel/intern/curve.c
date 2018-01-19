@@ -2628,6 +2628,9 @@ void BKE_curve_bevelList_free(ListBase *bev)
 		if (bl->segbevcount != NULL) {
 			MEM_freeN(bl->segbevcount);
 		}
+		if (bl->bevpoints != NULL) {
+			MEM_freeN(bl->bevpoints);
+		}
 		MEM_freeN(bl);
 	}
 

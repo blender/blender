@@ -20,7 +20,7 @@
 CCL_NAMESPACE_BEGIN
 
 /* Pseudo random numbers, uncomment this for debugging correlations. Only run
- * this single threaded on a CPU for repeatable resutls. */
+ * this single threaded on a CPU for repeatable results. */
 //#define __DEBUG_CORRELATION__
 
 

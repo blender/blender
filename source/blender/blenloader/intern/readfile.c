@@ -10316,7 +10316,7 @@ static void give_base_to_objects(
 
 				if (flag & FILE_AUTOSELECT) {
 					/* Note that link_object_postprocess() already checks for FILE_AUTOSELECT flag,
-					 * but it will miss objects from non-instanciated groups... */
+					 * but it will miss objects from non-instantiated groups... */
 					if (base->flag & BASE_SELECTABLED) {
 						base->flag |= BASE_SELECTED;
 						BKE_scene_object_base_flag_sync_from_base(base);

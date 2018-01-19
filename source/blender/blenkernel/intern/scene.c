@@ -1172,6 +1172,10 @@ Scene *BKE_scene_find_from_collection(const Main *bmain, const SceneCollection *
 #ifdef DURIAN_CAMERA_SWITCH
 Object *BKE_scene_camera_switch_find(Scene *scene)
 {
+	if (scene->r.mode & R_NO_CAMERA_SWITCH) {
+		return NULL;
+	}
+
 	TimeMarker *m;
 	int cfra = scene->r.cfra;
 	int frame = -(MAXFRAME + 1);

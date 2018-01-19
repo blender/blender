@@ -97,8 +97,8 @@ static eOLDrawState tree_element_active_renderlayer(
 
 /**
  * Select object tree:
- * CTRL+LMB: Select/Deselect object and all cildren
- * CTRL+SHIFT+LMB: Add/Remove object and all children
+ * CTRL+LMB: Select/Deselect object and all children.
+ * CTRL+SHIFT+LMB: Add/Remove object and all children.
  */
 static void do_outliner_object_select_recursive(ViewLayer *view_layer, Object *ob_parent, bool select)
 {

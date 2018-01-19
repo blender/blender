@@ -2803,7 +2803,9 @@ void psys_cache_edit_paths(const EvaluationContext *eval_ctx, Scene *scene, Obje
 
 	/* frs_sec = (psys || edit->pid.flag & PTCACHE_VEL_PER_SEC) ? 25.0f : 1.0f; */ /* UNUSED */
 
-	if (pset->brushtype == PE_BRUSH_WEIGHT) {
+	const bool use_weight = (pset->brushtype == PE_BRUSH_WEIGHT) && (psys != NULL) && (psys->particles != NULL);
+
+	if (use_weight) {
 		; /* use weight painting colors now... */
 	}
 	else {
@@ -2833,10 +2835,11 @@ void psys_cache_edit_paths(const EvaluationContext *eval_ctx, Scene *scene, Obje
 
 
 		/* should init_particle_interpolation set this ? */
-		if (pset->brushtype == PE_BRUSH_WEIGHT) {
+		if (use_weight) {
 			pind.hkey[0] = NULL;
 			/* pa != NULL since the weight brush is only available for hair */
-			pind.hkey[1] = pa->hair;
+			pind.hkey[0] = pa->hair;
+			pind.hkey[1] = pa->hair + 1;
 		}
 
 
@@ -2893,13 +2896,27 @@ void psys_cache_edit_paths(const EvaluationContext *eval_ctx, Scene *scene, Obje
 			}
 
 			/* selection coloring in edit mode */
-			if (pset->brushtype == PE_BRUSH_WEIGHT) {
-				float t2;
-
+			if (use_weight) {
 				if (k == 0) {
 					weight_to_rgb(ca->col, pind.hkey[1]->weight);
 				}
 				else {
+					/* warning: copied from 'do_particle_interpolation' (without 'mvert' array stepping) */
+					float real_t;
+					if (result.time < 0.0f) {
+						real_t = -result.time;
+					}
+					else {
+						real_t = pind.hkey[0]->time + t * (pind.hkey[0][pa->totkey - 1].time - pind.hkey[0]->time);
+					}
+
+					while (pind.hkey[1]->time < real_t) {
+						pind.hkey[1]++;
+					}
+					pind.hkey[0] = pind.hkey[1] - 1;
+					/* end copy */
+
+
 					float w1[3], w2[3];
 					keytime = (t - (*pind.ekey[0]->time)) / ((*pind.ekey[1]->time) - (*pind.ekey[0]->time));
 
@@ -2908,13 +2925,6 @@ void psys_cache_edit_paths(const EvaluationContext *eval_ctx, Scene *scene, Obje
 
 					interp_v3_v3v3(ca->col, w1, w2, keytime);
 				}
-
-				/* at the moment this is only used for weight painting.
-				 * will need to move out of this check if its used elsewhere. */
-				t2 = birthtime + ((float)k / (float)segments) * (dietime - birthtime);
-
-				while (pind.hkey[1]->time < t2) pind.hkey[1]++;
-				pind.hkey[0] = pind.hkey[1] - 1;
 			}
 			else {
 				if ((ekey + (pind.ekey[0] - point->keys))->flag & PEK_SELECT) {
