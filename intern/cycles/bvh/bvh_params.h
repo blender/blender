@@ -24,11 +24,29 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Layout of BVH tree.
+ *
+ * For example, how wide BVH tree is, in terms of number of children
+ * per node.
+ */
+typedef KernelBVHLayout BVHLayout;
+
+/* Names bitflag type to denote which BVH layouts are supported by
+ * particular area.
+ *
+ * Bitflags are the BVH_LAYOUT_* values.
+ */
+typedef int BVHLayoutMask;
+
+/* Get human readable name of BVH layout. */
+const char *bvh_layout_name(BVHLayout layout);
+
 /* BVH Parameters */
 
 class BVHParams
 {
 public:
+
 	/* spatial split area threshold */
 	bool use_spatial_split;
 	float spatial_split_alpha;
@@ -50,8 +68,8 @@ public:
 	/* object or mesh level bvh */
 	bool top_level;
 
-	/* QBVH */
-	bool use_qbvh;
+	/* BVH layout to be built. */
+	BVHLayout bvh_layout;
 
 	/* Mask of primitives to be included into the BVH. */
 	int primitive_mask;
@@ -98,7 +116,7 @@ public:
 		max_motion_curve_leaf_size = 4;
 
 		top_level = false;
-		use_qbvh = false;
+		bvh_layout = BVH_LAYOUT_BVH2;
 		use_unaligned_nodes = false;
 
 		primitive_mask = PRIMITIVE_ALL;
@@ -119,6 +137,14 @@ public:
 
 	__forceinline bool small_enough_for_leaf(int size, int level)
 	{ return (size <= min_leaf_size || level >= MAX_DEPTH); }
+
+	/* Gets best matching BVH.
+	 *
+	 * If the requested layout is supported by the device, it will be used.
+	 * Otherwise, widest supported layout below that will be used.
+	 */
+	static BVHLayout best_bvh_layout(BVHLayout requested_layout,
+	                                 BVHLayoutMask supported_layouts);
 };
 
 /* BVH Reference

@@ -47,6 +47,11 @@ enum_displacement_methods = (
     ('BOTH', "Both", "Combination of displacement and bump mapping"),
     )
 
+enum_bvh_layouts = (
+    ('BVH2', "BVH2", "", 1),
+    ('BVH4', "BVH4", "", 2),
+    )
+
 enum_bvh_types = (
     ('DYNAMIC_BVH', "Dynamic BVH", "Objects can be individually updated, at the cost of slower render time"),
     ('STATIC_BVH', "Static BVH", "Any object modification requires a complete BVH rebuild, but renders faster"),
@@ -670,7 +675,11 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         cls.debug_use_cpu_sse41 = BoolProperty(name="SSE41", default=True)
         cls.debug_use_cpu_sse3 = BoolProperty(name="SSE3", default=True)
         cls.debug_use_cpu_sse2 = BoolProperty(name="SSE2", default=True)
-        cls.debug_use_qbvh = BoolProperty(name="QBVH", default=True)
+        cls.debug_bvh_layout = EnumProperty(
+                name="BVH Layout",
+                items=enum_bvh_layouts,
+                default='BVH4',
+                )
         cls.debug_use_cpu_split_kernel = BoolProperty(name="Split Kernel", default=False)
 
         cls.debug_use_cuda_adaptive_compile = BoolProperty(name="Adaptive Compile", default=False)

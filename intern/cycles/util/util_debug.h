@@ -20,6 +20,8 @@
 #include <cassert>
 #include <iostream>
 
+#include "bvh/bvh_params.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Global storage for all sort of flags used to fine-tune behavior of particular
@@ -54,8 +56,12 @@ public:
 		bool has_sse3()  { return has_sse2()  && sse3; }
 		bool has_sse2()  { return sse2; }
 
-		/* Whether QBVH usage is allowed or not. */
-		bool qbvh;
+		/* Requested BVH size.
+		 *
+		 * Rendering will use widest possible BVH which is below or equal
+		 * this one.
+		 */
+		BVHLayout bvh_layout;
 
 		/* Whether split kernel is used */
 		bool split_kernel;

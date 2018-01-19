@@ -381,24 +381,24 @@ ccl_device_inline uint BVH_FUNCTION_NAME(KernelGlobals *kg,
                                          const uint max_hits,
                                          const uint visibility)
 {
+	switch(kernel_data.bvh.bvh_layout) {
 #ifdef __QBVH__
-	if(kernel_data.bvh.use_qbvh) {
-		return BVH_FUNCTION_FULL_NAME(QBVH)(kg,
-		                                    ray,
-		                                    isect_array,
-		                                    max_hits,
-		                                    visibility);
-	}
-	else
+		case BVH_LAYOUT_BVH4:
+			return BVH_FUNCTION_FULL_NAME(QBVH)(kg,
+			                                    ray,
+			                                    isect_array,
+			                                    max_hits,
+			                                    visibility);
 #endif
-	{
-		kernel_assert(kernel_data.bvh.use_qbvh == false);
-		return BVH_FUNCTION_FULL_NAME(BVH)(kg,
-		                                   ray,
-		                                   isect_array,
-		                                   max_hits,
-		                                   visibility);
+		case BVH_LAYOUT_BVH2:
+			return BVH_FUNCTION_FULL_NAME(BVH)(kg,
+			                                   ray,
+			                                   isect_array,
+			                                   max_hits,
+			                                   visibility);
 	}
+	kernel_assert(!"Should not happen");
+	return 0;
 }
 
 #undef BVH_FUNCTION_NAME

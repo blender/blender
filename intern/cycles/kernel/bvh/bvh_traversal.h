@@ -426,34 +426,34 @@ ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
 #endif
                                          )
 {
+	switch(kernel_data.bvh.bvh_layout) {
 #ifdef __QBVH__
-	if(kernel_data.bvh.use_qbvh) {
-		return BVH_FUNCTION_FULL_NAME(QBVH)(kg,
-		                                    ray,
-		                                    isect,
-		                                    visibility
+		case BVH_LAYOUT_BVH4:
+			return BVH_FUNCTION_FULL_NAME(QBVH)(kg,
+			                                    ray,
+			                                    isect,
+			                                    visibility
+#  if BVH_FEATURE(BVH_HAIR_MINIMUM_WIDTH)
+			                                    , lcg_state,
+			                                    difl,
+			                                    extmax
+#  endif
+			                                    );
+#endif  /* __QBVH__ */
+		case BVH_LAYOUT_BVH2:
+			return BVH_FUNCTION_FULL_NAME(BVH)(kg,
+			                                   ray,
+			                                   isect,
+			                                   visibility
 #if BVH_FEATURE(BVH_HAIR_MINIMUM_WIDTH)
-		                                    , lcg_state,
-		                                    difl,
-		                                    extmax
+			                                   , lcg_state,
+			                                   difl,
+			                                   extmax
 #endif
-		                                    );
+			                                   );
 	}
-	else
-#endif
-	{
-		kernel_assert(kernel_data.bvh.use_qbvh == false);
-		return BVH_FUNCTION_FULL_NAME(BVH)(kg,
-		                                   ray,
-		                                   isect,
-		                                   visibility
-#if BVH_FEATURE(BVH_HAIR_MINIMUM_WIDTH)
-		                                   , lcg_state,
-		                                   difl,
-		                                   extmax
-#endif
-		                                   );
-	}
+	kernel_assert(!"Should not happen");
+	return false;
 }
 
 #undef BVH_FUNCTION_NAME

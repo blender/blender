@@ -1609,7 +1609,7 @@ class CYCLES_RENDER_PT_debug(CyclesButtonsPanel, Panel):
         row.prop(cscene, "debug_use_cpu_sse41", toggle=True)
         row.prop(cscene, "debug_use_cpu_avx", toggle=True)
         row.prop(cscene, "debug_use_cpu_avx2", toggle=True)
-        col.prop(cscene, "debug_use_qbvh")
+        col.prop(cscene, "debug_bvh_layout")
         col.prop(cscene, "debug_use_cpu_split_kernel")
 
         col.separator()

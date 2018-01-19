@@ -1058,7 +1058,9 @@ void Mesh::compute_bvh(Device *device,
 
 			BVHParams bparams;
 			bparams.use_spatial_split = params->use_bvh_spatial_split;
-			bparams.use_qbvh = params->use_qbvh && device->info.has_qbvh;
+			bparams.bvh_layout = BVHParams::best_bvh_layout(
+			        params->bvh_layout,
+			        device->info.bvh_layout_mask);
 			bparams.use_unaligned_nodes = dscene->data.bvh.have_curves &&
 			                              params->use_bvh_unaligned_nodes;
 			bparams.num_motion_triangle_steps = params->num_bvh_time_steps;
@@ -1817,15 +1819,17 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 
 	BVHParams bparams;
 	bparams.top_level = true;
-	bparams.use_qbvh = scene->params.use_qbvh && device->info.has_qbvh;
+	bparams.bvh_layout = BVHParams::best_bvh_layout(
+	        scene->params.bvh_layout,
+	        device->info.bvh_layout_mask);
 	bparams.use_spatial_split = scene->params.use_bvh_spatial_split;
 	bparams.use_unaligned_nodes = dscene->data.bvh.have_curves &&
 	                              scene->params.use_bvh_unaligned_nodes;
 	bparams.num_motion_triangle_steps = scene->params.num_bvh_time_steps;
 	bparams.num_motion_curve_steps = scene->params.num_bvh_time_steps;
 
-	VLOG(1) << (bparams.use_qbvh ? "Using QBVH optimization structure"
-	                             : "Using regular BVH optimization structure");
+	VLOG(1) << "Using " << bvh_layout_name(bparams.bvh_layout)
+	        << " layout.";
 
 	BVH *bvh = BVH::create(bparams, scene->objects);
 	bvh->build(progress);
@@ -1882,7 +1886,7 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 	}
 
 	dscene->data.bvh.root = pack.root_index;
-	dscene->data.bvh.use_qbvh = bparams.use_qbvh;
+	dscene->data.bvh.bvh_layout = bparams.bvh_layout;
 	dscene->data.bvh.use_bvh_steps = (scene->params.num_bvh_time_steps != 0);
 
 	delete bvh;

@@ -662,7 +662,7 @@ SceneParams BlenderSync::get_scene_params(BL::Scene& b_scene,
 		params.texture_limit = 0;
 	}
 
-	params.use_qbvh = DebugFlags().cpu.qbvh;
+	params.bvh_layout = DebugFlags().cpu.bvh_layout;
 
 	return params;
 }
