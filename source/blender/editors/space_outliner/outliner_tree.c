@@ -2292,18 +2292,6 @@ void outliner_build_tree(Main *mainvar, Scene *scene, ViewLayer *view_layer, Spa
 			tselem->flag &= ~TSE_CLOSED;
 		}
 	}
-	else if (soops->outlinevis == SO_USERDEF) {
-		PointerRNA userdefptr;
-
-		RNA_pointer_create(NULL, &RNA_UserPreferences, &U, &userdefptr);
-
-		ten = outliner_add_element(soops, &soops->tree, (void *)&userdefptr, NULL, TSE_RNA_STRUCT, -1);
-
-		if (show_opened) {
-			tselem = TREESTORE(ten);
-			tselem->flag &= ~TSE_CLOSED;
-		}
-	}
 	else if (soops->outlinevis == SO_ID_ORPHANS) {
 		outliner_add_orphaned_datablocks(mainvar, soops);
 	}

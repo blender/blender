@@ -903,7 +903,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 									  SO_LIBRARIES,
 									  SO_SEQUENCE,
 									  SO_DATABLOCKS,
-									  SO_USERDEF,
 							          SO_ID_ORPHANS,
 							          SO_VIEW_LAYER,
 							          SO_COLLECTIONS))

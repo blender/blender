@@ -2458,8 +2458,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 						          SO_GROUPS,
 						          SO_LIBRARIES,
 						          SO_SEQUENCE,
-						          SO_DATABLOCKS,
-						          SO_USERDEF))
+						          SO_DATABLOCKS))
 						{
 							so->outlinevis = SO_SCENES;
 						}

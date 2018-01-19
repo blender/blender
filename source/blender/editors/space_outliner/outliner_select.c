@@ -1005,7 +1005,7 @@ static bool outliner_item_is_co_within_close_toggle(TreeElement *te, float view_
 
 static bool outliner_is_co_within_restrict_columns(const SpaceOops *soops, const ARegion *ar, float view_co_x)
 {
-	return (!ELEM(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF) &&
+	return ((soops->outlinevis != SO_DATABLOCKS) &&
 	        !(soops->flag & SO_HIDE_RESTRICTCOLS) &&
 	        (view_co_x > ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX));
 }
