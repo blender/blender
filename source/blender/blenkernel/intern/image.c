@@ -1695,7 +1695,7 @@ static void stampdata(Scene *scene, Object *camera, StampData *stamp_data, int d
 		int digits = 1;
 
 		if (scene->r.efra > 9)
-			digits = 1 + (int) log10(scene->r.efra);
+			digits = integer_digits_i(scene->r.efra);
 
 		BLI_snprintf(fmtstr, sizeof(fmtstr), do_prefix ? "Frame %%0%di" : "%%0%di", digits);
 		BLI_snprintf(stamp_data->frame, sizeof(stamp_data->frame), fmtstr, scene->r.cfra);

@@ -594,7 +594,7 @@ static void text_update_drawcache(SpaceText *st, ARegion *ar)
 			drawcache->total_lines = 0;
 
 			if (st->showlinenrs)
-				st->linenrs_tot = (int)floor(log10((float)nlines)) + 1;
+				st->linenrs_tot = integer_digits_i(nlines);
 
 			while (line) {
 				if (drawcache->valid_head) { /* we're inside valid head lines */
@@ -628,7 +628,7 @@ static void text_update_drawcache(SpaceText *st, ARegion *ar)
 			nlines = BLI_listbase_count(&txt->lines);
 
 			if (st->showlinenrs)
-				st->linenrs_tot = (int)floor(log10((float)nlines)) + 1;
+				st->linenrs_tot = integer_digits_i(nlines);
 		}
 
 		drawcache->total_lines = nlines;
