@@ -18,7 +18,6 @@
 #define __UTIL_IMAGE_IMPL_H__
 
 #include "util/util_algorithm.h"
-#include "util/util_debug.h"
 #include "util/util_half.h"
 #include "util/util_image.h"
 

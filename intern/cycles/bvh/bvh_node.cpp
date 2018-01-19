@@ -20,7 +20,6 @@
 #include "bvh/bvh.h"
 #include "bvh/bvh_build.h"
 
-#include "util/util_debug.h"
 #include "util/util_vector.h"
 
 CCL_NAMESPACE_BEGIN

@@ -26,6 +26,7 @@
 #include "device/device_split_kernel.h"
 
 #include "util/util_algorithm.h"
+#include "util/util_debug.h"
 #include "util/util_logging.h"
 #include "util/util_md5.h"
 #include "util/util_path.h"

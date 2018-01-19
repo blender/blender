@@ -28,7 +28,6 @@
 #include "render/curves.h"
 
 #include "util/util_algorithm.h"
-#include "util/util_debug.h"
 #include "util/util_foreach.h"
 #include "util/util_logging.h"
 #include "util/util_progress.h"

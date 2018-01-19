@@ -22,7 +22,6 @@
 
 #include <limits>
 
-#include "util/util_debug.h"
 #include "util/util_defines.h"
 
 /* SSE Intrinsics includes

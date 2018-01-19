@@ -18,6 +18,7 @@
 
 #include "device/opencl/opencl.h"
 
+#include "util/util_debug.h"
 #include "util/util_logging.h"
 #include "util/util_md5.h"
 #include "util/util_path.h"

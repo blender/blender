@@ -23,7 +23,6 @@
 #include "bvh_params.h"
 
 #include "util/util_boundbox.h"
-#include "util/util_debug.h"
 #include "util/util_transform.h"
 
 CCL_NAMESPACE_BEGIN

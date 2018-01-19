@@ -46,7 +46,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "util/util_debug.h"
 #include "util/util_types.h"
 
 #include "render/sobol.h"

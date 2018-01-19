@@ -21,7 +21,6 @@
  *
  * Data types for allocating, copying and freeing device memory. */
 
-#include "util/util_debug.h"
 #include "util/util_half.h"
 #include "util/util_texture.h"
 #include "util/util_types.h"
