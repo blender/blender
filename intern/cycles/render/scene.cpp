@@ -214,6 +214,11 @@ void Scene::device_update(Device *device_, Progress& progress)
 
 	if(progress.get_cancel() || device->have_error()) return;
 
+	progress.set_status("Updating Particle Systems");
+	particle_system_manager->device_update(device, &dscene, this, progress);
+
+	if(progress.get_cancel() || device->have_error()) return;
+
 	progress.set_status("Updating Meshes");
 	mesh_manager->device_update(device, &dscene, this, progress);
 
@@ -246,11 +251,6 @@ void Scene::device_update(Device *device_, Progress& progress)
 
 	progress.set_status("Updating Lights");
 	light_manager->device_update(device, &dscene, this, progress);
-
-	if(progress.get_cancel() || device->have_error()) return;
-
-	progress.set_status("Updating Particle Systems");
-	particle_system_manager->device_update(device, &dscene, this, progress);
 
 	if(progress.get_cancel() || device->have_error()) return;
 
