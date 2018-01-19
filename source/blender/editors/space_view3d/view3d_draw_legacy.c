@@ -774,9 +774,10 @@ static void view3d_draw_bgpic(Scene *scene, const Depsgraph *depsgraph,
 	}
 }
 
-void view3d_draw_bgpic_test(Scene *scene, const Depsgraph *depsgraph,
-                            ARegion *ar, View3D *v3d,
-                            const bool do_foreground, const bool do_camera_frame)
+void ED_view3d_draw_bgpic_test(
+        Scene *scene, const Depsgraph *depsgraph,
+        ARegion *ar, View3D *v3d,
+        const bool do_foreground, const bool do_camera_frame)
 {
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -1547,7 +1548,7 @@ static void view3d_draw_objects(
 
 	/* important to do before clipping */
 	if (do_bgpic) {
-		view3d_draw_bgpic_test(scene, depsgraph, ar, v3d, false, do_camera_frame);
+		ED_view3d_draw_bgpic_test(scene, depsgraph, ar, v3d, false, do_camera_frame);
 	}
 
 	if (rv3d->rflag & RV3D_CLIPPING) {
@@ -1657,7 +1658,7 @@ static void view3d_draw_objects(
 
 	/* important to do after clipping */
 	if (do_bgpic) {
-		view3d_draw_bgpic_test(scene, depsgraph, ar, v3d, true, do_camera_frame);
+		ED_view3d_draw_bgpic_test(scene, depsgraph, ar, v3d, true, do_camera_frame);
 	}
 
 	/* cleanup */
@@ -1875,7 +1876,7 @@ static bool view3d_main_region_draw_engine(
 		Camera *cam = ED_view3d_camera_data_get(v3d, rv3d);
 		if (cam->flag & CAM_SHOW_BG_IMAGE) {
 			show_image = true;
-			view3d_draw_bgpic_test(scene, depsgraph, ar, v3d, false, true);
+			ED_view3d_draw_bgpic_test(scene, depsgraph, ar, v3d, false, true);
 		}
 		else {
 			imm_draw_box_checker_2d(0, 0, ar->winx, ar->winy);
@@ -1883,7 +1884,7 @@ static bool view3d_main_region_draw_engine(
 	}
 
 	if (show_image) {
-		view3d_draw_bgpic_test(scene, depsgraph, ar, v3d, false, true);
+		ED_view3d_draw_bgpic_test(scene, depsgraph, ar, v3d, false, true);
 	}
 	else {
 		imm_draw_box_checker_2d(0, 0, ar->winx, ar->winy);
@@ -1894,7 +1895,7 @@ static bool view3d_main_region_draw_engine(
 	type->render_to_view(rv3d->render_engine, C);
 
 	if (show_image) {
-		view3d_draw_bgpic_test(scene, depsgraph, ar, v3d, true, true);
+		ED_view3d_draw_bgpic_test(scene, depsgraph, ar, v3d, true, true);
 	}
 
 	if (clip_border) {

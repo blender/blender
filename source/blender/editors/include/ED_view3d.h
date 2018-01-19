@@ -480,4 +480,11 @@ void ED_view3d_shade_update(struct Main *bmain, struct Scene *scene, struct View
 
 void ED_view3d_id_remap(struct View3D *v3d, const struct ID *old_id, struct ID *new_id);
 
+/* view3d_draw_legacy.c */
+/* Try avoid using these more move out of legacy. */
+void ED_view3d_draw_bgpic_test(
+        struct Scene *scene, const struct Depsgraph *depsgraph,
+        struct ARegion *ar, struct View3D *v3d,
+        const bool do_foreground, const bool do_camera_frame);
+
 #endif /* __ED_VIEW3D_H__ */

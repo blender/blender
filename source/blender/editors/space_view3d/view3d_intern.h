@@ -233,10 +233,6 @@ void ED_view3d_draw_select_loop(
 void ED_view3d_draw_depth_loop(
         const struct EvaluationContext *eval_ctx, Scene *scene, ARegion *ar, View3D *v3d);
 
-void view3d_draw_bgpic_test(Scene *scene, const struct Depsgraph *depsgraph,
-                            ARegion *ar, View3D *v3d,
-                            const bool do_foreground, const bool do_camera_frame);
-
 void ED_view3d_after_add(ListBase *lb, Base *base, const short dflag);
 
 void view3d_update_depths_rect(struct ARegion *ar, struct ViewDepths *d, struct rcti *rect);
