@@ -86,35 +86,35 @@ public:
 		(void)kernel_avx;
 		(void)kernel_avx2;
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX2
-		if(DebugFlags().cpu.avx2 && system_cpu_support_avx2()) {
+		if(DebugFlags().cpu.has_avx2() && system_cpu_support_avx2()) {
 			architecture_name = "AVX2";
 			kernel = kernel_avx2;
 		}
 		else
 #endif
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_AVX
-		if(DebugFlags().cpu.avx && system_cpu_support_avx()) {
+		if(DebugFlags().cpu.has_avx() && system_cpu_support_avx()) {
 			architecture_name = "AVX";
 			kernel = kernel_avx;
 		}
 		else
 #endif
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE41
-		if(DebugFlags().cpu.sse41 && system_cpu_support_sse41()) {
+		if(DebugFlags().cpu.has_sse41() && system_cpu_support_sse41()) {
 			architecture_name = "SSE4.1";
 			kernel = kernel_sse41;
 		}
 		else
 #endif
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE3
-		if(DebugFlags().cpu.sse3 && system_cpu_support_sse3()) {
+		if(DebugFlags().cpu.has_sse3() && system_cpu_support_sse3()) {
 			architecture_name = "SSE3";
 			kernel = kernel_sse3;
 		}
 		else
 #endif
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE2
-		if(DebugFlags().cpu.sse2 && system_cpu_support_sse2()) {
+		if(DebugFlags().cpu.has_sse2() && system_cpu_support_sse2()) {
 			architecture_name = "SSE2";
 			kernel = kernel_sse2;
 		}

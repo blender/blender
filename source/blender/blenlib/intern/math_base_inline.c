@@ -397,6 +397,10 @@ MINLINE int integer_digits_d(const double d)
 	return (d == 0.0) ? 0 : (int)floor(log10(fabs(d))) + 1;
 }
 
+MINLINE int integer_digits_i(const int i)
+{
+	return (int)log10(i) + 1;
+}
 
 /* Internal helpers for SSE2 implementation.
  *
