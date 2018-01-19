@@ -220,6 +220,9 @@ typedef struct wmWindow {
 	ListBase gesture;             /* gesture stuff */
 
 	struct Stereo3dFormat *stereo3d_format; /* properties for stereoscopic displays */
+
+	/* custom drawing callbacks */
+	ListBase drawcalls;
 } wmWindow;
 
 #ifdef ime_data

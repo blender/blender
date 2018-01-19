@@ -582,8 +582,6 @@ int screen_area_join(bContext *C, bScreen *scr, ScrArea *sa1, ScrArea *sa2)
 	/*printf("dir is : %i\n", dir);*/
 	
 	if (dir == -1) {
-		if (sa1) sa1->flag &= ~AREA_FLAG_DRAWJOINFROM;
-		if (sa2) sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
 		return 0;
 	}
 	
@@ -614,8 +612,7 @@ int screen_area_join(bContext *C, bScreen *scr, ScrArea *sa1, ScrArea *sa2)
 	
 	screen_delarea(C, scr, sa2);
 	removedouble_scrverts(scr);
-	sa1->flag &= ~AREA_FLAG_DRAWJOINFROM;
-	
+
 	return 1;
 }
 
@@ -1105,16 +1102,15 @@ void ED_screen_do_listen(bContext *C, wmNotifier *note)
 	}
 }
 
-/* only for edge lines between areas, and the blended join arrows */
-void ED_screen_draw(wmWindow *win)
+/**
+ * Only for edge lines between areas, and the blended join arrows.
+ */
+void ED_screen_draw_edges(wmWindow *win)
 {
 	const int winsize_x = WM_window_pixels_x(win);
 	const int winsize_y = WM_window_pixels_y(win);
 
 	ScrArea *sa;
-	ScrArea *sa1 = NULL;
-	ScrArea *sa2 = NULL;
-	ScrArea *sa3 = NULL;
 
 	wmSubWindowSet(win, win->screen->mainwin);
 	
@@ -1134,69 +1130,70 @@ void ED_screen_draw(wmWindow *win)
 	glBegin(GL_LINES);
 	for (sa = win->screen->areabase.first; sa; sa = sa->next) {
 		drawscredge_area(sa, winsize_x, winsize_y);
-
-		/* gather area split/join info */
-		if (sa->flag & AREA_FLAG_DRAWJOINFROM) sa1 = sa;
-		if (sa->flag & AREA_FLAG_DRAWJOINTO) sa2 = sa;
-		if (sa->flag & (AREA_FLAG_DRAWSPLIT_H | AREA_FLAG_DRAWSPLIT_V)) sa3 = sa;
 	}
 	glEnd();
 
-	/* blended join arrow */
-	if (sa1 && sa2) {
-		int dir = area_getorientation(sa1, sa2);
-		int dira = -1;
-		if (dir != -1) {
-			switch (dir) {
-				case 0: /* W */
-					dir = 'r';
-					dira = 'l';
-					break;
-				case 1: /* N */
-					dir = 'd';
-					dira = 'u';
-					break;
-				case 2: /* E */
-					dir = 'l';
-					dira = 'r';
-					break;
-				case 3: /* S */
-					dir = 'u';
-					dira = 'd';
-					break;
-			}
+	win->screen->do_draw = false;
+}
+
+void ED_screen_draw_join_shape(ScrArea *sa1, ScrArea *sa2)
+{
+	glLineWidth(1);
+
+    /* blended join arrow */
+	int dir = area_getorientation(sa1, sa2);
+	int dira = -1;
+	if (dir != -1) {
+		switch (dir) {
+			case 0: /* W */
+				dir = 'r';
+				dira = 'l';
+				break;
+			case 1: /* N */
+				dir = 'd';
+				dira = 'u';
+				break;
+			case 2: /* E */
+				dir = 'l';
+				dira = 'r';
+				break;
+			case 3: /* S */
+				dir = 'u';
+				dira = 'd';
+				break;
 		}
 		glEnable(GL_BLEND);
 		scrarea_draw_shape_dark(sa2, dir);
 		scrarea_draw_shape_light(sa1, dira);
 		glDisable(GL_BLEND);
 	}
-	
+}
+
+void ED_screen_draw_split_preview(ScrArea *sa, const int dir, const float fac)
+{
 	/* splitpoint */
-	if (sa3) {
-		glEnable(GL_BLEND);
-		glBegin(GL_LINES);
-		glColor4ub(255, 255, 255, 100);
-		
-		if (sa3->flag & AREA_FLAG_DRAWSPLIT_H) {
-			glVertex2s(sa3->totrct.xmin, win->eventstate->y);
-			glVertex2s(sa3->totrct.xmax, win->eventstate->y);
-			glColor4ub(0, 0, 0, 100);
-			glVertex2s(sa3->totrct.xmin, win->eventstate->y + 1);
-			glVertex2s(sa3->totrct.xmax, win->eventstate->y + 1);
-		}
-		else {
-			glVertex2s(win->eventstate->x, sa3->totrct.ymin);
-			glVertex2s(win->eventstate->x, sa3->totrct.ymax);
-			glColor4ub(0, 0, 0, 100);
-			glVertex2s(win->eventstate->x + 1, sa3->totrct.ymin);
-			glVertex2s(win->eventstate->x + 1, sa3->totrct.ymax);
-		}
-		glEnd();
-		glDisable(GL_BLEND);
-	}
+	glEnable(GL_BLEND);
+	glBegin(GL_LINES);
+	glColor4ub(255, 255, 255, 100);
 	
-	win->screen->do_draw = false;
+	if (dir == 'h') {
+		const float y = (1 - fac) * sa->totrct.ymin + fac * sa->totrct.ymax;
+		glVertex2s(sa->totrct.xmin, y);
+		glVertex2s(sa->totrct.xmax, y);
+		glColor4ub(0, 0, 0, 100);
+		glVertex2s(sa->totrct.xmin, y + 1);
+		glVertex2s(sa->totrct.xmax, y + 1);
+	}
+	else {
+		const float x = (1 - fac) * sa->totrct.xmin + fac * sa->totrct.xmax;
+		glVertex2s(x, sa->totrct.ymin);
+		glVertex2s(x, sa->totrct.ymax);
+		glColor4ub(0, 0, 0, 100);
+		glVertex2s(x + 1, sa->totrct.ymin);
+		glVertex2s(x + 1, sa->totrct.ymax);
+	}
+	glEnd();
+	glDisable(GL_BLEND);
 }
 
 /* helper call for below, dpi changes headers */
