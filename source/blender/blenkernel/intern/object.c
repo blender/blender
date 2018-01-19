@@ -356,7 +356,7 @@ void BKE_object_free_derived_caches(Object *ob)
 
 	if (ob->mesh_evaluated != NULL) {
 		/* Restore initial pointer. */
-		ob->data = ob->mesh_evaluated->id.newid;
+		ob->data = ob->mesh_evaluated->id.orig_id;
 		/* Evaluated mesh points to edit mesh, but does not own it. */
 		ob->mesh_evaluated->edit_btmesh = NULL;
 		BKE_mesh_free(ob->mesh_evaluated);
