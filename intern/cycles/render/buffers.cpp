@@ -19,7 +19,6 @@
 #include "render/buffers.h"
 #include "device/device.h"
 
-#include "util/util_debug.h"
 #include "util/util_foreach.h"
 #include "util/util_hash.h"
 #include "util/util_image.h"

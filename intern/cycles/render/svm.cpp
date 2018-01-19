@@ -23,7 +23,6 @@
 #include "render/shader.h"
 #include "render/svm.h"
 
-#include "util/util_debug.h"
 #include "util/util_logging.h"
 #include "util/util_foreach.h"
 #include "util/util_progress.h"

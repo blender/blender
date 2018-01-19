@@ -18,7 +18,6 @@
 #include "render/mesh.h"
 #include "render/attribute.h"
 
-#include "util/util_debug.h"
 #include "util/util_foreach.h"
 #include "util/util_transform.h"
 

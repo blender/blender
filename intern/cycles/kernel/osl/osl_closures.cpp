@@ -36,7 +36,6 @@
 #include "kernel/osl/osl_closures.h"
 #include "kernel/osl/osl_shader.h"
 
-#include "util/util_debug.h"
 #include "util/util_math.h"
 #include "util/util_param.h"
 

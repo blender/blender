@@ -20,9 +20,6 @@
 #include <cstddef>
 #include <memory>
 
-#include "util/util_debug.h"
-#include "util/util_types.h"
-
 #ifdef WITH_BLENDER_GUARDEDALLOC
 #  include "../../guardedalloc/MEM_guardedalloc.h"
 #endif

@@ -21,6 +21,7 @@
 #include "blender/blender_sync.h"
 #include "blender/blender_session.h"
 
+#include "util/util_debug.h"
 #include "util/util_foreach.h"
 #include "util/util_logging.h"
 #include "util/util_md5.h"

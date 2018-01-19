@@ -20,9 +20,6 @@
 #include <cstddef>
 #include <memory>
 
-#include "util/util_debug.h"
-#include "util/util_types.h"
-
 CCL_NAMESPACE_BEGIN
 
 /* Stack allocator for the use with STL. */

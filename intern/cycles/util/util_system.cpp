@@ -16,7 +16,6 @@
 
 #include "util/util_system.h"
 
-#include "util/util_debug.h"
 #include "util/util_logging.h"
 #include "util/util_types.h"
 #include "util/util_string.h"
@@ -234,35 +233,34 @@ static CPUCapabilities& system_cpu_capabilities()
 bool system_cpu_support_sse2()
 {
 	CPUCapabilities& caps = system_cpu_capabilities();
-	return DebugFlags().cpu.sse2 && caps.sse && caps.sse2;
+	return caps.sse && caps.sse2;
 }
 
 bool system_cpu_support_sse3()
 {
 	CPUCapabilities& caps = system_cpu_capabilities();
-	return DebugFlags().cpu.sse3 &&
-	       caps.sse && caps.sse2 && caps.sse3 && caps.ssse3;
+	return caps.sse && caps.sse2 && caps.sse3 && caps.ssse3;
 }
 
 bool system_cpu_support_sse41()
 {
 	CPUCapabilities& caps = system_cpu_capabilities();
-	return DebugFlags().cpu.sse41 &&
-	       caps.sse && caps.sse2 && caps.sse3 && caps.ssse3 && caps.sse41;
+	return caps.sse && caps.sse2 && caps.sse3 && caps.ssse3 && caps.sse41;
 }
 
 bool system_cpu_support_avx()
 {
 	CPUCapabilities& caps = system_cpu_capabilities();
-	return DebugFlags().cpu.avx &&
-	       caps.sse && caps.sse2 && caps.sse3 && caps.ssse3 && caps.sse41 && caps.avx;
+	return caps.sse && caps.sse2 && caps.sse3 && caps.ssse3 &&
+	       caps.sse41 && caps.avx;
 }
 
 bool system_cpu_support_avx2()
 {
 	CPUCapabilities& caps = system_cpu_capabilities();
-	return DebugFlags().cpu.avx2 &&
-	       caps.sse && caps.sse2 && caps.sse3 && caps.ssse3 && caps.sse41 && caps.avx && caps.f16c && caps.avx2 && caps.fma3 && caps.bmi1 && caps.bmi2;
+	return caps.sse && caps.sse2 && caps.sse3 && caps.ssse3 && caps.sse41 &&
+	       caps.avx && caps.f16c && caps.avx2 && caps.fma3 && caps.bmi1 &&
+	       caps.bmi2;
 }
 #else
 

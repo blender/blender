@@ -18,7 +18,6 @@
 #include "render/scene.h"
 #include "render/tables.h"
 
-#include "util/util_debug.h"
 #include "util/util_logging.h"
 
 CCL_NAMESPACE_BEGIN

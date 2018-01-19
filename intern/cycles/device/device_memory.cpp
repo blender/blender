@@ -50,8 +50,7 @@ void *device_memory::host_alloc(size_t size)
 		return 0;
 	}
 
-	size_t alignment = device->mem_address_alignment();
-	void *ptr = util_aligned_malloc(size, alignment);
+	void *ptr = util_aligned_malloc(size, MIN_ALIGNMENT_CPU_DATA_TYPES);
 
 	if(ptr) {
 		util_guarded_mem_alloc(size);

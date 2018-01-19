@@ -59,7 +59,6 @@
 #    include "kernel/split/kernel_buffer_update.h"
 #  endif  /* __SPLIT_KERNEL__ */
 #else
-#  include "util/util_debug.h"
 #  define STUB_ASSERT(arch, name) assert(!(#name " kernel stub for architecture " #arch " was called!"))
 
 #  ifdef __SPLIT_KERNEL__

@@ -22,7 +22,6 @@
 #include "render/constant_fold.h"
 
 #include "util/util_algorithm.h"
-#include "util/util_debug.h"
 #include "util/util_foreach.h"
 #include "util/util_queue.h"
 #include "util/util_logging.h"

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include "util/util_debug.h"
 #include "util/util_foreach.h"
 #include "util/util_logging.h"
 #include "util/util_system.h"

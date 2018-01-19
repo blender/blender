@@ -21,6 +21,7 @@
 #include "kernel/kernel_types.h"
 
 #include "util/util_algorithm.h"
+#include "util/util_debug.h"
 #include "util/util_foreach.h"
 #include "util/util_logging.h"
 #include "util/util_md5.h"

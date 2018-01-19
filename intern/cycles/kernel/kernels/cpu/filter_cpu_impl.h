@@ -25,7 +25,6 @@
 #include "kernel/filter/filter_kernel.h"
 
 #ifdef KERNEL_STUB
-#  include "util/util_debug.h"
 #  define STUB_ASSERT(arch, name) assert(!(#name " kernel stub for architecture " #arch " was called!"))
 #endif
 
