@@ -291,16 +291,13 @@ static void drawscredge_area(ScrArea *sa, int sizex, int sizey, unsigned int pos
 /**
  * Only for edge lines between areas, and the blended join arrows.
  */
-void ED_screen_draw(wmWindow *win)
+void ED_screen_draw_edges(wmWindow *win)
 {
 	bScreen *screen = WM_window_get_active_screen(win);
 	const int winsize_x = WM_window_pixels_x(win);
 	const int winsize_y = WM_window_pixels_y(win);
 
 	ScrArea *sa;
-	ScrArea *sa1 = NULL;
-	ScrArea *sa2 = NULL;
-	ScrArea *sa3 = NULL;
 
 	wmSubWindowSet(win, screen->mainwin);
 
@@ -323,36 +320,41 @@ void ED_screen_draw(wmWindow *win)
 
 	for (sa = screen->areabase.first; sa; sa = sa->next) {
 		drawscredge_area(sa, winsize_x, winsize_y, pos);
-
-		/* gather area split/join info */
-		if (sa->flag & AREA_FLAG_DRAWJOINFROM) sa1 = sa;
-		if (sa->flag & AREA_FLAG_DRAWJOINTO) sa2 = sa;
-		if (sa->flag & (AREA_FLAG_DRAWSPLIT_H | AREA_FLAG_DRAWSPLIT_V)) sa3 = sa;
 	}
 
+	immUnbindProgram();
+
+	screen->do_draw = false;
+}
+
+void ED_screen_draw_join_shape(ScrArea *sa1, ScrArea *sa2)
+{
+	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+	glLineWidth(1);
+
 	/* blended join arrow */
-	if (sa1 && sa2) {
-		int dir = area_getorientation(sa1, sa2);
-		int dira = -1;
-		if (dir != -1) {
-			switch (dir) {
-				case 0: /* W */
-					dir = 'r';
-					dira = 'l';
-					break;
-				case 1: /* N */
-					dir = 'd';
-					dira = 'u';
-					break;
-				case 2: /* E */
-					dir = 'l';
-					dira = 'r';
-					break;
-				case 3: /* S */
-					dir = 'u';
-					dira = 'd';
-					break;
-			}
+	int dir = area_getorientation(sa1, sa2);
+	int dira = -1;
+	if (dir != -1) {
+		switch (dir) {
+			case 0: /* W */
+				dir = 'r';
+				dira = 'l';
+				break;
+			case 1: /* N */
+				dir = 'd';
+				dira = 'u';
+				break;
+			case 2: /* E */
+				dir = 'l';
+				dira = 'r';
+				break;
+			case 3: /* S */
+				dir = 'u';
+				dira = 'd';
+				break;
 		}
 
 		glEnable(GL_BLEND);
@@ -363,48 +365,59 @@ void ED_screen_draw(wmWindow *win)
 		glDisable(GL_BLEND);
 	}
 
+	immUnbindProgram();
+}
+
+void ED_screen_draw_split_preview(ScrArea *sa, const int dir, const float fac)
+{
+	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
 	/* splitpoint */
-	if (sa3) {
-		glEnable(GL_BLEND);
-		immUniformColor4ub(255, 255, 255, 100);
+	glEnable(GL_BLEND);
+	immUniformColor4ub(255, 255, 255, 100);
 
-		immBegin(GWN_PRIM_LINES, 2);
+	immBegin(GWN_PRIM_LINES, 2);
 
-		if (sa3->flag & AREA_FLAG_DRAWSPLIT_H) {
-			immVertex2f(pos, sa3->totrct.xmin, win->eventstate->y);
-			immVertex2f(pos, sa3->totrct.xmax, win->eventstate->y);
+	if (dir == 'h') {
+		const float y = (1 - fac) * sa->totrct.ymin + fac * sa->totrct.ymax;
 
-			immEnd();
-
-			immUniformColor4ub(0, 0, 0, 100);
-
-			immBegin(GWN_PRIM_LINES, 2);
-
-			immVertex2f(pos, sa3->totrct.xmin, win->eventstate->y + 1);
-			immVertex2f(pos, sa3->totrct.xmax, win->eventstate->y + 1);
-		}
-		else {
-			immVertex2f(pos, win->eventstate->x, sa3->totrct.ymin);
-			immVertex2f(pos, win->eventstate->x, sa3->totrct.ymax);
-
-			immEnd();
-
-			immUniformColor4ub(0, 0, 0, 100);
-
-			immBegin(GWN_PRIM_LINES, 2);
-
-			immVertex2f(pos, win->eventstate->x + 1, sa3->totrct.ymin);
-			immVertex2f(pos, win->eventstate->x + 1, sa3->totrct.ymax);
-		}
+		immVertex2f(pos, sa->totrct.xmin, y);
+		immVertex2f(pos, sa->totrct.xmax, y);
 
 		immEnd();
 
-		glDisable(GL_BLEND);
+		immUniformColor4ub(0, 0, 0, 100);
+
+		immBegin(GWN_PRIM_LINES, 2);
+
+		immVertex2f(pos, sa->totrct.xmin, y + 1);
+		immVertex2f(pos, sa->totrct.xmax, y + 1);
+
+		immEnd();
+	}
+	else {
+		BLI_assert(dir == 'v');
+		const float x = (1 - fac) * sa->totrct.xmin + fac * sa->totrct.xmax;
+
+		immVertex2f(pos, x, sa->totrct.ymin);
+		immVertex2f(pos, x, sa->totrct.ymax);
+
+		immEnd();
+
+		immUniformColor4ub(0, 0, 0, 100);
+
+		immBegin(GWN_PRIM_LINES, 2);
+
+		immVertex2f(pos, x + 1, sa->totrct.ymin);
+		immVertex2f(pos, x + 1, sa->totrct.ymax);
+
+		immEnd();
 	}
 
-	immUnbindProgram();
+	glDisable(GL_BLEND);
 
-	screen->do_draw = false;
+	immUnbindProgram();
 }
 
 

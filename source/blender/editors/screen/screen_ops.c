@@ -1197,18 +1197,15 @@ static int area_snap_calc_location(
 
 	const int m_loc = origval + delta;
 	const int axis = (dir == 'v') ? 0 : 1;
-	int snap_dist = INT_MAX;
+	int snap_dist;
 	int dist;
 	{
 		/* Test the snap to middle. */
 		int middle = origval + (bigger - smaller) / 2;
 		middle -= (middle % AREAGRID);
 
-		dist = abs(m_loc - middle);
-		if (dist <= snap_dist) {
-			snap_dist = dist;
-			final_loc = middle;
-		}
+		snap_dist = abs(m_loc - middle);
+		final_loc = middle;
 	}
 
 	for (const ScrVert *v1 = sc->vertbase.first; v1; v1 = v1->next) {
@@ -1452,6 +1449,7 @@ typedef struct sAreaSplitData {
 	int delta;              /* delta move edge */
 	int origmin, origsize;  /* to calculate fac, for property storage */
 	int previewmode;        /* draw previewline, then split */
+	void *draw_callback;    /* call `ED_screen_draw_split_preview` */
 	bool do_snap;
 
 	ScrEdge *nedge;         /* new edge */
@@ -1459,6 +1457,19 @@ typedef struct sAreaSplitData {
 	ScrArea *narea;         /* new area */
 	
 } sAreaSplitData;
+
+static void area_split_draw_cb(const struct wmWindow *UNUSED(win), void *userdata)
+{
+	const wmOperator *op = userdata;
+
+	sAreaSplitData *sd = op->customdata;
+	if (sd->sarea) {
+		int dir = RNA_enum_get(op->ptr, "direction");
+		float fac = RNA_float_get(op->ptr, "factor");
+
+		ED_screen_draw_split_preview(sd->sarea, dir, fac);
+	}
+}
 
 /* generic init, menu case, doesn't need active area */
 static int area_split_menu_init(bContext *C, wmOperator *op)
@@ -1470,15 +1481,7 @@ static int area_split_menu_init(bContext *C, wmOperator *op)
 	op->customdata = sd;
 	
 	sd->sarea = CTX_wm_area(C);
-	
-	if (sd->sarea) {
-		int dir = RNA_enum_get(op->ptr, "direction");
 
-		if (dir == 'h')
-			sd->sarea->flag |= AREA_FLAG_DRAWSPLIT_H;
-		else
-			sd->sarea->flag |= AREA_FLAG_DRAWSPLIT_V;
-	}
 	return 1;
 }
 
@@ -1589,9 +1592,9 @@ static void area_split_exit(bContext *C, wmOperator *op)
 		if (sd->sarea) ED_area_tag_redraw(sd->sarea);
 		if (sd->narea) ED_area_tag_redraw(sd->narea);
 
-		if (sd->sarea)
-			sd->sarea->flag &= ~(AREA_FLAG_DRAWSPLIT_H | AREA_FLAG_DRAWSPLIT_V);
-		
+		if (sd->draw_callback)
+			WM_draw_cb_exit(CTX_wm_window(C), sd->draw_callback);
+
 		MEM_freeN(op->customdata);
 		op->customdata = NULL;
 	}
@@ -1698,6 +1701,7 @@ static int area_split_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	}
 	else {
 		sd->previewmode = 1;
+		sd->draw_callback = WM_draw_cb_activate(win, area_split_draw_cb, op);
 		/* add temp handler for edge move or cancel */
 		WM_event_add_modal_handler(C, op);
 		
@@ -1755,9 +1759,7 @@ static int area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			if (sd->previewmode == 0)
 				area_move_apply_do(C, sd->delta, sd->origval, dir, sd->bigger, sd->smaller, sd->do_snap);
 			else {
-				/* TODO: Snap in preview mode too. */
 				if (sd->sarea) {
-					sd->sarea->flag &= ~(AREA_FLAG_DRAWSPLIT_H | AREA_FLAG_DRAWSPLIT_V);
 					ED_area_tag_redraw(sd->sarea);
 				}
 				/* area context not set */
@@ -1768,22 +1770,31 @@ static int area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					if (dir == 'v') {
 						sd->origsize = sd->sarea->winx;
 						sd->origmin = sd->sarea->totrct.xmin;
-						sd->sarea->flag |= AREA_FLAG_DRAWSPLIT_V;
 					}
 					else {
 						sd->origsize = sd->sarea->winy;
 						sd->origmin = sd->sarea->totrct.ymin;
-						sd->sarea->flag |= AREA_FLAG_DRAWSPLIT_H;
 					}
+
+					if (sd->do_snap) {
+						ScrArea *sa = sd->sarea;
+						sa->v1->editflag = sa->v2->editflag = sa->v3->editflag = sa->v4->editflag = 1;
+
+						int snap_loc = area_snap_calc_location(
+						        CTX_wm_screen(C), sd->delta, sd->origval, dir, sd->origmin + sd->origsize, -sd->origmin);
+
+						sa->v1->editflag = sa->v2->editflag = sa->v3->editflag = sa->v4->editflag = 0;
+						fac = snap_loc - sd->origmin;
+					}
+					else {
+						fac = (dir == 'v') ? event->x - sd->origmin : event->y - sd->origmin;
+					}
+					RNA_float_set(op->ptr, "factor", fac / (float)sd->origsize);
 				}
-				
+
 				CTX_wm_screen(C)->do_draw = true;
 
 			}
-			
-			fac = (dir == 'v') ? event->x - sd->origmin : event->y - sd->origmin;
-			RNA_float_set(op->ptr, "factor", fac / (float)sd->origsize);
-			
 			break;
 			
 		case LEFTMOUSE:
@@ -1809,19 +1820,14 @@ static int area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				
 				if (event->val == KM_PRESS) {
 					if (sd->sarea) {
-						sd->sarea->flag &= ~(AREA_FLAG_DRAWSPLIT_H | AREA_FLAG_DRAWSPLIT_V);
 						ED_area_tag_redraw(sd->sarea);
 						
 						if (dir == 'v') {
 							RNA_enum_set(op->ptr, "direction", 'h');
-							sd->sarea->flag |= AREA_FLAG_DRAWSPLIT_H;
-							
 							WM_cursor_set(CTX_wm_window(C), CURSOR_X_MOVE);
 						}
 						else {
 							RNA_enum_set(op->ptr, "direction", 'v');
-							sd->sarea->flag |= AREA_FLAG_DRAWSPLIT_V;
-							
 							WM_cursor_set(CTX_wm_window(C), CURSOR_Y_MOVE);
 						}
 					}
@@ -2562,12 +2568,22 @@ static void SCREEN_OT_screen_full_area(wmOperatorType *ot)
  */
 
 typedef struct sAreaJoinData {
-	ScrArea *sa1;   /* first area to be considered */
-	ScrArea *sa2;   /* second area to be considered */
-	ScrArea *scr;   /* designed for removal */
+	ScrArea *sa1;        /* first area to be considered */
+	ScrArea *sa2;        /* second area to be considered */
+	void *draw_callback; /* call `ED_screen_draw_join_shape` */
 
 } sAreaJoinData;
 
+
+static void area_join_draw_cb(const struct wmWindow *UNUSED(win), void *userdata)
+{
+	const wmOperator *op = userdata;
+
+	sAreaJoinData *sd = op->customdata;
+	if (sd->sa1 && sd->sa2) {
+		ED_screen_draw_join_shape(sd->sa1, sd->sa2);
+	}
+}
 
 /* validate selection inside screen, set variables OK */
 /* return 0: init failed */
@@ -2602,14 +2618,14 @@ static int area_join_init(bContext *C, wmOperator *op)
 	}
 	
 	jd = (sAreaJoinData *)MEM_callocN(sizeof(sAreaJoinData), "op_area_join");
-	
+
 	jd->sa1 = sa1;
-	jd->sa1->flag |= AREA_FLAG_DRAWJOINFROM;
 	jd->sa2 = sa2;
-	jd->sa2->flag |= AREA_FLAG_DRAWJOINTO;
-	
+
 	op->customdata = jd;
-	
+
+	jd->draw_callback = WM_draw_cb_activate(CTX_wm_window(C), area_join_draw_cb, op);
+
 	return 1;
 }
 
@@ -2633,8 +2649,13 @@ static int area_join_apply(bContext *C, wmOperator *op)
 /* finish operation */
 static void area_join_exit(bContext *C, wmOperator *op)
 {
-	if (op->customdata) {
-		MEM_freeN(op->customdata);
+	sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
+
+	if (jd) {
+		if (jd->draw_callback)
+			WM_draw_cb_exit(CTX_wm_window(C), jd->draw_callback);
+
+		MEM_freeN(jd);
 		op->customdata = NULL;
 	}
 	
@@ -2693,17 +2714,6 @@ static int area_join_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 static void area_join_cancel(bContext *C, wmOperator *op)
 {
-	sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
-	
-	if (jd->sa1) {
-		jd->sa1->flag &= ~AREA_FLAG_DRAWJOINFROM;
-		jd->sa1->flag &= ~AREA_FLAG_DRAWJOINTO;
-	}
-	if (jd->sa2) {
-		jd->sa2->flag &= ~AREA_FLAG_DRAWJOINFROM;
-		jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
-	}
-	
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 	
 	area_join_exit(C, op);
@@ -2727,9 +2737,7 @@ static int area_join_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				if (jd->sa1 != sa) {
 					dir = area_getorientation(jd->sa1, sa);
 					if (dir != -1) {
-						if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
 						jd->sa2 = sa;
-						jd->sa2->flag |= AREA_FLAG_DRAWJOINTO;
 					}
 					else {
 						/* we are not bordering on the previously selected area 
@@ -2738,15 +2746,10 @@ static int area_join_modal(bContext *C, wmOperator *op, const wmEvent *event)
 						 */
 						dir = area_getorientation(sa, jd->sa2);
 						if (dir != -1) {
-							if (jd->sa1) jd->sa1->flag &= ~AREA_FLAG_DRAWJOINFROM;
-							if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
 							jd->sa1 = jd->sa2;
 							jd->sa2 = sa;
-							if (jd->sa1) jd->sa1->flag |= AREA_FLAG_DRAWJOINFROM;
-							if (jd->sa2) jd->sa2->flag |= AREA_FLAG_DRAWJOINTO;
 						}
 						else {
-							if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
 							jd->sa2 = NULL;
 						}
 					}
@@ -2756,12 +2759,8 @@ static int area_join_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					/* we are back in the area previously selected for keeping 
 					 * we swap the areas if possible to allow user to choose */
 					if (jd->sa2 != NULL) {
-						if (jd->sa1) jd->sa1->flag &= ~AREA_FLAG_DRAWJOINFROM;
-						if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
 						jd->sa1 = jd->sa2;
 						jd->sa2 = sa;
-						if (jd->sa1) jd->sa1->flag |= AREA_FLAG_DRAWJOINFROM;
-						if (jd->sa2) jd->sa2->flag |= AREA_FLAG_DRAWJOINTO;
 						dir = area_getorientation(jd->sa1, jd->sa2);
 						if (dir == -1) {
 							printf("oops, didn't expect that!\n");
@@ -2770,9 +2769,7 @@ static int area_join_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					else {
 						dir = area_getorientation(jd->sa1, sa);
 						if (dir != -1) {
-							if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
 							jd->sa2 = sa;
-							jd->sa2->flag |= AREA_FLAG_DRAWJOINTO;
 						}
 					}
 					WM_event_add_notifier(C, NC_WINDOW, NULL);

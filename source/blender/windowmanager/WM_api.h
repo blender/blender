@@ -539,6 +539,11 @@ void		WM_progress_set(struct wmWindow *win, float progress);
 void		WM_progress_clear(struct wmWindow *win);
 
 			/* Draw (for screenshot) */
+void        *WM_draw_cb_activate(
+                    struct wmWindow *win,
+                    void (*draw)(const struct wmWindow *, void *),
+                    void *customdata);
+void        WM_draw_cb_exit(struct wmWindow *win, void *handle);
 void		WM_redraw_windows(struct bContext *C);
 
 void        WM_main_playanim(int argc, const char **argv);

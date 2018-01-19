@@ -589,8 +589,6 @@ int screen_area_join(bContext *C, bScreen *scr, ScrArea *sa1, ScrArea *sa2)
 	/*printf("dir is : %i\n", dir);*/
 	
 	if (dir == -1) {
-		if (sa1) sa1->flag &= ~AREA_FLAG_DRAWJOINFROM;
-		if (sa2) sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
 		return 0;
 	}
 	
@@ -621,7 +619,7 @@ int screen_area_join(bContext *C, bScreen *scr, ScrArea *sa1, ScrArea *sa2)
 	
 	screen_delarea(C, scr, sa2);
 	removedouble_scrverts(scr);
-	sa1->flag &= ~AREA_FLAG_DRAWJOINFROM;
+
 	/* Update preview thumbnail */
 	BKE_icon_changed(scr->id.icon_id);
 
