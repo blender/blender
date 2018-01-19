@@ -31,6 +31,7 @@
 #ifndef __SCREEN_INTERN_H__
 #define __SCREEN_INTERN_H__
 
+struct bContext;
 struct bContextDataResult;
 struct Main;
 
@@ -69,7 +70,8 @@ ScrEdge    *screen_find_active_scredge(const bScreen *sc,
 struct AZone *is_in_area_actionzone(ScrArea *sa, const int xy[2]);
 
 /* screen_context.c */
-int ed_screen_context(const struct bContext *C, const char *member, struct bContextDataResult *result);
+int ed_screen_context(
+        const struct bContext *C, const char *member, struct bContextDataResult *result);
 
 extern const char *screen_context_dir[]; /* doc access */
 

@@ -33,7 +33,6 @@
 
 #include "screen_intern.h"
 
-
 /**
  * Draw horizontal shape visualizing future joining (left as well right direction of future joining).
  */
