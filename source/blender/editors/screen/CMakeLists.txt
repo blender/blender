@@ -42,6 +42,7 @@ set(SRC
 	area.c
 	glutil.c
 	screen_context.c
+	screen_draw.c
 	screen_edit.c
 	screen_ops.c
 	screendump.c
