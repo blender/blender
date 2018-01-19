@@ -76,7 +76,7 @@ void DepsgraphRelationBuilder::build_scene(Scene *scene)
 	/* Setup currently building context. */
 	scene_ = scene;
 	/* Scene objects. */
-	LINKLIST_FOREACH (Base *, base, &scene->base) {
+	BLI_LISTBASE_FOREACH (Base *, base, &scene->base) {
 		Object *object = base->object;
 		build_object(object);
 	}
@@ -101,11 +101,11 @@ void DepsgraphRelationBuilder::build_scene(Scene *scene)
 		build_gpencil(scene->gpd);
 	}
 	/* Masks. */
-	LINKLIST_FOREACH (Mask *, mask, &bmain_->mask) {
+	BLI_LISTBASE_FOREACH (Mask *, mask, &bmain_->mask) {
 		build_mask(mask);
 	}
 	/* Movie clips. */
-	LINKLIST_FOREACH (MovieClip *, clip, &bmain_->movieclip) {
+	BLI_LISTBASE_FOREACH (MovieClip *, clip, &bmain_->movieclip) {
 		build_movieclip(clip);
 	}
 	for (Depsgraph::OperationNodes::const_iterator it_op = graph_->operations.begin();

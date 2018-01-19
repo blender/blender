@@ -328,12 +328,12 @@ void DEG_graph_on_visible_update(Main *bmain, Scene *scene)
 		return;
 	}
 	/* Special trick to get local view to work.  */
-	LINKLIST_FOREACH (Base *, base, &scene->base) {
+	BLI_LISTBASE_FOREACH (Base *, base, &scene->base) {
 		Object *object = base->object;
 		DEG::IDDepsNode *id_node = graph->find_id_node(&object->id);
 		id_node->layers = 0;
 	}
-	LINKLIST_FOREACH (Base *, base, &scene->base) {
+	BLI_LISTBASE_FOREACH (Base *, base, &scene->base) {
 		Object *object = base->object;
 		DEG::IDDepsNode *id_node = graph->find_id_node(&object->id);
 		id_node->layers |= base->lay;
@@ -343,7 +343,7 @@ void DEG_graph_on_visible_update(Main *bmain, Scene *scene)
 		}
 	}
 	DEG::deg_graph_build_flush_layers(graph);
-	LINKLIST_FOREACH (Base *, base, &scene->base) {
+	BLI_LISTBASE_FOREACH (Base *, base, &scene->base) {
 		Object *object = base->object;
 		DEG::IDDepsNode *id_node = graph->find_id_node(&object->id);
 		GHASH_FOREACH_BEGIN(DEG::ComponentDepsNode *, comp, id_node->components)

@@ -30,9 +30,6 @@
 
 /** \file BLI_linklist.h
  *  \ingroup bli
- *  \brief Routines for working with singly linked lists
- *   of 'links' - pointers to other data.
- * 
  */
 
 #include "BLI_compiler_attrs.h"
