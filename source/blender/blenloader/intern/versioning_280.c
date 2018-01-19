@@ -883,4 +883,37 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 	}
+
+	{
+		if (DNA_struct_elem_find(fd->filesdna, "SpaceOops", "int", "filter") == false) {
+			bScreen *sc;
+			ScrArea *sa;
+			SpaceLink *sl;
+
+			/* Update files using invalid (outdated) outlinevis Outliner values. */
+			for (sc = main->screen.first; sc; sc = sc->id.next) {
+				for (sa = sc->areabase.first; sa; sa = sa->next) {
+					for (sl = sa->spacedata.first; sl; sl = sl->next) {
+						if (sl->spacetype == SPACE_OUTLINER) {
+							SpaceOops *so = (SpaceOops *)sl;
+
+							if (!ELEM(so->outlinevis,
+									  SO_ALL_SCENES,
+									  SO_GROUPS,
+									  SO_LIBRARIES,
+									  SO_SEQUENCE,
+									  SO_DATABLOCKS,
+									  SO_USERDEF,
+							          SO_ID_ORPHANS,
+							          SO_VIEW_LAYER,
+							          SO_COLLECTIONS))
+							{
+								so->outlinevis = SO_VIEW_LAYER;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 }

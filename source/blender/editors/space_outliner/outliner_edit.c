@@ -949,7 +949,7 @@ static void outliner_set_coordinates_element_recursive(SpaceOops *soops, TreeEle
 }
 
 /* to retrieve coordinates with redrawing the entire tree */
-static void outliner_set_coordinates(ARegion *ar, SpaceOops *soops)
+void outliner_set_coordinates(ARegion *ar, SpaceOops *soops)
 {
 	TreeElement *te;
 	int starty = (int)(ar->v2d.tot.ymax) - UI_UNIT_Y;
@@ -2085,7 +2085,7 @@ static int outliner_parenting_poll(bContext *C)
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 
 	if (soops) {
-		return ELEM(soops->outlinevis, SO_ALL_SCENES, SO_CUR_SCENE, SO_VISIBLE, SO_GROUPS);
+		return ELEM(soops->outlinevis, SO_ALL_SCENES, SO_GROUPS);
 	}
 
 	return false;

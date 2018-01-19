@@ -266,6 +266,9 @@ typedef struct SpaceOops {
 	struct TreeStoreElem search_tse;
 
 	short flag, outlinevis, storeflag, search_flags;
+	int filter;
+	char filter_state;
+	char pad[3];
 	
 	/* pointers to treestore elements, grouped by (id, type, nr) in hashtable for faster searching */
 	void *treehash;
@@ -281,14 +284,58 @@ typedef enum eSpaceOutliner_Flag {
 	SO_SKIP_SORT_ALPHA      = (1 << 4),
 } eSpaceOutliner_Flag;
 
+/* SpaceOops->filter */
+typedef enum eSpaceOutliner_Filter {
+	SO_FILTER_SEARCH           = (1 << 0),
+	SO_FILTER_ENABLE           = (1 << 1),
+	SO_FILTER_NO_OBJECT        = (1 << 2),
+	SO_FILTER_NO_OB_CONTENT    = (1 << 3), /* Not only mesh, but modifiers, constraints, ... */
+	SO_FILTER_NO_CHILDREN      = (1 << 4),
+
+	SO_FILTER_OB_TYPE          = (1 << 5),
+	SO_FILTER_NO_OB_MESH       = (1 << 6),
+	SO_FILTER_NO_OB_ARMATURE   = (1 << 7),
+	SO_FILTER_NO_OB_EMPTY      = (1 << 8),
+	SO_FILTER_NO_OB_LAMP       = (1 << 9),
+	SO_FILTER_NO_OB_CAMERA     = (1 << 10),
+	SO_FILTER_NO_OB_OTHERS     = (1 << 11),
+
+	SO_FILTER_OB_STATE         = (1 << 12),
+	SO_FILTER_OB_STATE_VISIBLE = (1 << 13), /* Not set via DNA. */
+	SO_FILTER_OB_STATE_SELECTED= (1 << 14), /* Not set via DNA. */
+	SO_FILTER_OB_STATE_ACTIVE  = (1 << 15), /* Not set via DNA. */
+	SO_FILTER_NO_COLLECTION    = (1 << 16),
+} eSpaceOutliner_Filter;
+
+#define SO_FILTER_NO_OB_ALL (SO_FILTER_NO_OB_MESH | \
+                             SO_FILTER_NO_OB_ARMATURE | \
+                             SO_FILTER_NO_OB_EMPTY | \
+                             SO_FILTER_NO_OB_LAMP | \
+                             SO_FILTER_NO_OB_CAMERA | \
+                             SO_FILTER_NO_OB_OTHERS)
+
+#define SO_FILTER_ANY (SO_FILTER_NO_OBJECT | \
+                       SO_FILTER_NO_OB_CONTENT | \
+                       SO_FILTER_NO_CHILDREN | \
+                       SO_FILTER_OB_TYPE | \
+                       SO_FILTER_OB_STATE | \
+                       SO_FILTER_NO_COLLECTION)
+
+/* SpaceOops->filter_state */
+typedef enum eSpaceOutliner_StateFilter {
+	SO_FILTER_OB_VISIBLE       = 0,
+	SO_FILTER_OB_SELECTED      = 1,
+	SO_FILTER_OB_ACTIVE        = 2,
+} eSpaceOutliner_StateFilter;
+
 /* SpaceOops->outlinevis */
 typedef enum eSpaceOutliner_Mode {
 	SO_ALL_SCENES     = 0,
-	SO_CUR_SCENE      = 1,
-	SO_VISIBLE        = 2,
-	SO_SELECTED       = 3,
-	SO_ACTIVE         = 4,
-	SO_SAME_TYPE      = 5,
+	/* SO_CUR_SCENE      = 1, */  /* deprecated! */
+	/* SO_VISIBLE        = 2, */  /* deprecated! */
+	/* SO_SELECTED       = 3, */  /* deprecated! */
+	/* SO_ACTIVE         = 4, */  /* deprecated! */
+	/* SO_SAME_TYPE      = 5, */  /* deprecated! */
 	SO_GROUPS         = 6,
 	SO_LIBRARIES      = 7,
 	/* SO_VERSE_SESSION  = 8, */  /* deprecated! */

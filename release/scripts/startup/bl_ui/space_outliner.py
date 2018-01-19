@@ -28,8 +28,10 @@ class OUTLINER_HT_header(Header):
         layout = self.layout
 
         space = context.space_data
+        display_mode = space.display_mode
         scene = context.scene
         ks = context.scene.keying_sets.active
+        support_filters = display_mode in {'COLLECTIONS', 'VIEW_LAYER'}
 
         row = layout.row(align=True)
         row.template_header()
@@ -38,13 +40,9 @@ class OUTLINER_HT_header(Header):
 
         layout.prop(space, "display_mode", text="")
 
-        row = layout.row(align=True)
-        row.prop(space, "filter_text", icon='VIEWZOOM', text="")
-        row.prop(space, "use_filter_complete", text="")
-        row.prop(space, "use_filter_case_sensitive", text="")
-
         if space.display_mode == 'DATABLOCKS':
             layout.separator()
+
             row = layout.row(align=True)
             row.operator("outliner.keyingset_add_selected", icon='ZOOMIN', text="")
             row.operator("outliner.keyingset_remove_selected", icon='ZOOMOUT', text="")
@@ -59,6 +57,54 @@ class OUTLINER_HT_header(Header):
             else:
                 row = layout.row()
                 row.label(text="No Keying Set Active")
+
+        row = layout.row(align=True)
+        row.prop(space, "use_filter_search", text="")
+        if space.use_filter_search:
+            row.prop(space, "filter_text", text="")
+            row.prop(space, "use_filter_complete", text="")
+            row.prop(space, "use_filter_case_sensitive", text="")
+
+        if support_filters:
+            row.separator()
+
+            row.prop(space, "use_filters", text="")
+            if space.use_filters:
+                row.separator()
+                row.prop(space, "use_filter_collection", text="")
+                row.prop(space, "use_filter_object", text="")
+                sub = row.row(align=True)
+                sub.active = space.use_filter_object
+                sub.prop(space, "use_filter_object_content", text="")
+                sub.prop(space, "use_filter_children", text="")
+
+                sub.separator()
+                sub.prop(space, "use_filter_object_type", text="")
+
+                if space.use_filter_object_type:
+                    if bpy.data.meshes:
+                        sub.prop(space, "use_filter_object_mesh", text="")
+                    if bpy.data.armatures:
+                        sub.prop(space, "use_filter_object_armature", text="")
+                    if bpy.data.lamps:
+                        sub.prop(space, "use_filter_object_lamp", text="")
+                    if bpy.data.cameras:
+                        sub.prop(space, "use_filter_object_camera", text="")
+
+                    sub.prop(space, "use_filter_object_empty", text="")
+
+                    if bpy.data.curves or \
+                       bpy.data.metaballs or \
+                       bpy.data.lightprobes or \
+                       bpy.data.lattices or \
+                       bpy.data.fonts or bpy.data.speakers:
+                        sub.prop(space, "use_filter_object_others", text="")
+
+                sub.separator()
+                sub.prop(space, "use_filter_object_state", text="")
+
+                if space.use_filter_object_state:
+                    sub.prop(space, "filter_state", text="", expand=True)
 
 
 class OUTLINER_MT_editor_menus(Menu):

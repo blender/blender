@@ -36,6 +36,7 @@
 
 /* internal exports only */
 
+struct ARegion;
 struct wmOperatorType;
 struct TreeElement;
 struct TreeStoreElem;
@@ -154,6 +155,9 @@ typedef enum {
 #define OL_RNA_COL_SIZEX    (UI_UNIT_X * 7.5f)
 #define OL_RNA_COL_SPACEX   (UI_UNIT_X * 2.5f)
 
+/* The outliner display modes that support the filter system.
+ * Note: keep it synced with space_outliner.py */
+#define SUPPORT_FILTER_OUTLINER(soops_) ELEM((soops_)->outlinevis, SO_VIEW_LAYER, SO_COLLECTIONS)
 
 /* Outliner Searching --
  *
@@ -171,7 +175,7 @@ typedef enum {
  * - not searching into RNA items helps but isn't the complete solution
  */
 
-#define SEARCHING_OUTLINER(sov)   (sov->search_flags & SO_SEARCH_RECURSIVE)
+#define SEARCHING_OUTLINER(sov)   ((sov->search_flags & SO_SEARCH_RECURSIVE) && (sov->filter & SO_FILTER_SEARCH))
 
 /* is the currrent element open? if so we also show children */
 #define TSELEM_OPEN(telm, sv)    ( (telm->flag & TSE_CLOSED) == 0 || (SEARCHING_OUTLINER(sv) && (telm->flag & TSE_CHILDSEARCH)) )
@@ -183,7 +187,8 @@ void outliner_cleanup_tree(struct SpaceOops *soops);
 void outliner_free_tree_element(TreeElement *element, ListBase *parent_subtree);
 void outliner_remove_treestore_element(struct SpaceOops *soops, TreeStoreElem *tselem);
 
-void outliner_build_tree(struct Main *mainvar, struct Scene *scene, struct ViewLayer *view_layer, struct SpaceOops *soops);
+void outliner_build_tree(struct Main *mainvar, struct Scene *scene, struct ViewLayer *view_layer,
+                         struct SpaceOops *soops, struct ARegion *ar);
 
 /* outliner_draw.c ---------------------------------------------- */
 
@@ -264,6 +269,8 @@ void id_remap_cb(
         struct TreeStoreElem *tsep, struct TreeStoreElem *tselem, void *user_data);
 
 TreeElement *outliner_dropzone_find(const struct SpaceOops *soops, const float fmval[2], const bool children);
+
+void outliner_set_coordinates(struct ARegion *ar, struct SpaceOops *soops);
 
 /* ...................................................... */
 

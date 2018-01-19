@@ -1415,7 +1415,7 @@ static void outliner_draw_tree_element(
 			te->flag |= TE_ACTIVE; // for lookup in display hierarchies
 		}
 		
-		if ((soops->outlinevis == SO_COLLECTIONS) && te->parent == NULL) {
+		if ((soops->outlinevis == SO_COLLECTIONS) && (tselem->type == TSE_SCENE_COLLECTION) && (te->parent == NULL)) {
 			/* Master collection can't expand/collapse. */
 		}
 		else if (te->subtree.first || (tselem->type == 0 && te->idcode == ID_SCE) || (te->flag & TE_LAZY_CLOSED)) {
@@ -1720,7 +1720,9 @@ static void outliner_draw_highlights_recursive(
         int start_x, int *io_start_y)
 {
 	const bool is_searching = SEARCHING_OUTLINER(soops) ||
-	                          (soops->outlinevis == SO_DATABLOCKS && soops->search_string[0] != 0);
+	                          (soops->outlinevis == SO_DATABLOCKS &&
+	                           (soops->filter & SO_FILTER_SEARCH) &&
+	                           soops->search_string[0] != 0);
 
 	for (TreeElement *te = lb->first; te; te = te->next) {
 		const TreeStoreElem *tselem = TREESTORE(te);
@@ -1904,7 +1906,7 @@ void draw_outliner(const bContext *C)
 	TreeElement *te_edit = NULL;
 	bool has_restrict_icons;
 
-	outliner_build_tree(mainvar, scene, view_layer, soops); // always
+	outliner_build_tree(mainvar, scene, view_layer, soops, ar); // always
 	
 	/* get extents of data */
 	outliner_height(soops, &soops->tree, &sizey);

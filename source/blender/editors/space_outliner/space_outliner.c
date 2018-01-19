@@ -163,7 +163,7 @@ static int outliner_parent_clear_poll(bContext *C, wmDrag *drag, const wmEvent *
 
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
-	if (!ELEM(soops->outlinevis, SO_ALL_SCENES, SO_CUR_SCENE, SO_VISIBLE, SO_GROUPS, SO_VIEW_LAYER, SO_COLLECTIONS)) {
+	if (!ELEM(soops->outlinevis, SO_ALL_SCENES, SO_GROUPS, SO_VIEW_LAYER, SO_COLLECTIONS)) {
 		return false;
 	}
 
