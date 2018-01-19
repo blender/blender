@@ -30,6 +30,7 @@
 #include "BLI_ghash.h"
 #include "BLI_iterator.h"
 #include "BLI_listbase.h"
+#include "BLI_math_base.h"
 #include "BLT_translation.h"
 #include "BLI_string_utils.h"
 
@@ -86,7 +87,12 @@ SceneCollection *BKE_collection_add(ID *owner_id, SceneCollection *sc_parent, co
 			name = BLI_sprintfN("Collection %d", BLI_listbase_count(&sc_master->scene_collections) + 1);
 		}
 		else {
-			name = BLI_sprintfN("%s %d", sc_parent->name, BLI_listbase_count(&sc_parent->scene_collections) + 1);
+			const int number = BLI_listbase_count(&sc_parent->scene_collections) + 1;
+			const int digits = integer_digits_i(number);
+			const int max_len = sizeof(sc_parent->name)
+			                    - 1 /* NULL terminator */
+			                    - (1 + digits) /* " %d" */;
+			name = BLI_sprintfN("%.*s %d", max_len, sc_parent->name, number);
 		}
 	}
 
