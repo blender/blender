@@ -29,7 +29,9 @@
 /** \file blender/blenlib/intern/listbase.c
  *  \ingroup bli
  *
- * Manipulations on ListBase structs
+ * Manipulations on double-linked list (#ListBase structs).
+ *
+ * For single linked lists see 'BLI_linklist.h'
  */
 
 #include <string.h>

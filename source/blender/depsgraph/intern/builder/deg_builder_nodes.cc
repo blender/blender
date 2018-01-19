@@ -429,7 +429,7 @@ void DepsgraphNodeBuilder::build_group(Group *group)
 	}
 	group_id->tag |= LIB_TAG_DOIT;
 	/* Build group objects. */
-	LINKLIST_FOREACH(Base *, base, &group->view_layer->object_bases) {
+	BLI_LISTBASE_FOREACH (Base *, base, &group->view_layer->object_bases) {
 		build_object(NULL, base->object, DEG_ID_LINKED_INDIRECTLY);
 	}
 	/* Operation to evaluate the whole view layer.
@@ -699,7 +699,7 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
 		}
 
 		/* drivers */
-		LINKLIST_FOREACH (FCurve *, fcu, &adt->drivers) {
+		BLI_LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
 			/* create driver */
 			build_driver(id, fcu);
 		}
@@ -817,7 +817,7 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
 
 	/* objects - simulation participants */
 	if (rbw->group) {
-		LINKLIST_FOREACH (Base *, base, &rbw->group->view_layer->object_bases) {
+		BLI_LISTBASE_FOREACH (Base *, base, &rbw->group->view_layer->object_bases) {
 			Object *object = base->object;
 
 			if (!object || (object->type != OB_MESH))
@@ -870,7 +870,7 @@ void DepsgraphNodeBuilder::build_particles(Object *object)
 	                   DEG_OPCODE_PARTICLE_SYSTEM_EVAL_INIT);
 
 	/* particle systems */
-	LINKLIST_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
+	BLI_LISTBASE_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
 		ParticleSettings *part = psys->part;
 
 		/* Build particle settings operations.
@@ -986,7 +986,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Object *object)
 	// TODO: "Done" operation
 
 	/* Cloth modifier. */
-	LINKLIST_FOREACH (ModifierData *, md, &object->modifiers) {
+	BLI_LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
 		if (md->type == eModifierType_Cloth) {
 			build_cloth(object);
 		}
@@ -1231,7 +1231,7 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
 	                                 ntree),
 	                   DEG_OPCODE_MATERIAL_UPDATE);
 	/* nodetree's nodes... */
-	LINKLIST_FOREACH (bNode *, bnode, &ntree->nodes) {
+	BLI_LISTBASE_FOREACH (bNode *, bnode, &ntree->nodes) {
 		ID *id = bnode->id;
 		if (id == NULL) {
 			continue;

@@ -867,14 +867,22 @@ static int wm_operator_exec(bContext *C, wmOperator *op, const bool repeat, cons
 		return retval;
 	
 	if (op->type->exec) {
-		if (op->type->flag & OPTYPE_UNDO)
+		if (op->type->flag & OPTYPE_UNDO) {
 			wm->op_undo_depth++;
+		}
 
+		if (repeat) {
+			op->flag |= OP_IS_REPEAT;
+		}
 		retval = op->type->exec(C, op);
 		OPERATOR_RETVAL_CHECK(retval);
+		if (repeat) {
+			op->flag &= ~OP_IS_REPEAT;
+		}
 
-		if (op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
+		if (op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm) {
 			wm->op_undo_depth--;
+		}
 	}
 	
 	/* XXX Disabled the repeat check to address part 2 of #31840.

@@ -247,7 +247,7 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
 	op_node->set_as_exit();
 
 	/* bones */
-	LINKLIST_FOREACH (bPoseChannel *, pchan, &object_cow->pose->chanbase) {
+	BLI_LISTBASE_FOREACH (bPoseChannel *, pchan, &object_cow->pose->chanbase) {
 		/* Node for bone evaluation. */
 		op_node = add_operation_node(&object->id, DEG_NODE_TYPE_BONE, pchan->name, NULL,
 		                             DEG_OPCODE_BONE_LOCAL);
@@ -293,7 +293,7 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
 		 *   as in ik-tree building
 		 * - Animated chain-lengths are a problem.
 		 */
-		LINKLIST_FOREACH (bConstraint *, con, &pchan->constraints) {
+		BLI_LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
 			switch (con->type) {
 				case CONSTRAINT_TYPE_KINEMATIC:
 					build_ik_pose(object, pchan, con);
@@ -347,7 +347,7 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
 	                                           object_cow),
 	                             DEG_OPCODE_POSE_INIT);
 	op_node->set_as_entry();
-	LINKLIST_FOREACH (bPoseChannel *, pchan, &object_cow->pose->chanbase) {
+	BLI_LISTBASE_FOREACH (bPoseChannel *, pchan, &object_cow->pose->chanbase) {
 		/* Local bone transform. */
 		op_node = add_operation_node(&object->id,
 		                             DEG_NODE_TYPE_BONE,

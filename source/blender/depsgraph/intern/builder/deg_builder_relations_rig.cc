@@ -341,8 +341,8 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 	 */
 	RootPChanMap root_map;
 	bool pose_depends_on_local_transform = false;
-	LINKLIST_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
-		LINKLIST_FOREACH (bConstraint *, con, &pchan->constraints) {
+	BLI_LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
+		BLI_LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
 			switch (con->type) {
 				case CONSTRAINT_TYPE_KINEMATIC:
 					build_ik_pose(object, pchan, con, &root_map);
@@ -382,7 +382,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 	}
 
 	/* links between operations for each bone */
-	LINKLIST_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
+	BLI_LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
 		OperationKey bone_local_key(&object->id, DEG_NODE_TYPE_BONE, pchan->name, DEG_OPCODE_BONE_LOCAL);
 		OperationKey bone_pose_key(&object->id, DEG_NODE_TYPE_BONE, pchan->name, DEG_OPCODE_BONE_POSE_PARENT);
 		OperationKey bone_ready_key(&object->id, DEG_NODE_TYPE_BONE, pchan->name, DEG_OPCODE_BONE_READY);
@@ -445,7 +445,7 @@ void DepsgraphRelationBuilder::build_proxy_rig(Object *object)
 {
 	OperationKey pose_init_key(&object->id, DEG_NODE_TYPE_EVAL_POSE, DEG_OPCODE_POSE_INIT);
 	OperationKey pose_done_key(&object->id, DEG_NODE_TYPE_EVAL_POSE, DEG_OPCODE_POSE_DONE);
-	LINKLIST_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
+	BLI_LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
 		OperationKey bone_local_key(&object->id, DEG_NODE_TYPE_BONE, pchan->name, DEG_OPCODE_BONE_LOCAL);
 		OperationKey bone_ready_key(&object->id, DEG_NODE_TYPE_BONE, pchan->name, DEG_OPCODE_BONE_READY);
 		OperationKey bone_done_key(&object->id, DEG_NODE_TYPE_BONE, pchan->name, DEG_OPCODE_BONE_DONE);

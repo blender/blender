@@ -449,7 +449,7 @@ static void outliner_object_reorder(
 	TREESTORE(insert_element)->flag |= TSE_SELECTED;
 
 	outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, outliner_find_selected_objects, &data);
-	LINKLIST_FOREACH(LinkData *, link, &data.objects_selected_array) {
+	BLI_LISTBASE_FOREACH (LinkData *, link, &data.objects_selected_array) {
 		TreeElement *ten_selected = (TreeElement *)link->data;
 		/* Find parent scene-collection of object. */
 		if (ten_selected->parent) {
