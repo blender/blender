@@ -315,6 +315,15 @@ void BKE_collection_rename(const Scene *scene, SceneCollection *sc, const char *
 }
 
 /**
+ * Make sure the collection name is still unique within its siblings.
+ */
+static void collection_name_check(const ID *owner_id, SceneCollection *sc)
+{
+	/* It's a bit of a hack, we simply try to make sure the collection name is valid. */
+	collection_rename(owner_id, sc, sc->name);
+}
+
+/**
  * Free (or release) any data used by the master collection (does not free the master collection itself).
  * Used only to clear the entire scene or group data since it's not doing re-syncing of the LayerCollection tree
  */
@@ -589,6 +598,9 @@ bool BKE_collection_move_above(const ID *owner_id, SceneCollection *sc_dst, Scen
 	BKE_layer_collection_resync(owner_id, sc_src_parent);
 	BKE_layer_collection_resync(owner_id, sc_dst_parent);
 
+	/* Keep names unique. */
+	collection_name_check(owner_id, sc_src);
+
 	return true;
 }
 
@@ -628,6 +640,9 @@ bool BKE_collection_move_below(const ID *owner_id, SceneCollection *sc_dst, Scen
 	BKE_layer_collection_resync(owner_id, sc_src_parent);
 	BKE_layer_collection_resync(owner_id, sc_dst_parent);
 
+	/* Keep names unique. */
+	collection_name_check(owner_id, sc_src);
+
 	return true;
 }
 
@@ -662,6 +677,9 @@ bool BKE_collection_move_into(const ID *owner_id, SceneCollection *sc_dst, Scene
 	/* Update the tree */
 	BKE_layer_collection_resync(owner_id, sc_src_parent);
 	BKE_layer_collection_resync(owner_id, sc_dst);
+
+	/* Keep names unique. */
+	collection_name_check(owner_id, sc_src);
 
 	return true;
 }
