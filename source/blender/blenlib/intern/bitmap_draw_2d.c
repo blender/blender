@@ -162,7 +162,7 @@ static int draw_poly_v2i_n__span_y_sort(const void *a_p, const void *b_p, void *
 }
 
 /**
- * Draws a filled polyon with support for self intersections.
+ * Draws a filled polygon with support for self intersections.
  *
  * \param callback: Takes the x, y coords and x-span (\a x_end is not inclusive),
  * note that \a x_end will always be greater than \a x, so we can use:

@@ -155,7 +155,7 @@ bool ED_do_pose_selectbuffer(
 		 * always give predictable behavior in weight paint mode - campbell */
 		if ((ob_act == NULL) || ((ob_act != ob) && (ob_act->mode & OB_MODE_WEIGHT_PAINT) == 0)) {
 			/* when we are entering into posemode via toggle-select,
-			 * frop another active object - always select the bone. */
+			 * from another active object - always select the bone. */
 			if (!extend && !deselect && toggle) {
 				/* re-select below */
 				nearBone->flag &= ~BONE_SELECTED;

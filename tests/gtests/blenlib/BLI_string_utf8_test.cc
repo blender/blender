@@ -89,7 +89,7 @@ const char *utf8_invalid_tests[][3] = {
 
 //    3  Malformed sequences
 //    3.1  Unexpected continuation bytes
-//         Each unexpected continuation byte should be separately signalled as a malformed sequence of its own.
+//         Each unexpected continuation byte should be separately signaled as a malformed sequence of its own.
     {"3.1.1  First continuation byte 0x80: \"\x80\"                                      |",
      "3.1.1  First continuation byte 0x80: \"\"                                      |", "\x01"},
     {"3.1.2  Last  continuation byte 0xbf: \"\xbf\"                                      |",
@@ -130,7 +130,7 @@ const char *utf8_invalid_tests[][3] = {
     {"3.2.4      \"\xfc \xfd \"                                                             |",
      "3.2.4      \"  \"                                                             |", "\x02"},
 //    3.3  Sequences with last continuation byte missing
-//         All bytes of an incomplete sequence should be signalled as a single malformed sequence,
+//         All bytes of an incomplete sequence should be signaled as a single malformed sequence,
 //         i.e., you should see only a single replacement character in each of the next 10 tests.
 //         (Characters as in section 2)
     {"3.3.1  2-byte sequence with last byte missing (U+0000):     \"\xc0\"               |",
@@ -154,7 +154,7 @@ const char *utf8_invalid_tests[][3] = {
     {"3.3.10 6-byte sequence with last byte missing (U-7FFFFFFF): \"\xfd\xbf\xbf\xbf\xbf\"           |",
      "3.3.10 6-byte sequence with last byte missing (U-7FFFFFFF): \"\"           |", "\x05"},
 //    3.4  Concatenation of incomplete sequences
-//         All the 10 sequences of 3.3 concatenated, you should see 10 malformed sequences being signalled:
+//         All the 10 sequences of 3.3 concatenated, you should see 10 malformed sequences being signaled:
     {"3.4      \"\xc0\xe0\x80\xf0\x80\x80\xf8\x80\x80\x80\xfc\x80\x80\x80\x80"
                 "\xdf\xef\xbf\xf7\xbf\xbf\xfb\xbf\xbf\xbf\xfd\xbf\xbf\xbf\xbf\""
                 "                                     |",

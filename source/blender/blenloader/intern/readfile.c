@@ -9984,7 +9984,7 @@ static void give_base_to_objects(Main *mainvar, Scene *scene, View3D *v3d, Libra
 				}
 				if (flag & FILE_AUTOSELECT) {
 					/* Note that link_object_postprocess() already checks for FILE_AUTOSELECT flag,
-					 * but it will miss objects from non-instanciated groups... */
+					 * but it will miss objects from non-instantiated groups... */
 					ob->flag |= SELECT;
 					/* do NOT make base active here! screws up GUI stuff, if you want it do it on src/ level */
 				}
