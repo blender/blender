@@ -69,7 +69,7 @@ typedef struct ButtonManipulator2D {
 	bool is_init;
 	/* Use an icon or shape */
 	int icon;
-	Gwn_Batch *shape_batch;
+	Gwn_Batch *shape_batch[2];
 } ButtonManipulator2D;
 
 #define CIRCLE_RESOLUTION 32
@@ -114,7 +114,8 @@ static void button2d_draw_intern(
 			/* We shouldn't need the +1, but a NULL char is set. */
 			char *polys = MEM_mallocN(polys_len + 1, __func__);
 			RNA_property_string_get(mpr->ptr, prop, polys);
-			button->shape_batch = GPU_batch_from_poly_2d_encoded((uchar *)polys, polys_len, NULL);
+			button->shape_batch[0] = GPU_batch_tris_from_poly_2d_encoded((uchar *)polys, polys_len, NULL);
+			button->shape_batch[1] = GPU_batch_wire_from_poly_2d_encoded((uchar *)polys, polys_len, NULL);
 			MEM_freeN(polys);
 		}
 	}
@@ -131,11 +132,21 @@ static void button2d_draw_intern(
 	glEnable(GL_BLEND);
 
 	if (select == false) {
-		if (button->shape_batch != NULL) {
+		if (button->shape_batch[0] != NULL) {
 			glEnable(GL_POLYGON_SMOOTH);
-			GWN_batch_program_set_builtin(button->shape_batch, GPU_SHADER_2D_UNIFORM_COLOR);
-			GWN_batch_uniform_4f(button->shape_batch, "color", UNPACK4(color));
-			GWN_batch_draw(button->shape_batch);
+			glEnable(GL_LINE_SMOOTH);
+			glLineWidth(1.0f);
+			for (uint i = 0; i < ARRAY_SIZE(button->shape_batch) && button->shape_batch[i]; i++) {
+				GWN_batch_program_set_builtin(button->shape_batch[i], GPU_SHADER_2D_UNIFORM_COLOR);
+				GWN_batch_uniform_4f(button->shape_batch[i], "color", UNPACK4(color));
+				GWN_batch_draw(button->shape_batch[i]);
+				if (i == 0) {
+					/* Invert line color. */
+					color[0] = 1.0f - color[0];
+					color[1] = 1.0f - color[1];
+					color[2] = 1.0f - color[2];
+				}
+			}
 			glDisable(GL_POLYGON_SMOOTH);
 			gpuPopMatrix();
 		}
@@ -203,7 +214,10 @@ static int manipulator_button2d_cursor_get(wmManipulator *UNUSED(mpr))
 static void manipulator_button2d_free(wmManipulator *mpr)
 {
 	ButtonManipulator2D *shape = (ButtonManipulator2D *)mpr;
-	GWN_BATCH_DISCARD_SAFE(shape->shape_batch);
+
+	for (uint i = 0; i < ARRAY_SIZE(shape->shape_batch); i++) {
+		GWN_BATCH_DISCARD_SAFE(shape->shape_batch[i]);
+	}
 }
 
 /** \} */

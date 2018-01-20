@@ -47,7 +47,10 @@ struct rctf;
 /* gpu_batch.c */
 void GWN_batch_program_set_builtin(Gwn_Batch *batch, GPUBuiltinShader shader_id) ATTR_NONNULL(1);
 
-Gwn_Batch *GPU_batch_from_poly_2d_encoded(
+Gwn_Batch *GPU_batch_tris_from_poly_2d_encoded(
+        const uchar *polys_flat, uint polys_flat_len, const struct rctf *rect
+        ) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+Gwn_Batch *GPU_batch_wire_from_poly_2d_encoded(
         const uchar *polys_flat, uint polys_flat_len, const struct rctf *rect
         ) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 

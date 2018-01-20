@@ -35,6 +35,7 @@
 #include "BLI_rect.h"
 #include "BLI_math.h"
 #include "BLI_polyfill2d.h"
+#include "BLI_sort_utils.h"
 
 
 #include "GPU_batch.h"  /* own include */
@@ -67,11 +68,11 @@ void GWN_batch_program_set_builtin(Gwn_Batch *batch, GPUBuiltinShader shader_id)
  * \param polys_flat_len: Length of the array (must be an even number).
  * \param rect: Optional region to map the byte 0..255 coords to. When not set use -1..1.
  */
-Gwn_Batch *GPU_batch_from_poly_2d_encoded(
+Gwn_Batch *GPU_batch_tris_from_poly_2d_encoded(
         const uchar *polys_flat, uint polys_flat_len, const rctf *rect)
 {
-	uchar (*polys)[2] = (void *)polys_flat;
-	uint polys_len = polys_flat_len / 2;
+	const uchar (*polys)[2] = (const void *)polys_flat;
+	const uint polys_len = polys_flat_len / 2;
 	BLI_assert(polys_flat_len == polys_len * 2);
 
 	/* Over alloc in both cases */
@@ -100,10 +101,10 @@ Gwn_Batch *GPU_batch_from_poly_2d_encoded(
 		if (polys[i_poly - 1][0] == polys[i_poly][0] &&
 		    polys[i_poly - 1][1] == polys[i_poly][1])
 		{
-			const uint verts_len = (&verts[i_vert]) - verts_step;
-			BLI_assert(verts_len >= 3);
-			const uint tris_len = (verts_len - 2);
-			BLI_polyfill_calc(verts_step, verts_len, -1, tris_step);
+			const uint verts_step_len = (&verts[i_vert]) - verts_step;
+			BLI_assert(verts_step_len >= 3);
+			const uint tris_len = (verts_step_len - 2);
+			BLI_polyfill_calc(verts_step, verts_step_len, -1, tris_step);
 			/* offset indices */
 			if (verts_step != verts) {
 				uint *t = tris_step[0];
@@ -115,8 +116,8 @@ Gwn_Batch *GPU_batch_from_poly_2d_encoded(
 				}
 				BLI_assert(t == tris_step[tris_len]);
 			}
-			verts_step += verts_len;
-			tris_step += (verts_len - 2);
+			verts_step += verts_step_len;
+			tris_step += tris_len;
 			i_poly++;
 			/* ignore the duplicate point */
 		}
@@ -155,6 +156,108 @@ Gwn_Batch *GPU_batch_from_poly_2d_encoded(
 	        GWN_PRIM_TRIS, vbo,
 	        indexbuf,
 	        GWN_BATCH_OWNS_VBO | GWN_BATCH_OWNS_INDEX);
+}
+
+Gwn_Batch *GPU_batch_wire_from_poly_2d_encoded(
+        const uchar *polys_flat, uint polys_flat_len, const rctf *rect)
+{
+	const uchar (*polys)[2] = (const void *)polys_flat;
+	const uint polys_len = polys_flat_len / 2;
+	BLI_assert(polys_flat_len == polys_len * 2);
+
+	/* Over alloc */
+	int32_t *lines = MEM_mallocN(sizeof(*lines) * polys_len, __func__);
+	int32_t *lines_step = lines;
+
+	const float range_uchar[2] = {
+		(rect ? (rect->xmax - rect->xmin) : 2.0f) / 255.0f,
+		(rect ? (rect->ymax - rect->ymin) : 2.0f) / 255.0f,
+	};
+	const float min_uchar[2] = {
+		(rect ? rect->xmin : -1.0f),
+		(rect ? rect->ymin : -1.0f),
+	};
+
+	const bool hide_lines = true;
+
+	uint i_poly_prev = 0;
+	uint i_poly = 0;
+	while (i_poly != polys_len) {
+		i_poly++;
+		if (polys[i_poly - 1][0] == polys[i_poly][0] &&
+		    polys[i_poly - 1][1] == polys[i_poly][1])
+		{
+			const uchar (*polys_step)[2] = polys + i_poly_prev;
+			const uint polys_step_len = i_poly - i_poly_prev;
+			BLI_assert(polys_step_len >= 2);
+			for (uint i_prev = polys_step_len - 1, i = 0; i < polys_step_len; i_prev = i++) {
+				union {
+					uint8_t  as_u8[4];
+					uint16_t as_u16[2];
+					uint32_t as_u32;
+				} data;
+				data.as_u16[0] = *((const uint16_t *)polys_step[i_prev]);
+				data.as_u16[1] = *((const uint16_t *)polys_step[i]);
+				if (data.as_u16[0] > data.as_u16[1]) {
+					SWAP(uint16_t, data.as_u16[0], data.as_u16[1]);
+				}
+				*lines_step = data.as_u32;
+				lines_step++;
+			}
+			i_poly++;
+			i_poly_prev = i_poly;
+			/* ignore the duplicate point */
+		}
+	}
+
+	uint lines_len = (lines_step - lines);
+	uint lines_hide_len = 0;
+	if (hide_lines) {
+		qsort(lines, lines_len, sizeof(int32_t), BLI_sortutil_cmp_int);
+		for (uint i_prev = 0, i = 1; i < lines_len; i_prev = i++) {
+			if ((lines[i] == lines[i_prev])) {
+				lines_hide_len++;
+			}
+		}
+	}
+
+	/* We have vertices and tris, make a batch from this. */
+	static Gwn_VertFormat format = {0};
+	static struct { uint pos; } attr_id;
+	if (format.attrib_ct == 0) {
+		attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	}
+
+	Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
+	GWN_vertbuf_data_alloc(vbo, (lines_len - lines_hide_len) * 2);
+
+	Gwn_VertBufRaw pos_step;
+	GWN_vertbuf_attr_get_raw_data(vbo, attr_id.pos, &pos_step);
+
+	for (uint i = 0; i < lines_len; i++) {
+		if (hide_lines) {
+			if ((i + 1 != lines_len) && (lines[i + 1] == lines[i])) {
+				i++;
+				continue;
+			}
+		}
+		union {
+			uint8_t  as_u8_pair[2][2];
+			uint32_t as_u32;
+		} data;
+		data.as_u32 = lines[i];
+		for (uint k = 0; k < 2; k++) {
+			float *pos_v2 = GWN_vertbuf_raw_step(&pos_step);
+			for (uint j = 0; j < 2; j++) {
+				pos_v2[j] = min_uchar[j] + ((float)data.as_u8_pair[k][j] * range_uchar[j]);
+			}
+		}
+	}
+	MEM_freeN(lines);
+	return GWN_batch_create_ex(
+	        GWN_PRIM_LINES, vbo,
+	        NULL,
+	        GWN_BATCH_OWNS_VBO);
 }
 
 /** \} */
