@@ -873,7 +873,17 @@ static ShaderNode *add_node(Scene *scene,
 		node = bevel;
 	}
 	else if(b_node.is_a(&RNA_ShaderNodeDisplacement)) {
-		node = new DisplacementNode();
+		BL::ShaderNodeDisplacement b_disp_node(b_node);
+		DisplacementNode *disp = new DisplacementNode();
+		disp->space = (NodeNormalMapSpace)b_disp_node.space();
+		node = disp;
+	}
+	else if(b_node.is_a(&RNA_ShaderNodeVectorDisplacement)) {
+		BL::ShaderNodeVectorDisplacement b_disp_node(b_node);
+		VectorDisplacementNode *disp = new VectorDisplacementNode();
+		disp->space = (NodeNormalMapSpace)b_disp_node.space();
+		disp->attribute = "";
+		node = disp;
 	}
 
 	if(node) {

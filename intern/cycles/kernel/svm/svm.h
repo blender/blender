@@ -270,6 +270,9 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ccl_a
 			case NODE_DISPLACEMENT:
 				svm_node_displacement(kg, sd, stack, node);
 				break;
+			case NODE_VECTOR_DISPLACEMENT:
+				svm_node_vector_displacement(kg, sd, stack, node, &offset);
+				break;
 #  endif  /* NODES_FEATURE(NODE_FEATURE_BUMP) */
 #  ifdef __TEXTURES__
 			case NODE_TEX_IMAGE:

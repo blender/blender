@@ -1036,7 +1036,7 @@ static void node_shader_buts_normal_map(uiLayout *layout, bContext *C, PointerRN
 {
 	uiItemR(layout, ptr, "space", 0, "", 0);
 
-	if (RNA_enum_get(ptr, "space") == SHD_NORMAL_MAP_TANGENT) {
+	if (RNA_enum_get(ptr, "space") == SHD_SPACE_TANGENT) {
 		PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
 
 		if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
@@ -1046,6 +1046,11 @@ static void node_shader_buts_normal_map(uiLayout *layout, bContext *C, PointerRN
 		else
 			uiItemR(layout, ptr, "uv_map", 0, "", 0);
 	}
+}
+
+static void node_shader_buts_displacement(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "space", 0, "", 0);
 }
 
 static void node_shader_buts_tangent(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -1238,6 +1243,10 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			break;
 		case SH_NODE_NORMAL_MAP:
 			ntype->draw_buttons = node_shader_buts_normal_map;
+			break;
+		case SH_NODE_DISPLACEMENT:
+		case SH_NODE_VECTOR_DISPLACEMENT:
+			ntype->draw_buttons = node_shader_buts_displacement;
 			break;
 		case SH_NODE_TANGENT:
 			ntype->draw_buttons = node_shader_buts_tangent;

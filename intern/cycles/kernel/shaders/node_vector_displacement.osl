@@ -1,0 +1,60 @@
+/*
+ * Copyright 2011-2013 Blender Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "stdosl.h"
+
+shader node_vector_displacement(
+	color Vector = color(0.0, 0.0, 0.0),
+	float Midlevel = 0.0,
+	float Scale = 1.0,
+	string space = "tangent",
+	string attr_name = "geom:tangent",
+	string attr_sign_name = "geom:tangent_sign",
+	output vector Displacement = vector(0.0, 0.0, 0.0))
+{
+	vector offset = (Vector - vector(Midlevel)) * Scale;
+
+	if(space == "tangent") {
+		/* Tangent space. */
+		vector N_object = normalize(transform("world", "object", N));
+
+		vector T_object;
+		if(getattribute(attr_name, T_object)) {
+			T_object = normalize(T_object);
+		}
+		else {
+			T_object = normalize(dPdu);
+		}
+
+		vector B_object = normalize(cross(N_object, T_object));
+		float tangent_sign;
+		if(getattribute(attr_sign_name, tangent_sign)) {
+			B_object *= tangent_sign;
+		}
+
+		Displacement = T_object*offset[0] + N_object*offset[1] + B_object*offset[2];
+	}
+	else {
+		/* Object or world space. */
+		Displacement = offset;
+	}
+
+	if(space != "world") {
+		/* Tangent or object space. */
+		Displacement = transform("object", "world", Displacement);
+	}
+}
+

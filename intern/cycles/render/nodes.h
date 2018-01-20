@@ -1034,9 +1034,26 @@ public:
 		return NODE_FEATURE_BUMP;
 	}
 
+	NodeNormalMapSpace space;
 	float height;
+	float midlevel;
 	float scale;
 	float3 normal;
+};
+
+class VectorDisplacementNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(VectorDisplacementNode)
+	void attributes(Shader *shader, AttributeRequestSet *attributes);
+	virtual int get_feature() {
+		return NODE_FEATURE_BUMP;
+	}
+
+	NodeNormalMapSpace space;
+	ustring attribute;
+	float3 vector;
+	float midlevel;
+	float scale;
 };
 
 CCL_NAMESPACE_END

@@ -194,6 +194,7 @@ set(SRC
 	shader/nodes/node_shader_tangent.c
 	shader/nodes/node_shader_bevel.c
 	shader/nodes/node_shader_displacement.c
+	shader/nodes/node_shader_vector_displacement.c
 	shader/nodes/node_shader_tex_brick.c
 	shader/nodes/node_shader_tex_checker.c
 	shader/nodes/node_shader_tex_coord.c

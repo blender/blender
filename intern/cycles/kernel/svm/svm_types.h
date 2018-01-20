@@ -134,6 +134,7 @@ typedef enum ShaderNodeType {
 	NODE_LEAVE_BUMP_EVAL,
 	NODE_BEVEL,
 	NODE_DISPLACEMENT,
+	NODE_VECTOR_DISPLACEMENT,
 } ShaderNodeType;
 
 typedef enum NodeAttributeType {

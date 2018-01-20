@@ -272,6 +272,7 @@ shader_node_categories = [
         NodeItem("ShaderNodeMapping"),
         NodeItem("ShaderNodeBump"),
         NodeItem("ShaderNodeDisplacement"),
+        NodeItem("ShaderNodeVectorDisplacement"),
         NodeItem("ShaderNodeNormalMap"),
         NodeItem("ShaderNodeNormal"),
         NodeItem("ShaderNodeVectorCurve"),
