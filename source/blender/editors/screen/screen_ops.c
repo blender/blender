@@ -90,7 +90,9 @@
 #define KM_MODAL_SNAP_ON    3
 #define KM_MODAL_SNAP_OFF   4
 
-/* ************** Exported Poll tests ********************** */
+/* -------------------------------------------------------------------- */
+/** \name Public Poll API
+ * \{ */
 
 int ED_operator_regionactive(bContext *C)
 {
@@ -122,36 +124,6 @@ static int ED_operator_screenactive_norender(bContext *C)
 	if (CTX_wm_window(C) == NULL) return 0;
 	if (CTX_wm_screen(C) == NULL) return 0;
 	return 1;
-}
-
-
-static int screen_active_editable(bContext *C)
-{
-	if (ED_operator_screenactive(C)) {
-		/* no full window splitting allowed */
-		if (CTX_wm_screen(C)->state != SCREENNORMAL)
-			return 0;
-		return 1;
-	}
-	return 0;
-}
-
-static ARegion *screen_find_region_type(bContext *C, int type)
-{
-	ARegion *ar = CTX_wm_region(C);
-
-	/* find the header region
-	 * - try context first, but upon failing, search all regions in area...
-	 */
-	if ((ar == NULL) || (ar->regiontype != type)) {
-		ScrArea *sa = CTX_wm_area(C);
-		ar = BKE_area_find_region_type(sa, type);
-	}
-	else {
-		ar = NULL;
-	}
-
-	return ar;
 }
 
 /* when mouse is over area-edge */
@@ -580,7 +552,46 @@ int ED_operator_mask(bContext *C)
 	return false;
 }
 
-/* *************************** action zone operator ************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal Screen Utilities
+ * \{ */
+
+static int screen_active_editable(bContext *C)
+{
+	if (ED_operator_screenactive(C)) {
+		/* no full window splitting allowed */
+		if (CTX_wm_screen(C)->state != SCREENNORMAL)
+			return 0;
+		return 1;
+	}
+	return 0;
+}
+
+static ARegion *screen_find_region_type(bContext *C, int type)
+{
+	ARegion *ar = CTX_wm_region(C);
+
+	/* find the header region
+	 * - try context first, but upon failing, search all regions in area...
+	 */
+	if ((ar == NULL) || (ar->regiontype != type)) {
+		ScrArea *sa = CTX_wm_area(C);
+		ar = BKE_area_find_region_type(sa, type);
+	}
+	else {
+		ar = NULL;
+	}
+
+	return ar;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Action Zone Operator
+ * \{ */
 
 /* operator state vars used:  
  * none
@@ -852,7 +863,11 @@ static void SCREEN_OT_actionzone(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "modifier", 0, 0, 2, "Modifier", "Modifier state", 0, 2);
 }
 
-/* ************** swap area operator *********************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Swap Area Operator
+ * \{ */
 
 /* operator state vars used:  
  * sa1		start area
@@ -972,7 +987,13 @@ static void SCREEN_OT_area_swap(wmOperatorType *ot)
 	ot->flag = OPTYPE_BLOCKING;
 }
 
-/* *********** Duplicate area as new window operator ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Area Duplicate Operator
+ *
+ * Create new window from area.
+ * \{ */
 
 /* operator callback */
 static int area_dupli_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1045,8 +1066,11 @@ static void SCREEN_OT_area_dupli(wmOperatorType *ot)
 	ot->poll = ED_operator_areaactive;
 }
 
+/** \} */
 
-/* ************** move area edge operator *********************************** */
+/* -------------------------------------------------------------------- */
+/** \name Move Area Edge Operator
+ * \{ */
 
 /* operator state vars used:  
  * x, y             mouse coord near edge
@@ -1386,7 +1410,11 @@ static void SCREEN_OT_area_move(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
 }
 
-/* ************** split area operator *********************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Split Area Operator
+ * \{ */
 
 /* 
  * operator state vars:  
@@ -1424,7 +1452,7 @@ static void SCREEN_OT_area_move(wmOperatorType *ot)
 
 typedef struct sAreaSplitData {
 	int x, y;   /* last used mouse position */
-	
+
 	int origval;            /* for move areas */
 	int bigger, smaller;    /* constraints for moving new edge */
 	int delta;              /* delta move edge */
@@ -1868,9 +1896,11 @@ static void SCREEN_OT_area_split(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "mouse_y", -100, INT_MIN, INT_MAX, "Mouse Y", "", INT_MIN, INT_MAX);
 }
 
+/** \} */
 
-
-/* ************** scale region edge operator *********************************** */
+/* -------------------------------------------------------------------- */
+/** \name Scale Region Edge Operator
+ * \{ */
 
 typedef struct RegionMoveData {
 	AZone *az;
@@ -2139,8 +2169,11 @@ static void SCREEN_OT_region_scale(wmOperatorType *ot)
 	ot->flag = OPTYPE_BLOCKING | OPTYPE_INTERNAL;
 }
 
+/** \} */
 
-/* ************** frame change operator ***************************** */
+/* -------------------------------------------------------------------- */
+/** \name Frame Change Operator
+ * \{ */
 
 static void areas_do_frame_follow(bContext *C, bool middle)
 {
@@ -2222,6 +2255,11 @@ static void SCREEN_OT_frame_offset(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Frame Jump Operator
+ * \{ */
 
 /* function to be called outside UI context, or for redo */
 static int frame_jump_exec(bContext *C, wmOperator *op)
@@ -2276,8 +2314,11 @@ static void SCREEN_OT_frame_jump(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "end", 0, "Last Frame", "Jump to the last frame of the frame range");
 }
 
+/** \} */
 
-/* ************** jump to keyframe operator ***************************** */
+/* -------------------------------------------------------------------- */
+/** \name Jump to Key-Frame Operator
+ * \{ */
 
 /* function to be called outside UI context, or for redo */
 static int keyframe_jump_exec(bContext *C, wmOperator *op)
@@ -2386,7 +2427,11 @@ static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "next", true, "Next Keyframe", "");
 }
 
-/* ************** jump to marker operator ***************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Jump to Marker Operator
+ * \{ */
 
 /* function to be called outside UI context, or for redo */
 static int marker_jump_exec(bContext *C, wmOperator *op)
@@ -2449,7 +2494,11 @@ static void SCREEN_OT_marker_jump(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "next", true, "Next Marker", "");
 }
 
-/* ************** switch screen operator ***************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Set Screen Operator
+ * \{ */
 
 static bool screen_set_is_ok(bScreen *screen, bScreen *screen_prev)
 {
@@ -2525,8 +2574,11 @@ static void SCREEN_OT_screen_set(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
 }
 
-/* ************** screen full-area operator ***************************** */
+/** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Screen Full-Area Operator
+ * \{ */
 
 /* function to be called outside UI context, or for redo */
 static int screen_maximize_area_exec(bContext *C, wmOperator *op)
@@ -2577,7 +2629,11 @@ static void SCREEN_OT_screen_full_area(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/* ************** join area operator ********************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Screen Join-Area Operator
+ * \{ */
 
 /* operator state vars used:  
  * x1, y1     mouse coord in first area, which will disappear
@@ -2862,7 +2918,11 @@ static void SCREEN_OT_area_join(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "max_y", -100, INT_MIN, INT_MAX, "Y 2", "", INT_MIN, INT_MAX);
 }
 
-/* ******************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Screen Area Options Operator
+ * \{ */
 
 static int screen_area_options_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -2915,9 +2975,11 @@ static void SCREEN_OT_area_options(wmOperatorType *ot)
 	ot->flag = OPTYPE_INTERNAL;
 }
 
+/** \} */
 
-/* ******************************* */
-
+/* -------------------------------------------------------------------- */
+/** \name Space Data Cleanup Operator
+ * \{ */
 
 static int spacedata_cleanup_exec(bContext *C, wmOperator *op)
 {
@@ -2956,7 +3018,11 @@ static void SCREEN_OT_spacedata_cleanup(wmOperatorType *ot)
 	
 }
 
-/* ************** repeat last operator ***************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Repeat Last Operator
+ * \{ */
 
 static int repeat_last_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -2994,6 +3060,12 @@ static void SCREEN_OT_repeat_last(wmOperatorType *ot)
 	ot->poll = ED_operator_screenactive;
 	
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Repeat History Operator
+ * \{ */
 
 static int repeat_history_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
@@ -3052,7 +3124,11 @@ static void SCREEN_OT_repeat_history(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, 1000);
 }
 
-/* ********************** redo operator ***************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Redo Operator
+ * \{ */
 
 static int redo_last_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
@@ -3077,7 +3153,11 @@ static void SCREEN_OT_redo_last(wmOperatorType *ot)
 	ot->poll = ED_operator_screenactive;
 }
 
-/* ************** region four-split operator ***************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Region Quad-View Operator
+ * \{ */
 
 static void view3d_localview_update_rv3d(struct RegionView3D *rv3d)
 {
@@ -3230,8 +3310,11 @@ static void SCREEN_OT_region_quadview(wmOperatorType *ot)
 	ot->flag = 0;
 }
 
+/** \} */
 
-/* ************** region flip operator ***************************** */
+/* -------------------------------------------------------------------- */
+/** \name Region Flip Operator
+ * \{ */
 
 /* flip a region alignment */
 static int region_flip_exec(bContext *C, wmOperator *UNUSED(op))
@@ -3270,7 +3353,11 @@ static void SCREEN_OT_region_flip(wmOperatorType *ot)
 	ot->flag = 0;
 }
 
-/* ************** header operator ***************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Header Toggle Operator
+ * \{ */
 
 static int header_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -3300,8 +3387,11 @@ static void SCREEN_OT_header(wmOperatorType *ot)
 	ot->exec = header_exec;
 }
 
+/** \} */
 
-/* ************** show menus operator ***************************** */
+/* -------------------------------------------------------------------- */
+/** \name Header Toggle Menu Operator
+ * \{ */
 
 /* show/hide header text menus */
 static int header_toggle_menus_exec(bContext *C, wmOperator *UNUSED(op))
@@ -3330,8 +3420,11 @@ static void SCREEN_OT_header_toggle_menus(wmOperatorType *ot)
 	ot->flag = 0;
 }
 
+/** \} */
 
-/* ************** header tools operator ***************************** */
+/* -------------------------------------------------------------------- */
+/** \name Header Tools Operator
+ * \{ */
 
 void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
@@ -3384,7 +3477,13 @@ static void SCREEN_OT_header_toolbox(wmOperatorType *ot)
 	ot->invoke = header_toolbox_invoke;
 }
 
-/* ****************** anim player, with timer ***************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Animation Step Operator
+ *
+ * Animation Step.
+ * \{ */
 
 static int match_area_with_refresh(int spacetype, int refresh)
 {
@@ -3677,7 +3776,13 @@ static void SCREEN_OT_animation_step(wmOperatorType *ot)
 	
 }
 
-/* ****************** anim player, starts or ends timer ***************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Animation Playback Operator
+ *
+ * Animation Playback with Timer.
+ * \{ */
 
 /* find window that owns the animation timer */
 bScreen *ED_screen_animation_playing(const wmWindowManager *wm)
@@ -3770,6 +3875,12 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Animation Cancel Operator
+ * \{ */
+
 static int screen_animation_cancel_exec(bContext *C, wmOperator *op)
 {
 	bScreen *screen = ED_screen_animation_playing(CTX_wm_manager(C));
@@ -3809,7 +3920,11 @@ static void SCREEN_OT_animation_cancel(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "restore_frame", true, "Restore Frame", "Restore the frame when animation was initialized");
 }
 
-/* ************** border select operator (template) ***************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Border Select Operator (Template)
+ * \{ */
 
 /* operator state vars used: (added by default WM callbacks)   
  * xmin, ymin     
@@ -3864,6 +3979,12 @@ static void SCREEN_OT_border_select(wmOperatorType *ot)
 }
 #endif
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Full Screen Back Operator
+ * \{ */
+
 /* *********************** generic fullscreen 'back' button *************** */
 
 
@@ -3898,7 +4019,11 @@ static void SCREEN_OT_back_to_previous(struct wmOperatorType *ot)
 	ot->poll = ED_operator_screenactive;
 }
 
-/* *********** show user pref window ****** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Show User Preferences Operator
+ * \{ */
 
 static int userpref_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -3928,7 +4053,11 @@ static void SCREEN_OT_userpref_show(struct wmOperatorType *ot)
 	ot->poll = ED_operator_screenactive;
 }
 
-/********************* new screen operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name New Screen Operator
+ * \{ */
 
 static int screen_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -3953,7 +4082,11 @@ static void SCREEN_OT_new(wmOperatorType *ot)
 	ot->poll = WM_operator_winactive;
 }
 
-/********************* delete screen operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Delete Screen Operator
+ * \{ */
 
 static int screen_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -3975,7 +4108,11 @@ static void SCREEN_OT_delete(wmOperatorType *ot)
 	ot->exec = screen_delete_exec;
 }
 
-/********************* new scene operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name New Scene Operator
+ * \{ */
 
 static int scene_new_exec(bContext *C, wmOperator *op)
 {
@@ -4032,7 +4169,11 @@ static void SCENE_OT_new(wmOperatorType *ot)
 	ot->prop = RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
 }
 
-/********************* delete scene operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Delete Screen Operator
+ * \{ */
 
 static int scene_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -4064,7 +4205,11 @@ static void SCENE_OT_delete(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ***************** region alpha blending ***************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Region Alpha Blending Operator
+ * \{ */
 
 /* implementation note: a disappearing region needs at least 1 last draw with 100% backbuffer
  * texture over it- then triple buffer will clear it entirely.
@@ -4206,7 +4351,11 @@ static void SCREEN_OT_region_blend(wmOperatorType *ot)
 	/* properties */
 }
 
-/* ******************** space context cycling operator ******************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Space Context Cycle Operator
+ * \{ */
 
 /* SCREEN_OT_space_context_cycle direction */
 enum {
@@ -4289,9 +4438,11 @@ static void SCREEN_OT_space_context_cycle(wmOperatorType *ot)
 	             "Direction to cycle through");
 }
 
+/** \} */
 
-/* ****************  Assigning operatortypes to global list, adding handlers **************** */
-
+/* -------------------------------------------------------------------- */
+/** \name Assigning Operator Types
+ * \{ */
 
 /* called in spacetypes.c */
 void ED_operatortypes_screen(void)
@@ -4351,6 +4502,12 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(ED_OT_flush_edits);
 	
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Operator Key Map
+ * \{ */
 
 static void keymap_modal_set(wmKeyConfig *keyconf)
 {
@@ -4553,3 +4710,4 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	keymap_modal_set(keyconf);
 }
 
+/** \} */
