@@ -201,7 +201,6 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmManipulatorG
 			        mpr->ptr, prop,
 			        (const char *)info->shape, info->shape_size);
 			/* don't fade icons so much */
-			copy_v3_fl(mpr->color, 0.0f);
 			mpr->color[3] = 0.5f;
 		}
 
