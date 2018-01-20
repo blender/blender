@@ -1586,6 +1586,12 @@ static void area_split_exit(bContext *C, wmOperator *op)
 	removedouble_scredges(CTX_wm_screen(C));
 }
 
+static void area_split_preview_update_cursor(bContext *C, wmOperator *op)
+{
+	wmWindow *win = CTX_wm_window(C);
+	int dir = RNA_enum_get(op->ptr, "direction");
+	WM_cursor_set(win, (dir == 'v') ? CURSOR_X_MOVE : CURSOR_Y_MOVE);
+}
 
 /* UI callback, adds new handler */
 static int area_split_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1683,7 +1689,8 @@ static int area_split_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		sd->draw_callback = WM_draw_cb_activate(win, area_split_draw_cb, op);
 		/* add temp handler for edge move or cancel */
 		WM_event_add_modal_handler(C, op);
-		
+		area_split_preview_update_cursor(C, op);
+
 		return OPERATOR_RUNNING_MODAL;
 		
 	}
@@ -1726,14 +1733,15 @@ static void area_split_cancel(bContext *C, wmOperator *op)
 static int area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	sAreaSplitData *sd = (sAreaSplitData *)op->customdata;
-	float fac;
-	int dir;
-	
+	PropertyRNA *prop_dir = RNA_struct_find_property(op->ptr, "direction");
+	bool update_factor = false;
+
 	/* execute the events */
 	switch (event->type) {
 		case MOUSEMOVE:
-			dir = RNA_enum_get(op->ptr, "direction");
-			
+		{
+			const int dir = RNA_property_enum_get(op->ptr, prop_dir);
+
 			sd->delta = (dir == 'v') ? event->x - sd->origval : event->y - sd->origval;
 			if (sd->previewmode == 0)
 				area_move_apply_do(C, sd->delta, sd->origval, dir, sd->bigger, sd->smaller, sd->do_snap);
@@ -1743,39 +1751,17 @@ static int area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				}
 				/* area context not set */
 				sd->sarea = BKE_screen_find_area_xy(CTX_wm_screen(C), SPACE_TYPE_ANY, event->x, event->y);
-				
+
 				if (sd->sarea) {
 					ED_area_tag_redraw(sd->sarea);
-					if (dir == 'v') {
-						sd->origsize = sd->sarea->winx;
-						sd->origmin = sd->sarea->totrct.xmin;
-					}
-					else {
-						sd->origsize = sd->sarea->winy;
-						sd->origmin = sd->sarea->totrct.ymin;
-					}
-
-					if (sd->do_snap) {
-						ScrArea *sa = sd->sarea;
-						sa->v1->editflag = sa->v2->editflag = sa->v3->editflag = sa->v4->editflag = 1;
-
-						int snap_loc = area_snap_calc_location(
-						        CTX_wm_screen(C), sd->delta, sd->origval, dir, sd->origmin + sd->origsize, -sd->origmin);
-
-						sa->v1->editflag = sa->v2->editflag = sa->v3->editflag = sa->v4->editflag = 0;
-						fac = snap_loc - sd->origmin;
-					}
-					else {
-						fac = (dir == 'v') ? event->x - sd->origmin : event->y - sd->origmin;
-					}
-					RNA_float_set(op->ptr, "factor", fac / (float)sd->origsize);
+					update_factor = true;
 				}
-				
+
 				CTX_wm_window(C)->screen->do_draw = true;
 
 			}
 			break;
-			
+		}
 		case LEFTMOUSE:
 			if (sd->previewmode) {
 				area_split_apply(C, op);
@@ -1793,22 +1779,17 @@ static int area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		case MIDDLEMOUSE:
 		case TABKEY:
 			if (sd->previewmode == 0) {
+				/* pass */
 			}
 			else {
-				dir = RNA_enum_get(op->ptr, "direction");
-				
 				if (event->val == KM_PRESS) {
 					if (sd->sarea) {
+						int dir = RNA_property_enum_get(op->ptr, prop_dir);
+						RNA_property_enum_set(op->ptr, prop_dir, (dir == 'v') ? 'h' : 'v');
+						area_split_preview_update_cursor(C, op);
+						update_factor = true;
+
 						ED_area_tag_redraw(sd->sarea);
-						
-						if (dir == 'v') {
-							RNA_enum_set(op->ptr, "direction", 'h');
-							WM_cursor_set(CTX_wm_window(C), CURSOR_X_MOVE);
-						}
-						else {
-							RNA_enum_set(op->ptr, "direction", 'v');
-							WM_cursor_set(CTX_wm_window(C), CURSOR_Y_MOVE);
-						}
 					}
 				}
 			}
@@ -1822,9 +1803,39 @@ static int area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 		case LEFTCTRLKEY:
 			sd->do_snap = event->val == KM_PRESS;
+			update_factor = true;
 			break;
 	}
-	
+
+	if (update_factor) {
+		const int dir = RNA_property_enum_get(op->ptr, prop_dir);
+		float fac;
+
+		if (dir == 'v') {
+			sd->origsize = sd->sarea->winx;
+			sd->origmin = sd->sarea->totrct.xmin;
+		}
+		else {
+			sd->origsize = sd->sarea->winy;
+			sd->origmin = sd->sarea->totrct.ymin;
+		}
+
+		if (sd->do_snap) {
+			ScrArea *sa = sd->sarea;
+			sa->v1->editflag = sa->v2->editflag = sa->v3->editflag = sa->v4->editflag = 1;
+
+			int snap_loc = area_snap_calc_location(
+			        CTX_wm_screen(C), sd->delta, sd->origval, dir, sd->origmin + sd->origsize, -sd->origmin);
+
+			sa->v1->editflag = sa->v2->editflag = sa->v3->editflag = sa->v4->editflag = 0;
+			fac = snap_loc - sd->origmin;
+		}
+		else {
+			fac = (dir == 'v') ? event->x - sd->origmin : event->y - sd->origmin;
+		}
+		RNA_float_set(op->ptr, "factor", fac / (float)sd->origsize);
+	}
+
 	return OPERATOR_RUNNING_MODAL;
 }
 
