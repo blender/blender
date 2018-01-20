@@ -154,7 +154,7 @@ public:
 
 	void *surface;
 	void *volume;
-	float displacement;
+	float3 displacement;
 	float3 normal;
 
 	/* Don't allow output node de-duplication. */

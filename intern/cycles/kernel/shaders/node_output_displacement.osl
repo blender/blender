@@ -16,10 +16,8 @@
 
 #include "stdosl.h"
 
-displacement node_output_displacement(float Displacement = 0.0)
+displacement node_output_displacement(vector Displacement = 0.0)
 {
-	vector dP = normalize(transform("object", N));
-	dP *= Displacement * 0.1; /* todo: get rid of this factor */
-	P += transform("object", "world", dP);
+	P += Displacement;
 }
 

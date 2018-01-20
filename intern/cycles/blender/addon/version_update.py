@@ -89,6 +89,47 @@ def foreach_cycles_node(callback):
                                     traversed)
 
 
+def displacement_node_insert(material, nodetree, traversed):
+    if nodetree in traversed:
+        return
+    traversed.add(nodetree)
+
+    for node in nodetree.nodes:
+        if node.bl_idname == 'ShaderNodeGroup':
+            displacement_node_insert(material, node.node_tree, traversed)
+
+    # Gather links to replace
+    displacement_links = []
+    for link in nodetree.links:
+        if link.to_node.bl_idname == 'ShaderNodeOutputMaterial' and \
+           link.from_node.bl_idname != 'ShaderNodeDisplacement' and \
+           link.to_socket.identifier == 'Displacement':
+           displacement_links.append(link)
+
+    # Replace links with displacement node
+    for link in displacement_links:
+        from_node = link.from_node
+        from_socket = link.from_socket
+        to_node = link.to_node
+        to_socket = link.to_socket
+
+        nodetree.links.remove(link)
+
+        node = nodetree.nodes.new(type='ShaderNodeDisplacement')
+        node.location[0] = 0.5 * (from_node.location[0] + to_node.location[0]);
+        node.location[1] = 0.5 * (from_node.location[1] + to_node.location[1]);
+        node.inputs['Scale'].default_value = 0.1
+
+        nodetree.links.new(from_socket, node.inputs['Height'])
+        nodetree.links.new(node.outputs['Displacement'], to_socket)
+
+def displacement_nodes_insert():
+    traversed = set()
+    for material in bpy.data.materials:
+        if check_is_new_shading_material(material):
+            displacement_node_insert(material, material.node_tree, traversed)
+
+
 def mapping_node_order_flip(node):
     """
     Flip euler order of mapping shader node
@@ -315,3 +356,6 @@ def do_versions(self):
                 cscene.blur_glossy = 0.0
             if not cscene.is_property_set("sample_clamp_indirect"):
                 cscene.sample_clamp_indirect = 0.0
+
+    if bpy.data.version <= (2, 79, 1):
+        displacement_nodes_insert()

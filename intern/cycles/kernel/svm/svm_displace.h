@@ -83,15 +83,7 @@ ccl_device void svm_node_set_bump(KernelGlobals *kg, ShaderData *sd, float *stac
 
 ccl_device void svm_node_set_displacement(KernelGlobals *kg, ShaderData *sd, float *stack, uint fac_offset)
 {
-	float d = stack_load_float(stack, fac_offset);
-
-	float3 dP = sd->N;
-	object_inverse_normal_transform(kg, sd, &dP);
-
-	dP *= d*0.1f; /* todo: get rid of this factor */
-
-	object_dir_transform(kg, sd, &dP);
-
+	float3 dP = stack_load_float3(stack, fac_offset);
 	sd->P += dP;
 }
 

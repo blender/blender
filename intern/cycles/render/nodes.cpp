@@ -4780,7 +4780,7 @@ NODE_DEFINE(OutputNode)
 
 	SOCKET_IN_CLOSURE(surface, "Surface");
 	SOCKET_IN_CLOSURE(volume, "Volume");
-	SOCKET_IN_FLOAT(displacement, "Displacement", 0.0f);
+	SOCKET_IN_VECTOR(displacement, "Displacement", make_float3(0.0f, 0.0f, 0.0f));
 	SOCKET_IN_NORMAL(normal, "Normal", make_float3(0.0f, 0.0f, 0.0f));
 
 	return type;

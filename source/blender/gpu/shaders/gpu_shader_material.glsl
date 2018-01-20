@@ -3823,7 +3823,7 @@ void node_displacement(float height, float dist, vec3 N, out vec3 result)
 
 /* output */
 
-void node_output_material(vec4 surface, vec4 volume, float displacement, out vec4 result)
+void node_output_material(vec4 surface, vec4 volume, vec3 displacement, out vec4 result)
 {
 	result = surface;
 }
