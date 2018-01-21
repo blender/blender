@@ -817,16 +817,10 @@ DRWShadingGroup *DRW_shgroup_material_create(struct GPUMaterial *material, DRWPa
 		else {
 			switch (input->type) {
 				case GPU_FLOAT:
-					DRW_shgroup_uniform_float(grp, input->shadername, (float *)input->dynamicvec, 1);
-					break;
 				case GPU_VEC2:
-					DRW_shgroup_uniform_vec2(grp, input->shadername, (float *)input->dynamicvec, 1);
-					break;
 				case GPU_VEC3:
-					DRW_shgroup_uniform_vec3(grp, input->shadername, (float *)input->dynamicvec, 1);
-					break;
 				case GPU_VEC4:
-					DRW_shgroup_uniform_vec4(grp, input->shadername, (float *)input->dynamicvec, 1);
+					/* Should already be in the material ubo. */
 					break;
 				case GPU_MAT3:
 					DRW_shgroup_uniform_mat3(grp, input->shadername, (float *)input->dynamicvec);
