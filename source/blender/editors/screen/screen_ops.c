@@ -1451,8 +1451,6 @@ static void SCREEN_OT_area_move(wmOperatorType *ot)
  */
 
 typedef struct sAreaSplitData {
-	int x, y;   /* last used mouse position */
-
 	int origval;            /* for move areas */
 	int bigger, smaller;    /* constraints for moving new edge */
 	int delta;              /* delta move edge */
@@ -1697,9 +1695,6 @@ static int area_split_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	
 	sd = (sAreaSplitData *)op->customdata;
 	
-	sd->x = event->x;
-	sd->y = event->y;
-	
 	if (event->type == EVT_ACTIONZONE_AREA) {
 		
 		/* do the split */
@@ -1771,8 +1766,15 @@ static int area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			const int dir = RNA_property_enum_get(op->ptr, prop_dir);
 
 			sd->delta = (dir == 'v') ? event->x - sd->origval : event->y - sd->origval;
-			if (sd->previewmode == 0)
-				area_move_apply_do(C, sd->delta, sd->origval, dir, sd->bigger, sd->smaller, sd->do_snap);
+
+			if (sd->previewmode == 0) {
+				if (sd->do_snap) {
+					const int snap_loc = area_snap_calc_location(
+					        CTX_wm_screen(C), sd->delta, sd->origval, dir, sd->bigger, sd->smaller);
+					sd->delta = snap_loc - sd->origval;
+				}
+				area_move_apply_do(C, sd->delta, sd->origval, dir, sd->bigger, sd->smaller, false);
+			}
 			else {
 				if (sd->sarea) {
 					ED_area_tag_redraw(sd->sarea);
@@ -1781,7 +1783,26 @@ static int area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				sd->sarea = BKE_screen_find_area_xy(CTX_wm_screen(C), SPACE_TYPE_ANY, event->x, event->y);
 
 				if (sd->sarea) {
-					ED_area_tag_redraw(sd->sarea);
+					ScrArea *sa = sd->sarea;
+					if (dir == 'v') {
+						sd->origsize = sa->winx;
+						sd->origmin = sa->totrct.xmin;
+					}
+					else {
+						sd->origsize = sa->winy;
+						sd->origmin = sa->totrct.ymin;
+					}
+
+					if (sd->do_snap) {
+						sa->v1->editflag = sa->v2->editflag = sa->v3->editflag = sa->v4->editflag = 1;
+
+						const int snap_loc = area_snap_calc_location(
+						        CTX_wm_screen(C), sd->delta, sd->origval, dir, sd->origmin + sd->origsize, -sd->origmin);
+
+						sa->v1->editflag = sa->v2->editflag = sa->v3->editflag = sa->v4->editflag = 0;
+						sd->delta = snap_loc - sd->origval;
+					}
+
 					update_factor = true;
 				}
 
@@ -1816,8 +1837,6 @@ static int area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
 						RNA_property_enum_set(op->ptr, prop_dir, (dir == 'v') ? 'h' : 'v');
 						area_split_preview_update_cursor(C, op);
 						update_factor = true;
-
-						ED_area_tag_redraw(sd->sarea);
 					}
 				}
 			}
@@ -1837,31 +1856,12 @@ static int area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 	if (update_factor) {
 		const int dir = RNA_property_enum_get(op->ptr, prop_dir);
-		float fac;
+		float fac = (float)(sd->delta + sd->origval - sd->origmin) / sd->origsize;
+		RNA_float_set(op->ptr, "factor", fac);
 
-		if (dir == 'v') {
-			sd->origsize = sd->sarea->winx;
-			sd->origmin = sd->sarea->totrct.xmin;
+		if (sd->sarea) {
+			ED_area_tag_redraw(sd->sarea);
 		}
-		else {
-			sd->origsize = sd->sarea->winy;
-			sd->origmin = sd->sarea->totrct.ymin;
-		}
-
-		if (sd->do_snap) {
-			ScrArea *sa = sd->sarea;
-			sa->v1->editflag = sa->v2->editflag = sa->v3->editflag = sa->v4->editflag = 1;
-
-			int snap_loc = area_snap_calc_location(
-			        CTX_wm_screen(C), sd->delta, sd->origval, dir, sd->origmin + sd->origsize, -sd->origmin);
-
-			sa->v1->editflag = sa->v2->editflag = sa->v3->editflag = sa->v4->editflag = 0;
-			fac = snap_loc - sd->origmin;
-		}
-		else {
-			fac = (dir == 'v') ? event->x - sd->origmin : event->y - sd->origmin;
-		}
-		RNA_float_set(op->ptr, "factor", fac / (float)sd->origsize);
 	}
 
 	return OPERATOR_RUNNING_MODAL;
