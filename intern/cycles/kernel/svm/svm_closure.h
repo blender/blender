@@ -764,7 +764,8 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 #ifdef __SUBSURFACE__
 		case CLOSURE_BSSRDF_CUBIC_ID:
 		case CLOSURE_BSSRDF_GAUSSIAN_ID:
-		case CLOSURE_BSSRDF_BURLEY_ID: {
+		case CLOSURE_BSSRDF_BURLEY_ID:
+		case CLOSURE_BSSRDF_RANDOM_WALK_ID: {
 			float3 weight = sd->svm_closure_weight * mix_weight;
 			Bssrdf *bssrdf = bssrdf_alloc(sd, weight);
 

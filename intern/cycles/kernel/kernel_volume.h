@@ -35,6 +35,8 @@ typedef struct VolumeShaderCoefficients {
 	float3 emission;
 } VolumeShaderCoefficients;
 
+#ifdef __VOLUME__
+
 /* evaluate shader to get extinction coefficient at P */
 ccl_device_inline bool volume_shader_extinction_sample(KernelGlobals *kg,
                                                        ShaderData *sd,
@@ -92,6 +94,8 @@ ccl_device_inline bool volume_shader_sample(KernelGlobals *kg,
 	return true;
 }
 
+#endif /* __VOLUME__ */
+
 ccl_device float3 volume_color_transmittance(float3 sigma, float t)
 {
 	return make_float3(expf(-sigma.x * t), expf(-sigma.y * t), expf(-sigma.z * t));
@@ -101,6 +105,8 @@ ccl_device float kernel_volume_channel_get(float3 value, int channel)
 {
 	return (channel == 0)? value.x: ((channel == 1)? value.y: value.z);
 }
+
+#ifdef __VOLUME__
 
 ccl_device bool volume_stack_is_heterogeneous(KernelGlobals *kg, ccl_addr_space VolumeStack *stack)
 {
@@ -239,6 +245,8 @@ ccl_device_noinline void kernel_volume_shadow(KernelGlobals *kg,
 		kernel_volume_shadow_homogeneous(kg, state, ray, shadow_sd, throughput);
 }
 
+#endif /* __VOLUME__ */
+
 /* Equi-angular sampling as in:
  * "Importance Sampling Techniques for Path Tracing in Participating Media" */
 
@@ -368,6 +376,8 @@ ccl_device int kernel_volume_sample_channel(float3 albedo, float3 throughput, fl
 		return 2;
 	}
 }
+
+#ifdef __VOLUME__
 
 /* homogeneous volume: assume shader evaluation at the start gives
  * the volume shading coefficient for the entire line segment */
@@ -1345,5 +1355,7 @@ ccl_device_inline void kernel_volume_clean_stack(KernelGlobals *kg,
 		volume_stack[0].shader = SHADER_NONE;
 	}
 }
+
+#endif /* __VOLUME__ */
 
 CCL_NAMESPACE_END

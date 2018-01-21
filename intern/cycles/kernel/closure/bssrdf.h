@@ -408,7 +408,8 @@ ccl_device int bssrdf_setup(ShaderData *sd, Bssrdf *bssrdf, ClosureType type)
 		bssrdf->sharpness = saturate(bssrdf->sharpness);
 
 		if(type == CLOSURE_BSSRDF_BURLEY_ID ||
-		   type == CLOSURE_BSSRDF_PRINCIPLED_ID)
+		   type == CLOSURE_BSSRDF_PRINCIPLED_ID ||
+		   type == CLOSURE_BSSRDF_RANDOM_WALK_ID)
 		{
 			bssrdf_burley_setup(bssrdf);
 		}

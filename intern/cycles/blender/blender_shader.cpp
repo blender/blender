@@ -433,6 +433,9 @@ static ShaderNode *add_node(Scene *scene,
 			case BL::ShaderNodeSubsurfaceScattering::falloff_BURLEY:
 				subsurface->falloff = CLOSURE_BSSRDF_BURLEY_ID;
 				break;
+			case BL::ShaderNodeSubsurfaceScattering::falloff_RANDOM_WALK:
+				subsurface->falloff = CLOSURE_BSSRDF_RANDOM_WALK_ID;
+				break;
 		}
 
 		node = subsurface;

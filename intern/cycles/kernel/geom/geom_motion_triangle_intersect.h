@@ -248,23 +248,30 @@ ccl_device_inline void motion_triangle_intersect_local(
 	motion_triangle_vertices(kg, local_object, prim, time, verts);
 	/* Ray-triangle intersection, unoptimized. */
 	float t, u, v;
-	if(ray_triangle_intersect(P,
-	                          dir,
-	                          tmax,
+	if(!ray_triangle_intersect(P,
+	                           dir,
+	                           tmax,
 #if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
-	                          (ssef*)verts,
+	                           (ssef*)verts,
 #else
-	                          verts[0], verts[1], verts[2],
+	                           verts[0], verts[1], verts[2],
 #endif
-	                          &u, &v, &t))
+	                           &u, &v, &t))
 	{
+		return;
+	}
+
+	int hit;
+	if(lcg_state) {
+		/* Record up to max_hits intersections. */
 		for(int i = min(max_hits, local_isect->num_hits) - 1; i >= 0; --i) {
 			if(local_isect->hits[i].t == t) {
 				return;
 			}
 		}
+
 		local_isect->num_hits++;
-		int hit;
+
 		if(local_isect->num_hits <= max_hits) {
 			hit = local_isect->num_hits - 1;
 		}
@@ -277,18 +284,29 @@ ccl_device_inline void motion_triangle_intersect_local(
 			if(hit >= max_hits)
 				return;
 		}
-		/* Record intersection. */
-		Intersection *isect = &local_isect->hits[hit];
-		isect->t = t;
-		isect->u = u;
-		isect->v = v;
-		isect->prim = prim_addr;
-		isect->object = object;
-		isect->type = PRIMITIVE_MOTION_TRIANGLE;
-		/* Record geometric normal. */
-		local_isect->Ng[hit] = normalize(cross(verts[1] - verts[0],
-		                                    verts[2] - verts[0]));
 	}
+	else {
+		/* Record closest intersection only. */
+		if(local_isect->num_hits && t > local_isect->hits[0].t) {
+			return;
+		}
+
+		hit = 0;
+		local_isect->num_hits = 1;
+	}
+
+	/* Record intersection. */
+	Intersection *isect = &local_isect->hits[hit];
+	isect->t = t;
+	isect->u = u;
+	isect->v = v;
+	isect->prim = prim_addr;
+	isect->object = object;
+	isect->type = PRIMITIVE_MOTION_TRIANGLE;
+
+	/* Record geometric normal. */
+	local_isect->Ng[hit] = normalize(cross(verts[1] - verts[0],
+	                                       verts[2] - verts[0]));
 }
 #endif  /* __BVH_LOCAL__ */
 

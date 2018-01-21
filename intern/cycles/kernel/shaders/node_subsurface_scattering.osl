@@ -30,7 +30,9 @@ shader node_subsurface_scattering(
 		BSSRDF = Color * bssrdf("gaussian", Normal, Scale * Radius, Color, "texture_blur", TextureBlur);
 	else if (falloff == "cubic")
 		BSSRDF = Color * bssrdf("cubic", Normal, Scale * Radius, Color, "texture_blur", TextureBlur, "sharpness", Sharpness);
-	else
+	else if (falloff == "burley")
 		BSSRDF = Color * bssrdf("burley", Normal, Scale * Radius, Color, "texture_blur", TextureBlur);
+	else
+		BSSRDF = Color * bssrdf("random_walk", Normal, Scale * Radius, Color, "texture_blur", TextureBlur);
 }
 
