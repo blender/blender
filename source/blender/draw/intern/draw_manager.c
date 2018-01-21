@@ -1290,6 +1290,11 @@ DRWPass *DRW_pass_create(const char *name, DRWState state)
 	return pass;
 }
 
+void DRW_pass_state_set(DRWPass *pass, DRWState state)
+{
+	pass->state = state;
+}
+
 void DRW_pass_free(DRWPass *pass)
 {
 	for (DRWShadingGroup *shgroup = pass->shgroups; shgroup; shgroup = shgroup->next) {

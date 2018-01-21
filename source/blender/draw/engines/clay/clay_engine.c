@@ -183,6 +183,7 @@ typedef struct CLAY_PrivateData {
 	DRWShadingGroup *depth_shgrp_cull;
 	DRWShadingGroup *depth_shgrp_cull_select;
 	DRWShadingGroup *depth_shgrp_cull_active;
+	bool enable_ao;
 } CLAY_PrivateData; /* Transient data */
 
 /* Functions */
@@ -607,7 +608,7 @@ static int hair_mat_in_ubo(CLAY_Storage *storage, const CLAY_HAIR_UBO_Material *
 	return id;
 }
 
-static void ubo_mat_from_object(Object *ob,  CLAY_UBO_Material *r_ubo)
+static void ubo_mat_from_object(Object *ob, CLAY_UBO_Material *r_ubo, bool *r_needs_ao)
 {
 	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_CLAY);
 
@@ -621,6 +622,12 @@ static void ubo_mat_from_object(Object *ob,  CLAY_UBO_Material *r_ubo)
 	float ssao_factor_edge = BKE_collection_engine_property_value_get_float(props, "ssao_factor_edge");
 	float ssao_attenuation = BKE_collection_engine_property_value_get_float(props, "ssao_attenuation");
 	int matcap_icon = BKE_collection_engine_property_value_get_int(props, "matcap_icon");
+
+	if (((ssao_factor_cavity > 0.0) || (ssao_factor_edge > 0.0)) &&
+	    (ssao_distance > 0.0))
+	{
+		*r_needs_ao = true;
+	}
 
 	memset(r_ubo, 0x0, sizeof(*r_ubo));
 
@@ -667,7 +674,7 @@ static DRWShadingGroup *CLAY_object_shgrp_get(
 	DRWShadingGroup **shgrps = use_flat ? stl->storage->shgrps_flat : stl->storage->shgrps;
 	CLAY_UBO_Material mat_ubo_test;
 
-	ubo_mat_from_object(ob, &mat_ubo_test);
+	ubo_mat_from_object(ob, &mat_ubo_test, &stl->g_data->enable_ao);
 
 	int id = mat_in_ubo(stl->storage, &mat_ubo_test);
 
@@ -711,6 +718,9 @@ static void clay_cache_init(void *vedata)
 		/* Alloc transient pointers */
 		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
 	}
+
+	/* Disable AO unless a material needs it. */
+	stl->g_data->enable_ao = false;
 
 	/* Depth Pass */
 	{
@@ -851,18 +861,25 @@ static void clay_cache_finish(void *vedata)
 
 static void clay_draw_scene(void *vedata)
 {
-
+	CLAY_StorageList *stl = ((CLAY_Data *)vedata)->stl;
 	CLAY_PassList *psl = ((CLAY_Data *)vedata)->psl;
 	CLAY_FramebufferList *fbl = ((CLAY_Data *)vedata)->fbl;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
 	/* Pass 1 : Depth pre-pass */
-	DRW_draw_pass(psl->depth_pass);
-	DRW_draw_pass(psl->depth_pass_cull);
+	if (stl->g_data->enable_ao) {
+		DRW_draw_pass(psl->depth_pass);
+		DRW_draw_pass(psl->depth_pass_cull);
+	}
+	else {
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+		DRW_pass_state_set(psl->clay_pass, state);
+		DRW_pass_state_set(psl->clay_pass_flat, state);
+	}
 
 	/* Pass 2 : Duplicate depth */
 	/* Unless we go for deferred shading we need this to avoid manual depth test and artifacts */
-	if (DRW_state_is_fbo()) {
+	if (DRW_state_is_fbo() && stl->g_data->enable_ao) {
 		/* attach temp textures */
 		DRW_framebuffer_texture_attach(fbl->dupli_depth, e_data.depth_dup, 0, 0);
 
