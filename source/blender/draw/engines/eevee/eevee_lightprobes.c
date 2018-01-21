@@ -83,7 +83,6 @@ static struct {
 	struct GPUTexture *cube_face_minmaxz;
 
 	int update_world;
-	bool world_ready_to_shade;
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_background_vert_glsl[];
@@ -886,7 +885,6 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 
 		/* Tag probes to refresh */
 		e_data.update_world |= PROBE_UPDATE_CUBE;
-		e_data.world_ready_to_shade = false;
 		common_data->prb_num_render_cube = 0;
 		pinfo->cache_num_cube = pinfo->num_cube;
 
@@ -1373,6 +1371,7 @@ static void lightprobes_refresh_world(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 	render_world_to_probe(sldata, psl);
 	if (e_data.update_world & PROBE_UPDATE_CUBE) {
 		glossy_filter_probe(sldata, vedata, psl, 0);
+		common_data->prb_num_render_cube = 1;
 	}
 	if (e_data.update_world & PROBE_UPDATE_GRID) {
 		diffuse_filter_probe(sldata, vedata, psl, 0, 0.0, 0.0, 0.0, 0.0);
@@ -1382,13 +1381,9 @@ static void lightprobes_refresh_world(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 		DRW_draw_pass(psl->probe_grid_fill);
 		DRW_framebuffer_texture_detach(sldata->irradiance_rt);
 		DRW_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->probe_pool, 0, 0);
-	}
-	e_data.update_world = 0;
-	if (!e_data.world_ready_to_shade) {
-		e_data.world_ready_to_shade = true;
-		common_data->prb_num_render_cube = 1;
 		common_data->prb_num_render_grid = 1;
 	}
+	e_data.update_world = 0;
 	DRW_viewport_request_redraw();
 }
 
