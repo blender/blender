@@ -436,14 +436,15 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 		struct Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
 
 		DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.probe_filter_glossy_sh, psl->probe_glossy_compute, geom);
-		DRW_shgroup_uniform_float(grp, "sampleCount", &sldata->probes->samples_ct, 1);
-		DRW_shgroup_uniform_float(grp, "invSampleCount", &sldata->probes->invsamples_ct, 1);
-		DRW_shgroup_uniform_float(grp, "roughnessSquared", &sldata->probes->roughness, 1);
-		DRW_shgroup_uniform_float(grp, "lodFactor", &sldata->probes->lodfactor, 1);
-		DRW_shgroup_uniform_float(grp, "lodMax", &sldata->probes->lod_rt_max, 1);
-		DRW_shgroup_uniform_float(grp, "texelSize", &sldata->probes->texel_size, 1);
-		DRW_shgroup_uniform_float(grp, "paddingSize", &sldata->probes->padding_size, 1);
-		DRW_shgroup_uniform_int(grp, "Layer", &sldata->probes->layer, 1);
+		DRW_shgroup_uniform_float(grp, "intensityFac", &pinfo->intensity_fac, 1);
+		DRW_shgroup_uniform_float(grp, "sampleCount", &pinfo->samples_ct, 1);
+		DRW_shgroup_uniform_float(grp, "invSampleCount", &pinfo->invsamples_ct, 1);
+		DRW_shgroup_uniform_float(grp, "roughnessSquared", &pinfo->roughness, 1);
+		DRW_shgroup_uniform_float(grp, "lodFactor", &pinfo->lodfactor, 1);
+		DRW_shgroup_uniform_float(grp, "lodMax", &pinfo->lod_rt_max, 1);
+		DRW_shgroup_uniform_float(grp, "texelSize", &pinfo->texel_size, 1);
+		DRW_shgroup_uniform_float(grp, "paddingSize", &pinfo->padding_size, 1);
+		DRW_shgroup_uniform_int(grp, "Layer", &pinfo->layer, 1);
 		DRW_shgroup_uniform_texture(grp, "texHammersley", e_data.hammersley);
 		// DRW_shgroup_uniform_texture(grp, "texJitter", e_data.jitter);
 		DRW_shgroup_uniform_texture(grp, "probeHdr", sldata->probe_rt);
@@ -456,14 +457,15 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.probe_filter_diffuse_sh, psl->probe_diffuse_compute);
 #ifdef IRRADIANCE_SH_L2
-		DRW_shgroup_uniform_int(grp, "probeSize", &sldata->probes->shres, 1);
+		DRW_shgroup_uniform_int(grp, "probeSize", &pinfo->shres, 1);
 #else
-		DRW_shgroup_uniform_float(grp, "sampleCount", &sldata->probes->samples_ct, 1);
-		DRW_shgroup_uniform_float(grp, "invSampleCount", &sldata->probes->invsamples_ct, 1);
-		DRW_shgroup_uniform_float(grp, "lodFactor", &sldata->probes->lodfactor, 1);
-		DRW_shgroup_uniform_float(grp, "lodMax", &sldata->probes->lod_rt_max, 1);
+		DRW_shgroup_uniform_float(grp, "sampleCount", &pinfo->samples_ct, 1);
+		DRW_shgroup_uniform_float(grp, "invSampleCount", &pinfo->invsamples_ct, 1);
+		DRW_shgroup_uniform_float(grp, "lodFactor", &pinfo->lodfactor, 1);
+		DRW_shgroup_uniform_float(grp, "lodMax", &pinfo->lod_rt_max, 1);
 		DRW_shgroup_uniform_texture(grp, "texHammersley", e_data.hammersley);
 #endif
+		DRW_shgroup_uniform_float(grp, "intensityFac", &pinfo->intensity_fac, 1);
 		DRW_shgroup_uniform_texture(grp, "probeHdr", sldata->probe_rt);
 
 		struct Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
@@ -474,14 +476,14 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 		psl->probe_visibility_compute = DRW_pass_create("LightProbe Visibility Compute", DRW_STATE_WRITE_COLOR);
 
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.probe_filter_visibility_sh, psl->probe_visibility_compute);
-		DRW_shgroup_uniform_int(grp, "outputSize", &sldata->probes->shres, 1);
-		DRW_shgroup_uniform_float(grp, "visibilityRange", &sldata->probes->visibility_range, 1);
-		DRW_shgroup_uniform_float(grp, "visibilityBlur", &sldata->probes->visibility_blur, 1);
-		DRW_shgroup_uniform_float(grp, "sampleCount", &sldata->probes->samples_ct, 1);
-		DRW_shgroup_uniform_float(grp, "invSampleCount", &sldata->probes->invsamples_ct, 1);
-		DRW_shgroup_uniform_float(grp, "storedTexelSize", &sldata->probes->texel_size, 1);
-		DRW_shgroup_uniform_float(grp, "nearClip", &sldata->probes->near_clip, 1);
-		DRW_shgroup_uniform_float(grp, "farClip", &sldata->probes->far_clip, 1);
+		DRW_shgroup_uniform_int(grp, "outputSize", &pinfo->shres, 1);
+		DRW_shgroup_uniform_float(grp, "visibilityRange", &pinfo->visibility_range, 1);
+		DRW_shgroup_uniform_float(grp, "visibilityBlur", &pinfo->visibility_blur, 1);
+		DRW_shgroup_uniform_float(grp, "sampleCount", &pinfo->samples_ct, 1);
+		DRW_shgroup_uniform_float(grp, "invSampleCount", &pinfo->invsamples_ct, 1);
+		DRW_shgroup_uniform_float(grp, "storedTexelSize", &pinfo->texel_size, 1);
+		DRW_shgroup_uniform_float(grp, "nearClip", &pinfo->near_clip, 1);
+		DRW_shgroup_uniform_float(grp, "farClip", &pinfo->far_clip, 1);
 		DRW_shgroup_uniform_texture(grp, "texHammersley", e_data.hammersley);
 		DRW_shgroup_uniform_texture(grp, "probeDepth", sldata->probe_depth_rt);
 
@@ -961,9 +963,12 @@ static void downsample_planar(void *vedata, int level)
 }
 
 /* Glossy filter probe_rt to probe_pool at index probe_idx */
-static void glossy_filter_probe(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, EEVEE_PassList *psl, int probe_idx)
+static void glossy_filter_probe(
+        EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, EEVEE_PassList *psl, int probe_idx, float intensity)
 {
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
+
+	pinfo->intensity_fac = intensity;
 
 	/* Max lod used from the render target probe */
 	pinfo->lod_rt_max = floorf(log2f(pinfo->target_size)) - 2.0f;
@@ -1036,10 +1041,12 @@ static void glossy_filter_probe(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata,
 /* Diffuse filter probe_rt to irradiance_pool at index probe_idx */
 static void diffuse_filter_probe(
 	EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, EEVEE_PassList *psl, int offset,
-	float clipsta, float clipend, float vis_range, float vis_blur)
+	float clipsta, float clipend, float vis_range, float vis_blur, float intensity)
 {
 	EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
+
+	pinfo->intensity_fac = intensity;
 
 	int pool_size[3];
 	irradiance_pool_size_get(common_data->prb_irradiance_vis_size, pinfo->total_irradiance_samples, pool_size);
@@ -1370,11 +1377,11 @@ static void lightprobes_refresh_world(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 
 	render_world_to_probe(sldata, psl);
 	if (e_data.update_world & PROBE_UPDATE_CUBE) {
-		glossy_filter_probe(sldata, vedata, psl, 0);
+		glossy_filter_probe(sldata, vedata, psl, 0, 1.0);
 		common_data->prb_num_render_cube = 1;
 	}
 	if (e_data.update_world & PROBE_UPDATE_GRID) {
-		diffuse_filter_probe(sldata, vedata, psl, 0, 0.0, 0.0, 0.0, 0.0);
+		diffuse_filter_probe(sldata, vedata, psl, 0, 0.0, 0.0, 0.0, 0.0, 1.0);
 		SWAP(GPUTexture *, sldata->irradiance_pool, sldata->irradiance_rt);
 		DRW_framebuffer_texture_detach(sldata->probe_pool);
 		DRW_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->irradiance_rt, 0, 0);
@@ -1473,7 +1480,7 @@ static void lightprobes_refresh_cube(EEVEE_ViewLayerData *sldata, EEVEE_Data *ve
 		}
 		LightProbe *prb = (LightProbe *)ob->data;
 		render_scene_to_probe(sldata, vedata, ob->obmat[3], prb->clipsta, prb->clipend);
-		glossy_filter_probe(sldata, vedata, psl, i);
+		glossy_filter_probe(sldata, vedata, psl, i, prb->intensity);
 		ped->need_update = false;
 		ped->probe_id = i;
 		if (!ped->ready_to_shade) {
@@ -1576,7 +1583,8 @@ static void lightprobes_refresh_all_no_world(EEVEE_ViewLayerData *sldata, EEVEE_
 				}
 				render_scene_to_probe(sldata, vedata, pos, prb->clipsta, prb->clipend);
 				diffuse_filter_probe(sldata, vedata, psl, egrid->offset + cell_id,
-				                     prb->clipsta, prb->clipend, egrid->visibility_range, prb->vis_blur);
+				                     prb->clipsta, prb->clipend, egrid->visibility_range, prb->vis_blur,
+				                     prb->intensity);
 				/* To see what is going on. */
 				SWAP(GPUTexture *, sldata->irradiance_pool, sldata->irradiance_rt);
 				/* Restore */

@@ -5,6 +5,7 @@ uniform float texelSize;
 uniform float lodFactor;
 uniform float lodMax;
 uniform float paddingSize;
+uniform float intensityFac;
 
 in vec3 worldPosition;
 
@@ -82,5 +83,5 @@ void main() {
 		}
 	}
 
-	FragColor = vec4(out_radiance / weight, 1.0);
+	FragColor = vec4(intensityFac * out_radiance / weight, 1.0);
 }

@@ -445,6 +445,7 @@ typedef struct EEVEE_LightProbesInfo {
 	float lod_rt_max, lod_cube_max, lod_planar_max;
 	float visibility_range;
 	float visibility_blur;
+	float intensity_fac;
 	int shres;
 	/* List of probes in the scene. */
 	/* XXX This is fragile, can get out of sync quickly. */

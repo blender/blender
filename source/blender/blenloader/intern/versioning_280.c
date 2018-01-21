@@ -915,4 +915,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 	}
+
+	{
+		if (!DNA_struct_elem_find(fd->filesdna, "LightProbe", "float", "intensity")) {
+			for (LightProbe *probe = main->lightprobe.first; probe; probe = probe->id.next) {
+				probe->intensity = 1.0f;
+			}
+		}
+	}
 }

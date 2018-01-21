@@ -52,6 +52,7 @@ void BKE_lightprobe_init(LightProbe *probe)
 	probe->clipend = 40.0f;
 	probe->vis_bias = 1.0f;
 	probe->vis_blur = 0.2f;
+	probe->intensity = 1.0f;
 	probe->data_draw_size = 1.0f;
 
 	probe->flag = LIGHTPROBE_FLAG_SHOW_INFLUENCE | LIGHTPROBE_FLAG_SHOW_DATA;

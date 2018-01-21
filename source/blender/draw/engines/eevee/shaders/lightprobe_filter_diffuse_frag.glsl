@@ -3,6 +3,7 @@ uniform samplerCube probeHdr;
 uniform int probeSize;
 uniform float lodFactor;
 uniform float lodMax;
+uniform float intensityFac;
 
 in vec3 worldPosition;
 
@@ -192,6 +193,6 @@ void main()
 		}
 	}
 
-	FragColor = irradiance_encode(out_radiance / weight);
+	FragColor = irradiance_encode(intensityFac * out_radiance / weight);
 #endif
 }

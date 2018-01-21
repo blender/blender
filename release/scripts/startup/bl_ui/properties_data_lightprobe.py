@@ -64,30 +64,22 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
 
         if probe.type == 'GRID':
             col = split.column(align=True)
+            col.label("Influence:")
+            col.prop(probe, "influence_distance", "Distance")
+            col.prop(probe, "falloff")
+            col.prop(probe, "intensity")
+
+            col.separator()
+
             col.label("Resolution:")
             col.prop(probe, "grid_resolution_x", text="X")
             col.prop(probe, "grid_resolution_y", text="Y")
             col.prop(probe, "grid_resolution_z", text="Z")
-
-            col.separator()
-
-            col.label("Influence:")
-            col.prop(probe, "influence_distance", "Distance")
-            col.prop(probe, "falloff")
-
-            col.separator()
-
-            col.label("Visibily:")
-            col.prop(probe, "visibility_buffer_bias", "Bias")
-            col.prop(probe, "visibility_bleed_bias", "Bleed Bias")
-            col.prop(probe, "visibility_blur", "Blur")
-
         elif probe.type == 'PLANAR':
             col = split.column(align=True)
             col.label("Influence:")
             col.prop(probe, "influence_distance", "Distance")
             col.prop(probe, "falloff")
-
         else:
             col = split.column(align=True)
             col.label("Influence:")
@@ -99,13 +91,23 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
                 col.prop(probe, "influence_distance", "Size")
 
             col.prop(probe, "falloff")
+            col.prop(probe, "intensity")
 
         col = split.column(align=True)
+
         col.label("Clipping:")
         col.prop(probe, "clip_start", text="Start")
 
         if probe.type != "PLANAR":
             col.prop(probe, "clip_end", text="End")
+
+        if probe.type == 'GRID':
+            col.separator()
+
+            col.label("Visibily:")
+            col.prop(probe, "visibility_buffer_bias", "Bias")
+            col.prop(probe, "visibility_bleed_bias", "Bleed Bias")
+            col.prop(probe, "visibility_blur", "Blur")
 
 
 class DATA_PT_lightprobe_parallax(DataButtonsPanel, Panel):

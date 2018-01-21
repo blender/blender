@@ -179,6 +179,13 @@ static void rna_def_lightprobe(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Visibility Blur", "Filter size of the visibilty blur");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
+	prop = RNA_def_property(srna, "intensity", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "intensity");
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.0f, 3.0f, 1.0, 3);
+	RNA_def_property_ui_text(prop, "Intensity", "Modify the intensity of the lighting captured by this probe");
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
+
 	/* Data preview */
 	prop = RNA_def_property(srna, "show_data", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIGHTPROBE_FLAG_SHOW_DATA);
