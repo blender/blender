@@ -112,22 +112,21 @@ static bNodeSocket *verify_socket_template(bNodeTree *ntree, bNode *node, int in
 			break;
 	}
 	if (sock) {
-		sock->type = stemp->type;
+		if (sock->type != stemp->type) {
+			nodeModifySocketType(ntree, node, sock, stemp->type, stemp->subtype);
+		}
+
 		sock->limit = (stemp->limit == 0 ? 0xFFF : stemp->limit);
 		sock->flag |= stemp->flag;
-		
-		BLI_remlink(socklist, sock);
-		
-		return sock;
 	}
 	else {
 		/* no socket for this template found, make a new one */
 		sock = node_add_socket_from_template(ntree, node, stemp, in_out);
-		/* remove the new socket from the node socket list first,
-		 * will be added back after verification.
-		 */
-		BLI_remlink(socklist, sock);
 	}
+
+	/* remove the new socket from the node socket list first,
+	 * will be added back after verification. */
+	BLI_remlink(socklist, sock);
 	
 	return sock;
 }

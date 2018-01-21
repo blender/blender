@@ -2792,7 +2792,8 @@ static int graph_driver_delete_invalid_exec(bContext *C, wmOperator *op)
 		DEG_relations_tag_update(CTX_data_main(C));
 		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_REMOVED, NULL);
 		WM_reportf(RPT_INFO, "Deleted %u drivers", deleted);
-	} else {
+	}
+	else {
 		WM_report(RPT_INFO, "No drivers deleted");
 	}
 

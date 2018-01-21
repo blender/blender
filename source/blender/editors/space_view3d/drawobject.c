@@ -1034,7 +1034,7 @@ static void drawcube_size(float size, unsigned pos)
 		{ size,  size,  size}
 	};
 
-	const GLubyte indices[24] = {0,1,1,3,3,2,2,0,0,4,4,5,5,7,7,6,6,4,1,5,3,7,2,6};
+	const GLubyte indices[24] = {0, 1, 1, 3, 3, 2, 2, 0, 0, 4, 4, 5, 5, 7, 7, 6, 6, 4, 1, 5, 3, 7, 2, 6};
 
 #if 0
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -8065,7 +8065,7 @@ static void imm_draw_box(const float vec[8][3], bool solid, unsigned pos)
 	if (solid) {
 		/* Adpated from "Optimizing Triangle Strips for Fast Rendering" by F. Evans, S. Skiena and A. Varshney
 		 *              (http://www.cs.umd.edu/gvil/papers/av_ts.pdf). */
-		static const GLubyte tris_strip_indices[14] = {0,1,3,2,6,1,5,0,4,3,7,6,4,5};
+		static const GLubyte tris_strip_indices[14] = {0, 1, 3, 2, 6, 1, 5, 0, 4, 3, 7, 6, 4, 5};
 		immBegin(GWN_PRIM_TRI_STRIP, 14);
 		for (int i = 0; i < 14; ++i) {
 			immVertex3fv(pos, vec[tris_strip_indices[i]]);
@@ -8073,7 +8073,8 @@ static void imm_draw_box(const float vec[8][3], bool solid, unsigned pos)
 		immEnd();
 	}
 	else {
-		static const GLubyte line_indices[24] = {0,1,1,2,2,3,3,0,0,4,4,5,5,6,6,7,7,4,1,5,2,6,3,7};
+		static const GLubyte line_indices[24] =
+		       {0, 1, 1, 2, 2, 3, 3, 0, 0, 4, 4, 5, 5, 6, 6, 7, 7, 4, 1, 5, 2, 6, 3, 7};
 		immBegin(GWN_PRIM_LINES, 24);
 		for (int i = 0; i < 24; ++i) {
 			immVertex3fv(pos, vec[line_indices[i]]);
