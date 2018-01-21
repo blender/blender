@@ -875,7 +875,7 @@ static void non_recursive_bvh_div_nodes_task_cb(
  * to use multithread building.
  *
  * To archive this is necessary to find how much leafs are accessible from a certain branch, BVHBuildHelper
- * implicit_needed_branches and implicit_leafs_index are auxiliary functions to solve that "optimal-split".
+ * #implicit_needed_branches and #implicit_leafs_index are auxiliary functions to solve that "optimal-split".
  */
 static void non_recursive_bvh_div_nodes(
         const BVHTree *tree, BVHNode *branches_array, BVHNode **leafs_array, int num_leafs)
@@ -888,24 +888,23 @@ static void non_recursive_bvh_div_nodes(
 
 	BVHBuildHelper data;
 	int depth;
-	
-	/* set parent from root node to NULL */
-	BVHNode *tmp = &branches_array[0];
-	tmp->parent = NULL;
 
-	/* Most of bvhtree code relies on 1-leaf trees having at least one branch
-	 * We handle that special case here */
-	if (num_leafs == 1) {
-		BVHNode *root = &branches_array[0];
-		refit_kdop_hull(tree, root, 0, num_leafs);
-		root->main_axis = get_largest_axis(root->bv) / 2;
-		root->totnode = 1;
-		root->children[0] = leafs_array[0];
-		root->children[0]->parent = root;
-		return;
+	{
+		/* set parent from root node to NULL */
+		BVHNode *root = &branches_array[1];
+		root->parent = NULL;
+
+		/* Most of bvhtree code relies on 1-leaf trees having at least one branch
+		 * We handle that special case here */
+		if (num_leafs == 1) {
+			refit_kdop_hull(tree, root, 0, num_leafs);
+			root->main_axis = get_largest_axis(root->bv) / 2;
+			root->totnode = 1;
+			root->children[0] = leafs_array[0];
+			root->children[0]->parent = root;
+			return;
+		}
 	}
-
-	branches_array--;  /* Implicit trees use 1-based indexs */
 
 	build_implicit_tree_helper(tree, &data);
 
@@ -1053,9 +1052,6 @@ void BLI_bvhtree_free(BVHTree *tree)
 
 void BLI_bvhtree_balance(BVHTree *tree)
 {
-	int i;
-
-	BVHNode *branches_array = tree->nodearray + tree->totleaf;
 	BVHNode **leafs_array    = tree->nodes;
 
 	/* This function should only be called once
@@ -1063,13 +1059,14 @@ void BLI_bvhtree_balance(BVHTree *tree)
 	BLI_assert(tree->totbranch == 0);
 
 	/* Build the implicit tree */
-	non_recursive_bvh_div_nodes(tree, branches_array, leafs_array, tree->totleaf);
+	non_recursive_bvh_div_nodes(tree, tree->nodearray + (tree->totleaf - 1), leafs_array, tree->totleaf);
 
 	/* current code expects the branches to be linked to the nodes array
 	 * we perform that linkage here */
 	tree->totbranch = implicit_needed_branches(tree->tree_type, tree->totleaf);
-	for (i = 0; i < tree->totbranch; i++)
-		tree->nodes[tree->totleaf + i] = branches_array + i;
+	for (int i = 0; i < tree->totbranch; i++) {
+		tree->nodes[tree->totleaf + i] = &tree->nodearray[tree->totleaf + i];
+	}
 
 #ifdef USE_SKIP_LINKS
 	build_skip_links(tree, tree->nodes[tree->totleaf], NULL, NULL);
