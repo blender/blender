@@ -906,6 +906,15 @@ class WM_OT_path_open(Operator):
 
 
 def _wm_doc_get_id(doc_id, do_url=True, url_prefix=""):
+
+    def operator_exists_pair(a, b):
+        # Not fast, this is only for docs.
+        return b in dir(getattr(bpy.ops, a))
+
+    def operator_exists_single(a):
+        a, b = a.partition("_OT_")[::2]
+        return operator_exists_pair(a.lower(), b)
+
     id_split = doc_id.split(".")
     url = rna = None
 
@@ -919,7 +928,18 @@ def _wm_doc_get_id(doc_id, do_url=True, url_prefix=""):
         class_name, class_prop = id_split
 
         # an operator (common case - just button referencing an op)
-        if hasattr(bpy.types, class_name.upper() + "_OT_" + class_prop):
+        if operator_exists_pair(class_name, class_prop):
+            if do_url:
+                url = (
+                    "%s/bpy.ops.%s.html#bpy.ops.%s.%s" %
+                    (url_prefix, class_name, class_name, class_prop)
+                )
+            else:
+                rna = "bpy.ops.%s.%s" % (class_name, class_prop)
+        elif operator_exists_single(class_name):
+            # note: ignore the prop name since we don't have a way to link into it
+            class_name, class_prop = class_name.split("_OT_", 1)
+            class_name = class_name.lower()
             if do_url:
                 url = (
                     "%s/bpy.ops.%s.html#bpy.ops.%s.%s" %
@@ -928,48 +948,31 @@ def _wm_doc_get_id(doc_id, do_url=True, url_prefix=""):
             else:
                 rna = "bpy.ops.%s.%s" % (class_name, class_prop)
         else:
+            # an RNA setting, common case
             rna_class = getattr(bpy.types, class_name)
 
-            # an operator setting (selected from a running operator), rare case
-            # note: Py defined operators are subclass of Operator,
-            #       C defined operators are subclass of OperatorProperties.
-            #       we may need to check on this at some point.
-            if issubclass(rna_class, (bpy.types.Operator, bpy.types.OperatorProperties)):
-                # note: ignore the prop name since we don't have a way to link into it
-                class_name, class_prop = class_name.split("_OT_", 1)
-                class_name = class_name.lower()
+            # detect if this is a inherited member and use that name instead
+            rna_parent = rna_class.bl_rna
+            rna_prop = rna_parent.properties.get(class_prop)
+            if rna_prop:
+                rna_parent = rna_parent.base
+                while rna_parent and rna_prop == rna_parent.properties.get(class_prop):
+                    class_name = rna_parent.identifier
+                    rna_parent = rna_parent.base
+
                 if do_url:
                     url = (
-                        "%s/bpy.ops.%s.html#bpy.ops.%s.%s" %
+                        "%s/bpy.types.%s.html#bpy.types.%s.%s" %
                         (url_prefix, class_name, class_name, class_prop)
                     )
                 else:
-                    rna = "bpy.ops.%s.%s" % (class_name, class_prop)
+                    rna = "bpy.types.%s.%s" % (class_name, class_prop)
             else:
-                # an RNA setting, common case
-
-                # detect if this is a inherited member and use that name instead
-                rna_parent = rna_class.bl_rna
-                rna_prop = rna_parent.properties.get(class_prop)
-                if rna_prop:
-                    rna_parent = rna_parent.base
-                    while rna_parent and rna_prop == rna_parent.properties.get(class_prop):
-                        class_name = rna_parent.identifier
-                        rna_parent = rna_parent.base
-
-                    if do_url:
-                        url = (
-                            "%s/bpy.types.%s.html#bpy.types.%s.%s" %
-                            (url_prefix, class_name, class_name, class_prop)
-                        )
-                    else:
-                        rna = "bpy.types.%s.%s" % (class_name, class_prop)
+                # We assume this is custom property, only try to generate generic url/rna_id...
+                if do_url:
+                    url = ("%s/bpy.types.bpy_struct.html#bpy.types.bpy_struct.items" % (url_prefix,))
                 else:
-                    # We assume this is custom property, only try to generate generic url/rna_id...
-                    if do_url:
-                        url = ("%s/bpy.types.bpy_struct.html#bpy.types.bpy_struct.items" % (url_prefix,))
-                    else:
-                        rna = "bpy.types.bpy_struct"
+                    rna = "bpy.types.bpy_struct"
 
     return url if do_url else rna
 
@@ -985,9 +988,12 @@ class WM_OT_doc_view_manual(Operator):
     def _find_reference(rna_id, url_mapping, verbose=True):
         if verbose:
             print("online manual check for: '%s'... " % rna_id)
-        from fnmatch import fnmatch
+        from fnmatch import fnmatchcase
+        # XXX, for some reason all RNA ID's are stored lowercase
+        # Adding case into all ID's isn't worth the hassle so force lowercase.
+        rna_id = rna_id.lower()
         for pattern, url_suffix in url_mapping:
-            if fnmatch(rna_id, pattern):
+            if fnmatchcase(rna_id, pattern):
                 if verbose:
                     print("            match found: '%s' --> '%s'" % (pattern, url_suffix))
                 return url_suffix

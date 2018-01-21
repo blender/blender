@@ -1875,7 +1875,6 @@ static int area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	}
 
 	if (update_factor) {
-		const int dir = RNA_property_enum_get(op->ptr, prop_dir);
 		float fac = (float)(sd->delta + sd->origval - sd->origmin) / sd->origsize;
 		RNA_float_set(op->ptr, "factor", fac);
 
