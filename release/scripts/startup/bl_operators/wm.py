@@ -985,9 +985,12 @@ class WM_OT_doc_view_manual(Operator):
     def _find_reference(rna_id, url_mapping, verbose=True):
         if verbose:
             print("online manual check for: '%s'... " % rna_id)
-        from fnmatch import fnmatch
+        from fnmatch import fnmatchcase
+        # XXX, for some reason all RNA ID's are stored lowercase
+        # Adding case into all ID's isn't worth the hassle so force lowercase.
+        rna_id = rna_id.lower()
         for pattern, url_suffix in url_mapping:
-            if fnmatch(rna_id, pattern):
+            if fnmatchcase(rna_id, pattern):
                 if verbose:
                     print("            match found: '%s' --> '%s'" % (pattern, url_suffix))
                 return url_suffix
