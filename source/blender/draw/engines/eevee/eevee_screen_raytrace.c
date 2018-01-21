@@ -37,7 +37,8 @@
 enum {
 	SSR_RESOLVE      = (1 << 0),
 	SSR_FULL_TRACE   = (1 << 1),
-	SSR_MAX_SHADER   = (1 << 2),
+	SSR_AO           = (1 << 3),
+	SSR_MAX_SHADER   = (1 << 4),
 };
 
 static struct {
@@ -82,6 +83,9 @@ static struct GPUShader *eevee_effects_screen_raytrace_shader_get(int options)
 		}
 		if (options & SSR_FULL_TRACE) {
 			BLI_dynstr_appendf(ds_defines, "#define FULLRES\n");
+		}
+		if (options & SSR_AO) {
+			BLI_dynstr_appendf(ds_defines, "#define SSR_AO\n");
 		}
 		char *ssr_define_str = BLI_dynstr_get_cstring(ds_defines);
 		BLI_dynstr_free(ds_defines);
@@ -194,6 +198,7 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 
 	if ((effects->enabled_effects & EFFECT_SSR) != 0) {
 		int options = (effects->reflection_trace_full) ? SSR_FULL_TRACE : 0;
+		options |= ((effects->enabled_effects & EFFECT_GTAO) != 0) ? SSR_AO : 0;
 
 		struct GPUShader *trace_shader = eevee_effects_screen_raytrace_shader_get(options);
 		struct GPUShader *resolve_shader = eevee_effects_screen_raytrace_shader_get(SSR_RESOLVE | options);
@@ -237,17 +242,13 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 		DRW_shgroup_uniform_buffer(grp, "hitBuffer", &vedata->txl->ssr_hit_output);
 		DRW_shgroup_uniform_buffer(grp, "pdfBuffer", &stl->g_data->ssr_pdf_output);
 		DRW_shgroup_uniform_buffer(grp, "prevColorBuffer", &txl->color_double_buffer);
-		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
 		DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
 		DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
 		DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 		DRW_shgroup_uniform_int(grp, "neighborOffset", &effects->ssr_neighbor_ofs, 1);
 		if ((effects->enabled_effects & EFFECT_GTAO) != 0) {
+			DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
 			DRW_shgroup_uniform_buffer(grp, "horizonBuffer", &vedata->txl->gtao_horizons);
-		}
-		else {
-			/* Use ssr_specrough_input as fallback to avoid sampling problem on certain platform, see: T52593 */
-			DRW_shgroup_uniform_buffer(grp, "horizonBuffer", &txl->ssr_specrough_input);
 		}
 
 		DRW_shgroup_call_add(grp, quad, NULL);
