@@ -254,7 +254,7 @@ static void drawscredge_area(ScrArea *sa, int sizex, int sizey)
 }
 
 /**
- * Only for edge lines between areas, and the blended join arrows.
+ * Only for edge lines between areas.
  */
 void ED_screen_draw_edges(wmWindow *win)
 {
@@ -287,6 +287,12 @@ void ED_screen_draw_edges(wmWindow *win)
 	win->screen->do_draw = false;
 }
 
+/**
+ * The blended join arrows.
+ *
+ * \param sa1: Area from which the resultant originates.
+ * \param sa2: Target area that will be replaced.
+ */
 void ED_screen_draw_join_shape(ScrArea *sa1, ScrArea *sa2)
 {
 	glLineWidth(1);
