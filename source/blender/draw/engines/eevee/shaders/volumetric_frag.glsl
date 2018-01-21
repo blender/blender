@@ -4,9 +4,6 @@
 
 #define NODETREE_EXEC
 
-uniform ivec3 volumeTextureSize;
-uniform vec3 volume_jitter;
-
 #ifdef MESH_SHADER
 uniform mat4 volumeObjectMatrix;
 uniform vec3 volumeOrcoLoc;
@@ -33,7 +30,7 @@ layout(location = 3) out vec4 volumePhase;
 void main()
 {
 	ivec3 volume_cell = ivec3(gl_FragCoord.xy, slice);
-	vec3 ndc_cell = volume_to_ndc((vec3(volume_cell) + volume_jitter) / volumeTextureSize);
+	vec3 ndc_cell = volume_to_ndc((vec3(volume_cell) + volJitter.xyz) * volInvTexSize.xyz);
 
 	viewPosition = get_view_space_from_depth(ndc_cell.xy, ndc_cell.z);
 	worldPosition = transform_point(ViewMatrixInverse, viewPosition);

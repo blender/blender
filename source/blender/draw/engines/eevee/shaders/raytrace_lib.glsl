@@ -1,13 +1,5 @@
 #define MAX_STEP 256
 
-uniform vec4 ssrParameters;
-
-#define ssrQuality    ssrParameters.x
-#define ssrThickness  ssrParameters.y
-#define ssrPixelSize  ssrParameters.zw
-
-uniform float borderFadeFactor;
-
 float sample_depth(vec2 uv, int index, float lod)
 {
 #ifdef PLANAR_PROBE_RAYTRACE
@@ -233,7 +225,7 @@ vec3 raycast(
 float screen_border_mask(vec2 hit_co)
 {
 	const float margin = 0.003;
-	float atten = borderFadeFactor + margin; /* Screen percentage */
+	float atten = ssrBorderFac + margin; /* Screen percentage */
 	hit_co = smoothstep(margin, atten, hit_co) * (1 - smoothstep(1.0 - atten, 1.0 - margin, hit_co));
 
 	float screenfade = hit_co.x * hit_co.y;

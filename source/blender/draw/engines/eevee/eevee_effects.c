@@ -102,6 +102,7 @@ static void eevee_create_shader_downsample(void)
 
 void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
+	EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
 	EEVEE_TextureList *txl = vedata->txl;
@@ -169,8 +170,8 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 			mip_size[0] = floorf(fmaxf(1.0f, mip_size[0] / 2.0f));
 			mip_size[1] = floorf(fmaxf(1.0f, mip_size[1] / 2.0f));
 		}
-		stl->g_data->mip_ratio[i][0] = viewport_size[0] / (mip_size[0] * powf(2.0f, floorf(log2f(floorf(viewport_size[0] / mip_size[0])))));
-		stl->g_data->mip_ratio[i][1] = viewport_size[1] / (mip_size[1] * powf(2.0f, floorf(log2f(floorf(viewport_size[1] / mip_size[1])))));
+		common_data->mip_ratio[i][0] = viewport_size[0] / (mip_size[0] * powf(2.0f, floorf(log2f(floorf(viewport_size[0] / mip_size[0])))));
+		common_data->mip_ratio[i][1] = viewport_size[1] / (mip_size[1] * powf(2.0f, floorf(log2f(floorf(viewport_size[1] / mip_size[1])))));
 	}
 
 
@@ -209,12 +210,10 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	}
 }
 
-void EEVEE_effects_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_PassList *psl = vedata->psl;
-	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_TextureList *txl = vedata->txl;
-	EEVEE_EffectsInfo *effects = stl->effects;
 	int downsample_write = DRW_STATE_WRITE_DEPTH;
 
 	/* Intel gpu seems to have problem rendering to only depth format.
@@ -229,7 +228,7 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 		psl->color_downsample_ps = DRW_pass_create("Downsample", DRW_STATE_WRITE_COLOR);
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.downsample_sh, psl->color_downsample_ps);
 		DRW_shgroup_uniform_buffer(grp, "source", &e_data.color_src);
-		DRW_shgroup_uniform_float(grp, "fireflyFactor", &effects->ssr_firefly_fac, 1);
+		DRW_shgroup_uniform_float(grp, "fireflyFactor", &sldata->common_data.ssr_firefly_fac, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
 	}
 
@@ -401,7 +400,7 @@ void EEVEE_downsample_cube_buffer(EEVEE_Data *vedata, struct GPUFrameBuffer *fb_
 	DRW_stats_group_end();
 }
 
-void EEVEE_draw_effects(EEVEE_Data *vedata)
+void EEVEE_draw_effects(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
@@ -478,7 +477,7 @@ void EEVEE_draw_effects(EEVEE_Data *vedata)
 	}
 
 	/* Record pers matrix for the next frame. */
-	DRW_viewport_matrix_get(stl->g_data->prev_persmat, DRW_MAT_PERS);
+	DRW_viewport_matrix_get(sldata->common_data.prev_persmat, DRW_MAT_PERS);
 
 	/* Update double buffer status if render mode. */
 	if (DRW_state_is_image_render()) {

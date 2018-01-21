@@ -27,7 +27,7 @@
 
 #include "DRW_render.h"
 
-#include "BLI_dynstr.h"
+#include "BLI_string_utils.h"
 
 #include "eevee_private.h"
 #include "GPU_texture.h"
@@ -36,18 +36,26 @@ static struct {
 	struct GPUShader *sss_sh[3];
 } e_data = {NULL}; /* Engine data */
 
+extern char datatoc_common_uniforms_lib_glsl[];
 extern char datatoc_effect_subsurface_frag_glsl[];
 
 static void eevee_create_shader_subsurface(void)
 {
-	e_data.sss_sh[0] = DRW_shader_create_fullscreen(datatoc_effect_subsurface_frag_glsl, "#define FIRST_PASS\n");
-	e_data.sss_sh[1] = DRW_shader_create_fullscreen(datatoc_effect_subsurface_frag_glsl, "#define SECOND_PASS\n");
-	e_data.sss_sh[2] = DRW_shader_create_fullscreen(datatoc_effect_subsurface_frag_glsl, "#define SECOND_PASS\n"
-	                                                                                     "#define USE_SEP_ALBEDO\n");
+	char *frag_str = BLI_string_joinN(
+	        datatoc_common_uniforms_lib_glsl,
+	        datatoc_effect_subsurface_frag_glsl);
+
+	e_data.sss_sh[0] = DRW_shader_create_fullscreen(frag_str, "#define FIRST_PASS\n");
+	e_data.sss_sh[1] = DRW_shader_create_fullscreen(frag_str, "#define SECOND_PASS\n");
+	e_data.sss_sh[2] = DRW_shader_create_fullscreen(frag_str, "#define SECOND_PASS\n"
+	                                                          "#define USE_SEP_ALBEDO\n");
+
+	MEM_freeN(frag_str);
 }
 
-int EEVEE_subsurface_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+int EEVEE_subsurface_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
+	EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_EffectsInfo *effects = stl->effects;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
@@ -60,8 +68,8 @@ int EEVEE_subsurface_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedat
 
 	if (BKE_collection_engine_property_value_get_bool(props, "sss_enable")) {
 		effects->sss_sample_count = 1 + BKE_collection_engine_property_value_get_int(props, "sss_samples") * 2;
-		effects->sss_jitter_threshold = BKE_collection_engine_property_value_get_float(props, "sss_jitter_threshold");
 		effects->sss_separate_albedo = BKE_collection_engine_property_value_get_bool(props, "sss_separate_albedo");
+		common_data->sss_jitter_threshold = BKE_collection_engine_property_value_get_float(props, "sss_jitter_threshold");
 
 		/* Shaders */
 		if (!e_data.sss_sh[0]) {
@@ -117,7 +125,8 @@ void EEVEE_subsurface_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 	}
 }
 
-void EEVEE_subsurface_add_pass(EEVEE_Data *vedata, unsigned int sss_id, struct GPUUniformBuffer *sss_profile)
+void EEVEE_subsurface_add_pass(
+        EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, unsigned int sss_id, struct GPUUniformBuffer *sss_profile)
 {
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 	EEVEE_TextureList *txl = vedata->txl;
@@ -127,23 +136,21 @@ void EEVEE_subsurface_add_pass(EEVEE_Data *vedata, unsigned int sss_id, struct G
 	struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
 
 	DRWShadingGroup *grp = DRW_shgroup_create(e_data.sss_sh[0], psl->sss_blur_ps);
-	DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)vedata->stl->g_data->viewvecs, 2);
 	DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
 	DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth);
 	DRW_shgroup_uniform_buffer(grp, "sssData", &txl->sss_data);
 	DRW_shgroup_uniform_block(grp, "sssProfile", sss_profile);
-	DRW_shgroup_uniform_float(grp, "jitterThreshold", &effects->sss_jitter_threshold, 1);
+	DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 	DRW_shgroup_stencil_mask(grp, sss_id);
 	DRW_shgroup_call_add(grp, quad, NULL);
 
 	struct GPUShader *sh = (effects->sss_separate_albedo) ? e_data.sss_sh[2] : e_data.sss_sh[1];
 	grp = DRW_shgroup_create(sh, psl->sss_resolve_ps);
-	DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)vedata->stl->g_data->viewvecs, 2);
 	DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
 	DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth);
 	DRW_shgroup_uniform_buffer(grp, "sssData", &txl->sss_blur);
 	DRW_shgroup_uniform_block(grp, "sssProfile", sss_profile);
-	DRW_shgroup_uniform_float(grp, "jitterThreshold", &effects->sss_jitter_threshold, 1);
+	DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 	DRW_shgroup_stencil_mask(grp, sss_id);
 	DRW_shgroup_call_add(grp, quad, NULL);
 

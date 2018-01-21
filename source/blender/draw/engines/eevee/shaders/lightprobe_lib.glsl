@@ -1,10 +1,7 @@
 /* ----------- Uniforms --------- */
 
 uniform sampler2DArray probePlanars;
-uniform float lodPlanarMax;
-
 uniform sampler2DArray probeCubes;
-uniform float lodCubeMax;
 
 /* ----------- Structures --------- */
 
@@ -162,12 +159,12 @@ vec3 probe_evaluate_cube(float id, CubeData cd, vec3 W, vec3 R, float roughness)
 	float fac = saturate(original_roughness * 2.0 - 1.0);
 	R = mix(intersection, R, fac * fac);
 
-	return textureLod_octahedron(probeCubes, vec4(R, id), roughness * lodCubeMax, lodCubeMax).rgb;
+	return textureLod_octahedron(probeCubes, vec4(R, id), roughness * prbLodCubeMax, prbLodCubeMax).rgb;
 }
 
 vec3 probe_evaluate_world_spec(vec3 R, float roughness)
 {
-	return textureLod_octahedron(probeCubes, vec4(R, 0.0), roughness * lodCubeMax, lodCubeMax).rgb;
+	return textureLod_octahedron(probeCubes, vec4(R, 0.0), roughness * prbLodCubeMax, prbLodCubeMax).rgb;
 }
 
 vec3 probe_evaluate_planar(

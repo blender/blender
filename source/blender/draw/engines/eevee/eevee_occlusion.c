@@ -44,12 +44,14 @@ static struct {
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_ambient_occlusion_lib_glsl[];
+extern char datatoc_common_uniforms_lib_glsl[];
 extern char datatoc_bsdf_common_lib_glsl[];
 extern char datatoc_effect_gtao_frag_glsl[];
 
 static void eevee_create_shader_occlusion(void)
 {
 	char *frag_str = BLI_string_joinN(
+	        datatoc_common_uniforms_lib_glsl,
 	        datatoc_bsdf_common_lib_glsl,
 	        datatoc_ambient_occlusion_lib_glsl,
 	        datatoc_effect_gtao_frag_glsl);
@@ -61,12 +63,12 @@ static void eevee_create_shader_occlusion(void)
 	MEM_freeN(frag_str);
 }
 
-int EEVEE_occlusion_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
+	EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
 	EEVEE_TextureList *txl = vedata->txl;
-	EEVEE_EffectsInfo *effects = stl->effects;
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	ViewLayer *view_layer = draw_ctx->view_layer;
@@ -82,22 +84,19 @@ int EEVEE_occlusion_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata
 			eevee_create_shader_occlusion();
 		}
 
-		effects->ao_dist = BKE_collection_engine_property_value_get_float(props, "gtao_distance");
-		effects->ao_factor = BKE_collection_engine_property_value_get_float(props, "gtao_factor");
-		effects->ao_quality = 1.0f - BKE_collection_engine_property_value_get_float(props, "gtao_quality");
+		common_data->ao_dist = BKE_collection_engine_property_value_get_float(props, "gtao_distance");
+		common_data->ao_factor = BKE_collection_engine_property_value_get_float(props, "gtao_factor");
+		common_data->ao_quality = 1.0f - BKE_collection_engine_property_value_get_float(props, "gtao_quality");
 
-		effects->ao_settings = 1.0; /* USE_AO */
+		common_data->ao_settings = 1.0; /* USE_AO */
 		if (BKE_collection_engine_property_value_get_bool(props, "gtao_use_bent_normals")) {
-			effects->ao_settings += 2.0; /* USE_BENT_NORMAL */
+			common_data->ao_settings += 2.0; /* USE_BENT_NORMAL */
 		}
 		if (BKE_collection_engine_property_value_get_bool(props, "gtao_denoise")) {
-			effects->ao_settings += 4.0; /* USE_DENOISE */
+			common_data->ao_settings += 4.0; /* USE_DENOISE */
 		}
 
-		effects->ao_bounce_fac = (float)BKE_collection_engine_property_value_get_bool(props, "gtao_bounce");
-
-		effects->ao_texsize[0] = ((int)viewport_size[0]);
-		effects->ao_texsize[1] = ((int)viewport_size[1]);
+		common_data->ao_bounce_fac = (float)BKE_collection_engine_property_value_get_bool(props, "gtao_bounce");
 
 		DRWFboTexture tex = {&txl->gtao_horizons, DRW_TEX_RGBA_8, 0};
 
@@ -119,12 +118,12 @@ int EEVEE_occlusion_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata
 	/* Cleanup */
 	DRW_TEXTURE_FREE_SAFE(txl->gtao_horizons);
 	DRW_FRAMEBUFFER_FREE_SAFE(fbl->gtao_fb);
-	effects->ao_settings = 0.0f;
+	common_data->ao_settings = 0.0f;
 
 	return 0;
 }
 
-void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_PassList *psl = vedata->psl;
 	EEVEE_StorageList *stl = vedata->stl;
@@ -148,36 +147,30 @@ void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data 
 		 **/
 		psl->ao_horizon_search = DRW_pass_create("GTAO Horizon Search", DRW_STATE_WRITE_COLOR);
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.gtao_sh, psl->ao_horizon_search);
+		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
 		DRW_shgroup_uniform_buffer(grp, "maxzBuffer", &txl->maxzbuffer);
 		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &effects->ao_src_depth);
-		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
-		DRW_shgroup_uniform_vec2(grp, "mipRatio[0]", (float *)stl->g_data->mip_ratio, 10);
-		DRW_shgroup_uniform_vec4(grp, "aoParameters[0]", &stl->effects->ao_dist, 2);
-		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
+		DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 		DRW_shgroup_call_add(grp, quad, NULL);
 
 		psl->ao_horizon_search_layer = DRW_pass_create("GTAO Horizon Search Layer", DRW_STATE_WRITE_COLOR);
 		grp = DRW_shgroup_create(e_data.gtao_layer_sh, psl->ao_horizon_search_layer);
+		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
 		DRW_shgroup_uniform_buffer(grp, "maxzBuffer", &txl->maxzbuffer);
 		DRW_shgroup_uniform_buffer(grp, "depthBufferLayered", &effects->ao_src_depth);
+		DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 		DRW_shgroup_uniform_int(grp, "layer", &stl->effects->ao_depth_layer, 1);
-		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
-		DRW_shgroup_uniform_vec2(grp, "mipRatio[0]", (float *)stl->g_data->mip_ratio, 10);
-		DRW_shgroup_uniform_vec4(grp, "aoParameters[0]", &stl->effects->ao_dist, 2);
-		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
 		DRW_shgroup_call_add(grp, quad, NULL);
 
 		if (G.debug_value == 6) {
 			psl->ao_horizon_debug = DRW_pass_create("GTAO Horizon Debug", DRW_STATE_WRITE_COLOR);
 			grp = DRW_shgroup_create(e_data.gtao_debug_sh, psl->ao_horizon_debug);
+			DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
 			DRW_shgroup_uniform_buffer(grp, "maxzBuffer", &txl->maxzbuffer);
 			DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth);
 			DRW_shgroup_uniform_buffer(grp, "normalBuffer", &txl->ssr_normal_input);
 			DRW_shgroup_uniform_buffer(grp, "horizonBuffer", &txl->gtao_horizons);
-			DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
-			DRW_shgroup_uniform_vec2(grp, "mipRatio[0]", (float *)stl->g_data->mip_ratio, 10);
-			DRW_shgroup_uniform_vec4(grp, "aoParameters[0]", &stl->effects->ao_dist, 2);
-			DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
+			DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 			DRW_shgroup_call_add(grp, quad, NULL);
 		}
 	}

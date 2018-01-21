@@ -13,28 +13,20 @@ uniform sampler3D volumePhase;
 uniform sampler3D historyScattering;
 uniform sampler3D historyTransmittance;
 
-uniform vec3 volume_jitter;
-uniform float volume_history_alpha;
-uniform int light_count;
-uniform mat4 PastViewProjectionMatrix;
-
 flat in int slice;
 
 layout(location = 0) out vec4 outScattering;
 layout(location = 1) out vec4 outTransmittance;
 
-#define VOLUME_LIGHTING
-
 void main()
 {
-	vec3 volume_tex_size = vec3(textureSize(volumeScattering, 0));
 	ivec3 volume_cell = ivec3(gl_FragCoord.xy, slice);
 
 	/* Emission */
 	outScattering = texelFetch(volumeEmission, volume_cell, 0);
 	outTransmittance = texelFetch(volumeExtinction, volume_cell, 0);
 	vec3 s_scattering = texelFetch(volumeScattering, volume_cell, 0).rgb;
-	vec3 volume_ndc = volume_to_ndc((vec3(volume_cell) + volume_jitter) / volume_tex_size);
+	vec3 volume_ndc = volume_to_ndc((vec3(volume_cell) + volJitter.xyz) * volInvTexSize.xyz);
 	vec3 worldPosition = get_world_space_from_depth(volume_ndc.xy, volume_ndc.z);
 	vec3 wdir = cameraVec;
 
@@ -45,7 +37,7 @@ void main()
 	outScattering.rgb += irradiance_volumetric(worldPosition) * s_scattering * phase_function_isotropic();
 
 #ifdef VOLUME_LIGHTING /* Lights */
-	for (int i = 0; i < MAX_LIGHT && i < light_count; ++i) {
+	for (int i = 0; i < MAX_LIGHT && i < laNumLight; ++i) {
 
 		LightData ld = lights_data[i];
 
@@ -63,16 +55,16 @@ void main()
 
 	/* Temporal supersampling */
 	/* Note : this uses the cell non-jittered position (texel center). */
-	vec3 curr_ndc = volume_to_ndc(vec3(gl_FragCoord.xy, float(slice) + 0.5) / volume_tex_size);
+	vec3 curr_ndc = volume_to_ndc(vec3(gl_FragCoord.xy, float(slice) + 0.5) * volInvTexSize.xyz);
 	vec3 wpos = get_world_space_from_depth(curr_ndc.xy, curr_ndc.z);
-	vec3 prev_ndc = project_point(PastViewProjectionMatrix, wpos);
+	vec3 prev_ndc = project_point(pastViewProjectionMatrix, wpos);
 	vec3 prev_volume = ndc_to_volume(prev_ndc * 0.5 + 0.5);
 
-	if ((volume_history_alpha > 0.0) && all(greaterThan(prev_volume, vec3(0.0))) && all(lessThan(prev_volume, vec3(1.0)))) {
+	if ((volHistoryAlpha > 0.0) && all(greaterThan(prev_volume, vec3(0.0))) && all(lessThan(prev_volume, vec3(1.0)))) {
 		vec4 h_Scattering = texture(historyScattering, prev_volume);
 		vec4 h_Transmittance = texture(historyTransmittance, prev_volume);
-		outScattering = mix(outScattering, h_Scattering, volume_history_alpha);
-		outTransmittance = mix(outTransmittance, h_Transmittance, volume_history_alpha);
+		outScattering = mix(outScattering, h_Scattering, volHistoryAlpha);
+		outTransmittance = mix(outTransmittance, h_Transmittance, volHistoryAlpha);
 	}
 
 	/* Catch NaNs */

@@ -66,10 +66,14 @@ static void eevee_engine_init(void *ved)
 	                    (int)viewport_size[0], (int)viewport_size[1],
 	                    &tex, 1);
 
+	if (sldata->common_ubo == NULL) {
+		sldata->common_ubo = DRW_uniformbuffer_create(sizeof(sldata->common_data), &sldata->common_data);
+	}
+
 	/* EEVEE_effects_init needs to go first for TAA */
 	EEVEE_effects_init(sldata, vedata);
 
-	EEVEE_materials_init(stl, fbl);
+	EEVEE_materials_init(sldata, stl, fbl);
 	EEVEE_lights_init(sldata);
 	EEVEE_lightprobes_init(sldata, vedata);
 
@@ -188,6 +192,9 @@ static void eevee_draw_background(void *vedata)
 		EEVEE_lightprobes_refresh(sldata, vedata);
 		DRW_stats_group_end();
 
+		/* Update common buffer after probe rendering. */
+		DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
+
 		/* Refresh shadows */
 		DRW_stats_group_start("Shadows");
 		EEVEE_draw_shadows(sldata, psl);
@@ -263,7 +270,7 @@ static void eevee_draw_background(void *vedata)
 
 		/* Post Process */
 		DRW_stats_group_start("Post FX");
-		EEVEE_draw_effects(vedata);
+		EEVEE_draw_effects(sldata, vedata);
 		DRW_stats_group_end();
 
 		if ((stl->effects->taa_current_sample > 1) && !DRW_state_is_image_render()) {

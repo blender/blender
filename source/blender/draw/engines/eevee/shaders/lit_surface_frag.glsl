@@ -2,14 +2,6 @@
 #ifndef LIT_SURFACE_UNIFORM
 #define LIT_SURFACE_UNIFORM
 
-uniform int light_count;
-uniform int probe_count;
-uniform int grid_count;
-uniform int planar_count;
-
-uniform bool specToggle;
-uniform bool ssrToggle;
-
 uniform float refractionDepth;
 
 #ifndef UTIL_TEX
@@ -28,8 +20,6 @@ flat in vec3 viewNormal;
 in vec3 worldNormal;
 in vec3 viewNormal;
 #endif
-
-uniform float maxRoughness;
 
 #endif /* LIT_SURFACE_UNIFORM */
 
@@ -187,7 +177,7 @@ void CLOSURE_NAME(
 	norm_view = normalize(cross(norm_view, N)); /* Normal facing view */
 #endif
 
-	for (int i = 0; i < MAX_LIGHT && i < light_count; ++i) {
+	for (int i = 0; i < MAX_LIGHT && i < laNumLight; ++i) {
 		LightData ld = lights_data[i];
 
 		vec4 l_vector; /* Non-Normalized Light Vector with length in last component. */
@@ -266,7 +256,7 @@ void CLOSURE_NAME(
 	/*      Planar Reflections      */
 	/* ---------------------------- */
 
-	for (int i = 0; i < MAX_PLANAR && i < planar_count && spec_accum.a < 0.999; ++i) {
+	for (int i = 0; i < MAX_PLANAR && i < prbNumPlanar && spec_accum.a < 0.999; ++i) {
 		PlanarData pd = planars_data[i];
 
 		/* Fade on geometric normal. */
@@ -312,11 +302,11 @@ void CLOSURE_NAME(
 	/*   Screen Space Refraction    */
 	/* ---------------------------- */
 	#ifdef USE_REFRACTION
-	if (ssrToggle && roughness < maxRoughness + 0.2) {
+	if (ssrToggle && roughness < ssrMaxRoughness + 0.2) {
 		/* Find approximated position of the 2nd refraction event. */
 		vec3 refr_vpos = (refractionDepth > 0.0) ? transform_point(ViewMatrix, refr_pos) : viewPosition;
 		vec4 trans = screen_space_refraction(refr_vpos, N, refr_V, final_ior, roughnessSquared, rand);
-		trans.a *= smoothstep(maxRoughness + 0.2, maxRoughness, roughness);
+		trans.a *= smoothstep(ssrMaxRoughness + 0.2, ssrMaxRoughness, roughness);
 		accumulate_light(trans.rgb, trans.a, refr_accum);
 	}
 	#endif
@@ -336,7 +326,7 @@ void CLOSURE_NAME(
 	#endif
 
 	/* Starts at 1 because 0 is world probe */
-	for (int i = 1; ACCUM.a < 0.999 && i < probe_count && i < MAX_PROBE; ++i) {
+	for (int i = 1; ACCUM.a < 0.999 && i < prbNumRenderCube && i < MAX_PROBE; ++i) {
 		CubeData cd = probes_data[i];
 
 		float fade = probe_attenuation_cube(cd, worldPosition);
@@ -448,7 +438,7 @@ void CLOSURE_NAME(
 	/*       Irradiance Grids       */
 	/* ---------------------------- */
 	/* Start at 1 because 0 is world irradiance */
-	for (int i = 1; i < MAX_GRID && i < grid_count && diff_accum.a < 0.999; ++i) {
+	for (int i = 1; i < MAX_GRID && i < prbNumRenderGrid && diff_accum.a < 0.999; ++i) {
 		GridData gd = grids_data[i];
 
 		vec3 localpos;
@@ -463,7 +453,7 @@ void CLOSURE_NAME(
 	/* ---------------------------- */
 	/*        World Diffuse         */
 	/* ---------------------------- */
-	if (diff_accum.a < 0.999 && grid_count > 0) {
+	if (diff_accum.a < 0.999 && prbNumRenderGrid > 0) {
 		vec3 diff = probe_evaluate_world_diff(bent_normal);
 		accumulate_light(diff, 1.0, diff_accum);
 	}

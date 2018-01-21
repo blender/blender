@@ -50,6 +50,7 @@ static struct {
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_ambient_occlusion_lib_glsl[];
+extern char datatoc_common_uniforms_lib_glsl[];
 extern char datatoc_bsdf_common_lib_glsl[];
 extern char datatoc_bsdf_sampling_lib_glsl[];
 extern char datatoc_octahedron_lib_glsl[];
@@ -61,6 +62,7 @@ static struct GPUShader *eevee_effects_screen_raytrace_shader_get(int options)
 {
 	if (e_data.ssr_sh[options] == NULL) {
 		char *ssr_shader_str = BLI_string_joinN(
+		        datatoc_common_uniforms_lib_glsl,
 		        datatoc_bsdf_common_lib_glsl,
 		        datatoc_bsdf_sampling_lib_glsl,
 		        datatoc_octahedron_lib_glsl,
@@ -93,8 +95,9 @@ static struct GPUShader *eevee_effects_screen_raytrace_shader_get(int options)
 	return e_data.ssr_sh[options];
 }
 
-int EEVEE_screen_raytrace_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+int EEVEE_screen_raytrace_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
+	EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
 	EEVEE_TextureList *txl = vedata->txl;
@@ -108,8 +111,8 @@ int EEVEE_screen_raytrace_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *
 	                                                        RE_engine_id_BLENDER_EEVEE);
 
 	/* Compute pixel size, (shared with contact shadows) */
-	copy_v2_v2(effects->ssr_pixelsize, viewport_size);
-	invert_v2(effects->ssr_pixelsize);
+	copy_v2_v2(common_data->ssr_pixelsize, viewport_size);
+	invert_v2(common_data->ssr_pixelsize);
 
 	if (BKE_collection_engine_property_value_get_bool(props, "ssr_enable")) {
 		const bool use_refraction = BKE_collection_engine_property_value_get_bool(props, "ssr_refraction");
@@ -124,16 +127,15 @@ int EEVEE_screen_raytrace_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *
 
 		bool prev_trace_full = effects->reflection_trace_full;
 		effects->reflection_trace_full = !BKE_collection_engine_property_value_get_bool(props, "ssr_halfres");
-		effects->ssr_use_normalization = BKE_collection_engine_property_value_get_bool(props, "ssr_normalize_weight");
-		effects->ssr_quality = 1.0f - 0.95f * BKE_collection_engine_property_value_get_float(props, "ssr_quality");
-		effects->ssr_thickness = BKE_collection_engine_property_value_get_float(props, "ssr_thickness");
-		effects->ssr_border_fac = BKE_collection_engine_property_value_get_float(props, "ssr_border_fade");
-		effects->ssr_firefly_fac = BKE_collection_engine_property_value_get_float(props, "ssr_firefly_fac");
-		effects->ssr_max_roughness = BKE_collection_engine_property_value_get_float(props, "ssr_max_roughness");
-		effects->ssr_brdf_bias = 0.1f + effects->ssr_quality * 0.6f; /* Range [0.1, 0.7]. */
+		common_data->ssr_thickness = BKE_collection_engine_property_value_get_float(props, "ssr_thickness");
+		common_data->ssr_border_fac = BKE_collection_engine_property_value_get_float(props, "ssr_border_fade");
+		common_data->ssr_firefly_fac = BKE_collection_engine_property_value_get_float(props, "ssr_firefly_fac");
+		common_data->ssr_max_roughness = BKE_collection_engine_property_value_get_float(props, "ssr_max_roughness");
+		common_data->ssr_quality = 1.0f - 0.95f * BKE_collection_engine_property_value_get_float(props, "ssr_quality");
+		common_data->ssr_brdf_bias = 0.1f + common_data->ssr_quality * 0.6f; /* Range [0.1, 0.7]. */
 
-		if (effects->ssr_firefly_fac < 1e-8f) {
-			effects->ssr_firefly_fac = FLT_MAX;
+		if (common_data->ssr_firefly_fac < 1e-8f) {
+			common_data->ssr_firefly_fac = FLT_MAX;
 		}
 
 		if (prev_trace_full != effects->reflection_trace_full) {
@@ -214,16 +216,11 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
 		DRW_shgroup_uniform_buffer(grp, "normalBuffer", &txl->ssr_normal_input);
 		DRW_shgroup_uniform_buffer(grp, "specroughBuffer", &txl->ssr_specrough_input);
-		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
 		DRW_shgroup_uniform_buffer(grp, "maxzBuffer", &txl->maxzbuffer);
-		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
-		DRW_shgroup_uniform_vec2(grp, "mipRatio[0]", (float *)stl->g_data->mip_ratio, 10);
-		DRW_shgroup_uniform_vec4(grp, "ssrParameters", &effects->ssr_quality, 1);
-		DRW_shgroup_uniform_int(grp, "planar_count", &sldata->probes->num_planar, 1);
-		DRW_shgroup_uniform_float(grp, "maxRoughness", &effects->ssr_max_roughness, 1);
-		DRW_shgroup_uniform_float(grp, "brdfBias", &effects->ssr_brdf_bias, 1);
 		DRW_shgroup_uniform_buffer(grp, "planarDepth", &vedata->txl->planar_depth);
+		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
 		DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
+		DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 		if (!effects->reflection_trace_full) {
 			DRW_shgroup_uniform_ivec2(grp, "halfresOffset", effects->ssr_halfres_ofs, 1);
 		}
@@ -234,30 +231,18 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
 		DRW_shgroup_uniform_buffer(grp, "normalBuffer", &txl->ssr_normal_input);
 		DRW_shgroup_uniform_buffer(grp, "specroughBuffer", &txl->ssr_specrough_input);
-		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
-		DRW_shgroup_uniform_buffer(grp, "prevColorBuffer", &txl->color_double_buffer);
-		DRW_shgroup_uniform_mat4(grp, "PastViewProjectionMatrix", (float *)stl->g_data->prev_persmat);
-		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)stl->g_data->viewvecs, 2);
-		DRW_shgroup_uniform_int(grp, "planar_count", &sldata->probes->num_planar, 1);
-		DRW_shgroup_uniform_int(grp, "probe_count", &sldata->probes->num_render_cube, 1);
-		DRW_shgroup_uniform_vec2(grp, "mipRatio[0]", (float *)stl->g_data->mip_ratio, 10);
-		DRW_shgroup_uniform_float(grp, "borderFadeFactor", &effects->ssr_border_fac, 1);
-		DRW_shgroup_uniform_float(grp, "maxRoughness", &effects->ssr_max_roughness, 1);
-		DRW_shgroup_uniform_float(grp, "lodCubeMax", &sldata->probes->lod_cube_max, 1);
-		DRW_shgroup_uniform_float(grp, "lodPlanarMax", &sldata->probes->lod_planar_max, 1);
-		DRW_shgroup_uniform_float(grp, "fireflyFactor", &effects->ssr_firefly_fac, 1);
-		DRW_shgroup_uniform_float(grp, "brdfBias", &effects->ssr_brdf_bias, 1);
-		DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
-		DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
 		DRW_shgroup_uniform_buffer(grp, "probeCubes", &sldata->probe_pool);
 		DRW_shgroup_uniform_buffer(grp, "probePlanars", &vedata->txl->planar_pool);
 		DRW_shgroup_uniform_buffer(grp, "planarDepth", &vedata->txl->planar_depth);
 		DRW_shgroup_uniform_buffer(grp, "hitBuffer", &vedata->txl->ssr_hit_output);
 		DRW_shgroup_uniform_buffer(grp, "pdfBuffer", &stl->g_data->ssr_pdf_output);
+		DRW_shgroup_uniform_buffer(grp, "prevColorBuffer", &txl->color_double_buffer);
+		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
+		DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
+		DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
+		DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 		DRW_shgroup_uniform_int(grp, "neighborOffset", &effects->ssr_neighbor_ofs, 1);
-
-		DRW_shgroup_uniform_vec4(grp, "aoParameters[0]", &effects->ao_dist, 2);
-		if (effects->use_ao) {
+		if ((effects->enabled_effects & EFFECT_GTAO) != 0) {
 			DRW_shgroup_uniform_buffer(grp, "horizonBuffer", &vedata->txl->gtao_horizons);
 		}
 		else {

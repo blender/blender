@@ -343,18 +343,6 @@ typedef struct EEVEE_ShadowCasterBuffer {
 	unsigned int count;
 } EEVEE_ShadowCasterBuffer;
 
-/* ************ VOLUME DATA ************ */
-typedef struct EEVEE_VolumetricsInfo {
-	float integration_step_count, shadow_step_count, sample_distribution, light_clamp;
-	float integration_start, integration_end;
-	float depth_param[3], history_alpha;
-	bool use_lights, use_volume_shadows;
-	int froxel_tex_size[3];
-	float inv_tex_size[3];
-	float volume_coord_scale[2];
-	float jitter[3];
-} EEVEE_VolumetricsInfo;
-
 /* ************ LIGHT DATA ************* */
 typedef struct EEVEE_LampsInfo {
 	int num_light, cache_num_light;
@@ -440,12 +428,9 @@ typedef struct EEVEE_LightProbesInfo {
 	int num_bounce;
 	int cubemap_res;
 	int target_size;
-	int irradiance_vis_size;
 	int grid_initialized;
 	struct World *prev_world;
-	/* Actual number of probes that have datas. */
-	int num_render_cube;
-	int num_render_grid;
+	bool do_cube_update;
 	/* For rendering probes */
 	float probemat[6][4][4];
 	int layer;
@@ -461,10 +446,6 @@ typedef struct EEVEE_LightProbesInfo {
 	float visibility_range;
 	float visibility_blur;
 	int shres;
-	int shnbr;
-	int specular_toggle;
-	int ssr_toggle;
-	int sss_toggle;
 	/* List of probes in the scene. */
 	/* XXX This is fragile, can get out of sync quickly. */
 	struct Object *probes_cube_ref[MAX_PROBE];
@@ -487,30 +468,15 @@ enum {
 typedef struct EEVEE_EffectsInfo {
 	int enabled_effects;
 	bool swap_double_buffer;
-
 	/* SSSS */
 	int sss_sample_count;
-	float sss_jitter_threshold;
 	bool sss_separate_albedo;
-
 	/* Volumetrics */
-	bool use_volumetrics;
 	int volume_current_sample;
-
 	/* SSR */
-	bool use_ssr;
 	bool reflection_trace_full;
-	bool ssr_use_normalization;
 	int ssr_neighbor_ofs;
 	int ssr_halfres_ofs[2];
-	float ssr_brdf_bias;
-	float ssr_firefly_fac;
-	float ssr_border_fac;
-	float ssr_max_roughness;
-	float ssr_quality;
-	float ssr_thickness;
-	float ssr_pixelsize[2];
-
 	/* Temporal Anti Aliasing */
 	int taa_current_sample;
 	int taa_render_sample;
@@ -522,29 +488,19 @@ typedef struct EEVEE_EffectsInfo {
 	float overide_persinv[4][4];
 	float overide_winmat[4][4];
 	float overide_wininv[4][4];
-
 	/* Ambient Occlusion */
-	bool use_ao, use_bent_normals;
-	float ao_dist, pad1, ao_factor, pad2;
-	float ao_offset, ao_bounce_fac, ao_quality, ao_settings;
-	float ao_sample_nbr;
-	int ao_texsize[2], hori_tex_layers;
 	int ao_depth_layer;
 	struct GPUTexture *ao_src_depth; /* pointer copy */
-
 	/* Motion Blur */
 	float current_ndc_to_world[4][4];
 	float past_world_to_ndc[4][4];
-	float tmp_mat[4][4];
 	int motion_blur_samples;
-
 	/* Depth Of Field */
 	float dof_near_far[2];
 	float dof_params[3];
 	float dof_bokeh[4];
 	float dof_layer_select[2];
 	int dof_target_size[2];
-
 	/* Bloom */
 	int bloom_iteration_ct;
 	float source_texel_size[2];
@@ -557,7 +513,6 @@ typedef struct EEVEE_EffectsInfo {
 	float unf_source_texel_size[2];
 	struct GPUTexture *unf_source_buffer; /* pointer copy */
 	struct GPUTexture *unf_base_buffer; /* pointer copy */
-
 	/* Not alloced, just a copy of a *GPUtexture in EEVEE_TextureList. */
 	struct GPUTexture *source_buffer;       /* latest updated texture */
 	struct GPUFrameBuffer *target_buffer;   /* next target to render to */
@@ -577,6 +532,58 @@ enum {
 	EFFECT_NORMAL_BUFFER       = (1 << 10), /* Not really an effect but a feature */
 	EFFECT_SSS                 = (1 << 11),
 };
+
+/* ***************** COMMON DATA **************** */
+
+/* Common uniform buffer containing all "constant" data over the whole drawing pipeline. */
+/* !! CAUTION !!
+ * - [i]vec3 need to be paded to [i]vec4 (even in ubo declaration).
+ * - Make sure that [i]vec4 start at a multiple of 16 bytes.
+ * - Arrays of vec2/vec3 are padded as arrays of vec4.
+ * - sizeof(bool) == sizeof(int) in GLSL so use int in C */
+typedef struct EEVEE_CommonUniformBuffer {
+	float prev_persmat[4][4]; /* mat4 */
+	float view_vecs[2][4]; /* vec4[2] */
+	float mip_ratio[10][4]; /* vec2[10] */
+	/* Ambient Occlusion */
+	/* -- 16 byte aligned -- */
+	float ao_dist, pad1, ao_factor, pad2; /* vec4 */
+	float ao_offset, ao_bounce_fac, ao_quality, ao_settings; /* vec4 */
+	/* Volumetric */
+	/* -- 16 byte aligned -- */
+	int vol_tex_size[3], pad3; /* ivec3 */
+	float vol_depth_param[3], pad4; /* vec3 */
+	float vol_inv_tex_size[3], pad5; /* vec3 */
+	float vol_jitter[3], pad6; /* vec3 */
+	float vol_coord_scale[2], pad7[2]; /* vec2 */
+	/* -- 16 byte aligned -- */
+	float vol_history_alpha; /* float */
+	float vol_light_clamp; /* float */
+	float vol_shadow_steps; /* float */
+	int vol_use_lights; /* bool */
+	/* Screen Space Reflections */
+	/* -- 16 byte aligned -- */
+	float ssr_quality, ssr_thickness, ssr_pixelsize[2]; /* vec4 */
+	float ssr_border_fac; /* float */
+	float ssr_max_roughness; /* float */
+	float ssr_firefly_fac; /* float */
+	float ssr_brdf_bias; /* float */
+	int ssr_toggle; /* bool */
+	/* SubSurface Scattering */
+	float sss_jitter_threshold; /* float */
+	int sss_toggle; /* bool */
+	/* Specular */
+	int spec_toggle; /* bool */
+	/* Lamps */
+	int la_num_light; /* int */
+	/* Probes */
+	int prb_num_planar; /* int */
+	int prb_num_render_cube; /* int */
+	int prb_num_render_grid; /* int */
+	int prb_irradiance_vis_size; /* int */
+	float prb_lod_cube_max; /* float */
+	float prb_lod_planar_max; /* float */
+} EEVEE_CommonUniformBuffer;
 
 /* ************** SCENE LAYER DATA ************** */
 typedef struct EEVEE_ViewLayerData {
@@ -615,10 +622,9 @@ typedef struct EEVEE_ViewLayerData {
 	struct GPUTexture *irradiance_pool;
 	struct GPUTexture *irradiance_rt;
 
-	struct ListBase probe_queue; /* List of probes to update */
-
-	/* Volumetrics */
-	struct EEVEE_VolumetricsInfo *volumetrics;
+	/* Common Uniform Buffer */
+	struct EEVEE_CommonUniformBuffer common_data;
+	struct GPUUniformBuffer *common_ubo;
 } EEVEE_ViewLayerData;
 
 /* ************ OBJECT DATA ************ */
@@ -712,15 +718,11 @@ typedef struct EEVEE_PrivateData {
 	struct GPUTexture *ssr_pdf_output;
 	struct GPUTexture *gtao_horizons_debug;
 	float background_alpha; /* TODO find a better place for this. */
-	float viewvecs[2][4];
 	/* For planar probes */
-	float texel_size[2];
-	/* To correct mip level texel mis-alignement */
-	float mip_ratio[10][2]; /* TODO put in a UBO */
+	float planar_texel_size[2];
 	/* For double buffering */
 	bool view_updated;
 	bool valid_double_buffer;
-	float prev_persmat[4][4];
 } EEVEE_PrivateData; /* Transient data */
 
 /* eevee_data.c */
@@ -735,7 +737,7 @@ EEVEE_LampEngineData *EEVEE_lamp_data_ensure(Object *ob);
 
 /* eevee_materials.c */
 struct GPUTexture *EEVEE_materials_get_util_tex(void); /* XXX */
-void EEVEE_materials_init(EEVEE_StorageList *stl, EEVEE_FramebufferList *fbl);
+void EEVEE_materials_init(EEVEE_ViewLayerData *sldata, EEVEE_StorageList *stl, EEVEE_FramebufferList *fbl);
 void EEVEE_materials_cache_init(EEVEE_Data *vedata);
 void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, Object *ob);
 void EEVEE_materials_cache_finish(EEVEE_Data *vedata);
@@ -805,7 +807,8 @@ void EEVEE_screen_raytrace_free(void);
 /* eevee_subsurface.c */
 int EEVEE_subsurface_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_subsurface_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
-void EEVEE_subsurface_add_pass(EEVEE_Data *vedata, unsigned int sss_id, struct GPUUniformBuffer *sss_profile);
+void EEVEE_subsurface_add_pass(
+        EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, unsigned int sss_id, struct GPUUniformBuffer *sss_profile);
 void EEVEE_subsurface_data_render(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_subsurface_compute(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_subsurface_free(void);
@@ -838,7 +841,7 @@ void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, struct GPUTexture *depth_src
 void EEVEE_downsample_buffer(EEVEE_Data *vedata, struct GPUFrameBuffer *fb_src, struct GPUTexture *texture_src, int level);
 void EEVEE_downsample_cube_buffer(EEVEE_Data *vedata, struct GPUFrameBuffer *fb_src, struct GPUTexture *texture_src, int level);
 void EEVEE_effects_do_gtao(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
-void EEVEE_draw_effects(EEVEE_Data *vedata);
+void EEVEE_draw_effects(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_effects_free(void);
 
 /* Shadow Matrix */

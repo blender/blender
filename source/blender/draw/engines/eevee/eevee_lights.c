@@ -484,6 +484,8 @@ void EEVEE_lights_cache_finish(EEVEE_ViewLayerData *sldata)
 	EEVEE_LampsInfo *linfo = sldata->lamps;
 	DRWTextureFormat shadow_pool_format = DRW_TEX_R_32;
 
+	sldata->common_data.la_num_light = linfo->num_light;
+
 	/* Setup enough layers. */
 	/* Free textures if number mismatch. */
 	if (linfo->num_layer != linfo->cache_num_layer) {

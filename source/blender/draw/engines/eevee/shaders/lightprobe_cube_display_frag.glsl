@@ -11,5 +11,5 @@ void main()
 	            ? normalize(cameraPos - worldPosition)
 	            : cameraForward;
 	vec3 N = normalize(worldNormal);
-	FragColor = vec4(textureLod_octahedron(probeCubes, vec4(reflect(-V, N), pid), 0.0, lodCubeMax).rgb, 1.0);
+	FragColor = vec4(textureLod_octahedron(probeCubes, vec4(reflect(-V, N), pid), 0.0, prbLodCubeMax).rgb, 1.0);
 }

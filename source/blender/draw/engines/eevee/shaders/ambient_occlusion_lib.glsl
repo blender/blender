@@ -33,18 +33,7 @@ uniform sampler2DArray utilTex;
 #define texelfetch_noise_tex(coord) texelFetch(utilTex, ivec3(ivec2(coord) % LUT_SIZE, 2.0), 0)
 #endif /* UTIL_TEX */
 
-uniform vec4 aoParameters[2];
 uniform sampler2D horizonBuffer;
-
-#define aoDistance   aoParameters[0].x
-#define aoSamples    aoParameters[0].y /* UNUSED */
-#define aoFactor     aoParameters[0].z
-#define aoInvSamples aoParameters[0].w /* UNUSED */
-
-#define aoOffset     aoParameters[1].x /* UNUSED */
-#define aoBounceFac  aoParameters[1].y
-#define aoQuality    aoParameters[1].z
-#define aoSettings   aoParameters[1].w
 
 /* aoSettings flags */
 #define USE_AO            1

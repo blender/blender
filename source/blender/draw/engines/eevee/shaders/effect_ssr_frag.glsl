@@ -10,9 +10,6 @@ uniform sampler2DArray utilTex;
 
 #define MAX_MIP 9.0
 
-uniform float brdfBias;
-uniform float fireflyFactor;
-uniform float maxRoughness;
 uniform ivec2 halfresOffset;
 
 ivec2 encode_hit_data(vec2 hit_pos, bool has_hit, bool is_planar)
@@ -34,9 +31,6 @@ vec2 decode_hit_data(vec2 hit_data, out bool has_hit, out bool is_planar)
 
 uniform sampler2D normalBuffer;
 uniform sampler2D specroughBuffer;
-
-uniform int planar_count;
-uniform float noiseOffset;
 
 layout(location = 0) out ivec2 hitData;
 layout(location = 1) out float pdfData;
@@ -125,7 +119,7 @@ void main()
 	float a2 = roughnessSquared * roughnessSquared;
 
 	/* Early out */
-	if (roughness > maxRoughness + 0.2)
+	if (roughness > ssrMaxRoughness + 0.2)
 		return;
 
 	vec4 rand = texelFetch(utilTex, ivec3(halfres_texel % LUT_SIZE, 2), 0);
@@ -135,7 +129,7 @@ void main()
 		rand.xzw *= 0.0;
 	}
 	/* Importance sampling bias */
-	rand.x = mix(rand.x, 0.0, brdfBias);
+	rand.x = mix(rand.x, 0.0, ssrBrdfBias);
 
 	vec3 worldPosition = transform_point(ViewMatrixInverse, viewPosition);
 	vec3 wN = transform_direction(ViewMatrixInverse, N);
@@ -144,7 +138,7 @@ void main()
 	make_orthonormal_basis(N, T, B); /* Generate tangent space */
 
 	/* Planar Reflections */
-	for (int i = 0; i < MAX_PLANAR && i < planar_count; ++i) {
+	for (int i = 0; i < MAX_PLANAR && i < prbNumPlanar; ++i) {
 		PlanarData pd = planars_data[i];
 
 		float fade = probe_attenuation_planar(pd, worldPosition, wN, 0.0);
@@ -173,9 +167,6 @@ uniform sampler2D specroughBuffer;
 uniform isampler2D hitBuffer;
 uniform sampler2D pdfBuffer;
 
-uniform int probe_count;
-uniform int planar_count;
-
 uniform int neighborOffset;
 
 const ivec2 neighbors[32] = ivec2[32](
@@ -189,8 +180,6 @@ const ivec2 neighbors[32] = ivec2[32](
 	ivec2( 0,  0), ivec2(-2, -2), ivec2(-2,  2), ivec2( 1,  0),
 	ivec2( 0,  0), ivec2( 2,  2), ivec2( 2, -2), ivec2(-1,  0)
 );
-
-uniform mat4 PastViewProjectionMatrix;
 
 out vec4 fragColor;
 
@@ -206,7 +195,7 @@ void fallback_cubemap(
 	final_ao = specular_occlusion(dot(N, V), final_ao, roughness);
 
 	/* Starts at 1 because 0 is world probe */
-	for (int i = 1; i < MAX_PROBE && i < probe_count && spec_accum.a < 0.999; ++i) {
+	for (int i = 1; i < MAX_PROBE && i < prbNumRenderCube && spec_accum.a < 0.999; ++i) {
 		CubeData cd = probes_data[i];
 
 		float fade = probe_attenuation_cube(cd, W);
@@ -257,7 +246,7 @@ float brightness(vec3 c)
 vec2 get_reprojected_reflection(vec3 hit, vec3 pos, vec3 N)
 {
 	/* TODO real reprojection with motion vectors, etc... */
-	return project_point(PastViewProjectionMatrix, hit).xy * 0.5 + 0.5;
+	return project_point(pastViewProjectionMatrix, hit).xy * 0.5 + 0.5;
 }
 
 float get_sample_depth(vec2 hit_co, bool is_planar, float planar_index)
@@ -296,7 +285,7 @@ vec3 get_hit_vector(
 vec3 get_scene_color(vec2 ref_uvs, float mip, float planar_index, bool is_planar)
 {
 	if (is_planar) {
-		return textureLod(probePlanars, vec3(ref_uvs, planar_index), min(mip, lodPlanarMax)).rgb;
+		return textureLod(probePlanars, vec3(ref_uvs, planar_index), min(mip, prbLodPlanarMax)).rgb;
 	}
 	else {
 		return textureLod(prevColorBuffer, ref_uvs, mip).rgb;
@@ -361,7 +350,7 @@ vec4 get_ssr_samples(
 
 	/* Compute cone footprint in screen space. */
 	vec4 cone_footprint = hit_dist * cone_tan;
-	cone_footprint = brdfBias * 0.5 * cone_footprint * max(ProjectionMatrix[0][0], ProjectionMatrix[1][1]) / homcoord;
+	cone_footprint = ssrBrdfBias * 0.5 * cone_footprint * max(ProjectionMatrix[0][0], ProjectionMatrix[1][1]) / homcoord;
 
 	/* Estimate a cone footprint to sample a corresponding mipmap level. */
 	vec4 mip = log2(cone_footprint * max_v2(vec2(textureSize(depthBuffer, 0))));
@@ -395,7 +384,7 @@ vec4 get_ssr_samples(
 	luma.z = brightness(sample[2]);
 	luma.w = brightness(sample[3]);
 	luma = max(vec4(1e-8), luma);
-	luma = 1.0 - max(vec4(0.0), luma - fireflyFactor) / luma;
+	luma = 1.0 - max(vec4(0.0), luma - ssrFireflyFac) / luma;
 
 	sample[0] *= luma.x;
 	sample[1] *= luma.y;
@@ -474,7 +463,7 @@ void main()
 	/* Find Planar Reflections affecting this pixel */
 	PlanarData pd;
 	float planar_index;
-	for (int i = 0; i < MAX_PLANAR && i < planar_count; ++i) {
+	for (int i = 0; i < MAX_PLANAR && i < prbNumPlanar; ++i) {
 		pd = planars_data[i];
 
 		float fade = probe_attenuation_planar(pd, worldPosition, N, 0.0);
@@ -495,12 +484,12 @@ void main()
 	float cone_tan = sqrt(1 - cone_cos * cone_cos) / cone_cos;
 	cone_tan *= mix(saturate(dot(N, -V) * 2.0), 1.0, roughness); /* Elongation fit */
 
-	vec2 source_uvs = project_point(PastViewProjectionMatrix, worldPosition).xy * 0.5 + 0.5;
+	vec2 source_uvs = project_point(pastViewProjectionMatrix, worldPosition).xy * 0.5 + 0.5;
 
 	vec4 ssr_accum = vec4(0.0);
 	float weight_acc = 0.0;
 
-	if (roughness < maxRoughness + 0.2) {
+	if (roughness < ssrMaxRoughness + 0.2) {
 		ssr_accum += get_ssr_samples(hit_pdf, hit_data, pd, planar_index, worldPosition, N, V,
 		                             roughnessSquared, cone_tan, source_uvs, weight_acc);
 	}
@@ -509,7 +498,7 @@ void main()
 	if (weight_acc > 0.0) {
 		ssr_accum /= weight_acc;
 		/* fade between 0.5 and 1.0 roughness */
-		ssr_accum.a *= smoothstep(maxRoughness + 0.2, maxRoughness, roughness); 
+		ssr_accum.a *= smoothstep(ssrMaxRoughness + 0.2, ssrMaxRoughness, roughness); 
 		accumulate_light(ssr_accum.rgb, ssr_accum.a, spec_accum);
 	}
 

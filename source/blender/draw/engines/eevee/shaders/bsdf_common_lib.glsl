@@ -11,7 +11,6 @@
 uniform mat4 ProjectionMatrix;
 uniform mat4 ViewProjectionMatrix;
 uniform mat4 ViewMatrixInverse;
-uniform vec4 viewvecs[2];
 #ifndef SHADOW_SHADER
 uniform mat4 ViewMatrix;
 #else
@@ -30,8 +29,6 @@ layout(std140) uniform shadow_render_block {
 flat in int shFace; /* Shadow layer we are rendering to. */
 #define ViewMatrix      FaceViewMatrix[shFace]
 #endif
-
-uniform vec2 mipRatio[10];
 
 /* Buffers */
 uniform sampler2D colorBuffer;
@@ -304,7 +301,7 @@ float get_view_z_from_depth(float depth)
 		return -ProjectionMatrix[3][2] / (d + ProjectionMatrix[2][2]);
 	}
 	else {
-		return viewvecs[0].z + depth * viewvecs[1].z;
+		return viewVecs[0].z + depth * viewVecs[1].z;
 	}
 }
 
@@ -315,7 +312,7 @@ float get_depth_from_view_z(float z)
 		return d * 0.5 + 0.5;
 	}
 	else {
-		return (z - viewvecs[0].z) / viewvecs[1].z;
+		return (z - viewVecs[0].z) / viewVecs[1].z;
 	}
 }
 
@@ -328,10 +325,10 @@ vec2 get_uvs_from_view(vec3 view)
 vec3 get_view_space_from_depth(vec2 uvcoords, float depth)
 {
 	if (ProjectionMatrix[3][3] == 0.0) {
-		return (viewvecs[0].xyz + vec3(uvcoords, 0.0) * viewvecs[1].xyz) * get_view_z_from_depth(depth);
+		return (viewVecs[0].xyz + vec3(uvcoords, 0.0) * viewVecs[1].xyz) * get_view_z_from_depth(depth);
 	}
 	else {
-		return viewvecs[0].xyz + vec3(uvcoords, depth) * viewvecs[1].xyz;
+		return viewVecs[0].xyz + vec3(uvcoords, depth) * viewVecs[1].xyz;
 	}
 }
 
@@ -745,8 +742,6 @@ Closure closure_add(Closure cl1, Closure cl2)
 	cl.opacity = saturate(cl1.opacity + cl2.opacity);
 	return cl;
 }
-
-uniform bool sssToggle;
 
 #if defined(MESH_SHADER) && !defined(USE_ALPHA_HASH) && !defined(USE_ALPHA_CLIP) && !defined(SHADOW_SHADER) && !defined(USE_MULTIPLY)
 layout(location = 0) out vec4 fragColor;
