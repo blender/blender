@@ -186,6 +186,7 @@ typedef struct OBJECT_PrivateData {
 
 	/* Camera */
 	DRWShadingGroup *camera;
+	DRWShadingGroup *camera_frame;
 	DRWShadingGroup *camera_tria;
 	DRWShadingGroup *camera_focus;
 	DRWShadingGroup *camera_clip;
@@ -929,6 +930,9 @@ static void OBJECT_cache_init(void *vedata)
 		geom = DRW_cache_camera_get();
 		stl->g_data->camera = shgroup_camera_instance(psl->non_meshes, geom);
 
+		geom = DRW_cache_camera_frame_get();
+		stl->g_data->camera_frame = shgroup_camera_instance(psl->non_meshes, geom);
+
 		geom = DRW_cache_camera_tria_get();
 		stl->g_data->camera_tria = shgroup_camera_instance(psl->non_meshes, geom);
 
@@ -1223,9 +1227,11 @@ static void DRW_shgroup_camera(OBJECT_StorageList *stl, Object *ob, ViewLayer *v
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	View3D *v3d = draw_ctx->v3d;
 	Scene *scene = draw_ctx->scene;
+	RegionView3D *rv3d = draw_ctx->rv3d;
 
 	Camera *cam = ob->data;
 	const bool is_active = (ob == v3d->camera);
+	const bool look_through = (is_active && (rv3d->persp == RV3D_CAMOB));
 	float *color;
 	DRW_object_wire_theme_get(ob, view_layer, &color);
 
@@ -1238,7 +1244,7 @@ static void DRW_shgroup_camera(OBJECT_StorageList *stl, Object *ob, ViewLayer *v
 	BKE_camera_view_frame_ex(scene, cam, cam->drawsize, false, scale,
 	                         asp, shift, &drawsize, vec);
 
-	// /* Frame coords */
+	/* Frame coords */
 	copy_v2_v2(cam->drwcorners[0], vec[0]);
 	copy_v2_v2(cam->drwcorners[1], vec[1]);
 	copy_v2_v2(cam->drwcorners[2], vec[2]);
@@ -1253,13 +1259,23 @@ static void DRW_shgroup_camera(OBJECT_StorageList *stl, Object *ob, ViewLayer *v
 	cam->drwtria[1][0] = shift[0];
 	cam->drwtria[1][1] = shift[1] + ((1.1f * drawsize * (asp[1] + 0.7f)) * scale[1]);
 
-	DRW_shgroup_call_dynamic_add(stl->g_data->camera, color, cam->drwcorners, &cam->drwdepth, cam->drwtria, ob->obmat);
-
-	/* Active cam */
-	if (is_active) {
+	if (look_through) {
+		/* Only draw the frame. */
 		DRW_shgroup_call_dynamic_add(
-		        stl->g_data->camera_tria, color,
-		        cam->drwcorners, &cam->drwdepth, cam->drwtria, ob->obmat);
+		        stl->g_data->camera_frame, color, cam->drwcorners,
+		        &cam->drwdepth, cam->drwtria, ob->obmat);
+	}
+	else {
+		DRW_shgroup_call_dynamic_add(
+		        stl->g_data->camera, color, cam->drwcorners,
+		        &cam->drwdepth, cam->drwtria, ob->obmat);
+
+		/* Active cam */
+		if (is_active) {
+			DRW_shgroup_call_dynamic_add(
+			        stl->g_data->camera_tria, color,
+			        cam->drwcorners, &cam->drwdepth, cam->drwtria, ob->obmat);
+		}
 	}
 
 	/* draw the rest in normalize object space */

@@ -88,6 +88,7 @@ static struct DRWShapeCache {
 	Gwn_Batch *drw_bone_point_wire;
 	Gwn_Batch *drw_bone_arrows;
 	Gwn_Batch *drw_camera;
+	Gwn_Batch *drw_camera_frame;
 	Gwn_Batch *drw_camera_tria;
 	Gwn_Batch *drw_camera_focus;
 	Gwn_Batch *drw_particle_cross;
@@ -2099,6 +2100,46 @@ Gwn_Batch *DRW_cache_camera_get(void)
 		SHC.drw_camera = GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
 	}
 	return SHC.drw_camera;
+}
+
+Gwn_Batch *DRW_cache_camera_frame_get(void)
+{
+	if (!SHC.drw_camera_frame) {
+		float v1 = 1.0f; /* + X + Y */
+		float v2 = 2.0f; /* + X - Y */
+		float v3 = 3.0f; /* - X - Y */
+		float v4 = 4.0f; /* - X + Y */
+		int v_idx = 0;
+
+		static Gwn_VertFormat format = { 0 };
+		static struct { uint pos; } attr_id;
+		if (format.attrib_ct == 0) {
+			/* use x coordinate to identify the vertex
+			 * the vertex shader take care to place it
+			 * appropriatelly */
+			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 1, GWN_FETCH_FLOAT);
+		}
+
+		/* Vertices */
+		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
+		GWN_vertbuf_data_alloc(vbo, 8);
+
+		/* camera frame */
+		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v1);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v2);
+
+		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v2);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v3);
+
+		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v3);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v4);
+
+		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v4);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v1);
+
+		SHC.drw_camera_frame = GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
+	}
+	return SHC.drw_camera_frame;
 }
 
 Gwn_Batch *DRW_cache_camera_tria_get(void)

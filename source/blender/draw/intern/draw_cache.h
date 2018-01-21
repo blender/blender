@@ -79,6 +79,7 @@ struct Gwn_Batch *DRW_cache_lamp_spot_square_get(void);
 
 /* Camera */
 struct Gwn_Batch *DRW_cache_camera_get(void);
+struct Gwn_Batch *DRW_cache_camera_frame_get(void);
 struct Gwn_Batch *DRW_cache_camera_tria_get(void);
 
 /* Speaker */
