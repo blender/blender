@@ -65,6 +65,7 @@ static struct DRWShapeCache {
 	Gwn_Batch *drw_field_tube_limit;
 	Gwn_Batch *drw_field_cone_limit;
 	Gwn_Batch *drw_lamp;
+	Gwn_Batch *drw_lamp_shadows;
 	Gwn_Batch *drw_lamp_sunrays;
 	Gwn_Batch *drw_lamp_area;
 	Gwn_Batch *drw_lamp_hemi;
@@ -1013,19 +1014,51 @@ Gwn_Batch *DRW_cache_lamp_get(void)
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
 		GWN_vertbuf_data_alloc(vbo, NSEGMENTS * 2);
 
-		for (int a = 0; a < NSEGMENTS; a++) {
-			v[0] = sinf((2.0f * M_PI * a) / ((float)NSEGMENTS));
-			v[1] = cosf((2.0f * M_PI * a) / ((float)NSEGMENTS));
-			GWN_vertbuf_attr_set(vbo, attr_id.pos, a * 2, v);
+		for (int a = 0; a < NSEGMENTS * 2; a += 2) {
+			v[0] = sinf((2.0f * M_PI * a) / ((float)NSEGMENTS * 2));
+			v[1] = cosf((2.0f * M_PI * a) / ((float)NSEGMENTS * 2));
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, a, v);
 
-			v[0] = sinf((2.0f * M_PI * (a + 1)) / ((float)NSEGMENTS));
-			v[1] = cosf((2.0f * M_PI * (a + 1)) / ((float)NSEGMENTS));
-			GWN_vertbuf_attr_set(vbo, attr_id.pos, a * 2 + 1, v);
+			v[0] = sinf((2.0f * M_PI * (a + 1)) / ((float)NSEGMENTS * 2));
+			v[1] = cosf((2.0f * M_PI * (a + 1)) / ((float)NSEGMENTS * 2));
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, a + 1, v);
 		}
 
 		SHC.drw_lamp = GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
 	}
 	return SHC.drw_lamp;
+#undef NSEGMENTS
+}
+
+Gwn_Batch *DRW_cache_lamp_shadows_get(void)
+{
+#define NSEGMENTS 10
+	if (!SHC.drw_lamp_shadows) {
+		float v[2];
+
+		/* Position Only 3D format */
+		static Gwn_VertFormat format = { 0 };
+		static struct { uint pos; } attr_id;
+		if (format.attrib_ct == 0) {
+			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		}
+
+		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
+		GWN_vertbuf_data_alloc(vbo, NSEGMENTS * 2);
+
+		for (int a = 0; a < NSEGMENTS * 2; a += 2) {
+			v[0] = sinf((2.0f * M_PI * a) / ((float)NSEGMENTS * 2));
+			v[1] = cosf((2.0f * M_PI * a) / ((float)NSEGMENTS * 2));
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, a, v);
+
+			v[0] = sinf((2.0f * M_PI * (a + 1)) / ((float)NSEGMENTS * 2));
+			v[1] = cosf((2.0f * M_PI * (a + 1)) / ((float)NSEGMENTS * 2));
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, a + 1, v);
+		}
+
+		SHC.drw_lamp_shadows = GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
+	}
+	return SHC.drw_lamp_shadows;
 #undef NSEGMENTS
 }
 

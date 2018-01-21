@@ -986,6 +986,7 @@ static void OBJECT_cache_init(void *vedata)
 
 		geom = DRW_cache_lamp_get();
 		stl->g_data->lamp_circle = shgroup_instance_screenspace(psl->non_meshes, geom, &ts.sizeLampCircle);
+		geom = DRW_cache_lamp_shadows_get();
 		stl->g_data->lamp_circle_shadow = shgroup_instance_screenspace(psl->non_meshes, geom, &ts.sizeLampCircleShadow);
 
 		geom = DRW_cache_lamp_sunrays_get();
