@@ -175,7 +175,7 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	settings.userdata_chunk = &nearest;
 	settings.userdata_chunk_size = sizeof(nearest);
 	BLI_task_parallel_range(0, calc->numVerts,
-	                        &data,shrinkwrap_calc_nearest_vertex_cb_ex,
+	                        &data, shrinkwrap_calc_nearest_vertex_cb_ex,
 	                        &settings);
 
 	free_bvhtree_from_mesh(&treeData);

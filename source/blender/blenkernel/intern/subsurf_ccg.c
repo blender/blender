@@ -1552,7 +1552,7 @@ static void ccgDM_copyFinalLoopArray(DerivedMesh *dm, MLoop *mloop)
 				BLI_edgehash_insert(ehash, medge[i].v1, medge[i].v2, SET_INT_IN_POINTER(i));
 			}
 
-			atomic_cas_ptr((void**)&ccgdm->ehash, ccgdm->ehash, ehash);
+			atomic_cas_ptr((void **)&ccgdm->ehash, ccgdm->ehash, ehash);
 		}
 		BLI_mutex_unlock(&ccgdm->loops_cache_lock);
 	}

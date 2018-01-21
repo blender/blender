@@ -182,7 +182,7 @@ typedef struct ParallelRangeSettings {
 } ParallelRangeSettings;
 
 BLI_INLINE void BLI_parallel_range_settings_defaults(
-        ParallelRangeSettings* settings);
+        ParallelRangeSettings *settings);
 
 void BLI_task_parallel_range(
         const int start, const int stop,
@@ -210,7 +210,7 @@ void BLI_task_parallel_mempool(
 
 /* TODO(sergey): Think of a better place for this. */
 BLI_INLINE void BLI_parallel_range_settings_defaults(
-        ParallelRangeSettings* settings)
+        ParallelRangeSettings *settings)
 {
 	memset(settings, 0, sizeof(*settings));
 	settings->use_threading = true;
