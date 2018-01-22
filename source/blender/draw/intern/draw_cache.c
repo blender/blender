@@ -1886,7 +1886,7 @@ Gwn_Batch *DRW_cache_bone_envelope_distance_outline_get(void)
 			const float x = cosf(alpha);
 			const float y = -sinf(alpha);
 
-			/*                                                           { X, Y, head/tail, inner/outer border } */
+			/*                                                        { X, Y, head/tail, inner/outer border } */
 			GWN_vertbuf_attr_set(vbo, pos_id, v_idx++, (const float[4]){x, y, head_tail, 0.0f});
 			GWN_vertbuf_attr_set(vbo, pos_id, v_idx++, (const float[4]){x, y, head_tail, 1.0f});
 			if (is_headtail_transition) {
@@ -1920,7 +1920,7 @@ Gwn_Batch *DRW_cache_bone_envelope_wire_outline_get(void)
 
 		/* Two lines between head and tail circles. */
 		/* Encoded lines, vertex shader gives them final correct value. */
-		/*                                                           {     X,    Y, head/tail, inner/outer border } */
+		/*                                                         { X,    Y, head/tail, inner/outer border } */
 		GWN_vertbuf_attr_set(vbo, pos_id, v_idx++, (const float[4]){ 1.0f, 0.0f,       0.0f, 0.0f});
 		GWN_vertbuf_attr_set(vbo, pos_id, v_idx++, (const float[4]){ 1.0f, 0.0f,       1.0f, 0.0f});
 		GWN_vertbuf_attr_set(vbo, pos_id, v_idx++, (const float[4]){-1.0f, 0.0f,       0.0f, 0.0f});
@@ -1956,7 +1956,7 @@ Gwn_Batch *DRW_cache_bone_envelope_head_wire_outline_get(void)
 			const float x = cosf(alpha);
 			const float y = -sinf(alpha);
 
-			/*                                                           {      X,      Y, head/tail, inner/outer border } */
+			/*                                                         {     X,      Y, head/tail, inner/outer border } */
 			GWN_vertbuf_attr_set(vbo, pos_id, v_idx++, (const float[4]){     x,      y,      0.0f, 0.0f});
 		}
 
@@ -2036,8 +2036,12 @@ Gwn_Batch *DRW_cache_bone_arrows_get(void)
 /** \name Camera
  * \{ */
 
-/* We could make these more generic functions.
- * although filling 1d lines is not common. */
+/**
+ * We could make these more generic functions.
+ * although filling 1d lines is not common.
+ *
+ * \note Use x coordinate to identify the vertex the vertex shader take care to place it appropriately.
+ */
 
 static const float camera_coords_frame_bounds[5] = {
 	0.0f, /* center point */
@@ -2092,7 +2096,6 @@ Gwn_Batch *DRW_cache_camera_get(void)
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			/* Use x coordinate to identify the vertex the vertex shader take care to place it appropriately. */
 			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 1, GWN_FETCH_FLOAT);
 		}
 
@@ -2126,7 +2129,6 @@ Gwn_Batch *DRW_cache_camera_frame_get(void)
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			/* Use x coordinate to identify the vertex the vertex shader take care to place it appropriately. */
 			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 1, GWN_FETCH_FLOAT);
 		}
 
@@ -2153,9 +2155,6 @@ Gwn_Batch *DRW_cache_camera_tria_get(void)
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			/* use x coordinate to identify the vertex
-			 * the vertex shader take care to place it
-			 * appropriatelly */
 			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 1, GWN_FETCH_FLOAT);
 		}
 
