@@ -1011,7 +1011,7 @@ void VIEW3D_WGT_ruler(wmManipulatorGroupType *wgt)
 	wgt->name = "Ruler Widgets";
 	wgt->idname = view3d_wgt_ruler_id;
 
-	wgt->flag |= WM_MANIPULATORGROUPTYPE_SCALE;
+	wgt->flag |= WM_MANIPULATORGROUPTYPE_SCALE | WM_MANIPULATORGROUPTYPE_DRAW_MODAL_ALL;
 
 	wgt->mmap_params.spaceid = SPACE_VIEW3D;
 	wgt->mmap_params.regionid = RGN_TYPE_WINDOW;
