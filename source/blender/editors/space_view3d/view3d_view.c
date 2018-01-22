@@ -402,6 +402,8 @@ static void view3d_smoothview_apply(bContext *C, View3D *v3d, ARegion *ar, bool 
 			ED_view3d_camera_lock_autokey(v3d, rv3d, C, true, true);
 		}
 
+		/* Event handling won't know if a UI item has been moved under the pointer. */
+		WM_event_add_mousemove(C);
 	}
 	
 	if (sync_boxview && (rv3d->viewlock & RV3D_BOXVIEW)) {
