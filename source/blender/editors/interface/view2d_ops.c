@@ -1509,6 +1509,9 @@ static int view2d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const w
 
 		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), v2d->smooth_timer);
 		v2d->smooth_timer = NULL;
+
+		/* Event handling won't know if a UI item has been moved under the pointer. */
+		WM_event_add_mousemove(C);
 	}
 	else {
 		/* ease in/out */
