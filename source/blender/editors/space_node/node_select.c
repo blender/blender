@@ -476,8 +476,9 @@ static int node_select_exec(bContext *C, wmOperator *op)
 	if (node_mouse_select(bmain, snode, ar, mval, extend)) {
 		/* send notifiers */
 		WM_event_add_notifier(C, NC_NODE | NA_SELECTED, NULL);
-
-		return OPERATOR_FINISHED;
+		
+		/* allow tweak event to work too */
+		return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
 	}
 	else {
 		/* allow tweak event to work too */
