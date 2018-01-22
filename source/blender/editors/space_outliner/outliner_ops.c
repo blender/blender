@@ -330,7 +330,6 @@ void outliner_operatortypes(void)
 	WM_operatortype_append(OUTLINER_OT_collection_link);
 	WM_operatortype_append(OUTLINER_OT_collection_unlink);
 	WM_operatortype_append(OUTLINER_OT_collection_new);
-	WM_operatortype_append(OUTLINER_OT_collection_override_new);
 	WM_operatortype_append(OUTLINER_OT_collection_objects_select);
 	WM_operatortype_append(OUTLINER_OT_collection_objects_deselect);
 

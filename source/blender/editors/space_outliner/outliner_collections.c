@@ -79,15 +79,6 @@ SceneCollection *outliner_scene_collection_from_tree_element(TreeElement *te)
 	return NULL;
 }
 
-#if 0
-static CollectionOverride *outliner_override_active(bContext *UNUSED(C))
-{
-	TODO_LAYER_OPERATORS;
-	TODO_LAYER_OVERRIDE;
-	return NULL;
-}
-#endif
-
 /* -------------------------------------------------------------------- */
 /* Poll functions. */
 
@@ -572,46 +563,6 @@ void OUTLINER_OT_collection_objects_remove(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/**********************************************************************************/
-
-/**
- * Returns true is selected element is a collection
- */
-static int collection_override_new_poll(bContext *(C))
-{
-#ifdef TODO_LAYER_OVERRIDE
-	/* disable for now, since it's not implemented */
-	(void) C;
-	return 0;
-#else
-	return outliner_collection_active(C) ? 1 : 0;
-#endif
-}
-
-static int collection_override_new_invoke(bContext *UNUSED(C), wmOperator *op, const wmEvent *UNUSED(event))
-{
-	TODO_LAYER_OPERATORS;
-	TODO_LAYER_OVERRIDE;
-	BKE_report(op->reports, RPT_ERROR, "OUTLINER_OT_collections_override_new not implemented yet");
-	return OPERATOR_CANCELLED;
-}
-
-/* in the middle of renames remove s */
-void OUTLINER_OT_collection_override_new(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "New Override";
-	ot->idname = "OUTLINER_OT_collection_override_new";
-	ot->description = "Add a new override to the active collection";
-
-	/* api callbacks */
-	ot->invoke = collection_override_new_invoke;
-	ot->poll = collection_override_new_poll;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
 struct CollectionDeleteData {
 	Scene *scene;
 	SpaceOops *soops;
@@ -665,8 +616,6 @@ static int collection_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	struct CollectionDeleteData data = {.scene = scene, .soops = soops};
 
 	data.collections_to_delete = BLI_gset_ptr_new(__func__);
-
-	TODO_LAYER_OVERRIDE; /* handle overrides */
 
 	/* We first walk over and find the SceneCollections we actually want to delete (ignoring duplicates). */
 	outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, collection_find_data_to_delete, &data);

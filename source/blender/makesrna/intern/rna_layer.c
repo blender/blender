@@ -2034,8 +2034,6 @@ static void rna_def_layer_collection(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_ui_text(prop, "Enabled", "Enable or disable collection");
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_LayerCollection_flag_update");
-
-	/* TODO_LAYER_OVERRIDE */
 }
 
 static void rna_def_layer_collections(BlenderRNA *brna, PropertyRNA *cprop)
