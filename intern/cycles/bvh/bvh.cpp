@@ -63,7 +63,7 @@ BVHLayout BVHParams::best_bvh_layout(BVHLayout requested_layout,
 	        (supported_layouts & (requested_layout_mask - 1));
 	/* We get widest from allowed ones and convert mask to actual layout. */
 	const BVHLayoutMask widest_allowed_layout_mask = __bsr(allowed_layouts_mask);
-	return (BVHLayout)widest_allowed_layout_mask;
+	return (BVHLayout)(1 << widest_allowed_layout_mask);
 }
 
 /* Pack Utility */
