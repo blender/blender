@@ -668,6 +668,10 @@ ccl_device_inline float path_radiance_sum_shadow(const PathRadiance *L)
 {
 	float path_total = average(L->path_total);
 	float path_total_shaded = average(L->path_total_shaded);
+	if(UNLIKELY(!isfinite_safe(path_total))) {
+		kernel_assert(!"Non-finite total radiance along the path");
+		return 0.0f;
+	}
 	if(path_total != 0.0f) {
 		return path_total_shaded / path_total;
 	}
