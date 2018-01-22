@@ -1422,11 +1422,7 @@ static void outliner_draw_tree_element(
 		}
 		else if (te->subtree.first || (tselem->type == 0 && te->idcode == ID_SCE) || (te->flag & TE_LAZY_CLOSED)) {
 		/* open/close icon, only when sublevels, except for scene */
-			int icon_x;
-			if (tselem->type == 0 && ELEM(te->idcode, ID_OB, ID_SCE))
-				icon_x = startx;
-			else
-				icon_x = startx + 5 * ufac;
+			int icon_x = startx;
 
 			// icons a bit higher
 			if (TSELEM_OPEN(tselem, soops))
@@ -1814,7 +1810,7 @@ static void outliner_draw_tree(
 	// gray hierarchy lines
 	
 	starty = (int)ar->v2d.tot.ymax - UI_UNIT_Y / 2 - OL_Y_OFFSET;
-	startx = 6;
+	startx = UI_UNIT_X / 2 - 1.0f;
 	outliner_draw_hierarchy_lines(soops, &soops->tree, startx, &starty);
 
 	// items themselves
