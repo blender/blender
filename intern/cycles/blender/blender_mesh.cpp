@@ -547,8 +547,6 @@ static void attr_create_uv_map(Scene *scene,
 static void attr_create_subd_uv_map(Scene *scene,
                                     Mesh *mesh,
                                     BL::Mesh& b_mesh,
-                                    const vector<int>& nverts,
-                                    const vector<int>& face_flags,
                                     bool subdivide_uvs)
 {
 	if(b_mesh.uv_layers.length() != 0) {
@@ -953,7 +951,7 @@ static void create_mesh(Scene *scene,
 	attr_create_vertex_color(scene, mesh, b_mesh, nverts, face_flags, subdivision);
 
 	if(subdivision) {
-		attr_create_subd_uv_map(scene, mesh, b_mesh, nverts, face_flags, subdivide_uvs);
+		attr_create_subd_uv_map(scene, mesh, b_mesh, subdivide_uvs);
 	}
 	else {
 		attr_create_uv_map(scene, mesh, b_mesh, nverts, face_flags);
