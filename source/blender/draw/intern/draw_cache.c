@@ -1068,7 +1068,7 @@ Gwn_Batch *DRW_cache_lamp_sunrays_get(void)
 	if (!SHC.drw_lamp_sunrays) {
 		float v[2], v1[2], v2[2];
 
-		/* Position Only 3D format */
+		/* Position Only 2D format */
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
@@ -1076,17 +1076,21 @@ Gwn_Batch *DRW_cache_lamp_sunrays_get(void)
 		}
 
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(vbo, 16);
+		GWN_vertbuf_data_alloc(vbo, 32);
 
 		for (int a = 0; a < 8; a++) {
 			v[0] = sinf((2.0f * M_PI * a) / 8.0f);
 			v[1] = cosf((2.0f * M_PI * a) / 8.0f);
 
-			mul_v2_v2fl(v1, v, 1.2f);
-			mul_v2_v2fl(v2, v, 2.5f);
+			mul_v2_v2fl(v1, v, 1.6f);
+			mul_v2_v2fl(v2, v, 1.9f);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, a * 4, v1);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, a * 4 + 1, v2);
 
-			GWN_vertbuf_attr_set(vbo, attr_id.pos, a * 2, v1);
-			GWN_vertbuf_attr_set(vbo, attr_id.pos, a * 2 + 1, v2);
+			mul_v2_v2fl(v1, v, 2.2f);
+			mul_v2_v2fl(v2, v, 2.5f);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, a * 4 + 2, v1);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, a * 4 + 3, v2);
 		}
 
 		SHC.drw_lamp_sunrays = GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
