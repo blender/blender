@@ -33,7 +33,6 @@
 extern "C" {
 #endif
 
-#define TODO_LAYER_SYNC_FILTER /* syncing of filter_objects across all trees */
 #define TODO_LAYER_OVERRIDE /* CollectionOverride */
 #define TODO_LAYER_OPERATORS /* collection mamanger and property panel operators */
 #define TODO_LAYER /* generic todo */

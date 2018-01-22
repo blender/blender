@@ -449,10 +449,6 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 					for (LinkData *link = sc->objects.first; link; link = link->next) {
 						CALLBACK_INVOKE_ID(link->data, IDWALK_CB_USER);
 					}
-
-					for (LinkData *link = sc->filter_objects.first; link; link = link->next) {
-						CALLBACK_INVOKE_ID(link->data, IDWALK_CB_USER);
-					}
 				}
 				FOREACH_SCENE_COLLECTION_END
 

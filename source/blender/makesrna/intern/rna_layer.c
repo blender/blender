@@ -97,16 +97,6 @@ static void rna_SceneCollection_name_set(PointerRNA *ptr, const char *value)
 	BKE_collection_rename(scene, sc, value);
 }
 
-static void rna_SceneCollection_filter_set(PointerRNA *ptr, const char *value)
-{
-	Scene *scene = (Scene *)ptr->id.data;
-	SceneCollection *sc = (SceneCollection *)ptr->data;
-	BLI_strncpy_utf8(sc->filter, value, sizeof(sc->filter));
-
-	TODO_LAYER_SYNC_FILTER;
-	(void)scene;
-}
-
 static PointerRNA rna_SceneCollection_objects_get(CollectionPropertyIterator *iter)
 {
 	ListBaseIterator *internal = &iter->internal.listbase;
@@ -1055,11 +1045,6 @@ static void rna_def_scene_collection(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Type", "Type of collection");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
-	prop = RNA_def_property(srna, "filter", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SceneCollection_filter_set");
-	RNA_def_property_ui_text(prop, "Filter", "Filter to dynamically include objects based on their names (e.g., CHAR_*)");
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, NULL);
-
 	prop = RNA_def_property(srna, "collections", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "scene_collections", NULL);
 	RNA_def_property_struct_type(prop, "SceneCollection");
@@ -1072,12 +1057,6 @@ static void rna_def_scene_collection(BlenderRNA *brna)
 	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, "rna_SceneCollection_objects_get", NULL, NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Objects", "All the objects directly added to this collection (not including sub-collection objects)");
 	rna_def_collection_objects(brna, prop);
-
-	prop = RNA_def_property(srna, "filters_objects", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "filter_objects", NULL);
-	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, "rna_SceneCollection_objects_get", NULL, NULL, NULL, NULL);
-	RNA_def_property_ui_text(prop, "Filter Objects", "All the objects dynamically added to this collection via the filter");
 
 	/* Functions */
 	func = RNA_def_function(srna, "move_above", "rna_SceneCollection_move_above");

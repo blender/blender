@@ -117,13 +117,9 @@ static void collection_free(SceneCollection *sc, const bool do_id_user)
 		for (LinkData *link = sc->objects.first; link; link = link->next) {
 			id_us_min(link->data);
 		}
-		for (LinkData *link = sc->filter_objects.first; link; link = link->next) {
-			id_us_min(link->data);
-		}
 	}
 
 	BLI_freelistN(&sc->objects);
-	BLI_freelistN(&sc->filter_objects);
 
 	for (SceneCollection *nsc = sc->scene_collections.first; nsc; nsc = nsc->next) {
 		collection_free(nsc, do_id_user);
@@ -265,13 +261,6 @@ void BKE_collection_copy_data(SceneCollection *sc_dst, SceneCollection *sc_src, 
 		}
 	}
 
-	BLI_duplicatelist(&sc_dst->filter_objects, &sc_src->filter_objects);
-	if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-		for (LinkData *link = sc_dst->filter_objects.first; link; link = link->next) {
-			id_us_plus(link->data);
-		}
-	}
-
 	BLI_duplicatelist(&sc_dst->scene_collections, &sc_src->scene_collections);
 	for (SceneCollection *nsc_src = sc_src->scene_collections.first, *nsc_dst = sc_dst->scene_collections.first;
 	     nsc_src;
@@ -404,7 +393,6 @@ bool BKE_collection_object_remove(Main *bmain, ID *owner_id, SceneCollection *sc
 	BLI_remlink(&sc->objects, link);
 	MEM_freeN(link);
 
-	TODO_LAYER_SYNC_FILTER; /* need to remove all instances of ob in scene collections -> filter_objects */
 	BKE_layer_sync_object_unlink(owner_id, sc, ob);
 
 	if (GS(owner_id->name) == ID_SCE) {

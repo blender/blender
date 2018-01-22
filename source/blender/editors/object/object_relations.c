@@ -1678,9 +1678,6 @@ static void single_object_users_scene_collection(Main *bmain, Scene *scene, Scen
 		}
 	}
 
-	/* we reset filter objects because they should be regenerated after this */
-	BLI_freelistN(&sc->filter_objects);
-
 	for (SceneCollection *nsc = sc->scene_collections.first; nsc; nsc = nsc->next) {
 		single_object_users_scene_collection(bmain, scene, nsc, flag, copy_groups);
 	}
@@ -1740,9 +1737,6 @@ static void single_object_users(Main *bmain, Scene *scene, View3D *v3d, const in
 	libblock_relink_scene_collection(msc);
 
 	set_sca_new_poins();
-
-	/* TODO redo filter */
-	TODO_LAYER_SYNC_FILTER
 }
 
 /* not an especially efficient function, only added so the single user

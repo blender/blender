@@ -1042,9 +1042,7 @@ static void layer_collection_object_add(ViewLayer *view_layer, LayerCollection *
 {
 	Base *base = object_base_add(view_layer, ob);
 
-	/* Only add an object once - prevent SceneCollection->objects and
-	 * SceneCollection->filter_objects to add the same object. */
-
+	/* Only add an object once. */
 	if (BLI_findptr(&lc->object_bases, base, offsetof(LinkData, data))) {
 		return;
 	}
@@ -1085,7 +1083,6 @@ static void layer_collection_objects_populate(ViewLayer *view_layer, LayerCollec
 static void layer_collection_populate(ViewLayer *view_layer, LayerCollection *lc, SceneCollection *sc)
 {
 	layer_collection_objects_populate(view_layer, lc, &sc->objects);
-	layer_collection_objects_populate(view_layer, lc, &sc->filter_objects);
 
 	for (SceneCollection *nsc = sc->scene_collections.first; nsc; nsc = nsc->next) {
 		layer_collection_add(view_layer, lc, nsc);
@@ -1195,7 +1192,6 @@ void BKE_layer_sync_object_link(const ID *owner_id, SceneCollection *sc, Object 
 
 /**
  * Remove the equivalent object base to all layers that have this collection
- * also remove all reference to ob in the filter_objects
  */
 void BKE_layer_sync_object_unlink(const ID *owner_id, SceneCollection *sc, Object *ob)
 {

@@ -2594,7 +2594,6 @@ static void write_scene_collection(WriteData *wd, SceneCollection *sc)
 	writestruct(wd, DATA, SceneCollection, 1, sc);
 
 	writelist(wd, DATA, LinkData, &sc->objects);
-	writelist(wd, DATA, LinkData, &sc->filter_objects);
 
 	for (SceneCollection *nsc = sc->scene_collections.first; nsc; nsc = nsc->next) {
 		write_scene_collection(wd, nsc);

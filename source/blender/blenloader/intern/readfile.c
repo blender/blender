@@ -5850,11 +5850,6 @@ static void lib_link_scene_collection(FileData *fd, Library *lib, SceneCollectio
 		BLI_assert(link->data);
 	}
 
-	for (LinkData *link = sc->filter_objects.first; link; link = link->next) {
-		link->data = newlibadr_us(fd, lib, link->data);
-		BLI_assert(link->data);
-	}
-
 	for (SceneCollection *nsc = sc->scene_collections.first; nsc; nsc = nsc->next) {
 		lib_link_scene_collection(fd, lib, nsc);
 	}
@@ -6139,7 +6134,6 @@ static void direct_link_view_settings(FileData *fd, ColorManagedViewSettings *vi
 static void direct_link_scene_collection(FileData *fd, SceneCollection *sc)
 {
 	link_list(fd, &sc->objects);
-	link_list(fd, &sc->filter_objects);
 	link_list(fd, &sc->scene_collections);
 
 	for (SceneCollection *nsc = sc->scene_collections.first; nsc; nsc = nsc->next) {
@@ -9914,10 +9908,6 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 static void expand_scene_collection(FileData *fd, Main *mainvar, SceneCollection *sc)
 {
 	for (LinkData *link = sc->objects.first; link; link = link->next) {
-		expand_doit(fd, mainvar, link->data);
-	}
-
-	for (LinkData *link = sc->filter_objects.first; link; link = link->next) {
 		expand_doit(fd, mainvar, link->data);
 	}
 
