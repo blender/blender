@@ -58,9 +58,6 @@ static int collection_delete_exec(struct bContext *C, struct wmOperator *op);
 
 static LayerCollection *outliner_collection_active(bContext *C)
 {
-	TODO_LAYER_OPERATORS;
-	/* consider that we may have overrides or objects active
-	 * leading to no active collections */
 	return CTX_data_layer_collection(C);
 }
 
@@ -763,40 +760,3 @@ void OUTLINER_OT_collection_toggle(wmOperatorType *ot)
 #undef ACTION_TOGGLE
 #undef ACTION_ENABLE
 #undef ACTION_DISABLE
-
-/* -------------------------------------------------------------------- */
-
-static int stubs_invoke(bContext *UNUSED(C), wmOperator *op, const wmEvent *UNUSED(event))
-{
-	TODO_LAYER_OPERATORS;
-	BKE_report(op->reports, RPT_ERROR, "Operator not implemented yet");
-	return OPERATOR_CANCELLED;
-}
-
-void OUTLINER_OT_collection_objects_select(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Select Objects";
-	ot->idname = "OUTLINER_OT_collection_objects_select";
-	ot->description = "Select collection objects";
-
-	/* api callbacks */
-	ot->invoke = stubs_invoke;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-void OUTLINER_OT_collection_objects_deselect(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Deselect Objects";
-	ot->idname = "OUTLINER_OT_collection_objects_deselect";
-	ot->description = "Deselect collection objects";
-
-	/* api callbacks */
-	ot->invoke = stubs_invoke;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
