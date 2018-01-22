@@ -1101,7 +1101,7 @@ static void task_parallel_range_ex(
 	}
 
 	task_scheduler = BLI_task_scheduler_get();
-	task_pool = BLI_task_pool_create(task_scheduler, &state);
+	task_pool = BLI_task_pool_create_suspended(task_scheduler, &state);
 	num_threads = BLI_task_scheduler_num_threads(task_scheduler);
 
 	/* The idea here is to prevent creating task for each of the loop iterations
@@ -1328,7 +1328,7 @@ void BLI_task_parallel_listbase(
 	}
 
 	task_scheduler = BLI_task_scheduler_get();
-	task_pool = BLI_task_pool_create(task_scheduler, &state);
+	task_pool = BLI_task_pool_create_suspended(task_scheduler, &state);
 	num_threads = BLI_task_scheduler_num_threads(task_scheduler);
 
 	/* The idea here is to prevent creating task for each of the loop iterations
