@@ -1124,6 +1124,9 @@ static void task_parallel_range_ex(
 	}
 
 	num_tasks = min_ii(num_tasks, (stop - start) / state.chunk_size);
+
+	/* NOTE: This way we are adding a memory barrier and ensure all worker
+	 * threads can read and modify the value, without any locks. */
 	atomic_fetch_and_add_uint32((uint32_t *)(&state.iter), 0);
 
 	if (use_userdata_chunk) {
