@@ -2036,66 +2036,83 @@ Gwn_Batch *DRW_cache_bone_arrows_get(void)
 /** \name Camera
  * \{ */
 
+/* We could make these more generic functions.
+ * although filling 1d lines is not common. */
+
+static const float camera_coords_frame_bounds[5] = {
+	0.0f, /* center point */
+	1.0f, /* + X + Y */
+	2.0f, /* + X - Y */
+	3.0f, /* - X - Y */
+	4.0f, /* - X + Y */
+};
+
+static const float camera_coords_frame_tri[3] = {
+	5.0f, /* tria + X */
+	6.0f, /* tria - X */
+	7.0f, /* tria + Y */
+};
+
+/** Draw a loop of lines. */
+static void camera_fill_lines_loop_fl_v1(
+        Gwn_VertBufRaw *pos_step,
+        const float *coords, const uint coords_len)
+{
+	for (uint i = 0, i_prev = coords_len - 1; i < coords_len; i_prev = i++) {
+		*((float *)GWN_vertbuf_raw_step(pos_step)) = coords[i_prev];
+		*((float *)GWN_vertbuf_raw_step(pos_step)) = coords[i];
+	}
+}
+
+/** Fan lines out from the first vertex. */
+static void camera_fill_lines_fan_fl_v1(
+        Gwn_VertBufRaw *pos_step,
+        const float *coords, const uint coords_len)
+{
+	for (uint i = 1; i < coords_len; i++) {
+		*((float *)GWN_vertbuf_raw_step(pos_step)) = coords[0];
+		*((float *)GWN_vertbuf_raw_step(pos_step)) = coords[i];
+	}
+}
+
+/** Simply fill the array. */
+static void camera_fill_array_fl_v1(
+        Gwn_VertBufRaw *pos_step,
+        const float *coords, const uint coords_len)
+{
+	for (uint i = 0; i < coords_len; i++) {
+		*((float *)GWN_vertbuf_raw_step(pos_step)) = coords[i];
+	}
+}
+
+
 Gwn_Batch *DRW_cache_camera_get(void)
 {
 	if (!SHC.drw_camera) {
-		float v0 = 0.0f; /* Center point */
-		float v1 = 1.0f; /* + X + Y */
-		float v2 = 2.0f; /* + X - Y */
-		float v3 = 3.0f; /* - X - Y */
-		float v4 = 4.0f; /* - X + Y */
-		float v5 = 5.0f; /* tria + X */
-		float v6 = 6.0f; /* tria - X */
-		float v7 = 7.0f; /* tria + Y */
-		int v_idx = 0;
-
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			/* use x coordinate to identify the vertex
-			 * the vertex shader take care to place it
-			 * appropriatelly */
+			/* Use x coordinate to identify the vertex the vertex shader take care to place it appropriately. */
 			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 1, GWN_FETCH_FLOAT);
 		}
 
 		/* Vertices */
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(vbo, 22);
+		const int vbo_len_capacity = 22;
+		GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
+		Gwn_VertBufRaw pos_step;
+		GWN_vertbuf_attr_get_raw_data(vbo, attr_id.pos, &pos_step);
 
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v0);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v1);
+		/* camera cone (from center to frame) */
+		camera_fill_lines_fan_fl_v1(&pos_step, camera_coords_frame_bounds, ARRAY_SIZE(camera_coords_frame_bounds));
 
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v0);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v2);
+		/* camera frame (skip center) */
+		camera_fill_lines_loop_fl_v1(&pos_step, &camera_coords_frame_bounds[1], ARRAY_SIZE(camera_coords_frame_bounds) - 1);
 
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v0);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v3);
+		/* camera triangle (above the frame) */
+		camera_fill_lines_loop_fl_v1(&pos_step, camera_coords_frame_tri, ARRAY_SIZE(camera_coords_frame_tri));
 
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v0);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v4);
-
-		/* camera frame */
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v1);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v2);
-
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v2);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v3);
-
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v3);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v4);
-
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v4);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v1);
-
-		/* tria */
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v5);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v6);
-
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v6);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v7);
-
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v7);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v5);
+		BLI_assert(vbo_len_capacity == GWN_vertbuf_raw_used(&pos_step));
 
 		SHC.drw_camera = GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
 	}
@@ -2105,37 +2122,25 @@ Gwn_Batch *DRW_cache_camera_get(void)
 Gwn_Batch *DRW_cache_camera_frame_get(void)
 {
 	if (!SHC.drw_camera_frame) {
-		float v1 = 1.0f; /* + X + Y */
-		float v2 = 2.0f; /* + X - Y */
-		float v3 = 3.0f; /* - X - Y */
-		float v4 = 4.0f; /* - X + Y */
-		int v_idx = 0;
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			/* use x coordinate to identify the vertex
-			 * the vertex shader take care to place it
-			 * appropriatelly */
+			/* Use x coordinate to identify the vertex the vertex shader take care to place it appropriately. */
 			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 1, GWN_FETCH_FLOAT);
 		}
 
 		/* Vertices */
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(vbo, 8);
+		const int vbo_len_capacity = 8;
+		GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
+		Gwn_VertBufRaw pos_step;
+		GWN_vertbuf_attr_get_raw_data(vbo, attr_id.pos, &pos_step);
 
-		/* camera frame */
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v1);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v2);
+		/* camera frame (skip center) */
+		camera_fill_lines_loop_fl_v1(&pos_step, &camera_coords_frame_bounds[1], ARRAY_SIZE(camera_coords_frame_bounds) - 1);
 
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v2);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v3);
-
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v3);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v4);
-
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v4);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v1);
+		BLI_assert(vbo_len_capacity == GWN_vertbuf_raw_used(&pos_step));
 
 		SHC.drw_camera_frame = GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
 	}
@@ -2145,11 +2150,6 @@ Gwn_Batch *DRW_cache_camera_frame_get(void)
 Gwn_Batch *DRW_cache_camera_tria_get(void)
 {
 	if (!SHC.drw_camera_tria) {
-		float v5 = 5.0f; /* tria + X */
-		float v6 = 6.0f; /* tria - X */
-		float v7 = 7.0f; /* tria + Y */
-		int v_idx = 0;
-
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
@@ -2161,12 +2161,15 @@ Gwn_Batch *DRW_cache_camera_tria_get(void)
 
 		/* Vertices */
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(vbo, 6);
+		const int vbo_len_capacity = 3;
+		GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
+		Gwn_VertBufRaw pos_step;
+		GWN_vertbuf_attr_get_raw_data(vbo, attr_id.pos, &pos_step);
 
-		/* tria */
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v5);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v6);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, &v7);
+		/* camera triangle (above the frame) */
+		camera_fill_array_fl_v1(&pos_step, camera_coords_frame_tri, ARRAY_SIZE(camera_coords_frame_tri));
+
+		BLI_assert(vbo_len_capacity == GWN_vertbuf_raw_used(&pos_step));
 
 		SHC.drw_camera_tria = GWN_batch_create_ex(GWN_PRIM_TRIS, vbo, NULL, GWN_BATCH_OWNS_VBO);
 	}
