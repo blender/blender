@@ -4780,7 +4780,7 @@ NODE_DEFINE(OutputNode)
 
 	SOCKET_IN_CLOSURE(surface, "Surface");
 	SOCKET_IN_CLOSURE(volume, "Volume");
-	SOCKET_IN_FLOAT(displacement, "Displacement", 0.0f);
+	SOCKET_IN_VECTOR(displacement, "Displacement", make_float3(0.0f, 0.0f, 0.0f));
 	SOCKET_IN_NORMAL(normal, "Normal", make_float3(0.0f, 0.0f, 0.0f));
 
 	return type;
@@ -5642,6 +5642,45 @@ void BevelNode::compile(OSLCompiler& compiler)
 {
 	compiler.parameter(this, "samples");
 	compiler.add(this, "node_bevel");
+}
+
+/* Displacement */
+
+NODE_DEFINE(DisplacementNode)
+{
+	NodeType* type = NodeType::add("displacement", create, NodeType::SHADER);
+
+	SOCKET_IN_FLOAT(height, "Height", 0.0f);
+	SOCKET_IN_FLOAT(scale, "Scale", 1.0f);
+	SOCKET_IN_NORMAL(normal, "Normal", make_float3(0.0f, 0.0f, 0.0f), SocketType::LINK_NORMAL);
+
+	SOCKET_OUT_VECTOR(displacement, "Displacement");
+
+	return type;
+}
+
+DisplacementNode::DisplacementNode()
+: ShaderNode(node_type)
+{
+}
+
+void DisplacementNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *height_in = input("Height");
+	ShaderInput *scale_in = input("Scale");
+	ShaderInput *normal_in = input("Normal");
+	ShaderOutput *displacement_out = output("Displacement");
+
+	compiler.add_node(NODE_DISPLACEMENT,
+		compiler.encode_uchar4(compiler.stack_assign(height_in),
+		                       compiler.stack_assign(scale_in),
+		                       compiler.stack_assign_if_linked(normal_in),
+		                       compiler.stack_assign(displacement_out)));
+}
+
+void DisplacementNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_displacement");
 }
 
 CCL_NAMESPACE_END

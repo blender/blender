@@ -526,10 +526,10 @@ void ShaderGraph::constant_fold()
 	 * that happens to ensure there is still a valid graph for displacement.
 	 */
 	if(has_displacement && !output()->input("Displacement")->link) {
-		ValueNode *value = (ValueNode*)add(new ValueNode());
+		ColorNode *value = (ColorNode*)add(new ColorNode());
 		value->value = output()->displacement;
 
-		connect(value->output("Value"), output()->input("Displacement"));
+		connect(value->output("Color"), output()->input("Displacement"));
 	}
 }
 
@@ -861,7 +861,7 @@ void ShaderGraph::bump_from_displacement(bool use_object_space)
 
 	if(!displacement_in->link)
 		return;
-	
+
 	/* find dependencies for the given input */
 	ShaderNodeSet nodes_displace;
 	find_dependencies(nodes_displace, displacement_in);
@@ -893,15 +893,34 @@ void ShaderGraph::bump_from_displacement(bool use_object_space)
 	/* add bump node and connect copied graphs to it */
 	BumpNode *bump = (BumpNode*)add(new BumpNode());
 	bump->use_object_space = use_object_space;
+	bump->distance = 1.0f;
 
 	ShaderOutput *out = displacement_in->link;
 	ShaderOutput *out_center = nodes_center[out->parent]->output(out->name());
 	ShaderOutput *out_dx = nodes_dx[out->parent]->output(out->name());
 	ShaderOutput *out_dy = nodes_dy[out->parent]->output(out->name());
 
-	connect(out_center, bump->input("SampleCenter"));
-	connect(out_dx, bump->input("SampleX"));
-	connect(out_dy, bump->input("SampleY"));
+	/* convert displacement vector to height */
+	VectorMathNode *dot_center = (VectorMathNode*)add(new VectorMathNode());
+	VectorMathNode *dot_dx = (VectorMathNode*)add(new VectorMathNode());
+	VectorMathNode *dot_dy = (VectorMathNode*)add(new VectorMathNode());
+
+	dot_center->type = NODE_VECTOR_MATH_DOT_PRODUCT;
+	dot_dx->type = NODE_VECTOR_MATH_DOT_PRODUCT;
+	dot_dy->type = NODE_VECTOR_MATH_DOT_PRODUCT;
+
+	GeometryNode *geom = (GeometryNode*)add(new GeometryNode());
+	connect(geom->output("Normal"), dot_center->input("Vector2"));
+	connect(geom->output("Normal"), dot_dx->input("Vector2"));
+	connect(geom->output("Normal"), dot_dy->input("Vector2"));
+
+	connect(out_center, dot_center->input("Vector1"));
+	connect(out_dx, dot_dx->input("Vector1"));
+	connect(out_dy, dot_dy->input("Vector1"));
+
+	connect(dot_center->output("Value"), bump->input("SampleCenter"));
+	connect(dot_dx->output("Value"), bump->input("SampleX"));
+	connect(dot_dy->output("Value"), bump->input("SampleY"));
 	
 	/* connect the bump out to the set normal in: */
 	connect(bump->output("Normal"), set_normal->input("Direction"));

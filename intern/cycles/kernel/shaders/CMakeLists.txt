@@ -23,6 +23,7 @@ set(SRC_OSL
 	node_convert_from_point.osl
 	node_convert_from_vector.osl
 	node_diffuse_bsdf.osl
+	node_displacement.osl
 	node_emission.osl
 	node_environment_texture.osl
 	node_fresnel.osl

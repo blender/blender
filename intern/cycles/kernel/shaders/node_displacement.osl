@@ -16,8 +16,14 @@
 
 #include "stdosl.h"
 
-displacement node_output_displacement(vector Displacement = 0.0)
+shader node_displacement(
+	float Height = 0.0,
+	float Scale = 1.0,
+	normal Normal = N,
+	output vector Displacement = vector(0.0, 0.0, 0.0))
 {
-	P += Displacement;
+	Displacement = normalize(transform("object", Normal));
+	Displacement *= Height * Scale;
+	Displacement = transform("object", "world", Displacement);
 }
 

@@ -866,6 +866,9 @@ static ShaderNode *add_node(Scene *scene,
 		bevel->samples = b_bevel_node.samples();
 		node = bevel;
 	}
+	else if(b_node.is_a(&RNA_ShaderNodeDisplacement)) {
+		node = new DisplacementNode();
+	}
 
 	if(node) {
 		node->name = b_node.name();
