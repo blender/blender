@@ -70,8 +70,7 @@ ccl_device void kernel_split_branched_indirect_light_end(KernelGlobals *kg, int 
 	}
 	else {
 		/* Update Path State */
-		state->flag |= PATH_RAY_TRANSPARENT;
-		state->transparent_bounce++;
+		path_state_next(kg, state, LABEL_TRANSPARENT);
 
 		ray->P = ray_offset(sd->P, -sd->Ng);
 		ray->t -= sd->ray_length; /* clipping works through transparent */
