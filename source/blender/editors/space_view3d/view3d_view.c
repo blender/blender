@@ -1127,8 +1127,10 @@ bool ED_view3d_lock(RegionView3D *rv3d)
  * Use when displaying a sub-region, eg: when #view3d_winmatrix_set takes a 'rect' argument.
  *
  * \note don't set windows active in here, is used by renderwin too.
- * */
-void view3d_viewmatrix_set(Scene *scene, const View3D *v3d, RegionView3D *rv3d, const float rect_scale[2])
+ */
+void view3d_viewmatrix_set(
+        Scene *scene,
+        const View3D *v3d, RegionView3D *rv3d, const float rect_scale[2])
 {
 	if (rv3d->persp == RV3D_CAMOB) {      /* obs/camera */
 		if (v3d->camera) {
