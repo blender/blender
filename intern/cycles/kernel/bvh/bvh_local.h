@@ -243,26 +243,25 @@ ccl_device_inline void BVH_FUNCTION_NAME(KernelGlobals *kg,
                                          uint *lcg_state,
                                          int max_hits)
 {
+	switch(kernel_data.bvh.bvh_layout) {
 #ifdef __QBVH__
-	if(kernel_data.bvh.use_qbvh) {
-		return BVH_FUNCTION_FULL_NAME(QBVH)(kg,
-		                                    ray,
-		                                    local_isect,
-		                                    local_object,
-		                                    lcg_state,
-		                                    max_hits);
-	}
-	else
+		case BVH_LAYOUT_BVH4:
+			return BVH_FUNCTION_FULL_NAME(QBVH)(kg,
+			                                    ray,
+			                                    local_isect,
+			                                    local_object,
+			                                    lcg_state,
+			                                    max_hits);
 #endif
-	{
-		kernel_assert(kernel_data.bvh.use_qbvh == false);
-		return BVH_FUNCTION_FULL_NAME(BVH)(kg,
-		                                   ray,
-		                                   local_isect,
-		                                   local_object,
-		                                   lcg_state,
-		                                   max_hits);
+		case BVH_LAYOUT_BVH2:
+			return BVH_FUNCTION_FULL_NAME(BVH)(kg,
+			                                   ray,
+			                                   local_isect,
+			                                   local_object,
+			                                   lcg_state,
+			                                   max_hits);
 	}
+	kernel_assert(!"Should not happen");
 }
 
 #undef BVH_FUNCTION_NAME

@@ -552,8 +552,7 @@ ccl_device void kernel_branched_path_integrate(KernelGlobals *kg,
 		}
 
 		/* Update Path State */
-		state.flag |= PATH_RAY_TRANSPARENT;
-		state.transparent_bounce++;
+		path_state_next(kg, &state, LABEL_TRANSPARENT);
 
 		ray.P = ray_offset(sd.P, -sd.Ng);
 		ray.t -= sd.ray_length; /* clipping works through transparent */

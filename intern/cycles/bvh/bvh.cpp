@@ -26,9 +26,45 @@
 #include "bvh/bvh_node.h"
 
 #include "util/util_foreach.h"
+#include "util/util_logging.h"
 #include "util/util_progress.h"
 
 CCL_NAMESPACE_BEGIN
+
+/* BVH Parameters. */
+
+const char *bvh_layout_name(BVHLayout layout)
+{
+	switch(layout) {
+		case BVH_LAYOUT_BVH2: return "BVH2";
+		case BVH_LAYOUT_BVH4: return "BVH4";
+		case BVH_LAYOUT_NONE: return "NONE";
+		case BVH_LAYOUT_ALL:  return "ALL";
+	}
+	LOG(DFATAL) << "Unsupported BVH layout was passed.";
+	return "";
+}
+
+BVHLayout BVHParams::best_bvh_layout(BVHLayout requested_layout,
+                                     BVHLayoutMask supported_layouts)
+{
+	const BVHLayoutMask requested_layout_mask = (BVHLayoutMask)requested_layout;
+	/* Check whether requested layout is supported, if so -- no need to do
+	 * any extra computation.
+	 */
+	if(supported_layouts & requested_layout_mask) {
+		return requested_layout;
+	}
+	/* Some bit magic to get widest supported BVH layout. */
+	/* This is a mask of supported BVH layouts which are narrower than the
+	 * requested one.
+	 */
+	const BVHLayoutMask allowed_layouts_mask =
+	        (supported_layouts & (requested_layout_mask - 1));
+	/* We get widest from allowed ones and convert mask to actual layout. */
+	const BVHLayoutMask widest_allowed_layout_mask = __bsr(allowed_layouts_mask);
+	return (BVHLayout)(1 << widest_allowed_layout_mask);
+}
 
 /* Pack Utility */
 
@@ -51,10 +87,17 @@ BVH::BVH(const BVHParams& params_, const vector<Object*>& objects_)
 
 BVH *BVH::create(const BVHParams& params, const vector<Object*>& objects)
 {
-	if(params.use_qbvh)
-		return new BVH4(params, objects);
-	else
-		return new BVH2(params, objects);
+	switch(params.bvh_layout) {
+		case BVH_LAYOUT_BVH2:
+			return new BVH2(params, objects);
+		case BVH_LAYOUT_BVH4:
+			return new BVH4(params, objects);
+		case BVH_LAYOUT_NONE:
+		case BVH_LAYOUT_ALL:
+			break;
+	}
+	LOG(DFATAL) << "Requested unsupported BVH layout.";
+	return NULL;
 }
 
 /* Building */
@@ -248,7 +291,8 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 	 * BVH's are stored in global arrays. This function merges them into the
 	 * top level BVH, adjusting indexes and offsets where appropriate.
 	 */
-	const bool use_qbvh = params.use_qbvh;
+	/* TODO(sergey): This code needs adjustment for wider BVH than 4. */
+	const bool use_qbvh = (params.bvh_layout == BVH_LAYOUT_BVH4);
 
 	/* Adjust primitive index to point to the triangle in the global array, for
 	 * meshes with transform applied and already in the top level BVH.

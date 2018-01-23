@@ -2569,7 +2569,7 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 		info.has_fermi_limits = !(major >= 3);
 		info.has_half_images = (major >= 3);
 		info.has_volume_decoupled = false;
-		info.has_qbvh = false;
+		info.bvh_layout_mask = BVH_LAYOUT_BVH2;
 
 		int pci_location[3] = {0, 0, 0};
 		cuDeviceGetAttribute(&pci_location[0], CU_DEVICE_ATTRIBUTE_PCI_DOMAIN_ID, num);

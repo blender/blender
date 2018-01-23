@@ -55,7 +55,7 @@ static bool node_qbvh_is_unaligned(const BVHNode *node)
 BVH4::BVH4(const BVHParams& params_, const vector<Object*>& objects_)
 : BVH(params_, objects_)
 {
-	params.use_qbvh = true;
+	params.bvh_layout = BVH_LAYOUT_BVH4;
 }
 
 void BVH4::pack_leaf(const BVHStackEntry& e, const LeafNode *leaf)

@@ -1344,13 +1344,23 @@ typedef struct KernelIntegrator {
 } KernelIntegrator;
 static_assert_align(KernelIntegrator, 16);
 
+typedef enum KernelBVHLayout {
+	BVH_LAYOUT_NONE = 0,
+
+	BVH_LAYOUT_BVH2 = (1 << 0),
+	BVH_LAYOUT_BVH4 = (1 << 1),
+
+	BVH_LAYOUT_DEFAULT = BVH_LAYOUT_BVH4,
+	BVH_LAYOUT_ALL = (unsigned int)(-1),
+} KernelBVHLayout;
+
 typedef struct KernelBVH {
 	/* root node */
 	int root;
 	int have_motion;
 	int have_curves;
 	int have_instancing;
-	int use_qbvh;
+	int bvh_layout;
 	int use_bvh_steps;
 	int pad1, pad2;
 } KernelBVH;

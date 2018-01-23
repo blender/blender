@@ -19,6 +19,8 @@
 
 #include <stdlib.h>
 
+#include "bvh/bvh_params.h"
+
 #include "device/device_memory.h"
 #include "device/device_task.h"
 
@@ -52,14 +54,14 @@ public:
 	string description;
 	string id; /* used for user preferences, should stay fixed with changing hardware config */
 	int num;
-	bool display_device;         /* GPU is used as a display device. */
-	bool advanced_shading;       /* Supports full shading system. */
-	bool has_fermi_limits;       /* Fixed number of textures limit. */
-	bool has_half_images;        /* Support half-float textures. */
-	bool has_volume_decoupled;   /* Decoupled volume shading. */
-	bool has_qbvh;               /* Supports both BVH2 and BVH4 raytracing. */
-	bool has_osl;                /* Support Open Shading Language. */
-	bool use_split_kernel;       /* Use split or mega kernel. */
+	bool display_device;            /* GPU is used as a display device. */
+	bool advanced_shading;          /* Supports full shading system. */
+	bool has_fermi_limits;          /* Fixed number of textures limit. */
+	bool has_half_images;           /* Support half-float textures. */
+	bool has_volume_decoupled;      /* Decoupled volume shading. */
+	BVHLayoutMask bvh_layout_mask;  /* Bitmask of supported BVH layouts. */
+	bool has_osl;                   /* Support Open Shading Language. */
+	bool use_split_kernel;          /* Use split or mega kernel. */
 	int cpu_threads;
 	vector<DeviceInfo> multi_devices;
 
@@ -74,7 +76,7 @@ public:
 		has_fermi_limits = false;
 		has_half_images = false;
 		has_volume_decoupled = false;
-		has_qbvh = false;
+		bvh_layout_mask = BVH_LAYOUT_NONE;
 		has_osl = false;
 		use_split_kernel = false;
 	}
