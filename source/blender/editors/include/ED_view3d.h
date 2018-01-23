@@ -422,11 +422,11 @@ bool ED_view3d_camera_lock_autokey(
         struct View3D *v3d, struct RegionView3D *rv3d,
         struct bContext *C, const bool do_rotate, const bool do_translate);
 
-void ED_view3D_lock_clear(struct View3D *v3d);
+void ED_view3d_lock_clear(struct View3D *v3d);
 
-struct BGpic *ED_view3D_background_image_new(struct View3D *v3d);
-void ED_view3D_background_image_remove(struct View3D *v3d, struct BGpic *bgpic);
-void ED_view3D_background_image_clear(struct View3D *v3d);
+struct BGpic *ED_view3d_background_image_new(struct View3D *v3d);
+void ED_view3d_background_image_remove(struct View3D *v3d, struct BGpic *bgpic);
+void ED_view3d_background_image_clear(struct View3D *v3d);
 
 #define VIEW3D_MARGIN 1.4f
 #define VIEW3D_DIST_FALLBACK 1.0f

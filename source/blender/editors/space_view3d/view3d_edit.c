@@ -107,7 +107,7 @@ void ED_view3d_lastview_store(RegionView3D *rv3d)
 	}
 }
 
-void ED_view3D_lock_clear(View3D *v3d)
+void ED_view3d_lock_clear(View3D *v3d)
 {
 	v3d->ob_centre = NULL;
 	v3d->ob_centre_bone[0] = '\0';
@@ -3274,7 +3274,7 @@ static int view_lock_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	View3D *v3d = CTX_wm_view3d(C);
 
 	if (v3d) {
-		ED_view3D_lock_clear(v3d);
+		ED_view3d_lock_clear(v3d);
 
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
 
@@ -3314,7 +3314,7 @@ static int view_lock_to_active_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (v3d) {
 
-		ED_view3D_lock_clear(v3d);
+		ED_view3d_lock_clear(v3d);
 
 		v3d->ob_centre = obact; /* can be NULL */
 
@@ -4688,7 +4688,7 @@ static BGpic *background_image_add(bContext *C)
 {
 	View3D *v3d = CTX_wm_view3d(C);
 
-	return ED_view3D_background_image_new(v3d);
+	return ED_view3d_background_image_new(v3d);
 }
 
 static int background_image_add_exec(bContext *C, wmOperator *UNUSED(op))
@@ -4761,7 +4761,7 @@ static int background_image_remove_exec(bContext *C, wmOperator *op)
 			id_us_min((ID *)bgpic_rem->clip);
 		}
 
-		ED_view3D_background_image_remove(v3d, bgpic_rem);
+		ED_view3d_background_image_remove(v3d, bgpic_rem);
 
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
 		return OPERATOR_FINISHED;
@@ -5443,7 +5443,7 @@ void ED_view3d_to_object(Object *ob, const float ofs[3], const float quat[4], co
 /** \name Background Image Utilities
  * \{ */
 
-BGpic *ED_view3D_background_image_new(View3D *v3d)
+BGpic *ED_view3d_background_image_new(View3D *v3d)
 {
 	BGpic *bgpic = MEM_callocN(sizeof(BGpic), "Background Image");
 
@@ -5460,21 +5460,21 @@ BGpic *ED_view3D_background_image_new(View3D *v3d)
 	return bgpic;
 }
 
-void ED_view3D_background_image_remove(View3D *v3d, BGpic *bgpic)
+void ED_view3d_background_image_remove(View3D *v3d, BGpic *bgpic)
 {
 	BLI_remlink(&v3d->bgpicbase, bgpic);
 
 	MEM_freeN(bgpic);
 }
 
-void ED_view3D_background_image_clear(View3D *v3d)
+void ED_view3d_background_image_clear(View3D *v3d)
 {
 	BGpic *bgpic = v3d->bgpicbase.first;
 
 	while (bgpic) {
 		BGpic *next_bgpic = bgpic->next;
 
-		ED_view3D_background_image_remove(v3d, bgpic);
+		ED_view3d_background_image_remove(v3d, bgpic);
 
 		bgpic = next_bgpic;
 	}

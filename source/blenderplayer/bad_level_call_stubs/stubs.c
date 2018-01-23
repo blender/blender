@@ -481,9 +481,9 @@ void ED_node_tree_pop(struct SpaceNode *snode) RET_NONE
 int ED_view3d_scene_layer_set(int lay, const int *values, int *active) RET_ZERO
 void ED_view3d_quadview_update(struct ScrArea *sa, struct ARegion *ar, bool do_clip) RET_NONE
 void ED_view3d_from_m4(float mat[4][4], float ofs[3], float quat[4], float *dist) RET_NONE
-struct BGpic *ED_view3D_background_image_new(struct View3D *v3d) RET_NULL
-void ED_view3D_background_image_remove(struct View3D *v3d, struct BGpic *bgpic) RET_NONE
-void ED_view3D_background_image_clear(struct View3D *v3d) RET_NONE
+struct BGpic *ED_view3d_background_image_new(struct View3D *v3d) RET_NULL
+void ED_view3d_background_image_remove(struct View3D *v3d, struct BGpic *bgpic) RET_NONE
+void ED_view3d_background_image_clear(struct View3D *v3d) RET_NONE
 void ED_view3d_update_viewmat(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, float viewmat[4][4], float winmat[4][4], const struct rcti *rect) RET_NONE
 float ED_view3d_grid_scale(struct Scene *scene, struct View3D *v3d, const char **grid_unit) RET_ZERO
 void ED_view3d_shade_update(struct Main *bmain, struct Scene *scene, struct View3D *v3d, struct ScrArea *sa) RET_NONE
