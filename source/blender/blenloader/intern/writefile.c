@@ -3866,6 +3866,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 	memset(fg.pad, 0, sizeof(fg.pad));
 	memset(fg.filename, 0, sizeof(fg.filename));
 	memset(fg.build_hash, 0, sizeof(fg.build_hash));
+	fg.pad1 = NULL;
 
 	current_screen_compat(mainvar, is_undo, &screen, &scene, &render_layer);
 
