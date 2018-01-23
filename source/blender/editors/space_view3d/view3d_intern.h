@@ -296,7 +296,7 @@ void view3d_buttons_register(struct ARegionType *art);
 
 /* view3d_camera_control.c */
 struct View3DCameraControl *ED_view3d_cameracontrol_acquire(
-        const struct bContext *C, Scene *scene, View3D *v3d, RegionView3D *rv3d,
+        const struct EvaluationContext *eval_ctx, Scene *scene, View3D *v3d, RegionView3D *rv3d,
         const bool use_parent_root);
 void ED_view3d_cameracontrol_update(
         struct View3DCameraControl *vctrl,

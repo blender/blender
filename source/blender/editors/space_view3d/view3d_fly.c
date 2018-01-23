@@ -58,6 +58,8 @@
 
 #include "GPU_immediate.h"
 
+#include "DEG_depsgraph.h"
+
 #include "view3d_intern.h"  /* own include */
 
 /* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
@@ -344,6 +346,10 @@ enum {
 static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent *event)
 {
 	wmWindow *win = CTX_wm_window(C);
+	EvaluationContext eval_ctx;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
+
 	rctf viewborder;
 
 	float upvec[3]; /* tmp */
@@ -419,7 +425,7 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
 	}
 
 	fly->v3d_camera_control = ED_view3d_cameracontrol_acquire(
-	        C, fly->scene, fly->v3d, fly->rv3d,
+	        &eval_ctx, fly->scene, fly->v3d, fly->rv3d,
 	        (U.uiflag & USER_CAM_LOCK_NO_PARENT) == 0);
 
 	/* calculate center */

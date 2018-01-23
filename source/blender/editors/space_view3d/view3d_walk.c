@@ -60,6 +60,8 @@
 
 #include "RE_engine.h"
 
+#include "DEG_depsgraph.h"
+
 #include "view3d_intern.h"  /* own include */
 
 #ifdef WITH_INPUT_NDOF
@@ -510,6 +512,9 @@ static float userdef_speed = -1.f;
 static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
 {
 	wmWindow *win = CTX_wm_window(C);
+	EvaluationContext eval_ctx;
+
+	CTX_data_eval_ctx(C, &eval_ctx);
 
 	walk->rv3d = CTX_wm_region_view3d(C);
 	walk->v3d = CTX_wm_view3d(C);
@@ -610,7 +615,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
 	        walk->ar, walk->v3d);
 
 	walk->v3d_camera_control = ED_view3d_cameracontrol_acquire(
-	        C, walk->scene, walk->v3d, walk->rv3d,
+	        &eval_ctx, walk->scene, walk->v3d, walk->rv3d,
 	        (U.uiflag & USER_CAM_LOCK_NO_PARENT) == 0);
 
 	/* center the mouse */
