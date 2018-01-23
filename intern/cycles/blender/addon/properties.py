@@ -1374,7 +1374,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
     def update_device_entries(self, device_list):
         for device in device_list:
-            if not device[1] in {'CUDA', 'OPENCL'}:
+            if not device[1] in {'CUDA', 'OPENCL', 'CPU'}:
                 continue
 
             entry = None
