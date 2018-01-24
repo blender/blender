@@ -166,6 +166,7 @@ Gwn_Batch *GPU_batch_wire_from_poly_2d_encoded(
 	BLI_assert(polys_flat_len == polys_len * 2);
 
 	/* Over alloc */
+	/* Lines are pairs of (x, y) byte locations packed into an int32_t. */
 	int32_t *lines = MEM_mallocN(sizeof(*lines) * polys_len, __func__);
 	int32_t *lines_step = lines;
 
@@ -177,8 +178,6 @@ Gwn_Batch *GPU_batch_wire_from_poly_2d_encoded(
 		(rect ? rect->xmin : -1.0f),
 		(rect ? rect->ymin : -1.0f),
 	};
-
-	const bool hide_lines = true;
 
 	uint i_poly_prev = 0;
 	uint i_poly = 0;
@@ -210,15 +209,18 @@ Gwn_Batch *GPU_batch_wire_from_poly_2d_encoded(
 		}
 	}
 
-	uint lines_len = (lines_step - lines);
-	uint lines_hide_len = 0;
-	if (hide_lines) {
+	uint lines_len = lines_step - lines;
+
+	/* Hide Lines (we could make optional) */
+	{
 		qsort(lines, lines_len, sizeof(int32_t), BLI_sortutil_cmp_int);
+		lines_step = lines;
 		for (uint i_prev = 0, i = 1; i < lines_len; i_prev = i++) {
-			if ((lines[i] == lines[i_prev])) {
-				lines_hide_len++;
+			if ((lines[i] != lines[i_prev])) {
+				*lines_step++ = lines[i];
 			}
 		}
+		lines_len = lines_step - lines;
 	}
 
 	/* We have vertices and tris, make a batch from this. */
@@ -229,18 +231,13 @@ Gwn_Batch *GPU_batch_wire_from_poly_2d_encoded(
 	}
 
 	Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
-	GWN_vertbuf_data_alloc(vbo, (lines_len - lines_hide_len) * 2);
+	const uint vbo_len_capacity = lines_len * 2;
+	GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
 
 	Gwn_VertBufRaw pos_step;
 	GWN_vertbuf_attr_get_raw_data(vbo, attr_id.pos, &pos_step);
 
 	for (uint i = 0; i < lines_len; i++) {
-		if (hide_lines) {
-			if ((i + 1 != lines_len) && (lines[i + 1] == lines[i])) {
-				i++;
-				continue;
-			}
-		}
 		union {
 			uint8_t  as_u8_pair[2][2];
 			uint32_t as_u32;
@@ -253,6 +250,7 @@ Gwn_Batch *GPU_batch_wire_from_poly_2d_encoded(
 			}
 		}
 	}
+	BLI_assert(vbo_len_capacity == GWN_vertbuf_raw_used(&pos_step));
 	MEM_freeN(lines);
 	return GWN_batch_create_ex(
 	        GWN_PRIM_LINES, vbo,
