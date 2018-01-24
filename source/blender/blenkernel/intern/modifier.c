@@ -434,6 +434,11 @@ bool modifiers_isParticleEnabled(Object *ob)
 	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
 }
 
+/**
+ * Check whether is enabled.
+ *
+ * \param scene Current scene, may be NULL, in which case isDisabled callback of the modifier is never called.
+ */
 bool modifier_isEnabled(struct Scene *scene, ModifierData *md, int required_mode)
 {
 	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -441,7 +446,7 @@ bool modifier_isEnabled(struct Scene *scene, ModifierData *md, int required_mode
 	md->scene = scene;
 
 	if ((md->mode & required_mode) != required_mode) return false;
-	if (mti->isDisabled && mti->isDisabled(md, required_mode == eModifierMode_Render)) return false;
+	if (scene != NULL && mti->isDisabled && mti->isDisabled(md, required_mode == eModifierMode_Render)) return false;
 	if (md->mode & eModifierMode_DisableTemporary) return false;
 	if ((required_mode & eModifierMode_Editmode) && !(mti->flags & eModifierTypeFlag_SupportsEditmode)) return false;
 	

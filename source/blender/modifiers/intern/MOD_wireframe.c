@@ -52,11 +52,6 @@ static void copyData(ModifierData *md, ModifierData *target)
 	modifier_copyData_generic(md, target);
 }
 
-static bool isDisabled(ModifierData *UNUSED(md), int UNUSED(useRenderParams))
-{
-	return false;
-}
-
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	WireframeModifierData *wmd = (WireframeModifierData *)md;
@@ -132,8 +127,8 @@ ModifierTypeInfo modifierType_Wireframe = {
 	/* initData */          initData,
 	/* requiredDataMask */  requiredDataMask,
 	/* freeData */          NULL,
-	/* isDisabled */        isDisabled,
-	/* updateDepsgraph */   NULL,
+	/* isDisabled */        NULL,
+	/* updateDepgraph */    NULL,
 	/* dependsOnTime */     NULL,
 	/* dependsOnNormals */  dependsOnNormals,
 	/* foreachObjectLink */ NULL,

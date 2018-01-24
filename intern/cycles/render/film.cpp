@@ -310,6 +310,7 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	/* update __data */
 	kfilm->exposure = exposure;
 	kfilm->pass_flag = 0;
+	kfilm->light_pass_flag = 0;
 	kfilm->pass_stride = 0;
 	kfilm->use_light_pass = use_light_visibility || use_sample_clamp;
 

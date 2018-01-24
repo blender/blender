@@ -3413,11 +3413,14 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 		BLI_strncpy(filepath, name, sizeof(filepath));
 
 		for (view_id = 0, rv = rr->views.first; rv; rv = rv->next, view_id++) {
+			/* Sequencer and OpenGL render can't save multiple EXR layers. */
+			bool is_float = rv->rect32 == NULL;
+
 			if (!is_mono) {
 				BKE_scene_multiview_view_filepath_get(&scene->r, filepath, rv->name, name);
 			}
 
-			if (is_exr_rr) {
+			if (is_exr_rr && is_float) {
 				ok = RE_WriteRenderResult(reports, rr, name, &rd->im_format, rv->name, -1);
 				render_print_save_message(reports, name, ok, errno);
 
