@@ -4561,6 +4561,18 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 		ob->sculpt->pbvh = ccgdm->pbvh = BKE_pbvh_new();
 		BKE_pbvh_build_mesh(ccgdm->pbvh, me->mpoly, me->mloop, me->mvert, me->totvert, &me->vdata,
 		                    looptri, looptris_num);
+
+		if (ob->sculpt->modifiers_active && ob->derivedDeform != NULL) {
+			DerivedMesh *deformdm = ob->derivedDeform;
+			float (*vertCos)[3];
+			int totvert;
+
+			totvert = deformdm->getNumVerts(deformdm);
+			vertCos = MEM_malloc_arrayN(totvert, sizeof(float[3]), "ccgDM_getPBVH vertCos");
+			deformdm->getVertCos(deformdm, vertCos);
+			BKE_pbvh_apply_vertCos(ccgdm->pbvh, vertCos);
+			MEM_freeN(vertCos);
+		}
 	}
 
 	if (ccgdm->pbvh != NULL) {
