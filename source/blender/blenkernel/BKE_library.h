@@ -51,9 +51,9 @@ struct PointerRNA;
 struct PropertyRNA;
 
 size_t BKE_libblock_get_alloc_info(short type, const char **name);
-void *BKE_libblock_alloc_notest(short type);
-void *BKE_libblock_alloc(struct Main *bmain, short type, const char *name, const int flag) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-void  BKE_libblock_init_empty(struct ID *id);
+void *BKE_libblock_alloc_notest(short type) ATTR_WARN_UNUSED_RESULT;
+void *BKE_libblock_alloc(struct Main *bmain, short type, const char *name, const int flag) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+void  BKE_libblock_init_empty(struct ID *id) ATTR_NONNULL(1);
 
 /**
  * New ID creation/copying options.

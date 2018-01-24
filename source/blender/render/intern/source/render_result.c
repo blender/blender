@@ -1417,6 +1417,19 @@ bool RE_HasCombinedLayer(RenderResult *res)
 	return (rv->rect32 || rv->rectf);
 }
 
+bool RE_HasFloatPixels(RenderResult *res)
+{
+	RenderView *rview;
+
+	for (rview = res->views.first; rview; rview = rview->next) {
+		if (rview->rect32 && !rview->rectf) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 bool RE_RenderResult_is_stereo(RenderResult *res)
 {
 	if (! BLI_findstring(&res->views, STEREO_LEFT_NAME, offsetof(RenderView, name)))

@@ -392,6 +392,7 @@ void RE_updateRenderInstances(Render *re, int flag);
 /******* defined in render_result.c *********/
 
 bool RE_HasCombinedLayer(RenderResult *res);
+bool RE_HasFloatPixels(RenderResult *res);
 bool RE_RenderResult_is_stereo(RenderResult *res);
 struct RenderView *RE_RenderViewGetById(struct RenderResult *res, const int view_id);
 struct RenderView *RE_RenderViewGetByName(struct RenderResult *res, const char *viewname);
