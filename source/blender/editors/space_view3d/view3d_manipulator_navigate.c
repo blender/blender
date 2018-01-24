@@ -224,6 +224,15 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmManipulatorG
 		RNA_enum_set(ptr, "type", RV3D_VIEW_CAMERA);
 	}
 
+	/* Click only buttons (not modal). */
+	{
+		int mpr_ids[] = {MPR_PERSP, MPR_ORTHO, MPR_CAMERA};
+		for (int i = 0; i < ARRAY_SIZE(mpr_ids); i++) {
+			wmManipulator *mpr = navgroup->mpr_array[mpr_ids[i]];
+			RNA_boolean_set(mpr->ptr, "show_drag", false);
+		}
+	}
+
 	{
 		wmManipulator *mpr = navgroup->mpr_array[MPR_ROTATE];
 		mpr->scale_basis = MANIPULATOR_SIZE / 2;

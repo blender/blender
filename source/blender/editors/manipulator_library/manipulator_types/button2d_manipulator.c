@@ -206,9 +206,12 @@ static int manipulator_button2d_test_select(
 	return -1;
 }
 
-static int manipulator_button2d_cursor_get(wmManipulator *UNUSED(mpr))
+static int manipulator_button2d_cursor_get(wmManipulator *mpr)
 {
-	return BC_HANDCURSOR;
+	if (RNA_boolean_get(mpr->ptr, "show_drag")) {
+		return BC_NSEW_SCROLLCURSOR;
+	}
+	return CURSOR_STD;
 }
 
 static void manipulator_button2d_free(wmManipulator *mpr)
@@ -248,6 +251,9 @@ static void MANIPULATOR_WT_button_2d(wmManipulatorType *wt)
 
 	/* Passed to 'GPU_batch_from_poly_2d_encoded' */
 	RNA_def_property(wt->srna, "shape", PROP_STRING, PROP_BYTESTRING);
+
+	/* Currently only used for cursor display. */
+	RNA_def_boolean(wt->srna, "show_drag", true, "Show Drag", "");
 }
 
 void ED_manipulatortypes_button_2d(void)
