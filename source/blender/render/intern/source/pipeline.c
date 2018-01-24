@@ -3316,7 +3316,8 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 		return false;
 
 	bool is_mono = BLI_listbase_count_ex(&rr->views, 2) < 2;
-	bool is_exr_rr = ELEM(rd->im_format.imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER);
+	bool is_exr_rr = ELEM(rd->im_format.imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER) &&
+	                 RE_HasFloatPixels(rr);
 
 	if (rd->im_format.views_format == R_IMF_VIEWS_MULTIVIEW && is_exr_rr)
 	{
@@ -3334,14 +3335,11 @@ bool RE_WriteRenderViewsImage(ReportList *reports, RenderResult *rr, Scene *scen
 		BLI_strncpy(filepath, name, sizeof(filepath));
 
 		for (view_id = 0, rv = rr->views.first; rv; rv = rv->next, view_id++) {
-			/* Sequencer and OpenGL render can't save multiple EXR layers. */
-			bool is_float = rv->rect32 == NULL;
-
 			if (!is_mono) {
 				BKE_scene_multiview_view_filepath_get(&scene->r, filepath, rv->name, name);
 			}
 
-			if (is_exr_rr && is_float) {
+			if (is_exr_rr) {
 				ok = RE_WriteRenderResult(reports, rr, name, &rd->im_format, rv->name, -1);
 				render_print_save_message(reports, name, ok, errno);
 
