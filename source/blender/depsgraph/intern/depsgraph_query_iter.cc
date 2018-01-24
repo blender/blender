@@ -58,6 +58,30 @@ extern "C" {
 
 /* ************************ DEG ITERATORS ********************* */
 
+static void verify_id_proeprties_freed(DEGObjectIterData *data)
+{
+	if (data->dupli_object_current == NULL) {
+		// We didn't enter duplication yet, so we can't have any dangling
+		// pointers.
+		return;
+	}
+	const Object *dupli_object = data->dupli_object_current->ob;
+	Object *temp_dupli_object = &data->temp_dupli_object;
+	if (temp_dupli_object->id.properties == NULL) {
+		// No ID proeprties in temp datablock -- no leak is possible.
+		return;
+	}
+	if (temp_dupli_object->id.properties == dupli_object->id.properties) {
+		// Temp copy of object did not modify ID properties.
+		return;
+	}
+	// Free memory which is owned by temporary storage which is about to
+	// get overwritten.
+	IDP_FreeProperty(temp_dupli_object->id.properties);
+	MEM_freeN(temp_dupli_object->id.properties);
+	temp_dupli_object->id.properties = NULL;
+}
+
 static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 {
 	DEGObjectIterData *data = (DEGObjectIterData *)iter->data;
@@ -77,6 +101,8 @@ static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 		if (obd->type == OB_MBALL) {
 			continue;
 		}
+
+		verify_id_proeprties_freed(data);
 
 		data->dupli_object_current = dob;
 
@@ -215,6 +241,7 @@ void DEG_iterator_objects_next(BLI_Iterator *iter)
 				return;
 			}
 			else {
+				verify_id_proeprties_freed(data);
 				free_object_duplilist(data->dupli_list);
 				data->dupli_parent = NULL;
 				data->dupli_list = NULL;
