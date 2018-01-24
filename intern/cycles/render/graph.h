@@ -42,6 +42,7 @@ class SVMCompiler;
 class OSLCompiler;
 class OutputNode;
 class ConstantFolder;
+class MD5Hash;
 
 /* Bump
  *
@@ -243,6 +244,7 @@ public:
 	size_t num_node_ids;
 	bool finalized;
 	bool simplified;
+	string displacement_hash;
 
 	ShaderGraph();
 	~ShaderGraph();
@@ -256,6 +258,7 @@ public:
 	void relink(ShaderNode *node, ShaderOutput *from, ShaderOutput *to);
 
 	void remove_proxy_nodes();
+	void compute_displacement_hash();
 	void simplify(Scene *scene);
 	void finalize(Scene *scene,
 	              bool do_bump = false,

@@ -496,7 +496,7 @@ void Film::tag_passes_update(Scene *scene, const array<Pass>& passes_)
 		scene->mesh_manager->tag_update(scene);
 
 		foreach(Shader *shader, scene->shaders)
-			shader->need_update_attributes = true;
+			shader->need_update_mesh = true;
 	}
 	else if(Pass::contains(passes, PASS_MOTION) != Pass::contains(passes_, PASS_MOTION))
 		scene->mesh_manager->tag_update(scene);

@@ -200,7 +200,7 @@ Shader::Shader()
 	used = false;
 
 	need_update = true;
-	need_update_attributes = true;
+	need_update_mesh = true;
 }
 
 Shader::~Shader()
@@ -235,8 +235,23 @@ void Shader::set_graph(ShaderGraph *graph_)
 	/* do this here already so that we can detect if mesh or object attributes
 	 * are needed, since the node attribute callbacks check if their sockets
 	 * are connected but proxy nodes should not count */
-	if(graph_)
+	if(graph_) {
 		graph_->remove_proxy_nodes();
+
+		if(displacement_method != DISPLACE_BUMP) {
+			graph_->compute_displacement_hash();
+		}
+	}
+
+	/* update geometry if displacement changed */
+	if(displacement_method != DISPLACE_BUMP) {
+		const char *old_hash = (graph)? graph->displacement_hash.c_str() : "";
+		const char *new_hash = (graph_)? graph_->displacement_hash.c_str() : "";
+
+		if(strcmp(old_hash, new_hash) != 0) {
+			need_update_mesh = true;
+		}
+	}
 
 	/* assign graph */
 	delete graph;
@@ -294,9 +309,9 @@ void Shader::tag_update(Scene *scene)
 	}
 	
 	/* compare if the attributes changed, mesh manager will check
-	 * need_update_attributes, update the relevant meshes and clear it. */
+	 * need_update_mesh, update the relevant meshes and clear it. */
 	if(attributes.modified(prev_attributes)) {
-		need_update_attributes = true;
+		need_update_mesh = true;
 		scene->mesh_manager->need_update = true;
 	}
 

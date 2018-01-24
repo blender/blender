@@ -18,6 +18,7 @@
 #include "graph/node_type.h"
 
 #include "util/util_foreach.h"
+#include "util/util_md5.h"
 #include "util/util_param.h"
 #include "util/util_transform.h"
 
@@ -401,6 +402,25 @@ bool Node::equals(const Node& other) const
 	}
 
 	return true;
+}
+
+/* Hash */
+
+void Node::hash(MD5Hash& md5)
+{
+	md5.append(type->name.string());
+
+	foreach(const SocketType& socket, type->inputs) {
+		md5.append(socket.name.string());
+
+		if(socket.is_array()) {
+			const array<bool>* a = (const array<bool>*)(((char*)this) + socket.struct_offset);
+			md5.append((uint8_t*)a->data(), socket.size() * a->size());
+		}
+		else {
+			md5.append(((uint8_t*)this) + socket.struct_offset, socket.size());
+		}
+	}
 }
 
 CCL_NAMESPACE_END

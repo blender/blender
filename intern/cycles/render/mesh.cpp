@@ -1964,7 +1964,7 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 	/* Update normals. */
 	foreach(Mesh *mesh, scene->meshes) {
 		foreach(Shader *shader, mesh->used_shaders) {
-			if(shader->need_update_attributes)
+			if(shader->need_update_mesh)
 				mesh->need_update = true;
 		}
 
@@ -2104,7 +2104,7 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 	        << summary.full_report();
 
 	foreach(Shader *shader, scene->shaders) {
-		shader->need_update_attributes = false;
+		shader->need_update_mesh = false;
 	}
 
 	Scene::MotionType need_motion = scene->need_motion();

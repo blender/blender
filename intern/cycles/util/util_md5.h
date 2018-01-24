@@ -41,6 +41,7 @@ public:
 	~MD5Hash();
 
 	void append(const uint8_t *data, int size);
+	void append(const string& str);
 	bool append_file(const string& filepath);
 	string get_hex();
 
