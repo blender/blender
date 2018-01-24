@@ -108,6 +108,8 @@ typedef struct PaintStroke {
 	 * e.g. in sculpt mode, stroke doesn't start until cursor
 	 * passes over the mesh */
 	bool stroke_started;
+	/* Set when enough motion was found for rake rotation */
+	bool rake_started;
 	/* event that started stroke, for modal() return */
 	int event_type;
 	/* check if stroke variables have been initialized */
@@ -367,7 +369,12 @@ static bool paint_brush_update(bContext *C,
 		else if (!(brush->flag & BRUSH_CURVE)) {
 			if (!paint_calculate_rake_rotation(ups, brush, mouse_init)) {
 				/* Not enough motion to define an angle. */
-				is_dry_run = true;
+				if(!stroke->rake_started) {
+					is_dry_run = true;
+				}
+			}
+			else {
+				stroke->rake_started = true;
 			}
 		}
 	}
