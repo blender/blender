@@ -157,7 +157,7 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	}
 
 	DRW_framebuffer_init(&fbl->downsample_fb, &draw_engine_eevee_type,
-	                    (int)viewport_size[0] / 2, (int)viewport_size[1] / 2,
+	                    max_ii((int)viewport_size[0] / 2, 1), max_ii((int)viewport_size[1] / 2, 1),
 	                    &texmax, 1);
 
 

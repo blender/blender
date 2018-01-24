@@ -2308,6 +2308,7 @@ void DRW_framebuffer_init(
         DRWFboTexture textures[MAX_FBO_TEX], int textures_len)
 {
 	BLI_assert(textures_len <= MAX_FBO_TEX);
+	BLI_assert(width > 0 && height > 0);
 
 	bool create_fb = false;
 	int color_attachment = -1;
