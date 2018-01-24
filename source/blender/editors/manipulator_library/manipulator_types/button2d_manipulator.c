@@ -133,7 +133,6 @@ static void button2d_draw_intern(
 
 	if (select == false) {
 		if (button->shape_batch[0] != NULL) {
-			glEnable(GL_POLYGON_SMOOTH);
 			glEnable(GL_LINE_SMOOTH);
 			glLineWidth(1.0f);
 			for (uint i = 0; i < ARRAY_SIZE(button->shape_batch) && button->shape_batch[i]; i++) {
@@ -146,7 +145,6 @@ static void button2d_draw_intern(
 				GWN_batch_uniform_4f(button->shape_batch[i], "color", UNPACK4(color));
 				GWN_batch_draw(button->shape_batch[i]);
 			}
-			glDisable(GL_POLYGON_SMOOTH);
 			glDisable(GL_LINE_SMOOTH);
 			gpuPopMatrix();
 		}

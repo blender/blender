@@ -210,8 +210,6 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmManipulatorG
 			RNA_property_string_set_bytes(
 			        mpr->ptr, prop,
 			        (const char *)info->shape, info->shape_size);
-			/* don't fade icons so much */
-			mpr->color[3] = 0.5f;
 		}
 
 		wmOperatorType *ot = WM_operatortype_find(info->opname, true);
