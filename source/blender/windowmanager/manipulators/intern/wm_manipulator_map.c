@@ -445,6 +445,10 @@ void WM_manipulatormap_draw(
         wmManipulatorMap *mmap, const bContext *C,
         const eWM_ManipulatorMapDrawStep drawstep)
 {
+	if (!WM_manipulator_context_check_drawstep(C, drawstep)) {
+		return;
+	}
+
 	ListBase draw_manipulators = {NULL};
 
 	manipulatormap_prepare_drawing(mmap, C, &draw_manipulators, drawstep);
@@ -550,6 +554,7 @@ static wmManipulator *manipulator_find_intersected_3d(
 	};
 
 	*r_part = 0;
+
 	/* set up view matrices */
 	view3d_operator_needs_opengl(C);
 
@@ -588,6 +593,11 @@ wmManipulator *wm_manipulatormap_highlight_find(
 {
 	wmManipulator *mpr = NULL;
 	ListBase visible_3d_manipulators = {NULL};
+	bool do_step[WM_MANIPULATORMAP_DRAWSTEP_MAX];
+
+	for (int i = 0; i < ARRAY_SIZE(do_step); i++) {
+		do_step[i] = WM_manipulator_context_check_drawstep(C, i);
+	}
 
 	for (wmManipulatorGroup *mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
 
@@ -599,25 +609,28 @@ wmManipulator *wm_manipulatormap_highlight_find(
 		}
 
 		if (wm_manipulatorgroup_is_visible(mgroup, C)) {
+			eWM_ManipulatorMapDrawStep step;
 			if (mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) {
-				if ((mmap->update_flag[WM_MANIPULATORMAP_DRAWSTEP_3D] & MANIPULATORMAP_IS_REFRESH_CALLBACK) &&
-				    mgroup->type->refresh)
-				{
-					mgroup->type->refresh(C, mgroup);
-					/* cleared below */
-				}
-				wm_manipulatorgroup_intersectable_manipulators_to_list(mgroup, &visible_3d_manipulators);
+				step = WM_MANIPULATORMAP_DRAWSTEP_3D;
 			}
 			else {
-				if ((mmap->update_flag[WM_MANIPULATORMAP_DRAWSTEP_2D] & MANIPULATORMAP_IS_REFRESH_CALLBACK) &&
-				    mgroup->type->refresh)
+				step = WM_MANIPULATORMAP_DRAWSTEP_2D;
+			}
+
+			if (do_step[step]) {
+				if ((mmap->update_flag[step] & MANIPULATORMAP_IS_REFRESH_CALLBACK) &&
+					(mgroup->type->refresh != NULL))
 				{
 					mgroup->type->refresh(C, mgroup);
 					/* cleared below */
 				}
-
-				if ((mpr = wm_manipulatorgroup_find_intersected_mainpulator(mgroup, C, event, r_part))) {
-					break;
+				if (step == WM_MANIPULATORMAP_DRAWSTEP_3D) {
+					wm_manipulatorgroup_intersectable_manipulators_to_list(mgroup, &visible_3d_manipulators);
+				}
+				else if (step == WM_MANIPULATORMAP_DRAWSTEP_2D) {
+					if ((mpr = wm_manipulatorgroup_find_intersected_mainpulator(mgroup, C, event, r_part))) {
+						break;
+					}
 				}
 			}
 		}

@@ -735,3 +735,28 @@ void WM_manipulator_properties_free(PointerRNA *ptr)
 }
 
 /** \} */
+
+/** \name General Utilities
+ *
+ * \{ */
+
+bool WM_manipulator_context_check_drawstep(const struct bContext *C, eWM_ManipulatorMapDrawStep step)
+{
+	switch (step) {
+		case WM_MANIPULATORMAP_DRAWSTEP_2D:
+		{
+			break;
+		}
+		case WM_MANIPULATORMAP_DRAWSTEP_3D:
+		{
+			wmWindowManager *wm = CTX_wm_manager(C);
+			if (ED_screen_animation_playing(wm)) {
+				return false;
+			}
+			break;
+		}
+	}
+	return true;
+}
+
+/** \} */
