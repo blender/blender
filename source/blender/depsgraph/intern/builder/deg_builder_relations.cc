@@ -989,6 +989,18 @@ void DepsgraphRelationBuilder::build_animdata_curves_targets(ID *id)
 		graph_->add_new_relation(operation_from, operation_to,
 		                         "Animation -> Prop",
 		                         true);
+		/* It is possible that animation is writing to a nested ID datablock,
+		 * need to make sure animation is evaluated after target ID is copied.
+		 */
+		if (DEG_depsgraph_use_copy_on_write()) {
+			const IDDepsNode *id_node_from = operation_from->owner->owner;
+			const IDDepsNode *id_node_to = operation_to->owner->owner;
+			if (id_node_from != id_node_to) {
+				ComponentKey cow_key(id_node_to->id_orig,
+				                     DEG_NODE_TYPE_COPY_ON_WRITE);
+				add_relation(cow_key, adt_key, "Target CoW -> Animation", true);
+			}
+		}
 	}
 }
 
@@ -1008,7 +1020,6 @@ void DepsgraphRelationBuilder::build_animdata_drivers(ID *id)
 
 		/* create the driver's relations to targets */
 		build_driver(id, fcu);
-
 		/* Special case for array drivers: we can not multithread them because
 		 * of the way how they work internally: animation system will write the
 		 * whole array back to RNA even when changing individual array value.
@@ -1139,6 +1150,25 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
 	else {
 		RNAPathKey target_key(id, rna_path);
 		add_relation(driver_key, target_key, "Driver -> Target");
+		/* Similar to the case with f-curves, driver might drive a nested
+		 * datablock, which means driver execution should wait for that
+		 * datablock to be copied.
+		 */
+		if (DEG_depsgraph_use_copy_on_write()) {
+			PointerRNA id_ptr;
+			PointerRNA ptr;
+			RNA_id_pointer_create(id, &id_ptr);
+			if (RNA_path_resolve_full(&id_ptr, fcu->rna_path, &ptr, NULL, NULL)) {
+				if (id_ptr.id.data != ptr.id.data) {
+					ComponentKey cow_key((ID *)ptr.id.data,
+					                     DEG_NODE_TYPE_COPY_ON_WRITE);
+					add_relation(cow_key,
+					             driver_key,
+					             "Target CoW -> Driver",
+					             true);
+				}
+			}
+		}
 	}
 }
 
