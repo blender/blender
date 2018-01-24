@@ -110,7 +110,7 @@ void ED_view3d_lastview_store(RegionView3D *rv3d)
 	}
 }
 
-void ED_view3D_lock_clear(View3D *v3d)
+void ED_view3d_lock_clear(View3D *v3d)
 {
 	v3d->ob_centre = NULL;
 	v3d->ob_centre_bone[0] = '\0';
@@ -3284,7 +3284,7 @@ static int view_lock_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	View3D *v3d = CTX_wm_view3d(C);
 
 	if (v3d) {
-		ED_view3D_lock_clear(v3d);
+		ED_view3d_lock_clear(v3d);
 
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
 
@@ -3324,7 +3324,7 @@ static int view_lock_to_active_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (v3d) {
 
-		ED_view3D_lock_clear(v3d);
+		ED_view3d_lock_clear(v3d);
 
 		v3d->ob_centre = obact; /* can be NULL */
 
