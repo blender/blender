@@ -32,6 +32,10 @@
 
 #include "BLI_compiler_attrs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct IDProperty;
 struct ID;
 
@@ -119,6 +123,8 @@ void IDP_ClearProperty(IDProperty *prop);
 
 void IDP_RelinkProperty(struct IDProperty *prop);
 
+void IDP_Reset(IDProperty *prop, const IDProperty *reference);
+
 #define IDP_Int(prop)                     ((prop)->data.val)
 #define IDP_Array(prop)                   ((prop)->data.pointer)
 /* C11 const correctness for casts */
@@ -149,6 +155,10 @@ void IDP_RelinkProperty(struct IDProperty *prop);
 #ifndef NDEBUG
 /* for printout only */
 void IDP_spit(IDProperty *prop);
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* __BKE_IDPROP_H__ */

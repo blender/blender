@@ -1094,4 +1094,15 @@ void IDP_ClearProperty(IDProperty *prop)
 	prop->len = prop->totallen = 0;
 }
 
+void IDP_Reset(IDProperty *prop, const IDProperty *reference)
+{
+	if (prop == NULL) {
+		return;
+	}
+	IDP_ClearProperty(prop);
+	if (reference != NULL) {
+		IDP_MergeGroup(prop, reference, true);
+	}
+}
+
 /** \} */
