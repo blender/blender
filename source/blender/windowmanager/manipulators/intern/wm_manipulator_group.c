@@ -145,7 +145,7 @@ void wm_manipulatorgroup_manipulator_register(wmManipulatorGroup *mgroup, wmMani
 	mpr->parent_mgroup = mgroup;
 }
 
-wmManipulator *wm_manipulatorgroup_find_intersected_mainpulator(
+wmManipulator *wm_manipulatorgroup_find_intersected_manipulator(
         const wmManipulatorGroup *mgroup, bContext *C, const wmEvent *event,
         int *r_part)
 {

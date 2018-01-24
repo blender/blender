@@ -628,7 +628,7 @@ wmManipulator *wm_manipulatormap_highlight_find(
 					wm_manipulatorgroup_intersectable_manipulators_to_list(mgroup, &visible_3d_manipulators);
 				}
 				else if (step == WM_MANIPULATORMAP_DRAWSTEP_2D) {
-					if ((mpr = wm_manipulatorgroup_find_intersected_mainpulator(mgroup, C, event, r_part))) {
+					if ((mpr = wm_manipulatorgroup_find_intersected_manipulator(mgroup, C, event, r_part))) {
 						break;
 					}
 				}
