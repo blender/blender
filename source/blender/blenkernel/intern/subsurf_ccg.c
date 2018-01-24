@@ -67,6 +67,7 @@
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
+#include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_paint.h"
 #include "BKE_scene.h"
@@ -4444,7 +4445,7 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
 	CCGKey key;
-	int numGrids, grid_pbvh;
+	int numGrids;
 
 	CCG_key_top_level(&key, ccgdm->ss);
 
@@ -4456,35 +4457,85 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 	if (!ob->sculpt)
 		return NULL;
 
-	/* In vwpaint, we always use a grid_pbvh for multires/subsurf */
-	grid_pbvh = (!(ob->mode & OB_MODE_SCULPT) || ccgDM_use_grid_pbvh(ccgdm));
+	bool grid_pbvh = ccgDM_use_grid_pbvh(ccgdm);
+	if ((ob->mode & OB_MODE_SCULPT) == 0) {
+		/* In vwpaint, we may use a grid_pbvh for multires/subsurf, under certain conditions.
+		 * More complex cases break 'history' trail back to original vertices, in that case we fall back to
+		 * deformed cage only (i.e. original deformed mesh). */
+		VirtualModifierData virtualModifierData;
+		ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
+
+		grid_pbvh = true;
+		bool has_one_ccg_modifier = false;
+		for (; md; md = md->next) {
+			/* We can only accept to use this ccgdm if:
+			 *   - it's the only active ccgdm in the stack.
+			 *   - there is no topology-modifying modifier in the stack.
+			 * Otherwise, there is no way to map back to original geometry from grid-generated PBVH.
+			 */
+			const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+			if (!modifier_isEnabled(NULL, md, eModifierMode_Realtime)) {
+				continue;
+			}
+			if (ELEM(mti->type, eModifierTypeType_OnlyDeform, eModifierTypeType_NonGeometrical)) {
+				continue;
+			}
+
+			if (ELEM(md->type, eModifierType_Subsurf, eModifierType_Multires)) {
+				if (has_one_ccg_modifier) {
+					/* We only allow a single active ccg modifier in the stack. */
+					grid_pbvh = false;
+					break;
+				}
+				has_one_ccg_modifier = true;
+				continue;
+			}
+
+			/* Any other non-deforming modifier makes it impossible to use grid pbvh. */
+			grid_pbvh = false;
+			break;
+		}
+	}
 
 	if (ob->sculpt->pbvh) {
+		/* Note that we have to clean up exisitng pbvh instead of updating it in case it does not match current
+		 * grid_pbvh status. */
 		if (grid_pbvh) {
-			/* pbvh's grids, gridadj and gridfaces points to data inside ccgdm
-			 * but this can be freed on ccgdm release, this updates the pointers
-			 * when the ccgdm gets remade, the assumption is that the topology
-			 * does not change. */
-			ccgdm_create_grids(dm);
-			BKE_pbvh_grids_update(ob->sculpt->pbvh, ccgdm->gridData, (void **)ccgdm->gridFaces,
-			                      ccgdm->gridFlagMats, ccgdm->gridHidden);
+			if (BKE_pbvh_get_ccgdm(ob->sculpt->pbvh) != NULL) {
+				/* pbvh's grids, gridadj and gridfaces points to data inside ccgdm
+				 * but this can be freed on ccgdm release, this updates the pointers
+				 * when the ccgdm gets remade, the assumption is that the topology
+				 * does not change. */
+				ccgdm_create_grids(dm);
+				BKE_pbvh_grids_update(ob->sculpt->pbvh, ccgdm->gridData, (void **)ccgdm->gridFaces,
+				                      ccgdm->gridFlagMats, ccgdm->gridHidden);
+			}
+			else {
+				BKE_pbvh_free(ob->sculpt->pbvh);
+				ob->sculpt->pbvh = NULL;
+			}
+		}
+		else if (BKE_pbvh_get_ccgdm(ob->sculpt->pbvh) != NULL) {
+			BKE_pbvh_free(ob->sculpt->pbvh);
+			ob->sculpt->pbvh = NULL;
 		}
 
 		ccgdm->pbvh = ob->sculpt->pbvh;
 	}
 
 	if (ccgdm->pbvh) {
-		/* For vertex paint, keep track of ccgdm */
-		if (!(ob->mode & OB_MODE_SCULPT)) {
+		/* For grid pbvh, keep track of ccgdm */
+		if (grid_pbvh) {
 			BKE_pbvh_set_ccgdm(ccgdm->pbvh, ccgdm);
 		}
 		return ccgdm->pbvh;
 	}
 
-	/* no pbvh exists yet, we need to create one. only in case of multires
+	/* No pbvh exists yet, we need to create one. only in case of multires
 	 * we build a pbvh over the modified mesh, in other cases the base mesh
 	 * is being sculpted, so we build a pbvh from that. */
-	/* Note: vwpaint always builds a pbvh over the modified mesh. */
+	/* Note: vwpaint tries to always build a pbvh over the modified mesh. */
 	if (grid_pbvh) {
 		ccgdm_create_grids(dm);
 
@@ -4517,8 +4568,8 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 		pbvh_show_mask_set(ccgdm->pbvh, ob->sculpt->show_mask);
 	}
 
-	/* For vertex paint, keep track of ccgdm */
-	if (!(ob->mode & OB_MODE_SCULPT) && ccgdm->pbvh) {
+	/* For grid pbvh, keep track of ccgdm. */
+	if (grid_pbvh && ccgdm->pbvh) {
 		BKE_pbvh_set_ccgdm(ccgdm->pbvh, ccgdm);
 	}
 	return ccgdm->pbvh;
