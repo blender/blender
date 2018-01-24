@@ -215,8 +215,12 @@ Gwn_Batch *GPU_batch_wire_from_poly_2d_encoded(
 	{
 		qsort(lines, lines_len, sizeof(int32_t), BLI_sortutil_cmp_int);
 		lines_step = lines;
+
+		if (lines[0] != lines[1]) {
+			*lines_step++ = lines[0];
+		}
 		for (uint i_prev = 0, i = 1; i < lines_len; i_prev = i++) {
-			if ((lines[i] != lines[i_prev])) {
+			if (lines[i] != lines[i_prev]) {
 				*lines_step++ = lines[i];
 			}
 		}
