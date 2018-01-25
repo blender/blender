@@ -7671,7 +7671,9 @@ void UI_but_tooltip_timer_remove(bContext *C, uiBut *but)
 			data->autoopentimer = NULL;
 		}
 
-		WM_tooltip_clear(C, data->window);
+		if (data->window) {
+			WM_tooltip_clear(C, data->window);
+		}
 	}
 }
 
