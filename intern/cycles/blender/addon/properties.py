@@ -42,9 +42,9 @@ enum_feature_set = (
     )
 
 enum_displacement_methods = (
-    ('BUMP', "Bump", "Bump mapping to simulate the appearance of displacement"),
-    ('TRUE', "True", "Use true displacement only, requires fine subdivision"),
-    ('BOTH', "Both", "Combination of displacement and bump mapping"),
+    ('BUMP', "Bump Only", "Bump mapping to simulate the appearance of displacement"),
+    ('DISPLACEMENT', "Displacement Only", "Use true displacement of surface only, requires fine subdivision"),
+    ('BOTH', "Displacement and Bump", "Combination of true displacement and bump mapping for finer detail"),
     )
 
 enum_bvh_layouts = (
@@ -878,7 +878,7 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
                 name="Displacement Method",
                 description="Method to use for the displacement",
                 items=enum_displacement_methods,
-                default='BUMP',
+                default='DISPLACEMENT',
                 )
 
     @classmethod

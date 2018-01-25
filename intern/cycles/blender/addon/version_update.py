@@ -359,3 +359,9 @@ def do_versions(self):
 
     if bpy.data.version <= (2, 79, 1):
         displacement_nodes_insert()
+
+    if bpy.data.version <= (2, 79, 2):
+        for mat in bpy.data.materials:
+            cmat = mat.cycles
+            if not cmat.is_property_set("displacement_method"):
+                cmat.displacement_method = 'BUMP'
