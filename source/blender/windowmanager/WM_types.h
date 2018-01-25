@@ -702,12 +702,20 @@ typedef struct wmDropBox {
 
 } wmDropBox;
 
+/**
+ * Struct to store tool-tip timer and possible creation if the time is reached.
+ * Allows UI code to call #WM_tooltip_timer_init without each user having to handle the timer.
+ */
 typedef struct wmTooltipState {
+	/** Create tooltip on this event. */
 	struct wmTimer *timer;
+	/** The region the tooltip is created in. */
 	struct ARegion *region_from;
+	/** The tooltip region. */
 	struct ARegion *region;
+	/** Create the tooltip region (assign to 'region'). */
 	struct ARegion *(*init)(struct bContext *, struct ARegion *, bool *r_exit_on_event);
-	/* Exit on any event, not needed for buttons since their highlight state is used. */
+	/** Exit on any event, not needed for buttons since their highlight state is used. */
 	bool exit_on_event;
 } wmTooltipState;
 
