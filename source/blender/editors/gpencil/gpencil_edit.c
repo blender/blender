@@ -103,7 +103,8 @@ static int gpencil_editmode_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 		ED_gpencil_reset_layers_parent(gpd);
 	}
 
-	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | ND_GPENCIL_EDITMODE, NULL);
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA, NULL);
+	WM_event_add_notifier(C, NC_GPENCIL | ND_GPENCIL_EDITMODE, NULL);
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -151,7 +152,8 @@ static int gpencil_hideselect_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 		ts->gp_sculpt.alpha = 1.0f;
 	}
 
-	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | ND_GPENCIL_EDITMODE, NULL);
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA, NULL);
+	WM_event_add_notifier(C, NC_GPENCIL | ND_GPENCIL_EDITMODE, NULL);
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, NULL);
 
 	return OPERATOR_FINISHED;

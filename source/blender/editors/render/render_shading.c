@@ -425,7 +425,8 @@ static int material_slot_move_exec(bContext *C, wmOperator *op)
 	MEM_freeN(slot_remap);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW | ND_DATA, ob);
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_OBJECT | ND_DATA, ob);
 
 	return OPERATOR_FINISHED;
 }
