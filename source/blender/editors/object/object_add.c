@@ -2483,9 +2483,6 @@ static int add_named_exec(bContext *C, wmOperator *op)
 	/* TODO(sergey): Only update relations for the current scene. */
 	DEG_relations_tag_update(bmain);
 
-	/* TODO(sergey): Use proper flag for tagging here. */
-	DEG_id_tag_update(&scene->id, 0);
-
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 
