@@ -48,6 +48,7 @@ struct ID;
 struct Object;
 struct bPoseChannel;
 struct EditBone;
+struct wmEvent;
 struct wmKeyConfig;
 
 
@@ -72,7 +73,9 @@ typedef enum TreeTraversalAction {
 typedef void (*TreeElementReinsertFunc)(struct Main *bmain,
                                         struct SpaceOops *soops,
                                         struct TreeElement *insert_element,
-                                        struct TreeElement *insert_handle, TreeElementInsertType action);
+                                        struct TreeElement *insert_handle,
+                                        TreeElementInsertType action,
+                                        const struct wmEvent *event);
 /**
  * Executed on (almost) each mouse move while dragging. It's supposed to give info
  * if reinserting insert_element before/after/into insert_handle would be allowed.

@@ -164,7 +164,7 @@ static void outliner_item_drag_handle(
 	te_dragged->drag_data->insert_handle = te_insert_handle;
 }
 
-static bool outliner_item_drag_drop_apply(Main *bmain, SpaceOops *soops, TreeElement *dragged_te)
+static bool outliner_item_drag_drop_apply(Main *bmain, SpaceOops *soops, TreeElement *dragged_te, const wmEvent *event)
 {
 	TreeElement *insert_handle = dragged_te->drag_data->insert_handle;
 	TreeElementInsertType insert_type = dragged_te->drag_data->insert_type;
@@ -178,7 +178,7 @@ static bool outliner_item_drag_drop_apply(Main *bmain, SpaceOops *soops, TreeEle
 		/* call of assert above should not have changed insert_handle and insert_type at this point */
 		BLI_assert(dragged_te->drag_data->insert_handle == insert_handle &&
 		           dragged_te->drag_data->insert_type == insert_type);
-		dragged_te->reinsert(bmain, soops, dragged_te, insert_handle, insert_type);
+		dragged_te->reinsert(bmain, soops, dragged_te, insert_handle, insert_type, event);
 		return true;
 	}
 
@@ -198,7 +198,7 @@ static int outliner_item_drag_drop_modal(bContext *C, wmOperator *op, const wmEv
 	switch (event->type) {
 		case EVT_MODAL_MAP:
 			if (event->val == OUTLINER_ITEM_DRAG_CONFIRM) {
-				if (outliner_item_drag_drop_apply(bmain, soops, te_dragged)) {
+				if (outliner_item_drag_drop_apply(bmain, soops, te_dragged, event)) {
 					skip_rebuild = false;
 				}
 				retval = OPERATOR_FINISHED;

@@ -445,7 +445,8 @@ static TreeTraversalAction outliner_find_selected_objects(TreeElement *te, void 
 static void outliner_object_reorder(
         Main *bmain, SpaceOops *soops,
         TreeElement *insert_element,
-        TreeElement *insert_handle, TreeElementInsertType action)
+        TreeElement *insert_handle, TreeElementInsertType action,
+        const wmEvent *event)
 {
 	SceneCollection *sc = outliner_scene_collection_from_tree_element(insert_handle);
 	SceneCollection *sc_ob_parent = NULL;
@@ -458,12 +459,21 @@ static void outliner_object_reorder(
 		.objects_selected_array  = {NULL, NULL},
 	};
 
+	const bool is_append = event->ctrl;
+
 	/* Make sure we include the originally inserted element as well. */
 	TREESTORE(insert_element)->flag |= TSE_SELECTED;
 
 	outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, outliner_find_selected_objects, &data);
 	BLI_LISTBASE_FOREACH (LinkData *, link, &data.objects_selected_array) {
 		TreeElement *ten_selected = (TreeElement *)link->data;
+		Object *ob = (Object *)TREESTORE(ten_selected)->id;
+
+		if (is_append) {
+			BKE_collection_object_add(id, sc, ob);
+			continue;
+		}
+
 		/* Find parent scene-collection of object. */
 		if (ten_selected->parent) {
 			for (TreeElement *te_ob_parent = ten_selected->parent; te_ob_parent; te_ob_parent = te_ob_parent->parent) {
@@ -476,7 +486,7 @@ static void outliner_object_reorder(
 		else {
 			sc_ob_parent = BKE_collection_master(id);
 		}
-		Object *ob = (Object *)TREESTORE(ten_selected)->id;
+
 		BKE_collection_object_move(id, sc, sc_ob_parent, ob);
 	}
 
@@ -1434,7 +1444,8 @@ static void outliner_add_orphaned_datablocks(Main *mainvar, SpaceOops *soops)
 static void outliner_layer_collections_reorder(
         Main *bmain,
         SpaceOops *UNUSED(soops),
-        TreeElement *insert_element, TreeElement *insert_handle, TreeElementInsertType action)
+        TreeElement *insert_element, TreeElement *insert_handle, TreeElementInsertType action,
+        const wmEvent *UNUSED(event))
 {
 	LayerCollection *lc_insert = insert_element->directdata;
 	LayerCollection *lc_handle = insert_handle->directdata;
@@ -1501,7 +1512,8 @@ static void outliner_add_view_layer(SpaceOops *soops, ListBase *tree, TreeElemen
 static void outliner_scene_collections_reorder(
         Main *bmain,
         SpaceOops *UNUSED(soops),
-        TreeElement *insert_element, TreeElement *insert_handle, TreeElementInsertType action)
+        TreeElement *insert_element, TreeElement *insert_handle, TreeElementInsertType action,
+        const wmEvent *UNUSED(event))
 {
 	SceneCollection *sc_insert = insert_element->directdata;
 	SceneCollection *sc_handle = insert_handle->directdata;
