@@ -2086,7 +2086,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, ViewLayer 
 #define ID_NEW_REMAP_US(a)	if (      (a)->id.newid) { (a) = (void *)(a)->id.newid;       (a)->id.us++; }
 #define ID_NEW_REMAP_US2(a)	if (((ID *)a)->newid)    { (a) = ((ID  *)a)->newid;     ((ID *)a)->us++;    }
 
-	Base *basen = NULL;
+	Base *base, *basen = NULL;
 	Material ***matarar;
 	Object *obn;
 	ID *id;
@@ -2099,7 +2099,14 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, ViewLayer 
 		obn = ID_NEW_SET(ob, BKE_object_copy(bmain, ob));
 		DEG_id_tag_update(&obn->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
-		BKE_collection_object_add_from(scene, ob, obn);
+		base = BKE_view_layer_base_find(view_layer, ob);
+		if ((base != NULL) && (base->flag & BASE_VISIBLED)) {
+			BKE_collection_object_add_from(scene, ob, obn);
+		}
+		else {
+			LayerCollection *layer_collection = BKE_layer_collection_get_active_ensure(scene, view_layer);
+			BKE_collection_object_add(&scene->id, layer_collection->scene_collection, obn);
+		}
 		basen = BKE_view_layer_base_find(view_layer, obn);
 
 		/* 1) duplis should end up in same group as the original
@@ -2449,13 +2456,13 @@ static int add_named_exec(bContext *C, wmOperator *op)
 	clear_sca_new_poins();  /* BGE logic */
 
 	basen = object_add_duplicate_internal(bmain, scene, view_layer, ob, dupflag);
-	BKE_scene_object_base_flag_sync_from_object(basen);
 
 	if (basen == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Object could not be duplicated");
 		return OPERATOR_CANCELLED;
 	}
 
+	BKE_scene_object_base_flag_sync_from_object(basen);
 	basen->object->restrictflag &= ~OB_RESTRICT_VIEW;
 
 	if (event) {
@@ -2473,7 +2480,11 @@ static int add_named_exec(bContext *C, wmOperator *op)
 
 	BKE_main_id_clear_newpoins(bmain);
 
+	/* TODO(sergey): Only update relations for the current scene. */
 	DEG_relations_tag_update(bmain);
+
+	/* TODO(sergey): Use proper flag for tagging here. */
+	DEG_id_tag_update(&scene->id, 0);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
