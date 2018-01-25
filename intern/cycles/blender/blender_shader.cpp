@@ -1234,7 +1234,7 @@ void BlenderSync::sync_materials(bool update_all)
 			shader->heterogeneous_volume = !get_boolean(cmat, "homogeneous_volume");
 			shader->volume_sampling_method = get_volume_sampling(cmat);
 			shader->volume_interpolation_method = get_volume_interpolation(cmat);
-			shader->displacement_method = (experimental) ? get_displacement_method(cmat) : DISPLACE_BUMP;
+			shader->displacement_method = get_displacement_method(cmat);
 
 			shader->set_graph(graph);
 

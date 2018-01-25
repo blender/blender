@@ -1315,13 +1315,9 @@ class CYCLES_MATERIAL_PT_settings(CyclesButtonsPanel, Panel):
         col.prop(cmat, "sample_as_light", text="Multiple Importance")
         col.prop(cmat, "use_transparent_shadow")
 
-        if context.scene.cycles.feature_set == 'EXPERIMENTAL':
-            col.separator()
-            col.label(text="Geometry:")
-            col.prop(cmat, "displacement_method", text="")
-        else:
-            col.separator()
-            col.prop(mat, "pass_index")
+        col.separator()
+        col.label(text="Geometry:")
+        col.prop(cmat, "displacement_method", text="")
 
         col = split.column()
         col.label(text="Volume:")
@@ -1331,9 +1327,8 @@ class CYCLES_MATERIAL_PT_settings(CyclesButtonsPanel, Panel):
         col.prop(cmat, "volume_interpolation", text="")
         col.prop(cmat, "homogeneous_volume", text="Homogeneous")
 
-        if context.scene.cycles.feature_set == 'EXPERIMENTAL':
-            col.separator()
-            col.prop(mat, "pass_index")
+        col.separator()
+        col.prop(mat, "pass_index")
 
 
 class CYCLES_MATERIAL_PT_viewport(CyclesButtonsPanel, Panel):
