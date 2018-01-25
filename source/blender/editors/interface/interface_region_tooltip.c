@@ -756,9 +756,9 @@ ARegion *UI_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *b
 	return ui_tooltip_create_with_data(C, data, init_position, aspect);
 }
 
-void UI_tooltip_free(bContext *C, ARegion *ar)
+void UI_tooltip_free(bContext *C, bScreen *sc, ARegion *ar)
 {
-	ui_region_temp_remove(C, CTX_wm_screen(C), ar);
+	ui_region_temp_remove(C, sc, ar);
 }
 
 /** \} */

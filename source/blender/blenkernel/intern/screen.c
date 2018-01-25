@@ -381,6 +381,9 @@ void BKE_screen_free(bScreen *sc)
 	BLI_freelistN(&sc->vertbase);
 	BLI_freelistN(&sc->edgebase);
 	BLI_freelistN(&sc->areabase);
+
+	/* Region and timer are freed by the window manager. */
+	MEM_SAFE_FREE(sc->tool_tip);
 }
 
 /* for depsgraph */

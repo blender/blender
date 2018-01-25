@@ -67,6 +67,7 @@ set(SRC
 	intern/wm_operator_props.c
 	intern/wm_operators.c
 	intern/wm_subwindow.c
+	intern/wm_tooltip.c
 	intern/wm_window.c
 	intern/wm_stereo.c
 

@@ -2474,6 +2474,13 @@ void wm_event_do_handlers(bContext *C)
 
 			CTX_wm_window_set(C, win);
 
+			/* Clear tool-tip on mouse move. */
+			if (win->screen->tool_tip && win->screen->tool_tip->exit_on_event) {
+				if (ISMOUSE(event->type)) {
+					WM_tooltip_clear(C, win);
+				}
+			}
+
 			/* we let modal handlers get active area/region, also wm_paintcursor_test needs it */
 			CTX_wm_area_set(C, area_event_inside(C, &event->x));
 			CTX_wm_region_set(C, region_event_inside(C, &event->x));
@@ -2490,7 +2497,17 @@ void wm_event_do_handlers(bContext *C)
 			/* fileread case */
 			if (CTX_wm_window(C) == NULL)
 				return;
-			
+
+			/* check for a tooltip */
+			{
+				bScreen *screen = CTX_wm_window(C)->screen;
+				if (screen->tool_tip && screen->tool_tip->timer) {
+					if ((event->type == TIMER) && (event->customdata == screen->tool_tip->timer)) {
+						WM_tooltip_init(C, win);
+					}
+				}
+			}
+
 			/* check dragging, creates new event or frees, adds draw tag */
 			wm_event_drag_test(wm, win, event);
 			

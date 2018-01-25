@@ -44,6 +44,7 @@ struct PanelType;
 struct Scene;
 struct uiLayout;
 struct wmTimer;
+struct wmTooltipState;
 
 typedef struct bScreen {
 	ID id;
@@ -76,6 +77,8 @@ typedef struct bScreen {
 
 	struct wmTimer *animtimer;			/* if set, screen has timer handler added in window */
 	void *context;						/* context callback */
+
+	struct wmTooltipState *tool_tip;	/* runtime */
 } bScreen;
 
 typedef struct ScrVert {
