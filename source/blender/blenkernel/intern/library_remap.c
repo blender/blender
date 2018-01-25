@@ -194,9 +194,11 @@ static int foreach_libblock_remap_callback(void *user_data, ID *id_self, ID **id
 			id->tag |= LIB_TAG_DOIT;
 		}
 
-		/* Special hack in case it's Object->data and we are in edit mode (skipped_direct too). */
+		/* Special hack in case it's Object->data and we are in edit mode, and new_id is not NULL
+		 * (otherwise, we follow common NEVER_NULL flags).
+		 * (skipped_indirect too). */
 		if ((is_never_null && skip_never_null) ||
-		    (is_obj_editmode && (((Object *)id)->data == *id_p)) ||
+		    (is_obj_editmode && (((Object *)id)->data == *id_p) && new_id != NULL) ||
 		    (skip_indirect && is_indirect))
 		{
 			if (is_indirect) {
