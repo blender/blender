@@ -33,8 +33,12 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_main.h"
+
+#include "GPU_immediate.h"
 
 #include "RNA_access.h"
 
@@ -47,6 +51,11 @@
 #include "ED_screen.h"
 
 #include "outliner_intern.h"
+
+typedef struct OutlinerDragDropTooltip {
+	TreeElement *te;
+	void *handle;
+} OutlinerDragDropTooltip;
 
 enum {
 	OUTLINER_ITEM_DRAG_CANCEL,
@@ -69,9 +78,15 @@ static TreeElement *outliner_item_drag_element_find(SpaceOops *soops, ARegion *a
 	return outliner_find_item_at_y(soops, &soops->tree, my);
 }
 
-static void outliner_item_drag_end(TreeElement *dragged_te)
+static void outliner_item_drag_end(wmWindow *win, OutlinerDragDropTooltip *data)
 {
-	MEM_SAFE_FREE(dragged_te->drag_data);
+	MEM_SAFE_FREE(data->te->drag_data);
+
+	if (data->handle) {
+		WM_draw_cb_exit(win, data->handle);
+	}
+
+	MEM_SAFE_FREE(data);
 }
 
 static void outliner_item_drag_get_insert_data(
@@ -164,8 +179,13 @@ static void outliner_item_drag_handle(
 	te_dragged->drag_data->insert_handle = te_insert_handle;
 }
 
-static bool outliner_item_drag_drop_apply(Main *bmain, SpaceOops *soops, TreeElement *dragged_te, const wmEvent *event)
+static bool outliner_item_drag_drop_apply(
+        Main *bmain,
+        SpaceOops *soops,
+        OutlinerDragDropTooltip *data,
+        const wmEvent *event)
 {
+	TreeElement *dragged_te = data->te;
 	TreeElement *insert_handle = dragged_te->drag_data->insert_handle;
 	TreeElementInsertType insert_type = dragged_te->drag_data->insert_type;
 
@@ -190,7 +210,8 @@ static int outliner_item_drag_drop_modal(bContext *C, wmOperator *op, const wmEv
 	Main *bmain = CTX_data_main(C);
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
-	TreeElement *te_dragged = op->customdata;
+	OutlinerDragDropTooltip *data = op->customdata;
+	TreeElement *te_dragged = data->te;
 	int retval = OPERATOR_RUNNING_MODAL;
 	bool redraw = false;
 	bool skip_rebuild = true;
@@ -198,7 +219,7 @@ static int outliner_item_drag_drop_modal(bContext *C, wmOperator *op, const wmEv
 	switch (event->type) {
 		case EVT_MODAL_MAP:
 			if (event->val == OUTLINER_ITEM_DRAG_CONFIRM) {
-				if (outliner_item_drag_drop_apply(bmain, soops, te_dragged, event)) {
+				if (outliner_item_drag_drop_apply(bmain, soops, data, event)) {
 					skip_rebuild = false;
 				}
 				retval = OPERATOR_FINISHED;
@@ -210,7 +231,7 @@ static int outliner_item_drag_drop_modal(bContext *C, wmOperator *op, const wmEv
 				BLI_assert(0);
 			}
 			WM_event_add_mousemove(C); /* update highlight */
-			outliner_item_drag_end(te_dragged);
+			outliner_item_drag_end(CTX_wm_window(C), data);
 			redraw = true;
 			break;
 		case MOUSEMOVE:
@@ -229,6 +250,78 @@ static int outliner_item_drag_drop_modal(bContext *C, wmOperator *op, const wmEv
 	return retval;
 }
 
+static const char *outliner_drag_drop_tooltip_get(
+        const TreeElement *te_float)
+{
+	const char *name = NULL;
+	TreeStoreElem *tselem = TREESTORE(te_float);
+
+	const TreeElement *te_insert = te_float->drag_data->insert_handle;
+	if (ELEM(tselem->type, TSE_LAYER_COLLECTION, TSE_SCENE_COLLECTION)) {
+		if (te_insert == NULL) {
+			name = TIP_("Move collection");
+		}
+		else {
+			switch (te_float->drag_data->insert_type) {
+				case TE_INSERT_BEFORE:
+					if (te_insert->prev) {
+						name = TIP_("Move between collections");
+					}
+					else {
+						name = TIP_("Move before collection");
+					}
+					break;
+				case TE_INSERT_AFTER:
+					if (te_insert->next) {
+						name = TIP_("Move between collections");
+					}
+					else {
+						name = TIP_("Move after collection");
+					}
+					break;
+				case TE_INSERT_INTO:
+					name = TIP_("Move inside collection");
+					break;
+			}
+		}
+	}
+	else if ((tselem->type == 0) && (te_float->idcode == ID_OB)) {
+		name = TIP_("Move to collection (Ctrl to add)");
+	}
+
+	return name;
+}
+
+static void outliner_drag_drop_tooltip_cb(const wmWindow *win, void *vdata)
+{
+	OutlinerDragDropTooltip *data = vdata;
+	const char *tooltip;
+
+	int cursorx, cursory;
+	int x, y;
+
+	tooltip = outliner_drag_drop_tooltip_get(data->te);
+	if (tooltip == NULL) {
+		return;
+	}
+
+	cursorx = win->eventstate->x;
+	cursory = win->eventstate->y;
+
+	x = cursorx + U.widget_unit;
+	y = cursory - U.widget_unit;
+
+	/* Drawing. */
+	const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
+
+	const float col_fg[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+	const float col_bg[4] = {0.0f, 0.0f, 0.0f, 0.2f};
+
+	glEnable(GL_BLEND);
+	UI_fontstyle_draw_simple_backdrop(fstyle, x, y, tooltip, col_fg, col_bg);
+	glDisable(GL_BLEND);
+}
+
 static int outliner_item_drag_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
@@ -239,7 +332,10 @@ static int outliner_item_drag_drop_invoke(bContext *C, wmOperator *op, const wmE
 		return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
 	}
 
-	op->customdata = te_dragged;
+	OutlinerDragDropTooltip *data = MEM_mallocN(sizeof(OutlinerDragDropTooltip), __func__);
+	data->te = te_dragged;
+
+	op->customdata = data;
 	te_dragged->drag_data = MEM_callocN(sizeof(*te_dragged->drag_data), __func__);
 	/* by default we don't change the item position */
 	te_dragged->drag_data->insert_handle = te_dragged;
@@ -250,6 +346,8 @@ static int outliner_item_drag_drop_invoke(bContext *C, wmOperator *op, const wmE
 	ED_region_tag_redraw(ar);
 
 	WM_event_add_modal_handler(C, op);
+
+	data->handle = WM_draw_cb_activate(CTX_wm_window(C), outliner_drag_drop_tooltip_cb, data);
 
 	return OPERATOR_RUNNING_MODAL;
 }

@@ -107,6 +107,7 @@ typedef struct TreeElement {
 		TreeElementInsertType insert_type;
 		/* the element before/after/into which we may insert the dragged one (NULL to insert at top) */
 		struct TreeElement *insert_handle;
+		void *tooltip_draw_handle;
 	} *drag_data;
 } TreeElement;
 
