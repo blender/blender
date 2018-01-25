@@ -99,7 +99,7 @@ ViewLayer *BKE_view_layer_from_workspace_get(const struct Scene *scene, const st
 
 /**
  * This is a placeholder to know which areas of the code need to be addressed for the Workspace changes.
- * Never use this, you should either use BKE_view_layer_workspace_active or get ViewLayer explicitly.
+ * Never use this, you should either use BKE_view_layer_from_workspace_get or get ViewLayer explicitly.
  */
 ViewLayer *BKE_view_layer_context_active_PLACEHOLDER(const Scene *scene)
 {
