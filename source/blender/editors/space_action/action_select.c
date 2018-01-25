@@ -1127,7 +1127,8 @@ static int actkeys_select_leftright_exec(bContext *C, wmOperator *op)
 	actkeys_select_leftright(&ac, leftright, selectmode);
 	
 	/* set notifier that keyframe selection (and channels too) have changed */
-	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | ND_ANIMCHAN | NA_SELECTED, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1577,7 +1578,8 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, const wmEvent
 	mouse_action_keys(&ac, event->mval, selectmode, column, channel);
 	
 	/* set notifier that keyframe selection (and channels too) have changed */
-	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | ND_ANIMCHAN | NA_SELECTED, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED, NULL);
 	
 	/* for tweak grab to work */
 	return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;

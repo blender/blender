@@ -444,7 +444,8 @@ static int nlaedit_select_leftright_exec(bContext *C, wmOperator *op)
 	nlaedit_select_leftright(C, &ac, leftright, selectmode);
 	
 	/* set notifier that keyframe selection (and channels too) have changed */
-	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | ND_ANIMCHAN | NA_SELECTED, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED, NULL);
 	
 	return OPERATOR_FINISHED;
 }

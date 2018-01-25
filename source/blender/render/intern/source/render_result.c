@@ -80,6 +80,8 @@ static void render_result_views_free(RenderResult *res)
 
 		MEM_freeN(rv);
 	}
+
+	res->have_combined = false;
 }
 
 void render_result_free(RenderResult *res)
@@ -1352,6 +1354,8 @@ void RE_render_result_rect_from_ibuf(RenderResult *rr, RenderData *UNUSED(rd), I
 	RenderView *rv = RE_RenderViewGetById(rr, view_id);
 
 	if (ibuf->rect_float) {
+		rr->have_combined = true;
+
 		if (!rv->rectf)
 			rv->rectf = MEM_mallocN(4 * sizeof(float) * rr->rectx * rr->recty, "render_seq rectf");
 		
@@ -1362,6 +1366,8 @@ void RE_render_result_rect_from_ibuf(RenderResult *rr, RenderData *UNUSED(rd), I
 		MEM_SAFE_FREE(rv->rect32);
 	}
 	else if (ibuf->rect) {
+		rr->have_combined = true;
+
 		if (!rv->rect32)
 			rv->rect32 = MEM_mallocN(sizeof(int) * rr->rectx * rr->recty, "render_seq rect");
 

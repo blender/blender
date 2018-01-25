@@ -449,8 +449,6 @@ void RE_AcquireResultImage(Render *re, RenderResult *rr, const int view_id)
 			rr->rectz = rv->rectz;
 			rr->rect32 = rv->rect32;
 
-			rr->have_combined = (rv->rectf != NULL);
-
 			/* active layer */
 			rl = render_get_active_layer(re, re->result);
 
@@ -861,7 +859,7 @@ void RE_InitState(Render *re, Render *source, RenderData *rd,
 		re->result = MEM_callocN(sizeof(RenderResult), "new render result");
 		re->result->rectx = re->rectx;
 		re->result->recty = re->recty;
-		render_result_view_new(re->result, "new temporary view");
+		render_result_view_new(re->result, "");
 	}
 	
 	if (re->r.scemode & R_VIEWPORT_PREVIEW)

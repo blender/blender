@@ -1250,7 +1250,6 @@ class CYCLES_MATERIAL_PT_displacement(CyclesButtonsPanel, Panel):
 class CYCLES_MATERIAL_PT_settings(CyclesButtonsPanel, Panel):
     bl_label = "Settings"
     bl_context = "material"
-    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -1270,8 +1269,11 @@ class CYCLES_MATERIAL_PT_settings(CyclesButtonsPanel, Panel):
 
         if context.scene.cycles.feature_set == 'EXPERIMENTAL':
             col.separator()
-            col.label(text="Displacement:")
+            col.label(text="Geometry:")
             col.prop(cmat, "displacement_method", text="")
+        else:
+            col.separator()
+            col.prop(mat, "pass_index")
 
         col = split.column()
         col.label(text="Volume:")
@@ -1281,25 +1283,39 @@ class CYCLES_MATERIAL_PT_settings(CyclesButtonsPanel, Panel):
         col.prop(cmat, "volume_interpolation", text="")
         col.prop(cmat, "homogeneous_volume", text="Homogeneous")
 
-        layout.separator()
+        if context.scene.cycles.feature_set == 'EXPERIMENTAL':
+            col.separator()
+            col.prop(mat, "pass_index")
+
+
+class CYCLES_MATERIAL_PT_viewport(CyclesButtonsPanel, Panel):
+    bl_label = "Viewport"
+    bl_context = "material"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.material and CyclesButtonsPanel.poll(context)
+
+    def draw(self, context):
+        mat = context.material
+
+        layout = self.layout
         split = layout.split()
 
         col = split.column(align=True)
-        col.label("Viewport Color:")
+        col.label("Color:")
         col.prop(mat, "diffuse_color", text="")
         col.prop(mat, "alpha")
 
         col.separator()
-        col.label("Viewport Alpha:")
+        col.label("Alpha:")
         col.prop(mat.game_settings, "alpha_blend", text="")
 
         col = split.column(align=True)
-        col.label("Viewport Specular:")
+        col.label("Specular:")
         col.prop(mat, "specular_color", text="")
         col.prop(mat, "specular_hardness", text="Hardness")
-
-        col.separator()
-        col.prop(mat, "pass_index")
 
 
 class CYCLES_TEXTURE_PT_context(CyclesButtonsPanel, Panel):
@@ -1803,6 +1819,7 @@ classes = (
     CYCLES_MATERIAL_PT_volume,
     CYCLES_MATERIAL_PT_displacement,
     CYCLES_MATERIAL_PT_settings,
+    CYCLES_MATERIAL_PT_viewport,
     CYCLES_TEXTURE_PT_context,
     CYCLES_TEXTURE_PT_node,
     CYCLES_TEXTURE_PT_mapping,
