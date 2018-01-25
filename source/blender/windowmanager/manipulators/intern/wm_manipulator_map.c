@@ -904,7 +904,7 @@ void wm_manipulatormap_modal_set(
 		BLI_assert(mmap->mmap_context.modal == NULL);
 		wmWindow *win = CTX_wm_window(C);
 
-		WM_manipulatormap_tooltip_clear(C, mmap);
+		WM_tooltip_clear(C, win);
 
 		if (mpr->type->invoke &&
 		    (mpr->type->modal || mpr->custom_modal))
@@ -1018,45 +1018,18 @@ void WM_manipulatormap_message_subscribe(
  *
  * \{ */
 
-
-void WM_manipulatormap_tooltip_create(
-        bContext *C, wmManipulatorMap *mmap)
+struct ARegion *WM_manipulatormap_tooltip_init(
+        struct bContext *C, struct ARegion *ar, bool *r_exit_on_event)
 {
-	WM_manipulatormap_tooltip_clear(C, mmap);
-	if (mmap->mmap_context.highlight) {
-		mmap->mmap_context.tooltip = UI_tooltip_create_from_manipulator(C, mmap->mmap_context.highlight);
+	wmManipulatorMap *mmap = ar->manipulator_map;
+	*r_exit_on_event = true;
+	if (mmap) {
+		wmManipulator *mpr = mmap->mmap_context.highlight;
+		if (mpr) {
+			return UI_tooltip_create_from_manipulator(C, mpr);
+		}
 	}
-}
-
-void WM_manipulatormap_tooltip_clear(
-        bContext *C, wmManipulatorMap *mmap)
-{
-	if (mmap->mmap_context.tooltip_timer != NULL) {
-		wmWindowManager *wm = CTX_wm_manager(C);
-		wmWindow *win = CTX_wm_window(C);
-		WM_event_remove_timer(wm, win, mmap->mmap_context.tooltip_timer);
-		mmap->mmap_context.tooltip_timer = NULL;
-	}
-	if (mmap->mmap_context.tooltip != NULL) {
-		UI_tooltip_free(C, mmap->mmap_context.tooltip);
-		mmap->mmap_context.tooltip = NULL;
-	}
-}
-
-void WM_manipulatormap_tooltip_timer_init(
-        bContext *C, wmManipulatorMap *mmap)
-{
-	if (mmap->mmap_context.tooltip_timer == NULL) {
-		wmWindowManager *wm = CTX_wm_manager(C);
-		wmWindow *win = CTX_wm_window(C);
-		/* TODO: BUTTON_TOOLTIP_DELAY */
-		mmap->mmap_context.tooltip_timer = WM_event_add_timer(wm, win, TIMER, UI_TOOLTIP_DELAY);
-	}
-}
-
-const void *WM_manipulatormap_tooltip_timer_get(wmManipulatorMap *mmap)
-{
-	return mmap->mmap_context.tooltip_timer;
+	return NULL;
 }
 
 /** \} */ /* wmManipulatorMapType */

@@ -296,8 +296,6 @@ typedef struct uiHandleButtonData {
 	ColorBand *coba;
 
 	/* tooltip */
-	ARegion *tooltip;
-	wmTimer *tooltiptimer;
 	unsigned int tooltip_force : 1;
 	
 	/* auto open */
@@ -7701,12 +7699,12 @@ static bool button_modal_state(uiHandleButtonState state)
  */
 void UI_but_tooltip_refresh(bContext *C, uiBut *but)
 {
-	uiHandleButtonData *data;
-
-	data = but->active;
-	if (data && data->tooltip) {
-		UI_tooltip_free(C, data->tooltip);
-		data->tooltip = UI_tooltip_create_from_button(C, data->region, but);
+	uiHandleButtonData *data = but->active;
+	if (data) {
+		bScreen *sc = WM_window_get_active_screen(data->window);
+		if (sc->tool_tip && sc->tool_tip->region) {
+			WM_tooltip_refresh(C, data->window);
+		}
 	}
 }
 
@@ -7717,39 +7715,36 @@ void UI_but_tooltip_timer_remove(bContext *C, uiBut *but)
 
 	data = but->active;
 	if (data) {
-
-		if (data->tooltiptimer) {
-			WM_event_remove_timer(data->wm, data->window, data->tooltiptimer);
-			data->tooltiptimer = NULL;
-		}
-		if (data->tooltip) {
-			UI_tooltip_free(C, data->tooltip);
-			data->tooltip = NULL;
-		}
-
 		if (data->autoopentimer) {
 			WM_event_remove_timer(data->wm, data->window, data->autoopentimer);
 			data->autoopentimer = NULL;
 		}
+
+		WM_tooltip_clear(C, data->window);
 	}
+}
+
+static ARegion *ui_but_tooltip_init(bContext *C, ARegion *ar, bool *r_exit_on_event)
+{
+	uiBut *but = UI_region_active_but_get(ar);
+	*r_exit_on_event = false;
+	if (but) {
+		return UI_tooltip_create_from_button(C, ar, but);
+	}
+	return NULL;
 }
 
 static void button_tooltip_timer_reset(bContext *C, uiBut *but)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
-	uiHandleButtonData *data;
+	uiHandleButtonData *data = but->active;
 
-	data = but->active;
-
-	if (data->tooltiptimer) {
-		WM_event_remove_timer(data->wm, data->window, data->tooltiptimer);
-		data->tooltiptimer = NULL;
-	}
+	WM_tooltip_timer_clear(C, data->window);
 
 	if ((U.flag & USER_TOOLTIPS) || (data->tooltip_force)) {
 		if (!but->block->tooltipdisabled) {
 			if (!wm->drags.first) {
-				data->tooltiptimer = WM_event_add_timer(data->wm, data->window, TIMER, UI_TOOLTIP_DELAY);
+				WM_tooltip_timer_init(C, data->window, data->region, ui_but_tooltip_init);
 			}
 		}
 	}
@@ -8109,11 +8104,9 @@ void ui_but_active_free(const bContext *C, uiBut *but)
 }
 
 /* returns the active button with an optional checking function */
-static uiBut *ui_context_button_active(const bContext *C, bool (*but_check_cb)(uiBut *))
+static uiBut *ui_context_button_active(ARegion *ar, bool (*but_check_cb)(uiBut *))
 {
 	uiBut *but_found = NULL;
-
-	ARegion *ar = CTX_wm_region(C);
 
 	while (ar) {
 		uiBlock *block;
@@ -8157,12 +8150,17 @@ static bool ui_context_rna_button_active_test(uiBut *but)
 }
 static uiBut *ui_context_rna_button_active(const bContext *C)
 {
-	return ui_context_button_active(C, ui_context_rna_button_active_test);
+	return ui_context_button_active(CTX_wm_region(C), ui_context_rna_button_active_test);
 }
 
 uiBut *UI_context_active_but_get(const struct bContext *C)
 {
-	return ui_context_button_active(C, NULL);
+	return ui_context_button_active(CTX_wm_region(C), NULL);
+}
+
+uiBut *UI_region_active_but_get(ARegion *ar)
+{
+	return ui_context_button_active(ar, NULL);
 }
 
 /**
@@ -8445,16 +8443,8 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 			}
 			case TIMER:
 			{
-				/* handle tooltip timer */
-				if (event->customdata == data->tooltiptimer) {
-					WM_event_remove_timer(data->wm, data->window, data->tooltiptimer);
-					data->tooltiptimer = NULL;
-
-					if (!data->tooltip)
-						data->tooltip = UI_tooltip_create_from_button(C, data->region, but);
-				}
 				/* handle menu auto open timer */
-				else if (event->customdata == data->autoopentimer) {
+				if (event->customdata == data->autoopentimer) {
 					WM_event_remove_timer(data->wm, data->window, data->autoopentimer);
 					data->autoopentimer = NULL;
 

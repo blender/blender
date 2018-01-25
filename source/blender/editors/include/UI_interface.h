@@ -1105,6 +1105,8 @@ void UI_context_active_but_prop_get_templateID(
         struct bContext *C,
         struct PointerRNA *r_ptr, struct PropertyRNA **r_prop);
 
+uiBut *UI_region_active_but_get(struct ARegion *ar);
+
 /* Styled text draw */
 void UI_fontstyle_set(const struct uiFontStyle *fs);
 void UI_fontstyle_draw_ex(const struct uiFontStyle *fs, const struct rcti *rect, const char *str,
@@ -1151,7 +1153,7 @@ void UI_butstore_unregister(uiButStore *bs_handle, uiBut **but_p);
 /* ui_interface_region_tooltip.c */
 struct ARegion *UI_tooltip_create_from_button(struct bContext *C, struct ARegion *butregion, uiBut *but);
 struct ARegion *UI_tooltip_create_from_manipulator(struct bContext *C, struct wmManipulator *mpr);
-void UI_tooltip_free(struct bContext *C, struct ARegion *ar);
+void UI_tooltip_free(struct bContext *C, struct bScreen *sc, struct ARegion *ar);
 
 /* How long before a tool-tip shows. */
 #define UI_TOOLTIP_DELAY 0.5

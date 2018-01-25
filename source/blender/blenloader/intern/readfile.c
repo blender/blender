@@ -6667,6 +6667,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 			sc->scene = newlibadr(fd, sc->id.lib, sc->scene);
 
 			sc->animtimer = NULL; /* saved in rare cases */
+			sc->tool_tip = NULL;
 			sc->scrubbing = false;
 			
 			for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {

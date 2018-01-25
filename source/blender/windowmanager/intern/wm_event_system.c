@@ -2275,30 +2275,13 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 				wm_manipulatormap_handler_context(C, handler);
 				wm_region_mouse_co(C, event);
 
-				if (event->type == MOUSEMOVE) {
-					WM_manipulatormap_tooltip_clear(C, mmap);
-				}
-
 				/* handle manipulator highlighting */
 				if (event->type == MOUSEMOVE && !wm_manipulatormap_modal_get(mmap)) {
 					int part;
 					mpr = wm_manipulatormap_highlight_find(mmap, C, event, &part);
 					wm_manipulatormap_highlight_set(mmap, C, mpr, part);
 					if (mpr != NULL) {
-						WM_manipulatormap_tooltip_timer_init(C, mmap);
-					}
-				}
-				/* handle user configurable manipulator-map keymap */
-				else if ((event->type == TIMER) &&
-				         (event->customdata == WM_manipulatormap_tooltip_timer_get(mmap)))
-				{
-					if (mpr) {
-						if (mpr->state & WM_MANIPULATOR_STATE_MODAL) {
-							WM_manipulatormap_tooltip_clear(C, mmap);
-						}
-						else {
-							WM_manipulatormap_tooltip_create(C, mmap);
-						}
+						WM_tooltip_timer_init(C, CTX_wm_window(C), region, WM_manipulatormap_tooltip_init);
 					}
 				}
 				else {
@@ -2735,6 +2718,13 @@ void wm_event_do_handlers(bContext *C)
 
 			CTX_wm_window_set(C, win);
 
+			/* Clear tool-tip on mouse move. */
+			if (screen->tool_tip && screen->tool_tip->exit_on_event) {
+				if (ISMOUSE(event->type)) {
+					WM_tooltip_clear(C, win);
+				}
+			}
+
 			/* we let modal handlers get active area/region, also wm_paintcursor_test needs it */
 			CTX_wm_area_set(C, area_event_inside(C, &event->x));
 			CTX_wm_region_set(C, region_event_inside(C, &event->x));
@@ -2751,7 +2741,16 @@ void wm_event_do_handlers(bContext *C)
 			/* fileread case */
 			if (CTX_wm_window(C) == NULL)
 				return;
-			
+
+			/* check for a tooltip */
+			if (screen == WM_window_get_active_screen(win)) {
+				if (screen->tool_tip && screen->tool_tip->timer) {
+					if ((event->type == TIMER) && (event->customdata == screen->tool_tip->timer)) {
+						WM_tooltip_init(C, win);
+					}
+				}
+			}
+
 			/* check dragging, creates new event or frees, adds draw tag */
 			wm_event_drag_test(wm, win, event);
 			

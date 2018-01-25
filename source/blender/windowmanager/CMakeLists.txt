@@ -73,6 +73,7 @@ set(SRC
 	intern/wm_window.c
 	intern/wm_stereo.c
 	intern/wm_toolsystem.c
+	intern/wm_tooltip.c
 	manipulators/intern/wm_manipulator.c
 	manipulators/intern/wm_manipulator_group.c
 	manipulators/intern/wm_manipulator_group_type.c

@@ -500,7 +500,7 @@ static int manipulator_tweak_invoke(bContext *C, wmOperator *op, const wmEvent *
 	wmManipulator *mpr = mmap->mmap_context.highlight;
 
 	/* Needed for single click actions which don't enter modal state. */
-	WM_manipulatormap_tooltip_clear(C, mmap);
+	WM_tooltip_clear(C, CTX_wm_window(C));
 
 	if (!mpr) {
 		/* wm_handlers_do_intern shouldn't let this happen */

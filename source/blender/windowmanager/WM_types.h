@@ -702,6 +702,15 @@ typedef struct wmDropBox {
 
 } wmDropBox;
 
+typedef struct wmTooltipState {
+	struct wmTimer *timer;
+	struct ARegion *region_from;
+	struct ARegion *region;
+	struct ARegion *(*init)(struct bContext *, struct ARegion *, bool *r_exit_on_event);
+	/* Exit on any event, not needed for buttons since their highlight state is used. */
+	bool exit_on_event;
+} wmTooltipState;
+
 /* *************** migrated stuff, clean later? ************** */
 
 typedef struct RecentFile {
