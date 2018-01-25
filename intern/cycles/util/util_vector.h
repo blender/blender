@@ -162,6 +162,11 @@ public:
 		return memcmp(data_, other.data_, datasize_*sizeof(T)) == 0;
 	}
 
+	bool operator!=(const array<T>& other) const
+	{
+		return !(*this == other);
+	}
+
 	void steal_data(array& from)
 	{
 		if(this != &from) {
