@@ -250,36 +250,21 @@ static int outliner_item_drag_drop_modal(bContext *C, wmOperator *op, const wmEv
 	return retval;
 }
 
-/**
- * Check if the given TreeElement is a collection
- *
- * This test is mainly used to see if next/prev TreeElement is a collection.
- * It will fail when there is no next/prev TreeElement, or when the
- * element is an Override or something else in the future.
- */
-static bool tree_element_is_collection_get(const TreeElement *te) {
-	if (te == NULL) {
-		return false;
-	}
-
-	TreeStoreElem *tselem = TREESTORE(te);
-	return ELEM(tselem->type, TSE_LAYER_COLLECTION, TSE_SCENE_COLLECTION);
-}
-
 static const char *outliner_drag_drop_tooltip_get(
         const TreeElement *te_float)
 {
 	const char *name = NULL;
+	TreeStoreElem *tselem = TREESTORE(te_float);
 
 	const TreeElement *te_insert = te_float->drag_data->insert_handle;
-	if (tree_element_is_collection_get(te_float)) {
+	if (ELEM(tselem->type, TSE_LAYER_COLLECTION, TSE_SCENE_COLLECTION)) {
 		if (te_insert == NULL) {
 			name = TIP_("Move collection");
 		}
 		else {
 			switch (te_float->drag_data->insert_type) {
 				case TE_INSERT_BEFORE:
-					if (tree_element_is_collection_get(te_insert->prev)) {
+					if (te_insert->prev) {
 						name = TIP_("Move between collections");
 					}
 					else {
@@ -287,7 +272,7 @@ static const char *outliner_drag_drop_tooltip_get(
 					}
 					break;
 				case TE_INSERT_AFTER:
-					if (tree_element_is_collection_get(te_insert->next)) {
+					if (te_insert->next) {
 						name = TIP_("Move between collections");
 					}
 					else {
@@ -300,7 +285,7 @@ static const char *outliner_drag_drop_tooltip_get(
 			}
 		}
 	}
-	else if ((TREESTORE(te_float)->type == 0) && (te_float->idcode == ID_OB)) {
+	else if ((tselem->type == 0) && (te_float->idcode == ID_OB)) {
 		name = TIP_("Move to collection (Ctrl to add)");
 	}
 
