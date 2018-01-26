@@ -92,6 +92,8 @@ private:
 	UnitConverter *unitconverter;
 
 	Scene *scene;
+	ViewLayer *view_layer;
+
 	ArmatureImporter *armature_importer;
 
 	std::map<std::string, std::string> mesh_geom_map; // needed for correct shape key naming
@@ -159,7 +161,7 @@ private:
 
 public:
 
-	MeshImporter(UnitConverter *unitconv, ArmatureImporter *arm, Scene *sce);
+	MeshImporter(UnitConverter *unitconv, ArmatureImporter *arm, Scene *sce, ViewLayer *view_layer);
 
 	virtual Object *get_object_by_geom_uid(const COLLADAFW::UniqueId& geom_uid);
 

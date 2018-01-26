@@ -135,16 +135,13 @@ int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 	return true;
 }
 
-Object *bc_add_object(Scene *scene, int type, const char *name)
+Object *bc_add_object(Scene *scene, ViewLayer *view_layer, int type, const char *name)
 {
 	Object *ob = BKE_object_add_only_object(G.main, type, name);
 
 	ob->data = BKE_object_obdata_add_from_type(G.main, type, name);
 	ob->lay = scene->lay;
 	DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
-
-	/* XXX Collada should use the context scene layer, not the scene one. (dfelinto/gaia). */
-	ViewLayer *view_layer = BKE_view_layer_context_active_PLACEHOLDER(scene);
 
 	LayerCollection *layer_collection = BKE_layer_collection_get_active_ensure(scene, view_layer);
 	BKE_collection_object_add(&scene->id, layer_collection->scene_collection, ob);

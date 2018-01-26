@@ -207,7 +207,11 @@ void VCOLDataWrapper::get_vcol(int v_index, MLoopCol *mloopcol)
 
 }
 
-MeshImporter::MeshImporter(UnitConverter *unitconv, ArmatureImporter *arm, Scene *sce) : unitconverter(unitconv), scene(sce), armature_importer(arm) {
+MeshImporter::MeshImporter(UnitConverter *unitconv, ArmatureImporter *arm, Scene *sce, ViewLayer *view_layer):
+	unitconverter(unitconv), 
+	scene(sce),
+	view_layer(view_layer),
+	armature_importer(arm) {
 }
 
 bool MeshImporter::set_poly_indices(MPoly *mpoly, MLoop *mloop, int loop_index, unsigned int *indices, int loop_count)
@@ -1141,7 +1145,7 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 	const char *name = (id.length()) ? id.c_str() : NULL;
 	
 	// add object
-	Object *ob = bc_add_object(scene, OB_MESH, name);
+	Object *ob = bc_add_object(scene, view_layer, OB_MESH, name);
 	bc_set_mark(ob); // used later for material assignement optimization
 
 

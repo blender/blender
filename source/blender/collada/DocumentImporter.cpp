@@ -108,8 +108,9 @@ DocumentImporter::DocumentImporter(bContext *C, const ImportSettings *import_set
 	import_settings(import_settings),
 	mImportStage(General),
 	mContext(C),
-	armature_importer(&unit_converter, &mesh_importer, CTX_data_scene(C), import_settings),
-	mesh_importer(&unit_converter, &armature_importer, CTX_data_scene(C)),
+	view_layer(CTX_data_view_layer(mContext)),
+	armature_importer(&unit_converter, &mesh_importer, CTX_data_scene(C), view_layer, import_settings),
+	mesh_importer(&unit_converter, &armature_importer, CTX_data_scene(C), view_layer),
 	anim_importer(&unit_converter, &armature_importer, CTX_data_scene(C))
 {
 }
@@ -134,7 +135,7 @@ bool DocumentImporter::import()
 	loader.registerExtraDataCallbackHandler(ehandler);
 
 	// deselect all to select new objects
-	BKE_view_layer_base_deselect_all(CTX_data_view_layer(mContext));
+	BKE_view_layer_base_deselect_all(view_layer);
 
 	std::string mFilename = std::string(this->import_settings->filepath);
 	const std::string encodedFilename = bc_url_encode(mFilename);
@@ -380,7 +381,7 @@ Object *DocumentImporter::create_camera_object(COLLADAFW::InstanceCamera *camera
 		return NULL;
 	}
 
-	Object *ob = bc_add_object(sce, OB_CAMERA, NULL);
+	Object *ob = bc_add_object(sce, view_layer, OB_CAMERA, NULL);
 	Camera *cam = uid_camera_map[cam_uid];
 	Camera *old_cam = (Camera *)ob->data;
 	ob->data = cam;
@@ -396,7 +397,7 @@ Object *DocumentImporter::create_lamp_object(COLLADAFW::InstanceLight *lamp, Sce
 		return NULL;
 	}
 
-	Object *ob = bc_add_object(sce, OB_LAMP, NULL);
+	Object *ob = bc_add_object(sce, view_layer, OB_LAMP, NULL);
 	Lamp *la = uid_lamp_map[lamp_uid];
 	Lamp *old_lamp = (Lamp *)ob->data;
 	ob->data = la;
@@ -512,7 +513,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 		if (parent_node == NULL && !is_library_node) {
 			// A Joint on root level is a skeleton without root node.
 			// Here we add the armature "on the fly":
-			par = bc_add_object(sce, OB_ARMATURE, std::string("Armature").c_str());
+			par = bc_add_object(sce, view_layer, OB_ARMATURE, std::string("Armature").c_str());
 			objects_done->push_back(par);
 			root_objects->push_back(par);
 			object_map.insert(std::pair<COLLADAFW::UniqueId, Object *>(node->getUniqueId(), par));
@@ -626,10 +627,10 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 		if ( (geom_done + camera_done + lamp_done + controller_done + inst_done) < 1) {
 			//Check if Object is armature, by checking if immediate child is a JOINT node.
 			if (is_armature(node)) {
-				ob = bc_add_object(sce, OB_ARMATURE, name.c_str());
+				ob = bc_add_object(sce, view_layer, OB_ARMATURE, name.c_str());
 			}
 			else {
-				ob = bc_add_object(sce, OB_EMPTY, NULL);
+				ob = bc_add_object(sce, view_layer, OB_EMPTY, NULL);
 			}
 			objects_done->push_back(ob);
 			if (parent_node == NULL) {

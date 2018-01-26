@@ -144,6 +144,7 @@ private:
 	ImportStage mImportStage;
 
 	bContext *mContext;
+	ViewLayer *view_layer;
 
 	UnitConverter unit_converter;
 	ArmatureImporter armature_importer;
