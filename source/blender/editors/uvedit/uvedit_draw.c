@@ -622,7 +622,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 
 	const int cd_loop_uv_offset  = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 
-	unsigned int pos;
+	unsigned int pos, color;
 
 	efa_act = EDBM_uv_active_face_get(em, false, false); /* will be set to NULL if hidden */
 	ts = scene->toolsettings;
@@ -671,58 +671,61 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 	if (sima->flag & SI_DRAW_STRETCH) {
 		draw_uvs_stretch(sima, scene, em, efa_act);
 	}
-	else if (!(sima->flag & SI_NO_DRAWFACES)) {
-		/* draw transparent faces */
-		UI_GetThemeColor4ubv(TH_FACE, col1);
-		UI_GetThemeColor4ubv(TH_FACE_SELECT, col2);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_BLEND);
-		
-		pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-
-		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-
-		for (unsigned int i = 0; i < em->tottri; i++) {
-			efa = em->looptris[i][0]->f;
-			if (uvedit_face_visible_test(scene, ima, efa)) {
-				const bool is_select = uvedit_face_select_test(scene, efa, cd_loop_uv_offset);
-				BM_elem_flag_enable(efa, BM_ELEM_TAG);
-
-				if (efa == efa_act) {
-					/* only once */
-					immUniformThemeColor(TH_EDITMESH_ACTIVE);
-				}
-				else {
-					immUniformColor4ubv(is_select ? col2 : col1);
-				}
-
-				immBegin(GWN_PRIM_TRIS, (em->looptris[i][0]->f->len - 2) * 3);
-				draw_uvs_looptri(em, &i, cd_loop_uv_offset, pos);
-				immEnd();
-			}
-			else {
-				BM_elem_flag_disable(efa, BM_ELEM_TAG);
-			}
-		}
-
-		immUnbindProgram();
-
-		glDisable(GL_BLEND);
-	}
 	else {
-		/* would be nice to do this within a draw loop but most below are optional, so it would involve too many checks */
-		
-		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+		unsigned int tri_count = 0;
+		BM_ITER_MESH(efa, &iter, bm, BM_FACES_OF_MESH) {
 			if (uvedit_face_visible_test(scene, ima, efa)) {
 				BM_elem_flag_enable(efa, BM_ELEM_TAG);
+				tri_count += efa->len - 2;
 			}
 			else {
-				if (efa == efa_act)
-					efa_act = NULL;
 				BM_elem_flag_disable(efa, BM_ELEM_TAG);
 			}
 		}
-		
+
+		if (!(sima->flag & SI_NO_DRAWFACES)) {
+			/* draw transparent faces */
+			UI_GetThemeColor4ubv(TH_FACE, col1);
+			UI_GetThemeColor4ubv(TH_FACE_SELECT, col2);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_BLEND);
+
+			Gwn_VertFormat *format = immVertexFormat();
+			pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+			color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
+
+			immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+
+			immBegin(GWN_PRIM_TRIS, tri_count * 3);
+			for (unsigned int i = 0; i < em->tottri; i++) {
+				efa = em->looptris[i][0]->f;
+				if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
+					const bool is_select = uvedit_face_select_test(scene, efa, cd_loop_uv_offset);
+
+					if (efa == efa_act) {
+						/* only once */
+						unsigned char tmp_col[4];
+						UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, tmp_col);
+						immAttrib4ubv(color, tmp_col);
+					}
+					else {
+						immAttrib4ubv(color, is_select ? col2 : col1);
+					}
+
+					draw_uvs_looptri(em, &i, cd_loop_uv_offset, pos);
+				}
+			}
+			immEnd();
+
+			immUnbindProgram();
+
+			glDisable(GL_BLEND);
+		}
+		else {
+			if (efa_act && !uvedit_face_visible_test(scene, ima, efa_act)) {
+				efa_act = NULL;
+			}
+		}
 	}
 
 	/* 3. draw active face stippled */
@@ -813,7 +816,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 
 				Gwn_VertFormat *format = immVertexFormat();
 				pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-				unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
+				color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
 
 				if (interpedges) {
 					immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
