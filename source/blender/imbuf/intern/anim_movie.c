@@ -1422,6 +1422,9 @@ bool IMB_anim_get_fps(struct anim *anim,
 		UNUSED_VARS(no_av_base);
 		*frs_sec_base = (float)frs_sec_base_double;
 #endif
+		BLI_assert(*frs_sec > 0);
+		BLI_assert(*frs_sec_base > 0.0f);
+
 		return true;
 	}
 	return false;
