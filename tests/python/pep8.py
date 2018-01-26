@@ -19,6 +19,8 @@
 # <pep8-80 compliant>
 
 import os
+import subprocess
+import shutil
 
 # depends on pep8, frosted, pylint
 # for Ubuntu
@@ -71,6 +73,79 @@ def is_pep8(path):
     return 0
 
 
+def check_files_flake8(files):
+    print("\n\n\n# running flake8...")
+
+    # these are very picky and often hard to follow
+    # while keeping common script formatting.
+    ignore = (
+        "E122",
+        "E123",
+        "E124",
+        "E125",
+        "E126",
+        "E127",
+        "E128",
+        # "imports not at top of file."
+        # prefer to load as needed (lazy load addons etc).
+        "E402",
+        # "do not compare types, use 'isinstance()'"
+        # times types are compared,
+        # I rather keep them specific
+        "E721",
+        )
+
+    for f, pep8_type in files:
+
+        if pep8_type == 1:
+            # E501:80 line length
+            ignore_tmp = ignore + ("E501", )
+        else:
+            ignore_tmp = ignore
+
+        subprocess.call((
+            "flake8",
+            "--isolated",
+            "--ignore=%s" % ",".join(ignore_tmp),
+            f,
+        ))
+
+
+def check_files_frosted(files):
+    print("\n\n\n# running frosted...")
+    for f, pep8_type in files:
+        subprocess.call(("frosted", f))
+
+
+def check_files_pylint(files):
+    print("\n\n\n# running pylint...")
+    for f, pep8_type in files:
+        # let pep8 complain about line length
+        subprocess.call((
+            "pylint",
+            "--disable="
+            "C0111,"  # missing doc string
+            "C0103,"  # invalid name
+            "C0413,"  # import should be placed at the top
+            "W0613,"  # unused argument, may add this back
+            # but happens a lot for 'context' for eg.
+                    "W0232,"  # class has no __init__, Operator/Panel/Menu etc
+            "W0142,"  # Used * or ** magic
+            # even needed in some cases
+                    "R0902,"  # Too many instance attributes
+            "R0903,"  # Too many statements
+            "R0911,"  # Too many return statements
+            "R0912,"  # Too many branches
+            "R0913,"  # Too many arguments
+            "R0914,"  # Too many local variables
+            "R0915,",  # Too many statements
+            "--output-format=parseable",
+            "--reports=n",
+            "--max-line-length=1000",
+            f,
+        ))
+
+
 def main():
     files = []
     files_skip = []
@@ -113,70 +188,21 @@ def main():
                 print("%s:%d:0: empty class (), remove" % (f, i + 1))
     del re, class_check
 
-    print("\n\n\n# running flake8...")
+    if shutil.which("flake8"):
+        check_files_flake8(files)
+    else:
+        print("Skipping flake8 checks (command not found)")
 
-    # these are very picky and often hard to follow
-    # while keeping common script formatting.
-    ignore = (
-        "E122",
-        "E123",
-        "E124",
-        "E125",
-        "E126",
-        "E127",
-        "E128",
-        # "imports not at top of file."
-        # prefer to load as needed (lazy load addons etc).
-        "E402",
-        # "do not compare types, use 'isinstance()'"
-        # times types are compared,
-        # I rather keep them specific
-        "E721",
-        )
+    if shutil.which("frosted"):
+        check_files_frosted(files)
+    else:
+        print("Skipping frosted checks (command not found)")
 
-    for f, pep8_type in files:
+    if shutil.which("pylint"):
+        check_files_pylint(files)
+    else:
+        print("Skipping pylint checks (command not found)")
 
-        if pep8_type == 1:
-            # E501:80 line length
-            ignore_tmp = ignore + ("E501", )
-        else:
-            ignore_tmp = ignore
-
-        os.system("flake8 "
-                  "--isolated "
-                  "--ignore=%s '%s'" %
-                  (",".join(ignore_tmp), f))
-
-    # frosted
-    print("\n\n\n# running frosted...")
-    for f, pep8_type in files:
-        os.system("frosted '%s'" % f)
-
-    print("\n\n\n# running pylint...")
-    for f, pep8_type in files:
-        # let pep8 complain about line length
-        os.system("pylint "
-                  "--disable="
-                  "C0111,"  # missing doc string
-                  "C0103,"  # invalid name
-                  "C0413,"  # import should be placed at the top
-                  "W0613,"  # unused argument, may add this back
-                            # but happens a lot for 'context' for eg.
-                  "W0232,"  # class has no __init__, Operator/Panel/Menu etc
-                  "W0142,"  # Used * or ** magic
-                            # even needed in some cases
-                  "R0902,"  # Too many instance attributes
-                  "R0903,"  # Too many statements
-                  "R0911,"  # Too many return statements
-                  "R0912,"  # Too many branches
-                  "R0913,"  # Too many arguments
-                  "R0914,"  # Too many local variables
-                  "R0915,"  # Too many statements
-                  " "
-                  "--output-format=parseable "
-                  "--reports=n "
-                  "--max-line-length=1000"
-                  " '%s'" % f)
 
 
 if __name__ == "__main__":
