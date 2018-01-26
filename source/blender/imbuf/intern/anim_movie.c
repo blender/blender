@@ -55,6 +55,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <limits.h>
 #ifndef _WIN32
 #include <dirent.h>
 #else
@@ -1398,15 +1399,28 @@ int IMB_anim_get_duration(struct anim *anim, IMB_Timecode_Type tc)
 bool IMB_anim_get_fps(struct anim *anim,
                      short *frs_sec, float *frs_sec_base, bool no_av_base)
 {
+	double frs_sec_base_double;
 	if (anim->frs_sec) {
-		*frs_sec = anim->frs_sec;
-		*frs_sec_base = anim->frs_sec_base;
+		if (anim->frs_sec > SHRT_MAX) {
+			/* We cannot store original rational in our short/float format,
+			 * we need to approximate it as best as we can... */
+			*frs_sec = SHRT_MAX;
+			frs_sec_base_double = anim->frs_sec_base * (double)SHRT_MAX / (double)anim->frs_sec;
+		}
+		else {
+			*frs_sec = anim->frs_sec;
+			frs_sec_base_double = anim->frs_sec_base;
+		}
 #ifdef WITH_FFMPEG
 		if (no_av_base) {
-			*frs_sec_base /= AV_TIME_BASE;
+			*frs_sec_base = (float)(frs_sec_base_double / AV_TIME_BASE);
+		}
+		else {
+			*frs_sec_base = (float)frs_sec_base_double;
 		}
 #else
 		UNUSED_VARS(no_av_base);
+		*frs_sec_base = (float)frs_sec_base_double;
 #endif
 		return true;
 	}
