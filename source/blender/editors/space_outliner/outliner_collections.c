@@ -238,7 +238,6 @@ void OUTLINER_OT_collection_link(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = collection_link_exec;
 	ot->invoke = collection_link_invoke;
-	ot->poll = view_layer_editor_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
