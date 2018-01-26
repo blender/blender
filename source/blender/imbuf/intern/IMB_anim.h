@@ -99,8 +99,8 @@ struct anim {
 	int curtype;
 	int curposition;    /* index  0 = 1e,  1 = 2e, enz. */
 	int duration;
-	short frs_sec;
-	float frs_sec_base;
+	int frs_sec;
+	double frs_sec_base;
 	int x, y;
 	
 	/* for number */
