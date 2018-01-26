@@ -22,11 +22,10 @@ CCL_NAMESPACE_BEGIN
 typedef ccl_addr_space struct Bssrdf {
 	SHADER_CLOSURE_BASE;
 
-	float radius;
+	float3 radius;
+	float3 albedo;
 	float sharpness;
-	float d;
 	float texture_blur;
-	float albedo;
 	float roughness;
 } Bssrdf;
 
@@ -200,7 +199,7 @@ ccl_device_inline float bssrdf_burley_fitting(float A)
 /* Scale mean free path length so it gives similar looking result
  * to Cubic and Gaussian models.
  */
-ccl_device_inline float bssrdf_burley_compatible_mfp(float r)
+ccl_device_inline float3 bssrdf_burley_compatible_mfp(float3 r)
 {
 	return 0.25f * M_1_PI_F * r;
 }
@@ -208,13 +207,14 @@ ccl_device_inline float bssrdf_burley_compatible_mfp(float r)
 ccl_device void bssrdf_burley_setup(Bssrdf *bssrdf)
 {
 	/* Mean free path length. */
-	const float l = bssrdf_burley_compatible_mfp(bssrdf->radius);
+	const float3 l = bssrdf_burley_compatible_mfp(bssrdf->radius);
 	/* Surface albedo. */
-	const float A = bssrdf->albedo;
-	const float s = bssrdf_burley_fitting(A);
-	const float d = l / s;
+	const float3 A = bssrdf->albedo;
+	const float3 s = make_float3(bssrdf_burley_fitting(A.x),
+                                 bssrdf_burley_fitting(A.y),
+                                 bssrdf_burley_fitting(A.z));
 
-	bssrdf->d = d;
+	bssrdf->radius = l / s;
 }
 
 ccl_device float bssrdf_burley_eval(const float d, float r)
@@ -345,7 +345,7 @@ ccl_device_inline Bssrdf *bssrdf_alloc(ShaderData *sd, float3 weight)
 
 ccl_device int bssrdf_setup(Bssrdf *bssrdf, ClosureType type)
 {
-	if(bssrdf->radius < BSSRDF_MIN_RADIUS) {
+	if(max3(bssrdf->radius) < BSSRDF_MIN_RADIUS) {
 		/* revert to diffuse BSDF if radius too small */
 		int flag;
 #ifdef __PRINCIPLED__
@@ -393,25 +393,60 @@ ccl_device int bssrdf_setup(Bssrdf *bssrdf, ClosureType type)
 ccl_device void bssrdf_sample(const ShaderClosure *sc, float xi, float *r, float *h)
 {
 	const Bssrdf *bssrdf = (const Bssrdf*)sc;
+	float radius;
 
-	if(sc->type == CLOSURE_BSSRDF_CUBIC_ID)
-		bssrdf_cubic_sample(bssrdf->radius, bssrdf->sharpness, xi, r, h);
-	else if(sc->type == CLOSURE_BSSRDF_GAUSSIAN_ID)
-		bssrdf_gaussian_sample(bssrdf->radius, xi, r, h);
-	else /*if(sc->type == CLOSURE_BSSRDF_BURLEY_ID || sc->type == CLOSURE_BSSRDF_PRINCIPLED_ID)*/
-		bssrdf_burley_sample(bssrdf->d, xi, r, h);
+	/* Sample color channel and reuse random number. */
+	if(xi < 1.0f/3.0f) {
+		xi *= 3.0f;
+		radius = bssrdf->radius.x;
+	}
+	else if(xi < 2.0f/3.0f) {
+		xi = (xi - 1.0f/3.0f)*3.0f;
+		radius = bssrdf->radius.y;
+	}
+	else {
+		xi = (xi - 2.0f/3.0f)*3.0f;
+		radius = bssrdf->radius.z;
+	}
+
+	/* Sample BSSRDF. */
+	if(bssrdf->type == CLOSURE_BSSRDF_CUBIC_ID) {
+		bssrdf_cubic_sample(radius, bssrdf->sharpness, xi, r, h);
+	}
+	else if(bssrdf->type == CLOSURE_BSSRDF_GAUSSIAN_ID){
+		bssrdf_gaussian_sample(radius, xi, r, h);
+	}
+	else { /*if(bssrdf->type == CLOSURE_BSSRDF_BURLEY_ID || bssrdf->type == CLOSURE_BSSRDF_PRINCIPLED_ID)*/
+		bssrdf_burley_sample(radius, xi, r, h);
+	}
+}
+
+ccl_device float bssrdf_channel_pdf(const Bssrdf *bssrdf, float radius, float r)
+{
+	if(bssrdf->type == CLOSURE_BSSRDF_CUBIC_ID) {
+		return bssrdf_cubic_pdf(radius, bssrdf->sharpness, r);
+	}
+	else if(bssrdf->type == CLOSURE_BSSRDF_GAUSSIAN_ID) {
+		return bssrdf_gaussian_pdf(radius, r);
+	}
+	else { /*if(bssrdf->type == CLOSURE_BSSRDF_BURLEY_ID || bssrdf->type == CLOSURE_BSSRDF_PRINCIPLED_ID)*/
+		return bssrdf_burley_pdf(radius, r);
+	}
+}
+
+ccl_device_forceinline float3 bssrdf_eval(const ShaderClosure *sc, float r)
+{
+	const Bssrdf *bssrdf = (const Bssrdf*)sc;
+
+	return make_float3(
+		bssrdf_channel_pdf(bssrdf, bssrdf->radius.x, r),
+		bssrdf_channel_pdf(bssrdf, bssrdf->radius.y, r),
+		bssrdf_channel_pdf(bssrdf, bssrdf->radius.z, r));
 }
 
 ccl_device_forceinline float bssrdf_pdf(const ShaderClosure *sc, float r)
 {
-	const Bssrdf *bssrdf = (const Bssrdf*)sc;
-
-	if(sc->type == CLOSURE_BSSRDF_CUBIC_ID)
-		return bssrdf_cubic_pdf(bssrdf->radius, bssrdf->sharpness, r);
-	else if(sc->type == CLOSURE_BSSRDF_GAUSSIAN_ID)
-		return bssrdf_gaussian_pdf(bssrdf->radius, r);
-	else /*if(sc->type == CLOSURE_BSSRDF_BURLEY_ID || sc->type == CLOSURE_BSSRDF_PRINCIPLED_ID)*/
-		return bssrdf_burley_pdf(bssrdf->d, r);
+	return average(bssrdf_eval(sc, r));
 }
 
 CCL_NAMESPACE_END

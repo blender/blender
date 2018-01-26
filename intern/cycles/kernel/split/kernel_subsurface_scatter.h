@@ -54,7 +54,7 @@ ccl_device_noinline bool kernel_split_branched_path_subsurface_indirect_light_it
 			branched_state->lcg_state = lcg_state_init_addrspace(&branched_state->path_state,
 			                                                     0x68bc21eb);
 		}
-		int num_samples = kernel_data.integrator.subsurface_samples;
+		int num_samples = kernel_data.integrator.subsurface_samples * 3;
 		float num_samples_inv = 1.0f/num_samples;
 		uint bssrdf_rng_hash = cmj_hash(branched_state->path_state.rng_hash, i);
 
