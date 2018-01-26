@@ -179,6 +179,28 @@ static void outliner_item_drag_handle(
 	te_dragged->drag_data->insert_handle = te_insert_handle;
 }
 
+/**
+ * Returns true if it is a collection and empty.
+ */
+static bool is_empty_collection(TreeElement *te)
+{
+	if (!ELEM(TREESTORE(te)->type, TSE_SCENE_COLLECTION, TSE_LAYER_COLLECTION)) {
+		return false;
+	}
+
+	SceneCollection *scene_collection;
+	if (TREESTORE(te)->type == TSE_SCENE_COLLECTION) {
+		scene_collection = (SceneCollection *)te->directdata;
+	}
+	else {
+		BLI_assert(TREESTORE(te)->type == TSE_LAYER_COLLECTION);
+		scene_collection = ((LayerCollection *)te->directdata)->scene_collection;
+	}
+
+	return BLI_listbase_is_empty(&scene_collection->objects) &&
+	       BLI_listbase_is_empty(&scene_collection->scene_collections);
+}
+
 static bool outliner_item_drag_drop_apply(
         Main *bmain,
         SpaceOops *soops,
@@ -198,7 +220,16 @@ static bool outliner_item_drag_drop_apply(
 		/* call of assert above should not have changed insert_handle and insert_type at this point */
 		BLI_assert(dragged_te->drag_data->insert_handle == insert_handle &&
 		           dragged_te->drag_data->insert_type == insert_type);
+
+		/* If the collection was just created and you moved objects/collections inside it,
+		 * it is strange to have it closed and we not see the newly dragged elements. */
+		const bool should_open_collection = (insert_type == TE_INSERT_INTO) && is_empty_collection(insert_handle);
+
 		dragged_te->reinsert(bmain, soops, dragged_te, insert_handle, insert_type, event);
+
+		if (should_open_collection && !is_empty_collection(insert_handle)) {
+			TREESTORE(insert_handle)->flag &= ~TSE_CLOSED;
+		}
 		return true;
 	}
 
