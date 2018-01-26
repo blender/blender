@@ -40,6 +40,8 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 
+#include "DEG_depsgraph.h"
+
 #include "ED_screen.h"
 #include "ED_object.h"
 
@@ -447,6 +449,7 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 	        min_chain_length,
 	        keep_bind_info) )
 	{
+		DEG_id_tag_update(&CTX_data_scene(C)->id, DEG_TAG_BASE_FLAGS_UPDATE);
 		return OPERATOR_FINISHED;
 	}
 	else {
