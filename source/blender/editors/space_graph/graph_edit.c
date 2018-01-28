@@ -2824,7 +2824,7 @@ void GRAPH_OT_driver_delete_invalid(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Delete Invalid Drivers";
 	ot->idname = "GRAPH_OT_driver_delete_invalid";
-	ot->description = "Deletes all visible drivers considered invalid";
+	ot->description = "Delete all visible drivers considered invalid";
 
 	/* api callbacks */
 	ot->exec = graph_driver_delete_invalid_exec;
