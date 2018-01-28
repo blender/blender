@@ -714,12 +714,13 @@ static float screen_aligned(RegionView3D *rv3d, float mat[4][4])
 }
 
 
-/* radring = radius of doughnut rings
- * radhole = radius hole
- * start = starting segment (based on nrings)
- * end   = end segment
- * nsides = amount of points in ring
- * nrigns = amount of rings
+/**
+ * \param radring: Radius of doughnut rings.
+ * \param radhole: Radius hole.
+ * \param start: Starting segment (based on \a nrings).
+ * \param end: End segment.
+ * \param nsides: Number of points in ring.
+ * \param nrigns: Number of rings.
  */
 static void partial_doughnut(float radring, float radhole, int start, int end, int nsides, int nrings)
 {

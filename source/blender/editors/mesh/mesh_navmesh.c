@@ -72,7 +72,7 @@ static void createVertsTrisData(bContext *C, LinkNode *obs,
 	LinkNode *oblink, *dmlink;
 	DerivedMesh *dm;
 	Scene *scene = CTX_data_scene(C);
-	LinkNodePair dms_pair = {NULL,NULL};
+	LinkNodePair dms_pair = {NULL, NULL};
 
 	int nverts, ntris, *tris;
 	float *verts;
