@@ -63,6 +63,7 @@ set(SRC
 	view3d_select.c
 	view3d_snap.c
 	view3d_toolbar.c
+	view3d_utils.c
 	view3d_view.c
 
 	view3d_intern.h

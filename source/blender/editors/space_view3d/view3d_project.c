@@ -278,6 +278,11 @@ eV3DProjStatus ED_view3d_project_float_object(const ARegion *ar, const float co[
 /* More Generic Window/Ray/Vector projection functions
  * *************************************************** */
 
+float ED_view3d_pixel_size(const RegionView3D *rv3d, const float co[3])
+{
+	return mul_project_m4_v3_zfac((float(*)[4])rv3d->persmat, co) * rv3d->pixsize * U.pixelsize;
+}
+
 /**
  * Calculate a depth value from \a co, use with #ED_view3d_win_to_delta
  */
