@@ -78,9 +78,40 @@
 
 #include "UI_resources.h"
 
-#include "PIL_time.h" /* smoothview */
+#include "PIL_time.h"
 
 #include "view3d_intern.h"  /* own include */
+
+/* -------------------------------------------------------------------- */
+/** \name Generic View Operator Properties
+ * \{ */
+
+enum eV3D_OpPropFlag {
+	V3D_OP_PROP_MOUSE_CO = (1 << 0),
+	V3D_OP_PROP_DELTA = (1 << 1),
+	V3D_OP_PROP_USE_ALL_REGIONS = (1 << 2),
+};
+
+static void view3d_operator_properties_common(wmOperatorType *ot, const enum eV3D_OpPropFlag flag)
+{
+	if (flag & V3D_OP_PROP_MOUSE_CO) {
+		PropertyRNA *prop;
+		prop = RNA_def_int(ot->srna, "mx", 0, 0, INT_MAX, "Region Position X", "", 0, INT_MAX);
+		RNA_def_property_flag(prop, PROP_HIDDEN);
+		prop = RNA_def_int(ot->srna, "my", 0, 0, INT_MAX, "Region Position Y", "", 0, INT_MAX);
+		RNA_def_property_flag(prop, PROP_HIDDEN);
+	}
+	if (flag & V3D_OP_PROP_DELTA) {
+		RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
+	}
+	if (flag & V3D_OP_PROP_USE_ALL_REGIONS) {
+		PropertyRNA *prop;
+		prop = RNA_def_boolean(ot->srna, "use_all_regions", 0, "All Regions", "View selected for all regions");
+		RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	}
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Generic View Operator Custom-Data
@@ -2111,8 +2142,6 @@ static void viewzoom_cancel(bContext *C, wmOperator *op)
 
 void VIEW3D_OT_zoom(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name = "Zoom View";
 	ot->description = "Zoom in/out in the view";
@@ -2128,11 +2157,8 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR;
 
-	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
-	prop = RNA_def_int(ot->srna, "mx", 0, 0, INT_MAX, "Zoom Position X", "", 0, INT_MAX);
-	RNA_def_property_flag(prop, PROP_HIDDEN);
-	prop = RNA_def_int(ot->srna, "my", 0, 0, INT_MAX, "Zoom Position Y", "", 0, INT_MAX);
-	RNA_def_property_flag(prop, PROP_HIDDEN);
+	/* properties */
+	view3d_operator_properties_common(ot, V3D_OP_PROP_DELTA | V3D_OP_PROP_MOUSE_CO);
 }
 
 /** \} */
@@ -2441,9 +2467,8 @@ void VIEW3D_OT_dolly(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR;
 
-	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "mx", 0, 0, INT_MAX, "Zoom Position X", "", 0, INT_MAX);
-	RNA_def_int(ot->srna, "my", 0, 0, INT_MAX, "Zoom Position Y", "", 0, INT_MAX);
+	/* properties */
+	view3d_operator_properties_common(ot, V3D_OP_PROP_DELTA | V3D_OP_PROP_MOUSE_CO);
 }
 
 /** \} */
@@ -2607,8 +2632,6 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 
 void VIEW3D_OT_view_all(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name = "View All";
 	ot->description = "View all objects in scene";
@@ -2621,8 +2644,8 @@ void VIEW3D_OT_view_all(wmOperatorType *ot)
 	/* flags */
 	ot->flag = 0;
 
-	prop = RNA_def_boolean(ot->srna, "use_all_regions", 0, "All Regions", "View selected for all regions");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	/* properties */
+	view3d_operator_properties_common(ot, V3D_OP_PROP_USE_ALL_REGIONS);
 	RNA_def_boolean(ot->srna, "center", 0, "Center", "");
 }
 
@@ -2740,8 +2763,6 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 
 void VIEW3D_OT_view_selected(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name = "View Selected";
 	ot->description = "Move the view to the selection center";
@@ -2754,9 +2775,8 @@ void VIEW3D_OT_view_selected(wmOperatorType *ot)
 	/* flags */
 	ot->flag = 0;
 
-	/* rna later */
-	prop = RNA_def_boolean(ot->srna, "use_all_regions", 0, "All Regions", "View selected for all regions");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	/* properties */
+	view3d_operator_properties_common(ot, V3D_OP_PROP_USE_ALL_REGIONS);
 }
 
 /** \} */
@@ -3133,7 +3153,7 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	/* rna */
+	/* properties */
 	WM_operator_properties_border(ot);
 
 	prop = RNA_def_boolean(ot->srna, "camera_only", false, "Camera Only",
@@ -3375,7 +3395,7 @@ void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 	/* flags */
 	ot->flag = 0;
 
-	/* rna */
+	/* properties */
 	WM_operator_properties_gesture_border_zoom(ot);
 }
 
@@ -4375,7 +4395,7 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
 	/* flags */
 	ot->flag = 0;
 
-	/* rna */
+	/* properties */
 	WM_operator_properties_border(ot);
 }
 
@@ -4486,7 +4506,7 @@ void VIEW3D_OT_cursor3d(wmOperatorType *ot)
 	/* flags */
 //	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	/* rna later */
+	/* properties */
 
 }
 
@@ -4571,7 +4591,7 @@ void VIEW3D_OT_enable_manipulator(wmOperatorType *ot)
 	ot->invoke = enable_manipulator_invoke;
 	ot->poll = ED_operator_view3d_active;
 	
-	/* rna later */
+	/* properties */
 	prop = RNA_def_boolean(ot->srna, "translate", 0, "Translate", "Enable the translate manipulator");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "rotate", 0, "Rotate", "Enable the rotate manipulator");
