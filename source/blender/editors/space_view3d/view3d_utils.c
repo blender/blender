@@ -144,6 +144,35 @@ bool ED_view3d_viewplane_get(
  * \{ */
 
 /**
+ * Use this call when executing an operator,
+ * event system doesn't set for each event the OpenGL drawing context.
+ */
+void view3d_operator_needs_opengl(const bContext *C)
+{
+	wmWindow *win = CTX_wm_window(C);
+	ARegion *ar = CTX_wm_region(C);
+
+	view3d_region_operator_needs_opengl(win, ar);
+}
+
+void view3d_region_operator_needs_opengl(wmWindow *win, ARegion *ar)
+{
+	/* for debugging purpose, context should always be OK */
+	if ((ar == NULL) || (ar->regiontype != RGN_TYPE_WINDOW)) {
+		printf("view3d_region_operator_needs_opengl error, wrong region\n");
+	}
+	else {
+		RegionView3D *rv3d = ar->regiondata;
+
+		wmSubWindowSet(win, ar->swinid);
+		glMatrixMode(GL_PROJECTION);
+		glLoadMatrixf(rv3d->winmat);
+		glMatrixMode(GL_MODELVIEW);
+		glLoadMatrixf(rv3d->viewmat);
+	}
+}
+
+/**
  * Use instead of: ``bglPolygonOffset(rv3d->dist, ...)`` see bug [#37727]
  */
 void ED_view3d_polygon_offset(const RegionView3D *rv3d, const float dist)

@@ -70,35 +70,12 @@
 
 #include "view3d_intern.h"  /* own include */
 
-/* use this call when executing an operator,
- * event system doesn't set for each event the
- * opengl drawing context */
-void view3d_operator_needs_opengl(const bContext *C)
-{
-	wmWindow *win = CTX_wm_window(C);
-	ARegion *ar = CTX_wm_region(C);
-	
-	view3d_region_operator_needs_opengl(win, ar);
-}
+/* -------------------------------------------------------------------- */
+/** \name Smooth View Operator & Utilities
+ *
+ * Use for view transitions to have smooth (animated) transitions.
+ * \{ */
 
-void view3d_region_operator_needs_opengl(wmWindow *win, ARegion *ar)
-{
-	/* for debugging purpose, context should always be OK */
-	if ((ar == NULL) || (ar->regiontype != RGN_TYPE_WINDOW)) {
-		printf("view3d_region_operator_needs_opengl error, wrong region\n");
-	}
-	else {
-		RegionView3D *rv3d = ar->regiondata;
-		
-		wmSubWindowSet(win, ar->swinid);
-		glMatrixMode(GL_PROJECTION);
-		glLoadMatrixf(rv3d->winmat);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadMatrixf(rv3d->viewmat);
-	}
-}
-
-/* ****************** smooth view operator ****************** */
 /* This operator is one of the 'timer refresh' ones like animation playback */
 
 struct SmoothView3DState {
@@ -435,22 +412,25 @@ void ED_view3d_smooth_view_force_finish(
 
 void VIEW3D_OT_smoothview(wmOperatorType *ot)
 {
-	
 	/* identifiers */
 	ot->name = "Smooth View";
 	ot->description = "";
 	ot->idname = "VIEW3D_OT_smoothview";
-	
+
 	/* api callbacks */
 	ot->invoke = view3d_smoothview_invoke;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_INTERNAL;
 
 	ot->poll = ED_operator_view3d_active;
 }
 
-/* ****************** change view operators ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Camera to View Operator
+ * \{ */
 
 static int view3d_camera_to_view_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -514,6 +494,12 @@ void VIEW3D_OT_camera_to_view(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Camera Fit Frame to Selected Operator
+ * \{ */
+
 /* unlike VIEW3D_OT_view_selected this is for framing a render and not
  * meant to take into account vertex/bone selection for eg. */
 static int view3d_camera_to_view_selected_exec(bContext *C, wmOperator *op)
@@ -572,6 +558,12 @@ void VIEW3D_OT_camera_to_view_selected(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Object as Camera Operator
+ * \{ */
+
 static void sync_viewport_camera_smoothview(bContext *C, View3D *v3d, Object *ob, const int smooth_viewtx)
 {
 	Main *bmain = CTX_data_main(C);
@@ -622,7 +614,7 @@ static void sync_viewport_camera_smoothview(bContext *C, View3D *v3d, Object *ob
 }
 
 static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
-{	
+{
 	View3D *v3d;
 	ARegion *ar;
 	RegionView3D *rv3d;
@@ -675,7 +667,6 @@ int ED_operator_rv3d_user_region_poll(bContext *C)
 
 void VIEW3D_OT_object_as_camera(wmOperatorType *ot)
 {
-	
 	/* identifiers */
 	ot->name = "Set Active Object as Camera";
 	ot->description = "Set the active object as the active camera for this view or scene";
@@ -689,7 +680,11 @@ void VIEW3D_OT_object_as_camera(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ********************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Window and View Matrix Calculation
+ * \{ */
 
 /**
  * \param rect optional for picking (can be NULL).
@@ -833,6 +828,12 @@ void view3d_viewmatrix_set(
 	}
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name OpenGL Select Utilities
+ * \{ */
+
 /**
  * Optionally cache data for multiple calls to #view3d_opengl_select
  *
@@ -965,7 +966,11 @@ finally:
 	return hits;
 }
 
-/* ********************** local view operator ******************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Local View Operators
+ * \{ */
 
 static unsigned int free_localbit(Main *bmain)
 {
@@ -1300,43 +1305,43 @@ void VIEW3D_OT_localview(wmOperatorType *ot)
 	ot->poll = ED_operator_view3d_active;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Game Engine Operator
+ *
+ * Start the game engine (handles context switching).
+ * \{ */
+
 #ifdef WITH_GAMEENGINE
 
 static ListBase queue_back;
-static void SaveState(bContext *C, wmWindow *win)
+static void game_engine_save_state(bContext *C, wmWindow *win)
 {
 	Object *obact = CTX_data_active_object(C);
-	
+
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
 	if (obact && obact->mode & OB_MODE_TEXTURE_PAINT)
 		GPU_paint_set_mipmap(1);
-	
+
 	queue_back = win->queue;
-	
+
 	BLI_listbase_clear(&win->queue);
-	
-	//XXX waitcursor(1);
 }
 
-static void RestoreState(bContext *C, wmWindow *win)
+static void game_engine_restore_state(bContext *C, wmWindow *win)
 {
 	Object *obact = CTX_data_active_object(C);
-	
+
 	if (obact && obact->mode & OB_MODE_TEXTURE_PAINT)
 		GPU_paint_set_mipmap(0);
 
-	//XXX curarea->win_swap = 0;
-	//XXX curarea->head_swap = 0;
-	//XXX allqueue(REDRAWVIEW3D, 1);
-	//XXX allqueue(REDRAWBUTSALL, 0);
-	//XXX reset_slowparents();
-	//XXX waitcursor(0);
-	//XXX G.qual = 0;
-	
-	if (win) /* check because closing win can set to NULL */
+	/* check because closing win can set to NULL */
+	if (win) {
 		win->queue = queue_back;
-	
+	}
+
 	GPU_state_init();
 	GPU_set_tpage(NULL, 0, 0);
 
@@ -1421,12 +1426,12 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 	RegionView3D *rv3d;
 	rcti cam_frame;
 
-	(void)op; /* unused */
-	
+	UNUSED_VARS(op);
+
 	/* bad context switch .. */
 	if (!ED_view3d_context_activate(C))
 		return OPERATOR_CANCELLED;
-	
+
 	/* redraw to hide any menus/popups, we don't go back to
 	 * the window manager until after this operator exits */
 	WM_redraw_windows(C);
@@ -1438,7 +1443,7 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 	ar = CTX_wm_region(C);
 
 	view3d_operator_needs_opengl(C);
-	
+
 	game_set_commmandline_options(&startscene->gm);
 
 	if ((rv3d->persp == RV3D_CAMOB) &&
@@ -1462,7 +1467,7 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 	}
 
 
-	SaveState(C, prevwin);
+	game_engine_save_state(C, prevwin);
 
 	StartKetsjiShell(C, ar, &cam_frame, 1);
 
@@ -1471,7 +1476,7 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 		prevwin = NULL;
 		CTX_wm_window_set(C, NULL);
 	}
-	
+
 	ED_area_tag_redraw(CTX_wm_area(C));
 
 	if (prevwin) {
@@ -1482,7 +1487,7 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 		CTX_wm_area_set(C, prevsa);
 	}
 
-	RestoreState(C, prevwin);
+	game_engine_restore_state(C, prevwin);
 
 	//XXX restore_all_scene_cfra(scene_cfra_store);
 	BKE_scene_set_background(CTX_data_main(C), startscene);
@@ -1492,7 +1497,7 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 
 	return OPERATOR_FINISHED;
 #else
-	(void)C; /* unused */
+	UNUSED_VARS(C);
 	BKE_report(op->reports, RPT_ERROR, "Game engine is disabled in this build");
 	return OPERATOR_CANCELLED;
 #endif
@@ -1500,14 +1505,15 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 
 void VIEW3D_OT_game_start(wmOperatorType *ot)
 {
-	
 	/* identifiers */
 	ot->name = "Start Game Engine";
 	ot->description = "Start game engine";
 	ot->idname = "VIEW3D_OT_game_start";
-	
+
 	/* api callbacks */
 	ot->exec = game_engine_exec;
-	
+
 	ot->poll = game_engine_poll;
 }
+
+/** \} */
