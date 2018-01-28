@@ -28,7 +28,6 @@
  *  \ingroup spview3d
  */
 
-
 #include "DNA_camera_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
@@ -39,7 +38,6 @@
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_anim.h"
 #include "BKE_action.h"
 #include "BKE_camera.h"
 #include "BKE_context.h"
@@ -48,11 +46,9 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_screen.h"
 
 #include "DEG_depsgraph.h"
 
-#include "BIF_glutil.h"
 
 #include "UI_resources.h"
 
@@ -64,7 +60,6 @@
 #include "WM_types.h"
 
 #include "ED_screen.h"
-#include "ED_armature.h"
 
 #include "DRW_engine.h"
 
@@ -105,23 +100,6 @@ void view3d_region_operator_needs_opengl(wmWindow *win, ARegion *ar)
 		wmSubWindowSet(win, ar->swinid);
 		gpuLoadProjectionMatrix(rv3d->winmat);
 		gpuLoadMatrix(rv3d->viewmat);
-	}
-}
-
-float *ED_view3d_cursor3d_get(Scene *scene, View3D *v3d)
-{
-	if (v3d && v3d->localvd) return v3d->cursor;
-	else return scene->cursor;
-}
-
-Camera *ED_view3d_camera_data_get(View3D *v3d, RegionView3D *rv3d)
-{
-	/* establish the camera object, so we can default to view mapping if anything is wrong with it */
-	if ((rv3d->persp == RV3D_CAMOB) && v3d->camera && (v3d->camera->type == OB_CAMERA)) {
-		return v3d->camera->data;
-	}
-	else {
-		return NULL;
 	}
 }
 
@@ -722,278 +700,6 @@ void VIEW3D_OT_object_as_camera(wmOperatorType *ot)
 
 /* ********************************** */
 
-void ED_view3d_clipping_calc_from_boundbox(float clip[4][4], const BoundBox *bb, const bool is_flip)
-{
-	int val;
-
-	for (val = 0; val < 4; val++) {
-		normal_tri_v3(clip[val], bb->vec[val], bb->vec[val == 3 ? 0 : val + 1], bb->vec[val + 4]);
-		if (UNLIKELY(is_flip)) {
-			negate_v3(clip[val]);
-		}
-
-		clip[val][3] = -dot_v3v3(clip[val], bb->vec[val]);
-	}
-}
-
-void ED_view3d_clipping_calc(BoundBox *bb, float planes[4][4], const ARegion *ar, const Object *ob, const rcti *rect)
-{
-	/* init in case unproject fails */
-	memset(bb->vec, 0, sizeof(bb->vec));
-
-	/* four clipping planes and bounding volume */
-	/* first do the bounding volume */
-	for (int val = 0; val < 4; val++) {
-		float xs = (val == 0 || val == 3) ? rect->xmin : rect->xmax;
-		float ys = (val == 0 || val == 1) ? rect->ymin : rect->ymax;
-
-		ED_view3d_unproject(ar, xs, ys, 0.0, bb->vec[val]);
-		ED_view3d_unproject(ar, xs, ys, 1.0, bb->vec[4 + val]);
-	}
-
-	/* optionally transform to object space */
-	if (ob) {
-		float imat[4][4];
-		invert_m4_m4(imat, ob->obmat);
-
-		for (int val = 0; val < 8; val++) {
-			mul_m4_v3(imat, bb->vec[val]);
-		}
-	}
-
-	/* verify if we have negative scale. doing the transform before cross
-	 * product flips the sign of the vector compared to doing cross product
-	 * before transform then, so we correct for that. */
-	int flip_sign = (ob) ? is_negative_m4(ob->obmat) : false;
-
-	ED_view3d_clipping_calc_from_boundbox(planes, bb, flip_sign);
-}
-
-static bool view3d_boundbox_clip_m4(const BoundBox *bb, float persmatob[4][4])
-{
-	int a, flag = -1, fl;
-
-	for (a = 0; a < 8; a++) {
-		float vec[4], min, max;
-		copy_v3_v3(vec, bb->vec[a]);
-		vec[3] = 1.0;
-		mul_m4_v4(persmatob, vec);
-		max = vec[3];
-		min = -vec[3];
-
-		fl = 0;
-		if (vec[0] < min) fl += 1;
-		if (vec[0] > max) fl += 2;
-		if (vec[1] < min) fl += 4;
-		if (vec[1] > max) fl += 8;
-		if (vec[2] < min) fl += 16;
-		if (vec[2] > max) fl += 32;
-
-		flag &= fl;
-		if (flag == 0) return true;
-	}
-
-	return false;
-}
-
-bool ED_view3d_boundbox_clip_ex(const RegionView3D *rv3d, const BoundBox *bb, float obmat[4][4])
-{
-	/* return 1: draw */
-
-	float persmatob[4][4];
-
-	if (bb == NULL) return true;
-	if (bb->flag & BOUNDBOX_DISABLED) return true;
-
-	mul_m4_m4m4(persmatob, (float(*)[4])rv3d->persmat, obmat);
-
-	return view3d_boundbox_clip_m4(bb, persmatob);
-}
-
-bool ED_view3d_boundbox_clip(RegionView3D *rv3d, const BoundBox *bb)
-{
-	if (bb == NULL) return true;
-	if (bb->flag & BOUNDBOX_DISABLED) return true;
-
-	return view3d_boundbox_clip_m4(bb, rv3d->persmatob);
-}
-
-/* -------------------------------------------------------------------- */
-
-/** \name Depth Utilities
- * \{ */
-
-float ED_view3d_depth_read_cached(const ViewContext *vc, const int mval[2])
-{
-	ViewDepths *vd = vc->rv3d->depths;
-		
-	int x = mval[0];
-	int y = mval[1];
-
-	if (vd && vd->depths && x > 0 && y > 0 && x < vd->w && y < vd->h) {
-		return vd->depths[y * vd->w + x];
-	}
-	else {
-		BLI_assert(1.0 <= vd->depth_range[1]);
-		return 1.0f;
-	}
-}
-
-bool ED_view3d_depth_read_cached_normal(
-        const ViewContext *vc, const int mval[2],
-        float r_normal[3])
-{
-	/* Note: we could support passing in a radius.
-	 * For now just read 9 pixels. */
-
-	/* pixels surrounding */
-	bool  depths_valid[9] = {false};
-	float coords[9][3] = {{0}};
-
-	ARegion *ar = vc->ar;
-	const ViewDepths *depths = vc->rv3d->depths;
-
-	for (int x = 0, i = 0; x < 2; x++) {
-		for (int y = 0; y < 2; y++) {
-			const int mval_ofs[2] = {mval[0] + (x - 1), mval[1] + (y - 1)};
-
-			const double depth = (double)ED_view3d_depth_read_cached(vc, mval_ofs);
-			if ((depth > depths->depth_range[0]) && (depth < depths->depth_range[1])) {
-				if (ED_view3d_depth_unproject(ar, mval_ofs, depth, coords[i])) {
-					depths_valid[i] = true;
-				}
-			}
-			i++;
-		}
-	}
-
-	const int edges[2][6][2] = {
-	    /* x edges */
-	    {{0, 1}, {1, 2},
-	     {3, 4}, {4, 5},
-	     {6, 7}, {7, 8}},
-	    /* y edges */
-	    {{0, 3}, {3, 6},
-	     {1, 4}, {4, 7},
-	     {2, 5}, {5, 8}},
-	};
-
-	float cross[2][3] = {{0.0f}};
-
-	for (int i = 0; i < 6; i++) {
-		for (int axis = 0; axis < 2; axis++) {
-			if (depths_valid[edges[axis][i][0]] && depths_valid[edges[axis][i][1]]) {
-				float delta[3];
-				sub_v3_v3v3(delta, coords[edges[axis][i][0]], coords[edges[axis][i][1]]);
-				add_v3_v3(cross[axis], delta);
-			}
-		}
-	}
-
-	cross_v3_v3v3(r_normal, cross[0], cross[1]);
-
-	if (normalize_v3(r_normal) != 0.0f) {
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-
-bool ED_view3d_depth_unproject(
-        const ARegion *ar,
-        const int mval[2], const double depth,
-        float r_location_world[3])
-{
-	float centx = (float)mval[0] + 0.5f;
-	float centy = (float)mval[1] + 0.5f;
-	return ED_view3d_unproject(ar, centx, centy, depth, r_location_world);
-}
-
-/** \} */
-
-void ED_view3d_depth_tag_update(RegionView3D *rv3d)
-{
-	if (rv3d->depths)
-		rv3d->depths->damaged = true;
-}
-
-void ED_view3d_dist_range_get(
-        const View3D *v3d,
-        float r_dist_range[2])
-{
-	r_dist_range[0] = v3d->grid * 0.001f;
-	r_dist_range[1] = v3d->far * 10.0f;
-}
-
-/* copies logic of get_view3d_viewplane(), keep in sync */
-bool ED_view3d_clip_range_get(
-        const Depsgraph *depsgraph,
-        const View3D *v3d, const RegionView3D *rv3d,
-        float *r_clipsta, float *r_clipend,
-        const bool use_ortho_factor)
-{
-	CameraParams params;
-
-	BKE_camera_params_init(&params);
-	BKE_camera_params_from_view3d(&params, depsgraph, v3d, rv3d);
-
-	if (use_ortho_factor && params.is_ortho) {
-		const float fac = 2.0f / (params.clipend - params.clipsta);
-		params.clipsta *= fac;
-		params.clipend *= fac;
-	}
-
-	if (r_clipsta) *r_clipsta = params.clipsta;
-	if (r_clipend) *r_clipend = params.clipend;
-
-	return params.is_ortho;
-}
-
-bool ED_view3d_viewplane_get(
-        const Depsgraph *depsgraph,
-        const View3D *v3d, const RegionView3D *rv3d, int winx, int winy,
-        rctf *r_viewplane, float *r_clipsta, float *r_clipend, float *r_pixsize)
-{
-	CameraParams params;
-
-	BKE_camera_params_init(&params);
-	BKE_camera_params_from_view3d(&params, depsgraph, v3d, rv3d);
-	BKE_camera_params_compute_viewplane(&params, winx, winy, 1.0f, 1.0f);
-
-	if (r_viewplane) *r_viewplane = params.viewplane;
-	if (r_clipsta) *r_clipsta = params.clipsta;
-	if (r_clipend) *r_clipend = params.clipend;
-	if (r_pixsize) *r_pixsize = params.viewdx;
-	
-	return params.is_ortho;
-}
-
-/**
- * Use instead of: ``bglPolygonOffset(rv3d->dist, ...)`` see bug [#37727]
- */
-void ED_view3d_polygon_offset(const RegionView3D *rv3d, const float dist)
-{
-	float viewdist;
-
-	if (rv3d->rflag & RV3D_ZOFFSET_DISABLED) {
-		return;
-	}
-
-	viewdist = rv3d->dist;
-
-	/* special exception for ortho camera (viewdist isnt used for perspective cameras) */
-	if (dist != 0.0f) {
-		if (rv3d->persp == RV3D_CAMOB) {
-			if (rv3d->is_persp == false) {
-				viewdist = 1.0f / max_ff(fabsf(rv3d->winmat[0][0]), fabsf(rv3d->winmat[1][1]));
-			}
-		}
-	}
-
-	bglPolygonOffset(viewdist, dist);
-}
-
 /**
  * \param rect optional for picking (can be NULL).
  */
@@ -1044,73 +750,6 @@ static void obmat_to_viewmat(RegionView3D *rv3d, Object *ob)
 
 	/* view quat calculation, needed for add object */
 	mat4_normalized_to_quat(rv3d->viewquat, rv3d->viewmat);
-}
-
-static float view3d_quat_axis[6][4] = {
-	{M_SQRT1_2, -M_SQRT1_2, 0.0f, 0.0f},    /* RV3D_VIEW_FRONT */
-	{0.0f, 0.0f, -M_SQRT1_2, -M_SQRT1_2},   /* RV3D_VIEW_BACK */
-	{0.5f, -0.5f, 0.5f, 0.5f},              /* RV3D_VIEW_LEFT */
-	{0.5f, -0.5f, -0.5f, -0.5f},            /* RV3D_VIEW_RIGHT */
-	{1.0f, 0.0f, 0.0f, 0.0f},               /* RV3D_VIEW_TOP */
-	{0.0f, -1.0f, 0.0f, 0.0f},              /* RV3D_VIEW_BOTTOM */
-};
-
-
-bool ED_view3d_quat_from_axis_view(const char view, float quat[4])
-{
-	if (RV3D_VIEW_IS_AXIS(view)) {
-		copy_qt_qt(quat, view3d_quat_axis[view - RV3D_VIEW_FRONT]);
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-
-char ED_view3d_quat_to_axis_view(const float quat[4], const float epsilon)
-{
-	/* quat values are all unit length */
-
-	char view;
-
-	for (view = RV3D_VIEW_FRONT; view <= RV3D_VIEW_BOTTOM; view++) {
-		if (fabsf(angle_signed_qtqt(quat, view3d_quat_axis[view - RV3D_VIEW_FRONT])) < epsilon) {
-			return view;
-		}
-	}
-
-	return RV3D_VIEW_USER;
-}
-
-char ED_view3d_lock_view_from_index(int index)
-{
-	switch (index) {
-		case 0:  return RV3D_VIEW_FRONT;
-		case 1:  return RV3D_VIEW_TOP;
-		case 2:  return RV3D_VIEW_RIGHT;
-		default: return RV3D_VIEW_USER;
-	}
-
-}
-
-char ED_view3d_axis_view_opposite(char view)
-{
-	switch (view) {
-		case RV3D_VIEW_FRONT:   return RV3D_VIEW_BACK;
-		case RV3D_VIEW_BACK:    return RV3D_VIEW_FRONT;
-		case RV3D_VIEW_LEFT:    return RV3D_VIEW_RIGHT;
-		case RV3D_VIEW_RIGHT:   return RV3D_VIEW_LEFT;
-		case RV3D_VIEW_TOP:     return RV3D_VIEW_BOTTOM;
-		case RV3D_VIEW_BOTTOM:  return RV3D_VIEW_TOP;
-	}
-
-	return RV3D_VIEW_USER;
-}
-
-
-bool ED_view3d_lock(RegionView3D *rv3d)
-{
-	return ED_view3d_quat_from_axis_view(rv3d->view, rv3d->viewquat);
 }
 
 /**
@@ -1502,33 +1141,6 @@ static int game_engine_poll(bContext *C)
 	return 1;
 }
 
-bool ED_view3d_context_activate(bContext *C)
-{
-	bScreen *sc = CTX_wm_screen(C);
-	ScrArea *sa = CTX_wm_area(C);
-	ARegion *ar;
-
-	/* sa can be NULL when called from python */
-	if (sa == NULL || sa->spacetype != SPACE_VIEW3D) {
-		sa = BKE_screen_find_big_area(sc, SPACE_VIEW3D, 0);
-	}
-
-	if (sa == NULL) {
-		return false;
-	}
-	
-	ar = BKE_area_find_region_active_win(sa);
-	if (ar == NULL) {
-		return false;
-	}
-	
-	/* bad context switch .. */
-	CTX_wm_area_set(C, sa);
-	CTX_wm_region_set(C, ar);
-
-	return true;
-}
-
 static int game_engine_exec(bContext *C, wmOperator *op)
 {
 #ifdef WITH_GAMEENGINE
@@ -1631,157 +1243,3 @@ void VIEW3D_OT_game_start(wmOperatorType *ot)
 	
 	ot->poll = game_engine_poll;
 }
-
-/* ************************************** */
-
-float ED_view3d_pixel_size(const RegionView3D *rv3d, const float co[3])
-{
-	return mul_project_m4_v3_zfac((float(*)[4])rv3d->persmat, co) * rv3d->pixsize * U.pixelsize;
-}
-
-float ED_view3d_radius_to_dist_persp(const float angle, const float radius)
-{
-	return radius * (1.0f / tanf(angle / 2.0f));
-}
-
-float ED_view3d_radius_to_dist_ortho(const float lens, const float radius)
-{
-	return radius / (DEFAULT_SENSOR_WIDTH / lens);
-}
-
-/**
- * Return a new RegionView3D.dist value to fit the \a radius.
- *
- * \note Depth isn't taken into account, this will fit a flat plane exactly,
- * but points towards the view (with a perspective projection),
- * may be within the radius but outside the view. eg:
- *
- * <pre>
- *           +
- * pt --> + /^ radius
- *         / |
- *        /  |
- * view  +   +
- *        \  |
- *         \ |
- *          \|
- *           +
- * </pre>
- *
- * \param ar  Can be NULL if \a use_aspect is false.
- * \param persp  Allow the caller to tell what kind of perspective to use (ortho/view/camera)
- * \param use_aspect  Increase the distance to account for non 1:1 view aspect.
- * \param radius  The radius will be fitted exactly, typically pre-scaled by a margin (#VIEW3D_MARGIN).
- */
-float ED_view3d_radius_to_dist(
-        const View3D *v3d, const ARegion *ar,
-        const char persp, const bool use_aspect,
-        const float radius)
-{
-	float dist;
-
-	BLI_assert(ELEM(persp, RV3D_ORTHO, RV3D_PERSP, RV3D_CAMOB));
-	BLI_assert((persp != RV3D_CAMOB) || v3d->camera);
-
-	if (persp == RV3D_ORTHO) {
-		dist = ED_view3d_radius_to_dist_ortho(v3d->lens, radius);
-	}
-	else {
-		float lens, sensor_size, zoom;
-		float angle;
-
-		if (persp == RV3D_CAMOB) {
-			CameraParams params;
-			BKE_camera_params_init(&params);
-			params.clipsta = v3d->near;
-			params.clipend = v3d->far;
-			BKE_camera_params_from_object(&params, v3d->camera);
-
-			lens = params.lens;
-			sensor_size = BKE_camera_sensor_size(params.sensor_fit, params.sensor_x, params.sensor_y);
-
-			/* ignore 'rv3d->camzoom' because we want to fit to the cameras frame */
-			zoom = CAMERA_PARAM_ZOOM_INIT_CAMOB;
-		}
-		else {
-			lens = v3d->lens;
-			sensor_size = DEFAULT_SENSOR_WIDTH;
-			zoom = CAMERA_PARAM_ZOOM_INIT_PERSP;
-		}
-
-		angle = focallength_to_fov(lens, sensor_size);
-
-		/* zoom influences lens, correct this by scaling the angle as a distance (by the zoom-level) */
-		angle = atanf(tanf(angle / 2.0f) * zoom) * 2.0f;
-
-		dist = ED_view3d_radius_to_dist_persp(angle, radius);
-	}
-
-	if (use_aspect) {
-		const RegionView3D *rv3d = ar->regiondata;
-
-		float winx, winy;
-
-		if (persp == RV3D_CAMOB) {
-			/* camera frame x/y in pixels */
-			winx = ar->winx / rv3d->viewcamtexcofac[0];
-			winy = ar->winy / rv3d->viewcamtexcofac[1];
-		}
-		else {
-			winx = ar->winx;
-			winy = ar->winy;
-		}
-
-		if (winx && winy) {
-			float aspect = winx / winy;
-			if (aspect < 1.0f) {
-				aspect = 1.0f / aspect;
-			}
-			dist *= aspect;
-		}
-	}
-
-	return dist;
-}
-
-/* view matrix properties utilities */
-
-/* unused */
-#if 0
-void ED_view3d_operator_properties_viewmat(wmOperatorType *ot)
-{
-	PropertyRNA *prop;
-
-	prop = RNA_def_int(ot->srna, "region_width", 0, 0, INT_MAX, "Region Width", "", 0, INT_MAX);
-	RNA_def_property_flag(prop, PROP_HIDDEN);
-
-	prop = RNA_def_int(ot->srna, "region_height", 0, 0, INT_MAX, "Region height", "", 0, INT_MAX);
-	RNA_def_property_flag(prop, PROP_HIDDEN);
-
-	prop = RNA_def_float_matrix(ot->srna, "perspective_matrix", 4, 4, NULL, 0.0f, 0.0f, "", "Perspective Matrix", 0.0f, 0.0f);
-	RNA_def_property_flag(prop, PROP_HIDDEN);
-}
-
-void ED_view3d_operator_properties_viewmat_set(bContext *C, wmOperator *op)
-{
-	ARegion *ar = CTX_wm_region(C);
-	RegionView3D *rv3d = ED_view3d_context_rv3d(C);
-
-	if (!RNA_struct_property_is_set(op->ptr, "region_width"))
-		RNA_int_set(op->ptr, "region_width", ar->winx);
-
-	if (!RNA_struct_property_is_set(op->ptr, "region_height"))
-		RNA_int_set(op->ptr, "region_height", ar->winy);
-
-	if (!RNA_struct_property_is_set(op->ptr, "perspective_matrix"))
-		RNA_float_set_array(op->ptr, "perspective_matrix", (float *)rv3d->persmat);
-}
-
-void ED_view3d_operator_properties_viewmat_get(wmOperator *op, int *winx, int *winy, float persmat[4][4])
-{
-	*winx = RNA_int_get(op->ptr, "region_width");
-	*winy = RNA_int_get(op->ptr, "region_height");
-
-	RNA_float_get_array(op->ptr, "perspective_matrix", (float *)persmat);
-}
-#endif
