@@ -378,7 +378,7 @@ static bool paint_brush_update(bContext *C,
 		else if (!(brush->flag & BRUSH_CURVE)) {
 			if (!paint_calculate_rake_rotation(ups, brush, mouse_init)) {
 				/* Not enough motion to define an angle. */
-				if(!stroke->rake_started) {
+				if (!stroke->rake_started) {
 					is_dry_run = true;
 				}
 			}

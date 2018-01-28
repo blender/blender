@@ -2040,7 +2040,7 @@ static void adjust_offsets(BevelParams *bp)
 
 	/* Should we auto-limit the error accumulation? Typically, spirals can lead to 100x relative adjustments,
 	 * and somewhat hacky mechanism of using bp->limit_offset to indicate "clamp the adjustments" is not
-	 * obvious to users, who almost certainaly want clamping in this situation.
+	 * obvious to users, who almost certainly want clamping in this situation.
 	 * The reason not to clamp always is that some models work better without it (e.g., Bent_test in regression
 	 * suite, where relative adjust maximum is about .6). */
 	if (!bp->limit_offset) {
