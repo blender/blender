@@ -633,7 +633,8 @@ static void node_common_set_butfunc(bNodeType *ntype)
 /* ****************** BUTTON CALLBACKS FOR SHADER NODES ***************** */
 
 static void node_buts_image_user(uiLayout *layout, bContext *C, PointerRNA *ptr,
-                                 PointerRNA *imaptr, PointerRNA *iuserptr)
+                                 PointerRNA *imaptr, PointerRNA *iuserptr,
+                                 bool compositor)
 {
 	uiLayout *col;
 	int source;
@@ -668,7 +669,8 @@ static void node_buts_image_user(uiLayout *layout, bContext *C, PointerRNA *ptr,
 		uiItemR(col, ptr, "use_auto_refresh", 0, NULL, ICON_NONE);
 	}
 
-	if (RNA_enum_get(imaptr, "type") == IMA_TYPE_MULTILAYER &&
+	if (compositor &&
+	    RNA_enum_get(imaptr, "type") == IMA_TYPE_MULTILAYER &&
 	    RNA_boolean_get(ptr, "has_layers"))
 	{
 		col = uiLayoutColumn(layout, false);
@@ -792,7 +794,7 @@ static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA
 	/* note: image user properties used directly here, unlike compositor image node,
 	 * which redefines them in the node struct RNA to get proper updates.
 	 */
-	node_buts_image_user(layout, C, &iuserptr, &imaptr, &iuserptr);
+	node_buts_image_user(layout, C, &iuserptr, &imaptr, &iuserptr, false);
 }
 
 static void node_shader_buts_tex_image_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -811,7 +813,7 @@ static void node_shader_buts_tex_environment(uiLayout *layout, bContext *C, Poin
 	        layout, C, ptr, "image",
 	        NULL, "IMAGE_OT_open", NULL, UI_TEMPLATE_ID_FILTER_ALL);
 
-	node_buts_image_user(layout, C, &iuserptr, &imaptr, &iuserptr);
+	node_buts_image_user(layout, C, &iuserptr, &imaptr, &iuserptr, false);
 
 	uiItemR(layout, ptr, "color_space", 0, "", ICON_NONE);
 	uiItemR(layout, ptr, "interpolation", 0, "", ICON_NONE);
@@ -1261,7 +1263,7 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 	
 	imaptr = RNA_pointer_get(ptr, "image");
 
-	node_buts_image_user(layout, C, ptr, &imaptr, &iuserptr);
+	node_buts_image_user(layout, C, ptr, &imaptr, &iuserptr, true);
 
 	node_buts_image_views(layout, C, ptr, &imaptr);
 }

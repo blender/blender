@@ -179,13 +179,13 @@ ccl_device_inline float path_state_continuation_probability(KernelGlobals *kg,
 #endif
 	}
 	else {
-		/* Test max bounces for various ray types. */
+		/* Test max bounces for various ray types. 
+		   The check for max_volume_bounce doesn't happen here but inside volume_shader_sample().
+		   See T53914.
+		 */
 		if((state->bounce >= kernel_data.integrator.max_bounce) ||
 		   (state->diffuse_bounce >= kernel_data.integrator.max_diffuse_bounce) ||
 		   (state->glossy_bounce >= kernel_data.integrator.max_glossy_bounce) ||
-#ifdef __VOLUME__
-		   (state->volume_bounce >= kernel_data.integrator.max_volume_bounce) ||
-#endif
 		   (state->transmission_bounce >= kernel_data.integrator.max_transmission_bounce))
 		{
 			return 0.0f;

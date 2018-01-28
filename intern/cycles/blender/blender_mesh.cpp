@@ -1139,12 +1139,19 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 	mesh_synced.insert(mesh);
 
 	/* create derived mesh */
-	array<int> oldtriangle = mesh->triangles;
+	array<int> oldtriangles;
+	array<Mesh::SubdFace> oldsubd_faces;
+	array<int> oldsubd_face_corners;
+	oldtriangles.steal_data(mesh->triangles);
+	oldsubd_faces.steal_data(mesh->subd_faces);
+	oldsubd_face_corners.steal_data(mesh->subd_face_corners);
 
 	/* compares curve_keys rather than strands in order to handle quick hair
 	 * adjustments in dynamic BVH - other methods could probably do this better*/
-	array<float3> oldcurve_keys = mesh->curve_keys;
-	array<float> oldcurve_radius = mesh->curve_radius;
+	array<float3> oldcurve_keys;
+	array<float> oldcurve_radius;
+	oldcurve_keys.steal_data(mesh->curve_keys);
+	oldcurve_radius.steal_data(mesh->curve_radius);
 
 	mesh->clear();
 	mesh->used_shaders = used_shaders;
@@ -1208,28 +1215,11 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 	sync_mesh_fluid_motion(b_ob, scene, mesh);
 
 	/* tag update */
-	bool rebuild = false;
-
-	if(oldtriangle.size() != mesh->triangles.size())
-		rebuild = true;
-	else if(oldtriangle.size()) {
-		if(memcmp(&oldtriangle[0], &mesh->triangles[0], sizeof(int)*oldtriangle.size()) != 0)
-			rebuild = true;
-	}
-
-	if(oldcurve_keys.size() != mesh->curve_keys.size())
-		rebuild = true;
-	else if(oldcurve_keys.size()) {
-		if(memcmp(&oldcurve_keys[0], &mesh->curve_keys[0], sizeof(float3)*oldcurve_keys.size()) != 0)
-			rebuild = true;
-	}
-
-	if(oldcurve_radius.size() != mesh->curve_radius.size())
-		rebuild = true;
-	else if(oldcurve_radius.size()) {
-		if(memcmp(&oldcurve_radius[0], &mesh->curve_radius[0], sizeof(float)*oldcurve_radius.size()) != 0)
-			rebuild = true;
-	}
+	bool rebuild = (oldtriangles != mesh->triangles) ||
+	               (oldsubd_faces != mesh->subd_faces) ||
+	               (oldsubd_face_corners != mesh->subd_face_corners) ||
+	               (oldcurve_keys != mesh->curve_keys) ||
+	               (oldcurve_radius != mesh->curve_radius);
 
 	mesh->tag_update(scene, rebuild);
 

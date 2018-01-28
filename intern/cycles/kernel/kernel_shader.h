@@ -611,6 +611,8 @@ void shader_bsdf_eval(KernelGlobals *kg,
 ccl_device_inline const ShaderClosure *shader_bsdf_pick(ShaderData *sd,
                                                         float *randu)
 {
+	/* Note the sampling here must match shader_bssrdf_pick,
+	 * since we reuse the same random number. */
 	int sampled = 0;
 
 	if(sd->num_closure > 1) {
@@ -620,7 +622,7 @@ ccl_device_inline const ShaderClosure *shader_bsdf_pick(ShaderData *sd,
 		for(int i = 0; i < sd->num_closure; i++) {
 			const ShaderClosure *sc = &sd->closure[i];
 
-			if(CLOSURE_IS_BSDF(sc->type)) {
+			if(CLOSURE_IS_BSDF_OR_BSSRDF(sc->type)) {
 				sum += sc->sample_weight;
 			}
 		}
@@ -631,7 +633,7 @@ ccl_device_inline const ShaderClosure *shader_bsdf_pick(ShaderData *sd,
 		for(int i = 0; i < sd->num_closure; i++) {
 			const ShaderClosure *sc = &sd->closure[i];
 
-			if(CLOSURE_IS_BSDF(sc->type)) {
+			if(CLOSURE_IS_BSDF_OR_BSSRDF(sc->type)) {
 				float next_sum = partial_sum + sc->sample_weight;
 
 				if(r < next_sum) {
@@ -648,13 +650,16 @@ ccl_device_inline const ShaderClosure *shader_bsdf_pick(ShaderData *sd,
 		}
 	}
 
-	return &sd->closure[sampled];
+	const ShaderClosure *sc = &sd->closure[sampled];
+	return CLOSURE_IS_BSDF(sc->type)? sc: NULL;
 }
 
 ccl_device_inline const ShaderClosure *shader_bssrdf_pick(ShaderData *sd,
                                                           ccl_addr_space float3 *throughput,
                                                           float *randu)
 {
+	/* Note the sampling here must match shader_bsdf_pick,
+	 * since we reuse the same random number. */
 	int sampled = 0;
 
 	if(sd->num_closure > 1) {
@@ -703,7 +708,8 @@ ccl_device_inline const ShaderClosure *shader_bssrdf_pick(ShaderData *sd,
 		}
 	}
 
-	return &sd->closure[sampled];
+	const ShaderClosure *sc = &sd->closure[sampled];
+	return CLOSURE_IS_BSSRDF(sc->type)? sc: NULL;
 }
 
 ccl_device_inline int shader_bsdf_sample(KernelGlobals *kg,

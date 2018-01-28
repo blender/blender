@@ -75,7 +75,7 @@ static void createVertsTrisData(bContext *C, LinkNode *obs,
 	DerivedMesh *dm;
 	Scene *scene = CTX_data_scene(C);
 	EvaluationContext eval_ctx;
-	LinkNode *dms = NULL;
+	LinkNodePair dms_pair = {NULL, NULL};
 
 	int nverts, ntris, *tris;
 	float *verts;
@@ -90,7 +90,7 @@ static void createVertsTrisData(bContext *C, LinkNode *obs,
 		ob = (Object *) oblink->link;
 		dm = mesh_create_derived_no_virtual(&eval_ctx, scene, ob, NULL, CD_MASK_MESH);
 		DM_ensure_tessface(dm);
-		BLI_linklist_prepend(&dms, dm);
+		BLI_linklist_append(&dms_pair, dm);
 
 		nverts += dm->getNumVerts(dm);
 		nfaces = dm->getNumTessFaces(dm);
@@ -106,6 +106,7 @@ static void createVertsTrisData(bContext *C, LinkNode *obs,
 
 		*r_lay |= ob->lay;
 	}
+	LinkNode *dms = dms_pair.list;
 
 	/* create data */
 	verts = MEM_mallocN(sizeof(float) * 3 * nverts, "createVertsTrisData verts");

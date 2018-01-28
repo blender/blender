@@ -107,12 +107,12 @@ def main():
                 return
 
     # execute
-    cmd = "make %s %s blender/fast" % (" ".join(args), " ".join(targets_new))
+    cmd = ["make"] + args + targets_new + ["blender/fast"]
     print("cmake building with targets: %s" % " ".join(targets_new))
-    print("executing: %s" % cmd)
+    print("executing: %s" % " ".join(cmd))
 
-    import os
-    os.system(cmd)
+    import subprocess
+    subprocess.call(cmd)
 
 if __name__ == "__main__":
     main()
