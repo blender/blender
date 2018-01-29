@@ -450,6 +450,25 @@ class VIEWLAYER_PT_eevee_indirect_lighting(ViewLayerButtonsPanel, Panel):
         col.template_override_property(layer_props, scene_props, "gi_visibility_resolution")
 
 
+class VIEWLAYER_PT_eevee_layer_passes(ViewLayerButtonsPanel, Panel):
+    bl_label = "Passes"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = scene.render
+        view_layer = scene.view_layers.active
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(view_layer, "use_pass_combined")
+        col.prop(view_layer, "use_pass_z")
+
+
 classes = (
     VIEWLAYER_UL_viewlayers,
     VIEWLAYER_PT_layers,
@@ -466,6 +485,7 @@ classes = (
     VIEWLAYER_PT_eevee_motion_blur,
     VIEWLAYER_PT_eevee_depth_of_field,
     VIEWLAYER_PT_eevee_bloom,
+    VIEWLAYER_PT_eevee_layer_passes,
 )
 
 if __name__ == "__main__":  # only for live edit.

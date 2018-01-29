@@ -228,17 +228,51 @@ void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *UNUSED(engine), 
 
 void EEVEE_render_output(EEVEE_Data *vedata, RenderEngine *engine, struct Depsgraph *UNUSED(depsgraph))
 {
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	ViewLayer *view_layer = draw_ctx->view_layer;
+	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
+	EEVEE_FramebufferList *fbl = vedata->fbl;
 	EEVEE_StorageList *stl = vedata->stl;
+	EEVEE_PrivateData *g_data = stl->g_data;
+	EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
 
 	const char *viewname = NULL;
 	const float *render_size = DRW_viewport_size_get();
 
+	/* Combined */
 	RenderResult *rr = RE_engine_begin_result(engine, 0, 0, (int)render_size[0], (int)render_size[1], NULL, viewname);
 	RenderLayer *rl = rr->layers.first;
 	RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_COMBINED, viewname);
 
 	DRW_framebuffer_bind(stl->effects->final_fb);
 	DRW_framebuffer_read_data(0, 0, (int)render_size[0], (int)render_size[1], 4, 0, rp->rect);
+
+	if (view_layer->passflag & SCE_PASS_Z) {
+		rp = RE_pass_find_by_name(rl, RE_PASSNAME_Z, viewname);
+
+		DRW_framebuffer_texture_attach(fbl->main, dtxl->depth, 0, 0);
+		DRW_framebuffer_bind(fbl->main);
+		DRW_framebuffer_read_depth(0, 0, (int)render_size[0], (int)render_size[1], rp->rect);
+
+		bool is_persp = DRW_viewport_is_persp_get();
+
+		/* Convert ogl depth [0..1] to view Z [near..far] */
+		for (int i = 0; i < (int)render_size[0] * (int)render_size[1]; ++i) {
+			if (rp->rect[i] == 1.0f ) {
+				rp->rect[i] = 1e10f; /* Background */
+			}
+			else {
+				if (is_persp) {
+					rp->rect[i] = rp->rect[i] * 2.0f - 1.0f;
+					rp->rect[i] = g_data->winmat[3][2] / (rp->rect[i] + g_data->winmat[2][2]);
+				}
+				else {
+					rp->rect[i] = -common_data->view_vecs[0][2] + rp->rect[i] * -common_data->view_vecs[1][2];
+				}
+			}
+		}
+	}
 
 	RE_engine_end_result(engine, rr, false, false, false);
 }

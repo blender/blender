@@ -238,6 +238,7 @@ void DRW_framebuffer_init(
 void DRW_framebuffer_bind(struct GPUFrameBuffer *fb);
 void DRW_framebuffer_clear(bool color, bool depth, bool stencil, float clear_col[4], float clear_depth);
 void DRW_framebuffer_read_data(int x, int y, int w, int h, int channels, int slot, float *data);
+void DRW_framebuffer_read_depth(int x, int y, int w, int h, float *data);
 void DRW_framebuffer_texture_attach(struct GPUFrameBuffer *fb, struct GPUTexture *tex, int slot, int mip);
 void DRW_framebuffer_texture_layer_attach(struct GPUFrameBuffer *fb, struct GPUTexture *tex, int slot, int layer, int mip);
 void DRW_framebuffer_cubeface_attach(struct GPUFrameBuffer *fb, struct GPUTexture *tex, int slot, int face, int mip);

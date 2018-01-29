@@ -2415,6 +2415,14 @@ void DRW_framebuffer_read_data(int x, int y, int w, int h, int channels, int slo
 	glReadPixels(x, y, w, h, type, GL_FLOAT, data);
 }
 
+void DRW_framebuffer_read_depth(int x, int y, int w, int h, float *data)
+{
+	GLenum type = GL_DEPTH_COMPONENT;
+
+	glReadBuffer(GL_COLOR_ATTACHMENT0); /* This is OK! */
+	glReadPixels(x, y, w, h, type, GL_FLOAT, data);
+}
+
 void DRW_framebuffer_texture_attach(struct GPUFrameBuffer *fb, GPUTexture *tex, int slot, int mip)
 {
 	GPU_framebuffer_texture_attach(fb, tex, slot, mip);
