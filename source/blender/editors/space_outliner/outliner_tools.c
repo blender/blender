@@ -2048,7 +2048,7 @@ static int do_outliner_operation_event(bContext *C, ARegion *ar, SpaceOops *soop
 			}
 		}
 		else if (objectlevel) {
-			WM_operator_name_call(C, "OUTLINER_OT_object_operation", WM_OP_INVOKE_REGION_WIN, NULL);
+			WM_menu_name_call(C, "OUTLINER_MT_context_object", WM_OP_INVOKE_REGION_WIN);
 		}
 		else if (idlevel) {
 			if (idlevel == -1 || datalevel) {

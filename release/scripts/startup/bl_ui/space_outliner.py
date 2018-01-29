@@ -201,6 +201,40 @@ class OUTLINER_MT_context_scene_collection(Menu):
         layout.operator("outliner.collection_objects_remove", text="Remove Selected", icon='ZOOMOUT')
 
 
+class OUTLINER_MT_context_object_select(Menu):
+    bl_label = "Object Operation Select"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("outliner.object_operation", text="Select").type='SELECT'
+        layout.operator("outliner.object_operation", text="Deselect").type='DESELECT'
+        layout.operator("outliner.object_operation", text="Select Hierarchy").type='SELECT_HIERARCHY'
+
+
+class OUTLINER_MT_context_object_delete(Menu):
+    bl_label = "Object Operation Delete"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("outliner.object_operation", text="Delete").type='DELETE'
+        layout.operator("outliner.object_operation", text="Delete Hierarchy").type='DELETE_HIERARCHY'
+
+
+class OUTLINER_MT_context_object(Menu):
+    bl_label = "Object"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.menu("OUTLINER_MT_context_object_select", text="Select")
+        layout.menu("OUTLINER_MT_context_object_delete", text="Delete")
+        layout.separator()
+        layout.operator("outliner.object_operation", text="Remap Users").type='REMAP'
+        layout.operator("outliner.object_operation", text="Rename").type='RENAME'
+
+
 classes = (
     OUTLINER_HT_header,
     OUTLINER_MT_editor_menus,
@@ -209,6 +243,9 @@ classes = (
     OUTLINER_MT_edit_datablocks,
     OUTLINER_MT_edit_orphan_data,
     OUTLINER_MT_context_scene_collection,
+    OUTLINER_MT_context_object,
+    OUTLINER_MT_context_object_delete,
+    OUTLINER_MT_context_object_select,
 )
 
 if __name__ == "__main__":  # only for live edit.
