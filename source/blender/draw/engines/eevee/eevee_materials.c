@@ -63,7 +63,6 @@ static struct {
 
 	unsigned int sss_count;
 
-	float view_vecs[2][4];
 	float alpha_hash_offset;
 	float noise_offsets[3];
 } e_data = {NULL}; /* Engine data */
