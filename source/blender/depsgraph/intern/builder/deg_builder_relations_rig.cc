@@ -444,6 +444,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 
 void DepsgraphRelationBuilder::build_proxy_rig(Object *object)
 {
+	Object *proxy_from = object->proxy_from;
 	OperationKey pose_init_key(&object->id,
 	                           DEG_NODE_TYPE_EVAL_POSE,
 	                           DEG_OPCODE_POSE_INIT);
@@ -466,6 +467,20 @@ void DepsgraphRelationBuilder::build_proxy_rig(Object *object)
 		add_relation(bone_local_key, bone_ready_key, "Local -> Ready");
 		add_relation(bone_ready_key, bone_done_key, "Ready -> Done");
 		add_relation(bone_done_key, pose_done_key, "Bone Done -> Pose Done");
+
+		if (pchan->prop != NULL) {
+			OperationKey bone_parameters(&object->id,
+			                             DEG_NODE_TYPE_PARAMETERS,
+			                             DEG_OPCODE_PARAMETERS_EVAL,
+			                             pchan->name);
+			OperationKey from_bone_parameters(&proxy_from->id,
+			                                  DEG_NODE_TYPE_PARAMETERS,
+			                                  DEG_OPCODE_PARAMETERS_EVAL,
+			                                  pchan->name);
+			add_relation(from_bone_parameters,
+			             bone_parameters,
+			             "Proxy Bone Parameters");
+		}
 	}
 }
 

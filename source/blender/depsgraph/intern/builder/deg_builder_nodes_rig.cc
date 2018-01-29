@@ -274,6 +274,7 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
 	                             DEG_OPCODE_POSE_INIT);
 	op_node->set_as_entry();
 
+
 	BLI_LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
 		op_node = add_operation_node(&object->id, DEG_NODE_TYPE_BONE, pchan->name,
 		                             NULL, DEG_OPCODE_BONE_LOCAL);
