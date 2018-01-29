@@ -251,4 +251,5 @@ DrawEngineType draw_engine_paint_weight_type = {
 	NULL,
 	&PAINT_WEIGHT_draw_scene,
 	NULL,
+	NULL,
 };

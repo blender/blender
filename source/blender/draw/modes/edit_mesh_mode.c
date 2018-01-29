@@ -610,4 +610,5 @@ DrawEngineType draw_engine_edit_mesh_type = {
 	NULL,
 	&EDIT_MESH_draw_scene,
 	NULL,
+	NULL,
 };

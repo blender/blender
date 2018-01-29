@@ -414,4 +414,5 @@ DrawEngineType draw_engine_paint_texture_type = {
 	NULL, /* draw_background but not needed by mode engines */
 	&PAINT_TEXTURE_draw_scene,
 	NULL,
+	NULL,
 };

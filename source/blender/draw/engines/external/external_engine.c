@@ -218,6 +218,7 @@ DrawEngineType draw_engine_external_type = {
 	&external_draw_scene,
 	NULL,
 	NULL,
+	NULL,
 };
 
 /* Note: currently unused, we should not register unless we want to see this when debugging the view. */

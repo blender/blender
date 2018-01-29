@@ -264,6 +264,7 @@ DrawEngineType draw_engine_basic_type = {
 	&basic_draw_scene,
 	NULL,
 	NULL,
+	NULL,
 };
 
 /* Note: currently unused, we may want to register so we can see this when debugging the view. */

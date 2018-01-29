@@ -46,6 +46,7 @@ struct View3D;
 struct rcti;
 struct GPUOffScreen;
 struct GPUViewport;
+struct RenderEngine;
 struct RenderEngineType;
 struct WorkSpace;
 
@@ -67,6 +68,7 @@ typedef struct DefaultTextureList {
 void DRW_engines_register(void);
 void DRW_engines_free(void);
 
+bool DRW_engine_render_support(struct DrawEngineType *draw_engine_type);
 void DRW_engine_register(struct DrawEngineType *draw_engine_type);
 void DRW_engine_viewport_data_size_get(
         const void *engine_type,

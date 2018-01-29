@@ -294,4 +294,5 @@ DrawEngineType draw_engine_edit_lattice_type = {
 	NULL, /* draw_background but not needed by mode engines */
 	&EDIT_LATTICE_draw_scene,
 	NULL,
+	NULL,
 };

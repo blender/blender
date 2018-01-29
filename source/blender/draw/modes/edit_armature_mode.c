@@ -154,4 +154,5 @@ DrawEngineType draw_engine_edit_armature_type = {
 	NULL,
 	&EDIT_ARMATURE_draw_scene,
 	NULL,
+	NULL,
 };

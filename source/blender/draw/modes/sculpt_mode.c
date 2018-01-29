@@ -302,4 +302,5 @@ DrawEngineType draw_engine_sculpt_type = {
 	NULL, /* draw_background but not needed by mode engines */
 	&SCULPT_draw_scene,
 	NULL,
+	NULL,
 };

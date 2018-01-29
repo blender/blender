@@ -347,4 +347,5 @@ DrawEngineType draw_engine_edit_curve_type = {
 	NULL, /* draw_background but not needed by mode engines */
 	&EDIT_CURVE_draw_scene,
 	NULL,
+	NULL,
 };

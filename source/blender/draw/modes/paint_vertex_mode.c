@@ -213,4 +213,5 @@ DrawEngineType draw_engine_paint_vertex_type = {
 	NULL,
 	&PAINT_VERTEX_draw_scene,
 	NULL,
+	NULL,
 };

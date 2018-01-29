@@ -949,6 +949,7 @@ DrawEngineType draw_engine_clay_type = {
 	&clay_draw_scene,
 	NULL,
 	NULL,
+	NULL,
 };
 
 RenderEngineType DRW_engine_viewport_clay_type = {

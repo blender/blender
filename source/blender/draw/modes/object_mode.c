@@ -2044,4 +2044,5 @@ DrawEngineType draw_engine_object_type = {
 	NULL,
 	&OBJECT_draw_scene,
 	NULL,
+	NULL,
 };

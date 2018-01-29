@@ -844,6 +844,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	Main *mainp;
 	ViewLayer *view_layer = NULL;
 	Scene *scene = CTX_data_scene(C);
+	RenderEngineType *re_type = RE_engines_find(scene->view_render.engine_id);
 	Render *re;
 	wmJob *wm_job;
 	RenderJob *rj;
@@ -856,6 +857,13 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	struct Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : NULL;
 	const char *name;
 	ScrArea *sa;
+
+	/* XXX FIXME If engine is an OpenGL engine do not run modal.
+	 * This is a problem for animation rendering since you cannot abort them.
+	 * This also does not open an image editor space. */
+	if (RE_engine_is_opengl(re_type)) {
+		return screen_render_exec(C, op);
+	}
 	
 	/* only one render job at a time */
 	if (WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_RENDER))

@@ -155,6 +155,13 @@ bool RE_engine_is_external(Render *re)
 	return (re->engine && re->engine->type && re->engine->type->render_to_image);
 }
 
+bool RE_engine_is_opengl(RenderEngineType *render_type)
+{
+	/* TODO refine? Can we have ogl render engine without ogl render pipeline? */
+	return (render_type->draw_engine != NULL) &&
+	       DRW_engine_render_support(render_type->draw_engine);
+}
+
 /* Create, Free */
 
 RenderEngine *RE_engine_create(RenderEngineType *type)

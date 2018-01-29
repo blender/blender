@@ -2365,7 +2365,9 @@ void DRW_framebuffer_init(
 			}
 		}
 
-		GPU_framebuffer_bind(DST.default_framebuffer);
+		if (DST.default_framebuffer != NULL) {
+			GPU_framebuffer_bind(DST.default_framebuffer);
+		}
 	}
 }
 
@@ -2626,14 +2628,17 @@ static void drw_viewport_var_init(void)
 		DST.default_framebuffer = NULL;
 		DST.vmempool = NULL;
 	}
-	/* Refresh DST.screenvecs */
-	copy_v3_v3(DST.screenvecs[0], rv3d->viewinv[0]);
-	copy_v3_v3(DST.screenvecs[1], rv3d->viewinv[1]);
-	normalize_v3(DST.screenvecs[0]);
-	normalize_v3(DST.screenvecs[1]);
 
-	/* Refresh DST.pixelsize */
-	DST.pixsize = rv3d->pixsize;
+	if (rv3d != NULL) {
+		/* Refresh DST.screenvecs */
+		copy_v3_v3(DST.screenvecs[0], rv3d->viewinv[0]);
+		copy_v3_v3(DST.screenvecs[1], rv3d->viewinv[1]);
+		normalize_v3(DST.screenvecs[0]);
+		normalize_v3(DST.screenvecs[1]);
+
+		/* Refresh DST.pixelsize */
+		DST.pixsize = rv3d->pixsize;
+	}
 
 	/* Reset facing */
 	DST.frontface = GL_CCW;
@@ -2664,6 +2669,7 @@ void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type)
 		copy_m4_m4(mat, viewport_matrix_override.mat[type]);
 	}
 	else {
+		BLI_assert(rv3d != NULL); /* Can't use this in render mode. */
 		switch (type) {
 			case DRW_MAT_PERS:
 				copy_m4_m4(mat, rv3d->persmat);
@@ -2704,6 +2710,7 @@ void DRW_viewport_matrix_override_unset(DRWViewportMatrixType type)
 bool DRW_viewport_is_persp_get(void)
 {
 	RegionView3D *rv3d = DST.draw_ctx.rv3d;
+	BLI_assert(rv3d);
 	return rv3d->is_persp;
 }
 
@@ -3422,9 +3429,7 @@ void DRW_draw_render_loop_ex(
 	/* Init engines */
 	drw_engines_init();
 
-	/* TODO : tag to refresh by the dependency graph */
-	/* ideally only refresh when objects are added/removed */
-	/* or render properties / materials change */
+	/* Cache filling */
 	{
 		PROFILE_START(stime);
 		drw_engines_cache_init();
@@ -3567,6 +3572,70 @@ void DRW_draw_render_loop_offscreen(
 
 	/* we need to re-bind (annoying!) */
 	GPU_offscreen_bind(ofs, false);
+}
+
+void DRW_render_to_image(RenderEngine *re, struct Depsgraph *depsgraph)
+{
+	Scene *scene = DEG_get_evaluated_scene(depsgraph);
+	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
+	RenderEngineType *engine_type = re->type;
+	DrawEngineType *draw_engine_type = engine_type->draw_engine;
+	RenderData *r = &scene->r;
+
+	/* Reset before using it. */
+	memset(&DST, 0x0, sizeof(DST));
+	DST.options.is_image_render = true;
+
+	DST.draw_ctx = (DRWContextState){
+	    NULL, NULL, NULL, scene, view_layer, OBACT(view_layer), engine_type, depsgraph, NULL
+	};
+
+	DST.viewport = GPU_viewport_create();
+	const int size[2] = {(r->size * r->xsch) / 100, (r->size * r->ysch) / 100};
+	GPU_viewport_size_set(DST.viewport, size);
+
+	drw_viewport_var_init();
+
+	ViewportEngineData *data = DRW_viewport_engine_data_ensure(draw_engine_type);
+
+	/* set default viewport */
+	gpuPushAttrib(GPU_ENABLE_BIT | GPU_VIEWPORT_BIT);
+	glDisable(GL_SCISSOR_TEST);
+	glViewport(0, 0, size[0], size[1]);
+
+	engine_type->draw_engine->render_to_image(data, re, depsgraph);
+
+	/* TODO grease pencil */
+
+	GPU_viewport_free(DST.viewport);
+	MEM_freeN(DST.viewport);
+
+	DRW_state_reset();
+	/* FIXME GL_DEPTH_TEST is enabled by default but it seems
+	 * to trigger some bad behaviour / artifacts if it's turned
+	 * on at this point. */
+	glDisable(GL_DEPTH_TEST);
+
+	/* Restore Drawing area. */
+	gpuPopAttrib();
+	glEnable(GL_SCISSOR_TEST);
+	GPU_framebuffer_restore();
+
+#ifdef DEBUG
+	/* Avoid accidental reuse. */
+	memset(&DST, 0xFF, sizeof(DST));
+#endif
+}
+
+void DRW_render_object_iter(
+	void *vedata, RenderEngine *engine, struct Depsgraph *depsgraph,
+	void (*callback)(void *vedata, Object *ob, RenderEngine *engine, struct Depsgraph *depsgraph))
+{
+	DEG_OBJECT_ITER_FOR_RENDER_ENGINE(depsgraph, ob, DRW_iterator_mode_get())
+	{
+		callback(vedata, ob, engine, depsgraph);
+	}
+	DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END
 }
 
 /**
@@ -3796,7 +3865,7 @@ void DRW_state_dfdy_factors_get(float dfdyfac[2])
  */
 bool DRW_state_is_fbo(void)
 {
-	return (DST.default_framebuffer != NULL);
+	return ((DST.default_framebuffer != NULL) || DST.options.is_image_render);
 }
 
 /**
@@ -3893,6 +3962,11 @@ const DRWContextState *DRW_context_state_get(void)
 
 /** \name Init/Exit (DRW_engines)
  * \{ */
+
+bool DRW_engine_render_support(DrawEngineType *draw_engine_type)
+{
+	return draw_engine_type->render_to_image;
+}
 
 void DRW_engine_register(DrawEngineType *draw_engine_type)
 {

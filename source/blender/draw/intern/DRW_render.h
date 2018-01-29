@@ -139,6 +139,8 @@ typedef struct DrawEngineType {
 
 	void (*view_update)(void *vedata);
 	void (*id_update)(void *vedata, struct ID *id);
+
+	void (*render_to_image)(void *vedata, struct RenderEngine *engine, struct Depsgraph *graph);
 } DrawEngineType;
 
 #ifndef __DRW_ENGINE_H__
@@ -385,6 +387,11 @@ struct DefaultFramebufferList *DRW_viewport_framebuffer_list_get(void);
 struct DefaultTextureList     *DRW_viewport_texture_list_get(void);
 
 void DRW_viewport_request_redraw(void);
+
+void DRW_render_to_image(struct RenderEngine *re, struct Depsgraph *depsgraph);
+void DRW_render_object_iter(
+	void *vedata, struct RenderEngine *engine, struct Depsgraph *graph,
+	void (*callback)(void *vedata, struct Object *ob, struct RenderEngine *engine, struct Depsgraph *graph));
 
 /* ViewLayers */
 void *DRW_view_layer_engine_data_get(DrawEngineType *engine_type);

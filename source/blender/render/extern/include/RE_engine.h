@@ -183,6 +183,8 @@ void RE_engines_init(void);
 void RE_engines_exit(void);
 void RE_engines_register(struct Main *bmain, RenderEngineType *render_type);
 
+bool RE_engine_is_opengl(RenderEngineType *render_type);
+
 RenderEngineType *RE_engines_find(const char *idname);
 
 rcti* RE_engine_get_current_tiles(struct Render *re, int *r_total_tiles, bool *r_needs_free);

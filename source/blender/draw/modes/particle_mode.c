@@ -261,4 +261,5 @@ DrawEngineType draw_engine_particle_type = {
 	NULL, /* draw_background but not needed by mode engines */
 	&PARTICLE_draw_scene,
 	NULL,
+	NULL,
 };

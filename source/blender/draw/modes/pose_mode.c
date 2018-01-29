@@ -195,4 +195,5 @@ DrawEngineType draw_engine_pose_type = {
 	NULL,
 	&POSE_draw_scene,
 	NULL,
+	NULL,
 };

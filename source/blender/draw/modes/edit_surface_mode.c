@@ -266,4 +266,5 @@ DrawEngineType draw_engine_edit_surface_type = {
 	NULL, /* draw_background but not needed by mode engines */
 	&EDIT_SURFACE_draw_scene,
 	NULL,
+	NULL,
 };

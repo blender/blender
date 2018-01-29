@@ -248,4 +248,5 @@ DrawEngineType draw_engine_edit_metaball_type = {
 	NULL, /* draw_background but not needed by mode engines */
 	&EDIT_METABALL_draw_scene,
 	NULL,
+	NULL,
 };
