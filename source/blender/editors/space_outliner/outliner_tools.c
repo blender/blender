@@ -1016,9 +1016,6 @@ static const EnumPropertyItem prop_object_op_types[] = {
 	{OL_OP_DELETE_HIERARCHY, "DELETE_HIERARCHY", 0, "Delete Hierarchy", ""},
 	{OL_OP_REMAP, "REMAP",   0, "Remap Users",
 	 "Make all users of selected data-blocks to use instead a new chosen one"},
-	{OL_OP_TOGVIS, "TOGVIS", 0, "Toggle Visible", ""},
-	{OL_OP_TOGSEL, "TOGSEL", 0, "Toggle Selectable", ""},
-	{OL_OP_TOGREN, "TOGREN", 0, "Toggle Renderable", ""},
 	{OL_OP_RENAME, "RENAME", 0, "Rename", ""},
 	{0, NULL, 0, NULL, NULL}
 };
