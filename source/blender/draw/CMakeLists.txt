@@ -94,6 +94,7 @@ set(SRC
 	engines/eevee/eevee_materials.c
 	engines/eevee/eevee_motion_blur.c
 	engines/eevee/eevee_occlusion.c
+	engines/eevee/eevee_render.c
 	engines/eevee/eevee_screen_raytrace.c
 	engines/eevee/eevee_subsurface.c
 	engines/eevee/eevee_temporal_sampling.c

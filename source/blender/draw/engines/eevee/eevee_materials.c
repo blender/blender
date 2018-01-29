@@ -569,7 +569,6 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata, EEVEE_StorageList *stl, E
 
 	{
 		/* Update view_vecs */
-		const bool is_persp = DRW_viewport_is_persp_get();
 		float invproj[4][4], winmat[4][4];
 		/* view vectors for the corners of the view frustum.
 		 * Can be used to recreate the world space position easily */
@@ -582,6 +581,7 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata, EEVEE_StorageList *stl, E
 		/* invert the view matrix */
 		DRW_viewport_matrix_get(winmat, DRW_MAT_WIN);
 		invert_m4_m4(invproj, winmat);
+		const bool is_persp = (winmat[3][3] == 0.0f);
 
 		/* convert the view vectors to view space */
 		for (int i = 0; i < 3; i++) {

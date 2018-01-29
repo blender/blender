@@ -517,6 +517,8 @@ typedef struct EEVEE_EffectsInfo {
 	/* Not alloced, just a copy of a *GPUtexture in EEVEE_TextureList. */
 	struct GPUTexture *source_buffer;       /* latest updated texture */
 	struct GPUFrameBuffer *target_buffer;   /* next target to render to */
+	struct GPUTexture *final_tx;            /* Final color to transform to display color space. */
+	struct GPUFrameBuffer *final_fb;        /* Framebuffer with final_tx as attachement. */
 } EEVEE_EffectsInfo;
 
 enum {
@@ -730,6 +732,10 @@ typedef struct EEVEE_PrivateData {
 	/* For double buffering */
 	bool view_updated;
 	bool valid_double_buffer;
+	/* Render Matrices */
+	float persmat[4][4], persinv[4][4];
+	float viewmat[4][4], viewinv[4][4];
+	float winmat[4][4], wininv[4][4];
 } EEVEE_PrivateData; /* Transient data */
 
 /* eevee_data.c */
@@ -786,7 +792,7 @@ void EEVEE_lightprobes_refresh(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_lightprobes_free(void);
 
 /* eevee_depth_of_field.c */
-int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
+int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object *camera);
 void EEVEE_depth_of_field_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_depth_of_field_draw(EEVEE_Data *vedata);
 void EEVEE_depth_of_field_free(void);
@@ -821,7 +827,7 @@ void EEVEE_subsurface_compute(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_subsurface_free(void);
 
 /* eevee_motion_blur.c */
-int EEVEE_motion_blur_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
+int EEVEE_motion_blur_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object *camera);
 void EEVEE_motion_blur_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_motion_blur_draw(EEVEE_Data *vedata);
 void EEVEE_motion_blur_free(void);
@@ -842,7 +848,7 @@ void EEVEE_volumes_free_smoke_textures(void);
 void EEVEE_volumes_free(void);
 
 /* eevee_effects.c */
-void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object *camera);
 void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, struct GPUTexture *depth_src, int layer);
 void EEVEE_downsample_buffer(EEVEE_Data *vedata, struct GPUFrameBuffer *fb_src, struct GPUTexture *texture_src, int level);
@@ -850,6 +856,12 @@ void EEVEE_downsample_cube_buffer(EEVEE_Data *vedata, struct GPUFrameBuffer *fb_
 void EEVEE_effects_do_gtao(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_draw_effects(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_effects_free(void);
+
+/* eevee_ */
+void EEVEE_render_init(EEVEE_Data *vedata, struct RenderEngine *engine, struct Depsgraph *depsgraph);
+void EEVEE_render_cache(void *vedata, struct Object *ob, struct RenderEngine *engine, struct Depsgraph *depsgraph);
+void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *engine, struct Depsgraph *depsgraph);
+void EEVEE_render_output(EEVEE_Data *vedata, struct RenderEngine *engine, struct Depsgraph *depsgraph);
 
 /* Shadow Matrix */
 static const float texcomat[4][4] = { /* From NDC to TexCo */

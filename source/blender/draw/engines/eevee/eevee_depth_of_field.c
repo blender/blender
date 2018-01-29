@@ -75,7 +75,7 @@ static void eevee_create_shader_depth_of_field(void)
 	                                          datatoc_effect_dof_frag_glsl, "#define STEP_RESOLVE\n");
 }
 
-int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata, Object *camera)
 {
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
@@ -88,17 +88,15 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 
 	if (BKE_collection_engine_property_value_get_bool(props, "dof_enable")) {
 		Scene *scene = draw_ctx->scene;
-		View3D *v3d = draw_ctx->v3d;
 		RegionView3D *rv3d = draw_ctx->rv3d;
 
 		if (!e_data.dof_downsample_sh) {
 			eevee_create_shader_depth_of_field();
 		}
 
-		if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
+		if (camera) {
 			const float *viewport_size = DRW_viewport_size_get();
-			Object *camera_object = DEG_get_evaluated_object(draw_ctx->depsgraph, v3d->camera);
-			Camera *cam = (Camera *)camera_object->data;
+			Camera *cam = (Camera *)camera->data;
 
 			/* Retreive Near and Far distance */
 			effects->dof_near_far[0] = -cam->clipsta;
@@ -147,7 +145,7 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 			float rotation = cam->gpu_dof.rotation;
 			float ratio = 1.0f / cam->gpu_dof.ratio;
 			float sensor = BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
-			float focus_dist = BKE_camera_object_dof_distance(camera_object);
+			float focus_dist = BKE_camera_object_dof_distance(camera);
 			float focal_len = cam->lens;
 
 			UNUSED_VARS(rotation, ratio);
@@ -163,9 +161,13 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 			float focal_len_scaled = scale_camera * focal_len;
 			float sensor_scaled = scale_camera * sensor;
 
+			if (rv3d != NULL) {
+				sensor_scaled *= rv3d->viewcamtexcofac[0];
+			}
+
 			effects->dof_params[0] = aperture * fabsf(focal_len_scaled / (focus_dist - focal_len_scaled));
 			effects->dof_params[1] = -focus_dist;
-			effects->dof_params[2] = viewport_size[0] / (rv3d->viewcamtexcofac[0] * sensor_scaled);
+			effects->dof_params[2] = viewport_size[0] / sensor_scaled;
 			effects->dof_bokeh[0] = blades;
 			effects->dof_bokeh[1] = rotation;
 			effects->dof_bokeh[2] = ratio;

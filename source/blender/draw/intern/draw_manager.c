@@ -2710,8 +2710,16 @@ void DRW_viewport_matrix_override_unset(DRWViewportMatrixType type)
 bool DRW_viewport_is_persp_get(void)
 {
 	RegionView3D *rv3d = DST.draw_ctx.rv3d;
-	BLI_assert(rv3d);
-	return rv3d->is_persp;
+	if (rv3d) {
+		return rv3d->is_persp;
+	}
+	else {
+		if (viewport_matrix_override.override[DRW_MAT_WIN]) {
+			return viewport_matrix_override.mat[DRW_MAT_WIN][3][3] == 0.0f;
+		}
+	}
+	BLI_assert(0);
+	return false;
 }
 
 DefaultFramebufferList *DRW_viewport_framebuffer_list_get(void)

@@ -142,6 +142,8 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 		return EFFECT_TAA | EFFECT_DOUBLE_BUFFER | EFFECT_POST_BUFFER;
 	}
 
+	effects->taa_current_sample = 1;
+
 	/* Cleanup to release memory */
 	DRW_TEXTURE_FREE_SAFE(txl->depth_double_buffer);
 	DRW_FRAMEBUFFER_FREE_SAFE(fbl->depth_double_buffer_fb);
@@ -189,7 +191,9 @@ void EEVEE_temporal_sampling_draw(EEVEE_Data *vedata)
 			DRW_draw_pass(psl->taa_resolve);
 
 			/* Restore the depth from sample 1. */
-			DRW_framebuffer_blit(fbl->depth_double_buffer_fb, fbl->main, true, false);
+			if (!DRW_state_is_image_render()) {
+				DRW_framebuffer_blit(fbl->depth_double_buffer_fb, fbl->main, true, false);
+			}
 
 			/* Special Swap */
 			SWAP(struct GPUFrameBuffer *, fbl->effect_fb, fbl->double_buffer);
@@ -202,7 +206,9 @@ void EEVEE_temporal_sampling_draw(EEVEE_Data *vedata)
 			/* Save the depth buffer for the next frame.
 			 * This saves us from doing anything special
 			 * in the other mode engines. */
-			DRW_framebuffer_blit(fbl->main, fbl->depth_double_buffer_fb, true, false);
+			if (!DRW_state_is_image_render()) {
+				DRW_framebuffer_blit(fbl->main, fbl->depth_double_buffer_fb, true, false);
+			}
 		}
 
 		/* Make each loop count when doing a render. */

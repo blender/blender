@@ -29,8 +29,12 @@
 #include "BLI_rand.h"
 
 #include "BKE_object.h"
+#include "BKE_global.h" /* for G.debug_value */
+#include "BKE_screen.h"
 
 #include "DNA_world_types.h"
+
+#include "ED_screen.h"
 
 #include "GPU_material.h"
 #include "GPU_glew.h"
@@ -52,6 +56,11 @@ static void eevee_engine_init(void *ved)
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
 
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	View3D *v3d = draw_ctx->v3d;
+	RegionView3D *rv3d = draw_ctx->rv3d;
+	Object *camera = (rv3d->persp == RV3D_CAMOB) ? v3d->camera : NULL;
+
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
 		stl->g_data = MEM_callocN(sizeof(*stl->g_data), __func__);
@@ -71,8 +80,7 @@ static void eevee_engine_init(void *ved)
 	}
 
 	/* EEVEE_effects_init needs to go first for TAA */
-	EEVEE_effects_init(sldata, vedata);
-
+	EEVEE_effects_init(sldata, vedata, camera);
 	EEVEE_materials_init(sldata, stl, fbl);
 	EEVEE_lights_init(sldata);
 	EEVEE_lightprobes_init(sldata, vedata);
@@ -160,12 +168,14 @@ static void eevee_cache_finish(void *vedata)
 static void eevee_draw_background(void *vedata)
 {
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
+	EEVEE_TextureList *txl = ((EEVEE_Data *)vedata)->txl;
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 	EEVEE_FramebufferList *fbl = ((EEVEE_Data *)vedata)->fbl;
 	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
 
 	/* Default framebuffer and texture */
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
 	/* Number of iteration: needed for all temporal effect (SSR, TAA)
 	 * when using opengl render. */
@@ -176,14 +186,10 @@ static void eevee_draw_background(void *vedata)
 		double offset[3] = {0.0, 0.0, 0.0};
 		double r[3];
 
-		if (DRW_state_is_image_render()) {
+		if (DRW_state_is_image_render() ||
+			((stl->effects->enabled_effects & EFFECT_TAA) != 0))
+		{
 			BLI_halton_3D(primes, offset, stl->effects->taa_current_sample, r);
-			/* Set jitter offset */
-			EEVEE_update_noise(psl, fbl, r);
-		}
-		else if ((stl->effects->enabled_effects & EFFECT_TAA) != 0) {
-			BLI_halton_3D(primes, offset, stl->effects->taa_current_sample, r);
-			/* Set jitter offset */
 			EEVEE_update_noise(psl, fbl, r);
 		}
 
@@ -281,6 +287,43 @@ static void eevee_draw_background(void *vedata)
 		}
 	}
 
+	/* Restore default framebuffer */
+	DRW_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0, 0);
+	DRW_framebuffer_bind(dfbl->default_fb);
+
+	/* Tonemapping */
+	DRW_transform_to_display(stl->effects->final_tx);
+
+	/* Debug : Ouput buffer to view. */
+	switch (G.debug_value) {
+		case 1:
+			if (txl->maxzbuffer) DRW_transform_to_display(txl->maxzbuffer);
+			break;
+		case 2:
+			if (stl->g_data->ssr_pdf_output) DRW_transform_to_display(stl->g_data->ssr_pdf_output);
+			break;
+		case 3:
+			if (txl->ssr_normal_input) DRW_transform_to_display(txl->ssr_normal_input);
+			break;
+		case 4:
+			if (txl->ssr_specrough_input) DRW_transform_to_display(txl->ssr_specrough_input);
+			break;
+		case 5:
+			if (txl->color_double_buffer) DRW_transform_to_display(txl->color_double_buffer);
+			break;
+		case 6:
+			if (stl->g_data->gtao_horizons_debug) DRW_transform_to_display(stl->g_data->gtao_horizons_debug);
+			break;
+		case 7:
+			if (txl->gtao_horizons) DRW_transform_to_display(txl->gtao_horizons);
+			break;
+		case 8:
+			if (txl->sss_data) DRW_transform_to_display(txl->sss_data);
+			break;
+		default:
+			break;
+	}
+
 	EEVEE_volumes_free_smoke_textures();
 
 	stl->g_data->view_updated = false;
@@ -329,6 +372,17 @@ static void eevee_id_update(void *vedata, ID *id)
 	}
 }
 
+static void eevee_render_to_image(void *vedata, struct RenderEngine *engine, struct Depsgraph *depsgraph)
+{
+	EEVEE_render_init(vedata, engine, depsgraph);
+
+	DRW_render_object_iter(vedata, engine, depsgraph, EEVEE_render_cache);
+	/* Actually do the rendering. */
+	EEVEE_render_draw(vedata, engine, depsgraph);
+	/* Write outputs to RenderResult. */
+	EEVEE_render_output(vedata, engine, depsgraph);
+}
+
 static void eevee_engine_free(void)
 {
 	EEVEE_bloom_free();
@@ -364,7 +418,8 @@ static void eevee_view_layer_settings_create(RenderEngine *UNUSED(engine), IDPro
 	BKE_collection_engine_property_add_int(props, "gi_cubemap_resolution", 512);
 	BKE_collection_engine_property_add_int(props, "gi_visibility_resolution", 32);
 
-	BKE_collection_engine_property_add_int(props, "taa_samples", 8);
+	BKE_collection_engine_property_add_int(props, "taa_samples", 16);
+	BKE_collection_engine_property_add_int(props, "taa_render_samples", 64);
 
 	BKE_collection_engine_property_add_bool(props, "sss_enable", false);
 	BKE_collection_engine_property_add_int(props, "sss_samples", 7);
@@ -436,12 +491,13 @@ DrawEngineType draw_engine_eevee_type = {
 	NULL, /* Everything is drawn in the background pass (see comment on function) */
 	&eevee_view_update,
 	&eevee_id_update,
+	&eevee_render_to_image,
 };
 
 RenderEngineType DRW_engine_viewport_eevee_type = {
 	NULL, NULL,
 	EEVEE_ENGINE, N_("Eevee"), RE_INTERNAL | RE_USE_SHADING_NODES,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, &DRW_render_to_image, NULL, NULL, NULL, NULL, NULL,
 	&eevee_layer_collection_settings_create,
 	&eevee_view_layer_settings_create,
 	&draw_engine_eevee_type,

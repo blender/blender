@@ -27,8 +27,6 @@
 
 #include "DRW_render.h"
 
-#include "BKE_global.h" /* for G.debug_value */
-
 #include "eevee_private.h"
 #include "GPU_texture.h"
 #include "GPU_extensions.h"
@@ -100,7 +98,7 @@ static void eevee_create_shader_downsample(void)
 	        "#define COPY_DEPTH\n");
 }
 
-void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
+void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object *camera)
 {
 	EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
 	EEVEE_StorageList *stl = vedata->stl;
@@ -122,9 +120,9 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	effects = stl->effects;
 
 	effects->enabled_effects = 0;
-	effects->enabled_effects |= EEVEE_motion_blur_init(sldata, vedata);
+	effects->enabled_effects |= EEVEE_motion_blur_init(sldata, vedata, camera);
 	effects->enabled_effects |= EEVEE_bloom_init(sldata, vedata);
-	effects->enabled_effects |= EEVEE_depth_of_field_init(sldata, vedata);
+	effects->enabled_effects |= EEVEE_depth_of_field_init(sldata, vedata, camera);
 	effects->enabled_effects |= EEVEE_temporal_sampling_init(sldata, vedata);
 	effects->enabled_effects |= EEVEE_occlusion_init(sldata, vedata);
 	effects->enabled_effects |= EEVEE_subsurface_init(sldata, vedata);
@@ -406,7 +404,6 @@ void EEVEE_draw_effects(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	EEVEE_FramebufferList *fbl = vedata->fbl;
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_EffectsInfo *effects = stl->effects;
-	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
 	/* only once per frame after the first post process */
@@ -427,42 +424,9 @@ void EEVEE_draw_effects(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	EEVEE_depth_of_field_draw(vedata);
 	EEVEE_bloom_draw(vedata);
 
-	/* Restore default framebuffer */
-	DRW_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0, 0);
-	DRW_framebuffer_bind(dfbl->default_fb);
-
-	/* Tonemapping */
-	DRW_transform_to_display(effects->source_buffer);
-
-	/* Debug : Ouput buffer to view. */
-	switch (G.debug_value) {
-		case 1:
-			if (txl->maxzbuffer) DRW_transform_to_display(txl->maxzbuffer);
-			break;
-		case 2:
-			if (stl->g_data->ssr_pdf_output) DRW_transform_to_display(stl->g_data->ssr_pdf_output);
-			break;
-		case 3:
-			if (txl->ssr_normal_input) DRW_transform_to_display(txl->ssr_normal_input);
-			break;
-		case 4:
-			if (txl->ssr_specrough_input) DRW_transform_to_display(txl->ssr_specrough_input);
-			break;
-		case 5:
-			if (txl->color_double_buffer) DRW_transform_to_display(txl->color_double_buffer);
-			break;
-		case 6:
-			if (stl->g_data->gtao_horizons_debug) DRW_transform_to_display(stl->g_data->gtao_horizons_debug);
-			break;
-		case 7:
-			if (txl->gtao_horizons) DRW_transform_to_display(txl->gtao_horizons);
-			break;
-		case 8:
-			if (txl->sss_data) DRW_transform_to_display(txl->sss_data);
-			break;
-		default:
-			break;
-	}
+	/* Save the final texture and framebuffer for final transformation or read. */
+	effects->final_tx = effects->source_buffer;
+	effects->final_fb = (effects->target_buffer != fbl->main) ? fbl->main : fbl->effect_fb;
 
 	/* If no post processes is enabled, buffers are still not swapped, do it now. */
 	SWAP_DOUBLE_BUFFERS();

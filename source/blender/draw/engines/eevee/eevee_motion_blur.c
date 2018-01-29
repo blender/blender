@@ -93,27 +93,15 @@ static void eevee_motion_blur_camera_get_matrix_at_time(
 	CameraParams params;
 	BKE_camera_params_init(&params);
 
-	/* copy of BKE_camera_params_from_view3d */
-	{
-		params.lens = v3d->lens;
-		params.clipsta = v3d->near;
-		params.clipend = v3d->far;
-
-		/* camera view */
+	if (v3d != NULL) {
+		BKE_camera_params_from_view3d(&params, draw_ctx->depsgraph, v3d, rv3d);
+		BKE_camera_params_compute_viewplane(&params, ar->winx, ar->winy, 1.0f, 1.0f);
+	}
+	else {
 		BKE_camera_params_from_object(&params, &cam_cpy);
-
-		params.zoom = BKE_screen_view3d_zoom_to_fac(rv3d->camzoom);
-
-		params.offsetx = 2.0f * rv3d->camdx * params.zoom;
-		params.offsety = 2.0f * rv3d->camdy * params.zoom;
-
-		params.shiftx *= params.zoom;
-		params.shifty *= params.zoom;
-
-		params.zoom = CAMERA_PARAM_ZOOM_INIT_CAMOB / params.zoom;
+		BKE_camera_params_compute_viewplane(&params, scene->r.xsch, scene->r.ysch, scene->r.xasp, scene->r.yasp);
 	}
 
-	BKE_camera_params_compute_viewplane(&params, ar->winx, ar->winy, 1.0f, 1.0f);
 	BKE_camera_params_compute_matrix(&params);
 
 	/* FIXME Should be done per view (MULTIVIEW) */
@@ -127,7 +115,7 @@ static void eevee_create_shader_motion_blur(void)
 	e_data.motion_blur_sh = DRW_shader_create_fullscreen(datatoc_effect_motion_blur_frag_glsl, NULL);
 }
 
-int EEVEE_motion_blur_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+int EEVEE_motion_blur_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata, Object *camera)
 {
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_EffectsInfo *effects = stl->effects;
@@ -144,11 +132,11 @@ int EEVEE_motion_blur_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *veda
 
 	if (BKE_collection_engine_property_value_get_bool(props, "motion_blur_enable")) {
 		/* Update Motion Blur Matrices */
-		if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
+		if (camera) {
 			float persmat[4][4];
 			float ctime = BKE_scene_frame_get(scene);
 			float delta = BKE_collection_engine_property_value_get_float(props, "motion_blur_shutter");
-			Object *camera_object = DEG_get_evaluated_object(draw_ctx->depsgraph, v3d->camera);
+			Object *camera_object = DEG_get_evaluated_object(draw_ctx->depsgraph, camera);
 
 			/* Current matrix */
 			eevee_motion_blur_camera_get_matrix_at_time(scene,
