@@ -535,6 +535,14 @@ void DepsgraphRelationBuilder::build_object(Object *object)
 		ComponentKey ob_pose_key(&object->id, DEG_NODE_TYPE_EVAL_POSE);
 		ComponentKey proxy_pose_key(&object->proxy->id, DEG_NODE_TYPE_EVAL_POSE);
 		add_relation(ob_pose_key, proxy_pose_key, "Proxy");
+
+		ComponentKey ob_parameters_key(&object->id,
+		                               DEG_NODE_TYPE_PARAMETERS);
+		ComponentKey proxy_parameters_key(&object->proxy->id,
+		                                  DEG_NODE_TYPE_PARAMETERS);
+		add_relation(ob_parameters_key,
+		             proxy_parameters_key,
+		             "Proxy Parameters");
 	}
 	/* Object dupligroup. */
 	if (object->dup_group != NULL) {
