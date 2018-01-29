@@ -130,46 +130,36 @@ typedef struct tJoinArmature_AdtFixData {
 /* FIXME: For now, we only care about drivers here. When editing rigs, it's very rare to have animation
  *        on the rigs being edited already, so it should be safe to skip these.
  */
-static void joined_armature_fix_animdata_cb(ID *id, AnimData *adt, void *user_data)
+static void joined_armature_fix_animdata_cb(ID *id, FCurve *fcu, void *user_data)
 {
 	tJoinArmature_AdtFixData *afd = (tJoinArmature_AdtFixData *)user_data;
 	ID *src_id = &afd->srcArm->id;
 	ID *dst_id = &afd->tarArm->id;
 	
 	GHashIterator gh_iter;
-	FCurve *fcu;
 	
 	/* Fix paths - If this is the target object, it will have some "dirty" paths */
-	if (id == src_id) {
-		/* Fix drivers */
-		for (fcu = adt->drivers.first; fcu; fcu = fcu->next) {
-			/* skip driver if it doesn't affect the bones */
-			if (strstr(fcu->rna_path, "pose.bones[") == NULL) {
-				continue;
-			}
+	if ((id == src_id) && strstr(fcu->rna_path, "pose.bones[")) {
+		GHASH_ITER(gh_iter, afd->names_map) {
+			const char *old_name = BLI_ghashIterator_getKey(&gh_iter);
+			const char *new_name = BLI_ghashIterator_getValue(&gh_iter);
 			
-			// FIXME: this is too crude... it just does everything!
-			GHASH_ITER(gh_iter, afd->names_map) {
-				const char *old_name = BLI_ghashIterator_getKey(&gh_iter);
-				const char *new_name = BLI_ghashIterator_getValue(&gh_iter);
+			/* only remap if changed; this still means there will be some waste if there aren't many drivers/keys */
+			if (!STREQ(old_name, new_name) && strstr(fcu->rna_path, old_name)) {
+				fcu->rna_path = BKE_animsys_fix_rna_path_rename(id, fcu->rna_path, "pose.bones",
+				                                                old_name, new_name, 0, 0, false);
 				
-				/* only remap if changed; this still means there will be some waste if there aren't many drivers/keys */
-				if (!STREQ(old_name, new_name) && strstr(fcu->rna_path, old_name)) {
-					fcu->rna_path = BKE_animsys_fix_rna_path_rename(id, fcu->rna_path, "pose.bones",
-					                                                old_name, new_name, 0, 0, false);
-					
-					/* we don't want to apply a second remapping on this driver now, 
-					 * so stop trying names, but keep fixing drivers
-					 */
-					break;
-				}
+				/* we don't want to apply a second remapping on this driver now, 
+				 * so stop trying names, but keep fixing drivers
+				 */
+				break;
 			}
 		}
 	}
 	
 	
 	/* Driver targets */
-	for (fcu = adt->drivers.first; fcu; fcu = fcu->next) {
+	if (fcu->driver) {
 		ChannelDriver *driver = fcu->driver;
 		DriverVar *dvar;
 		
@@ -373,7 +363,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
 			}
 			
 			/* Fix all the drivers (and animation data) */
-			BKE_animdata_main_cb(bmain, joined_armature_fix_animdata_cb, &afd);
+			BKE_fcurves_main_cb(bmain, joined_armature_fix_animdata_cb, &afd);
 			BLI_ghash_free(afd.names_map, MEM_freeN, NULL);
 			
 			/* Only copy over animdata now, after all the remapping has been done, 

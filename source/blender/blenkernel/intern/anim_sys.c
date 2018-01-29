@@ -820,7 +820,7 @@ char *BKE_animsys_fix_rna_path_rename(ID *owner_id, char *old_path, const char *
 	
 	/* if no action, no need to proceed */
 	if (ELEM(NULL, owner_id, old_path)) {
-		printf("early abort\n");
+		if (G.debug & G_DEBUG) printf("%s: early abort\n", __func__);
 		return old_path;
 	}
 	
@@ -843,9 +843,9 @@ char *BKE_animsys_fix_rna_path_rename(ID *owner_id, char *old_path, const char *
 	}
 	
 	/* fix given path */
-	printf("%s | %s  | oldpath = %p ", oldN, newN, old_path);
+	if (G.debug & G_DEBUG) printf("%s | %s  | oldpath = %p ", oldN, newN, old_path);
 	result = rna_path_rename_fix(owner_id, prefix, oldN, newN, old_path, verify_paths);
-	printf("result = %p\n", result);
+	if (G.debug & G_DEBUG) printf("path rename result = %p\n", result);
 	
 	/* free the temp names */
 	MEM_freeN(oldN);

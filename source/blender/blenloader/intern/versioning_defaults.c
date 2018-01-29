@@ -58,7 +58,7 @@ void BLO_update_defaults_userpref_blend(void)
 {
 	/* defaults from T37518 */
 
-	U.uiflag |= USER_ZBUF_CURSOR;
+	U.uiflag |= USER_DEPTH_CURSOR;
 	U.uiflag |= USER_QUIT_PROMPT;
 	U.uiflag |= USER_CONTINUOUS_MOUSE;
 
