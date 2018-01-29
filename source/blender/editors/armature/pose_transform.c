@@ -151,6 +151,28 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 			curbone->roll = eul[1];
 		}
 		
+		/* combine pose and rest values for bendy bone settings,
+		 * then clear the pchan values (so we don't get a double-up)
+		 */
+		if (pchan->bone->segments > 1) {
+			curbone->curveInX += pchan->curveInX;
+			curbone->curveInY += pchan->curveInY;
+			curbone->curveOutX += pchan->curveOutX;
+			curbone->curveOutY += pchan->curveOutY;
+			curbone->roll1 += pchan->roll1;
+			curbone->roll2 += pchan->roll2;
+			curbone->ease1 += pchan->ease1;
+			curbone->ease2 += pchan->ease2;
+			curbone->scaleIn += pchan->scaleIn;
+			curbone->scaleOut += pchan->scaleOut;
+			
+			pchan->curveInX = pchan->curveOutX = 0.0f;
+			pchan->curveInY = pchan->curveOutY = 0.0f;
+			pchan->roll1 = pchan->roll2 = 0.0f;
+			pchan->ease1 = pchan->ease2 = 0.0f;
+			pchan->scaleIn = pchan->scaleOut = 1.0f;
+		}
+		
 		/* clear transform values for pchan */
 		zero_v3(pchan->loc);
 		zero_v3(pchan->eul);
