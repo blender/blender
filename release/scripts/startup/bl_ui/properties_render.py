@@ -850,6 +850,7 @@ class RENDER_PT_eevee_sampling(RenderButtonsPanel, Panel):
 
         col = layout.column()
         col.prop(props, "taa_samples")
+        col.prop(props, "taa_render_samples")
 
 
 class RENDER_PT_eevee_indirect_lighting(RenderButtonsPanel, Panel):
