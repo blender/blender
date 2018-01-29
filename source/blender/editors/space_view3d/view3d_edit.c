@@ -142,6 +142,9 @@ typedef struct ViewOpsData {
 		float quat[4];
 		/** #wmEvent.x, y. */
 		int event_xy[2];
+		/** Offset to use when #VIEWOPS_FLAG_USE_MOUSE_INIT is not set.
+		 * so we can simulate pressing in the middle of the screen. */
+		int event_xy_offset[2];
 		/** #wmEvent.type that triggered the operator. */
 		int event_type;
 		float ofs[3];
@@ -364,7 +367,7 @@ static void viewops_data_create(
 	RegionView3D *rv3d = vod->rv3d;
 
 	/* Could do this more nicely. */
-	if (viewops_flag & VIEWOPS_FLAG_USE_MOUSE_INIT) {
+	if ((viewops_flag & VIEWOPS_FLAG_USE_MOUSE_INIT) == 0) {
 		viewops_flag &= ~VIEWOPS_FLAG_DEPTH_NAVIGATE;
 	}
 
@@ -403,6 +406,17 @@ static void viewops_data_create(
 	copy_qt_qt(vod->init.quat, rv3d->viewquat);
 	vod->init.event_xy[0] = vod->prev.event_xy[0] = event->x;
 	vod->init.event_xy[1] = vod->prev.event_xy[1] = event->y;
+
+	if (viewops_flag & VIEWOPS_FLAG_USE_MOUSE_INIT) {
+		vod->init.event_xy_offset[0] = 0;
+		vod->init.event_xy_offset[1] = 0;
+	}
+	else {
+		/* Simulate the event starting in the middle of the region. */
+		vod->init.event_xy_offset[0] = BLI_rcti_cent_x(&vod->ar->winrct) - event->x;
+		vod->init.event_xy_offset[1] = BLI_rcti_cent_y(&vod->ar->winrct) - event->y;
+	}
+
 	vod->init.event_type = event->type;
 	copy_v3_v3(vod->init.ofs, rv3d->ofs);
 
@@ -461,11 +475,17 @@ static void viewops_data_create(
 		}
 	}
 
-	/* for dolly */
+	/* For dolly */
 	ED_view3d_win_to_vector(vod->ar, (const float[2]){UNPACK2(event->mval)}, vod->init.mousevec);
 
-	/* TODO: use_mouse_init support */
-	calctrackballvec(&vod->ar->winrct, &event->x, vod->init.trackvec);
+	{
+		const int event_xy_offset[2] = {
+			event->x + vod->init.event_xy_offset[0],
+			event->y + vod->init.event_xy_offset[1],
+		};
+		/* For rotation with trackball rotation. */
+		calctrackballvec(&vod->ar->winrct, event_xy_offset, vod->init.trackvec);
+	}
 
 	{
 		float tvec[3];
@@ -686,7 +706,13 @@ static void viewrotate_apply(ViewOpsData *vod, const int event_xy[2])
 		float axis[3], q1[4], dvec[3], newvec[3];
 		float angle;
 
-		calctrackballvec(&vod->ar->winrct, event_xy, newvec);
+		{
+			const int event_xy_offset[2] = {
+				event_xy[0] + vod->init.event_xy_offset[0],
+				event_xy[1] + vod->init.event_xy_offset[1],
+			};
+			calctrackballvec(&vod->ar->winrct, event_xy_offset, newvec);
+		}
 
 		sub_v3_v3v3(dvec, newvec, vod->init.trackvec);
 
@@ -1853,7 +1879,7 @@ static float viewzoom_scale_value(
         const rcti *winrct,
         const short viewzoom,
         const bool zoom_invert, const bool zoom_invert_force,
-        const int xy[2], const int xy_orig[2],
+        const int xy_curr[2], const int xy_init[2],
         const float val, const float val_orig,
         double *r_timer_lastdraw)
 {
@@ -1865,10 +1891,10 @@ static float viewzoom_scale_value(
 		float fac;
 
 		if (U.uiflag & USER_ZOOM_HORIZ) {
-			fac = (float)(xy_orig[0] - xy[0]);
+			fac = (float)(xy_init[0] - xy_curr[0]);
 		}
 		else {
-			fac = (float)(xy_orig[1] - xy[1]);
+			fac = (float)(xy_init[1] - xy_curr[1]);
 		}
 
 		if (zoom_invert != zoom_invert_force) {
@@ -1886,8 +1912,8 @@ static float viewzoom_scale_value(
 		    BLI_rcti_cent_x(winrct),
 		    BLI_rcti_cent_y(winrct),
 		};
-		float len_new = 5 + len_v2v2_int(ctr, xy);
-		float len_old = 5 + len_v2v2_int(ctr, xy_orig);
+		float len_new = 5 + len_v2v2_int(ctr, xy_curr);
+		float len_old = 5 + len_v2v2_int(ctr, xy_init);
 
 		/* intentionally ignore 'zoom_invert' for scale */
 		if (zoom_invert_force) {
@@ -1901,12 +1927,12 @@ static float viewzoom_scale_value(
 		float len_old = 5;
 
 		if (U.uiflag & USER_ZOOM_HORIZ) {
-			len_new += (winrct->xmax - xy[0]);
-			len_old += (winrct->xmax - xy_orig[0]);
+			len_new += (winrct->xmax - (xy_curr[0]));
+			len_old += (winrct->xmax - (xy_init[0]));
 		}
 		else {
-			len_new += (winrct->ymax - xy[1]);
-			len_old += (winrct->ymax - xy_orig[1]);
+			len_new += (winrct->ymax - (xy_curr[1]));
+			len_old += (winrct->ymax - (xy_init[1]));
 		}
 
 		if (zoom_invert != zoom_invert_force) {
@@ -1920,6 +1946,28 @@ static float viewzoom_scale_value(
 	return zfac;
 }
 
+static float viewzoom_scale_value_offset(
+        const rcti *winrct,
+        const short viewzoom,
+        const bool zoom_invert, const bool zoom_invert_force,
+        const int xy_curr[2], const int xy_init[2], const int xy_offset[2],
+        const float val, const float val_orig,
+        double *r_timer_lastdraw)
+{
+	const int xy_curr_offset[2] = {
+		xy_curr[0] + xy_offset[0],
+		xy_curr[1] + xy_offset[1],
+	};
+	const int xy_init_offset[2] = {
+		xy_init[0] + xy_offset[0],
+		xy_init[1] + xy_offset[1],
+	};
+	return viewzoom_scale_value(
+	        winrct, viewzoom, zoom_invert, zoom_invert_force,
+	        xy_curr_offset, xy_init_offset,
+	        val, val_orig, r_timer_lastdraw);
+}
+
 static void viewzoom_apply_camera(
         ViewOpsData *vod, const int xy[2],
         const short viewzoom, const bool zoom_invert, const bool zoom_to_pos)
@@ -1928,8 +1976,9 @@ static void viewzoom_apply_camera(
 	float zoomfac_prev = BKE_screen_view3d_zoom_to_fac(vod->init.camzoom) * 2.0f;
 	float zoomfac =      BKE_screen_view3d_zoom_to_fac(vod->rv3d->camzoom) * 2.0f;
 
-	zfac = viewzoom_scale_value(
-	       &vod->ar->winrct, viewzoom, zoom_invert, true, xy, vod->init.event_xy,
+	zfac = viewzoom_scale_value_offset(
+	       &vod->ar->winrct, viewzoom, zoom_invert, true,
+	       xy, vod->init.event_xy, vod->init.event_xy_offset,
 	       zoomfac, zoomfac_prev,
 	       &vod->prev.time);
 
@@ -1953,8 +2002,9 @@ static void viewzoom_apply_3d(
 
 	ED_view3d_dist_range_get(vod->v3d, dist_range);
 
-	zfac = viewzoom_scale_value(
-	       &vod->ar->winrct, viewzoom, zoom_invert, false, xy, vod->init.event_xy,
+	zfac = viewzoom_scale_value_offset(
+	       &vod->ar->winrct, viewzoom, zoom_invert, false,
+	       xy, vod->init.event_xy, vod->init.event_xy_offset,
 	       vod->rv3d->dist, vod->init.dist,
 	       &vod->prev.time);
 
