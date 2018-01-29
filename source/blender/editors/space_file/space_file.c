@@ -370,6 +370,15 @@ static void file_main_region_message_subscribe(
 		.notify = ED_area_do_msg_notify_tag_refresh,
 	};
 
+	/* SpaceFile itself. */
+	{
+		PointerRNA ptr;
+		RNA_pointer_create(&screen->id, &RNA_SpaceFileBrowser, sfile, &ptr);
+
+		/* All properties for this space type. */
+		WM_msg_subscribe_rna(mbus, &ptr, NULL, &msg_sub_value_area_tag_refresh, __func__);
+	}
+
 	/* FileSelectParams */
 	{
 		PointerRNA ptr;
