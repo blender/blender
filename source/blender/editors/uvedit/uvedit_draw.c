@@ -683,7 +683,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 			}
 		}
 
-		if (!(sima->flag & SI_NO_DRAWFACES)) {
+		if (tri_count && !(sima->flag & SI_NO_DRAWFACES)) {
 			/* draw transparent faces */
 			UI_GetThemeColor4ubv(TH_FACE, col1);
 			UI_GetThemeColor4ubv(TH_FACE_SELECT, col2);
