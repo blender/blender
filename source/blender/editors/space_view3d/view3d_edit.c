@@ -318,54 +318,58 @@ static bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 	return is_set;
 }
 
-enum eViewOpsOrbit {
-	VIEWOPS_ORBIT_SELECT = (1 << 0),
-	VIEWOPS_ORBIT_DEPTH = (1 << 1),
+enum eViewOpsFlag {
+	/** When enabled, rotate around the selection. */
+	VIEWOPS_FLAG_ORBIT_SELECT = (1 << 0),
+	/** When enabled, use the depth under the cursor for navigation. */
+	VIEWOPS_FLAG_DEPTH_NAVIGATE = (1 << 1),
+	/**
+	 * When enabled run #ED_view3d_persp_ensure this may switch out of
+	 * camera view when orbiting or switch from ortho to perspective when auto-persp is enabled.
+	 * Some operations don't require this (view zoom/pan or ndof where subtle rotation is common
+	 * so we don't want it to trigger auto-perspective). */
+	VIEWOPS_FLAG_PERSP_ENSURE = (1 << 2),
+	/** When set, ignore any options that depend on initial cursor location. */
+	VIEWOPS_FLAG_USE_MOUSE_INIT = (1 << 3),
 };
 
-static enum eViewOpsOrbit viewops_orbit_mode_ex(bool use_select, bool use_depth)
+static enum eViewOpsFlag viewops_flag_from_args(bool use_select, bool use_depth)
 {
-	enum eViewOpsOrbit flag = 0;
+	enum eViewOpsFlag flag = 0;
 	if (use_select) {
-		flag |= VIEWOPS_ORBIT_SELECT;
+		flag |= VIEWOPS_FLAG_ORBIT_SELECT;
 	}
 	if (use_depth) {
-		flag |= VIEWOPS_ORBIT_DEPTH;
+		flag |= VIEWOPS_FLAG_DEPTH_NAVIGATE;
 	}
 
 	return flag;
 }
 
-static enum eViewOpsOrbit viewops_orbit_mode(void)
+static enum eViewOpsFlag viewops_flag_from_prefs(void)
 {
-	return viewops_orbit_mode_ex(
+	return viewops_flag_from_args(
 	        (U.uiflag & USER_ORBIT_SELECTION) != 0,
 	        (U.uiflag & USER_DEPTH_NAVIGATE) != 0);
 }
 
 /**
  * Calculate the values for #ViewOpsData
- *
- * \param use_ensure_persp: When enabled run #ED_view3d_persp_ensure this may switch out of
- * camera view when orbiting or switch from ortho to perspective when auto-persp is enabled.
- * Some operations don't require this (view zoom/pan or ndof where subtle rotation is common
- * so we don't want it to trigger auto-perspective).
  */
-static void viewops_data_create_ex(
+static void viewops_data_create(
         bContext *C, wmOperator *op, const wmEvent *event,
-        bool use_ensure_persp, bool use_mouse_init,
-        enum eViewOpsOrbit orbit_mode)
+        enum eViewOpsFlag viewops_flag)
 {
 	ViewOpsData *vod = op->customdata;
 	RegionView3D *rv3d = vod->rv3d;
 
 	/* Could do this more nicely. */
-	if (use_mouse_init) {
-		orbit_mode &= ~VIEWOPS_ORBIT_DEPTH;
+	if (viewops_flag & VIEWOPS_FLAG_USE_MOUSE_INIT) {
+		viewops_flag &= ~VIEWOPS_FLAG_DEPTH_NAVIGATE;
 	}
 
 	/* we need the depth info before changing any viewport options */
-	if (orbit_mode & VIEWOPS_ORBIT_DEPTH) {
+	if (viewops_flag & VIEWOPS_FLAG_DEPTH_NAVIGATE) {
 		float fallback_depth_pt[3];
 
 		view3d_operator_needs_opengl(C); /* needed for zbuf drawing */
@@ -380,7 +384,7 @@ static void viewops_data_create_ex(
 		vod->use_dyn_ofs = false;
 	}
 
-	if (use_ensure_persp) {
+	if (viewops_flag & VIEWOPS_FLAG_PERSP_ENSURE) {
 		if (ED_view3d_persp_ensure(vod->v3d, vod->ar)) {
 			/* If we're switching from camera view to the perspective one,
 			 * need to tag viewport update, so camera vuew and borders
@@ -404,16 +408,16 @@ static void viewops_data_create_ex(
 
 	copy_qt_qt(vod->curr.viewquat, rv3d->viewquat);
 
-	if (orbit_mode & VIEWOPS_ORBIT_SELECT) {
+	if (viewops_flag & VIEWOPS_FLAG_ORBIT_SELECT) {
 		float ofs[3];
 		if (view3d_orbit_calc_center(C, ofs) || (vod->use_dyn_ofs == false)) {
 			vod->use_dyn_ofs = true;
 			negate_v3_v3(vod->dyn_ofs, ofs);
-			orbit_mode &= ~VIEWOPS_ORBIT_DEPTH;
+			viewops_flag &= ~VIEWOPS_FLAG_DEPTH_NAVIGATE;
 		}
 	}
 
-	if (orbit_mode & VIEWOPS_ORBIT_DEPTH) {
+	if (viewops_flag & VIEWOPS_FLAG_DEPTH_NAVIGATE) {
 		if (vod->use_dyn_ofs) {
 			if (rv3d->is_persp) {
 				float my_origin[3]; /* original G.vd->ofs */
@@ -474,14 +478,6 @@ static void viewops_data_create_ex(
 		vod->reverse = -1.0f;
 
 	rv3d->rflag |= RV3D_NAVIGATING;
-}
-
-static void viewops_data_create(
-        bContext *C, wmOperator *op, const wmEvent *event,
-        bool use_ensure_persp, bool use_mouse_init)
-{
-	enum eViewOpsOrbit orbit_mode = viewops_orbit_mode();
-	viewops_data_create_ex(C, op, event, use_ensure_persp, use_mouse_init, orbit_mode);
 }
 
 static void viewops_data_free(bContext *C, wmOperator *op)
@@ -861,7 +857,11 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 	ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->ar);
 
-	viewops_data_create(C, op, event, true, use_mouse_init);
+	viewops_data_create(
+	        C, op, event,
+	        viewops_flag_from_prefs() |
+	        VIEWOPS_FLAG_PERSP_ENSURE |
+	        (use_mouse_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
 
 	if (ELEM(event->type, MOUSEPAN, MOUSEROTATE)) {
 		/* Rotate direction we keep always same */
@@ -1277,10 +1277,9 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		const wmNDOFMotionData *ndof = event->customdata;
 
 		viewops_data_alloc(C, op);
-		viewops_data_create_ex(
+		viewops_data_create(
 		        C, op, event,
-		        false, false,
-		        viewops_orbit_mode_ex((U.uiflag & USER_ORBIT_SELECTION) != 0, false));
+		        viewops_flag_from_args((U.uiflag & USER_ORBIT_SELECTION) != 0, false));
 		vod = op->customdata;
 
 		ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->ar);
@@ -1346,10 +1345,9 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 		const wmNDOFMotionData *ndof = event->customdata;
 
 		viewops_data_alloc(C, op);
-		viewops_data_create_ex(
+		viewops_data_create(
 		        C, op, event,
-		        false, false,
-		        viewops_orbit_mode_ex((U.uiflag & USER_ORBIT_SELECTION) != 0, false));
+		        viewops_flag_from_args((U.uiflag & USER_ORBIT_SELECTION) != 0, false));
 
 		vod = op->customdata;
 
@@ -1669,7 +1667,10 @@ static int viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 	/* makes op->customdata */
 	viewops_data_alloc(C, op);
-	viewops_data_create(C, op, event, false, use_mouse_init);
+	viewops_data_create(
+	        C, op, event,
+	        viewops_flag_from_prefs() |
+	        (use_mouse_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
 	vod = op->customdata;
 
 	ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->ar);
@@ -2142,7 +2143,10 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 	/* makes op->customdata */
 	viewops_data_alloc(C, op);
-	viewops_data_create(C, op, event, false, use_mouse_init);
+	viewops_data_create(
+	        C, op, event,
+	        viewops_flag_from_prefs() |
+	        (use_mouse_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
 	vod = op->customdata;
 
 	ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->ar);
@@ -2459,7 +2463,10 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 	const bool use_mouse_init = RNA_boolean_get(op->ptr, "use_mouse_init");
 
-	viewops_data_create(C, op, event, false, use_mouse_init);
+	viewops_data_create(
+	        C, op, event,
+	        viewops_flag_from_prefs() |
+	        (use_mouse_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
 
 
 	/* if one or the other zoom position aren't set, set from event */
@@ -4064,7 +4071,7 @@ static int viewroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	else {
 		/* makes op->customdata */
 		viewops_data_alloc(C, op);
-		viewops_data_create(C, op, event, false, false);
+		viewops_data_create(C, op, event, viewops_flag_from_prefs());
 		vod = op->customdata;
 
 		ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->ar);
@@ -4149,7 +4156,7 @@ static int viewpan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	else if (pandir == V3D_VIEW_PANDOWN)   { y =  25; }
 
 	viewops_data_alloc(C, op);
-	viewops_data_create(C, op, event, false, false);
+	viewops_data_create(C, op, event, viewops_flag_from_prefs());
 	ViewOpsData *vod = op->customdata;
 
 	viewmove_apply(vod, vod->prev.event_xy[0] + x, vod->prev.event_xy[1] + y);
