@@ -44,6 +44,23 @@ static void eevee_create_shader_temporal_sampling(void)
 	e_data.taa_resolve_sh = DRW_shader_create_fullscreen(datatoc_effect_temporal_aa_glsl, NULL);
 }
 
+void EEVEE_temporal_sampling_matrices_calc(
+        EEVEE_EffectsInfo *effects, float viewmat[4][4], float persmat[4][4], double ht_point[2])
+{
+	const float *viewport_size = DRW_viewport_size_get();
+
+	/* TODO Blackman-Harris filter */
+
+	window_translate_m4(
+	        effects->overide_winmat, persmat,
+	        ((float)(ht_point[0]) * 2.0f - 1.0f) / viewport_size[0],
+	        ((float)(ht_point[1]) * 2.0f - 1.0f) / viewport_size[1]);
+
+	mul_m4_m4m4(effects->overide_persmat, effects->overide_winmat, viewmat);
+	invert_m4_m4(effects->overide_persinv, effects->overide_persmat);
+	invert_m4_m4(effects->overide_wininv, effects->overide_winmat);
+}
+
 int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 {
 	EEVEE_StorageList *stl = vedata->stl;
@@ -110,14 +127,7 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 
 					BLI_halton_2D(ht_primes, ht_offset, effects->taa_current_sample - 1, ht_point);
 
-					window_translate_m4(
-					        effects->overide_winmat, persmat,
-					        ((float)(ht_point[0]) * 2.0f - 1.0f) / viewport_size[0],
-					        ((float)(ht_point[1]) * 2.0f - 1.0f) / viewport_size[1]);
-
-					mul_m4_m4m4(effects->overide_persmat, effects->overide_winmat, viewmat);
-					invert_m4_m4(effects->overide_persinv, effects->overide_persmat);
-					invert_m4_m4(effects->overide_wininv, effects->overide_winmat);
+					EEVEE_temporal_sampling_matrices_calc(effects, viewmat, persmat, ht_point);
 
 					DRW_viewport_matrix_override_set(effects->overide_persmat, DRW_MAT_PERS);
 					DRW_viewport_matrix_override_set(effects->overide_persinv, DRW_MAT_PERSINV);

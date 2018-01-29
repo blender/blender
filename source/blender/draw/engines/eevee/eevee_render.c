@@ -163,7 +163,12 @@ void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *UNUSED(engine), 
 	EEVEE_lights_cache_finish(sldata);
 	EEVEE_lightprobes_cache_finish(sldata, vedata);
 
-	{
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	ViewLayer *view_layer = draw_ctx->view_layer;
+	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
+	unsigned int render_samples = BKE_collection_engine_property_value_get_int(props, "taa_render_samples");
+
+	while (render_samples-- > 0) {
 		float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.6f};
 		unsigned int primes[3] = {2, 3, 7};
 		double offset[3] = {0.0, 0.0, 0.0};
@@ -171,16 +176,17 @@ void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *UNUSED(engine), 
 
 		BLI_halton_3D(primes, offset, stl->effects->taa_current_sample, r);
 		EEVEE_update_noise(psl, fbl, r);
+		EEVEE_temporal_sampling_matrices_calc(stl->effects, g_data->viewmat, g_data->persmat, r);
 
 		/* Refresh Probes & shadows */
 		EEVEE_lightprobes_refresh(sldata, vedata);
 		DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
 		EEVEE_draw_shadows(sldata, psl);
 
-		DRW_viewport_matrix_override_set(g_data->persmat, DRW_MAT_PERS);
-		DRW_viewport_matrix_override_set(g_data->persinv, DRW_MAT_PERSINV);
-		DRW_viewport_matrix_override_set(g_data->winmat, DRW_MAT_WIN);
-		DRW_viewport_matrix_override_set(g_data->wininv, DRW_MAT_WININV);
+		DRW_viewport_matrix_override_set(stl->effects->overide_persmat, DRW_MAT_PERS);
+		DRW_viewport_matrix_override_set(stl->effects->overide_persinv, DRW_MAT_PERSINV);
+		DRW_viewport_matrix_override_set(stl->effects->overide_winmat, DRW_MAT_WIN);
+		DRW_viewport_matrix_override_set(stl->effects->overide_wininv, DRW_MAT_WININV);
 		DRW_viewport_matrix_override_set(g_data->viewmat, DRW_MAT_VIEW);
 		DRW_viewport_matrix_override_set(g_data->viewinv, DRW_MAT_VIEWINV);
 
