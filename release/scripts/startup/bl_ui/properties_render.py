@@ -78,7 +78,7 @@ class RENDER_PT_context(Panel):
 
 class RENDER_PT_render(RenderButtonsPanel, Panel):
     bl_label = "Render"
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
