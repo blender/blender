@@ -231,6 +231,16 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmManipulatorG
 		}
 	}
 
+	/* Modal operators, don't use initial mouse location since we're clicking on a button. */
+	{
+		int mpr_ids[] = {MPR_MOVE, MPR_ROTATE, MPR_ZOOM};
+		for (int i = 0; i < ARRAY_SIZE(mpr_ids); i++) {
+			wmManipulator *mpr = navgroup->mpr_array[mpr_ids[i]];
+			wmManipulatorOpElem *mpop = WM_manipulator_operator_get(mpr, 0);
+			RNA_boolean_set(&mpop->ptr, "use_mouse_init", false);
+		}
+	}
+
 	{
 		wmManipulator *mpr = navgroup->mpr_array[MPR_ROTATE];
 		mpr->scale_basis = MANIPULATOR_SIZE / 2;
