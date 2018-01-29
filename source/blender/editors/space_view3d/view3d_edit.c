@@ -1720,9 +1720,9 @@ void viewzoom_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom");
 }
 
-static void view_zoom_mouseloc_camera(
+static void view_zoom_to_window_xy_camera(
         Scene *scene, View3D *v3d,
-        ARegion *ar, float dfac, int mx, int my)
+        ARegion *ar, float dfac, const int zoom_xy[2])
 {
 	RegionView3D *rv3d = ar->regiondata;
 	const float zoomfac = BKE_screen_view3d_zoom_to_fac(rv3d->camzoom);
@@ -1730,12 +1730,12 @@ static void view_zoom_mouseloc_camera(
 	const float camzoom_new = BKE_screen_view3d_zoom_from_fac(zoomfac_new);
 
 
-	if (U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
+	if (zoom_xy != NULL) {
 		float zoomfac_px;
 		rctf camera_frame_old;
 		rctf camera_frame_new;
 
-		const float pt_src[2] = {mx, my};
+		const float pt_src[2] = {zoom_xy[0], zoom_xy[1]};
 		float pt_dst[2];
 		float delta_px[2];
 
@@ -1766,12 +1766,12 @@ static void view_zoom_mouseloc_camera(
 	}
 }
 
-static void view_zoom_mouseloc_3d(ARegion *ar, float dfac, int mx, int my)
+static void view_zoom_to_window_xy_3d(ARegion *ar, float dfac, const int zoom_xy[2])
 {
 	RegionView3D *rv3d = ar->regiondata;
 	const float dist_new = rv3d->dist * dfac;
 
-	if (U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
+	if (zoom_xy != NULL) {
 		float dvec[3];
 		float tvec[3];
 		float tpos[3];
@@ -1781,8 +1781,8 @@ static void view_zoom_mouseloc_3d(ARegion *ar, float dfac, int mx, int my)
 
 		negate_v3_v3(tpos, rv3d->ofs);
 
-		mval_f[0] = (float)(((mx - ar->winrct.xmin) * 2) - ar->winx) / 2.0f;
-		mval_f[1] = (float)(((my - ar->winrct.ymin) * 2) - ar->winy) / 2.0f;
+		mval_f[0] = (float)(((zoom_xy[0] - ar->winrct.xmin) * 2) - ar->winx) / 2.0f;
+		mval_f[1] = (float)(((zoom_xy[1] - ar->winrct.ymin) * 2) - ar->winy) / 2.0f;
 
 		/* Project cursor position into 3D space */
 		zfac = ED_view3d_calc_zfac(rv3d, tpos, NULL);
@@ -1877,7 +1877,7 @@ static float viewzoom_scale_value(
 
 static void viewzoom_apply_camera(
         ViewOpsData *vod, const int xy[2],
-        const short viewzoom, const bool zoom_invert)
+        const short viewzoom, const bool zoom_invert, const bool zoom_to_pos)
 {
 	float zfac;
 	float zoomfac_prev = BKE_screen_view3d_zoom_to_fac(vod->camzoom_prev) * 2.0f;
@@ -1891,9 +1891,9 @@ static void viewzoom_apply_camera(
 	if (zfac != 1.0f && zfac != 0.0f) {
 		/* calculate inverted, then invert again (needed because of camera zoom scaling) */
 		zfac = 1.0f / zfac;
-		view_zoom_mouseloc_camera(
+		view_zoom_to_window_xy_camera(
 		        vod->scene, vod->v3d,
-		        vod->ar, zfac, vod->oldx, vod->oldy);
+		        vod->ar, zfac, zoom_to_pos ? &vod->oldx : NULL);
 	}
 
 	ED_region_tag_redraw(vod->ar);
@@ -1901,7 +1901,7 @@ static void viewzoom_apply_camera(
 
 static void viewzoom_apply_3d(
         ViewOpsData *vod, const int xy[2],
-        const short viewzoom, const bool zoom_invert)
+        const short viewzoom, const bool zoom_invert, const bool zoom_to_pos)
 {
 	float zfac;
 	float dist_range[2];
@@ -1918,8 +1918,8 @@ static void viewzoom_apply_3d(
 		const float zfac_max = dist_range[1] / vod->rv3d->dist;
 		CLAMP(zfac, zfac_min, zfac_max);
 
-		view_zoom_mouseloc_3d(
-		        vod->ar, zfac, vod->oldx, vod->oldy);
+		view_zoom_to_window_xy_3d(
+		        vod->ar, zfac, zoom_to_pos ? &vod->oldx : NULL);
 	}
 
 	/* these limits were in old code too */
@@ -1936,15 +1936,15 @@ static void viewzoom_apply_3d(
 
 static void viewzoom_apply(
         ViewOpsData *vod, const int xy[2],
-        const short viewzoom, const bool zoom_invert)
+        const short viewzoom, const bool zoom_invert, const bool zoom_to_pos)
 {
 	if ((vod->rv3d->persp == RV3D_CAMOB) &&
 	    (vod->rv3d->is_persp && ED_view3d_camera_lock_check(vod->v3d, vod->rv3d)) == 0)
 	{
-		viewzoom_apply_camera(vod, xy, viewzoom, zoom_invert);
+		viewzoom_apply_camera(vod, xy, viewzoom, zoom_invert, zoom_to_pos);
 	}
 	else {
-		viewzoom_apply_3d(vod, xy, viewzoom, zoom_invert);
+		viewzoom_apply_3d(vod, xy, viewzoom, zoom_invert, zoom_to_pos);
 	}
 }
 
@@ -1983,7 +1983,10 @@ static int viewzoom_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	}
 
 	if (event_code == VIEW_APPLY) {
-		viewzoom_apply(vod, &event->x, U.viewzoom, (U.uiflag & USER_ZOOM_INVERT) != 0);
+		viewzoom_apply(
+		        vod, &event->x, U.viewzoom,
+		        (U.uiflag & USER_ZOOM_INVERT) != 0,
+		        (U.uiflag & USER_ZOOM_TO_MOUSEPOS) ? &vod->oldx : NULL);
 		if (ED_screen_animation_playing(CTX_wm_manager(C))) {
 			use_autokey = true;
 		}
@@ -2016,7 +2019,6 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	float dist_range[2];
 
 	const int delta = RNA_int_get(op->ptr, "delta");
-	int mx, my;
 
 	if (op->customdata) {
 		ViewOpsData *vod = op->customdata;
@@ -2032,10 +2034,16 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 	v3d = sa->spacedata.first;
 	rv3d = ar->regiondata;
 
-	mx = RNA_struct_property_is_set(op->ptr, "mx") ? RNA_int_get(op->ptr, "mx") : ar->winx / 2;
-	my = RNA_struct_property_is_set(op->ptr, "my") ? RNA_int_get(op->ptr, "my") : ar->winy / 2;
 
 	use_cam_zoom = (rv3d->persp == RV3D_CAMOB) && !(rv3d->is_persp && ED_view3d_camera_lock_check(v3d, rv3d));
+
+	int zoom_xy_buf[2];
+	const int *zoom_xy = NULL;
+	if (U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
+		zoom_xy_buf[0] = RNA_struct_property_is_set(op->ptr, "mx") ? RNA_int_get(op->ptr, "mx") : ar->winx / 2;
+		zoom_xy_buf[1] = RNA_struct_property_is_set(op->ptr, "my") ? RNA_int_get(op->ptr, "my") : ar->winy / 2;
+		zoom_xy = zoom_xy_buf;
+	}
 
 	ED_view3d_dist_range_get(v3d, dist_range);
 
@@ -2043,22 +2051,22 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 		const float step = 1.2f;
 		/* this min and max is also in viewmove() */
 		if (use_cam_zoom) {
-			view_zoom_mouseloc_camera(scene, v3d, ar, step, mx, my);
+			view_zoom_to_window_xy_camera(scene, v3d, ar, step, zoom_xy);
 		}
 		else {
 			if (rv3d->dist < dist_range[1]) {
-				view_zoom_mouseloc_3d(ar, step, mx, my);
+				view_zoom_to_window_xy_3d(ar, step, zoom_xy);
 			}
 		}
 	}
 	else {
 		const float step = 1.0f / 1.2f;
 		if (use_cam_zoom) {
-			view_zoom_mouseloc_camera(scene, v3d, ar, step, mx, my);
+			view_zoom_to_window_xy_camera(scene, v3d, ar, step, zoom_xy);
 		}
 		else {
 			if (rv3d->dist > dist_range[0]) {
-				view_zoom_mouseloc_3d(ar, step, mx, my);
+				view_zoom_to_window_xy_3d(ar, step, zoom_xy);
 			}
 		}
 	}
@@ -2105,13 +2113,15 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 			if (U.uiflag & USER_ZOOM_HORIZ) {
 				vod->origx = vod->oldx = event->x;
-				viewzoom_apply(vod, &event->prevx, USER_ZOOM_DOLLY, (U.uiflag & USER_ZOOM_INVERT) != 0);
 			}
 			else {
 				/* Set y move = x move as MOUSEZOOM uses only x axis to pass magnification value */
 				vod->origy = vod->oldy = vod->origy + event->x - event->prevx;
-				viewzoom_apply(vod, &event->prevx, USER_ZOOM_DOLLY, (U.uiflag & USER_ZOOM_INVERT) != 0);
 			}
+			viewzoom_apply(
+			        vod, &event->prevx, USER_ZOOM_DOLLY,
+			        (U.uiflag & USER_ZOOM_INVERT) != 0,
+			        (U.uiflag & USER_ZOOM_TO_MOUSEPOS) != 0);
 			ED_view3d_camera_lock_autokey(vod->v3d, vod->rv3d, C, false, true);
 
 			ED_view3d_depth_tag_update(vod->rv3d);
@@ -2218,13 +2228,13 @@ static bool viewdolly_offset_lock_check(bContext *C, wmOperator *op)
 	}
 }
 
-static void view_dolly_mouseloc(ARegion *ar, float orig_ofs[3], float dvec[3], float dfac)
+static void view_dolly_to_vector_3d(ARegion *ar, float orig_ofs[3], float dvec[3], float dfac)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	madd_v3_v3v3fl(rv3d->ofs, orig_ofs, dvec, -(1.0f - dfac));
 }
 
-static void viewdolly_apply(ViewOpsData *vod, int x, int y, const short zoom_invert)
+static void viewdolly_apply(ViewOpsData *vod, const int xy[2], const short zoom_invert)
 {
 	float zfac = 1.0;
 
@@ -2232,21 +2242,23 @@ static void viewdolly_apply(ViewOpsData *vod, int x, int y, const short zoom_inv
 		float len1, len2;
 
 		if (U.uiflag & USER_ZOOM_HORIZ) {
-			len1 = (vod->ar->winrct.xmax - x) + 5;
+			len1 = (vod->ar->winrct.xmax - xy[0]) + 5;
 			len2 = (vod->ar->winrct.xmax - vod->origx) + 5;
 		}
 		else {
-			len1 = (vod->ar->winrct.ymax - y) + 5;
+			len1 = (vod->ar->winrct.ymax - xy[1]) + 5;
 			len2 = (vod->ar->winrct.ymax - vod->origy) + 5;
 		}
-		if (zoom_invert)
+		if (zoom_invert) {
 			SWAP(float, len1, len2);
+		}
 
 		zfac =  1.0f + ((len1 - len2) * 0.01f * vod->rv3d->dist);
 	}
 
-	if (zfac != 1.0f)
-		view_dolly_mouseloc(vod->ar, vod->ofs, vod->mousevec, zfac);
+	if (zfac != 1.0f) {
+		view_dolly_to_vector_3d(vod->ar, vod->ofs, vod->mousevec, zfac);
+	}
 
 	if (vod->rv3d->viewlock & RV3D_BOXVIEW) {
 		view3d_boxview_sync(vod->sa, vod->ar);
@@ -2289,7 +2301,7 @@ static int viewdolly_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	}
 
 	if (event_code == VIEW_APPLY) {
-		viewdolly_apply(vod, event->x, event->y, (U.uiflag & USER_ZOOM_INVERT) != 0);
+		viewdolly_apply(vod, &event->x, (U.uiflag & USER_ZOOM_INVERT) != 0);
 		if (ED_screen_animation_playing(CTX_wm_manager(C))) {
 			use_autokey = true;
 		}
@@ -2343,12 +2355,7 @@ static int viewdolly_exec(bContext *C, wmOperator *op)
 		normalize_v3_v3(mousevec, rv3d->viewinv[2]);
 	}
 
-	if (delta < 0) {
-		view_dolly_mouseloc(ar, rv3d->ofs, mousevec, 0.2f);
-	}
-	else {
-		view_dolly_mouseloc(ar, rv3d->ofs, mousevec, 1.8f);
-	}
+	view_dolly_to_vector_3d(ar, rv3d->ofs, mousevec, delta < 0 ? 0.2f : 1.8f);
 
 	if (rv3d->viewlock & RV3D_BOXVIEW) {
 		view3d_boxview_sync(sa, ar);
@@ -2422,14 +2429,12 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 			if (U.uiflag & USER_ZOOM_HORIZ) {
 				vod->origx = vod->oldx = event->x;
-				viewdolly_apply(vod, event->prevx, event->prevy, (U.uiflag & USER_ZOOM_INVERT) == 0);
 			}
 			else {
-
 				/* Set y move = x move as MOUSEZOOM uses only x axis to pass magnification value */
 				vod->origy = vod->oldy = vod->origy + event->x - event->prevx;
-				viewdolly_apply(vod, event->prevx, event->prevy, (U.uiflag & USER_ZOOM_INVERT) == 0);
 			}
+			viewdolly_apply(vod, &event->prevx, (U.uiflag & USER_ZOOM_INVERT) == 0);
 			ED_view3d_depth_tag_update(vod->rv3d);
 
 			viewops_data_free(C, op);
