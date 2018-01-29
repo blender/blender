@@ -165,4 +165,19 @@ void OpenVDB_import_grid_vector(
 	}
 }
 
+openvdb::Name do_name_versionning(const openvdb::Name &name)
+{
+	openvdb::Name temp_name = name;
+
+	if (temp_name.find("_low", temp_name.size() - 4, 4) == temp_name.size() - 4) {
+		return temp_name.replace(temp_name.size() - 4, 4, " low");
+	}
+
+	if (temp_name.find("_old", temp_name.size() - 4, 4) == temp_name.size() - 4) {
+		return temp_name.replace(temp_name.size() - 4, 4, " old");
+	}
+
+	return temp_name;
+}
+
 }  /* namespace internal */

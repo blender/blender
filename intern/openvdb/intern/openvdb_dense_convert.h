@@ -40,6 +40,10 @@
 
 namespace internal {
 
+/* Verify that the name does not correspond to the old format, in which case we
+ * need to replace the '_low' ending with ' low'. See T53802. */
+openvdb::Name do_name_versionning(const openvdb::Name &name);
+
 openvdb::Mat4R convertMatrix(const float mat[4][4]);
 
 template <typename GridType, typename T>
@@ -87,13 +91,19 @@ void OpenVDB_import_grid(
 {
 	using namespace openvdb;
 
-	if (!reader->hasGrid(name)) {
-		std::fprintf(stderr, "OpenVDB grid %s not found in file!\n", name.c_str());
-		memset(*data, 0, sizeof(T) * res[0] * res[1] * res[2]);
-		return;
+	openvdb::Name temp_name = name;
+
+	if (!reader->hasGrid(temp_name)) {
+		temp_name = do_name_versionning(temp_name);
+
+		if (!reader->hasGrid(temp_name)) {
+			std::fprintf(stderr, "OpenVDB grid %s not found in file!\n", temp_name.c_str());
+			memset(*data, 0, sizeof(T) * res[0] * res[1] * res[2]);
+			return;
+		}
 	}
 
-	typename GridType::Ptr grid = gridPtrCast<GridType>(reader->getGrid(name));
+	typename GridType::Ptr grid = gridPtrCast<GridType>(reader->getGrid(temp_name));
 	typename GridType::ConstAccessor acc = grid->getConstAccessor();
 
 	math::Coord xyz;
