@@ -468,7 +468,7 @@ static void deg_debug_graphviz_node_relations(const DebugContext &ctx,
 		deg_debug_fprintf(ctx, "[");
 		/* Note: without label an id seem necessary to avoid bugs in graphviz/dot */
 		deg_debug_fprintf(ctx, "id=\"%s\"", rel->name);
-		deg_debug_fprintf(ctx, "label=\"%s\"", rel->name);
+		// deg_debug_fprintf(ctx, "label=\"%s\"", rel->name);
 		deg_debug_fprintf(ctx, ",color="); deg_debug_graphviz_relation_color(ctx, rel);
 		deg_debug_fprintf(ctx, ",penwidth=\"%f\"", penwidth);
 		/* NOTE: edge from node to own cluster is not possible and gives graphviz
