@@ -340,7 +340,7 @@ static enum eViewOpsOrbit viewops_orbit_mode(void)
 {
 	return viewops_orbit_mode_ex(
 	        (U.uiflag & USER_ORBIT_SELECTION) != 0,
-	        (U.uiflag & USER_ZBUF_ORBIT) != 0);
+	        (U.uiflag & USER_DEPTH_NAVIGATE) != 0);
 }
 
 /**
@@ -4489,7 +4489,7 @@ void ED_view3d_cursor3d_position(bContext *C, float fp[3], const int mval[2])
 		ED_view3d_calc_zfac(rv3d, fp, NULL /* &flip */ );
 	}
 
-	if (U.uiflag & USER_ZBUF_CURSOR) {  /* maybe this should be accessed some other way */
+	if (U.uiflag & USER_DEPTH_CURSOR) {  /* maybe this should be accessed some other way */
 		view3d_operator_needs_opengl(C);
 		if (ED_view3d_autodist(scene, ar, v3d, mval, fp, true, NULL))
 			depth_used = true;
