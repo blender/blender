@@ -289,8 +289,9 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 		file_tools_region(sa);
 
 		ED_area_initialize(wm, CTX_wm_window(C), sa);
-		ED_area_tag_redraw(sa);
 	}
+
+	ED_area_tag_redraw(sa);
 }
 
 static void file_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, Scene *UNUSED(scene),
@@ -304,16 +305,13 @@ static void file_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, Sce
 			switch (wmn->data) {
 				case ND_SPACE_FILE_LIST:
 					ED_area_tag_refresh(sa);
-					ED_area_tag_redraw(sa);
 					break;
 				case ND_SPACE_FILE_PARAMS:
 					ED_area_tag_refresh(sa);
-					ED_area_tag_redraw(sa);
 					break;
 				case ND_SPACE_FILE_PREVIEW:
 					if (sfile->files && filelist_cache_previews_update(sfile->files)) {
 						ED_area_tag_refresh(sa);
-						ED_area_tag_redraw(sa);
 					}
 					break;
 			}
