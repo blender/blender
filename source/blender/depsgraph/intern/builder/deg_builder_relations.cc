@@ -916,18 +916,7 @@ void DepsgraphRelationBuilder::build_animdata_curves(ID *id)
 	ComponentKey adt_key(id, DEG_NODE_TYPE_ANIMATION);
 	TimeSourceKey time_src_key;
 	add_relation(time_src_key, adt_key, "TimeSrc -> Animation");
-	/* Build relations from animation operation to properties it changes. */
-	build_animdata_curves_targets(id);
-}
-
-void DepsgraphRelationBuilder::build_animdata_curves_targets(ID *id)
-{
-	AnimData *adt = BKE_animdata_from_id(id);
-	if (adt == NULL || adt->action == NULL) {
-		return;
-	}
-	/* Get source operation. */
-	ComponentKey adt_key(id, DEG_NODE_TYPE_ANIMATION);
+	/* Get source operations. */
 	DepsNode *node_from = get_node(adt_key);
 	BLI_assert(node_from != NULL);
 	if (node_from == NULL) {
@@ -935,10 +924,28 @@ void DepsgraphRelationBuilder::build_animdata_curves_targets(ID *id)
 	}
 	OperationDepsNode *operation_from = node_from->get_exit_operation();
 	BLI_assert(operation_from != NULL);
+	/* Build relations from animation operation to properties it changes. */
+	if (adt->action != NULL) {
+		build_animdata_curves_targets(id, adt_key,
+	                              operation_from,
+	                              &adt->action->curves);
+	}
+	BLI_LISTBASE_FOREACH(NlaTrack *, nlt, &adt->nla_tracks) {
+		build_animdata_nlastrip_targets(id, adt_key,
+		                                operation_from,
+		                                &nlt->strips);
+	}
+}
+
+void DepsgraphRelationBuilder::build_animdata_curves_targets(
+        ID *id, ComponentKey &adt_key,
+        OperationDepsNode *operation_from,
+        ListBase *curves)
+{
 	/* Iterate over all curves and build relations. */
 	PointerRNA id_ptr;
 	RNA_id_pointer_create(id, &id_ptr);
-	BLI_LISTBASE_FOREACH(FCurve *, fcu, &adt->action->curves) {
+	BLI_LISTBASE_FOREACH(FCurve *, fcu, curves) {
 		PointerRNA ptr;
 		PropertyRNA *prop;
 		int index;
@@ -966,6 +973,25 @@ void DepsgraphRelationBuilder::build_animdata_curves_targets(ID *id)
 		graph_->add_new_relation(operation_from, operation_to,
 		                         "Animation -> Prop",
 		                         true);
+	}
+}
+
+void DepsgraphRelationBuilder::build_animdata_nlastrip_targets(
+        ID *id, ComponentKey &adt_key,
+        OperationDepsNode *operation_from,
+        ListBase *strips)
+{
+	BLI_LISTBASE_FOREACH(NlaStrip *, strip, strips) {
+		if (strip->act != NULL) {
+			build_animdata_curves_targets(id, adt_key,
+			                              operation_from,
+			                              &strip->act->curves);
+		}
+		else if (strip->strips.first != NULL) {
+			build_animdata_nlastrip_targets(id, adt_key,
+			                                operation_from,
+			                                &strip->strips);
+		}
 	}
 }
 
