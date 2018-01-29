@@ -647,6 +647,8 @@ typedef struct EEVEE_ShadowCascadeData {
  * It works with even if the object is in multiple layers
  * because we don't get the same "Object *" for each layer. */
 typedef struct EEVEE_LampEngineData {
+	ObjectEngineData engine_data;
+
 	bool need_update;
 	/* This needs to be out of the union to avoid undefined behaviour. */
 	short prev_cube_shadow_id;
@@ -658,6 +660,8 @@ typedef struct EEVEE_LampEngineData {
 } EEVEE_LampEngineData;
 
 typedef struct EEVEE_LightProbeEngineData {
+	ObjectEngineData engine_data;
+
 	/* NOTE: need_full_update is set by dependency graph when the probe or it's
 	 * object is updated. This triggers full probe update, including it's
 	 * "progressive" GI refresh.
@@ -686,6 +690,8 @@ typedef struct EEVEE_LightProbeEngineData {
 } EEVEE_LightProbeEngineData;
 
 typedef struct EEVEE_ObjectEngineData {
+	ObjectEngineData engine_data;
+
 	bool need_update;
 	unsigned int shadow_caster_id;
 } EEVEE_ObjectEngineData;

@@ -1124,15 +1124,22 @@ static void DRW_shgroup_lamp(OBJECT_StorageList *stl, Object *ob, ViewLayer *vie
 	int theme_id = DRW_object_wire_theme_get(ob, view_layer, &color);
 	static float zero = 0.0f;
 
-	float **la_mats = (float **)DRW_object_engine_data_ensure(ob, &draw_engine_object_type, NULL);
-	if (*la_mats == NULL) {
-		/* we need 2 matrices */
-		*la_mats = MEM_mallocN(sizeof(float) * 16 * 2, "Lamp Object Mode Matrices");
-	}
+	typedef struct LampEngineData {
+		ObjectEngineData engine_data;
+		float shape_mat[4][4];
+		float spot_blend_mat[4][4];
+	} LampEngineData;
 
-	float (*shapemat)[4], (*spotblendmat)[4];
-	shapemat = (float (*)[4])(*la_mats);
-	spotblendmat = (float (*)[4])(*la_mats + 16);
+	LampEngineData *lamp_engine_data =
+	        (LampEngineData *)DRW_object_engine_data_ensure(
+	                ob,
+	                &draw_engine_object_type,
+	                sizeof(LampEngineData),
+	                NULL,
+	                NULL);
+
+	float (*shapemat)[4] = lamp_engine_data->shape_mat;
+	float (*spotblendmat)[4] = lamp_engine_data->spot_blend_mat;
 
 	/* Don't draw the center if it's selected or active */
 	if (theme_id == TH_GROUP)
@@ -1481,13 +1488,13 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, OBJECT_PassList *psl
 	bool do_outlines = ((ob->base_flag & BASE_SELECTED) != 0);
 	DRW_object_wire_theme_get(ob, view_layer, &color);
 
-	OBJECT_LightProbeEngineData *prb_data;
-	OBJECT_LightProbeEngineData **prb_data_pt = (OBJECT_LightProbeEngineData **)DRW_object_engine_data_ensure(ob, &draw_engine_object_type, NULL);
-	if (*prb_data_pt == NULL) {
-		*prb_data_pt = MEM_mallocN(sizeof(OBJECT_LightProbeEngineData), "Probe Clip distances Matrices");
-	}
-
-	prb_data = *prb_data_pt;
+	OBJECT_LightProbeEngineData *prb_data =
+	        (OBJECT_LightProbeEngineData *)DRW_object_engine_data_ensure(
+	                ob,
+	                &draw_engine_object_type,
+	                sizeof(OBJECT_LightProbeEngineData),
+	                NULL,
+	                NULL);
 
 	if ((DRW_state_is_select() || do_outlines) && ((prb->flag & LIGHTPROBE_FLAG_SHOW_DATA) != 0)) {
 

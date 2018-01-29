@@ -75,11 +75,17 @@ typedef struct bFaceMap {
 } bFaceMap;
 
 /* Object Runtime display data */
+struct ObjectEngineData;
+typedef void (*ObjectEngineDataInitCb)(struct ObjectEngineData *engine_data);
+typedef void (*ObjectEngineDataFreeCb)(struct ObjectEngineData *engine_data);
+
+#
+#
 typedef struct ObjectEngineData {
 	struct ObjectEngineData *next, *prev;
 	struct DrawEngineType *engine_type;
-	void *storage;
-	void (*free)(void *storage);
+	/* Only nested data, NOT the engine data itself. */
+	ObjectEngineDataFreeCb free;
 } ObjectEngineData;
 
 #define MAX_VGROUP_NAME 64

@@ -458,11 +458,8 @@ void BKE_object_free(Object *ob)
 	GPU_lamp_free(ob);
 
 	for (ObjectEngineData *oed = ob->drawdata.first; oed; oed = oed->next) {
-		if (oed->storage) {
-			if (oed->free) {
-				oed->free(oed->storage);
-			}
-			MEM_freeN(oed->storage);
+		if (oed->free != NULL) {
+			oed->free(oed);
 		}
 	}
 	BLI_freelistN(&ob->drawdata);

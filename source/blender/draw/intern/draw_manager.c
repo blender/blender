@@ -2765,33 +2765,40 @@ void **DRW_view_layer_engine_data_ensure(DrawEngineType *engine_type, void (*cal
 /** \name Objects (DRW_object)
  * \{ */
 
-void *DRW_object_engine_data_get(Object *ob, DrawEngineType *engine_type)
+ObjectEngineData *DRW_object_engine_data_get(Object *ob, DrawEngineType *engine_type)
 {
 	for (ObjectEngineData *oed = ob->drawdata.first; oed; oed = oed->next) {
 		if (oed->engine_type == engine_type) {
-			return oed->storage;
+			return oed;
 		}
 	}
 	return NULL;
 }
 
-void **DRW_object_engine_data_ensure(
-        Object *ob, DrawEngineType *engine_type, void (*callback)(void *storage))
+ObjectEngineData *DRW_object_engine_data_ensure(
+        Object *ob,
+        DrawEngineType *engine_type,
+        size_t size,
+        ObjectEngineDataInitCb init_cb,
+        ObjectEngineDataFreeCb free_cb)
 {
-	ObjectEngineData *oed;
-
-	for (oed = ob->drawdata.first; oed; oed = oed->next) {
-		if (oed->engine_type == engine_type) {
-			return &oed->storage;
-		}
+	BLI_assert(size >= sizeof(ObjectEngineData));
+	/* Try to re-use existing data. */
+	ObjectEngineData *oed = DRW_object_engine_data_get(ob, engine_type);
+	if (oed != NULL) {
+		return oed;
 	}
-
-	oed = MEM_callocN(sizeof(ObjectEngineData), "ObjectEngineData");
+	/* Allocate new data. */
+	oed = MEM_callocN(size, "ObjectEngineData");
 	oed->engine_type = engine_type;
-	oed->free = callback;
+	oed->free = free_cb;
+	/* Perform user-side initialization, if needed. */
+	if (init_cb != NULL) {
+		init_cb(oed);
+	}
+	/* Register in the list. */
 	BLI_addtail(&ob->drawdata, oed);
-
-	return &oed->storage;
+	return oed;
 }
 
 /* XXX There is definitly some overlap between this and DRW_object_engine_data_ensure.
