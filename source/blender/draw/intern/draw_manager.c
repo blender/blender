@@ -2868,6 +2868,10 @@ static void drw_engines_cache_populate(Object *ob)
 		DrawEngineType *engine = link->data;
 		ViewportEngineData *data = DRW_viewport_engine_data_ensure(engine);
 
+		if (engine->id_update) {
+			engine->id_update(data, &ob->id);
+		}
+
 		if (engine->cache_populate) {
 			engine->cache_populate(data, ob);
 		}

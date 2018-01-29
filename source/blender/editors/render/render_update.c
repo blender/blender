@@ -542,8 +542,6 @@ void ED_render_id_flush_update(const DEGEditorUpdateContext *update_ctx, ID *id)
 		return;
 	}
 	Main *bmain = update_ctx->bmain;
-	Scene *scene = update_ctx->scene;
-	ViewLayer *view_layer = update_ctx->view_layer;
 	/* Internal ID update handlers. */
 	switch (GS(id->name)) {
 		case ID_MA:
@@ -569,42 +567,6 @@ void ED_render_id_flush_update(const DEGEditorUpdateContext *update_ctx, ID *id)
 		default:
 			render_engine_flag_changed(bmain, RE_ENGINE_UPDATE_OTHER);
 			break;
-	}
-	/* Inform all draw managers about changes.
-	 *
-	 * TODO(sergey): This code is run for every updated ID, via flushing
-	 * mechanism. How can we avoid iterating over the whole interface for
-	 * every of those IDs? One of the ideas would be to call draw manager's
-	 * ID update which is not bound to any of contexts.
-	 */
-	{
-		wmWindowManager *wm = bmain->wm.first;
-		for (wmWindow *win = wm->windows.first; win; win = win->next) {
-			bScreen *sc = WM_window_get_active_screen(win);
-			WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);
-			ViewRender *view_render = BKE_viewrender_get(win->scene, workspace);
-			for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
-				if (sa->spacetype != SPACE_VIEW3D) {
-					continue;
-				}
-				for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
-					if (ar->regiontype != RGN_TYPE_WINDOW) {
-						continue;
-					}
-					RenderEngineType *engine_type = RE_engines_find(view_render->engine_id);
-					DRW_notify_id_update(
-					        (&(DRWUpdateContext){
-					            .bmain = bmain,
-					            .scene = scene,
-					            .view_layer = view_layer,
-					            .ar = ar,
-					            .v3d = (View3D *)sa->spacedata.first,
-					            .engine_type = engine_type
-					        }),
-					        id);
-				}
-			}
-		}
 	}
 }
 

@@ -86,6 +86,8 @@ typedef struct ObjectEngineData {
 	struct DrawEngineType *engine_type;
 	/* Only nested data, NOT the engine data itself. */
 	ObjectEngineDataFreeCb free;
+	/* Accumulated recalc flags, which corresponds to ID->recalc flags. */
+	int recalc;
 } ObjectEngineData;
 
 #define MAX_VGROUP_NAME 64

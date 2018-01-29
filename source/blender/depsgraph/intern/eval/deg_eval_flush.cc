@@ -36,6 +36,7 @@
 #include <deque>
 
 #include "BLI_utildefines.h"
+#include "BLI_listbase.h"
 #include "BLI_task.h"
 #include "BLI_ghash.h"
 
@@ -207,10 +208,21 @@ BLI_INLINE OperationDepsNode *flush_schedule_children(
 	return result;
 }
 
+void flush_engine_data_update(ID *id)
+{
+	if (GS(id->name) != ID_OB) {
+		return;
+	}
+	Object *object = (Object *)id;
+	BLI_LISTBASE_FOREACH(ObjectEngineData *, engine_data, &object->drawdata) {
+		engine_data->recalc |= id->recalc;
+	}
+}
+
 /* NOTE: It will also accumulate flags from changed components. */
-BLI_INLINE void flush_editors_id_update(Main *bmain,
-                                        Depsgraph *graph,
-                                        const DEGEditorUpdateContext *update_ctx)
+void flush_editors_id_update(Main *bmain,
+                             Depsgraph *graph,
+                             const DEGEditorUpdateContext *update_ctx)
 {
 	foreach (IDDepsNode *id_node, graph->id_nodes) {
 		if (id_node->done != ID_STATE_MODIFIED) {
@@ -241,6 +253,8 @@ BLI_INLINE void flush_editors_id_update(Main *bmain,
 		/* Inform editors. */
 		if (deg_copy_on_write_is_expanded(id_cow)) {
 			deg_editors_id_update(update_ctx, id_cow);
+			/* Inform draw engines that something was changed. */
+			flush_engine_data_update(id_cow);
 		}
 	}
 }
