@@ -29,6 +29,8 @@
 
 #include "BKE_collection.h"
 
+#include "DNA_scene_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -263,6 +265,8 @@ void BKE_visible_bases_iterator_end(BLI_Iterator *iter);
 
 typedef struct ObjectsRenderableIteratorData {
 	struct Scene *scene;
+	struct Base base_temp;
+	struct Scene scene_temp;
 
 	struct {
 		struct ViewLayer *view_layer;

@@ -1982,8 +1982,8 @@ void BKE_renderable_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
 	ViewLayer *view_layer = data->scene->view_layers.first;
 	data->iter.view_layer = view_layer;
 
-	Base base = {(Base *)view_layer->object_bases.first, NULL};
-	data->iter.base = &base;
+	data->base_temp.next = view_layer->object_bases.first;
+	data->iter.base = &data->base_temp;
 
 	data->iter.set = NULL;
 
@@ -2023,25 +2023,23 @@ void BKE_renderable_objects_iterator_next(BLI_Iterator *iter)
 		while ((data->iter.view_layer = data->iter.view_layer->next)) {
 			ViewLayer *view_layer = data->iter.view_layer;
 			if (view_layer->flag & VIEW_LAYER_RENDER) {
-
-				Base base_iter = {(Base *)view_layer->object_bases.first, NULL};
-				data->iter.base = &base_iter;
+				data->base_temp.next = view_layer->object_bases.first;
+				data->iter.base = &data->base_temp;
 				return;
 			}
 		}
 
 		/* Setup the "set" for the next iteration. */
-		Scene scene = {.set = data->scene};
-		data->iter.set = &scene;
+		data->scene_temp.set = data->scene;
+		data->iter.set = &data->scene_temp;
 		return;
 	}
 
 	/* Look for an object in the next set. */
 	while ((data->iter.set = data->iter.set->set)) {
 		ViewLayer *view_layer = BKE_view_layer_from_scene_get(data->iter.set);
-
-		Base base_iter = {(Base *)view_layer->object_bases.first, NULL};
-		data->iter.base = &base_iter;
+		data->base_temp.next = view_layer->object_bases.first;
+		data->iter.base = &data->base_temp;
 		return;
 	}
 
