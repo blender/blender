@@ -1471,6 +1471,8 @@ static void DRW_shgroup_speaker(OBJECT_StorageList *stl, Object *ob, ViewLayer *
 }
 
 typedef struct OBJECT_LightProbeEngineData {
+	ObjectEngineData engine_data;
+
 	float prb_mats[6][4][4];
 	float probe_cube_mat[4][4];
 	float draw_size;
