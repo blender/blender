@@ -143,8 +143,8 @@ EEVEE_LightProbeEngineData *EEVEE_lightprobe_data_ensure(Object *ob)
 	        ob,
 	        &draw_engine_eevee_type,
 	        sizeof(EEVEE_LightProbeEngineData),
-	        &eevee_lightprobe_data_init,
-	        &eevee_lightprobe_data_free);
+	        eevee_lightprobe_data_init,
+	        eevee_lightprobe_data_free);
 }
 
 /* Lamp data. */
