@@ -5596,7 +5596,6 @@ static void sculpt_init_session(Scene *scene, Object *ob)
 static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *ob = CTX_data_active_object(C);
 	const int mode_flag = OB_MODE_SCULPT;
 	const bool is_mode_set = (ob->mode & mode_flag) != 0;
