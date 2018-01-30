@@ -1992,6 +1992,9 @@ void BKE_renderable_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
 
 void BKE_renderable_objects_iterator_next(BLI_Iterator *iter)
 {
+	/* Set it early in case we need to exit and we are running from within a loop. */
+	iter->skip = true;
+
 	ObjectsRenderableIteratorData *data = iter->data;
 	Base *base = data->iter.base->next;
 
@@ -2002,8 +2005,8 @@ void BKE_renderable_objects_iterator_next(BLI_Iterator *iter)
 		iter->current = ob;
 		data->iter.base = base;
 
-		if ((base->flag & BASE_VISIBLED) == 0) {
-			BKE_renderable_objects_iterator_next(iter);
+		if ((base->flag & BASE_VISIBLED) != 0) {
+			iter->skip = false;
 		}
 		return;
 	}
@@ -2016,8 +2019,6 @@ void BKE_renderable_objects_iterator_next(BLI_Iterator *iter)
 
 				Base base_iter = {(Base *)view_layer->object_bases.first, NULL};
 				data->iter.base = &base_iter;
-
-				BKE_renderable_objects_iterator_next(iter);
 				return;
 			}
 		}
@@ -2025,7 +2026,6 @@ void BKE_renderable_objects_iterator_next(BLI_Iterator *iter)
 		/* Setup the "set" for the next iteration. */
 		Scene scene = {.set = data->scene};
 		data->iter.set = &scene;
-		BKE_renderable_objects_iterator_next(iter);
 		return;
 	}
 
@@ -2035,8 +2035,6 @@ void BKE_renderable_objects_iterator_next(BLI_Iterator *iter)
 
 		Base base_iter = {(Base *)view_layer->object_bases.first, NULL};
 		data->iter.base = &base_iter;
-
-		BKE_renderable_objects_iterator_next(iter);
 		return;
 	}
 
