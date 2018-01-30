@@ -1970,10 +1970,11 @@ void BKE_renderable_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
 	ObjectsRenderableIteratorData *data = data_in;
 
+	/* Tag objects to prevent going over the same object twice. */
 	for (Scene *scene = data->scene; scene; scene = scene->set) {
 		for (ViewLayer *view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
 			for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-				 base->object->id.flag |=  LIB_TAG_DOIT;
+				 base->object->id.flag |= LIB_TAG_DOIT;
 			}
 		}
 	}
@@ -2002,11 +2003,17 @@ void BKE_renderable_objects_iterator_next(BLI_Iterator *iter)
 	if (base != NULL) {
 		Object *ob = base->object;
 
-		iter->current = ob;
+		/* We need to set the iter.base even if the rest fail otherwise
+		 * we keep checking the exactly same base over and over again. */
 		data->iter.base = base;
 
-		if ((base->flag & BASE_VISIBLED) != 0) {
-			iter->skip = false;
+		if (ob->id.flag & LIB_TAG_DOIT) {
+			ob->id.flag &= ~LIB_TAG_DOIT;
+
+			if ((base->flag & BASE_VISIBLED) != 0) {
+				iter->skip = false;
+				iter->current = ob;
+			}
 		}
 		return;
 	}
