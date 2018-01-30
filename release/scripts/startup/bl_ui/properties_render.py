@@ -322,7 +322,7 @@ class RENDER_PT_performance(RenderButtonsPanel, Panel):
 class RENDER_PT_post_processing(RenderButtonsPanel, Panel):
     bl_label = "Post Processing"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
@@ -336,6 +336,9 @@ class RENDER_PT_post_processing(RenderButtonsPanel, Panel):
         col.prop(rd, "use_sequencer")
 
         split.prop(rd, "dither_intensity", text="Dither", slider=True)
+
+        if context.scene.view_render.engine == 'BLENDER_EEVEE':
+            return
 
         layout.separator()
 
