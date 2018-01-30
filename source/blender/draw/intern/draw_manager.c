@@ -1685,6 +1685,11 @@ static void draw_geometry_prepare(
 	float mvp[4][4], mv[4][4], mi[4][4], mvi[4][4], pi[4][4], n[3][3], wn[3][3];
 	float orcofacs[2][3] = {{0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}};
 	float eye[3] = { 0.0f, 0.0f, 1.0f }; /* looking into the screen */
+	float viewcamtexcofac[4] = { 1.0f, 1.0f, 0.0f, 0.0f };
+
+	if (rv3d != NULL) {
+		copy_v4_v4(viewcamtexcofac, rv3d->viewcamtexcofac);
+	}
 
 	bool do_pi = (interface->projectioninverse != -1);
 	bool do_mvp = (interface->modelviewprojection != -1);
