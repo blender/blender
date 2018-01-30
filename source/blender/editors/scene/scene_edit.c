@@ -186,13 +186,15 @@ bool ED_scene_view_layer_delete(
 		return false;
 	}
 
+	/* We need to unset nodetrees before removing the layer, otherwise its index will be -1. */
+	view_layer_remove_unset_nodetrees(bmain, scene, layer);
+
 	BLI_remlink(&scene->view_layers, layer);
 	BLI_assert(BLI_listbase_is_empty(&scene->view_layers) == false);
 	scene->active_view_layer = 0;
 
 	ED_workspace_view_layer_unset(bmain, scene, layer, scene->view_layers.first);
 	BKE_workspace_view_layer_remove_references(bmain, layer);
-	view_layer_remove_unset_nodetrees(bmain, scene, layer);
 
 	BKE_view_layer_free(layer);
 

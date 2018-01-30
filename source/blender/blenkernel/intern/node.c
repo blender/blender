@@ -3819,6 +3819,7 @@ bool BKE_node_tree_iter_step(struct NodeTreeIterStore *ntreeiter,
 
 void BKE_nodetree_remove_layer_n(bNodeTree *ntree, Scene *scene, const int layer_index)
 {
+	BLI_assert(layer_index != -1);
 	for (bNode *node = ntree->nodes.first; node; node = node->next) {
 		if (node->type == CMP_NODE_R_LAYERS && (Scene *)node->id == scene) {
 			if (node->custom1 == layer_index) {
