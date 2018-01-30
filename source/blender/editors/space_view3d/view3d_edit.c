@@ -4729,7 +4729,7 @@ static int toggle_render_exec(bContext *C, wmOperator *UNUSED(op))
 		v3d->prev_drawtype = v3d->drawtype;
 		v3d->drawtype = OB_RENDER;
 	}
-	ED_view3d_shade_update(CTX_data_main(C), CTX_data_scene(C), v3d, CTX_wm_area(C));
+	ED_view3d_shade_update(CTX_data_main(C), v3d, CTX_wm_area(C));
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
 	return OPERATOR_FINISHED;
 }

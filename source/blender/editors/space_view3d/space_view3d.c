@@ -290,7 +290,7 @@ void ED_view3d_stop_render_preview(wmWindowManager *wm, ARegion *ar)
 	}
 }
 
-void ED_view3d_shade_update(Main *bmain, Scene *scene, View3D *v3d, ScrArea *sa)
+void ED_view3d_shade_update(Main *bmain, View3D *v3d, ScrArea *sa)
 {
 	wmWindowManager *wm = bmain->wm.first;
 
@@ -301,10 +301,6 @@ void ED_view3d_shade_update(Main *bmain, Scene *scene, View3D *v3d, ScrArea *sa)
 			if (ar->regiondata)
 				ED_view3d_stop_render_preview(wm, ar);
 		}
-	}
-	else if (scene->obedit != NULL && scene->obedit->type == OB_MESH) {
-		/* Tag mesh to load edit data. */
-		DAG_id_tag_update(scene->obedit->data, 0);
 	}
 }
 
