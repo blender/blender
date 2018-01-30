@@ -216,11 +216,6 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
 		if (freedata) ED_mball_editmball_free(obedit);
 	}
 
-	/* Tag update so no access to freed data referenced from
-	 * derived cache will happen.
-	 */
-	DEG_id_tag_update((ID *)obedit->data, 0);
-
 	return true;
 }
 

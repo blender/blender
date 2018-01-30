@@ -23,8 +23,9 @@
 
 #include "util/util_algorithm.h"
 #include "util/util_foreach.h"
-#include "util/util_queue.h"
 #include "util/util_logging.h"
+#include "util/util_md5.h"
+#include "util/util_queue.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -681,6 +682,32 @@ void ShaderGraph::break_cycles(ShaderNode *node, vector<bool>& visited, vector<b
 	}
 
 	on_stack[node->id] = false;
+}
+
+void ShaderGraph::compute_displacement_hash()
+{
+	/* Compute hash of all nodes linked to displacement, to detect if we need
+	 * to recompute displacement when shader nodes change. */
+	ShaderInput *displacement_in = output()->input("Displacement");
+
+	if(!displacement_in->link) {
+		displacement_hash = "";
+		return;
+	}
+
+	ShaderNodeSet nodes_displace;
+	find_dependencies(nodes_displace, displacement_in);
+
+	MD5Hash md5;
+	foreach(ShaderNode *node, nodes_displace) {
+		node->hash(md5);
+		foreach(ShaderInput *input, node->inputs) {
+			int link_id = (input->link) ? input->link->parent->id : 0;
+			md5.append((uint8_t*)&link_id, sizeof(link_id));
+		}
+	}
+
+	displacement_hash = md5.get_hex();
 }
 
 void ShaderGraph::clean(Scene *scene)

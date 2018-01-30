@@ -1348,7 +1348,7 @@ static const char arg_handle_render_frame_doc[] =
 "\n"
 "\t* +<frame> start frame relative, -<frame> end frame relative.\n"
 "\t* A comma separated list of frames can also be used (no spaces).\n"
-"\t* A range of frames can be expressed using '..' seperator between the first and last frames (inclusive).\n"
+"\t* A range of frames can be expressed using '..' separator between the first and last frames (inclusive).\n"
 ;
 static int arg_handle_render_frame(int argc, const char **argv, void *data)
 {

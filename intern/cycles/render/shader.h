@@ -98,7 +98,7 @@ public:
 
 	/* synchronization */
 	bool need_update;
-	bool need_update_attributes;
+	bool need_update_mesh;
 
 	/* If the shader has only volume components, the surface is assumed to
 	 * be transparent.

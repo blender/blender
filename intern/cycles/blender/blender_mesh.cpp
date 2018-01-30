@@ -1124,7 +1124,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object& b_ob,
 			bool attribute_recalc = false;
 
 			foreach(Shader *shader, mesh->used_shaders)
-				if(shader->need_update_attributes)
+				if(shader->need_update_mesh)
 					attribute_recalc = true;
 
 			if(!attribute_recalc)

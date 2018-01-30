@@ -205,7 +205,14 @@ struct DepsgraphRelationBuilder
 	                       RootPChanMap *root_map);
 	void build_animdata(ID *id);
 	void build_animdata_curves(ID *id);
-	void build_animdata_curves_targets(ID *id);
+	void build_animdata_curves_targets(ID *id,
+	                                   ComponentKey &adt_key,
+	                                   OperationDepsNode *operation_from,
+	                                   ListBase *curves);
+	void build_animdata_nlastrip_targets(ID *id,
+	                                     ComponentKey &adt_key,
+	                                     OperationDepsNode *operation_from,
+	                                     ListBase *strips);
 	void build_animdata_drivers(ID *id);
 	void build_driver(ID *id, FCurve *fcurve);
 	void build_driver_data(ID *id, FCurve *fcurve);

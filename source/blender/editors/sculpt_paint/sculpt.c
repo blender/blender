@@ -5602,11 +5602,12 @@ static void SCULPT_OT_symmetrize(wmOperatorType *ot)
 static void sculpt_init_session(const bContext *C, Scene *scene, Object *ob)
 {
 	EvaluationContext eval_ctx;
-
 	CTX_data_eval_ctx(C, &eval_ctx);
 
-	ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
+	/* Create persistent sculpt mode data */
+	BKE_sculpt_toolsettings_data_ensure(scene);
 
+	ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
 	BKE_sculpt_update_mesh_elements(&eval_ctx, scene, scene->toolsettings->sculpt, ob, 0, false);
 }
 
@@ -5614,7 +5615,6 @@ static void sculpt_init_session(const bContext *C, Scene *scene, Object *ob)
 static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *ob = CTX_data_active_object(C);
 	const int mode_flag = OB_MODE_SCULPT;
 	const bool is_mode_set = (ob->mode & mode_flag) != 0;
@@ -5669,31 +5669,6 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 
 		if (flush_recalc)
 			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-
-		/* Create persistent sculpt mode data */
-		if (!ts->sculpt) {
-			ts->sculpt = MEM_callocN(sizeof(Sculpt), "sculpt mode data");
-
-			/* Turn on X plane mirror symmetry by default */
-			ts->sculpt->paint.symmetry_flags |= PAINT_SYMM_X;
-			ts->sculpt->paint.flags |= PAINT_SHOW_BRUSH;
-
-			/* Make sure at least dyntopo subdivision is enabled */
-			ts->sculpt->flags |= SCULPT_DYNTOPO_SUBDIVIDE | SCULPT_DYNTOPO_COLLAPSE;
-		}
-
-		if (!ts->sculpt->detail_size)
-			ts->sculpt->detail_size = 12;
-		if (!ts->sculpt->detail_percent)
-			ts->sculpt->detail_percent = 25;
-		if (ts->sculpt->constant_detail == 0.0f)
-			ts->sculpt->constant_detail = 3.0f;
-
-		/* Set sane default tiling offsets */
-		if (!ts->sculpt->paint.tile_offset[0]) ts->sculpt->paint.tile_offset[0] = 1.0f;
-		if (!ts->sculpt->paint.tile_offset[1]) ts->sculpt->paint.tile_offset[1] = 1.0f;
-		if (!ts->sculpt->paint.tile_offset[2]) ts->sculpt->paint.tile_offset[2] = 1.0f;
-
 
 		/* Create sculpt mode session data */
 		if (ob->sculpt)

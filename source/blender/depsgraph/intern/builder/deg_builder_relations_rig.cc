@@ -443,16 +443,43 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 
 void DepsgraphRelationBuilder::build_proxy_rig(Object *object)
 {
-	OperationKey pose_init_key(&object->id, DEG_NODE_TYPE_EVAL_POSE, DEG_OPCODE_POSE_INIT);
-	OperationKey pose_done_key(&object->id, DEG_NODE_TYPE_EVAL_POSE, DEG_OPCODE_POSE_DONE);
+	Object *proxy_from = object->proxy_from;
+	OperationKey pose_init_key(&object->id,
+	                           DEG_NODE_TYPE_EVAL_POSE,
+	                           DEG_OPCODE_POSE_INIT);
+	OperationKey pose_done_key(&object->id,
+	                           DEG_NODE_TYPE_EVAL_POSE,
+	                           DEG_OPCODE_POSE_DONE);
 	BLI_LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
-		OperationKey bone_local_key(&object->id, DEG_NODE_TYPE_BONE, pchan->name, DEG_OPCODE_BONE_LOCAL);
-		OperationKey bone_ready_key(&object->id, DEG_NODE_TYPE_BONE, pchan->name, DEG_OPCODE_BONE_READY);
-		OperationKey bone_done_key(&object->id, DEG_NODE_TYPE_BONE, pchan->name, DEG_OPCODE_BONE_DONE);
+		OperationKey bone_local_key(&object->id,
+		                            DEG_NODE_TYPE_BONE, pchan->name,
+		                            DEG_OPCODE_BONE_LOCAL);
+		OperationKey bone_ready_key(&object->id,
+		                            DEG_NODE_TYPE_BONE,
+		                            pchan->name,
+		                            DEG_OPCODE_BONE_READY);
+		OperationKey bone_done_key(&object->id,
+		                           DEG_NODE_TYPE_BONE,
+		                           pchan->name,
+		                           DEG_OPCODE_BONE_DONE);
 		add_relation(pose_init_key, bone_local_key, "Pose Init -> Bone Local");
 		add_relation(bone_local_key, bone_ready_key, "Local -> Ready");
 		add_relation(bone_ready_key, bone_done_key, "Ready -> Done");
 		add_relation(bone_done_key, pose_done_key, "Bone Done -> Pose Done");
+
+		if (pchan->prop != NULL) {
+			OperationKey bone_parameters(&object->id,
+			                             DEG_NODE_TYPE_PARAMETERS,
+			                             DEG_OPCODE_PARAMETERS_EVAL,
+			                             pchan->name);
+			OperationKey from_bone_parameters(&proxy_from->id,
+			                                  DEG_NODE_TYPE_PARAMETERS,
+			                                  DEG_OPCODE_PARAMETERS_EVAL,
+			                                  pchan->name);
+			add_relation(from_bone_parameters,
+			             bone_parameters,
+			             "Proxy Bone Parameters");
+		}
 	}
 }
 

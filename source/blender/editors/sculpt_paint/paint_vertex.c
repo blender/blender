@@ -940,6 +940,9 @@ static void do_weight_paint_vertex(
 /* Toggle operator for turning vertex paint mode on or off (copied from sculpt.c) */
 static void vertex_paint_init_session(const EvaluationContext *eval_ctx, Scene *scene, Object *ob)
 {
+	/* Create persistent sculpt mode data */
+	BKE_sculpt_toolsettings_data_ensure(scene);
+
 	if (ob->sculpt == NULL) {
 		ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
 		BKE_sculpt_update_mesh_elements(eval_ctx, scene, scene->toolsettings->sculpt, ob, 0, false);

@@ -1985,6 +1985,7 @@ static bool adjust_the_cycle_or_chain_fast(BoundVert *vstart, int np, bool iscyc
 		g_prod[i] = gprod;
 		gprod_sum += gprod;
 	}
+	g_prod[0] = 1.0f;
 	if (iscycle) {
 		gprod *= g[0];
 		if (fabs(gprod - 1.0f) > BEVEL_EPSILON) {
@@ -1993,8 +1994,6 @@ static bool adjust_the_cycle_or_chain_fast(BoundVert *vstart, int np, bool iscyc
 			MEM_freeN(g_prod);
 			return false;
 		}
-		else
-			g_prod[0] = 1.0f;
 	}
 	if (gprod_sum == 0.0f) {
 		MEM_freeN(g);
@@ -2163,7 +2162,7 @@ static void adjust_offsets(BevelParams *bp)
 			/* first follow paired edges in left->right direction */
 			v = vchainstart = vanchor;
 			iscycle = false;
-			while(v->eon && !v->visited && !iscycle) {
+			while (v->eon && !v->visited && !iscycle) {
 				enext = find_other_end_edge_half(bp, v->efirst, &bvcur);
 				BLI_assert(enext != NULL);
 				vnext = enext->leftv;
@@ -2191,7 +2190,7 @@ static void adjust_offsets(BevelParams *bp)
 					vchainstart = vnext;
 					v->visited = true;
 					v = vnext;
-				} while(!v->visited && v->eon);
+				} while (!v->visited && v->eon);
 				adjust_the_cycle_or_chain(vchainstart, false);
 			}
 		} while ((vanchor = vanchor->next) != bv->vmesh->boundstart);

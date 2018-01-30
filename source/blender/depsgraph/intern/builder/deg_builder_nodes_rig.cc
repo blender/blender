@@ -347,8 +347,8 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
 	                                           object_cow),
 	                             DEG_OPCODE_POSE_INIT);
 	op_node->set_as_entry();
-	BLI_LISTBASE_FOREACH (bPoseChannel *, pchan, &object_cow->pose->chanbase) {
-		/* Local bone transform. */
+
+	BLI_LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
 		op_node = add_operation_node(&object->id,
 		                             DEG_NODE_TYPE_BONE,
 		                             pchan->name,

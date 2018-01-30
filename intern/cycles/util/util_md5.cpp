@@ -310,6 +310,13 @@ void MD5Hash::append(const uint8_t *data, int nbytes)
 		memcpy(buf, p, left);
 }
 
+void MD5Hash::append(const string& str)
+{
+	if(str.size()) {
+		append((const uint8_t*)str.c_str(), str.size());
+	}
+}
+
 bool MD5Hash::append_file(const string& filepath)
 {
 	FILE *f = path_fopen(filepath, "rb");

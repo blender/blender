@@ -247,7 +247,7 @@ public:
 
 	void alloc_to_device(size_t num, bool shrink_to_fit = true)
 	{
-		size_t new_size = num*sizeof(T);
+		size_t new_size = num;
 		bool reallocate;
 
 		if(shrink_to_fit) {

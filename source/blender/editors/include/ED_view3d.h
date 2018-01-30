@@ -476,7 +476,7 @@ void ED_view3d_operator_properties_viewmat_get(struct wmOperator *op, int *winx,
 
 /* render */
 void ED_view3d_stop_render_preview(struct wmWindowManager *wm, struct ARegion *ar);
-void ED_view3d_shade_update(struct Main *bmain, struct Scene *scene, struct View3D *v3d, struct ScrArea *sa);
+void ED_view3d_shade_update(struct Main *bmain, struct View3D *v3d, struct ScrArea *sa);
 
 #define V3D_IS_ZBUF(v3d) \
 	(((v3d)->flag & V3D_ZBUF_SELECT) && ((v3d)->drawtype > OB_WIRE))
