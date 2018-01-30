@@ -561,6 +561,25 @@ public:
 	float anisotropy;
 };
 
+class PrincipledVolumeNode : public VolumeNode {
+public:
+	SHADER_NODE_CLASS(PrincipledVolumeNode)
+	void attributes(Shader *shader, AttributeRequestSet *attributes);
+	bool has_attribute_dependency() { return true; }
+
+	ustring density_attribute;
+	ustring color_attribute;
+	ustring temperature_attribute;
+
+	float anisotropy;
+	float3 absorption_color;
+	float emission_strength;
+	float3 emission_color;
+	float blackbody_intensity;
+	float3 blackbody_tint;
+	float temperature;
+};
+
 class HairBsdfNode : public BsdfNode {
 public:
 	SHADER_NODE_CLASS(HairBsdfNode)

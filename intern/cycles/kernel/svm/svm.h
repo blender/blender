@@ -334,7 +334,10 @@ ccl_device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ccl_a
 				break;
 #  if NODES_FEATURE(NODE_FEATURE_VOLUME)
 			case NODE_CLOSURE_VOLUME:
-				svm_node_closure_volume(kg, sd, stack, node, type, path_flag);
+				svm_node_closure_volume(kg, sd, stack, node, type);
+				break;
+			case NODE_PRINCIPLED_VOLUME:
+				svm_node_principled_volume(kg, sd, stack, node, type, path_flag, &offset);
 				break;
 #  endif  /* NODES_FEATURE(NODE_FEATURE_VOLUME) */
 #  ifdef __EXTRA_NODES__

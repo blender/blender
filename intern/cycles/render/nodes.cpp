@@ -2844,6 +2844,120 @@ void ScatterVolumeNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_scatter_volume");
 }
 
+/* Principled Volume Closure */
+
+NODE_DEFINE(PrincipledVolumeNode)
+{
+	NodeType* type = NodeType::add("principled_volume", create, NodeType::SHADER);
+
+	SOCKET_IN_STRING(density_attribute, "Density Attribute", ustring());
+	SOCKET_IN_STRING(color_attribute, "Color Attribute", ustring());
+	SOCKET_IN_STRING(temperature_attribute, "Temperature Attribute", ustring());
+
+	SOCKET_IN_COLOR(color, "Color", make_float3(0.5f, 0.5f, 0.5f));
+	SOCKET_IN_FLOAT(density, "Density", 1.0f);
+	SOCKET_IN_FLOAT(anisotropy, "Anisotropy", 0.0f);
+	SOCKET_IN_COLOR(absorption_color, "Absorption Color", make_float3(0.0f, 0.0f, 0.0f));
+	SOCKET_IN_FLOAT(emission_strength, "Emission Strength", 0.0f);
+	SOCKET_IN_COLOR(emission_color, "Emission Color", make_float3(1.0f, 1.0f, 1.0f));
+	SOCKET_IN_FLOAT(blackbody_intensity, "Blackbody Intensity", 0.0f);
+	SOCKET_IN_COLOR(blackbody_tint, "Blackbody Tint", make_float3(1.0f, 1.0f, 1.0f));
+	SOCKET_IN_FLOAT(temperature, "Temperature", 1500.0f);
+	SOCKET_IN_FLOAT(volume_mix_weight, "VolumeMixWeight", 0.0f, SocketType::SVM_INTERNAL);
+
+	SOCKET_OUT_CLOSURE(volume, "Volume");
+
+	return type;
+}
+
+PrincipledVolumeNode::PrincipledVolumeNode()
+: VolumeNode(node_type)
+{
+	closure = CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID;
+}
+
+void PrincipledVolumeNode::attributes(Shader *shader, AttributeRequestSet *attributes)
+{
+	if(shader->has_volume) {
+		ShaderInput *density_in = input("Density");
+		ShaderInput *blackbody_in = input("Blackbody Intensity");
+
+		if(density_in->link || density > 0.0f) {
+			attributes->add_standard(density_attribute);
+			attributes->add_standard(color_attribute);
+		}
+
+		if(blackbody_in->link || blackbody_intensity > 0.0f) {
+			attributes->add_standard(temperature_attribute);
+		}
+
+		attributes->add(ATTR_STD_GENERATED_TRANSFORM);
+	}
+
+	ShaderNode::attributes(shader, attributes);
+}
+
+void PrincipledVolumeNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *color_in = input("Color");
+	ShaderInput *density_in = input("Density");
+	ShaderInput *anisotropy_in = input("Anisotropy");
+	ShaderInput *absorption_color_in = input("Absorption Color");
+	ShaderInput *emission_in = input("Emission Strength");
+	ShaderInput *emission_color_in = input("Emission Color");
+	ShaderInput *blackbody_in = input("Blackbody Intensity");
+	ShaderInput *blackbody_tint_in = input("Blackbody Tint");
+	ShaderInput *temperature_in = input("Temperature");
+
+	if(color_in->link)
+		compiler.add_node(NODE_CLOSURE_WEIGHT, compiler.stack_assign(color_in));
+	else
+		compiler.add_node(NODE_CLOSURE_SET_WEIGHT, color);
+
+	compiler.add_node(NODE_PRINCIPLED_VOLUME,
+		compiler.encode_uchar4(
+			compiler.stack_assign_if_linked(density_in),
+			compiler.stack_assign_if_linked(anisotropy_in),
+			compiler.stack_assign(absorption_color_in),
+			compiler.closure_mix_weight_offset()),
+		compiler.encode_uchar4(
+			compiler.stack_assign_if_linked(emission_in),
+			compiler.stack_assign(emission_color_in),
+			compiler.stack_assign_if_linked(blackbody_in),
+			compiler.stack_assign(temperature_in)),
+		compiler.stack_assign(blackbody_tint_in));
+
+	int attr_density = compiler.attribute_standard(density_attribute);
+	int attr_color = compiler.attribute_standard(color_attribute);
+	int attr_temperature = compiler.attribute_standard(temperature_attribute);
+
+	compiler.add_node(
+		__float_as_int(density),
+		__float_as_int(anisotropy),
+		__float_as_int(emission_strength),
+		__float_as_int(blackbody_intensity));
+
+	compiler.add_node(
+		attr_density,
+		attr_color,
+		attr_temperature);
+}
+
+void PrincipledVolumeNode::compile(OSLCompiler& compiler)
+{
+	if(Attribute::name_standard(density_attribute.c_str())) {
+		density_attribute = ustring("geom:" + density_attribute.string());
+	}
+	if(Attribute::name_standard(color_attribute.c_str())) {
+		color_attribute = ustring("geom:" + color_attribute.string());
+	}
+	if(Attribute::name_standard(temperature_attribute.c_str())) {
+		temperature_attribute = ustring("geom:" + temperature_attribute.string());
+	}
+
+	compiler.add(this, "node_principled_volume");
+}
+
 /* Hair BSDF Closure */
 
 NODE_DEFINE(HairBsdfNode)

@@ -794,7 +794,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 	}
 }
 
-ccl_device void svm_node_closure_volume(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, ShaderType shader_type, int path_flag)
+ccl_device void svm_node_closure_volume(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, ShaderType shader_type)
 {
 #ifdef __VOLUME__
 	/* Only sum extinction for volumes, variable is shared with surface transparency. */
@@ -802,19 +802,20 @@ ccl_device void svm_node_closure_volume(KernelGlobals *kg, ShaderData *sd, float
 		return;
 	}
 
-	uint type, param1_offset, param2_offset;
+	uint type, density_offset, anisotropy_offset;
 
 	uint mix_weight_offset;
-	decode_node_uchar4(node.y, &type, &param1_offset, &param2_offset, &mix_weight_offset);
+	decode_node_uchar4(node.y, &type, &density_offset, &anisotropy_offset, &mix_weight_offset);
 	float mix_weight = (stack_valid(mix_weight_offset)? stack_load_float(stack, mix_weight_offset): 1.0f);
 
-	if(mix_weight == 0.0f)
+	if(mix_weight == 0.0f) {
 		return;
+	}
 
-	float param1 = (stack_valid(param1_offset))? stack_load_float(stack, param1_offset): __uint_as_float(node.z);
+	float density = (stack_valid(density_offset))? stack_load_float(stack, density_offset): __uint_as_float(node.z);
+	density = mix_weight * fmaxf(density, 0.0f);
 
 	/* Compute scattering coefficient. */
-	float density = mix_weight * fmaxf(param1, 0.0f);
 	float3 weight = sd->svm_closure_weight;
 
 	if(type == CLOSURE_VOLUME_ABSORPTION_ID) {
@@ -825,17 +826,117 @@ ccl_device void svm_node_closure_volume(KernelGlobals *kg, ShaderData *sd, float
 
 	/* Add closure for volume scattering. */
 	if(type == CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID) {
-		float param2 = (stack_valid(param2_offset))? stack_load_float(stack, param2_offset): __uint_as_float(node.w);
 		HenyeyGreensteinVolume *volume = (HenyeyGreensteinVolume*)bsdf_alloc(sd, sizeof(HenyeyGreensteinVolume), weight);
 
 		if(volume) {
-			volume->g = param2; /* g */
+			float anisotropy = (stack_valid(anisotropy_offset))? stack_load_float(stack, anisotropy_offset): __uint_as_float(node.w);
+			volume->g = anisotropy; /* g */
 			sd->flag |= volume_henyey_greenstein_setup(volume);
 		}
 	}
 
 	/* Sum total extinction weight. */
 	volume_extinction_setup(sd, weight);
+#endif
+}
+
+ccl_device void svm_node_principled_volume(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, ShaderType shader_type, int path_flag, int *offset)
+{
+#ifdef __VOLUME__
+	uint4 value_node = read_node(kg, offset);
+	uint4 attr_node = read_node(kg, offset);
+
+	/* Only sum extinction for volumes, variable is shared with surface transparency. */
+	if(shader_type != SHADER_TYPE_VOLUME) {
+		return;
+	}
+
+	uint density_offset, anisotropy_offset, absorption_color_offset, mix_weight_offset;
+	decode_node_uchar4(node.y, &density_offset, &anisotropy_offset, &absorption_color_offset, &mix_weight_offset);
+	float mix_weight = (stack_valid(mix_weight_offset)? stack_load_float(stack, mix_weight_offset): 1.0f);
+
+	if(mix_weight == 0.0f) {
+		return;
+	}
+
+	/* Compute density. */
+	float primitive_density = 1.0f;
+	float density = (stack_valid(density_offset))? stack_load_float(stack, density_offset): __uint_as_float(value_node.x);
+	density = mix_weight * fmaxf(density, 0.0f);
+
+	if(density > CLOSURE_WEIGHT_CUTOFF) {
+		/* Density and color attribute lookup if available. */
+		const AttributeDescriptor attr_density = find_attribute(kg, sd, attr_node.x);
+		if(attr_density.offset != ATTR_STD_NOT_FOUND) {
+			primitive_density = primitive_attribute_float(kg, sd, attr_density, NULL, NULL);
+			density = fmaxf(density * primitive_density, 0.0f);
+		}
+	}
+
+	if(density > CLOSURE_WEIGHT_CUTOFF) {
+		/* Compute scattering color. */
+		float3 color = sd->svm_closure_weight;
+
+		const AttributeDescriptor attr_color = find_attribute(kg, sd, attr_node.y);
+		if(attr_color.offset != ATTR_STD_NOT_FOUND) {
+			color *= primitive_attribute_float3(kg, sd, attr_color, NULL, NULL);
+		}
+
+		/* Add closure for volume scattering. */
+		HenyeyGreensteinVolume *volume = (HenyeyGreensteinVolume*)bsdf_alloc(sd, sizeof(HenyeyGreensteinVolume), color * density);
+		if(volume) {
+			float anisotropy = (stack_valid(anisotropy_offset))? stack_load_float(stack, anisotropy_offset): __uint_as_float(value_node.y);
+			volume->g = anisotropy;
+			sd->flag |= volume_henyey_greenstein_setup(volume);
+		}
+
+		/* Add extinction weight. */
+		float3 zero = make_float3(0.0f, 0.0f, 0.0f);
+		float3 one = make_float3(1.0f, 1.0f, 1.0f);
+		float3 absorption_color = stack_load_float3(stack, absorption_color_offset);
+		float3 absorption = max(one - color, zero) * max(one - absorption_color, zero);
+		volume_extinction_setup(sd, (color + absorption) * density);
+	}
+
+	/* Compute emission. */
+	if(path_flag & PATH_RAY_SHADOW) {
+		/* Don't need emission for shadows. */
+		return;
+	}
+
+	uint emission_offset, emission_color_offset, blackbody_offset, temperature_offset;
+	decode_node_uchar4(node.z, &emission_offset, &emission_color_offset, &blackbody_offset, &temperature_offset);
+	float emission = (stack_valid(emission_offset))? stack_load_float(stack, emission_offset): __uint_as_float(value_node.z);
+	float blackbody = (stack_valid(blackbody_offset))? stack_load_float(stack, blackbody_offset): __uint_as_float(value_node.w);
+
+	if(emission > CLOSURE_WEIGHT_CUTOFF) {
+		float3 emission_color = stack_load_float3(stack, emission_color_offset);
+		emission_setup(sd, emission * emission_color);
+	}
+
+	if(blackbody > CLOSURE_WEIGHT_CUTOFF) {
+		float T = stack_load_float(stack, temperature_offset);
+
+		/* Add flame temperature from attribute if available. */
+		const AttributeDescriptor attr_temperature = find_attribute(kg, sd, attr_node.z);
+		if(attr_temperature.offset != ATTR_STD_NOT_FOUND) {
+			float temperature = primitive_attribute_float(kg, sd, attr_temperature, NULL, NULL);
+			T *= fmaxf(temperature, 0.0f);
+		}
+
+		T = fmaxf(T, 0.0f);
+
+		/* Stefan-Boltzmann law. */
+		float T4 = sqr(sqr(T));
+		float sigma = 5.670373e-8f * 1e-6f / M_PI_F;
+		float intensity = sigma * mix(1.0f, T4, blackbody);
+
+		if(intensity > CLOSURE_WEIGHT_CUTOFF) {
+			float3 blackbody_tint = stack_load_float3(stack, node.w);
+			float3 bb = blackbody_tint * intensity * svm_math_blackbody_color(T);
+			emission_setup(sd, bb);
+		}
+	}
 #endif
 }
 
