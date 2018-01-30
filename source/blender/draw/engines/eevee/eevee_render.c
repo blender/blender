@@ -246,19 +246,19 @@ void EEVEE_render_output(EEVEE_Data *vedata, RenderEngine *engine, struct Depsgr
 	RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_COMBINED, viewname);
 
 	DRW_framebuffer_bind(stl->effects->final_fb);
-	DRW_framebuffer_read_data(0, 0, (int)render_size[0], (int)render_size[1], 4, 0, rp->rect);
+	DRW_framebuffer_read_data(rr->xof, rr->yof, rr->rectx, rr->recty, 4, 0, rp->rect);
 
 	if (view_layer->passflag & SCE_PASS_Z) {
 		rp = RE_pass_find_by_name(rl, RE_PASSNAME_Z, viewname);
 
 		DRW_framebuffer_texture_attach(fbl->main, dtxl->depth, 0, 0);
 		DRW_framebuffer_bind(fbl->main);
-		DRW_framebuffer_read_depth(0, 0, (int)render_size[0], (int)render_size[1], rp->rect);
+		DRW_framebuffer_read_depth(rr->xof, rr->yof, rr->rectx, rr->recty, rp->rect);
 
 		bool is_persp = DRW_viewport_is_persp_get();
 
 		/* Convert ogl depth [0..1] to view Z [near..far] */
-		for (int i = 0; i < (int)render_size[0] * (int)render_size[1]; ++i) {
+		for (int i = 0; i < rr->rectx * rr->recty; ++i) {
 			if (rp->rect[i] == 1.0f ) {
 				rp->rect[i] = 1e10f; /* Background */
 			}
