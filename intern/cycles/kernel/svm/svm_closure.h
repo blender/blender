@@ -268,6 +268,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 
 					bsdf->extra->cspec0 = (specular * 0.08f * tmp_col) * (1.0f - metallic) + base_color * metallic;
 					bsdf->extra->color = base_color;
+					bsdf->extra->clearcoat = 0.0f;
 
 					/* setup bsdf */
 					if(distribution == CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID || roughness <= 0.075f) /* use single-scatter GGX */
@@ -306,6 +307,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 							}
 
 							bsdf->N = N;
+							bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
 							bsdf->extra = extra;
 
 							bsdf->alpha_x = refl_roughness * refl_roughness;
@@ -314,6 +316,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 
 							bsdf->extra->color = base_color;
 							bsdf->extra->cspec0 = cspec0;
+							bsdf->extra->clearcoat = 0.0f;
 
 							/* setup bsdf */
 							sd->flag |= bsdf_microfacet_ggx_fresnel_setup(bsdf, sd);
@@ -365,6 +368,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 
 						bsdf->extra->color = base_color;
 						bsdf->extra->cspec0 = cspec0;
+						bsdf->extra->clearcoat = 0.0f;
 
 						/* setup bsdf */
 						sd->flag |= bsdf_microfacet_multi_ggx_glass_fresnel_setup(bsdf, sd);
@@ -390,12 +394,14 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 					}
 
 					bsdf->N = clearcoat_normal;
+					bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
 					bsdf->ior = 1.5f;
 					bsdf->extra = extra;
 
 					bsdf->alpha_x = clearcoat_roughness * clearcoat_roughness;
 					bsdf->alpha_y = clearcoat_roughness * clearcoat_roughness;
 
+					bsdf->extra->color = make_float3(0.0f, 0.0f, 0.0f);
 					bsdf->extra->cspec0 = make_float3(0.04f, 0.04f, 0.04f);
 					bsdf->extra->clearcoat = clearcoat;
 
@@ -460,6 +466,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 			}
 
 			bsdf->N = N;
+			bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
 			bsdf->alpha_x = param1;
 			bsdf->alpha_y = param1;
 			bsdf->ior = 0.0f;
@@ -477,6 +484,8 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 				bsdf->extra = (MicrofacetExtra*)closure_alloc_extra(sd, sizeof(MicrofacetExtra));
 				if(bsdf->extra) {
 					bsdf->extra->color = stack_load_float3(stack, data_node.z);
+					bsdf->extra->cspec0 = make_float3(0.0f, 0.0f, 0.0f);
+					bsdf->extra->clearcoat = 0.0f;
 					sd->flag |= bsdf_microfacet_multi_ggx_setup(bsdf);
 				}
 			}
@@ -498,6 +507,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 
 			if(bsdf) {
 				bsdf->N = N;
+				bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
 				bsdf->extra = NULL;
 
 				float eta = fmaxf(param2, 1e-5f);
@@ -555,6 +565,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 
 				if(bsdf) {
 					bsdf->N = N;
+					bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
 					bsdf->extra = NULL;
 					svm_node_glass_setup(sd, bsdf, type, eta, roughness, false);
 				}
@@ -569,6 +580,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 
 				if(bsdf) {
 					bsdf->N = N;
+					bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
 					bsdf->extra = NULL;
 					svm_node_glass_setup(sd, bsdf, type, eta, roughness, true);
 				}
@@ -603,6 +615,8 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 
 			kernel_assert(stack_valid(data_node.z));
 			bsdf->extra->color = stack_load_float3(stack, data_node.z);
+			bsdf->extra->cspec0 = make_float3(0.0f, 0.0f, 0.0f);
+			bsdf->extra->clearcoat = 0.0f;
 
 			/* setup bsdf */
 			sd->flag |= bsdf_microfacet_multi_ggx_glass_setup(bsdf);
@@ -656,6 +670,8 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 					bsdf->extra = (MicrofacetExtra*)closure_alloc_extra(sd, sizeof(MicrofacetExtra));
 					if(bsdf->extra) {
 						bsdf->extra->color = stack_load_float3(stack, data_node.w);
+						bsdf->extra->cspec0 = make_float3(0.0f, 0.0f, 0.0f);
+						bsdf->extra->clearcoat = 0.0f;
 						sd->flag |= bsdf_microfacet_multi_ggx_aniso_setup(bsdf);
 					}
 				}

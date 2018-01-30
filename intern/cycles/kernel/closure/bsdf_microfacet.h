@@ -336,7 +336,9 @@ ccl_device bool bsdf_microfacet_merge(const ShaderClosure *a, const ShaderClosur
 	       (bsdf_a->ior == bsdf_b->ior) &&
 	       ((bsdf_a->extra == NULL && bsdf_b->extra == NULL) ||
 	        ((bsdf_a->extra && bsdf_b->extra) &&
-	         (isequal_float3(bsdf_a->extra->color, bsdf_b->extra->color))));
+	         (isequal_float3(bsdf_a->extra->color, bsdf_b->extra->color)) &&
+	         (isequal_float3(bsdf_a->extra->cspec0, bsdf_b->extra->cspec0)) &&
+	         (bsdf_a->extra->clearcoat == bsdf_b->extra->clearcoat)));
 }
 
 ccl_device int bsdf_microfacet_ggx_aniso_setup(MicrofacetBsdf *bsdf)
