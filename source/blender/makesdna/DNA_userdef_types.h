@@ -412,7 +412,6 @@ typedef struct bTheme {
 #define UI_THEMESPACE_START(btheme)  (CHECK_TYPE_INLINE(btheme, bTheme *),  &((btheme)->tbuts))
 #define UI_THEMESPACE_END(btheme)    (CHECK_TYPE_INLINE(btheme, bTheme *), (&((btheme)->tclip) + 1))
 
-/* for the moment only the name. may want to store options with this later */
 typedef struct bAddon {
 	struct bAddon *next, *prev;
 	char module[64];
