@@ -25,6 +25,9 @@ typedef struct VolumeState {
 } VolumeState;
 
 /* Get PathState ready for use for volume stack evaluation. */
+#  ifdef __SPLIT_KERNEL__
+ccl_addr_space
+#  endif
 ccl_device_inline PathState *shadow_blocked_volume_path_state(
         KernelGlobals *kg,
         VolumeState *volume_state,
