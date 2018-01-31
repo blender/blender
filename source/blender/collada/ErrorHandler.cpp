@@ -49,7 +49,10 @@ ErrorHandler::~ErrorHandler()
 //--------------------------------------------------------------------
 bool ErrorHandler::handleError(const COLLADASaxFWL::IError *error)
 {
-	bool isError = false;
+	/* This method must return true when Collada should continue.
+	   See https://github.com/KhronosGroup/OpenCOLLADA/issues/442
+	*/
+	bool isWarning = false;
 	
 	if (error->getErrorClass() == COLLADASaxFWL::IError::ERROR_SAXPARSER) {
 		COLLADASaxFWL::SaxParserError *saxParserError = (COLLADASaxFWL::SaxParserError *) error;
@@ -58,14 +61,14 @@ bool ErrorHandler::handleError(const COLLADASaxFWL::IError *error)
 		// Workaround to avoid wrong error
 		if (parserError.getErrorType() == GeneratedSaxParser::ParserError::ERROR_VALIDATION_MIN_OCCURS_UNMATCHED) {
 			if (STREQ(parserError.getElement(), "effect")) {
-				isError = false;
+				isWarning = true;
 			}
 		}
 		if (parserError.getErrorType() == GeneratedSaxParser::ParserError::ERROR_VALIDATION_SEQUENCE_PREVIOUS_SIBLING_NOT_PRESENT) {
 			if (!(STREQ(parserError.getElement(), "extra") &&
 			      STREQ(parserError.getAdditionalText().c_str(), "sibling: fx_profile_abstract")))
 			{
-				isError = false;
+				isWarning = true;
 			}
 		}
 
@@ -81,14 +84,12 @@ bool ErrorHandler::handleError(const COLLADASaxFWL::IError *error)
 		 * Accept non critical errors as warnings (i.e. texture not found)
 		 * This makes the importer more graceful, so it now imports what makes sense.
 		 */
-		isError = (saxFWLError->getSeverity() != COLLADASaxFWL::IError::SEVERITY_ERROR_NONCRITICAL);
+		isWarning = (saxFWLError->getSeverity() == COLLADASaxFWL::IError::SEVERITY_ERROR_NONCRITICAL);
 		std::cout << "Sax FWL Error: " << saxFWLError->getErrorMessage() << std::endl;
 	}
 	else {
 		std::cout << "opencollada error: " << error->getFullErrorMessage() << std::endl;
 	}
 
-	mError |= isError;
-
-	return isError; // let OpenCollada decide when to abort
+	return isWarning;
 }
