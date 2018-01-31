@@ -1841,7 +1841,7 @@ void OUTLINER_OT_modifier_operation(wmOperatorType *ot)
 
 /* ******************** */
 
-static EnumPropertyItem prop_collection_op_none_types[] = {
+static EnumPropertyItem prop_collection_op_types[] = {
 	{OL_COLLECTION_OP_OBJECTS_ADD, "OBJECTS_ADD", ICON_ZOOMIN, "Add Selected", "Add selected objects to collection"},
 	{OL_COLLECTION_OP_OBJECTS_REMOVE, "OBJECTS_REMOVE", ICON_X, "Remove Selected", "Remove selected objects from collection"},
 	{OL_COLLECTION_OP_COLLECTION_NEW, "COLLECTION_NEW", ICON_NEW, "New Collection", "Add a new nested collection"},
@@ -1850,29 +1850,6 @@ static EnumPropertyItem prop_collection_op_none_types[] = {
 	{OL_COLLECTION_OP_GROUP_CREATE, "GROUP_CREATE", ICON_GROUP, "Create Group", "Turn the collection into a group collection"},
 	{0, NULL, 0, NULL, NULL}
 };
-
-static EnumPropertyItem prop_collection_op_group_internal_types[] = {
-	{OL_COLLECTION_OP_OBJECTS_ADD, "OBJECTS_ADD", ICON_ZOOMIN, "Add Selected", "Add selected objects to collection"},
-	{OL_COLLECTION_OP_OBJECTS_REMOVE, "OBJECTS_REMOVE", ICON_X, "Remove Selected", "Remove selected objects from collection"},
-	{OL_COLLECTION_OP_COLLECTION_NEW, "COLLECTION_NEW", ICON_NEW, "New Collection", "Add a new nested collection"},
-	{OL_COLLECTION_OP_COLLECTION_DEL, "COLLECTION_DEL", ICON_X, "Delete Collection", "Delete the collection"},
-	{0, NULL, 0, NULL, NULL}
-};
-
-static const EnumPropertyItem *outliner_collection_operation_type_itemf(
-        bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
-{
-	*r_free = false;
-	SpaceOops *soops = CTX_wm_space_outliner(C);
-
-	switch (soops->outlinevis) {
-		case SO_GROUPS:
-			return prop_collection_op_group_internal_types;
-		case SO_VIEW_LAYER:
-			return prop_collection_op_none_types;
-	}
-	return NULL;
-}
 
 static int outliner_collection_operation_exec(bContext *C, wmOperator *op)
 {
@@ -1892,6 +1869,28 @@ static int outliner_collection_operation_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static int outliner_collection_operation_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	wmOperatorType *ot = op->type;
+	EnumPropertyItem *prop = &prop_collection_op_types[0];
+
+	uiPopupMenu *pup = UI_popup_menu_begin(C, "Collection", ICON_NONE);
+	uiLayout *layout = UI_popup_menu_layout(pup);
+
+	for (int i = 0; i < (ARRAY_SIZE(prop_collection_op_types) - 1); i++, prop++) {
+		if (soops->outlinevis != SO_GROUPS ||
+		    !ELEM(prop->value, OL_COLLECTION_OP_COLLECTION_UNLINK, OL_COLLECTION_OP_GROUP_CREATE))
+		{
+			uiItemEnumO_ptr(layout, ot, NULL, prop->icon, "type", prop->value);
+		}
+	}
+
+	UI_popup_menu_end(C, pup);
+
+	return OPERATOR_INTERFACE;
+}
+
 void OUTLINER_OT_collection_operation(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
@@ -1902,14 +1901,13 @@ void OUTLINER_OT_collection_operation(wmOperatorType *ot)
 	ot->description = "";
 
 	/* callbacks */
-	ot->invoke = WM_menu_invoke;
+	ot->invoke = outliner_collection_operation_invoke;
 	ot->exec = outliner_collection_operation_exec;
 	ot->poll = ED_operator_outliner_active;
 
 	ot->flag = 0;
 
-	prop = RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Collection Operation", "");
-	RNA_def_enum_funcs(prop, outliner_collection_operation_type_itemf);
+	prop = RNA_def_enum(ot->srna, "type", prop_collection_op_types, OL_COLLECTION_OP_OBJECTS_ADD, "Collection Operation", "");
 	RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
 	ot->prop = prop;
 }
