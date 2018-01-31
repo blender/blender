@@ -418,19 +418,19 @@ float get_btdf_lut(sampler2DArray btdf_lut_tex, float NV, float roughness, float
  * Using Method #4: Spheremap Transform */
 vec2 normal_encode(vec3 n, vec3 view)
 {
-    float p = sqrt(n.z * 8.0 + 8.0);
-    return n.xy / p + 0.5;
+	float p = sqrt(n.z * 8.0 + 8.0);
+	return n.xy / p + 0.5;
 }
 
 vec3 normal_decode(vec2 enc, vec3 view)
 {
-    vec2 fenc = enc * 4.0 - 2.0;
-    float f = dot(fenc, fenc);
-    float g = sqrt(1.0 - f / 4.0);
-    vec3 n;
-    n.xy = fenc*g;
-    n.z = 1 - f / 2;
-    return n;
+	vec2 fenc = enc * 4.0 - 2.0;
+	float f = dot(fenc, fenc);
+	float g = sqrt(1.0 - f / 4.0);
+	vec3 n;
+	n.xy = fenc*g;
+	n.z = 1 - f / 2;
+	return n;
 }
 
 /* ---- RGBM (shared multiplier) encoding ---- */

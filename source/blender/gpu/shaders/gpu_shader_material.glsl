@@ -3012,7 +3012,8 @@ void node_emission(vec4 color, float strength, vec3 N, out Closure result)
 	result = CLOSURE_DEFAULT;
 	result.radiance = color.rgb;
 	result.opacity = color.a;
-	result.ssr_normal = normal_encode(N, viewCameraVec);
+	vec3 vN = normalize(mat3(ViewMatrix) * N);
+	result.ssr_normal = normal_encode(vN, viewCameraVec);
 #else
 	result = Closure(color.rgb, color.a);
 #endif
