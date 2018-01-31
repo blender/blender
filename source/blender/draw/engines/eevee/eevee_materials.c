@@ -1056,9 +1056,16 @@ static void material_opaque(
 						DRW_shgroup_uniform_texture(*shgrp, "sssTexProfile", sss_tex_profile);
 					}
 
-					DRW_shgroup_stencil_mask(*shgrp, e_data.sss_count + 1);
-					EEVEE_subsurface_add_pass(sldata, vedata, e_data.sss_count + 1, sss_profile);
-					e_data.sss_count++;
+					/* Limit of 8 bit stencil buffer. ID 255 is refraction. */
+					if (e_data.sss_count < 254) {
+						DRW_shgroup_stencil_mask(*shgrp, e_data.sss_count + 1);
+						EEVEE_subsurface_add_pass(sldata, vedata, e_data.sss_count + 1, sss_profile);
+						e_data.sss_count++;
+					}
+					else {
+						/* TODO : display message. */
+						printf("Error: Too many different Subsurface shader in the scene.\n");
+					}
 				}
 			}
 		}

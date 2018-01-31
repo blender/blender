@@ -160,6 +160,51 @@ static void eevee_render_result_combined(
 	DRW_framebuffer_read_data(rr->xof, rr->yof, rr->rectx, rr->recty, 4, 0, rp->rect);
 }
 
+static void eevee_render_result_subsurface(
+        RenderResult *rr, const char *viewname,
+        EEVEE_Data *vedata, EEVEE_ViewLayerData *UNUSED(sldata))
+{
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	ViewLayer *view_layer = draw_ctx->view_layer;
+
+	if ((view_layer->passflag & SCE_PASS_SUBSURFACE_COLOR) != 0) {
+		RenderLayer *rl = rr->layers.first;
+		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_SUBSURFACE_COLOR, viewname);
+
+		IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
+		float render_samples = (float)BKE_collection_engine_property_value_get_int(props, "taa_render_samples");
+
+		DRW_framebuffer_bind(vedata->fbl->sss_accum_fb);
+		DRW_framebuffer_read_data(rr->xof, rr->yof, rr->rectx, rr->recty, 3, 1, rp->rect);
+
+		/* This is the accumulated color. Divide by the number of samples. */
+		for (int i = 0; i < rr->rectx * rr->recty * 3; i++) {
+			rp->rect[i] /= render_samples;
+		}
+	}
+
+	if ((view_layer->passflag & SCE_PASS_SUBSURFACE_DIRECT) != 0) {
+		RenderLayer *rl = rr->layers.first;
+		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_SUBSURFACE_DIRECT, viewname);
+
+		IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
+		float render_samples = (float)BKE_collection_engine_property_value_get_int(props, "taa_render_samples");
+
+		DRW_framebuffer_bind(vedata->fbl->sss_accum_fb);
+		DRW_framebuffer_read_data(rr->xof, rr->yof, rr->rectx, rr->recty, 3, 0, rp->rect);
+
+		/* This is the accumulated color. Divide by the number of samples. */
+		for (int i = 0; i < rr->rectx * rr->recty * 3; i++) {
+			rp->rect[i] /= render_samples;
+		}
+	}
+
+	if ((view_layer->passflag & SCE_PASS_SUBSURFACE_INDIRECT) != 0) {
+		/* Do nothing as all the lighting is in the direct pass.
+		 * TODO : Separate Direct from indirect lighting. */
+	}
+}
+
 static void eevee_render_result_normal(
         RenderResult *rr, const char *viewname,
         EEVEE_Data *vedata, EEVEE_ViewLayerData *UNUSED(sldata))
@@ -253,6 +298,13 @@ void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *engine, struct D
 	EEVEE_lights_cache_finish(sldata);
 	EEVEE_lightprobes_cache_finish(sldata, vedata);
 
+	if ((view_layer->passflag & (SCE_PASS_SUBSURFACE_COLOR |
+	                             SCE_PASS_SUBSURFACE_DIRECT |
+	                             SCE_PASS_SUBSURFACE_INDIRECT)) != 0)
+	{
+		EEVEE_subsurface_output_init(sldata, vedata);
+	}
+
 	/* Init render result. */
 	const char *viewname = NULL;
 	const float *render_size = DRW_viewport_size_get();
@@ -304,13 +356,12 @@ void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *engine, struct D
 		/* Effects pre-transparency */
 		EEVEE_subsurface_compute(sldata, vedata);
 		EEVEE_reflection_compute(sldata, vedata);
-		EEVEE_occlusion_draw_debug(sldata, vedata);
-		DRW_draw_pass(psl->probe_display);
 		EEVEE_refraction_compute(sldata, vedata);
 		/* Opaque refraction */
 		DRW_draw_pass(psl->refract_depth_pass);
 		DRW_draw_pass(psl->refract_depth_pass_cull);
 		DRW_draw_pass(psl->refract_pass);
+		EEVEE_subsurface_output_accumulate(sldata, vedata);
 		/* Result NORMAL */
 		eevee_render_result_normal(rr, viewname, vedata, sldata);
 		/* Volumetrics Resolve Opaque */
@@ -324,8 +375,8 @@ void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *engine, struct D
 		EEVEE_draw_effects(sldata, vedata);
 	}
 
-	/* Result Combined */
 	eevee_render_result_combined(rr, viewname, vedata, sldata);
+	eevee_render_result_subsurface(rr, viewname, vedata, sldata);
 
 	RE_engine_end_result(engine, rr, false, false, false);
 }

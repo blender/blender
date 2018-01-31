@@ -1105,6 +1105,7 @@ void DRW_shgroup_state_disable(DRWShadingGroup *shgroup, DRWState state)
 
 void DRW_shgroup_stencil_mask(DRWShadingGroup *shgroup, unsigned int mask)
 {
+	BLI_assert(mask <= 255);
 	shgroup->stencil_mask = mask;
 }
 

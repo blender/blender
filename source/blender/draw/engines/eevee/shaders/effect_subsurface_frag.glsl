@@ -18,7 +18,10 @@ uniform sampler2DArray utilTex;
 #define texelfetch_noise_tex(coord) texelFetch(utilTex, ivec3(ivec2(coord) % LUT_SIZE, 2.0), 0)
 #endif /* UTIL_TEX */
 
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
+#ifdef RESULT_ACCUM
+layout(location = 1) out vec4 sssColor;
+#endif
 
 uniform mat4 ProjectionMatrix;
 
@@ -84,10 +87,15 @@ void main(void)
 #ifdef FIRST_PASS
 	FragColor = vec4(accum, sss_data.a);
 #else /* SECOND_PASS */
-	#ifdef USE_SEP_ALBEDO
-	FragColor = vec4(accum * texture(sssAlbedo, uvs).rgb, 1.0);
-	#else
+# ifdef USE_SEP_ALBEDO
+#  ifdef RESULT_ACCUM
 	FragColor = vec4(accum, 1.0);
-	#endif
+	sssColor = texture(sssAlbedo, uvs);
+#  else
+	FragColor = vec4(accum * texture(sssAlbedo, uvs).rgb, 1.0);
+#  endif
+# else
+	FragColor = vec4(accum, 1.0);
+# endif
 #endif
 }
