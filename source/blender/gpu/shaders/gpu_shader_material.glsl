@@ -2978,7 +2978,9 @@ void node_bsdf_refraction(vec4 color, float roughness, float ior, vec3 N, out Cl
 	color.rgb *= (refractionDepth > 0.0) ? color.rgb : vec3(1.0); /* Simulate 2 absorption event. */
 	roughness = sqrt(roughness);
 	eevee_closure_refraction(N, roughness, ior, out_refr);
+	vec3 vN = normalize(mat3(ViewMatrix) * N);
 	result = CLOSURE_DEFAULT;
+	result.ssr_normal = normal_encode(vN, viewCameraVec);
 	result.radiance = out_refr * color.rgb;
 	result.ssr_id = REFRACT_CLOSURE_FLAG;
 #else
