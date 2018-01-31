@@ -2160,6 +2160,7 @@ static void rna_def_wipe(StructRNA *srna)
 	prop = RNA_def_property(srna, "transition_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "wipetype");
 	RNA_def_property_enum_items(prop, wipe_type_items);
+	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SEQUENCE);
 	RNA_def_property_ui_text(prop, "Transition Type", "");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 }
