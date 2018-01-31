@@ -1782,7 +1782,7 @@ static void draw_geometry_prepare(
 	GPU_shader_uniform_vector(shgroup->shader, interface->modelviewinverse, 16, 1, (float *)mvi);
 	GPU_shader_uniform_vector(shgroup->shader, interface->normal, 9, 1, (float *)n);
 	GPU_shader_uniform_vector(shgroup->shader, interface->worldnormal, 9, 1, (float *)wn);
-	GPU_shader_uniform_vector(shgroup->shader, interface->camtexfac, 4, 1, (float *)rv3d->viewcamtexcofac);
+	GPU_shader_uniform_vector(shgroup->shader, interface->camtexfac, 4, 1, (float *)viewcamtexcofac);
 	GPU_shader_uniform_vector(shgroup->shader, interface->orcotexfac, 3, 2, (float *)orcofacs);
 	GPU_shader_uniform_vector(shgroup->shader, interface->eye, 3, 1, (float *)eye);
 	GPU_shader_uniform_vector(shgroup->shader, interface->clipplanes, 4, DST.num_clip_planes, (float *)DST.clip_planes_eq);
