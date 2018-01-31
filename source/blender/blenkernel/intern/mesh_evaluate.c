@@ -247,13 +247,6 @@ static void mesh_calc_normals_poly_prepare_cb(void *userdata, const int pidx)
 	}
 }
 
-static void mesh_calc_normals_poly_accum_cb(void *userdata, const int lidx)
-{
-	MeshCalcNormalsData *data = userdata;
-
-	add_v3_v3(data->vnors[data->mloop[lidx].v], data->lnors_weighted[lidx]);
-}
-
 static void mesh_calc_normals_poly_finalize_cb(void *userdata, const int vidx)
 {
 	MeshCalcNormalsData *data = userdata;
@@ -312,7 +305,11 @@ void BKE_mesh_calc_normals_poly(
 	BLI_task_parallel_range(0, numPolys, &data, mesh_calc_normals_poly_prepare_cb, do_threaded);
 
 	/* Actually accumulate weighted loop normals into vertex ones. */
-	BLI_task_parallel_range(0, numLoops, &data, mesh_calc_normals_poly_accum_cb, do_threaded);
+	/* Unfortunately, not possible to thread that (not in a reasonable, totally lock- and barrier-free fashion),
+	 * since several loops will point to the same vertex... */
+	for (int lidx = 0; lidx < numLoops; lidx++) {
+		add_v3_v3(vnors[mloop[lidx].v], data.lnors_weighted[lidx]);
+	}
 
 	/* Normalize and validate computed vertex normals. */
 	BLI_task_parallel_range(0, numVerts, &data, mesh_calc_normals_poly_finalize_cb, do_threaded);
