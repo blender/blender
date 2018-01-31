@@ -239,13 +239,19 @@ void EEVEE_subsurface_compute(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 
 		DRW_framebuffer_texture_detach(dtxl->depth);
 
-		/* First horizontal pass */
+		/* 1. horizontal pass */
 		DRW_framebuffer_bind(fbl->sss_blur_fb);
 		DRW_framebuffer_clear(true, false, false, clear, 0.0f);
 		DRW_draw_pass(psl->sss_blur_ps);
 
-		/* First vertical pass + Resolve */
+		/* 2. vertical pass + Resolve */
 		DRW_framebuffer_texture_detach(txl->sss_stencil);
+		if ((effects->enabled_effects & EFFECT_NORMAL_BUFFER) != 0) {
+			DRW_framebuffer_texture_detach(txl->ssr_normal_input);
+		}
+		if ((effects->enabled_effects & EFFECT_SSR) != 0) {
+			DRW_framebuffer_texture_detach(txl->ssr_specrough_input);
+		}
 		DRW_framebuffer_texture_attach(fbl->main, txl->sss_stencil, 0, 0);
 		DRW_framebuffer_bind(fbl->main);
 		DRW_draw_pass(psl->sss_resolve_ps);
@@ -254,6 +260,12 @@ void EEVEE_subsurface_compute(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 		DRW_framebuffer_texture_detach(txl->sss_stencil);
 		DRW_framebuffer_texture_attach(fbl->sss_blur_fb, txl->sss_stencil, 0, 0);
 		DRW_framebuffer_texture_attach(fbl->main, dtxl->depth, 0, 0);
+		if ((effects->enabled_effects & EFFECT_NORMAL_BUFFER) != 0) {
+			DRW_framebuffer_texture_attach(fbl->main, txl->ssr_normal_input, 1, 0);
+		}
+		if ((effects->enabled_effects & EFFECT_SSR) != 0) {
+			DRW_framebuffer_texture_attach(fbl->main, txl->ssr_specrough_input, 2, 0);
+		}
 
 		DRW_stats_group_end();
 	}
