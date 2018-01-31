@@ -149,8 +149,98 @@ void EEVEE_render_cache(
 	}
 }
 
-void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *UNUSED(engine), struct Depsgraph *UNUSED(depsgraph))
+static void eevee_render_result_combined(
+        RenderResult *rr, const char *viewname,
+        EEVEE_Data *vedata, EEVEE_ViewLayerData *UNUSED(sldata))
 {
+	RenderLayer *rl = rr->layers.first;
+	RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_COMBINED, viewname);
+
+	DRW_framebuffer_bind(vedata->stl->effects->final_fb);
+	DRW_framebuffer_read_data(rr->xof, rr->yof, rr->rectx, rr->recty, 4, 0, rp->rect);
+}
+
+static void eevee_render_result_normal(
+        RenderResult *rr, const char *viewname,
+        EEVEE_Data *vedata, EEVEE_ViewLayerData *UNUSED(sldata))
+{
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	ViewLayer *view_layer = draw_ctx->view_layer;
+	EEVEE_StorageList *stl = vedata->stl;
+	EEVEE_PrivateData *g_data = stl->g_data;
+
+	/* Only read the center texel. */
+	if (stl->effects->taa_current_sample > 1)
+		return;
+
+	if ((view_layer->passflag & SCE_PASS_NORMAL) != 0) {
+		RenderLayer *rl = rr->layers.first;
+		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_NORMAL, viewname);
+
+		DRW_framebuffer_read_data(rr->xof, rr->yof, rr->rectx, rr->recty, 3, 1, rp->rect);
+
+		/* Convert Eevee encoded normals to Blender normals. */
+		for (int i = 0; i < rr->rectx * rr->recty * 3; i += 3) {
+			float fenc[2];
+			fenc[0] = rp->rect[i+0] * 4.0f - 2.0f;
+			fenc[1] = rp->rect[i+1] * 4.0f - 2.0f;
+
+			float f = dot_v2v2(fenc, fenc);
+			float g = sqrtf(1.0f - f / 4.0f);
+
+			rp->rect[i+0] = fenc[0] * g;
+			rp->rect[i+1] = fenc[1] * g;
+			rp->rect[i+2] = 1.0f - f / 2.0f;
+
+			mul_mat3_m4_v3(g_data->viewinv, &rp->rect[i]);
+		}
+	}
+}
+
+static void eevee_render_result_z(
+        RenderResult *rr, const char *viewname,
+        EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata)
+{
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	ViewLayer *view_layer = draw_ctx->view_layer;
+	EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
+	EEVEE_StorageList *stl = vedata->stl;
+	EEVEE_PrivateData *g_data = stl->g_data;
+
+	/* Only read the center texel. */
+	if (stl->effects->taa_current_sample > 1)
+		return;
+
+	if ((view_layer->passflag & SCE_PASS_Z) != 0) {
+		RenderLayer *rl = rr->layers.first;
+		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_Z, viewname);
+
+		DRW_framebuffer_read_depth(rr->xof, rr->yof, rr->rectx, rr->recty, rp->rect);
+
+		bool is_persp = DRW_viewport_is_persp_get();
+
+		/* Convert ogl depth [0..1] to view Z [near..far] */
+		for (int i = 0; i < rr->rectx * rr->recty; ++i) {
+			if (rp->rect[i] == 1.0f ) {
+				rp->rect[i] = 1e10f; /* Background */
+			}
+			else {
+				if (is_persp) {
+					rp->rect[i] = rp->rect[i] * 2.0f - 1.0f;
+					rp->rect[i] = g_data->winmat[3][2] / (rp->rect[i] + g_data->winmat[2][2]);
+				}
+				else {
+					rp->rect[i] = -common_data->view_vecs[0][2] + rp->rect[i] * -common_data->view_vecs[1][2];
+				}
+			}
+		}
+	}
+}
+
+void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *engine, struct Depsgraph *UNUSED(depsgraph))
+{
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	ViewLayer *view_layer = draw_ctx->view_layer;
 	EEVEE_PassList *psl = vedata->psl;
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
@@ -163,8 +253,12 @@ void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *UNUSED(engine), 
 	EEVEE_lights_cache_finish(sldata);
 	EEVEE_lightprobes_cache_finish(sldata, vedata);
 
-	const DRWContextState *draw_ctx = DRW_context_state_get();
-	ViewLayer *view_layer = draw_ctx->view_layer;
+	/* Init render result. */
+	const char *viewname = NULL;
+	const float *render_size = DRW_viewport_size_get();
+
+	RenderResult *rr = RE_engine_begin_result(engine, 0, 0, (int)render_size[0], (int)render_size[1], NULL, viewname);
+
 	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
 	unsigned int render_samples = BKE_collection_engine_property_value_get_int(props, "taa_render_samples");
 
@@ -216,63 +310,21 @@ void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *UNUSED(engine), 
 		DRW_draw_pass(psl->refract_depth_pass);
 		DRW_draw_pass(psl->refract_depth_pass_cull);
 		DRW_draw_pass(psl->refract_pass);
+		/* Result NORMAL */
+		eevee_render_result_normal(rr, viewname, vedata, sldata);
 		/* Volumetrics Resolve Opaque */
 		EEVEE_volumes_resolve(sldata, vedata);
 		/* Transparent */
 		DRW_pass_sort_shgroup_z(psl->transparent_pass);
 		DRW_draw_pass(psl->transparent_pass);
+		/* Result Z */
+		eevee_render_result_z(rr, viewname, vedata, sldata);
 		/* Post Process */
 		EEVEE_draw_effects(sldata, vedata);
 	}
-}
 
-void EEVEE_render_output(EEVEE_Data *vedata, RenderEngine *engine, struct Depsgraph *UNUSED(depsgraph))
-{
-	const DRWContextState *draw_ctx = DRW_context_state_get();
-	ViewLayer *view_layer = draw_ctx->view_layer;
-	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
-	EEVEE_FramebufferList *fbl = vedata->fbl;
-	EEVEE_StorageList *stl = vedata->stl;
-	EEVEE_PrivateData *g_data = stl->g_data;
-	EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
-
-	const char *viewname = NULL;
-	const float *render_size = DRW_viewport_size_get();
-
-	/* Combined */
-	RenderResult *rr = RE_engine_begin_result(engine, 0, 0, (int)render_size[0], (int)render_size[1], NULL, viewname);
-	RenderLayer *rl = rr->layers.first;
-	RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_COMBINED, viewname);
-
-	DRW_framebuffer_bind(stl->effects->final_fb);
-	DRW_framebuffer_read_data(rr->xof, rr->yof, rr->rectx, rr->recty, 4, 0, rp->rect);
-
-	if (view_layer->passflag & SCE_PASS_Z) {
-		rp = RE_pass_find_by_name(rl, RE_PASSNAME_Z, viewname);
-
-		DRW_framebuffer_texture_attach(fbl->main, dtxl->depth, 0, 0);
-		DRW_framebuffer_bind(fbl->main);
-		DRW_framebuffer_read_depth(rr->xof, rr->yof, rr->rectx, rr->recty, rp->rect);
-
-		bool is_persp = DRW_viewport_is_persp_get();
-
-		/* Convert ogl depth [0..1] to view Z [near..far] */
-		for (int i = 0; i < rr->rectx * rr->recty; ++i) {
-			if (rp->rect[i] == 1.0f ) {
-				rp->rect[i] = 1e10f; /* Background */
-			}
-			else {
-				if (is_persp) {
-					rp->rect[i] = rp->rect[i] * 2.0f - 1.0f;
-					rp->rect[i] = g_data->winmat[3][2] / (rp->rect[i] + g_data->winmat[2][2]);
-				}
-				else {
-					rp->rect[i] = -common_data->view_vecs[0][2] + rp->rect[i] * -common_data->view_vecs[1][2];
-				}
-			}
-		}
-	}
+	/* Result Combined */
+	eevee_render_result_combined(rr, viewname, vedata, sldata);
 
 	RE_engine_end_result(engine, rr, false, false, false);
 }

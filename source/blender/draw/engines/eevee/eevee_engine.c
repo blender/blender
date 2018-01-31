@@ -377,10 +377,9 @@ static void eevee_render_to_image(void *vedata, struct RenderEngine *engine, str
 	EEVEE_render_init(vedata, engine, depsgraph);
 
 	DRW_render_object_iter(vedata, engine, depsgraph, EEVEE_render_cache);
+
 	/* Actually do the rendering. */
 	EEVEE_render_draw(vedata, engine, depsgraph);
-	/* Write outputs to RenderResult. */
-	EEVEE_render_output(vedata, engine, depsgraph);
 }
 
 static void eevee_engine_free(void)
