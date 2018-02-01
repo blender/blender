@@ -843,10 +843,14 @@ static int rna_ViewLayer_objects_selected_skip(CollectionPropertyIterator *iter,
 
 static PointerRNA rna_ViewLayer_depsgraph_get(PointerRNA *ptr)
 {
-	Scene *scene = (Scene *)ptr->id.data;
-	ViewLayer *view_layer = (ViewLayer *)ptr->data;
-	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, false);
-	return rna_pointer_inherit_refine(ptr, &RNA_Depsgraph, depsgraph);
+	ID *id = ptr->id.data;
+	if (GS(id->name) == ID_SCE) {
+		Scene *scene = (Scene *)id;
+		ViewLayer *view_layer = (ViewLayer *)ptr->data;
+		Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, false);
+		return rna_pointer_inherit_refine(ptr, &RNA_Depsgraph, depsgraph);
+	}
+	return PointerRNA_NULL;
 }
 
 static void rna_LayerObjects_selected_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
