@@ -2478,8 +2478,7 @@ uint hash(int kx, int ky, int kz)
 
 float bits_to_01(uint bits)
 {
-	float x = float(bits) * (1.0 / float(0xffffffffu));
-	return x;
+	return (float(bits) / 4294967295.0);
 }
 
 float cellnoise(vec3 p)
@@ -3314,17 +3313,29 @@ float noise_perlin(float x, float y, float z)
 	float v = noise_fade(fy);
 	float w = noise_fade(fz);
 
-	float result;
+	float noise_u[2], noise_v[2];
 
-	result = noise_nerp(w, noise_nerp(v, noise_nerp(u, noise_grad(hash(X, Y, Z), fx, fy, fz),
-	                                                noise_grad(hash(X + 1, Y, Z), fx - 1.0, fy, fz)),
-	                                  noise_nerp(u, noise_grad(hash(X, Y + 1, Z), fx, fy - 1.0, fz),
-	                                             noise_grad(hash(X + 1, Y + 1, Z), fx - 1.0, fy - 1.0, fz))),
-	                    noise_nerp(v, noise_nerp(u, noise_grad(hash(X, Y, Z + 1), fx, fy, fz - 1.0),
-	                                             noise_grad(hash(X + 1, Y, Z + 1), fx - 1.0, fy, fz - 1.0)),
-	                               noise_nerp(u, noise_grad(hash(X, Y + 1, Z + 1), fx, fy - 1.0, fz - 1.0),
-	                                          noise_grad(hash(X + 1, Y + 1, Z + 1), fx - 1.0, fy - 1.0, fz - 1.0))));
-	return noise_scale3(result);
+	noise_u[0] = noise_nerp(u,
+	        noise_grad(hash(X, Y, Z), fx, fy, fz),
+	        noise_grad(hash(X + 1, Y, Z), fx - 1.0, fy, fz));
+
+	noise_u[1] = noise_nerp(u,
+	        noise_grad(hash(X, Y + 1, Z), fx, fy - 1.0, fz),
+	        noise_grad(hash(X + 1, Y + 1, Z), fx - 1.0, fy - 1.0, fz));
+
+	noise_v[0] = noise_nerp(v, noise_u[0], noise_u[1]);
+
+	noise_u[0] = noise_nerp(u,
+	        noise_grad(hash(X, Y, Z + 1), fx, fy, fz - 1.0),
+	        noise_grad(hash(X + 1, Y, Z + 1), fx - 1.0, fy, fz - 1.0));
+
+	noise_u[1] = noise_nerp(u,
+	        noise_grad(hash(X, Y + 1, Z + 1), fx, fy - 1.0, fz - 1.0),
+	        noise_grad(hash(X + 1, Y + 1, Z + 1), fx - 1.0, fy - 1.0, fz - 1.0));
+
+	noise_v[1] = noise_nerp(v, noise_u[0], noise_u[1]);
+
+	return noise_scale3(noise_nerp(w, noise_v[0], noise_v[1]));
 }
 
 float noise(vec3 p)
