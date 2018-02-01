@@ -141,6 +141,23 @@ static int rna_SceneCollection_move_into(ID *id, SceneCollection *sc_src, Main *
 	return 1;
 }
 
+static SceneCollection *rna_SceneCollection_duplicate(
+        ID *id, SceneCollection *scene_collection, Main *bmain, bContext *C, ReportList *reports)
+{
+	if (scene_collection == BKE_collection_master(id)) {
+		BKE_report(reports, RPT_ERROR, "The master collection can't be duplicated");
+		return NULL;
+	}
+
+	SceneCollection *scene_collection_new = BKE_collection_duplicate(id, scene_collection);
+
+	DEG_relations_tag_update(bmain);
+	/* Don't use id here, since the layer collection may come from a group. */
+	WM_event_add_notifier(C, NC_SCENE | ND_LAYER, CTX_data_scene(C));
+
+	return scene_collection_new;
+}
+
 static SceneCollection *rna_SceneCollection_new(
         ID *id, SceneCollection *sc_parent, Main *bmain, const char *name)
 {
@@ -717,6 +734,23 @@ static Group *rna_LayerCollection_create_group(
 	return group;
 }
 
+static LayerCollection *rna_LayerCollection_duplicate(
+        ID *id, LayerCollection *layer_collection, Main *bmain, bContext *C, ReportList *reports)
+{
+	if (layer_collection->scene_collection == BKE_collection_master(id)) {
+		BKE_report(reports, RPT_ERROR, "The master collection can't be duplicated");
+		return NULL;
+	}
+
+	LayerCollection *layer_collection_new = BKE_layer_collection_duplicate(id, layer_collection);
+
+	DEG_relations_tag_update(bmain);
+	/* Don't use id here, since the layer collection may come from a group. */
+	WM_event_add_notifier(C, NC_SCENE | ND_LAYER, CTX_data_scene(C));
+
+	return layer_collection_new;
+}
+
 static int rna_LayerCollections_active_collection_index_get(PointerRNA *ptr)
 {
 	ViewLayer *view_layer = (ViewLayer *)ptr->data;
@@ -1083,6 +1117,12 @@ static void rna_def_scene_collection(BlenderRNA *brna)
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
 	parm = RNA_def_pointer(func, "sc_dst", "SceneCollection", "Collection", "Collection to insert into");
 	parm = RNA_def_boolean(func, "result", false, "Result", "Whether the operation succeded");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "duplicate", "rna_SceneCollection_duplicate");
+	RNA_def_function_ui_description(func, "Create a copy of the collection");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+	parm = RNA_def_pointer(func, "result", "SceneCollection", "", "Newly created collection");
 	RNA_def_function_return(func, parm);
 }
 
@@ -1996,6 +2036,12 @@ static void rna_def_layer_collection(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Enable or disable a collection");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "result", "Group", "", "Newly created Group");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "duplicate", "rna_LayerCollection_duplicate");
+	RNA_def_function_ui_description(func, "Create a copy of the collection");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+	parm = RNA_def_pointer(func, "result", "LayerCollection", "", "Newly created collection");
 	RNA_def_function_return(func, parm);
 
 	/* Flags */

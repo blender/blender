@@ -344,6 +344,7 @@ void OUTLINER_OT_collection_toggle(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_link(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_unlink(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_new(struct wmOperatorType *ot);
+void OUTLINER_OT_collection_duplicate(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_objects_remove(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_objects_select(struct wmOperatorType *ot);
 

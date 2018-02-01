@@ -195,6 +195,7 @@ class OUTLINER_MT_context_scene_collection(Menu):
         layout = self.layout
 
         layout.operator("outliner.collection_nested_new", text="New Collection", icon='NEW')
+        layout.operator("outliner.collection_duplicate", text="Duplicate Collection")
         layout.operator("outliner.collection_delete_selected", text="Delete Collections", icon='X')
         layout.separator()
         layout.operator("outliner.collection_objects_add", text="Add Selected", icon='ZOOMIN')

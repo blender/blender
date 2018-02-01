@@ -61,6 +61,7 @@
 
 /* prototype */
 struct EngineSettingsCB_Type;
+static void layer_collections_sync_flags(ListBase *layer_collections_dst, const ListBase *layer_collections_src);
 static void layer_collection_free(ViewLayer *view_layer, LayerCollection *lc);
 static void layer_collection_objects_populate(ViewLayer *view_layer, LayerCollection *lc, ListBase *objects);
 static LayerCollection *layer_collection_add(ViewLayer *view_layer, LayerCollection *parent, SceneCollection *sc);
@@ -353,27 +354,94 @@ static SceneCollection *scene_collection_from_new_tree(
 	return NULL;
 }
 
+static void layer_collection_sync_flags(
+        LayerCollection *layer_collection_dst,
+        const LayerCollection *layer_collection_src)
+{
+	layer_collection_dst->flag = layer_collection_src->flag;
+
+	if (layer_collection_dst->properties != NULL) {
+		IDP_FreeProperty(layer_collection_dst->properties);
+		MEM_SAFE_FREE(layer_collection_dst->properties);
+	}
+
+	if (layer_collection_src->properties != NULL) {
+		layer_collection_dst->properties = IDP_CopyProperty(layer_collection_src->properties);
+	}
+
+	layer_collections_sync_flags(&layer_collection_dst->layer_collections,
+	                             &layer_collection_src->layer_collections);
+}
+
 static void layer_collections_sync_flags(ListBase *layer_collections_dst, const ListBase *layer_collections_src)
 {
 	LayerCollection *layer_collection_dst = (LayerCollection *)layer_collections_dst->first;
 	const LayerCollection *layer_collection_src = (const LayerCollection *)layer_collections_src->first;
 	while (layer_collection_dst != NULL) {
-		layer_collection_dst->flag = layer_collection_src->flag;
-
-		if (layer_collection_dst->properties != NULL) {
-			IDP_FreeProperty(layer_collection_dst->properties);
-			MEM_SAFE_FREE(layer_collection_dst->properties);
-		}
-
-		if (layer_collection_src->properties != NULL) {
-			layer_collection_dst->properties = IDP_CopyProperty(layer_collection_src->properties);
-		}
-
-		layer_collections_sync_flags(&layer_collection_dst->layer_collections,
-		                             &layer_collection_src->layer_collections);
-
+		layer_collection_sync_flags(layer_collection_dst, layer_collection_src);
 		layer_collection_dst = layer_collection_dst->next;
 		layer_collection_src = layer_collection_src->next;
+	}
+}
+
+static bool layer_collection_sync_if_match(
+        ListBase *lb,
+        const SceneCollection *scene_collection_dst,
+        const SceneCollection *scene_collection_src)
+{
+	for (LayerCollection *layer_collection = lb->first;
+	     layer_collection;
+	     layer_collection = layer_collection->next)
+	{
+		if (layer_collection->scene_collection == scene_collection_src) {
+			LayerCollection *layer_collection_dst =
+			        BLI_findptr(
+			            lb,
+			            scene_collection_dst,
+			            offsetof(LayerCollection, scene_collection));
+
+			if (layer_collection_dst != NULL) {
+				layer_collection_sync_flags(layer_collection_dst, layer_collection);
+			}
+			return true;
+		}
+		else {
+			if (layer_collection_sync_if_match(
+			        &layer_collection->layer_collections,
+			        scene_collection_dst,
+			        scene_collection_src))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+/**
+ * Sync sibling collections across all view layers
+ *
+ * Make sure every linked instance of \a scene_collection_dst has the same values
+ * (flags, overrides, ...) as the corresponding scene_collection_src.
+ *
+ * \note expect scene_collection_dst to be scene_collection_src->next, and it also
+ * expects both collections to have the same ammount of sub-collections.
+ */
+void BKE_layer_collection_sync_flags(
+        ID *owner_id,
+        SceneCollection *scene_collection_dst,
+        SceneCollection *scene_collection_src)
+{
+	for (ViewLayer *view_layer = BKE_view_layer_first_from_id(owner_id); view_layer; view_layer = view_layer->next) {
+		for (LayerCollection *layer_collection = view_layer->layer_collections.first;
+		     layer_collection;
+		     layer_collection = layer_collection->next)
+		{
+			layer_collection_sync_if_match(
+			            &layer_collection->layer_collections,
+			            scene_collection_dst,
+			            scene_collection_src);
+		}
 	}
 }
 
@@ -436,6 +504,78 @@ void BKE_view_layer_copy_data(
 			view_layer_dst->basact = base_dst;
 		}
 	}
+}
+
+/**
+ * Find and return the ListBase of LayerCollection that has \a lc_child as one of its directly
+ * nested LayerCollection.
+ *
+ * \param lb_parent Initial ListBase of LayerCollection to look into recursively
+ * usually the view layer's collection list
+ */
+static ListBase *find_layer_collection_parent_list_base(ListBase *lb_parent, const LayerCollection *lc_child)
+{
+	for (LayerCollection *lc_nested = lb_parent->first; lc_nested; lc_nested = lc_nested->next) {
+		if (lc_nested == lc_child) {
+			return lb_parent;
+		}
+
+		ListBase *found = find_layer_collection_parent_list_base(&lc_nested->layer_collections, lc_child);
+		if (found != NULL) {
+			return found;
+		}
+	}
+
+	return NULL;
+}
+
+/**
+ * Makes a shallow copy of a LayerCollection
+ *
+ * Add a new collection in the same level as the old one (linking if necessary),
+ * and copy all the collection data across them.
+ */
+struct LayerCollection *BKE_layer_collection_duplicate(struct ID *owner_id, struct LayerCollection *layer_collection)
+{
+	SceneCollection *scene_collection, *scene_collection_new;
+
+	scene_collection = layer_collection->scene_collection;
+	scene_collection_new = BKE_collection_duplicate(owner_id, scene_collection);
+
+	LayerCollection *layer_collection_new = NULL;
+
+	/* If the original layer_collection was directly linked to the view layer
+	   we need to link the new scene collection here as well. */
+	for (ViewLayer *view_layer = BKE_view_layer_first_from_id(owner_id); view_layer; view_layer = view_layer->next) {
+		if (BLI_findindex(&view_layer->layer_collections, layer_collection) != -1) {
+			layer_collection_new = BKE_collection_link(view_layer, scene_collection_new);
+			layer_collection_sync_flags(layer_collection_new, layer_collection);
+
+			if (layer_collection_new != layer_collection->next) {
+				BLI_remlink(&view_layer->layer_collections, layer_collection_new);
+				BLI_insertlinkafter(&view_layer->layer_collections, layer_collection, layer_collection_new);
+			}
+			break;
+		}
+	}
+
+	/* Otherwise just try to find the corresponding layer collection to return it back. */
+	if (layer_collection_new == NULL) {
+		for (ViewLayer *view_layer = BKE_view_layer_first_from_id(owner_id); view_layer; view_layer = view_layer->next) {
+			ListBase *layer_collections_parent;
+			layer_collections_parent = find_layer_collection_parent_list_base(
+			                               &view_layer->layer_collections,
+			                               layer_collection);
+			if (layer_collections_parent != NULL) {
+				layer_collection_new = BLI_findptr(
+										   layer_collections_parent,
+										   scene_collection_new,
+										   offsetof(LayerCollection, scene_collection));
+				break;
+			}
+		}
+	}
+	return layer_collection_new;
 }
 
 static void view_layer_object_base_unref(ViewLayer *view_layer, Base *base)

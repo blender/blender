@@ -91,6 +91,12 @@ static int view_layer_editor_poll(bContext *C)
 	return (so != NULL) && (so->outlinevis == SO_VIEW_LAYER);
 }
 
+static int outliner_either_collection_editor_poll(bContext *C)
+{
+	SpaceOops *so = CTX_wm_space_outliner(C);
+	return (so != NULL) && (ELEM(so->outlinevis, SO_VIEW_LAYER, SO_COLLECTIONS));
+}
+
 /* -------------------------------------------------------------------- */
 /* collection manager operators */
 
@@ -815,6 +821,80 @@ void OUTLINER_OT_collection_objects_select(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = collection_objects_select_exec;
 	ot->poll = view_layer_editor_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+struct CollectionDuplicateData {
+	TreeElement *te;
+};
+
+static TreeTraversalAction outliner_find_first_selected_collection(TreeElement *te, void *customdata)
+{
+	struct CollectionDuplicateData *data = customdata;
+	TreeStoreElem *tselem = TREESTORE(te);
+
+	switch (tselem->type) {
+		case TSE_LAYER_COLLECTION:
+		case TSE_SCENE_COLLECTION:
+			data->te = te;
+			return TRAVERSE_BREAK;
+		case TSE_LAYER_COLLECTION_BASE:
+		default:
+			return TRAVERSE_CONTINUE;
+	}
+}
+
+static TreeElement *outliner_active_collection(bContext *C)
+{
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+
+	struct CollectionDuplicateData data = {
+		.te = NULL,
+	};
+
+	outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, outliner_find_first_selected_collection, &data);
+	return data.te;
+}
+
+static int collection_duplicate_exec(bContext *C, wmOperator *op)
+{
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	TreeElement *te = outliner_active_collection(C);
+
+	BLI_assert(te != NULL);
+	if (BKE_collection_master(TREESTORE(te)->id) == outliner_scene_collection_from_tree_element(te)) {
+		BKE_report(op->reports, RPT_ERROR, "You can't duplicate the master collection");
+		return OPERATOR_CANCELLED;
+	}
+
+	switch (soops->outlinevis) {
+		case SO_COLLECTIONS:
+			BKE_collection_duplicate(TREESTORE(te)->id, (SceneCollection *)te->directdata);
+			break;
+		case SO_VIEW_LAYER:
+		case SO_GROUPS:
+			BKE_layer_collection_duplicate(TREESTORE(te)->id, (LayerCollection *)te->directdata);
+			break;
+	}
+
+	DEG_relations_tag_update(CTX_data_main(C));
+	WM_main_add_notifier(NC_SCENE | ND_LAYER, CTX_data_scene(C));
+
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_collection_duplicate(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Duplicate Collection";
+	ot->idname = "OUTLINER_OT_collection_duplicate";
+	ot->description = "Duplicate collection";
+
+	/* api callbacks */
+	ot->exec = collection_duplicate_exec;
+	ot->poll = outliner_either_collection_editor_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

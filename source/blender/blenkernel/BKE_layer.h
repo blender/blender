@@ -78,10 +78,17 @@ struct Base *BKE_view_layer_base_find(struct ViewLayer *view_layer, struct Objec
 void BKE_view_layer_base_deselect_all(struct ViewLayer *view_layer);
 void BKE_view_layer_base_select(struct ViewLayer *view_layer, struct Base *selbase);
 
+void BKE_layer_collection_sync_flags(
+        struct ID *owner_id,
+        struct SceneCollection *scene_collection_dst,
+        struct SceneCollection *scene_collection_src);
+
 void BKE_view_layer_copy_data(
         struct ViewLayer *view_layer_dst, struct ViewLayer *view_layer_src,
         struct SceneCollection *mc_dst, struct SceneCollection *mc_src,
         const int flag);
+
+struct LayerCollection *BKE_layer_collection_duplicate(struct ID *owner_id, struct LayerCollection *layer_collection);
 
 void BKE_layer_collection_free(struct ViewLayer *view_layer, struct LayerCollection *lc);
 

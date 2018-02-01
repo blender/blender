@@ -677,6 +677,7 @@ typedef enum eOutliner_PropCollectionOps {
 	OL_COLLECTION_OP_OBJECTS_REMOVE,
 	OL_COLLECTION_OP_OBJECTS_SELECT,
 	OL_COLLECTION_OP_COLLECTION_NEW,
+	OL_COLLECTION_OP_COLLECTION_COPY,
 	OL_COLLECTION_OP_COLLECTION_DEL,
 	OL_COLLECTION_OP_COLLECTION_UNLINK,
 	OL_COLLECTION_OP_GROUP_CREATE,
@@ -873,6 +874,11 @@ static void collection_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tsel
 			BLI_assert(GS(id->name) == ID_SCE);
 			BKE_collection_add(id, sc, COLLECTION_TYPE_NONE, NULL);
 		}
+		WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
+	}
+	else if (event == OL_COLLECTION_OP_COLLECTION_COPY) {
+		BKE_layer_collection_duplicate(id, lc);
+		DEG_relations_tag_update(CTX_data_main(C));
 		WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
 	}
 	else if (event == OL_COLLECTION_OP_COLLECTION_UNLINK) {
@@ -1851,6 +1857,7 @@ static EnumPropertyItem prop_collection_op_types[] = {
 	{OL_COLLECTION_OP_OBJECTS_REMOVE, "OBJECTS_REMOVE", ICON_X, "Remove Selected", "Remove selected objects from collection"},
 	{OL_COLLECTION_OP_OBJECTS_SELECT, "OBJECTS_SELECT", ICON_RESTRICT_SELECT_OFF, "Select Objects", "Selected collection objects"},
 	{OL_COLLECTION_OP_COLLECTION_NEW, "COLLECTION_NEW", ICON_NEW, "New Collection", "Add a new nested collection"},
+	{OL_COLLECTION_OP_COLLECTION_COPY, "COLLECTION_DUPLI", ICON_NONE, "Duplicate Collection", "Duplicate the collection"},
 	{OL_COLLECTION_OP_COLLECTION_UNLINK, "COLLECTION_UNLINK", ICON_UNLINKED, "Unlink", "Unlink collection"},
 	{OL_COLLECTION_OP_COLLECTION_DEL, "COLLECTION_DEL", ICON_X, "Delete Collection", "Delete the collection"},
 	{OL_COLLECTION_OP_GROUP_CREATE, "GROUP_CREATE", ICON_GROUP, "Create Group", "Turn the collection into a group collection"},
