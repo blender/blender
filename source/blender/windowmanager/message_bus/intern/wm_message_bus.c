@@ -86,6 +86,9 @@ void WM_msgbus_clear_by_owner(struct wmMsgBus *mbus, void *owner)
 		for (wmMsgSubscribeValueLink *msg_lnk = msg_key->values.first; msg_lnk; msg_lnk = msg_lnk_next) {
 			msg_lnk_next = msg_lnk->next;
 			if (msg_lnk->params.owner == owner) {
+				if (msg_lnk->params.tag) {
+					mbus->messages_tag_count -= 1;
+				}
 				if (msg_lnk->params.free_data) {
 					msg_lnk->params.free_data(msg_key, &msg_lnk->params);
 				}
