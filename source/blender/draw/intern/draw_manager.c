@@ -3628,12 +3628,17 @@ void DRW_render_to_image(RenderEngine *re, struct Depsgraph *depsgraph)
 	glDisable(GL_SCISSOR_TEST);
 	glViewport(0, 0, size[0], size[1]);
 
-	for (SceneRenderView *srv = r->views.first; srv; srv = srv->next) {
-		if (BKE_scene_multiview_is_render_view_active(r, srv) == false)
-			continue;
+	if ((r->scemode & R_MULTIVIEW) != 0) {
+		for (SceneRenderView *srv = r->views.first; srv; srv = srv->next) {
+			if (BKE_scene_multiview_is_render_view_active(r, srv) == false)
+				continue;
 
-		RE_SetActiveRenderView(render, srv->name);
+			RE_SetActiveRenderView(render, srv->name);
 
+			engine_type->draw_engine->render_to_image(data, re, depsgraph);
+		}
+	}
+	else {
 		engine_type->draw_engine->render_to_image(data, re, depsgraph);
 	}
 
