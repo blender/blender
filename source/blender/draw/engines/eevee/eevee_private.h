@@ -160,6 +160,7 @@ typedef struct EEVEE_PassList {
 	struct DRWPass *ao_horizon_search;
 	struct DRWPass *ao_horizon_search_layer;
 	struct DRWPass *ao_horizon_debug;
+	struct DRWPass *mist_accum_ps;
 	struct DRWPass *motion_blur;
 	struct DRWPass *bloom_blit;
 	struct DRWPass *bloom_downsample_first;
@@ -230,6 +231,7 @@ typedef struct EEVEE_FramebufferList {
 	struct GPUFrameBuffer *volumetric_integ_fb;
 	struct GPUFrameBuffer *screen_tracing_fb;
 	struct GPUFrameBuffer *refract_fb;
+	struct GPUFrameBuffer *mist_accum_fb;
 
 	struct GPUFrameBuffer *update_noise_fb;
 
@@ -251,6 +253,7 @@ typedef struct EEVEE_TextureList {
 	struct GPUTexture *bloom_blit; /* R16_G16_B16 */
 	struct GPUTexture *bloom_downsample[MAX_BLOOM_STEP]; /* R16_G16_B16 */
 	struct GPUTexture *bloom_upsample[MAX_BLOOM_STEP - 1]; /* R16_G16_B16 */
+	struct GPUTexture *mist_accum;
 	struct GPUTexture *sss_dir_accum;
 	struct GPUTexture *sss_col_accum;
 	struct GPUTexture *ssr_normal_input;
@@ -740,6 +743,8 @@ typedef struct EEVEE_PrivateData {
 	float persmat[4][4], persinv[4][4];
 	float viewmat[4][4], viewinv[4][4];
 	float winmat[4][4], wininv[4][4];
+	/* Mist Settings */
+	float mist_start, mist_inv_dist, mist_falloff;
 } EEVEE_PrivateData; /* Transient data */
 
 /* eevee_data.c */
@@ -837,6 +842,11 @@ int EEVEE_motion_blur_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Obje
 void EEVEE_motion_blur_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_motion_blur_draw(EEVEE_Data *vedata);
 void EEVEE_motion_blur_free(void);
+
+/* eevee_mist.c */
+void EEVEE_mist_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_mist_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);;
+void EEVEE_mist_free(void);
 
 /* eevee_temporal_sampling.c */
 int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);

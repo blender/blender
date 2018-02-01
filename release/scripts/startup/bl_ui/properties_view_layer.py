@@ -467,6 +467,7 @@ class VIEWLAYER_PT_eevee_layer_passes(ViewLayerButtonsPanel, Panel):
         col = split.column()
         col.prop(view_layer, "use_pass_combined")
         col.prop(view_layer, "use_pass_z")
+        col.prop(view_layer, "use_pass_mist")
         col.prop(view_layer, "use_pass_normal")
 
         col = split.column()

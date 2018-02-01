@@ -390,6 +390,7 @@ static void eevee_engine_free(void)
 	EEVEE_lightprobes_free();
 	EEVEE_lights_free();
 	EEVEE_materials_free();
+	EEVEE_mist_free();
 	EEVEE_motion_blur_free();
 	EEVEE_occlusion_free();
 	EEVEE_screen_raytrace_free();

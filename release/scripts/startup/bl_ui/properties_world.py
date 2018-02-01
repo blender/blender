@@ -243,6 +243,33 @@ class WORLD_PT_mist(WorldButtonsPanel, Panel):
         layout.prop(world.mist_settings, "falloff")
 
 
+class EEVEE_WORLD_PT_mist(WorldButtonsPanel, Panel):
+    bl_label = "Mist Pass"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        engine = context.engine
+        if context.world and (engine in cls.COMPAT_ENGINES):
+            for view_layer in context.scene.view_layers:
+                if view_layer.use_pass_mist:
+                    return True
+
+        return False
+
+    def draw(self, context):
+        layout = self.layout
+
+        world = context.world
+
+        split = layout.split(align=True)
+        split.prop(world.mist_settings, "start")
+        split.prop(world.mist_settings, "depth")
+
+        layout.prop(world.mist_settings, "falloff")
+
+
 class WORLD_PT_custom_props(WorldButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_EEVEE'}
     _context_path = "world"
@@ -294,6 +321,7 @@ classes = (
     WORLD_PT_mist,
     WORLD_PT_custom_props,
     EEVEE_WORLD_PT_surface,
+    EEVEE_WORLD_PT_mist,
 )
 
 if __name__ == "__main__":  # only for live edit.
