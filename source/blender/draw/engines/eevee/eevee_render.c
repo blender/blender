@@ -339,7 +339,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *engine, struct D
 	}
 
 	/* Init render result. */
-	const char *viewname = NULL;
+	const char *viewname = RE_GetActiveRenderView(engine->re);
 	const float *render_size = DRW_viewport_size_get();
 
 	RenderResult *rr = RE_engine_begin_result(engine, 0, 0, (int)render_size[0], (int)render_size[1], NULL, viewname);

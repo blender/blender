@@ -75,6 +75,7 @@
 #include "IMB_colormanagement.h"
 
 #include "RE_engine.h"
+#include "RE_pipeline.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -3603,6 +3604,7 @@ void DRW_render_to_image(RenderEngine *re, struct Depsgraph *depsgraph)
 	RenderEngineType *engine_type = re->type;
 	DrawEngineType *draw_engine_type = engine_type->draw_engine;
 	RenderData *r = &scene->r;
+	Render *render = re->re;
 
 	/* Reset before using it. */
 	memset(&DST, 0x0, sizeof(DST));
@@ -3626,7 +3628,14 @@ void DRW_render_to_image(RenderEngine *re, struct Depsgraph *depsgraph)
 	glDisable(GL_SCISSOR_TEST);
 	glViewport(0, 0, size[0], size[1]);
 
-	engine_type->draw_engine->render_to_image(data, re, depsgraph);
+	for (SceneRenderView *srv = r->views.first; srv; srv = srv->next) {
+		if (BKE_scene_multiview_is_render_view_active(r, srv) == false)
+			continue;
+
+		RE_SetActiveRenderView(render, srv->name);
+
+		engine_type->draw_engine->render_to_image(data, re, depsgraph);
+	}
 
 	/* TODO grease pencil */
 
