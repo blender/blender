@@ -163,6 +163,12 @@ enum {
 	WO_AOMUL    = 3,
 };
 
+enum {
+	WO_MIST_QUADRATIC          = 0,
+	WO_MIST_LINEAR             = 1,
+	WO_MIST_INVERSE_QUADRATIC  = 2,
+};
+
 /* ao_samp_method - methods for sampling the AO hemi */
 #define WO_AOSAMP_CONSTANT			0
 #define WO_AOSAMP_HALTON			1

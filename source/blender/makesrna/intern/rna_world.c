@@ -396,9 +396,9 @@ static void rna_def_world_mist(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static const EnumPropertyItem falloff_items[] = {
-		{0, "QUADRATIC", 0, "Quadratic", "Use quadratic progression"},
-		{1, "LINEAR", 0, "Linear", "Use linear progression"},
-		{2, "INVERSE_QUADRATIC", 0, "Inverse Quadratic", "Use inverse quadratic progression"},
+		{WO_MIST_QUADRATIC, "QUADRATIC", 0, "Quadratic", "Use quadratic progression"},
+		{WO_MIST_LINEAR, "LINEAR", 0, "Linear", "Use linear progression"},
+		{WO_MIST_INVERSE_QUADRATIC, "INVERSE_QUADRATIC", 0, "Inverse Quadratic", "Use inverse quadratic progression"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
