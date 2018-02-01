@@ -757,3 +757,65 @@ void OUTLINER_OT_collection_toggle(wmOperatorType *ot)
 #undef ACTION_TOGGLE
 #undef ACTION_ENABLE
 #undef ACTION_DISABLE
+
+struct CollectionObjectsSelectData {
+	bool error;
+	LayerCollection *layer_collection;
+};
+
+static TreeTraversalAction outliner_find_first_selected_layer_collection(TreeElement *te, void *customdata)
+{
+	struct CollectionObjectsSelectData *data = customdata;
+	TreeStoreElem *tselem = TREESTORE(te);
+
+	switch (tselem->type) {
+		case TSE_LAYER_COLLECTION:
+			data->layer_collection = te->directdata;
+			return TRAVERSE_BREAK;
+		case TSE_LAYER_COLLECTION_BASE:
+			return TRAVERSE_CONTINUE;
+		default:
+			return TRAVERSE_SKIP_CHILDS;
+	}
+}
+
+static LayerCollection *outliner_active_layer_collection(bContext *C)
+{
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+
+	struct CollectionObjectsSelectData data = {
+		.layer_collection = NULL,
+	};
+
+	outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, outliner_find_first_selected_layer_collection, &data);
+	return data.layer_collection;
+}
+
+static int collection_objects_select_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	LayerCollection *layer_collection = outliner_active_layer_collection(C);
+
+	if (layer_collection == NULL) {
+		return OPERATOR_CANCELLED;
+	}
+
+	BKE_layer_collection_objects_select(layer_collection);
+	WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, CTX_data_scene(C));
+
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_collection_objects_select(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Objects";
+	ot->idname = "OUTLINER_OT_collection_objects_select";
+	ot->description = "Select all the collection objects";
+
+	/* api callbacks */
+	ot->exec = collection_objects_select_exec;
+	ot->poll = view_layer_editor_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}

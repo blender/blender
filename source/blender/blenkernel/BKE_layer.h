@@ -108,6 +108,8 @@ void BKE_collection_enable(struct ViewLayer *view_layer, struct LayerCollection 
 bool BKE_view_layer_has_collection(struct ViewLayer *view_layer, const struct SceneCollection *sc);
 bool BKE_scene_has_object(struct Scene *scene, struct Object *ob);
 
+void BKE_layer_collection_objects_select(struct LayerCollection *layer_collection);
+
 /* syncing */
 
 void BKE_layer_sync_new_scene_collection(struct ID *owner_id, const struct SceneCollection *sc_parent, struct SceneCollection *sc);

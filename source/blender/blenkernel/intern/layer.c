@@ -988,6 +988,34 @@ void BKE_layer_collection_resync(const ID *owner_id, const SceneCollection *sc)
 /* ---------------------------------------------------------------------- */
 
 /**
+ * Select all the objects of this layer collection
+ *
+ * It also select the objects that are in nested collections.
+ * \note Recursive
+ */
+void BKE_layer_collection_objects_select(struct LayerCollection *layer_collection)
+{
+	if ((layer_collection->flag & COLLECTION_DISABLED) ||
+	    ((layer_collection->flag & COLLECTION_SELECTABLE) == 0))
+	{
+		return;
+	}
+
+	for (LinkData *link = layer_collection->object_bases.first; link; link = link->next) {
+		Base *base = link->data;
+		if (base->flag & BASE_SELECTABLED) {
+			base->flag |= BASE_SELECTED;
+		}
+	}
+
+	for (LayerCollection *iter = layer_collection->layer_collections.first; iter; iter = iter->next) {
+		BKE_layer_collection_objects_select(iter);
+	}
+}
+
+/* ---------------------------------------------------------------------- */
+
+/**
  * Link a collection to a renderlayer
  * The collection needs to be created separately
  */

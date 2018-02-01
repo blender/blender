@@ -479,6 +479,7 @@ void outliner_operatortypes(void)
 	WM_operatortype_append(OUTLINER_OT_collection_delete_selected);
 	WM_operatortype_append(OUTLINER_OT_collection_objects_add);
 	WM_operatortype_append(OUTLINER_OT_collection_objects_remove);
+	WM_operatortype_append(OUTLINER_OT_collection_objects_select);
 }
 
 static wmKeyMap *outliner_item_drag_drop_modal_keymap(wmKeyConfig *keyconf)
