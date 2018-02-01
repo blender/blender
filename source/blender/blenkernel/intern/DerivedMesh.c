@@ -1658,7 +1658,7 @@ static void shapekey_layers_to_keyblocks(DerivedMesh *dm, Mesh *me, int actshape
 		cos = CustomData_get_layer_n(&dm->vertData, CD_SHAPEKEY, i);
 		kb->totelem = dm->numVertData;
 
-		kb->data = kbcos = MEM_malloc_arrayN(kb->totelem, sizeof(float), "kbcos DerivedMesh.c");
+		kb->data = kbcos = MEM_malloc_arrayN(kb->totelem, 3 * sizeof(float), "kbcos DerivedMesh.c");
 		if (kb->uid == actshape_uid) {
 			MVert *mvert = dm->getVertArray(dm);
 			
