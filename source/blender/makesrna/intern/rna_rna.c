@@ -1444,6 +1444,12 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 					equals = false;
 					continue;
 				}
+				else if (iter_a.ptr.type == NULL) {
+					/* NULL RNA pointer... */
+					BLI_assert(iter_a.ptr.data == NULL);
+					BLI_assert(iter_b.ptr.data == NULL);
+					continue;
+				}
 
 				PropertyRNA *propname = RNA_struct_name_property(iter_a.ptr.type);
 				char propname_buff_a[256], propname_buff_b[256];
@@ -1475,10 +1481,10 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 				}
 
 				if (propname_a != propname_buff_a) {
-					MEM_freeN(propname_a);
+					MEM_SAFE_FREE(propname_a);
 				}
 				if (propname_b != propname_buff_b) {
-					MEM_freeN(propname_b);
+					MEM_SAFE_FREE(propname_b);
 				}
 				MEM_SAFE_FREE(extended_rna_path);
 
