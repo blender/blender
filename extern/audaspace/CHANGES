@@ -1,0 +1,115 @@
+Audaspace 1.3
+=============
+
+- New features:
+ - linear interpolation for volume changes in the software mixer
+ - dynamic Loading for JACK
+- Bug fixes:
+ - renamed Jack to JACK
+ - C API was not working
+ - filter python API parameter check
+ - finding ffmpeg with pkgconfig
+
+64884a7 Windows fixes.
+53ba3e6 Implemented JACK dynamic loading.
+5ee0ee1 Continues last commit.
+c24b384 Trying to fix travis-ci python versioning once and for all (at least for python3).
+1fbf3bf Rename Jack => JACK where possible.
+6e4b31f Implemented linear interpolation for volume changes in the software mixer.
+817043c Fixing C API not working.
+c384daf Maybe travis-ci works now.
+aa7ddd7 Fix (hopefully) for previous commit.
+57c5dd7 Configure MACOSX_DEPLOYMENT_TARGET for travis-ci.
+7ae6ff9 Fix travis-ci python path.
+552fea4 Added posibillity to use math constants on MinGW
+c18ed59 Bugfix: incorrect parameter check in python API.
+6f048c3 CMake: fix finding ffmpeg with pkgconfig.
+
+Audaspace 1.2
+=============
+
+- New features:
+ - sound list
+ - random sounds
+ - dynamic music playing
+ - playback manager
+ - convolution/reverbation
+ - multi-threading
+ - binaural audio
+- API changes:
+ - changing default sample rate from 44.1 to 48 kHz
+- Bug fixes:
+ - several standard library fixes.
+- Bindings API:
+ - mixdown C API refactored
+- CMake/Building:
+ - assuring numpy is installed
+ - building the Python module on Mac OS X with CMake
+
+a6b6e70 Changing default sample rate from 44.1 to 48 kHz.
+20f0164 Bugfix: CMake custom command for python module on OS X.
+98679a2 Bugfix: using standard library (s)rand.
+5ab4fe7 Bugfix: first step in fixing the vector of array problem.
+e83f01d FFTW: trying to use complex to circumvent vector of array problem.
+093ebc0 Bugfix: abs -> std::fabs.
+328d7cc Bugfix: standard library include and call fixes.
+f78e330 Bugfix: using correct includes.
+64d7825 Behavior change: C API Mixdown
+749896b Merge pull request #3 from DethonUSAL/master
+6e9491c CMake: finding NumPy.
+
+Audaspace 1.1
+=============
+
+- Bug fixes:
+ - pkgconfig uses cmake configured library directory
+ - FFMPEG file writing crashed, also corrected pts for encoding
+ - silenced Doxygen warnings about undefined defines
+- C++ API:
+ - ResampleReader uses specs instead of sample rate
+- Bindings API:
+ - writing sounds to files
+ - reading sound data, specs and length
+ - resampling sounds
+- CMake/Building:
+ - first steps towards building for Mac
+ - windows builds copy dlls automatically
+- Python module:
+ - using distutils instead of setuptools
+ - added numpy as dependency
+- Documentation:
+ - added windows building and plugin documentation
+ - disabled html timestamps in doxygen
+ - updated sphinx template
+ - build binding documentation without installing the python module
+
+Detailed list of changes:
+
+326a300 Documentation: windows, dll copying now done automatically.
+54cac4f Windows: install dlls.
+65c2d78 Bindings: Sound length and specs properties.
+c38da70 Bindings API: adding resampling.
+374822f Documentation: Added windows and plugin documentation.
+a9dc5b9 Python module: add numpy as dependency.
+c933a02 C API: implement new API based on the python API.
+ac54c52 Python API: silence numpy warnings.
+c9491bb Python API: checking for a positive sample rate.
+4eb1fa8 Python API: reorder functions.
+ec7c00b Sphinx update and fixes.
+e16d979 FFMPEG: correct pts during encoding.
+7ab3935 Documentation: git path fix.
+28d77bb Python: use distutils directly instead of setuptools.
+1f43284 Silence doxygen warning about undefined defines.
+0d52458 CMake: improvements and fixes for building on Mac.
+37daedf FFMPEG: bugfixes for file writing.
+780ca2a ResampleReader API change
+4d9863d Python API: Optimization for cached sounds' data access.
+ea04fee Python API: read sound data and create sound buffers as well as getting the specs of a sound.
+335b293 Python sound writing API.
+36a7252 Pkgconfig: use cmake configured library directory.
+5503908 Doxygen: disable html timestamps.
+
+Initial Release of Audaspace 1.0 
+================================
+
+Audaspace has been the internal audio library of blender since blender 2.5. It is now released as a standalone library to be used in other projects as well.
