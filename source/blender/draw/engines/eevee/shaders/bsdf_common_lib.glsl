@@ -325,7 +325,7 @@ vec2 get_uvs_from_view(vec3 view)
 vec3 get_view_space_from_depth(vec2 uvcoords, float depth)
 {
 	if (ProjectionMatrix[3][3] == 0.0) {
-		return (viewVecs[0].xyz + vec3(uvcoords, 0.0) * viewVecs[1].xyz) * get_view_z_from_depth(depth);
+		return vec3(viewVecs[0].xy + uvcoords * viewVecs[1].xy, 1.0) * get_view_z_from_depth(depth);
 	}
 	else {
 		return viewVecs[0].xyz + vec3(uvcoords, depth) * viewVecs[1].xyz;

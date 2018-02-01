@@ -485,6 +485,46 @@ void EEVEE_update_noise(EEVEE_PassList *psl, EEVEE_FramebufferList *fbl, double 
 	DRW_framebuffer_texture_detach(e_data.util_tex);
 }
 
+static void EEVEE_update_viewvecs(float invproj[4][4], float winmat[4][4], float (*r_viewvecs)[4])
+{
+	/* view vectors for the corners of the view frustum.
+	 * Can be used to recreate the world space position easily */
+	float view_vecs[4][4] = {
+	    {-1.0f, -1.0f, -1.0f, 1.0f},
+	    { 1.0f, -1.0f, -1.0f, 1.0f},
+	    {-1.0f,  1.0f, -1.0f, 1.0f},
+	    {-1.0f, -1.0f,  1.0f, 1.0f}
+	};
+
+	/* convert the view vectors to view space */
+	const bool is_persp = (winmat[3][3] == 0.0f);
+	for (int i = 0; i < 4; i++) {
+		mul_project_m4_v3(invproj, view_vecs[i]);
+		/* normalized trick see:
+		 * http://www.derschmale.com/2014/01/26/reconstructing-positions-from-the-depth-buffer */
+		if (is_persp) {
+			/* Divide XY by Z. */
+			mul_v2_fl(view_vecs[i], 1.0f / view_vecs[i][2]);
+		}
+	}
+
+	/**
+	 * If ortho : view_vecs[0] is the near-bottom-left corner of the frustum and
+	 *            view_vecs[1] is the vector going from the near-bottom-left corner to
+	 *            the far-top-right corner.
+	 * If Persp : view_vecs[0].xy and view_vecs[1].xy are respectively the bottom-left corner
+	 *            when Z = 1, and top-left corner if Z = 1.
+	 *            view_vecs[0].z the near clip distance and view_vecs[1].z is the (signed)
+	 *            distance from the near plane to the far clip plane.
+	 **/
+	copy_v4_v4(r_viewvecs[0], view_vecs[0]);
+
+	/* we need to store the differences */
+	r_viewvecs[1][0] = view_vecs[1][0] - view_vecs[0][0];
+	r_viewvecs[1][1] = view_vecs[2][1] - view_vecs[0][1];
+	r_viewvecs[1][2] = view_vecs[3][2] - view_vecs[0][2];
+}
+
 void EEVEE_materials_init(EEVEE_ViewLayerData *sldata, EEVEE_StorageList *stl, EEVEE_FramebufferList *fbl)
 {
 	if (!e_data.frag_shader_lib) {
@@ -569,44 +609,10 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata, EEVEE_StorageList *stl, E
 	{
 		/* Update view_vecs */
 		float invproj[4][4], winmat[4][4];
-		/* view vectors for the corners of the view frustum.
-		 * Can be used to recreate the world space position easily */
-		float view_vecs[3][4] = {
-		    {-1.0f, -1.0f, -1.0f, 1.0f},
-		    {1.0f, -1.0f, -1.0f, 1.0f},
-		    {-1.0f, 1.0f, -1.0f, 1.0f}
-		};
-
-		/* invert the view matrix */
 		DRW_viewport_matrix_get(winmat, DRW_MAT_WIN);
-		invert_m4_m4(invproj, winmat);
-		const bool is_persp = (winmat[3][3] == 0.0f);
+		DRW_viewport_matrix_get(invproj, DRW_MAT_WININV);
 
-		/* convert the view vectors to view space */
-		for (int i = 0; i < 3; i++) {
-			mul_m4_v4(invproj, view_vecs[i]);
-			/* normalized trick see:
-			 * http://www.derschmale.com/2014/01/26/reconstructing-positions-from-the-depth-buffer */
-			mul_v3_fl(view_vecs[i], 1.0f / view_vecs[i][3]);
-			if (is_persp)
-				mul_v3_fl(view_vecs[i], 1.0f / view_vecs[i][2]);
-			view_vecs[i][3] = 1.0;
-		}
-
-		copy_v4_v4(sldata->common_data.view_vecs[0], view_vecs[0]);
-		copy_v4_v4(sldata->common_data.view_vecs[1], view_vecs[1]);
-
-		/* we need to store the differences */
-		sldata->common_data.view_vecs[1][0] -= view_vecs[0][0];
-		sldata->common_data.view_vecs[1][1] = view_vecs[2][1] - view_vecs[0][1];
-
-		/* calculate a depth offset as well */
-		if (!is_persp) {
-			float vec_far[] = {-1.0f, -1.0f, 1.0f, 1.0f};
-			mul_m4_v4(invproj, vec_far);
-			mul_v3_fl(vec_far, 1.0f / vec_far[3]);
-			sldata->common_data.view_vecs[1][2] = vec_far[2] - view_vecs[0][2];
-		}
+		EEVEE_update_viewvecs(invproj, winmat, sldata->common_data.view_vecs);
 	}
 
 	{

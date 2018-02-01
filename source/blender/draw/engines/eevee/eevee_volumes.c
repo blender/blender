@@ -304,7 +304,7 @@ int EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		}
 		else {
 			const float clip_start = common_data->view_vecs[0][2];
-			const float clip_end = common_data->view_vecs[1][2];
+			const float clip_end = clip_start + common_data->view_vecs[1][2];
 			integration_start = min_ff(integration_end, clip_start);
 			integration_end = max_ff(-integration_end, clip_end);
 
