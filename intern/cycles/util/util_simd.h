@@ -454,12 +454,11 @@ ccl_device_inline int bitscan(int value)
 {
 	assert(value != 0);
 	int bit = 0;
-	while(value >>= 1) {
+	while((value & (1 << bit)) == 0) {
 		++bit;
 	}
 	return bit;
 }
-
 
 #endif /* __KERNEL_SSE2__ */
 
