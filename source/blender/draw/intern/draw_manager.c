@@ -3607,6 +3607,7 @@ void DRW_render_to_image(RenderEngine *re, struct Depsgraph *depsgraph)
 	/* Reset before using it. */
 	memset(&DST, 0x0, sizeof(DST));
 	DST.options.is_image_render = true;
+	DST.options.draw_background = scene->r.alphamode == R_ADDSKY;
 
 	DST.draw_ctx = (DRWContextState){
 	    NULL, NULL, NULL, scene, view_layer, OBACT(view_layer), engine_type, depsgraph, NULL

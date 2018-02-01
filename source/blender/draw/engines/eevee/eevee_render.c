@@ -75,7 +75,7 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
 		stl->g_data = MEM_callocN(sizeof(*stl->g_data), __func__);
 	}
 	EEVEE_PrivateData *g_data = stl->g_data;
-	g_data->background_alpha = 1.0f; /* TODO option */
+	g_data->background_alpha = DRW_state_draw_background() ? 1.0f : 0.0f;
 	g_data->valid_double_buffer = 0;
 
 	/* Alloc common ubo data. */
@@ -348,7 +348,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *engine, struct D
 	unsigned int render_samples = BKE_collection_engine_property_value_get_int(props, "taa_render_samples");
 
 	while (render_samples-- > 0) {
-		float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.6f};
+		float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 		unsigned int primes[3] = {2, 3, 7};
 		double offset[3] = {0.0, 0.0, 0.0};
 		double r[3];
