@@ -151,7 +151,7 @@ void _bli_array_grow_func(void **arr_p, const void *arr_static,
 /**
  * resets the logical size of an array to zero, but doesn't
  * free the memory. */
-#define BLI_array_empty(arr)                                                  \
+#define BLI_array_clear(arr)                                                  \
 	{ _##arr##_count = 0; } (void)0
 
 /**

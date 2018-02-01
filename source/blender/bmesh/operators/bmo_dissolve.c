@@ -166,7 +166,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 			continue;
 		}
 
-		BLI_array_empty(faces);
+		BLI_array_clear(faces);
 		faces = NULL; /* forces different allocatio */
 
 		BMW_init(&regwalker, bm, BMW_ISLAND_MANIFOLD,

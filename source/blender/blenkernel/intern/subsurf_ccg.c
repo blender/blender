@@ -361,7 +361,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 #ifdef USE_DYNSIZE
 		CCGVertHDL fverts[nverts];
 #else
-		BLI_array_empty(fverts);
+		BLI_array_clear(fverts);
 		BLI_array_grow_items(fverts, nverts);
 #endif
 
@@ -400,7 +400,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 #ifdef USE_DYNSIZE
 		CCGVertHDL fverts[nverts];
 #else
-		BLI_array_empty(fverts);
+		BLI_array_clear(fverts);
 		BLI_array_grow_items(fverts, nverts);
 #endif
 
@@ -744,7 +744,7 @@ static void ss_sync_ccg_from_derivedmesh(CCGSubSurf *ss,
 #ifdef USE_DYNSIZE
 		CCGVertHDL fVerts[mp->totloop];
 #else
-		BLI_array_empty(fVerts);
+		BLI_array_clear(fVerts);
 		BLI_array_grow_items(fVerts, mp->totloop);
 #endif
 
@@ -4583,7 +4583,7 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
 		*((int *)ccgSubSurf_getFaceUserData(ss, f)) = vertNum;
 
 #ifndef USE_DYNSIZE
-		BLI_array_empty(loopidx);
+		BLI_array_clear(loopidx);
 		BLI_array_grow_items(loopidx, numVerts);
 #endif
 		for (s = 0; s < numVerts; s++) {
@@ -4591,7 +4591,7 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
 		}
 
 #ifndef USE_DYNSIZE
-		BLI_array_empty(vertidx);
+		BLI_array_clear(vertidx);
 		BLI_array_grow_items(vertidx, numVerts);
 #endif
 		for (s = 0; s < numVerts; s++) {

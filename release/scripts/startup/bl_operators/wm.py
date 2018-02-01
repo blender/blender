@@ -59,8 +59,8 @@ rna_relative_prop = BoolProperty(
 def context_path_validate(context, data_path):
     try:
         value = eval("context.%s" % data_path) if data_path else Ellipsis
-    except AttributeError as e:
-        if str(e).startswith("'NoneType'"):
+    except AttributeError as ex:
+        if str(ex).startswith("'NoneType'"):
             # One of the items in the rna path is None, just ignore this
             value = Ellipsis
         else:
@@ -159,11 +159,12 @@ class BRUSH_OT_active_index_set(Operator):
             description="Brush number",
             )
 
-    _attr_dict = {"sculpt": "use_paint_sculpt",
-                  "vertex_paint": "use_paint_vertex",
-                  "weight_paint": "use_paint_weight",
-                  "image_paint": "use_paint_image",
-                  }
+    _attr_dict = {
+        "sculpt": "use_paint_sculpt",
+        "vertex_paint": "use_paint_vertex",
+        "weight_paint": "use_paint_weight",
+        "image_paint": "use_paint_image",
+    }
 
     def execute(self, context):
         attr = self._attr_dict.get(self.mode)
@@ -1018,11 +1019,12 @@ class WM_OT_doc_view_manual(Operator):
 
         if url is None:
             self.report(
-                    {'WARNING'},
-                    "No reference available %r, "
-                    "Update info in 'rna_manual_reference.py' "
-                    "or callback to bpy.utils.manual_map()" %
-                    self.doc_id)
+                {'WARNING'},
+                "No reference available %r, "
+                "Update info in 'rna_manual_reference.py' "
+                "or callback to bpy.utils.manual_map()" %
+                self.doc_id
+            )
             return {'CANCELLED'}
         else:
             import webbrowser
@@ -1112,7 +1114,7 @@ class WM_OT_properties_edit(Operator):
             "use_soft_limits": self.use_soft_limits,
             "soft_range": (self.soft_min, self.soft_max),
             "hard_range": (self.min, self.max),
-            }
+        }
 
     def execute(self, context):
         from rna_prop_ui import (
@@ -1233,8 +1235,9 @@ class WM_OT_properties_edit(Operator):
             self.soft_min = prop_ui.get("soft_min", self.min)
             self.soft_max = prop_ui.get("soft_max", self.max)
             self.use_soft_limits = (
-                    self.min != self.soft_min or
-                    self.max != self.soft_max)
+                self.min != self.soft_min or
+                self.max != self.soft_max
+            )
 
         # store for comparison
         self._cmp_props = self._cmp_props_get()
@@ -1603,8 +1606,8 @@ class WM_OT_keyconfig_import(Operator):
                 shutil.copy(self.filepath, path)
             else:
                 shutil.move(self.filepath, path)
-        except Exception as e:
-            self.report({'ERROR'}, "Installing keymap failed: %s" % e)
+        except Exception as ex:
+            self.report({'ERROR'}, "Installing keymap failed: %s" % ex)
             return {'CANCELLED'}
 
         # sneaky way to check we're actually running the code.
@@ -1838,12 +1841,14 @@ class WM_OT_addon_enable(Operator):
             info_ver = info.get("blender", (0, 0, 0))
 
             if info_ver > bpy.app.version:
-                self.report({'WARNING'},
-                            ("This script was written Blender "
-                             "version %d.%d.%d and might not "
-                             "function (correctly), "
-                             "though it is enabled" %
-                             info_ver))
+                self.report(
+                    {'WARNING'},
+                    "This script was written Blender "
+                    "version %d.%d.%d and might not "
+                    "function (correctly), "
+                    "though it is enabled" %
+                    info_ver
+                )
             return {'FINISHED'}
         else:
 

@@ -77,7 +77,7 @@ enum {
 	(BLI_buffer_at(buffer_, type_, (buffer_)->count - 1) = val_) \
 )
 
-#define BLI_buffer_empty(buffer_) { \
+#define BLI_buffer_clear(buffer_) { \
 	(buffer_)->count = 0; \
 } (void)0
 

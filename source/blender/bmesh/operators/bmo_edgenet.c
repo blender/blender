@@ -186,7 +186,7 @@ void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
 			BLI_array_count_set(edges2, BLI_array_count(edges));
 		}
 
-		BLI_array_empty(edges);
+		BLI_array_clear(edges);
 		count++;
 	}
 

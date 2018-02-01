@@ -122,7 +122,7 @@ void BM_mesh_separate_faces(
 				/* Perform the split */
 				BM_face_loop_separate_multi(bm, loop_split.data, loop_split.count);
 
-				BLI_buffer_empty(&loop_split);
+				BLI_buffer_clear(&loop_split);
 			}
 		} while ((l_iter = l_iter->next) != l_first);
 	}

@@ -1704,7 +1704,7 @@ static int uv_remove_doubles_exec(bContext *C, wmOperator *op)
 				float uv_min[2];
 				float uv_max[2];
 
-				BLI_array_empty(loop_arr);
+				BLI_array_clear(loop_arr);
 				BLI_array_append(loop_arr, vert_arr[uv_a_index].uv_loop);
 
 				uv_a = vert_arr[uv_a_index].uv_loop->uv;

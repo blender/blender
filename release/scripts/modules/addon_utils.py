@@ -77,8 +77,8 @@ def modules_refresh(module_cache=addons_fake_modules):
         ModuleType = type(ast)
         try:
             file_mod = open(mod_path, "r", encoding='UTF-8')
-        except OSError as e:
-            print("Error opening file %r: %s" % (mod_path, e))
+        except OSError as ex:
+            print("Error opening file %r: %s" % (mod_path, ex))
             return None
 
         with file_mod:
@@ -89,10 +89,10 @@ def modules_refresh(module_cache=addons_fake_modules):
                 while not l.startswith("bl_info"):
                     try:
                         l = line_iter.readline()
-                    except UnicodeDecodeError as e:
+                    except UnicodeDecodeError as ex:
                         if not error_encoding:
                             error_encoding = True
-                            print("Error reading file as UTF-8:", mod_path, e)
+                            print("Error reading file as UTF-8:", mod_path, ex)
                         return None
 
                     if len(l) == 0:
@@ -101,10 +101,10 @@ def modules_refresh(module_cache=addons_fake_modules):
                     lines.append(l)
                     try:
                         l = line_iter.readline()
-                    except UnicodeDecodeError as e:
+                    except UnicodeDecodeError as ex:
                         if not error_encoding:
                             error_encoding = True
-                            print("Error reading file as UTF-8:", mod_path, e)
+                            print("Error reading file as UTF-8:", mod_path, ex)
                         return None
 
                 data = "".join(lines)
@@ -182,9 +182,11 @@ def modules_refresh(module_cache=addons_fake_modules):
                     mod = None
 
             if mod is None:
-                mod = fake_module(mod_name,
-                                  mod_path,
-                                  force_support=force_support)
+                mod = fake_module(
+                    mod_name,
+                    mod_path,
+                    force_support=force_support,
+                )
                 if mod:
                     module_cache[mod_name] = mod
 
@@ -200,9 +202,12 @@ def modules(module_cache=addons_fake_modules, *, refresh=True):
         modules._is_first = False
 
     mod_list = list(module_cache.values())
-    mod_list.sort(key=lambda mod: (mod.bl_info["category"],
-                                   mod.bl_info["name"],
-                                   ))
+    mod_list.sort(
+        key=lambda mod: (
+            mod.bl_info["category"],
+            mod.bl_info["name"],
+        )
+    )
     return mod_list
 modules._is_first = True
 
@@ -220,8 +225,10 @@ def check(module_name):
     loaded_default = module_name in _user_preferences.addons
 
     mod = sys.modules.get(module_name)
-    loaded_state = ((mod is not None) and
-                    getattr(mod, "__addon_enabled__", Ellipsis))
+    loaded_state = (
+        (mod is not None) and
+        getattr(mod, "__addon_enabled__", Ellipsis)
+    )
 
     if loaded_state is Ellipsis:
         print("Warning: addon-module %r found module "
