@@ -233,6 +233,11 @@ static void eevee_render_result_normal(
 
 		/* Convert Eevee encoded normals to Blender normals. */
 		for (int i = 0; i < rr->rectx * rr->recty * 3; i += 3) {
+			if (rp->rect[i] == 0.0f && rp->rect[i+1] == 0.0f) {
+				/* If normal is not correct then do not produce NANs.  */
+				continue;
+			}
+
 			float fenc[2];
 			fenc[0] = rp->rect[i+0] * 4.0f - 2.0f;
 			fenc[1] = rp->rect[i+1] * 4.0f - 2.0f;
