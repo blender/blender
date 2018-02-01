@@ -460,6 +460,16 @@ ccl_device_inline int bitscan(int value)
 	return bit;
 }
 
+ccl_device_inline int __bsr(int value)
+{
+	assert(value != 0);
+	int bit = 0;
+	while(value >>= 1) {
+		++bit;
+	}
+	return bit;
+}
+
 #endif /* __KERNEL_SSE2__ */
 
 /* quiet unused define warnings */
