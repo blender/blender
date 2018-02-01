@@ -30,6 +30,8 @@
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
+#include "DNA_node_types.h"
+
 #include "BLI_rand.h"
 
 #include "DEG_depsgraph_query.h"
@@ -415,4 +417,27 @@ void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *engine, struct D
 	eevee_render_result_mist(rr, viewname, vedata, sldata);
 
 	RE_engine_end_result(engine, rr, false, false, false);
+}
+
+void EEVEE_render_update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view_layer)
+{
+	int type;
+
+	RE_engine_register_pass(engine, scene, view_layer, RE_PASSNAME_COMBINED, 4, "RGBA", SOCK_RGBA);
+
+#define CHECK_PASS(name, channels, chanid) \
+	if (view_layer->passflag & (SCE_PASS_ ## name)) { \
+		if (channels == 4) type = SOCK_RGBA; \
+		else if (channels == 3) type = SOCK_VECTOR; \
+		else type = SOCK_FLOAT; \
+		RE_engine_register_pass(engine, scene, view_layer, RE_PASSNAME_ ## name, channels, chanid, type); \
+	}
+
+	CHECK_PASS(Z,           1, "Z");
+	CHECK_PASS(MIST,        1, "Z");
+	CHECK_PASS(NORMAL,      3, "XYZ");
+	CHECK_PASS(SUBSURFACE_COLOR,     3, "RGB");
+	CHECK_PASS(SUBSURFACE_DIRECT,    3, "RGB");
+
+#undef CHECK_PASS
 }

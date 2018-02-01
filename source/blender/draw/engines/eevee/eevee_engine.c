@@ -497,7 +497,8 @@ DrawEngineType draw_engine_eevee_type = {
 RenderEngineType DRW_engine_viewport_eevee_type = {
 	NULL, NULL,
 	EEVEE_ENGINE, N_("Eevee"), RE_INTERNAL | RE_USE_SHADING_NODES,
-	NULL, &DRW_render_to_image, NULL, NULL, NULL, NULL, NULL,
+	NULL, &DRW_render_to_image, NULL, NULL, NULL, NULL,
+	&EEVEE_render_update_passes,
 	&eevee_layer_collection_settings_create,
 	&eevee_view_layer_settings_create,
 	&draw_engine_eevee_type,
