@@ -318,6 +318,34 @@ static void eevee_render_result_mist(
 	}
 }
 
+static void eevee_render_draw_background(EEVEE_Data *vedata)
+{
+	EEVEE_TextureList *txl = vedata->txl;
+	EEVEE_FramebufferList *fbl = vedata->fbl;
+	EEVEE_PassList *psl = vedata->psl;
+
+	/* Prevent background to write to data buffers.
+	 * NOTE : This also make sure the textures are bound
+	 *        to the right double buffer. */
+	if (txl->ssr_normal_input != NULL) {
+		DRW_framebuffer_texture_detach(txl->ssr_normal_input);
+	}
+	if (txl->ssr_specrough_input != NULL) {
+		DRW_framebuffer_texture_detach(txl->ssr_specrough_input);
+	}
+	DRW_framebuffer_bind(fbl->main);
+
+	DRW_draw_pass(psl->background_pass);
+
+	if (txl->ssr_normal_input != NULL) {
+		DRW_framebuffer_texture_attach(fbl->main, txl->ssr_normal_input, 1, 0);
+	}
+	if (txl->ssr_specrough_input != NULL) {
+		DRW_framebuffer_texture_attach(fbl->main, txl->ssr_specrough_input, 2, 0);
+	}
+	DRW_framebuffer_bind(fbl->main);
+}
+
 void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *engine, struct Depsgraph *UNUSED(depsgraph))
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -389,7 +417,8 @@ void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *engine, struct D
 		EEVEE_occlusion_compute(sldata, vedata, dtxl->depth, -1);
 		EEVEE_volumes_compute(sldata, vedata);
 		/* Shading pass */
-		DRW_draw_pass(psl->background_pass);
+		eevee_render_draw_background(vedata);
+		DRW_framebuffer_bind(fbl->main);
 		EEVEE_draw_default_passes(psl);
 		DRW_draw_pass(psl->material_pass);
 		EEVEE_subsurface_data_render(sldata, vedata);
