@@ -3736,7 +3736,7 @@ static int bevel_edge_order_extend(BMesh *bm, BevVert *bv, int i)
 		tryj = bevel_edge_order_extend(bm, bv, j + 1);
 		if (tryj > bestj || (tryj == bestj && edges_face_connected_at_vert(bv->edges[tryj].e, bv->edges[0].e))) {
 			bestj = tryj;
-			BLI_array_empty(save_path);
+			BLI_array_clear(save_path);
 			for (k = j + 1; k <= bestj; k++) {
 				BLI_array_append(save_path, bv->edges[k].e);
 			}

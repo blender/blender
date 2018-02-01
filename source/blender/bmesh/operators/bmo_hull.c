@@ -521,7 +521,7 @@ static void hull_from_bullet(
 			int j;
 
 			/* Get face vertex indices */
-			BLI_array_empty(fvi);
+			BLI_array_clear(fvi);
 			BLI_array_grow_items(fvi, len);
 			plConvexHullGetFaceVertices(hull, i, fvi);
 

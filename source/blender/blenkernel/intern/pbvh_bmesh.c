@@ -1326,7 +1326,7 @@ static void pbvh_bmesh_collapse_edge(
 	/* Note: this could be done with BM_vert_splice(), but that
 	 * requires handling other issues like duplicate edges, so doesn't
 	 * really buy anything. */
-	BLI_buffer_empty(deleted_faces);
+	BLI_buffer_clear(deleted_faces);
 
 	BMLoop *l;
 

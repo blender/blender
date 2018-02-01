@@ -2185,7 +2185,7 @@ static void p_chart_simplify_compute(PChart *chart)
 		e->u.nextcollapse = NULL;
 
 	/* pop edge collapse out of heap one by one */
-	while (!BLI_heap_empty(heap)) {
+	while (!BLI_heap_is_empty(heap)) {
 		if (ncollapsed == NCOLLAPSE)
 			break;
 

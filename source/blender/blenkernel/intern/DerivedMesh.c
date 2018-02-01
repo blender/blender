@@ -4149,7 +4149,7 @@ void DM_init_origspace(DerivedMesh *dm)
 			BKE_mesh_calc_poly_normal(mp, l, mv, p_nor);
 			axis_dominant_v3_to_m3(mat, p_nor);
 
-			BLI_array_empty(vcos_2d);
+			BLI_array_clear(vcos_2d);
 			BLI_array_reserve(vcos_2d, mp->totloop);
 			for (j = 0; j < mp->totloop; j++, l++) {
 				mul_v3_m3v3(co, mat, mv[l->v].co);

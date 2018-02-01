@@ -400,7 +400,7 @@ static void bm_face_split_by_edges(
 	        bm, f, edge_net_temp_buf->data, edge_net_temp_buf->count,
 	        &face_arr, &face_arr_len);
 
-	BLI_buffer_empty(edge_net_temp_buf);
+	BLI_buffer_clear(edge_net_temp_buf);
 
 	if (face_arr_len) {
 		int i;

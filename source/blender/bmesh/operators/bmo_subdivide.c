@@ -1011,8 +1011,8 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
 		/* figure out which pattern to use */
 
-		BLI_array_empty(edges);
-		BLI_array_empty(verts);
+		BLI_array_clear(edges);
+		BLI_array_clear(verts);
 
 		BLI_array_grow_items(edges, face->len);
 		BLI_array_grow_items(verts, face->len);
@@ -1140,7 +1140,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 		face = fd->face;
 
 		/* figure out which pattern to use */
-		BLI_array_empty(verts);
+		BLI_array_clear(verts);
 
 		pat = fd->pat;
 
@@ -1148,8 +1148,8 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 			int vlen;
 			
 			/* ok, no pattern.  we still may be able to do something */
-			BLI_array_empty(loops);
-			BLI_array_empty(loops_split);
+			BLI_array_clear(loops);
+			BLI_array_clear(loops_split);
 
 			/* for case of two edges, connecting them shouldn't be too hard */
 			BLI_array_grow_items(loops, face->len);
