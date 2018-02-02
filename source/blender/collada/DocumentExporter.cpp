@@ -320,7 +320,7 @@ int DocumentExporter::exportCurrentScene(const EvaluationContext *eval_ctx, Scen
 		se.setExportTransformationType(this->export_settings->export_transformation_type);
 	}
 #else
-	ae.exportAnimations(sce);
+	ae.exportAnimations(eval_ctx, sce);
 	se.setExportTransformationType(this->export_settings->export_transformation_type);
 #endif
 	se.exportScene(eval_ctx, sce);
