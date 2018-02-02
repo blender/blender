@@ -76,8 +76,9 @@ struct VertProjUpdate {
 /* -------------------------------------------------------------------- */
 /* Internal Init */
 
-static void vpaint_proj_dm_map_cosnos_init__map_cb(void *userData, int index, const float co[3],
-                                                   const float no_f[3], const short no_s[3])
+static void vpaint_proj_dm_map_cosnos_init__map_cb(
+        void *userData, int index, const float co[3],
+        const float no_f[3], const short no_s[3])
 {
 	struct VertProjHandle *vp_handle = userData;
 	DMCoNo *co_no = &vp_handle->vcosnos[index];
@@ -98,8 +99,9 @@ static void vpaint_proj_dm_map_cosnos_init__map_cb(void *userData, int index, co
 	}
 }
 
-static void vpaint_proj_dm_map_cosnos_init(Scene *scene, Object *ob,
-                                           struct VertProjHandle *vp_handle)
+static void vpaint_proj_dm_map_cosnos_init(
+        Scene *scene, Object *ob,
+        struct VertProjHandle *vp_handle)
 {
 	Mesh *me = ob->data;
 	DerivedMesh *dm;
@@ -128,8 +130,9 @@ static void vpaint_proj_dm_map_cosnos_init(Scene *scene, Object *ob,
 
 /* Same as init but take mouse location into account */
 
-static void vpaint_proj_dm_map_cosnos_update__map_cb(void *userData, int index, const float co[3],
-                                                     const float no_f[3], const short no_s[3])
+static void vpaint_proj_dm_map_cosnos_update__map_cb(
+        void *userData, int index, const float co[3],
+        const float no_f[3], const short no_s[3])
 {
 	struct VertProjUpdate *vp_update = userData;
 	struct VertProjHandle *vp_handle = vp_update->vp_handle;
@@ -141,9 +144,10 @@ static void vpaint_proj_dm_map_cosnos_update__map_cb(void *userData, int index, 
 		/* first find distance to this vertex */
 		float co_ss[2];  /* screenspace */
 
-		if (ED_view3d_project_float_object(vp_update->ar,
-		                                   co, co_ss,
-		                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
+		if (ED_view3d_project_float_object(
+		            vp_update->ar,
+		            co, co_ss,
+		            V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
 		{
 			const float dist_sq = len_squared_v2v2(vp_update->mval_fl, co_ss);
 			if (dist_sq > vp_handle->dists_sq[index]) {
@@ -169,8 +173,9 @@ static void vpaint_proj_dm_map_cosnos_update__map_cb(void *userData, int index, 
 	}
 }
 
-static void vpaint_proj_dm_map_cosnos_update(struct VertProjHandle *vp_handle,
-                                             ARegion *ar, const float mval_fl[2])
+static void vpaint_proj_dm_map_cosnos_update(
+        struct VertProjHandle *vp_handle,
+        ARegion *ar, const float mval_fl[2])
 {
 	struct VertProjUpdate vp_update = {vp_handle, ar, mval_fl};
 
@@ -198,8 +203,9 @@ static void vpaint_proj_dm_map_cosnos_update(struct VertProjHandle *vp_handle,
 /* -------------------------------------------------------------------- */
 /* Public Functions */
 
-struct VertProjHandle *ED_vpaint_proj_handle_create(Scene *scene, Object *ob,
-                                                    DMCoNo **r_vcosnos)
+struct VertProjHandle *ED_vpaint_proj_handle_create(
+        Scene *scene, Object *ob,
+        DMCoNo **r_vcosnos)
 {
 	struct VertProjHandle *vp_handle = MEM_mallocN(sizeof(struct VertProjHandle), __func__);
 	Mesh *me = ob->data;
@@ -228,8 +234,9 @@ struct VertProjHandle *ED_vpaint_proj_handle_create(Scene *scene, Object *ob,
 	return vp_handle;
 }
 
-void  ED_vpaint_proj_handle_update(struct VertProjHandle *vp_handle,
-                                   ARegion *ar, const float mval_fl[2])
+void  ED_vpaint_proj_handle_update(
+        struct VertProjHandle *vp_handle,
+        ARegion *ar, const float mval_fl[2])
 {
 	if (vp_handle->use_update) {
 		vpaint_proj_dm_map_cosnos_update(vp_handle, ar, mval_fl);
