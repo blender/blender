@@ -191,6 +191,8 @@ static void eevee_draw_background(void *vedata)
 		{
 			BLI_halton_3D(primes, offset, stl->effects->taa_current_sample, r);
 			EEVEE_update_noise(psl, fbl, r);
+
+			EEVEE_volumes_set_jitter(sldata, stl->effects->taa_current_sample - 1);
 		}
 
 		/* Refresh Probes */

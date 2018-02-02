@@ -128,6 +128,21 @@ static void eevee_create_shader_volumes(void)
 	        e_data.volumetric_common_lib, NULL);
 }
 
+void EEVEE_volumes_set_jitter(EEVEE_ViewLayerData *sldata, unsigned int current_sample)
+{
+	EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
+
+	double ht_point[3];
+	double ht_offset[3] = {0.0, 0.0};
+	unsigned int ht_primes[3] = {3, 7, 2};
+
+	BLI_halton_3D(ht_primes, ht_offset, current_sample, ht_point);
+
+	common_data->vol_jitter[0] = (float)ht_point[0];
+	common_data->vol_jitter[1] = (float)ht_point[1];
+	common_data->vol_jitter[2] = (float)ht_point[2];
+}
+
 int EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_StorageList *stl = vedata->stl;
@@ -223,8 +238,6 @@ int EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		}
 
 		/* Temporal Super sampling jitter */
-		double ht_point[3];
-		double ht_offset[3] = {0.0, 0.0};
 		unsigned int ht_primes[3] = {3, 7, 2};
 		unsigned int current_sample = 0;
 
@@ -248,11 +261,8 @@ int EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 				DRW_viewport_request_redraw();
 			}
 		}
-		BLI_halton_3D(ht_primes, ht_offset, current_sample, ht_point);
 
-		common_data->vol_jitter[0] = (float)ht_point[0];
-		common_data->vol_jitter[1] = (float)ht_point[1];
-		common_data->vol_jitter[2] = (float)ht_point[2];
+		EEVEE_volumes_set_jitter(sldata, current_sample);
 
 		/* Framebuffer setup */
 		DRWFboTexture tex_vol[4] = {{&txl->volume_prop_scattering, DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER},

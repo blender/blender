@@ -391,6 +391,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *engine, struct D
 		BLI_halton_3D(primes, offset, stl->effects->taa_current_sample, r);
 		EEVEE_update_noise(psl, fbl, r);
 		EEVEE_temporal_sampling_matrices_calc(stl->effects, g_data->viewmat, g_data->persmat, r);
+		EEVEE_volumes_set_jitter(sldata, stl->effects->taa_current_sample - 1);
 
 		/* Refresh Probes */
 		EEVEE_lightprobes_refresh(sldata, vedata);

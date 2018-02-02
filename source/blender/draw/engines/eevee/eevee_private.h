@@ -858,6 +858,7 @@ void EEVEE_temporal_sampling_free(void);
 
 /* eevee_volumes.c */
 int EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
+void EEVEE_volumes_set_jitter(EEVEE_ViewLayerData *sldata, unsigned int current_sample);
 void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, struct Scene *scene, Object *ob);
 void EEVEE_volumes_compute(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
