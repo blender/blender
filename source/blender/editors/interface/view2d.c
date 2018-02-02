@@ -1027,6 +1027,13 @@ bool UI_view2d_tab_set(View2D *v2d, int tab)
 
 void UI_view2d_zoom_cache_reset(void)
 {
+	/* TODO(sergey): This way we avoid threading conflict with VSE rendering
+	 * text strip. But ideally we want to make glyph cache to be fully safe
+	 * for threading.
+	 */
+	if (G.is_rendering) {
+		return;
+	}
 	/* While scaling we can accumulate fonts at many sizes (~20 or so).
 	 * Not an issue with embedded font, but can use over 500Mb with i18n ones! See [#38244]. */
 
