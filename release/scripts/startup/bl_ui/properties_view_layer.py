@@ -469,6 +469,8 @@ class VIEWLAYER_PT_eevee_layer_passes(ViewLayerButtonsPanel, Panel):
         col.prop(view_layer, "use_pass_z")
         col.prop(view_layer, "use_pass_mist")
         col.prop(view_layer, "use_pass_normal")
+        col.separator()
+        col.prop(view_layer, "use_pass_ambient_occlusion")
 
         col = split.column()
         col.label(text="Subsurface:")

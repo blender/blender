@@ -123,6 +123,48 @@ int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	return 0;
 }
 
+void EEVEE_occlusion_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
+{
+	EEVEE_FramebufferList *fbl = vedata->fbl;
+	EEVEE_TextureList *txl = vedata->txl;
+	EEVEE_PassList *psl = vedata->psl;
+	const float *viewport_size = DRW_viewport_size_get();
+
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	ViewLayer *view_layer = draw_ctx->view_layer;
+	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
+
+	if (BKE_collection_engine_property_value_get_bool(props, "gtao_enable")) {
+		DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+		float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+		DRWFboTexture tex_data = {&txl->ao_accum, DRW_TEX_R_32, 0};
+		DRW_framebuffer_init(&fbl->ao_accum_fb, &draw_engine_eevee_type, (int)viewport_size[0], (int)viewport_size[1],
+		                     &tex_data, 1);
+
+		/* Clear texture. */
+		DRW_framebuffer_bind(fbl->ao_accum_fb);
+		DRW_framebuffer_clear(true, false, false, clear, 0.0f);
+
+		/* Accumulation pass */
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE;
+		psl->ao_accum_ps = DRW_pass_create("AO Accum", state);
+		DRWShadingGroup *grp = DRW_shgroup_create(e_data.gtao_debug_sh, psl->ao_accum_ps);
+		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
+		DRW_shgroup_uniform_buffer(grp, "maxzBuffer", &txl->maxzbuffer);
+		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth);
+		DRW_shgroup_uniform_buffer(grp, "normalBuffer", &txl->ssr_normal_input);
+		DRW_shgroup_uniform_buffer(grp, "horizonBuffer", &txl->gtao_horizons);
+		DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
+		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+	}
+	else {
+		/* Cleanup to release memory */
+		DRW_TEXTURE_FREE_SAFE(txl->ao_accum);
+		DRW_FRAMEBUFFER_FREE_SAFE(fbl->ao_accum_fb);
+	}
+}
+
 void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_PassList *psl = vedata->psl;
@@ -225,6 +267,26 @@ void EEVEE_occlusion_draw_debug(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data 
 		DRW_framebuffer_bind(fbl->main);
 
 		DRW_stats_group_end();
+	}
+}
+
+void EEVEE_occlusion_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
+{
+	EEVEE_FramebufferList *fbl = vedata->fbl;
+	EEVEE_PassList *psl = vedata->psl;
+
+	if (fbl->ao_accum_fb != NULL) {
+		DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+
+		/* Update the min_max/horizon buffers so the refracion materials appear in it. */
+		EEVEE_create_minmax_buffer(vedata, dtxl->depth, -1);
+		EEVEE_occlusion_compute(sldata, vedata, dtxl->depth, -1);
+
+		DRW_framebuffer_bind(fbl->ao_accum_fb);
+		DRW_draw_pass(psl->ao_accum_ps);
+
+		/* Restore */
+		DRW_framebuffer_bind(fbl->main);
 	}
 }
 
