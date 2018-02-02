@@ -66,11 +66,11 @@ struct bNodeTree;
 struct Object;
 struct bPoseChannel;
 struct bConstraint;
+struct ParticleSystem;
 struct Scene;
 struct Tex;
 struct World;
 struct EffectorWeights;
-struct ParticleSystem;
 
 struct PropertyRNA;
 
@@ -216,6 +216,9 @@ struct DepsgraphRelationBuilder
 	void build_world(World *world);
 	void build_rigidbody(Scene *scene);
 	void build_particles(Object *object);
+	void build_particles_visualization_object(Object *object,
+	                                          ParticleSystem *psys,
+	                                          Object *draw_object);
 	void build_cloth(Object *object, ModifierData *md);
 	void build_ik_pose(Object *object,
 	                   bPoseChannel *pchan,
