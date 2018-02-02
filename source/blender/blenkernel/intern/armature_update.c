@@ -588,13 +588,15 @@ void BKE_pose_eval_init_ik(const struct EvaluationContext *eval_ctx,
                            Object *ob,
                            bPose *UNUSED(pose))
 {
-	float ctime = BKE_scene_frame_get(scene); /* not accurate... */
-
 	DEBUG_PRINT("%s on %s\n", __func__, ob->id.name);
-
+	BLI_assert(ob->type == OB_ARMATURE);
+	const float ctime = BKE_scene_frame_get(scene); /* not accurate... */
+	bArmature *arm = (bArmature *)ob->data;
+	if (arm->flag & ARM_RESTPOS) {
+		return;
+	}
 	/* 2a. construct the IK tree (standard IK) */
 	BIK_initialize_tree(eval_ctx, scene, ob, ctime);
-
 	/* 2b. construct the Spline IK trees
 	 *  - this is not integrated as an IK plugin, since it should be able
 	 *	  to function in conjunction with standard IK
@@ -607,9 +609,9 @@ void BKE_pose_eval_bone(const struct EvaluationContext *eval_ctx,
                         Object *ob,
                         bPoseChannel *pchan)
 {
-	bArmature *arm = (bArmature *)ob->data;
 	DEBUG_PRINT("%s on %s pchan %s\n", __func__, ob->id.name, pchan->name);
 	BLI_assert(ob->type == OB_ARMATURE);
+	bArmature *arm = (bArmature *)ob->data;
 	if (arm->edbo || (arm->flag & ARM_RESTPOS)) {
 		Bone *bone = pchan->bone;
 		if (bone) {
@@ -674,8 +676,13 @@ void BKE_pose_iktree_evaluate(const struct EvaluationContext *eval_ctx,
                               Object *ob,
                               bPoseChannel *rootchan)
 {
-	float ctime = BKE_scene_frame_get(scene); /* not accurate... */
 	DEBUG_PRINT("%s on %s pchan %s\n", __func__, ob->id.name, rootchan->name);
+	BLI_assert(ob->type == OB_ARMATURE);
+	const float ctime = BKE_scene_frame_get(scene); /* not accurate... */
+	bArmature *arm = (bArmature *)ob->data;
+	if (arm->flag & ARM_RESTPOS) {
+		return;
+	}
 	BIK_execute_tree(eval_ctx, scene, ob, rootchan, ctime);
 }
 
@@ -684,8 +691,13 @@ void BKE_pose_splineik_evaluate(const struct EvaluationContext *eval_ctx,
                                 Object *ob,
                                 bPoseChannel *rootchan)
 {
-	float ctime = BKE_scene_frame_get(scene); /* not accurate... */
 	DEBUG_PRINT("%s on %s pchan %s\n", __func__, ob->id.name, rootchan->name);
+	BLI_assert(ob->type == OB_ARMATURE);
+	const float ctime = BKE_scene_frame_get(scene); /* not accurate... */
+	bArmature *arm = (bArmature *)ob->data;
+	if (arm->flag & ARM_RESTPOS) {
+		return;
+	}
 	BKE_splineik_execute_tree(eval_ctx, scene, ob, rootchan, ctime);
 }
 

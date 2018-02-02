@@ -302,9 +302,9 @@ int DocumentExporter::exportCurrentScene(const EvaluationContext *eval_ctx, Scen
 
 	// <library_animations>
 	AnimationExporter ae(writer, this->export_settings);
-	bool has_animations = ae.exportAnimations(eval_ctx, sce);
 
 #if 0
+	bool has_animations = ae.exportAnimations(eval_ctx, sce);
 	/* The following code seems to be an obsolete workaround
 	Comment out until it proofs correct that we no longer need it.
 	*/
@@ -320,6 +320,7 @@ int DocumentExporter::exportCurrentScene(const EvaluationContext *eval_ctx, Scen
 		se.setExportTransformationType(this->export_settings->export_transformation_type);
 	}
 #else
+	ae.exportAnimations(sce);
 	se.setExportTransformationType(this->export_settings->export_transformation_type);
 #endif
 	se.exportScene(eval_ctx, sce);
