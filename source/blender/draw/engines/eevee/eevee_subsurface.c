@@ -102,7 +102,10 @@ int EEVEE_subsurface_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 			txl->sss_albedo = DRW_texture_create_2D((int)viewport_size[0], (int)viewport_size[1],
 			                                        DRW_TEX_RGB_11_11_10, 0, NULL);
 		}
-
+		else {
+			/* Cleanup to release memory */
+			DRW_TEXTURE_FREE_SAFE(txl->sss_albedo);
+		}
 		return EFFECT_SSS;
 	}
 
