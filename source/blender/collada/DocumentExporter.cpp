@@ -304,9 +304,9 @@ int DocumentExporter::exportCurrentScene(Scene *sce)
 
 	// <library_animations>
 	AnimationExporter ae(writer, this->export_settings);
-	bool has_animations = ae.exportAnimations(sce);
 
 #if 0
+	bool has_animations = ae.exportAnimations(sce);
 	/* The following code seems to be an obsolete workaround
 	Comment out until it proofs correct that we no longer need it.
 	*/
@@ -322,6 +322,7 @@ int DocumentExporter::exportCurrentScene(Scene *sce)
 		se.setExportTransformationType(this->export_settings->export_transformation_type);
 	}
 #else
+	ae.exportAnimations(sce);
 	se.setExportTransformationType(this->export_settings->export_transformation_type);
 #endif
 	se.exportScene(sce);
