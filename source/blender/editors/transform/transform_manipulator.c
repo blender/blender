@@ -90,6 +90,8 @@
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 
+#include "DEG_depsgraph_query.h"
+
 #define USE_AXIS_BOUNDS
 
 /* return codes for select, and drawing flags */
@@ -601,6 +603,7 @@ static int calc_manipulator_stats(
         const bContext *C, bool use_only_center,
         struct TransformBounds *tbounds)
 {
+	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
@@ -610,6 +613,8 @@ static int calc_manipulator_stats(
 	RegionView3D *rv3d = ar->regiondata;
 	Base *base;
 	Object *ob = OBACT(view_layer);
+	const Object *ob_eval = NULL;
+	const Object *obedit_eval = NULL;
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	const bool is_gp_edit = ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE));
 	int a, totsel = 0;
@@ -624,6 +629,9 @@ static int calc_manipulator_stats(
 #endif
 
 	rv3d->twdrawflag = 0xFFFF;
+
+	ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+	obedit_eval = DEG_get_evaluated_object(depsgraph, obedit);
 
 	/* global, local or normal orientation?
 	 * if we could check 'totsel' now, this should be skipped with no selection. */
@@ -668,7 +676,7 @@ static int calc_manipulator_stats(
 					copy_m4_m3(rv3d->twmat, mat);
 					break;
 				}
-				copy_m4_m4(rv3d->twmat, ob->obmat);
+				copy_m4_m4(rv3d->twmat, ob_eval->obmat);
 				normalize_m4(rv3d->twmat);
 				break;
 			}
@@ -702,7 +710,7 @@ static int calc_manipulator_stats(
 	copy_m3_m4(tbounds->axis, rv3d->twmat);
 	if (ob && ob->mode & OB_MODE_EDIT) {
 		float diff_mat[3][3];
-		copy_m3_m4(diff_mat, ob->obmat);
+		copy_m3_m4(diff_mat, ob_eval->obmat);
 		normalize_m3(diff_mat);
 		invert_m3(diff_mat);
 		mul_m3_m3m3(tbounds->axis, tbounds->axis, diff_mat);
@@ -766,6 +774,7 @@ static int calc_manipulator_stats(
 	}
 	else if (obedit) {
 		ob = obedit;
+		ob_eval = obedit_eval;
 		if (obedit->type == OB_MESH) {
 			BMEditMesh *em = BKE_editmesh_from_object(obedit);
 			BMEditSelection ese;
@@ -938,9 +947,9 @@ static int calc_manipulator_stats(
 		/* selection center */
 		if (totsel) {
 			mul_v3_fl(tbounds->center, 1.0f / (float)totsel);   // centroid!
-			mul_m4_v3(obedit->obmat, tbounds->center);
-			mul_m4_v3(obedit->obmat, tbounds->min);
-			mul_m4_v3(obedit->obmat, tbounds->max);
+			mul_m4_v3(obedit_eval->obmat, tbounds->center);
+			mul_m4_v3(obedit_eval->obmat, tbounds->min);
+			mul_m4_v3(obedit_eval->obmat, tbounds->max);
 		}
 	}
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
@@ -976,9 +985,9 @@ static int calc_manipulator_stats(
 
 		if (ok) {
 			mul_v3_fl(tbounds->center, 1.0f / (float)totsel);   // centroid!
-			mul_m4_v3(ob->obmat, tbounds->center);
-			mul_m4_v3(ob->obmat, tbounds->min);
-			mul_m4_v3(ob->obmat, tbounds->max);
+			mul_m4_v3(ob_eval->obmat, tbounds->center);
+			mul_m4_v3(ob_eval->obmat, tbounds->min);
+			mul_m4_v3(ob_eval->obmat, tbounds->max);
 		}
 	}
 	else if (ob && (ob->mode & OB_MODE_ALL_PAINT)) {
@@ -1016,22 +1025,26 @@ static int calc_manipulator_stats(
 		if (base && ((base->flag & BASE_SELECTED) == 0)) ob = NULL;
 
 		for (base = view_layer->object_bases.first; base; base = base->next) {
-			if (TESTBASELIB(base)) {
-				if (ob == NULL)
-					ob = base->object;
-				if (use_only_center || base->object->bb == NULL) {
-					calc_tw_center(tbounds, base->object->obmat[3]);
-				}
-				else {
-					for (uint j = 0; j < 8; j++) {
-						float co[3];
-						mul_v3_m4v3(co, base->object->obmat, base->object->bb->vec[j]);
-						calc_tw_center(tbounds, co);
-					}
-				}
-				protectflag_to_drawflags(base->object->protectflag, &rv3d->twdrawflag);
-				totsel++;
+			if (!TESTBASELIB(base)) {
+				continue;
 			}
+			const Object *base_object_eval = DEG_get_evaluated_object(depsgraph, base->object);
+			if (ob == NULL) {
+				ob = base->object;
+				ob_eval = base_object_eval;
+			}
+			if (use_only_center || base_object_eval->bb == NULL) {
+				calc_tw_center(tbounds, base_object_eval->obmat[3]);
+			}
+			else {
+				for (uint j = 0; j < 8; j++) {
+					float co[3];
+					mul_v3_m4v3(co, base_object_eval->obmat, base_object_eval->bb->vec[j]);
+					calc_tw_center(tbounds, co);
+				}
+			}
+			protectflag_to_drawflags(base->object->protectflag, &rv3d->twdrawflag);
+			totsel++;
 		}
 
 		/* selection center */
