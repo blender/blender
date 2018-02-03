@@ -333,6 +333,8 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 							}
 
 							bsdf->N = N;
+							bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
+							bsdf->extra = NULL;
 
 							if(distribution == CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID)
 								transmission_roughness = 1.0f - (1.0f - refl_roughness) * (1.0f - transmission_roughness);
