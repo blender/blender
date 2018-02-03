@@ -430,7 +430,10 @@ void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *engine, struct D
 		EEVEE_volumes_set_jitter(sldata, stl->effects->taa_current_sample - 1);
 
 		/* Refresh Probes */
-		EEVEE_lightprobes_refresh(sldata, vedata);
+		while (EEVEE_lightprobes_all_probes_ready(sldata, vedata) == false) {
+			EEVEE_lightprobes_refresh(sldata, vedata);
+		}
+		EEVEE_lightprobes_refresh_planar(sldata, vedata);
 		DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
 		/* Set matrices. */
 		DRW_viewport_matrix_override_set(stl->effects->overide_persmat, DRW_MAT_PERS);

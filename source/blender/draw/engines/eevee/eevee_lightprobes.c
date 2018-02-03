@@ -1420,7 +1420,7 @@ static void lightprobes_refresh_initialize_grid(EEVEE_ViewLayerData *sldata, EEV
 	pinfo->grid_initialized = true;
 }
 
-static void lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
+void EEVEE_lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
 	EEVEE_TextureList *txl = vedata->txl;
@@ -1464,6 +1464,9 @@ static void lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *
 		common_data->prb_lod_planar_max = (float)(max_lod);
 		DRW_stats_group_end();
 	}
+
+	/* Disable SSR if we cannot read previous frame */
+	common_data->ssr_toggle = vedata->stl->g_data->valid_double_buffer;
 }
 
 static void lightprobes_refresh_cube(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
@@ -1497,6 +1500,8 @@ static void lightprobes_refresh_cube(EEVEE_ViewLayerData *sldata, EEVEE_Data *ve
 		/* Only do one probe per frame */
 		return;
 	}
+
+	pinfo->do_cube_update = false;
 }
 
 static void lightprobes_refresh_all_no_world(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
@@ -1645,9 +1650,18 @@ static void lightprobes_refresh_all_no_world(EEVEE_ViewLayerData *sldata, EEVEE_
 	lightprobes_refresh_cube(sldata, vedata);
 }
 
-void EEVEE_lightprobes_refresh(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
+bool EEVEE_lightprobes_all_probes_ready(EEVEE_ViewLayerData *sldata, EEVEE_Data *UNUSED(vedata))
 {
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
+	EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
+
+	return ((pinfo->do_cube_update == false) &&
+	        (pinfo->updated_bounce == pinfo->num_bounce) &&
+	        (common_data->prb_num_render_cube == pinfo->num_cube));
+}
+
+void EEVEE_lightprobes_refresh(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
+{
 	EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
 
 	/* Disable specular lighting when rendering probes to avoid feedback loops (looks bad). */
@@ -1665,7 +1679,7 @@ void EEVEE_lightprobes_refresh(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	if (e_data.update_world) {
 		lightprobes_refresh_world(sldata, vedata);
 	}
-	else if (pinfo->do_cube_update || (pinfo->updated_bounce < pinfo->num_bounce)) {
+	else if (EEVEE_lightprobes_all_probes_ready(sldata, vedata) == false) {
 		lightprobes_refresh_all_no_world(sldata, vedata);
 	}
 
@@ -1675,11 +1689,6 @@ void EEVEE_lightprobes_refresh(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	common_data->sss_toggle = true;
 	common_data->ao_dist = tmp_ao_dist;
 	common_data->ao_settings = tmp_ao_settings;
-
-	lightprobes_refresh_planar(sldata, vedata);
-
-	/* Disable SSR if we cannot read previous frame */
-	common_data->ssr_toggle = vedata->stl->g_data->valid_double_buffer;
 }
 
 void EEVEE_lightprobes_free(void)

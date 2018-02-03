@@ -201,6 +201,7 @@ static void eevee_draw_background(void *vedata)
 		/* Refresh Probes */
 		DRW_stats_group_start("Probes Refresh");
 		EEVEE_lightprobes_refresh(sldata, vedata);
+		EEVEE_lightprobes_refresh_planar(sldata, vedata);
 		DRW_stats_group_end();
 
 		/* Update common buffer after probe rendering. */
