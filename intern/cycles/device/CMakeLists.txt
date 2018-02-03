@@ -77,4 +77,4 @@ endif()
 include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})
 
-add_library(cycles_device ${SRC} ${SRC_OPENCL} ${SRC_HEADERS})
+cycles_add_library(cycles_device ${SRC} ${SRC_OPENCL} ${SRC_HEADERS})

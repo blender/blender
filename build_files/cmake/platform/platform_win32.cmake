@@ -31,6 +31,12 @@ endif()
 
 # Libraries configuration for Windows when compiling with MSVC.
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ${WINDOWS_USE_VISUAL_STUDIO_FOLDERS})
+
+if(NOT WITH_PYTHON_MODULE)
+	set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT blender)
+endif()
+
 macro(warn_hardcoded_paths package_name
 	)
 	if(WITH_WINDOWS_FIND_MODULES)

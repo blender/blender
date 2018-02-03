@@ -9,6 +9,7 @@ endif()
 # External Libraries
 
 include(cmake/external_libs.cmake)
+include(cmake/macros.cmake)
 
 # Build Flags
 # todo: this code could be refactored a bit to avoid duplication

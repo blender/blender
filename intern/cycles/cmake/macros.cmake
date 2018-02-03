@@ -1,0 +1,12 @@
+function(cycles_set_solution_folder target)
+	if(WINDOWS_USE_VISUAL_STUDIO_FOLDERS)
+		get_filename_component(folderdir ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
+		string(REPLACE ${CMAKE_SOURCE_DIR} "" folderdir ${folderdir})
+		set_target_properties(${target} PROPERTIES FOLDER ${folderdir})
+	endif()
+endfunction()
+
+macro(cycles_add_library target)
+	add_library(${target} ${ARGN})
+	cycles_set_solution_folder(${target})
+endmacro()

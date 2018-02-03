@@ -30,5 +30,5 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${RTTI_DISABLE_FLAGS}")
 include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})
 
-add_library(cycles_kernel_osl ${SRC} ${HEADER_SRC})
+cycles_add_library(cycles_kernel_osl ${SRC} ${HEADER_SRC})
 
