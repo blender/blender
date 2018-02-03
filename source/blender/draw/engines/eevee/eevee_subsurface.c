@@ -98,9 +98,11 @@ int EEVEE_subsurface_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		DRW_framebuffer_init(&fbl->sss_clear_fb, &draw_engine_eevee_type, (int)viewport_size[0], (int)viewport_size[1],
 		                     &tex_data, 1);
 
-		if (effects->sss_separate_albedo && (txl->sss_albedo == NULL)) {
-			txl->sss_albedo = DRW_texture_create_2D((int)viewport_size[0], (int)viewport_size[1],
-			                                        DRW_TEX_RGB_11_11_10, 0, NULL);
+		if (effects->sss_separate_albedo) {
+			if (txl->sss_albedo == NULL) {
+				txl->sss_albedo = DRW_texture_create_2D((int)viewport_size[0], (int)viewport_size[1],
+				                                        DRW_TEX_RGB_11_11_10, 0, NULL);
+			}
 		}
 		else {
 			/* Cleanup to release memory */
