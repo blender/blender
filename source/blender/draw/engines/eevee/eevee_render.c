@@ -428,6 +428,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *engine, struct D
 		EEVEE_update_noise(psl, fbl, r);
 		EEVEE_temporal_sampling_matrices_calc(stl->effects, g_data->viewmat, g_data->persmat, r);
 		EEVEE_volumes_set_jitter(sldata, stl->effects->taa_current_sample - 1);
+		EEVEE_materials_init(sldata, stl, fbl);
 
 		/* Refresh Probes */
 		while (EEVEE_lightprobes_all_probes_ready(sldata, vedata) == false) {
