@@ -1323,6 +1323,7 @@ int cuewInit(void);
 const char *cuewErrorString(CUresult result);
 const char *cuewCompilerPath(void);
 int cuewCompilerVersion(void);
+int cuewNvrtcVersion(void);
 
 #ifdef __cplusplus
 }

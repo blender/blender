@@ -120,3 +120,27 @@ if(WITH_CYCLES_NETWORK)
 	endif()
 	unset(SRC)
 endif()
+
+if(WITH_CYCLES_CUBIN_COMPILER)
+	# 32 bit windows is special, nvrtc is not supported on x86, so even
+	# though we are building 32 bit blender a 64 bit cubin_cc will have
+	# to be build to compile the cubins.
+	if(MSVC AND NOT CMAKE_CL_64)
+		Message("cycles_cubin_cc not supported on x86")
+	else()
+		set(SRC cycles_cubin_cc.cpp)
+		set(INC ../../../extern/cuew/include)
+		add_executable(cycles_cubin_cc ${SRC})
+		include_directories(${INC})
+		target_link_libraries(cycles_cubin_cc
+			extern_cuew
+			${OPENIMAGEIO_LIBRARIES}
+			${PLATFORM_LINKLIBS}
+		)
+		if(NOT CYCLES_STANDALONE_REPOSITORY)
+			target_link_libraries(cycles_cubin_cc bf_intern_guardedalloc)
+		endif()
+		unset(SRC)
+		unset(INC)
+	endif()
+endif()
