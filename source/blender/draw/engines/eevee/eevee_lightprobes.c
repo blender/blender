@@ -1428,6 +1428,8 @@ void EEVEE_lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 
 	if (pinfo->num_planar == 0) {
+		/* Disable SSR if we cannot read previous frame */
+		common_data->ssr_toggle = vedata->stl->g_data->valid_double_buffer;
 		return;
 	}
 
