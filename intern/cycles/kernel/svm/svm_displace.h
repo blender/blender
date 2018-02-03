@@ -89,17 +89,72 @@ ccl_device void svm_node_set_displacement(KernelGlobals *kg, ShaderData *sd, flo
 
 ccl_device void svm_node_displacement(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
-	uint height_offset, scale_offset, normal_offset, displacement_offset;
-	decode_node_uchar4(node.y, &height_offset, &scale_offset, &normal_offset, &displacement_offset);
+	uint height_offset, midlevel_offset, scale_offset, normal_offset;
+	decode_node_uchar4(node.y, &height_offset, &midlevel_offset, &scale_offset, &normal_offset);
 
 	float height = stack_load_float(stack, height_offset);
+	float midlevel = stack_load_float(stack, midlevel_offset);
 	float scale = stack_load_float(stack, scale_offset);
 	float3 normal = stack_valid(normal_offset)? stack_load_float3(stack, normal_offset): sd->N;
+	uint space = node.w;
 
 	float3 dP = normal;
-	object_inverse_normal_transform(kg, sd, &dP);
-	dP *= height * scale;
-	object_dir_transform(kg, sd, &dP);
+
+	if(space == NODE_NORMAL_MAP_OBJECT) {
+		/* Object space. */
+		object_inverse_normal_transform(kg, sd, &dP);
+		dP *= (height - midlevel) * scale;
+		object_dir_transform(kg, sd, &dP);
+	}
+	else {
+		/* World space. */
+		dP *= (height - midlevel) * scale;
+	}
+
+	stack_store_float3(stack, node.z, dP);
+}
+
+ccl_device void svm_node_vector_displacement(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
+{
+	uint4 data_node = read_node(kg, offset);
+	uint space = data_node.x;
+
+	uint vector_offset, midlevel_offset,scale_offset, displacement_offset;
+	decode_node_uchar4(node.y, &vector_offset, &midlevel_offset, &scale_offset, &displacement_offset);
+
+	float3 vector = stack_load_float3(stack, vector_offset);
+	float midlevel = stack_load_float(stack, midlevel_offset);
+	float scale = stack_load_float(stack, scale_offset);
+	float3 dP = (vector - make_float3(midlevel, midlevel, midlevel)) * scale;
+
+	if(space == NODE_NORMAL_MAP_TANGENT) {
+		/* Tangent space. */
+		float3 normal = sd->N;
+		object_inverse_normal_transform(kg, sd, &normal);
+
+		const AttributeDescriptor attr = find_attribute(kg, sd, node.z);
+		float3 tangent;
+		if(attr.offset != ATTR_STD_NOT_FOUND) {
+			tangent = primitive_attribute_float3(kg, sd, attr, NULL, NULL);
+		}
+		else {
+			tangent = normalize(sd->dPdu);
+		}
+
+		float3 bitangent = normalize(cross(normal, tangent));;
+		const AttributeDescriptor attr_sign = find_attribute(kg, sd, node.w);
+		if(attr_sign.offset != ATTR_STD_NOT_FOUND) {
+			float sign = primitive_attribute_float(kg, sd, attr_sign, NULL, NULL);
+			bitangent *= sign;
+		}
+
+		dP = tangent*dP.x + normal*dP.y + bitangent*dP.z;
+	}
+
+	if(space != NODE_NORMAL_MAP_WORLD) {
+		/* Tangent or object space. */
+		object_dir_transform(kg, sd, &dP);
+	}
 
 	stack_store_float3(stack, displacement_offset, dP);
 }

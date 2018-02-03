@@ -867,7 +867,17 @@ static ShaderNode *add_node(Scene *scene,
 		node = bevel;
 	}
 	else if(b_node.is_a(&RNA_ShaderNodeDisplacement)) {
-		node = new DisplacementNode();
+		BL::ShaderNodeDisplacement b_disp_node(b_node);
+		DisplacementNode *disp = new DisplacementNode();
+		disp->space = (NodeNormalMapSpace)b_disp_node.space();
+		node = disp;
+	}
+	else if(b_node.is_a(&RNA_ShaderNodeVectorDisplacement)) {
+		BL::ShaderNodeVectorDisplacement b_disp_node(b_node);
+		VectorDisplacementNode *disp = new VectorDisplacementNode();
+		disp->space = (NodeNormalMapSpace)b_disp_node.space();
+		disp->attribute = "";
+		node = disp;
 	}
 
 	if(node) {
@@ -1235,7 +1245,7 @@ void BlenderSync::sync_materials(bool update_all)
 			shader->heterogeneous_volume = !get_boolean(cmat, "homogeneous_volume");
 			shader->volume_sampling_method = get_volume_sampling(cmat);
 			shader->volume_interpolation_method = get_volume_interpolation(cmat);
-			shader->displacement_method = (experimental) ? get_displacement_method(cmat) : DISPLACE_BUMP;
+			shader->displacement_method = get_displacement_method(cmat);
 
 			shader->set_graph(graph);
 

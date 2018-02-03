@@ -97,8 +97,11 @@ struct MikkUserData {
 
 		if(layer_name == NULL) {
 			Attribute *attr_orco = attributes.find(ATTR_STD_GENERATED);
-			orco = attr_orco->data_float3();
-			mesh_texture_space(*(BL::Mesh*)&b_mesh, orco_loc, orco_size);
+
+			if(attr_orco) {
+				orco = attr_orco->data_float3();
+				mesh_texture_space(*(BL::Mesh*)&b_mesh, orco_loc, orco_size);
+			}
 		}
 		else {
 			Attribute *attr_uv = attributes.find(ustring(layer_name));

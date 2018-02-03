@@ -625,7 +625,7 @@ void ShaderManager::get_requested_features(Scene *scene,
 		ShaderNode *output_node = shader->graph->output();
 		if(output_node->input("Displacement")->link != NULL) {
 			requested_features->nodes_features |= NODE_FEATURE_BUMP;
-			if(shader->displacement_method == DISPLACE_BOTH && requested_features->experimental) {
+			if(shader->displacement_method == DISPLACE_BOTH) {
 				requested_features->nodes_features |= NODE_FEATURE_BUMP_STATE;
 			}
 		}

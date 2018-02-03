@@ -119,6 +119,7 @@ def displacement_node_insert(material, nodetree, traversed):
         node.location[0] = 0.5 * (from_node.location[0] + to_node.location[0]);
         node.location[1] = 0.5 * (from_node.location[1] + to_node.location[1]);
         node.inputs['Scale'].default_value = 0.1
+        node.inputs['Midlevel'].default_value = 0.0
 
         nodetree.links.new(from_socket, node.inputs['Height'])
         nodetree.links.new(node.outputs['Displacement'], to_socket)
@@ -128,6 +129,11 @@ def displacement_nodes_insert():
     for material in bpy.data.materials:
         if check_is_new_shading_material(material):
             displacement_node_insert(material, material.node_tree, traversed)
+
+def displacement_node_space(node):
+    if node.bl_idname == 'ShaderNodeDisplacement':
+        if node.space != 'WORLD':
+            node.space = 'OBJECT'
 
 
 def mapping_node_order_flip(node):
@@ -366,3 +372,5 @@ def do_versions(self):
             cmat = mat.cycles
             if not cmat.is_property_set("displacement_method"):
                 cmat.displacement_method = 'BUMP'
+
+        foreach_cycles_node(displacement_node_space)
