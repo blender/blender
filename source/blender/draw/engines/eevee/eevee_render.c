@@ -391,6 +391,9 @@ void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *engine, struct D
 	EEVEE_lights_cache_finish(sldata);
 	EEVEE_lightprobes_cache_finish(sldata, vedata);
 
+	/* Sort transparents before the loop. */
+	DRW_pass_sort_shgroup_z(psl->transparent_pass);
+
 	if ((view_layer->passflag & (SCE_PASS_SUBSURFACE_COLOR |
 	                             SCE_PASS_SUBSURFACE_DIRECT |
 	                             SCE_PASS_SUBSURFACE_INDIRECT)) != 0)
@@ -475,7 +478,6 @@ void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *engine, struct D
 		/* Mist output */
 		EEVEE_mist_output_accumulate(sldata, vedata);
 		/* Transparent */
-		DRW_pass_sort_shgroup_z(psl->transparent_pass);
 		DRW_draw_pass(psl->transparent_pass);
 		/* Result Z */
 		eevee_render_result_z(rr, viewname, vedata, sldata);
