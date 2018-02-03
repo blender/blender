@@ -348,7 +348,6 @@ public:
 	        const DeviceRequestedFeatures& requested_features,
 	        bool filter=false, bool split=false)
 	{
-		const int cuda_version = cuewCompilerVersion();
 		const int machine = system_cpu_bits();
 		const string source_path = path_get("source");
 		const string include_path = source_path;
@@ -356,10 +355,8 @@ public:
 		                              "--ptxas-options=\"-v\" "
 		                              "--use_fast_math "
 		                              "-DNVCC "
-		                              "-D__KERNEL_CUDA_VERSION__=%d "
 		                               "-I\"%s\"",
 		                              machine,
-		                              cuda_version,
 		                              include_path.c_str());
 		if(!filter && use_adaptive_compilation()) {
 			cflags += " " + requested_features.get_build_options();

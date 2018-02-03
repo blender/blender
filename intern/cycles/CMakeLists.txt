@@ -9,6 +9,7 @@ endif()
 # External Libraries
 
 include(cmake/external_libs.cmake)
+include(cmake/macros.cmake)
 
 # Build Flags
 # todo: this code could be refactored a bit to avoid duplication
@@ -242,6 +243,24 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 	unset(_has_no_error_unused_macros)
 endif()
 
+if(WITH_CYCLES_CUDA_BINARIES AND (NOT WITH_CYCLES_CUBIN_COMPILER))
+	if(MSVC)
+		set(MAX_MSVC 1800)
+		if(${CUDA_VERSION} EQUAL "8.0")
+			set(MAX_MSVC 1900)
+		elseif(${CUDA_VERSION} EQUAL "9.0")
+			set(MAX_MSVC 1910)
+		elseif(${CUDA_VERSION} EQUAL "9.1")
+			set(MAX_MSVC 1911)
+		endif()
+		if (NOT MSVC_VERSION LESS ${MAX_MSVC})
+			message(STATUS "nvcc not supported for this compiler version, using cycles_cubin_cc instead.")
+			set(WITH_CYCLES_CUBIN_COMPILER ON)
+		endif()
+		unset(MAX_MSVC)
+	endif()
+endif()
+
 
 # Subdirectories
 
@@ -254,7 +273,7 @@ if(WITH_CYCLES_NETWORK)
 	add_definitions(-DWITH_NETWORK)
 endif()
 
-if(WITH_CYCLES_STANDALONE OR WITH_CYCLES_NETWORK)
+if(WITH_CYCLES_STANDALONE OR WITH_CYCLES_NETWORK OR WITH_CYCLES_CUBIN_COMPILER)
 	add_subdirectory(app)
 endif()
 

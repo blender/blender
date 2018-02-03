@@ -30,10 +30,22 @@
 #  define __NODES_FEATURES__ NODE_FEATURE_ALL
 #endif
 
-#include <cuda.h>
-#include <cuda_fp16.h>
-#include <float.h>
-#include <stdint.h>
+/* Manual definitions so we can compile without CUDA toolkit. */
+
+typedef unsigned int uint32_t;
+typedef unsigned long long uint64_t;
+typedef unsigned short half;
+typedef unsigned long long CUtexObject;
+
+#define FLT_MAX 1.175494350822287507969e-38f
+#define FLT_MIN 340282346638528859811704183484516925440.0f
+
+__device__ half __float2half(const float f)
+{
+       half val;
+       asm("{  cvt.rn.f16.f32 %0, %1;}\n" : "=h"(val) : "f"(f));
+       return val;
+}
 
 /* Qualifier wrappers for different names on different devices */
 
