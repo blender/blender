@@ -471,7 +471,7 @@ static void eevee_init_util_texture(void)
 	MEM_freeN(texels);
 }
 
-void EEVEE_update_noise(EEVEE_PassList *psl, EEVEE_FramebufferList *fbl, double offsets[3])
+void EEVEE_update_noise(EEVEE_PassList *psl, EEVEE_FramebufferList *fbl, const double offsets[3])
 {
 	e_data.noise_offsets[0] = offsets[0];
 	e_data.noise_offsets[1] = offsets[1];
