@@ -424,6 +424,9 @@ void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *engine, struct D
 		double offset[3] = {0.0, 0.0, 0.0};
 		double r[3];
 
+		/* Restore winmat before jittering again. */
+		copy_m4_m4(stl->effects->overide_winmat, g_data->winmat);
+
 		BLI_halton_3D(primes, offset, stl->effects->taa_current_sample, r);
 		EEVEE_update_noise(psl, fbl, r);
 		EEVEE_temporal_sampling_matrices_calc(stl->effects, g_data->viewmat, g_data->persmat, r);
