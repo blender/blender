@@ -685,18 +685,11 @@ Closure closure_mix(Closure cl1, Closure cl2, float fac)
 {
 	Closure cl;
 
-	if (cl1.ssr_id == outputSsrId) {
-		cl.ssr_data = mix(cl1.ssr_data.xyzw, vec4(vec3(0.0), cl1.ssr_data.w), fac); /* do not blend roughness */
-		cl.ssr_normal = cl1.ssr_normal;
-		cl.ssr_id = cl1.ssr_id;
-	}
-	else {
-		cl.ssr_data = mix(vec4(vec3(0.0), cl2.ssr_data.w), cl2.ssr_data.xyzw, fac); /* do not blend roughness */
-		cl.ssr_normal = cl2.ssr_normal;
-		cl.ssr_id = cl2.ssr_id;
-	}
 	if (cl1.ssr_id == TRANSPARENT_CLOSURE_FLAG) {
 		cl1.radiance = cl2.radiance;
+		cl1.ssr_normal = cl2.ssr_normal;
+		cl1.ssr_data = cl2.ssr_data;
+		cl1.ssr_id = cl2.ssr_id;
 #  ifdef USE_SSS
 		cl1.sss_data = cl2.sss_data;
 #    ifdef USE_SSS_ALBEDO
@@ -706,12 +699,25 @@ Closure closure_mix(Closure cl1, Closure cl2, float fac)
 	}
 	if (cl2.ssr_id == TRANSPARENT_CLOSURE_FLAG) {
 		cl2.radiance = cl1.radiance;
+		cl2.ssr_normal = cl1.ssr_normal;
+		cl2.ssr_data = cl1.ssr_data;
+		cl2.ssr_id = cl1.ssr_id;
 #  ifdef USE_SSS
 		cl2.sss_data = cl1.sss_data;
 #    ifdef USE_SSS_ALBEDO
 		cl2.sss_albedo = cl1.sss_albedo;
 #    endif
 #  endif
+	}
+	if (cl1.ssr_id == outputSsrId) {
+		cl.ssr_data = mix(cl1.ssr_data.xyzw, vec4(vec3(0.0), cl1.ssr_data.w), fac); /* do not blend roughness */
+		cl.ssr_normal = cl1.ssr_normal;
+		cl.ssr_id = cl1.ssr_id;
+	}
+	else {
+		cl.ssr_data = mix(vec4(vec3(0.0), cl2.ssr_data.w), cl2.ssr_data.xyzw, fac); /* do not blend roughness */
+		cl.ssr_normal = cl2.ssr_normal;
+		cl.ssr_id = cl2.ssr_id;
 	}
 	cl.radiance = mix(cl1.radiance, cl2.radiance, fac);
 	cl.opacity = mix(cl1.opacity, cl2.opacity, fac);
