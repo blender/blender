@@ -105,9 +105,10 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object 
 	EEVEE_FramebufferList *fbl = vedata->fbl;
 	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_EffectsInfo *effects;
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	ViewLayer *view_layer = draw_ctx->view_layer;
 
 	const float *viewport_size = DRW_viewport_size_get();
-
 	/* Shaders */
 	if (!e_data.downsample_sh) {
 		eevee_create_shader_downsample();
@@ -128,6 +129,13 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object 
 	effects->enabled_effects |= EEVEE_subsurface_init(sldata, vedata);
 	effects->enabled_effects |= EEVEE_screen_raytrace_init(sldata, vedata);
 	effects->enabled_effects |= EEVEE_volumes_init(sldata, vedata);
+
+	/* Force normal buffer creation. */
+	if (DRW_state_is_image_render() &&
+		(view_layer->passflag & SCE_PASS_NORMAL) != 0)
+	{
+		effects->enabled_effects |= EFFECT_NORMAL_BUFFER;
+	}
 
 	/**
 	 * Ping Pong buffer
