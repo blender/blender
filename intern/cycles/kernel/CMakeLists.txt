@@ -408,7 +408,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
 	endmacro()
 
 	foreach(arch ${CYCLES_CUDA_BINARIES_ARCH})
-		if(CUDA_VERSION MATCHES "90" AND ${arch} MATCHES "sm_2.")
+		if(CUDA_VERSION GREATER "89" AND ${arch} MATCHES "sm_2.")
 			message(STATUS "CUDA binaries for ${arch} disabled, not supported by CUDA 9.")
 		else()
 			# Compile regular kernel
