@@ -28,7 +28,8 @@ void main()
 
 	gtao_deferred(normal, viewPosition, noise, depth, visibility, bent_normal);
 
-	FragColor = vec4(visibility);
+	/* Handle Background case. Prevent artifact due to uncleared Horizon Render Target. */
+	FragColor = vec4((depth == 1.0) ? 0.0 : visibility);
 }
 
 #else
