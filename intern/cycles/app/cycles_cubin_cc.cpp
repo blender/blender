@@ -32,6 +32,15 @@
 using std::string;
 using std::vector;
 
+namespace std {
+	template<typename T>
+	std::string to_string(const T &n) {
+		std::ostringstream s;
+		s << n;
+		return s.str();
+	}
+}
+
 class CompilationSettings
 {
 public:
@@ -75,7 +84,7 @@ bool compile_cuda(CompilationSettings &settings)
 	for(size_t i = 0; i < settings.defines.size(); i++) {
 		options.push_back("-D" + settings.defines[i]);
 	}
-
+	options.push_back("-D__KERNEL_CUDA_VERSION__=" + std::to_string(cuewNvrtcVersion()));
 	options.push_back("-arch=compute_" + std::to_string(settings.target_arch));
 	options.push_back("--device-as-default-execution-space");
 	if(settings.fast_math)
@@ -150,9 +159,12 @@ bool link_ptxas(CompilationSettings &settings)
 					" --gpu-name sm_" + std::to_string(settings.target_arch) +
 					" -m" + std::to_string(settings.bits);
 
-	if(settings.verbose)
+	if (settings.verbose)
+	{
 		ptx += " --verbose";
-
+		printf(ptx.c_str());
+	}
+	
 	int pxresult = system(ptx.c_str());
 	if(pxresult) {
 		fprintf(stderr, "Error: ptxas failed (%x)\n\n", pxresult);
