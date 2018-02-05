@@ -7054,7 +7054,7 @@ bool RNA_property_copy(PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, 
 	prop_src = rna_ensure_property_realdata(&prop_src, fromptr);
 
 	if (ELEM(NULL, prop_dst, prop_src)) {
-		false;
+		return false;
 	}
 
 	IDOverrideStaticPropertyOperation opop = {
