@@ -49,7 +49,12 @@ static void eevee_create_shader_temporal_sampling(void)
 	e_data.taa_resolve_sh = DRW_shader_create_fullscreen(datatoc_effect_temporal_aa_glsl, NULL);
 }
 
-static float blackman_harris(float x)
+static float UNUSED_FUNCTION(filter_box)(float UNUSED(x))
+{
+	return 1.0f;
+}
+
+static float filter_blackman_harris(float x)
 {
 	/* Hardcoded 1px footprint [-0.5..0.5]. We resize later. */
 	const float width = 1.0f;
@@ -110,9 +115,20 @@ static void eevee_create_cdf_table_temporal_sampling(void)
 {
 	float *cdf_table = MEM_mallocN(sizeof(float) * FILTER_CDF_TABLE_SIZE, "Eevee Filter CDF table");
 
-	/* Use blackman-harris filter. */
-	compute_cdf(blackman_harris, cdf_table);
+	float filter_width = 2.0f; /* Use a 2 pixel footprint by default. */
+
+	{
+		/* Use blackman-harris filter. */
+		filter_width *= 2.0f;
+		compute_cdf(filter_blackman_harris, cdf_table);
+	}
+
 	invert_cdf(cdf_table, e_data.inverted_cdf);
+
+	/* Scale and offset table. */
+	for (int i = 0; i < FILTER_CDF_TABLE_SIZE; ++i) {
+		e_data.inverted_cdf[i] = (e_data.inverted_cdf[i] - 0.5f) * filter_width;
+	}
 
 	MEM_freeN(cdf_table);
 }
@@ -121,14 +137,14 @@ void EEVEE_temporal_sampling_matrices_calc(
         EEVEE_EffectsInfo *effects, float viewmat[4][4], float persmat[4][4], const double ht_point[2])
 {
 	const float *viewport_size = DRW_viewport_size_get();
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	Scene *scene = draw_ctx->scene;
+	RenderData *rd = &scene->r;
 
-	float filter_size = 1.5f; /* TODO Option. */
-	filter_size *= 2.0f; /* Because of Blackmann Harris to gaussian width matching. */
-	/* The cdf precomputing is giving distribution inside [0..1].
-	 * We need to map it to [-1..1] THEN scale by the desired filter size. */
-	filter_size *= 2.0f;
-	float ofs_x = (eval_table(e_data.inverted_cdf, (float)(ht_point[0])) - 0.5f) * filter_size;
-	float ofs_y = (eval_table(e_data.inverted_cdf, (float)(ht_point[1])) - 0.5f) * filter_size;
+	float filter_size = rd->gauss; /* Sigh.. Stupid legacy naming. */
+
+	float ofs_x = eval_table(e_data.inverted_cdf, (float)(ht_point[0])) * filter_size;
+	float ofs_y = eval_table(e_data.inverted_cdf, (float)(ht_point[1])) * filter_size;
 
 	window_translate_m4(
 	        effects->overide_winmat, persmat,

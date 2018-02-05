@@ -892,7 +892,12 @@ class RENDER_PT_eevee_film(RenderButtonsPanel, Panel):
         scene = context.scene
         rd = scene.render
 
-        col = layout.column()
+        split = layout.split()
+
+        col = split.column()
+        col.prop(rd, "filter_size")
+
+        col = split.column()
         col.prop(rd, "alpha_mode", text="Alpha")
 
 
