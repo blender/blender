@@ -110,9 +110,17 @@ static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 		Object *dupli_parent = data->dupli_parent;
 		Object *temp_dupli_object = &data->temp_dupli_object;
 		*temp_dupli_object = *dob->ob;
-		temp_dupli_object->transflag &= ~OB_DUPLI;
 		temp_dupli_object->select_color = dupli_parent->select_color;
 		temp_dupli_object->base_flag = dupli_parent->base_flag | BASE_FROMDUPLI;
+
+		/* Duplicated elements shouldn't care whether their original collection is visible or not. */
+		temp_dupli_object->base_flag |= BASE_VISIBLED;
+
+		if (BKE_object_is_visible(temp_dupli_object, (eObjectVisibilityCheck)data->visibility_check) == false) {
+			continue;
+		}
+
+		temp_dupli_object->transflag &= ~OB_DUPLI;
 
 		if (dob->collection_properties != NULL) {
 			temp_dupli_object->base_collection_properties = dob->collection_properties;
@@ -181,11 +189,7 @@ static void DEG_iterator_objects_step(BLI_Iterator *iter, DEG::IDDepsNode *id_no
 		data->dupli_parent = object;
 		data->dupli_list = object_duplilist(&data->eval_ctx, data->scene, object);
 		data->dupli_object_next = (DupliObject *)data->dupli_list->first;
-		const eObjectVisibilityCheck mode =
-		        (data->mode == DEG_ITER_OBJECT_MODE_RENDER)
-		                ? OB_VISIBILITY_CHECK_FOR_RENDER
-		                : OB_VISIBILITY_CHECK_FOR_VIEWPORT;
-		if (BKE_object_is_visible(object, mode) == false) {
+		if (BKE_object_is_visible(object, (eObjectVisibilityCheck)data->visibility_check) == false) {
 			return;
 		}
 	}
@@ -220,6 +224,9 @@ void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGObjectIterData *data)
 	data->scene = DEG_get_evaluated_scene(depsgraph);
 	data->id_node_index = 0;
 	data->num_id_nodes = num_id_nodes;
+	data->visibility_check = (data->mode == DEG_ITER_OBJECT_MODE_RENDER)
+	                         ? OB_VISIBILITY_CHECK_FOR_RENDER
+	                         : OB_VISIBILITY_CHECK_FOR_VIEWPORT;
 
 	DEG::IDDepsNode *id_node = deg_graph->id_nodes[data->id_node_index];
 	DEG_iterator_objects_step(iter, id_node);

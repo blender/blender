@@ -91,6 +91,7 @@ typedef struct DEGObjectIterData {
 
 	int flag;
 	eDepsObjectIteratorMode mode;
+	int visibility_check; /* eObjectVisibilityCheck. */
 
 	/* **** Iteration over dupli-list. *** */
 
