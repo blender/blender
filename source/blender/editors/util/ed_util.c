@@ -168,7 +168,11 @@ bool ED_editors_flush_edits(const bContext *C, bool for_render)
 	 * exiting we might not have a context for edit object and multiple sculpt
 	 * objects can exist at the same time */
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
-		if (ob->mode & OB_MODE_SCULPT) {
+		if ((ob->mode & OB_MODE_SCULPT) &&
+		    /* Don't allow flushing while in the middle of a stroke (frees data in use).
+		     * Auto-save prevents this from happening but scripts may cause a flush on saving: T53986. */
+		    ((ob->sculpt && ob->sculpt->cache) == 0))
+		{
 			/* flush multires changes (for sculpt) */
 			multires_force_update(ob);
 			has_edited = true;
