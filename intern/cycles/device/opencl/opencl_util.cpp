@@ -1136,16 +1136,16 @@ bool OpenCLInfo::get_driver_version(cl_device_id device_id,
 	return true;
 }
 
-int OpenCLInfo::mem_address_alignment(cl_device_id device_id)
+int OpenCLInfo::mem_sub_ptr_alignment(cl_device_id device_id)
 {
-	int base_align_bytes;
+	int base_align_bits;
 	if(clGetDeviceInfo(device_id,
-	                   CL_DEVICE_MIN_DATA_TYPE_ALIGN_SIZE,
+	                   CL_DEVICE_MEM_BASE_ADDR_ALIGN,
 	                   sizeof(int),
-	                   &base_align_bytes,
+	                   &base_align_bits,
 	                   NULL) == CL_SUCCESS)
 	{
-		return base_align_bytes;
+		return base_align_bits/8;
 	}
 	return 1;
 }

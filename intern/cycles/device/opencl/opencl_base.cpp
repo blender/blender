@@ -473,9 +473,9 @@ void OpenCLDeviceBase::mem_free(device_memory& mem)
 	}
 }
 
-int OpenCLDeviceBase::mem_address_alignment()
+int OpenCLDeviceBase::mem_sub_ptr_alignment()
 {
-	return OpenCLInfo::mem_address_alignment(cdDevice);
+	return OpenCLInfo::mem_sub_ptr_alignment(cdDevice);
 }
 
 device_ptr OpenCLDeviceBase::mem_alloc_sub_ptr(device_memory& mem, int offset, int size)
