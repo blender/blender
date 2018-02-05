@@ -118,6 +118,9 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 	freestyle_scene->r.gauss = old_scene->r.gauss;
 	freestyle_scene->r.dither_intensity = old_scene->r.dither_intensity;
 	BKE_viewrender_copy(&freestyle_scene->view_render, &old_scene->view_render);
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Stroke rendering engine : " << freestyle_scene->view_render.engine_id << endl;
+	}
 	freestyle_scene->r.im_format.planes = R_IMF_PLANES_RGBA;
 	freestyle_scene->r.im_format.imtype = R_IMF_IMTYPE_PNG;
 
