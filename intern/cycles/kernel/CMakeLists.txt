@@ -416,9 +416,13 @@ if(WITH_CYCLES_CUDA_BINARIES)
 	endmacro()
 
 	foreach(arch ${CYCLES_CUDA_BINARIES_ARCH})
-		# Compile regular kernel
-		CYCLES_CUDA_KERNEL_ADD(${arch} filter "" "${cuda_filter_sources}" FALSE)
-		CYCLES_CUDA_KERNEL_ADD(${arch} kernel "" "${cuda_sources}" FALSE)
+		if(${arch} MATCHES "sm_2.")
+			message(STATUS "CUDA binaries for ${arch} are no longer supported, skipped.")
+		else()
+			# Compile regular kernel
+			CYCLES_CUDA_KERNEL_ADD(${arch} filter "" "${cuda_filter_sources}" FALSE)
+			CYCLES_CUDA_KERNEL_ADD(${arch} kernel "" "${cuda_sources}" FALSE)
+		endif()
 
 		if(WITH_CYCLES_CUDA_SPLIT_KERNEL_BINARIES)
 			# Compile split kernel

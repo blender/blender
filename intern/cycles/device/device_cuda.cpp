@@ -2479,7 +2479,7 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 		cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, num);
 		if(major < 3) {
 			VLOG(1) << "Ignoring device \"" << name
-			        << "\", compute capability is too low.";
+			        << "\", this graphics card is no longer supported.";
 			continue;
 		}
 
