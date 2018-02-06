@@ -365,14 +365,15 @@ static void stats_dupli_object(Base *base, Object *ob, SceneStats *stats)
 	}
 }
 
-static bool stats_is_object_dynamic_topology_sculpt(Object *ob)
+static bool stats_is_object_dynamic_topology_sculpt(Object *ob, short object_mode)
 {
-	return (ob && (ob->mode & OB_MODE_SCULPT) &&
+	return (ob &&
+	        (object_mode & OB_MODE_SCULPT) &&
 	        ob->sculpt && ob->sculpt->bm);
 }
 
 /* Statistics displayed in info header. Called regularly on scene changes. */
-static void stats_update(Scene *scene, ViewLayer *view_layer)
+static void stats_update(Scene *scene, ViewLayer *view_layer, const short object_mode)
 {
 	SceneStats stats = {0};
 	Object *ob = (view_layer->basact) ? view_layer->basact->object : NULL;
@@ -382,11 +383,11 @@ static void stats_update(Scene *scene, ViewLayer *view_layer)
 		/* Edit Mode */
 		stats_object_edit(scene->obedit, &stats);
 	}
-	else if (ob && (ob->mode & OB_MODE_POSE)) {
+	else if (ob && (object_mode & OB_MODE_POSE)) {
 		/* Pose Mode */
 		stats_object_pose(ob, &stats);
 	}
-	else if (stats_is_object_dynamic_topology_sculpt(ob)) {
+	else if (stats_is_object_dynamic_topology_sculpt(ob, object_mode)) {
 		/* Dynamic-topology sculpt mode */
 		stats_object_sculpt_dynamic_topology(ob, &stats);
 	}
@@ -405,7 +406,7 @@ static void stats_update(Scene *scene, ViewLayer *view_layer)
 	*(view_layer->stats) = stats;
 }
 
-static void stats_string(Scene *scene, ViewLayer *view_layer)
+static void stats_string(Scene *scene, ViewLayer *view_layer, const short object_mode)
 {
 #define MAX_INFO_MEM_LEN  64
 	SceneStats *stats = view_layer->stats;
@@ -493,11 +494,11 @@ static void stats_string(Scene *scene, ViewLayer *view_layer)
 		ofs += BLI_strncpy_rlen(s + ofs, memstr, MAX_INFO_LEN - ofs);
 		ofs += BLI_strncpy_rlen(s + ofs, gpumemstr, MAX_INFO_LEN - ofs);
 	}
-	else if (ob && (ob->mode & OB_MODE_POSE)) {
+	else if (ob && (object_mode & OB_MODE_POSE)) {
 		ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, IFACE_("Bones:%s/%s %s%s"),
 		                    stats_fmt.totbonesel, stats_fmt.totbone, memstr, gpumemstr);
 	}
-	else if (stats_is_object_dynamic_topology_sculpt(ob)) {
+	else if (stats_is_object_dynamic_topology_sculpt(ob, object_mode)) {
 		ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, IFACE_("Verts:%s | Tris:%s%s"), stats_fmt.totvert,
 		                    stats_fmt.tottri, gpumemstr);
 	}
@@ -527,10 +528,11 @@ void ED_info_stats_clear(ViewLayer *view_layer)
 
 const char *ED_info_stats_string(Scene *scene, ViewLayer *view_layer)
 {
+	Object *ob = (view_layer->basact) ? view_layer->basact->object : NULL;
 	if (!view_layer->stats) {
-		stats_update(scene, view_layer);
+		stats_update(scene, view_layer, ob->mode);
 	}
-	stats_string(scene, view_layer);
+	stats_string(scene, view_layer, ob->mode);
 
 	return view_layer->stats->infostr;
 }
