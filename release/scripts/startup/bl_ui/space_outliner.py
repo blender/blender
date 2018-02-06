@@ -234,6 +234,8 @@ class OUTLINER_MT_context_object(Menu):
         layout.separator()
         layout.operator("outliner.object_operation", text="Remap Users").type='REMAP'
         layout.operator("outliner.object_operation", text="Rename").type='RENAME'
+        layout.separator()
+        layout.operator("outliner.collection_object_remove", text="Remove from Collection")
 
 
 classes = (

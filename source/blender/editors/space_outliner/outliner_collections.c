@@ -37,6 +37,7 @@
 #include "DEG_depsgraph_build.h"
 
 #include "DNA_group_types.h"
+#include "DNA_object_types.h"
 
 #include "ED_screen.h"
 
@@ -558,6 +559,80 @@ void OUTLINER_OT_collection_objects_remove(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = collection_objects_remove_exec;
 	ot->poll = collections_editor_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int collection_object_remove_poll(bContext *C)
+{
+	SpaceOops *so = CTX_wm_space_outliner(C);
+	if (so == NULL) {
+		return 0;
+	}
+
+	if ((so->filter & (SO_FILTER_ENABLE | SO_FILTER_NO_COLLECTION)) ==
+	    (SO_FILTER_ENABLE | SO_FILTER_NO_COLLECTION))
+	{
+		return 0;
+	}
+
+	return ELEM(so->outlinevis, SO_VIEW_LAYER, SO_COLLECTIONS, SO_GROUPS);
+}
+
+static int collection_object_remove_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	Main *bmain = CTX_data_main(C);
+
+	struct ObjectsSelectedData data = {
+		.objects_selected_array = {NULL, NULL},
+	};
+
+	outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, outliner_find_selected_objects, &data);
+
+	BLI_LISTBASE_FOREACH (LinkData *, link, &data.objects_selected_array) {
+		TreeElement *te = (TreeElement *)link->data;
+		Object *ob = (Object *)TREESTORE(te)->id;
+		SceneCollection *scene_collection = NULL;
+
+		TreeElement *te_parent = te;
+		while ((te_parent = te_parent->parent)) {
+			scene_collection = outliner_scene_collection_from_tree_element(te->parent);
+			if (scene_collection != NULL) {
+				break;
+			}
+		}
+
+		if (scene_collection != NULL) {
+			ID *owner_id = TREESTORE(te_parent)->id;
+			BKE_collection_object_remove(bmain, owner_id, scene_collection, ob, true);
+			DEG_id_tag_update(owner_id, DEG_TAG_BASE_FLAGS_UPDATE);
+		}
+	}
+
+	BLI_freelistN(&data.objects_selected_array);
+
+	outliner_cleanup_tree(soops);
+	DEG_relations_tag_update(bmain);
+
+	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
+	WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, NULL);
+	WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_collection_object_remove(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Remove Object from Collection";
+	ot->idname = "OUTLINER_OT_collection_object_remove";
+	ot->description = "Remove selected objects from their respective collection";
+
+	/* api callbacks */
+	ot->exec = collection_object_remove_exec;
+	ot->poll = collection_object_remove_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

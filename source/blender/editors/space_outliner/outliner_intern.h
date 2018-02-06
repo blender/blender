@@ -37,6 +37,7 @@
 /* internal exports only */
 
 struct ARegion;
+struct ListBase;
 struct wmOperatorType;
 struct TreeElement;
 struct TreeStoreElem;
@@ -196,6 +197,12 @@ void outliner_build_tree(
         struct Scene *scene, struct ViewLayer *view_layer,
         struct SpaceOops *soops, struct ARegion *ar);
 
+typedef struct ObjectsSelectedData {
+	struct ListBase objects_selected_array;
+} ObjectsSelectedData;
+
+TreeTraversalAction outliner_find_selected_objects(struct TreeElement *te, void *customdata);
+
 /* outliner_draw.c ---------------------------------------------- */
 
 void draw_outliner(const struct bContext *C);
@@ -347,6 +354,7 @@ void OUTLINER_OT_collection_link(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_unlink(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_new(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_duplicate(struct wmOperatorType *ot);
+void OUTLINER_OT_collection_object_remove(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_objects_remove(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_objects_select(struct wmOperatorType *ot);
 

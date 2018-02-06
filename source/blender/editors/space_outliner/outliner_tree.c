@@ -423,11 +423,7 @@ static void outliner_add_scene_contents(
 #endif
 }
 
-struct ObjectsSelectedData {
-	ListBase objects_selected_array;
-};
-
-static TreeTraversalAction outliner_find_selected_objects(TreeElement *te, void *customdata)
+TreeTraversalAction outliner_find_selected_objects(TreeElement *te, void *customdata)
 {
 	struct ObjectsSelectedData *data = customdata;
 	TreeStoreElem *tselem = TREESTORE(te);
