@@ -3155,7 +3155,7 @@ static void drw_engines_enable_external(void)
 static void drw_engines_enable(const Scene *scene, ViewLayer *view_layer, RenderEngineType *engine_type)
 {
 	Object *obact = OBACT(view_layer);
-	const int mode = CTX_data_mode_enum_ex(scene->obedit, obact);
+	const int mode = CTX_data_mode_enum_ex(scene->obedit, obact, DST.draw_ctx.object_mode);
 
 	drw_engines_enable_from_engine(engine_type);
 
