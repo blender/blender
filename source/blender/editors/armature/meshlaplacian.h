@@ -52,10 +52,12 @@ float laplacian_system_get_solution(LaplacianSystem *sys, int v);
 
 /* Heat Weighting */
 
-void heat_bone_weighting(struct Object *ob, struct Mesh *me, float (*verts)[3],
-                         int numbones, struct bDeformGroup **dgrouplist,
-                         struct bDeformGroup **dgroupflip, float (*root)[3], float (*tip)[3],
-                         int *selected, const char **error);
+void heat_bone_weighting(
+        const struct EvaluationContext *eval_ctx,
+        struct Object *ob, struct Mesh *me, float (*verts)[3],
+        int numbones, struct bDeformGroup **dgrouplist,
+        struct bDeformGroup **dgroupflip, float (*root)[3], float (*tip)[3],
+        int *selected, const char **error);
 
 #ifdef RIGID_DEFORM
 /* As-Rigid-As-Possible Deformation */

@@ -196,7 +196,7 @@ bool ED_do_pose_selectbuffer(
 		
 		if (ob_act) {
 			/* in weightpaint we select the associated vertex group too */
-			if (ob_act->mode & OB_MODE_WEIGHT_PAINT) {
+			if (eval_ctx->object_mode & OB_MODE_WEIGHT_PAINT) {
 				if (nearBone == arm->act_bone) {
 					ED_vgroup_select_by_name(ob_act, nearBone->name);
 					DEG_id_tag_update(&ob_act->id, OB_RECALC_DATA);

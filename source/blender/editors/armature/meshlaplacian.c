@@ -46,6 +46,8 @@
 #include "ED_mesh.h"
 #include "ED_armature.h"
 
+#include "DEG_depsgraph.h"
+
 #include "eigen_capi.h"
 
 #include "meshlaplacian.h"
@@ -600,9 +602,11 @@ static float heat_limit_weight(float weight)
 		return weight;
 }
 
-void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
-                         bDeformGroup **dgrouplist, bDeformGroup **dgroupflip,
-                         float (*root)[3], float (*tip)[3], int *selected, const char **err_str)
+void heat_bone_weighting(
+        const EvaluationContext *eval_ctx,
+        Object *ob, Mesh *me, float (*verts)[3], int numsource,
+        bDeformGroup **dgrouplist, bDeformGroup **dgroupflip,
+        float (*root)[3], float (*tip)[3], int *selected, const char **err_str)
 {
 	LaplacianSystem *sys;
 	MLoopTri *mlooptri;
@@ -623,7 +627,7 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 	tottri = poly_to_tri_count(me->totpoly, me->totloop);
 
 	/* count triangles and create mask */
-	if (ob->mode & OB_MODE_WEIGHT_PAINT &&
+	if (eval_ctx->object_mode & OB_MODE_WEIGHT_PAINT &&
 	    (use_face_sel || use_vert_sel))
 	{
 		mask = MEM_callocN(sizeof(int) * me->totvert, "heat_bone_weighting mask");

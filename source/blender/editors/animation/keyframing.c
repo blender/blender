@@ -1579,6 +1579,9 @@ void ANIM_OT_keyframe_delete(wmOperatorType *ot)
  
 static int clear_anim_v3d_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+
 	bool changed = false;
 
 	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
@@ -1595,7 +1598,7 @@ static int clear_anim_v3d_exec(bContext *C, wmOperator *UNUSED(op))
 				fcn = fcu->next;
 				
 				/* in pose mode, only delete the F-Curve if it belongs to a selected bone */
-				if (ob->mode & OB_MODE_POSE) {
+				if (eval_ctx.object_mode & OB_MODE_POSE) {
 					if ((fcu->rna_path) && strstr(fcu->rna_path, "pose.bones[")) {
 						bPoseChannel *pchan;
 						char *bone_name;
@@ -1658,8 +1661,10 @@ void ANIM_OT_keyframe_clear_v3d(wmOperatorType *ot)
 
 static int delete_key_v3d_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
-	float cfra = (float)CFRA;
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+
+	const float cfra = eval_ctx.ctime;
 	
 	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
 	{
@@ -1687,7 +1692,7 @@ static int delete_key_v3d_exec(bContext *C, wmOperator *op)
 				/* special exception for bones, as this makes this operator more convenient to use
 				 * NOTE: This is only done in pose mode. In object mode, we're dealign with the entire object.
 				 */
-				if ((ob->mode & OB_MODE_POSE) && strstr(fcu->rna_path, "pose.bones[\"")) {
+				if ((eval_ctx.object_mode & OB_MODE_POSE) && strstr(fcu->rna_path, "pose.bones[\"")) {
 					bPoseChannel *pchan;
 					char *bone_name;
 					
