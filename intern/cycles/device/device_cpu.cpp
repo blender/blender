@@ -299,7 +299,7 @@ public:
 
 			if(mem.type == MEM_DEVICE_ONLY) {
 				assert(!mem.host_pointer);
-				size_t alignment = mem_address_alignment();
+				size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES;
 				void *data = util_aligned_malloc(mem.memory_size(), alignment);
 				mem.device_pointer = (device_ptr)data;
 			}

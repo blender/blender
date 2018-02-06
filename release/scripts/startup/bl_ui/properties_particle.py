@@ -1085,7 +1085,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
                 col.label(text="")
 
         if part.type == 'EMITTER' or \
-           (part.render_type in {'OBJECT', 'GROUP'} and part.type == 'HAIR' and not part.use_advanced_hair):
+           (part.render_type in {'OBJECT', 'GROUP'} and part.type == 'HAIR'):
             row = layout.row(align=True)
             row.prop(part, "particle_size")
             row.prop(part, "size_random", slider=True)

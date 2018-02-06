@@ -57,6 +57,8 @@ struct PropertyRNA;
 struct EnumPropertyItem;
 struct EvaluationContext;
 
+#include "DNA_object_enums.h"
+
 /* object_edit.c */
 struct Object *ED_object_context(struct bContext *C);               /* context.object */
 struct Object *ED_object_active_context(struct bContext *C); /* context.object or context.active_object */
@@ -114,8 +116,8 @@ struct Base *ED_object_add_duplicate(struct Main *bmain, struct Scene *scene, st
 
 void ED_object_parent(struct Object *ob, struct Object *parent, const int type, const char *substr);
 
-bool ED_object_mode_compat_set(struct bContext *C, struct Object *ob, int mode, struct ReportList *reports);
-void ED_object_toggle_modes(struct bContext *C, int mode);
+bool ED_object_mode_compat_set(struct bContext *C, struct Object *ob, eObjectMode mode, struct ReportList *reports);
+void ED_object_toggle_modes(struct bContext *C, eObjectMode mode);
 
 /* bitflags for enter/exit editmode */
 #define EM_FREEDATA     1

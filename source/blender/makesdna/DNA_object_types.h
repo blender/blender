@@ -33,6 +33,8 @@
 #ifndef __DNA_OBJECT_TYPES_H__
 #define __DNA_OBJECT_TYPES_H__
 
+#include "DNA_object_enums.h"
+
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
@@ -710,25 +712,6 @@ enum {
 	OB_DUPLI_FLAG_VIEWPORT = 1 << 0,
 	OB_DUPLI_FLAG_RENDER   = 1 << 1,
 };
-
-/* ob->mode */
-typedef enum eObjectMode {
-	OB_MODE_OBJECT        = 0,
-	OB_MODE_EDIT          = 1 << 0,
-	OB_MODE_SCULPT        = 1 << 1,
-	OB_MODE_VERTEX_PAINT  = 1 << 2,
-	OB_MODE_WEIGHT_PAINT  = 1 << 3,
-	OB_MODE_TEXTURE_PAINT = 1 << 4,
-	OB_MODE_PARTICLE_EDIT = 1 << 5,
-	OB_MODE_POSE          = 1 << 6,
-	OB_MODE_GPENCIL       = 1 << 7,  /* NOTE: Just a dummy to make the UI nicer */
-} eObjectMode;
-
-/* any mode where the brush system is used */
-#define OB_MODE_ALL_PAINT (OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)
-
-/* any mode that uses ob->sculpt */
-#define OB_MODE_ALL_SCULPT (OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)
 
 #define MAX_DUPLI_RECUR 8
 

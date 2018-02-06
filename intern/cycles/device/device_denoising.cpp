@@ -95,7 +95,7 @@ bool DenoisingTask::run_denoising()
 	buffer.width = rect.z - rect.x;
 	buffer.stride = align_up(buffer.width, 4);
 	buffer.h = rect.w - rect.y;
-	buffer.pass_stride = align_up(buffer.stride * buffer.h, divide_up(device->mem_address_alignment(), sizeof(float)));
+	buffer.pass_stride = align_up(buffer.stride * buffer.h, divide_up(device->mem_sub_ptr_alignment(), sizeof(float)));
 	buffer.mem.alloc_to_device(buffer.pass_stride * buffer.passes, false);
 
 	device_ptr null_ptr = (device_ptr) 0;
