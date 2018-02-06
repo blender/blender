@@ -55,6 +55,7 @@ struct wmOperatorType;
 struct PointerRNA;
 struct PropertyRNA;
 struct EnumPropertyItem;
+struct EvaluationContext;
 
 /* object_edit.c */
 struct Object *ED_object_context(struct bContext *C);               /* context.object */
@@ -200,11 +201,15 @@ int ED_object_modifier_apply(struct ReportList *reports, const struct bContext *
                              struct Object *ob, struct ModifierData *md, int mode);
 int ED_object_modifier_copy(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 
-bool ED_object_iter_other(struct Main *bmain, struct Object *orig_ob, const bool include_orig,
-                          bool (*callback)(struct Object *ob, void *callback_data),
-                          void *callback_data);
+bool ED_object_iter_other(
+        const struct EvaluationContext *eval_ctx, struct Main *bmain,
+        struct Object *orig_ob, const bool include_orig,
+        bool (*callback)(const struct EvaluationContext *eval_ctx, struct Object *ob, void *callback_data),
+        void *callback_data);
 
-bool ED_object_multires_update_totlevels_cb(struct Object *ob, void *totlevel_v);
+bool ED_object_multires_update_totlevels_cb(
+        const struct EvaluationContext *eval_ctx,
+        struct Object *ob, void *totlevel_v);
 
 /* object_select.c */
 void ED_object_select_linked_by_id(struct bContext *C, struct ID *id);

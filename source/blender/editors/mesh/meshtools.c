@@ -222,9 +222,10 @@ static void join_mesh_single(
 			multiresModifier_prepare_join(&eval_ctx, scene, ob_src, ob_dst);
 
 			if ((mmd = get_multires_modifier(scene, ob_src, true))) {
-				ED_object_iter_other(bmain, ob_src, true,
-				                     ED_object_multires_update_totlevels_cb,
-				                     &mmd->totlvl);
+				ED_object_iter_other(
+				        &eval_ctx, bmain, ob_src, true,
+				        ED_object_multires_update_totlevels_cb,
+				        &mmd->totlvl);
 			}
 		}
 
