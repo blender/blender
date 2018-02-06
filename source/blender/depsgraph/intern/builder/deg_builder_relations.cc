@@ -1532,7 +1532,11 @@ void DepsgraphRelationBuilder::build_particles(Object *object)
 	ComponentKey transform_key(&object->id, DEG_NODE_TYPE_TRANSFORM);
 	add_relation(transform_key, obdata_ubereval_key, "Partcile Eval");
 
-	/* TODO(sergey): Do we need a point cache operations here? */
+	OperationKey point_cache_reset_key(&object->id,
+	                                   DEG_NODE_TYPE_CACHE,
+	                                   DEG_OPCODE_POINT_CACHE_RESET);
+	add_relation(transform_key, point_cache_reset_key, "Object Transform -> Point Cache Reset");
+	add_relation(point_cache_reset_key, obdata_ubereval_key, "Point Cache Reset -> UberEval");
 }
 
 void DepsgraphRelationBuilder::build_particle_settings(ParticleSettings *part)

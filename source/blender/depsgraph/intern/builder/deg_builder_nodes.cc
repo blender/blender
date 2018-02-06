@@ -90,6 +90,7 @@ extern "C" {
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_rigidbody.h"
 #include "BKE_sound.h"
 #include "BKE_tracking.h"
@@ -905,6 +906,13 @@ void DepsgraphNodeBuilder::build_particles(Object *object)
 	}
 
 	/* TODO(sergey): Do we need a point cache operations here? */
+	add_operation_node(&object->id,
+	                   DEG_NODE_TYPE_CACHE,
+	                   function_bind(BKE_ptcache_object_reset,
+	                                 scene_cow,
+	                                 ob_cow,
+	                                 PTCACHE_RESET_DEPSGRAPH),
+	                   DEG_OPCODE_POINT_CACHE_RESET);
 }
 
 void DepsgraphNodeBuilder::build_particle_settings(ParticleSettings *part) {

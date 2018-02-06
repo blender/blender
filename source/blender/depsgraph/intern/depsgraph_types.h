@@ -240,6 +240,9 @@ typedef enum eDepsOperation_Code {
 	DEG_OPCODE_PARTICLE_SETTINGS_EVAL,
 	DEG_OPCODE_PARTICLE_SETTINGS_RECALC_CLEAR,
 
+	/* Point Cache. ------------------------------------- */
+	DEG_OPCODE_POINT_CACHE_RESET,
+
 	/* Collections. ------------------------------------- */
 	DEG_OPCODE_VIEW_LAYER_INIT,
 	DEG_OPCODE_VIEW_LAYER_EVAL,
