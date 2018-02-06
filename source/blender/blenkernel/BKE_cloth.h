@@ -236,7 +236,9 @@ void bvhtree_update_from_cloth(struct ClothModifierData *clmd, bool moving);
 void bvhselftree_update_from_cloth(struct ClothModifierData *clmd, bool moving);
 
 // needed for button_object.c
-void cloth_clear_cache (struct Object *ob, struct ClothModifierData *clmd, float framenr );
+void cloth_clear_cache(
+        const struct EvaluationContext *eval_ctx,
+        struct Object *ob, struct ClothModifierData *clmd, float framenr );
 
 void cloth_parallel_transport_hair_frame(float mat[3][3], const float dir_old[3], const float dir_new[3]);
 

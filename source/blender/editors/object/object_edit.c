@@ -472,9 +472,13 @@ static int editmode_toggle_poll(bContext *C)
 	if (ELEM(NULL, ob, ob->data) || ID_IS_LINKED(ob->data))
 		return 0;
 
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+
 	/* if hidden but in edit mode, we still display */
-	if ((ob->restrictflag & OB_RESTRICT_VIEW) && !(ob->mode & OB_MODE_EDIT))
+	if ((ob->restrictflag & OB_RESTRICT_VIEW) && !(eval_ctx.object_mode & OB_MODE_EDIT)) {
 		return 0;
+	}
 
 	return OB_TYPE_SUPPORT_EDITMODE(ob->type);
 }
