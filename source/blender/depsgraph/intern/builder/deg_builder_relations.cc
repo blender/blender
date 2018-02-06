@@ -419,15 +419,17 @@ void DepsgraphRelationBuilder::build_group(Main *bmain,
 {
 	ID *group_id = &group->id;
 	bool group_done = (group_id->tag & LIB_TAG_DOIT) != 0;
-	OperationKey object_local_transform_key(&object->id,
+	OperationKey object_local_transform_key(object != NULL ? &object->id : NULL,
 	                                        DEG_NODE_TYPE_TRANSFORM,
 	                                        DEG_OPCODE_TRANSFORM_LOCAL);
 	LINKLIST_FOREACH (GroupObject *, go, &group->gobject) {
 		if (!group_done) {
 			build_object(bmain, scene, go->ob);
 		}
-		ComponentKey dupli_transform_key(&go->ob->id, DEG_NODE_TYPE_TRANSFORM);
-		add_relation(dupli_transform_key, object_local_transform_key, "Dupligroup");
+		if (object != NULL) {
+			ComponentKey dupli_transform_key(&go->ob->id, DEG_NODE_TYPE_TRANSFORM);
+			add_relation(dupli_transform_key, object_local_transform_key, "Dupligroup");
+		}
 	}
 	group_id->tag |= LIB_TAG_DOIT;
 }
@@ -568,7 +570,7 @@ void DepsgraphRelationBuilder::build_object(Main *bmain, Scene *scene, Object *o
 
 	/* Particle systems. */
 	if (ob->particlesystem.first != NULL) {
-		build_particles(scene, ob);
+		build_particles(bmain, scene, ob);
 	}
 
 	/* Grease pencil. */
@@ -1272,7 +1274,7 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 	}
 }
 
-void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
+void DepsgraphRelationBuilder::build_particles(Main *bmain, Scene *scene, Object *ob)
 {
 	TimeSourceKey time_src_key;
 	OperationKey obdata_ubereval_key(&ob->id,
@@ -1291,10 +1293,6 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 
 		/* this particle system */
 		OperationKey psys_key(&ob->id, DEG_NODE_TYPE_EVAL_PARTICLES, DEG_OPCODE_PSYS_EVAL, psys->name);
-
-		/* XXX: if particle system is later re-enabled, we must do full rebuild? */
-		if (!psys_check_enabled(ob, psys, G.is_rendering))
-			continue;
 
 		add_relation(eval_init_key, psys_key, "Init -> PSys");
 
@@ -1333,16 +1331,27 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 			}
 		}
 
-		if (part->ren_as == PART_DRAW_OB && part->dup_ob) {
-			ComponentKey dup_ob_key(&part->dup_ob->id, DEG_NODE_TYPE_TRANSFORM);
-			add_relation(dup_ob_key, psys_key, "Particle Object Visualization");
-			if (part->dup_ob->type == OB_MBALL) {
-				ComponentKey dup_geometry_key(&part->dup_ob->id,
-				                              DEG_NODE_TYPE_GEOMETRY);
-				add_relation(psys_key,
-				             dup_geometry_key,
-				             "Particle MBall Visualization");
-			}
+		switch (part->ren_as) {
+			case PART_DRAW_OB:
+				if (part->dup_ob != NULL) {
+					/* Make sure object's relations are all built.  */
+					build_object(bmain, scene, part->dup_ob);
+					/* Build relation for the particle visualization. */
+					build_particles_visualization_object(ob,
+					                                     psys,
+					                                     part->dup_ob);
+				}
+				break;
+			case PART_DRAW_GR:
+				if (part->dup_group != NULL) {
+					build_group(bmain, scene, NULL, part->dup_group);
+					LINKLIST_FOREACH (GroupObject *, go, &part->dup_group->gobject) {
+						build_particles_visualization_object(ob,
+						                                     psys,
+						                                     go->ob);
+					}
+				}
+				break;
 		}
 	}
 
@@ -1357,6 +1366,28 @@ void DepsgraphRelationBuilder::build_particles(Scene *scene, Object *ob)
 
 	/* pointcache */
 	// TODO...
+}
+
+void DepsgraphRelationBuilder::build_particles_visualization_object(
+        Object *object,
+        ParticleSystem *psys,
+        Object *draw_object)
+{
+	OperationKey psys_key(&object->id,
+	                      DEG_NODE_TYPE_EVAL_PARTICLES,
+	                      DEG_OPCODE_PSYS_EVAL,
+	                      psys->name);
+	OperationKey obdata_ubereval_key(&object->id,
+	                                 DEG_NODE_TYPE_GEOMETRY,
+	                                 DEG_OPCODE_GEOMETRY_UBEREVAL);
+	ComponentKey dup_ob_key(&draw_object->id, DEG_NODE_TYPE_TRANSFORM);
+	add_relation(dup_ob_key, psys_key, "Particle Object Visualization");
+	if (draw_object->type == OB_MBALL) {
+		ComponentKey dup_geometry_key(&draw_object->id, DEG_NODE_TYPE_GEOMETRY);
+		add_relation(obdata_ubereval_key,
+		             dup_geometry_key,
+		             "Particle MBall Visualization");
+	}
 }
 
 void DepsgraphRelationBuilder::build_cloth(Scene * /*scene*/,

@@ -696,6 +696,19 @@ void DepsgraphNodeBuilder::build_particles(Scene *scene, Object *ob)
 		                   NULL,
 		                   DEG_OPCODE_PSYS_EVAL,
 		                   psys->name);
+		/* Visualization of particle system. */
+		switch (part->ren_as) {
+			case PART_DRAW_OB:
+				if (part->dup_ob != NULL) {
+					build_object(scene, NULL, part->dup_ob);
+				}
+				break;
+			case PART_DRAW_GR:
+				if (part->dup_group != NULL) {
+					build_group(scene, NULL, part->dup_group);
+				}
+				break;
+		}
 	}
 
 	/* pointcache */
