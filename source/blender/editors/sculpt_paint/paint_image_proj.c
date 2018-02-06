@@ -5942,10 +5942,11 @@ static int add_simple_uvs_exec(bContext *C, wmOperator *UNUSED(op))
 static int add_simple_uvs_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
-
-	if (!ob || ob->type != OB_MESH || ob->mode != OB_MODE_TEXTURE_PAINT)
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+	if (!ob || (ob->type != OB_MESH) || (eval_ctx.object_mode != OB_MODE_TEXTURE_PAINT)) {
 		return false;
-
+	}
 	return true;
 }
 

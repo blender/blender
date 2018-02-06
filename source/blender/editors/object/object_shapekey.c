@@ -225,18 +225,22 @@ static bool object_shape_key_mirror(bContext *C, Object *ob,
 
 static int shape_key_mode_poll(bContext *C)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
-	return (ob && !ID_IS_LINKED(ob) && data && !ID_IS_LINKED(data) && ob->mode != OB_MODE_EDIT);
+	return (ob && !ID_IS_LINKED(ob) && data && !ID_IS_LINKED(data) && (eval_ctx.object_mode != OB_MODE_EDIT));
 }
 
 static int shape_key_mode_exists_poll(bContext *C)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
 
 	/* same as shape_key_mode_poll */
-	return (ob && !ID_IS_LINKED(ob) && data && !ID_IS_LINKED(data) && ob->mode != OB_MODE_EDIT) &&
+	return (ob && !ID_IS_LINKED(ob) && data && !ID_IS_LINKED(data) && (eval_ctx.object_mode != OB_MODE_EDIT)) &&
 	       /* check a keyblock exists */
 	       (BKE_keyblock_from_object(ob) != NULL);
 }
@@ -244,12 +248,14 @@ static int shape_key_mode_exists_poll(bContext *C)
 static int shape_key_move_poll(bContext *C)
 {
 	/* Same as shape_key_mode_exists_poll above, but ensure we have at least two shapes! */
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
 	Key *key = BKE_key_from_object(ob);
 
 	return (ob && !ID_IS_LINKED(ob) && data && !ID_IS_LINKED(data) &&
-	        ob->mode != OB_MODE_EDIT && key && key->totkey > 1);
+	        (eval_ctx.object_mode != OB_MODE_EDIT) && key && key->totkey > 1);
 }
 
 static int shape_key_poll(bContext *C)

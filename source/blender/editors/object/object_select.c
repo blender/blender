@@ -64,6 +64,8 @@
 #include "BKE_library.h"
 #include "BKE_deform.h"
 
+#include "DEG_depsgraph.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -138,13 +140,14 @@ static int objects_selectable_poll(bContext *C)
 {
 	/* we don't check for linked scenes here, selection is
 	 * still allowed then for inspection of scene */
-	Object *obact = CTX_data_active_object(C);
-
-	if (CTX_data_edit_object(C))
+	if (CTX_data_edit_object(C)) {
 		return 0;
-	if (obact && obact->mode)
+	}
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+	if (eval_ctx.object_mode) {
 		return 0;
-	
+	}
 	return 1;
 }
 

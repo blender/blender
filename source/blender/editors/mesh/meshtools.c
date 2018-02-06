@@ -1340,17 +1340,17 @@ bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int 
 
 MDeformVert *ED_mesh_active_dvert_get_em(Object *ob, BMVert **r_eve)
 {
-	if (ob->mode & OB_MODE_EDIT && ob->type == OB_MESH && ob->defbase.first) {
+	if (ob->type == OB_MESH && ob->defbase.first) {
 		Mesh *me = ob->data;
-		BMesh *bm = me->edit_btmesh->bm;
-		const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
-
-		if (cd_dvert_offset != -1) {
-			BMVert *eve = BM_mesh_active_vert_get(bm);
-
-			if (eve) {
-				if (r_eve) *r_eve = eve;
-				return BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
+		if (me->edit_btmesh != NULL) {
+			BMesh *bm = me->edit_btmesh->bm;
+			const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
+			if (cd_dvert_offset != -1) {
+				BMVert *eve = BM_mesh_active_vert_get(bm);
+				if (eve) {
+					if (r_eve) *r_eve = eve;
+					return BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
+				}
 			}
 		}
 	}
@@ -1375,7 +1375,8 @@ MDeformVert *ED_mesh_active_dvert_get_ob(Object *ob, int *r_index)
 MDeformVert *ED_mesh_active_dvert_get_only(Object *ob)
 {
 	if (ob->type == OB_MESH) {
-		if (ob->mode & OB_MODE_EDIT) {
+		Mesh *me = ob->data;
+		if (me->edit_btmesh != NULL) {
 			return ED_mesh_active_dvert_get_em(ob, NULL);
 		}
 		else {

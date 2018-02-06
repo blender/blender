@@ -40,6 +40,8 @@
 #include "BKE_main.h"
 #include "BKE_paint.h"
 
+#include "DEG_depsgraph.h"
+
 #include "ED_paint.h"
 #include "ED_view3d.h"
 
@@ -59,12 +61,14 @@
 
 int paint_curve_poll(bContext *C)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *ob = CTX_data_active_object(C);
 	Paint *p;
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	SpaceImage *sima;
 
-	if (rv3d && !(ob && ((ob->mode & OB_MODE_ALL_PAINT) != 0)))
+	if (rv3d && !(ob && ((eval_ctx.object_mode & OB_MODE_ALL_PAINT) != 0)))
 		return false;
 
 	sima = CTX_wm_space_image(C);

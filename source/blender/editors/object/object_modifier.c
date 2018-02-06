@@ -677,6 +677,8 @@ static int modifier_apply_obdata(ReportList *reports, const bContext *C, Scene *
 
 int ED_object_modifier_apply(ReportList *reports, const bContext *C, Scene *scene, Object *ob, ModifierData *md, int mode)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	int prev_mode;
 
 	if (scene->obedit) {
@@ -687,7 +689,7 @@ int ED_object_modifier_apply(ReportList *reports, const bContext *C, Scene *scen
 		BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied to multi-user data");
 		return 0;
 	}
-	else if ((ob->mode & OB_MODE_SCULPT) &&
+	else if ((eval_ctx.object_mode & OB_MODE_SCULPT) &&
 	         (find_multires_modifier_before(scene, md)) &&
 	         (modifier_isSameTopology(md) == false))
 	{
@@ -881,11 +883,13 @@ ModifierData *edit_modifier_property_get(wmOperator *op, Object *ob, int type)
 
 static int modifier_remove_exec(bContext *C, wmOperator *op)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	Main *bmain = CTX_data_main(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = ED_object_active_context(C);
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
-	int mode_orig = ob->mode;
+	int mode_orig = eval_ctx.object_mode;
 	
 	if (!md || !ED_object_modifier_remove(op->reports, bmain, ob, md))
 		return OPERATOR_CANCELLED;
@@ -893,11 +897,13 @@ static int modifier_remove_exec(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
 	/* if cloth/softbody was removed, particle mode could be cleared */
-	if (mode_orig & OB_MODE_PARTICLE_EDIT)
-		if ((ob->mode & OB_MODE_PARTICLE_EDIT) == 0)
-			if (view_layer->basact && view_layer->basact->object == ob)
+	if (mode_orig & OB_MODE_PARTICLE_EDIT) {
+		if ((eval_ctx.object_mode & OB_MODE_PARTICLE_EDIT) == 0) {
+			if (view_layer->basact && view_layer->basact->object == ob) {
 				WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, NULL);
-	
+			}
+		}
+	}
 	return OPERATOR_FINISHED;
 }
 

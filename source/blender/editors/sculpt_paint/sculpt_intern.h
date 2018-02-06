@@ -130,6 +130,7 @@ struct SculptRakeData {
 /* Single struct used by all BLI_task threaded callbacks, let's avoid adding 10's of those... */
 typedef struct SculptThreadedTaskData {
 	struct bContext *C;
+	const struct EvaluationContext *eval_ctx;
 	struct Sculpt *sd;
 	struct Object *ob;
 	const struct Brush *brush;

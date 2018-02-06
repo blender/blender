@@ -199,9 +199,13 @@ static void paint_last_stroke_update(Scene *scene, ARegion *ar, const float mval
 /* Returns true if vertex paint mode is active */
 int vertex_paint_mode_poll(bContext *C)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *ob = CTX_data_active_object(C);
-
-	return ob && ob->mode == OB_MODE_VERTEX_PAINT && ((Mesh *)ob->data)->totpoly;
+	return (ob &&
+	        (ob->type == OB_MESH) &&
+	        ((Mesh *)ob->data)->totpoly &&
+	        (eval_ctx.object_mode & OB_MODE_VERTEX_PAINT));
 }
 
 int vertex_paint_poll(bContext *C)
@@ -221,18 +225,24 @@ int vertex_paint_poll(bContext *C)
 
 int weight_paint_mode_poll(bContext *C)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *ob = CTX_data_active_object(C);
-
-	return ob && ob->mode == OB_MODE_WEIGHT_PAINT && ((Mesh *)ob->data)->totpoly;
+	return (ob &&
+	        (ob->type == OB_MESH) &&
+	        ((Mesh *)ob->data)->totpoly &&
+	        (eval_ctx.object_mode == OB_MODE_WEIGHT_PAINT));
 }
 
 int weight_paint_poll(bContext *C)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *ob = CTX_data_active_object(C);
 	ScrArea *sa;
 
 	if ((ob != NULL) &&
-	    (ob->mode & OB_MODE_WEIGHT_PAINT) &&
+	    (eval_ctx.object_mode & OB_MODE_WEIGHT_PAINT) &&
 	    (BKE_paint_brush(&CTX_data_tool_settings(C)->wpaint->paint) != NULL) &&
 	    (sa = CTX_wm_area(C)) &&
 	    (sa->spacetype == SPACE_VIEW3D))
@@ -949,17 +959,18 @@ static void vertex_paint_init_session(const EvaluationContext *eval_ctx, Scene *
 	}
 }
 
-static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
+static void vertex_paint_init_session_data(
+        const EvaluationContext *eval_ctx, const ToolSettings *ts, Object *ob)
 {
 	/* Create maps */
 	struct SculptVertexPaintGeomMap *gmap = NULL;
 	const Brush *brush = NULL;
-	if (ob->mode == OB_MODE_VERTEX_PAINT) {
+	if (eval_ctx->object_mode == OB_MODE_VERTEX_PAINT) {
 		gmap = &ob->sculpt->mode.vpaint.gmap;
 		brush = BKE_paint_brush(&ts->vpaint->paint);
 		ob->sculpt->mode_type = OB_MODE_VERTEX_PAINT;
 	}
-	else if (ob->mode == OB_MODE_WEIGHT_PAINT) {
+	else if (eval_ctx->object_mode == OB_MODE_WEIGHT_PAINT) {
 		gmap = &ob->sculpt->mode.wpaint.gmap;
 		brush = BKE_paint_brush(&ts->wpaint->paint);
 		ob->sculpt->mode_type = OB_MODE_WEIGHT_PAINT;
@@ -988,7 +999,7 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
 	}
 
 	/* Create average brush arrays */
-	if (ob->mode == OB_MODE_VERTEX_PAINT) {
+	if (eval_ctx->object_mode == OB_MODE_VERTEX_PAINT) {
 		if (!brush_use_accumulate(brush)) {
 			if (ob->sculpt->mode.vpaint.previous_color == NULL) {
 				ob->sculpt->mode.vpaint.previous_color =
@@ -999,7 +1010,7 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
 			MEM_SAFE_FREE(ob->sculpt->mode.vpaint.previous_color);
 		}
 	}
-	else if (ob->mode == OB_MODE_WEIGHT_PAINT) {
+	else if (eval_ctx->object_mode == OB_MODE_WEIGHT_PAINT) {
 		if (!brush_use_accumulate(brush)) {
 			if (ob->sculpt->mode.wpaint.alpha_weight == NULL) {
 				ob->sculpt->mode.wpaint.alpha_weight =
@@ -1396,7 +1407,7 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 	/* If not previously created, create vertex/weight paint mode session data */
 	vertex_paint_init_session(&eval_ctx, scene, ob);
 	vwpaint_update_cache_invariants(C, vp, ss, op, mouse);
-	vertex_paint_init_session_data(ts, ob);
+	vertex_paint_init_session_data(&eval_ctx, ts, ob);
 
 	if (ob->sculpt->mode.wpaint.dvert_prev != NULL) {
 		MDeformVert *dv = ob->sculpt->mode.wpaint.dvert_prev;
@@ -1461,8 +1472,11 @@ static void precompute_weight_values(
 		return;
 
 	/* threaded loop over vertices */
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+
 	SculptThreadedTaskData data = {
-		.C = C, .ob = ob, .wpd = wpd, .wpi = wpi, .me = me,
+		.C = C, .eval_ctx = &eval_ctx, .ob = ob, .wpd = wpd, .wpi = wpi, .me = me,
 	};
 
 	ParallelRangeSettings settings;
@@ -1834,8 +1848,12 @@ static void wpaint_paint_leaves(
 	const Brush *brush = ob->sculpt->cache->brush;
 
 	/* threaded loop over nodes */
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+
 	SculptThreadedTaskData data = {
-		.sd = sd, .ob = ob, .brush = brush, .nodes = nodes, .vp = vp, .wpd = wpd, .wpi = wpi, .me = me, .C = C,
+		 .C = C, .eval_ctx = &eval_ctx, .sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
+		 .vp = vp, .wpd = wpd, .wpi = wpi, .me = me,
 	};
 
 	/* Use this so average can modify its weight without touching the brush. */
@@ -2420,7 +2438,7 @@ static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const f
 	/* If not previously created, create vertex/weight paint mode session data */
 	vertex_paint_init_session(&eval_ctx, scene, ob);
 	vwpaint_update_cache_invariants(C, vp, ss, op, mouse);
-	vertex_paint_init_session_data(ts, ob);
+	vertex_paint_init_session_data(&eval_ctx, ts, ob);
 
 	if (ob->sculpt->mode.vpaint.previous_color != NULL) {
 		memset(ob->sculpt->mode.vpaint.previous_color, 0, sizeof(uint) * me->totloop);
@@ -2873,9 +2891,12 @@ static void vpaint_paint_leaves(
 {
 	const Brush *brush = ob->sculpt->cache->brush;
 
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+
 	SculptThreadedTaskData data = {
-		.sd = sd, .ob = ob, .brush = brush, .nodes = nodes, .vp = vp, .vpd = vpd,
-		.lcol = (uint *)me->mloopcol, .me = me, .C = C,
+		.C = C, .eval_ctx = &eval_ctx, .sd = sd, .ob = ob, .brush = brush, .nodes = nodes, .vp = vp, .vpd = vpd,
+		.lcol = (uint *)me->mloopcol, .me = me,
 	};
 	ParallelRangeSettings settings;
 	BLI_parallel_range_settings_defaults(&settings);

@@ -40,6 +40,8 @@
 #include "BKE_paint.h"
 #include "BKE_main.h"
 
+#include "DEG_depsgraph.h"
+
 #include "ED_paint.h"
 #include "ED_screen.h"
 #include "ED_image.h"
@@ -261,6 +263,8 @@ static void PALETTE_OT_color_delete(wmOperatorType *ot)
 
 static int brush_reset_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	Paint *paint = BKE_paint_get_active_from_context(C);
 	Brush *brush = BKE_paint_brush(paint);
 	Object *ob = CTX_data_active_object(C);
@@ -268,7 +272,7 @@ static int brush_reset_exec(bContext *C, wmOperator *UNUSED(op))
 	if (!ob || !brush) return OPERATOR_CANCELLED;
 
 	/* TODO: other modes */
-	if (ob->mode & OB_MODE_SCULPT) {
+	if (eval_ctx.object_mode & OB_MODE_SCULPT) {
 		BKE_brush_sculpt_reset(brush);
 	}
 	else {
@@ -401,6 +405,8 @@ static int brush_generic_tool_set(Main *bmain, Paint *paint, const int tool,
 
 static int brush_select_exec(bContext *C, wmOperator *op)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	Main *bmain = CTX_data_main(C);
 	ToolSettings *toolsettings = CTX_data_tool_settings(C);
 	Paint *paint = NULL;
@@ -414,7 +420,7 @@ static int brush_select_exec(bContext *C, wmOperator *op)
 		Object *ob = CTX_data_active_object(C);
 		if (ob) {
 			/* select current paint mode */
-			paint_mode = ob->mode & OB_MODE_ALL_PAINT;
+			paint_mode = eval_ctx.object_mode & OB_MODE_ALL_PAINT;
 		}
 		else {
 			return OPERATOR_CANCELLED;

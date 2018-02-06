@@ -118,9 +118,11 @@ static void wpaint_prev_destroy(struct WPaintPrev *wpp)
 
 static int weight_from_bones_poll(bContext *C)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *ob = CTX_data_active_object(C);
 
-	return (ob && (ob->mode & OB_MODE_WEIGHT_PAINT) && modifiers_isDeformedByArmature(ob));
+	return (ob && (eval_ctx.object_mode & OB_MODE_WEIGHT_PAINT) && modifiers_isDeformedByArmature(ob));
 }
 
 static int weight_from_bones_exec(bContext *C, wmOperator *op)

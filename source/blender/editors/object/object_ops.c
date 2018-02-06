@@ -47,6 +47,8 @@
 #include "ED_screen.h"
 #include "ED_object.h"
 
+#include "DEG_depsgraph.h"
+
 #include "object_intern.h"
 
 
@@ -290,8 +292,11 @@ void ED_operatormacros_object(void)
 
 static int object_mode_poll(bContext *C)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+
 	Object *ob = CTX_data_active_object(C);
-	return (!ob || ob->mode == OB_MODE_OBJECT);
+	return (!ob || eval_ctx.object_mode == OB_MODE_OBJECT);
 }
 
 void ED_keymap_object(wmKeyConfig *keyconf)
