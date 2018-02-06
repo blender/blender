@@ -564,7 +564,7 @@ void OUTLINER_OT_collection_objects_remove(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int collection_object_remove_poll(bContext *C)
+static int object_collection_remove_poll(bContext *C)
 {
 	SpaceOops *so = CTX_wm_space_outliner(C);
 	if (so == NULL) {
@@ -580,7 +580,7 @@ static int collection_object_remove_poll(bContext *C)
 	return ELEM(so->outlinevis, SO_VIEW_LAYER, SO_COLLECTIONS, SO_GROUPS);
 }
 
-static int collection_object_remove_exec(bContext *C, wmOperator *UNUSED(op))
+static int object_collection_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	Main *bmain = CTX_data_main(C);
@@ -623,16 +623,16 @@ static int collection_object_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void OUTLINER_OT_collection_object_remove(wmOperatorType *ot)
+void OUTLINER_OT_object_remove_from_collection(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Remove Object from Collection";
-	ot->idname = "OUTLINER_OT_collection_object_remove";
+	ot->idname = "OUTLINER_OT_object_remove_from_collection";
 	ot->description = "Remove selected objects from their respective collection";
 
 	/* api callbacks */
-	ot->exec = collection_object_remove_exec;
-	ot->poll = collection_object_remove_poll;
+	ot->exec = object_collection_remove_exec;
+	ot->poll = object_collection_remove_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
