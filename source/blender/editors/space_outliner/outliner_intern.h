@@ -50,7 +50,7 @@ struct bPoseChannel;
 struct EditBone;
 struct wmEvent;
 struct wmKeyConfig;
-
+struct EvaluationContext;
 
 typedef enum TreeElementInsertType {
 	TE_INSERT_BEFORE,
@@ -191,8 +191,10 @@ void outliner_cleanup_tree(struct SpaceOops *soops);
 void outliner_free_tree_element(TreeElement *element, ListBase *parent_subtree);
 void outliner_remove_treestore_element(struct SpaceOops *soops, TreeStoreElem *tselem);
 
-void outliner_build_tree(struct Main *mainvar, struct Scene *scene, struct ViewLayer *view_layer,
-                         struct SpaceOops *soops, struct ARegion *ar);
+void outliner_build_tree(
+        struct Main *mainvar, const struct EvaluationContext *eval_ctx,
+        struct Scene *scene, struct ViewLayer *view_layer,
+        struct SpaceOops *soops, struct ARegion *ar);
 
 /* outliner_draw.c ---------------------------------------------- */
 

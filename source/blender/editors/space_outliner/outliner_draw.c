@@ -1893,6 +1893,8 @@ static void outliner_draw_restrictcols(ARegion *ar)
 
 void draw_outliner(const bContext *C)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	Main *mainvar = CTX_data_main(C); 
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1904,7 +1906,7 @@ void draw_outliner(const bContext *C)
 	TreeElement *te_edit = NULL;
 	bool has_restrict_icons;
 
-	outliner_build_tree(mainvar, scene, view_layer, soops, ar); // always
+	outliner_build_tree(mainvar, &eval_ctx, scene, view_layer, soops, ar); // always
 	
 	/* get extents of data */
 	outliner_height(soops, &soops->tree, &sizey);
