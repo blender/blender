@@ -448,7 +448,7 @@ void UI_view2d_sync(struct bScreen *screen, struct ScrArea *sa, struct View2D *v
 
 struct EditBone *ED_armature_bone_get_mirrored(const struct ListBase *edbo, EditBone *ebo) RET_NULL
 struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, const char *name) RET_NULL
-struct ListBase *get_active_constraints (struct Object *ob) RET_NULL
+struct ListBase *get_active_constraints (const struct EvaluationContext *eval_ctx, struct Object *ob) RET_NULL
 struct ListBase *get_constraint_lb(struct Object *ob, struct bConstraint *con, struct bPoseChannel **r_pchan) RET_NULL
 
 bool ED_space_image_show_uvedit(struct SpaceImage *sima, struct Object *obedit) RET_ZERO
@@ -601,7 +601,7 @@ int ED_mesh_mirror_spatial_table(struct Object *ob, struct BMEditMesh *em, struc
 
 float ED_rollBoneToVector(EditBone *bone, const float new_up_axis[3], const bool axis_only) RET_ZERO
 void ED_space_image_get_size(struct SpaceImage *sima, int *width, int *height) RET_NONE
-bool ED_space_image_check_show_maskedit(struct ViewLayer *view_layer, struct SpaceImage *sima) RET_ZERO
+bool ED_space_image_check_show_maskedit(struct SpaceImage *sima, struct ViewLayer *view_layer) RET_ZERO
 
 bool ED_texture_context_check_world(const struct bContext *C) RET_ZERO
 bool ED_texture_context_check_material(const struct bContext *C) RET_ZERO
