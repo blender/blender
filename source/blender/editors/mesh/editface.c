@@ -635,8 +635,9 @@ static int mirrtopo_vert_sort(const void *v1, const void *v2)
 	return 0;
 }
 
-bool ED_mesh_mirrtopo_recalc_check(Mesh *me, DerivedMesh *dm, const int ob_mode, MirrTopoStore_t *mesh_topo_store)
+bool ED_mesh_mirrtopo_recalc_check(Mesh *me, DerivedMesh *dm, MirrTopoStore_t *mesh_topo_store)
 {
+	const bool is_editmode = (me->edit_btmesh != NULL);
 	int totvert;
 	int totedge;
 
@@ -654,7 +655,7 @@ bool ED_mesh_mirrtopo_recalc_check(Mesh *me, DerivedMesh *dm, const int ob_mode,
 	}
 
 	if ((mesh_topo_store->index_lookup == NULL) ||
-	    (mesh_topo_store->prev_ob_mode != ob_mode) ||
+	    (mesh_topo_store->prev_is_editmode != is_editmode) ||
 	    (totvert != mesh_topo_store->prev_vert_tot) ||
 	    (totedge != mesh_topo_store->prev_edge_tot))
 	{
@@ -666,9 +667,11 @@ bool ED_mesh_mirrtopo_recalc_check(Mesh *me, DerivedMesh *dm, const int ob_mode,
 
 }
 
-void ED_mesh_mirrtopo_init(Mesh *me, DerivedMesh *dm, const int ob_mode, MirrTopoStore_t *mesh_topo_store,
-                           const bool skip_em_vert_array_init)
+void ED_mesh_mirrtopo_init(
+        Mesh *me, DerivedMesh *dm, MirrTopoStore_t *mesh_topo_store,
+        const bool skip_em_vert_array_init)
 {
+	const bool is_editmode = (me->edit_btmesh != NULL);
 	MEdge *medge = NULL, *med;
 	BMEditMesh *em = dm ?  NULL : me->edit_btmesh;
 
@@ -691,7 +694,7 @@ void ED_mesh_mirrtopo_init(Mesh *me, DerivedMesh *dm, const int ob_mode, MirrTop
 	/* reallocate if needed */
 	ED_mesh_mirrtopo_free(mesh_topo_store);
 
-	mesh_topo_store->prev_ob_mode = ob_mode;
+	mesh_topo_store->prev_is_editmode = is_editmode;
 
 	if (em) {
 		BM_mesh_elem_index_ensure(em->bm, BM_VERT);

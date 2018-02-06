@@ -777,15 +777,16 @@ static MirrTopoStore_t mesh_topo_store = {NULL, -1. - 1, -1};
 /* mode is 's' start, or 'e' end, or 'u' use */
 /* if end, ob can be NULL */
 /* note, is supposed return -1 on error, which callers are currently checking for, but is not used so far */
-int ED_mesh_mirror_topo_table(Object *ob, DerivedMesh *dm, char mode)
+int ED_mesh_mirror_topo_table(
+        Object *ob, DerivedMesh *dm, char mode)
 {
 	if (mode == 'u') {        /* use table */
-		if (ED_mesh_mirrtopo_recalc_check(ob->data, dm, ob->mode, &mesh_topo_store)) {
+		if (ED_mesh_mirrtopo_recalc_check(ob->data, dm, &mesh_topo_store)) {
 			ED_mesh_mirror_topo_table(ob, dm, 's');
 		}
 	}
 	else if (mode == 's') { /* start table */
-		ED_mesh_mirrtopo_init(ob->data, dm, ob->mode, &mesh_topo_store, false);
+		ED_mesh_mirrtopo_init(ob->data, dm, &mesh_topo_store, false);
 	}
 	else if (mode == 'e') { /* end table */
 		ED_mesh_mirrtopo_free(&mesh_topo_store);
