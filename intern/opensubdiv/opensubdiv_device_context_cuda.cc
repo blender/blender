@@ -187,7 +187,7 @@ bool CudaDeviceContext::HAS_CUDA_VERSION_4_0()
 		cudaInitialized = true;
 
 #  ifdef OPENSUBDIV_HAS_CUEW
-		cudaLoadSuccess = cuewInit() == CUEW_SUCCESS;
+		cudaLoadSuccess = cuewInit(CUEW_INIT_CUDA) == CUEW_SUCCESS;
 		if (!cudaLoadSuccess) {
 			fprintf(stderr, "Loading CUDA failed.\n");
 		}

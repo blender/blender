@@ -2449,7 +2449,7 @@ bool device_cuda_init(void)
 		return result;
 
 	initialized = true;
-	int cuew_result = cuewInit();
+	int cuew_result = cuewInit(CUEW_INIT_CUDA);
 	if(cuew_result == CUEW_SUCCESS) {
 		VLOG(1) << "CUEW initialization succeeded";
 		if(CUDADevice::have_precompiled_kernels()) {

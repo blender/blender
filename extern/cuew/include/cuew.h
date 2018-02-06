@@ -24,10 +24,10 @@ extern "C" {
 #include <stdlib.h>
 
 /* Defines. */
-#define CUEW_VERSION_MAJOR 1
-#define CUEW_VERSION_MINOR 2
+#define CUEW_VERSION_MAJOR 2
+#define CUEW_VERSION_MINOR 0
 
-#define CUDA_VERSION 8000
+#define CUDA_VERSION 9010
 #define CU_IPC_HANDLE_SIZE 64
 #define CU_STREAM_LEGACY ((CUstream)0x1)
 #define CU_STREAM_PER_THREAD ((CUstream)0x2)
@@ -37,6 +37,8 @@ extern "C" {
 #define CU_MEMHOSTREGISTER_PORTABLE 0x01
 #define CU_MEMHOSTREGISTER_DEVICEMAP 0x02
 #define CU_MEMHOSTREGISTER_IOMEMORY 0x04
+#define CUDA_COOPERATIVE_LAUNCH_MULTI_DEVICE_NO_PRE_LAUNCH_SYNC 0x01
+#define CUDA_COOPERATIVE_LAUNCH_MULTI_DEVICE_NO_POST_LAUNCH_SYNC 0x02
 #define CUDA_ARRAY3D_LAYERED 0x01
 #define CUDA_ARRAY3D_2DARRAY 0x01
 #define CUDA_ARRAY3D_SURFACE_LDST 0x02
@@ -204,6 +206,7 @@ typedef enum CUstreamWaitValue_flags_enum {
   CU_STREAM_WAIT_VALUE_GEQ = 0x0,
   CU_STREAM_WAIT_VALUE_EQ = 0x1,
   CU_STREAM_WAIT_VALUE_AND = 0x2,
+  CU_STREAM_WAIT_VALUE_NOR = 0x3,
   CU_STREAM_WAIT_VALUE_FLUSH = (1 << 30),
 } CUstreamWaitValue_flags;
 
@@ -215,6 +218,8 @@ typedef enum CUstreamWriteValue_flags_enum {
 typedef enum CUstreamBatchMemOpType_enum {
   CU_STREAM_MEM_OP_WAIT_VALUE_32 = 1,
   CU_STREAM_MEM_OP_WRITE_VALUE_32 = 2,
+  CU_STREAM_MEM_OP_WAIT_VALUE_64 = 4,
+  CU_STREAM_MEM_OP_WRITE_VALUE_64 = 5,
   CU_STREAM_MEM_OP_FLUSH_REMOTE_WRITES = 3,
 } CUstreamBatchMemOpType;
 
@@ -225,7 +230,7 @@ typedef union CUstreamBatchMemOpParams_union {
     CUdeviceptr address;
     union {
       cuuint32_t value;
-      cuuint64_t pad;
+      cuuint64_t value64;
     };
     unsigned int flags;
     CUdeviceptr alias;
@@ -235,7 +240,7 @@ typedef union CUstreamBatchMemOpParams_union {
     CUdeviceptr address;
     union {
       cuuint32_t value;
-      cuuint64_t pad;
+      cuuint64_t value64;
     };
     unsigned int flags;
     CUdeviceptr alias;
@@ -372,6 +377,12 @@ typedef enum CUdevice_attribute_enum {
   CU_DEVICE_ATTRIBUTE_CONCURRENT_MANAGED_ACCESS = 89,
   CU_DEVICE_ATTRIBUTE_COMPUTE_PREEMPTION_SUPPORTED = 90,
   CU_DEVICE_ATTRIBUTE_CAN_USE_HOST_POINTER_FOR_REGISTERED_MEM = 91,
+  CU_DEVICE_ATTRIBUTE_CAN_USE_STREAM_MEM_OPS = 92,
+  CU_DEVICE_ATTRIBUTE_CAN_USE_64_BIT_STREAM_MEM_OPS = 93,
+  CU_DEVICE_ATTRIBUTE_CAN_USE_STREAM_WAIT_VALUE_NOR = 94,
+  CU_DEVICE_ATTRIBUTE_COOPERATIVE_LAUNCH = 95,
+  CU_DEVICE_ATTRIBUTE_COOPERATIVE_MULTI_DEVICE_LAUNCH = 96,
+  CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK_OPTIN = 97,
   CU_DEVICE_ATTRIBUTE_MAX,
 } CUdevice_attribute;
 
@@ -408,6 +419,8 @@ typedef enum CUfunction_attribute_enum {
   CU_FUNC_ATTRIBUTE_PTX_VERSION = 5,
   CU_FUNC_ATTRIBUTE_BINARY_VERSION = 6,
   CU_FUNC_ATTRIBUTE_CACHE_MODE_CA = 7,
+  CU_FUNC_ATTRIBUTE_MAX_DYNAMIC_SHARED_SIZE_BYTES = 8,
+  CU_FUNC_ATTRIBUTE_PREFERRED_SHARED_MEMORY_CARVEOUT = 9,
   CU_FUNC_ATTRIBUTE_MAX,
 } CUfunction_attribute;
 
@@ -423,6 +436,12 @@ typedef enum CUsharedconfig_enum {
   CU_SHARED_MEM_CONFIG_FOUR_BYTE_BANK_SIZE = 0x01,
   CU_SHARED_MEM_CONFIG_EIGHT_BYTE_BANK_SIZE = 0x02,
 } CUsharedconfig;
+
+typedef enum CUshared_carveout_enum {
+  CU_SHAREDMEM_CARVEOUT_DEFAULT,
+  CU_SHAREDMEM_CARVEOUT_MAX_SHARED = 100,
+  CU_SHAREDMEM_CARVEOUT_MAX_L1 = 0,
+} CUshared_carveout;
 
 typedef enum CUmemorytype_enum {
   CU_MEMORYTYPE_HOST = 0x01,
@@ -475,10 +494,6 @@ typedef enum CUjit_option_enum {
 } CUjit_option;
 
 typedef enum CUjit_target_enum {
-  CU_TARGET_COMPUTE_10 = 10,
-  CU_TARGET_COMPUTE_11 = 11,
-  CU_TARGET_COMPUTE_12 = 12,
-  CU_TARGET_COMPUTE_13 = 13,
   CU_TARGET_COMPUTE_20 = 20,
   CU_TARGET_COMPUTE_21 = 21,
   CU_TARGET_COMPUTE_30 = 30,
@@ -491,6 +506,9 @@ typedef enum CUjit_target_enum {
   CU_TARGET_COMPUTE_60 = 60,
   CU_TARGET_COMPUTE_61 = 61,
   CU_TARGET_COMPUTE_62 = 62,
+  CU_TARGET_COMPUTE_70 = 70,
+  CU_TARGET_COMPUTE_73 = 73,
+  CU_TARGET_COMPUTE_75 = 75,
 } CUjit_target;
 
 typedef enum CUjit_fallback_enum {
@@ -585,6 +603,7 @@ typedef enum cudaError_enum {
   CUDA_ERROR_INVALID_PTX = 218,
   CUDA_ERROR_INVALID_GRAPHICS_CONTEXT = 219,
   CUDA_ERROR_NVLINK_UNCORRECTABLE = 220,
+  CUDA_ERROR_JIT_COMPILER_NOT_FOUND = 221,
   CUDA_ERROR_INVALID_SOURCE = 300,
   CUDA_ERROR_FILE_NOT_FOUND = 301,
   CUDA_ERROR_SHARED_OBJECT_SYMBOL_NOT_FOUND = 302,
@@ -611,6 +630,7 @@ typedef enum cudaError_enum {
   CUDA_ERROR_INVALID_ADDRESS_SPACE = 717,
   CUDA_ERROR_INVALID_PC = 718,
   CUDA_ERROR_LAUNCH_FAILED = 719,
+  CUDA_ERROR_COOPERATIVE_LAUNCH_TOO_LARGE = 720,
   CUDA_ERROR_NOT_PERMITTED = 800,
   CUDA_ERROR_NOT_SUPPORTED = 801,
   CUDA_ERROR_UNKNOWN = 999,
@@ -813,6 +833,19 @@ typedef struct CUDA_POINTER_ATTRIBUTE_P2P_TOKENS_st {
   unsigned long long p2pToken;
   unsigned int vaSpaceToken;
 } CUDA_POINTER_ATTRIBUTE_P2P_TOKENS;
+
+typedef struct CUDA_LAUNCH_PARAMS_st {
+  CUfunction function;
+  unsigned int gridDimX;
+  unsigned int gridDimY;
+  unsigned int gridDimZ;
+  unsigned int blockDimX;
+  unsigned int blockDimY;
+  unsigned int blockDimZ;
+  unsigned int sharedMemBytes;
+  CUstream hStream;
+  void** kernelParams;
+} CUDA_LAUNCH_PARAMS;
 typedef unsigned int GLenum;
 typedef unsigned int GLuint;
 typedef int GLint;
@@ -845,6 +878,8 @@ typedef enum  {
 } nvrtcResult;
 
 typedef struct _nvrtcProgram* nvrtcProgram;
+
+
 /* Function types. */
 typedef CUresult CUDAAPI tcuGetErrorString(CUresult error, const char** pStr);
 typedef CUresult CUDAAPI tcuGetErrorName(CUresult error, const char** pStr);
@@ -983,12 +1018,17 @@ typedef CUresult CUDAAPI tcuEventSynchronize(CUevent hEvent);
 typedef CUresult CUDAAPI tcuEventDestroy_v2(CUevent hEvent);
 typedef CUresult CUDAAPI tcuEventElapsedTime(float* pMilliseconds, CUevent hStart, CUevent hEnd);
 typedef CUresult CUDAAPI tcuStreamWaitValue32(CUstream stream, CUdeviceptr addr, cuuint32_t value, unsigned int flags);
+typedef CUresult CUDAAPI tcuStreamWaitValue64(CUstream stream, CUdeviceptr addr, cuuint64_t value, unsigned int flags);
 typedef CUresult CUDAAPI tcuStreamWriteValue32(CUstream stream, CUdeviceptr addr, cuuint32_t value, unsigned int flags);
+typedef CUresult CUDAAPI tcuStreamWriteValue64(CUstream stream, CUdeviceptr addr, cuuint64_t value, unsigned int flags);
 typedef CUresult CUDAAPI tcuStreamBatchMemOp(CUstream stream, unsigned int count, CUstreamBatchMemOpParams* paramArray, unsigned int flags);
 typedef CUresult CUDAAPI tcuFuncGetAttribute(int* pi, CUfunction_attribute attrib, CUfunction hfunc);
+typedef CUresult CUDAAPI tcuFuncSetAttribute(CUfunction hfunc, CUfunction_attribute attrib, int value);
 typedef CUresult CUDAAPI tcuFuncSetCacheConfig(CUfunction hfunc, CUfunc_cache config);
 typedef CUresult CUDAAPI tcuFuncSetSharedMemConfig(CUfunction hfunc, CUsharedconfig config);
 typedef CUresult CUDAAPI tcuLaunchKernel(CUfunction f, unsigned int gridDimX, unsigned int gridDimY, unsigned int gridDimZ, unsigned int blockDimX, unsigned int blockDimY, unsigned int blockDimZ, unsigned int sharedMemBytes, CUstream hStream, void** kernelParams, void** extra);
+typedef CUresult CUDAAPI tcuLaunchCooperativeKernel(CUfunction f, unsigned int gridDimX, unsigned int gridDimY, unsigned int gridDimZ, unsigned int blockDimX, unsigned int blockDimY, unsigned int blockDimZ, unsigned int sharedMemBytes, CUstream hStream, void** kernelParams);
+typedef CUresult CUDAAPI tcuLaunchCooperativeKernelMultiDevice(CUDA_LAUNCH_PARAMS* launchParamsList, unsigned int numDevices, unsigned int flags);
 typedef CUresult CUDAAPI tcuFuncSetBlockShape(CUfunction hfunc, int x, int y, int z);
 typedef CUresult CUDAAPI tcuFuncSetSharedSize(CUfunction hfunc, unsigned int bytes);
 typedef CUresult CUDAAPI tcuParamSetSize(CUfunction hfunc, unsigned int numbytes);
@@ -1041,9 +1081,9 @@ typedef CUresult CUDAAPI tcuSurfObjectCreate(CUsurfObject* pSurfObject, const CU
 typedef CUresult CUDAAPI tcuSurfObjectDestroy(CUsurfObject surfObject);
 typedef CUresult CUDAAPI tcuSurfObjectGetResourceDesc(CUDA_RESOURCE_DESC* pResDesc, CUsurfObject surfObject);
 typedef CUresult CUDAAPI tcuDeviceCanAccessPeer(int* canAccessPeer, CUdevice dev, CUdevice peerDev);
-typedef CUresult CUDAAPI tcuDeviceGetP2PAttribute(int* value, CUdevice_P2PAttribute attrib, CUdevice srcDevice, CUdevice dstDevice);
 typedef CUresult CUDAAPI tcuCtxEnablePeerAccess(CUcontext peerContext, unsigned int Flags);
 typedef CUresult CUDAAPI tcuCtxDisablePeerAccess(CUcontext peerContext);
+typedef CUresult CUDAAPI tcuDeviceGetP2PAttribute(int* value, CUdevice_P2PAttribute attrib, CUdevice srcDevice, CUdevice dstDevice);
 typedef CUresult CUDAAPI tcuGraphicsUnregisterResource(CUgraphicsResource resource);
 typedef CUresult CUDAAPI tcuGraphicsSubResourceGetMappedArray(CUarray* pArray, CUgraphicsResource resource, unsigned int arrayIndex, unsigned int mipLevel);
 typedef CUresult CUDAAPI tcuGraphicsResourceGetMappedMipmappedArray(CUmipmappedArray* pMipmappedArray, CUgraphicsResource resource);
@@ -1217,12 +1257,17 @@ extern tcuEventSynchronize *cuEventSynchronize;
 extern tcuEventDestroy_v2 *cuEventDestroy_v2;
 extern tcuEventElapsedTime *cuEventElapsedTime;
 extern tcuStreamWaitValue32 *cuStreamWaitValue32;
+extern tcuStreamWaitValue64 *cuStreamWaitValue64;
 extern tcuStreamWriteValue32 *cuStreamWriteValue32;
+extern tcuStreamWriteValue64 *cuStreamWriteValue64;
 extern tcuStreamBatchMemOp *cuStreamBatchMemOp;
 extern tcuFuncGetAttribute *cuFuncGetAttribute;
+extern tcuFuncSetAttribute *cuFuncSetAttribute;
 extern tcuFuncSetCacheConfig *cuFuncSetCacheConfig;
 extern tcuFuncSetSharedMemConfig *cuFuncSetSharedMemConfig;
 extern tcuLaunchKernel *cuLaunchKernel;
+extern tcuLaunchCooperativeKernel *cuLaunchCooperativeKernel;
+extern tcuLaunchCooperativeKernelMultiDevice *cuLaunchCooperativeKernelMultiDevice;
 extern tcuFuncSetBlockShape *cuFuncSetBlockShape;
 extern tcuFuncSetSharedSize *cuFuncSetSharedSize;
 extern tcuParamSetSize *cuParamSetSize;
@@ -1275,9 +1320,9 @@ extern tcuSurfObjectCreate *cuSurfObjectCreate;
 extern tcuSurfObjectDestroy *cuSurfObjectDestroy;
 extern tcuSurfObjectGetResourceDesc *cuSurfObjectGetResourceDesc;
 extern tcuDeviceCanAccessPeer *cuDeviceCanAccessPeer;
-extern tcuDeviceGetP2PAttribute *cuDeviceGetP2PAttribute;
 extern tcuCtxEnablePeerAccess *cuCtxEnablePeerAccess;
 extern tcuCtxDisablePeerAccess *cuCtxDisablePeerAccess;
+extern tcuDeviceGetP2PAttribute *cuDeviceGetP2PAttribute;
 extern tcuGraphicsUnregisterResource *cuGraphicsUnregisterResource;
 extern tcuGraphicsSubResourceGetMappedArray *cuGraphicsSubResourceGetMappedArray;
 extern tcuGraphicsResourceGetMappedMipmappedArray *cuGraphicsResourceGetMappedMipmappedArray;
@@ -1319,7 +1364,12 @@ enum {
   CUEW_ERROR_ATEXIT_FAILED = -2,
 };
 
-int cuewInit(void);
+enum {
+	CUEW_INIT_CUDA = 1,
+	CUEW_INIT_NVRTC = 2
+};
+
+int cuewInit(cuuint32_t flags);
 const char *cuewErrorString(CUresult result);
 const char *cuewCompilerPath(void);
 int cuewCompilerVersion(void);
