@@ -1326,7 +1326,7 @@ float ED_view3d_grid_scale(Scene *scene, View3D *v3d, const char **grid_unit)
 	return v3d->grid * ED_scene_grid_scale(scene, grid_unit);
 }
 
-static bool is_cursor_visible(Scene *scene, ViewLayer *view_layer)
+static bool is_cursor_visible(const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer)
 {
 	if (U.app_flag & USER_APP_VIEW3D_HIDE_CURSOR) {
 		return false;
@@ -1335,16 +1335,16 @@ static bool is_cursor_visible(Scene *scene, ViewLayer *view_layer)
 	Object *ob = OBACT(view_layer);
 
 	/* don't draw cursor in paint modes, but with a few exceptions */
-	if (ob && ob->mode & OB_MODE_ALL_PAINT) {
+	if (ob && eval_ctx->object_mode & OB_MODE_ALL_PAINT) {
 		/* exception: object is in weight paint and has deforming armature in pose mode */
-		if (ob->mode & OB_MODE_WEIGHT_PAINT) {
+		if (eval_ctx->object_mode & OB_MODE_WEIGHT_PAINT) {
 			if (BKE_object_pose_armature_get(ob) != NULL) {
 				return true;
 			}
 		}
 		/* exception: object in texture paint mode, clone brush, use_clone_layer disabled */
-		else if (ob->mode & OB_MODE_TEXTURE_PAINT) {
-			const Paint *p = BKE_paint_get_active(scene, view_layer);
+		else if (eval_ctx->object_mode & OB_MODE_TEXTURE_PAINT) {
+			const Paint *p = BKE_paint_get_active(scene, view_layer, eval_ctx->object_mode);
 
 			if (p && p->brush && p->brush->imagepaint_tool == PAINT_TOOL_CLONE) {
 				if ((scene->toolsettings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE) == 0) {
@@ -1718,7 +1718,8 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d, rcti *rect)
  * framenum, object name, bone name (if available), marker name (if available)
  */
 
-static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
+static void draw_selected_name(
+        const EvaluationContext *eval_ctx, Scene *scene, Object *ob, rcti *rect)
 {
 	const int cfra = CFRA;
 	const char *msg_pin = " (Pinned)";
@@ -1760,7 +1761,7 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 					s += BLI_strcpy_rlen(s, arm->act_edbone->name);
 				}
 			}
-			else if (ob->mode & OB_MODE_POSE) {
+			else if (eval_ctx->object_mode & OB_MODE_POSE) {
 				if (arm->act_bone) {
 
 					if (arm->act_bone->layer & arm->layer) {
@@ -1773,14 +1774,16 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 		else if (ELEM(ob->type, OB_MESH, OB_LATTICE, OB_CURVE)) {
 			/* try to display active bone and active shapekey too (if they exist) */
 
-			if (ob->type == OB_MESH && ob->mode & OB_MODE_WEIGHT_PAINT) {
+			if (ob->type == OB_MESH && eval_ctx->object_mode & OB_MODE_WEIGHT_PAINT) {
 				Object *armobj = BKE_object_pose_armature_get(ob);
-				if (armobj  && armobj->mode & OB_MODE_POSE) {
+				if (armobj) {
 					bArmature *arm = armobj->data;
-					if (arm->act_bone) {
-						if (arm->act_bone->layer & arm->layer) {
-							s += BLI_strcpy_rlen(s, msg_sep);
-							s += BLI_strcpy_rlen(s, arm->act_bone->name);
+					if (arm->flag & ARM_POSEMODE) {
+						if (arm->act_bone) {
+							if (arm->act_bone->layer & arm->layer) {
+								s += BLI_strcpy_rlen(s, msg_sep);
+								s += BLI_strcpy_rlen(s, arm->act_bone->name);
+							}
 						}
 					}
 				}
@@ -1832,6 +1835,8 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 */
 void view3d_draw_region_info(const bContext *C, ARegion *ar, const int offset)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	RegionView3D *rv3d = ar->regiondata;
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
@@ -1864,7 +1869,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar, const int offset)
 	if (U.uiflag & USER_DRAWVIEWINFO) {
 		ViewLayer *view_layer = CTX_data_view_layer(C);
 		Object *ob = OBACT(view_layer);
-		draw_selected_name(scene, ob, &rect);
+		draw_selected_name(&eval_ctx, scene, ob, &rect);
 	}
 #if 0 /* TODO */
 	if (grid_unit) { /* draw below the viewport name */
@@ -1951,7 +1956,7 @@ void ED_view3d_draw_offscreen_init(const EvaluationContext *eval_ctx, Scene *sce
 	RenderEngineType *engine_type = eval_ctx->engine_type;
 	if (engine_type->flag & RE_USE_LEGACY_PIPELINE) {
 		/* shadow buffers, before we setup matrices */
-		if (draw_glsl_material(scene, view_layer, NULL, v3d, v3d->drawtype)) {
+		if (draw_glsl_material(eval_ctx, scene, view_layer, NULL, v3d, v3d->drawtype)) {
 			VP_deprecated_gpu_update_lamps_shadows_world(eval_ctx, scene, v3d);
 		}
 	}
@@ -2077,7 +2082,7 @@ void ED_view3d_draw_offscreen(
 	}
 	else {
 		DRW_draw_render_loop_offscreen(
-		        depsgraph, eval_ctx->engine_type, ar, v3d, eval_ctx->object_mode,
+		        eval_ctx->depsgraph, eval_ctx->engine_type, ar, v3d, eval_ctx->object_mode,
 		        do_sky, ofs, viewport);
 	}
 
@@ -2354,9 +2359,10 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
  *
  * \{ */
 
-void VP_legacy_drawcursor(Scene *scene, ViewLayer *view_layer, ARegion *ar, View3D *v3d)
+void VP_legacy_drawcursor(
+        const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer, ARegion *ar, View3D *v3d)
 {
-	if (is_cursor_visible(scene, view_layer)) {
+	if (is_cursor_visible(eval_ctx, scene, view_layer)) {
 		drawcursor(scene, ar, v3d);
 	}
 }
@@ -2371,9 +2377,9 @@ void VP_legacy_draw_viewport_name(ARegion *ar, View3D *v3d, rcti *rect)
 	draw_viewport_name(ar, v3d, rect);
 }
 
-void VP_legacy_draw_selected_name(Scene *scene, Object *ob, rcti *rect)
+void VP_legacy_draw_selected_name(const EvaluationContext *eval_ctx, Scene *scene, Object *ob, rcti *rect)
 {
-	draw_selected_name(scene, ob, rect);
+	draw_selected_name(eval_ctx, scene, ob, rect);
 }
 
 void VP_legacy_drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **grid_unit)

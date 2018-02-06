@@ -2904,8 +2904,11 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra, cons
 	if ((psys->part->childtype && psys->totchild != psys_get_tot_child(sim->scene, psys)) || psys->recalc&PSYS_RECALC_RESET)
 		alloc=1;
 
-	if (alloc || psys->recalc&PSYS_RECALC_CHILD || (psys->vgroup[PSYS_VG_DENSITY] && (sim->ob && sim->ob->mode & OB_MODE_WEIGHT_PAINT)))
+	if (alloc || psys->recalc&PSYS_RECALC_CHILD ||
+	    (psys->vgroup[PSYS_VG_DENSITY] && (sim->ob && sim->eval_ctx->object_mode & OB_MODE_WEIGHT_PAINT)))
+	{
 		distr=1;
+	}
 
 	if (distr) {
 		if (alloc)
@@ -2933,7 +2936,7 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra, cons
 			skip = 1; /* draw visualization */
 		else if (psys->pointcache->flag & PTCACHE_BAKING)
 			skip = 1; /* no need to cache paths while baking dynamics */
-		else if (psys_in_edit_mode(sim->eval_ctx->view_layer, psys)) {
+		else if (psys_in_edit_mode(sim->eval_ctx, sim->eval_ctx->view_layer, psys)) {
 			if ((pset->flag & PE_DRAW_PART)==0)
 				skip = 1;
 			else if (part->childtype==0 && (psys->flag & PSYS_HAIR_DYNAMICS && psys->pointcache->flag & PTCACHE_BAKED)==0)

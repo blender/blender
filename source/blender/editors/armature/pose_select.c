@@ -134,6 +134,7 @@ void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select)
 /* called from editview.c, for mode-less pose selection */
 /* assumes scene obact and basact is still on old situation */
 bool ED_do_pose_selectbuffer(
+        const EvaluationContext *eval_ctx,
         Scene *scene, ViewLayer *view_layer, Base *base, const unsigned int *buffer, short hits,
         bool extend, bool deselect, bool toggle, bool do_nearest)
 {
@@ -154,7 +155,7 @@ bool ED_do_pose_selectbuffer(
 		 * note, special exception for armature mode so we can do multi-select
 		 * we could check for multi-select explicitly but think its fine to
 		 * always give predictable behavior in weight paint mode - campbell */
-		if ((ob_act == NULL) || ((ob_act != ob) && (ob_act->mode & OB_MODE_WEIGHT_PAINT) == 0)) {
+		if ((ob_act == NULL) || ((ob_act != ob) && (eval_ctx->object_mode & OB_MODE_WEIGHT_PAINT) == 0)) {
 			/* when we are entering into posemode via toggle-select,
 			 * from another active object - always select the bone. */
 			if (!extend && !deselect && toggle) {
@@ -873,16 +874,15 @@ void POSE_OT_select_grouped(wmOperatorType *ot)
  */
 static int pose_select_mirror_exec(bContext *C, wmOperator *op)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+
 	Object *ob_act = CTX_data_active_object(C);
 	Object *ob = BKE_object_pose_armature_get(ob_act);
 	bArmature *arm;
 	bPoseChannel *pchan, *pchan_mirror_act = NULL;
 	const bool active_only = RNA_boolean_get(op->ptr, "only_active");
 	const bool extend = RNA_boolean_get(op->ptr, "extend");
-
-	if ((ob && (ob->mode & OB_MODE_POSE)) == 0) {
-		return OPERATOR_CANCELLED;
-	}
 
 	arm = ob->data;
 
@@ -920,7 +920,7 @@ static int pose_select_mirror_exec(bContext *C, wmOperator *op)
 		arm->act_bone = pchan_mirror_act->bone;
 
 		/* in weightpaint we select the associated vertex group too */
-		if (ob_act->mode & OB_MODE_WEIGHT_PAINT) {
+		if (eval_ctx.object_mode & OB_MODE_WEIGHT_PAINT) {
 			ED_vgroup_select_by_name(ob_act, pchan_mirror_act->name);
 			DEG_id_tag_update(&ob_act->id, OB_RECALC_DATA);
 		}

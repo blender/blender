@@ -789,8 +789,11 @@ static int view3d_panel_vgroup_poll(const bContext *C, PanelType *UNUSED(pt))
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = OBACT(view_layer);
+
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	if (ob && (BKE_object_is_in_editmode_vgroup(ob) ||
-	           BKE_object_is_in_wpaint_select_vert(ob)))
+	           BKE_object_is_in_wpaint_select_vert(&eval_ctx, ob)))
 	{
 		MDeformVert *dvert_act = ED_mesh_active_dvert_get_only(ob);
 		if (dvert_act) {
@@ -1127,6 +1130,8 @@ static int view3d_panel_transform_poll(const bContext *C, PanelType *UNUSED(pt))
 
 static void view3d_panel_transform(const bContext *C, Panel *pa)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	uiBlock *block;
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1152,7 +1157,7 @@ static void view3d_panel_transform(const bContext *C, Panel *pa)
 			v3d_editvertex_buts(col, v3d, ob, lim);
 		}
 	}
-	else if (ob->mode & OB_MODE_POSE) {
+	else if (eval_ctx.object_mode & OB_MODE_POSE) {
 		v3d_posearmature_buts(col, ob);
 	}
 	else {

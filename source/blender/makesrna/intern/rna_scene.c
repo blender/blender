@@ -1703,9 +1703,11 @@ static KeyingSet *rna_Scene_keying_set_new(Scene *sce, ReportList *reports, cons
 
 static void rna_UnifiedPaintSettings_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
-	Brush *br = BKE_paint_brush(BKE_paint_get_active(scene, view_layer));
+	Brush *br = BKE_paint_brush(BKE_paint_get_active(scene, view_layer, eval_ctx.object_mode));
 	WM_main_add_notifier(NC_BRUSH | NA_EDITED, br);
 }
 

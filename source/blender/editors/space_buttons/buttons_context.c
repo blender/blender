@@ -62,6 +62,8 @@
 
 #include "RNA_access.h"
 
+#include "DEG_depsgraph.h"
+
 #include "ED_buttons.h"
 #include "ED_armature.h"
 #include "ED_screen.h"
@@ -423,8 +425,10 @@ static int buttons_context_path_brush(const bContext *C, ButsContextPath *path)
 		scene = path->ptr[path->len - 1].data;
 
 		if (scene) {
+			EvaluationContext eval_ctx;
+			CTX_data_eval_ctx(C, &eval_ctx);
 			ViewLayer *view_layer = CTX_data_view_layer(C);
-			br = BKE_paint_brush(BKE_paint_get_active(scene, view_layer));
+			br = BKE_paint_brush(BKE_paint_get_active(scene, view_layer, eval_ctx.object_mode));
 		}
 
 		if (br) {

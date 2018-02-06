@@ -46,6 +46,7 @@ struct View3D;
 struct RegionView3D;
 struct SmokeModifierData;
 struct DupliObject;
+struct EvaluationContext;
 
 /* OpenGL drawing functions related to shading. These are also
  * shared with the game engine, where there were previously
@@ -73,9 +74,10 @@ void GPU_disable_program_point_size(void);
  *   GPU_object_material_bind returns 0 if drawing should be skipped
  * - after drawing, the material must be disabled again */
 
-void GPU_begin_object_materials(struct View3D *v3d, struct RegionView3D *rv3d,
-                                struct Scene *scene, struct ViewLayer *view_layer,
-                                struct Object *ob, bool glsl, bool *do_alpha_after);
+void GPU_begin_object_materials(
+        struct View3D *v3d, struct RegionView3D *rv3d,
+        struct Scene *scene, struct ViewLayer *view_layer,
+        struct Object *ob, bool glsl, const short object_mode, bool *do_alpha_after);
 void GPU_end_object_materials(void);
 bool GPU_object_materials_check(void);
 

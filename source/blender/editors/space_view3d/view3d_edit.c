@@ -244,21 +244,24 @@ void view3d_orbit_apply_dyn_ofs(
 static bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 {
 	static float lastofs[3] = {0, 0, 0};
+
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	bool is_set = false;
 
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob_act = OBACT(view_layer);
 
-	if (ob_act && (ob_act->mode & OB_MODE_ALL_PAINT) &&
+	if (ob_act && (eval_ctx.object_mode & OB_MODE_ALL_PAINT) &&
 	    /* with weight-paint + pose-mode, fall through to using calculateTransformCenter */
-	    ((ob_act->mode & OB_MODE_WEIGHT_PAINT) && BKE_object_pose_armature_get(ob_act)) == 0)
+	    ((eval_ctx.object_mode & OB_MODE_WEIGHT_PAINT) && BKE_object_pose_armature_get(ob_act)) == 0)
 	{
 		/* in case of sculpting use last average stroke position as a rotation
 		 * center, in other cases it's not clear what rotation center shall be
 		 * so just rotate around object origin
 		 */
-		if (ob_act->mode & (OB_MODE_SCULPT | OB_MODE_TEXTURE_PAINT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
+		if (eval_ctx.object_mode & (OB_MODE_SCULPT | OB_MODE_TEXTURE_PAINT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
 			float stroke[3];
 			BKE_paint_stroke_get_average(scene, ob_act, stroke);
 			copy_v3_v3(lastofs, stroke);
@@ -268,7 +271,7 @@ static bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 		}
 		is_set = true;
 	}
-	else if (ob_act && (ob_act->mode & OB_MODE_EDIT) && (ob_act->type == OB_FONT)) {
+	else if (ob_act && (eval_ctx.object_mode & OB_MODE_EDIT) && (ob_act->type == OB_FONT)) {
 		Curve *cu = ob_act->data;
 		EditFont *ef = cu->editfont;
 		int i;
@@ -283,7 +286,7 @@ static bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 
 		is_set = true;
 	}
-	else if (ob_act == NULL || ob_act->mode == OB_MODE_OBJECT) {
+	else if (ob_act == NULL || eval_ctx.object_mode == OB_MODE_OBJECT) {
 		/* object mode use boundbox centers */
 		Base *base;
 		unsigned int tot = 0;
@@ -2792,6 +2795,8 @@ void VIEW3D_OT_view_all(wmOperatorType *ot)
 /* like a localview without local!, was centerview() in 2.4x */
 static int viewselected_exec(bContext *C, wmOperator *op)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
@@ -2815,15 +2820,18 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 		ob = NULL;
 	}
 
-	if (ob && (ob->mode & OB_MODE_WEIGHT_PAINT)) {
+	if (ob && (eval_ctx.object_mode & OB_MODE_WEIGHT_PAINT)) {
 		/* hard-coded exception, we look for the one selected armature */
 		/* this is weak code this way, we should make a generic active/selection callback interface once... */
 		Base *base;
 		for (base = view_layer->object_bases.first; base; base = base->next) {
 			if (TESTBASELIB(base)) {
-				if (base->object->type == OB_ARMATURE)
-					if (base->object->mode & OB_MODE_POSE)
+				if (base->object->type == OB_ARMATURE) {
+					const bArmature *arm = base->object->data;
+					if (arm->flag & ARM_POSEMODE) {
 						break;
+					}
+				}
 			}
 		}
 		if (base)
@@ -2849,17 +2857,17 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 	else if (obedit) {
 		ok = ED_view3d_minmax_verts(obedit, min, max);    /* only selected */
 	}
-	else if (ob && (ob->mode & OB_MODE_POSE)) {
+	else if (ob && (eval_ctx.object_mode & OB_MODE_POSE)) {
 		ok = BKE_pose_minmax(ob, min, max, true, true);
 	}
-	else if (BKE_paint_select_face_test(ob)) {
+	else if (BKE_paint_select_face_test(&eval_ctx, ob)) {
 		ok = paintface_minmax(ob, min, max);
 	}
-	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
+	else if (ob && (eval_ctx.object_mode & OB_MODE_PARTICLE_EDIT)) {
 		ok = PE_minmax(scene, view_layer, min, max);
 	}
 	else if (ob &&
-	         (ob->mode & (OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)))
+	         (eval_ctx.object_mode & (OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)))
 	{
 		BKE_paint_stroke_get_average(scene, ob, min);
 		copy_v3_v3(max, min);
@@ -2966,13 +2974,15 @@ static int view_lock_to_active_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *obact = CTX_data_active_object(C);
 
 	if (v3d) {
+		EvaluationContext eval_ctx;
+		CTX_data_eval_ctx(C, &eval_ctx);
 
 		ED_view3d_lock_clear(v3d);
 
 		v3d->ob_centre = obact; /* can be NULL */
 
 		if (obact && obact->type == OB_ARMATURE) {
-			if (obact->mode & OB_MODE_POSE) {
+			if (eval_ctx.object_mode & OB_MODE_POSE) {
 				bPoseChannel *pcham_act = BKE_pose_channel_active(obact);
 				if (pcham_act) {
 					BLI_strncpy(v3d->ob_centre_bone, pcham_act->name, sizeof(v3d->ob_centre_bone));

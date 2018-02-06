@@ -79,9 +79,9 @@ void BKE_object_make_proxy(struct Object *ob, struct Object *target, struct Obje
 void BKE_object_copy_proxy_drivers(struct Object *ob, struct Object *target);
 
 bool BKE_object_exists_check(struct Object *obtest);
-bool BKE_object_is_in_editmode(struct Object *ob);
+bool BKE_object_is_in_editmode(const struct Object *ob);
 bool BKE_object_is_in_editmode_vgroup(struct Object *ob);
-bool BKE_object_is_in_wpaint_select_vert(struct Object *ob);
+bool BKE_object_is_in_wpaint_select_vert(const struct EvaluationContext *eval_ctx, const struct Object *ob);
 
 typedef enum eObjectVisibilityCheck {
 	OB_VISIBILITY_CHECK_FOR_VIEWPORT,
@@ -113,9 +113,9 @@ void BKE_object_lod_add(struct Object *ob);
 void BKE_object_lod_sort(struct Object *ob);
 bool BKE_object_lod_remove(struct Object *ob, int level);
 void BKE_object_lod_update(struct Object *ob, const float camera_position[3]);
-bool BKE_object_lod_is_usable(struct Object *ob, struct ViewLayer *view_layer);
-struct Object *BKE_object_lod_meshob_get(struct Object *ob, struct ViewLayer *view_layer);
-struct Object *BKE_object_lod_matob_get(struct Object *ob, struct ViewLayer *view_layer);
+bool BKE_object_lod_is_usable(struct Object *ob, struct ViewLayer *view_layer, const short object_mode);
+struct Object *BKE_object_lod_meshob_get(struct Object *ob, struct ViewLayer *view_layer, const short object_mode);
+struct Object *BKE_object_lod_matob_get(struct Object *ob, struct ViewLayer *view_layer, const short object_mode);
 
 void BKE_object_copy_data(struct Main *bmain, struct Object *ob_dst, const struct Object *ob_src, const int flag);
 struct Object *BKE_object_copy(struct Main *bmain, const struct Object *ob);

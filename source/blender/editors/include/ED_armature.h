@@ -143,6 +143,7 @@ void ED_armature_deselect_all(struct Object *obedit);
 void ED_armature_deselect_all_visible(struct Object *obedit);
 
 bool ED_do_pose_selectbuffer(
+        const struct EvaluationContext *eval_ctx,
         struct Scene *scene, struct ViewLayer *view_layer, struct Base *base, const unsigned int *buffer, short hits,
         bool extend, bool deselect, bool toggle, bool do_nearest);
 bool ED_armature_select_pick(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
