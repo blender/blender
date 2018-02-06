@@ -151,7 +151,7 @@ void BKE_brush_init(Brush *brush)
 /**
  * \note Resulting brush will have two users: one as a fake user, another is assumed to be used by the caller.
  */
-Brush *BKE_brush_add(Main *bmain, const char *name, short ob_mode)
+Brush *BKE_brush_add(Main *bmain, const char *name, const eObjectMode ob_mode)
 {
 	Brush *brush;
 
@@ -164,7 +164,7 @@ Brush *BKE_brush_add(Main *bmain, const char *name, short ob_mode)
 	return brush;
 }
 
-struct Brush *BKE_brush_first_search(struct Main *bmain, short ob_mode)
+struct Brush *BKE_brush_first_search(struct Main *bmain, const eObjectMode ob_mode)
 {
 	Brush *brush;
 

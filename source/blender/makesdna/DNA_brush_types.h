@@ -72,7 +72,7 @@ typedef struct Brush {
 	float rake_factor;  /* rake actual data (not texture), used for sculpt */
 
 	short blend;        /* blend mode */
-	short ob_mode;      /* & with ob->mode to see if the brush is compatible, use for display only. */
+	short ob_mode;      /* eObjectMode: to see if the brush is compatible, use for display only. */
 	float weight;       /* brush weight */
 	int size;           /* brush diameter */
 	int flag;           /* general purpose flag */
