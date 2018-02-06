@@ -68,6 +68,8 @@ struct EditBone;
 struct RenderEngineType;
 struct SnapObjectContext;
 
+#include "DNA_object_enums.h"
+
 /* transinfo->redraw */
 typedef enum {
 	TREDRAW_NOTHING   = 0,
@@ -653,7 +655,7 @@ void restoreBones(TransInfo *t);
 #define MANIPULATOR_AXIS_LINE_WIDTH 2.0f
 
 /* return 0 when no gimbal for selection */
-bool gimbal_axis(struct Object *ob, float gmat[3][3], const short object_mode);
+bool gimbal_axis(struct Object *ob, float gmat[3][3], const eObjectMode object_mode);
 
 /*********************** TransData Creation and General Handling *********** */
 void createTransData(struct bContext *C, TransInfo *t);

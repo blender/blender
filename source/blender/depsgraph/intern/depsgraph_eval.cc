@@ -81,7 +81,7 @@ void DEG_evaluation_context_init_from_scene(
         Scene *scene,
         ViewLayer *view_layer,
         RenderEngineType *engine_type,
-        short object_mode,
+        eObjectMode object_mode,
         eEvaluationMode mode)
 {
 	DEG_evaluation_context_init(eval_ctx, mode);

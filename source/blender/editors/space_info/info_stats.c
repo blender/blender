@@ -365,7 +365,7 @@ static void stats_dupli_object(Base *base, Object *ob, SceneStats *stats)
 	}
 }
 
-static bool stats_is_object_dynamic_topology_sculpt(Object *ob, short object_mode)
+static bool stats_is_object_dynamic_topology_sculpt(Object *ob, const eObjectMode object_mode)
 {
 	return (ob &&
 	        (object_mode & OB_MODE_SCULPT) &&
@@ -373,7 +373,7 @@ static bool stats_is_object_dynamic_topology_sculpt(Object *ob, short object_mod
 }
 
 /* Statistics displayed in info header. Called regularly on scene changes. */
-static void stats_update(Scene *scene, ViewLayer *view_layer, const short object_mode)
+static void stats_update(Scene *scene, ViewLayer *view_layer, const eObjectMode object_mode)
 {
 	SceneStats stats = {0};
 	Object *ob = (view_layer->basact) ? view_layer->basact->object : NULL;
@@ -406,7 +406,7 @@ static void stats_update(Scene *scene, ViewLayer *view_layer, const short object
 	*(view_layer->stats) = stats;
 }
 
-static void stats_string(Scene *scene, ViewLayer *view_layer, const short object_mode)
+static void stats_string(Scene *scene, ViewLayer *view_layer, const eObjectMode object_mode)
 {
 #define MAX_INFO_MEM_LEN  64
 	SceneStats *stats = view_layer->stats;

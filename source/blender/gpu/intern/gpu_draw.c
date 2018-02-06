@@ -1460,7 +1460,7 @@ static struct GPUMaterialState {
 	Material *gmatbuf_fixed[FIXEDMAT];
 	Material *gboundmat;
 	Object *gob;
-	short gob_object_mode;
+	eObjectMode gob_object_mode;
 	DupliObject *dob;
 	Scene *gscene;
 	int glay;
@@ -1555,7 +1555,7 @@ void GPU_end_dupli_object(void)
 
 void GPU_begin_object_materials(
         View3D *v3d, RegionView3D *rv3d, Scene *scene, ViewLayer *view_layer, Object *ob,
-        bool glsl, const short object_mode, bool *do_alpha_after)
+        bool glsl, const eObjectMode object_mode, bool *do_alpha_after)
 {
 	Material *ma;
 	GPUMaterial *gpumat;

@@ -62,6 +62,8 @@ struct EvaluationContext;
 
 enum eOverlayFlags;
 
+#include "DNA_object_enums.h"
+
 extern const char PAINT_CURSOR_SCULPT[3];
 extern const char PAINT_CURSOR_VERTEX_PAINT[3];
 extern const char PAINT_CURSOR_WEIGHT_PAINT[3];
@@ -124,10 +126,10 @@ void BKE_paint_copy(struct Paint *src, struct Paint *tar, const int flag);
 
 void BKE_paint_cavity_curve_preset(struct Paint *p, int preset);
 
-short BKE_paint_object_mode_from_paint_mode(ePaintMode mode);
+eObjectMode BKE_paint_object_mode_from_paint_mode(ePaintMode mode);
 struct Paint *BKE_paint_get_active_from_paintmode(struct Scene *sce, ePaintMode mode);
 struct Paint *BKE_paint_get_active(
-        struct Scene *sce, struct ViewLayer *view_layer, const short object_mode);
+        struct Scene *sce, struct ViewLayer *view_layer, const eObjectMode object_mode);
 struct Paint *BKE_paint_get_active_from_context(const struct bContext *C);
 ePaintMode BKE_paintmode_get_active_from_context(const struct bContext *C);
 struct Brush *BKE_paint_brush(struct Paint *paint);

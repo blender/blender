@@ -997,7 +997,7 @@ SceneCollection *CTX_data_scene_collection(const bContext *C)
 	return BKE_collection_master(&scene->id);
 }
 
-int CTX_data_mode_enum_ex(const Object *obedit, const Object *ob, const short object_mode)
+int CTX_data_mode_enum_ex(const Object *obedit, const Object *ob, const eObjectMode object_mode)
 {
 	// Object *obedit = CTX_data_edit_object(C);
 	if (obedit) {

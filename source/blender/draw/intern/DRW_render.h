@@ -470,7 +470,7 @@ typedef struct DRWContextState {
 
 	struct Depsgraph *depsgraph;
 
-	short object_mode;
+	eObjectMode object_mode;
 
 	/* Last resort (some functions take this as an arg so we can't easily avoid).
 	 * May be NULL when used for selection or depth buffer. */

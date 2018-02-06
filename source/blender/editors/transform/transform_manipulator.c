@@ -520,7 +520,7 @@ static bool test_rotmode_euler(short rotmode)
 	return (ELEM(rotmode, ROT_MODE_AXISANGLE, ROT_MODE_QUAT)) ? 0 : 1;
 }
 
-bool gimbal_axis(Object *ob, float gmat[3][3], const short object_mode)
+bool gimbal_axis(Object *ob, float gmat[3][3], const eObjectMode object_mode)
 {
 	if (object_mode & OB_MODE_POSE) {
 		bPoseChannel *pchan = BKE_pose_channel_active(ob);

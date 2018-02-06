@@ -159,7 +159,7 @@ Paint *BKE_paint_get_active_from_paintmode(Scene *sce, ePaintMode mode)
 	return NULL;
 }
 
-Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer, const short object_mode)
+Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer, const eObjectMode object_mode)
 {
 	if (sce && view_layer) {
 		ToolSettings *ts = sce->toolsettings;
@@ -178,6 +178,8 @@ Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer, const short objec
 					if (ts->use_uv_sculpt)
 						return &ts->uvsculpt->paint;
 					return &ts->imapaint.paint;
+				default:
+					break;
 			}
 		}
 
@@ -507,7 +509,7 @@ void BKE_paint_cavity_curve_preset(Paint *p, int preset)
 	curvemapping_changed(p->cavity_curve, false);
 }
 
-short BKE_paint_object_mode_from_paint_mode(ePaintMode mode)
+eObjectMode BKE_paint_object_mode_from_paint_mode(ePaintMode mode)
 {
 	switch (mode) {
 		case ePaintSculpt:
@@ -537,7 +539,7 @@ void BKE_paint_init(Scene *sce, ePaintMode mode, const char col[3])
 	/* If there's no brush, create one */
 	brush = BKE_paint_brush(paint);
 	if (brush == NULL) {
-		short ob_mode = BKE_paint_object_mode_from_paint_mode(mode);
+		eObjectMode ob_mode = BKE_paint_object_mode_from_paint_mode(mode);
 		brush = BKE_brush_first_search(G.main, ob_mode);
 
 		if (!brush) {

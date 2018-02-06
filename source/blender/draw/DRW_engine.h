@@ -26,6 +26,8 @@
 #ifndef __DRW_ENGINE_H__
 #define __DRW_ENGINE_H__
 
+#include "BLI_sys_types.h"  /* for bool */
+
 struct ARegion;
 struct CollectionEngineSettings;
 struct Depsgraph;
@@ -50,7 +52,7 @@ struct RenderEngine;
 struct RenderEngineType;
 struct WorkSpace;
 
-#include "BLI_sys_types.h"  /* for bool */
+#include "DNA_object_enums.h"
 
 /* Buffer and textures used by the viewport by default */
 typedef struct DefaultFramebufferList {
@@ -91,25 +93,25 @@ void DRW_draw_view(const struct bContext *C);
 void DRW_draw_render_loop_ex(
         struct Depsgraph *depsgraph,
         struct RenderEngineType *engine_type,
-        struct ARegion *ar, struct View3D *v3d, const short object_mode,
+        struct ARegion *ar, struct View3D *v3d, const eObjectMode object_mode,
         const struct bContext *evil_C);
 void DRW_draw_render_loop(
         struct Depsgraph *depsgraph,
-        struct ARegion *ar, struct View3D *v3d, const short object_mode);
+        struct ARegion *ar, struct View3D *v3d, const eObjectMode object_mode);
 void DRW_draw_render_loop_offscreen(
         struct Depsgraph *depsgraph,
         struct RenderEngineType *engine_type,
-        struct ARegion *ar, struct View3D *v3d, const short object_mode,
+        struct ARegion *ar, struct View3D *v3d, const eObjectMode object_mode,
         const bool draw_background,
         struct GPUOffScreen *ofs,
         struct GPUViewport *viewport);
 void DRW_draw_select_loop(
         struct Depsgraph *depsgraph,
-        struct ARegion *ar, struct View3D *v3d, const short object_mode,
+        struct ARegion *ar, struct View3D *v3d, const eObjectMode object_mode,
         bool use_obedit_skip, bool use_nearest, const struct rcti *rect);
 void DRW_draw_depth_loop(
         struct Depsgraph *depsgraph,
-        struct ARegion *ar, struct View3D *v3d, const short object_mode);
+        struct ARegion *ar, struct View3D *v3d, const eObjectMode object_mode);
 
 /* This is here because GPUViewport needs it */
 void DRW_pass_free(struct DRWPass *pass);

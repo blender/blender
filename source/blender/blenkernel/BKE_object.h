@@ -50,6 +50,8 @@ struct RigidBodyWorld;
 struct HookModifierData;
 struct ModifierData;
 
+#include "DNA_object_enums.h"
+
 void BKE_object_workob_clear(struct Object *workob);
 void BKE_object_workob_calc_parent(const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob, struct Object *workob);
 
@@ -113,9 +115,12 @@ void BKE_object_lod_add(struct Object *ob);
 void BKE_object_lod_sort(struct Object *ob);
 bool BKE_object_lod_remove(struct Object *ob, int level);
 void BKE_object_lod_update(struct Object *ob, const float camera_position[3]);
-bool BKE_object_lod_is_usable(struct Object *ob, struct ViewLayer *view_layer, const short object_mode);
-struct Object *BKE_object_lod_meshob_get(struct Object *ob, struct ViewLayer *view_layer, const short object_mode);
-struct Object *BKE_object_lod_matob_get(struct Object *ob, struct ViewLayer *view_layer, const short object_mode);
+bool BKE_object_lod_is_usable(
+        struct Object *ob, struct ViewLayer *view_layer, const eObjectMode object_mode);
+struct Object *BKE_object_lod_meshob_get(
+        struct Object *ob, struct ViewLayer *view_layer, const eObjectMode object_mode);
+struct Object *BKE_object_lod_matob_get(
+        struct Object *ob, struct ViewLayer *view_layer, const eObjectMode object_mode);
 
 void BKE_object_copy_data(struct Main *bmain, struct Object *ob_dst, const struct Object *ob_src, const int flag);
 struct Object *BKE_object_copy(struct Main *bmain, const struct Object *ob);

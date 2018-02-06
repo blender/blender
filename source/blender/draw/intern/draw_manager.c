@@ -3420,7 +3420,7 @@ void DRW_draw_view(const bContext *C)
 void DRW_draw_render_loop_ex(
         struct Depsgraph *depsgraph,
         RenderEngineType *engine_type,
-        ARegion *ar, View3D *v3d, const short object_mode,
+        ARegion *ar, View3D *v3d, const eObjectMode object_mode,
         const bContext *evil_C)
 {
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
@@ -3545,7 +3545,7 @@ void DRW_draw_render_loop_ex(
 
 void DRW_draw_render_loop(
         struct Depsgraph *depsgraph,
-        ARegion *ar, View3D *v3d, const short object_mode)
+        ARegion *ar, View3D *v3d, const eObjectMode object_mode)
 {
 	/* Reset before using it. */
 	memset(&DST, 0x0, sizeof(DST));
@@ -3559,7 +3559,7 @@ void DRW_draw_render_loop(
 /* @viewport CAN be NULL, in this case we create one. */
 void DRW_draw_render_loop_offscreen(
         struct Depsgraph *depsgraph, RenderEngineType *engine_type,
-        ARegion *ar, View3D *v3d, const short object_mode,
+        ARegion *ar, View3D *v3d, const eObjectMode object_mode,
         const bool draw_background, GPUOffScreen *ofs,
         GPUViewport *viewport)
 {
@@ -3684,7 +3684,7 @@ void DRW_render_object_iter(
  */
 void DRW_draw_select_loop(
         struct Depsgraph *depsgraph,
-        ARegion *ar, View3D *v3d, const short object_mode,
+        ARegion *ar, View3D *v3d, const eObjectMode object_mode,
         bool UNUSED(use_obedit_skip), bool UNUSED(use_nearest), const rcti *rect)
 {
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
@@ -3806,7 +3806,7 @@ void DRW_draw_select_loop(
  */
 void DRW_draw_depth_loop(
         Depsgraph *depsgraph,
-        ARegion *ar, View3D *v3d, const short object_mode)
+        ARegion *ar, View3D *v3d, const eObjectMode object_mode)
 {
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 	RenderEngineType *engine_type = RE_engines_find(scene->view_render.engine_id);

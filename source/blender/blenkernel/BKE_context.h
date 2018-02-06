@@ -77,6 +77,8 @@ struct SpaceClip;
 struct ID;
 struct EvaluationContext;
 
+#include "DNA_object_enums.h"
+
 /* Structs */
 
 struct bContext;
@@ -262,7 +264,7 @@ struct ToolSettings *CTX_data_tool_settings(const bContext *C);
 const char *CTX_data_mode_string(const bContext *C);
 int CTX_data_mode_enum_ex(
         const struct Object *obedit, const struct Object *ob,
-        const short object_mode);
+        const eObjectMode object_mode);
 int CTX_data_mode_enum(const bContext *C);
 
 void CTX_data_main_set(bContext *C, struct Main *bmain);
