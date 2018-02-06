@@ -7053,6 +7053,19 @@ bool RNA_property_copy(PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, 
 	prop_dst = rna_ensure_property_realdata(&prop_dst, ptr);
 	prop_src = rna_ensure_property_realdata(&prop_src, fromptr);
 
+	/* IDprops: destination may not exist, if source does and is set, try to create it. */
+	/* Note: this is sort of quick hack/bandage to fix the issue, we need to rethink how IDProps are handled
+	 * in 'diff' RNA code completely, imho... */
+	if (prop_src != NULL && prop_dst == NULL && RNA_property_is_set(fromptr, prop)) {
+		BLI_assert(prop_src->magic != RNA_MAGIC);
+		IDProperty *idp_dst = RNA_struct_idprops(ptr, true);
+		IDProperty *prop_idp_dst = IDP_CopyProperty((IDProperty *)prop_src);
+		IDP_AddToGroup(idp_dst, prop_idp_dst);
+		rna_idproperty_touch(prop_idp_dst);
+		/* Nothing else to do here... */
+		return true;
+	}
+
 	if (ELEM(NULL, prop_dst, prop_src)) {
 		return false;
 	}
