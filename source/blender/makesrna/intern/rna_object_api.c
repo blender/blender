@@ -526,10 +526,8 @@ void rna_Object_dm_info(struct Object *ob, int type, char *result)
 
 static int rna_Object_update_from_editmode(Object *ob)
 {
-	if (ob->mode & OB_MODE_EDIT) {
-		return ED_object_editmode_load(ob);
-	}
-	return false;
+	/* fail gracefully if we aren't in edit-mode. */
+	return ED_object_editmode_load(ob);
 }
 #else /* RNA_RUNTIME */
 
