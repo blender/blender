@@ -55,6 +55,8 @@
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
 
+#include "DEG_depsgraph.h"
+
 #include "BLT_translation.h"
 
 #include "ED_armature.h"
@@ -296,6 +298,8 @@ void BIF_createTransformOrientation(bContext *C, ReportList *reports,
 		ts = createViewSpace(C, reports, name, overwrite);
 	}
 	else {
+		EvaluationContext eval_ctx;
+		CTX_data_eval_ctx(C, &eval_ctx);
 		Object *obedit = CTX_data_edit_object(C);
 		Object *ob = CTX_data_active_object(C);
 		if (obedit) {
@@ -306,7 +310,7 @@ void BIF_createTransformOrientation(bContext *C, ReportList *reports,
 			else if (obedit->type == OB_CURVE)
 				ts = createCurveSpace(C, reports, name, overwrite);
 		}
-		else if (ob && (ob->mode & OB_MODE_POSE)) {
+		else if (ob && (eval_ctx.object_mode & OB_MODE_POSE)) {
 			ts = createBoneSpace(C, reports, name, overwrite);
 		}
 		else {
@@ -441,13 +445,13 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 
 		case V3D_MANIP_GIMBAL:
 			unit_m3(t->spacemtx);
-			if (ob && gimbal_axis(ob, t->spacemtx)) {
+			if (ob && gimbal_axis(ob, t->spacemtx, t->eval_ctx.object_mode)) {
 				BLI_strncpy(t->spacename, IFACE_("gimbal"), sizeof(t->spacename));
 				break;
 			}
 			ATTR_FALLTHROUGH;  /* no gimbal fallthrough to normal */
 		case V3D_MANIP_NORMAL:
-			if (obedit || (ob && ob->mode & OB_MODE_POSE)) {
+			if (obedit || (ob && t->eval_ctx.object_mode & OB_MODE_POSE)) {
 				BLI_strncpy(t->spacename, IFACE_("normal"), sizeof(t->spacename));
 				ED_getTransformOrientationMatrix(C, t->spacemtx, t->around);
 				break;
@@ -578,6 +582,8 @@ static unsigned int bm_mesh_faces_select_get_n(BMesh *bm, BMVert **elems, const 
 
 int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3], const short around)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Base *base;
@@ -1008,7 +1014,7 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 			mul_m3_v3(mat, plane);
 		}
 	}
-	else if (ob && (ob->mode & OB_MODE_POSE)) {
+	else if (ob && (eval_ctx.object_mode & OB_MODE_POSE)) {
 		bArmature *arm = ob->data;
 		bPoseChannel *pchan;
 		float imat[3][3], mat[3][3];
@@ -1048,7 +1054,7 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 			result = ORIENTATION_EDGE;
 		}
 	}
-	else if (ob && (ob->mode & (OB_MODE_ALL_PAINT | OB_MODE_PARTICLE_EDIT))) {
+	else if (ob && (eval_ctx.object_mode & (OB_MODE_ALL_PAINT | OB_MODE_PARTICLE_EDIT))) {
 		/* pass */
 	}
 	else {

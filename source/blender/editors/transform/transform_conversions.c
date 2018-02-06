@@ -998,10 +998,13 @@ static short pose_grab_with_ik(Object *ob)
 	Bone *bonec;
 	short tot_ik = 0;
 
-	if ((ob == NULL) || (ob->pose == NULL) || (ob->mode & OB_MODE_POSE) == 0)
+	if ((ob == NULL) || (ob->pose == NULL))
 		return 0;
 
 	arm = ob->data;
+	if ((arm->flag & ARM_POSEMODE) == 0) {
+		return 0;
+	}
 
 	/* Rule: allow multiple Bones (but they must be selected, and only one ik-solver per chain should get added) */
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
@@ -2049,9 +2052,7 @@ void flushTransParticles(TransInfo *t)
 			point->flag |= PEP_EDIT_RECALC;
 	}
 
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(t->context, &eval_ctx);
-	PE_update_object(&eval_ctx, scene, view_layer, OBACT(view_layer), 1);
+	PE_update_object(&t->eval_ctx, scene, view_layer, OBACT(view_layer), 1);
 }
 
 /* ********************* mesh ****************** */
@@ -2463,7 +2464,6 @@ static void createTransEditVerts(TransInfo *t)
 {
 	TransData *tob = NULL;
 	TransDataExtension *tx = NULL;
-	EvaluationContext eval_ctx;
 	BMEditMesh *em = BKE_editmesh_from_object(t->obedit);
 	Mesh *me = t->obedit->data;
 	BMesh *bm = em->bm;
@@ -2481,11 +2481,6 @@ static void createTransEditVerts(TransInfo *t)
 	struct TransIslandData *island_info = NULL;
 	int island_info_tot;
 	int *island_vert_map = NULL;
-
-	DEG_evaluation_context_init_from_scene(
-	        &eval_ctx,
-	        t->scene, t->view_layer, t->engine_type, t->obedit->mode,
-	        DAG_EVAL_VIEWPORT);
 
 	/* Even for translation this is needed because of island-orientation, see: T51651. */
 	const bool is_island_center = (t->around == V3D_AROUND_LOCAL_ORIGINS);
@@ -2570,7 +2565,7 @@ static void createTransEditVerts(TransInfo *t)
 		if (modifiers_isCorrectableDeformed(t->scene, t->obedit)) {
 			/* check if we can use deform matrices for modifier from the
 			 * start up to stack, they are more accurate than quats */
-			totleft = BKE_crazyspace_get_first_deform_matrices_editbmesh(&eval_ctx, t->scene, t->obedit, em, &defmats, &defcos);
+			totleft = BKE_crazyspace_get_first_deform_matrices_editbmesh(&t->eval_ctx, t->scene, t->obedit, em, &defmats, &defcos);
 		}
 
 		/* if we still have more modifiers, also do crazyspace
@@ -2583,7 +2578,7 @@ static void createTransEditVerts(TransInfo *t)
 		if (totleft > 0)
 #endif
 		{
-			mappedcos = BKE_crazyspace_get_mapped_editverts(&eval_ctx, t->scene, t->obedit);
+			mappedcos = BKE_crazyspace_get_mapped_editverts(&t->eval_ctx, t->scene, t->obedit);
 			quats = MEM_mallocN(em->bm->totvert * sizeof(*quats), "crazy quats");
 			BKE_crazyspace_set_quats_editmesh(em, defcos, mappedcos, quats, !prop_mode);
 			if (mappedcos)
@@ -5409,9 +5404,6 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	Scene *scene = t->scene;
 	bool constinv;
 	bool skip_invert = false;
-	EvaluationContext eval_ctx;
-
-	CTX_data_eval_ctx(t->context, &eval_ctx);
 
 	if (t->mode != TFM_DUMMY && ob->rigidbody_object) {
 		float rot[3][3], scale[3];
@@ -5459,11 +5451,11 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 
 	if (skip_invert == false && constinv == false) {
 		ob->transflag |= OB_NO_CONSTRAINTS;  /* BKE_object_where_is_calc_time checks this */
-		BKE_object_where_is_calc(&eval_ctx, t->scene, ob);
+		BKE_object_where_is_calc(&t->eval_ctx, t->scene, ob);
 		ob->transflag &= ~OB_NO_CONSTRAINTS;
 	}
 	else
-		BKE_object_where_is_calc(&eval_ctx, t->scene, ob);
+		BKE_object_where_is_calc(&t->eval_ctx, t->scene, ob);
 
 	td->ob = ob;
 
@@ -6104,14 +6096,11 @@ static void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
  * */
 void special_aftertrans_update(bContext *C, TransInfo *t)
 {
-	EvaluationContext eval_ctx;
 	Object *ob;
 //	short redrawipo=0, resetslowpar=1;
 	const bool canceled = (t->state == TRANS_CANCEL);
 	const bool duplicate = (t->mode == TFM_TIME_DUPLICATE);
 
-	CTX_data_eval_ctx(C, &eval_ctx);
-	
 	/* early out when nothing happened */
 	if (t->total == 0 || t->mode == TFM_DUMMY)
 		return;
@@ -6450,7 +6439,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			 * we need to update the pose otherwise no updates get called during
 			 * transform and the auto-ik is not applied. see [#26164] */
 			struct Object *pose_ob = t->poseobj;
-			BKE_pose_where_is(&eval_ctx, t->scene, pose_ob);
+			BKE_pose_where_is(&t->eval_ctx, t->scene, pose_ob);
 		}
 
 		/* set BONE_TRANSFORM flags for autokey, manipulator draw might have changed them */
@@ -6494,7 +6483,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	}
 	else if ((t->view_layer->basact) &&
 	         (ob = t->view_layer->basact->object) &&
-	         (ob->mode & OB_MODE_PARTICLE_EDIT) &&
+	         (t->eval_ctx.object_mode & OB_MODE_PARTICLE_EDIT) &&
 	         PE_get_current(t->scene, t->view_layer, ob))
 	{
 		/* do nothing */
@@ -8232,26 +8221,30 @@ void createTransData(bContext *C, TransInfo *t)
 			t->poseobj = ob;    /* <- tsk tsk, this is going to give issues one day */
 		}
 	}
-	else if (ob && (ob->mode & OB_MODE_POSE)) {
+	else if (ob && (t->eval_ctx.object_mode & OB_MODE_POSE)) {
 		// XXX this is currently limited to active armature only...
 		// XXX active-layer checking isn't done as that should probably be checked through context instead
 		createTransPose(t, ob);
 	}
-	else if (ob && (ob->mode & OB_MODE_WEIGHT_PAINT) && !(t->options & CTX_PAINT_CURVE)) {
+	else if (ob && (t->eval_ctx.object_mode & OB_MODE_WEIGHT_PAINT) && !(t->options & CTX_PAINT_CURVE)) {
 		/* important that ob_armature can be set even when its not selected [#23412]
 		 * lines below just check is also visible */
 		Object *ob_armature = modifiers_isDeformedByArmature(ob);
-		if (ob_armature && ob_armature->mode & OB_MODE_POSE) {
-			Base *base_arm = BKE_view_layer_base_find(t->view_layer, ob_armature);
-			if (base_arm) {
-				if (BASE_VISIBLE(base_arm)) {
-					createTransPose(t, ob_armature);
+		if (ob_armature) {
+			const bArmature *arm = ob_armature->data;
+			if (arm->flag & ARM_POSEMODE) {
+				Base *base_arm = BKE_view_layer_base_find(t->view_layer, ob_armature);
+				if (base_arm) {
+					if (BASE_VISIBLE(base_arm)) {
+						createTransPose(t, ob_armature);
+					}
 				}
 			}
-			
 		}
 	}
-	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT) && PE_start_edit(PE_get_current(scene, view_layer, ob))) {
+	else if (ob && (t->eval_ctx.object_mode & OB_MODE_PARTICLE_EDIT) &&
+	         PE_start_edit(PE_get_current(scene, view_layer, ob)))
+	{
 		createTransParticleVerts(C, t);
 		t->flag |= T_POINTS;
 
@@ -8261,7 +8254,7 @@ void createTransData(bContext *C, TransInfo *t)
 			sort_trans_data_dist(t);
 		}
 	}
-	else if (ob && (ob->mode & OB_MODE_ALL_PAINT)) {
+	else if (ob && (t->eval_ctx.object_mode & OB_MODE_ALL_PAINT)) {
 		if ((t->options & CTX_PAINT_CURVE) && !ELEM(t->mode, TFM_SHEAR, TFM_SHRINKFATTEN)) {
 			t->flag |= T_POINTS | T_2D_EDIT;
 			createTransPaintCurveVerts(C, t);
