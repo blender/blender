@@ -1708,6 +1708,7 @@ static ListBase *get_active_constraints2(Object *ob)
 		return NULL;
 
   // XXX - shouldnt we care about the pose data and not the mode???
+#if 0
 	if (ob->mode & OB_MODE_POSE) { 
 		bPoseChannel *pchan;
 
@@ -1715,8 +1716,11 @@ static ListBase *get_active_constraints2(Object *ob)
 		if (pchan)
 			return &pchan->constraints;
 	}
-	else 
+	else
+#endif
+	{
 		return &ob->constraints;
+	}
 
 	return NULL;
 }
