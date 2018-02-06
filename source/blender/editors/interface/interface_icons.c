@@ -61,6 +61,8 @@
 
 #include "BIF_glutil.h"
 
+#include "DEG_depsgraph.h"
+
 #include "ED_datafiles.h"
 #include "ED_keyframes_draw.h"
 #include "ED_render.h"
@@ -1193,6 +1195,8 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 		ui_id_icon_render(C, id, true);
 	}
 	else {
+		EvaluationContext eval_ctx;
+		CTX_data_eval_ctx(C, &eval_ctx);
 		Object *ob = CTX_data_active_object(C);
 		SpaceImage *sima;
 		const EnumPropertyItem *items = NULL;
@@ -1203,11 +1207,11 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 		 * checking various context stuff here */
 
 		if (CTX_wm_view3d(C) && ob) {
-			if (ob->mode & OB_MODE_SCULPT)
+			if (eval_ctx.object_mode & OB_MODE_SCULPT)
 				mode = OB_MODE_SCULPT;
-			else if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT))
+			else if (eval_ctx.object_mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT))
 				mode = OB_MODE_VERTEX_PAINT;
-			else if (ob->mode & OB_MODE_TEXTURE_PAINT)
+			else if (eval_ctx.object_mode & OB_MODE_TEXTURE_PAINT)
 				mode = OB_MODE_TEXTURE_PAINT;
 		}
 		else if ((sima = CTX_wm_space_image(C)) &&

@@ -53,6 +53,8 @@
 #include "BKE_sequencer.h"
 #include "BKE_workspace.h"
 
+#include "DEG_depsgraph.h"
+
 #include "RNA_access.h"
 
 #include "ED_armature.h"
@@ -84,6 +86,8 @@ const char *screen_context_dir[] = {
 
 int ed_screen_context(const bContext *C, const char *member, bContextDataResult *result)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	wmWindow *win = CTX_wm_window(C);
 	bScreen *sc = CTX_wm_screen(C);
 	ScrArea *sa = CTX_wm_area(C);
@@ -371,31 +375,31 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		return 1;
 	}
 	else if (CTX_data_equals(member, "sculpt_object")) {
-		if (obact && (obact->mode & OB_MODE_SCULPT))
+		if (obact && (eval_ctx.object_mode & OB_MODE_SCULPT)) {
 			CTX_data_id_pointer_set(result, &obact->id);
-
+		}
 		return 1;
 	}
 	else if (CTX_data_equals(member, "vertex_paint_object")) {
-		if (obact && (obact->mode & OB_MODE_VERTEX_PAINT))
+		if (obact && (eval_ctx.object_mode & OB_MODE_VERTEX_PAINT))
 			CTX_data_id_pointer_set(result, &obact->id);
 
 		return 1;
 	}
 	else if (CTX_data_equals(member, "weight_paint_object")) {
-		if (obact && (obact->mode & OB_MODE_WEIGHT_PAINT))
+		if (obact && (eval_ctx.object_mode & OB_MODE_WEIGHT_PAINT))
 			CTX_data_id_pointer_set(result, &obact->id);
 
 		return 1;
 	}
 	else if (CTX_data_equals(member, "image_paint_object")) {
-		if (obact && (obact->mode & OB_MODE_TEXTURE_PAINT))
+		if (obact && (eval_ctx.object_mode & OB_MODE_TEXTURE_PAINT))
 			CTX_data_id_pointer_set(result, &obact->id);
 
 		return 1;
 	}
 	else if (CTX_data_equals(member, "particle_edit_object")) {
-		if (obact && (obact->mode & OB_MODE_PARTICLE_EDIT))
+		if (obact && (eval_ctx.object_mode & OB_MODE_PARTICLE_EDIT))
 			CTX_data_id_pointer_set(result, &obact->id);
 
 		return 1;

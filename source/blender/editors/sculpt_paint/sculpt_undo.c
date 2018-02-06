@@ -334,6 +334,9 @@ static void sculpt_undo_bmesh_restore_generic(bContext *C,
                                               Object *ob,
                                               SculptSession *ss)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+ 
 	if (unode->applied) {
 		BM_log_undo(ss->bm, ss->bm_log);
 		unode->applied = false;
@@ -368,8 +371,8 @@ static void sculpt_undo_bmesh_restore_generic(bContext *C,
 }
 
 /* Create empty sculpt BMesh and enable logging */
-static void sculpt_undo_bmesh_enable(Object *ob,
-                                     SculptUndoNode *unode)
+static void sculpt_undo_bmesh_enable(
+        Object *ob, SculptUndoNode *unode)
 {
 	SculptSession *ss = ob->sculpt;
 	Mesh *me = ob->data;

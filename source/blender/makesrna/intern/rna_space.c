@@ -869,7 +869,7 @@ static int rna_SpaceImageEditor_show_maskedit_get(PointerRNA *ptr)
 	Scene *scene = ED_screen_scene_find(sc, G.main->wm.first);
 	ViewLayer *view_layer = BKE_view_layer_context_active_PLACEHOLDER(scene);
 
-	return ED_space_image_check_show_maskedit(view_layer, sima);
+	return ED_space_image_check_show_maskedit(sima, view_layer);
 }
 
 static void rna_SpaceImageEditor_image_set(PointerRNA *ptr, PointerRNA value)

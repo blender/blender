@@ -53,13 +53,17 @@
 #include "NOD_texture.h"
 #include "node_texture_util.h"
 
+#include "DEG_depsgraph.h"
+
 #include "RNA_access.h"
 
 #include "RE_shader_ext.h"
 
-
-static void texture_get_from_context(const bContext *C, bNodeTreeType *UNUSED(treetype), bNodeTree **r_ntree, ID **r_id, ID **r_from)
+static void texture_get_from_context(
+        const bContext *C, bNodeTreeType *UNUSED(treetype), bNodeTree **r_ntree, ID **r_id, ID **r_from)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	SpaceNode *snode = CTX_wm_space_node(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -94,7 +98,7 @@ static void texture_get_from_context(const bContext *C, bNodeTreeType *UNUSED(tr
 	else if (snode->texfrom == SNODE_TEX_BRUSH) {
 		struct Brush *brush = NULL;
 		
-		if (ob && (ob->mode & OB_MODE_SCULPT))
+		if (ob && (eval_ctx.object_mode & OB_MODE_SCULPT))
 			brush = BKE_paint_brush(&scene->toolsettings->sculpt->paint);
 		else
 			brush = BKE_paint_brush(&scene->toolsettings->imapaint.paint);

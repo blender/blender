@@ -113,26 +113,30 @@ void update_world_cos(Object *ob, PTCacheEdit *edit);
 
 int PE_poll(bContext *C)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	Scene *scene= CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob= CTX_data_active_object(C);
 
-	if (!scene || !view_layer || !ob || !(ob->mode & OB_MODE_PARTICLE_EDIT))
+	if (!scene || !view_layer || !ob || !(eval_ctx.object_mode & OB_MODE_PARTICLE_EDIT)) {
 		return 0;
-	
+	}
 	return (PE_get_current(scene, view_layer, ob) != NULL);
 }
 
 int PE_hair_poll(bContext *C)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	Scene *scene= CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob= CTX_data_active_object(C);
 	PTCacheEdit *edit;
 
-	if (!scene || !ob || !(ob->mode & OB_MODE_PARTICLE_EDIT))
+	if (!scene || !ob || !(eval_ctx.object_mode & OB_MODE_PARTICLE_EDIT)) {
 		return 0;
-	
+	}
 	edit= PE_get_current(scene, view_layer, ob);
 
 	return (edit && edit->psys);
@@ -317,7 +321,7 @@ PTCacheEdit *PE_create_current(const EvaluationContext *eval_ctx, Scene *scene, 
 
 void PE_current_changed(const EvaluationContext *eval_ctx, Scene *scene, Object *ob)
 {
-	if (ob->mode == OB_MODE_PARTICLE_EDIT) {
+	if (eval_ctx->object_mode == OB_MODE_PARTICLE_EDIT) {
 		PE_create_current(eval_ctx, scene, ob);
 	}
 }
@@ -2840,7 +2844,8 @@ void PARTICLE_OT_delete(wmOperatorType *ot)
 
 /*************************** mirror operator **************************/
 
-static void PE_mirror_x(Scene *scene, ViewLayer *view_layer, Object *ob, int tagged)
+static void PE_mirror_x(
+        Scene *scene, ViewLayer *view_layer, Object *ob, int tagged)
 {
 	Mesh *me= (Mesh *)(ob->data);
 	ParticleSystemModifierData *psmd;

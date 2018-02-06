@@ -44,6 +44,8 @@
 
 #include "IMB_imbuf_types.h"
 
+#include "DEG_depsgraph.h"
+
 #include "ED_image.h"  /* own include */
 #include "ED_mesh.h"
 #include "ED_screen.h"
@@ -321,15 +323,17 @@ bool ED_image_slot_cycle(struct Image *image, int direction)
 
 void ED_space_image_scopes_update(const struct bContext *C, struct SpaceImage *sima, struct ImBuf *ibuf, bool use_view_settings)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 	
 	/* scope update can be expensive, don't update during paint modes */
 	if (sima->mode == SI_MODE_PAINT)
 		return;
-	if (ob && ((ob->mode & (OB_MODE_TEXTURE_PAINT | OB_MODE_EDIT)) != 0))
+	if (ob && ((eval_ctx.object_mode & (OB_MODE_TEXTURE_PAINT | OB_MODE_EDIT)) != 0)) {
 		return;
-
+	}
 	/* We also don't update scopes of render result during render. */
 	if (G.is_rendering) {
 		const Image *image = sima->image;
@@ -374,7 +378,7 @@ bool ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
 }
 
 /* matches clip function */
-bool ED_space_image_check_show_maskedit(ViewLayer *view_layer, SpaceImage *sima)
+bool ED_space_image_check_show_maskedit(SpaceImage *sima, ViewLayer *view_layer)
 {
 	/* check editmode - this is reserved for UV editing */
 	Object *ob = OBACT(view_layer);
@@ -391,7 +395,7 @@ int ED_space_image_maskedit_poll(bContext *C)
 
 	if (sima) {
 		ViewLayer *view_layer = CTX_data_view_layer(C);
-		return ED_space_image_check_show_maskedit(view_layer, sima);
+		return ED_space_image_check_show_maskedit(sima, view_layer);
 	}
 
 	return false;

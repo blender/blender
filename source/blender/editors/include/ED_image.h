@@ -75,7 +75,7 @@ bool ED_space_image_show_uvedit(struct SpaceImage *sima, struct Object *obedit);
 
 bool ED_space_image_paint_curve(const struct bContext *C);
 
-bool ED_space_image_check_show_maskedit(struct ViewLayer *view_layer, struct SpaceImage *sima);
+bool ED_space_image_check_show_maskedit(struct SpaceImage *sima, struct ViewLayer *view_layer);
 int ED_space_image_maskedit_poll(struct bContext *C);
 int ED_space_image_maskedit_mask_poll(struct bContext *C);
 

@@ -725,6 +725,9 @@ static void image_main_region_init(wmWindowManager *wm, ARegion *ar)
 
 static void image_main_region_draw(const bContext *C, ARegion *ar)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+
 	/* draw entirely, view changes should be handled here */
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Object *obact = CTX_data_active_object(C);
@@ -759,7 +762,7 @@ static void image_main_region_draw(const bContext *C, ARegion *ar)
 
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
 
-	ED_uvedit_draw_main(sima, ar, scene, view_layer, obedit, obact, depsgraph);
+	ED_uvedit_draw_main(sima, &eval_ctx, ar, scene, view_layer, obedit, obact, depsgraph);
 
 	/* check for mask (delay draw) */
 	if (ED_space_image_show_uvedit(sima, obedit)) {

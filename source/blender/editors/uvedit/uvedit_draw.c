@@ -1032,7 +1032,9 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 }
 
 
-static void draw_uv_shadows_get(SpaceImage *sima, Object *ob, Object *obedit, bool *show_shadow, bool *show_texpaint)
+static void draw_uv_shadows_get(
+        SpaceImage *sima, const EvaluationContext *eval_ctx, Object *ob, Object *obedit,
+        bool *show_shadow, bool *show_texpaint)
 {
 	*show_shadow = *show_texpaint = false;
 
@@ -1045,16 +1047,18 @@ static void draw_uv_shadows_get(SpaceImage *sima, Object *ob, Object *obedit, bo
 		*show_shadow = EDBM_uv_check(em);
 	}
 	
-	*show_texpaint = (ob && ob->type == OB_MESH && ob->mode == OB_MODE_TEXTURE_PAINT);
+	*show_texpaint = (ob && ob->type == OB_MESH && eval_ctx->object_mode == OB_MODE_TEXTURE_PAINT);
 }
 
-void ED_uvedit_draw_main(SpaceImage *sima, ARegion *ar, Scene *scene, ViewLayer *view_layer, Object *obedit, Object *obact, Depsgraph *depsgraph)
+void ED_uvedit_draw_main(
+        SpaceImage *sima, const EvaluationContext *eval_ctx,
+        ARegion *ar, Scene *scene, ViewLayer *view_layer, Object *obedit, Object *obact, Depsgraph *depsgraph)
 {
 	ToolSettings *toolsettings = scene->toolsettings;
 	bool show_uvedit, show_uvshadow, show_texpaint_uvshadow;
 
 	show_uvedit = ED_space_image_show_uvedit(sima, obedit);
-	draw_uv_shadows_get(sima, obact, obedit, &show_uvshadow, &show_texpaint_uvshadow);
+	draw_uv_shadows_get(sima, eval_ctx, obact, obedit, &show_uvshadow, &show_texpaint_uvshadow);
 
 	if (show_uvedit || show_uvshadow || show_texpaint_uvshadow) {
 		if (show_uvshadow)
