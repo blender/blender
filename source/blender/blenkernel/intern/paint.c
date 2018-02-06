@@ -496,7 +496,7 @@ void BKE_paint_cavity_curve_preset(Paint *p, int preset)
 	curvemapping_changed(p->cavity_curve, false);
 }
 
-short BKE_paint_object_mode_from_paint_mode(ePaintMode mode)
+eObjectMode BKE_paint_object_mode_from_paint_mode(ePaintMode mode)
 {
 	switch (mode) {
 		case ePaintSculpt:
@@ -526,7 +526,7 @@ void BKE_paint_init(Scene *sce, ePaintMode mode, const char col[3])
 	/* If there's no brush, create one */
 	brush = BKE_paint_brush(paint);
 	if (brush == NULL) {
-		short ob_mode = BKE_paint_object_mode_from_paint_mode(mode);
+		eObjectMode ob_mode = BKE_paint_object_mode_from_paint_mode(mode);
 		brush = BKE_brush_first_search(G.main, ob_mode);
 
 		if (!brush) {
