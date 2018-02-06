@@ -129,6 +129,14 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 		freestyle_scene->id.properties = IDP_CopyProperty_ex(old_scene->id.properties, 0);
 	}
 
+	if (STREQ(freestyle_scene->view_render.engine_id, RE_engine_id_CYCLES)) {
+		/* Render with transparent background. */
+		PointerRNA freestyle_scene_ptr;
+		RNA_id_pointer_create(&freestyle_scene->id, &freestyle_scene_ptr);
+		PointerRNA freestyle_cycles_ptr = RNA_pointer_get(&freestyle_scene_ptr, "cycles");
+		RNA_boolean_set(&freestyle_cycles_ptr, "film_transparent", 1);
+	}
+
 	if (G.debug & G_DEBUG_FREESTYLE) {
 		printf("%s: %d thread(s)\n", __func__, BKE_render_num_threads(&freestyle_scene->r));
 	}
@@ -487,15 +495,6 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 			ma = BlenderStrokeRenderer::GetStrokeShader(freestyle_bmain, nt, false);
 			BLI_ghash_insert(_nodetree_hash, nt, ma);
 		}
-
-		if (STREQ(freestyle_scene->view_render.engine_id, RE_engine_id_CYCLES)) {
-			/* Render with transparent background. */
-			PointerRNA freestyle_scene_ptr;
-			RNA_id_pointer_create(&freestyle_scene->id, &freestyle_scene_ptr);
-			PointerRNA freestyle_cycles_ptr = RNA_pointer_get(&freestyle_scene_ptr, "cycles");
-			RNA_boolean_set(&freestyle_cycles_ptr, "film_transparent", 1);
-		}
-
 		iStrokeRep->setMaterial(ma);
 	}
 	else {
