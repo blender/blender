@@ -161,9 +161,9 @@ void ED_objects_clear_paths(struct bContext *C, bool only_selected);
 void ED_objects_recalculate_paths(struct bContext *C, struct Scene *scene);
 
 /* constraints */
-struct ListBase *get_active_constraints(struct Object *ob);
+struct ListBase *get_active_constraints(const struct EvaluationContext *eval_ctx, struct Object *ob);
 struct ListBase *get_constraint_lb(struct Object *ob, struct bConstraint *con, struct bPoseChannel **r_pchan);
-struct bConstraint *get_active_constraint(struct Object *ob);
+struct bConstraint *get_active_constraint(const struct EvaluationContext *eval_ctx, struct Object *ob);
 
 void object_test_constraints(struct Object *ob);
 
