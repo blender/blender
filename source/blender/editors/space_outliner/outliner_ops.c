@@ -481,6 +481,7 @@ void outliner_operatortypes(void)
 	WM_operatortype_append(OUTLINER_OT_collection_objects_add);
 	WM_operatortype_append(OUTLINER_OT_collection_objects_remove);
 	WM_operatortype_append(OUTLINER_OT_collection_objects_select);
+	WM_operatortype_append(OUTLINER_OT_object_add_to_new_collection);
 	WM_operatortype_append(OUTLINER_OT_object_remove_from_collection);
 }
 

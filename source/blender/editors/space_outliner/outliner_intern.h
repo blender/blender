@@ -356,6 +356,7 @@ void OUTLINER_OT_collection_new(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_duplicate(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_objects_remove(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_objects_select(struct wmOperatorType *ot);
+void OUTLINER_OT_object_add_to_new_collection(struct wmOperatorType *ot);
 void OUTLINER_OT_object_remove_from_collection(struct wmOperatorType *ot);
 
 void OUTLINER_OT_collection_objects_add(struct wmOperatorType *ot);
