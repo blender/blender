@@ -1472,11 +1472,8 @@ static void precompute_weight_values(
 		return;
 
 	/* threaded loop over vertices */
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
-
 	SculptThreadedTaskData data = {
-		.C = C, .eval_ctx = &eval_ctx, .ob = ob, .wpd = wpd, .wpi = wpi, .me = me,
+		.C = C, .ob = ob, .wpd = wpd, .wpi = wpi, .me = me,
 	};
 
 	ParallelRangeSettings settings;
@@ -1848,11 +1845,8 @@ static void wpaint_paint_leaves(
 	const Brush *brush = ob->sculpt->cache->brush;
 
 	/* threaded loop over nodes */
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
-
 	SculptThreadedTaskData data = {
-		 .C = C, .eval_ctx = &eval_ctx, .sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
+		 .C = C, .sd = sd, .ob = ob, .brush = brush, .nodes = nodes,
 		 .vp = vp, .wpd = wpd, .wpi = wpi, .me = me,
 	};
 
@@ -2891,11 +2885,8 @@ static void vpaint_paint_leaves(
 {
 	const Brush *brush = ob->sculpt->cache->brush;
 
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
-
 	SculptThreadedTaskData data = {
-		.C = C, .eval_ctx = &eval_ctx, .sd = sd, .ob = ob, .brush = brush, .nodes = nodes, .vp = vp, .vpd = vpd,
+		.C = C, .sd = sd, .ob = ob, .brush = brush, .nodes = nodes, .vp = vp, .vpd = vpd,
 		.lcol = (uint *)me->mloopcol, .me = me,
 	};
 	ParallelRangeSettings settings;
