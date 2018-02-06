@@ -571,8 +571,10 @@ static int object_collection_remove_poll(bContext *C)
 		return 0;
 	}
 
-	if ((so->filter & (SO_FILTER_ENABLE | SO_FILTER_NO_COLLECTION)) ==
-	    (SO_FILTER_ENABLE | SO_FILTER_NO_COLLECTION))
+	/* Groups don't support filtering. */
+	if ((so->outlinevis != SO_GROUPS) &&
+	    ((so->filter & (SO_FILTER_ENABLE | SO_FILTER_NO_COLLECTION)) ==
+	    (SO_FILTER_ENABLE | SO_FILTER_NO_COLLECTION)))
 	{
 		return 0;
 	}
