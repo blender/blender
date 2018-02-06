@@ -2096,7 +2096,11 @@ SnapObjectContext *ED_transform_snap_object_context_create(
 	sctx->bmain = bmain;
 	sctx->scene = scene;
 
-	DEG_evaluation_context_init_from_scene(&sctx->eval_ctx, scene, view_layer, engine_type, DAG_EVAL_VIEWPORT);
+	Object *obact = OBACT(view_layer);
+
+	DEG_evaluation_context_init_from_scene(
+	        &sctx->eval_ctx, scene, view_layer, engine_type,
+	        obact ? obact->mode : OB_MODE_OBJECT, DAG_EVAL_VIEWPORT);
 
 	sctx->cache.object_map = BLI_ghash_ptr_new(__func__);
 	sctx->cache.mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);

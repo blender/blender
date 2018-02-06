@@ -83,6 +83,7 @@ typedef enum eEvaluationMode {
 typedef struct EvaluationContext {
 	eEvaluationMode mode;
 	float ctime;
+	short object_mode;
 
 	struct Depsgraph *depsgraph;
 	struct ViewLayer *view_layer;
@@ -213,11 +214,13 @@ struct EvaluationContext *DEG_evaluation_context_new(eEvaluationMode mode);
  */
 void DEG_evaluation_context_init(struct EvaluationContext *eval_ctx,
                                  eEvaluationMode mode);
-void DEG_evaluation_context_init_from_scene(struct EvaluationContext *eval_ctx,
-                                            struct Scene *scene,
-                                            struct ViewLayer *view_layer,
-                                            struct RenderEngineType *engine_type,
-                                            eEvaluationMode mode);
+void DEG_evaluation_context_init_from_scene(
+        struct EvaluationContext *eval_ctx,
+        struct Scene *scene,
+        struct ViewLayer *view_layer,
+        struct RenderEngineType *engine_type,
+        const short object_mode,
+        eEvaluationMode mode);
 
 /* Free evaluation context. */
 void DEG_evaluation_context_free(struct EvaluationContext *eval_ctx);

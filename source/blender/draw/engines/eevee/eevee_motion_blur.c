@@ -79,6 +79,7 @@ static void eevee_motion_blur_camera_get_matrix_at_time(
 	        scene,
 	        draw_ctx->view_layer,
 	        draw_ctx->engine_type,
+	        draw_ctx->object_mode,
 	        DAG_EVAL_VIEWPORT);
 	eval_ctx.ctime = time;
 

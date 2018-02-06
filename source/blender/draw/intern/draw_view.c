@@ -611,20 +611,20 @@ void DRW_draw_background(void)
 
 /* **************************** 3D Cursor ******************************** */
 
-static bool is_cursor_visible(Scene *scene, ViewLayer *view_layer)
+static bool is_cursor_visible(const DRWContextState *draw_ctx, Scene *scene, ViewLayer *view_layer)
 {
 	Object *ob = OBACT(view_layer);
 
 	/* don't draw cursor in paint modes, but with a few exceptions */
-	if (ob && ob->mode & OB_MODE_ALL_PAINT) {
+	if (ob && draw_ctx->object_mode & OB_MODE_ALL_PAINT) {
 		/* exception: object is in weight paint and has deforming armature in pose mode */
-		if (ob->mode & OB_MODE_WEIGHT_PAINT) {
+		if (draw_ctx->object_mode & OB_MODE_WEIGHT_PAINT) {
 			if (BKE_object_pose_armature_get(ob) != NULL) {
 				return true;
 			}
 		}
 		/* exception: object in texture paint mode, clone brush, use_clone_layer disabled */
-		else if (ob->mode & OB_MODE_TEXTURE_PAINT) {
+		else if (draw_ctx->object_mode & OB_MODE_TEXTURE_PAINT) {
 			const Paint *p = BKE_paint_get_active(scene, view_layer);
 
 			if (p && p->brush && p->brush->imagepaint_tool == PAINT_TOOL_CLONE) {
@@ -654,7 +654,7 @@ void DRW_draw_cursor(void)
 	glDisable(GL_DEPTH_TEST);
 	glLineWidth(1.0f);
 
-	if (is_cursor_visible(scene, view_layer)) {
+	if (is_cursor_visible(draw_ctx, scene, view_layer)) {
 		float *co = ED_view3d_cursor3d_get(scene, v3d);
 		unsigned char crosshair_color[3];
 

@@ -91,25 +91,25 @@ void DRW_draw_view(const struct bContext *C);
 void DRW_draw_render_loop_ex(
         struct Depsgraph *depsgraph,
         struct RenderEngineType *engine_type,
-        struct ARegion *ar, struct View3D *v3d,
+        struct ARegion *ar, struct View3D *v3d, const short object_mode,
         const struct bContext *evil_C);
 void DRW_draw_render_loop(
         struct Depsgraph *depsgraph,
-        struct ARegion *ar, struct View3D *v3d);
+        struct ARegion *ar, struct View3D *v3d, const short object_mode);
 void DRW_draw_render_loop_offscreen(
         struct Depsgraph *depsgraph,
         struct RenderEngineType *engine_type,
-        struct ARegion *ar, struct View3D *v3d,
+        struct ARegion *ar, struct View3D *v3d, const short object_mode,
         const bool draw_background,
         struct GPUOffScreen *ofs,
         struct GPUViewport *viewport);
 void DRW_draw_select_loop(
         struct Depsgraph *depsgraph,
-        struct ARegion *ar, struct View3D *v3d,
+        struct ARegion *ar, struct View3D *v3d, const short object_mode,
         bool use_obedit_skip, bool use_nearest, const struct rcti *rect);
 void DRW_draw_depth_loop(
         struct Depsgraph *depsgraph,
-        struct ARegion *ar, struct View3D *v3d);
+        struct ARegion *ar, struct View3D *v3d, const short object_mode);
 
 /* This is here because GPUViewport needs it */
 void DRW_pass_free(struct DRWPass *pass);

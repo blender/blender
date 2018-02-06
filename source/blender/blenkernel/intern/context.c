@@ -1273,8 +1273,10 @@ void CTX_data_eval_ctx(const bContext *C, EvaluationContext *eval_ctx)
 
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *obact = OBACT(view_layer);
 	RenderEngineType *engine_type = CTX_data_engine_type(C);
-	DEG_evaluation_context_init_from_scene(eval_ctx,
-	                                       scene, view_layer, engine_type,
-	                                       DAG_EVAL_VIEWPORT);
+	DEG_evaluation_context_init_from_scene(
+	        eval_ctx,
+	        scene, view_layer, engine_type,
+	        obact ? obact->mode : OB_MODE_OBJECT, DAG_EVAL_VIEWPORT);
 }

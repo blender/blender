@@ -35,7 +35,6 @@
 
 #include "draw_common.h"
 
-
 #if 0
 #define UI_COLOR_RGB_FROM_U8(r, g, b, v4) \
 	ARRAY_SET_ITEMS(v4, (float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f, 1.0)
@@ -386,7 +385,8 @@ DRWShadingGroup *shgroup_instance_mball_helpers(DRWPass *pass, struct Gwn_Batch 
  */
 int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color)
 {
-	const bool is_edit = (ob->mode & OB_MODE_EDIT) != 0;
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	const bool is_edit = (draw_ctx->object_mode & OB_MODE_EDIT) != 0;
 	const bool active = (view_layer->basact && view_layer->basact->object == ob);
 	/* confusing logic here, there are 2 methods of setting the color
 	 * 'colortab[colindex]' and 'theme_id', colindex overrides theme_id.

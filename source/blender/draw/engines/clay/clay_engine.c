@@ -820,7 +820,7 @@ static void clay_cache_populate(void *vedata, Object *ob)
 	if (geom) {
 		IDProperty *ces_mode_ob = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_OBJECT, "");
 		const bool do_cull = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_backface_culling");
-		const bool is_sculpt_mode = is_active && (ob->mode & OB_MODE_SCULPT) != 0;
+		const bool is_sculpt_mode = is_active && (draw_ctx->object_mode & OB_MODE_SCULPT) != 0;
 		const bool is_default_mode_shader = is_sculpt_mode;
 
 		/* Depth Prepass */

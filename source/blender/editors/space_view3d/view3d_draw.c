@@ -752,7 +752,7 @@ void ED_view3d_draw_depth(
 	else
 #endif /* WITH_OPENGL_LEGACY */
 	{
-		DRW_draw_depth_loop(graph, ar, v3d);
+		DRW_draw_depth_loop(graph, ar, v3d, eval_ctx->object_mode);
 	}
 
 	if (rv3d->rflag & RV3D_CLIPPING) {
@@ -2076,7 +2076,9 @@ void ED_view3d_draw_offscreen(
 		}
 	}
 	else {
-		DRW_draw_render_loop_offscreen(depsgraph, eval_ctx->engine_type, ar, v3d, do_sky, ofs, viewport);
+		DRW_draw_render_loop_offscreen(
+		        depsgraph, eval_ctx->engine_type, ar, v3d, eval_ctx->object_mode,
+		        do_sky, ofs, viewport);
 	}
 
 	/* restore size */
