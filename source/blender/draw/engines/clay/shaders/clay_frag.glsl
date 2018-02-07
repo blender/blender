@@ -4,7 +4,6 @@ uniform mat4 WinMatrix;
 
 /* Matcap */
 uniform sampler2DArray matcaps;
-uniform vec3 matcaps_color[24];
 
 /* Screen Space Occlusion */
 /* store the view space vectors for the corners of the view frustum here.
@@ -24,6 +23,10 @@ struct Material {
 
 layout(std140) uniform samples_block {
 	vec4 ssao_samples[500];
+};
+
+layout(std140) uniform matcaps_block {
+	vec4 matcaps_color[24];
 };
 
 layout(std140) uniform material_block {
@@ -185,7 +188,7 @@ void main() {
 	float cavity, edges;
 	ssao_factors(depth, normal, position, screenco, cavity, edges);
 
-	col *= mix(vec3(1.0), matcaps_color[int(matcap_index)], cavity);
+	col *= mix(vec3(1.0), matcaps_color[int(matcap_index)].rgb, cavity);
 #endif
 
 #ifdef USE_HSV

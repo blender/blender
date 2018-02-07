@@ -116,8 +116,6 @@ typedef struct CLAY_Storage {
 
 typedef struct CLAY_StorageList {
 	struct CLAY_Storage *storage;
-	struct GPUUniformBuffer *mat_ubo;
-	struct GPUUniformBuffer *hair_mat_ubo;
 	struct CLAY_PrivateData *g_data;
 } CLAY_StorageList;
 
@@ -146,6 +144,9 @@ typedef struct CLAY_Data {
 
 typedef struct CLAY_ViewLayerData {
 	struct GPUTexture *jitter_tx;
+	struct GPUUniformBuffer *mat_ubo;
+	struct GPUUniformBuffer *matcaps_ubo;
+	struct GPUUniformBuffer *hair_mat_ubo;
 	struct GPUUniformBuffer *sampling_ubo;
 	int cached_sample_num;
 } CLAY_ViewLayerData;
@@ -162,7 +163,7 @@ static struct {
 
 	/* Matcap textures */
 	struct GPUTexture *matcap_array;
-	float matcap_colors[24][3];
+	float matcap_colors[24][4];
 
 	/* Ssao */
 	float winmat[4][4];
@@ -192,6 +193,9 @@ static void clay_view_layer_data_free(void *storage)
 {
 	CLAY_ViewLayerData *sldata = (CLAY_ViewLayerData *)storage;
 
+	DRW_UBO_FREE_SAFE(sldata->mat_ubo);
+	DRW_UBO_FREE_SAFE(sldata->matcaps_ubo);
+	DRW_UBO_FREE_SAFE(sldata->hair_mat_ubo);
 	DRW_UBO_FREE_SAFE(sldata->sampling_ubo);
 	DRW_TEXTURE_FREE_SAFE(sldata->jitter_tx);
 }
@@ -399,12 +403,16 @@ static void clay_engine_init(void *vedata)
 		stl->storage = MEM_callocN(sizeof(CLAY_Storage), "CLAY_Storage");
 	}
 
-	if (!stl->mat_ubo) {
-		stl->mat_ubo = DRW_uniformbuffer_create(sizeof(CLAY_UBO_Storage), NULL);
+	if (!sldata->mat_ubo) {
+		sldata->mat_ubo = DRW_uniformbuffer_create(sizeof(CLAY_UBO_Storage), NULL);
 	}
 
-	if (!stl->hair_mat_ubo) {
-		stl->hair_mat_ubo = DRW_uniformbuffer_create(sizeof(CLAY_HAIR_UBO_Storage), NULL);
+	if (!sldata->hair_mat_ubo) {
+		sldata->hair_mat_ubo = DRW_uniformbuffer_create(sizeof(CLAY_HAIR_UBO_Storage), NULL);
+	}
+
+	if (!sldata->matcaps_ubo) {
+		sldata->matcaps_ubo = DRW_uniformbuffer_create(sizeof(e_data.matcap_colors), e_data.matcap_colors);
 	}
 
 	if (e_data.ubo_mat_idxs[1] == 0) {
@@ -495,9 +503,8 @@ static void clay_engine_init(void *vedata)
 	}
 }
 
-static DRWShadingGroup *CLAY_shgroup_create(CLAY_Data *vedata, DRWPass *pass, int *material_id, bool use_flat)
+static DRWShadingGroup *CLAY_shgroup_create(CLAY_Data *UNUSED(vedata), DRWPass *pass, int *material_id, bool use_flat)
 {
-	CLAY_StorageList *stl = vedata->stl;
 	CLAY_ViewLayerData *sldata = CLAY_view_layer_data_get();
 	DRWShadingGroup *grp = DRW_shgroup_create(use_flat ? e_data.clay_flat_sh : e_data.clay_sh, pass);
 
@@ -507,25 +514,26 @@ static DRWShadingGroup *CLAY_shgroup_create(CLAY_Data *vedata, DRWPass *pass, in
 	DRW_shgroup_uniform_mat4(grp, "WinMatrix", (float *)e_data.winmat);
 	DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)e_data.viewvecs, 3);
 	DRW_shgroup_uniform_vec4(grp, "ssao_params", e_data.ssao_params, 1);
-	DRW_shgroup_uniform_vec3(grp, "matcaps_color[0]", (float *)e_data.matcap_colors, 24);
 
 	DRW_shgroup_uniform_int(grp, "mat_id", material_id, 1);
 
 	DRW_shgroup_uniform_texture(grp, "ssao_jitter", sldata->jitter_tx);
 	DRW_shgroup_uniform_block(grp, "samples_block", sldata->sampling_ubo);
-	DRW_shgroup_uniform_block(grp, "material_block", stl->mat_ubo);
+	DRW_shgroup_uniform_block(grp, "material_block", sldata->mat_ubo);
+	DRW_shgroup_uniform_block(grp, "matcaps_block", sldata->matcaps_ubo);
 
 	return grp;
 }
 
-static DRWShadingGroup *CLAY_hair_shgroup_create(CLAY_Data *vedata, DRWPass *pass, int *material_id)
+static DRWShadingGroup *CLAY_hair_shgroup_create(CLAY_Data *UNUSED(vedata), DRWPass *pass, int *material_id)
 {
-	CLAY_StorageList *stl = vedata->stl;
+	CLAY_ViewLayerData *sldata = CLAY_view_layer_data_get();
 	DRWShadingGroup *grp = DRW_shgroup_create(e_data.hair_sh, pass);
 
 	DRW_shgroup_uniform_texture(grp, "matcaps", e_data.matcap_array);
 	DRW_shgroup_uniform_int(grp, "mat_id", material_id, 1);
-	DRW_shgroup_uniform_block(grp, "material_block", stl->mat_ubo);
+	DRW_shgroup_uniform_block(grp, "material_block", sldata->mat_ubo);
+	DRW_shgroup_uniform_block(grp, "matcaps_block", sldata->matcaps_ubo);
 
 	return grp;
 }
@@ -853,10 +861,11 @@ static void clay_cache_populate(void *vedata, Object *ob)
 
 static void clay_cache_finish(void *vedata)
 {
+	CLAY_ViewLayerData *sldata = CLAY_view_layer_data_get();
 	CLAY_StorageList *stl = ((CLAY_Data *)vedata)->stl;
 
-	DRW_uniformbuffer_update(stl->mat_ubo, &stl->storage->mat_storage);
-	DRW_uniformbuffer_update(stl->hair_mat_ubo, &stl->storage->hair_mat_storage);
+	DRW_uniformbuffer_update(sldata->mat_ubo, &stl->storage->mat_storage);
+	DRW_uniformbuffer_update(sldata->hair_mat_ubo, &stl->storage->hair_mat_storage);
 }
 
 static void clay_draw_scene(void *vedata)
