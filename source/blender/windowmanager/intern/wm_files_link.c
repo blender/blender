@@ -614,7 +614,6 @@ static void lib_relocate_do(
 
 	LinkNode *itemlink;
 	int item_idx;
-	bool has_item = false;
 
 	/* Remove all IDs to be reloaded from Main. */
 	lba_idx = set_listbasepointers(bmain, lbarray);
@@ -636,7 +635,6 @@ static void lib_relocate_do(
 				BLI_remlink(lbarray[lba_idx], id);
 				item = wm_link_append_data_item_add(lapp_data, id->name + 2, idcode, id);
 				BLI_BITMAP_SET_ALL(item->libraries, true, lapp_data->num_libraries);
-				has_item = true;
 
 #ifdef PRINT_DEBUG
 				printf("\tdatablock to seek for: %s\n", id->name);
@@ -645,8 +643,8 @@ static void lib_relocate_do(
 		}
 	}
 
-	if (!has_item) {
-		/* nothing to relocate */
+	if (lapp_data->num_items == 0) {
+		/* Early out in case there is nothing to do. */
 		return;
 	}
 
