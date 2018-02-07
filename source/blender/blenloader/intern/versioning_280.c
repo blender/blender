@@ -546,6 +546,18 @@ void do_versions_after_linking_280(Main *main)
 		}
 	}
 
+	if (!MAIN_VERSION_ATLEAST(main, 280, 3)) {
+		/* Due to several changes to particle RNA and draw code particles from older files may no longer
+		 * be visible. Here we correct this by setting a default draw size for those files. */
+		for (Object *object = main->object.first; object; object = object->id.next) {
+			for (ParticleSystem *psys = object->particlesystem.first; psys; psys=psys->next) {
+				if(psys->part->draw_size == 0.0f) {
+					psys->part->draw_size = 0.1f;
+				}
+			}
+		}
+	}
+
 	{
 		for (WorkSpace *workspace = main->workspaces.first; workspace; workspace = workspace->id.next) {
 			if (workspace->view_layer) {
