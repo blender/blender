@@ -220,6 +220,10 @@ static bool pointer_to_component_node_criteria(
 		*subdata = seq->name; // xxx?
 		return true;
 	}
+	else if (RNA_struct_is_a(ptr->type, &RNA_NodeSocket)) {
+		*type = DEG_NODE_TYPE_SHADING;
+		return true;
+	}
 	if (prop != NULL) {
 		/* All unknown data effectively falls under "parameter evaluation". */
 		*type = DEG_NODE_TYPE_PARAMETERS;
