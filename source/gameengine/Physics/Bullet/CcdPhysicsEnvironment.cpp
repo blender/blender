@@ -49,7 +49,7 @@ subject to the following restrictions:
 
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
-#include "DNA_object_force.h"
+#include "DNA_object_force_types.h"
 
 extern "C" {
 	#include "BLI_utildefines.h"

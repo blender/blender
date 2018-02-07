@@ -132,7 +132,7 @@
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
-#include "DNA_object_force.h"
+#include "DNA_object_force_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_lightprobe_types.h"

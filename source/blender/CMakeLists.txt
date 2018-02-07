@@ -65,8 +65,8 @@ set(SRC_DNA_INC
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_modifier_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_nla_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_node_types.h
-	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_object_fluidsim.h
-	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_object_force.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_object_fluidsim_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_object_force_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_object_enums.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_object_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_outliner_types.h

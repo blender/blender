@@ -30,7 +30,7 @@
 #include "BLI_rand.h"
 #include "BLI_string_utils.h"
 
-#include "DNA_object_force.h"
+#include "DNA_object_force_types.h"
 #include "DNA_smoke_types.h"
 #include "DNA_world_types.h"
 

@@ -32,7 +32,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_camera_types.h"
-#include "DNA_object_force.h"
+#include "DNA_object_force_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"

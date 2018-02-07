@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file DNA_object_force.h
+/** \file DNA_object_force_types.h
  *  \ingroup DNA
  */
 

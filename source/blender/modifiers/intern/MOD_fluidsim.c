@@ -34,7 +34,7 @@
 
 
 #include "DNA_scene_types.h"
-#include "DNA_object_fluidsim.h"
+#include "DNA_object_fluidsim_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"

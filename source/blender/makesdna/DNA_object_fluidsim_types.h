@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file DNA_object_fluidsim.h
+/** \file DNA_object_fluidsim_types.h
  *  \ingroup DNA
  */
 

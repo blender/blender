@@ -31,7 +31,7 @@ extern "C" {
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_object_fluidsim.h"
+#include "DNA_object_fluidsim_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_math_geom.h"

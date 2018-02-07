@@ -31,7 +31,7 @@
 #include "BKE_object.h"
 
 #include "DNA_object_types.h"
-#include "DNA_object_force.h"
+#include "DNA_object_force_types.h"
 
 #include "ED_screen.h"
 #include "ED_manipulator_library.h"

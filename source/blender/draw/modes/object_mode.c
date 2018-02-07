@@ -32,7 +32,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
-#include "DNA_object_force.h"
+#include "DNA_object_force_types.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_view3d_types.h"

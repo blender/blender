@@ -41,6 +41,7 @@
 #include "DNA_image_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_userdef_types.h"
@@ -2102,6 +2103,28 @@ static void tag_dependend_objects_for_render(Scene *scene, int UNUSED(renderlay)
 						ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
 						if (smd->target  && smd->target->type == OB_MESH) {
 							DEG_id_tag_update(&smd->target->id, OB_RECALC_DATA);
+						}
+					}
+					else if (md->type == eModifierType_ParticleSystem) {
+						ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
+						ParticleSystem *psys = psmd->psys;
+						ParticleSettings *part = psys->part;
+						switch (part->ren_as) {
+							case PART_DRAW_OB:
+								if (part->dup_ob != NULL) {
+									DEG_id_tag_update(&part->dup_ob->id, OB_RECALC_DATA);
+								}
+								break;
+							case PART_DRAW_GR:
+								if (part->dup_group != NULL) {
+									for (GroupObject *go = part->dup_group->gobject.first;
+									     go != NULL;
+									     go = go->next)
+									{
+										DEG_id_tag_update(&go->ob->id, OB_RECALC_DATA);
+									}
+								}
+								break;
 						}
 					}
 				}

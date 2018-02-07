@@ -67,7 +67,7 @@ extern "C" {
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
-#include "DNA_object_force.h"
+#include "DNA_object_force_types.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -194,7 +194,6 @@ static bool particle_system_depends_on_time(ParticleSystem *psys)
 
 static bool object_particles_depends_on_time(Object *object)
 {
-	return true;
 	BLI_LISTBASE_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
 		if (particle_system_depends_on_time(psys)) {
 			return true;

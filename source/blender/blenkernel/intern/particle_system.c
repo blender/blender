@@ -48,7 +48,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_object_force.h"
+#include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
@@ -98,7 +98,7 @@
 
 /* fluid sim particle import */
 #ifdef WITH_MOD_FLUID
-#include "DNA_object_fluidsim.h"
+#include "DNA_object_fluidsim_types.h"
 #include "LBM_fluidsim.h"
 #include <zlib.h>
 #include <string.h>
