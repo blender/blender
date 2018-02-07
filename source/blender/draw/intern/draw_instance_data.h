@@ -26,6 +26,8 @@
 #ifndef __DRAW_INSTANCE_DATA_H__
 #define __DRAW_INSTANCE_DATA_H__
 
+#define MAX_INSTANCE_DATA_SIZE 42 /* Can be adjusted for more */
+
 typedef struct DRWInstanceData DRWInstanceData;
 typedef struct DRWInstanceDataList DRWInstanceDataList;
 

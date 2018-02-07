@@ -315,6 +315,7 @@ static struct DRWGlobalState {
 	DRWCallGenerate *last_callgenerate;
 	DRWShadingGroup *last_shgroup;
 	DRWInstanceDataList *idatalist;
+	DRWInstanceData *common_instance_data[MAX_INSTANCE_DATA_SIZE];
 
 	/* Rendering state */
 	GPUShader *shader;
@@ -2676,6 +2677,7 @@ static void drw_viewport_var_init(void)
 	}
 
 	memset(viewport_matrix_override.override, 0x0, sizeof(viewport_matrix_override.override));
+	memset(DST.common_instance_data, 0x0, sizeof(DST.common_instance_data));
 }
 
 void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type)
@@ -2824,10 +2826,15 @@ ObjectEngineData *DRW_object_engine_data_ensure(
 	/* Allocate new data. */
 	if ((ob->base_flag & BASE_FROMDUPLI) != 0) {
 		/* NOTE: data is not persistent in this case. It is reset each redraw. */
+		BLI_assert(free_cb == NULL); /* No callback allowed. */
 		/* Round to sizeof(float) for DRW_instance_data_request(). */
 		const size_t t = sizeof(float) - 1;
 		size = (size + t) & ~t;
-		oed = (ObjectEngineData *)DRW_instance_data_request(DST.idatalist, size / sizeof(float), 16);
+		size_t fsize = size / sizeof(float);
+		if (DST.common_instance_data[fsize] == NULL) {
+			DST.common_instance_data[fsize] = DRW_instance_data_request(DST.idatalist, fsize, 16);
+		}
+		oed = (ObjectEngineData *)DRW_instance_data_next(DST.common_instance_data[fsize]);
 		memset(oed, 0, size);
 	}
 	else {

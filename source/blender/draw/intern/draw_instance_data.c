@@ -38,8 +38,6 @@
 #include "MEM_guardedalloc.h"
 #include "BLI_utildefines.h"
 
-#define MAX_INSTANCE_DATA_SIZE 32 /* Can be adjusted for more */
-
 struct DRWInstanceData {
 	struct DRWInstanceData *next;
 	bool used;                 /* If this data is used or not. */
