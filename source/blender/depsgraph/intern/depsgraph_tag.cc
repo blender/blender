@@ -437,8 +437,12 @@ void deg_graph_on_visible_update(Main *bmain, Depsgraph *graph)
 	     scene_iter = scene_iter->set)
 	{
 		IDDepsNode *scene_id_node = graph->find_id_node(&scene_iter->id);
-		BLI_assert(scene_id_node != NULL);
-		scene_id_node->tag_update(graph);
+		if (scene_id_node != NULL) {
+			scene_id_node->tag_update(graph);
+		}
+		else {
+			BLI_assert(graph->need_update);
+		}
 	}
 }
 
