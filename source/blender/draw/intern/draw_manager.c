@@ -2822,7 +2822,17 @@ ObjectEngineData *DRW_object_engine_data_ensure(
 		return oed;
 	}
 	/* Allocate new data. */
-	oed = MEM_callocN(size, "ObjectEngineData");
+	if ((ob->base_flag & BASE_FROMDUPLI) != 0) {
+		/* NOTE: data is not persistent in this case. It is reset each redraw. */
+		/* Round to sizeof(float) for DRW_instance_data_request(). */
+		const size_t t = sizeof(float) - 1;
+		size = (size + t) & ~t;
+		oed = (ObjectEngineData *)DRW_instance_data_request(DST.idatalist, size / sizeof(float), 16);
+		memset(oed, 0, size);
+	}
+	else {
+		oed = MEM_callocN(size, "ObjectEngineData");
+	}
 	oed->engine_type = engine_type;
 	oed->free = free_cb;
 	/* Perform user-side initialization, if needed. */
