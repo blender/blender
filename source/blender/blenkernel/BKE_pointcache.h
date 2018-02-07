@@ -34,7 +34,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_dynamicpaint_types.h"
-#include "DNA_object_force.h"
+#include "DNA_object_force_types.h"
 #include "DNA_boid_types.h"
 #include <stdio.h> /* for FILE */
 
@@ -140,7 +140,7 @@ typedef struct PTCacheID {
 	unsigned int default_step;
 	unsigned int max_step;
 
-	/* flags defined in DNA_object_force.h */
+	/* flags defined in DNA_object_force_types.h */
 	unsigned int data_types, info_types;
 
 	/* copies point data to cache data */

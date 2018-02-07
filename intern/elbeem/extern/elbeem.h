@@ -106,7 +106,7 @@ typedef struct elbeemSimulationSettings {
 
 
 // defines for elbeemMesh->type below
-/* please keep in sync with DNA_object_fluidsim.h */
+/* please keep in sync with DNA_object_fluidsim_types.h */
 #define OB_FLUIDSIM_FLUID       4
 #define OB_FLUIDSIM_OBSTACLE    8
 #define OB_FLUIDSIM_INFLOW      16

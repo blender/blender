@@ -33,7 +33,7 @@
 #include "MEM_guardedalloc.h"
 
 /* types */
-#include "DNA_object_force.h"	/* here is the softbody struct */
+#include "DNA_object_force_types.h"	/* here is the softbody struct */
 
 #include "BKE_bullet.h"
 

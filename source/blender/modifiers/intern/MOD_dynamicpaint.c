@@ -29,7 +29,7 @@
 
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_object_types.h"
-#include "DNA_object_force.h"
+#include "DNA_object_force_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"

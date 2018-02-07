@@ -46,7 +46,7 @@ extern "C" {
 #include "DNA_cachefile_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_object_force.h"
+#include "DNA_object_force_types.h"
 
 #include "BKE_main.h"
 #include "BKE_collision.h"

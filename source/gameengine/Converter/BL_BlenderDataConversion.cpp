@@ -130,7 +130,7 @@
 #include "DNA_key_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_action_types.h"
-#include "DNA_object_force.h"
+#include "DNA_object_force_types.h"
 #include "DNA_constraint_types.h"
 
 #include "MEM_guardedalloc.h"

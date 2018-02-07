@@ -26,7 +26,7 @@
 
 #include <stdlib.h>
 
-#include "DNA_object_fluidsim.h"
+#include "DNA_object_fluidsim_types.h"
 
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
