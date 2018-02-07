@@ -40,11 +40,14 @@
 #include "BLI_task.h"
 
 extern "C" {
+#include "DNA_curve_types.h"
+#include "DNA_key_types.h"
+#include "DNA_lattice_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
-
 
 #include "BKE_idcode.h"
 #include "BKE_library.h"
@@ -295,11 +298,50 @@ void deg_graph_id_tag_legacy_compat(Main *bmain,
                                     ID *id,
                                     eDepsgraph_Tag tag)
 {
-	if (tag == DEG_TAG_GEOMETRY && GS(id->name) == ID_OB) {
-		Object *object = (Object *)id;
-		ID *data_id = (ID *)object->data;
-		if (data_id != NULL) {
-			DEG_id_tag_update_ex(bmain, data_id, 0);
+	if (tag == DEG_TAG_GEOMETRY || tag == 0) {
+		switch (GS(id->name)) {
+			case ID_OB:
+			{
+				Object *object = (Object *)id;
+				ID *data_id = (ID *)object->data;
+				if (data_id != NULL) {
+					DEG_id_tag_update_ex(bmain, data_id, 0);
+				}
+				break;
+			}
+			/* TODO(sergey): Shape keys are annoying, maybe we should find a
+			 * way to chain geometry evaluation to them, so we don't need extra
+			 * tagging here.
+			 */
+			case ID_ME:
+			{
+				Mesh *mesh = (Mesh *)id;
+				ID *key_id = &mesh->key->id;
+				if (key_id != NULL) {
+					DEG_id_tag_update_ex(bmain, key_id, 0);
+				}
+				break;
+			}
+			case ID_LT:
+			{
+				Lattice *lattice = (Lattice *)id;
+				ID *key_id = &lattice->key->id;
+				if (key_id != NULL) {
+					DEG_id_tag_update_ex(bmain, key_id, 0);
+				}
+				break;
+			}
+			case ID_CU:
+			{
+				Curve *curve = (Curve *)id;
+				ID *key_id = &curve->key->id;
+				if (key_id != NULL) {
+					DEG_id_tag_update_ex(bmain, key_id, 0);
+				}
+				break;
+			}
+			default:
+				break;
 		}
 	}
 }
@@ -365,6 +407,7 @@ void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag)
 		if (id_node != NULL) {
 			id_node->tag_update(graph);
 		}
+		deg_graph_id_tag_legacy_compat(bmain, id, (eDepsgraph_Tag)0);
 	}
 	int current_flag = flag;
 	while (current_flag != 0) {
