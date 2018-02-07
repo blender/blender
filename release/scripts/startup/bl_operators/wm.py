@@ -2223,7 +2223,7 @@ class WM_OT_addon_userpref_show(Operator):
             info = addon_utils.module_bl_info(mod)
             info["show_expanded"] = True
 
-            bpy.context.user_preferences.active_section = 'ADDONS'
+            context.user_preferences.active_section = 'ADDONS'
             context.window_manager.addon_filter = 'All'
             context.window_manager.addon_search = info["name"]
             bpy.ops.screen.userpref_show('INVOKE_DEFAULT')

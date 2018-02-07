@@ -78,10 +78,10 @@ class SCENE_OT_freestyle_fill_range_by_selection(bpy.types.Operator):
             self.report({'ERROR'}, "Unexpected modifier type: " + m.type)
             return {'CANCELLED'}
         # Find selected vertices in editmesh
-        ob = bpy.context.active_object
+        ob = context.active_object
         if ob.type == 'MESH' and ob.mode == 'EDIT' and ob.name != ref.name:
             bpy.ops.object.mode_set(mode='OBJECT')
-            selected_verts = [v for v in bpy.context.active_object.data.vertices if v.select]
+            selected_verts = [v for v in ob.data.vertices if v.select]
             bpy.ops.object.mode_set(mode='EDIT')
             # Compute the min/max distance from the reference to mesh vertices
             min_dist = sys.float_info.max

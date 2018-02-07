@@ -119,7 +119,7 @@ class TIME_MT_marker(Menu):
     def draw(self, context):
         layout = self.layout
 
-        marker_menu_generic(layout)
+        marker_menu_generic(layout, context)
 
 
 class TIME_MT_view(Menu):
@@ -239,6 +239,7 @@ class TIME_MT_autokey(Menu):
 
 
 def marker_menu_generic(layout):
+    from bpy import context
 
     # layout.operator_context = 'EXEC_REGION_WIN'
 
@@ -265,7 +266,7 @@ def marker_menu_generic(layout):
     layout.operator("screen.marker_jump", text="Jump to Previous Marker").next = False
 
     layout.separator()
-    ts = bpy.context.tool_settings
+    ts = context.tool_settings
     layout.prop(ts, "lock_markers")
 
 

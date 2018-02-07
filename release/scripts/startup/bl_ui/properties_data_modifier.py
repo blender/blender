@@ -938,13 +938,14 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         row.prop(md, "material_offset_rim", text="Rim")
 
     def SUBSURF(self, layout, ob, md):
+        from bpy import context
         layout.row().prop(md, "subdivision_type", expand=True)
 
         split = layout.split()
         col = split.column()
 
-        scene = bpy.context.scene
-        engine = scene.view_render.engine
+        scene = context.scene
+        engine = scene.render.engine
         show_adaptive_options = (
             engine == 'CYCLES' and md == ob.modifiers[-1] and
             scene.cycles.feature_set == 'EXPERIMENTAL'
