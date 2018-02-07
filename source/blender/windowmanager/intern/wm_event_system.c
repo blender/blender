@@ -339,6 +339,9 @@ void wm_event_do_refresh_wm_and_depsgraph(bContext *C)
 			scene->customdata_mask |= scene->customdata_mask_modal;
 
 			WorkSpace *workspace = WM_window_get_active_workspace(win);
+
+			BKE_workspace_update_object_mode(bmain->eval_ctx, workspace, scene);
+
 			BKE_workspace_update_tagged(bmain->eval_ctx, bmain, workspace, scene);
 		}
 	}

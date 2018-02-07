@@ -45,6 +45,8 @@
 #include "DNA_screen_types.h"
 #include "DNA_workspace_types.h"
 
+#include "DEG_depsgraph.h"
+
 #include "MEM_guardedalloc.h"
 
 
@@ -520,4 +522,18 @@ void BKE_workspace_update_tagged(struct EvaluationContext *eval_ctx,
 	                                                      view_layer,
 	                                                      true);
 	BKE_scene_graph_update_tagged(eval_ctx, depsgraph, bmain, scene, view_layer);
+}
+
+void BKE_workspace_update_object_mode(
+        struct EvaluationContext *eval_ctx,
+        WorkSpace *workspace, Scene *scene)
+{
+	ViewLayer *view_layer = BKE_workspace_view_layer_get(workspace, scene);
+
+	/* TODO(campbell): Investigate how this should work exactly,
+	 * for now without this 'bmain->eval_ctx' is never set. */
+	{
+		Object *ob = view_layer->basact ? view_layer->basact->object : NULL;
+		eval_ctx->object_mode = ob ? (eObjectMode)ob->mode : OB_MODE_OBJECT;
+	}
 }
