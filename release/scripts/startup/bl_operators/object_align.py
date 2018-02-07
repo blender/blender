@@ -65,13 +65,13 @@ def GlobalBB_LQ(bb_world):
     return (Vector((left, front, up)), Vector((right, back, down)))
 
 
-def GlobalBB_HQ(obj):
+def GlobalBB_HQ(scene, obj):
 
     matrix_world = obj.matrix_world.copy()
 
     # Initialize the variables with the last vertex
 
-    me = obj.to_mesh(scene=bpy.context.scene, apply_modifiers=True, settings='PREVIEW')
+    me = obj.to_mesh(scene=scene, apply_modifiers=True, settings='PREVIEW')
     verts = me.vertices
 
     val = matrix_world * verts[-1].co
@@ -154,7 +154,7 @@ def align_objects(context,
     for obj, bb_world in objects:
 
         if bb_quality and obj.type == 'MESH':
-            GBB = GlobalBB_HQ(obj)
+            GBB = GlobalBB_HQ(scene, obj)
         else:
             GBB = GlobalBB_LQ(bb_world)
 
@@ -218,7 +218,7 @@ def align_objects(context,
         bb_world = [matrix_world * Vector(v[:]) for v in obj.bound_box]
 
         if bb_quality and obj.type == 'MESH':
-            GBB = GlobalBB_HQ(obj)
+            GBB = GlobalBB_HQ(scene, obj)
         else:
             GBB = GlobalBB_LQ(bb_world)
 
