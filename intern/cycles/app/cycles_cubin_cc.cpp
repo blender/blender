@@ -162,7 +162,7 @@ bool link_ptxas(CompilationSettings &settings)
 	if (settings.verbose)
 	{
 		ptx += " --verbose";
-		printf(ptx.c_str());
+		printf("%s\n", ptx.c_str());
 	}
 	
 	int pxresult = system(ptx.c_str());
@@ -186,7 +186,7 @@ bool init(CompilationSettings &settings)
 	}
 #endif
 
-	int cuewresult = cuewInit();
+	int cuewresult = cuewInit(CUEW_INIT_NVRTC);
 	if(cuewresult != CUEW_SUCCESS) {
 		fprintf(stderr, "Error: cuew init fialed (0x%x)\n\n", cuewresult);
 		return false;
