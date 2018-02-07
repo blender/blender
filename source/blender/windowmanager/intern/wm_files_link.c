@@ -442,7 +442,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	if (lapp_data->num_items == 0) {
 		/* Early out in case there is nothing to link. */
 		wm_link_append_data_free(lapp_data);
-		return;
+		return OPERATOR_CANCELLED;
 	}
 
 	/* XXX We'd need re-entrant locking on Main for this to work... */
