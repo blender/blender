@@ -1085,10 +1085,6 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		paint_cursor_delete_textures();
 	}
 	else {
-		EvaluationContext eval_ctx;
-
-		CTX_data_eval_ctx(C, &eval_ctx);
-
 		ob->mode |= mode_flag;
 
 		if (wp == NULL)
@@ -1106,6 +1102,9 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		if (ob->sculpt) {
 			BKE_sculptsession_free(ob);
 		}
+
+		EvaluationContext eval_ctx;
+		CTX_data_eval_ctx(C, &eval_ctx);
 		vertex_paint_init_session(&eval_ctx, scene, ob);
 	}
 
@@ -2260,10 +2259,6 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		paint_cursor_delete_textures();
 	}
 	else {
-		EvaluationContext eval_ctx;
-
-		CTX_data_eval_ctx(C, &eval_ctx);
-
 		ob->mode |= mode_flag;
 
 		ED_mesh_color_ensure(me, NULL);
@@ -2283,6 +2278,9 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 			}
 			BKE_sculptsession_free(ob);
 		}
+
+		EvaluationContext eval_ctx;
+		CTX_data_eval_ctx(C, &eval_ctx);
 		vertex_paint_init_session(&eval_ctx, scene, ob);
 	}
 
