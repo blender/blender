@@ -33,10 +33,6 @@
  */
 
 // #ifdef DEBUG_TIME
-#define USE_BMESH
-#ifdef WITH_MOD_BOOLEAN
-#  define USE_CARVE WITH_MOD_BOOLEAN
-#endif
 
 #include <stdio.h>
 
@@ -51,11 +47,9 @@
 
 #include "depsgraph_private.h"
 
-#include "MOD_boolean_util.h"
 #include "MOD_util.h"
 
 
-#ifdef USE_BMESH
 #include "BLI_alloca.h"
 #include "BLI_math_geom.h"
 #include "BKE_material.h"
@@ -65,18 +59,16 @@
 #include "bmesh.h"
 #include "bmesh_tools.h"
 #include "tools/bmesh_intersect.h"
-#endif
 
 #ifdef DEBUG_TIME
-#include "PIL_time.h"
-#include "PIL_time_utildefines.h"
+#  include "PIL_time.h"
+#  include "PIL_time_utildefines.h"
 #endif
 
 static void initData(ModifierData *md)
 {
 	BooleanModifierData *bmd = (BooleanModifierData *)md;
 
-	bmd->solver = eBooleanModifierSolver_BMesh;
 	bmd->double_threshold = 1e-6f;
 }
 
@@ -136,8 +128,6 @@ static void updateDepsgraph(ModifierData *md,
 	DEG_add_object_relation(node, ob, DEG_OB_COMP_TRANSFORM, "Boolean Modifier");
 }
 
-#if defined(USE_CARVE) || defined(USE_BMESH)
-
 static DerivedMesh *get_quick_derivedMesh(
         Object *ob_self,  DerivedMesh *dm_self,
         Object *ob_other, DerivedMesh *dm_other,
@@ -184,13 +174,7 @@ static DerivedMesh *get_quick_derivedMesh(
 
 	return result;
 }
-#endif  /* defined(USE_CARVE) || defined(USE_BMESH) */
 
-
-/* -------------------------------------------------------------------- */
-/* BMESH */
-
-#ifdef USE_BMESH
 
 /* has no meaning for faces, do this so we can tell which face is which */
 #define BM_FACE_TAG BM_ELEM_DRAW
@@ -203,7 +187,7 @@ static int bm_face_isect_pair(BMFace *f, void *UNUSED(user_data))
 	return BM_elem_flag_test(f, BM_FACE_TAG) ? 1 : 0;
 }
 
-static DerivedMesh *applyModifier_bmesh(
+static DerivedMesh *applyModifier(
         ModifierData *md, Object *ob,
         DerivedMesh *dm,
         ModifierApplyFlag flag)
@@ -372,66 +356,6 @@ static DerivedMesh *applyModifier_bmesh(
 
 	return dm;
 }
-#endif  /* USE_BMESH */
-
-
-/* -------------------------------------------------------------------- */
-/* CARVE */
-
-#ifdef USE_CARVE
-static DerivedMesh *applyModifier_carve(
-        ModifierData *md, Object *ob,
-        DerivedMesh *derivedData,
-        ModifierApplyFlag flag)
-{
-	BooleanModifierData *bmd = (BooleanModifierData *) md;
-	DerivedMesh *dm;
-
-	if (!bmd->object)
-		return derivedData;
-
-	dm = get_dm_for_modifier(bmd->object, flag);
-
-	if (dm) {
-		DerivedMesh *result;
-
-		/* when one of objects is empty (has got no faces) we could speed up
-		 * calculation a bit returning one of objects' derived meshes (or empty one)
-		 * Returning mesh is depended on modifiers operation (sergey) */
-		result = get_quick_derivedMesh(ob, derivedData, bmd->object, dm, bmd->operation);
-
-		if (result == NULL) {
-#ifdef DEBUG_TIME
-			TIMEIT_START(boolean_carve);
-#endif
-
-			result = NewBooleanDerivedMesh(dm, bmd->object, derivedData, ob,
-			                               1 + bmd->operation);
-#ifdef DEBUG_TIME
-			TIMEIT_END(boolean_carve);
-#endif
-		}
-
-		/* if new mesh returned, return it; otherwise there was
-		 * an error, so delete the modifier object */
-		if (result)
-			return result;
-		else
-			modifier_setError(md, "Cannot execute boolean operation");
-	}
-	
-	return derivedData;
-}
-#endif  /* USE_CARVE */
-
-
-static DerivedMesh *applyModifier_nop(
-        ModifierData *UNUSED(md), Object *UNUSED(ob),
-        DerivedMesh *derivedData,
-        ModifierApplyFlag UNUSED(flag))
-{
-	return derivedData;
-}
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md))
 {
@@ -441,28 +365,6 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(
 	
 	return dataMask;
 }
-
-static DerivedMesh *applyModifier(
-        ModifierData *md, Object *ob,
-        DerivedMesh *derivedData,
-        ModifierApplyFlag flag)
-{
-	BooleanModifierData *bmd = (BooleanModifierData *)md;
-
-	switch (bmd->solver) {
-#ifdef USE_CARVE
-		case eBooleanModifierSolver_Carve:
-			return applyModifier_carve(md, ob, derivedData, flag);
-#endif
-#ifdef USE_BMESH
-		case eBooleanModifierSolver_BMesh:
-			return applyModifier_bmesh(md, ob, derivedData, flag);
-#endif
-		default:
-			return applyModifier_nop(md, ob, derivedData, flag);
-	}
-}
-
 
 ModifierTypeInfo modifierType_Boolean = {
 	/* name */              "Boolean",

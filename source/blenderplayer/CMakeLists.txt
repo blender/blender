@@ -188,10 +188,6 @@ endif()
 		list(APPEND BLENDER_SORTED_LIBS extern_ceres)
 	endif()
 
-	if(WITH_MOD_BOOLEAN)
-		list(APPEND BLENDER_SORTED_LIBS extern_carve)
-	endif()
-
 	if(WITH_GHOST_XDND)
 		list(APPEND BLENDER_SORTED_LIBS extern_xdnd)
 	endif()

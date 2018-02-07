@@ -1958,12 +1958,6 @@ static void rna_def_modifier_boolean(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static const EnumPropertyItem prop_solver_items[] = {
-		{eBooleanModifierSolver_BMesh, "BMESH", 0, "BMesh", "Use the BMesh boolean solver"},
-		{eBooleanModifierSolver_Carve, "CARVE", 0, "Carve", "Use the Carve boolean solver"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	srna = RNA_def_struct(brna, "BooleanModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Boolean Modifier", "Boolean operations modifier");
 	RNA_def_struct_sdna(srna, "BooleanModifierData");
@@ -1978,11 +1972,6 @@ static void rna_def_modifier_boolean(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "operation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_operation_items);
 	RNA_def_property_ui_text(prop, "Operation", "");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-	prop = RNA_def_property(srna, "solver", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_solver_items);
-	RNA_def_property_ui_text(prop, "Solver", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "double_threshold", PROP_FLOAT, PROP_DISTANCE);
