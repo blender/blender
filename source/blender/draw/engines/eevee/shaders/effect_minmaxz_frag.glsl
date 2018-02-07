@@ -23,7 +23,9 @@ uniform sampler2D depthBuffer;
 #define minmax(a, b) max(a, b)
 #endif
 
-#ifdef GPU_INTEL
+/* On some AMD card / driver conbination, it is needed otherwise,
+ * the shader does not write anything. */
+#if defined(GPU_INTEL) || defined(GPU_ATI)
 out vec4 fragColor;
 #endif
 
@@ -65,7 +67,7 @@ void main()
 	}
 #endif
 
-#ifdef GPU_INTEL
+#if defined(GPU_INTEL) || defined(GPU_ATI)
 	/* Use color format instead of 24bit depth texture */
 	fragColor = vec4(val);
 #else
