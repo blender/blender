@@ -320,9 +320,6 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	char path[FILE_MAX_LIBEXTRA], root[FILE_MAXDIR], libname[FILE_MAX_LIBEXTRA], relname[FILE_MAX];
 	char *group, *name;
 	int totfiles = 0;
-	short flag;
-	bool has_item = false;
-	bool do_append;
 
 	RNA_string_get(op->ptr, "filename", relname);
 	RNA_string_get(op->ptr, "directory", root);
@@ -359,8 +356,8 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	flag = wm_link_append_flag(op);
-	do_append = (flag & FILE_LINK) == 0;
+	short flag = wm_link_append_flag(op);
+	const bool do_append = (flag & FILE_LINK) == 0;
 
 	/* sanity checks for flag */
 	if (scene && scene->id.lib) {
@@ -406,7 +403,6 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 					BLI_ghash_insert(libraries, BLI_strdup(libname), SET_INT_IN_POINTER(lib_idx));
 					lib_idx++;
 					wm_link_append_data_library_add(lapp_data, libname);
-					has_item = true;
 				}
 			}
 		}
@@ -429,7 +425,6 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 
 				item = wm_link_append_data_item_add(lapp_data, name, BKE_idcode_from_name(group), NULL);
 				BLI_BITMAP_ENABLE(item->libraries, lib_idx);
-				has_item = true;
 			}
 		}
 		RNA_END;
@@ -442,12 +437,12 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 		wm_link_append_data_library_add(lapp_data, libname);
 		item = wm_link_append_data_item_add(lapp_data, name, BKE_idcode_from_name(group), NULL);
 		BLI_BITMAP_ENABLE(item->libraries, 0);
-		has_item = true;
 	}
 
-	if (!has_item) {
+	if (lapp_data->num_items == 0) {
+		/* Early out in case there is nothing to link. */
 		wm_link_append_data_free(lapp_data);
-		return OPERATOR_CANCELLED;
+		return;
 	}
 
 	/* XXX We'd need re-entrant locking on Main for this to work... */
