@@ -65,6 +65,7 @@ extern "C" {
 #ifdef NESTED_ID_NASTY_WORKAROUND
 #  include "DNA_key_types.h"
 #  include "DNA_lamp_types.h"
+#  include "DNA_lattice_types.h"
 #  include "DNA_linestyle_types.h"
 #  include "DNA_material_types.h"
 #  include "DNA_node_types.h"
@@ -93,6 +94,7 @@ namespace {
 union NestedIDHackTempStorage {
 	FreestyleLineStyle linestyle;
 	Lamp lamp;
+	Lattice lattice;
 	Material material;
 	Mesh mesh;
 	Scene scene;
@@ -119,6 +121,7 @@ void nested_id_hack_discard_pointers(ID *id_cow)
 		SPECIAL_CASE(ID_WO, World, nodetree)
 
 		SPECIAL_CASE(ID_ME, Mesh, key)
+		SPECIAL_CASE(ID_LT, Lattice, key)
 
 #  undef SPECIAL_CASE
 
@@ -151,6 +154,7 @@ const ID *nested_id_hack_get_discarded_pointers(NestedIDHackTempStorage *storage
 		SPECIAL_CASE(ID_WO, World, nodetree, world)
 
 		SPECIAL_CASE(ID_ME, Mesh, key, mesh)
+		SPECIAL_CASE(ID_LT, Lattice, key, lattice)
 
 #  undef SPECIAL_CASE
 
@@ -183,6 +187,7 @@ void nested_id_hack_restore_pointers(const ID *old_id, ID *new_id)
 		SPECIAL_CASE(ID_WO, World, nodetree)
 
 		SPECIAL_CASE(ID_ME, Mesh, key)
+		SPECIAL_CASE(ID_LT, Lattice, key)
 
 #undef SPECIAL_CASE
 		default:
@@ -219,6 +224,7 @@ void ntree_hack_remap_pointers(const Depsgraph *depsgraph, ID *id_cow)
 		SPECIAL_CASE(ID_WO, World, nodetree, bNodeTree)
 
 		SPECIAL_CASE(ID_ME, Mesh, key, Key)
+		SPECIAL_CASE(ID_LT, Lattice, key, Key)
 
 #undef SPECIAL_CASE
 		default:

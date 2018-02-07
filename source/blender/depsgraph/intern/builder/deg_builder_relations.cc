@@ -2105,6 +2105,22 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node
 			if (op_node->inlinks.size() == 0) {
 				graph_->add_new_relation(op_cow, op_node, "CoW Dependency");
 			}
+			else {
+				bool has_same_id_dependency = false;
+				foreach (DepsRelation *rel, op_node->inlinks) {
+					if (rel->from->type != DEG_NODE_TYPE_OPERATION) {
+						continue;
+					}
+					OperationDepsNode *op_node_from = (OperationDepsNode *)rel->from;
+					if (op_node_from->owner->owner == op_node->owner->owner) {
+						has_same_id_dependency = true;
+						break;
+					}
+				}
+				if (!has_same_id_dependency) {
+					graph_->add_new_relation(op_cow, op_node, "CoW Dependency");
+				}
+			}
 		}
 		GHASH_FOREACH_END();
 		/* NOTE: We currently ignore implicit relations to an external
