@@ -177,12 +177,14 @@ typedef enum {
 	DRW_ATTRIB_FLOAT,
 } DRWAttribType;
 
+#define MAX_UNIFORM_DATA_SIZE 16
+
 struct DRWUniform {
 	struct DRWUniform *next;
-	DRWUniformType type;
 	int location;
-	int length;
-	int arraysize;
+	char type; /* DRWUniformType */
+	char length; /* cannot be more than 16 */
+	char arraysize; /* cannot be more than 16 too */
 	const void *value;
 };
 
@@ -692,7 +694,8 @@ static void drw_interface_uniform(DRWShadingGroup *shgroup, const char *name,
 
 	DRWUniform *uni = BLI_mempool_alloc(DST.vmempool->uniforms);
 
-	BLI_assert(arraysize > 0);
+	BLI_assert(arraysize > 0 && arraysize <= 16);
+	BLI_assert(arraysize * length <= MAX_UNIFORM_DATA_SIZE);
 
 	uni->location = location;
 	uni->type = type;
