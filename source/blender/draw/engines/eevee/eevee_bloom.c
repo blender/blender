@@ -145,14 +145,8 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 		for (int i = 0; i < effects->bloom_iteration_ct; ++i) {
 			texsize[0] /= 2; texsize[1] /= 2;
 
-			if (GPU_type_matches(GPU_DEVICE_AMD_VEGA, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE)) {
-				texsize[0] = MAX2(texsize[0], 17);
-				texsize[1] = MAX2(texsize[1], 17);
-			}
-			else {
-				texsize[0] = MAX2(texsize[0], 2);
-				texsize[1] = MAX2(texsize[1], 2);
-			}
+			texsize[0] = MAX2(texsize[0], 2);
+			texsize[1] = MAX2(texsize[1], 2);
 
 			effects->downsamp_texel_size[i][0] = 1.0f / (float)texsize[0];
 			effects->downsamp_texel_size[i][1] = 1.0f / (float)texsize[1];
@@ -168,14 +162,8 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 		for (int i = 0; i < effects->bloom_iteration_ct - 1; ++i) {
 			texsize[0] /= 2; texsize[1] /= 2;
 
-			if (GPU_type_matches(GPU_DEVICE_AMD_VEGA, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE)) {
-				texsize[0] = MAX2(texsize[0], 17);
-				texsize[1] = MAX2(texsize[1], 17);
-			}
-			else {
-				texsize[0] = MAX2(texsize[0], 2);
-				texsize[1] = MAX2(texsize[1], 2);
-			}
+			texsize[0] = MAX2(texsize[0], 2);
+			texsize[1] = MAX2(texsize[1], 2);
 
 			DRWFboTexture tex_bloom = {&txl->bloom_upsample[i], DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER};
 			DRW_framebuffer_init(&fbl->bloom_accum_fb[i], &draw_engine_eevee_type,

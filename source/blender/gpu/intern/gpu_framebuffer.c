@@ -602,18 +602,9 @@ void GPU_framebuffer_recursive_downsample(
 		current_dim[0] /= 2;
 		current_dim[1] /= 2;
 
-		if (GPU_type_matches(GPU_DEVICE_AMD_VEGA, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE)) {
-			/* NOTE : here 16 is because of a bug on AMD Vega GPU + non-pro drivers, that prevents us
-			 * from sampling mipmaps that are smaller or equal to 16px. (9) */
-			if (current_dim[0] <= 16 && current_dim[1] <= 16) {
-				break;
-			}
-		}
-		else {
-			if (current_dim[0] <= 2 && current_dim[1] <= 2) {
-				/* Cannot reduce further. */
-				break;
-			}
+		if (current_dim[0] <= 2 && current_dim[1] <= 2) {
+			/* Cannot reduce further. */
+			break;
 		}
 
 		/* ensure that the viewport size is always at least 1x1 */

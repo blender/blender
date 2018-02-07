@@ -64,7 +64,6 @@ typedef enum GPUDeviceType {
 	GPU_DEVICE_INTEL =      (1 << 2),
 	GPU_DEVICE_SOFTWARE =   (1 << 3),
 	GPU_DEVICE_UNKNOWN =    (1 << 4),
-	GPU_DEVICE_AMD_VEGA =   (1 << 5),
 	GPU_DEVICE_ANY =        (0xff)
 } GPUDeviceType;
 
