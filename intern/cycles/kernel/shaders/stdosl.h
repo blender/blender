@@ -549,10 +549,7 @@ closure color principled_sheen(normal N) BUILTIN;
 closure color principled_clearcoat(normal N, float clearcoat, float clearcoat_roughness) BUILTIN;
 
 // BSSRDF
-closure color bssrdf_cubic(normal N, vector radius, float texture_blur, float sharpness) BUILTIN;
-closure color bssrdf_gaussian(normal N, vector radius, float texture_blur) BUILTIN;
-closure color bssrdf_burley(normal N, vector radius, float texture_blur, color albedo) BUILTIN;
-closure color bssrdf_principled(normal N, vector radius, float texture_blur, color subsurface_color, float roughness) BUILTIN;
+closure color bssrdf(string method, normal N, vector radius, color albedo) BUILTIN;
 
 // Hair
 closure color hair_reflection(normal N, float roughnessu, float roughnessv, vector T, float offset) BUILTIN;
