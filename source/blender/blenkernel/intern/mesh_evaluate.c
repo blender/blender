@@ -2945,9 +2945,22 @@ void BKE_mesh_recalc_looptri(
 		}
 		else if (mp_totloop == 4) {
 			ML_TO_MLT(0, 1, 2);
+			MLoopTri *mlt_a = mlt;
 			mlooptri_index++;
 			ML_TO_MLT(0, 2, 3);
+			MLoopTri *mlt_b = mlt;
 			mlooptri_index++;
+
+			if (UNLIKELY(is_quad_flip_v3_first_third_fast(
+			                     mvert[mloop[mlt_a->tri[0]].v].co,
+			                     mvert[mloop[mlt_a->tri[1]].v].co,
+			                     mvert[mloop[mlt_a->tri[2]].v].co,
+			                     mvert[mloop[mlt_b->tri[2]].v].co)))
+			{
+				/* flip out of degenerate 0-2 state. */
+				mlt_a->tri[2] = mlt_b->tri[2];
+				mlt_b->tri[0] = mlt_a->tri[1];
+			}
 		}
 #endif /* USE_TESSFACE_SPEEDUP */
 		else {

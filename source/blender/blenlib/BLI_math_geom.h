@@ -85,6 +85,7 @@ bool is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], 
 bool is_quad_convex_v2(const float v1[2], const float v2[2], const float v3[2], const float v4[2]);
 bool is_poly_convex_v2(const float verts[][2], unsigned int nr);
 int  is_quad_flip_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3]);
+bool is_quad_flip_v3_first_third_fast(const float v0[3], const float v1[3], const float v2[3], const float v3[3]);
 
 /********************************* Distance **********************************/
 
