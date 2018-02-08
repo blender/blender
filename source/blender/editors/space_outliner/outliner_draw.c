@@ -671,7 +671,7 @@ static void outliner_draw_userbuts(uiBlock *block, ARegion *ar, SpaceOops *soops
 	}
 }
 
-static void UNUSED_FUNCTION(outliner_draw_rnacols)(ARegion *ar, int sizex)
+static void outliner_draw_rnacols(ARegion *ar, int sizex)
 {
 	View2D *v2d = &ar->v2d;
 
@@ -697,7 +697,6 @@ static void UNUSED_FUNCTION(outliner_draw_rnacols)(ARegion *ar, int sizex)
 	immUnbindProgram();
 }
 
-#if 0
 static void outliner_draw_rnabuts(uiBlock *block, ARegion *ar, SpaceOops *soops, int sizex, ListBase *lb)
 {
 	TreeElement *te;
@@ -742,7 +741,6 @@ static void outliner_draw_rnabuts(uiBlock *block, ARegion *ar, SpaceOops *soops,
 
 	UI_block_emboss_set(block, UI_EMBOSS);
 }
-#endif
 
 static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, TreeElement *te)
 {
@@ -1959,7 +1957,12 @@ void draw_outliner(const bContext *C)
 	block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
 	outliner_draw_tree((bContext *)C, block, scene, view_layer, ar, soops, has_restrict_icons, &te_edit);
 
-	if ((soops->outlinevis == SO_ID_ORPHANS) && has_restrict_icons) {
+	if (soops->outlinevis, SO_DATABLOCKS) {
+		/* draw rna buttons */
+		outliner_draw_rnacols(ar, sizex_rna);
+		outliner_draw_rnabuts(block, ar, soops, sizex_rna, &soops->tree);
+	}
+	else if ((soops->outlinevis == SO_ID_ORPHANS) && has_restrict_icons) {
 		/* draw user toggle columns */
 		outliner_draw_restrictcols(ar);
 		outliner_draw_userbuts(block, ar, soops, &soops->tree);
