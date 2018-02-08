@@ -1957,7 +1957,7 @@ void draw_outliner(const bContext *C)
 	block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
 	outliner_draw_tree((bContext *)C, block, scene, view_layer, ar, soops, has_restrict_icons, &te_edit);
 
-	if (soops->outlinevis, SO_DATABLOCKS) {
+	if (soops->outlinevis == SO_DATABLOCKS) {
 		/* draw rna buttons */
 		outliner_draw_rnacols(ar, sizex_rna);
 		outliner_draw_rnabuts(block, ar, soops, sizex_rna, &soops->tree);
