@@ -32,8 +32,6 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
     vert_tone = array.array("f", [0.0]) * len(me.vertices)
 
     # create lookup table for each vertex's connected vertices (via edges)
-    con = []
-
     con = [[] for i in range(len(me.vertices))]
 
     # add connected verts
@@ -50,7 +48,7 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
         for c in con[i]:
             vec += (me.vertices[c].co - co).normalized()
 
-        # normalize the vector by dividing by the number of connected verts
+        # average the vector by dividing by the number of connected verts
         tot_con = len(con[i])
 
         if tot_con == 0:
@@ -58,7 +56,9 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
 
         vec /= tot_con
 
-        # angle is the acos() of the dot product between vert and connected verts normals
+        # angle is the acos() of the dot product between normal and connected verts.
+        # > 90 degrees: convex
+        # < 90 degrees: concave
         ang = acos(no.dot(vec))
 
         # enforce min/max
