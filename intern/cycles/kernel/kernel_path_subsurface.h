@@ -71,9 +71,7 @@ bool kernel_path_subsurface_scatter(
 			                               hit,
 			                               sd,
 			                               state,
-			                               state->flag,
-			                               sc,
-			                               false);
+			                               sc);
 
 			kernel_path_surface_connect_light(kg, sd, emission_sd, *throughput, state, L);
 
