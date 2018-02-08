@@ -1879,7 +1879,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 	}
 }
 
-#if 0
+#ifdef DEBUG_ADJUST
 static void print_adjust_stats(BoundVert *vstart)
 {
 	BoundVert *v;
@@ -1921,21 +1921,25 @@ static void print_adjust_stats(BoundVert *vstart)
 		if (v->adjchain != NULL) {
 			eright = v->efirst;
 			eleft = v->adjchain->elast;
-			delta = fabs(eright->offset_r - eright->offset_r_spec);
+			delta = eright->offset_r - eright->offset_r_spec;
 			delta_pct = 100.0 * delta / eright->offset_r_spec;
-			printf("e%d r(%f) vs r spec(%f): abs(delta)=%f, delta_pct=%f\n",
+			printf("e%d r(%f) vs r spec(%f): delta=%f, delta_pct=%f\n",
 				BM_elem_index_get(eright->e), eright->offset_r, eright->offset_r_spec, delta, delta_pct);
 			spec_residual2 += delta * delta;
+			delta = fabs(delta);
+			delta_pct = fabs(delta_pct);
 			if (delta > max_spec_r)
 				max_spec_r = delta;
 			if (delta_pct > max_spec_r_pct)
 				max_spec_r_pct = delta_pct;
 
-			delta = fabs(eleft->offset_l - eleft->offset_l_spec);
+			delta = eleft->offset_l - eleft->offset_l_spec;
 			delta_pct = 100.0 * delta / eright->offset_l_spec;
-			printf("e%d l(%f) vs l spec(%f): abs(delta)=%f, delta_pct=%f\n",
+			printf("e%d l(%f) vs l spec(%f): delta=%f, delta_pct=%f\n",
 				BM_elem_index_get(eright->e), eleft->offset_l, eleft->offset_l_spec, delta, delta_pct);
 			spec_residual2 += delta * delta;
+			delta = fabs(delta);
+			delta_pct = fabs(delta_pct);
 			if (delta > max_spec_r)
 				max_spec_r = delta;
 			if (delta_pct > max_spec_r_pct)
@@ -1951,6 +1955,15 @@ static void print_adjust_stats(BoundVert *vstart)
 }
 #endif
 
+#ifdef FAST_ADJUST_CODE
+/* This code uses a direct solution to the adjustment problem for chains and certain cycles.
+ * It is a two-step approach: first solve for the exact solution of the 'match widths' constraints
+ * using the one degree of freedom that allows for expressing all other widths in terms of that.
+ * And then minimize the spec-matching constraints using the derivative of the least squares
+ * residual in terms of that one degree of freedom.
+ * Unfortunately, the results are in some cases worse than the general least squares solution
+ * for the combined (with weights) problem, so this code is not used.
+ * But keep it here for a while in case peformance issues demand that it be used sometimes. */
 static bool adjust_the_cycle_or_chain_fast(BoundVert *vstart, int np, bool iscycle)
 {
 	BoundVert *v;
@@ -2027,6 +2040,7 @@ static bool adjust_the_cycle_or_chain_fast(BoundVert *vstart, int np, bool iscyc
 	MEM_freeN(g_prod);
 	return true;
 }
+#endif
 
 /* Adjust the offsets for a single cycle or chain.
  * For chains and some cycles, a fast solution exists.
@@ -2038,22 +2052,35 @@ static bool adjust_the_cycle_or_chain_fast(BoundVert *vstart, int np, bool iscyc
 static void adjust_the_cycle_or_chain(BoundVert *vstart, bool iscycle)
 {
 	BoundVert *v;
-	EdgeHalf *eleft, *eright;
+	EdgeHalf *eleft, *eright, *enextleft;
 	LinearSolver *solver;
 	double weight, val;
 	int i, np, nrows, row;
 
 	np = 0;
+#ifdef DEBUG_ADJUST
+	printf("\nadjust the %s (with eigen)\n", iscycle ? "cycle" : "chain");
+#endif
 	v = vstart;
 	do {
+#ifdef DEBUG_ADJUST
+		eleft = v->elast;
+		eright = v->efirst;
+		printf(" (left=e%d, right=e%d)", BM_elem_index_get(eleft->e), BM_elem_index_get(eright->e));
+#endif
 		np++;
 		v = v->adjchain;
 	} while (v && v != vstart);
+#ifdef DEBUG_ADJUST
+		printf(" -> %d parms\n", np);
+#endif
 
+#ifdef FAST_ADJUST_CODE
 	if (adjust_the_cycle_or_chain_fast(vstart, np, iscycle))
 		return;
+#endif
 
-	nrows = iscycle ? 2 * np : 2 * np - 1;
+	nrows = iscycle ? 3 * np : 3 * np - 3;
 
 	solver = EIG_linear_least_squares_solver_new(nrows, np, 1);
 
@@ -2062,9 +2089,15 @@ static void adjust_the_cycle_or_chain(BoundVert *vstart, bool iscycle)
 	weight = BEVEL_MATCH_SPEC_WEIGHT; /* sqrt of factor to weight down importance of spec match */
 	do {
 		/* except at end of chain, v's indep variable is offset_r of v->efirst */
-		if (iscycle || v->adjchain != NULL) {
+		if (iscycle || i < np - 1) {
 			eright = v->efirst;
 			eleft = v->elast;
+			enextleft = v->adjchain->elast;
+#ifdef DEBUG_ADJUST
+			printf("p%d: e%d->offset_r = %f\n", i, BM_elem_index_get(eright->e), eright->offset_r);
+			if (iscycle || v != vstart)
+				printf("  dependent: e%d->offset_l = %f * p%d\n", BM_elem_index_get(eleft->e), v->sinratio, i);
+#endif
 
 			/* residue i: width difference between eright and eleft of next */
 			EIG_linear_solver_matrix_add(solver, i, i, 1.0);
@@ -2073,52 +2106,86 @@ static void adjust_the_cycle_or_chain(BoundVert *vstart, bool iscycle)
 				EIG_linear_solver_matrix_add(solver, i > 0 ? i - 1 : np - 1, i, -v->sinratio);
 			}
 			else {
-				if (i > 0)
+				if (i > 0) {
 					EIG_linear_solver_matrix_add(solver, i - 1, i, -v->sinratio);
+				}
 			}
 
-			/* residue np + i (if cycle) else np - 1 + i:
+			/* residue np + 2*i (if cycle) else np - 1 + 2*i:
 			 * right offset for parm i matches its spec; weighted */
-			row = iscycle ? np + i : np - 1 + i;
+			row = iscycle ? np + 2 * i : np - 1 + 2 *  i;
 			EIG_linear_solver_matrix_add(solver, row, i, weight);
 			EIG_linear_solver_right_hand_side_add(solver, 0, row, weight * eright->offset_r);
+#ifdef DEBUG_ADJUST
+			printf("b[%d]=%f * %f, for e%d->offset_r\n", row, weight, eright->offset_r, BM_elem_index_get(eright->e));
+#endif
+			
+			/* residue np + 2*i + 1 (if cycle) else np - 1 + 2*i + 1:
+			 * left offset for parm i matches its spec; weighted */
+			 row = row + 1;
+			EIG_linear_solver_matrix_add(solver, row, (i == np - 1) ? 0 : i + 1, weight * v->adjchain->sinratio);
+			EIG_linear_solver_right_hand_side_add(solver, 0, row, weight * enextleft->offset_l);
+#ifdef DEBUG_ADJUST
+			printf("b[%d]=%f * %f, for e%d->offset_l\n", row, weight, enextleft->offset_l,
+				BM_elem_index_get(enextleft->e));
+#endif
 		}
 		else {
 			/* not a cycle, and last of chain */
 			eleft = v->elast;
+#ifdef DEBUG_ADJUST
+			printf("p%d: e%d->offset_l = %f\n", i, BM_elem_index_get(eleft->e), eleft->offset_l);
+#endif
 			/* second part of residue i for last i */
 			EIG_linear_solver_matrix_add(solver, i - 1, i, -1.0);
-			/* residue 2 * np -2 : last spec match residue is for left offset of final parm */
-			row = 2 * np - 2;
-			EIG_linear_solver_matrix_add(solver, row, i, weight);
-			EIG_linear_solver_right_hand_side_add(solver, 0, row, weight * eleft->offset_l);
 		}
 		i++;
 		v = v->adjchain;
 	} while (v && v != vstart);
 	EIG_linear_solver_solve(solver);
+#ifdef DEBUG_ADJUST
+	/* Note: this print only works after solve, but by that time b has been cleared */
+	EIG_linear_solver_print_matrix(solver);
+	printf("\nSolution:\n");
+	for (i = 0; i < np; i++)
+		printf("p%d = %f\n", i, EIG_linear_solver_variable_get(solver, 0, i));
+#endif
 
 	/* Use the solution to set new widths */
 	v = vstart;
 	i = 0;
 	do {
 		val = EIG_linear_solver_variable_get(solver, 0, i);
-		if (iscycle || v->adjchain != NULL) {
+		if (iscycle || i < np - 1) {
 			eright = v->efirst;
 			eleft = v->elast;
 			eright->offset_r = (float)val;
+#ifdef DEBUG_ADJUST
+			printf("e%d->offset_r = %f\n", BM_elem_index_get(eright->e), eright->offset_r);
+#endif
 			if (iscycle || v != vstart) {
 				eleft->offset_l = (float)(v->sinratio * val);
+#ifdef DEBUG_ADJUST
+				printf("e%d->offset_l = %f\n", BM_elem_index_get(eleft->e), eleft->offset_l);
+#endif
 			}
 		}
 		else {
 			/* not a cycle, and last of chain */
 			eleft = v->elast;
 			eleft->offset_l = (float)val;
+#ifdef DEBUG_ADJUST
+			printf("e%d->offset_l = %f\n", BM_elem_index_get(eleft->e), eleft->offset_l);
+#endif
 		}
 		i++;
 		v = v->adjchain;
 	} while (v && v != vstart);
+
+#ifdef DEBUG_ADJUST
+		print_adjust_stats(vstart);
+		EIG_linear_solver_print_matrix(solver);
+#endif
 
 	EIG_linear_solver_delete(solver);
 }
