@@ -337,7 +337,7 @@ void DEG_graph_on_visible_update(Main *bmain, Scene *scene)
 		Object *object = base->object;
 		DEG::IDDepsNode *id_node = graph->find_id_node(&object->id);
 		id_node->layers |= base->lay;
-		if (object == scene->camera) {
+		if (object == scene->camera || object->type == OB_CAMERA) {
 			/* Camera should always be updated, it used directly by viewport. */
 			id_node->layers |= (unsigned int)(-1);
 		}
