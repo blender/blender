@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+    <id>org.blender.Blender</id>
+    <launchable type="desktop">blender.desktop</launchable>
+    <name>Blender</name>
+    <summary>Free and open source 3D creation suite</summary>
+    <metadata_license>CC0-1.0</metadata_license>
+    <project_license>GPL-3.0</project_license>
+    <description>
+        <p>
+            Blender is the free and open source 3D creation suite. It supports
+            the entirety of the 3D pipeline—modeling, rigging, animation,
+            simulation, rendering, compositing and motion tracking, even video
+            editing and game creation.
+        </p>
+
+        <p>
+            Advanced users employ Blender’s API for Python scripting to
+            customize the application and write specialized tools. Blender is
+            well suited to individuals and small studios who benefit from its
+            unified pipeline and responsive development process.
+        </p>
+    </description>
+    <url type="homepage">http://www.blender.org</url>
+    <url type="help">https://www.blender.org/support/</url>
+    <url type="bugtracker">https://developer.blender.org</url>
+    <url type="donation">https://www.blender.org/foundation/donation-payment/</url>
+    <screenshots>
+        <screenshot type="default">
+            <image>https://download.blender.org/demo/screenshots/blender_screenshot_1.jpg</image>
+        </screenshot>
+        <screenshot>
+            <image>https://download.blender.org/demo/screenshots/blender_screenshot_2.jpg</image>
+        </screenshot>
+        <screenshot>
+            <image>https://download.blender.org/demo/screenshots/blender_screenshot_3.jpg</image>
+        </screenshot>
+        <screenshot>
+            <image>https://download.blender.org/demo/screenshots/blender_screenshot_4.jpg</image>
+        </screenshot>
+    </screenshots>
+</component>
