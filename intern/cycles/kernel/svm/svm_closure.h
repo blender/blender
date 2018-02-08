@@ -114,7 +114,8 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 			float transmission_roughness = stack_load_float(stack, transmission_roughness_offset);
 			float eta = fmaxf(stack_load_float(stack, eta_offset), 1e-5f);
 
-			ClosureType distribution = stack_valid(data_node2.y) ? (ClosureType) data_node2.y : CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID;
+			ClosureType distribution = (ClosureType) data_node2.y;
+			ClosureType subsurface_method = (ClosureType) data_node2.z;
 
 			/* rotate tangent */
 			if(anisotropic_rotation != 0.0f)
@@ -193,7 +194,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 						bssrdf->roughness = roughness;
 
 						/* setup bsdf */
-						sd->flag |= bssrdf_setup(sd, bssrdf, (ClosureType)CLOSURE_BSSRDF_PRINCIPLED_ID);
+						sd->flag |= bssrdf_setup(sd, bssrdf, subsurface_method);
 					}
 				}
 			}
@@ -781,6 +782,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 				bssrdf->texture_blur = param2;
 				bssrdf->sharpness = stack_load_float(stack, data_node.w);
 				bssrdf->N = N;
+				bssrdf->roughness = 0.0f;
 				sd->flag |= bssrdf_setup(sd, bssrdf, (ClosureType)type);
 			}
 

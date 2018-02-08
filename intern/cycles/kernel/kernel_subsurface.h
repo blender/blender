@@ -78,7 +78,9 @@ ccl_device void subsurface_scatter_setup_diffuse_bsdf(KernelGlobals *kg, ShaderD
 	if(hit) {
 		Bssrdf *bssrdf = (Bssrdf *)sc;
 #ifdef __PRINCIPLED__
-		if(bssrdf->type == CLOSURE_BSSRDF_PRINCIPLED_ID) {
+		if(bssrdf->type == CLOSURE_BSSRDF_PRINCIPLED_ID ||
+		   bssrdf->type == CLOSURE_BSSRDF_PRINCIPLED_RANDOM_WALK_ID)
+		{
 			PrincipledDiffuseBsdf *bsdf = (PrincipledDiffuseBsdf*)bsdf_alloc(sd, sizeof(PrincipledDiffuseBsdf), weight);
 
 			if(bsdf) {

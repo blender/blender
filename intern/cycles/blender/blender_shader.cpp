@@ -535,6 +535,14 @@ static ShaderNode *add_node(Scene *scene,
 				principled->distribution = CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID;
 				break;
 		}
+		switch (b_principled_node.subsurface_method()) {
+			case BL::ShaderNodeBsdfPrincipled::subsurface_method_BURLEY:
+				principled->subsurface_method = CLOSURE_BSSRDF_PRINCIPLED_ID;
+				break;
+			case BL::ShaderNodeBsdfPrincipled::subsurface_method_RANDOM_WALK:
+				principled->subsurface_method = CLOSURE_BSSRDF_PRINCIPLED_RANDOM_WALK_ID;
+				break;
+		}
 		node = principled;
 	}
 	else if(b_node.is_a(&RNA_ShaderNodeBsdfTranslucent)) {

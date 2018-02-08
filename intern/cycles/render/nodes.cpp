@@ -2312,6 +2312,12 @@ NODE_DEFINE(PrincipledBsdfNode)
 	distribution_enum.insert("GGX", CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID);
 	distribution_enum.insert("Multiscatter GGX", CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
 	SOCKET_ENUM(distribution, "Distribution", distribution_enum, CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
+
+	static NodeEnum subsurface_method_enum;
+	subsurface_method_enum.insert("burley", CLOSURE_BSSRDF_PRINCIPLED_ID);
+	subsurface_method_enum.insert("random_walk", CLOSURE_BSSRDF_PRINCIPLED_RANDOM_WALK_ID);
+	SOCKET_ENUM(subsurface_method, "Subsurface Method", subsurface_method_enum, CLOSURE_BSSRDF_PRINCIPLED_ID);
+
 	SOCKET_IN_COLOR(base_color, "Base Color", make_float3(0.8f, 0.8f, 0.8f));
 	SOCKET_IN_COLOR(subsurface_color, "Subsurface Color", make_float3(0.8f, 0.8f, 0.8f));
 	SOCKET_IN_FLOAT(metallic, "Metallic", 0.0f);
@@ -2410,7 +2416,7 @@ void PrincipledBsdfNode::compile(SVMCompiler& compiler, ShaderInput *p_metallic,
 		compiler.encode_uchar4(sheen_offset, sheen_tint_offset, clearcoat_offset, clearcoat_roughness_offset));
 
 	compiler.add_node(compiler.encode_uchar4(ior_offset, transmission_offset, anisotropic_rotation_offset, transmission_roughness_offset),
-		distribution, SVM_STACK_INVALID, SVM_STACK_INVALID);
+		distribution, subsurface_method, SVM_STACK_INVALID);
 
 	float3 bc_default = get_float3(base_color_in->socket_type);
 
@@ -2442,6 +2448,7 @@ void PrincipledBsdfNode::compile(SVMCompiler& compiler)
 void PrincipledBsdfNode::compile(OSLCompiler& compiler)
 {
 	compiler.parameter(this, "distribution");
+	compiler.parameter(this, "subsurface_method");
 	compiler.add(this, "node_principled_bsdf");
 }
 

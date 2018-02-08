@@ -61,6 +61,7 @@ static bNodeSocketTemplate sh_node_bsdf_principled_out[] = {
 static void node_shader_init_principled(bNodeTree *UNUSED(ntree), bNode *node)
 {
 	node->custom1 = SHD_GLOSSY_MULTI_GGX;
+	node->custom2 = SHD_SUBSURFACE_BURLEY;
 }
 
 static int node_shader_gpu_bsdf_principled(GPUMaterial *mat, bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
