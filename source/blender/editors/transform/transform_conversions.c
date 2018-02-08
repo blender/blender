@@ -1002,9 +1002,6 @@ static short pose_grab_with_ik(Object *ob)
 		return 0;
 
 	arm = ob->data;
-	if ((arm->flag & ARM_POSEMODE) == 0) {
-		return 0;
-	}
 
 	/* Rule: allow multiple Bones (but they must be selected, and only one ik-solver per chain should get added) */
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
