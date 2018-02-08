@@ -117,6 +117,7 @@ ccl_device_noinline bool kernel_split_branched_path_subsurface_indirect_light_it
 				*hit_state = branched_state->path_state;
 
 				path_state_branch(hit_state, j, num_samples);
+				hit_state->rng_offset += PRNG_BOUNCE_NUM;
 
 #ifdef __VOLUME__
 				if(need_update_volume_stack) {

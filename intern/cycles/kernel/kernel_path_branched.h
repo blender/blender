@@ -372,6 +372,7 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
 				PathState hit_state = *state;
 
 				path_state_branch(&hit_state, j, num_samples);
+				hit_state.rng_offset += PRNG_BOUNCE_NUM;
 
 #ifdef __VOLUME__
 				if(need_update_volume_stack) {
