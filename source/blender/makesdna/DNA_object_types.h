@@ -171,9 +171,6 @@ typedef struct Object {
 	ListBase defbase;   /* list of bDeformGroup (vertex groups) names and flag only */
 	ListBase modifiers; /* list of ModifierData structures */
 	ListBase fmaps;     /* list of facemaps */
-	
-	int mode;           /* Local object mode */
-	int restore_mode;   /* Keep track of what mode to return to after toggling a mode */
 
 	/* materials */
 	struct Material **mat;	/* material slots */

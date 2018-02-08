@@ -68,6 +68,8 @@ struct ScrArea;
 struct Main;
 struct bToolDef;
 
+#include "DNA_object_enums.h"
+
 #ifdef WITH_INPUT_NDOF
 struct wmNDOFMotionData;
 #endif
@@ -103,6 +105,7 @@ bool		WM_window_is_fullscreen	(struct wmWindow *win);
 void WM_windows_scene_data_sync(const ListBase *win_lb, struct Scene *scene) ATTR_NONNULL();
 struct Scene *WM_windows_scene_get_from_screen(const struct wmWindowManager *wm, const struct bScreen *screen) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 struct WorkSpace *WM_windows_workspace_get_from_screen(const wmWindowManager *wm, const struct bScreen *screen) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
+eObjectMode WM_windows_object_mode_get(const struct wmWindowManager *wm) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 
 struct Scene *WM_window_get_active_scene(const struct wmWindow *win) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 void          WM_window_change_active_scene(struct Main *bmain, struct bContext *C, struct wmWindow *win,

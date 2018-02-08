@@ -64,6 +64,8 @@
 #include "GPU_shader.h"
 #include "GPU_basic_shader.h"
 
+#include "DEG_depsgraph.h"
+
 #include <string.h>
 #include <limits.h>
 #include <math.h>
@@ -260,7 +262,8 @@ static bool can_pbvh_draw(Object *ob, DerivedMesh *dm)
 	return cddm->mvert == me->mvert || ob->sculpt->kb;
 }
 
-static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
+static PBVH *cdDM_getPBVH(
+        Object *ob, DerivedMesh *dm, eObjectMode UNUSED(object_mode))
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
 

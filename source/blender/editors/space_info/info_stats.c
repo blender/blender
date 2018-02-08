@@ -36,6 +36,7 @@
 #include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BLI_math.h"
 #include "BLI_string.h"
@@ -526,14 +527,12 @@ void ED_info_stats_clear(ViewLayer *view_layer)
 	}
 }
 
-const char *ED_info_stats_string(Scene *scene, ViewLayer *view_layer)
+const char *ED_info_stats_string(Scene *scene, WorkSpace *workspace, ViewLayer *view_layer)
 {
-	const eObjectMode object_mode = (view_layer->basact) ? view_layer->basact->object->mode : OB_MODE_OBJECT;
-
 	if (!view_layer->stats) {
-		stats_update(scene, view_layer, object_mode);
+		stats_update(scene, view_layer, workspace->object_mode);
 	}
-	stats_string(scene, view_layer, object_mode);
+	stats_string(scene, view_layer, workspace->object_mode);
 
 	return view_layer->stats->infostr;
 }

@@ -263,8 +263,8 @@ void ED_object_editmode_exit(bContext *C, int flag)
 {
 	/* Note! only in exceptional cases should 'EM_DO_UNDO' NOT be in the flag */
 	/* Note! if 'EM_FREEDATA' isn't in the flag, use ED_object_editmode_load directly */
+	WorkSpace *workspace = CTX_wm_workspace(C);
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 	const bool freedata = (flag & EM_FREEDATA) != 0;
 
@@ -273,9 +273,7 @@ void ED_object_editmode_exit(bContext *C, int flag)
 	if (ED_object_editmode_load_ex(CTX_data_main(C), obedit, freedata) == false) {
 		/* in rare cases (background mode) its possible active object
 		 * is flagged for editmode, without 'obedit' being set [#35489] */
-		if (UNLIKELY(view_layer->basact && (view_layer->basact->object->mode & OB_MODE_EDIT))) {
-			view_layer->basact->object->mode &= ~OB_MODE_EDIT;
-		}
+		workspace->object_mode &= ~OB_MODE_EDIT;
 		if (flag & EM_WAITCURSOR) waitcursor(0);
 		return;
 	}
@@ -306,7 +304,7 @@ void ED_object_editmode_exit(bContext *C, int flag)
 
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, scene);
 
-		obedit->mode &= ~OB_MODE_EDIT;
+		workspace->object_mode &= ~OB_MODE_EDIT;
 	}
 
 	if (flag & EM_WAITCURSOR) waitcursor(0);
@@ -318,6 +316,7 @@ void ED_object_editmode_exit(bContext *C, int flag)
 
 void ED_object_editmode_enter(bContext *C, int flag)
 {
+	WorkSpace *workspace = CTX_wm_workspace(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob;
@@ -347,14 +346,14 @@ void ED_object_editmode_enter(bContext *C, int flag)
 
 	if (flag & EM_WAITCURSOR) waitcursor(1);
 
-	ob->restore_mode = ob->mode;
+	workspace->object_mode_restore = workspace->object_mode;
 
 	/* note, when switching scenes the object can have editmode data but
 	 * not be scene->obedit: bug 22954, this avoids calling self eternally */
-	if ((ob->restore_mode & OB_MODE_EDIT) == 0)
-		ED_object_toggle_modes(C, ob->mode);
+	if ((workspace->object_mode_restore & OB_MODE_EDIT) == 0)
+		ED_object_toggle_modes(C, workspace->object_mode);
 
-	ob->mode = OB_MODE_EDIT;
+	workspace->object_mode = OB_MODE_EDIT;
 
 	if (ob->type == OB_MESH) {
 		BMEditMesh *em;
@@ -433,7 +432,7 @@ void ED_object_editmode_enter(bContext *C, int flag)
 	}
 	else {
 		scene->obedit = NULL; /* XXX for context */
-		ob->mode &= ~OB_MODE_EDIT;
+		workspace->object_mode &= ~OB_MODE_EDIT;
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, scene);
 	}
 
@@ -443,13 +442,13 @@ void ED_object_editmode_enter(bContext *C, int flag)
 
 static int editmode_toggle_exec(bContext *C, wmOperator *op)
 {
+	WorkSpace *workspace = CTX_wm_workspace(C);
 	const int mode_flag = OB_MODE_EDIT;
 	const bool is_mode_set = (CTX_data_edit_object(C) != NULL);
 	Scene *scene =  CTX_data_scene(C);
 
 	if (!is_mode_set) {
-		Object *ob = CTX_data_active_object(C);
-		if (!ED_object_mode_compat_set(C, ob, mode_flag, op->reports)) {
+		if (!ED_object_mode_compat_set(C, workspace, mode_flag, op->reports)) {
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -503,13 +502,14 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 
 static int posemode_exec(bContext *C, wmOperator *op)
 {
+	WorkSpace *workspace = CTX_wm_workspace(C);
 	Base *base = CTX_data_active_base(C);
 	Object *ob = base->object;
 	const int mode_flag = OB_MODE_POSE;
-	const bool is_mode_set = (ob->mode & mode_flag) != 0;
-	
+	const bool is_mode_set = (workspace->object_mode & mode_flag) != 0;
+
 	if (!is_mode_set) {
-		if (!ED_object_mode_compat_set(C, ob, mode_flag, op->reports)) {
+		if (!ED_object_mode_compat_set(C, workspace, mode_flag, op->reports)) {
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -1002,7 +1002,7 @@ static void UNUSED_FUNCTION(copy_attr_menu) (Main *bmain, Scene *scene, ViewLaye
 
 /* ******************* force field toggle operator ***************** */
 
-void ED_object_check_force_modifiers(Main *bmain, Scene *scene, Object *object)
+void ED_object_check_force_modifiers(Main *bmain, Scene *scene, Object *object, eObjectMode object_mode)
 {
 	PartDeflect *pd = object->pd;
 	ModifierData *md = modifiers_findByType(object, eModifierType_Surface);
@@ -1011,7 +1011,7 @@ void ED_object_check_force_modifiers(Main *bmain, Scene *scene, Object *object)
 	if (!md) {
 		if (pd && (pd->shape == PFIELD_SHAPE_SURFACE) && !ELEM(pd->forcefield, 0, PFIELD_GUIDE, PFIELD_TEXTURE)) {
 			if (ELEM(object->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVE)) {
-				ED_object_modifier_add(NULL, bmain, scene, object, NULL, eModifierType_Surface);
+				ED_object_modifier_add(NULL, bmain, scene, object, object_mode, NULL, eModifierType_Surface);
 			}
 		}
 	}
@@ -1024,6 +1024,8 @@ void ED_object_check_force_modifiers(Main *bmain, Scene *scene, Object *object)
 
 static int forcefield_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *ob = CTX_data_active_object(C);
 
 	if (ob->pd == NULL)
@@ -1033,7 +1035,7 @@ static int forcefield_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	else
 		ob->pd->forcefield = 0;
 	
-	ED_object_check_force_modifiers(CTX_data_main(C), CTX_data_scene(C), ob);
+	ED_object_check_force_modifiers(CTX_data_main(C), CTX_data_scene(C), ob, eval_ctx.object_mode);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
@@ -1545,18 +1547,14 @@ static bool object_mode_compat_test(Object *ob, eObjectMode mode)
  *
  * This is so each mode's exec function can call
  */
-bool ED_object_mode_compat_set(bContext *C, Object *ob, eObjectMode mode, ReportList *reports)
+bool ED_object_mode_compat_set(bContext *C, WorkSpace *workspace, eObjectMode mode, ReportList *reports)
 {
 	bool ok;
-	if (!ELEM(ob->mode, mode, OB_MODE_OBJECT)) {
-		const char *opstring = object_mode_op_string(ob->mode);
+	if (!ELEM(workspace->object_mode, mode, OB_MODE_OBJECT)) {
+		const char *opstring = object_mode_op_string(workspace->object_mode);
 
 		WM_operator_name_call(C, opstring, WM_OP_EXEC_REGION_WIN, NULL);
-#ifdef USE_WORKSPACE_MODE
-		BKE_workspace_object_mode_set(CTX_wm_workspace(C), CTX_data_scene(C), ob->mode);
-#endif
-
-		ok = ELEM(ob->mode, mode, OB_MODE_OBJECT);
+		ok = ELEM(workspace->object_mode, mode, OB_MODE_OBJECT);
 		if (!ok) {
 			wmOperatorType *ot = WM_operatortype_find(opstring, false);
 			BKE_reportf(reports, RPT_ERROR, "Unable to execute '%s', error changing modes", ot->name);
@@ -1584,10 +1582,11 @@ static int object_mode_set_poll(bContext *C)
 
 static int object_mode_set_exec(bContext *C, wmOperator *op)
 {
+	WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = CTX_data_active_object(C);
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	eObjectMode mode = RNA_enum_get(op->ptr, "mode");
-	eObjectMode restore_mode = (ob) ? ob->mode : OB_MODE_OBJECT;
+	eObjectMode restore_mode = workspace->object_mode;
 	const bool toggle = RNA_boolean_get(op->ptr, "toggle");
 	
 	if (gpd) {
@@ -1611,28 +1610,31 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
 	if (!ob || !object_mode_compat_test(ob, mode))
 		return OPERATOR_PASS_THROUGH;
 
-	if (ob->mode != mode) {
+	if (workspace->object_mode != mode) {
 		/* we should be able to remove this call, each operator calls  */
-		ED_object_mode_compat_set(C, ob, mode, op->reports);
+		ED_object_mode_compat_set(C, workspace, mode, op->reports);
 	}
 
 	/* Exit current mode if it's not the mode we're setting */
-	if (mode != OB_MODE_OBJECT && (ob->mode != mode || toggle)) {
+	if (mode != OB_MODE_OBJECT && (workspace->object_mode != mode || toggle)) {
 		/* Enter new mode */
 		ED_object_toggle_modes(C, mode);
 	}
 
 	if (toggle) {
 		/* Special case for Object mode! */
-		if (mode == OB_MODE_OBJECT && restore_mode == OB_MODE_OBJECT && ob->restore_mode != OB_MODE_OBJECT) {
-			ED_object_toggle_modes(C, ob->restore_mode);
+		if ((mode == OB_MODE_OBJECT) &&
+		    (restore_mode == OB_MODE_OBJECT) &&
+		    (workspace->object_mode_restore != OB_MODE_OBJECT))
+		{
+			ED_object_toggle_modes(C, workspace->object_mode_restore);
 		}
-		else if (ob->mode == mode) {
+		else if (workspace->object_mode == mode) {
 			/* For toggling, store old mode so we know what to go back to */
-			ob->restore_mode = restore_mode;
+			workspace->object_mode_restore = restore_mode;
 		}
-		else if (ob->restore_mode != OB_MODE_OBJECT && ob->restore_mode != mode) {
-			ED_object_toggle_modes(C, ob->restore_mode);
+		else if (!ELEM(workspace->object_mode_restore, mode, OB_MODE_OBJECT)) {
+			ED_object_toggle_modes(C, workspace->object_mode_restore);
 		}
 	}
 
@@ -1670,17 +1672,7 @@ void ED_object_toggle_modes(bContext *C, eObjectMode mode)
 		const char *opstring = object_mode_op_string(mode);
 
 		if (opstring) {
-#ifdef USE_WORKSPACE_MODE
-			WorkSpace *workspace = CTX_wm_workspace(C);
-#endif
 			WM_operator_name_call(C, opstring, WM_OP_EXEC_REGION_WIN, NULL);
-
-#ifdef USE_WORKSPACE_MODE
-			Object *ob = CTX_data_active_object(C);
-			if (ob) {
-				BKE_workspace_object_mode_set(workspace, CTX_data_scene(C), ob->mode);
-			}
-#endif
 		}
 	}
 }

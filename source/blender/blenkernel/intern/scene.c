@@ -983,8 +983,7 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
 	BKE_scene_validate_setscene(bmain, scene);
 	
 	/* can happen when switching modes in other scenes */
-	if (scene->obedit && !(scene->obedit->mode & OB_MODE_EDIT))
-		scene->obedit = NULL;
+	scene->obedit = NULL;
 
 	/* deselect objects (for dataselect) */
 	for (ob = bmain->object.first; ob; ob = ob->id.next)

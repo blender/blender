@@ -56,6 +56,7 @@ struct PointerRNA;
 struct PropertyRNA;
 struct EnumPropertyItem;
 struct EvaluationContext;
+struct WorkSpace;
 
 #include "DNA_object_enums.h"
 
@@ -116,7 +117,7 @@ struct Base *ED_object_add_duplicate(struct Main *bmain, struct Scene *scene, st
 
 void ED_object_parent(struct Object *ob, struct Object *parent, const int type, const char *substr);
 
-bool ED_object_mode_compat_set(struct bContext *C, struct Object *ob, eObjectMode mode, struct ReportList *reports);
+bool ED_object_mode_compat_set(struct bContext *C, struct WorkSpace *workspace, eObjectMode mode, struct ReportList *reports);
 void ED_object_toggle_modes(struct bContext *C, eObjectMode mode);
 
 /* bitflags for enter/exit editmode */
@@ -190,15 +191,17 @@ enum {
 	MODIFIER_APPLY_SHAPE
 };
 
-struct ModifierData *ED_object_modifier_add(struct ReportList *reports, struct Main *bmain, struct Scene *scene,
-                                            struct Object *ob, const char *name, int type);
+struct ModifierData *ED_object_modifier_add(
+        struct ReportList *reports, struct Main *bmain, struct Scene *scene,
+        struct Object *ob, eObjectMode object_mode, const char *name, int type);
 bool ED_object_modifier_remove(struct ReportList *reports, struct Main *bmain,
                                struct Object *ob, struct ModifierData *md);
 void ED_object_modifier_clear(struct Main *bmain, struct Object *ob);
 int ED_object_modifier_move_down(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_move_up(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
-int ED_object_modifier_convert(struct ReportList *reports, struct Main *bmain, struct Scene *scene,
-                               struct ViewLayer *view_layer, struct Object *ob, struct ModifierData *md);
+int ED_object_modifier_convert(
+        struct ReportList *reports, struct Main *bmain, struct Scene *scene,
+        struct ViewLayer *view_layer, struct Object *ob, eObjectMode object_mode, struct ModifierData *md);
 int ED_object_modifier_apply(struct ReportList *reports, const struct bContext *C, struct Scene *scene,
                              struct Object *ob, struct ModifierData *md, int mode);
 int ED_object_modifier_copy(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
@@ -223,7 +226,9 @@ const struct EnumPropertyItem *ED_object_vgroup_selection_itemf_helper(
         bool *r_free,
         const unsigned int selection_mask);
 
-void ED_object_check_force_modifiers(struct Main *bmain, struct Scene *scene, struct Object *object);
+void ED_object_check_force_modifiers(
+        struct Main *bmain, struct Scene *scene,
+        struct Object *object, eObjectMode object_mode);
 
 /* object_facemap_ops.c */
 void ED_object_facemap_face_add(struct Object *ob, struct bFaceMap *fmap, int facenum);

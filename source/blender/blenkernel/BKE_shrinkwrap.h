@@ -54,6 +54,7 @@ struct ShrinkwrapModifierData;
 struct MDeformVert;
 struct BVHTree;
 struct SpaceTransform;
+struct EvaluationContext;
 
 
 typedef struct ShrinkwrapCalcData {
@@ -76,8 +77,10 @@ typedef struct ShrinkwrapCalcData {
 
 } ShrinkwrapCalcData;
 
-void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd, struct Object *ob, struct DerivedMesh *dm,
-                               float (*vertexCos)[3], int numVerts, bool for_render);
+void shrinkwrapModifier_deform(
+        const struct EvaluationContext *eval_ctx,
+        struct ShrinkwrapModifierData *smd, struct Object *ob, struct DerivedMesh *dm,
+        float (*vertexCos)[3], int numVerts, bool for_render);
 
 /*
  * This function casts a ray in the given BVHTree.. but it takes into consideration the space_transform, that is:

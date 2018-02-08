@@ -119,6 +119,7 @@ def object_data_add(context, obdata, operator=None, name=None):
     :return: the newly created object in the scene.
     :rtype: :class:`bpy.types.Object`
     """
+    workspace = context.workspace
     scene = context.scene
     layer = context.view_layer
     layer_collection = context.layer_collection
@@ -146,9 +147,9 @@ def object_data_add(context, obdata, operator=None, name=None):
     # caused because entering edit-mode does not add a empty undo slot!
     if context.user_preferences.edit.use_enter_edit_mode:
         if not (obj_act and
-                obj_act.mode == 'EDIT' and
-                obj_act.type == obj_new.type):
-
+                obj_act.type == obj_new.type and
+                workspace.object_mode == 'EDIT'
+        ):
             _obdata = bpy.data.meshes.new(name)
             obj_act = bpy.data.objects.new(_obdata.name, _obdata)
             obj_act.matrix_world = obj_new.matrix_world
@@ -159,7 +160,10 @@ def object_data_add(context, obdata, operator=None, name=None):
             bpy.ops.ed.undo_push(message="Enter Editmode")
     # XXX
 
-    if obj_act and obj_act.mode == 'EDIT' and obj_act.type == obj_new.type:
+    if (obj_act and
+        obj_act.type == obj_new.type and
+        workspace.object_mode == 'EDIT'
+    ):
         bpy.ops.mesh.select_all(action='DESELECT')
         obj_act.select_set(action='SELECT')
         bpy.ops.object.mode_set(mode='OBJECT')
@@ -249,9 +253,10 @@ def object_image_guess(obj, bm=None):
     first checking the texture-faces, then the material.
     """
     # TODO, cycles/nodes materials
+    workspace = context.workspace
     me = obj.data
     if bm is None:
-        if obj.mode == 'EDIT':
+        if workspace.object_mode == 'EDIT':
             import bmesh
             bm = bmesh.from_edit_mesh(me)
 

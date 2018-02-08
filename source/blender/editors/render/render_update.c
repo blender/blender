@@ -401,10 +401,12 @@ static void texture_changed(Main *bmain, Tex *tex)
 	/* icons */
 	BKE_icon_changed(BKE_icon_id_ensure(&tex->id));
 
+	const eObjectMode object_mode = WM_windows_object_mode_get(bmain->wm.first);
+
 	/* paint overlays */
 	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
 		for (view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
-			BKE_paint_invalidate_overlay_tex(scene, view_layer, tex);
+			BKE_paint_invalidate_overlay_tex(scene, view_layer, tex, object_mode);
 		}
 	}
 
@@ -524,8 +526,18 @@ static void scene_changed(Main *bmain, Scene *scene)
 	Object *ob;
 
 	/* glsl */
-	for (ob = bmain->object.first; ob; ob = ob->id.next) {
-		if (ob->mode & OB_MODE_TEXTURE_PAINT) {
+	bool has_texture_mode = false;
+	wmWindowManager *wm = bmain->wm.first;
+	for (wmWindow *win = wm->windows.first; win; win = win->next) {
+		WorkSpace *workspace = WM_window_get_active_workspace(win);
+		if (workspace->object_mode & OB_MODE_TEXTURE_PAINT) {
+			has_texture_mode = true;
+			break;
+		}
+	}
+
+	if (has_texture_mode) {
+		for (ob = bmain->object.first; ob; ob = ob->id.next) {
 			BKE_texpaint_slots_refresh_object(scene, ob);
 			BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
 			GPU_drawobject_free(ob->derivedFinal);
@@ -558,8 +570,10 @@ void ED_render_id_flush_update(const DEGEditorUpdateContext *update_ctx, ID *id)
 			lamp_changed(bmain, (Lamp *)id);
 			break;
 		case ID_IM:
+		{
 			image_changed(bmain, (Image *)id);
 			break;
+		}
 		case ID_SCE:
 			scene_changed(bmain, (Scene *)id);
 			render_engine_flag_changed(bmain, RE_ENGINE_UPDATE_OTHER);

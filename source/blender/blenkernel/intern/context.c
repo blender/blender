@@ -1035,9 +1035,11 @@ int CTX_data_mode_enum_ex(const Object *obedit, const Object *ob, const eObjectM
 
 int CTX_data_mode_enum(const bContext *C)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *obedit = CTX_data_edit_object(C);
 	Object *obact = obedit ? NULL : CTX_data_active_object(C);
-	return CTX_data_mode_enum_ex(obedit, obact, obact ? obact->mode : OB_MODE_OBJECT);
+	return CTX_data_mode_enum_ex(obedit, obact, eval_ctx.object_mode);
 }
 
 /* would prefer if we can use the enum version below over this one - Campbell */
@@ -1273,10 +1275,10 @@ void CTX_data_eval_ctx(const bContext *C, EvaluationContext *eval_ctx)
 
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
-	Object *obact = OBACT(view_layer);
 	RenderEngineType *engine_type = CTX_data_engine_type(C);
+	WorkSpace *workspace = CTX_wm_workspace(C);
 	DEG_evaluation_context_init_from_scene(
 	        eval_ctx,
 	        scene, view_layer, engine_type,
-	        obact ? obact->mode : OB_MODE_OBJECT, DAG_EVAL_VIEWPORT);
+	        workspace->object_mode, DAG_EVAL_VIEWPORT);
 }

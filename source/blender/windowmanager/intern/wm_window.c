@@ -1948,6 +1948,18 @@ WorkSpace *WM_windows_workspace_get_from_screen(const wmWindowManager *wm, const
 	return NULL;
 }
 
+eObjectMode WM_windows_object_mode_get(const struct wmWindowManager *wm)
+{
+	eObjectMode object_mode = 0;
+	for (wmWindow *win = wm->windows.first; win; win = win->next) {
+		const WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);
+		if (workspace != NULL) {
+			object_mode |= workspace->object_mode;
+		}
+	}
+	return object_mode;
+}
+
 Scene *WM_window_get_active_scene(const wmWindow *win)
 {
 	return win->scene;

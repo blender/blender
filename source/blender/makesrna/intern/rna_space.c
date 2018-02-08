@@ -866,10 +866,11 @@ static int rna_SpaceImageEditor_show_maskedit_get(PointerRNA *ptr)
 {
 	SpaceImage *sima = (SpaceImage *)(ptr->data);
 	bScreen *sc = (bScreen *)ptr->id.data;
-	Scene *scene = ED_screen_scene_find(sc, G.main->wm.first);
+	wmWindow *window = NULL;
+	Scene *scene = ED_screen_scene_find_with_window(sc, G.main->wm.first, &window);
 	ViewLayer *view_layer = BKE_view_layer_context_active_PLACEHOLDER(scene);
-
-	return ED_space_image_check_show_maskedit(sima, view_layer);
+	const WorkSpace *workspace = WM_window_get_active_workspace(window);
+	return ED_space_image_check_show_maskedit(sima, workspace, view_layer);
 }
 
 static void rna_SpaceImageEditor_image_set(PointerRNA *ptr, PointerRNA value)

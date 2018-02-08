@@ -41,6 +41,7 @@
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_packedFile_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
@@ -70,6 +71,8 @@
 #include "ED_space_api.h"
 #include "ED_util.h"
 
+#include "DEG_depsgraph.h"
+
 #include "GPU_immediate.h"
 
 #include "UI_interface.h"
@@ -86,35 +89,13 @@
 void ED_editors_init(bContext *C)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
-	Main *bmain = CTX_data_main(C);
 	Scene *sce = CTX_data_scene(C);
-	ViewLayer *view_layer = CTX_data_view_layer(C);
-	Object *ob, *obact = (view_layer && view_layer->basact) ? view_layer->basact->object : NULL;
-	ID *data;
 
 	/* This is called during initialization, so we don't want to store any reports */
 	ReportList *reports = CTX_wm_reports(C);
 	int reports_flag_prev = reports->flag & ~RPT_STORE;
 
 	SWAP(int, reports->flag, reports_flag_prev);
-
-	/* toggle on modes for objects that were saved with these enabled. for
-	 * e.g. linked objects we have to ensure that they are actually the
-	 * active object in this scene. */
-	for (ob = bmain->object.first; ob; ob = ob->id.next) {
-		int mode = ob->mode;
-
-		if (mode == OB_MODE_OBJECT) {
-			/* pass */
-		}
-		else {
-			data = ob->data;
-			ob->mode = OB_MODE_OBJECT;
-			if ((ob == obact) && !ID_IS_LINKED(ob) && !(data && ID_IS_LINKED(data))) {
-				ED_object_toggle_modes(C, mode);
-			}
-		}
-	}
 
 	/* image editor paint mode */
 	if (sce) {
@@ -170,11 +151,16 @@ bool ED_editors_flush_edits(const bContext *C, bool for_render)
 	Object *ob;
 	Main *bmain = CTX_data_main(C);
 
+	eObjectMode object_mode = WM_windows_object_mode_get(bmain->wm.first);
+	if ((object_mode & (OB_MODE_SCULPT | OB_MODE_EDIT)) == 0) {
+		return has_edited;
+	}
+
 	/* loop through all data to find edit mode or object mode, because during
 	 * exiting we might not have a context for edit object and multiple sculpt
 	 * objects can exist at the same time */
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
-		if (ob->mode & OB_MODE_SCULPT) {
+		if (object_mode & OB_MODE_SCULPT) {
 			/* Don't allow flushing while in the middle of a stroke (frees data in use).
 			 * Auto-save prevents this from happening but scripts may cause a flush on saving: T53986. */
 			if ((ob->sculpt && ob->sculpt->cache) == 0) {
@@ -193,7 +179,7 @@ bool ED_editors_flush_edits(const bContext *C, bool for_render)
 				}
 			}
 		}
-		else if (ob->mode & OB_MODE_EDIT) {
+		else if (object_mode & OB_MODE_EDIT) {
 			/* get editmode results */
 			has_edited = true;
 			ED_object_editmode_load(ob);

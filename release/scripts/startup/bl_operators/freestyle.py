@@ -53,6 +53,7 @@ class SCENE_OT_freestyle_fill_range_by_selection(bpy.types.Operator):
     def execute(self, context):
         import sys
 
+        workspace = context.workspace
         scene = context.scene
         view_layer = scene.view_layers.active
         lineset = view_layer.freestyle_settings.linesets.active
@@ -79,7 +80,7 @@ class SCENE_OT_freestyle_fill_range_by_selection(bpy.types.Operator):
             return {'CANCELLED'}
         # Find selected vertices in editmesh
         ob = context.active_object
-        if ob.type == 'MESH' and ob.mode == 'EDIT' and ob.name != ref.name:
+        if ob.type == 'MESH' and workspace.object_mode == 'EDIT' and ob.name != ref.name:
             bpy.ops.object.mode_set(mode='OBJECT')
             selected_verts = [v for v in ob.data.vertices if v.select]
             bpy.ops.object.mode_set(mode='EDIT')
@@ -143,6 +144,7 @@ class SCENE_OT_freestyle_add_edge_marks_to_keying_set(bpy.types.Operator):
 
     def execute(self, context):
         # active keying set
+        workspace = context.workspace
         scene = context.scene
         ks = scene.keying_sets.active
         if ks is None:
@@ -150,7 +152,7 @@ class SCENE_OT_freestyle_add_edge_marks_to_keying_set(bpy.types.Operator):
             ks.bl_description = ""
         # add data paths to the keying set
         ob = context.active_object
-        ob_mode = ob.mode
+        ob_mode = workspace.object_mode
         mesh = ob.data
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
         for i, edge in enumerate(mesh.edges):
@@ -174,6 +176,7 @@ class SCENE_OT_freestyle_add_face_marks_to_keying_set(bpy.types.Operator):
 
     def execute(self, context):
         # active keying set
+        workspace = context.workspace
         scene = context.scene
         ks = scene.keying_sets.active
         if ks is None:
@@ -181,7 +184,7 @@ class SCENE_OT_freestyle_add_face_marks_to_keying_set(bpy.types.Operator):
             ks.bl_description = ""
         # add data paths to the keying set
         ob = context.active_object
-        ob_mode = ob.mode
+        ob_mode = workspace.object_mode
         mesh = ob.data
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
         for i, polygon in enumerate(mesh.polygons):

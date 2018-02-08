@@ -1376,19 +1376,20 @@ static int texture_paint_toggle_poll(bContext *C)
 
 static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 {
+	WorkSpace *workspace = CTX_wm_workspace(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 	const int mode_flag = OB_MODE_TEXTURE_PAINT;
-	const bool is_mode_set = (ob->mode & mode_flag) != 0;
+	const bool is_mode_set = (workspace->object_mode & mode_flag) != 0;
 
 	if (!is_mode_set) {
-		if (!ED_object_mode_compat_set(C, ob, mode_flag, op->reports)) {
+		if (!ED_object_mode_compat_set(C, workspace, mode_flag, op->reports)) {
 			return OPERATOR_CANCELLED;
 		}
 	}
 
-	if (ob->mode & mode_flag) {
-		ob->mode &= ~mode_flag;
+	if (workspace->object_mode & mode_flag) {
+		workspace->object_mode &= ~mode_flag;
 
 		if (U.glreslimit != 0)
 			GPU_free_images();
@@ -1436,7 +1437,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 			}
 		}
 		
-		ob->mode |= mode_flag;
+		workspace->object_mode |= mode_flag;
 
 		BKE_paint_init(scene, ePaintTextureProjective, PAINT_CURSOR_TEXTURE_PAINT);
 

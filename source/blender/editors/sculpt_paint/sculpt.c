@@ -5221,7 +5221,7 @@ void sculpt_pbvh_clear(Object *ob)
 		BKE_pbvh_free(ss->pbvh);
 	ss->pbvh = NULL;
 	if (dm)
-		dm->getPBVH(NULL, dm);
+		dm->getPBVH(NULL, dm, OB_MODE_OBJECT);
 	BKE_object_free_derived_caches(ob);
 }
 
@@ -5616,16 +5616,17 @@ static void sculpt_init_session(const bContext *C, Scene *scene, Object *ob)
 
 static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 {
+	WorkSpace *workspace = CTX_wm_workspace(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 	const int mode_flag = OB_MODE_SCULPT;
-	const bool is_mode_set = (ob->mode & mode_flag) != 0;
+	const bool is_mode_set = (workspace->object_mode & mode_flag) != 0;
 	Mesh *me;
 	MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
 	int flush_recalc = 0;
 
 	if (!is_mode_set) {
-		if (!ED_object_mode_compat_set(C, ob, mode_flag, op->reports)) {
+		if (!ED_object_mode_compat_set(C, workspace, mode_flag, op->reports)) {
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -5659,7 +5660,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 		}
 
 		/* Leave sculptmode */
-		ob->mode &= ~mode_flag;
+		workspace->object_mode &= ~mode_flag;
 
 		BKE_sculptsession_free(ob);
 
@@ -5667,14 +5668,15 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		/* Enter sculptmode */
-		ob->mode |= mode_flag;
+		workspace->object_mode |= mode_flag;
 
 		if (flush_recalc)
 			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 		/* Create sculpt mode session data */
-		if (ob->sculpt)
+		if (ob->sculpt) {
 			BKE_sculptsession_free(ob);
+		}
 
 		sculpt_init_session(C, scene, ob);
 

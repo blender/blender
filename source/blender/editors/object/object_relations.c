@@ -717,7 +717,8 @@ bool ED_object_parent_set(ReportList *reports, const bContext *C, Scene *scene, 
 					switch (partype) {
 						case PAR_CURVE: /* curve deform */
 							if (modifiers_isDeformedByCurve(ob) != par) {
-								md = ED_object_modifier_add(reports, bmain, scene, ob, NULL, eModifierType_Curve);
+								md = ED_object_modifier_add(
+								        reports, bmain, scene, ob, eval_ctx.object_mode, NULL, eModifierType_Curve);
 								if (md) {
 									((CurveModifierData *)md)->object = par;
 								}
@@ -728,7 +729,8 @@ bool ED_object_parent_set(ReportList *reports, const bContext *C, Scene *scene, 
 							break;
 						case PAR_LATTICE: /* lattice deform */
 							if (modifiers_isDeformedByLattice(ob) != par) {
-								md = ED_object_modifier_add(reports, bmain, scene, ob, NULL, eModifierType_Lattice);
+								md = ED_object_modifier_add(
+								        reports, bmain, scene, ob, eval_ctx.object_mode, NULL, eModifierType_Lattice);
 								if (md) {
 									((LatticeModifierData *)md)->object = par;
 								}
@@ -736,7 +738,8 @@ bool ED_object_parent_set(ReportList *reports, const bContext *C, Scene *scene, 
 							break;
 						default: /* armature deform */
 							if (modifiers_isDeformedByArmature(ob) != par) {
-								md = ED_object_modifier_add(reports, bmain, scene, ob, NULL, eModifierType_Armature);
+								md = ED_object_modifier_add(
+								        reports, bmain, scene, ob, eval_ctx.object_mode, NULL, eModifierType_Armature);
 								if (md) {
 									((ArmatureModifierData *)md)->object = par;
 								}
@@ -1425,6 +1428,9 @@ static bool allow_make_links_data(const int type, Object *ob_src, Object *ob_dst
 
 static int make_links_data_exec(bContext *C, wmOperator *op)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+
 	Main *bmain = CTX_data_main(C);
 	const int type = RNA_enum_get(op->ptr, "type");
 	Object *ob_src;
@@ -1509,7 +1515,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 						}
 						break;
 					case MAKE_LINKS_MODIFIERS:
-						BKE_object_link_modifiers(ob_dst, ob_src);
+						BKE_object_link_modifiers(ob_dst, ob_src, eval_ctx.object_mode);
 						DEG_id_tag_update(&ob_dst->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 						break;
 					case MAKE_LINKS_FONTS:

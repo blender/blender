@@ -1019,7 +1019,8 @@ void BM_loops_calc_normal_vcos(
 	}
 }
 
-static void UNUSED_FUNCTION(bm_mdisps_space_set)(Object *ob, BMesh *bm, int from, int to)
+static void UNUSED_FUNCTION(bm_mdisps_space_set)(
+        Object *ob, BMesh *bm, int from, int to, eObjectMode object_mode)
 {
 	/* switch multires data out of tangent space */
 	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
@@ -1030,7 +1031,7 @@ static void UNUSED_FUNCTION(bm_mdisps_space_set)(Object *ob, BMesh *bm, int from
 		BMIter iter;
 		// int i = 0; // UNUSED
 		
-		multires_set_space(dm, ob, from, to);
+		multires_set_space(dm, ob, from, to, object_mode);
 		
 		mdisps = CustomData_get_layer(&dm->loopData, CD_MDISPS);
 		

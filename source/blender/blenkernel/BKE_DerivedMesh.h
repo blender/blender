@@ -100,6 +100,8 @@ struct GPUDrawObject;
 struct PBVH;
 struct EvaluationContext;
 
+#include "DNA_object_enums.h"
+
 /* number of sub-elements each mesh element has (for interpolation) */
 #define SUB_ELEMS_VERT 0
 #define SUB_ELEMS_EDGE 2
@@ -381,7 +383,7 @@ struct DerivedMesh {
 
 	/** Get the BVH used for paint modes
 	 */
-	struct PBVH *(*getPBVH)(struct Object *ob, DerivedMesh *dm);
+	struct PBVH *(*getPBVH)(struct Object *ob, DerivedMesh *dm, eObjectMode object_mode);
 
 	/* Drawing Operations */
 

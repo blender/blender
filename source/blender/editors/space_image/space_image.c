@@ -551,7 +551,7 @@ static void image_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, Sc
 				{
 					ViewLayer *view_layer = BKE_view_layer_from_workspace_get(scene, workspace);
 					Object *ob = OBACT(view_layer);
-					if (ob && (ob == wmn->reference) && (ob->mode & OB_MODE_EDIT)) {
+					if (ob && (ob == wmn->reference) && (workspace->object_mode & OB_MODE_EDIT)) {
 						if (sima->lock && (sima->flag & SI_DRAWSHADOW)) {
 							ED_area_tag_refresh(sa);
 							ED_area_tag_redraw(sa);

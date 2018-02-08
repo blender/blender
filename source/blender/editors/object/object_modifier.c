@@ -95,7 +95,10 @@ static void modifier_skin_customdata_delete(struct Object *ob);
 
 /******************************** API ****************************/
 
-ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *scene, Object *ob, const char *name, int type)
+ModifierData *ED_object_modifier_add(
+        ReportList *reports,
+        Main *bmain, Scene *scene,
+        Object *ob, eObjectMode object_mode, const char *name, int type)
 {
 	ModifierData *md = NULL, *new_md = NULL;
 	const ModifierTypeInfo *mti = modifierType_getInfo(type);
@@ -162,7 +165,7 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 			/* set totlvl from existing MDISPS layer if object already had it */
 			multiresModifier_set_levels_from_disps((MultiresModifierData *)new_md, ob);
 
-			if (ob->mode & OB_MODE_SCULPT) {
+			if (object_mode & OB_MODE_SCULPT) {
 				/* ensure that grid paint mask layer is created */
 				BKE_sculpt_mask_layers_ensure(ob, (MultiresModifierData *)new_md);
 			}
@@ -252,7 +255,7 @@ static bool object_has_modifier_cb(
  * for any multires modifiers on the object to the int pointed to by
  * callback_data. */
 bool ED_object_multires_update_totlevels_cb(
-        const struct EvaluationContext *UNUSED(eval_ctx),
+        const struct EvaluationContext *eval_ctx,
         Object *ob, void *totlevel_v)
 {
 	ModifierData *md;
@@ -260,7 +263,7 @@ bool ED_object_multires_update_totlevels_cb(
 
 	for (md = ob->modifiers.first; md; md = md->next) {
 		if (md->type == eModifierType_Multires) {
-			multires_set_tot_level(ob, (MultiresModifierData *)md, totlevel);
+			multires_set_tot_level((MultiresModifierData *)md, totlevel, eval_ctx->object_mode);
 			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 	}
@@ -322,11 +325,13 @@ static bool object_modifier_remove(Main *bmain, Object *ob, ModifierData *md,
 			modifier_skin_customdata_delete(ob);
 	}
 
+#if 0 /* not needed now modes are in workspace */
 	if (ELEM(md->type, eModifierType_Softbody, eModifierType_Cloth) &&
 	    BLI_listbase_is_empty(&ob->particlesystem))
 	{
 		ob->mode &= ~OB_MODE_PARTICLE_EDIT;
 	}
+#endif
 
 	DEG_relations_tag_update(bmain);
 
@@ -419,7 +424,9 @@ int ED_object_modifier_move_down(ReportList *reports, Object *ob, ModifierData *
 	return 1;
 }
 
-int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *scene, ViewLayer *view_layer, Object *ob, ModifierData *md)
+int ED_object_modifier_convert(
+        ReportList *UNUSED(reports), Main *bmain, Scene *scene,
+        ViewLayer *view_layer, Object *UNUSED(ob), eObjectMode object_mode, ModifierData *md)
 {
 	Object *obn;
 	ParticleSystem *psys;
@@ -433,7 +440,7 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 	int totpart = 0, totchild = 0;
 
 	if (md->type != eModifierType_ParticleSystem) return 0;
-	if (ob && ob->mode & OB_MODE_PARTICLE_EDIT) return 0;
+	if (object_mode & OB_MODE_PARTICLE_EDIT) return 0;
 
 	psys = ((ParticleSystemModifierData *)md)->psys;
 	part = psys->part;
@@ -747,12 +754,14 @@ int ED_object_modifier_copy(ReportList *UNUSED(reports), Object *ob, ModifierDat
 
 static int modifier_add_exec(bContext *C, wmOperator *op)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
 	int type = RNA_enum_get(op->ptr, "type");
 
-	if (!ED_object_modifier_add(op->reports, bmain, scene, ob, NULL, type))
+	if (!ED_object_modifier_add(op->reports, bmain, scene, ob, eval_ctx.object_mode, NULL, type))
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
@@ -1068,14 +1077,17 @@ void OBJECT_OT_modifier_apply(wmOperatorType *ot)
 
 static int modifier_convert_exec(bContext *C, wmOperator *op)
 {
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = ED_object_active_context(C);
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
-	
-	if (!md || !ED_object_modifier_convert(op->reports, bmain, scene, view_layer, ob, md))
+
+	if (!md || !ED_object_modifier_convert(op->reports, bmain, scene, view_layer, ob, eval_ctx.object_mode, md)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
@@ -1163,7 +1175,7 @@ static int multires_higher_levels_delete_exec(bContext *C, wmOperator *op)
 	EvaluationContext eval_ctx;
 	CTX_data_eval_ctx(C, &eval_ctx);
 
-	multiresModifier_del_levels(mmd, ob, 1);
+	multiresModifier_del_levels(mmd, ob, 1, eval_ctx.object_mode);
 
 	ED_object_iter_other(&eval_ctx, CTX_data_main(C), ob, true,
 	                     ED_object_multires_update_totlevels_cb,
@@ -1209,7 +1221,7 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
 
 	EvaluationContext eval_ctx;
 	CTX_data_eval_ctx(C, &eval_ctx);
-	multiresModifier_subdivide(mmd, ob, 0, mmd->simple);
+	multiresModifier_subdivide(mmd, ob, 0, mmd->simple, eval_ctx.object_mode);
 
 	ED_object_iter_other(
 	        &eval_ctx, CTX_data_main(C), ob, true,
@@ -1433,8 +1445,11 @@ static int multires_base_apply_exec(bContext *C, wmOperator *op)
 	
 	if (!mmd)
 		return OPERATOR_CANCELLED;
-	
-	multiresModifier_base_apply(mmd, ob);
+
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+
+	multiresModifier_base_apply(mmd, ob, eval_ctx.object_mode);
 
 	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);

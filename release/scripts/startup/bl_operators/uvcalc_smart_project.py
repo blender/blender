@@ -748,7 +748,8 @@ def main(context,
     USER_FILL_HOLES_QUALITY = 50 # Only for hole filling.
     USER_VIEW_INIT = 0 # Only for hole filling.
 
-    is_editmode = (context.active_object.mode == 'EDIT')
+    workspace = context.workspace
+    is_editmode = (workspace.object_mode == 'EDIT')
     if is_editmode:
         obList =  [ob for ob in [context.active_object] if ob and ob.type == 'MESH']
     else:
@@ -781,7 +782,7 @@ def main(context,
 
 
     # Toggle Edit mode
-    is_editmode = (context.active_object.mode == 'EDIT')
+    is_editmode = (workspace.object_mode == 'EDIT')
     if is_editmode:
         bpy.ops.object.mode_set(mode='OBJECT')
     # Assume face select mode! an annoying hack to toggle face select mode because Mesh doesn't like faceSelectMode.

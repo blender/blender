@@ -1045,23 +1045,24 @@ static void vertex_paint_init_session_data(
  */
 static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 {
+	WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = CTX_data_active_object(C);
 	const int mode_flag = OB_MODE_WEIGHT_PAINT;
-	const bool is_mode_set = (ob->mode & mode_flag) != 0;
+	const bool is_mode_set = (workspace->object_mode & mode_flag) != 0;
 	Scene *scene = CTX_data_scene(C);
 	VPaint *wp = scene->toolsettings->wpaint;
 	Mesh *me;
 
 	if (!is_mode_set) {
-		if (!ED_object_mode_compat_set(C, ob, mode_flag, op->reports)) {
+		if (!ED_object_mode_compat_set(C, workspace, mode_flag, op->reports)) {
 			return OPERATOR_CANCELLED;
 		}
 	}
 
 	me = BKE_mesh_from_object(ob);
 
-	if (ob->mode & mode_flag) {
-		ob->mode &= ~mode_flag;
+	if (workspace->object_mode & mode_flag) {
+		workspace->object_mode &= ~mode_flag;
 
 		if (me->editflag & ME_EDIT_PAINT_VERT_SEL) {
 			BKE_mesh_flush_select_from_verts(me);
@@ -1085,7 +1086,7 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		paint_cursor_delete_textures();
 	}
 	else {
-		ob->mode |= mode_flag;
+		workspace->object_mode |= mode_flag;
 
 		if (wp == NULL)
 			wp = scene->toolsettings->wpaint = new_vpaint();
@@ -2222,15 +2223,16 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
  */
 static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 {
+	WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = CTX_data_active_object(C);
 	const int mode_flag = OB_MODE_VERTEX_PAINT;
-	const bool is_mode_set = (ob->mode & mode_flag) != 0;
+	const bool is_mode_set = (workspace->object_mode & mode_flag) != 0;
 	Scene *scene = CTX_data_scene(C);
 	VPaint *vp = scene->toolsettings->vpaint;
 	Mesh *me;
 
 	if (!is_mode_set) {
-		if (!ED_object_mode_compat_set(C, ob, mode_flag, op->reports)) {
+		if (!ED_object_mode_compat_set(C, workspace, mode_flag, op->reports)) {
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -2239,7 +2241,7 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 
 	/* toggle: end vpaint */
 	if (is_mode_set) {
-		ob->mode &= ~mode_flag;
+		workspace->object_mode &= ~mode_flag;
 
 		if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
 			BKE_mesh_flush_select_from_polys(me);
@@ -2259,7 +2261,7 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		paint_cursor_delete_textures();
 	}
 	else {
-		ob->mode |= mode_flag;
+		workspace->object_mode |= mode_flag;
 
 		ED_mesh_color_ensure(me, NULL);
 

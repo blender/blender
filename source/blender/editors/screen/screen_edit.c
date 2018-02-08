@@ -1850,14 +1850,24 @@ bool ED_screen_stereo3d_required(const bScreen *screen, const Scene *scene)
  * Find the scene displayed in \a screen.
  * \note Assumes \a screen to be visible/active!
  */
-Scene *ED_screen_scene_find(const bScreen *screen, const wmWindowManager *wm)
+
+Scene *ED_screen_scene_find_with_window(const bScreen *screen, const wmWindowManager *wm, struct wmWindow **r_window)
 {
 	for (wmWindow *win = wm->windows.first; win; win = win->next) {
 		if (WM_window_get_active_screen(win) == screen) {
+			if (r_window) {
+				*r_window = win;
+			}
 			return WM_window_get_active_scene(win);
 		}
 	}
 
 	BLI_assert(0);
 	return NULL;
+}
+
+
+Scene *ED_screen_scene_find(const bScreen *screen, const wmWindowManager *wm)
+{
+	return ED_screen_scene_find_with_window(screen, wm, NULL);
 }

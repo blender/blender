@@ -75,29 +75,67 @@ const char PAINT_CURSOR_TEXTURE_PAINT[3] = {255, 255, 255};
 
 static eOverlayControlFlags overlay_flags = 0;
 
-void BKE_paint_invalidate_overlay_tex(Scene *scene, ViewLayer *view_layer, const Tex *tex)
+/* Keep in sync with 'BKE_paint_get_active' */
+#define OB_MODE_HAS_PAINT_STRUCT(SEP) \
+	OB_MODE_SCULPT SEP \
+	OB_MODE_VERTEX_PAINT SEP \
+	OB_MODE_WEIGHT_PAINT SEP \
+	OB_MODE_TEXTURE_PAINT SEP \
+	OB_MODE_EDIT
+
+#define COMMA ,
+static const eObjectMode ob_mode_has_paint_struct = OB_MODE_HAS_PAINT_STRUCT(|);
+static const eObjectMode ob_mode_has_paint_struct_array[] = {OB_MODE_HAS_PAINT_STRUCT(COMMA)};
+#undef COMMA
+
+#define FOREACH_OB_MODE_PAINT_ITER_BEGIN(scene, view_layer, object_mode, p) \
+{ \
+	eObjectMode object_mode_test = object_mode & ob_mode_has_paint_struct; \
+	for (uint _i = 0; _i < ARRAY_SIZE(ob_mode_has_paint_struct_array) && object_mode_test; _i++) { \
+		eObjectMode object_mode_single = ob_mode_has_paint_struct_array[_i]; \
+		if (object_mode_test & object_mode_single) { \
+			object_mode_test &= ~object_mode_single; \
+			Paint *p = BKE_paint_get_active(scene, view_layer, object_mode_single); \
+			{
+
+#define FOREACH_OB_MODE_PAINT_ITER_END \
+			} \
+		} \
+	} \
+} ((void)0)
+
+void BKE_paint_invalidate_overlay_tex(
+        Scene *scene, ViewLayer *view_layer, const Tex *tex, eObjectMode object_mode)
 {
-	/* TODO/OBMODE (we should combine all) */
-	Paint *p = BKE_paint_get_active(scene, view_layer, G.main->eval_ctx->object_mode);
-	Brush *br = p->brush;
-
-	if (!br)
-		return;
-
-	if (br->mtex.tex == tex)
-		overlay_flags |= PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY;
-	if (br->mask_mtex.tex == tex)
-		overlay_flags |= PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY;
+	FOREACH_OB_MODE_PAINT_ITER_BEGIN(scene, view_layer, object_mode, p)
+	{
+		Brush *br = p->brush;
+		if (br) {
+			if (br->mtex.tex == tex) {
+				overlay_flags |= PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY;
+			}
+			if (br->mask_mtex.tex == tex) {
+				overlay_flags |= PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY;
+			}
+		}
+	}
+	FOREACH_OB_MODE_PAINT_ITER_END;
 }
 
-void BKE_paint_invalidate_cursor_overlay(Scene *scene, ViewLayer *view_layer, CurveMapping *curve)
+void BKE_paint_invalidate_cursor_overlay(
+        Scene *scene, ViewLayer *view_layer, CurveMapping *curve, eObjectMode object_mode)
 {
-	/* TODO/OBMODE (we should combine all) */
-	Paint *p = BKE_paint_get_active(scene, view_layer, G.main->eval_ctx->object_mode);
-	Brush *br = p->brush;
-
-	if (br && br->curve == curve)
-		overlay_flags |= PAINT_INVALID_OVERLAY_CURVE;
+	FOREACH_OB_MODE_PAINT_ITER_BEGIN(scene, view_layer, object_mode, p)
+	{
+		Brush *br = p->brush;
+		if (br) {
+			if (br->curve == curve) {
+				overlay_flags |= PAINT_INVALID_OVERLAY_CURVE;
+				break;
+			}
+		}
+	}
+	FOREACH_OB_MODE_PAINT_ITER_END;
 }
 
 void BKE_paint_invalidate_overlay_all(void)
@@ -794,7 +832,7 @@ void BKE_sculptsession_free(Object *ob)
 			BM_log_free(ss->bm_log);
 
 		if (dm && dm->getPBVH)
-			dm->getPBVH(NULL, dm);  /* signal to clear */
+			dm->getPBVH(NULL, dm, OB_MODE_OBJECT);  /* signal to clear */
 
 		if (ss->texcache)
 			MEM_freeN(ss->texcache);
@@ -949,7 +987,7 @@ void BKE_sculpt_update_mesh_elements(
 		ss->vmask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
 	}
 
-	ss->pbvh = dm->getPBVH(ob, dm);
+	ss->pbvh = dm->getPBVH(ob, dm, eval_ctx->object_mode);
 	ss->pmap = (need_pmap && dm->getPolyMap) ? dm->getPolyMap(ob, dm) : NULL;
 
 	pbvh_show_diffuse_color_set(ss->pbvh, ss->show_diffuse_color);
