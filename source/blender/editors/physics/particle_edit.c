@@ -315,7 +315,7 @@ PTCacheEdit *PE_get_current(Scene *scene, ViewLayer *view_layer, Object *ob)
 
 PTCacheEdit *PE_create_current(const EvaluationContext *eval_ctx, Scene *scene, Object *ob)
 {
-	return pe_get_current(eval_ctx, scene, NULL, ob, 1);
+	return pe_get_current(eval_ctx, scene, eval_ctx->view_layer, ob, 1);
 }
 
 void PE_current_changed(const EvaluationContext *eval_ctx, Scene *scene, Object *ob)
@@ -4790,9 +4790,6 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 	Object *ob = CTX_data_active_object(C);
 	const int mode_flag = OB_MODE_PARTICLE_EDIT;
 	const bool is_mode_set = (eval_ctx.object_mode & mode_flag) != 0;
-
-	BKE_report(op->reports, RPT_INFO, "Particles are changing, editing is not possible");
-	return OPERATOR_CANCELLED;
 
 	if (!is_mode_set) {
 		if (!ED_object_mode_compat_set(C, workspace, mode_flag, op->reports)) {
