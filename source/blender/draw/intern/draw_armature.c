@@ -1310,7 +1310,7 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 	{
 		const DRWContextState *draw_ctx = DRW_context_state_get();
 
-		if (draw_ctx->object_mode & OB_MODE_POSE) {
+		if ((draw_ctx->object_mode & OB_MODE_POSE) || (ob == draw_ctx->object_pose)) {
 			arm->flag |= ARM_POSEMODE;
 		}
 

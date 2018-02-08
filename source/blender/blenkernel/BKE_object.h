@@ -141,8 +141,10 @@ void BKE_object_to_mat4(struct Object *ob, float mat[4][4]);
 void BKE_object_apply_mat4(struct Object *ob, float mat[4][4], const bool use_compat, const bool use_parent);
 void BKE_object_matrix_local_get(struct Object *ob, float mat[4][4]);
 
+bool BKE_object_pose_context_check_ex(struct Object *ob, bool selected);
 bool BKE_object_pose_context_check(struct Object *ob);
 struct Object *BKE_object_pose_armature_get(struct Object *ob);
+struct Object *BKE_object_pose_armature_get_visible(struct Object *ob, struct ViewLayer *view_layer);
 
 void BKE_object_get_parent_matrix(struct Scene *scene, struct Object *ob,
                                   struct Object *par, float parentmat[4][4]);

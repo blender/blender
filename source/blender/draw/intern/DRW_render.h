@@ -476,6 +476,8 @@ typedef struct DRWContextState {
 	 * May be NULL when used for selection or depth buffer. */
 	const struct bContext *evil_C;
 
+	struct Object *object_pose;
+
 } DRWContextState;
 
 const DRWContextState *DRW_context_state_get(void);

@@ -408,14 +408,15 @@ int ED_operator_posemode_context(bContext *C)
 {
 	Object *obpose = ED_pose_object_from_context(C);
 
-
 	if (obpose) {
-		EvaluationContext eval_ctx;
-		CTX_data_eval_ctx(C, &eval_ctx);
-		if ((eval_ctx.object_mode & OB_MODE_EDIT) == 0) {
+		const WorkSpace *workspace = CTX_wm_workspace(C);
+		/* TODO, should we allow this out of pose mode? */
+		if (workspace->object_mode & OB_MODE_POSE) {
+			// if ((workspace->object_mode & OB_MODE_EDIT) == 0) {
 			if (BKE_object_pose_context_check(obpose)) {
 				return 1;
 			}
+			// }
 		}
 	}
 
@@ -428,12 +429,13 @@ int ED_operator_posemode(bContext *C)
 
 
 	if (obact) {
-		EvaluationContext eval_ctx;
-		CTX_data_eval_ctx(C, &eval_ctx);
-		if ((eval_ctx.object_mode & OB_MODE_EDIT) == 0) {
+		const WorkSpace *workspace = CTX_wm_workspace(C);
+		if ((workspace->object_mode & OB_MODE_EDIT) == 0) {
 			Object *obpose;
 			if ((obpose = BKE_object_pose_armature_get(obact))) {
-				if ((obact == obpose) || (eval_ctx.object_mode & OB_MODE_WEIGHT_PAINT)) {
+				if (((workspace->object_mode & OB_MODE_POSE) && (obact == obpose)) ||
+				    (workspace->object_mode & OB_MODE_WEIGHT_PAINT))
+				{
 					return 1;
 				}
 			}

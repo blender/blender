@@ -2678,6 +2678,19 @@ static void drw_viewport_var_init(void)
 
 	memset(viewport_matrix_override.override, 0x0, sizeof(viewport_matrix_override.override));
 	memset(DST.common_instance_data, 0x0, sizeof(DST.common_instance_data));
+
+	/* Not a viewport variable, we could split this out. */
+	{
+		if (DST.draw_ctx.object_mode & OB_MODE_POSE) {
+			DST.draw_ctx.object_pose = DST.draw_ctx.obact;
+		}
+		else if (DST.draw_ctx.object_mode & OB_MODE_WEIGHT_PAINT) {
+			DST.draw_ctx.object_pose = BKE_object_pose_armature_get(DST.draw_ctx.obact);
+		}
+		else {
+			DST.draw_ctx.object_pose = NULL;
+		}
+	}
 }
 
 void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type)

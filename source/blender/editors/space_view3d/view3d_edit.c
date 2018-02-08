@@ -2821,23 +2821,11 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 	}
 
 	if (ob && (eval_ctx.object_mode & OB_MODE_WEIGHT_PAINT)) {
-		/* hard-coded exception, we look for the one selected armature */
-		/* this is weak code this way, we should make a generic active/selection callback interface once... */
-		Base *base;
-		for (base = view_layer->object_bases.first; base; base = base->next) {
-			if (TESTBASELIB(base)) {
-				if (base->object->type == OB_ARMATURE) {
-					const bArmature *arm = base->object->data;
-					if (arm->flag & ARM_POSEMODE) {
-						break;
-					}
-				}
-			}
+		Object *ob_armature = BKE_object_pose_armature_get_visible(ob, view_layer);
+		if (ob_armature) {
+			ob = ob_armature;
 		}
-		if (base)
-			ob = base->object;
 	}
-
 
 	if (is_gp_edit) {
 		CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)

@@ -1778,12 +1778,10 @@ static void draw_selected_name(
 				Object *armobj = BKE_object_pose_armature_get(ob);
 				if (armobj) {
 					bArmature *arm = armobj->data;
-					if (arm->flag & ARM_POSEMODE) {
-						if (arm->act_bone) {
-							if (arm->act_bone->layer & arm->layer) {
-								s += BLI_strcpy_rlen(s, msg_sep);
-								s += BLI_strcpy_rlen(s, arm->act_bone->name);
-							}
+					if (arm->act_bone) {
+						if (arm->act_bone->layer & arm->layer) {
+							s += BLI_strcpy_rlen(s, msg_sep);
+							s += BLI_strcpy_rlen(s, arm->act_bone->name);
 						}
 					}
 				}

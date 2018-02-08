@@ -145,7 +145,7 @@ bool DRW_pose_mode_armature(Object *ob, Object *active_ob)
 
 	/* Armature parent is also handled by pose mode engine. */
 	if ((active_ob != NULL) && ((draw_ctx->object_mode & OB_MODE_WEIGHT_PAINT) != 0)) {
-		if (active_ob->parent == ob) {
+		if (ob == draw_ctx->object_pose) {
 			return true;
 		}
 	}

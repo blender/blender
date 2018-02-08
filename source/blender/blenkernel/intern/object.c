@@ -1153,14 +1153,13 @@ static void copy_object_lod(Object *obn, const Object *ob, const int UNUSED(flag
 	obn->currentlod = (LodLevel *)obn->lodlevels.first;
 }
 
-bool BKE_object_pose_context_check(Object *ob)
+bool BKE_object_pose_context_check_ex(Object *ob, bool selected)
 {
 	if ((ob) &&
 	    (ob->type == OB_ARMATURE) &&
 	    (ob->pose) &&
-	    // (ob->mode & OB_MODE_POSE)
-	    (((bArmature *)ob->data)->flag & ARM_POSEMODE)
-	    )
+	    /* Currently using selection when the object isn't active. */
+	    ((selected == false) || (ob->flag & SELECT)))
 	{
 		return true;
 	}
@@ -1169,22 +1168,41 @@ bool BKE_object_pose_context_check(Object *ob)
 	}
 }
 
+bool BKE_object_pose_context_check(Object *ob)
+{
+	return BKE_object_pose_context_check_ex(ob, false);
+}
+
 Object *BKE_object_pose_armature_get(Object *ob)
 {
 	if (ob == NULL)
 		return NULL;
 
-	if (BKE_object_pose_context_check(ob))
+	if (BKE_object_pose_context_check_ex(ob, false))
 		return ob;
 
 	ob = modifiers_isDeformedByArmature(ob);
 
-	if (BKE_object_pose_context_check(ob))
+	/* Only use selected check when non-active. */
+	if (BKE_object_pose_context_check_ex(ob, true))
 		return ob;
 
 	return NULL;
 }
 
+Object *BKE_object_pose_armature_get_visible(Object *ob, ViewLayer *view_layer)
+{
+	Object *ob_armature = BKE_object_pose_armature_get(ob);
+	if (ob_armature) {
+		Base *base = BKE_view_layer_base_find(view_layer, ob_armature);
+		if (base) {
+			if (BASE_VISIBLE(base)) {
+				return ob_armature;
+			}
+		}
+	}
+	return NULL;
+}
 void BKE_object_transform_copy(Object *ob_tar, const Object *ob_src)
 {
 	copy_v3_v3(ob_tar->loc, ob_src->loc);
