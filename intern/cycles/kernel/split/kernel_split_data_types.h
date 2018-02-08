@@ -67,10 +67,6 @@ typedef ccl_global struct SplitBranchedState {
 
 	uint lcg_state;
 	LocalIntersection ss_isect;
-
-#  ifdef __VOLUME__
-	VolumeStack volume_stack[VOLUME_STACK_SIZE];
-#  endif  /* __VOLUME__ */
 #endif  /*__SUBSURFACE__ */
 
 	int shared_sample_count; /* number of branched samples shared with other threads */

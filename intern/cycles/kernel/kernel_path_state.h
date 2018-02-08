@@ -231,8 +231,6 @@ ccl_device_inline void path_state_branch(ccl_addr_space PathState *state,
                                          int branch,
                                          int num_branches)
 {
-	state->rng_offset += PRNG_BOUNCE_NUM;
-
 	if(num_branches > 1) {
 		/* Path is splitting into a branch, adjust so that each branch
 		 * still gets a unique sample from the same sequence. */

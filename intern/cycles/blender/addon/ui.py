@@ -442,8 +442,10 @@ class CYCLES_RENDER_PT_layer_options(CyclesButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        with_freestyle = bpy.app.build_options.freestyle
 
         scene = context.scene
+        rd = scene.render
         view_layer = scene.view_layers.active
 
         col = layout.column()
@@ -451,6 +453,10 @@ class CYCLES_RENDER_PT_layer_options(CyclesButtonsPanel, Panel):
         col.prop(view_layer, "use_ao", "Use AO")
         col.prop(view_layer, "use_solid", "Use Surfaces")
         col.prop(view_layer, "use_strand", "Use Hair")
+        if with_freestyle:
+            row = col.row()
+            row.prop(view_layer, "use_freestyle", "Use Freestyle")
+            row.active = rd.use_freestyle
 
 
 class CYCLES_RENDER_PT_layer_passes(CyclesButtonsPanel, Panel):

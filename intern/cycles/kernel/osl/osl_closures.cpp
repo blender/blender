@@ -316,14 +316,8 @@ void OSLShader::register_closures(OSLShadingSystem *ss_)
 		closure_bsdf_diffuse_ramp_params(), closure_bsdf_diffuse_ramp_prepare);
 	register_closure(ss, "phong_ramp", id++,
 		closure_bsdf_phong_ramp_params(), closure_bsdf_phong_ramp_prepare);
-	register_closure(ss, "bssrdf_cubic", id++,
-		closure_bssrdf_cubic_params(), closure_bssrdf_cubic_prepare);
-	register_closure(ss, "bssrdf_gaussian", id++,
-		closure_bssrdf_gaussian_params(), closure_bssrdf_gaussian_prepare);
-	register_closure(ss, "bssrdf_burley", id++,
-		closure_bssrdf_burley_params(), closure_bssrdf_burley_prepare);
-	register_closure(ss, "bssrdf_principled", id++,
-		closure_bssrdf_principled_params(), closure_bssrdf_principled_prepare);
+	register_closure(ss, "bssrdf", id++,
+		closure_bssrdf_params(), closure_bssrdf_prepare);
 
 	register_closure(ss, "hair_reflection", id++,
 		bsdf_hair_reflection_params(), bsdf_hair_reflection_prepare);

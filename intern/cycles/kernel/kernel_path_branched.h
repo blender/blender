@@ -340,9 +340,13 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
 		/* do subsurface scatter step with copy of shader data, this will
 		 * replace the BSSRDF with a diffuse BSDF closure */
 		for(int j = 0; j < num_samples; j++) {
+			PathState hit_state = *state;
+			path_state_branch(&hit_state, j, num_samples);
+			hit_state.rng_hash = bssrdf_rng_hash;
+
 			LocalIntersection ss_isect;
 			float bssrdf_u, bssrdf_v;
-			path_branched_rng_2D(kg, bssrdf_rng_hash, state, j, num_samples, PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
+			path_state_rng_2D(kg, &hit_state, PRNG_BSDF_U, &bssrdf_u, &bssrdf_v);
 			int num_hits = subsurface_scatter_multi_intersect(kg,
 			                                                  &ss_isect,
 			                                                  sd,
@@ -350,6 +354,9 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
 			                                                  &lcg_state,
 			                                                  bssrdf_u, bssrdf_v,
 			                                                  true);
+
+			hit_state.rng_offset += PRNG_BOUNCE_NUM;
+
 #ifdef __VOLUME__
 			Ray volume_ray = *ray;
 			bool need_update_volume_stack =
@@ -364,14 +371,8 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
 				                               &ss_isect,
 				                               hit,
 				                               &bssrdf_sd,
-				                               state,
-				                               state->flag,
-				                               sc,
-				                               true);
-
-				PathState hit_state = *state;
-
-				path_state_branch(&hit_state, j, num_samples);
+				                               &hit_state,
+				                               sc);
 
 #ifdef __VOLUME__
 				if(need_update_volume_stack) {
@@ -379,6 +380,10 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
 					float3 P = ray_offset(bssrdf_sd.P, -bssrdf_sd.Ng);
 					volume_ray.D = normalize_len(P - volume_ray.P,
 					                             &volume_ray.t);
+
+					for(int k = 0; k < VOLUME_STACK_SIZE; k++) {
+						hit_state.volume_stack[k] = state->volume_stack[k];
+					}
 
 					kernel_volume_stack_update_for_subsurface(
 					    kg,
@@ -392,7 +397,7 @@ ccl_device void kernel_branched_path_subsurface_scatter(KernelGlobals *kg,
 				/* direct light */
 				if(kernel_data.integrator.use_direct_light) {
 					int all = (kernel_data.integrator.sample_all_lights_direct) ||
-					          (state->flag & PATH_RAY_SHADOW_CATCHER);
+					          (hit_state.flag & PATH_RAY_SHADOW_CATCHER);
 					kernel_branched_path_surface_connect_light(
 					        kg,
 					        &bssrdf_sd,
