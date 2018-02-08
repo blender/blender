@@ -4903,6 +4903,18 @@ int is_quad_flip_v3(const float v1[3], const float v2[3], const float v3[3], con
 	return ret;
 }
 
+bool is_quad_flip_v3_first_third_fast(const float v1[3], const float v2[3], const float v3[3], const float v4[3])
+{
+	float d_12[3], d_13[3], d_14[3];
+	float cross_a[3], cross_b[3];
+	sub_v3_v3v3(d_12, v2, v1);
+	sub_v3_v3v3(d_13, v3, v1);
+	sub_v3_v3v3(d_14, v4, v1);
+	cross_v3_v3v3(cross_a, d_12, d_13);
+	cross_v3_v3v3(cross_b, d_14, d_13);
+	return dot_v3v3(cross_a, cross_b) > 0.0f;
+}
+
 /**
  * Return the value which the distance between points will need to be scaled by,
  * to define a handle, given both points are on a perfect circle.

@@ -225,6 +225,33 @@ void ANIM_set_active_channel(bAnimContext *ac, void *data, eAnimCont_Types datat
 	ANIM_animdata_freelist(&anim_data);
 }
 
+static void select_pchan_for_action_group(bAnimContext *ac, bActionGroup *agrp, bAnimListElem *ale)
+{
+	/* Armatures-Specific Feature:
+	 * See mouse_anim_channels() -> ANIMTYPE_GROUP case for more details (T38737)
+	 */
+	if ((ac->ads->filterflag & ADS_FILTER_ONLYSEL) == 0) {
+		if ((ale->id) && (GS(ale->id->name) == ID_OB)) {
+			Object *ob = (Object *)ale->id;
+			if (ob->type == OB_ARMATURE) {
+				/* Assume for now that any group with corresponding name is what we want
+				 * (i.e. for an armature whose location is animated, things would break
+				 * if the user were to add a bone named "Location").
+				 *
+				 * TODO: check the first F-Curve or so to be sure...
+				 */
+				bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, agrp->name);
+				if (agrp->flag & AGRP_SELECTED) {
+					ED_pose_bone_select(ob, pchan, true);
+				}
+				else {
+					ED_pose_bone_select(ob, pchan, false);
+				}
+			}
+		}
+	}
+}
+
 /* Deselect all animation channels 
  *	- data: pointer to datatype, as contained in bAnimContext
  *	- datatype: the type of data that 'data' represents (eAnimCont_Types)
@@ -345,8 +372,8 @@ void ANIM_deselect_anim_channels(bAnimContext *ac, void *data, eAnimCont_Types d
 			case ANIMTYPE_GROUP:
 			{
 				bActionGroup *agrp = (bActionGroup *)ale->data;
-				
 				ACHANNEL_SET_FLAG(agrp, sel, AGRP_SELECTED);
+				select_pchan_for_action_group(ac, agrp, ale);
 				agrp->flag &= ~AGRP_ACTIVE;
 				break;
 			}
@@ -2398,33 +2425,7 @@ static void borderselect_anim_channels(bAnimContext *ac, rcti *rect, short selec
 				case ANIMTYPE_GROUP:
 				{
 					bActionGroup *agrp = (bActionGroup *)ale->data;
-					
-					/* Armatures-Specific Feature:
-					 * See mouse_anim_channels() -> ANIMTYPE_GROUP case for more details (T38737)
-					 */
-					if ((ac->ads->filterflag & ADS_FILTER_ONLYSEL) == 0) {
-						if ((ale->id) && (GS(ale->id->name) == ID_OB)) {
-							Object *ob = (Object *)ale->id;
-							
-							if (ob->type == OB_ARMATURE) {
-								/* Assume for now that any group with corresponding name is what we want
-								 * (i.e. for an armature whose location is animated, things would break
-								 * if the user were to add a bone named "Location").
-								 *
-								 * TODO: check the first F-Curve or so to be sure...
-								 */
-								bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, agrp->name);
-								
-								if (agrp->flag & AGRP_SELECTED) {
-									ED_pose_bone_select(ob, pchan, true);
-								}
-								else {
-									ED_pose_bone_select(ob, pchan, false);
-								}
-							}
-						}
-					}
-					
+					select_pchan_for_action_group(ac, agrp, ale);
 					/* always clear active flag after doing this */
 					agrp->flag &= ~AGRP_ACTIVE;
 					break;
