@@ -390,6 +390,7 @@ public:
 	float3 normal, clearcoat_normal, tangent;
 	float surface_mix_weight;
 	ClosureType distribution, distribution_orig;
+	ClosureType subsurface_method;
 
 	bool has_integrator_dependency();
 	void attributes(Shader *shader, AttributeRequestSet *attributes);

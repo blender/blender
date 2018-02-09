@@ -51,6 +51,7 @@ bool kernel_path_subsurface_scatter(
 		int num_hits = subsurface_scatter_multi_intersect(kg,
 		                                                  &ss_isect,
 		                                                  sd,
+		                                                  state,
 		                                                  sc,
 		                                                  &lcg_state,
 		                                                  bssrdf_u, bssrdf_v,

@@ -30,9 +30,7 @@
 #include "kernel/closure/bsdf_principled_diffuse.h"
 #include "kernel/closure/bsdf_principled_sheen.h"
 #include "kernel/closure/bssrdf.h"
-#ifdef __VOLUME__
-#  include "kernel/closure/volume.h"
-#endif
+#include "kernel/closure/volume.h"
 
 CCL_NAMESPACE_BEGIN
 

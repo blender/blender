@@ -85,6 +85,7 @@ ccl_device_noinline bool kernel_split_branched_path_subsurface_indirect_light_it
 				branched_state->num_hits = subsurface_scatter_multi_intersect(kg,
 				                                                              &ss_isect_private,
 				                                                              sd,
+				                                                              hit_state,
 				                                                              sc,
 				                                                              &lcg_state,
 				                                                              bssrdf_u, bssrdf_v,

@@ -118,28 +118,40 @@ ccl_device_inline void triangle_intersect_local(
 		return;
 	}
 
-	for(int i = min(max_hits, local_isect->num_hits) - 1; i >= 0; --i) {
-		if(local_isect->hits[i].t == t) {
-			return;
+	int hit;
+	if(lcg_state) {
+		/* Record up to max_hits intersections. */
+		for(int i = min(max_hits, local_isect->num_hits) - 1; i >= 0; --i) {
+			if(local_isect->hits[i].t == t) {
+				return;
+			}
+		}
+
+		local_isect->num_hits++;
+
+		if(local_isect->num_hits <= max_hits) {
+			hit = local_isect->num_hits - 1;
+		}
+		else {
+			/* reservoir sampling: if we are at the maximum number of
+			 * hits, randomly replace element or skip it */
+			hit = lcg_step_uint(lcg_state) % local_isect->num_hits;
+
+			if(hit >= max_hits)
+				return;
 		}
 	}
-
-	local_isect->num_hits++;
-	int hit;
-
-	if(local_isect->num_hits <= max_hits) {
-		hit = local_isect->num_hits - 1;
-	}
 	else {
-		/* reservoir sampling: if we are at the maximum number of
-		 * hits, randomly replace element or skip it */
-		hit = lcg_step_uint(lcg_state) % local_isect->num_hits;
-
-		if(hit >= max_hits)
+		/* Record closest intersection only. */
+		if(local_isect->num_hits && t > local_isect->hits[0].t) {
 			return;
+		}
+
+		hit = 0;
+		local_isect->num_hits = 1;
 	}
 
-	/* record intersection */
+	/* Record intersection. */
 	Intersection *isect = &local_isect->hits[hit];
 	isect->prim = prim_addr;
 	isect->object = object;

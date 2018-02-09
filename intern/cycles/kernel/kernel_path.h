@@ -32,12 +32,12 @@
 #include "kernel/kernel_light.h"
 #include "kernel/kernel_passes.h"
 
-#ifdef __SUBSURFACE__
-#  include "kernel/kernel_subsurface.h"
+#if defined(__VOLUME__) || defined(__SUBSURFACE__)
+#  include "kernel/kernel_volume.h"
 #endif
 
-#ifdef __VOLUME__
-#  include "kernel/kernel_volume.h"
+#ifdef __SUBSURFACE__
+#  include "kernel/kernel_subsurface.h"
 #endif
 
 #include "kernel/kernel_path_state.h"

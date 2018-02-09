@@ -52,6 +52,8 @@ static ustring u_cubic("cubic");
 static ustring u_gaussian("gaussian");
 static ustring u_burley("burley");
 static ustring u_principled("principled");
+static ustring u_random_walk("random_walk");
+static ustring u_principled_random_walk("principled_random_walk");
 
 class CBSSRDFClosure : public CClosurePrimitive {
 public:
@@ -78,6 +80,12 @@ public:
 		}
 		else if (method == u_principled) {
 			alloc(sd, path_flag, weight, CLOSURE_BSSRDF_PRINCIPLED_ID);
+		}
+		else if (method == u_random_walk) {
+			alloc(sd, path_flag, weight, CLOSURE_BSSRDF_RANDOM_WALK_ID);
+		}
+		else if (method == u_principled_random_walk) {
+			alloc(sd, path_flag, weight, CLOSURE_BSSRDF_PRINCIPLED_RANDOM_WALK_ID);
 		}
 	}
 

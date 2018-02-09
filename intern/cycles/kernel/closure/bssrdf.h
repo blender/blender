@@ -373,7 +373,9 @@ ccl_device int bssrdf_setup(ShaderData *sd, Bssrdf *bssrdf, ClosureType type)
 	if(bssrdf_channels < 3) {
 		/* Add diffuse BSDF if any radius too small. */
 #ifdef __PRINCIPLED__
-		if(type == CLOSURE_BSSRDF_PRINCIPLED_ID) {
+		if(type == CLOSURE_BSSRDF_PRINCIPLED_ID ||
+		   type == CLOSURE_BSSRDF_PRINCIPLED_RANDOM_WALK_ID)
+		{
 			float roughness = bssrdf->roughness;
 			float3 N = bssrdf->N;
 
@@ -408,7 +410,9 @@ ccl_device int bssrdf_setup(ShaderData *sd, Bssrdf *bssrdf, ClosureType type)
 		bssrdf->sharpness = saturate(bssrdf->sharpness);
 
 		if(type == CLOSURE_BSSRDF_BURLEY_ID ||
-		   type == CLOSURE_BSSRDF_PRINCIPLED_ID)
+		   type == CLOSURE_BSSRDF_PRINCIPLED_ID ||
+		   type == CLOSURE_BSSRDF_RANDOM_WALK_ID ||
+		   type == CLOSURE_BSSRDF_PRINCIPLED_RANDOM_WALK_ID)
 		{
 			bssrdf_burley_setup(bssrdf);
 		}

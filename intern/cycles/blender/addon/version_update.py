@@ -130,10 +130,13 @@ def displacement_nodes_insert():
         if check_is_new_shading_material(material):
             displacement_node_insert(material, material.node_tree, traversed)
 
-def displacement_node_space(node):
+def displacement_principled_nodes(node):
     if node.bl_idname == 'ShaderNodeDisplacement':
         if node.space != 'WORLD':
             node.space = 'OBJECT'
+    if node.bl_idname == 'ShaderNodeBsdfPrincipled':
+        if node.subsurface_method != 'RANDOM_WALK':
+            node.subsurface_method = 'BURLEY'
 
 
 def mapping_node_order_flip(node):
@@ -373,4 +376,4 @@ def do_versions(self):
             if not cmat.is_property_set("displacement_method"):
                 cmat.displacement_method = 'BUMP'
 
-        foreach_cycles_node(displacement_node_space)
+        foreach_cycles_node(displacement_principled_nodes)
