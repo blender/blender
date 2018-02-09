@@ -21,7 +21,17 @@
 
 # <pep8 compliant>
 
-# Contributor(s): Keith "Wahooney" Boshoff, Campbell Barton
+# Contributor(s): Keith "Wahooney" Boshoff, Campbell Barton, Sybren A. Stüvel
+
+
+def get_vcolor_layer_data(me):
+    for lay in me.vertex_colors:
+        if lay.active:
+            return lay.data
+
+    lay = me.vertex_colors.new()
+    lay.active = True
+    return lay.data
 
 
 def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean, dirt_only):
@@ -32,8 +42,6 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
     vert_tone = array.array("f", [0.0]) * len(me.vertices)
 
     # create lookup table for each vertex's connected vertices (via edges)
-    con = []
-
     con = [[] for i in range(len(me.vertices))]
 
     # add connected verts
@@ -50,7 +58,7 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
         for c in con[i]:
             vec += (me.vertices[c].co - co).normalized()
 
-        # normalize the vector by dividing by the number of connected verts
+        # average the vector by dividing by the number of connected verts
         tot_con = len(con[i])
 
         if tot_con == 0:
@@ -58,7 +66,9 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
 
         vec /= tot_con
 
-        # angle is the acos() of the dot product between vert and connected verts normals
+        # angle is the acos() of the dot product between normal and connected verts.
+        # > 90 degrees: convex
+        # < 90 degrees: concave
         ang = acos(no.dot(vec))
 
         # enforce min/max
@@ -93,17 +103,7 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
     else:
         tone_range = 1.0 / tone_range
 
-    active_col_layer = None
-
-    if me.vertex_colors:
-        for lay in me.vertex_colors:
-            if lay.active:
-                active_col_layer = lay.data
-    else:
-        bpy.ops.mesh.vertex_color_add()
-        me.vertex_colors[0].active = True
-        active_col_layer = me.vertex_colors[0].data
-
+    active_col_layer = get_vcolor_layer_data(me)
     if not active_col_layer:
         return {'CANCELLED'}
 

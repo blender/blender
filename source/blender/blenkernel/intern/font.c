@@ -1080,8 +1080,13 @@ makebreak:
 			float distfac, imat[4][4], imat3[3][3], cmat[3][3];
 			float minx, maxx, miny, maxy;
 			float timeofs, sizefac;
-			
-			invert_m4_m4(imat, ob->obmat);
+
+			if (ob != NULL) {
+				invert_m4_m4(imat, ob->obmat);
+			}
+			else {
+				unit_m4(imat);
+			}
 			copy_m3_m4(imat3, imat);
 
 			copy_m3_m4(cmat, cu->textoncurve->obmat);
