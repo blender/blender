@@ -1466,6 +1466,7 @@ wmTimer *WM_event_add_timer_notifier(wmWindowManager *wm, wmWindow *win, unsigne
 	wt->timestep = timestep;
 	wt->win = win;
 	wt->customdata = SET_UINT_IN_POINTER(type);
+	wt->flags |= WM_TIMER_NO_FREE_CUSTOM_DATA;
 
 	BLI_addtail(&wm->timers, wt);
 
@@ -1487,8 +1488,9 @@ void WM_event_remove_timer(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *
 			wm->reports.reporttimer = NULL;
 		
 		BLI_remlink(&wm->timers, wt);
-		if (wt->customdata)
+		if (wt->customdata != NULL && (wt->flags & WM_TIMER_NO_FREE_CUSTOM_DATA) == 0) {
 			MEM_freeN(wt->customdata);
+		}
 		MEM_freeN(wt);
 		
 		/* there might be events in queue with this timer as customdata */
