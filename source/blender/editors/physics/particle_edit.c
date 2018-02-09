@@ -1315,6 +1315,8 @@ void PE_update_object(const EvaluationContext *eval_ctx, Scene *scene, ViewLayer
 
 	if (edit->psys)
 		edit->psys->flag &= ~PSYS_HAIR_UPDATED;
+
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 }
 
 /************************************************/
