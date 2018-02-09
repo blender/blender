@@ -5600,16 +5600,13 @@ static void SCULPT_OT_symmetrize(wmOperatorType *ot)
 
 /**** Toggle operator for turning sculpt mode on or off ****/
 
-static void sculpt_init_session(const bContext *C, Scene *scene, Object *ob)
+static void sculpt_init_session(const EvaluationContext *eval_ctx, Scene *scene, Object *ob)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
-
 	/* Create persistent sculpt mode data */
 	BKE_sculpt_toolsettings_data_ensure(scene);
 
 	ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
-	BKE_sculpt_update_mesh_elements(&eval_ctx, scene, scene->toolsettings->sculpt, ob, 0, false);
+	BKE_sculpt_update_mesh_elements(eval_ctx, scene, scene->toolsettings->sculpt, ob, 0, false);
 }
 
 
@@ -5677,7 +5674,9 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 			BKE_sculptsession_free(ob);
 		}
 
-		sculpt_init_session(C, scene, ob);
+		EvaluationContext eval_ctx;
+		CTX_data_eval_ctx(C, &eval_ctx);
+		sculpt_init_session(&eval_ctx, scene, ob);
 
 		/* Mask layer is required */
 		if (mmd) {
