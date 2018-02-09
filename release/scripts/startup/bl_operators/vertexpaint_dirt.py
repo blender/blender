@@ -21,7 +21,17 @@
 
 # <pep8 compliant>
 
-# Contributor(s): Keith "Wahooney" Boshoff, Campbell Barton
+# Contributor(s): Keith "Wahooney" Boshoff, Campbell Barton, Sybren A. Stüvel
+
+
+def get_vcolor_layer_data(me):
+    for lay in me.vertex_colors:
+        if lay.active:
+            return lay.data
+
+    lay = me.vertex_colors.new()
+    lay.active = True
+    return lay.data
 
 
 def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean, dirt_only):
@@ -93,17 +103,7 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
     else:
         tone_range = 1.0 / tone_range
 
-    active_col_layer = None
-
-    if me.vertex_colors:
-        for lay in me.vertex_colors:
-            if lay.active:
-                active_col_layer = lay.data
-    else:
-        bpy.ops.mesh.vertex_color_add()
-        me.vertex_colors[0].active = True
-        active_col_layer = me.vertex_colors[0].data
-
+    active_col_layer = get_vcolor_layer_data(me)
     if not active_col_layer:
         return {'CANCELLED'}
 
