@@ -188,6 +188,9 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 	/* clear or remove stuff from old */
 	sfilen->op = NULL; /* file window doesn't own operators */
 
+	sfilen->previews_timer = NULL;
+	sfilen->smoothscroll_timer = NULL;
+
 	if (sfileo->params) {
 		sfilen->files = filelist_new(sfileo->params->type);
 		sfilen->params = MEM_dupallocN(sfileo->params);
