@@ -111,6 +111,10 @@ static SceneCollection *collection_add(ID *owner_id, SceneCollection *sc_parent,
  */
 SceneCollection *BKE_collection_add(ID *owner_id, SceneCollection *sc_parent, const int type, const char *name_custom)
 {
+	if (sc_parent == NULL) {
+		sc_parent = BKE_collection_master(owner_id);
+	}
+
 	SceneCollection *scene_collection = collection_add(owner_id, sc_parent, type, name_custom);
 	BKE_layer_sync_new_scene_collection(owner_id, sc_parent, scene_collection);
 	return scene_collection;

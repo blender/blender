@@ -62,6 +62,7 @@ endmacro()
 
 VIEW_LAYER_TEST(active_collection)
 VIEW_LAYER_TEST(background_set)
+VIEW_LAYER_TEST(collection_new_sync)
 VIEW_LAYER_TEST(collection_rename_a)
 VIEW_LAYER_TEST(collection_rename_b)
 VIEW_LAYER_TEST(evaluation_render_settings_a)

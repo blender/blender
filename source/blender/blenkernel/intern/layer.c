@@ -375,6 +375,7 @@ static void layer_collection_sync_flags(
 
 static void layer_collections_sync_flags(ListBase *layer_collections_dst, const ListBase *layer_collections_src)
 {
+	BLI_assert(BLI_listbase_count(layer_collections_dst) == BLI_listbase_count(layer_collections_src));
 	LayerCollection *layer_collection_dst = (LayerCollection *)layer_collections_dst->first;
 	const LayerCollection *layer_collection_src = (const LayerCollection *)layer_collections_src->first;
 	while (layer_collection_dst != NULL) {
