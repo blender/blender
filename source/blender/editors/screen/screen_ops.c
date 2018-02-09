@@ -152,8 +152,7 @@ int ED_operator_scene_editable(bContext *C)
 
 int ED_operator_objectmode(bContext *C)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *obact = CTX_data_active_object(C);
 
@@ -163,7 +162,7 @@ int ED_operator_objectmode(bContext *C)
 		return 0;
 	
 	/* add a check for ob->mode too? */
-	if (obact && (eval_ctx.object_mode != OB_MODE_OBJECT))
+	if (obact && (workspace->object_mode != OB_MODE_OBJECT))
 		return 0;
 	
 	return 1;
@@ -305,43 +304,39 @@ int ED_operator_console_active(bContext *C)
 	return ed_spacetype_test(C, SPACE_CONSOLE);
 }
 
-static int ed_object_hidden(const EvaluationContext *eval_ctx, Object *ob)
+static int ed_object_hidden(Object *ob, eObjectMode object_mode)
 {
 	/* if hidden but in edit mode, we still display, can happen with animation */
-	return ((ob->restrictflag & OB_RESTRICT_VIEW) && !(eval_ctx->object_mode & OB_MODE_EDIT));
+	return ((ob->restrictflag & OB_RESTRICT_VIEW) && !(object_mode & OB_MODE_EDIT));
 }
 
 int ED_operator_object_active(bContext *C)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = ED_object_active_context(C);
-	return ((ob != NULL) && !ed_object_hidden(&eval_ctx, ob));
+	return ((ob != NULL) && !ed_object_hidden(ob, workspace->object_mode));
 }
 
 int ED_operator_object_active_editable(bContext *C)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = ED_object_active_context(C);
-	return ((ob != NULL) && !ID_IS_LINKED(ob) && !ed_object_hidden(&eval_ctx, ob));
+	return ((ob != NULL) && !ID_IS_LINKED(ob) && !ed_object_hidden(ob, workspace->object_mode));
 }
 
 int ED_operator_object_active_editable_mesh(bContext *C)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = ED_object_active_context(C);
-	return ((ob != NULL) && !ID_IS_LINKED(ob) && !ed_object_hidden(&eval_ctx, ob) &&
+	return ((ob != NULL) && !ID_IS_LINKED(ob) && !ed_object_hidden(ob, workspace->object_mode) &&
 	        (ob->type == OB_MESH) && !ID_IS_LINKED(ob->data));
 }
 
 int ED_operator_object_active_editable_font(bContext *C)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = ED_object_active_context(C);
-	return ((ob != NULL) && !ID_IS_LINKED(ob) && !ed_object_hidden(&eval_ctx, ob) &&
+	return ((ob != NULL) && !ID_IS_LINKED(ob) && !ed_object_hidden(ob, workspace->object_mode) &&
 	        (ob->type == OB_FONT));
 }
 
@@ -387,9 +382,8 @@ int ED_operator_posemode_exclusive(bContext *C)
 	Object *obact = CTX_data_active_object(C);
 
 	if (obact) {
-		EvaluationContext eval_ctx;
-		CTX_data_eval_ctx(C, &eval_ctx);
-		if ((eval_ctx.object_mode & OB_MODE_EDIT) == 0) {
+		const WorkSpace *workspace = CTX_wm_workspace(C);
+		if ((workspace->object_mode & OB_MODE_EDIT) == 0) {
 			Object *obpose;
 			if ((obpose = BKE_object_pose_armature_get(obact))) {
 				if (obact == obpose) {
@@ -557,8 +551,6 @@ int ED_operator_editmball(bContext *C)
 
 int ED_operator_mask(bContext *C)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
 	ScrArea *sa = CTX_wm_area(C);
 	if (sa && sa->spacedata.first) {
 		switch (sa->spacetype) {

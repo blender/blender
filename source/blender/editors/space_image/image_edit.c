@@ -323,15 +323,14 @@ bool ED_image_slot_cycle(struct Image *image, int direction)
 
 void ED_space_image_scopes_update(const struct bContext *C, struct SpaceImage *sima, struct ImBuf *ibuf, bool use_view_settings)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
-	
+
 	/* scope update can be expensive, don't update during paint modes */
 	if (sima->mode == SI_MODE_PAINT)
 		return;
-	if (ob && ((eval_ctx.object_mode & (OB_MODE_TEXTURE_PAINT | OB_MODE_EDIT)) != 0)) {
+	if (ob && ((workspace->object_mode & (OB_MODE_TEXTURE_PAINT | OB_MODE_EDIT)) != 0)) {
 		return;
 	}
 	/* We also don't update scopes of render result during render. */

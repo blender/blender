@@ -320,14 +320,12 @@ static void clear_images_poly(Image **ob_image_array, int ob_image_array_len, Cl
 static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
 {
 	Object *ob;
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Scene *scene = CTX_data_scene(C);
 	int objects_baked = 0;
 
 	if (!multiresbake_check(C, op))
 		return OPERATOR_CANCELLED;
-
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
 
 	if (scene->r.bake_flag & R_BAKE_CLEAR) {  /* clear images */
 		CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
@@ -377,8 +375,8 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
 		bkr.ob_image.array = BKE_object_material_edit_image_get_array(ob);
 		bkr.ob_image.len = ob->totcol;
 
-		bkr.hires_dm = multiresbake_create_hiresdm(scene, ob, eval_ctx.object_mode, &bkr.tot_lvl, &bkr.simple);
-		bkr.lores_dm = multiresbake_create_loresdm(scene, ob, eval_ctx.object_mode, &bkr.lvl);
+		bkr.hires_dm = multiresbake_create_hiresdm(scene, ob, workspace->object_mode, &bkr.tot_lvl, &bkr.simple);
+		bkr.lores_dm = multiresbake_create_loresdm(scene, ob, workspace->object_mode, &bkr.lvl);
 
 		RE_multires_bake_images(&bkr);
 
@@ -402,11 +400,9 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
 /* Multiresbake adopted for job-system executing */
 static void init_multiresbake_job(bContext *C, MultiresBakeJob *bkj)
 {
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob;
-
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
 
 	/* backup scene settings, so their changing in UI would take no effect on baker */
 	bkj->bake_filter = scene->r.bake_filter;
@@ -436,8 +432,8 @@ static void init_multiresbake_job(bContext *C, MultiresBakeJob *bkj)
 		data->ob_image.len = ob->totcol;
 
 		/* create low-resolution DM (to bake to) and hi-resolution DM (to bake from) */
-		data->hires_dm = multiresbake_create_hiresdm(scene, ob, eval_ctx.object_mode, &data->tot_lvl, &data->simple);
-		data->lores_dm = multiresbake_create_loresdm(scene, ob, eval_ctx.object_mode, &lvl);
+		data->hires_dm = multiresbake_create_hiresdm(scene, ob, workspace->object_mode, &data->tot_lvl, &data->simple);
+		data->lores_dm = multiresbake_create_loresdm(scene, ob, workspace->object_mode, &lvl);
 		data->lvl = lvl;
 
 		BLI_addtail(&bkj->data, data);

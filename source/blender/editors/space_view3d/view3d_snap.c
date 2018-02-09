@@ -700,12 +700,11 @@ static bool snap_calc_active_center(bContext *C, const bool select_only, float r
 		}
 	}
 	else {
-		EvaluationContext eval_ctx;
-		CTX_data_eval_ctx(C, &eval_ctx);
 		Object *ob = CTX_data_active_object(C);
 
 		if (ob) {
-			if (eval_ctx.object_mode & OB_MODE_POSE) {
+			const WorkSpace *workspace = CTX_wm_workspace(C);
+			if (workspace->object_mode & OB_MODE_POSE) {
 				bPoseChannel *pchan = BKE_pose_channel_active(ob);
 				if (pchan) {
 					if (!select_only || (pchan->bone->flag & BONE_SELECTED)) {

@@ -1035,11 +1035,10 @@ int CTX_data_mode_enum_ex(const Object *obedit, const Object *ob, const eObjectM
 
 int CTX_data_mode_enum(const bContext *C)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Object *obact = obedit ? NULL : CTX_data_active_object(C);
-	return CTX_data_mode_enum_ex(obedit, obact, eval_ctx.object_mode);
+	return CTX_data_mode_enum_ex(obedit, obact, workspace->object_mode);
 }
 
 /* would prefer if we can use the enum version below over this one - Campbell */

@@ -874,9 +874,7 @@ void POSE_OT_select_grouped(wmOperatorType *ot)
  */
 static int pose_select_mirror_exec(bContext *C, wmOperator *op)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
-
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob_act = CTX_data_active_object(C);
 	Object *ob = BKE_object_pose_armature_get(ob_act);
 	bArmature *arm;
@@ -920,7 +918,7 @@ static int pose_select_mirror_exec(bContext *C, wmOperator *op)
 		arm->act_bone = pchan_mirror_act->bone;
 
 		/* in weightpaint we select the associated vertex group too */
-		if (eval_ctx.object_mode & OB_MODE_WEIGHT_PAINT) {
+		if (workspace->object_mode & OB_MODE_WEIGHT_PAINT) {
 			ED_vgroup_select_by_name(ob_act, pchan_mirror_act->name);
 			DEG_id_tag_update(&ob_act->id, OB_RECALC_DATA);
 		}

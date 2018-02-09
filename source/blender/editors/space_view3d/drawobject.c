@@ -4321,7 +4321,7 @@ static void draw_mesh_fancy(
 	bool /* no_verts,*/ no_edges, no_faces;
 	DerivedMesh *dm = mesh_get_derived_final(eval_ctx, scene, ob, scene->customdata_mask);
 	const bool is_obact = (ob == OBACT(view_layer));
-	int draw_flags = (is_obact && BKE_paint_select_face_test(eval_ctx, ob)) ? DRAW_FACE_SELECT : 0;
+	int draw_flags = (is_obact && BKE_paint_select_face_test(ob, eval_ctx->object_mode)) ? DRAW_FACE_SELECT : 0;
 
 	if (!dm)
 		return;
@@ -4560,7 +4560,7 @@ static void draw_mesh_fancy(
 		}
 	}
 	
-	if (is_obact && BKE_paint_select_vert_test(eval_ctx, ob)) {
+	if (is_obact && BKE_paint_select_vert_test(ob, eval_ctx->object_mode)) {
 		const bool use_depth = (v3d->flag & V3D_ZBUF_SELECT) != 0;
 		glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 
@@ -4742,7 +4742,7 @@ static void draw_mesh_fancy_new(EvaluationContext *eval_ctx, Scene *scene, ViewL
 	bool no_edges, no_faces;
 	DerivedMesh *dm = mesh_get_derived_final(eval_ctx, scene, ob, scene->customdata_mask);
 	const bool is_obact = (ob == OBACT(view_layer));
-	int draw_flags = (is_obact && BKE_paint_select_face_test(eval_ctx, ob)) ? DRAW_FACE_SELECT : 0;
+	int draw_flags = (is_obact && BKE_paint_select_face_test(ob, eval_ctx->object_mode)) ? DRAW_FACE_SELECT : 0;
 
 	if (!dm)
 		return;

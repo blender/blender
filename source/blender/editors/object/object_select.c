@@ -166,9 +166,9 @@ static int objects_selectable_poll(bContext *C)
 	if (CTX_data_edit_object(C)) {
 		return 0;
 	}
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
-	if (eval_ctx.object_mode) {
+
+	const WorkSpace *workspace = CTX_wm_workspace(C);
+	if (workspace->object_mode != OB_MODE_OBJECT) {
 		return 0;
 	}
 	return 1;

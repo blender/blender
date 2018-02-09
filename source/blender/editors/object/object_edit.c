@@ -471,11 +471,10 @@ static int editmode_toggle_poll(bContext *C)
 	if (ELEM(NULL, ob, ob->data) || ID_IS_LINKED(ob->data))
 		return 0;
 
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 
 	/* if hidden but in edit mode, we still display */
-	if ((ob->restrictflag & OB_RESTRICT_VIEW) && !(eval_ctx.object_mode & OB_MODE_EDIT)) {
+	if ((ob->restrictflag & OB_RESTRICT_VIEW) && !(workspace->object_mode & OB_MODE_EDIT)) {
 		return 0;
 	}
 
@@ -1024,8 +1023,6 @@ void ED_object_check_force_modifiers(Main *bmain, Scene *scene, Object *object, 
 
 static int forcefield_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *ob = CTX_data_active_object(C);
 
 	if (ob->pd == NULL)
@@ -1034,8 +1031,9 @@ static int forcefield_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 		ob->pd->forcefield = PFIELD_FORCE;
 	else
 		ob->pd->forcefield = 0;
-	
-	ED_object_check_force_modifiers(CTX_data_main(C), CTX_data_scene(C), ob, eval_ctx.object_mode);
+
+	const WorkSpace *workspace = CTX_wm_workspace(C);
+	ED_object_check_force_modifiers(CTX_data_main(C), CTX_data_scene(C), ob, workspace->object_mode);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 

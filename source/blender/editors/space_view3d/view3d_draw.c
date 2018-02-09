@@ -1422,7 +1422,7 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 	}
 }
 
-static void draw_view_axis(RegionView3D *rv3d, rcti *rect)
+static void draw_view_axis(RegionView3D *rv3d, const rcti *rect)
 {
 	const float k = U.rvisize * U.pixelsize;  /* axis size */
 	const int bright = - 20 * (10 - U.rvibright);  /* axis alpha offset (rvibright has range 0-10) */
@@ -1689,7 +1689,7 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 	return name;
 }
 
-static void draw_viewport_name(ARegion *ar, View3D *v3d, rcti *rect)
+static void draw_viewport_name(ARegion *ar, View3D *v3d, const rcti *rect)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	const char *name = view3d_get_name(v3d, rv3d);
@@ -1719,7 +1719,7 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d, rcti *rect)
  */
 
 static void draw_selected_name(
-        const EvaluationContext *eval_ctx, Scene *scene, Object *ob, rcti *rect)
+        Scene *scene, Object *ob, const eObjectMode object_mode, const rcti *rect)
 {
 	const int cfra = CFRA;
 	const char *msg_pin = " (Pinned)";
@@ -1761,7 +1761,7 @@ static void draw_selected_name(
 					s += BLI_strcpy_rlen(s, arm->act_edbone->name);
 				}
 			}
-			else if (eval_ctx->object_mode & OB_MODE_POSE) {
+			else if (object_mode & OB_MODE_POSE) {
 				if (arm->act_bone) {
 
 					if (arm->act_bone->layer & arm->layer) {
@@ -1774,7 +1774,7 @@ static void draw_selected_name(
 		else if (ELEM(ob->type, OB_MESH, OB_LATTICE, OB_CURVE)) {
 			/* try to display active bone and active shapekey too (if they exist) */
 
-			if (ob->type == OB_MESH && eval_ctx->object_mode & OB_MODE_WEIGHT_PAINT) {
+			if (ob->type == OB_MESH && object_mode & OB_MODE_WEIGHT_PAINT) {
 				Object *armobj = BKE_object_pose_armature_get(ob);
 				if (armobj) {
 					bArmature *arm = armobj->data;
@@ -1833,8 +1833,6 @@ static void draw_selected_name(
 */
 void view3d_draw_region_info(const bContext *C, ARegion *ar, const int offset)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
 	RegionView3D *rv3d = ar->regiondata;
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
@@ -1865,9 +1863,10 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar, const int offset)
 	}
 
 	if (U.uiflag & USER_DRAWVIEWINFO) {
+		const WorkSpace *workspace = CTX_wm_workspace(C);
 		ViewLayer *view_layer = CTX_data_view_layer(C);
 		Object *ob = OBACT(view_layer);
-		draw_selected_name(&eval_ctx, scene, ob, &rect);
+		draw_selected_name(scene, ob, workspace->object_mode, &rect);
 	}
 #if 0 /* TODO */
 	if (grid_unit) { /* draw below the viewport name */
@@ -2365,19 +2364,19 @@ void VP_legacy_drawcursor(
 	}
 }
 
-void VP_legacy_draw_view_axis(RegionView3D *rv3d, rcti *rect)
+void VP_legacy_draw_view_axis(RegionView3D *rv3d, const rcti *rect)
 {
 	draw_view_axis(rv3d, rect);
 }
 
-void VP_legacy_draw_viewport_name(ARegion *ar, View3D *v3d, rcti *rect)
+void VP_legacy_draw_viewport_name(ARegion *ar, View3D *v3d, const rcti *rect)
 {
 	draw_viewport_name(ar, v3d, rect);
 }
 
-void VP_legacy_draw_selected_name(const EvaluationContext *eval_ctx, Scene *scene, Object *ob, rcti *rect)
+void VP_legacy_draw_selected_name(Scene *scene, Object *ob, eObjectMode object_mode, const rcti *rect)
 {
-	draw_selected_name(eval_ctx, scene, ob, rect);
+	draw_selected_name(scene, ob, object_mode, rect);
 }
 
 void VP_legacy_drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **grid_unit)

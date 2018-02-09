@@ -222,7 +222,7 @@ static void backdrawview3d(
 	BLI_assert(ar->regiontype == RGN_TYPE_WINDOW);
 
 	if (base && (eval_ctx->object_mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT) ||
-	             BKE_paint_select_face_test(eval_ctx, base->object)))
+	             BKE_paint_select_face_test(base->object, eval_ctx->object_mode)))
 	{
 		/* do nothing */
 	}
@@ -2074,7 +2074,7 @@ static void view3d_main_region_draw_info(
 
 		if (U.uiflag & USER_DRAWVIEWINFO) {
 			Object *ob = OBACT(view_layer);
-			VP_legacy_draw_selected_name(&eval_ctx, scene, ob, &rect);
+			VP_legacy_draw_selected_name(scene, ob, eval_ctx.object_mode, &rect);
 		}
 	}
 

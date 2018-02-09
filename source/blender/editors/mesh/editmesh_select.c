@@ -280,7 +280,7 @@ bool EDBM_backbuf_border_mask_init(const struct EvaluationContext *eval_ctx, Vie
 	
 	/* method in use for face selecting too */
 	if (vc->obedit == NULL) {
-		if (!BKE_paint_select_elem_test(eval_ctx, vc->obact)) {
+		if (!BKE_paint_select_elem_test(vc->obact, eval_ctx->object_mode)) {
 			return false;
 		}
 	}
@@ -332,7 +332,7 @@ bool EDBM_backbuf_circle_init(
 	
 	/* method in use for face selecting too */
 	if (vc->obedit == NULL) {
-		if (!BKE_paint_select_elem_test(eval_ctx, vc->obact)) {
+		if (!BKE_paint_select_elem_test(vc->obact, eval_ctx->object_mode)) {
 			return false;
 		}
 	}

@@ -298,8 +298,7 @@ void BIF_createTransformOrientation(bContext *C, ReportList *reports,
 		ts = createViewSpace(C, reports, name, overwrite);
 	}
 	else {
-		EvaluationContext eval_ctx;
-		CTX_data_eval_ctx(C, &eval_ctx);
+		const WorkSpace *workspace = CTX_wm_workspace(C);
 		Object *obedit = CTX_data_edit_object(C);
 		Object *ob = CTX_data_active_object(C);
 		if (obedit) {
@@ -310,7 +309,7 @@ void BIF_createTransformOrientation(bContext *C, ReportList *reports,
 			else if (obedit->type == OB_CURVE)
 				ts = createCurveSpace(C, reports, name, overwrite);
 		}
-		else if (ob && (eval_ctx.object_mode & OB_MODE_POSE)) {
+		else if (ob && (workspace->object_mode & OB_MODE_POSE)) {
 			ts = createBoneSpace(C, reports, name, overwrite);
 		}
 		else {
@@ -582,8 +581,7 @@ static unsigned int bm_mesh_faces_select_get_n(BMesh *bm, BMVert **elems, const 
 
 int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3], const short around)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Base *base;
@@ -1014,7 +1012,7 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 			mul_m3_v3(mat, plane);
 		}
 	}
-	else if (ob && (eval_ctx.object_mode & OB_MODE_POSE)) {
+	else if (ob && (workspace->object_mode & OB_MODE_POSE)) {
 		bArmature *arm = ob->data;
 		bPoseChannel *pchan;
 		float imat[3][3], mat[3][3];
@@ -1054,7 +1052,7 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 			result = ORIENTATION_EDGE;
 		}
 	}
-	else if (ob && (eval_ctx.object_mode & (OB_MODE_ALL_PAINT | OB_MODE_PARTICLE_EDIT))) {
+	else if (ob && (workspace->object_mode & (OB_MODE_ALL_PAINT | OB_MODE_PARTICLE_EDIT))) {
 		/* pass */
 	}
 	else {

@@ -114,13 +114,12 @@ void update_world_cos(Object *ob, PTCacheEdit *edit);
 
 int PE_poll(bContext *C)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Scene *scene= CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob= CTX_data_active_object(C);
 
-	if (!scene || !view_layer || !ob || !(eval_ctx.object_mode & OB_MODE_PARTICLE_EDIT)) {
+	if (!scene || !view_layer || !ob || !(workspace->object_mode & OB_MODE_PARTICLE_EDIT)) {
 		return 0;
 	}
 	return (PE_get_current(scene, view_layer, ob) != NULL);
@@ -128,14 +127,13 @@ int PE_poll(bContext *C)
 
 int PE_hair_poll(bContext *C)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Scene *scene= CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob= CTX_data_active_object(C);
 	PTCacheEdit *edit;
 
-	if (!scene || !ob || !(eval_ctx.object_mode & OB_MODE_PARTICLE_EDIT)) {
+	if (!scene || !ob || !(workspace->object_mode & OB_MODE_PARTICLE_EDIT)) {
 		return 0;
 	}
 	edit= PE_get_current(scene, view_layer, ob);

@@ -28,6 +28,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BLI_math_base.h"
 #include "BLI_math_color.h"
@@ -51,11 +52,10 @@
 
 static int vertex_weight_paint_mode_poll(bContext *C)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = CTX_data_active_object(C);
 	Mesh *me = BKE_mesh_from_object(ob);
-	return (ob && ELEM(eval_ctx.object_mode, OB_MODE_VERTEX_PAINT, OB_MODE_WEIGHT_PAINT)) &&
+	return (ob && ELEM(workspace->object_mode, OB_MODE_VERTEX_PAINT, OB_MODE_WEIGHT_PAINT)) &&
 	       (me && me->totpoly && me->dvert);
 }
 

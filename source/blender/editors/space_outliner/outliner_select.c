@@ -658,8 +658,7 @@ static eOLDrawState tree_element_active_text(
 static eOLDrawState tree_element_active_pose(
         bContext *C, Scene *scene, ViewLayer *view_layer, TreeElement *UNUSED(te), TreeStoreElem *tselem, const eOLSetState set)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = (Object *)tselem->id;
 	Base *base = BKE_view_layer_base_find(view_layer, ob);
 
@@ -672,7 +671,7 @@ static eOLDrawState tree_element_active_pose(
 		if (scene->obedit) {
 			ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);
 		}
-		if (eval_ctx.object_mode & OB_MODE_POSE) {
+		if (workspace->object_mode & OB_MODE_POSE) {
 			ED_armature_exit_posemode(C, base);
 		}
 		else {
@@ -680,7 +679,7 @@ static eOLDrawState tree_element_active_pose(
 		}
 	}
 	else {
-		if (eval_ctx.object_mode & OB_MODE_POSE) {
+		if (workspace->object_mode & OB_MODE_POSE) {
 			return OL_DRAWSEL_NORMAL;
 		}
 	}

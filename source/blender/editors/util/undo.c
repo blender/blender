@@ -79,8 +79,7 @@
 
 void ED_undo_push(bContext *C, const char *str)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Object *obact = CTX_data_active_object(C);
 
@@ -106,12 +105,12 @@ void ED_undo_push(bContext *C, const char *str)
 		else if (obedit->type == OB_ARMATURE)
 			undo_push_armature(C, str);
 	}
-	else if (obact && eval_ctx.object_mode & OB_MODE_PARTICLE_EDIT) {
+	else if (obact && workspace->object_mode & OB_MODE_PARTICLE_EDIT) {
 		if (U.undosteps == 0) return;
 
 		PE_undo_push(CTX_data_scene(C), CTX_data_view_layer(C), str);
 	}
-	else if (obact && eval_ctx.object_mode & OB_MODE_SCULPT) {
+	else if (obact && workspace->object_mode & OB_MODE_SCULPT) {
 		/* do nothing for now */
 	}
 	else {
@@ -124,8 +123,7 @@ void ED_undo_push(bContext *C, const char *str)
 /* note: also check undo_history_exec() in bottom if you change notifiers */
 static int ed_undo_step(bContext *C, int step, const char *undoname)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win = CTX_wm_window(C);
 	Main *bmain = CTX_data_main(C);
@@ -149,7 +147,7 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 	if (sa && (sa->spacetype == SPACE_IMAGE)) {
 		SpaceImage *sima = (SpaceImage *)sa->spacedata.first;
 		
-		if ((obact && (eval_ctx.object_mode & OB_MODE_TEXTURE_PAINT)) || (sima->mode == SI_MODE_PAINT)) {
+		if ((obact && (workspace->object_mode & OB_MODE_TEXTURE_PAINT)) || (sima->mode == SI_MODE_PAINT)) {
 			if (!ED_undo_paint_step(C, UNDO_PAINT_IMAGE, step, undoname) && undoname) {
 				if (U.uiflag & USER_GLOBALUNDO) {
 					ED_viewport_render_kill_jobs(wm, bmain, true);
@@ -183,13 +181,13 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 		 * That was inconsistent with editmode, and also makes for
 		 * unecessarily tricky interaction with the other undo
 		 * systems. */
-		if (obact && eval_ctx.object_mode & OB_MODE_TEXTURE_PAINT) {
+		if (obact && workspace->object_mode & OB_MODE_TEXTURE_PAINT) {
 			ED_undo_paint_step(C, UNDO_PAINT_IMAGE, step, undoname);
 		}
-		else if (obact && eval_ctx.object_mode & OB_MODE_SCULPT) {
+		else if (obact && workspace->object_mode & OB_MODE_SCULPT) {
 			ED_undo_paint_step(C, UNDO_PAINT_MESH, step, undoname);
 		}
-		else if (obact && eval_ctx.object_mode & OB_MODE_PARTICLE_EDIT) {
+		else if (obact && workspace->object_mode & OB_MODE_PARTICLE_EDIT) {
 			if (step == 1)
 				PE_undo(scene, view_layer);
 			else
@@ -275,9 +273,7 @@ void ED_undo_pop_op(bContext *C, wmOperator *op)
 /* name optionally, function used to check for operator redo panel */
 bool ED_undo_is_valid(const bContext *C, const char *undoname)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
-
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Object *obact = CTX_data_active_object(C);
 	ScrArea *sa = CTX_wm_area(C);
@@ -285,7 +281,7 @@ bool ED_undo_is_valid(const bContext *C, const char *undoname)
 	if (sa && sa->spacetype == SPACE_IMAGE) {
 		SpaceImage *sima = (SpaceImage *)sa->spacedata.first;
 		
-		if ((obact && (eval_ctx.object_mode & OB_MODE_TEXTURE_PAINT)) || (sima->mode == SI_MODE_PAINT)) {
+		if ((obact && (workspace->object_mode & OB_MODE_TEXTURE_PAINT)) || (sima->mode == SI_MODE_PAINT)) {
 			return 1;
 		}
 	}
@@ -302,15 +298,15 @@ bool ED_undo_is_valid(const bContext *C, const char *undoname)
 		
 		/* if below tests fail, global undo gets executed */
 		
-		if (obact && eval_ctx.object_mode & OB_MODE_TEXTURE_PAINT) {
+		if (obact && workspace->object_mode & OB_MODE_TEXTURE_PAINT) {
 			if (ED_undo_paint_is_valid(UNDO_PAINT_IMAGE, undoname))
 				return 1;
 		}
-		else if (obact && eval_ctx.object_mode & OB_MODE_SCULPT) {
+		else if (obact && workspace->object_mode & OB_MODE_SCULPT) {
 			if (ED_undo_paint_is_valid(UNDO_PAINT_MESH, undoname))
 				return 1;
 		}
-		else if (obact && eval_ctx.object_mode & OB_MODE_PARTICLE_EDIT) {
+		else if (obact && workspace->object_mode & OB_MODE_PARTICLE_EDIT) {
 			return PE_undo_is_valid(CTX_data_scene(C), CTX_data_view_layer(C));
 		}
 		
@@ -506,8 +502,7 @@ enum {
 
 static int get_undo_system(bContext *C)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *obact = CTX_data_active_object(C);
 	Object *obedit = CTX_data_edit_object(C);
 	ScrArea *sa = CTX_wm_area(C);
@@ -516,7 +511,7 @@ static int get_undo_system(bContext *C)
 	if (sa && (sa->spacetype == SPACE_IMAGE)) {
 		SpaceImage *sima = (SpaceImage *)sa->spacedata.first;
 
-		if ((obact && (eval_ctx.object_mode & OB_MODE_TEXTURE_PAINT)) || (sima->mode == SI_MODE_PAINT)) {
+		if ((obact && (workspace->object_mode & OB_MODE_TEXTURE_PAINT)) || (sima->mode == SI_MODE_PAINT)) {
 			if (!ED_undo_paint_empty(UNDO_PAINT_IMAGE))
 				return UNDOSYSTEM_IMAPAINT;
 		}
@@ -529,13 +524,13 @@ static int get_undo_system(bContext *C)
 	}
 	else {
 		if (obact) {
-			if (eval_ctx.object_mode & OB_MODE_PARTICLE_EDIT)
+			if (workspace->object_mode & OB_MODE_PARTICLE_EDIT)
 				return UNDOSYSTEM_PARTICLE;
-			else if (eval_ctx.object_mode & OB_MODE_TEXTURE_PAINT) {
+			else if (workspace->object_mode & OB_MODE_TEXTURE_PAINT) {
 				if (!ED_undo_paint_empty(UNDO_PAINT_IMAGE))
 					return UNDOSYSTEM_IMAPAINT;
 			}
-			else if (eval_ctx.object_mode & OB_MODE_SCULPT) {
+			else if (workspace->object_mode & OB_MODE_SCULPT) {
 				if (!ED_undo_paint_empty(UNDO_PAINT_MESH))
 					return UNDOSYSTEM_SCULPT;
 			}

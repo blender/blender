@@ -199,13 +199,12 @@ static void paint_last_stroke_update(Scene *scene, ARegion *ar, const float mval
 /* Returns true if vertex paint mode is active */
 int vertex_paint_mode_poll(bContext *C)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = CTX_data_active_object(C);
 	return (ob &&
 	        (ob->type == OB_MESH) &&
 	        ((Mesh *)ob->data)->totpoly &&
-	        (eval_ctx.object_mode & OB_MODE_VERTEX_PAINT));
+	        (workspace->object_mode & OB_MODE_VERTEX_PAINT));
 }
 
 int vertex_paint_poll(bContext *C)
@@ -225,24 +224,22 @@ int vertex_paint_poll(bContext *C)
 
 int weight_paint_mode_poll(bContext *C)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = CTX_data_active_object(C);
 	return (ob &&
 	        (ob->type == OB_MESH) &&
 	        ((Mesh *)ob->data)->totpoly &&
-	        (eval_ctx.object_mode == OB_MODE_WEIGHT_PAINT));
+	        (workspace->object_mode == OB_MODE_WEIGHT_PAINT));
 }
 
 int weight_paint_poll(bContext *C)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = CTX_data_active_object(C);
 	ScrArea *sa;
 
 	if ((ob != NULL) &&
-	    (eval_ctx.object_mode & OB_MODE_WEIGHT_PAINT) &&
+	    (workspace->object_mode & OB_MODE_WEIGHT_PAINT) &&
 	    (BKE_paint_brush(&CTX_data_tool_settings(C)->wpaint->paint) != NULL) &&
 	    (sa = CTX_wm_area(C)) &&
 	    (sa->spacetype == SPACE_VIEW3D))

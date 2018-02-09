@@ -787,13 +787,12 @@ static void do_view3d_vgroup_buttons(bContext *C, void *UNUSED(arg), int event)
 
 static int view3d_panel_vgroup_poll(const bContext *C, PanelType *UNUSED(pt))
 {
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = OBACT(view_layer);
 
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
 	if (ob && (BKE_object_is_in_editmode_vgroup(ob) ||
-	           BKE_object_is_in_wpaint_select_vert(&eval_ctx, ob)))
+	           BKE_object_is_in_wpaint_select_vert(ob, workspace->object_mode)))
 	{
 		MDeformVert *dvert_act = ED_mesh_active_dvert_get_only(ob);
 		if (dvert_act) {
@@ -1130,9 +1129,8 @@ static int view3d_panel_transform_poll(const bContext *C, PanelType *UNUSED(pt))
 
 static void view3d_panel_transform(const bContext *C, Panel *pa)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
 	uiBlock *block;
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
@@ -1157,7 +1155,7 @@ static void view3d_panel_transform(const bContext *C, Panel *pa)
 			v3d_editvertex_buts(col, v3d, ob, lim);
 		}
 	}
-	else if (eval_ctx.object_mode & OB_MODE_POSE) {
+	else if (workspace->object_mode & OB_MODE_POSE) {
 		v3d_posearmature_buts(col, ob);
 	}
 	else {

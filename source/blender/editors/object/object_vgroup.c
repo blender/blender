@@ -43,6 +43,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BLI_alloca.h"
 #include "BLI_array.h"
@@ -2539,8 +2540,6 @@ static int UNUSED_FUNCTION(vertex_group_poll_edit) (bContext *C)
 /* editmode _or_ weight paint vertex sel */
 static int vertex_group_vert_poll_ex(bContext *C, const bool needs_select, const short ob_type_flag)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
 
@@ -2551,12 +2550,13 @@ static int vertex_group_vert_poll_ex(bContext *C, const bool needs_select, const
 		return false;
 	}
 
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	if (BKE_object_is_in_editmode_vgroup(ob)) {
 		return true;
 	}
-	else if (eval_ctx.object_mode & OB_MODE_WEIGHT_PAINT) {
+	else if (workspace->object_mode & OB_MODE_WEIGHT_PAINT) {
 		if (needs_select) {
-			if (BKE_object_is_in_wpaint_select_vert(&eval_ctx, ob)) {
+			if (BKE_object_is_in_wpaint_select_vert(ob, workspace->object_mode)) {
 				return true;
 			}
 			else {
@@ -2608,10 +2608,9 @@ static int vertex_group_vert_select_unlocked_poll(bContext *C)
 	if (!(ob && !ID_IS_LINKED(ob) && data && !ID_IS_LINKED(data)))
 		return 0;
 
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	if (!(BKE_object_is_in_editmode_vgroup(ob) ||
-	    BKE_object_is_in_wpaint_select_vert(&eval_ctx, ob)))
+	    BKE_object_is_in_wpaint_select_vert(ob, workspace->object_mode)))
 	{
 		return 0;
 	}
@@ -2637,11 +2636,9 @@ static int vertex_group_vert_select_mesh_poll(bContext *C)
 	if (ob->type != OB_MESH)
 		return 0;
 
-	
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	return (BKE_object_is_in_editmode_vgroup(ob) ||
-	        BKE_object_is_in_wpaint_select_vert(&eval_ctx, ob));
+	        BKE_object_is_in_wpaint_select_vert(ob, workspace->object_mode));
 }
 
 static int vertex_group_add_exec(bContext *C, wmOperator *UNUSED(op))

@@ -35,6 +35,7 @@
 
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
@@ -174,9 +175,8 @@ static int face_map_supported_edit_mode_poll(bContext *C)
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;
 	if (ob && !ob->id.lib && ob->type == OB_MESH && data && !data->lib) {
-		EvaluationContext eval_ctx;
-		CTX_data_eval_ctx(C, &eval_ctx);
-		if (eval_ctx.object_mode == OB_MODE_EDIT) {
+		const WorkSpace *workspace = CTX_wm_workspace(C);
+		if (workspace->object_mode == OB_MODE_EDIT) {
 			return true;
 		}
 	}

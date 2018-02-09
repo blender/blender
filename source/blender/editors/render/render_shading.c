@@ -99,8 +99,7 @@
 
 static int material_slot_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = ED_object_context(C);
 
 	if (!ob)
@@ -108,7 +107,7 @@ static int material_slot_add_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	BKE_object_material_slot_add(ob);
 
-	if (eval_ctx.object_mode & OB_MODE_TEXTURE_PAINT) {
+	if (workspace->object_mode & OB_MODE_TEXTURE_PAINT) {
 		Scene *scene = CTX_data_scene(C);
 		BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
 		WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
@@ -138,8 +137,7 @@ void OBJECT_OT_material_slot_add(wmOperatorType *ot)
 
 static int material_slot_remove_exec(bContext *C, wmOperator *op)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = ED_object_context(C);
 
 	if (!ob)
@@ -153,7 +151,7 @@ static int material_slot_remove_exec(bContext *C, wmOperator *op)
 	
 	BKE_object_material_slot_remove(ob);
 
-	if (eval_ctx.object_mode & OB_MODE_TEXTURE_PAINT) {
+	if (workspace->object_mode & OB_MODE_TEXTURE_PAINT) {
 		Scene *scene = CTX_data_scene(C);
 		BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
 		WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);

@@ -2721,7 +2721,7 @@ static CustomDataMask object_get_datamask(
 	}
 
 	if (ob == actob) {
-		bool editing = BKE_paint_select_face_test(eval_ctx, ob);
+		bool editing = BKE_paint_select_face_test(ob, eval_ctx->object_mode);
 
 		/* weight paint and face select need original indices because of selection buffer drawing */
 		if (r_need_mapping) {

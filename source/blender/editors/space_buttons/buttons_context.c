@@ -425,10 +425,9 @@ static int buttons_context_path_brush(const bContext *C, ButsContextPath *path)
 		scene = path->ptr[path->len - 1].data;
 
 		if (scene) {
-			EvaluationContext eval_ctx;
-			CTX_data_eval_ctx(C, &eval_ctx);
+			const WorkSpace *workspace = CTX_wm_workspace(C);
 			ViewLayer *view_layer = CTX_data_view_layer(C);
-			br = BKE_paint_brush(BKE_paint_get_active(scene, view_layer, eval_ctx.object_mode));
+			br = BKE_paint_brush(BKE_paint_get_active(scene, view_layer, workspace->object_mode));
 		}
 
 		if (br) {

@@ -506,16 +506,14 @@ static int layers_poll(bContext *C)
 
 static int mesh_uv_texture_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
-
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = ED_object_context(C);
 	Mesh *me = ob->data;
 
 	if (ED_mesh_uv_texture_add(me, NULL, true) == -1)
 		return OPERATOR_CANCELLED;
 
-	if (eval_ctx.object_mode & OB_MODE_TEXTURE_PAINT) {
+	if (workspace->object_mode & OB_MODE_TEXTURE_PAINT) {
 		Scene *scene = CTX_data_scene(C);
 		BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
 		WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
@@ -625,16 +623,14 @@ void MESH_OT_drop_named_image(wmOperatorType *ot)
 
 static int mesh_uv_texture_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
-
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = ED_object_context(C);
 	Mesh *me = ob->data;
 
 	if (!ED_mesh_uv_texture_remove_active(me))
 		return OPERATOR_CANCELLED;
 
-	if (eval_ctx.object_mode & OB_MODE_TEXTURE_PAINT) {
+	if (workspace->object_mode & OB_MODE_TEXTURE_PAINT) {
 		Scene *scene = CTX_data_scene(C);
 		BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
 		WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
@@ -748,12 +744,10 @@ static int mesh_customdata_mask_clear_poll(bContext *C)
 {
 	Object *ob = ED_object_context(C);
 	if (ob && ob->type == OB_MESH) {
-		EvaluationContext eval_ctx;
-		CTX_data_eval_ctx(C, &eval_ctx);
-
+		const WorkSpace *workspace = CTX_wm_workspace(C);
 
 		/* special case - can't run this if we're in sculpt mode */
-		if (eval_ctx.object_mode & OB_MODE_SCULPT) {
+		if (workspace->object_mode & OB_MODE_SCULPT) {
 			return false;
 		}
 
