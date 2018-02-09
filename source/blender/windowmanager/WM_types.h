@@ -520,6 +520,10 @@ typedef struct wmNDOFMotionData {
 } wmNDOFMotionData;
 #endif /* WITH_INPUT_NDOF */
 
+typedef enum {  /* Timer flags */
+	WM_TIMER_NO_FREE_CUSTOM_DATA  = 1 << 0,  /* Do not attempt to free customdata pointer even if non-NULL. */
+} wmTimerFlags;
+
 typedef struct wmTimer {
 	struct wmTimer *next, *prev;
 	
@@ -527,6 +531,7 @@ typedef struct wmTimer {
 
 	double timestep;		/* set by timer user */
 	int event_type;			/* set by timer user, goes to event system */
+	wmTimerFlags flags;		/* Various flags controlling timer options, see below. */
 	void *customdata;		/* set by timer user, to allow custom values */
 	
 	double duration;		/* total running time in seconds */
@@ -535,7 +540,7 @@ typedef struct wmTimer {
 	double ltime;			/* internal, last time timer was activated */
 	double ntime;			/* internal, next time we want to activate the timer */
 	double stime;			/* internal, when the timer started */
-	int sleep;				/* internal, put timers to sleep when needed */
+	bool sleep;				/* internal, put timers to sleep when needed */
 } wmTimer;
 
 typedef struct wmOperatorType {
