@@ -4597,19 +4597,17 @@ static bool sculpt_any_smooth_mode(const Brush *brush,
 	         (brush->mask_tool == BRUSH_MASK_SMOOTH)));
 }
 
-static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob)
+static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob, const Brush *brush)
 {
 	SculptSession *ss = ob->sculpt;
 
 	if (ss->kb || ss->modifiers_active) {
 		EvaluationContext eval_ctx;
-		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-		Brush *brush = BKE_paint_brush(&sd->paint);
-
 		CTX_data_eval_ctx(C, &eval_ctx);
-
-		BKE_sculpt_update_mesh_elements(&eval_ctx, CTX_data_scene(C), sd, ob,
-		                            sculpt_any_smooth_mode(brush, ss->cache, 0), false);
+		Scene *scene = CTX_data_scene(C);
+		Sculpt *sd = scene->toolsettings->sculpt;
+		bool need_pmap = sculpt_any_smooth_mode(brush, ss->cache, 0);
+		BKE_sculpt_update_mesh_elements(&eval_ctx, scene, sd, ob, need_pmap, false);
 	}
 }
 
@@ -4738,7 +4736,9 @@ bool sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 	cache = ss->cache;
 	original = (cache) ? cache->original : 0;
 
-	sculpt_stroke_modifiers_check(C, ob);
+	const Brush *brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
+
+	sculpt_stroke_modifiers_check(C, ob, brush);
 
 	depth = sculpt_raycast_init(&vc, mouse, ray_start, ray_end, ray_normal, original);
 
@@ -4764,7 +4764,6 @@ bool sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 	}
 
 	if (hit == false) {
-		const Brush *brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
 		if (ELEM(brush->falloff_shape, PAINT_FALLOFF_SHAPE_TUBE)) {
 			SculptFindNearestToRayData srd = {
 				.original = original,
@@ -4955,7 +4954,7 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *UNUSED(st
 	SculptSession *ss = ob->sculpt;
 	const Brush *brush = BKE_paint_brush(&sd->paint);
 	
-	sculpt_stroke_modifiers_check(C, ob);
+	sculpt_stroke_modifiers_check(C, ob, brush);
 	sculpt_update_cache_variants(C, sd, ob, itemptr);
 	sculpt_restore_mesh(sd, ob);
 
@@ -5030,7 +5029,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 		BLI_assert(brush == ss->cache->brush);  /* const, so we shouldn't change. */
 		ups->draw_inverted = false;
 
-		sculpt_stroke_modifiers_check(C, ob);
+		sculpt_stroke_modifiers_check(C, ob, brush);
 
 		/* Alt-Smooth */
 		if (ss->cache->alt_smooth) {
@@ -5855,7 +5854,9 @@ static void sample_detail(bContext *C, int ss_co[2])
 	sd = CTX_data_tool_settings(C)->sculpt;
 	ob = vc.obact;
 
-	sculpt_stroke_modifiers_check(C, ob);
+	Brush *brush = BKE_paint_brush(&sd->paint);
+
+	sculpt_stroke_modifiers_check(C, ob, brush);
 
 	depth = sculpt_raycast_init(&vc, mouse, ray_start, ray_end, ray_normal, false);
 

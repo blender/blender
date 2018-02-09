@@ -25,10 +25,6 @@ IGNORE = (
     "extern/bullet2/src/BulletDynamics/Character/btKinematicCharacterController.h",
     "extern/bullet2/src/BulletDynamics/ConstraintSolver/btHinge2Constraint.h",
     "extern/bullet2/src/BulletDynamics/ConstraintSolver/btUniversalConstraint.h",
-    "extern/carve/include/carve/config.h",
-    "extern/carve/include/carve/random/random.h",
-    "extern/carve/patches/files/config.h",
-    "extern/carve/patches/files/random.h",
     "intern/audaspace/SRC/AUD_SRCResampleFactory.h",
     "intern/audaspace/SRC/AUD_SRCResampleReader.h",
 )
