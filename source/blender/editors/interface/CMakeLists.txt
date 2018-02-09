@@ -69,7 +69,9 @@ set(SRC
 	view2d.c
 	view2d_ops.c
 
+	interface_eyedropper_intern.h
 	interface_intern.h
+	interface_regions_intern.h
 )
 
 if(WITH_INTERNATIONAL)

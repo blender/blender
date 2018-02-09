@@ -40,6 +40,7 @@ set(SRC
 
 	src/config.h
 	src/config_freebsd.h
+	src/config_haiku.h
 	src/config_hurd.h
 	src/config_linux.h
 	src/config_mac.h

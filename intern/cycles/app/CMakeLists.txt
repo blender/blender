@@ -128,8 +128,12 @@ if(WITH_CYCLES_CUBIN_COMPILER)
 	if(MSVC AND NOT CMAKE_CL_64)
 		Message("cycles_cubin_cc not supported on x86")
 	else()
-		set(SRC cycles_cubin_cc.cpp)
-		set(INC ../../../extern/cuew/include)
+		set(SRC
+			cycles_cubin_cc.cpp
+		)
+		set(INC
+			../../../extern/cuew/include
+		)
 		add_executable(cycles_cubin_cc ${SRC})
 		include_directories(${INC})
 		target_link_libraries(cycles_cubin_cc
