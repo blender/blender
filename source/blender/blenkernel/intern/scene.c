@@ -618,7 +618,7 @@ void BKE_scene_init(Scene *sce)
 	 */
 	sce->r.color_mgt_flag |= R_COLOR_MANAGEMENT;
 
-	sce->r.gauss = 1.0;
+	sce->r.gauss = 1.5f;
 	
 	/* deprecated but keep for upwards compat */
 	sce->r.postgamma = 1.0;

@@ -701,6 +701,10 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 				}
 			}
 		}
+
+		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+			scene->r.gauss = 1.5f;
+		}
 	}
 
 	if (!MAIN_VERSION_ATLEAST(main, 280, 1)) {
