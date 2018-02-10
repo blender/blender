@@ -745,60 +745,57 @@ static void reportContextString(const char *name, const char *dummy, const char 
 
 GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 {
-	const bool needAlpha = m_alphaBackground;
+	SetLastError(NO_ERROR);
+
+	HGLRC prevHGLRC = ::wglGetCurrentContext();
+	WIN32_CHK(GetLastError() == NO_ERROR);
+
+	HDC prevHDC = ::wglGetCurrentDC();
+	WIN32_CHK(GetLastError() == NO_ERROR);
+
+	if (!WGLEW_ARB_create_context || ::GetPixelFormat(m_hDC) == 0) {
+		const bool needAlpha = m_alphaBackground;
 
 #ifdef GHOST_OPENGL_STENCIL
-	const bool needStencil = true;
+		const bool needStencil = true;
 #else
-	const bool needStencil = false;
+		const bool needStencil = false;
 #endif
 
 #ifdef GHOST_OPENGL_SRGB
-	const bool sRGB = true;
+		const bool sRGB = true;
 #else
-	const bool sRGB = false;
+		const bool sRGB = false;
 #endif
+		int iPixelFormat;
+		int lastPFD;
 
-	HGLRC prevHGLRC;
-	HDC   prevHDC;
+		PIXELFORMATDESCRIPTOR chosenPFD;
 
-	int iPixelFormat;
-	int lastPFD;
+		iPixelFormat = choose_pixel_format(m_stereoVisual, m_numOfAASamples, needAlpha, needStencil, sRGB);
 
-	PIXELFORMATDESCRIPTOR chosenPFD;
+		if (iPixelFormat == 0) {
+			::wglMakeCurrent(prevHDC, prevHGLRC);
+			return GHOST_kFailure;
+		}
 
+		lastPFD = ::DescribePixelFormat(m_hDC, iPixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &chosenPFD);
 
-	SetLastError(NO_ERROR);
+		if (!WIN32_CHK(lastPFD != 0)) {
+			::wglMakeCurrent(prevHDC, prevHGLRC);
+			return GHOST_kFailure;
+		}
 
-	prevHGLRC = ::wglGetCurrentContext();
-	WIN32_CHK(GetLastError() == NO_ERROR);
+		if (needAlpha && chosenPFD.cAlphaBits == 0)
+			fprintf(stderr, "Warning! Unable to find a pixel format with an alpha channel.\n");
 
-	prevHDC   = ::wglGetCurrentDC();
-	WIN32_CHK(GetLastError() == NO_ERROR);
+		if (needStencil && chosenPFD.cStencilBits == 0)
+			fprintf(stderr, "Warning! Unable to find a pixel format with a stencil buffer.\n");
 
-	iPixelFormat = choose_pixel_format(m_stereoVisual, m_numOfAASamples, needAlpha, needStencil, sRGB);
-
-	if (iPixelFormat == 0) {
-		::wglMakeCurrent(prevHDC, prevHGLRC);
-		return GHOST_kFailure;
-	}
-
-	lastPFD = ::DescribePixelFormat(m_hDC, iPixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &chosenPFD);
-
-	if (!WIN32_CHK(lastPFD != 0)) {
-		::wglMakeCurrent(prevHDC, prevHGLRC);
-		return GHOST_kFailure;
-	}
-
-	if (needAlpha && chosenPFD.cAlphaBits == 0)
-		fprintf(stderr, "Warning! Unable to find a pixel format with an alpha channel.\n");
-
-	if (needStencil && chosenPFD.cStencilBits == 0)
-		fprintf(stderr, "Warning! Unable to find a pixel format with a stencil buffer.\n");
-
-	if (!WIN32_CHK(::SetPixelFormat(m_hDC, iPixelFormat, &chosenPFD))) {
-		::wglMakeCurrent(prevHDC, prevHGLRC);
-		return GHOST_kFailure;
+		if (!WIN32_CHK(::SetPixelFormat(m_hDC, iPixelFormat, &chosenPFD))) {
+			::wglMakeCurrent(prevHDC, prevHGLRC);
+			return GHOST_kFailure;
+		}
 	}
 
 	if (WGLEW_ARB_create_context) {
@@ -909,9 +906,11 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 	const char *version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
 
 #ifndef NDEBUG
-	reportContextString("Vendor",   m_dummyVendor,   vendor);
-	reportContextString("Renderer", m_dummyRenderer, renderer);
-	reportContextString("Version",  m_dummyVersion,  version);
+	if (m_dummyVendor != NULL) {
+		reportContextString("Vendor", m_dummyVendor, vendor);
+		reportContextString("Renderer", m_dummyRenderer, renderer);
+		reportContextString("Version", m_dummyVersion, version);
+	}
 #endif
 
 	return GHOST_kSuccess;
@@ -926,98 +925,4 @@ GHOST_TSuccess GHOST_ContextWGL::releaseNativeHandles()
 	m_hDC  = NULL;
 
 	return success;
-}
-
-/**
- * For any given HDC you may call SetPixelFormat once
- *
- * So we better try to get the correct OpenGL version in a new window altogether, in case it fails.
- * (see https://msdn.microsoft.com/en-us/library/windows/desktop/dd369049(v=vs.85).aspx)
- */
-static bool TryOpenGLVersion(
-        HWND hwnd,
-        bool wantStereoVisual,
-        bool wantAlphaBackground,
-        GHOST_TUns16 wantNumOfAASamples,
-        int contextProfileMask,
-        bool debugContext,
-        int major, int minor)
-{
-	HWND dummyHWND = clone_window(hwnd, NULL);
-	if (dummyHWND == NULL) {
-		return false;
-	}
-
-	HDC dummyHDC = GetDC(dummyHWND);
-	if (dummyHDC == NULL) {
-		return false;
-	}
-
-	GHOST_ContextWGL * context = new GHOST_ContextWGL(
-	        wantStereoVisual,
-	        wantAlphaBackground,
-	        wantNumOfAASamples,
-	        dummyHWND,
-	        dummyHDC,
-	        contextProfileMask,
-	        major, minor,
-	        (debugContext ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
-	        GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
-
-	bool result = context->initializeDrawingContext();
-	delete context;
-
-	ReleaseDC(dummyHWND, dummyHDC);
-	DestroyWindow(dummyHWND);
-
-	return result;
-}
-
-GHOST_TSuccess GHOST_ContextWGL::getMaximumSupportedOpenGLVersion(
-        HWND hwnd,
-        bool wantStereoVisual,
-        bool wantAlphaBackground,
-        GHOST_TUns16 wantNumOfAASamples,
-        int contextProfileMask,
-        bool debugContext,
-        GHOST_TUns8 *r_major_version,
-        GHOST_TUns8 *r_minor_version)
-{
-	/* - AMD and Intel give us exactly this version
-	 * - NVIDIA gives at least this version <-- desired behavior
-	 * So we ask for 4.5, 4.4 ... 3.3 in descending order to get the best version on the user's system. */
-	for (int minor = 5; minor >= 0; --minor) {
-		if (TryOpenGLVersion(
-		            hwnd,
-		            wantStereoVisual,
-		            wantAlphaBackground,
-		            wantNumOfAASamples,
-		            contextProfileMask,
-		            debugContext,
-		            4, minor))
-		{
-			*r_major_version = 4;
-			*r_minor_version = minor;
-			return GHOST_kSuccess;
-		}
-	}
-
-	/* Fallback to OpenGL 3.3 */
-	if (TryOpenGLVersion(
-	        hwnd,
-	        wantStereoVisual,
-	        wantAlphaBackground,
-	        wantNumOfAASamples,
-	        contextProfileMask,
-	        debugContext,
-	        3, 3))
-	{
-		*r_major_version = 3;
-		*r_minor_version = 3;
-		return GHOST_kSuccess;
-	}
-
-	*r_major_version = 0;
-	*r_minor_version = 0;
-	return GHOST_kFailure;
 }

@@ -105,20 +105,6 @@ public:
 	 */
 	GHOST_TSuccess getSwapInterval(int &intervalOut);
 
-	/**
-	* Gets the maximum supported OpenGL context for the user hardware
-	* \return Whether major_version and minor_version resulted in a valid context.
-	*/
-	static GHOST_TSuccess getMaximumSupportedOpenGLVersion(
-	        HWND hwnd,
-	        bool wantStereoVisual,
-	        bool wantAlphaBackground,
-	        GHOST_TUns16 wantNumOfAASamples,
-	        int contextProfileMask,
-	        bool debugContext,
-	        GHOST_TUns8 *r_major_version,
-	        GHOST_TUns8 *r_minor_version);
-
 private:
 	int choose_pixel_format(
 	        bool stereoVisual,

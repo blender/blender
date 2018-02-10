@@ -622,17 +622,10 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
 		GHOST_Context *context;
 
 #if defined(WITH_GL_PROFILE_CORE)
-		GHOST_TUns8 major, minor;
-
-		if (GHOST_ContextWGL::getMaximumSupportedOpenGLVersion(
-		    m_hWnd,
-		    m_wantStereoVisual,
-		    m_wantAlphaBackground,
-		    m_wantNumOfAASamples,
-		    WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-		    m_debug_context,
-		    &major, &minor))
-		{
+		/* - AMD and Intel give us exactly this version
+		 * - NVIDIA gives at least this version <-- desired behavior
+		 * So we ask for 4.5, 4.4 ... 3.3 in descending order to get the best version on the user's system. */
+		for (int minor = 5; minor >= 0; --minor) {
 			context = new GHOST_ContextWGL(
 			    m_wantStereoVisual,
 			    m_wantAlphaBackground,
@@ -640,7 +633,7 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
 			    m_hWnd,
 			    m_hDC,
 			    WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-			    major, minor,
+			    4, minor,
 			    (m_debug_context ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
 			    GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
 
@@ -651,6 +644,20 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
 				delete context;
 			}
 		}
+		context = new GHOST_ContextWGL(
+		    m_wantStereoVisual,
+		    m_wantAlphaBackground,
+		    m_wantNumOfAASamples,
+		    m_hWnd,
+		    m_hDC,
+		    WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+		    3, 3,
+		    (m_debug_context ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
+		    GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
+
+		if (context->initializeDrawingContext()) {
+			return context;
+		}
 		else {
 			MessageBox(
 			        m_hWnd,
@@ -658,8 +665,8 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
 			        "The program will now close.",
 			        "Blender - Unsupported Graphics Driver!",
 			        MB_OK | MB_ICONERROR);
+			delete context;
 			exit(0);
-			return NULL;
 		}
 
 #elif defined(WITH_GL_PROFILE_COMPAT)
@@ -675,9 +682,6 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
 		        2, 1,
 		        (m_debug_context ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
 		        GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
-#else
-#  error // must specify either core or compat at build time
-#endif
 
 		if (context->initializeDrawingContext()) {
 			return context;
@@ -685,6 +689,9 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
 		else {
 			delete context;
 		}
+#else
+#  error // must specify either core or compat at build time
+#endif
 	}
 
 	return NULL;
