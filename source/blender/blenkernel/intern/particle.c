@@ -2590,9 +2590,11 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
 	if ((psys->flag & PSYS_HAIR_DONE || psys->flag & PSYS_KEYED || psys->pointcache) == 0)
 		return;
 
+#if 0 /* TODO(mai): something is very wrong with these conditionals, they dont make sense and the cache isnt updating */
 	if (psys_in_edit_mode(sim->eval_ctx, sim->eval_ctx->view_layer, psys))
 		if (psys->renderdata == 0 && (psys->edit == NULL || pset->flag & PE_DRAW_PART) == 0)
 			return;
+#endif
 
 	keyed = psys->flag & PSYS_KEYED;
 	baked = psys->pointcache->mem_cache.first && psys->part->type != PART_HAIR;

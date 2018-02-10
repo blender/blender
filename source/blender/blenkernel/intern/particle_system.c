@@ -2936,12 +2936,15 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra, cons
 			skip = 1; /* draw visualization */
 		else if (psys->pointcache->flag & PTCACHE_BAKING)
 			skip = 1; /* no need to cache paths while baking dynamics */
+
+#if 0 /* TODO(mai): something is very wrong with these conditionals, they dont make sense and the cache isnt updating */
 		else if (psys_in_edit_mode(sim->eval_ctx, sim->eval_ctx->view_layer, psys)) {
 			if ((pset->flag & PE_DRAW_PART)==0)
 				skip = 1;
 			else if (part->childtype==0 && (psys->flag & PSYS_HAIR_DYNAMICS && psys->pointcache->flag & PTCACHE_BAKED)==0)
 				skip = 1; /* in edit mode paths are needed for child particles and dynamic hair */
 		}
+#endif
 	}
 
 
