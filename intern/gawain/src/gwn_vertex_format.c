@@ -31,9 +31,7 @@ void GWN_vertformat_clear(Gwn_VertFormat* format)
 	format->name_ct = 0;
 
 	for (unsigned i = 0; i < GWN_VERT_ATTR_MAX_LEN; i++)
-		{
 		format->attribs[i].name_ct = 0;
-		}
 #endif
 	}
 
@@ -43,13 +41,8 @@ void GWN_vertformat_copy(Gwn_VertFormat* dest, const Gwn_VertFormat* src)
 	memcpy(dest, src, sizeof(Gwn_VertFormat));
 
 	for (unsigned i = 0; i < dest->attrib_ct; i++)
-		{
-		dest->attribs[i].name_ct = dest->attribs[i].name_ct;
 		for (unsigned j = 0; j < dest->attribs[i].name_ct; j++)
-			{
 			dest->attribs[i].name[j] = (char *)dest + (src->attribs[i].name[j] - ((char *)src));
-			}
-		}
 	}
 
 static GLenum convert_comp_type_to_gl(Gwn_VertCompType type)
