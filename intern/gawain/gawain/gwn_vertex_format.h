@@ -41,8 +41,8 @@ typedef enum {
 typedef struct Gwn_VertAttr {
 	Gwn_VertCompType comp_type;
 	unsigned gl_comp_type;
-	unsigned comp_ct; // 1 to 4
-	unsigned sz; // size in bytes, 1 to 16
+	unsigned comp_ct; // 1 to 4 or 16
+	unsigned sz; // size in bytes, 1 to 64
 	unsigned offset; // from beginning of vertex, in bytes
 	Gwn_VertFetchMode fetch_mode;
 	const char* name[MAX_ATTRIB_NAMES];

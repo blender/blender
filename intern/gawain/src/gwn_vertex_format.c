@@ -143,7 +143,7 @@ unsigned GWN_vertformat_attr_add(Gwn_VertFormat* format, const char* name, Gwn_V
 	assert(format->name_ct < GWN_VERT_ATTR_MAX_LEN); // there's room for more
 	assert(format->attrib_ct < GWN_VERT_ATTR_MAX_LEN); // there's room for more
 	assert(!format->packed); // packed means frozen/locked
-	assert(comp_ct >= 1 && comp_ct <= 4);
+	assert((comp_ct >= 1 && comp_ct <= 4) || comp_ct == 16);
 	switch (comp_type)
 		{
 		case GWN_COMP_F32:
@@ -159,6 +159,8 @@ unsigned GWN_vertformat_attr_add(Gwn_VertFormat* format, const char* name, Gwn_V
 		default:
 			// integer types can be kept as int or converted/normalized to float
 			assert(fetch_mode != GWN_FETCH_FLOAT);
+			// only support float matrices (see Batch_update_program_bindings)
+			assert(comp_ct != 16);
 		}
 #endif
 	format->name_ct++; // multiname support

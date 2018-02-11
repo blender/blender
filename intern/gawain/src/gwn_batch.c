@@ -118,13 +118,8 @@ void GWN_batch_program_unset(Gwn_Batch* batch)
 	batch->program_in_use = false;
 	}
 
-static void Batch_update_program_bindings(Gwn_Batch* batch, unsigned int v_first)
+static void create_bindings(Gwn_Batch* batch, const Gwn_ShaderInterface* interface, unsigned int v_first, const bool use_instancing)
 	{
-	// disable all as a precaution
-	// why are we not using prev_attrib_enabled_bits?? see immediate.c
-	for (unsigned a_idx = 0; a_idx < GWN_VERT_ATTR_MAX_LEN; ++a_idx)
-		glDisableVertexAttribArray(a_idx);
-
 	for (int v = 0; v < GWN_BATCH_VBO_MAX_LEN; ++v)
 		{
 		Gwn_VertBuf* verts = batch->verts[v];
@@ -146,27 +141,68 @@ static void Batch_update_program_bindings(Gwn_Batch* batch, unsigned int v_first
 
 			for (unsigned n_idx = 0; n_idx < a->name_ct; ++n_idx)
 				{
-				const Gwn_ShaderInput* input = GWN_shaderinterface_attr(batch->interface, a->name[n_idx]);
+				const Gwn_ShaderInput* input = GWN_shaderinterface_attr(interface, a->name[n_idx]);
 
 				if (input == NULL) continue;
 
-				glEnableVertexAttribArray(input->location);
-
-				switch (a->fetch_mode)
+				if (a->comp_ct == 16) // Mat4 case
 					{
-					case GWN_FETCH_FLOAT:
-					case GWN_FETCH_INT_TO_FLOAT:
-						glVertexAttribPointer(input->location, a->comp_ct, a->gl_comp_type, GL_FALSE, stride, pointer);
-						break;
-					case GWN_FETCH_INT_TO_FLOAT_UNIT:
-						glVertexAttribPointer(input->location, a->comp_ct, a->gl_comp_type, GL_TRUE, stride, pointer);
-						break;
-					case GWN_FETCH_INT:
-						glVertexAttribIPointer(input->location, a->comp_ct, a->gl_comp_type, stride, pointer);
+#if TRUST_NO_ONE
+					assert(a->fetch_mode == GWN_FETCH_FLOAT);
+					assert(a->gl_comp_type == GL_FLOAT);
+#endif
+					for (int i = 0; i < 4; ++i)
+						{
+						glEnableVertexAttribArray(input->location + i);
+						glVertexAttribDivisor(input->location + i, (use_instancing) ? 1 : 0);
+						glVertexAttribPointer(input->location + i, 4, a->gl_comp_type, GL_FALSE, stride,
+						                      (const GLubyte*)pointer + i * 16);
+						}
+					}
+				else
+					{
+					glEnableVertexAttribArray(input->location);
+					glVertexAttribDivisor(input->location, (use_instancing) ? 1 : 0);
+
+					switch (a->fetch_mode)
+						{
+						case GWN_FETCH_FLOAT:
+						case GWN_FETCH_INT_TO_FLOAT:
+							glVertexAttribPointer(input->location, a->comp_ct, a->gl_comp_type, GL_FALSE, stride, pointer);
+							break;
+						case GWN_FETCH_INT_TO_FLOAT_UNIT:
+							glVertexAttribPointer(input->location, a->comp_ct, a->gl_comp_type, GL_TRUE, stride, pointer);
+							break;
+						case GWN_FETCH_INT:
+							glVertexAttribIPointer(input->location, a->comp_ct, a->gl_comp_type, stride, pointer);
+						}
 					}
 				}
 			}
 		}
+	}
+
+static void Batch_update_program_bindings(Gwn_Batch* batch, unsigned int v_first)
+	{
+	// disable all as a precaution
+	// why are we not using prev_attrib_enabled_bits?? see immediate.c
+	for (unsigned a_idx = 0; a_idx < GWN_VERT_ATTR_MAX_LEN; ++a_idx)
+		glDisableVertexAttribArray(a_idx);
+
+	create_bindings(batch, batch->interface, v_first, false);
+
+	batch->program_dirty = false;
+	}
+
+static void Batch_update_program_bindings_instancing(Gwn_Batch* batch, Gwn_Batch* batch_instancing, unsigned int v_first)
+	{
+	// disable all as a precaution
+	// why are we not using prev_attrib_enabled_bits?? see immediate.c
+	for (unsigned a_idx = 0; a_idx < GWN_VERT_ATTR_MAX_LEN; ++a_idx)
+		glDisableVertexAttribArray(a_idx);
+
+	create_bindings(batch, batch->interface, v_first, false);
+	create_bindings(batch_instancing, batch->interface, v_first, true);
 
 	batch->program_dirty = false;
 	}
@@ -417,50 +453,9 @@ void GWN_batch_draw_stupid_instanced_with_batch(Gwn_Batch* batch_instanced, Gwn_
 		Batch_prime(batch_instanced);
 
 	if (batch_instanced->program_dirty)
-		Batch_update_program_bindings(batch_instanced, 0);
+		Batch_update_program_bindings_instancing(batch_instanced, batch_instancing, 0);
 
 	Gwn_VertBuf* verts = batch_instancing->verts[0];
-
-	const Gwn_VertFormat* format = &verts->format;
-
-	const unsigned attrib_ct = format->attrib_ct;
-	const unsigned stride = format->stride;
-
-	GWN_vertbuf_use(verts);
-
-	for (unsigned a_idx = 0; a_idx < attrib_ct; ++a_idx)
-		{
-		const Gwn_VertAttr* a = format->attribs + a_idx;
-
-		const GLvoid* pointer = (const GLubyte*)0 + a->offset;
-
-		for (unsigned n_idx = 0; n_idx < a->name_ct; ++n_idx)
-			{
-			const Gwn_ShaderInput* input = GWN_shaderinterface_attr(batch_instanced->interface, a->name[n_idx]);
-
-			if (input == NULL) continue;
-
-			glEnableVertexAttribArray(input->location);
-			glVertexAttribDivisor(input->location, 1);
-
-			switch (a->fetch_mode)
-				{
-				case GWN_FETCH_FLOAT:
-				case GWN_FETCH_INT_TO_FLOAT:
-					glVertexAttribPointer(input->location, a->comp_ct, a->gl_comp_type, GL_FALSE, stride, pointer);
-					break;
-				case GWN_FETCH_INT_TO_FLOAT_UNIT:
-					glVertexAttribPointer(input->location, a->comp_ct, a->gl_comp_type, GL_TRUE, stride, pointer);
-					break;
-				case GWN_FETCH_INT:
-					glVertexAttribIPointer(input->location, a->comp_ct, a->gl_comp_type, stride, pointer);
-				}
-			}
-		}
-
-	// GWN_batch_program_use_begin(batch);
-
-	//gpuBindMatrices(batch->program);
 
 	if (batch_instanced->elem)
 		{
@@ -475,10 +470,5 @@ void GWN_batch_draw_stupid_instanced_with_batch(Gwn_Batch* batch_instanced, Gwn_
 	else
 		glDrawArraysInstanced(batch_instanced->gl_prim_type, 0, batch_instanced->verts[0]->vertex_ct, verts->vertex_ct);
 
-	// Reset divisor to prevent messing the next draw
-	for (unsigned a_idx = 0; a_idx < GWN_VERT_ATTR_MAX_LEN; ++a_idx)
-		glVertexAttribDivisor(a_idx, 0);
-
-	// GWN_batch_program_use_end(batch);
 	glBindVertexArray(0);
 	}
