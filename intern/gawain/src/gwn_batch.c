@@ -194,15 +194,15 @@ static void Batch_update_program_bindings(Gwn_Batch* batch, unsigned int v_first
 	batch->program_dirty = false;
 	}
 
-static void Batch_update_program_bindings_instancing(Gwn_Batch* batch, Gwn_Batch* batch_instancing, unsigned int v_first)
+static void Batch_update_program_bindings_instancing(Gwn_Batch* batch, Gwn_Batch* batch_instancing, unsigned int instance_first)
 	{
 	// disable all as a precaution
 	// why are we not using prev_attrib_enabled_bits?? see immediate.c
 	for (unsigned a_idx = 0; a_idx < GWN_VERT_ATTR_MAX_LEN; ++a_idx)
 		glDisableVertexAttribArray(a_idx);
 
-	create_bindings(batch, batch->interface, v_first, false);
-	create_bindings(batch_instancing, batch->interface, v_first, true);
+	create_bindings(batch, batch->interface, 0, false);
+	create_bindings(batch_instancing, batch->interface, instance_first, true);
 
 	batch->program_dirty = false;
 	}
@@ -346,9 +346,6 @@ void GWN_batch_draw(Gwn_Batch* batch)
 	glBindVertexArray(0);
 	}
 
-
-
-// clement : temp stuff
 void GWN_batch_draw_stupid(Gwn_Batch* batch, int v_first, int v_count)
 	{
 	if (batch->vao_id)
@@ -364,9 +361,8 @@ void GWN_batch_draw_stupid(Gwn_Batch* batch, int v_first, int v_count)
 	//gpuBindMatrices(batch->program);
 
 	// Infer lenght if vertex count is not given
-	if (v_count == 0) {
+	if (v_count == 0)
 		v_count = (batch->elem) ? batch->elem->index_ct : batch->verts[0]->vertex_ct;
-	}
 
 	if (batch->elem)
 		{
@@ -388,64 +384,7 @@ void GWN_batch_draw_stupid(Gwn_Batch* batch, int v_first, int v_count)
 	glBindVertexArray(0);
 	}
 
-// clement : temp stuff
-void GWN_batch_draw_stupid_instanced(Gwn_Batch* batch, unsigned int instance_vbo, int instance_first, int instance_count,
-                                 int attrib_nbr, int attrib_stride, int attrib_size[16], int attrib_loc[16])
-	{
-	if (batch->vao_id)
-		glBindVertexArray(batch->vao_id);
-	else
-		Batch_prime(batch);
-
-	if (batch->program_dirty)
-		Batch_update_program_bindings(batch, 0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, instance_vbo);
-	int ptr_ofs = instance_first * attrib_stride;
-	for (int i = 0; i < attrib_nbr; ++i)
-		{
-		int size = attrib_size[i];
-		int loc = attrib_loc[i];
-		int atr_ofs = 0;
-
-		while (size > 0)
-			{
-			glEnableVertexAttribArray(loc + atr_ofs);
-			glVertexAttribPointer(loc + atr_ofs, (size > 4) ? 4 : size, GL_FLOAT, GL_FALSE,
-			                      sizeof(float) * attrib_stride, (GLvoid*)(sizeof(float) * ptr_ofs));
-			glVertexAttribDivisor(loc + atr_ofs, 1);
-			atr_ofs++;
-			ptr_ofs += (size > 4) ? 4 : size;
-			size -= 4;
-			}
-		}
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	// GWN_batch_program_use_begin(batch);
-
-	//gpuBindMatrices(batch->program);
-
-	if (batch->elem)
-		{
-		const Gwn_IndexBuf* el = batch->elem;
-#if GWN_TRACK_INDEX_RANGE
-		glDrawElementsInstancedBaseVertex(batch->gl_prim_type, el->index_ct, el->gl_index_type, 0, instance_count, el->base_index);
-#else
-		glDrawElementsInstanced(batch->gl_prim_type, el->index_ct, GL_UNSIGNED_INT, 0, instance_count);
-#endif
-		}
-	else
-		glDrawArraysInstanced(batch->gl_prim_type, 0, batch->verts[0]->vertex_ct, instance_count);
-
-	// Reset divisor to prevent messing the next draw
-	for (unsigned a_idx = 0; a_idx < GWN_VERT_ATTR_MAX_LEN; ++a_idx)
-		glVertexAttribDivisor(a_idx, 0);
-
-	// GWN_batch_program_use_end(batch);
-	glBindVertexArray(0);
-	}
-
-void GWN_batch_draw_stupid_instanced_with_batch(Gwn_Batch* batch_instanced, Gwn_Batch* batch_instancing)
+void GWN_batch_draw_stupid_instanced(Gwn_Batch* batch_instanced, Gwn_Batch* batch_instancing, int instance_first, int instance_count)
 	{
 	if (batch_instanced->vao_id)
 		glBindVertexArray(batch_instanced->vao_id);
@@ -453,22 +392,25 @@ void GWN_batch_draw_stupid_instanced_with_batch(Gwn_Batch* batch_instanced, Gwn_
 		Batch_prime(batch_instanced);
 
 	if (batch_instanced->program_dirty)
-		Batch_update_program_bindings_instancing(batch_instanced, batch_instancing, 0);
+		Batch_update_program_bindings_instancing(batch_instanced, batch_instancing, instance_first);
 
 	Gwn_VertBuf* verts = batch_instancing->verts[0];
+
+	if (instance_count == 0)
+		instance_count = verts->vertex_ct;
 
 	if (batch_instanced->elem)
 		{
 		const Gwn_IndexBuf* el = batch_instanced->elem;
 
 #if GWN_TRACK_INDEX_RANGE
-		glDrawElementsInstancedBaseVertex(batch_instanced->gl_prim_type, el->index_ct, el->gl_index_type, 0, verts->vertex_ct, el->base_index);
+		glDrawElementsInstancedBaseVertex(batch_instanced->gl_prim_type, el->index_ct, el->gl_index_type, 0, instance_count, el->base_index);
 #else
-		glDrawElementsInstanced(batch_instanced->gl_prim_type, el->index_ct, GL_UNSIGNED_INT, 0, verts->vertex_ct);
+		glDrawElementsInstanced(batch_instanced->gl_prim_type, el->index_ct, GL_UNSIGNED_INT, 0, instance_count);
 #endif
 		}
 	else
-		glDrawArraysInstanced(batch_instanced->gl_prim_type, 0, batch_instanced->verts[0]->vertex_ct, verts->vertex_ct);
+		glDrawArraysInstanced(batch_instanced->gl_prim_type, 0, batch_instanced->verts[0]->vertex_ct, instance_count);
 
 	glBindVertexArray(0);
 	}

@@ -190,10 +190,6 @@ struct DRWUniform {
 
 struct DRWInterface {
 	DRWUniform *uniforms;   /* DRWUniform, single-linked list */
-	int attribs_count;
-	int attribs_stride;
-	int attribs_size[16];
-	int attribs_loc[16];
 	/* matrices locations */
 	int model;
 	int modelinverse;
@@ -213,15 +209,16 @@ struct DRWInterface {
 	int eye;
 	int clipplanes;
 	/* Dynamic batch */
-	Gwn_Batch *instance_batch; /* contains instances attributes */
-	GLuint instance_vbo; /* same as instance_batch but generated from DRWCalls */
 	struct DRWInstanceData *inst_data;
 #ifdef USE_GPU_SELECT
 	struct DRWInstanceData *inst_selectid;
 	/* Override for single object instances. */
 	int override_selectid;
 #endif
-	int instance_count;
+	unsigned int instance_count;
+	unsigned char attribs_count;
+	unsigned char attribs_stride;
+	unsigned char attribs_size[MAX_ATTRIB_COUNT];
 	Gwn_VertFormat vbo_format;
 };
 
@@ -279,6 +276,7 @@ struct DRWShadingGroup {
 
 	ID *instance_data;         /* Object->data to instance */
 	Gwn_Batch *instance_geom;  /* Geometry to instance */
+	Gwn_Batch *instancing_geom;/* Instances attributes */
 	Gwn_Batch *batch_geom;     /* Result of call batching */
 
 #ifdef USE_GPU_SELECT
@@ -294,6 +292,7 @@ enum {
 	DRW_SHG_LINE_BATCH,
 	DRW_SHG_TRIANGLE_BATCH,
 	DRW_SHG_INSTANCE,
+	DRW_SHG_INSTANCE_EXTERNAL,
 };
 
 /* Used by DRWCall.type */
@@ -661,8 +660,6 @@ static void drw_interface_create(DRWInterface *interface, GPUShader *shader)
 	interface->instance_count = 0;
 	interface->attribs_count = 0;
 	interface->attribs_stride = 0;
-	interface->instance_vbo = 0;
-	interface->instance_batch = NULL;
 	interface->inst_data = NULL;
 	interface->uniforms = NULL;
 #ifdef USE_GPU_SELECT
@@ -712,33 +709,16 @@ static void drw_interface_uniform(DRWShadingGroup *shgroup, const char *name,
 static void drw_interface_attrib(DRWShadingGroup *shgroup, const char *name, DRWAttribType UNUSED(type), int size, bool dummy)
 {
 	unsigned int attrib_id = shgroup->interface.attribs_count;
-	GLuint program = GPU_shader_get_program(shgroup->shader);
-
-	shgroup->interface.attribs_loc[attrib_id] = glGetAttribLocation(program, name);
 	shgroup->interface.attribs_size[attrib_id] = size;
 	shgroup->interface.attribs_stride += size;
 	shgroup->interface.attribs_count += 1;
 
-	if (shgroup->type != DRW_SHG_INSTANCE) {
-		BLI_assert(size <= 4); /* Matrices are not supported by Gawain. */
-		GWN_vertformat_attr_add(&shgroup->interface.vbo_format, name, GWN_COMP_F32, size, GWN_FETCH_FLOAT);
-	}
-
+	BLI_assert(ELEM(shgroup->type, DRW_SHG_INSTANCE, DRW_SHG_POINT_BATCH, DRW_SHG_LINE_BATCH, DRW_SHG_TRIANGLE_BATCH));
 	BLI_assert(shgroup->interface.attribs_count < MAX_ATTRIB_COUNT);
 
-/* Adding attribute even if not found for now (to keep memory alignment).
- * Should ideally take vertex format automatically from batch eventually */
-#if 0
-	if (attrib->location == -1 && !dummy) {
-		if (G.debug & G_DEBUG)
-			fprintf(stderr, "Attribute '%s' not found!\n", name);
-		BLI_assert(0);
-		MEM_freeN(attrib);
-		return;
-	}
-#else
+	GWN_vertformat_attr_add(&shgroup->interface.vbo_format, name, GWN_COMP_F32, size, GWN_FETCH_FLOAT);
+
 	UNUSED_VARS(dummy);
-#endif
 }
 
 /** \} */
@@ -771,6 +751,7 @@ DRWShadingGroup *DRW_shgroup_create(struct GPUShader *shader, DRWPass *pass)
 	shgroup->state_extra_disable = ~0x0;
 	shgroup->stencil_mask = 0;
 	shgroup->batch_geom = NULL;
+	shgroup->instancing_geom = NULL;
 	shgroup->instance_geom = NULL;
 	shgroup->instance_data = NULL;
 
@@ -921,12 +902,9 @@ DRWShadingGroup *DRW_shgroup_empty_tri_batch_create(struct GPUShader *shader, DR
 
 void DRW_shgroup_free(struct DRWShadingGroup *shgroup)
 {
-	if (shgroup->interface.instance_vbo &&
-	    (shgroup->interface.instance_batch == 0))
-	{
-		glDeleteBuffers(1, &shgroup->interface.instance_vbo);
+	if (shgroup->type != DRW_SHG_INSTANCE_EXTERNAL) {
+		GWN_BATCH_DISCARD_SAFE(shgroup->instancing_geom);
 	}
-
 	GWN_BATCH_DISCARD_SAFE(shgroup->batch_geom);
 }
 
@@ -942,12 +920,14 @@ void DRW_shgroup_free(struct DRWShadingGroup *shgroup)
 	call->head.prev = NULL; \
 } ((void)0)
 
+/* Specify an external batch instead of adding each attrib one by one. */
 void DRW_shgroup_instance_batch(DRWShadingGroup *shgroup, struct Gwn_Batch *instances)
 {
 	BLI_assert(shgroup->type == DRW_SHG_INSTANCE);
-	BLI_assert(shgroup->interface.instance_batch == NULL);
+	BLI_assert(shgroup->instancing_geom == NULL);
 
-	shgroup->interface.instance_batch = instances;
+	shgroup->type = DRW_SHG_INSTANCE_EXTERNAL;
+	shgroup->instancing_geom = instances;
 
 #ifdef USE_GPU_SELECT
 	DRWCall *call = BLI_mempool_alloc(DST.vmempool->calls);
@@ -1226,48 +1206,35 @@ static void shgroup_dynamic_batch(DRWShadingGroup *shgroup)
 static void shgroup_dynamic_instance(DRWShadingGroup *shgroup)
 {
 	DRWInterface *interface = &shgroup->interface;
-	int buffer_size = 0;
-	void *data = NULL;
+	int nbr = interface->instance_count;
 
-	if (interface->instance_batch != NULL) {
+	if (nbr == 0)
 		return;
+
+	/* XXX Add a dummy attr for simple instancing. */
+	if (interface->attribs_count == 0) {
+		drw_interface_attrib(shgroup, "dummy", DRW_ATTRIB_FLOAT, 1, true);
 	}
 
-	/* TODO We still need this because gawain does not support Matrix attribs. */
-	if (interface->instance_count == 0) {
-		if (interface->instance_vbo) {
-			glDeleteBuffers(1, &interface->instance_vbo);
-			interface->instance_vbo = 0;
-		}
-		return;
-	}
-
-	/* Gather Data */
-	buffer_size = sizeof(float) * interface->attribs_stride * interface->instance_count;
-
-	/* TODO poke mike to add this to gawain */
-	if (interface->instance_vbo) {
-		glDeleteBuffers(1, &interface->instance_vbo);
-		interface->instance_vbo = 0;
-	}
-
+	/* Upload Data */
+	Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&interface->vbo_format);
 	if (interface->inst_data) {
-		data = DRW_instance_data_get(interface->inst_data);
+		GWN_vertbuf_data_set(vbo, nbr, DRW_instance_data_get(interface->inst_data), false);
+	} else {
+		/* Use unitialized memory. This is for dummy vertex buffers. */
+		/* XXX TODO do not alloc at all. */
+		GWN_vertbuf_data_alloc(vbo, nbr);
 	}
 
-	glGenBuffers(1, &interface->instance_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, interface->instance_vbo);
-	glBufferData(GL_ARRAY_BUFFER, buffer_size, data, GL_STATIC_DRAW);
+	/* TODO make the batch dynamic instead of freeing it every times */
+	if (shgroup->instancing_geom)
+		GWN_batch_discard(shgroup->instancing_geom);
+
+	shgroup->instancing_geom = GWN_batch_create_ex(GWN_PRIM_POINTS, vbo, NULL, GWN_BATCH_OWNS_VBO);
 }
 
 static void shgroup_dynamic_batch_from_calls(DRWShadingGroup *shgroup)
 {
-	if ((shgroup->interface.instance_vbo || shgroup->batch_geom) &&
-	    (G.debug_value == 667))
-	{
-		return;
-	}
-
 	if (shgroup->type == DRW_SHG_INSTANCE) {
 		shgroup_dynamic_instance(shgroup);
 	}
@@ -1797,17 +1764,10 @@ static void draw_geometry_prepare(
 static void draw_geometry_execute_ex(
         DRWShadingGroup *shgroup, Gwn_Batch *geom, unsigned int start, unsigned int count)
 {
-	DRWInterface *interface = &shgroup->interface;
 	/* step 2 : bind vertex array & draw */
 	GWN_batch_program_set(geom, GPU_shader_get_program(shgroup->shader), GPU_shader_get_interface(shgroup->shader));
-	if (interface->instance_batch) {
-		/* Used for Particles. Cannot do partial drawing. */
-		GWN_batch_draw_stupid_instanced_with_batch(geom, interface->instance_batch);
-	}
-	else if (interface->instance_vbo) {
-		GWN_batch_draw_stupid_instanced(
-		        geom, interface->instance_vbo, start, count, interface->attribs_count,
-		        interface->attribs_stride, interface->attribs_size, interface->attribs_loc);
+	if (shgroup->instancing_geom) {
+		GWN_batch_draw_stupid_instanced(geom, shgroup->instancing_geom, start, count);
 	}
 	else {
 		GWN_batch_draw_stupid(geom, start, count);
@@ -2033,10 +1993,10 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 		float obmat[4][4];
 		unit_m4(obmat);
 
-		if (shgroup->type == DRW_SHG_INSTANCE &&
-		    (interface->instance_count > 0 || interface->instance_batch != NULL))
+		if (ELEM(shgroup->type, DRW_SHG_INSTANCE, DRW_SHG_INSTANCE_EXTERNAL) &&
+		    (shgroup->instancing_geom != NULL))
 		{
-			if (interface->instance_batch != NULL) {
+			if (shgroup->type == DRW_SHG_INSTANCE_EXTERNAL) {
 				GPU_SELECT_LOAD_IF_PICKSEL((DRWCall *)shgroup->calls_first);
 				draw_geometry(shgroup, shgroup->instance_geom, obmat, shgroup->instance_data, 0, 0);
 			}
