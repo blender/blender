@@ -145,13 +145,13 @@ static void create_bindings(Gwn_Batch* batch, const Gwn_ShaderInterface* interfa
 
 				if (input == NULL) continue;
 
-				if (a->comp_ct == 16) // Mat4 case
+				if (a->comp_ct == 16 || a->comp_ct == 12 || a->comp_ct == 8)
 					{
 #if TRUST_NO_ONE
 					assert(a->fetch_mode == GWN_FETCH_FLOAT);
 					assert(a->gl_comp_type == GL_FLOAT);
 #endif
-					for (int i = 0; i < 4; ++i)
+					for (int i = 0; i < a->comp_ct / 4; ++i)
 						{
 						glEnableVertexAttribArray(input->location + i);
 						glVertexAttribDivisor(input->location + i, (use_instancing) ? 1 : 0);
