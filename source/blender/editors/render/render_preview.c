@@ -382,9 +382,18 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 					}
 				}
 				else {
-					/* use current scene world to light sphere */
-					if (mat->pr_type == MA_SPHERE_A)
+					if (mat->pr_type == MA_SPHERE_A && sp->pr_method == PR_BUTS_RENDER) {
+						/* Use current scene world to light sphere. */
 						sce->world = scene->world;
+					}
+					else if (sce->world) {
+						/* Use a default world color. Using the current
+						 * scene world can be slow if it has big textures. */
+						sce->world->use_nodes = false;
+						sce->world->horr = 0.5f;
+						sce->world->horg = 0.5f;
+						sce->world->horb = 0.5f;
+					}
 				}
 				
 				if (sp->pr_method == PR_ICON_RENDER) {
@@ -393,10 +402,6 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 					}
 					else {
 						sce->lay = 1 << MA_SPHERE_A;
-
-						/* same as above, use current scene world to light sphere */
-						if (BKE_scene_use_new_shading_nodes(scene))
-							sce->world = scene->world;
 					}
 				}
 				else {
@@ -492,6 +497,15 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 				else {
 					sce->world = NULL;
 					sce->camera = (Object *)BLI_findstring(&pr_main->object, "Camera", offsetof(ID, name) + 2);
+				}
+			}
+			else {
+				if (sce->world) {
+					/* Only use lighting from the lamp. */
+					sce->world->use_nodes = false;
+					sce->world->horr = 0.0f;
+					sce->world->horg = 0.0f;
+					sce->world->horb = 0.0f;
 				}
 			}
 				
