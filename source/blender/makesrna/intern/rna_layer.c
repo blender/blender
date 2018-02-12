@@ -846,8 +846,7 @@ static void rna_LayerObjects_active_object_update(struct bContext *C, PointerRNA
 		return;
 	}
 
-	WorkSpace *workspace = WM_window_get_active_workspace(win);
-	ViewLayer *view_layer = BKE_workspace_view_layer_get(workspace, scene);
+	ViewLayer *view_layer = (ViewLayer *)ptr->data;
 	if (scene->obedit) {
 		ED_object_editmode_exit(C, EM_FREEDATA);
 	}
