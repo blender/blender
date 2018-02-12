@@ -123,6 +123,13 @@ add_test(
 )
 
 add_test(
+	NAME boolean
+	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
+	${TEST_SRC_DIR}/modeling/bool_regression.blend
+	--python-text run_tests
+)
+
+add_test(
 	NAME split_faces
 	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/modeling/split_faces_test.blend
